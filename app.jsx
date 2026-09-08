@@ -602,6 +602,28 @@ const EZ_I18N = {
     'articles.unpublished': 'أُلغيَ النشر.',
     'articles.deleted': 'حُذِف.',
     'khatmah.labelMuraja': 'مراجعتي',
+    'asmaa.title': 'أسماءُ اللهِ الحسنى',
+    'asmaa.searchPlaceholder': 'ابحثْ في الأسماء',
+    'asmaa.searchAria': 'بحثٌ في أسماءِ اللهِ الحسنى',
+    'asmaa.gridAria': 'أسماءُ اللهِ الحسنى',
+    'asmaa.noMatch': 'لا اسمَ يطابقُ ما كتبت.',
+    'asmaa.error': 'تعذَّرَ جلبُ المتن. تحقَّقْ من الاتّصالِ ثمّ أعِدِ المحاولة.',
+    'asmaa.backToShelf': 'الرجوعُ إلى الأسماء',
+    'asmaa.rulesButton': 'القواعدُ السبع',
+    'asmaa.rulesTitle': 'القواعدُ السبعُ في أسماءِ اللهِ الحسنى',
+    'asmaa.rulesAria': 'القواعدُ السبع',
+    'asmaa.readAria': 'صفحةُ الاسم',
+    'asmaa.meaning': 'المعنى',
+    'asmaa.fromBook': 'من الكتاب',
+    'asmaa.ayah': 'الآية',
+    'asmaa.ayahRef': '[{surah}: {number}]',
+    'asmaa.hadith': 'الحديث',
+    'asmaa.grading': 'درجةُ الحديث',
+    'asmaa.spellings': 'رسمُ الاسم',
+    'asmaa.sourceNote': 'ملاحظةٌ على المصدر',
+    'asmaa.groupedWith': 'يُذكَرُ مع',
+    'asmaa.page': 'المطبوع: ص {page}',
+    'asmaa.credit': '{book} — {author} — ص {pages}',
   },
   en: {
     'common.close': 'Close',
@@ -1010,6 +1032,28 @@ const EZ_I18N = {
     'articles.unpublished': 'It is no longer published.',
     'articles.deleted': 'Deleted.',
     'khatmah.labelMuraja': 'My revision',
+    'asmaa.title': 'The most beautiful names of Allah',
+    'asmaa.searchPlaceholder': 'Search the names',
+    'asmaa.searchAria': 'Search the most beautiful names of Allah',
+    'asmaa.gridAria': 'The most beautiful names of Allah',
+    'asmaa.noMatch': 'No name matches what you typed.',
+    'asmaa.error': 'The text could not be fetched. Check the connection and try again.',
+    'asmaa.backToShelf': 'Back to the names',
+    'asmaa.rulesButton': 'The seven rules',
+    'asmaa.rulesTitle': 'The seven rules on the names of Allah',
+    'asmaa.rulesAria': 'The seven rules',
+    'asmaa.readAria': 'The name page',
+    'asmaa.meaning': 'Meaning',
+    'asmaa.fromBook': 'From the book',
+    'asmaa.ayah': 'The verse',
+    'asmaa.ayahRef': '[{surah}: {number}]',
+    'asmaa.hadith': 'The hadith',
+    'asmaa.grading': 'Grading of the hadith',
+    'asmaa.spellings': 'How the name is written',
+    'asmaa.sourceNote': 'A note on the source',
+    'asmaa.groupedWith': 'Grouped with',
+    'asmaa.page': 'Printed page {page}',
+    'asmaa.credit': '{book} — {author} — pp. {pages}',
   },
 };
 
@@ -1883,6 +1927,119 @@ const loadAdhkarSplit = () => {
   }
   return __splitPromise;
 };
+
+// ============================================================
+// ITEM 26 -- أسماء الله الحسنى: THE TWO SHEETS, FETCHED WHEN THE SECTION IS OPENED
+// ============================================================
+// THE OWNER'S CONDITION, IN ONE SENTENCE: «المتنُ يُجلَبُ عندَ فتحِ القسمِ لا مع إقلاعِ التطبيق.»
+// Both files are STATIC in this tree and are served from the origin root, exactly as adhkar.json
+// and adhkar-split-27.json are. Neither is imported, inlined, generated or bundled: app.js grows
+// only by the code below and by the components at the end of the articles block, and the 153202
+// bytes of the names sheet never enter it. A reader who never opens this section pays nothing.
+//
+// AND NEITHER IS IN THE WORKER'S CORE. The two doors of category 27 taught the rule this follows:
+// a file that is not precached costs ONE network fetch on a cold start and is unavailable
+// offline. That is the deliberate price of not putting 153 kB into the install of every reader
+// who never opens the section -- and the section says so plainly when the fetch fails rather
+// than drawing an empty shelf.
+//
+// THE SHAPE IS THE PATTERN loadAdhkarSplit ESTABLISHED, line for line: a module-level cache, a
+// module-level in-flight promise so a second open cannot start a second fetch, Promise.resolve()
+// in front so even a missing fetch() becomes a rejection rather than a synchronous throw, and a
+// catch that CLEARS the promise so a reader who lost the network can press retry and try again.
+// NOTHING NORMALISES, REORDERS, TRIMS OR REPAIRS EITHER FILE. They are fetched, parsed and read.
+const ASMAA_NAMES_URL = '/asmaa-dataset-final-r3.json';
+const ASMAA_RULES_URL = '/asmaa-rules-page-r2.json';
+let __asmaaNames = null;
+let __asmaaNamesPromise = null;
+const loadAsmaaNames = () => {
+  if (__asmaaNames) return Promise.resolve(__asmaaNames);
+  if (!__asmaaNamesPromise) {
+    __asmaaNamesPromise = Promise.resolve()
+      .then(() => fetch(ASMAA_NAMES_URL))
+      .then((r) => { if (!r.ok) throw new Error('asmaa names fetch ' + r.status); return r.json(); })
+      .then((raw) => { __asmaaNames = Array.isArray(raw) ? raw : []; return __asmaaNames; })
+      .catch((e) => { __asmaaNamesPromise = null; throw e; });
+  }
+  return __asmaaNamesPromise;
+};
+let __asmaaRules = null;
+let __asmaaRulesPromise = null;
+const loadAsmaaRules = () => {
+  if (__asmaaRules) return Promise.resolve(__asmaaRules);
+  if (!__asmaaRulesPromise) {
+    __asmaaRulesPromise = Promise.resolve()
+      .then(() => fetch(ASMAA_RULES_URL))
+      .then((r) => { if (!r.ok) throw new Error('asmaa rules fetch ' + r.status); return r.json(); })
+      .then((raw) => { __asmaaRules = (raw && typeof raw === 'object') ? raw : null; return __asmaaRules; })
+      .catch((e) => { __asmaaRulesPromise = null; throw e; });
+  }
+  return __asmaaRulesPromise;
+};
+
+// ── THE ATTRIBUTION RULE, AND THE CLIENT AND THE GATE STATE THE SAME SENTENCE ───────────────
+//
+// «كلُّ سجلٍّ فيه كتابٌ ومؤلِّفٌ وصفحةٌ في source، وكلُّ نصٍّ منقولٍ يحملُ صفحتَه المطبوعةَ داخلَ
+//  entry_pages لسجلِّه. وما نقصَ منه شيءٌ فبطاقتُه لا تُعرَض.»
+//
+// So this is a FILTER, not a warning: a record that cannot say which book, which author and
+// which printed page a sentence came from is not drawn at all. It is a pure function of one
+// record -- no store, no request, no clock -- which is what lets guards/asmaa-attribution-guard
+// drive the SHIPPED function over the SHIPPED file rather than re-implementing the rule beside
+// it and then measuring its own copy.
+//
+// THE FOUR PAGE-BEARING FIELDS are quote, ayah, hadith and grading_note: every one of them, in
+// every record that has it, is an object carrying its own printed_page. A field that is null is
+// absent, not defective -- 17 records carry no ayah and 41 carry no hadith -- and absence is
+// never a reason to withhold a card.
+//
+// 🔴 ONE MEASURED EXCEPTION, NAMED AND COUNTED RATHER THAN WAVED THROUGH. In record n=60
+// («المؤمن») grading_note is a bare STRING and not the {text, printed_page} object the other
+// fifteen use. It is a composed note that cites an outside reference («وانظر: السلسلة الصحيحة»)
+// rather than a sentence lifted off a page of the book, so it carries no printed page and could
+// not carry one. It is admitted here -- and the gate pins that it is EXACTLY ONE record and
+// EXACTLY that number, so a second unpaged quotation cannot arrive behind it in silence.
+const ASMAA_PAGED_FIELDS = ['quote', 'ayah', 'hadith', 'grading_note'];
+const asmaaNonEmpty = (v) => (typeof v === 'string' && v.trim() !== '');
+function asmaaCardShowable(rec) {
+  if (!rec || typeof rec !== 'object') return false;
+  if (!(typeof rec.n === 'number' && rec.n >= 1)) return false;
+  if (!asmaaNonEmpty(rec.name)) return false;
+  const src = rec.source;
+  if (!src || typeof src !== 'object') return false;
+  if (!asmaaNonEmpty(src.book) || !asmaaNonEmpty(src.author) || !asmaaNonEmpty(src.pages)) return false;
+  const ep = rec.entry_pages;
+  if (!ep || typeof ep !== 'object') return false;
+  const from = ep.from;
+  const to = ep.to;
+  if (!(typeof from === 'number' && typeof to === 'number' && from >= 1 && to >= from)) return false;
+  for (const field of ASMAA_PAGED_FIELDS) {
+    const v = rec[field];
+    if (v == null) continue;
+    // The one admitted shape that is not a quotation off a page -- see the note above.
+    if (field === 'grading_note' && typeof v === 'string') { if (!asmaaNonEmpty(v)) return false; continue; }
+    if (!v || typeof v !== 'object' || !asmaaNonEmpty(v.text)) return false;
+    if (typeof v.printed_page !== 'number') return false;
+    if (!(v.printed_page >= from && v.printed_page <= to)) return false;
+  }
+  return true;
+}
+
+// THE SEARCH, AND IT IS A STRING COMPARISON AND NOTHING ELSE. No request, no model, no index, no
+// ranking: the reader's letters are normalised the way the rest of this file normalises Arabic
+// and matched against the name, against the name with «ال» taken off the front, and against the
+// record's own number in either set of digits. That is the whole of it.
+const asmaaFold = (str) => normalizeArabic(str).replace(/^ال/, '');
+function asmaaMatches(rec, needle) {
+  if (!needle) return true;
+  const q = asmaaFold(needle);
+  if (!q) return true;
+  const name = normalizeArabic(rec.name || '');
+  if (name.indexOf(q) !== -1) return true;
+  if (asmaaFold(rec.name || '').indexOf(q) !== -1) return true;
+  const num = String(rec.n);
+  return num === q || toArabicDigits(num) === q;
+}
 
 // THE RESOLUTION, AND IT IS THE WHOLE OF THE POLICY. One pure function, no state, no storage.
 //
@@ -7031,6 +7188,331 @@ function EzikArticleWriter({ section, grant, onBack, onChanged }) {
 // ITEM 20 -- END OF THE ARTICLES SECTIONS AND THE WRITING SCREEN
 
 // ============================================================
+// ITEM 26 -- أسماءُ اللهِ الحسنى: ثلاثُ شاشات، ونصٌّ يُقرَأُ فقط
+// ============================================================
+// WHAT THIS SECTION IS, IN THE OWNER'S OWN WORDS: «القسمُ لا يمسُّ مخَّ عزك ولا يُجلَبُ منه شيءٌ
+// إليه — نصٌّ يُقرَأُ فقط.» Nothing below sends a question, reads a session, opens a store, calls
+// a route or touches a model. The only two requests in the whole section are the two GETs for
+// the two static sheets, and they are made by loadAsmaaNames / loadAsmaaRules above.
+//
+// AND NOT ONE WORD OF THE ENTRY IS AUTHORED HERE. Every sentence a reader sees on a name's page
+// comes out of asmaa-dataset-final-r3.json verbatim, in the order the owner fixed. What this
+// file supplies is the FURNITURE -- a one-word heading over each field so a reader can tell a
+// verse from a hadith, the page markers, and the credit line assembled from the record's own
+// `source` object. A field that is null is not drawn AND ITS HEADING IS NOT DRAWN EITHER, which
+// is the difference between a record that says nothing about a thing and a screen that shows an
+// empty box where a thing should have been.
+//
+// WHY IT IS A LAYER AND NOT A SCREEN. `screen` is a cross-file contract: theme-coverage-guard
+// holds the inventory of every value that key may take, and the prayer sheet and the two
+// articles sections are both layers for exactly this reason. This section follows them. It
+// registers its own history entry through useEzikBackLayer, so the device's back button closes
+// the layer the reader is actually looking at and never the screen underneath it.
+
+// The number under the reader's own digits, and the same helper the rest of the file uses.
+const asmaaNum = (v) => (ezLangGet() === 'ar' ? toArabicDigits(String(v)) : String(v));
+// A printed page, marked as one. The record's own number, nothing added to it.
+function EzikAsmaaPage({ page }) {
+  if (typeof page !== 'number') return null;
+  return <div style={s.asmaaPage}>{ezT('asmaa.page', { page: asmaaNum(page) })}</div>;
+}
+// One field: its heading, then its own content. Never rendered for an absent field -- the caller
+// decides, so the heading and the body cannot come apart.
+function EzikAsmaaField({ label, children }) {
+  return (
+    <div style={s.asmaaField}>
+      <div style={s.asmaaFieldLabel}>{label}</div>
+      {children}
+    </div>
+  );
+}
+
+/* ---- ٣-٢ · صفحةُ الاسم ------------------------------------------------------------------- */
+// THE ORDER OF THE FIELDS IS THE ORDER THE OWNER WROTE, and it is written once, here:
+//   name · meaning · quote · ayah · hadith · grading_note · spellings · source_note ·
+//   grouped_with · then the credit line built from `source`.
+// `meaning` is TWO LINES in all ninety-nine records and both are printed as they stand -- the
+// split is on the newline the file itself carries and nothing is joined, trimmed or re-wrapped.
+function EzikAsmaaCard({ rec }) {
+  const src = rec.source;
+  const credit = ezT('asmaa.credit', { book: src.book, author: src.author, pages: asmaaNum(src.pages) });
+  return (
+    <article style={s.asmaaRead} aria-label={ezT('asmaa.readAria')}>
+      <h2 style={s.asmaaReadTitle}>{rec.name}</h2>
+
+      <EzikAsmaaField label={ezT('asmaa.meaning')}>
+        {String(rec.meaning).split('\n').map((line, i) => (
+          <p key={i} style={s.asmaaPara}>{line}</p>
+        ))}
+      </EzikAsmaaField>
+
+      <EzikAsmaaField label={ezT('asmaa.fromBook')}>
+        <p style={s.asmaaQuote}>{rec.quote.text}</p>
+        <EzikAsmaaPage page={rec.quote.printed_page} />
+      </EzikAsmaaField>
+
+      {rec.ayah ? (
+        <EzikAsmaaField label={ezT('asmaa.ayah')}>
+          <p style={s.asmaaAyah}>{rec.ayah.text}</p>
+          <div style={s.asmaaRef}>{ezT('asmaa.ayahRef', { surah: rec.ayah.surah, number: asmaaNum(rec.ayah.number) })}</div>
+          <EzikAsmaaPage page={rec.ayah.printed_page} />
+        </EzikAsmaaField>
+      ) : null}
+
+      {rec.hadith ? (
+        <EzikAsmaaField label={ezT('asmaa.hadith')}>
+          <p style={s.asmaaQuote}>{rec.hadith.text}</p>
+          {rec.hadith.takhrij ? <div style={s.asmaaRef}>{rec.hadith.takhrij}</div> : null}
+          <EzikAsmaaPage page={rec.hadith.printed_page} />
+        </EzikAsmaaField>
+      ) : null}
+
+      {/* grading_note is an object in fifteen records and a bare string in one -- n=60, named in
+          the note over asmaaCardShowable. Both are printed; only the object has a page. */}
+      {rec.grading_note ? (
+        <EzikAsmaaField label={ezT('asmaa.grading')}>
+          <p style={s.asmaaPara}>{typeof rec.grading_note === 'string' ? rec.grading_note : rec.grading_note.text}</p>
+          {typeof rec.grading_note === 'string' ? null : <EzikAsmaaPage page={rec.grading_note.printed_page} />}
+        </EzikAsmaaField>
+      ) : null}
+
+      {/* «spellings حيثُ وُجِدَ يُعرَضُ الرسمانِ معًا» -- both forms, each with the note the file
+          gives for it. Measured: one record carries this, n=61. */}
+      {Array.isArray(rec.spellings) && rec.spellings.length > 0 ? (
+        <EzikAsmaaField label={ezT('asmaa.spellings')}>
+          {rec.spellings.map((sp, i) => (
+            <div key={i} style={s.asmaaSpelling}>
+              <div style={s.asmaaSpellingForm}>{sp.form}</div>
+              <div style={s.asmaaRef}>{sp.source}</div>
+            </div>
+          ))}
+        </EzikAsmaaField>
+      ) : null}
+
+      {/* «source_note يُعرَضُ بنصِّه — فيه تصريحاتٌ يجبُ أن يراها القارئ.» Printed whole, never
+          summarised and never shortened. */}
+      {rec.source_note ? (
+        <EzikAsmaaField label={ezT('asmaa.sourceNote')}>
+          <p style={s.asmaaPara}>{rec.source_note}</p>
+        </EzikAsmaaField>
+      ) : null}
+
+      {Array.isArray(rec.grouped_with) && rec.grouped_with.length > 0 ? (
+        <EzikAsmaaField label={ezT('asmaa.groupedWith')}>
+          <p style={s.asmaaPara}>{rec.grouped_with.join(' · ')}</p>
+        </EzikAsmaaField>
+      ) : null}
+
+      {/* سطرُ العزو. The book, the author and the pages, out of the record's own `source` object
+          -- the three things asmaaCardShowable refuses to draw a card without. */}
+      <div style={s.asmaaCredit}>{credit}</div>
+    </article>
+  );
+}
+
+/* ---- ٣-٣ · صفحةُ القواعدِ السبع ---------------------------------------------------------- */
+// SEVEN, NOT SIX AND NOT EIGHT. The file's own array is mapped once, in its own order; nothing
+// here filters, sorts or slices it, so what the reader counts is what the owner shipped. The
+// credit is the file's ONE `source` object, printed under the seven.
+function EzikAsmaaRules({ onBack }) {
+  const [state, setState] = useState(EZIK_ART_LOADING);
+  const [doc, setDoc] = useState(null);
+  const aliveRef = useRef(true);
+  useEffect(() => () => { aliveRef.current = false; }, []);
+  const load = () => {
+    setState(EZIK_ART_LOADING);
+    loadAsmaaRules().then((raw) => {
+      if (!aliveRef.current) return;
+      if (!raw || !Array.isArray(raw.items) || raw.items.length === 0) { setState(EZIK_ART_FAILED); return; }
+      setDoc(raw);
+      setState(EZIK_ART_DONE);
+    }).catch(() => { if (aliveRef.current) setState(EZIK_ART_FAILED); });
+  };
+  useEffect(load, []);
+  const src = doc && doc.source;
+  return (
+    <EzShell title={ezT('asmaa.rulesTitle')} onBack={onBack} backLabel={ezT('asmaa.backToShelf')}>
+      {state === EZIK_ART_LOADING ? (
+        <div role="status" aria-live="polite" style={s.artNote}>{ezT('common.loading')}</div>
+      ) : null}
+      {state === EZIK_ART_FAILED ? (
+        <div role="alert" style={s.artError}>
+          <span>{ezT('asmaa.error')}</span>
+          <button type="button" className="ezhome-focus" style={s.artRetry} onClick={load}>{ezT('common.retry')}</button>
+        </div>
+      ) : null}
+      {state === EZIK_ART_DONE ? (
+        <section style={s.asmaaRead} aria-label={ezT('asmaa.rulesAria')}>
+          {doc.items.map((item, i) => (
+            <div key={i} style={s.asmaaRule}>
+              <div style={s.asmaaRuleTitle}>{asmaaNum(i + 1) + '. ' + item.title}</div>
+              {String(item.text).split('\n').map((line, j) => (
+                <p key={j} style={s.asmaaPara}>{line}</p>
+              ))}
+              {item.quote ? (
+                <>
+                  <p style={s.asmaaQuote}>{item.quote.text}</p>
+                  <EzikAsmaaPage page={item.quote.printed_page} />
+                </>
+              ) : null}
+            </div>
+          ))}
+          {src ? (
+            <div style={s.asmaaCredit}>
+              {ezT('asmaa.credit', { book: src.book, author: src.author, pages: asmaaNum(src.pages) })}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+    </EzShell>
+  );
+}
+
+/* ---- ٣-١ · رفُّ البلاطات ------------------------------------------------------------------ */
+// THREE ON A PHONE AND FOUR ON A WIDE SCREEN, and the boundary is asked of the platform rather
+// than guessed at from a window width this file measured once. matchMedia fires `change` when a
+// device turns and when a desktop window crosses the boundary and never otherwise -- no resize
+// listener and no polling -- which is the same subscription useMadinaFill already makes for the
+// mushaf. 700px is the boundary that file measured: above every phone in portrait, below every
+// tablet and desktop window.
+//
+// 🔴 THE COLUMN COUNT IS MY READING AND NOT A RULING: «وهذا رأيي، والحكمُ لعينِ المالكِ على
+// البريفيو». It is one number in one place, and moving it is one edit.
+const ASMAA_WIDE_Q = '(min-width: 700px)';
+const asmaaWideNow = () => {
+  try { return !!(window.matchMedia && window.matchMedia(ASMAA_WIDE_Q).matches); } catch (e) { return false; }
+};
+function useAsmaaWide() {
+  const [wide, setWide] = useState(asmaaWideNow);
+  useEffect(() => {
+    let mq = null;
+    try { mq = window.matchMedia(ASMAA_WIDE_Q); } catch (e) { return undefined; }
+    const on = () => setWide(mq.matches);
+    on();
+    if (mq.addEventListener) mq.addEventListener('change', on);
+    else if (mq.addListener) mq.addListener(on);
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener('change', on);
+      else if (mq.removeListener) mq.removeListener(on);
+    };
+  }, []);
+  return wide;
+}
+
+// ONE TILE: THE NUMBER AND THE NAME, AND NOTHING ELSE. No meaning, no page, no mark and no
+// count -- the shelf is an index, and everything a record says about itself belongs on its own
+// page. The tile is a real button, so Enter and Space already work and the focus ring is the
+// application's own.
+function EzikAsmaaTile({ rec, onOpen }) {
+  return (
+    <button type="button" className="ezhome-focus" style={s.asmaaTile} onClick={onOpen}>
+      <span style={s.asmaaTileNum}>{asmaaNum(rec.n)}</span>
+      <span style={s.asmaaTileName}>{rec.name}</span>
+    </button>
+  );
+}
+
+// THE SECTION. One component owns all three views for the reason the articles section gives for
+// owning two: a second component is a second place for the loading state, the failure state and
+// the back path to drift apart. The two nested views register their own history entries, in a
+// fixed order, so the hook order never changes between renders.
+function EzikAsmaaSection({ onHome }) {
+  const [state, setState] = useState(EZIK_ART_LOADING);
+  const [rows, setRows] = useState([]);
+  const [query, setQuery] = useState('');
+  const [openN, setOpenN] = useState(null);
+  const [rulesOpen, setRulesOpen] = useState(false);
+  const wide = useAsmaaWide();
+  const aliveRef = useRef(true);
+  useEffect(() => () => { aliveRef.current = false; }, []);
+
+  // THE FETCH HAPPENS HERE AND NOWHERE EARLIER. This effect runs when the section MOUNTS, which
+  // is when the reader opened it -- there is no probe on the home screen, no warm on boot and no
+  // prefetch anywhere in this file.
+  const load = () => {
+    setState(EZIK_ART_LOADING);
+    loadAsmaaNames().then((raw) => {
+      if (!aliveRef.current) return;
+      // THE FILTER IS THE ATTRIBUTION RULE, applied once on the way in, so no view below can
+      // draw a record that could not name its book, its author and its page.
+      const kept = raw.filter(asmaaCardShowable);
+      setRows(kept);
+      setState(kept.length > 0 ? EZIK_ART_DONE : EZIK_ART_FAILED);
+    }).catch(() => { if (aliveRef.current) setState(EZIK_ART_FAILED); });
+  };
+  useEffect(load, []);
+
+  useEzikBackLayer(rulesOpen, () => setRulesOpen(false));
+  useEzikBackLayer(openN !== null, () => setOpenN(null));
+
+  if (rulesOpen) return <EzikAsmaaRules onBack={ezikGoBack} />;
+
+  const opened = openN === null ? null : rows.filter((r) => r.n === openN)[0];
+  if (opened) {
+    return (
+      <EzShell title={ezT('asmaa.title')} onBack={ezikGoBack} backLabel={ezT('asmaa.backToShelf')}>
+        <EzikAsmaaCard rec={opened} />
+      </EzShell>
+    );
+  }
+
+  const shown = rows.filter((r) => asmaaMatches(r, query));
+  return (
+    <EzShell
+      title={ezT('asmaa.title')}
+      onBack={onHome}
+      backLabel={A2_BACK}
+      actions={(
+        <button type="button" className="ezhome-focus" style={s.artWriteBtn}
+          onClick={() => setRulesOpen(true)}>{ezT('asmaa.rulesButton')}</button>
+      )}
+    >
+      {state === EZIK_ART_LOADING ? (
+        <div role="status" aria-live="polite" style={s.artNote}>{ezT('common.loading')}</div>
+      ) : null}
+
+      {/* A DEAD NETWORK IS SAID OUT LOUD. The section is not empty -- it ships with ninety-nine
+          records -- so an empty shelf can only mean the sheet did not arrive, and saying
+          "nothing here" would be the application lying about the world on its own behalf. */}
+      {state === EZIK_ART_FAILED ? (
+        <div role="alert" style={s.artError}>
+          <span>{ezT('asmaa.error')}</span>
+          <button type="button" className="ezhome-focus" style={s.artRetry} onClick={load}>{ezT('common.retry')}</button>
+        </div>
+      ) : null}
+
+      {state === EZIK_ART_DONE ? (
+        <>
+          {/* THE SEARCH BOX. Local, and that is the whole of it: what is typed is matched against
+              the names already in this browser and is never sent anywhere. */}
+          <div style={s.asmaaSearchWrap}>
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={ezT('asmaa.searchPlaceholder')}
+              aria-label={ezT('asmaa.searchAria')}
+              className="ezhome-focus"
+              style={s.asmaaSearch}
+            />
+          </div>
+          {shown.length === 0 ? (
+            <div role="status" style={s.artNote}>{ezT('asmaa.noMatch')}</div>
+          ) : (
+            <div style={wide ? s.asmaaGridWide : s.asmaaGrid} aria-label={ezT('asmaa.gridAria')}>
+              {shown.map((rec) => (
+                <EzikAsmaaTile key={rec.n} rec={rec} onOpen={() => setOpenN(rec.n)} />
+              ))}
+            </div>
+          )}
+        </>
+      ) : null}
+    </EzShell>
+  );
+}
+// ITEM 26 -- END OF أسماء الله الحسنى
+
+// ============================================================
 // OFFICIAL FATWA SEARCH -- READ ONLY
 // ============================================================
 // The browser speaks only to Ezik's own /api/v1 contract. vercel.json rewrites that path to
@@ -9753,6 +10235,10 @@ function App() {
   const [pendingImage, setPendingImage] = useState(null); // { media_type, data } or null
   const [attachMenuOpen, setAttachMenuOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);   // D85: the chat drawer (menu button)
+  // ITEM 26: أسماء الله الحسنى, open over whatever screen the reader was on. It is NOT a route --
+  // the screen inventory is a cross-file contract, the same reason the prayer sheet and the two
+  // articles sections are layers -- and like them it registers ONE history entry below.
+  const [asmaaOpen, setAsmaaOpen] = useState(false);
   // S92: the saved-conversation state. `chatId` is the conversation the thread on screen belongs
   // to, and NULL means the thread has not been filed yet — a brand new, empty chat. `chatIdRef`
   // is its synchronous mirror because the autosave runs after an await, inside a handler whose
@@ -10508,6 +10994,9 @@ function App() {
     drawerNavRef.current = null;
     if (run) run();
   });
+  // ITEM 26: one entry for the section, spent by the device button and by its own back control.
+  // Registered unconditionally and in a fixed order, so the hook order never changes.
+  useEzikBackLayer(asmaaOpen, () => setAsmaaOpen(false));
   const closeDrawerWith = (fn) => {
     drawerNavRef.current = (typeof fn === 'function') ? fn : null;
     // ezikHistBack is false only when this app owns nothing on the stack -- the menu's entry could
@@ -12970,6 +13459,17 @@ function App() {
               <span style={{ flex: 1, minWidth: 0 }}>{EZIK_FAV_TITLE}</span>
               {myFavs.length > 0 && <span style={s.drawerBadge}>{myFavs.length}</span>}
             </button>
+            {/* ITEM 26: أسماء الله الحسنى. It is opened from the menu because the menu is the one
+                door BOTH the home screen and the chat already draw, and because the home shelf's
+                exact contents are a frozen contract this item is not permitted to re-cut -- see
+                the report. Like every other row it hands its action to closeDrawerWith, so the
+                menu's own history entry is spent before the section pushes its own. */}
+            <button onClick={() => closeDrawerWith(() => setAsmaaOpen(true))} style={s.drawerItem} className="ezik-focus">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 3h9a2 2 0 0 1 2 2v16l-6.5-4L4 21V5a2 2 0 0 1 2-2z" />
+              </svg>
+              <span>{ezT('asmaa.title')}</span>
+            </button>
             {/* S92: THE HISTORY. \u00ab\u0645\u062d\u0627\u062f\u062b\u0629 \u062c\u062f\u064a\u062f\u0629\u00bb stays the one and only new-chat entry -- this
                 section adds the saved conversations UNDER the existing items and duplicates
                 none of them. The order is the store's: pinned first, then the most recent.
@@ -13075,6 +13575,11 @@ function App() {
   // behaves exactly as it did and no timer, wait or step was added to the boot.
   if (screen === 'loading') return <div className="theme-dark ezhome ezload" style={s.loadingScreen}><div style={s.loadingSpinner} className="ezload-mark" aria-hidden="true"><span className="ezload-mark-in" /></div></div>;
   if (screen === 'onboarding') return <Onboarding onStart={startChat} />;
+  // ITEM 26: the section stands in front of whatever screen it was opened over, and it stands
+  // ABOVE every gate below because it sends nothing: no question, no session, no route and no
+  // model. A spend gate or a consent notice in front of a static sheet would be a barrier in
+  // front of a door that costs nothing to walk through.
+  if (asmaaOpen) return <EzikAsmaaSection onHome={ezikGoBack} />;
   // قفل الإنفاق: المطالبة تظهر فقط أمام الشاشتين اللتين تُنفقان (المحادثة/المكالمة) وحين يكون القفل مفعّلاً وغير مفتوح.
   // القفل المُعطَّل (٦٤ صفراً) ⇒ spendGateOpenState=true دائماً ⇒ لا تظهر هذه السطر أبداً. أما 0b (المصحف/المحفّظ/الأذكار) فتبقى مفتوحة.
   if ((screen === 'chat' || screen === 'call') && !spendGateOpenState) return <SpendGate onUnlock={unlockSpendGate} onExit={() => setScreen('home')} />;
@@ -23282,6 +23787,29 @@ const s = {
   artH3: { fontSize: 15.5, fontWeight: 700, lineHeight: 1.9, color: 'var(--a3-ink)', marginTop: 4 },
   artProseList: { margin: 0, paddingInlineStart: 22 },
   artListItem: { fontSize: 15.5, lineHeight: 2.1, color: 'var(--a3-ink)', overflowWrap: 'anywhere' },
+  // ITEM 26 -- أسماء الله الحسنى. Every colour is one of the four the articles section above
+  // already draws from, so the section inherits the identity rather than declaring one.
+  asmaaSearchWrap: { padding: '2px 0 10px' },
+  asmaaSearch: { width: '100%', minHeight: 44, padding: '10px 12px', background: 'var(--a3-surface)', color: 'var(--a3-ink)', border: '1px solid var(--a3-line)', borderRadius: 12, fontSize: 14.5, fontFamily: 'inherit', textAlign: 'start', outline: 'none' },
+  asmaaGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 },
+  asmaaGridWide: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 },
+  asmaaTile: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, minHeight: 78, padding: '10px 6px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontFamily: 'inherit', cursor: 'pointer' },
+  asmaaTileNum: { fontSize: 12.5, color: 'var(--a3-muted)' },
+  asmaaTileName: { fontSize: 15, fontWeight: 700, lineHeight: 1.7, textAlign: 'center', overflowWrap: 'anywhere' },
+  asmaaRead: { display: 'flex', flexDirection: 'column', gap: 14 },
+  asmaaReadTitle: { fontSize: 22, fontWeight: 700, lineHeight: 1.9, color: 'var(--a3-ink)', margin: 0, textAlign: 'center' },
+  asmaaField: { display: 'flex', flexDirection: 'column', gap: 6 },
+  asmaaFieldLabel: { fontSize: 13, fontWeight: 700, color: 'var(--a3-muted)' },
+  asmaaPara: { fontSize: 15.5, lineHeight: 2.1, color: 'var(--a3-ink)', margin: 0, overflowWrap: 'anywhere' },
+  asmaaQuote: { fontSize: 15.5, lineHeight: 2.1, color: 'var(--a3-ink)', margin: 0, padding: '10px 12px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-ice)', overflowWrap: 'anywhere' },
+  asmaaAyah: { fontSize: 17, lineHeight: 2.2, fontWeight: 700, color: 'var(--a3-ink)', margin: 0, padding: '10px 12px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-ice)', overflowWrap: 'anywhere' },
+  asmaaRef: { fontSize: 13, lineHeight: 1.9, color: 'var(--a3-muted)', overflowWrap: 'anywhere' },
+  asmaaPage: { fontSize: 12.5, color: 'var(--a3-muted)' },
+  asmaaSpelling: { display: 'flex', flexDirection: 'column', gap: 3 },
+  asmaaSpellingForm: { fontSize: 16, fontWeight: 700, color: 'var(--a3-ink)' },
+  asmaaCredit: { fontSize: 13, lineHeight: 1.9, color: 'var(--a3-muted)', paddingTop: 8, borderTop: '1px solid var(--a3-line)', overflowWrap: 'anywhere' },
+  asmaaRule: { display: 'flex', flexDirection: 'column', gap: 8 },
+  asmaaRuleTitle: { fontSize: 17, fontWeight: 700, lineHeight: 1.9, color: 'var(--a3-ink)' },
   artInput: { width: '100%', minHeight: 44, padding: '10px 14px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontSize: 15, fontFamily: 'inherit', boxSizing: 'border-box' },
   artTextarea: { width: '100%', minHeight: 220, padding: '12px 14px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontSize: 15, lineHeight: 2, fontFamily: 'inherit', boxSizing: 'border-box', resize: 'vertical' },
   artChoiceRow: { display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' },

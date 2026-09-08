@@ -545,5 +545,10 @@
     "name": "articles",
     "script": "guards/articles-public-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "asmaa",
+    "script": "guards/asmaa-attribution-guard.cjs",
+    "args": ""
   }
 ]

@@ -763,7 +763,14 @@ head('14) GATE ROSTER (single source: gates.json)');
   // store and the role seam. It pins the two properties a public content path cannot be allowed
   // to lose -- no draft is reachable through a public route, and no public route response
   // carries an account key -- and it kills fifteen mutants to prove it can go red.
-  const GATES_EXPECTED = 108;  // 107th: rejectdoor -- guards/reject-door-guard.cjs. ق٥٥:
+  // 109th: asmaa -- guards/asmaa-attribution-guard.cjs. Item 26, أسماء الله الحسنى. A name's
+  // card names its book, its author and its printed page, or the reader does not see it. The
+  // gate pins both sheets byte for byte, walks the rule over all ninety-nine records and every
+  // quoted text in them, DRIVES the shipped filter sliced out of app.js over nine deliberately
+  // broken records, kills three mutants on that filter, and proves the 153202-byte sheet is
+  // fetched when the section opens rather than built into the boot.
+  const GATES_EXPECTED = 109;  // 108th: articles -- guards/articles-public-guard.cjs.
+                               // 107th: rejectdoor -- guards/reject-door-guard.cjs. ق٥٥:
   // the guard rules and does not edit -- a cut answer is rewritten, never delivered sutured.  // 106th: nameform -- guards/name-form-match-guard.cjs. One man
                                //       written two ways: «ابن عباس» is «عبد الله بن عباس» on the
                                //       shelf, and neither string is a whole-word run inside the

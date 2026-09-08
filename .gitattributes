@@ -19,6 +19,17 @@ lib/data/adhkar.json     text eol=lf
 adhkar-split-27.json          text eol=lf
 lib/data/adhkar-split-27.json text eol=lf
 
+# ITEM 26 -- the two sheets أسماء الله الحسنى is read from. They are the OWNER'S OWN FILES,
+# dropped into the tree sealed and byte-identical to what was handed over: 153202 bytes /
+# sha256 44d1c38c… for the names, 5931 bytes / sha256 5b1dfbc9… for the seven rules. The new
+# gate `asmaa` compares BOTH fingerprints, so a fresh clone with core.autocrlf=true rewriting
+# the line endings would turn a file nobody touched into a red gate. Pinned for that reason.
+asmaa-dataset-final-r3.json text eol=lf
+asmaa-rules-page-r2.json    text eol=lf
+
+# ITEM 26 -- the new gate script, same mechanical requirement recon-audit puts on every gate.
+guards/asmaa-attribution-guard.cjs text eol=lf
+
 # recon-audit requires bare-LF = 0 inside index.html. Pure CRLF, on every machine.
 index.html               text eol=crlf
 

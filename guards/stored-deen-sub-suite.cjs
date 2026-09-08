@@ -661,10 +661,15 @@ async function runSuite() {
     const m10out = await m10.runStoredFiqhTurn({ context: supportedContext, retrieve: async () => ({ records: [joinRecord] }), generate: async (request) => badTakhrijDraft(request.payload.evidence_pack, request.payload.current_question) });
     ok('MUTANT 10 KILLED: unsupported takhrij appears only when grounding output is bypassed', m10out.text.includes('رواه البخاري ومسلم'));
 
-    function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 108; }
+    // ITEM 26: 108 -> 109. The roster grew by one deliberate registration -- the gate `asmaa`,
+    // guards/asmaa-attribution-guard.cjs. This is the same mechanical bookkeeping
+    // recon-audit's GATES_EXPECTED carries, and it is re-cut to the number that is TRUE, not
+    // relaxed: the contract is still an exact count and an exact list, and mutants 11 and 12
+    // below still kill on a roster with one name taken out of it.
+    function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 109; }
     ok('ORIGINAL_GATE_SET_MATCH', exactGateSet(EXPECTED_GATES));
-    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 108-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
-    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 108-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
+    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 109-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
+    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 109-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
 
     const m13 = await storedMutant(temp, 'fiqh-before-special', (source) => source.replace(
       "if (QURAN_REQUEST.test(folded)) return 'LOCAL_QURAN';",
