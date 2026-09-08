@@ -755,13 +755,13 @@ const SEALED = {
   //                    page gains the owner's eighth rule, and the store name is bumped. app.jsx
   //                    moved one descriptor to the top of ezHomeModules and re-cut six dictionary
   //                    values («القواعد السبع» -> «القواعد الثماني»); app.js was rebuilt from that
-  //                    source 1364046 -> 1364605 (+559) by node tools/build-app.cjs, and CORE_BYTES
-  //                    was re-cut 2206893 -> 2207452 by node tools/core-bytes.cjs --write, which is
+  //                    source 1364046 -> 1364887 (+841) by node tools/build-app.cjs, and CORE_BYTES
+  //                    was re-cut 2206893 -> 2207734 by node tools/core-bytes.cjs --write, which is
   //                    exactly that delta. The worker byte table and the SW_PROSE mirror below both
   //                    followed, and THIS digest is re-cut last. CACHE IS bumped here, ezik-v32 ->
   //                    ezik-v33, and SW_CACHE below with it: a reader holding the old bundle would
   //                    otherwise keep a shelf with no section at its head.
-  'sw.js': '59d164caf7059e002355927273db7721db29c6e46ebe3b1fee59db1d2af83fae',
+  'sw.js': '10bd4e8e580a8fa87ecb6fcef73df1a9161f06d138ecb294574f8beeedfed6d4',
 };
 
 // ---------------------------------------------------------------------------
@@ -1872,7 +1872,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1364605, of: 'app.js' },
+      { n: 1364887, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

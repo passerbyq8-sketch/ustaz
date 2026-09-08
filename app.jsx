@@ -7348,9 +7348,12 @@ function EzikAsmaaCard({ rec }) {
 }
 
 /* ---- ٣-٣ · صفحةُ القواعدِ الثماني -------------------------------------------------------- */
-// SEVEN, NOT SIX AND NOT EIGHT. The file's own array is mapped once, in its own order; nothing
-// here filters, sorts or slices it, so what the reader counts is what the owner shipped. The
-// credit is the file's ONE `source` object, printed under the seven.
+// EIGHT SINCE 9 SEPTEMBER, NOT SEVEN AND NOT NINE. The owner added a rule at the HEAD of the
+// sheet that round; this component did not change with it, and that is the point -- the file's
+// own array is mapped once, in its own order, and nothing here filters, sorts or slices it, so
+// what the reader counts is what the owner shipped. The credit is the file's ONE `source`
+// object, printed under the eight, and it now names two page ranges because the eighth rule's
+// quotation is printed on page 80 and the other seven on pages 6-17.
 function EzikAsmaaRules({ onBack }) {
   const [state, setState] = useState(EZIK_ART_LOADING);
   const [doc, setDoc] = useState(null);
