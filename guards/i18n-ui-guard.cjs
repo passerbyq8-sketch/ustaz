@@ -850,10 +850,16 @@ async function partD() {
       const shelfIds = Array.prototype.slice.call(mosaic.querySelectorAll('[data-ezik-home-module]'))
         .map((e) => e.getAttribute('data-ezik-home-module'));
       eq('...and the articles section is the FIRST tile on it', shelfIds[0], 'articles');
-      eq('...and the women corner is the LAST, after every other section',
-        shelfIds[shelfIds.length - 1], 'women');
-      eq('...with the seven the order left alone between them, in their own order',
-        shelfIds.slice(1, -1), ['memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
+      // ITEM 20 / §3 -- TURNED OVER, ON THE SAME SHELF AND THE SAME ACCOUNT. This case used to
+      // read the women's corner off the END of this shelf, because under D-10 the «male» this
+      // account is seeded with changed nothing at all. The owner reversed that on 8 September:
+      // the form of address decides, and «male» is the one answer that is not shown the section.
+      // Nothing about the seed or the route moved -- the same reader, the same shelf, the
+      // opposite answer, which is what a reversed rule is supposed to look like.
+      eq('...and the women corner is NOT on his shelf, because this account answered «male»',
+        shelfIds.indexOf('women'), -1);
+      eq('...and the eight that remain are these, in the order the shelf order fixed', shelfIds,
+        ['articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
       // ITEM 20 / §1 -- THE NAME, READ OFF THE TILE THAT DRAWS IT. A dictionary entry no card
       // renders is a string nobody sees, so the shelf itself is asked what it says.
       const artTile = mosaic.querySelector('[data-ezik-home-module="articles"]');
@@ -1028,13 +1034,21 @@ async function partD() {
     eq('...seeded from the account rather than blank', [fields[0].value, fields[1].value], ['Noor', '1996']);
     eq('...and the form of address it already holds is the one marked',
       radios.map((b) => b.getAttribute('aria-checked')), ['true', 'false', 'false']);
-    // D-10, ON THE SCREEN THAT COULD BREAK IT. The control that hides the women's section is in
-    // this same group and it is a SWITCH the reader presses -- nothing above it decides for him.
-    // A reader marked «male» is looking at a switch that is OFF, which is the whole of the rule.
-    const hideSw = q('button[data-ezik-hide-women="switch"]');
-    eq('...and the hide control is in the same block, one switch', hideSw.length, 1);
-    eq('...and declaring a form of address has NOT pressed it (D-10)',
-      hideSw[0].getAttribute('aria-checked'), 'false');
+    // ITEM 20 / §3 -- TURNED OVER, ON THE SCREEN THAT OWNED THE OLD RULE. These two cases used
+    // to say that the hide switch is in this same group, and that declaring a form of address
+    // had NOT pressed it. That WAS D-10. The switch is gone now, because the row above it
+    // decides in its place and a control that could disagree with the account would be a second
+    // answer to a question that has one. Its mark is looked for on the WHOLE screen and not
+    // merely in this group, so a switch moved rather than removed is still caught.
+    eq('...and the switch that used to hide the women corner is GONE from the group',
+      q('button[data-ezik-hide-women="switch"]').length, 0);
+    eq('...and nothing anywhere on the screen carries its mark',
+      d.all('[data-ezik-hide-women]').length, 0);
+    // ...AND THE READER IS TOLD WHERE THE ANSWER NOW LIVES. §3 puts the way back in the reader's
+    // hands at this very row; a rule nobody is told about is not a way back, it is a surprise.
+    ok('...and the rule is stated in words at the row that decides it',
+      String(group.textContent || '').indexOf(String(c.grab("ezT('settings.womenCornerRule')"))) !== -1,
+      cps(String(group.textContent || '').slice(0, 60)));
     const save = () => q('button').filter((b) =>
       String(b.textContent || '').trim() === String(c.grab("ezT('settings.profileSave')")))[0];
     ok('...and a save control that is live to begin with', !!save() && !save().hasAttribute('disabled'));
@@ -1132,6 +1146,45 @@ async function partD() {
   ok('...and the menu is built by mapping the list, not by two hardcoded rows',
     /EZ_LANGUAGES\.map\(/.test(block));
   ok('no flag stands in for a language', !/\uD83C[\uDDE6-\uDDFF]/.test(block));
+
+  console.log('\n=== D4. ITEM 20 / \u00a73 -- THE WAY BACK, IN THIS SAME SESSION ===');
+  // THE WHOLE OF \u00a73's SECOND PROMISE, DRIVEN RATHER THAN ARGUED. This account opened part D
+  // answering \u00abmale\u00bb and its shelf had no women's corner on it -- measured on the live mosaic
+  // at D1. The profile block above then changed the answer to \u00abfemale\u00bb with a real press on
+  // the real radio and a real press on the real save. The order says the section must come back
+  // FOR THAT PRESS, at once, without the application being reopened -- and \u00a72 says it comes back
+  // LAST rather than wherever it used to be.
+  //
+  // NOTHING IS REMOUNTED TO MAKE THIS TRUE. It is the same window, the same React root and the
+  // same App that were mounted at the top of this part: the reader simply walks back out of
+  // Settings the way the shell's own back control walks him. That is the difference between
+  // this case and seeding a second context with \u00abfemale\u00bb -- a snapshot taken at mount would
+  // pass the seeded version and fail this one, which is exactly the defect \u00a73 forbids.
+  {
+    const backBtn = d.all('.ezsh-nav button')[0];
+    if (ok('the settings sheet offers the back control the reader leaves by', !!backBtn)) {
+      await d.click(backBtn);
+      await tick(240);
+    }
+    if (ok('...and it lands him back on the home', d.all('.ezist-mosaic').length === 1,
+      d.text().slice(0, 80))) {
+      const back = Array.prototype.slice.call(
+        d.all('.ezist-mosaic')[0].querySelectorAll('[data-ezik-home-module]'))
+        .map((e) => e.getAttribute('data-ezik-home-module'));
+      ok('\u00a73: the women corner is BACK on his shelf, for the answer he just saved',
+        back.indexOf('women') !== -1, JSON.stringify(back));
+      eq('\u00a72: ...and it is back LAST, not where it used to be', back[back.length - 1], 'women');
+      eq('\u00a73: ...and the eight it joins are the eight that were there, in their order',
+        back.slice(0, -1),
+        ['articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
+      eq('\u00a73: ...and the account it read is the one the save wrote',
+        JSON.parse(c.store.getItem('child_profile')).gender, 'female');
+      // AND THE ABANDONED KEY PLAYED NO PART IN IT. The device never held one in this run, and
+      // the shelf moved anyway -- so what moved it was the form of address and nothing else.
+      eq('\u00a73: ...and no hide key was read or written on the way', 
+        c.store.getItem('ezik_hide_women_v1'), null);
+    }
+  }
   c.destroy();
 }
 

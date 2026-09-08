@@ -364,11 +364,17 @@ const MUST_GO_ALREADY = [
   { c: 'EZIK_ART_SEEN_KEY' },
   // ITEM 9 -- the reader's own decision to hide the women's section from the shelf. Same rule,
   // same reading: it is a preference of one person on one device, not a permission the system
-  // granted and not an answer delete.html promises to keep. Wiped, the device returns to the
-  // DEFAULT the section ships with -- visible to everyone, D-10 -- which is the right outcome
-  // of "delete all my data" and not a regression: nobody is left looking at a shelf arranged
-  // by a reader who has gone.
-  { c: 'EZIK_HIDE_WOMEN_KEY' },
+  // granted and not an answer delete.html promises to keep.
+  //
+  // IT IS CITED AS A LITERAL NOW, AND THAT IS THE POINT OF THE ENTRY. Item 20 §3 (8 September)
+  // reversed the rule this key served: the form of address decides who sees that section, the
+  // switch is gone, and the key's constant left app.jsx with its reader and its writer. So the
+  // erasure cannot cite a constant that no longer exists -- and the value did NOT stop existing
+  // on the devices of everyone who ever pressed that switch. An abandoned value is still one
+  // person's record sitting in one person's browser, and "delete all my data" promises it goes.
+  // A `lit` entry is what this list already uses for exactly that case (mushaf_pos_v1, the
+  // pre-bookmark name), and it keeps the sweep asserted after the feature behind it is gone.
+  { lit: 'ezik_hide_women_v1' },
 ];
 
 // What delete.html:94 and :138 promise and the code did not keep of its own accord. Each is

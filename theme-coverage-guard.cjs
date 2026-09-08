@@ -827,14 +827,21 @@ const SET_CTRL = [
   ['PIN change', /onClick=\{savePin\}/, /autoComplete="new-password"/],
 ];
 for (const [name, a, b] of SET_CTRL) ok('Settings keeps its ' + name + ' control', a.test(html) && b.test(html));
-// SIX now: the font-size radios share one className in a map, the two switches, reset, the
-// form-of-address radiogroup that Apple 4.0.0 moved off the first-run card into Settings -- and,
-// since item 9, the switch that hides the women's section from the shelf. IT IS A COUNT OF THE
-// LITERAL AND NOT OF THE CONTROLS: the form-of-address group grew from two buttons to three in
-// the same commit as that switch and this number moved by one, not by two, because both radios
-// and all three of them are drawn from one className inside one map.
+// FIVE now, DOWN FROM SIX, AND THE SIXTH WAS DELETED BY ORDER RATHER THAN LOST. The five are:
+// the font-size radios, which share one className inside a map; the two switches; reset; and
+// the form-of-address radiogroup that Apple 4.0.0 moved off the first-run card into Settings.
+// The sixth was the switch that hid the women's section from the shelf, and item 20 §3
+// (8 September) removed it: the form of address decides now, so a second control that could
+// disagree with the account was taken away rather than left to argue with it.
+//
+// IT IS A COUNT OF THE LITERAL AND NOT OF THE CONTROLS, which is why it moved by one and not
+// by two: the form-of-address group is three buttons drawn from one className inside one map.
+// The count is RE-CUT here rather than relaxed -- it is a census, and a census that stops
+// naming a number stops being able to notice a control appearing. That the switch is gone is
+// asserted positively, twice, further down this file and in guards/i18n-ui-guard.cjs, on the
+// live DOM; this line only stops the census from lying about how many controls are left.
 ok('...and the a11y controls are still keyboard-reachable buttons with the focus ring',
-  (html.match(/className="ez-a11y-opt"/g) || []).length === 6 && /\.ez-a11y-opt:focus-visible/.test(css));
+  (html.match(/className="ez-a11y-opt"/g) || []).length === 5 && /\.ez-a11y-opt:focus-visible/.test(css));
 ok('the theme control still writes the SAME key with the SAME two values',
   /localStorage\.setItem\(THEME_KEY, v\)/.test(html) && /t === 'dark' \|\| t === 'light'/.test(html));
 ok('the accessibility preferences are still profile-scoped',
@@ -5142,54 +5149,80 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
     /const seenNow = ezikArtNewest\(outcome\.rows\);\s*\r?\n\s*EZIK_ART_NEWEST\[section\] = seenNow;\s*\r?\n\s*writeArtSeen\(section, seenNow\);/.test(html));
 }
 
-/* ===== NIGHT-F3. ITEM 9 -- THE HIDE CONTROL, AND WHAT IT MAY NOT TOUCH =======
- * D-10 IS THE PROPERTY UNDER TEST, and it is a property about what does NOT happen: the women's
- * section is visible to everyone by default, and NOTHING A READER DECLARES ABOUT HIMSELF hides
- * it. Only his own press on the control does. So the cases below run the shipped reader, the
- * shipped writer and the shipped module builder, and then read the whole of item 9's block for
- * the words that would have to be in it if any declaration had been wired to it.
+/* ===== ITEM 20 / SHELF §3. WHO SEES THE WOMEN'S CORNER, AND WHAT THAT MAY NOT TOUCH ======
+ * THIS SECTION USED TO TEST D-10, WHICH SAID THE OPPOSITE, AND EVERY CASE IN IT IS TURNED OVER
+ * RATHER THAN DROPPED. D-10's property was that the section is visible to everyone and that
+ * NOTHING a reader declares about himself hides it -- only his own press on a switch. The owner
+ * reversed that on 8 September: the FORM OF ADDRESS decides, and it is the only thing that
+ * does. «male» is not shown the section; «female», «prefer not to say» and an account that has
+ * never been asked all are. So the cases below run the shipped decision and the shipped module
+ * builder against all four answers, and then read the decision's own source for anything a
+ * second input would have to be written as.
  *
- * F15 is the other half: hiding removes THE TILE. It does not change the request, it does not
- * change what the server returns, and it does not reach into the section screen -- which is why
- * the filter is applied to the descriptor array and to nothing else.
+ * AND THE SWITCH'S KEY IS GONE, WHICH IS ITS OWN PROPERTY. §3 says the stored value is
+ * abandoned and never read again, and that no dead line is left behind reading it. So the
+ * constant, the reader, the writer and the control mark are each asserted ABSENT from the
+ * shipped client, and the key literal is asserted to survive at exactly ONE line -- the
+ * removeItem in «delete all my data», which is an erasure and not a read. Checked,
+ * rather than assumed from the control having been taken off a screen.
  *
- * The mounted half of this item -- that the control is in the same block as the three fields,
- * and that a reader marked "male" is looking at a switch that is OFF -- is in
+ * F15 IS UNCHANGED AND IS THE OTHER HALF: not drawing the tile is the whole effect. It does not
+ * change the request, it does not change what the server returns, and it does not reach into
+ * the section screen -- which is why the filter is applied to the descriptor array and to
+ * nothing else.
+ *
+ * The mounted half of this item -- that the switch is gone from the profile block, and that a
+ * reader marked «male» is looking at a shelf with no women's tile on it -- is in
  * guards/i18n-ui-guard.cjs, which has a real DOM to read it from.
  */
 {
-  const HIDE_KEY = (/const EZIK_HIDE_WOMEN_KEY = 'ezik_hide_women_v1';/.exec(html) || [''])[0];
-  const A = [['the hide key', HIDE_KEY]];
-  ok('NIGHT-F3: the decision has one device key, declared once in the shipped client',
-    HIDE_KEY.length > 0);
+  const DECIDE_SRC = "function ezWomenSectionHidden(gender) { return gender === 'male'; }";
+  const DECIDE = html.indexOf(DECIDE_SRC) !== -1 ? DECIDE_SRC : '';
+  const A = [['the decision', DECIDE]];
+  ok('ITEM20/3: the decision is ONE function in the shipped client, written once',
+    DECIDE.length > 0 && html.split(DECIDE_SRC).length - 1 === 1);
 
-  const mapStore = () => {
-    const m = new Map();
-    return { data: m,
-      getItem: (k) => (m.has(k) ? m.get(k) : null),
-      setItem: (k, v) => { m.set(k, String(v)); },
-      removeItem: (k) => { m.delete(k); }, clear: () => m.clear(), key: () => null, length: 0 };
-  };
-
-  // D-10: ABSENT MEANS VISIBLE. A device that has never met this control -- which is every
-  // device today -- sees the section exactly as it did before the control existed.
+  // §3: THE SWITCH'S KEY IS GONE, AND SO ARE ITS READER AND ITS WRITER. The order says the
+  // stored value is abandoned and never read again, and that no dead line is left behind that
+  // reads it. That is checkable directly: none of the five names the old mechanism was written
+  // out of survives anywhere in the shipped client. A device that pressed the switch yesterday
+  // still carries the string; what this asserts is that nothing can look at it.
   {
-    const store = mapStore();
-    withStore(store);
-    okOn('NIGHT-F3/D-10: with nothing stored the section is VISIBLE, for everyone', A,
-      evalIn('readHideWomen()') === false);
-    evalIn('writeHideWomen(true)');
-    okOn("NIGHT-F3/F14: the reader own press hides it, on this device, under one key", A,
-      evalIn('readHideWomen()') === true
-      && [...store.data.keys()].join(',') === 'ezik_hide_women_v1', 'wrote ' + [...store.data.keys()].join(','));
-    evalIn('writeHideWomen(false)');
-    okOn('NIGHT-F3/F14: ...and the same control puts it back, leaving no third value behind', A,
-      evalIn('readHideWomen()') === false && store.data.size === 0);
+    // The key as it is WRITTEN in the source, quotes and all, so the two counts below cannot
+    // be satisfied by the word appearing inside a comment or a longer name.
+    const KEY_LIT = String.fromCharCode(39) + 'ezik_hide_women_v1' + String.fromCharCode(39);
+    const GONE = ['EZIK_HIDE_WOMEN_KEY', 'readHideWomen', 'writeHideWomen',
+      'data-ezik-hide-women'];
+    const left = GONE.filter((w) => html.indexOf(w) !== -1);
+    eq('ITEM20/3: the old constant, its reader, its writer and its control mark are all GONE',
+      left, []);
+    // AND THE LITERAL SURVIVES AT EXACTLY ONE LINE, WHICH IS AN ERASURE. «delete all my
+    // data» still sweeps the abandoned value off the device, because a value no code can see
+    // is still one person's record in one person's browser. That line is a removeItem: it is
+    // counted, and it is checked to be the ONLY mention, so a getItem cannot reappear beside
+    // it unnoticed.
+    eq('ITEM20/3: ...and the key itself is named ONCE, in that erasure, and nowhere else',
+      html.split(KEY_LIT).length - 1, 1);
+    ok('ITEM20/3: ...and that one mention is a removeItem, never a read',
+      html.indexOf('localStorage.removeItem(' + KEY_LIT + ')') !== -1
+      && html.indexOf('getItem(' + KEY_LIT) === -1);
+    // ...AND THE DECISION READS NO STORE AT ALL, which is the same property from the other side:
+    // a function that cannot open a store cannot quietly acquire a second input tomorrow.
+    okOn('ITEM20/3: ...and the decision reads no store, so it has ONE input and can grow no other', A,
+      ['localStorage', 'sessionStorage', 'getItem', 'fetch']
+        .every((w) => DECIDE.indexOf(w) === -1), DECIDE);
+    // AND IT SURVIVES A STORE THAT REFUSES, because it never touches one. The old reader needed
+    // a try/catch to make this true; this one is true by construction, and it is driven rather
+    // than argued: the whole shelf is built with every storage call throwing.
     withStore(throwStore);
     let threw = false;
-    try { evalIn('readHideWomen()'); evalIn('writeHideWomen(true)'); } catch (e) { threw = true; }
-    okOn('NIGHT-F3/F14: a store that refuses leaves the section VISIBLE and throws nothing', A,
-      threw === false && evalIn('readHideWomen()') === false);
+    let out = null;
+    try {
+      out = JSON.parse(evalIn("JSON.stringify(ezHomeModules({ gender: 'female' }).map(function (m) { return m.id; }))"));
+    } catch (e) { threw = true; }
+    okOn('ITEM20/3: a store that refuses cannot touch the shelf, and raises nothing', A,
+      threw === false && Array.isArray(out) && out.indexOf('women') !== -1,
+      JSON.stringify(out));
     withStore(stubStore(null));
   }
 
@@ -5197,10 +5230,30 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
   // answers are compared -- one tile fewer, that tile is the women's, and every other tile keeps
   // the id and the position the order in §2 gave it.
   {
-    const ids = (hide) => JSON.parse(evalIn(
-      'JSON.stringify(ezHomeModules({ hideWomen: ' + (hide ? 'true' : 'false') + ' }).map(function (m) { return m.id; }))'));
-    const shown = ids(false);
-    const hidden = ids(true);
+    // THE FOUR ANSWERS, THROUGH THE SHIPPED BUILDER. `shown` and `hidden` keep the names the
+    // cases below already use; what changed is what produces them -- a form of address rather
+    // than a device flag. `shown` is the default shelf: it is what a reader who answered
+    // «female» sees, and «prefer not to say» and an unasked account are proved equal to it below.
+    const ids = (v) => JSON.parse(evalIn(
+      'JSON.stringify(ezHomeModules(' + JSON.stringify(v) + ').map(function (m) { return m.id; }))'));
+    const shown = ids({ gender: 'female' });
+    const hidden = ids({ gender: 'male' });
+    // §3, THE TABLE, ROW BY ROW. «male» is the one answer that removes the section; the other
+    // three are one answer here and each is stated on its own line, because "the rest are the
+    // same" is exactly the claim that goes quietly wrong when a fourth answer is added.
+    okOn('ITEM20/3: «male» is NOT shown the women corner', A, hidden.indexOf('women') === -1,
+      JSON.stringify(hidden));
+    okOn('ITEM20/3: ...«female» IS shown it', A, shown.indexOf('women') !== -1, JSON.stringify(shown));
+    eq('ITEM20/3: ...«prefer not to say» IS shown it, the same shelf as «female»',
+      ids({ gender: null }), shown);
+    eq('ITEM20/3: ...and an account that has never been asked IS shown it too', ids({}), shown);
+    // AND NOTHING ELSE MOVES WITH IT. The answer that removes the row must leave the other eight
+    // exactly as they were -- same rows, same count, same order -- or the effect has escaped the
+    // one card the order confines it to.
+    eq('ITEM20/3: ...and the effect stops at that one card: the other eight are untouched',
+      hidden, shown.filter((x) => x !== 'women'));
+    eq('ITEM20/3: ...eight of them, still in the order §2 fixed', hidden,
+      ['articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
     // ITEM 20 / SHELF §2 (8 September) -- THE DEFAULT ORDER, STATED IN FULL, AND IT REPLACES
     // D-9's «articles then women first». The owner has ruled that the articles section is FIRST
     // and the women's corner is LAST -- after every other section, not second and not in the
@@ -5257,31 +5310,53 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
       && /order: reg\.map\(\(w\) => w\.id\)/.test(html));
   }
 
-  // D-10 AND F13, READ OFF THE SOURCE OF THE THING ITSELF. Item 9's block must name nothing a
-  // reader declares -- no gender, no age, no birth year -- because the moment it does, one of
-  // them is deciding what he may see. F13 forbids the age being wired into ANY content rule
-  // tonight, and this is that forbidding made checkable at the one place it could have happened.
+  // §3 AND F13, READ OFF THE SOURCE OF THE THING ITSELF. This case used to say that item 9's
+  // block names NOTHING a reader declares, because under D-10 a declaration reaching it would
+  // have been the defect. The rule is the other way round now, so the case is turned over: the
+  // decision must name the form of address AND NOTHING ELSE a reader declares. F13 forbids the
+  // age being wired into any content rule, and this is that forbidding made checkable at the
+  // one place it could now happen -- a function that already reads one field of the account is
+  // exactly where a second one would be added.
   {
-    const at = html.indexOf("// ITEM 9 / F14 -- THE READER'S OWN DECISION TO HIDE THE WOMEN'S SECTION");
-    const to = html.indexOf("const EZIK_ART_KIND_ARTICLE = 'article';", at);
-    // THE PROSE IS CUT AWAY FIRST. This block explains itself at length, and the explanation
-    // names the very words the CODE is being forbidden -- the gate there is no gate, the route
-    // whose answer does not move. A check that read the comments would be measuring the writing
-    // rather than the thing written, and would go red for saying clearly what it does.
-    const ITEM9ALL = (at >= 0 && to > at) ? html.slice(at, to) : '';
-    const ITEM9 = ITEM9ALL.split('\n').filter((l) => l.trim().indexOf('//') !== 0).join(' ');
-    // WHOLE WORDS. A substring scan reports "age" inside localStorage and inside every message
-    // in the block, which is a guard failing for a reason that has nothing to do with what it
-    // guards -- and a guard that cries wolf is a guard somebody eventually weakens.
-    const declared = [/\bgender\b/, /\bage\b/, /\bbirthYear\b/, /child_profile/, /\bprofile\b/];
-    okOn('NIGHT-F3/D-10: nothing a reader declares is named anywhere in item 9',
-      [['the item 9 block', ITEM9ALL]],
-      declared.every((r) => !r.test(ITEM9)),
-      'found: ' + declared.filter((r) => r.test(ITEM9)).map(String).join(', '));
-    okOn('NIGHT-F3/F15: ...and it reaches no route, no request and no section screen',
-      [['the item 9 block', ITEM9ALL]],
+    const B = [['the decision', DECIDE]];
+    okOn('ITEM20/3: the decision reads the form of address', B, DECIDE.indexOf('gender') !== -1);
+    // WHOLE WORDS, for the reason the old case gave: a substring scan finds "age" inside
+    // localStorage and inside half the messages in the file, and a guard that cries wolf is a
+    // guard somebody eventually weakens.
+    const forbidden = [/\bage\b/, /\bbirthYear\b/, /\bname\b/, /child_profile/, /\bband\b/];
+    okOn('ITEM20/3: ...and NOTHING else a reader declares -- the age is still wired to nothing', B,
+      forbidden.every((r) => !r.test(DECIDE)),
+      'found: ' + forbidden.filter((r) => r.test(DECIDE)).map(String).join(', '));
+    okOn('ITEM20/3: ...and it reaches no route, no request and no section screen', B,
       ['fetch', '/api/', 'ezikArticlesFetchList', 'EzikArticlesSection', 'setArtSection']
-        .every((w) => ITEM9.indexOf(w) === -1));
+        .every((w) => DECIDE.indexOf(w) === -1));
+    // ONE CALLER. The whole of the effect is which rows the shelf array carries, and a second
+    // call site anywhere in the client would be a second thing this answer decides -- which the
+    // order forbids outright. Counted in the shipped source, not argued from the design.
+    eq('ITEM20/3: ...and it is consulted in exactly ONE place in the whole client',
+      (html.split('ezWomenSectionHidden(').length - 1) - 1, 1);
+  }
+
+  // §3: DERIVED, NEVER HELD -- AND THIS IS HERE BECAUSE A MUTANT WALKED THROUGH EVERYTHING
+  // ELSE. Turning the Home owner's one line into useState survived every case above AND the
+  // driven return in guards/i18n-ui-guard.cjs, and it survived for a reason that is true today
+  // and need not be tomorrow: opening Settings UNMOUNTS the home, so a snapshot taken at mount
+  // happens to be re-taken on the way back. The order does not ask for «re-read on remount», it
+  // asks for the shelf to follow the reader's answer at once -- so the property is pinned where
+  // it can actually be broken: the owner reads the account prop on every render, and holds no
+  // copy of it that could drift. A layer opened over the home, or a home that stops unmounting,
+  // must not silently turn this back into a stale snapshot.
+  {
+    const DERIVE = '  const genderNow = (profile && profile.gender) || null;';
+    const C = [['the owner derivation', html.indexOf(DERIVE) !== -1 ? DERIVE : '']];
+    okOn('ITEM20/3: the shelf DERIVES the answer from the account on every render', C,
+      html.indexOf(DERIVE) !== -1);
+    okOn('ITEM20/3: ...and holds no copy of it that could go stale', C,
+      html.indexOf('genderNow] = useState') === -1
+      && html.indexOf('setGenderNow') === -1
+      && html.indexOf('genderNow, set') === -1);
+    okOn('ITEM20/3: ...and hands that one reading to the builder under its one input name', C,
+      html.indexOf('gender: genderNow,') !== -1);
   }
 
   // F10. THE THIRD ANSWER WRITES THE SAME null "not stated" THE ACCOUNT HAS ALWAYS HELD, so no

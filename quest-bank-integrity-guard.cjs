@@ -724,7 +724,20 @@ const SEALED = {
   //                    2180186 is exactly that delta. The worker byte table and the SW_PROSE
   //                    mirror below both followed, and THIS digest is re-cut last. CACHE is NOT
   //                    bumped: install rewrites every CORE entry into the same store.
-  'sw.js': '440721a065c9f91cdc5e7d736b5edeb18ecc368effef679babc145915884cf44',
+  // ITEM 20 SHELF, COMMIT THREE -- WHO SEES THE WOMEN'S CORNER (2026-09-08,
+  //                    feat/shelf-20260908). NO CHANGE IN THE WORKER ITSELF BEYOND ITS BYTE
+  //                    TABLE. D-10 is reversed: the form of address decides who is drawn that
+  //                    section, \u00abmale\u00bb is not drawn it, and the switch that used to decide it is
+  //                    deleted from Settings with its device key, its reader and its writer. The
+  //                    key literal survives at exactly ONE line in app.jsx -- the removeItem in
+  //                    \u00abdelete all my data\u00bb -- because an abandoned value is still one person's
+  //                    record in one person's browser, and that page promises it goes; the roster
+  //                    entry in tools/delete-truth-measure.cjs became a `lit` for the same reason.
+  //                    app.js followed 1337339 -> 1338609 (+1270) and CORE_BYTES 2180186 ->
+  //                    2181456 is exactly that delta. The worker byte table and the SW_PROSE
+  //                    mirror below both followed, and THIS digest is re-cut last. CACHE is NOT
+  //                    bumped: install rewrites every CORE entry into the same store.
+  'sw.js': '51146e1025bc0fb33a2ee3027a4cf4fcd8142c588b62f3efaf091a22cfd5ae10',
 };
 
 // ---------------------------------------------------------------------------
@@ -1835,7 +1848,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1337339, of: 'app.js' },
+      { n: 1338609, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
