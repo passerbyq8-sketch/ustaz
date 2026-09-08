@@ -113,6 +113,20 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-09-08   -- ITEM 104/105, THE MUSHAF READING PAGE. The owner's ruling of 8 Sept 2026:
+  //                    the reading page carries the memorisation mark and the way back to the
+  //                    suras and NOTHING else. app.jsx lost the bottom dock outright -- both
+  //                    renderer shapes, the two arrows, the jump control and the height
+  //                    measurement the wird strip used to be positioned against -- and the wird
+  //                    strip and the page mark MOVED, unrewritten, to the mushaf index. Item 105
+  //                    added mushafPageReady(), which waits for the opening page's own asset
+  //                    before `state` turns 'ok', so the reader is never shown a page frame with
+  //                    nothing in it. No new asset, no new origin, no new key. app.js was
+  //                    rebuilt from that source 1338609 -> 1336026 (-2583), CORE_BYTES was
+  //                    re-cut 2181456 -> 2178873 by tools/core-bytes.cjs --write, the app.js
+  //                    figure in the byte table above CORE_BYTES and the SW_PROSE mirror below
+  //                    both followed 1338609 -> 1336026, and THIS digest was cut last, after
+  //                    all of them. CACHE is NOT touched -- the store name is the merge round's.
   //   2026-08-26   -- THE DOOR OUT: deleting the account from inside the app, which Apple
   //                    requires of anything that creates one and which the sign-in round
   //                    shipped without. api/auth-delete.js is new and is the ONLY caller of
@@ -737,7 +751,7 @@ const SEALED = {
   //                    2181456 is exactly that delta. The worker byte table and the SW_PROSE
   //                    mirror below both followed, and THIS digest is re-cut last. CACHE is NOT
   //                    bumped: install rewrites every CORE entry into the same store.
-  'sw.js': '51146e1025bc0fb33a2ee3027a4cf4fcd8142c588b62f3efaf091a22cfd5ae10',
+  'sw.js': '9e50b42f9c682f527d532053bcb9aa539c0ef4db442090a48199121ca0303d8f',
 };
 
 // ---------------------------------------------------------------------------
@@ -1848,7 +1862,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1338609, of: 'app.js' },
+      { n: 1336026, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

@@ -446,8 +446,13 @@ const DAY = '2026-07-31';
   eq('normalise null', A.wirdNormalizeDigits(null), '');
   eq('normalise undefined', A.wirdNormalizeDigits(undefined), '');
   ok('normalise leaves letters non-numeric', !/^[0-9]+$/.test(A.wirdNormalizeDigits('ab')));
-  // The page jump keeps its own expression: this must be a SEPARATE function.
-  ok('page jump normalisation untouched', /const jumpGo = \(\) => \{ const raw = String\(jump == null \? '' : jump\)\.replace\(\/\\s\+\/g, ''\)/.test(SRC));
+  // ITEM 104 -- THE PAGE JUMP IS GONE, and its normaliser with it. The reader's bottom dock was
+  // removed outright by the ruling of 8 Sept 2026 and the jump box was one of its children. What
+  // this check was FOR -- that the wird's normaliser is not quietly shared with, or silently
+  // replaced by, the pager's -- is now an absence: there is no second expression left to drift
+  // from this one, and none may come back unannounced.
+  ok('the page jump normaliser is gone with the control it served', !/const jumpGo = /.test(SRC));
+  ok('...and the wird still has a normaliser of its own', /function wirdNormalizeDigits\(/.test(SRC));
 })();
 
 // ---------------------------------------------------------------------------
@@ -493,38 +498,28 @@ ok('picker closes on Escape', /if \(e\.key === 'Escape'\) setPicker\(false\);/.t
 ok('picker has an explicit close action', /aria-label="[^"]*"[^>]*>\u00d7<\/button>/.test(SRC) || /setPicker\(false\)\} aria-label=/.test(SRC));
 ok('picker opens from the strip', /<button onClick=\{\(\) => setPicker\(true\)\}/.test(SRC));
 
-// the strip: an absolute overlay, a sibling, never a flex child, zero layout height
-ok('strip wrapper style exists', /^  wirdWrap: \{ position: 'absolute',/m.test(SRC));
-ok('strip is absolutely positioned', /wirdWrap: \{ position: 'absolute', left: 0, right: 0, zIndex: \d/.test(SRC));
+// ITEM 104 -- THE STRIP IS AN ORDINARY CHILD OF THE INDEX NOW, and every claim below is re-cut
+// to that. It used to be an absolute overlay pinned above the reader's pager, and the overlay
+// contract has nothing left to be true of: the ruling of 8 Sept 2026 removed that pager
+// outright and moved the strip off the reading page, so there is no page under it to float over
+// and no pager under it to be measured against. Nothing is dropped -- each claim is replaced by
+// the property that still decides whether the strip behaves.
+ok('strip wrapper style exists', /^  wirdWrap: \{ display: 'flex',/m.test(SRC));
+ok('strip is in flow: it declares no position and no offsets',
+  !/wirdWrap: \{[^}]*[{,] ?(?:position|top|bottom|left|right|zIndex):/.test(SRC));
 ok('strip carries no flex child properties', !/wirdWrap: \{[^}]*\bflex:/.test(SRC));
 ok('strip has no height of its own', !/wirdWrap: \{[^}]*\bheight:/.test(SRC));
-ok('strip style spreads the absolute wrapper', /const wirdSt = \{\s*\.\.\.s\.wirdWrap,/.test(SRC));
-ok('strip bottom follows the measured pager', /bottom: wirdBottomMost \? 0 : barH,/.test(SRC));
-ok('strip falls back to bottom 0', /const wirdBottomMost = !\(barH > 0\);/.test(SRC));
-// ITEM 22+104: and `chromeOn` is no longer a term in the POSITION at all. The strip renders
-// only with the chrome now, so a `!chromeOn ||` here would be dead source dressed as a
-// branch -- and, worse, the shape someone would reach for while trying to bring the strip
-// back into reading mode by the back door. Asserted absent rather than merely not-required.
-ok('strip position carries no chromeOn term', !/const wirdBottomMost = [^;]*chromeOn/.test(SRC));
-ok('measurement failure leaves the strip bottom-most', /if \(state !== 'ok' \|\| !chromeOn\) return;/.test(SRC));
-ok('pager height is measured, not assumed', /const el = barRef\.current; h = \(el && el\.offsetHeight\) \|\| 0;/.test(SRC));
-ok('pager height failure falls back to 0', /catch \(e\) \{ h = 0; \}/.test(SRC));
-// RE-PINNED ON THE STRONGER CONDITION, ASSERTION KEPT. S110 gave the pager TWO shapes -- the
-// Madina-image dock and the fallback bar -- so a literal `<div ref={barRef} style={barSt}>` matched
-// neither and this check had been red ever since, asserting nothing. What it is actually for is
-// that barRef measures the OUTER element the dock occupies from the bottom edge, because the wird
-// strip is positioned against that height. Pinned on that, for EVERY shape, so a third renderer
-// cannot quietly move the ref onto an inner control.
-{
-  const refs = SRC.match(/<div ref=\{barRef\}[^>]*>/g) || [];
-  ok('pager measurement ref is on the pager use site', refs.length >= 1, 'no ref={barRef} element');
-  ok('...on every renderer shape the pager has',
-    refs.length >= 2, 'found ' + refs.length + ' -- the image dock and the fallback bar');
-  ok('...and always on the OUTER chrome element, never an inner control',
-    refs.every((t) => /class(?:Name)?="ezhome\b/.test(t)), refs.join(' | '));
-}
-ok('barSt geometry untouched', /const barSt = MADINA_IMG_ON\s*\? \{ \.\.\.s\.pgBar, position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 4,/.test(SRC));
-ok('strip respects the bottom safe area when bottom-most', /paddingBottom: wirdBottomMost \? 'calc\(6px \+ env\(safe-area-inset-bottom, 0px\)\)' : 6,/.test(SRC));
+ok('strip takes the wrapper straight, with nothing computed on top of it',
+  /<div style=\{s\.wirdWrap\}>/.test(SRC) && !/const wirdSt = /.test(SRC));
+// THE PAGER IT WAS MEASURED AGAINST IS GONE, and that is ASSERTED rather than assumed. The ref,
+// the measured height, the style object the dock was drawn from and the dock itself must all be
+// absent from the source; leave any one of them and the old position could be restored around
+// it without a single check going red.
+ok('the pager measurement ref is gone', !/barRef/.test(SRC));
+ok('the measured pager height is gone', !/\bbarH\b/.test(SRC));
+ok('the pager style object is no longer built', !/const barSt = /.test(SRC));
+ok('the pager itself is no longer rendered', !/className="ezhome ezmr-dockwrap"/.test(SRC));
+ok('...and neither is its rollback shape', !/style=\{barSt\}/.test(SRC));
 ok('strip respects the left safe area', /wirdWrap: \{[^}]*paddingLeft: 'calc\(14px \+ env\(safe-area-inset-left, 0px\)\)'/.test(SRC));
 ok('strip respects the right safe area', /wirdWrap: \{[^}]*paddingRight: 'calc\(14px \+ env\(safe-area-inset-right, 0px\)\)'/.test(SRC));
 
@@ -533,42 +528,43 @@ ok('reading viewport keeps flex 1', /^  pgViewport: \{[^}]*\bflex: 1\b/m.test(SR
 ok('madina sheet keeps flex 1', /const MADINA_SHEET_ST = \{ flex: 1, minHeight: 0, width: '100%'/.test(SRC));
 ok('container is still the relative overlay host', /const contSt = MADINA_IMG_ON \? \{ \.\.\.s\.memContainer, position: 'relative' \} : s\.memContainer;/.test(SRC));
 
-// the strip is a SIBLING of header, viewport and pager, and leaves with the chrome
-// RE-PINNED for the same reason: the header carries a className now. The check is about the
-// ORDER of the siblings, not about which attributes each one lists, so it matches the element
-// by the style that identifies it and tolerates anything else on the tag.
+// ITEM 104 -- WHERE THE STRIP STANDS NOW. It is no longer a sibling of the reader's header and
+// viewport, because it is no longer on the reader at all: the ruling of 8 Sept 2026 moved it,
+// and the page mark with it, onto the mushaf INDEX. So the ordering claim is re-cut against the
+// screen it actually stands on -- inside MushafScreen, ahead of the masthead the index draws
+// and ahead of the surah grid -- and the reader is asserted to hold neither it nor a pager.
 const iHead = SRC.search(/<div [^>]*style=\{headSt\}>/);
 const iView = SRC.indexOf('<div style={vpSt}');
-// RE-PINNED for the same reason as the ref above: the pager now renders in two shapes, so its
-// position is the LAST of them -- the strip must follow every pager shape, not merely the first.
-const iBar = SRC.indexOf('<div ref={barRef}');
-const iBarLast = SRC.lastIndexOf('<div ref={barRef}');
-const iStrip = SRC.indexOf('<div style={wirdSt}>');
+const iStrip = SRC.indexOf('<div style={s.wirdWrap}>');
+const iIndex = SRC.indexOf('function MushafScreen(');
+const iMast = SRC.indexOf('<section className="ezq-masthead is-strip">');
+const iGrid = SRC.indexOf('data-ezm-surah=');
 ok('strip is rendered', iStrip > 0);
-ok('strip is a sibling after header, viewport and pager',
-  iHead > 0 && iView > iHead && iBar > iView && iStrip > iBarLast,
-  JSON.stringify({ iHead, iView, iBar, iBarLast, iStrip }));
-// ITEM 22+104 -- THE STRIP LEAVES WITH THE CHROME, and the three assertions that used to say
-// the exact opposite are re-cut here. None is disabled and none is dropped: each still pins
-// the render gate, and the gate it pins is now the two-term one.
+ok('the reader still draws its own header above its own page', iHead > 0 && iView > iHead);
+ok('strip is on the mushaf index, not on the reader',
+  iIndex > 0 && iStrip > iIndex && iStrip > iView, JSON.stringify({ iIndex, iStrip, iView }));
+ok('...and it is the first thing the index draws, above the masthead and the surah grid',
+  iMast > iStrip && iGrid > iStrip, JSON.stringify({ iStrip, iMast, iGrid }));
+// ITEM 104 -- THE GATE, RE-CUT ON THE ONE TERM IT NOW HAS. chromeOn was the reading page's own
+// idea of whether its furniture is on screen, and the strip does not stand there any more, so
+// requiring that term would be requiring something that cannot exist where the strip lives.
 //
-// MADINA_IMG_ON IS STILL ASSERTED TO BE FIRST, because the rollback contract did not change:
-// ?madinaimg=0 must take the strip away with the reader it belongs to. A gate written
-// `chromeOn && MADINA_IMG_ON` would satisfy a naive 'mentions both' check while leaving the
-// flag deciding nothing on its own, so the order is part of the assertion.
+// MADINA_IMG_ON IS STILL ASSERTED, AND STILL FIRST, because the rollback contract did NOT
+// change: ?madinaimg=0 must take the wird and the page mark away with the reader they belong
+// to, exactly as it did while they stood on it. A gate written the other way round would
+// satisfy a naive mentions-the-flag check while leaving the flag deciding nothing on its own,
+// so the order is part of the assertion.
 //
-// AND THE ANCHOR IS REQUIRED TO BE FOUND. The third check here used to call region() and
-// compare the result against '' -- which is precisely what region() returns when its anchor
-// has MOVED. It therefore passed loudest at the moment it had stopped looking at anything.
-// A missing anchor is now a failure with a sentence on it.
+// AND THE ANCHOR IS REQUIRED TO BE FOUND. An anchor that has MOVED returns -1, and every
+// negative check written against it then passes loudest at the moment it stopped looking.
 ok('strip is gated by MADINA_IMG_ON, and it is the FIRST term',
-  /\{MADINA_IMG_ON && chromeOn && \(\s*<div style=\{wirdSt\}>/.test(SRC));
-ok('strip IS gated by chromeOn -- absent from the DOM in reading mode',
-  /&& chromeOn && \(\s*<div style=\{wirdSt\}>/.test(SRC));
+  /\{MADINA_IMG_ON && \(\s*<div style=\{s\.wirdWrap\}>/.test(SRC));
+ok('strip carries no chromeOn term -- the index has no chrome to hide behind',
+  !/chromeOn[\s\S]{0,80}wirdWrap/.test(SRC));
 {
-  const gate = '{MADINA_IMG_ON && chromeOn && (';
+  const gate = '{MADINA_IMG_ON && (';
   const at = SRC.indexOf(gate);
-  const strip = at < 0 ? -1 : SRC.indexOf('<div style={wirdSt}>', at);
+  const strip = at < 0 ? -1 : SRC.indexOf('<div style={s.wirdWrap}>', at);
   ok('strip render gate anchor is FOUND, not silently absent', at > 0, 'region anchor missing');
   ok('...and it is the gate on the strip itself, not some other flag site',
     strip > at && strip - at < 60, JSON.stringify({ at: at, strip: strip }));
@@ -612,30 +608,53 @@ ok('progress fill is capped at 100 percent', /Math\.min\(100, Math\.round\(\(wir
 ok('progress fill is thin', /^  wirdFill: \{[^}]*height: '100%'/m.test(SRC) && /^  wirdTrack: \{[^}]*height: 4,/m.test(SRC));
 ok('count is not capped', /const wirdDone = wirdDay && wirdDay\.pages \? wirdDay\.pages\.length : 0;/.test(SRC));
 
-// hooks are unconditional and above the early return
-const pm = SRC.indexOf('function PagedMushaf(');
-const early = SRC.indexOf("if (state !== 'ok') {", pm);
-ok('PagedMushaf found', pm > 0);
+// ITEM 104 -- THE HOOKS, AND THE SCREEN THAT OWNS THEM NOW. The wird's state and the picker's
+// moved to the mushaf INDEX, whose early return is the line that hands the reader over to
+// PagedMushaf. Every hook the two panels need must sit above THAT one, or a reader opening a
+// surah would change this component's hook count mid-flight.
+const pm = SRC.indexOf('function MushafScreen(');
+const early = SRC.indexOf('if (selected) return <PagedMushaf', pm);
+ok('MushafScreen found', pm > 0);
 ok('early return found', early > pm);
 for (const anchor of ['const [wirdDay, setWirdDay] = useState(readWirdDay);',
                       'const [wirdTarget, setWirdTarget] = useState(readWirdTarget);',
                       'const [picker, setPicker] = useState(false);',
                       'const [pickerText, setPickerText] = useState(\'\');',
-                      'const barRef = useRef(null);',
-                      'const [barH, setBarH] = useState(0);',
-                      '}, [state, page, startSurah]);',
-                      '}, [state, page]);',
-                      '}, [state, chromeOn, epoch]);',
+                      'const [juzDl, setJuzDl] = useState(null);',
+                      'const [juzCap, setJuzCap] = useState(0);',
+                      'const [khSaved, setKhSaved] = useState(true);',
                       '}, [picker]);']) {
   const at = SRC.indexOf(anchor, pm);
   ok('hook is above the early return: ' + ascii(anchor.slice(0, 46)), at > pm && at < early);
 }
 ok('no new hook is conditional', !/if \([^)]*\) \{?\s*(useEffect|useState|useRef)\(/.test(SRC.slice(pm, early)));
+// AND THE COUNTING DID NOT MOVE WITH THE REPORTING. The two effects that credit a page are
+// still the READER's, still keyed on the page under the eye, and still above the reader's own
+// early return. What left the reading page is the strip that says the number, never the count.
+const rd = SRC.indexOf('function PagedMushaf(');
+const rdEarly = SRC.indexOf("if (state !== 'ok') {", rd);
+ok('PagedMushaf found', rd > 0);
+ok('the reader early return found', rdEarly > rd);
+for (const anchor of ['const [wirdDay, setWirdDay] = useState(readWirdDay);',
+                      '}, [state, page, startSurah]);',
+                      '}, [state, page]);']) {
+  const at = SRC.indexOf(anchor, rd);
+  ok('the reader keeps its counting hook: ' + ascii(anchor.slice(0, 46)), at > rd && at < rdEarly);
+}
+ok('no hook in the reader is conditional either',
+  !/if \([^)]*\) \{?\s*(useEffect|useState|useRef)\(/.test(SRC.slice(rd, rdEarly)));
 
 // the first-turn chrome collapse and the existing page writers are untouched
 ok('first-turn collapse untouched', /const readerTurnedPage = \(\) => \{\s*if \(\(!MUSHAF_SVG_ON && !MADINA_IMG_ON\) \|\| chromeAuto\.current\) return;/.test(SRC));
 ok('land still turns the page', /if \(sl\) \{ setPage\(page \+ sl\); setSlide\(0\); readerTurnedPage\(\); \}/.test(SRC));
-ok('jumpTo untouched', /const jumpTo = \(n\) => \{ if \(timer\.current\) \{ clearTimeout\(timer\.current\); timer\.current = null; \} setDrag\(0\); setAnim\(false\); setSlide\(0\); setPage\(n\); if \(n !== page\) readerTurnedPage\(\); \};/.test(SRC));
+// ITEM 104 -- AND THE JUMP WENT WITH THE DOCK. jumpTo existed for two callers, the page box in
+// the pager and the khatmah mark inside the wird sheet, and the ruling of 8 Sept 2026 took the
+// pager away and moved the sheet to the index, where the mark reaches a page through the
+// index's own setOpenAt/setSelected door. So the claim is now an absence, and a real one: a
+// jumpTo coming back in the reader would mean the dock, or something like it, came back.
+ok('the pager jump is gone -- there is no jumpTo left in the reader', !/const jumpTo = /.test(SRC));
+ok('...and the index reaches a marked page through its own door',
+  /const khGoMark = \(i\) => \{ const mk = khRec\.m\[i\]; if \(!mk\) return; setPicker\(false\); setOpenAt\(/.test(SRC));
 
 // ---------------------------------------------------------------------------
 // G. THE MANUAL BOOKMARK, AND THE RESUME ROW BESIDE IT

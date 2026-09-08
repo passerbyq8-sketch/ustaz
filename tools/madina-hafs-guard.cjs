@@ -670,11 +670,17 @@ try {
 
   /* -------- 5c) THE OVERLAYS, THE FALLBACK, AND THE 604 -------- */
   head('5c) OVERLAYS, FALLBACK ORDER AND PAGE SCOPE');
-  // the geometry must not depend on the chrome: both bars are absolute overlays
+  // ITEM 104 -- THERE IS NO PAGER ANY MORE, so the pair this used to check is a single bar. The
+  // ruling of 8 Sept 2026 removed the reader's bottom dock outright: the geometry claim is that
+  // the header is still an absolute overlay, so toggling it cannot resize the page, AND that
+  // nothing has taken the pager's place in flow. The second half is asserted by absence and is
+  // stronger than the position check it replaces -- barSt is gone in both renderer shapes, and a
+  // pager coming back, in flow or not, fails here.
   if (/const headSt = MADINA_IMG_ON[\s\S]{0,200}?position:\s*'absolute'/.test(html)
-    && /const barSt = MADINA_IMG_ON[\s\S]{0,200}?position:\s*'absolute'/.test(html))
-    pass('the header and the pager are absolute overlays, so toggling them cannot resize the page');
-  else fail('the header or the pager still takes layout height on the image path');
+    && !/const barSt\s*=/.test(html)
+    && !/className="ezhome ezmr-dockwrap"/.test(html))
+    pass('the header is an absolute overlay and no pager takes layout height at all');
+  else fail('the header still takes layout height, or a bottom pager came back');
   if (/const contSt = MADINA_IMG_ON \?[\s\S]{0,120}?position:\s*'relative'/.test(html))
     pass('the reader container is the positioning context those overlays are pinned to');
   else fail('the reader container is not a positioning context on the image path');

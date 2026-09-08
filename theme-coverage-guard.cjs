@@ -1808,11 +1808,15 @@ eq('...and carries no partial caveat any more', INDEX_SCREENS.mushaf.partial, un
 // S111 -- the caveat may only be absent while BOTH reachable readers are on istana chrome, and
 // the loading render with them. Before this, the WebP reader alone could carry the claim while
 // ?madinaimg=0 still drew a navy slab -- a classification the shipped file did not support.
+// ITEM 104 -- AND THE DOCK IS NO LONGER PART OF THE CLAIM, because there is no dock. The ruling
+// of 8 Sept 2026 left the reader one bar in each shape, so what has to be istana is the rail,
+// the loading render and the rollback header -- and the dock is asserted absent instead, in the
+// same expression, so deleting the rail and deleting the dock cannot be confused for each other.
 const READERS_ISTANA =
-  /className="ezhome ezmr-rail"/.test(html)          // WebP reader, top
-  && /className="ezhome ezmr-dockwrap"/.test(html)   // WebP reader, bottom
+  /className="ezhome ezmr-rail"/.test(html)             // WebP reader, top
+  && !/className="ezhome ezmr-dockwrap"/.test(html)     // and nothing under the page
   && /className="ezhome ezmr-rail is-static"/.test(html)  // the loading/failed render
-  && /: s\.memHeaderFb;/.test(html) && /: s\.pgBarFb;/.test(html)   // the rollback reader
+  && /: s\.memHeaderFb;/.test(html)                        // the rollback reader
   && !/gradient/.test(JSON.stringify(s.memHeaderFb));
 ok('the mushaf caveat was earned by BOTH readers, not deleted',
   !INDEX_SCREENS.mushaf.partial === READERS_ISTANA,
@@ -2235,6 +2239,11 @@ console.log('\n=== M. THE ISTANA MUSHAF READER ===');
 
 const rdAt = html.indexOf('function PagedMushaf(');
 const rdSrc = rdAt === -1 ? '' : html.slice(rdAt, html.indexOf('\nfunction MushafScreen(', rdAt));
+// ITEM 104 -- THE INDEX REGION, cut the same way and for the same reason: the wird strip and
+// the page mark stand there now, so a claim about them has to be made against the screen that
+// actually draws them. Both slices are asserted non-empty before anything is concluded.
+const ixAt = html.indexOf('function MushafScreen(');
+const ixSrc = ixAt === -1 ? '' : html.slice(ixAt, html.indexOf('\nfunction MemorizeScreen(', ixAt));
 ok('the reader was located', rdSrc.length > 4000);
 // THE SHIPPED CHROME, and only it: the two istana branches, cut at the `) : (` that hands over
 // to the rollback bars. An unbounded slice from the first gate would have swallowed those bars
@@ -2254,19 +2263,25 @@ const cutBranch2 = (from) => {
   return b === -1 ? '' : rdSrc.slice(a, b);
 };
 const railSrc = cutBranch('<div className="ezhome ezmr-rail">');
-const dockSrc = cutBranch('<div ref={barRef} className="ezhome ezmr-dockwrap">');
-const shipped = railSrc + dockSrc;
+// ITEM 104 -- THE DOCK BRANCH IS GONE, so `shipped` is the rail alone. The ruling of 8 Sept
+// 2026 removed the reader bottom bar entirely; what used to be two located branches is one,
+// and the second is asserted ABSENT rather than quietly no longer looked for.
+const shipped = railSrc;
 ok('the shipped rail branch was located', railSrc.length > 400);
-ok('the shipped dock branch was located', dockSrc.length > 400);
+ok('the shipped dock branch is gone', !/ezmr-dockwrap/.test(rdSrc));
 
-/* ---- M1. the two new bounded overlays exist and are used ---------------- */
+/* ---- M1. the one bounded overlay exists and is used --------------------- */
 ok('the top reader rail is rendered', /className="ezhome ezmr-rail"/.test(rdSrc));
-ok('the bottom reader dock is rendered', /className="ezhome ezmr-dockwrap"/.test(rdSrc));
-ok('...and the dock is what barH measures', /ref=\{barRef\} className="ezhome ezmr-dockwrap"/.test(rdSrc));
+ok('the bottom reader dock is NOT rendered', !/className="ezhome ezmr-dockwrap"/.test(rdSrc));
+ok('...and nothing measures a pager height any more', !/barRef/.test(rdSrc) && !/\bbarH\b/.test(rdSrc));
 ok('the rail is a real, bounded, absolute overlay',
   /\.ezmr-rail,\.ezmr-dockwrap\{[^}]*position:absolute/.test(css)
   && /\.ezmr-rail>\.ezmr-bar\{[^}]*max-width:600px/.test(css));
-ok('the dock is a real, bounded, absolute overlay',
+// The dock RULES are still in the stylesheet and are deliberately left there: .ezmr-rail shares
+// the first of them, and splitting a shared selector is a larger edit to a CRLF-pinned file than
+// this ruling asked for. They are asserted to still be well-formed so that a dock brought back
+// would be brought back bounded -- and asserted UNUSED just above, which is what matters now.
+ok('the dock rules, though unused, are still bounded and safe',
   /\.ezmr-dockwrap\{[^}]*bottom:0/.test(css)
   && /\.ezmr-dockwrap>\.ezmr-bar\{[^}]*max-width:420px/.test(css));
 ok('...so neither can ever stretch into a full-width slab',
@@ -2290,65 +2305,75 @@ ok('no chrome rule draws a pseudo-element over anything',
 /* ---- M2. the legacy reader chrome is gone from the shipped reader ------- */
 okOn('the navy slab header is gone from the shipped rail', [["railSrc", railSrc]], !/s\.memHeader|headSt/.test(railSrc));
 okOn('...and so are its title and its slab button', [["railSrc", railSrc]], !/s\.memTitle|s\.memBackBtn/.test(railSrc));
-okOn('the full-width white pager is gone from the shipped dock', [["dockSrc", dockSrc]], !/s\.pgBar\b|barSt/.test(dockSrc));
-okOn('...and so are its slab nav buttons', [["dockSrc", dockSrc]], !/s\.pgNavBtn|s\.pgNavOff/.test(dockSrc));
-eq('the reader hands each in-flow bar exactly one style',
-  (rdSrc.match(/style=\{headSt\}/g) || []).length + (rdSrc.match(/style=\{barSt\}/g) || []).length, 2);
+// ITEM 104 -- and the white pager is gone from the reader outright, not merely from the shipped
+// branch of it: there is no dock slice left to look inside, so the claim is made against the
+// whole reader region and is stronger for it.
+okOn('the full-width white pager is gone from the reader', [["rdSrc", rdSrc]], !/s\.pgBar\b|barSt/.test(rdSrc));
+okOn('...and so are its slab nav buttons', [["rdSrc", rdSrc]], !/s\.pgNavBtn|s\.pgNavOff/.test(rdSrc));
+eq('the reader hands its ONE in-flow bar exactly one style',
+  (rdSrc.match(/style=\{headSt\}/g) || []).length, 1);
+eq('...and builds no style for a second one', (rdSrc.match(/style=\{barSt\}/g) || []).length, 0);
 ok('the loading render no longer wears the navy slab either',
   !/<div style=\{s\.memHeader\}>[\s\S]{0,200}تعذّر فتح المصحف/.test(rdSrc)
   && /className="ezhome ezmr-rail is-static"/.test(rdSrc));
 /* ---- M2b. THE ROLLBACK READER IS ISTANA TOO, AND STILL IN FLOW (S111) ----
  * ?madinaimg=0 is reachable, so it counts. Its page is a flex child of the same column, which
- * means the two bars' HEIGHTS are inside the box the SVG paper is fitted to -- 65 and 53,
- * measured before the repaint. Everything below freezes the box and frees only the paint. */
+ * means the bar HEIGHT is inside the box the SVG paper is fitted to -- 65, measured before the
+ * repaint. Everything below freezes the box and frees only the paint.
+ *
+ * ITEM 104 -- AND THERE IS ONE BAR NOW, NOT TWO. The ruling of 8 Sept 2026 removed the bottom
+ * dock from BOTH renderer shapes, so the rollback reader has a rail and a page and nothing
+ * else. The dock own arithmetic is not weakened here, it is replaced by the claim that no dock
+ * is rendered at all -- which is what actually has to stay true. The style objects it was drawn
+ * from are left in the table on purpose: they are still measured below, so a dock coming back
+ * cannot come back with different metrics than the one that left. */
 const fbRail = cutBranch2('<div className="ezhome" style={headSt}>');
-const fbDock = cutBranch2('<div ref={barRef} className="ezhome" style={barSt}>');
 ok('the rollback rail was located', fbRail.length > 300);
-ok('the rollback dock was located', fbDock.length > 300);
+ok('the rollback dock is gone from both shapes',
+  !/style=\{barSt\}/.test(rdSrc) && !/ezmr-dockwrap/.test(rdSrc) && !/const barSt = /.test(html));
 // Read off the PARSED objects. Testing the JS source form against JSON.stringify output could
 // never match -- the property was invisible to this check until a mutation proved it.
 eq('the rollback rail declares no position, so it stays in flow', s.memHeaderFb.position, undefined);
-eq('...and neither does the rollback dock', s.pgBarFb.position, undefined);
+eq('...and neither does the object the dock was drawn from', s.pgBarFb.position, undefined);
 eq('...nor a top/left/right/bottom that would lift either out of the column',
   ['top', 'left', 'right', 'bottom', 'zIndex']
     .filter((p) => s.memHeaderFb[p] !== undefined || s.pgBarFb[p] !== undefined), []);
-ok('...and are still the column\'s own children', /<div className="ezhome" style=\{headSt\}>/.test(rdSrc)
-  && /<div ref=\{barRef\} className="ezhome" style=\{barSt\}>/.test(rdSrc));
-okOn('the rollback reader draws NO navy anywhere', [["fbDock", fbDock], ["fbRail", fbRail]],
-  !/s\.memHeader\b|s\.memTitle\b|s\.memBackBtn\b/.test(fbRail) && !/s\.memHeader\b/.test(fbDock));
-okOn('...and no legacy pager presentation either', [["fbDock", fbDock]],
-  !/s\.pgBar\b|s\.pgNavBtn\b|s\.pgNavOff\b|s\.pgMeta\b/.test(fbDock));
-ok('the rollback branch reads the istana objects', /: s\.memHeaderFb;/.test(rdSrc) && /: s\.pgBarFb;/.test(rdSrc));
-ok('...which carry no gradient and no literal colour',
+ok('...and the rail is still the column own child', /<div className="ezhome" style=\{headSt\}>/.test(rdSrc));
+okOn('the rollback reader draws NO navy anywhere', [["fbRail", fbRail]],
+  !/s\.memHeader\b|s\.memTitle\b|s\.memBackBtn\b/.test(fbRail));
+okOn('...and no legacy pager presentation is drawn at all', [["rdSrc", rdSrc]],
+  !/s\.pgBar\b|s\.pgNavBtn\b|s\.pgNavOff\b|s\.pgMeta\b/.test(rdSrc));
+ok('the rollback branch reads the istana object', /: s\.memHeaderFb;/.test(rdSrc));
+ok('...which carries no gradient and no literal colour',
   !/gradient/.test(JSON.stringify(s.memHeaderFb) + JSON.stringify(s.pgBarFb))
   && !/#[0-9a-fA-F]{3,8}|rgba?\(/.test(JSON.stringify([s.memHeaderFb, s.pgBarFb, s.memTitleFb, s.memBtnFb, s.pgNavBtnFb, s.pgMetaFb])));
-ok('...and take their surface from the a3 scope the elements carry',
+ok('...and takes its surface from the a3 scope the element carries',
   s.memHeaderFb.background === 'var(--a3-surface)' && s.pgBarFb.background === 'var(--a3-surface)'
-  && (rdSrc.match(/className="ezhome" style=\{(headSt|barSt)\}/g) || []).length === 2);
+  && (rdSrc.match(/className="ezhome" style=\{headSt\}/g) || []).length === 1);
 // THE BOX, property for property against the object each one replaces.
 for (const p of ['display', 'alignItems', 'justifyContent', 'padding'])
-  eq('the rollback rail keeps memHeader\'s ' + p, s.memHeaderFb[p], s.memHeader[p]);
+  eq('the rollback rail keeps memHeader ' + p, s.memHeaderFb[p], s.memHeader[p]);
 for (const p of ['display', 'alignItems', 'justifyContent', 'gap', 'padding'])
-  eq('the rollback dock keeps pgBar\'s ' + p, s.pgBarFb[p], s.pgBar[p]);
-eq('the rail\'s hairline is still exactly 1px', String(s.memHeaderFb.borderBottom).split(' ')[0], '1px');
-eq('the dock\'s hairline is still exactly 1px', String(s.pgBarFb.borderTop).split(' ')[0], '1px');
-// The two heights, composed from the parts rather than trusted: padding + tallest control +
+  eq('the retired dock object still keeps pgBar ' + p, s.pgBarFb[p], s.pgBar[p]);
+eq('the rail hairline is still exactly 1px', String(s.memHeaderFb.borderBottom).split(' ')[0], '1px');
+eq('the dock hairline is still exactly 1px', String(s.pgBarFb.borderTop).split(' ')[0], '1px');
+// The heights, composed from the parts rather than trusted: padding + tallest control +
 // hairline. 65 and 53 were MEASURED in the browser before the repaint and are what the SVG
 // paper is fitted against, so they are arithmetic here and not a comment.
 const padY = (v) => 2 * parseFloat(String(v).split(' ')[0]);
 const hairline = (v) => parseFloat(String(v).split(' ')[0]);
 eq('the rollback rail still composes to 65', padY(s.memHeaderFb.padding) + s.memBtnFb.height + hairline(s.memHeaderFb.borderBottom), 65);
-eq('the rollback dock still composes to 53', padY(s.pgBarFb.padding) + s.pgNavBtnFb.height + hairline(s.pgBarFb.borderTop), 53);
+eq('the retired dock object still composes to 53', padY(s.pgBarFb.padding) + s.pgNavBtnFb.height + hairline(s.pgBarFb.borderTop), 53);
 eq('...and the controls are the same height they always were', s.memBtnFb.height, s.memBackBtn.height);
 eq('...on both bars', s.pgNavBtnFb.height, s.pgNavBtn.height);
-eq('the dock\'s nav control keeps its width too', s.pgNavBtnFb.width, s.pgNavBtn.width);
-eq('the jump well is untouched, so the dock\'s content row is still 36',
+eq('the dock nav control keeps its width too', s.pgNavBtnFb.width, s.pgNavBtn.width);
+eq('the jump well is untouched in the table, though nothing draws it any more',
   JSON.stringify(s.pgJumpWrap), JSON.stringify({ minWidth: 128, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }));
 eq('the rail title keeps its metrics', s.memTitleFb.fontSize, s.memTitle.fontSize);
-// the bounded inner row is WEIGHTLESS -- it may centre, it may not add height.
+// the bounded inner row is WEIGHTLESS -- it may centre, it may not add height. ONE now, not two.
 const fbInner = (css.match(/\.ezmr-fb-inner\{([^}]*)\}/) || [])[1] || '';
 ok('the bounded inner row exists and is used', fbInner.length > 20
-  && (rdSrc.match(/className="ezmr-fb-inner"/g) || []).length === 2);
+  && (rdSrc.match(/className="ezmr-fb-inner"/g) || []).length === 1);
 ok('...and it is centred and bounded', /max-width:1100px/.test(fbInner) && /margin:0 auto/.test(fbInner));
 ok('...and adds no padding, margin, border or height of its own',
   !/padding|border|min-height|height/.test(fbInner) && /margin:0 auto/.test(fbInner));
@@ -2358,55 +2383,66 @@ ok('the rollback chrome has a visible focus ring',
   /\.ezmr-fb-btn:focus-visible\{[^}]*outline:3px solid var\(--ez-focus\)/.test(css));
 ok('the rollback chrome animates nothing and paints no image',
   !/\.ezmr-fb[^{]*\{[^}]*(animation|transition|background-image|gradient|url\(|backdrop-filter)/.test(css));
-// EVERY control survived the repaint, with its handler and its name.
-ok('rollback back is the same handler and text', /onClick=\{onExit\} className="ezmr-fb-btn" style=\{s\.memBtnFb\}>السور<\/button>/.test(fbRail));
+// EVERY control that SURVIVED did so with its handler and its name; the ones that left are
+// asserted gone from the rollback rail as well as from the shipped one.
+ok('rollback back is the same handler and text', /onClick=\{onExit\} className="ezmr-fb-btn" style=\{s\.memBtnFb\}>/.test(fbRail));
 ok('rollback bookmark keeps its handler and both its names',
-  /onClick=\{putMark\} title=\{marked \? 'علامتك هنا' : 'ضع العلامة'\} aria-label=\{marked \? 'علامتك هنا' : 'ضع العلامة'\}/.test(fbRail));
-ok('rollback previous keeps its handler, glyph and bound',
-  /onClick=\{\(\) => commit\(-1\)\} disabled=\{page <= 1\} className="ezmr-fb-btn" style=\{s\.pgNavBtnFb\}>›<\/button>/.test(fbDock));
-ok('rollback next keeps its handler, glyph and bound',
-  /onClick=\{\(\) => commit\(1\)\} disabled=\{page >= 604\} className="ezmr-fb-btn" style=\{s\.pgNavBtnFb\}>‹<\/button>/.test(fbDock));
-ok('rollback jump keeps both its names', /aria-label="اذهب إلى صفحة"/.test(fbDock) && /aria-label="رقم الصفحة"/.test(fbDock));
-eq('the rollback chrome draws the same five controls',
-  ['onClick={onExit}', 'onClick={putMark}', 'onClick={() => commit(-1)}', 'onClick={() => commit(1)}',
-   'onClick={() => setJump(String(page))}'].filter((h) => (fbRail + fbDock).indexOf(h) !== -1).length, 5);
+  /onClick=\{putMark\} title=\{marked \? '/.test(fbRail) && /aria-label=\{marked \? '/.test(fbRail));
+eq('the rollback chrome draws the same two controls, and only those two',
+  ['onClick={onExit}', 'onClick={putMark}'].filter((h) => fbRail.indexOf(h) !== -1).length, 2);
+eq('...and no third handler is left on it', (fbRail.match(/onClick=/g) || []).length, 2);
 
 /* ---- M3. every control survived, with its handler and its name ---------- */
+// ITEM 104 -- AND THE READING PAGE NOW CARRIES EXACTLY TWO. The owner ruled on 8 Sept 2026 that
+// the reading page is the printed sheet, the memorisation mark and the way back to the suras,
+// and nothing else. So this group is in two halves: what SURVIVED, still pinned by handler and
+// by accessible name, and what LEFT, pinned by absence so it cannot come back unannounced.
 ok('back is still the same handler and the same text',
-  /className="ezmr-btn" style=\{s\.ezmrJump\}>السور<\/button>/.test(shipped)
+  /className="ezmr-btn" style=\{s\.ezmrJump\}>\u0627\u0644\u0633\u0648\u0631<\/button>/.test(shipped)
   && /onClick=\{onExit\} className="ezmr-btn"/.test(shipped));
 ok('the bookmark keeps its handler and BOTH its names',
-  /onClick=\{putMark\} title=\{marked \? 'علامتك هنا' : 'ضع العلامة'\} aria-label=\{marked \? 'علامتك هنا' : 'ضع العلامة'\}/.test(shipped));
-ok('previous keeps its handler, its glyph and its disabled bound',
-  /onClick=\{\(\) => commit\(-1\)\} disabled=\{page <= 1\} className="ezmr-btn" style=\{s\.ezmrNav\}>›<\/button>/.test(shipped));
-ok('next keeps its handler, its glyph and its disabled bound',
-  /onClick=\{\(\) => commit\(1\)\} disabled=\{page >= 604\} className="ezmr-btn" style=\{s\.ezmrNav\}>‹<\/button>/.test(shipped));
-ok('the page indicator still opens the jump, under the same name',
-  /onClick=\{\(\) => setJump\(String\(page\)\)\} aria-label="اذهب إلى صفحة"/.test(shipped));
-ok('...and the jump field keeps its name, its normaliser and its escapes',
-  /aria-label="رقم الصفحة"/.test(shipped) && /if \(e\.key === 'Enter'\) jumpGo\(\); else if \(e\.key === 'Escape'\) setJump\(null\);/.test(shipped));
+  /onClick=\{putMark\} title=\{marked \? '\u0639\u0644\u0627\u0645\u062a\u0643 \u0647\u0646\u0627' : '\u0636\u0639 \u0627\u0644\u0639\u0644\u0627\u0645\u0629'\} aria-label=/.test(shipped));
+// WHAT LEFT, and it left from BOTH renderer shapes: the two page arrows, the page box and the
+// field behind it. Each is asserted absent from the whole reader region, not merely from the
+// dock slice, because a dock that came back would bring its own slice with it.
+// The arrows are the BUTTONS, not commit() itself: the swipe still commits a page turn and must
+// go on doing so, so the claim is made against the two onClick handlers the dock carried.
+ok('the two page arrow buttons are gone',
+  !/onClick=\{\(\) => commit\(-1\)\}/.test(rdSrc) && !/onClick=\{\(\) => commit\(1\)\}/.test(rdSrc));
+ok('...while the swipe still turns the page', /if \(drag > 55\) commit\(1\);/.test(rdSrc) && /else if \(drag < -55\) commit\(-1\);/.test(rdSrc));
+ok('the page box and its field are gone',
+  !/setJump/.test(rdSrc) && !/jumpGo/.test(rdSrc) && !/pgJumpWrap/.test(rdSrc));
+ok('...and so is every style object the dock was drawn from',
+  !/s\.ezmrNav/.test(rdSrc) && !/s\.pgNavBtnFb/.test(rdSrc) && !/s\.pgMetaFb/.test(rdSrc));
+// THE WIRD IS ON THE INDEX NOW, with the same handler and the same accessible name it had on
+// the reader, and the pill it is drawn as is unchanged.
 ok('the wird control keeps its handler and its name',
-  /onClick=\{\(\) => setPicker\(true\)\} aria-label="وردُ اليوم"/.test(rdSrc));
-ok('...and is still a bounded pill beside the dock, not inside it',
-  /\bwirdBtn: \{[^}]*borderRadius: 999/.test(html) && /<div style=\{wirdSt\}>/.test(rdSrc));
-// Counted in the SHIPPED branches, never in rdSrc: the rollback bars carry the same five
-// handlers, so counting the whole component would keep saying six while the istana rail stood
-// empty. The wird is the sixth and lives outside both branches by design, so it is named apart.
-eq('the shipped chrome still draws its five controls',
-  ['onClick={onExit}', 'onClick={putMark}', 'onClick={() => commit(-1)}', 'onClick={() => commit(1)}',
-   'onClick={() => setJump(String(page))}'].filter((h) => shipped.indexOf(h) !== -1).length, 5);
-ok('...and the wird is the sixth, beside them', rdSrc.indexOf('onClick={() => setPicker(true)}') !== -1);
+  /onClick=\{\(\) => setPicker\(true\)\} aria-label=/.test(ixSrc));
+ok('...and is still the same bounded pill, on the index',
+  /\bwirdBtn: \{[^}]*borderRadius: 999/.test(html) && /<div style=\{s\.wirdWrap\}>/.test(ixSrc));
+// Counted in the SHIPPED branches, never in rdSrc: the rollback bar carries the same handlers,
+// so counting the whole component would keep saying two while the istana rail stood empty.
+eq('the shipped chrome draws its two controls, and only those two',
+  ['onClick={onExit}', 'onClick={putMark}'].filter((h) => shipped.indexOf(h) !== -1).length, 2);
+eq('...and no third handler is left anywhere in the shipped rail',
+  (shipped.match(/onClick=/g) || []).length, 2);
 
-/* ---- M4. the chrome's BEHAVIOUR is frozen ------------------------------- */
+/* ---- M4. the chrome BEHAVIOUR is frozen -------------------------------- */
 ok('the chrome still starts visible', /const \[chromeOn, setChromeOn\] = useState\(true\);/.test(rdSrc));
-eq('both overlays are gated on the same chromeOn as before, and only those two',
-  (rdSrc.match(/\{chromeOn && \(MADINA_IMG_ON \?/g) || []).length, 2);
-eq('...and no other chromeOn gate was invented', (rdSrc.match(/\{chromeOn && /g) || []).length, 2);
+// ITEM 104 -- ONE OVERLAY, NOT TWO. The bottom dock is gone, so the count of chromeOn gates is
+// one and the count of gates of every other shape is zero. Both halves are still asserted: the
+// first says the rail is still gated exactly as it was, the second that no second gate crept
+// back in under a different flag while the dock was being removed.
+eq('the one remaining overlay is gated on the same chromeOn as before',
+  (rdSrc.match(/\{chromeOn && \(MADINA_IMG_ON \?/g) || []).length, 1);
+eq('...and no other chromeOn gate was invented', (rdSrc.match(/\{chromeOn && /g) || []).length, 1);
 ok('the one-shot collapse latch is unchanged',
   /const chromeAuto = useRef\(false\);/.test(rdSrc)
   && /if \(\(!MUSHAF_SVG_ON && !MADINA_IMG_ON\) \|\| chromeAuto\.current\) return;\s*\n\s*chromeAuto\.current = true;\s*\n\s*setChromeOn\(false\);/.test(rdSrc));
-eq('...and it is still fired from land() and jumpTo(), and from nowhere else',
-  (rdSrc.match(/readerTurnedPage\(\);/g) || []).length, 2);
+// ITEM 104 -- AND IT IS FIRED FROM ONE PLACE NOW. jumpTo was the second caller and it went with
+// the dock whose page box called it, so a second occurrence means a page mover came back.
+eq('...and it is still fired from land(), and from nowhere else',
+  (rdSrc.match(/readerTurnedPage\(\);/g) || []).length, 1);
 // THE TAP BLOCK, byte for byte.
 const TAP_BLOCK = `  const onTap = (x, y) => {
     const R = tapRef.current;
@@ -2430,21 +2466,25 @@ const TAP_BLOCK = `  const onTap = (x, y) => {
 ok('the tap-to-restore block is byte-identical', html.indexOf(TAP_BLOCK) !== -1);
 ok('...and its window is unchanged', /const MUSHAF_TAP_MS = 300;/.test(html));
 ok('the wird dwell is unchanged', /const WIRD_DWELL_MS = 8000;/.test(html));
-// ITEM 22+104 -- RE-CUT ONTO THE OPPOSITE CONTRACT, and kept as an assertion rather than
-// dropped. The owner ruled that the wird is the FIRST thing that should leave the eye while
-// reading, so the strip is gated on `chromeOn` and is ABSENT FROM THE DOM in reading mode.
-// What this check is FOR has not changed: that the reader's chrome and the wird strip move
-// together under ONE rule instead of drifting apart. Only the rule flipped, and both halves
-// are stated positively now -- the position no longer names `chromeOn` (that branch became
-// unreachable the moment the render gate took it), and the render gate does name it, with
-// MADINA_IMG_ON still FIRST so ?madinaimg=0 keeps rolling the strip back on its own.
+// ITEM 104 -- RE-CUT ONTO THE RULING THAT REPLACED IT, and kept as an assertion rather than
+// dropped. Item 22 made the strip leave WITH the chrome; the owner then went further on 8 Sept
+// 2026 and took it off the reading page altogether, together with the page mark and the whole
+// bottom dock. So the pairing this check is FOR -- that the reader and the wird do not drift
+// apart -- becomes two claims that cannot both be satisfied by accident: the reader holds
+// NONE of it, and the mushaf index holds ALL of it, still behind MADINA_IMG_ON and still with
+// that flag first, so ?madinaimg=0 rolls the pair back exactly as it always did.
 //
-// rdSrc is '' when the reader region cannot be found, and '' satisfies every negative test
-// written against it -- so the region is asserted FOUND before anything is concluded from it.
+// rdSrc and ixSrc are '' when their region cannot be found, and '' satisfies every negative
+// test written against it -- so both are asserted FOUND before anything is concluded.
 ok('the reader region was found (an empty slice must not pass as agreement)', rdSrc.length > 0);
-ok('the wird strip now leaves WITH the chrome',
-  /const wirdBottomMost = !\(barH > 0\);/.test(rdSrc)
-  && /\{MADINA_IMG_ON && chromeOn && \(\s*\n\s*<div style=\{wirdSt\}/.test(rdSrc));
+ok('the index region was found (an empty slice must not pass as agreement)', ixSrc.length > 0);
+ok('the wird strip has LEFT the reader entirely',
+  !/wirdSt/.test(rdSrc) && !/s\.wirdWrap/.test(rdSrc) && !/setPicker/.test(rdSrc)
+  && !/khToggle/.test(rdSrc) && !/KhatmahPanel/.test(rdSrc));
+ok('...and stands on the mushaf index instead, behind the same flag and with it FIRST',
+  /\{MADINA_IMG_ON && \(\s*\n\s*<div style=\{s\.wirdWrap\}>/.test(ixSrc));
+ok('...and the page mark went with it, not with the reader',
+  /onClick=\{khToggle\}/.test(ixSrc) && /<KhatmahPanel /.test(ixSrc));
 // ...AND THE COUNT DOES NOT LEAVE WITH IT. Gating the strip on `chromeOn` is one keystroke
 // away from gating the DWELL on it too, which would credit a reader nothing for exactly the
 // session this item exists to protect. The dwell effect must name `chromeOn` nowhere -- not

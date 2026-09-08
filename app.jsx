@@ -20342,6 +20342,36 @@ const prefetchMushafSvg = (n) => {
   } catch (e) {}
 };
 
+// ITEM 105 -- ONE PAGE, WAITED FOR ONCE, AND NEVER MORE THAN THIS LONG.
+// The reading render is not entered until the page it is about to draw has arrived. The URL is
+// the one madinaImgUrl already computes (or the SVG page under ?madinaimg=0), so no asset moves
+// and no origin is added; this only asks for it EARLIER, from the same Image object the
+// neighbour warm above uses. Memory is one Image, dropped as soon as it settles -- the pages
+// themselves are bounded by the worker's own MADINA_PAGE_CACHE_CAP store and by nothing here.
+//
+// THE CEILING IS THE DEGRADATION. A reader on a bad link is not held hostage to a fetch: the
+// promise settles on load, on error, and on this timer whichever comes first, and the reader
+// then opens exactly as it did before this existed. It is deliberately shorter than a reader
+// would wait before deciding the app is broken, and longer than a page needs on any link that
+// is working at all.
+const MUSHAF_READY_MS = 2500;
+const mushafPageReady = (n) => new Promise((resolve) => {
+  let url = null;
+  try { url = madinaImgUrl(n) || (MUSHAF_SVG_ON ? mushafSvgUrl(n) : null); } catch (e) { url = null; }
+  if (!url) { resolve(); return; }              // the text renderer has nothing to wait for
+  let done = false;
+  let t = null;
+  const settle = () => { if (done) return; done = true; if (t) clearTimeout(t); resolve(); };
+  try {
+    t = setTimeout(settle, MUSHAF_READY_MS);
+    const im = new Image();
+    im.decoding = 'async';
+    im.onload = settle;
+    im.onerror = settle;
+    im.src = url;
+  } catch (e) { settle(); }
+});
+
 // One sheet of the reader. This is the ONLY place that decides which renderer runs, and it
 // is the fallback too. The chain below is THREE renderers deep, not two, and the printed
 // Madina page is at the head of it -- the 78 and 81 notes inside MushafSheet describe the
@@ -21182,7 +21212,8 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   // second landing free.
   //
   // It is called from the two places the READER moves the page and from nowhere else:
-  // land() for a committed swipe and for the prev/next buttons, and jumpTo() for a jump.
+  // land(), for a committed swipe, and nowhere else -- ITEM 104 took the pager and its jump
+  // away, so the two reader-driven paths this used to name are now one.
   // Deliberately NOT a useEffect on `page`. There is a third writer of `page` -- the load
   // effect above, which sets the opening page from the surah index -- and an effect on
   // `page` would fire for it, collapsing the bars before the reader had touched anything,
@@ -21226,14 +21257,32 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
     return () => { alive = false; window.removeEventListener('resize', onResize); };
   }, []);
 
+  // ITEM 105 -- THE PAGE IS READY BEFORE THE READER IS SHOWN, and this is the whole of it.
+  //
+  // WHAT WAS MEASURED. Serving this tree over a link held to 1.5 Mbps with 150 ms of latency,
+  // a reader opening the mushaf met, in order: 160 ms of the loading line, then a page frame
+  // with NOTHING IN IT for 959 ms, then the page. The frame was empty because the reading
+  // render mounts the sheet and the sheet then starts fetching -- the reader was watching the
+  // page being assembled, which is exactly what the owner named.
+  //
+  // WHAT THIS CHANGES. Nothing about where a page comes from: same asset, same computed
+  // same-origin URL, same Image the neighbour warm already uses. Only the ORDER changes --
+  // the bytes are asked for BEFORE `state` turns 'ok', so the first reading render already
+  // has a decoded page to draw and the reader never sees a half-built one. The wait it
+  // replaces is spent on the mushaf's own loading line, which is a finished screen.
+  //
+  // AND IT CANNOT STICK. mushafPageReady resolves on load, on error and on a bounded timer,
+  // so a slow link, a 404, a refused fetch or a renderer with no image at all lands on the
+  // reader exactly as it does today. It is one Image, released the moment it settles.
   useEffect(() => {
     let alive = true;
     Promise.all([loadQuran(), loadLayout()])
       .then(() => {
         if (!alive) return;
         idx.current = buildLayoutIndex();
-        setPage(startPage || idx.current.startPage[startSurah] || 1);
-        setState('ok');
+        const first = startPage || idx.current.startPage[startSurah] || 1;
+        setPage(first);
+        return mushafPageReady(first).then(() => { if (alive) setState('ok'); });
       })
       .catch(() => { if (alive) setState('fail'); });
     return () => { alive = false; };
@@ -21254,113 +21303,12 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   const [markPage, setMarkPage] = useState(() => { const b = readMushafBookmark(); return b ? b.p : null; });
   const marked = markPage === page;
   const putMark = () => { writeMushafBookmark(page, startSurah); setMarkPage(page); };
-  // 14.4 — القفز إلى صفحةٍ برقمها. null = الشريط يعرض اللافتة، ونصٌّ = الخانة مفتوحة.
-  const [jump, setJump] = useState(null);
-
-  // Session 82 -- the wird. Three pieces of state and one measurement, and every hook below
-  // is UNCONDITIONAL and sits above the `state !== 'ok'` return, so the hook order of this
-  // component is the same on the loading render, the failed render and the reading render.
+  // ITEM 104 -- WHAT IS LEFT OF THE WIRD HERE IS THE COUNTING, and only the counting. The strip
+  // that reported it moved to the mushaf index together with the page mark; the dwell timer
+  // below did not move, and neither did the key it writes. This state is what the dwell hands
+  // its result to, and it is UNCONDITIONAL and above the `state !== 'ok'` return exactly as it
+  // always was, so the hook order of this component is the same on all three of its renders.
   const [wirdDay, setWirdDay] = useState(readWirdDay);
-  const [wirdTarget, setWirdTarget] = useState(readWirdTarget);
-  // A-3: the reader's own choice of WHAT the mushaf wird is. The page count keeps living in
-  // its own key; this holds the kind, and the surah when a surah is what was chosen.
-  const [dailyWird, setDailyWird] = useState(readDailyWird);
-  // THE KHATMAH. Three pieces of state, and every one of them is declared HERE, among this
-  // component's other hooks and ABOVE the `state !== 'ok'` return -- so the hook order is
-  // identical on the loading render, the failed render and the reading render, exactly as
-  // the wird's three are. Nothing below is conditional and nothing returns before them.
-  const [khPk] = useState(khatmahProfileKey);
-  const [khRec, setKhRec] = useState(khatmahEmpty);
-  // Whether the LAST write landed. It starts true because nothing has been attempted yet;
-  // false is only ever written by a store that actually refused, and the panel says so.
-  const [khSaved, setKhSaved] = useState(true);
-  // Read once the layout is in memory and not before: the length of the book is what a page
-  // number is checked against, and `state` turns 'ok' in the very effect that awaits the
-  // layout, so this is the first moment the answer can be the right one.
-  useEffect(() => { if (state === 'ok') setKhRec(readKhatmah(khPk)); }, [state, khPk]);
-  // A-4: the offline package's whole state. null until the reader presses.
-  const [juzDl, setJuzDl] = useState(null);
-  // A-4: the worker's own ceiling, pulled when the panel opens so the eviction rule is on
-  // screen BEFORE the reader presses anything -- and never retyped from sw.js.
-  const [juzCap, setJuzCap] = useState(0);
-  const [picker, setPicker] = useState(false);
-  const [pickerText, setPickerText] = useState('');
-  useEffect(() => {
-    if (!picker) return undefined;
-    let alive = true;
-    swMushafReport().then((r) => {
-      const p = r && r.storage ? r.storage.mushafPolicy : null;
-      if (alive && p && typeof p.cap === 'number') setJuzCap(p.cap);
-    });
-    return () => { alive = false; };
-  }, [picker]);
-  const runJuzDownload = async () => {
-    if (juzDl && juzDl.phase === 'run') return;          // one press cannot become two runs
-    const jz = juzOfPage(page);
-    const pages = jz ? juzPagesFor(jz) : null;
-    if (!jz || !pages || !pages.length) { setJuzDl({ phase: 'fail', note: JD_NO_WORKER }); return; }
-    setJuzDl({ phase: 'check', juz: jz, total: pages.length, done: 0, failed: 0 });
-    // CONDITION 1 -- the estimate, before a single byte is fetched.
-    const report = await swMushafReport();
-    const policy = report && report.storage ? report.storage.mushafPolicy : null;
-    const free = await juzFreeSpace();
-    const verdict = juzRoomVerdict(policy, free, pages.length);
-    if (!verdict.ok) {
-      const note = verdict.why === 'noworker' ? JD_NO_WORKER
-        : verdict.why === 'unmeasured' ? JD_UNMEASURED
-        : (JD_NOSPACE_A + juzMb(verdict.need) + JD_NOSPACE_B + juzMb(verdict.free)
-           + JD_NOSPACE_C + juzMb(verdict.minFree) + JD_NOSPACE_D);
-      setJuzDl({ phase: 'fail', juz: jz, total: pages.length, done: 0, failed: 0, note: note, cap: verdict.cap });
-      return;
-    }
-    // CONDITION 2 + 3 -- a visible count as it goes, and every failure counted by name.
-    let done = 0, failed = 0;
-    for (let i = 0; i < pages.length; i++) {
-      const url = madinaImgUrl(pages[i]);
-      if (!url) { failed++; setJuzDl({ phase: 'run', juz: jz, total: pages.length, done: done, failed: failed, cap: verdict.cap }); continue; }
-      try {
-        const res = await fetch(url);
-        if (res && res.ok) done++; else failed++;
-      } catch (e) {
-        failed++;   // counted, never swallowed: this number reaches the reader below
-      }
-      setJuzDl({ phase: 'run', juz: jz, total: pages.length, done: done, failed: failed, cap: verdict.cap });
-    }
-    // A page can fetch perfectly and still not be STORED. Ask the worker what it actually
-    // wrote, so a full disk is reported rather than covered by a finished progress count.
-    const after = await swMushafReport();
-    const m = after && after.storage ? after.storage.mushaf : null;
-    const before = report && report.storage ? report.storage.mushaf : null;
-    const declined = (m && before && typeof m.skipped === 'number' && typeof before.skipped === 'number')
-      ? Math.max(0, m.skipped - before.skipped) : 0;
-    const storeFailed = (m && before && typeof m.failed === 'number' && typeof before.failed === 'number')
-      ? Math.max(0, m.failed - before.failed) : 0;
-    const bad = failed + storeFailed;
-    let note = bad ? (JD_FAILED_A + toArabicDigits(bad) + JD_FAILED_B) : JD_DONE;
-    if (declined) note = note + ' ' + JD_DECLINED_A + toArabicDigits(declined) + JD_DECLINED_B;
-    setJuzDl({ phase: (bad || declined) ? 'fail' : 'done', juz: jz, total: pages.length,
-      done: done, failed: bad, declined: declined, note: note, cap: verdict.cap });
-  };
-  const dailyWirdValue = dailyWird.mushaf.mode === 'surah' && dailyWird.mushaf.surah
-    ? ('surah:' + dailyWird.mushaf.surah)
-    : (dailyWird.mushaf.mode === 'pages' && wirdTarget ? ('pages:' + wirdTarget) : '');
-  const onDailyWirdPick = (raw) => {
-    const v = String(raw || '');
-    if (!v) { setDailyWird(writeDailyWird({ mushaf: { mode: '', surah: 0 } })); return; }
-    const bits = v.split(':');
-    const n = Math.trunc(Number(bits[1]));
-    if (bits[0] === 'pages' && isFinite(n) && n > 0) {
-      setTarget(n);                        // the EXISTING helper, writing the EXISTING key
-      setDailyWird(writeDailyWird({ mushaf: { mode: 'pages', surah: 0 } }));
-    } else if (bits[0] === 'surah' && isFinite(n) && n >= 1 && n <= 114) {
-      setDailyWird(writeDailyWird({ mushaf: { mode: 'surah', surah: n } }));
-    }
-  };
-  // The measured height of the pager, taken off the pager itself rather than assumed from
-  // its style object -- padding, safe area and font all feed it and none of them are ours to
-  // predict. barSt is untouched; this is a ref at the use site and nothing more.
-  const barRef = useRef(null);
-  const [barH, setBarH] = useState(0);
 
   // THE LAST PAGE, and it is deliberately NOT coupled to the dwell timer. Wherever the
   // reader is standing once the mushaf is open is where they will be returned to, whether
@@ -21401,29 +21349,6 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
       try { document.removeEventListener('visibilitychange', onVis); } catch (e) {}
     };
   }, [state, page]);
-
-  // The pager's height, re-measured whenever it appears, disappears or is re-laid out by a
-  // rotation (epoch). A measurement that cannot be taken is 0, which puts the strip on the
-  // bottom edge -- the same place it lives when the chrome is hidden. Never a guess.
-  // The measurement is KEPT when the chrome hides rather than zeroed, because `chromeOn` is
-  // what decides the position and barH only says how tall the pager is when it is there.
-  // Keeping it means the strip is already in the right place on the first frame after the
-  // chrome is tapped back on, instead of sitting on the pager for one paint.
-  useEffect(() => {
-    if (!MADINA_IMG_ON) return;
-    if (state !== 'ok' || !chromeOn) return;
-    let h = 0;
-    try { const el = barRef.current; h = (el && el.offsetHeight) || 0; } catch (e) { h = 0; }
-    setBarH(h);
-  }, [state, chromeOn, epoch]);
-
-  // Escape closes the picker, alongside the backdrop and the explicit close button.
-  useEffect(() => {
-    if (!picker) return;
-    const onKey = (e) => { if (e.key === 'Escape') setPicker(false); };
-    try { window.addEventListener('keydown', onKey); } catch (e) {}
-    return () => { try { window.removeEventListener('keydown', onKey); } catch (e) {} };
-  }, [picker]);
 
   if (state !== 'ok') {
     return (
@@ -21467,27 +21392,6 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
     timer.current = setTimeout(() => { timer.current = null; land(eff); }, 420);
   };
   const onTransEnd = () => land(slide);
-  // 14.4 — القفزةُ البعيدة لا تمرُّ بـ commit: انزياحُ الشريط هو slide*100% وخاناتُه ثلاثٌ فقط،
-  // فقفزةٌ بمقدار ٥٨٥ صفحةً تعني انزياحاً بـ ٥٨٥٠٠٪ — لا شيء. فالمسلكُ هو مهبطُ commit نفسُه:
-  // نفسُ التنظيف الذي يفعله land ونفسُ setPage، بصفحةٍ مطلقةٍ بدل page + sl.
-  const jumpTo = (n) => { if (timer.current) { clearTimeout(timer.current); timer.current = null; } setDrag(0); setAnim(false); setSlide(0); setPage(n); if (n !== page) readerTurnedPage(); };   /* 77 -- jumping to the page you are already on is not a page change */
-  // التطبيع: تُقبل الأرقامُ الهنديّة واللاتينيّة معاً. وما بقي بعد نزع الفراغ وليس رقماً — تُردُّ الخانةُ كلُّها.
-  const jumpGo = () => { const raw = String(jump == null ? '' : jump).replace(/\s+/g, '').replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)); setJump(null); if (!/^[0-9]+$/.test(raw)) return; const n = parseInt(raw, 10); if (n >= 1 && n <= 604) jumpTo(n); };
-  // THE KHATMAH'S HANDLERS. Every one of them is a reader's press: there is no effect, no
-  // timer and no page-change path in this file that reaches any of them. khApply is the one
-  // place the returned record and the returned verdict are taken, so a refused write can
-  // never leave the screen showing a change the device did not keep.
-  const khTotal = khatmahTotalPages();
-  const khMarked = khRec.p.indexOf(page) !== -1;
-  const khApply = (r) => { setKhRec(r.rec); setKhSaved(r.ok); };
-  const khToggle = () => khApply(khatmahTogglePage(khPk, khRec, page));
-  const khNew = () => khApply(khatmahStartNew(khPk, khRec, khTotal));
-  const khPlace = (i) => khApply(khatmahPlaceMark(khPk, khRec, i, page, startSurah));
-  const khClear = (i) => khApply(khatmahClearMark(khPk, khRec, i));
-  const khName = (i, l) => khApply(khatmahNameMark(khPk, khRec, i, l));
-  // One press back to a mark, through the SAME jump the page box performs -- and the panel
-  // closes behind it, so the reader lands on the page rather than on a sheet over it.
-  const khGoMark = (i) => { const mk = khRec.m[i]; if (!mk) return; setPicker(false); jumpTo(mk.p); };
   // 75/E -- one tap recalls the chrome, two taps zoom. A single tap therefore waits out the
   // double-tap window before it acts: without that wait, the first tap of every double tap
   // would flash the chrome on and then off again. MUSHAF_TAP_MS is the whole price of telling
@@ -21612,54 +21516,6 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
         paddingLeft: 'calc(18px + env(safe-area-inset-left, 0px))',
         paddingRight: 'calc(18px + env(safe-area-inset-right, 0px))' }
     : s.memHeaderFb;
-  const barSt = MADINA_IMG_ON
-    ? { ...s.pgBar, position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 4,
-        paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
-        paddingLeft: 'calc(14px + env(safe-area-inset-left, 0px))',
-        paddingRight: 'calc(14px + env(safe-area-inset-right, 0px))' }
-    : s.pgBarFb;
-  // 82 -- THE PROGRESS STRIP, and it obeys the same contract as the other two overlays.
-  // Absolute, a sibling of the header, the viewport and the pager, and NEVER a flex child of
-  // the column: it therefore consumes zero layout height and the page is measured against
-  // exactly the box it was measured against before this existed. Showing or hiding the
-  // chrome ADDS OR REMOVES the strip -- it does not resize or move the page, because
-  // nothing here is in the page's box at all.
-  //
-  // ITEM 22+104 -- THE STRIP LEAVES WITH THE CHROME. It used to outlive it, on the stated
-  // reasoning that knowing how much of your wird is left was the one thing worth keeping on
-  // an otherwise bare page. The owner has overruled that reasoning by name: the wird is the
-  // FIRST thing that should go from the eye while reading. So the strip is gated on
-  // `chromeOn` at its render site and is ABSENT FROM THE DOM in reading mode -- not faded,
-  // not hidden, not present at zero height. Gone.
-  //
-  // THE COUNT DOES NOT STOP WITH IT. The dwell timer is keyed on [state, page] and names
-  // `chromeOn` nowhere, so the page being read is credited whether or not anything is drawn
-  // to say so. Hiding the chrome hides the REPORTING of the wird, never the counting of it.
-  //
-  // Where it sits: directly above the pager when the pager is on screen (barH is measured,
-  // never assumed), and on the bottom safe-area edge when that measurement is 0. `chromeOn`
-  // is no longer a term in the position: the strip renders only WITH the chrome, so the
-  // branch that put it on the bottom edge for a HIDDEN chrome is unreachable and is gone.
-  // At a visible chrome the value is what it always was, which is why the position is
-  // unchanged byte for byte on every frame the strip is actually drawn.
-  const wirdBottomMost = !(barH > 0);
-  const wirdSt = {
-    ...s.wirdWrap,
-    bottom: wirdBottomMost ? 0 : barH,
-    paddingBottom: wirdBottomMost ? 'calc(6px + env(safe-area-inset-bottom, 0px))' : 6,
-  };
-  const wirdDone = wirdDay && wirdDay.pages ? wirdDay.pages.length : 0;
-  // Numerically the reader may pass their target -- twelve pages against a target of ten is
-  // twelve, and it says twelve. The FILL is what caps: a bar cannot be more than full.
-  const wirdPct = wirdTarget ? Math.min(100, Math.round((wirdDone / wirdTarget) * 100)) : 0;
-  const setTarget = (n) => { writeWirdTarget(n); setWirdTarget(n); setPickerText(''); setPicker(false); };
-  const dropTarget = () => { clearWirdTarget(); setWirdTarget(null); setPickerText(''); setPicker(false); };
-  const pickerGo = () => {
-    const raw = wirdNormalizeDigits(pickerText);
-    if (!/^[0-9]+$/.test(raw)) { setPickerText(''); return; }
-    const n = parseInt(raw, 10);
-    if (n >= 1 && n <= 604) setTarget(n); else setPickerText('');
-  };
   // 75/E -- the whole of the zoom, and it lives on one element inside the page container. scale
   // is rightmost so it applies FIRST, which leaves the pan in unscaled pixels and keeps the
   // clamp arithmetic in a single unit. At fit this is null, so the style carries no transform
@@ -21716,107 +21572,6 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
           <div style={{ ...slotSt, left: '100%' }}>{prv && <MushafSheet key={prv.n + ':' + epoch} page={prv} headerSurah={hs} needHeader={nh} needBasmala={nb} />}</div>
         </div>
       </div>
-      {/* S110 -- THE BOTTOM READER DOCK. Every control the pager carried is still here, with the
-          same handler and the same accessible name: `›` and `‹` keep their glyphs and stay
-          unlabelled exactly as they shipped, and the jump keeps «اذهب إلى صفحة» and «رقم
-          الصفحة». barRef stays on the OUTER element so barH still measures the full height the
-          dock occupies from the bottom edge -- the wird strip is positioned against it and its
-          arithmetic is untouched. */}
-      {chromeOn && (MADINA_IMG_ON ? (
-      <div ref={barRef} className="ezhome ezmr-dockwrap">
-        <div className="ezmr-bar">
-          <button onClick={() => commit(-1)} disabled={page <= 1} className="ezmr-btn" style={s.ezmrNav}>›</button>
-          <div style={s.pgJumpWrap}>{jump == null ? <button onClick={() => setJump(String(page))} aria-label="اذهب إلى صفحة" className="ezmr-btn" style={s.ezmrJump}></button> : <input type="text" inputMode="numeric" enterKeyHint="go" maxLength={4} autoFocus aria-label="رقم الصفحة" value={toArabicDigits(jump)} onChange={(e) => setJump(e.target.value)} onFocus={(e) => e.target.select()} onKeyDown={(e) => { if (e.key === 'Enter') jumpGo(); else if (e.key === 'Escape') setJump(null); }} onBlur={() => setJump(null)} style={s.pgJumpInput} />}</div>
-          <button onClick={() => commit(1)} disabled={page >= 604} className="ezmr-btn" style={s.ezmrNav}>‹</button>
-        </div>
-      </div>
-      ) : (
-      <div ref={barRef} className="ezhome" style={barSt}>
-        <div className="ezmr-fb-inner">
-          <button onClick={() => commit(-1)} disabled={page <= 1} className="ezmr-fb-btn" style={s.pgNavBtnFb}>›</button>
-          <div style={s.pgJumpWrap}>{jump == null ? <button onClick={() => setJump(String(page))} aria-label="اذهب إلى صفحة" className="ezmr-fb-btn" style={{ ...s.pgMetaFb, ...s.pgJumpBtn }}></button> : <input type="text" inputMode="numeric" enterKeyHint="go" maxLength={4} autoFocus aria-label="رقم الصفحة" value={toArabicDigits(jump)} onChange={(e) => setJump(e.target.value)} onFocus={(e) => e.target.select()} onKeyDown={(e) => { if (e.key === 'Enter') jumpGo(); else if (e.key === 'Escape') setJump(null); }} onBlur={() => setJump(null)} style={s.pgJumpInput} />}</div>
-          <button onClick={() => commit(1)} disabled={page >= 604} className="ezmr-fb-btn" style={s.pgNavBtnFb}>‹</button>
-        </div>
-      </div>
-      ))}
-      {/* 82 -- the wird strip. MADINA_IMG_ON is still the FIRST term, so ?madinaimg=0 rolls
-          it back with the reader it belongs to and the fallback renderers are byte for byte
-          what they were. ITEM 22+104: `chromeOn` is the second term, so reading mode carries
-          no strip in the DOM at all. The dwell timer is gated on NEITHER -- the page goes on
-          counting towards the wird while the strip that reports it is gone. */}
-      {MADINA_IMG_ON && chromeOn && (
-      <div style={wirdSt}>
-        <button onClick={() => setPicker(true)} aria-label="وردُ اليوم" style={s.wirdBtn}>
-          {wirdTarget ? (
-            <React.Fragment>
-              <span style={s.wirdText}>وردك {toArabicDigits(wirdDone)} / {toArabicDigits(wirdTarget)}</span>
-              <span style={s.wirdTrack}><span style={{ ...s.wirdFill, width: wirdPct + '%' }} /></span>
-            </React.Fragment>
-          ) : (
-            <span style={s.wirdText}>اليوم {toArabicDigits(wirdDone)} · حدّد وردك</span>
-          )}
-        </button>
-        {/* THE ONE EXPLICIT ACT, on the reader's own row. It is a press and nothing else:
-            no swipe, no dwell and no page turn reaches khToggle. aria-pressed carries the
-            state to a reader who cannot see the fill. */}
-        <button type="button" onClick={khToggle} aria-label={ezT('khatmah.markAria')}
-          aria-pressed={khMarked ? 'true' : 'false'}
-          style={khMarked ? { ...s.khPill, ...s.khPillOn } : s.khPill}>
-          <span style={s.khPillTxt}>{khMarked ? ezT('khatmah.marked') : ezT('khatmah.mark')}</span>
-        </button>
-      </div>
-      )}
-      {MADINA_IMG_ON && picker && (
-      <div style={s.wirdBack} onClick={() => setPicker(false)}>
-        <div style={s.wirdSheet} onClick={(e) => e.stopPropagation()}>
-          <div style={s.wirdSheetHead}>
-            <div style={s.wirdSheetTitle}>وردُ اليوم</div>
-            <button onClick={() => setPicker(false)} aria-label="إغلاق" style={{ ...s.pgNavBtn, width: 36 }}>×</button>
-          </div>
-          {/* A-3: one dropdown, both kinds of wird -- a number of pages a day, or a named
-              surah. No time is asked for anywhere on it. */}
-          <select value={dailyWirdValue} onChange={(e) => onDailyWirdPick(e.target.value)}
-            aria-label={DW_MUSHAF_LABEL} style={s.memAyahSelect}>
-            <option value="">{DW_NONE}</option>
-            {WIRD_TARGET_PRESETS.map((n) => (
-              <option key={'p' + n} value={'pages:' + n}>{toArabicDigits(n) + ' ' + DW_PAGES_WORD}</option>
-            ))}
-            {SURAH_ORDER.map((n) => (
-              <option key={'s' + n} value={'surah:' + n}>{DW_SURAH_WORD + ' ' + SURAH_NAMES[n]}</option>
-            ))}
-          </select>
-          <div style={s.wirdChips}>
-            {WIRD_TARGET_PRESETS.map((n) => (
-              <button key={n} onClick={() => setTarget(n)} style={{ ...s.wirdChip, ...(wirdTarget === n ? s.wirdChipOn : {}) }}>{toArabicDigits(n)}</button>
-            ))}
-          </div>
-          <div style={s.wirdFree}>
-            <input type="text" inputMode="numeric" enterKeyHint="done" maxLength={4} aria-label="عدد الصفحات" placeholder="عدد الصفحات" value={pickerText} onChange={(e) => setPickerText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') pickerGo(); }} style={s.pgJumpInput} />
-            <button onClick={pickerGo} style={{ ...s.wirdChip, ...s.wirdChipOn }}>تثبيت</button>
-          </div>
-          <button onClick={dropTarget} style={s.wirdNone}>بلا ورد</button>
-          {/* A-4: the offline package. Four conditions, all four visible on this panel. */}
-          <div style={s.a11yGroupLabel}>{JD_TITLE}</div>
-          <button type="button" onClick={runJuzDownload}
-            disabled={!!(juzDl && (juzDl.phase === 'run' || juzDl.phase === 'check'))}
-            className="ezik-focus" style={s.wirdChip}>
-            {juzDl && (juzDl.phase === 'run' || juzDl.phase === 'check') ? JD_BUSY : JD_BTN}
-          </button>
-          {juzDl && (juzDl.phase === 'run' || juzDl.phase === 'check') ? (
-            <div style={s.wirdText}>{toArabicDigits(juzDl.done) + JD_OF + toArabicDigits(juzDl.total)}</div>
-          ) : null}
-          {juzDl && juzDl.note ? <div style={s.wirdText}>{juzDl.note}</div> : null}
-          <div style={s.wirdText}>{(juzCap || (juzDl && juzDl.cap))
-            ? (JD_RULE_A + toArabicDigits(juzCap || juzDl.cap) + JD_RULE_B) : JD_RULE_PLAIN}</div>
-          {/* The khatmah shares the wird's own panel rather than opening a second one: the
-              page-a-day target it estimates from is the very target chosen three controls
-              above it, and the reader should see both halves of their reading in one place. */}
-          <KhatmahPanel rec={khRec} total={khTotal} target={wirdTarget} saved={khSaved}
-            pageMarked={khMarked} onToggle={khToggle} onStartNew={khNew}
-            onPlace={khPlace} onClear={khClear} onName={khName} onGo={khGoMark} />
-        </div>
-      </div>
-      )}
     </div>
   );
 }
@@ -21848,7 +21603,137 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
   // the book is what a stored page is checked against.
   const [khPk] = useState(khatmahProfileKey);
   const [khRec, setKhRec] = useState(khatmahEmpty);
-  const khGoMark = (i) => { const mk = khRec.m[i]; if (!mk) return; setOpenAt({ p: mk.p, s: mk.s }); setSelected(mk.s); };
+  // ITEM 104 -- THE WIRD AND THE PAGE MARK LIVE HERE NOW. Both panels left the reading page by
+  // the ruling of 8 Sept 2026 and were MOVED, not rewritten: the same state, the same readers,
+  // the same writers and the same two controls. Every hook below is UNCONDITIONAL and sits
+  // above the `if (selected)` return, so the hook order of this component is the same on the
+  // index render and on the render that hands the reader over to PagedMushaf.
+  const [wirdDay, setWirdDay] = useState(readWirdDay);
+  const [wirdTarget, setWirdTarget] = useState(readWirdTarget);
+  // A-3: the reader own choice of WHAT the mushaf wird is. The page count keeps living in its
+  // own key; this holds the kind, and the surah when a surah is what was chosen.
+  const [dailyWird, setDailyWird] = useState(readDailyWird);
+  // Whether the LAST write landed. It starts true because nothing has been attempted yet;
+  // false is only ever written by a store that actually refused, and the panel says so.
+  const [khSaved, setKhSaved] = useState(true);
+  // A-4: the offline package's whole state. null until the reader presses.
+  const [juzDl, setJuzDl] = useState(null);
+  // A-4: the worker's own ceiling, pulled when the panel opens so the eviction rule is on
+  // screen BEFORE the reader presses anything -- and never retyped from sw.js.
+  const [juzCap, setJuzCap] = useState(0);
+  const [picker, setPicker] = useState(false);
+  const [pickerText, setPickerText] = useState('');
+  useEffect(() => {
+    if (!picker) return undefined;
+    let alive = true;
+    swMushafReport().then((r) => {
+      const p = r && r.storage ? r.storage.mushafPolicy : null;
+      if (alive && p && typeof p.cap === 'number') setJuzCap(p.cap);
+    });
+    return () => { alive = false; };
+  }, [picker]);
+  // Escape closes the picker, alongside the backdrop and the explicit close button.
+  useEffect(() => {
+    if (!picker) return;
+    const onKey = (e) => { if (e.key === 'Escape') setPicker(false); };
+    try { window.addEventListener('keydown', onKey); } catch (e) {}
+    return () => { try { window.removeEventListener('keydown', onKey); } catch (e) {} };
+  }, [picker]);
+  // THE PAGE THESE TWO PANELS ACT ON. On the reading page it was the sheet under the eye; on
+  // the index it is the page the reader was last standing on, which is the very record the
+  // resume row above already draws. A reader who has never opened a page has none, and the two
+  // page-bound acts -- the khatmah mark and the offline juz -- are then simply not offered.
+  const khPage = lastPage ? lastPage.p : null;
+  // THE KHATMAH'S HANDLERS. Every one of them is a reader's press: there is no effect, no
+  // timer and no page-change path in this file that reaches any of them. khApply is the one
+  // place the returned record and the returned verdict are taken, so a refused write can
+  // never leave the screen showing a change the device did not keep.
+  const khTotal = khatmahTotalPages();
+  const khMarked = khPage != null && khRec.p.indexOf(khPage) !== -1;
+  const khApply = (r) => { setKhRec(r.rec); setKhSaved(r.ok); };
+  const khToggle = () => { if (khPage == null) return; khApply(khatmahTogglePage(khPk, khRec, khPage)); };
+  const khNew = () => khApply(khatmahStartNew(khPk, khRec, khTotal));
+  const khPlace = (i) => { if (khPage == null) return; khApply(khatmahPlaceMark(khPk, khRec, i, khPage, lastPage.s)); };
+  const khClear = (i) => khApply(khatmahClearMark(khPk, khRec, i));
+  const khName = (i, l) => khApply(khatmahNameMark(khPk, khRec, i, l));
+  const runJuzDownload = async () => {
+    if (juzDl && juzDl.phase === 'run') return;          // one press cannot become two runs
+    const jz = khPage != null ? juzOfPage(khPage) : null;
+    const pages = jz ? juzPagesFor(jz) : null;
+    if (!jz || !pages || !pages.length) { setJuzDl({ phase: 'fail', note: JD_NO_WORKER }); return; }
+    setJuzDl({ phase: 'check', juz: jz, total: pages.length, done: 0, failed: 0 });
+    // CONDITION 1 -- the estimate, before a single byte is fetched.
+    const report = await swMushafReport();
+    const policy = report && report.storage ? report.storage.mushafPolicy : null;
+    const free = await juzFreeSpace();
+    const verdict = juzRoomVerdict(policy, free, pages.length);
+    if (!verdict.ok) {
+      const note = verdict.why === 'noworker' ? JD_NO_WORKER
+        : verdict.why === 'unmeasured' ? JD_UNMEASURED
+        : (JD_NOSPACE_A + juzMb(verdict.need) + JD_NOSPACE_B + juzMb(verdict.free)
+           + JD_NOSPACE_C + juzMb(verdict.minFree) + JD_NOSPACE_D);
+      setJuzDl({ phase: 'fail', juz: jz, total: pages.length, done: 0, failed: 0, note: note, cap: verdict.cap });
+      return;
+    }
+    // CONDITION 2 + 3 -- a visible count as it goes, and every failure counted by name.
+    let done = 0, failed = 0;
+    for (let i = 0; i < pages.length; i++) {
+      const url = madinaImgUrl(pages[i]);
+      if (!url) { failed++; setJuzDl({ phase: 'run', juz: jz, total: pages.length, done: done, failed: failed, cap: verdict.cap }); continue; }
+      try {
+        const res = await fetch(url);
+        if (res && res.ok) done++; else failed++;
+      } catch (e) {
+        failed++;   // counted, never swallowed: this number reaches the reader below
+      }
+      setJuzDl({ phase: 'run', juz: jz, total: pages.length, done: done, failed: failed, cap: verdict.cap });
+    }
+    // A page can fetch perfectly and still not be STORED. Ask the worker what it actually
+    // wrote, so a full disk is reported rather than covered by a finished progress count.
+    const after = await swMushafReport();
+    const m = after && after.storage ? after.storage.mushaf : null;
+    const before = report && report.storage ? report.storage.mushaf : null;
+    const declined = (m && before && typeof m.skipped === 'number' && typeof before.skipped === 'number')
+      ? Math.max(0, m.skipped - before.skipped) : 0;
+    const storeFailed = (m && before && typeof m.failed === 'number' && typeof before.failed === 'number')
+      ? Math.max(0, m.failed - before.failed) : 0;
+    const bad = failed + storeFailed;
+    let note = bad ? (JD_FAILED_A + toArabicDigits(bad) + JD_FAILED_B) : JD_DONE;
+    if (declined) note = note + ' ' + JD_DECLINED_A + toArabicDigits(declined) + JD_DECLINED_B;
+    setJuzDl({ phase: (bad || declined) ? 'fail' : 'done', juz: jz, total: pages.length,
+      done: done, failed: bad, declined: declined, note: note, cap: verdict.cap });
+  };
+  const dailyWirdValue = dailyWird.mushaf.mode === 'surah' && dailyWird.mushaf.surah
+    ? ('surah:' + dailyWird.mushaf.surah)
+    : (dailyWird.mushaf.mode === 'pages' && wirdTarget ? ('pages:' + wirdTarget) : '');
+  const onDailyWirdPick = (raw) => {
+    const v = String(raw || '');
+    if (!v) { setDailyWird(writeDailyWird({ mushaf: { mode: '', surah: 0 } })); return; }
+    const bits = v.split(':');
+    const n = Math.trunc(Number(bits[1]));
+    if (bits[0] === 'pages' && isFinite(n) && n > 0) {
+      setTarget(n);                        // the EXISTING helper, writing the EXISTING key
+      setDailyWird(writeDailyWird({ mushaf: { mode: 'pages', surah: 0 } }));
+    } else if (bits[0] === 'surah' && isFinite(n) && n >= 1 && n <= 114) {
+      setDailyWird(writeDailyWird({ mushaf: { mode: 'surah', surah: n } }));
+    }
+  };
+  const wirdDone = wirdDay && wirdDay.pages ? wirdDay.pages.length : 0;
+  // Numerically the reader may pass their target -- twelve pages against a target of ten is
+  // twelve, and it says twelve. The FILL is what caps: a bar cannot be more than full.
+  const wirdPct = wirdTarget ? Math.min(100, Math.round((wirdDone / wirdTarget) * 100)) : 0;
+  const setTarget = (n) => { writeWirdTarget(n); setWirdTarget(n); setPickerText(''); setPicker(false); };
+  const dropTarget = () => { clearWirdTarget(); setWirdTarget(null); setPickerText(''); setPicker(false); };
+  const pickerGo = () => {
+    const raw = wirdNormalizeDigits(pickerText);
+    if (!/^[0-9]+$/.test(raw)) { setPickerText(''); return; }
+    const n = parseInt(raw, 10);
+    if (n >= 1 && n <= 604) setTarget(n); else setPickerText('');
+  };
+  // One press back to a mark, and the sheet the press came from closes behind it, so the reader
+  // lands on the page rather than on a panel over it -- the same courtesy the reader own copy of
+  // this did. Same door as every other row here: setOpenAt plus setSelected.
+  const khGoMark = (i) => { const mk = khRec.m[i]; if (!mk) return; setPicker(false); setOpenAt({ p: mk.p, s: mk.s }); setSelected(mk.s); };
   const openLastPage = () => { if (lastPage) { setOpenAt(lastPage); setSelected(lastPage.s); } };
   // ITEM 87 -- THE MUSHAF OPENS WHERE IT WAS LEFT, and it opens there through the SAME door a
   // tap uses: openAt carries the page and `selected` carries the surah, exactly as the resume
@@ -21909,6 +21794,11 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
   // Same lifecycle as the two rows above, in its own effect so neither of theirs is touched:
   // coming back from the reader is exactly when this has just moved.
   useEffect(() => { if (selected == null) setKhRec(readKhatmah(khPk)); }, [selected, khPk, nav]);
+  // ITEM 104 -- and the same lifecycle for the DAY'S COUNT, in its own effect so none of the three
+  // above is touched. The counting still happens inside the reader, one page at a time, and this
+  // is the moment the strip that now REPORTS it is about to be drawn again: coming back from the
+  // reader is exactly when the number has just moved.
+  useEffect(() => { if (selected == null) setWirdDay(readWirdDay()); }, [selected]);
 
   // Leaving the screen must silence a running recitation.
   useEffect(() => () => { if (onStopAudio) onStopAudio(); }, []);
@@ -21940,6 +21830,40 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
     // same setOpenAt/setSelected pair and lands in the same PagedMushaf.
     <EzShell title={'\u0627\u0644\u0645\u0635\u062d\u0641'} onBack={leaveScreen} backLabel={'\u0631\u062c\u0648\u0639'}>
       <div>
+        {/* ITEM 104 -- THE WIRD AND THE PAGE MARK, on the mushaf's own index. They were the
+            reading page's last two panels and the owner moved them here on 8 Sept 2026: the
+            reading page is the printed sheet and nothing else. Nothing about them was rewritten
+            -- same button, same aria-label, same target, same fill, same khatmah toggle -- only
+            the screen they stand on. MADINA_IMG_ON is still the FIRST and now the ONLY term, so
+            ?madinaimg=0 rolls both of them back exactly as it did. There is no `chromeOn` here
+            because there is no chrome to hide: the index has no page under it.
+
+            THE COUNT IS STILL TAKEN IN THE READER. The dwell timer never moved and names none
+            of this; what moved is where the number is REPORTED. */}
+        {MADINA_IMG_ON && (
+        <div style={s.wirdWrap}>
+          <button onClick={() => setPicker(true)} aria-label="وردُ اليوم" style={s.wirdBtn}>
+            {wirdTarget ? (
+              <React.Fragment>
+                <span style={s.wirdText}>وردك {toArabicDigits(wirdDone)} / {toArabicDigits(wirdTarget)}</span>
+                <span style={s.wirdTrack}><span style={{ ...s.wirdFill, width: wirdPct + '%' }} /></span>
+              </React.Fragment>
+            ) : (
+              <span style={s.wirdText}>اليوم {toArabicDigits(wirdDone)} · حدّد وردك</span>
+            )}
+          </button>
+          {/* THE ONE EXPLICIT ACT, on the reader's own row. It is a press and nothing else:
+              no swipe, no dwell and no page turn reaches khToggle. aria-pressed carries the
+              state to a reader who cannot see the fill. */}
+          {khPage != null && (
+          <button type="button" onClick={khToggle} aria-label={ezT('khatmah.markAria')}
+            aria-pressed={khMarked ? 'true' : 'false'}
+            style={khMarked ? { ...s.khPill, ...s.khPillOn } : s.khPill}>
+            <span style={s.khPillTxt}>{khMarked ? ezT('khatmah.marked') : ezT('khatmah.mark')}</span>
+          </button>
+          )}
+        </div>
+        )}
         {/* 82 -- ABOVE the bookmark row and visibly not it: a curved history arrow, never a
             ribbon. Same door as every other row here -- setOpenAt + setSelected -- so the
             reader, the back button and the header all behave as they do from the index. */}
@@ -22016,6 +21940,61 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
           </div>
         )}
       </div>
+      {MADINA_IMG_ON && picker && (
+      <div style={s.wirdBack} onClick={() => setPicker(false)}>
+        <div style={s.wirdSheet} onClick={(e) => e.stopPropagation()}>
+          <div style={s.wirdSheetHead}>
+            <div style={s.wirdSheetTitle}>وردُ اليوم</div>
+            <button onClick={() => setPicker(false)} aria-label="إغلاق" style={{ ...s.pgNavBtn, width: 36 }}>×</button>
+          </div>
+          {/* A-3: one dropdown, both kinds of wird -- a number of pages a day, or a named
+              surah. No time is asked for anywhere on it. */}
+          <select value={dailyWirdValue} onChange={(e) => onDailyWirdPick(e.target.value)}
+            aria-label={DW_MUSHAF_LABEL} style={s.memAyahSelect}>
+            <option value="">{DW_NONE}</option>
+            {WIRD_TARGET_PRESETS.map((n) => (
+              <option key={'p' + n} value={'pages:' + n}>{toArabicDigits(n) + ' ' + DW_PAGES_WORD}</option>
+            ))}
+            {SURAH_ORDER.map((n) => (
+              <option key={'s' + n} value={'surah:' + n}>{DW_SURAH_WORD + ' ' + SURAH_NAMES[n]}</option>
+            ))}
+          </select>
+          <div style={s.wirdChips}>
+            {WIRD_TARGET_PRESETS.map((n) => (
+              <button key={n} onClick={() => setTarget(n)} style={{ ...s.wirdChip, ...(wirdTarget === n ? s.wirdChipOn : {}) }}>{toArabicDigits(n)}</button>
+            ))}
+          </div>
+          <div style={s.wirdFree}>
+            <input type="text" inputMode="numeric" enterKeyHint="done" maxLength={4} aria-label="عدد الصفحات" placeholder="عدد الصفحات" value={pickerText} onChange={(e) => setPickerText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') pickerGo(); }} style={s.pgJumpInput} />
+            <button onClick={pickerGo} style={{ ...s.wirdChip, ...s.wirdChipOn }}>تثبيت</button>
+          </div>
+          <button onClick={dropTarget} style={s.wirdNone}>بلا ورد</button>
+          {khPage != null && (
+          <React.Fragment>
+          {/* A-4: the offline package. Four conditions, all four visible on this panel. */}
+          <div style={s.a11yGroupLabel}>{JD_TITLE}</div>
+          <button type="button" onClick={runJuzDownload}
+            disabled={!!(juzDl && (juzDl.phase === 'run' || juzDl.phase === 'check'))}
+            className="ezik-focus" style={s.wirdChip}>
+            {juzDl && (juzDl.phase === 'run' || juzDl.phase === 'check') ? JD_BUSY : JD_BTN}
+          </button>
+          {juzDl && (juzDl.phase === 'run' || juzDl.phase === 'check') ? (
+            <div style={s.wirdText}>{toArabicDigits(juzDl.done) + JD_OF + toArabicDigits(juzDl.total)}</div>
+          ) : null}
+          {juzDl && juzDl.note ? <div style={s.wirdText}>{juzDl.note}</div> : null}
+          <div style={s.wirdText}>{(juzCap || (juzDl && juzDl.cap))
+            ? (JD_RULE_A + toArabicDigits(juzCap || juzDl.cap) + JD_RULE_B) : JD_RULE_PLAIN}</div>
+          </React.Fragment>
+          )}
+          {/* The khatmah shares the wird's own panel rather than opening a second one: the
+              page-a-day target it estimates from is the very target chosen three controls
+              above it, and the reader should see both halves of their reading in one place. */}
+          <KhatmahPanel rec={khRec} total={khTotal} target={wirdTarget} saved={khSaved}
+            pageMarked={khMarked} onToggle={khPage != null ? khToggle : null} onStartNew={khNew}
+            onPlace={khPage != null ? khPlace : null} onClear={khClear} onName={khName} onGo={khGoMark} />
+        </div>
+      </div>
+      )}
     </EzShell>
   );
 }
@@ -23498,7 +23477,11 @@ const s = {
   // supplied at the use site, and nothing here has any layout height in the reading column.
   // pointerEvents on the wrapper is 'none' so the strip's margins never eat a swipe; the
   // button itself takes them back, so only the pill is tappable.
-  wirdWrap: { position: 'absolute', left: 0, right: 0, zIndex: 5, display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 8, pointerEvents: 'none', paddingTop: 6, paddingLeft: 'calc(14px + env(safe-area-inset-left, 0px))', paddingRight: 'calc(14px + env(safe-area-inset-right, 0px))', boxSizing: 'border-box' },
+  // ITEM 104 -- the strip left the reading page and is an ORDINARY CHILD of the mushaf index
+  // now, so it carries no position, no bottom, no z-index and no pointer-events mask: there is
+  // nothing left for it to float over. It still declares no height of its own -- the two pills
+  // it holds are what make it tall -- and it still keeps clear of the two side safe areas.
+  wirdWrap: { display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 8, paddingTop: 6, paddingBottom: 10, paddingLeft: 'calc(14px + env(safe-area-inset-left, 0px))', paddingRight: 'calc(14px + env(safe-area-inset-right, 0px))', boxSizing: 'border-box' },
   wirdBtn: { pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 8, maxWidth: '100%', minWidth: 0, background: 'var(--wird-pill)', border: '1px solid var(--line)', borderRadius: 999, padding: '5px 12px', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 1px 6px rgba(0,0,0,0.10)' },
   wirdText: { fontSize: 12.5, fontWeight: 700, color: 'var(--accent-ink)', whiteSpace: 'nowrap' },
   wirdTrack: { width: 72, height: 4, borderRadius: 999, background: 'var(--tint)', overflow: 'hidden', flexShrink: 0, display: 'block' },
