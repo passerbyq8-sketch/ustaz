@@ -2268,12 +2268,12 @@ const railSrc = cutBranch('<div className="ezhome ezmr-rail">');
 // and the second is asserted ABSENT rather than quietly no longer looked for.
 const shipped = railSrc;
 ok('the shipped rail branch was located', railSrc.length > 400);
-ok('the shipped dock branch is gone', !/ezmr-dockwrap/.test(rdSrc));
+ok('the shipped dock branch is gone', rdSrc.length > 0 && !/ezmr-dockwrap/.test(rdSrc));
 
 /* ---- M1. the one bounded overlay exists and is used --------------------- */
 ok('the top reader rail is rendered', /className="ezhome ezmr-rail"/.test(rdSrc));
-ok('the bottom reader dock is NOT rendered', !/className="ezhome ezmr-dockwrap"/.test(rdSrc));
-ok('...and nothing measures a pager height any more', !/barRef/.test(rdSrc) && !/\bbarH\b/.test(rdSrc));
+ok('the bottom reader dock is NOT rendered', rdSrc.length > 0 && !/className="ezhome ezmr-dockwrap"/.test(rdSrc));
+ok('...and nothing measures a pager height any more', rdSrc.length > 0 && !/barRef/.test(rdSrc) && !/\bbarH\b/.test(rdSrc));
 ok('the rail is a real, bounded, absolute overlay',
   /\.ezmr-rail,\.ezmr-dockwrap\{[^}]*position:absolute/.test(css)
   && /\.ezmr-rail>\.ezmr-bar\{[^}]*max-width:600px/.test(css));
@@ -2312,7 +2312,7 @@ okOn('the full-width white pager is gone from the reader', [["rdSrc", rdSrc]], !
 okOn('...and so are its slab nav buttons', [["rdSrc", rdSrc]], !/s\.pgNavBtn|s\.pgNavOff/.test(rdSrc));
 eq('the reader hands its ONE in-flow bar exactly one style',
   (rdSrc.match(/style=\{headSt\}/g) || []).length, 1);
-eq('...and builds no style for a second one', (rdSrc.match(/style=\{barSt\}/g) || []).length, 0);
+eq('...and builds no style for a second one', rdSrc.length > 0 && (rdSrc.match(/style=\{barSt\}/g) || []).length, 0);
 ok('the loading render no longer wears the navy slab either',
   !/<div style=\{s\.memHeader\}>[\s\S]{0,200}تعذّر فتح المصحف/.test(rdSrc)
   && /className="ezhome ezmr-rail is-static"/.test(rdSrc));
@@ -2330,7 +2330,7 @@ ok('the loading render no longer wears the navy slab either',
 const fbRail = cutBranch2('<div className="ezhome" style={headSt}>');
 ok('the rollback rail was located', fbRail.length > 300);
 ok('the rollback dock is gone from both shapes',
-  !/style=\{barSt\}/.test(rdSrc) && !/ezmr-dockwrap/.test(rdSrc) && !/const barSt = /.test(html));
+  rdSrc.length > 0 && !/style=\{barSt\}/.test(rdSrc) && !/ezmr-dockwrap/.test(rdSrc) && !/const barSt = /.test(html));
 // Read off the PARSED objects. Testing the JS source form against JSON.stringify output could
 // never match -- the property was invisible to this check until a mutation proved it.
 eq('the rollback rail declares no position, so it stays in flow', s.memHeaderFb.position, undefined);
@@ -2408,12 +2408,12 @@ ok('the bookmark keeps its handler and BOTH its names',
 // The arrows are the BUTTONS, not commit() itself: the swipe still commits a page turn and must
 // go on doing so, so the claim is made against the two onClick handlers the dock carried.
 ok('the two page arrow buttons are gone',
-  !/onClick=\{\(\) => commit\(-1\)\}/.test(rdSrc) && !/onClick=\{\(\) => commit\(1\)\}/.test(rdSrc));
+  rdSrc.length > 0 && !/onClick=\{\(\) => commit\(-1\)\}/.test(rdSrc) && !/onClick=\{\(\) => commit\(1\)\}/.test(rdSrc));
 ok('...while the swipe still turns the page', /if \(drag > 55\) commit\(1\);/.test(rdSrc) && /else if \(drag < -55\) commit\(-1\);/.test(rdSrc));
 ok('the page box and its field are gone',
-  !/setJump/.test(rdSrc) && !/jumpGo/.test(rdSrc) && !/pgJumpWrap/.test(rdSrc));
+  rdSrc.length > 0 && !/setJump/.test(rdSrc) && !/jumpGo/.test(rdSrc) && !/pgJumpWrap/.test(rdSrc));
 ok('...and so is every style object the dock was drawn from',
-  !/s\.ezmrNav/.test(rdSrc) && !/s\.pgNavBtnFb/.test(rdSrc) && !/s\.pgMetaFb/.test(rdSrc));
+  rdSrc.length > 0 && !/s\.ezmrNav/.test(rdSrc) && !/s\.pgNavBtnFb/.test(rdSrc) && !/s\.pgMetaFb/.test(rdSrc));
 // THE WIRD IS ON THE INDEX NOW, with the same handler and the same accessible name it had on
 // the reader, and the pill it is drawn as is unchanged.
 ok('the wird control keeps its handler and its name',
@@ -2479,7 +2479,7 @@ ok('the wird dwell is unchanged', /const WIRD_DWELL_MS = 8000;/.test(html));
 ok('the reader region was found (an empty slice must not pass as agreement)', rdSrc.length > 0);
 ok('the index region was found (an empty slice must not pass as agreement)', ixSrc.length > 0);
 ok('the wird strip has LEFT the reader entirely',
-  !/wirdSt/.test(rdSrc) && !/s\.wirdWrap/.test(rdSrc) && !/setPicker/.test(rdSrc)
+  rdSrc.length > 0 && !/wirdSt/.test(rdSrc) && !/s\.wirdWrap/.test(rdSrc) && !/setPicker/.test(rdSrc)
   && !/khToggle/.test(rdSrc) && !/KhatmahPanel/.test(rdSrc));
 ok('...and stands on the mushaf index instead, behind the same flag and with it FIRST',
   /\{MADINA_IMG_ON && \(\s*\n\s*<div style=\{s\.wirdWrap\}>/.test(ixSrc));
