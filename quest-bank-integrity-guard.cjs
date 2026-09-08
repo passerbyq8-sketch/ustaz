@@ -751,7 +751,17 @@ const SEALED = {
   //                    2181456 is exactly that delta. The worker byte table and the SW_PROSE
   //                    mirror below both followed, and THIS digest is re-cut last. CACHE is NOT
   //                    bumped: install rewrites every CORE entry into the same store.
-  'sw.js': 'abf90d34d6e7243abd428ba836762527f70e9e13d3697b5ee63f313d3f9e8b7a',
+  //   2026-09-09   -- ITEM 26 SHIP: أسماء الله الحسنى takes the HEAD of the home shelf, the rules
+  //                    page gains the owner's eighth rule, and the store name is bumped. app.jsx
+  //                    moved one descriptor to the top of ezHomeModules and re-cut six dictionary
+  //                    values («القواعد السبع» -> «القواعد الثماني»); app.js was rebuilt from that
+  //                    source 1364046 -> 1364605 (+559) by node tools/build-app.cjs, and CORE_BYTES
+  //                    was re-cut 2206893 -> 2207452 by node tools/core-bytes.cjs --write, which is
+  //                    exactly that delta. The worker byte table and the SW_PROSE mirror below both
+  //                    followed, and THIS digest is re-cut last. CACHE IS bumped here, ezik-v32 ->
+  //                    ezik-v33, and SW_CACHE below with it: a reader holding the old bundle would
+  //                    otherwise keep a shelf with no section at its head.
+  'sw.js': '59d164caf7059e002355927273db7721db29c6e46ebe3b1fee59db1d2af83fae',
 };
 
 // ---------------------------------------------------------------------------
@@ -775,7 +785,7 @@ const SEALED = {
 // instead of with "sw.js MOVED".
 // ---------------------------------------------------------------------------
 const SW_FILE = 'sw.js';
-const SW_CACHE = 'ezik-v32';
+const SW_CACHE = 'ezik-v33';
 const SW_ORIGIN = 'https://ezik.app';
 // ITEM 93-B. The tag on the end-of-install brief the worker pushes to every client. Written here
 // rather than read back out of sw.js, because "the worker sent whatever the worker calls it" is a
@@ -1862,7 +1872,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1364046, of: 'app.js' },
+      { n: 1364605, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

@@ -849,7 +849,10 @@ async function partD() {
       // `order` property.
       const shelfIds = Array.prototype.slice.call(mosaic.querySelectorAll('[data-ezik-home-module]'))
         .map((e) => e.getAttribute('data-ezik-home-module'));
-      eq('...and the articles section is the FIRST tile on it', shelfIds[0], 'articles');
+      // ITEM 26 / SHIP §1-2 (9 September) -- and the head of the shelf is the NAMES section
+      // now, not the articles one. Item 20 §2 put articles first; today's ruling puts
+      // «أسماء الله الحسنى» ahead of it. The literal is re-cut, the check is not relaxed.
+      eq('...and the names section is the FIRST tile on it', shelfIds[0], 'asmaa');
       // ITEM 20 / §3 -- TURNED OVER, ON THE SAME SHELF AND THE SAME ACCOUNT. This case used to
       // read the women's corner off the END of this shelf, because under D-10 the «male» this
       // account is seeded with changed nothing at all. The owner reversed that on 8 September:
@@ -859,7 +862,7 @@ async function partD() {
       eq('...and the women corner is NOT on his shelf, because this account answered «male»',
         shelfIds.indexOf('women'), -1);
       eq('...and the nine that remain are these, in the order the shelf order fixed', shelfIds,
-        ['articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer', 'asmaa']);
+        ['asmaa', 'articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
       // ITEM 20 / §1 -- THE NAME, READ OFF THE TILE THAT DRAWS IT. A dictionary entry no card
       // renders is a string nobody sees, so the shelf itself is asked what it says.
       const artTile = mosaic.querySelector('[data-ezik-home-module="articles"]');
@@ -1176,7 +1179,7 @@ async function partD() {
       eq('\u00a72: ...and it is back LAST, not where it used to be', back[back.length - 1], 'women');
       eq('\u00a73: ...and the nine it joins are the nine that were there, in their order',
         back.slice(0, -1),
-        ['articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer', 'asmaa']);
+        ['asmaa', 'articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
       eq('\u00a73: ...and the account it read is the one the save wrote',
         JSON.parse(c.store.getItem('child_profile')).gender, 'female');
       // AND THE ABANDONED KEY PLAYED NO PART IN IT. The device never held one in this run, and

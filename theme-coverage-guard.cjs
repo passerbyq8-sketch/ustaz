@@ -5292,24 +5292,26 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
     // one card the order confines it to.
     eq('ITEM20/3: ...and the effect stops at that one card: the other nine are untouched',
       hidden, shown.filter((x) => x !== 'women'));
-    eq('ITEM20/3: ...nine of them, still in the order §2 fixed', hidden,
-      ['articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer', 'asmaa']);
-    // ITEM 20 / SHELF §2 (8 September) -- THE DEFAULT ORDER, STATED IN FULL, AND IT REPLACES
-    // D-9's «articles then women first». The owner has ruled that the articles section is FIRST
-    // and the women's corner is LAST -- after every other section, not second and not in the
-    // middle -- and that the eight between them do not move. Two checks on the two ends would
-    // let any of the eight be shuffled underneath them, so the middle is named too, and then
-    // the whole list is named once: a shelf that grows, loses or reorders a section fails on
-    // the line that says what the shelf IS, rather than passing three checks about its edges.
-    ok('ITEM20/2: the articles section is FIRST on the default shelf',
-      shown[0] === 'articles', JSON.stringify(shown));
+    eq('ITEM20/3: ...nine of them, still in the order the shelf rulings fixed', hidden,
+      ['asmaa', 'articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
+    // ITEM 26 / SHIP §1-2 (9 September) -- THE DEFAULT ORDER, STATED IN FULL. It replaced D-9's
+    // «articles then women first» on 8 September, and the owner has replaced its own head today:
+    // «أسماء الله الحسنى» is FIRST, ahead of the articles section, which item 20 §2 had put
+    // there. The other half of §2 stands untouched -- the women's corner is LAST, after every
+    // other section, not second and not in the middle -- and the eight between the two ends do
+    // not move. Two checks on the two ends would let any of the eight be shuffled underneath
+    // them, so the middle is named too, and then the whole list is named once: a shelf that
+    // grows, loses or reorders a section fails on the line that says what the shelf IS, rather
+    // than passing three checks about its edges.
+    ok('ITEM26/1-2: the names section is FIRST on the default shelf',
+      shown[0] === 'asmaa', JSON.stringify(shown));
     ok('ITEM20/2: ...and the women corner is LAST, after every other section',
       shown[shown.length - 1] === 'women' && shown.indexOf('women') === shown.length - 1,
       JSON.stringify(shown));
-    eq('ITEM20/2: ...and the eight between them keep the order they always had',
-      shown.slice(1, -1), ['memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer', 'asmaa']);
-    eq('ITEM20/2: ...so the default shelf is these ten, in this order', shown,
-      ['articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer', 'asmaa', 'women']);
+    eq('ITEM26/1-2: ...and the eight between them keep the order they always had',
+      shown.slice(1, -1), ['articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
+    eq('ITEM26/1-2: ...so the default shelf is these ten, in this order', shown,
+      ['asmaa', 'articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer', 'women']);
     // AND WHERE IT COMES BACK IS THE END. The hidden shelf is the shown shelf with one row cut
     // out, so putting the row back can only put it where the array holds it -- last. This is the
     // same fact the two F15 cases below state from the other side, asserted here as the ORDER

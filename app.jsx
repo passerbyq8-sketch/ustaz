@@ -610,9 +610,9 @@ const EZ_I18N = {
     'asmaa.noMatch': 'لا اسمَ يطابقُ ما كتبت.',
     'asmaa.error': 'تعذَّرَ جلبُ المتن. تحقَّقْ من الاتّصالِ ثمّ أعِدِ المحاولة.',
     'asmaa.backToShelf': 'الرجوعُ إلى الأسماء',
-    'asmaa.rulesButton': 'القواعدُ السبع',
-    'asmaa.rulesTitle': 'القواعدُ السبعُ في أسماءِ اللهِ الحسنى',
-    'asmaa.rulesAria': 'القواعدُ السبع',
+    'asmaa.rulesButton': 'القواعدُ الثماني',
+    'asmaa.rulesTitle': 'القواعدُ الثمانيَ في أسماءِ اللهِ الحسنى',
+    'asmaa.rulesAria': 'القواعدُ الثماني',
     'asmaa.readAria': 'صفحةُ الاسم',
     'asmaa.meaning': 'المعنى',
     'asmaa.fromBook': 'من الكتاب',
@@ -1040,9 +1040,9 @@ const EZ_I18N = {
     'asmaa.noMatch': 'No name matches what you typed.',
     'asmaa.error': 'The text could not be fetched. Check the connection and try again.',
     'asmaa.backToShelf': 'Back to the names',
-    'asmaa.rulesButton': 'The seven rules',
-    'asmaa.rulesTitle': 'The seven rules on the names of Allah',
-    'asmaa.rulesAria': 'The seven rules',
+    'asmaa.rulesButton': 'The eight rules',
+    'asmaa.rulesTitle': 'The eight rules on the names of Allah',
+    'asmaa.rulesAria': 'The eight rules',
     'asmaa.readAria': 'The name page',
     'asmaa.meaning': 'Meaning',
     'asmaa.fromBook': 'From the book',
@@ -4984,14 +4984,22 @@ function ezHomeModules(v) {
   // fixed is the order that survives -- and a row that is removed rather than moved comes back
   // where the array puts it, which is the end.
   return [
-    // ITEM 20 / SHELF §2 (8 September) -- THE ARTICLES SECTION IS FIRST AND THE WOMEN'S CORNER
-    // IS LAST. D-9 put the two together at the head of the shelf. The owner has since ruled that
-    // the women's corner sits AFTER every other section rather than second or in the middle, so
-    // its row moved from position two to position nine and to no position in between.
+    // ITEM 26 / SHIP §1-2 (9 September) -- THE NAMES SECTION IS FIRST, AND THIS OVERTURNS
+    // ITEM 20 §2. That ruling put the articles section at the head of the shelf; the owner has
+    // ruled today that «أسماء الله الحسنى» takes the head instead, so the articles row moves
+    // from position one to position two and articles is no longer first on any shelf. Said
+    // plainly because a reader of this array should not have to infer that an older rule was
+    // replaced rather than forgotten: the shelf order is asmaa, articles, memorize, adhkar,
+    // mushaf, treasure, fatwa, lessons, prayer, women.
     //
-    // NOTHING BETWEEN THEM MOVED. memorize, adhkar, mushaf, treasure, fatwa, lessons and prayer
-    // are in the order and the relative positions they have always had; each is one place
-    // earlier only because the row that used to sit above all seven now sits below all seven.
+    // ITEM 20 / SHELF §2 (8 September) -- THE WOMEN'S CORNER IS STILL LAST, and that half of §2
+    // was NOT overturned. D-9 put articles and the women's corner together at the head; the
+    // owner ruled the corner AFTER every other section rather than second or in the middle, and
+    // today's ruling does not touch it.
+    //
+    // NOTHING ELSE MOVED. articles, memorize, adhkar, mushaf, treasure, fatwa, lessons and
+    // prayer keep the order and the relative positions they have always had; each is one place
+    // later only because the row that used to sit below all eight now sits above all eight.
     //
     // AND LAST IS ALSO WHERE IT COMES BACK. The filter on the finished array below REMOVES this
     // row for one form of address; it never moves it. So a reader whose answer changes does not
@@ -4999,8 +5007,20 @@ function ezHomeModules(v) {
     // the one place this array ever puts it.
     //
     // ITEM 7 / F4: `fresh` rides on the descriptor beside `meta`, so the card decides nothing --
-    // it draws what the owner's one array says. Only these two sections can carry it; the seven
-    // between them are handed no such field and cannot grow one by accident.
+    // it draws what the owner's one array says. Only these two sections can carry it; the other
+    // eight rows are handed no such field and cannot grow one by accident.
+    //
+    // ITEM 26 / SHIP §1-2 (9 September) -- أسماء الله الحسنى, FIRST ON THE SHELF AND BY NAME.
+    // Yesterday this row sat second to last, immediately before the women's corner; the owner
+    // has moved it to the head. It is the SAME descriptor -- same id, same label key, same
+    // threaded handler, no `meta` and no `fresh` -- carried to a different position and nothing
+    // more, so the section it opens and the state it sets are untouched by the move.
+    //
+    // Its handler is threaded from App exactly as onOpenLessons is, not built here: the state it
+    // sets lives in App because the menu row for the same section already sets it, and one
+    // section may not own two pieces of navigation state. It reads no store and carries no
+    // `meta` and no `fresh` -- there is no local reading about this section to report.
+    { id: 'asmaa',    label: EZH_ASMAA,    icon: EZH_ICON_ASMAA,    onClick: v.onOpenAsmaa,    meta: null },
     { id: 'articles', label: EZH_ARTICLES, icon: EZH_ICON_ARTICLES, onClick: v.onOpenArticles, meta: null, fresh: !!(v.artFresh && v.artFresh.articles) },
     { id: 'memorize', label: EZH_MEMORIZE, icon: EZH_ICON_MEMORIZE, onClick: v.onOpenMemorize, meta: null },
     { id: 'adhkar',   label: EZH_ADHKAR,   icon: EZH_ICON_ADHKAR,   onClick: v.onOpenAdhkar,   meta: null },
@@ -5009,18 +5029,6 @@ function ezHomeModules(v) {
     { id: 'fatwa',    label: EZH_FATWA,    icon: EZH_ICON_FATWA,    onClick: v.onOpenFatwa,    meta: null },
     { id: 'lessons',  label: EZH_LESSONS,  icon: EZH_ICON_LESSONS,  onClick: v.onOpenLessons,  meta: null },
     { id: 'prayer',   label: EZH_PRAYER,   icon: EZH_ICON_PRAYER,   onClick: v.onOpenPrayer,   meta: null },
-    // ITEM 26 (8 September) -- أسماء الله الحسنى, SECOND TO LAST AND FOR ONE REASON.
-    // The owner has ruled the tile onto the shelf and ruled its place: immediately BEFORE
-    // the women's corner, so «ركن النساء» stays LAST exactly as item 20 §2 fixed it.
-    // NOTHING ABOVE IT MOVED -- the eight rows before this one keep the ids, the order and
-    // the positions they had, and the row below keeps the end of the shelf and the filter
-    // that can remove it.
-    //
-    // Its handler is threaded from App exactly as onOpenLessons is, not built here: the state it
-    // sets lives in App because the menu row for the same section already sets it, and one
-    // section may not own two pieces of navigation state. It reads no store and carries no
-    // `meta` and no `fresh` -- there is no local reading about this section to report.
-    { id: 'asmaa',    label: EZH_ASMAA,    icon: EZH_ICON_ASMAA,    onClick: v.onOpenAsmaa,    meta: null },
     { id: 'women',    label: EZH_WOMEN,    icon: EZH_ICON_WOMEN,    onClick: v.onOpenWomen,    meta: null, fresh: !!(v.artFresh && v.artFresh.women) },
   ].filter((m) => !(m.id === 'women' && ezWomenSectionHidden(v.gender)));
 }
@@ -7339,7 +7347,7 @@ function EzikAsmaaCard({ rec }) {
   );
 }
 
-/* ---- ٣-٣ · صفحةُ القواعدِ السبع ---------------------------------------------------------- */
+/* ---- ٣-٣ · صفحةُ القواعدِ الثماني -------------------------------------------------------- */
 // SEVEN, NOT SIX AND NOT EIGHT. The file's own array is mapped once, in its own order; nothing
 // here filters, sorts or slices it, so what the reader counts is what the owner shipped. The
 // credit is the file's ONE `source` object, printed under the seven.

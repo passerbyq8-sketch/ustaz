@@ -21,7 +21,9 @@
 // -- WHAT THIS GATE DOES NOT DO -----------------------------------------------
 // It does not repair, normalise, re-order or rewrite either sheet, and it does not decide whether
 // a religious text is correctly attributed -- it decides whether the attribution is THERE. Both
-// files are the owner's own bytes and this guard compares them; it never writes them.
+// files carry the owner's own bytes -- the names sheet exactly as handed over, the rules sheet
+// with the eighth rule he ordered onto its head on 9 September -- and this guard compares them;
+// it never writes either.
 //
 // Usage: node guards/asmaa-attribution-guard.cjs
 'use strict';
@@ -55,16 +57,25 @@ console.log('=== asmaa-attribution-guard -- ITEM 26: no card without its book, i
  * A. THE TWO SHEETS ARE THE OWNER'S BYTES
  * ================================================================== */
 head('A. THE TWO SHEETS, BYTE FOR BYTE');
-// Pinned from the order that handed them over. They were copied into the tree with
-// fs.copyFileSync and not one byte of either was authored here; both are pinned `text eol=lf`
-// in .gitattributes so a clone with core.autocrlf=true cannot make these two lines read false
-// about files nobody touched.
+// THE NAMES SHEET is pinned from the order that handed it over. It was copied into the tree
+// with fs.copyFileSync and not one byte of it was authored here.
+//
+// THE RULES SHEET IS NO LONGER PURELY THAT, AND THIS SAYS SO. On 9 September the owner ordered
+// an EIGHTH rule onto the head of that sheet -- his own sentence as the rule's title, and, since
+// that sentence is in neither book verbatim, the wording that establishes it quoted from
+// «القواعد المثلى» with its printed page (80). One item was added at index 0, `source.pages`
+// followed it, and nothing else in the file moved: the seven items the owner handed over are
+// byte for byte what they were, one place further down the array. The seal below is re-cut to
+// the file that ships, so it is still a seal and not a wish.
+//
+// Both files are pinned `text eol=lf` in .gitattributes so a clone with core.autocrlf=true
+// cannot make these lines read false about files nobody touched.
 const NAMES_REL = 'asmaa-dataset-final-r3.json';
 const RULES_REL = 'asmaa-rules-page-r2.json';
 const NAMES_SHA = '44d1c38c689bee81182e9d558b3a009b580707a264989173df03657808efedfe';
-const RULES_SHA = '5b1dfbc9ace5c5b45040a8292e7442ae42a9ab7a36b3757d17e62ad3d791cec1';
+const RULES_SHA = 'dfff0de5c0f244a672ef71f1696a55a887fd7f56645a12a1e7e8876806a8d73d';
 const NAMES_BYTES = 153202;
-const RULES_BYTES = 5931;
+const RULES_BYTES = 7180;
 
 const namesBuf = readBuf(NAMES_REL), rulesBuf = readBuf(RULES_REL);
 eq('the names sheet is the size it was handed over at', namesBuf.length, NAMES_BYTES);
@@ -355,30 +366,40 @@ head('F. THE LAZY LOAD');
 }
 
 /* ================================================================== *
- * G. THE SEVEN RULES ARE SEVEN
+ * G. THE EIGHT RULES ARE EIGHT
  * ================================================================== */
-head('G. THE SEVEN RULES');
+head('G. THE EIGHT RULES');
 {
   const items = (RULES && Array.isArray(RULES.items)) ? RULES.items : null;
   ok('the rules sheet carries an items array', !!items);
-  eq('seven items, no more and no fewer', items ? items.length : -1, 7);
+  eq('eight items, no more and no fewer', items ? items.length : -1, 8);
   const src = RULES && RULES.source;
   ok('the rules sheet names its book, its author and its pages',
     !!(src && nonEmpty(src.book) && nonEmpty(src.author) && nonEmpty(src.pages)));
-  const from = 6, to = 17;   // «القواعد المثلى» pages 6-17, as the sheet's own source states
+  // «القواعد المثلى» pages 6-17 for the seven the owner handed over, and page 80 for the eighth
+  // he ordered on 9 September -- the page the wording that establishes his sentence is printed
+  // on. The accepted pages are ENUMERATED rather than widened to 6-80: a quotation from page 40
+  // was outside this gate yesterday and is outside it today.
+  const RANGES = [[6, 17], [80, 80]];
+  const PAGES_LIT = '6-17، 80';
+  const inRange = (n) => RANGES.some((r) => n >= r[0] && n <= r[1]);
   eq('...and that stated range is the one this gate measures against',
-    src ? String(src.pages) : '', from + '-' + to);
+    src ? String(src.pages) : '', PAGES_LIT);
   const bad = [];
   (items || []).forEach((it, i) => {
     if (!nonEmpty(it.title)) bad.push((i + 1) + ': no title');
     if (!nonEmpty(it.text)) bad.push((i + 1) + ': no text');
     if (!it.quote || !nonEmpty(it.quote.text)) bad.push((i + 1) + ': no quote');
     else if (typeof it.quote.printed_page !== 'number') bad.push((i + 1) + ': the quote carries no printed page');
-    else if (!(it.quote.printed_page >= from && it.quote.printed_page <= to)) {
-      bad.push((i + 1) + ': printed page ' + it.quote.printed_page + ' is outside ' + from + '-' + to);
+    else if (!inRange(it.quote.printed_page)) {
+      bad.push((i + 1) + ': printed page ' + it.quote.printed_page + ' is outside ' + PAGES_LIT);
     }
   });
   eq('every rule carries a title, a body and a quotation with its printed page', bad, []);
+  // AND THE EIGHTH IS THE ONE AT THE HEAD, where the owner put it -- an order check, so a
+  // sheet whose items are shuffled fails here and not only on the byte seal in part A.
+  eq('...and the owner\'s eighth rule is the FIRST item, not somewhere in the middle',
+    items && items[0] ? items[0].quote.printed_page : -1, 80);
   // The screen maps this array once, so what the reader counts is what this line counts.
   ok('the shipped section maps the items array and does not filter it',
     APPJS.indexOf('doc.items.map(') !== -1 && APPJS.indexOf('doc.items.filter(') === -1);
