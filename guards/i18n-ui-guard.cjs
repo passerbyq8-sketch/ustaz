@@ -841,6 +841,19 @@ async function partD() {
         ['memorize', 'adhkar', 'mushaf', 'treasure']
           .every((id) => !!mosaic.querySelector('[data-ezik-home-module="' + id + '"]')),
         String(kids.length) + ' children');
+      // ITEM 20 / §2 -- THE ORDER, READ OFF THE SHELF ITSELF. theme-coverage-guard drives the
+      // builder and reads the array it returns; this reads the DOM the reader actually meets, so
+      // an array in the right order rendered in some other one is caught here rather than
+      // nowhere. The ids are taken in document order, which under this design IS the reading
+      // order and the tab order -- the mosaic maps the owner's one array once and uses no CSS
+      // `order` property.
+      const shelfIds = Array.prototype.slice.call(mosaic.querySelectorAll('[data-ezik-home-module]'))
+        .map((e) => e.getAttribute('data-ezik-home-module'));
+      eq('...and the articles section is the FIRST tile on it', shelfIds[0], 'articles');
+      eq('...and the women corner is the LAST, after every other section',
+        shelfIds[shelfIds.length - 1], 'women');
+      eq('...with the seven the order left alone between them, in their own order',
+        shelfIds.slice(1, -1), ['memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
       // ITEM 20 / §1 -- THE NAME, READ OFF THE TILE THAT DRAWS IT. A dictionary entry no card
       // renders is a string nobody sees, so the shelf itself is asked what it says.
       const artTile = mosaic.querySelector('[data-ezik-home-module="articles"]');

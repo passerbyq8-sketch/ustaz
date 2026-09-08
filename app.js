@@ -1598,14 +1598,27 @@ function ezHomeModules(v){const wird=v.wird?toArabicDigits(v.wird.done)+' / '+to
 // and there is no invisible node left behind. What is NOT touched: the section component, the
 // route the reader may already be on, the request /api/articles-list would answer, and the
 // «seen» record item 7 keeps for that section -- a reader who puts the section back finds it
-// exactly where he left it. It is filtered LAST, over the finished array, so the order D-9
-// fixed is the order that survives.
-return[// ITEM 20 / D-9: the articles section first, the women's section directly after it, and the
-// seven that were here keep the order and the positions they had relative to one another.
+// exactly where he left it. It is filtered LAST, over the finished array, so the order §2
+// fixed is the order that survives -- and a row that is removed rather than moved comes back
+// where the array puts it, which is the end.
+return[// ITEM 20 / SHELF §2 (8 September) -- THE ARTICLES SECTION IS FIRST AND THE WOMEN'S CORNER
+// IS LAST. D-9 put the two together at the head of the shelf. The owner has since ruled that
+// the women's corner sits AFTER every other section rather than second or in the middle, so
+// its row moved from position two to position nine and to no position in between.
+//
+// NOTHING BETWEEN THEM MOVED. memorize, adhkar, mushaf, treasure, fatwa, lessons and prayer
+// are in the order and the relative positions they have always had; each is one place
+// earlier only because the row that used to sit above all seven now sits below all seven.
+//
+// AND LAST IS ALSO WHERE IT COMES BACK. The filter on the finished array below REMOVES this
+// row for one form of address; it never moves it. So a reader whose answer changes does not
+// find the section wherever it used to be -- he finds it at the end of the shelf, which is
+// the one place this array ever puts it.
+//
 // ITEM 7 / F4: `fresh` rides on the descriptor beside `meta`, so the card decides nothing --
 // it draws what the owner's one array says. Only these two sections can carry it; the seven
-// below are handed no such field and cannot grow one by accident.
-{id:'articles',label:EZH_ARTICLES,icon:EZH_ICON_ARTICLES,onClick:v.onOpenArticles,meta:null,fresh:!!(v.artFresh&&v.artFresh.articles)},{id:'women',label:EZH_WOMEN,icon:EZH_ICON_WOMEN,onClick:v.onOpenWomen,meta:null,fresh:!!(v.artFresh&&v.artFresh.women)},{id:'memorize',label:EZH_MEMORIZE,icon:EZH_ICON_MEMORIZE,onClick:v.onOpenMemorize,meta:null},{id:'adhkar',label:EZH_ADHKAR,icon:EZH_ICON_ADHKAR,onClick:v.onOpenAdhkar,meta:null},{id:'mushaf',label:EZH_MUSHAF,icon:EZH_ICON_MUSHAF,onClick:v.onOpenMushaf,meta:wird},{id:'treasure',label:EZH_TREASURE,icon:EZH_ICON_TREASURE,onClick:v.onOpenTreasure,meta:null},{id:'fatwa',label:EZH_FATWA,icon:EZH_ICON_FATWA,onClick:v.onOpenFatwa,meta:null},{id:'lessons',label:EZH_LESSONS,icon:EZH_ICON_LESSONS,onClick:v.onOpenLessons,meta:null},{id:'prayer',label:EZH_PRAYER,icon:EZH_ICON_PRAYER,onClick:v.onOpenPrayer,meta:null}].filter(m=>!(m.id==='women'&&v.hideWomen));}// ---- S101 ISTANA HOME START --------------------------------------------------------------
+// between them are handed no such field and cannot grow one by accident.
+{id:'articles',label:EZH_ARTICLES,icon:EZH_ICON_ARTICLES,onClick:v.onOpenArticles,meta:null,fresh:!!(v.artFresh&&v.artFresh.articles)},{id:'memorize',label:EZH_MEMORIZE,icon:EZH_ICON_MEMORIZE,onClick:v.onOpenMemorize,meta:null},{id:'adhkar',label:EZH_ADHKAR,icon:EZH_ICON_ADHKAR,onClick:v.onOpenAdhkar,meta:null},{id:'mushaf',label:EZH_MUSHAF,icon:EZH_ICON_MUSHAF,onClick:v.onOpenMushaf,meta:wird},{id:'treasure',label:EZH_TREASURE,icon:EZH_ICON_TREASURE,onClick:v.onOpenTreasure,meta:null},{id:'fatwa',label:EZH_FATWA,icon:EZH_ICON_FATWA,onClick:v.onOpenFatwa,meta:null},{id:'lessons',label:EZH_LESSONS,icon:EZH_ICON_LESSONS,onClick:v.onOpenLessons,meta:null},{id:'prayer',label:EZH_PRAYER,icon:EZH_ICON_PRAYER,onClick:v.onOpenPrayer,meta:null},{id:'women',label:EZH_WOMEN,icon:EZH_ICON_WOMEN,onClick:v.onOpenWomen,meta:null,fresh:!!(v.artFresh&&v.artFresh.women)}].filter(m=>!(m.id==='women'&&v.hideWomen));}// ---- S101 ISTANA HOME START --------------------------------------------------------------
 // THE ISTANA_33 HOME. A DEDICATED STRUCTURE, not the journey/deck layout in other colours.
 //
 // What this is NOT: it is not a third value of ezik_ui_style_v1. That key keeps its two words,

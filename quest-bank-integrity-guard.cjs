@@ -714,7 +714,17 @@ const SEALED = {
   //                    delta. The worker byte table and the SW_PROSE mirror below both followed,
   //                    and THIS digest is re-cut last. CACHE is NOT bumped: install rewrites
   //                    every CORE entry into the same store.
-  'sw.js': 'c8210f64dc6c93bc298e61d07d6151f2d930396a758a0cba105c37b2ff7a9315',
+  // ITEM 20 SHELF, COMMIT TWO -- THE ORDER (2026-09-08, feat/shelf-20260908). NO CHANGE IN THE
+  //                    WORKER ITSELF BEYOND ITS BYTE TABLE. The women's corner moved from the
+  //                    second position on the home shelf to the last one, after every other
+  //                    section; the articles section stays first and the seven between them do
+  //                    not move. One row of a literal array changed position and the comment
+  //                    above it was rewritten, which is the whole of the bundle's growth.
+  //                    app.js followed 1336450 -> 1337339 (+889) and CORE_BYTES 2179297 ->
+  //                    2180186 is exactly that delta. The worker byte table and the SW_PROSE
+  //                    mirror below both followed, and THIS digest is re-cut last. CACHE is NOT
+  //                    bumped: install rewrites every CORE entry into the same store.
+  'sw.js': '440721a065c9f91cdc5e7d736b5edeb18ecc368effef679babc145915884cf44',
 };
 
 // ---------------------------------------------------------------------------
@@ -1825,7 +1835,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1336450, of: 'app.js' },
+      { n: 1337339, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

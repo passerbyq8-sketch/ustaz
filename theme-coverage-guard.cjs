@@ -5195,19 +5195,66 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
 
   // F15: WHAT THE SHELF DRAWS, AND ONLY THAT. The module builder is run both ways and the two
   // answers are compared -- one tile fewer, that tile is the women's, and every other tile keeps
-  // the id and the position D-9 gave it.
+  // the id and the position the order in §2 gave it.
   {
     const ids = (hide) => JSON.parse(evalIn(
       'JSON.stringify(ezHomeModules({ hideWomen: ' + (hide ? 'true' : 'false') + ' }).map(function (m) { return m.id; }))'));
     const shown = ids(false);
     const hidden = ids(true);
-    okOn('NIGHT-F3/D-9: with the control off the shelf is unchanged, articles then women first', A,
-      shown[0] === 'articles' && shown[1] === 'women');
+    // ITEM 20 / SHELF §2 (8 September) -- THE DEFAULT ORDER, STATED IN FULL, AND IT REPLACES
+    // D-9's «articles then women first». The owner has ruled that the articles section is FIRST
+    // and the women's corner is LAST -- after every other section, not second and not in the
+    // middle -- and that the seven between them do not move. Two checks on the two ends would
+    // let any of the seven be shuffled underneath them, so the middle is named too, and then
+    // the whole list is named once: a shelf that grows, loses or reorders a section fails on
+    // the line that says what the shelf IS, rather than passing three checks about its edges.
+    ok('ITEM20/2: the articles section is FIRST on the default shelf',
+      shown[0] === 'articles', JSON.stringify(shown));
+    ok('ITEM20/2: ...and the women corner is LAST, after every other section',
+      shown[shown.length - 1] === 'women' && shown.indexOf('women') === shown.length - 1,
+      JSON.stringify(shown));
+    eq('ITEM20/2: ...and the seven between them keep the order they always had',
+      shown.slice(1, -1), ['memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
+    eq('ITEM20/2: ...so the default shelf is these nine, in this order', shown,
+      ['articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer', 'women']);
+    // AND WHERE IT COMES BACK IS THE END. The hidden shelf is the shown shelf with one row cut
+    // out, so putting the row back can only put it where the array holds it -- last. This is the
+    // same fact the two F15 cases below state from the other side, asserted here as the ORDER
+    // property the owner asked for rather than as a consequence a reader has to infer.
+    ok('ITEM20/2: ...and a section that comes back comes back LAST, not where it used to be',
+      hidden.concat(['women'])[hidden.length] === 'women'
+      && JSON.stringify(hidden.concat(['women'])) === JSON.stringify(shown),
+      JSON.stringify(hidden));
     okOn("NIGHT-F3/F15: hiding removes exactly ONE tile, and it is the womens one", A,
       hidden.length === shown.length - 1 && hidden.indexOf('women') === -1,
       JSON.stringify(hidden));
     okOn('NIGHT-F3/F15: ...and every other tile keeps its id and its position', A,
       JSON.stringify(hidden) === JSON.stringify(shown.filter((x) => x !== 'women')));
+  }
+
+  // ITEM 20 / SHELF §2 -- AND THE DEFAULT IS ALL THERE IS TO OUTRANK.
+  // The order says a reader's OWN saved shelf order outranks this default and is neither erased
+  // nor reset by the change. MEASURED, 8 September: this application stores no shelf order at
+  // all. The one arrangement a reader can save on the home is the WIDGET record -- the three
+  // rows prayer/adhkar/verse under ezik_home_widgets_v1 -- which is a different mechanism over
+  // different rows and is not what §2 reorders. So the checkable property is the stronger one
+  // and it is written down rather than assumed: the builder reads NO store, so it can neither
+  // read a saved order nor overwrite one, and a later shelf-ordering feature cannot quietly
+  // arrive by having this function reach into storage.
+  {
+    const at = html.indexOf('function ezHomeModules(v) {');
+    const to = html.indexOf('\n}', at);
+    const BODY = (at >= 0 && to > at) ? html.slice(at, to) : '';
+    const B = [['the module builder', BODY]];
+    okOn('ITEM20/2: the one place the default shelf order is computed was located', B,
+      BODY.indexOf("{ id: 'articles'") !== -1 && BODY.indexOf("{ id: 'women'") !== -1);
+    okOn('ITEM20/2: ...and it reads no store, so no saved arrangement can be read or reset by it', B,
+      ['localStorage', 'sessionStorage', 'readHomeWidgets', 'writeHomeWidgets', 'ezik_home_widgets_v1']
+        .every((w) => BODY.indexOf(w) === -1),
+      BODY.slice(0, 120));
+    ok('ITEM20/2: ...and the ONE arrangement a reader can save is still the widget record, untouched',
+      /const EZWID_KEY = 'ezik_home_widgets_v1';/.test(html)
+      && /order: reg\.map\(\(w\) => w\.id\)/.test(html));
   }
 
   // D-10 AND F13, READ OFF THE SOURCE OF THE THING ITSELF. Item 9's block must name nothing a
