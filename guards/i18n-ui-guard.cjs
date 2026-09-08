@@ -75,6 +75,13 @@ const S = {
   LANG_KEY: 'ezik_ui_lang_v1',
   AR: 'العربية',
   EN: 'English',
+  // ITEM 20 / §1. The shelf's two section names, collected here with every other Arabic
+  // literal this file looks for. ARTICLES is the name that MOVED on 8 September; WOMEN is the
+  // one the same order left alone, and it is here so that «the name changed» and «the other
+  // name did not» are both facts this file can state rather than one of them being an absence.
+  ARTICLES: 'مقالات عزك',
+  ARTICLES_EN: 'Ezik Articles',
+  WOMEN: 'ركن النساء',
 };
 
 let failures = 0, checks = 0, skipped = 0;
@@ -381,6 +388,31 @@ async function partA() {
   const ph = (v) => (String(v).match(/\{[A-Za-z0-9_]+\}/g) || []).slice().sort();
   const mismatched = arK.filter((k) => JSON.stringify(ph(ar[k])) !== JSON.stringify(ph(en[k])));
   eq('every {placeholder} appears on both sides of a key', mismatched, []);
+
+  // ITEM 20 / §1 -- THE SECTION IS NAMED «مقالات عزك», AND THE NAME IS A DISPLAY STRING.
+  // The word the reader sees moved on 8 September; nothing a machine reads moved with it. Both
+  // halves are asserted, and the second is the load-bearing one: a rename that also renamed the
+  // key, the descriptor id or the section register would break every link already published and
+  // every «seen» mark already stored on a device -- silently, because the screen would look
+  // right. The women's corner keeps the name it had, by the same order.
+  eq('the articles section is named «مقالات عزك»', ar['module.articles'], S.ARTICLES);
+  eq('...with an English name beside it, so the other dictionary is not left behind',
+    en['module.articles'], S.ARTICLES_EN);
+  eq('...and the women’s corner is NOT renamed with it', ar['module.women'], S.WOMEN);
+  ok('...and the name is still reached through the key it always was',
+    Object.prototype.hasOwnProperty.call(ar, 'module.articles')
+    && rawCode.indexOf('EZH_ARTICLES = ezT("module.articles")') !== -1);
+  // NOT ONE IDENTIFIER MOVED WITH THE WORD. The id the shelf element is stamped with, the
+  // register the two sections are listed in, and the value the writing form hands the server
+  // are each the ASCII word they have always been.
+  ok('...and no programmatic identifier was renamed with it',
+    rawCode.indexOf("{ id: 'articles', label: EZH_ARTICLES,") !== -1
+    && rawCode.indexOf("const EZIK_ART_SECTIONS = ['articles', 'women'];") !== -1
+    && rawCode.indexOf("data-ezik-home-module={m.id}") !== -1);
+  // AND IT IS WRITTEN ONCE. A display name repeated at a JSX site, in a route or in a stored
+  // value is a name that can only be half-changed next time.
+  eq('...and the new name is written in exactly one place, the dictionary',
+    (rawCode.match(/مقالات عزك/g) || []).length, 1);
 
   // The lookup itself.
   const t = c.grab('ezT');
@@ -809,6 +841,14 @@ async function partD() {
         ['memorize', 'adhkar', 'mushaf', 'treasure']
           .every((id) => !!mosaic.querySelector('[data-ezik-home-module="' + id + '"]')),
         String(kids.length) + ' children');
+      // ITEM 20 / §1 -- THE NAME, READ OFF THE TILE THAT DRAWS IT. A dictionary entry no card
+      // renders is a string nobody sees, so the shelf itself is asked what it says.
+      const artTile = mosaic.querySelector('[data-ezik-home-module="articles"]');
+      if (ok('the articles section has a tile of its own on the shelf', !!artTile)) {
+        ok('...and the tile is titled «مقالات عزك»',
+          String(artTile.textContent || '').indexOf(S.ARTICLES) !== -1,
+          cps(String(artTile.textContent || '').slice(0, 40)));
+      }
       eq('...and the daily verse is NOT one of its cells any more', mosaic.querySelectorAll('.ezist-quran').length, 0);
       eq('...it is in the top bar, drawn exactly once on the screen', d.all('.ezist-quran').length, 1);
       ok('...and the bar is where it is', !!d.all('.ezist-nav .ezist-quran')[0]);

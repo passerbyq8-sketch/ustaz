@@ -704,7 +704,17 @@ const SEALED = {
   //                    exactly that delta. The worker byte table and the SW_PROSE mirror below both
   //                    followed, and THIS digest is re-cut last. CACHE is NOT bumped: install
   //                    rewrites every CORE entry into the same store.
-  'sw.js': 'bdb0f8a25035d2b2b294e9dd870028576f4d36251368df2cf59daca499b774b3',
+  // ITEM 20 SHELF, COMMIT ONE -- THE NAME (2026-09-08, feat/shelf-20260908). NO CHANGE IN THE
+  //                    WORKER ITSELF BEYOND ITS BYTE TABLE. The articles section is called
+  //                    «Ezik's articles» on the shelf, in its own screen head and in the writing
+  //                    form's section chooser; the change is TWO dictionary values and nothing
+  //                    else -- no key, no descriptor id, no section register and no stored value
+  //                    moved, which is why the bundle grew by eight bytes. app.js followed
+  //                    1336442 -> 1336450 (+8) and CORE_BYTES 2179289 -> 2179297 is exactly that
+  //                    delta. The worker byte table and the SW_PROSE mirror below both followed,
+  //                    and THIS digest is re-cut last. CACHE is NOT bumped: install rewrites
+  //                    every CORE entry into the same store.
+  'sw.js': 'c8210f64dc6c93bc298e61d07d6151f2d930396a758a0cba105c37b2ff7a9315',
 };
 
 // ---------------------------------------------------------------------------
@@ -1815,7 +1825,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1336442, of: 'app.js' },
+      { n: 1336450, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
