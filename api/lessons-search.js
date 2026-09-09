@@ -22,9 +22,23 @@
 // `/lessons/search` is token-gated on the same variable api/lib-search.js already uses,
 // SEARCH_API_TOKEN. The token is the whole gate. Put it in client code — in a bundle, in an
 // inline script, in a build-time constant — and the service is open to the world permanently,
-// because a shipped secret cannot be un-shipped. So the token is read HERE, from the
-// environment, and never leaves this function: not into a response body, not into a header the
+// because a shipped secret cannot be un-shipped. So the token is read from the environment on
+// the SERVER and never travels to the browser: not into a response body, not into a header the
 // browser can see, not into a log line, not into the repo.
+//
+// ── ITEM 37/① — AND THE FUNCTION NOW HAS A SECOND, IN-PROCESS CALLER ────────
+// `search_lessons` in lib/free-brain/tools.js reaches the service THROUGH THIS FILE and never
+// around it: `fetchLessonsPayload` below is the whole outbound call, and the free-brain tool
+// imports it rather than opening a socket of its own. That is what keeps the header sentence
+// above true — this file is still the ONLY caller of the lessons service — and it is why the
+// tool needs no token of its own and no second address.
+//
+// WHAT MOVED, SAID PLAINLY. The token used to be read INSIDE the HTTP handler and could not
+// leave it. It is now a PARAMETER of `fetchLessonsPayload`: this handler still reads it from
+// `process.env` for its own call, and api/ask.js — which already reads the SAME variable for
+// the library at api/ask.js:844 — hands it down for the brain's call. So the number of readers
+// of the environment variable went from one to two and the number of PROCESSES holding it did
+// not change: both are this server. It still reaches no client, no log line and no repo file.
 //
 // ══ THE MEASURED CONTRACT ════════════════════════════════════════════════════
 //   POST https://lib.ezik.app/lessons/search
@@ -49,6 +63,10 @@
 // This round is purely additive and has NO INTERFACE: nothing in the answer path and nothing in
 // index.html calls this endpoint.
 import { HIT_FIELDS, DROPPED_HIT_FIELD } from '../lib/lessons-source-card.js';
+// NOTE FOR THE GUARD, AND FOR ANYONE ADDING A SECOND ONE: this file imports exactly ONE module
+// and section 6 of guards/lessons-search-guard.cjs asserts that by name. The free-brain tool
+// imports THIS file; this file imports nothing of the free brain's, so the dependency has one
+// direction and no cycle.
 
 const SEARCH_URL = 'https://lib.ezik.app/lessons/search';
 
@@ -130,6 +148,31 @@ export function shapeSearchResponse(payload) {
   return out;
 }
 
+/**
+ * Shape a raw payload for the FREE BRAIN, which is not the client.
+ *
+ * THE ONE DIFFERENCE FROM `shapeSearchResponse` IS `snippet`, AND IT IS THE ITEM'S WHOLE POINT.
+ * The served index carries 90,091 units with a transcribed matn — the scholars' own words — and
+ * until item 37 that matn was closed to the model completely. The owner's order of 2026-09-09
+ * names FIVE things `search_lessons` returns per hit, and «مقتطفٌ قصير» is the fourth of them.
+ *
+ * WHAT DID NOT CHANGE, AND MUST NOT. The READER'S SCREEN still gets no lesson text at all: the
+ * HTTP handler below still answers with `shapeSearchResponse`, and lib/lessons-source-card.js
+ * still has no place for the field. This shaper is reachable only from a server-side import,
+ * never from the route, so a browser cannot ask for it.
+ *
+ * Pure — exported so the guard can prove the difference without a network call.
+ */
+export function shapeBrainResponse(payload) {
+  const out = pickFields(payload, RESPONSE_FIELDS);
+  if (Array.isArray(payload?.hits)) {
+    out.hits = payload.hits.map((hit) => pickFields(hit, HIT_FIELDS));
+  } else {
+    delete out.hits;
+  }
+  return out;
+}
+
 /** `limit`: an integer, ceiling 10, default 10. Anything unusable falls to default. */
 export function normalizeLimit(value) {
   if (value === undefined || value === null || value === '') return LIMIT_DEFAULT;
@@ -154,62 +197,107 @@ function readBody(req) {
   return typeof raw === 'object' ? raw : {};
 }
 
+// ── THE PARENT-PLUS-CEILING SIGNAL, COPIED FROM lib/lib-service.js:67 ────────
+// Carried across letter for letter rather than re-invented, because the two halves are the same
+// promise: a caller may cut the call at any moment, AND the call gives up on its own at the
+// ceiling even when the caller never cuts it. A bare `options.signal` would drop the ceiling; a
+// bare timeout would ignore the caller. Nothing here is new; only the file it lives in is.
+function signalFor(parent) {
+  const timeout = AbortSignal.timeout(TIMEOUT_MS);
+  return parent ? AbortSignal.any([parent, timeout]) : timeout;
+}
+
+/**
+ * THE OUTBOUND CALL, AND THE ONLY ONE IN THIS TREE.
+ *
+ * Both callers pass through here: the HTTP handler below (for the reader's browser) and
+ * `search_lessons` in lib/free-brain/tools.js (for the model). The failure classes are RETURNED
+ * rather than logged, so each caller says what its own reader is owed — the handler turns them
+ * into one sentence and a status code, the tool turns them into a `degraded` note and a line the
+ * model can read.
+ *
+ * NEVER THROWS, on the rule lib/lib-service.js states for itself: this sits in the answer path of
+ * someone asking about their religion, and a search that could not run must degrade to silence.
+ *
+ * @returns {Promise<{ok:true, payload:object}|{ok:false, reason:string, detail?:string}>}
+ */
+export async function fetchLessonsPayload(q, options = {}) {
+  const query = typeof q === 'string' ? q.trim() : '';
+  if (!query) return { ok: false, reason: 'bad_request' };
+  const token = typeof options.token === 'string' ? options.token : '';
+  if (token.length === 0) return { ok: false, reason: 'search_api_token_missing' };
+  const limit = normalizeLimit(options.limit);
+  // Read at CALL time and never captured at module load: guards stub `globalThis.fetch` to drive
+  // this function with no socket, and a captured reference would hold the real one.
+  const call = typeof options.fetchImpl === 'function' ? options.fetchImpl : globalThis.fetch;
+
+  let response;
+  try {
+    response = await call(SEARCH_URL, {
+      method: 'POST',
+      redirect: 'error',
+      signal: signalFor(options.signal),
+      headers: {
+        'content-type': 'application/json',
+        accept: 'application/json',
+        [AUTH_HEADER_NAME]: AUTH_VALUE_PREFIX + token
+      },
+      body: JSON.stringify({ q: query.slice(0, MAX_Q_CHARS), limit })
+    });
+  } catch (error) {
+    return { ok: false, reason: 'upstream_unreachable', detail: String(error?.message || error) };
+  }
+
+  // A 401 means the token we hold is not the token the service wants. There is exactly one call
+  // and no second one: retrying without the token would only earn a guaranteed 401, and
+  // retrying with it would earn the same 401 twice.
+  if (response.status === 401) return { ok: false, reason: 'upstream_unauthorized' };
+  if (!response.ok) return { ok: false, reason: 'upstream_error', detail: 'status_' + response.status };
+
+  try {
+    const declared = Number(response.headers?.get?.('content-length') || 0);
+    if (declared > MAX_BYTES) throw new Error('body_too_large');
+    return { ok: true, payload: await response.json() };
+  } catch (error) {
+    return { ok: false, reason: 'upstream_unreadable', detail: String(error?.message || error) };
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json(METHOD_BODY);
 
   const body = readBody(req);
   const q = typeof body.q === 'string' ? body.q.trim() : '';
   if (!q) return res.status(400).json(BAD_REQUEST_BODY);
-  const limit = normalizeLimit(body.limit);
 
-  const token = process.env.SEARCH_API_TOKEN;
-  if (typeof token !== 'string' || token.length === 0) {
-    // Server log only. The reason names the missing configuration for whoever reads the
-    // function's logs; the client is told nothing beyond "not available".
-    console.warn('[lessons-search] unavailable', { reason: 'search_api_token_missing' });
-    return res.status(503).json(UNAVAILABLE_BODY);
-  }
+  const out = await fetchLessonsPayload(q, {
+    token: process.env.SEARCH_API_TOKEN,
+    limit: body.limit
+  });
 
-  let response;
-  try {
-    response = await fetch(SEARCH_URL, {
-      method: 'POST',
-      redirect: 'error',
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-      headers: {
-        'content-type': 'application/json',
-        accept: 'application/json',
-        [AUTH_HEADER_NAME]: AUTH_VALUE_PREFIX + token
-      },
-      body: JSON.stringify({ q: q.slice(0, MAX_Q_CHARS), limit })
-    });
-  } catch (error) {
-    console.warn('[lessons-search] upstream unreachable', { reason: String(error?.message || error) });
-    return res.status(502).json(UPSTREAM_BODY);
-  }
-
-  // A 401 means the token we hold is not the token the service wants. There is exactly one call
-  // and no second one: retrying without the token would only earn a guaranteed 401, and
-  // retrying with it would earn the same 401 twice.
-  if (response.status === 401) {
-    console.warn('[lessons-search] upstream rejected credentials', { outcome: 'upstream_unauthorized' });
-    return res.status(502).json(UPSTREAM_BODY);
-  }
-  if (!response.ok) {
-    console.warn('[lessons-search] upstream error', { outcome: 'upstream_error', reason: 'status_' + response.status });
-    return res.status(502).json(UPSTREAM_BODY);
-  }
-
-  let payload;
-  try {
-    const declared = Number(response.headers?.get?.('content-length') || 0);
-    if (declared > MAX_BYTES) throw new Error('body_too_large');
-    payload = await response.json();
-  } catch (error) {
-    console.warn('[lessons-search] upstream body unreadable', { reason: String(error?.message || error) });
+  if (out.ok !== true) {
+    if (out.reason === 'search_api_token_missing') {
+      // Server log only. The reason names the missing configuration for whoever reads the
+      // function's logs; the client is told nothing beyond "not available".
+      console.warn('[lessons-search] unavailable', { reason: 'search_api_token_missing' });
+      return res.status(503).json(UNAVAILABLE_BODY);
+    }
+    if (out.reason === 'upstream_unreachable') {
+      console.warn('[lessons-search] upstream unreachable', { reason: out.detail });
+      return res.status(502).json(UPSTREAM_BODY);
+    }
+    if (out.reason === 'upstream_unauthorized') {
+      console.warn('[lessons-search] upstream rejected credentials', { outcome: 'upstream_unauthorized' });
+      return res.status(502).json(UPSTREAM_BODY);
+    }
+    if (out.reason === 'upstream_error') {
+      console.warn('[lessons-search] upstream error', { outcome: 'upstream_error', reason: out.detail });
+      return res.status(502).json(UPSTREAM_BODY);
+    }
+    console.warn('[lessons-search] upstream body unreadable', { reason: out.detail });
     return res.status(502).json(UPSTREAM_BODY);
   }
 
   res.setHeader('Cache-Control', 'private, no-store');
-  return res.status(200).json(shapeSearchResponse(payload));
+  return res.status(200).json(shapeSearchResponse(out.payload));
 }

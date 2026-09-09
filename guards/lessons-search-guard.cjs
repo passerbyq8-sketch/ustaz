@@ -35,7 +35,10 @@
 //   4. a `content_type` outside the eleven is an absence
 //   5. THE INTERFACE, AS ITEM 24-A BUILT IT: index.html, quest.html and sw.js still name
 //      nothing of this round, and app.jsx draws exactly three fields through one cancellable
-//      POST (this assertion PROVED AN ABSENCE until item 24-A -- see the note at section 5)
+//      POST (this assertion PROVED AN ABSENCE until item 24-A -- see the note at section 5).
+//      ITEM 37/2 changed WHICH WORDS that POST carries: the query is now built from the
+//      answer the brain wrote and no longer from the reader's question, so section 5d pins
+//      the new call, drives the builder, and proves the question survives as the fallback
 //   5B. THE LESSONS SECTION (item 24-B): one screen key, one navigation entry, the same
 //      three-field whitelist proved by set equality, a cancellable call, and the three
 //      states a screen owes a reader that a tail card does not
@@ -513,10 +516,75 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
     && /lessonsSeqRef\.current !== seq\) return;/.test(callCode));
 
   // -- 5d. the seam: after the answer, never awaited, and only under the newest reply ---------
-  const fireIdx = appJsx.indexOf('startLessonsSearch(text, lessonsSeq);');
+  // ITEM 37/2 REPOINTED THIS PIN, AND WIDENED IT. It used to name the call by its argument,
+  // `text`, which is the reader's question -- and that argument is exactly what the item
+  // changed. So the pin now names the call the item installed, and three checks stand beside
+  // it that the old one did not make: that the question is no longer the query anywhere in the
+  // file, that there is exactly ONE firing (a card shown twice is the defect the order names
+  // by name), and that the builder it fires through actually strips what it claims to.
+  const FIRE = 'startLessonsSearch(ezikLessonsQuery(reply, text), lessonsSeq);';
+  const fireIdx = appJsx.indexOf(FIRE);
   const commitIdx = appJsx.indexOf('    markStreamedOpen(final.length - 1);');
   check('the search is fired only after the reply has been committed to the thread',
     fireIdx !== -1 && commitIdx !== -1 && fireIdx > commitIdx, 'fire=' + fireIdx + ' commit=' + commitIdx);
+  check('the query is built from the ANSWER, and the question is no longer passed as one',
+    appJsx.indexOf('startLessonsSearch(text, lessonsSeq)') === -1
+      && /startLessonsSearch\(ezikLessonsQuery\(reply,/.test(appJsx));
+  check('...and it is fired exactly once, so no card is drawn and then replaced',
+    (appJsx.match(/startLessonsSearch\(/g) || []).length === 1,
+    'call sites -- the declaration reads `= (q, seq) =>` and so is not one of them: '
+      + String((appJsx.match(/startLessonsSearch\(/g) || []).length));
+  // The builder, driven for real rather than read: it is cut out of the source, evaluated with
+  // the one constant it closes over, and asked the four questions the item's comment answers.
+  const qFrom = appJsx.indexOf('const EZIK_LESSONS_Q_MAX = 400;');
+  const qTo = appJsx.indexOf('\n}\n', appJsx.indexOf('function ezikLessonsQuery'));
+  check('the query builder is present and bounded', qFrom !== -1 && qTo > qFrom,
+    'from=' + qFrom + ' to=' + qTo);
+  let buildQuery = null;
+  try {
+    const mod = { exports: {} };
+    new Function('module', 'const EZIK_LESSONS_MIN_Q = 3;\n'
+      + appJsx.slice(qFrom, qTo + 3) + '\nmodule.exports = ezikLessonsQuery;')(mod);
+    buildQuery = mod.exports;
+  } catch (e) { buildQuery = null; }
+  check('...and it evaluates to a function', typeof buildQuery === 'function');
+  const REPLY = 'AAA BBB <suggestions>\n- CCC\n</suggestions> <source site="s" url="u">DDD</source>'
+    + ' <dhikr id="27"></dhikr> \u3010EEE\u3011 FFF';
+  const built = typeof buildQuery === 'function' ? buildQuery(REPLY, 'QQQ') : '';
+  check('the builder keeps the answer\'s own prose', built.indexOf('AAA') !== -1
+    && built.indexOf('FFF') !== -1, built);
+  // `built.length > 0` is on the assertion itself, not on a neighbour: `built` is '' whenever
+  // the cut-out above misses its anchor, and an empty string contains none of the seven words.
+  check('...and strips the suggestions, the source tags, every other tag and the seal',
+    built.length > 0
+      && ['CCC', 'DDD', 'EEE', 'suggestions', 'source', 'dhikr', 'url='].every((w) => built.indexOf(w) === -1),
+    built);
+  check('...and collapses to single spaces, with nothing left ragged',
+    built.length > 0 && built === built.trim() && built.indexOf('  ') === -1,
+    JSON.stringify(built));
+  check('...and cuts at the door\'s own 400-character ceiling',
+    typeof buildQuery === 'function'
+      && buildQuery('x'.repeat(900), 'QQQ').length === 400
+      && /const MAX_Q_CHARS = 400;/.test(apiSrc));
+  check('THE QUESTION IS THE FALLBACK AND IS NOT DELETED: an answer that strips to nothing'
+    + ' searches on the question instead',
+    typeof buildQuery === 'function'
+      && buildQuery('<dhikr id="27"></dhikr>', 'QQQ') === 'QQQ'
+      && buildQuery(null, ' QQQ ') === 'QQQ');
+  // THE PREDICATE BITES. A builder that forgot to strip the suggestions passes none of it.
+  const leakySrc = appJsx.slice(qFrom, qTo + 3)
+    .replace(".replace(/<suggestions>[\\s\\S]*?<\\/suggestions>/gi, ' ')", '');
+  check('the strip mutant is a real mutation, not a no-op',
+    leakySrc !== appJsx.slice(qFrom, qTo + 3));
+  let leakyBuilt = '';
+  try {
+    const mod = { exports: {} };
+    new Function('module', 'const EZIK_LESSONS_MIN_Q = 3;\n' + leakySrc
+      + '\nmodule.exports = ezikLessonsQuery;')(mod);
+    leakyBuilt = mod.exports(REPLY, 'QQQ');
+  } catch (e) { leakyBuilt = 'THREW'; }
+  check('THE GUARD BITES: a builder that keeps the follow-up questions fails the strip check',
+    leakyBuilt.indexOf('CCC') !== -1, leakyBuilt);
   check('...and it is never awaited, so it cannot delay a character of the answer',
     appJsx.indexOf('await startLessonsSearch') === -1);
   check('the card is handed to the turn that fetched it, and to no other',

@@ -1564,6 +1564,16 @@ export default async function handler(req, res) {
           libEligible: libDepthEligible && band === 'adult',
           libFlagValue: (libDepthEligible && band === 'adult') ? libFlagValue : '',
           libToken: (libDepthEligible && band === 'adult') ? libToken : '',
+          // ITEM 37/١ — THE LESSONS RIDE THE LIBRARY'S TWO CONDITIONS AND NOT A THIRD RULE. The
+          // owner's order names the depth half («تُعرَضُ في المفصّل وطالبِ العلم، ولا تُعرَضُ في
+          // الموجز») and says to read the rest off `search_library`'s own contract in the code,
+          // which is `libDepthEligible && band === 'adult'` — so that expression is reused
+          // verbatim rather than restated. It does NOT ride SHAMELA_BRAIN: that flag names the
+          // library's own corpus, and one flag standing for two services is a lever whose label
+          // has stopped being true. `libToken` is `SEARCH_API_TOKEN`, read once at :844, and the
+          // lessons service is gated on that same variable — so this adds no new secret.
+          lessonsEligible: libDepthEligible && band === 'adult',
+          lessonsToken: (libDepthEligible && band === 'adult') ? libToken : '',
           onWriteUnit: (detail) => liveFreeBrainUnits.push(detail),
           // E75 — carried, not read. The loop hands it to the reviewer and nothing else.
           requestedIdentity,

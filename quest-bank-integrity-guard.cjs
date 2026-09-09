@@ -761,7 +761,16 @@ const SEALED = {
   //                    followed, and THIS digest is re-cut last. CACHE IS bumped here, ezik-v32 ->
   //                    ezik-v33, and SW_CACHE below with it: a reader holding the old bundle would
   //                    otherwise keep a shelf with no section at its head.
-  'sw.js': '10bd4e8e580a8fa87ecb6fcef73df1a9161f06d138ecb294574f8beeedfed6d4',
+  //   2026-09-09   -- ITEM 37 PIECE 2: the related-lessons search under a settled reply is now
+  //                    built from the ANSWER's words instead of the reader's question. app.jsx
+  //                    gained one pure builder (ezikLessonsQuery) and repointed one call site;
+  //                    app.js was rebuilt from that source 1364887 -> 1368253 (+3366) by node
+  //                    tools/build-app.cjs, and CORE_BYTES was re-cut 2207734 -> 2211100 by node
+  //                    tools/core-bytes.cjs --write, which is exactly that delta. The worker byte
+  //                    table and the SW_PROSE mirror above both followed, and THIS digest is
+  //                    re-cut last. CACHE IS NOT BUMPED: this is a branch for the owner to try on
+  //                    a preview, not a ship, and sw.js says the merge round owns the bump.
+  'sw.js': '173cd5235d948658d9cb3d709d0ab33245e755aefe7c330a93ecf63c6c0e020e',
 };
 
 // ---------------------------------------------------------------------------
@@ -1872,7 +1881,7 @@ async function compare(goldenPath) {
       { n: 122884, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1364887, of: 'app.js' },
+      { n: 1368253, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
