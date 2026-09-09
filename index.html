@@ -606,6 +606,26 @@
      column count is set ONCE, here, and no breakpoint below changes it. */
   .ezist-mosaic{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
   .ezist-mosaic>*{min-width:0}
+  /* ITEM 05-E1 -- THE TILE IS A SQUARE, AND ITS SECTION NAME IS THE WHOLE OF IT.
+     The owner circled the mark in every tile on his phone and ruled it out of all ten, and
+     ruled that a section must be a SQUARE rather than the tall flipped rectangle the icon,
+     the sub-line and the chevron had made of it. The name left in the middle of a row box is
+     what the square replaces.
+     WHY IT IS HERE AND NOT IN THE STYLE OBJECTS: theme-coverage-guard reads the height,
+     padding and gap RELATIONS across ezistCard, ezistFeature, ezistAsk and ezistQuran, and a
+     changed minHeight would move checks that have nothing to do with this item. So the two
+     objects keep every value they had and the sheet states the shape.
+     THE !important DECLARATIONS ARE NOT DECORATION: an inline style property outranks any
+     class rule that does not carry it, and min-height, justify-content and text-align are
+     each declared inline on the tile. Only .ezmr-fb is forbidden !important in this file.
+     THE MUSHAF IS PAINTED AS ITS NINE NEIGHBOURS. It keeps the .ezist-feature class and the
+     s.ezistFeature object -- m.id === 'mushaf' still decides both, and the guard asserts it
+     -- and the second rule takes back the two things that made it look unlike the others: a
+     104px minimum height with a 40px arch, and the tinted ground. */
+  .ezist-mod,.ezist-feature{aspect-ratio:1/1;min-height:0 !important;
+    flex-direction:column;justify-content:center !important;align-items:center;
+    text-align:center !important;overflow:hidden}
+  .ezist-feature{border-radius:18px !important;background:var(--a3-surface) !important}
   @media (min-width:600px){
     /* the gap only. The column count is the base rule's and is not restated here. (The
        search section used to span two of two tracks at this width; with three tracks a

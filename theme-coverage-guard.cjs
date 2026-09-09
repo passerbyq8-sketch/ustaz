@@ -1099,15 +1099,34 @@ ok('...and no element is reordered away from its DOM position',
   // property has to be the first thing in the rule or follow a semicolon/space.
   !/\.ezist-[a-z-]*\{(?:[^}]*[;\s])?order\s*:/.test(css),
   'an order property would put the tab order out of step with the reading order');
+// ITEM 05-E1 -- THE TILE COMPONENT, CUT ONCE so the assertions below read the tile itself and
+// not some other component that happens to mention m.label. It is read through okOn, so an
+// anchor that stops matching is an anchor failure and never an empty read that turns a negative
+// check green.
+const TILE = (IST.match(/function EzistModuleCard\(\{ m \}\) \{[\s\S]*?\n\}/) || [''])[0];
 // FOUR MODULES, FOUR TREATMENTS -- not four identical rows.
 const treatments = ['ezistCard_adhkar', 'ezistCard_memorize', 'ezistCard_treasure', 'ezistFeature'];
 for (const t of treatments) ok('a distinct treatment exists: ' + t, !!s[t]);
 ok('the treatment is chosen by the descriptor\'s own id', /m\.id === \'mushaf\'/.test(IST) && /s\[\'ezistCard_\' \+ m\.id\]/.test(IST));
-// NO GIANT EMPTY CARD: every card renders an icon, a title AND a line of text, and none of them
-// is given a fixed height that could outrun its content.
-ok('every module card carries a title and a subtitle, not just an icon',
-  /\{m\.label\}/.test(IST) && /\{EZIST_SUB\[m\.id\]\}/.test(IST));
-for (const id of ['memorize', 'adhkar', 'mushaf', 'treasure']) ok('...and ' + id + ' has one', !!evalIn('EZIST_SUB["' + id + '"]'));
+// ITEM 05-E1 -- WHAT A TILE DRAWS, AND IT IS ONE THING. This assertion used to require the
+// opposite: an icon, a title AND a line of text on every card, because an icon alone made a
+// large empty box at a desktop width. The owner overturned that on his phone -- he circled the
+// mark in every single tile, ruled it out of all ten, and ruled the sub-line out with it as the
+// thing that disordered the shape. The check is not relaxed and it is not deleted: it is
+// re-pointed at the ruling that replaced it, and it is STRICTER than what it replaced, because
+// it now names each of the three things that may not come back.
+okOn('ITEM 05-E1: a tile carries its section NAME, and the name is the whole of it',
+  [['TILE', TILE]],
+  /\{m\.label\}/.test(TILE)
+    && !/\{m\.icon\}/.test(TILE) && !/EZIST_SUB\[m\.id\]/.test(TILE)
+    && !/\{m\.meta\}/.test(TILE) && !/EZH_ICON_GO/.test(TILE),
+  'the mark, the sub-line and the chevron were each ruled off every tile');
+okOn('...and the name is real text on the element, not a decoration', [['TILE', TILE]],
+  /<span style=\{s\.ezistTileName\}>\{m\.label\}<\/span>/.test(TILE));
+// THE SUB-LINE CONSTANTS ARE KEPT, UNRENDERED, rather than deleted -- a string with no reader is
+// a smaller change than a deleted string, and the assertion above is what proves no tile draws
+// one. This is the same predicate it always was, under a name that no longer claims a screen fact.
+for (const id of ['memorize', 'adhkar', 'mushaf', 'treasure']) ok('...and ' + id + ' keeps its sub-line constant rather than deleting it', !!evalIn('EZIST_SUB["' + id + '"]'));
 const tall = ['ezistCard', 'ezistFeature', 'ezistAsk', 'ezistQuran'].filter((k) => typeof (s[k] || {}).height === 'number' || ((s[k] || {}).minHeight || 0) > 140);
 eq('no card is pinned to a height its content cannot fill', tall, []);
 // ...and the OTHER way a card goes empty, which the height check could not see and a 1440px
@@ -1121,15 +1140,44 @@ eq('no card is pinned to a height its content cannot fill', tall, []);
 // so the rhythm can be retuned later in one move and can never again drift apart card by card.
 eq('every module card declares the same inner spacing as the feature card',
   [s.ezistCard.padding, s.ezistCard.gap], [s.ezistFeature.padding, s.ezistFeature.gap]);
-ok('...and the feature card still keeps its own SIZE and its own arch, which are not spacing',
+// ITEM 05-E1 -- AND IT IS PAINTED AS ITS NINE NEIGHBOURS NOW. The owner ruled every section
+// square and equal, and the mushaf was the one tall flipped rectangle among them. The style
+// object keeps its own size and its own arch -- both halves of the old predicate are still
+// required, unchanged, and m.id === 'mushaf' still decides the class and the object -- and the
+// sheet takes those two back on the painted element, which is what the reader meets. A check
+// that stopped at the object would be green about a screen it no longer describes.
+ok('...and the feature card still keeps its own SIZE and its own arch in the style object',
   s.ezistFeature.minHeight > s.ezistCard.minHeight
     && s.ezistFeature.borderRadius === '40px 40px 18px 18px');
+okOn('ITEM 05-E1: ...and the SHEET paints it as the same square as its nine neighbours',
+  [['MOSAIC_CSS', MOSAIC_CSS]],
+  /\.ezist-feature\{border-radius:18px !important;background:var\(--a3-surface\) !important\}/.test(MOSAIC_CSS),
+  'the class and the object stay; the 40px arch and the tinted ground are taken back on the element');
 for (const k of ['ezistCard', 'ezistFeature', 'ezistAsk']) {
   eq('a wide ' + k + ' spreads its content to both ends', (s[k] || {}).justifyContent, 'space-between');
 }
-ok('a module with no reading still ends in an affordance, never in blank card',
-  /\{m\.meta \? <span style=\{s\.ezistMeta\}>\{m\.meta\}<\/span>[\s\S]{0,80}?: <span style=\{s\.ezistGo\}/.test(html),
-  'the meta/affordance pair is what fills the trailing edge at every width');
+// ITEM 05-E1: ...and for the two TILE objects that declaration is now OVERRIDDEN in the sheet,
+// deliberately and in one place. Both objects keep it -- the three lines above are unchanged --
+// but a square that holds one name centres it rather than spreading it to two ends it does not
+// have. Asserted here so the override cannot be lost silently while the objects still claim it.
+okOn('ITEM 05-E1: ...and the two tile objects are overridden to CENTRE that one name',
+  [['MOSAIC_CSS', MOSAIC_CSS]],
+  /\.ezist-mod,\.ezist-feature\{[^}]*justify-content:center !important/.test(MOSAIC_CSS)
+    && /\.ezist-mod,\.ezist-feature\{[^}]*text-align:center !important/.test(MOSAIC_CSS));
+// ITEM 05-E1 -- THE SQUARE IS WHAT REPLACED THE TRAILING PAIR. This required the meta/chevron
+// pair on every card: a module with no reading had to end in an affordance so that a wide card
+// could not go blank at its trailing edge. A square that holds one centred name has no trailing
+// edge to fill, and the owner ruled the chevron off with the mark. So the check is re-pointed at
+// the shape that made it unnecessary, and it still asserts that a tile cannot be a void: the box
+// is a square, the name is centred on both axes, and the pair is proved GONE rather than merely
+// unmentioned.
+okOn('ITEM 05-E1: a tile is a SQUARE with its name centred in it, and the trailing pair is gone',
+  [['MOSAIC_CSS', MOSAIC_CSS], ['TILE', TILE]],
+  /\.ezist-mod,\.ezist-feature\{[^}]*aspect-ratio:1\/1/.test(MOSAIC_CSS)
+    && /\.ezist-mod,\.ezist-feature\{[^}]*justify-content:center !important/.test(MOSAIC_CSS)
+    && /\.ezist-mod,\.ezist-feature\{[^}]*align-items:center/.test(MOSAIC_CSS)
+    && !/s\.ezistMeta/.test(TILE) && !/s\.ezistGo/.test(TILE),
+  'aspect-ratio:1/1 with the name centred is what a tile is now');
 ok('...and no module spans AT ANY WIDTH -- every tile occupies exactly one of the three tracks',
   MOSAIC_CSS.length > 0 && !/\.ezist-(?:mod|feature)[^{}]*\{[^}]*grid-column:\s*span/.test(MOSAIC_CSS),
   'the ruling this shelf now follows: three sections per row, tiles equal, none spanning, none orphaned -- so no .ezist-mod, .ezist-feature or .ezist-mod-fatwa grid-column:span rule may live anywhere in the mosaic region: the base rule and both breakpoints alike');

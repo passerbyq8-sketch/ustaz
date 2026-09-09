@@ -5173,30 +5173,42 @@ function EzistMasthead({ name, g, hijri, onOpenAdhkar }) {
 }
 
 // ONE MODULE, drawn from the descriptor's own stable id, so the data decides the treatment and
-// not a second list: the mushaf keeps its wide feature treatment and remains the
-// wide feature and the only card that can carry a real reading, the adhkar card takes the coral
-// highlight, the memorizer takes an Iznik rule and the treasure card sits on the tinted surface.
-// Every card carries an icon, a title AND a line of text, which is what stops any of them from
-// being a large empty box at a desktop width.
+// not a second list: the adhkar card takes the coral highlight, the memorizer takes an Iznik
+// rule and the treasure card sits on the tinted surface.
+//
+// ITEM 05-E1 -- A TILE IS ITS SECTION'S NAME, IN A SQUARE, AND NOTHING ELSE. The owner opened
+// the published app, circled the mark in every single tile and ruled: remove it from every
+// section, keep the section NAME and nothing else, and make the sections SQUARE rather than a
+// tall flipped rectangle. So three things left the rendered output together -- the icon, the
+// descriptive sub-line (EZIST_SUB) and the trailing chevron/reading pair -- and what is left is
+// one centred name.
+//
+// WHAT DID NOT GO. The `icon` and `meta` FIELDS are still on every descriptor and the
+// EZH_ICON_* constants are all still declared: a field with no reader is a smaller change than
+// a deleted field, and other code names them (the drawer's own section list at the foot of this
+// file draws EZH_ICON_FATWA, EZH_ICON_TREASURE, EZH_ICON_MUSHAF and EZH_ICON_LESSONS, and
+// EZH_ICON_GO is drawn by three other components). `m.fresh` is untouched, character for
+// character, because theme-coverage-guard pins that JSX and its style object exactly.
+//
+// THE SQUARE ITSELF IS IN THE SHEET, not here: .ezist-mod / .ezist-feature carry
+// aspect-ratio:1/1 and the centring, so the style objects below keep the height, padding and
+// gap RELATIONS that theme-coverage-guard reads across ezistCard, ezistFeature, ezistAsk and
+// ezistQuran. The mushaf keeps its class and its own style object -- the guard asserts both,
+// and asserts that m.id === 'mushaf' still decides them -- and the sheet paints it as the same
+// square as its nine neighbours, which is what the owner asked for.
 function EzistModuleCard({ m }) {
   const feature = m.id === 'mushaf';
   return (
     <button type="button" className={'ezhome-focus ezist-' + (feature ? 'feature' : 'mod ezist-mod-' + m.id)}
       onClick={m.onClick} data-ezik-home-module={m.id}
       style={feature ? s.ezistFeature : { ...s.ezistCard, ...(s['ezistCard_' + m.id] || null) }}>
-      <span style={feature ? s.ezistFeatureIcon : s.ezistCardIcon} aria-hidden="true">{m.icon}</span>
-      <span style={s.ezistCardBody}>
-        <span style={feature ? s.ezistFeatureTitle : s.ezistCardTitle}>{m.label}</span>
-        <span style={s.ezistCardSub}>{EZIST_SUB[m.id]}</span>
-      </span>
+      <span style={s.ezistTileName}>{m.label}</span>
       {/* ITEM 7 / F4. A MARK, NOT A COUNT (F6) -- one dot, in the token the active-design row
           already uses, beside whatever the card was already ending with rather than instead of
           it. It carries its own accessible name: a bare coloured dot says nothing at all to a
           reader who cannot see it, and this is the one piece of information on the card that is
           not already spelt out in the title beside it. */}
       {m.fresh ? <span style={s.ezistCardNew} role="img" aria-label={ezT('articles.freshMark')} /> : null}
-      {m.meta ? <span style={s.ezistMeta}>{m.meta}</span>
-              : <span style={s.ezistGo} aria-hidden="true">{EZH_ICON_GO}</span>}
     </button>
   );
 }
@@ -23857,6 +23869,15 @@ const s = {
   ezistCardBody: { display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0, flex: 1 },
   ezistCardTitle: { fontSize: 15.5, fontWeight: 800, color: 'var(--a3-ink)' },
   ezistFeatureTitle: { fontSize: 18, fontWeight: 800, color: 'var(--a3-ink)' },
+  // ITEM 05-E1: THE NAME, AND IT IS ONE STYLE FOR ALL TEN TILES. The mushaf must look identical
+  // to its nine neighbours, so it cannot keep a larger title than they have; ezistFeatureTitle
+  // and ezistCardTitle are both left declared (ezistCardTitle still draws the wird section's own
+  // title) rather than deleted. The size is a plain number so ezikEnsureScalableStyles rewrites
+  // it to calc(px * var(--ez-fs)) exactly as it does every other text size -- a font-size put in
+  // the sheet instead would be the one label on this screen that does not follow the reader's
+  // chosen text size. 13.5 rather than 15.5 because the longest section name on the shelf,
+  // «أسماء الله الحسنى», has to wrap inside a ~90px square at 320px without being clipped.
+  ezistTileName: { display: 'block', width: '100%', minWidth: 0, fontSize: 13.5, fontWeight: 800, color: 'var(--a3-ink)', lineHeight: 1.3, textAlign: 'center', overflowWrap: 'anywhere' },
   ezistCardSub: { fontSize: 12.5, fontWeight: 600, color: 'var(--a3-muted)', lineHeight: 1.6 },
   ezistGo: { flexShrink: 0, display: 'inline-flex', color: 'var(--a3-muted)' },
   // ITEM 7: the mark on a section holding something unseen. The same 10px dot in the same token
