@@ -602,17 +602,20 @@
      were stacked, and it separates them on the row for the same reason. */
   .ezist-rule-short{flex-shrink:0;width:2px;height:22px;background:var(--a3-blue);
     border-radius:2px;margin:0}
-  .ezist-mosaic{display:grid;grid-template-columns:1fr;gap:12px}
+  /* THREE SECTIONS PER ROW, AT EVERY WIDTH -- the phone and the big screen alike. The
+     column count is set ONCE, here, and no breakpoint below changes it. */
+  .ezist-mosaic{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
   .ezist-mosaic>*{min-width:0}
   @media (min-width:600px){
-    .ezist-mosaic{grid-template-columns:repeat(2,1fr);gap:14px}
-    /* the new search section earns a full row at this width. (S118: the Quran panel had a
-       span here too; it is not a cell of this grid any more -- it is the top bar.) */
-    .ezist-mod-fatwa{grid-column:span 2}
+    /* the gap only. The column count is the base rule's and is not restated here. (The
+       search section used to span two of two tracks at this width; with three tracks a
+       tile that spans two is exactly the break the owner reported, so the span is gone.) */
+    .ezist-mosaic{gap:14px}
   }
   @media (min-width:1000px){
     .ezist-mosaic{grid-template-columns:repeat(3,1fr);gap:16px}
-    /* three sections per row: every tile occupies exactly one track, none spanning, none orphaned. */
+    /* the gap only, again: three across is already the law above. Every tile occupies
+       exactly one track at this width too, none spanning, none orphaned. */
     .ezist-masthead{padding:10px 20px}
     .ezist-nav-inner{padding:6px 20px}
   }

@@ -1073,8 +1073,24 @@ ok('the greeting and the daily line are the ones the app already picked',
   /\{EZH_SALAM\}/.test(IST) && /\{EZH_HELLO\} \{name\}/.test(IST) && /\{g\.text\}/.test(IST));
 
 ok('the modules are a real MOSAIC, not a stack', /className="ezist-mosaic"/.test(IST) && /\.ezist-mosaic\{[^}]*display:grid/.test(css));
-ok('...one column on a phone', /\.ezist-mosaic\{[^}]*grid-template-columns:1fr/.test(css));
-ok('...two from 600px', /@media \(min-width:600px\)\{[\s\S]{0,400}?\.ezist-mosaic\{grid-template-columns:repeat\(2,1fr\)/.test(css));
+// ITEM 05, ORDER 4. The owner tested the app and reported that the phone still showed one
+// section per row. The relaxation "the phone does not matter" was a misreading of a sentence
+// he wrote about a screenshot; his standing order is the item contract's: THREE SECTIONS PER
+// ROW ON THE PHONE AND ON THE BIG SCREEN ALIKE. So the column count is now set ONCE, on the
+// base rule, and no breakpoint may change it.
+//
+// The mosaic's own CSS region is sliced once here so that the assertions below all read the
+// same bytes, and none of them can be satisfied by a .ezist-mosaic rule belonging to some
+// other breakpoint further down the sheet.
+const MOSAIC_CSS = (css.match(/\.ezist-mosaic\{display:grid[\s\S]*?@media \(min-width:1000px\)\{[\s\S]*?[\r\n]\s*\}/) || [''])[0];
+const MOSAIC_600 = (MOSAIC_CSS.match(/@media \(min-width:600px\)\{[\s\S]*?[\r\n]\s*\}/) || [''])[0];
+// display:grid sits on the BASE rule and on no other .ezist-mosaic rule in the sheet, so it
+// is what makes this read the base and not the 1000px restatement.
+ok('...THREE ACROSS AT EVERY WIDTH -- phone and big screen alike, set once on the base rule',
+  /\.ezist-mosaic\{display:grid;grid-template-columns:repeat\(3,1fr\)/.test(css));
+ok('...and the 600px block does not change the count: it declares no grid-template-columns for the mosaic at all',
+  MOSAIC_600 !== '' && !/\.ezist-mosaic\{[^}]*grid-template-columns/.test(MOSAIC_600),
+  'the column count is the base rule\'s; a breakpoint that restates it is how one column on a phone came back');
 ok('...three from 1000px', /@media \(min-width:1000px\)\{[\s\S]{0,700}?\.ezist-mosaic\{grid-template-columns:repeat\(3,1fr\)/.test(css));
 ok('...inside a centred maximum width, so it is never loose on a desktop',
   /\.ezist-wrap\{[^}]*max-width:1100px[^}]*margin:0 auto/.test(css));
@@ -1114,9 +1130,9 @@ for (const k of ['ezistCard', 'ezistFeature', 'ezistAsk']) {
 ok('a module with no reading still ends in an affordance, never in blank card',
   /\{m\.meta \? <span style=\{s\.ezistMeta\}>\{m\.meta\}<\/span>[\s\S]{0,80}?: <span style=\{s\.ezistGo\}/.test(html),
   'the meta/affordance pair is what fills the trailing edge at every width');
-ok('...and no module spans on a desktop -- every tile occupies exactly one of the three tracks',
-  !/\.ezist-(?:mod|feature)[^{}]*\{[^}]*grid-column:\s*span/.test((css.match(/@media \(min-width:1000px\)\{[\s\S]*?[\r\n]\s*\}/) || [''])[0]),
-  'the ruling this shelf now follows: three sections per row, tiles equal, none spanning, none orphaned -- so no .ezist-mod, .ezist-feature or .ezist-mod-fatwa grid-column:span rule may live inside the 1000px block');
+ok('...and no module spans AT ANY WIDTH -- every tile occupies exactly one of the three tracks',
+  MOSAIC_CSS !== '' && !/\.ezist-(?:mod|feature)[^{}]*\{[^}]*grid-column:\s*span/.test(MOSAIC_CSS),
+  'the ruling this shelf now follows: three sections per row, tiles equal, none spanning, none orphaned -- so no .ezist-mod, .ezist-feature or .ezist-mod-fatwa grid-column:span rule may live anywhere in the mosaic region: the base rule and both breakpoints alike');
 
 ok('the daily verse has its own bounded panel', /<EzistQuranPanel \/>/.test(IST) && /className="ezist-quran"/.test(IST));
 // S118: it is drawn ONCE, and in the top bar rather than as the mosaic's last cell. The panel
