@@ -13,6 +13,9 @@
 //      service and shaped by the production path (`normalizeRecord` -> the loop's table row ->
 //      `reviewerEvidence`). Each case claims the fatwa's own first clause in the scholar's name.
 //      Expected: 18/18 kept, zero false stripping.
+//      THE ROSTER IS NINETEEN SINCE 2026-09-09 and this harvest is still the eighteen: محمد علي
+//      فركوس joined the service on 2026-09-07 and has no harvested case here. Check 1 above
+//      covers all nineteen rows; this one covers the eighteen it was harvested from.
 'use strict';
 
 const fs = require('fs');
@@ -188,7 +191,7 @@ const rejectsWrongScholar = (module) => {
     // ── E. THE DERIVED REGISTRY (merge §٣) ────────────────────────────────
     const derived = await deriveRegistry();
     ok('the registry covers every measured fatwa scholar and every institutional publisher',
-      derived.length === 21, 'derived=' + derived.length);
+      derived.length === 22, 'derived=' + derived.length);
     ok('the inlined registry has not drifted from lib/fatwa-contract.js + lib/source-registry.js',
       plain(module.REVIEW_AUTHORITY_SOURCES) === plain(derived),
       'inlined=' + plain(module.REVIEW_AUTHORITY_SOURCES).slice(0, 400)
@@ -198,7 +201,7 @@ const rejectsWrongScholar = (module) => {
         && !JSON.stringify(module.REVIEW_AUTHORITY_SOURCES).includes('dar-alifta'),
       'a host survives that appears in no source of truth');
 
-    // 18/18: one real published fatwa per scholar, its attribution kept.
+    // 18/18: one real published fatwa per harvested scholar, its attribution kept.
     const eighteen = JSON.parse(fs.readFileSync(EIGHTEEN, 'utf8'));
     ok('the eighteen-scholar fixture schema is exact',
       eighteen.schema === 'ezik.fatwa-authority.eighteen.v1');

@@ -20,7 +20,10 @@ const SALAH_ADULT_TEXT_HASH = '7687019965bf142259cdc7660af8c32a211cdb1455f5f479f
 // Re-cut in semantic round B after CLAIMS_AUDIT/د's production-smoke values were copied into the
 // formerly-null production field. The seal is on the whole file, so it changes whenever the
 // fixture does -- which is the point: no one edits this fixture without the seal saying so.
-const X021_FIXTURE_HASH = 'af39f7a0c755f3275e491a815dee49a5790fae574181f8ab622f10686dc34b77';
+// Re-cut again on 2026-09-09 (item 29/د٤): the replayed /api/v1/scholars and /api/v1/health
+// payloads gained ferkous and took kuwait_eftaa to 252, so the offline replay still matches
+// lib/fatwa-contract.js after the live corpus moved to 19 rows / 74,769 records.
+const X021_FIXTURE_HASH = '563b6660030c6995a383e46a89c6d6873fcd539a7af1edbad6159e3f2cdc9c8e';
 const D2_CASE_QUESTIONS = Object.freeze([
   'كيف يصلي المريض الذي لا يستطيع القيام؟',
   'ما كيفية صلاة الخوف عند اشتداد القتال؟',
@@ -357,7 +360,7 @@ async function runHybridGuard() {
     context: joinContext, band: 'adult', depth: 'normal', dailyBudget: budget,
     localRetrieve: localEmpty,
     fatwaSearch: async () => { events.push('fatwa:start'); await Promise.resolve(); events.push('fatwa:end'); return {
-      calls: 1, verification: { status: 'OK', scholars: 18, total: 73130, ibnBaz: 18479, failures: [] }, records: [f],
+      calls: 1, verification: { status: 'OK', scholars: 19, total: 74769, ibnBaz: 18479, failures: [] }, records: [f],
     }; },
     liveRetrieve: async (_q, opts) => { events.push('brave:start'); await Promise.resolve(); events.push('brave:end'); return markLive(opts.diagnostics); },
     generate: modelUsing(f.id, f.supportText), verify: verifyIds(f.id),
@@ -376,7 +379,7 @@ async function runHybridGuard() {
   eq('only evidence used by a sentence receives a card', integrated.cards.map((card) => card.evidenceId), [f.id]);
   eq('used evidence is separately observable', integrated.validatedUsedEvidenceIds, [f.id]);
   ok('authored adapter unit: verification fields propagate structurally', integrated.fatwaValidation.status === 'OK'
-    && integrated.fatwaValidation.scholars === 18 && integrated.fatwaValidation.total === 73130
+    && integrated.fatwaValidation.scholars === 19 && integrated.fatwaValidation.total === 74769
     && integrated.fatwaValidation.ibnBaz === 18479);
 
   console.log('\n--- X-021 OBSERVED FATWA REQUEST TELEMETRY ---');
@@ -388,6 +391,15 @@ async function runHybridGuard() {
   // -- an observed response whose counts differ from the counts this fixture authored offline would
   // mean the offline accounting had drifted from the shipped service, which is the whole point of
   // measuring it. Semantic round B fills the production half from the sealed publish report.
+  // BLOCKED 2026-09-09 (item 29/د٤), AND DELIBERATELY LEFT RED. Both assertions below compare a
+  // DATED, NAMED observation with the fixture's current offline counts. The contract moved to
+  // 19/74,769 today because the live service did; the two observations did not move, and cannot
+  // be made to agree without either (a) rewriting what deployment dpl_CeEUNUFVaZP6P9DtZh6aeyBAGdw4
+  // reported on 2026-08-15 and what the publish smoke sealed under sha8 48618485 -- which would be
+  // forging two dated records -- or (b) a fresh deployment carrying this contract, which the order
+  // that made this change forbids. The honest reading of this red is the true one: production has
+  // not yet been re-observed against the 19-row corpus. Re-take both after the deploy; do not
+  // relax the equality.
   const x021seen = x021.externalEvidence.currentServiceResponse;
   ok('X-021 the current service was observed on a named deployment and agrees with the offline counts',
     x021.externalEvidence.status === 'OBSERVED_PREVIEW'
@@ -721,7 +733,7 @@ async function runHybridGuard() {
       localRetrieve: async () => ({ storedCorpusCalls: 1, candidateRecordIds: [], accepted: [] }),
       fatwaSearch: async () => ({
         calls: 2, queries: ['هل النقاب واجب؟', 'حكم تغطية وجه المرأة'],
-        verification: { status: 'OK', scholars: 18, total: 73130, ibnBaz: 18479, failures: [] },
+        verification: { status: 'OK', scholars: 19, total: 74769, ibnBaz: 18479, failures: [] },
         records: [publishedVeilDisagreement],
       }),
       liveRetrieve: async () => { liveCalls++; throw new Error('Brave must remain closed'); },
@@ -824,7 +836,7 @@ async function runHybridGuard() {
     && !indexSource.includes('https://ezik-fatwas.vercel.app'));
   ok('the unchanged /api/v1/* UI contract rewrites to the server proxy', vercel.rewrites.some((r) =>
     r.source === '/api/v1/:path*' && r.destination === '/api/fatwa-proxy?path=:path*'));
-  eq('fatwa pinned corpus contract', FC.fatwaContractTotals(), { scholars: 18, total: 73130, ibnBaz: 18479 });
+  eq('fatwa pinned corpus contract', FC.fatwaContractTotals(), { scholars: 19, total: 74769, ibnBaz: 18479 });
   ok('fatwa service base is the one authorised origin', FC.FATWA_BASE === 'https://ezik-fatwas.vercel.app');
 
   console.log('\n--- TEXT/CALL PARITY AND NO-CLARIFICATION WIRING ---');

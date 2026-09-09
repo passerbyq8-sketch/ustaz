@@ -2,7 +2,7 @@
 //
 // Kept apart from gate.mjs on purpose. The gate states conditions; this file only makes it
 // possible to run a turn without a network, and every stub here answers the SHAPE the real
-// service answers — the fatwa contract's own schema version, its own eighteen scholars, its own
+// service answers — the fatwa contract's own schema version, its own nineteen scholars, its own
 // record fields — because a stub that answers a shape the code does not check proves nothing
 // about the code that checks it.
 
