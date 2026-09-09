@@ -113,6 +113,21 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-09-09   -- ITEM 05, THE THREE-ACROSS SHELF AND THE CHAT RAIL'S HOME BUTTON. The shelf
+  //                    goes three across from 1000px: index.html:614 is repeat(3,1fr) and the two
+  //                    span rules that made six tracks read as three tiles are deleted, so every
+  //                    tile holds exactly one track. .ezc-rail-inner gained a home button as its
+  //                    LAST child, which under body{direction:rtl} is the visual left; it reuses
+  //                    the declared key navigation.home and adds no CSS. The drawer's second door
+  //                    to asmaa and a stale comment paragraph were deleted on the owner's ruling,
+  //                    and the 1000px comment was re-cut to the ruling now in force. app.js was
+  //                    rebuilt from that source 1368253 -> 1367950 (-303), index.html moved
+  //                    122884 -> 122811 (-73) over the shelf edit and the comment, CORE_BYTES was
+  //                    re-cut 2211100 -> 2210724 by tools/core-bytes.cjs --write, the index.html
+  //                    and app.js figures in the byte table above CORE_BYTES and their SW_PROSE
+  //                    mirrors below all followed, and THIS digest was cut last, after every one
+  //                    of them. sw.js is 44695 bytes at CR = 0. CACHE is NOT touched -- the store
+  //                    name is the merge round's.
   //   2026-09-08   -- ITEM 104/105, THE MUSHAF READING PAGE. The owner's ruling of 8 Sept 2026:
   //                    the reading page carries the memorisation mark and the way back to the
   //                    suras and NOTHING else. app.jsx lost the bottom dock outright -- both
@@ -770,7 +785,7 @@ const SEALED = {
   //                    table and the SW_PROSE mirror above both followed, and THIS digest is
   //                    re-cut last. CACHE IS NOT BUMPED: this is a branch for the owner to try on
   //                    a preview, not a ship, and sw.js says the merge round owns the bump.
-  'sw.js': '173cd5235d948658d9cb3d709d0ab33245e755aefe7c330a93ecf63c6c0e020e',
+  'sw.js': 'c99b85670fbbe08d12f8045f03a4a199afa5d52edda4a10d348b85c8ad4a67c4',
 };
 
 // ---------------------------------------------------------------------------
@@ -1878,10 +1893,10 @@ async function compare(goldenPath) {
     //  { n, sum: [a, b] }  n is the byte sum of those files on disk
     //  { n, dir: 'count' | 'sum' | 'mean' }   n is that statistic over the mushaf page scans
     const SW_PROSE = [
-      { n: 122884, of: 'index.html' },
+      { n: 122811, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1368253, of: 'app.js' },
+      { n: 1367950, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
