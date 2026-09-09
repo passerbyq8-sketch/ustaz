@@ -1089,7 +1089,7 @@ const MOSAIC_600 = (MOSAIC_CSS.match(/@media \(min-width:600px\)\{[\s\S]*?[\r\n]
 ok('...THREE ACROSS AT EVERY WIDTH -- phone and big screen alike, set once on the base rule',
   /\.ezist-mosaic\{display:grid;grid-template-columns:repeat\(3,1fr\)/.test(css));
 ok('...and the 600px block does not change the count: it declares no grid-template-columns for the mosaic at all',
-  MOSAIC_600 !== '' && !/\.ezist-mosaic\{[^}]*grid-template-columns/.test(MOSAIC_600),
+  MOSAIC_600.length > 0 && !/\.ezist-mosaic\{[^}]*grid-template-columns/.test(MOSAIC_600),
   'the column count is the base rule\'s; a breakpoint that restates it is how one column on a phone came back');
 ok('...three from 1000px', /@media \(min-width:1000px\)\{[\s\S]{0,700}?\.ezist-mosaic\{grid-template-columns:repeat\(3,1fr\)/.test(css));
 ok('...inside a centred maximum width, so it is never loose on a desktop',
@@ -1131,7 +1131,7 @@ ok('a module with no reading still ends in an affordance, never in blank card',
   /\{m\.meta \? <span style=\{s\.ezistMeta\}>\{m\.meta\}<\/span>[\s\S]{0,80}?: <span style=\{s\.ezistGo\}/.test(html),
   'the meta/affordance pair is what fills the trailing edge at every width');
 ok('...and no module spans AT ANY WIDTH -- every tile occupies exactly one of the three tracks',
-  MOSAIC_CSS !== '' && !/\.ezist-(?:mod|feature)[^{}]*\{[^}]*grid-column:\s*span/.test(MOSAIC_CSS),
+  MOSAIC_CSS.length > 0 && !/\.ezist-(?:mod|feature)[^{}]*\{[^}]*grid-column:\s*span/.test(MOSAIC_CSS),
   'the ruling this shelf now follows: three sections per row, tiles equal, none spanning, none orphaned -- so no .ezist-mod, .ezist-feature or .ezist-mod-fatwa grid-column:span rule may live anywhere in the mosaic region: the base rule and both breakpoints alike');
 
 ok('the daily verse has its own bounded panel', /<EzistQuranPanel \/>/.test(IST) && /className="ezist-quran"/.test(IST));

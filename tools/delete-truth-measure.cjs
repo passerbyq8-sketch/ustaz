@@ -448,6 +448,26 @@ const MUST_STAY = [
   { c: 'MUSHAF_SVG_KEY', why: 'not promised' },
   { c: 'MADINA_IMG_KEY', why: 'not promised' },
   { c: 'DAILY_WIRD_KEY', why: 'not promised' },
+  // ITEM 05-C / 05-D -- TWO NEW KEYS, CLASSIFIED WITH THE TWO THEY EXTEND AND NOT AGAINST THEM.
+  //
+  // WIRD_LIST_KEY is the list the reader builds with the + on the wird card. It sits in the SAME
+  // card as DAILY_WIRD_KEY directly above, and EZWID_KEY above that is the arrangement
+  // HOME_ORDER_KEY extends: the order of the ten shelf sections. Both of the keys they extend
+  // are already here, both for the same stated reason, and delete.html promises neither of the
+  // new ones in either language.
+  //
+  // =4 AND THIS IS A DECISION THE OWNER SHOULD CONFIRM, because it is in tension with his own
+  // rule quoted above MUST_GO_ALREADY: "any new device key is entered on the delete-my-data
+  // roster and is wiped with it". What decided it the other way is COHERENCE PER FEATURE. Wiping
+  // only the new half would leave a reader who pressed "delete all my data" with a wird card that
+  // still draws his old choice lines and an empty added list, and a shelf still in the order he
+  // arranged with the widgets he arranged -- one feature, half erased, which is worse than either
+  // consistent answer. Making the four coherent the OTHER way means moving DAILY_WIRD_KEY and
+  // EZWID_KEY onto the roster too, which changes the behaviour of two keys this branch did not
+  // add and was not asked to touch. If the owner wants that, it is four entries here and four
+  // removeItem lines in resetAll, and delete.html is not edited for any of them.
+  { c: 'WIRD_LIST_KEY', why: 'not promised -- the wird list, beside DAILY_WIRD_KEY in the same card' },
+  { c: 'HOME_ORDER_KEY', why: 'not promised -- the shelf order, beside EZWID_KEY in the same panel' },
   { lit: 'tashkeel_v1', why: 'not promised' },
 ];
 
