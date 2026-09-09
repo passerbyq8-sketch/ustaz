@@ -1798,12 +1798,30 @@ const isDay=!!(g&&g.period==='day');const[dhikr,setDhikr]=useState(null);// null
 const dhikrTimer=useRef(null);useEffect(()=>()=>{if(dhikrTimer.current)clearTimeout(dhikrTimer.current);},[]);const showNextDhikr=()=>{if(dhikrTimer.current){clearTimeout(dhikrTimer.current);dhikrTimer.current=null;}setDhikr(HOME_DHIKR[nextDhikrSeq()%HOME_DHIKR.length]);dhikrTimer.current=setTimeout(()=>{dhikrTimer.current=null;setDhikr(null);},HOME_DHIKR_MS);};const go=isDay?showNextDhikr:onOpenAdhkar;// THE LINE ON SCREEN. One expression, so the button, its accessible name and its text can
 // never disagree about what it is saying.
 const line=isDay&&dhikr?dhikr:g?g.text:'';return/*#__PURE__*/React.createElement("section",{className:"ezist-masthead"},/*#__PURE__*/React.createElement("div",{className:"ezist-hello"},/*#__PURE__*/React.createElement("div",{style:s.ezistSalam},EZH_SALAM),/*#__PURE__*/React.createElement("h1",{style:s.ezistName},EZH_HELLO," ",name),hijri?/*#__PURE__*/React.createElement("div",{style:s.ezistHijri},hijri):null),/*#__PURE__*/React.createElement("span",{className:"ezist-rule-short","aria-hidden":"true"}),tap?/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus",onClick:go,style:isDay?{...s.ezistPrompt,...s.ezistPromptDay}:s.ezistPrompt,"aria-label":line},/*#__PURE__*/React.createElement("span",{style:s.ezistPromptIcon,"aria-hidden":"true"},g.period==='morning'?EZH_ICON_SUN:EZH_ICON_MOON),/*#__PURE__*/React.createElement("span",{style:s.ezistPromptText},line)):/*#__PURE__*/React.createElement("div",{style:s.ezistPromptFlat},/*#__PURE__*/React.createElement("span",{style:s.ezistPromptIcon,"aria-hidden":"true"},g.period==='morning'?EZH_ICON_SUN:EZH_ICON_MOON),/*#__PURE__*/React.createElement("span",{style:s.ezistPromptText},g.text)));}// ONE MODULE, drawn from the descriptor's own stable id, so the data decides the treatment and
-// not a second list: the mushaf keeps its wide feature treatment and remains the
-// wide feature and the only card that can carry a real reading, the adhkar card takes the coral
-// highlight, the memorizer takes an Iznik rule and the treasure card sits on the tinted surface.
-// Every card carries an icon, a title AND a line of text, which is what stops any of them from
-// being a large empty box at a desktop width.
-function EzistModuleCard({m}){const feature=m.id==='mushaf';return/*#__PURE__*/React.createElement("button",{type:"button",className:'ezhome-focus ezist-'+(feature?'feature':'mod ezist-mod-'+m.id),onClick:m.onClick,"data-ezik-home-module":m.id,style:feature?s.ezistFeature:{...s.ezistCard,...(s['ezistCard_'+m.id]||null)}},/*#__PURE__*/React.createElement("span",{style:feature?s.ezistFeatureIcon:s.ezistCardIcon,"aria-hidden":"true"},m.icon),/*#__PURE__*/React.createElement("span",{style:s.ezistCardBody},/*#__PURE__*/React.createElement("span",{style:feature?s.ezistFeatureTitle:s.ezistCardTitle},m.label),/*#__PURE__*/React.createElement("span",{style:s.ezistCardSub},EZIST_SUB[m.id])),m.fresh?/*#__PURE__*/React.createElement("span",{style:s.ezistCardNew,role:"img","aria-label":ezT('articles.freshMark')}):null,m.meta?/*#__PURE__*/React.createElement("span",{style:s.ezistMeta},m.meta):/*#__PURE__*/React.createElement("span",{style:s.ezistGo,"aria-hidden":"true"},EZH_ICON_GO));}// THE CHAT ENTRY. There is still exactly ONE, and it is no longer on this screen's chrome at
+// not a second list: the adhkar card takes the coral highlight, the memorizer takes an Iznik
+// rule and the treasure card sits on the tinted surface.
+//
+// ITEM 05-E1 -- A TILE IS ITS SECTION'S NAME, IN A SQUARE, AND NOTHING ELSE. The owner opened
+// the published app, circled the mark in every single tile and ruled: remove it from every
+// section, keep the section NAME and nothing else, and make the sections SQUARE rather than a
+// tall flipped rectangle. So three things left the rendered output together -- the icon, the
+// descriptive sub-line (EZIST_SUB) and the trailing chevron/reading pair -- and what is left is
+// one centred name.
+//
+// WHAT DID NOT GO. The `icon` and `meta` FIELDS are still on every descriptor and the
+// EZH_ICON_* constants are all still declared: a field with no reader is a smaller change than
+// a deleted field, and other code names them (the drawer's own section list at the foot of this
+// file draws EZH_ICON_FATWA, EZH_ICON_TREASURE, EZH_ICON_MUSHAF and EZH_ICON_LESSONS, and
+// EZH_ICON_GO is drawn by three other components). `m.fresh` is untouched, character for
+// character, because theme-coverage-guard pins that JSX and its style object exactly.
+//
+// THE SQUARE ITSELF IS IN THE SHEET, not here: .ezist-mod / .ezist-feature carry
+// aspect-ratio:1/1 and the centring, so the style objects below keep the height, padding and
+// gap RELATIONS that theme-coverage-guard reads across ezistCard, ezistFeature, ezistAsk and
+// ezistQuran. The mushaf keeps its class and its own style object -- the guard asserts both,
+// and asserts that m.id === 'mushaf' still decides them -- and the sheet paints it as the same
+// square as its nine neighbours, which is what the owner asked for.
+function EzistModuleCard({m}){const feature=m.id==='mushaf';return/*#__PURE__*/React.createElement("button",{type:"button",className:'ezhome-focus ezist-'+(feature?'feature':'mod ezist-mod-'+m.id),onClick:m.onClick,"data-ezik-home-module":m.id,style:feature?s.ezistFeature:{...s.ezistCard,...(s['ezistCard_'+m.id]||null)}},/*#__PURE__*/React.createElement("span",{style:s.ezistTileName},m.label),m.fresh?/*#__PURE__*/React.createElement("span",{style:s.ezistCardNew,role:"img","aria-label":ezT('articles.freshMark')}):null);}// THE CHAT ENTRY. There is still exactly ONE, and it is no longer on this screen's chrome at
 // all: the bar's menu button opens the chat's own menu, and «محادثة جديدة» there is the entry.
 // That row was already the app's single new-conversation control; S118 only made it navigate as
 // well as reset, so it does from the home what it always did from the chat. The large "ask Ezik"
@@ -1820,7 +1838,7 @@ function EzistModuleCard({m}){const feature=m.id==='mushaf';return/*#__PURE__*/R
 // screen, .ezist-rule-short -- the short vertical bar in the masthead -- is a different
 // class on a different element and is deliberately untouched.
 function EzistQuranPanel(){const v=getDailyVerse();const isHadith=v.surah==='\u062D\u062F\u064A\u062B';return/*#__PURE__*/React.createElement("section",{className:"ezist-quran",style:s.ezistQuran},/*#__PURE__*/React.createElement("div",{style:s.ezistQuranHead},/*#__PURE__*/React.createElement("span",{style:s.ezistQuranLabel},isHadith?ezT('home.hadithOfDay2'):ezT('home.verseOfDay2'))),/*#__PURE__*/React.createElement("div",{style:s.ezistQuranText},v.text),/*#__PURE__*/React.createElement("div",{style:s.ezistQuranMeta},isHadith?'\u0631\u0648\u0627\u0647 '+v.ayah:'\u0633\u0648\u0631\u0629 '+v.surah+'\u060C \u0622\u064A\u0629 '+v.ayah));}function EzikIstanaHome(v){const mods=v.modules||[];// the owner's one array, mapped once, in its own order
-return/*#__PURE__*/React.createElement("div",{className:"theme-dark ezhome",style:s.ezistContainer},/*#__PURE__*/React.createElement(EzistTopNav,{onOpenMenu:v.onOpenMenu}),/*#__PURE__*/React.createElement("div",{style:s.ezistScroll},/*#__PURE__*/React.createElement("div",{className:"ezist-wrap"},/*#__PURE__*/React.createElement(EzistMasthead,{name:v.name,g:v.greeting,hijri:v.hijri,onOpenAdhkar:v.onOpenAdhkar}),/*#__PURE__*/React.createElement("div",{style:s.ezistQuran},/*#__PURE__*/React.createElement("div",{style:s.ezwidHead},/*#__PURE__*/React.createElement("span",{style:s.ezistCardTitle},DW_CARD_TITLE),/*#__PURE__*/React.createElement("span",{className:"ez-hit"},/*#__PURE__*/React.createElement("button",{type:"button",onClick:()=>v.onWirdPick(true),"aria-label":DW_ADD_LABEL,className:"ezhome-focus",style:s.ezwidAct},DW_ADD_GLYPH))),(v.wirdItems||[]).map(it=>/*#__PURE__*/React.createElement("div",{key:it.k+'|'+it.id,style:s.ezwidPanelRow},/*#__PURE__*/React.createElement("span",{style:s.ezwidPanelName},it.label),/*#__PURE__*/React.createElement("span",{className:"ez-hit",style:s.ezwidPanelActs},/*#__PURE__*/React.createElement("button",{type:"button",onClick:()=>v.onWirdRemove(it.k,it.id),"aria-label":DW_REMOVE_LABEL+' '+it.label,className:"ezhome-focus",style:s.ezwidAct},DW_REMOVE_GLYPH)))),(v.dailyWirdLines||[]).map((t,i)=>/*#__PURE__*/React.createElement("div",{key:i,style:s.ezistCardSub},t)),!(v.wirdItems||[]).length&&!(v.dailyWirdLines||[]).length?/*#__PURE__*/React.createElement("div",{style:s.ezistCardSub},DW_CARD_EMPTY):null),/*#__PURE__*/React.createElement("div",{className:"ezist-mosaic"},mods.map(m=>/*#__PURE__*/React.createElement(EzistModuleCard,{key:m.id,m:m}))),/*#__PURE__*/React.createElement(EzikHomeWidgetArea,{widgets:v.widgets,nav:{onOpenAdhkar:v.onOpenAdhkar,onOpenPrayer:v.onOpenPrayer}}))));}// ---- S101 ISTANA HOME END ----------------------------------------------------------------
+return/*#__PURE__*/React.createElement("div",{className:"theme-dark ezhome",style:s.ezistContainer},/*#__PURE__*/React.createElement(EzistTopNav,{onOpenMenu:v.onOpenMenu}),/*#__PURE__*/React.createElement("div",{style:s.ezistScroll},/*#__PURE__*/React.createElement("div",{className:"ezist-wrap"},/*#__PURE__*/React.createElement(EzistMasthead,{name:v.name,g:v.greeting,hijri:v.hijri,onOpenAdhkar:v.onOpenAdhkar}),/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus",onClick:()=>v.onOpenWird(true),style:s.ezwidEnter},/*#__PURE__*/React.createElement("span",{style:s.ezistCardTitle},DW_CARD_TITLE)),/*#__PURE__*/React.createElement("div",{className:"ezist-mosaic"},mods.map(m=>/*#__PURE__*/React.createElement(EzistModuleCard,{key:m.id,m:m}))),/*#__PURE__*/React.createElement(EzikHomeWidgetArea,{widgets:v.widgets,nav:{onOpenAdhkar:v.onOpenAdhkar,onOpenPrayer:v.onOpenPrayer}}))));}// ---- S101 ISTANA HOME END ----------------------------------------------------------------
 // ============================================================
 // ITEM 05-C -- THE WIRD PICKER
 // ============================================================
@@ -1850,6 +1868,30 @@ function EzikWirdPicker({items,onAdd,onClose}){const[sec,setSec]=useState(null);
 useEffect(()=>{if(sec===null)return undefined;if(sec==='mushaf'){setRows(wirdPickerMushafRows());setState(EZIK_ART_DONE);return undefined;}if(sec==='lessons'){setRows(wirdPickerLessonsRows());setState(EZIK_ART_DONE);return undefined;}let dead=false;setRows([]);setState(EZIK_ART_LOADING);const p=sec==='adhkar'?wirdPickerAdhkarRows():wirdPickerAsmaaRows();p.then(list=>{if(dead)return;setRows(list);setState(EZIK_ART_DONE);}).catch(()=>{if(!dead)setState(EZIK_ART_FAILED);});return()=>{dead=true;};},[sec]);// THE FOUR, NAMED ONCE. There is no second list of sections anywhere in this feature: the
 // store validates against WIRD_LIST_SECTIONS and this draws from the same four keys.
 const secRows=[{k:'mushaf',name:DW_SEC_MUSHAF},{k:'adhkar',name:DW_SEC_ADHKAR},{k:'asmaa',name:DW_SEC_ASMAA},{k:'lessons',name:DW_SEC_LESSONS}];const list=items||[];const full=list.length>=WIRD_LIST_MAX;if(sec===null){return/*#__PURE__*/React.createElement(EzShell,{title:DW_PICK_TITLE,onBack:onClose,backLabel:DW_PICK_CLOSE},/*#__PURE__*/React.createElement(EzShellGroup,{title:DW_PICK_SECTION,hint:full?DW_PICK_FULL:''},secRows.map(r=>/*#__PURE__*/React.createElement("div",{key:r.k,style:s.ezwidPanelRow},/*#__PURE__*/React.createElement("span",{style:s.ezwidPanelName},r.name),/*#__PURE__*/React.createElement("span",{className:"ez-hit",style:s.ezwidPanelActs},/*#__PURE__*/React.createElement("button",{type:"button",onClick:()=>setSec(r.k),"aria-label":r.name,className:"ezhome-focus",style:s.ezwidAct},DW_ADD_GLYPH))))));}const secName=(secRows.filter(r=>r.k===sec)[0]||{name:''}).name;return/*#__PURE__*/React.createElement(EzShell,{title:secName,onBack:ezikGoBack,backLabel:DW_PICK_BACK},/*#__PURE__*/React.createElement(EzShellGroup,{title:secName,hint:full?DW_PICK_FULL:''},state===EZIK_ART_LOADING?/*#__PURE__*/React.createElement("div",{style:s.ezwidNote},DW_PICK_LOADING):null,state===EZIK_ART_FAILED?/*#__PURE__*/React.createElement("div",{style:s.ezwidNote},DW_PICK_FAILED):null,state===EZIK_ART_DONE&&!rows.length?/*#__PURE__*/React.createElement("div",{style:s.ezwidNote},DW_PICK_EMPTY):null,state===EZIK_ART_DONE?rows.map(r=>{const has=wirdListHas(list,sec,r.id);return/*#__PURE__*/React.createElement("div",{key:sec+'|'+r.id,style:s.ezwidPanelRow},/*#__PURE__*/React.createElement("span",{style:s.ezwidPanelName},r.label),/*#__PURE__*/React.createElement("span",{className:"ez-hit",style:s.ezwidPanelActs},has?/*#__PURE__*/React.createElement("span",{style:s.ezwidNote},DW_PICK_ADDED):null,/*#__PURE__*/React.createElement("button",{type:"button",onClick:()=>onAdd(sec,r.id,r.label),disabled:has||full,"aria-label":DW_ADD_LABEL+' '+r.label,className:"ezhome-focus",style:has||full?s.ezwidActOff:s.ezwidAct},DW_ADD_GLYPH)));}):null));}// ============================================================
+// ITEM 05-E2 -- «وِردي اليوم», THE SECTION
+// ============================================================
+// A LAYER, NOT A SCREEN, for the reason the picker above it is one: a new `screen` value costs
+// an entry in the screen inventory that theme-coverage-guard cross-checks against
+// EZIK-THEME-33-HANDOFF.md, and a section opened over the home is not a route. Its OWNER
+// registers its history entry through useEzikBackLayer, exactly as asmaaOpen and wirdPickOpen
+// already do, so the device back button closes IT rather than leaving the home screen. The
+// picker opens OVER this section and owns its own two entries, so back walks
+// picker unit -> picker section -> wird section -> home, one press per level.
+//
+// IT IS OUTSIDE THE ISTANA SENTINELS ON PURPOSE, on the same terms as the picker: the block
+// those two comments delimit is read as one unit by a guard that measures the home's STRUCTURE,
+// and a section that opens over the home is not part of that structure.
+//
+// WHAT IT HOLDS, IN THE OWNER'S ORDER: the title and the one `+`, then every wird he added with
+// its own `-`, then the three old choice lines that used to sit on the card, then the empty
+// sentence when both lists are empty. Nothing is fetched by entering it -- the picker's effect
+// still runs only when a SECTION inside the picker is chosen, which is two presses from here.
+//
+// IT IS HANDED THE HOME'S OWN VIEW OBJECT. Not a second set of props built for it: `v` is the
+// object the home is built from, so `v.dailyWirdLines`, `v.wirdItems`, `v.onWirdPick` and
+// `v.onWirdRemove` are the identical expressions the card read, under the identical names. The
+// prop name dailyWirdLines does not move and neither does the expression that reads it.
+function EzikWirdSection({v,onClose}){const items=v.wirdItems||[];const lines=v.dailyWirdLines||[];return/*#__PURE__*/React.createElement(EzShell,{title:DW_CARD_TITLE,onBack:onClose,backLabel:DW_SEC_BACK,actions:/*#__PURE__*/React.createElement("span",{className:"ez-hit"},/*#__PURE__*/React.createElement("button",{type:"button",onClick:()=>v.onWirdPick(true),"aria-label":DW_ADD_LABEL,className:"ezhome-focus",style:s.ezwidAct},DW_ADD_GLYPH))},/*#__PURE__*/React.createElement(EzShellGroup,{title:DW_CARD_TITLE},items.map(it=>/*#__PURE__*/React.createElement("div",{key:it.k+'|'+it.id,style:s.ezwidPanelRow},/*#__PURE__*/React.createElement("span",{style:s.ezwidPanelName},it.label),/*#__PURE__*/React.createElement("span",{className:"ez-hit",style:s.ezwidPanelActs},/*#__PURE__*/React.createElement("button",{type:"button",onClick:()=>v.onWirdRemove(it.k,it.id),"aria-label":DW_REMOVE_LABEL+' '+it.label,className:"ezhome-focus",style:s.ezwidAct},DW_REMOVE_GLYPH)))),lines.map((t,i)=>/*#__PURE__*/React.createElement("div",{key:i,style:s.ezistCardSub},t)),!items.length&&!lines.length?/*#__PURE__*/React.createElement("div",{style:s.ezistCardSub},DW_CARD_EMPTY):null));}// ============================================================
 // THE HOME THE READER ARRANGES -- THE FRAMEWORK
 // ============================================================
 // WHAT THIS IS. A register of home widgets, a single stored arrangement, and the region that
@@ -2098,7 +2140,11 @@ const widgets=readHomeWidgets();// ITEM 05-D: `arrangeOpen`, its back layer and 
 const[wirdList,setWirdList]=useState(readWirdList);// ...and the picker, which is a LAYER over this screen and not a route, for the same reason
 // the prayer sheet and the arrange panel are: the screen inventory is a cross-file contract.
 // It registers its history entry through the identical hook, so the device button closes IT.
-const[wirdPickOpen,setWirdPickOpen]=useState(false);useEzikBackLayer(wirdPickOpen,()=>setWirdPickOpen(false));const wt=readWirdTarget();const wd=readWirdDay();const wird=wt&&wd&&Array.isArray(wd.pages)?{done:Math.min(wd.pages.length,wt),target:wt}:null;// ITEM 109: the same discipline as the wird above — the OWNER reads the device, the
+const[wirdPickOpen,setWirdPickOpen]=useState(false);useEzikBackLayer(wirdPickOpen,()=>setWirdPickOpen(false));// ITEM 05-E2: ...and the SECTION the picker opens over, in the identical three shapes -- the
+// state, useEzikBackLayer(open, close) and the ezikHistBack() toggle in its handler below. It
+// is a layer for the same reason the picker is, and it owns one real history entry while it is
+// open, so back walks picker unit -> picker section -> wird section -> home.
+const[wirdOpen,setWirdOpen]=useState(false);useEzikBackLayer(wirdOpen,()=>setWirdOpen(false));const wt=readWirdTarget();const wd=readWirdDay();const wird=wt&&wd&&Array.isArray(wd.pages)?{done:Math.min(wd.pages.length,wt),target:wt}:null;// ITEM 109: the same discipline as the wird above — the OWNER reads the device, the
 // presentation components are handed the result. An empty string when the conversion could
 // not be made, so the masthead draws nothing rather than a wrong day.
 const hijri=hijriTodayLabel();// A-3: the reader's own choices, read from the device the same way the wird above is. The
@@ -2106,7 +2152,8 @@ const hijri=hijriTodayLabel();// A-3: the reader's own choices, read from the de
 const dailyWirdLinesToday=dailyWirdLines(readDailyWird(),wt);const view={name:profile?.name,hijri:hijri,greeting:g,wird:wird,dailyWirdLines:dailyWirdLinesToday,// ITEM 05-C: the list, and the two things the card can do to it. ONE PLACE APPLIES A
 // CHANGE -- the writer returns what is now in effect and that return is what the screen is
 // set from, so the store and the screen can never be given different lists.
-wirdItems:wirdList.items,onWirdPick:next=>{if(!next&&ezikHistBack())return;setWirdPickOpen(next);},onWirdRemove:(k,id)=>setWirdList(writeWirdList(wirdListRemove(wirdList.items,k,id))),// S118: onOpenChat is gone from this object because the home no longer holds a chat
+wirdItems:wirdList.items,onWirdPick:next=>{if(!next&&ezikHistBack())return;setWirdPickOpen(next);},// ITEM 05-E2: the door on the home row, in the same shape as the picker's own toggle.
+onOpenWird:next=>{if(!next&&ezikHistBack())return;setWirdOpen(next);},onWirdRemove:(k,id)=>setWirdList(writeWirdList(wirdListRemove(wirdList.items,k,id))),// S118: onOpenChat is gone from this object because the home no longer holds a chat
 // control of its own. The chat is entered from the menu the bar opens, on the menu's own
 // «محادثة جديدة» row, which is the app's ONE new-conversation entry and always was.
 onOpenMenu:onOpenMenu,onOpenMemorize:onOpenMemorize,onOpenAdhkar:onOpenAdhkar,onOpenMushaf:onOpenMushaf,onOpenFatwa:onOpenFatwa,onOpenLessons:onOpenLessons,// ITEM 26: handed straight on, like the six above it. The layer this opens is owned by App,
@@ -2145,7 +2192,11 @@ const home={...view,modules:ezHomeOrderApply(ezHomeModules(view),readHomeOrder()
 // sheet itself is untouched: it is handed a different function under the same prop name.
 if(prayerOpen)return/*#__PURE__*/React.createElement(PrayerSheet,{onClose:ezikGoBack});// ITEM 05-C. Same door as the device button: the visible back spends the layer's entry
 // through ezikGoBack rather than dropping it, which is the rule closeDrawerWith records.
-if(wirdPickOpen){return/*#__PURE__*/React.createElement(EzikWirdPicker,{items:wirdList.items,onAdd:(k,id,label)=>setWirdList(writeWirdList(wirdListAdd(wirdList.items,k,id,label))),onClose:ezikGoBack});}// ITEM 20. ONE component for both sections -- the section key and its title are all that
+if(wirdPickOpen){return/*#__PURE__*/React.createElement(EzikWirdPicker,{items:wirdList.items,onAdd:(k,id,label)=>setWirdList(writeWirdList(wirdListAdd(wirdList.items,k,id,label))),onClose:ezikGoBack});}// ITEM 05-E2. The picker is tested FIRST, above, so it draws over this section rather than
+// beside it -- which is what makes closing the picker land the reader back INSIDE the section
+// instead of on the home. Same door as the device button: the visible back spends the layer's
+// entry through ezikGoBack rather than dropping it.
+if(wirdOpen)return/*#__PURE__*/React.createElement(EzikWirdSection,{v:view,onClose:ezikGoBack});// ITEM 20. ONE component for both sections -- the section key and its title are all that
 // differs, and two components would be two places for the empty state, the failure state and
 // the writing door to drift apart. The back control presses ezikGoBack, so the visible button
 // and the hardware button spend the same entry and resolve through the same table.
@@ -7183,7 +7234,9 @@ const JD_TITLE='العملُ بلا إنترنت';const JD_BTN='نزِّلْ ه�
 // the same ban. Not one of these strings names a time, an alert, or anything that rings: the
 // list is a statement of what the reader added, exactly as the card above it is a statement of
 // what he chose.
-const DW_ADD_GLYPH='+';const DW_REMOVE_GLYPH='-';const DW_ADD_LABEL='أضف وردًا إلى قائمتك';const DW_REMOVE_LABEL='احذف من قائمتك';const DW_PICK_TITLE='اختر ما تضيفه';const DW_PICK_SECTION='اختر القسم أوّلًا';const DW_PICK_BACK='رجوع إلى الأقسام';const DW_PICK_CLOSE='إغلاق قائمة الاختيار';const DW_PICK_LOADING='يُحمَّلُ الآن';const DW_PICK_FAILED='لم يتيسّر جلبُ هذه القائمة الآن.';const DW_PICK_EMPTY='لا شيء في هذه القائمة.';const DW_PICK_ADDED='مضاف';const DW_PICK_FULL='امتلأت قائمتك.';const DW_SEC_MUSHAF='المصحف';const DW_SEC_ADHKAR='الأذكار';const DW_SEC_ASMAA='أسماء الله الحسنى';const DW_SEC_LESSONS='الدروس';const DW_LINE_ASMAA='الأسماء:';const DW_LINE_LESSONS='الدروس:';const DW_WHOLE_SECTION='كلُّها';// ---- ITEM 05-C: THE READER'S OWN WIRD LIST ------------------------------------------------
+const DW_ADD_GLYPH='+';const DW_REMOVE_GLYPH='-';const DW_ADD_LABEL='أضف وردًا إلى قائمتك';const DW_REMOVE_LABEL='احذف من قائمتك';const DW_PICK_TITLE='اختر ما تضيفه';const DW_PICK_SECTION='اختر القسم أوّلًا';const DW_PICK_BACK='رجوع إلى الأقسام';// ITEM 05-E2: the section's own back label, in the same one place as the rest of this layer's
+// visible text and under the same ban. It names a direction and nothing else.
+const DW_SEC_BACK='رجوع إلى الرئيسية';const DW_PICK_CLOSE='إغلاق قائمة الاختيار';const DW_PICK_LOADING='يُحمَّلُ الآن';const DW_PICK_FAILED='لم يتيسّر جلبُ هذه القائمة الآن.';const DW_PICK_EMPTY='لا شيء في هذه القائمة.';const DW_PICK_ADDED='مضاف';const DW_PICK_FULL='امتلأت قائمتك.';const DW_SEC_MUSHAF='المصحف';const DW_SEC_ADHKAR='الأذكار';const DW_SEC_ASMAA='أسماء الله الحسنى';const DW_SEC_LESSONS='الدروس';const DW_LINE_ASMAA='الأسماء:';const DW_LINE_LESSONS='الدروس:';const DW_WHOLE_SECTION='كلُّها';// ---- ITEM 05-C: THE READER'S OWN WIRD LIST ------------------------------------------------
 // A SECOND STORE, BESIDE THE CHOICE RECORD ABOVE AND NEVER INSIDE IT. That record is a
 // three-slot CHOICE -- one mushaf wird, one dhikr, one surah to memorise -- and it is sealed:
 // its reader and its writer hold exactly one setItem between them and no removeItem at all.
@@ -7792,10 +7845,22 @@ ezistCard:{display:'flex',alignItems:'center',justifyContent:'space-between',gap
 // '16px 18px' and 14 -- so the mushaf section carried 2px more air above and below its content
 // than its four neighbours, which is the gap the owner reported. minHeight and the arched
 // radius are SIZE and IDENTITY, not spacing, and are deliberately left as they were.
-ezistFeature:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,width:'100%',minHeight:104,padding:'14px',borderRadius:'40px 40px 18px 18px',background:'var(--a3-ice)',border:'1px solid var(--a3-line)',boxShadow:'var(--a3-shadow)',cursor:'pointer',textAlign:'right',fontFamily:'var(--ez-ui-font)'},ezistCardIcon:{width:42,height:42,flexShrink:0,display:'inline-flex',alignItems:'center',justifyContent:'center',borderRadius:12,background:'var(--a3-ice)',color:'var(--a3-blue)'},ezistFeatureIcon:{width:50,height:50,flexShrink:0,display:'inline-flex',alignItems:'center',justifyContent:'center',borderRadius:14,background:'var(--a3-surface)',color:'var(--a3-blue)',border:'1px solid var(--a3-line)'},ezistCardBody:{display:'flex',flexDirection:'column',gap:3,minWidth:0,flex:1},ezistCardTitle:{fontSize:15.5,fontWeight:800,color:'var(--a3-ink)'},ezistFeatureTitle:{fontSize:18,fontWeight:800,color:'var(--a3-ink)'},ezistCardSub:{fontSize:12.5,fontWeight:600,color:'var(--a3-muted)',lineHeight:1.6},ezistGo:{flexShrink:0,display:'inline-flex',color:'var(--a3-muted)'},// ITEM 7: the mark on a section holding something unseen. The same 10px dot in the same token
+ezistFeature:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,width:'100%',minHeight:104,padding:'14px',borderRadius:'40px 40px 18px 18px',background:'var(--a3-ice)',border:'1px solid var(--a3-line)',boxShadow:'var(--a3-shadow)',cursor:'pointer',textAlign:'right',fontFamily:'var(--ez-ui-font)'},ezistCardIcon:{width:42,height:42,flexShrink:0,display:'inline-flex',alignItems:'center',justifyContent:'center',borderRadius:12,background:'var(--a3-ice)',color:'var(--a3-blue)'},ezistFeatureIcon:{width:50,height:50,flexShrink:0,display:'inline-flex',alignItems:'center',justifyContent:'center',borderRadius:14,background:'var(--a3-surface)',color:'var(--a3-blue)',border:'1px solid var(--a3-line)'},ezistCardBody:{display:'flex',flexDirection:'column',gap:3,minWidth:0,flex:1},ezistCardTitle:{fontSize:15.5,fontWeight:800,color:'var(--a3-ink)'},ezistFeatureTitle:{fontSize:18,fontWeight:800,color:'var(--a3-ink)'},// ITEM 05-E1: THE NAME, AND IT IS ONE STYLE FOR ALL TEN TILES. The mushaf must look identical
+// to its nine neighbours, so it cannot keep a larger title than they have; ezistFeatureTitle
+// and ezistCardTitle are both left declared (ezistCardTitle still draws the wird section's own
+// title) rather than deleted. The size is a plain number so ezikEnsureScalableStyles rewrites
+// it to calc(px * var(--ez-fs)) exactly as it does every other text size -- a font-size put in
+// the sheet instead would be the one label on this screen that does not follow the reader's
+// chosen text size. 13.5 rather than 15.5 because the longest section name on the shelf,
+// «أسماء الله الحسنى», has to wrap inside a ~90px square at 320px without being clipped.
+ezistTileName:{display:'block',width:'100%',minWidth:0,fontSize:13.5,fontWeight:800,color:'var(--a3-ink)',lineHeight:1.3,textAlign:'center',overflowWrap:'anywhere'},ezistCardSub:{fontSize:12.5,fontWeight:600,color:'var(--a3-muted)',lineHeight:1.6},ezistGo:{flexShrink:0,display:'inline-flex',color:'var(--a3-muted)'},// ITEM 7: the mark on a section holding something unseen. The same 10px dot in the same token
 // the active-design row draws (vtActiveMark), so nothing new is introduced to the palette and
 // it resolves in both modes for free.
-ezistCardNew:{width:10,height:10,flexShrink:0,borderRadius:'50%',background:'var(--a3-blue)'},ezistMeta:{flexShrink:0,padding:'5px 10px',borderRadius:999,background:'var(--a3-surface)',border:'1px solid var(--a3-line)',color:'var(--a3-blue)',fontSize:12.5,fontWeight:800},// the featured Quran panel. The marks sit in the head row, never over the text.
+ezistCardNew:{width:10,height:10,flexShrink:0,borderRadius:'50%',background:'var(--a3-blue)'},// ITEM 05-E2: the one row the home keeps for the wird -- a door, not a card. It borrows the
+// panel's own ground, border and radius so the home's rhythm is unchanged, and adds only what
+// makes a row pressable. It carries no className, so nothing written for .ezist-quran can
+// reach it: the daily verse is still the one element on the screen with that class.
+ezwidEnter:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,width:'100%',padding:'16px 18px 18px',borderRadius:18,background:'var(--a3-surface)',border:'1px solid var(--a3-line)',boxShadow:'var(--a3-shadow)',cursor:'pointer',textAlign:'right',fontFamily:'var(--ez-ui-font)'},ezistMeta:{flexShrink:0,padding:'5px 10px',borderRadius:999,background:'var(--a3-surface)',border:'1px solid var(--a3-line)',color:'var(--a3-blue)',fontSize:12.5,fontWeight:800},// the featured Quran panel. The marks sit in the head row, never over the text.
 ezistQuran:{padding:'16px 18px 18px',borderRadius:18,background:'var(--a3-surface)',border:'1px solid var(--a3-line)',boxShadow:'var(--a3-shadow)'},// 105: the dot that used to lead this row is gone. `paddingInlineStart` is exactly what it
 // occupied -- its own 8px plus the 8px gap it stood in -- so the title's leading edge stays
 // at the pixel it has always been at. MEASURED before and after: 346. The `gap` is kept
