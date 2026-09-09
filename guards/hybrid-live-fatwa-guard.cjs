@@ -23,7 +23,7 @@ const SALAH_ADULT_TEXT_HASH = '7687019965bf142259cdc7660af8c32a211cdb1455f5f479f
 // Re-cut again on 2026-09-09 (item 29/د٤): the replayed /api/v1/scholars and /api/v1/health
 // payloads gained ferkous and took kuwait_eftaa to 252, so the offline replay still matches
 // lib/fatwa-contract.js after the live corpus moved to 19 rows / 74,769 records.
-const X021_FIXTURE_HASH = '563b6660030c6995a383e46a89c6d6873fcd539a7af1edbad6159e3f2cdc9c8e';
+const X021_FIXTURE_HASH = '5d0c81b0ea956436e0ce117067e1e8907213d043952007911d54ce99ad1e6f67';
 const D2_CASE_QUESTIONS = Object.freeze([
   'كيف يصلي المريض الذي لا يستطيع القيام؟',
   'ما كيفية صلاة الخوف عند اشتداد القتال؟',
@@ -391,18 +391,22 @@ async function runHybridGuard() {
   // -- an observed response whose counts differ from the counts this fixture authored offline would
   // mean the offline accounting had drifted from the shipped service, which is the whole point of
   // measuring it. Semantic round B fills the production half from the sealed publish report.
-  // BLOCKED 2026-09-09 (item 29/د٤), AND DELIBERATELY LEFT RED. Both assertions below compare a
-  // DATED, NAMED observation with the fixture's current offline counts. The contract moved to
-  // 19/74,769 today because the live service did; the two observations did not move, and cannot
-  // be made to agree without either (a) rewriting what deployment dpl_CeEUNUFVaZP6P9DtZh6aeyBAGdw4
-  // reported on 2026-08-15 and what the publish smoke sealed under sha8 48618485 -- which would be
-  // forging two dated records -- or (b) a fresh deployment carrying this contract, which the order
-  // that made this change forbids. The honest reading of this red is the true one: production has
-  // not yet been re-observed against the 19-row corpus. Re-take both after the deploy; do not
-  // relax the equality.
+  // CLOSED 2026-09-09 BY RE-OBSERVATION, NOT BY RELAXATION. Both assertions below compare a DATED,
+  // NAMED observation with the fixture's current offline counts, and the equality itself is
+  // untouched. When the contract moved to 19/74,769 the two dated observations still read
+  // 18/73,130, and this block was left RED rather than have those records forged. Option (b) has
+  // since happened: merge 6874407 went to production as dpl_6nR2V7VRF9uCvps7xugBhhPrsBEv (target
+  // production, created 2026-09-09T12:44:07.290Z, aliased to ezik.app), so a truthful 19-row
+  // reading became available and was taken -- through that deployment's own same-origin fatwa
+  // proxy, three requests whose x-vercel-id headers the fixture records verbatim.
+  // THE LITERALS BELOW ARE MIRRORS OF THAT OBSERVATION: the status, the deployment id, the sha8
+  // provenance token and the shorthand each moved because the observation moved, and each still
+  // pins one exact real value. Nothing was widened, dropped or made optional. If the corpus moves
+  // again this goes red again: re-observe production and re-take the readings -- do not relax the
+  // equality, and do not edit a dated record to make it agree.
   const x021seen = x021.externalEvidence.currentServiceResponse;
   ok('X-021 the current service was observed on a named deployment and agrees with the offline counts',
-    x021.externalEvidence.status === 'OBSERVED_PREVIEW'
+    x021.externalEvidence.status === 'OBSERVED_PRODUCTION'
       && x021.externalEvidence.acceptanceGreen === true
       && x021seen !== null
       && /^dpl_[A-Za-z0-9]+$/.test(x021seen.deploymentId || '')
@@ -421,11 +425,11 @@ async function runHybridGuard() {
       && x021Production.scholars === x021.expected.scholars
       && x021Production.total === x021.expected.total
       && x021Production.ibnBaz === x021.expected.ibnBaz
-      && x021Production.deploymentId === 'dpl_7no8tbAGwnsVnde11xsmwzmJSeFH'
-      && /48618485/u.test(x021.externalEvidence.productionReason || ''));
-  eq('X-021 production shorthand matches CLAIMS_AUDIT/د',
+      && x021Production.deploymentId === 'dpl_6nR2V7VRF9uCvps7xugBhhPrsBEv'
+      && /33a66a91/u.test(x021.externalEvidence.productionReason || ''));
+  eq('X-021 production shorthand matches the 2026-09-09 production reading',
     `${x021Production.scholars}/${x021Production.total}/${x021Production.ibnBaz} · ${x021Production.fatwaStatus}`,
-    '18/73130/18479 · OK');
+    '19/74769/18479 · OK');
   ok('X-021 MUTANT KILLED: an observed response that disagrees with the offline counts cannot pass',
     !(x021seen.scholars === x021.expected.scholars && x021seen.total === x021.expected.total - 1));
   const telemetryContext = {

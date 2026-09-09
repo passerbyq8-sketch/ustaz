@@ -75,32 +75,33 @@
     "ibnBaz": 18479
   },
   "externalEvidence": {
-    "status": "OBSERVED_PREVIEW",
+    "status": "OBSERVED_PRODUCTION",
     "acceptanceGreen": true,
     "currentServiceResponse": {
-      "observedAt": "2026-08-15",
-      "deploymentId": "dpl_CeEUNUFVaZP6P9DtZh6aeyBAGdw4",
-      "deployedGitSha": "e4b48de9f23e4f784ae8f9123e8855288b67b6b8",
+      "observedAt": "2026-09-09",
+      "deploymentId": "dpl_6nR2V7VRF9uCvps7xugBhhPrsBEv",
+      "deployedGitSha": "6874407231be80b514a3c6e71aa30705eed554bd",
       "requests": [
-        "bom1::iad1::rdxjk-1786812863785-ee8b7bf072f1",
-        "bom1::iad1::djv4f-1786812950066-1dd9484540de"
+        "bom1::iad1::n2r4j-1788959399701-347deff8cfeb",
+        "bom1::iad1::plrjk-1788959400337-468b7dafab03",
+        "bom1::iad1::nfpbt-1788959400622-2bc6d436c389"
       ],
       "fatwaSearch": 1,
       "fatwaStatus": "OK",
-      "scholars": 18,
-      "total": 73130,
+      "scholars": 19,
+      "total": 74769,
       "ibnBaz": 18479,
-      "note": "read from the deployed adapter's own telemetry line on two separate fatwa turns; one search call per turn, matching the local accounting this fixture proves offline"
+      "note": "observed through the production deployment's own same-origin fatwa proxy — GET https://ezik.app/api/v1/health, /api/v1/scholars and /api/v1/fatwas/search, which is the path the deployed app itself takes to the service. The three x-vercel-id values above are the response headers of those three requests in that order: two verification calls and one search call, matching the local accounting this fixture proves offline. The scholars response was served from the edge cache (X-Vercel-Cache: HIT, Age: 79s); health and search were MISS."
     },
     "production": {
       "budgetEnvironment": "production",
       "fatwaStatus": "OK",
-      "scholars": 18,
-      "total": 73130,
+      "scholars": 19,
+      "total": 74769,
       "ibnBaz": 18479,
-      "deploymentId": "dpl_7no8tbAGwnsVnde11xsmwzmJSeFH"
+      "deploymentId": "dpl_6nR2V7VRF9uCvps7xugBhhPrsBEv"
     },
-    "productionReason": "measured by the production publish smoke and copied mechanically from CLAIMS_AUDIT/د in the merge report sealed by sha8 48618485",
-    "reason": "the offline round could not reach the service and said so. It is reachable now: the counts the deployed adapter reported are identical to the counts this fixture authored offline, so the local accounting and the current service agree rather than one standing in for the other."
+    "productionReason": "measured on 2026-09-09 against the production deployment dpl_6nR2V7VRF9uCvps7xugBhhPrsBEv (target=production, created 2026-09-09T12:44:07.290Z, aliased to ezik.app), by summing snapshot.records over the 19 rows of its GET /api/v1/scholars response. That response body is 8950 bytes and seals under sha8 33a66a91. This is a live production reading, not a preview and not a number copied out of a report.",
+    "reason": "the offline round could not reach the service and said so. It was then observed on a preview, and on 2026-09-09 the contract moved to the 19-row corpus and production was re-observed directly: production reports 19 scholars / 74,769 records / 18,479 for Ibn Baz, identical to the counts this fixture authors offline, so the local accounting and the live service agree rather than one standing in for the other. The red this block carried between 2026-09-09's contract change and this re-observation was honest -- the dated 18-row preview reading could not be made to agree without forging it -- and it is closed by taking a new reading, not by relaxing the equality."
   }
 }
