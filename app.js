@@ -4262,9 +4262,17 @@ abortRef.current=null;clearSearchingHint();setStreamingText(null);const aiMsg={r
 // bubble's first commit already knows it is open and there is no intermediate folded frame.
 markStreamedOpen(final.length-1);saveMessages(final);setIsLoading(false);if(voiceMode)speakReply(reply);// audio runs on the final full text — not during the stream
 // ITEM 24-A: LAST, AND UNAWAITED. The answer is committed, painted and (in voice mode)
-// already speaking before this line runs, and nothing below waits on it. `text` is the
-// reader's question exactly as it was typed.
-lessonsTurnRef.current={msg:aiMsg,msgs:final,cid:chatIdRef.current};startLessonsSearch(text,lessonsSeq);};// ============================================================
+// already speaking before this line runs, and nothing below waits on it.
+//
+// ITEM 37/2: AND THE ARGUMENT IS `reply`, NOT `text`. The search is built on the words the
+// brain wrote, after it had finished writing them -- which is only possible HERE, because
+// `reply` does not exist until the line above. `text` rides along as the fallback and is
+// used only when the answer strips to nothing searchable.
+//
+// ONCE, AND ONLY ONCE. There is no second call on this path: `resetLessons()` at the start
+// of the send clears the previous card and nothing draws one again until this landing, so a
+// reader is never shown a list built from the question and then handed a different one.
+lessonsTurnRef.current={msg:aiMsg,msgs:final,cid:chatIdRef.current};startLessonsSearch(ezikLessonsQuery(reply,text),lessonsSeq);};// ============================================================
 // THE SECTION SUGGESTIONS -- four ways out of an empty chat, above the composer
 // ============================================================
 // WHAT THEY ARE. Four of the app's own sections, each opened by the SAME handler the home
@@ -4938,7 +4946,37 @@ const EZIK_LESSONS_MIN_Q=3;// Eight seconds, and then the AbortController below 
 // a card that lands long after the answer was read is worse than no card.
 const EZIK_LESSONS_TIMEOUT_MS=8000;// THE WHITELIST, as a function. Takes whatever came back and returns at most three plain rows
 // of three strings. A hit with no title or no http(s) url is dropped rather than drawn empty.
-function ezikLessonRows(hits){if(!Array.isArray(hits))return[];const rows=[];for(const hit of hits){if(rows.length>=EZIK_LESSONS_MAX)break;if(!hit||typeof hit!=='object')continue;const title=typeof hit.title==='string'?hit.title.trim():'';const url=typeof hit.url==='string'?hit.url.trim():'';const scholar=typeof hit.scholar_id==='string'?hit.scholar_id.trim():'';if(!title||!/^https?:\/\//i.test(url))continue;rows.push({title,url,scholar});}return rows;}// THE CALL. Silent on every failure -- a non-200, an unreadable body, an empty or missing
+function ezikLessonRows(hits){if(!Array.isArray(hits))return[];const rows=[];for(const hit of hits){if(rows.length>=EZIK_LESSONS_MAX)break;if(!hit||typeof hit!=='object')continue;const title=typeof hit.title==='string'?hit.title.trim():'';const url=typeof hit.url==='string'?hit.url.trim():'';const scholar=typeof hit.scholar_id==='string'?hit.scholar_id.trim():'';if(!title||!/^https?:\/\//i.test(url))continue;rows.push({title,url,scholar});}return rows;}// ITEM 37/2 -- THE QUERY IS THE ANSWER'S WORDS, AND NOT THE READER'S QUESTION.
+//
+// WHAT WAS WRONG WITH THE QUESTION. Until this item the call was fired with `text` -- the
+// reader's sentence exactly as typed -- so the lessons offered under a reply were related to what
+// was ASKED and not to what was ANSWERED. The owner's words for the fix: «الدروسُ اللي هو كتبها
+// إسنادًا للردّ».
+//
+// MEASURED ON PRODUCTION THE SAME DAY (ezik.app, 2026-09-09), and it is the whole case for this
+// function. «ما حكم الفوركس؟» sent as the QUESTION returned «نواقض الإسلام», «الحكم بغير ما أنزل
+// الله» and «حكم الصور في الثياب» -- lessons the answer never touches. The same reply's own words
+// returned «ربا الديون», «بطاقات الائتمان» and «فقه المعاملات المالية المعاصرة».
+//
+// WHAT IS STRIPPED, AND EVERY ONE OF THEM WAS SEEN ON A REAL REPLY, NOT IMAGINED:
+//   <suggestions>...</suggestions>  the follow-up questions. They are things the reader has NOT
+//                                   asked, so searching on them searches a road not taken.
+//   <source ...>...</source>        the citation tags. They carry percent-encoded urls, and a url
+//                                   inside a search phrase is a hundred characters of noise.
+//   every other tag                 <dhikr id="27"> and its kind: markup, never prose.
+//   the bracketed seal              the server-composed tail (lib/output-reviewer.js), e.g.
+//                                   «فهمٌ لا فتوى» -- it is on nearly every reply and so
+//                                   distinguishes none of them.
+//
+// AND THE QUESTION IS NOT DELETED; IT IS THE FALLBACK. An answer can be nothing but a tag --
+// measured: a whole reply of «<dhikr id="27"></dhikr>» -- which strips to fewer than three
+// characters, and a search on nothing is not a search. The old door then still works, which is
+// what the order asks be kept until the relevance floor lands.
+//
+// PURE, and it neither knows nor asks when it is called. WHEN is the seam below: this is called
+// once, on the settled reply, so a card appears once and is never swapped in front of a reader.
+const EZIK_LESSONS_Q_MAX=400;// api/lessons-search.js MAX_Q_CHARS -- cut here so the two agree
+function ezikLessonsQuery(reply,question){const body=String(reply==null?'':reply).replace(/<suggestions>[\s\S]*?<\/suggestions>/gi,' ').replace(/<source\b[\s\S]*?<\/source>/gi,' ').replace(/<[^>]*>/g,' ').replace(/\u3010[^\u3011]*\u3011/g,' ').replace(/\s+/g,' ').trim().slice(0,EZIK_LESSONS_Q_MAX).trim();if(body.length>=EZIK_LESSONS_MIN_Q)return body;return typeof question==='string'?question.trim():'';}// THE CALL. Silent on every failure -- a non-200, an unreadable body, an empty or missing
 // `hits`, a cut connection, or the eight-second abort all return an empty list, and an empty
 // list draws nothing. There is no error line, no empty frame and no spinner left behind,
 // because this runs AFTER the answer is already on the screen and has nothing to say to a
