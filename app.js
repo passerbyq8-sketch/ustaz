@@ -1824,7 +1824,30 @@ const line=isDay&&dhikr?dhikr:g?g.text:'';return/*#__PURE__*/React.createElement
 // ezistQuran. The mushaf keeps its class and its own style object -- the guard asserts both,
 // and asserts that m.id === 'mushaf' still decides them -- and the sheet paints it as the same
 // square as its nine neighbours, which is what the owner asked for.
-function EzistModuleCard({m}){const feature=m.id==='mushaf';return/*#__PURE__*/React.createElement("button",{type:"button",className:'ezhome-focus ezist-'+(feature?'feature':'mod ezist-mod-'+m.id),onClick:m.onClick,"data-ezik-home-module":m.id,style:feature?s.ezistFeature:{...s.ezistCard,...(s['ezistCard_'+m.id]||null)}},/*#__PURE__*/React.createElement("span",{style:s.ezistTileName},m.label),m.fresh?/*#__PURE__*/React.createElement("span",{style:s.ezistCardNew,role:"img","aria-label":ezT('articles.freshMark')}):null);}// THE CHAT ENTRY. There is still exactly ONE, and it is no longer on this screen's chrome at
+// ITEM 05-G -- THE EZIK ARCH, WHICH IS THE APP ICON'S OWN SHAPE. The owner ruled that a section
+// tile stops being a plain square with a name in it and becomes the pointed dome with two soft
+// rounded shoulders that his icon is drawn with, the section name inside it.
+//
+// ONE PATH, TWO USES. The outline is drawn OPEN at the foot -- it is an arch standing on the
+// floor of the tile, not a closed capsule -- and the same `d` with Z appended is the pane behind
+// it. The pane goes first so the stroke is never painted under its own fill.
+//
+// fill="none" ON THE OUTLINE IS NOT OPTIONAL: an open path with the default fill paints the
+// region its two ends imply, which is the whole arch as a black blob.
+const EZIST_ARCH_D='M60,430 L60,218 C60,142 108,122 141,164 C151,88 172,36 200,6 '+'C228,36 249,88 259,164 C292,122 340,142 340,218 L340,430';// THE STROKE, IN THE APP'S OWN BLUE FAMILY AND FROM THE PALETTE IT ALREADY HAS. --a3-cyan is
+// MEASURED FIRST, AND THE OBVIOUS ANSWER WAS WRONG. --a3-cyan reads like the light end of a
+// blue pair; under the shipped identity it is NOT one. The mapping in the sheet re-points it at
+// --vt-marker, which for istana_33 is #C43E38, and the gradient's foot stop computed to
+// rgb(196,62,56) on the live page -- a RED foot on a blue arch. So the palette had no light/deep
+// blue pair to take, and the two ends are NAMED in the sheet beside the palette instead:
+// --ez-arch-crown is the theme's own accent and --ez-arch-foot is that accent mixed toward the
+// tile's surface. Light at the FOOT (y1 = 1, the bottom of the bounding box) rising to deep at
+// the CROWN, which is the direction the owner asked for.
+//
+// ONE GRADIENT FOR THE WHOLE SHELF, not one per tile: a paint server is referenced by id, so ten
+// tiles share this single definition. It is rendered ONCE, beside the mosaic and not inside it,
+// so it can never be counted as a cell of the grid.
+const EZIST_ARCH_INK='ezist-arch-ink';function EzistArchDefs(){return/*#__PURE__*/React.createElement("svg",{style:s.ezistArchDefs,"aria-hidden":"true",focusable:"false"},/*#__PURE__*/React.createElement("defs",null,/*#__PURE__*/React.createElement("linearGradient",{id:EZIST_ARCH_INK,x1:"0",y1:"1",x2:"0",y2:"0"},/*#__PURE__*/React.createElement("stop",{offset:"0",style:s.ezistArchFoot}),/*#__PURE__*/React.createElement("stop",{offset:"1",style:s.ezistArchCrown}))));}function EzistModuleCard({m}){const feature=m.id==='mushaf';return/*#__PURE__*/React.createElement("button",{type:"button",className:'ezhome-focus ezist-'+(feature?'feature':'mod ezist-mod-'+m.id),onClick:m.onClick,"data-ezik-home-module":m.id,style:feature?s.ezistFeature:{...s.ezistCard,...(s['ezistCard_'+m.id]||null)}},/*#__PURE__*/React.createElement("span",{className:"ezist-arch","aria-hidden":"true"},/*#__PURE__*/React.createElement("svg",{viewBox:"0 0 400 430",preserveAspectRatio:"xMidYMid meet","aria-hidden":"true",focusable:"false"},/*#__PURE__*/React.createElement("path",{d:EZIST_ARCH_D+'Z',fill:s.ezistCard.background}),/*#__PURE__*/React.createElement("path",{d:EZIST_ARCH_D,fill:"none",stroke:'url(#'+EZIST_ARCH_INK+')',strokeWidth:"14",strokeLinecap:"round",strokeLinejoin:"round"}))),/*#__PURE__*/React.createElement("span",{style:s.ezistTileName},m.label),m.fresh?/*#__PURE__*/React.createElement("span",{style:s.ezistCardNew,role:"img","aria-label":ezT('articles.freshMark')}):null);}// THE CHAT ENTRY. There is still exactly ONE, and it is no longer on this screen's chrome at
 // all: the bar's menu button opens the chat's own menu, and «محادثة جديدة» there is the entry.
 // That row was already the app's single new-conversation control; S118 only made it navigate as
 // well as reset, so it does from the home what it always did from the chat. The large "ask Ezik"
@@ -1841,7 +1864,7 @@ function EzistModuleCard({m}){const feature=m.id==='mushaf';return/*#__PURE__*/R
 // screen, .ezist-rule-short -- the short vertical bar in the masthead -- is a different
 // class on a different element and is deliberately untouched.
 function EzistQuranPanel(){const v=getDailyVerse();const isHadith=v.surah==='\u062D\u062F\u064A\u062B';return/*#__PURE__*/React.createElement("section",{className:"ezist-quran",style:s.ezistQuran},/*#__PURE__*/React.createElement("div",{style:s.ezistQuranHead},/*#__PURE__*/React.createElement("span",{style:s.ezistQuranLabel},isHadith?ezT('home.hadithOfDay2'):ezT('home.verseOfDay2'))),/*#__PURE__*/React.createElement("div",{style:s.ezistQuranText},v.text),/*#__PURE__*/React.createElement("div",{style:s.ezistQuranMeta},isHadith?'\u0631\u0648\u0627\u0647 '+v.ayah:'\u0633\u0648\u0631\u0629 '+v.surah+'\u060C \u0622\u064A\u0629 '+v.ayah));}function EzikIstanaHome(v){const mods=v.modules||[];// the owner's one array, mapped once, in its own order
-return/*#__PURE__*/React.createElement("div",{className:"theme-dark ezhome",style:s.ezistContainer},/*#__PURE__*/React.createElement(EzistTopNav,{onOpenMenu:v.onOpenMenu}),/*#__PURE__*/React.createElement("div",{style:s.ezistScroll},/*#__PURE__*/React.createElement("div",{className:"ezist-wrap"},/*#__PURE__*/React.createElement(EzistMasthead,{name:v.name,g:v.greeting,hijri:v.hijri,onOpenAdhkar:v.onOpenAdhkar}),/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus",onClick:()=>v.onOpenWird(true),style:s.ezwidEnter},/*#__PURE__*/React.createElement("span",{style:s.ezistCardTitle},DW_CARD_TITLE)),/*#__PURE__*/React.createElement("div",{className:"ezist-mosaic"},mods.map(m=>/*#__PURE__*/React.createElement(EzistModuleCard,{key:m.id,m:m}))),/*#__PURE__*/React.createElement(EzikHomeWidgetArea,{widgets:v.widgets,nav:{onOpenAdhkar:v.onOpenAdhkar,onOpenPrayer:v.onOpenPrayer}}))));}// ---- S101 ISTANA HOME END ----------------------------------------------------------------
+return/*#__PURE__*/React.createElement("div",{className:"theme-dark ezhome",style:s.ezistContainer},/*#__PURE__*/React.createElement(EzistTopNav,{onOpenMenu:v.onOpenMenu}),/*#__PURE__*/React.createElement("div",{style:s.ezistScroll},/*#__PURE__*/React.createElement("div",{className:"ezist-wrap"},/*#__PURE__*/React.createElement(EzistMasthead,{name:v.name,g:v.greeting,hijri:v.hijri,onOpenAdhkar:v.onOpenAdhkar}),/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus",onClick:()=>v.onOpenWird(true),style:s.ezwidEnter},/*#__PURE__*/React.createElement("span",{style:s.ezistCardTitle},DW_CARD_TITLE)),/*#__PURE__*/React.createElement(EzistArchDefs,null),/*#__PURE__*/React.createElement("div",{className:"ezist-mosaic"},mods.map(m=>/*#__PURE__*/React.createElement(EzistModuleCard,{key:m.id,m:m}))),/*#__PURE__*/React.createElement(EzikHomeWidgetArea,{widgets:v.widgets,nav:{onOpenAdhkar:v.onOpenAdhkar,onOpenPrayer:v.onOpenPrayer}}))));}// ---- S101 ISTANA HOME END ----------------------------------------------------------------
 // ============================================================
 // ITEM 05-C -- THE WIRD PICKER
 // ============================================================
@@ -7856,10 +7879,14 @@ ezistFeature:{display:'flex',alignItems:'center',justifyContent:'space-between',
 // the sheet instead would be the one label on this screen that does not follow the reader's
 // chosen text size. 13.5 rather than 15.5 because the longest section name on the shelf,
 // «أسماء الله الحسنى», has to wrap inside a ~90px square at 320px without being clipped.
-ezistTileName:{display:'block',width:'100%',minWidth:0,fontSize:13.5,fontWeight:800,color:'var(--a3-ink)',lineHeight:1.3,textAlign:'center',overflowWrap:'anywhere'},ezistCardSub:{fontSize:12.5,fontWeight:600,color:'var(--a3-muted)',lineHeight:1.6},ezistGo:{flexShrink:0,display:'inline-flex',color:'var(--a3-muted)'},// ITEM 7: the mark on a section holding something unseen. The same 10px dot in the same token
+ezistTileName:{display:'block',width:'100%',minWidth:0,fontSize:13.5,fontWeight:800,color:'var(--a3-ink)',lineHeight:1.3,textAlign:'center',overflowWrap:'anywhere',fontFamily:"'Aref Ruqaa', var(--ez-ui-font)"},ezistCardSub:{fontSize:12.5,fontWeight:600,color:'var(--a3-muted)',lineHeight:1.6},ezistGo:{flexShrink:0,display:'inline-flex',color:'var(--a3-muted)'},// ITEM 7: the mark on a section holding something unseen. The same 10px dot in the same token
 // the active-design row draws (vtActiveMark), so nothing new is introduced to the palette and
 // it resolves in both modes for free.
-ezistCardNew:{width:10,height:10,flexShrink:0,borderRadius:'50%',background:'var(--a3-blue)'},// ITEM 05-E2: the one row the home keeps for the wird -- a door, not a card. It borrows the
+ezistCardNew:{width:10,height:10,flexShrink:0,borderRadius:'50%',background:'var(--a3-blue)'},// ITEM 05-G -- THE ARCH. The defs carrier paints nothing and occupies nothing: it exists only
+// to hold the one gradient the whole shelf references. The two stops are the palette's own
+// blue family said as tokens, so dark mode and the visual theme both resolve them for free --
+// a literal colour here would be the one paint on this screen that cannot follow the theme.
+ezistArchDefs:{position:'absolute',width:0,height:0,overflow:'hidden'},ezistArchFoot:{stopColor:'var(--ez-arch-foot)'},ezistArchCrown:{stopColor:'var(--ez-arch-crown)'},// ITEM 05-E2: the one row the home keeps for the wird -- a door, not a card. It borrows the
 // panel's own ground, border and radius so the home's rhythm is unchanged, and adds only what
 // makes a row pressable. It carries no className, so nothing written for .ezist-quran can
 // reach it: the daily verse is still the one element on the screen with that class.

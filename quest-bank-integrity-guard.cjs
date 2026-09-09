@@ -827,7 +827,7 @@ const SEALED = {
   //                    table at :111 and the app.js mirror below followed, and THIS digest is
   //                    re-cut LAST. CACHE IS NOT BUMPED: this is a branch for the owner to try,
   //                    not a ship, and sw.js says the merge round owns the bump.
-  'sw.js': '91754f51db3890d4daee75e2c8ee7a0eb240d3b02c7edc45f9d7417e6ce03e55',
+  'sw.js': 'a31d2f6febfacf254de7882d0498f2993dd83d8b5f95fb2ff45eab842e569595',
 };
 
 // ---------------------------------------------------------------------------
@@ -1935,10 +1935,10 @@ async function compare(goldenPath) {
     //  { n, sum: [a, b] }  n is the byte sum of those files on disk
     //  { n, dir: 'count' | 'sum' | 'mean' }   n is that statistic over the mushaf page scans
     const SW_PROSE = [
-      { n: 124729, of: 'index.html' },
+      { n: 128957, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1399197, of: 'app.js' },
+      { n: 1402707, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
