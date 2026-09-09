@@ -1075,7 +1075,7 @@ ok('the greeting and the daily line are the ones the app already picked',
 ok('the modules are a real MOSAIC, not a stack', /className="ezist-mosaic"/.test(IST) && /\.ezist-mosaic\{[^}]*display:grid/.test(css));
 ok('...one column on a phone', /\.ezist-mosaic\{[^}]*grid-template-columns:1fr/.test(css));
 ok('...two from 600px', /@media \(min-width:600px\)\{[\s\S]{0,400}?\.ezist-mosaic\{grid-template-columns:repeat\(2,1fr\)/.test(css));
-ok('...six from 1000px', /@media \(min-width:1000px\)\{[\s\S]{0,700}?\.ezist-mosaic\{grid-template-columns:repeat\(6,1fr\)/.test(css));
+ok('...three from 1000px', /@media \(min-width:1000px\)\{[\s\S]{0,700}?\.ezist-mosaic\{grid-template-columns:repeat\(3,1fr\)/.test(css));
 ok('...inside a centred maximum width, so it is never loose on a desktop',
   /\.ezist-wrap\{[^}]*max-width:1100px[^}]*margin:0 auto/.test(css));
 ok('...and no element is reordered away from its DOM position',
@@ -1114,9 +1114,9 @@ for (const k of ['ezistCard', 'ezistFeature', 'ezistAsk']) {
 ok('a module with no reading still ends in an affordance, never in blank card',
   /\{m\.meta \? <span style=\{s\.ezistMeta\}>\{m\.meta\}<\/span>[\s\S]{0,80}?: <span style=\{s\.ezistGo\}/.test(html),
   'the meta/affordance pair is what fills the trailing edge at every width');
-ok('...and no module column is wide enough to strand its content on a desktop',
-  /@media \(min-width:1000px\)\{[\s\S]{0,700}?\.ezist-mod,\.ezist-feature\{grid-column:span 2\}/.test(css),
-  'four modules at span 2 of six is 348px at the 1100px maximum; span 3 and span 4 measured empty');
+ok('...and no module spans on a desktop -- every tile occupies exactly one of the three tracks',
+  !/\.ezist-(?:mod|feature)[^{}]*\{[^}]*grid-column:\s*span/.test((css.match(/@media \(min-width:1000px\)\{[\s\S]*?[\r\n]\s*\}/) || [''])[0]),
+  'the ruling this shelf now follows: three sections per row, tiles equal, none spanning, none orphaned -- so no .ezist-mod, .ezist-feature or .ezist-mod-fatwa grid-column:span rule may live inside the 1000px block');
 
 ok('the daily verse has its own bounded panel', /<EzistQuranPanel \/>/.test(IST) && /className="ezist-quran"/.test(IST));
 // S118: it is drawn ONCE, and in the top bar rather than as the mosaic's last cell. The panel

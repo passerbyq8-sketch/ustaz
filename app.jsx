@@ -13507,22 +13507,6 @@ function App() {
               <span style={{ flex: 1, minWidth: 0 }}>{EZIK_FAV_TITLE}</span>
               {myFavs.length > 0 && <span style={s.drawerBadge}>{myFavs.length}</span>}
             </button>
-            {/* ITEM 26: أسماء الله الحسنى, AND THIS IS NOW THE SECOND DOOR, NOT THE ONLY ONE.
-                It was the only one while the home shelf's contents were a contract this item
-                could not re-cut; the owner has since ruled the tile onto the shelf and
-                authorised the census re-cut, so ezHomeModules carries an `asmaa` row too.
-                THIS ROW STAYS, and it stays for the reason it was written: the menu is the one
-                door BOTH the home screen and the chat draw, and a reader in a conversation
-                should not have to go to the home first. Both doors set the SAME asmaaOpen --
-                two openers, one piece of state, one closer -- so neither can drift from the
-                other. Like every other row it hands its action to closeDrawerWith, so the
-                menu's own history entry is spent before the section pushes its own. */}
-            <button onClick={() => closeDrawerWith(() => setAsmaaOpen(true))} style={s.drawerItem} className="ezik-focus">
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M6 3h9a2 2 0 0 1 2 2v16l-6.5-4L4 21V5a2 2 0 0 1 2-2z" />
-              </svg>
-              <span>{ezT('asmaa.title')}</span>
-            </button>
             {/* S92: THE HISTORY. \u00ab\u0645\u062d\u0627\u062f\u062b\u0629 \u062c\u062f\u064a\u062f\u0629\u00bb stays the one and only new-chat entry -- this
                 section adds the saved conversations UNDER the existing items and duplicates
                 none of them. The order is the store's: pinned first, then the most recent.
@@ -13795,6 +13779,26 @@ function App() {
             <span className="ezc-brand-arch" aria-hidden="true" />
             {ezcTitle ? <span className="ezc-brand-text">{ezcTitle}</span> : null}
           </span>
+          {/* ITEM 05-B -- THE WAY BACK TO THE SHELF, AT THE VISUAL TOP-LEFT.
+              LAST IN SOURCE ON PURPOSE, and for two measured reasons, not for taste:
+              (1) the rail is a flex row under body{direction:rtl} (index.html:188), so the LAST
+                  source child sits at the VISUAL LEFT -- .ezc-brand carries flex:1 and pushes it
+                  there. Under [data-ez-lang='en'] body{direction:ltr} (index.html:1388) the two
+                  swap, which is what a logical layout is for.
+              (2) guards/i18n-ui-guard.cjs drives .ezc-rail button.ezc-icon [0] at :815, :953 and
+                  :1573 and expects the DRAWER button. Putting this one first would silently
+                  re-point three guard clicks at a button that opens something else.
+              It calls setScreen('home') directly: the back machinery cannot serve here, because
+              'chat' is a ROOT screen (app.jsx:9492) and ezikBackTarget returns null from it
+              (9497-9498). className='ezc-icon' is mandatory -- the 40x40 paint and the 44x44
+              touch overlay are pinned to that class, not to this element. */}
+          <button onClick={() => setScreen('home')} className="ezc-icon" aria-label={'\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629'}
+            {...(uiLang === 'ar' ? null : { 'aria-label': ezT('navigation.home') })}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 10.5 12 3l9 7.5" />
+              <path d="M5 9.5V21h14V9.5" />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -14854,11 +14858,6 @@ function ezikLessonRows(hits) {
 //   the bracketed seal              the server-composed tail (lib/output-reviewer.js), e.g.
 //                                   «فهمٌ لا فتوى» -- it is on nearly every reply and so
 //                                   distinguishes none of them.
-//
-// AND THE QUESTION IS NOT DELETED; IT IS THE FALLBACK. An answer can be nothing but a tag --
-// measured: a whole reply of «<dhikr id="27"></dhikr>» -- which strips to fewer than three
-// characters, and a search on nothing is not a search. The old door then still works, which is
-// what the order asks be kept until the relevance floor lands.
 //
 // PURE, and it neither knows nor asks when it is called. WHEN is the seam below: this is called
 // once, on the settled reply, so a card appears once and is never swapped in front of a reader.
