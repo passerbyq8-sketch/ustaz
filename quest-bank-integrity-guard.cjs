@@ -813,7 +813,21 @@ const SEALED = {
   //                    below followed, and THIS digest is re-cut LAST. CACHE IS NOT BUMPED:
   //                    this is a branch for the owner to try, not a ship, and sw.js says the
   //                    merge round owns the bump.
-  'sw.js': '5677d1d655c6c1ef16395919fafe5e51dbbbe3241061879021a1b6f8b02cb114',
+  //   2026-09-09   -- ITEM 05 F: THE COMPOSER BECAME A FIELD ROW OVER ONE CONTROL ROW. The
+  //                    field has the top row to itself and send moved down into the control
+  //                    row at the VISUAL RIGHT, with mic and the voice entry beside it and the
+  //                    mode pill and the [+] at the other end; the three icon buttons became
+  //                    44x44 circles and the chip became a pill. INDEX.HTML DID NOT MOVE this
+  //                    round -- the change is all in app.jsx -- so two of the three worker
+  //                    figures and one of the two mirrors below were already true and only the
+  //                    BUNDLE figures moved. app.js was rebuilt from that source 1397224 ->
+  //                    1399197 (+1973) by node tools/build-app.cjs, and CORE_BYTES was re-cut
+  //                    2241916 -> 2243889 (+1973) by node tools/core-bytes.cjs --write, which
+  //                    is exactly the bundle delta because the shell did not grow. The worker
+  //                    table at :111 and the app.js mirror below followed, and THIS digest is
+  //                    re-cut LAST. CACHE IS NOT BUMPED: this is a branch for the owner to try,
+  //                    not a ship, and sw.js says the merge round owns the bump.
+  'sw.js': '91754f51db3890d4daee75e2c8ee7a0eb240d3b02c7edc45f9d7417e6ce03e55',
 };
 
 // ---------------------------------------------------------------------------
@@ -1924,7 +1938,7 @@ async function compare(goldenPath) {
       { n: 124729, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1397224, of: 'app.js' },
+      { n: 1399197, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
