@@ -5345,13 +5345,24 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
 
   // ITEM 20 / SHELF §2 -- AND THE DEFAULT IS ALL THERE IS TO OUTRANK.
   // The order says a reader's OWN saved shelf order outranks this default and is neither erased
-  // nor reset by the change. MEASURED, 8 September: this application stores no shelf order at
-  // all. The one arrangement a reader can save on the home is the WIDGET record -- the three
+  // nor reset by the change. MEASURED, 8 September: this application stored no shelf order at
+  // all. The one arrangement a reader could save on the home was the WIDGET record -- the three
   // rows prayer/adhkar/verse under ezik_home_widgets_v1 -- which is a different mechanism over
   // different rows and is not what §2 reorders. So the checkable property is the stronger one
   // and it is written down rather than assumed: the builder reads NO store, so it can neither
   // read a saved order nor overwrite one, and a later shelf-ordering feature cannot quietly
   // arrive by having this function reach into storage.
+  //
+  // ITEM 05-D, 9 September -- THAT FEATURE HAS NOW ARRIVED, AND IT DID NOT ARRIVE THIS WAY.
+  // The paragraph above is left standing because it is the reason these three cases exist, but
+  // its first sentence is no longer the state of the tree: a reader can now save a shelf order,
+  // under ezik_home_order_v1, and arrange the ten sections in Settings. NOT ONE ASSERTION BELOW
+  // IS RE-POINTED, and none needed to be -- which is the whole point of where the prohibition
+  // was drawn. The order is applied OUTSIDE this function, as a permutation over the array it
+  // RETURNS, at the one place in Home the finished array is put into the props object; the
+  // builder still names no store, so it still can neither read a saved order nor overwrite one.
+  // And with the store empty -- which is how every case here runs -- the overlay hands back the
+  // built array itself by identity, so the default these cases pin is the default they read.
   {
     const at = html.indexOf('function ezHomeModules(v) {');
     const to = html.indexOf('\n}', at);

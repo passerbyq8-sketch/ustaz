@@ -5281,8 +5281,7 @@ function EzikIstanaHome(v) {
           {/* THE READER'S OWN REGION, after the modules and before nothing. With the shipped
               default it renders null, so the tree above it and the tree below it are the tree
               that was here before the region existed. */}
-          <EzikHomeWidgetArea widgets={v.widgets} onWidgets={v.onWidgets}
-            arrangeOpen={v.arrangeOpen} onArrange={v.onArrange}
+          <EzikHomeWidgetArea widgets={v.widgets}
             nav={{ onOpenAdhkar: v.onOpenAdhkar, onOpenPrayer: v.onOpenPrayer }} />
         </div>
       </div>
@@ -5762,6 +5761,100 @@ function EzWidgetVerse() {
 //
 // 🔴 THE HOOKS FINISH FIRST. useEzLang and useState, in that order, at the top of the body, and
 // the single return is below both of them. Defect 123 (React #300) is what this rule is for.
+// ============================================================
+// ITEM 05-D -- THE READER'S OWN ORDER FOR THE TEN SECTIONS
+// ============================================================
+// A DIFFERENT MECHANISM FROM THE WIDGET RECORD ABOVE, over different rows. That record holds
+// three registered widgets, all shipped shown:false, and it is not touched here. This holds an
+// ORDER for the ten SECTIONS of the shelf -- asmaa, articles, memorize, adhkar, mushaf,
+// treasure, fatwa, lessons, prayer, women -- which the reader arranges in Settings as PLACES.
+// It hides nothing, renames nothing and deletes nothing: order only.
+//
+// AND IT IS APPLIED OUTSIDE THE BUILDER, WHICH IS THE WHOLE DISCIPLINE HERE. ezHomeModules is
+// asserted to name no store at all, and that prohibition was written deliberately so that a
+// later shelf-ordering feature could not quietly arrive by having the builder reach into
+// storage. It has not: the builder is untouched, and the overlay is applied to the array it
+// RETURNS, at the one place in Home where the finished array is put into the props object.
+//
+// THE DEFAULT IS UNTOUCHED. With no stored order the overlay returns the built array itself,
+// by identity, so a device that has never opened this control renders exactly what it rendered
+// before this item existed -- asmaa first, women last, the ten in their current sequence.
+const HOME_ORDER_KEY = 'ezik_home_order_v1';
+const HOME_ORDER_V = 1;
+const HOME_ORDER_MAX = 40;
+
+// The same defensive shape the stores above keep: a missing key, a throw, bad JSON, a
+// non-object, an array, and a record whose order is not an array all read as no order at all.
+// An entry that is not a plain non-empty string, and any id repeated, is DROPPED rather than
+// repaired -- a repaired id is a place the reader never chose.
+function readHomeOrder() {
+  const out = { v: HOME_ORDER_V, order: [] };
+  let raw = null;
+  try { raw = localStorage.getItem(HOME_ORDER_KEY); } catch (e) { return out; }
+  if (typeof raw !== 'string' || !raw) return out;
+  let rec = null;
+  try { rec = JSON.parse(raw); } catch (e) { return out; }
+  if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return out;
+  if (!Array.isArray(rec.order)) return out;
+  out.order = homeOrderClean(rec.order);
+  return out;
+}
+// The one normaliser, so the reader and the writer cannot disagree about what an order is.
+function homeOrderClean(order) {
+  const out = [];
+  const src = Array.isArray(order) ? order : [];
+  for (const id of src) {
+    if (out.length >= HOME_ORDER_MAX) break;
+    if (typeof id !== 'string' || !id || id.length > 40) continue;
+    if (out.indexOf(id) !== -1) continue;
+    out.push(id);
+  }
+  return out;
+}
+// IT RETURNS WHAT IS NOW IN EFFECT, never what was asked for, exactly as the two writers above
+// do. Nothing in this feature calls removeItem: an order the reader has undone is written back
+// as the order it now is.
+function writeHomeOrder(order) {
+  const rec = { v: HOME_ORDER_V, order: homeOrderClean(order) };
+  try { localStorage.setItem(HOME_ORDER_KEY, JSON.stringify(rec)); } catch (e) { return readHomeOrder(); }
+  return readHomeOrder();
+}
+// A PERMUTATION AND NOTHING ELSE. Every element of the result is an element of the built array,
+// each appears exactly once, and the result is always the same length -- so this cannot hide a
+// section, add one, rename one, duplicate one, or resurrect the women's corner for an account
+// the builder's own filter removed it from: an id in the store that is not in the built array
+// is IGNORED. An id the store does not mention keeps its default position, appended after the
+// stored ones in the default order. An empty store returns the built array itself.
+function ezHomeOrderApply(mods, order) {
+  const built = Array.isArray(mods) ? mods : [];
+  const want = Array.isArray(order) ? order : [];
+  if (!want.length) return built;
+  const out = [];
+  const taken = [];
+  for (const id of want) {
+    if (taken.indexOf(id) !== -1) continue;
+    const hit = built.filter((m) => m && m.id === id)[0];
+    if (!hit) continue;
+    taken.push(id);
+    out.push(hit);
+  }
+  for (const m of built) if (taken.indexOf(m.id) === -1) out.push(m);
+  return out;
+}
+// ONE MOVE, ONE PLACE. `dir` is -1 or 1, and a move off either end is refused rather than
+// wrapped. What is handed in is the ids in the order they are DRAWN, so the store is written
+// with the whole visible order and never with a fragment of it.
+function ezHomeOrderMove(ids, id, dir) {
+  const out = (Array.isArray(ids) ? ids : []).slice();
+  const at = out.indexOf(id);
+  if (at === -1) return out;
+  const to = at + dir;
+  if (to < 0 || to >= out.length) return out;
+  out.splice(at, 1);
+  out.splice(to, 0, id);
+  return out;
+}
+
 function EzikHomeArrange({ widgets, onWidgets, onClose }) {
   useEzLang();
   const [saveFailed, setSaveFailed] = useState(false);
@@ -5816,28 +5909,46 @@ function EzikHomeArrange({ widgets, onWidgets, onClose }) {
 // box, not a placeholder and not a promise -- which, with every row registered shown:false, is
 // what makes the default screen the screen that was already there.
 //
-// THE ONE CONTROL IS LAST, and being last is load-bearing: it is APPENDED to the home rather than
-// inserted into it, so every element that was on this screen before keeps its exact position and
-// its exact neighbours. The arrangement itself is the owner's state, handed down; this component
-// stores nothing.
+// ITEM 05-D: THE ONE CONTROL IS GONE FROM HERE, and the region is the widget stack alone. The
+// owner ruled that "arrange your home" belongs in Settings; the bar and the panel it opened
+// were LIFTED OUT WHOLE into EzikHomeWidgetArrange below and are rendered there, so nothing
+// that existed became unreachable and the widget mechanism is untouched in every part.
+//
+// What is left is what the region was always for: the reader's own widgets, mapped ONCE, in the
+// reader's own order, so the reading order, the tab order and the stored order are one order.
+// An empty list draws NOTHING -- not an empty box, not a placeholder and not a promise -- and
+// with every row registered shown:false that is what makes the default screen the screen that
+// was already there. The foot of the home no longer carries a lone button.
 //
 // 🔴 ONE HOOK, FIRST STATEMENT, NO RETURN ABOVE IT.
-function EzikHomeWidgetArea({ widgets, nav, arrangeOpen, onArrange, onWidgets }) {
+function EzikHomeWidgetArea({ widgets, nav }) {
   useEzLang();
   const list = ezWidgetVisible(widgets);
+  if (!list.length) return null;
+  return (
+    <div style={s.ezwidStack}>
+      {list.map((w) => (
+        <div key={w.id} data-ezik-home-widget={w.id}>{w.draw(nav)}</div>
+      ))}
+    </div>
+  );
+}
+
+// ITEM 05-D: THE BAR AND THE PANEL, LIFTED OUT OF THE REGION ABOVE AND UNCHANGED IN EVERY LINE.
+// The toggle still calls onArrange(!arrangeOpen) and the panel is still EzikHomeArrange; what
+// moved is WHERE this is rendered -- Settings rather than the foot of the home -- and nothing
+// else. Closing still spends the layer's history entry through the same pop the device button
+// makes, so the visible control and the hardware button resolve through one door.
+//
+// 🔴 ONE HOOK, FIRST STATEMENT, NO RETURN ABOVE IT.
+function EzikHomeWidgetArrange({ widgets, onWidgets, arrangeOpen, onArrange }) {
+  useEzLang();
   return (
     <>
-      {list.length ? (
-        <div style={s.ezwidStack}>
-          {list.map((w) => (
-            <div key={w.id} data-ezik-home-widget={w.id}>{w.draw(nav)}</div>
-          ))}
-        </div>
-      ) : null}
       <div style={s.ezwidBar}>
         <button type="button" onClick={() => onArrange(!arrangeOpen)}
           aria-expanded={arrangeOpen ? 'true' : 'false'} className="ezhome-focus" style={s.ezwidBarBtn}>
-          {arrangeOpen ? ezT('home.arrange.close') : ezT('home.arrange.open')}
+          {arrangeOpen ? ezT('home.arrange.close') : ezT('home.arrange.title')}
         </button>
       </div>
       {arrangeOpen ? (
@@ -5893,19 +6004,16 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     ezikArtProbe((next) => { if (artAliveRef.current) setArtFresh(next); });
   }, [artSection]);
   useEzikBackLayer(!!artSection, () => setArtSection(null));
-  // THE ARRANGEMENT IS THE OWNER'S, read from the device once on mount exactly as the wird and
-  // the hijri date above are. The presentation component below is handed the result and never
-  // opens the store itself.
-  const [widgets, setWidgets] = useState(readHomeWidgets);
-  // Local to this screen and NOT a route: the panel opens over the home, on the home's own screen
-  // key, exactly as the prayer sheet above does and for the same reason -- the screen inventory is
-  // a cross-file contract and a fourth route would move a document this batch does not own.
-  const [arrangeOpen, setArrangeOpen] = useState(false);
-  // NIGHT RUN F1 -- and so does the arrange panel, for the identical reason and through the
-  // identical hook. Registration order is the order the layers were OPENED in, not the order
-  // these three lines sit in: the effect's dependency list is the boolean alone, so nothing is
-  // pushed while a panel is shut and the deepest entry is always the one opened last.
-  useEzikBackLayer(arrangeOpen, () => setArrangeOpen(false));
+  // THE ARRANGEMENT IS THE OWNER'S, read from the device exactly as the wird and the hijri date
+  // above are. The presentation component below is handed the result and never opens the store
+  // itself. ITEM 05-D: it is a plain read now rather than a piece of state, because nothing on
+  // this screen can change it any more -- the control that could moved to Settings, and this
+  // screen is re-entered after a visit there, so the read is always the current record.
+  const widgets = readHomeWidgets();
+  // ITEM 05-D: `arrangeOpen`, its back layer and its onArrange handler went WITH the panel into
+  // SettingsSheet, in the identical three shapes -- the state, useEzikBackLayer(arrangeOpen,
+  // ...) and the ezikHistBack() toggle -- so the panel owns one real history entry there just
+  // as it did here. Nothing about it is deleted; it is re-homed.
   // ITEM 05-C: the reader's own wird list, read from the device once on mount exactly as the
   // arrangement above it is, and handed down. The presentation component never opens the store.
   const [wirdList, setWirdList] = useState(readWirdList);
@@ -5963,20 +6071,18 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     onOpenTreasure: () => { window.location.href = '/quest.html'; },
     onOpenPrayer: () => setPrayerOpen(true),
     widgets: widgets,
-    onWidgets: setWidgets,
-    arrangeOpen: arrangeOpen,
-    // NIGHT RUN F1: the toggle still calls onArrange(!arrangeOpen) and is not edited -- what it
-    // is handed changed. CLOSING now spends the layer's history entry through the same pop the
-    // device button makes, and the closer registered above is what actually clears the state
-    // afterwards. ezikHistBack() answers false only when this app owns nothing on the stack, and
-    // then there is no entry to spend and the panel simply closes -- closeDrawerWith exactly.
-    onArrange: (next) => { if (!next && ezikHistBack()) return; setArrangeOpen(next); },
   };
   // S87 -- THE MODULE SET IS BUILT HERE, ONCE, AND NOWHERE ELSE. Both styles receive this exact
   // array; neither may call ezHomeModules itself. One descriptor per module means one rendered
   // element per module, whichever style is on -- there is no second collection to fall out of
   // sync with this one, and no second callback bound to the same action.
-  const home = { ...view, modules: ezHomeModules(view) };
+  // ITEM 05-D -- AND THE READER'S OWN ORDER IS APPLIED HERE, TO THE ARRAY THE BUILDER RETURNED.
+  // Not inside it. ezHomeModules is asserted to name no store at all, and that prohibition was
+  // written so that a shelf-ordering feature could not quietly arrive through storage; it has
+  // not. What arrives is a PERMUTATION applied to the finished array, at the one place that
+  // array is put into the props object -- and with nothing stored the overlay hands back the
+  // built array itself, so the default shelf is byte for byte the shelf that was here before.
+  const home = { ...view, modules: ezHomeOrderApply(ezHomeModules(view), readHomeOrder().order) };
   // S102 -- ONE DESIGN. The journey/deck presentation system is gone from the file, not
   // hidden behind a flag: its two home components, its three shared parts, its key, its
   // reader, its writer, its hook, its event and its Settings control were all removed in the
@@ -19855,6 +19961,9 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   // the guard name the same strings the screen already showed.
   const A_SETTINGS = ezT('settings.title');
   const A_APPEARANCE = ezT('settings.appearance');   // U+0627 U+0644 U+062A U+062D U+0643 U+0645
+  // ITEM 05-D: the group heading, lifted the same way and taken from the dictionary key the
+  // control has always carried, so the reader meets the words he already knew for it.
+  const A_HOME_ARRANGE = ezT('home.arrange.open');
   // D89: this entry is rendered ONLY while a valid founder token is held. hasFounderToken() is
   // read here, at render, and never from a cached flag -- the rule every other gate in this file
   // follows. It is a VISIBILITY rule, not the lock: api/unlock.js refuses a set-pin call that
@@ -19865,6 +19974,16 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   // document root and what is in the store cannot disagree.
   const [wmOpacity, setWmOpacity] = useState(readWatermarkOpacity);
   const [wmHide, setWmHide] = useState(readWatermarkAutoHide);
+  // ITEM 05-D: the owner ruled that "arrange your home" belongs HERE rather than at the foot of
+  // the home screen, and that it must let him edit his SECTIONS as places. Both records are read
+  // once at mount from their own readers and written through their own writers, and each writer
+  // returns what is now in effect -- so what is on screen and what is in the store cannot
+  // disagree. The three shapes the arrange panel's layer is made of came with it from Home
+  // unchanged: the state, the registration below, and the ezikHistBack() toggle further down.
+  const [homeOrder, setHomeOrder] = useState(readHomeOrder);
+  const [widgets, setWidgets] = useState(readHomeWidgets);
+  const [arrangeOpen, setArrangeOpen] = useState(false);
+  useEzikBackLayer(arrangeOpen, () => setArrangeOpen(false));
   // Read once at mount from the one reader, written through the one writer -- the watermark
   // rule exactly. The switch shows the RESOLVED behaviour, so an `auto` device shows the
   // state it is actually in rather than a third word the reader never chose.
@@ -19939,6 +20058,26 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   // says it is coming -- it is a <div>, it is aria-disabled, it cannot be tabbed to and there
   // is no code path from this card that could write it. Journey and Deck appear nowhere.
   const visualTheme = useEzikVisualTheme();
+  // ITEM 05-D. THE ROWS ARE THE ACCOUNT'S OWN SHELF, built by the one builder and then put into
+  // the reader's own order by the one overlay -- the same two calls, in the same order, that the
+  // home screen makes. So what he arranges here is exactly what he will meet there, and a male
+  // account arranges the nine sections it actually has.
+  //
+  // ONE PLACE APPLIES A CHANGE, so the store and the screen can never be given different orders:
+  // the move is computed over the ids AS DRAWN, written through the one writer, and the screen is
+  // set from what that writer says is now in effect.
+  const homeRows = ezHomeOrderApply(
+    ezHomeModules({ gender: (profile && profile.gender) || null }), homeOrder.order);
+  const moveHomeSection = (id, dir) =>
+    setHomeOrder(writeHomeOrder(ezHomeOrderMove(homeRows.map((m) => m.id), id, dir)));
+  // The panel's own props, built here in the shape the home used to build them, so the toggle
+  // still spends the layer's history entry through the same pop the device button makes.
+  const arrangeView = {
+    widgets: widgets,
+    onWidgets: setWidgets,
+    arrangeOpen: arrangeOpen,
+    onArrange: (next) => { if (!next && ezikHistBack()) return; setArrangeOpen(next); },
+  };
   return (
     <EzShell title={A_SETTINGS} onBack={onBack} backLabel={A2_BACK}>
       {/* S105 -- the SAME controls, the same handlers, the same keys and the same accessible
@@ -20208,6 +20347,36 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
         {/* ITEMS 43-ب / 47-ب -- the four reminders, above the prayer preferences so that
             every established Settings position stays exactly where the reader learned it. */}
         <EzikReminderSettings />
+        {/* ITEM 05-D -- ARRANGE YOUR HOME, MOVED HERE FROM THE FOOT OF THE HOME SCREEN, and above
+            the prayer preferences so that every established Settings position stays exactly where
+            the reader learned it. Two things, in this order:
+
+            FIRST, THE SECTIONS THEMSELVES, AS PLACES. The rows are the account's own shelf -- built
+            by the one builder, so a male account sees nine here and not ten -- and the only thing
+            that can be done to them is MOVE one. No hiding, no renaming, no deleting: order only.
+            Up and down rather than drag, because the interface is right-to-left and this is used on
+            a phone: buttons are unambiguous and testable, and a drag is neither. Each carries an
+            aria-label that names the section it moves.
+
+            SECOND, THE WIDGET PANEL, UNCHANGED, so nothing that existed today became unreachable.
+            It is a different mechanism over different rows -- the three registered widgets, all
+            shipped hidden -- and it keeps its own store, its own reset and its own hint. */}
+        <EzShellGroup title={A_HOME_ARRANGE}>
+          {homeRows.map((m, i) => (
+            <div key={m.id} style={s.ezwidPanelRow}>
+              <span style={s.ezwidPanelName}>{m.label}</span>
+              <span className="ez-hit" style={s.ezwidPanelActs}>
+                <button type="button" onClick={() => moveHomeSection(m.id, -1)} disabled={i === 0}
+                  aria-label={ezT('home.arrange.up') + ' ' + m.label}
+                  className="ezhome-focus" style={i === 0 ? s.ezwidActOff : s.ezwidAct}>{ezT('home.arrange.up')}</button>
+                <button type="button" onClick={() => moveHomeSection(m.id, 1)} disabled={i === homeRows.length - 1}
+                  aria-label={ezT('home.arrange.down') + ' ' + m.label}
+                  className="ezhome-focus" style={i === homeRows.length - 1 ? s.ezwidActOff : s.ezwidAct}>{ezT('home.arrange.down')}</button>
+              </span>
+            </div>
+          ))}
+          <EzikHomeWidgetArrange {...arrangeView} />
+        </EzShellGroup>
         {/* ITEM 121: the prayer preferences are last, so every established Settings position
             above remains where the reader learned it. The two stored records keep their keys. */}
         <EzShellGroup title={PRAYER_SETTINGS_TITLE} hint={PRAYER_HINT}>
