@@ -658,3 +658,12 @@ api/articles-list.js text eol=lf
 api/articles-get.js text eol=lf
 api/articles-admin.js text eol=lf
 api/roles-admin.js text eol=lf
+
+# guards/lessons-brain-guard.cjs (gate `lessonsbrain`) -- item 37/١: the fifth tool's offer,
+# the single card, and the owner's ruling that the lessons row has no relevance floor. The gate
+# script is pinned because recon-audit item 14 FAILS any gate that is not. It reads api/ask.js,
+# lib/free-brain/loop.js and app.jsx RAW and mutates loop.js at a LITERAL ANCHOR, and those three
+# are already pinned above. lib/free-brain/tools.js is deliberately NOT pinned here: it is CRLF
+# in this tree today, changing that is not this round's business, and the guard normalises every
+# source to LF on read so no anchor of its own can miss a CR.
+guards/lessons-brain-guard.cjs text eol=lf

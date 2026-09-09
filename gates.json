@@ -550,5 +550,10 @@
     "name": "asmaa",
     "script": "guards/asmaa-attribution-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "lessonsbrain",
+    "script": "guards/lessons-brain-guard.cjs",
+    "args": ""
   }
 ]

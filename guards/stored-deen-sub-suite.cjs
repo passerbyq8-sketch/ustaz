@@ -666,10 +666,18 @@ async function runSuite() {
     // recon-audit's GATES_EXPECTED carries, and it is re-cut to the number that is TRUE, not
     // relaxed: the contract is still an exact count and an exact list, and mutants 11 and 12
     // below still kill on a roster with one name taken out of it.
-    function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 109; }
+    //
+    // ITEM 37/١: 109 -> 110, on that same rule and for the same reason -- the gate
+    // `lessonsbrain`, guards/lessons-brain-guard.cjs. NOTE FOR WHOEVER REGISTERS THE NEXT GATE:
+    // this is the FIFTH place a new gate has to be written, and the one whose file name says
+    // nothing about gates. The other four are gates.json, .gitattributes (the eol=lf pin that
+    // recon-audit item 14 demands), recon-audit.cjs's GATES_EXPECTED, and the K section of
+    // EZIK-RFC-V0.5-R2-IMPLEMENTATION-REPORT.md -- gate-count prose, roster, TOTAL_GATES, and
+    // the RECON line, which moves by one because item 14 gains a PASS.
+    function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 110; }
     ok('ORIGINAL_GATE_SET_MATCH', exactGateSet(EXPECTED_GATES));
-    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 109-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
-    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 109-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
+    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 110-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
+    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 110-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
 
     const m13 = await storedMutant(temp, 'fiqh-before-special', (source) => source.replace(
       "if (QURAN_REQUEST.test(folded)) return 'LOCAL_QURAN';",

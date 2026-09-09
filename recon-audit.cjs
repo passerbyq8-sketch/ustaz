@@ -769,7 +769,14 @@ head('14) GATE ROSTER (single source: gates.json)');
   // quoted text in them, DRIVES the shipped filter sliced out of app.js over nine deliberately
   // broken records, kills three mutants on that filter, and proves the 153202-byte sheet is
   // fetched when the section opens rather than built into the boot.
-  const GATES_EXPECTED = 109;  // 108th: articles -- guards/articles-public-guard.cjs.
+  // 110th: lessonsbrain -- guards/lessons-brain-guard.cjs. Item 37/١. The fifth tool of the
+  // free brain, `search_lessons`: this gate DRIVES the offer rather than reading it -- the real
+  // readRequestedDepth, then the eligibility expressions cut out of api/ask.js and evaluated,
+  // then the real loop driven and the tool list read off the request body it built -- and proves
+  // the tool is offered on «مفصّل» and «طالب علم», withheld on «موجز», and withheld from every
+  // child on every depth. It also pins resetLessons() at one call site, and pins the ABSENCE of
+  // a relevance floor on the lessons row -- the owner ruled on 2026-09-09 that there is none.
+  const GATES_EXPECTED = 110;  // 110th: lessonsbrain. 109th: asmaa. 108th: articles.
                                // 107th: rejectdoor -- guards/reject-door-guard.cjs. ق٥٥:
   // the guard rules and does not edit -- a cut answer is rewritten, never delivered sutured.  // 106th: nameform -- guards/name-form-match-guard.cjs. One man
                                //       written two ways: «ابن عباس» is «عبد الله بن عباس» on the
