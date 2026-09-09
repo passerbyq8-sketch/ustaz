@@ -5243,11 +5243,34 @@ function EzikIstanaHome(v) {
           <EzistMasthead name={v.name} g={v.greeting} hijri={v.hijri} onOpenAdhkar={v.onOpenAdhkar} />
           {/* A-3: WHAT HE CHOSE, shown back to him on opening. It is a statement, not an
               alarm: it names the choice and stops there. */}
+          {/* ITEM 05-C: and now also WHAT HE ADDED HIMSELF. The `+` on the title row opens the
+              picker; every row he added carries a `-` that removes it by writing the shorter
+              list. The added rows are drawn ABOVE the choice lines and from a SECOND store with
+              its own key -- they are not fed through dailyWirdLines, whose line count and line
+              order are a contract about the three-slot record and nothing else. The empty
+              sentence is drawn only when BOTH are empty. */}
           <div style={s.ezistQuran}>
-            <div style={s.ezistCardTitle}>{DW_CARD_TITLE}</div>
-            {(v.dailyWirdLines || []).length
-              ? (v.dailyWirdLines || []).map((t, i) => <div key={i} style={s.ezistCardSub}>{t}</div>)
-              : <div style={s.ezistCardSub}>{DW_CARD_EMPTY}</div>}
+            <div style={s.ezwidHead}>
+              <span style={s.ezistCardTitle}>{DW_CARD_TITLE}</span>
+              <span className="ez-hit">
+                <button type="button" onClick={() => v.onWirdPick(true)} aria-label={DW_ADD_LABEL}
+                  className="ezhome-focus" style={s.ezwidAct}>{DW_ADD_GLYPH}</button>
+              </span>
+            </div>
+            {(v.wirdItems || []).map((it) => (
+              <div key={it.k + '|' + it.id} style={s.ezwidPanelRow}>
+                <span style={s.ezwidPanelName}>{it.label}</span>
+                <span className="ez-hit" style={s.ezwidPanelActs}>
+                  <button type="button" onClick={() => v.onWirdRemove(it.k, it.id)}
+                    aria-label={DW_REMOVE_LABEL + ' ' + it.label}
+                    className="ezhome-focus" style={s.ezwidAct}>{DW_REMOVE_GLYPH}</button>
+                </span>
+              </div>
+            ))}
+            {(v.dailyWirdLines || []).map((t, i) => <div key={i} style={s.ezistCardSub}>{t}</div>)}
+            {!(v.wirdItems || []).length && !(v.dailyWirdLines || []).length
+              ? <div style={s.ezistCardSub}>{DW_CARD_EMPTY}</div>
+              : null}
           </div>
           {/* S118: the daily verse is no longer the mosaic's last cell -- it is the top bar.
               The panel itself did not change: same component, same getDailyVerse(), same text
@@ -5267,6 +5290,105 @@ function EzikIstanaHome(v) {
   );
 }
 // ---- S101 ISTANA HOME END ----------------------------------------------------------------
+
+// ============================================================
+// ITEM 05-C -- THE WIRD PICKER
+// ============================================================
+// A LAYER, NOT A SCREEN. It adds no `screen` value: the screen inventory is a cross-file
+// contract that theme-coverage-guard cross-checks against the handoff document, and a picker
+// over four catalogues is not a route. It opens over the home on the home's own screen key,
+// exactly as the prayer sheet and the arrange panel do, and its OWNER registers its history
+// entry so the device back button closes it. Its second step registers its own, so back walks
+// unit -> section -> home, one press per level.
+//
+// TWO STEPS. Choose a section, then choose a unit inside it. FOUR sections are offered: the
+// mushaf, the adhkar, the names and the lessons. The memoriser is not among them, and that is
+// a statement about what this control OFFERS and nothing more -- its dropdown, its constants
+// and its slot in the choice record are all untouched and all still work.
+//
+// LOADING AND FAILURE ARE DRAWN HONESTLY. Two of the four are a fetch away; while one is in
+// flight the screen says so, and if it rejects the screen says that instead. Nothing here
+// invents a row, and an empty list is drawn as an empty list.
+//
+// IT IS OUTSIDE THE ISTANA SENTINELS ON PURPOSE: the block those two comments delimit is read
+// as one unit by a guard that measures the home's STRUCTURE, and a picker that opens over the
+// home is not part of that structure.
+function EzikWirdPicker({ items, onAdd, onClose }) {
+  const [sec, setSec] = useState(null);
+  const [state, setState] = useState(EZIK_ART_DONE);
+  const [rows, setRows] = useState([]);
+  useEzikBackLayer(sec !== null, () => setSec(null));
+  // THE FETCH HAPPENS HERE AND NOWHERE EARLIER: this effect runs when a SECTION is chosen,
+  // which is one press after the picker was opened and two after the home was drawn. The
+  // cleanup's flag is what keeps a slow answer to an abandoned section off the screen the
+  // reader moved to.
+  useEffect(() => {
+    if (sec === null) return undefined;
+    if (sec === 'mushaf') { setRows(wirdPickerMushafRows()); setState(EZIK_ART_DONE); return undefined; }
+    if (sec === 'lessons') { setRows(wirdPickerLessonsRows()); setState(EZIK_ART_DONE); return undefined; }
+    let dead = false;
+    setRows([]);
+    setState(EZIK_ART_LOADING);
+    const p = sec === 'adhkar' ? wirdPickerAdhkarRows() : wirdPickerAsmaaRows();
+    p.then((list) => { if (dead) return; setRows(list); setState(EZIK_ART_DONE); })
+      .catch(() => { if (!dead) setState(EZIK_ART_FAILED); });
+    return () => { dead = true; };
+  }, [sec]);
+
+  // THE FOUR, NAMED ONCE. There is no second list of sections anywhere in this feature: the
+  // store validates against WIRD_LIST_SECTIONS and this draws from the same four keys.
+  const secRows = [
+    { k: 'mushaf', name: DW_SEC_MUSHAF },
+    { k: 'adhkar', name: DW_SEC_ADHKAR },
+    { k: 'asmaa', name: DW_SEC_ASMAA },
+    { k: 'lessons', name: DW_SEC_LESSONS },
+  ];
+  const list = items || [];
+  const full = list.length >= WIRD_LIST_MAX;
+
+  if (sec === null) {
+    return (
+      <EzShell title={DW_PICK_TITLE} onBack={onClose} backLabel={DW_PICK_CLOSE}>
+        <EzShellGroup title={DW_PICK_SECTION} hint={full ? DW_PICK_FULL : ''}>
+          {secRows.map((r) => (
+            <div key={r.k} style={s.ezwidPanelRow}>
+              <span style={s.ezwidPanelName}>{r.name}</span>
+              <span className="ez-hit" style={s.ezwidPanelActs}>
+                <button type="button" onClick={() => setSec(r.k)} aria-label={r.name}
+                  className="ezhome-focus" style={s.ezwidAct}>{DW_ADD_GLYPH}</button>
+              </span>
+            </div>
+          ))}
+        </EzShellGroup>
+      </EzShell>
+    );
+  }
+
+  const secName = (secRows.filter((r) => r.k === sec)[0] || { name: '' }).name;
+  return (
+    <EzShell title={secName} onBack={ezikGoBack} backLabel={DW_PICK_BACK}>
+      <EzShellGroup title={secName} hint={full ? DW_PICK_FULL : ''}>
+        {state === EZIK_ART_LOADING ? <div style={s.ezwidNote}>{DW_PICK_LOADING}</div> : null}
+        {state === EZIK_ART_FAILED ? <div style={s.ezwidNote}>{DW_PICK_FAILED}</div> : null}
+        {state === EZIK_ART_DONE && !rows.length ? <div style={s.ezwidNote}>{DW_PICK_EMPTY}</div> : null}
+        {state === EZIK_ART_DONE ? rows.map((r) => {
+          const has = wirdListHas(list, sec, r.id);
+          return (
+            <div key={sec + '|' + r.id} style={s.ezwidPanelRow}>
+              <span style={s.ezwidPanelName}>{r.label}</span>
+              <span className="ez-hit" style={s.ezwidPanelActs}>
+                {has ? <span style={s.ezwidNote}>{DW_PICK_ADDED}</span> : null}
+                <button type="button" onClick={() => onAdd(sec, r.id, r.label)}
+                  disabled={has || full} aria-label={DW_ADD_LABEL + ' ' + r.label}
+                  className="ezhome-focus" style={(has || full) ? s.ezwidActOff : s.ezwidAct}>{DW_ADD_GLYPH}</button>
+              </span>
+            </div>
+          );
+        }) : null}
+      </EzShellGroup>
+    </EzShell>
+  );
+}
 
 
 // ============================================================
@@ -5784,6 +5906,14 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // these three lines sit in: the effect's dependency list is the boolean alone, so nothing is
   // pushed while a panel is shut and the deepest entry is always the one opened last.
   useEzikBackLayer(arrangeOpen, () => setArrangeOpen(false));
+  // ITEM 05-C: the reader's own wird list, read from the device once on mount exactly as the
+  // arrangement above it is, and handed down. The presentation component never opens the store.
+  const [wirdList, setWirdList] = useState(readWirdList);
+  // ...and the picker, which is a LAYER over this screen and not a route, for the same reason
+  // the prayer sheet and the arrange panel are: the screen inventory is a cross-file contract.
+  // It registers its history entry through the identical hook, so the device button closes IT.
+  const [wirdPickOpen, setWirdPickOpen] = useState(false);
+  useEzikBackLayer(wirdPickOpen, () => setWirdPickOpen(false));
   const wt = readWirdTarget();
   const wd = readWirdDay();
   const wird = (wt && wd && Array.isArray(wd.pages)) ? { done: Math.min(wd.pages.length, wt), target: wt } : null;
@@ -5800,6 +5930,12 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     greeting: g,
     wird: wird,
     dailyWirdLines: dailyWirdLinesToday,
+    // ITEM 05-C: the list, and the two things the card can do to it. ONE PLACE APPLIES A
+    // CHANGE -- the writer returns what is now in effect and that return is what the screen is
+    // set from, so the store and the screen can never be given different lists.
+    wirdItems: wirdList.items,
+    onWirdPick: (next) => { if (!next && ezikHistBack()) return; setWirdPickOpen(next); },
+    onWirdRemove: (k, id) => setWirdList(writeWirdList(wirdListRemove(wirdList.items, k, id))),
     // S118: onOpenChat is gone from this object because the home no longer holds a chat
     // control of its own. The chat is entered from the menu the bar opens, on the menu's own
     // «محادثة جديدة» row, which is the app's ONE new-conversation entry and always was.
@@ -5857,6 +5993,17 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // for a later press to spend on nothing. Same door as the device button, same resolver. The
   // sheet itself is untouched: it is handed a different function under the same prop name.
   if (prayerOpen) return <PrayerSheet onClose={ezikGoBack} />;
+  // ITEM 05-C. Same door as the device button: the visible back spends the layer's entry
+  // through ezikGoBack rather than dropping it, which is the rule closeDrawerWith records.
+  if (wirdPickOpen) {
+    return (
+      <EzikWirdPicker
+        items={wirdList.items}
+        onAdd={(k, id, label) => setWirdList(writeWirdList(wirdListAdd(wirdList.items, k, id, label)))}
+        onClose={ezikGoBack}
+      />
+    );
+  }
   // ITEM 20. ONE component for both sections -- the section key and its title are all that
   // differs, and two components would be two places for the empty state, the failure state and
   // the writing door to drift apart. The back control presses ezikGoBack, so the visible button
@@ -21399,7 +21546,7 @@ const JD_RULE_A = 'يحفظُ الجهازُ ';
 const JD_RULE_PLAIN = 'إذا امتلأ مخزنُ الصفحات حُذِفت الأقدمُ استعمالًا أوّلًا.';
 const JD_RULE_B = ' صفحةً من المصحف؛ فإذا امتلأ حُذِفت الأقدمُ استعمالًا أوّلًا.';
 const DW_CARD_TITLE = 'وِردي اليوم';
-const DW_CARD_EMPTY = 'لم تختر بعد. اختر من المصحف أو الأذكار أو المحفّظ.';
+const DW_CARD_EMPTY = 'لم تختر بعد. اختر من المصحف أو الأذكار أو أسماء الله الحسنى أو الدروس.';
 const DW_LINE_MUSHAF = 'المصحف:';
 const DW_LINE_ADHKAR = 'الأذكار:';
 const DW_LINE_MEMORIZE = 'الحفظ:';
@@ -21409,6 +21556,171 @@ const DW_NONE = 'بلا اختيار';
 const DW_MUSHAF_LABEL = 'اختر وردك من المصحف';
 const DW_ADHKAR_LABEL = 'اختر ذكرك اليوميّ';
 const DW_MEMORIZE_LABEL = 'اختر ما تحفظه';
+
+// ITEM 05-C -- THE LIST'S OWN VISIBLE TEXT, in the same one place as the layer's, and under
+// the same ban. Not one of these strings names a time, an alert, or anything that rings: the
+// list is a statement of what the reader added, exactly as the card above it is a statement of
+// what he chose.
+const DW_ADD_GLYPH = '+';
+const DW_REMOVE_GLYPH = '-';
+const DW_ADD_LABEL = 'أضف وردًا إلى قائمتك';
+const DW_REMOVE_LABEL = 'احذف من قائمتك';
+const DW_PICK_TITLE = 'اختر ما تضيفه';
+const DW_PICK_SECTION = 'اختر القسم أوّلًا';
+const DW_PICK_BACK = 'رجوع إلى الأقسام';
+const DW_PICK_CLOSE = 'إغلاق قائمة الاختيار';
+const DW_PICK_LOADING = 'يُحمَّلُ الآن';
+const DW_PICK_FAILED = 'لم يتيسّر جلبُ هذه القائمة الآن.';
+const DW_PICK_EMPTY = 'لا شيء في هذه القائمة.';
+const DW_PICK_ADDED = 'مضاف';
+const DW_PICK_FULL = 'امتلأت قائمتك.';
+const DW_SEC_MUSHAF = 'المصحف';
+const DW_SEC_ADHKAR = 'الأذكار';
+const DW_SEC_ASMAA = 'أسماء الله الحسنى';
+const DW_SEC_LESSONS = 'الدروس';
+const DW_LINE_ASMAA = 'الأسماء:';
+const DW_LINE_LESSONS = 'الدروس:';
+const DW_WHOLE_SECTION = 'كلُّها';
+
+// ---- ITEM 05-C: THE READER'S OWN WIRD LIST ------------------------------------------------
+// A SECOND STORE, BESIDE THE CHOICE RECORD ABOVE AND NEVER INSIDE IT. That record is a
+// three-slot CHOICE -- one mushaf wird, one dhikr, one surah to memorise -- and it is sealed:
+// its reader and its writer hold exactly one setItem between them and no removeItem at all.
+// This is a different thing over different rows: a LIST the reader builds himself, with a `+`
+// that opens a picker over four sections and a `-` beside every entry he added. So it takes
+// its own versioned key, its own reader, its own writer and its own output on the card, and
+// nothing here is fed through dailyWirdLines, whose line COUNT and line ORDER are pinned
+// exactly and are a contract about the three-slot record and nothing else.
+//
+// A ROW IS STILL A STATEMENT. Pressing one does nothing: three of the four sections have no
+// entry point that takes an item -- adhkar, asmaa and lessons are each opened whole -- and
+// inventing three of them is not what this round is for.
+//
+// THE `-` REMOVES BY WRITING THE SHORTER LIST. There is no removeItem in this feature at all.
+// Taking the last entry away stores { v: 1, items: [] } rather than deleting the key, so a
+// reader who empties his list is a reader with an empty list, not a reader with no store.
+//
+// THE STORED VALUE IS AN OBJECT, NEVER A BARE ARRAY, for the reason the record above records:
+// a top-level array is refused there, and a second store that shipped as one would be the same
+// mistake under a new key.
+const WIRD_LIST_KEY = 'ezik_wird_list_v1';
+const WIRD_LIST_V = 1;
+const WIRD_LIST_MAX = 20;
+const WIRD_LIST_SECTIONS = ['mushaf', 'adhkar', 'asmaa', 'lessons'];
+
+// THE ONE NORMALISER, so the reader and the writer cannot disagree about what a row is. A row
+// that is not an object, that names a section outside the four, or that carries a missing or
+// oversized id or label is DROPPED rather than repaired -- a repaired row is a wird the reader
+// never added. The cap and the duplicate rule are enforced here and not at the call sites.
+function wirdListClean(items) {
+  const out = [];
+  const seen = [];
+  const src = Array.isArray(items) ? items : [];
+  for (const it of src) {
+    if (out.length >= WIRD_LIST_MAX) break;
+    if (!it || typeof it !== 'object' || Array.isArray(it)) continue;
+    if (typeof it.k !== 'string' || WIRD_LIST_SECTIONS.indexOf(it.k) === -1) continue;
+    if (typeof it.id !== 'string' || it.id.length > 120) continue;
+    if (typeof it.label !== 'string' || it.label.length < 1 || it.label.length > 200) continue;
+    const key = it.k + '|' + it.id;
+    if (seen.indexOf(key) !== -1) continue;
+    seen.push(key);
+    out.push({ k: it.k, id: it.id, label: it.label });
+  }
+  return out;
+}
+// A missing key, a throw, bad JSON, a non-object, an array, and a record whose items are not
+// an array all read as the default -- the app exactly as it was before this item.
+function readWirdList() {
+  const out = { v: WIRD_LIST_V, items: [] };
+  let raw = null;
+  try { raw = localStorage.getItem(WIRD_LIST_KEY); } catch (e) { return out; }
+  if (typeof raw !== 'string' || !raw) return out;
+  let rec = null;
+  try { rec = JSON.parse(raw); } catch (e) { return out; }
+  if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return out;
+  if (!Array.isArray(rec.items)) return out;
+  out.items = wirdListClean(rec.items);
+  return out;
+}
+// IT RETURNS WHAT IS NOW IN EFFECT, never what was asked for -- the same discipline the writer
+// above keeps, so a control can set its own state from this return and cannot end up showing a
+// wird that was never stored.
+function writeWirdList(items) {
+  const rec = { v: WIRD_LIST_V, items: wirdListClean(items) };
+  try { localStorage.setItem(WIRD_LIST_KEY, JSON.stringify(rec)); } catch (e) { return readWirdList(); }
+  return readWirdList();
+}
+// PURE ARRAY WORK, NO STORAGE. The writer above is the only thing in this feature that touches
+// the device, and it normalises whatever these hand it.
+function wirdListAdd(items, k, id, label) {
+  const out = wirdListClean(items);
+  for (const it of out) if (it.k === k && it.id === id) return out;
+  if (out.length >= WIRD_LIST_MAX) return out;
+  out.push({ k: k, id: id, label: label });
+  return wirdListClean(out);
+}
+function wirdListRemove(items, k, id) {
+  return wirdListClean(items).filter((it) => !(it.k === k && it.id === id));
+}
+function wirdListHas(items, k, id) {
+  return wirdListClean(items).filter((it) => it.k === k && it.id === id).length > 0;
+}
+
+// ---- THE UNIT LISTS THE PICKER OFFERS -----------------------------------------------------
+// One function per section, each returning rows of { id, label }. `label` is the exact text the
+// card will draw, captured at PICK TIME, so a stored wird is drawn back with no fetch of any
+// kind on the home render.
+//
+// MUSHAF is the only one of the four with a module-level catalogue. buildMushafNav() is
+// preferred ONLY when it returns without work -- that is, when a visit to the mushaf has
+// already filled its cache, which is what reading the cache directly says. Calling it cold
+// would build a 144-row page index out of __layoutData, which may not have arrived, for a list
+// that needs 114 names and no page numbers at all.
+function wirdPickerMushafRows() {
+  const nav = (__mushafNav && __mushafNav.length) ? __mushafNav : MUSHAF_NAV_FALLBACK;
+  const out = [];
+  for (const r of nav) {
+    if (!r || r.k !== 's') continue;
+    const nm = SURAH_NAMES[r.n] || toArabicDigits(r.n);
+    out.push({ id: String(r.n), label: DW_LINE_MUSHAF + ' ' + DW_SURAH_WORD + ' ' + nm });
+  }
+  return out;
+}
+// LESSONS HAS NO UNIT BELOW THE SECTION. A scholar is addressed by an Arabic display name that
+// this file forbids treating as an identifier, and a lesson row carries a URL and no id. So the
+// SECTION itself is the single choice, and its id is the empty string.
+function wirdPickerLessonsRows() {
+  return [{ id: '', label: DW_LINE_LESSONS + ' ' + DW_WHOLE_SECTION }];
+}
+// ADHKAR and ASMAA are one module-level await away. Both loaders are cached and de-duplicated,
+// and both are called ONLY when the picker has been opened ON THAT SECTION -- never on the home
+// render. There is no probe on the home screen, no warm on boot and no prefetch anywhere in
+// this file, and this feature does not become the first one.
+function wirdPickerAdhkarRows() {
+  return loadAdhkar().then((db) => {
+    const cats = (db && Array.isArray(db.categories)) ? db.categories : [];
+    const out = [];
+    for (const c of cats) {
+      if (!c || c.id === null || c.id === undefined) continue;
+      const t = (typeof c.title === 'string' && c.title) ? c.title : String(c.id);
+      out.push({ id: String(c.id), label: DW_LINE_ADHKAR + ' ' + t });
+    }
+    return out;
+  });
+}
+// THE ATTRIBUTION FILTER IS NOT OPTIONAL HERE. asmaaCardShowable is the rule the section applies
+// once on the way in, at its own load site rather than inside the loader; a picker that listed
+// the raw records would be a SECOND path around it, which is the exact thing that rule exists to
+// make impossible. So it is applied here too, on the same records, before a single row is named.
+function wirdPickerAsmaaRows() {
+  return loadAsmaaNames().then((raw) => {
+    const rows = Array.isArray(raw) ? raw.filter(asmaaCardShowable) : [];
+    const out = [];
+    for (const rec of rows) out.push({ id: String(rec.n), label: DW_LINE_ASMAA + ' ' + rec.name });
+    return out;
+  });
+}
 
 const WIRD_TARGET_KEY = 'mushaf_wird_target_v1';
 // Canonical decimal only. ' 5', '5 ', '5.0', '-5', '05', '', 'abc' and Arabic-Indic digits
