@@ -3152,6 +3152,54 @@ eq('N30: ...and the chat is one of them', INDEX_SCREENS.chat.shell, 'istana');
   // NO LARGE FLOATING CONTROL came back with the redesign.
   const oversize = ['sendBtn', 'micBtn', 'toolBtn'].filter((k) => (s[k] || {}).width > 56 || (s[k] || {}).height > 56);
   eq('N33: no composer control grew into a floating circle', oversize, []);
+  /* ITEM 05-F. THE COMPOSER IS A FIELD ROW OVER ONE CONTROL ROW.
+     The owner put the Ezik composer beside the Claude mobile composer and ruled: same
+     arrangement, same idea. That is a LAYOUT ruling with a right answer and a wrong one, so it
+     is pinned here rather than left to whoever next edits the dock.
+     WHY SOURCE ORDER IS THE WHOLE TEST. The bar carries no `dir` of its own -- it inherits
+     body{direction:rtl} -- so the FIRST child of the row paints at the VISUAL RIGHT. MEASURED
+     at 390px before the change: the field was source #0 and painted at right:369, send was
+     source #1 and painted at left:21. So pinning the source order pins what the eye sees, and
+     the arrangement was re-measured in headless Chrome at 320/360/390/430/1440 after it. */
+  {
+    const rowOpen = '<div className="ez-hit" style={s.toolBar}>';
+    const rowAt = chatSrc.indexOf(rowOpen);
+    const noteAt = chatSrc.indexOf('<div className="ezc-note">');
+    const barAt = chatSrc.indexOf('<div style={s.inputBar}>');
+    const fieldRow = (barAt !== -1 && rowAt > barAt) ? chatSrc.slice(barAt, rowAt) : '';
+    ok('05-F: the field has the top row of the bar to itself',
+      fieldRow.indexOf('<textarea') !== -1 && fieldRow.indexOf('<button') === -1,
+      'a control is back beside the field (row chars=' + fieldRow.length + ')');
+    const row = (rowAt !== -1 && noteAt > rowAt) ? chatSrc.slice(rowAt, noteAt) : '';
+    ok('05-F: ...and ONE control row underneath carries every control', !!row, 'rowAt=' + rowAt);
+    // THE FIVE, IN THE SOURCE ORDER THAT MIRRORS TO THE ARRANGEMENT THE OWNER NAMED:
+    //   source #0 send | #1 mic | #2 call   <-- gap -->   #3 pill | #4 [+]
+    //   visual  RIGHT ......................................................... LEFT
+    // Each is matched on its HANDLER or its glyph, never on a label, so a translation cannot
+    // move one and a re-ordering cannot hide behind one.
+    const order = [
+      ['send', '<SendIcon'],
+      ['mic', 'onClick={isListening ? stopListening : startListening}'],
+      ['call', '<WaveformIcon'],
+      ['mode pill', 'setDepthMode(next);'],
+      ['[+]', 'setAttachMenuOpen(v => !v)'],
+    ];
+    const at = order.map(([, k]) => row.indexOf(k));
+    ok('05-F: send | mic | call  <-- gap -->  pill | [+] is the source order, so it is the visual one',
+      at.every((x) => x !== -1) && at.every((x, i) => i === 0 || x > at[i - 1]),
+      order.map(([n], i) => n + '@' + at[i]).join(' '));
+    // 44-j COVERS THIS ROW BY JOINING AN EXISTING SELECTOR, not by widening the sheet: the row
+    // itself carries .ez-hit, so every button inside it takes the 44x44 overlay W1 already pins.
+    ok('05-F: every button in the control row sits inside the 44x44 touch group',
+      rowAt !== -1 && /\.ez-hit button::before/.test(css));
+    // AND THE VOICE ENTRY IS STILL ONLY A SCREEN CHANGE. The glyph changed; the handler did not,
+    // so the child barrier still runs before the founder token, exactly as D85 left it.
+    ok('05-F: the voice entry still only sets the screen -- its handler did not move',
+      row.indexOf('<WaveformIcon') !== -1
+        && row.indexOf("onClick={() => setScreen('call')}") !== -1
+        && row.indexOf('directConvoAllowed && (') !== -1);
+    ok('05-F: the standing disclaimer is still the last thing in the bar', noteAt > rowAt);
+  }
   ok('N33: the thread sits ON the composer without a second scroll container',
     /\.ezc-scroll>\*:first-child\{margin-block-start:auto\}/.test(css)
     && !/\.ezc-scroll\{[^}]*justify-content:flex-end/.test(css));

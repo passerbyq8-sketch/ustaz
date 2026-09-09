@@ -2844,6 +2844,10 @@ const PlayIcon = (p) => <Icon {...p}><polygon points="6 4 20 12 6 20 6 4" fill="
 const PauseIcon = (p) => <Icon {...p}><rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/><rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/></Icon>;
 const ListCheckIcon = (p) => <Icon {...p}><path d="M3 17l2 2 4-4"/><path d="M3 7l2 2 4-4"/><line x1="13" y1="6" x2="21" y2="6"/><line x1="13" y1="12" x2="21" y2="12"/><line x1="13" y1="18" x2="21" y2="18"/></Icon>;
 const PhoneCallIcon = (p) => <Icon {...p}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></Icon>;
+// ITEM 05-F: the voice entry's glyph. FOUR SHORT BARS OF DIFFERING HEIGHT, in the house style --
+// the same 24x24 box, the same 2px stroke and the same round caps as every mark beside it. It is
+// artwork and nothing else: the button it sits in keeps the handler it has always had.
+const WaveformIcon = (p) => <Icon {...p}><line x1="5" y1="10" x2="5" y2="14"/><line x1="9.67" y1="6" x2="9.67" y2="18"/><line x1="14.33" y1="8" x2="14.33" y2="16"/><line x1="19" y1="11" x2="19" y2="13"/></Icon>;
 const PhoneOffIcon = (p) => <Icon {...p}><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.34a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="1" y2="23"/></Icon>;
 
 // ============================================================
@@ -14304,60 +14308,73 @@ function App() {
           style={s.input}
           disabled={isLoading || isListening}
         />
-        <button onClick={() => sendMessage(input)} disabled={isLoading || (!input.trim() && !pendingImage)} style={{ ...s.sendBtn, opacity: isLoading || !input.trim() ? 0.4 : 1 }}>
-          <SendIcon size={20} color="var(--on-accent)" />
-        </button>
       </div>
 
-      {/* D87: the tool row -- ONE line beneath the composer. The page is RTL, so the first
-          group paints at the RIGHT ([+] then the model selector) and the second at the LEFT
-          (mic then live call). Nothing here is new machinery. The [+] drives the SAME two
-          hidden file inputs and the SAME onPickImage that already shipped. The selector is the
-          SAME depthMode cycle. Item 84 lifted the token requirement from it, so it no longer
-          opens an unlock sheet, and the chat now carries no PIN surface at all. The mic is the SAME startListening/stopListening, untouched. The
-          call button only sets the screen: the EXISTING screen chain then applies the child
-          barrier FIRST and the founder token SECOND, so a child gets the notice and is never
-          offered the PIN sheet. */}
+      {/* ITEM 05-F: THE COMPOSER, ARRANGED AS THE OWNER RULED -- a field row with nothing else
+          in it, and ONE control row underneath. Nothing here is new machinery and not one
+          handler moved: the [+] drives the SAME two hidden file inputs and the SAME onPickImage,
+          the pill is the SAME depthMode cycle, the mic is the SAME startListening/stopListening,
+          send is the SAME sendMessage(input) with the SAME disabled test, and the call button
+          still only sets the screen -- the EXISTING screen chain applies the child barrier FIRST
+          and the founder token SECOND, so a child gets the notice and is never offered the PIN
+          sheet. The voice track was frozen on 4 September and this item does not reopen it.
+
+          WHICH END EACH CONTROL LANDS ON. The bar carries no `dir` of its own, so it inherits
+          body{direction:rtl} and SOURCE ORDER decides the side: the first child of a flex row
+          paints at the VISUAL RIGHT. MEASURED at 390px before the change -- the field was source
+          #0 and painted at right:369, send was source #1 and painted at left:21. So the row is
+          written right-to-left as the eye reads it:
+
+            source #0 send | #1 mic | #2 call   <-- gap -->   #3 pill | #4 [+]
+            visual  RIGHT ...................................................... LEFT
+
+          space-between holds the two clusters apart at every width, which is what keeps the row
+          tidy from 320px to 1440px. className="ez-hit" is what puts every button in this row
+          inside the 44x44 touch-target group (`.ez-hit button::before`, item 44-ج) -- the row
+          joins an EXISTING selector rather than widening the sheet. */}
       {/* image-only input */}
       <input ref={fileInputRef} type="file" accept="image/*" onChange={onPickImage} style={{ display: 'none' }} />
       {/* document input (PDF / TXT) */}
       <input ref={docInputRef} type="file" accept=".pdf,application/pdf,.txt,text/plain,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={onPickImage} style={{ display: 'none' }} />
-      <div style={s.toolBar}>
+      <div className="ez-hit" style={s.toolBar}>
+        {/* THE RIGHT-HAND CLUSTER, read right to left: send, then the two round icon buttons. */}
         <div style={s.toolGroup}>
-          {caps.upload && (
-          <div style={{ position: 'relative', display: 'inline-flex' }}>
-            {attachMenuOpen && (
-              <>
-                {/* backdrop: closes menu on outside click */}
-                <div onClick={() => setAttachMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
-                {/* menu: opens above the button (the tool row is at the bottom) */}
-                <div style={{ position: 'absolute', bottom: '120%', right: 0, zIndex: 41, background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 12, boxShadow: 'var(--a3-lift)', padding: 6, minWidth: 168, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <button
-                    onClick={() => { setAttachMenuOpen(false); if (fileInputRef.current) fileInputRef.current.click(); }}
-                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 15, color: 'var(--ink)', width: '100%', textAlign: 'right' }}
-                  >
-                    <span style={{ fontSize: 18 }}>{'\uD83D\uDDBC\uFE0F'}</span><span>{ezT('chat.attachImage')}</span>
-                  </button>
-                  <button
-                    onClick={() => { setAttachMenuOpen(false); if (docInputRef.current) docInputRef.current.click(); }}
-                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 15, color: 'var(--ink)', width: '100%', textAlign: 'right' }}
-                  >
-                    <span style={{ fontSize: 18 }}>{'\uD83D\uDCC4'}</span><span>{ezT('chat.attachFile')}</span>
-                  </button>
-                </div>
-              </>
-            )}
-            <button
-              onClick={() => setAttachMenuOpen(v => !v)}
-              disabled={isLoading || isListening}
-              style={{ ...s.toolBtn, opacity: (isLoading || isListening) ? 0.4 : 1 }}
-              aria-label={'\u0625\u0631\u0641\u0627\u0642 \u0645\u0644\u0641 \u0623\u0648 \u0635\u0648\u0631\u0629'}
-              {...(uiLang === 'ar' ? null : { 'aria-label': ezT('chat.attach') })}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
-          </div>
+          <button onClick={() => sendMessage(input)} disabled={isLoading || (!input.trim() && !pendingImage)} style={{ ...s.sendBtn, opacity: isLoading || !input.trim() ? 0.4 : 1 }}>
+            <SendIcon size={20} color="var(--on-accent)" />
+          </button>
+          <button
+            onClick={isListening ? stopListening : startListening}
+            disabled={isLoading}
+            aria-label={'\u0625\u0645\u0644\u0627\u0621 \u0635\u0648\u062a\u064a'}
+            {...(uiLang === 'ar' ? null : { 'aria-label': ezT('chat.dictate') })}
+            className="ez-anim"
+            style={{
+              ...s.micBtn,
+              background: isListening ? 'var(--red-deep)' : 'var(--tint)',
+              animation: isListening ? 'pulse 1.2s ease-in-out infinite' : 'none',
+              opacity: isLoading ? 0.4 : 1,
+            }}
+          >
+            {isListening ? <MicOffIcon size={20} color="var(--on-accent)" /> : <MicIcon size={20} color="var(--red)" />}
+          </button>
+          {/* Live call -- the entry D85 removed, restored here. It sets the screen and NOTHING
+              else, which is precisely how the guard ORDER is preserved: the screen chain runs
+              childVoiceBlocked() -> ChildVoiceNotice BEFORE hasFounderToken() -> UnlockSheet.
+              directConvoAllowed is the parental lock that wrapped this button before D85. */}
+          {directConvoAllowed && (
+          <button
+            onClick={() => setScreen('call')}
+            disabled={isLoading || isListening}
+            aria-label={'\u0645\u0643\u0627\u0644\u0645\u0629 \u0635\u0648\u062a\u064a\u0629 \u0645\u0628\u0627\u0634\u0631\u0629'}
+            {...(uiLang === 'ar' ? null : { 'aria-label': ezT('chat.call') })}
+            style={{ ...s.toolBtn, background: 'var(--a3-blue)', border: '1px solid var(--a3-blue)', opacity: (isLoading || isListening) ? 0.4 : 1 }}
+          >
+            <WaveformIcon size={20} color="var(--on-accent)" />
+          </button>
           )}
+        </div>
+        {/* THE LEFT-HAND CLUSTER, read right to left: the mode pill, then the [+]. */}
+        <div style={s.toolGroup}>
           {/* Model selector. RENDERED FOR EVERY BAND so موجز is always available; the two deep
               tiers keep their EXISTING 18+ visibility -- a non-adult sees the chip fixed on
               موجز and cannot cycle into them. For an adult the cycle is byte-for-byte the
@@ -14387,54 +14404,68 @@ function App() {
             title={caps.band === 'adult' ? ezT('chat.depthHint') : undefined}
             aria-label={depthMode === 'brief' ? ezT('chat.depthBrief') : depthMode === 'detailed' ? ezT('chat.depthDetailed') : ezT('chat.depthScholar')}
             style={{
-              ...s.sendBtn,
+              ...s.toolBtn,
+              width: 'auto',
+              paddingBlock: 0,
+              borderRadius: 999,
+              fontFamily: 'inherit',
+              borderColor: depthMode === 'brief' ? 'var(--a3-line)' : 'transparent',
               background: depthMode === 'brief' ? 'var(--tint)' : depthMode === 'detailed' ? 'var(--red)' : 'var(--scholar)',
               opacity: isLoading ? 0.4 : 1,
               cursor: caps.band === 'adult' ? 'pointer' : 'default',
               fontSize: 13,
               fontWeight: 700,
               color: depthMode === 'brief' ? 'var(--red)' : 'var(--white)',
-              minWidth: 52,
+              minWidth: 0,
               whiteSpace: 'nowrap',
-              paddingInline: 10,
+              paddingInline: 14,
+              flexShrink: 1,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: 'block',
+              lineHeight: '42px',
+              textAlign: 'center',
             }}
           >
             {depthMode === 'brief' ? ezT('chat.depthBrief') : depthMode === 'detailed' ? ezT('chat.depthDetailed') : ezT('chat.depthScholar')}
           </button>
-        </div>
-        <div style={s.toolGroup}>
-          <button
-            onClick={isListening ? stopListening : startListening}
-            disabled={isLoading}
-            aria-label={'\u0625\u0645\u0644\u0627\u0621 \u0635\u0648\u062a\u064a'}
-            {...(uiLang === 'ar' ? null : { 'aria-label': ezT('chat.dictate') })}
-            className="ez-anim"
-            style={{
-              ...s.micBtn,
-              background: isListening ? 'var(--red-deep)' : 'var(--tint)',
-              animation: isListening ? 'pulse 1.2s ease-in-out infinite' : 'none',
-              opacity: isLoading ? 0.4 : 1,
-            }}
-          >
-            {isListening ? <MicOffIcon size={20} color="var(--on-accent)" /> : <MicIcon size={20} color="var(--red)" />}
-          </button>
-          {/* Live call -- the entry D85 removed, restored here. It sets the screen and NOTHING
-              else, which is precisely how the guard ORDER is preserved: the screen chain runs
-              childVoiceBlocked() -> ChildVoiceNotice BEFORE hasFounderToken() -> UnlockSheet.
-              directConvoAllowed is the parental lock that wrapped this button before D85. */}
-          {directConvoAllowed && (
-          <button
-            onClick={() => setScreen('call')}
-            disabled={isLoading || isListening}
-            aria-label={'\u0645\u0643\u0627\u0644\u0645\u0629 \u0635\u0648\u062a\u064a\u0629 \u0645\u0628\u0627\u0634\u0631\u0629'}
-            {...(uiLang === 'ar' ? null : { 'aria-label': ezT('chat.call') })}
-            style={{ ...s.toolBtn, opacity: (isLoading || isListening) ? 0.4 : 1 }}
-          >
-            <PhoneCallIcon size={20} color="var(--red)" />
-          </button>
+          {caps.upload && (
+          <div style={{ position: 'relative', display: 'inline-flex' }}>
+            {attachMenuOpen && (
+              <>
+                {/* backdrop: closes menu on outside click */}
+                <div onClick={() => setAttachMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
+                {/* menu: opens above the button (the tool row is at the bottom) */}
+                <div style={{ position: 'absolute', bottom: '120%', left: 0, zIndex: 41, background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 12, boxShadow: 'var(--a3-lift)', padding: 6, minWidth: 168, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <button
+                    onClick={() => { setAttachMenuOpen(false); if (fileInputRef.current) fileInputRef.current.click(); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 15, color: 'var(--ink)', width: '100%', textAlign: 'right' }}
+                  >
+                    <span style={{ fontSize: 18 }}>{'\uD83D\uDDBC\uFE0F'}</span><span>{ezT('chat.attachImage')}</span>
+                  </button>
+                  <button
+                    onClick={() => { setAttachMenuOpen(false); if (docInputRef.current) docInputRef.current.click(); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 15, color: 'var(--ink)', width: '100%', textAlign: 'right' }}
+                  >
+                    <span style={{ fontSize: 18 }}>{'\uD83D\uDCC4'}</span><span>{ezT('chat.attachFile')}</span>
+                  </button>
+                </div>
+              </>
+            )}
+            <button
+              onClick={() => setAttachMenuOpen(v => !v)}
+              disabled={isLoading || isListening}
+              style={{ ...s.toolBtn, opacity: (isLoading || isListening) ? 0.4 : 1 }}
+              aria-label={'\u0625\u0631\u0641\u0627\u0642 \u0645\u0644\u0641 \u0623\u0648 \u0635\u0648\u0631\u0629'}
+              {...(uiLang === 'ar' ? null : { 'aria-label': ezT('chat.attach') })}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </div>
           )}
         </div>
       </div>
+
       <div className="ezc-note">{ezT(standingNoticeKey(caps.band))}</div>
         </div>
       </div>
@@ -24511,17 +24542,28 @@ const s = {
   // bound did not move -- and the send/mic/tool controls keep their fixed square so the glyph
   // inside them can never outgrow the box.
   errorBanner: { margin: '0 0 2px', padding: '10px 14px', background: 'var(--warn-bg)', border: '1px solid var(--warn-line)', borderRadius: 12, fontSize: 14, color: 'var(--warn-ink)', fontWeight: 500, textAlign: 'center' },
+  // ITEM 05-F: THE FIELD ROW, and the field is the only thing in it. The send button that used
+  // to be glued to its side moved down into the control row, at the end the owner named.
   inputBar: { display: 'flex', alignItems: 'flex-end', gap: 10 },
   input: { resize: 'none', maxHeight: 200, overflowY: 'auto', lineHeight: 1.55, fontFamily: 'inherit', flex: 1, minWidth: 0, /* 13.4-b */ padding: '11px 16px', fontSize: 15, borderRadius: 16, border: '1px solid var(--a3-line)', background: 'var(--a3-ice)', color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)', direction: 'rtl', boxSizing: 'border-box' },
-  sendBtn: { width: 46, height: 46, borderRadius: '22px 22px 15px 15px', background: 'var(--a3-blue)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  micBtn: { width: 46, height: 46, borderRadius: '22px 22px 15px 15px', border: '1px solid var(--a3-line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  // D87: the tool row beneath the composer. space-between + RTL puts the first group on the
-  // RIGHT and the second on the LEFT, which is the order the row is specified in.
-  toolBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '0 2px' },
-  toolGroup: { display: 'flex', alignItems: 'center', gap: 8 },
+  // ITEM 05-F: ONE ROUND SIZE FOR EVERY ICON BUTTON IN THE ROW. The three of them were 46, 46
+  // and 44 in two different shapes, which is what made the row read as scattered rather than as
+  // one line. They are 44x44 circles now -- 44 is the touch floor item 44-ج established, so the
+  // painted box and the finger's box are finally the same box on these three.
+  sendBtn: { width: 44, height: 44, borderRadius: '50%', background: 'var(--a3-blue)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  micBtn: { width: 44, height: 44, borderRadius: '50%', border: '1px solid var(--a3-line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  // ITEM 05-F: the ONE control row beneath the field. space-between + RTL puts the first group
+  // on the RIGHT and the second on the LEFT, which is the order the row is specified in, and the
+  // gap it opens between the two clusters is what keeps the row tidy from 320px to 1440px.
+  toolBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, minWidth: 0, padding: 0 },
+  toolGroup: { display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 },
   // Same geometry as micBtn, tinted. The old [+] drew a var(--red) icon on the var(--red)
   // sendBtn gradient -- blue on blue, invisible. The tool row draws all three circles alike.
-  toolBtn: { width: 44, height: 44, borderRadius: 14, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  // ITEM 05-F: and it is now literally a circle, so the [+] and the voice entry match the mic
+  // and send beside them. The mode pill spreads this key too and overrides only its width and
+  // its radius, so the pill keeps the one border, the one tint and the one 44px height the row
+  // is built on -- and stays inside the size check that already watches this key.
+  toolBtn: { width: 44, height: 44, borderRadius: '50%', background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
 
   // ===== لوحة الأهل =====
   // S115: the parents' panel. The strip header it shared with the favourites screen is gone --
