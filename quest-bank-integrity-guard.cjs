@@ -785,7 +785,20 @@ const SEALED = {
   //                    table and the SW_PROSE mirror above both followed, and THIS digest is
   //                    re-cut last. CACHE IS NOT BUMPED: this is a branch for the owner to try on
   //                    a preview, not a ship, and sw.js says the merge round owns the bump.
-  'sw.js': 'c99b85670fbbe08d12f8045f03a4a199afa5d52edda4a10d348b85c8ad4a67c4',
+  //   2026-09-09   -- ITEM 05 A/C/D: three sections per row at EVERY width (index.html only, so
+  //                    the shell grew 122811 -> 123062); «wirdi al-yawm» became a live list with
+  //                    a + and a - over four sections, under its own key ezik_wird_list_v1; and
+  //                    «arrange your home» moved out of the home into Settings, where it now
+  //                    reorders the ten shelf sections under ezik_home_order_v1 as well as the
+  //                    three widgets it always reordered. app.js was rebuilt from that source
+  //                    1367950 -> 1391446 (+23484) by node tools/build-app.cjs, and CORE_BYTES
+  //                    was re-cut 2210724 -> 2234471 (+23747) by node tools/core-bytes.cjs
+  //                    --write -- the bundle's +23484 plus the shell's +251, which is exactly
+  //                    that delta. The worker byte table and the THREE SW_PROSE figures above
+  //                    (the shell at :57, the shell and the bundle at :111) all followed, and
+  //                    THIS digest is re-cut last. CACHE IS NOT BUMPED: this is a branch for the
+  //                    owner to try, not a ship, and sw.js says the merge round owns the bump.
+  'sw.js': '7be17f9ee9fbf2f1844d552b5d8372e16426ade6dd546a5c6a50ae19ab0f20fa',
 };
 
 // ---------------------------------------------------------------------------
@@ -1893,10 +1906,10 @@ async function compare(goldenPath) {
     //  { n, sum: [a, b] }  n is the byte sum of those files on disk
     //  { n, dir: 'count' | 'sum' | 'mean' }   n is that statistic over the mushaf page scans
     const SW_PROSE = [
-      { n: 122811, of: 'index.html' },
+      { n: 123062, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1367950, of: 'app.js' },
+      { n: 1391446, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
