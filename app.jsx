@@ -5253,37 +5253,20 @@ function EzikIstanaHome(v) {
       <div style={s.ezistScroll}>
         <div className="ezist-wrap">
           <EzistMasthead name={v.name} g={v.greeting} hijri={v.hijri} onOpenAdhkar={v.onOpenAdhkar} />
-          {/* A-3: WHAT HE CHOSE, shown back to him on opening. It is a statement, not an
-              alarm: it names the choice and stops there. */}
-          {/* ITEM 05-C: and now also WHAT HE ADDED HIMSELF. The `+` on the title row opens the
-              picker; every row he added carries a `-` that removes it by writing the shorter
-              list. The added rows are drawn ABOVE the choice lines and from a SECOND store with
-              its own key -- they are not fed through dailyWirdLines, whose line count and line
-              order are a contract about the three-slot record and nothing else. The empty
-              sentence is drawn only when BOTH are empty. */}
-          <div style={s.ezistQuran}>
-            <div style={s.ezwidHead}>
-              <span style={s.ezistCardTitle}>{DW_CARD_TITLE}</span>
-              <span className="ez-hit">
-                <button type="button" onClick={() => v.onWirdPick(true)} aria-label={DW_ADD_LABEL}
-                  className="ezhome-focus" style={s.ezwidAct}>{DW_ADD_GLYPH}</button>
-              </span>
-            </div>
-            {(v.wirdItems || []).map((it) => (
-              <div key={it.k + '|' + it.id} style={s.ezwidPanelRow}>
-                <span style={s.ezwidPanelName}>{it.label}</span>
-                <span className="ez-hit" style={s.ezwidPanelActs}>
-                  <button type="button" onClick={() => v.onWirdRemove(it.k, it.id)}
-                    aria-label={DW_REMOVE_LABEL + ' ' + it.label}
-                    className="ezhome-focus" style={s.ezwidAct}>{DW_REMOVE_GLYPH}</button>
-                </span>
-              </div>
-            ))}
-            {(v.dailyWirdLines || []).map((t, i) => <div key={i} style={s.ezistCardSub}>{t}</div>)}
-            {!(v.wirdItems || []).length && !(v.dailyWirdLines || []).length
-              ? <div style={s.ezistCardSub}>{DW_CARD_EMPTY}</div>
-              : null}
-          </div>
+          {/* ITEM 05-E2 -- «وِردي اليوم» IS A SECTION YOU ENTER, AND THIS IS THE DOOR.
+              The owner ruled that the wird is wrong in KIND on this screen: it is not a card, it
+              is a section, the `+` lives INSIDE it, and nothing he adds appears on the home at
+              all. So the home keeps ONE row, where the card stood, above the shelf -- and it
+              draws the TITLE and nothing else. The `+`, every added wird line, every `-`, the
+              dailyWirdLines output and DW_CARD_EMPTY all went into the section together; not one
+              of them is deleted, and the section below is the one place they are drawn now.
+              A row, not a card: pressing it enters. It carries no className, so no rule for
+              .ezist-quran can reach it -- the daily verse is still the one element with that
+              class, and it is in the top bar. */}
+          <button type="button" className="ezhome-focus" onClick={() => v.onOpenWird(true)}
+            style={s.ezwidEnter}>
+            <span style={s.ezistCardTitle}>{DW_CARD_TITLE}</span>
+          </button>
           {/* S118: the daily verse is no longer the mosaic's last cell -- it is the top bar.
               The panel itself did not change: same component, same getDailyVerse(), same text
               printed verbatim. Only where it is drawn moved. */}
@@ -5401,6 +5384,64 @@ function EzikWirdPicker({ items, onAdd, onClose }) {
   );
 }
 
+
+// ============================================================
+// ITEM 05-E2 -- «وِردي اليوم», THE SECTION
+// ============================================================
+// A LAYER, NOT A SCREEN, for the reason the picker above it is one: a new `screen` value costs
+// an entry in the screen inventory that theme-coverage-guard cross-checks against
+// EZIK-THEME-33-HANDOFF.md, and a section opened over the home is not a route. Its OWNER
+// registers its history entry through useEzikBackLayer, exactly as asmaaOpen and wirdPickOpen
+// already do, so the device back button closes IT rather than leaving the home screen. The
+// picker opens OVER this section and owns its own two entries, so back walks
+// picker unit -> picker section -> wird section -> home, one press per level.
+//
+// IT IS OUTSIDE THE ISTANA SENTINELS ON PURPOSE, on the same terms as the picker: the block
+// those two comments delimit is read as one unit by a guard that measures the home's STRUCTURE,
+// and a section that opens over the home is not part of that structure.
+//
+// WHAT IT HOLDS, IN THE OWNER'S ORDER: the title and the one `+`, then every wird he added with
+// its own `-`, then the three old choice lines that used to sit on the card, then the empty
+// sentence when both lists are empty. Nothing is fetched by entering it -- the picker's effect
+// still runs only when a SECTION inside the picker is chosen, which is two presses from here.
+//
+// IT IS HANDED THE HOME'S OWN VIEW OBJECT. Not a second set of props built for it: `v` is the
+// object the home is built from, so `v.dailyWirdLines`, `v.wirdItems`, `v.onWirdPick` and
+// `v.onWirdRemove` are the identical expressions the card read, under the identical names. The
+// prop name dailyWirdLines does not move and neither does the expression that reads it.
+function EzikWirdSection({ v, onClose }) {
+  const items = v.wirdItems || [];
+  const lines = v.dailyWirdLines || [];
+  return (
+    <EzShell title={DW_CARD_TITLE} onBack={onClose} backLabel={DW_SEC_BACK}
+      actions={(
+        <span className="ez-hit">
+          <button type="button" onClick={() => v.onWirdPick(true)} aria-label={DW_ADD_LABEL}
+            className="ezhome-focus" style={s.ezwidAct}>{DW_ADD_GLYPH}</button>
+        </span>
+      )}>
+      <EzShellGroup title={DW_CARD_TITLE}>
+        {items.map((it) => (
+          <div key={it.k + '|' + it.id} style={s.ezwidPanelRow}>
+            <span style={s.ezwidPanelName}>{it.label}</span>
+            <span className="ez-hit" style={s.ezwidPanelActs}>
+              <button type="button" onClick={() => v.onWirdRemove(it.k, it.id)}
+                aria-label={DW_REMOVE_LABEL + ' ' + it.label}
+                className="ezhome-focus" style={s.ezwidAct}>{DW_REMOVE_GLYPH}</button>
+            </span>
+          </div>
+        ))}
+        {/* A-3: THE THREE OLD CHOICE LINES. They moved here with everything else -- same
+            function, same prop name, same expression -- and they are drawn BELOW the wirds he
+            added, which is where the owner put them. */}
+        {lines.map((t, i) => <div key={i} style={s.ezistCardSub}>{t}</div>)}
+        {!items.length && !lines.length
+          ? <div style={s.ezistCardSub}>{DW_CARD_EMPTY}</div>
+          : null}
+      </EzShellGroup>
+    </EzShell>
+  );
+}
 
 // ============================================================
 // THE HOME THE READER ARRANGES -- THE FRAMEWORK
@@ -6034,6 +6075,12 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // It registers its history entry through the identical hook, so the device button closes IT.
   const [wirdPickOpen, setWirdPickOpen] = useState(false);
   useEzikBackLayer(wirdPickOpen, () => setWirdPickOpen(false));
+  // ITEM 05-E2: ...and the SECTION the picker opens over, in the identical three shapes -- the
+  // state, useEzikBackLayer(open, close) and the ezikHistBack() toggle in its handler below. It
+  // is a layer for the same reason the picker is, and it owns one real history entry while it is
+  // open, so back walks picker unit -> picker section -> wird section -> home.
+  const [wirdOpen, setWirdOpen] = useState(false);
+  useEzikBackLayer(wirdOpen, () => setWirdOpen(false));
   const wt = readWirdTarget();
   const wd = readWirdDay();
   const wird = (wt && wd && Array.isArray(wd.pages)) ? { done: Math.min(wd.pages.length, wt), target: wt } : null;
@@ -6055,6 +6102,8 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     // set from, so the store and the screen can never be given different lists.
     wirdItems: wirdList.items,
     onWirdPick: (next) => { if (!next && ezikHistBack()) return; setWirdPickOpen(next); },
+    // ITEM 05-E2: the door on the home row, in the same shape as the picker's own toggle.
+    onOpenWird: (next) => { if (!next && ezikHistBack()) return; setWirdOpen(next); },
     onWirdRemove: (k, id) => setWirdList(writeWirdList(wirdListRemove(wirdList.items, k, id))),
     // S118: onOpenChat is gone from this object because the home no longer holds a chat
     // control of its own. The chat is entered from the menu the bar opens, on the menu's own
@@ -6122,6 +6171,11 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
       />
     );
   }
+  // ITEM 05-E2. The picker is tested FIRST, above, so it draws over this section rather than
+  // beside it -- which is what makes closing the picker land the reader back INSIDE the section
+  // instead of on the home. Same door as the device button: the visible back spends the layer's
+  // entry through ezikGoBack rather than dropping it.
+  if (wirdOpen) return <EzikWirdSection v={view} onClose={ezikGoBack} />;
   // ITEM 20. ONE component for both sections -- the section key and its title are all that
   // differs, and two components would be two places for the empty state, the failure state and
   // the writing door to drift apart. The back control presses ezikGoBack, so the visible button
@@ -21749,6 +21803,9 @@ const DW_REMOVE_LABEL = 'احذف من قائمتك';
 const DW_PICK_TITLE = 'اختر ما تضيفه';
 const DW_PICK_SECTION = 'اختر القسم أوّلًا';
 const DW_PICK_BACK = 'رجوع إلى الأقسام';
+// ITEM 05-E2: the section's own back label, in the same one place as the rest of this layer's
+// visible text and under the same ban. It names a direction and nothing else.
+const DW_SEC_BACK = 'رجوع إلى الرئيسية';
 const DW_PICK_CLOSE = 'إغلاق قائمة الاختيار';
 const DW_PICK_LOADING = 'يُحمَّلُ الآن';
 const DW_PICK_FAILED = 'لم يتيسّر جلبُ هذه القائمة الآن.';
@@ -23884,6 +23941,11 @@ const s = {
   // the active-design row draws (vtActiveMark), so nothing new is introduced to the palette and
   // it resolves in both modes for free.
   ezistCardNew: { width: 10, height: 10, flexShrink: 0, borderRadius: '50%', background: 'var(--a3-blue)' },
+  // ITEM 05-E2: the one row the home keeps for the wird -- a door, not a card. It borrows the
+  // panel's own ground, border and radius so the home's rhythm is unchanged, and adds only what
+  // makes a row pressable. It carries no className, so nothing written for .ezist-quran can
+  // reach it: the daily verse is still the one element on the screen with that class.
+  ezwidEnter: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, width: '100%', padding: '16px 18px 18px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
   ezistMeta: { flexShrink: 0, padding: '5px 10px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800 },
   // the featured Quran panel. The marks sit in the head row, never over the text.
   ezistQuran: { padding: '16px 18px 18px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)' },
