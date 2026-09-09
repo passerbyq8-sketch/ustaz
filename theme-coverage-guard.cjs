@@ -1123,6 +1123,23 @@ okOn('ITEM 05-E1: a tile carries its section NAME, and the name is the whole of 
   'the mark, the sub-line and the chevron were each ruled off every tile');
 okOn('...and the name is real text on the element, not a decoration', [['TILE', TILE]],
   /<span style=\{s\.ezistTileName\}>\{m\.label\}<\/span>/.test(TILE));
+// ITEM 05-G -- ...AND THE ARCH BEHIND IT IS DECORATION, WHICH IS A CLAIM THAT NEEDS A CHECK.
+// The tile now draws an inline SVG, and an svg inside a button joins that button's accessible
+// name unless it is hidden from the tree. Measured on the page the name reads correctly today
+// -- but the one-at-a-time mutation that removes aria-hidden was run and NOTHING failed: the
+// i18n DOM checks cannot see it, because an svg with no text contributes no textContent either
+// way. So the invariant is asserted where it IS visible: at the source, on the wrapper, by name.
+okOn('ITEM 05-G: the arch is hidden from the accessibility tree, so the NAME is the tile name',
+  [['TILE', TILE]],
+  /<span className="ezist-arch" aria-hidden="true">/.test(TILE)
+    && /<svg viewBox="0 0 400 430"[^>]*aria-hidden="true"/.test(TILE),
+  'an svg inside the button joins its accessible name unless it is hidden');
+// ...and the gradient it strokes with is ONE paint server for the whole shelf, declared away
+// from the tile. A tile carrying its own <defs> would emit nine copies of one id.
+okOn('ITEM 05-G: ...and the arch references one shared gradient it does not itself declare',
+  [['TILE', TILE], ['IST', IST]],
+  /stroke=\{'url\(#' \+ EZIST_ARCH_INK \+ '\)'\}/.test(TILE) && !/<defs>/.test(TILE)
+    && /<linearGradient id=\{EZIST_ARCH_INK\}/.test(IST));
 // THE SUB-LINE CONSTANTS ARE KEPT, UNRENDERED, rather than deleted -- a string with no reader is
 // a smaller change than a deleted string, and the assertion above is what proves no tile draws
 // one. This is the same predicate it always was, under a name that no longer claims a screen fact.

@@ -5200,12 +5200,62 @@ function EzistMasthead({ name, g, hijri, onOpenAdhkar }) {
 // ezistQuran. The mushaf keeps its class and its own style object -- the guard asserts both,
 // and asserts that m.id === 'mushaf' still decides them -- and the sheet paints it as the same
 // square as its nine neighbours, which is what the owner asked for.
+// ITEM 05-G -- THE EZIK ARCH, WHICH IS THE APP ICON'S OWN SHAPE. The owner ruled that a section
+// tile stops being a plain square with a name in it and becomes the pointed dome with two soft
+// rounded shoulders that his icon is drawn with, the section name inside it.
+//
+// ONE PATH, TWO USES. The outline is drawn OPEN at the foot -- it is an arch standing on the
+// floor of the tile, not a closed capsule -- and the same `d` with Z appended is the pane behind
+// it. The pane goes first so the stroke is never painted under its own fill.
+//
+// fill="none" ON THE OUTLINE IS NOT OPTIONAL: an open path with the default fill paints the
+// region its two ends imply, which is the whole arch as a black blob.
+const EZIST_ARCH_D = 'M60,430 L60,218 C60,142 108,122 141,164 C151,88 172,36 200,6 '
+  + 'C228,36 249,88 259,164 C292,122 340,142 340,218 L340,430';
+// THE STROKE, IN THE APP'S OWN BLUE FAMILY AND FROM THE PALETTE IT ALREADY HAS. --a3-cyan is
+// MEASURED FIRST, AND THE OBVIOUS ANSWER WAS WRONG. --a3-cyan reads like the light end of a
+// blue pair; under the shipped identity it is NOT one. The mapping in the sheet re-points it at
+// --vt-marker, which for istana_33 is #C43E38, and the gradient's foot stop computed to
+// rgb(196,62,56) on the live page -- a RED foot on a blue arch. So the palette had no light/deep
+// blue pair to take, and the two ends are NAMED in the sheet beside the palette instead:
+// --ez-arch-crown is the theme's own accent and --ez-arch-foot is that accent mixed toward the
+// tile's surface. Light at the FOOT (y1 = 1, the bottom of the bounding box) rising to deep at
+// the CROWN, which is the direction the owner asked for.
+//
+// ONE GRADIENT FOR THE WHOLE SHELF, not one per tile: a paint server is referenced by id, so ten
+// tiles share this single definition. It is rendered ONCE, beside the mosaic and not inside it,
+// so it can never be counted as a cell of the grid.
+const EZIST_ARCH_INK = 'ezist-arch-ink';
+function EzistArchDefs() {
+  return (
+    <svg style={s.ezistArchDefs} aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id={EZIST_ARCH_INK} x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" style={s.ezistArchFoot} />
+          <stop offset="1" style={s.ezistArchCrown} />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
 function EzistModuleCard({ m }) {
   const feature = m.id === 'mushaf';
   return (
     <button type="button" className={'ezhome-focus ezist-' + (feature ? 'feature' : 'mod ezist-mod-' + m.id)}
       onClick={m.onClick} data-ezik-home-module={m.id}
       style={feature ? s.ezistFeature : { ...s.ezistCard, ...(s['ezistCard_' + m.id] || null) }}>
+      {/* ITEM 05-G -- THE FRAME, AND IT IS DECORATION AND NOTHING ELSE. aria-hidden so it can
+          never become the tile's accessible name: the name is the text below, exactly as it was.
+          The pane takes its fill from the tile's OWN surface token rather than a literal white,
+          so the arch reads as a card in dark mode too, and the treasure tile -- the one tile with
+          a tinted ground -- shows the arch as a lighter shape on it rather than a hole. */}
+      <span className="ezist-arch" aria-hidden="true">
+        <svg viewBox="0 0 400 430" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
+          <path d={EZIST_ARCH_D + 'Z'} fill={s.ezistCard.background} />
+          <path d={EZIST_ARCH_D} fill="none" stroke={'url(#' + EZIST_ARCH_INK + ')'}
+            strokeWidth="14" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </span>
       <span style={s.ezistTileName}>{m.label}</span>
       {/* ITEM 7 / F4. A MARK, NOT A COUNT (F6) -- one dot, in the token the active-design row
           already uses, beside whatever the card was already ending with rather than instead of
@@ -5274,6 +5324,7 @@ function EzikIstanaHome(v) {
           {/* S118: the daily verse is no longer the mosaic's last cell -- it is the top bar.
               The panel itself did not change: same component, same getDailyVerse(), same text
               printed verbatim. Only where it is drawn moved. */}
+          <EzistArchDefs />
           <div className="ezist-mosaic">
             {mods.map((m) => <EzistModuleCard key={m.id} m={m} />)}
           </div>
@@ -23965,13 +24016,20 @@ const s = {
   // the sheet instead would be the one label on this screen that does not follow the reader's
   // chosen text size. 13.5 rather than 15.5 because the longest section name on the shelf,
   // «أسماء الله الحسنى», has to wrap inside a ~90px square at 320px without being clipped.
-  ezistTileName: { display: 'block', width: '100%', minWidth: 0, fontSize: 13.5, fontWeight: 800, color: 'var(--a3-ink)', lineHeight: 1.3, textAlign: 'center', overflowWrap: 'anywhere' },
+  ezistTileName: { display: 'block', width: '100%', minWidth: 0, fontSize: 13.5, fontWeight: 800, color: 'var(--a3-ink)', lineHeight: 1.3, textAlign: 'center', overflowWrap: 'anywhere', fontFamily: "'Aref Ruqaa', var(--ez-ui-font)" },
   ezistCardSub: { fontSize: 12.5, fontWeight: 600, color: 'var(--a3-muted)', lineHeight: 1.6 },
   ezistGo: { flexShrink: 0, display: 'inline-flex', color: 'var(--a3-muted)' },
   // ITEM 7: the mark on a section holding something unseen. The same 10px dot in the same token
   // the active-design row draws (vtActiveMark), so nothing new is introduced to the palette and
   // it resolves in both modes for free.
   ezistCardNew: { width: 10, height: 10, flexShrink: 0, borderRadius: '50%', background: 'var(--a3-blue)' },
+  // ITEM 05-G -- THE ARCH. The defs carrier paints nothing and occupies nothing: it exists only
+  // to hold the one gradient the whole shelf references. The two stops are the palette's own
+  // blue family said as tokens, so dark mode and the visual theme both resolve them for free --
+  // a literal colour here would be the one paint on this screen that cannot follow the theme.
+  ezistArchDefs: { position: 'absolute', width: 0, height: 0, overflow: 'hidden' },
+  ezistArchFoot: { stopColor: 'var(--ez-arch-foot)' },
+  ezistArchCrown: { stopColor: 'var(--ez-arch-crown)' },
   // ITEM 05-E2: the one row the home keeps for the wird -- a door, not a card. It borrows the
   // panel's own ground, border and radius so the home's rhythm is unchanged, and adds only what
   // makes a row pressable. It carries no className, so nothing written for .ezist-quran can

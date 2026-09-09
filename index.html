@@ -68,7 +68,7 @@
      hint, it fetches nothing. Bare form (not crossorigin) on purpose -- the page SVG is
      loaded as an <img> src, a no-CORS request, which will not reuse a CORS-mode socket. -->
 <link rel="preconnect" href="https://mushaf.almurabbi.app">
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Amiri:wght@400;700&family=Amiri+Quran&family=Noto+Kufi+Arabic:wght@400;500;700&family=Noto+Naskh+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Amiri:wght@400;700&family=Amiri+Quran&family=Noto+Kufi+Arabic:wght@400;500;700&family=Aref+Ruqaa:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --red:#1D4ED8; --red-deep:#12327A; --red-lift:#2AA6DE; --red-soft:#E6EEFB;
@@ -325,12 +325,34 @@
        had one colour said in two places and no way to move it in one. Now it has one name.
        LIGHT IS THE ONLY VALUE THAT MOVES. Black, for the owner's reason: an answer read at
        length on a white sheet. Every other rendering keeps exactly the ink it had, below. */
+    /* ITEM 05-G -- THE EZIK ARCH'S STROKE, light at the foot rising to deep at the crown.
+       BOTH ENDS ARE THE THEME'S OWN ACCENT, not a new colour: the crown IS --a3-blue, and
+       the foot is that same accent mixed toward the tile's own surface, so the gradient is
+       one hue fading into the card it is drawn on. Because --a3-blue is itself re-pointed
+       at --vt-accent by the identity mapping below, the arch follows the visual theme for
+       free and no third place has to be edited when the identity changes.
+       THE FOOT IS DECLARED TWICE ON PURPOSE. color-mix() is the value we want; a renderer
+       that does not know it drops the whole declaration and would leave the stop with no
+       colour at all, which paints BLACK. The literal above it is the fallback that keeps a
+       blue arch on such a device -- the standard two-declaration pattern, not a duplicate.
+       IT SITS ABOVE --answer-ink AND NOT BELOW IT: theme-coverage-guard N33 anchors that
+       declaration with its closing brace, so --answer-ink has to stay last in this block. */
+    --ez-arch-crown:var(--a3-blue);
+    --ez-arch-foot:#8FC8E8;
+    --ez-arch-foot:color-mix(in srgb, var(--a3-blue) 34%, var(--a3-surface));
     --answer-ink:#000000}
   :root[data-theme="dark"] .adhkar3,:root[data-theme="dark"] .ezhome{--a3-page:#0A1020;--a3-surface:#121A2C;--a3-line:#263554;--a3-ice:#1C2A45;
     --a3-ink:#E7EEFB;--a3-muted:#A2B2CE;--a3-blue:#6E9BFF;--a3-navy:#0A1020;--a3-cyan:#3FD6F5;
     --a3-soft:#18233A;--a3-shadow:0 2px 12px rgba(0,0,0,0.34);--a3-lift:0 8px 26px rgba(0,0,0,0.42);
     /* dark keeps the ink it had, said as the token it had: --a3-ink is --vt-ink here, which
        is what BOTH answer sites already resolved to. Nothing in dark moves by a byte. */
+    /* ...and in dark the relation is the same one, not its mirror: the crown is the accent
+       at full strength and the foot is that accent receding into the surface it stands on.
+       The mix is heavier here because --a3-surface is nearly black, so 34% would sink the
+       foot into the card and leave the arch looking cut off at the bottom. */
+    --ez-arch-crown:var(--a3-blue);
+    --ez-arch-foot:#3F6DB0;
+    --ez-arch-foot:color-mix(in srgb, var(--a3-blue) 48%, var(--a3-surface));
     --answer-ink:var(--a3-ink)}
   /* The two things an inline style cannot express, both of them scoped to .ezhome-* class
      names that exist nowhere else in this file. The journey path is two balanced columns on
@@ -624,8 +646,37 @@
      104px minimum height with a 40px arch, and the tinted ground. */
   .ezist-mod,.ezist-feature{aspect-ratio:1/1;min-height:0 !important;
     flex-direction:column;justify-content:center !important;align-items:center;
-    text-align:center !important;overflow:hidden}
+    text-align:center !important;overflow:hidden;position:relative}
   .ezist-feature{border-radius:18px !important;background:var(--a3-surface) !important}
+  /* ITEM 05-G -- THE TILE IS THE EZIK ARCH. The owner ruled that a section stops being a plain
+     square with a name in it and becomes the pointed dome his app icon is drawn with, the name
+     inside its belly. The shape is an inline SVG drawn by the tile component; what is HERE is
+     only its placement, because a decorative layer behind the name is a rule about the box and
+     not about the shape.
+     WHY THE LAYER IS ABSOLUTE: the tile is a centred flex column and the arch must not be one of
+     the things it centres -- it is the frame the name sits in, so it is taken out of flow and
+     the name keeps the column to itself. pointer-events:none so the frame can never eat the
+     press: every tile keeps the exact onClick it had.
+     THE SVG IS 92% OF THE SQUARE and its viewBox is 400x430, so `meet` fits it by HEIGHT: the
+     arch stands 92% of the tile tall and 85.6% of it wide, centred, with 4% of air above the
+     crown and below the feet. The tile stays square -- the owner ruled squares and has not
+     withdrawn it -- and the arch fits inside it rather than making the tile tall.
+     THE NAME RIDES AT 58% OF THE ARCH, which is 4% + 0.58*92% = 57.4% of the tile: the widest
+     part of the interior, below the shoulders, never over the curve. The 22% side padding keeps
+     it inside the belly. MEASURED at 320px: the belly's CLEAR interior -- inside the stroke,
+     not inside the path -- is 47.8px of a 90.7px tile, and 22% of side padding left the longest
+     single-line name (رحلةُ الكنوز, 47.9px) touching it. 25% gives the text 44.4px and drops
+     that one name to two lines, which the owner allows; three lines never occur.
+     THE MARK KEEPS ITS OWN LINE below the name rather than being centred on top of it. Its JSX
+     and its style object are pinned character for character by theme-coverage-guard, so it is
+     placed from HERE and neither is touched. */
+  .ezist-arch{position:absolute;left:0;top:0;width:100%;height:100%;display:flex;
+    align-items:center;justify-content:center;pointer-events:none}
+  .ezist-arch>svg{width:92%;height:92%;display:block}
+  .ezist-mod>:not(.ezist-arch),.ezist-feature>:not(.ezist-arch){position:absolute;
+    left:0;right:0;top:57.4%;transform:translateY(-50%);padding:0 25%}
+  .ezist-mod>[role="img"],.ezist-feature>[role="img"]{left:50%;right:auto;top:84%;
+    transform:translate(-50%,-50%);padding:0}
   @media (min-width:600px){
     /* the gap only. The column count is the base rule's and is not restated here. (The
        search section used to span two of two tracks at this width; with three tracks a

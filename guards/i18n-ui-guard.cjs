@@ -834,6 +834,17 @@ async function partD() {
       const kids = Array.prototype.slice.call(mosaic.children);
       eq('...with no empty cell left behind',
         kids.filter((e) => !String(e.textContent || '').trim() && !e.querySelector('svg')).length, 0);
+      // ITEM 05-G -- AND THE ARCH MUST NOT BE ALLOWED TO PAY FOR THE NAME. The check above
+      // accepts a cell carrying text OR an svg, and that was a real test for as long as a
+      // tile's only content WAS its name: a cell that had lost it had neither. Every tile now
+      // draws a decorative arch, so the svg half is satisfied by construction and a tile whose
+      // name went missing would still pass -- the check would go quiet exactly when the thing
+      // it guards had gone. It is not weakened and not deleted; the property the name used to
+      // earn is restated here over the module tiles, and it asks for TEXT. The arch is
+      // aria-hidden decoration and may never be what makes a cell count as filled.
+      const namedTiles = Array.prototype.slice.call(mosaic.querySelectorAll('[data-ezik-home-module]'));
+      eq('ITEM 05-G: ...and every module tile carries a NAME, which no decoration stands in for',
+        namedTiles.filter((e) => !String(e.textContent || '').trim()).length, 0);
       // S118: the daily verse left this grid for the top bar, so it is measured THERE. The
       // assertion is not weakened, it is moved with the thing it names: the verse must still be
       // on the screen, drawn exactly once, and it must no longer be a cell of the mosaic.
