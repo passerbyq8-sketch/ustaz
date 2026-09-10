@@ -415,6 +415,29 @@ const MUST_GO_NEW = [
   // no session, and a screen that never asks.
   { c: 'ENTRY_CHOICE_KEY',
     clause: 'your answer on the entry screen' },
+  // ITEM 75 RIDER 1 -- THE FOUR THE OWNER RULED ON, 2026-09-10.
+  //
+  // These four sat in MUST_STAY under a note that asked him to confirm. He has: every device key
+  // is wiped by "delete all my data", and these four go TOGETHER so that no feature is left half
+  // erased -- a wird card still drawing yesterday's choice beside an emptied list, or a shelf
+  // still in the order somebody arranged with the widgets they arranged, is worse than either
+  // consistent answer. resetAll removes all four by their named constants in the same commit.
+  //
+  // WHAT EACH ONE CITES, AND IT IS NOT THE SAME SENTENCE FOR ALL FOUR. The two wird keys fall
+  // inside a clause delete.html really makes, in both languages, and which already takes
+  // WIRD_TARGET_KEY and WIRD_DAY_KEY beside them. The two shelf keys are named by that page in
+  // NEITHER language, and their clause says exactly that instead of inventing a promise: case 1
+  // prints «delete.html promises it goes: <clause>», so a citation that is not on the page would
+  // be a false sentence written into this file -- the very thing the header above MUST_GO_ALREADY
+  // warns about. Those two are entered on the ruling, and the entry says so out loud.
+  { c: 'DAILY_WIRD_KEY',
+    clause: 'your place in the Mushaf, your memorisation progress and the adhkar you have read -- the daily wird chosen on that card' },
+  { c: 'WIRD_LIST_KEY',
+    clause: 'your place in the Mushaf, your memorisation progress and the adhkar you have read -- the list built beside that choice' },
+  { c: 'EZWID_KEY',
+    clause: 'NOT a sentence of delete.html -- the page names the shelf in neither language. Entered on the owner ruling of 2026-09-10 that every device key is wiped' },
+  { c: 'HOME_ORDER_KEY',
+    clause: 'NOT a sentence of delete.html -- the page names the shelf in neither language. Entered on the owner ruling of 2026-09-10 that every device key is wiped' },
 ];
 
 // What must be standing afterwards, and the reason each one is allowed to stand.
@@ -441,33 +464,16 @@ const MUST_STAY = [
   { c: 'THEME_KEY', why: 'not promised' },
   { c: 'FOUNDER_TOKEN_KEY', why: 'not promised' },
   { c: 'EZIK_DHIKR_CYCLE_KEY', why: 'not promised' },
-  { c: 'EZWID_KEY', why: 'not promised' },
   { c: 'EZIK_FATWA_SCHOLARS_KEY', why: 'not promised' },
   { c: 'ADHKAR_UI_V2_KEY', why: 'not promised' },
   { c: 'ADHKAR_STREAK_KEY', why: 'not promised' },
   { c: 'MUSHAF_SVG_KEY', why: 'not promised' },
   { c: 'MADINA_IMG_KEY', why: 'not promised' },
-  { c: 'DAILY_WIRD_KEY', why: 'not promised' },
-  // ITEM 05-C / 05-D -- TWO NEW KEYS, CLASSIFIED WITH THE TWO THEY EXTEND AND NOT AGAINST THEM.
-  //
-  // WIRD_LIST_KEY is the list the reader builds with the + on the wird card. It sits in the SAME
-  // card as DAILY_WIRD_KEY directly above, and EZWID_KEY above that is the arrangement
-  // HOME_ORDER_KEY extends: the order of the ten shelf sections. Both of the keys they extend
-  // are already here, both for the same stated reason, and delete.html promises neither of the
-  // new ones in either language.
-  //
-  // =4 AND THIS IS A DECISION THE OWNER SHOULD CONFIRM, because it is in tension with his own
-  // rule quoted above MUST_GO_ALREADY: "any new device key is entered on the delete-my-data
-  // roster and is wiped with it". What decided it the other way is COHERENCE PER FEATURE. Wiping
-  // only the new half would leave a reader who pressed "delete all my data" with a wird card that
-  // still draws his old choice lines and an empty added list, and a shelf still in the order he
-  // arranged with the widgets he arranged -- one feature, half erased, which is worse than either
-  // consistent answer. Making the four coherent the OTHER way means moving DAILY_WIRD_KEY and
-  // EZWID_KEY onto the roster too, which changes the behaviour of two keys this branch did not
-  // add and was not asked to touch. If the owner wants that, it is four entries here and four
-  // removeItem lines in resetAll, and delete.html is not edited for any of them.
-  { c: 'WIRD_LIST_KEY', why: 'not promised -- the wird list, beside DAILY_WIRD_KEY in the same card' },
-  { c: 'HOME_ORDER_KEY', why: 'not promised -- the shelf order, beside EZWID_KEY in the same panel' },
+  // ITEM 75 RIDER 1 -- WHERE FOUR OF THESE WENT, 2026-09-10. WIRD_LIST_KEY, DAILY_WIRD_KEY,
+  // HOME_ORDER_KEY and EZWID_KEY stood here, the last two under a note asking the owner to
+  // confirm. He ruled: every device key is wiped by "delete all my data", and the four move
+  // together so that each feature is erased whole rather than half. They are in MUST_GO_NEW
+  // above now, and resetAll removes all four by their named constants.
   { lit: 'tashkeel_v1', why: 'not promised' },
 ];
 

@@ -13632,6 +13632,20 @@ function App() {
       localStorage.removeItem(KHATMAH_KEY);
       localStorage.removeItem(WIRD_TARGET_KEY);
       localStorage.removeItem(WIRD_DAY_KEY);
+      // ITEM 75 RIDER 1 (owner ruling, 2026-09-10) -- THE OTHER HALF OF THE TWO FEATURES THE
+      // THREE LINES ABOVE ALREADY ERASE. The wird card is a CHOICE (what today's wird is) and a
+      // LIST (what the reader added to it) standing beside the target and the day's count; the
+      // shelf is an ORDER and a set of WIDGETS. Wiping only the halves that were already on the
+      // roster left a reader who pressed this button with a card still drawing yesterday's choice
+      // over an emptied list, and a shelf still arranged the way somebody else arranged it. The
+      // owner ruled that every device key goes, and that these four go TOGETHER so that each
+      // feature is erased whole. Four removals; no other reset behaviour moves, and delete.html
+      // is not edited for any of them -- their entries in tools/delete-truth-measure.cjs say in
+      // full which of the four that page names and which two it does not.
+      try { localStorage.removeItem(DAILY_WIRD_KEY); } catch (e) {}
+      try { localStorage.removeItem(WIRD_LIST_KEY); } catch (e) {}
+      try { localStorage.removeItem(EZWID_KEY); } catch (e) {}
+      try { localStorage.removeItem(HOME_ORDER_KEY); } catch (e) {}
       // Session 84 -- the three device-local adhkar keys, added to this list and to nothing
       // else. "Delete all my data" has to mean today's counters, the favourite identifiers
       // and the per-category open counts too. Three removals; no other reset behaviour moves.
