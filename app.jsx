@@ -363,6 +363,7 @@ const EZ_I18N = {
     // chat.qa.* -- the five the owner froze on this date -- is touched or shadowed by them.
     'chat.bar.summarize': '\u0644\u062e\u0651\u0635',
     'chat.bar.expand': '\u0648\u0633\u0651\u0639',
+    'chat.askSelection': '\u0627\u0633\u0623\u0644 \u0639\u0646 \u0627\u0644\u0645\u062d\u062f\u0651\u062f',
     'navigation.menu': '\u0627\u0644\u0642\u0627\u0626\u0645\u0629',
     'navigation.openMenu': '\u0641\u062a\u062d \u0627\u0644\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u062c\u0627\u0646\u0628\u064a\u0629',
     'settings.control': '\u0627\u0644\u062A\u062D\u0643\u0645',
@@ -800,6 +801,7 @@ const EZ_I18N = {
     'chat.qa.incomplete': 'This answer did not finish. Press “Continue” to complete it.',
     'chat.bar.summarize': 'Summarize',
     'chat.bar.expand': 'Expand',
+    'chat.askSelection': 'Ask about the selection',
     'navigation.menu': 'Menu',
     'navigation.openMenu': 'Open the side menu',
     'settings.control': 'Parental controls',
@@ -13291,6 +13293,58 @@ function App() {
   };
 
   // ============================================================
+  // ITEM 75 (2026-09-10) -- ASK ABOUT THE SELECTION
+  // ============================================================
+  // WHAT IT IS. A reader marks a few words inside an answer and a single control appears above the
+  // composer: pressing it drops those words into the field as a quotation, ready to be asked about.
+  // It SENDS NOTHING. It is the quote button's own path, reached from a selection instead of from a
+  // whole reply -- ezikBuildQuote, then ezikComposeWithQuote through setInput, then the caret --
+  // and it reaches it by CALLING quoteReply rather than by copying its four lines beside it.
+  //
+  // THE WORDS ARE CAPTURED WHEN THEY ARE SELECTED, NOT WHEN THE BUTTON IS PRESSED, and that is the
+  // whole reason this works on a phone. Touching anything outside a selection collapses it, so a
+  // handler that called getSelection() at tap time would read an empty selection roughly every
+  // time. The listener below stores the text in a REF -- not in state, which would re-render the
+  // whole chat on every drag of the handle -- and the press reads that ref and nothing else.
+  //
+  // BOTH ENDS INSIDE ONE ANSWER. `.ezc-ans` is the reading sheet MessageBubble draws, so a
+  // selection is offered only when its anchor AND its focus sit in the SAME one: a drag that
+  // started in an answer and ended in the composer, in a user turn, or across two answers is not
+  // a quotation of anything and the bar stays away. Anything at all going wrong -- no Selection
+  // object, a detached node, a throw -- clears the ref and hides the bar, which is the safe end.
+  const askSelRef = useRef('');
+  const [askSelOpen, setAskSelOpen] = useState(false);
+  useEffect(() => {
+    const onSelectionChange = () => {
+      let text = '';
+      try {
+        const sel = window.getSelection();
+        const t = sel ? String(sel.toString() || '').trim() : '';
+        if (t && sel.anchorNode && sel.focusNode) {
+          const a = ezikAnswerBodyOf(sel.anchorNode);
+          const f = ezikAnswerBodyOf(sel.focusNode);
+          if (a && a === f) text = t;
+        }
+      } catch (e) { text = ''; }
+      askSelRef.current = text;
+      setAskSelOpen(!!text);
+    };
+    try { document.addEventListener('selectionchange', onSelectionChange); } catch (e) {}
+    return () => { try { document.removeEventListener('selectionchange', onSelectionChange); } catch (e) {} };
+  }, []);
+  // THE PRESS. It reads the REF and never the document, hands the words to the shipped quoteReply,
+  // and then puts the screen back the way it found it: the selection is dropped (it has been
+  // spent), the ref is emptied so a second press cannot re-quote stale words, and the bar goes.
+  const askAboutSelection = () => {
+    const text = askSelRef.current;
+    if (!text) return;
+    quoteReply(text);
+    try { const sel = window.getSelection(); if (sel && sel.removeAllRanges) sel.removeAllRanges(); } catch (e) {}
+    askSelRef.current = '';
+    setAskSelOpen(false);
+  };
+
+  // ============================================================
   // Live voice-call mode (Layer 2) — ONE automatic turn
   // ============================================================
   // Reuses the existing brain (callAI + sliceHistoryForAPI; the prompt itself is the server's
@@ -14312,6 +14366,31 @@ function App() {
           <button onClick={() => setPendingImage(null)} style={{ background: 'none', border: 'none', color: 'var(--red-lift)', fontSize: 18, cursor: 'pointer' }} aria-label={ezT("chat.removeImage")}>×</button>
         </div>
       )}
+      {/* ITEM 75 (2026-09-10) -- THE ASK-ABOUT-THE-SELECTION BAR. One row, inside the composer
+          dock and directly above the field, so the words a reader marked and the box they land in
+          are one glance apart. It is NOT in .ezc-rail, it carries no `ez-hit` and it holds no icon
+          -- so neither the send button's row nor the send button's polygon can be re-pointed at it.
+
+          preventDefault ON BOTH pointerdown AND mousedown, and this is the whole reason the
+          control works. A press anywhere outside a selection collapses it, and on a touch device
+          the pointer event fires first; letting either default through would empty the selection
+          under the reader before the click ever arrived. The CLICK still runs, and it reads the
+          ref rather than the document anyway, so the guard here is belt and braces on purpose. */}
+      {askSelOpen && (
+        <div data-ezik-asksel="" style={s.askSelRow}>
+          <button
+            type="button"
+            onPointerDown={(e) => e.preventDefault()}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={askAboutSelection}
+            aria-label={ezT('chat.askSelection')}
+            className="ezik-focus"
+            style={s.askSelBtn}
+          >
+            {ezT('chat.askSelection')}
+          </button>
+        </div>
+      )}
       <div style={s.inputBar}>
         <textarea
           ref={inputElRef}
@@ -14875,6 +14954,16 @@ const ezikIsErrorReply = (t) => typeof t === 'string' && EZIK_ERROR_REPLIES.inde
 // ============================================================
 // It puts text in the box and moves the caret there. It sends NOTHING, it stores nothing, and it
 // leaves whatever the child had already typed exactly where it was.
+// ITEM 75 (2026-09-10): the assistant reply body a node sits in, or null. `.ezc-ans` is the
+// reading sheet MessageBubble draws. A TEXT node has no closest(), which is what a selection's
+// anchor and focus almost always are, so the walk starts at its parent element -- and every step
+// is wrapped, because a node from a torn-down tree throws rather than answering.
+function ezikAnswerBodyOf(node) {
+  try {
+    const el = (node && node.nodeType === 1) ? node : (node && node.parentElement);
+    return (el && el.closest) ? el.closest('.ezc-ans') : null;
+  } catch (e) { return null; }
+}
 const EZIK_QUOTE_MAX = 500;
 const EZIK_QUOTE_LABEL = 'اقتباس';
 // ITEM 42-أ. The share control speaks through the SAME dictionary the rest of the rail does,
@@ -24642,6 +24731,11 @@ const s = {
   // ONE object serves both buttons. Every colour here is a token; the 42px line plus the 1px
   // border either side is the same 44px hit the round buttons take.
   barActionPill: { width: 'auto', paddingBlock: 0, paddingInline: 10, borderRadius: 999, fontFamily: 'inherit', fontSize: 13, fontWeight: 700, lineHeight: '42px', display: 'block', textAlign: 'center', whiteSpace: 'nowrap', minWidth: 0, flexShrink: 1, overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--red)' },
+  // ITEM 75 (2026-09-10): the ask-about-the-selection bar, above the composer field. One row and
+  // one pill. Every colour is a token; the 44px minimum is the same target every control in the
+  // row below it takes; and nothing here states a width, so it cannot outgrow a 320px screen.
+  askSelRow: { display: 'flex', justifyContent: 'flex-start', minWidth: 0, paddingBottom: 8 },
+  askSelBtn: { minHeight: 44, display: 'inline-flex', alignItems: 'center', paddingInline: 14, borderRadius: 999, background: 'var(--tint)', border: '1px solid var(--a3-line)', color: 'var(--red)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer', maxWidth: '100%', minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
 
   // ===== لوحة الأهل =====
   // S115: the parents' panel. The strip header it shared with the favourites screen is gone --

@@ -217,5 +217,112 @@ ok('E: ...and each button is named by its key, visibly and to a screen reader',
   (BTN_SUM.match(/ezT\('chat\.bar\.summarize'\)/g) || []).length === 2
     && (BTN_EXP.match(/ezT\('chat\.bar\.expand'\)/g) || []).length === 2);
 
+// ---------------------------------------------------------------------------------------------
+// F. WHERE THE ASK-ABOUT-THE-SELECTION BAR SITS.
+// ---------------------------------------------------------------------------------------------
+const FIELD_ROW = '<div style={s.inputBar}>';
+const BAR_MARK = 'data-ezik-asksel=""';
+const iBar = DOCK.indexOf(BAR_MARK);
+const iField = DOCK.indexOf(FIELD_ROW);
+ok('F: the bar is inside the composer dock', iBar !== -1, 'bar@' + iBar);
+ok('F: ...directly above the field row', iField !== -1 && iBar < iField, iBar + ' < ' + iField);
+const RAIL_OPEN = '<div className="ezc-rail">';
+const railAt = SRC.indexOf(RAIL_OPEN);
+const railEnd = railAt === -1 ? -1 : SRC.indexOf('<div ref={messagesAreaRef}', railAt);
+const RAIL = (railAt !== -1 && railEnd > railAt) ? SRC.slice(railAt, railEnd) : '';
+ok('F: the chat rail was located before it was searched', RAIL.length > 200, 'len=' + RAIL.length);
+ok('F: ...and the bar is not in it',
+  RAIL.indexOf(BAR_MARK) === -1 && RAIL.indexOf('askSelBtn') === -1);
+const BAR = (function () {
+  const i = SRC.indexOf(BAR_MARK);
+  if (i === -1) return '';
+  const open = SRC.lastIndexOf('{askSelOpen && (', i);
+  const close = SRC.indexOf('</div>', SRC.indexOf('</button>', i));
+  return (open !== -1 && close > open) ? SRC.slice(open, close + 6) : '';
+})();
+ok('F: the bar element was located before it was searched', BAR.length > 120, 'len=' + BAR.length);
+ok('F: ...and it carries no ez-hit and no polygon and no svg',
+  BAR.indexOf('ez-hit') === -1 && BAR.indexOf('polygon') === -1 && BAR.indexOf('<svg') === -1);
+ok('F: ...and its one control is named, focusable and prevents the press that would collapse it',
+  (BAR.match(/<button/g) || []).length === 1
+    && BAR.indexOf("aria-label={ezT('chat.askSelection')}") !== -1
+    && BAR.indexOf('className="ezik-focus"') !== -1
+    && BAR.indexOf('onPointerDown={(e) => e.preventDefault()}') !== -1
+    && BAR.indexOf('onMouseDown={(e) => e.preventDefault()}') !== -1);
+
+// ---------------------------------------------------------------------------------------------
+// G. WHAT THE PRESS DOES, AND WHAT IT NEVER DOES.
+//
+// The path is three named steps and each is asserted where it lives: the bar calls
+// askAboutSelection, askAboutSelection calls the SHIPPED quoteReply, and quoteReply is the one
+// that composes. Following it rather than matching one regex over the file is what makes
+// "never sendMessage" a statement about this control instead of about the whole page.
+// ---------------------------------------------------------------------------------------------
+function blockOf(start, end) {
+  const a = SRC.indexOf(start);
+  if (a === -1) return '';
+  const b = SRC.indexOf(end, a);
+  return b > a ? SRC.slice(a, b + end.length) : '';
+}
+const ASK_FN = blockOf('const askAboutSelection = () => {', '\n  };');
+const QUOTE_FN = blockOf('const quoteReply = (clean) => {', '\n  };');
+ok('G: both handlers were located before they were searched',
+  ASK_FN.length > 80 && QUOTE_FN.length > 80, 'ask=' + ASK_FN.length + ' quote=' + QUOTE_FN.length);
+ok('G: the bar press runs askAboutSelection', BAR.indexOf('onClick={askAboutSelection}') !== -1);
+ok('G: ...which hands the words to the shipped quoteReply', ASK_FN.indexOf('quoteReply(text);') !== -1);
+ok('G: ...and quoteReply is the one that composes, through the shipped composer',
+  QUOTE_FN.indexOf('ezikBuildQuote(clean)') !== -1
+    && QUOTE_FN.indexOf('setInput((prev) => ezikComposeWithQuote(prev, block))') !== -1);
+ok('G: ...and NOTHING on that path sends',
+  ASK_FN.indexOf('sendMessage') === -1 && QUOTE_FN.indexOf('sendMessage') === -1
+    && BAR.indexOf('sendMessage') === -1);
+ok('G: ...and the press puts the screen back: the selection dropped, the ref emptied, the bar gone',
+  ASK_FN.indexOf('removeAllRanges') !== -1
+    && ASK_FN.indexOf("askSelRef.current = '';") !== -1
+    && ASK_FN.indexOf('setAskSelOpen(false);') !== -1);
+
+// ---------------------------------------------------------------------------------------------
+// H. THE WORDS ARE CAPTURED WHEN THEY ARE SELECTED, NOT WHEN THE BUTTON IS PRESSED.
+//
+// This is the one that matters on a phone: a press outside a selection collapses it, so a handler
+// reading getSelection() at tap time would read an empty selection. The listener writes a REF and
+// the press reads it -- and the press is asserted to read that ref BEFORE it touches the document
+// at all, so a later edit that reached for the live selection first would be red here.
+// ---------------------------------------------------------------------------------------------
+const SEL_FX = blockOf('const onSelectionChange = () => {', "removeEventListener('selectionchange'");
+ok('H: the selectionchange effect was located before it was searched', SEL_FX.length > 200, 'len=' + SEL_FX.length);
+eq('H: exactly one selectionchange listener is added in the whole client',
+  (SRC.match(/addEventListener\('selectionchange'/g) || []).length, 1);
+eq('H: ...and it is removed again on unmount',
+  (SRC.match(/removeEventListener\('selectionchange'/g) || []).length, 1);
+ok('H: the handler stores the text in the ref rather than in state',
+  SEL_FX.indexOf('askSelRef.current = text;') !== -1);
+ok('H: ...only when both ends of the selection are in the SAME assistant reply body',
+  SEL_FX.indexOf('ezikAnswerBodyOf(sel.anchorNode)') !== -1
+    && SEL_FX.indexOf('ezikAnswerBodyOf(sel.focusNode)') !== -1
+    && SEL_FX.indexOf('if (a && a === f) text = t;') !== -1
+    && SRC.indexOf("closest('.ezc-ans')") !== -1);
+ok('H: ...and an empty or cross-reply selection hides the bar and clears the ref',
+  SEL_FX.indexOf('setAskSelOpen(!!text);') !== -1);
+ok('H: the press reads the ref, and reads it BEFORE it touches the document',
+  ASK_FN.indexOf('const text = askSelRef.current;') !== -1
+    && ASK_FN.indexOf('askSelRef.current') < ASK_FN.indexOf('getSelection'));
+
+// ---------------------------------------------------------------------------------------------
+// I. THE KEY, IN BOTH HALVES.
+// ---------------------------------------------------------------------------------------------
+const AR_ASK = cp(0x0627, 0x0633, 0x0623, 0x0644, 0x0020, 0x0639, 0x0646, 0x0020,
+  0x0627, 0x0644, 0x0645, 0x062d, 0x062f, 0x0651, 0x062f);
+const AR_ASK_SRC = "'chat.askSelection': '\\u0627\\u0633\\u0623\\u0644 \\u0639\\u0646 \\u0627\\u0644\\u0645\\u062d\\u062f\\u0651\\u062f',";
+ok('I: chat.askSelection is in the ar half, written as the escapes the order names',
+  AR.indexOf(AR_ASK_SRC) !== -1, 'looking for ' + AR_ASK_SRC);
+ok('I: ...and those escapes are the words themselves',
+  JSON.parse('"' + AR_ASK_SRC.split("'")[3] + '"') === AR_ASK, esc(AR_ASK));
+ok('I: chat.askSelection is in the en half',
+  EN.indexOf("'chat.askSelection': 'Ask about the selection',") !== -1);
+ok('I: ...and it is declared once in each half',
+  (AR.match(/'chat\.askSelection':/g) || []).length === 1
+    && (EN.match(/'chat\.askSelection':/g) || []).length === 1);
+
 console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? '  FAIL ===' : '  PASS ==='));
 process.exit(failures ? 1 : 0);
