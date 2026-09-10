@@ -23969,10 +23969,10 @@ const s = {
   ezistCardTitle: { fontSize: 15.5, fontWeight: 800, color: 'var(--a3-ink)' },
   // ITEM 05-E1: THE NAME, AND IT IS ONE STYLE FOR ALL TEN TILES. The mushaf must look identical
   // to its nine neighbours, so it cannot keep a larger title than they have; ezistFeatureTitle
-  // and ezistCardTitle are both left declared (ezistCardTitle still draws the wird section's own
-  // title) rather than deleted. The size is a plain number so ezikEnsureScalableStyles rewrites
-  // it to calc(px * var(--ez-fs)) exactly as it does every other text size -- a font-size put in
-  // the sheet instead would be the one label on this screen that does not follow the reader's
+  // was deleted on 2026-09-10 by item 75 rider 2, and ezistCardTitle is left declared because it
+  // still draws the wird section's own title. The size is a plain number so ezikEnsureScalableStyles
+  // rewrites it to calc(px * var(--ez-fs)) exactly as it does every other text size -- a font-size
+  // put in the sheet instead would be the one label on this screen that does not follow the reader's
   // chosen text size. 13.5 rather than 15.5 because the longest section name on the shelf,
   // «أسماء الله الحسنى», has to wrap inside a ~90px square at 320px without being clipped.
   ezistTileName: { display: 'block', width: '100%', minWidth: 0, fontSize: 13.5, fontWeight: 800, color: 'var(--a3-ink)', lineHeight: 1.3, textAlign: 'center', overflowWrap: 'anywhere' },
