@@ -1965,6 +1965,27 @@
      crossorigin mode are byte-for-byte what the tag carried, and recon-audit reads that literal.
      A load failure still resolves null, which lands on the `!window.mammoth` fallback that already
      existed for a dead CDN. -->
+<!-- ITEM 85 -- THE REGISTER. The boot now reaches NO external origin: the faces were the last
+     one, and they are in /fonts. Three origins remain in the application, none of them on the
+     boot path, and each is named here with the reason it is still worth reaching. A fourth,
+     ezik.app, appears three times above as a content= attribute; that is metadata, it is never
+     fetched, and in production it is this page's own origin.
+
+     cdnjs.cloudflare.com  -- the .docx reader, in the SRC map immediately below. Fetched on
+       the FIRST UPLOAD OF A WORD FILE and never otherwise: zero requests in twelve cold boots.
+       SRI-pinned, sha384, verified byte-for-byte against the live bundle. A load failure
+       resolves null and lands on the !window.mammoth fallback that already existed for a dead
+       CDN -- and since the commit above it, that fallback is no longer hidden by a panel.
+       635,562 bytes; it could be vendored, and the contract does not require it.
+
+     everyayah.com  -- the recitation corpus, built as a URL in app.jsx on play. Roughly 4 GB
+       of MP3 for 114 suras: this is the one origin that cannot come home, and no request is
+       made to it until a reader presses play.
+
+     mushaf.almurabbi.app  -- OUR OWN DOMAIN, MUSHAF_SVG_ORIGIN in app.jsx: the printed-page
+       fallback for a device that has turned the local scans off with ?madinaimg=0. All 604
+       pages ship in assets/madina-hafs, the flag defaults ON, and a default reader issues zero
+       requests to it -- which is why its preconnect went with the stylesheet. -->
 <script>
 window.__ezikVendor = (function () {
   var pending = {};

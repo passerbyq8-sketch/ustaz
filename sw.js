@@ -754,6 +754,17 @@ self.addEventListener('fetch', (event) => {
   // were let through and cached, because the first paint depended on them. It does not any
   // more -- the faces live in /fonts on this origin and are caught by the same-origin arm
   // below for free -- so the exception is gone and this line is once again what it says.
+  //
+  // ITEM 85 -- THE REGISTER, the three origins this return declines to touch and why each one
+  // is still worth reaching. The same list is beside window.__ezikVendor in index.html.
+  //   cdnjs.cloudflare.com  -- the .docx reader, on the first upload of a Word file only,
+  //     SRI-pinned, with a working !window.mammoth fallback when it is dead.
+  //   everyayah.com  -- the recitation corpus, on play only; ~4 GB of MP3 is too large to carry.
+  //   mushaf.almurabbi.app  -- our own domain, the printed-page fallback for a device that has
+  //     turned the local scans off with ?madinaimg=0; every default reader uses the 604 webp
+  //     pages in assets/madina-hafs and never asks for it.
+  // None of the three is on the boot path, so none of them is precached and none is cached
+  // here: a worker that intercepted them would be caching bytes the first screen never wants.
   if (!sameOrigin) return;
 
   // CACHE-FIRST for same-origin static assets.
