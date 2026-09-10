@@ -82,6 +82,12 @@ const S = {
   ARTICLES: 'مقالات عزك',
   ARTICLES_EN: 'Ezik Articles',
   WOMEN: 'ركن النساء',
+  // ITEM 75. The composer's send button had no accessible name at all -- no aria-label, no title
+  // and no text, on the one control the whole application is about. These two are the name it
+  // carries now, written out here rather than read from the dictionary the case is about: a
+  // dictionary that lost the key must fail that case, not agree with it.
+  SEND_AR: '\u0625\u0631\u0633\u0627\u0644',
+  SEND_EN: 'Send',
 };
 
 let failures = 0, checks = 0, skipped = 0;
@@ -1189,6 +1195,52 @@ async function partD() {
     }
   }
   c.destroy();
+  // ITEM 75 -- THE SEND BUTTON HAS A NAME, AND IT IS THE READER'S OWN LANGUAGE.
+  //
+  // It had none. The control that sends the question carried no aria-label, no title and no
+  // visible text: a screen reader announced an unnamed button on the one screen this whole
+  // application is about. The name is ezT('chat.send'), a key both dictionaries already held.
+  //
+  // IT IS FOUND STRUCTURALLY, and that is the whole point of the selector. The composer's control
+  // row is the one .ez-hit inside .ezc-dock, and send is its FIRST button -- source order decides
+  // that, and under body{direction:rtl} the first source child paints at the visual right.
+  // Nothing here looks at the icon: chat-ux-guard already finds a button by its <polygon>, and an
+  // icon is not a name. And nothing here reads the label off the dictionary it is asserting --
+  // both values are written out in S above, so a dictionary that lost the key fails this case
+  // instead of agreeing with it.
+  //
+  // TWO CONTEXTS, ONE AT A TIME. buildContext replaces the live generation, so the reader is
+  // SEEDED with a language rather than switched inside one window, and each context is destroyed
+  // before the next is built -- the rule every other pair in this file follows.
+  {
+    const SEND_PID = 'I18N-SEND';
+    const SEND_PROFILE = JSON.stringify({ name: 'Noor', age: 30, gender: 'male', birthYear: 1996, pid: SEND_PID, createdAt: '2026-01-01T00:00:00.000Z' });
+    const readSendName = async (lang) => {
+      const seed = { child_profile: SEND_PROFILE, disclosureAck: '1', ezik_ai_consent_v1: AI_CONSENT_SEED(SEND_PID) };
+      seed[S.LANG_KEY] = lang;
+      const cc = buildContext({ seed: seed, mount: true });
+      await tick(200);
+      const dd = driver(cc.window);
+      const row = dd.all('.ezc-dock .ez-hit')[0];
+      const btn = row ? row.querySelector('button') : null;
+      const out = {
+        onChat: dd.all('.ezc-dock').length === 1,
+        found: !!btn,
+        label: btn ? String(btn.getAttribute('aria-label') || '') : '',
+      };
+      cc.destroy();
+      return out;
+    };
+    const sAr = await readSendName('ar');
+    const sEn = await readSendName('en');
+    ok('ITEM 75: the composer send button carries its own accessible name, in the reader language',
+      sAr.onChat && sEn.onChat && sAr.found && sEn.found
+      && sAr.label === S.SEND_AR && sEn.label === S.SEND_EN,
+      'ar: ' + cps(sAr.label) + '   expected ' + cps(S.SEND_AR)
+      + '\n        en: ' + JSON.stringify(sEn.label) + '   expected ' + JSON.stringify(S.SEND_EN)
+      + '\n        on the chat  ar=' + sAr.onChat + '  en=' + sEn.onChat
+      + '   button found  ar=' + sAr.found + '  en=' + sEn.found);
+  }
 }
 
 

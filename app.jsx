@@ -14339,7 +14339,7 @@ function App() {
       <div className="ez-hit" style={s.toolBar}>
         {/* THE RIGHT-HAND CLUSTER, read right to left: send, then the two round icon buttons. */}
         <div style={s.toolGroup}>
-          <button onClick={() => sendMessage(input)} disabled={isLoading || (!input.trim() && !pendingImage)} style={{ ...s.sendBtn, opacity: isLoading || !input.trim() ? 0.4 : 1 }}>
+          <button onClick={() => sendMessage(input)} disabled={isLoading || (!input.trim() && !pendingImage)} aria-label={ezT('chat.send')} style={{ ...s.sendBtn, opacity: isLoading || !input.trim() ? 0.4 : 1 }}>
             <SendIcon size={20} color="var(--on-accent)" />
           </button>
           <button
