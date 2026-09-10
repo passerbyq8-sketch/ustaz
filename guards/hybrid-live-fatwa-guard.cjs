@@ -360,7 +360,7 @@ async function runHybridGuard() {
     context: joinContext, band: 'adult', depth: 'normal', dailyBudget: budget,
     localRetrieve: localEmpty,
     fatwaSearch: async () => { events.push('fatwa:start'); await Promise.resolve(); events.push('fatwa:end'); return {
-      calls: 1, verification: { status: 'OK', scholars: 19, total: 74769, ibnBaz: 18479, failures: [] }, records: [f],
+      calls: 1, verification: { status: 'OK', scholars: 19, total: 80435, ibnBaz: 24145, failures: [] }, records: [f],
     }; },
     liveRetrieve: async (_q, opts) => { events.push('brave:start'); await Promise.resolve(); events.push('brave:end'); return markLive(opts.diagnostics); },
     generate: modelUsing(f.id, f.supportText), verify: verifyIds(f.id),
@@ -379,8 +379,8 @@ async function runHybridGuard() {
   eq('only evidence used by a sentence receives a card', integrated.cards.map((card) => card.evidenceId), [f.id]);
   eq('used evidence is separately observable', integrated.validatedUsedEvidenceIds, [f.id]);
   ok('authored adapter unit: verification fields propagate structurally', integrated.fatwaValidation.status === 'OK'
-    && integrated.fatwaValidation.scholars === 19 && integrated.fatwaValidation.total === 74769
-    && integrated.fatwaValidation.ibnBaz === 18479);
+    && integrated.fatwaValidation.scholars === 19 && integrated.fatwaValidation.total === 80435
+    && integrated.fatwaValidation.ibnBaz === 24145);
 
   console.log('\n--- X-021 OBSERVED FATWA REQUEST TELEMETRY ---');
   const x021Bytes = fs.readFileSync(X021_FIXTURE);
@@ -737,7 +737,7 @@ async function runHybridGuard() {
       localRetrieve: async () => ({ storedCorpusCalls: 1, candidateRecordIds: [], accepted: [] }),
       fatwaSearch: async () => ({
         calls: 2, queries: ['هل النقاب واجب؟', 'حكم تغطية وجه المرأة'],
-        verification: { status: 'OK', scholars: 19, total: 74769, ibnBaz: 18479, failures: [] },
+        verification: { status: 'OK', scholars: 19, total: 80435, ibnBaz: 24145, failures: [] },
         records: [publishedVeilDisagreement],
       }),
       liveRetrieve: async () => { liveCalls++; throw new Error('Brave must remain closed'); },
@@ -840,7 +840,7 @@ async function runHybridGuard() {
     && !indexSource.includes('https://ezik-fatwas.vercel.app'));
   ok('the unchanged /api/v1/* UI contract rewrites to the server proxy', vercel.rewrites.some((r) =>
     r.source === '/api/v1/:path*' && r.destination === '/api/fatwa-proxy?path=:path*'));
-  eq('fatwa pinned corpus contract', FC.fatwaContractTotals(), { scholars: 19, total: 74769, ibnBaz: 18479 });
+  eq('fatwa pinned corpus contract', FC.fatwaContractTotals(), { scholars: 19, total: 80435, ibnBaz: 24145 });
   ok('fatwa service base is the one authorised origin', FC.FATWA_BASE === 'https://ezik-fatwas.vercel.app');
 
   console.log('\n--- TEXT/CALL PARITY AND NO-CLARIFICATION WIRING ---');
