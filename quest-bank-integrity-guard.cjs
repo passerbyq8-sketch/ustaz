@@ -113,6 +113,24 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-09-10   -- ITEM 92: THE MENU GAINED A SHARE BUTTON, AND WHAT IT HANDS OVER DEPENDS ON
+  //                    WHERE THE READER IS. Inside the mobile shells it shares https://ezik.app and
+  //                    nothing else -- no chooser is built there, so no badge file and no store or
+  //                    platform name can reach the page, which is App Store Review Guideline 2.3.10.
+  //                    In a plain browser it opens a small chooser: Apple's own badge, Google's own
+  //                    badge, then both links as text. Apple is first because Apple's badge guideline
+  //                    requires it when another platform's badge is beside it. The two badges are the
+  //                    VENDORS' OWN FILES, byte for byte from apple.com and google.com, and the new
+  //                    gate `sharelinks` seals each by SHA-256. INDEX.HTML DID NOT MOVE this round --
+  //                    everything is in app.jsx, two guards and four censuses -- so two of the three
+  //                    worker figures and one of the two mirrors below were already true and only the
+  //                    BUNDLE figures moved. app.js was rebuilt from that source 1408320 -> 1420540
+  //                    (+12220) by node tools/build-app.cjs, and CORE_BYTES was re-cut 2253012 ->
+  //                    2265232 (+12220) by node tools/core-bytes.cjs --write, which is exactly the
+  //                    bundle delta because the shell did not grow. The worker table at :111 and the
+  //                    app.js mirror below followed, and THIS digest is re-cut LAST. CACHE IS NOT
+  //                    BUMPED: this is a branch for the owner to try, not a ship, and sw.js says the
+  //                    merge round owns the bump.
   //   2026-09-10   -- ITEM 75: SUMMARIZE AND EXPAND LEFT THE COMPOSER BAR FOR A ROW OF THEIR OWN.
   //                    Part B put them in the control row and the measurement sent them out again:
   //                    at 360 that row had 106px for three text pills that wanted 150, so all three
@@ -843,7 +861,7 @@ const SEALED = {
   //                    *.json class moved from cache-first to stale-while-revalidate.
   //                    SW_CACHE below and B11 were cut in the SAME commit as this digest.
   //   watermark     -- CORE gained '/icon-watermark.png' in the commit that pointed .ezwm at it.
-  'sw.js': '97cdeb69366f58cb2d5e46fd82963c2d51a34dc6ba824aa0cf5b636cde843775',
+  'sw.js': 'e70dd7495577a36e861e68061062e10b9d206a27ed5251e292fdf12bae95e947',
 };
 
 // ---------------------------------------------------------------------------
@@ -1954,7 +1972,7 @@ async function compare(goldenPath) {
       { n: 124729, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1408320, of: 'app.js' },
+      { n: 1420540, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
