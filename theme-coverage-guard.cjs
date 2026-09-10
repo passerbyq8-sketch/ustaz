@@ -1981,9 +1981,23 @@ ok('K3: every result keeps its official evidence attached',
   && /<p className="ezf-copy">\{answer\}<\/p>/.test(fatwaSrc)
   && /<audio className="ezf-audio" controls/.test(fatwaSrc)
   && /href=\{sourceUrl\}/.test(fatwaSrc));
-ok('K3: the four future learning actions remain visibly disabled',
-  /EZIK_FATWA_ACTIONS\.map/.test(fatwaSrc)
-  && /className="ezf-action" disabled\s*\r?\n\s*aria-disabled="true"/.test(fatwaSrc));
+// Item 63 (2026-09-10) -- the owner ruled that these four do nothing yet, so they are HIDDEN
+// rather than built or deleted, behind one switch that is one line to roll back. This assertion
+// is re-pointed at that ruling and keeps everything it protected before: the four are still
+// DEFINED, and the button they render is still `disabled` with `aria-disabled="true"`, byte for
+// byte as it was. What it adds is the ruling itself -- the switch exists, it reads false, and the
+// ONLY .map of the list is the one that hangs off it, so nothing can render them by another road.
+const fatwaActionsShown = /const EZIK_FATWA_ACTIONS_SHOWN = (true|false);/.exec(fatwaSrc);
+const fatwaActionMaps = (fatwaSrc.match(/EZIK_FATWA_ACTIONS\.map/g) || []).length;
+const fatwaActionMapsGated =
+  (fatwaSrc.match(/\{EZIK_FATWA_ACTIONS_SHOWN \? EZIK_FATWA_ACTIONS\.map\(/g) || []).length;
+ok('K3: the four future learning actions stay defined and disabled, hidden behind item 63\'s switch',
+  /const EZIK_FATWA_ACTIONS = \[/.test(fatwaSrc)
+  && /className="ezf-action" disabled\s*\r?\n\s*aria-disabled="true"/.test(fatwaSrc)
+  && !!fatwaActionsShown && fatwaActionsShown[1] === 'false'
+  && fatwaActionMaps === 1 && fatwaActionMapsGated === 1,
+  'switch=' + (fatwaActionsShown ? fatwaActionsShown[1] : 'ABSENT')
+  + ', .map uses=' + fatwaActionMaps + ', of them gated=' + fatwaActionMapsGated);
 // S115: quest is finished too. Both numbers are asserted rather than merely printed now, because
 // there is nothing left outstanding for a later batch to be measured against.
 eq('every quest view is istana after this commit', qIstana.length, 17);

@@ -8051,6 +8051,11 @@ async function ezikFatwaFetch(path, signal) {
   return payload;
 }
 
+// Item 63 (2026-09-10): hidden by the owner's ruling -- these four do nothing yet, so they
+// are hidden rather than built or deleted. Setting this to true shows them again, still
+// disabled, exactly as they were.
+const EZIK_FATWA_ACTIONS_SHOWN = false;
+
 const EZIK_FATWA_ACTIONS = [
   ['simplify', 'fatwa.action.simplify'],
   ['example', 'fatwa.action.example'],
@@ -8146,10 +8151,10 @@ function EzikFatwaResult({ fatwa, favPk }) {
           onClick={() => setSaved(ezikToggleFavRecord(favRec))}>
           {saved ? ezT('favorites.saved') : ezT('favorites.addFatwa')}</button>
         ) : null}
-        {EZIK_FATWA_ACTIONS.map(([id, key]) => (
+        {EZIK_FATWA_ACTIONS_SHOWN ? EZIK_FATWA_ACTIONS.map(([id, key]) => (
           <button key={id} type="button" className="ezf-action" disabled
             aria-disabled="true" title={ezT('fatwa.action.disabled')}>{ezT(key)}</button>
-        ))}
+        )) : null}
       </div>
     </article>
   );
