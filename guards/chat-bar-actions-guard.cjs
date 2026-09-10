@@ -66,6 +66,22 @@ const DOCK_OPEN = '<div className="ezc-dock-inner">';
 const dockAt = SRC.indexOf(DOCK_OPEN);
 const DOCK = dockAt === -1 ? '' : SRC.slice(dockAt, rowEnd > dockAt ? rowEnd : dockAt);
 
+// THE BAR-ACTIONS ROW, item 75 part C. The owner ruled on 2026-09-10 that summarize and expand
+// leave the composer control row and sit in a row of their own above the field: they spent one day
+// in the control row and every text pill there, the shipped mode pill included, came back
+// ellipsized at 360 and 390. So this slice, and not ROW, is where B, C, D and E look for them --
+// and case B0 below seals ROW itself back to the text it had before they ever joined it.
+const ROW2_MARK = 'data-ezik-bar-actions=""';
+const ROW2_OPEN = '{quickActionsVisible && !askSelOpen && (';
+const ROW2 = (function () {
+  const i = SRC.indexOf(ROW2_MARK);
+  if (i === -1) return '';
+  const open = SRC.lastIndexOf(ROW2_OPEN, i);
+  if (open === -1) return '';
+  const close = SRC.indexOf('\n      )}', open);
+  return close > open ? SRC.slice(open, close + 9) : '';
+})();
+
 function half(name) {
   const at = SRC.indexOf('\n  ' + name + ': {');
   if (at === -1) return '';
@@ -75,13 +91,13 @@ function half(name) {
 const AR = half('ar');
 const EN = half('en');
 
-/** One JSX element, from the given anchor back to its `<button` and forward to `</button>`. */
+/** One JSX element of the bar-actions row, from the anchor back to `<button` and on to `</button>`. */
 function buttonAround(anchor) {
-  const i = ROW.indexOf(anchor);
+  const i = ROW2.indexOf(anchor);
   if (i === -1) return '';
-  const open = ROW.lastIndexOf('<button', i);
-  const close = ROW.indexOf('</button>', i);
-  return (open !== -1 && close > open) ? ROW.slice(open, close + 9) : '';
+  const open = ROW2.lastIndexOf('<button', i);
+  const close = ROW2.indexOf('</button>', i);
+  return (open !== -1 && close > open) ? ROW2.slice(open, close + 9) : '';
 }
 
 console.log('\n=== chat-bar-actions-guard ===');
@@ -119,30 +135,112 @@ eq('A: ...and nothing was added to the row that draws them',
   (SRC.match(/EZIK_QUICK_ACTIONS\.map\(/g) || []).length, 1);
 
 // ---------------------------------------------------------------------------------------------
-// B. WHERE THE TWO BAR ACTIONS SIT.
+// B0. THE COMPOSER CONTROL ROW IS THE ROW IT WAS BEFORE THE TWO ACTIONS EVER JOINED IT.
+//
+// The owner's ruling of 2026-09-10 has two halves and this is the second one: the actions move
+// out, AND the bar goes back to exactly what it was. "Exactly" is a digest and not a description,
+// cut from aa497d5c4bd9f7f10d75dd54ba4ad2d0b1b3d3bd -- the commit before they joined -- over the
+// row's own source text between its opening tag and the standing notice under it, LF-normalised.
+// Written out here rather than re-derived from the tree, for the same reason case A's is: a digest
+// taken from the file it checks would agree with any file.
+//
+// This is the case that makes the move irreversible by accident. Any future edit that puts a
+// control back into that row -- these two or another -- is red here, on the row itself, whatever
+// else it does.
 // ---------------------------------------------------------------------------------------------
-const A_PILL = "aria-label={depthMode === 'brief' ?";
+const ROW_DIGEST = '7ed94d523b8a8d7a6f860f93bb3c53ac30efe6e1a0ac821d168ded5a403009ab';
+const rowSha = crypto.createHash('sha256').update(Buffer.from(ROW, 'utf8')).digest('hex');
+ok('B0: the composer control row is byte-for-byte the row sealed at aa497d5 (owner rule 2026-09-10)',
+  rowSha === ROW_DIGEST,
+  'expected ' + ROW_DIGEST + '\n        got      ' + rowSha + '  (' + Buffer.byteLength(ROW, 'utf8') + ' bytes)');
+ok('B0: ...and neither bar action is in it any more',
+  ROW.indexOf('EZIK_BAR_SUMMARIZE_PROMPT') === -1 && ROW.indexOf('EZIK_BAR_EXPAND_PROMPT') === -1
+    && ROW.indexOf('barActionPill') === -1);
+
+// ---------------------------------------------------------------------------------------------
+// B. WHERE THE TWO BAR ACTIONS SIT NOW: their own row, above the field.
+// ---------------------------------------------------------------------------------------------
 const A_SUM = 'onClick={() => runQuickAction(EZIK_BAR_SUMMARIZE_PROMPT)}';
 const A_EXP = 'onClick={() => runQuickAction(EZIK_BAR_EXPAND_PROMPT)}';
-const A_PLUS = '{caps.upload && (';
-const iPill = ROW.indexOf(A_PILL);
-const iSum = ROW.indexOf(A_SUM);
-const iExp = ROW.indexOf(A_EXP);
-const iPlus = ROW.indexOf(A_PLUS);
-const iLeftGroup = ROW.lastIndexOf('<div style={s.toolGroup}>');
-ok('B: both bar actions are in the control row at all', iSum !== -1 && iExp !== -1,
+const iSum = ROW2.indexOf(A_SUM);
+const iExp = ROW2.indexOf(A_EXP);
+ok('B: the bar-actions row was located before it was searched', ROW2.length > 200, 'len=' + ROW2.length);
+ok('B: both bar actions are in it', iSum !== -1 && iExp !== -1,
   'summarize@' + iSum + ' expand@' + iExp);
-ok('B: ...after the brief pill and before the [+], summarize first',
-  iPill !== -1 && iPlus !== -1 && iPill < iSum && iSum < iExp && iExp < iPlus,
-  [iPill, iSum, iExp, iPlus].join(' < '));
-ok('B: ...inside the LEFT cluster, the same toolGroup the pill and the [+] share',
-  iLeftGroup !== -1 && iLeftGroup < iPill && iLeftGroup < iSum,
-  'leftGroup@' + iLeftGroup);
+ok('B: ...summarize first', iSum !== -1 && iSum < iExp, iSum + ' < ' + iExp);
+ok('B: ...and it holds those two and nothing else',
+  (ROW2.match(/<button/g) || []).length === 2);
+// THE CONDITION IS READ AS ONE EXPRESSION, not as two strings found anywhere in the row: it is the
+// row's opening line, so a later edit that dropped either half would move this anchor and be red.
+ok('B: the row is drawn exactly when a reply is on screen and the selection bar is not',
+  ROW2.indexOf(ROW2_OPEN) === 0, ROW2.slice(0, 60));
+const iRow2InDock = DOCK.indexOf(ROW2_MARK);
+const iFieldInDock = DOCK.indexOf('<div style={s.inputBar}>');
+ok('B: ...inside the composer dock, directly above the field row',
+  iRow2InDock !== -1 && iFieldInDock !== -1 && iRow2InDock < iFieldInDock,
+  iRow2InDock + ' < ' + iFieldInDock);
 ok('B: ...and each wears the mode pill own base object rather than a copy of its values',
-  (ROW.match(/\{ \.\.\.s\.toolBtn, \.\.\.s\.barActionPill, opacity: quickActionsVisible \? 1 : 0\.4 \}/g) || []).length === 2,
-  'sites=' + (ROW.match(/\.\.\.s\.barActionPill/g) || []).length);
+  (ROW2.match(/\{ \.\.\.s\.toolBtn, \.\.\.s\.barActionPill, opacity: quickActionsVisible \? 1 : 0\.4 \}/g) || []).length === 2,
+  'sites=' + (ROW2.match(/\.\.\.s\.barActionPill/g) || []).length);
 ok('B: ...disabled by the SAME name the five are drawn under, never a second expression',
-  (ROW.match(/disabled=\{!quickActionsVisible\}/g) || []).length === 2);
+  (ROW2.match(/disabled=\{!quickActionsVisible\}/g) || []).length === 2);
+
+// ---------------------------------------------------------------------------------------------
+// B2. THE LABELS ARE NEVER CUT, which is the whole reason the two moved.
+//
+// Measured in headless Chrome at 360 and 390 before this case was written: in the control row all
+// three text pills reported scrollWidth > clientWidth, and here neither does. The three keys that
+// produce that clipping are named one by one rather than eyeballed, because `overflow: hidden` and
+// `textOverflow: ellipsis` are exactly the pair that hides the damage instead of showing it, and
+// `flexShrink: 1` is what lets the box get smaller than its text in the first place.
+// ---------------------------------------------------------------------------------------------
+function styleKey(name) {
+  const at = SRC.indexOf('\n  ' + name + ': {');
+  if (at === -1) return '';
+  const end = SRC.indexOf(' },', at);
+  return end > at ? SRC.slice(at, end + 3) : '';
+}
+const PILL_KEY = styleKey('barActionPill');
+const ROW2_KEY = styleKey('barActionRow');
+ok('B2: both style keys were located before they were searched',
+  PILL_KEY.length > 80 && ROW2_KEY.length > 40, 'pill=' + PILL_KEY.length + ' row=' + ROW2_KEY.length);
+ok('B2: the pill carries no text-overflow ellipsis', PILL_KEY.indexOf('textOverflow') === -1, esc(PILL_KEY));
+ok('B2: ...and no overflow hidden', PILL_KEY.indexOf('overflow') === -1, esc(PILL_KEY));
+ok('B2: ...and does not shrink below its content',
+  PILL_KEY.indexOf('flexShrink: 0') !== -1 && PILL_KEY.indexOf('flexShrink: 1') === -1, esc(PILL_KEY));
+// The use sites cannot put any of the three back on: the whole style prop is asserted above as the
+// shared spread plus an opacity, so this counts that there are exactly two style props and no more.
+eq('B2: ...and neither button carries a style prop of its own beside that shared one',
+  (ROW2.match(/style=\{\{/g) || []).length, 2);
+ok('B2: ...and the 44px target is kept, from s.toolBtn height plus this key own line box',
+  ROW2.length > 200 && PILL_KEY.indexOf("lineHeight: '42px'") !== -1
+    && SRC.indexOf('toolBtn: { width: 44, height: 44,') !== -1, esc(PILL_KEY));
+ok('B2: ...and every colour in the row and its pills is a token, never a literal',
+  ROW2.length > 200 && (PILL_KEY + ROW2_KEY + ROW2).match(/#[0-9a-fA-F]{3}/) === null
+    && (PILL_KEY.match(/color: '([^']*)'/g) || []).every((m) => m.indexOf('var(--') !== -1),
+  esc(PILL_KEY) + ' / ' + esc(ROW2_KEY));
+
+// ---------------------------------------------------------------------------------------------
+// B3. ONE PLACE, TWO TENANTS, AND THE SELECTION BAR WINS.
+//
+// The bar-actions row and the ask-about-the-selection bar occupy the same slot above the field.
+// Driven in headless Chrome at 360 and 390, in both interfaces, before this case was written:
+// with a reply on screen the actions row is up; marking words inside that reply takes it down and
+// puts the selection bar up; dropping the selection brings it back. What is asserted here is the
+// one thing that makes that true -- the row's own condition excludes askSelOpen, and the selection
+// bar's does NOT exclude the row, so the two can never both be up and it is the selection bar that
+// is drawn when they collide.
+// ---------------------------------------------------------------------------------------------
+ok('B3: the actions row stands down while the selection bar is showing',
+  ROW2.indexOf('!askSelOpen') !== -1 && ROW2.indexOf(ROW2_OPEN) === 0);
+ok('B3: ...and the selection bar does not stand down for it, so the selection bar is the one drawn',
+  ROW2.indexOf('!askSelOpen') !== -1
+    && SRC.indexOf('{askSelOpen && (') !== -1
+    && SRC.indexOf('{askSelOpen && !quickActionsVisible') === -1
+    && SRC.indexOf('{askSelOpen && quickActionsVisible') === -1);
+ok('B3: ...and both of them sit above the field row, in the dock, never in the chat rail',
+  DOCK.indexOf('data-ezik-asksel=""') !== -1 && DOCK.indexOf(ROW2_MARK) !== -1
+    && DOCK.indexOf('data-ezik-asksel=""') < iFieldInDock && iRow2InDock < iFieldInDock);
 
 // ---------------------------------------------------------------------------------------------
 // C. WHAT THEY CALL, AND WHAT THEY DO NOT.
@@ -186,8 +284,11 @@ eq('D: the composer dock still holds exactly ONE ez-hit element',
   (DOCK_CODE.match(/className="ez-hit"/g) || []).length, 1);
 ok('D: ...and that one is the control row itself',
   DOCK_CODE.indexOf(ROW_OPEN) !== -1 && ROW.indexOf(ROW_OPEN) === 0);
-ok('D: ...and each carries the keyboard focus ring every other control in this row has',
-  (ROW.match(/className="ezik-focus"/g) || []).length >= 2);
+ok('D: the bar-actions row brings no second ez-hit into the dock',
+  ROW2.length > 200 && (ROW2.match(/ez-hit/g) || []).length === 0,
+  'len=' + ROW2.length + ' hits=' + (ROW2.match(/ez-hit/g) || []).length);
+ok('D: ...and each of its two controls carries the keyboard focus ring',
+  (ROW2.match(/className="ezik-focus"/g) || []).length === 2);
 
 // ---------------------------------------------------------------------------------------------
 // E. THE TWO KEYS, IN BOTH HALVES, WITH THE VALUES THE ORDER NAMES.
