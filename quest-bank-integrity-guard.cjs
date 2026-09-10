@@ -113,6 +113,48 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-09-09   -- ITEM 05 F: THE COMPOSER BECAME A FIELD ROW OVER ONE CONTROL ROW. The
+  //                    field has the top row to itself and send moved down into the control
+  //                    row at the VISUAL RIGHT, with mic and the voice entry beside it and the
+  //                    mode pill and the [+] at the other end; the three icon buttons became
+  //                    44x44 circles and the chip became a pill. INDEX.HTML DID NOT MOVE this
+  //                    round -- the change is all in app.jsx -- so two of the three worker
+  //                    figures and one of the two mirrors below were already true and only the
+  //                    BUNDLE figures moved. app.js was rebuilt from that source 1397224 ->
+  //                    1399197 (+1973) by node tools/build-app.cjs, and CORE_BYTES was re-cut
+  //                    2241916 -> 2243889 (+1973) by node tools/core-bytes.cjs --write, which
+  //                    is exactly the bundle delta because the shell did not grow. The worker
+  //                    table at :111 and the app.js mirror below followed, and THIS digest is
+  //                    re-cut LAST. CACHE IS NOT BUMPED: this is a branch for the owner to try,
+  //                    not a ship, and sw.js says the merge round owns the bump.
+  //   2026-09-09   -- ITEM 05 E1/E2: the home tiles became the section NAME in a square --
+  //                    the icon, the sub-line and the chevron left the rendered tile and
+  //                    .ezist-mod/.ezist-feature took aspect-ratio:1/1 with the centring, so
+  //                    the shell grew 123062 -> 124729 (+1667); and «wirdi al-yawm» stopped
+  //                    being a card on the home and became a SECTION entered from a row that
+  //                    draws the title alone, with the +, the -, the added rows, the choice
+  //                    lines and the empty sentence all inside it. app.js was rebuilt from
+  //                    that source 1391446 -> 1397224 (+5778) by node tools/build-app.cjs,
+  //                    and CORE_BYTES was re-cut 2234471 -> 2241916 (+7445) by node
+  //                    tools/core-bytes.cjs --write -- the bundle's +5778 plus the shell's
+  //                    +1667, which is exactly that delta. The THREE worker figures (the
+  //                    shell at :57, the shell and the bundle at :111) and the TWO mirrors
+  //                    below followed, and THIS digest is re-cut LAST. CACHE IS NOT BUMPED:
+  //                    this is a branch for the owner to try, not a ship, and sw.js says the
+  //                    merge round owns the bump.
+  //   2026-09-09   -- ITEM 05 A/C/D: three sections per row at EVERY width (index.html only, so
+  //                    the shell grew 122811 -> 123062); �wirdi al-yawm� became a live list with
+  //                    a + and a - over four sections, under its own key ezik_wird_list_v1; and
+  //                    �arrange your home� moved out of the home into Settings, where it now
+  //                    reorders the ten shelf sections under ezik_home_order_v1 as well as the
+  //                    three widgets it always reordered. app.js was rebuilt from that source
+  //                    1367950 -> 1391446 (+23484) by node tools/build-app.cjs, and CORE_BYTES
+  //                    was re-cut 2210724 -> 2234471 (+23747) by node tools/core-bytes.cjs
+  //                    --write -- the bundle's +23484 plus the shell's +251, which is exactly
+  //                    that delta. The worker byte table and the THREE SW_PROSE figures above
+  //                    (the shell at :57, the shell and the bundle at :111) all followed, and
+  //                    THIS digest is re-cut last. CACHE IS NOT BUMPED: this is a branch for the
+  //                    owner to try, not a ship, and sw.js says the merge round owns the bump.
   //   2026-09-09   -- ITEM 05, THE THREE-ACROSS SHELF AND THE CHAT RAIL'S HOME BUTTON. The shelf
   //                    goes three across from 1000px: index.html:614 is repeat(3,1fr) and the two
   //                    span rules that made six tracks read as three tiles are deleted, so every
@@ -128,6 +170,25 @@ const SEALED = {
   //                    mirrors below all followed, and THIS digest was cut last, after every one
   //                    of them. sw.js is 44695 bytes at CR = 0. CACHE is NOT touched -- the store
   //                    name is the merge round's.
+  //   2026-09-09   -- ITEM 37 PIECE 2: the related-lessons search under a settled reply is now
+  //                    built from the ANSWER's words instead of the reader's question. app.jsx
+  //                    gained one pure builder (ezikLessonsQuery) and repointed one call site;
+  //                    app.js was rebuilt from that source 1364887 -> 1368253 (+3366) by node
+  //                    tools/build-app.cjs, and CORE_BYTES was re-cut 2207734 -> 2211100 by node
+  //                    tools/core-bytes.cjs --write, which is exactly that delta. The worker byte
+  //                    table and the SW_PROSE mirror above both followed, and THIS digest is
+  //                    re-cut last. CACHE IS NOT BUMPED: this is a branch for the owner to try on
+  //                    a preview, not a ship, and sw.js says the merge round owns the bump.
+  //   2026-09-09   -- ITEM 26 SHIP: أسماء الله الحسنى takes the HEAD of the home shelf, the rules
+  //                    page gains the owner's eighth rule, and the store name is bumped. app.jsx
+  //                    moved one descriptor to the top of ezHomeModules and re-cut six dictionary
+  //                    values («القواعد السبع» -> «القواعد الثماني»); app.js was rebuilt from that
+  //                    source 1364046 -> 1364887 (+841) by node tools/build-app.cjs, and CORE_BYTES
+  //                    was re-cut 2206893 -> 2207734 by node tools/core-bytes.cjs --write, which is
+  //                    exactly that delta. The worker byte table and the SW_PROSE mirror below both
+  //                    followed, and THIS digest is re-cut last. CACHE IS bumped here, ezik-v32 ->
+  //                    ezik-v33, and SW_CACHE below with it: a reader holding the old bundle would
+  //                    otherwise keep a shelf with no section at its head.
   //   2026-09-08   -- ITEM 104/105, THE MUSHAF READING PAGE. The owner's ruling of 8 Sept 2026:
   //                    the reading page carries the memorisation mark and the way back to the
   //                    suras and NOTHING else. app.jsx lost the bottom dock outright -- both
@@ -142,6 +203,239 @@ const SEALED = {
   //                    figure in the byte table above CORE_BYTES and the SW_PROSE mirror below
   //                    both followed 1338609 -> 1336026, and THIS digest was cut last, after
   //                    all of them. CACHE is NOT touched -- the store name is the merge round's.
+  // ITEM 20 SHELF, COMMIT THREE -- WHO SEES THE WOMEN'S CORNER (2026-09-08,
+  //                    feat/shelf-20260908). NO CHANGE IN THE WORKER ITSELF BEYOND ITS BYTE
+  //                    TABLE. D-10 is reversed: the form of address decides who is drawn that
+  //                    section, \u00abmale\u00bb is not drawn it, and the switch that used to decide it is
+  //                    deleted from Settings with its device key, its reader and its writer. The
+  //                    key literal survives at exactly ONE line in app.jsx -- the removeItem in
+  //                    \u00abdelete all my data\u00bb -- because an abandoned value is still one person's
+  //                    record in one person's browser, and that page promises it goes; the roster
+  //                    entry in tools/delete-truth-measure.cjs became a `lit` for the same reason.
+  //                    app.js followed 1337339 -> 1338609 (+1270) and CORE_BYTES 2180186 ->
+  //                    2181456 is exactly that delta. The worker byte table and the SW_PROSE
+  //                    mirror below both followed, and THIS digest is re-cut last. CACHE is NOT
+  //                    bumped: install rewrites every CORE entry into the same store.
+  // ITEM 20 SHELF, COMMIT TWO -- THE ORDER (2026-09-08, feat/shelf-20260908). NO CHANGE IN THE
+  //                    WORKER ITSELF BEYOND ITS BYTE TABLE. The women's corner moved from the
+  //                    second position on the home shelf to the last one, after every other
+  //                    section; the articles section stays first and the seven between them do
+  //                    not move. One row of a literal array changed position and the comment
+  //                    above it was rewritten, which is the whole of the bundle's growth.
+  //                    app.js followed 1336450 -> 1337339 (+889) and CORE_BYTES 2179297 ->
+  //                    2180186 is exactly that delta. The worker byte table and the SW_PROSE
+  //                    mirror below both followed, and THIS digest is re-cut last. CACHE is NOT
+  //                    bumped: install rewrites every CORE entry into the same store.
+  // ITEM 20 SHELF, COMMIT ONE -- THE NAME (2026-09-08, feat/shelf-20260908). NO CHANGE IN THE
+  //                    WORKER ITSELF BEYOND ITS BYTE TABLE. The articles section is called
+  //                    «Ezik's articles» on the shelf, in its own screen head and in the writing
+  //                    form's section chooser; the change is TWO dictionary values and nothing
+  //                    else -- no key, no descriptor id, no section register and no stored value
+  //                    moved, which is why the bundle grew by eight bytes. app.js followed
+  //                    1336442 -> 1336450 (+8) and CORE_BYTES 2179289 -> 2179297 is exactly that
+  //                    delta. The worker byte table and the SW_PROSE mirror below both followed,
+  //                    and THIS digest is re-cut last. CACHE is NOT bumped: install rewrites
+  //                    every CORE entry into the same store.
+  // ITEM 8 -- THE BROWSER DOOR (2026-09-07, feat/night-run-20260907, phase 7). NO CHANGE IN THE
+  //                    WORKER ITSELF BEYOND ITS BYTE TABLE. api/auth-return.js gained a second
+  //                    destination for a flow that started in a tab, and the page gained the press,
+  //                    the per-tab state and the return leg that walk it; app.js followed
+  //                    1327772 -> 1336442 (+8670) and CORE_BYTES 2170619 -> 2179289 is
+  //                    exactly that delta. The worker byte table and the SW_PROSE mirror below both
+  //                    followed, and THIS digest is re-cut last. CACHE is NOT bumped: install
+  //                    rewrites every CORE entry into the same store.
+  // THE GRANT CHECK (2026-09-07, feat/night-run-20260907, phase 4). NO CHANGE IN THE WORKER
+  //                    ITSELF BEYOND ITS BYTE TABLE. One control in Settings, drawn only where a
+  //                    founder token is held, that presses the very door that refuses a writer and
+  //                    says which of the four refusals it was; app.js followed 1321078 -> 1327772
+  //                    (+6694) and CORE_BYTES 2163925 -> 2170619 is exactly that delta. The
+  //                    worker byte table and the SW_PROSE mirror below both followed, and THIS
+  //                    digest is re-cut last. CACHE is NOT bumped: install rewrites every CORE
+  //                    entry into the same store.
+  // ITEM 9 -- THE PROFILE BLOCK AND THE HIDE CONTROL (2026-09-07, feat/night-run-20260907,
+  //                    phase 3). NO CHANGE IN THE WORKER ITSELF BEYOND ITS BYTE TABLE. A third
+  //                    form of address that says "prefer not to say" out loud instead of being
+  //                    reached by pressing a word twice, and one switch that hides the women
+  //                    section from the shelf on this device and puts it back from the same
+  //                    place; app.js followed 1315901 -> 1321078 (+5177) and CORE_BYTES
+  //                    2158748 -> 2163925 is exactly that delta. The worker byte table and the
+  //                    SW_PROSE mirror below both followed, and THIS digest is re-cut last.
+  //                    CACHE is NOT bumped: install rewrites every CORE entry into the same store.
+  // ITEM 7 -- THE MARK ON A SECTION HOLDING SOMETHING NEW (2026-09-07,
+  //                    feat/night-run-20260907, phase 2). NO CHANGE IN THE WORKER ITSELF BEYOND
+  //                    ITS BYTE TABLE. A device-local record of what each section has already
+  //                    shown this reader, a dot on the two shelf tiles that hold something newer
+  //                    than it, and two list requests made AFTER the first paint; app.js followed
+  //                    1307875 -> 1315901 (+8026) and CORE_BYTES 2150722 -> 2158748 is exactly
+  //                    that delta. The worker byte table and the SW_PROSE mirror below both
+  //                    followed, and THIS digest is re-cut last. CACHE is NOT bumped: install
+  //                    rewrites every CORE entry into the same store.
+  // THE TWO UNREGISTERED BACK LAYERS (2026-09-07, feat/night-run-20260907, phase 1).
+  //                    NO CHANGE IN THE WORKER ITSELF BEYOND ITS BYTE TABLE. The prayer sheet
+  //                    and the arrange panel each register a back layer now, and each visible
+  //                    way out of them spends the entry that registration pushes; app.js
+  //                    followed 1306083 -> 1307875 (+1792) and CORE_BYTES 2148930 -> 2150722
+  //                    is exactly that delta. The worker byte table and the SW_PROSE mirror
+  //                    below both followed, and THIS digest is re-cut last. CACHE is NOT
+  //                    bumped: install rewrites every CORE entry into the same store.
+  // THE ARTICLES SCREENS (2026-09-07, feat/item20-ui-loop-20260907, item 20 stage two).
+  //                    NO CHANGE IN THE WORKER ITSELF BEYOND ITS BYTE TABLE. The server half of
+  //                    item 20 had been live since 2e33456 and no screen existed, so nobody could
+  //                    see any of it; the two reader sections, the reading view and the writing
+  //                    screen landed in app.jsx and app.js followed 1265332 -> 1306083 (+40751
+  //                    across two commits: +40399 for the screens, +352 for a locked section
+  //                    chooser that says it is locked), and CORE_BYTES 2108179 -> 2148930 is
+  //                    exactly that delta. The worker byte
+  //                    table and the SW_PROSE mirror below both followed, and THIS digest is
+  //                    re-cut last. CACHE is NOT bumped: install rewrites every CORE entry into
+  //                    the same store.
+  // THE BOOK CARD OPENS ONTO ITS MATN (2026-09-01, feat/item7-library-freebrain-20260901,
+  //                    piece 9 / degree 1). AGAIN NO CHANGE IN THE WORKER ITSELF BEYOND ITS BYTE
+  //                    TABLE. The chip built by the round below named a book and a page and
+  //                    could not show one word of what the answer rested on: the passage reached
+  //                    the row (lib/free-brain/tools.js) and died at the tag, which read three
+  //                    fields and not that one. It now rides on the SAME tag, base64 so that a
+  //                    quotation full of guillemets cannot truncate the card, and a touch opens
+  //                    it under the chip. app.js followed 1253566 -> 1259367 (+5801) and
+  //                    CORE_BYTES 2096413 -> 2102214 is exactly that delta. The worker byte
+  //                    table and the SW_PROSE mirror below both followed, and THIS digest is
+  //                    re-cut last. CACHE is NOT bumped: install rewrites every CORE entry into
+  //                    the same store.
+  // THE LIBRARY BOOK CARD (2026-09-01, feat/item7-library-freebrain-20260901). ONE CHANGE IN THE
+  //                    WORKER ITSELF BEYOND ITS BYTE TABLE: none. `lib_book` atoms reached the
+  //                    answer and no card was ever built for them — the tool existed in one file,
+  //                    the client knew nothing of it — so the server now builds a `<book>` chip
+  //                    from the rows the delivered text cited and the client draws it. app.jsx
+  //                    grew and app.js followed 1249879 -> 1253566 (+3687), and CORE_BYTES
+  //                    2092726 -> 2096413 is exactly that delta. The worker byte table and the
+  //                    SW_PROSE mirror below both followed, and THIS digest is re-cut last. CACHE
+  //                    is NOT bumped: install rewrites every CORE entry into the same store.
+  // APPLE 4.0.0 (2026-08-30, fix/apple-400-onboard-remove-20260830). ONE CHANGE IN app.jsx AND
+  //                    NOT ONE IN THE WORKER ITSELF beyond its byte table: submission e931435e-
+  //                    f171-4da4-b476-c33fd5dde452 was refused for asking a name and a year
+  //                    after Sign in with Apple, so the step behind the entry card is gone and
+  //                    the three fields it asked for moved into Settings. app.js followed
+  //                    1242855 -> 1248701 (+5846), and CORE_BYTES 2085702 -> 2091548 is exactly
+  //                    that delta. The worker byte table and the SW_PROSE mirror below both
+  //                    followed, and THIS digest is re-cut last. CACHE is NOT bumped: install
+  //                    rewrites every CORE entry into the same store.
+  // THE WEB-SHELL SEAM (2026-08-28, feat/web-shell-seam-20260828). THREE CHANGES IN app.jsx AND
+  //                    NOT ONE IN THE WORKER ITSELF beyond its byte table: a FIFTH shell channel
+  //                    that hands this page a finished session (written through the existing
+  //                    writeAuthSession, no new key), a shell-declared flag that takes both
+  //                    provider doors off the entry screen while the guest door stays, and the
+  //                    qibla panel re-arming the heading stream when the location permission it
+  //                    needs is granted. app.js followed 1216884 -> 1232987 (+16103), and
+  //                    CORE_BYTES 2059731 -> 2075834 is exactly that delta. The worker byte
+  //                    table and the SW_PROSE mirror below both followed, and THIS digest is
+  //                    re-cut last. CACHE is NOT bumped: install rewrites every CORE entry into
+  //                    the same store.
+  // LOGIN FIRST + THE GUEST DOOR (2026-08-27, feat/login-first-20260827). THE FIRST SCREEN A
+  //                    DEVICE MEETS IS NOW THE ENTRY SCREEN: two provider doors and a guest door
+  //                    beside them, with the wird/conversations warning drawn on it, and the name
+  //                    and year moved BEHIND that answer and made optional. One new device key,
+  //                    ezik_entry_v1, on the erase roster. No route, no screen and no cache name
+  //                    moved -- Onboarding gained a step, it did not become two components.
+  //                    app.jsx grew and app.js followed 1205975 -> 1216868 (+10893),
+  //                    and CORE_BYTES 2048822 -> 2059715 is exactly that delta. The
+  //                    worker byte table and SW_PROSE mirror below both followed, and THIS digest
+  //                    is re-cut last. CACHE is NOT bumped: install rewrites every CORE entry
+  //                    into the same store.
+  // QIBLA CALIBRATION ARROW (2026-08-27, feat/qibla-heading-20260827). THE OWNER KEEPS THE
+  //                    CALIBRATION STREAM MOVING, but its arrow now carries the judgment: it is
+  //                    hollow and dashed, with a calibration-only marker, while ready/live keeps
+  //                    the original solid path and no marker. No text, bearing, state branch,
+  //                    key, cache name, or CORE entry moved. app.jsx grew and app.js followed
+  //                    1205284 -> 1205975 (+691), and CORE_BYTES 2048131 -> 2048822 is exactly
+  //                    that delta. The worker byte table and SW_PROSE mirror below both followed,
+  //                    and THIS digest is re-cut last. CACHE is NOT bumped: install rewrites
+  //                    every CORE entry into the same store.
+  // QIBLA HEADING STREAM (2026-08-27, feat/qibla-heading-20260827). THE WEB ASKS WHILE THE PANEL
+  //                    LIVES. The native bridge is detected by the existing detector, receives
+  //                    one start and one stop, and supplies five statuses without the web
+  //                    reclassifying accuracy. Without that bridge, the browser orientation path
+  //                    is unchanged. app.jsx grew and app.js followed 1200987 -> 1205284 (+4297),
+  //                    and CORE_BYTES 2043834 -> 2048131 is exactly that delta -- no CORE entry
+  //                    was added or removed. The worker byte table and SW_PROSE mirror below both
+  //                    followed, and THIS digest is re-cut last. CACHE is NOT bumped: install
+  //                    rewrites every CORE entry into the same store.
+  // PARENTAL GATE + CHILD AI CONSENT (2026-08-27, feat/parental-gate-20260827). THE CODE KEEPS
+  //                    ITS PLACE AND GAINS TWO THINGS. D12 stands -- the parent code is judged on
+  //                    the server and no device key holds it -- so the erratum that ordered it
+  //                    onto the device was withdrawn and NOTHING here moved storage. What the
+  //                    server record gained is an age (`setAt`, 365 days, judged in the endpoint
+  //                    rather than by a store TTL so an expired code can be NAMED instead of
+  //                    looking like a code that never existed) and a way out (`delete`, guarded
+  //                    by the code itself under the same limiter as verify). On the client that
+  //                    is ParentCodeCard on the parents' dashboard, behind an armed step, writing
+  //                    nothing to the device. The AI-consent record gained the profile id it was
+  //                    given for, so a second child on one tablet is asked in their own right --
+  //                    same key, same delete roster entry, no new storage anywhere.
+  //                    app.jsx grew and app.js followed 1193820 -> 1200987 (+7167), and
+  //                    CORE_BYTES 2036667 -> 2043834 is exactly that delta -- no CORE entry was
+  //                    added or removed this round. The byte table above the constant and its
+  //                    SW_PROSE mirror below both followed, and THIS digest is re-cut last
+  //                    because it seals the bytes every step above it moved. CACHE is NOT bumped:
+  //                    install rewrites every CORE entry into the same store.
+  // ITEMS 43-b / 47-b (2026-08-27, feat/reminder-settings-20260826). THE REMINDER SETTINGS.
+  //                    A group inside the Settings screen carrying four independent reminders --
+  //                    the morning adhkar door, the evening adhkar door, the daily wird and the
+  //                    daily content -- each with a switch, a time the reader picks, and (for the
+  //                    two where a count is right) up to three times a day. All four default OFF.
+  //                    The feed joins the prayers through ezikSchedItems and every item carries a
+  //                    route naming its destination; the shell fires them and a browser tab does
+  //                    not, which the screen says to the reader in its own line.
+  //                    app.jsx grew and app.js followed 1171036 -> 1193820 (+22784), and
+  //                    CORE_BYTES 2013883 -> 2036667 is exactly that delta -- no CORE entry was
+  //                    added or removed this round. The byte table above the constant and its
+  //                    SW_PROSE mirror below both followed, and THIS digest is re-cut last
+  //                    because it seals the bytes every step above it moved. CACHE is NOT bumped:
+  //                    install rewrites every CORE entry into the same store.
+  //   adhkar ship   -- the two doors go to every reader. FOUR things move and the digest is cut
+  //                    after all of them. (1) PRECACHE: adhkar-split-27.json joins CORE beside
+  //                    adhkar.json, so the doors survive a cold offline boot instead of falling
+  //                    back to the undivided group; its revalidation needed no line, because the
+  //                    fetch handler already moves every same-origin *.json but the two sealed
+  //                    mushaf files to stale-while-revalidate. (2) The twins guard is WIDENED to
+  //                    compare the split pair as well -- same checks, same order, no new gate,
+  //                    roster still 99. (3) A favourite saved as 27:<position> is resolved
+  //                    through the data to a dhikr id and lights that dhikr in its new door --
+  //                    READ ONLY, nothing migrated or renamed. (4) The switch default is RAISED:
+  //                    no parameter means the doors, and ?adhkargroups=0 is the rollback that
+  //                    costs no deploy. app.jsx grew and app.js followed 1167264 -> 1171036
+  //                    (+3772). CORE_BYTES 2002929 -> 2013883 = that delta plus the 7182 the new
+  //                    CORE entry weighs. The byte table above the constant gained a term for it
+  //                    and its SW_PROSE mirror gained the figure, so B14 can check it. CACHE is
+  //                    NOT bumped and does not need to be: install rewrites every CORE entry
+  //                    into the same store, which is measured, not assumed.
+  //   adhkar split  -- category 27 opens as TWO doors instead of one. The owner's own file,
+  //                    adhkar-split-27.json, assigns the twenty-four adhkar of the morning and
+  //                    evening group to a morning door of 23 and an evening door of 21, and
+  //                    carries its own wording for the six that are said differently after
+  //                    noon. adhkar.json is NOT edited -- it is byte-identical, and repeat,
+  //                    audio and id still come from its rows by id. The client fetches the
+  //                    split from a byte copy at the root, made with fs.copyFileSync; that
+  //                    file is NOT in CORE, so it is not precached and every failure to load
+  //                    it falls back to the unsplit screen. app.jsx grew and app.js followed
+  //                    1160295 -> 1167264 (+6969). app.js is in CORE, so three numbers moved
+  //                    with it and all three are re-cut in the SAME commit as this digest:
+  //                    CORE_BYTES 1995960 -> 2002929 by tools/core-bytes.cjs --write, the
+  //                    app.js figure in the byte table above that constant, and its SW_PROSE
+  //                    mirror below. THIS digest was cut LAST, after both sw.js edits. The
+  //                    worker itself did not change: one integer and one figure in prose.
+  //                    CACHE is NOT touched -- this branch is a preview and ships nothing.
+  //   adhkar groups -- the adhkar reader gained a group standing line, a remembered position, a
+  //                    bead card that spends one repetition per tap, and a first door chosen by
+  //                    the clock -- all behind ?adhkargroups=1 and all OFF by default. app.jsx
+  //                    grew and the app.js it builds followed 1147830 -> 1160295 (+12465).
+  //                    app.js is in CORE, so three numbers moved with it and all three are
+  //                    re-cut in the SAME commit as this digest: CORE_BYTES 1983495 -> 1995960
+  //                    by tools/core-bytes.cjs --write, the app.js figure in the byte table
+  //                    above that constant, and its SW_PROSE mirror below. THIS digest was cut
+  //                    LAST, after both sw.js edits. The worker own behaviour did not change:
+  //                    what moved inside sw.js is one integer and one figure in prose. CACHE is
+  //                    NOT touched -- the store name is a ship decision the merge round owns,
+  //                    and this branch is a preview that ships nothing.
   //   2026-08-26   -- THE DOOR OUT: deleting the account from inside the app, which Apple
   //                    requires of anything that creates one and which the sign-in round
   //                    shipped without. api/auth-delete.js is new and is the ONLY caller of
@@ -249,35 +543,6 @@ const SEALED = {
   //                    against it -- enable sent from an effect, a refusal leaving the switch on, an
   //                    off that cancels nothing, a gate removed, and the switch drawn without a
   //                    shell -- and all five went red; app.jsx came back byte for byte after each.
-  //   2026-08-25   -- the store lift for the delete-page truth round. CACHE ezik-v31 ->
-  //                    ezik-v32. MEASURED FIRST, because the bump is only justified if a
-  //                    returning reader is actually being served the old bytes, and the file
-  //                    that forces it IS in CORE: app.js, which the commit below rebuilt
-  //                    1081237 -> 1082779 when resetAll gained the four erasures delete.html
-  //                    had already promised. sw.js was driven in a vm with a stub CacheStorage
-  //                    recording every match, put, add and delete, and a fetch that COUNTS its
-  //                    calls: install add()s 10 CORE entries into the store and '/app.js' is
-  //                    one of them, and a GET of it on a WORKING network is then answered out
-  //                    of the store with ZERO network calls -- same-origin static assets match
-  //                    no earlier branch and land in the generic cache-first arm (sw.js:741),
-  //                    which returns the hit and never revalidates. So a returning reader keeps
-  //                    the OLD bundle -- and with it the OLD resetAll, the one that did not keep
-  //                    the page's promise -- for as long as the store keeps its name, not merely
-  //                    while offline. With CACHE lifted, activate's sweep (sw.js:434) deletes
-  //                    exactly ezik-v31 and spares ezik-mushaf-pages-v1, and install repopulates
-  //                    with the new bundle. THE CONTROL WAS RUN TOO: without the lift, activate
-  //                    deletes nothing and the old bundle is still served on a live network.
-  //                    The bump is the thing that drops it. NOTHING ELSE MOVED -- CORE_BYTES
-  //                    stays 1918444 (sw.js is not in CORE and no CORE file's size changed in
-  //                    THIS commit; app.js was rebuilt in the commit below and CORE_BYTES was
-  //                    re-cut there, with it; re-measured by tools/core-bytes.cjs: MATCH), and
-  //                    no byte-table or SW_PROSE figure moved, since 'ezik-v31' and 'ezik-v32'
-  //                    are both eight characters and sw.js did not change length: 44266 bytes
-  //                    before and after, CR = 0, as the note above requires. MUSHAF_CACHE stays
-  //                    ezik-mushaf-pages-v1, unversioned by design (item 33), and measured
-  //                    above to survive the sweep. SW_CACHE below is re-cut in the SAME commit
-  //                    as this digest -- it is the only mirror, re-checked by grep across the
-  //                    tree -- and the digest AFTER both. app.js / app.jsx untouched here.
   //   2026-08-25   -- item 67, the call at its time: the ONE feed that had an anchor rides the
   //                    pipe the commit before this one built. app.jsx gained ezikAdhanItems():
   //                    the five prayers of the next seven local days, taken from prayerTimesFor()
@@ -317,6 +582,35 @@ const SEALED = {
   //                    ezik-v32, because lifting it is a ship decision and not a work step.
   //                    tools/schedule-payload-measure.cjs is added in the same commit and lifts
   //                    the pipe out of app.jsx with @babel/parser to hold it to all of the above.
+  //   2026-08-25   -- the store lift for the delete-page truth round. CACHE ezik-v31 ->
+  //                    ezik-v32. MEASURED FIRST, because the bump is only justified if a
+  //                    returning reader is actually being served the old bytes, and the file
+  //                    that forces it IS in CORE: app.js, which the commit below rebuilt
+  //                    1081237 -> 1082779 when resetAll gained the four erasures delete.html
+  //                    had already promised. sw.js was driven in a vm with a stub CacheStorage
+  //                    recording every match, put, add and delete, and a fetch that COUNTS its
+  //                    calls: install add()s 10 CORE entries into the store and '/app.js' is
+  //                    one of them, and a GET of it on a WORKING network is then answered out
+  //                    of the store with ZERO network calls -- same-origin static assets match
+  //                    no earlier branch and land in the generic cache-first arm (sw.js:741),
+  //                    which returns the hit and never revalidates. So a returning reader keeps
+  //                    the OLD bundle -- and with it the OLD resetAll, the one that did not keep
+  //                    the page's promise -- for as long as the store keeps its name, not merely
+  //                    while offline. With CACHE lifted, activate's sweep (sw.js:434) deletes
+  //                    exactly ezik-v31 and spares ezik-mushaf-pages-v1, and install repopulates
+  //                    with the new bundle. THE CONTROL WAS RUN TOO: without the lift, activate
+  //                    deletes nothing and the old bundle is still served on a live network.
+  //                    The bump is the thing that drops it. NOTHING ELSE MOVED -- CORE_BYTES
+  //                    stays 1918444 (sw.js is not in CORE and no CORE file's size changed in
+  //                    THIS commit; app.js was rebuilt in the commit below and CORE_BYTES was
+  //                    re-cut there, with it; re-measured by tools/core-bytes.cjs: MATCH), and
+  //                    no byte-table or SW_PROSE figure moved, since 'ezik-v31' and 'ezik-v32'
+  //                    are both eight characters and sw.js did not change length: 44266 bytes
+  //                    before and after, CR = 0, as the note above requires. MUSHAF_CACHE stays
+  //                    ezik-mushaf-pages-v1, unversioned by design (item 33), and measured
+  //                    above to survive the sweep. SW_CACHE below is re-cut in the SAME commit
+  //                    as this digest -- it is the only mirror, re-checked by grep across the
+  //                    tree -- and the digest AFTER both. app.js / app.jsx untouched here.
   //   2026-08-25   -- the delete-page truth round. app.jsx gained FOUR localStorage removals in
   //                    resetAll -- the AI-consent record, the saved qibla position, the prayer
   //                    preferences and the schedule derived from them -- because delete.html has
@@ -359,6 +653,17 @@ const SEALED = {
   //                    stays ezik-mushaf-pages-v1, unversioned by design (item 33). SW_CACHE
   //                    below is re-cut in the SAME commit as this digest, and the digest AFTER
   //                    both.
+  //   location web   -- the qibla button gained a second source behind it (the native shell's
+  //                    bridge, when the page is inside the shell), so app.jsx grew and the app.js
+  //                    it builds followed 1076271 -> 1081237 (+4966). app.js is in CORE, so three
+  //                    numbers moved with it and all three are re-cut in the SAME commit as this
+  //                    digest: CORE_BYTES 1911936 -> 1916902 by `node tools/core-bytes.cjs
+  //                    --write`, the byte table above that constant, and SW_PROSE below. The
+  //                    worker's own behaviour did not change -- what changed inside sw.js is one
+  //                    integer and the prose around it, and that prose was ALSO corrected: it
+  //                    still described the pre-item-112 rule under which CORE_BYTES was allowed
+  //                    to trail the disk and B12 failed downward only. CACHE is NOT touched: the
+  //                    store name is a ship decision and the merge round owns the bump.
   //   2026-08-25   -- merge round 29: the privacy-truth correction. privacy.html and delete.html
   //                    were the only files merged, and NEITHER is in CORE -- so CORE_BYTES did
   //                    NOT move (1911936, re-measured by tools/core-bytes.cjs and MATCH) and no
@@ -505,6 +810,10 @@ const SEALED = {
   //                    instead of leaving the record behind a request nobody makes. B13 below
   //                    was cut in the SAME commit as this digest. CACHE is NOT touched: the
   //                    store name is a ship decision and the merge round owns the bump.
+  //   item 91-A     -- storage-quota management: an estimate before the first write, one
+  //                    persist() request, a reason on every recorded failure, and an eviction
+  //                    rule that drops OLD stores (never the current one) and retries once.
+  //                    B12 below was cut in the SAME commit as this digest.
   //   item 22+104  -- CACHE 'ezik-v6' -> 'ezik-v7'. index.html is in CORE and item 22+104
   //                    changed it (the wird strip now leaves the DOM with the chrome), so a
   //                    returning reader must stop being served the old shell out of the old
@@ -518,315 +827,6 @@ const SEALED = {
   //                    *.json class moved from cache-first to stale-while-revalidate.
   //                    SW_CACHE below and B11 were cut in the SAME commit as this digest.
   //   watermark     -- CORE gained '/icon-watermark.png' in the commit that pointed .ezwm at it.
-  //   item 91-A     -- storage-quota management: an estimate before the first write, one
-  //                    persist() request, a reason on every recorded failure, and an eviction
-  //                    rule that drops OLD stores (never the current one) and retries once.
-  //                    B12 below was cut in the SAME commit as this digest.
-  //   location web   -- the qibla button gained a second source behind it (the native shell's
-  //                    bridge, when the page is inside the shell), so app.jsx grew and the app.js
-  //                    it builds followed 1076271 -> 1081237 (+4966). app.js is in CORE, so three
-  //                    numbers moved with it and all three are re-cut in the SAME commit as this
-  //                    digest: CORE_BYTES 1911936 -> 1916902 by `node tools/core-bytes.cjs
-  //                    --write`, the byte table above that constant, and SW_PROSE below. The
-  //                    worker's own behaviour did not change -- what changed inside sw.js is one
-  //                    integer and the prose around it, and that prose was ALSO corrected: it
-  //                    still described the pre-item-112 rule under which CORE_BYTES was allowed
-  //                    to trail the disk and B12 failed downward only. CACHE is NOT touched: the
-  //                    store name is a ship decision and the merge round owns the bump.
-  //   adhkar groups -- the adhkar reader gained a group standing line, a remembered position, a
-  //                    bead card that spends one repetition per tap, and a first door chosen by
-  //                    the clock -- all behind ?adhkargroups=1 and all OFF by default. app.jsx
-  //                    grew and the app.js it builds followed 1147830 -> 1160295 (+12465).
-  //                    app.js is in CORE, so three numbers moved with it and all three are
-  //                    re-cut in the SAME commit as this digest: CORE_BYTES 1983495 -> 1995960
-  //                    by tools/core-bytes.cjs --write, the app.js figure in the byte table
-  //                    above that constant, and its SW_PROSE mirror below. THIS digest was cut
-  //                    LAST, after both sw.js edits. The worker own behaviour did not change:
-  //                    what moved inside sw.js is one integer and one figure in prose. CACHE is
-  //                    NOT touched -- the store name is a ship decision the merge round owns,
-  //                    and this branch is a preview that ships nothing.
-  //   adhkar split  -- category 27 opens as TWO doors instead of one. The owner's own file,
-  //                    adhkar-split-27.json, assigns the twenty-four adhkar of the morning and
-  //                    evening group to a morning door of 23 and an evening door of 21, and
-  //                    carries its own wording for the six that are said differently after
-  //                    noon. adhkar.json is NOT edited -- it is byte-identical, and repeat,
-  //                    audio and id still come from its rows by id. The client fetches the
-  //                    split from a byte copy at the root, made with fs.copyFileSync; that
-  //                    file is NOT in CORE, so it is not precached and every failure to load
-  //                    it falls back to the unsplit screen. app.jsx grew and app.js followed
-  //                    1160295 -> 1167264 (+6969). app.js is in CORE, so three numbers moved
-  //                    with it and all three are re-cut in the SAME commit as this digest:
-  //                    CORE_BYTES 1995960 -> 2002929 by tools/core-bytes.cjs --write, the
-  //                    app.js figure in the byte table above that constant, and its SW_PROSE
-  //                    mirror below. THIS digest was cut LAST, after both sw.js edits. The
-  //                    worker itself did not change: one integer and one figure in prose.
-  //                    CACHE is NOT touched -- this branch is a preview and ships nothing.
-  //   adhkar ship   -- the two doors go to every reader. FOUR things move and the digest is cut
-  //                    after all of them. (1) PRECACHE: adhkar-split-27.json joins CORE beside
-  //                    adhkar.json, so the doors survive a cold offline boot instead of falling
-  //                    back to the undivided group; its revalidation needed no line, because the
-  //                    fetch handler already moves every same-origin *.json but the two sealed
-  //                    mushaf files to stale-while-revalidate. (2) The twins guard is WIDENED to
-  //                    compare the split pair as well -- same checks, same order, no new gate,
-  //                    roster still 99. (3) A favourite saved as 27:<position> is resolved
-  //                    through the data to a dhikr id and lights that dhikr in its new door --
-  //                    READ ONLY, nothing migrated or renamed. (4) The switch default is RAISED:
-  //                    no parameter means the doors, and ?adhkargroups=0 is the rollback that
-  //                    costs no deploy. app.jsx grew and app.js followed 1167264 -> 1171036
-  //                    (+3772). CORE_BYTES 2002929 -> 2013883 = that delta plus the 7182 the new
-  //                    CORE entry weighs. The byte table above the constant gained a term for it
-  //                    and its SW_PROSE mirror gained the figure, so B14 can check it. CACHE is
-  //                    NOT bumped and does not need to be: install rewrites every CORE entry
-  //                    into the same store, which is measured, not assumed.
-  // ITEMS 43-b / 47-b (2026-08-27, feat/reminder-settings-20260826). THE REMINDER SETTINGS.
-  //                    A group inside the Settings screen carrying four independent reminders --
-  //                    the morning adhkar door, the evening adhkar door, the daily wird and the
-  //                    daily content -- each with a switch, a time the reader picks, and (for the
-  //                    two where a count is right) up to three times a day. All four default OFF.
-  //                    The feed joins the prayers through ezikSchedItems and every item carries a
-  //                    route naming its destination; the shell fires them and a browser tab does
-  //                    not, which the screen says to the reader in its own line.
-  //                    app.jsx grew and app.js followed 1171036 -> 1193820 (+22784), and
-  //                    CORE_BYTES 2013883 -> 2036667 is exactly that delta -- no CORE entry was
-  //                    added or removed this round. The byte table above the constant and its
-  //                    SW_PROSE mirror below both followed, and THIS digest is re-cut last
-  //                    because it seals the bytes every step above it moved. CACHE is NOT bumped:
-  //                    install rewrites every CORE entry into the same store.
-  // PARENTAL GATE + CHILD AI CONSENT (2026-08-27, feat/parental-gate-20260827). THE CODE KEEPS
-  //                    ITS PLACE AND GAINS TWO THINGS. D12 stands -- the parent code is judged on
-  //                    the server and no device key holds it -- so the erratum that ordered it
-  //                    onto the device was withdrawn and NOTHING here moved storage. What the
-  //                    server record gained is an age (`setAt`, 365 days, judged in the endpoint
-  //                    rather than by a store TTL so an expired code can be NAMED instead of
-  //                    looking like a code that never existed) and a way out (`delete`, guarded
-  //                    by the code itself under the same limiter as verify). On the client that
-  //                    is ParentCodeCard on the parents' dashboard, behind an armed step, writing
-  //                    nothing to the device. The AI-consent record gained the profile id it was
-  //                    given for, so a second child on one tablet is asked in their own right --
-  //                    same key, same delete roster entry, no new storage anywhere.
-  //                    app.jsx grew and app.js followed 1193820 -> 1200987 (+7167), and
-  //                    CORE_BYTES 2036667 -> 2043834 is exactly that delta -- no CORE entry was
-  //                    added or removed this round. The byte table above the constant and its
-  //                    SW_PROSE mirror below both followed, and THIS digest is re-cut last
-  //                    because it seals the bytes every step above it moved. CACHE is NOT bumped:
-  //                    install rewrites every CORE entry into the same store.
-  // QIBLA HEADING STREAM (2026-08-27, feat/qibla-heading-20260827). THE WEB ASKS WHILE THE PANEL
-  //                    LIVES. The native bridge is detected by the existing detector, receives
-  //                    one start and one stop, and supplies five statuses without the web
-  //                    reclassifying accuracy. Without that bridge, the browser orientation path
-  //                    is unchanged. app.jsx grew and app.js followed 1200987 -> 1205284 (+4297),
-  //                    and CORE_BYTES 2043834 -> 2048131 is exactly that delta -- no CORE entry
-  //                    was added or removed. The worker byte table and SW_PROSE mirror below both
-  //                    followed, and THIS digest is re-cut last. CACHE is NOT bumped: install
-  //                    rewrites every CORE entry into the same store.
-  // QIBLA CALIBRATION ARROW (2026-08-27, feat/qibla-heading-20260827). THE OWNER KEEPS THE
-  //                    CALIBRATION STREAM MOVING, but its arrow now carries the judgment: it is
-  //                    hollow and dashed, with a calibration-only marker, while ready/live keeps
-  //                    the original solid path and no marker. No text, bearing, state branch,
-  //                    key, cache name, or CORE entry moved. app.jsx grew and app.js followed
-  //                    1205284 -> 1205975 (+691), and CORE_BYTES 2048131 -> 2048822 is exactly
-  //                    that delta. The worker byte table and SW_PROSE mirror below both followed,
-  //                    and THIS digest is re-cut last. CACHE is NOT bumped: install rewrites
-  //                    every CORE entry into the same store.
-  // LOGIN FIRST + THE GUEST DOOR (2026-08-27, feat/login-first-20260827). THE FIRST SCREEN A
-  //                    DEVICE MEETS IS NOW THE ENTRY SCREEN: two provider doors and a guest door
-  //                    beside them, with the wird/conversations warning drawn on it, and the name
-  //                    and year moved BEHIND that answer and made optional. One new device key,
-  //                    ezik_entry_v1, on the erase roster. No route, no screen and no cache name
-  //                    moved -- Onboarding gained a step, it did not become two components.
-  //                    app.jsx grew and app.js followed 1205975 -> 1216868 (+10893),
-  //                    and CORE_BYTES 2048822 -> 2059715 is exactly that delta. The
-  //                    worker byte table and SW_PROSE mirror below both followed, and THIS digest
-  //                    is re-cut last. CACHE is NOT bumped: install rewrites every CORE entry
-  //                    into the same store.
-  // THE WEB-SHELL SEAM (2026-08-28, feat/web-shell-seam-20260828). THREE CHANGES IN app.jsx AND
-  //                    NOT ONE IN THE WORKER ITSELF beyond its byte table: a FIFTH shell channel
-  //                    that hands this page a finished session (written through the existing
-  //                    writeAuthSession, no new key), a shell-declared flag that takes both
-  //                    provider doors off the entry screen while the guest door stays, and the
-  //                    qibla panel re-arming the heading stream when the location permission it
-  //                    needs is granted. app.js followed 1216884 -> 1232987 (+16103), and
-  //                    CORE_BYTES 2059731 -> 2075834 is exactly that delta. The worker byte
-  //                    table and the SW_PROSE mirror below both followed, and THIS digest is
-  //                    re-cut last. CACHE is NOT bumped: install rewrites every CORE entry into
-  //                    the same store.
-  // APPLE 4.0.0 (2026-08-30, fix/apple-400-onboard-remove-20260830). ONE CHANGE IN app.jsx AND
-  //                    NOT ONE IN THE WORKER ITSELF beyond its byte table: submission e931435e-
-  //                    f171-4da4-b476-c33fd5dde452 was refused for asking a name and a year
-  //                    after Sign in with Apple, so the step behind the entry card is gone and
-  //                    the three fields it asked for moved into Settings. app.js followed
-  //                    1242855 -> 1248701 (+5846), and CORE_BYTES 2085702 -> 2091548 is exactly
-  //                    that delta. The worker byte table and the SW_PROSE mirror below both
-  //                    followed, and THIS digest is re-cut last. CACHE is NOT bumped: install
-  //                    rewrites every CORE entry into the same store.
-  // THE BOOK CARD OPENS ONTO ITS MATN (2026-09-01, feat/item7-library-freebrain-20260901,
-  //                    piece 9 / degree 1). AGAIN NO CHANGE IN THE WORKER ITSELF BEYOND ITS BYTE
-  //                    TABLE. The chip built by the round below named a book and a page and
-  //                    could not show one word of what the answer rested on: the passage reached
-  //                    the row (lib/free-brain/tools.js) and died at the tag, which read three
-  //                    fields and not that one. It now rides on the SAME tag, base64 so that a
-  //                    quotation full of guillemets cannot truncate the card, and a touch opens
-  //                    it under the chip. app.js followed 1253566 -> 1259367 (+5801) and
-  //                    CORE_BYTES 2096413 -> 2102214 is exactly that delta. The worker byte
-  //                    table and the SW_PROSE mirror below both followed, and THIS digest is
-  //                    re-cut last. CACHE is NOT bumped: install rewrites every CORE entry into
-  //                    the same store.
-  // THE LIBRARY BOOK CARD (2026-09-01, feat/item7-library-freebrain-20260901). ONE CHANGE IN THE
-  //                    WORKER ITSELF BEYOND ITS BYTE TABLE: none. `lib_book` atoms reached the
-  //                    answer and no card was ever built for them — the tool existed in one file,
-  //                    the client knew nothing of it — so the server now builds a `<book>` chip
-  //                    from the rows the delivered text cited and the client draws it. app.jsx
-  //                    grew and app.js followed 1249879 -> 1253566 (+3687), and CORE_BYTES
-  //                    2092726 -> 2096413 is exactly that delta. The worker byte table and the
-  //                    SW_PROSE mirror below both followed, and THIS digest is re-cut last. CACHE
-  //                    is NOT bumped: install rewrites every CORE entry into the same store.
-  // THE ARTICLES SCREENS (2026-09-07, feat/item20-ui-loop-20260907, item 20 stage two).
-  //                    NO CHANGE IN THE WORKER ITSELF BEYOND ITS BYTE TABLE. The server half of
-  //                    item 20 had been live since 2e33456 and no screen existed, so nobody could
-  //                    see any of it; the two reader sections, the reading view and the writing
-  //                    screen landed in app.jsx and app.js followed 1265332 -> 1306083 (+40751
-  //                    across two commits: +40399 for the screens, +352 for a locked section
-  //                    chooser that says it is locked), and CORE_BYTES 2108179 -> 2148930 is
-  //                    exactly that delta. The worker byte
-  //                    table and the SW_PROSE mirror below both followed, and THIS digest is
-  //                    re-cut last. CACHE is NOT bumped: install rewrites every CORE entry into
-  //                    the same store.
-  // THE TWO UNREGISTERED BACK LAYERS (2026-09-07, feat/night-run-20260907, phase 1).
-  //                    NO CHANGE IN THE WORKER ITSELF BEYOND ITS BYTE TABLE. The prayer sheet
-  //                    and the arrange panel each register a back layer now, and each visible
-  //                    way out of them spends the entry that registration pushes; app.js
-  //                    followed 1306083 -> 1307875 (+1792) and CORE_BYTES 2148930 -> 2150722
-  //                    is exactly that delta. The worker byte table and the SW_PROSE mirror
-  //                    below both followed, and THIS digest is re-cut last. CACHE is NOT
-  //                    bumped: install rewrites every CORE entry into the same store.
-  // ITEM 7 -- THE MARK ON A SECTION HOLDING SOMETHING NEW (2026-09-07,
-  //                    feat/night-run-20260907, phase 2). NO CHANGE IN THE WORKER ITSELF BEYOND
-  //                    ITS BYTE TABLE. A device-local record of what each section has already
-  //                    shown this reader, a dot on the two shelf tiles that hold something newer
-  //                    than it, and two list requests made AFTER the first paint; app.js followed
-  //                    1307875 -> 1315901 (+8026) and CORE_BYTES 2150722 -> 2158748 is exactly
-  //                    that delta. The worker byte table and the SW_PROSE mirror below both
-  //                    followed, and THIS digest is re-cut last. CACHE is NOT bumped: install
-  //                    rewrites every CORE entry into the same store.
-  // ITEM 9 -- THE PROFILE BLOCK AND THE HIDE CONTROL (2026-09-07, feat/night-run-20260907,
-  //                    phase 3). NO CHANGE IN THE WORKER ITSELF BEYOND ITS BYTE TABLE. A third
-  //                    form of address that says "prefer not to say" out loud instead of being
-  //                    reached by pressing a word twice, and one switch that hides the women
-  //                    section from the shelf on this device and puts it back from the same
-  //                    place; app.js followed 1315901 -> 1321078 (+5177) and CORE_BYTES
-  //                    2158748 -> 2163925 is exactly that delta. The worker byte table and the
-  //                    SW_PROSE mirror below both followed, and THIS digest is re-cut last.
-  //                    CACHE is NOT bumped: install rewrites every CORE entry into the same store.
-  // THE GRANT CHECK (2026-09-07, feat/night-run-20260907, phase 4). NO CHANGE IN THE WORKER
-  //                    ITSELF BEYOND ITS BYTE TABLE. One control in Settings, drawn only where a
-  //                    founder token is held, that presses the very door that refuses a writer and
-  //                    says which of the four refusals it was; app.js followed 1321078 -> 1327772
-  //                    (+6694) and CORE_BYTES 2163925 -> 2170619 is exactly that delta. The
-  //                    worker byte table and the SW_PROSE mirror below both followed, and THIS
-  //                    digest is re-cut last. CACHE is NOT bumped: install rewrites every CORE
-  //                    entry into the same store.
-  // ITEM 8 -- THE BROWSER DOOR (2026-09-07, feat/night-run-20260907, phase 7). NO CHANGE IN THE
-  //                    WORKER ITSELF BEYOND ITS BYTE TABLE. api/auth-return.js gained a second
-  //                    destination for a flow that started in a tab, and the page gained the press,
-  //                    the per-tab state and the return leg that walk it; app.js followed
-  //                    1327772 -> 1336442 (+8670) and CORE_BYTES 2170619 -> 2179289 is
-  //                    exactly that delta. The worker byte table and the SW_PROSE mirror below both
-  //                    followed, and THIS digest is re-cut last. CACHE is NOT bumped: install
-  //                    rewrites every CORE entry into the same store.
-  // ITEM 20 SHELF, COMMIT ONE -- THE NAME (2026-09-08, feat/shelf-20260908). NO CHANGE IN THE
-  //                    WORKER ITSELF BEYOND ITS BYTE TABLE. The articles section is called
-  //                    «Ezik's articles» on the shelf, in its own screen head and in the writing
-  //                    form's section chooser; the change is TWO dictionary values and nothing
-  //                    else -- no key, no descriptor id, no section register and no stored value
-  //                    moved, which is why the bundle grew by eight bytes. app.js followed
-  //                    1336442 -> 1336450 (+8) and CORE_BYTES 2179289 -> 2179297 is exactly that
-  //                    delta. The worker byte table and the SW_PROSE mirror below both followed,
-  //                    and THIS digest is re-cut last. CACHE is NOT bumped: install rewrites
-  //                    every CORE entry into the same store.
-  // ITEM 20 SHELF, COMMIT TWO -- THE ORDER (2026-09-08, feat/shelf-20260908). NO CHANGE IN THE
-  //                    WORKER ITSELF BEYOND ITS BYTE TABLE. The women's corner moved from the
-  //                    second position on the home shelf to the last one, after every other
-  //                    section; the articles section stays first and the seven between them do
-  //                    not move. One row of a literal array changed position and the comment
-  //                    above it was rewritten, which is the whole of the bundle's growth.
-  //                    app.js followed 1336450 -> 1337339 (+889) and CORE_BYTES 2179297 ->
-  //                    2180186 is exactly that delta. The worker byte table and the SW_PROSE
-  //                    mirror below both followed, and THIS digest is re-cut last. CACHE is NOT
-  //                    bumped: install rewrites every CORE entry into the same store.
-  // ITEM 20 SHELF, COMMIT THREE -- WHO SEES THE WOMEN'S CORNER (2026-09-08,
-  //                    feat/shelf-20260908). NO CHANGE IN THE WORKER ITSELF BEYOND ITS BYTE
-  //                    TABLE. D-10 is reversed: the form of address decides who is drawn that
-  //                    section, \u00abmale\u00bb is not drawn it, and the switch that used to decide it is
-  //                    deleted from Settings with its device key, its reader and its writer. The
-  //                    key literal survives at exactly ONE line in app.jsx -- the removeItem in
-  //                    \u00abdelete all my data\u00bb -- because an abandoned value is still one person's
-  //                    record in one person's browser, and that page promises it goes; the roster
-  //                    entry in tools/delete-truth-measure.cjs became a `lit` for the same reason.
-  //                    app.js followed 1337339 -> 1338609 (+1270) and CORE_BYTES 2180186 ->
-  //                    2181456 is exactly that delta. The worker byte table and the SW_PROSE
-  //                    mirror below both followed, and THIS digest is re-cut last. CACHE is NOT
-  //                    bumped: install rewrites every CORE entry into the same store.
-  //   2026-09-09   -- ITEM 26 SHIP: أسماء الله الحسنى takes the HEAD of the home shelf, the rules
-  //                    page gains the owner's eighth rule, and the store name is bumped. app.jsx
-  //                    moved one descriptor to the top of ezHomeModules and re-cut six dictionary
-  //                    values («القواعد السبع» -> «القواعد الثماني»); app.js was rebuilt from that
-  //                    source 1364046 -> 1364887 (+841) by node tools/build-app.cjs, and CORE_BYTES
-  //                    was re-cut 2206893 -> 2207734 by node tools/core-bytes.cjs --write, which is
-  //                    exactly that delta. The worker byte table and the SW_PROSE mirror below both
-  //                    followed, and THIS digest is re-cut last. CACHE IS bumped here, ezik-v32 ->
-  //                    ezik-v33, and SW_CACHE below with it: a reader holding the old bundle would
-  //                    otherwise keep a shelf with no section at its head.
-  //   2026-09-09   -- ITEM 37 PIECE 2: the related-lessons search under a settled reply is now
-  //                    built from the ANSWER's words instead of the reader's question. app.jsx
-  //                    gained one pure builder (ezikLessonsQuery) and repointed one call site;
-  //                    app.js was rebuilt from that source 1364887 -> 1368253 (+3366) by node
-  //                    tools/build-app.cjs, and CORE_BYTES was re-cut 2207734 -> 2211100 by node
-  //                    tools/core-bytes.cjs --write, which is exactly that delta. The worker byte
-  //                    table and the SW_PROSE mirror above both followed, and THIS digest is
-  //                    re-cut last. CACHE IS NOT BUMPED: this is a branch for the owner to try on
-  //                    a preview, not a ship, and sw.js says the merge round owns the bump.
-  //   2026-09-09   -- ITEM 05 A/C/D: three sections per row at EVERY width (index.html only, so
-  //                    the shell grew 122811 -> 123062); �wirdi al-yawm� became a live list with
-  //                    a + and a - over four sections, under its own key ezik_wird_list_v1; and
-  //                    �arrange your home� moved out of the home into Settings, where it now
-  //                    reorders the ten shelf sections under ezik_home_order_v1 as well as the
-  //                    three widgets it always reordered. app.js was rebuilt from that source
-  //                    1367950 -> 1391446 (+23484) by node tools/build-app.cjs, and CORE_BYTES
-  //                    was re-cut 2210724 -> 2234471 (+23747) by node tools/core-bytes.cjs
-  //                    --write -- the bundle's +23484 plus the shell's +251, which is exactly
-  //                    that delta. The worker byte table and the THREE SW_PROSE figures above
-  //                    (the shell at :57, the shell and the bundle at :111) all followed, and
-  //                    THIS digest is re-cut last. CACHE IS NOT BUMPED: this is a branch for the
-  //                    owner to try, not a ship, and sw.js says the merge round owns the bump.
-  //   2026-09-09   -- ITEM 05 E1/E2: the home tiles became the section NAME in a square --
-  //                    the icon, the sub-line and the chevron left the rendered tile and
-  //                    .ezist-mod/.ezist-feature took aspect-ratio:1/1 with the centring, so
-  //                    the shell grew 123062 -> 124729 (+1667); and «wirdi al-yawm» stopped
-  //                    being a card on the home and became a SECTION entered from a row that
-  //                    draws the title alone, with the +, the -, the added rows, the choice
-  //                    lines and the empty sentence all inside it. app.js was rebuilt from
-  //                    that source 1391446 -> 1397224 (+5778) by node tools/build-app.cjs,
-  //                    and CORE_BYTES was re-cut 2234471 -> 2241916 (+7445) by node
-  //                    tools/core-bytes.cjs --write -- the bundle's +5778 plus the shell's
-  //                    +1667, which is exactly that delta. The THREE worker figures (the
-  //                    shell at :57, the shell and the bundle at :111) and the TWO mirrors
-  //                    below followed, and THIS digest is re-cut LAST. CACHE IS NOT BUMPED:
-  //                    this is a branch for the owner to try, not a ship, and sw.js says the
-  //                    merge round owns the bump.
-  //   2026-09-09   -- ITEM 05 F: THE COMPOSER BECAME A FIELD ROW OVER ONE CONTROL ROW. The
-  //                    field has the top row to itself and send moved down into the control
-  //                    row at the VISUAL RIGHT, with mic and the voice entry beside it and the
-  //                    mode pill and the [+] at the other end; the three icon buttons became
-  //                    44x44 circles and the chip became a pill. INDEX.HTML DID NOT MOVE this
-  //                    round -- the change is all in app.jsx -- so two of the three worker
-  //                    figures and one of the two mirrors below were already true and only the
-  //                    BUNDLE figures moved. app.js was rebuilt from that source 1397224 ->
-  //                    1399197 (+1973) by node tools/build-app.cjs, and CORE_BYTES was re-cut
-  //                    2241916 -> 2243889 (+1973) by node tools/core-bytes.cjs --write, which
-  //                    is exactly the bundle delta because the shell did not grow. The worker
-  //                    table at :111 and the app.js mirror below followed, and THIS digest is
-  //                    re-cut LAST. CACHE IS NOT BUMPED: this is a branch for the owner to try,
-  //                    not a ship, and sw.js says the merge round owns the bump.
   'sw.js': '91754f51db3890d4daee75e2c8ee7a0eb240d3b02c7edc45f9d7417e6ce03e55',
 };
 
