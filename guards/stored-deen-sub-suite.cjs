@@ -674,10 +674,17 @@ async function runSuite() {
     // recon-audit item 14 demands), recon-audit.cjs's GATES_EXPECTED, and the K section of
     // EZIK-RFC-V0.5-R2-IMPLEMENTATION-REPORT.md -- gate-count prose, roster, TOTAL_GATES, and
     // the RECON line, which moves by one because item 14 gains a PASS.
-    function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 110; }
+    //
+    // ITEM 75: 110 -> 111, same rule again -- the gate `chatbaractions`,
+    // guards/chat-bar-actions-guard.cjs. AND THE NOTE ABOVE WAS PROVED BY BEING IGNORED: the
+    // round that registered it re-cut the other four censuses and not this one, so `takhrij`
+    // went red here and stayed red, with 104 PASS and no printed FAIL beside the sub-suite's
+    // exit code. If you are registering a gate, this line is the fifth stop and the only one
+    // whose file name says nothing about gates.
+    function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 111; }
     ok('ORIGINAL_GATE_SET_MATCH', exactGateSet(EXPECTED_GATES));
-    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 110-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
-    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 110-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
+    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 111-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
+    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 111-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
 
     const m13 = await storedMutant(temp, 'fiqh-before-special', (source) => source.replace(
       "if (QURAN_REQUEST.test(folded)) return 'LOCAL_QURAN';",

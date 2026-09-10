@@ -153,8 +153,13 @@ const rowSha = crypto.createHash('sha256').update(Buffer.from(ROW, 'utf8')).dige
 ok('B0: the composer control row is byte-for-byte the row sealed at aa497d5 (owner rule 2026-09-10)',
   rowSha === ROW_DIGEST,
   'expected ' + ROW_DIGEST + '\n        got      ' + rowSha + '  (' + Buffer.byteLength(ROW, 'utf8') + ' bytes)');
+// `ROW.length > 400 &&` is not decoration: three absence checks over a slice that comes back ''
+// when its anchor moves would print PASS at the exact moment they stopped reading anything, and
+// the locator at the top of this file protects its neighbour rather than these. Gate
+// `vacuousassert` is the judge of that shape and it names this line.
 ok('B0: ...and neither bar action is in it any more',
-  ROW.indexOf('EZIK_BAR_SUMMARIZE_PROMPT') === -1 && ROW.indexOf('EZIK_BAR_EXPAND_PROMPT') === -1
+  ROW.length > 400
+    && ROW.indexOf('EZIK_BAR_SUMMARIZE_PROMPT') === -1 && ROW.indexOf('EZIK_BAR_EXPAND_PROMPT') === -1
     && ROW.indexOf('barActionPill') === -1);
 
 // ---------------------------------------------------------------------------------------------
@@ -259,7 +264,7 @@ ok('C: ...and neither reaches sendMessage directly',
 ok('C: the two prompts are their own module constants, declared once each, outside the frozen array',
   (SRC.match(/const EZIK_BAR_SUMMARIZE_PROMPT = '/g) || []).length === 1
     && (SRC.match(/const EZIK_BAR_EXPAND_PROMPT = '/g) || []).length === 1
-    && QA_TEXT.indexOf('EZIK_BAR_') === -1);
+    && QA_TEXT.length > 400 && QA_TEXT.indexOf('EZIK_BAR_') === -1);
 
 // ---------------------------------------------------------------------------------------------
 // D. WHAT THEY MUST NOT BRING INTO THE ROW.
@@ -333,7 +338,7 @@ const railEnd = railAt === -1 ? -1 : SRC.indexOf('<div ref={messagesAreaRef}', r
 const RAIL = (railAt !== -1 && railEnd > railAt) ? SRC.slice(railAt, railEnd) : '';
 ok('F: the chat rail was located before it was searched', RAIL.length > 200, 'len=' + RAIL.length);
 ok('F: ...and the bar is not in it',
-  RAIL.indexOf(BAR_MARK) === -1 && RAIL.indexOf('askSelBtn') === -1);
+  RAIL.length > 200 && RAIL.indexOf(BAR_MARK) === -1 && RAIL.indexOf('askSelBtn') === -1);
 const BAR = (function () {
   const i = SRC.indexOf(BAR_MARK);
   if (i === -1) return '';
