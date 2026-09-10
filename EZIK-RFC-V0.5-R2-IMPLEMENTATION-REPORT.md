@@ -359,13 +359,13 @@ ladderorder 0 · taghonesty 0 · standingnotice 0 · telemetrytext 0 · vacuousa
 lessonssearch 0 · fiqhindex 0 · lessonsbrowse 0 · lessonsbrain 0
 locationbridge 0 · deletetruth 0 · schedulepayload 0 · savebridge 0 · authserver 0
 authbridge 0 · libbook 0 · attrwiden 0  attrtruth 0 · regexdup 0 · streamkeep 0 · layer1human 0
-nameform 0 · rejectdoor 0 · articles 0 · asmaa 0 · chatbaractions 0
+nameform 0 · rejectdoor 0 · articles 0 · asmaa 0 · chatbaractions 0 · sharelinks 0
 ```
 
 Every one **PASS**, exit code `0`.
 
 ```
-TOTAL_GATES        111/111 PASS
+TOTAL_GATES        112/112 PASS
 RECON              PASS=201 WARN=1 FAIL=0
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision

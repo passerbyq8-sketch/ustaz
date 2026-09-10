@@ -675,3 +675,14 @@ guards/lessons-brain-guard.cjs text eol=lf
 # LF on read, and it carries a SHA-256 of the five prompts' source text -- a digest that would be
 # wrong in a CRLF checkout, which is exactly what this line prevents.
 guards/chat-bar-actions-guard.cjs text eol=lf
+
+# ITEM 92 -- the two store badges. They are the VENDORS OWN ARTWORK, saved byte for byte from
+# apple.com and google.com, and gate `sharelinks` seals each by SHA-256 for exactly that reason:
+# rule 6 of the order forbids redrawing, tracing, recolouring, cropping or resizing them, and
+# every one of those changes the bytes. A fresh clone with core.autocrlf=true would inject CR
+# into both files and break a seal on a machine that changed nothing, so they are `-text` --
+# never converted, in either direction -- rather than pinned to LF.
+assets/store-badges/*.svg -text
+
+# ITEM 92 -- the new gate script, same mechanical requirement recon-audit puts on every gate.
+guards/share-links-guard.cjs text eol=lf

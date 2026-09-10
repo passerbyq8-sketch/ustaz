@@ -190,6 +190,10 @@ const EZ_I18N = {
     'common.copyFailed': 'تعذّر النسخ',
     'chat.share': 'مشاركة',
     'chat.shareAria': 'مشاركة الرد',
+    'share.appStore': 'App Store',
+    'share.googlePlay': 'Google Play',
+    'share.bothLinks': '\u0627\u0644\u0631\u0627\u0628\u0637\u0627\u0646 \u0645\u0639\u064b\u0627',
+    'share.appleCredit': 'Apple and the Apple Logo are trademarks of Apple Inc., registered in the U.S. and other countries.',
     'common.of': '{a} من {b}',
     'navigation.home': '\u{0627}\u{0644}\u{0631}\u{0626}\u{064A}\u{0633}\u{064A}\u{0629}',
     'navigation.settings': '\u{0627}\u{0644}\u{0625}\u{0639}\u{062F}\u{0627}\u{062F}\u{0627}\u{062A}',
@@ -648,6 +652,10 @@ const EZ_I18N = {
     'common.copyFailed': 'Could not copy',
     'chat.share': 'Share',
     'chat.shareAria': 'Share this reply',
+    'share.appStore': 'App Store',
+    'share.googlePlay': 'Google Play',
+    'share.bothLinks': 'Both links',
+    'share.appleCredit': 'Apple and the Apple Logo are trademarks of Apple Inc., registered in the U.S. and other countries.',
     'common.of': '{a} of {b}',
     'navigation.home': 'Home',
     'navigation.settings': 'Settings',
@@ -3323,7 +3331,131 @@ const ShareReplyButton = ({ getText }) => {
       {flash === 'copied' ? EZIK_SHARE_COPIED : flash === 'fail' ? EZIK_SHARE_FAIL : EZIK_SHARE_LABEL}
     </button>
   );
-};// The Web Speech engine ends a session on every pause and the next one starts a fresh
+};
+// ── ITEM 92: SHARING THE APP ITSELF, AND THE TWO STORE LINKS ──────────────────────
+// The reader is offered a way to hand the app to somebody else. What is handed over depends on
+// WHERE the reader is, and the test for that is the injected bridge and nothing else -- the same
+// ezikShellBridge() the sign-in seam uses, and for the reason written out there: navigator.userAgent
+// is never consulted on this path.
+//
+// INSIDE THE MOBILE SHELLS the app shares https://ezik.app and NOTHING ELSE. No chooser is built,
+// no badge file is referenced, and the words App Store, Google Play, Apple, Google and Android are
+// never rendered into the page. That is App Store Review Guideline 2.3.10 -- an iOS app may not
+// name or picture another mobile platform -- and it is why the chooser below is not merely hidden
+// with CSS in a shell but never constructed at all.
+//
+// IN A PLAIN BROWSER the reader picks: the App Store, Google Play, or both links together.
+const EZIK_APP_URL = 'https://ezik.app';
+// The two store links, character for character the ones about.html has carried since the app was
+// published. The App Store path is percent-encoded here because «عزك» is not URL-safe, and
+// decodeURIComponent of this string is byte-identical to the href in about.html:136.
+const EZIK_APP_STORE_URL = 'https://apps.apple.com/gb/app/%D8%B9%D8%B2%D9%83/id6797100518';
+const EZIK_PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=app.almurabbi.tutor&hl=ar';
+
+// THE BADGES ARE THE VENDORS' OWN FILES, BYTE FOR BYTE. Neither was drawn, traced, recoloured,
+// cropped or resized here; each is the artwork the vendor publishes, saved unmodified.
+//   Apple: toolbox.marketingtools.apple.com/api/badges/download-on-the-app-store/black/en-us
+//     the preferred BLACK badge. Apple offers no Arabic localisation of it: ar, ar-sa, ar-ae and
+//     ar-eg all return the US-UK English artwork byte for byte, while fr-fr, de-de, es-es, he-il
+//     and ja-jp each return a different file -- so the API localises, and Arabic is not among the
+//     localisations. Apple's own rule agrees: "The service mark App Store always appears in
+//     English. Never translate App Store or create your own localized badge."
+//   Google: the Arabic (Saudi Arabia) badge out of Google's own badge bundle, reached from
+//     play.google.com/intl/en_us/badges/ -- which now 302s to Google's Partner Marketing Hub.
+const EZIK_BADGE_APP_STORE = 'assets/store-badges/app-store-badge.svg';
+const EZIK_BADGE_GOOGLE_PLAY = 'assets/store-badges/google-play-badge.svg';
+// THE SIZE IS THE STRICTER OF THE TWO VENDORS' RULES, NOT A TASTE. Apple: "Minimum badge height
+// is 10 mm for use in printed materials and 40 px for use onscreen." Google: "The badge height
+// must be a minimum of 28px." 40 clears both. Google also requires that "the Google Play badge is
+// the same size or larger than the other badges", so the two are rendered at the SAME height and
+// neither is scaled against the other.
+const EZIK_BADGE_HEIGHT = 40;
+// CLEAR SPACE. Both vendors state the same rule in the same words -- Apple: "Minimum clear space
+// is equal to one-quarter the height of the badge"; Google: "To determine the minimum amount of
+// clear space, use one-quarter of the height of the badge." One quarter of 40 is 10.
+const EZIK_BADGE_CLEAR = 10;
+
+// The share glyph. It is the drawing A2_ICON_SHARE already ships -- three circles and two lines,
+// no <polygon> -- at the size and stroke the drawer's own small icons use (19, var(--ink), 1.8),
+// so the row it joins keeps one visual vocabulary.
+const EZIK_ICON_SHARE_DRAWER = (
+  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="M8.6 10.6l6.8-4M8.6 13.4l6.8 4" /></svg>
+);
+
+// ONE SHARE PATH, and it carries the links and nothing else -- no title, no invitation, no app
+// name. A single link goes as `url`, which is what a platform sheet wants; two links cannot be a
+// `url` at all, so they go as `text`, one per line.
+//
+// It falls back to the file's ONE clipboard path, exactly as the reply's share button does, and
+// for the same reason: navigator.share does not exist on desktop browsers and is refused in some
+// WebViews, and a control that vanished there would be a control the reader cannot learn. A share
+// the reader CANCELS is not a failure -- AbortError returns without saying anything.
+const ezikShareLinks = async (payload, say) => {
+  try {
+    if (navigator.share) {
+      await navigator.share(payload);
+      return;                                      // the platform sheet is its own feedback
+    }
+  } catch (e) {
+    if (e && e.name === 'AbortError') return;      // the reader changed their mind
+    // anything else -- refused, unsupported scheme -- falls through to the clipboard
+  }
+  const fallback = payload.url || payload.text || '';
+  say(await ezikWriteClipboard(fallback) ? 'copied' : 'fail');
+};
+
+// THE CHOOSER. It is only ever mounted in a plain browser -- the drawer decides that before it
+// renders anything -- so nothing in here can reach a shell.
+//
+// APPLE FIRST, and that is a rule rather than a preference: "Whenever one or more badges for other
+// app platforms appear in the layout, use the preferred black badge. Place the App Store badge
+// first in the lineup of badges."
+//
+// The credit line is Apple's, filled in as Apple instructs: "When the App Store badge is used,
+// credit both Apple and the Apple Logo", in the international format "______ and ______ are
+// trademarks of Apple Inc., registered in the U.S. and other countries." Google's badge guideline
+// states no attribution requirement, so none is invented for it.
+function EzikShareChooser({ onClose }) {
+  const [flash, setFlash] = useState('');            // '' | 'copied' | 'fail'
+  const say = (v) => { setFlash(v); setTimeout(() => setFlash(''), 1500); };
+  // The device's back button and the back gesture close this and nothing else: the hook is
+  // registered while the chooser is mounted, and the registry is walked deepest-first, so the
+  // menu underneath keeps its own entry and is closed by the NEXT press.
+  useEzikBackLayer(true, onClose);
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    try { document.addEventListener('keydown', onKey); } catch (err) {}
+    return () => { try { document.removeEventListener('keydown', onKey); } catch (err) {} };
+  }, [onClose]);
+  const pick = (payload) => { ezikShareLinks(payload, say); };
+  return (
+    <div style={s.shareChooserWrap}>
+      <div onClick={onClose} style={s.shareChooserOv} />
+      <div data-ezik-share-chooser="1" role="dialog" aria-modal="true" aria-label={ezT('chat.share')} style={s.shareChooserBox}>
+        <button type="button" className="ezik-focus" style={s.shareChooserPick} aria-label={ezT('share.appStore')}
+          onClick={() => pick({ url: EZIK_APP_STORE_URL })}>
+          <img src={EZIK_BADGE_APP_STORE} alt="" aria-hidden="true" style={s.shareChooserBadge} />
+        </button>
+        <button type="button" className="ezik-focus" style={s.shareChooserPick} aria-label={ezT('share.googlePlay')}
+          onClick={() => pick({ url: EZIK_PLAY_STORE_URL })}>
+          <img src={EZIK_BADGE_GOOGLE_PLAY} alt="" aria-hidden="true" style={s.shareChooserBadge} />
+        </button>
+        <button type="button" className="ezik-focus" style={s.shareChooserBoth} aria-label={ezT('share.bothLinks')}
+          onClick={() => pick({ text: EZIK_APP_STORE_URL + '\n' + EZIK_PLAY_STORE_URL })}>
+          {ezT('share.bothLinks')}
+        </button>
+        {/* ONE status line for all three options. The two badge buttons carry no text of their
+            own to swap, so the clipboard's copied/failed answer is said in one place instead of
+            on whichever control happened to be pressed. Both strings are the dictionary's
+            existing common.copied / common.copyFailed -- the same two the reply's share button
+            says -- so nothing new is worded here. */}
+        {flash ? <p role="status" style={s.shareChooserNote}>{flash === 'copied' ? EZIK_SHARE_COPIED : EZIK_SHARE_FAIL}</p> : null}
+        <p style={s.shareChooserCredit}>{ezT('share.appleCredit')}</p>
+      </div>
+    </div>
+  );
+}
+// The Web Speech engine ends a session on every pause and the next one starts a fresh
 // transcript. Concatenating the two halves raw welded the last word of one onto the first
 // word of the next. Every seam goes through this joiner instead.
 const joinSpeech = (a, b) => { const l = a || ''; const r = b || ''; if (!l) return r; if (!r) return l; return (/\s$/.test(l) || /^\s/.test(r)) ? l + r : l + ' ' + r; };
@@ -10610,6 +10742,12 @@ function App() {
   // the screen inventory is a cross-file contract, the same reason the prayer sheet and the two
   // articles sections are layers -- and like them it registers ONE history entry below.
   const [asmaaOpen, setAsmaaOpen] = useState(false);
+  // ITEM 92: the store chooser, opened from the menu's share button. It is NEVER true inside a
+  // shell -- the handler that sets it returns before it can be, so the chooser is not merely
+  // hidden there but never built. `shareFlash` is the clipboard's answer on the shell path,
+  // where there is no chooser to say it in.
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareFlash, setShareFlash] = useState('');      // '' | 'copied' | 'fail'
   // S92: the saved-conversation state. `chatId` is the conversation the thread on screen belongs
   // to, and NULL means the thread has not been filed yet — a brand new, empty chat. `chatIdRef`
   // is its synchronous mirror because the autosave runs after an await, inside a handler whose
@@ -11368,6 +11506,18 @@ function App() {
   // ITEM 26: one entry for the section, spent by the device button and by its own back control.
   // Registered unconditionally and in a fixed order, so the hook order never changes.
   useEzikBackLayer(asmaaOpen, () => setAsmaaOpen(false));
+  // ITEM 92: WHAT THE SHARE BUTTON DOES, decided by the injected bridge and by nothing else.
+  // In a shell it hands https://ezik.app straight to the platform sheet and returns -- no chooser
+  // is opened, so no badge and no store name can reach the page (Apple guideline 2.3.10). In a
+  // plain browser it opens the chooser, which is where the two store links live.
+  const onMenuShare = () => {
+    if (ezikShellBridge()) {
+      const say = (v) => { setShareFlash(v); setTimeout(() => setShareFlash(''), 1500); };
+      ezikShareLinks({ url: EZIK_APP_URL }, say);
+      return;
+    }
+    setShareOpen(true);
+  };
   const closeDrawerWith = (fn) => {
     drawerNavRef.current = (typeof fn === 'function') ? fn : null;
     // ezikHistBack is false only when this app owns nothing on the stack -- the menu's entry could
@@ -13999,8 +14149,26 @@ function App() {
               </span>
               <span style={s.drawerProfileName}>{profile?.name}</span>
             </button>
+            {/* ITEM 92. The share button sits at the OPPOSITE END of this row from the profile
+                entry, and it is a SIBLING of it, never a child: a button inside a button is not
+                a control a reader can reach twice over, and pressing the share icon must not
+                also open the settings sheet. The row is still one row.
+
+                Its icon is the drawing the adhkar reader's share control already ships, at the
+                19px the menu's own small icons use, so it cannot read as the biggest thing in
+                the row. The 44px touch target is on the BUTTON, not on the glyph. */}
+            <button type="button" onClick={onMenuShare} style={s.drawerShare} className="ezik-focus" aria-label={ezT('chat.share')}>
+              {shareFlash ? (shareFlash === 'copied' ? EZIK_SHARE_COPIED : EZIK_SHARE_FAIL) : EZIK_ICON_SHARE_DRAWER}
+            </button>
           </div>
         </div>
+        {/* The chooser is a SIBLING of the menu panel, not a child of it. .ezc-drawer is a
+            bounded, scrolling flex column at z-index 61 with its own padding; a dialog nested
+            inside it would sit in that stacking context and under that clip, and would have to
+            fight the panel it is laid over. As a sibling it stands above both the panel and the
+            scrim on its own. It is built only when shareOpen is true, and shareOpen cannot
+            become true in a shell. */}
+        {shareOpen ? <EzikShareChooser onClose={() => setShareOpen(false)} /> : null}
       </div>
   );
 
@@ -24458,6 +24626,27 @@ const s = {
   drawerProfile: { display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0, padding: '10px 10px', background: 'none', border: 'none', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 15, color: 'var(--ink)', textAlign: 'right' },
   drawerAvatar: { width: 32, height: 32, flexShrink: 0, borderRadius: '50%', background: 'var(--accent-fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   drawerProfileName: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  // ITEM 92. The share button at the far end of the pinned row. `marginInlineStart:'auto'` is
+  // what puts it at the OPPOSITE corner from the profile entry in both directions, without a
+  // second layout rule for RTL and LTR. 44x44 is the touch target; the glyph inside it is 19,
+  // the size the menu's other small icons are drawn at. flexShrink 0 so the profile name gives
+  // up its width first and the row stays one line.
+  drawerShare: { width: 44, height: 44, flexShrink: 0, marginInlineStart: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, color: 'var(--ink)', padding: 0 },
+  // ITEM 92. The store chooser. It is laid over the menu panel (z-index 61) and its scrim (60).
+  shareChooserWrap: { position: 'fixed', inset: 0, zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 },
+  shareChooserOv: { position: 'absolute', inset: 0, background: 'var(--ezc-scrim)' },
+  shareChooserBox: { position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, maxWidth: 320, width: '100%', boxSizing: 'border-box', padding: 16, borderRadius: 16, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-lift)' },
+  // THE BADGE BUTTONS. The padding IS the vendors' clear space -- one quarter of the badge
+  // height, which both Apple and Google state in those words -- so nothing is ever drawn inside
+  // it. The button carries no background and no border of its own: Apple's black badge already
+  // has "the gray border surrounding the black badge ... part of the badge artwork", and a
+  // second frame around either badge would be an alteration of it.
+  shareChooserPick: { display: 'flex', alignItems: 'center', justifyContent: 'center', padding: EZIK_BADGE_CLEAR, background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', width: '100%' },
+  // height ONLY: the width follows the artwork's own aspect ratio, so neither badge is stretched.
+  shareChooserBadge: { height: EZIK_BADGE_HEIGHT, width: 'auto', display: 'block' },
+  shareChooserBoth: { minHeight: 44, width: '100%', padding: '10px 12px', background: 'none', border: '1px solid var(--a3-line)', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 15, color: 'var(--ink)' },
+  shareChooserNote: { margin: 0, fontSize: 13, color: 'var(--muted)', textAlign: 'center' },
+  shareChooserCredit: { margin: 0, fontSize: 11, lineHeight: 1.5, color: 'var(--muted)', textAlign: 'center' },
   // drawerGear NO LONGER DRAWS ANYTHING. Its button -- the ringed disc with eight rays beside
   // the profile row -- was removed once it was measured to open the same destination as that
   // row. The key stays because the chat's own inventory gate names it in the list of style keys

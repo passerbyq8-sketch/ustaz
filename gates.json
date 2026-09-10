@@ -560,5 +560,10 @@
     "name": "chatbaractions",
     "script": "guards/chat-bar-actions-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "sharelinks",
+    "script": "guards/share-links-guard.cjs",
+    "args": ""
   }
 ]
