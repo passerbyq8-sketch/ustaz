@@ -359,6 +359,10 @@ const EZ_I18N = {
     'chat.qa.continue': 'كمّل',
     // §٢ (C) — تُقالُ صراحةً بجانبِ «كمّل»، ولا يُحذَفُ من الجوابِ حرف.
     'chat.qa.incomplete': 'هذا الجوابُ لم يكتملْ. اضغطْ «كمّل» ليُتِمَّه.',
+    // ITEM 75 (2026-09-10): the two bar actions. Their own family, chat.bar.*, so nothing in
+    // chat.qa.* -- the five the owner froze on this date -- is touched or shadowed by them.
+    'chat.bar.summarize': '\u0644\u062e\u0651\u0635',
+    'chat.bar.expand': '\u0648\u0633\u0651\u0639',
     'navigation.menu': '\u0627\u0644\u0642\u0627\u0626\u0645\u0629',
     'navigation.openMenu': '\u0641\u062a\u062d \u0627\u0644\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u062c\u0627\u0646\u0628\u064a\u0629',
     'settings.control': '\u0627\u0644\u062A\u062D\u0643\u0645',
@@ -794,6 +798,8 @@ const EZ_I18N = {
     'chat.qa.shorten': 'Shorten',
     'chat.qa.continue': 'Continue',
     'chat.qa.incomplete': 'This answer did not finish. Press “Continue” to complete it.',
+    'chat.bar.summarize': 'Summarize',
+    'chat.bar.expand': 'Expand',
     'navigation.menu': 'Menu',
     'navigation.openMenu': 'Open the side menu',
     'settings.control': 'Parental controls',
@@ -14443,6 +14449,49 @@ function App() {
           >
             {depthMode === 'brief' ? ezT('chat.depthBrief') : depthMode === 'detailed' ? ezT('chat.depthDetailed') : ezT('chat.depthScholar')}
           </button>
+          {/* ITEM 75 (2026-09-10) -- SUMMARIZE AND EXPAND, IN THE BAR ITSELF.
+              WHY HERE AND NOT UNDER THE REPLY. The five quick actions under the newest reply are
+              tested, and the owner's rule of this date freezes them whole: not their keys, labels,
+              prompts, order or visibility, and nothing is added to that row. These two live in the
+              composer's own control row, in the left cluster, immediately after the mode pill --
+              so under body{direction:rtl} they read to the LEFT of it and the [+] keeps the far
+              visual left, where a reader already looks for it.
+
+              THE SAME MACHINERY, NOT A SECOND ONE. Each press calls the SHIPPED runQuickAction
+              with its own module-level prompt and nothing else, so the turn goes through
+              sendMessage exactly as a typed question does -- same tier, same depth, same sourcing.
+              Neither calls sendMessage directly and neither touches EZIK_QUICK_ACTIONS.
+
+              WHEN THEY ARE OFF. `quickActionsVisible` is the SAME expression the five are drawn
+              under, read by its own name rather than re-derived beside it -- so a bar action can
+              never be pressed on an empty thread, under one of the client's own error lines, or
+              while an answer is still arriving. Disabled, each takes the send button's own
+              dimming (0.4) and no other treatment.
+
+              THE SHAPE IS THE PILL'S OWN. s.toolBtn is the mode pill's base object and is SPREAD
+              here rather than copied; s.barActionPill carries only what turns a 44px circle into
+              a text pill, and it is ONE object shared by both. No icon, so no <polygon> anywhere
+              in either subtree, and no `ez-hit` -- that class stays the control row's alone. */}
+          <button
+            type="button"
+            onClick={() => runQuickAction(EZIK_BAR_SUMMARIZE_PROMPT)}
+            disabled={!quickActionsVisible}
+            aria-label={ezT('chat.bar.summarize')}
+            className="ezik-focus"
+            style={{ ...s.toolBtn, ...s.barActionPill, opacity: quickActionsVisible ? 1 : 0.4 }}
+          >
+            {ezT('chat.bar.summarize')}
+          </button>
+          <button
+            type="button"
+            onClick={() => runQuickAction(EZIK_BAR_EXPAND_PROMPT)}
+            disabled={!quickActionsVisible}
+            aria-label={ezT('chat.bar.expand')}
+            className="ezik-focus"
+            style={{ ...s.toolBtn, ...s.barActionPill, opacity: quickActionsVisible ? 1 : 0.4 }}
+          >
+            {ezT('chat.bar.expand')}
+          </button>
           {caps.upload && (
           <div style={{ position: 'relative', display: 'inline-flex' }}>
             {attachMenuOpen && (
@@ -14790,6 +14839,20 @@ let EZIK_QUICK_ACTIONS = [
   { key: 'shorten', label: ezT('chat.qa.shorten'),   prompt: 'اختصر الإجابة السابقة في نقاط قصيرة، مع إبقاء المصدر الشرعي الموثق إن وُجد.' },
   { key: 'continue', label: ezT('chat.qa.continue'),    prompt: 'كمّل الشرح من آخر نقطة، من دون إعادة ما سبق.' },
 ];
+
+// ITEM 75 (2026-09-10) -- THE TWO BAR ACTIONS, AND THEY ARE BESIDE THE FIVE, NEVER INSIDE THEM.
+// EZIK_QUICK_ACTIONS above is tested and frozen by the owner's rule of 2026-09-10: not its keys,
+// its labels, its prompts, its order, its visibility rule or the row that draws it. So these two
+// prompts are their own constants, at module scope, and the array is not touched. They are
+// ORDINARY QUESTIONS on exactly the terms the five are -- runQuickAction hands each to the same
+// sendMessage the composer calls, so the model tier, the depth mode and the sourcing policy are
+// whatever the same sentence typed by hand would have used.
+//
+// «Summarize» is about THE CONVERSATION and «expand» is about THE LAST ANSWER, which is the one
+// difference between them and the five: «shorten» shortens the previous answer, this one gathers
+// the whole thread.
+const EZIK_BAR_SUMMARIZE_PROMPT = '\u0644\u062e\u0651\u0635 \u0647\u0630\u0647 \u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0629 \u0643\u0644\u0647\u0627 \u0641\u064a \u0646\u0642\u0627\u0637 \u0642\u0635\u064a\u0631\u0629\u060c \u0645\u0639 \u0625\u0628\u0642\u0627\u0621 \u0627\u0644\u0645\u0635\u062f\u0631 \u0627\u0644\u0634\u0631\u0639\u064a \u0627\u0644\u0645\u0648\u062b\u0642 \u0625\u0646 \u0648\u064f\u062c\u062f.';
+const EZIK_BAR_EXPAND_PROMPT = '\u0648\u0633\u0651\u0639 \u0627\u0644\u0625\u062c\u0627\u0628\u0629 \u0627\u0644\u0633\u0627\u0628\u0642\u0629 \u0628\u062a\u0641\u0635\u064a\u0644 \u0623\u0648\u0641\u0649 \u0648\u0623\u062f\u0644\u0629 \u0623\u0643\u062b\u0631\u060c \u0645\u0646 \u062f\u0648\u0646 \u0625\u0639\u0627\u062f\u0629 \u0645\u0627 \u0633\u0628\u0642.';
 
 // A reply the CLIENT wrote to report its own failure is not something to offer «بسّط» under.
 // FRIENDLY_ERRORS is the closed table those replies come from, so matching against it is exact
@@ -24573,6 +24636,12 @@ const s = {
   // its radius, so the pill keeps the one border, the one tint and the one 44px height the row
   // is built on -- and stays inside the size check that already watches this key.
   toolBtn: { width: 44, height: 44, borderRadius: '50%', background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  // ITEM 75 (2026-09-10): what turns the 44px circle above into a TEXT pill, and nothing else.
+  // It is used with s.toolBtn spread before it -- the mode pill's own base object -- so the two
+  // bar actions wear the pill's ground, border and height rather than a copy of its values, and
+  // ONE object serves both buttons. Every colour here is a token; the 42px line plus the 1px
+  // border either side is the same 44px hit the round buttons take.
+  barActionPill: { width: 'auto', paddingBlock: 0, paddingInline: 10, borderRadius: 999, fontFamily: 'inherit', fontSize: 13, fontWeight: 700, lineHeight: '42px', display: 'block', textAlign: 'center', whiteSpace: 'nowrap', minWidth: 0, flexShrink: 1, overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--red)' },
 
   // ===== لوحة الأهل =====
   // S115: the parents' panel. The strip header it shared with the favourites screen is gone --

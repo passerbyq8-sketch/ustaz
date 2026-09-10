@@ -667,3 +667,11 @@ api/roles-admin.js text eol=lf
 # in this tree today, changing that is not this round's business, and the guard normalises every
 # source to LF on read so no anchor of its own can miss a CR.
 guards/lessons-brain-guard.cjs text eol=lf
+
+# guards/chat-bar-actions-guard.cjs (gate `chatbaractions`) -- item 75 part B: the two composer
+# bar actions, and the seal on the five quick actions the owner froze on 2026-09-10. Pinned for
+# the reason every gate script above it is: recon-audit item 14 FAILS any gate that is not. It
+# reads the shipped client through tools/babel-block.cjs readShippedClient() and normalises it to
+# LF on read, and it carries a SHA-256 of the five prompts' source text -- a digest that would be
+# wrong in a CRLF checkout, which is exactly what this line prevents.
+guards/chat-bar-actions-guard.cjs text eol=lf

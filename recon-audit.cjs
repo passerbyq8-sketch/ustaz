@@ -776,7 +776,11 @@ head('14) GATE ROSTER (single source: gates.json)');
   // the tool is offered on «مفصّل» and «طالب علم», withheld on «موجز», and withheld from every
   // child on every depth. It also pins resetLessons() at one call site, and pins the ABSENCE of
   // a relevance floor on the lessons row -- the owner ruled on 2026-09-09 that there is none.
-  const GATES_EXPECTED = 110;  // 110th: lessonsbrain. 109th: asmaa. 108th: articles.
+  const GATES_EXPECTED = 111;  // 111th: chatbaractions -- guards/chat-bar-actions-guard.cjs.
+                               //        Item 75 part B: the two composer bar actions, and the
+                               //        SHA-256 seal on the five quick actions the owner froze
+                               //        on 2026-09-10.
+                               // 110th: lessonsbrain. 109th: asmaa. 108th: articles.
                                // 107th: rejectdoor -- guards/reject-door-guard.cjs. ق٥٥:
   // the guard rules and does not edit -- a cut answer is rewritten, never delivered sutured.  // 106th: nameform -- guards/name-form-match-guard.cjs. One man
                                //       written two ways: «ابن عباس» is «عبد الله بن عباس» on the

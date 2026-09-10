@@ -555,5 +555,10 @@
     "name": "lessonsbrain",
     "script": "guards/lessons-brain-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "chatbaractions",
+    "script": "guards/chat-bar-actions-guard.cjs",
+    "args": ""
   }
 ]
