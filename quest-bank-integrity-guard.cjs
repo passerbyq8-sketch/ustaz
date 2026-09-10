@@ -113,6 +113,28 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-09-10   -- ITEM 85: THE BOOT REACHES ONE ORIGIN, AND IT IS THIS ONE. index.html linked a
+  //                    render-blocking stylesheet on fonts.googleapis.com, and with that origin
+  //                    unreachable the diagnostic catcher put a full-viewport black panel over a
+  //                    working app. The 21 .woff2 files Google served for that URL are now in
+  //                    fonts/ under the vendor's own names, declared by 31 @font-face rules with
+  //                    the same weights, unicode-ranges and font-display: swap; the three
+  //                    preconnects and the link are gone; and a resource that fails to load is
+  //                    recorded in __ezikDiag without building the panel. THE SHELL GREW, a lot:
+  //                    index.html 124729 -> 152137 (+27408), of which 24183 is the @font-face
+  //                    block, 2327 the catcher's new branch and its reasoning, and 1610 the
+  //                    register of the three origins that stay. app.js DID NOT MOVE -- app.jsx was
+  //                    not touched and gate babel still passes on the committed bundle. sw.js lost
+  //                    its two-hostname exception to the !sameOrigin return (fonts are same-origin
+  //                    now and fall to the arm that was already there) and CORE gained the two
+  //                    Noto Naskh Arabic cuts the first screen actually pulls, measured in a cold
+  //                    headless boot: 94032 + 19696 = 113728. So CORE_BYTES was re-cut by node
+  //                    tools/core-bytes.cjs --write 2266648 -> 2407784 (+141136 = +27408 shell
+  //                    +113728 faces), and SW_CORE, SW_CORE_FILES and three SW_PROSE rows below
+  //                    followed. The worker's own byte table at :121 and its CACHE note at :57
+  //                    both state the shell size and both were restated. THIS digest is re-cut
+  //                    LAST, on a tree measured at CR = 0. CACHE IS NOT BUMPED: this is a branch
+  //                    for the owner to preview, not a ship.
   //   2026-09-10   -- ITEM 63: THE FOUR FATWA LEARNING BUTTONS THAT DO NOTHING ARE HIDDEN. The
   //                    owner ruled that simplify / example / explain / quiz are hidden rather than
   //                    built or deleted, so app.jsx gained one constant, EZIK_FATWA_ACTIONS_SHOWN,
@@ -896,7 +918,7 @@ const SEALED = {
   //                    *.json class moved from cache-first to stale-while-revalidate.
   //                    SW_CACHE below and B11 were cut in the SAME commit as this digest.
   //   watermark     -- CORE gained '/icon-watermark.png' in the commit that pointed .ezwm at it.
-  'sw.js': '34cdd3a6af2892460cfa466cd9f20782dd6fbd1acff52adcf9c6d28205ef788d',
+  'sw.js': '830816a8bdabf432df417912caf9860639bcec5c4ee9f96d233ab48167edaf8e',
 };
 
 // ---------------------------------------------------------------------------
@@ -943,15 +965,22 @@ const SW_REVALIDATED = ['/adhkar.json', '/worship-display.json', '/manifest.json
 // they are on this origin for the first time: /app.js is index.html's JSX compiled ahead of the
 // commit, and the two /vendor bundles are the React the page used to fetch from unpkg. A CORE
 // that stored the shell and not the app is what made "offline boot is not possible" true.
+// ITEM 85 ADDED THE LAST TWO. They are the two Noto Naskh Arabic cuts the FIRST SCREEN pulls,
+// self-hosted since the boot stopped waiting on Google for its type. A CORE that stored the app
+// and not the face it is drawn in leaves an offline returning reader in the UA's fallback serif.
 const SW_CORE = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png',
   '/icon-maskable-512.png', '/icon-watermark.png', '/adhkar.json',
   '/adhkar-split-27.json',
-  '/app.js', '/vendor/react.umd.js', '/vendor/react-dom.umd.js'];
+  '/app.js', '/vendor/react.umd.js', '/vendor/react-dom.umd.js',
+  '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2',
+  '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2'];
 // The files CORE names on disk, in the same order. B12 re-derives their byte sum and refuses a
 // CORE_BYTES constant that has fallen below it.
 const SW_CORE_FILES = ['index.html', 'manifest.json', 'icon-192.png', 'icon-512.png',
   'icon-maskable-512.png', 'icon-watermark.png', 'adhkar.json', 'adhkar-split-27.json',
-  'app.js', 'vendor/react.umd.js', 'vendor/react-dom.umd.js'];
+  'app.js', 'vendor/react.umd.js', 'vendor/react-dom.umd.js',
+  'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2',
+  'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2'];
 const SW_SEALED_DATA = ['/quran-uthmani.json', '/mushaf-layout.json'];
 // ITEM 33. The store the 604 printed page scans live in, and the ceiling on it. Written out
 // here rather than read back out of sw.js for the same reason SW_CORE and SW_REPORT_TAG are:
@@ -2004,7 +2033,12 @@ async function compare(goldenPath) {
     //  { n, sum: [a, b] }  n is the byte sum of those files on disk
     //  { n, dir: 'count' | 'sum' | 'mean' }   n is that statistic over the mushaf page scans
     const SW_PROSE = [
-      { n: 124729, of: 'index.html' },
+      { n: 152137, of: 'index.html' },
+      // ITEM 85. The two CORE entries the self-hosted faces added, stated in the worker's byte
+      // table beside the rest and re-derived here from the files they name. They are the arabic
+      // and latin cuts of Noto Naskh Arabic, which is what the first screen is painted in.
+      { n: 94032, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2' },
+      { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
       { n: 1421956, of: 'app.js' },
