@@ -113,6 +113,22 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-09-10   -- ITEM 75: SUMMARIZE AND EXPAND LEFT THE COMPOSER BAR FOR A ROW OF THEIR OWN.
+  //                    Part B put them in the control row and the measurement sent them out again:
+  //                    at 360 that row had 106px for three text pills that wanted 150, so all three
+  //                    were ellipsized, the shipped mode pill included. The owner ruled they sit in
+  //                    a small row above the field instead, shown after each reply, sharing that
+  //                    slot with the ask-about-the-selection bar, which wins; and the control row
+  //                    went back byte for byte to the row of aa497d5. INDEX.HTML DID NOT MOVE this
+  //                    round -- everything is in app.jsx -- so two of the three worker figures and
+  //                    one of the two mirrors below were already true and only the BUNDLE figures
+  //                    moved. app.js was rebuilt from that source 1399197 -> 1408320 (+9123) by
+  //                    node tools/build-app.cjs, and CORE_BYTES was re-cut 2243889 -> 2253012
+  //                    (+9123) by node tools/core-bytes.cjs --write, which is exactly the bundle
+  //                    delta because the shell did not grow. The worker table at :111 and the
+  //                    app.js mirror below followed, and THIS digest is re-cut LAST. CACHE IS NOT
+  //                    BUMPED: this is a branch for the owner to try, not a ship, and sw.js says
+  //                    the merge round owns the bump.
   //   2026-09-09   -- ITEM 05 F: THE COMPOSER BECAME A FIELD ROW OVER ONE CONTROL ROW. The
   //                    field has the top row to itself and send moved down into the control
   //                    row at the VISUAL RIGHT, with mic and the voice entry beside it and the
@@ -827,7 +843,7 @@ const SEALED = {
   //                    *.json class moved from cache-first to stale-while-revalidate.
   //                    SW_CACHE below and B11 were cut in the SAME commit as this digest.
   //   watermark     -- CORE gained '/icon-watermark.png' in the commit that pointed .ezwm at it.
-  'sw.js': '91754f51db3890d4daee75e2c8ee7a0eb240d3b02c7edc45f9d7417e6ce03e55',
+  'sw.js': '97cdeb69366f58cb2d5e46fd82963c2d51a34dc6ba824aa0cf5b636cde843775',
 };
 
 // ---------------------------------------------------------------------------
@@ -1938,7 +1954,7 @@ async function compare(goldenPath) {
       { n: 124729, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1399197, of: 'app.js' },
+      { n: 1408320, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
