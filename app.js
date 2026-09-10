@@ -1002,7 +1002,19 @@ const say=v=>{setFlash(v);setTimeout(()=>setFlash(''),1500);};const doShare=asyn
 // with CSS in a shell but never constructed at all.
 //
 // IN A PLAIN BROWSER the reader picks: the App Store, Google Play, or both links together.
-const EZIK_APP_URL='https://ezik.app';// The two store links, character for character the ones about.html has carried since the app was
+const EZIK_APP_URL='https://ezik.app';// ITEM 92 PART B: THE SMART LINK, and it is what the SHELLS share. The owner ruled on 2026-09-10
+// that the share button inside the mobile apps may not show a store name or a badge (Apple
+// guideline 2.3.10), and that https://ezik.app -- the app itself -- is the wrong thing to hand
+// somebody who is being given the app: the page they land on is the app, not a way to install it.
+// So the shells share ONE address that decides for the visitor: /download.html sends an iPhone or
+// iPad to the App Store, an Android device to Google Play, and anybody else sees both official
+// badges as links. The deciding is done by download.js, on that page, in the visitor's browser --
+// NOT here. This file still never reads navigator.userAgent, and sharelinks case D asserts that.
+//
+// `.html` and not `/download`: vercel.json declares no `cleanUrls`, and every public page of this
+// site is linked with its extension -- about.html:147 and :208 link /delete.html, /support.html and
+// /privacy.html exactly that way. An extensionless address would 404 on the deployment.
+const EZIK_SMART_LINK_URL='https://ezik.app/download.html';// The two store links, character for character the ones about.html has carried since the app was
 // published. The App Store path is percent-encoded here because «عزك» is not URL-safe, and
 // decodeURIComponent of this string is byte-identical to the href in about.html:136.
 const EZIK_APP_STORE_URL='https://apps.apple.com/gb/app/%D8%B9%D8%B2%D9%83/id6797100518';const EZIK_PLAY_STORE_URL='https://play.google.com/store/apps/details?id=app.almurabbi.tutor&hl=ar';// THE BADGES ARE THE VENDORS' OWN FILES, BYTE FOR BYTE. Neither was drawn, traced, recoloured,
@@ -3867,10 +3879,10 @@ const drawerNavRef=useRef(null);useEzikBackLayer(drawerOpen,()=>{setDrawerOpen(f
 const run=drawerNavRef.current;drawerNavRef.current=null;if(run)run();});// ITEM 26: one entry for the section, spent by the device button and by its own back control.
 // Registered unconditionally and in a fixed order, so the hook order never changes.
 useEzikBackLayer(asmaaOpen,()=>setAsmaaOpen(false));// ITEM 92: WHAT THE SHARE BUTTON DOES, decided by the injected bridge and by nothing else.
-// In a shell it hands https://ezik.app straight to the platform sheet and returns -- no chooser
+// In a shell it hands the smart link straight to the platform sheet and returns -- no chooser
 // is opened, so no badge and no store name can reach the page (Apple guideline 2.3.10). In a
 // plain browser it opens the chooser, which is where the two store links live.
-const onMenuShare=()=>{if(ezikShellBridge()){const say=v=>{setShareFlash(v);setTimeout(()=>setShareFlash(''),1500);};ezikShareLinks({url:EZIK_APP_URL},say);return;}setShareOpen(true);};const closeDrawerWith=fn=>{drawerNavRef.current=typeof fn==='function'?fn:null;// ezikHistBack is false only when this app owns nothing on the stack -- the menu's entry could
+const onMenuShare=()=>{if(ezikShellBridge()){const say=v=>{setShareFlash(v);setTimeout(()=>setShareFlash(''),1500);};ezikShareLinks({url:EZIK_SMART_LINK_URL},say);return;}setShareOpen(true);};const closeDrawerWith=fn=>{drawerNavRef.current=typeof fn==='function'?fn:null;// ezikHistBack is false only when this app owns nothing on the stack -- the menu's entry could
 // not be pushed at all. Then there is nothing to spend and the menu closes directly.
 if(ezikHistBack())return;setDrawerOpen(false);setChatPendingDelete(null);const run=drawerNavRef.current;drawerNavRef.current=null;if(run)run();};// Opening it re-reads the list from the store, so the menu always shows what a reboot would.
 // S98: and it clears the search box, so the menu never reopens on somebody's half-typed query.

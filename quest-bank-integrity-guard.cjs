@@ -113,6 +113,24 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-09-10   -- ITEM 92 PART B: THE IN-APP SHARE GIVES A SMART LINK. https://ezik.app IS the
+  //                    app, not a way to install it, so the shells now hand over one address that
+  //                    decides for whoever opens it -- https://ezik.app/download.html. The new root
+  //                    page sends an iPhone or iPad to the App Store, an Android device to Google
+  //                    Play, and everybody else sees both official badges as links; the deciding is
+  //                    done by download.js, on that page, and the app's own shell detection still
+  //                    never reads a user agent. The browser chooser part A built did not change.
+  //                    INDEX.HTML DID NOT MOVE this round either -- everything is in app.jsx, one
+  //                    guard and two new root files -- so two of the three worker figures and one of
+  //                    the two mirrors below were already true and only the BUNDLE figures moved.
+  //                    app.js was rebuilt 1420540 -> 1421673 (+1133) by node
+  //                    tools/build-app.cjs, and CORE_BYTES was re-cut 2265232 -> 2266365 (+1133) by
+  //                    node tools/core-bytes.cjs --write, which is exactly the bundle delta because
+  //                    the shell did not grow. The worker table at :111 and the app.js mirror below
+  //                    followed, and THIS digest is re-cut LAST. SW.JS IS OTHERWISE UNTOUCHED: its
+  //                    navigation branch is already network-FIRST, so the new page is served by the
+  //                    server and not from the cached app, exactly as about.html is. CACHE IS NOT
+  //                    BUMPED: this is a branch for the owner to try, not a ship.
   //   2026-09-10   -- ITEM 92: THE MENU GAINED A SHARE BUTTON, AND WHAT IT HANDS OVER DEPENDS ON
   //                    WHERE THE READER IS. Inside the mobile shells it shares https://ezik.app and
   //                    nothing else -- no chooser is built there, so no badge file and no store or
@@ -861,7 +879,7 @@ const SEALED = {
   //                    *.json class moved from cache-first to stale-while-revalidate.
   //                    SW_CACHE below and B11 were cut in the SAME commit as this digest.
   //   watermark     -- CORE gained '/icon-watermark.png' in the commit that pointed .ezwm at it.
-  'sw.js': 'e70dd7495577a36e861e68061062e10b9d206a27ed5251e292fdf12bae95e947',
+  'sw.js': 'd4bcf43a078cd0e10d9b3923e6c61bcd49dcc3edd3db3930965a42e2e63b6a0e',
 };
 
 // ---------------------------------------------------------------------------
@@ -1972,7 +1990,7 @@ async function compare(goldenPath) {
       { n: 124729, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1420540, of: 'app.js' },
+      { n: 1421673, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
