@@ -88,6 +88,16 @@ const CORE = [
   '/app.js',
   '/vendor/react.umd.js',
   '/vendor/react-dom.umd.js',
+  // ITEM 85. The two faces the FIRST SCREEN actually pulls, self-hosted since the boot stopped
+  // waiting on fonts.googleapis.com. They are here for the reason the three files above are:
+  // the chat is painted in Noto Naskh Arabic -- index.html gives the istana_33 identity
+  // --vt-font:'Noto Naskh Arabic' and maps --ez-ui-font onto it -- and a reader who has visited
+  // once would otherwise meet the whole conversation in the UA's fallback serif. Measured, not
+  // assumed: a cold headless boot on a returning profile requests these two and no other font
+  // file. The other 19 in /fonts are left to the runtime arm below, which caches each one the
+  // first time a screen asks for it.
+  '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2',
+  '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2',
 ];
 
 // ---------------------------------------------------------------------------
@@ -108,10 +118,12 @@ const CORE = [
 // ---------------------------------------------------------------------------
 
 // The measured cost of CORE, byte for byte, at the commit that cut this constant:
-//   /  (index.html) 124729 + app.js 1421956 + icon-watermark.png 368386
+//   /  (index.html) 148204 + app.js 1421956 + icon-watermark.png 368386
 //   + adhkar.json 177392 + vendor/react-dom.umd.js 131835 + icon-512.png 12893
 //   + vendor/react.umd.js 10751 + adhkar-split-27.json 7182 + icon-maskable-512.png 5938
 //   + icon-192.png 5053 + manifest.json 533
+//   + fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2 94032   (Noto Naskh Arabic, arabic)
+//   + fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2 19696      (Noto Naskh Arabic, latin)
 // quest-bank-integrity-guard.cjs B12 re-derives this sum from the files on disk and FAILS on any
 // deviation, so a shell that grows cannot quietly leave the pre-check reading a number that
 // stopped being true.
@@ -128,7 +140,7 @@ const CORE = [
 // constant, that table, and the sw.js digest in quest-bank-integrity-guard.cjs in the SAME
 // commit -- item 89-b is the worked example. CACHE is untouched by all of it: the store name is
 // a ship decision and the merge round owns the bump.
-const CORE_BYTES = 2266648;
+const CORE_BYTES = 2403851;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
 // re-cut by hand always trails the files it describes by some amount.
@@ -736,12 +748,15 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  const isFont = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
+  // IGNORE every other origin. Do not intercept or cache.
+  //
+  // ITEM 85. This return used to carry an exception: fonts.googleapis.com and fonts.gstatic.com
+  // were let through and cached, because the first paint depended on them. It does not any
+  // more -- the faces live in /fonts on this origin and are caught by the same-origin arm
+  // below for free -- so the exception is gone and this line is once again what it says.
+  if (!sameOrigin) return;
 
-  // IGNORE every other origin (everyayah.com, cdnjs). Do not intercept or cache.
-  if (!sameOrigin && !isFont) return;
-
-  // CACHE-FIRST for same-origin static assets and the Google Fonts CSS/font files.
+  // CACHE-FIRST for same-origin static assets.
   event.respondWith(
     caches.match(req).then((hit) => {
       if (hit) return hit;

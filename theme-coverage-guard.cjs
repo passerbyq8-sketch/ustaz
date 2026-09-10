@@ -5550,5 +5550,152 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
     && !/setPfGender\(pfGender === v \? null : v\)/.test(html));
 }
 
+/* ================= ITEM 85. THE BOOT REACHES ONE ORIGIN: THIS ONE ==========
+ * This group is here rather than in a guard of its own because the font tokens are already
+ * pinned above -- --vt-font, --ez-ui-font and the four identity palettes -- and the thing that
+ * decides whether those tokens resolve to anything is no longer a <link> to somebody else's
+ * server. It is 31 @font-face rules and 21 files in fonts/.
+ *
+ * WHAT THE MEASUREMENT FOUND, and why each assertion below exists. With fonts.googleapis.com
+ * unreachable the app rendered and was then COVERED: the diagnostic catcher's error listener is
+ * registered with capture:true, so it sees resource load failures, and it built a full-viewport
+ * black EZIK DIAGNOSTIC panel over an Arabic children's app that was working underneath it. A
+ * render-blocking stylesheet on a third-party origin was therefore not a soft dependency with a
+ * fallback -- it was the single point of failure for the whole boot, and it cost 660 ms of
+ * first-usable and 432 ms of first-contentful-paint on a desktop with a fast route to Google.
+ *
+ * THE RAW DOCUMENT, NOT THE SHIPPED CLIENT. The html binding at the top of this file is the
+ * extracted app source; every question below is about the DOCUMENT, so the file is read again.
+ * ------------------------------------------------------------------------ */
+console.log('\n=== ITEM 85. ONE ORIGIN ===');
+{
+  const RAW = fs.readFileSync(INDEX, 'utf8');
+  const A = [['index.html', RAW]];
+
+  // A HOST NAMED IN PROSE IS NOT A HOST THE PAGE REACHES. Both kinds of comment come out --
+  // the HTML comment above the theme boot still explains the white-flash bug by naming the
+  // origin that caused it, and the CSS comment above the @font-face block explains why the
+  // rules are there. What must be gone is every LIVE occurrence: an href, a src, a url(), an
+  // @import, a string in the boot script. Stripping the comments is what makes the difference
+  // between those two things checkable instead of arguable.
+  const LIVE = RAW.replace(/<!--[\s\S]*?-->/g, ' ').replace(/\/\*[\s\S]*?\*\//g, ' ');
+  for (const host of ['fonts.googleapis.com', 'fonts.gstatic.com']) {
+    eqOn('ITEM85: index.html reaches ' + host + ' nowhere outside a comment', A,
+      (LIVE.match(new RegExp(host.replace(/\./g, '\\.'), 'g')) || []).length, 0);
+  }
+
+  // NO EXTERNAL STYLESHEET, OF ANY KIND. The <link> is the one this order deleted; @import is
+  // the way it would come back without a tag, and it would come back render-blocking too.
+  // THE TAG SCAN READS LIVE, NOT RAW, for the reason headOrder above gives in full: the comment
+  // over the theme boot script explains the white-flash rule by QUOTING <link rel="stylesheet">,
+  // and a tag scanner reading the raw document takes its own prose for a real tag. That exact
+  // self-reference broke this check on its first run.
+  const links = [...LIVE.matchAll(/<link\b[^>]*>/gi)].map((m) => m[0]);
+  okOn('ITEM85: no <link> in index.html loads a stylesheet at all', A,
+    links.filter((t) => /rel\s*=\s*["']?stylesheet/i.test(t)).length === 0,
+    links.filter((t) => /rel\s*=\s*["']?stylesheet/i.test(t)).join(' | '));
+  eqOn('ITEM85: ...and no @import can bring one back', A,
+    (LIVE.match(/@import/g) || []).length, 0);
+
+  // NO PRECONNECT, AND NO DNS-PREFETCH EITHER. Three preconnects left with the stylesheet.
+  // The third of them, mushaf.almurabbi.app, opened a DNS+TLS connection on every single boot
+  // to an origin the measurement proved no default reader ever asks for -- all 604 printed
+  // pages are in this repository. dns-prefetch is named as well because it is the same hint
+  // one rel= value away, and a page that reaches nothing has nothing to warm up.
+  eqOn('ITEM85: index.html carries no preconnect and no dns-prefetch', A,
+    links.filter((t) => /rel\s*=\s*["']?(preconnect|dns-prefetch)/i.test(t)).length, 0,
+    links.filter((t) => /rel\s*=\s*["']?(preconnect|dns-prefetch)/i.test(t)).join(' | '));
+  okOn('ITEM85: ...and no <link> or <script> in it names any http(s) origin', A,
+    [...LIVE.matchAll(/<(?:link|script)\b[^>]*\b(?:href|src)\s*=\s*["']([^"']+)["']/gi)]
+      .every((m) => !/^https?:/i.test(m[1])));
+
+  // THE RULES THEMSELVES. Every src is a path on this origin, under /fonts, and the file it
+  // names is on the disk this guard is reading.
+  const faces = [...RAW.matchAll(/@font-face\s*\{([\s\S]*?)\}/g)].map((m) => m[1]);
+  eqOn('ITEM85: index.html declares the 31 faces the stylesheet used to serve', A, faces.length, 31);
+  const field = (b, k) => { const m = b.match(new RegExp(k + '\\s*:\\s*([^;]+);')); return m ? m[1].trim() : ''; };
+  const srcs = faces.map((b) => field(b, 'src'));
+  const SRC_OK = /^url\(\/fonts\/[A-Za-z0-9_.\-]+\.woff2\) format\('woff2'\)$/;
+  okOn('ITEM85: every @font-face src is url(/fonts/<file>) format(woff2) and nothing else', A,
+    srcs.length === 31 && srcs.every((v) => SRC_OK.test(v)),
+    srcs.filter((v) => !SRC_OK.test(v)).join(' | '));
+  const files = srcs.map((v) => (v.match(/\/fonts\/([^)]+)/) || [, ''])[1]);
+  const HOME = path.dirname(INDEX) || '.';
+  const missing = [...new Set(files)].filter((f) => !f || !fs.existsSync(path.join(HOME, 'fonts', f)));
+  okOn('ITEM85: ...and every file it names is in fonts/ on disk', A, missing.length === 0, missing.join(', '));
+  eqOn('ITEM85: ...which is 21 distinct files, one per subset cut Google served', A,
+    new Set(files).size, 21);
+
+  // display:swap AND the unicode-range, ON EVERY RULE. These two are what make the self-hosted
+  // set behave IDENTICALLY to the served one rather than merely look like it: swap is why the
+  // text is visible before the face arrives, and the ranges are why a reader downloads the
+  // arabic cut and not the math cut. A rule that lost its range would quietly pull every subset
+  // of its family on the first character of text.
+  okOn('ITEM85: every face keeps font-display: swap, as the served stylesheet had it', A,
+    faces.length === 31 && faces.every((b) => /font-display:\s*swap;/.test(b)));
+  okOn('ITEM85: ...and every face keeps its unicode-range, so the subsetting is identical', A,
+    faces.length === 31 && faces.every((b) => /unicode-range:\s*U\+[0-9A-Fa-f]/.test(b)));
+
+  // THE SET OF FAMILIES AND WEIGHTS IS THE STYLESHEET'S, MINUS ONE FAMILY. Noto Kufi Arabic is
+  // the --vt-font of qibla_13, and qibla_13 is unreachable: readEzikVisualTheme normalises every
+  // stored value to istana_33 and the boot script normalises it again before React exists. Its
+  // five files were 207,272 bytes nobody would ever download. The CSS TOKEN that names the
+  // family stays -- the check in group G reads it -- and this pair of assertions is what keeps
+  // those two facts from being confused for each other.
+  const SERVED = {
+    'Amiri': [400, 400, 400, 700, 700, 700],
+    'Amiri Quran': [400, 400],
+    'Noto Naskh Arabic': [400, 400, 400, 400, 400, 500, 500, 500, 500, 500, 700, 700, 700, 700, 700],
+    'Tajawal': [400, 400, 500, 500, 700, 700, 800, 800],
+  };
+  const got = {};
+  for (const b of faces) {
+    const fam = (field(b, 'font-family').match(/'([^']+)'/) || [, ''])[1];
+    (got[fam] = got[fam] || []).push(Number(field(b, 'font-weight')));
+  }
+  for (const k of Object.keys(got)) got[k].sort((x, y) => x - y);
+  eqOn('ITEM85: the families and weights are exactly the stylesheet minus Noto Kufi Arabic', A,
+    JSON.stringify(got), JSON.stringify(SERVED));
+  eqOn('ITEM85: ...so no @font-face carries the unreachable identity face', A,
+    faces.filter((b) => field(b, 'font-family').indexOf('Noto Kufi Arabic') !== -1).length, 0);
+  okOn('ITEM85: ...while the --vt-font token that names it is still in the stylesheet', A,
+    css.indexOf("--vt-font:'Noto Kufi Arabic'") !== -1);
+
+  // THE LICENCE TRAVELS WITH THE FILES. The OFL requires it, and before this commit the
+  // repository recorded no font licence at all while fetching all five families on every boot.
+  const FDIR = path.join(HOME, 'fonts');
+  okOn('ITEM85: the SIL Open Font License text ships beside the files', A,
+    fs.existsSync(path.join(FDIR, 'OFL.txt'))
+    && fs.readFileSync(path.join(FDIR, 'OFL.txt'), 'utf8').indexOf('SIL OPEN FONT LICENSE Version 1.1') !== -1);
+  const NOTICE = fs.existsSync(path.join(FDIR, 'FONTS-NOTICE.md'))
+    ? fs.readFileSync(path.join(FDIR, 'FONTS-NOTICE.md'), 'utf8') : '';
+  const N = [['fonts/FONTS-NOTICE.md', NOTICE]];
+  okOn('ITEM85: ...and the notice names every family, its version and its licence URL', N,
+    ['Amiri', 'Amiri Quran', 'Noto Naskh Arabic', 'Tajawal']
+      .every((f) => NOTICE.indexOf('| ' + f + ' |') !== -1)
+    && ['Version 1.002', 'Version 1.003', 'Version 2.021', 'Version 1.700']
+      .every((v) => NOTICE.indexOf(v) !== -1)
+    && NOTICE.indexOf('openfontlicense.org') !== -1);
+  const unlisted = [...new Set(files)].filter((f) => NOTICE.indexOf(f) === -1);
+  okOn('ITEM85: ...and records the SHA-256 of every file the page loads', N,
+    unlisted.length === 0 && (NOTICE.match(/\b[0-9a-f]{64}\b/g) || []).length >= 21,
+    'not listed: ' + unlisted.join(', '));
+
+  // THE WORKER STOPPED MAKING AN EXCEPTION. Its fetch handler used to let two foreign hostnames
+  // past the !sameOrigin return and cache them. Same-origin fonts fall to the arm that was
+  // already there, so the exception is not merely unnecessary -- keeping it would be a live
+  // path to an origin this order removed.
+  const SW = fs.readFileSync(path.join(HOME, 'sw.js'), 'utf8');
+  const SWLIVE = SW.replace(/\/\/[^\n]*/g, ' ').replace(/\/\*[\s\S]*?\*\//g, ' ');
+  const S = [['sw.js', SW]];
+  okOn('ITEM85: sw.js names no font origin in any live line', S,
+    SWLIVE.indexOf('fonts.googleapis.com') === -1 && SWLIVE.indexOf('fonts.gstatic.com') === -1);
+  okOn('ITEM85: ...and its !sameOrigin return carries no exception at all', S,
+    /\n\s*if \(!sameOrigin\) return;/.test(SW) && SWLIVE.indexOf('isFont') === -1);
+  okOn('ITEM85: ...while CORE precaches the two faces the first screen paints in', S,
+    ['RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2', 'RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2']
+      .every((f) => SW.indexOf("'/fonts/" + f + "'") !== -1 && files.indexOf(f) !== -1));
+}
+
 console.log('\n' + (failures ? 'FAIL' : 'OK') + ': ' + (checks - failures) + '/' + checks + ' checks passed.');
 process.exit(failures ? 1 : 0);

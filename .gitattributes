@@ -686,3 +686,18 @@ assets/store-badges/*.svg -text
 
 # ITEM 92 -- the new gate script, same mechanical requirement recon-audit puts on every gate.
 guards/share-links-guard.cjs text eol=lf
+
+# ITEM 85 -- THE FACES, BROUGHT HOME. These are the vendors own woff2 bytes, saved under the
+# vendors own file names from fonts.gstatic.com, and fonts/FONTS-NOTICE.md records the SHA-256 of
+# every one of them. A fresh clone with core.autocrlf=true must never touch a byte of them, and a
+# woff2 is a Brotli container that git could not usefully diff anyway.
+*.woff2                  binary
+
+# The SIL Open Font License text, saved unmodified from the licence URL the font files themselves
+# name in their `name` table. Unmodified means unmodified in both directions -- never converted,
+# never rewrapped -- so it is `-text` rather than `text eol=lf`.
+fonts/OFL.txt            -text
+
+# The notice beside them, pinned for the reason every other guard-read file on this list is: a
+# CR injected by a clone would move byte counts the notice states.
+fonts/FONTS-NOTICE.md    text eol=lf
