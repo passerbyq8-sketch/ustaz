@@ -33,32 +33,129 @@
       "ok": true,
       "schemaVersion": "fatwa.api.v1",
       "scholars": [
-        { "id": "binbaz", "snapshot": { "records": 18479 } },
-        { "id": "albarrak", "snapshot": { "records": 10740 } },
-        { "id": "meshhoor", "snapshot": { "records": 4166 } },
-        { "id": "alkhathlan", "snapshot": { "records": 1570 } },
-        { "id": "aladawy", "snapshot": { "records": 1308 } },
-        { "id": "almosleh", "snapshot": { "records": 822 } },
-        { "id": "almufti", "snapshot": { "records": 458 } },
-        { "id": "othmanalkhamees", "snapshot": { "records": 410 } },
-        { "id": "alathary", "snapshot": { "records": 393 } },
-        { "id": "shrajhi", "snapshot": { "records": 91 } },
-        { "id": "kuwait_eftaa", "snapshot": { "records": 252 } },
-        { "id": "alkhudair", "snapshot": { "records": 14 } },
-        { "id": "alfawzan", "snapshot": { "records": 14 } },
-        { "id": "ibnjebreen", "snapshot": { "records": 4 } },
-        { "id": "ferkous", "snapshot": { "records": 1412 } },
-        { "id": "salmajed", "snapshot": { "records": 17875 } },
-        { "id": "binothaimeen", "snapshot": { "records": 13343 } },
-        { "id": "almunajjid", "snapshot": { "records": 1203 } },
-        { "id": "aljasser", "snapshot": { "records": 2215 } }
+        {
+          "id": "binbaz",
+          "snapshot": {
+            "records": 24145
+          }
+        },
+        {
+          "id": "albarrak",
+          "snapshot": {
+            "records": 10740
+          }
+        },
+        {
+          "id": "meshhoor",
+          "snapshot": {
+            "records": 4166
+          }
+        },
+        {
+          "id": "alkhathlan",
+          "snapshot": {
+            "records": 1570
+          }
+        },
+        {
+          "id": "aladawy",
+          "snapshot": {
+            "records": 1308
+          }
+        },
+        {
+          "id": "almosleh",
+          "snapshot": {
+            "records": 822
+          }
+        },
+        {
+          "id": "almufti",
+          "snapshot": {
+            "records": 458
+          }
+        },
+        {
+          "id": "othmanalkhamees",
+          "snapshot": {
+            "records": 410
+          }
+        },
+        {
+          "id": "alathary",
+          "snapshot": {
+            "records": 393
+          }
+        },
+        {
+          "id": "shrajhi",
+          "snapshot": {
+            "records": 91
+          }
+        },
+        {
+          "id": "kuwait_eftaa",
+          "snapshot": {
+            "records": 252
+          }
+        },
+        {
+          "id": "alkhudair",
+          "snapshot": {
+            "records": 14
+          }
+        },
+        {
+          "id": "alfawzan",
+          "snapshot": {
+            "records": 14
+          }
+        },
+        {
+          "id": "ibnjebreen",
+          "snapshot": {
+            "records": 4
+          }
+        },
+        {
+          "id": "ferkous",
+          "snapshot": {
+            "records": 1412
+          }
+        },
+        {
+          "id": "salmajed",
+          "snapshot": {
+            "records": 17875
+          }
+        },
+        {
+          "id": "binothaimeen",
+          "snapshot": {
+            "records": 13343
+          }
+        },
+        {
+          "id": "almunajjid",
+          "snapshot": {
+            "records": 1203
+          }
+        },
+        {
+          "id": "aljasser",
+          "snapshot": {
+            "records": 2215
+          }
+        }
       ]
     },
     "/api/v1/fatwas/search": {
       "ok": true,
       "schemaVersion": "fatwa.api.v1",
       "results": [],
-      "pagination": { "total": 0 }
+      "pagination": {
+        "total": 0
+      }
     }
   },
   "expected": {
@@ -71,37 +168,37 @@
     "searchRequests": 1,
     "returnedSearchCalls": 1,
     "scholars": 19,
-    "total": 74769,
-    "ibnBaz": 18479
+    "total": 80435,
+    "ibnBaz": 24145
   },
   "externalEvidence": {
     "status": "OBSERVED_PRODUCTION",
     "acceptanceGreen": true,
     "currentServiceResponse": {
-      "observedAt": "2026-09-09",
-      "deploymentId": "dpl_6nR2V7VRF9uCvps7xugBhhPrsBEv",
-      "deployedGitSha": "6874407231be80b514a3c6e71aa30705eed554bd",
+      "observedAt": "2026-09-10",
+      "deploymentId": "dpl_GC4EMbSijTzcsb2gS7TpSqYyLHrd",
+      "deployedGitSha": "56f1dbcb270a7c16ab6837ca31a1f6fb0f9370d9",
       "requests": [
-        "bom1::iad1::n2r4j-1788959399701-347deff8cfeb",
-        "bom1::iad1::plrjk-1788959400337-468b7dafab03",
-        "bom1::iad1::nfpbt-1788959400622-2bc6d436c389"
+        "bom1::iad1::kffpl-1789024902106-a55fddd908b8",
+        "bom1::iad1::5n5jw-1789024902665-a82c6e20b3ea",
+        "bom1::iad1::dg5kb-1789024903275-1de82b88b7eb"
       ],
       "fatwaSearch": 1,
       "fatwaStatus": "OK",
       "scholars": 19,
-      "total": 74769,
-      "ibnBaz": 18479,
-      "note": "observed through the production deployment's own same-origin fatwa proxy — GET https://ezik.app/api/v1/health, /api/v1/scholars and /api/v1/fatwas/search, which is the path the deployed app itself takes to the service. The three x-vercel-id values above are the response headers of those three requests in that order: two verification calls and one search call, matching the local accounting this fixture proves offline. The scholars response was served from the edge cache (X-Vercel-Cache: HIT, Age: 79s); health and search were MISS."
+      "total": 80435,
+      "ibnBaz": 24145,
+      "note": "observed through the production deployment's own same-origin fatwa proxy — GET https://ezik.app/api/fatwa-proxy for health, scholars and fatwas/search, which is the path the deployed app itself takes to the service. The three x-vercel-id values above are the response headers of those three requests in that order: two verification calls and one search call, matching the local accounting this fixture proves offline. Re-observed on 2026-09-10 because item 37B merged binbaz kind 3 (the «fatawa al-duroos» section, 5,666 records the 2026-08-08 build had excluded), moving Ibn Baz and the grand total by exactly 5,666. The search call read q=al-talaq under scholar=binbaz and returned 860 results, up from 781 before the merge."
     },
     "production": {
       "budgetEnvironment": "production",
       "fatwaStatus": "OK",
       "scholars": 19,
-      "total": 74769,
-      "ibnBaz": 18479,
-      "deploymentId": "dpl_6nR2V7VRF9uCvps7xugBhhPrsBEv"
+      "total": 80435,
+      "ibnBaz": 24145,
+      "deploymentId": "dpl_GC4EMbSijTzcsb2gS7TpSqYyLHrd"
     },
-    "productionReason": "measured on 2026-09-09 against the production deployment dpl_6nR2V7VRF9uCvps7xugBhhPrsBEv (target=production, created 2026-09-09T12:44:07.290Z, aliased to ezik.app), by summing snapshot.records over the 19 rows of its GET /api/v1/scholars response. That response body is 8950 bytes and seals under sha8 33a66a91. This is a live production reading, not a preview and not a number copied out of a report.",
-    "reason": "the offline round could not reach the service and said so. It was then observed on a preview, and on 2026-09-09 the contract moved to the 19-row corpus and production was re-observed directly: production reports 19 scholars / 74,769 records / 18,479 for Ibn Baz, identical to the counts this fixture authors offline, so the local accounting and the live service agree rather than one standing in for the other. The red this block carried between 2026-09-09's contract change and this re-observation was honest -- the dated 18-row preview reading could not be made to agree without forging it -- and it is closed by taking a new reading, not by relaxing the equality."
+    "productionReason": "measured on 2026-09-10 against the production deployment dpl_GC4EMbSijTzcsb2gS7TpSqYyLHrd (target=production, aliased to ezik.app, built from 56f1dbc), by summing snapshot.records over the 19 rows of its GET /api/v1/scholars response. That response body is 9046 bytes and seals under sha8 9a1eb29d. This is a live production reading taken after the kind-3 promote, not a preview and not a number copied out of a report.",
+    "reason": "the offline round could not reach the service and said so. It was then observed on a preview, then on production. On 2026-09-10 item 37B promoted the rebuilt Ibn Baz corpus and the contract moved with it: production reports 19 scholars / 80,435 records / 24,145 for Ibn Baz, identical to the counts this fixture authors offline, so the local accounting and the live service agree rather than one standing in for the other. The readings were re-taken, not edited to agree."
   }
 }
