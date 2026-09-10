@@ -113,6 +113,23 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-09-10   -- ITEM 63: THE FOUR FATWA LEARNING BUTTONS THAT DO NOTHING ARE HIDDEN. The
+  //                    owner ruled that simplify / example / explain / quiz are hidden rather than
+  //                    built or deleted, so app.jsx gained one constant, EZIK_FATWA_ACTIONS_SHOWN,
+  //                    and the render of the list now hangs off it. Setting it to true shows them
+  //                    again, still disabled -- that one line IS the rollback. The list, the .map
+  //                    body, the five fatwa.action.* keys in both language halves and every .ezf-*
+  //                    rule are untouched; .ezf-action is shared with the SAVE button, which keeps
+  //                    its size to the pixel (measured 147x44 at 360 and 162x44 at 390, on both
+  //                    trees). INDEX.HTML DID NOT MOVE -- everything is in app.jsx and one guard --
+  //                    so two of the three worker figures and one of the two mirrors below were
+  //                    already true and only the BUNDLE figures moved. app.js was rebuilt
+  //                    1421673 -> 1421956 (+283) by node tools/build-app.cjs, and CORE_BYTES was
+  //                    re-cut 2266365 -> 2266648 (+283) by node tools/core-bytes.cjs --write, which
+  //                    is exactly the bundle delta because the shell did not grow. The worker table
+  //                    at :111 and the app.js mirror below followed, and THIS digest is re-cut LAST.
+  //                    SW.JS IS OTHERWISE UNTOUCHED and CACHE IS NOT BUMPED: this is a branch for
+  //                    the owner to preview, not a ship.
   //   2026-09-10   -- ITEM 92 PART B: THE IN-APP SHARE GIVES A SMART LINK. https://ezik.app IS the
   //                    app, not a way to install it, so the shells now hand over one address that
   //                    decides for whoever opens it -- https://ezik.app/download.html. The new root
@@ -879,7 +896,7 @@ const SEALED = {
   //                    *.json class moved from cache-first to stale-while-revalidate.
   //                    SW_CACHE below and B11 were cut in the SAME commit as this digest.
   //   watermark     -- CORE gained '/icon-watermark.png' in the commit that pointed .ezwm at it.
-  'sw.js': 'd4bcf43a078cd0e10d9b3923e6c61bcd49dcc3edd3db3930965a42e2e63b6a0e',
+  'sw.js': '34cdd3a6af2892460cfa466cd9f20782dd6fbd1acff52adcf9c6d28205ef788d',
 };
 
 // ---------------------------------------------------------------------------
@@ -1990,7 +2007,7 @@ async function compare(goldenPath) {
       { n: 124729, of: 'index.html' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1421673, of: 'app.js' },
+      { n: 1421956, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
