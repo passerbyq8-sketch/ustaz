@@ -1887,11 +1887,46 @@
       }
     }
 
+    // ---- ITEM 85: A SUBRESOURCE THAT FAILED TO LOAD IS RECORDED, NOT DRAWN OVER THE APP ----
+    // The listener below is registered with capture:true, and it has to be: that is the only
+    // phase in which a `load` failure on a <link>, <img>, <script> or <audio> is visible to
+    // window at all, resource error events do not bubble. What was wrong is what happened next.
+    // report() built the panel for EVERY event it was handed, so one dead subresource replaced
+    // a working Arabic children's app with a full-viewport black English panel reading
+    // `MESSAGE / Unknown error` -- it does not even say which resource failed, because a
+    // resource error carries no message. Measured: with the font origin blocked, the app
+    // rendered, the composer accepted typing, and document.elementFromPoint at the centre of
+    // the viewport returned the panel. The same happened to the mushaf's own text fallback.
+    //
+    // THIS IS WHAT MAKES A FALLBACK REAL. Three origins stay in this page -- see the register
+    // beside __ezikVendor below -- and each is defended by a fallback that was correct all
+    // along and could not be seen, because the panel was over it. A path that cannot be reached
+    // is not a fallback.
+    //
+    // WHAT STILL OPENS THE PANEL is exactly what the comment at the top of this script says the
+    // catcher is for: a thrown error, a syntax error, an unhandled rejection. An SRI mismatch
+    // too -- a vendor bundle that fails its integrity check does not merely fail to load, it
+    // leaves app.js throwing ReferenceError on the global it needed, and that throw is a script
+    // error with a message and a stack. NOTHING STOPS BEING RECORDED: every resource failure is
+    // still pushed into __ezikDiag, where the error boundary and a reader pressing COPY can
+    // reach it. What changed is only that a failure with a working fallback beneath it no
+    // longer hides that fallback.
+    function isResourceError(event) {
+      try {
+        var target = read(event, 'target');
+        if (!target || target === window) return false;
+        return read(target, 'nodeType') === 1;
+      } catch (ignored) {
+        return false;
+      }
+    }
+
     function report(event, rejection) {
       try {
         if (entries.length >= MAX_ENTRIES) return;
+        var resource = !rejection && isResourceError(event);
         entries.push(formatEntry(event, rejection));
-        if (!panel) buildPanel();
+        if (!panel && !resource) buildPanel();
         if (output) output.textContent = entries.join('\n\n--------------------\n\n');
       } catch (ignored) {}
     }
