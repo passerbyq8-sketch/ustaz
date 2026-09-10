@@ -23966,11 +23966,7 @@ const s = {
   // than its four neighbours, which is the gap the owner reported. minHeight and the arched
   // radius are SIZE and IDENTITY, not spacing, and are deliberately left as they were.
   ezistFeature: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, width: '100%', minHeight: 104, padding: '14px', borderRadius: '40px 40px 18px 18px', background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)', cursor: 'pointer', textAlign: 'right', fontFamily: 'var(--ez-ui-font)' },
-  ezistCardIcon: { width: 42, height: 42, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 12, background: 'var(--a3-ice)', color: 'var(--a3-blue)' },
-  ezistFeatureIcon: { width: 50, height: 50, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 14, background: 'var(--a3-surface)', color: 'var(--a3-blue)', border: '1px solid var(--a3-line)' },
-  ezistCardBody: { display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0, flex: 1 },
   ezistCardTitle: { fontSize: 15.5, fontWeight: 800, color: 'var(--a3-ink)' },
-  ezistFeatureTitle: { fontSize: 18, fontWeight: 800, color: 'var(--a3-ink)' },
   // ITEM 05-E1: THE NAME, AND IT IS ONE STYLE FOR ALL TEN TILES. The mushaf must look identical
   // to its nine neighbours, so it cannot keep a larger title than they have; ezistFeatureTitle
   // and ezistCardTitle are both left declared (ezistCardTitle still draws the wird section's own
@@ -23981,7 +23977,6 @@ const s = {
   // «أسماء الله الحسنى», has to wrap inside a ~90px square at 320px without being clipped.
   ezistTileName: { display: 'block', width: '100%', minWidth: 0, fontSize: 13.5, fontWeight: 800, color: 'var(--a3-ink)', lineHeight: 1.3, textAlign: 'center', overflowWrap: 'anywhere' },
   ezistCardSub: { fontSize: 12.5, fontWeight: 600, color: 'var(--a3-muted)', lineHeight: 1.6 },
-  ezistGo: { flexShrink: 0, display: 'inline-flex', color: 'var(--a3-muted)' },
   // ITEM 7: the mark on a section holding something unseen. The same 10px dot in the same token
   // the active-design row draws (vtActiveMark), so nothing new is introduced to the palette and
   // it resolves in both modes for free.
