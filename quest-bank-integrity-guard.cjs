@@ -918,7 +918,12 @@ const SEALED = {
   //                    *.json class moved from cache-first to stale-while-revalidate.
   //                    SW_CACHE below and B11 were cut in the SAME commit as this digest.
   //   watermark     -- CORE gained '/icon-watermark.png' in the commit that pointed .ezwm at it.
-  'sw.js': '830816a8bdabf432df417912caf9860639bcec5c4ee9f96d233ab48167edaf8e',
+  //   item 93      -- THE TASBIH. CORE itself did not change -- no file was added to it and none
+  //                    removed -- but app.js IS in CORE and the bundle grew with the section, the
+  //                    log and the card row, so the worker's byte table and CORE_BYTES both moved
+  //                    and this digest is re-cut after them. CORE_BYTES was re-cut by
+  //                    node tools/core-bytes.cjs --write, never by hand.
+  'sw.js': '9c998c70bd16862e69c459b9afcaaf97213ca21f27181e765e6c2943fe93cfaf',
 };
 
 // ---------------------------------------------------------------------------
@@ -2041,7 +2046,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1421956, of: 'app.js' },
+      { n: 1444566, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

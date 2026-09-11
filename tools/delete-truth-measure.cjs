@@ -375,6 +375,20 @@ const MUST_GO_ALREADY = [
   // A `lit` entry is what this list already uses for exactly that case (mushaf_pos_v1, the
   // pre-bookmark name), and it keeps the sweep asserted after the feature behind it is gone.
   { lit: 'ezik_hide_women_v1' },
+  // ITEM 93 -- THE TASBIH'S TWO KEYS. They are entered HERE and not in MUST_GO_NEW by that list's
+  // own rule: MUST_GO_NEW maps an erasure to a CLAUSE of delete.html, and that page names neither
+  // of these in either language, so a citation would have been a sentence invented for this file.
+  // What makes an entry lawful in THIS list is stated in its own header -- that the button erases
+  // the key and is asserted to keep erasing it, "not the date it was added" -- and it is what
+  // REMINDERS_KEY and EZIK_ART_SEEN_KEY above were entered on.
+  //
+  // AND THEY ARE A RECORD OF ONE READER. The first holds the dhikr that reader chose, the target
+  // they set and how far they have counted toward it; the second is the bare list of days this
+  // device was used for tasbih. Neither is a permission the system granted, and neither is an
+  // answer delete.html promises to keep -- so both go, on the owner's standing rule that every
+  // device key is wiped by "delete all my data".
+  { c: 'TASBIH_SESSION_KEY' },
+  { c: 'TASBIH_LOG_KEY' },
 ];
 
 // What delete.html:94 and :138 promise and the code did not keep of its own accord. Each is

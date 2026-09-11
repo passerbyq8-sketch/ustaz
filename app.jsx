@@ -634,6 +634,33 @@ const EZ_I18N = {
     'asmaa.groupedWith': 'يُذكَرُ مع',
     'asmaa.page': 'المطبوع: ص {page}',
     'asmaa.credit': '{book} — {author} — ص {pages}',
+    // ITEM 93 -- THE TASBIH. Every string this feature shows a reader is a key here, in both
+    // halves, and nothing it draws is a literal in JSX. The counter, the target and the log are
+    // its own; not one of these lines names the adhkar counter or its chain.
+    'tasbih.card.title': 'المسبحة',
+    'tasbih.title': 'المسبحة الإلكترونية',
+    'tasbih.back': 'رجوع إلى الرئيسية',
+    'tasbih.pick.title': 'اختر الذكر',
+    'tasbih.pick.category': 'القسم',
+    'tasbih.pick.dhikr': 'الذكر',
+    'tasbih.pick.none': 'اختر',
+    'tasbih.loading': 'جارٍ التحميل…',
+    'tasbih.unavailable': 'تعذّر تحميل الأذكار على هذا الجهاز.',
+    'tasbih.empty': 'اختر قسمًا ثمّ ذكرًا لتبدأ.',
+    'tasbih.counter.title': 'العدّ',
+    'tasbih.target': 'الهدف',
+    'tasbih.target.up': 'زدِ الهدف',
+    'tasbih.target.down': 'أنقصِ الهدف',
+    'tasbih.target.aria': 'عدد الهدف',
+    'tasbih.count': 'سبِّح',
+    'tasbih.count.aria': 'زيادة العدد',
+    'tasbih.progress': '{n} من {t}',
+    'tasbih.reached': 'بلغتَ الهدف',
+    'tasbih.reset': 'ابدأ من جديد',
+    'tasbih.log.open': 'سجلّ المسبحة',
+    'tasbih.log.title': 'سجلّ المسبحة',
+    'tasbih.log.back': 'رجوع إلى الرئيسية',
+    'tasbih.log.empty': 'لا أيام مسجَّلة بعد.',
   },
   en: {
     'common.close': 'Close',
@@ -1071,6 +1098,33 @@ const EZ_I18N = {
     'asmaa.groupedWith': 'Grouped with',
     'asmaa.page': 'Printed page {page}',
     'asmaa.credit': '{book} — {author} — pp. {pages}',
+    // ITEM 93 -- THE TASBIH. Every string this feature shows a reader is a key here, in both
+    // halves, and nothing it draws is a literal in JSX. The counter, the target and the log are
+    // its own; not one of these lines names the adhkar counter or its chain.
+    'tasbih.card.title': 'Tasbih',
+    'tasbih.title': 'Digital tasbih',
+    'tasbih.back': 'Back to home',
+    'tasbih.pick.title': 'Choose the dhikr',
+    'tasbih.pick.category': 'Section',
+    'tasbih.pick.dhikr': 'Dhikr',
+    'tasbih.pick.none': 'Choose',
+    'tasbih.loading': 'Loading…',
+    'tasbih.unavailable': 'The adhkar could not be loaded on this device.',
+    'tasbih.empty': 'Choose a section, then a dhikr, to begin.',
+    'tasbih.counter.title': 'The count',
+    'tasbih.target': 'Target',
+    'tasbih.target.up': 'Raise the target',
+    'tasbih.target.down': 'Lower the target',
+    'tasbih.target.aria': 'Target number',
+    'tasbih.count': 'Count',
+    'tasbih.count.aria': 'Increase the count',
+    'tasbih.progress': '{n} of {t}',
+    'tasbih.reached': 'Target reached',
+    'tasbih.reset': 'Start again',
+    'tasbih.log.open': 'Tasbih log',
+    'tasbih.log.title': 'Tasbih log',
+    'tasbih.log.back': 'Back to home',
+    'tasbih.log.empty': 'No days recorded yet.',
   },
 };
 
@@ -5401,6 +5455,53 @@ function EzistQuranPanel() {
   );
 }
 
+// ============================================================
+// ITEM 93 -- THE CARDS THAT SIT ABOVE THE SHELF, AND HOW MANY OF THEM THERE ARE
+// ============================================================
+// The wird stood here alone at width:100%. The owner has ruled it a ROW of equal-width cards with
+// the tasbih beside it, and the row is built to hold a VARIABLE number of them: the column count
+// is derived from this array's own length, so item 95's calculator card is one more row here and
+// not one line of layout anywhere else.
+//
+// «وِردي اليوم» KEEPS EVERYTHING BUT ITS WIDTH. Same handler, same title through the same
+// identifier, same section behind it -- only the card it is drawn in got narrower.
+//
+// A CARD MAY CARRY A BADGE: a second, smaller control in its own corner. That is why a cell is a
+// div holding two buttons rather than one button holding another -- a nested interactive element
+// is invalid HTML and is unreachable from a keyboard.
+function ezHomeDuoCards(v) {
+  return [
+    { id: 'wird', title: <span style={s.ezistCardTitle}>{DW_CARD_TITLE}</span>,
+      onOpen: () => v.onOpenWird(true), badge: null },
+    { id: 'tasbih', title: <span style={s.ezistCardTitle}>{ezT('tasbih.card.title')}</span>,
+      onOpen: () => v.onOpenTasbih(true),
+      badge: { glyph: TASBIH_LOG_GLYPH, label: ezT('tasbih.log.open'),
+        onPress: () => v.onOpenTasbihLog(true) } },
+  ];
+}
+
+// One descriptor per card, one element per descriptor, and the grid's columns read off the array
+// rather than off a number written into a style object.
+function EzikHomeCardRow({ cards }) {
+  const list = Array.isArray(cards) ? cards : [];
+  if (list.length === 0) return null;
+  return (
+    <div style={{ ...s.ezHomeCardRow, gridTemplateColumns: 'repeat(' + list.length + ', minmax(0, 1fr))' }}>
+      {list.map((c) => (
+        <div key={c.id} style={s.ezHomeCardCell}>
+          <button type="button" className="ezhome-focus" onClick={c.onOpen} style={s.ezHomeCardOpen}>
+            {c.title}
+          </button>
+          {c.badge ? (
+            <button type="button" className="ezhome-focus" onClick={c.badge.onPress}
+              aria-label={c.badge.label} style={s.ezHomeCardBadge}>{c.badge.glyph}</button>
+          ) : null}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function EzikIstanaHome(v) {
   const mods = v.modules || [];   // the owner's one array, mapped once, in its own order
   return (
@@ -5420,10 +5521,10 @@ function EzikIstanaHome(v) {
               A row, not a card: pressing it enters. It carries no className, so no rule for
               .ezist-quran can reach it -- the daily verse is still the one element with that
               class, and it is in the top bar. */}
-          <button type="button" className="ezhome-focus" onClick={() => v.onOpenWird(true)}
-            style={s.ezwidEnter}>
-            <span style={s.ezistCardTitle}>{DW_CARD_TITLE}</span>
-          </button>
+          {/* ITEM 93 -- AND IT IS A ROW OF CARDS NOW, NOT ONE CARD ACROSS THE SCREEN. The
+              descriptors are built by ezHomeDuoCards(v) above; this element draws however many
+              of them that array names, in equal columns. */}
+          <EzikHomeCardRow cards={ezHomeDuoCards(v)} />
           {/* S118: the daily verse is no longer the mosaic's last cell -- it is the top bar.
               The panel itself did not change: same component, same getDailyVerse(), same text
               printed verbatim. Only where it is drawn moved. */}
@@ -5595,6 +5696,294 @@ function EzikWirdSection({ v, onClose }) {
         {!items.length && !lines.length
           ? <div style={s.ezistCardSub}>{DW_CARD_EMPTY}</div>
           : null}
+      </EzShellGroup>
+    </EzShell>
+  );
+}
+
+
+// ============================================================
+// ITEM 93 -- THE TASBIH. ITS OWN COUNTER, ITS OWN TARGET, ITS OWN LOG.
+// ============================================================
+// 🔴 IT TOUCHES THE ADHKAR COUNTER NOWHERE. adhkar_daily_progress_v1 and ezik_adhkar_streak_v1
+// are not read, not written, not migrated and not named by any line below; bumpAdhkarCount,
+// markAdhkarDayMet and writeAdhkarGoal keep every byte of their behaviour and every one of their
+// call sites. This feature has TWO keys of its own and nothing else is storage to it.
+//
+// WHAT IT READS THAT IS NOT ITS OWN. The adhkar STORE -- the categories and the dhikr text out of
+// adhkar.json, through the loader that is already in this file. That is a read of devotional TEXT,
+// not of anybody's counter, and it is the same loader the adhkar screen uses, so there is no
+// second copy of that store and no second fetch: loadAdhkar() caches at module level and both
+// files it names (adhkar.json and adhkar-split-27.json) are in the service worker's CORE. A
+// reader with no network who has opened the app once gets this screen whole.
+//
+// IT IS A LAYER, NOT A SCREEN, for the reason EzikWirdSection above it is one: a new `screen`
+// value is a cross-file contract with the screen inventory, and a section opened over the home is
+// not a route. It registers its own history entry through useEzikBackLayer, so the device back
+// button closes IT.
+const TASBIH_SESSION_KEY = 'ezik_tasbih_session_v1';
+const TASBIH_LOG_KEY = 'ezik_tasbih_log_v1';
+// The target the reader sets. One is a real target and 999 is already more than any wird anybody
+// keeps in one sitting. A number outside the pair is refused on write and ignored on read, so a
+// hand-edited store cannot present a target the screen would then draw.
+const TASBIH_TARGET_MIN = 1;
+const TASBIH_TARGET_MAX = 999;
+const TASBIH_TARGET_DEFAULT = 33;
+// The log is a list of DAYS and nothing else -- no count, no dhikr, no time. It is capped so that
+// a device used every day for a lifetime cannot grow an unbounded record, and the cap drops the
+// OLDEST days, because a log that refuses to record today is a log that has stopped working.
+const TASBIH_LOG_MAX = 400;
+// Its own identifier shape, deliberately not the adhkar counter's: a category is a number in
+// adhkar.json and a NAME in the split file, and nothing here may smuggle a colon or a path into a
+// value the screen then presents.
+const TASBIH_CAT_RE = /^[A-Za-z0-9_]{1,40}$/;
+const TASBIH_DAY_RE = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+// The glyph on the log mark. A symbol, not a word: the button carries its accessible name from
+// the dictionary, in whichever language the reader chose.
+const TASBIH_LOG_GLYPH = '≡';
+// How long the device is asked to buzz when the target is reached. One short pulse, and the call
+// is GUARDED at its one site: navigator.vibrate does not exist on iOS Safari and is refused
+// without a user gesture elsewhere, so it is asked for and never assumed.
+const TASBIH_VIBRATE_MS = 120;
+
+// DEVICE-LOCAL day, not toISOString: the day a reader lives by is their own midnight. Its OWN
+// function, so the adhkar's day key keeps every byte of its behaviour whatever happens here.
+function tasbihDayKey(d) {
+  const t = d || new Date();
+  const y = t.getFullYear();
+  const m = t.getMonth() + 1;
+  const day = t.getDate();
+  return String(y) + '-' + (m < 10 ? '0' : '') + String(m) + '-' + (day < 10 ? '0' : '') + String(day);
+}
+
+// { cat, id, target, count }. Anything that is not a well-formed record reads as the DEFAULT
+// record -- a missing key, a throw, damaged JSON, an array, a target outside its pair, a count
+// that is not a whole number. A broken store is never an error message and never a wrong number.
+function readTasbihSession() {
+  const empty = { cat: '', id: 0, target: TASBIH_TARGET_DEFAULT, count: 0 };
+  let raw = null;
+  try { raw = localStorage.getItem(TASBIH_SESSION_KEY); } catch (e) { return empty; }
+  if (typeof raw !== 'string' || !raw) return empty;
+  let o = null;
+  try { o = JSON.parse(raw); } catch (e) { return empty; }
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return empty;
+  const cat = (typeof o.cat === 'string' && TASBIH_CAT_RE.test(o.cat)) ? o.cat : '';
+  const id = (Number.isInteger(o.id) && o.id > 0) ? o.id : 0;
+  const target = (Number.isInteger(o.target) && o.target >= TASBIH_TARGET_MIN && o.target <= TASBIH_TARGET_MAX)
+    ? o.target : TASBIH_TARGET_DEFAULT;
+  const count = (Number.isInteger(o.count) && o.count > 0) ? Math.min(o.count, target) : 0;
+  if (!cat || !id) return { cat: '', id: 0, target: target, count: 0 };
+  return { cat: cat, id: id, target: target, count: count };
+}
+// IT RETURNS WHAT IS NOW IN EFFECT, never what was asked for, so the caller always renders a value
+// the store would actually accept. localStorage only -- no request, no beacon, no background sync.
+function writeTasbihSession(next) {
+  const cur = readTasbihSession();
+  const merged = Object.assign({}, cur, next || {});
+  const rec = {
+    cat: (typeof merged.cat === 'string' && TASBIH_CAT_RE.test(merged.cat)) ? merged.cat : '',
+    id: (Number.isInteger(merged.id) && merged.id > 0) ? merged.id : 0,
+    target: (Number.isInteger(merged.target) && merged.target >= TASBIH_TARGET_MIN
+      && merged.target <= TASBIH_TARGET_MAX) ? merged.target : cur.target,
+    count: (Number.isInteger(merged.count) && merged.count > 0) ? merged.count : 0,
+  };
+  rec.count = Math.min(rec.count, rec.target);
+  try { localStorage.setItem(TASBIH_SESSION_KEY, JSON.stringify(rec)); } catch (e) { return readTasbihSession(); }
+  return readTasbihSession();
+}
+
+// { dates: ['YYYY-MM-DD', ...] }. A malformed day, a repeated day and anything that is not a
+// string are dropped on the way out, so a hand-edited store cannot produce a day the screen would
+// then present as a day this reader sat with the tasbih.
+function readTasbihLog() {
+  const empty = { dates: [] };
+  let raw = null;
+  try { raw = localStorage.getItem(TASBIH_LOG_KEY); } catch (e) { return empty; }
+  if (typeof raw !== 'string' || !raw) return empty;
+  let o = null;
+  try { o = JSON.parse(raw); } catch (e) { return empty; }
+  if (!o || typeof o !== 'object' || Array.isArray(o) || !Array.isArray(o.dates)) return empty;
+  const out = [];
+  for (const d of o.dates) {
+    if (typeof d !== 'string' || !TASBIH_DAY_RE.test(d)) continue;
+    if (out.indexOf(d) !== -1) continue;
+    out.push(d);
+    if (out.length >= TASBIH_LOG_MAX) break;
+  }
+  return { dates: out };
+}
+// THE ONLY WRITER OF THE LOG, and it writes AT MOST ONE DAY EVER. A day already recorded writes
+// nothing at all, so a reader who counts a thousand times today has one line for today, and a
+// re-entered screen cannot record a second.
+function markTasbihDay() {
+  const rec = readTasbihLog();
+  const today = tasbihDayKey();
+  if (rec.dates.indexOf(today) !== -1) return rec;
+  const dates = rec.dates.concat([today]);
+  while (dates.length > TASBIH_LOG_MAX) dates.shift();
+  try { localStorage.setItem(TASBIH_LOG_KEY, JSON.stringify({ dates: dates })); } catch (e) { return readTasbihLog(); }
+  return readTasbihLog();
+}
+
+// THE ORDER THE DHIKR LIST IS DRAWN IN: shortest first, by the length of the text the reader will
+// actually read. The tie is broken on the item's own id so the order is TOTAL -- two dhikr of the
+// same length cannot swap places between two renders of the same list.
+function tasbihSorted(items) {
+  return (Array.isArray(items) ? items.slice() : [])
+    .filter((d) => d && typeof d.text === 'string')
+    .sort((a, b) => (a.text.length - b.text.length) || (a.id - b.id));
+}
+
+// ONE SHORT PULSE, ASKED FOR AND NEVER ASSUMED. iOS Safari has no navigator.vibrate at all, and
+// the browsers that do have it refuse it outside a user gesture and throw on some arguments. So
+// the existence check is here, at the ONE call site, inside a try.
+function tasbihBuzz() {
+  try {
+    if (typeof navigator === 'undefined' || !navigator) return false;
+    if (typeof navigator.vibrate !== 'function') return false;
+    navigator.vibrate(TASBIH_VIBRATE_MS);
+    return true;
+  } catch (e) { return false; }
+}
+
+// 🔴 ONE HOOK, FIRST STATEMENT, NO RETURN ABOVE IT. Defect 123, the rule every component in this
+// file keeps.
+function EzikTasbihSection({ onClose }) {
+  useEzLang();
+  // null while the store is loading, false when it could not be read, the store when it is here.
+  const [db, setDb] = useState(null);
+  const [sess, setSess] = useState(readTasbihSession);
+  useEffect(() => {
+    let alive = true;
+    // THE SAME PAIR THE ADHKAR SCREEN LOADS, and the split one is allowed to fail: a reader on a
+    // deployment that does not carry it sees category 27 exactly as it ships rather than nothing.
+    Promise.all([
+      loadAdhkar(),
+      ADHKAR_GROUPS_ON ? loadAdhkarSplit().catch(() => null) : Promise.resolve(null),
+    ]).then(([d, sp]) => {
+      if (!alive) return;
+      if (!d) { setDb(false); return; }
+      setDb(sp ? applyAdhkarSplit(d, sp) : d);
+    }).catch(() => { if (alive) setDb(false); });
+    return () => { alive = false; };
+  }, []);
+  const cats = (db && db.categories) ? db.categories : [];
+  const items = (db && db.byCat && sess.cat) ? tasbihSorted(db.byCat[sess.cat]) : [];
+  const chosen = items.filter((d) => d.id === sess.id)[0] || null;
+  const full = !!chosen && sess.count >= sess.target;
+  // THE CATEGORY. Choosing one clears the dhikr and the count with it: a count carried across two
+  // different adhkar is a number that belongs to neither.
+  const pickCat = (raw) => {
+    const v = String(raw || '');
+    setSess(writeTasbihSession({ cat: TASBIH_CAT_RE.test(v) ? v : '', id: 0, count: 0 }));
+  };
+  const pickDhikr = (raw) => {
+    const n = parseInt(raw, 10);
+    setSess(writeTasbihSession({ id: Number.isFinite(n) && n > 0 ? n : 0, count: 0 }));
+  };
+  // THE TARGET. Raising or lowering it does NOT throw away what the reader has already counted --
+  // it is capped, which is what writeTasbihSession does to every record it writes.
+  const setTarget = (n) => {
+    if (!Number.isInteger(n) || n < TASBIH_TARGET_MIN || n > TASBIH_TARGET_MAX) return;
+    setSess(writeTasbihSession({ target: n, count: Math.min(sess.count, n) }));
+  };
+  // ONE PRESS IS ONE INCREMENT. It adds exactly 1 and refuses at the target, so a held finger, a
+  // double tap or a replayed click cannot carry the count past the number the reader set. The day
+  // is recorded on the FIRST increment and never again; the buzz is asked for only on the press
+  // that ARRIVES at the target, so a reader sitting on a finished counter is not buzzed again.
+  const countUp = () => {
+    if (!chosen || full) return;
+    markTasbihDay();
+    const next = Math.min(sess.count + 1, sess.target);
+    setSess(writeTasbihSession({ count: next }));
+    if (next >= sess.target) tasbihBuzz();
+  };
+  const startAgain = () => setSess(writeTasbihSession({ count: 0 }));
+  return (
+    <EzShell title={ezT('tasbih.title')} onBack={onClose} backLabel={ezT('tasbih.back')}>
+      <EzShellGroup title={ezT('tasbih.pick.title')}>
+        {db === null ? <div style={s.ezistCardSub}>{ezT('tasbih.loading')}</div> : null}
+        {db === false ? <div style={s.ezistCardSub}>{ezT('tasbih.unavailable')}</div> : null}
+        {db ? (
+          <div style={s.ezTasbihPickRow}>
+            <span style={s.ezistCardSub}>{ezT('tasbih.pick.category')}</span>
+            <select value={sess.cat} onChange={(e) => pickCat(e.target.value)}
+              aria-label={ezT('tasbih.pick.category')} style={s.memAyahSelect}>
+              <option value="">{ezT('tasbih.pick.none')}</option>
+              {cats.map((c) => (
+                <option key={String(c.id)} value={String(c.id)}>{c.title}</option>
+              ))}
+            </select>
+          </div>
+        ) : null}
+        {db && sess.cat ? (
+          <div style={s.ezTasbihPickRow}>
+            <span style={s.ezistCardSub}>{ezT('tasbih.pick.dhikr')}</span>
+            {/* SHORTEST FIRST. The list is ordered by the length of the text the reader reads,
+                which is what tasbihSorted does and the only ordering this screen has. */}
+            <select value={sess.id ? String(sess.id) : ''} onChange={(e) => pickDhikr(e.target.value)}
+              aria-label={ezT('tasbih.pick.dhikr')} style={s.memAyahSelect}>
+              <option value="">{ezT('tasbih.pick.none')}</option>
+              {items.map((d) => (
+                <option key={String(d.id)} value={String(d.id)}>{d.text}</option>
+              ))}
+            </select>
+          </div>
+        ) : null}
+      </EzShellGroup>
+      <EzShellGroup title={ezT('tasbih.counter.title')}>
+        {/* THE CHOSEN DHIKR, ABOVE THE COUNT BUTTON, VERBATIM. The text is printed exactly as
+            adhkar.json holds it -- nothing is trimmed, shortened or re-worded for the screen. */}
+        <div style={s.ezTasbihText}>{chosen ? chosen.text : ezT('tasbih.empty')}</div>
+        <div style={s.ezTasbihTargetRow}>
+          <span style={s.ezistCardSub}>{ezT('tasbih.target')}</span>
+          <button type="button" className="ezhome-focus" onClick={() => setTarget(sess.target - 1)}
+            disabled={sess.target <= TASBIH_TARGET_MIN}
+            aria-label={ezT('tasbih.target.down')} style={s.ezwidAct}>{DW_REMOVE_GLYPH}</button>
+          <input type="number" inputMode="numeric" min={TASBIH_TARGET_MIN} max={TASBIH_TARGET_MAX}
+            value={String(sess.target)} onChange={(e) => setTarget(parseInt(e.target.value, 10))}
+            aria-label={ezT('tasbih.target.aria')} style={s.ezTasbihTargetInput} />
+          <button type="button" className="ezhome-focus" onClick={() => setTarget(sess.target + 1)}
+            disabled={sess.target >= TASBIH_TARGET_MAX}
+            aria-label={ezT('tasbih.target.up')} style={s.ezwidAct}>{DW_ADD_GLYPH}</button>
+        </div>
+        <button type="button" className="ezhome-focus" onClick={countUp} disabled={!chosen}
+          aria-label={ezT('tasbih.count.aria')} aria-disabled={full ? 'true' : 'false'}
+          style={full ? { ...s.ezTasbihCount, ...s.ezTasbihCountDone } : s.ezTasbihCount}>
+          <span style={s.eziaCountNums}>
+            {ezT('tasbih.progress', { n: toArabicDigits(sess.count), t: toArabicDigits(sess.target) })}
+          </span>
+          <span style={s.eziaCountLabel}>{full ? ezT('tasbih.reached') : ezT('tasbih.count')}</span>
+        </button>
+        {/* THE VISIBLE ARRIVAL. A live region, so a reader who cannot see the colour change is
+            told the target was reached rather than left to notice a button that stopped. */}
+        <div style={s.ezTasbihNote} role="status" aria-live="polite">
+          {full ? ezT('tasbih.reached') : ''}
+        </div>
+        {sess.count > 0 ? (
+          <button type="button" className="ezhome-focus" onClick={startAgain}
+            style={s.ezwidAct}>{ezT('tasbih.reset')}</button>
+        ) : null}
+      </EzShellGroup>
+    </EzShell>
+  );
+}
+
+// THE LOG. DAYS AND NOTHING ELSE -- no count, no dhikr, no hour. It reads its key and writes
+// nothing at all: opening the log is not using the tasbih, and must not record a day.
+function EzikTasbihLog({ onClose }) {
+  useEzLang();
+  const rec = readTasbihLog();
+  const days = rec.dates.slice().sort().reverse();
+  return (
+    <EzShell title={ezT('tasbih.log.title')} onBack={onClose} backLabel={ezT('tasbih.log.back')}>
+      <EzShellGroup title={ezT('tasbih.log.title')}>
+        {days.length === 0 ? <div style={s.ezistCardSub}>{ezT('tasbih.log.empty')}</div> : null}
+        {days.map((d) => (
+          <div key={d} style={s.ezwidPanelRow}>
+            <span style={s.ezwidPanelName}>{toArabicDigits(d)}</span>
+          </div>
+        ))}
       </EzShellGroup>
     </EzShell>
   );
@@ -6238,6 +6627,13 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // open, so back walks picker unit -> picker section -> wird section -> home.
   const [wirdOpen, setWirdOpen] = useState(false);
   useEzikBackLayer(wirdOpen, () => setWirdOpen(false));
+  // ITEM 93: the tasbih section and its log, in the identical three shapes -- the state,
+  // useEzikBackLayer(open, close) and the ezikHistBack() toggle in each handler below. Each owns
+  // one real history entry while it is open, so the device back button closes IT.
+  const [tasbihOpen, setTasbihOpen] = useState(false);
+  useEzikBackLayer(tasbihOpen, () => setTasbihOpen(false));
+  const [tasbihLogOpen, setTasbihLogOpen] = useState(false);
+  useEzikBackLayer(tasbihLogOpen, () => setTasbihLogOpen(false));
   const wt = readWirdTarget();
   const wd = readWirdDay();
   const wird = (wt && wd && Array.isArray(wd.pages)) ? { done: Math.min(wd.pages.length, wt), target: wt } : null;
@@ -6261,6 +6657,10 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     onWirdPick: (next) => { if (!next && ezikHistBack()) return; setWirdPickOpen(next); },
     // ITEM 05-E2: the door on the home row, in the same shape as the picker's own toggle.
     onOpenWird: (next) => { if (!next && ezikHistBack()) return; setWirdOpen(next); },
+    // ITEM 93: the tasbih door on the card row, and the log mark in that card's own corner. Both
+    // are the same shape as the toggle above them, so all three spend history the same way.
+    onOpenTasbih: (next) => { if (!next && ezikHistBack()) return; setTasbihOpen(next); },
+    onOpenTasbihLog: (next) => { if (!next && ezikHistBack()) return; setTasbihLogOpen(next); },
     onWirdRemove: (k, id) => setWirdList(writeWirdList(wirdListRemove(wirdList.items, k, id))),
     // S118: onOpenChat is gone from this object because the home no longer holds a chat
     // control of its own. The chat is entered from the menu the bar opens, on the menu's own
@@ -6333,6 +6733,11 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // instead of on the home. Same door as the device button: the visible back spends the layer's
   // entry through ezikGoBack rather than dropping it.
   if (wirdOpen) return <EzikWirdSection v={view} onClose={ezikGoBack} />;
+  // ITEM 93. Same door as the device button, on the same terms as the section above: the visible
+  // back spends the layer's entry through ezikGoBack rather than dropping it. The log is tested
+  // FIRST so that its order is fixed rather than incidental.
+  if (tasbihLogOpen) return <EzikTasbihLog onClose={ezikGoBack} />;
+  if (tasbihOpen) return <EzikTasbihSection onClose={ezikGoBack} />;
   // ITEM 20. ONE component for both sections -- the section key and its title are all that
   // differs, and two components would be two places for the empty state, the failure state and
   // the writing door to drift apart. The back control presses ezikGoBack, so the visible button
@@ -13886,6 +14291,14 @@ function App() {
       // switch that writes it is on -- because a device that once carried the switch still
       // carries the key afterwards, and a sweep that asked about a URL parameter would miss it.
       localStorage.removeItem(ADHKAR_PLACE_KEY);
+      // ITEM 93 -- THE TASBIH'S TWO KEYS, on exactly the terms the line above goes on. The dhikr
+      // this reader chose with its target and its count, and the bare list of days this device
+      // sat with the tasbih, are a record of ONE reader and of nobody else, and "delete all my
+      // data" must not hand either to whoever sets this device up next. Two removals; no other
+      // reset behaviour moves, and delete.html is not edited for either -- their entries in
+      // tools/delete-truth-measure.cjs say in full what each one is and why it goes.
+      try { localStorage.removeItem(TASBIH_SESSION_KEY); } catch (e) {}
+      try { localStorage.removeItem(TASBIH_LOG_KEY); } catch (e) {}
       // ITEMS 43-ب / 47-ب -- THE REMINDER TIMES, ON EXACTLY THE TERMS THE POSITION ABOVE GOES ON.
       // The hours a reader chose to be interrupted at are a record of that reader and of nobody
       // else, and "delete all my data" must not hand them to whoever sets this device up next --
@@ -24369,6 +24782,21 @@ const s = {
   ezwidPanelRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', padding: '8px 0', borderBottom: '1px solid var(--a3-line)' },
   ezwidPanelName: { flex: '1 1 120px', minWidth: 0, fontSize: 14, fontWeight: 700, color: 'var(--a3-ink)' },
   ezwidPanelActs: { display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0 },
+  // ITEM 93 -- THE CARD ROW ABOVE THE SHELF. gridTemplateColumns is NOT written here: the caller
+  // sets it from the length of its own array, so adding a card edits no style.
+  ezHomeCardRow: { display: 'grid', gap: 12, width: '100%', boxSizing: 'border-box' },
+  ezHomeCardCell: { display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, width: '100%', boxSizing: 'border-box', padding: '10px 12px 12px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)' },
+  ezHomeCardOpen: { flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', minHeight: 44, padding: '6px', borderRadius: 12, background: 'transparent', border: 'none', color: 'var(--a3-ink)', cursor: 'pointer', textAlign: 'start', fontFamily: 'var(--ez-ui-font)' },
+  ezHomeCardBadge: { flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 44, minHeight: 44, padding: '0 8px', borderRadius: 12, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 16, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
+  // ITEM 93 -- THE TASBIH SCREEN. Every value is an existing token; this feature declares no
+  // colour of its own.
+  ezTasbihPickRow: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '8px 0' },
+  ezTasbihText: { fontSize: 17, fontWeight: 700, lineHeight: 2, color: 'var(--a3-ink)', padding: '10px 0', textAlign: 'center' },
+  ezTasbihTargetRow: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '8px 0' },
+  ezTasbihTargetInput: { width: 88, minHeight: 44, borderRadius: 12, border: '2px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)', fontSize: 15, fontWeight: 800, textAlign: 'center', padding: '0 8px' },
+  ezTasbihCount: { width: '100%', minHeight: 64, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, padding: '10px 12px', borderRadius: 16, background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
+  ezTasbihCountDone: { background: 'var(--a3-cyan)', color: 'var(--a3-navy)', cursor: 'default' },
+  ezTasbihNote: { minHeight: 20, fontSize: 13, fontWeight: 800, color: 'var(--a3-blue)', textAlign: 'center', padding: '6px 0' },
   ezwidAct: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 44, minHeight: 44, padding: '0 10px', borderRadius: 12, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
   ezwidActOff: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 44, minHeight: 44, padding: '0 10px', borderRadius: 12, background: 'transparent', border: '1px solid var(--a3-line)', color: 'var(--a3-muted)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
   ezwidReset: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, marginTop: 12, padding: '6px 16px', borderRadius: 999, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
