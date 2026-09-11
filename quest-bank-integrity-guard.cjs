@@ -935,7 +935,19 @@ const SEALED = {
   //                    LAST, after all of them, on a tree measured at CR = 0. CACHE is NOT
   //                    touched: the store name is a ship decision and the merge round owns
   //                    the bump, and nothing in this item is deployed.
-  'sw.js': 'db75e78a1613cd2b7886def5b2fad2286ac4983f635a6f3b686571694df1f10d',
+  //   item 96      -- THE DAILY GOLD PRICE IN THE CALCULATOR. CORE itself did not change -- no
+  //                    file entered it and none left -- but app.js IS in CORE, and the bundle
+  //                    grew with the new item 96 module, the karat picker, the two lines under
+  //                    the gold price field and fourteen dictionary keys: 1499541 -> 1512566
+  //                    (+13025) under an index.html that did not move at all. So CORE_BYTES
+  //                    followed 2485369 -> 2498394, re-cut from the disk by
+  //                    node tools/core-bytes.cjs --write and never by hand, and the byte table
+  //                    above that constant carries the same measurement. Both sw.js edits and
+  //                    the figure in the table at :2061 were made first; this digest was cut
+  //                    LAST, after all of them, on a tree measured at CR = 0. CACHE is NOT
+  //                    touched: the store name is a ship decision, the merge round owns the
+  //                    bump, and nothing in this item is deployed.
+  'sw.js': 'cf573dae2e61c1714afca915e1b33d3a2df76f6d274e2439f230c919d306a13a',
 };
 
 // ---------------------------------------------------------------------------
@@ -2058,7 +2070,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1499541, of: 'app.js' },
+      { n: 1512566, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

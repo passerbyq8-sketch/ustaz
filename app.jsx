@@ -755,6 +755,13 @@ const EZ_I18N = {
     'calc.ref.khilafFidyah': 'ج٣٢ ص٦٦، ص٦٧، ج٢٨ ص٧٩-٨٠',
     'calc.khilaf.fidyah': 'الخلافُ في أصلِ وجوبِ الفديةِ وفي مقدارِها معًا: الحنفيّةُ صاعٌ من تمرٍ أو شعيرٍ، أو نصفُ صاعٍ من بُرٍّ؛ والحنابلةُ مُدٌّ من بُرٍّ، أو نصفُ صاعٍ من تمرٍ أو شعير.',
     'calc.khilaf.feed': 'لكلِّ مسكينٍ: مُدٌّ واحدٌ عندَ الجمهورِ (المالكيّةِ والشافعيّةِ والحنابلة)، ومُدّانِ — أي نصفُ صاعٍ — عندَ الحنفيّة. وهذه الحاسبةُ تأخذُ بقولِ الجمهورِ في كلِّ موضعِ إطعام.',
+    'calc.gold.source': 'المصدر: وزارة التجارة والصناعة — آخر تحديث: {date}',
+    'calc.gold.failed': 'تعذّر جلب سعر الذهب اليوم — اكتب السعر بيدك',
+    'calc.gold.karat': 'العيار',
+    'calc.gold.karat24': 'عيار 24',
+    'calc.gold.karat22': 'عيار 22',
+    'calc.gold.karat21': 'عيار 21',
+    'calc.gold.karat18': 'عيار 18',
   },
   en: {
     'common.close': 'Close',
@@ -1308,6 +1315,13 @@ const EZ_I18N = {
     'calc.ref.khilafFidyah': 'vol 32 p66, p67, vol 28 p79-80',
     'calc.khilaf.fidyah': 'There is disagreement in both the basis of the obligation to pay fidyah at all and in its amount: Hanafi — a sa’ of dates or barley, or half a sa’ of wheat; Hanbali — a mudd of wheat, or half a sa’ of dates or barley.',
     'calc.khilaf.feed': 'For each poor person: one mudd on the majority view (Maliki, Shafi’i, Hanbali), and two mudds — half a sa’ — on the Hanafi view. This calculator takes the majority figure everywhere feeding is calculated.',
+    'calc.gold.source': 'Source: Ministry of Commerce and Industry — last updated: {date}',
+    'calc.gold.failed': 'Could not fetch the gold price for today — type it in yourself',
+    'calc.gold.karat': 'Karat',
+    'calc.gold.karat24': 'Karat 24',
+    'calc.gold.karat22': 'Karat 22',
+    'calc.gold.karat21': 'Karat 21',
+    'calc.gold.karat18': 'Karat 18',
   },
 };
 
@@ -6279,6 +6293,195 @@ function EzikTasbihLog({ onClose }) {
 }
 
 // ============================================================
+// ITEM 96 -- THE DAY'S GOLD PRICE, AND THE ONE ROUND TRIP IT COSTS
+// ============================================================
+// WHAT THIS IS. The gold-price field of the item 95 calculator is filled in, once a day, from
+// the Kuwait Ministry of Commerce and Industry. Everything that reaches the network lives HERE,
+// above the calculator block and outside it, and that separation is the point rather than a
+// tidiness: the calculator below still asks nobody anything, still declares no storage key of
+// its own, and still computes with zero network. What it gains is a PROP -- four strings and a
+// date the ministry printed -- handed to it by the owner that opens it.
+//
+// ONE ROUND TRIP PER CALENDAR DAY OF THE DEVICE, AND NEVER ONE PER OPEN. The stored entry
+// carries the day it was made on. Opening the calculator again on that same day reads the entry
+// and calls nothing at all; opening it on a later day is the one moment a request is made.
+//
+// A FAILED DAY IS STILL A DAY, AND IS STILL RECORDED. When the call does not succeed the entry
+// is written anyway, with an EMPTY prices object -- so a ministry that is down does not turn
+// "once a day" into "every time the reader opens the screen". What the reader sees on such a day
+// is an empty field and a line saying the price could not be fetched. What they never see is
+// yesterday's price: a price that is not today's is not shown, is not prefilled, and is not
+// carried forward under any circumstance. An empty field costs a reader thirty seconds; a stale
+// price costs them a wrong zakat.
+//
+// THE PRICE IS A STRING FROM END TO END. It leaves the ministry as printed text, is validated as
+// text by api/gold-price.js, is stored as text, and is put into the input field as text -- where
+// the calculator's own ezcParse turns it into an exact fraction, exactly as it turns a price the
+// reader typed. There is no Number(), no parseFloat and no floating point anywhere on that path.
+const EZC_GOLD_PRICE_KEY = 'ezik_gold_price_v1';
+// The endpoint, which is same-origin. THE BROWSER MAY NOT CALL THE MINISTRY DIRECTLY: that
+// origin sends no cross-origin header, so a fetch from the page is refused before it is read.
+const EZC_GOLD_ENDPOINT = '/api/gold-price';
+// THE FOUR KARATS, NAMED ONCE. The picker draws from this array and the completeness check reads
+// the same one, so there is no second list of karats anywhere in this feature.
+const EZC_GOLD_KARATS = [
+  { k: '24', name: 'calc.gold.karat24' },
+  { k: '22', name: 'calc.gold.karat22' },
+  { k: '21', name: 'calc.gold.karat21' },
+  { k: '18', name: 'calc.gold.karat18' },
+];
+// Every open starts here. The choice is deliberately NOT stored: it is a reading of one screen,
+// not a preference, and a reader who weighed 21-karat jewellery last month is not thereby
+// declaring that the next thing they weigh is 21-karat too.
+const EZC_GOLD_KARAT_DEFAULT = '24';
+
+// THE DEVICE'S OWN CALENDAR DAY, in its own timezone, because "once a day" is a promise about
+// the reader's day and not about UTC's. It is not a date the reader is ever shown -- the line
+// under the field prints the MINISTRY's date and nothing else -- so no dictionary, no numerals
+// and no formatting decision is involved.
+function ezcGoldDay() {
+  const d = new Date();
+  const two = (n) => (n < 10 ? '0' + String(n) : String(n));
+  return String(d.getFullYear()) + '-' + two(d.getMonth() + 1) + '-' + two(d.getDate());
+}
+// A PRICE SET IS COMPLETE OR IT IS NOTHING. Four strings, all present, none empty. A half-filled
+// object is refused here for the same reason api/gold-price.js refuses to build one: three
+// karats and a blank is a screen that works until the reader picks the fourth.
+function ezcGoldComplete(prices) {
+  if (!prices || typeof prices !== 'object') return false;
+  for (const r of EZC_GOLD_KARATS) {
+    if (typeof prices[r.k] !== 'string' || prices[r.k] === '') return false;
+  }
+  return true;
+}
+// THE ONLY READER of the key. A store that is locked, a value that is not JSON and a record that
+// is not shaped like one all come back null, which is the same thing as "no entry for today".
+function ezcGoldRead() {
+  try {
+    const raw = localStorage.getItem(EZC_GOLD_PRICE_KEY);
+    if (!raw) return null;
+    const v = JSON.parse(raw);
+    if (!v || typeof v.day !== 'string' || v.day === '') return null;
+    return {
+      day: v.day,
+      prices: (v.prices && typeof v.prices === 'object') ? v.prices : {},
+      updated_text: typeof v.updated_text === 'string' ? v.updated_text : '',
+    };
+  } catch (e) { return null; }
+}
+// THE ONLY WRITER of the key, and it writes the whole record every time.
+function ezcGoldWrite(entry) {
+  try { localStorage.setItem(EZC_GOLD_PRICE_KEY, JSON.stringify(entry)); } catch (e) {}
+}
+// THE ONE PLACE THAT DECIDES WHETHER AN OPEN COSTS A ROUND TRIP, written as a function of the
+// two things it depends on so that it can be measured without a browser.
+function ezcGoldNeedsCall(stored, day) {
+  return !(stored && stored.day === day);
+}
+
+// THE HOOK. It is called by the OWNER of the calculator layer -- not by the calculator -- so the
+// request belongs to opening the screen rather than to rendering it, and so the calculator block
+// below stays a thing that asks nobody anything.
+//
+// FOUR STATES AND NO FIFTH. 'idle' before an open, 'pending' while the call is out, 'ok' with
+// four prices and the ministry's own date line, 'fail' with neither. 'pending' draws NO line at
+// all: a failure line shown for the half second before the answer arrives would be a false
+// sentence, and one the reader would act on by typing a price they did not need to type.
+function useEzikGoldPrice(open) {
+  const [gold, setGold] = useState({ state: 'idle', prices: null, updatedText: '' });
+  useEffect(() => {
+    if (!open) return undefined;
+    const day = ezcGoldDay();
+    const stored = ezcGoldRead();
+    // TODAY'S ENTRY ANSWERS THE OPEN BY ITSELF -- complete, so the prices show; incomplete, so
+    // the failure line shows. Either way not one byte goes on the wire.
+    if (!ezcGoldNeedsCall(stored, day)) {
+      setGold(ezcGoldComplete(stored.prices)
+        ? { state: 'ok', prices: stored.prices, updatedText: stored.updated_text }
+        : { state: 'fail', prices: null, updatedText: '' });
+      return undefined;
+    }
+    let live = true;
+    setGold({ state: 'pending', prices: null, updatedText: '' });
+    // THE ENTRY IS WRITTEN WHETHER OR NOT THE SCREEN IS STILL OPEN, and the state is set only if
+    // it is: a reader who opens the calculator and leaves immediately has still spent the day's
+    // one call, and the day must be recorded so it is not spent again.
+    const settle = (entry) => {
+      ezcGoldWrite(entry);
+      if (!live) return;
+      setGold(ezcGoldComplete(entry.prices)
+        ? { state: 'ok', prices: entry.prices, updatedText: entry.updated_text }
+        : { state: 'fail', prices: null, updatedText: '' });
+    };
+    const failed = { day: day, prices: {}, updated_text: '' };
+    fetch(EZC_GOLD_ENDPOINT, { method: 'GET', headers: { Accept: 'application/json' } })
+      .then((r) => (r && r.ok ? r.json() : null))
+      .then((body) => {
+        // EVERY CLAUSE OF THE CONTRACT IS CHECKED HERE, not assumed: ok true, four price
+        // strings, and a date line with something in it. An answer that satisfies all three is
+        // the only one that becomes a price on the screen.
+        if (body && body.ok === true && ezcGoldComplete(body.prices)
+          && typeof body.updated_text === 'string' && body.updated_text !== '') {
+          const kept = {};
+          for (const r of EZC_GOLD_KARATS) kept[r.k] = body.prices[r.k];
+          settle({ day: day, prices: kept, updated_text: body.updated_text });
+          return;
+        }
+        settle(failed);
+      })
+      .catch(() => settle(failed));
+    return () => { live = false; };
+  }, [open]);
+  return gold;
+}
+
+// THE ONE LINE UNDER THE FIELD, and the only component that draws either sentence. It reuses
+// ezCalcSrc -- the same muted-on-surface pairing every book-and-page line in the calculator is
+// drawn with, already measured for contrast -- because this line is the same KIND of thing: a
+// statement of where a number on the screen came from.
+//
+// THE DATE IS THE MINISTRY'S, PRINTED AS THE MINISTRY PRINTED IT. It is never reformatted, never
+// converted to the interface's numerals and never replaced by today's date. The word "today"
+// does not appear in either sentence in either language, and it must not: the ministry updates
+// when it updates, and a line claiming otherwise would be this app speaking for them.
+function EzikGoldLine({ gold }) {
+  const g = gold || { state: 'idle', prices: null, updatedText: '' };
+  if (g.state === 'ok') {
+    return (
+      <div style={s.ezCalcSrc} data-ezik-gold-line="source">
+        {ezT('calc.gold.source', { date: g.updatedText })}
+      </div>
+    );
+  }
+  if (g.state === 'fail') {
+    return <div style={s.ezCalcSrc} data-ezik-gold-line="failure">{ezT('calc.gold.failed')}</div>;
+  }
+  // 'idle' and 'pending' draw nothing at all.
+  return null;
+}
+
+// THE KARAT PICKER. It is rendered only where there is something to pick FROM -- a day whose
+// prices arrived -- for the same reason the item 95 calculator renders no feeding panel under
+// the expiation that has no feeding option: a control that cannot do anything is a claim the
+// screen cannot keep. It reuses the mode-button pairing the feeding panel already uses.
+function EzikGoldKarat({ value, onPick }) {
+  return (
+    <div style={s.ezCalcField}>
+      <span style={s.ezCalcFieldLabel}>{ezT('calc.gold.karat')}</span>
+      <div style={s.ezCalcModes} role="group" aria-label={ezT('calc.gold.karat')}>
+        {EZC_GOLD_KARATS.map((r) => (
+          <button key={r.k} type="button" className="ezhome-focus" data-ezik-gold-karat={r.k}
+            onClick={() => onPick(r.k)} aria-pressed={value === r.k ? 'true' : 'false'}
+            style={value === r.k ? { ...s.ezCalcMode, ...s.ezCalcModeOn } : s.ezCalcMode}>
+            {ezT(r.name)}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
 // ITEM 95 -- THE SHARIAH CALCULATOR. NINE CALCULATORS, EXACT ARITHMETIC, ZERO BRAIN.
 // ============================================================
 // 🔴 IT ASKS NOBODY ANYTHING. There is no api/ask.js call on this path, no lib/ answer path, no
@@ -6574,7 +6777,7 @@ function EzikCalcFeeding({ units, mudds, kind, mode, onMode, price, onPrice, cur
 
 // 🔴 ONE HOOK, FIRST STATEMENT, NO RETURN ABOVE IT. Defect 123, the rule every component in this
 // file keeps.
-function EzikCalcSection({ onClose }) {
+function EzikCalcSection({ onClose, gold }) {
   useEzLang();
   const [which, setWhich] = useState('a1');
   // EVERY FIELD IN ONE RECORD, and 'silver' appears in it ONCE. A1 uses it as the nisab yardstick,
@@ -6584,9 +6787,34 @@ function EzikCalcSection({ onClose }) {
     cur: 'KWD', cash: '', silver: '', goldW: '', goldP: '', silverW: '', trade: '', mudd: '', days: '',
   });
   const [feedMode, setFeedMode] = useState('measure');
+  // ITEM 96 -- THE KARAT, AND WHETHER THE PRICE FIELD IS THE READER'S OWN.
+  // The karat is state and is NOT stored: every open starts at 24. `goldTyped` is the whole of
+  // the "never overwrite what they typed" rule -- it goes true on the first keystroke in the
+  // price field and nothing but an explicit karat press turns it off again.
+  const [karat, setKarat] = useState(EZC_GOLD_KARAT_DEFAULT);
+  const [goldTyped, setGoldTyped] = useState(false);
+  // THE DAY'S PRICES, OR NOTHING AT ALL. The prop is absent wherever this component is mounted
+  // without an owner to fetch for it, and absent means idle: no line, no prefill, no picker.
+  const g = gold || { state: 'idle', prices: null, updatedText: '' };
   const set = (k) => (v) => setF((o) => Object.assign({}, o, { [k]: v }));
   const cur = String(f.cur).trim();
   const row = EZC_LIST.filter((r) => r.id === which)[0] || EZC_LIST[0];
+  // ITEM 96 -- THE PREFILL, AND THE TWO THINGS IT WILL NOT DO. It will not run while the field
+  // holds something the reader typed, and it will not put anything there on a day whose prices
+  // did not arrive -- `g.state` is 'ok' only when four prices and a ministry date are in hand.
+  // Pressing a karat is an explicit act and DOES refill: the press clears `goldTyped`, which is
+  // what lets this effect write over a typed value in that one case and in no other.
+  useEffect(() => {
+    if (goldTyped || g.state !== 'ok' || !g.prices) return;
+    const p = g.prices[karat];
+    if (typeof p !== 'string' || p === '') return;
+    setF((o) => (o.goldP === p ? o : Object.assign({}, o, { goldP: p })));
+  }, [g.state, g.prices, karat, goldTyped]);
+  const pickKarat = (k) => { setKarat(k); setGoldTyped(false); };
+  // THE PRICE FIELD'S OWN HANDLER, and the only place `goldTyped` is raised. It is the shipped
+  // `set('goldP')` with one flag beside it, so what reaches the state is the digit string the
+  // reader typed, untouched.
+  const onGoldPrice = (v) => { setGoldTyped(true); set('goldP')(v); };
   const isZakat = row.group === 'zakat';
   const money = (k, label) => <EzikCalcField name={k} label={ezT(label)} unit={cur} value={f[k]} onChange={set(k)} />;
   const bare = (k, label) => <EzikCalcField name={k} label={ezT(label)} value={f[k]} onChange={set(k)} />;
@@ -6643,7 +6871,10 @@ function EzikCalcSection({ onClose }) {
     return (
       <>
         {bare('goldW', 'calc.field.goldWeight')}
-        {money('goldP', 'calc.field.goldPrice')}
+        {g.state === 'ok' ? <EzikGoldKarat value={karat} onPick={pickKarat} /> : null}
+        <EzikCalcField name="goldP" label={ezT('calc.field.goldPrice')} unit={cur}
+          value={f.goldP} onChange={onGoldPrice} />
+        <EzikGoldLine gold={g} />
         <EzikCalcOut id="nisab" label={ezT('calc.nisab')}
           value={ezcNum(ezcWeightText(EZC_GOLD_NISAB_G)) + ' ' + ezT('calc.gram')}>
           <EzikCalcGoldNisabWork />
@@ -7460,6 +7691,11 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // one real history entry while it is open, so the device back button closes IT.
   const [calcOpen, setCalcOpen] = useState(false);
   useEzikBackLayer(calcOpen, () => setCalcOpen(false));
+  // ITEM 96: the day's gold price, fetched HERE rather than inside the calculator, on the same
+  // discipline the wird and the hijri date below are read on -- the owner reads, the layer is
+  // handed the result. It fires on the open, at most once per calendar day of the device, and
+  // is the only network call this whole feature makes.
+  const calcGold = useEzikGoldPrice(calcOpen);
   const wt = readWirdTarget();
   const wd = readWirdDay();
   const wird = (wt && wd && Array.isArray(wd.pages)) ? { done: Math.min(wd.pages.length, wt), target: wt } : null;
@@ -7569,7 +7805,7 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   if (tasbihOpen) return <EzikTasbihSection onClose={ezikGoBack} onOpenLog={() => view.onOpenTasbihLog(true)} />;
   // ITEM 95. Same door as the device button, on the same terms as the two layers above: the
   // visible back spends the layer's entry through ezikGoBack rather than dropping it.
-  if (calcOpen) return <EzikCalcSection onClose={ezikGoBack} />;
+  if (calcOpen) return <EzikCalcSection onClose={ezikGoBack} gold={calcGold} />;
   // ITEM 20. ONE component for both sections -- the section key and its title are all that
   // differs, and two components would be two places for the empty state, the failure state and
   // the writing door to drift apart. The back control presses ezikGoBack, so the visible button
@@ -15131,6 +15367,13 @@ function App() {
       // tools/delete-truth-measure.cjs say in full what each one is and why it goes.
       try { localStorage.removeItem(TASBIH_SESSION_KEY); } catch (e) {}
       try { localStorage.removeItem(TASBIH_LOG_KEY); } catch (e) {}
+      // ITEM 96 -- THE DAY'S GOLD PRICE, on exactly the terms the two keys above go on. It holds
+      // a calendar day, four prices a government published and the date line that came with
+      // them, so it is not a record of the reader in the way a tasbih count is -- and it goes
+      // anyway, on the owner's standing rule that every device key this app writes is erased by
+      // "delete all my data". It is entered in tools/delete-truth-measure.cjs in this same
+      // commit, which is the roster that holds this line to account.
+      try { localStorage.removeItem(EZC_GOLD_PRICE_KEY); } catch (e) {}
       // ITEMS 43-ب / 47-ب -- THE REMINDER TIMES, ON EXACTLY THE TERMS THE POSITION ABOVE GOES ON.
       // The hours a reader chose to be interrupted at are a record of that reader and of nobody
       // else, and "delete all my data" must not hand them to whoever sets this device up next --
