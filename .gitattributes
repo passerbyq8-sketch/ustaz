@@ -701,3 +701,11 @@ fonts/OFL.txt            -text
 # The notice beside them, pinned for the reason every other guard-read file on this list is: a
 # CR injected by a clone would move byte counts the notice states.
 fonts/FONTS-NOTICE.md    text eol=lf
+
+# ITEM 96 -- the saved slice of the Kuwait Ministry of Commerce gold-price page. THESE ARE NOT
+# OUR BYTES: it is what that server actually served on 2026-09-12, kept so that the parser in
+# api/gold-price.js is measured against the real page rather than against an imitation of it. It
+# is marked -text for the same reason data/transfer-fixtures/*.html is: a clone with
+# core.autocrlf=true rewriting the line endings would turn one server's bytes into another
+# machine's.
+tools/fixtures/*.html -text

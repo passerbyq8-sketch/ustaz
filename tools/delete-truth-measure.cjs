@@ -389,6 +389,19 @@ const MUST_GO_ALREADY = [
   // device key is wiped by "delete all my data".
   { c: 'TASBIH_SESSION_KEY' },
   { c: 'TASBIH_LOG_KEY' },
+  // ITEM 96 -- THE DAY'S GOLD PRICE. It is entered HERE, beside the tasbih pair and on their
+  // reasoning: delete.html names it in neither language, so a MUST_GO_NEW entry would have had
+  // to cite a clause that does not exist, and what makes an entry lawful in this list is that
+  // the button erases the key and is asserted to keep erasing it.
+  //
+  // AND IT IS THE WEAKEST CASE ON THIS LIST, WHICH IS WHY IT IS ARGUED RATHER THAN ASSUMED. What
+  // it holds is a calendar day, four prices a government published that morning, and the date
+  // line the ministry printed beside them. None of that is a record of the reader: the same four
+  // numbers sat on every device in the country that day. It goes anyway, on the owner's standing
+  // rule of 2026-09-10 that every device key this app writes is wiped by "delete all my data" --
+  // and on one thing that IS about the reader: the key's presence says this device opened the
+  // zakat calculator on that day, and a device handed on to somebody else should not say so.
+  { c: 'EZC_GOLD_PRICE_KEY' },
 ];
 
 // What delete.html:94 and :138 promise and the code did not keep of its own accord. Each is
