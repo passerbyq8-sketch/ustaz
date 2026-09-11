@@ -642,6 +642,9 @@ const EZ_I18N = {
     'tasbih.back': 'رجوع إلى الرئيسية',
     'tasbih.pick.title': 'اختر الذكر',
     'tasbih.pick.dhikr': 'الذكر',
+    'tasbih.picker.open': 'افتحْ قائمةَ الأذكار',
+    'tasbih.picker.close': 'أغلقْ قائمةَ الأذكار',
+    'tasbih.picked': 'مختارٌ: {n}',
     'tasbih.none': 'بلا ذكر',
     'tasbih.counter.title': 'العدّ',
     'tasbih.target': 'الهدف',
@@ -1105,6 +1108,9 @@ const EZ_I18N = {
     'tasbih.back': 'Back to home',
     'tasbih.pick.title': 'Choose the dhikr',
     'tasbih.pick.dhikr': 'Dhikr',
+    'tasbih.picker.open': 'Open the dhikr list',
+    'tasbih.picker.close': 'Close the dhikr list',
+    'tasbih.picked': '{n} selected',
     'tasbih.none': 'No dhikr',
     'tasbih.counter.title': 'The count',
     'tasbih.target': 'Target',
@@ -5782,6 +5788,15 @@ const TASBIH_DAY_RE = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
 // the three bars that stood on the card. Three paths: the ring with its opening, the arrowhead
 // that turns back into it, and the two hands. Decorative and bounded; the button it sits in
 // carries the accessible name, out of the dictionary, in whichever language the reader chose.
+// R3 -- THE AFFORDANCE ON THE CLOSED PICKER. It points down when the panel is shut and is turned
+// by the caller when it is open, so one glyph says both things and there is no second path to keep
+// in step with the first.
+const TASBIH_ICON_CHEVRON = (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <path d="M6 9l6 6 6-6" />
+  </svg>
+);
 const TASBIH_ICON_HISTORY = (
   <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
     strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
@@ -5903,8 +5918,20 @@ function EzikTasbihSection({ onClose, onOpenLog }) {
   const [target, setTarget] = useState(TASBIH_TARGET_DEFAULT);
   // The press. Movement only -- it changes no count and reads no store.
   const [pressed, setPressed] = useState(false);
+  // R3 -- THE PICKER IS COLLAPSED ON EVERY MOUNT. The owner tried the open list and ruled it wrong
+  // to look at, so the sixteen rows live behind one compact control now. This is presentation and
+  // NOTHING ELSE: the selection, the none default, the multi-select and the store are the same
+  // ones r2 built, and the panel's state is not written anywhere -- a screen re-entered opens shut.
+  const [pickerOpen, setPickerOpen] = useState(false);
   const chosen = TASBIH_DHIKR.filter((d) => ids.indexOf(d.id) !== -1);
   const none = ids.length === 0;
+  // R3 -- WHAT THE CLOSED CONTROL SAYS, and it is a READING of the selection rather than a fourth
+  // thing kept beside it: nothing selected is the none label, one is that dhikr's own words
+  // (truncated by the style, never by cutting the text), and several is how many. A reader who
+  // shuts the panel still knows what the counter is counting.
+  const pickSummary = none ? ezT('tasbih.none')
+    : chosen.length === 1 ? chosen[0].text
+      : ezT('tasbih.picked', { n: toArabicDigits(chosen.length) });
   const full = targetOpen && count >= target;
   const pct = targetOpen && target > 0 ? Math.min(100, Math.round((count / target) * 100)) : 0;
   // ONE TICK, ONE DHIKR. The writer normalises, so what is set is always a selection this screen
@@ -5949,24 +5976,39 @@ function EzikTasbihSection({ onClose, onOpenLog }) {
           aria-label={ezT('tasbih.log.open')} style={s.ezTasbihLogBtn}>{TASBIH_ICON_HISTORY}</button>
       )}>
       <EzShellGroup title={ezT('tasbih.pick.title')}>
-        {/* R2 -- CHECKBOXES, NOT A DROPDOWN. One row per dhikr, all fifteen, and the reader may
-            tick one, several or all of them. The none row is FIRST and is ticked whenever nothing
-            else is: it is a reading of the selection, not a fourth state kept beside it. */}
-        <div role="group" aria-label={ezT('tasbih.pick.dhikr')} style={s.ezTasbihList}>
-          <label style={none ? { ...s.ezTasbihRow, ...s.ezTasbihRowOn } : s.ezTasbihRow}>
-            <input type="checkbox" checked={none} onChange={clearAll} style={s.ezTasbihBox} />
-            <span style={s.ezTasbihRowText}>{ezT('tasbih.none')}</span>
-          </label>
-          {TASBIH_DHIKR.map((d) => {
-            const on = ids.indexOf(d.id) !== -1;
-            return (
-              <label key={String(d.id)} style={on ? { ...s.ezTasbihRow, ...s.ezTasbihRowOn } : s.ezTasbihRow}>
-                <input type="checkbox" checked={on} onChange={() => toggle(d.id)} style={s.ezTasbihBox} />
-                <span style={s.ezTasbihRowText}>{d.text}</span>
-              </label>
-            );
-          })}
-        </div>
+        {/* R3 -- ONE COMPACT CONTROL, AND THE SIXTEEN ROWS BEHIND IT.
+            It is NOT a <select>: a native one cannot hold a checkbox, and the multi-select with
+            its none row had to survive this change untouched. So it is a button that owns an
+            expanded panel -- the pattern the app's own arrange panel already uses -- and the rows
+            inside it are the rows r2 shipped, line for line.
+            TICKING DOES NOT CLOSE IT. Nothing in a row's handler touches pickerOpen, so several
+            can be ticked in one go; only the toggle shuts the panel. */}
+        <button type="button" className="ezhome-focus" onClick={() => setPickerOpen(!pickerOpen)}
+          aria-expanded={pickerOpen ? 'true' : 'false'}
+          aria-label={pickerOpen ? ezT('tasbih.picker.close') : ezT('tasbih.picker.open')}
+          style={pickerOpen ? { ...s.ezTasbihPick, ...s.ezTasbihPickOn } : s.ezTasbihPick}>
+          <span style={s.ezTasbihPickText}>{pickSummary}</span>
+          <span style={pickerOpen ? { ...s.ezTasbihPickMark, ...s.ezTasbihPickMarkOn } : s.ezTasbihPickMark}>
+            {TASBIH_ICON_CHEVRON}
+          </span>
+        </button>
+        {pickerOpen ? (
+          <div role="group" aria-label={ezT('tasbih.pick.dhikr')} style={s.ezTasbihList}>
+            <label style={none ? { ...s.ezTasbihRow, ...s.ezTasbihRowOn } : s.ezTasbihRow}>
+              <input type="checkbox" checked={none} onChange={clearAll} style={s.ezTasbihBox} />
+              <span style={s.ezTasbihRowText}>{ezT('tasbih.none')}</span>
+            </label>
+            {TASBIH_DHIKR.map((d) => {
+              const on = ids.indexOf(d.id) !== -1;
+              return (
+                <label key={String(d.id)} style={on ? { ...s.ezTasbihRow, ...s.ezTasbihRowOn } : s.ezTasbihRow}>
+                  <input type="checkbox" checked={on} onChange={() => toggle(d.id)} style={s.ezTasbihBox} />
+                  <span style={s.ezTasbihRowText}>{d.text}</span>
+                </label>
+              );
+            })}
+          </div>
+        ) : null}
       </EzShellGroup>
       <EzShellGroup title={ezT('tasbih.counter.title')}>
         {/* EVERY CHOSEN TEXT, STACKED ABOVE THE DIAL, VERBATIM -- and in the none state NOTHING is
@@ -24866,6 +24908,16 @@ const s = {
   ezTasbihDialDone: { backgroundImage: 'radial-gradient(circle at 50% 28%, var(--a3-ice) 0%, var(--a3-cyan) 62%, var(--a3-blue) 100%)', color: 'var(--a3-navy)', cursor: 'default' },
   // R2 -- THE CHECKBOX LIST, THE STACKED SELECTION, AND THE CORNER MARK. The dial above is
   // untouched. Every colour is an existing --a3-* token.
+  // R3 -- THE CLOSED PICKER. Its background and ink are ezTasbihRow's, deliberately: that pairing
+  // is already measured by gate themecoverage on every theme, and a control that invents a surface
+  // colour is exactly what went wrong last round.
+  ezTasbihPick: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, width: '100%', minHeight: 48, padding: '8px 12px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', cursor: 'pointer', boxSizing: 'border-box', fontFamily: 'var(--ez-ui-font)', textAlign: 'start' },
+  ezTasbihPickOn: { border: '1px solid var(--a3-cyan)' },
+  // ONE LINE, AND A LONG DHIKR IS TRUNCATED BY THE STYLE RATHER THAN BY CUTTING THE TEXT -- what
+  // is stored and what is counted are never what the summary had room to draw.
+  ezTasbihPickText: { flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 14.5, fontWeight: 700 },
+  ezTasbihPickMark: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'transform 140ms ease' },
+  ezTasbihPickMarkOn: { transform: 'rotate(180deg)' },
   ezTasbihList: { display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 'min(46vh, 360px)', overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '4px 0' },
   ezTasbihRow: { display: 'flex', alignItems: 'center', gap: 10, minHeight: 44, padding: '6px 10px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', cursor: 'pointer', boxSizing: 'border-box' },
   // THE INK IS --a3-blue AND NOT --a3-navy, and that is a repair rather than a taste. navy on ice
