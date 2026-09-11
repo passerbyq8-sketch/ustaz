@@ -641,17 +641,17 @@ const EZ_I18N = {
     'tasbih.title': 'المسبحة الإلكترونية',
     'tasbih.back': 'رجوع إلى الرئيسية',
     'tasbih.pick.title': 'اختر الذكر',
-    'tasbih.pick.category': 'القسم',
     'tasbih.pick.dhikr': 'الذكر',
     'tasbih.pick.none': 'اختر',
-    'tasbih.loading': 'جارٍ التحميل…',
-    'tasbih.unavailable': 'تعذّر تحميل الأذكار على هذا الجهاز.',
     'tasbih.empty': 'اختر قسمًا ثمّ ذكرًا لتبدأ.',
     'tasbih.counter.title': 'العدّ',
     'tasbih.target': 'الهدف',
     'tasbih.target.up': 'زدِ الهدف',
     'tasbih.target.down': 'أنقصِ الهدف',
     'tasbih.target.aria': 'عدد الهدف',
+    'tasbih.target.open': 'افتحْ اختيارَ الهدف',
+    'tasbih.target.close': 'أغلقْ اختيارَ الهدف',
+    'tasbih.free': 'بلا هدف',
     'tasbih.count': 'سبِّح',
     'tasbih.count.aria': 'زيادة العدد',
     'tasbih.progress': '{n} من {t}',
@@ -1105,17 +1105,17 @@ const EZ_I18N = {
     'tasbih.title': 'Digital tasbih',
     'tasbih.back': 'Back to home',
     'tasbih.pick.title': 'Choose the dhikr',
-    'tasbih.pick.category': 'Section',
     'tasbih.pick.dhikr': 'Dhikr',
     'tasbih.pick.none': 'Choose',
-    'tasbih.loading': 'Loading…',
-    'tasbih.unavailable': 'The adhkar could not be loaded on this device.',
     'tasbih.empty': 'Choose a section, then a dhikr, to begin.',
     'tasbih.counter.title': 'The count',
     'tasbih.target': 'Target',
     'tasbih.target.up': 'Raise the target',
     'tasbih.target.down': 'Lower the target',
     'tasbih.target.aria': 'Target number',
+    'tasbih.target.open': 'Open the target',
+    'tasbih.target.close': 'Close the target',
+    'tasbih.free': 'No target',
     'tasbih.count': 'Count',
     'tasbih.count.aria': 'Increase the count',
     'tasbih.progress': '{n} of {t}',
@@ -5733,10 +5733,53 @@ const TASBIH_TARGET_DEFAULT = 33;
 // a device used every day for a lifetime cannot grow an unbounded record, and the cap drops the
 // OLDEST days, because a log that refuses to record today is a log that has stopped working.
 const TASBIH_LOG_MAX = 400;
-// Its own identifier shape, deliberately not the adhkar counter's: a category is a number in
-// adhkar.json and a NAME in the split file, and nothing here may smuggle a colon or a path into a
-// value the screen then presents.
-const TASBIH_CAT_RE = /^[A-Za-z0-9_]{1,40}$/;
+// ITEM 93 / REDESIGN -- THE FIFTEEN, AND THEY ARE THE WHOLE OF THIS SCREEN'S LIST.
+//
+// WHAT THIS REPLACES. This screen used to open the adhkar catalogue -- 132 categories, then that
+// category's own adhkar in a second dropdown. The owner has ruled that wrong for the tasbih: one
+// dropdown, fifteen adhkar, one step. So the catalogue is gone FROM HERE and from nowhere else:
+// loadAdhkar(), categories[], applyAdhkarSplit and AdhkarScreenV2 are untouched, and the adhkar
+// screen still opens the same 133 doors it opened yesterday.
+//
+// 🔴 THE TEXTS ARE THE OWNER'S OWN, LETTER FOR LETTER. They are not normalised, not spelled
+// "correctly", not harmonised with adhkar.json and not given hamzas they were written without.
+// «لا اله الا الله» and «رب اغفر لى» are as he wrote them. Anyone editing this array is editing a
+// list somebody dictated, and the only lawful edit is the one he asks for.
+const TASBIH_DHIKR = [
+  { id: 1, text: 'سبحان الله' },
+  { id: 2, text: 'الحمد لله' },
+  { id: 3, text: 'لا اله الا الله' },
+  { id: 4, text: 'الله أكبر' },
+  { id: 5, text: 'رب اغفر لى' },
+  { id: 6, text: 'استغفر الله' },
+  { id: 7, text: 'لا حول ولا قوة الا بالله' },
+  { id: 8, text: 'اللهمّ إنك عفوٌّ تُحبُّ العفوَ فاعفُ عنّي' },
+  { id: 9, text: 'اللهم صل وسلم وبارك على سيدنا محمد' },
+  { id: 10, text: 'سبحان الله وبحمده سبحان الله العظيم' },
+  { id: 11, text: 'سبحان الله والحمد لله ولا إله إلا الله والله أكبر' },
+  { id: 12, text: 'أستغفر الله الذى لا إله إلا هو الحي القيوم وأتوب إليه' },
+  { id: 13, text: 'لا اله الا انت سبحانك إني كنت من الظالمين' },
+  { id: 14, text: 'سبحان الله وبحمده عدد خلقه ورضا نفسه وزنة عرشه ومداد كلماته' },
+  { id: 15, text: 'لا إله إلا الله وحده لا شريك له، له الملك، وله الحمدُ، وهو على كل شيء قدير' },
+];
+
+// The lock. Shut, there is no target and the count runs free; open, the number the panel shows is
+// the number in force. One glyph per state, bounded, decorative -- the button carries its own
+// accessible name out of the dictionary.
+const TASBIH_ICON_LOCK = (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <rect x="4" y="11" width="16" height="10" rx="2" />
+    <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+  </svg>
+);
+const TASBIH_ICON_UNLOCK = (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <rect x="4" y="11" width="16" height="10" rx="2" />
+    <path d="M8 11V7a4 4 0 0 1 7.6-1.8" />
+  </svg>
+);
 const TASBIH_DAY_RE = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
 // The glyph on the log mark. A symbol, not a word: the button carries its accessible name from
 // the dictionary, in whichever language the reader chose.
@@ -5756,42 +5799,33 @@ function tasbihDayKey(d) {
   return String(y) + '-' + (m < 10 ? '0' : '') + String(m) + '-' + (day < 10 ? '0' : '') + String(day);
 }
 
-// { cat, id, target, count }. Anything that is not a well-formed record reads as the DEFAULT
-// record -- a missing key, a throw, damaged JSON, an array, a target outside its pair, a count
-// that is not a whole number. A broken store is never an error message and never a wrong number.
+// { id }. THE CHOSEN DHIKR AND NOTHING ELSE, and that is the whole of this feature's session
+// storage now. The COUNT is deliberately not here: the owner ruled it starts at zero on every open
+// and on every change of dhikr, so it is component state and is written nowhere. The TARGET is not
+// here either, for the same reason -- it is shut on every open, by his ruling.
+//
+// NO NEW KEY WAS ADDED FOR ANY OF THIS. ezik_tasbih_session_v1 is the key this feature already
+// had, already erased by "delete all my data" and already on the roster in
+// tools/delete-truth-measure.cjs; what changed is that it now holds less.
 function readTasbihSession() {
-  const empty = { cat: '', id: 0, target: TASBIH_TARGET_DEFAULT, count: 0 };
+  const empty = { id: 0 };
   let raw = null;
   try { raw = localStorage.getItem(TASBIH_SESSION_KEY); } catch (e) { return empty; }
   if (typeof raw !== 'string' || !raw) return empty;
   let o = null;
   try { o = JSON.parse(raw); } catch (e) { return empty; }
   if (!o || typeof o !== 'object' || Array.isArray(o)) return empty;
-  const cat = (typeof o.cat === 'string' && TASBIH_CAT_RE.test(o.cat)) ? o.cat : '';
-  const id = (Number.isInteger(o.id) && o.id > 0) ? o.id : 0;
-  const target = (Number.isInteger(o.target) && o.target >= TASBIH_TARGET_MIN && o.target <= TASBIH_TARGET_MAX)
-    ? o.target : TASBIH_TARGET_DEFAULT;
-  const count = (Number.isInteger(o.count) && o.count > 0) ? Math.min(o.count, target) : 0;
-  // A CATEGORY WITHOUT A DHIKR IS A REAL STATE, not a broken record: it is what the reader is in
-  // between the two dropdowns, and the screen has to be able to draw the second one. What is NOT
-  // a real state is a COUNT against no dhikr, so that -- and only that -- is dropped here.
-  if (!id) return { cat: cat, id: 0, target: target, count: 0 };
-  return { cat: cat, id: id, target: target, count: count };
+  // ADMITTED ONLY IF THIS BUILD REALLY HAS A DHIKR BY THAT NUMBER. A record written by the
+  // previous design carried an adhkar.json id (75, 91, ...), and every one of those fails this
+  // test -- so such a device opens on "choose a dhikr" rather than on a counter for a dhikr that
+  // is not in the list any more. Nothing is migrated and nothing is thrown away by hand.
+  return { id: TASBIH_DHIKR.some((d) => d.id === o.id) ? o.id : 0 };
 }
-// IT RETURNS WHAT IS NOW IN EFFECT, never what was asked for, so the caller always renders a value
-// the store would actually accept. localStorage only -- no request, no beacon, no background sync.
+// IT RETURNS WHAT IS NOW IN EFFECT, never what was asked for. localStorage only -- no request, no
+// beacon, no background sync.
 function writeTasbihSession(next) {
-  const cur = readTasbihSession();
-  const merged = Object.assign({}, cur, next || {});
-  const rec = {
-    cat: (typeof merged.cat === 'string' && TASBIH_CAT_RE.test(merged.cat)) ? merged.cat : '',
-    id: (Number.isInteger(merged.id) && merged.id > 0) ? merged.id : 0,
-    target: (Number.isInteger(merged.target) && merged.target >= TASBIH_TARGET_MIN
-      && merged.target <= TASBIH_TARGET_MAX) ? merged.target : cur.target,
-    count: (Number.isInteger(merged.count) && merged.count > 0) ? merged.count : 0,
-  };
-  rec.count = Math.min(rec.count, rec.target);
-  try { localStorage.setItem(TASBIH_SESSION_KEY, JSON.stringify(rec)); } catch (e) { return readTasbihSession(); }
+  const id = (next && TASBIH_DHIKR.some((d) => d.id === next.id)) ? next.id : 0;
+  try { localStorage.setItem(TASBIH_SESSION_KEY, JSON.stringify({ id: id })); } catch (e) { return readTasbihSession(); }
   return readTasbihSession();
 }
 
@@ -5828,14 +5862,8 @@ function markTasbihDay() {
   return readTasbihLog();
 }
 
-// THE ORDER THE DHIKR LIST IS DRAWN IN: shortest first, by the length of the text the reader will
-// actually read. The tie is broken on the item's own id so the order is TOTAL -- two dhikr of the
-// same length cannot swap places between two renders of the same list.
-function tasbihSorted(items) {
-  return (Array.isArray(items) ? items.slice() : [])
-    .filter((d) => d && typeof d.text === 'string')
-    .sort((a, b) => (a.text.length - b.text.length) || (a.id - b.id));
-}
+// THE SORT BY TEXT LENGTH IS GONE WITH THE CATALOGUE THAT NEEDED IT. The fifteen are drawn in
+// the owner's own order, which is the order he numbered them in, and this screen has no other.
 
 // ONE SHORT PULSE, ASKED FOR AND NEVER ASSUMED. iOS Safari has no navigator.vibrate at all, and
 // the browsers that do have it refuse it outside a user gesture and throw on some arguments. So
@@ -5853,117 +5881,126 @@ function tasbihBuzz() {
 // file keeps.
 function EzikTasbihSection({ onClose }) {
   useEzLang();
-  // null while the store is loading, false when it could not be read, the store when it is here.
-  const [db, setDb] = useState(null);
-  const [sess, setSess] = useState(readTasbihSession);
-  useEffect(() => {
-    let alive = true;
-    // THE SAME PAIR THE ADHKAR SCREEN LOADS, and the split one is allowed to fail: a reader on a
-    // deployment that does not carry it sees category 27 exactly as it ships rather than nothing.
-    Promise.all([
-      loadAdhkar(),
-      ADHKAR_GROUPS_ON ? loadAdhkarSplit().catch(() => null) : Promise.resolve(null),
-    ]).then(([d, sp]) => {
-      if (!alive) return;
-      if (!d) { setDb(false); return; }
-      setDb(sp ? applyAdhkarSplit(d, sp) : d);
-    }).catch(() => { if (alive) setDb(false); });
-    return () => { alive = false; };
-  }, []);
-  const cats = (db && db.categories) ? db.categories : [];
-  const items = (db && db.byCat && sess.cat) ? tasbihSorted(db.byCat[sess.cat]) : [];
-  const chosen = items.filter((d) => d.id === sess.id)[0] || null;
-  const full = !!chosen && sess.count >= sess.target;
-  // THE CATEGORY. Choosing one clears the dhikr and the count with it: a count carried across two
-  // different adhkar is a number that belongs to neither.
-  const pickCat = (raw) => {
-    const v = String(raw || '');
-    setSess(writeTasbihSession({ cat: TASBIH_CAT_RE.test(v) ? v : '', id: 0, count: 0 }));
-  };
+  // THE ONE THING THAT OUTLIVES THE SCREEN is which dhikr was chosen. THE COUNT IS NOT: by the
+  // owner's ruling it starts at zero on every open and on every change of dhikr, so it is
+  // component state, is written to no store, and no key was added for it.
+  const [id, setId] = useState(() => readTasbihSession().id);
+  const [count, setCount] = useState(0);
+  // THE TARGET IS SHUT UNTIL THE READER OPENS IT, and while it is shut there is NO CEILING AT ALL
+  // -- the count runs free, which is what the owner's «الغياب التام لهدفٍ مفتوح» asks for. Opening
+  // it puts a real number in force, and it is the number the panel is showing; shutting it lets
+  // the count run free again. So what the screen displays is always what the counter will do.
+  const [targetOpen, setTargetOpen] = useState(false);
+  const [target, setTarget] = useState(TASBIH_TARGET_DEFAULT);
+  // The press. Movement only -- it changes no count and reads no store.
+  const [pressed, setPressed] = useState(false);
+  const chosen = TASBIH_DHIKR.filter((d) => d.id === id)[0] || null;
+  const full = !!chosen && targetOpen && count >= target;
+  const pct = targetOpen && target > 0 ? Math.min(100, Math.round((count / target) * 100)) : 0;
+  // ONE DROPDOWN, ONE STEP. Choosing a dhikr zeroes the count with it: a number carried across two
+  // different adhkar belongs to neither.
   const pickDhikr = (raw) => {
     const n = parseInt(raw, 10);
-    setSess(writeTasbihSession({ id: Number.isFinite(n) && n > 0 ? n : 0, count: 0 }));
+    const next = TASBIH_DHIKR.some((d) => d.id === n) ? n : 0;
+    setId(next);
+    setCount(0);
+    writeTasbihSession({ id: next });
   };
-  // THE TARGET. Raising or lowering it does NOT throw away what the reader has already counted --
-  // it is capped, which is what writeTasbihSession does to every record it writes.
-  const setTarget = (n) => {
+  // The target is bounded on write, so a hand-held «-» cannot walk it below its floor and the
+  // field cannot be typed past its ceiling. It does NOT throw away what was already counted.
+  const setTargetNum = (n) => {
     if (!Number.isInteger(n) || n < TASBIH_TARGET_MIN || n > TASBIH_TARGET_MAX) return;
-    setSess(writeTasbihSession({ target: n, count: Math.min(sess.count, n) }));
+    setTarget(n);
   };
-  // ONE PRESS IS ONE INCREMENT. It adds exactly 1 and refuses at the target, so a held finger, a
-  // double tap or a replayed click cannot carry the count past the number the reader set. The day
-  // is recorded on the FIRST increment and never again; the buzz is asked for only on the press
-  // that ARRIVES at the target, so a reader sitting on a finished counter is not buzzed again.
+  // ONE PRESS IS ONE INCREMENT. With the target shut it simply adds one, for ever. With the target
+  // open it refuses at the number the reader set, so a held finger, a double tap or a replayed
+  // click cannot carry the count past it. The day is recorded on the FIRST increment and never
+  // again; the buzz is asked for only on the press that ARRIVES at the target.
   const countUp = () => {
     if (!chosen || full) return;
     markTasbihDay();
-    const next = Math.min(sess.count + 1, sess.target);
-    setSess(writeTasbihSession({ count: next }));
-    if (next >= sess.target) tasbihBuzz();
+    const next = count + 1;
+    setCount(targetOpen ? Math.min(next, target) : next);
+    if (targetOpen && next >= target) tasbihBuzz();
   };
-  const startAgain = () => setSess(writeTasbihSession({ count: 0 }));
+  const startAgain = () => setCount(0);
+  const dialWord = full ? ezT('tasbih.reached')
+    : targetOpen ? ezT('tasbih.progress', { n: toArabicDigits(count), t: toArabicDigits(target) })
+      : ezT('tasbih.count');
+  // THE RING IS THE PROGRESS, and it exists only when there is progress to draw. With the target
+  // shut there is no fraction to show, so it is one flat token and not a ring pretending to fill.
+  const ringStyle = targetOpen
+    ? { ...s.ezTasbihRing, backgroundImage: 'conic-gradient(var(--a3-cyan) ' + pct + '%, var(--a3-line) 0)' }
+    : { ...s.ezTasbihRing, background: 'var(--a3-ice)' };
+  const dialStyle = !chosen ? { ...s.ezTasbihDial, ...s.ezTasbihDialOff }
+    : full ? { ...s.ezTasbihDial, ...s.ezTasbihDialDone }
+      : pressed ? { ...s.ezTasbihDial, ...s.ezTasbihDialPressed } : s.ezTasbihDial;
   return (
     <EzShell title={ezT('tasbih.title')} onBack={onClose} backLabel={ezT('tasbih.back')}>
       <EzShellGroup title={ezT('tasbih.pick.title')}>
-        {db === null ? <div style={s.ezistCardSub}>{ezT('tasbih.loading')}</div> : null}
-        {db === false ? <div style={s.ezistCardSub}>{ezT('tasbih.unavailable')}</div> : null}
-        {db ? (
-          <div style={s.ezTasbihPickRow}>
-            <span style={s.ezistCardSub}>{ezT('tasbih.pick.category')}</span>
-            <select value={sess.cat} onChange={(e) => pickCat(e.target.value)}
-              aria-label={ezT('tasbih.pick.category')} style={s.memAyahSelect}>
-              <option value="">{ezT('tasbih.pick.none')}</option>
-              {cats.map((c) => (
-                <option key={String(c.id)} value={String(c.id)}>{c.title}</option>
-              ))}
-            </select>
-          </div>
-        ) : null}
-        {db && sess.cat ? (
-          <div style={s.ezTasbihPickRow}>
-            <span style={s.ezistCardSub}>{ezT('tasbih.pick.dhikr')}</span>
-            {/* SHORTEST FIRST. The list is ordered by the length of the text the reader reads,
-                which is what tasbihSorted does and the only ordering this screen has. */}
-            <select value={sess.id ? String(sess.id) : ''} onChange={(e) => pickDhikr(e.target.value)}
-              aria-label={ezT('tasbih.pick.dhikr')} style={s.memAyahSelect}>
-              <option value="">{ezT('tasbih.pick.none')}</option>
-              {items.map((d) => (
-                <option key={String(d.id)} value={String(d.id)}>{d.text}</option>
-              ))}
-            </select>
-          </div>
-        ) : null}
+        {/* ONE DROPDOWN. The fifteen, in the owner's own order, each drawn with the text he
+            dictated and carrying his own number as its value. */}
+        <div style={s.ezTasbihPickRow}>
+          <span style={s.ezistCardSub}>{ezT('tasbih.pick.dhikr')}</span>
+          <select value={id ? String(id) : ''} onChange={(e) => pickDhikr(e.target.value)}
+            aria-label={ezT('tasbih.pick.dhikr')} style={s.memAyahSelect}>
+            <option value="">{ezT('tasbih.pick.none')}</option>
+            {TASBIH_DHIKR.map((d) => (
+              <option key={String(d.id)} value={String(d.id)}>{d.text}</option>
+            ))}
+          </select>
+        </div>
       </EzShellGroup>
       <EzShellGroup title={ezT('tasbih.counter.title')}>
-        {/* THE CHOSEN DHIKR, ABOVE THE COUNT BUTTON, VERBATIM. The text is printed exactly as
-            adhkar.json holds it -- nothing is trimmed, shortened or re-worded for the screen. */}
+        {/* THE CHOSEN DHIKR, ABOVE THE DIAL, VERBATIM. Printed exactly as TASBIH_DHIKR holds it --
+            nothing trimmed, shortened or re-worded for the screen. */}
         <div style={s.ezTasbihText}>{chosen ? chosen.text : ezT('tasbih.empty')}</div>
-        <div style={s.ezTasbihTargetRow}>
-          <span style={s.ezistCardSub}>{ezT('tasbih.target')}</span>
-          <button type="button" className="ezhome-focus" onClick={() => setTarget(sess.target - 1)}
-            disabled={sess.target <= TASBIH_TARGET_MIN}
-            aria-label={ezT('tasbih.target.down')} style={s.ezwidAct}>{DW_REMOVE_GLYPH}</button>
-          <input type="number" inputMode="numeric" min={TASBIH_TARGET_MIN} max={TASBIH_TARGET_MAX}
-            value={String(sess.target)} onChange={(e) => setTarget(parseInt(e.target.value, 10))}
-            aria-label={ezT('tasbih.target.aria')} style={s.ezTasbihTargetInput} />
-          <button type="button" className="ezhome-focus" onClick={() => setTarget(sess.target + 1)}
-            disabled={sess.target >= TASBIH_TARGET_MAX}
-            aria-label={ezT('tasbih.target.up')} style={s.ezwidAct}>{DW_ADD_GLYPH}</button>
+        <div style={s.ezTasbihDialWrap}>
+          <div style={ringStyle}>
+            <button type="button" className="ezhome-focus" onClick={countUp} disabled={!chosen}
+              onPointerDown={() => setPressed(true)}
+              onPointerUp={() => setPressed(false)}
+              onPointerLeave={() => setPressed(false)}
+              onPointerCancel={() => setPressed(false)}
+              aria-label={ezT('tasbih.count.aria')} aria-disabled={full ? 'true' : 'false'}
+              style={dialStyle}>
+              <span style={s.ezTasbihDialNum}>{toArabicDigits(count)}</span>
+              <span style={s.ezTasbihDialWord}>{dialWord}</span>
+            </button>
+          </div>
+          <div style={s.ezTasbihLockRow}>
+            <button type="button" className="ezhome-focus"
+              onClick={() => setTargetOpen(!targetOpen)}
+              aria-expanded={targetOpen ? 'true' : 'false'}
+              aria-label={targetOpen ? ezT('tasbih.target.close') : ezT('tasbih.target.open')}
+              style={targetOpen ? { ...s.ezTasbihLock, ...s.ezTasbihLockOn } : s.ezTasbihLock}>
+              {targetOpen ? TASBIH_ICON_UNLOCK : TASBIH_ICON_LOCK}
+              <span style={s.ezTasbihLockWord}>{targetOpen ? ezT('tasbih.target') : ezT('tasbih.free')}</span>
+            </button>
+          </div>
         </div>
-        <button type="button" className="ezhome-focus" onClick={countUp} disabled={!chosen}
-          aria-label={ezT('tasbih.count.aria')} aria-disabled={full ? 'true' : 'false'}
-          style={full ? { ...s.ezTasbihCount, ...s.ezTasbihCountDone } : s.ezTasbihCount}>
-          <span style={s.eziaCountNums}>
-            {ezT('tasbih.progress', { n: toArabicDigits(sess.count), t: toArabicDigits(sess.target) })}
-          </span>
-          <span style={s.eziaCountLabel}>{full ? ezT('tasbih.reached') : ezT('tasbih.count')}</span>
-        </button>
-        {/* THE VISIBLE ARRIVAL. A live region, so a reader who cannot see the colour change is
+        {/* THE TARGET PANEL. It is not merely hidden when shut -- it is not rendered, so there is
+            no control of any kind for a keyboard or a screen reader to land on. */}
+        {targetOpen ? (
+          <div style={s.ezTasbihTargetRow}>
+            <span style={s.ezistCardSub}>{ezT('tasbih.target')}</span>
+            <button type="button" className="ezhome-focus" onClick={() => setTargetNum(target - 1)}
+              disabled={target <= TASBIH_TARGET_MIN}
+              aria-label={ezT('tasbih.target.down')} style={s.ezwidAct}>{DW_REMOVE_GLYPH}</button>
+            <input type="number" inputMode="numeric" min={TASBIH_TARGET_MIN} max={TASBIH_TARGET_MAX}
+              value={String(target)} onChange={(e) => setTargetNum(parseInt(e.target.value, 10))}
+              aria-label={ezT('tasbih.target.aria')} style={s.ezTasbihTargetInput} />
+            <button type="button" className="ezhome-focus" onClick={() => setTargetNum(target + 1)}
+              disabled={target >= TASBIH_TARGET_MAX}
+              aria-label={ezT('tasbih.target.up')} style={s.ezwidAct}>{DW_ADD_GLYPH}</button>
+          </div>
+        ) : null}
+        {/* THE VISIBLE ARRIVAL. A live region, so a reader who cannot see the dial change colour is
             told the target was reached rather than left to notice a button that stopped. */}
         <div style={s.ezTasbihNote} role="status" aria-live="polite">
           {full ? ezT('tasbih.reached') : ''}
         </div>
-        {sess.count > 0 ? (
+        {count > 0 ? (
           <button type="button" className="ezhome-focus" onClick={startAgain}
             style={s.ezwidAct}>{ezT('tasbih.reset')}</button>
         ) : null}
@@ -24797,8 +24834,22 @@ const s = {
   ezTasbihText: { fontSize: 17, fontWeight: 700, lineHeight: 2, color: 'var(--a3-ink)', padding: '10px 0', textAlign: 'center' },
   ezTasbihTargetRow: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '8px 0' },
   ezTasbihTargetInput: { width: 88, minHeight: 44, borderRadius: 12, border: '2px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)', fontSize: 15, fontWeight: 800, textAlign: 'center', padding: '0 8px' },
-  ezTasbihCount: { width: '100%', minHeight: 64, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, padding: '10px 12px', borderRadius: 16, background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
-  ezTasbihCountDone: { background: 'var(--a3-cyan)', color: 'var(--a3-navy)', cursor: 'default' },
+  // ITEM 93 / REDESIGN -- THE DIAL. Deliberately NOT s.ezwidEnter and deliberately not a rectangle:
+  // the owner asked for a shape of its own for the one control a reader presses a hundred times.
+  // Every colour is an existing --a3-* token, so it moves with the identity like everything else;
+  // the shape, the size and the movement are this control's own.
+  ezTasbihDialWrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '6px 0 2px' },
+  ezTasbihRing: { width: 'min(64vw, 236px)', height: 'min(64vw, 236px)', maxWidth: '100%', borderRadius: '50%', padding: 9, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  ezTasbihDial: { width: '100%', height: '100%', minWidth: 44, minHeight: 44, borderRadius: '50%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, padding: 0, border: 'none', cursor: 'pointer', color: 'var(--a3-on-blue)', fontFamily: 'var(--ez-ui-font)', backgroundImage: 'radial-gradient(circle at 50% 28%, var(--a3-cyan) 0%, var(--a3-blue) 58%, var(--a3-navy) 100%)', boxShadow: 'var(--a3-lift)', transition: 'transform 130ms ease, box-shadow 130ms ease' },
+  ezTasbihDialPressed: { transform: 'scale(0.955)', boxShadow: 'var(--a3-shadow)' },
+  ezTasbihDialDone: { backgroundImage: 'radial-gradient(circle at 50% 28%, var(--a3-ice) 0%, var(--a3-cyan) 62%, var(--a3-blue) 100%)', color: 'var(--a3-navy)', cursor: 'default' },
+  ezTasbihDialOff: { backgroundImage: 'radial-gradient(circle at 50% 28%, var(--a3-soft) 0%, var(--a3-line) 100%)', color: 'var(--a3-muted)', cursor: 'default', boxShadow: 'none' },
+  ezTasbihDialNum: { fontSize: 54, fontWeight: 800, lineHeight: 1 },
+  ezTasbihDialWord: { fontSize: 13, fontWeight: 700 },
+  ezTasbihLockRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '2px 0' },
+  ezTasbihLock: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 44, padding: '0 14px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-muted)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
+  ezTasbihLockOn: { background: 'var(--a3-ice)', color: 'var(--a3-blue)', border: '1px solid var(--a3-cyan)' },
+  ezTasbihLockWord: { fontSize: 12.5, fontWeight: 800 },
   ezTasbihNote: { minHeight: 20, fontSize: 13, fontWeight: 800, color: 'var(--a3-blue)', textAlign: 'center', padding: '6px 0' },
   ezwidAct: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 44, minHeight: 44, padding: '0 10px', borderRadius: 12, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
   ezwidActOff: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 44, minHeight: 44, padding: '0 10px', borderRadius: 12, background: 'transparent', border: '1px solid var(--a3-line)', color: 'var(--a3-muted)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },

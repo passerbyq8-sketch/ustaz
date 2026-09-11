@@ -923,7 +923,7 @@ const SEALED = {
   //                    log and the card row, so the worker's byte table and CORE_BYTES both moved
   //                    and this digest is re-cut after them. CORE_BYTES was re-cut by
   //                    node tools/core-bytes.cjs --write, never by hand.
-  'sw.js': 'b723c4f7b2dfb8e9224c88ed82ede51530b63202ef30372b07e7a116ea1bf6bf',
+  'sw.js': '75370523b257e0d2efe3bf0002d862a312554342565d754715b1c8450bb53025',
 };
 
 // ---------------------------------------------------------------------------
@@ -2046,7 +2046,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1444843, of: 'app.js' },
+      { n: 1449405, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
