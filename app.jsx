@@ -663,6 +663,98 @@ const EZ_I18N = {
     'tasbih.log.title': 'سجلّ المسبحة',
     'tasbih.log.back': 'رجوع إلى الرئيسية',
     'tasbih.log.empty': 'لا أيام مسجَّلة بعد.',
+    // ============================================================
+    // ITEM 95 -- THE SHARIAH CALCULATOR
+    // ============================================================
+    // 🔴 THE VOLUME AND PAGE NUMERALS ARE WRITTEN OUT IN EACH DICTIONARY'S OWN DIGITS and are
+    // NOT run through toArabicDigits at render. A citation is a reference, not a quantity: a
+    // converted one would be a number this app invented the shape of. Every `calc.ref.*` value
+    // below is a page range in the Kuwaiti Fiqh Encyclopedia and nothing else.
+    'calc.card.title': 'حاسبة الشريعة',
+    'calc.title': 'حاسبة الشريعة',
+    'calc.back': 'رجوع إلى الرئيسية',
+    'calc.offline': 'الحساب كلُّه على هذا الجهاز: لا يُرسَل شيءٌ إلى أيِّ جهة، والأسعارُ من إدخالك وحدَك.',
+    'calc.pick.title': 'اختَرِ الحاسبة',
+    'calc.group.zakat': 'الزكاة',
+    'calc.group.kaffarat': 'الكفّارات',
+    'calc.a1.name': 'زكاة النقود',
+    'calc.a2.name': 'زكاة الذهب',
+    'calc.a3.name': 'زكاة الفضة',
+    'calc.a4.name': 'زكاة عروض التجارة',
+    'calc.b1.name': 'كفّارة اليمين',
+    'calc.b2.name': 'كفّارة الظهار',
+    'calc.b3.name': 'كفّارة القتل الخطأ',
+    'calc.b4.name': 'كفّارة الجماع في رمضان',
+    'calc.b5.name': 'فدية الصيام',
+    'calc.field.currency': 'العملة',
+    'calc.field.amount': 'المبلغ',
+    'calc.field.silverPrice': 'سعر غرام الفضة',
+    'calc.field.goldWeight': 'وزن الذهب بالغرام',
+    'calc.field.goldPrice': 'سعر غرام الذهب',
+    'calc.field.silverWeight': 'وزن الفضة بالغرام',
+    'calc.field.tradeValue': 'قيمة العروض يوم تمام الحول',
+    'calc.field.muddPrice': 'سعر المدّ',
+    'calc.field.days': 'عدد الأيام',
+    'calc.gram': 'غرامًا',
+    'calc.enter': 'أدخِلِ الأرقامَ لتظهرَ النتيجة.',
+    'calc.nisab': 'النصاب',
+    'calc.notDue': 'لا تجب الزكاة: المالُ دون النصاب.',
+    'calc.due.amount': 'المقدارُ الواجب',
+    'calc.rate': 'ربعُ العشر',
+    'calc.hawl.note': 'هذه الحاسباتُ الأربعُ تفترضُ أنّ المالَ المُدخَلَ قد حال عليه الحَولُ كاملًا في ملكك، وهو ما اتّفقَ عليه العلماء. وهي لا تتتبّعُ التواريخَ ولا تدّعي تتبّعَها.',
+    'calc.work.cashNisab': '{g} غرامًا من الفضة × {p} = {n}',
+    'calc.work.goldNisab': '{m} مثقالًا ({s1}) × {g} غرامًا ({s2}) = {n} غرامًا',
+    'calc.work.silverNisab': '{d} درهمًا ({s1}) × {g} غرامًا ({s2}) = {n} غرامًا',
+    'calc.work.quarterTenthOf': 'ربعُ عشرِ {a}',
+    'calc.work.weighed': '{w} غرامًا × {p} = {v}، وربعُ العشرِ = {z}',
+    'calc.feed.title': 'إطعامُ المساكين',
+    'calc.feed.mode.measure': 'بالمقدار',
+    'calc.feed.mode.money': 'بالتقدير الماليّ',
+    'calc.feed.measure': 'المقدار',
+    'calc.feed.total': 'الإجمالي',
+    'calc.feed.mudd': 'المدُّ رُبعُ الصاعِ بالاتفاق، والصاعُ أربعةُ أمدادٍ بالاتفاق.',
+    'calc.work.feedMeasure': '{t} مدًّا من غالبِ طعامِ البلد',
+    'calc.work.feedMoney': '{n} مسكينًا × {m} مدًّا × {p} = {t}',
+    'calc.work.fidyahMoney': '{n} يومًا × {m} مدًّا × {p} = {t}',
+    'calc.opt.choice': 'على التخييرِ، لا على الترتيب:',
+    'calc.opt.order': 'على الترتيب:',
+    'calc.opt.feed10': 'إطعامُ عشرةِ مساكين',
+    'calc.opt.clothe10': 'كسوةُ عشرةِ مساكين',
+    'calc.opt.freeSlave': 'تحريرُ رقبة',
+    'calc.opt.fast3': 'فإن لم يجدْ واحدةً من الثلاث: صيامُ ثلاثةِ أيّامٍ متتابعة',
+    'calc.opt.fast2m': 'فإن لم يستطعْ: صيامُ شهرينِ متتابعين',
+    'calc.opt.feed60': 'فإن لم يستطعْ: إطعامُ ستّينَ مسكينًا',
+    'calc.opt.fast2mAgreed': 'فإن لم يستطعْ: صيامُ شهرينِ متتابعين، والتتابعُ واجبٌ بالاتفاق',
+    'calc.b3.noFeeding': 'ولا إطعامَ في هذه الكفّارةِ أصلًا.',
+    'calc.b4.agreed': 'الخصالُ الثلاثُ في هذه الكفّارةِ بالاتفاق:',
+    'calc.b5.result': 'مدٌّ لكلِّ يوم',
+    'calc.src.book': 'الموسوعة الفقهية الكويتية',
+    'calc.src.line': '{book}، {ref}',
+    'calc.ref.rate': 'ج٢٣ ص٢٦٥ (بالإجماع)',
+    'calc.ref.hawl': 'ج٢٣ ص٢٤٢، ج٨ ص١٦١',
+    'calc.ref.mithqal': 'ج٢٣ ص٢٦٣، ج٢١ ص٢٩',
+    'calc.ref.mithqalG': 'ج٢٠ ص٢٤٩، ج٢١ ص٢٩',
+    'calc.ref.dirham': 'ج٢٣ ص٢٦٤، ص٢٦٤-٢٦٥، ج٣٢ ص١٧٠',
+    'calc.ref.dirhamG': 'ج٢٠ ص٢٤٩',
+    'calc.ref.trade': 'ج٢٣ ص٢٧٢، ص٢٧٦، ج٣٢ ص٣٤٤',
+    'calc.ref.b1': 'ج٣٥ ص١٠٥، ج٥ ص١١٦',
+    'calc.ref.b2': 'ج٢٩ ص٢٠٨-٢٠٩، ج٥ ص١١٦',
+    'calc.ref.b3': 'ج٣٥ ص١٠٥، ج١٠ ص١٢٩',
+    'calc.ref.b4': 'ج٢٨ ص٧٨',
+    'calc.ref.b4order': 'ج٢٨ ص٧٨-٧٩، ص٧٩-٨٠',
+    'calc.ref.b5': 'ج٣٢ ص٦٧',
+    'calc.ref.mudd': 'ج٢٦ ص٣٠٥، ج٣٨ ص٢٩٦',
+    'calc.ref.feed': 'ج٣٥ ص١٠١، ص١٠١-١٠٢',
+    'calc.khilaf.label': 'موضعُ خلاف',
+    'calc.ref.khilafWaqs': 'ج٢٣ ص٢٦٥-٢٦٦',
+    'calc.khilaf.waqs': 'ربعُ العشرِ نفسُه متّفقٌ عليه، والخلافُ في «الوَقَص» وحدَه — وهو الزائدُ على النصابِ قبلَ بلوغِ النصابِ الذي بعدَه: أبو حنيفةَ يُعفي ذلك الزائدَ حتى يبلغَ خُمسَ النصاب.',
+    'calc.ref.khilafTrade': 'ج٢٣ ص٢٧٢-٢٧٣',
+    'calc.khilaf.trade': 'اختلفَ العلماءُ في كيفيّةِ تقويمِ العروض — بالأنفعِ للفقراء، أو بسعرِ الشراء، أو بالنقدِ الغالب — وفي وقتِ أخذِ القيمة: آخرَ الحول، أو طرفَيه، أو في أثنائه كلِّه.',
+    'calc.ref.khilafJima': 'ج٣٥ ص١٠٤-١٠٥، ج١٠ ص١٢٨',
+    'calc.khilaf.jima': 'الجمهورُ على الترتيبِ الصارمِ المعروضِ أعلاه، والمالكيّةُ على التخييرِ بينَ الخصالِ الثلاثِ مع تقديمِ الإطعام.',
+    'calc.ref.khilafFidyah': 'ج٣٢ ص٦٦، ص٦٧، ج٢٨ ص٧٩-٨٠',
+    'calc.khilaf.fidyah': 'الخلافُ في أصلِ وجوبِ الفديةِ وفي مقدارِها معًا: الحنفيّةُ صاعٌ من تمرٍ أو شعيرٍ، أو نصفُ صاعٍ من بُرٍّ؛ والحنابلةُ مُدٌّ من بُرٍّ، أو نصفُ صاعٍ من تمرٍ أو شعير.',
+    'calc.khilaf.feed': 'لكلِّ مسكينٍ: مُدٌّ واحدٌ عندَ الجمهورِ (المالكيّةِ والشافعيّةِ والحنابلة)، ومُدّانِ — أي نصفُ صاعٍ — عندَ الحنفيّة. وهذه الحاسبةُ تأخذُ بقولِ الجمهورِ في كلِّ موضعِ إطعام.',
   },
   en: {
     'common.close': 'Close',
@@ -1129,6 +1221,93 @@ const EZ_I18N = {
     'tasbih.log.title': 'Tasbih log',
     'tasbih.log.back': 'Back to home',
     'tasbih.log.empty': 'No days recorded yet.',
+    // ITEM 95 -- THE SHARIAH CALCULATOR. Same keys as the ar half, same order, same
+    // {placeholders}; the volume/page numerals are written in this dictionary's own digits.
+    'calc.card.title': 'Shariah calculator',
+    'calc.title': 'Shariah calculator',
+    'calc.back': 'Back to home',
+    'calc.offline': 'Every calculation happens on this device: nothing is sent anywhere, and the prices are yours alone to type.',
+    'calc.pick.title': 'Choose a calculator',
+    'calc.group.zakat': 'Zakat',
+    'calc.group.kaffarat': 'Expiations',
+    'calc.a1.name': 'Zakat on cash',
+    'calc.a2.name': 'Zakat on gold',
+    'calc.a3.name': 'Zakat on silver',
+    'calc.a4.name': 'Zakat on trade goods',
+    'calc.b1.name': 'Expiation of an oath',
+    'calc.b2.name': 'Expiation of dhihar',
+    'calc.b3.name': 'Expiation for accidental killing',
+    'calc.b4.name': 'Expiation for intercourse in Ramadan',
+    'calc.b5.name': 'Ransom for a missed fast',
+    'calc.field.currency': 'Currency',
+    'calc.field.amount': 'Amount',
+    'calc.field.silverPrice': 'Silver price per gram',
+    'calc.field.goldWeight': 'Gold weight in grams',
+    'calc.field.goldPrice': 'Gold price per gram',
+    'calc.field.silverWeight': 'Silver weight in grams',
+    'calc.field.tradeValue': 'Value of the goods on the day the hawl completes',
+    'calc.field.muddPrice': 'Price per mudd',
+    'calc.field.days': 'Number of days',
+    'calc.gram': 'g',
+    'calc.enter': 'Enter the numbers to see the result.',
+    'calc.nisab': 'Nisab',
+    'calc.notDue': 'Not due: the wealth is below the nisab.',
+    'calc.due.amount': 'Amount due',
+    'calc.rate': 'The quarter-tenth',
+    'calc.hawl.note': 'These four calculators assume the wealth entered has already completed a full lunar year in your possession, which the scholars agreed is the condition. They do not track dates and do not claim to.',
+    'calc.work.cashNisab': '{g}g of silver x {p} = {n}',
+    'calc.work.goldNisab': '{m} mithqal ({s1}) x {g}g ({s2}) = {n}g',
+    'calc.work.silverNisab': '{d} dirham ({s1}) x {g}g ({s2}) = {n}g',
+    'calc.work.quarterTenthOf': 'quarter-tenth of {a}',
+    'calc.work.weighed': '{w}g x {p} = {v}, quarter-tenth = {z}',
+    'calc.feed.title': 'Feeding the poor',
+    'calc.feed.mode.measure': 'By measure',
+    'calc.feed.mode.money': 'By financial estimate',
+    'calc.feed.measure': 'The measure',
+    'calc.feed.total': 'Total',
+    'calc.feed.mudd': 'The mudd is a quarter of the sa’ by agreement, and the sa’ is four mudds by agreement.',
+    'calc.work.feedMeasure': '{t} mudds of the country’s staple food',
+    'calc.work.feedMoney': '{n} poor x {m} mudd x {p} = {t}',
+    'calc.work.fidyahMoney': '{n} days x {m} mudd x {p} = {t}',
+    'calc.opt.choice': 'A choice, not a sequence:',
+    'calc.opt.order': 'In this order:',
+    'calc.opt.feed10': 'Feed ten poor',
+    'calc.opt.clothe10': 'Clothe ten poor',
+    'calc.opt.freeSlave': 'Free a slave',
+    'calc.opt.fast3': 'If none of the three is possible: fast three consecutive days',
+    'calc.opt.fast2m': 'If unable: fast two consecutive months',
+    'calc.opt.feed60': 'If unable: feed sixty poor',
+    'calc.opt.fast2mAgreed': 'If unable: fast two consecutive months — the consecutiveness is obligatory by agreement',
+    'calc.b3.noFeeding': 'There is no feeding option in this expiation at all.',
+    'calc.b4.agreed': 'The three options in this expiation are by agreement:',
+    'calc.b5.result': 'One mudd for every day',
+    'calc.src.book': 'Kuwaiti Fiqh Encyclopedia',
+    'calc.src.line': '{book}, {ref}',
+    'calc.ref.rate': 'vol 23 p265 (by consensus)',
+    'calc.ref.hawl': 'vol 23 p242, vol 8 p161',
+    'calc.ref.mithqal': 'vol 23 p263, vol 21 p29',
+    'calc.ref.mithqalG': 'vol 20 p249, vol 21 p29',
+    'calc.ref.dirham': 'vol 23 p264, p264-265, vol 32 p170',
+    'calc.ref.dirhamG': 'vol 20 p249',
+    'calc.ref.trade': 'vol 23 p272, p276, vol 32 p344',
+    'calc.ref.b1': 'vol 35 p105, vol 5 p116',
+    'calc.ref.b2': 'vol 29 p208-209, vol 5 p116',
+    'calc.ref.b3': 'vol 35 p105, vol 10 p129',
+    'calc.ref.b4': 'vol 28 p78',
+    'calc.ref.b4order': 'vol 28 p78-79, p79-80',
+    'calc.ref.b5': 'vol 32 p67',
+    'calc.ref.mudd': 'vol 26 p305, vol 38 p296',
+    'calc.ref.feed': 'vol 35 p101, p101-102',
+    'calc.khilaf.label': 'Point of disagreement',
+    'calc.ref.khilafWaqs': 'vol 23 p265-266',
+    'calc.khilaf.waqs': 'The quarter-tenth rate itself is agreed; the disagreement is only about the “waqs” — the excess above the nisab before the next threshold is reached. Abu Hanifah treats that excess as exempt until it reaches one fifth of the nisab.',
+    'calc.ref.khilafTrade': 'vol 23 p272-273',
+    'calc.khilaf.trade': 'Scholars differ on how the goods are valued — in the way most beneficial to the poor, at cost, or in the prevailing currency — and on when the value is taken: at the end of the hawl, at both ends of it, or throughout it.',
+    'calc.ref.khilafJima': 'vol 35 p104-105, vol 10 p128',
+    'calc.khilaf.jima': 'The majority hold to the strict order shown above; the Malikis hold to a choice among the three and give feeding priority.',
+    'calc.ref.khilafFidyah': 'vol 32 p66, p67, vol 28 p79-80',
+    'calc.khilaf.fidyah': 'There is disagreement in both the basis of the obligation to pay fidyah at all and in its amount: Hanafi — a sa’ of dates or barley, or half a sa’ of wheat; Hanbali — a mudd of wheat, or half a sa’ of dates or barley.',
+    'calc.khilaf.feed': 'For each poor person: one mudd on the majority view (Maliki, Shafi’i, Hanbali), and two mudds — half a sa’ — on the Hanafi view. This calculator takes the majority figure everywhere feeding is calculated.',
   },
 };
 
@@ -5483,6 +5662,12 @@ function ezHomeDuoCards(v) {
     // change -- only the button that opens it, which now lives in the screen's own corner.
     { id: 'tasbih', title: <span style={s.ezistCardTitle}>{ezT('tasbih.card.title')}</span>,
       onOpen: () => v.onOpenTasbih(true) },
+    // ITEM 95 -- THE THIRD CARD, AND THE ROW WAS BUILT TO TAKE IT. EzikHomeCardRow derives its
+    // column count from this array's own length, so the calculator is one entry HERE and not one
+    // line of layout anywhere else -- which is exactly what item 93 left the row able to do.
+    // ezHomeDuoCards is not rewritten, and the two cards above are untouched.
+    { id: 'calc', title: <span style={s.ezistCardTitle}>{ezT('calc.card.title')}</span>,
+      onOpen: () => v.onOpenCalc(true) },
   ];
 }
 
@@ -6089,6 +6274,538 @@ function EzikTasbihLog({ onClose }) {
           </div>
         ))}
       </EzShellGroup>
+    </EzShell>
+  );
+}
+
+// ============================================================
+// ITEM 95 -- THE SHARIAH CALCULATOR. NINE CALCULATORS, EXACT ARITHMETIC, ZERO BRAIN.
+// ============================================================
+// 🔴 IT ASKS NOBODY ANYTHING. There is no api/ask.js call on this path, no lib/ answer path, no
+// model call, no fetch, no XHR, no WebSocket and no service-worker round trip. Every Shariah
+// figure this feature needs is a CONSTANT declared in this block and sourced to the Kuwaiti Fiqh
+// Encyclopedia by volume and page; every PRICE is typed in by the reader and is never looked up,
+// never defaulted to a market rate and never attributed to anybody. A reader with the aeroplane
+// switch on gets the same answer as a reader on fibre, because there is nothing to be offline
+// from. Nothing below is stored either: the screen opens empty every time, so this feature adds
+// no storage key and has nothing to appear in resetAll or in MUST_GO_ALREADY.
+//
+// 🔴 MONEY IS NEVER A FLOAT. The reason is one worked case, and it is in the acceptance battery:
+// 85.000g of gold at 15.612 per gram is 1327.02 exactly and a fortieth of that is 33.1755, which
+// rounds half-up to 33.176. Compute it as weight * price * 0.025 in 64-bit binary instead and
+// the reader is short one fils -- and THE WAY IT GOES WRONG IS WHY THIS IS WRITTEN OUT HERE
+// rather than left to a comment saying "floats are imprecise". Measured, on this machine:
+//   85.000 * 15.612          prints 1327.02 and compares EQUAL to the literal 1327.02, so the
+//                            product looks exact and nothing is visibly lost. It is not exact:
+//                            the double is 1327.0199999999999818.
+//   that, times 0.025        prints 33.1755, which also looks right. The double is
+//                            33.175499999999999545 -- just BELOW the true 33.1755.
+//   .toFixed(3) of that      is "33.175", because half-up has nothing to round up: the value it
+//                            is handed is under the halfway point rather than on it.
+// Both printed steps look correct and the answer is still wrong, which is exactly the failure a
+// reader cannot catch by looking. So every monetary value here is carried
+// as an exact fraction over two BigInts, multiplied by multiplying numerators and denominators,
+// compared by cross-multiplication, and rounded ONCE -- round-half-up, three places -- at the
+// moment it becomes text. The rate is the FRACTION 1/40, not the decimal 0.025.
+//
+// IT IS A LAYER, NOT A SCREEN, for the reason EzikTasbihSection above it is one: a 'screen' value
+// is a cross-file contract with the inventory theme-coverage-guard cross-checks against the
+// handoff document, and a section opened over the home is not a route. It registers its own
+// history entry through useEzikBackLayer, so the device back button closes IT.
+
+// ---- EXACT MONEY: A RATIONAL OVER TWO BigInts, AND NOTHING ELSE -------------------------
+const EZC_DP = 3;                       // three decimal places, decided once, read everywhere
+const EZC_SCALE = 10n ** BigInt(EZC_DP);
+function ezcRat(n, d) { return { n: BigInt(n), d: BigInt(d) }; }
+function ezcMul(a, b) { return { n: a.n * b.n, d: a.d * b.d }; }
+// a >= b, WITHOUT DIVIDING. Both denominators are positive by construction -- ezcParse builds
+// them as powers of ten and nothing else constructs a rational from reader input -- so the
+// inequality survives the cross-multiplication unchanged.
+function ezcGte(a, b) { return a.n * b.d >= b.n * a.d; }
+// THE ONE PARSER, and Number() is not in it. Arabic-Indic digits are accepted because a reader
+// whose keyboard emits them is typing the same number; a comma is accepted as a decimal mark for
+// the same reason. Anything else at all -- a sign, an exponent, a letter, two dots -- returns
+// null, and null is drawn as «enter the numbers», never as zero. A zero the reader did not type
+// is a wrong answer wearing the clothes of a right one.
+const EZC_AR_DIGITS = '\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669';
+function ezcParse(raw) {
+  if (raw == null) return null;
+  let t = String(raw).replace(/[\u0660-\u0669]/g, (c) => String(EZC_AR_DIGITS.indexOf(c)));
+  t = t.replace(/,/g, '.').replace(/\s+/g, '');
+  if (t === '') return null;
+  const m = /^(\d*)(?:\.(\d*))?$/.exec(t);
+  if (!m) return null;
+  const int = m[1] || '', frac = m[2] || '';
+  // A bound on both halves, so a pasted thousand-digit number cannot turn a render into a
+  // multiplication of thousand-digit BigInts. Six places is three more than anything is drawn at.
+  if (int.length + frac.length === 0 || int.length > 15 || frac.length > 6) return null;
+  return { n: BigInt((int || '0') + frac), d: 10n ** BigInt(frac.length) };
+}
+// THE ONE ROUNDING, AND IT HAPPENS HERE OR NOWHERE ELSE. Round-half-up at EZC_DP, done in
+// integers: floor((2 * 10^dp * n + d) / (2 * d)) is exactly floor(10^dp * n / d + 1/2), with no
+// division performed before the floor and therefore nothing to lose. Every value that reaches
+// this function is non-negative -- ezcParse refuses a sign -- so there is no negative halfway
+// case to argue about.
+function ezcText(r) {
+  if (!r) return null;
+  const q = (2n * EZC_SCALE * r.n + r.d) / (2n * r.d);
+  return String(q / EZC_SCALE) + '.' + String(q % EZC_SCALE).padStart(EZC_DP, '0');
+}
+// A WEIGHT IS NOT A PRICE. 85g and 595g are whole numbers and 4.25g and 2.975g are not, so a
+// weight is drawn at its own exact length instead of padded to three places like money. It is
+// the SAME rounding underneath; only trailing zeros go.
+function ezcWeightText(r) {
+  const t = ezcText(r);
+  if (t == null) return null;
+  return t.indexOf('.') === -1 ? t : t.replace(/0+$/, '').replace(/\.$/, '');
+}
+// THE READER'S OWN NUMERALS. A QUANTITY is drawn in the numerals of the interface language; a
+// CITATION is not -- a volume and a page are a reference, and each dictionary writes them out in
+// its own digits rather than having them converted here.
+function ezcNum(x) { return ezLangGet() === 'ar' ? toArabicDigits(x) : String(x); }
+function ezcMoney(r) { const t = ezcText(r); return t == null ? null : ezcNum(t); }
+// Book and page, composed the same way every time, from the one book key and one page-range key.
+function ezcSrcText(cite) { return ezT('calc.src.line', { book: ezT('calc.src.book'), ref: ezT(cite) }); }
+
+// ---- THE FIGURES, AND EVERY ONE OF THEM IS SOURCED -------------------------------------
+// THE RATE. A quarter of a tenth, by ijma -- Kuwaiti Fiqh Encyclopedia vol 23 p265 -- and it is
+// the fraction, not the decimal, for the reason the head of this block gives.
+const EZC_RATE = ezcRat(1, 40);
+// GOLD. Twenty mithqal, at 4.25g the mithqal (vol 23 p263 / vol 21 p29; vol 20 p249 / vol 21
+// p29). The 85g is DERIVED here rather than typed in, so the working line the screen prints is
+// the arithmetic the screen actually did.
+const EZC_GOLD_MITHQAL = 20n;
+const EZC_MITHQAL_G = ezcRat(425, 100);
+const EZC_GOLD_NISAB_G = ezcMul(ezcRat(EZC_GOLD_MITHQAL, 1), EZC_MITHQAL_G);     // 85g, exactly
+// SILVER. Two hundred dirham, at 2.975g the dirham (vol 23 p264, p264-265 / vol 32 p170; vol 20
+// p249) -- 595g, derived the same way. This weight is also the YARDSTICK for cash (A1) and for
+// trade goods (A4): their nisab is this many grams of silver at the price the reader typed, which
+// is why one silver-price field serves three of the four calculators and is asked for once.
+const EZC_SILVER_DIRHAM = 200n;
+const EZC_DIRHAM_G = ezcRat(2975, 1000);
+const EZC_SILVER_NISAB_G = ezcMul(ezcRat(EZC_SILVER_DIRHAM, 1), EZC_DIRHAM_G);   // 595g, exactly
+// FEEDING. One mudd for each poor person, which is the majority view (Maliki, Shafi'i, Hanbali)
+// and is what this whole feature uses everywhere feeding is calculated. The Hanafi two are NAMED,
+// in the disagreement note, and are deliberately not a second mode: a calculator that offers two
+// answers to one question has stopped calculating.
+const EZC_MUDD_PER_POOR = 1n;
+const EZC_POOR_YAMIN = 10n;
+const EZC_POOR_SIXTY = 60n;
+const EZC_MUDD_PER_DAY = 1n;
+
+// ---- THE FIVE. And there are five, because this table is the only register of them. -----
+// A disagreement line may be drawn beneath exactly these five results and NOWHERE else in this
+// feature -- not in a calculator whose sources happen to mention a khilaf this build does not
+// use. EzikCalcKhilaf below is the only component that draws one and it refuses a name that is
+// not a key of this object, so a sixth spot cannot arrive by typo: it has to be added HERE, in a
+// diff that shows it.
+//   waqs    rides with ALL FOUR zakat results  -- the RATE is agreed; the excess above nisab is not
+//   trade   rides with the trade-goods result  -- how the goods are valued, and when
+//   jima    rides with the Ramadan result      -- majority: strict order; Maliki: a choice
+//   fidyah  rides with the fidyah result       -- the basis of the obligation AND its amount
+//   feed    rides with EVERY feeding output    -- 1 mudd per poor (majority); Hanafi 2
+// Two of them attach to more than one result screen. That is still one disagreement each, shown
+// wherever its own result appears -- not four each, and not eight between the two of them.
+const EZC_KHILAF = {
+  waqs: { text: 'calc.khilaf.waqs', cite: 'calc.ref.khilafWaqs' },
+  trade: { text: 'calc.khilaf.trade', cite: 'calc.ref.khilafTrade' },
+  jima: { text: 'calc.khilaf.jima', cite: 'calc.ref.khilafJima' },
+  fidyah: { text: 'calc.khilaf.fidyah', cite: 'calc.ref.khilafFidyah' },
+  feed: { text: 'calc.khilaf.feed', cite: 'calc.ref.feed' },
+};
+
+// THE NINE, NAMED ONCE. The chooser draws from this array and the panel switches on the same
+// 'id', so there is no second list of calculators anywhere in this feature.
+const EZC_LIST = [
+  { id: 'a1', group: 'zakat', name: 'calc.a1.name' },
+  { id: 'a2', group: 'zakat', name: 'calc.a2.name' },
+  { id: 'a3', group: 'zakat', name: 'calc.a3.name' },
+  { id: 'a4', group: 'zakat', name: 'calc.a4.name' },
+  { id: 'b1', group: 'kaffarat', name: 'calc.b1.name' },
+  { id: 'b2', group: 'kaffarat', name: 'calc.b2.name' },
+  { id: 'b3', group: 'kaffarat', name: 'calc.b3.name' },
+  { id: 'b4', group: 'kaffarat', name: 'calc.b4.name' },
+  { id: 'b5', group: 'kaffarat', name: 'calc.b5.name' },
+];
+
+// A SOURCE LINE: book and page, directly beneath the figure it belongs to. That is the rule for
+// every Shariah number on this screen without exception, and this is the only component that
+// draws one.
+function EzikCalcSrc({ cite }) {
+  return <div style={s.ezCalcSrc} data-ezik-calc-src={cite}>{ezcSrcText(cite)}</div>;
+}
+// A DISAGREEMENT LINE, and the only component in this feature that draws one. An unregistered
+// name renders NOTHING rather than an unlabelled note.
+function EzikCalcKhilaf({ name }) {
+  const row = Object.prototype.hasOwnProperty.call(EZC_KHILAF, name) ? EZC_KHILAF[name] : null;
+  if (!row) return null;
+  return (
+    <div style={s.ezCalcKhilaf} data-ezik-calc-khilaf={name}>
+      <span style={s.ezCalcKhilafLabel}>{ezT('calc.khilaf.label')}</span>
+      <span style={s.ezCalcKhilafText}>{ezT(row.text)}</span>
+      <EzikCalcSrc cite={row.cite} />
+    </div>
+  );
+}
+// A TYPED NUMBER. The value is carried as the STRING the reader typed -- parsing happens once, in
+// ezcParse, so a half-typed "0." stays a half-typed string instead of collapsing to a zero. It is
+// type="text" with inputMode="decimal" rather than type="number": a number input reports '' for
+// anything it considers invalid, which loses the reader's own keystrokes as they make them.
+function EzikCalcField({ name, label, unit, value, onChange, plain }) {
+  const head = label + (unit ? ' (' + unit + ')' : '');
+  return (
+    <label style={s.ezCalcField}>
+      <span style={s.ezCalcFieldLabel}>{head}</span>
+      <input type="text" inputMode={plain ? 'text' : 'decimal'} value={value}
+        onChange={(e) => onChange(e.target.value)} aria-label={head}
+        data-ezik-calc-field={name} style={s.ezCalcInput} />
+    </label>
+  );
+}
+// ONE RESULT, DRAWN ONE WAY: a label, the number, the unit the reader named, the working that
+// produced it, whatever it rests on, and -- where one of the five applies -- the disagreement.
+function EzikCalcOut({ id, label, value, unit, work, cite, kh, children }) {
+  return (
+    <div style={s.ezCalcOut} data-ezik-calc-out={id}>
+      <div style={s.ezCalcOutHead}>
+        <span style={s.ezCalcOutLabel}>{label}</span>
+        <span style={s.ezCalcOutValue}>{value}{unit ? ' ' + unit : ''}</span>
+      </div>
+      {work ? <div style={s.ezCalcWork}>{work}</div> : null}
+      {children || null}
+      {cite ? <EzikCalcSrc cite={cite} /> : null}
+      {kh ? <EzikCalcKhilaf name={kh} /> : null}
+    </div>
+  );
+}
+function EzikCalcNote({ id, text }) {
+  return <div style={s.ezCalcNote} data-ezik-calc-out={id}>{text}</div>;
+}
+// THE TWO NISABS, DERIVED ON SCREEN. The citation for each of the two figures is INSIDE the line,
+// beside the figure it belongs to -- which is what "book and page beneath the number" has to mean
+// when one number is built out of two.
+function EzikCalcGoldNisabWork() {
+  return (
+    <div style={s.ezCalcWork} data-ezik-calc-work="goldNisab">
+      {ezT('calc.work.goldNisab', {
+        m: ezcNum(String(EZC_GOLD_MITHQAL)), s1: ezcSrcText('calc.ref.mithqal'),
+        g: ezcNum(ezcWeightText(EZC_MITHQAL_G)), s2: ezT('calc.ref.mithqalG'),
+        n: ezcNum(ezcWeightText(EZC_GOLD_NISAB_G)),
+      })}
+    </div>
+  );
+}
+function EzikCalcSilverNisabWork() {
+  return (
+    <div style={s.ezCalcWork} data-ezik-calc-work="silverNisab">
+      {ezT('calc.work.silverNisab', {
+        d: ezcNum(String(EZC_SILVER_DIRHAM)), s1: ezcSrcText('calc.ref.dirham'),
+        g: ezcNum(ezcWeightText(EZC_DIRHAM_G)), s2: ezT('calc.ref.dirhamG'),
+        n: ezcNum(ezcWeightText(EZC_SILVER_NISAB_G)),
+      })}
+    </div>
+  );
+}
+// ONE STANDING NOTE FOR THE WHOLE ZAKAT GROUP, not one under every single result: all four assume
+// the wealth entered has already completed a full lunar year in the reader's possession, which is
+// what the sources agree the condition is. They track no dates and say so.
+function EzikCalcHawlNote() {
+  return (
+    <div style={s.ezCalcStanding} data-ezik-calc-standing="hawl">
+      <span style={s.ezCalcStandingText}>{ezT('calc.hawl.note')}</span>
+      <EzikCalcSrc cite="calc.ref.hawl" />
+    </div>
+  );
+}
+// THE FEEDING SUB-CALCULATOR. Written once and used in FOUR places (B1, B2, B4, B5), and
+// deliberately absent from the fifth: there is no feeding option in the expiation for accidental
+// killing, so B3 does not render this component at all -- not disabled, not hidden, not rendered.
+//
+// TWO MODES. By measure, the answer IS a measure and carries no money at all: so many mudds of
+// the country's own staple food, which is what the sources name. By financial estimate, the
+// reader types what a mudd costs where they are and the answer is
+//     units x mudds-per-unit x that price
+// 🔴 and that is the whole of it. The zakat rate has no business in a kaffarah and is not applied
+// here: a fortieth of a feeding bill is a number nobody is owed. The price is the READER'S OWN --
+// not fetched, not defaulted, not attributed to anybody and not remembered between visits.
+function EzikCalcFeeding({ units, mudds, kind, mode, onMode, price, onPrice, cur }) {
+  const total = units == null ? null : units * mudds;
+  const p = ezcParse(price);
+  const money = (total != null && p) ? ezcMul(ezcRat(total, 1), p) : null;
+  const btn = (k, key) => (
+    <button type="button" className="ezhome-focus" data-ezik-calc-mode={k}
+      onClick={() => onMode(k)} aria-pressed={mode === k ? 'true' : 'false'}
+      style={mode === k ? { ...s.ezCalcMode, ...s.ezCalcModeOn } : s.ezCalcMode}>{ezT(key)}</button>
+  );
+  return (
+    <div style={s.ezCalcSub} data-ezik-calc-feed={kind}>
+      <div style={s.ezCalcSubHead}>{ezT('calc.feed.title')}</div>
+      <div style={s.ezCalcModes} role="group" aria-label={ezT('calc.feed.title')}>
+        {btn('measure', 'calc.feed.mode.measure')}
+        {btn('money', 'calc.feed.mode.money')}
+      </div>
+      <div style={s.ezCalcWork}>{ezT('calc.feed.mudd')}</div>
+      <EzikCalcSrc cite="calc.ref.mudd" />
+      {mode === 'money'
+        ? <EzikCalcField name="mudd" label={ezT('calc.field.muddPrice')} unit={cur}
+          value={price} onChange={onPrice} />
+        : null}
+      {mode === 'measure' && total != null ? (
+        <EzikCalcOut id="feedMeasure" label={ezT('calc.feed.measure')}
+          value={ezT('calc.work.feedMeasure', { t: ezcNum(String(total)) })}
+          cite="calc.ref.feed" />
+      ) : null}
+      {mode === 'money' && money ? (
+        <EzikCalcOut id="feedMoney" label={ezT('calc.feed.total')} value={ezcMoney(money)} unit={cur}
+          work={ezT(kind === 'days' ? 'calc.work.fidyahMoney' : 'calc.work.feedMoney', {
+            n: ezcNum(String(units)), m: ezcNum(String(mudds)),
+            p: ezcMoney(p), t: ezcMoney(money),
+          })}
+          cite="calc.ref.feed" />
+      ) : null}
+      {(mode === 'measure' && total == null) || (mode === 'money' && !money)
+        ? <EzikCalcNote id="enter" text={ezT('calc.enter')} /> : null}
+      {/* THE FIFTH OF THE FIVE, and it rides here rather than being repeated per calculator:
+          it is ONE disagreement -- about the measure -- shown wherever a feeding result appears. */}
+      <EzikCalcKhilaf name="feed" />
+    </div>
+  );
+}
+
+// 🔴 ONE HOOK, FIRST STATEMENT, NO RETURN ABOVE IT. Defect 123, the rule every component in this
+// file keeps.
+function EzikCalcSection({ onClose }) {
+  useEzLang();
+  const [which, setWhich] = useState('a1');
+  // EVERY FIELD IN ONE RECORD, and 'silver' appears in it ONCE. A1 uses it as the nisab yardstick,
+  // A3 uses it as the price of the metal being weighed and A4 uses it as the yardstick again --
+  // they are the same number, so there is one field and the reader cannot give two answers to it.
+  const [f, setF] = useState({
+    cur: 'KWD', cash: '', silver: '', goldW: '', goldP: '', silverW: '', trade: '', mudd: '', days: '',
+  });
+  const [feedMode, setFeedMode] = useState('measure');
+  const set = (k) => (v) => setF((o) => Object.assign({}, o, { [k]: v }));
+  const cur = String(f.cur).trim();
+  const row = EZC_LIST.filter((r) => r.id === which)[0] || EZC_LIST[0];
+  const isZakat = row.group === 'zakat';
+  const money = (k, label) => <EzikCalcField name={k} label={ezT(label)} unit={cur} value={f[k]} onChange={set(k)} />;
+  const bare = (k, label) => <EzikCalcField name={k} label={ezT(label)} value={f[k]} onChange={set(k)} />;
+  const feeding = (units, kind) => (
+    <EzikCalcFeeding units={units} mudds={kind === 'days' ? EZC_MUDD_PER_DAY : EZC_MUDD_PER_POOR}
+      kind={kind} mode={feedMode} onMode={setFeedMode} price={f.mudd} onPrice={set('mudd')} cur={cur} />
+  );
+  // The options of a kaffarah, drawn as the LIST they are: ordered where the sources order them,
+  // unordered where they are a choice.
+  const opts = (list, ordered) => {
+    const items = list.map((k) => <li key={k} style={s.ezCalcStep} data-ezik-calc-step={k}>{ezT(k)}</li>);
+    return ordered ? <ol style={s.ezCalcSteps}>{items}</ol> : <ul style={s.ezCalcSteps}>{items}</ul>;
+  };
+  // THE RATE, NAMED IN THE WORKING. This builds A1's and A4's working line -- the ones whose
+  // zakat is a fortieth of a figure the reader typed directly. A2 and A3 multiply a weight by a
+  // price first, so they name the rate at the END of their own weighed line instead. All FOUR
+  // then carry the same cite and the same waqs note through EzikCalcOut, which is how one
+  // disagreement appears under four results without becoming four disagreements.
+  const rateWork = (a) => ezT('calc.rate') + ' \u2014 ' + ezT('calc.work.quarterTenthOf', { a: a });
+
+  // ---- A1. CASH. Nisab = the silver yardstick at the reader's own silver price. --------
+  const a1 = () => {
+    const amt = ezcParse(f.cash), sp = ezcParse(f.silver);
+    const nisab = sp ? ezcMul(EZC_SILVER_NISAB_G, sp) : null;
+    const due = (amt && nisab) ? ezcGte(amt, nisab) : null;
+    const z = (due && amt) ? ezcMul(amt, EZC_RATE) : null;
+    return (
+      <>
+        {money('cash', 'calc.field.amount')}
+        {money('silver', 'calc.field.silverPrice')}
+        {nisab ? (
+          <EzikCalcOut id="nisab" label={ezT('calc.nisab')} value={ezcMoney(nisab)} unit={cur}
+            work={ezT('calc.work.cashNisab', {
+              g: ezcNum(ezcWeightText(EZC_SILVER_NISAB_G)), p: ezcMoney(sp), n: ezcMoney(nisab),
+            })}>
+            <EzikCalcSilverNisabWork />
+          </EzikCalcOut>
+        ) : null}
+        {z ? (
+          <EzikCalcOut id="zakat" label={ezT('calc.due.amount')} value={ezcMoney(z)} unit={cur}
+            work={rateWork(ezcMoney(amt))} cite="calc.ref.rate" kh="waqs" />
+        ) : null}
+        {due === false ? <EzikCalcNote id="notdue" text={ezT('calc.notDue')} /> : null}
+        {due === null ? <EzikCalcNote id="enter" text={ezT('calc.enter')} /> : null}
+      </>
+    );
+  };
+  // ---- A2. GOLD. 85g, derived from 20 mithqal at 4.25g. ------------------------------
+  const a2 = () => {
+    const w = ezcParse(f.goldW), p = ezcParse(f.goldP);
+    const due = w ? ezcGte(w, EZC_GOLD_NISAB_G) : null;
+    const val = (w && p) ? ezcMul(w, p) : null;
+    const z = (due && val) ? ezcMul(val, EZC_RATE) : null;
+    return (
+      <>
+        {bare('goldW', 'calc.field.goldWeight')}
+        {money('goldP', 'calc.field.goldPrice')}
+        <EzikCalcOut id="nisab" label={ezT('calc.nisab')}
+          value={ezcNum(ezcWeightText(EZC_GOLD_NISAB_G)) + ' ' + ezT('calc.gram')}>
+          <EzikCalcGoldNisabWork />
+        </EzikCalcOut>
+        {z ? (
+          <EzikCalcOut id="zakat" label={ezT('calc.due.amount')} value={ezcMoney(z)} unit={cur}
+            work={ezT('calc.work.weighed', {
+              w: ezcNum(ezcWeightText(w)), p: ezcMoney(p), v: ezcMoney(val), z: ezcMoney(z),
+            }) + ' \u2014 ' + ezT('calc.rate')}
+            cite="calc.ref.rate" kh="waqs" />
+        ) : null}
+        {due === false ? <EzikCalcNote id="notdue" text={ezT('calc.notDue')} /> : null}
+        {due === null || !p ? <EzikCalcNote id="enter" text={ezT('calc.enter')} /> : null}
+      </>
+    );
+  };
+  // ---- A3. SILVER. 595g, derived from 200 dirham at 2.975g; the price field is A1's. ---
+  const a3 = () => {
+    const w = ezcParse(f.silverW), p = ezcParse(f.silver);
+    const due = w ? ezcGte(w, EZC_SILVER_NISAB_G) : null;
+    const val = (w && p) ? ezcMul(w, p) : null;
+    const z = (due && val) ? ezcMul(val, EZC_RATE) : null;
+    return (
+      <>
+        {bare('silverW', 'calc.field.silverWeight')}
+        {money('silver', 'calc.field.silverPrice')}
+        <EzikCalcOut id="nisab" label={ezT('calc.nisab')}
+          value={ezcNum(ezcWeightText(EZC_SILVER_NISAB_G)) + ' ' + ezT('calc.gram')}>
+          <EzikCalcSilverNisabWork />
+        </EzikCalcOut>
+        {z ? (
+          <EzikCalcOut id="zakat" label={ezT('calc.due.amount')} value={ezcMoney(z)} unit={cur}
+            work={ezT('calc.work.weighed', {
+              w: ezcNum(ezcWeightText(w)), p: ezcMoney(p), v: ezcMoney(val), z: ezcMoney(z),
+            }) + ' \u2014 ' + ezT('calc.rate')}
+            cite="calc.ref.rate" kh="waqs" />
+        ) : null}
+        {due === false ? <EzikCalcNote id="notdue" text={ezT('calc.notDue')} /> : null}
+        {due === null || !p ? <EzikCalcNote id="enter" text={ezT('calc.enter')} /> : null}
+      </>
+    );
+  };
+  // ---- A4. TRADE GOODS. The nisab is BY VALUE (vol 23 p272, p276 / vol 32 p344), valued in
+  // gold or silver; silver is the yardstick this whole feature uses, so A1's field serves here.
+  // The trade-valuation disagreement is shown ALWAYS, under the result, as the order requires.
+  const a4 = () => {
+    const val = ezcParse(f.trade), sp = ezcParse(f.silver);
+    const nisab = sp ? ezcMul(EZC_SILVER_NISAB_G, sp) : null;
+    const due = (val && nisab) ? ezcGte(val, nisab) : null;
+    const z = (due && val) ? ezcMul(val, EZC_RATE) : null;
+    return (
+      <>
+        {money('trade', 'calc.field.tradeValue')}
+        {money('silver', 'calc.field.silverPrice')}
+        {nisab ? (
+          <EzikCalcOut id="nisab" label={ezT('calc.nisab')} value={ezcMoney(nisab)} unit={cur}
+            work={ezT('calc.work.cashNisab', {
+              g: ezcNum(ezcWeightText(EZC_SILVER_NISAB_G)), p: ezcMoney(sp), n: ezcMoney(nisab),
+            })} cite="calc.ref.trade">
+            <EzikCalcSilverNisabWork />
+          </EzikCalcOut>
+        ) : null}
+        {z ? (
+          <EzikCalcOut id="zakat" label={ezT('calc.due.amount')} value={ezcMoney(z)} unit={cur}
+            work={rateWork(ezcMoney(val))} cite="calc.ref.rate" kh="waqs" />
+        ) : null}
+        {due === false ? <EzikCalcNote id="notdue" text={ezT('calc.notDue')} /> : null}
+        {due === null ? <EzikCalcNote id="enter" text={ezT('calc.enter')} /> : null}
+        <EzikCalcKhilaf name="trade" />
+      </>
+    );
+  };
+  // ---- B1. THE OATH. A CHOICE among three; the fast is what is left if none of them can be
+  // done, which is why it is not a fourth item in the same list.
+  const b1 = () => (
+    <>
+      <div style={s.ezCalcHead}>{ezT('calc.opt.choice')}</div>
+      {opts(['calc.opt.feed10', 'calc.opt.clothe10', 'calc.opt.freeSlave'], false)}
+      <div style={s.ezCalcStep} data-ezik-calc-step="calc.opt.fast3">{ezT('calc.opt.fast3')}</div>
+      <EzikCalcSrc cite="calc.ref.b1" />
+      {feeding(EZC_POOR_YAMIN, 'poor')}
+    </>
+  );
+  // ---- B2. DHIHAR. An ORDERED sequence, by scholarly consensus on the order. ------------
+  const b2 = () => (
+    <>
+      <div style={s.ezCalcHead}>{ezT('calc.opt.order')}</div>
+      {opts(['calc.opt.freeSlave', 'calc.opt.fast2m', 'calc.opt.feed60'], true)}
+      <EzikCalcSrc cite="calc.ref.b2" />
+      {feeding(EZC_POOR_SIXTY, 'poor')}
+    </>
+  );
+  // ---- B3. ACCIDENTAL KILLING. 🔴 NO FEEDING OPTION EXISTS FOR THIS ONE AT ALL, so no feeding
+  // sub-calculator is rendered: a price field the reader could fill in would be an option the
+  // sources do not give. The consecutiveness of the fast is obligatory by agreement.
+  const b3 = () => (
+    <>
+      <div style={s.ezCalcHead}>{ezT('calc.opt.order')}</div>
+      {opts(['calc.opt.freeSlave', 'calc.opt.fast2mAgreed'], true)}
+      <EzikCalcNote id="nofeeding" text={ezT('calc.b3.noFeeding')} />
+      <EzikCalcSrc cite="calc.ref.b3" />
+    </>
+  );
+  // ---- B4. INTERCOURSE IN RAMADAN. The three options are by agreement; their ORDER is not, and
+  // the disagreement about it is shown directly under the order this screen draws.
+  const b4 = () => (
+    <>
+      <div style={s.ezCalcHead}>{ezT('calc.b4.agreed')}</div>
+      <EzikCalcSrc cite="calc.ref.b4" />
+      {opts(['calc.opt.freeSlave', 'calc.opt.fast2m', 'calc.opt.feed60'], true)}
+      <EzikCalcSrc cite="calc.ref.b4order" />
+      <EzikCalcKhilaf name="jima" />
+      {feeding(EZC_POOR_SIXTY, 'poor')}
+    </>
+  );
+  // ---- B5. THE FAST'S RANSOM. A mudd for every missed day. Whole days only: half a day is not
+  // a day a fast was missed on, so a fractional entry is drawn as «enter the numbers».
+  const b5 = () => {
+    const d = ezcParse(f.days);
+    const days = (d && d.d === 1n) ? d.n : null;
+    return (
+      <>
+        {bare('days', 'calc.field.days')}
+        <EzikCalcOut id="fidyah" label={ezT('calc.due.amount')} value={ezT('calc.b5.result')}
+          cite="calc.ref.b5" />
+        <EzikCalcKhilaf name="fidyah" />
+        {feeding(days, 'days')}
+      </>
+    );
+  };
+
+  const bodies = { a1: a1, a2: a2, a3: a3, a4: a4, b1: b1, b2: b2, b3: b3, b4: b4, b5: b5 };
+  return (
+    <EzShell title={ezT('calc.title')} onBack={onClose} backLabel={ezT('calc.back')}>
+      <EzShellGroup title={ezT('calc.pick.title')} hint={ezT('calc.offline')}>
+        {['zakat', 'kaffarat'].map((g) => (
+          <div key={g}>
+            <div style={s.ezCalcGroupName}>{ezT('calc.group.' + g)}</div>
+            <div style={s.ezCalcPickRow} role="group" aria-label={ezT('calc.group.' + g)}>
+              {EZC_LIST.filter((r) => r.group === g).map((r) => (
+                <button key={r.id} type="button" className="ezhome-focus" data-ezik-calc={r.id}
+                  onClick={() => setWhich(r.id)} aria-pressed={which === r.id ? 'true' : 'false'}
+                  style={which === r.id ? { ...s.ezCalcPick, ...s.ezCalcPickOn } : s.ezCalcPick}>
+                  {ezT(r.name)}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </EzShellGroup>
+      <EzShellGroup title={ezT(row.name)}>
+        {/* The currency is a WORD, not a rate: it labels the numbers the reader typed and is
+            never converted, because nothing here knows what anything is worth in anything. */}
+        <EzikCalcField name="cur" label={ezT('calc.field.currency')} value={f.cur}
+          onChange={set('cur')} plain />
+        {bodies[row.id]()}
+      </EzShellGroup>
+      {isZakat ? (
+        <EzShellGroup title={ezT('calc.group.zakat')}>
+          <EzikCalcHawlNote />
+        </EzShellGroup>
+      ) : null}
     </EzShell>
   );
 }
@@ -6738,6 +7455,11 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   useEzikBackLayer(tasbihOpen, () => setTasbihOpen(false));
   const [tasbihLogOpen, setTasbihLogOpen] = useState(false);
   useEzikBackLayer(tasbihLogOpen, () => setTasbihLogOpen(false));
+  // ITEM 95: the calculator section, in those identical three shapes -- the state,
+  // useEzikBackLayer(open, close) and the ezikHistBack() toggle in its handler below. It owns
+  // one real history entry while it is open, so the device back button closes IT.
+  const [calcOpen, setCalcOpen] = useState(false);
+  useEzikBackLayer(calcOpen, () => setCalcOpen(false));
   const wt = readWirdTarget();
   const wd = readWirdDay();
   const wird = (wt && wd && Array.isArray(wd.pages)) ? { done: Math.min(wd.pages.length, wt), target: wt } : null;
@@ -6765,6 +7487,9 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     // are the same shape as the toggle above them, so all three spend history the same way.
     onOpenTasbih: (next) => { if (!next && ezikHistBack()) return; setTasbihOpen(next); },
     onOpenTasbihLog: (next) => { if (!next && ezikHistBack()) return; setTasbihLogOpen(next); },
+    // ITEM 95: the calculator door on the card row, the same shape as the three above it, so
+    // all four spend history the same way.
+    onOpenCalc: (next) => { if (!next && ezikHistBack()) return; setCalcOpen(next); },
     onWirdRemove: (k, id) => setWirdList(writeWirdList(wirdListRemove(wirdList.items, k, id))),
     // S118: onOpenChat is gone from this object because the home no longer holds a chat
     // control of its own. The chat is entered from the menu the bar opens, on the menu's own
@@ -6842,6 +7567,9 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // FIRST so that its order is fixed rather than incidental.
   if (tasbihLogOpen) return <EzikTasbihLog onClose={ezikGoBack} />;
   if (tasbihOpen) return <EzikTasbihSection onClose={ezikGoBack} onOpenLog={() => view.onOpenTasbihLog(true)} />;
+  // ITEM 95. Same door as the device button, on the same terms as the two layers above: the
+  // visible back spends the layer's entry through ezikGoBack rather than dropping it.
+  if (calcOpen) return <EzikCalcSection onClose={ezikGoBack} />;
   // ITEM 20. ONE component for both sections -- the section key and its title are all that
   // differs, and two components would be two places for the empty state, the failure state and
   // the writing door to drift apart. The back control presses ezikGoBack, so the visible button
@@ -24936,6 +25664,36 @@ const s = {
   ezTasbihLockOn: { background: 'var(--a3-ice)', color: 'var(--a3-blue)', border: '1px solid var(--a3-cyan)' },
   ezTasbihLockWord: { fontSize: 12.5, fontWeight: 800 },
   ezTasbihNote: { minHeight: 20, fontSize: 13, fontWeight: 800, color: 'var(--a3-blue)', textAlign: 'center', padding: '6px 0' },
+  // ---- ITEM 95: THE SHARIAH CALCULATOR ------------------------------------------------
+  // Every pairing here is one already measured elsewhere in this sheet; see the note in the
+  // calculator's own block. No new surface colour is introduced by this feature.
+  ezCalcGroupName: { fontSize: 12, fontWeight: 800, color: 'var(--a3-muted)', padding: '8px 0 2px' },
+  ezCalcPickRow: { display: 'flex', flexWrap: 'wrap', gap: 8, padding: '2px 0 6px' },
+  ezCalcPick: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, padding: '0 14px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-muted)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
+  ezCalcPickOn: { background: 'var(--a3-ice)', color: 'var(--a3-blue)', border: '1px solid var(--a3-cyan)' },
+  ezCalcModes: { display: 'flex', flexWrap: 'wrap', gap: 8, padding: '2px 0 4px' },
+  ezCalcMode: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, padding: '0 14px', borderRadius: 999, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', color: 'var(--a3-muted)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
+  ezCalcModeOn: { background: 'var(--a3-ice)', color: 'var(--a3-blue)', border: '1px solid var(--a3-cyan)' },
+  ezCalcField: { display: 'flex', flexDirection: 'column', gap: 6, padding: '6px 0' },
+  ezCalcFieldLabel: { fontSize: 12.5, fontWeight: 700, color: 'var(--a3-muted)', lineHeight: 1.7 },
+  ezCalcInput: { width: '100%', minHeight: 44, borderRadius: 12, border: '2px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)', fontSize: 15, fontWeight: 800, textAlign: 'start', padding: '0 10px', boxSizing: 'border-box' },
+  ezCalcOut: { display: 'flex', flexDirection: 'column', gap: 4, padding: '10px 0 6px', borderTop: '1px solid var(--a3-line)' },
+  ezCalcOutHead: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' },
+  ezCalcOutLabel: { fontSize: 12.5, fontWeight: 700, color: 'var(--a3-muted)' },
+  ezCalcOutValue: { fontSize: 21, fontWeight: 800, color: 'var(--a3-blue)', lineHeight: 1.5 },
+  ezCalcWork: { fontSize: 12, fontWeight: 600, color: 'var(--a3-ink)', lineHeight: 1.95 },
+  ezCalcSrc: { fontSize: 11.5, fontWeight: 600, color: 'var(--a3-muted)', lineHeight: 1.85 },
+  ezCalcNote: { fontSize: 13, fontWeight: 700, color: 'var(--a3-ink)', lineHeight: 1.95, padding: '6px 0' },
+  ezCalcHead: { fontSize: 13.5, fontWeight: 800, color: 'var(--a3-ink)', lineHeight: 1.95, padding: '4px 0' },
+  ezCalcSteps: { display: 'flex', flexDirection: 'column', gap: 6, margin: 0, paddingInlineStart: 22 },
+  ezCalcStep: { fontSize: 13.5, fontWeight: 700, color: 'var(--a3-ink)', lineHeight: 1.95 },
+  ezCalcSub: { display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10, padding: '10px 0 0', borderTop: '1px solid var(--a3-line)' },
+  ezCalcSubHead: { fontSize: 13, fontWeight: 800, color: 'var(--a3-ink)' },
+  ezCalcKhilaf: { display: 'flex', flexDirection: 'column', gap: 3, padding: '8px 0 4px', paddingInlineStart: 10, borderInlineStart: '3px solid var(--a3-cyan)' },
+  ezCalcKhilafLabel: { fontSize: 11.5, fontWeight: 800, color: 'var(--a3-blue)' },
+  ezCalcKhilafText: { fontSize: 12, fontWeight: 600, color: 'var(--a3-ink)', lineHeight: 1.95 },
+  ezCalcStanding: { display: 'flex', flexDirection: 'column', gap: 4 },
+  ezCalcStandingText: { fontSize: 12.5, fontWeight: 600, color: 'var(--a3-ink)', lineHeight: 1.95 },
   ezwidAct: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 44, minHeight: 44, padding: '0 10px', borderRadius: 12, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
   ezwidActOff: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 44, minHeight: 44, padding: '0 10px', borderRadius: 12, background: 'transparent', border: '1px solid var(--a3-line)', color: 'var(--a3-muted)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
   ezwidReset: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, marginTop: 12, padding: '6px 16px', borderRadius: 999, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 12.5, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
