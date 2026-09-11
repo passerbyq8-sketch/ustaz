@@ -673,7 +673,7 @@ const EZ_I18N = {
     'calc.card.title': 'حاسبة الشريعة',
     'calc.title': 'حاسبة الشريعة',
     'calc.back': 'رجوع إلى الرئيسية',
-    'calc.offline': 'الحساب كلُّه على هذا الجهاز: لا يُرسَل شيءٌ إلى أيِّ جهة، والأسعارُ من إدخالك وحدَك.',
+    'calc.offline': 'الحساب كلُّه على هذا الجهاز: لا يُرسَل شيءٌ من أرقامك إلى أيِّ جهة. وسعرُ الذهبِ وحدَه يُجلَب مرّةً في اليوم من وزارة التجارة والصناعة، وبقيّةُ الأسعارِ من إدخالك — ولك تغييرُ أيِّها شئت.',
     'calc.pick.title': 'اختَرِ الحاسبة',
     'calc.group.zakat': 'الزكاة',
     'calc.group.kaffarat': 'الكفّارات',
@@ -1233,7 +1233,7 @@ const EZ_I18N = {
     'calc.card.title': 'Shariah calculator',
     'calc.title': 'Shariah calculator',
     'calc.back': 'Back to home',
-    'calc.offline': 'Every calculation happens on this device: nothing is sent anywhere, and the prices are yours alone to type.',
+    'calc.offline': 'Every calculation happens on this device: none of your figures are sent anywhere. Only the gold price is fetched once a day from the Ministry of Commerce and Industry; the other prices are yours to type - and you can change any of them.',
     'calc.pick.title': 'Choose a calculator',
     'calc.group.zakat': 'Zakat',
     'calc.group.kaffarat': 'Expiations',
@@ -6492,6 +6492,14 @@ function EzikGoldKarat({ value, onPick }) {
 // switch on gets the same answer as a reader on fibre, because there is nothing to be offline
 // from. Nothing below is stored either: the screen opens empty every time, so this feature adds
 // no storage key and has nothing to appear in resetAll or in MUST_GO_ALREADY.
+//
+// 🔴 ITEM 96 -- THE GOLD PRICE IS FETCHED NOW, AND NOT BY THIS BLOCK. The day's gold price
+// comes from a SEPARATE block above this one, which owns the whole of that round trip; this
+// block still makes no request of its own and receives the four prices as a PROP, handed to it
+// by the owner that opens it. What the reader gains is a gold-price field that can arrive
+// PRE-FILLED, and what they keep is the right to overwrite it with whatever they like. And the
+// calculator screen DOES now have one storage key -- the one that block declares as
+// EZC_GOLD_PRICE_KEY -- which is named in resetAll and stands on the MUST_GO_ALREADY roster.
 //
 // 🔴 MONEY IS NEVER A FLOAT. The reason is one worked case, and it is in the acceptance battery:
 // 85.000g of gold at 15.612 per gram is 1327.02 exactly and a fortieth of that is 33.1755, which

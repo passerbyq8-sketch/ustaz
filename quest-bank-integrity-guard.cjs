@@ -947,7 +947,20 @@ const SEALED = {
   //                    LAST, after all of them, on a tree measured at CR = 0. CACHE is NOT
   //                    touched: the store name is a ship decision, the merge round owns the
   //                    bump, and nothing in this item is deployed.
-  'sw.js': 'cf573dae2e61c1714afca915e1b33d3a2df76f6d274e2439f230c919d306a13a',
+  //   item 96-b    -- THE TWO LINES ITEM 96 LEFT UNTRUE. The hint under the calculator picker
+  //                    still told the reader that every price is theirs to type, and the item 95
+  //                    block header still told the next reader that nothing here is fetched and
+  //                    that the feature declares no storage key. Both are text, and nothing in
+  //                    the worker changed on account of either -- but app.js is in CORE and the
+  //                    bundle carries both: 1512566 -> 1513535 (+969) under an index.html that
+  //                    did not move. So CORE_BYTES followed 2498394 -> 2499363, re-cut from the
+  //                    disk by node tools/core-bytes.cjs --write and never by hand, and the byte
+  //                    table above that constant and the figure in the table at :2073 carry the
+  //                    same measurement. Both sw.js edits and that figure were made first; this
+  //                    digest was cut LAST, after all of them, on a tree measured at CR = 0.
+  //                    CACHE is NOT touched: the store name is a ship decision, the merge round
+  //                    owns the bump, and nothing in this item is deployed.
+  'sw.js': '219cd0694e43b7483a0554aa7fa36cd2c7b8409212f5c57725de1b28abe8cb12',
 };
 
 // ---------------------------------------------------------------------------
@@ -2070,7 +2083,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1512566, of: 'app.js' },
+      { n: 1513535, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

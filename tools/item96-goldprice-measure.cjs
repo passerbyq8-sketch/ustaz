@@ -532,6 +532,20 @@ const UPDATED = 'سبتمبر 11, 2026, 8:05 ص';
   ok('...and never says اليوم in Arabic',
     String(AR['calc.gold.source']).indexOf('اليوم') === -1);
 
+  // ITEM 96-B -- THE HINT NO LONGER SAYS EVERY PRICE IS THE READER'S TO TYPE. The sentence under
+  // the calculator picker was written for item 95, when it was true of every price on the screen;
+  // item 96 made it false of one of them, and the sentence did not move with it. It is asserted
+  // here by what the value does NOT say -- so an edit that puts the old claim back, in either
+  // language, fails here rather than shipping a promise the gold field no longer keeps.
+  const OFFLINE_GONE = {
+    ar: ['والأسعارُ من إدخالك وحدَك', 'وحدَك'],
+    en: ['the prices are yours alone to type', 'yours alone'],
+  };
+  ok('calc.offline no longer claims that every price is typed by the reader',
+    OFFLINE_GONE.ar.every((p) => String(AR['calc.offline']).indexOf(p) === -1)
+    && OFFLINE_GONE.en.every((p) => String(EN['calc.offline']).indexOf(p) === -1),
+    'ar=' + AR['calc.offline'] + ' | en=' + EN['calc.offline']);
+
   /* ===================== H. THE FAILURE, AND THE WAIT ===================== */
   console.log('\n=== H. THE FAILURE STATE, AND THE SILENCE BEFORE IT ===');
   // H1 -- THE CALL FAILS on a device that has YESTERDAY's prices stored. The old price must not
