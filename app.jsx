@@ -642,8 +642,7 @@ const EZ_I18N = {
     'tasbih.back': 'رجوع إلى الرئيسية',
     'tasbih.pick.title': 'اختر الذكر',
     'tasbih.pick.dhikr': 'الذكر',
-    'tasbih.pick.none': 'اختر',
-    'tasbih.empty': 'اختر قسمًا ثمّ ذكرًا لتبدأ.',
+    'tasbih.none': 'بلا ذكر',
     'tasbih.counter.title': 'العدّ',
     'tasbih.target': 'الهدف',
     'tasbih.target.up': 'زدِ الهدف',
@@ -1106,8 +1105,7 @@ const EZ_I18N = {
     'tasbih.back': 'Back to home',
     'tasbih.pick.title': 'Choose the dhikr',
     'tasbih.pick.dhikr': 'Dhikr',
-    'tasbih.pick.none': 'Choose',
-    'tasbih.empty': 'Choose a section, then a dhikr, to begin.',
+    'tasbih.none': 'No dhikr',
     'tasbih.counter.title': 'The count',
     'tasbih.target': 'Target',
     'tasbih.target.up': 'Raise the target',
@@ -5472,11 +5470,13 @@ function EzistQuranPanel() {
 function ezHomeDuoCards(v) {
   return [
     { id: 'wird', title: <span style={s.ezistCardTitle}>{DW_CARD_TITLE}</span>,
-      onOpen: () => v.onOpenWird(true), badge: null },
+      onOpen: () => v.onOpenWird(true) },
+    // R2 -- AND THE TASBIH CARD CARRIES NOTHING BUT ITS NAME. It had a second control in its
+    // corner, the mark that opened the log; the owner has moved that INSIDE the screen, so the
+    // card is one title and one press again. The log itself did not move and its data did not
+    // change -- only the button that opens it, which now lives in the screen's own corner.
     { id: 'tasbih', title: <span style={s.ezistCardTitle}>{ezT('tasbih.card.title')}</span>,
-      onOpen: () => v.onOpenTasbih(true),
-      badge: { glyph: TASBIH_LOG_GLYPH, label: ezT('tasbih.log.open'),
-        onPress: () => v.onOpenTasbihLog(true) } },
+      onOpen: () => v.onOpenTasbih(true) },
   ];
 }
 
@@ -5492,10 +5492,6 @@ function EzikHomeCardRow({ cards }) {
           <button type="button" className="ezhome-focus" onClick={c.onOpen} style={s.ezHomeCardOpen}>
             {c.title}
           </button>
-          {c.badge ? (
-            <button type="button" className="ezhome-focus" onClick={c.badge.onPress}
-              aria-label={c.badge.label} style={s.ezHomeCardBadge}>{c.badge.glyph}</button>
-          ) : null}
         </div>
       ))}
     </div>
@@ -5781,9 +5777,19 @@ const TASBIH_ICON_UNLOCK = (
   </svg>
 );
 const TASBIH_DAY_RE = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
-// The glyph on the log mark. A symbol, not a word: the button carries its accessible name from
-// the dictionary, in whichever language the reader chose.
-const TASBIH_LOG_GLYPH = '≡';
+// R2 -- THE LOG MARK, AND IT IS A HISTORY MARK NOW. The owner asked for a circle with a curved
+// arrow around a clock -- the shape every interface uses for "what happened before" -- instead of
+// the three bars that stood on the card. Three paths: the ring with its opening, the arrowhead
+// that turns back into it, and the two hands. Decorative and bounded; the button it sits in
+// carries the accessible name, out of the dictionary, in whichever language the reader chose.
+const TASBIH_ICON_HISTORY = (
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <path d="M3.2 12a8.8 8.8 0 1 0 2.9-6.5" />
+    <path d="M3 4.3V9h4.7" />
+    <path d="M12 7.6V12l3 1.9" />
+  </svg>
+);
 // How long the device is asked to buzz when the target is reached. One short pulse, and the call
 // is GUARDED at its one site: navigator.vibrate does not exist on iOS Safari and is refused
 // without a user gesture elsewhere, so it is asked for and never assumed.
@@ -5799,33 +5805,38 @@ function tasbihDayKey(d) {
   return String(y) + '-' + (m < 10 ? '0' : '') + String(m) + '-' + (day < 10 ? '0' : '') + String(day);
 }
 
-// { id }. THE CHOSEN DHIKR AND NOTHING ELSE, and that is the whole of this feature's session
-// storage now. The COUNT is deliberately not here: the owner ruled it starts at zero on every open
-// and on every change of dhikr, so it is component state and is written nowhere. The TARGET is not
-// here either, for the same reason -- it is shut on every open, by his ruling.
+// { ids: [...] }. THE CHOSEN ADHKAR AND NOTHING ELSE, and an EMPTY ARRAY IS THE NONE STATE --
+// which is what a device with no record reads as, so none is the default without a second flag
+// anywhere saying so. The COUNT is still not here and neither is the TARGET: the count starts at
+// zero on every open by the owner's earlier ruling, and the target is shut on every open.
 //
-// NO NEW KEY WAS ADDED FOR ANY OF THIS. ezik_tasbih_session_v1 is the key this feature already
-// had, already erased by "delete all my data" and already on the roster in
-// tools/delete-truth-measure.cjs; what changed is that it now holds less.
+// NO NEW KEY. ezik_tasbih_session_v1 is the key this feature already had, already erased by
+// "delete all my data" and already on the roster in tools/delete-truth-measure.cjs; only the
+// shape of its value changed.
 function readTasbihSession() {
-  const empty = { id: 0 };
+  const empty = { ids: [] };
   let raw = null;
   try { raw = localStorage.getItem(TASBIH_SESSION_KEY); } catch (e) { return empty; }
   if (typeof raw !== 'string' || !raw) return empty;
   let o = null;
   try { o = JSON.parse(raw); } catch (e) { return empty; }
   if (!o || typeof o !== 'object' || Array.isArray(o)) return empty;
-  // ADMITTED ONLY IF THIS BUILD REALLY HAS A DHIKR BY THAT NUMBER. A record written by the
-  // previous design carried an adhkar.json id (75, 91, ...), and every one of those fails this
-  // test -- so such a device opens on "choose a dhikr" rather than on a counter for a dhikr that
-  // is not in the list any more. Nothing is migrated and nothing is thrown away by hand.
-  return { id: TASBIH_DHIKR.some((d) => d.id === o.id) ? o.id : 0 };
+  return { ids: tasbihIds(o.ids) };
+}
+// THE ONE NORMALISER, so the reader and the writer cannot disagree about what a selection is. It
+// admits ONLY ids this build really has, drops repeats, and returns them in the owner's own order
+// whatever order they were ticked in -- so a hand-edited store, a record from the single-choice
+// design ({ id: 7 }, which carries no ids at all) and a list of nonsense all read as a selection
+// this screen can actually draw.
+function tasbihIds(want) {
+  const list = Array.isArray(want) ? want : [];
+  return TASBIH_DHIKR.filter((d) => list.indexOf(d.id) !== -1).map((d) => d.id);
 }
 // IT RETURNS WHAT IS NOW IN EFFECT, never what was asked for. localStorage only -- no request, no
 // beacon, no background sync.
 function writeTasbihSession(next) {
-  const id = (next && TASBIH_DHIKR.some((d) => d.id === next.id)) ? next.id : 0;
-  try { localStorage.setItem(TASBIH_SESSION_KEY, JSON.stringify({ id: id })); } catch (e) { return readTasbihSession(); }
+  const ids = tasbihIds(next && next.ids);
+  try { localStorage.setItem(TASBIH_SESSION_KEY, JSON.stringify({ ids: ids })); } catch (e) { return readTasbihSession(); }
   return readTasbihSession();
 }
 
@@ -5879,45 +5890,43 @@ function tasbihBuzz() {
 
 // 🔴 ONE HOOK, FIRST STATEMENT, NO RETURN ABOVE IT. Defect 123, the rule every component in this
 // file keeps.
-function EzikTasbihSection({ onClose }) {
+function EzikTasbihSection({ onClose, onOpenLog }) {
   useEzLang();
-  // THE ONE THING THAT OUTLIVES THE SCREEN is which dhikr was chosen. THE COUNT IS NOT: by the
-  // owner's ruling it starts at zero on every open and on every change of dhikr, so it is
-  // component state, is written to no store, and no key was added for it.
-  const [id, setId] = useState(() => readTasbihSession().id);
+  // THE SELECTION IS A LIST NOW, and the empty list is the NONE state -- the default on a device
+  // that has never ticked anything. THE COUNT IS STILL COMPONENT STATE: zero on every open, and
+  // zero whenever the selection changes, because a number counted against one selection does not
+  // belong to another.
+  const [ids, setIds] = useState(() => readTasbihSession().ids);
   const [count, setCount] = useState(0);
-  // THE TARGET IS SHUT UNTIL THE READER OPENS IT, and while it is shut there is NO CEILING AT ALL
-  // -- the count runs free, which is what the owner's «الغياب التام لهدفٍ مفتوح» asks for. Opening
-  // it puts a real number in force, and it is the number the panel is showing; shutting it lets
-  // the count run free again. So what the screen displays is always what the counter will do.
+  // THE TARGET IS SHUT UNTIL THE READER OPENS IT, and while it is shut there is NO CEILING at all.
   const [targetOpen, setTargetOpen] = useState(false);
   const [target, setTarget] = useState(TASBIH_TARGET_DEFAULT);
   // The press. Movement only -- it changes no count and reads no store.
   const [pressed, setPressed] = useState(false);
-  const chosen = TASBIH_DHIKR.filter((d) => d.id === id)[0] || null;
-  const full = !!chosen && targetOpen && count >= target;
+  const chosen = TASBIH_DHIKR.filter((d) => ids.indexOf(d.id) !== -1);
+  const none = ids.length === 0;
+  const full = targetOpen && count >= target;
   const pct = targetOpen && target > 0 ? Math.min(100, Math.round((count / target) * 100)) : 0;
-  // ONE DROPDOWN, ONE STEP. Choosing a dhikr zeroes the count with it: a number carried across two
-  // different adhkar belongs to neither.
-  const pickDhikr = (raw) => {
-    const n = parseInt(raw, 10);
-    const next = TASBIH_DHIKR.some((d) => d.id === n) ? n : 0;
-    setId(next);
+  // ONE TICK, ONE DHIKR. The writer normalises, so what is set is always a selection this screen
+  // can draw, in the owner's own order whatever order it was ticked in.
+  const toggle = (n) => {
+    const want = ids.indexOf(n) !== -1 ? ids.filter((x) => x !== n) : ids.concat([n]);
+    setIds(writeTasbihSession({ ids: want }).ids);
     setCount(0);
-    writeTasbihSession({ id: next });
   };
-  // The target is bounded on write, so a hand-held «-» cannot walk it below its floor and the
-  // field cannot be typed past its ceiling. It does NOT throw away what was already counted.
+  // THE NONE ROW. Ticking it clears every other selection and returns to the free state; it is
+  // the same one writer, handed the empty list.
+  const clearAll = () => { setIds(writeTasbihSession({ ids: [] }).ids); setCount(0); };
   const setTargetNum = (n) => {
     if (!Number.isInteger(n) || n < TASBIH_TARGET_MIN || n > TASBIH_TARGET_MAX) return;
     setTarget(n);
   };
-  // ONE PRESS IS ONE INCREMENT. With the target shut it simply adds one, for ever. With the target
-  // open it refuses at the number the reader set, so a held finger, a double tap or a replayed
-  // click cannot carry the count past it. The day is recorded on the FIRST increment and never
-  // again; the buzz is asked for only on the press that ARRIVES at the target.
+  // ONE PRESS IS ONE INCREMENT, AND IT WORKS IN THE NONE STATE TOO -- the owner ruled the counter
+  // free with nothing ticked, so nothing here asks whether a dhikr was chosen. With the target
+  // shut it simply adds one, for ever; with the target open it refuses at the number the reader
+  // set. The day is recorded on the FIRST increment and never again.
   const countUp = () => {
-    if (!chosen || full) return;
+    if (full) return;
     markTasbihDay();
     const next = count + 1;
     setCount(targetOpen ? Math.min(next, target) : next);
@@ -5927,37 +5936,50 @@ function EzikTasbihSection({ onClose }) {
   const dialWord = full ? ezT('tasbih.reached')
     : targetOpen ? ezT('tasbih.progress', { n: toArabicDigits(count), t: toArabicDigits(target) })
       : ezT('tasbih.count');
-  // THE RING IS THE PROGRESS, and it exists only when there is progress to draw. With the target
-  // shut there is no fraction to show, so it is one flat token and not a ring pretending to fill.
   const ringStyle = targetOpen
     ? { ...s.ezTasbihRing, backgroundImage: 'conic-gradient(var(--a3-cyan) ' + pct + '%, var(--a3-line) 0)' }
     : { ...s.ezTasbihRing, background: 'var(--a3-ice)' };
-  const dialStyle = !chosen ? { ...s.ezTasbihDial, ...s.ezTasbihDialOff }
-    : full ? { ...s.ezTasbihDial, ...s.ezTasbihDialDone }
-      : pressed ? { ...s.ezTasbihDial, ...s.ezTasbihDialPressed } : s.ezTasbihDial;
+  const dialStyle = full ? { ...s.ezTasbihDial, ...s.ezTasbihDialDone }
+    : pressed ? { ...s.ezTasbihDial, ...s.ezTasbihDialPressed } : s.ezTasbihDial;
   return (
-    <EzShell title={ezT('tasbih.title')} onBack={onClose} backLabel={ezT('tasbih.back')}>
+    <EzShell title={ezT('tasbih.title')} onBack={onClose} backLabel={ezT('tasbih.back')}
+      actions={(
+        /* R2 -- THE LOG LIVES HERE NOW, in the screen's own corner, and nowhere else. */
+        <button type="button" className="ezhome-focus" onClick={onOpenLog}
+          aria-label={ezT('tasbih.log.open')} style={s.ezTasbihLogBtn}>{TASBIH_ICON_HISTORY}</button>
+      )}>
       <EzShellGroup title={ezT('tasbih.pick.title')}>
-        {/* ONE DROPDOWN. The fifteen, in the owner's own order, each drawn with the text he
-            dictated and carrying his own number as its value. */}
-        <div style={s.ezTasbihPickRow}>
-          <span style={s.ezistCardSub}>{ezT('tasbih.pick.dhikr')}</span>
-          <select value={id ? String(id) : ''} onChange={(e) => pickDhikr(e.target.value)}
-            aria-label={ezT('tasbih.pick.dhikr')} style={s.memAyahSelect}>
-            <option value="">{ezT('tasbih.pick.none')}</option>
-            {TASBIH_DHIKR.map((d) => (
-              <option key={String(d.id)} value={String(d.id)}>{d.text}</option>
-            ))}
-          </select>
+        {/* R2 -- CHECKBOXES, NOT A DROPDOWN. One row per dhikr, all fifteen, and the reader may
+            tick one, several or all of them. The none row is FIRST and is ticked whenever nothing
+            else is: it is a reading of the selection, not a fourth state kept beside it. */}
+        <div role="group" aria-label={ezT('tasbih.pick.dhikr')} style={s.ezTasbihList}>
+          <label style={none ? { ...s.ezTasbihRow, ...s.ezTasbihRowOn } : s.ezTasbihRow}>
+            <input type="checkbox" checked={none} onChange={clearAll} style={s.ezTasbihBox} />
+            <span style={s.ezTasbihRowText}>{ezT('tasbih.none')}</span>
+          </label>
+          {TASBIH_DHIKR.map((d) => {
+            const on = ids.indexOf(d.id) !== -1;
+            return (
+              <label key={String(d.id)} style={on ? { ...s.ezTasbihRow, ...s.ezTasbihRowOn } : s.ezTasbihRow}>
+                <input type="checkbox" checked={on} onChange={() => toggle(d.id)} style={s.ezTasbihBox} />
+                <span style={s.ezTasbihRowText}>{d.text}</span>
+              </label>
+            );
+          })}
         </div>
       </EzShellGroup>
       <EzShellGroup title={ezT('tasbih.counter.title')}>
-        {/* THE CHOSEN DHIKR, ABOVE THE DIAL, VERBATIM. Printed exactly as TASBIH_DHIKR holds it --
-            nothing trimmed, shortened or re-worded for the screen. */}
-        <div style={s.ezTasbihText}>{chosen ? chosen.text : ezT('tasbih.empty')}</div>
+        {/* EVERY CHOSEN TEXT, STACKED ABOVE THE DIAL, VERBATIM -- and in the none state NOTHING is
+            drawn here at all, which is the owner's own ruling. The list scrolls rather than pushing
+            the dial off a phone screen when all fifteen are ticked. */}
+        {chosen.length > 0 ? (
+          <div style={s.ezTasbihChosen}>
+            {chosen.map((d) => <div key={String(d.id)} style={s.ezTasbihText}>{d.text}</div>)}
+          </div>
+        ) : null}
         <div style={s.ezTasbihDialWrap}>
           <div style={ringStyle}>
-            <button type="button" className="ezhome-focus" onClick={countUp} disabled={!chosen}
+            <button type="button" className="ezhome-focus" onClick={countUp}
               onPointerDown={() => setPressed(true)}
               onPointerUp={() => setPressed(false)}
               onPointerLeave={() => setPressed(false)}
@@ -5979,8 +6001,8 @@ function EzikTasbihSection({ onClose }) {
             </button>
           </div>
         </div>
-        {/* THE TARGET PANEL. It is not merely hidden when shut -- it is not rendered, so there is
-            no control of any kind for a keyboard or a screen reader to land on. */}
+        {/* THE TARGET PANEL. Shut, it is not merely hidden -- it is not rendered, so there is no
+            control of any kind for a keyboard or a screen reader to land on. */}
         {targetOpen ? (
           <div style={s.ezTasbihTargetRow}>
             <span style={s.ezistCardSub}>{ezT('tasbih.target')}</span>
@@ -6777,7 +6799,7 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // back spends the layer's entry through ezikGoBack rather than dropping it. The log is tested
   // FIRST so that its order is fixed rather than incidental.
   if (tasbihLogOpen) return <EzikTasbihLog onClose={ezikGoBack} />;
-  if (tasbihOpen) return <EzikTasbihSection onClose={ezikGoBack} />;
+  if (tasbihOpen) return <EzikTasbihSection onClose={ezikGoBack} onOpenLog={() => view.onOpenTasbihLog(true)} />;
   // ITEM 20. ONE component for both sections -- the section key and its title are all that
   // differs, and two components would be two places for the empty state, the failure state and
   // the writing door to drift apart. The back control presses ezikGoBack, so the visible button
@@ -24827,7 +24849,6 @@ const s = {
   ezHomeCardRow: { display: 'grid', gap: 12, width: '100%', boxSizing: 'border-box' },
   ezHomeCardCell: { display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, width: '100%', boxSizing: 'border-box', padding: '10px 12px 12px', borderRadius: 18, background: 'var(--a3-surface)', border: '1px solid var(--a3-line)', boxShadow: 'var(--a3-shadow)' },
   ezHomeCardOpen: { flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', minHeight: 44, padding: '6px', borderRadius: 12, background: 'transparent', border: 'none', color: 'var(--a3-ink)', cursor: 'pointer', textAlign: 'start', fontFamily: 'var(--ez-ui-font)' },
-  ezHomeCardBadge: { flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 44, minHeight: 44, padding: '0 8px', borderRadius: 12, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 16, fontWeight: 800, fontFamily: 'var(--ez-ui-font)', cursor: 'pointer' },
   // ITEM 93 -- THE TASBIH SCREEN. Every value is an existing token; this feature declares no
   // colour of its own.
   ezTasbihPickRow: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '8px 0' },
@@ -24843,7 +24864,19 @@ const s = {
   ezTasbihDial: { width: '100%', height: '100%', minWidth: 44, minHeight: 44, borderRadius: '50%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, padding: 0, border: 'none', cursor: 'pointer', color: 'var(--a3-on-blue)', fontFamily: 'var(--ez-ui-font)', backgroundImage: 'radial-gradient(circle at 50% 28%, var(--a3-cyan) 0%, var(--a3-blue) 58%, var(--a3-navy) 100%)', boxShadow: 'var(--a3-lift)', transition: 'transform 130ms ease, box-shadow 130ms ease' },
   ezTasbihDialPressed: { transform: 'scale(0.955)', boxShadow: 'var(--a3-shadow)' },
   ezTasbihDialDone: { backgroundImage: 'radial-gradient(circle at 50% 28%, var(--a3-ice) 0%, var(--a3-cyan) 62%, var(--a3-blue) 100%)', color: 'var(--a3-navy)', cursor: 'default' },
-  ezTasbihDialOff: { backgroundImage: 'radial-gradient(circle at 50% 28%, var(--a3-soft) 0%, var(--a3-line) 100%)', color: 'var(--a3-muted)', cursor: 'default', boxShadow: 'none' },
+  // R2 -- THE CHECKBOX LIST, THE STACKED SELECTION, AND THE CORNER MARK. The dial above is
+  // untouched. Every colour is an existing --a3-* token.
+  ezTasbihList: { display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 'min(46vh, 360px)', overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '4px 0' },
+  ezTasbihRow: { display: 'flex', alignItems: 'center', gap: 10, minHeight: 44, padding: '6px 10px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', cursor: 'pointer', boxSizing: 'border-box' },
+  // THE INK IS --a3-blue AND NOT --a3-navy, and that is a repair rather than a taste. navy on ice
+  // is the DIAL's pairing, where it sits on a light gradient; on this flat ice surface it measures
+  // 1.10:1 in light and 1.18:1 in dark -- gate themecoverage caught it. --a3-blue on ice is the
+  // pairing ezTasbihLockOn already carries on the same surface, and it clears the ratio in both.
+  ezTasbihRowOn: { background: 'var(--a3-ice)', border: '1px solid var(--a3-cyan)', color: 'var(--a3-blue)' },
+  ezTasbihBox: { width: 20, height: 20, flexShrink: 0, accentColor: 'var(--a3-blue)', cursor: 'pointer' },
+  ezTasbihRowText: { flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 700, lineHeight: 1.8, textAlign: 'start' },
+  ezTasbihChosen: { display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 'min(30vh, 220px)', overflowY: 'auto', WebkitOverflowScrolling: 'touch' },
+  ezTasbihLogBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 44, minHeight: 44, padding: 0, borderRadius: 12, background: 'transparent', border: 'none', color: 'var(--a3-blue)', cursor: 'pointer' },
   ezTasbihDialNum: { fontSize: 54, fontWeight: 800, lineHeight: 1 },
   ezTasbihDialWord: { fontSize: 13, fontWeight: 700 },
   ezTasbihLockRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '2px 0' },
