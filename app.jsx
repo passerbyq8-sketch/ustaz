@@ -5772,7 +5772,10 @@ function readTasbihSession() {
   const target = (Number.isInteger(o.target) && o.target >= TASBIH_TARGET_MIN && o.target <= TASBIH_TARGET_MAX)
     ? o.target : TASBIH_TARGET_DEFAULT;
   const count = (Number.isInteger(o.count) && o.count > 0) ? Math.min(o.count, target) : 0;
-  if (!cat || !id) return { cat: '', id: 0, target: target, count: 0 };
+  // A CATEGORY WITHOUT A DHIKR IS A REAL STATE, not a broken record: it is what the reader is in
+  // between the two dropdowns, and the screen has to be able to draw the second one. What is NOT
+  // a real state is a COUNT against no dhikr, so that -- and only that -- is dropped here.
+  if (!id) return { cat: cat, id: 0, target: target, count: 0 };
   return { cat: cat, id: id, target: target, count: count };
 }
 // IT RETURNS WHAT IS NOW IN EFFECT, never what was asked for, so the caller always renders a value
