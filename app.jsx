@@ -11185,7 +11185,7 @@ function IstanaAdhkarReader(v) {
                   count. It sits inside the completion strip, which is drawn only when the item
                   is full -- so it is offered exactly where a reader who came back to repeat a
                   dhikr is standing, and nowhere else. */}
-              {len > 0 && v.catDone >= len ? (
+              {len > 0 && v.catDone >= len && v.idx >= len - 1 ? (
                 <div style={s.eziaSeal} role="status" aria-live="polite">
                   <span style={s.eziaSealText}>{A3G_SEAL}</span>
                   <span style={s.eziaSealRef}>{A3G_SEAL_REF}</span>
