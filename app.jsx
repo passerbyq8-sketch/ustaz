@@ -11171,21 +11171,24 @@ function IstanaAdhkarReader(v) {
                   category there is nothing to offer, and only the completion is shown. Both
                   strings are the screen's own: A2_DONE is the word the counter already switches
                   to, A2_NEXT is the accessible name the forward control already carries. */}
-              {/* THE END OF THE GROUP TAKES THIS SLOT. When every dhikr of the category has
-                  reached its own target the per-item strip has nothing left to say, so the
-                  closing block stands in its place. The condition is the reading the bar at the
-                  top of this screen already draws -- v.catDone against len, both handed down
-                  already resolved -- so this cannot claim a completion the bar disagrees with,
-                  and nothing is recounted here. It carries two things and no third: the
-                  Qur'anic phrase between its two ornate brackets, and the reference that names
-                  where it is from. No button, no summary, no counter, no share. The way on is
-                  the way that was always there: the back arrow, and the zero under a finished
-                  card.
+              {/* THE END OF THE GROUP TAKES THIS SLOT, BUT ONLY WHERE THERE IS A JOURNEY WITH
+                  AN END. When every dhikr of a category that holds MORE THAN ONE has reached
+                  its own target, the per-item strip has nothing left to say on the last card,
+                  so the closing block stands in its place there -- and only there. A category
+                  holding a single dhikr is no journey: one tap finishes it, so it keeps the
+                  ordinary completion strip and its zero and never shows the closing block. The
+                  condition is the reading the bar at the top of this screen already draws --
+                  v.catDone against len, both handed down already resolved -- so this cannot
+                  claim a completion the bar disagrees with, and nothing is recounted here. It
+                  carries two things and no third: the Qur'anic phrase between its two ornate
+                  brackets, and the reference that names where it is from. No button, no
+                  summary, no counter, no share. The way on is the way that was always there:
+                  the back arrow, and the zero under a finished card.
                   THE ZERO. One control, and it is the only thing in this file that can lower a
                   count. It sits inside the completion strip, which is drawn only when the item
                   is full -- so it is offered exactly where a reader who came back to repeat a
                   dhikr is standing, and nowhere else. */}
-              {len > 0 && v.catDone >= len && v.idx >= len - 1 ? (
+              {len > 1 && v.catDone >= len && v.idx >= len - 1 ? (
                 <div style={s.eziaSeal} role="status" aria-live="polite">
                   <span style={s.eziaSealText}>{A3G_SEAL}</span>
                   <span style={s.eziaSealRef}>{A3G_SEAL_REF}</span>
