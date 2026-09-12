@@ -960,7 +960,39 @@ const SEALED = {
   //                    digest was cut LAST, after all of them, on a tree measured at CR = 0.
   //                    CACHE is NOT touched: the store name is a ship decision, the merge round
   //                    owns the bump, and nothing in this item is deployed.
-  'sw.js': '219cd0694e43b7483a0554aa7fa36cd2c7b8409212f5c57725de1b28abe8cb12',
+  //   item 99      -- THE BYTE LEDGER FOLLOWS THE FILES IT SEALS. CORE itself did not change --
+  //                    no file entered it and none left -- but index.html AND app.js are both in
+  //                    CORE and both moved in this repair round. index.html carries the closing
+  //                    screen's structured data below the body instead of in the head and two
+  //                    store links fewer in its noscript: 152137 -> 153974 (+1837). app.js was
+  //                    rebuilt by node tools/build-app.cjs from an app.jsx that draws the closing
+  //                    block on the last card only: 1513535 -> 1518634 (+5099). So CORE_BYTES
+  //                    followed 2499363 -> 2506299 = the two deltas summed, re-cut from the disk
+  //                    by node tools/core-bytes.cjs --write and never by hand, and the byte table
+  //                    above that constant and the two figures in the table at :2094 and :2102
+  //                    carry the same measurement. sw.js is NOT in CORE, so the constant is not
+  //                    a fixed point and one pass settles it. Both sw.js edits and those two
+  //                    figures were made first; this digest was cut LAST, after all of them, on a
+  //                    tree measured at CR = 0. CACHE is NOT touched: the store name is a ship
+  //                    decision, the merge round owns the bump, and nothing in this item is
+  //                    deployed.
+  //   item 99 ship -- THE STORE NAME FOR THE SHIP. This is the merge round that sw.js:48 and the
+  //                    note above SW_CACHE both defer the bump to, so the bump is made here:
+  //                    CACHE ezik-v33 -> ezik-v34 in sw.js, and SW_CACHE below with it, in this
+  //                    one commit. THE SHIP ROUND RAISED THE CACHE NAME SO THE NEW SHELL REACHES
+  //                    READERS WHO ALREADY CARRY THE OLD ONE: a returning reader holds the old
+  //                    bundle in the old store, and only a changed worker installs, sweeps every
+  //                    store that is not the new name in activate, and hands them this item
+  //                    instead of the build they already have. NOTHING ELSE IN THE WORKER MOVED.
+  //                    NO CORE FILE CHANGED -- none entered CORE and none left it, and
+  //                    index.html, app.js and every other CORE entry are byte for byte what this
+  //                    branch already carried and what the gates passed on -- so NO BYTE FIGURE
+  //                    MOVED: CORE_BYTES is still 2506299, re-measured against the disk by node
+  //                    tools/core-bytes.cjs, and the byte table above that constant and the
+  //                    SW_PROSE mirror below are untouched. The two store names are the same
+  //                    eight characters, so sw.js is 46792 bytes before and after this edit. THIS
+  //                    digest is re-cut LAST, after the sw.js edit, on a tree measured at CR = 0.
+  'sw.js': '0d5a656e93356d11502948b60d6c7b720cee3924108653170efc50b252578ff1',
 };
 
 // ---------------------------------------------------------------------------
@@ -984,7 +1016,7 @@ const SEALED = {
 // instead of with "sw.js MOVED".
 // ---------------------------------------------------------------------------
 const SW_FILE = 'sw.js';
-const SW_CACHE = 'ezik-v33';
+const SW_CACHE = 'ezik-v34';
 const SW_ORIGIN = 'https://ezik.app';
 // ITEM 93-B. The tag on the end-of-install brief the worker pushes to every client. Written here
 // rather than read back out of sw.js, because "the worker sent whatever the worker calls it" is a
@@ -2075,7 +2107,7 @@ async function compare(goldenPath) {
     //  { n, sum: [a, b] }  n is the byte sum of those files on disk
     //  { n, dir: 'count' | 'sum' | 'mean' }   n is that statistic over the mushaf page scans
     const SW_PROSE = [
-      { n: 152137, of: 'index.html' },
+      { n: 153974, of: 'index.html' },
       // ITEM 85. The two CORE entries the self-hosted faces added, stated in the worker's byte
       // table beside the rest and re-derived here from the files they name. They are the arabic
       // and latin cuts of Noto Naskh Arabic, which is what the first screen is painted in.
@@ -2083,7 +2115,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1513535, of: 'app.js' },
+      { n: 1518634, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

@@ -48,7 +48,7 @@
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" href="/icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
-<title>عزك</title>
+<title>عزك — تطبيقٌ إسلاميٌّ بالعربيّة: مصحفٌ وأذكارٌ ومواقيتُ صلاةٍ وفتاوى</title>
 <meta name="description" content="عزك — رفيقٌ إسلاميٌّ للأطفال وأهلِهم: المصحفُ والأذكارُ ومواقيتُ الصلاةِ والقبلةُ وفتاوى العلماءِ ودروسُهم.">
 <link rel="canonical" href="/">
 <meta property="og:type" content="website">
@@ -2030,6 +2030,37 @@ window.__ezikVendor = (function () {
 
 <script src="app.js"></script>
 <div id="print-area"></div>
+<!-- THE ROOT DOCUMENT SAYS WHAT IT IS WITHOUT JAVASCRIPT. The body of this page is React's:
+     #root above is handed to createRoot and everything inside it is replaced on the first
+     render, so static text placed there would be wiped. This block sits OUTSIDE #root, after
+     the print area, and it is a <noscript>: a reader running the application never sees a word
+     of it, because noscript content is not rendered when JavaScript runs. Every string in it is
+     already in the tree -- the title and the description above, and the two store listings out
+     of the sameAs of the structured data in the head. Nothing here is composed. -->
+<noscript>
+<h1>عزك — تطبيقٌ إسلاميٌّ بالعربيّة: مصحفٌ وأذكارٌ ومواقيتُ صلاةٍ وفتاوى</h1>
+<p>عزك — رفيقٌ إسلاميٌّ للأطفال وأهلِهم: المصحفُ والأذكارُ ومواقيتُ الصلاةِ والقبلةُ وفتاوى العلماءِ ودروسُهم.</p>
+<ul>
+<li><a href="about.html">عزك — تطبيقٌ إسلاميٌّ بالعربيّة: مصحفٌ وأذكارٌ ومواقيتُ صلاةٍ وفتاوى</a></li>
+</ul>
+</noscript>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "MobileApplication",
+  "name": "عزك",
+  "alternateName": "Ezik",
+  "url": "https://ezik.app/",
+  "applicationCategory": "EducationApplication",
+  "operatingSystem": "iOS, Android",
+  "inLanguage": ["ar", "en"],
+  "isFamilyFriendly": true,
+  "sameAs": [
+    "https://apps.apple.com/gb/app/عزك/id6797100518",
+    "https://play.google.com/store/apps/details?id=app.almurabbi.tutor&hl=ar"
+  ]
+}
+</script>
 <!-- Vercel Web Analytics and Speed Insights were loaded here. They are REMOVED for this
      release: both began measuring on page load, i.e. before the reader had answered the
      AI-consent screen, and a measurement taken before a choice is a measurement taken without
