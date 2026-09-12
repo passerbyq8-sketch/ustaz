@@ -10223,6 +10223,24 @@ function bumpAdhkarCount(catId, i, target) {
   try { localStorage.setItem(ADHKAR_PROGRESS_KEY, JSON.stringify(next)); } catch (e) {}
   return next;
 }
+// THE ONLY WAY BACK DOWN, and it is a DELETION rather than a decrement: the item's own key
+// leaves the day record, and a key that is not there already reads as zero through
+// adhkarCountOf above. So there is NO NEW KEY, no new record shape and no second store -- the
+// same ADHKAR_PROGRESS_KEY, the same day scoping, and the same identifier test the writer
+// above applies before it will touch anything. It is deliberately not a decrement: one
+// control that empties one item cannot leave behind a count nobody performed, which is what a
+// repeated -1 against a stale reading could.
+function zeroAdhkarCount(catId, i) {
+  const rec = readAdhkarProgress();
+  const key = adhkarItemKey(catId, i);
+  if (!A2_ID_RE.test(key)) return rec;
+  if (rec.n[key] === undefined) return rec;
+  const n = Object.assign({}, rec.n);
+  delete n[key];
+  const next = { d: rec.d, n: n };
+  try { localStorage.setItem(ADHKAR_PROGRESS_KEY, JSON.stringify(next)); } catch (e) {}
+  return next;
+}
 // COMPLETE means the item's own target was reached, and nothing else means it. Both counters
 // below resolve every stored count against the REAL item it names and skip any key that no
 // longer resolves, so a renumbered store shows fewer completions rather than phantom ones.
@@ -10517,6 +10535,20 @@ function adhkarTimeDoor(cats, now) {
 // has left to spend.
 const A3G_OF     = 'من';                                         // "of"
 const A3G_REMAIN = 'المتبقي'; // "the remaining"
+// THE END OF THE GROUP, and the label on the control that empties one item.
+// A3G_SEAL_AYAH IS QUR'AN AND WAS NOT TYPED. It is quran-uthmani.json['33:35'] cut at
+// .slice(338, 386) -- the project's own attested mushaf, cut by a tool and never by a hand --
+// and it is written here as code-point escapes for the same reason every string in the block
+// below is: an escape cannot be reflowed, reshaped or normalised by an editor the way a
+// bidirectional literal can. Nothing reads it, grades it, corrects it or changes it. It is
+// displayed between the two ornate brackets and that is the whole of what happens to it.
+// A3G_SEAL_REF is ORDINARY CHROME, not Qur'an: the sura NAME is taken from the project's own
+// SURAH_NAMES map (built above out of SURAH_NUMBERS), and the two words around it and the
+// number are interface text of the same kind as every other string here.
+const A3G_SEAL_AYAH = '\u{0648}\u{064E}\u{0671}\u{0644}\u{0630}\u{0651}\u{064E}\u{0670}\u{0643}\u{0650}\u{0631}\u{0650}\u{064A}\u{0646}\u{064E}\u{0020}\u{0671}\u{0644}\u{0644}\u{0651}\u{064E}\u{0647}\u{064E}\u{0020}\u{0643}\u{064E}\u{062B}\u{0650}\u{064A}\u{0631}\u{064B}\u{0627}\u{0020}\u{0648}\u{064E}\u{0671}\u{0644}\u{0630}\u{0651}\u{064E}\u{0670}\u{0643}\u{0650}\u{0631}\u{064E}\u{0670}\u{062A}\u{0650}';
+const A3G_SEAL = '\u{FD3F}' + A3G_SEAL_AYAH + '\u{FD3E}';
+const A3G_SEAL_REF = '\u{0633}\u{0648}\u{0631}\u{0629}' + ' ' + (SURAH_NAMES[33] || '') + '\u{060C}' + ' ' + '\u{0622}\u{064A}\u{0629}' + ' ' + toArabicDigits(35);
+const A3G_ZERO = '\u{0623}\u{0639}\u{062F} \u{0627}\u{0644}\u{0639}\u{062F}\u{0651}'; // "count again"
 
 // NEW V2 CHROME STRINGS, and every one is written as \u{...} code-point escapes on purpose:
 // an escape sequence cannot be silently reflowed, reshaped, normalised or truncated by an
@@ -11139,10 +11171,30 @@ function IstanaAdhkarReader(v) {
                   category there is nothing to offer, and only the completion is shown. Both
                   strings are the screen's own: A2_DONE is the word the counter already switches
                   to, A2_NEXT is the accessible name the forward control already carries. */}
-              {v.full && (
+              {/* THE END OF THE GROUP TAKES THIS SLOT. When every dhikr of the category has
+                  reached its own target the per-item strip has nothing left to say, so the
+                  closing block stands in its place. The condition is the reading the bar at the
+                  top of this screen already draws -- v.catDone against len, both handed down
+                  already resolved -- so this cannot claim a completion the bar disagrees with,
+                  and nothing is recounted here. It carries two things and no third: the
+                  Qur'anic phrase between its two ornate brackets, and the reference that names
+                  where it is from. No button, no summary, no counter, no share. The way on is
+                  the way that was always there: the back arrow, and the zero under a finished
+                  card.
+                  THE ZERO. One control, and it is the only thing in this file that can lower a
+                  count. It sits inside the completion strip, which is drawn only when the item
+                  is full -- so it is offered exactly where a reader who came back to repeat a
+                  dhikr is standing, and nowhere else. */}
+              {len > 0 && v.catDone >= len ? (
+                <div style={s.eziaSeal} role="status" aria-live="polite">
+                  <span style={s.eziaSealText}>{A3G_SEAL}</span>
+                  <span style={s.eziaSealRef}>{A3G_SEAL_REF}</span>
+                </div>
+              ) : v.full && (
                 <div style={s.eziaDoneRow} role="status" aria-live="polite">
                   <span style={s.eziaDoneMark} aria-hidden="true">{A2_ICON_CHECK}</span>
                   <span>{A2_DONE} {toArabicDigits(v.target)} / {toArabicDigits(v.target)}</span>
+                  <button type="button" className="adhkar2-focus" onClick={v.onZero} style={s.eziaDoneZero}>{A3G_ZERO}</button>
                   {v.idx < len - 1 && (
                     <button type="button" className="adhkar2-focus" onClick={v.onNext} style={s.eziaDoneNext}>{A2_NEXT}</button>
                   )}
@@ -11305,6 +11357,17 @@ function AdhkarCategoryV2({ cat, startAt, onBack }) {
   // single call site, the cap still lives at it, and the bead therefore cannot count something
   // the button would have refused.
   const countUp = () => { if (!full) setProg(bumpAdhkarCount(cat.id, idx, target)); };
+  // ONE TAP, ONE MEANING, WHEREVER IT LANDS. This is the bead's body, lifted out unchanged and
+  // given a name, so that BOTH ways of spending a repetition are now literally the same
+  // function and the card and the dock button can no longer drift apart. It still reaches
+  // bumpAdhkarCount through countUp and through nothing else, so the cap is still the single
+  // one above and no reader can raise it.
+  // IT CANNOT COUNT ONE DHIKR TWICE: countUp refuses once full, and bumpAdhkarCount refuses at
+  // the cap, so the tap that moves is the same tap that spent the last repetition and never a
+  // second one. IT CANNOT DROP A COUNT: the move is decided from count + 1 -- the value the
+  // increment that just ran produced -- and the increment is written to storage before the
+  // decision is taken, so the record is already complete when the index changes.
+  const countAndGo = () => { if (full) { go(idx + 1); return; } countUp(); if (count + 1 >= target) go(idx + 1); };
   // ONE view object again. Every value in it was resolved above out of the store or out of the
   // progress record; every handler in it is one of this component's own. The two readers get
   // the same object and differ only in how they draw it.
@@ -11326,14 +11389,18 @@ function AdhkarCategoryV2({ cat, startAt, onBack }) {
     onNext: () => go(idx + 1),
     // One press, one increment, and the press is refused at the target -- the cap lives here,
     // in the single call site of bumpAdhkarCount, and no reader can raise it.
-    onCount: countUp,
+    onCount: countAndGo,
     // THE BEAD. The same single increment, reached by a tap anywhere on the card instead of by
     // the dock button. What the bead ADDS is the move: the tap that spends the last repetition
     // carries the reader to the next dhikr, and a tap on a dhikr already finished carries them
     // on without counting anything at all. On the last dhikr of a category there is nowhere to
     // go and go() refuses, so the reader is left standing on a finished card rather than being
     // thrown out of the group.
-    onBead: () => { if (full) { go(idx + 1); return; } countUp(); if (count + 1 >= target) go(idx + 1); },
+    onBead: countAndGo,
+    // THE ZERO. The one handler that lowers a count, and it lowers exactly one: the item on
+    // screen, in the category on screen. It writes through zeroAdhkarCount and through nothing
+    // else, so the deletion has a single writer just as the increment does.
+    onZero: () => setProg(zeroAdhkarCount(cat.id, idx)),
     // Which shape the reader below draws. It is the switch and nothing else -- no stored value,
     // no second key, no per-category state.
     groups: ADHKAR_GROUPS_ON,
@@ -25744,6 +25811,15 @@ const s = {
   eziaDoneRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 10, margin: '10px 0 0', padding: '8px 12px', borderRadius: 14, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', fontSize: 13, fontWeight: 800 },
   eziaDoneMark: { display: 'inline-flex', flexShrink: 0, color: 'var(--a3-blue)' },
   eziaDoneNext: { minHeight: 40, padding: '8px 16px', borderRadius: 999, background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', fontSize: 13, fontWeight: 800 },
+  // The zero, and the closing block. NOT ONE NEW COLOUR AND NOT ONE NEW FONT: surface under
+  // blue is the pair the dock already carries, ice inside a line is the completion strip's own
+  // frame, and the phrase is set in the very face the dhikr itself is set in (eziaReadText
+  // above). Every colour is a token, every font size is a number, and not one of the four
+  // carries an animation or a transition.
+  eziaDoneZero: { minHeight: 40, padding: '8px 16px', borderRadius: 999, background: 'var(--a3-surface)', color: 'var(--a3-blue)', border: '1px solid var(--a3-blue)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', fontSize: 13, fontWeight: 800 },
+  eziaSeal: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, margin: '10px 0 0', padding: '14px 12px', borderRadius: 14, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)' },
+  eziaSealText: { fontSize: 19, lineHeight: 2.15, textAlign: 'center', fontFamily: "'Amiri', serif" },
+  eziaSealRef: { fontSize: 12, fontWeight: 600, textAlign: 'center' },
   eziaDock: { flexShrink: 0, background: 'var(--a3-surface)', borderTop: '1px solid var(--a3-line)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' },
   eziaDockBtn: { width: 46, height: 46, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', cursor: 'pointer' },
   eziaDockBtnOn: { background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', border: '1px solid var(--a3-blue)' },
