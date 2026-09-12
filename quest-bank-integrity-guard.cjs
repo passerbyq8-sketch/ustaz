@@ -960,7 +960,23 @@ const SEALED = {
   //                    digest was cut LAST, after all of them, on a tree measured at CR = 0.
   //                    CACHE is NOT touched: the store name is a ship decision, the merge round
   //                    owns the bump, and nothing in this item is deployed.
-  'sw.js': '219cd0694e43b7483a0554aa7fa36cd2c7b8409212f5c57725de1b28abe8cb12',
+  //   item 99      -- THE BYTE LEDGER FOLLOWS THE FILES IT SEALS. CORE itself did not change --
+  //                    no file entered it and none left -- but index.html AND app.js are both in
+  //                    CORE and both moved in this repair round. index.html carries the closing
+  //                    screen's structured data below the body instead of in the head and two
+  //                    store links fewer in its noscript: 152137 -> 153974 (+1837). app.js was
+  //                    rebuilt by node tools/build-app.cjs from an app.jsx that draws the closing
+  //                    block on the last card only: 1513535 -> 1518634 (+5099). So CORE_BYTES
+  //                    followed 2499363 -> 2506299 = the two deltas summed, re-cut from the disk
+  //                    by node tools/core-bytes.cjs --write and never by hand, and the byte table
+  //                    above that constant and the two figures in the table at :2094 and :2102
+  //                    carry the same measurement. sw.js is NOT in CORE, so the constant is not
+  //                    a fixed point and one pass settles it. Both sw.js edits and those two
+  //                    figures were made first; this digest was cut LAST, after all of them, on a
+  //                    tree measured at CR = 0. CACHE is NOT touched: the store name is a ship
+  //                    decision, the merge round owns the bump, and nothing in this item is
+  //                    deployed.
+  'sw.js': '2de981dc6a862d96f681e7ddb1cd18e8381ffe3303bf81c2cb3a0f8004ef779b',
 };
 
 // ---------------------------------------------------------------------------
@@ -2075,7 +2091,7 @@ async function compare(goldenPath) {
     //  { n, sum: [a, b] }  n is the byte sum of those files on disk
     //  { n, dir: 'count' | 'sum' | 'mean' }   n is that statistic over the mushaf page scans
     const SW_PROSE = [
-      { n: 152137, of: 'index.html' },
+      { n: 153974, of: 'index.html' },
       // ITEM 85. The two CORE entries the self-hosted faces added, stated in the worker's byte
       // table beside the rest and re-derived here from the files they name. They are the arabic
       // and latin cuts of Noto Naskh Arabic, which is what the first screen is painted in.
@@ -2083,7 +2099,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1513535, of: 'app.js' },
+      { n: 1518634, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
