@@ -19551,6 +19551,20 @@ const SHELL_HEADING_START = 'ezik:heading:start';
 const SHELL_HEADING_STOP = 'ezik:heading:stop';
 const SHELL_HEADING_RESULT = 'ezik:heading:result';
 const SHELL_HEADING_STATUSES = ['ready', 'calibration-needed', 'sensor-unavailable', 'permission-denied', 'heading-error'];
+// ITEM 66 (٢). THE DEADLINE ON `wait`, AND WHY IT IS LONGER THAN THE SHELL'S OWN. The shell
+// bounds its FIRST reading at HEADING_FIRST_UPDATE_TIMEOUT_MS = 5000 (murabbi-shell's
+// src/location.js) and answers `sensor-unavailable` when that expires -- which is an ANSWER, and
+// the one a phone without a usable magnetometer is supposed to get. A page deadline at or under
+// five seconds would fire first every time and bury that answer under a vaguer one, so this is
+// deliberately longer: by the time it runs, everything the shell meant to say has been said.
+//
+// AND IT EXISTS BECAUSE SILENCE IS LAWFUL ON THE FAR SIDE. createHeadingBridge().start() in that
+// same file returns WITHOUT PUBLISHING ANYTHING from three of its guards -- the `already-started`
+// refusal, and the two `stopped` returns that a bumped generation takes (one after the permission
+// read, one after the watch promise) -- and nothing over there ever resends. So a page
+// that posts one start and then only listens owns a state it can never be told to leave, and the
+// clock that ends that state has to be this side's.
+const SHELL_HEADING_WAIT_MS = 7000;
 
 // Qibla bearing is clockwise from TRUE north (qiblaBearing above). Expo may publish -1 for an
 // unavailable trueHeading, so a valid true heading wins and the magnetic heading is the named
@@ -20964,6 +20978,51 @@ function QiblaPanel({ loc, onLoc }) {
   // can all reach the same one. It rides the compass's teardown rather than adding a second
   // effect beside it: this panel goes away once, so one effect should be what answers that.
   const locStopRef = useRef(null);
+  // ITEM 66 (٢) -- THE FLOOR UNDER `wait`, WHICH HAD NONE. `wait` is the one state on this panel
+  // that draws no control: `off`/`none` draw the browser's start, `heading-error` draws the retry,
+  // and the pair item 66 added draws the location ask. That was survivable only while something
+  // was guaranteed to answer a start, and nothing is -- see SHELL_HEADING_WAIT_MS -- so a start
+  // that went unanswered left this screen waiting with no door in it for as long as the reader
+  // cared to look at it. That is the screen the owner described, and its one visible sentence is
+  // the one he quoted. These two functions are the door.
+  const headingWaitRef = useRef(null);
+  const stopHeadingWait = () => {
+    if (headingWaitRef.current === null) return;
+    clearTimeout(headingWaitRef.current);
+    headingWaitRef.current = null;
+  };
+  // THE DEADLINE IS SPENT ON A RESEND BEFORE IT IS SPENT ON A BUTTON. A lost message costs the
+  // reader nothing to send again; a control costs them a press and a decision. So the first leg
+  // carries `retry` and re-sends once, and the leg it arms behind itself carries `false` and ends
+  // at `heading-error` -- the state that ALREADY owns a visible retry and already says, in the
+  // words that were written for it, that the device's heading could not be read. No new control,
+  // no new sentence, no sixth status.
+  //
+  // AND IT IS ARMED BEFORE THE SEND, NEVER AFTER IT. tools/web-shell-seam-probe.cjs states the
+  // reason in its own words: the bridge's answer can reach a listener registered inside the mount
+  // effect before that effect has returned. Armed after the send, such a timer would be arming
+  // itself behind an answer that had already gone past, and would then live out its seven seconds
+  // with nothing left to say. Armed first, the re-render that answer causes is what cancels it --
+  // and a send that fails takes its own timer down with it on the next line.
+  const armHeadingWait = (retry) => {
+    const bridge = headingBridgeRef.current || null;
+    if (!bridge) return;              // the browser path keeps QIBLA_NEEDLE_MS and is not touched
+    stopHeadingWait();
+    headingWaitRef.current = setTimeout(() => {
+      headingWaitRef.current = null;
+      if (!retry) { setCompass((c) => (c === 'wait' ? 'heading-error' : c)); return; }
+      armHeadingWait(false);
+      if (!sendShellHeadingCommand(bridge, SHELL_HEADING_START)) { stopHeadingWait(); setCompass('heading-error'); }
+    }, SHELL_HEADING_WAIT_MS);
+  };
+  // AND THE FIRST ANSWER ENDS IT -- from here, in the render body, and NOT from inside
+  // onHeadingResult. tools/location-bridge-measure.cjs lifts that handler ALONE, into a scope that
+  // holds nothing but its two setters, so a call to anything else from inside it would be a
+  // ReferenceError in a gate rather than a bug in the app. This line needs no such help: all five
+  // shell statuses leave `wait` and every one of them re-renders this panel, so the first answer
+  // arrives here exactly once and cancels on the way past. A reader whose needle is already
+  // turning never reaches a timer, is never re-armed underneath, and sees no new control.
+  if (compass !== 'wait') stopHeadingWait();
   useEffect(() => {
     const bridge = headingBridgeRef.current || null;
     if (bridge) {
@@ -20987,12 +21046,14 @@ function QiblaPanel({ loc, onLoc }) {
           try { window.removeEventListener(SHELL_HEADING_RESULT, onHeadingResult); } catch (e) {}
           sendShellHeadingCommand(bridge, SHELL_HEADING_STOP);
         };
-        if (!sendShellHeadingCommand(bridge, SHELL_HEADING_START)) setCompass('heading-error');
+        armHeadingWait(true);
+        if (!sendShellHeadingCommand(bridge, SHELL_HEADING_START)) { stopHeadingWait(); setCompass('heading-error'); }
       } catch (e) {
         setCompass('heading-error');
       }
     }
     return () => {
+      stopHeadingWait();
       if (stopRef.current) { stopRef.current(); stopRef.current = null; }
       if (locStopRef.current) { locStopRef.current(); locStopRef.current = null; }
     };
@@ -21110,7 +21171,8 @@ function QiblaPanel({ loc, onLoc }) {
     if (!bridge) return;
     setHeading(null);
     setCompass('wait');
-    if (!sendShellHeadingCommand(bridge, SHELL_HEADING_START)) setCompass('heading-error');
+    armHeadingWait(true);
+    if (!sendShellHeadingCommand(bridge, SHELL_HEADING_START)) { stopHeadingWait(); setCompass('heading-error'); }
   };
 
   const needle = qiblaNeedleAngle(bearing, heading);
