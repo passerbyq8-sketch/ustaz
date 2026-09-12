@@ -565,5 +565,10 @@
     "name": "sharelinks",
     "script": "guards/share-links-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "prophetascription",
+    "script": "guards/prophet-ascription-guard.cjs",
+    "args": ""
   }
 ]
