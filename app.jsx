@@ -5343,6 +5343,11 @@ const EZH_ICON_PRAYER = (
 const EZH_ICON_MENU = (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
 );
+// ITEM 66 (ب): the one name the bar's compass control answers to -- its accessible name and,
+// below, the title of the screen it opens, so the mark the reader presses and the heading he
+// lands on can never say two different things. A plain Arabic literal, written the way every
+// string of the QIBLA_* family it belongs to is written.
+const EZH_NAV_COMPASS = '\u0627\u0644\u0628\u0648\u0635\u0644\u0629';
 
 // ITEM 20 / SHELF §3 (8 September) -- WHO SEES «ركن النساء», IN ONE FUNCTION.
 //
@@ -5511,7 +5516,31 @@ let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize
 // and what the tab ring visits would run against what the eye reads. The composition block
 // states that no `order` property is used anywhere in it and that tab order follows what is on
 // screen; moving the element is what keeps that true.
-function EzistTopNav({ onOpenMenu }) {
+// ITEM 66 (ب) -- THE COMPASS MARK, AND WHY IT IS THE LAST CHILD OF THIS ROW.
+//
+// The owner ruled it «فوق على اليسار»: at the top, on the visual LEFT, as a mark that says
+// compass without being read. MEASURED, not assumed: this document lays out RTL because the
+// stylesheet declares direction:rtl on body, and a CSS declaration outranks the dir ATTRIBUTE
+// the boot script writes -- which is the same measurement the paragraph above rests on when it
+// says the FIRST child of this row sits on the RIGHT. The visual left is therefore this row's
+// TRAILING edge, and the trailing edge is its LAST child.
+//
+// AND IT IS THE DOM ORDER, NOT `order` AND NOT `row-reverse`, for the identical reason the menu
+// button was MOVED rather than re-ordered: either property would paint the mark on the left
+// while leaving it before the verse in the tree, so what a screen reader announces and what the
+// tab ring visits would run against what the eye reads. The composition block promises no
+// `order` property anywhere in it; adding the element in its place is what keeps that true.
+//
+// NOTHING EXISTING MOVED. The menu button is still the first child, still on the right, still
+// s.ezistNavBtn at its own 44x44; the verse panel is still flex:1 1 auto with min-width:0, so
+// it takes the width the two controls leave and WRAPS rather than being cut -- which is what
+// that rule was written to do when there was one control. What changed is that there are two.
+//
+// AND THE MARK IS ONE THIS FILE ALREADY DRAWS. EZH_ICON_PRAYER is described where it is
+// declared as a compass rose reduced to a circle, a needle and its pivot, in the same 24x24 box
+// at the same 1.8 stroke with the same round caps as its neighbours. No icon library, no new
+// dependency, no new artwork file, no image and no data URI -- and one mark for one meaning.
+function EzistTopNav({ onOpenMenu, onOpenCompass }) {
   return (
     <div className="ezist-nav">
       <div className="ezist-nav-inner">
@@ -5519,6 +5548,9 @@ function EzistTopNav({ onOpenMenu }) {
           {EZH_ICON_MENU}
         </button>
         <EzistQuranPanel />
+        <button type="button" className="ezhome-focus" onClick={onOpenCompass} style={s.ezistNavBtn} aria-label={EZH_NAV_COMPASS}>
+          {EZH_ICON_PRAYER}
+        </button>
       </div>
     </div>
   );
@@ -5708,7 +5740,7 @@ function EzikIstanaHome(v) {
   return (
     <div className="theme-dark ezhome" style={s.ezistContainer}>
       {/* S101-home-istana */}
-      <EzistTopNav onOpenMenu={v.onOpenMenu} />
+      <EzistTopNav onOpenMenu={v.onOpenMenu} onOpenCompass={v.onOpenCompass} />
       <div style={s.ezistScroll}>
         <div className="ezist-wrap">
           <EzistMasthead name={v.name} g={v.greeting} hijri={v.hijri} onOpenAdhkar={v.onOpenAdhkar} />
@@ -7634,6 +7666,13 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // press closed the sheet AND left the home screen. It is still not a route; a layer is not a
   // screen, and registering one gives it the single entry it was missing.
   useEzikBackLayer(prayerOpen, () => setPrayerOpen(false));
+  // ITEM 66 (ب): the compass view, in the identical three shapes as the sheet above it -- the
+  // state, useEzikBackLayer(open, close), and a visible back that spends the entry through
+  // ezikGoBack below. It is NOT a route and adds no `screen` value, for the reason written over
+  // PrayerSheet: the screen inventory is a cross-file contract. So the device back button closes
+  // the compass and leaves the reader on the home, rather than leaving the home screen.
+  const [compassOpen, setCompassOpen] = useState(false);
+  useEzikBackLayer(compassOpen, () => setCompassOpen(false));
   // ITEM 20: which articles section is open over the home, or null. It is not a route either --
   // the screen inventory is a cross-file contract, see the note above PrayerSheet -- and LIKE
   // the prayer sheet above it registers a back layer, so it owns one real history entry while it
@@ -7761,6 +7800,11 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     onOpenSettings: onOpenSettings,
     onOpenTreasure: () => { window.location.href = '/quest.html'; },
     onOpenPrayer: () => setPrayerOpen(true),
+    // ITEM 66 (ب): ONE PRESS, and it lands on the compass itself. It is not the prayer sheet's
+    // opener and it is not a menu: the owner asked for the compass in one tap instead of the
+    // two it costs today, so this handler names the compass layer and nothing else. The sheet
+    // above keeps its own door, its own tile and its own behaviour, untouched.
+    onOpenCompass: () => setCompassOpen(true),
     widgets: widgets,
   };
   // S87 -- THE MODULE SET IS BUILT HERE, ONCE, AND NOWHERE ELSE. Both styles receive this exact
@@ -7790,6 +7834,9 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
   // for a later press to spend on nothing. Same door as the device button, same resolver. The
   // sheet itself is untouched: it is handed a different function under the same prop name.
   if (prayerOpen) return <PrayerSheet onClose={ezikGoBack} />;
+  // ITEM 66 (ب). Same door as the device button, on the same terms as the sheet above it: the
+  // visible back spends the layer's entry through ezikGoBack rather than dropping it.
+  if (compassOpen) return <CompassSheet onClose={ezikGoBack} />;
   // ITEM 05-C. Same door as the device button: the visible back spends the layer's entry
   // through ezikGoBack rather than dropping it, which is the rule closeDrawerWith records.
   if (wirdPickOpen) {
@@ -20963,7 +21010,11 @@ const QIBLA_BACK = 'رجوع';
 const PRAYER_SHEET_TITLE = 'الصلاة والقبلة';
 const QIBLA_NEEDLE_MS = 4000;
 
-function QiblaPanel({ loc, onLoc }) {
+// ITEM 66 (ب): `full` is the ONE thing the full-screen view asks of this panel, and it is a
+// presentation flag and nothing else -- it reaches the dial's box on one line below and touches
+// no state, no status, no timer, no sender and no control. Absent, as the prayer sheet leaves
+// it, every byte of this panel behaves exactly as it shipped.
+function QiblaPanel({ loc, onLoc, full }) {
   const setLoc = onLoc;
   const [locState, setLocState] = useState('');
   // The bridge is captured once for this mounted panel. In a browser it is false, so the four
@@ -21189,7 +21240,8 @@ function QiblaPanel({ loc, onLoc }) {
       {/* THE DIAL EXISTS ONLY WHILE A HEADING DOES. There is no still needle on this screen. */}
       {(compass === 'live' || compass === 'ready' || compass === 'calibration-needed') && needle !== null ? (
         <div style={s.qiblaDialWrap}>
-          <svg width="132" height="132" viewBox="0 0 100 100" role="img" aria-label={QIBLA_SECTION}>
+          <svg width="132" height="132" viewBox="0 0 100 100" role="img" aria-label={QIBLA_SECTION}
+            style={full ? s.qiblaDialFull : null}>
             <circle cx="50" cy="50" r="46" fill="none" stroke="var(--line)" strokeWidth="2" />
             <g style={{ transform: 'rotate(' + needle + 'deg)', transformOrigin: '50px 50px' }}>
               <path d="M50 8 L58 54 L50 48 L42 54 Z"
@@ -21265,6 +21317,32 @@ function PrayerSheet({ onClose }) {
     <EzShell title={PRAYER_SHEET_TITLE} onBack={onClose} backLabel={QIBLA_BACK}>
       <PrayerTimesPanel loc={loc} />
       <QiblaPanel loc={loc} onLoc={setLoc} />
+    </EzShell>
+  );
+}
+
+// ITEM 66 (ب) -- THE COMPASS ON A SCREEN OF ITS OWN, AND IT IS THE SAME PANEL.
+//
+// 🔴 THERE IS NO SECOND COMPASS. This renders <QiblaPanel/> -- the identical component the
+// sheet above renders, at the identical two props plus one presentation flag. Not a copy, not a
+// variant, not a lifted dial: the timeout, the automatic re-send, the «أعد المحاولة» control,
+// the five shell statuses, the browser's own DeviceOrientation path and the default/device pair
+// are all the one body of code, so a defect fixed on one road is fixed on both and neither can
+// drift. `full` reaches exactly one attribute -- the dial's box -- and changes nothing else.
+//
+// IT IS A LAYER, NOT A ROUTE, for the reason written over PrayerSheet: the screen inventory is a
+// cross-file contract that theme-coverage-guard cross-checks against a handoff document owned by
+// someone else. It opens over the home, on the home's own screen key, its owner registers its
+// history entry so the device button closes IT, and the shell's own back control -- the one
+// EzShell already draws for every screen in this file -- returns the reader where he was.
+//
+// AND IT READS THE POSITION THE SAME WAY. readQiblaLoc() is the one reader; a position saved
+// here is the position the prayer sheet shows, because both keep it in the one store.
+function CompassSheet({ onClose }) {
+  const [loc, setLoc] = useState(readQiblaLoc);
+  return (
+    <EzShell title={EZH_NAV_COMPASS} onBack={onClose} backLabel={QIBLA_BACK}>
+      <QiblaPanel loc={loc} onLoc={setLoc} full />
     </EzShell>
   );
 }
@@ -25676,6 +25754,16 @@ const s = {
   qiblaDeg: { fontSize: 26, lineHeight: 1.4, fontWeight: 700, color: 'var(--ink)' },
   qiblaDir: { marginTop: 2, fontSize: 15, lineHeight: 1.7, color: 'var(--ink)' },
   qiblaDialWrap: { display: 'flex', justifyContent: 'center', padding: '10px 0' },
+  // ITEM 66 (ب): the full-screen dial's box. The SAME <svg>, the same viewBox and the same
+  // paths -- only its size changes, and it changes HERE rather than in a second component. An
+  // inline style outranks the width/height presentation attributes, so the shipped 132 stands
+  // untouched on the prayer sheet and this is the whole of the difference.
+  // WHY 100% AND NOT A VIEWPORT UNIT. The width is the shell column's, AFTER that column's own
+  // padding and after the safe-area inset it already adds -- so the disc is as large as the
+  // screen allows and cannot be clipped or reach past an edge at any width. height:auto keeps
+  // the viewBox's square, and the cap stops a screen wider than it is tall from pushing the
+  // disc below the fold.
+  qiblaDialFull: { width: '100%', height: 'auto', maxWidth: '62vh' },
   qiblaNote: { marginTop: 6, fontSize: 13, lineHeight: 1.8, color: 'var(--muted)' },
   // The probe printout. LTR and monospaced on purpose: what it shows is a contract reply, not
   // prose, and a JSON object reflowed right-to-left is a JSON object nobody can read back.
@@ -25930,7 +26018,11 @@ const s = {
   eziaBeadWord: { fontSize: 12, fontWeight: 700, color: 'var(--a3-muted)' },
 
   ezistScroll: { flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' },
-  ezistNavBtn: { width: 44, height: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'transparent', border: '1px solid transparent', color: 'var(--a3-muted)', cursor: 'pointer' },
+  // ITEM 66 (ب): flexShrink -- the bar holds TWO controls now, and a flex row with a long verse
+  // in it distributes its shortfall across every child that will give. 44x44 is the finger, so
+  // neither control gives: the verse panel carries min-width:0 precisely so that it is the one
+  // that yields. The painted box is the box it always was.
+  ezistNavBtn: { width: 44, height: 44, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'transparent', border: '1px solid transparent', color: 'var(--a3-muted)', cursor: 'pointer' },
   ezistNavOn: { width: 44, height: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 14, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-blue)', cursor: 'default' },
   // THE GREETING STRIP. The words are the ones the app already picked and not one of them
   // moved; what moved is their size and the space around them. The name gets an ellipsis

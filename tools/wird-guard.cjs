@@ -1978,6 +1978,14 @@ if (tLifted) {
   const TPANEL_AT = SRC.indexOf('function PrayerTimesPanel(');
   const TPANEL_END = TPANEL_AT === -1 ? -1 : SRC.indexOf('function PrayerSettingsControl(', TPANEL_AT);
   const TPANEL = (TPANEL_AT !== -1 && TPANEL_END > TPANEL_AT) ? SRC.slice(TPANEL_AT, TPANEL_END) : '';
+  // ITEM 66 (b): the two SCREENS that mount a qibla panel, each cut as one unit, so the clause
+  // below can count what is inside each of them rather than across the whole file.
+  const SHEET_AT = SRC.indexOf('function PrayerSheet(');
+  const SHEET_END = SHEET_AT === -1 ? -1 : SRC.indexOf('\n}', SHEET_AT);
+  const SHEET_SRC = (SHEET_AT !== -1 && SHEET_END > SHEET_AT) ? SRC.slice(SHEET_AT, SHEET_END) : '';
+  const CSHEET_AT = SRC.indexOf('function CompassSheet(');
+  const CSHEET_END = CSHEET_AT === -1 ? -1 : SRC.indexOf('\n}', CSHEET_AT);
+  const CSHEET_SRC = (CSHEET_AT !== -1 && CSHEET_END > CSHEET_AT) ? SRC.slice(CSHEET_AT, CSHEET_END) : '';
   const PSET_AT = SRC.indexOf('function PrayerSettingsControl(');
   const PSET_END = PSET_AT === -1 ? -1 : SRC.indexOf('// ============================================================\n// ITEM 108', PSET_AT);
   const PSET = (PSET_AT !== -1 && PSET_END > PSET_AT) ? SRC.slice(PSET_AT, PSET_END) : '';
@@ -2046,7 +2054,16 @@ if (tLifted) {
   ok('107: readings and minute offsets stay on the tile; method, madhhab and prose live in Settings',
     /<PrayerTimesPanel loc=\{loc\} \/>/.test(SRC)
     && /<QiblaPanel loc=\{loc\} onLoc=\{setLoc\} \/>/.test(SRC)
-    && (SRC.match(/useState\(readQiblaLoc\)/g) || []).length === 1
+    // ITEM 66 (b) -- RE-POINTED, NOT RELAXED. This counted ONE useState(readQiblaLoc) in the
+    // whole file, and what it was written to forbid is TWO POSITIONS INSIDE ONE SCREEN: the
+    // times and the qibla are two readings of the same place, so the sheet holds it once and
+    // hands it to both panels. The compass view is a SECOND SCREEN mounting the same panel, and
+    // a second screen holds its own -- read from the same readQiblaLoc() and written through the
+    // same writeQiblaLoc(), so the two can never show different places. So the count is taken
+    // per screen, where the rule lives, and the file total is pinned at exactly those two.
+    && (SHEET_SRC.match(/useState\(readQiblaLoc\)/g) || []).length === 1
+    && (CSHEET_SRC.match(/useState\(readQiblaLoc\)/g) || []).length === 1
+    && (SRC.match(/useState\(readQiblaLoc\)/g) || []).length === 2
     && TPANEL.indexOf('PRAYER_KEYS.map') !== -1
     && TPANEL.indexOf('PRAYER_OFFSETTABLE.map') !== -1
     && TPANEL.indexOf('PRAYER_METHOD_LABEL') === -1
@@ -2058,6 +2075,32 @@ if (tLifted) {
     && /<EzShellGroup title=\{PRAYER_SETTINGS_TITLE\} hint=\{PRAYER_HINT\}>[\s\S]*?<PrayerSettingsControl \/>/.test(SRC));
   ok('107: ...and still without adding a route',
     SRC.indexOf("screen === 'prayer'") === -1 && SRC.indexOf("setScreen('prayer')") === -1);
+  // ITEM 66 (b) -- ONE COMPASS, MOUNTED TWICE. The owner's ruling was a compass reachable in one
+  // press from the head of the home screen, on a screen of its own. The defect that ruling could
+  // have caused is a SECOND compass: a copied dial, or a copied panel, that is fixed on one road
+  // and left broken on the other. So this asserts the component is declared ONCE and rendered at
+  // exactly TWO call sites, both of them the same name, and that neither the dial nor any of the
+  // panel's five statuses was re-typed anywhere else in the client.
+  ok('66-b: the compass panel is declared exactly once',
+    (SRC.match(/function QiblaPanel\(/g) || []).length === 1);
+  ok('66-b: ...and rendered at exactly two call sites -- the prayer sheet and the compass view',
+    (SRC.match(/<QiblaPanel /g) || []).length === 2
+    && /<QiblaPanel loc=\{loc\} onLoc=\{setLoc\} \/>/.test(SHEET_SRC)
+    && /<QiblaPanel loc=\{loc\} onLoc=\{setLoc\} full \/>/.test(CSHEET_SRC));
+  ok('66-b: ...so there is ONE dial in the client, not one per road',
+    (SRC.match(/viewBox="0 0 100 100"/g) || []).length === 1
+    && (SRC.match(/qiblaNeedleAngle\(/g) || []).length === 2);
+  ok('66-b: ...and the compass view is a LAYER, adding no route of its own',
+    /if \(compassOpen\) return <CompassSheet onClose=\{ezikGoBack\} \/>;/.test(SRC)
+    && /useEzikBackLayer\(compassOpen, \(\) => setCompassOpen\(false\)\);/.test(SRC)
+    && SRC.indexOf("screen === 'compass'") === -1 && SRC.indexOf("setScreen('compass')") === -1);
+  ok('66-b: ...reached in ONE press, from the head of the home screen',
+    /<EzistTopNav onOpenMenu=\{v\.onOpenMenu\} onOpenCompass=\{v\.onOpenCompass\} \/>/.test(SRC)
+    && /onOpenCompass: \(\) => setCompassOpen\(true\),/.test(SRC)
+    && /onClick=\{onOpenCompass\}[\s\S]{0,120}aria-label=\{EZH_NAV_COMPASS\}/.test(SRC));
+  ok('66-b: ...and the full-screen dial is one style key, not a second element',
+    /style=\{full \? s\.qiblaDialFull : null\}/.test(SRC)
+    && /qiblaDialFull: \{ width: '100%'/.test(SRC));
   ok('107: the default position is still Kuwait, and no prompt is raised to get one',
     /const QIBLA_DEFAULT_LAT = 29\.3759;/.test(SRC));
 }

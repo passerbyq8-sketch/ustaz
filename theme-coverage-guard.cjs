@@ -1005,11 +1005,27 @@ ok('...bounded and centred rather than loose across the viewport',
   // of 'exactly two' than the regex it replaces gave. What the order meant is asserted on its
   // own two lines below, where it can say why it is the right and not the left.
   const INNER = (NAV.match(/<div className="ezist-nav-inner">([\s\S]*?)\r?\n\s*<\/div>/) || [])[1] || '';
-  ok('...carrying exactly two elements: the daily verse and the menu button',
-    (INNER.match(/<button /g) || []).length === 1
+  // ITEM 66 (ب) -- THREE MEMBERS NOW, AND NO FOURTH. The owner ruled a compass mark into the
+  // head of the home screen, on the visual left, reachable in one press. This check is not
+  // relaxed and it is not deleted: it is re-pointed at the shape that replaced the one it was
+  // written for, and it is asserted member by member exactly as before -- two controls, one
+  // verse panel, and a residue that must still come back empty, so a fourth thing fails here
+  // the way a third one used to.
+  ok('...carrying exactly three elements: the menu button, the daily verse and the compass mark',
+    (INNER.match(/<button /g) || []).length === 2
     && (INNER.match(/<EzistQuranPanel \/>/g) || []).length === 1
-    && INNER.replace(/<button [\s\S]*?<\/button>/, '').replace(/<EzistQuranPanel \/>/, '').trim() === '',
-    'the bar holds one button and one verse panel and no third thing');
+    && INNER.replace(/<button [\s\S]*?<\/button>/g, '').replace(/<EzistQuranPanel \/>/, '').trim() === '',
+    'the bar holds two buttons and one verse panel and no fourth thing');
+  // ...AND THE SECOND CONTROL IS THE COMPASS, BY NAME. A count that did not say WHICH controls
+  // would be answered by any two buttons at all.
+  ok('...the second being the compass mark, opening the compass and nothing else',
+    /onClick=\{onOpenCompass\}[\s\S]{0,120}aria-label=\{EZH_NAV_COMPASS\}/.test(INNER)
+    && /\{EZH_ICON_PRAYER\}/.test(INNER));
+  // ...AND IT IS ON THE VISUAL LEFT, which under this document's RTL is the row's LAST child.
+  // The same measurement the menu button's own line rests on, read from the other end.
+  ok('...and it sits LAST, so the RTL trailing edge -- the left -- is where it sits',
+    INNER.lastIndexOf('<button ') > INNER.indexOf('<EzistQuranPanel />')
+    && INNER.lastIndexOf('<button ') > INNER.indexOf('<button '));
   // S119 -- AND THE BUTTON IS THE FIRST OF THE TWO. The document lays out RTL, so the first
   // child of this row sits on the RIGHT. The button was second, and therefore on the left, which
   // is the trailing edge and the wrong side of an Arabic bar; the owner asked for the right.
@@ -1021,10 +1037,10 @@ ok('...bounded and centred rather than loose across the viewport',
   ok('...and moved in the tree, not faked with order or flex-direction',
     !/\.ezist-nav(-inner)?\{(?:[^}]*[;{])?\s*(order|flex-direction):/.test(css)
     && !/ezistNavBtn: \{(?:[^}]*[,{])?\s*order:/.test(html));
-  eq('...and exactly one of them is a control', (NAV.match(/<button/g) || []).length, 1);
+  eq('...and exactly two of them are controls', (NAV.match(/<button/g) || []).length, 2);
   ok('...whose handler is the menu opener it was handed, named «القائمة»',
     /onClick=\{onOpenMenu\}[\s\S]{0,120}aria-label=\{EZH_NAV_MENU\}/.test(NAV)
-    && /function EzistTopNav\(\{ onOpenMenu \}\)/.test(NAV));
+    && /function EzistTopNav\(\{ onOpenMenu, onOpenCompass \}\)/.test(NAV));
   // THE MENU IT OPENS IS THE CHAT'S. Not a second drawer: the owner hands it App's own opener,
   // and App renders the one ezikDrawer() on the home branch as well as the chat's.
   // S118: the menu paints ONLY tokens, and the two screens that draw it declare them on
@@ -1411,7 +1427,7 @@ ok('105: ...and the title still starts at the pixel it always did',
   const ISTCODE = IST.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/[^\n]*$/gm, ' ');
   eqOn('the composition holds no chat handler of its own', [["IST", IST]], (ISTCODE.match(/onOpenChat/g) || []).length, 0);
   ok('...because the one way in is the menu the bar opens',
-    /function EzistTopNav\(\{ onOpenMenu \}\)/.test(IST)
+    /function EzistTopNav\(\{ onOpenMenu, onOpenCompass \}\)/.test(IST)
     && /className="ezist-nav"[\s\S]*?onClick=\{onOpenMenu\}[\s\S]*?<\/div>\s*\r?\n\s*\);/.test(IST));
   ok('...and that menu lands on the chat, through ONE handler that resets and navigates',
     /const startChatFromMenu = \(\) => \{ newChat\(\); setScreen\('chat'\); \};/.test(html)

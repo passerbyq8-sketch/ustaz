@@ -887,16 +887,39 @@ async function partD() {
     // removed from the bar in the same commit, and their four actions moved into the menu the
     // button below opens. Each is walked to its destination further down this part, so nothing
     // is asserted to exist that is not also proved to WORK.
-    eq('the top bar carries exactly two elements', d.all('.ezist-nav-inner')[0].children.length, 2);
-    eq('...and exactly one of them is a control', d.all('.ezist-nav button').length, 1);
+    // ITEM 66 (ب): THREE, because the owner ruled a compass mark into this bar -- top, visual
+    // left, one press to the compass. Re-pointed rather than relaxed: the count is still exact,
+    // the verse is still driven as a display below, and the compass control is named and driven
+    // by its accessible name on its own two lines under the menu button's.
+    eq('the top bar carries exactly three elements', d.all('.ezist-nav-inner')[0].children.length, 3);
+    eq('...and exactly two of them are controls', d.all('.ezist-nav button').length, 2);
     eq('...the daily verse being the other, and a display: no role', d.all('.ezist-nav .ezist-quran')[0].getAttribute('role'), null);
     eq('...no tabindex', d.all('.ezist-nav .ezist-quran')[0].getAttribute('tabindex'), null);
     eq('...and nothing clickable inside it', d.all('.ezist-nav .ezist-quran button, .ezist-nav .ezist-quran a').length, 0);
     eq('the four controls the bar used to carry are gone from it',
       d.all('.ezist-nav button').filter((b) => ['عزك', 'الرئيسية', 'الإعدادات', 'الحساب']
         .indexOf(String(b.getAttribute('aria-label') || '')) !== -1).length, 0);
+    // ITEM 66 (ب): the compass mark, asserted as a real control with a real Arabic name and a
+    // mark rather than a word -- the owner's whole requirement was that it be understood
+    // without being read. It is the LAST child of the row, which under this RTL document is the
+    // visual left; the menu button below is still the first and is still on the right.
+    {
+      const navInner = d.all('.ezist-nav-inner')[0];
+      const navKids = Array.prototype.slice.call(navInner.children);
+      const compass = d.all('.ezist-nav button')[1];
+      if (ok('the top nav carries the compass mark', !!compass)) {
+        eq('...as a type="button"', compass.getAttribute('type'), 'button');
+        eq('...named «البوصلة»', compass.getAttribute('aria-label'), '\u0627\u0644\u0628\u0648\u0635\u0644\u0629');
+        ok('...drawn as a mark, with no text of its own',
+          !String(compass.textContent || '').trim() && !!compass.querySelector('svg'));
+        eq('...and it is the LAST member of the row -- the RTL trailing edge, the visual left',
+          navKids.indexOf(compass), navKids.length - 1);
+      }
+    }
     const navMenu = d.all('.ezist-nav button')[0];
     if (ok('the top nav carries the menu button', !!navMenu)) {
+      eq('...and IT is the first member -- the RTL leading edge, the visual right',
+        Array.prototype.slice.call(d.all('.ezist-nav-inner')[0].children).indexOf(navMenu), 0);
       eq('...as a type="button"', navMenu.getAttribute('type'), 'button');
       eq('...named «القائمة»', navMenu.getAttribute('aria-label'), 'القائمة');
       ok('...drawn as an icon, with no text of its own', !String(navMenu.textContent || '').trim() && !!navMenu.querySelector('svg'));
