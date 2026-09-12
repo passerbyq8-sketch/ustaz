@@ -976,7 +976,23 @@ const SEALED = {
   //                    tree measured at CR = 0. CACHE is NOT touched: the store name is a ship
   //                    decision, the merge round owns the bump, and nothing in this item is
   //                    deployed.
-  'sw.js': '2de981dc6a862d96f681e7ddb1cd18e8381ffe3303bf81c2cb3a0f8004ef779b',
+  //   item 99 ship -- THE STORE NAME FOR THE SHIP. This is the merge round that sw.js:48 and the
+  //                    note above SW_CACHE both defer the bump to, so the bump is made here:
+  //                    CACHE ezik-v33 -> ezik-v34 in sw.js, and SW_CACHE below with it, in this
+  //                    one commit. THE SHIP ROUND RAISED THE CACHE NAME SO THE NEW SHELL REACHES
+  //                    READERS WHO ALREADY CARRY THE OLD ONE: a returning reader holds the old
+  //                    bundle in the old store, and only a changed worker installs, sweeps every
+  //                    store that is not the new name in activate, and hands them this item
+  //                    instead of the build they already have. NOTHING ELSE IN THE WORKER MOVED.
+  //                    NO CORE FILE CHANGED -- none entered CORE and none left it, and
+  //                    index.html, app.js and every other CORE entry are byte for byte what this
+  //                    branch already carried and what the gates passed on -- so NO BYTE FIGURE
+  //                    MOVED: CORE_BYTES is still 2506299, re-measured against the disk by node
+  //                    tools/core-bytes.cjs, and the byte table above that constant and the
+  //                    SW_PROSE mirror below are untouched. The two store names are the same
+  //                    eight characters, so sw.js is 46792 bytes before and after this edit. THIS
+  //                    digest is re-cut LAST, after the sw.js edit, on a tree measured at CR = 0.
+  'sw.js': '0d5a656e93356d11502948b60d6c7b720cee3924108653170efc50b252578ff1',
 };
 
 // ---------------------------------------------------------------------------
@@ -1000,7 +1016,7 @@ const SEALED = {
 // instead of with "sw.js MOVED".
 // ---------------------------------------------------------------------------
 const SW_FILE = 'sw.js';
-const SW_CACHE = 'ezik-v33';
+const SW_CACHE = 'ezik-v34';
 const SW_ORIGIN = 'https://ezik.app';
 // ITEM 93-B. The tag on the end-of-install brief the worker pushes to every client. Written here
 // rather than read back out of sw.js, because "the worker sent whatever the worker calls it" is a
