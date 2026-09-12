@@ -709,3 +709,9 @@ fonts/FONTS-NOTICE.md    text eol=lf
 # core.autocrlf=true rewriting the line endings would turn one server's bytes into another
 # machine's.
 tools/fixtures/*.html -text
+
+# ITEM 36 (b) -- the new gate script, same mechanical requirement recon-audit item 14 puts on
+# every gate: pinned to LF or the item FAILS. It reads lib/output-reviewer.js RAW and mutates it
+# at literal anchors, and that file is already pinned above, so no anchor of its own can miss a
+# CR.
+guards/prophet-ascription-guard.cjs text eol=lf

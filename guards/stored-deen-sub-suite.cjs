@@ -675,6 +675,10 @@ async function runSuite() {
     // EZIK-RFC-V0.5-R2-IMPLEMENTATION-REPORT.md -- gate-count prose, roster, TOTAL_GATES, and
     // the RECON line, which moves by one because item 14 gains a PASS.
     //
+    // ITEM 36 (b): 112 -> 113, same rule again -- the gate `prophetascription`,
+    // guards/prophet-ascription-guard.cjs. Fifth stop reached deliberately this time: the
+    // count here is the only census whose file name says nothing about gates, and it is the
+    // one the previous two rounds forgot first.
     // ITEM 92: 111 -> 112, same rule again -- the gate `sharelinks`,
     // guards/share-links-guard.cjs. The contract is not relaxed: it is still an exact LIST
     // and an exact COUNT, and mutants 11 and 12 still kill against the new number.
@@ -684,10 +688,10 @@ async function runSuite() {
     // went red here and stayed red, with 104 PASS and no printed FAIL beside the sub-suite's
     // exit code. If you are registering a gate, this line is the fifth stop and the only one
     // whose file name says nothing about gates.
-    function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 112; }
+    function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 113; }
     ok('ORIGINAL_GATE_SET_MATCH', exactGateSet(EXPECTED_GATES));
-    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 112-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
-    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 112-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
+    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 113-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
+    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 113-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
 
     const m13 = await storedMutant(temp, 'fiqh-before-special', (source) => source.replace(
       "if (QURAN_REQUEST.test(folded)) return 'LOCAL_QURAN';",
