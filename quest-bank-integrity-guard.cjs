@@ -992,7 +992,7 @@ const SEALED = {
   //                    SW_PROSE mirror below are untouched. The two store names are the same
   //                    eight characters, so sw.js is 46792 bytes before and after this edit. THIS
   //                    digest is re-cut LAST, after the sw.js edit, on a tree measured at CR = 0.
-  'sw.js': '0d5a656e93356d11502948b60d6c7b720cee3924108653170efc50b252578ff1',
+  'sw.js': 'd116410b015b74fcf4b2c2ccfe56389162aaa7be194fa7263f09b9fab9310d25',
 };
 
 // ---------------------------------------------------------------------------
@@ -2115,7 +2115,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1518634, of: 'app.js' },
+      { n: 1518840, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

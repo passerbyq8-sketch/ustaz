@@ -21154,6 +21154,29 @@ function QiblaPanel({ loc, onLoc }) {
       {compass === 'heading-error' ? (
         <button type="button" onClick={retryShellHeading} className="ezik-focus" style={s.qiblaBtn}>{QIBLA_COMPASS_RETRY}</button>
       ) : null}
+      {/* ITEM 66 -- THE FAILURE STATES THAT HAD NO DOOR. Of the shell's five statuses only
+          `heading-error` ever drew a control. `permission-denied` -- what a start gets while the
+          location permission is ungranted -- and `sensor-unavailable` -- what the shell's own
+          first-reading deadline ends at -- drew nothing at all, and the one `start` this panel
+          sends comes from a mount effect that never runs again. So the visit ended there: no
+          dial, no control, no second start, and the screen the reader was left looking at is
+          the one that tells them to go away and come back.
+
+          THE PRESS IS askLocation AND NOT retryShellHeading, DELIBERATELY. The shell answers
+          `ezik:heading:start` out of the LOCATION permission and its heading path only READS
+          that permission -- the single thing in this repository that ASKS for it is the location
+          request behind this same function, and askLocationViaShell already re-arms the heading
+          from a granted result. A bare re-send would be refused again for want of a permission
+          nobody was asking for.
+
+          AND IT IS DRAWN WHATEVER `loc.by` SAYS, which is the whole of the manual cycle: a
+          reader whose position was already saved from the device is shown `useDefault` below and
+          not `askLocation`, so the only road to that request was to go back to the default
+          position first and then ask for the device again -- the location off-and-on, by hand.
+          Nothing below is touched: the default/device pair keeps its meaning and its place. */}
+      {compass === 'permission-denied' || compass === 'sensor-unavailable' ? (
+        <button type="button" onClick={askLocation} className="ezik-focus" style={s.qiblaBtn}>{QIBLA_COMPASS_RETRY}</button>
+      ) : null}
       <div style={s.qiblaPlace}>
         {QIBLA_PLACE_LABEL} {placeName}{loc.by === 'device' ? '' : ' (' + QIBLA_PLACE_DEFAULT_NOTE + ')'}
       </div>
