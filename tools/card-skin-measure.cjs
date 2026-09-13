@@ -408,7 +408,12 @@ ok('...and none of them is the old skin\'s fixed floor', heights.every((h) => h 
 const previewAt = process.argv.indexOf('--preview');
 if (previewAt !== -1) {
   const out = process.argv[previewAt + 1] || path.join(ROOT, 'CARD-PREVIEW.png');
-  const EXAMPLE = {
+  // --summary <file.json> draws the card from a CAPTURED model answer instead of the example
+  // below. The probe itself still reaches no network -- the capture is made separately and handed
+  // in -- so the same command measures the same thing on a machine with no network at all.
+  const summaryAt = process.argv.indexOf('--summary');
+  const CAPTURED = summaryAt === -1 ? null : JSON.parse(fs.readFileSync(process.argv[summaryAt + 1], 'utf8'));
+  const EXAMPLE = CAPTURED || {
     title: 'حكمُ صيامِ يومِ عاشوراء',
     source: 'islamqa.info',
     points: [
