@@ -4898,12 +4898,21 @@ const ezikQrFormat = (lvl, mask) => {
 // some apps and not in others -- which is the worst of the three possible outcomes.
 const ezikQrPutFormat = (n, m, lvl, mask) => {
   const f = ezikQrFormat(lvl, mask);
-  const bitOf = (i) => (f >> i) & 1;
-  for (let i = 0; i <= 5; i++) m[8][i] = bitOf(i);
-  m[8][7] = bitOf(6); m[8][8] = bitOf(7); m[7][8] = bitOf(8);
-  for (let i = 9; i <= 14; i++) m[14 - i][8] = bitOf(i);
-  for (let i = 0; i <= 7; i++) m[n - 1 - i][8] = bitOf(i);
-  for (let i = 8; i <= 14; i++) m[8][n - 15 + i] = bitOf(i);
+  // THE FIFTEEN RUN HIGH BIT FIRST, AND THE INDEX IS A MODULE INDEX, NOT A BIT INDEX. The strip
+  // starts at (8,0) carrying bit 14 and ends at (0,8) carrying bit 0. Reading the word from its
+  // low end instead wrote all fifteen backwards -- nine of the thirty modules land dark where
+  // they should be light -- and a symbol whose format strip is reversed is not read by any
+  // scanner, however right every other module in it is.
+  const bit = (k) => (f >> (14 - k)) & 1;
+  for (let i = 0; i <= 5; i++) m[8][i] = bit(i);
+  m[8][7] = bit(6); m[8][8] = bit(7); m[7][8] = bit(8);
+  for (let i = 9; i <= 14; i++) m[14 - i][8] = bit(i);
+  // The second copy is SEVEN modules up the left column and EIGHT along row 8; (n-8,8) is the
+  // dark module and belongs to neither copy. Taking eight up the column shifted every module of
+  // the copy by one and overwrote the dark module besides, which is why the two copies of a
+  // format strip that should be identical were not even the same fifteen bits.
+  for (let i = 0; i <= 6; i++) m[n - 1 - i][8] = bit(i);
+  for (let i = 7; i <= 14; i++) m[8][n - 15 + i] = bit(i);
 };
 // The four penalty rules, scored over the finished matrix so the mask is CHOSEN rather than
 // fixed: a run of five, a solid two-by-two, the finder-lookalike run, and the dark ratio.

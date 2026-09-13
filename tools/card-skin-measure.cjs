@@ -114,8 +114,12 @@ const qrDecode = (mods, size) => {
   for (let i = 0; i <= 5; i++) bits[i] = get(8, i);
   bits[6] = get(8, 7); bits[7] = get(8, 8); bits[8] = get(7, 8);
   for (let i = 9; i <= 14; i++) bits[i] = get(14 - i, 8);
+  // THE STRIP RUNS HIGH BIT FIRST: the module at (8,0) carries bit 14 and the one at (0,8)
+  // carries bit 0. This reader used to fold the modules in the other direction, which is the
+  // same error the encoder carried -- and two sides making the same error is a round trip that
+  // proves nothing. The order of 2026-09-13 measured the strip off real symbols; this follows it.
   let raw = 0;
-  for (let i = 0; i < 15; i++) raw |= bits[i] << i;
+  for (let i = 0; i < 15; i++) raw |= bits[i] << (14 - i);
   let bestD = 99, bestW = -1;
   for (let d = 0; d < 32; d++) {
     let x = bchFormat(d) ^ raw, dist = 0;
@@ -127,9 +131,11 @@ const qrDecode = (mods, size) => {
   const mask = bestW & 7;
   let raw2 = 0;
   const b2 = [];
-  for (let i = 0; i <= 7; i++) b2[i] = get(n - 1 - i, 8);
-  for (let i = 8; i <= 14; i++) b2[i] = get(8, n - 15 + i);
-  for (let i = 0; i < 15; i++) raw2 |= b2[i] << i;
+  // SEVEN up the left column and EIGHT along row 8 -- (n-8,8) is the dark module and is in
+  // neither copy. Reading eight up the column shifted the whole copy by one module.
+  for (let i = 0; i <= 6; i++) b2[i] = get(n - 1 - i, 8);
+  for (let i = 7; i <= 14; i++) b2[i] = get(8, n - 15 + i);
+  for (let i = 0; i < 15; i++) raw2 |= b2[i] << (14 - i);
   if (raw2 !== raw) throw new Error('the two format copies disagree');
   const fn = qrFunc(v);
   const cw = [];

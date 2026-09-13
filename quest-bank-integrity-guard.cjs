@@ -113,6 +113,22 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-09-13-c -- ITEM 94, THE BARCODE: THE FORMAT STRIP WAS WRITTEN BACKWARDS.
+  //                    The symbol on the card was right in every part a reader looks at LAST --
+  //                    finders, timing, alignment, data words, error correction, mask 4, quiet
+  //                    zone -- and wrong in the fifteen modules a reader looks at FIRST. The
+  //                    format word was indexed from its low bit, so all fifteen were laid down
+  //                    in reverse (nine of the thirty modules dark where they should be light),
+  //                    and the second copy was taken eight modules up the left column instead of
+  //                    seven, which shifted it by one and overwrote the dark module besides. No
+  //                    scanner reads that. ezikQrPutFormat in app.jsx is the ONLY changed
+  //                    function; the encoder, the payload, the skin and index.html did not move.
+  //                    app.js was rebuilt 1606644 -> 1607416 (+772) by node tools/build-app.cjs,
+  //                    and CORE_BYTES re-cut 2594309 -> 2595081 (+772, exactly the bundle delta)
+  //                    by node tools/core-bytes.cjs --write. The worker's own byte table at :121
+  //                    and the SW_PROSE row for app.js both followed, and THIS digest is re-cut
+  //                    LAST. CACHE is NOT bumped: install rewrites every CORE entry into the
+  //                    same store.
   //   2026-09-13-b -- ITEM 94, ROUND TWO: THE CARD'S SKIN WAS REPLACED AGAIN, AND ONLY THE SKIN.
   //                    The owner read three skins and ruled on the band-and-rows one: white page,
   //                    ezik's light blue, no phrase at all under the bottom strip's ruler, the
@@ -1049,7 +1065,7 @@ const SEALED = {
 //                    shell did not grow. The worker table at :121 and the app.js mirror below
 //                    followed, and THIS digest is re-cut LAST. SW.JS IS OTHERWISE UNTOUCHED and
 //                    CACHE IS NOT BUMPED: this is a branch for the owner to preview, not a ship.
-  'sw.js': 'a0e5e5a01b1107a9e4564720a11f91040698810afc562ff0eb5229ef8502110b',
+  'sw.js': '00d2adb89e3c453f8be2f20d89654a7863253c9eff847fbc8ea101b58cf3c092',
 };
 
 // ---------------------------------------------------------------------------
@@ -2172,7 +2188,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1606644, of: 'app.js' },
+      { n: 1607416, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
