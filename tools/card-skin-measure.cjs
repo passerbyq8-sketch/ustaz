@@ -589,9 +589,10 @@ for (const key of DIA.concat(['camel-that-never-gets-here'])) {
   const cols = Object.keys(r.colours.concat(r.text.map((t) => t.c))
     .reduce((a, c) => { a[c] = 1; return a; }, {})).sort();
   const named = cols.map((c) => PAL_VALUES[c] || ('!!' + c));
+  // The PRIMITIVES, by name and by count, exactly as the recorder saw them called.
   console.log('  ' + (DIA.indexOf(key) === -1 ? '(any other key)' : key).padEnd(17)
-    + (r.arc.length + ' arc  ' + r.rect.length + ' rect  ' + r.line.length + ' pathpt  '
-      + r.text.length + ' label').padEnd(42)
+    + prims.padEnd(46)
+    + (r.arc.length + ' arc/' + r.rect.length + ' rect/' + r.line.length + ' pathpt').padEnd(28)
     + named.join(' '));
   for (const c of r.colours.concat(r.text.map((t) => t.c))) usedColours[c] = (usedColours[c] || 0) + 1;
   if (!r.prims.length) diaBad++;
