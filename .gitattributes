@@ -26,6 +26,13 @@ lib/data/adhkar-split-27.json text eol=lf
 # nobody touched. It is also written LF by its builder and required to stay LF by the order.
 arbaeen.json                  text eol=lf
 
+# ITEM 4 -- the footnotes joined to the marks of the Forty. Built from the same atoms as
+# arbaeen.json above and shipped from the root beside it. Its byte length is asserted by
+# bankintegrity (SW_PROSE) and its path is in the CORE list, so a fresh clone with
+# core.autocrlf=true would inject CR, move its size and fail a gate on a machine that
+# changed nothing.
+arbaeen-footnotes.json        text eol=lf
+
 # ITEM 27 -- the daily verse's tafsir, cut out of FC-000142 in the Shamela index and shipped from
 # the root the same way. The order that introduced it pins its fingerprint (e26e09f1) as the proof
 # that every character in it is a byte copy of that book, and a fresh clone with core.autocrlf=true
