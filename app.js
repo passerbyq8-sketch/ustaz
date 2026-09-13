@@ -474,7 +474,17 @@ const ADHKAR_SPLIT_URL='/adhkar-split-27.json';let __splitData=null;let __splitP
 // in front so even a missing fetch() becomes a rejection rather than a synchronous throw, and a
 // catch that CLEARS the promise so a reader who lost the network can press retry and try again.
 // NOTHING NORMALISES, REORDERS, TRIMS OR REPAIRS EITHER FILE. They are fetched, parsed and read.
-const ASMAA_NAMES_URL='/asmaa-dataset-final-r3.json';const ASMAA_RULES_URL='/asmaa-rules-page-r2.json';let __asmaaNames=null;let __asmaaNamesPromise=null;const loadAsmaaNames=()=>{if(__asmaaNames)return Promise.resolve(__asmaaNames);if(!__asmaaNamesPromise){__asmaaNamesPromise=Promise.resolve().then(()=>fetch(ASMAA_NAMES_URL)).then(r=>{if(!r.ok)throw new Error('asmaa names fetch '+r.status);return r.json();}).then(raw=>{__asmaaNames=Array.isArray(raw)?raw:[];return __asmaaNames;}).catch(e=>{__asmaaNamesPromise=null;throw e;});}return __asmaaNamesPromise;};let __asmaaRules=null;let __asmaaRulesPromise=null;const loadAsmaaRules=()=>{if(__asmaaRules)return Promise.resolve(__asmaaRules);if(!__asmaaRulesPromise){__asmaaRulesPromise=Promise.resolve().then(()=>fetch(ASMAA_RULES_URL)).then(r=>{if(!r.ok)throw new Error('asmaa rules fetch '+r.status);return r.json();}).then(raw=>{__asmaaRules=raw&&typeof raw==='object'?raw:null;return __asmaaRules;}).catch(e=>{__asmaaRulesPromise=null;throw e;});}return __asmaaRulesPromise;};// ── THE ATTRIBUTION RULE, AND THE CLIENT AND THE GATE STATE THE SAME SENTENCE ───────────────
+// ITEM 27. THE DAILY VERSE'S TAFSIR, AS A FILE THAT SHIPS WITH THE APP.
+//
+// daily-tafsir.json is cut out of «المختصر في تفسير القرآن الكريم» (FC-000142) in the
+// Shamela index, one record per reference the daily verse can land on, and every character of
+// it is a byte copy of that book. It is READ and nothing else: no model is asked about an
+// ayah on this path, no request is made for one, and not one word of tafsir in this app is
+// composed rather than quoted.
+//
+// IT IS INDEXED BY THE REFERENCE, which is the same datum DAILY_VERSES carries, so the screen
+// below looks up exactly the verse the card is showing and can never show another one's.
+let __tafsirData=null;let __tafsirPromise=null;const loadDailyTafsir=()=>{if(__tafsirData)return Promise.resolve(__tafsirData);if(!__tafsirPromise){__tafsirPromise=Promise.resolve().then(()=>fetch('/daily-tafsir.json')).then(r=>{if(!r.ok)throw new Error('tafsir fetch '+r.status);return r.json();}).then(raw=>{const byRef={};for(const v of raw.verses||[])if(v&&v.ref)byRef[v.ref]=v;__tafsirData={byRef:byRef,book_title:raw.book_title||null};return __tafsirData;}).catch(e=>{__tafsirPromise=null;throw e;});}return __tafsirPromise;};const ASMAA_NAMES_URL='/asmaa-dataset-final-r3.json';const ASMAA_RULES_URL='/asmaa-rules-page-r2.json';let __asmaaNames=null;let __asmaaNamesPromise=null;const loadAsmaaNames=()=>{if(__asmaaNames)return Promise.resolve(__asmaaNames);if(!__asmaaNamesPromise){__asmaaNamesPromise=Promise.resolve().then(()=>fetch(ASMAA_NAMES_URL)).then(r=>{if(!r.ok)throw new Error('asmaa names fetch '+r.status);return r.json();}).then(raw=>{__asmaaNames=Array.isArray(raw)?raw:[];return __asmaaNames;}).catch(e=>{__asmaaNamesPromise=null;throw e;});}return __asmaaNamesPromise;};let __asmaaRules=null;let __asmaaRulesPromise=null;const loadAsmaaRules=()=>{if(__asmaaRules)return Promise.resolve(__asmaaRules);if(!__asmaaRulesPromise){__asmaaRulesPromise=Promise.resolve().then(()=>fetch(ASMAA_RULES_URL)).then(r=>{if(!r.ok)throw new Error('asmaa rules fetch '+r.status);return r.json();}).then(raw=>{__asmaaRules=raw&&typeof raw==='object'?raw:null;return __asmaaRules;}).catch(e=>{__asmaaRulesPromise=null;throw e;});}return __asmaaRulesPromise;};// ── THE ATTRIBUTION RULE, AND THE CLIENT AND THE GATE STATE THE SAME SENTENCE ───────────────
 //
 // «كلُّ سجلٍّ فيه كتابٌ ومؤلِّفٌ وصفحةٌ في source، وكلُّ نصٍّ منقولٍ يحملُ صفحتَه المطبوعةَ داخلَ
 //  entry_pages لسجلِّه. وما نقصَ منه شيءٌ فبطاقتُه لا تُعرَض.»
@@ -1950,7 +1960,7 @@ let EZIST_SUB_FATWA=ezT("module.fatwa.sub");let EZIST_SUB_LESSONS=ezT("module.le
 // declared as a compass rose reduced to a circle, a needle and its pivot, in the same 24x24 box
 // at the same 1.8 stroke with the same round caps as its neighbours. No icon library, no new
 // dependency, no new artwork file, no image and no data URI -- and one mark for one meaning.
-function EzistTopNav({onOpenMenu,onOpenCompass}){return/*#__PURE__*/React.createElement("div",{className:"ezist-nav"},/*#__PURE__*/React.createElement("div",{className:"ezist-nav-inner"},/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus",onClick:onOpenMenu,style:s.ezistNavBtn,"aria-label":EZH_NAV_MENU},EZH_ICON_MENU),/*#__PURE__*/React.createElement(EzistQuranPanel,null),/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus",onClick:onOpenCompass,style:s.ezistNavBtn,"aria-label":EZH_NAV_COMPASS},EZH_ICON_PRAYER)));}// THE MASTHEAD. The arch is the approved signature radius and nothing else; the tulip is three
+function EzistTopNav({onOpenMenu,onOpenCompass,onOpenTafsir}){return/*#__PURE__*/React.createElement("div",{className:"ezist-nav"},/*#__PURE__*/React.createElement("div",{className:"ezist-nav-inner"},/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus",onClick:onOpenMenu,style:s.ezistNavBtn,"aria-label":EZH_NAV_MENU},EZH_ICON_MENU),/*#__PURE__*/React.createElement(EzistQuranPanel,{onOpenTafsir:onOpenTafsir}),/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus",onClick:onOpenCompass,style:s.ezistNavBtn,"aria-label":EZH_NAV_COMPASS},EZH_ICON_PRAYER)));}// THE MASTHEAD. The arch is the approved signature radius and nothing else; the tulip is three
 // bounded boxes inside a 34x40 span inside a clipped section, so it cannot become a page motif.
 // The greeting and the daily line are the ones the app already picked -- getHomeGreeting() ran
 // once in the owner, and this draws its text. The two adhkar windows stay buttons to the
@@ -2006,7 +2016,21 @@ function EzistModuleCard({m}){const feature=m.id==='mushaf';return/*#__PURE__*/R
 // element was its only reader, so all three went together. The OTHER separator on this
 // screen, .ezist-rule-short -- the short vertical bar in the masthead -- is a different
 // class on a different element and is deliberately untouched.
-function EzistQuranPanel(){const v=getDailyVerse();const isHadith=v.surah==='\u062D\u062F\u064A\u062B';return/*#__PURE__*/React.createElement("section",{className:"ezist-quran",style:s.ezistQuran},/*#__PURE__*/React.createElement("div",{style:s.ezistQuranHead},/*#__PURE__*/React.createElement("span",{style:s.ezistQuranLabel},isHadith?ezT('home.hadithOfDay2'):ezT('home.verseOfDay2'))),/*#__PURE__*/React.createElement("div",{style:s.ezistQuranText},v.text),/*#__PURE__*/React.createElement("div",{style:s.ezistQuranMeta},isHadith?'\u0631\u0648\u0627\u0647 '+v.ayah:'\u0633\u0648\u0631\u0629 '+v.surah+'\u060C \u0622\u064A\u0629 '+v.ayah));}// ============================================================
+// ITEM 27. THE CARD OPENS THE TAFSIR -- ON THE DAYS IT HAS ONE, AND ON NO OTHER.
+//
+// DAILY_VERSES holds thirty entries and ONE OF THEM IS NOT A VERSE: it carries kind 'other'
+// and no `ref` at all, which is why a hadith stood where the ayah usually stands. That entry
+// is left exactly as it is today -- a display, with nothing to press. The touch target exists
+// only when the day's entry carries a reference, because the reference is the only thing that
+// can name a tafsir; a card that opened a page and then said it had nothing would be worse
+// than a card that did not open.
+//
+// THE SECTION ELEMENT AND EVERY LINE INSIDE IT ARE UNCHANGED. On a day with a reference the
+// same three children are mounted inside a button; on any other day they are mounted in the
+// same <section> they have always been mounted in. DAILY_VERSES itself, its generator and
+// getDailyVerse() are not touched by this item at all -- it reads them and changes nothing.
+function EzistQuranPanelBody(v,isHadith){return/*#__PURE__*/React.createElement(React.Fragment,null,/*#__PURE__*/React.createElement("div",{style:s.ezistQuranHead},/*#__PURE__*/React.createElement("span",{style:s.ezistQuranLabel},isHadith?ezT('home.hadithOfDay2'):ezT('home.verseOfDay2'))),/*#__PURE__*/React.createElement("div",{style:s.ezistQuranText},v.text),/*#__PURE__*/React.createElement("div",{style:s.ezistQuranMeta},isHadith?'\u0631\u0648\u0627\u0647 '+v.ayah:'\u0633\u0648\u0631\u0629 '+v.surah+'\u060C \u0622\u064A\u0629 '+v.ayah));}function EzistQuranPanel({onOpenTafsir}){const v=getDailyVerse();const isHadith=v.surah==='\u062D\u062F\u064A\u062B';// THE ONE CONDITION: the entry's own reference, and the handler actually being there.
+const canOpen=!!(v&&v.ref&&onOpenTafsir);if(!canOpen){return/*#__PURE__*/React.createElement("section",{className:"ezist-quran",style:s.ezistQuran},EzistQuranPanelBody(v,isHadith));}return/*#__PURE__*/React.createElement("button",{type:"button",className:"ezist-quran ezhome-focus",style:s.ezistQuran,onClick:()=>onOpenTafsir(),"aria-label":ezT('home.verseOfDay2')},EzistQuranPanelBody(v,isHadith));}// ============================================================
 // ITEM 93 -- THE CARDS THAT SIT ABOVE THE SHELF, AND HOW MANY OF THEM THERE ARE
 // ============================================================
 // The wird stood here alone at width:100%. The owner has ruled it a ROW of equal-width cards with
@@ -2031,7 +2055,7 @@ function ezHomeDuoCards(v){return[{id:'wird',title:/*#__PURE__*/React.createElem
 {id:'calc',title:/*#__PURE__*/React.createElement("span",{style:s.ezistCardTitle},ezT('calc.card.title')),onOpen:()=>v.onOpenCalc(true)}];}// One descriptor per card, one element per descriptor, and the grid's columns read off the array
 // rather than off a number written into a style object.
 function EzikHomeCardRow({cards}){const list=Array.isArray(cards)?cards:[];if(list.length===0)return null;return/*#__PURE__*/React.createElement("div",{style:{...s.ezHomeCardRow,gridTemplateColumns:'repeat('+list.length+', minmax(0, 1fr))'}},list.map(c=>/*#__PURE__*/React.createElement("div",{key:c.id,style:s.ezHomeCardCell},/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus",onClick:c.onOpen,style:s.ezHomeCardOpen},c.title))));}function EzikIstanaHome(v){const mods=v.modules||[];// the owner's one array, mapped once, in its own order
-return/*#__PURE__*/React.createElement("div",{className:"theme-dark ezhome",style:s.ezistContainer},/*#__PURE__*/React.createElement(EzistTopNav,{onOpenMenu:v.onOpenMenu,onOpenCompass:v.onOpenCompass}),/*#__PURE__*/React.createElement("div",{style:s.ezistScroll},/*#__PURE__*/React.createElement("div",{className:"ezist-wrap"},/*#__PURE__*/React.createElement(EzistMasthead,{name:v.name,g:v.greeting,hijri:v.hijri,onOpenAdhkar:v.onOpenAdhkar}),/*#__PURE__*/React.createElement(EzikHomeCardRow,{cards:ezHomeDuoCards(v)}),/*#__PURE__*/React.createElement("div",{className:"ezist-mosaic"},mods.map(m=>/*#__PURE__*/React.createElement(EzistModuleCard,{key:m.id,m:m}))),/*#__PURE__*/React.createElement(EzikHomeWidgetArea,{widgets:v.widgets,nav:{onOpenAdhkar:v.onOpenAdhkar,onOpenPrayer:v.onOpenPrayer}}))));}// ---- S101 ISTANA HOME END ----------------------------------------------------------------
+return/*#__PURE__*/React.createElement("div",{className:"theme-dark ezhome",style:s.ezistContainer},/*#__PURE__*/React.createElement(EzistTopNav,{onOpenMenu:v.onOpenMenu,onOpenCompass:v.onOpenCompass,onOpenTafsir:v.onOpenTafsir}),/*#__PURE__*/React.createElement("div",{style:s.ezistScroll},/*#__PURE__*/React.createElement("div",{className:"ezist-wrap"},/*#__PURE__*/React.createElement(EzistMasthead,{name:v.name,g:v.greeting,hijri:v.hijri,onOpenAdhkar:v.onOpenAdhkar}),/*#__PURE__*/React.createElement(EzikHomeCardRow,{cards:ezHomeDuoCards(v)}),/*#__PURE__*/React.createElement("div",{className:"ezist-mosaic"},mods.map(m=>/*#__PURE__*/React.createElement(EzistModuleCard,{key:m.id,m:m}))),/*#__PURE__*/React.createElement(EzikHomeWidgetArea,{widgets:v.widgets,nav:{onOpenAdhkar:v.onOpenAdhkar,onOpenPrayer:v.onOpenPrayer}}))));}// ---- S101 ISTANA HOME END ----------------------------------------------------------------
 // ============================================================
 // ITEM 05-C -- THE WIRD PICKER
 // ============================================================
@@ -2635,7 +2659,7 @@ function EzikHomeWidgetArea({widgets,nav}){useEzLang();const list=ezWidgetVisibl
 // makes, so the visible control and the hardware button resolve through one door.
 //
 // 🔴 ONE HOOK, FIRST STATEMENT, NO RETURN ABOVE IT.
-function EzikHomeWidgetArrange({widgets,onWidgets,arrangeOpen,onArrange}){useEzLang();return/*#__PURE__*/React.createElement(React.Fragment,null,/*#__PURE__*/React.createElement("div",{style:s.ezwidBar},/*#__PURE__*/React.createElement("button",{type:"button",onClick:()=>onArrange(!arrangeOpen),"aria-expanded":arrangeOpen?'true':'false',className:"ezhome-focus",style:s.ezwidBarBtn},arrangeOpen?ezT('home.arrange.close'):ezT('home.arrange.title'))),arrangeOpen?/*#__PURE__*/React.createElement(EzikHomeArrange,{widgets:widgets,onWidgets:onWidgets,onClose:()=>onArrange(false)}):null);}function Home({profile,onOpenMenu,onOpenMemorize,onOpenAdhkar,onOpenArbaeen,onOpenMushaf,onOpenFatwa,onOpenLessons,onOpenAsmaa,onOpenSettings}){// THE OWNER. Every prop it was handed is handed straight on, and the treasure entry resolves
+function EzikHomeWidgetArrange({widgets,onWidgets,arrangeOpen,onArrange}){useEzLang();return/*#__PURE__*/React.createElement(React.Fragment,null,/*#__PURE__*/React.createElement("div",{style:s.ezwidBar},/*#__PURE__*/React.createElement("button",{type:"button",onClick:()=>onArrange(!arrangeOpen),"aria-expanded":arrangeOpen?'true':'false',className:"ezhome-focus",style:s.ezwidBarBtn},arrangeOpen?ezT('home.arrange.close'):ezT('home.arrange.title'))),arrangeOpen?/*#__PURE__*/React.createElement(EzikHomeArrange,{widgets:widgets,onWidgets:onWidgets,onClose:()=>onArrange(false)}):null);}function Home({profile,onOpenMenu,onOpenMemorize,onOpenAdhkar,onOpenArbaeen,onOpenMushaf,onOpenFatwa,onOpenLessons,onOpenAsmaa,onOpenSettings,onOpenTafsir}){// THE OWNER. Every prop it was handed is handed straight on, and the treasure entry resolves
 // to the same href it always did. There is no second router here and no duplicated navigation
 // state -- the two components above receive these handlers and call them unchanged.
 const g=getHomeGreeting();// GENUINE local progress, or nothing at all. These are the MUSHAF'S OWN helpers reading the
@@ -2715,7 +2739,9 @@ onOpenTasbih:next=>{if(!next&&ezikHistBack())return;setTasbihOpen(next);},onOpen
 onOpenCalc:next=>{if(!next&&ezikHistBack())return;setCalcOpen(next);},onWirdRemove:(k,id)=>setWirdList(writeWirdList(wirdListRemove(wirdList.items,k,id))),// S118: onOpenChat is gone from this object because the home no longer holds a chat
 // control of its own. The chat is entered from the menu the bar opens, on the menu's own
 // «محادثة جديدة» row, which is the app's ONE new-conversation entry and always was.
-onOpenMenu:onOpenMenu,onOpenMemorize:onOpenMemorize,onOpenAdhkar:onOpenAdhkar,// ITEM 89: handed straight on, like the six around it. The screen it sets lives in App,
+onOpenMenu:onOpenMenu,// ITEM 27: the daily verse card's door, handed down like every other. The screen it sets
+// lives in App, where every feature section's screen key is set.
+onOpenTafsir:onOpenTafsir,onOpenMemorize:onOpenMemorize,onOpenAdhkar:onOpenAdhkar,// ITEM 89: handed straight on, like the six around it. The screen it sets lives in App,
 // which is where every other feature section's screen key is set.
 onOpenArbaeen:onOpenArbaeen,onOpenMushaf:onOpenMushaf,onOpenFatwa:onOpenFatwa,onOpenLessons:onOpenLessons,// ITEM 26: handed straight on, like the six above it. The layer this opens is owned by App,
 // which is where the menu row that opens the same section already sets it.
@@ -5457,7 +5483,7 @@ if((screen==='chat'||screen==='call')&&aiConsent!==EZ_AI_CONSENT_GRANTED)return/
 // S118: the home hands its bar the SAME openDrawer the chat's rail calls, and draws the SAME
 // ezikDrawer() the chat draws -- one panel, one state, one history entry. It no longer takes
 // an onOpenChat: the chat is entered from that menu's «محادثة جديدة» row.
-if(screen==='home')return/*#__PURE__*/React.createElement(React.Fragment,null,/*#__PURE__*/React.createElement(Home,{profile:profile,onOpenMenu:openDrawer,onOpenMemorize:()=>setScreen('memorize'),onOpenAdhkar:()=>setScreen('adhkar'),onOpenArbaeen:()=>setScreen('arbaeen'),onOpenMushaf:()=>setScreen('mushaf'),onOpenFatwa:()=>setScreen('fatwa'),onOpenLessons:()=>setScreen('lessons'),onOpenAsmaa:()=>setAsmaaOpen(true),onOpenSettings:()=>openEzikSheet('settings')}),ezikDrawer());// S87: the three sheets resolve their back through goEzikBack, which returns them to the screen
+if(screen==='home')return/*#__PURE__*/React.createElement(React.Fragment,null,/*#__PURE__*/React.createElement(Home,{profile:profile,onOpenMenu:openDrawer,onOpenMemorize:()=>setScreen('memorize'),onOpenAdhkar:()=>setScreen('adhkar'),onOpenArbaeen:()=>setScreen('arbaeen'),onOpenMushaf:()=>setScreen('mushaf'),onOpenFatwa:()=>setScreen('fatwa'),onOpenLessons:()=>setScreen('lessons'),onOpenAsmaa:()=>setAsmaaOpen(true),onOpenSettings:()=>openEzikSheet('settings'),onOpenTafsir:()=>setScreen('ayah-tafsir')}),ezikDrawer());// S87: the three sheets resolve their back through goEzikBack, which returns them to the screen
 // recorded when they were opened (home or the chat drawer) and to home when nothing valid was.
 // The gate still clears its own PIN field first -- that is its state, not navigation.
 if(screen==='parentGate')return/*#__PURE__*/React.createElement(ParentGate,{pinInput:pinInput,setPinInput:setPinInput,pinError:pinError,setPinError:setPinError,onSuccess:()=>{setPinInput('');setPinError(false);replaceEzikScreen('parentDashboard');},onBack:()=>{setPinInput('');setPinError(false);goEzikBack();}});// S92: the dashboard reads the SAVED conversations, not the thread that happens to be open --
@@ -5489,7 +5515,9 @@ if(screen==='call')return/*#__PURE__*/React.createElement(CallScreen,{profileNam
 // retained, and only a back taken from the section's own top level goes home.
 if(screen==='memorize')return/*#__PURE__*/React.createElement(MemorizeScreen,{profile:profile,onExit:goEzikBack,onPlayVerse:playVerseManual,onPlaySurah:playSurahManual,onStopAudio:cancelAudio});if(screen==='mushaf')return/*#__PURE__*/React.createElement(MushafScreen,{selected:selectedSurah,setSelected:setSelectedSurah,onBack:goEzikBack,onPlaySurah:playSurahManual,onStopAudio:cancelAudio});if(screen==='adhkar')return/*#__PURE__*/React.createElement(AdhkarScreen,{onBack:goEzikBack});// ITEM 89: a feature section, in NEITHER screen register -- exactly like the adhkar line
 // above it. ezikBackTarget's fall-through gives it its back destination.
-if(screen==='arbaeen')return/*#__PURE__*/React.createElement(ArbaeenScreen,{onBack:goEzikBack});if(screen==='fatwa')return/*#__PURE__*/React.createElement(FatwaScreen,{onBack:goEzikBack,favPk:favPk});// ITEM 24-B: a feature section, so it is in NEITHER screen register -- exactly like the
+if(screen==='arbaeen')return/*#__PURE__*/React.createElement(ArbaeenScreen,{onBack:goEzikBack});// ITEM 27: the daily verse's tafsir. A feature section like the two above it, so it is in
+// NEITHER screen register and takes its back destination from ezikBackTarget's fall-through.
+if(screen==='ayah-tafsir')return/*#__PURE__*/React.createElement(AyahTafsirScreen,{onBack:goEzikBack});if(screen==='fatwa')return/*#__PURE__*/React.createElement(FatwaScreen,{onBack:goEzikBack,favPk:favPk});// ITEM 24-B: a feature section, so it is in NEITHER screen register -- exactly like the
 // fatwa line above it. ezikBackTarget's final fall-through («Every feature section: home,
 // never the chat») already gives it its back destination, and a third register is what
 // that fall-through exists to make unnecessary.
@@ -6245,7 +6273,27 @@ function SpendGate({onUnlock,onExit}){const[code,setCode]=useState('');const[err
 // The root carries .ezhome, which is what puts the --a3-* token set in scope for everything
 // inside -- the same scope the home and the adhkar screens use, so a screen adopting the shell
 // gets the identity and the dark palette without declaring a colour of its own.
-function EzShell({title,onBack,backLabel,actions,children}){return/*#__PURE__*/React.createElement("div",{className:"theme-dark ezhome",style:s.ezshContainer},/*#__PURE__*/React.createElement("div",{className:"ezsh-nav"},/*#__PURE__*/React.createElement("div",{className:"ezsh-nav-inner"},/*#__PURE__*/React.createElement("div",{className:"ezsh-nav-side"},onBack?/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus",onClick:onBack,style:s.ezshNavBtn,"aria-label":backLabel},A2_ICON_BACK):null),/*#__PURE__*/React.createElement("span",{className:"ezsh-brand"},/*#__PURE__*/React.createElement("span",{className:"ezsh-brand-arch","aria-hidden":"true"}),/*#__PURE__*/React.createElement("span",null,title)),/*#__PURE__*/React.createElement("div",{className:"ezsh-nav-side is-end"},actions||null))),/*#__PURE__*/React.createElement("div",{style:s.ezshScroll},/*#__PURE__*/React.createElement("div",{className:"ezsh-wrap"},children)));}// One group inside the shell: a heading, a bounded Iznik marker, the screen's own controls,
+// ============================================================
+// ITEM 27 -- THE DAILY VERSE, AND WHAT THE BOOK SAYS ABOUT IT.
+//
+// THIS IS THE DAILY VERSE CARD'S PAGE AND NOTHING WIDER. It is not a tafsir beside every ayah
+// in the mushaf; it is the one verse the home card is showing today, opened.
+//
+// THE SHAPE IS THE ONE THE ORDER FIXED: the ayah, a plain tafsir, the attribution, and a back
+// button. Zero options, zero other controls. It is built on EzShell -- the same shell the single
+// name in أسماء الله الحسنى is built on -- so it carries one back control and no second way out.
+//
+// WHAT IT WILL NOT DO. A verse the book does not cover gets NO tafsir field at all: no «not
+// available» line, no stand-in, and above all nothing written from the model's own head. The
+// whole path is a stored file being read; there is no request on it and no model call on it.
+//
+// AND A RANGE IS NAMED AS A RANGE. Where the book treats several ayat in one paragraph, the
+// record carries `range_label` and the reference line states that range instead of the single
+// ayah -- so what is shown is never offered as the tafsir of this ayah alone. None of the
+// references shipped today is such a case; the path exists because the file may carry one.
+function AyahTafsirScreen({onBack}){const v=getDailyVerse();const[db,setDb]=useState(null);const[failed,setFailed]=useState(false);useEffect(()=>{let alive=true;loadDailyTafsir().then(d=>{if(alive)setDb(d);}).catch(()=>{if(alive)setFailed(true);});return()=>{alive=false;};},[]);const rec=db&&v&&v.ref?db.byRef[v.ref]||null:null;// The reference line, composed with the SAME pieces the home card composes it with -- and with
+// the RANGE in place of the ayah when the book's paragraph covers a range.
+const where='\u0633\u0648\u0631\u0629 '+v.surah+'\u060C \u0622\u064A\u0629 '+(rec&&rec.range_label?rec.range_label:v.ayah);return/*#__PURE__*/React.createElement(EzShell,{title:ezT('home.verseOfDay2'),onBack:onBack,backLabel:A2_BACK},/*#__PURE__*/React.createElement("article",{style:s.asmaaRead},/*#__PURE__*/React.createElement("p",{style:s.asmaaAyah},v.text),/*#__PURE__*/React.createElement("div",{style:s.asmaaRef},where),rec&&rec.tafsir_text?/*#__PURE__*/React.createElement(React.Fragment,null,/*#__PURE__*/React.createElement("p",{style:s.asmaaPara},rec.tafsir_text),/*#__PURE__*/React.createElement("div",{style:s.asmaaRef},rec.book_title,rec.page?' \u2014 '+rec.page:'')):db===null&&!failed?/*#__PURE__*/React.createElement("p",{style:s.asmaaPara},"..."):null));}function EzShell({title,onBack,backLabel,actions,children}){return/*#__PURE__*/React.createElement("div",{className:"theme-dark ezhome",style:s.ezshContainer},/*#__PURE__*/React.createElement("div",{className:"ezsh-nav"},/*#__PURE__*/React.createElement("div",{className:"ezsh-nav-inner"},/*#__PURE__*/React.createElement("div",{className:"ezsh-nav-side"},onBack?/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus",onClick:onBack,style:s.ezshNavBtn,"aria-label":backLabel},A2_ICON_BACK):null),/*#__PURE__*/React.createElement("span",{className:"ezsh-brand"},/*#__PURE__*/React.createElement("span",{className:"ezsh-brand-arch","aria-hidden":"true"}),/*#__PURE__*/React.createElement("span",null,title)),/*#__PURE__*/React.createElement("div",{className:"ezsh-nav-side is-end"},actions||null))),/*#__PURE__*/React.createElement("div",{style:s.ezshScroll},/*#__PURE__*/React.createElement("div",{className:"ezsh-wrap"},children)));}// One group inside the shell: a heading, a bounded Iznik marker, the screen's own controls,
 // and the hint the screen already showed. `wide` is the only layout choice a tenant makes.
 // ============================================================
 // ITEM 107 — مواقيتُ الصلاة، حسابًا موضعيًّا

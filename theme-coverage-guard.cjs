@@ -1013,8 +1013,8 @@ ok('...bounded and centred rather than loose across the viewport',
   // the way a third one used to.
   ok('...carrying exactly three elements: the menu button, the daily verse and the compass mark',
     (INNER.match(/<button /g) || []).length === 2
-    && (INNER.match(/<EzistQuranPanel \/>/g) || []).length === 1
-    && INNER.replace(/<button [\s\S]*?<\/button>/g, '').replace(/<EzistQuranPanel \/>/, '').trim() === '',
+    && (INNER.match(/<EzistQuranPanel onOpenTafsir=\{onOpenTafsir\} \/>/g) || []).length === 1
+    && INNER.replace(/<button [\s\S]*?<\/button>/g, '').replace(/<EzistQuranPanel onOpenTafsir=\{onOpenTafsir\} \/>/, '').trim() === '',
     'the bar holds two buttons and one verse panel and no fourth thing');
   // ...AND THE SECOND CONTROL IS THE COMPASS, BY NAME. A count that did not say WHICH controls
   // would be answered by any two buttons at all.
@@ -1024,13 +1024,13 @@ ok('...bounded and centred rather than loose across the viewport',
   // ...AND IT IS ON THE VISUAL LEFT, which under this document's RTL is the row's LAST child.
   // The same measurement the menu button's own line rests on, read from the other end.
   ok('...and it sits LAST, so the RTL trailing edge -- the left -- is where it sits',
-    INNER.lastIndexOf('<button ') > INNER.indexOf('<EzistQuranPanel />')
+    INNER.lastIndexOf('<button ') > INNER.indexOf('<EzistQuranPanel onOpenTafsir={onOpenTafsir} />')
     && INNER.lastIndexOf('<button ') > INNER.indexOf('<button '));
   // S119 -- AND THE BUTTON IS THE FIRST OF THE TWO. The document lays out RTL, so the first
   // child of this row sits on the RIGHT. The button was second, and therefore on the left, which
   // is the trailing edge and the wrong side of an Arabic bar; the owner asked for the right.
   ok('...the menu button FIRST, so the RTL leading edge -- the right -- is where it sits',
-    INNER.indexOf('<button ') < INNER.indexOf('<EzistQuranPanel />'));
+    INNER.indexOf('<button ') < INNER.indexOf('<EzistQuranPanel onOpenTafsir={onOpenTafsir} />'));
   // ...and moved in the TREE. `order` or `row-reverse` would paint it on the right while leaving
   // it second in the document, so the tab ring and the screen reader would run against the eye.
   // The composition block promises no `order` anywhere in it; this is what holds that promise.
@@ -1040,7 +1040,7 @@ ok('...bounded and centred rather than loose across the viewport',
   eq('...and exactly two of them are controls', (NAV.match(/<button/g) || []).length, 2);
   ok('...whose handler is the menu opener it was handed, named «القائمة»',
     /onClick=\{onOpenMenu\}[\s\S]{0,120}aria-label=\{EZH_NAV_MENU\}/.test(NAV)
-    && /function EzistTopNav\(\{ onOpenMenu, onOpenCompass \}\)/.test(NAV));
+    && /function EzistTopNav\(\{ onOpenMenu, onOpenCompass, onOpenTafsir \}\)/.test(NAV));
   // THE MENU IT OPENS IS THE CHAT'S. Not a second drawer: the owner hands it App's own opener,
   // and App renders the one ezikDrawer() on the home branch as well as the chat's.
   // S118: the menu paints ONLY tokens, and the two screens that draw it declare them on
@@ -1198,11 +1198,11 @@ ok('...and no module spans AT ANY WIDTH -- every tile occupies exactly one of th
   MOSAIC_CSS.length > 0 && !/\.ezist-(?:mod|feature)[^{}]*\{[^}]*grid-column:\s*span/.test(MOSAIC_CSS),
   'the ruling this shelf now follows: three sections per row, tiles equal, none spanning, none orphaned -- so no .ezist-mod, .ezist-feature or .ezist-mod-fatwa grid-column:span rule may live anywhere in the mosaic region: the base rule and both breakpoints alike');
 
-ok('the daily verse has its own bounded panel', /<EzistQuranPanel \/>/.test(IST) && /className="ezist-quran"/.test(IST));
+ok('the daily verse has its own bounded panel', /<EzistQuranPanel onOpenTafsir=\{onOpenTafsir\} \/>/.test(IST) && /className="ezist-quran"/.test(IST));
 // S118: it is drawn ONCE, and in the top bar rather than as the mosaic's last cell. The panel
 // itself did not change -- same component, same source, same verbatim text, asserted below as
 // before -- so what moved is where it is mounted and nothing else.
-eq('...drawn exactly once', (IST.match(/<EzistQuranPanel \/>/g) || []).length, 1);
+eq('...drawn exactly once', (IST.match(/<EzistQuranPanel onOpenTafsir=\{onOpenTafsir\} \/>/g) || []).length, 1);
 // S119: this pinned the panel to the line straight after the bar's opening tag, and that is an
 // ORDER pin, not a placement one: item 58 put the menu button on that line so the RTL leading
 // edge would carry it, and the verse moved down one. What this check is NAMED for is WHERE the
@@ -1210,12 +1210,35 @@ eq('...drawn exactly once', (IST.match(/<EzistQuranPanel \/>/g) || []).length, 1
 // on the line above) falls inside EzistTopNav. It did not lose bite: a panel moved out of the
 // bar fails it, and the mosaic exclusion it carries is untouched.
 okOn('...and that once is inside the top bar', [["IST", IST]],
-  IST.indexOf('<EzistQuranPanel />') > IST.indexOf('<div className="ezist-nav-inner">')
-  && IST.indexOf('<EzistQuranPanel />') < IST.indexOf('function EzistMasthead')
+  IST.indexOf('<EzistQuranPanel onOpenTafsir={onOpenTafsir} />') > IST.indexOf('<div className="ezist-nav-inner">')
+  && IST.indexOf('<EzistQuranPanel onOpenTafsir={onOpenTafsir} />') < IST.indexOf('function EzistMasthead')
   && !/<EzistModuleCard key=\{m\.id\} m=\{m\} \/>\)\}\s*\r?\n\s*<EzistQuranPanel/.test(IST));
-okOn('...as a DISPLAY: no handler, no role and no tabindex on it', [["IST", IST]],
-  !/<EzistQuranPanel[^>]*on[A-Z]/.test(IST)
-  && !/<section className="ezist-quran"[^>]*(role=|tabIndex=|onClick=)/.test(IST));
+// ITEM 27 OVERTURNED THIS, AND THE OWNER'S REASON IS ON THE RECORD: the daily verse card now
+// opens the verse's tafsir. What this check was FOR is not gone -- it was written so that a
+// panel could not acquire a handler quietly, and become a control that looks like a display.
+// So it asserts the NEW ruling with the same bite, and in three parts:
+//
+//   1. the panel is handed exactly ONE handler, and it is the tafsir door -- not a second
+//      route, not a menu, not a sheet;
+//   2. the <section> shape -- the one drawn on a day that has no reference -- is still a pure
+//      display: no onClick, no role and no tabIndex anywhere on it. A day whose entry carries
+//      no `ref` has no tafsir to open, and a control that opens nothing is worse than none;
+//   3. the door is BEHIND THE REFERENCE. The component must read `v.ref` before it draws the
+//      pressable shape, so the untappable day is a property of the data and not of a prop
+//      somebody forgot to pass.
+okOn('ITEM 27: the panel is handed ONE handler, and it is the tafsir door', [["IST", IST]],
+  (IST.match(/<EzistQuranPanel [^>]*>/g) || []).length === 1
+  && /<EzistQuranPanel onOpenTafsir=\{onOpenTafsir\} \/>/.test(IST)
+  && !/<EzistQuranPanel[^>]*on(?!OpenTafsir)[A-Z]/.test(IST),
+  'the verse panel took a handler that is not the tafsir door');
+okOn('ITEM 27: ...and the DISPLAY shape is still a display -- no handler, no role, no tabindex',
+  [["IST", IST]],
+  !/<section className="ezist-quran"[^>]*(role=|tabIndex=|onClick=)/.test(html),
+  'the day with no reference acquired a handler');
+okOn('ITEM 27: ...and the door is behind the REFERENCE, not behind the prop alone', [["html", html]],
+  /const canOpen = !!\(v && v\.ref && onOpenTafsir\);/.test(html)
+  && /if \(!canOpen\) \{/.test(html),
+  'a day whose entry carries no ref must not be able to draw the pressable shape');
 ok('...reading the SAME single source the legacy card reads', /const v = getDailyVerse\(\);/.test(IST));
 
 /* ---- Q. ITEM 28: A QUR'ANIC SPAN IS NOT A «نص منقول» ---------------- */
@@ -1427,7 +1450,7 @@ ok('105: ...and the title still starts at the pixel it always did',
   const ISTCODE = IST.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/[^\n]*$/gm, ' ');
   eqOn('the composition holds no chat handler of its own', [["IST", IST]], (ISTCODE.match(/onOpenChat/g) || []).length, 0);
   ok('...because the one way in is the menu the bar opens',
-    /function EzistTopNav\(\{ onOpenMenu, onOpenCompass \}\)/.test(IST)
+    /function EzistTopNav\(\{ onOpenMenu, onOpenCompass, onOpenTafsir \}\)/.test(IST)
     && /className="ezist-nav"[\s\S]*?onClick=\{onOpenMenu\}[\s\S]*?<\/div>\s*\r?\n\s*\);/.test(IST));
   ok('...and that menu lands on the chat, through ONE handler that resets and navigates',
     /const startChatFromMenu = \(\) => \{ newChat\(\); setScreen\('chat'\); \};/.test(html)
@@ -1777,6 +1800,11 @@ const INDEX_SCREENS = {
   // -- it mounts on the .ezia-* vocabulary, which is the adhkar template copied rather than a
   // new one invented. The adhkar screen itself was not edited to make room for it.
   arbaeen:         { render: 'ArbaeenScreen -> IstanaArbaeenBrowse / IstanaArbaeenReader', shell: 'istana' },
+  // ITEM 27: the daily verse's tafsir. Classified istana because it is built on the SHARED
+  // EzShell -- the same shell الإعدادات, المحفّظ, the mushaf index and the lessons section
+  // already use -- and takes the identity from .ezhome through it. That is why its `render`
+  // names a shell and not a prefix, exactly as the lessons line above does.
+  'ayah-tafsir':   { render: 'AyahTafsirScreen -> EzShell + the verse, its tafsir and its source', shell: 'istana' },
 };
 // Screens the switch reaches WITHOUT a screen key of their own -- guards and gates in front of
 // another screen. They are reachable, so they are inventoried.
@@ -1790,8 +1818,12 @@ const INDEX_INTERSTITIALS = {
 
 // PARSED FROM THE SHIPPED FILE, not from the table above.
 const foundScreens = new Set();
-for (const m of html.matchAll(/if \(screen === '([a-zA-Z]+)'/g)) foundScreens.add(m[1]);
-for (const m of html.matchAll(/screen === '([a-zA-Z]+)' \|\| screen === '([a-zA-Z]+)'/g)) { foundScreens.add(m[1]); foundScreens.add(m[2]); }
+// ITEM 27: [a-zA-Z-]+, not [a-zA-Z]+. `ayah-tafsir` is the first screen key with a hyphen in
+// it, and under the narrower pattern it was invisible here -- so it would never be inventoried
+// and never have to appear in the handoff. A screen no check can see is a screen outside the
+// guard, so the pattern is widened rather than the screen renamed.
+for (const m of html.matchAll(/if \(screen === '([a-zA-Z-]+)'/g)) foundScreens.add(m[1]);
+for (const m of html.matchAll(/screen === '([a-zA-Z-]+)' \|\| screen === '([a-zA-Z-]+)'/g)) { foundScreens.add(m[1]); foundScreens.add(m[2]); }
 // the chat is the fall-through: no `if (screen === 'chat') return` guards it, it is what is left.
 ok('the chat is still the render fall-through', /screen === 'chat' \|\| screen === 'call'/.test(html));
 foundScreens.add('chat');
@@ -1801,7 +1833,7 @@ const handoff = fs.readFileSync(path.join(__dirname, 'EZIK-THEME-33-HANDOFF.md')
 const handoffAt = handoff.indexOf('### index.html');
 const handoffEnd = handoff.indexOf('\n### ', handoffAt + 4);
 const handoffIndexSection = handoffAt === -1 ? '' : handoff.slice(handoffAt, handoffEnd === -1 ? handoff.length : handoffEnd);
-const handoffScreens = Array.from(handoffIndexSection.matchAll(/^\|\s*([A-Za-z][A-Za-z0-9]*)\s*\|/gm), (m) => m[1]);
+const handoffScreens = Array.from(handoffIndexSection.matchAll(/^\|\s*([A-Za-z][A-Za-z0-9-]*)\s*\|/gm), (m) => m[1]);
 const arabicCount = String(declared.size).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 ok('the handoff states the governing index.html screen count',
   handoffIndexSection.includes('### index.html — ' + arabicCount + ' شاشة'));
@@ -1857,14 +1889,14 @@ const idxIstana = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shel
 const idxLegacy = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shell === 'legacy');
 const qIstana = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'istana');
 const qLegacy = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'legacy');
-eq('every index screen is istana after this commit', idxIstana.length, 15);
+eq('every index screen is istana after this commit', idxIstana.length, 16);
 eq('...and NONE is left legacy', idxLegacy.length, 0);
 // ITEM 24-B added the fourteenth by name; ITEM 89 adds the fifteenth the same way -- the
 // Forty, which mounts on the adhkar's .ezia-* vocabulary and so is istana for the same
 // reason the adhkar screen is. The list is spelled out rather than counted so that a screen
 // appearing or vanishing has to be read by a person, not absorbed by a number.
-eq('...and the set is exactly the fifteen', idxIstana.slice().sort().join(','),
-  'adhkar,arbaeen,call,chat,fatwa,favorites,home,lessons,loading,memorize,mushaf,onboarding,parentDashboard,parentGate,settings');
+eq('...and the set is exactly the sixteen', idxIstana.slice().sort().join(','),
+  'adhkar,arbaeen,ayah-tafsir,call,chat,fatwa,favorites,home,lessons,loading,memorize,mushaf,onboarding,parentDashboard,parentGate,settings');
 eq('...and the three interstitials are still three', Object.keys(INDEX_INTERSTITIALS).length, 3);
 // S115: the barriers moved WITH this batch, so the check flipped from "still legacy" to "all
 // three, and by name". A fourth appearing here would fail the reachability check above first.
@@ -3132,8 +3164,8 @@ ok('42-أ: speechSynthesis is genuinely absent from the application file',
 /* ---- N30..N32. the inventory, the call screen, and the repo ------------- */
 // The fatwa search moves the whole-screen count by one; chat remains one of the thirteen. This
 // later assertion deliberately repeats K2 so a stale downstream assumption fails visibly too.
-eq('N30: the index inventory reads exactly 15 istana / 0 legacy / 3 interstitials',
-  idxIstana.length + '/' + idxLegacy.length + '/' + Object.keys(INDEX_INTERSTITIALS).length, '15/0/3');
+eq('N30: the index inventory reads exactly 16 istana / 0 legacy / 3 interstitials',
+  idxIstana.length + '/' + idxLegacy.length + '/' + Object.keys(INDEX_INTERSTITIALS).length, '16/0/3');
 eq('N30: ...and the chat is one of them', INDEX_SCREENS.chat.shell, 'istana');
 {
   const callAt = html.indexOf('function CallScreen(');

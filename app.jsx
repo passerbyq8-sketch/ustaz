@@ -2264,6 +2264,34 @@ const loadAdhkarSplit = () => {
 // in front so even a missing fetch() becomes a rejection rather than a synchronous throw, and a
 // catch that CLEARS the promise so a reader who lost the network can press retry and try again.
 // NOTHING NORMALISES, REORDERS, TRIMS OR REPAIRS EITHER FILE. They are fetched, parsed and read.
+// ITEM 27. THE DAILY VERSE'S TAFSIR, AS A FILE THAT SHIPS WITH THE APP.
+//
+// daily-tafsir.json is cut out of «المختصر في تفسير القرآن الكريم» (FC-000142) in the
+// Shamela index, one record per reference the daily verse can land on, and every character of
+// it is a byte copy of that book. It is READ and nothing else: no model is asked about an
+// ayah on this path, no request is made for one, and not one word of tafsir in this app is
+// composed rather than quoted.
+//
+// IT IS INDEXED BY THE REFERENCE, which is the same datum DAILY_VERSES carries, so the screen
+// below looks up exactly the verse the card is showing and can never show another one's.
+let __tafsirData = null;
+let __tafsirPromise = null;
+const loadDailyTafsir = () => {
+  if (__tafsirData) return Promise.resolve(__tafsirData);
+  if (!__tafsirPromise) {
+    __tafsirPromise = Promise.resolve()
+      .then(() => fetch('/daily-tafsir.json'))
+      .then((r) => { if (!r.ok) throw new Error('tafsir fetch ' + r.status); return r.json(); })
+      .then((raw) => {
+        const byRef = {};
+        for (const v of (raw.verses || [])) if (v && v.ref) byRef[v.ref] = v;
+        __tafsirData = { byRef: byRef, book_title: raw.book_title || null };
+        return __tafsirData;
+      })
+      .catch((e) => { __tafsirPromise = null; throw e; });
+  }
+  return __tafsirPromise;
+};
 const ASMAA_NAMES_URL = '/asmaa-dataset-final-r3.json';
 const ASMAA_RULES_URL = '/asmaa-rules-page-r2.json';
 let __asmaaNames = null;
@@ -5628,14 +5656,14 @@ let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize
 // declared as a compass rose reduced to a circle, a needle and its pivot, in the same 24x24 box
 // at the same 1.8 stroke with the same round caps as its neighbours. No icon library, no new
 // dependency, no new artwork file, no image and no data URI -- and one mark for one meaning.
-function EzistTopNav({ onOpenMenu, onOpenCompass }) {
+function EzistTopNav({ onOpenMenu, onOpenCompass, onOpenTafsir }) {
   return (
     <div className="ezist-nav">
       <div className="ezist-nav-inner">
         <button type="button" className="ezhome-focus" onClick={onOpenMenu} style={s.ezistNavBtn} aria-label={EZH_NAV_MENU}>
           {EZH_ICON_MENU}
         </button>
-        <EzistQuranPanel />
+        <EzistQuranPanel onOpenTafsir={onOpenTafsir} />
         <button type="button" className="ezhome-focus" onClick={onOpenCompass} style={s.ezistNavBtn} aria-label={EZH_NAV_COMPASS}>
           {EZH_ICON_PRAYER}
         </button>
@@ -5758,17 +5786,47 @@ function EzistModuleCard({ m }) {
 // element was its only reader, so all three went together. The OTHER separator on this
 // screen, .ezist-rule-short -- the short vertical bar in the masthead -- is a different
 // class on a different element and is deliberately untouched.
-function EzistQuranPanel() {
-  const v = getDailyVerse();
-  const isHadith = v.surah === '\u062D\u062F\u064A\u062B';
+// ITEM 27. THE CARD OPENS THE TAFSIR -- ON THE DAYS IT HAS ONE, AND ON NO OTHER.
+//
+// DAILY_VERSES holds thirty entries and ONE OF THEM IS NOT A VERSE: it carries kind 'other'
+// and no `ref` at all, which is why a hadith stood where the ayah usually stands. That entry
+// is left exactly as it is today -- a display, with nothing to press. The touch target exists
+// only when the day's entry carries a reference, because the reference is the only thing that
+// can name a tafsir; a card that opened a page and then said it had nothing would be worse
+// than a card that did not open.
+//
+// THE SECTION ELEMENT AND EVERY LINE INSIDE IT ARE UNCHANGED. On a day with a reference the
+// same three children are mounted inside a button; on any other day they are mounted in the
+// same <section> they have always been mounted in. DAILY_VERSES itself, its generator and
+// getDailyVerse() are not touched by this item at all -- it reads them and changes nothing.
+function EzistQuranPanelBody(v, isHadith) {
   return (
-    <section className="ezist-quran" style={s.ezistQuran}>
+    <>
       <div style={s.ezistQuranHead}>
         <span style={s.ezistQuranLabel}>{isHadith ? ezT('home.hadithOfDay2') : ezT('home.verseOfDay2')}</span>
       </div>
       <div style={s.ezistQuranText}>{v.text}</div>
       <div style={s.ezistQuranMeta}>{isHadith ? '\u0631\u0648\u0627\u0647 ' + v.ayah : '\u0633\u0648\u0631\u0629 ' + v.surah + '\u060C \u0622\u064A\u0629 ' + v.ayah}</div>
-    </section>
+    </>
+  );
+}
+function EzistQuranPanel({ onOpenTafsir }) {
+  const v = getDailyVerse();
+  const isHadith = v.surah === '\u062D\u062F\u064A\u062B';
+  // THE ONE CONDITION: the entry's own reference, and the handler actually being there.
+  const canOpen = !!(v && v.ref && onOpenTafsir);
+  if (!canOpen) {
+    return (
+      <section className="ezist-quran" style={s.ezistQuran}>
+        {EzistQuranPanelBody(v, isHadith)}
+      </section>
+    );
+  }
+  return (
+    <button type="button" className="ezist-quran ezhome-focus" style={s.ezistQuran}
+      onClick={() => onOpenTafsir()} aria-label={ezT('home.verseOfDay2')}>
+      {EzistQuranPanelBody(v, isHadith)}
+    </button>
   );
 }
 
@@ -5828,7 +5886,7 @@ function EzikIstanaHome(v) {
   return (
     <div className="theme-dark ezhome" style={s.ezistContainer}>
       {/* S101-home-istana */}
-      <EzistTopNav onOpenMenu={v.onOpenMenu} onOpenCompass={v.onOpenCompass} />
+      <EzistTopNav onOpenMenu={v.onOpenMenu} onOpenCompass={v.onOpenCompass} onOpenTafsir={v.onOpenTafsir} />
       <div style={s.ezistScroll}>
         <div className="ezist-wrap">
           <EzistMasthead name={v.name} g={v.greeting} hijri={v.hijri} onOpenAdhkar={v.onOpenAdhkar} />
@@ -7737,7 +7795,7 @@ function EzikHomeWidgetArrange({ widgets, onWidgets, arrangeOpen, onArrange }) {
   );
 }
 
-function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenArbaeen, onOpenMushaf, onOpenFatwa, onOpenLessons, onOpenAsmaa, onOpenSettings }) {
+function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenArbaeen, onOpenMushaf, onOpenFatwa, onOpenLessons, onOpenAsmaa, onOpenSettings, onOpenTafsir }) {
   // THE OWNER. Every prop it was handed is handed straight on, and the treasure entry resolves
   // to the same href it always did. There is no second router here and no duplicated navigation
   // state -- the two components above receive these handlers and call them unchanged.
@@ -7866,6 +7924,9 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenArbaeen
     // control of its own. The chat is entered from the menu the bar opens, on the menu's own
     // «محادثة جديدة» row, which is the app's ONE new-conversation entry and always was.
     onOpenMenu: onOpenMenu,
+    // ITEM 27: the daily verse card's door, handed down like every other. The screen it sets
+    // lives in App, where every feature section's screen key is set.
+    onOpenTafsir: onOpenTafsir,
     onOpenMemorize: onOpenMemorize,
     onOpenAdhkar: onOpenAdhkar,
     // ITEM 89: handed straight on, like the six around it. The screen it sets lives in App,
@@ -16065,7 +16126,7 @@ function App() {
   // an onOpenChat: the chat is entered from that menu's «محادثة جديدة» row.
   if (screen === 'home') return (
     <>
-      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenArbaeen={() => setScreen('arbaeen')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} />
+      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenArbaeen={() => setScreen('arbaeen')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} onOpenTafsir={() => setScreen('ayah-tafsir')} />
       {ezikDrawer()}
     </>
   );
@@ -16112,6 +16173,9 @@ function App() {
   // ITEM 89: a feature section, in NEITHER screen register -- exactly like the adhkar line
   // above it. ezikBackTarget's fall-through gives it its back destination.
   if (screen === 'arbaeen') return <ArbaeenScreen onBack={goEzikBack} />;
+  // ITEM 27: the daily verse's tafsir. A feature section like the two above it, so it is in
+  // NEITHER screen register and takes its back destination from ezikBackTarget's fall-through.
+  if (screen === 'ayah-tafsir') return <AyahTafsirScreen onBack={goEzikBack} />;
   if (screen === 'fatwa') return <FatwaScreen onBack={goEzikBack} favPk={favPk} />;
   // ITEM 24-B: a feature section, so it is in NEITHER screen register -- exactly like the
   // fatwa line above it. ezikBackTarget's final fall-through («Every feature section: home,
@@ -19128,6 +19192,60 @@ function SpendGate({ onUnlock, onExit }) {
 // The root carries .ezhome, which is what puts the --a3-* token set in scope for everything
 // inside -- the same scope the home and the adhkar screens use, so a screen adopting the shell
 // gets the identity and the dark palette without declaring a colour of its own.
+
+// ============================================================
+// ITEM 27 -- THE DAILY VERSE, AND WHAT THE BOOK SAYS ABOUT IT.
+//
+// THIS IS THE DAILY VERSE CARD'S PAGE AND NOTHING WIDER. It is not a tafsir beside every ayah
+// in the mushaf; it is the one verse the home card is showing today, opened.
+//
+// THE SHAPE IS THE ONE THE ORDER FIXED: the ayah, a plain tafsir, the attribution, and a back
+// button. Zero options, zero other controls. It is built on EzShell -- the same shell the single
+// name in أسماء الله الحسنى is built on -- so it carries one back control and no second way out.
+//
+// WHAT IT WILL NOT DO. A verse the book does not cover gets NO tafsir field at all: no «not
+// available» line, no stand-in, and above all nothing written from the model's own head. The
+// whole path is a stored file being read; there is no request on it and no model call on it.
+//
+// AND A RANGE IS NAMED AS A RANGE. Where the book treats several ayat in one paragraph, the
+// record carries `range_label` and the reference line states that range instead of the single
+// ayah -- so what is shown is never offered as the tafsir of this ayah alone. None of the
+// references shipped today is such a case; the path exists because the file may carry one.
+function AyahTafsirScreen({ onBack }) {
+  const v = getDailyVerse();
+  const [db, setDb] = useState(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    loadDailyTafsir().then((d) => { if (alive) setDb(d); }).catch(() => { if (alive) setFailed(true); });
+    return () => { alive = false; };
+  }, []);
+  const rec = (db && v && v.ref) ? (db.byRef[v.ref] || null) : null;
+  // The reference line, composed with the SAME pieces the home card composes it with -- and with
+  // the RANGE in place of the ayah when the book's paragraph covers a range.
+  const where = '\u0633\u0648\u0631\u0629 ' + v.surah + '\u060C \u0622\u064A\u0629 '
+    + ((rec && rec.range_label) ? rec.range_label : v.ayah);
+  return (
+    <EzShell title={ezT('home.verseOfDay2')} onBack={onBack} backLabel={A2_BACK}>
+      <article style={s.asmaaRead}>
+        {/* the verse, exactly as DAILY_VERSES carries it -- this screen reads that array and
+            changes nothing in it. */}
+        <p style={s.asmaaAyah}>{v.text}</p>
+        <div style={s.asmaaRef}>{where}</div>
+        {rec && rec.tafsir_text ? (
+          <>
+            {/* the book's own words, as a text child. No pass is made over them. */}
+            <p style={s.asmaaPara}>{rec.tafsir_text}</p>
+            {/* THE ATTRIBUTION: the book, and the page ONLY when the corpus marked it citable. */}
+            <div style={s.asmaaRef}>{rec.book_title}{rec.page ? ' \u2014 ' + rec.page : ''}</div>
+          </>
+        ) : (db === null && !failed) ? (
+          <p style={s.asmaaPara}>...</p>
+        ) : null}
+      </article>
+    </EzShell>
+  );
+}
 function EzShell({ title, onBack, backLabel, actions, children }) {
   return (
     <div className="theme-dark ezhome" style={s.ezshContainer}>
