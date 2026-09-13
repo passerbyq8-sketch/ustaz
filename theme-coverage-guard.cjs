@@ -1773,6 +1773,10 @@ const INDEX_SCREENS = {
   // checks in group M pass, not because someone deleted the field.
   mushaf:          { render: 'MushafScreen index -> EzShell; reader -> .ezmr rail + dock', shell: 'istana' },
   adhkar:          { render: 'AdhkarScreen -> IstanaAdhkarBrowse / IstanaAdhkarReader', shell: 'istana' },
+  // ITEM 89: the forty. It is classified istana for the same reason the adhkar line above it is
+  // -- it mounts on the .ezia-* vocabulary, which is the adhkar template copied rather than a
+  // new one invented. The adhkar screen itself was not edited to make room for it.
+  arbaeen:         { render: 'ArbaeenScreen -> IstanaArbaeenBrowse / IstanaArbaeenReader', shell: 'istana' },
 };
 // Screens the switch reaches WITHOUT a screen key of their own -- guards and gates in front of
 // another screen. They are reachable, so they are inventoried.

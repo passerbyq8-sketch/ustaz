@@ -96,6 +96,7 @@ function ezLangRelabel() {
     EZH_NAV_MENU = ezT("navigation.menu");
     EZH_MEMORIZE = ezT("module.memorize");
     EZH_ADHKAR = ezT("module.adhkar");
+    EZH_ARBAEEN = ezT("module.arbaeen");
     EZH_MUSHAF = ezT("module.mushaf");
     EZH_TREASURE = ezT("module.treasure");
     EZH_FATWA = ezT("module.fatwa");
@@ -107,6 +108,7 @@ function ezLangRelabel() {
     EZIST_SUB_WOMEN = ezT("module.women.sub");
     EZIST_SUB_MEMORIZE = ezT("module.memorize.sub");
     EZIST_SUB_ADHKAR = ezT("module.adhkar.sub");
+    EZIST_SUB_ARBAEEN = ezT("module.arbaeen.sub");
     EZIST_SUB_MUSHAF = ezT("module.mushaf.sub");
     EZIST_SUB_TREASURE = ezT("module.treasure.sub");
     EZIST_SUB_FATWA = ezT("module.fatwa.sub");
@@ -115,7 +117,7 @@ function ezLangRelabel() {
     // EZIST_SUB_LIBRARY are plain strings, not ezT lookups -- but they must still be CARRIED. This is a whole-table
     // replacement, so an id left out of it is not left at its old wording: it is deleted, and
     // the prayer card lost its second line on the first language switch of every session.
-    EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
+    EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, arbaeen: EZIST_SUB_ARBAEEN, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
     A2_BACK = ezT("common.back");
     EZIK_FAV_TITLE = ezT("favorites.title");
     EZIK_FAV_HEADING = ezT("favorites.heading");
@@ -293,6 +295,12 @@ const EZ_I18N = {
     'module.fatwa': 'فتاوى',
     'module.memorize.sub': '\u{0627}\u{062D}\u{0641}\u{0638} \u{0648}\u{0631}\u{0627}\u{062C}\u{0639}',
     'module.adhkar.sub': '\u{0623}\u{0630}\u{0643}\u{0627}\u{0631} \u{0627}\u{0644}\u{0635}\u{0628}\u{0627}\u{062D} \u{0648}\u{0627}\u{0644}\u{0645}\u{0633}\u{0627}\u{0621}',
+    // ITEM 89. The section's name is the book's name, and the line under it is the book's own
+    // full title -- the Forty WITH Ibn Rajab's additions, which is why the section holds fifty
+    // and not forty. Neither string is composed here: the first is the owner's, the second is
+    // the corpus's own book_title, copied.
+    'module.arbaeen': '\u{0627}\u{0644}\u{0623}\u{0631}\u{0628}\u{0639}\u{0648}\u{0646} \u{0627}\u{0644}\u{0646}\u{0648}\u{0648}\u{064a}\u{0629}',
+    'module.arbaeen.sub': '\u{0627}\u{0644}\u{0623}\u{0631}\u{0628}\u{0639}\u{0648}\u{0646} \u{0627}\u{0644}\u{0646}\u{0648}\u{0648}\u{064a}\u{0629} \u{0645}\u{0639} \u{0632}\u{064a}\u{0627}\u{062f}\u{0627}\u{062a} \u{0627}\u{0628}\u{0646} \u{0631}\u{062c}\u{0628}',
     'module.mushaf.sub': '\u{0627}\u{0642}\u{0631}\u{0623} \u{0648}\u{062A}\u{0627}\u{0628}\u{0639} \u{0648}\u{0631}\u{062F}\u{0643}',
     'module.treasure.sub': '\u{062A}\u{0639}\u{0644}\u{0651}\u{0645} \u{0628}\u{0627}\u{0644}\u{0644}\u{0639}\u{0628}',
     'module.fatwa.sub': 'بحث موثّق بالسؤال والجواب',
@@ -866,6 +874,8 @@ const EZ_I18N = {
     'module.fatwa': 'Fatwas',
     'module.memorize.sub': 'Memorise and review',
     'module.adhkar.sub': 'Morning and evening adhkar',
+    'module.arbaeen': 'The Forty Hadith',
+    'module.arbaeen.sub': 'Fifty hadith, with Ibn Rajab’s additions',
     'module.mushaf.sub': 'Read, and keep your wird',
     'module.treasure.sub': 'Learn through play',
     'module.fatwa.sub': 'Verified questions and answers',
@@ -2158,6 +2168,44 @@ const loadAdhkar = () => {
       .catch((e) => { __adhkarPromise = null; throw e; });
   }
   return __adhkarPromise;
+};
+// ITEM 89. THE FORTY, AS A THIRD STORE OF THE SAME SHAPE.
+//
+// arbaeen.json is built from the atoms of FC-001977 -- «الأربعون النووية مع زيادات ابن رجب» -- and
+// every character in it is a byte copy of that corpus. NOTHING BELOW EDITS IT, REWRITES IT OR
+// NORMALISES IT: it is fetched, parsed and read, exactly as adhkar.json is.
+//
+// THE CHANNEL IS A FILE, and that is the whole of the section's supply. There is no service
+// behind it, no model call, no retrieval and no second request -- the reader who opens the
+// section reads what shipped with the app and nothing that was fetched for him.
+//
+// IT IS NOT IN THE WORKER'S CORE, exactly as adhkar-split-27.json is not: it is fetched from
+// the origin root on first open and cached by the runtime rule, not precached at install. So
+// a reader who has never opened this section and is offline sees the empty state, and one who
+// has opened it before does not. That is the same door adhkar-split-27.json already has.
+let __arbaeenData = null;
+let __arbaeenPromise = null;
+const loadArbaeen = () => {
+  if (__arbaeenData) return Promise.resolve(__arbaeenData);
+  if (!__arbaeenPromise) {
+    __arbaeenPromise = Promise.resolve()
+      .then(() => fetch('/arbaeen.json'))
+      .then((r) => { if (!r.ok) throw new Error('arbaeen fetch ' + r.status); return r.json(); })
+      .then((raw) => {
+        // The store's own objects, in the file's own order. No reshaping, no sort, no filter:
+        // the file is already the array the section draws, and a second ordering here would be
+        // a second opinion about a book that has only one.
+        __arbaeenData = {
+          book_title: raw.book_title || null,
+          author: raw.author || null,
+          count: raw.count || 0,
+          hadith: raw.hadith || [],
+        };
+        return __arbaeenData;
+      })
+      .catch((e) => { __arbaeenPromise = null; throw e; });
+  }
+  return __arbaeenPromise;
 };
 // ── THE SPLIT OF CATEGORY 27, AS A SECOND STORE ─────────────────────────────────────────────
 // adhkar-split-27.json is the OWNER'S OWN FILE: authored in chat, approved by the owner, and
@@ -5282,6 +5330,7 @@ let EZH_HELLO = ezT("home.hello");                            // "welcome, O"
 let EZH_NAV_MENU = ezT("navigation.menu");                        // "the menu"
 let EZH_MEMORIZE = ezT("module.memorize");                                     // "the memorizer"
 let EZH_ADHKAR = ezT("module.adhkar");                                     // "the adhkar"
+let EZH_ARBAEEN = ezT("module.arbaeen");                                   // "the forty"
 let EZH_MUSHAF = ezT("module.mushaf");                                             // "the mushaf"
 let EZH_TREASURE = ezT("module.treasure");     // "the treasure journey"
 let EZH_FATWA = ezT("module.fatwa");
@@ -5297,6 +5346,12 @@ const EZH_ICON_MEMORIZE = (
 );
 const EZH_ICON_ADHKAR = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="7" /><circle cx="12" cy="5" r="1.5" fill="currentColor" /><circle cx="19" cy="12" r="1.5" fill="currentColor" /><circle cx="12" cy="19" r="1.5" fill="currentColor" /><circle cx="5" cy="12" r="1.5" fill="currentColor" /></svg>
+);
+// ITEM 89: the forty's mark. A bound quire -- a stack of leaves with a tie across it -- so it
+// reads as neither the mushaf (one open book) nor the lessons board. Same 24x24 box, same 1.8
+// stroke and the same round caps as the marks beside it. No artwork file, no image, no data URI.
+const EZH_ICON_ARBAEEN = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M8 3v18" /><path d="M12 8h4" /><path d="M12 12h4" /></svg>
 );
 const EZH_ICON_MUSHAF = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 6.5C10.5 5 8 4.5 5 5v13c3-.5 5.5 0 7 1.5 1.5-1.5 4-2 7-1.5V5c-3-.5-5.5 0-7 1.5z" /><path d="M12 6.5v13" /></svg>
@@ -5464,6 +5519,11 @@ function ezHomeModules(v) {
     { id: 'articles', label: EZH_ARTICLES, icon: EZH_ICON_ARTICLES, onClick: v.onOpenArticles, meta: null, fresh: !!(v.artFresh && v.artFresh.articles) },
     { id: 'memorize', label: EZH_MEMORIZE, icon: EZH_ICON_MEMORIZE, onClick: v.onOpenMemorize, meta: null },
     { id: 'adhkar',   label: EZH_ADHKAR,   icon: EZH_ICON_ADHKAR,   onClick: v.onOpenAdhkar,   meta: null },
+    // ITEM 89: IMMEDIATELY AFTER THE ADHKAR, which is the owner's placement and not a
+    // judgement made here. The descriptor is the shape of the ten around it -- an id, a label
+    // key, a mark and a handler threaded from App -- and it carries no `meta` and no `fresh`,
+    // because there is no local reading about this section to report on its face.
+    { id: 'arbaeen',  label: EZH_ARBAEEN,  icon: EZH_ICON_ARBAEEN,  onClick: v.onOpenArbaeen,  meta: null },
     { id: 'mushaf',   label: EZH_MUSHAF,   icon: EZH_ICON_MUSHAF,   onClick: v.onOpenMushaf,   meta: wird },
     { id: 'treasure', label: EZH_TREASURE, icon: EZH_ICON_TREASURE, onClick: v.onOpenTreasure, meta: null },
     { id: 'fatwa',    label: EZH_FATWA,    icon: EZH_ICON_FATWA,    onClick: v.onOpenFatwa,    meta: null },
@@ -5497,6 +5557,7 @@ function ezHomeModules(v) {
 // from adhkar.json or the mushaf, and not one of them claims a number about the reader.
 let EZIST_SUB_MEMORIZE = ezT("module.memorize.sub");                                   // "memorise and review"
 let EZIST_SUB_ADHKAR = ezT("module.adhkar.sub"); // "morning and evening adhkar"
+let EZIST_SUB_ARBAEEN = ezT("module.arbaeen.sub"); // the book's own full title
 let EZIST_SUB_MUSHAF = ezT("module.mushaf.sub");   // "read, and follow your wird"
 let EZIST_SUB_TREASURE = ezT("module.treasure.sub");                     // "learn through play"
 let EZIST_SUB_FATWA = ezT("module.fatwa.sub");
@@ -5506,7 +5567,7 @@ let EZIST_SUB_WOMEN = ezT("module.women.sub");
 let EZIST_SUB_ASMAA = 'تسعةٌ وتسعون اسمًا، بمعانيها ومصادرها';
 let EZIST_SUB_PRAYER = 'المواقيت والقبلة، محسوبةً على هذا الجهاز';
 let EZIST_SUB_LIBRARY = 'بحثٌ في نصوص المكتبة، بمصادرها';
-let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
+let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, arbaeen: EZIST_SUB_ARBAEEN, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
 
 // THE TOP NAVIGATION. TWO ELEMENTS AND NO THIRD -- the daily verse, and the menu button.
 //
@@ -7676,7 +7737,7 @@ function EzikHomeWidgetArrange({ widgets, onWidgets, arrangeOpen, onArrange }) {
   );
 }
 
-function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenFatwa, onOpenLessons, onOpenAsmaa, onOpenSettings }) {
+function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenArbaeen, onOpenMushaf, onOpenFatwa, onOpenLessons, onOpenAsmaa, onOpenSettings }) {
   // THE OWNER. Every prop it was handed is handed straight on, and the treasure entry resolves
   // to the same href it always did. There is no second router here and no duplicated navigation
   // state -- the two components above receive these handlers and call them unchanged.
@@ -7807,6 +7868,9 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     onOpenMenu: onOpenMenu,
     onOpenMemorize: onOpenMemorize,
     onOpenAdhkar: onOpenAdhkar,
+    // ITEM 89: handed straight on, like the six around it. The screen it sets lives in App,
+    // which is where every other feature section's screen key is set.
+    onOpenArbaeen: onOpenArbaeen,
     onOpenMushaf: onOpenMushaf,
     onOpenFatwa: onOpenFatwa,
     onOpenLessons: onOpenLessons,
@@ -11136,6 +11200,137 @@ function IstanaAdhkarBrowse({ onBack, cats, list, query, setQuery, searchOpen, o
   );
 }
 
+
+// ============================================================
+// ITEM 89 -- THE FORTY NAWAWI, WITH IBN RAJAB'S ADDITIONS.
+//
+// THE TEMPLATE IS THE ADHKAR'S, COPIED. A browse screen that lists the book, and a reader that
+// opens ONE entry at a time -- the same .adhkar3 / .ezia-* vocabulary, the same nav bar, the same
+// card, the same reading panel. NOT ONE LINE OF THE ADHKAR SECTION WAS EDITED to make room for
+// it: the template was copied and the original was left where it was, so a defect introduced
+// here cannot reach a section the reader already depends on.
+//
+// WHAT IT DELIBERATELY DOES NOT HAVE, each because it was decided against rather than forgotten:
+//   - no commentary. The book's text is shipped; no explanation of it is, in this first cut.
+//   - no search inside the section. Fifty entries in the book's own order is a list, not a corpus.
+//   - no takhrij. The source is NAMED -- the book and the entry's own number -- and it is not
+//     graded, traced or ruled on here. Naming a source and vouching for it are different acts.
+//   - no progress, no favourites, no streak, no counter. The adhkar screen has all four; they
+//     belong to a devotional routine and this is a book, so none of them was copied over.
+//
+// THE PAGE IS PRINTED ONLY WHEN THE CORPUS SAYS IT MAY BE. Every one of the fifty atoms carries
+// page_citable = false, so the attribution below names the book and the entry and states NO page
+// at all. That is not an omission: a page number from an edition the corpus will not vouch for is
+// a citation a reader could follow to the wrong place, and this section would rather say less.
+function ArbaeenScreen({ onBack }) {
+  // ONE loader call, the store's own objects, and no reshaping of any of them -- the adhkar
+  // screen's rule, kept. This component owns the whole of the section's state: the store, the
+  // failure, and which entry is open. There is no second loader and no second copy anywhere.
+  const [db, setDb] = useState(null);
+  const [failed, setFailed] = useState(false);
+  const [selected, setSelected] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    loadArbaeen().then((d) => { if (alive) setDb(d); }).catch(() => { if (alive) setFailed(true); });
+    return () => { alive = false; };
+  }, []);
+  // S91: the reader's own back presses the application back, which spends the entry this layer
+  // took when it opened and then runs the closer through the registry -- the same closer, reached
+  // by the same route the device button uses.
+  useEzikBackLayer(!!selected, () => setSelected(null));
+  if (selected) return <IstanaArbaeenReader doc={db} h={selected} onBack={ezikGoBack} />;
+  return <IstanaArbaeenBrowse onBack={onBack} doc={db} failed={failed} onOpen={setSelected} />;
+}
+
+// THE BROWSE. Presentation only: it reads no storage, owns no navigation state and computes
+// nothing about the book. It draws the array it is handed, in that array's own order.
+function IstanaArbaeenBrowse({ onBack, doc, failed, onOpen }) {
+  const list = (doc && doc.hadith) || [];
+  return (
+    <div className="theme-dark adhkar3" style={s.eziaContainer}>
+      <div className="ezia-nav">
+        <div className="ezia-nav-inner">
+          <button type="button" className="adhkar2-focus" onClick={onBack} style={s.eziaNavBtn} aria-label={A2_BACK}>{A2_ICON_BACK}</button>
+          <span className="ezia-brand">
+            <span className="ezia-brand-arch" aria-hidden="true" />
+            <span>{EZH_ARBAEEN}</span>
+          </span>
+          {/* the nav is a three-part bar and the third part is empty here, because this section
+              has no second action. It is held rather than dropped so the brand stays centred. */}
+          <span style={s.eziaNavBtn} aria-hidden="true" />
+        </div>
+      </div>
+      <div style={s.eziaScroll}>
+        {doc === null ? (
+          <div style={s.a3Empty}>{failed ? A2_EMPTY : '...'}</div>
+        ) : list.length === 0 ? (
+          <div style={s.a3Empty}>{A2_EMPTY}</div>
+        ) : (
+          <div className="ezia-catalogue">
+            {list.map((h, i) => (
+              <button key={h.n} type="button" className="adhkar2-focus" onClick={() => onOpen(h)}
+                data-ezia-hadith={h.n} style={s.eziaCard}>
+                <span className={((i % 3) === 2) ? 'ezia-crest ezia-crest-coral' : 'ezia-crest'} aria-hidden="true" />
+                <span style={s.eziaCardHead}>
+                  <span style={s.eziaEmblem} aria-hidden="true"><span className="ezia-star" /></span>
+                  {/* the entry's own number, in the digits the rest of this section counts in */}
+                  <span style={s.eziaCount}>{toArabicDigits(h.n)}</span>
+                </span>
+                {/* the heading the corpus carries, as a text child. No pass is made over it. */}
+                <span style={s.eziaCardTitle}>{h.title}</span>
+                <span style={s.eziaCardFoot}>
+                  <span style={s.eziaStanding} />
+                  <span style={s.eziaGo} aria-hidden="true">{EZH_ICON_GO}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// THE READER. ONE entry, its text as a text child, and the attribution under it.
+function IstanaArbaeenReader({ doc, h, onBack }) {
+  // THE ATTRIBUTION, AND WHAT IT MAY SAY. The book's title and the entry's own heading, both
+  // copied from the corpus. The page is appended ONLY when the corpus marked this entry citable;
+  // it never has, so no page is drawn, and nothing stands in for one.
+  const book = (doc && doc.book_title) || '';
+  const page = (h.page_citable && h.page_start != null)
+    ? (h.page_end != null && h.page_end !== h.page_start
+        ? toArabicDigits(h.page_start) + '-' + toArabicDigits(h.page_end)
+        : toArabicDigits(h.page_start))
+    : '';
+  return (
+    <div className="theme-dark adhkar3" style={s.eziaReadContainer}>
+      <div className="ezia-nav">
+        <div className="ezia-nav-inner">
+          <button type="button" className="adhkar2-focus" onClick={onBack} style={s.eziaNavBtn} aria-label={A2_BACK}>{A2_ICON_BACK}</button>
+          <span className="ezia-brand">
+            <span className="ezia-brand-arch" aria-hidden="true" />
+            <span style={s.eziaReadTitle}>{h.title}</span>
+          </span>
+          <span style={s.eziaNavBtn} aria-hidden="true" />
+        </div>
+      </div>
+      <div style={s.eziaReadOuter}>
+        <div style={s.eziaReadScroll}>
+          <div className="ezia-read-wrap">
+            <div className="ezia-read-panel">
+              <span style={s.eziaReadHead}>
+                <span style={s.eziaReadPos}>{toArabicDigits(h.n)} / {toArabicDigits((doc && doc.count) || 0)}</span>
+              </span>
+              {/* the corpus's own text, rendered as a text child. */}
+              <div style={s.eziaReadText}>{h.text}</div>
+              <div style={s.eziaReadSource}>{book}{book && h.title ? ' \u2014 ' : ''}{h.title}{page ? ' \u2014 ' + page : ''}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 // THE ISTANA READER SHELL. Every protected action of the deleted readers survives here with
 // the same handler and the same accessible name: back, favourite, share, previous, audio, the
 // counter, and onward. The dhikr text is still {d.text} -- a text child, no pass over it -- the
@@ -15868,7 +16063,7 @@ function App() {
   // an onOpenChat: the chat is entered from that menu's «محادثة جديدة» row.
   if (screen === 'home') return (
     <>
-      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} />
+      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenArbaeen={() => setScreen('arbaeen')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} />
       {ezikDrawer()}
     </>
   );
@@ -15912,6 +16107,9 @@ function App() {
   if (screen === 'memorize') return <MemorizeScreen profile={profile} onExit={goEzikBack} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
   if (screen === 'mushaf') return <MushafScreen selected={selectedSurah} setSelected={setSelectedSurah} onBack={goEzikBack} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
   if (screen === 'adhkar') return <AdhkarScreen onBack={goEzikBack} />;
+  // ITEM 89: a feature section, in NEITHER screen register -- exactly like the adhkar line
+  // above it. ezikBackTarget's fall-through gives it its back destination.
+  if (screen === 'arbaeen') return <ArbaeenScreen onBack={goEzikBack} />;
   if (screen === 'fatwa') return <FatwaScreen onBack={goEzikBack} favPk={favPk} />;
   // ITEM 24-B: a feature section, so it is in NEITHER screen register -- exactly like the
   // fatwa line above it. ezikBackTarget's final fall-through («Every feature section: home,

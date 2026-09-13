@@ -1001,7 +1001,17 @@ const SEALED = {
 //                    the shell did not grow. The worker table at :121 and the app.js mirror below
 //                    followed, and THIS digest is re-cut LAST. SW.JS IS OTHERWISE UNTOUCHED and
 //                    CACHE IS NOT BUMPED: this is a branch for the owner to preview, not a ship.
-  'sw.js': '16a75fe8a159c553e7e6576a3587a3f273cf4aa974b735ec214a6240fd598aee',
+  //   2026-09-13   -- ITEM 89: THE FORTY NAWAWI, WITH IBN RAJAB'S ADDITIONS, AS A SECTION.
+//                    INDEX.HTML DID NOT MOVE this round either -- the section is app.jsx, one new
+//                    root file (arbaeen.json, NOT in CORE), the guard inventory and the handoff --
+//                    so the shell figure and its mirror were already true and only the BUNDLE
+//                    figures moved. app.js was rebuilt 1533210 -> 1544535 (+11325) by node
+//                    tools/build-app.cjs, and CORE_BYTES was re-cut 2520875 -> 2532200 (+11325) by
+//                    node tools/core-bytes.cjs --write, which is exactly the bundle delta because
+//                    the shell did not grow. The worker table at :121 and the app.js mirror below
+//                    followed, and THIS digest is re-cut LAST. SW.JS IS OTHERWISE UNTOUCHED and
+//                    CACHE IS NOT BUMPED: this is a branch for the owner to preview, not a ship.
+  'sw.js': 'b027639d9e32ad6be84f4bb361e12cd738439c365f5da1b16e38c7a64da7543f',
 };
 
 // ---------------------------------------------------------------------------
@@ -2124,7 +2134,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1533210, of: 'app.js' },
+      { n: 1544535, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
