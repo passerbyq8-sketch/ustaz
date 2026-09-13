@@ -1857,12 +1857,14 @@ const idxIstana = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shel
 const idxLegacy = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shell === 'legacy');
 const qIstana = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'istana');
 const qLegacy = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'legacy');
-eq('every index screen is istana after this commit', idxIstana.length, 14);
+eq('every index screen is istana after this commit', idxIstana.length, 15);
 eq('...and NONE is left legacy', idxLegacy.length, 0);
-// ITEM 24-B added the fourteenth by name. The list is spelled out rather than counted so
-// that a screen appearing or vanishing has to be read by a person, not absorbed by a number.
-eq('...and the set is exactly the fourteen', idxIstana.slice().sort().join(','),
-  'adhkar,call,chat,fatwa,favorites,home,lessons,loading,memorize,mushaf,onboarding,parentDashboard,parentGate,settings');
+// ITEM 24-B added the fourteenth by name; ITEM 89 adds the fifteenth the same way -- the
+// Forty, which mounts on the adhkar's .ezia-* vocabulary and so is istana for the same
+// reason the adhkar screen is. The list is spelled out rather than counted so that a screen
+// appearing or vanishing has to be read by a person, not absorbed by a number.
+eq('...and the set is exactly the fifteen', idxIstana.slice().sort().join(','),
+  'adhkar,arbaeen,call,chat,fatwa,favorites,home,lessons,loading,memorize,mushaf,onboarding,parentDashboard,parentGate,settings');
 eq('...and the three interstitials are still three', Object.keys(INDEX_INTERSTITIALS).length, 3);
 // S115: the barriers moved WITH this batch, so the check flipped from "still legacy" to "all
 // three, and by name". A fourth appearing here would fail the reachability check above first.
@@ -3130,8 +3132,8 @@ ok('42-أ: speechSynthesis is genuinely absent from the application file',
 /* ---- N30..N32. the inventory, the call screen, and the repo ------------- */
 // The fatwa search moves the whole-screen count by one; chat remains one of the thirteen. This
 // later assertion deliberately repeats K2 so a stale downstream assumption fails visibly too.
-eq('N30: the index inventory reads exactly 14 istana / 0 legacy / 3 interstitials',
-  idxIstana.length + '/' + idxLegacy.length + '/' + Object.keys(INDEX_INTERSTITIALS).length, '14/0/3');
+eq('N30: the index inventory reads exactly 15 istana / 0 legacy / 3 interstitials',
+  idxIstana.length + '/' + idxLegacy.length + '/' + Object.keys(INDEX_INTERSTITIALS).length, '15/0/3');
 eq('N30: ...and the chat is one of them', INDEX_SCREENS.chat.shell, 'istana');
 {
   const callAt = html.indexOf('function CallScreen(');
@@ -5438,8 +5440,10 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
     // one card the order confines it to.
     eq('ITEM20/3: ...and the effect stops at that one card: the other nine are untouched',
       hidden, shown.filter((x) => x !== 'women'));
-    eq('ITEM20/3: ...nine of them, still in the order the shelf rulings fixed', hidden,
-      ['asmaa', 'articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
+    // ITEM 89 put the Forty immediately after the adhkar, which is the owner's placement; every
+    // other row keeps the position it had, so this list grows by one in one place.
+    eq('ITEM20/3: ...ten of them, still in the order the shelf rulings fixed', hidden,
+      ['asmaa', 'articles', 'memorize', 'adhkar', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
     // ITEM 26 / SHIP §1-2 (9 September) -- THE DEFAULT ORDER, STATED IN FULL. It replaced D-9's
     // «articles then women first» on 8 September, and the owner has replaced its own head today:
     // «أسماء الله الحسنى» is FIRST, ahead of the articles section, which item 20 §2 had put
@@ -5454,10 +5458,10 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
     ok('ITEM20/2: ...and the women corner is LAST, after every other section',
       shown[shown.length - 1] === 'women' && shown.indexOf('women') === shown.length - 1,
       JSON.stringify(shown));
-    eq('ITEM26/1-2: ...and the eight between them keep the order they always had',
-      shown.slice(1, -1), ['articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
-    eq('ITEM26/1-2: ...so the default shelf is these ten, in this order', shown,
-      ['asmaa', 'articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer', 'women']);
+    eq('ITEM26/1-2: ...and the nine between them keep the order they always had',
+      shown.slice(1, -1), ['articles', 'memorize', 'adhkar', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
+    eq('ITEM26/1-2: ...so the default shelf is these eleven, in this order', shown,
+      ['asmaa', 'articles', 'memorize', 'adhkar', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer', 'women']);
     // AND WHERE IT COMES BACK IS THE END. The hidden shelf is the shown shelf with one row cut
     // out, so putting the row back can only put it where the array holds it -- last. This is the
     // same fact the two F15 cases below state from the other side, asserted here as the ORDER

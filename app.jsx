@@ -11201,136 +11201,6 @@ function IstanaAdhkarBrowse({ onBack, cats, list, query, setQuery, searchOpen, o
 }
 
 
-// ============================================================
-// ITEM 89 -- THE FORTY NAWAWI, WITH IBN RAJAB'S ADDITIONS.
-//
-// THE TEMPLATE IS THE ADHKAR'S, COPIED. A browse screen that lists the book, and a reader that
-// opens ONE entry at a time -- the same .adhkar3 / .ezia-* vocabulary, the same nav bar, the same
-// card, the same reading panel. NOT ONE LINE OF THE ADHKAR SECTION WAS EDITED to make room for
-// it: the template was copied and the original was left where it was, so a defect introduced
-// here cannot reach a section the reader already depends on.
-//
-// WHAT IT DELIBERATELY DOES NOT HAVE, each because it was decided against rather than forgotten:
-//   - no commentary. The book's text is shipped; no explanation of it is, in this first cut.
-//   - no search inside the section. Fifty entries in the book's own order is a list, not a corpus.
-//   - no takhrij. The source is NAMED -- the book and the entry's own number -- and it is not
-//     graded, traced or ruled on here. Naming a source and vouching for it are different acts.
-//   - no progress, no favourites, no streak, no counter. The adhkar screen has all four; they
-//     belong to a devotional routine and this is a book, so none of them was copied over.
-//
-// THE PAGE IS PRINTED ONLY WHEN THE CORPUS SAYS IT MAY BE. Every one of the fifty atoms carries
-// page_citable = false, so the attribution below names the book and the entry and states NO page
-// at all. That is not an omission: a page number from an edition the corpus will not vouch for is
-// a citation a reader could follow to the wrong place, and this section would rather say less.
-function ArbaeenScreen({ onBack }) {
-  // ONE loader call, the store's own objects, and no reshaping of any of them -- the adhkar
-  // screen's rule, kept. This component owns the whole of the section's state: the store, the
-  // failure, and which entry is open. There is no second loader and no second copy anywhere.
-  const [db, setDb] = useState(null);
-  const [failed, setFailed] = useState(false);
-  const [selected, setSelected] = useState(null);
-  useEffect(() => {
-    let alive = true;
-    loadArbaeen().then((d) => { if (alive) setDb(d); }).catch(() => { if (alive) setFailed(true); });
-    return () => { alive = false; };
-  }, []);
-  // S91: the reader's own back presses the application back, which spends the entry this layer
-  // took when it opened and then runs the closer through the registry -- the same closer, reached
-  // by the same route the device button uses.
-  useEzikBackLayer(!!selected, () => setSelected(null));
-  if (selected) return <IstanaArbaeenReader doc={db} h={selected} onBack={ezikGoBack} />;
-  return <IstanaArbaeenBrowse onBack={onBack} doc={db} failed={failed} onOpen={setSelected} />;
-}
-
-// THE BROWSE. Presentation only: it reads no storage, owns no navigation state and computes
-// nothing about the book. It draws the array it is handed, in that array's own order.
-function IstanaArbaeenBrowse({ onBack, doc, failed, onOpen }) {
-  const list = (doc && doc.hadith) || [];
-  return (
-    <div className="theme-dark adhkar3" style={s.eziaContainer}>
-      <div className="ezia-nav">
-        <div className="ezia-nav-inner">
-          <button type="button" className="adhkar2-focus" onClick={onBack} style={s.eziaNavBtn} aria-label={A2_BACK}>{A2_ICON_BACK}</button>
-          <span className="ezia-brand">
-            <span className="ezia-brand-arch" aria-hidden="true" />
-            <span>{EZH_ARBAEEN}</span>
-          </span>
-          {/* the nav is a three-part bar and the third part is empty here, because this section
-              has no second action. It is held rather than dropped so the brand stays centred. */}
-          <span style={s.eziaNavBtn} aria-hidden="true" />
-        </div>
-      </div>
-      <div style={s.eziaScroll}>
-        {doc === null ? (
-          <div style={s.a3Empty}>{failed ? A2_EMPTY : '...'}</div>
-        ) : list.length === 0 ? (
-          <div style={s.a3Empty}>{A2_EMPTY}</div>
-        ) : (
-          <div className="ezia-catalogue">
-            {list.map((h, i) => (
-              <button key={h.n} type="button" className="adhkar2-focus" onClick={() => onOpen(h)}
-                data-ezia-hadith={h.n} style={s.eziaCard}>
-                <span className={((i % 3) === 2) ? 'ezia-crest ezia-crest-coral' : 'ezia-crest'} aria-hidden="true" />
-                <span style={s.eziaCardHead}>
-                  <span style={s.eziaEmblem} aria-hidden="true"><span className="ezia-star" /></span>
-                  {/* the entry's own number, in the digits the rest of this section counts in */}
-                  <span style={s.eziaCount}>{toArabicDigits(h.n)}</span>
-                </span>
-                {/* the heading the corpus carries, as a text child. No pass is made over it. */}
-                <span style={s.eziaCardTitle}>{h.title}</span>
-                <span style={s.eziaCardFoot}>
-                  <span style={s.eziaStanding} />
-                  <span style={s.eziaGo} aria-hidden="true">{EZH_ICON_GO}</span>
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// THE READER. ONE entry, its text as a text child, and the attribution under it.
-function IstanaArbaeenReader({ doc, h, onBack }) {
-  // THE ATTRIBUTION, AND WHAT IT MAY SAY. The book's title and the entry's own heading, both
-  // copied from the corpus. The page is appended ONLY when the corpus marked this entry citable;
-  // it never has, so no page is drawn, and nothing stands in for one.
-  const book = (doc && doc.book_title) || '';
-  const page = (h.page_citable && h.page_start != null)
-    ? (h.page_end != null && h.page_end !== h.page_start
-        ? toArabicDigits(h.page_start) + '-' + toArabicDigits(h.page_end)
-        : toArabicDigits(h.page_start))
-    : '';
-  return (
-    <div className="theme-dark adhkar3" style={s.eziaReadContainer}>
-      <div className="ezia-nav">
-        <div className="ezia-nav-inner">
-          <button type="button" className="adhkar2-focus" onClick={onBack} style={s.eziaNavBtn} aria-label={A2_BACK}>{A2_ICON_BACK}</button>
-          <span className="ezia-brand">
-            <span className="ezia-brand-arch" aria-hidden="true" />
-            <span style={s.eziaReadTitle}>{h.title}</span>
-          </span>
-          <span style={s.eziaNavBtn} aria-hidden="true" />
-        </div>
-      </div>
-      <div style={s.eziaReadOuter}>
-        <div style={s.eziaReadScroll}>
-          <div className="ezia-read-wrap">
-            <div className="ezia-read-panel">
-              <span style={s.eziaReadHead}>
-                <span style={s.eziaReadPos}>{toArabicDigits(h.n)} / {toArabicDigits((doc && doc.count) || 0)}</span>
-              </span>
-              {/* the corpus's own text, rendered as a text child. */}
-              <div style={s.eziaReadText}>{h.text}</div>
-              <div style={s.eziaReadSource}>{book}{book && h.title ? ' \u2014 ' : ''}{h.title}{page ? ' \u2014 ' + page : ''}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 // THE ISTANA READER SHELL. Every protected action of the deleted readers survives here with
 // the same handler and the same accessible name: back, favourite, share, previous, audio, the
 // counter, and onward. The dhikr text is still {d.text} -- a text child, no pass over it -- the
@@ -11498,6 +11368,138 @@ function IstanaAdhkarReader(v) {
   );
 }
 // ---- S103 ISTANA ADHKAR END ---------------------------------------------------------------
+
+// ============================================================
+// ITEM 89 -- THE FORTY NAWAWI, WITH IBN RAJAB'S ADDITIONS.
+//
+// THE TEMPLATE IS THE ADHKAR'S, COPIED. A browse screen that lists the book, and a reader that
+// opens ONE entry at a time -- the same .adhkar3 / .ezia-* vocabulary, the same nav bar, the same
+// card, the same reading panel. NOT ONE LINE OF THE ADHKAR SECTION WAS EDITED to make room for
+// it: the template was copied and the original was left where it was, so a defect introduced
+// here cannot reach a section the reader already depends on.
+//
+// WHAT IT DELIBERATELY DOES NOT HAVE, each because it was decided against rather than forgotten:
+//   - no commentary. The book's text is shipped; no explanation of it is, in this first cut.
+//   - no search inside the section. Fifty entries in the book's own order is a list, not a corpus.
+//   - no takhrij. The source is NAMED -- the book and the entry's own number -- and it is not
+//     graded, traced or ruled on here. Naming a source and vouching for it are different acts.
+//   - no progress, no favourites, no streak, no counter. The adhkar screen has all four; they
+//     belong to a devotional routine and this is a book, so none of them was copied over.
+//
+// THE PAGE IS PRINTED ONLY WHEN THE CORPUS SAYS IT MAY BE. Every one of the fifty atoms carries
+// page_citable = false, so the attribution below names the book and the entry and states NO page
+// at all. That is not an omission: a page number from an edition the corpus will not vouch for is
+// a citation a reader could follow to the wrong place, and this section would rather say less.
+function ArbaeenScreen({ onBack }) {
+  // ONE loader call, the store's own objects, and no reshaping of any of them -- the adhkar
+  // screen's rule, kept. This component owns the whole of the section's state: the store, the
+  // failure, and which entry is open. There is no second loader and no second copy anywhere.
+  const [db, setDb] = useState(null);
+  const [failed, setFailed] = useState(false);
+  const [selected, setSelected] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    loadArbaeen().then((d) => { if (alive) setDb(d); }).catch(() => { if (alive) setFailed(true); });
+    return () => { alive = false; };
+  }, []);
+  // S91: the reader's own back presses the application back, which spends the entry this layer
+  // took when it opened and then runs the closer through the registry -- the same closer, reached
+  // by the same route the device button uses.
+  useEzikBackLayer(!!selected, () => setSelected(null));
+  if (selected) return <IstanaArbaeenReader doc={db} h={selected} onBack={ezikGoBack} />;
+  return <IstanaArbaeenBrowse onBack={onBack} doc={db} failed={failed} onOpen={setSelected} />;
+}
+
+// THE BROWSE. Presentation only: it reads no storage, owns no navigation state and computes
+// nothing about the book. It draws the array it is handed, in that array's own order.
+function IstanaArbaeenBrowse({ onBack, doc, failed, onOpen }) {
+  const list = (doc && doc.hadith) || [];
+  return (
+    <div className="theme-dark adhkar3" style={s.eziaContainer}>
+      <div className="ezia-nav">
+        <div className="ezia-nav-inner">
+          <button type="button" className="adhkar2-focus" onClick={onBack} style={s.eziaNavBtn} aria-label={A2_BACK}>{A2_ICON_BACK}</button>
+          <span className="ezia-brand">
+            <span className="ezia-brand-arch" aria-hidden="true" />
+            <span>{EZH_ARBAEEN}</span>
+          </span>
+          {/* the nav is a three-part bar and the third part is empty here, because this section
+              has no second action. It is held rather than dropped so the brand stays centred. */}
+          <span style={s.eziaNavBtn} aria-hidden="true" />
+        </div>
+      </div>
+      <div style={s.eziaScroll}>
+        {doc === null ? (
+          <div style={s.a3Empty}>{failed ? A2_EMPTY : '...'}</div>
+        ) : list.length === 0 ? (
+          <div style={s.a3Empty}>{A2_EMPTY}</div>
+        ) : (
+          <div className="ezia-catalogue">
+            {list.map((h, i) => (
+              <button key={h.n} type="button" className="adhkar2-focus" onClick={() => onOpen(h)}
+                data-ezia-hadith={h.n} style={s.eziaCard}>
+                <span className={((i % 3) === 2) ? 'ezia-crest ezia-crest-coral' : 'ezia-crest'} aria-hidden="true" />
+                <span style={s.eziaCardHead}>
+                  <span style={s.eziaEmblem} aria-hidden="true"><span className="ezia-star" /></span>
+                  {/* the entry's own number, in the digits the rest of this section counts in */}
+                  <span style={s.eziaCount}>{toArabicDigits(h.n)}</span>
+                </span>
+                {/* the heading the corpus carries, as a text child. No pass is made over it. */}
+                <span style={s.eziaCardTitle}>{h.title}</span>
+                <span style={s.eziaCardFoot}>
+                  <span style={s.eziaStanding} />
+                  <span style={s.eziaGo} aria-hidden="true">{EZH_ICON_GO}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// THE READER. ONE entry, its text as a text child, and the attribution under it.
+function IstanaArbaeenReader({ doc, h, onBack }) {
+  // THE ATTRIBUTION, AND WHAT IT MAY SAY. The book's title and the entry's own heading, both
+  // copied from the corpus. The page is appended ONLY when the corpus marked this entry citable;
+  // it never has, so no page is drawn, and nothing stands in for one.
+  const book = (doc && doc.book_title) || '';
+  const page = (h.page_citable && h.page_start != null)
+    ? (h.page_end != null && h.page_end !== h.page_start
+        ? toArabicDigits(h.page_start) + '-' + toArabicDigits(h.page_end)
+        : toArabicDigits(h.page_start))
+    : '';
+  return (
+    <div className="theme-dark adhkar3" style={s.eziaReadContainer}>
+      <div className="ezia-nav">
+        <div className="ezia-nav-inner">
+          <button type="button" className="adhkar2-focus" onClick={onBack} style={s.eziaNavBtn} aria-label={A2_BACK}>{A2_ICON_BACK}</button>
+          <span className="ezia-brand">
+            <span className="ezia-brand-arch" aria-hidden="true" />
+            <span style={s.eziaReadTitle}>{h.title}</span>
+          </span>
+          <span style={s.eziaNavBtn} aria-hidden="true" />
+        </div>
+      </div>
+      <div style={s.eziaReadOuter}>
+        <div style={s.eziaReadScroll}>
+          <div className="ezia-read-wrap">
+            <div className="ezia-read-panel">
+              <span style={s.eziaReadHead}>
+                <span style={s.eziaReadPos}>{toArabicDigits(h.n)} / {toArabicDigits((doc && doc.count) || 0)}</span>
+              </span>
+              {/* the corpus's own text, rendered as a text child. */}
+              <div style={s.eziaReadText}>{h.text}</div>
+              <div style={s.eziaReadSource}>{book}{book && h.title ? ' \u2014 ' : ''}{h.title}{page ? ' \u2014 ' + page : ''}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 // One category, full screen. The audio contract is DhikrCard's, kept identical on purpose:
 // one <Audio> at a time, a second tap on the playing item stops it, tapping another item
