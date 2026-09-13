@@ -224,6 +224,25 @@ const NOT_A_STORAGE_KEY = {
   WEB_AUTH_CS_KEY: 'a key into sessionStorage -- one browser tab, gone when the tab closes -- and'
     + ' never handed to localStorage. It holds one press\u2019s own random state for the length of'
     + ' one redirect, the return leg deletes it, and resetAll() sweeps it from sessionStorage too',
+  // ITEM 92-\u062c. THE SAME STORE, CHOSEN FOR THE SAME REASON, AND THE CASE BELOW HOLDS THIS SENTENCE
+  // TO ACCOUNT EXACTLY AS IT HOLDS THE ONE ABOVE IT: it fails the moment this literal is handed to
+  // localStorage anywhere in app.jsx.
+  //
+  // WHAT IT HOLDS. A complaint a reader had typed when he pressed send WITHOUT AN ACCOUNT -- the
+  // kind, the text and the optional contact line -- kept across the one navigation that takes him
+  // to the sign-in panel and back, so that decision \u062c\u0665 (\u00abhis text is kept as he wrote it\u00bb) is true
+  // on the browser's sign-in path, where the page itself is destroyed and rebuilt.
+  //
+  // WHY NOT localStorage, AND IT IS A PRIVACY DECISION RATHER THAN A CONVENIENCE. A half-written
+  // complaint is one person's words about something that upset them, and localStorage would leave
+  // it on the device for the rest of its life, readable by anything on this origin, long after
+  // they had given up on sending it. sessionStorage is scoped to ONE TAB and dies when that tab
+  // closes, which is the lifetime of "he is in the middle of sending something" and not a byte
+  // longer. It is deleted the moment the message is actually sent, and resetAll() sweeps it from
+  // sessionStorage beside the key above -- so "delete all my data" pressed mid-complaint takes it.
+  EZIK_FB_DRAFT_KEY: 'a key into sessionStorage -- one browser tab, gone when the tab closes -- and'
+    + ' never handed to localStorage. It holds the reader\u2019s own unsent complaint for the length'
+    + ' of one sign-in redirect, the send deletes it, and resetAll() sweeps it from sessionStorage too',
 };
 
 /** `const X_KEY = 'literal'` at the top level -> the literal. */

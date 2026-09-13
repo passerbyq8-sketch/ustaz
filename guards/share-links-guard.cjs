@@ -308,13 +308,20 @@ const PROFILE_BTN = (function () {
 ok('E: the share button was LOCATED in the pinned row', SHARE_BTN.length > 80, 'length ' + SHARE_BTN.length);
 ok('E: the profile entry was LOCATED in the pinned row', PROFILE_BTN.length > 80, 'length ' + PROFILE_BTN.length);
 // ITEM 92-ب CHANGED THE ARITHMETIC HERE, AND NOT THE RULE. This footer held two controls while
-// it held one account entry and one unnamed share icon. It now holds the account entry and the
-// four NAMED rows the menu order added, so the count is five -- and the claim that actually
+// it held one account entry and one unnamed share icon. It then held the account entry and the
+// four NAMED rows the menu order added, so the count was five -- and the claim that actually
 // matters is the one under it: however many controls stand in this footer, exactly ONE of them
 // presses onMenuShare. Two ways to share was the defect the order removed; a count of 2 would
 // go on passing against a footer that had grown a second share control and lost a row.
-ok('E: the footer holds the account entry and the four menu rows -- five controls',
-  (PINNED.match(/<button/g) || []).length === 5,
+//
+// ITEM 92-ج MOVED IT AGAIN, FOR THE SAME REASON AND BY THE SAME RULE: the owner's inbox is a
+// SIXTH control in this footer. It is the first row here that is CONDITIONAL -- it is built only
+// when the server has answered that this session is the owner's -- so the number below counts
+// what the SOURCE holds and not what every reader is shown, which is what this regular expression
+// has always measured. The invariant under it did not move and is what this case exists for: a
+// sixth row must not be a second way to share, and it is not.
+ok('E: the footer holds the account entry, the four menu rows and the owner inbox -- six controls',
+  (PINNED.match(/<button/g) || []).length === 6,
   'found ' + (PINNED.match(/<button/g) || []).length);
 ok('E: ...and EXACTLY ONE of them presses onMenuShare',
   (PINNED.match(/onClick=\{onMenuShare\}/g) || []).length === 1,

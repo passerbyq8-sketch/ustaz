@@ -749,3 +749,13 @@ tools/card-skin-measure.cjs text eol=lf
 # telemetry-text-guard sweeps every file in api/ by name and will therefore read this one on every
 # run, and because a route stored LF and checked out CRLF is a divergence worth not creating.
 api/feedback.js text eol=lf
+
+# ITEM 92-ج -- THE OWNER INBOX ROUTE, AND IT IS PINNED FOR EXACTLY THE REASONS ITS BROTHER ABOVE
+# IS. It is NOT in CORE (every /api/* is network-only in the worker) and no guard fingerprints it,
+# so nothing goes red without this line today either. It is pinned because api/feedback.js -- the
+# route it shares its store, its cap and its 1200-character ceiling with -- is pinned one line up,
+# and two halves of one feature checked out with different line endings is the divergence that
+# line was added to stop creating; because telemetry-text-guard sweeps every file in api/ by name
+# and will therefore read this one on every run; and because every other api/ route a guard reads
+# is pinned.
+api/inbox.js text eol=lf

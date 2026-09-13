@@ -811,6 +811,38 @@ const EZ_I18N = {
     'feedback.failed': 'لم تُرسَلْ رسالتُك. أعِدِ المحاولةَ لاحقًا.',
     'feedback.empty': 'اكتبْ شيئًا قبلَ الإرسال.',
     'feedback.noChat': 'لا يُرسَلُ مع رسالتِك سؤالٌ ولا جوابٌ ولا شيءٌ من محادثاتِك.',
+    // ITEM 92-ج -- SIGNING IN IS THE PRICE OF SENDING, AND THESE ARE THE WORDS FOR IT.
+    'feedback.signInRequired': 'سجِّلْ دخولَك أوّلًا؛ فبالحسابِ وحدَه يصلُك الرَّدُّ على رسالتِك. ما كتبتَه محفوظٌ كما هو.',
+    'feedback.signInGo': 'تسجيل الدخول',
+    'feedback.mineTitle': 'رسائلُك وردودُها',
+    'feedback.mineEmpty': 'لم تُرسِلْ شيئًا بعد.',
+    'feedback.mineFailed': 'تعذَّرَ جلبُ رسائلِك.',
+    'feedback.mineReply': 'الرَّدّ',
+    'feedback.mineNoReply': 'لم يصِلْ ردٌّ بعد.',
+    'feedback.mineNew': 'ردٌّ جديد',
+    // ITEM 92-ج -- THE OWNER'S INBOX. Arabic first, as every key in this file is.
+    'menu.inbox': 'صندوق الرسائل',
+    'menu.inboxAria': 'صندوق الرسائل — رسائلُ القرّاءِ والرَّدُّ عليها',
+    'inbox.tabFeedback': 'اقتراحات وشكاوى',
+    'inbox.tabReports': 'بلاغات',
+    'inbox.empty': 'لا رسائلَ هنا.',
+    'inbox.failed': 'تعذَّرَ فتحُ الصندوق.',
+    'inbox.stateNew': 'جديدة',
+    'inbox.stateRead': 'مقروءة',
+    'inbox.stateAnswered': 'مُجابة',
+    'inbox.noSender': 'بلا عنوان',
+    'inbox.from': 'المُرسِل',
+    'inbox.contact': 'وسيلةُ التواصلِ التي كتبَها',
+    'inbox.replyLabel': 'ردُّك',
+    'inbox.replySend': 'أرسِلِ الرَّدّ',
+    'inbox.replySending': 'جارٍ الحفظ…',
+    'inbox.replySaved': 'حُفِظَ الرَّدُّ، ويراه صاحبُ الرسالةِ في لوحِه.',
+    'inbox.replyFailed': 'لم يُحفَظِ الرَّدّ. أعِدِ المحاولةَ لاحقًا.',
+    'inbox.replyNoSender': 'رسالةٌ قديمةٌ بلا مُرسِل، فلا سبيلَ إلى الرَّدِّ عليها.',
+    'inbox.replyEmpty': 'اكتُبْ ردًّا قبلَ الحفظ.',
+    'inbox.reportsReadOnly': 'البلاغاتُ للقراءةِ فقط، ولا يُردُّ عليها.',
+    'inbox.remaining': 'المتبقّي: {n}',
+    'inbox.window': 'يُعرَضُ أحدثُ {n} رسالةً.',
   },
   en: {
     'common.close': 'Close',
@@ -1411,6 +1443,36 @@ const EZ_I18N = {
     'feedback.failed': 'Your message was NOT sent. Please try again later.',
     'feedback.empty': 'Write something before sending.',
     'feedback.noChat': 'No question, no answer and nothing from your conversations is sent with your message.',
+    'feedback.signInRequired': 'Sign in first — an account is the only way an answer can reach you. What you wrote is kept as it is.',
+    'feedback.signInGo': 'Sign in',
+    'feedback.mineTitle': 'Your messages and their replies',
+    'feedback.mineEmpty': 'You have not sent anything yet.',
+    'feedback.mineFailed': 'Your messages could not be fetched.',
+    'feedback.mineReply': 'Reply',
+    'feedback.mineNoReply': 'No reply yet.',
+    'feedback.mineNew': 'New reply',
+    'menu.inbox': 'Inbox',
+    'menu.inboxAria': 'Inbox — readers\u2019 messages and replying to them',
+    'inbox.tabFeedback': 'Suggestions and complaints',
+    'inbox.tabReports': 'Reports',
+    'inbox.empty': 'Nothing here.',
+    'inbox.failed': 'The inbox could not be opened.',
+    'inbox.stateNew': 'New',
+    'inbox.stateRead': 'Read',
+    'inbox.stateAnswered': 'Answered',
+    'inbox.noSender': 'No address',
+    'inbox.from': 'Sender',
+    'inbox.contact': 'How they asked to be reached',
+    'inbox.replyLabel': 'Your reply',
+    'inbox.replySend': 'Send the reply',
+    'inbox.replySending': 'Saving\u2026',
+    'inbox.replySaved': 'The reply is saved, and the sender sees it in their own panel.',
+    'inbox.replyFailed': 'The reply was NOT saved. Please try again later.',
+    'inbox.replyNoSender': 'An older message with no sender, so there is no way to answer it.',
+    'inbox.replyEmpty': 'Write a reply before saving.',
+    'inbox.reportsReadOnly': 'Reports are read-only and are not replied to.',
+    'inbox.remaining': 'Remaining: {n}',
+    'inbox.window': 'Showing the newest {n} messages.',
   },
 };
 
@@ -14290,6 +14352,21 @@ function App() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  // ITEM 92-ج: the owner's inbox, a FOURTH panel of exactly the same kind as the three above
+  // -- one boolean, one history entry, no `screen` key -- and the only one of the four whose
+  // menu row is not drawn for everybody. `inboxUnread` is null until the SERVER has answered a
+  // real `list` call with 200, and null is what every refusal and every fault resolves to, so
+  // the row exists for the owner and for nobody else. It is never read from a profile, a flag
+  // or a stored role: this file does not know who the owner is and must not start guessing.
+  const [inboxOpen, setInboxOpen] = useState(false);
+  const [inboxUnread, setInboxUnread] = useState(null);
+  // DECISION ج١٣'s other half -- the sender's dot. A count of answers this reader has been
+  // sent and has not yet opened. It is zero for everybody with no account, because `mine`
+  // is not asked without a session in hand.
+  const [fbUnseen, setFbUnseen] = useState(0);
+  // Where the complaint panel is going after it closes, or null. It is a ref and not state for
+  // the reason drawerNavRef is one: it is read once inside a closer and must never cause a render.
+  const feedbackNavRef = useRef(null);
   // ITEM 92: the store chooser, opened from the menu's share button. It is NEVER true inside a
   // shell -- the handler that sets it returns before it can be, so the chooser is not merely
   // hidden there but never built. `shareFlash` is the clipboard's answer on the shell path,
@@ -15059,7 +15136,22 @@ function App() {
   // breaks, and these are the only three entries any of them owns.
   useEzikBackLayer(aboutOpen, () => setAboutOpen(false));
   useEzikBackLayer(sourcesOpen, () => setSourcesOpen(false));
-  useEzikBackLayer(feedbackOpen, () => setFeedbackOpen(false));
+  // ITEM 92-ج: THE COMPLAINT PANEL LEARNED TO HAND OVER TO ANOTHER SCREEN, so its closer grew the
+  // same two lines the menu's closer has had since S92 -- and for the identical reason recorded
+  // there. Sending the reader to the sign-in panel means CLOSING THIS LAYER AND OPENING THAT ONE,
+  // and the entry this layer owns has to be SPENT BY A REAL POP on the way. Setting the state to
+  // false and navigating in the same breath would leave a live history entry behind that nothing
+  // claims, and the reader's next back press would be swallowed by it. So the action is stashed,
+  // the back is pressed, and the destination is opened INSIDE the closer -- after the pop.
+  useEzikBackLayer(feedbackOpen, () => {
+    setFeedbackOpen(false);
+    const run = feedbackNavRef.current;
+    feedbackNavRef.current = null;
+    if (run) run();
+  });
+  // ITEM 92-ج: the fourth, on the identical contract and in the same fixed order -- a hook
+  // order that changes with state is a hook order that breaks.
+  useEzikBackLayer(inboxOpen, () => setInboxOpen(false));
   // ITEM 92: WHAT THE SHARE BUTTON DOES, decided by the injected bridge and by nothing else.
   // In a shell it hands the smart link straight to the platform sheet and returns -- no chooser
   // is opened, so no badge and no store name can reach the page (Apple guideline 2.3.10). In a
@@ -15086,7 +15178,48 @@ function App() {
   // Opening it re-reads the list from the store, so the menu always shows what a reboot would.
   // S98: and it clears the search box, so the menu never reopens on somebody's half-typed query.
   // No corpus is built here — that happens on the first letter and not before.
-  const openDrawer = () => { refreshChatList(); setChatPendingDelete(null); setChatQuery(''); setDrawerOpen(true); };
+  // ITEM 92-ج -- THE TWO THINGS THE MENU HAS TO ASK THE SERVER, AND IT ASKS NOTHING WITHOUT A
+  // SESSION IN HAND. A reader who has never signed in costs the network nothing here and is
+  // never told that an owner's door exists -- the same rule probeGrant() states for the writing
+  // door, for the same reason.
+  //
+  // 🔴 THE ROLE IS THE SERVER'S ANSWER AND NEVER THIS FILE'S JUDGEMENT. `list` is the very call
+  // the panel itself makes; if it answers 200 this session is the owner's, and ANY other outcome
+  // -- a 401, a 503, a timeout, a dead connection -- resolves to null, which is the answer that
+  // shows the fewest controls. `limit: 1` is why this costs a row and not a page: the unread
+  // count is computed over the route's whole window regardless of how many items travel.
+  const probeInbox = () => {
+    const held = readAuthSession();
+    if (!held || typeof held.session !== 'string' || !held.session) { setInboxUnread(null); setFbUnseen(0); return; }
+    ezikInbox({ session: held.session, action: 'list', kind: 'feedback', limit: 1 }).then((res) => {
+      if (!res.ok || !res.data) { setInboxUnread(null); return; }
+      setInboxUnread(Number.isInteger(res.data.unread) ? res.data.unread : 0);
+    });
+    ezikInbox({ session: held.session, action: 'mine' }).then((res) => {
+      if (!res.ok || !res.data) { setFbUnseen(0); return; }
+      setFbUnseen(Number.isInteger(res.data.unseen) ? res.data.unseen : 0);
+    });
+  };
+  // ITEM 92-ج -- COMING BACK TO THE FORM AFTER SIGNING IN (DECISION ج٥). Two paths land here and
+  // both are covered: the shell hands a session to the subscriber set while this page is still
+  // standing, and the browser's door destroys the page and answers on the next load, where the
+  // first call below finds the session already written. The note is cleared before the panel is
+  // opened, so one sign-in re-opens the form once and a later one does not re-open it at all.
+  useEffect(() => {
+    const resume = () => {
+      const draft = readFbDraft();
+      if (!draft || draft.wants !== EZIK_FB_WANTS_SIGNIN) return;
+      if (!readAuthSession()) return;
+      writeFbDraft({ type: draft.type, text: draft.text, contact: draft.contact, wants: '' });
+      setFeedbackOpen(true);
+    };
+    resume();
+    EZIK_NATIVE_AUTH_SUBS.add(resume);
+    return () => { EZIK_NATIVE_AUTH_SUBS.delete(resume); };
+  }, []);
+  // ITEM 92-ج: opening the menu is when the two badges are re-read, so a reply that landed
+  // while the app was open is seen on the next open rather than at the next boot.
+  const openDrawer = () => { refreshChatList(); setChatPendingDelete(null); setChatQuery(''); probeInbox(); setDrawerOpen(true); };
 
   useEffect(() => {
     const onPop = () => { ezikHistSpend(); resolveEzikBack(true); };
@@ -17508,6 +17641,14 @@ function App() {
       // that is written down there rather than left to be noticed: that roster is about the
       // DEVICE store, and this key is not in it. Swept here for completeness, not for a promise.
       try { window.sessionStorage.removeItem(WEB_AUTH_CS_KEY); } catch (e) {}
+      // ITEM 92-ج -- AND THE SECOND THING, ON EXACTLY THE TERMS THE LINE ABOVE GOES ON. A reader
+      // who pressed send with no account has a half-written complaint parked in THIS TAB's
+      // sessionStorage waiting for him to come back from the sign-in panel. It is his own words
+      // and nobody else's, and a reader who presses "delete all my data" in the middle of that is
+      // asking for them to go. Like the key above it, this one is NOT on the roster in
+      // tools/delete-truth-measure.cjs -- that roster is about the DEVICE store and this key is
+      // not in it -- and that is written down there rather than left to be noticed.
+      try { window.sessionStorage.removeItem(EZIK_FB_DRAFT_KEY); } catch (e) {}
       // HIJRI_OFFSET_KEY IS DELIBERATELY ABSENT. delete.html promises it nowhere, in neither
       // language, and erasing what was never promised widens this button rather than repairs it.
       // It stays until a sentence on that page asks for it.
@@ -17771,15 +17912,50 @@ function App() {
               <span>{ezT('menu.invite') || '\u062f\u0639\u0648\u0629 \u0635\u062f\u064a\u0642'}</span>
             </button>
             {/* اقتراح أو شكوى -- the one row in this footer that reaches the network, and it
-                reaches api/feedback.js and nothing else: no account, no sign-in, and not one
-                character of any conversation travels with it. */}
+                reaches api/feedback.js and api/inbox.js and nothing else. NOT ONE CHARACTER OF ANY
+                CONVERSATION TRAVELS WITH IT, which is the half of the old sentence that is still
+                true and still the point.
+
+                WHAT CHANGED ON 2026-09-13, AND THE COMMENT IS REWRITTEN RATHER THAN LEFT STANDING:
+                this row used to say «no account, no sign-in». IT NOW REQUIRES BOTH. The reason is
+                the one the old reasoning never had -- THERE WAS NOWHERE TO SEND THE ANSWER. A
+                message from nobody can be read and cannot be replied to, so a reader who wrote one
+                got silence, and silence is its own way of never being complained to. The session
+                buys the reader a reply; it buys this application nothing it did not already have.
+
+                THE DOT IS A REPLY HE HAS NOT OPENED (decision ج١٣), not a message he has not sent.
+                It is fetched by probeInbox() when the menu opens, and opening the panel puts it
+                out -- the panel marks every answer it shows as seen and tells this component. */}
             <button onClick={() => closeDrawerWith(() => setFeedbackOpen(true))} style={s.drawerItem} className="ezik-focus" aria-label={ezT('menu.feedbackAria')}>
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3.5 6.5h17v11h-17z" />
                 <path d="M3.5 7.2l8.5 5.8 8.5-5.8" />
               </svg>
-              <span>{ezT('menu.feedback') || '\u0627\u0642\u062a\u0631\u0627\u062d \u0623\u0648 \u0634\u0643\u0648\u0649'}</span>
+              <span style={{ flex: 1, minWidth: 0 }}>{ezT('menu.feedback') || '\u0627\u0642\u062a\u0631\u0627\u062d \u0623\u0648 \u0634\u0643\u0648\u0649'}</span>
+              {fbUnseen > 0 && <span style={s.drawerBadge}>{fbUnseen}</span>}
             </button>
+            {/* صندوق الرسائل -- THE OWNER'S ROW, AND IT IS NOT DRAWN FOR ANYBODY ELSE.
+
+                🔴 HIDING IS NOT THE PROTECTION -- DECISION ج١١. The protection is api/inbox.js,
+                which answers a stranger, a signed-in reader and an editor with one identical 401.
+                What this condition buys is that nobody who cannot open the door is ever shown it;
+                what it must never be asked to buy is secrecy, because a reader who edits this
+                component's state into drawing the row meets that same 401 a moment later.
+
+                AND THE CONDITION IS THE SERVER'S OWN ANSWER. `inboxUnread` is null until a real
+                `list` call returned 200 -- see probeInbox() above -- so there is no role, no flag
+                and no digest in this file for anybody to forge. The badge is the count of unread
+                messages in «اقتراحات وشكاوى» and never in «بلاغات», which is decision ج١٣. */}
+            {inboxUnread !== null ? (
+              <button onClick={() => closeDrawerWith(() => setInboxOpen(true))} style={s.drawerItem} className="ezik-focus" aria-label={ezT('menu.inboxAria')}>
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3.5 12.5h5l1.5 2.5h4l1.5-2.5h5" />
+                  <path d="M5.5 5.5h13l2 7v6h-17v-6z" />
+                </svg>
+                <span style={{ flex: 1, minWidth: 0 }}>{ezT('menu.inbox')}</span>
+                {inboxUnread > 0 && <span style={s.drawerBadge}>{inboxUnread}</span>}
+              </button>
+            ) : null}
           </div>
         </div>
         {/* The chooser is a SIBLING of the menu panel, not a child of it. .ezc-drawer is a
@@ -17811,10 +17987,13 @@ function App() {
   // اقتراح أو شكوى DOES reach the network, and it still belongs above both gates, deliberately.
   // The consent notice below governs the two screens that send the READER'S OWN WORDS TO A MODEL;
   // this form sends a typed complaint to api/feedback.js, which is not a model, carries no
-  // question, no answer and no conversation, and takes no account and no sign-in. A reader who
-  // declined AI consent, or who is out of the day's allowance, is exactly the reader most likely
-  // to have something to say about it -- putting the complaint box behind the thing being
-  // complained about would be a defect, not a safeguard.
+  // question, no answer and no conversation. It DOES take an account since 2026-09-13, and that
+  // is a condition of SENDING and not of standing here: the panel opens for everybody, says why
+  // an account is needed, keeps what was typed, and offers the sign-in. A reader who declined AI
+  // consent, or who is out of the day's allowance, is exactly the reader most likely to have
+  // something to say about it -- putting the complaint box behind the thing being complained
+  // about would be a defect, not a safeguard, and the sign-in step is not that barrier: it is
+  // the return address an answer is delivered to.
   //
   // AND THE BACK CONTROL IS NOT ezikGoBack, WHICH IS THE ONE THING THAT SEPARATES THESE THREE FROM
   // THE ASMAA LAYER ABOVE. MEASURED, not assumed: goEzikBack reads the current SCREEN first, and
@@ -17828,7 +18007,35 @@ function App() {
   // entry to spend. The device button is unaffected: it still resolves through the hook above.
   if (aboutOpen) return <EzikAboutSheet onBack={() => { if (ezikHistBack()) return; setAboutOpen(false); }} />;
   if (sourcesOpen) return <EzikSourcesSheet onBack={() => { if (ezikHistBack()) return; setSourcesOpen(false); }} />;
-  if (feedbackOpen) return <EzikFeedbackSheet onBack={() => { if (ezikHistBack()) return; setFeedbackOpen(false); }} />;
+  if (feedbackOpen) return (
+    <EzikFeedbackSheet
+      onBack={() => { if (ezikHistBack()) return; setFeedbackOpen(false); }}
+      onSignIn={() => {
+        // DECISION ج٥ -- THE EXISTING SIGN-IN PANEL, AND NOT A SECOND ONE. الإعدادات is where
+        // EzikSignInRow has lived since the seam landed; this order builds no sign-in surface of
+        // its own and opens the one that is already there. The hand-off runs inside the layer's
+        // closer, after the pop that spends this panel's history entry -- the idiom closeDrawerWith
+        // uses, for the reason written beside it.
+        feedbackNavRef.current = () => openEzikSheet('settings');
+        if (ezikHistBack()) return;
+        setFeedbackOpen(false);
+        feedbackNavRef.current = null;
+        openEzikSheet('settings');
+      }}
+      onSeen={() => setFbUnseen(0)}
+    />
+  );
+  // ITEM 92-ج: the fourth panel, in the same place and on the same terms as the three above.
+  // It stands over whatever screen the menu was opened from and above both gates below -- it
+  // sends no question to a model and spends no allowance, which is the identical argument the
+  // three panels above it are placed on. Its own back control closes the opened message first
+  // and the panel second, and the device button takes the same two steps.
+  if (inboxOpen) return (
+    <EzikInboxSheet
+      onBack={() => { if (ezikHistBack()) return; setInboxOpen(false); }}
+      onRead={() => setInboxUnread((n) => (typeof n === 'number' && n > 0 ? n - 1 : n))}
+    />
+  );
   // قفل الإنفاق: المطالبة تظهر فقط أمام الشاشتين اللتين تُنفقان (المحادثة/المكالمة) وحين يكون القفل مفعّلاً وغير مفتوح.
   // القفل المُعطَّل (٦٤ صفراً) ⇒ spendGateOpenState=true دائماً ⇒ لا تظهر هذه السطر أبداً. أما 0b (المصحف/المحفّظ/الأذكار) فتبقى مفتوحة.
   if ((screen === 'chat' || screen === 'call') && !spendGateOpenState) return <SpendGate onUnlock={unlockSpendGate} onExit={() => setScreen('home')} />;
@@ -20651,15 +20858,25 @@ function EzikSourcesSheet({ onBack }) {
 // اقتراح أو شكوى — THE ONE FORM IN THIS BATCH THAT REACHES THE NETWORK.
 //
 // WHAT IT DOES NOT CARRY, and this is the whole of its privacy claim: no question, no answer, no
-// conversation, no excerpt, no id, no name and no account. The body it POSTs is three fields the
-// reader typed with their own fingers and nothing else, and the reader is TOLD that in the hint
-// under the box rather than being asked to trust it. There is no sign-in step: an app nobody can
-// complain about without first making an account is an app nobody complains about.
+// conversation, no excerpt, no name and no address. The body it POSTs is the three fields the
+// reader typed with their own fingers plus THE SESSION, and the reader is TOLD about the three
+// in the hint under the box rather than being asked to trust it.
+//
+// 🔴 THERE IS A SIGN-IN STEP NOW, AND THIS PARAGRAPH USED TO SAY THE OPPOSITE. It said «an app
+// nobody can complain about without first making an account is an app nobody complains about»,
+// and that was half of the truth. The other half is that AN APP THAT CANNOT ANSWER A COMPLAINT
+// IS AN APP NOBODY COMPLAINS TO TWICE: without an account there was nowhere to deliver a reply,
+// so every message ended in silence. The owner ruled on 2026-09-13 that the account is the
+// return address, and what the session names is an opaque store key -- no address and no name
+// is sent from here and none is stored there. api/inbox.js fetches the address at display time
+// from the account record, so deleting an account takes the only copy of it.
 //
 // THE THREE CAPS ARE THE SERVER'S CAPS, WRITTEN TWICE ON PURPOSE. maxLength keeps the reader from
 // typing past 1200 so the counter never reads a negative number and a long complaint is never
 // silently truncated on the way out; api/feedback.js cuts to the same 1200 and 120 and does not
-// trust these. A client-side cap is a courtesy, never a control.
+// trust these. A client-side cap is a courtesy, never a control. The DAILY cap is the server's
+// alone and is now two counters -- the account's and the device's, decision ج٣ -- neither of
+// which this file can see, raise or be exempted from.
 const EZIK_FB_TEXT_CAP = 1200;
 const EZIK_FB_CONTACT_CAP = 120;
 // The three the server accepts, in the order the order names them, and the labels are dictionary
@@ -20673,13 +20890,61 @@ const EZIK_FB_TYPES = [
 // would be a form that answers by vanishing, which a reader cannot tell from a crash.
 const EZIK_FB_CLOSE_MS = 1600;
 
-function EzikFeedbackSheet({ onBack }) {
-  const [type, setType] = useState('suggestion');
-  const [text, setText] = useState('');
-  const [contact, setContact] = useState('');
+// ITEM 92-ج -- THE DRAFT A REFUSED SEND LEAVES BEHIND, AND IT IS IN sessionStorage ON PURPOSE.
+//
+// DECISION ج٥ says a reader sent to the sign-in panel comes back to his own words. On the shell's
+// sign-in path this page never goes away and React state would have been enough; ON THE BROWSER'S
+// PATH THE PAGE IS DESTROYED -- the press is a top-level navigation to the provider and the tab
+// returns on a fresh load -- so the text has to outlive the document or the promise is empty.
+//
+// 🔴 AND IT IS NOT localStorage. sessionStorage is scoped to ONE BROWSER TAB and dies when that
+// tab closes, which is exactly the lifetime of "he is in the middle of sending something": a
+// half-written complaint is one person's words and has no business sitting on a device for the
+// rest of its life. It is the same store, chosen for the same reason, that WEB_AUTH_CS_KEY above
+// uses to carry one press across the same navigation -- and resetAll() sweeps this one beside it.
+// tools/delete-truth-measure.cjs carries the written reason it is not on the device roster.
+const EZIK_FB_DRAFT_KEY = 'ezik_fb_draft_v1';
+// The note that says the reader is coming BACK to this panel rather than that a draft merely
+// exists. Without it, every abandoned half-sentence would re-open the complaint form at the next
+// sign-in from anywhere in the application.
+const EZIK_FB_WANTS_SIGNIN = 'signin';
+
+function readFbDraft() {
+  try {
+    const raw = window.sessionStorage.getItem(EZIK_FB_DRAFT_KEY);
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    return (o && typeof o === 'object' && !Array.isArray(o)) ? o : null;
+  } catch (e) { return null; }
+}
+function writeFbDraft(o) {
+  // A STORE THAT REFUSES IS NOT AN ERROR HERE. A private window with storage blocked keeps its
+  // text for as long as the component lives, which on the shell's sign-in path is long enough;
+  // on the browser's path the words are lost and nothing else is, and telling the reader his
+  // draft could not be filed would be a sentence about our plumbing in place of his complaint.
+  try { window.sessionStorage.setItem(EZIK_FB_DRAFT_KEY, JSON.stringify(o)); } catch (e) {}
+}
+function clearFbDraft() {
+  try { window.sessionStorage.removeItem(EZIK_FB_DRAFT_KEY); } catch (e) {}
+}
+function EzikFeedbackSheet({ onBack, onSignIn, onSeen }) {
+  // ITEM 92-ج -- THE DRAFT IS READ AT MOUNT, BEFORE ANY FIELD HAS A VALUE. A reader who was sent
+  // to the sign-in panel by the send button comes back to this component freshly built -- in a
+  // browser the page itself went away and came back -- so "his text is kept as he wrote it" can
+  // only mean that the three fields are SEEDED from the draft rather than restored into it later.
+  const seed = readFbDraft();
+  const [type, setType] = useState(seed && EZIK_FB_TYPES.some((t) => t.id === seed.type) ? seed.type : 'suggestion');
+  const [text, setText] = useState(seed ? String(seed.text || '') : '');
+  const [contact, setContact] = useState(seed ? String(seed.contact || '') : '');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [done, setDone] = useState(false);
+  // DECISION ج١٢ -- the sender's own half, in THIS panel and not in a row of its own. 'mine' is
+  // what this account sent inside the route's window, each with its answer when it has one.
+  const [mine, setMine] = useState([]);
+  const [mineState, setMineState] = useState(EZIK_ART_IDLE);
+  const aliveRef = useRef(true);
+  useEffect(() => () => { aliveRef.current = false; }, []);
   // The close timer is an effect so React itself cancels it if the reader presses back first —
   // a bare setTimeout would fire into an unmounted panel.
   useEffect(() => {
@@ -20688,18 +20953,67 @@ function EzikFeedbackSheet({ onBack }) {
     return () => clearTimeout(t);
   }, [done]);
 
+  // DECISION ج١٣ -- OPENING THIS PANEL IS WHAT PUTS THE DOT OUT. The replies are fetched once at
+  // mount, and every answer that is here and has not been marked seen is marked seen in the same
+  // breath: the reader is looking at it, which is the whole of what the mark claims. The parent
+  // is then told, so the menu row's dot goes without waiting for the next probe.
+  const loadMine = () => {
+    const held = readAuthSession();
+    if (!held) { setMine([]); setMineState(EZIK_ART_IDLE); return; }
+    setMineState(EZIK_ART_LOADING);
+    ezikInbox({ session: held.session, action: 'mine' }).then((res) => {
+      if (!aliveRef.current) return;
+      if (!res.ok || !res.data || !Array.isArray(res.data.items)) { setMine([]); setMineState(EZIK_ART_FAILED); return; }
+      setMine(res.data.items);
+      setMineState(EZIK_ART_DONE);
+      let marked = false;
+      for (const it of res.data.items) {
+        if (it && it.reply && !it.seen && typeof it.id === 'string') {
+          marked = true;
+          ezikInbox({ session: held.session, action: 'seen', id: it.id });
+        }
+      }
+      if (marked && typeof onSeen === 'function') onSeen();
+    });
+  };
+  useEffect(() => { loadMine(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+
   const remaining = EZIK_FB_TEXT_CAP - text.length;
+
+  // DECISION ج٥ -- WHERE A READER WITH NO ACCOUNT IS SENT, AND WHAT IS KEPT FOR HIM.
+  //
+  // The draft is written BEFORE the panel is left, because on the browser's sign-in path this
+  // page is about to stop existing: the press navigates to the provider and the tab comes back
+  // on a fresh load. 'wants' is the note that says he is coming back HERE and not merely that
+  // there is an unsent draft lying about -- the root effect reads it, and this panel clears it.
+  const divertToSignIn = () => {
+    writeFbDraft({ type, text, contact, wants: EZIK_FB_WANTS_SIGNIN });
+    setBusy(false);
+    setErr(ezT('feedback.signInRequired'));
+    if (typeof onSignIn === 'function') onSignIn();
+  };
+
   const send = async () => {
     const body = text.trim();
     if (!body) { setErr(ezT('feedback.empty')); return; }
+    // THE CLIENT ASKS FIRST AND THE SERVER ASKS AGAIN, and the two agree by NAME. Checking here
+    // spares a signed-out reader a request that could only ever be refused; the 401 below is what
+    // makes the check honest, because a session this device believes in may have died in the
+    // store and only the server can know that.
+    const held = readAuthSession();
+    if (!held || typeof held.session !== 'string' || !held.session) { divertToSignIn(); return; }
     setErr('');
     setBusy(true);
     let res = null;
     try {
       // The device id travels as a THROTTLE KEY and as nothing else — api/feedback.js counts it
       // and never writes it. The founder token is deliberately NOT sent: three messages a day is
-      // the owner's ceiling too, and a route that exempts one device is a route whose cap has
-      // never been tested by the person who shipped it.
+      // the owner's ceiling too (decision ج٤), and a route that exempts one device is a route
+      // whose cap has never been tested by the person who shipped it.
+      //
+      // THE SESSION TRAVELS IN THE BODY and not in a header, which is where every other door in
+      // this application takes one. It names the account the answer will be delivered to and
+      // nothing else: no address and no name is sent from here, and none is stored there.
       const did = getDeviceId();
       const headers = { 'Content-Type': 'application/json' };
       if (did) headers['x-murabbi-device'] = did;
@@ -20710,17 +21024,22 @@ function EzikFeedbackSheet({ onBack }) {
           type,
           text: body.slice(0, EZIK_FB_TEXT_CAP),
           contact: contact.trim().slice(0, EZIK_FB_CONTACT_CAP),
+          session: held.session,
         }),
       });
     } catch (e) {
       res = null;
     }
     setBusy(false);
-    // THREE ANSWERS, AND «وصلت» IS SAID FOR EXACTLY ONE OF THEM. A refusal and a transport
-    // failure are both told as what they are; neither is dressed as a success, which is the one
-    // outcome this form is forbidden to fake.
+    // FOUR ANSWERS, AND «وصلت» IS SAID FOR EXACTLY ONE OF THEM. A refusal, a dead session and a
+    // transport failure are each told as what they are; none is dressed as a success, which is
+    // the one outcome this form is forbidden to fake.
+    if (res && res.status === 401) { divertToSignIn(); return; }
     if (res && res.status === 429) { setErr(ezT('feedback.capped')); return; }
     if (!res || !res.ok) { setErr(ezT('feedback.failed')); return; }
+    // THE DRAFT DIES WITH THE MESSAGE THAT WAS MADE OF IT. Keeping it would re-seed the next
+    // opening of this panel with a complaint that has already been sent.
+    clearFbDraft();
     setDone(true);
   };
 
@@ -20761,10 +21080,335 @@ function EzikFeedbackSheet({ onBack }) {
                 style={{ ...s.artAction, ...s.artActionStrong, opacity: busy ? 0.5 : 1 }}>
                 {busy ? ezT('feedback.sending') : ezT('feedback.send')}
               </button>
+              {/* THE SECOND PRESS, AND IT IS ONLY DRAWN AFTER THE FIRST ONE WAS REFUSED. The send
+                  button already opens the sign-in panel on its own; this is the way back for a
+                  reader who closed that panel, and it exists so the sentence above it is not a
+                  dead end. It saves the draft by the same function, so either route keeps the
+                  text. */}
+              {!readAuthSession() && err ? (
+                <button type="button" className="ezhome-focus" onClick={divertToSignIn} style={s.artAction}>
+                  {ezT('feedback.signInGo')}
+                </button>
+              ) : null}
             </div>
           </EzShellGroup>
+
+          {/* DECISION ج١٢ -- THE ANSWER COMES BACK HERE. Not a new row in the menu and not a
+              screen of its own: a reader who wants to know whether anybody read his complaint
+              looks where he wrote it. The section is absent entirely for a reader with no
+              account, because there is nothing there for him to be shown an empty box about. */}
+          {readAuthSession() ? (
+            <EzShellGroup title={ezT('feedback.mineTitle')}>
+              {mineState === EZIK_ART_LOADING ? <div role="status" style={s.artNote}>{ezT('common.loading')}</div> : null}
+              {mineState === EZIK_ART_FAILED ? (
+                <div role="alert" style={s.artError}>
+                  <span>{ezT('feedback.mineFailed')}</span>
+                  <button type="button" className="ezhome-focus" onClick={loadMine} style={s.artRetry}>{ezT('common.retry')}</button>
+                </div>
+              ) : null}
+              {mineState === EZIK_ART_DONE && mine.length === 0 ? (
+                <div role="status" style={s.artNote}>{ezT('feedback.mineEmpty')}</div>
+              ) : null}
+              {mineState === EZIK_ART_DONE && mine.length > 0 ? (
+                <div style={s.artList}>
+                  {mine.map((it) => (
+                    <div key={it.id} style={s.artMineRow}>
+                      <div style={s.artMineHead}>
+                        <div style={s.artRowMeta}>
+                          <span style={s.artRowDate}>{ezikInboxWhen(it.ts)}</span>
+                          {it.reply && !it.seen ? <span style={s.artQaMark}>{ezT('feedback.mineNew')}</span> : null}
+                        </div>
+                        <div style={s.artRowTitle} dir="auto">{it.text}</div>
+                      </div>
+                      <div style={s.asmaaField}>
+                        <span style={s.artFieldLabel}>{ezT('feedback.mineReply')}</span>
+                        {it.reply && it.reply.text
+                          ? <p style={s.artPara} dir="auto">{it.reply.text}</p>
+                          : <span style={s.artRowDate}>{ezT('feedback.mineNoReply')}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </EzShellGroup>
+          ) : null}
         </>
       )}
+    </EzShell>
+  );
+}
+
+// ============================================================
+// ITEM 92-ج — صندوقُ رسائلِ المالك  (the owner's inbox)
+// ============================================================
+// WHY THIS IS A PANEL AND NOT A 'screen' KEY. index.html's screen inventory is a CROSS-FILE
+// contract -- theme-coverage-guard parses the 'if (screen === '...')' ladder and requires
+// EZIK-THEME-33-HANDOFF.md's table and its Arabic count to match it -- and this order adds no key
+// to it. So the inbox is a LAYER of exactly the kind «عن عزك», «المصادر» and «اقتراح أو شكوى»
+// already are: one boolean in the root, one history entry, and the same EzShell the other three
+// are drawn in. Nothing about the ladder, the table or the handoff moves.
+//
+// 🔴 THE ROW THAT OPENS IT IS HIDDEN FROM EVERYBODY ELSE, AND HIDING IS NOT THE PROTECTION --
+// DECISION ج١١. The protection is api/inbox.js, which refuses every one of the three owner
+// actions with one 401 for a stranger, a signed-in reader and an editor alike. What the hidden
+// row buys is that nobody who is not the owner is ever shown a door they cannot open; what it
+// does NOT buy is secrecy, and no branch in this file may ever be the thing standing between a
+// reader and somebody else's messages.
+//
+// 🔴 AND THE CLIENT NEVER DECIDES WHO THE OWNER IS. There is no role in localStorage, no flag on
+// the profile and no digest compared here. The row is built if and only if THE SERVER answered a
+// real 'list' call with 200 -- see probeInbox() in the root -- so a reader who edits this page's
+// state into showing the row is a reader who then meets the same 401 the row was hiding.
+const EZIK_INBOX_ROUTE = '/api/inbox';
+const EZIK_INBOX_TIMEOUT_MS = 12000;
+
+// THE ONE CALL, IN THE SHAPE ezikArticlesAdmin() ALREADY HAS. Same route discipline, same
+// three-field answer, same rule that a thrown fetch is a refusal and not an exception the caller
+// has to think about. Every caller below reads { ok, status, data } and nothing else.
+async function ezikInbox(payload, signal) {
+  try {
+    const response = await fetch(EZIK_INBOX_ROUTE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal,
+    });
+    let data = null;
+    try { data = await response.json(); } catch (e) {}
+    if (response.status === 200 && data && data.ok === true) return { ok: true, status: 200, data };
+    return { ok: false, status: response.status, data };
+  } catch (e) {
+    return { ok: false, status: 0, data: null };
+  }
+}
+
+// A stored timestamp -> something a reader can read, in the language the panel is in. An
+// unparseable value is shown as the empty string rather than as «Invalid Date», which is the
+// one rendering of a bad date that is worse than none.
+function ezikInboxWhen(ts) {
+  if (typeof ts !== 'string' || !ts) return '';
+  const d = new Date(ts);
+  if (Number.isNaN(d.getTime())) return '';
+  try {
+    return d.toLocaleDateString(EZ_LANG === 'en' ? 'en' : 'ar', { year: 'numeric', month: 'short', day: 'numeric' });
+  } catch (e) {
+    return ts.slice(0, 10);
+  }
+}
+
+const EZIK_INBOX_TABS = [
+  { id: 'feedback', k: 'inbox.tabFeedback' },
+  { id: 'reports', k: 'inbox.tabReports' },
+];
+// The three states api/inbox.js derives, mapped to the three sentences. Written out rather than
+// interpolated into a key name, so a state the server invents tomorrow shows nothing instead of
+// showing a raw key to the owner.
+const EZIK_INBOX_STATE_K = {
+  new: 'inbox.stateNew',
+  read: 'inbox.stateRead',
+  answered: 'inbox.stateAnswered',
+};
+
+function EzikInboxSheet({ onBack, onRead }) {
+  const [kind, setKind] = useState('feedback');
+  const [listState, setListState] = useState(EZIK_ART_IDLE);
+  const [rows, setRows] = useState([]);
+  const [win, setWin] = useState(0);
+  // THE OPENED MESSAGE IS A SECOND LEVEL INSIDE THIS PANEL, and it owns a history entry of its
+  // own -- the ladder the two articles sections already use. One press of the device button
+  // closes the message; the next closes the panel. A single closer for both would have thrown
+  // the owner out of the inbox for wanting to go back to the list.
+  const [open, setOpen] = useState(null);
+  useEzikBackLayer(!!open, () => setOpen(null));
+  const [reply, setReply] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState('');
+  const [err, setErr] = useState('');
+  const aliveRef = useRef(true);
+  const abortRef = useRef(null);
+  useEffect(() => () => {
+    aliveRef.current = false;
+    if (abortRef.current) { try { abortRef.current.abort(); } catch (e) {} }
+  }, []);
+
+  const load = (which) => {
+    const held = readAuthSession();
+    if (!held) { setRows([]); setListState(EZIK_ART_FAILED); return; }
+    if (abortRef.current) { try { abortRef.current.abort(); } catch (e) {} }
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const timer = setTimeout(() => { try { controller.abort(); } catch (e) {} }, EZIK_INBOX_TIMEOUT_MS);
+    setListState(EZIK_ART_LOADING);
+    ezikInbox({ session: held.session, action: 'list', kind: which }, controller.signal).then((res) => {
+      clearTimeout(timer);
+      if (!aliveRef.current || abortRef.current !== controller) return;
+      abortRef.current = null;
+      // A REFUSAL AND A DEAD STORE ARE BOTH "NOT SHOWN", AND NEITHER IS AN EMPTY BOX. api/inbox.js
+      // answers 503 rather than [] for exactly this reason, and this branch is the half of that
+      // decision that lives on the screen: an owner must never read "you have no messages" off a
+      // store that could not be reached.
+      if (!res.ok || !res.data || !Array.isArray(res.data.items)) { setRows([]); setListState(EZIK_ART_FAILED); return; }
+      setRows(res.data.items);
+      setWin(Number.isInteger(res.data.window) ? res.data.window : 0);
+      setListState(EZIK_ART_DONE);
+    });
+  };
+  useEffect(() => { load(kind); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [kind]);
+
+  // OPENING A MESSAGE IS WHAT FILES IT AS READ, and the mark is the server's to lay -- this call
+  // IS the read. The row is patched from the answer rather than from an assumption about what the
+  // server did, so the list and the store cannot come to disagree about the state of one message.
+  const openItem = (row) => {
+    const held = readAuthSession();
+    if (!held) return;
+    setErr('');
+    setNote('');
+    setReply('');
+    setOpen({ item: row, reply: null, from: '', loading: true });
+    ezikInbox({ session: held.session, action: 'read', id: row.id, kind }).then((res) => {
+      if (!aliveRef.current) return;
+      if (!res.ok || !res.data || !res.data.item) { setOpen({ item: row, reply: null, from: '', loading: false }); return; }
+      setOpen({ item: res.data.item, reply: res.data.reply || null, from: res.data.item.from || '', loading: false });
+      setRows((prev) => prev.map((r) => (r.id === row.id ? Object.assign({}, r, { state: res.data.item.state }) : r)));
+      if (typeof onRead === 'function') onRead();
+    });
+  };
+
+  const sendReply = () => {
+    const held = readAuthSession();
+    if (!held || !open || !open.item) return;
+    const body = reply.trim();
+    if (!body) { setErr(ezT('inbox.replyEmpty')); setNote(''); return; }
+    setErr('');
+    setNote('');
+    setBusy(true);
+    ezikInbox({ session: held.session, action: 'reply', id: open.item.id, text: body }).then((res) => {
+      if (!aliveRef.current) return;
+      setBusy(false);
+      // THE ONE REFUSAL THAT IS NOT A FAILURE BUT A FACT ABOUT THE MESSAGE -- decision ج٢. An
+      // older message carries no sender, so there is nowhere to deliver an answer, and the owner
+      // is told that in those words instead of being told the save failed.
+      if (res.data && res.data.error === 'inbox-no-sender') { setErr(ezT('inbox.replyNoSender')); return; }
+      if (!res.ok || !res.data) { setErr(ezT('inbox.replyFailed')); return; }
+      setNote(ezT('inbox.replySaved'));
+      setReply('');
+      setOpen((prev) => (prev ? Object.assign({}, prev, {
+        reply: res.data.reply || null,
+        item: Object.assign({}, prev.item, { state: 'answered' }),
+      }) : prev));
+      setRows((prev) => prev.map((r) => (r.id === open.item.id ? Object.assign({}, r, { state: 'answered' }) : r)));
+    });
+  };
+
+  const back = () => { if (open) { setOpen(null); return; } onBack(); };
+
+  // ---- THE OPENED MESSAGE ----
+  if (open) {
+    const it = open.item;
+    const replyable = kind === 'feedback' && it.hasSender === true;
+    return (
+      <EzShell title={ezT('menu.inbox')} onBack={back} backLabel={ezT('common.back')}>
+        <section style={s.artRead}>
+          <div style={s.artRowMeta}>
+            <span style={s.artQaMark}>{ezT(EZIK_INBOX_STATE_K[it.state] || 'inbox.stateNew')}</span>
+            <span style={s.artRowDate}>{ezikInboxWhen(it.ts)}</span>
+          </div>
+          <div style={s.asmaaField}>
+            <span style={s.artFieldLabel}>{ezT('inbox.from')}</span>
+            {/* DECISION ج١ AND ج٢ -- the address is the ACCOUNT RECORD'S, fetched by the server at
+                this moment and stored on no message. A message that predates the sender field, or
+                whose account has since been deleted, reads «بلا عنوان» -- which is the truth about
+                it and not an error. */}
+            <span style={s.artRowDate} dir="auto">{open.from || ezT('inbox.noSender')}</span>
+          </div>
+          {it.contact ? (
+            <div style={s.asmaaField}>
+              <span style={s.artFieldLabel}>{ezT('inbox.contact')}</span>
+              <span style={s.artRowDate} dir="auto">{it.contact}</span>
+            </div>
+          ) : null}
+          <p style={s.artPara} dir="auto">{it.text}</p>
+
+          {open.reply && open.reply.text ? (
+            <div style={s.asmaaField}>
+              <span style={s.artFieldLabel}>{ezT('feedback.mineReply')}</span>
+              <p style={s.asmaaQuote} dir="auto">{open.reply.text}</p>
+            </div>
+          ) : null}
+
+          {/* DECISION ج١٠ -- THE REPORTS TAB HAS NO REPLY CONTROL AT ALL. Not a disabled one and
+              not a hidden one: the box is not built. api/inbox.js refuses a report by structure
+              rather than by a flag, and this is the same refusal expressed on the screen. */}
+          {kind === 'reports' ? (
+            <div role="status" style={s.artNote}>{ezT('inbox.reportsReadOnly')}</div>
+          ) : replyable ? (
+            <EzShellGroup title={ezT('inbox.replyLabel')}>
+              <textarea className="ezhome-focus" dir="auto" rows="5" value={reply}
+                maxLength={String(EZIK_FB_TEXT_CAP)} onChange={(e) => setReply(e.target.value)}
+                aria-label={ezT('inbox.replyLabel')} style={s.artTextarea} />
+              <div role="status" style={s.artNote}>{ezT('inbox.remaining', { n: EZIK_FB_TEXT_CAP - reply.length })}</div>
+              {err ? <div role="alert" style={s.artError}><span>{err}</span></div> : null}
+              {note ? <div role="status" style={s.artNote}>{note}</div> : null}
+              <div style={s.artChoiceRow}>
+                <button type="button" className="ezhome-focus" disabled={busy} onClick={sendReply}
+                  style={{ ...s.artAction, ...s.artActionStrong, opacity: busy ? 0.5 : 1 }}>
+                  {busy ? ezT('inbox.replySending') : ezT('inbox.replySend')}
+                </button>
+              </div>
+            </EzShellGroup>
+          ) : (
+            <div role="status" style={s.artNote}>{ezT('inbox.replyNoSender')}</div>
+          )}
+        </section>
+      </EzShell>
+    );
+  }
+
+  // ---- THE LIST ----
+  return (
+    <EzShell title={ezT('menu.inbox')} onBack={back} backLabel={ezT('common.back')}>
+      <EzShellGroup title={ezT('menu.inbox')}>
+        <div style={s.artChoiceRow}>
+          {EZIK_INBOX_TABS.map((t) => (
+            <button key={t.id} type="button" className="ezhome-focus" aria-pressed={kind === t.id}
+              onClick={() => { setKind(t.id); setOpen(null); }}
+              style={{ ...s.artChoice, ...(kind === t.id ? s.artChoiceOn : null) }}>{ezT(t.k)}</button>
+          ))}
+        </div>
+      </EzShellGroup>
+
+      {listState === EZIK_ART_LOADING ? <div role="status" style={s.artNote}>{ezT('common.loading')}</div> : null}
+      {listState === EZIK_ART_FAILED ? (
+        <div role="alert" style={s.artError}>
+          <span>{ezT('inbox.failed')}</span>
+          <button type="button" className="ezhome-focus" onClick={() => load(kind)} style={s.artRetry}>{ezT('common.retry')}</button>
+        </div>
+      ) : null}
+      {listState === EZIK_ART_DONE && rows.length === 0 ? (
+        <div style={s.artEmpty}>
+          <div style={s.artEmptyTitle}>{ezT('inbox.empty')}</div>
+        </div>
+      ) : null}
+      {listState === EZIK_ART_DONE && rows.length > 0 ? (
+        <>
+          <div style={s.artList}>
+            {rows.map((r) => (
+              <button key={r.id} type="button" className="ezhome-focus" style={s.artRow} onClick={() => openItem(r)}>
+                <div style={s.artRowMeta}>
+                  <span style={s.artQaMark}>{ezT(EZIK_INBOX_STATE_K[r.state] || 'inbox.stateNew')}</span>
+                  <span style={s.artRowDate}>{ezikInboxWhen(r.ts)}</span>
+                  {r.hasSender === false ? <span style={s.artRowDate}>{ezT('inbox.noSender')}</span> : null}
+                </div>
+                <span style={s.artRowTitle} dir="auto">{r.text}</span>
+              </button>
+            ))}
+          </div>
+          {/* THE WINDOW IS NAMED RATHER THAN IMPLIED. api/inbox.js answers over the newest N of a
+              list that is trimmed to five thousand, and a screen that showed those N without
+              saying so would let the owner believe he had reached the end of his inbox. */}
+          {win ? <div role="status" style={s.artNote}>{ezT('inbox.window', { n: win })}</div> : null}
+        </>
+      ) : null}
     </EzShell>
   );
 }
