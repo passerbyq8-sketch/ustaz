@@ -783,6 +783,15 @@ const EZ_I18N = {
     'menu.aboutAria': 'عن عزك — تعريف بالتطبيق',
     'menu.sources': 'المصادر',
     'menu.sourcesAria': 'المصادر — الكتب والمراجع',
+    // THE SECTION HEADINGS OF المصادر, and the only part of that panel that is a dictionary
+    // key at all: the names under them are proper names that read the same in either language.
+    'sources.quran': 'القرآن والمصحف',
+    'sources.tilawa': 'التلاوة',
+    'sources.adhkar': 'الأذكار',
+    'sources.fiqh': 'الفقه',
+    'sources.asmaa': 'أسماء الله الحسنى',
+    'sources.fatwa': 'الفتاوى',
+    'sources.lessons': 'الدروس',
     'menu.invite': 'دعوة صديق',
     'menu.inviteAria': 'دعوة صديق — مشاركة رابط التطبيق',
     'menu.feedback': 'اقتراح أو شكوى',
@@ -1374,6 +1383,15 @@ const EZ_I18N = {
     'menu.aboutAria': 'About Ezik — what this app is',
     'menu.sources': 'Sources',
     'menu.sourcesAria': 'Sources — the books and references',
+    // THE SECTION HEADINGS OF المصادر, and the only part of that panel that is a dictionary
+    // key at all: the names under them are proper names that read the same in either language.
+    'sources.quran': 'Qur’an and the mushaf',
+    'sources.tilawa': 'Recitation',
+    'sources.adhkar': 'Adhkar',
+    'sources.fiqh': 'Fiqh',
+    'sources.asmaa': 'The most beautiful names of Allah',
+    'sources.fatwa': 'Fatwas',
+    'sources.lessons': 'Lessons',
     'menu.invite': 'Invite a friend',
     'menu.inviteAria': 'Invite a friend — share the app link',
     'menu.feedback': 'Suggestion or complaint',
@@ -20473,12 +20491,13 @@ function AIConsentGate({ age, current, onGrant, onDecline, onBack }) {
 // EZIK-THEME-33-HANDOFF.md all have to agree on the set and on its count — so this order adds no
 // key to it. Each of these is a layer over whatever screen the menu was opened from, on the
 // SHARED EzShell the settings sheet, the mushaf index and المحفّظ already draw on, which is why
-// none of them declares a colour, a class or a font size of its own.
+// none of them declares a colour or a class of its own. المصادر declares two text sizes and
+// nothing else, because a list of 7 headings over 54 names needs a heading to be a heading.
 //
 // AND THE FIRST TWO SHIP THEIR TEXT AS SOURCE, not as a data file. A file that ships with the app
 // costs three things — a CORE entry, a row in the bank guard and a line in .gitattributes — and
-// buys nothing here: nine short lines that change when the owner decides they change, never at
-// runtime, never per reader, and never from the network.
+// buys nothing here: four paragraphs and 54 credit lines that change when the owner decides they
+// change, never at runtime, never per reader, and never from the network.
 
 // عن عزك — four paragraphs, and the list is mapped once in its own order. Nothing filters it,
 // nothing sorts it, nothing appends a version string or a build date: what the reader counts is
@@ -20486,22 +20505,119 @@ function AIConsentGate({ age, current, onGrant, onDecline, onBack }) {
 // the owner's own words, and a translated paragraph beside them would be a fifth paragraph
 // nobody wrote. The same choice ChildVoiceNotice and the local-mode notice already make.
 const EZIK_ABOUT_BODY = [
-  'عزّك رفيقٌ إسلاميٌّ عربيّ: تسألُه فيجيبُك، وتقرأُ فيه المصحفَ والأذكارَ والفتاوى.',
-  'بُنيَ بيدٍ واحدةٍ في الكويت، ويُطوَّرُ كلَّ يوم.',
+  'عزّك رفيقٌ إسلاميٌّ عربيّ: تسألُه فيجيبُك، وينفعُك في يومِك. عزّك ليس مجرّدَ تطبيق، بل منصّةٌ لكلِّ مسلم.',
+  'بُنيَ في الكويت، ويُطوَّرُ كلَّ يوم.',
   'ما فيه من صوابٍ فمن اللهِ وحدَه، وما فيه من خطأٍ فمنّا ونستغفرُ اللهَ منه.',
   'وإن رأيتَ خطأً أو عندَك اقتراحٌ فراسلْنا من «اقتراح أو شكوى» في هذه القائمة.',
 ];
-// المصادر — FIVE LINES, AND THEY ARE NOT THE LIVE SOURCE REGISTER. source-registry.json names the
-// hosts a fetcher may reach and goes up and down with them; this names the BOOKS the content in
-// the app came out of. Building this list from the register would make the credit flicker with a
-// fetcher's health, which is a different fact about a different thing.
-const EZIK_SOURCES_LINES = [
-  'الأذكار: حصن المسلم',
-  'المصحف: برواية حفص عن عاصم',
-  'الفقه: الموسوعة الفقهية الكويتية',
-  'أسماء الله الحسنى: القواعد المثلى وشرح البدر',
-  'الفتاوى: مواقع المشايخ المعتمدة في التطبيق',
+// المصادر — THE WHOLE LIST, AND IT IS STILL NOT THE LIVE SOURCE REGISTER. source-registry.json
+// names the hosts a fetcher may reach and goes up and down with their health; this names the
+// books and the scholars the content in the app came out of, and it does not move when a host
+// does. IT IS ALSO NOT FETCHED, NOT CACHED AND NOT READ FROM A STORE: the panel opening makes
+// zero requests, which is the one property a credit list has to keep to be worth reading.
+//
+// THE NAMES ARE DATA, NOT UI STRINGS. 54 of them, and a dictionary key each would be 54
+// keys per language for text that is a proper name in both — «binbaz.org.sa» does not translate
+// and neither does «عبدالعزيز بن عبدالله بن باز». So one array is read in either language and
+// the SECTION HEADINGS alone are dictionary keys, declared on both halves.
+//
+// AND A DOMAIN IS WRITTEN AS TEXT, NEVER AS AN ANCHOR. A credit line that opens a browser is a
+// way out of the app the reader did not ask for, and on the native shell it is a way out of the
+// app entirely. The reader can read the host and type it if they want it.
+const EZIK_SOURCES_SECTIONS = [
+  {
+    k: 'sources.quran',
+    lines: [
+      'المصحف برواية حفص عن عاصم',
+    ],
+  },
+  {
+    k: 'sources.tilawa',
+    lines: [
+      'everyayah.com',
+    ],
+  },
+  {
+    k: 'sources.adhkar',
+    lines: [
+      'حصن المسلم',
+    ],
+  },
+  {
+    k: 'sources.fiqh',
+    lines: [
+      'الموسوعة الفقهية الكويتية',
+    ],
+  },
+  {
+    k: 'sources.asmaa',
+    lines: [
+      'القواعد المثلى لابن عثيمين · وشرح الشيخ عبدالرزاق البدر',
+    ],
+  },
+  {
+    k: 'sources.fatwa',
+    lines: [
+      'الشيخ عبدالعزيز بن عبدالله بن باز — binbaz.org.sa',
+      'الشيخ محمد بن صالح العثيمين — binothaimeen.net',
+      'الشيخ سليمان بن عبدالله الماجد — salmajed.com',
+      'الشيخ عبدالرحمن البراك — sh-albarrak.com',
+      'الشيخ مشهور بن حسن آل سلمان — meshhoor.com',
+      'الشيخ مطلق الجاسر — youtube.com/@dr-mutlaq',
+      'الشيخ سعد الخثلان — saadalkhathlan.com',
+      'الشيخ محمد علي فركوس — ferkous.app',
+      'الشيخ مصطفى العدوي — mostafaaladwy.com',
+      'الشيخ محمد صالح المنجد — islamqa.info',
+      'الشيخ خالد المصلح — almosleh.com',
+      'الشيخ عثمان الخميس — othmanalkhamees.com',
+      'الشيخ محمد بن حمد الحمود النجدي — al-athary.net',
+      'إدارة الإفتاء — الأوقاف الكويتية — eftaa.awqaf.gov.kw',
+      'الشيخ عبدالعزيز آل الشيخ — المفتي العام — af.org.sa',
+      'الشيخ صالح الفوزان — af.org.sa',
+      'الشيخ عبدالكريم الخضير — af.org.sa',
+      'الشيخ عبدالعزيز الراجحي — shrajhi.com.sa',
+      'الشيخ عبدالله بن جبرين — fatwn.ibn-jebreen.com',
+    ],
+  },
+  {
+    k: 'sources.lessons',
+    lines: [
+      'عثمان بن محمد الخميس',
+      'محمد بن محمد المختار الشنقيطي',
+      'خالد بن عبدالله المصلح',
+      'عبدالعزيز بن عبدالله بن باز',
+      'عبدالرحمن بن ناصر البراك',
+      'عبدالعزيز بن عبدالله الراجحي',
+      'سعد بن ناصر الشثري',
+      'محمد صالح المنجد',
+      'محمد بن صالح العثيمين',
+      'خالد بن عثمان السبت',
+      'عبدالمحسن بن حمد العباد',
+      'صالح بن محمد اللحيدان',
+      'سعد بن تركي الخثلان',
+      'مشهور بن حسن آل سلمان',
+      'محمد الحمود النجدي',
+      'مطلق بن جاسر الجاسر',
+      'عبدالسلام بن محمد الشويعر',
+      'محمد ناصر الدين الألباني',
+      'مساعد بن سليمان الطيار',
+      'عبدالعزيز بن مرزوق الطريفي',
+      'وليد بن راشد السعيدان',
+      'يوسف بن محمد الغفيص',
+      'عبدالله بن عبدالرحمن بن جبرين',
+      'عبدالله بن صالح الفوزان',
+      'صالح بن عبدالعزيز آل الشيخ',
+      'سليمان بن عبدالله الماجد',
+      'سليمان بن سليم الله الرحيلي',
+      'عبدالرزاق بن عبدالمحسن البدر',
+      'عبدالكريم بن عبدالله الخضير',
+      'مصطفى بن العدوي',
+    ],
+  },
 ];
+// The seal the owner wrote, and the last line on the panel. Arabic only and out of the
+// dictionary for the same reason the four paragraphs above are: it is his own sentence.
+const EZIK_SOURCES_SEAL = 'جزى اللهُ أصحابَ هذه المصادرِ خيرًا، وما نفعَ اللهُ به فمن فضلِه.';
 
 function EzikAboutSheet({ onBack }) {
   return (
@@ -20514,10 +20630,19 @@ function EzikAboutSheet({ onBack }) {
 }
 
 function EzikSourcesSheet({ onBack }) {
+  // The list is longer than any screen, and it is NOT given a scroller of its own: EzShell's
+  // ezshScroll is the one the mushaf index and the settings sheet already scroll in, and a second
+  // scrolling box inside it is a list that traps the thumb halfway down.
   return (
     <EzShell title={ezT('menu.sources')} onBack={onBack} backLabel={ezT('common.back')}>
       <section style={s.asmaaRead} aria-label={ezT('menu.sourcesAria')}>
-        {EZIK_SOURCES_LINES.map((line, i) => <p key={i} style={s.asmaaPara}>{line}</p>)}
+        {EZIK_SOURCES_SECTIONS.map((sec) => (
+          <div key={sec.k} style={s.ezikSrcGroup}>
+            <h2 style={s.ezikSrcHead}>{ezT(sec.k)}</h2>
+            {sec.lines.map((line, i) => <p key={i} style={s.ezikSrcLine}>{line}</p>)}
+          </div>
+        ))}
+        <p style={s.asmaaPara}>{EZIK_SOURCES_SEAL}</p>
       </section>
     </EzShell>
   );
@@ -29011,6 +29136,9 @@ const s = {
   asmaaField: { display: 'flex', flexDirection: 'column', gap: 6 },
   asmaaFieldLabel: { fontSize: 13, fontWeight: 700, color: 'var(--a3-muted)' },
   asmaaPara: { fontSize: 15.5, lineHeight: 2.1, color: 'var(--a3-ink)', margin: 0, overflowWrap: 'anywhere' },
+  ezikSrcGroup: { display: 'flex', flexDirection: 'column', gap: 5 },
+  ezikSrcHead: { fontSize: 17, fontWeight: 700, lineHeight: 1.9, color: 'var(--a3-ink)', margin: '0 0 3px' },
+  ezikSrcLine: { fontSize: 15, lineHeight: 1.9, color: 'var(--a3-ink)', margin: 0, overflowWrap: 'anywhere' },
   asmaaQuote: { fontSize: 15.5, lineHeight: 2.1, color: 'var(--a3-ink)', margin: 0, padding: '10px 12px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-ice)', overflowWrap: 'anywhere' },
   asmaaAyah: { fontSize: 17, lineHeight: 2.2, fontWeight: 700, color: 'var(--a3-ink)', margin: 0, padding: '10px 12px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-ice)', overflowWrap: 'anywhere' },
   asmaaRef: { fontSize: 13, lineHeight: 1.9, color: 'var(--a3-muted)', overflowWrap: 'anywhere' },

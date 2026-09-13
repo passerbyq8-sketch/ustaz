@@ -113,6 +113,21 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-09-13-i -- ITEM 92-ج: THE «عن عزك» MATN IS REPLACED AND المصادر BECOMES THE
+//                    WHOLE LIST. INDEX.HTML DID NOT MOVE and NO FILE JOINED CORE: both matns
+//                    still ship as SOURCE, which is why they were not made data files in the
+//                    round that introduced them -- 4 paragraphs, 7 section headings and 54
+//                    credit lines, none of them fetched, cached or read from a store. So the
+//                    shell figure and its mirror were already true and only the BUNDLE figures
+//                    moved. app.js was rebuilt from app.jsx by node tools/build-app.cjs,
+//                    1647056 -> 1652685 (+5629), and CORE_BYTES was re-cut 2735387 -> 2741016
+//                    (+5629) by node tools/core-bytes.cjs --write, which is exactly the bundle
+//                    delta because nothing but app.js changed size in CORE. The worker's own
+//                    byte table at :121 and the SW_PROSE row for app.js below both followed,
+//                    and THIS digest is re-cut LAST, after every other sw.js edit was final.
+//                    SW.JS IS OTHERWISE UNTOUCHED -- no route, no store and no branch of it
+//                    moved -- and CACHE IS NOT BUMPED: this is a branch for the owner to try,
+//                    not a ship, and sw.js says the merge round owns the bump.
   //   2026-09-13-h -- ITEM 92-ب: FOUR ROWS IN THE SIDE MENU, TWO FIXED-TEXT PANELS AND ONE
 //                    FEEDBACK FORM. INDEX.HTML DID NOT MOVE this round -- the rows, the panels
 //                    and the form are app.jsx, the new endpoint is api/feedback.js (a server
@@ -1150,7 +1165,7 @@ const SEALED = {
 //                    shell did not grow. The worker table at :121 and the app.js mirror below
 //                    followed, and THIS digest is re-cut LAST. SW.JS IS OTHERWISE UNTOUCHED and
 //                    CACHE IS NOT BUMPED: this is a branch for the owner to preview, not a ship.
-  'sw.js': '4642ffc11076c6aa699e8d4ac5ea35f91e51848c089cb45e49aa0094472d268c',
+  'sw.js': 'b8b4ed7fcd4114a404a8dead39bcf346127b8c880a840db5afbb0d1f9bd6bfb1',
 };
 
 // ---------------------------------------------------------------------------
@@ -2275,7 +2290,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1647056, of: 'app.js' },
+      { n: 1652685, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
