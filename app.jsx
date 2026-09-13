@@ -301,6 +301,11 @@ const EZ_I18N = {
     // the corpus's own book_title, copied.
     'module.arbaeen': '\u{0627}\u{0644}\u{0623}\u{0631}\u{0628}\u{0639}\u{0648}\u{0646} \u{0627}\u{0644}\u{0646}\u{0648}\u{0648}\u{064a}\u{0629}',
     'module.arbaeen.sub': '\u{0627}\u{0644}\u{0623}\u{0631}\u{0628}\u{0639}\u{0648}\u{0646} \u{0627}\u{0644}\u{0646}\u{0648}\u{0648}\u{064a}\u{0629} \u{0645}\u{0639} \u{0632}\u{064a}\u{0627}\u{062f}\u{0627}\u{062a} \u{0627}\u{0628}\u{0646} \u{0631}\u{062c}\u{0628}',
+    // ITEM 1-A. The reader's two moves. They are WORDS and not arrows on purpose: an arrow has
+    // to know which way «forward» points, and this section is read right-to-left in one
+    // language and left-to-right in the other. A word points the same way in both.
+    'arbaeen.prev': '\u{0627}\u{0644}\u{0633}\u{0627}\u{0628}\u{0642}',
+    'arbaeen.next': '\u{0627}\u{0644}\u{062A}\u{0627}\u{0644}\u{064A}',
     'module.mushaf.sub': '\u{0627}\u{0642}\u{0631}\u{0623} \u{0648}\u{062A}\u{0627}\u{0628}\u{0639} \u{0648}\u{0631}\u{062F}\u{0643}',
     'module.treasure.sub': '\u{062A}\u{0639}\u{0644}\u{0651}\u{0645} \u{0628}\u{0627}\u{0644}\u{0644}\u{0639}\u{0628}',
     'module.fatwa.sub': 'بحث موثّق بالسؤال والجواب',
@@ -876,6 +881,8 @@ const EZ_I18N = {
     'module.adhkar.sub': 'Morning and evening adhkar',
     'module.arbaeen': 'The Forty Hadith',
     'module.arbaeen.sub': 'Fifty hadith, with Ibn Rajab’s additions',
+    'arbaeen.prev': 'Previous',
+    'arbaeen.next': 'Next',
     'module.mushaf.sub': 'Read, and keep your wird',
     'module.treasure.sub': 'Learn through play',
     'module.fatwa.sub': 'Verified questions and answers',
@@ -12663,30 +12670,186 @@ function IstanaAdhkarReader(v) {
 // page_citable = false, so the attribution below names the book and the entry and states NO page
 // at all. That is not an omission: a page number from an edition the corpus will not vouch for is
 // a citation a reader could follow to the wrong place, and this section would rather say less.
+// ===== ITEM 3 -- ARBAEEN TOPIC DERIVATION (BEGIN) =====
+// THE HEADING THE LIST DRAWS IS DERIVED FROM THE ENTRY'S OWN TEXT, AND THE CORPUS IS NOT TOUCHED
+// TO DO IT. h.title in arbaeen.json is the ORDINAL and nothing else -- the first hadith, the
+// second, ... the fiftieth -- so a reader scanning fifty cards is shown fifty numbers and no
+// subject at all. The subject is already IN the entry: every one of the fifty opens with its own
+// ordinal, a colon, and then the entry's own heading. This reads THAT and nothing else. It adds
+// no wording of its own, opens no second file, and when it cannot find a heading it is confident
+// about it hands back the ordinal the section shipped with rather than an empty card.
+//
+// WHERE THE COLON IS LOOKED FOR, AND WHY IT IS THE FIRST LINE. The order specifies "the LAST ':'
+// within the first 160 characters". MEASURED against the shipped corpus, that window reaches PAST
+// the end of the heading line on 31 of the 50 entries and lands on the colon inside the chain of
+// narration -- so those 31 would have been titled with the isnad's own boilerplate ("I heard the
+// Messenger of God say...") rather than with a subject, and most of them identically. The window
+// is therefore the first 160 characters OF THE FIRST LINE, which is the heading line on all fifty
+// and is what makes step 3 below -- strip the leading bracket -- mean anything at all. That is a
+// narrowing of the written rule and it is written down here because it is one.
+const ARB_TOPIC_WINDOW = 160;   // how far into the line a colon is still the heading's colon
+const ARB_TOPIC_MAX = 40;       // longer than this and the heading is cut at a word and elided
+const ARB_TOPIC_MIN = 8;        // shorter than this and the ordinal is kept instead
+// Leading: whitespace, quotation marks and brackets of any kind -- the heading is bracketed.
+const ARB_LEAD_RE = /^[\s"'\u0060\u00AB\u00BB\u2018\u2019\u201C\u201D\u2039\u203A\[\]\(\)\{\}\uFD3E\uFD3F]+/;
+// The first of these ends the heading: a newline, a full stop, the Arabic comma, ? or !.
+const ARB_CUT_RE = /[\r\n.\u060C?!\u061F]/;
+// Trailing: the same quotation marks and brackets, plus the sentence punctuation and the dashes.
+const ARB_TAIL_RE = /[\s"'\u0060\u00AB\u00BB\u2018\u2019\u201C\u201D\u2039\u203A\[\]\(\)\{\}\uFD3E\uFD3F.,;:!?\u060C\u061B\u061F\u2013\u2014_*-]+$/;
+// The edition's footnote markers ride on the end of a heading -- "(1)" on the very first entry.
+// A footnote marker is punctuation that happens to contain a digit; it is not part of a title.
+const ARB_FOOT_RE = /[([\uFD3E]\s*[0-9\u0660-\u0669]+\s*[)\]\uFD3F]?$/;
+// A heading cut at forty characters can end on a dangling conjunction, which reads as a
+// sentence that was interrupted rather than as a subject. These are dropped when they are last.
+const ARB_TAIL_WORDS = ['\u0648', '\u0623\u0648', '\u062B\u0645', '\u062B\u0645\u0651', '\u0628\u0644', '\u0623\u0645'];
+function arbaeenTrimTail(str) {
+  let out = String(str);
+  // Bounded, and bounded on purpose: each pass must shorten the string or the loop ends, so a
+  // heading made entirely of punctuation cannot spin here. It falls to the ordinal below instead.
+  for (let pass = 0; pass < 4; pass += 1) {
+    const was = out;
+    out = out.replace(ARB_TAIL_RE, '').replace(ARB_FOOT_RE, '').replace(ARB_TAIL_RE, '');
+    const sp = out.lastIndexOf(' ');
+    if (sp > 0 && ARB_TAIL_WORDS.indexOf(out.slice(sp + 1)) !== -1) out = out.slice(0, sp);
+    if (out === was) break;
+  }
+  return out;
+}
+// PURE. It reads h and returns a string; it touches no state, no store and no clock, which is
+// what lets tools/arbaeen-nav-measure.cjs lift it straight out of this file and run it over the
+// corpus without mounting anything.
+function arbaeenTopic(h) {
+  const raw = (h && h.text) || '';
+  const ordinal = (h && h.title) || '';
+  const win = raw.slice(0, ARB_TOPIC_WINDOW);
+  const nl = win.search(/[\r\n]/);
+  const head = (nl === -1) ? win : win.slice(0, nl);
+  const c = head.lastIndexOf(':');
+  // No colon at all is not a failure: the entry's own opening words are then the candidate, and
+  // the length floor at the bottom is what decides whether they are good enough to draw.
+  let seg = (c === -1) ? raw : raw.slice(c + 1);
+  seg = seg.replace(ARB_LEAD_RE, '');
+  const end = seg.search(ARB_CUT_RE);
+  if (end !== -1) seg = seg.slice(0, end);
+  seg = seg.replace(/\s+/g, ' ').trim();
+  // The ellipsis is appended LAST, after the trimming, because the trimming would otherwise eat
+  // the one mark that tells the reader the heading was cut rather than ended.
+  let elided = false;
+  if (seg.length > ARB_TOPIC_MAX) {
+    let body = seg.slice(0, ARB_TOPIC_MAX);
+    const sp = body.lastIndexOf(' ');
+    if (sp > 0) body = body.slice(0, sp);
+    seg = body;
+    elided = true;
+  }
+  seg = arbaeenTrimTail(seg);
+  // THE SAFE FALL, and it is not optional. A derivation that produced nothing, or produced a
+  // fragment too short to be a subject, hands back the heading the section shipped with. The
+  // card is never empty and it is never a stray word.
+  if (seg.length < ARB_TOPIC_MIN) return ordinal;
+  return elided ? seg + '\u2026' : seg;
+}
+// ===== ITEM 3 -- ARBAEEN TOPIC DERIVATION (END) =====
+
 function ArbaeenScreen({ onBack }) {
   // ONE loader call, the store's own objects, and no reshaping of any of them -- the adhkar
   // screen's rule, kept. This component owns the whole of the section's state: the store, the
   // failure, and which entry is open. There is no second loader and no second copy anywhere.
+  //
+  // ITEM 1-A. WHAT IS HELD IS THE INDEX, NOT THE ENTRY. The reader has to be able to step to the
+  // one before and the one after, and an object does not know where it sits in the array. The
+  // index does, and it is the array's own index, so the order the corpus ships in is the order
+  // the two moves walk.
+  //
+  // INDEX 0 IS FALSY AND THE FIRST HADITH LIVES THERE. Every test on the open state below is
+  // `selIdx != null`. A truthiness test would make the first hadith the one entry in the book
+  // that cannot be opened, and it would look like a data fault rather than a test fault.
   const [db, setDb] = useState(null);
   const [failed, setFailed] = useState(false);
-  const [selected, setSelected] = useState(null);
+  const [selIdx, setSelIdx] = useState(null);
+  // ITEM 1-B. WHERE THE READER WAS, AND WHY IT IS A REF AND NOT STATE. Returning from the reader
+  // unmounts nothing that owns this value and re-mounts the browse, which reads it once on its
+  // way in; nothing re-renders because of it, so it is not state. It is the ENTRY'S OWN NUMBER
+  // rather than an index, because the number is what is already stamped on every card.
+  //
+  // NOTHING IS PERSISTED. This is a place inside one visit, not a bookmark: no storage key is
+  // written, and closing the app forgets it. The adhkar section remembers across restarts
+  // because a devotional routine is resumed; a book is not.
+  const placeRef = useRef(null);
   useEffect(() => {
     let alive = true;
     loadArbaeen().then((d) => { if (alive) setDb(d); }).catch(() => { if (alive) setFailed(true); });
     return () => { alive = false; };
   }, []);
+  const list = (db && db.hadith) || [];
+  const open = (selIdx != null);
+  // A stored index that names nothing -- a store that arrived short, a store that has not landed
+  // yet -- is not a crash and is not a blank reader. It is the browse.
+  const cur = open ? (list[selIdx] || null) : null;
   // S91: the reader's own back presses the application back, which spends the entry this layer
   // took when it opened and then runs the closer through the registry -- the same closer, reached
-  // by the same route the device button uses.
-  useEzikBackLayer(!!selected, () => setSelected(null));
-  if (selected) return <IstanaArbaeenReader doc={db} h={selected} onBack={ezikGoBack} />;
-  return <IstanaArbaeenBrowse onBack={onBack} doc={db} failed={failed} onOpen={setSelected} />;
+  // by the same route the device button uses. The layer is armed only when a reader is actually
+  // drawn, so the fall back to the browse above cannot leave a back entry standing over it.
+  useEzikBackLayer(open && !!cur, () => setSelIdx(null));
+  // THE ONE WRITER of the remembered place, and it is on the MOVE rather than on the open. A
+  // reader who opened the third and walked to the ninth is returned to the ninth, because that
+  // is the entry they were reading; returning them to the third would be returning them to a
+  // decision they had already left behind.
+  const goTo = (i) => {
+    const h = list[i];
+    if (h) placeRef.current = h.n;
+    setSelIdx(i);
+  };
+  if (open && cur) {
+    return (
+      <IstanaArbaeenReader doc={db} h={cur} i={selIdx} total={list.length}
+        onPrev={() => goTo(Math.max(0, selIdx - 1))}
+        onNext={() => goTo(Math.min(list.length - 1, selIdx + 1))}
+        onBack={ezikGoBack} />
+    );
+  }
+  return <IstanaArbaeenBrowse onBack={onBack} doc={db} failed={failed} onOpen={goTo} place={placeRef.current} />;
 }
 
 // THE BROWSE. Presentation only: it reads no storage, owns no navigation state and computes
 // nothing about the book. It draws the array it is handed, in that array's own order.
-function IstanaArbaeenBrowse({ onBack, doc, failed, onOpen }) {
+function IstanaArbaeenBrowse({ onBack, doc, failed, onOpen, place }) {
   const list = (doc && doc.hadith) || [];
+  // ITEM 1-B. THE LIST IS PUT BACK WHERE IT WAS, and it is put back by FINDING THE CARD rather
+  // than by restoring a pixel offset. The card already carries the entry's number -- the handle
+  // below has been on it since the section shipped -- so the browse asks the document for the
+  // one card the reader was last inside and centres it. A pixel offset would be wrong the moment
+  // a heading wrapped onto a second line; a card is the same card at every width.
+  //
+  // INSTANT, NEVER SMOOTH: the reader pressed back, and a list that slides after a back press
+  // reads as the list moving on its own. And IT DOES NOT TOUCH FOCUS -- there is no .focus() call
+  // here, deliberately, because moving focus on a return steals it from wherever the reader's
+  // own keyboard or screen reader had it.
+  const scrollRef = useRef(null);
+  useEffect(() => {
+    if (place == null) return undefined;
+    const root = scrollRef.current;
+    if (!root) return undefined;
+    // The handle is built into a selector, so the value is proved to be digits before it is --
+    // the corpus's own n always is, and a store that says otherwise scrolls nothing instead of
+    // throwing on a malformed selector.
+    const key = String(place);
+    if (!/^[0-9]+$/.test(key)) return undefined;
+    const card = root.querySelector('[data-ezia-hadith="' + key + '"]');
+    if (card && typeof card.scrollIntoView === 'function') {
+      // NO `behavior` KEY, AND THAT IS THE INSTANT ONE. `behavior: 'auto'` does not mean
+      // "instant" -- it means "do whatever the scroll-behavior property says" -- and omitting the
+      // key means exactly the same thing, because 'auto' is that property's initial value. No
+      // rule in this application sets scroll-behavior: smooth, and the reduced-motion block
+      // pins it to auto besides, so both spellings land on the same instant jump.
+      // It is written the shorter way because the app's ONE animated scroll is the chat's follow
+      // effect, a11y-guard counts animated scrolls by the presence of this key, and a scroll
+      // that never animates should not be counted as a second one that forgot to ask about
+      // motion. This one cannot animate, so it does not have to ask.
+      card.scrollIntoView({ block: 'center' });
+    }
+    return undefined;
+  }, [place, list.length]);
   return (
     <div className="theme-dark adhkar3" style={s.eziaContainer}>
       <div className="ezia-nav">
@@ -12701,7 +12864,7 @@ function IstanaArbaeenBrowse({ onBack, doc, failed, onOpen }) {
           <span style={s.eziaNavBtn} aria-hidden="true" />
         </div>
       </div>
-      <div style={s.eziaScroll}>
+      <div ref={scrollRef} style={s.eziaScroll}>
         {doc === null ? (
           <div style={s.a3Empty}>{failed ? A2_EMPTY : '...'}</div>
         ) : list.length === 0 ? (
@@ -12709,7 +12872,7 @@ function IstanaArbaeenBrowse({ onBack, doc, failed, onOpen }) {
         ) : (
           <div className="ezia-catalogue">
             {list.map((h, i) => (
-              <button key={h.n} type="button" className="adhkar2-focus" onClick={() => onOpen(h)}
+              <button key={h.n} type="button" className="adhkar2-focus" onClick={() => onOpen(i)}
                 data-ezia-hadith={h.n} style={s.eziaCard}>
                 <span className={((i % 3) === 2) ? 'ezia-crest ezia-crest-coral' : 'ezia-crest'} aria-hidden="true" />
                 <span style={s.eziaCardHead}>
@@ -12717,8 +12880,9 @@ function IstanaArbaeenBrowse({ onBack, doc, failed, onOpen }) {
                   {/* the entry's own number, in the digits the rest of this section counts in */}
                   <span style={s.eziaCount}>{toArabicDigits(h.n)}</span>
                 </span>
-                {/* the heading the corpus carries, as a text child. No pass is made over it. */}
-                <span style={s.eziaCardTitle}>{h.title}</span>
+                {/* ITEM 3: the entry's own subject, read out of its own text. The number above
+                    and the ordinal in the attribution are untouched -- this replaces neither. */}
+                <span style={s.eziaCardTitle}>{arbaeenTopic(h)}</span>
                 <span style={s.eziaCardFoot}>
                   <span style={s.eziaStanding} />
                   <span style={s.eziaGo} aria-hidden="true">{EZH_ICON_GO}</span>
@@ -12733,10 +12897,15 @@ function IstanaArbaeenBrowse({ onBack, doc, failed, onOpen }) {
 }
 
 // THE READER. ONE entry, its text as a text child, and the attribution under it.
-function IstanaArbaeenReader({ doc, h, onBack }) {
+function IstanaArbaeenReader({ doc, h, i, total, onPrev, onNext, onBack }) {
   // THE ATTRIBUTION, AND WHAT IT MAY SAY. The book's title and the entry's own heading, both
   // copied from the corpus. The page is appended ONLY when the corpus marked this entry citable;
   // it never has, so no page is drawn, and nothing stands in for one.
+  // THE TWO EDGES, computed from the position rather than from the entry. They are written as
+  // `!(i > 0)` and `!(i < total - 1)` so that a reader mounted with no position at all -- i
+  // undefined -- is at both edges and can move nowhere, instead of stepping off the array.
+  const first = !(i > 0);
+  const last = !(i < total - 1);
   const book = (doc && doc.book_title) || '';
   const page = (h.page_citable && h.page_start != null)
     ? (h.page_end != null && h.page_end !== h.page_start
@@ -12750,7 +12919,7 @@ function IstanaArbaeenReader({ doc, h, onBack }) {
           <button type="button" className="adhkar2-focus" onClick={onBack} style={s.eziaNavBtn} aria-label={A2_BACK}>{A2_ICON_BACK}</button>
           <span className="ezia-brand">
             <span className="ezia-brand-arch" aria-hidden="true" />
-            <span style={s.eziaReadTitle}>{h.title}</span>
+            <span style={s.eziaReadTitle}>{arbaeenTopic(h)}</span>
           </span>
           <span style={s.eziaNavBtn} aria-hidden="true" />
         </div>
@@ -12765,6 +12934,21 @@ function IstanaArbaeenReader({ doc, h, onBack }) {
               {/* the corpus's own text, rendered as a text child. */}
               <div style={s.eziaReadText}>{h.text}</div>
               <div style={s.eziaReadSource}>{book}{book && h.title ? ' \u2014 ' : ''}{h.title}{page ? ' \u2014 ' + page : ''}</div>
+              {/* ITEM 1-A. THE TWO MOVES, under the text, in the section's own card language.
+                  Both buttons are ALWAYS DRAWN. At the first entry the previous one is dimmed
+                  and disabled and at the last the next one is -- removed instead of dimmed, the
+                  row would have one button on one page and two on the next, and the remaining
+                  button would jump under the reader's thumb between entries.
+                  Disabled twice over on purpose: the attribute stops the press, aria-disabled
+                  is what a screen reader announces, and neither stands in for the other. */}
+              <div style={s.eziaMoveRow}>
+                <button type="button" className="adhkar2-focus" onClick={onPrev}
+                  disabled={first} aria-disabled={first ? 'true' : 'false'}
+                  style={{ ...s.eziaMoveBtn, ...(first ? s.eziaMoveBtnOff : null) }}>{ezT('arbaeen.prev')}</button>
+                <button type="button" className="adhkar2-focus" onClick={onNext}
+                  disabled={last} aria-disabled={last ? 'true' : 'false'}
+                  style={{ ...s.eziaMoveBtn, ...(last ? s.eziaMoveBtnOff : null) }}>{ezT('arbaeen.next')}</button>
+              </div>
             </div>
           </div>
         </div>
@@ -27585,6 +27769,9 @@ const s = {
   eziaReadRepeat: { padding: '3px 9px', borderRadius: 999, background: 'var(--a3-ice)', color: 'var(--a3-blue)', fontSize: 12, fontWeight: 800 },
   eziaReadText: { color: 'var(--a3-ink)', fontSize: 20, lineHeight: 2.15, textAlign: 'center', fontFamily: "'Amiri', serif", margin: '10px 0 8px' },
   eziaReadSource: { color: 'var(--a3-muted)', fontSize: 12, fontWeight: 600, textAlign: 'center' },
+  eziaMoveRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '14px 0 0' },
+  eziaMoveBtn: { flex: 1, minWidth: 0, minHeight: 44, padding: '10px 14px', borderRadius: 999, background: 'var(--a3-ice)', color: 'var(--a3-blue)', border: '1px solid var(--a3-line)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', fontSize: 13, fontWeight: 800 },
+  eziaMoveBtnOff: { background: 'var(--a3-surface)', color: 'var(--a3-muted)', border: '1px solid var(--a3-line)', cursor: 'default', opacity: 0.55 },
   eziaRail: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '12px 0 2px' },
   eziaRailMark: { width: 7, height: 7, borderRadius: '50%', background: 'var(--a3-line)' },
   eziaRailMarkNow: { background: 'var(--a3-blue)', width: 9, height: 9 },

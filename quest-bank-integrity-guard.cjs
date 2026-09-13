@@ -113,6 +113,21 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-09-13-d -- ITEM 1-A / 1-B / 3, THE FORTY: PREVIOUS AND NEXT, THE LIST'S OWN PLACE,
+  //                    AND A HEADING DERIVED FROM THE ENTRY. The reader now holds the INDEX of
+  //                    the entry being read instead of the entry object, so it can step either
+  //                    way; returning centres the card the reader was last inside; and the card's
+  //                    heading is read out of the entry's own text rather than being the ordinal
+  //                    the corpus stores. arbaeen.json IS NOT TOUCHED -- 67360 bytes, 36B6DF66,
+  //                    before and after -- and neither is index.html, which is why no shell
+  //                    figure moved. app.jsx is the only edited source. app.js was rebuilt
+  //                    1607416 -> 1618438 (+11022) by node tools/build-app.cjs, and CORE_BYTES
+  //                    re-cut 2595081 -> 2606103 (+11022, exactly the bundle delta, because the
+  //                    shell did not grow) by node tools/core-bytes.cjs --write. The worker's own
+  //                    byte table at :121 and the SW_PROSE row for app.js both followed, and THIS
+  //                    digest is re-cut LAST. SW.JS IS OTHERWISE UNTOUCHED: what moved inside it
+  //                    is one integer and one figure in prose. CACHE is NOT bumped: install
+  //                    rewrites every CORE entry into the same store.
   //   2026-09-13-c -- ITEM 94, THE BARCODE: THE FORMAT STRIP WAS WRITTEN BACKWARDS.
   //                    The symbol on the card was right in every part a reader looks at LAST --
   //                    finders, timing, alignment, data words, error correction, mask 4, quiet
@@ -1065,7 +1080,7 @@ const SEALED = {
 //                    shell did not grow. The worker table at :121 and the app.js mirror below
 //                    followed, and THIS digest is re-cut LAST. SW.JS IS OTHERWISE UNTOUCHED and
 //                    CACHE IS NOT BUMPED: this is a branch for the owner to preview, not a ship.
-  'sw.js': '00d2adb89e3c453f8be2f20d89654a7863253c9eff847fbc8ea101b58cf3c092',
+  'sw.js': '295342addfb37ca89c3ea11d4fb056f19798d7490bc676ab9c188323bc1ca6e5',
 };
 
 // ---------------------------------------------------------------------------
@@ -2188,7 +2203,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1607416, of: 'app.js' },
+      { n: 1618438, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
