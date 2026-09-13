@@ -4154,6 +4154,19 @@ const EZIK_CARD_H_MIN = 1350;
 const EZIK_CARD_H_MAX = 2700;
 const EZIK_CARD_PAD = 84;
 const EZIK_CARD_BODY_SIZE = 40;
+// ITEM 94, DECISION 7. THE BODY SIZE IS A CEILING NOW, NOT THE ONE SIZE THE BODY IS DRAWN AT.
+// A reply past the card's ceiling used to be cut at 40px and nothing else was tried. It is
+// stepped down first -- 40, 38, 36, 34, 32, 30 -- and the FIRST size whose wrapped body fits
+// inside EZIK_CARD_H_MAX is the one it is drawn at. Only a reply that still does not fit at
+// the floor is cut, and that cut is still said out loud.
+//
+// THE LEADING DOES NOT MOVE WITH IT, deliberately. EZIK_CARD_LINE is what EZIK_CARD_BODY_LINES
+// is derived from and what the height arithmetic above and below is measured in; a leading
+// that changed with the font would make the line budget a function of the reply, and the one
+// line budget that is a constant is the one a cut is measured against. What the smaller font
+// buys is narrower glyphs -- more words to a line, so fewer lines -- which is the whole of it.
+const EZIK_CARD_BODY_MIN_SIZE = 30;
+const EZIK_CARD_BODY_STEP = 2;
 const EZIK_CARD_LINE = 62;
 // The three offsets the footer is built from. They were three bare numbers inside the draw
 // call; they are named here because the LINE BUDGET below is derived from them, and a budget
@@ -4197,7 +4210,7 @@ const EZIK_CARD_BODY_LINES = Math.max(1, Math.floor(
     - (EZIK_CARD_PAD + EZIK_CARD_LINE))                  // the first baseline
   / EZIK_CARD_LINE) + 1);
 const EZIK_CARD_CUT = '…';
-const EZIK_CARD_CUT_NOTE = 'النَّصُّ مُقتطَعٌ — تَمَامُهُ في التطبيق';
+const EZIK_CARD_CUT_NOTE = 'تتمّةُ النصِّ في تطبيق عزك';
 const EZIK_CARD_SITE = 'ezik.app';
 const EZIK_CARD_MARK = 'عزك';
 const EZIK_CARD_LABEL = 'صورة';
@@ -4312,13 +4325,27 @@ const ezikDrawReplyCard = (opts) => {
     .split('\n\n')
     .filter((p) => reserved.indexOf(p.trim()) === -1)
     .join('\n\n');
-  ctx0.font = '400 ' + EZIK_CARD_BODY_SIZE + 'px system-ui, sans-serif';
-  const allLines = ezikCardWrap(ctx0, bodyText, innerW);
   const firstBaseline = EZIK_CARD_PAD + EZIK_CARD_LINE;
   // What the card would have to be to hold the whole reply, with nothing cut.
-  const wanted = firstBaseline + Math.max(0, allLines.length - 1) * EZIK_CARD_LINE
+  const wantedFor = (count) => firstBaseline + Math.max(0, count - 1) * EZIK_CARD_LINE
     + EZIK_CARD_FOOT_GAP + tail.h + EZIK_CARD_PAD;
-  const fits = wanted <= EZIK_CARD_H_MAX;
+  // ITEM 94, DECISION 7. SHRINK BEFORE CUTTING, and stop at the first size that fits.
+  // The wrap is re-measured at every size because it has to be: ezikCardWrap asks the context
+  // for the width of the REAL font, so a smaller font is a different set of lines, not the same
+  // lines drawn smaller. The tail is not re-measured -- it does not shrink, and its reserved
+  // height is what the body is being fitted against.
+  let bodySize = EZIK_CARD_BODY_SIZE;
+  let allLines = [];
+  let wanted = 0;
+  let fits = false;
+  for (;;) {
+    ctx0.font = '400 ' + bodySize + 'px system-ui, sans-serif';
+    allLines = ezikCardWrap(ctx0, bodyText, innerW);
+    wanted = wantedFor(allLines.length);
+    fits = wanted <= EZIK_CARD_H_MAX;
+    if (fits || bodySize <= EZIK_CARD_BODY_MIN_SIZE) break;
+    bodySize -= EZIK_CARD_BODY_STEP;
+  }
   const cardH = fits ? Math.max(EZIK_CARD_H_MIN, wanted) : EZIK_CARD_H_MAX;
   // At the ceiling the cut note takes a slot of its own, and the body gets the remainder.
   const lastAllowed = cardH - EZIK_CARD_PAD - tail.h - EZIK_CARD_FOOT_GAP
@@ -4366,7 +4393,7 @@ const ezikDrawReplyCard = (opts) => {
   ctx.fillStyle = '#EAF3EE';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'alphabetic';
-  ctx.font = '400 ' + EZIK_CARD_BODY_SIZE + 'px system-ui, sans-serif';
+  ctx.font = '400 ' + bodySize + 'px system-ui, sans-serif';
   const all = allLines;   // already stripped of what the tail carries
   const cut = all.length > budget;
   const lines = cut ? all.slice(0, budget) : all;
@@ -4399,7 +4426,7 @@ const ezikDrawReplyCard = (opts) => {
   }
 
   return { url: canvas.toDataURL('image/png'), cut: cut, lines: lines.length,
-    w: EZIK_CARD_W, h: cardH };
+    w: EZIK_CARD_W, h: cardH, size: bodySize };
 };
 
 const SaveReplyImageButton = ({ getText, getSource }) => {
@@ -16606,6 +16633,32 @@ const ezikCardBlockOf = (segments, type) => {
 const ezikCardAttributionBlock = (segments) => ezikCardBlockOf(segments, 'source');
 const ezikCardNoticeBlock = (segments) => ezikCardBlockOf(segments, 'notice');
 
+// ITEM 94, DECISIONS 1, 2 AND 4. WHETHER THE CARD CONTROL EXISTS FOR THIS REPLY AT ALL.
+//
+// THE CARD IS A SHARE ARTEFACT, so it leaves the app and is read by someone who cannot ask
+// where it came from. An unattributed card is therefore not a lesser card -- it is a claim
+// with no one standing behind it, which is the one thing this tree spends its guards refusing.
+// So the control is HIDDEN rather than disabled: a disabled button is an offer withdrawn in
+// front of the reader, and there is nothing here to offer.
+//
+// WHAT COUNTS, LITERALLY: a segment of type 'verse' or of type 'source'. A hadith card, a book
+// card and a reply that is prose alone do NOT count -- they are attributed inside the app, by
+// the cards the sheet draws, and none of that travels with a PNG.
+//
+// AND DECISION 4 IS THE SAME RULE, READ AT THE OTHER END: if the attribution line would come
+// out empty no image is produced, and the way it is not produced is that there is no button to
+// press. A 'source' segment that names neither a site nor a url yields '' from BOTH readers
+// below -- it would draw a tail of nothing but the site line -- so it does not count either.
+// A 'verse' needs no tail: an ayah carries its surah and its number in the body the card draws.
+//
+// IT READS, IT DOES NOT FILTER. N22's rule is that the chat sheet never re-orders, drops or
+// de-duplicates a reply's sources; this is module-level and answers one boolean, which is why
+// it lives beside the two readers it calls rather than inside the bubble.
+const ezikCardIsAttributed = (segments) => {
+  for (const sg of (segments || [])) { if (sg && sg.type === 'verse') return true; }
+  return !!(ezikCardSourceLine(segments) || ezikCardAttributionBlock(segments));
+};
+
 // Every type MessageBubble can render must have an entry above. A new card added to the renderer
 // without one lands here and is announced -- loudly, and visibly in the copied text -- instead of
 // vanishing from the clipboard the way every card did before this directive.
@@ -17375,7 +17428,13 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
             docToHtml and printed by the app's one printAsPdf. No library, no request, no
             second serializer -- and the identical 44x44 area every .ezc-acts button takes. */}
         <ExportPdfReplyButton getText={buildCopyText} />
+        {/* ITEM 94, DECISIONS 1, 2, 4 AND 6. The control is here or it is not here; it is never
+            here and dead. Its place in the rail does not move -- it is the fifth control when
+            it is drawn, exactly where it has always been -- and the props it is handed are the
+            same two, from the same two builders. What is new is the question asked before it. */}
+        {ezikCardIsAttributed(segments) && (
         <SaveReplyImageButton getText={buildCopyText} getSource={buildCardSource} />
+        )}
         {/* S98: the quote button hands over the SAME clean text the clipboard gets (cards
             serialized, no tag ever reaches it), trimmed to a preview and dropped into the
             composer. It sends nothing. */}
