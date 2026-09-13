@@ -12688,7 +12688,7 @@ function IstanaAdhkarReader(v) {
 // and is what makes step 3 below -- strip the leading bracket -- mean anything at all. That is a
 // narrowing of the written rule and it is written down here because it is one.
 const ARB_TOPIC_WINDOW = 160;   // how far into the line a colon is still the heading's colon
-const ARB_TOPIC_MAX = 40;       // longer than this and the heading is cut at a word and elided
+const ARB_TOPIC_MAX = 56;       // longer than this and the heading is cut at a word and elided
 const ARB_TOPIC_MIN = 8;        // shorter than this and the ordinal is kept instead
 // Leading: whitespace, quotation marks and brackets of any kind -- the heading is bracketed.
 const ARB_LEAD_RE = /^[\s"'\u0060\u00AB\u00BB\u2018\u2019\u201C\u201D\u2039\u203A\[\]\(\)\{\}\uFD3E\uFD3F]+/;
@@ -12696,6 +12696,15 @@ const ARB_LEAD_RE = /^[\s"'\u0060\u00AB\u00BB\u2018\u2019\u201C\u201D\u2039\u203
 const ARB_CUT_RE = /[\r\n.\u060C?!\u061F]/;
 // Trailing: the same quotation marks and brackets, plus the sentence punctuation and the dashes.
 const ARB_TAIL_RE = /[\s"'\u0060\u00AB\u00BB\u2018\u2019\u201C\u201D\u2039\u203A\[\]\(\)\{\}\uFD3E\uFD3F.,;:!?\u060C\u061B\u061F\u2013\u2014_*-]+$/;
+// THE COMMA THE CORPUS TYPES, AND THE ONE THE CARD SHOWS. Thirteen of the fifty headings are
+// punctuated with a LATIN comma and a space in front of it -- the corpus's own typography, and
+// wrong in Arabic twice over: the mark is the wrong mark, and Arabic does not space off the mark
+// from the word it follows. This is a DISPLAY pass and nothing else: arbaeen.json is not touched,
+// is not rewritten and is not normalised, and the attribution line under the reader still prints
+// the corpus's own heading exactly as the corpus stored it. What changes is the one derived
+// string this section draws on a card, where the mark is the Arabic one, attached to the word
+// before it, with exactly one space after it.
+const ARB_COMMA_RE = /\s*,\s*/g;
 // The edition's footnote markers ride on the end of a heading -- "(1)" on the very first entry.
 // A footnote marker is punctuation that happens to contain a digit; it is not part of a title.
 const ARB_FOOT_RE = /[([\uFD3E]\s*[0-9\u0660-\u0669]+\s*[)\]\uFD3F]?$/;
@@ -12731,6 +12740,11 @@ function arbaeenTopic(h) {
   seg = seg.replace(ARB_LEAD_RE, '');
   const end = seg.search(ARB_CUT_RE);
   if (end !== -1) seg = seg.slice(0, end);
+  // AFTER THE CUT AND BEFORE THE CAP, in that order and for a reason: the cap counts CHARACTERS,
+  // and " , " becoming "\u060C " is one character shorter, so measuring before the swap would
+  // measure a string the reader never sees. The expression eats the spaces on both sides and puts
+  // exactly one back, which is also what collapses any run the swap creates.
+  seg = seg.replace(ARB_COMMA_RE, '\u060C ');
   seg = seg.replace(/\s+/g, ' ').trim();
   // The ellipsis is appended LAST, after the trimming, because the trimming would otherwise eat
   // the one mark that tells the reader the heading was cut rather than ended.

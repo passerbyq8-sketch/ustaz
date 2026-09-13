@@ -79,6 +79,10 @@ fs.writeFileSync(OUT, lines.join('\n') + '\n', 'utf8');
 const seen = new Set();
 let duplicates = 0;
 for (const t of titles) { if (seen.has(t)) duplicates += 1; else seen.add(t); }
+// TRUNCATED counts the headings that did not fit the cap and were cut at a whole word. The
+// ellipsis is the only thing the derivation ever appends, so its presence at the end IS the
+// truncation flag -- nothing else in the corpus ends a heading with that character.
+const truncated = titles.filter((t) => t.charAt(t.length - 1) === '\u2026').length;
 const lens = titles.map((t) => t.length);
 const min = Math.min.apply(null, lens);
 const max = Math.max.apply(null, lens);
@@ -89,6 +93,7 @@ console.log('SOURCE=app.jsx  BLOCK_CHARS=' + block.length + '  BUILT_INTO_APP_JS
 console.log('COUNT=' + titles.length);
 console.log('FALLBACK=' + fallback);
 console.log('DUPLICATES=' + duplicates);
+console.log('TRUNCATED=' + truncated);
 console.log('LEN_MIN=' + min);
 console.log('LEN_MAX=' + max);
 console.log('LEN_AVG=' + avg.toFixed(2));
