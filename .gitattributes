@@ -742,3 +742,10 @@ guards/prophet-ascription-guard.cjs text eol=lf
 # above, so a CR injected by a clone with core.autocrlf=true would move the probe and not the
 # thing it measures.
 tools/card-skin-measure.cjs text eol=lf
+
+# ITEM 92-ب -- the suggestions-and-complaints route. It is NOT in CORE and no guard fingerprints
+# it, so nothing goes red without this line today. It is pinned because every other api/ route a
+# guard reads is (api/ask.js, the three auth legs, the articles routes above), because
+# telemetry-text-guard sweeps every file in api/ by name and will therefore read this one on every
+# run, and because a route stored LF and checked out CRLF is a divergence worth not creating.
+api/feedback.js text eol=lf

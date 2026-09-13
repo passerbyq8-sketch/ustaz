@@ -307,16 +307,38 @@ const PROFILE_BTN = (function () {
 })();
 ok('E: the share button was LOCATED in the pinned row', SHARE_BTN.length > 80, 'length ' + SHARE_BTN.length);
 ok('E: the profile entry was LOCATED in the pinned row', PROFILE_BTN.length > 80, 'length ' + PROFILE_BTN.length);
-ok('E: the row holds exactly two buttons -- the profile entry and the share button',
-  (PINNED.match(/<button/g) || []).length === 2,
+// ITEM 92-ب CHANGED THE ARITHMETIC HERE, AND NOT THE RULE. This footer held two controls while
+// it held one account entry and one unnamed share icon. It now holds the account entry and the
+// four NAMED rows the menu order added, so the count is five -- and the claim that actually
+// matters is the one under it: however many controls stand in this footer, exactly ONE of them
+// presses onMenuShare. Two ways to share was the defect the order removed; a count of 2 would
+// go on passing against a footer that had grown a second share control and lost a row.
+ok('E: the footer holds the account entry and the four menu rows -- five controls',
+  (PINNED.match(/<button/g) || []).length === 5,
   'found ' + (PINNED.match(/<button/g) || []).length);
+ok('E: ...and EXACTLY ONE of them presses onMenuShare',
+  (PINNED.match(/onClick=\{onMenuShare\}/g) || []).length === 1,
+  'found ' + (PINNED.match(/onClick=\{onMenuShare\}/g) || []).length);
+ok('E: ...so the account entry carries no share affordance of its own any more',
+  PROFILE_BTN.length > 80 && PROFILE_BTN.indexOf('onMenuShare') === -1
+    && PROFILE_BTN.indexOf('EZIK_ICON_SHARE_DRAWER') === -1
+    && PROFILE_BTN.indexOf('shareFlash') === -1);
 ok('E: the share button is NOT inside the profile button',
   PROFILE_BTN.length > 80 && PROFILE_BTN.indexOf('onMenuShare') === -1);
 ok('E: ...and no button in this row contains another',
   SHARE_BTN.length > 80 && SHARE_BTN.indexOf('<button') === SHARE_BTN.lastIndexOf('<button')
     && PROFILE_BTN.length > 80 && PROFILE_BTN.indexOf('<button') === PROFILE_BTN.lastIndexOf('<button'));
-ok('E: the share button carries the accessible name the order names',
-  SHARE_BTN.indexOf("aria-label={ezT('chat.share')}") !== -1);
+// THE NAME MOVED WITH THE CONTROL. While this was an icon in the account row its whole audible
+// name had to be the verb -- «مشاركة», borrowed from the reply's own share button. It is a row
+// with a word on it now, so it is announced as what pressing it does, and its name and its
+// visible text are declared on BOTH halves of the dictionary. `chat.share` is untouched and is
+// still the reply share button's name, which the second half of this asserts.
+ok('E: the share row carries the accessible name the menu order names',
+  SHARE_BTN.indexOf("aria-label={ezT('menu.inviteAria')}") !== -1
+    && SHARE_BTN.indexOf("ezT('menu.invite')") !== -1);
+ok('E: ...and the reply share button kept the name this row gave up',
+  SRC.indexOf("aria-label={ezT('chat.shareAria')}") !== -1
+    || SRC.indexOf("ezT('chat.share')") !== -1);
 ok('E: the profile entry is unchanged -- same handler, same style key, same name',
   PROFILE_BTN.indexOf("onClick={() => closeDrawerWith(() => openEzikSheet('settings'))}") !== -1
     && PROFILE_BTN.indexOf('style={s.drawerProfile}') !== -1
@@ -332,10 +354,23 @@ ok('E: the share glyph contains NO <polygon>',
     && SRC.slice(SRC.indexOf('const EZIK_ICON_SHARE_DRAWER = ('),
       SRC.indexOf('const EZIK_ICON_SHARE_DRAWER = (') + 600).indexOf('<polygon') === -1);
 ok('E: ...nor does the chooser', CHOOSER.length > 600 && CHOOSER.indexOf('<polygon') === -1);
-ok('E: the button keeps a 44px touch target',
-  /drawerShare: \{ width: 44, height: 44/.test(SRC));
-ok('E: ...and it sits at the end of the row opposite the profile entry',
-  /drawerShare: \{[^}]*marginInlineStart: 'auto'/.test(SRC));
+// THE 44px IS STILL THERE AND IT IS STILL ON THE BUTTON. `drawerShare` -- a 44x44 box pushed to
+// the far end of a row by marginInlineStart:auto -- described a position that no longer exists,
+// so the key was DELETED rather than left behind as a pin on dead code. The row template the
+// share press now sits on is `drawerItem`, which the menu's other entries have always used, and
+// it carries the same floor.
+ok('E: the share press keeps a 44px touch target, on the menu\'s own row template',
+  SHARE_BTN.indexOf('style={s.drawerItem}') !== -1
+    && /drawerItem: \{[^}]*minHeight: 44/.test(SRC));
+ok('E: ...and the style key that described the old position is gone, not merely unused',
+  SRC.indexOf('drawerShare') === -1);
+ok('E: the footer is a COLUMN, so five rows stack down it instead of across it',
+  /drawerPinned: \{[^}]*flexDirection: 'column'/.test(SRC)
+    && /drawerPinnedRow: \{ display: 'flex', alignItems: 'center'/.test(SRC));
+// The glyph and the flash are the SAME two objects the icon rendered, in the same order, which
+// is what makes this a move rather than a rebuild.
+ok('E: the row renders the shipped glyph, and the clipboard flash still replaces it',
+  SHARE_BTN.indexOf("{shareFlash ? (shareFlash === 'copied' ? EZIK_SHARE_COPIED : EZIK_SHARE_FAIL) : EZIK_ICON_SHARE_DRAWER}") !== -1);
 
 // ---------------------------------------------------------------------------------------------
 // F. THE SHARE PATH: AbortError is not a failure, and the fallback is the file's ONE clipboard.

@@ -775,6 +775,33 @@ const EZ_I18N = {
     'calc.gold.karat22': 'عيار 22',
     'calc.gold.karat21': 'عيار 21',
     'calc.gold.karat18': 'عيار 18',
+    // ITEM 92-B / THE MENU ROWS AND THE FEEDBACK SHEET. Four rows and one form, and every
+    // string either side reads is declared on BOTH halves -- the row word, and the audible
+    // name the row is announced by, which is longer than the word because a row is announced
+    // out of its visual context and «المصادر» alone does not say what pressing it does.
+    'menu.about': 'عن عزك',
+    'menu.aboutAria': 'عن عزك — تعريف بالتطبيق',
+    'menu.sources': 'المصادر',
+    'menu.sourcesAria': 'المصادر — الكتب والمراجع',
+    'menu.invite': 'دعوة صديق',
+    'menu.inviteAria': 'دعوة صديق — مشاركة رابط التطبيق',
+    'menu.feedback': 'اقتراح أو شكوى',
+    'menu.feedbackAria': 'اقتراح أو شكوى — مراسلة المطوّر',
+    'feedback.typeLabel': 'النوع',
+    'feedback.typeSuggestion': 'اقتراح',
+    'feedback.typeComplaint': 'شكوى',
+    'feedback.typeBug': 'بلاغ خطأ',
+    'feedback.textLabel': 'النصّ',
+    'feedback.remaining': 'المتبقّي: {n}',
+    'feedback.contactLabel': 'وسيلة تواصل (اختياريّة)',
+    'feedback.contactHint': 'اختياريّة — اتركها فارغة إن شئت.',
+    'feedback.send': 'إرسال',
+    'feedback.sending': 'جارٍ الإرسال…',
+    'feedback.thanks': 'شكرًا لك، وصلَتْ رسالتُك.',
+    'feedback.capped': 'بلغتَ حدَّ اليوم: ثلاثُ رسائلَ في اليوم. جرّبْ غدًا.',
+    'feedback.failed': 'لم تُرسَلْ رسالتُك. أعِدِ المحاولةَ لاحقًا.',
+    'feedback.empty': 'اكتبْ شيئًا قبلَ الإرسال.',
+    'feedback.noChat': 'لا يُرسَلُ مع رسالتِك سؤالٌ ولا جوابٌ ولا شيءٌ من محادثاتِك.',
   },
   en: {
     'common.close': 'Close',
@@ -1339,6 +1366,33 @@ const EZ_I18N = {
     'calc.gold.karat22': 'Karat 22',
     'calc.gold.karat21': 'Karat 21',
     'calc.gold.karat18': 'Karat 18',
+    // ITEM 92-B / THE MENU ROWS AND THE FEEDBACK SHEET. Four rows and one form, and every
+    // string either side reads is declared on BOTH halves -- the row word, and the audible
+    // name the row is announced by, which is longer than the word because a row is announced
+    // out of its visual context and «المصادر» alone does not say what pressing it does.
+    'menu.about': 'About Ezik',
+    'menu.aboutAria': 'About Ezik — what this app is',
+    'menu.sources': 'Sources',
+    'menu.sourcesAria': 'Sources — the books and references',
+    'menu.invite': 'Invite a friend',
+    'menu.inviteAria': 'Invite a friend — share the app link',
+    'menu.feedback': 'Suggestion or complaint',
+    'menu.feedbackAria': 'Suggestion or complaint — write to the developer',
+    'feedback.typeLabel': 'Kind',
+    'feedback.typeSuggestion': 'Suggestion',
+    'feedback.typeComplaint': 'Complaint',
+    'feedback.typeBug': 'Bug report',
+    'feedback.textLabel': 'Your message',
+    'feedback.remaining': 'Remaining: {n}',
+    'feedback.contactLabel': 'How to reach you (optional)',
+    'feedback.contactHint': 'Optional — leave it empty if you like.',
+    'feedback.send': 'Send',
+    'feedback.sending': 'Sending…',
+    'feedback.thanks': 'Thank you — your message arrived.',
+    'feedback.capped': 'You have reached today’s limit of three messages. Try again tomorrow.',
+    'feedback.failed': 'Your message was NOT sent. Please try again later.',
+    'feedback.empty': 'Write something before sending.',
+    'feedback.noChat': 'No question, no answer and nothing from your conversations is sent with your message.',
   },
 };
 
@@ -14210,6 +14264,14 @@ function App() {
   // the screen inventory is a cross-file contract, the same reason the prayer sheet and the two
   // articles sections are layers -- and like them it registers ONE history entry below.
   const [asmaaOpen, setAsmaaOpen] = useState(false);
+  // ITEM 92-ب: the three panels the menu's new rows open. LAYERS, for the identical reason the
+  // asmaa section above is one -- `screen === '...'` is a cross-file inventory (index.html, the
+  // theme-coverage guard's table and EZIK-THEME-33-HANDOFF.md all have to agree on it), and this
+  // order adds no key to it. Each registers exactly one history entry below, so a device back and
+  // the visible back button take the same route and one press closes one level.
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   // ITEM 92: the store chooser, opened from the menu's share button. It is NEVER true inside a
   // shell -- the handler that sets it returns before it can be, so the chooser is not merely
   // hidden there but never built. `shareFlash` is the clipboard's answer on the shell path,
@@ -14974,6 +15036,12 @@ function App() {
   // ITEM 26: one entry for the section, spent by the device button and by its own back control.
   // Registered unconditionally and in a fixed order, so the hook order never changes.
   useEzikBackLayer(asmaaOpen, () => setAsmaaOpen(false));
+  // ITEM 92-ب: the same contract for the menu's three panels, registered unconditionally and in a
+  // fixed order beside the one above -- a hook order that changes with state is a hook order that
+  // breaks, and these are the only three entries any of them owns.
+  useEzikBackLayer(aboutOpen, () => setAboutOpen(false));
+  useEzikBackLayer(sourcesOpen, () => setSourcesOpen(false));
+  useEzikBackLayer(feedbackOpen, () => setFeedbackOpen(false));
   // ITEM 92: WHAT THE SHARE BUTTON DOES, decided by the injected bridge and by nothing else.
   // In a shell it hands the smart link straight to the platform sheet and returns -- no chooser
   // is opened, so no badge and no store name can reach the page (Apple guideline 2.3.10). In a
@@ -17625,23 +17693,74 @@ function App() {
               where it was. The cost is stated rather than hidden: a screen reader announces
               this row as «الإعدادات» and no longer reads the profile name, which stays on
               screen for everyone who can see it. */}
-          <div style={s.drawerPinned}>
-            <button onClick={() => closeDrawerWith(() => openEzikSheet('settings'))} style={s.drawerProfile} aria-label={ezT('navigation.settings2')}>
-              <span style={s.drawerAvatar}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--on-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
-              </span>
-              <span style={s.drawerProfileName}>{profile?.name}</span>
-            </button>
-            {/* ITEM 92. The share button sits at the OPPOSITE END of this row from the profile
-                entry, and it is a SIBLING of it, never a child: a button inside a button is not
-                a control a reader can reach twice over, and pressing the share icon must not
-                also open the settings sheet. The row is still one row.
+          {/* THE PINNED FOOTER, AND ITEM 92-ب TURNED IT INTO A COLUMN. It was one flex ROW holding
+              the account entry and, beside it, a share icon. It now holds the account entry on a
+              row of its own and, UNDER it, the four rows this order is about. Two things about the
+              shape are deliberate:
 
-                Its icon is the drawing the adhkar reader's share control already ships, at the
-                19px the menu's own small icons use, so it cannot read as the biggest thing in
-                the row. The 44px touch target is on the BUTTON, not on the glyph. */}
-            <button type="button" onClick={onMenuShare} style={s.drawerShare} className="ezik-focus" aria-label={ezT('chat.share')}>
+              1. `drawerPinned` changed direction, and the account entry kept a row wrapper of its
+                 own. `drawerProfile` carries flex:1 to claim the width beside whatever sits next
+                 to it, and that claim only means anything inside a real row -- dropped straight
+                 into a column it would be a box that grows the wrong way. Its handler, its style
+                 key and its accessible name are the ones that shipped, character for character.
+
+              2. THE SHARE ICON IS GONE FROM THE ACCOUNT ROW. It was a second control in that row
+                 whose whole job is «دعوة صديق», and that is a named row three lines down now.
+                 Two unnamed affordances for one action was the defect. Nothing about the action
+                 was rebuilt: onMenuShare, EZIK_ICON_SHARE_DRAWER, shareFlash and EzikShareChooser
+                 are the SAME objects, and the chooser is still a SIBLING of this panel. Only the
+                 surface the press sits on is new. */}
+          <div style={s.drawerPinned}>
+            <div style={s.drawerPinnedRow}>
+              <button onClick={() => closeDrawerWith(() => openEzikSheet('settings'))} style={s.drawerProfile} aria-label={ezT('navigation.settings2')}>
+                <span style={s.drawerAvatar}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--on-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
+                </span>
+                <span style={s.drawerProfileName}>{profile?.name}</span>
+              </button>
+            </div>
+            {/* عن عزك -- a layer over whatever screen the menu was opened from, on this
+                row template this footer already had. It sends nothing at all, which is why it
+                stands above every gate in the ladder below. */}
+            <button onClick={() => closeDrawerWith(() => setAboutOpen(true))} style={s.drawerItem} className="ezik-focus" aria-label={ezT('menu.aboutAria')}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="9" />
+                <line x1="12" y1="11" x2="12" y2="16" />
+                <line x1="12" y1="8" x2="12" y2="8" />
+              </svg>
+              <span>{ezT('menu.about') || '\u0639\u0646 \u0639\u0632\u0643'}</span>
+            </button>
+            {/* المصادر -- five lines of fixed text. It is NOT built from the live source register:
+                what a reader is owed here is the books the CONTENT came from, and that list moves
+                when the owner adds a book, not when a fetcher goes down. */}
+            <button onClick={() => closeDrawerWith(() => setSourcesOpen(true))} style={s.drawerItem} className="ezik-focus" aria-label={ezT('menu.sourcesAria')}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" />
+                <line x1="8" y1="7.5" x2="16" y2="7.5" />
+                <line x1="8" y1="11" x2="14" y2="11" />
+              </svg>
+              <span>{ezT('menu.sources') || '\u0627\u0644\u0645\u0635\u0627\u062f\u0631'}</span>
+            </button>
+            {/* دعوة صديق -- THE ROW THE SHARE ICON BECAME. It presses onMenuShare DIRECTLY and
+                not through closeDrawerWith, and that is the one place this row departs from the
+                template above it, on purpose: the chooser is a SIBLING of this panel and is built
+                only while the panel is mounted, so closing the menu on the way in would unmount
+                the very dialog the press opens. The shell path (a real navigator.share, then the
+                clipboard) is unchanged too, which is why the flash word still replaces the glyph
+                here exactly as it replaced it in the icon this row is made of. */}
+            <button type="button" onClick={onMenuShare} style={s.drawerItem} className="ezik-focus" aria-label={ezT('menu.inviteAria')}>
               {shareFlash ? (shareFlash === 'copied' ? EZIK_SHARE_COPIED : EZIK_SHARE_FAIL) : EZIK_ICON_SHARE_DRAWER}
+              <span>{ezT('menu.invite') || '\u062f\u0639\u0648\u0629 \u0635\u062f\u064a\u0642'}</span>
+            </button>
+            {/* اقتراح أو شكوى -- the one row in this footer that reaches the network, and it
+                reaches api/feedback.js and nothing else: no account, no sign-in, and not one
+                character of any conversation travels with it. */}
+            <button onClick={() => closeDrawerWith(() => setFeedbackOpen(true))} style={s.drawerItem} className="ezik-focus" aria-label={ezT('menu.feedbackAria')}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3.5 6.5h17v11h-17z" />
+                <path d="M3.5 7.2l8.5 5.8 8.5-5.8" />
+              </svg>
+              <span>{ezT('menu.feedback') || '\u0627\u0642\u062a\u0631\u0627\u062d \u0623\u0648 \u0634\u0643\u0648\u0649'}</span>
             </button>
           </div>
         </div>
@@ -17665,6 +17784,33 @@ function App() {
   // model. A spend gate or a consent notice in front of a static sheet would be a barrier in
   // front of a door that costs nothing to walk through.
   if (asmaaOpen) return <EzikAsmaaSection onHome={ezikGoBack} />;
+  // ITEM 92-ب -- THE MENU'S THREE PANELS, and they stand HERE for three different reasons.
+  //
+  // عن عزك and المصادر are fixed text. They send nothing, spend nothing and read no store, so a
+  // spend gate or a consent notice in front of them would be a barrier in front of a door that
+  // costs nothing to walk through -- the identical argument ITEM 26 makes one line above.
+  //
+  // اقتراح أو شكوى DOES reach the network, and it still belongs above both gates, deliberately.
+  // The consent notice below governs the two screens that send the READER'S OWN WORDS TO A MODEL;
+  // this form sends a typed complaint to api/feedback.js, which is not a model, carries no
+  // question, no answer and no conversation, and takes no account and no sign-in. A reader who
+  // declined AI consent, or who is out of the day's allowance, is exactly the reader most likely
+  // to have something to say about it -- putting the complaint box behind the thing being
+  // complained about would be a defect, not a safeguard.
+  //
+  // AND THE BACK CONTROL IS NOT ezikGoBack, WHICH IS THE ONE THING THAT SEPARATES THESE THREE FROM
+  // THE ASMAA LAYER ABOVE. MEASURED, not assumed: goEzikBack reads the current SCREEN first, and
+  // only enters its layer branch when that screen is not a root. الأسماء is opened from the home
+  // and from nowhere else, so `screen` is 'home' there and the branch runs. These three are opened
+  // from THE SIDE MENU, which the chat draws as well as the home -- and the chat IS a root, so
+  // over the chat goEzikBack would take the layer branch never, find no destination for a root,
+  // and return false. The visible back button would have done NOTHING, on the screen the app boots
+  // into. So each closer presses the layer's own entry directly — the `ezikHistBack()` idiom the
+  // home's own layer handlers use — and falls back to closing the state when this app owns no
+  // entry to spend. The device button is unaffected: it still resolves through the hook above.
+  if (aboutOpen) return <EzikAboutSheet onBack={() => { if (ezikHistBack()) return; setAboutOpen(false); }} />;
+  if (sourcesOpen) return <EzikSourcesSheet onBack={() => { if (ezikHistBack()) return; setSourcesOpen(false); }} />;
+  if (feedbackOpen) return <EzikFeedbackSheet onBack={() => { if (ezikHistBack()) return; setFeedbackOpen(false); }} />;
   // قفل الإنفاق: المطالبة تظهر فقط أمام الشاشتين اللتين تُنفقان (المحادثة/المكالمة) وحين يكون القفل مفعّلاً وغير مفتوح.
   // القفل المُعطَّل (٦٤ صفراً) ⇒ spendGateOpenState=true دائماً ⇒ لا تظهر هذه السطر أبداً. أما 0b (المصحف/المحفّظ/الأذكار) فتبقى مفتوحة.
   if ((screen === 'chat' || screen === 'call') && !spendGateOpenState) return <SpendGate onUnlock={unlockSpendGate} onExit={() => setScreen('home')} />;
@@ -20319,6 +20465,184 @@ function AIConsentGate({ age, current, onGrant, onDecline, onBack }) {
   );
 }
 
+// ============================================================
+// ITEM 92-ب — عن عزك · المصادر · اقتراح أو شكوى
+// ============================================================
+// THREE PANELS, NOT THREE SCREENS, and the reason is written at the App: `screen === '...'` is a
+// CROSS-FILE inventory — index.html's ladder, theme-coverage-guard's INDEX_SCREENS table and
+// EZIK-THEME-33-HANDOFF.md all have to agree on the set and on its count — so this order adds no
+// key to it. Each of these is a layer over whatever screen the menu was opened from, on the
+// SHARED EzShell the settings sheet, the mushaf index and المحفّظ already draw on, which is why
+// none of them declares a colour, a class or a font size of its own.
+//
+// AND THE FIRST TWO SHIP THEIR TEXT AS SOURCE, not as a data file. A file that ships with the app
+// costs three things — a CORE entry, a row in the bank guard and a line in .gitattributes — and
+// buys nothing here: nine short lines that change when the owner decides they change, never at
+// runtime, never per reader, and never from the network.
+
+// عن عزك — four paragraphs, and the list is mapped once in its own order. Nothing filters it,
+// nothing sorts it, nothing appends a version string or a build date: what the reader counts is
+// what is written here. Arabic only and NOT in the dictionary, deliberately — the two matns are
+// the owner's own words, and a translated paragraph beside them would be a fifth paragraph
+// nobody wrote. The same choice ChildVoiceNotice and the local-mode notice already make.
+const EZIK_ABOUT_BODY = [
+  'عزّك رفيقٌ إسلاميٌّ عربيّ: تسألُه فيجيبُك، وتقرأُ فيه المصحفَ والأذكارَ والفتاوى.',
+  'بُنيَ بيدٍ واحدةٍ في الكويت، ويُطوَّرُ كلَّ يوم.',
+  'ما فيه من صوابٍ فمن اللهِ وحدَه، وما فيه من خطأٍ فمنّا ونستغفرُ اللهَ منه.',
+  'وإن رأيتَ خطأً أو عندَك اقتراحٌ فراسلْنا من «اقتراح أو شكوى» في هذه القائمة.',
+];
+// المصادر — FIVE LINES, AND THEY ARE NOT THE LIVE SOURCE REGISTER. source-registry.json names the
+// hosts a fetcher may reach and goes up and down with them; this names the BOOKS the content in
+// the app came out of. Building this list from the register would make the credit flicker with a
+// fetcher's health, which is a different fact about a different thing.
+const EZIK_SOURCES_LINES = [
+  'الأذكار: حصن المسلم',
+  'المصحف: برواية حفص عن عاصم',
+  'الفقه: الموسوعة الفقهية الكويتية',
+  'أسماء الله الحسنى: القواعد المثلى وشرح البدر',
+  'الفتاوى: مواقع المشايخ المعتمدة في التطبيق',
+];
+
+function EzikAboutSheet({ onBack }) {
+  return (
+    <EzShell title={ezT('menu.about')} onBack={onBack} backLabel={ezT('common.back')}>
+      <section style={s.asmaaRead} aria-label={ezT('menu.aboutAria')}>
+        {EZIK_ABOUT_BODY.map((line, i) => <p key={i} style={s.asmaaPara}>{line}</p>)}
+      </section>
+    </EzShell>
+  );
+}
+
+function EzikSourcesSheet({ onBack }) {
+  return (
+    <EzShell title={ezT('menu.sources')} onBack={onBack} backLabel={ezT('common.back')}>
+      <section style={s.asmaaRead} aria-label={ezT('menu.sourcesAria')}>
+        {EZIK_SOURCES_LINES.map((line, i) => <p key={i} style={s.asmaaPara}>{line}</p>)}
+      </section>
+    </EzShell>
+  );
+}
+
+// اقتراح أو شكوى — THE ONE FORM IN THIS BATCH THAT REACHES THE NETWORK.
+//
+// WHAT IT DOES NOT CARRY, and this is the whole of its privacy claim: no question, no answer, no
+// conversation, no excerpt, no id, no name and no account. The body it POSTs is three fields the
+// reader typed with their own fingers and nothing else, and the reader is TOLD that in the hint
+// under the box rather than being asked to trust it. There is no sign-in step: an app nobody can
+// complain about without first making an account is an app nobody complains about.
+//
+// THE THREE CAPS ARE THE SERVER'S CAPS, WRITTEN TWICE ON PURPOSE. maxLength keeps the reader from
+// typing past 1200 so the counter never reads a negative number and a long complaint is never
+// silently truncated on the way out; api/feedback.js cuts to the same 1200 and 120 and does not
+// trust these. A client-side cap is a courtesy, never a control.
+const EZIK_FB_TEXT_CAP = 1200;
+const EZIK_FB_CONTACT_CAP = 120;
+// The three the server accepts, in the order the order names them, and the labels are dictionary
+// keys so the three choices read in the language the rest of the panel reads in.
+const EZIK_FB_TYPES = [
+  { id: 'suggestion', k: 'feedback.typeSuggestion' },
+  { id: 'complaint', k: 'feedback.typeComplaint' },
+  { id: 'bug', k: 'feedback.typeBug' },
+];
+// The thank-you is READ before the panel goes. A send that closed the panel on the same tick
+// would be a form that answers by vanishing, which a reader cannot tell from a crash.
+const EZIK_FB_CLOSE_MS = 1600;
+
+function EzikFeedbackSheet({ onBack }) {
+  const [type, setType] = useState('suggestion');
+  const [text, setText] = useState('');
+  const [contact, setContact] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const [done, setDone] = useState(false);
+  // The close timer is an effect so React itself cancels it if the reader presses back first —
+  // a bare setTimeout would fire into an unmounted panel.
+  useEffect(() => {
+    if (!done) return undefined;
+    const t = setTimeout(onBack, EZIK_FB_CLOSE_MS);
+    return () => clearTimeout(t);
+  }, [done]);
+
+  const remaining = EZIK_FB_TEXT_CAP - text.length;
+  const send = async () => {
+    const body = text.trim();
+    if (!body) { setErr(ezT('feedback.empty')); return; }
+    setErr('');
+    setBusy(true);
+    let res = null;
+    try {
+      // The device id travels as a THROTTLE KEY and as nothing else — api/feedback.js counts it
+      // and never writes it. The founder token is deliberately NOT sent: three messages a day is
+      // the owner's ceiling too, and a route that exempts one device is a route whose cap has
+      // never been tested by the person who shipped it.
+      const did = getDeviceId();
+      const headers = { 'Content-Type': 'application/json' };
+      if (did) headers['x-murabbi-device'] = did;
+      res = await fetch('/api/feedback', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          type,
+          text: body.slice(0, EZIK_FB_TEXT_CAP),
+          contact: contact.trim().slice(0, EZIK_FB_CONTACT_CAP),
+        }),
+      });
+    } catch (e) {
+      res = null;
+    }
+    setBusy(false);
+    // THREE ANSWERS, AND «وصلت» IS SAID FOR EXACTLY ONE OF THEM. A refusal and a transport
+    // failure are both told as what they are; neither is dressed as a success, which is the one
+    // outcome this form is forbidden to fake.
+    if (res && res.status === 429) { setErr(ezT('feedback.capped')); return; }
+    if (!res || !res.ok) { setErr(ezT('feedback.failed')); return; }
+    setDone(true);
+  };
+
+  return (
+    <EzShell title={ezT('menu.feedback')} onBack={onBack} backLabel={ezT('common.back')}>
+      {done ? (
+        <div role="status" style={s.artNote}>{ezT('feedback.thanks')}</div>
+      ) : (
+        <>
+          <EzShellGroup title={ezT('feedback.typeLabel')}>
+            <div style={s.artChoiceRow}>
+              {EZIK_FB_TYPES.map((t) => (
+                <button key={t.id} type="button" className="ezhome-focus" aria-pressed={type === t.id}
+                  onClick={() => setType(t.id)}
+                  style={{ ...s.artChoice, ...(type === t.id ? s.artChoiceOn : null) }}>{ezT(t.k)}</button>
+              ))}
+            </div>
+          </EzShellGroup>
+
+          <EzShellGroup title={ezT('feedback.textLabel')} hint={ezT('feedback.noChat')}>
+            <textarea className="ezhome-focus" dir="auto" rows="8" value={text}
+              maxLength={String(EZIK_FB_TEXT_CAP)} onChange={(e) => setText(e.target.value)}
+              aria-label={ezT('feedback.textLabel')} style={s.artTextarea} />
+            <div role="status" style={s.artNote}>{ezT('feedback.remaining', { n: remaining })}</div>
+          </EzShellGroup>
+
+          <EzShellGroup title={ezT('feedback.contactLabel')} hint={ezT('feedback.contactHint')}>
+            <input className="ezhome-focus" type="text" dir="auto" value={contact}
+              maxLength={String(EZIK_FB_CONTACT_CAP)} onChange={(e) => setContact(e.target.value)}
+              aria-label={ezT('feedback.contactLabel')} style={s.artInput} />
+          </EzShellGroup>
+
+          {err ? <div role="alert" style={s.artError}><span>{err}</span></div> : null}
+
+          <EzShellGroup title={ezT('feedback.send')}>
+            <div style={s.artChoiceRow}>
+              <button type="button" className="ezhome-focus" disabled={busy} onClick={send}
+                style={{ ...s.artAction, ...s.artActionStrong, opacity: busy ? 0.5 : 1 }}>
+                {busy ? ezT('feedback.sending') : ezT('feedback.send')}
+              </button>
+            </div>
+          </EzShellGroup>
+        </>
+      )}
+    </EzShell>
+  );
+}
 // The two screens that SEND, when consent has not been granted. Never a blank page: it names the
 // reason, offers the way back to the choice, and offers the three modules that need no AI at all.
 const EZ_AILM_TITLE = 'الوضع المحلّيّ';
@@ -28457,7 +28781,13 @@ const s = {
   drawerConfirmText: { flex: 1, minWidth: 0, padding: '0 8px', fontSize: 13, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   drawerConfirmYes: { flexShrink: 0, padding: '7px 11px', borderRadius: 10, background: 'var(--red)', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, color: 'var(--on-accent)' },
   drawerConfirmNo: { flexShrink: 0, padding: '7px 11px', borderRadius: 10, background: 'var(--tint)', border: '1px solid var(--line)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, color: 'var(--ink)' },
-  drawerPinned: { display: 'flex', alignItems: 'center', gap: 8, paddingTop: 10, borderTop: '1px solid var(--line)' },
+  // ITEM 92-ب: the footer is a COLUMN. It was `alignItems: 'center'` on a row, which is exactly
+  // what it needed while it held one entry and one icon side by side; five stacked rows in that
+  // box would have laid out across the panel instead of down it. `drawerPinnedRow` below is the
+  // old row, unchanged but for the border, and the account entry still sits inside one -- see the
+  // note over the footer for why flex:1 needs a real row under it.
+  drawerPinned: { display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 2, paddingTop: 10, borderTop: '1px solid var(--line)' },
+  drawerPinnedRow: { display: 'flex', alignItems: 'center', gap: 8 },
   drawerProfile: { display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0, padding: '10px 10px', background: 'none', border: 'none', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 15, color: 'var(--ink)', textAlign: 'right' },
   drawerAvatar: { width: 32, height: 32, flexShrink: 0, borderRadius: '50%', background: 'var(--accent-fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   drawerProfileName: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
@@ -28466,7 +28796,6 @@ const s = {
   // second layout rule for RTL and LTR. 44x44 is the touch target; the glyph inside it is 19,
   // the size the menu's other small icons are drawn at. flexShrink 0 so the profile name gives
   // up its width first and the row stays one line.
-  drawerShare: { width: 44, height: 44, flexShrink: 0, marginInlineStart: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, color: 'var(--ink)', padding: 0 },
   // ITEM 92. The store chooser. It is laid over the menu panel (z-index 61) and its scrim (60).
   shareChooserWrap: { position: 'fixed', inset: 0, zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 },
   shareChooserOv: { position: 'absolute', inset: 0, background: 'var(--ezc-scrim)' },
