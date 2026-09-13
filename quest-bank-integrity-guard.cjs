@@ -992,7 +992,16 @@ const SEALED = {
   //                    SW_PROSE mirror below are untouched. The two store names are the same
   //                    eight characters, so sw.js is 46792 bytes before and after this edit. THIS
   //                    digest is re-cut LAST, after the sw.js edit, on a tree measured at CR = 0.
-  'sw.js': 'd8eec6c02873da94513a8e941db8e568248ecea4c4181640c02327f67eb8196a',
+  //   2026-09-13   -- ITEM 94: THE SHARE CARD IS DRAWN ONLY FOR AN ATTRIBUTED REPLY, AND SHRINKS
+//                    BEFORE IT CUTS. INDEX.HTML DID NOT MOVE this round -- everything is in
+//                    app.jsx -- so the shell figure and its mirror were already true and only the
+//                    BUNDLE figures moved. app.js was rebuilt 1529930 -> 1533210 (+3280) by node
+//                    tools/build-app.cjs, and CORE_BYTES was re-cut 2517595 -> 2520875 (+3280) by
+//                    node tools/core-bytes.cjs --write, which is exactly the bundle delta because
+//                    the shell did not grow. The worker table at :121 and the app.js mirror below
+//                    followed, and THIS digest is re-cut LAST. SW.JS IS OTHERWISE UNTOUCHED and
+//                    CACHE IS NOT BUMPED: this is a branch for the owner to preview, not a ship.
+  'sw.js': '16a75fe8a159c553e7e6576a3587a3f273cf4aa974b735ec214a6240fd598aee',
 };
 
 // ---------------------------------------------------------------------------
@@ -2115,7 +2124,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1529930, of: 'app.js' },
+      { n: 1533210, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
