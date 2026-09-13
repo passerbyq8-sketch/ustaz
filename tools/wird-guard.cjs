@@ -2095,7 +2095,7 @@ if (tLifted) {
     && /useEzikBackLayer\(compassOpen, \(\) => setCompassOpen\(false\)\);/.test(SRC)
     && SRC.indexOf("screen === 'compass'") === -1 && SRC.indexOf("setScreen('compass')") === -1);
   ok('66-b: ...reached in ONE press, from the head of the home screen',
-    /<EzistTopNav onOpenMenu=\{v\.onOpenMenu\} onOpenCompass=\{v\.onOpenCompass\} \/>/.test(SRC)
+    /<EzistTopNav onOpenMenu=\{v\.onOpenMenu\} onOpenCompass=\{v\.onOpenCompass\} onOpenTafsir=\{v\.onOpenTafsir\} \/>/.test(SRC)
     && /onOpenCompass: \(\) => setCompassOpen\(true\),/.test(SRC)
     && /onClick=\{onOpenCompass\}[\s\S]{0,120}aria-label=\{EZH_NAV_COMPASS\}/.test(SRC));
   ok('66-b: ...and the full-screen dial is one style key, not a second element',
