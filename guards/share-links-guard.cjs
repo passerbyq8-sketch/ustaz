@@ -635,10 +635,35 @@ eq('H5: the smart link itself names no store and no platform',
 ok('H5: the shell path still returns before the chooser, which is therefore never built there',
   HANDLER.indexOf('ezikShareLinks({ url: EZIK_SMART_LINK_URL }, say);') !== -1
     && HANDLER.indexOf('return;') < HANDLER.indexOf('setShareOpen(true);'));
-ok('H5: ...and the constant is used on the shell path and nowhere else in the client',
-  (SRC.match(/EZIK_SMART_LINK_URL/g) || []).length === 2
-    && (HANDLER.match(/EZIK_SMART_LINK_URL/g) || []).length === 1
-    && CHOOSER.length > 600 && CHOOSER.indexOf('EZIK_SMART_LINK_URL') === -1);
+// ---- ITEM 94, ROUND TWO, REPLACED THE ASSERTION THAT STOOD HERE (share-links-guard.cjs H5) ----
+// WHAT IT SAID: «the constant is used on the shell path and nowhere else in the client», and it
+// said it as a bare count -- exactly two occurrences of EZIK_SMART_LINK_URL in the whole client,
+// one of them the declaration.
+//
+// WHY IT COULD NOT SURVIVE THE ITEM. The owner's order for round two of the share card is that
+// the barcode on the card leads to EZIK rather than to the source of the answer, and the address
+// this tree already carries for «the app, by whichever way this visitor can install it» is this
+// constant. So the card's renderer is now a SECOND legitimate user of it, and a check that
+// forbids what the current work is for stops being a guard.
+//
+// AND IT IS NOT BEING DROPPED -- IT IS EXCHANGED FOR A CENSUS, which is strictly harder to
+// satisfy than the count it replaces: every use is now NAMED and located, so a fifth use that
+// appeared anywhere fails here by arithmetic AND a use that MOVED out of the place it is
+// supposed to be fails too, which the old bare count could not see.
+const CARD_AT = SRC.indexOf('const ezikDrawReplyCard = (opts) =>');
+const CARD_SRC = CARD_AT === -1 ? '' : SRC.slice(CARD_AT, SRC.indexOf('const SaveReplyImageButton', CARD_AT));
+ok('H5: the share card renderer was located and bounded', CARD_SRC.length > 400, 'len=' + CARD_SRC.length);
+eq('H5: ...and the client uses the constant exactly four times: the declaration, the shell share '
+  + 'handler, and the two rungs of the share card\'s scale ladder',
+  (SRC.match(/EZIK_SMART_LINK_URL/g) || []).length, 4);
+eq('H5: ...the shell share handler holds exactly one of the four',
+  (HANDLER.match(/EZIK_SMART_LINK_URL/g) || []).length, 1);
+eq('H5: ...the share card holds exactly two, and they are the two layout calls',
+  (CARD_SRC.match(/ezikSummaryLayout\(ctx0, summary, shape, innerW, EZIK_SMART_LINK_URL,/g) || []).length, 2);
+eq('H5: ...and that is ALL the card holds -- nothing else there reaches the constant',
+  (CARD_SRC.match(/EZIK_SMART_LINK_URL/g) || []).length, 2);
+ok('H5: ...while the browser chooser still holds none of them',
+  CHOOSER.length > 600 && CHOOSER.indexOf('EZIK_SMART_LINK_URL') === -1);
 // THE BROWSER CHOOSER DID NOT CHANGE. Part A's three payloads are the two store addresses and
 // both together; none of them is the smart link, because a visitor who can already read a web
 // page is offered the stores directly. That is the owner's ruling, and this is its assertion.

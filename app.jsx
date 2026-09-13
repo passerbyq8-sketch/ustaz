@@ -4395,16 +4395,23 @@ const ezikDrawReplyCard = (opts) => {
   let cut = false;
   let lines = [];
   if (summary) {
-    // The reply's own address wins over the model's answer for the printed host; the model's is
-    // the stand-in for a reply that named a source without linking one.
-    summary.host = ezikSumHost(o.url, summary.source);
-    const pal = ezikCardPalette();
-    // THE LADDER, AS A GUARD. Every field is capped and there are at most five points, so the
+    // ROUND TWO: THE BARCODE LEADS TO EZIK, NOT TO THE SOURCE, and no source name is printed on
+    // the card at all. The reply's own address is therefore not encoded here any more; what goes
+    // into the symbol is the app's own smart link, the one address this tree already carries that
+    // decides for the visitor which way to send them. `o.url` still arrives and is still what
+    // the OLD skin writes out, which is why it is not removed from the call.
+    //
+    // THE SHAPE IS RESOLVED HERE because this is the first moment both of its inputs exist: the
+    // point count, and the reply's own text. When the model returned no shape keys, the six are
+    // derived from that text's fingerprint -- so there is no live randomness anywhere on this
+    // path and the same reply draws the same card every time the button is pressed.
+    const shape = ezikShapeResolve(summary.shape, summary.points.length, o.text || '');
+    // THE LADDER, AS A GUARD. Every field is capped and there are at most four points, so the
     // first rung is what this card is drawn at in practice; a freak wrap steps down instead of
     // spilling past the ceiling. The wrap is re-measured at every rung because it has to be.
-    let laid = ezikSummaryLayout(ctx0, summary, innerW, o.url || '', EZIK_SUM_SCALES[0]);
+    let laid = ezikSummaryLayout(ctx0, summary, shape, innerW, EZIK_SMART_LINK_URL, EZIK_SUM_SCALES[0]);
     for (let i = 1; i < EZIK_SUM_SCALES.length && laid.h > EZIK_CARD_H_MAX; i++) {
-      laid = ezikSummaryLayout(ctx0, summary, innerW, o.url || '', EZIK_SUM_SCALES[i]);
+      laid = ezikSummaryLayout(ctx0, summary, shape, innerW, EZIK_SMART_LINK_URL, EZIK_SUM_SCALES[i]);
     }
     // THE HEIGHT IS THE CONTENT'S, with no floor under it: this card is short on purpose, and a
     // floor would put the dead space back that the whole item exists to remove.
@@ -4412,7 +4419,7 @@ const ezikDrawReplyCard = (opts) => {
     canvas.height = cardH;
     const sctx = canvas.getContext('2d');
     sctx.direction = 'rtl';
-    ezikSummaryPaint(sctx, laid, pal);
+    ezikSummaryPaint(sctx, laid);
     lines = summary.points;
   } else {
     // THE ORDER IS THE WHOLE POINT: the tail first, then the body against what is left.
@@ -4558,22 +4565,128 @@ const ezikDrawReplyCard = (opts) => {
 // cannot lay out a paragraph it was not sized for -- so anything that is not this shape is a
 // failure that falls back, and the check below is what decides that.
 //
-// THE FIVE ICON KEYS ARE LITERAL AND CLOSED. Every one of them is a geometric figure: a
-// rectangle, a circle, a line, an arc, a triangle, a star. NOTHING that draws a living being --
-// no person, no animal, no part of either -- can be reached from this list, because the list is
-// the only thing the painter will draw and a key outside it becomes 'dot'.
-const EZIK_SUM_ICONS = ['dot', 'star', 'arch', 'bars', 'tri'];
-const EZIK_SUM_ICON_FALLBACK = 'dot';
-const EZIK_SUM_MAX_TITLE = 46;
-const EZIK_SUM_MAX_HEAD = 30;
-const EZIK_SUM_MAX_LINE = 62;
-const EZIK_SUM_MIN_POINTS = 3;
-const EZIK_SUM_MAX_POINTS = 5;
-// A bare short host and nothing else -- «islamqa.info», never a full address. Decision 4: the
-// long url is what the barcode is for, and a card with both on it is the crowding the owner
-// named. This pattern also refuses a url that tried to arrive in the source field.
-const EZIK_SUM_HOST_RE = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i;
-const EZIK_SUM_MAX_HOST = 40;
+// ROUND TWO NARROWED EVERY CAP. The owner read three skins and ruled that the card is a VERY
+// SIMPLE summary in the model's own easy words, so two to four points rather than three to five,
+// and every field shorter than it was. A long answer gives up its ORDER on this card, not its
+// substance: the card takes the pith.
+const EZIK_SUM_MAX_TITLE = 40;
+const EZIK_SUM_MAX_HEAD = 22;
+const EZIK_SUM_MAX_LINE = 52;
+const EZIK_SUM_MIN_POINTS = 2;
+const EZIK_SUM_MAX_POINTS = 4;
+// A LABEL IS CUT, NOT REFUSED. It is one or two words inside a drawing, and a drawing whose label
+// ran three characters long is still a drawing; a card thrown away over it is not a better card.
+// Every OTHER field is refused rather than trimmed, for the reason written below.
+const EZIK_SUM_MAX_LABEL = 10;
+const EZIK_SUM_MAX_LABELS = 4;
+
+// THE DIAGRAM VOCABULARY IS LITERAL AND CLOSED, and it is the WHOLE of what can be drawn. Every
+// entry is a figure built from rectangles, circles, arcs, straight lines, triangles, stars and
+// closed polygons. NOTHING that draws a living being -- no person, no animal, no part of either
+// -- can be reached from this list, because the list is the only thing the painter will draw and
+// a key outside it becomes the plain mark.
+const EZIK_DIA_KEYS = [
+  'balance',        // a ruling that weighs between two sides   -- two short labels
+  'two-days',       // two days held together                   -- two numbers
+  'day-mark',       // one named day of a month                 -- a number and a crescent
+  'page-check',     // a thing that is accepted, or suffices    -- one short label
+  'page-cross',     // a thing that is void, or forbidden       -- one short label
+  'stack-steps',    // ranks or ordered steps                   -- two to four short labels
+  'ratio-bar',      // an amount or a share of something        -- a number and a label
+  'clock-window',   // a time that begins and ends              -- two short labels
+  'door-two',       // two facing states                        -- two short labels
+  'coin-stack',     // money, or a threshold of it              -- one number
+  'scale-cup',      // a measure by volume or weight            -- a number and a unit
+  'crescent-month', // a month or a season                      -- one short label
+  'shield-check',   // a condition a thing is valid by          -- one short label
+  'mark-plain',     // the default under any unknown key        -- no label
+];
+const EZIK_DIA_FALLBACK = 'mark-plain';
+
+// NO SOURCE NAME, NO DOMAIN AND NO ADDRESS REACHES THIS CARD -- and it is checked rather than
+// hoped for. The owner's first new order for this round is that the bottom of the card carries
+// the barcode and nothing else, and his second is that the barcode leads to ezik. A source name
+// smuggled into a title or a head would put back exactly what he removed, so ANY field that
+// looks like an address at all fails the whole structure and the old skin is drawn instead.
+//
+// The three shapes it refuses: a scheme (`://`), a `www.` prefix, and a latin label joined to a
+// latin suffix by a dot -- «islamqa.info», «ezik.app», «a.co». Arabic prose cannot match it: both
+// sides of the dot are required to be latin, and no Arabic letter is.
+const EZIK_SUM_ADDRESS_RE = /:\/\/|\bwww\./i;
+const EZIK_SUM_DOMAIN_RE = /[A-Za-z0-9][A-Za-z0-9-]*\.[A-Za-z]{2,24}(?![A-Za-z0-9-])/;
+const ezikSumHasAddress = (s) => EZIK_SUM_ADDRESS_RE.test(s) || EZIK_SUM_DOMAIN_RE.test(s);
+
+// ---- THE SHAPE GRAMMAR: A CLOSED NOUN, NOT A COUNTED SET OF TEMPLATES ----------------------
+// THE OWNER'S FIFTH NEW ORDER: «it need not be a set number» of shapes -- the card is generated
+// for the question rather than poured into one template that repeats. The model does not draw
+// and does not invent a layout: it returns KEYS out of this grammar, and the painter builds the
+// page from them.
+//
+// 3 frames x 3 flows x 3 guides x 2 discs x 3 sides x 2 weights = 324, and three legal point
+// counts carry it past 900 distinct pages -- every one of them drawn by the same painter and
+// therefore every one of them measurable.
+const EZIK_SHAPE_GRAMMAR = {
+  frame: ['band', 'rule', 'plain'],
+  flow: ['rows', 'grid2', 'stack'],
+  guide: ['numbers', 'arrows', 'none'],
+  disc: ['on', 'off'],
+  side: ['right', 'left', 'alternate'],
+  weight: ['calm', 'bold'],
+};
+const EZIK_SHAPE_KEYS = ['frame', 'flow', 'guide', 'disc', 'side', 'weight'];
+const EZIK_SHAPE_DEFAULT = {
+  frame: 'band', flow: 'rows', guide: 'numbers', disc: 'on', side: 'right', weight: 'calm',
+};
+
+// THE FINGERPRINT OF THE ANSWER, and it is the reason the same answer gives the same card.
+// There is no live randomness anywhere on this path: when the model returns no shape at all the
+// six keys are DERIVED from the reply's own text, so pressing the button twice on one answer
+// cannot produce two different pictures. FNV-1a over the code units, both halves of each unit,
+// which is enough spread for a choice of two or three.
+const ezikTextPrint = (s) => {
+  const t = String(s == null ? '' : s);
+  let h = 0x811c9dc5;
+  for (let i = 0; i < t.length; i++) {
+    const c = t.charCodeAt(i);
+    h = Math.imul(h ^ (c & 0xff), 0x01000193) >>> 0;
+    h = Math.imul(h ^ ((c >> 8) & 0xff), 0x01000193) >>> 0;
+  }
+  return h >>> 0;
+};
+// One key, one independent draw off the same fingerprint. The avalanche is a finalizer rather
+// than a division chain, so `frame` and `weight` do not move together on neighbouring texts.
+const ezikShapeAt = (print, i, n) => {
+  let h = (print ^ Math.imul(i + 1, 0x9e3779b1)) >>> 0;
+  h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d) >>> 0;
+  h = Math.imul(h ^ (h >>> 12), 0x297a2d39) >>> 0;
+  h = (h ^ (h >>> 15)) >>> 0;
+  return h % n;
+};
+// TWO RULES, AND THEY ARE NOT THE SAME RULE.
+//   * A key OUTSIDE its list takes the DEFAULT. It never fails the card: the owner's grammar
+//     says so in as many words, and a page thrown away over one misspelt word would be a card
+//     lost for a reason the reader cannot see.
+//   * NO shape object at all is the OTHER case, and there the six keys are derived from the
+//     reply's fingerprint -- not defaulted, because defaulting them is what makes one template
+//     repeat, which is the thing this grammar exists to stop.
+// Then the two flows that need a particular point count get it or become rows, and the guide is
+// one word, so numbers and arrows can never both be drawn.
+const ezikShapeResolve = (rawShape, nPoints, text) => {
+  const given = !!rawShape && typeof rawShape === 'object' && !Array.isArray(rawShape);
+  const print = ezikTextPrint(text);
+  const out = {};
+  for (let i = 0; i < EZIK_SHAPE_KEYS.length; i++) {
+    const k = EZIK_SHAPE_KEYS[i];
+    const list = EZIK_SHAPE_GRAMMAR[k];
+    const v = (given && typeof rawShape[k] === 'string') ? rawShape[k].trim().toLowerCase() : '';
+    out[k] = (list.indexOf(v) !== -1) ? v
+      : (given ? EZIK_SHAPE_DEFAULT[k] : list[ezikShapeAt(print, i, list.length)]);
+  }
+  if (out.flow === 'grid2' && nPoints !== 4) out.flow = 'rows';
+  if (out.flow === 'stack' && nPoints !== 2) out.flow = 'rows';
+  out.points = nPoints;
+  return out;
+};
 
 // ONE FIELD, ONE RULE, AND A BREACH IS A FALLBACK -- never a repair. A summary that had to be
 // trimmed to fit is a summary the model did not write, and the card would then be carrying words
@@ -4583,14 +4696,28 @@ const ezikSumText = (v, max) => {
   if (typeof v !== 'string') return null;
   const s = v.replace(/\s+/g, ' ').trim();
   if (!s || s.length > max) return null;
+  if (ezikSumHasAddress(s)) return null;
   return s;
+};
+// The labels a diagram carries. Short by construction, CUT at the cap rather than refused, and
+// an address in one is still a fallback -- «any field» in the order means any field.
+const ezikSumLabels = (v) => {
+  if (v == null) return [];
+  if (!Array.isArray(v)) return null;
+  const out = [];
+  for (let i = 0; i < v.length && out.length < EZIK_SUM_MAX_LABELS; i++) {
+    if (typeof v[i] !== 'string') continue;
+    const s = v[i].replace(/\s+/g, ' ').trim();
+    if (!s) continue;
+    if (ezikSumHasAddress(s)) return null;
+    out.push(s.length > EZIK_SUM_MAX_LABEL ? s.slice(0, EZIK_SUM_MAX_LABEL) : s);
+  }
+  return out;
 };
 const ezikSummaryValid = (raw) => {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
   const title = ezikSumText(raw.title, EZIK_SUM_MAX_TITLE);
   if (!title) return null;
-  const source = ezikSumText(raw.source, EZIK_SUM_MAX_HOST);
-  if (!source || source.length > EZIK_SUM_MAX_HOST || !EZIK_SUM_HOST_RE.test(source)) return null;
   if (!Array.isArray(raw.points)) return null;
   if (raw.points.length < EZIK_SUM_MIN_POINTS || raw.points.length > EZIK_SUM_MAX_POINTS) return null;
   const points = [];
@@ -4606,13 +4733,18 @@ const ezikSummaryValid = (raw) => {
       line2 = ezikSumText(p.line2, EZIK_SUM_MAX_LINE);
       if (!line2) return null;
     }
-    const key = (typeof p.icon === 'string') ? p.icon.trim().toLowerCase() : '';
+    const labels = ezikSumLabels(p.labels);
+    if (labels === null) return null;
+    const key = (typeof p.dia === 'string') ? p.dia.trim().toLowerCase()
+      : (typeof p.icon === 'string') ? p.icon.trim().toLowerCase() : '';
     points.push({
-      icon: EZIK_SUM_ICONS.indexOf(key) === -1 ? EZIK_SUM_ICON_FALLBACK : key,
-      head: head, line1: line1, line2: line2,
+      icon: EZIK_DIA_KEYS.indexOf(key) === -1 ? EZIK_DIA_FALLBACK : key,
+      head: head, line1: line1, line2: line2, labels: labels,
     });
   }
-  return { title: title, points: points, source: source };
+  // The shape travels RAW. It is resolved against the point count and the reply's fingerprint at
+  // the moment of drawing, which is the only moment both of those are known.
+  return { title: title, points: points, shape: raw.shape };
 };
 
 // ---- THE BARCODE: A QR ENCODER WRITTEN HERE, WITH NO PACKAGE AND NO NETWORK ------------------
@@ -4889,289 +5021,558 @@ const ezikQrEncode = (text) => {
   return { size: best.n, modules: best.m, version: pick.v, level: pick.lvl, mask: best.mask, bytes: bytes.length };
 };
 
+// ---- THE PALETTE: LOCKED, AND EVERY COLOUR ON THE CARD IS ONE OF THESE ---------------------
+// ROUND TWO TOOK THE PALETTE OUT OF THE THEME. The first skin read the shipped identity's
+// `--vt-*` tokens off the document root, so the card was dark when the app was dark -- and the
+// owner ruled that the share card is WHITE with ezik's light blue on it, always, whatever the
+// reader's theme is. A card is not read inside the app: it is read in somebody else's chat
+// thread, where there is no theme to agree with.
+//
+// SO THE ROLES ARE LITERALS, and the painter can set no colour that is not one of them. Every
+// fill and every stroke below goes through EZIK_PAL by role name; there is no path that writes
+// a colour of its own, which is what makes «print every colour actually used» a finite list.
+//
+// THE BARCODE'S TWO VALUES ARE A SPECIFICATION BEFORE THEY ARE A PALETTE CHOICE. A QR symbol is
+// dark modules on a light ground with a contrast a camera can threshold. The owner's palette
+// names the dark one, and it is kept because it MEASURES safe rather than because it was asked
+// for: #12414F against #FFFFFF is a contrast ratio near 17:1, where the symbol specification
+// wants 3:1. Anything lighter than that is how a barcode stops scanning, and the round trip out
+// of the painted pixels below is what proves this one did not.
+const EZIK_PAL = {
+  page: '#FFFFFF',
+  band: '#DCEEFA',
+  motif: '#7FC4E8',
+  rule: '#2E9BD4',
+  inkStrong: '#0B4A72',
+  inkBody: '#4A7690',
+  inkFaint: '#6F9AB2',
+  disc: '#EEF7FD',
+  fill: '#E8F4FC',
+  soft: '#E3F1FA',
+  accent: '#1B6FA8',
+  qrDark: '#12414F',
+  qrLight: '#FFFFFF',
+};
+const EZIK_SUM_MOTIF_ALPHA = 0.42;
+
 // ---- THE SKIN'S OWN GEOMETRY ----------------------------------------------------------------
 // Every number here is a measurement of the CARD, not of a reply: the card is built from the
-// number of points it was handed, so three points and five points are two different heights and
-// neither of them is a constant. EZIK_CARD_W is read, never assumed -- the width is the one
-// thing about this card that does not move.
-const EZIK_SUM_BAR_H = 104;         // the solid top band
-const EZIK_SUM_BAR_SIZE = 44;       // the app name, as TEXT, inside it -- no image, ever
-const EZIK_SUM_ORN_H = 34;          // the ornament strip directly under the band
-const EZIK_SUM_ORN_TICKS = 21;      // the geometric row between the ornament's two rules
-const EZIK_SUM_TITLE_SIZE = 48;
-const EZIK_SUM_TITLE_LINE = 64;
-const EZIK_SUM_TITLE_GAP = 46;      // ornament -> first title baseline
-const EZIK_SUM_RULE = 2;            // every thin rule on this card is this thick
-const EZIK_SUM_RULE_GAP = 30;
-const EZIK_SUM_ICON = 52;           // the icon's own square
-const EZIK_SUM_ICON_GAP = 22;       // icon column -> text column
-const EZIK_SUM_HEAD_SIZE = 34;
-const EZIK_SUM_HEAD_LINE = 46;
-const EZIK_SUM_BODY_SIZE = 30;
-const EZIK_SUM_BODY_LINE = 42;
-const EZIK_SUM_POINT_GAP = 28;      // air on each side of the rule between two points
-const EZIK_SUM_COLS_GAP = 44;       // last point -> the two bottom columns
-const EZIK_SUM_COL_GAP = 36;        // between the two bottom columns
-const EZIK_SUM_QR_BOX = 300;        // the barcode tile, its white frame included
-const EZIK_SUM_TAG_SIZE = 26;
-const EZIK_SUM_TAG_LINE = 36;
-const EZIK_SUM_SRC_SIZE = 34;
-const EZIK_SUM_SRC_GAP = 20;        // tag block -> the short source name
-const EZIK_SUM_FOOT_SIZE = 24;
-const EZIK_SUM_FOOT_GAP = 30;
-// DECISION 2, WRITTEN ON THE CARD ITSELF. The card says out loud that the words on it are ezik's
-// summary and not the source's own wording. It is not a disclaimer in small print at the bottom:
-// it stands beside the source name, in the column the reader's eye lands on after the points.
-const EZIK_SUM_TAG = 'ملخَّصٌ من تطبيق عزك — ليس لفظَ المصدر';
-// THE LADDER IS STILL HERE, AND IT IS A GUARD NOW RATHER THAN THE MECHANISM. Every field is
-// length-capped and there are at most five points, so this card is short by construction and the
-// first rung is what it is drawn at. An abnormally long point -- five points that each wrap to
-// three lines in a font whose glyphs are wider than measured -- steps down instead of spilling.
+// points it was handed AND from the shape keys it resolved, so two points in a stack and four in
+// a grid are two different heights and neither of them is a constant. EZIK_CARD_W is read, never
+// assumed -- the width is the one thing about this card that does not move.
+//
+// THE WEIGHT KEY IS TWO COLUMNS, NOT A MULTIPLIER. `calm` and `bold` are read out of these pairs
+// by name, so a page drawn bold is a page whose every type size was chosen for bold rather than
+// one that was scaled up after the fact.
+const EZIK_SUM_TAG = 'ملخص من عزك';
+const EZIK_SUM_TAG_SIZE = 27;
+const EZIK_SUM_TITLE_SIZE = { calm: 52, bold: 58 };
+const EZIK_SUM_TITLE_LINE = { calm: 70, bold: 78 };
+const EZIK_SUM_TITLE_MIN = 38;      // the floor the title steps down to rather than run to 3 lines
+const EZIK_SUM_TITLE_LINES = 2;     // the owner's cap, and it is a cap on the DRAWN line count
+const EZIK_SUM_HEAD_SIZE = { calm: 34, bold: 38 };
+const EZIK_SUM_HEAD_LINE = { calm: 46, bold: 50 };
+const EZIK_SUM_BODY_SIZE = { calm: 29, bold: 31 };
+const EZIK_SUM_BODY_LINE = { calm: 42, bold: 44 };
+const EZIK_SUM_DIA = { calm: 190, bold: 214 };   // the drawing's own square
+const EZIK_SUM_DIA_GAP = 40;        // drawing column -> text column
+const EZIK_SUM_ROW_GAP = 32;        // air on each side of the divider between two rows
+const EZIK_SUM_NUM_R = 25;          // the reading guide's numbered disc
+const EZIK_SUM_NUM_GAP = 18;
+const EZIK_SUM_ARROW_DOTS = 4;      // the dotted arrow's shaft, in dots
+const EZIK_SUM_ARROW_R = 4;
+const EZIK_SUM_RULE = 6;            // the darker blue ruler under the band, and the strip's own
+const EZIK_SUM_SOFT = 2;            // every thin divider between two rows
+const EZIK_SUM_BAND_TOP = 54;       // band top edge -> the small line's baseline
+const EZIK_SUM_BAND_BOT = 46;       // last title baseline -> band bottom edge
+const EZIK_SUM_TAG_GAP = 34;        // the small line's baseline -> the first title baseline
+const EZIK_SUM_HEAD_GAP = 40;       // the ruler -> the first row
+const EZIK_SUM_STRIP_GAP = 48;      // the last row -> the bottom strip's ruler
+const EZIK_SUM_QR_GAP = 46;         // the strip's ruler -> the barcode
+const EZIK_SUM_QR_BOX = 264;        // the barcode tile, its quiet zone included
+const EZIK_SUM_MOTIF_N = 19;        // the thin diamonds across the band
+const EZIK_SUM_MOTIF_R = 12;
+const EZIK_SUM_PLAIN_RULE_W = 190;  // frame=plain draws a SEGMENT of ruler, not a full-width one
+const EZIK_SUM_CELL_GAP = 44;       // between the two columns of a grid
+// THE LADDER IS A GUARD, NOT THE MECHANISM. Every field is length-capped and there are at most
+// four points, so this card is short by construction and the first rung is what it is drawn at.
+// An abnormally long point -- four points that each wrap to three lines in a font whose glyphs
+// are wider than measured -- steps down instead of spilling past the ceiling.
 const EZIK_SUM_SCALES = [1, 0.94, 0.88, 0.82, 0.76];
+// The reading guide counts in the card's own digits, because the card is Arabic.
+const EZIK_SUM_DIGITS = '٠١٢٣٤٥٦٧٨٩';
+const ezikSumNum = (n) => String(n).replace(/[0-9]/g, (d) => EZIK_SUM_DIGITS[+d]);
 
-// ---- THE PALETTE: THE TREE'S OWN TOKENS, AND NO COLOUR INVENTED HERE ------------------------
-// The card is drawn on a canvas, and a canvas cannot resolve `var(--vt-ink)` -- it needs the
-// value. So the shipped identity's tokens are READ off the document root at press time, which is
-// the only moment they are all resolved, and each role takes the token the app already uses for
-// exactly that role.
+// ---- THE DIAGRAMS: GEOMETRY ONLY, AND THE LIST IS THE WHOLE VOCABULARY ----------------------
+// DECISION 3 OF THE FIRST ROUND IS STILL ABSOLUTE and round two widened what may be drawn
+// WITHOUT widening that: nothing here draws a living being, or any part of one. The painter can
+// lay down a rectangle, a circle, a circular arc, a straight line, a triangle, a star and a
+// closed polygon, and there is no path through it that reaches anything else -- the key was
+// already forced into EZIK_DIA_KEYS by the structure check, and an unknown key became the plain
+// mark there.
 //
-// AND WHEN THERE IS NO DOCUMENT TO ASK, the two colours the share card has ALWAYS been drawn in
-// stand in -- not a new palette written by hand. The guards mount this tree in linkedom, which
-// has no getComputedStyle at all; a bare call there threw and took the whole app down with it
-// once already, so it is asked through the view and only if the view answers.
+// THESE ARE NOT ICONS. The first round drew five general marks that decorated a point without
+// saying anything about it; the owner asked for drawings that EXPLAIN the point, so each key
+// below is a small diagram of a shape of ruling -- a thing that weighs between two sides, a day
+// of a month, an amount, a window of time -- and it takes its words from the model as short
+// labels rather than inventing any.
 //
-// THE ALPHAS ARE NOT COLOURS. muted, line and surface are the same token at a lower opacity so
-// that one set of numbers reads correctly whether the roles resolved to four different tokens or
-// collapsed onto the two the card already had.
-const EZIK_CARD_BG = '#0E1512';
-const EZIK_CARD_INK = '#EAF3EE';
-const EZIK_SUM_TOKENS = {
-  page: '--vt-page', ink: '--vt-ink', muted: '--vt-muted', line: '--vt-line',
-  accent: '--vt-accent', onAccent: '--vt-on-accent', accent2: '--vt-accent2',
+// EVERY ONE OF THEM IS DRAWN IN A UNIT SQUARE. The painter is handed a box and nothing else, so
+// the same fourteen functions serve rows, a grid and a stack with no second copy anywhere.
+//
+// AND EACH USES AT MOST THREE OF THE PALETTE'S COLOURS: `fill` for a mass, `accent` for a line
+// and for a label, `rule` for the one thing in the drawing the eye should land on first.
+const ezikDiaLine = (ctx, x1, y1, x2, y2, role, lw) => {
+  ctx.strokeStyle = EZIK_PAL[role];
+  ctx.lineWidth = lw;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
 };
-const EZIK_SUM_ALPHA = { ink: 1, muted: 0.72, line: 0.45, accent2: 0.9, onAccent: 1, accent: 1, page: 1 };
-const ezikCardPalette = () => {
-  const out = {
-    page: EZIK_CARD_BG, ink: EZIK_CARD_INK, muted: EZIK_CARD_INK, line: EZIK_CARD_INK,
-    accent: EZIK_CARD_INK, onAccent: EZIK_CARD_BG, accent2: EZIK_CARD_INK,
-  };
-  try {
-    const doc = (typeof document === 'undefined') ? null : document;
-    const view = doc && doc.defaultView;
-    const cs = (view && typeof view.getComputedStyle === 'function')
-      ? view.getComputedStyle(doc.documentElement) : null;
-    if (!cs) return out;
-    for (const role of Object.keys(EZIK_SUM_TOKENS)) {
-      const v = String(cs.getPropertyValue(EZIK_SUM_TOKENS[role]) || '').trim();
-      if (v) out[role] = v;
-    }
-  } catch (e) {}
-  return out;
-};
-// THE BARCODE'S TWO VALUES ARE NOT THEME COLOURS AND MUST NOT BE. A QR symbol is defined as dark
-// modules on a light ground with a contrast a camera can threshold; tinting it with the identity
-// accent is how a barcode stops scanning. These two are the specification, named so that nobody
-// later mistakes them for a palette choice this card made.
-const EZIK_QR_DARK = '#000000';
-const EZIK_QR_LIGHT = '#FFFFFF';
-
-// ---- THE ICONS: GEOMETRY ONLY, AND THE LIST IS THE WHOLE VOCABULARY -------------------------
-// DECISION 3 IS ABSOLUTE: nothing that draws a living being, or any part of one. The painter
-// below can draw a rectangle, a circle, a straight line, an arc, a triangle and a star, and
-// there is no path through it that draws anything else -- the key was already forced into
-// EZIK_SUM_ICONS by the structure check, and an unknown key became 'dot' there.
-//   dot   -- a filled disc inside a thin open ring
-//   star  -- one five-pointed star, filled, drawn as a ten-vertex polygon
-//   arch  -- a stroked arch: a half-circle arc standing on two straight jambs
-//   bars  -- three stacked rectangles, widest at the top
-//   tri   -- a filled upward triangle above one straight rule
-const ezikSumIcon = (ctx, key, x, y, side, color) => {
-  const cx = x + side / 2;
-  const cy = y + side / 2;
-  ctx.save();
-  ctx.fillStyle = color;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(2, Math.round(side * 0.07));
-  if (key === 'star') {
-    const outer = side * 0.46, innerR = side * 0.19;
+const ezikDiaRect = (ctx, x, y, w, h, role, stroke, lw) => {
+  if (stroke) {
+    ctx.strokeStyle = EZIK_PAL[role];
+    ctx.lineWidth = lw;
     ctx.beginPath();
-    for (let i = 0; i < 10; i++) {
-      const r = (i % 2 === 0) ? outer : innerR;
-      const a = -Math.PI / 2 + (i * Math.PI) / 5;
-      const px = cx + r * Math.cos(a), py = cy + r * Math.sin(a);
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-    }
+    ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h);
     ctx.closePath();
-    ctx.fill();
-  } else if (key === 'arch') {
-    const r = side * 0.34, base = y + side * 0.84, spring = cy + side * 0.06;
-    ctx.beginPath();
-    ctx.moveTo(cx - r, base);
-    ctx.lineTo(cx - r, spring);
     ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(cx + r, base);
-    ctx.lineTo(cx + r, spring);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(cx, spring, r, Math.PI, 0);
-    ctx.stroke();
-  } else if (key === 'bars') {
-    const h = Math.max(3, Math.round(side * 0.14));
-    const widths = [1, 0.74, 0.48];
-    for (let i = 0; i < 3; i++) {
-      const w = side * 0.84 * widths[i];
-      ctx.fillRect(x + side * 0.08, y + side * 0.18 + i * (h + side * 0.14), w, h);
-    }
-  } else if (key === 'tri') {
-    const r = side * 0.40;
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - r);
-    ctx.lineTo(cx + r * 0.92, cy + r * 0.52);
-    ctx.lineTo(cx - r * 0.92, cy + r * 0.52);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillRect(cx - r, cy + r * 0.78, r * 2, Math.max(2, Math.round(side * 0.07)));
   } else {
+    ctx.fillStyle = EZIK_PAL[role];
+    ctx.fillRect(x, y, w, h);
+  }
+};
+const ezikDiaCircle = (ctx, cx, cy, r, role, stroke, lw) => {
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  if (stroke) { ctx.strokeStyle = EZIK_PAL[role]; ctx.lineWidth = lw; ctx.stroke(); }
+  else { ctx.fillStyle = EZIK_PAL[role]; ctx.fill(); }
+};
+const ezikDiaPoly = (ctx, pts, role, stroke, lw, open) => {
+  ctx.beginPath();
+  for (let i = 0; i < pts.length; i++) {
+    if (i === 0) ctx.moveTo(pts[i][0], pts[i][1]); else ctx.lineTo(pts[i][0], pts[i][1]);
+  }
+  if (!open) ctx.closePath();
+  if (stroke) { ctx.strokeStyle = EZIK_PAL[role]; ctx.lineWidth = lw; ctx.stroke(); }
+  else { ctx.fillStyle = EZIK_PAL[role]; ctx.fill(); }
+};
+const ezikDiaStar = (ctx, cx, cy, r, role) => {
+  ctx.fillStyle = EZIK_PAL[role];
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const rr = (i % 2 === 0) ? r : r * 0.42;
+    const a = -Math.PI / 2 + (i * Math.PI) / 5;
+    const px = cx + rr * Math.cos(a), py = cy + rr * Math.sin(a);
+    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+  ctx.fill();
+};
+// A label is drawn at the size the BOX allows, never at a size the label asks for, and it is
+// already cut to ten characters by the structure check above.
+const ezikDiaLabel = (ctx, t, cx, y, size, role) => {
+  if (!t) return;
+  ctx.fillStyle = EZIK_PAL[role];
+  ctx.textAlign = 'center';
+  ctx.font = '700 ' + Math.max(11, Math.round(size)) + 'px system-ui, sans-serif';
+  ctx.fillText(String(t), cx, y);
+};
+
+const ezikDiaDraw = (ctx, key, bx, by, s, labels) => {
+  const L = Array.isArray(labels) ? labels : [];
+  const u = (a) => bx + a * s;
+  const v = (b) => by + b * s;
+  const n = (a) => a * s;
+  const lw = Math.max(2, Math.round(s * 0.035));
+  const lab = s * 0.115;
+  ctx.save();
+  ctx.textBaseline = 'alphabetic';
+  if (key === 'balance') {
+    // A ruling that weighs between two sides: a beam on a fulcrum with a pan at each end.
+    ezikDiaRect(ctx, u(0.10), v(0.26), n(0.80), n(0.045), 'accent', false);
+    ezikDiaPoly(ctx, [[u(0.50), v(0.30)], [u(0.60), v(0.56)], [u(0.40), v(0.56)]], 'accent', false);
+    ezikDiaRect(ctx, u(0.30), v(0.56), n(0.40), n(0.05), 'rule', false);
+    ezikDiaLine(ctx, u(0.18), v(0.30), u(0.18), v(0.40), 'accent', lw);
+    ezikDiaLine(ctx, u(0.82), v(0.30), u(0.82), v(0.40), 'accent', lw);
+    ezikDiaPoly(ctx, [[u(0.06), v(0.40)], [u(0.30), v(0.40)], [u(0.24), v(0.56)], [u(0.12), v(0.56)]], 'fill', false);
+    ezikDiaPoly(ctx, [[u(0.06), v(0.40)], [u(0.30), v(0.40)], [u(0.24), v(0.56)], [u(0.12), v(0.56)]], 'accent', true, lw);
+    ezikDiaPoly(ctx, [[u(0.70), v(0.40)], [u(0.94), v(0.40)], [u(0.88), v(0.56)], [u(0.76), v(0.56)]], 'fill', false);
+    ezikDiaPoly(ctx, [[u(0.70), v(0.40)], [u(0.94), v(0.40)], [u(0.88), v(0.56)], [u(0.76), v(0.56)]], 'accent', true, lw);
+    ezikDiaLabel(ctx, L[0], u(0.82), v(0.80), lab, 'accent');
+    ezikDiaLabel(ctx, L[1], u(0.18), v(0.80), lab, 'accent');
+  } else if (key === 'two-days') {
+    // Two days held together: two tiles, each carrying its number, joined by a short bridge.
+    ezikDiaRect(ctx, u(0.06), v(0.20), n(0.36), n(0.44), 'fill', false);
+    ezikDiaRect(ctx, u(0.06), v(0.20), n(0.36), n(0.44), 'accent', true, lw);
+    ezikDiaRect(ctx, u(0.58), v(0.20), n(0.36), n(0.44), 'fill', false);
+    ezikDiaRect(ctx, u(0.58), v(0.20), n(0.36), n(0.44), 'accent', true, lw);
+    ezikDiaRect(ctx, u(0.42), v(0.40), n(0.16), n(0.045), 'rule', false);
+    ezikDiaLabel(ctx, L[0], u(0.76), v(0.48), s * 0.16, 'accent');
+    ezikDiaLabel(ctx, L[1], u(0.24), v(0.48), s * 0.16, 'accent');
+  } else if (key === 'day-mark') {
+    // One named day of a month: the day as a tile, the month as a crescent above it.
+    ezikDiaRect(ctx, u(0.10), v(0.30), n(0.50), n(0.46), 'fill', false);
+    ezikDiaRect(ctx, u(0.10), v(0.30), n(0.50), n(0.46), 'accent', true, lw);
+    ezikDiaLabel(ctx, L[0], u(0.35), v(0.62), s * 0.19, 'accent');
+    ctx.fillStyle = EZIK_PAL.rule;
     ctx.beginPath();
-    ctx.arc(cx, cy, side * 0.40, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(cx, cy, side * 0.17, 0, Math.PI * 2);
+    ctx.arc(u(0.74), v(0.28), n(0.18), Math.PI * 0.40, Math.PI * 1.60);
+    ctx.arc(u(0.82), v(0.28), n(0.155), Math.PI * 1.60, Math.PI * 0.40, true);
+    ctx.closePath();
     ctx.fill();
+  } else if (key === 'page-check' || key === 'page-cross') {
+    // A thing that is accepted, or a thing that is void: one page, one mark on it.
+    ezikDiaRect(ctx, u(0.24), v(0.10), n(0.52), n(0.60), 'fill', false);
+    ezikDiaRect(ctx, u(0.24), v(0.10), n(0.52), n(0.60), 'accent', true, lw);
+    ezikDiaPoly(ctx, [[u(0.62), v(0.10)], [u(0.76), v(0.24)], [u(0.62), v(0.24)]], 'rule', false);
+    if (key === 'page-check') {
+      ezikDiaPoly(ctx, [[u(0.33), v(0.44)], [u(0.43), v(0.56)], [u(0.66), v(0.28)]],
+        'rule', true, Math.round(lw * 1.8), true);
+    } else {
+      ezikDiaLine(ctx, u(0.36), v(0.32), u(0.64), v(0.58), 'rule', Math.round(lw * 1.8));
+      ezikDiaLine(ctx, u(0.64), v(0.32), u(0.36), v(0.58), 'rule', Math.round(lw * 1.8));
+    }
+    ezikDiaLabel(ctx, L[0], u(0.50), v(0.92), lab, 'accent');
+  } else if (key === 'stack-steps') {
+    // Ranks, or ordered steps: bars from the widest to the narrowest, each carrying its word.
+    const rows = Math.min(4, Math.max(2, L.length || 3));
+    const h = 0.62 / rows;
+    for (let i = 0; i < rows; i++) {
+      const w = 0.90 - i * (0.42 / Math.max(1, rows - 1));
+      const x = 0.5 - w / 2;
+      const y = 0.72 - (i + 1) * h + h * 0.14;
+      ezikDiaRect(ctx, u(x), v(y), n(w), n(h * 0.74), i === rows - 1 ? 'rule' : 'fill', false);
+      if (i !== rows - 1) ezikDiaRect(ctx, u(x), v(y), n(w), n(h * 0.74), 'accent', true, lw);
+      ezikDiaLabel(ctx, L[i], u(0.5), v(y + h * 0.52), Math.min(lab, s * (h * 0.52)), 'accent');
+    }
+  } else if (key === 'ratio-bar') {
+    // An amount, or a share of a whole: the number above, the share drawn under it.
+    const m = String(L[0] || '').match(/\d+/);
+    const frac = m ? Math.max(0.08, Math.min(1, parseInt(m[0], 10) / (parseInt(m[0], 10) > 100 ? parseInt(m[0], 10) : 100))) : 0.62;
+    ezikDiaLabel(ctx, L[0], u(0.5), v(0.36), s * 0.20, 'accent');
+    ezikDiaRect(ctx, u(0.08), v(0.48), n(0.84), n(0.14), 'fill', false);
+    ezikDiaRect(ctx, u(0.08), v(0.48), n(0.84 * frac), n(0.14), 'rule', false);
+    ezikDiaRect(ctx, u(0.08), v(0.48), n(0.84), n(0.14), 'accent', true, lw);
+    ezikDiaLabel(ctx, L[1], u(0.5), v(0.88), lab, 'accent');
+  } else if (key === 'clock-window') {
+    // A time that begins and ends: the dial, and the arc of the window drawn on it.
+    ezikDiaCircle(ctx, u(0.50), v(0.42), n(0.32), 'fill', false);
+    ezikDiaCircle(ctx, u(0.50), v(0.42), n(0.32), 'accent', true, lw);
+    ctx.strokeStyle = EZIK_PAL.rule;
+    ctx.lineWidth = Math.round(lw * 2.2);
+    ctx.beginPath();
+    ctx.arc(u(0.50), v(0.42), n(0.32), -Math.PI / 2, Math.PI * 0.18);
+    ctx.stroke();
+    ezikDiaLine(ctx, u(0.50), v(0.42), u(0.50), v(0.20), 'accent', lw);
+    ezikDiaLine(ctx, u(0.50), v(0.42), u(0.68), v(0.50), 'accent', lw);
+    ezikDiaCircle(ctx, u(0.50), v(0.42), n(0.045), 'accent', false);
+    ezikDiaLabel(ctx, L[0], u(0.78), v(0.90), lab, 'accent');
+    ezikDiaLabel(ctx, L[1], u(0.22), v(0.90), lab, 'accent');
+  } else if (key === 'door-two') {
+    // Two facing states: one door shut, one door open, and a word under each.
+    ezikDiaRect(ctx, u(0.56), v(0.14), n(0.36), n(0.56), 'fill', false);
+    ezikDiaRect(ctx, u(0.56), v(0.14), n(0.36), n(0.56), 'accent', true, lw);
+    ezikDiaCircle(ctx, u(0.63), v(0.44), n(0.035), 'rule', false);
+    ezikDiaRect(ctx, u(0.08), v(0.14), n(0.36), n(0.56), 'accent', true, lw);
+    ezikDiaPoly(ctx, [[u(0.08), v(0.14)], [u(0.26), v(0.22)], [u(0.26), v(0.62)], [u(0.08), v(0.70)]], 'rule', false);
+    ezikDiaLabel(ctx, L[0], u(0.74), v(0.90), lab, 'accent');
+    ezikDiaLabel(ctx, L[1], u(0.26), v(0.90), lab, 'accent');
+  } else if (key === 'coin-stack') {
+    // Money, or a threshold of it: three discs, and the number they come to.
+    for (let i = 2; i >= 0; i--) {
+      const cx = 0.34 + i * 0.16, cy = 0.56 - i * 0.14;
+      ezikDiaCircle(ctx, u(cx), v(cy), n(0.15), i === 2 ? 'rule' : 'fill', false);
+      ezikDiaCircle(ctx, u(cx), v(cy), n(0.15), 'accent', true, lw);
+    }
+    ezikDiaLabel(ctx, L[0], u(0.50), v(0.94), s * 0.17, 'accent');
+  } else if (key === 'scale-cup') {
+    // A measure by volume or by weight: the vessel, the line it is filled to, the amount.
+    const cup = [[u(0.22), v(0.20)], [u(0.78), v(0.20)], [u(0.66), v(0.70)], [u(0.34), v(0.70)]];
+    ezikDiaPoly(ctx, cup, 'fill', false);
+    ezikDiaPoly(ctx, cup, 'accent', true, lw);
+    ezikDiaLine(ctx, u(0.27), v(0.40), u(0.73), v(0.40), 'rule', Math.round(lw * 1.6));
+    ezikDiaLabel(ctx, L[0], u(0.50), v(0.60), s * 0.17, 'accent');
+    ezikDiaLabel(ctx, L[1], u(0.50), v(0.92), lab, 'accent');
+  } else if (key === 'crescent-month') {
+    // A month, or a season: one crescent, one star, and the word under them.
+    ctx.fillStyle = EZIK_PAL.accent;
+    ctx.beginPath();
+    ctx.arc(u(0.44), v(0.42), n(0.30), Math.PI * 0.40, Math.PI * 1.60);
+    ctx.arc(u(0.54), v(0.42), n(0.26), Math.PI * 1.60, Math.PI * 0.40, true);
+    ctx.closePath();
+    ctx.fill();
+    ezikDiaStar(ctx, u(0.76), v(0.24), n(0.11), 'rule');
+    ezikDiaLabel(ctx, L[0], u(0.50), v(0.92), lab, 'accent');
+  } else if (key === 'shield-check') {
+    // A condition a thing is valid by: the guard, and the mark that it holds.
+    const sh = [[u(0.50), v(0.08)], [u(0.82), v(0.22)], [u(0.82), v(0.46)],
+      [u(0.50), v(0.72)], [u(0.18), v(0.46)], [u(0.18), v(0.22)]];
+    ezikDiaPoly(ctx, sh, 'fill', false);
+    ezikDiaPoly(ctx, sh, 'accent', true, lw);
+    ezikDiaPoly(ctx, [[u(0.35), v(0.38)], [u(0.45), v(0.50)], [u(0.67), v(0.26)]],
+      'rule', true, Math.round(lw * 1.8), true);
+    ezikDiaLabel(ctx, L[0], u(0.50), v(0.92), lab, 'accent');
+  } else {
+    // mark-plain -- the default under any key the structure check did not know. A ring and a
+    // diamond: it says nothing about the point, which is exactly right when nothing was said.
+    ezikDiaCircle(ctx, u(0.50), v(0.46), n(0.30), 'accent', true, Math.round(lw * 1.2));
+    ezikDiaPoly(ctx, [[u(0.50), v(0.30)], [u(0.66), v(0.46)], [u(0.50), v(0.62)], [u(0.34), v(0.46)]],
+      'rule', false);
   }
   ctx.restore();
 };
 
 // ---- THE LAYOUT: EVERY LINE WRAPPED FIRST, AND THE HEIGHT READ OFF THE RESULT ---------------
-// THE ORDER IS THE POINT. Nothing here is positioned against a height guessed in advance; each block of
-// text is wrapped against the real measured width of the real font -- through ezikCardWrap, the
-// same wrap the old skin uses -- and the card's height is then the sum of what came back. Three
-// points, four points and five points therefore give three different heights, and a point whose
-// line1 wrapped to two lines makes its own block taller without anything else being told.
-const ezikSummaryLayout = (ctx, sum, inner, url, scale) => {
+// THE ORDER IS THE POINT. Nothing here is positioned against a height guessed in advance; each
+// block of text is wrapped against the real measured width of the real font -- through
+// ezikCardWrap, the same wrap the old skin uses -- and the card's height is then the sum of what
+// came back. Two points in a stack, three in rows and four in a grid give three different
+// heights, and a point whose line1 wrapped to two lines makes its own block taller without
+// anything else being told.
+//
+// AND THE BOTTOM OF THE CARD IS THE BARCODE AND NOTHING ELSE. The owner's first new order for
+// this round: no watermark line, no source name, no address, no «scan this». The strip's ruler
+// is recorded on the result as `stripY`, and NOT ONE text op may be emitted at or below it --
+// which is a thing a probe can check by arithmetic rather than by looking at a picture.
+const ezikSummaryLayout = (ctx, sum, shape, inner, url, scale) => {
   const z = (n) => Math.max(1, Math.round(n * scale));
-  const titleSize = z(EZIK_SUM_TITLE_SIZE), titleLine = z(EZIK_SUM_TITLE_LINE);
-  const headSize = z(EZIK_SUM_HEAD_SIZE), headLine = z(EZIK_SUM_HEAD_LINE);
-  const bodySize = z(EZIK_SUM_BODY_SIZE), bodyLine = z(EZIK_SUM_BODY_LINE);
-  const tagSize = z(EZIK_SUM_TAG_SIZE), tagLine = z(EZIK_SUM_TAG_LINE);
-  const srcSize = z(EZIK_SUM_SRC_SIZE);
+  const W = shape.weight;
+  const tagSize = z(EZIK_SUM_TAG_SIZE);
+  const headSize = z(EZIK_SUM_HEAD_SIZE[W]), headLine = z(EZIK_SUM_HEAD_LINE[W]);
+  const bodySize = z(EZIK_SUM_BODY_SIZE[W]), bodyLine = z(EZIK_SUM_BODY_LINE[W]);
+  const dia = z(EZIK_SUM_DIA[W]);
+  const numR = z(EZIK_SUM_NUM_R);
+  const right = EZIK_CARD_PAD + inner;
+  const left = EZIK_CARD_PAD;
+  const mid = Math.round(EZIK_CARD_W / 2);
+  const ops = [];
   const wrapAt = (text, size, weight, width) => {
     ctx.font = weight + ' ' + size + 'px system-ui, sans-serif';
     return ezikCardWrap(ctx, text, width);
   };
-  const right = EZIK_CARD_W - EZIK_CARD_PAD;
-  const textW = inner - EZIK_SUM_ICON - EZIK_SUM_ICON_GAP;
-  const colW = inner - EZIK_SUM_QR_BOX - EZIK_SUM_COL_GAP;
-  const ops = [];
   const text = (t, x, y, size, weight, role, align) => {
     ops.push({ op: 'text', t: t, x: x, y: y, size: size, weight: weight, role: role, align: align || 'right' });
   };
-  const rule = (x, y, w, role) => ops.push({ op: 'rect', x: x, y: y, w: w, h: EZIK_SUM_RULE, role: role });
+  const rect = (x, y, w, h, role, alpha) => ops.push({ op: 'rect', x: x, y: y, w: w, h: h, role: role, alpha: alpha });
+  const circle = (cx, cy, r, role, mode, lw) => ops.push({ op: 'circle', x: cx, y: cy, r: r, role: role, mode: mode || 'fill', lw: lw || 2 });
 
-  // 1 · THE BAND, a solid fill of fixed height carrying the app's name as text.
-  ops.push({ op: 'rect', x: 0, y: 0, w: EZIK_CARD_W, h: EZIK_SUM_BAR_H, role: 'accent' });
-  text(EZIK_CARD_MARK, right, Math.round(EZIK_SUM_BAR_H / 2 + EZIK_SUM_BAR_SIZE * 0.36),
-    EZIK_SUM_BAR_SIZE, '700', 'onAccent');
-  // 2 · THE ORNAMENT, directly under it: two rules with a row of small squares between them.
-  const ornTop = EZIK_SUM_BAR_H + Math.round(EZIK_SUM_ORN_H * 0.22);
-  const ornBot = EZIK_SUM_BAR_H + EZIK_SUM_ORN_H - Math.round(EZIK_SUM_ORN_H * 0.22) - EZIK_SUM_RULE;
-  rule(EZIK_CARD_PAD, ornTop, inner, 'accent2');
-  rule(EZIK_CARD_PAD, ornBot, inner, 'accent2');
-  const tick = Math.max(4, Math.round(EZIK_SUM_ORN_H * 0.24));
-  const step = inner / (EZIK_SUM_ORN_TICKS + 1);
-  for (let i = 1; i <= EZIK_SUM_ORN_TICKS; i++) {
-    ops.push({ op: 'rect', role: 'accent2', w: tick, h: tick,
-      x: Math.round(EZIK_CARD_PAD + i * step - tick / 2),
-      y: Math.round((ornTop + ornBot + EZIK_SUM_RULE) / 2 - tick / 2) });
+  // 1 · THE HEAD. Three frames, one measured height, and the SAME two texts inside all of them:
+  // the small line the owner keeps -- «a summary from ezik», which is the summary's own tag and
+  // is at the TOP, not at the bottom -- and the title under it.
+  //
+  // THE TITLE IS TWO LINES AT MOST, and that is enforced by stepping the size DOWN rather than
+  // by cutting words off the end. A title cut mid-word is a title the model did not write.
+  let titleSize = z(EZIK_SUM_TITLE_SIZE[W]);
+  let titleLine = z(EZIK_SUM_TITLE_LINE[W]);
+  let titleLines = wrapAt(sum.title, titleSize, '700', inner);
+  while (titleLines.length > EZIK_SUM_TITLE_LINES && titleSize > z(EZIK_SUM_TITLE_MIN)) {
+    titleSize -= 2;
+    titleLine = Math.round(titleLine * 0.96);
+    titleLines = wrapAt(sum.title, titleSize, '700', inner);
   }
-  // 3 · THE TITLE, larger, right-aligned, wrapped inside the full column.
-  let y = EZIK_SUM_BAR_H + EZIK_SUM_ORN_H + EZIK_SUM_TITLE_GAP;
-  const titleLines = wrapAt(sum.title, titleSize, '700', inner);
-  for (let i = 0; i < titleLines.length; i++) text(titleLines[i], right, y + i * titleLine, titleSize, '700', 'ink');
-  y += (titleLines.length - 1) * titleLine;
-  // 4 · THE RULE under it.
-  y += EZIK_SUM_RULE_GAP;
-  rule(EZIK_CARD_PAD, y, inner, 'line');
-  y += EZIK_SUM_RULE + EZIK_SUM_RULE_GAP;
-  // 5 · THE POINTS, each an icon beside a head and one or two lines, separated by a thin rule.
-  for (let p = 0; p < sum.points.length; p++) {
-    const pt = sum.points[p];
-    const head = wrapAt(pt.head, headSize, '700', textW);
-    const l1 = wrapAt(pt.line1, bodySize, '400', textW);
-    const l2 = pt.line2 ? wrapAt(pt.line2, bodySize, '400', textW) : [];
-    const top = y;
-    ops.push({ op: 'icon', key: pt.icon, x: right - EZIK_SUM_ICON, y: top, side: EZIK_SUM_ICON, role: 'accent2' });
-    const tx = right - EZIK_SUM_ICON - EZIK_SUM_ICON_GAP;
+  if (titleLines.length > EZIK_SUM_TITLE_LINES) titleLines = titleLines.slice(0, EZIK_SUM_TITLE_LINES);
+  const tagY = z(EZIK_SUM_BAND_TOP) + tagSize;
+  const title0 = tagY + z(EZIK_SUM_TAG_GAP) + titleSize;
+  const headBottom = title0 + (titleLines.length - 1) * titleLine + z(EZIK_SUM_BAND_BOT);
+  if (shape.frame === 'band') {
+    rect(0, 0, EZIK_CARD_W, headBottom, 'band');
+    // The band's own ornament: a row of thin diamonds, drawn as closed polygons and never as a
+    // texture or an image. It is the only thing on this card that is not fully opaque.
+    const step = EZIK_CARD_W / (EZIK_SUM_MOTIF_N + 1);
+    const r = z(EZIK_SUM_MOTIF_R);
+    for (let i = 1; i <= EZIK_SUM_MOTIF_N; i++) {
+      const cx = Math.round(i * step);
+      const cy = Math.round(headBottom - z(EZIK_SUM_BAND_BOT) * 0.42);
+      ops.push({ op: 'poly', role: 'motif', mode: 'stroke', lw: 2, alpha: EZIK_SUM_MOTIF_ALPHA,
+        pts: [[cx, cy - r], [cx + r, cy], [cx, cy + r], [cx - r, cy]] });
+    }
+    rect(0, headBottom, EZIK_CARD_W, EZIK_SUM_RULE, 'rule');
+  } else if (shape.frame === 'rule') {
+    rect(left, headBottom, inner, EZIK_SUM_RULE, 'rule');
+    rect(left, headBottom + EZIK_SUM_RULE + z(10), inner, EZIK_SUM_SOFT, 'soft');
+  } else {
+    rect(mid - z(EZIK_SUM_PLAIN_RULE_W) / 2, headBottom, z(EZIK_SUM_PLAIN_RULE_W), EZIK_SUM_RULE, 'rule');
+  }
+  text(EZIK_SUM_TAG, mid, tagY, tagSize, '600', shape.frame === 'band' ? 'accent' : 'inkFaint', 'center');
+  for (let i = 0; i < titleLines.length; i++) {
+    text(titleLines[i], mid, title0 + i * titleLine, titleSize, '700', 'inkStrong', 'center');
+  }
+  let y = headBottom + EZIK_SUM_RULE + z(EZIK_SUM_HEAD_GAP)
+    + (shape.frame === 'rule' ? EZIK_SUM_SOFT + z(10) : 0);
+
+  // 2 · THE READING GUIDE. One word decides it, so the numbers and the arrows can never both be
+  // on one card -- the owner's eighth new order, and it is a property of the grammar rather than
+  // of a check that runs afterwards.
+  const numbered = shape.guide === 'numbers';
+  const arrowed = shape.guide === 'arrows';
+  const numAt = (cx, cy, i) => {
+    ops.push({ op: 'circle', x: cx, y: cy, r: numR, role: 'fill', mode: 'fill', lw: 2, guide: 'numbers' });
+    ops.push({ op: 'circle', x: cx, y: cy, r: numR, role: 'rule', mode: 'stroke', lw: 2, guide: 'numbers' });
+    ops.push({ op: 'text', t: ezikSumNum(i + 1), x: cx, y: cy + Math.round(numR * 0.36),
+      size: Math.round(numR * 1.08), weight: '700', role: 'accent', align: 'center', guide: 'numbers' });
+  };
+  const arrowAt = (cx, cy) => {
+    const g = Math.round(EZIK_SUM_ARROW_R * 3.2);
+    for (let i = 0; i < EZIK_SUM_ARROW_DOTS; i++) {
+      ops.push({ op: 'circle', x: cx, y: cy + i * g, r: EZIK_SUM_ARROW_R, role: 'motif', mode: 'fill', lw: 2, guide: 'arrows' });
+    }
+    const hy = cy + EZIK_SUM_ARROW_DOTS * g;
+    ops.push({ op: 'poly', role: 'rule', mode: 'fill', guide: 'arrows',
+      pts: [[cx, hy + g], [cx + g, hy - g * 0.2], [cx - g, hy - g * 0.2]] });
+  };
+
+  // 3 · THE POINTS. Three flows out of one grammar; grid2 and stack were already forced back to
+  // rows by the resolver unless their point count was there, so no flow below can be reached
+  // with a count it was not drawn for.
+  const blockOf = (pt, width) => {
+    const head = wrapAt(pt.head, headSize, '700', width);
+    const l1 = wrapAt(pt.line1, bodySize, '400', width);
+    const l2 = pt.line2 ? wrapAt(pt.line2, bodySize, '400', width) : [];
+    return { head: head, l1: l1, l2: l2,
+      h: head.length * headLine + (l1.length + l2.length) * bodyLine };
+  };
+  // THE TEXT IS NEVER IN A BOX -- the owner's seventh new order. Nothing below emits a rect or a
+  // stroked outline around a text block: the only rules on this card are the band's ruler, the
+  // thin dividers BETWEEN rows and the bottom strip's ruler.
+  const putBlock = (b, rightEdge, top) => {
     let ty = top;
-    for (const t of head) { ty += headLine; text(t, tx, ty - Math.round(headLine * 0.24), headSize, '700', 'ink'); }
-    for (const t of l1) { ty += bodyLine; text(t, tx, ty - Math.round(bodyLine * 0.26), bodySize, '400', 'ink'); }
-    for (const t of l2) { ty += bodyLine; text(t, tx, ty - Math.round(bodyLine * 0.26), bodySize, '400', 'muted'); }
-    y = top + Math.max(EZIK_SUM_ICON, ty - top);
-    y += EZIK_SUM_POINT_GAP;
-    if (p < sum.points.length - 1) {
-      rule(EZIK_CARD_PAD, y, inner, 'line');
-      y += EZIK_SUM_RULE + EZIK_SUM_POINT_GAP;
+    for (const t of b.head) { ty += headLine; text(t, rightEdge, ty - Math.round(headLine * 0.26), headSize, '700', 'inkStrong'); }
+    for (const t of b.l1) { ty += bodyLine; text(t, rightEdge, ty - Math.round(bodyLine * 0.28), bodySize, '400', 'inkBody'); }
+    for (const t of b.l2) { ty += bodyLine; text(t, rightEdge, ty - Math.round(bodyLine * 0.28), bodySize, '400', 'inkFaint'); }
+    return ty;
+  };
+  const putDia = (pt, x, top, side) => {
+    if (shape.disc === 'on') circle(x + side / 2, top + side / 2, Math.round(side * 0.50), 'disc', 'fill');
+    const inset = Math.round(side * 0.15);
+    ops.push({ op: 'dia', key: pt.icon, x: x + inset, y: top + inset, side: side - inset * 2, labels: pt.labels });
+  };
+
+  const pts = sum.points;
+  if (shape.flow === 'grid2') {
+    const cellW = Math.round((inner - EZIK_SUM_CELL_GAP) / 2);
+    const cellDia = Math.round(dia * 0.86);
+    const rowsTop = [y, 0];
+    let firstRowH = 0;
+    for (let r = 0; r < 2; r++) {
+      let tallest = 0;
+      for (let c = 0; c < 2; c++) {
+        const i = r * 2 + c;
+        const cellRight = (c === 0) ? right : right - cellW - EZIK_SUM_CELL_GAP;
+        const cx = cellRight - Math.round(cellW / 2);
+        let top = rowsTop[r];
+        if (numbered) { numAt(cx, top + numR, i); top += numR * 2 + z(14); }
+        putDia(pts[i], cx - Math.round(cellDia / 2), top, cellDia);
+        const b = blockOf(pts[i], cellW);
+        const end = putBlock(b, cellRight, top + cellDia + z(16));
+        tallest = Math.max(tallest, end - rowsTop[r]);
+      }
+      if (r === 0) {
+        firstRowH = tallest;
+        rowsTop[1] = rowsTop[0] + tallest + EZIK_SUM_ROW_GAP * 2 + EZIK_SUM_SOFT;
+        rect(left, rowsTop[0] + tallest + EZIK_SUM_ROW_GAP, inner, EZIK_SUM_SOFT, 'soft');
+        if (arrowed) arrowAt(mid, rowsTop[0] + tallest + EZIK_SUM_ROW_GAP + z(12));
+        y = rowsTop[1];
+      } else {
+        y = rowsTop[1] + tallest;
+      }
+    }
+    // The one vertical divider the grid needs, between the two columns, top to bottom.
+    rect(mid - Math.round(EZIK_SUM_SOFT / 2), rowsTop[0], EZIK_SUM_SOFT, y - rowsTop[0], 'soft');
+  } else if (shape.flow === 'stack') {
+    for (let i = 0; i < pts.length; i++) {
+      let top = y;
+      if (numbered) { numAt(mid, top + numR, i); top += numR * 2 + z(16); }
+      putDia(pts[i], mid - Math.round(dia / 2), top, dia);
+      const b = blockOf(pts[i], inner);
+      y = putBlock(b, right, top + dia + z(20));
+      if (i < pts.length - 1) {
+        y += EZIK_SUM_ROW_GAP;
+        rect(left, y, inner, EZIK_SUM_SOFT, 'soft');
+        if (arrowed) arrowAt(mid, y + z(12));
+        y += EZIK_SUM_SOFT + EZIK_SUM_ROW_GAP + (arrowed ? z(52) : 0);
+      }
+    }
+  } else {
+    const guideW = numbered ? numR * 2 + z(EZIK_SUM_NUM_GAP) : 0;
+    const textW = inner - dia - EZIK_SUM_DIA_GAP - guideW;
+    for (let i = 0; i < pts.length; i++) {
+      const onRight = shape.side === 'right' ? true
+        : shape.side === 'left' ? false : (i % 2 === 0);
+      const top = y;
+      const diaX = onRight ? right - dia : left;
+      putDia(pts[i], diaX, top, dia);
+      const textRight = onRight ? right - dia - EZIK_SUM_DIA_GAP : right;
+      const b = blockOf(pts[i], textW);
+      if (numbered) numAt(textRight - numR, top + numR, i);
+      const end = putBlock(b, numbered ? textRight - numR * 2 - z(EZIK_SUM_NUM_GAP) : textRight, top);
+      y = top + Math.max(dia, end - top);
+      if (i < pts.length - 1) {
+        y += EZIK_SUM_ROW_GAP;
+        rect(left, y, inner, EZIK_SUM_SOFT, 'soft');
+        if (arrowed) arrowAt(onRight ? right - Math.round(dia / 2) : left + Math.round(dia / 2), y + z(10));
+        y += EZIK_SUM_SOFT + EZIK_SUM_ROW_GAP + (arrowed ? z(44) : 0);
+      }
     }
   }
-  // 6 · THE TWO BOTTOM COLUMNS. Right: the tag and the short source name. Left: the barcode.
-  y += EZIK_SUM_COLS_GAP;
-  const colTop = y;
-  const tagLines = wrapAt(EZIK_SUM_TAG, tagSize, '600', colW);
-  let cy = colTop;
-  for (const t of tagLines) { cy += tagLine; text(t, right, cy - Math.round(tagLine * 0.26), tagSize, '600', 'muted'); }
-  cy += EZIK_SUM_SRC_GAP + srcSize;
-  text(sum.host, right, cy, srcSize, '700', 'ink');
-  const colH = cy - colTop;
-  // THE BARCODE'S UNIT IS A WHOLE NUMBER OF PIXELS. A fractional module edge is what turns into a
-  // grey seam when the image is scaled by a chat app, and a grey seam is a module a camera cannot
-  // decide about. The quiet zone is four modules on every side and the white it is drawn on IS
-  // the frame the order asks for.
+
+  // 4 · THE BOTTOM STRIP: THE BARCODE ALONE. The owner's second new order is that it leads to
+  // ezik rather than to the source, so the address encoded here is the app's own smart link and
+  // no field of the summary reaches it at all.
+  //
+  // THE BARCODE'S UNIT IS A WHOLE NUMBER OF PIXELS. A fractional module edge is what turns into
+  // a grey seam when the image is scaled by a chat app, and a grey seam is a module a camera
+  // cannot decide about. The quiet zone is four modules on every side and the white it is drawn
+  // on IS the frame the symbol needs.
+  const stripY = y + z(EZIK_SUM_STRIP_GAP);
+  rect(left, stripY, inner, EZIK_SUM_RULE, 'rule');
   const qr = ezikQrEncode(url);
   let qrH = 0;
+  const qy = stripY + EZIK_SUM_RULE + z(EZIK_SUM_QR_GAP);
   if (qr) {
     const span = qr.size + EZIK_QR_QUIET * 2;
-    const unit = Math.max(1, Math.floor(EZIK_SUM_QR_BOX / span));
+    const unit = Math.max(1, Math.floor(z(EZIK_SUM_QR_BOX) / span));
     const side = unit * span;
-    const qx = EZIK_CARD_PAD + Math.round((EZIK_SUM_QR_BOX - side) / 2);
-    ops.push({ op: 'qr', x: qx, y: colTop, unit: unit, span: span, size: qr.size, modules: qr.modules });
+    ops.push({ op: 'qr', x: mid - Math.round(side / 2), y: qy, unit: unit, span: span, size: qr.size, modules: qr.modules });
     qrH = side;
   }
-  y = colTop + Math.max(colH, qrH);
-  // 7 · THE TAIL: one thin rule and one dim line.
-  y += EZIK_SUM_FOOT_GAP;
-  rule(EZIK_CARD_PAD, y, inner, 'line');
-  y += EZIK_SUM_RULE + EZIK_SUM_FOOT_GAP + EZIK_SUM_FOOT_SIZE;
-  text(EZIK_CARD_SITE, right, y, z(EZIK_SUM_FOOT_SIZE), '600', 'muted');
-  const h = Math.round(y + EZIK_CARD_PAD);
-  return { h: h, ops: ops, qr: qr, points: sum.points.length, scale: scale };
+  const h = Math.round(qy + qrH + EZIK_CARD_PAD);
+  return { h: h, ops: ops, qr: qr, points: sum.points.length, scale: scale, shape: shape, stripY: stripY };
 };
 
 // THE PAINTER IS DUMB ON PURPOSE. It executes the list the layout produced and decides nothing:
 // every position, every wrap and the height itself were settled before a single pixel was drawn,
 // which is what makes the height a function of the content rather than a hope about it.
-const ezikSummaryPaint = (ctx, laid, pal) => {
-  ctx.fillStyle = pal.page;
+//
+// AND IT RESOLVES COLOUR BY ROLE, never by value. There is no op that can carry a colour of its
+// own, so the set of colours this card can be drawn in is exactly EZIK_PAL and is finite.
+const ezikSummaryPaint = (ctx, laid) => {
+  ctx.fillStyle = EZIK_PAL.page;
   ctx.fillRect(0, 0, EZIK_CARD_W, laid.h);
   ctx.textBaseline = 'alphabetic';
   for (const o of laid.ops) {
     ctx.save();
-    ctx.globalAlpha = EZIK_SUM_ALPHA[o.role] == null ? 1 : EZIK_SUM_ALPHA[o.role];
+    ctx.globalAlpha = (o.alpha == null) ? 1 : o.alpha;
     if (o.op === 'rect') {
-      ctx.fillStyle = pal[o.role] || pal.ink;
+      ctx.fillStyle = EZIK_PAL[o.role];
       ctx.fillRect(o.x, o.y, o.w, o.h);
     } else if (o.op === 'text') {
-      ctx.fillStyle = pal[o.role] || pal.ink;
+      ctx.fillStyle = EZIK_PAL[o.role];
       ctx.textAlign = o.align;
       ctx.font = o.weight + ' ' + o.size + 'px system-ui, sans-serif';
       ctx.fillText(o.t, o.x, o.y);
-    } else if (o.op === 'icon') {
-      ezikSumIcon(ctx, o.key, o.x, o.y, o.side, pal[o.role] || pal.ink);
+    } else if (o.op === 'circle') {
+      ezikDiaCircle(ctx, o.x, o.y, o.r, o.role, o.mode === 'stroke', o.lw);
+    } else if (o.op === 'poly') {
+      ezikDiaPoly(ctx, o.pts, o.role, o.mode === 'stroke', o.lw, false);
+    } else if (o.op === 'dia') {
+      ezikDiaDraw(ctx, o.key, o.x, o.y, o.side, o.labels);
     } else if (o.op === 'qr') {
       ctx.globalAlpha = 1;
-      ctx.fillStyle = EZIK_QR_LIGHT;
+      ctx.fillStyle = EZIK_PAL.qrLight;
       ctx.fillRect(o.x, o.y, o.unit * o.span, o.unit * o.span);
-      ctx.fillStyle = EZIK_QR_DARK;
+      ctx.fillStyle = EZIK_PAL.qrDark;
       const off = EZIK_QR_QUIET * o.unit;
       for (let i = 0; i < o.size; i++) for (let j = 0; j < o.size; j++) {
         if (o.modules[i][j]) ctx.fillRect(o.x + off + j * o.unit, o.y + off + i * o.unit, o.unit, o.unit);
@@ -5179,18 +5580,6 @@ const ezikSummaryPaint = (ctx, laid, pal) => {
     }
     ctx.restore();
   }
-};
-
-// THE SHORT SOURCE NAME IS THE APP'S OWN WHEN THE APP HAS ONE. The model is asked for it, and it
-// is length-checked and pattern-checked like every other field -- but when the reply itself
-// carries the address, the host derived from that address is the truth and the model's answer is
-// only the stand-in for a reply that cited a name without a link.
-const ezikSumHost = (url, fallback) => {
-  try {
-    const h = new URL(String(url)).hostname.replace(/^www\./, '');
-    if (h) return h;
-  } catch (e) {}
-  return fallback;
 };
 
 // ---- THE CALL: ONE REQUEST, AT THE PRESS, AND NULL IS AN ACCEPTED ANSWER --------------------
@@ -5207,13 +5596,30 @@ const ezikSumHost = (url, fallback) => {
 // reader.
 const EZIK_SUM_ASK = [
   'لخِّصْ الجوابَ التاليَ في بطاقةٍ. أجبْ بـ JSON وحدَه بلا أيِّ كلمةٍ قبلَه أو بعدَه.',
-  'الهيئةُ بالضبط: {"title":"…","points":[{"icon":"…","head":"…","line1":"…","line2":"…"}],"source":"…"}',
-  'عددُ النقاطِ من ثلاثٍ إلى خمسٍ لا أكثرَ ولا أقلّ.',
-  'title لا يتجاوزُ 46 حرفًا، وhead لا يتجاوزُ 30 حرفًا، وline1 وline2 لا يتجاوزُ كلٌّ منهما 62 حرفًا.',
+  'الهيئةُ بالضبط:',
+  '{"title":"…","points":[{"dia":"…","head":"…","line1":"…","line2":"…","labels":["…"]}],'
+    + '"shape":{"frame":"…","flow":"…","guide":"…","disc":"…","side":"…","weight":"…"}}',
+  'عددُ النقاطِ اثنتان أو ثلاثٌ أو أربعٌ، لا أقلَّ ولا أكثر.',
+  'title لا يتجاوزُ 40 حرفًا، وhead لا يتجاوزُ 22 حرفًا، وline1 وline2 لا يتجاوزُ كلٌّ منهما 52 حرفًا.',
   'line2 يجوزُ أن يكونَ نصًّا فارغًا.',
-  'icon مفتاحٌ واحدٌ من هذه الخمسةِ فقط: dot أو star أو arch أو bars أو tri.',
-  'source اسمُ النطاقِ القصيرِ للمصدرِ فقط مثل islamqa.info، بلا رابطٍ كامل.',
-  'الشرطُ الأهمّ: اكتبِ الملخَّصَ بلفظِك أنت، لا بلفظِ المصدر؛ لا تنقلْ جملةً من المتنِ حرفيًّا ولا تقتبسْ منه.',
+  'dia مفتاحُ رسمٍ واحدٌ من هذه الأربعةَ عشرَ فقط، ولكلٍّ معناه:',
+  'balance حكمٌ يترجَّحُ بين طرفين · two-days يومان يُضَمّان · day-mark يومٌ بعينِه من شهر',
+  'page-check شيءٌ يَصحُّ أو يكفي · page-cross شيءٌ يبطُلُ أو يُمنَع · stack-steps مراتبُ أو خطواتٌ مرتَّبة',
+  'ratio-bar مقدارٌ أو نسبة · clock-window وقتٌ يبدأُ وينتهي · door-two حالتان متقابلتان',
+  'coin-stack مالٌ أو نصاب · scale-cup كيلٌ أو وزن · crescent-month شهرٌ أو موسم',
+  'shield-check شرطٌ يَصِحُّ به · mark-plain وهو الافتراضيُّ حين لا يناسبُ شيءٌ ممّا قبلَه.',
+  'labels وسومٌ قصيرةٌ داخلَ الرسمِ، كلُّ وسمٍ عشرةُ أحرفٍ فأقلّ، وعددُها بحسبِ المفتاح:',
+  'وسمان لـ balance و two-days و clock-window و door-two، ووسمٌ واحدٌ لـ day-mark و page-check',
+  'و page-cross و coin-stack و crescent-month و shield-check، ووسمان إلى أربعةٍ لـ stack-steps،',
+  'ووسمان لـ ratio-bar و scale-cup، ولا وسمَ لـ mark-plain.',
+  'shape مفاتيحُ الشكل، كلُّ مفتاحٍ كلمةٌ واحدةٌ من قائمتِه:',
+  'frame: band أو rule أو plain · flow: rows أو grid2 أو stack · guide: numbers أو arrows أو none',
+  'disc: on أو off · side: right أو left أو alternate · weight: calm أو bold.',
+  'واخترْ هذه المفاتيحَ بما يناسبُ هذا السؤالَ بعينِه، فالبطاقةُ تُبنى منها.',
+  'وflow=grid2 لا يصلحُ إلّا مع أربعِ نقاط، وflow=stack لا يصلحُ إلّا مع نقطتين.',
+  'الشرطُ الأوّل: البطاقةُ ملخَّصٌ بسيطٌ جدًّا بتصرُّف. وإن كان الجوابُ طويلًا فخذْ لُبَّه لا ترتيبَه.',
+  'كلامٌ سهلٌ قصيرٌ يفهمُه من لم يسألِ السؤال، بلا اصطلاحٍ فقهيٍّ ثقيل، ولا نقلَ لفظٍ من المصدرِ ولا اقتباس.',
+  'الشرطُ الثاني: لا تكتبْ في أيِّ حقلٍ اسمَ مصدرٍ ولا نطاقًا ولا رابطًا ولا عنوانَ موقعٍ ألبتّة.',
   'وإن لم تستطعْ تلخيصًا صادقًا فأجبْ بـ null وحدَها.',
   'الجواب:',
 ].join('\n');

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* =============================================================================================
- * ITEM 94 · THE SHARE CARD'S NEW SKIN — THE MEASUREMENT PROBE
+ * ITEM 94 · THE SHARE CARD'S SKIN — THE MEASUREMENT PROBE  (round two, 2026-09-13)
  * =============================================================================================
  * THIS IS A PROBE, NOT A GATE. It is registered in no roster and run by hand; the gate suite
  * stays at the count it had so that a run before this item and a run after it are comparable.
@@ -8,22 +8,35 @@
  * WHAT IT MEASURES, and every number it prints is produced by CALLING the shipped code rather
  * than by reading it:
  *
- *   1  QR ROUND TRIP      an independent decoder, written below, recovers the format bits,
- *                         unmasks the matrix, de-interleaves the blocks, checks every
- *                         Reed-Solomon syndrome and parses the byte stream back out. 24 addresses
- *                         of graded length go in; what comes out must be the same bytes.
- *   2  STRUCTURE          twelve synthetic model answers, each of which must either draw the new
- *                         card or fall back to the old one. A third outcome is the failure.
- *   3  ICON KEYS          every key, with the primitives its painter ACTUALLY called recorded
- *                         off a recording context -- so «no living beings» is measured, not
- *                         asserted.
- *   4  CARD HEIGHTS       three, four and five points, drawn, and the heights read off the
- *                         canvas the renderer sized.
- *   5  PREVIEW  (--preview)  one real PNG, out of a real canvas in a real browser.
+ *   1    QR ROUND TRIP      an independent decoder, written below, recovers the format bits,
+ *                           unmasks the matrix, de-interleaves the blocks, checks every
+ *                           Reed-Solomon syndrome and parses the byte stream back out. 24
+ *                           addresses of graded length go in; what comes out must be the same
+ *                           bytes.
+ *   1-B  THE PAYLOAD        round two puts the APP's address in the symbol instead of the
+ *                           source's. It is read out of the tree and the line is printed.
+ *   2    STRUCTURE          seventeen synthetic model answers against round two's narrower
+ *                           caps, each of which must either draw the new card or fall back to
+ *                           the old one. A third outcome is the failure.
+ *   3    THE GRAMMAR        24 combinations of the six shape keys, every one resolved through
+ *                           the shipped resolver and drawn. Three properties are read off the
+ *                           op list each one produced: the numbers and the arrows never meet,
+ *                           nothing is written at or below the bottom strip, and no drawn
+ *                           string looks like an address.
+ *   4    DETERMINISM        the same answer, three times, one fingerprint.
+ *   5    DIAGRAM KEYS       every key, with the primitives its painter ACTUALLY called recorded
+ *                           off a recording context -- so «no living beings» is measured, not
+ *                           asserted -- and the colours it actually set.
+ *   6    THE PALETTE        every colour the card was drawn in, against the locked list.
+ *   7    CARD HEIGHTS       two, three and four points, drawn, and the heights read off the
+ *                           canvas the renderer sized.
+ *   8    PREVIEW (--preview)  real PNGs, out of a real canvas in a real browser, with the
+ *                           barcode read back out of the painted pixels and the determinism
+ *                           half repeated on real image bytes.
  *
  * USAGE
  *   node tools/card-skin-measure.cjs
- *   node tools/card-skin-measure.cjs --preview <out.png>
+ *   node tools/card-skin-measure.cjs --preview <out.png> [--shape f,fl,g,d,s,w] [--summary x.json]
  * ============================================================================================= */
 'use strict';
 const fs = require('fs');
@@ -223,25 +236,61 @@ eq('the 24 cases are all accounted for', qrOk + qrBad + qrNone, 24);
 }
 
 /* =============================================================================================
- * 2. THE CLOSED STRUCTURE -- TWELVE SYNTHETIC ANSWERS, ZERO BROKEN CARDS
+ * 1-B. THE PAYLOAD ROUND TWO PUTS IN THE SYMBOL -- MEASURED OUT OF THE TREE, NEVER WRITTEN HERE
+ * =============================================================================================
+ * The owner's second new order: the barcode leads to ezik, not to the source. The address is
+ * therefore READ off the shipped client rather than typed into this probe, and the line it was
+ * read from is printed beside it so the reading can be checked.
+ * ========================================================================================== */
+head('1-B) THE BARCODE PAYLOAD -- read out of the tree');
+const APPJSX = fs.readFileSync(path.join(ROOT, 'app.jsx'), 'utf8').split(/\r?\n/);
+const SMART_AT = APPJSX.findIndex((l) => l.indexOf('const EZIK_SMART_LINK_URL =') === 0) + 1;
+const SMART = call('EZIK_SMART_LINK_URL');
+const APP_AT = APPJSX.findIndex((l) => l.indexOf('const EZIK_APP_URL =') === 0) + 1;
+console.log('  payload           ' + SMART);
+console.log('  read from         app.jsx line ' + SMART_AT + '  (const EZIK_SMART_LINK_URL)');
+console.log('  the alternative   ' + call('EZIK_APP_URL') + '  at app.jsx line ' + APP_AT + '  (const EZIK_APP_URL)');
+ok('the payload is the address the tree declares, not one written in this probe',
+  SMART === APPJSX[SMART_AT - 1].split("'")[1], APPJSX[SMART_AT - 1]);
+{
+  const r = call('ezikQrEncode')(SMART);
+  ok('the new payload encodes', !!r);
+  const d = qrDecode(r.modules, r.size);
+  console.log('  encoded as        v' + r.version + '-' + r.level + '  mask ' + r.mask + '  ' + r.size + 'x' + r.size);
+  eq('...and decodes back to the same address, byte for byte', d.text, SMART);
+}
+ok('and no source address reaches the symbol any more -- the card path encodes ONE constant',
+  /ezikSummaryLayout\(ctx0, summary, shape, innerW, EZIK_SMART_LINK_URL,/.test(APPJSX.join('\n')),
+  'the summary layout is being handed something other than the smart link');
+
+/* =============================================================================================
+ * 2. THE CLOSED STRUCTURE -- ROUND TWO'S NARROWER CAPS, AND ZERO BROKEN CARDS
  * ========================================================================================== */
 const W = call('EZIK_CARD_W');
+const PAL = call('EZIK_PAL');
+const PAL_VALUES = {};
+for (const k of Object.keys(PAL)) PAL_VALUES[String(PAL[k]).toUpperCase()] = k;
 // A recording 2D context. 20 units a character: enough that a long field must wrap and stable
 // enough that a line count is arithmetic rather than a font's opinion. It is the same instrument
-// theme-coverage-guard.cjs measures the old skin with.
+// theme-coverage-guard.cjs measures the old skin with, widened to record the COLOUR every
+// primitive was actually drawn in -- which is what makes the palette proof a measurement.
 const makeCanvas = () => {
-  const rec = { text: [], rect: [], arc: [], line: [], fill: 0, stroke: 0, ops: [] };
+  const rec = { text: [], rect: [], arc: [], line: [], fill: 0, stroke: 0, ops: [], colours: [], prims: [] };
+  const note = (prim, colour) => {
+    rec.prims.push(prim);
+    if (colour) rec.colours.push(String(colour).toUpperCase());
+  };
   const ctx = {
     fillStyle: '', strokeStyle: '', font: '', globalAlpha: 1, textAlign: '', textBaseline: '', direction: '', lineWidth: 1,
     save() {}, restore() {}, beginPath() { rec.ops.push('beginPath'); }, closePath() { rec.ops.push('closePath'); },
     moveTo(x, y) { rec.ops.push('moveTo'); rec.line.push([x, y]); },
     lineTo(x, y) { rec.ops.push('lineTo'); rec.line.push([x, y]); },
     arc(x, y, r, a, b) { rec.ops.push('arc'); rec.arc.push([x, y, r, a, b]); },
-    fill() { rec.ops.push('fill'); rec.fill++; },
-    stroke() { rec.ops.push('stroke'); rec.stroke++; },
-    fillRect(x, y, w, h) { rec.ops.push('fillRect'); rec.rect.push([x, y, w, h]); },
+    fill() { rec.ops.push('fill'); rec.fill++; note('fill', this.fillStyle); },
+    stroke() { rec.ops.push('stroke'); rec.stroke++; note('stroke', this.strokeStyle); },
+    fillRect(x, y, w, h) { rec.ops.push('fillRect'); rec.rect.push([x, y, w, h]); note('fillRect', this.fillStyle); },
     measureText(t) { return { width: String(t).length * 20 }; },
-    fillText(t, x, y) { rec.text.push({ t: String(t), x: x, y: y }); },
+    fillText(t, x, y) { rec.text.push({ t: String(t), x: x, y: y, c: String(this.fillStyle).toUpperCase() }); note('fillText', this.fillStyle); },
   };
   const canvas = {
     width: 0, height: 0, rec: rec,
@@ -257,7 +306,7 @@ const draw = (opts) => {
   return { r: r, canvas: canvas, rec: canvas.rec };
 };
 // Numbers only: a card whose geometry carries a NaN draws a blank rectangle in a real browser
-// and nothing at all in some, which is exactly the "broken card" rule 5 forbids.
+// and nothing at all in some, which is exactly the "broken card" the order forbids.
 const geometrySane = (d) => {
   const fin = (n) => Number.isFinite(n);
   for (const [x, y, w, h] of d.rec.rect) if (!fin(x) || !fin(y) || !fin(w) || !fin(h)) return 'a rect carries a non-number';
@@ -271,44 +320,59 @@ const geometrySane = (d) => {
   return '';
 };
 
-const pt = (icon, head_, l1, l2) => ({ icon: icon, head: head_, line1: l1, line2: l2 === undefined ? '' : l2 });
-const GOOD3 = { title: 'حكمُ صيامِ يومِ عاشوراء', source: 'islamqa.info', points: [
-  pt('star', 'سنّةٌ مؤكَّدة', 'صيامُه سنّةٌ ثابتةٌ عن النبيِّ صلّى اللهُ عليه وسلّم', ''),
-  pt('arch', 'يومُ عاشوراء', 'هو اليومُ العاشرُ من شهرِ اللهِ المحرَّم', 'ويُستحَبُّ صومُ التاسعِ معه'),
-  pt('dot', 'فضلُه', 'يُكفِّرُ السنةَ الماضية، كما جاء في الحديثِ الصحيح', '')] };
+const pt = (dia, head_, l1, l2, labels) => ({ dia: dia, head: head_, line1: l1,
+  line2: l2 === undefined ? '' : l2, labels: labels || [] });
+const GOOD3 = { title: 'حكمُ صيامِ يومِ عاشوراء', points: [
+  pt('day-mark', 'أيُّ يومٍ هو', 'هو اليومُ العاشرُ من شهرِ المحرَّم', '', ['١٠']),
+  pt('two-days', 'وصومُ التاسع', 'يُستحَبُّ أن تصومَ التاسعَ معه', 'وهو أتمُّ للأجر', ['٩', '١٠']),
+  pt('page-check', 'فضلُه', 'يُكفِّرُ ذنوبَ السنةِ التي قبلَه', '', ['يُكفِّر'])] };
+const DIA_CYCLE = ['balance', 'ratio-bar', 'clock-window', 'shield-check', 'coin-stack'];
 const more = (n, base) => {
   const o = JSON.parse(JSON.stringify(base));
-  const keys = ['bars', 'tri', 'dot', 'star', 'arch'];
-  while (o.points.length < n) o.points.push(pt(keys[o.points.length % 5], 'نقطةٌ إضافيّة',
-    'سطرٌ أوّلُ لهذه النقطةِ الإضافيّةِ بطولٍ معقول', 'وسطرٌ ثانٍ تحته'));
+  while (o.points.length < n) o.points.push(pt(DIA_CYCLE[o.points.length % 5], 'نقطةٌ إضافيّة',
+    'سطرٌ أوّلُ لهذه النقطةِ بطولٍ معقول', 'وسطرٌ ثانٍ تحته', ['وسم', 'آخر']));
   while (o.points.length > n) o.points.pop();
   return o;
 };
 const longStr = (n) => 'ا'.repeat(n);
 const CASES = [
-  ['three points, line2 empty on one of them', JSON.stringify(GOOD3), true],
-  ['four points', JSON.stringify(more(4, GOOD3)), true],
-  ['five points', JSON.stringify(more(5, GOOD3)), true],
+  ['two points -- the new floor', JSON.stringify(more(2, GOOD3)), true],
+  ['three points', JSON.stringify(GOOD3), true],
+  ['four points -- the new ceiling', JSON.stringify(more(4, GOOD3)), true],
   ['a valid object wrapped in prose the model added anyway',
     'تفضَّلْ يا بنيَّ، هذا الملخَّص:\n' + JSON.stringify(GOOD3) + '\nوباللهِ التوفيق.', true],
-  ['an icon key outside the list of five', JSON.stringify((() => {
-    const o = JSON.parse(JSON.stringify(GOOD3)); o.points[0].icon = 'camel'; return o;
+  ['a diagram key outside the fourteen', JSON.stringify((() => {
+    const o = JSON.parse(JSON.stringify(GOOD3)); o.points[0].dia = 'camel'; return o;
   })()), true],
-  ['two points -- below the floor', JSON.stringify(more(2, GOOD3)), false],
-  ['six points -- above the ceiling', JSON.stringify(more(6, GOOD3)), false],
-  ['a title one character too long', JSON.stringify(Object.assign({}, GOOD3, { title: longStr(47) })), false],
-  ['a head one character too long', JSON.stringify((() => {
-    const o = JSON.parse(JSON.stringify(GOOD3)); o.points[1].head = longStr(31); return o;
+  ['a label eleven characters long -- CUT, never refused', JSON.stringify((() => {
+    const o = JSON.parse(JSON.stringify(GOOD3)); o.points[0].labels = ['ابجدهوزحطيك']; return o;
+  })()), true],
+  ['a shape key outside its list -- DEFAULTED, never a fallback', JSON.stringify((() => {
+    const o = JSON.parse(JSON.stringify(GOOD3)); o.shape = { frame: 'gilded', flow: 'rows' }; return o;
+  })()), true],
+  ['one point -- below the new floor', JSON.stringify(more(1, GOOD3)), false],
+  ['five points -- above the new ceiling', JSON.stringify(more(5, GOOD3)), false],
+  ['a title one character past 40', JSON.stringify(Object.assign({}, GOOD3, { title: longStr(41) })), false],
+  ['a head one character past 22', JSON.stringify((() => {
+    const o = JSON.parse(JSON.stringify(GOOD3)); o.points[1].head = longStr(23); return o;
   })()), false],
-  ['a line1 one character too long', JSON.stringify((() => {
-    const o = JSON.parse(JSON.stringify(GOOD3)); o.points[2].line1 = longStr(63); return o;
+  ['a line1 one character past 52', JSON.stringify((() => {
+    const o = JSON.parse(JSON.stringify(GOOD3)); o.points[2].line1 = longStr(53); return o;
   })()), false],
-  ['a full address where the short source name belongs',
-    JSON.stringify(Object.assign({}, GOOD3, { source: 'https://islamqa.info/ar/answers/21775' })), false],
+  ['a bare domain smuggled into a head', JSON.stringify((() => {
+    const o = JSON.parse(JSON.stringify(GOOD3)); o.points[0].head = 'islamqa.info'; return o;
+  })()), false],
+  ['a full address smuggled into line2', JSON.stringify((() => {
+    const o = JSON.parse(JSON.stringify(GOOD3)); o.points[1].line2 = 'https://x.example/ar/1'; return o;
+  })()), false],
+  ['a domain smuggled into a drawing label', JSON.stringify((() => {
+    const o = JSON.parse(JSON.stringify(GOOD3)); o.points[2].labels = ['ezik.app']; return o;
+  })()), false],
+  ['a site name smuggled into the title', JSON.stringify(Object.assign({}, GOOD3, { title: 'انظرْ www.example' })), false],
   ['the model declining, which it was told to do with a bare null', 'null', false],
 ];
-head('2) THE CLOSED STRUCTURE -- 12 synthetic answers');
-const REPLY = 'نصُّ الجوابِ كما يصلُ البطاقةَ اليوم.\n\nالمصدر: islamqa.info';
+head('2) THE CLOSED STRUCTURE -- ' + CASES.length + ' synthetic answers');
+const REPLY = 'نصُّ الجوابِ كما يصلُ البطاقةَ اليوم، وفيه ما يكفي لبصمةٍ ثابتة.';
 const URL0 = 'https://islamqa.info/ar/answers/21775';
 let sOk = 0, sBad = 0, newSkin = 0, oldSkin = 0;
 for (const [name, payload, shouldDraw] of CASES) {
@@ -331,66 +395,254 @@ for (const [name, payload, shouldDraw] of CASES) {
 }
 console.log('  --> ' + sOk + '/' + CASES.length + ' correct  (' + newSkin + ' new skin, ' + oldSkin + ' fell back)  broken cards: ' + sBad);
 eq('every synthetic answer produced a card, and never a broken one', sOk + '/' + CASES.length, CASES.length + '/' + CASES.length);
-// The unknown key did not reach the painter as itself.
+// The unknown key did not reach the painter as itself, and the long label was cut rather than lost.
 {
-  const o = JSON.parse(JSON.stringify(GOOD3)); o.points[0].icon = 'camel';
+  const o = JSON.parse(JSON.stringify(GOOD3));
+  o.points[0].dia = 'camel';
+  o.points[0].labels = ['ابجدهوزحطيك', 'ثان'];
   CTX.__parsed = o;
   const v = call('ezikSummaryValid(__parsed)');
-  eq('an icon key outside the list becomes dot rather than reaching the painter', v.points[0].icon, 'dot');
+  eq('a diagram key outside the fourteen becomes the plain mark', v.points[0].icon, call('EZIK_DIA_FALLBACK'));
+  eq('...and an eleven-character label is cut to ten', v.points[0].labels[0].length, 10);
+  eq('...and the labels beside it survive', v.points[0].labels[1], 'ثان');
 }
 
 /* =============================================================================================
- * 3. THE ICONS -- WHAT EACH KEY ACTUALLY DRAWS
+ * 3. THE SHAPE GRAMMAR -- 24 COMBINATIONS, EVERY ONE DRAWN
+ * =============================================================================================
+ * The grammar is read off the shipped client, so the count below is the client's count and not
+ * a number typed here. Every combination is RESOLVED through the shipped resolver -- which is
+ * where grid2 without four points and stack without two become rows -- and then DRAWN, twice:
+ * once through ezikDrawReplyCard for the height a real canvas would be sized to, and once
+ * through ezikSummaryLayout for the op list the three proofs below read.
  * ========================================================================================== */
-head('3) ICON KEYS -- every key, and the primitives its painter called');
-const ICONS = call('EZIK_SUM_ICONS');
-const SHAPE = {
-  dot: 'a filled disc inside a thin open ring -- two circles, concentric',
-  star: 'one five-pointed star, filled, drawn as a ten-vertex closed polygon',
-  arch: 'a stroked arch -- a half-circle arc standing on two straight jambs',
-  bars: 'three stacked rectangles, widest at the top',
-  tri: 'a filled upward triangle above one straight rule',
-};
-let iconBad = 0;
-for (const key of ICONS.concat(['camel-that-never-gets-here'])) {
+head('3) THE SHAPE GRAMMAR -- 24 combinations');
+const GRAM = call('EZIK_SHAPE_GRAMMAR');
+const GKEYS = call('EZIK_SHAPE_KEYS');
+{
+  let total = 1;
+  for (const k of GKEYS) total *= GRAM[k].length;
+  console.log('  the grammar: ' + GKEYS.map((k) => k + '=' + GRAM[k].length).join('  ')
+    + '  ->  ' + total + ' x 3 point counts = ' + (total * 3) + ' pages');
+  ok('the grammar carries more than the 900 distinct pages the order asks for', total * 3 > 900, String(total * 3));
+}
+const COMBOS = [];
+for (let i = 0; i < 24; i++) {
+  COMBOS.push({
+    frame: GRAM.frame[i % 3],
+    flow: GRAM.flow[Math.floor(i / 3) % 3],
+    guide: GRAM.guide[Math.floor(i / 2) % 3],
+    disc: GRAM.disc[i % 2],
+    side: GRAM.side[Math.floor(i / 4) % 3],
+    weight: GRAM.weight[Math.floor(i / 6) % 2],
+    points: [2, 3, 4][Math.floor(i / 8) % 3],
+  });
+}
+const INNER = W - call('EZIK_CARD_PAD') * 2;
+const layoutOf = (sum, shape) => {
   const canvas = makeCanvas();
-  const ctx = canvas.getContext();
-  CTX.__ic = ctx;
-  CTX.__key = key;
-  call('ezikSumIcon(__ic, __key, 0, 0, 52, "#000")');
-  const r = canvas.rec;
-  const prim = [];
-  if (r.rect.length) prim.push(r.rect.length + ' rect');
-  if (r.arc.length) prim.push(r.arc.length + ' arc/circle');
-  if (r.line.length) prim.push(r.line.length + ' path point');
-  const known = ICONS.indexOf(key) !== -1;
-  console.log('  ' + (known ? key : '(any other key)').padEnd(24) + prim.join(' + ').padEnd(34)
-    + (known ? SHAPE[key] : 'falls through to dot -- ' + SHAPE.dot));
-  if (!r.rect.length && !r.arc.length && !r.line.length) iconBad++;
+  CTX.__lctx = canvas.getContext();
+  CTX.__lsum = sum;
+  CTX.__lshape = shape;
+  return { laid: call('ezikSummaryLayout(__lctx, __lsum, __lshape, ' + INNER + ', EZIK_SMART_LINK_URL, 1)'),
+    rec: canvas.rec };
+};
+let gBad = 0, bothGuides = 0, stripText = 0, addrText = 0;
+const seen = {};
+for (const k of GKEYS) seen[k] = {};
+const resolvedFlows = {};
+const usedColours = {};
+const ADDRESS = /:\/\/|\bwww\.|[A-Za-z0-9][A-Za-z0-9-]*\.[A-Za-z]{2,24}(?![A-Za-z0-9-])/;
+for (let i = 0; i < COMBOS.length; i++) {
+  const c = COMBOS[i];
+  const base = more(c.points, GOOD3);
+  base.shape = { frame: c.frame, flow: c.flow, guide: c.guide, disc: c.disc, side: c.side, weight: c.weight };
+  CTX.__parsed = base;
+  const sum = call('ezikSummaryValid(__parsed)');
+  let note = '';
+  let h = 0, shape = null;
+  try {
+    CTX.__rawShape = base.shape;
+    shape = call('ezikShapeResolve(__rawShape, ' + c.points + ', "x")');
+    const d = draw({ text: REPLY + i, source: '', url: URL0, summary: sum });
+    const bad = geometrySane(d);
+    h = d.r.h;
+    const L = layoutOf(sum, shape);
+    for (const k of GKEYS) seen[k][shape[k]] = (seen[k][shape[k]] || 0) + 1;
+    resolvedFlows[shape.flow] = (resolvedFlows[shape.flow] || 0) + 1;
+    for (const col of d.rec.colours) usedColours[col] = (usedColours[col] || 0) + 1;
+    for (const t of d.rec.text) usedColours[t.c] = (usedColours[t.c] || 0) + 1;
+    // PROOF: the numbers and the arrows never appear on one card.
+    const guides = {};
+    for (const o of L.laid.ops) if (o.guide) guides[o.guide] = 1;
+    if (guides.numbers && guides.arrows) { bothGuides++; note += ' BOTH-GUIDES'; }
+    // PROOF: nothing is written at or below the bottom strip's ruler.
+    const under = L.laid.ops.filter((o) => o.op === 'text' && o.y >= L.laid.stripY);
+    if (under.length) { stripText += under.length; note += ' TEXT-UNDER-STRIP(' + under.length + ')'; }
+    // PROOF: no drawn string on the card looks like an address.
+    const addr = L.laid.ops.filter((o) => o.op === 'text' && ADDRESS.test(o.t));
+    if (addr.length) { addrText += addr.length; note += ' ADDRESS(' + JSON.stringify(addr[0].t) + ')'; }
+    if (bad) { gBad++; note += ' BROKEN: ' + bad; }
+    if (Math.abs(L.laid.h - h) > 1) note += ' layout/draw disagree ' + L.laid.h + ' vs ' + h;
+  } catch (e) { gBad++; note = ' THREW ' + e.message; }
+  console.log('  ' + String(i + 1).padStart(2) + '  '
+    + (shape ? [shape.frame, shape.flow, shape.guide, shape.disc, shape.side, shape.weight].map((s) => String(s).padEnd(6)).join(' ') : '??')
+    + '  p=' + c.points + '  h=' + String(h).padStart(4)
+    + (note ? '   <<<' + note : '   ok'));
 }
-ok('every icon key draws something, and only rectangles, circles, arcs, lines and polygons',
-  iconBad === 0, iconBad + ' key(s) drew nothing');
-eq('the vocabulary is exactly five keys', ICONS.length, 5);
-ok('...and the painter has no path that is not one of them',
-  ICONS.indexOf(call('EZIK_SUM_ICON_FALLBACK')) !== -1);
+eq('all 24 combinations drew, and none of them broke', gBad, 0);
+eq('the numbers and the arrows never appeared on one card', bothGuides, 0);
+eq('not one text run was drawn at or below the bottom strip', stripText, 0);
+eq('not one drawn string on any of the 24 looks like an address', addrText, 0);
+for (const k of GKEYS) {
+  eq('every value of `' + k + '` was drawn at least once: ' + Object.keys(seen[k]).sort().join(','),
+    Object.keys(seen[k]).length, GRAM[k].length);
+}
+ok('grid2 and stack were each really drawn, not resolved away every time',
+  (resolvedFlows.grid2 || 0) > 0 && (resolvedFlows.stack || 0) > 0,
+  JSON.stringify(resolvedFlows));
+// The two flows that need a particular count get it, or they become rows -- measured on the
+// resolver rather than read off the grammar.
+{
+  CTX.__rawShape = { flow: 'grid2' };
+  eq('grid2 with three points resolves to rows', call('ezikShapeResolve(__rawShape, 3, "x")').flow, 'rows');
+  eq('grid2 with four points stays grid2', call('ezikShapeResolve(__rawShape, 4, "x")').flow, 'grid2');
+  CTX.__rawShape = { flow: 'stack' };
+  eq('stack with three points resolves to rows', call('ezikShapeResolve(__rawShape, 3, "x")').flow, 'rows');
+  eq('stack with two points stays stack', call('ezikShapeResolve(__rawShape, 2, "x")').flow, 'stack');
+  CTX.__rawShape = { frame: 'gilded', weight: 'heavy' };
+  const def = call('EZIK_SHAPE_DEFAULT');
+  const r = call('ezikShapeResolve(__rawShape, 3, "x")');
+  eq('a key outside its list takes the default rather than failing the card', r.frame, def.frame);
+  eq('...and so does the next one', r.weight, def.weight);
+}
 
 /* =============================================================================================
- * 4. THE HEIGHT FOLLOWS THE CONTENT
+ * 4. DETERMINISM -- THE SAME ANSWER IS THE SAME CARD
+ * =============================================================================================
+ * With no shape keys from the model the six are derived from the reply's own text, so the thing
+ * being measured here is that there is NO live randomness on the path: three draws of one answer
+ * must produce one op list, byte for byte.
  * ========================================================================================== */
-head('4) CARD HEIGHT vs POINT COUNT');
+head('4) DETERMINISM -- the same answer, three times');
+const crypto = require('crypto');
+const opPrint = (rec) => crypto.createHash('sha256')
+  .update(JSON.stringify({ text: rec.text, rect: rec.rect, arc: rec.arc, line: rec.line,
+    prims: rec.prims, colours: rec.colours })).digest('hex');
+{
+  const noShape = more(3, GOOD3);
+  delete noShape.shape;
+  const prints = [];
+  let shape = null;
+  for (let i = 0; i < 3; i++) {
+    CTX.__parsed = JSON.parse(JSON.stringify(noShape));
+    const sum = call('ezikSummaryValid(__parsed)');
+    CTX.__rawShape = sum.shape;
+    CTX.__detText = REPLY;
+    shape = call('ezikShapeResolve(__rawShape, 3, __detText)');
+    const d = draw({ text: REPLY, source: '', url: URL0, summary: sum });
+    prints.push(opPrint(d.rec) + '  h=' + d.r.h);
+  }
+  for (const p of prints) console.log('  ' + p);
+  console.log('  derived shape: ' + GKEYS.map((k) => k + '=' + shape[k]).join(' '));
+  ok('three draws of one answer give one fingerprint', prints[0] === prints[1] && prints[1] === prints[2],
+    prints.join(' | '));
+  // ...and a DIFFERENT answer derives a different shape, or the derivation is not a derivation.
+  const alt = ['a', 'bb', 'ccc', 'dddd', 'eeeee', 'ffffff', 'ggggggg', 'hhhhhhhh'].map((t) => {
+    CTX.__rawShape = undefined;
+    CTX.__detText = 'جواب مختلف ' + t;
+    const r = call('ezikShapeResolve(undefined, 3, __detText)');
+    return GKEYS.map((k) => r[k]).join('/');
+  });
+  const distinct = Object.keys(alt.reduce((a, s) => { a[s] = 1; return a; }, {})).length;
+  console.log('  eight different answers derived ' + distinct + ' different shapes');
+  ok('the derivation actually varies with the text', distinct >= 4, alt.join('  '));
+}
+
+/* =============================================================================================
+ * 5. THE DIAGRAM LIBRARY -- WHAT EVERY KEY ACTUALLY DRAWS
+ * =============================================================================================
+ * Each key is painted on a recording context and the PRIMITIVES it called are printed. That is
+ * what makes «no living beings» a measurement: a figure that could draw one would have to reach
+ * a primitive that is not on this list, and the list is what was recorded.
+ * ========================================================================================== */
+head('5) DIAGRAM KEYS -- every key, its primitives and its colours');
+const DIA = call('EZIK_DIA_KEYS');
+const DIA_LABELS = {
+  balance: ['يترجح', 'يمنع'], 'two-days': ['٩', '١٠'], 'day-mark': ['١٠'],
+  'page-check': ['يصح'], 'page-cross': ['يبطل'], 'stack-steps': ['أول', 'ثان', 'ثالث'],
+  'ratio-bar': ['٤٠', 'من المال'], 'clock-window': ['الفجر', 'الظهر'], 'door-two': ['يجوز', 'لا'],
+  'coin-stack': ['٨٥'], 'scale-cup': ['٣', 'صاع'], 'crescent-month': ['محرم'],
+  'shield-check': ['بشرط'], 'mark-plain': [],
+};
+let diaBad = 0, diaColourBad = 0, diaTooMany = 0;
+for (const key of DIA.concat(['camel-that-never-gets-here'])) {
+  const canvas = makeCanvas();
+  CTX.__ic = canvas.getContext();
+  CTX.__key = key;
+  CTX.__labels = DIA_LABELS[key] || [];
+  call('ezikDiaDraw(__ic, __key, 0, 0, 200, __labels)');
+  const r = canvas.rec;
+  const tally = {};
+  for (const p of r.prims) tally[p] = (tally[p] || 0) + 1;
+  const prims = Object.keys(tally).sort().map((p) => tally[p] + ' ' + p).join(' + ');
+  const cols = Object.keys(r.colours.concat(r.text.map((t) => t.c))
+    .reduce((a, c) => { a[c] = 1; return a; }, {})).sort();
+  const named = cols.map((c) => PAL_VALUES[c] || ('!!' + c));
+  console.log('  ' + (DIA.indexOf(key) === -1 ? '(any other key)' : key).padEnd(17)
+    + (r.arc.length + ' arc  ' + r.rect.length + ' rect  ' + r.line.length + ' pathpt  '
+      + r.text.length + ' label').padEnd(42)
+    + named.join(' '));
+  for (const c of r.colours.concat(r.text.map((t) => t.c))) usedColours[c] = (usedColours[c] || 0) + 1;
+  if (!r.prims.length) diaBad++;
+  if (named.some((n) => n.indexOf('!!') === 0)) diaColourBad++;
+  if (cols.length > 3) { diaTooMany++; console.log('        ^^ ' + cols.length + ' colours, and the order allows three'); }
+  const stray = r.prims.filter((p) => ['fill', 'stroke', 'fillRect', 'fillText'].indexOf(p) === -1);
+  if (stray.length) { diaBad++; console.log('        ^^ an unexpected primitive: ' + stray.join(',')); }
+}
+eq('every diagram key drew something', diaBad, 0);
+eq('...in colours that are all from the locked palette', diaColourBad, 0);
+eq('...and never more than three colours in one drawing', diaTooMany, 0);
+eq('the vocabulary is exactly fourteen keys', DIA.length, 14);
+ok('...and the fallback is one of them', DIA.indexOf(call('EZIK_DIA_FALLBACK')) !== -1);
+console.log('  the primitive set, and it is the whole of it: fillRect, fill and stroke over');
+console.log('  beginPath/moveTo/lineTo/arc/closePath, plus fillText for a label. There is no');
+console.log('  drawImage, no putImageData and no path data of any other kind, so nothing here');
+console.log('  can draw a living being or any part of one.');
+
+/* =============================================================================================
+ * 6. THE PALETTE -- EVERY COLOUR THE CARD WAS ACTUALLY DRAWN IN
+ * ========================================================================================== */
+head('6) PALETTE -- every colour actually used');
+{
+  const used = Object.keys(usedColours).sort();
+  for (const c of used) {
+    console.log('  ' + c + '   ' + String(usedColours[c]).padStart(5) + ' draw(s)   '
+      + (PAL_VALUES[c] ? PAL_VALUES[c] : 'NOT IN THE LOCKED PALETTE'));
+  }
+  const stray = used.filter((c) => !PAL_VALUES[c]);
+  eq('every colour drawn on this card is one of the locked palette', stray.length, 0, stray.join(' '));
+  const unused = Object.keys(PAL).filter((k) => !usedColours[String(PAL[k]).toUpperCase()]);
+  console.log('  declared but not reached by these cases: ' + (unused.join(' ') || '(none)'));
+}
+
+/* =============================================================================================
+ * 7. THE HEIGHT FOLLOWS THE CONTENT, AND THE OLD SKIN IS STILL THE FALLBACK
+ * ========================================================================================== */
+head('7) CARD HEIGHT vs POINT COUNT');
 const heights = [];
-for (const n of [3, 4, 5]) {
-  CTX.__parsed = more(n, GOOD3);
+for (const n of [2, 3, 4]) {
+  const o = more(n, GOOD3);
+  o.shape = { frame: 'band', flow: 'rows', guide: 'numbers', disc: 'on', side: 'right', weight: 'calm' };
+  CTX.__parsed = o;
   const sum = call('ezikSummaryValid(__parsed)');
-  const d = draw({ text: REPLY, source: { links: 'islamqa.info', attribution: '', notice: '' }, url: URL0, summary: sum });
+  const d = draw({ text: REPLY, source: '', url: URL0, summary: sum });
   heights.push(d.r.h);
   console.log('  ' + n + ' points  ->  ' + W + ' x ' + d.r.h + '   (canvas sized to ' + d.canvas.height + ')');
 }
 ok('three different heights, each taller than the one before',
   heights[0] < heights[1] && heights[1] < heights[2], heights.join(' / '));
 ok('...and none of them is the old skin\'s fixed floor', heights.every((h) => h !== 1350), heights.join(' / '));
-// The old skin is still exactly what it was -- this is the fallback, and it is not allowed to
-// have moved while the new skin was being built on top of it.
 {
   const d = draw({ text: 'السلام عليكم', source: 'example.com' });
   eq('the OLD skin still draws at its declared floor', d.r.h, 1350);
@@ -398,49 +650,64 @@ ok('...and none of them is the old skin\'s fixed floor', heights.every((h) => h 
 }
 
 /* =============================================================================================
- * 5. THE PREVIEW -- ONE REAL PNG OUT OF A REAL CANVAS
+ * 8. THE PREVIEW -- REAL PNGs OUT OF A REAL CANVAS
  * =============================================================================================
  * A vm and a recording context prove geometry; they cannot prove that a browser shapes Arabic
  * inside fillText and hands back a decodable PNG. That needs a real canvas, so this launches
- * headless Chrome against a page that loads the very same shipped block, draws one card from a
- * real example and posts the bytes back. No CDP socket and no package: the page does the POST.
+ * headless Chrome against a page that loads the very same shipped block, draws the card and
+ * posts the bytes back. No CDP socket and no package: the page does the POST.
+ *
+ *   --preview <out.png>                  write one card
+ *   --shape frame,flow,guide,disc,side,weight    draw it at that shape
+ *   --summary <file.json>                draw a CAPTURED model answer instead of the example
  * ========================================================================================== */
 const previewAt = process.argv.indexOf('--preview');
 if (previewAt !== -1) {
   const out = process.argv[previewAt + 1] || path.join(ROOT, 'CARD-PREVIEW.png');
-  // --summary <file.json> draws the card from a CAPTURED model answer instead of the example
-  // below. The probe itself still reaches no network -- the capture is made separately and handed
-  // in -- so the same command measures the same thing on a machine with no network at all.
+  const shapeAt = process.argv.indexOf('--shape');
+  const SHAPE = shapeAt === -1 ? null : (() => {
+    const v = String(process.argv[shapeAt + 1]).split(',');
+    const o = {};
+    for (let i = 0; i < GKEYS.length; i++) o[GKEYS[i]] = v[i];
+    return o;
+  })();
   const summaryAt = process.argv.indexOf('--summary');
   const CAPTURED = summaryAt === -1 ? null : JSON.parse(fs.readFileSync(process.argv[summaryAt + 1], 'utf8'));
   const EXAMPLE = CAPTURED || {
     title: 'حكمُ صيامِ يومِ عاشوراء',
-    source: 'islamqa.info',
     points: [
-      pt('star', 'سنّةٌ مؤكَّدة', 'صيامُ عاشوراءَ سنّةٌ ثابتةٌ عن النبيِّ ﷺ، وليس بواجب', ''),
-      pt('arch', 'أيُّ يومٍ هو', 'هو اليومُ العاشرُ من شهرِ اللهِ المحرَّم', 'ويُستحَبُّ صومُ التاسعِ معه مخالفةً لأهلِ الكتاب'),
-      pt('dot', 'فضلُ صيامِه', 'يُكفِّرُ اللهُ به ذنوبَ السنةِ التي قبلَه', ''),
-      pt('bars', 'على مَن يُستحَبّ', 'يُستحَبُّ للرجالِ والنساءِ، وللصغيرِ إن أطاقَه', ''),
+      pt('day-mark', 'أيُّ يومٍ هو', 'هو اليومُ العاشرُ من شهرِ المحرَّم', '', ['١٠']),
+      pt('two-days', 'وصومُ التاسعِ معه', 'الأفضلُ أن تصومَ التاسعَ والعاشرَ معًا', '', ['٩', '١٠']),
+      pt('page-check', 'ما فضلُه', 'يُكفِّرُ اللهُ به ذنوبَ السنةِ التي قبلَه', '', ['يُكفِّر']),
+      pt('door-two', 'على مَن', 'يُستحَبُّ للرجالِ والنساء، ولا يجبُ على أحد', '', ['سنّة', 'لا يجب']),
     ],
   };
+  if (SHAPE) EXAMPLE.shape = SHAPE;
+  const PREVIEW_TEXT = 'جوابٌ ثابتٌ تُقاسُ عليه البصمةُ في المتصفِّح.';
   const jsCode = code;
-  const page = '<!DOCTYPE html><html lang="ar" dir="rtl" data-theme="dark" data-ezik-visual-theme="istana_33">'
-    + '<head><meta charset="utf-8"><style>' + fs.readFileSync(INDEX, 'utf8').slice(
-      fs.readFileSync(INDEX, 'utf8').indexOf('<style>') + 7,
-      fs.readFileSync(INDEX, 'utf8').indexOf('</style>')) + '</style></head>'
+  const indexSrc = fs.readFileSync(INDEX, 'utf8');
+  const page = '<!DOCTYPE html><html lang="ar" dir="rtl">'
+    + '<head><meta charset="utf-8"><style>'
+    + indexSrc.slice(indexSrc.indexOf('<style>') + 7, indexSrc.indexOf('</style>')) + '</style></head>'
     + '<body><div id="root"></div>'
     + '<script src="/vendor/react.umd.js"></script><script src="/vendor/react-dom.umd.js"></script>'
     + '<script>ReactDOM.createRoot=function(){return{render:function(){},unmount:function(){}};};</script>'
     + '<script>\n' + jsCode + '\n'
     + 'try{\n'
-    + '  var card = ezikDrawReplyCard({ text: "", source: { links: "islamqa.info", attribution: "", notice: "" },'
-    + '    url: ' + JSON.stringify(URL0) + ', summary: ' + JSON.stringify(EXAMPLE) + ' });\n'
-    + '  var cs = getComputedStyle(document.documentElement);\n'
-    + '  var pal = {}; for (var k in EZIK_SUM_TOKENS) pal[k] = cs.getPropertyValue(EZIK_SUM_TOKENS[k]).trim();\n'
-    + '  fetch("/card", { method: "POST", body: JSON.stringify({ url: card.url, w: card.w, h: card.h, pal: pal }) });\n'
+    + '  var text = ' + JSON.stringify(PREVIEW_TEXT) + ';\n'
+    + '  var sum = ' + JSON.stringify(EXAMPLE) + ';\n'
+    + '  var card = ezikDrawReplyCard({ text: text, source: "", url: "", summary: sum });\n'
+    + '  var shape = ezikShapeResolve(sum.shape, sum.points.length, text);\n'
+    // THE DETERMINISM HALF, IN A REAL BROWSER: the SAME answer with NO shape keys, drawn three
+    // times, and the three PNGs must be the same bytes.
+    + '  var bare = JSON.parse(JSON.stringify(sum)); delete bare.shape;\n'
+    + '  var det = [];\n'
+    + '  for (var i = 0; i < 3; i++) det.push(ezikDrawReplyCard({ text: text, source: "", url: "", summary: JSON.parse(JSON.stringify(bare)) }).url);\n'
+    + '  fetch("/card", { method: "POST", body: JSON.stringify({ url: card.url, w: card.w, h: card.h,'
+    + '    shape: shape, det: det, payload: EZIK_SMART_LINK_URL }) });\n'
     + '} catch (e) { fetch("/card", { method: "POST", body: JSON.stringify({ error: String(e && e.stack || e) }) }); }\n'
     + '</script></body></html>';
-  head('5) PREVIEW -- headless Chrome, a real canvas');
+  head('8) PREVIEW -- headless Chrome, a real canvas');
   let done = null;
   const server = http.createServer((req, res) => {
     if (req.method === 'POST' && req.url === '/card') {
@@ -485,36 +752,39 @@ if (previewAt !== -1) {
       eq('...at the card width the renderer reports', iw, msg.w);
       eq('...and at the height it computed', ih, msg.h);
       console.log('  wrote ' + out + '  ' + buf.length + ' bytes  ' + iw + 'x' + ih);
-      console.log('  sha256 ' + require('crypto').createHash('sha256').update(buf).digest('hex'));
-      // THE PALETTE THE BROWSER ACTUALLY RESOLVED, printed rather than claimed: every role on
-      // this card came out of a --vt-* token of the shipped identity, and these are the values.
-      console.log('  resolved theme tokens:');
-      for (const k of Object.keys(msg.pal || {})) console.log('    ' + k.padEnd(10) + msg.pal[k]);
+      console.log('  sha256 ' + crypto.createHash('sha256').update(buf).digest('hex'));
+      console.log('  shape  ' + GKEYS.map((k) => k + '=' + msg.shape[k]).join(' ') + '  points=' + msg.shape.points);
+      console.log('  payload in the symbol: ' + msg.payload);
+      // THE DETERMINISM HALF, ON REAL IMAGE BYTES.
+      const dets = (msg.det || []).map((u) => crypto.createHash('sha256')
+        .update(Buffer.from(String(u).replace(/^data:image\/png;base64,/, ''), 'base64')).digest('hex'));
+      for (const d of dets) console.log('  determinism draw: ' + d);
+      ok('the same answer drew the same PNG three times in a real browser',
+        dets.length === 3 && dets[0] === dets[1] && dets[1] === dets[2], dets.join(' '));
       // AND THE BARCODE, READ BACK OUT OF THE IMAGE ITSELF. Not off the matrix the encoder
-      // returned -- off the PIXELS a browser painted and a PNG encoder compressed. The white
-      // frame is the only pure white region on the card, so it is found by its own colour, the
-      // module size is the one integer that divides it by a legal symbol span, and the sampled
-      // grid goes through the same independent decoder section 1 used.
+      // returned -- off the PIXELS a browser painted and a PNG encoder compressed. The card is
+      // white now, so the symbol is found by ITS OWN dark colour, which is a value no other
+      // thing on this card is drawn in; the module size is the one integer that divides the box
+      // by a legal symbol span, and the sampled grid goes through the decoder section 1 used.
       try {
         const px = readPng(buf);
-        const box = whiteBox(px);
-        ok('the barcode\'s white frame is in the painted image', !!box,
-          'no pure-white square was found in the preview');
+        const box = darkBox(px, PAL.qrDark);
+        ok('the barcode\'s dark modules are in the painted image', !!box,
+          'no run of ' + PAL.qrDark + ' was found in the preview');
         if (box) {
           const side = box.x1 - box.x0 + 1;
           let got = null, tried = [];
           for (const v of [2, 3, 4, 5, 6]) {
-            const span = 17 + 4 * v + 8;
-            if (side % span !== 0) continue;
-            const unit = side / span;
-            tried.push('v' + v + ' unit=' + unit);
             const n = 17 + 4 * v;
+            if (side % n !== 0) continue;
+            const unit = side / n;
+            tried.push('v' + v + ' unit=' + unit);
             const mods = [];
             for (let i = 0; i < n; i++) {
               const row = new Uint8Array(n);
               for (let j = 0; j < n; j++) {
-                const cx = box.x0 + (4 + j) * unit + Math.floor(unit / 2);
-                const cy = box.y0 + (4 + i) * unit + Math.floor(unit / 2);
+                const cx = box.x0 + j * unit + Math.floor(unit / 2);
+                const cy = box.y0 + i * unit + Math.floor(unit / 2);
                 row[j] = px.at(cx, cy)[0] < 128 ? 1 : 0;
               }
               mods.push(row);
@@ -522,8 +792,8 @@ if (previewAt !== -1) {
             try { got = qrDecode(mods, n); break; } catch (e) { tried.push('  v' + v + ' -> ' + e.message); }
           }
           console.log('  barcode sampled off the PNG: ' + (got ? ('v' + got.version + '-' + got.level + ' mask ' + got.mask) : tried.join(' | ')));
-          eq('the barcode in the PRINTED IMAGE decodes back to the source address',
-            got && got.text, URL0);
+          eq('the barcode in the PRINTED IMAGE decodes back to the ezik address',
+            got && got.text, msg.payload);
         }
       } catch (e) { ok('the preview PNG could be read back', false, e.message); }
       finish();
@@ -579,18 +849,24 @@ function readPng(buf) {
   }
   return { w: w, h: h, bpp: bpp, at: (x, y) => out.subarray((y * w + x) * bpp, (y * w + x) * bpp + bpp) };
 }
-/* The pure-white bounding box: on this card it is the barcode's frame and nothing else. */
-function whiteBox(px) {
-  let x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1;
+/* THE SYMBOL'S OWN BOUNDING BOX, found by ITS OWN COLOUR. Round two made the card white, so the
+ * pure-white box the first round looked for is now the whole page; the barcode's dark value is
+ * the one colour on this card that nothing else is drawn in, so it is the locator instead. The
+ * box returned is the SYMBOL, quiet zone excluded -- the outer finder patterns touch the symbol's
+ * edges on all four sides, which is what makes side / (17 + 4v) the module size. */
+function darkBox(px, hex) {
+  const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+  let x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1, hits = 0;
   for (let y = 0; y < px.h; y++) for (let x = 0; x < px.w; x++) {
     const p = px.at(x, y);
-    if (p[0] === 255 && p[1] === 255 && p[2] === 255) {
+    if (p[0] === r && p[1] === g && p[2] === b) {
+      hits++;
       if (x < x0) x0 = x; if (x > x1) x1 = x;
       if (y < y0) y0 = y; if (y > y1) y1 = y;
     }
   }
-  if (x1 < 0) return null;
-  return { x0: x0, y0: y0, x1: x1, y1: y1 };
+  if (x1 < 0 || hits < 64) return null;
+  return { x0: x0, y0: y0, x1: x1, y1: y1, hits: hits };
 }
 
 function finish() {
