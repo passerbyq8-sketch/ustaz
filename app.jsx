@@ -843,6 +843,24 @@ const EZ_I18N = {
     'inbox.reportsReadOnly': 'البلاغاتُ للقراءةِ فقط، ولا يُردُّ عليها.',
     'inbox.remaining': 'المتبقّي: {n}',
     'inbox.window': 'يُعرَضُ أحدثُ {n} رسالةً.',
+    'inbox.delete': 'مَسْح',
+    'inbox.deleteAria': 'امْسَحْ هذه الرّسالة',
+    'inbox.deleteOneAsk': 'تُمْسَحُ هذه الرّسالة؟',
+    'inbox.deleteSelectedAsk': 'تُمْسَحُ {n} رسالةً مُحَدَّدَة؟',
+    'inbox.deleteAll': 'امْسَحِ الكُلّ',
+    'inbox.deleteAllAsk': 'تُمْسَحُ {n} رسالةً — هذا التّبويبُ كُلُّه؟',
+    'inbox.deleteAllWarn': 'ولا تَراجُعَ بَعْدَهُ، ويَفْقِدُ أصحابُها رسائلَهم ورُدودَها مِنْ ألواحِهِم.',
+    'inbox.deleteWarnShort': 'ولا تَراجُعَ بَعْدَهُ، ويَفْقِدُ صاحِبُها نُسْخَتَهُ.',
+    'inbox.deleteBusy': 'جارٍ المَسْح…',
+    'inbox.deleteDone': 'مُسِحَ {n}.',
+    'inbox.deleteNone': 'لمْ يُمْسَحْ شيءٌ — لمْ تَعُدْ الرّسالةُ موجودةً.',
+    'inbox.deleteFailed': 'تَعَذَّرَ المَسْح. أَعِدِ المحاولةَ لاحقًا.',
+    'inbox.deletePartial': 'مُسِحَ {n} ثمّ تَعَذَّرَ الباقي.',
+    'inbox.selectStart': 'تحديد',
+    'inbox.selectEnd': 'إنهاءُ التّحديد',
+    'inbox.selectedN': 'المُحَدَّد: {n}',
+    'inbox.selectAria': 'تحديدُ هذه الرّسالة',
+    'inbox.deleteSelected': 'امْسَحِ المُحَدَّد',
   },
   en: {
     'common.close': 'Close',
@@ -1473,6 +1491,24 @@ const EZ_I18N = {
     'inbox.reportsReadOnly': 'Reports are read-only and are not replied to.',
     'inbox.remaining': 'Remaining: {n}',
     'inbox.window': 'Showing the newest {n} messages.',
+    'inbox.delete': 'Delete',
+    'inbox.deleteAria': 'Delete this message',
+    'inbox.deleteOneAsk': 'Delete this message?',
+    'inbox.deleteSelectedAsk': 'Delete the {n} selected messages?',
+    'inbox.deleteAll': 'Delete all',
+    'inbox.deleteAllAsk': 'Delete {n} messages — this entire tab?',
+    'inbox.deleteAllWarn': 'There is no undo, and their senders lose those messages and their replies from their own panels.',
+    'inbox.deleteWarnShort': 'There is no undo, and its sender loses their copy too.',
+    'inbox.deleteBusy': 'Deleting…',
+    'inbox.deleteDone': 'Deleted: {n}.',
+    'inbox.deleteNone': 'Nothing was deleted — the message was no longer there.',
+    'inbox.deleteFailed': 'The delete did NOT go through. Please try again later.',
+    'inbox.deletePartial': 'Deleted {n}, then the rest failed.',
+    'inbox.selectStart': 'Select',
+    'inbox.selectEnd': 'Done selecting',
+    'inbox.selectedN': 'Selected: {n}',
+    'inbox.selectAria': 'Select this message',
+    'inbox.deleteSelected': 'Delete selected',
   },
 };
 
@@ -18034,6 +18070,12 @@ function App() {
     <EzikInboxSheet
       onBack={() => { if (ezikHistBack()) return; setInboxOpen(false); }}
       onRead={() => setInboxUnread((n) => (typeof n === 'number' && n > 0 ? n - 1 : n))}
+      // AFTER AN ERASE THE BADGE IS SET, NOT DECREMENTED. `onRead` above steps down by one because
+      // opening one message is a change of exactly one; a delete can take any number of unread
+      // messages out at once, so the panel hands over THE COUNT api/inbox.js RE-MEASURED after the
+      // erase and this replaces the badge with it. Arithmetic here would be a second opinion about
+      // a number the store already knows.
+      onCount={(n) => setInboxUnread(n)}
     />
   );
   // قفل الإنفاق: المطالبة تظهر فقط أمام الشاشتين اللتين تُنفقان (المحادثة/المكالمة) وحين يكون القفل مفعّلاً وغير مفتوح.
@@ -21209,11 +21251,28 @@ const EZIK_INBOX_STATE_K = {
   answered: 'inbox.stateAnswered',
 };
 
-function EzikInboxSheet({ onBack, onRead }) {
+// 🔴 ERASING IS REAL, AND THE THREE SHAPES OF IT ARE ONE CALL -- RULINGS م١..م٨ OF 2026-09-13.
+// «وحده» sends one id, «المحدَّد» sends the ids that are ticked, «الكل» sends `all: true`; all
+// three are `action: 'delete'` on api/inbox.js and there is no fourth path and no client-side
+// hiding. What leaves the store leaves it for the SENDER TOO -- their message and its reply go
+// out of their own «اقتراح أو شكوى» panel with it -- and the sentence this panel asks before
+// «الكل» says exactly that rather than leaving the owner to find it out afterwards.
+//
+// 🔴 AND NO ROW IS EVER REMOVED FROM THE SCREEN BEFORE THE SERVER HAS ANSWERED. The list is
+// re-read from api/inbox.js and the badge is set from the number that answer carries; nothing
+// here subtracts a row on the assumption that the store did what it was asked. An optimistic
+// removal is a screen that shows a message erased on a store that refused, and the owner would
+// only discover it by reloading -- which is the same fault the fail-CLOSED rule on the route
+// exists to prevent, committed on the other side of the wire.
+function EzikInboxSheet({ onBack, onRead, onCount }) {
   const [kind, setKind] = useState('feedback');
   const [listState, setListState] = useState(EZIK_ART_IDLE);
   const [rows, setRows] = useState([]);
   const [win, setWin] = useState(0);
+  // HOW MANY THE LIST HOLDS, which is not how many this screen shows. `rows` is the newest 200;
+  // «الكل» erases the tab, so the number it names in its question is this one -- see the `stored`
+  // field on api/inbox.js's list answer and the reason written beside it.
+  const [stored, setStored] = useState(0);
   // THE OPENED MESSAGE IS A SECOND LEVEL INSIDE THIS PANEL, and it owns a history entry of its
   // own -- the ladder the two articles sections already use. One press of the device button
   // closes the message; the next closes the panel. A single closer for both would have thrown
@@ -21224,6 +21283,17 @@ function EzikInboxSheet({ onBack, onRead }) {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');
   const [err, setErr] = useState('');
+  // ---- the erase controls ----
+  // `picking` is the selection mode, `picked` the ids ticked in it, and LEAVING THE MODE EMPTIES
+  // THE TICKS (§4-2): a selection that survived being dismissed would be a set the owner cannot
+  // see and could delete by pressing the mode again. `ask` is the question standing in front of
+  // an erase and is the ONLY way one is reached -- there is no bare press anywhere below it.
+  const [picking, setPicking] = useState(false);
+  const [picked, setPicked] = useState([]);
+  const [ask, setAsk] = useState(null);
+  const [delBusy, setDelBusy] = useState(false);
+  const [delNote, setDelNote] = useState('');
+  const [delErr, setDelErr] = useState('');
   const aliveRef = useRef(true);
   const abortRef = useRef(null);
   useEffect(() => () => {
@@ -21250,10 +21320,72 @@ function EzikInboxSheet({ onBack, onRead }) {
       if (!res.ok || !res.data || !Array.isArray(res.data.items)) { setRows([]); setListState(EZIK_ART_FAILED); return; }
       setRows(res.data.items);
       setWin(Number.isInteger(res.data.window) ? res.data.window : 0);
+      setStored(Number.isInteger(res.data.stored) ? res.data.stored : res.data.items.length);
       setListState(EZIK_ART_DONE);
     });
   };
   useEffect(() => { load(kind); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [kind]);
+
+  // Moving between the two tabs drops everything that belonged to the tab being left: the ticks,
+  // the question standing over them, and the last erase's sentence. «الكل» must never be able to
+  // reach the tab it was not asked about (§4-3), and the cheapest way to guarantee that is for
+  // nothing about an erase to survive the switch at all.
+  const switchKind = (next) => {
+    if (next === kind) return;
+    setPicking(false);
+    setPicked([]);
+    setAsk(null);
+    setDelNote('');
+    setDelErr('');
+    setOpen(null);
+    setKind(next);
+  };
+
+  const stopPicking = () => { setPicking(false); setPicked([]); setAsk(null); };
+  const togglePick = (id) => {
+    setPicked((prev) => (prev.indexOf(id) === -1 ? prev.concat([id]) : prev.filter((x) => x !== id)));
+  };
+
+  // ONE ERASE, WHATEVER SHAPE ASKED FOR IT. `payload` is either { ids } or { all: true }; the
+  // session, the action and the CURRENT TAB are added here, so no caller can send an erase at the
+  // tab the owner is not looking at.
+  //
+  // WHAT IS DONE WITH THE ANSWER, and every branch of it is the server's word and not a guess:
+  //   * `deleted` is how many records the store really removed -- an id that named nothing counts
+  //     zero, so «لم يُمسَحْ شيء» is a real outcome and is said in those words.
+  //   * a 503 may still have erased part of a batch, and api/inbox.js reports how much; the owner
+  //     is told that number rather than «تعذَّر المسح» about messages that are gone.
+  //   * `unread` re-badges the menu row, and only for the feedback tab, which is the tab the badge
+  //     counts. The reports tab erases without ever touching it (§4-3).
+  //   * THE LIST IS RE-READ FROM THE ROUTE on any outcome that changed the store, and is LEFT
+  //     EXACTLY AS IT STANDS on the failure that changed nothing (§4-5) -- reloading there would
+  //     replace a correct list with a failure block over a store that is merely refusing writes.
+  const runDelete = (payload) => {
+    const held = readAuthSession();
+    if (!held) { setAsk(null); setDelNote(''); setDelErr(ezT('inbox.deleteFailed')); return; }
+    setAsk(null);
+    setDelNote('');
+    setDelErr('');
+    setDelBusy(true);
+    ezikInbox(Object.assign({ session: held.session, action: 'delete', kind }, payload)).then((res) => {
+      if (!aliveRef.current) return;
+      setDelBusy(false);
+      const got = (res.data && Number.isInteger(res.data.deleted)) ? res.data.deleted : 0;
+      if (!res.ok) {
+        setDelErr(got > 0 ? ezT('inbox.deletePartial', { n: got }) : ezT('inbox.deleteFailed'));
+      } else if (got === 0) {
+        setDelErr(ezT('inbox.deleteNone'));
+      } else {
+        setDelNote(ezT('inbox.deleteDone', { n: got }));
+      }
+      if (kind === 'feedback' && res.data && Number.isInteger(res.data.unread) && typeof onCount === 'function') {
+        onCount(res.data.unread);
+      }
+      setPicked([]);
+      setPicking(false);
+      if (got > 0) { setOpen(null); load(kind); }
+    });
+  };
 
   // OPENING A MESSAGE IS WHAT FILES IT AS READ, and the mark is the server's to lay -- this call
   // IS the read. The row is patched from the answer rather than from an assumption about what the
@@ -21264,6 +21396,9 @@ function EzikInboxSheet({ onBack, onRead }) {
     setErr('');
     setNote('');
     setReply('');
+    setAsk(null);
+    setDelNote('');
+    setDelErr('');
     setOpen({ item: row, reply: null, from: '', loading: true });
     ezikInbox({ session: held.session, action: 'read', id: row.id, kind }).then((res) => {
       if (!aliveRef.current) return;
@@ -21302,10 +21437,35 @@ function EzikInboxSheet({ onBack, onRead }) {
 
   const back = () => { if (open) { setOpen(null); return; } onBack(); };
 
+  // THE SENTENCE THAT STANDS BETWEEN A PRESS AND AN ERASE. «وحده» and «المحدَّد» are asked lightly
+  // and «الكل» is asked with its number and with what it costs the senders (ruling م٦); all three
+  // go through this one component, so none of them can be given a confirm-less path by accident.
+  const askBlock = (question, warn, onYes) => (
+    <div role="alertdialog" aria-label={question} style={s.inboxAsk}>
+      <span style={s.inboxAskText} dir="auto">{question}</span>
+      {warn ? <span style={s.inboxAskWarn} dir="auto">{warn}</span> : null}
+      <div style={s.artChoiceRow}>
+        <button type="button" className="ezhome-focus" disabled={delBusy} onClick={onYes}
+          style={{ ...s.artAction, ...s.inboxDanger, opacity: delBusy ? 0.5 : 1 }}>{ezT('inbox.delete')}</button>
+        <button type="button" className="ezhome-focus" onClick={() => setAsk(null)}
+          style={s.artAction}>{ezT('common.cancel')}</button>
+      </div>
+    </div>
+  );
+
+  const deleteLines = (
+    <>
+      {delBusy ? <div role="status" style={s.artNote}>{ezT('inbox.deleteBusy')}</div> : null}
+      {delNote ? <div role="status" style={s.artNote}>{delNote}</div> : null}
+      {delErr ? <div role="alert" style={s.artError}><span>{delErr}</span></div> : null}
+    </>
+  );
+
   // ---- THE OPENED MESSAGE ----
   if (open) {
     const it = open.item;
     const replyable = kind === 'feedback' && it.hasSender === true;
+    const asking = !!ask && ask.what === 'one' && ask.id === it.id;
     return (
       <EzShell title={ezT('menu.inbox')} onBack={back} backLabel={ezT('common.back')}>
         <section style={s.artRead}>
@@ -21336,6 +21496,20 @@ function EzikInboxSheet({ onBack, onRead }) {
             </div>
           ) : null}
 
+          {/* «وحده وحده» ON THE OPENED MESSAGE (§4-1), and it asks before it acts like every other
+              erase here. Both tabs carry it: erasing a report writes nothing into anybody's view
+              and so is not the reply decision ج١٠ forbids. */}
+          {asking ? askBlock(ezT('inbox.deleteOneAsk'), ezT('inbox.deleteWarnShort'), () => runDelete({ ids: [it.id] }))
+            : (
+              <div style={s.artChoiceRow}>
+                <button type="button" className="ezhome-focus" disabled={delBusy}
+                  onClick={() => { setDelNote(''); setDelErr(''); setAsk({ what: 'one', id: it.id }); }}
+                  style={{ ...s.artAction, ...s.inboxDanger, opacity: delBusy ? 0.5 : 1 }}
+                  aria-label={ezT('inbox.deleteAria')}>{ezT('inbox.delete')}</button>
+              </div>
+            )}
+          {deleteLines}
+
           {/* DECISION ج١٠ -- THE REPORTS TAB HAS NO REPLY CONTROL AT ALL. Not a disabled one and
               not a hidden one: the box is not built. api/inbox.js refuses a report by structure
               rather than by a flag, and this is the same refusal expressed on the screen. */}
@@ -21365,17 +21539,60 @@ function EzikInboxSheet({ onBack, onRead }) {
   }
 
   // ---- THE LIST ----
+  // THE NUMBER «الكل» NAMES IS THE STORED ONE (ruling م٦). It falls back to the rows on screen
+  // only when the route did not say -- an older deployment -- and never names a larger promise
+  // than what is about to happen.
+  const allCount = stored > 0 ? stored : rows.length;
   return (
     <EzShell title={ezT('menu.inbox')} onBack={back} backLabel={ezT('common.back')}>
       <EzShellGroup title={ezT('menu.inbox')}>
         <div style={s.artChoiceRow}>
           {EZIK_INBOX_TABS.map((t) => (
             <button key={t.id} type="button" className="ezhome-focus" aria-pressed={kind === t.id}
-              onClick={() => { setKind(t.id); setOpen(null); }}
+              onClick={() => switchKind(t.id)}
               style={{ ...s.artChoice, ...(kind === t.id ? s.artChoiceOn : null) }}>{ezT(t.k)}</button>
           ))}
         </div>
+        {/* THE THREE ERASES LIVE INSIDE THE PANEL THAT IS ALREADY OPEN (ruling م٨) -- no new menu
+            row and no new `screen` key. They are drawn only over a list that has something in it,
+            because an erase control above «لا رسائلَ هنا» is a control with nothing to act on. */}
+        {listState === EZIK_ART_DONE && rows.length > 0 ? (
+          <div style={s.artChoiceRow}>
+            <button type="button" className="ezhome-focus" aria-pressed={picking}
+              onClick={() => { if (picking) { stopPicking(); } else { setDelNote(''); setDelErr(''); setPicking(true); } }}
+              style={{ ...s.artChoice, ...(picking ? s.artChoiceOn : null) }}>
+              {picking ? ezT('inbox.selectEnd') : ezT('inbox.selectStart')}
+            </button>
+            <button type="button" className="ezhome-focus" disabled={delBusy}
+              onClick={() => { setDelNote(''); setDelErr(''); setAsk({ what: 'all', id: '' }); }}
+              style={{ ...s.artChoice, ...s.inboxDanger, opacity: delBusy ? 0.5 : 1 }}>{ezT('inbox.deleteAll')}</button>
+          </div>
+        ) : null}
+        {/* «المحدَّد» -- the bar that names how many are ticked and is the only way to erase them.
+            It is drawn even at zero so the count the owner is building is always on screen, and
+            its button is dead until there is something to act on. */}
+        {picking ? (
+          <div style={s.inboxBar}>
+            <span style={s.inboxAskText}>{ezT('inbox.selectedN', { n: picked.length })}</span>
+            <button type="button" className="ezhome-focus" disabled={delBusy || picked.length === 0}
+              onClick={() => { setDelNote(''); setDelErr(''); setAsk({ what: 'selected', id: '' }); }}
+              style={{ ...s.artAction, ...s.inboxDanger, opacity: (delBusy || picked.length === 0) ? 0.5 : 1 }}>
+              {ezT('inbox.deleteSelected')}
+            </button>
+          </div>
+        ) : null}
       </EzShellGroup>
+
+      {/* RULING م٦ IN ITS STRONGEST FORM: «الكل» names the number and says out loud that the
+          senders lose their copies, because that is the one consequence of this button that is
+          not visible from the screen it is pressed on. «المحدَّد» is asked lightly beside it. */}
+      {ask && ask.what === 'all'
+        ? askBlock(ezT('inbox.deleteAllAsk', { n: allCount }), ezT('inbox.deleteAllWarn'), () => runDelete({ all: true }))
+        : null}
+      {ask && ask.what === 'selected'
+        ? askBlock(ezT('inbox.deleteSelectedAsk', { n: picked.length }), ezT('inbox.deleteWarnShort'), () => runDelete({ ids: picked.slice() }))
+        : null}
+      {deleteLines}
 
       {listState === EZIK_ART_LOADING ? <div role="status" style={s.artNote}>{ezT('common.loading')}</div> : null}
       {listState === EZIK_ART_FAILED ? (
@@ -21393,16 +21610,46 @@ function EzikInboxSheet({ onBack, onRead }) {
         <>
           <div style={s.artList}>
             {rows.map((r) => (
-              <button key={r.id} type="button" className="ezhome-focus" style={s.artRow} onClick={() => openItem(r)}>
-                <div style={s.artRowMeta}>
-                  <span style={s.artQaMark}>{ezT(EZIK_INBOX_STATE_K[r.state] || 'inbox.stateNew')}</span>
-                  <span style={s.artRowDate}>{ezikInboxWhen(r.ts)}</span>
-                  {r.hasSender === false ? <span style={s.artRowDate}>{ezT('inbox.noSender')}</span> : null}
-                </div>
-                <span style={s.artRowTitle} dir="auto">{r.text}</span>
-              </button>
+              /* THE ROW IS A CONTAINER AND NOT A BUTTON ANY MORE, because it now carries a second
+                 control beside the one that opens it, and a button inside a button is markup no
+                 browser and no screen reader agrees about. The opening half keeps s.artRow, so
+                 nothing about how the row LOOKS moved. */
+              <div key={r.id} style={s.inboxRowWrap}>
+                {picking ? (
+                  <input type="checkbox" checked={picked.indexOf(r.id) !== -1}
+                    onChange={() => togglePick(r.id)} style={s.inboxPick}
+                    aria-label={ezT('inbox.selectAria')} />
+                ) : null}
+                <button type="button" className="ezhome-focus" style={{ ...s.artRow, ...s.inboxRowMain }}
+                  onClick={() => (picking ? togglePick(r.id) : openItem(r))}>
+                  <div style={s.artRowMeta}>
+                    <span style={s.artQaMark}>{ezT(EZIK_INBOX_STATE_K[r.state] || 'inbox.stateNew')}</span>
+                    <span style={s.artRowDate}>{ezikInboxWhen(r.ts)}</span>
+                    {r.hasSender === false ? <span style={s.artRowDate}>{ezT('inbox.noSender')}</span> : null}
+                  </div>
+                  <span style={s.artRowTitle} dir="auto">{r.text}</span>
+                </button>
+                {/* «وحده وحده» ON THE ROW (§4-1). It is not drawn while the selection mode is on:
+                    there the row belongs to the batch, and two ways to erase the same row on the
+                    same screen is the second one being pressed by mistake. */}
+                {!picking ? (
+                  <button type="button" className="ezhome-focus" disabled={delBusy}
+                    onClick={() => { setDelNote(''); setDelErr(''); setAsk({ what: 'one', id: r.id }); }}
+                    style={{ ...s.inboxIcon, opacity: delBusy ? 0.5 : 1 }} aria-label={ezT('inbox.deleteAria')}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--a3-muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M6 6l1 14h10l1-14" />
+                    </svg>
+                  </button>
+                ) : null}
+              </div>
             ))}
           </div>
+          {/* The one-row question is drawn UNDER the list rather than inside the row it names, so
+              a long message is not pushed off the screen by its own confirmation. It stays next
+              to a list where that row is still visible and unmoved. */}
+          {ask && ask.what === 'one'
+            ? askBlock(ezT('inbox.deleteOneAsk'), ezT('inbox.deleteWarnShort'), () => runDelete({ ids: [ask.id] }))
+            : null}
           {/* THE WINDOW IS NAMED RATHER THAN IMPLIED. api/inbox.js answers over the newest N of a
               list that is trimmed to five thousand, and a screen that showed those N without
               saying so would let the owner believe he had reached the end of his inbox. */}
@@ -29755,6 +30002,21 @@ const s = {
   artRowMeta: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
   artQaMark: { fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 999, border: '1px solid var(--a3-line)', background: 'var(--a3-ice)', color: 'var(--a3-ink)' },
   artRowDate: { fontSize: 13, color: 'var(--a3-muted)' },
+  // ITEM 92-ج, the erase controls. The row keeps s.artRow for its opening half and gains a
+  // container around it, so the list looks exactly as it did and only grows a control on the side.
+  // Every target here is at least 44px in the direction a thumb travels, which is the same floor
+  // s.artRow, s.artAction and s.artRetry already stand on.
+  inboxRowWrap: { display: 'flex', alignItems: 'stretch', gap: 6 },
+  inboxRowMain: { flex: 1, minWidth: 0 },
+  inboxIcon: { width: 44, minHeight: 44, flexShrink: 0, borderRadius: 12, border: '1px solid var(--a3-line)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  inboxPick: { width: 22, height: 22, flexShrink: 0, alignSelf: 'center', accentColor: 'var(--a3-blue)', cursor: 'pointer' },
+  inboxBar: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '8px 2px' },
+  inboxAsk: { display: 'flex', flexDirection: 'column', gap: 8, padding: '12px 14px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)' },
+  inboxAskText: { fontSize: 15, fontWeight: 700, color: 'var(--a3-ink)', lineHeight: 1.8 },
+  inboxAskWarn: { fontSize: 14, color: 'var(--a3-muted)', lineHeight: 1.8 },
+  // The one colour in this panel that means "this does not come back". It is the app's own --red,
+  // not a new value, so a theme that re-tints the palette re-tints this with it.
+  inboxDanger: { borderColor: 'var(--red)', color: 'var(--red)', fontWeight: 700 },
   artWriteBtn: { minHeight: 44, padding: '8px 14px', borderRadius: 10, border: '1px solid var(--a3-line)', background: 'var(--a3-ice)', color: 'var(--a3-ink)', fontSize: 14, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' },
   artRead: { display: 'flex', flexDirection: 'column', gap: 10 },
   artReadTitle: { fontSize: 19, fontWeight: 700, lineHeight: 1.9, color: 'var(--a3-ink)', margin: 0, overflowWrap: 'anywhere' },

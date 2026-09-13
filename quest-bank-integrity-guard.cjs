@@ -1165,6 +1165,19 @@ const SEALED = {
 //                    shell did not grow. The worker table at :121 and the app.js mirror below
 //                    followed, and THIS digest is re-cut LAST. SW.JS IS OTHERWISE UNTOUCHED and
 //                    CACHE IS NOT BUMPED: this is a branch for the owner to preview, not a ship.
+  //   2026-09-13-ii -- ITEM 92-ج, THE ERASE: the owner's inbox gains delete-one, delete-selected
+//                    and delete-the-whole-tab. INDEX.HTML DID NOT MOVE this round either -- the
+//                    three controls are app.jsx and the sixth action is a SERVER FUNCTION
+//                    (api/inbox.js, which is not an asset, is not in CORE and is not sealed
+//                    here), and no root file was added -- so the shell figure and its mirror were
+//                    already true and only the BUNDLE figures moved. app.js was rebuilt
+//                    1683961 -> 1697965 (+14004) by node tools/build-app.cjs, and CORE_BYTES was
+//                    re-cut 2772292 -> 2786296 (+14004) by node tools/core-bytes.cjs --write,
+//                    which is exactly the bundle delta because the shell did not grow. The worker
+//                    table at :121 and the app.js mirror below followed, and THIS digest is re-cut
+//                    LAST. SW.JS IS OTHERWISE UNTOUCHED and CACHE IS NOT BUMPED: this is a branch
+//                    for the owner to preview, not a ship, and sw.js says the merge round owns
+//                    the bump.
   //   2026-09-13   -- ITEM 92-ج: THE OWNER'S INBOX. INDEX.HTML DID NOT MOVE this round either --
 //                    the two panels are app.jsx, the route is a SERVER FUNCTION (api/inbox.js,
 //                    which is not an asset, is not in CORE and is not sealed here), and no root
@@ -1176,7 +1189,7 @@ const SEALED = {
 //                    mirror below followed, and THIS digest is re-cut LAST. SW.JS IS OTHERWISE
 //                    UNTOUCHED and CACHE IS NOT BUMPED: this is a branch for the owner to preview,
 //                    not a ship, and sw.js says the merge round owns the bump.
-  'sw.js': '8fec481c42360620a76a6016d75987a0130a965684c86652f119b23f087d89d7',
+  'sw.js': '7b74a9890e2ad0839fe1a7d3d227dea6fbb55341895b87519a65d0c6355fb366',
 };
 
 // ---------------------------------------------------------------------------
@@ -2301,7 +2314,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1683961, of: 'app.js' },
+      { n: 1697965, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

@@ -1,7 +1,7 @@
 // ============================================================
 // The owner's inbox — صندوقُ رسائلِ المالك  (api/inbox.js)
 // ============================================================
-// ONE DOOR, FIVE ACTIONS, TWO AUDIENCES. The owner reads what readers sent and answers it; a
+// ONE DOOR, SIX ACTIONS, TWO AUDIENCES. The owner reads what readers sent and answers it; a
 // reader reads the answer to their own message and nothing else. Both halves are here because
 // they are one feature and a reply written on one route and read on another is two routes that
 // eventually disagree about what a reply is.
@@ -34,6 +34,15 @@
 // action answers 503 with a named code. Returning `[]` when the store could not be read would
 // make "nobody has written to you" and "your store is gone" the same sentence on the same screen,
 // which is the one outcome this route is forbidden to produce.
+//
+// 🔴 AND `delete` ERASES, IT DOES NOT HIDE -- RULINGS م١..م٤ OF 2026-09-13. There is no
+// "deleted for the owner, still in the store" state, because a record nobody can see is a record
+// nobody sweeps and it would sit in that list until the 5000-element trim happened to reach it.
+// A delete therefore takes the element OUT of the list and takes its three dependent keys with it
+// (م٢), which means THE SENDER LOSES THEIR COPY TOO -- their message and its reply both leave
+// `mine`, because there is one record and it is gone (م٣). Nothing is recoverable and there is no
+// second store holding a shadow of it (م٤). The owner was told all of this in those words before
+// the action existed, and the screen says it again in the sentence it asks before it runs.
 
 import crypto from 'node:crypto';
 import { Redis } from '@upstash/redis';
@@ -50,10 +59,10 @@ const redis = new Redis({
   token: process.env.KV_REST_API_TOKEN,
 });
 
-export const INBOX_ACTIONS = Object.freeze(['list', 'read', 'reply', 'mine', 'seen']);
+export const INBOX_ACTIONS = Object.freeze(['list', 'read', 'reply', 'delete', 'mine', 'seen']);
 
-/** The three that are the owner's alone. Named once, so the gate below cannot drift from them. */
-export const OWNER_ACTIONS = Object.freeze(['list', 'read', 'reply']);
+/** The four that are the owner's alone. Named once, so the gate below cannot drift from them. */
+export const OWNER_ACTIONS = Object.freeze(['list', 'read', 'reply', 'delete']);
 
 /**
  * The two lists, and they are the two keys that already exist. 'feedback' is api/feedback.js's
@@ -76,6 +85,25 @@ const LIST_WINDOW = 200;
 const REPLY_PREFIX = 'reply:v1:';
 const READ_PREFIX = 'inbox:v1:read:';
 const SEEN_PREFIX = 'inbox:v1:seen:';
+
+/**
+ * EVERYTHING THAT HANGS OFF ONE MESSAGE, NAMED ONCE -- RULING م٢. `delete` erases the record and
+ * then erases these, and it reads this list rather than re-typing three prefixes, so a FOURTH
+ * per-message key invented later is deleted by the act of being added here and cannot be left
+ * behind as an orphan by a delete path that was written before it existed.
+ */
+const DEPENDENT_PREFIXES = Object.freeze([REPLY_PREFIX, READ_PREFIX, SEEN_PREFIX]);
+
+/**
+ * THE CEILING ON ONE `delete` REQUEST, AND IT IS THE DISPLAY WINDOW ITSELF rather than a second
+ * number that happens to equal it today. The owner selects rows on a screen that shows at most
+ * LIST_WINDOW of them, so a batch larger than the window could not have come from that screen.
+ */
+const DELETE_IDS_CAP = LIST_WINDOW;
+
+// How many keys travel in one DEL. The whole-tab erase can hold 5000 messages x 3 keys, and one
+// command carrying fifteen thousand arguments is a request the REST door is entitled to refuse.
+const DELETE_KEY_BATCH = 60;
 
 // The three states, derived. They are strings rather than numbers because they cross to a client
 // that has to write them into a sentence, and a client translating 0/1/2 back into words is a
@@ -156,6 +184,11 @@ function senderOf(rec) {
 /**
  * THE WHOLE WINDOW OF ONE LIST, READ AND PARSED. Throws on a store fault so that every caller
  * answers 503 through one path instead of each deciding for itself what an unreadable list means.
+ *
+ * `text` IS THE STORED ELEMENT AS THE STORE HOLDS IT, and it is carried out of here for one
+ * caller: `delete`, which removes a message by LREM ON THAT MEMBER and would remove the wrong
+ * message -- or none -- if it were handed a re-serialisation instead. Every other caller ignores
+ * it. See recordOf() above on why the string and the object travel together.
  */
 async function readWindow(kind) {
   const raw = await redis.lrange(kind, 0, LIST_WINDOW - 1);
@@ -164,7 +197,7 @@ async function readWindow(kind) {
   for (const element of raw) {
     const rec = recordOf(element);
     if (!rec) continue;
-    out.push({ id: idOf(rec), sender: senderOf(rec), obj: rec.obj });
+    out.push({ id: idOf(rec), sender: senderOf(rec), obj: rec.obj, text: rec.text });
   }
   return out;
 }
@@ -340,18 +373,58 @@ async function ownerAction(req, res, body, action) {
       const marks = await marksFor(items);
       let unread = 0;
       for (const it of items) { if (stateOf(it.id, marks) === STATE_NEW) unread += 1; }
+      // `stored` IS THE WHOLE LIST'S LENGTH AND `total` IS THE WINDOW'S -- and the difference
+      // between them is the reason this field exists. Ruling م٦ makes the erase-everything
+      // question name its number, and the number that question is about is how many records the
+      // list HOLDS, not how many of them this screen is showing. Naming `total` there would ask
+      // the owner to approve deleting two hundred and then delete five thousand.
+      const stored = await redis.llen(kind);
       return res.status(200).json({
         ok: true,
         kind,
         window: LIST_WINDOW,
         unread,
         total: items.length,
+        stored: Number.isInteger(stored) ? stored : items.length,
         items: items.slice(0, limit).map((it) => listRow(it, marks)),
       });
     } catch (e) {
       console.error('[inbox] list FAILED, fail-CLOSED:', e && e.message ? e.message : e);
       return res.status(503).json({ ok: false, error: 'inbox-store' });
     }
+  }
+
+  // ---- delete ----
+  //
+  // 🔴 IT SITS ABOVE THE SINGLE-ID GUARD ON PURPOSE. `read` and `reply` are about one message and
+  // are refused without one; `delete` names a SET of them -- `ids`, or `all` -- so the id it is
+  // given is a list and there is no single `body.id` for the line below to find. Falling through
+  // that guard would have answered `inbox-id` to a perfectly well-formed erase of forty rows.
+  if (action === 'delete') {
+    const kind = typeof body.kind === 'string' ? body.kind : '';
+    if (!KINDS.includes(kind)) return res.status(400).json({ ok: false, error: 'inbox-kind' });
+    // BOTH TABS ERASE, AND THE READ-ONLY RULE IS NOT WEAKENED BY THAT. Decision ج١٠ forbids
+    // ANSWERING a report, which is a thing this route writes INTO the sender's view; erasing one
+    // writes nothing anywhere and leaves api/report.js untouched (ruling م٧) -- it is the same
+    // act the owner performs on his own inbox, performed on the other list.
+    if (body.all === true) return deleteWholeList(res, kind);
+
+    const raw = Array.isArray(body.ids) ? body.ids : null;
+    if (!raw || raw.length === 0) return res.status(400).json({ ok: false, error: 'inbox-ids' });
+    if (raw.length > DELETE_IDS_CAP) return res.status(400).json({ ok: false, error: 'inbox-ids-cap' });
+    // A MALFORMED ID IS DROPPED RATHER THAN FATAL, which is the rule for an id that names nothing
+    // applied one step earlier: both are "there is no such message", both leave the rest of the
+    // batch alone, and neither is counted as a deletion. Duplicates collapse here too, so an id
+    // sent twice erases one message and is reported as one.
+    const wanted = [];
+    const seen = new Set();
+    for (const v of raw) {
+      const id = safeInboxId(v);
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      wanted.push(id);
+    }
+    return deleteSelected(res, kind, wanted);
   }
 
   const id = safeInboxId(body.id);
@@ -434,6 +507,109 @@ async function ownerAction(req, res, body, action) {
     console.error('[inbox] reply FAILED, fail-CLOSED:', e && e.message ? e.message : e);
     return res.status(503).json({ ok: false, error: 'inbox-store' });
   }
+}
+
+/**
+ * THE UNREAD COUNT OF ONE TAB, RE-MEASURED AFTER AN ERASE -- and it answers `null` rather than
+ * throwing.
+ *
+ * 🔴 WHY IT CANNOT BE ALLOWED TO FAIL THE REQUEST. It runs AFTER records have already left the
+ * store, so a fault here is a fault in a count and not in the deletion. Turning it into the 503
+ * of the enclosing action would tell the owner "nothing was deleted" about messages that are
+ * gone -- the exact lie the closed-failure rule exists to prevent, told in the other direction.
+ * `null` travels instead, and the client leaves its badge alone and re-reads it on the next open.
+ */
+async function unreadAfter(kind) {
+  try {
+    const items = await readWindow(kind);
+    const marks = await marksFor(items);
+    let unread = 0;
+    for (const it of items) { if (stateOf(it.id, marks) === STATE_NEW) unread += 1; }
+    return unread;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * ERASE THE NAMED MESSAGES OF ONE TAB.
+ *
+ * 🔴 BY MEMBER, NEVER BY INDEX. `LREM <key> 1 <member>` names the record by the bytes the store
+ * is holding. The index form -- read row 7, delete row 7 -- is a race with a name: these are
+ * LPUSH lists, so one message arriving between the read and the write shifts every row down by
+ * one and row 7 becomes somebody else's. That is the same reasoning idOf() is written on, and it
+ * is why the stored text is carried out of readWindow() at all.
+ *
+ * THE RECORD LEAVES FIRST AND ITS DEPENDENTS FOLLOW (ruling م٢, in the order the order gives).
+ * A fault between the two steps leaves keys with no message, which is recoverable and invisible;
+ * the reverse order would leave a message whose reply had silently evaporated, which the owner
+ * would read as a delivered answer that never existed.
+ *
+ * AND THE COUNT IS WHAT THE STORE DID, NOT WHAT WAS ASKED. LREM answers how many elements it
+ * actually removed; an id that named nothing adds nothing to `deleted` and does not stop the
+ * batch, and a fault halfway through reports the messages that really went.
+ */
+async function deleteSelected(res, kind, ids) {
+  let deleted = 0;
+  try {
+    const items = await readWindow(kind);
+    const byId = new Map();
+    for (const it of items) { if (!byId.has(it.id)) byId.set(it.id, it); }
+    for (const id of ids) {
+      const found = byId.get(id);
+      if (!found) continue;
+      const removed = await redis.lrem(kind, 1, found.text);
+      if (!Number.isInteger(removed) || removed < 1) continue;
+      await redis.del(...DEPENDENT_PREFIXES.map((p) => p + id));
+      deleted += 1;
+    }
+  } catch (e) {
+    console.error('[inbox] delete FAILED, fail-CLOSED:', e && e.message ? e.message : e);
+    return res.status(503).json({ ok: false, error: 'inbox-store', kind, deleted });
+  }
+  return res.status(200).json({ ok: true, kind, deleted, unread: await unreadAfter(kind) });
+}
+
+/**
+ * ERASE A WHOLE TAB -- ruling م٦'s "all", and ONE TAB ONLY: `kind` is the key, the other list is
+ * never named by this function and cannot be reached from it.
+ *
+ * 🔴 THE ORDER OF THE THREE STEPS IS THE WHOLE OF THIS FUNCTION. The ids are collected out of the
+ * list BEFORE anything is deleted, the dependent keys go next, and the list itself goes LAST.
+ * Deleting the list first would be one command shorter and would destroy the only copy of the ids
+ * -- every reply, read mark and seen mark in it would then be unreachable and unsweepable for as
+ * long as the store lives, which is precisely the orphan ruling م٢ forbids.
+ *
+ * IT READS THE LIST WHOLE (`0, -1`) AND NOT THE 200-ROW WINDOW, because this erases the tab and
+ * not the screen. The read is bounded anyway: api/feedback.js LTRIMs to 5000 and api/report.js
+ * does the same, so "whole" has a ceiling that is enforced by the writers.
+ */
+async function deleteWholeList(res, kind) {
+  let deleted = 0;
+  try {
+    const raw = await redis.lrange(kind, 0, -1);
+    if (!Array.isArray(raw)) throw new Error('list did not answer with a list');
+    const keys = [];
+    for (const element of raw) {
+      const rec = recordOf(element);
+      if (!rec) continue;
+      const id = idOf(rec);
+      for (const p of DEPENDENT_PREFIXES) keys.push(p + id);
+    }
+    for (let i = 0; i < keys.length; i += DELETE_KEY_BATCH) {
+      await redis.del(...keys.slice(i, i + DELETE_KEY_BATCH));
+    }
+    await redis.del(kind);
+    // EVERY ELEMENT THE LIST HELD IS GONE, INCLUDING ANY THIS ROUTE COULD NOT PARSE -- so the
+    // count is the list's length and not the number of readable records in it. A message LPUSHed
+    // between the read above and the DEL is erased by it and is NOT counted; undercounting a
+    // deletion nobody asked for is the honest direction for that race to fall.
+    deleted = raw.length;
+  } catch (e) {
+    console.error('[inbox] delete-all FAILED, fail-CLOSED:', e && e.message ? e.message : e);
+    return res.status(503).json({ ok: false, error: 'inbox-store', kind, deleted });
+  }
+  return res.status(200).json({ ok: true, kind, deleted, unread: await unreadAfter(kind) });
 }
 
 /**
