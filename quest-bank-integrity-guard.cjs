@@ -113,6 +113,24 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-09-13-f -- ITEM 2: TWO CORPORA JOIN THE WORKER'S CORE LIST. arbaeen.json (67360
+  //                    bytes, 36B6DF66) and daily-tafsir.json (23984 bytes, E26E09F1) were
+  //                    fetched from the origin root on first open and cached only by the
+  //                    runtime rule, so a first open with NO NETWORK drew two empty sections.
+  //                    Both are now named in CORE beside the other data entries, each with a
+  //                    prose line in the array's own voice. NEITHER CORPUS WAS WRITTEN -- both
+  //                    were read for their size and nothing else, and their digests above are
+  //                    the same ones 2026-09-13-e recorded. CORE_BYTES was re-cut 2607255 ->
+  //                    2698599 (+91344, exactly 67360 + 23984) by node tools/core-bytes.cjs
+  //                    --write. The worker's own byte table, now at :125, gained both figures
+  //                    in its existing descending order; SW_CORE and SW_CORE_FILES gained both
+  //                    entries in CORE's order, and SW_PROSE gained a row for each, so B12 and
+  //                    B14 re-derive the two new numbers rather than trusting them. THIS digest
+  //                    is re-cut LAST, after every other sw.js edit was final. THE CACHING
+  //                    STRATEGY IS UNTOUCHED: the fetch handler, the sealed-mushaf exclusion
+  //                    and the revalidation branch are all exactly as they were. CACHE is NOT
+  //                    bumped: sw.js says the merge round owns the bump, and install rewrites
+  //                    every CORE entry into the same store.
   //   2026-09-13-e -- THE FORTY, AMENDED: THE CORPUS'S LATIN COMMA IS DRAWN AS AN ARABIC ONE,
   //                    AND THE HEADING CAP MOVES 40 -> 56. Both changes live entirely inside
   //                    arbaeenTopic in app.jsx, which is a DISPLAY derivation: arbaeen.json is
@@ -1094,7 +1112,7 @@ const SEALED = {
 //                    shell did not grow. The worker table at :121 and the app.js mirror below
 //                    followed, and THIS digest is re-cut LAST. SW.JS IS OTHERWISE UNTOUCHED and
 //                    CACHE IS NOT BUMPED: this is a branch for the owner to preview, not a ship.
-  'sw.js': 'a188a4bf0dfd65bde8c79d221295bc149817a004804f11be69e91355717951bb',
+  'sw.js': 'd9de69baaff76b1d1291042d4c7b613b91a27c2f333dcc7c34e709d00a0fa61f',
 };
 
 // ---------------------------------------------------------------------------
@@ -1146,7 +1164,7 @@ const SW_REVALIDATED = ['/adhkar.json', '/worship-display.json', '/manifest.json
 // and not the face it is drawn in leaves an offline returning reader in the UA's fallback serif.
 const SW_CORE = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png',
   '/icon-maskable-512.png', '/icon-watermark.png', '/adhkar.json',
-  '/adhkar-split-27.json',
+  '/adhkar-split-27.json', '/arbaeen.json', '/daily-tafsir.json',
   '/app.js', '/vendor/react.umd.js', '/vendor/react-dom.umd.js',
   '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2',
   '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2'];
@@ -1154,6 +1172,7 @@ const SW_CORE = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png',
 // CORE_BYTES constant that has fallen below it.
 const SW_CORE_FILES = ['index.html', 'manifest.json', 'icon-192.png', 'icon-512.png',
   'icon-maskable-512.png', 'icon-watermark.png', 'adhkar.json', 'adhkar-split-27.json',
+  'arbaeen.json', 'daily-tafsir.json',
   'app.js', 'vendor/react.umd.js', 'vendor/react-dom.umd.js',
   'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2',
   'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2'];
@@ -2224,6 +2243,10 @@ async function compare(goldenPath) {
       { n: 177392, of: 'adhkar.json' },
       // The owner's split of category 27, precached beside adhkar.json since the ship round.
       { n: 7182, of: 'adhkar-split-27.json' },
+      // ITEM 2. The two corpora that joined CORE on 2026-09-13 -- the forty and the daily verse's
+      // tafsir -- each stated in the worker's byte table and re-derived here from the file it names.
+      { n: 67360, of: 'arbaeen.json' },
+      { n: 23984, of: 'daily-tafsir.json' },
       { n: 12893, of: 'icon-512.png' },
       { n: 5938, of: 'icon-maskable-512.png' },
       { n: 5053, of: 'icon-192.png' },
