@@ -867,8 +867,8 @@ async function partD() {
       // opposite answer, which is what a reversed rule is supposed to look like.
       eq('...and the women corner is NOT on his shelf, because this account answered «male»',
         shelfIds.indexOf('women'), -1);
-      eq('...and the nine that remain are these, in the order the shelf order fixed', shelfIds,
-        ['asmaa', 'articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
+      eq('...and the ten that remain are these, in the order the shelf order fixed', shelfIds,
+        ['asmaa', 'articles', 'memorize', 'adhkar', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
       // ITEM 20 / §1 -- THE NAME, READ OFF THE TILE THAT DRAWS IT. A dictionary entry no card
       // renders is a string nobody sees, so the shelf itself is asked what it says.
       const artTile = mosaic.querySelector('[data-ezik-home-module="articles"]');
@@ -892,10 +892,21 @@ async function partD() {
     // the verse is still driven as a display below, and the compass control is named and driven
     // by its accessible name on its own two lines under the menu button's.
     eq('the top bar carries exactly three elements', d.all('.ezist-nav-inner')[0].children.length, 3);
-    eq('...and exactly two of them are controls', d.all('.ezist-nav button').length, 2);
-    eq('...the daily verse being the other, and a display: no role', d.all('.ezist-nav .ezist-quran')[0].getAttribute('role'), null);
+    // ITEM 27: ALL THREE ARE CONTROLS NOW. The owner ruled the daily verse a door -- it opens
+    // that verse's tafsir -- so the member that used to be the bar's one display is its third
+    // control. The count is still exact and is not relaxed: three members, three controls, and
+    // each of the three named on its own line below so a fourth cannot hide inside the number.
+    eq('ITEM 27: ...and all three of them are controls now', d.all('.ezist-nav button').length, 3);
+    // ...AND THE VERSE IS A REAL BUTTON, not a div wearing a handler. What the old display
+    // checks were protecting -- that this member is never a thing you can press without the
+    // platform knowing -- is what these assert: it is a <button>, so it is focusable, in the
+    // tab ring and announced as a control, and it states no role or tabindex of its own to
+    // contradict that. It also still holds no SECOND control inside it.
+    eq('ITEM 27: ...the daily verse being one of them, and a real button', d.all('.ezist-nav .ezist-quran')[0].tagName.toLowerCase(), 'button');
+    eq('...stating no role of its own', d.all('.ezist-nav .ezist-quran')[0].getAttribute('role'), null);
     eq('...no tabindex', d.all('.ezist-nav .ezist-quran')[0].getAttribute('tabindex'), null);
-    eq('...and nothing clickable inside it', d.all('.ezist-nav .ezist-quran button, .ezist-nav .ezist-quran a').length, 0);
+    eq('...and nothing clickable INSIDE it -- a control in a control is unreachable',
+      d.all('.ezist-nav .ezist-quran button, .ezist-nav .ezist-quran a').length, 0);
     eq('the four controls the bar used to carry are gone from it',
       d.all('.ezist-nav button').filter((b) => ['عزك', 'الرئيسية', 'الإعدادات', 'الحساب']
         .indexOf(String(b.getAttribute('aria-label') || '')) !== -1).length, 0);
@@ -906,7 +917,14 @@ async function partD() {
     {
       const navInner = d.all('.ezist-nav-inner')[0];
       const navKids = Array.prototype.slice.call(navInner.children);
-      const compass = d.all('.ezist-nav button')[1];
+      // ITEM 27: BY ITS ACCESSIBLE NAME, not by its index. This read the SECOND button in the
+      // bar, and the daily verse became a button between the menu and the compass -- so the
+      // index silently started pointing at the verse, and every assertion below it would have
+      // been made about the wrong element. Its own prose already says the compass is «named
+      // and driven by its accessible name»; this is that, and it cannot drift again when a
+      // fourth member arrives.
+      const compass = d.all('.ezist-nav button')
+        .filter((b) => String(b.getAttribute('aria-label') || '') === '\u0627\u0644\u0628\u0648\u0635\u0644\u0629')[0];
       if (ok('the top nav carries the compass mark', !!compass)) {
         eq('...as a type="button"', compass.getAttribute('type'), 'button');
         eq('...named «البوصلة»', compass.getAttribute('aria-label'), '\u0627\u0644\u0628\u0648\u0635\u0644\u0629');
@@ -1206,9 +1224,9 @@ async function partD() {
       ok('\u00a73: the women corner is BACK on his shelf, for the answer he just saved',
         back.indexOf('women') !== -1, JSON.stringify(back));
       eq('\u00a72: ...and it is back LAST, not where it used to be', back[back.length - 1], 'women');
-      eq('\u00a73: ...and the nine it joins are the nine that were there, in their order',
+      eq('\u00a73: ...and the ten it joins are the ten that were there, in their order',
         back.slice(0, -1),
-        ['asmaa', 'articles', 'memorize', 'adhkar', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
+        ['asmaa', 'articles', 'memorize', 'adhkar', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
       eq('\u00a73: ...and the account it read is the one the save wrote',
         JSON.parse(c.store.getItem('child_profile')).gender, 'female');
       // AND THE ABANDONED KEY PLAYED NO PART IN IT. The device never held one in this run, and

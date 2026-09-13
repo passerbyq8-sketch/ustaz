@@ -25,7 +25,7 @@
 
 ## شاشات إستانة ٣٣ — القائمة الكاملة
 
-### index.html — ١٤ شاشة، صفر legacy
+### index.html — ١٦ شاشة، صفر legacy
 
 | الشاشة | المفردات |
 |---|---|
@@ -43,6 +43,8 @@
 | memorize | `.ezsh-*` (الغلاف المشترك) |
 | mushaf | `.ezmr-*` |
 | adhkar | `.ezia-*` |
+| arbaeen | `.ezia-*` |
+| ayah-tafsir | `EzShell` المشترك |
 
 ### الحواجز الثلاثة — كلها إستانة
 

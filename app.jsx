@@ -96,6 +96,7 @@ function ezLangRelabel() {
     EZH_NAV_MENU = ezT("navigation.menu");
     EZH_MEMORIZE = ezT("module.memorize");
     EZH_ADHKAR = ezT("module.adhkar");
+    EZH_ARBAEEN = ezT("module.arbaeen");
     EZH_MUSHAF = ezT("module.mushaf");
     EZH_TREASURE = ezT("module.treasure");
     EZH_FATWA = ezT("module.fatwa");
@@ -107,6 +108,7 @@ function ezLangRelabel() {
     EZIST_SUB_WOMEN = ezT("module.women.sub");
     EZIST_SUB_MEMORIZE = ezT("module.memorize.sub");
     EZIST_SUB_ADHKAR = ezT("module.adhkar.sub");
+    EZIST_SUB_ARBAEEN = ezT("module.arbaeen.sub");
     EZIST_SUB_MUSHAF = ezT("module.mushaf.sub");
     EZIST_SUB_TREASURE = ezT("module.treasure.sub");
     EZIST_SUB_FATWA = ezT("module.fatwa.sub");
@@ -115,7 +117,7 @@ function ezLangRelabel() {
     // EZIST_SUB_LIBRARY are plain strings, not ezT lookups -- but they must still be CARRIED. This is a whole-table
     // replacement, so an id left out of it is not left at its old wording: it is deleted, and
     // the prayer card lost its second line on the first language switch of every session.
-    EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
+    EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, arbaeen: EZIST_SUB_ARBAEEN, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
     A2_BACK = ezT("common.back");
     EZIK_FAV_TITLE = ezT("favorites.title");
     EZIK_FAV_HEADING = ezT("favorites.heading");
@@ -293,6 +295,12 @@ const EZ_I18N = {
     'module.fatwa': 'فتاوى',
     'module.memorize.sub': '\u{0627}\u{062D}\u{0641}\u{0638} \u{0648}\u{0631}\u{0627}\u{062C}\u{0639}',
     'module.adhkar.sub': '\u{0623}\u{0630}\u{0643}\u{0627}\u{0631} \u{0627}\u{0644}\u{0635}\u{0628}\u{0627}\u{062D} \u{0648}\u{0627}\u{0644}\u{0645}\u{0633}\u{0627}\u{0621}',
+    // ITEM 89. The section's name is the book's name, and the line under it is the book's own
+    // full title -- the Forty WITH Ibn Rajab's additions, which is why the section holds fifty
+    // and not forty. Neither string is composed here: the first is the owner's, the second is
+    // the corpus's own book_title, copied.
+    'module.arbaeen': '\u{0627}\u{0644}\u{0623}\u{0631}\u{0628}\u{0639}\u{0648}\u{0646} \u{0627}\u{0644}\u{0646}\u{0648}\u{0648}\u{064a}\u{0629}',
+    'module.arbaeen.sub': '\u{0627}\u{0644}\u{0623}\u{0631}\u{0628}\u{0639}\u{0648}\u{0646} \u{0627}\u{0644}\u{0646}\u{0648}\u{0648}\u{064a}\u{0629} \u{0645}\u{0639} \u{0632}\u{064a}\u{0627}\u{062f}\u{0627}\u{062a} \u{0627}\u{0628}\u{0646} \u{0631}\u{062c}\u{0628}',
     'module.mushaf.sub': '\u{0627}\u{0642}\u{0631}\u{0623} \u{0648}\u{062A}\u{0627}\u{0628}\u{0639} \u{0648}\u{0631}\u{062F}\u{0643}',
     'module.treasure.sub': '\u{062A}\u{0639}\u{0644}\u{0651}\u{0645} \u{0628}\u{0627}\u{0644}\u{0644}\u{0639}\u{0628}',
     'module.fatwa.sub': 'بحث موثّق بالسؤال والجواب',
@@ -866,6 +874,8 @@ const EZ_I18N = {
     'module.fatwa': 'Fatwas',
     'module.memorize.sub': 'Memorise and review',
     'module.adhkar.sub': 'Morning and evening adhkar',
+    'module.arbaeen': 'The Forty Hadith',
+    'module.arbaeen.sub': 'Fifty hadith, with Ibn Rajab’s additions',
     'module.mushaf.sub': 'Read, and keep your wird',
     'module.treasure.sub': 'Learn through play',
     'module.fatwa.sub': 'Verified questions and answers',
@@ -2159,6 +2169,44 @@ const loadAdhkar = () => {
   }
   return __adhkarPromise;
 };
+// ITEM 89. THE FORTY, AS A THIRD STORE OF THE SAME SHAPE.
+//
+// arbaeen.json is built from the atoms of FC-001977 -- «الأربعون النووية مع زيادات ابن رجب» -- and
+// every character in it is a byte copy of that corpus. NOTHING BELOW EDITS IT, REWRITES IT OR
+// NORMALISES IT: it is fetched, parsed and read, exactly as adhkar.json is.
+//
+// THE CHANNEL IS A FILE, and that is the whole of the section's supply. There is no service
+// behind it, no model call, no retrieval and no second request -- the reader who opens the
+// section reads what shipped with the app and nothing that was fetched for him.
+//
+// IT IS NOT IN THE WORKER'S CORE, exactly as adhkar-split-27.json is not: it is fetched from
+// the origin root on first open and cached by the runtime rule, not precached at install. So
+// a reader who has never opened this section and is offline sees the empty state, and one who
+// has opened it before does not. That is the same door adhkar-split-27.json already has.
+let __arbaeenData = null;
+let __arbaeenPromise = null;
+const loadArbaeen = () => {
+  if (__arbaeenData) return Promise.resolve(__arbaeenData);
+  if (!__arbaeenPromise) {
+    __arbaeenPromise = Promise.resolve()
+      .then(() => fetch('/arbaeen.json'))
+      .then((r) => { if (!r.ok) throw new Error('arbaeen fetch ' + r.status); return r.json(); })
+      .then((raw) => {
+        // The store's own objects, in the file's own order. No reshaping, no sort, no filter:
+        // the file is already the array the section draws, and a second ordering here would be
+        // a second opinion about a book that has only one.
+        __arbaeenData = {
+          book_title: raw.book_title || null,
+          author: raw.author || null,
+          count: raw.count || 0,
+          hadith: raw.hadith || [],
+        };
+        return __arbaeenData;
+      })
+      .catch((e) => { __arbaeenPromise = null; throw e; });
+  }
+  return __arbaeenPromise;
+};
 // ── THE SPLIT OF CATEGORY 27, AS A SECOND STORE ─────────────────────────────────────────────
 // adhkar-split-27.json is the OWNER'S OWN FILE: authored in chat, approved by the owner, and
 // dropped into the tree sealed. NOTHING BELOW EDITS IT, REWRITES IT OR NORMALISES IT -- it is
@@ -2216,6 +2264,34 @@ const loadAdhkarSplit = () => {
 // in front so even a missing fetch() becomes a rejection rather than a synchronous throw, and a
 // catch that CLEARS the promise so a reader who lost the network can press retry and try again.
 // NOTHING NORMALISES, REORDERS, TRIMS OR REPAIRS EITHER FILE. They are fetched, parsed and read.
+// ITEM 27. THE DAILY VERSE'S TAFSIR, AS A FILE THAT SHIPS WITH THE APP.
+//
+// daily-tafsir.json is cut out of «المختصر في تفسير القرآن الكريم» (FC-000142) in the
+// Shamela index, one record per reference the daily verse can land on, and every character of
+// it is a byte copy of that book. It is READ and nothing else: no model is asked about an
+// ayah on this path, no request is made for one, and not one word of tafsir in this app is
+// composed rather than quoted.
+//
+// IT IS INDEXED BY THE REFERENCE, which is the same datum DAILY_VERSES carries, so the screen
+// below looks up exactly the verse the card is showing and can never show another one's.
+let __tafsirData = null;
+let __tafsirPromise = null;
+const loadDailyTafsir = () => {
+  if (__tafsirData) return Promise.resolve(__tafsirData);
+  if (!__tafsirPromise) {
+    __tafsirPromise = Promise.resolve()
+      .then(() => fetch('/daily-tafsir.json'))
+      .then((r) => { if (!r.ok) throw new Error('tafsir fetch ' + r.status); return r.json(); })
+      .then((raw) => {
+        const byRef = {};
+        for (const v of (raw.verses || [])) if (v && v.ref) byRef[v.ref] = v;
+        __tafsirData = { byRef: byRef, book_title: raw.book_title || null };
+        return __tafsirData;
+      })
+      .catch((e) => { __tafsirPromise = null; throw e; });
+  }
+  return __tafsirPromise;
+};
 const ASMAA_NAMES_URL = '/asmaa-dataset-final-r3.json';
 const ASMAA_RULES_URL = '/asmaa-rules-page-r2.json';
 let __asmaaNames = null;
@@ -4154,6 +4230,19 @@ const EZIK_CARD_H_MIN = 1350;
 const EZIK_CARD_H_MAX = 2700;
 const EZIK_CARD_PAD = 84;
 const EZIK_CARD_BODY_SIZE = 40;
+// ITEM 94, DECISION 7. THE BODY SIZE IS A CEILING NOW, NOT THE ONE SIZE THE BODY IS DRAWN AT.
+// A reply past the card's ceiling used to be cut at 40px and nothing else was tried. It is
+// stepped down first -- 40, 38, 36, 34, 32, 30 -- and the FIRST size whose wrapped body fits
+// inside EZIK_CARD_H_MAX is the one it is drawn at. Only a reply that still does not fit at
+// the floor is cut, and that cut is still said out loud.
+//
+// THE LEADING DOES NOT MOVE WITH IT, deliberately. EZIK_CARD_LINE is what EZIK_CARD_BODY_LINES
+// is derived from and what the height arithmetic above and below is measured in; a leading
+// that changed with the font would make the line budget a function of the reply, and the one
+// line budget that is a constant is the one a cut is measured against. What the smaller font
+// buys is narrower glyphs -- more words to a line, so fewer lines -- which is the whole of it.
+const EZIK_CARD_BODY_MIN_SIZE = 30;
+const EZIK_CARD_BODY_STEP = 2;
 const EZIK_CARD_LINE = 62;
 // The three offsets the footer is built from. They were three bare numbers inside the draw
 // call; they are named here because the LINE BUDGET below is derived from them, and a budget
@@ -4197,7 +4286,7 @@ const EZIK_CARD_BODY_LINES = Math.max(1, Math.floor(
     - (EZIK_CARD_PAD + EZIK_CARD_LINE))                  // the first baseline
   / EZIK_CARD_LINE) + 1);
 const EZIK_CARD_CUT = '…';
-const EZIK_CARD_CUT_NOTE = 'النَّصُّ مُقتطَعٌ — تَمَامُهُ في التطبيق';
+const EZIK_CARD_CUT_NOTE = 'تتمّةُ النصِّ في تطبيق عزك';
 const EZIK_CARD_SITE = 'ezik.app';
 const EZIK_CARD_MARK = 'عزك';
 const EZIK_CARD_LABEL = 'صورة';
@@ -4312,13 +4401,27 @@ const ezikDrawReplyCard = (opts) => {
     .split('\n\n')
     .filter((p) => reserved.indexOf(p.trim()) === -1)
     .join('\n\n');
-  ctx0.font = '400 ' + EZIK_CARD_BODY_SIZE + 'px system-ui, sans-serif';
-  const allLines = ezikCardWrap(ctx0, bodyText, innerW);
   const firstBaseline = EZIK_CARD_PAD + EZIK_CARD_LINE;
   // What the card would have to be to hold the whole reply, with nothing cut.
-  const wanted = firstBaseline + Math.max(0, allLines.length - 1) * EZIK_CARD_LINE
+  const wantedFor = (count) => firstBaseline + Math.max(0, count - 1) * EZIK_CARD_LINE
     + EZIK_CARD_FOOT_GAP + tail.h + EZIK_CARD_PAD;
-  const fits = wanted <= EZIK_CARD_H_MAX;
+  // ITEM 94, DECISION 7. SHRINK BEFORE CUTTING, and stop at the first size that fits.
+  // The wrap is re-measured at every size because it has to be: ezikCardWrap asks the context
+  // for the width of the REAL font, so a smaller font is a different set of lines, not the same
+  // lines drawn smaller. The tail is not re-measured -- it does not shrink, and its reserved
+  // height is what the body is being fitted against.
+  let bodySize = EZIK_CARD_BODY_SIZE;
+  let allLines = [];
+  let wanted = 0;
+  let fits = false;
+  for (;;) {
+    ctx0.font = '400 ' + bodySize + 'px system-ui, sans-serif';
+    allLines = ezikCardWrap(ctx0, bodyText, innerW);
+    wanted = wantedFor(allLines.length);
+    fits = wanted <= EZIK_CARD_H_MAX;
+    if (fits || bodySize <= EZIK_CARD_BODY_MIN_SIZE) break;
+    bodySize -= EZIK_CARD_BODY_STEP;
+  }
   const cardH = fits ? Math.max(EZIK_CARD_H_MIN, wanted) : EZIK_CARD_H_MAX;
   // At the ceiling the cut note takes a slot of its own, and the body gets the remainder.
   const lastAllowed = cardH - EZIK_CARD_PAD - tail.h - EZIK_CARD_FOOT_GAP
@@ -4366,7 +4469,7 @@ const ezikDrawReplyCard = (opts) => {
   ctx.fillStyle = '#EAF3EE';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'alphabetic';
-  ctx.font = '400 ' + EZIK_CARD_BODY_SIZE + 'px system-ui, sans-serif';
+  ctx.font = '400 ' + bodySize + 'px system-ui, sans-serif';
   const all = allLines;   // already stripped of what the tail carries
   const cut = all.length > budget;
   const lines = cut ? all.slice(0, budget) : all;
@@ -4399,7 +4502,7 @@ const ezikDrawReplyCard = (opts) => {
   }
 
   return { url: canvas.toDataURL('image/png'), cut: cut, lines: lines.length,
-    w: EZIK_CARD_W, h: cardH };
+    w: EZIK_CARD_W, h: cardH, size: bodySize };
 };
 
 const SaveReplyImageButton = ({ getText, getSource }) => {
@@ -5255,6 +5358,7 @@ let EZH_HELLO = ezT("home.hello");                            // "welcome, O"
 let EZH_NAV_MENU = ezT("navigation.menu");                        // "the menu"
 let EZH_MEMORIZE = ezT("module.memorize");                                     // "the memorizer"
 let EZH_ADHKAR = ezT("module.adhkar");                                     // "the adhkar"
+let EZH_ARBAEEN = ezT("module.arbaeen");                                   // "the forty"
 let EZH_MUSHAF = ezT("module.mushaf");                                             // "the mushaf"
 let EZH_TREASURE = ezT("module.treasure");     // "the treasure journey"
 let EZH_FATWA = ezT("module.fatwa");
@@ -5270,6 +5374,12 @@ const EZH_ICON_MEMORIZE = (
 );
 const EZH_ICON_ADHKAR = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="7" /><circle cx="12" cy="5" r="1.5" fill="currentColor" /><circle cx="19" cy="12" r="1.5" fill="currentColor" /><circle cx="12" cy="19" r="1.5" fill="currentColor" /><circle cx="5" cy="12" r="1.5" fill="currentColor" /></svg>
+);
+// ITEM 89: the forty's mark. A bound quire -- a stack of leaves with a tie across it -- so it
+// reads as neither the mushaf (one open book) nor the lessons board. Same 24x24 box, same 1.8
+// stroke and the same round caps as the marks beside it. No artwork file, no image, no data URI.
+const EZH_ICON_ARBAEEN = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M8 3v18" /><path d="M12 8h4" /><path d="M12 12h4" /></svg>
 );
 const EZH_ICON_MUSHAF = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 6.5C10.5 5 8 4.5 5 5v13c3-.5 5.5 0 7 1.5 1.5-1.5 4-2 7-1.5V5c-3-.5-5.5 0-7 1.5z" /><path d="M12 6.5v13" /></svg>
@@ -5437,6 +5547,11 @@ function ezHomeModules(v) {
     { id: 'articles', label: EZH_ARTICLES, icon: EZH_ICON_ARTICLES, onClick: v.onOpenArticles, meta: null, fresh: !!(v.artFresh && v.artFresh.articles) },
     { id: 'memorize', label: EZH_MEMORIZE, icon: EZH_ICON_MEMORIZE, onClick: v.onOpenMemorize, meta: null },
     { id: 'adhkar',   label: EZH_ADHKAR,   icon: EZH_ICON_ADHKAR,   onClick: v.onOpenAdhkar,   meta: null },
+    // ITEM 89: IMMEDIATELY AFTER THE ADHKAR, which is the owner's placement and not a
+    // judgement made here. The descriptor is the shape of the ten around it -- an id, a label
+    // key, a mark and a handler threaded from App -- and it carries no `meta` and no `fresh`,
+    // because there is no local reading about this section to report on its face.
+    { id: 'arbaeen',  label: EZH_ARBAEEN,  icon: EZH_ICON_ARBAEEN,  onClick: v.onOpenArbaeen,  meta: null },
     { id: 'mushaf',   label: EZH_MUSHAF,   icon: EZH_ICON_MUSHAF,   onClick: v.onOpenMushaf,   meta: wird },
     { id: 'treasure', label: EZH_TREASURE, icon: EZH_ICON_TREASURE, onClick: v.onOpenTreasure, meta: null },
     { id: 'fatwa',    label: EZH_FATWA,    icon: EZH_ICON_FATWA,    onClick: v.onOpenFatwa,    meta: null },
@@ -5470,6 +5585,7 @@ function ezHomeModules(v) {
 // from adhkar.json or the mushaf, and not one of them claims a number about the reader.
 let EZIST_SUB_MEMORIZE = ezT("module.memorize.sub");                                   // "memorise and review"
 let EZIST_SUB_ADHKAR = ezT("module.adhkar.sub"); // "morning and evening adhkar"
+let EZIST_SUB_ARBAEEN = ezT("module.arbaeen.sub"); // the book's own full title
 let EZIST_SUB_MUSHAF = ezT("module.mushaf.sub");   // "read, and follow your wird"
 let EZIST_SUB_TREASURE = ezT("module.treasure.sub");                     // "learn through play"
 let EZIST_SUB_FATWA = ezT("module.fatwa.sub");
@@ -5479,7 +5595,7 @@ let EZIST_SUB_WOMEN = ezT("module.women.sub");
 let EZIST_SUB_ASMAA = 'تسعةٌ وتسعون اسمًا، بمعانيها ومصادرها';
 let EZIST_SUB_PRAYER = 'المواقيت والقبلة، محسوبةً على هذا الجهاز';
 let EZIST_SUB_LIBRARY = 'بحثٌ في نصوص المكتبة، بمصادرها';
-let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
+let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, arbaeen: EZIST_SUB_ARBAEEN, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
 
 // THE TOP NAVIGATION. TWO ELEMENTS AND NO THIRD -- the daily verse, and the menu button.
 //
@@ -5540,14 +5656,14 @@ let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize
 // declared as a compass rose reduced to a circle, a needle and its pivot, in the same 24x24 box
 // at the same 1.8 stroke with the same round caps as its neighbours. No icon library, no new
 // dependency, no new artwork file, no image and no data URI -- and one mark for one meaning.
-function EzistTopNav({ onOpenMenu, onOpenCompass }) {
+function EzistTopNav({ onOpenMenu, onOpenCompass, onOpenTafsir }) {
   return (
     <div className="ezist-nav">
       <div className="ezist-nav-inner">
         <button type="button" className="ezhome-focus" onClick={onOpenMenu} style={s.ezistNavBtn} aria-label={EZH_NAV_MENU}>
           {EZH_ICON_MENU}
         </button>
-        <EzistQuranPanel />
+        <EzistQuranPanel onOpenTafsir={onOpenTafsir} />
         <button type="button" className="ezhome-focus" onClick={onOpenCompass} style={s.ezistNavBtn} aria-label={EZH_NAV_COMPASS}>
           {EZH_ICON_PRAYER}
         </button>
@@ -5670,17 +5786,47 @@ function EzistModuleCard({ m }) {
 // element was its only reader, so all three went together. The OTHER separator on this
 // screen, .ezist-rule-short -- the short vertical bar in the masthead -- is a different
 // class on a different element and is deliberately untouched.
-function EzistQuranPanel() {
-  const v = getDailyVerse();
-  const isHadith = v.surah === '\u062D\u062F\u064A\u062B';
+// ITEM 27. THE CARD OPENS THE TAFSIR -- ON THE DAYS IT HAS ONE, AND ON NO OTHER.
+//
+// DAILY_VERSES holds thirty entries and ONE OF THEM IS NOT A VERSE: it carries kind 'other'
+// and no `ref` at all, which is why a hadith stood where the ayah usually stands. That entry
+// is left exactly as it is today -- a display, with nothing to press. The touch target exists
+// only when the day's entry carries a reference, because the reference is the only thing that
+// can name a tafsir; a card that opened a page and then said it had nothing would be worse
+// than a card that did not open.
+//
+// THE SECTION ELEMENT AND EVERY LINE INSIDE IT ARE UNCHANGED. On a day with a reference the
+// same three children are mounted inside a button; on any other day they are mounted in the
+// same <section> they have always been mounted in. DAILY_VERSES itself, its generator and
+// getDailyVerse() are not touched by this item at all -- it reads them and changes nothing.
+function EzistQuranPanelBody(v, isHadith) {
   return (
-    <section className="ezist-quran" style={s.ezistQuran}>
+    <>
       <div style={s.ezistQuranHead}>
         <span style={s.ezistQuranLabel}>{isHadith ? ezT('home.hadithOfDay2') : ezT('home.verseOfDay2')}</span>
       </div>
       <div style={s.ezistQuranText}>{v.text}</div>
       <div style={s.ezistQuranMeta}>{isHadith ? '\u0631\u0648\u0627\u0647 ' + v.ayah : '\u0633\u0648\u0631\u0629 ' + v.surah + '\u060C \u0622\u064A\u0629 ' + v.ayah}</div>
-    </section>
+    </>
+  );
+}
+function EzistQuranPanel({ onOpenTafsir }) {
+  const v = getDailyVerse();
+  const isHadith = v.surah === '\u062D\u062F\u064A\u062B';
+  // THE ONE CONDITION: the entry's own reference, and the handler actually being there.
+  const canOpen = !!(v && v.ref && onOpenTafsir);
+  if (!canOpen) {
+    return (
+      <section className="ezist-quran" style={s.ezistQuran}>
+        {EzistQuranPanelBody(v, isHadith)}
+      </section>
+    );
+  }
+  return (
+    <button type="button" className="ezist-quran ezhome-focus" style={s.ezistQuran}
+      onClick={() => onOpenTafsir()} aria-label={ezT('home.verseOfDay2')}>
+      {EzistQuranPanelBody(v, isHadith)}
+    </button>
   );
 }
 
@@ -5740,7 +5886,7 @@ function EzikIstanaHome(v) {
   return (
     <div className="theme-dark ezhome" style={s.ezistContainer}>
       {/* S101-home-istana */}
-      <EzistTopNav onOpenMenu={v.onOpenMenu} onOpenCompass={v.onOpenCompass} />
+      <EzistTopNav onOpenMenu={v.onOpenMenu} onOpenCompass={v.onOpenCompass} onOpenTafsir={v.onOpenTafsir} />
       <div style={s.ezistScroll}>
         <div className="ezist-wrap">
           <EzistMasthead name={v.name} g={v.greeting} hijri={v.hijri} onOpenAdhkar={v.onOpenAdhkar} />
@@ -7649,7 +7795,7 @@ function EzikHomeWidgetArrange({ widgets, onWidgets, arrangeOpen, onArrange }) {
   );
 }
 
-function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf, onOpenFatwa, onOpenLessons, onOpenAsmaa, onOpenSettings }) {
+function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenArbaeen, onOpenMushaf, onOpenFatwa, onOpenLessons, onOpenAsmaa, onOpenSettings, onOpenTafsir }) {
   // THE OWNER. Every prop it was handed is handed straight on, and the treasure entry resolves
   // to the same href it always did. There is no second router here and no duplicated navigation
   // state -- the two components above receive these handlers and call them unchanged.
@@ -7778,8 +7924,14 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenMushaf,
     // control of its own. The chat is entered from the menu the bar opens, on the menu's own
     // «محادثة جديدة» row, which is the app's ONE new-conversation entry and always was.
     onOpenMenu: onOpenMenu,
+    // ITEM 27: the daily verse card's door, handed down like every other. The screen it sets
+    // lives in App, where every feature section's screen key is set.
+    onOpenTafsir: onOpenTafsir,
     onOpenMemorize: onOpenMemorize,
     onOpenAdhkar: onOpenAdhkar,
+    // ITEM 89: handed straight on, like the six around it. The screen it sets lives in App,
+    // which is where every other feature section's screen key is set.
+    onOpenArbaeen: onOpenArbaeen,
     onOpenMushaf: onOpenMushaf,
     onOpenFatwa: onOpenFatwa,
     onOpenLessons: onOpenLessons,
@@ -11109,6 +11261,7 @@ function IstanaAdhkarBrowse({ onBack, cats, list, query, setQuery, searchOpen, o
   );
 }
 
+
 // THE ISTANA READER SHELL. Every protected action of the deleted readers survives here with
 // the same handler and the same accessible name: back, favourite, share, previous, audio, the
 // counter, and onward. The dhikr text is still {d.text} -- a text child, no pass over it -- the
@@ -11276,6 +11429,138 @@ function IstanaAdhkarReader(v) {
   );
 }
 // ---- S103 ISTANA ADHKAR END ---------------------------------------------------------------
+
+// ============================================================
+// ITEM 89 -- THE FORTY NAWAWI, WITH IBN RAJAB'S ADDITIONS.
+//
+// THE TEMPLATE IS THE ADHKAR'S, COPIED. A browse screen that lists the book, and a reader that
+// opens ONE entry at a time -- the same .adhkar3 / .ezia-* vocabulary, the same nav bar, the same
+// card, the same reading panel. NOT ONE LINE OF THE ADHKAR SECTION WAS EDITED to make room for
+// it: the template was copied and the original was left where it was, so a defect introduced
+// here cannot reach a section the reader already depends on.
+//
+// WHAT IT DELIBERATELY DOES NOT HAVE, each because it was decided against rather than forgotten:
+//   - no commentary. The book's text is shipped; no explanation of it is, in this first cut.
+//   - no search inside the section. Fifty entries in the book's own order is a list, not a corpus.
+//   - no takhrij. The source is NAMED -- the book and the entry's own number -- and it is not
+//     graded, traced or ruled on here. Naming a source and vouching for it are different acts.
+//   - no progress, no favourites, no streak, no counter. The adhkar screen has all four; they
+//     belong to a devotional routine and this is a book, so none of them was copied over.
+//
+// THE PAGE IS PRINTED ONLY WHEN THE CORPUS SAYS IT MAY BE. Every one of the fifty atoms carries
+// page_citable = false, so the attribution below names the book and the entry and states NO page
+// at all. That is not an omission: a page number from an edition the corpus will not vouch for is
+// a citation a reader could follow to the wrong place, and this section would rather say less.
+function ArbaeenScreen({ onBack }) {
+  // ONE loader call, the store's own objects, and no reshaping of any of them -- the adhkar
+  // screen's rule, kept. This component owns the whole of the section's state: the store, the
+  // failure, and which entry is open. There is no second loader and no second copy anywhere.
+  const [db, setDb] = useState(null);
+  const [failed, setFailed] = useState(false);
+  const [selected, setSelected] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    loadArbaeen().then((d) => { if (alive) setDb(d); }).catch(() => { if (alive) setFailed(true); });
+    return () => { alive = false; };
+  }, []);
+  // S91: the reader's own back presses the application back, which spends the entry this layer
+  // took when it opened and then runs the closer through the registry -- the same closer, reached
+  // by the same route the device button uses.
+  useEzikBackLayer(!!selected, () => setSelected(null));
+  if (selected) return <IstanaArbaeenReader doc={db} h={selected} onBack={ezikGoBack} />;
+  return <IstanaArbaeenBrowse onBack={onBack} doc={db} failed={failed} onOpen={setSelected} />;
+}
+
+// THE BROWSE. Presentation only: it reads no storage, owns no navigation state and computes
+// nothing about the book. It draws the array it is handed, in that array's own order.
+function IstanaArbaeenBrowse({ onBack, doc, failed, onOpen }) {
+  const list = (doc && doc.hadith) || [];
+  return (
+    <div className="theme-dark adhkar3" style={s.eziaContainer}>
+      <div className="ezia-nav">
+        <div className="ezia-nav-inner">
+          <button type="button" className="adhkar2-focus" onClick={onBack} style={s.eziaNavBtn} aria-label={A2_BACK}>{A2_ICON_BACK}</button>
+          <span className="ezia-brand">
+            <span className="ezia-brand-arch" aria-hidden="true" />
+            <span>{EZH_ARBAEEN}</span>
+          </span>
+          {/* the nav is a three-part bar and the third part is empty here, because this section
+              has no second action. It is held rather than dropped so the brand stays centred. */}
+          <span style={s.eziaNavBtn} aria-hidden="true" />
+        </div>
+      </div>
+      <div style={s.eziaScroll}>
+        {doc === null ? (
+          <div style={s.a3Empty}>{failed ? A2_EMPTY : '...'}</div>
+        ) : list.length === 0 ? (
+          <div style={s.a3Empty}>{A2_EMPTY}</div>
+        ) : (
+          <div className="ezia-catalogue">
+            {list.map((h, i) => (
+              <button key={h.n} type="button" className="adhkar2-focus" onClick={() => onOpen(h)}
+                data-ezia-hadith={h.n} style={s.eziaCard}>
+                <span className={((i % 3) === 2) ? 'ezia-crest ezia-crest-coral' : 'ezia-crest'} aria-hidden="true" />
+                <span style={s.eziaCardHead}>
+                  <span style={s.eziaEmblem} aria-hidden="true"><span className="ezia-star" /></span>
+                  {/* the entry's own number, in the digits the rest of this section counts in */}
+                  <span style={s.eziaCount}>{toArabicDigits(h.n)}</span>
+                </span>
+                {/* the heading the corpus carries, as a text child. No pass is made over it. */}
+                <span style={s.eziaCardTitle}>{h.title}</span>
+                <span style={s.eziaCardFoot}>
+                  <span style={s.eziaStanding} />
+                  <span style={s.eziaGo} aria-hidden="true">{EZH_ICON_GO}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// THE READER. ONE entry, its text as a text child, and the attribution under it.
+function IstanaArbaeenReader({ doc, h, onBack }) {
+  // THE ATTRIBUTION, AND WHAT IT MAY SAY. The book's title and the entry's own heading, both
+  // copied from the corpus. The page is appended ONLY when the corpus marked this entry citable;
+  // it never has, so no page is drawn, and nothing stands in for one.
+  const book = (doc && doc.book_title) || '';
+  const page = (h.page_citable && h.page_start != null)
+    ? (h.page_end != null && h.page_end !== h.page_start
+        ? toArabicDigits(h.page_start) + '-' + toArabicDigits(h.page_end)
+        : toArabicDigits(h.page_start))
+    : '';
+  return (
+    <div className="theme-dark adhkar3" style={s.eziaReadContainer}>
+      <div className="ezia-nav">
+        <div className="ezia-nav-inner">
+          <button type="button" className="adhkar2-focus" onClick={onBack} style={s.eziaNavBtn} aria-label={A2_BACK}>{A2_ICON_BACK}</button>
+          <span className="ezia-brand">
+            <span className="ezia-brand-arch" aria-hidden="true" />
+            <span style={s.eziaReadTitle}>{h.title}</span>
+          </span>
+          <span style={s.eziaNavBtn} aria-hidden="true" />
+        </div>
+      </div>
+      <div style={s.eziaReadOuter}>
+        <div style={s.eziaReadScroll}>
+          <div className="ezia-read-wrap">
+            <div className="ezia-read-panel">
+              <span style={s.eziaReadHead}>
+                <span style={s.eziaReadPos}>{toArabicDigits(h.n)} / {toArabicDigits((doc && doc.count) || 0)}</span>
+              </span>
+              {/* the corpus's own text, rendered as a text child. */}
+              <div style={s.eziaReadText}>{h.text}</div>
+              <div style={s.eziaReadSource}>{book}{book && h.title ? ' \u2014 ' : ''}{h.title}{page ? ' \u2014 ' + page : ''}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 // One category, full screen. The audio contract is DhikrCard's, kept identical on purpose:
 // one <Audio> at a time, a second tap on the playing item stops it, tapping another item
@@ -15841,7 +16126,7 @@ function App() {
   // an onOpenChat: the chat is entered from that menu's «محادثة جديدة» row.
   if (screen === 'home') return (
     <>
-      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} />
+      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenArbaeen={() => setScreen('arbaeen')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} onOpenTafsir={() => setScreen('ayah-tafsir')} />
       {ezikDrawer()}
     </>
   );
@@ -15885,6 +16170,12 @@ function App() {
   if (screen === 'memorize') return <MemorizeScreen profile={profile} onExit={goEzikBack} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
   if (screen === 'mushaf') return <MushafScreen selected={selectedSurah} setSelected={setSelectedSurah} onBack={goEzikBack} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
   if (screen === 'adhkar') return <AdhkarScreen onBack={goEzikBack} />;
+  // ITEM 89: a feature section, in NEITHER screen register -- exactly like the adhkar line
+  // above it. ezikBackTarget's fall-through gives it its back destination.
+  if (screen === 'arbaeen') return <ArbaeenScreen onBack={goEzikBack} />;
+  // ITEM 27: the daily verse's tafsir. A feature section like the two above it, so it is in
+  // NEITHER screen register and takes its back destination from ezikBackTarget's fall-through.
+  if (screen === 'ayah-tafsir') return <AyahTafsirScreen onBack={goEzikBack} />;
   if (screen === 'fatwa') return <FatwaScreen onBack={goEzikBack} favPk={favPk} />;
   // ITEM 24-B: a feature section, so it is in NEITHER screen register -- exactly like the
   // fatwa line above it. ezikBackTarget's final fall-through («Every feature section: home,
@@ -16605,6 +16896,32 @@ const ezikCardBlockOf = (segments, type) => {
 };
 const ezikCardAttributionBlock = (segments) => ezikCardBlockOf(segments, 'source');
 const ezikCardNoticeBlock = (segments) => ezikCardBlockOf(segments, 'notice');
+
+// ITEM 94, DECISIONS 1, 2 AND 4. WHETHER THE CARD CONTROL EXISTS FOR THIS REPLY AT ALL.
+//
+// THE CARD IS A SHARE ARTEFACT, so it leaves the app and is read by someone who cannot ask
+// where it came from. An unattributed card is therefore not a lesser card -- it is a claim
+// with no one standing behind it, which is the one thing this tree spends its guards refusing.
+// So the control is HIDDEN rather than disabled: a disabled button is an offer withdrawn in
+// front of the reader, and there is nothing here to offer.
+//
+// WHAT COUNTS, LITERALLY: a segment of type 'verse' or of type 'source'. A hadith card, a book
+// card and a reply that is prose alone do NOT count -- they are attributed inside the app, by
+// the cards the sheet draws, and none of that travels with a PNG.
+//
+// AND DECISION 4 IS THE SAME RULE, READ AT THE OTHER END: if the attribution line would come
+// out empty no image is produced, and the way it is not produced is that there is no button to
+// press. A 'source' segment that names neither a site nor a url yields '' from BOTH readers
+// below -- it would draw a tail of nothing but the site line -- so it does not count either.
+// A 'verse' needs no tail: an ayah carries its surah and its number in the body the card draws.
+//
+// IT READS, IT DOES NOT FILTER. N22's rule is that the chat sheet never re-orders, drops or
+// de-duplicates a reply's sources; this is module-level and answers one boolean, which is why
+// it lives beside the two readers it calls rather than inside the bubble.
+const ezikCardIsAttributed = (segments) => {
+  for (const sg of (segments || [])) { if (sg && sg.type === 'verse') return true; }
+  return !!(ezikCardSourceLine(segments) || ezikCardAttributionBlock(segments));
+};
 
 // Every type MessageBubble can render must have an entry above. A new card added to the renderer
 // without one lands here and is announced -- loudly, and visibly in the copied text -- instead of
@@ -17375,7 +17692,13 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
             docToHtml and printed by the app's one printAsPdf. No library, no request, no
             second serializer -- and the identical 44x44 area every .ezc-acts button takes. */}
         <ExportPdfReplyButton getText={buildCopyText} />
+        {/* ITEM 94, DECISIONS 1, 2, 4 AND 6. The control is here or it is not here; it is never
+            here and dead. Its place in the rail does not move -- it is the fifth control when
+            it is drawn, exactly where it has always been -- and the props it is handed are the
+            same two, from the same two builders. What is new is the question asked before it. */}
+        {ezikCardIsAttributed(segments) && (
         <SaveReplyImageButton getText={buildCopyText} getSource={buildCardSource} />
+        )}
         {/* S98: the quote button hands over the SAME clean text the clipboard gets (cards
             serialized, no tag ever reaches it), trimmed to a preview and dropped into the
             composer. It sends nothing. */}
@@ -18869,6 +19192,60 @@ function SpendGate({ onUnlock, onExit }) {
 // The root carries .ezhome, which is what puts the --a3-* token set in scope for everything
 // inside -- the same scope the home and the adhkar screens use, so a screen adopting the shell
 // gets the identity and the dark palette without declaring a colour of its own.
+
+// ============================================================
+// ITEM 27 -- THE DAILY VERSE, AND WHAT THE BOOK SAYS ABOUT IT.
+//
+// THIS IS THE DAILY VERSE CARD'S PAGE AND NOTHING WIDER. It is not a tafsir beside every ayah
+// in the mushaf; it is the one verse the home card is showing today, opened.
+//
+// THE SHAPE IS THE ONE THE ORDER FIXED: the ayah, a plain tafsir, the attribution, and a back
+// button. Zero options, zero other controls. It is built on EzShell -- the same shell the single
+// name in أسماء الله الحسنى is built on -- so it carries one back control and no second way out.
+//
+// WHAT IT WILL NOT DO. A verse the book does not cover gets NO tafsir field at all: no «not
+// available» line, no stand-in, and above all nothing written from the model's own head. The
+// whole path is a stored file being read; there is no request on it and no model call on it.
+//
+// AND A RANGE IS NAMED AS A RANGE. Where the book treats several ayat in one paragraph, the
+// record carries `range_label` and the reference line states that range instead of the single
+// ayah -- so what is shown is never offered as the tafsir of this ayah alone. None of the
+// references shipped today is such a case; the path exists because the file may carry one.
+function AyahTafsirScreen({ onBack }) {
+  const v = getDailyVerse();
+  const [db, setDb] = useState(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    loadDailyTafsir().then((d) => { if (alive) setDb(d); }).catch(() => { if (alive) setFailed(true); });
+    return () => { alive = false; };
+  }, []);
+  const rec = (db && v && v.ref) ? (db.byRef[v.ref] || null) : null;
+  // The reference line, composed with the SAME pieces the home card composes it with -- and with
+  // the RANGE in place of the ayah when the book's paragraph covers a range.
+  const where = '\u0633\u0648\u0631\u0629 ' + v.surah + '\u060C \u0622\u064A\u0629 '
+    + ((rec && rec.range_label) ? rec.range_label : v.ayah);
+  return (
+    <EzShell title={ezT('home.verseOfDay2')} onBack={onBack} backLabel={A2_BACK}>
+      <article style={s.asmaaRead}>
+        {/* the verse, exactly as DAILY_VERSES carries it -- this screen reads that array and
+            changes nothing in it. */}
+        <p style={s.asmaaAyah}>{v.text}</p>
+        <div style={s.asmaaRef}>{where}</div>
+        {rec && rec.tafsir_text ? (
+          <>
+            {/* the book's own words, as a text child. No pass is made over them. */}
+            <p style={s.asmaaPara}>{rec.tafsir_text}</p>
+            {/* THE ATTRIBUTION: the book, and the page ONLY when the corpus marked it citable. */}
+            <div style={s.asmaaRef}>{rec.book_title}{rec.page ? ' \u2014 ' + rec.page : ''}</div>
+          </>
+        ) : (db === null && !failed) ? (
+          <p style={s.asmaaPara}>...</p>
+        ) : null}
+      </article>
+    </EzShell>
+  );
+}
 function EzShell({ title, onBack, backLabel, actions, children }) {
   return (
     <div className="theme-dark ezhome" style={s.ezshContainer}>

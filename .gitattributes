@@ -19,6 +19,19 @@ lib/data/adhkar.json     text eol=lf
 adhkar-split-27.json          text eol=lf
 lib/data/adhkar-split-27.json text eol=lf
 
+# ITEM 89 -- the Forty Nawawi, built from the atoms of FC-001977 and shipped from the root the
+# same way adhkar.json is. The order that introduced it pins its fingerprint (36b6df66) as the
+# proof that every character in it is a byte copy of the corpus, and a fresh clone with
+# core.autocrlf=true would rewrite the line endings and make that proof read false about a file
+# nobody touched. It is also written LF by its builder and required to stay LF by the order.
+arbaeen.json                  text eol=lf
+
+# ITEM 27 -- the daily verse's tafsir, cut out of FC-000142 in the Shamela index and shipped from
+# the root the same way. The order that introduced it pins its fingerprint (e26e09f1) as the proof
+# that every character in it is a byte copy of that book, and a fresh clone with core.autocrlf=true
+# would rewrite the line endings and make that proof read false about a file nobody touched.
+daily-tafsir.json             text eol=lf
+
 # ITEM 26 -- the two sheets أسماء الله الحسنى is read from. They are the OWNER'S OWN FILES,
 # dropped into the tree sealed and byte-identical to what was handed over: 153202 bytes /
 # sha256 44d1c38c… for the names, 5931 bytes / sha256 5b1dfbc9… for the seven rules. The new
