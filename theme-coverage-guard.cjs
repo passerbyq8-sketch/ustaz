@@ -4942,7 +4942,19 @@ ok('Z1-B: ...and NO document bundle is a <script src> on the boot path',
 eq('Z1: the app has exactly one PDF path', (html.match(/const printAsPdf = async /g) || []).length, 1);
 
 const pdfAt = html.indexOf('const ExportPdfReplyButton = ({ getText }) =>');
-const pdfEnd = pdfAt === -1 ? -1 : html.indexOf('const docToHtml = (md) =>', pdfAt);
+// ITEM 94 CORRECTED THIS ANCHOR, AND IT IS A NARROWING OF THE CUT, NOT OF A CHECK.
+// WHAT IT USED TO BE: `const docToHtml = (md) =>`, which is the anchor the SHARE CARD's slice
+// ends on -- and the share card is declared AFTER the export button. So "the export path" was
+// really the export button PLUS the whole reply-as-an-image block plus the share button, eleven
+// hundred lines of code Z3 and Z4 never claimed to be describing. It passed only because none of
+// that code made a request either.
+// ITEM 94 MADE ONE OF THOSE LINES MAKE A REQUEST -- by the owner's order, the share card now asks
+// for a summary -- and Z3 would have failed for a property it does not own while ZC5, which DOES
+// own it, is the check that measures it. So the cut now ends where the export button ends, which
+// is what Z2, Z3 and Z4 have always said they were reading. Nothing is unwatched by this: the
+// card path's requests are counted and named in ZC5 below, which is a harder test than the bare
+// prohibition this used to lend it.
+const pdfEnd = pdfAt === -1 ? -1 : html.indexOf('// ITEM 42-C. THE REPLY AS AN IMAGE', pdfAt);
 const pdfSrc = (pdfAt !== -1 && pdfEnd > pdfAt) ? html.slice(pdfAt, pdfEnd) : '';
 ok('Z2: the export button was located and bounded', pdfSrc.length > 400, 'len=' + pdfSrc.length);
 okOn('Z2: it exports THE REPLY, from the very payload the clipboard is handed', [['mbSrc', mbSrc]],
@@ -5097,11 +5109,40 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
   // ---- the path, as shipped -------------------------------------------------
   const cardAt = html.indexOf('const ezikDrawReplyCard = (opts) =>');
   const cardSrc = cardAt === -1 ? '' : html.slice(cardAt, html.indexOf('const SaveReplyImageButton', cardAt));
+  // ITEM 94: the renderer ALONE, as well as the whole block around it. The block now holds the
+  // summary request, which is legitimately a request; the renderer must still hold none, and a
+  // check over the block alone could no longer say so.
+  const drawSrc = cardAt === -1 ? '' : html.slice(cardAt, html.indexOf('\n};', cardAt) + 3);
   const btnAt = html.indexOf('const SaveReplyImageButton = ');
   const btnSrc = btnAt === -1 ? '' : html.slice(btnAt, html.indexOf('const docToHtml = (md) =>', btnAt));
-  okOn('ZC5: ZERO MODEL CALL AND ZERO REQUEST on the whole card path', [['cardSrc', cardSrc], ['btnSrc', btnSrc]],
-    !/fetch\(|aiFetch\(|XMLHttpRequest|sendBeacon|EventSource|new WebSocket|\/api\/|new Image\(|\.src =/.test(cardSrc + btnSrc),
-    'the card path acquired a request, or started loading an image');
+  // ---- ITEM 94 REPLACED THE ASSERTION THAT STOOD HERE, AND THIS IS WHAT REPLACED IT --------
+  // WHAT IT SAID: «ZERO MODEL CALL AND ZERO REQUEST on the whole card path». That was a true
+  // description of the OLD skin, which drew the reply already on the screen and needed nothing
+  // from anywhere. The owner's order for item 94 replaces that skin: the card is a SUMMARY now,
+  // the summary is asked of the model, and the request is made at the press and nowhere else.
+  // So the assertion could not survive the item, and it is not being dropped -- it is being
+  // exchanged for a COUNT and a NAME, which is strictly harder to satisfy than «no fetch»:
+  //   * exactly ONE request exists on the whole path -- a second one fails here by arithmetic;
+  //   * it goes to the app's own AI door, through aiFetch, which is the consent choke point, so
+  //     a card pressed without consent sends nothing at all;
+  //   * no other transport and no image loading came in beside it;
+  //   * and the RENDERER itself is still pure -- only the press reaches anything.
+  const cardFetches = (cardSrc + btnSrc).match(/(?:^|[^A-Za-z0-9_$.])(?:ai)?[Ff]etch\(/g) || [];
+  eqOn('ZC5: the card path makes EXACTLY ONE request', [['cardSrc', cardSrc], ['btnSrc', btnSrc]],
+    cardFetches.length, 1);
+  okOn('ZC5: ...and it is the app\'s own AI door, reached through the consent choke point',
+    [['cardSrc', cardSrc]],
+    /await aiFetch\('\/api\/ask', \{/.test(cardSrc)
+    && !/(?:^|[^A-Za-z0-9_$.i])[Ff]etch\(/.test(cardSrc + btnSrc),
+    'the card path reached the network around aiFetch, or stopped using the AI door');
+  okOn('ZC5: ...and it acquired no SECOND transport and loads no image',
+    [['cardSrc', cardSrc], ['btnSrc', btnSrc]],
+    !/XMLHttpRequest|sendBeacon|EventSource|new WebSocket|new Image\(|\.src =/.test(cardSrc + btnSrc),
+    'the card path acquired a second transport, or started loading an image');
+  okOn('ZC5: ...while the RENDERER itself still reaches nothing at all -- only the press does',
+    [['drawSrc', drawSrc]],
+    !/fetch\(|aiFetch\(|XMLHttpRequest|sendBeacon|EventSource|new WebSocket|\/api\/|new Image\(|\.src =/.test(drawSrc),
+    'ezikDrawReplyCard itself acquired a request');
   okOn('ZC5: ...and one press cannot become two files', [['btnSrc', btnSrc]],
     /const busyRef = useRef\(false\);/.test(btnSrc) && /if \(busyRef\.current\) return;/.test(btnSrc));
   okOn('ZC5: ...and the control takes the rail hit area and declares no box of its own', [['btnSrc', btnSrc]],

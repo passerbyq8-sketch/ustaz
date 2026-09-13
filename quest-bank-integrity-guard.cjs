@@ -113,6 +113,18 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-09-13   -- ITEM 94: THE SHARE CARD IS A SUMMARY NOW, AND THE SKIN THAT POURED THE WHOLE
+  //                    REPLY OUT IS THE FALLBACK BEHIND IT. All of it is in app.jsx: a closed-
+  //                    structure summary asked of the model at the press, a structure check that
+  //                    falls back rather than repairs, a QR encoder (byte mode, versions 2..6,
+  //                    levels M then L) drawn as fillRect squares on the card's own context, and
+  //                    the new layout. index.html DID NOT MOVE. app.js was rebuilt 1550360 ->
+  //                    1584918 (+34558) by node tools/build-app.cjs, and CORE_BYTES re-cut
+  //                    2538025 -> 2572583 (+34558, which is exactly the bundle delta) by node
+  //                    tools/core-bytes.cjs --write. The worker's own byte table at :121 and the
+  //                    SW_PROSE row for app.js below both state that size and both were restated.
+  //                    THIS digest is re-cut last. CACHE is NOT bumped: install rewrites every
+  //                    CORE entry into the same store.
   //   2026-09-10   -- ITEM 85: THE BOOT REACHES ONE ORIGIN, AND IT IS THIS ONE. index.html linked a
   //                    render-blocking stylesheet on fonts.googleapis.com, and with that origin
   //                    unreachable the diagnostic catcher put a full-viewport black panel over a
@@ -1021,7 +1033,7 @@ const SEALED = {
 //                    shell did not grow. The worker table at :121 and the app.js mirror below
 //                    followed, and THIS digest is re-cut LAST. SW.JS IS OTHERWISE UNTOUCHED and
 //                    CACHE IS NOT BUMPED: this is a branch for the owner to preview, not a ship.
-  'sw.js': 'be6886df9516ed28f812e7d28f7183dcabccd5ce7bff6eff7f6d7c66500b8cff',
+  'sw.js': '8341a151a3d3a715d3a13e5747a4591d3ff57527cbd9974f3f767cfade318a1b',
 };
 
 // ---------------------------------------------------------------------------
@@ -2144,7 +2156,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1550360, of: 'app.js' },
+      { n: 1584918, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

@@ -191,6 +191,12 @@ const HARNESS_PARTS = [
   'const busyRef = env.busyRef;',
   'const stopRef = env.stopRef;',
   'const ezikDrawReplyCard = env.ezikDrawReplyCard;',
+  // ITEM 94. The image press asks for a summary before it draws, so the summariser is a
+  // surrounding of that press exactly as ezikDrawReplyCard is -- handed in, never invented.
+  // The DEFAULT stub resolves to null synchronously, which is rule 5's fallback: every case
+  // below therefore measures the delivery it always measured, on the skin it always drew.
+  // The two cases at the end of this file settle it late, and reject it, on purpose.
+  'const ezikSummaryAsk = env.ezikSummaryAsk;',
   'const title = env.title;',
   'const content = env.content;',
   'const docToHtml = env.docToHtml;',
@@ -319,6 +325,7 @@ function baseEnv() {
     setSaid: () => {},
     busyRef: { current: false },
     stopRef: { current: null },
+    ezikSummaryAsk: () => ({ then: (onOk) => { onOk(null); } }),
     ezikDrawReplyCard: () => ({ url: '' }),
     title: '',
     content: '',
@@ -368,6 +375,7 @@ function scene(opts, factory) {
     setSaid: (v) => { saids.push(v); },
     busyRef: { current: false },
     stopRef: { current: null },
+    ezikSummaryAsk: o.summaryAsk || (() => ({ then: (onOk) => { onOk(null); } })),
     ezikDrawReplyCard: () => {
       if (o.cardThrows) throw new Error('the canvas refused');
       return { url: o.cardUrl === undefined ? CARD_URL : o.cardUrl };
@@ -421,7 +429,11 @@ run('م١ without a shell: the anchor is clicked exactly as it was, and nothing 
   eq(s.clicks.length, 1, 'anchors clicked');
   eq(s.clicks[0], { tag: 'a', href: CARD_URL, download: CONTRACT.EZIK_CARD_FILE }, 'the anchor');
   eq(s.saids, [], 'reader lines drawn in a browser');
-  eq(s.flashes, [''], 'flash states across the press');
+  // ITEM 94: 'wait' IS NEW, AND IT IS THE ONLY THING THAT IS. The press asks the model for a
+  // summary before it draws, so it says it is waiting and then clears -- it used to have
+  // nothing to wait for and cleared alone. The clear is still the last state, which is the
+  // property this line was written for: a press never leaves a label standing on the button.
+  eq(s.flashes, ['wait', ''], 'flash states across the press');
   eq(s.clock.pending(), 0, 'timers left');
   return '1 anchor -> ' + CONTRACT.EZIK_CARD_FILE + ', 0 messages, 0 listeners, 0 lines';
 });
@@ -857,9 +869,52 @@ run('a picture the canvas could not draw is the same failure it always was, and 
   const s = scene({ shell: 'recording', cardThrows: true, label: 'the shell path' });
   s.h.doSave();
   eq(s.sent.length, 0, 'messages posted');
-  eq(s.flashes, ['fail'], 'the flash the press has always shown');
+  // ITEM 94: the wait precedes it now, for the reason above. The FAILURE state is unchanged and
+  // is still the last thing said.
+  eq(s.flashes, ['wait', 'fail'], 'the flash the press has always shown, after the wait');
   eq(s.win.live(CONTRACT.SHELL_DL_RESULT), 0, 'listeners left');
   return '0 messages, the old fail flash, 0 listeners';
+});
+
+/* -- ITEM 94. THE PRESS WAITS NOW, SO WHAT IT DOES WHILE IT WAITS IS A PROPERTY -------------
+ * The summariser is handed in as a DEFERRED here: the press runs, nothing is settled, and the
+ * harness holds both arms. So "nothing is delivered before the answer" and "exactly one delivery
+ * after it" are measured rather than assumed -- and the rejected arm proves rule 5 at its widest,
+ * because a promise that rejects with no second arm would leave busyRef latched and the button
+ * dead for the rest of the session.
+ */
+function deferredAsk() {
+  const box = { ok: null, err: null };
+  box.fn = () => ({ then: (onOk, onErr) => { box.ok = onOk; box.err = onErr; } });
+  return box;
+}
+
+run('ITEM 94: nothing is delivered until the summary comes back, and then exactly once', () => {
+  const box = deferredAsk();
+  const s = scene({ shell: null, summaryAsk: box.fn, label: 'the browser image path' });
+  s.h.doSave();
+  eq(s.clicks.length, 0, 'anchors clicked before the answer');
+  eq(s.flashes, ['wait'], 'the state while waiting');
+  is(s.env.busyRef.current === true, 'the press was not latched while it waits');
+  box.ok(null);
+  eq(s.clicks.length, 1, 'anchors clicked after the answer');
+  eq(s.clicks[0], { tag: 'a', href: CARD_URL, download: CONTRACT.EZIK_CARD_FILE }, 'the anchor');
+  eq(s.flashes, ['wait', ''], 'flash states across the whole press');
+  is(s.env.busyRef.current === false, 'the press stayed latched after it finished');
+  return '0 deliveries while waiting, 1 after, latch released';
+});
+
+run('ITEM 94: a summary that REJECTS still delivers the card, and still frees the button', () => {
+  const box = deferredAsk();
+  const s = scene({ shell: null, summaryAsk: box.fn, label: 'the browser image path' });
+  s.h.doSave();
+  is(typeof box.err === 'function', 'the press passed no rejection arm -- a rejected summary would strand it');
+  box.err(new Error('the summariser threw'));
+  eq(s.clicks.length, 1, 'anchors clicked after the rejection');
+  eq(s.clicks[0].download, CONTRACT.EZIK_CARD_FILE, 'the download name');
+  eq(s.flashes, ['wait', ''], 'flash states across the press');
+  is(s.env.busyRef.current === false, 'a rejected summary left the button latched for good');
+  return 'rejection -> the old skin, delivered, latch released';
 });
 
 run('an empty reply is refused before the bridge is even consulted, exactly as before', () => {
@@ -975,6 +1030,8 @@ const DRAW_SRC = babel.transformSync([
   'const printAsPdf = env.printAsPdf;',
   'const docToHtml = env.docToHtml;',
   'const ezikDrawReplyCard = env.ezikDrawReplyCard;',
+  // ITEM 94: the image press's summariser, handed in here for the same reason as the line above.
+  'const ezikSummaryAsk = env.ezikSummaryAsk;',
   'let EZ_LANG = env.lang;',
   text(C_FALLBACK), text(C_I18N), text(FN_T),
   text(C_REQ), text(C_RES), text(C_V), text(C_MIMES), text(C_MAX), text(C_LINES),
@@ -1109,6 +1166,7 @@ function drawScene(opts) {
     deriveCaps: () => ({ export: true }),
     printAsPdf: () => {},
     docToHtml: () => DOC_BODY,
+    ezikSummaryAsk: o.summaryAsk || (() => ({ then: (onOk) => { onOk(null); } })),
     ezikDrawReplyCard: () => ({ url: CARD_URL }),
   };
   return { env: env, win: win, sent: sent, clock: clock };

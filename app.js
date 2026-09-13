@@ -1382,7 +1382,18 @@ const ezikCardParts=source=>{if(source&&typeof source==='object'){return{links:S
 const links=parts.links;if(links){items.push({t:EZIK_CARD_LINKS_LABEL+': '+links,size:28,weight:'400',alpha:0.8,step:EZIK_CARD_SOURCE_RISE});}items.push({t:EZIK_CARD_SITE,size:EZIK_CARD_SITE_SIZE,weight:'600',alpha:1,step:EZIK_CARD_SITE_SIZE});let h=0;for(const it of items)h+=it.step;return{items:items,h:h};};// THE SEAM IS THE CANVAS, and it is the only one. A guard hands in a recording context so the
 // card's geometry, its wrapping and its cut can be driven without a browser; the button below
 // hands in nothing and takes document.createElement, which is asserted.
-const ezikDrawReplyCard=opts=>{const o=opts||{};const canvas=o.canvas||document.createElement('canvas');canvas.width=EZIK_CARD_W;const ctx0=canvas.getContext('2d');ctx0.direction='rtl';const innerW=EZIK_CARD_W-EZIK_CARD_PAD*2;// THE ORDER IS THE WHOLE POINT: the tail first, then the body against what is left.
+const ezikDrawReplyCard=opts=>{const o=opts||{};const canvas=o.canvas||document.createElement('canvas');canvas.width=EZIK_CARD_W;const ctx0=canvas.getContext('2d');ctx0.direction='rtl';const innerW=EZIK_CARD_W-EZIK_CARD_PAD*2;// ITEM 94. WHICH SKIN, AND THE ANSWER IS DECIDED BY THE STRUCTURE CHECK AND NOTHING ELSE.
+// A summary that passes every length and type rule is drawn as the new card. Anything else --
+// no summary at all, a refusal, a malformed object, one field one character too long -- is the
+// OLD skin, unchanged, below. There is no third outcome and no partially-built card.
+const summary=ezikSummaryValid(o.summary);let cardH=0;let bodySize=EZIK_CARD_BODY_SIZE;let cut=false;let lines=[];if(summary){// The reply's own address wins over the model's answer for the printed host; the model's is
+// the stand-in for a reply that named a source without linking one.
+summary.host=ezikSumHost(o.url,summary.source);const pal=ezikCardPalette();// THE LADDER, AS A GUARD. Every field is capped and there are at most five points, so the
+// first rung is what this card is drawn at in practice; a freak wrap steps down instead of
+// spilling past the ceiling. The wrap is re-measured at every rung because it has to be.
+let laid=ezikSummaryLayout(ctx0,summary,innerW,o.url||'',EZIK_SUM_SCALES[0]);for(let i=1;i<EZIK_SUM_SCALES.length&&laid.h>EZIK_CARD_H_MAX;i++){laid=ezikSummaryLayout(ctx0,summary,innerW,o.url||'',EZIK_SUM_SCALES[i]);}// THE HEIGHT IS THE CONTENT'S, with no floor under it: this card is short on purpose, and a
+// floor would put the dead space back that the whole item exists to remove.
+cardH=Math.min(laid.h,EZIK_CARD_H_MAX);canvas.height=cardH;const sctx=canvas.getContext('2d');sctx.direction='rtl';ezikSummaryPaint(sctx,laid,pal);lines=summary.points;}else{// THE ORDER IS THE WHOLE POINT: the tail first, then the body against what is left.
 const tail=ezikCardTail(ctx0,o,innerW);// ...AND THE BODY DOES NOT DRAW WHAT THE TAIL RESERVES. The source paragraph and the notice are
 // IN o.text -- they are the last two things serializeReply writes -- so once the card stopped
 // cutting them off they were drawn twice, once inline and once in the reserved block. This
@@ -1395,7 +1406,7 @@ const wantedFor=count=>firstBaseline+Math.max(0,count-1)*EZIK_CARD_LINE+EZIK_CAR
 // for the width of the REAL font, so a smaller font is a different set of lines, not the same
 // lines drawn smaller. The tail is not re-measured -- it does not shrink, and its reserved
 // height is what the body is being fitted against.
-let bodySize=EZIK_CARD_BODY_SIZE;let allLines=[];let wanted=0;let fits=false;for(;;){ctx0.font='400 '+bodySize+'px system-ui, sans-serif';allLines=ezikCardWrap(ctx0,bodyText,innerW);wanted=wantedFor(allLines.length);fits=wanted<=EZIK_CARD_H_MAX;if(fits||bodySize<=EZIK_CARD_BODY_MIN_SIZE)break;bodySize-=EZIK_CARD_BODY_STEP;}const cardH=fits?Math.max(EZIK_CARD_H_MIN,wanted):EZIK_CARD_H_MAX;// At the ceiling the cut note takes a slot of its own, and the body gets the remainder.
+bodySize=EZIK_CARD_BODY_SIZE;let allLines=[];let wanted=0;let fits=false;for(;;){ctx0.font='400 '+bodySize+'px system-ui, sans-serif';allLines=ezikCardWrap(ctx0,bodyText,innerW);wanted=wantedFor(allLines.length);fits=wanted<=EZIK_CARD_H_MAX;if(fits||bodySize<=EZIK_CARD_BODY_MIN_SIZE)break;bodySize-=EZIK_CARD_BODY_STEP;}cardH=fits?Math.max(EZIK_CARD_H_MIN,wanted):EZIK_CARD_H_MAX;// At the ceiling the cut note takes a slot of its own, and the body gets the remainder.
 const lastAllowed=cardH-EZIK_CARD_PAD-tail.h-EZIK_CARD_FOOT_GAP-(fits?0:EZIK_CARD_LINE+EZIK_CARD_NOTE_DROP);const budget=Math.max(1,Math.floor((lastAllowed-firstBaseline)/EZIK_CARD_LINE)+1);canvas.height=cardH;const ctx=canvas.getContext('2d');// ITEM 42, MEASURED IN A REAL BROWSER. A canvas built with createElement is not in the
 // document, so its 2D context resolved `direction` to LTR -- and fillText runs the Unicode
 // bidirectional algorithm with THAT as the paragraph direction. Every neutral character at
@@ -1419,21 +1430,193 @@ ctx.direction='rtl';const inner=innerW;ctx.fillStyle='#0E1512';ctx.fillRect(0,0,
 // fills the card, so there is no empty band left to move it into.
 ctx.save();ctx.globalAlpha=0.035;ctx.fillStyle='#EAF3EE';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='700 420px system-ui, sans-serif';ctx.fillText(EZIK_CARD_MARK,EZIK_CARD_W/2,cardH/2);ctx.restore();// The reply, wrapped and right-aligned, because the card is Arabic.
 ctx.fillStyle='#EAF3EE';ctx.textAlign='right';ctx.textBaseline='alphabetic';ctx.font='400 '+bodySize+'px system-ui, sans-serif';const all=allLines;// already stripped of what the tail carries
-const cut=all.length>budget;const lines=cut?all.slice(0,budget):all;if(cut)lines[lines.length-1]=lines[lines.length-1]+' '+EZIK_CARD_CUT;let y=firstBaseline;for(const line of lines){ctx.fillText(line,EZIK_CARD_W-EZIK_CARD_PAD,y);y+=EZIK_CARD_LINE;}// THE CUT IS SAID, not merely marked with an ellipsis a reader can mistake for the author's.
+cut=all.length>budget;lines=cut?all.slice(0,budget):all;if(cut)lines[lines.length-1]=lines[lines.length-1]+' '+EZIK_CARD_CUT;let y=firstBaseline;for(const line of lines){ctx.fillText(line,EZIK_CARD_W-EZIK_CARD_PAD,y);y+=EZIK_CARD_LINE;}// THE CUT IS SAID, not merely marked with an ellipsis a reader can mistake for the author's.
 if(cut){ctx.save();ctx.globalAlpha=0.75;ctx.font='400 30px system-ui, sans-serif';ctx.fillText(EZIK_CARD_CUT_NOTE,EZIK_CARD_W-EZIK_CARD_PAD,y+EZIK_CARD_NOTE_DROP);ctx.restore();}// THE TAIL, drawn from the baseline the height reserved for it. The steps sum to tail.h, so the
 // last one lands on EZIK_CARD_PAD above the bottom edge whatever the tail holds -- and because
 // the body's budget was computed against the same tail.h, the two cannot meet.
-let ty=cardH-EZIK_CARD_PAD-tail.h;for(const it of tail.items){ty+=it.step;ctx.save();ctx.globalAlpha=it.alpha;ctx.font=it.weight+' '+it.size+'px system-ui, sans-serif';ctx.fillText(it.t,EZIK_CARD_W-EZIK_CARD_PAD,ty);ctx.restore();}return{url:canvas.toDataURL('image/png'),cut:cut,lines:lines.length,w:EZIK_CARD_W,h:cardH,size:bodySize};};const SaveReplyImageButton=({getText,getSource})=>{const[flash,setFlash]=useState('');// THE SHELL'S ANSWER, IN THE READER'S OWN WORDS, AND IT STAYS UNTIL THE NEXT PRESS. It is not
+let ty=cardH-EZIK_CARD_PAD-tail.h;for(const it of tail.items){ty+=it.step;ctx.save();ctx.globalAlpha=it.alpha;ctx.font=it.weight+' '+it.size+'px system-ui, sans-serif';ctx.fillText(it.t,EZIK_CARD_W-EZIK_CARD_PAD,ty);ctx.restore();}}return{url:canvas.toDataURL('image/png'),cut:cut,lines:lines.length,w:EZIK_CARD_W,h:cardH,size:bodySize};};// ============================================================
+// ITEM 94 · THE SHARE CARD'S NEW SKIN — A SUMMARY, NOT THE ANSWER POURED OUT
+// ============================================================
+// WHAT THIS REPLACES, AND WHY THE OLD SKIN IS STILL BELOW. The card used to pour the WHOLE
+// serialized reply onto a 1080-wide canvas and cut it with a descending font ladder when it did
+// not fit. That is the thing being replaced: a share card is read by someone who did not ask the
+// question, and a wall of cut text is neither short nor useful to them. The new skin is a
+// SUMMARY — a title, three to five points, a source name and a barcode.
+//
+// THE OLD SKIN IS NOT DELETED, deliberately. It is the FALLBACK: if the summary call fails, or
+// the model answers with anything that does not pass the structure check below, the card is
+// drawn exactly as it was drawn before this item. There is no third state and no broken card.
+//
+// NOTHING HERE RUNS AT BOOT. Every declaration below is inert until the share button is pressed:
+// most answers are never shared, and a summary produced for every answer would be paid for on
+// every answer.
+// ---- THE CLOSED STRUCTURE ------------------------------------------------------------------
+// The model is asked for THIS and nothing else. Prose is not a partial success here -- a card
+// cannot lay out a paragraph it was not sized for -- so anything that is not this shape is a
+// failure that falls back, and the check below is what decides that.
+//
+// THE FIVE ICON KEYS ARE LITERAL AND CLOSED. Every one of them is a geometric figure: a
+// rectangle, a circle, a line, an arc, a triangle, a star. NOTHING that draws a living being --
+// no person, no animal, no part of either -- can be reached from this list, because the list is
+// the only thing the painter will draw and a key outside it becomes 'dot'.
+const EZIK_SUM_ICONS=['dot','star','arch','bars','tri'];const EZIK_SUM_ICON_FALLBACK='dot';const EZIK_SUM_MAX_TITLE=46;const EZIK_SUM_MAX_HEAD=30;const EZIK_SUM_MAX_LINE=62;const EZIK_SUM_MIN_POINTS=3;const EZIK_SUM_MAX_POINTS=5;// A bare short host and nothing else -- «islamqa.info», never a full address. Decision 4: the
+// long url is what the barcode is for, and a card with both on it is the crowding the owner
+// named. This pattern also refuses a url that tried to arrive in the source field.
+const EZIK_SUM_HOST_RE=/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i;const EZIK_SUM_MAX_HOST=40;// ONE FIELD, ONE RULE, AND A BREACH IS A FALLBACK -- never a repair. A summary that had to be
+// trimmed to fit is a summary the model did not write, and the card would then be carrying words
+// nobody stands behind. So this returns the object or it returns null, and null means the old
+// skin is drawn.
+const ezikSumText=(v,max)=>{if(typeof v!=='string')return null;const s=v.replace(/\s+/g,' ').trim();if(!s||s.length>max)return null;return s;};const ezikSummaryValid=raw=>{if(!raw||typeof raw!=='object'||Array.isArray(raw))return null;const title=ezikSumText(raw.title,EZIK_SUM_MAX_TITLE);if(!title)return null;const source=ezikSumText(raw.source,EZIK_SUM_MAX_HOST);if(!source||source.length>EZIK_SUM_MAX_HOST||!EZIK_SUM_HOST_RE.test(source))return null;if(!Array.isArray(raw.points))return null;if(raw.points.length<EZIK_SUM_MIN_POINTS||raw.points.length>EZIK_SUM_MAX_POINTS)return null;const points=[];for(const p of raw.points){if(!p||typeof p!=='object'||Array.isArray(p))return null;const head=ezikSumText(p.head,EZIK_SUM_MAX_HEAD);if(!head)return null;const line1=ezikSumText(p.line1,EZIK_SUM_MAX_LINE);if(!line1)return null;// line2 is the one field that may legitimately be empty; anything else it is must still fit.
+let line2='';if(p.line2!=null&&p.line2!==''){line2=ezikSumText(p.line2,EZIK_SUM_MAX_LINE);if(!line2)return null;}const key=typeof p.icon==='string'?p.icon.trim().toLowerCase():'';points.push({icon:EZIK_SUM_ICONS.indexOf(key)===-1?EZIK_SUM_ICON_FALLBACK:key,head:head,line1:line1,line2:line2});}return{title:title,points:points,source:source};};// ---- THE BARCODE: A QR ENCODER WRITTEN HERE, WITH NO PACKAGE AND NO NETWORK ------------------
+// WHY IT IS HERE AT ALL. Decision 4: the source address is not printed on the card, because a
+// percent-escaped fatwa url is four unreadable lines of `%D9%85...` and the card is crowded by
+// it. A barcode carries the same address in a square the reader's own phone camera opens --
+// and decision 5 says there is no scanner inside this app, because every phone already has one.
+//
+// THE SHAPE OF IT. Byte mode (0100) with an 8-bit count indicator, which is what versions 1..9
+// use. Level M first and L only when M will not hold the address. Versions 2..6 and no higher:
+// version 7 upward carries an 18-bit version information block in two corners, and stopping at
+// 6 is what makes this encoder small enough to justify writing rather than importing. GF(256)
+// with primitive 0x11D, format information BCH(15,5) over generator 0x537 masked with 0x5412,
+// one alignment pattern per version, all eight masks scored by the four standard penalty rules.
+//
+// AND IT IS PROVEN BY A DECODER, not by reading. tools/card-skin-measure.cjs carries an
+// independent reader that recovers the format bits, unmasks the matrix, de-interleaves the
+// blocks, checks every Reed-Solomon syndrome and parses the byte stream back out. A table typed
+// from memory passes inspection and fails a camera; a table that survives a full round trip does
+// not.
+const EZIK_QR_EXP=new Uint8Array(512);const EZIK_QR_LOG=new Uint8Array(256);(()=>{let x=1;for(let i=0;i<255;i++){EZIK_QR_EXP[i]=x;EZIK_QR_LOG[x]=i;x<<=1;if(x&0x100)x^=0x11D;}for(let i=255;i<512;i++)EZIK_QR_EXP[i]=EZIK_QR_EXP[i-255];})();const ezikQrMul=(a,b)=>a===0||b===0?0:EZIK_QR_EXP[EZIK_QR_LOG[a]+EZIK_QR_LOG[b]];// [ error-correction codewords per block, [ [block count, data codewords per block], ... ] ]
+// Total codewords per version: 2:44  3:70  4:100  5:134  6:172 -- and every row below sums to it.
+const EZIK_QR_BLOCKS={'2L':[10,[[1,34]]],'2M':[16,[[1,28]]],'3L':[15,[[1,55]]],'3M':[26,[[1,44]]],'4L':[20,[[1,80]]],'4M':[18,[[2,32]]],'5L':[26,[[1,108]]],'5M':[24,[[2,43]]],'6L':[18,[[2,68]]],'6M':[16,[[4,27]]]};// One alignment pattern per version in this range, centred on the single coordinate below.
+const EZIK_QR_ALIGN={2:18,3:22,4:26,5:30,6:34};const EZIK_QR_VERSIONS=[2,3,4,5,6];const EZIK_QR_LEVELS=['M','L'];const EZIK_QR_QUIET=4;const ezikQrGen=n=>{let g=[1];for(let i=0;i<n;i++){const next=new Array(g.length+1).fill(0);for(let j=0;j<g.length;j++){next[j]^=g[j];next[j+1]^=ezikQrMul(g[j],EZIK_QR_EXP[i]);}g=next;}return g;};const ezikQrEc=(data,n)=>{const g=ezikQrGen(n);const rem=new Array(n).fill(0);for(let i=0;i<data.length;i++){const f=data[i]^rem[0];rem.shift();rem.push(0);if(f!==0)for(let j=0;j<n;j++)rem[j]^=ezikQrMul(g[j+1],f);}return rem;};// Byte-mode payload capacity: the data codewords less the twelve bits the mode indicator and the
+// count indicator take, which is one and a half codewords and therefore two whole ones.
+const ezikQrCapacity=(v,lvl)=>{const spec=EZIK_QR_BLOCKS[v+lvl];if(!spec)return 0;let d=0;for(const gr of spec[1])d+=gr[0]*gr[1];return d-2;};const ezikQrMask=(k,i,j)=>{if(k===0)return(i+j)%2===0;if(k===1)return i%2===0;if(k===2)return j%3===0;if(k===3)return(i+j)%3===0;if(k===4)return(Math.floor(i/2)+Math.floor(j/3))%2===0;if(k===5)return i*j%2+i*j%3===0;if(k===6)return(i*j%2+i*j%3)%2===0;return((i+j)%2+i*j%3)%2===0;};// Which modules the data stream may NOT be written into: the three finders with their
+// separators and the format strips beside them, both timing lines, and the alignment square.
+const ezikQrFunc=v=>{const n=17+4*v;const f=[];for(let i=0;i<n;i++)f.push(new Uint8Array(n));const box=(r,c,h,w)=>{for(let i=r;i<r+h;i++)for(let j=c;j<c+w;j++){if(i>=0&&j>=0&&i<n&&j<n)f[i][j]=1;}};box(0,0,9,9);box(0,n-8,9,8);box(n-8,0,8,9);for(let i=0;i<n;i++){f[6][i]=1;f[i][6]=1;}const a=EZIK_QR_ALIGN[v];box(a-2,a-2,5,5);return f;};const ezikQrDraw=(v,mask,codewords)=>{const n=17+4*v;const m=[];for(let i=0;i<n;i++)m.push(new Uint8Array(n));const fn=ezikQrFunc(v);const finder=(r,c)=>{for(let i=-1;i<=7;i++)for(let j=-1;j<=7;j++){const y=r+i,x=c+j;if(y<0||x<0||y>=n||x>=n)continue;const ring=i>=0&&i<=6&&(j===0||j===6)||j>=0&&j<=6&&(i===0||i===6);const core=i>=2&&i<=4&&j>=2&&j<=4;m[y][x]=ring||core?1:0;}};finder(0,0);finder(0,n-7);finder(n-7,0);for(let i=8;i<n-8;i++){const on=i%2===0?1:0;m[6][i]=on;m[i][6]=on;}const a=EZIK_QR_ALIGN[v];for(let i=-2;i<=2;i++)for(let j=-2;j<=2;j++){m[a+i][a+j]=Math.max(Math.abs(i),Math.abs(j))!==1?1:0;}m[n-8][8]=1;let bit=0;const total=codewords.length*8;const at=i=>i<total?codewords[i>>3]>>7-(i&7)&1:0;let up=true;for(let col=n-1;col>0;col-=2){if(col===6)col--;for(let k=0;k<n;k++){const row=up?n-1-k:k;for(let s=0;s<2;s++){const c=col-s;if(fn[row][c])continue;let b=at(bit);bit++;if(ezikQrMask(mask,row,c))b^=1;m[row][c]=b;}}up=!up;}return{n:n,m:m};};const ezikQrFormat=(lvl,mask)=>{const d=(lvl==='L'?1:0)<<3|mask;let rem=d;for(let i=0;i<10;i++)rem=rem<<1^(rem>>9&1)*0x537;return((d<<10|rem)^0x5412)&0x7FFF;};// Both copies, because a reader may use either and a matrix with one of them missing scans in
+// some apps and not in others -- which is the worst of the three possible outcomes.
+const ezikQrPutFormat=(n,m,lvl,mask)=>{const f=ezikQrFormat(lvl,mask);const bitOf=i=>f>>i&1;for(let i=0;i<=5;i++)m[8][i]=bitOf(i);m[8][7]=bitOf(6);m[8][8]=bitOf(7);m[7][8]=bitOf(8);for(let i=9;i<=14;i++)m[14-i][8]=bitOf(i);for(let i=0;i<=7;i++)m[n-1-i][8]=bitOf(i);for(let i=8;i<=14;i++)m[8][n-15+i]=bitOf(i);};// The four penalty rules, scored over the finished matrix so the mask is CHOSEN rather than
+// fixed: a run of five, a solid two-by-two, the finder-lookalike run, and the dark ratio.
+const ezikQrPenalty=(n,m)=>{let p=0;const runs=get=>{for(let i=0;i<n;i++){let run=1;for(let j=1;j<n;j++){if(get(i,j)===get(i,j-1))run++;else{if(run>=5)p+=3+(run-5);run=1;}}if(run>=5)p+=3+(run-5);}};runs((i,j)=>m[i][j]);runs((i,j)=>m[j][i]);for(let i=0;i+1<n;i++)for(let j=0;j+1<n;j++){const a=m[i][j];if(a===m[i][j+1]&&a===m[i+1][j]&&a===m[i+1][j+1])p+=3;}const PAT1=[1,0,1,1,1,0,1,0,0,0,0];const PAT2=[0,0,0,0,1,0,1,1,1,0,1];const scan=get=>{for(let i=0;i<n;i++)for(let j=0;j+11<=n;j++){let a=true,b=true;for(let k=0;k<11;k++){const v=get(i,j+k);if(v!==PAT1[k])a=false;if(v!==PAT2[k])b=false;}if(a)p+=40;if(b)p+=40;}};scan((i,j)=>m[i][j]);scan((i,j)=>m[j][i]);let dark=0;for(let i=0;i<n;i++)for(let j=0;j<n;j++)dark+=m[i][j];p+=Math.floor(Math.abs(dark*100/(n*n)-50)/5)*10;return p;};// UTF-8 by hand, because TextEncoder is a platform object and this path is required to hold in
+// the guards' evaluated context as well as in a browser.
+const ezikQrBytes=text=>{const out=[];const s=String(text==null?'':text);for(let i=0;i<s.length;i++){const cp=s.codePointAt(i);if(cp>0xFFFF)i++;if(cp<0x80)out.push(cp);else if(cp<0x800){out.push(0xC0|cp>>6,0x80|cp&63);}else if(cp<0x10000){out.push(0xE0|cp>>12,0x80|cp>>6&63,0x80|cp&63);}else{out.push(0xF0|cp>>18,0x80|cp>>12&63,0x80|cp>>6&63,0x80|cp&63);}}return out;};const ezikQrCodewords=(bytes,v,lvl)=>{const spec=EZIK_QR_BLOCKS[v+lvl];const ecLen=spec[0];const groups=spec[1];let dataCW=0;for(const gr of groups)dataCW+=gr[0]*gr[1];const bits=[];const push=(val,len)=>{for(let i=len-1;i>=0;i--)bits.push(val>>i&1);};push(4,4);push(bytes.length,8);for(const b of bytes)push(b,8);const room=dataCW*8;for(let i=0;i<4&&bits.length<room;i++)bits.push(0);while(bits.length%8)bits.push(0);const data=[];for(let i=0;i<bits.length;i+=8){let b=0;for(let j=0;j<8;j++)b=b<<1|bits[i+j];data.push(b);}let pad=0;while(data.length<dataCW){data.push(pad?0x11:0xEC);pad^=1;}const dBlocks=[],eBlocks=[];let at=0;for(const gr of groups){for(let i=0;i<gr[0];i++){const chunk=data.slice(at,at+gr[1]);at+=gr[1];dBlocks.push(chunk);eBlocks.push(ezikQrEc(chunk,ecLen));}}const out=[];let maxD=0;for(const b of dBlocks)maxD=Math.max(maxD,b.length);for(let i=0;i<maxD;i++)for(const b of dBlocks)if(i<b.length)out.push(b[i]);for(let i=0;i<ecLen;i++)for(const b of eBlocks)out.push(b[i]);return out;};// THE POLICY, AND THE ONE HONEST FAILURE. M is tried across every version first because a
+// barcode on a shared image is photographed off a screen and the higher level survives that; L
+// is reached for only when M cannot hold the address at version 6. An address longer than L at
+// version 6 gets NO barcode at all -- the short source line stands alone, and the probe counts
+// every payload that lands there rather than the card silently printing a square that scans to
+// the wrong place.
+const ezikQrEncode=text=>{const bytes=ezikQrBytes(text);if(!bytes.length)return null;let pick=null;for(const lvl of EZIK_QR_LEVELS){for(const v of EZIK_QR_VERSIONS){if(bytes.length<=ezikQrCapacity(v,lvl)){pick={v:v,lvl:lvl};break;}}if(pick)break;}if(!pick)return null;const cw=ezikQrCodewords(bytes,pick.v,pick.lvl);let best=null;for(let mask=0;mask<8;mask++){const d=ezikQrDraw(pick.v,mask,cw);ezikQrPutFormat(d.n,d.m,pick.lvl,mask);const p=ezikQrPenalty(d.n,d.m);if(!best||p<best.p)best={p:p,n:d.n,m:d.m,mask:mask};}return{size:best.n,modules:best.m,version:pick.v,level:pick.lvl,mask:best.mask,bytes:bytes.length};};// ---- THE SKIN'S OWN GEOMETRY ----------------------------------------------------------------
+// Every number here is a measurement of the CARD, not of a reply: the card is built from the
+// number of points it was handed, so three points and five points are two different heights and
+// neither of them is a constant. EZIK_CARD_W is read, never assumed -- the width is the one
+// thing about this card that does not move.
+const EZIK_SUM_BAR_H=104;// the solid top band
+const EZIK_SUM_BAR_SIZE=44;// the app name, as TEXT, inside it -- no image, ever
+const EZIK_SUM_ORN_H=34;// the ornament strip directly under the band
+const EZIK_SUM_ORN_TICKS=21;// the geometric row between the ornament's two rules
+const EZIK_SUM_TITLE_SIZE=48;const EZIK_SUM_TITLE_LINE=64;const EZIK_SUM_TITLE_GAP=46;// ornament -> first title baseline
+const EZIK_SUM_RULE=2;// every thin rule on this card is this thick
+const EZIK_SUM_RULE_GAP=30;const EZIK_SUM_ICON=52;// the icon's own square
+const EZIK_SUM_ICON_GAP=22;// icon column -> text column
+const EZIK_SUM_HEAD_SIZE=34;const EZIK_SUM_HEAD_LINE=46;const EZIK_SUM_BODY_SIZE=30;const EZIK_SUM_BODY_LINE=42;const EZIK_SUM_POINT_GAP=28;// air on each side of the rule between two points
+const EZIK_SUM_COLS_GAP=44;// last point -> the two bottom columns
+const EZIK_SUM_COL_GAP=36;// between the two bottom columns
+const EZIK_SUM_QR_BOX=300;// the barcode tile, its white frame included
+const EZIK_SUM_TAG_SIZE=26;const EZIK_SUM_TAG_LINE=36;const EZIK_SUM_SRC_SIZE=34;const EZIK_SUM_SRC_GAP=20;// tag block -> the short source name
+const EZIK_SUM_FOOT_SIZE=24;const EZIK_SUM_FOOT_GAP=30;// DECISION 2, WRITTEN ON THE CARD ITSELF. The card says out loud that the words on it are ezik's
+// summary and not the source's own wording. It is not a disclaimer in small print at the bottom:
+// it stands beside the source name, in the column the reader's eye lands on after the points.
+const EZIK_SUM_TAG='ملخَّصٌ من تطبيق عزك — ليس لفظَ المصدر';// THE LADDER IS STILL HERE, AND IT IS A GUARD NOW RATHER THAN THE MECHANISM. Every field is
+// length-capped and there are at most five points, so this card is short by construction and the
+// first rung is what it is drawn at. An abnormally long point -- five points that each wrap to
+// three lines in a font whose glyphs are wider than measured -- steps down instead of spilling.
+const EZIK_SUM_SCALES=[1,0.94,0.88,0.82,0.76];// ---- THE PALETTE: THE TREE'S OWN TOKENS, AND NO COLOUR INVENTED HERE ------------------------
+// The card is drawn on a canvas, and a canvas cannot resolve `var(--vt-ink)` -- it needs the
+// value. So the shipped identity's tokens are READ off the document root at press time, which is
+// the only moment they are all resolved, and each role takes the token the app already uses for
+// exactly that role.
+//
+// AND WHEN THERE IS NO DOCUMENT TO ASK, the two colours the share card has ALWAYS been drawn in
+// stand in -- not a new palette written by hand. The guards mount this tree in linkedom, which
+// has no getComputedStyle at all; a bare call there threw and took the whole app down with it
+// once already, so it is asked through the view and only if the view answers.
+//
+// THE ALPHAS ARE NOT COLOURS. muted, line and surface are the same token at a lower opacity so
+// that one set of numbers reads correctly whether the roles resolved to four different tokens or
+// collapsed onto the two the card already had.
+const EZIK_CARD_BG='#0E1512';const EZIK_CARD_INK='#EAF3EE';const EZIK_SUM_TOKENS={page:'--vt-page',ink:'--vt-ink',muted:'--vt-muted',line:'--vt-line',accent:'--vt-accent',onAccent:'--vt-on-accent',accent2:'--vt-accent2'};const EZIK_SUM_ALPHA={ink:1,muted:0.72,line:0.45,accent2:0.9,onAccent:1,accent:1,page:1};const ezikCardPalette=()=>{const out={page:EZIK_CARD_BG,ink:EZIK_CARD_INK,muted:EZIK_CARD_INK,line:EZIK_CARD_INK,accent:EZIK_CARD_INK,onAccent:EZIK_CARD_BG,accent2:EZIK_CARD_INK};try{const doc=typeof document==='undefined'?null:document;const view=doc&&doc.defaultView;const cs=view&&typeof view.getComputedStyle==='function'?view.getComputedStyle(doc.documentElement):null;if(!cs)return out;for(const role of Object.keys(EZIK_SUM_TOKENS)){const v=String(cs.getPropertyValue(EZIK_SUM_TOKENS[role])||'').trim();if(v)out[role]=v;}}catch(e){}return out;};// THE BARCODE'S TWO VALUES ARE NOT THEME COLOURS AND MUST NOT BE. A QR symbol is defined as dark
+// modules on a light ground with a contrast a camera can threshold; tinting it with the identity
+// accent is how a barcode stops scanning. These two are the specification, named so that nobody
+// later mistakes them for a palette choice this card made.
+const EZIK_QR_DARK='#000000';const EZIK_QR_LIGHT='#FFFFFF';// ---- THE ICONS: GEOMETRY ONLY, AND THE LIST IS THE WHOLE VOCABULARY -------------------------
+// DECISION 3 IS ABSOLUTE: nothing that draws a living being, or any part of one. The painter
+// below can draw a rectangle, a circle, a straight line, an arc, a triangle and a star, and
+// there is no path through it that draws anything else -- the key was already forced into
+// EZIK_SUM_ICONS by the structure check, and an unknown key became 'dot' there.
+//   dot   -- a filled disc inside a thin open ring
+//   star  -- one five-pointed star, filled, drawn as a ten-vertex polygon
+//   arch  -- a stroked arch: a half-circle arc standing on two straight jambs
+//   bars  -- three stacked rectangles, widest at the top
+//   tri   -- a filled upward triangle above one straight rule
+const ezikSumIcon=(ctx,key,x,y,side,color)=>{const cx=x+side/2;const cy=y+side/2;ctx.save();ctx.fillStyle=color;ctx.strokeStyle=color;ctx.lineWidth=Math.max(2,Math.round(side*0.07));if(key==='star'){const outer=side*0.46,innerR=side*0.19;ctx.beginPath();for(let i=0;i<10;i++){const r=i%2===0?outer:innerR;const a=-Math.PI/2+i*Math.PI/5;const px=cx+r*Math.cos(a),py=cy+r*Math.sin(a);if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);}ctx.closePath();ctx.fill();}else if(key==='arch'){const r=side*0.34,base=y+side*0.84,spring=cy+side*0.06;ctx.beginPath();ctx.moveTo(cx-r,base);ctx.lineTo(cx-r,spring);ctx.stroke();ctx.beginPath();ctx.moveTo(cx+r,base);ctx.lineTo(cx+r,spring);ctx.stroke();ctx.beginPath();ctx.arc(cx,spring,r,Math.PI,0);ctx.stroke();}else if(key==='bars'){const h=Math.max(3,Math.round(side*0.14));const widths=[1,0.74,0.48];for(let i=0;i<3;i++){const w=side*0.84*widths[i];ctx.fillRect(x+side*0.08,y+side*0.18+i*(h+side*0.14),w,h);}}else if(key==='tri'){const r=side*0.40;ctx.beginPath();ctx.moveTo(cx,cy-r);ctx.lineTo(cx+r*0.92,cy+r*0.52);ctx.lineTo(cx-r*0.92,cy+r*0.52);ctx.closePath();ctx.fill();ctx.fillRect(cx-r,cy+r*0.78,r*2,Math.max(2,Math.round(side*0.07)));}else{ctx.beginPath();ctx.arc(cx,cy,side*0.40,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(cx,cy,side*0.17,0,Math.PI*2);ctx.fill();}ctx.restore();};// ---- THE LAYOUT: EVERY LINE WRAPPED FIRST, AND THE HEIGHT READ OFF THE RESULT ---------------
+// THE ORDER IS THE POINT. Nothing here is positioned against a height guessed in advance; each block of
+// text is wrapped against the real measured width of the real font -- through ezikCardWrap, the
+// same wrap the old skin uses -- and the card's height is then the sum of what came back. Three
+// points, four points and five points therefore give three different heights, and a point whose
+// line1 wrapped to two lines makes its own block taller without anything else being told.
+const ezikSummaryLayout=(ctx,sum,inner,url,scale)=>{const z=n=>Math.max(1,Math.round(n*scale));const titleSize=z(EZIK_SUM_TITLE_SIZE),titleLine=z(EZIK_SUM_TITLE_LINE);const headSize=z(EZIK_SUM_HEAD_SIZE),headLine=z(EZIK_SUM_HEAD_LINE);const bodySize=z(EZIK_SUM_BODY_SIZE),bodyLine=z(EZIK_SUM_BODY_LINE);const tagSize=z(EZIK_SUM_TAG_SIZE),tagLine=z(EZIK_SUM_TAG_LINE);const srcSize=z(EZIK_SUM_SRC_SIZE);const wrapAt=(text,size,weight,width)=>{ctx.font=weight+' '+size+'px system-ui, sans-serif';return ezikCardWrap(ctx,text,width);};const right=EZIK_CARD_W-EZIK_CARD_PAD;const textW=inner-EZIK_SUM_ICON-EZIK_SUM_ICON_GAP;const colW=inner-EZIK_SUM_QR_BOX-EZIK_SUM_COL_GAP;const ops=[];const text=(t,x,y,size,weight,role,align)=>{ops.push({op:'text',t:t,x:x,y:y,size:size,weight:weight,role:role,align:align||'right'});};const rule=(x,y,w,role)=>ops.push({op:'rect',x:x,y:y,w:w,h:EZIK_SUM_RULE,role:role});// 1 · THE BAND, a solid fill of fixed height carrying the app's name as text.
+ops.push({op:'rect',x:0,y:0,w:EZIK_CARD_W,h:EZIK_SUM_BAR_H,role:'accent'});text(EZIK_CARD_MARK,right,Math.round(EZIK_SUM_BAR_H/2+EZIK_SUM_BAR_SIZE*0.36),EZIK_SUM_BAR_SIZE,'700','onAccent');// 2 · THE ORNAMENT, directly under it: two rules with a row of small squares between them.
+const ornTop=EZIK_SUM_BAR_H+Math.round(EZIK_SUM_ORN_H*0.22);const ornBot=EZIK_SUM_BAR_H+EZIK_SUM_ORN_H-Math.round(EZIK_SUM_ORN_H*0.22)-EZIK_SUM_RULE;rule(EZIK_CARD_PAD,ornTop,inner,'accent2');rule(EZIK_CARD_PAD,ornBot,inner,'accent2');const tick=Math.max(4,Math.round(EZIK_SUM_ORN_H*0.24));const step=inner/(EZIK_SUM_ORN_TICKS+1);for(let i=1;i<=EZIK_SUM_ORN_TICKS;i++){ops.push({op:'rect',role:'accent2',w:tick,h:tick,x:Math.round(EZIK_CARD_PAD+i*step-tick/2),y:Math.round((ornTop+ornBot+EZIK_SUM_RULE)/2-tick/2)});}// 3 · THE TITLE, larger, right-aligned, wrapped inside the full column.
+let y=EZIK_SUM_BAR_H+EZIK_SUM_ORN_H+EZIK_SUM_TITLE_GAP;const titleLines=wrapAt(sum.title,titleSize,'700',inner);for(let i=0;i<titleLines.length;i++)text(titleLines[i],right,y+i*titleLine,titleSize,'700','ink');y+=(titleLines.length-1)*titleLine;// 4 · THE RULE under it.
+y+=EZIK_SUM_RULE_GAP;rule(EZIK_CARD_PAD,y,inner,'line');y+=EZIK_SUM_RULE+EZIK_SUM_RULE_GAP;// 5 · THE POINTS, each an icon beside a head and one or two lines, separated by a thin rule.
+for(let p=0;p<sum.points.length;p++){const pt=sum.points[p];const head=wrapAt(pt.head,headSize,'700',textW);const l1=wrapAt(pt.line1,bodySize,'400',textW);const l2=pt.line2?wrapAt(pt.line2,bodySize,'400',textW):[];const top=y;ops.push({op:'icon',key:pt.icon,x:right-EZIK_SUM_ICON,y:top,side:EZIK_SUM_ICON,role:'accent2'});const tx=right-EZIK_SUM_ICON-EZIK_SUM_ICON_GAP;let ty=top;for(const t of head){ty+=headLine;text(t,tx,ty-Math.round(headLine*0.24),headSize,'700','ink');}for(const t of l1){ty+=bodyLine;text(t,tx,ty-Math.round(bodyLine*0.26),bodySize,'400','ink');}for(const t of l2){ty+=bodyLine;text(t,tx,ty-Math.round(bodyLine*0.26),bodySize,'400','muted');}y=top+Math.max(EZIK_SUM_ICON,ty-top);y+=EZIK_SUM_POINT_GAP;if(p<sum.points.length-1){rule(EZIK_CARD_PAD,y,inner,'line');y+=EZIK_SUM_RULE+EZIK_SUM_POINT_GAP;}}// 6 · THE TWO BOTTOM COLUMNS. Right: the tag and the short source name. Left: the barcode.
+y+=EZIK_SUM_COLS_GAP;const colTop=y;const tagLines=wrapAt(EZIK_SUM_TAG,tagSize,'600',colW);let cy=colTop;for(const t of tagLines){cy+=tagLine;text(t,right,cy-Math.round(tagLine*0.26),tagSize,'600','muted');}cy+=EZIK_SUM_SRC_GAP+srcSize;text(sum.host,right,cy,srcSize,'700','ink');const colH=cy-colTop;// THE BARCODE'S UNIT IS A WHOLE NUMBER OF PIXELS. A fractional module edge is what turns into a
+// grey seam when the image is scaled by a chat app, and a grey seam is a module a camera cannot
+// decide about. The quiet zone is four modules on every side and the white it is drawn on IS
+// the frame the order asks for.
+const qr=ezikQrEncode(url);let qrH=0;if(qr){const span=qr.size+EZIK_QR_QUIET*2;const unit=Math.max(1,Math.floor(EZIK_SUM_QR_BOX/span));const side=unit*span;const qx=EZIK_CARD_PAD+Math.round((EZIK_SUM_QR_BOX-side)/2);ops.push({op:'qr',x:qx,y:colTop,unit:unit,span:span,size:qr.size,modules:qr.modules});qrH=side;}y=colTop+Math.max(colH,qrH);// 7 · THE TAIL: one thin rule and one dim line.
+y+=EZIK_SUM_FOOT_GAP;rule(EZIK_CARD_PAD,y,inner,'line');y+=EZIK_SUM_RULE+EZIK_SUM_FOOT_GAP+EZIK_SUM_FOOT_SIZE;text(EZIK_CARD_SITE,right,y,z(EZIK_SUM_FOOT_SIZE),'600','muted');const h=Math.round(y+EZIK_CARD_PAD);return{h:h,ops:ops,qr:qr,points:sum.points.length,scale:scale};};// THE PAINTER IS DUMB ON PURPOSE. It executes the list the layout produced and decides nothing:
+// every position, every wrap and the height itself were settled before a single pixel was drawn,
+// which is what makes the height a function of the content rather than a hope about it.
+const ezikSummaryPaint=(ctx,laid,pal)=>{ctx.fillStyle=pal.page;ctx.fillRect(0,0,EZIK_CARD_W,laid.h);ctx.textBaseline='alphabetic';for(const o of laid.ops){ctx.save();ctx.globalAlpha=EZIK_SUM_ALPHA[o.role]==null?1:EZIK_SUM_ALPHA[o.role];if(o.op==='rect'){ctx.fillStyle=pal[o.role]||pal.ink;ctx.fillRect(o.x,o.y,o.w,o.h);}else if(o.op==='text'){ctx.fillStyle=pal[o.role]||pal.ink;ctx.textAlign=o.align;ctx.font=o.weight+' '+o.size+'px system-ui, sans-serif';ctx.fillText(o.t,o.x,o.y);}else if(o.op==='icon'){ezikSumIcon(ctx,o.key,o.x,o.y,o.side,pal[o.role]||pal.ink);}else if(o.op==='qr'){ctx.globalAlpha=1;ctx.fillStyle=EZIK_QR_LIGHT;ctx.fillRect(o.x,o.y,o.unit*o.span,o.unit*o.span);ctx.fillStyle=EZIK_QR_DARK;const off=EZIK_QR_QUIET*o.unit;for(let i=0;i<o.size;i++)for(let j=0;j<o.size;j++){if(o.modules[i][j])ctx.fillRect(o.x+off+j*o.unit,o.y+off+i*o.unit,o.unit,o.unit);}}ctx.restore();}};// THE SHORT SOURCE NAME IS THE APP'S OWN WHEN THE APP HAS ONE. The model is asked for it, and it
+// is length-checked and pattern-checked like every other field -- but when the reply itself
+// carries the address, the host derived from that address is the truth and the model's answer is
+// only the stand-in for a reply that cited a name without a link.
+const ezikSumHost=(url,fallback)=>{try{const h=new URL(String(url)).hostname.replace(/^www\./,'');if(h)return h;}catch(e){}return fallback;};// ---- THE CALL: ONE REQUEST, AT THE PRESS, AND NULL IS AN ACCEPTED ANSWER --------------------
+// RULE 4 OF THE ORDER: the summary is produced when the button is pressed and at no other
+// moment. Most answers are never shared, and a summary made for every answer would be paid for
+// on every answer.
+//
+// IT GOES THROUGH aiFetch, which is the client's one consent choke point: with no valid consent
+// on this device nothing is ever sent at all and this returns null, which is the same thing
+// a network failure returns and is handled the same way -- the old skin.
+//
+// THE SERVER STILL OWNS THE SYSTEM PROMPT. What is sent here is a USER message, which is the only
+// thing this client has ever composed; nothing below decides what the model is told about the
+// reader.
+const EZIK_SUM_ASK=['لخِّصْ الجوابَ التاليَ في بطاقةٍ. أجبْ بـ JSON وحدَه بلا أيِّ كلمةٍ قبلَه أو بعدَه.','الهيئةُ بالضبط: {"title":"…","points":[{"icon":"…","head":"…","line1":"…","line2":"…"}],"source":"…"}','عددُ النقاطِ من ثلاثٍ إلى خمسٍ لا أكثرَ ولا أقلّ.','title لا يتجاوزُ 46 حرفًا، وhead لا يتجاوزُ 30 حرفًا، وline1 وline2 لا يتجاوزُ كلٌّ منهما 62 حرفًا.','line2 يجوزُ أن يكونَ نصًّا فارغًا.','icon مفتاحٌ واحدٌ من هذه الخمسةِ فقط: dot أو star أو arch أو bars أو tri.','source اسمُ النطاقِ القصيرِ للمصدرِ فقط مثل islamqa.info، بلا رابطٍ كامل.','الشرطُ الأهمّ: اكتبِ الملخَّصَ بلفظِك أنت، لا بلفظِ المصدر؛ لا تنقلْ جملةً من المتنِ حرفيًّا ولا تقتبسْ منه.','وإن لم تستطعْ تلخيصًا صادقًا فأجبْ بـ null وحدَها.','الجواب:'].join('\n');const EZIK_SUM_MAX_TOKENS=900;const EZIK_SUM_TIMEOUT_MS=25000;// The reader's own three fields, read from the one place the profile lives. They travel for the
+// same reason they travel on every other AI send: the server resolves the audience from them and
+// the child floor is applied on THIS turn, not inherited from the turn that produced the reply.
+const ezikSumReader=()=>{try{const raw=localStorage.getItem('child_profile');const p=raw?JSON.parse(raw):null;if(!p||typeof p!=='object')return null;return{name:p.name||'',age:p.age,gender:p.gender||null};}catch(e){return null;}};// The model may wrap the object in a sentence however firmly it was told not to. The FIRST brace
+// to the LAST brace is taken and parsed; anything that does not parse, or parses to something
+// the structure check refuses, is a null and therefore the old skin.
+const ezikSumParse=s=>{const t=String(s==null?'':s);const a=t.indexOf('{');const b=t.lastIndexOf('}');if(a===-1||b<=a)return null;try{return JSON.parse(t.slice(a,b+1));}catch(e){return null;}};const ezikSummaryAsk=async text=>{const body=String(text==null?'':text).trim();if(!body)return null;const p=ezikSumReader();if(!p)return null;const ac=typeof AbortController==='function'?new AbortController():null;const timer=ac?setTimeout(()=>{try{ac.abort();}catch(e){}},EZIK_SUM_TIMEOUT_MS):null;try{const r=await aiFetch('/api/ask',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},capHeaders()),credentials:'same-origin',signal:ac?ac.signal:undefined,body:JSON.stringify({max_tokens:EZIK_SUM_MAX_TOKENS,stream:true,name:p.name,age:p.age,gender:p.gender,mode:'chat',band:deriveCaps(p.age).band,messages:[{role:'user',content:EZIK_SUM_ASK+'\n'+body}]})});if(!r||!r.ok||!r.body)return null;const reader=r.body.getReader();const decoder=new TextDecoder();let buf='',out='';for(;;){const chunk=await reader.read();if(chunk.done)break;buf+=decoder.decode(chunk.value,{stream:true});const lines=buf.split('\n');buf=lines.pop();for(const ln of lines){const s=ln.trim();if(s.indexOf('data:')!==0)continue;const d=s.slice(5).trim();if(d==='[DONE]')continue;try{const evt=JSON.parse(d);if(evt.type==='content_block_delta'&&evt.delta&&evt.delta.type==='text_delta')out+=evt.delta.text;}catch(pe){}}}return ezikSummaryValid(ezikSumParse(out));}catch(e){return null;}finally{if(timer)clearTimeout(timer);}};const SaveReplyImageButton=({getText,getSource})=>{const[flash,setFlash]=useState('');// THE SHELL'S ANSWER, IN THE READER'S OWN WORDS, AND IT STAYS UNTIL THE NEXT PRESS. It is not
 // a flash: the platform's share sheet can stand in front of the reader for minutes, so a line
 // that erased itself on a timer would be gone before there was anything for it to say. In a
 // browser this state never leaves '' and no element is drawn for it at all.
 const[said,setSaid]=useState('');// The listener's own detach, parked where the next press and the unmount below reach the same
 // one -- so no listener outlives the press that made it.
 const stopRef=useRef(null);useEffect(()=>()=>{if(stopRef.current){stopRef.current();stopRef.current=null;}},[]);// ONE PRESS, ONE FILE -- the same ref latch the PDF control uses, and for the same reason.
-const busyRef=useRef(false);const doSave=()=>{if(busyRef.current)return;const payload=typeof getText==='function'?getText():'';if(!payload){setFlash('fail');setTimeout(()=>setFlash(''),1500);return;}busyRef.current=true;try{const card=ezikDrawReplyCard({text:payload,source:typeof getSource==='function'?getSource():''});// ONE DOOR, TWO DELIVERIES BEHIND IT. Which one is decided on the bridge's presence and
+const busyRef=useRef(false);const doSave=()=>{if(busyRef.current)return;const payload=typeof getText==='function'?getText():'';if(!payload){setFlash('fail');setTimeout(()=>setFlash(''),1500);return;}busyRef.current=true;const carried=typeof getSource==='function'?getSource():'';// ITEM 94, RULE 4: the summary is asked for AT THE PRESS. Most answers are never shared, so a
+// summary produced with every answer would be paid for on every answer -- and because the
+// press now waits on an answer, it says so while it waits.
+setFlash('wait');// EVERYTHING FROM HERE ON HAPPENS ONCE, WHATEVER CAME BACK. It is lifted out of the press so
+// that RULE 5 can be one line rather than three: a null summary, a thrown summary and a
+// rejected promise all arrive here with `summary` === null, and null is not an error
+// the reader is ever shown -- it is the card they had before this item, drawn unchanged.
+const drawAndDeliver=summary=>{try{const card=ezikDrawReplyCard({text:payload,source:carried,url:carried&&typeof carried==='object'?String(carried.url||''):'',summary:summary});// ONE DOOR, TWO DELIVERIES BEHIND IT. Which one is decided on the bridge's presence and
 // nowhere else, and when there is no bridge the four lines below are the ones that were
 // always here -- the same anchor, the same data: URL, the same filename, the same click.
-const bridge=ezikDlBridge();if(bridge){if(stopRef.current){stopRef.current();stopRef.current=null;}setSaid('');setFlash('');stopRef.current=ezikDlFromDataUrl(bridge,card.url,EZIK_CARD_FILE,line=>{stopRef.current=null;setSaid(line||'');});}else{const a=document.createElement('a');a.href=card.url;a.download=EZIK_CARD_FILE;a.click();setFlash('');}}catch(e){setFlash('fail');setTimeout(()=>setFlash(''),1500);}busyRef.current=false;};return/*#__PURE__*/React.createElement(React.Fragment,null,/*#__PURE__*/React.createElement("button",{type:"button",onClick:doSave,"aria-label":EZIK_CARD_ARIA,className:"ezik-focus",style:miniBtnStyle},flash==='wait'?EZIK_CARD_WAIT:flash==='fail'?EZIK_CARD_FAIL:EZIK_CARD_LABEL),said?/*#__PURE__*/React.createElement("div",{style:s.qiblaNote},said):null);};// ITEM 42-ب, MEASURED. A source line's url reaches this renderer exactly as the answer carries
+const bridge=ezikDlBridge();if(bridge){if(stopRef.current){stopRef.current();stopRef.current=null;}setSaid('');setFlash('');stopRef.current=ezikDlFromDataUrl(bridge,card.url,EZIK_CARD_FILE,line=>{stopRef.current=null;setSaid(line||'');});}else{const a=document.createElement('a');a.href=card.url;a.download=EZIK_CARD_FILE;a.click();setFlash('');}}catch(e){setFlash('fail');setTimeout(()=>setFlash(''),1500);}busyRef.current=false;};ezikSummaryAsk(payload).then(drawAndDeliver,()=>drawAndDeliver(null));};return/*#__PURE__*/React.createElement(React.Fragment,null,/*#__PURE__*/React.createElement("button",{type:"button",onClick:doSave,"aria-label":EZIK_CARD_ARIA,className:"ezik-focus",style:miniBtnStyle},flash==='wait'?EZIK_CARD_WAIT:flash==='fail'?EZIK_CARD_FAIL:EZIK_CARD_LABEL),said?/*#__PURE__*/React.createElement("div",{style:s.qiblaNote},said):null);};// ITEM 42-ب, MEASURED. A source line's url reaches this renderer exactly as the answer carries
 // it, and a fatwa url is percent-encoded Arabic: one reply put 56 `%XX` escapes on the page as
 // four unbroken lines of `%D9%85%D8%B0...`. That is not a link a reader can read, and because a
 // percent-escaped run carries no break opportunity at all it also cannot wrap -- so it runs past
@@ -5614,7 +5797,18 @@ notice:sg=>[sg.label,sg.content].map(x=>String(x||'').trim()).filter(Boolean).jo
 // this item and is not being relaxed to fit it: the ORDER is the reply's own, nothing is
 // dropped, nothing is de-duplicated, and a reply that cites nothing yields the empty string,
 // which draws no footer at all rather than an invented one.
-const ezikCardSourceLine=segments=>{const names=[];for(const sg of segments||[]){if(!sg||sg.type!=='source')continue;let host=(sg.site||'').trim();if(!host&&sg.url){try{host=new URL(sg.url).hostname.replace(/^www\./,'');}catch(e){host='';}}if(host)names.push(host);}return names.join('  ·  ');};// ITEM 42-C. THE CARD'S ATTRIBUTION BLOCK AND ITS NOTICE BLOCK.
+const ezikCardSourceLine=segments=>{const names=[];for(const sg of segments||[]){if(!sg||sg.type!=='source')continue;let host=(sg.site||'').trim();if(!host&&sg.url){try{host=new URL(sg.url).hostname.replace(/^www\./,'');}catch(e){host='';}}if(host)names.push(host);}return names.join('  ·  ');};// ITEM 94, DECISION 7. THE ONE ADDRESS THE BARCODE CARRIES, AND IT IS THE SOURCE'S OWN.
+//
+// The card prints a short host name and nothing longer -- decision 4 -- so the address itself has
+// to travel some other way, and the barcode is that way. It is the ORIGINAL source's address, not
+// a link to an ezik answer: a reader who scans it lands where the reply was read from, which is
+// the only address this card is in a position to vouch for.
+//
+// IT READS, IT DOES NOT FILTER. N22's rule is that this sheet never re-orders, drops or
+// de-duplicates a reply's sources; this takes the FIRST address the reply itself cited, in the
+// reply's own order, exactly as ezikCardSourceLine takes every host in the reply's own order. A
+// reply that cited a name with no address yields '', and '' draws no barcode at all.
+const ezikCardSourceUrl=segments=>{for(const sg of segments||[]){if(!sg||sg.type!=='source')continue;const u=String(sg.url==null?'':sg.url).trim();if(u)return u;}return'';};// ITEM 42-C. THE CARD'S ATTRIBUTION BLOCK AND ITS NOTICE BLOCK.
 //
 // WHY THESE EXIST. The card is handed serializeReply's TEXT, and the source paragraph and the
 // notice are the last two things that text carries -- so a fixed line budget cut them off before
@@ -5925,7 +6119,7 @@ const buildCopyText=()=>serializeReply(segments,{tashkeel,band:deriveCaps(age).b
 // ezikCardSourceLine has always read -- so the card still has exactly one source of truth, and
 // it is still the one the clipboard and the PDF are handed. Nothing is filtered here; N22's
 // rule that this sheet never re-orders or drops a source is untouched.
-const buildCardSource=()=>({links:ezikCardSourceLine(segments),attribution:ezikCardAttributionBlock(segments),notice:ezikCardNoticeBlock(segments)});// S98: the fold decides only what is DRAWN. buildCopyText above, the listen button below and
+const buildCardSource=()=>({links:ezikCardSourceLine(segments),attribution:ezikCardAttributionBlock(segments),notice:ezikCardNoticeBlock(segments),url:ezikCardSourceUrl(segments)});// S98: the fold decides only what is DRAWN. buildCopyText above, the listen button below and
 // every export path all read `segments` / message.content — the WHOLE reply — so a folded reply
 // is copied, spoken and exported in full.
 const canFold=!!foldView;const overrideActive=!!foldOverride&&foldOverride.epoch===foldEpoch;const foldOpen=canFold&&(overrideActive?foldOverride.open:!!defaultOpen);const shownSegments=canFold&&!foldOpen?foldView:segments;return/*#__PURE__*/React.createElement("div",{className:"ez-anim",style:{animation:'fadeIn 0.3s ease-out',display:'flex',flexDirection:'column',alignItems:'stretch',gap:8,maxWidth:'100%'}},/*#__PURE__*/React.createElement("div",{className:"ezc-ans",style:{...s.assistantBubble,maxWidth:'100%',/* 13.4-b2 */padding:'16px 18px',display:'flex',flexDirection:'column',gap:10}},ezikRenderSegments(shownSegments,{tashkeel,age,onPlayVerse,onPlaySurah,onStopAudio,onFavoriteAyah,ayahFavIds}),canFold&&/*#__PURE__*/React.createElement("button",{type:"button",onClick:()=>setFoldOverride({epoch:foldEpoch,open:!foldOpen}),"aria-expanded":foldOpen?'true':'false',"aria-label":ezT(foldOpen?EZIK_FOLD_HIDE:EZIK_FOLD_SHOW),className:"ezik-focus",style:s.foldToggle},/*#__PURE__*/React.createElement("span",null,ezT(foldOpen?EZIK_FOLD_HIDE:EZIK_FOLD_SHOW)),/*#__PURE__*/React.createElement("svg",{width:"13",height:"13",viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2",strokeLinecap:"round",strokeLinejoin:"round",style:{flexShrink:0,transform:foldOpen?'rotate(180deg)':'none'}},/*#__PURE__*/React.createElement("polyline",{points:"6 9 12 15 18 9"})))),/*#__PURE__*/React.createElement("div",{className:"ezc-acts",style:{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',justifyContent:'flex-start',padding:'0 2px'}},/*#__PURE__*/React.createElement(MessageListenButton,{text:message.content,onPlayMessage:onPlayMessage,onStopAudio:onStopAudio}),/*#__PURE__*/React.createElement(CopyReplyButton,{text:String(message.content||'').trim(),getText:buildCopyText}),/*#__PURE__*/React.createElement(ShareReplyButton,{getText:buildCopyText}),/*#__PURE__*/React.createElement(ExportPdfReplyButton,{getText:buildCopyText}),ezikCardIsAttributed(segments)&&/*#__PURE__*/React.createElement(SaveReplyImageButton,{getText:buildCopyText,getSource:buildCardSource}),onQuote&&/*#__PURE__*/React.createElement("button",{type:"button",onClick:()=>onQuote(buildCopyText()),"aria-label":EZIK_QUOTE_ARIA,className:"ezik-focus",style:miniBtnStyle},EZIK_QUOTE_LABEL),onFavorite&&/*#__PURE__*/React.createElement("button",{type:"button",onClick:()=>onFavorite(message,index),"aria-pressed":isFavorite?'true':'false',"aria-label":isFavorite?EZIK_FAV_DEL:EZIK_FAV_ADD,className:"ezik-focus",style:{...miniBtnStyle,opacity:isFavorite?1:0.7,borderColor:isFavorite?'var(--red)':'var(--line)',color:isFavorite?'var(--red)':'inherit'}},/*#__PURE__*/React.createElement("svg",{width:"13",height:"13",viewBox:"0 0 24 24",fill:isFavorite?'currentColor':'none',stroke:"currentColor",strokeWidth:"1.8",strokeLinecap:"round",strokeLinejoin:"round"},/*#__PURE__*/React.createElement("path",{d:"M12 17.3l-5.4 3 1-6-4.4-4.3 6-.9L12 3.5l2.8 5.6 6 .9-4.4 4.3 1 6z"}))),/*#__PURE__*/React.createElement("button",{type:"button",onClick:onToggleTashkeel,"aria-label":'\u062A\u0634\u0643\u064A\u0644',style:{...miniBtnStyle,opacity:tashkeel?1:0.7,borderColor:tashkeel?'var(--red)':'var(--line)'}},'\u062A\u0634\u0643\u064A\u0644'),/*#__PURE__*/React.createElement("button",{type:"button",onClick:()=>onReport&&onReport(index),"aria-label":ezT("chat.report"),style:{display:'inline-flex',alignItems:'center',gap:5,background:'transparent',color:'var(--muted)',border:'1px solid var(--line)',borderRadius:8,padding:'4px 10px',fontSize:13,cursor:'pointer',fontFamily:'inherit'}},/*#__PURE__*/React.createElement("svg",{width:"13",height:"13",viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2",strokeLinecap:"round",strokeLinejoin:"round"},/*#__PURE__*/React.createElement("path",{d:"M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"}),/*#__PURE__*/React.createElement("line",{x1:"4",y1:"22",x2:"4",y2:"15"})),/*#__PURE__*/React.createElement("span",null,"بلّغ"))),suggestions&&suggestions.length>0&&/*#__PURE__*/React.createElement("div",{style:s.suggestionsInline},suggestions.map((sg,i)=>/*#__PURE__*/React.createElement("button",{key:i,onClick:()=>onSuggestionClick&&onSuggestionClick(sg),style:s.suggestionChipSmall},sg))),/*#__PURE__*/React.createElement(EzikLessonCards,{rows:lessonRows}));});// ============================================================
