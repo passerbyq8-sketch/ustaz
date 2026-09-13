@@ -89,6 +89,12 @@ const CORE = [
   // so the offline gap was not one section a reader chose to visit but the tafsir door on the
   // home screen resolving to nothing. It is 23984 bytes.
   '/daily-tafsir.json',
+  // ITEM 4. The print edition's footnotes, joined to the marks the forty carries inside its own
+  // text. It is here because arbaeen.json is: the reader draws the mark only when this file
+  // answers it, so a corpus that is precached while its notes are not would give an offline
+  // reader the same hadith with every mark stripped out of it. The two travel together or the
+  // page differs by network state. It is 9322 bytes.
+  '/arbaeen-footnotes.json',
   // ITEM 32. The three files the first paint cannot happen without, self-hosted from this origin
   // since the three render-blocking CDN tags left index.html. They are here for the reason the
   // note at the top of this file used to say was impossible: with React and the app bundle on
@@ -128,11 +134,11 @@ const CORE = [
 // ---------------------------------------------------------------------------
 
 // The measured cost of CORE, byte for byte, at the commit that cut this constant:
-//   /  (index.html) 153974 + app.js 1619590 + icon-watermark.png 368386
+//   /  (index.html) 153974 + app.js 1629141 + icon-watermark.png 368386
 //   + adhkar.json 177392 + vendor/react-dom.umd.js 131835 + arbaeen.json 67360
 //   + daily-tafsir.json 23984 + icon-512.png 12893 + vendor/react.umd.js 10751
-//   + adhkar-split-27.json 7182 + icon-maskable-512.png 5938 + icon-192.png 5053
-//   + manifest.json 533
+//   + arbaeen-footnotes.json 9322 + adhkar-split-27.json 7182
+//   + icon-maskable-512.png 5938 + icon-192.png 5053 + manifest.json 533
 //   + fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2 94032   (Noto Naskh Arabic, arabic)
 //   + fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2 19696      (Noto Naskh Arabic, latin)
 // quest-bank-integrity-guard.cjs B12 re-derives this sum from the files on disk and FAILS on any
@@ -151,7 +157,7 @@ const CORE = [
 // constant, that table, and the sw.js digest in quest-bank-integrity-guard.cjs in the SAME
 // commit -- item 89-b is the worked example. CACHE is untouched by all of it: the store name is
 // a ship decision and the merge round owns the bump.
-const CORE_BYTES = 2698599;
+const CORE_BYTES = 2717472;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
 // re-cut by hand always trails the files it describes by some amount.

@@ -113,6 +113,28 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-09-13-g -- ITEM 4: THE FORTY'S FOOTNOTES JOIN CORE, AND app.js GREW TO DRAW THEM.
+  //                    arbaeen.json carries the print edition's footnote markers inside its own
+  //                    text -- 55 of them -- and nothing answered any of them. The footnote text
+  //                    was joined to the marks from the source atoms by the new, deterministic
+  //                    tools/arbaeen-footnotes-build.cjs and shipped as arbaeen-footnotes.json
+  //                    (9322 bytes, AD25D24A), which is now named in CORE beside arbaeen.json
+  //                    with its own prose line. IT IS IN CORE FOR A REASON THE OTHER DATA
+  //                    ENTRIES DO NOT HAVE: the reader draws a mark only when this file answers
+  //                    it, so a precached corpus whose notes were NOT precached would give an
+  //                    offline reader the same hadith with every mark stripped out of it.
+  //                    arbaeen.json ITSELF WAS NOT WRITTEN -- it was read, and its digest above
+  //                    is the one 2026-09-13-e recorded. app.js was rebuilt from app.jsx by node
+  //                    tools/build-app.cjs, 1619590 -> 1629141 (+9551), and CORE_BYTES was
+  //                    re-cut 2698599 -> 2717472 (+18873, exactly 9322 + 9551) by node
+  //                    tools/core-bytes.cjs --write. The worker's own byte table gained the new
+  //                    file in its existing descending order and restated app.js; SW_CORE and
+  //                    SW_CORE_FILES gained the entry in CORE's order, and SW_PROSE gained a row
+  //                    for it and restated app.js, so B12 and B14 re-derive both numbers rather
+  //                    than trusting them. THIS digest is re-cut LAST, after every other sw.js
+  //                    edit was final. THE CACHING STRATEGY IS UNTOUCHED: the fetch handler, the
+  //                    sealed-mushaf exclusion and the revalidation branch are exactly as they
+  //                    were. CACHE is NOT bumped: the merge round owns the bump.
   //   2026-09-13-f -- ITEM 2: TWO CORPORA JOIN THE WORKER'S CORE LIST. arbaeen.json (67360
   //                    bytes, 36B6DF66) and daily-tafsir.json (23984 bytes, E26E09F1) were
   //                    fetched from the origin root on first open and cached only by the
@@ -1112,7 +1134,7 @@ const SEALED = {
 //                    shell did not grow. The worker table at :121 and the app.js mirror below
 //                    followed, and THIS digest is re-cut LAST. SW.JS IS OTHERWISE UNTOUCHED and
 //                    CACHE IS NOT BUMPED: this is a branch for the owner to preview, not a ship.
-  'sw.js': 'd9de69baaff76b1d1291042d4c7b613b91a27c2f333dcc7c34e709d00a0fa61f',
+  'sw.js': 'af7b59cc7ecf5e159c19cf9ea5b295670f27be201a21c794d4adf30d869cef13',
 };
 
 // ---------------------------------------------------------------------------
@@ -1165,6 +1187,7 @@ const SW_REVALIDATED = ['/adhkar.json', '/worship-display.json', '/manifest.json
 const SW_CORE = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png',
   '/icon-maskable-512.png', '/icon-watermark.png', '/adhkar.json',
   '/adhkar-split-27.json', '/arbaeen.json', '/daily-tafsir.json',
+  '/arbaeen-footnotes.json',
   '/app.js', '/vendor/react.umd.js', '/vendor/react-dom.umd.js',
   '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2',
   '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2'];
@@ -1172,7 +1195,7 @@ const SW_CORE = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png',
 // CORE_BYTES constant that has fallen below it.
 const SW_CORE_FILES = ['index.html', 'manifest.json', 'icon-192.png', 'icon-512.png',
   'icon-maskable-512.png', 'icon-watermark.png', 'adhkar.json', 'adhkar-split-27.json',
-  'arbaeen.json', 'daily-tafsir.json',
+  'arbaeen.json', 'daily-tafsir.json', 'arbaeen-footnotes.json',
   'app.js', 'vendor/react.umd.js', 'vendor/react-dom.umd.js',
   'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2',
   'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2'];
@@ -2236,7 +2259,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1619590, of: 'app.js' },
+      { n: 1629141, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
@@ -2247,6 +2270,9 @@ async function compare(goldenPath) {
       // tafsir -- each stated in the worker's byte table and re-derived here from the file it names.
       { n: 67360, of: 'arbaeen.json' },
       { n: 23984, of: 'daily-tafsir.json' },
+      // ITEM 4. The forty's footnotes, precached beside the corpus they answer, stated in the
+      // worker's byte table and re-derived here from the file it names.
+      { n: 9322, of: 'arbaeen-footnotes.json' },
       { n: 12893, of: 'icon-512.png' },
       { n: 5938, of: 'icon-maskable-512.png' },
       { n: 5053, of: 'icon-192.png' },

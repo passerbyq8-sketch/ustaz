@@ -2186,10 +2186,12 @@ const loadAdhkar = () => {
 // behind it, no model call, no retrieval and no second request -- the reader who opens the
 // section reads what shipped with the app and nothing that was fetched for him.
 //
-// IT IS NOT IN THE WORKER'S CORE, exactly as adhkar-split-27.json is not: it is fetched from
-// the origin root on first open and cached by the runtime rule, not precached at install. So
-// a reader who has never opened this section and is offline sees the empty state, and one who
-// has opened it before does not. That is the same door adhkar-split-27.json already has.
+// IT IS IN THE WORKER'S CORE, beside adhkar-split-27.json. Item 2 named it there on 2026-09-13,
+// so it is written into the store at INSTALL and no longer on first open. A reader who has never
+// opened this section and is offline now finds the book rather than the empty state, which is
+// the whole of what a dead network used to leave here: this section has no second supply.
+// The empty state below is not dead code -- it still answers a store that arrived short, a
+// cache that was evicted, and a fetch that failed for some other reason.
 let __arbaeenData = null;
 let __arbaeenPromise = null;
 const loadArbaeen = () => {
@@ -2214,6 +2216,57 @@ const loadArbaeen = () => {
   }
   return __arbaeenPromise;
 };
+// ITEM 4. THE EDITION'S FOOTNOTES, AS A FILE BESIDE THE CORPUS.
+//
+// THE DEFECT THIS ANSWERS. arbaeen.json carries the print edition's footnote markers inside the
+// hadith text -- 55 of them, "(1)" fifty times and "(2)" five times -- and until this file
+// existed the application answered none of them. The reader met a number that pointed at
+// nothing. The footnote TEXT was never in the corpus; it is in the source atoms, and
+// tools/arbaeen-footnotes-build.cjs is what joins the two.
+//
+// A SECOND FILE AND NOT AN EDIT TO THE CORPUS. arbaeen.json is a byte copy of FC-001977 and
+// stays one: it is not rewritten, not normalised and not annotated. This is the same shape
+// adhkar-split-27.json already has over adhkar.json -- a presentation layer beside the source.
+//
+// THE SHAPE IS THE MAP ITSELF: keyed by the hadith's own number, then by the footnote number,
+// holding the footnote text. { "1": { "1": "...", "2": "..." }, "2": { "1": "..." }, ... }
+// There is no wrapper and no metadata, because every top-level key is a hadith number.
+//
+// WHAT IS NOT IN IT IS THE POINT. The join is refused whenever it is not certain -- a footnote
+// blob in the atoms is PAGE-level and can belong to a paragraph that is not this hadith, so a
+// blob reached by two entries is refused for both, a blob whose numbering does not run 1, 2, 3
+// is refused whole, and an entry whose text asks for a number the blob does not carry is
+// refused whole. Nothing is inferred from position, order or plausibility. A number that is
+// missing here is a number the reader must not be shown, and the reader is not shown it: the
+// mark is removed from the displayed text rather than left pointing at nothing.
+//
+// IT IS IN THE WORKER'S CORE, beside arbaeen.json, for the reason arbaeen.json is: a reader who
+// opens this section offline must meet the same page a reader with a network meets, and a
+// corpus that is precached while its footnotes are not would draw the text with every mark
+// stripped out of it. The two files travel together or the page differs by network state.
+//
+// AND IT IS NOT LOAD-BEARING. Every failure here resolves to NOTHING and the reader keeps
+// exactly the page that shipped before this item: the corpus's own text, marks and all. The
+// section must never break over a footnote.
+let __arbFootData = null;
+let __arbFootPromise = null;
+const loadArbaeenFootnotes = () => {
+  if (__arbFootData) return Promise.resolve(__arbFootData);
+  if (!__arbFootPromise) {
+    __arbFootPromise = Promise.resolve()
+      .then(() => fetch('/arbaeen-footnotes.json'))
+      .then((r) => { if (!r.ok) throw new Error('arbaeen footnotes fetch ' + r.status); return r.json(); })
+      .then((raw) => {
+        // The file's own object, read as it stands. No reshaping, no sort, no repair: a store
+        // that is not an object at all resolves to an empty map, which is the same page as a
+        // store that never arrived.
+        __arbFootData = (raw && typeof raw === 'object' && !Array.isArray(raw)) ? raw : {};
+        return __arbFootData;
+      })
+      .catch((e) => { __arbFootPromise = null; throw e; });
+  }
+  return __arbFootPromise;
+};
 // ── THE SPLIT OF CATEGORY 27, AS A SECOND STORE ─────────────────────────────────────────────
 // adhkar-split-27.json is the OWNER'S OWN FILE: authored in chat, approved by the owner, and
 // dropped into the tree sealed. NOTHING BELOW EDITS IT, REWRITES IT OR NORMALISES IT -- it is
@@ -2231,11 +2284,13 @@ const loadArbaeen = () => {
 // authored copy under lib/data and a byte-identical copy at the root that ships. The root copy
 // was made with fs.copyFileSync and not one byte of it was authored here.
 //
-// IT IS NOT IN THE WORKER'S CORE. adhkar.json is precached and this is not, so the two doors
-// cost ONE network fetch on a cold start and are unavailable offline -- and that is why every
-// failure below falls back to the UNSPLIT store rather than to an empty screen. A reader with no
-// network sees category 27 exactly as it ships today, which is the same thing the switch being
-// off shows them. Adding an entry to CORE is a worker decision and belongs to whoever ships.
+// IT IS IN THE WORKER'S CORE, beside adhkar.json. Both are precached at install, so the two
+// doors cost NO network fetch on a cold start and are there offline. The fallback below is
+// unchanged by that and is not dead: a failure here still falls back to the UNSPLIT store
+// rather than to an empty screen, because an evicted cache, a store that arrived short and a
+// file that will not parse are all still reachable. A reader with no network sees category 27
+// exactly as it ships today, which is the same thing the switch being off shows them. Adding an
+// entry to CORE is a worker decision and belongs to whoever ships.
 const ADHKAR_SPLIT_URL = '/adhkar-split-27.json';
 let __splitData = null;
 let __splitPromise = null;
@@ -2260,8 +2315,10 @@ const loadAdhkarSplit = () => {
 // only by the code below and by the components at the end of the articles block, and the 153202
 // bytes of the names sheet never enter it. A reader who never opens this section pays nothing.
 //
-// AND NEITHER IS IN THE WORKER'S CORE. The two doors of category 27 taught the rule this follows:
-// a file that is not precached costs ONE network fetch on a cold start and is unavailable
+// AND NEITHER IS IN THE WORKER'S CORE -- which is now the exception rather than the rule, since
+// the two doors of category 27, the forty and the daily verse's tafsir are all precached at
+// install. The rule still holds in the other direction, and it is the reason these two are left
+// out: a file that is NOT precached costs ONE network fetch on a cold start and is unavailable
 // offline. That is the deliberate price of not putting 153 kB into the install of every reader
 // who never opens the section -- and the section says so plainly when the fetch fails rather
 // than drawing an empty shelf.
@@ -12764,6 +12821,58 @@ function arbaeenTopic(h) {
   return elided ? seg + '\u2026' : seg;
 }
 // ===== ITEM 3 -- ARBAEEN TOPIC DERIVATION (END) =====
+// ===== ITEM 4 -- ARBAEEN FOOTNOTE MARKS (BEGIN) =====
+// THE MARK IN THE TEXT, AND WHAT MAY ANSWER IT. The corpus carries the print edition's footnote
+// markers inside the hadith -- "(1)" and "(2)", 55 of them across the fifty entries, each one
+// preceded by a single space. arbaeen-footnotes.json carries the text of the ones that could be
+// joined to their footnote WITH CERTAINTY, and deliberately carries nothing for the rest.
+//
+// A MARK THAT NOTHING ANSWERS IS REMOVED, NOT DIMMED AND NOT LEFT STANDING. A reader shown a
+// number with no note under it has been shown a broken reference, which is worse than not
+// having been shown a footnote at all. The space in front of the mark goes with it, because the
+// corpus puts one there and leaving it behind would leave the sentence double-spaced in front
+// of its own full stop.
+//
+// PURE, AND IT RETURNS DATA RATHER THAN ELEMENTS: a list of {t} text runs and {mark, num}
+// markers, in the text's own order. Nothing here knows what a span is, which is what lets the
+// same function be read and run outside a browser.
+//
+// THE CALLER DECIDES WHAT "NO STORE" MEANS. This is called only when the store actually loaded.
+// A bag of null then means THIS ENTRY has no certain footnote, so every mark in it is dropped;
+// a store that never arrived is a different case and is answered above the call, by drawing the
+// corpus's own string exactly as it shipped.
+const ARB_MARK_SRC = '\\((\\d+)\\)';
+function arbaeenMarkSplit(text, bag) {
+  const src = String(text || '');
+  const parts = [];
+  const re = new RegExp(ARB_MARK_SRC, 'g');
+  let last = 0;
+  let m;
+  while ((m = re.exec(src)) !== null) {
+    const num = Number(m[1]);
+    const known = !!bag && Object.prototype.hasOwnProperty.call(bag, String(num));
+    if (known) {
+      parts.push({ t: src.slice(last, m.index) });
+      parts.push({ mark: m[0], num: num });
+    } else {
+      // The one space in front of the mark is eaten with it, and only if it is actually there.
+      const cut = (m.index > 0 && src.charAt(m.index - 1) === ' ') ? m.index - 1 : m.index;
+      parts.push({ t: src.slice(last, cut) });
+    }
+    last = m.index + m[0].length;
+  }
+  parts.push({ t: src.slice(last) });
+  return parts.filter((p) => p.mark || p.t !== '');
+}
+// THE LIST IS BUILT FROM THE MARKS THAT SURVIVED, not from the store's keys, so the numbered
+// list under the text and the numbers inside the text cannot disagree. In the text's own order,
+// and each number once however many times the text repeats it.
+function arbaeenMarkList(parts) {
+  const out = [];
+  for (const p of parts) if (p.mark && !out.some((q) => q.num === p.num)) out.push(p);
+  return out;
+}
+// ===== ITEM 4 -- ARBAEEN FOOTNOTE MARKS (END) =====
 
 function ArbaeenScreen({ onBack }) {
   // ONE loader call, the store's own objects, and no reshaping of any of them -- the adhkar
@@ -12781,6 +12890,11 @@ function ArbaeenScreen({ onBack }) {
   const [db, setDb] = useState(null);
   const [failed, setFailed] = useState(false);
   const [selIdx, setSelIdx] = useState(null);
+  // ITEM 4. THE FOOTNOTES, HELD SEPARATELY AND NEVER BLOCKING. null is not "loading" here, it is
+  // "no store" -- the two are the same page, and that page is the one this section shipped with:
+  // the corpus's own text, marks and all. Nothing below waits on this and nothing below fails
+  // because of it, which is what "the section must never break over a footnote" means in code.
+  const [notes, setNotes] = useState(null);
   // ITEM 1-B. WHERE THE READER WAS, AND WHY IT IS A REF AND NOT STATE. Returning from the reader
   // unmounts nothing that owns this value and re-mounts the browse, which reads it once on its
   // way in; nothing re-renders because of it, so it is not state. It is the ENTRY'S OWN NUMBER
@@ -12793,6 +12907,10 @@ function ArbaeenScreen({ onBack }) {
   useEffect(() => {
     let alive = true;
     loadArbaeen().then((d) => { if (alive) setDb(d); }).catch(() => { if (alive) setFailed(true); });
+    // A SECOND REQUEST AND A SEPARATE FATE. It does not gate the corpus, it does not set `failed`,
+    // and its rejection is swallowed here rather than raised: the section draws the book whether
+    // or not this one ever lands.
+    loadArbaeenFootnotes().then((f) => { if (alive) setNotes(f); }).catch(() => {});
     return () => { alive = false; };
   }, []);
   const list = (db && db.hadith) || [];
@@ -12816,7 +12934,7 @@ function ArbaeenScreen({ onBack }) {
   };
   if (open && cur) {
     return (
-      <IstanaArbaeenReader doc={db} h={cur} i={selIdx} total={list.length}
+      <IstanaArbaeenReader doc={db} h={cur} i={selIdx} total={list.length} notes={notes}
         onPrev={() => goTo(Math.max(0, selIdx - 1))}
         onNext={() => goTo(Math.min(list.length - 1, selIdx + 1))}
         onBack={ezikGoBack} />
@@ -12911,7 +13029,7 @@ function IstanaArbaeenBrowse({ onBack, doc, failed, onOpen, place }) {
 }
 
 // THE READER. ONE entry, its text as a text child, and the attribution under it.
-function IstanaArbaeenReader({ doc, h, i, total, onPrev, onNext, onBack }) {
+function IstanaArbaeenReader({ doc, h, i, total, notes, onPrev, onNext, onBack }) {
   // THE ATTRIBUTION, AND WHAT IT MAY SAY. The book's title and the entry's own heading, both
   // copied from the corpus. The page is appended ONLY when the corpus marked this entry citable;
   // it never has, so no page is drawn, and nothing stands in for one.
@@ -12926,6 +13044,14 @@ function IstanaArbaeenReader({ doc, h, i, total, onPrev, onNext, onBack }) {
         ? toArabicDigits(h.page_start) + '-' + toArabicDigits(h.page_end)
         : toArabicDigits(h.page_start))
     : '';
+  // ITEM 4. THE MARKS AND THEIR NOTES. `notes` null is no store at all, and then `parts` is null
+  // and the corpus's own string is drawn as a text child -- byte for byte what this section drew
+  // before this item existed, marks and all. With a store, the split decides every mark on its
+  // own: one the store answers stays where the corpus put it, one it does not is taken out of
+  // the sentence with the space in front of it.
+  const bag = (notes && Object.prototype.hasOwnProperty.call(notes, String(h.n))) ? notes[String(h.n)] : null;
+  const parts = notes ? arbaeenMarkSplit(h.text, bag) : null;
+  const shown = parts ? arbaeenMarkList(parts) : [];
   return (
     <div className="theme-dark adhkar3" style={s.eziaReadContainer}>
       <div className="ezia-nav">
@@ -12945,9 +13071,40 @@ function IstanaArbaeenReader({ doc, h, i, total, onPrev, onNext, onBack }) {
               <span style={s.eziaReadHead}>
                 <span style={s.eziaReadPos}>{toArabicDigits(h.n)} / {toArabicDigits((doc && doc.count) || 0)}</span>
               </span>
-              {/* the corpus's own text, rendered as a text child. */}
-              <div style={s.eziaReadText}>{h.text}</div>
+              {/* the corpus's own text, rendered as a text child -- and, when the footnote store
+                  is there, as the same string cut into runs around its marks. Not one character
+                  of the corpus is rewritten either way: the only thing the split can do is leave
+                  a mark out, and it leaves out exactly the ones nothing answers. */}
+              <div style={s.eziaReadText}>{parts
+                ? parts.map((p, k) => (p.mark
+                  ? <span key={'m' + k} style={s.eziaMark}>{p.mark}</span>
+                  : p.t))
+                : h.text}</div>
               <div style={s.eziaReadSource}>{book}{book && h.title ? ' \u2014 ' : ''}{h.title}{page ? ' \u2014 ' + page : ''}</div>
+              {/* ITEM 4. THE FOOTNOTES, UNDER THE ATTRIBUTION AND ABOVE THE TWO MOVES. They are
+                  the text's own matter, so they sit with the text; the move row is the section's
+                  chrome and stays the last thing in the panel, where the reader's thumb has
+                  always found it.
+                  THE LIST IS DRAWN FROM THE MARKS THAT SURVIVED, so a number here is a number
+                  the reader can see above it, and there is no row for a note the text no longer
+                  asks for. An entry with none draws nothing at all -- no list, no rule, and no
+                  heading standing over an empty space.
+                  THE MARKER IS THE CORPUS'S OWN GLYPHS, "(1)" in latin digits, and not the
+                  arabic-indic digits this section counts its cards in. The reader joins the two
+                  by matching what they see, and a list numbered \u00ab\u0661\u00bb under a text marked "(1)"
+                  would be two numbering systems for one reference. It is an <ol> so that it is
+                  announced as a list, with its own markers suppressed and the corpus's drawn in
+                  their place. */}
+              {shown.length ? (
+                <ol style={s.eziaNoteList}>
+                  {shown.map((p) => (
+                    <li key={p.num} style={s.eziaNoteRow}>
+                      <span style={s.eziaNoteNum}>{p.mark}</span>
+                      <span style={s.eziaNoteText}>{bag[String(p.num)]}</span>
+                    </li>
+                  ))}
+                </ol>
+              ) : null}
               {/* ITEM 1-A. THE TWO MOVES, under the text, in the section's own card language.
                   Both buttons are ALWAYS DRAWN. At the first entry the previous one is dimmed
                   and disabled and at the last the next one is -- removed instead of dimmed, the
@@ -27783,6 +27940,24 @@ const s = {
   eziaReadRepeat: { padding: '3px 9px', borderRadius: 999, background: 'var(--a3-ice)', color: 'var(--a3-blue)', fontSize: 12, fontWeight: 800 },
   eziaReadText: { color: 'var(--a3-ink)', fontSize: 20, lineHeight: 2.15, textAlign: 'center', fontFamily: "'Amiri', serif", margin: '10px 0 8px' },
   eziaReadSource: { color: 'var(--a3-muted)', fontSize: 12, fontWeight: 600, textAlign: 'center' },
+  // ITEM 4. THE FOOTNOTE MARK INSIDE THE HADITH. Small and dimmed and nothing else: no box, no
+  // underline, no cursor, no handler and no tabIndex -- it is a reference, not a control, and a
+  // mark that looked pressable would be a promise this section does not keep. The size is a
+  // NUMBER and not an em: this section's sizes are scaled by the reader's own text-size setting,
+  // and that multiplier reaches a number. An em would have ridden on the corpus's 20px and been
+  // the one glyph on the page that ignored the setting -- themecoverage tests exactly that, and
+  // failed on '0.6em' before this line was a 12. The colour is the one the attribution line
+  // under it already dims to.
+  eziaMark: { fontSize: 12, verticalAlign: 'super', lineHeight: 1, color: 'var(--a3-muted)', fontFamily: 'var(--ez-ui-font)' },
+  // THE LIST ITSELF. Under the attribution, separated from it by the same hairline the section
+  // draws everywhere else, smaller than the corpus and dimmer than it -- it is apparatus, and it
+  // must not compete with the hadith. `listStyle: none` because the markers are the corpus's own
+  // "(1)" and are drawn as content; the <ol> is kept for what it announces, not for what it
+  // paints. Aligned to the right, which is the start of the line in this section's direction.
+  eziaNoteList: { listStyle: 'none', margin: '12px 0 0', padding: '10px 0 0', borderTop: '1px solid var(--a3-line)', textAlign: 'right' },
+  eziaNoteRow: { display: 'flex', alignItems: 'flex-start', gap: 6, margin: '0 0 6px' },
+  eziaNoteNum: { flex: '0 0 auto', color: 'var(--a3-blue)', fontSize: 11, fontWeight: 800, lineHeight: 1.85, fontFamily: 'var(--ez-ui-font)' },
+  eziaNoteText: { flex: 1, minWidth: 0, color: 'var(--a3-muted)', fontSize: 12.5, lineHeight: 1.85, fontFamily: "'Amiri', serif" },
   eziaMoveRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '14px 0 0' },
   eziaMoveBtn: { flex: 1, minWidth: 0, minHeight: 44, padding: '10px 14px', borderRadius: 999, background: 'var(--a3-ice)', color: 'var(--a3-blue)', border: '1px solid var(--a3-line)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', fontSize: 13, fontWeight: 800 },
   eziaMoveBtnOff: { background: 'var(--a3-surface)', color: 'var(--a3-muted)', border: '1px solid var(--a3-line)', cursor: 'default', opacity: 0.55 },

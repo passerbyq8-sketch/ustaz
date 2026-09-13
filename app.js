@@ -428,14 +428,51 @@ let __adhkarPromise=null;const loadAdhkar=()=>{if(__adhkarData)return Promise.re
 // behind it, no model call, no retrieval and no second request -- the reader who opens the
 // section reads what shipped with the app and nothing that was fetched for him.
 //
-// IT IS NOT IN THE WORKER'S CORE, exactly as adhkar-split-27.json is not: it is fetched from
-// the origin root on first open and cached by the runtime rule, not precached at install. So
-// a reader who has never opened this section and is offline sees the empty state, and one who
-// has opened it before does not. That is the same door adhkar-split-27.json already has.
+// IT IS IN THE WORKER'S CORE, beside adhkar-split-27.json. Item 2 named it there on 2026-09-13,
+// so it is written into the store at INSTALL and no longer on first open. A reader who has never
+// opened this section and is offline now finds the book rather than the empty state, which is
+// the whole of what a dead network used to leave here: this section has no second supply.
+// The empty state below is not dead code -- it still answers a store that arrived short, a
+// cache that was evicted, and a fetch that failed for some other reason.
 let __arbaeenData=null;let __arbaeenPromise=null;const loadArbaeen=()=>{if(__arbaeenData)return Promise.resolve(__arbaeenData);if(!__arbaeenPromise){__arbaeenPromise=Promise.resolve().then(()=>fetch('/arbaeen.json')).then(r=>{if(!r.ok)throw new Error('arbaeen fetch '+r.status);return r.json();}).then(raw=>{// The store's own objects, in the file's own order. No reshaping, no sort, no filter:
 // the file is already the array the section draws, and a second ordering here would be
 // a second opinion about a book that has only one.
-__arbaeenData={book_title:raw.book_title||null,author:raw.author||null,count:raw.count||0,hadith:raw.hadith||[]};return __arbaeenData;}).catch(e=>{__arbaeenPromise=null;throw e;});}return __arbaeenPromise;};// ── THE SPLIT OF CATEGORY 27, AS A SECOND STORE ─────────────────────────────────────────────
+__arbaeenData={book_title:raw.book_title||null,author:raw.author||null,count:raw.count||0,hadith:raw.hadith||[]};return __arbaeenData;}).catch(e=>{__arbaeenPromise=null;throw e;});}return __arbaeenPromise;};// ITEM 4. THE EDITION'S FOOTNOTES, AS A FILE BESIDE THE CORPUS.
+//
+// THE DEFECT THIS ANSWERS. arbaeen.json carries the print edition's footnote markers inside the
+// hadith text -- 55 of them, "(1)" fifty times and "(2)" five times -- and until this file
+// existed the application answered none of them. The reader met a number that pointed at
+// nothing. The footnote TEXT was never in the corpus; it is in the source atoms, and
+// tools/arbaeen-footnotes-build.cjs is what joins the two.
+//
+// A SECOND FILE AND NOT AN EDIT TO THE CORPUS. arbaeen.json is a byte copy of FC-001977 and
+// stays one: it is not rewritten, not normalised and not annotated. This is the same shape
+// adhkar-split-27.json already has over adhkar.json -- a presentation layer beside the source.
+//
+// THE SHAPE IS THE MAP ITSELF: keyed by the hadith's own number, then by the footnote number,
+// holding the footnote text. { "1": { "1": "...", "2": "..." }, "2": { "1": "..." }, ... }
+// There is no wrapper and no metadata, because every top-level key is a hadith number.
+//
+// WHAT IS NOT IN IT IS THE POINT. The join is refused whenever it is not certain -- a footnote
+// blob in the atoms is PAGE-level and can belong to a paragraph that is not this hadith, so a
+// blob reached by two entries is refused for both, a blob whose numbering does not run 1, 2, 3
+// is refused whole, and an entry whose text asks for a number the blob does not carry is
+// refused whole. Nothing is inferred from position, order or plausibility. A number that is
+// missing here is a number the reader must not be shown, and the reader is not shown it: the
+// mark is removed from the displayed text rather than left pointing at nothing.
+//
+// IT IS IN THE WORKER'S CORE, beside arbaeen.json, for the reason arbaeen.json is: a reader who
+// opens this section offline must meet the same page a reader with a network meets, and a
+// corpus that is precached while its footnotes are not would draw the text with every mark
+// stripped out of it. The two files travel together or the page differs by network state.
+//
+// AND IT IS NOT LOAD-BEARING. Every failure here resolves to NOTHING and the reader keeps
+// exactly the page that shipped before this item: the corpus's own text, marks and all. The
+// section must never break over a footnote.
+let __arbFootData=null;let __arbFootPromise=null;const loadArbaeenFootnotes=()=>{if(__arbFootData)return Promise.resolve(__arbFootData);if(!__arbFootPromise){__arbFootPromise=Promise.resolve().then(()=>fetch('/arbaeen-footnotes.json')).then(r=>{if(!r.ok)throw new Error('arbaeen footnotes fetch '+r.status);return r.json();}).then(raw=>{// The file's own object, read as it stands. No reshaping, no sort, no repair: a store
+// that is not an object at all resolves to an empty map, which is the same page as a
+// store that never arrived.
+__arbFootData=raw&&typeof raw==='object'&&!Array.isArray(raw)?raw:{};return __arbFootData;}).catch(e=>{__arbFootPromise=null;throw e;});}return __arbFootPromise;};// ── THE SPLIT OF CATEGORY 27, AS A SECOND STORE ─────────────────────────────────────────────
 // adhkar-split-27.json is the OWNER'S OWN FILE: authored in chat, approved by the owner, and
 // dropped into the tree sealed. NOTHING BELOW EDITS IT, REWRITES IT OR NORMALISES IT -- it is
 // fetched, parsed and read, exactly as adhkar.json is.
@@ -452,11 +489,13 @@ __arbaeenData={book_title:raw.book_title||null,author:raw.author||null,count:raw
 // authored copy under lib/data and a byte-identical copy at the root that ships. The root copy
 // was made with fs.copyFileSync and not one byte of it was authored here.
 //
-// IT IS NOT IN THE WORKER'S CORE. adhkar.json is precached and this is not, so the two doors
-// cost ONE network fetch on a cold start and are unavailable offline -- and that is why every
-// failure below falls back to the UNSPLIT store rather than to an empty screen. A reader with no
-// network sees category 27 exactly as it ships today, which is the same thing the switch being
-// off shows them. Adding an entry to CORE is a worker decision and belongs to whoever ships.
+// IT IS IN THE WORKER'S CORE, beside adhkar.json. Both are precached at install, so the two
+// doors cost NO network fetch on a cold start and are there offline. The fallback below is
+// unchanged by that and is not dead: a failure here still falls back to the UNSPLIT store
+// rather than to an empty screen, because an evicted cache, a store that arrived short and a
+// file that will not parse are all still reachable. A reader with no network sees category 27
+// exactly as it ships today, which is the same thing the switch being off shows them. Adding an
+// entry to CORE is a worker decision and belongs to whoever ships.
 const ADHKAR_SPLIT_URL='/adhkar-split-27.json';let __splitData=null;let __splitPromise=null;const loadAdhkarSplit=()=>{if(__splitData)return Promise.resolve(__splitData);if(!__splitPromise){__splitPromise=Promise.resolve().then(()=>fetch(ADHKAR_SPLIT_URL)).then(r=>{if(!r.ok)throw new Error('adhkar split fetch '+r.status);return r.json();}).then(raw=>{__splitData=raw;return __splitData;}).catch(e=>{__splitPromise=null;throw e;});}return __splitPromise;};// ============================================================
 // ITEM 26 -- أسماء الله الحسنى: THE TWO SHEETS, FETCHED WHEN THE SECTION IS OPENED
 // ============================================================
@@ -466,8 +505,10 @@ const ADHKAR_SPLIT_URL='/adhkar-split-27.json';let __splitData=null;let __splitP
 // only by the code below and by the components at the end of the articles block, and the 153202
 // bytes of the names sheet never enter it. A reader who never opens this section pays nothing.
 //
-// AND NEITHER IS IN THE WORKER'S CORE. The two doors of category 27 taught the rule this follows:
-// a file that is not precached costs ONE network fetch on a cold start and is unavailable
+// AND NEITHER IS IN THE WORKER'S CORE -- which is now the exception rather than the rule, since
+// the two doors of category 27, the forty and the daily verse's tafsir are all precached at
+// install. The rule still holds in the other direction, and it is the reason these two are left
+// out: a file that is NOT precached costs ONE network fetch on a cold start and is unavailable
 // offline. That is the deliberate price of not putting 153 kB into the install of every reader
 // who never opens the section -- and the section says so plainly when the fetch fails rather
 // than drawing an empty shelf.
@@ -4063,6 +4104,31 @@ let elided=false;if(seg.length>ARB_TOPIC_MAX){let body=seg.slice(0,ARB_TOPIC_MAX
 // fragment too short to be a subject, hands back the heading the section shipped with. The
 // card is never empty and it is never a stray word.
 if(seg.length<ARB_TOPIC_MIN)return ordinal;return elided?seg+'\u2026':seg;}// ===== ITEM 3 -- ARBAEEN TOPIC DERIVATION (END) =====
+// ===== ITEM 4 -- ARBAEEN FOOTNOTE MARKS (BEGIN) =====
+// THE MARK IN THE TEXT, AND WHAT MAY ANSWER IT. The corpus carries the print edition's footnote
+// markers inside the hadith -- "(1)" and "(2)", 55 of them across the fifty entries, each one
+// preceded by a single space. arbaeen-footnotes.json carries the text of the ones that could be
+// joined to their footnote WITH CERTAINTY, and deliberately carries nothing for the rest.
+//
+// A MARK THAT NOTHING ANSWERS IS REMOVED, NOT DIMMED AND NOT LEFT STANDING. A reader shown a
+// number with no note under it has been shown a broken reference, which is worse than not
+// having been shown a footnote at all. The space in front of the mark goes with it, because the
+// corpus puts one there and leaving it behind would leave the sentence double-spaced in front
+// of its own full stop.
+//
+// PURE, AND IT RETURNS DATA RATHER THAN ELEMENTS: a list of {t} text runs and {mark, num}
+// markers, in the text's own order. Nothing here knows what a span is, which is what lets the
+// same function be read and run outside a browser.
+//
+// THE CALLER DECIDES WHAT "NO STORE" MEANS. This is called only when the store actually loaded.
+// A bag of null then means THIS ENTRY has no certain footnote, so every mark in it is dropped;
+// a store that never arrived is a different case and is answered above the call, by drawing the
+// corpus's own string exactly as it shipped.
+const ARB_MARK_SRC='\\((\\d+)\\)';function arbaeenMarkSplit(text,bag){const src=String(text||'');const parts=[];const re=new RegExp(ARB_MARK_SRC,'g');let last=0;let m;while((m=re.exec(src))!==null){const num=Number(m[1]);const known=!!bag&&Object.prototype.hasOwnProperty.call(bag,String(num));if(known){parts.push({t:src.slice(last,m.index)});parts.push({mark:m[0],num:num});}else{// The one space in front of the mark is eaten with it, and only if it is actually there.
+const cut=m.index>0&&src.charAt(m.index-1)===' '?m.index-1:m.index;parts.push({t:src.slice(last,cut)});}last=m.index+m[0].length;}parts.push({t:src.slice(last)});return parts.filter(p=>p.mark||p.t!=='');}// THE LIST IS BUILT FROM THE MARKS THAT SURVIVED, not from the store's keys, so the numbered
+// list under the text and the numbers inside the text cannot disagree. In the text's own order,
+// and each number once however many times the text repeats it.
+function arbaeenMarkList(parts){const out=[];for(const p of parts)if(p.mark&&!out.some(q=>q.num===p.num))out.push(p);return out;}// ===== ITEM 4 -- ARBAEEN FOOTNOTE MARKS (END) =====
 function ArbaeenScreen({onBack}){// ONE loader call, the store's own objects, and no reshaping of any of them -- the adhkar
 // screen's rule, kept. This component owns the whole of the section's state: the store, the
 // failure, and which entry is open. There is no second loader and no second copy anywhere.
@@ -4075,7 +4141,11 @@ function ArbaeenScreen({onBack}){// ONE loader call, the store's own objects, an
 // INDEX 0 IS FALSY AND THE FIRST HADITH LIVES THERE. Every test on the open state below is
 // `selIdx != null`. A truthiness test would make the first hadith the one entry in the book
 // that cannot be opened, and it would look like a data fault rather than a test fault.
-const[db,setDb]=useState(null);const[failed,setFailed]=useState(false);const[selIdx,setSelIdx]=useState(null);// ITEM 1-B. WHERE THE READER WAS, AND WHY IT IS A REF AND NOT STATE. Returning from the reader
+const[db,setDb]=useState(null);const[failed,setFailed]=useState(false);const[selIdx,setSelIdx]=useState(null);// ITEM 4. THE FOOTNOTES, HELD SEPARATELY AND NEVER BLOCKING. null is not "loading" here, it is
+// "no store" -- the two are the same page, and that page is the one this section shipped with:
+// the corpus's own text, marks and all. Nothing below waits on this and nothing below fails
+// because of it, which is what "the section must never break over a footnote" means in code.
+const[notes,setNotes]=useState(null);// ITEM 1-B. WHERE THE READER WAS, AND WHY IT IS A REF AND NOT STATE. Returning from the reader
 // unmounts nothing that owns this value and re-mounts the browse, which reads it once on its
 // way in; nothing re-renders because of it, so it is not state. It is the ENTRY'S OWN NUMBER
 // rather than an index, because the number is what is already stamped on every card.
@@ -4083,7 +4153,10 @@ const[db,setDb]=useState(null);const[failed,setFailed]=useState(false);const[sel
 // NOTHING IS PERSISTED. This is a place inside one visit, not a bookmark: no storage key is
 // written, and closing the app forgets it. The adhkar section remembers across restarts
 // because a devotional routine is resumed; a book is not.
-const placeRef=useRef(null);useEffect(()=>{let alive=true;loadArbaeen().then(d=>{if(alive)setDb(d);}).catch(()=>{if(alive)setFailed(true);});return()=>{alive=false;};},[]);const list=db&&db.hadith||[];const open=selIdx!=null;// A stored index that names nothing -- a store that arrived short, a store that has not landed
+const placeRef=useRef(null);useEffect(()=>{let alive=true;loadArbaeen().then(d=>{if(alive)setDb(d);}).catch(()=>{if(alive)setFailed(true);});// A SECOND REQUEST AND A SEPARATE FATE. It does not gate the corpus, it does not set `failed`,
+// and its rejection is swallowed here rather than raised: the section draws the book whether
+// or not this one ever lands.
+loadArbaeenFootnotes().then(f=>{if(alive)setNotes(f);}).catch(()=>{});return()=>{alive=false;};},[]);const list=db&&db.hadith||[];const open=selIdx!=null;// A stored index that names nothing -- a store that arrived short, a store that has not landed
 // yet -- is not a crash and is not a blank reader. It is the browse.
 const cur=open?list[selIdx]||null:null;// S91: the reader's own back presses the application back, which spends the entry this layer
 // took when it opened and then runs the closer through the registry -- the same closer, reached
@@ -4093,7 +4166,7 @@ useEzikBackLayer(open&&!!cur,()=>setSelIdx(null));// THE ONE WRITER of the remem
 // reader who opened the third and walked to the ninth is returned to the ninth, because that
 // is the entry they were reading; returning them to the third would be returning them to a
 // decision they had already left behind.
-const goTo=i=>{const h=list[i];if(h)placeRef.current=h.n;setSelIdx(i);};if(open&&cur){return/*#__PURE__*/React.createElement(IstanaArbaeenReader,{doc:db,h:cur,i:selIdx,total:list.length,onPrev:()=>goTo(Math.max(0,selIdx-1)),onNext:()=>goTo(Math.min(list.length-1,selIdx+1)),onBack:ezikGoBack});}return/*#__PURE__*/React.createElement(IstanaArbaeenBrowse,{onBack:onBack,doc:db,failed:failed,onOpen:goTo,place:placeRef.current});}// THE BROWSE. Presentation only: it reads no storage, owns no navigation state and computes
+const goTo=i=>{const h=list[i];if(h)placeRef.current=h.n;setSelIdx(i);};if(open&&cur){return/*#__PURE__*/React.createElement(IstanaArbaeenReader,{doc:db,h:cur,i:selIdx,total:list.length,notes:notes,onPrev:()=>goTo(Math.max(0,selIdx-1)),onNext:()=>goTo(Math.min(list.length-1,selIdx+1)),onBack:ezikGoBack});}return/*#__PURE__*/React.createElement(IstanaArbaeenBrowse,{onBack:onBack,doc:db,failed:failed,onOpen:goTo,place:placeRef.current});}// THE BROWSE. Presentation only: it reads no storage, owns no navigation state and computes
 // nothing about the book. It draws the array it is handed, in that array's own order.
 function IstanaArbaeenBrowse({onBack,doc,failed,onOpen,place}){const list=doc&&doc.hadith||[];// ITEM 1-B. THE LIST IS PUT BACK WHERE IT WAS, and it is put back by FINDING THE CARD rather
 // than by restoring a pixel offset. The card already carries the entry's number -- the handle
@@ -4118,13 +4191,18 @@ const key=String(place);if(!/^[0-9]+$/.test(key))return undefined;const card=roo
 // that never animates should not be counted as a second one that forgot to ask about
 // motion. This one cannot animate, so it does not have to ask.
 card.scrollIntoView({block:'center'});}return undefined;},[place,list.length]);return/*#__PURE__*/React.createElement("div",{className:"theme-dark adhkar3",style:s.eziaContainer},/*#__PURE__*/React.createElement("div",{className:"ezia-nav"},/*#__PURE__*/React.createElement("div",{className:"ezia-nav-inner"},/*#__PURE__*/React.createElement("button",{type:"button",className:"adhkar2-focus",onClick:onBack,style:s.eziaNavBtn,"aria-label":A2_BACK},A2_ICON_BACK),/*#__PURE__*/React.createElement("span",{className:"ezia-brand"},/*#__PURE__*/React.createElement("span",{className:"ezia-brand-arch","aria-hidden":"true"}),/*#__PURE__*/React.createElement("span",null,EZH_ARBAEEN)),/*#__PURE__*/React.createElement("span",{style:s.eziaNavBtn,"aria-hidden":"true"}))),/*#__PURE__*/React.createElement("div",{ref:scrollRef,style:s.eziaScroll},doc===null?/*#__PURE__*/React.createElement("div",{style:s.a3Empty},failed?A2_EMPTY:'...'):list.length===0?/*#__PURE__*/React.createElement("div",{style:s.a3Empty},A2_EMPTY):/*#__PURE__*/React.createElement("div",{className:"ezia-catalogue"},list.map((h,i)=>/*#__PURE__*/React.createElement("button",{key:h.n,type:"button",className:"adhkar2-focus",onClick:()=>onOpen(i),"data-ezia-hadith":h.n,style:s.eziaCard},/*#__PURE__*/React.createElement("span",{className:i%3===2?'ezia-crest ezia-crest-coral':'ezia-crest',"aria-hidden":"true"}),/*#__PURE__*/React.createElement("span",{style:s.eziaCardHead},/*#__PURE__*/React.createElement("span",{style:s.eziaEmblem,"aria-hidden":"true"},/*#__PURE__*/React.createElement("span",{className:"ezia-star"})),/*#__PURE__*/React.createElement("span",{style:s.eziaCount},toArabicDigits(h.n))),/*#__PURE__*/React.createElement("span",{style:s.eziaCardTitle},arbaeenTopic(h)),/*#__PURE__*/React.createElement("span",{style:s.eziaCardFoot},/*#__PURE__*/React.createElement("span",{style:s.eziaStanding}),/*#__PURE__*/React.createElement("span",{style:s.eziaGo,"aria-hidden":"true"},EZH_ICON_GO)))))));}// THE READER. ONE entry, its text as a text child, and the attribution under it.
-function IstanaArbaeenReader({doc,h,i,total,onPrev,onNext,onBack}){// THE ATTRIBUTION, AND WHAT IT MAY SAY. The book's title and the entry's own heading, both
+function IstanaArbaeenReader({doc,h,i,total,notes,onPrev,onNext,onBack}){// THE ATTRIBUTION, AND WHAT IT MAY SAY. The book's title and the entry's own heading, both
 // copied from the corpus. The page is appended ONLY when the corpus marked this entry citable;
 // it never has, so no page is drawn, and nothing stands in for one.
 // THE TWO EDGES, computed from the position rather than from the entry. They are written as
 // `!(i > 0)` and `!(i < total - 1)` so that a reader mounted with no position at all -- i
 // undefined -- is at both edges and can move nowhere, instead of stepping off the array.
-const first=!(i>0);const last=!(i<total-1);const book=doc&&doc.book_title||'';const page=h.page_citable&&h.page_start!=null?h.page_end!=null&&h.page_end!==h.page_start?toArabicDigits(h.page_start)+'-'+toArabicDigits(h.page_end):toArabicDigits(h.page_start):'';return/*#__PURE__*/React.createElement("div",{className:"theme-dark adhkar3",style:s.eziaReadContainer},/*#__PURE__*/React.createElement("div",{className:"ezia-nav"},/*#__PURE__*/React.createElement("div",{className:"ezia-nav-inner"},/*#__PURE__*/React.createElement("button",{type:"button",className:"adhkar2-focus",onClick:onBack,style:s.eziaNavBtn,"aria-label":A2_BACK},A2_ICON_BACK),/*#__PURE__*/React.createElement("span",{className:"ezia-brand"},/*#__PURE__*/React.createElement("span",{className:"ezia-brand-arch","aria-hidden":"true"}),/*#__PURE__*/React.createElement("span",{style:s.eziaReadTitle},arbaeenTopic(h))),/*#__PURE__*/React.createElement("span",{style:s.eziaNavBtn,"aria-hidden":"true"}))),/*#__PURE__*/React.createElement("div",{style:s.eziaReadOuter},/*#__PURE__*/React.createElement("div",{style:s.eziaReadScroll},/*#__PURE__*/React.createElement("div",{className:"ezia-read-wrap"},/*#__PURE__*/React.createElement("div",{className:"ezia-read-panel"},/*#__PURE__*/React.createElement("span",{style:s.eziaReadHead},/*#__PURE__*/React.createElement("span",{style:s.eziaReadPos},toArabicDigits(h.n)," / ",toArabicDigits(doc&&doc.count||0))),/*#__PURE__*/React.createElement("div",{style:s.eziaReadText},h.text),/*#__PURE__*/React.createElement("div",{style:s.eziaReadSource},book,book&&h.title?' \u2014 ':'',h.title,page?' \u2014 '+page:''),/*#__PURE__*/React.createElement("div",{style:s.eziaMoveRow},/*#__PURE__*/React.createElement("button",{type:"button",className:"adhkar2-focus",onClick:onPrev,disabled:first,"aria-disabled":first?'true':'false',style:{...s.eziaMoveBtn,...(first?s.eziaMoveBtnOff:null)}},ezT('arbaeen.prev')),/*#__PURE__*/React.createElement("button",{type:"button",className:"adhkar2-focus",onClick:onNext,disabled:last,"aria-disabled":last?'true':'false',style:{...s.eziaMoveBtn,...(last?s.eziaMoveBtnOff:null)}},ezT('arbaeen.next'))))))));}// One category, full screen. The audio contract is DhikrCard's, kept identical on purpose:
+const first=!(i>0);const last=!(i<total-1);const book=doc&&doc.book_title||'';const page=h.page_citable&&h.page_start!=null?h.page_end!=null&&h.page_end!==h.page_start?toArabicDigits(h.page_start)+'-'+toArabicDigits(h.page_end):toArabicDigits(h.page_start):'';// ITEM 4. THE MARKS AND THEIR NOTES. `notes` null is no store at all, and then `parts` is null
+// and the corpus's own string is drawn as a text child -- byte for byte what this section drew
+// before this item existed, marks and all. With a store, the split decides every mark on its
+// own: one the store answers stays where the corpus put it, one it does not is taken out of
+// the sentence with the space in front of it.
+const bag=notes&&Object.prototype.hasOwnProperty.call(notes,String(h.n))?notes[String(h.n)]:null;const parts=notes?arbaeenMarkSplit(h.text,bag):null;const shown=parts?arbaeenMarkList(parts):[];return/*#__PURE__*/React.createElement("div",{className:"theme-dark adhkar3",style:s.eziaReadContainer},/*#__PURE__*/React.createElement("div",{className:"ezia-nav"},/*#__PURE__*/React.createElement("div",{className:"ezia-nav-inner"},/*#__PURE__*/React.createElement("button",{type:"button",className:"adhkar2-focus",onClick:onBack,style:s.eziaNavBtn,"aria-label":A2_BACK},A2_ICON_BACK),/*#__PURE__*/React.createElement("span",{className:"ezia-brand"},/*#__PURE__*/React.createElement("span",{className:"ezia-brand-arch","aria-hidden":"true"}),/*#__PURE__*/React.createElement("span",{style:s.eziaReadTitle},arbaeenTopic(h))),/*#__PURE__*/React.createElement("span",{style:s.eziaNavBtn,"aria-hidden":"true"}))),/*#__PURE__*/React.createElement("div",{style:s.eziaReadOuter},/*#__PURE__*/React.createElement("div",{style:s.eziaReadScroll},/*#__PURE__*/React.createElement("div",{className:"ezia-read-wrap"},/*#__PURE__*/React.createElement("div",{className:"ezia-read-panel"},/*#__PURE__*/React.createElement("span",{style:s.eziaReadHead},/*#__PURE__*/React.createElement("span",{style:s.eziaReadPos},toArabicDigits(h.n)," / ",toArabicDigits(doc&&doc.count||0))),/*#__PURE__*/React.createElement("div",{style:s.eziaReadText},parts?parts.map((p,k)=>p.mark?/*#__PURE__*/React.createElement("span",{key:'m'+k,style:s.eziaMark},p.mark):p.t):h.text),/*#__PURE__*/React.createElement("div",{style:s.eziaReadSource},book,book&&h.title?' \u2014 ':'',h.title,page?' \u2014 '+page:''),shown.length?/*#__PURE__*/React.createElement("ol",{style:s.eziaNoteList},shown.map(p=>/*#__PURE__*/React.createElement("li",{key:p.num,style:s.eziaNoteRow},/*#__PURE__*/React.createElement("span",{style:s.eziaNoteNum},p.mark),/*#__PURE__*/React.createElement("span",{style:s.eziaNoteText},bag[String(p.num)])))):null,/*#__PURE__*/React.createElement("div",{style:s.eziaMoveRow},/*#__PURE__*/React.createElement("button",{type:"button",className:"adhkar2-focus",onClick:onPrev,disabled:first,"aria-disabled":first?'true':'false',style:{...s.eziaMoveBtn,...(first?s.eziaMoveBtnOff:null)}},ezT('arbaeen.prev')),/*#__PURE__*/React.createElement("button",{type:"button",className:"adhkar2-focus",onClick:onNext,disabled:last,"aria-disabled":last?'true':'false',style:{...s.eziaMoveBtn,...(last?s.eziaMoveBtnOff:null)}},ezT('arbaeen.next'))))))));}// One category, full screen. The audio contract is DhikrCard's, kept identical on purpose:
 // one <Audio> at a time, a second tap on the playing item stops it, tapping another item
 // swaps to it, and ended/error both clear the playing state so a failed file cannot leave a
 // stop button that never stops. The element is also paused and dropped on unmount, so
@@ -9090,7 +9168,20 @@ eziaReadContainer:{display:'flex',flexDirection:'column',height:'100dvh',backgro
 eziaChainRow:{display:'flex',alignItems:'center',flexWrap:'wrap',gap:10,marginTop:12},eziaChainNum:{fontSize:19,fontWeight:800,color:'var(--a3-ink)',fontFamily:'var(--ez-ui-font)'},eziaChainWord:{fontSize:12.5,fontWeight:600,color:'var(--a3-muted)'},eziaGoalRow:{display:'flex',alignItems:'center',flexWrap:'wrap',gap:8,marginTop:10},eziaGoalLabel:{fontSize:12.5,fontWeight:700,color:'var(--a3-muted)'},eziaGoalChip:{minWidth:44,minHeight:44,padding:'0 12px',borderRadius:14,border:'1px solid var(--a3-line)',background:'var(--a3-surface)',color:'var(--a3-ink)',fontSize:14,fontWeight:800,fontFamily:'var(--ez-ui-font)',cursor:'pointer'},eziaGoalChipOn:{background:'var(--a3-blue)',color:'var(--a3-on-blue)',border:'1px solid var(--a3-blue)'},eziaSecTitle:{flexShrink:0,fontSize:13,fontWeight:800,color:'var(--a3-blue)',fontFamily:'var(--ez-ui-font)'},// the catalogue card: a crest, an emblem row, the title, then the standing and the chevron.
 eziaCard:{position:'relative',overflow:'hidden',display:'flex',flexDirection:'column',gap:8,width:'100%',minHeight:132,padding:'32px 12px 12px',borderRadius:16,background:'var(--a3-surface)',border:'1px solid var(--a3-line)',boxShadow:'var(--a3-shadow)',cursor:'pointer',textAlign:'right',fontFamily:'var(--ez-ui-font)'},eziaCardDone:{background:'var(--a3-ice)'},eziaCardHead:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8},eziaEmblem:{width:34,height:34,flexShrink:0,display:'inline-flex',alignItems:'center',justifyContent:'center',borderRadius:10,background:'var(--a3-ice)',color:'var(--a3-blue)'},eziaEmblemLg:{width:44,height:44,flexShrink:0,display:'inline-flex',alignItems:'center',justifyContent:'center',borderRadius:12,background:'var(--a3-surface)',border:'1px solid var(--a3-line)',color:'var(--a3-blue)'},eziaEmblemDone:{color:'var(--a3-cyan)'},eziaCount:{flexShrink:0,padding:'3px 9px',borderRadius:999,background:'var(--a3-ice)',color:'var(--a3-blue)',fontSize:12,fontWeight:800},eziaCardTitle:{flex:1,minWidth:0,fontSize:14,fontWeight:700,lineHeight:1.65,color:'var(--a3-ink)'},eziaCardFoot:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8},eziaStanding:{minWidth:0,fontSize:12,fontWeight:700,color:'var(--a3-muted)'},eziaGo:{flexShrink:0,display:'inline-flex',color:'var(--a3-muted)'},// the featured card: the same parts, an arch crest and more room.
 eziaFeature:{position:'relative',overflow:'hidden',display:'flex',flexDirection:'column',gap:10,width:'100%',minHeight:148,padding:'16px 14px 14px',borderRadius:'44px 44px 16px 16px',background:'var(--a3-ice)',border:'1px solid var(--a3-line)',boxShadow:'var(--a3-shadow)',cursor:'pointer',textAlign:'right',fontFamily:'var(--ez-ui-font)'},eziaFeatureTop:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8},eziaFeatureTitle:{flex:1,minWidth:0,fontSize:16,fontWeight:800,lineHeight:1.6,color:'var(--a3-ink)'},// the reader shell
-eziaReadOuter:{flex:1,minHeight:0,display:'flex',flexDirection:'column'},eziaReadScroll:{flex:1,minHeight:0,overflowY:'auto',WebkitOverflowScrolling:'touch'},eziaReadTitle:{minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:15,fontWeight:800,color:'var(--a3-ink)'},eziaReadHead:{display:'inline-flex',alignItems:'center',gap:10,marginBottom:6},eziaReadPos:{fontSize:12.5,fontWeight:800,color:'var(--a3-blue)'},eziaReadRepeat:{padding:'3px 9px',borderRadius:999,background:'var(--a3-ice)',color:'var(--a3-blue)',fontSize:12,fontWeight:800},eziaReadText:{color:'var(--a3-ink)',fontSize:20,lineHeight:2.15,textAlign:'center',fontFamily:"'Amiri', serif",margin:'10px 0 8px'},eziaReadSource:{color:'var(--a3-muted)',fontSize:12,fontWeight:600,textAlign:'center'},eziaMoveRow:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,margin:'14px 0 0'},eziaMoveBtn:{flex:1,minWidth:0,minHeight:44,padding:'10px 14px',borderRadius:999,background:'var(--a3-ice)',color:'var(--a3-blue)',border:'1px solid var(--a3-line)',cursor:'pointer',fontFamily:'var(--ez-ui-font)',fontSize:13,fontWeight:800},eziaMoveBtnOff:{background:'var(--a3-surface)',color:'var(--a3-muted)',border:'1px solid var(--a3-line)',cursor:'default',opacity:0.55},eziaRail:{display:'flex',alignItems:'center',justifyContent:'center',gap:6,padding:'12px 0 2px'},eziaRailMark:{width:7,height:7,borderRadius:'50%',background:'var(--a3-line)'},eziaRailMarkNow:{background:'var(--a3-blue)',width:9,height:9},eziaRailMarkDone:{background:'var(--a3-cyan)'},eziaNote:{minHeight:20,textAlign:'center',fontSize:12.5,fontWeight:600,color:'var(--a3-blue)'},// The completion strip. Ice under blue is exactly the pair eziaReadRepeat above it already
+eziaReadOuter:{flex:1,minHeight:0,display:'flex',flexDirection:'column'},eziaReadScroll:{flex:1,minHeight:0,overflowY:'auto',WebkitOverflowScrolling:'touch'},eziaReadTitle:{minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:15,fontWeight:800,color:'var(--a3-ink)'},eziaReadHead:{display:'inline-flex',alignItems:'center',gap:10,marginBottom:6},eziaReadPos:{fontSize:12.5,fontWeight:800,color:'var(--a3-blue)'},eziaReadRepeat:{padding:'3px 9px',borderRadius:999,background:'var(--a3-ice)',color:'var(--a3-blue)',fontSize:12,fontWeight:800},eziaReadText:{color:'var(--a3-ink)',fontSize:20,lineHeight:2.15,textAlign:'center',fontFamily:"'Amiri', serif",margin:'10px 0 8px'},eziaReadSource:{color:'var(--a3-muted)',fontSize:12,fontWeight:600,textAlign:'center'},// ITEM 4. THE FOOTNOTE MARK INSIDE THE HADITH. Small and dimmed and nothing else: no box, no
+// underline, no cursor, no handler and no tabIndex -- it is a reference, not a control, and a
+// mark that looked pressable would be a promise this section does not keep. The size is a
+// NUMBER and not an em: this section's sizes are scaled by the reader's own text-size setting,
+// and that multiplier reaches a number. An em would have ridden on the corpus's 20px and been
+// the one glyph on the page that ignored the setting -- themecoverage tests exactly that, and
+// failed on '0.6em' before this line was a 12. The colour is the one the attribution line
+// under it already dims to.
+eziaMark:{fontSize:12,verticalAlign:'super',lineHeight:1,color:'var(--a3-muted)',fontFamily:'var(--ez-ui-font)'},// THE LIST ITSELF. Under the attribution, separated from it by the same hairline the section
+// draws everywhere else, smaller than the corpus and dimmer than it -- it is apparatus, and it
+// must not compete with the hadith. `listStyle: none` because the markers are the corpus's own
+// "(1)" and are drawn as content; the <ol> is kept for what it announces, not for what it
+// paints. Aligned to the right, which is the start of the line in this section's direction.
+eziaNoteList:{listStyle:'none',margin:'12px 0 0',padding:'10px 0 0',borderTop:'1px solid var(--a3-line)',textAlign:'right'},eziaNoteRow:{display:'flex',alignItems:'flex-start',gap:6,margin:'0 0 6px'},eziaNoteNum:{flex:'0 0 auto',color:'var(--a3-blue)',fontSize:11,fontWeight:800,lineHeight:1.85,fontFamily:'var(--ez-ui-font)'},eziaNoteText:{flex:1,minWidth:0,color:'var(--a3-muted)',fontSize:12.5,lineHeight:1.85,fontFamily:"'Amiri', serif"},eziaMoveRow:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,margin:'14px 0 0'},eziaMoveBtn:{flex:1,minWidth:0,minHeight:44,padding:'10px 14px',borderRadius:999,background:'var(--a3-ice)',color:'var(--a3-blue)',border:'1px solid var(--a3-line)',cursor:'pointer',fontFamily:'var(--ez-ui-font)',fontSize:13,fontWeight:800},eziaMoveBtnOff:{background:'var(--a3-surface)',color:'var(--a3-muted)',border:'1px solid var(--a3-line)',cursor:'default',opacity:0.55},eziaRail:{display:'flex',alignItems:'center',justifyContent:'center',gap:6,padding:'12px 0 2px'},eziaRailMark:{width:7,height:7,borderRadius:'50%',background:'var(--a3-line)'},eziaRailMarkNow:{background:'var(--a3-blue)',width:9,height:9},eziaRailMarkDone:{background:'var(--a3-cyan)'},eziaNote:{minHeight:20,textAlign:'center',fontSize:12.5,fontWeight:600,color:'var(--a3-blue)'},// The completion strip. Ice under blue is exactly the pair eziaReadRepeat above it already
 // uses, and blue under on-blue is the pair the counter button uses -- no new colour enters
 // the screen and both palettes already answer for all four.
 eziaDoneRow:{display:'flex',alignItems:'center',justifyContent:'center',flexWrap:'wrap',gap:10,margin:'10px 0 0',padding:'8px 12px',borderRadius:14,background:'var(--a3-ice)',border:'1px solid var(--a3-line)',color:'var(--a3-blue)',fontSize:13,fontWeight:800},eziaDoneMark:{display:'inline-flex',flexShrink:0,color:'var(--a3-blue)'},eziaDoneNext:{minHeight:40,padding:'8px 16px',borderRadius:999,background:'var(--a3-blue)',color:'var(--a3-on-blue)',border:'none',cursor:'pointer',fontFamily:'var(--ez-ui-font)',fontSize:13,fontWeight:800},// The zero, and the closing block. NOT ONE NEW COLOUR AND NOT ONE NEW FONT: surface under
