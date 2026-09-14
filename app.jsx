@@ -104,6 +104,7 @@ function ezLangRelabel() {
     EZH_ARTICLES = ezT("module.articles");
     EZH_WOMEN = ezT("module.women");
     EZH_ASMAA = ezT("asmaa.title");
+    EZH_SUNAN = ezT("sunan.title");
     EZIST_SUB_ARTICLES = ezT("module.articles.sub");
     EZIST_SUB_WOMEN = ezT("module.women.sub");
     EZIST_SUB_MEMORIZE = ezT("module.memorize.sub");
@@ -783,14 +784,17 @@ const EZ_I18N = {
     'menu.aboutAria': 'عن عزك — تعريف بالتطبيق',
     'menu.sources': 'المصادر',
     'menu.sourcesAria': 'المصادر — الكتب والمراجع',
-    // ITEM 87 -- the day's sunnahs, from waking to sleeping. A LAYER reached from this menu,
-    // like the two rows above it, and the only text it needs here is its furniture: the name,
-    // the two words on the control that opens a matn, the heading over that matn, the list's
-    // accessible name and the one sentence a dead network is said out loud in. Every WORD OF
-    // CONTENT -- the phase names, the row titles, the plain lines and the matn itself -- comes
-    // out of sunan-day.json and is not a dictionary key, exactly as the asmaa records are not.
-    'menu.sunan': '\u0645\u0646 \u0627\u0644\u0627\u0633\u062A\u064A\u0642\u0627\u0638 \u0625\u0644\u0649 \u0627\u0644\u0646\u0648\u0645',
-    'menu.sunanAria': '\u0645\u0646 \u0627\u0644\u0627\u0633\u062A\u064A\u0642\u0627\u0638 \u0625\u0644\u0649 \u0627\u0644\u0646\u0648\u0645 \u2014 \u0633\u0646\u0646 \u0627\u0644\u064A\u0648\u0645 \u0645\u0646 \u0627\u0644\u0635\u0628\u0627\u062D \u0625\u0644\u0649 \u0627\u0644\u0645\u0646\u0627\u0645',
+    // ITEM 87 -- the day's sunnahs, from waking to sleeping. A LAYER, reached now from a tile on
+    // the home shelf rather than from a row in this menu, and the only text it needs here is its
+    // furniture: the name, the two words on the control that opens a matn, the heading over that
+    // matn, the list's accessible name and the one sentence a dead network is said out loud in.
+    // SIX KEYS, NOT EIGHT. `menu.sunan` and `menu.sunanAria` were the drawer row's visible word
+    // and its accessible name; order 87D removed that row, nothing else read either key, and a
+    // key no control renders is a string nobody sees -- so both went with the row. The tile that
+    // replaced it reads `sunan.title`, which the section's own header already read.
+    // Every WORD OF CONTENT -- the phase names, the row titles, the plain lines and the matn
+    // itself -- comes out of sunan-day.json and is not a dictionary key, exactly as the asmaa
+    // records are not.
     'sunan.title': '\u0645\u0646 \u0627\u0644\u0627\u0633\u062A\u064A\u0642\u0627\u0638 \u0625\u0644\u0649 \u0627\u0644\u0646\u0648\u0645',
     'sunan.listAria': '\u0645\u0631\u0627\u062D\u0644 \u0627\u0644\u064A\u0648\u0645',
     'sunan.matnLabel': '\u0627\u0644\u062D\u062F\u064A\u062B',
@@ -1447,10 +1451,10 @@ const EZ_I18N = {
     'menu.aboutAria': 'About Ezik — what this app is',
     'menu.sources': 'Sources',
     'menu.sourcesAria': 'Sources — the books and references',
-    // ITEM 87 -- the same eight keys, and the same rule about what is NOT here: the content
+    // ITEM 87 -- the same six keys, and the same rule about what is NOT here: the content
     // of this section is Arabic in one file and is never translated into a second copy.
-    'menu.sunan': 'From waking to sleeping',
-    'menu.sunanAria': 'From waking to sleeping \u2014 the sunnahs of the day',
+    // (The two `menu.*` keys that stood at the head of this block went with the drawer row
+    // order 87D removed; the tile that replaced it reads `sunan.title`, below.)
     'sunan.title': 'From waking to sleeping',
     'sunan.listAria': 'The phases of the day',
     'sunan.matnLabel': 'The hadith',
@@ -6912,6 +6916,23 @@ let EZH_ASMAA = ezT("asmaa.title");
 const EZH_ICON_ASMAA = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h9a2 2 0 0 1 2 2v16l-6.5-4L4 21V5a2 2 0 0 1 2-2z" /></svg>
 );
+// ITEM 87 / ORDER 87D (14 September) -- THE TILE, AND WHY THERE IS ONE. Item 87 reached the
+// reader from the side drawer for one round only, because the shelf order is a contract and
+// nobody had ruled on a twelfth place in it. THE OWNER RULED ON 14 SEPTEMBER: the day from
+// waking to sleeping is a SECTION of Ezik and belongs among the sections. So the drawer row is
+// gone and this is the one entry point, on exactly the terms the asmaa tile above is on.
+// THE NAME IS THE ONE THE SECTION ALREADY HAS -- read from sunan.title, the same dictionary
+// key the section's own header reads -- so the card and the layer it opens can never disagree,
+// and it is rebound by ezLangRelabel() beside the ten above it. No new dictionary key was
+// added for the shelf; two that the drawer row needed were removed with it.
+let EZH_SUNAN = ezT("sunan.title");
+// The mark. Same 24x24 box, same 1.8 stroke and the same round caps as the ten beside it, and
+// it is the SAME path the drawer row drew before the row was removed -- a sun standing over the
+// horizon with its rays, so it reads as neither the adhkar ring nor the prayer mark. No new
+// artwork file, no image, no data URI.
+const EZH_ICON_SUNAN = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="18" x2="21" y2="18" /><path d="M7 18a5 5 0 0 1 10 0" /><line x1="12" y1="4" x2="12" y2="6.5" /><line x1="5" y1="7.5" x2="6.8" y2="9.3" /><line x1="19" y1="7.5" x2="17.2" y2="9.3" /></svg>
+);
 // The callout, the profile entry and the three navigation icons -- the same paths as before,
 // drawn as LINE icons on white. There is no face and no avatar image in either style.
 const EZH_ICON_SUN = (
@@ -7001,8 +7022,14 @@ function ezHomeModules(v) {
     // ruled today that «أسماء الله الحسنى» takes the head instead, so the articles row moves
     // from position one to position two and articles is no longer first on any shelf. Said
     // plainly because a reader of this array should not have to infer that an older rule was
-    // replaced rather than forgotten: the shelf order is asmaa, articles, memorize, adhkar,
-    // mushaf, treasure, fatwa, lessons, prayer, women.
+    // replaced rather than forgotten.
+    //
+    // AND THE ORDER IN FULL, AS IT STANDS ON 14 SEPTEMBER, because a list spelt out in a comment
+    // that disagrees with the array beneath it is worse than no list at all. Two rulings have
+    // landed since this sentence was first written -- item 89 put the Forty after the adhkar,
+    // and order 87D put the day from waking to sleeping between them -- so it is re-cut rather
+    // than patched: asmaa, articles, memorize, adhkar, sunan-day, arbaeen, mushaf, treasure,
+    // fatwa, lessons, prayer, women. Twelve.
     //
     // ITEM 20 / SHELF §2 (8 September) -- THE WOMEN'S CORNER IS STILL LAST, and that half of §2
     // was NOT overturned. D-9 put articles and the women's corner together at the head; the
@@ -7036,6 +7063,14 @@ function ezHomeModules(v) {
     { id: 'articles', label: EZH_ARTICLES, icon: EZH_ICON_ARTICLES, onClick: v.onOpenArticles, meta: null, fresh: !!(v.artFresh && v.artFresh.articles) },
     { id: 'memorize', label: EZH_MEMORIZE, icon: EZH_ICON_MEMORIZE, onClick: v.onOpenMemorize, meta: null },
     { id: 'adhkar',   label: EZH_ADHKAR,   icon: EZH_ICON_ADHKAR,   onClick: v.onOpenAdhkar,   meta: null },
+    // ITEM 87 / ORDER 87D (14 September): IMMEDIATELY AFTER THE ADHKAR, which is the owner's
+    // placement and not a judgement made here. The descriptor is the shape of the eleven around
+    // it -- an id, a label key, a mark and a handler threaded from App -- and it carries no
+    // `meta` and no `fresh`, because there is no local reading about this section to report on
+    // its face. The id is the one the data file itself carries, `sunan-day`. What it opens is a
+    // LAYER and not a screen: the handler App threads down sets one boolean, exactly as the
+    // asmaa row's does, so the screens inventory is untouched by this tile.
+    { id: 'sunan-day', label: EZH_SUNAN, icon: EZH_ICON_SUNAN, onClick: v.onOpenSunan, meta: null },
     // ITEM 89: IMMEDIATELY AFTER THE ADHKAR, which is the owner's placement and not a
     // judgement made here. The descriptor is the shape of the ten around it -- an id, a label
     // key, a mark and a handler threaded from App -- and it carries no `meta` and no `fresh`,
@@ -9088,12 +9123,13 @@ function EzWidgetVerse() {
 // 🔴 THE HOOKS FINISH FIRST. useEzLang and useState, in that order, at the top of the body, and
 // the single return is below both of them. Defect 123 (React #300) is what this rule is for.
 // ============================================================
-// ITEM 05-D -- THE READER'S OWN ORDER FOR THE TEN SECTIONS
+// ITEM 05-D -- THE READER'S OWN ORDER FOR THE SECTIONS OF THE SHELF
 // ============================================================
 // A DIFFERENT MECHANISM FROM THE WIDGET RECORD ABOVE, over different rows. That record holds
 // three registered widgets, all shipped shown:false, and it is not touched here. This holds an
-// ORDER for the ten SECTIONS of the shelf -- asmaa, articles, memorize, adhkar, mushaf,
-// treasure, fatwa, lessons, prayer, women -- which the reader arranges in Settings as PLACES.
+// ORDER for the SECTIONS of the shelf -- asmaa, articles, memorize, adhkar, sunan-day, arbaeen,
+// mushaf, treasure, fatwa, lessons, prayer, women, twelve of them since order 87D on
+// 14 September -- which the reader arranges in Settings as PLACES.
 // It hides nothing, renames nothing and deletes nothing: order only.
 //
 // AND IT IS APPLIED OUTSIDE THE BUILDER, WHICH IS THE WHOLE DISCIPLINE HERE. ezHomeModules is
@@ -9284,7 +9320,7 @@ function EzikHomeWidgetArrange({ widgets, onWidgets, arrangeOpen, onArrange }) {
   );
 }
 
-function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenArbaeen, onOpenMushaf, onOpenFatwa, onOpenLessons, onOpenAsmaa, onOpenSettings, onOpenTafsir }) {
+function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, onOpenArbaeen, onOpenMushaf, onOpenFatwa, onOpenLessons, onOpenAsmaa, onOpenSettings, onOpenTafsir }) {
   // THE OWNER. Every prop it was handed is handed straight on, and the treasure entry resolves
   // to the same href it always did. There is no second router here and no duplicated navigation
   // state -- the two components above receive these handlers and call them unchanged.
@@ -9418,6 +9454,9 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenArbaeen
     onOpenTafsir: onOpenTafsir,
     onOpenMemorize: onOpenMemorize,
     onOpenAdhkar: onOpenAdhkar,
+    // ITEM 87 / ORDER 87D: handed straight on, like the six around it. The layer this opens is
+    // owned by App, which is where the boolean and its history entry already live.
+    onOpenSunan: onOpenSunan,
     // ITEM 89: handed straight on, like the six around it. The screen it sets lives in App,
     // which is where every other feature section's screen key is set.
     onOpenArbaeen: onOpenArbaeen,
@@ -18142,19 +18181,6 @@ function App() {
               </svg>
               <span>{ezT('menu.sources') || '\u0627\u0644\u0645\u0635\u0627\u062f\u0631'}</span>
             </button>
-            {/* ITEM 87 -- from waking to sleeping. The same row template the two above use, and the same
-                contract: it opens a LAYER over whatever screen the menu was opened from, it adds
-                no `screen` key, and it sends nothing at all. */}
-            <button onClick={() => closeDrawerWith(() => setSunanOpen(true))} style={s.drawerItem} className="ezik-focus" aria-label={ezT('menu.sunanAria')}>
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="3" y1="18" x2="21" y2="18" />
-                <path d="M7 18a5 5 0 0 1 10 0" />
-                <line x1="12" y1="4" x2="12" y2="6.5" />
-                <line x1="5" y1="7.5" x2="6.8" y2="9.3" />
-                <line x1="19" y1="7.5" x2="17.2" y2="9.3" />
-              </svg>
-              <span>{ezT('menu.sunan') || '\u0645\u0646 \u0627\u0644\u0627\u0633\u062A\u064A\u0642\u0627\u0638 \u0625\u0644\u0649 \u0627\u0644\u0646\u0648\u0645'}</span>
-            </button>
             {/* دعوة صديق -- THE ROW THE SHARE ICON BECAME. It presses onMenuShare DIRECTLY and
                 not through closeDrawerWith, and that is the one place this row departs from the
                 template above it, on purpose: the chooser is a SIBLING of this panel and is built
@@ -18326,7 +18352,7 @@ function App() {
   // an onOpenChat: the chat is entered from that menu's «محادثة جديدة» row.
   if (screen === 'home') return (
     <>
-      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenArbaeen={() => setScreen('arbaeen')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} onOpenTafsir={() => setScreen('ayah-tafsir')} />
+      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenSunan={() => setSunanOpen(true)} onOpenArbaeen={() => setScreen('arbaeen')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} onOpenTafsir={() => setScreen('ayah-tafsir')} />
       {ezikDrawer()}
     </>
   );

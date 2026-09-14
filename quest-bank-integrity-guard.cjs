@@ -1204,7 +1204,22 @@ const SEALED = {
 //                    was final. SW.JS IS OTHERWISE UNTOUCHED -- no route, no store and no branch
 //                    of it moved -- and CACHE IS NOT BUMPED: install rewrites every CORE entry
 //                    into the same store, and sw.js says the merge round owns the bump.
-  'sw.js': '60ee485bb09aa4e2412c7e53265546f5ea114ce4e22a56066b2149829e361ff4',
+  //   2026-09-14-ii -- ORDER 87D: ITEM 87 MOVES FROM THE SIDE DRAWER ONTO THE HOME SHELF. The
+//                    owner ruled that the day from waking to sleeping is a SECTION of Ezik and
+//                    sits immediately after the adhkar, so the drawer row was removed and a
+//                    twelfth tile took its place. INDEX.HTML DID NOT MOVE and NO FILE JOINED OR
+//                    LEFT CORE this round -- sunan-day.json is byte-identical to the round above
+//                    and is still precached -- so SW_CORE, SW_CORE_FILES and every row of
+//                    SW_PROSE but one were already true. app.js was rebuilt 1711339 -> 1713640
+//                    (+2301) by node tools/build-app.cjs, and CORE_BYTES was re-cut
+//                    2884429 -> 2886730 (+2301) by node tools/core-bytes.cjs --write, which is
+//                    exactly the bundle delta because the shell did not grow and CORE gained
+//                    nothing. The worker's own byte table above the constant and the app.js
+//                    mirror below followed, and THIS digest is re-cut LAST, after every other
+//                    sw.js edit was final. SW.JS IS OTHERWISE UNTOUCHED -- no route, no store
+//                    and no branch of it moved -- and CACHE IS NOT BUMPED: the merge round owns
+//                    the bump.
+  'sw.js': 'd4f30208d84cc3306638a4294d9e960f903f32803818124b478621e2ae6a644c',
 };
 
 // ---------------------------------------------------------------------------
@@ -2329,7 +2344,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1711339, of: 'app.js' },
+      { n: 1713640, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

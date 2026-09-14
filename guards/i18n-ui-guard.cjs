@@ -867,8 +867,13 @@ async function partD() {
       // opposite answer, which is what a reversed rule is supposed to look like.
       eq('...and the women corner is NOT on his shelf, because this account answered «male»',
         shelfIds.indexOf('women'), -1);
-      eq('...and the ten that remain are these, in the order the shelf order fixed', shelfIds,
-        ['asmaa', 'articles', 'memorize', 'adhkar', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
+      // ORDER 87D (14 September): the owner ruled that item 87 -- the day from waking to
+      // sleeping -- is a SECTION of Ezik, sitting immediately after the adhkar, so it left the
+      // side drawer for a tile on this shelf. The literal is re-cut, the check is not relaxed:
+      // this is still the DOM in document order, and a shelf rendered in some other order than
+      // the array holds still fails here.
+      eq('...and the eleven that remain are these, in the order the shelf rulings fixed', shelfIds,
+        ['asmaa', 'articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
       // ITEM 20 / §1 -- THE NAME, READ OFF THE TILE THAT DRAWS IT. A dictionary entry no card
       // renders is a string nobody sees, so the shelf itself is asked what it says.
       const artTile = mosaic.querySelector('[data-ezik-home-module="articles"]');
@@ -1224,9 +1229,12 @@ async function partD() {
       ok('\u00a73: the women corner is BACK on his shelf, for the answer he just saved',
         back.indexOf('women') !== -1, JSON.stringify(back));
       eq('\u00a72: ...and it is back LAST, not where it used to be', back[back.length - 1], 'women');
-      eq('\u00a73: ...and the ten it joins are the ten that were there, in their order',
+      // ORDER 87D (14 September): eleven now, for the ruling recorded at the first of these two
+      // literals. The property this case exists for is untouched -- the corner comes back LAST
+      // and the rest keep their order.
+      eq('\u00a73: ...and the eleven it joins are the eleven that were there, in their order',
         back.slice(0, -1),
-        ['asmaa', 'articles', 'memorize', 'adhkar', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
+        ['asmaa', 'articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
       eq('\u00a73: ...and the account it read is the one the save wrote',
         JSON.parse(c.store.getItem('child_profile')).gender, 'female');
       // AND THE ABANDONED KEY PLAYED NO PART IN IT. The device never held one in this run, and

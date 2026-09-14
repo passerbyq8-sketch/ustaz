@@ -5515,8 +5515,17 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
       hidden, shown.filter((x) => x !== 'women'));
     // ITEM 89 put the Forty immediately after the adhkar, which is the owner's placement; every
     // other row keeps the position it had, so this list grows by one in one place.
-    eq('ITEM20/3: ...ten of them, still in the order the shelf rulings fixed', hidden,
-      ['asmaa', 'articles', 'memorize', 'adhkar', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
+    // ORDER 87D (14 September) -- THE TWELFTH SECTION, AND THE RULING THAT PUT IT THERE. The
+    // owner ruled on 2026-09-14, in his own words, that item 87 -- the day from waking to
+    // sleeping -- is a SECTION of Ezik and belongs among the sections rather than in the side
+    // drawer, and that it sits immediately AFTER the adhkar. Order 87C had put it in the drawer
+    // precisely because this list is a contract and no ruling on a twelfth place existed yet.
+    // The literal below is therefore RE-CUT, deliberately and with the ruling beside it. It is
+    // not relaxed, not deleted and not made dynamic: it is still the one line that says what the
+    // shelf IS, and a shelf that grows, loses or reorders a section without a ruling still fails
+    // here. Twelve ids now, and `sunan-day` is the id the data file itself carries.
+    eq('ITEM20/3: ...eleven of them, still in the order the shelf rulings fixed', hidden,
+      ['asmaa', 'articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
     // ITEM 26 / SHIP §1-2 (9 September) -- THE DEFAULT ORDER, STATED IN FULL. It replaced D-9's
     // «articles then women first» on 8 September, and the owner has replaced its own head today:
     // «أسماء الله الحسنى» is FIRST, ahead of the articles section, which item 20 §2 had put
@@ -5531,10 +5540,15 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
     ok('ITEM20/2: ...and the women corner is LAST, after every other section',
       shown[shown.length - 1] === 'women' && shown.indexOf('women') === shown.length - 1,
       JSON.stringify(shown));
-    eq('ITEM26/1-2: ...and the nine between them keep the order they always had',
-      shown.slice(1, -1), ['articles', 'memorize', 'adhkar', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
-    eq('ITEM26/1-2: ...so the default shelf is these eleven, in this order', shown,
-      ['asmaa', 'articles', 'memorize', 'adhkar', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer', 'women']);
+    // ORDER 87D: one more id between the two ends, for the ruling stated above -- the head is
+    // still the names section and the tail is still the women's corner, and neither moved.
+    eq('ITEM26/1-2: ...and the ten between them keep the order the shelf rulings fixed',
+      shown.slice(1, -1), ['articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
+    // ORDER 87D: the same line, re-cut for the same ruling. Eleven became TWELVE on 14 September
+    // because the owner said item 87 is a section; it did not become twelve because a tile was
+    // added and this line was in the way.
+    eq('ITEM26/1-2: ...so the default shelf is these twelve, in this order', shown,
+      ['asmaa', 'articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer', 'women']);
     // AND WHERE IT COMES BACK IS THE END. The hidden shelf is the shown shelf with one row cut
     // out, so putting the row back can only put it where the array holds it -- last. This is the
     // same fact the two F15 cases below state from the other side, asserted here as the ORDER
