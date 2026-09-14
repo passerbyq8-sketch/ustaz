@@ -1,0 +1,82 @@
+{
+  "at": "2026-09-14T16:26:20.358Z",
+  "target": "http://127.0.0.1:63121/",
+  "sections": [
+    {
+      "section": "fatwa",
+      "runs": [
+        {
+          "left": 0,
+          "waitStart": -1,
+          "waitEnd": -1,
+          "waitText": "",
+          "sawWaiting": false,
+          "len": 76,
+          "head": "اسم الشيخ كل الفتاوى ابن باز بحث تعذّر الاتصال بخادم الفتاوى. حاول مرة أخرى.",
+          "shot": "001-localbefore-fatwa-0.png"
+        },
+        {
+          "left": 0,
+          "waitStart": -1,
+          "waitEnd": -1,
+          "waitText": "",
+          "sawWaiting": false,
+          "len": 76,
+          "head": "اسم الشيخ كل الفتاوى ابن باز بحث تعذّر الاتصال بخادم الفتاوى. حاول مرة أخرى.",
+          "shot": "002-localbefore-fatwa-1.png"
+        },
+        {
+          "left": 0,
+          "waitStart": -1,
+          "waitEnd": -1,
+          "waitText": "",
+          "sawWaiting": false,
+          "len": 76,
+          "head": "اسم الشيخ كل الفتاوى ابن باز بحث تعذّر الاتصال بخادم الفتاوى. حاول مرة أخرى.",
+          "shot": "003-localbefore-fatwa-2.png"
+        }
+      ],
+      "medianBodyMs": -1,
+      "medianWaitShownMs": -1,
+      "loaderShownEveryTime": false
+    },
+    {
+      "section": "lessons",
+      "runs": [
+        {
+          "left": 0,
+          "waitStart": -1,
+          "waitEnd": -1,
+          "waitText": "",
+          "sawWaiting": false,
+          "len": 63,
+          "head": "الدروس تصفُّح بحث المشايخ تعذّرَ التحميلُ الآنَ. أعِدِ المحاولة",
+          "shot": "004-localbefore-lessons-0.png"
+        },
+        {
+          "left": 0,
+          "waitStart": -1,
+          "waitEnd": -1,
+          "waitText": "",
+          "sawWaiting": false,
+          "len": 63,
+          "head": "الدروس تصفُّح بحث المشايخ تعذّرَ التحميلُ الآنَ. أعِدِ المحاولة",
+          "shot": "005-localbefore-lessons-1.png"
+        },
+        {
+          "left": 0,
+          "waitStart": -1,
+          "waitEnd": -1,
+          "waitText": "",
+          "sawWaiting": false,
+          "len": 63,
+          "head": "الدروس تصفُّح بحث المشايخ تعذّرَ التحميلُ الآنَ. أعِدِ المحاولة",
+          "shot": "006-localbefore-lessons-2.png"
+        }
+      ],
+      "medianBodyMs": -1,
+      "medianWaitShownMs": -1,
+      "loaderShownEveryTime": false
+    }
+  ]
+}

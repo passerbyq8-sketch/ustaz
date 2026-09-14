@@ -1,0 +1,39 @@
+TREE C:\Users\passe\projects\ustaz-fix88
+LABEL before PORT 52758
+-- four outcomes --
+   articles 429 keys=["common.retry","lessons.retry","lessons.browseRetry","articles.error","articles.shapeArticle","articles.sectionLabel"] len=93
+   articles 503 keys=["common.retry","lessons.retry","lessons.browseRetry","articles.error","articles.shapeArticle","articles.sectionLabel"] len=93
+   articles empty keys=["articles.emptyTitle","articles.emptyBody","articles.shapeArticle","articles.sectionLabel"] len=68
+   articles rows keys=["articles.qaMark","articles.shapeArticle","articles.shapeQa"] len=59
+   women 429 keys=["common.retry","lessons.retry","lessons.browseRetry","articles.error","articles.sectionLabel"] len=93
+   women 503 keys=["common.retry","lessons.retry","lessons.browseRetry","articles.error","articles.sectionLabel"] len=93
+   women empty keys=["articles.emptyTitle","articles.emptyBody","articles.sectionLabel"] len=68
+   women rows keys=["articles.qaMark","articles.shapeQa"] len=59
+   lessons 429 keys=["lessons.retry","lessons.tabBrowse","lessons.scholarsTitle","lessons.browseError","lessons.browseRetry"] len=63
+   lessons 503 keys=["lessons.retry","lessons.tabBrowse","lessons.scholarsTitle","lessons.browseError","lessons.browseRetry"] len=63
+   lessons empty keys=["lessons.tabBrowse","lessons.scholarsTitle","lessons.browseEmpty"] len=38
+   lessons rows keys=["lessons.tabBrowse","lessons.scholarsTitle"] len=53
+   fatwa 429 keys=["fatwa.scholarLabel","fatwa.defaultScholar","fatwa.allScholars","fatwa.error"] len=76
+   fatwa 503 keys=["fatwa.scholarLabel","fatwa.defaultScholar","fatwa.allScholars","fatwa.error"] len=76
+   fatwa empty keys=["fatwa.scholarLabel","fatwa.defaultScholar","fatwa.allScholars","fatwa.browseEmpty"] len=61
+   fatwa rows keys=["fatwa.scholarLabel","fatwa.allScholars"] len=96
+-- open latency --
+  lat fatwa delay=1500 firstBody=-1 loader=0
+  lat fatwa delay=1500 firstBody=-1 loader=0
+  lat fatwa delay=1500 firstBody=-1 loader=0
+  lat lessons delay=1500 firstBody=-1 loader=0
+  lat lessons delay=1500 firstBody=-1 loader=0
+  lat lessons delay=1500 firstBody=-1 loader=0
+-- one-offs --
+  greeting found=true tailEmpty=true tailLen=0
+  fatwa.source present=0 sameTabChanged=undefined newTab=undefined
+  back-mushaf commonBack=1 hasRoute=true browserBack=true
+  back-treasure commonBack=0 hasRoute=true browserBack=true
+  adhkar-head sectionNameInHead=false
+  refresh-articles backInSection=false onShelf=true
+  refresh-adhkar backInSection=false onShelf=true
+  refresh-fatwa backInSection=false onShelf=true
+  refresh-lessons backInSection=false onShelf=true
+  feedback keys=["articles.shapeArticle","asmaa.title","asmaa.gridAria","feedback.signInGo"] stillOnDoor=true
+WROTE C:\Users\passe\AppData\Local\Temp\claude\C--Users-passe-projects-ustaz-fix88\74937779-8429-4138-9689-875644bc5486\scratchpad\rig\out\measure-before.json cases=32
+EXIT=0

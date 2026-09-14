@@ -1,0 +1,48 @@
+TREE C:\Users\passe\AppData\Local\Temp\claude\C--Users-passe-projects-ustaz-fix88\74937779-8429-4138-9689-875644bc5486\scratchpad\base-tree LABEL before PORT 50736
+-- open latency: a server 1500ms slow, three readings --
+  lat fatwa delay=1500 leftHome=0 body=1514 loader=0 still=false
+  lat fatwa delay=1500 leftHome=0 body=1509 loader=0 still=false
+  lat fatwa delay=1500 leftHome=1 body=1516 loader=1 still=false
+  lat lessons delay=1500 leftHome=0 body=1522 loader=0 still=false
+  lat lessons delay=1500 leftHome=0 body=1515 loader=0 still=false
+  lat lessons delay=1500 leftHome=0 body=1511 loader=0 still=false
+-- open latency: a server as fast as it can be (the client cost alone) --
+  lat fatwa delay=1 leftHome=5 body=5 loader=5 still=false
+  lat fatwa delay=1 leftHome=4 body=4 loader=4 still=false
+  lat fatwa delay=1 leftHome=3 body=3 loader=3 still=false
+  lat lessons delay=1 leftHome=3 body=3 loader=-1 still=true
+  lat lessons delay=1 leftHome=0 body=0 loader=-1 still=true
+  lat lessons delay=1 leftHome=0 body=0 loader=-1 still=true
+-- a cut connection --
+  abort articles spoke=true keys=["common.retry","lessons.retry","lessons.browseRetry","module.articles","articles.error","articles.shapeArticle","articles.sectionLabel"] len=93
+  abort women spoke=true keys=["common.retry","lessons.retry","lessons.browseRetry","module.women","articles.error","articles.sectionLabel"] len=93
+  abort lessons spoke=true keys=["module.lessons","lessons.retry","lessons.tabBrowse","lessons.scholarsTitle","lessons.browseError","lessons.browseRetry","sources.lessons"] len=63
+  abort fatwa spoke=true keys=["errors.network","module.fatwa","fatwa.scholarLabel","fatwa.defaultScholar","fatwa.allScholars","fatwa.error","favorites.kind.fatwa","sources.fatwa"] len=76
+-- the lessons search tab --
+  lessons-search 429 spoke=false keys=["module.lessons","lessons.tabBrowse","lessons.scholarsTitle","sources.lessons"]
+  lessons-search 503 spoke=false keys=["module.lessons","lessons.tabBrowse","lessons.scholarsTitle","sources.lessons"]
+  lessons-search abort spoke=false keys=["module.lessons","lessons.tabBrowse","lessons.scholarsTitle","sources.lessons"]
+  lessons-search empty spoke=false keys=["module.lessons","lessons.tabBrowse","lessons.scholarsTitle","sources.lessons"]
+-- the fatwa source control --
+  fatwa.source present=1 tag="a" target="_blank" sameTabChanged=false newTab=true
+-- a refresh in the middle of a section --
+  refresh articles before=other after=chat restored=false
+  refresh adhkar before=other after=chat restored=false
+  refresh fatwa before=other after=chat restored=false
+  refresh lessons before=other after=chat restored=false
+  refresh mushaf before=other after=chat restored=false
+  refresh women before=other after=chat restored=false
+-- the mushaf back control --
+  mushaf-back top=1 inside=1 reenter=1
+-- the treasure overlaps --
+  treasure-overlap pairs=4 buried=false unreachable=false
+-- the complaint door --
+  feedback rows lines=[] stillOnDoor=false signInGo=true
+  feedback 429 lines=[] stillOnDoor=false signInGo=true
+  feedback 503 lines=[] stillOnDoor=false signInGo=true
+  feedback abort lines=[] stillOnDoor=false signInGo=true
+-- the greeting and the adhkar chest --
+  greeting found=true tailEmpty=true plainShown=false line="...... .."
+  adhkar-head nameInHead=false head="..... ......\n. .. ..\n. / ..\n....... ......... "
+WROTE C:\Users\passe\AppData\Local\Temp\claude\C--Users-passe-projects-ustaz-fix88\74937779-8429-4138-9689-875644bc5486\scratchpad\rig\out\extras-before.json cases=35
+EXIT=0

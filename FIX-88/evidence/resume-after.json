@@ -1,0 +1,54 @@
+{
+  "tree": "C:\\Users\\passe\\projects\\ustaz-fix88",
+  "label": "after",
+  "at": "2026-09-14T16:16:07.666Z",
+  "results": [
+    {
+      "id": "first-open",
+      "where": "chat",
+      "head": "فتاوى\nبحث موثّق بالسؤال والجواب\nرحلةُ الكنوز\nتعلّم باللعب\nالمصحف\nاقرأ وتابع وردك\nالدروس\nبحثٌ في دروسِ العلماء\nموجز\nعزك ذ",
+      "landsOnChat": true,
+      "shot": "001-after-first-open.png",
+      "consoleErrors": []
+    },
+    {
+      "id": "walked-out-then-refresh",
+      "inSection": "مقالات عزك\nRIG-ONE\n٢٠٢٦/٠٩/٠١\nRIG-TWO\nسؤال وجواب\n٢٠٢٦/٠٩/٠٢",
+      "backControls": 1,
+      "afterBack": "shelf",
+      "afterRefresh": "chat",
+      "head": "فتاوى\nبحث موثّق بالسؤال والجواب\nرحلةُ الكنوز\nتعلّم باللعب\nالمصحف\nاقرأ وتابع وردك\nالدروس\nبحثٌ في دروسِ العلماء\nموجز\nعزك ذ",
+      "forgotten": true,
+      "shot": "002-after-walked-out.png",
+      "consoleErrors": []
+    },
+    {
+      "id": "layer-asmaa",
+      "rowFound": 1,
+      "beforeHead": "أسماءُ اللهِ الحسنى\nالقواعدُ الثماني\n١\nالله\n٢\nالأحد\n٣\nالأعلى\n٤\nالأكرم\n٥\nالإله\n٦\nالأول\n٧\nالآخر\n٨\nالظا",
+      "afterHead": "أسماءُ اللهِ الحسنى\nالقواعدُ الثماني\n١\nالله\n٢\nالأحد\n٣\nالأعلى\n٤\nالأكرم\n٥\nالإله\n٦\nالأول\n٧\nالآخر\n٨\nالظا",
+      "afterWhere": "other",
+      "restored": true,
+      "shot": "003-after-layer-asmaa.png",
+      "consoleErrors": []
+    },
+    {
+      "id": "layer-sunan-day",
+      "rowFound": 1,
+      "beforeHead": "من الاستيقاظ إلى النوم\n\nكل سطر مسند إلى صحيح البخاري أو صحيح مسلم برقمه المطبوع.\n\nالاستيقاظ من النوم",
+      "afterHead": "من الاستيقاظ إلى النوم\n\nكل سطر مسند إلى صحيح البخاري أو صحيح مسلم برقمه المطبوع.\n\nالاستيقاظ من النوم",
+      "afterWhere": "other",
+      "restored": true,
+      "shot": "004-after-layer-sunan-day.png",
+      "consoleErrors": []
+    },
+    {
+      "id": "refresh-twice",
+      "beforeHead": "الدروس\nتصفُّح\nبحث\nالمشايخ\n٧ درسًا\nRIG-SCHOLAR\n٧ درسًا",
+      "afterHead": "الدروس\nتصفُّح\nبحث\nالمشايخ\n٧ درسًا\nRIG-SCHOLAR\n٧ درسًا",
+      "stillThere": true,
+      "shot": "005-after-refresh-twice.png",
+      "consoleErrors": []
+    }
+  ]
+}

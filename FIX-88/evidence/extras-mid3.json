@@ -1,0 +1,73 @@
+{
+  "tree": "C:\\Users\\passe\\projects\\ustaz-fix88",
+  "label": "mid3",
+  "at": "2026-09-14T16:14:01.486Z",
+  "results": [
+    {
+      "family": "refresh2",
+      "section": "articles",
+      "beforeHead": "مقالات عزك\nRIG-ONE\n٢٠٢٦/٠٩/٠١\nRIG-TWO\nسؤال وجواب\n٢٠٢٦/٠٩/٠٢",
+      "beforeWhere": "other",
+      "afterHead": "مقالات عزك\nRIG-ONE\n٢٠٢٦/٠٩/٠١\nRIG-TWO\nسؤال وجواب\n٢٠٢٦/٠٩/٠٢",
+      "afterWhere": "other",
+      "restored": true,
+      "shot": "001-mid3-refresh-articles.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "refresh2",
+      "section": "adhkar",
+      "beforeHead": "الأذكار\nأذكار المساء\n٠ من ٢١\n١ / ٢١\nأَعُوذُ بِاللَّهِ مِنَ الشَّيطَانِ الرَّجِيمِ ﴿اللَّهُ لاَ إِلَهَ إِلاَّ هُوَ الْحَيُّ الْقَيُّومُ لاَ تَأْخُذُهُ سِنَةٌ وَل",
+      "beforeWhere": "other",
+      "afterHead": "الأذكار\nأذكار المساء\n٠ من ٢١\n١ / ٢١\nأَعُوذُ بِاللَّهِ مِنَ الشَّيطَانِ الرَّجِيمِ ﴿اللَّهُ لاَ إِلَهَ إِلاَّ هُوَ الْحَيُّ الْقَيُّومُ لاَ تَأْخُذُهُ سِنَةٌ وَل",
+      "afterWhere": "other",
+      "restored": true,
+      "shot": "002-mid3-refresh-adhkar.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "refresh2",
+      "section": "fatwa",
+      "beforeHead": "اسم الشيخ\nكل الفتاوى\nRIG-SH\nبحث\nالفتاوى مرتبة أبجديًّا — 1 فتوى، الصفحة 1 من 1.\nRIG-FATWA\nRIG-SH",
+      "beforeWhere": "other",
+      "afterHead": "اسم الشيخ\nكل الفتاوى\nRIG-SH\nبحث\nالفتاوى مرتبة أبجديًّا — 1 فتوى، الصفحة 1 من 1.\nRIG-FATWA\nRIG-SH",
+      "afterWhere": "other",
+      "restored": true,
+      "shot": "003-mid3-refresh-fatwa.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "refresh2",
+      "section": "lessons",
+      "beforeHead": "الدروس\nتصفُّح\nبحث\nالمشايخ\n٧ درسًا\nRIG-SCHOLAR\n٧ درسًا",
+      "beforeWhere": "other",
+      "afterHead": "الدروس\nتصفُّح\nبحث\nالمشايخ\n٧ درسًا\nRIG-SCHOLAR\n٧ درسًا",
+      "afterWhere": "other",
+      "restored": true,
+      "shot": "004-mid3-refresh-lessons.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "refresh2",
+      "section": "mushaf",
+      "beforeHead": "المصحف\nاليوم ٠ · حدّد وردك\nالانتقال إلى جزء\nالجزء ١\nصفحة ١\nالجزء ٢\nصفحة ٢٢\nالجزء ٣\nصفحة ٤٢\nالجزء ٤\nصفحة ٦٢\nالجزء ٥\nصفحة ٨٢\nالجزء ٦\nصفحة ١٠٢\nالجزء ٧\nصفحة ١٢١\nالج",
+      "beforeWhere": "other",
+      "afterHead": "المصحف\nاليوم ٠ · حدّد وردك\nالانتقال إلى جزء\nالجزء ١\nصفحة ١\nالجزء ٢\nصفحة ٢٢\nالجزء ٣\nصفحة ٤٢\nالجزء ٤\nصفحة ٦٢\nالجزء ٥\nصفحة ٨٢\nالجزء ٦\nصفحة ١٠٢\nالجزء ٧\nصفحة ١٢١\nالج",
+      "afterWhere": "other",
+      "restored": true,
+      "shot": "005-mid3-refresh-mushaf.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "refresh2",
+      "section": "women",
+      "beforeHead": "ركن النساء\nRIG-ONE\n٢٠٢٦/٠٩/٠١\nRIG-TWO\nسؤال وجواب\n٢٠٢٦/٠٩/٠٢",
+      "beforeWhere": "other",
+      "afterHead": "ركن النساء\nRIG-ONE\n٢٠٢٦/٠٩/٠١\nRIG-TWO\nسؤال وجواب\n٢٠٢٦/٠٩/٠٢",
+      "afterWhere": "other",
+      "restored": true,
+      "shot": "006-mid3-refresh-women.png",
+      "consoleErrors": []
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+TREE C:\Users\passe\projects\ustaz-fix88 LABEL after PORT 49226
+-- a cut connection --
+  abort articles spoke=true keys=["common.retry","lessons.retry","lessons.browseRetry","module.articles","articles.error","articles.shapeArticle","articles.sectionLabel"] len=93
+  abort women spoke=true keys=["common.retry","lessons.retry","lessons.browseRetry","module.women","articles.error","articles.sectionLabel"] len=93
+  abort lessons spoke=true keys=["module.lessons","lessons.retry","lessons.tabBrowse","lessons.scholarsTitle","lessons.browseError","lessons.browseRetry","sources.lessons"] len=63
+  abort fatwa spoke=true keys=["errors.network","module.fatwa","fatwa.scholarLabel","fatwa.defaultScholar","fatwa.allScholars","fatwa.error","favorites.kind.fatwa","sources.fatwa"] len=76
+-- the lessons search tab --
+  lessons-search 429 spoke=true keys=["module.lessons","lessons.searchButton","lessons.error","lessons.retry","lessons.tabBrowse","lessons.browseRetry","sources.lessons"]
+  lessons-search 503 spoke=true keys=["module.lessons","lessons.searchButton","lessons.error","lessons.retry","lessons.tabBrowse","lessons.browseRetry","sources.lessons"]
+  lessons-search abort spoke=true keys=["module.lessons","lessons.searchButton","lessons.error","lessons.retry","lessons.tabBrowse","lessons.browseRetry","sources.lessons"]
+  lessons-search empty spoke=true keys=["module.lessons","lessons.searchButton","lessons.empty","lessons.tabBrowse","sources.lessons"]
+-- the fatwa source control --
+  fatwa.source present=1 tag="a" target="_blank" sameTabChanged=false newTab=true
+-- a refresh in the middle of a section --
+  refresh articles before=other after=other restored=true
+  refresh adhkar before=other after=other restored=true
+  refresh fatwa before=other after=other restored=true
+  refresh lessons before=other after=other restored=true
+  refresh mushaf before=other after=other restored=true
+  refresh women before=other after=other restored=true
+-- the mushaf back control --
+  mushaf-back top=1 inside=1 reenter=1
+-- the treasure overlaps --
+  treasure-overlap pairs=4 buried=false unreachable=false
+-- the complaint door --
+  feedback rows lines=["feedback.signInRequired","feedback.noChat"] stillOnDoor=true signInGo=true
+  feedback 429 lines=["feedback.signInRequired","feedback.noChat"] stillOnDoor=true signInGo=true
+  feedback 503 lines=["feedback.signInRequired","feedback.noChat"] stillOnDoor=true signInGo=true
+  feedback abort lines=["feedback.signInRequired","feedback.noChat"] stillOnDoor=true signInGo=true
+-- the greeting and the adhkar chest --
+  greeting found=false tailEmpty=false plainShown=true line=""
+  adhkar-head nameInHead=true head=".......\n..... ......\n. .. ..\n. / ..\n....... .."
+WROTE C:\Users\passe\AppData\Local\Temp\claude\C--Users-passe-projects-ustaz-fix88\74937779-8429-4138-9689-875644bc5486\scratchpad\rig\out\extras-after.json cases=23
+EXIT=0

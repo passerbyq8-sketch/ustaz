@@ -1,0 +1,284 @@
+{
+  "at": "2026-09-14T16:37:58.415Z",
+  "tree": "C:\\Users\\passe\\AppData\\Local\\Temp\\claude\\C--Users-passe-projects-ustaz-fix88\\74937779-8429-4138-9689-875644bc5486\\scratchpad\\base-tree",
+  "viewports": [
+    {
+      "tag": "m390",
+      "count": 12,
+      "tiles": [
+        {
+          "id": "asmaa",
+          "label": "أسماءُ اللهِ الحسنى",
+          "boxW": 114,
+          "boxH": 114,
+          "inkH": 40.55,
+          "ratio": 2.81,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-asmaa"
+        },
+        {
+          "id": "articles",
+          "label": "مقالات عزك",
+          "boxW": 114,
+          "boxH": 114,
+          "inkH": 23,
+          "ratio": 4.96,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-articles"
+        },
+        {
+          "id": "memorize",
+          "label": "المحفّظ",
+          "boxW": 114,
+          "boxH": 114,
+          "inkH": 23,
+          "ratio": 4.96,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-memorize"
+        },
+        {
+          "id": "adhkar",
+          "label": "الأذكار",
+          "boxW": 114,
+          "boxH": 114,
+          "inkH": 23,
+          "ratio": 4.96,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-adhkar"
+        },
+        {
+          "id": "sunan-day",
+          "label": "من الاستيقاظ إلى النوم",
+          "boxW": 114,
+          "boxH": 114,
+          "inkH": 40.55,
+          "ratio": 2.81,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-sunan-day"
+        },
+        {
+          "id": "arbaeen",
+          "label": "الأربعون النووية",
+          "boxW": 114,
+          "boxH": 114,
+          "inkH": 23,
+          "ratio": 4.96,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-arbaeen"
+        },
+        {
+          "id": "mushaf",
+          "label": "المصحف",
+          "boxW": 114,
+          "boxH": 114,
+          "inkH": 23,
+          "ratio": 4.96,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-feature"
+        },
+        {
+          "id": "treasure",
+          "label": "رحلةُ الكنوز",
+          "boxW": 114,
+          "boxH": 114,
+          "inkH": 23,
+          "ratio": 4.96,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-treasure"
+        },
+        {
+          "id": "fatwa",
+          "label": "فتاوى",
+          "boxW": 114,
+          "boxH": 114,
+          "inkH": 23,
+          "ratio": 4.96,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-fatwa"
+        },
+        {
+          "id": "lessons",
+          "label": "الدروس",
+          "boxW": 114,
+          "boxH": 114,
+          "inkH": 23,
+          "ratio": 4.96,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-lessons"
+        },
+        {
+          "id": "prayer",
+          "label": "الصلاة والقبلة",
+          "boxW": 114,
+          "boxH": 114,
+          "inkH": 23,
+          "ratio": 4.96,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-prayer"
+        },
+        {
+          "id": "women",
+          "label": "ركن النساء",
+          "boxW": 114,
+          "boxH": 114,
+          "inkH": 23,
+          "ratio": 4.96,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-women"
+        }
+      ],
+      "shot": "001-shelf-m390.png"
+    },
+    {
+      "tag": "t820",
+      "count": 12,
+      "tiles": [
+        {
+          "id": "asmaa",
+          "label": "أسماءُ اللهِ الحسنى",
+          "boxW": 256,
+          "boxH": 256,
+          "inkH": 23,
+          "ratio": 11.13,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-asmaa"
+        },
+        {
+          "id": "articles",
+          "label": "مقالات عزك",
+          "boxW": 256,
+          "boxH": 256,
+          "inkH": 23,
+          "ratio": 11.13,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-articles"
+        },
+        {
+          "id": "memorize",
+          "label": "المحفّظ",
+          "boxW": 256,
+          "boxH": 256,
+          "inkH": 23,
+          "ratio": 11.13,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-memorize"
+        },
+        {
+          "id": "adhkar",
+          "label": "الأذكار",
+          "boxW": 256,
+          "boxH": 256,
+          "inkH": 23,
+          "ratio": 11.13,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-adhkar"
+        },
+        {
+          "id": "sunan-day",
+          "label": "من الاستيقاظ إلى النوم",
+          "boxW": 256,
+          "boxH": 256,
+          "inkH": 23,
+          "ratio": 11.13,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-sunan-day"
+        },
+        {
+          "id": "arbaeen",
+          "label": "الأربعون النووية",
+          "boxW": 256,
+          "boxH": 256,
+          "inkH": 23,
+          "ratio": 11.13,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-arbaeen"
+        },
+        {
+          "id": "mushaf",
+          "label": "المصحف",
+          "boxW": 256,
+          "boxH": 256,
+          "inkH": 23,
+          "ratio": 11.13,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-feature"
+        },
+        {
+          "id": "treasure",
+          "label": "رحلةُ الكنوز",
+          "boxW": 256,
+          "boxH": 256,
+          "inkH": 23,
+          "ratio": 11.13,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-treasure"
+        },
+        {
+          "id": "fatwa",
+          "label": "فتاوى",
+          "boxW": 256,
+          "boxH": 256,
+          "inkH": 23,
+          "ratio": 11.13,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-fatwa"
+        },
+        {
+          "id": "lessons",
+          "label": "الدروس",
+          "boxW": 256,
+          "boxH": 256,
+          "inkH": 23,
+          "ratio": 11.13,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-lessons"
+        },
+        {
+          "id": "prayer",
+          "label": "الصلاة والقبلة",
+          "boxW": 256,
+          "boxH": 256,
+          "inkH": 23,
+          "ratio": 11.13,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-prayer"
+        },
+        {
+          "id": "women",
+          "label": "ركن النساء",
+          "boxW": 256,
+          "boxH": 256,
+          "inkH": 23,
+          "ratio": 11.13,
+          "marks": 0,
+          "fontSize": "13.3333px",
+          "className": "ezhome-focus ezist-mod ezist-mod-women"
+        }
+      ],
+      "shot": "002-shelf-t820.png"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "at": "2026-09-14T21:04:13.974Z",
+  "cases": [
+    {
+      "id": "memorize",
+      "vp": "m390",
+      "opened": "٧ مكية الأعراف ٢٠٦ آية",
+      "beforeHead": "المُحفّظ\nاختر سورةً لتبدأ الحفظ\nالأعراف\n١\nمكية\nالفاتحة\n٧ آية\n٢\nمدنية\nالبقرة\n٢٨٦ آية\n٣\nمدني",
+      "beforeWhere": "other",
+      "afterHead": "المُحفّظ\nاختر سورةً لتبدأ الحفظ\n١\nمكية\nالفاتحة\n٧ آية\n٢\nمدنية\nالبقرة\n٢٨٦ آية\n٣\nمدنية\nآل عمر",
+      "afterWhere": "other",
+      "landedOnChat": false,
+      "sameScreen": false,
+      "inSection": false,
+      "shot": "001-rd-memorize-m390.png",
+      "pressesToShelf": 1
+    },
+    {
+      "id": "mushaf",
+      "vp": "m390",
+      "opened": "الجزء ٦ صفحة ١٠٢",
+      "beforeHead": "النساء · صفحة ١٠٢\nالسور",
+      "beforeWhere": "other",
+      "afterHead": "النساء · صفحة ١٠٢\nالسور",
+      "afterWhere": "other",
+      "landedOnChat": false,
+      "sameScreen": true,
+      "inSection": true,
+      "shot": "002-rd-mushaf-m390.png",
+      "usedControl": [
+        "السور"
+      ],
+      "pressesToShelf": 2
+    },
+    {
+      "id": "memorize",
+      "vp": "t820",
+      "opened": "٧ مكية الأعراف ٢٠٦ آية",
+      "beforeHead": "المُحفّظ\nاختر سورةً لتبدأ الحفظ\nالأعراف\n١\nمكية\nالفاتحة\n٧ آية\n٢\nمدنية\nالبقرة\n٢٨٦ آية\n٣\nمدني",
+      "beforeWhere": "other",
+      "afterHead": "المُحفّظ\nاختر سورةً لتبدأ الحفظ\n١\nمكية\nالفاتحة\n٧ آية\n٢\nمدنية\nالبقرة\n٢٨٦ آية\n٣\nمدنية\nآل عمر",
+      "afterWhere": "other",
+      "landedOnChat": false,
+      "sameScreen": false,
+      "inSection": false,
+      "shot": "003-rd-memorize-t820.png",
+      "pressesToShelf": 1
+    },
+    {
+      "id": "mushaf",
+      "vp": "t820",
+      "opened": "الجزء ٦ صفحة ١٠٢",
+      "beforeHead": "النساء · صفحة ١٠٢\nالسور",
+      "beforeWhere": "other",
+      "afterHead": "النساء · صفحة ١٠٢\nالسور",
+      "afterWhere": "other",
+      "landedOnChat": false,
+      "sameScreen": true,
+      "inSection": true,
+      "shot": "004-rd-mushaf-t820.png",
+      "usedControl": [
+        "السور"
+      ],
+      "pressesToShelf": 2
+    }
+  ]
+}

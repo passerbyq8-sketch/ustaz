@@ -1,0 +1,284 @@
+==================================================================
+ Al-Murabbi  ::  recon-audit  (read-only, writes nothing)
+ root: C:\Users\passe\projects\ustaz-fix88
+ time: 2026-09-14T15:23:09.342Z
+==================================================================
+
+=== 0) SOURCE ARRAY EXTRACTOR ===
+  [PASS] array extraction balances nested arrays and ignores brackets in strings/comments
+  [PASS] optional HEAD baseline distinguishes absent, match, and mismatch
+
+=== 1) FILE INVENTORY ===
+  [PASS] index.html  (150.4 KB, 2072 lines)
+  [PASS] quest.html  (207.6 KB)
+  [PASS] api/ask.js  (253.1 KB)
+  [PASS] api/chat.js  (1.0 KB)
+  [PASS] api/chat-fast.js  (1.1 KB)
+  [PASS] api/tts.js  (7.0 KB)
+  [PASS] api/tashkeel.js  (11.6 KB)
+  [PASS] api/report.js  (4.7 KB)
+  [PASS] lib/retrieve.js  (84.7 KB)
+  [PASS] lib/encyclopedia.js  (5.4 KB)
+  [PASS] lib/ratelimit.js  (22.7 KB)
+  [PASS] lib/limit-message.js  (0.3 KB)
+  [PASS] lib/data/adhkar.json  (173.2 KB)
+  [PASS] quran-uthmani.json  (1378.9 KB)
+  [PASS] quest-data/trivia-golden.json  (1584.9 KB)
+  [PASS] quest-data/world.json  (9.9 KB)
+  [PASS] quest-data/rewards.json  (8.1 KB)
+  [PASS] lib/data/fiqh-search.json.gz  (5303.3 KB)
+  [PASS] babel-gate.cjs  (4.8 KB)
+  [PASS] runtime-gate.cjs  (7.7 KB)
+  [PASS] worship-guard.cjs  (9.2 KB)
+  [PASS] worship-golden.json  (30.7 KB)
+  [PASS] referral-golden.json  (3.5 KB)
+  [PASS] package.json  (1.1 KB)
+  [PASS] .gitignore  (0.8 KB)
+  [PASS] docs/khilaf-policy.md  (17.7 KB)
+  [PASS] vercel.json  (0.8 KB)
+  [PASS] package-lock.json  (34.8 KB)
+
+=== 2) GIT INTEGRITY & TRACKING ===
+  [INFO] HEAD = 4e8b47c2439657664baa8c5b49064304452e545a
+  [INFO] no expected HEAD supplied; baseline comparison skipped
+  [INFO] working tree has uncommitted changes:
+  [INFO]     ?? FIX-88/
+  [PASS] tracked (ships to Vercel): quran-uthmani.json
+  [PASS] tracked (ships to Vercel): lib/data/adhkar.json
+  [PASS] tracked (ships to Vercel): lib/data/fiqh-search.json.gz
+  [PASS] no temp/secret/build files are tracked
+
+=== 3) .gitignore COVERAGE ===
+  [PASS] ignored: .env
+  [PASS] ignored: *.bak
+  [PASS] ignored: apply-*.cjs
+  [PASS] ignored: recon-*.cjs
+  [PASS] ignored: fix-*.cjs
+  [PASS] ignored: probe-*.mjs
+  [PASS] ignored: probe-*.txt
+  [PASS] ignored: payload-*.txt
+  [PASS] ignored: *.cjs.txt
+  [PASS] ignored: .vercel
+  [PASS] ignored: node_modules
+
+=== 4) SECRET LEAK SCAN (tracked files, values redacted) ===
+  [PASS] reviewed non-secret fixture still matches exactly: guards/search-budget-p0-guard.cjs
+  [PASS] no hardcoded secrets found in tracked files
+
+=== 5) ENV VARS REFERENCED IN SERVER CODE ===
+  [INFO] these MUST be set in Vercel (Project Settings > Environment Variables):
+  [INFO]     ANTHROPIC_API_KEY
+  [INFO]     ASK_GLOBAL_DAY
+  [INFO]     BRAVE_API_KEY
+  [INFO]     DEPTH_FREE_TRIAL
+  [INFO]     ELEVENLABS_API_KEY
+  [INFO]     KV_REST_API_TOKEN
+  [INFO]     KV_REST_API_URL
+  [INFO]     MODEL
+  [INFO]     MODEL_PREMIUM
+  [INFO]     MODEL_STANDARD
+  [INFO]     SEARCH_API_TOKEN
+  [INFO]     SHAMELA_BRAIN
+  [INFO]     TASHKEEL_MODEL
+
+=== 6) DEPENDENCIES: declared vs used ===
+  [INFO] package.json deps: @mozilla/readability, @upstash/ratelimit, @upstash/redis, linkedom, minisearch, @babel/core, @babel/parser, @babel/preset-react, react, react-dom
+  [PASS] declared & used: @mozilla/readability
+  [PASS] declared & used: @upstash/ratelimit
+  [PASS] declared & used: @upstash/redis
+  [PASS] declared & used: linkedom
+  [INFO] node_modules present (needed locally for gates)
+
+=== 7) CDN PIN INTEGRITY (index.html) ===
+  [PASS] pinned: https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.11.0/mammoth.browser.min.js
+  [PASS] no in-browser Babel: @babel/standalone is not loaded at all (item 32)
+  [PASS] self-hosted and SRI-pinned: vendor/react
+  [PASS] self-hosted and SRI-pinned: vendor/react-dom
+  [PASS] the page loads the compiled bundle app.js
+  [PASS] mammoth pinned to 1.11.0 (documented)
+  [INFO] some SRI integrity= attributes present
+
+=== 8) MARKERS & FROZEN-SURFACE PRESENCE (the shipped client) ===
+  [INFO] PERSIST_CONVERSATION = true
+  [INFO] SCHOLAR_ENABLED = true
+  [INFO] CALL_STREAM_SPEECH = true
+  [PASS] present: tts-num-words injection
+  [PASS] present: deriveCaps
+  [PASS] present: formatForTTS
+  [PASS] present: parseRichMessage
+  [PASS] present: createCallSpeechStream
+  [PASS] present: playDhikrRecitation
+  [PASS] present: tagPattern
+
+=== 9) RAG SOURCE LISTS & GATES (lib/retrieve.js) ===
+  [INFO] SITES_ADULT (19): islamweb.net, binbaz.org.sa, alukah.net, islamqa.info, sh-albarrak.com, almosleh.com, iifa-aifi.org, ferkous.app, dr-mutlaq.com, eftaa.awqaf.gov.kw, saleh.af.org.sa, khaledalsabt.com, ibn-jebreen.com, mostafaaladwy.com, almunajjid.com, khutabaa.com, salafcenter.org, tafsir.net, al-abbaad.com
+  [PASS] SITES_ADULT count = 19 (measured 2026-08-14)
+  [INFO] SITES_MINOR (7): islamqa.info, binbaz.org.sa, islamweb.net, alukah.net, iifa-aifi.org, ibn-jebreen.com, almosleh.com
+  [PASS] SITES_MINOR count = 7 (measured 2026-08-14)
+  [PASS] SITES_MINOR == the seven currently measured ready (khilaf policy unchanged)
+  [PASS] present: isKhameesBlocked
+  [PASS] present: isTafsirAppBookBlocked
+  [PASS] present: retrieve
+  [PASS] query assembly delegated to lib/brave-query.js (no local site: filter)
+  [PASS] tafsir book-block slugs present: kashaf + alrazi
+  [PASS] othmanalkhamees.com present (Khamis sect-gated source)
+  [PASS] BRAVE_API_KEY referenced
+  [PASS] shkhudheir.com is on no SITES_ list (parked domain, refused by the registry)
+
+=== 10) DATA FILE VALIDITY ===
+  [INFO] worship-golden.json valid JSON (object = 3 entries)
+  [INFO] referral-golden.json valid JSON (object, .cases = 9 entries)
+  [PASS] referral-golden.json entry count = 9
+  [INFO] lib/data/adhkar.json valid JSON (object = 4 entries)
+  [INFO] quran-uthmani.json valid JSON (object = 6236 entries)
+  [INFO] quest-data/trivia-golden.json valid JSON (object = 5 entries)
+  [INFO] quest-data/world.json valid JSON (object = 4 entries)
+  [INFO] quest-data/rewards.json valid JSON (object = 11 entries)
+  [PASS] fiqh-search.json.gz gunzips + parses (3045 records, uncompressed 20.0 MB)
+  [PASS] fiqh record count ~3070 (matches)
+
+=== 11) SERVERLESS HANDLER SANITY ===
+  [PASS] api/ask.js: handler export present
+  [INFO] api/ask.js reads client band/depth -> DEEP REVIEW: confirm the server does NOT trust these blindly (age-gate bypass risk)
+  [PASS] api/chat.js: handler export present
+  [PASS] api/chat-fast.js: handler export present
+  [PASS] api/tts.js: handler export present
+  [PASS] api/tashkeel.js: handler export present
+
+=== 12) LINE ENDINGS & BOM ===
+  [PASS] no mixed line endings in tracked text files
+  [PASS] no UTF-8 BOM in checked files
+
+=== 13) REPORT BODY CAP vs WORSHIP GOLDEN ===
+  [WARN] LONGEST_CARD_CHARS = 3405 > longest card 3401 -> cap oversized/stale (re-derive in api/report.js)
+
+=== 14) GATE ROSTER (single source: gates.json) ===
+  [PASS] gates.json entry count = 113
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): worship-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): quran-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): layout-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): babel-gate.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): runtime-gate.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): recon-audit.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): build-worship-display.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): referral-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): classifier-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): hafs-map-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): call-mode-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): chat-history-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): markdown-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): quest-reveal-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): quran-quest-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): prayer-quest-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): quest-bank-integrity-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): quest-content-review-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): theme-coverage-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): chat-ux-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): a11y-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): quest-ux-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): attribution-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): claim-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): source-registry-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): brave-query-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): smart-retrieval-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): ledger-contract-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): ledger-retrieval-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): ledger-gates-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): ledger-runtime-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): ledger-fixtures-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): ledger-seam-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/rfc-v05r2-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/rfc-v05r2-runtime-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/rfc-v05r2-wiring-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/rfc-v05r2-round3-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/rfc-v05r2-mode-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/rfc-v05r2-historical-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/rfc-v05r2-consistency-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/rfc-v05r2-entity-world-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/scholar-registry-drift-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/shipped-reality-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/page-match-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/takhrij-lock-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/quoted-phrase-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/adapted-corpus-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/dead-domains-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/floors-and-filters-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/source-liveness-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): tools/ai-consent-probe.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/source-attribution-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/referral-tail-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/name-presence-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/voice-safety-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): tools/wird-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/world-parity-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/ruling-source-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/retrieval-observability-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): tools/madina-hafs-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/i18n-ui-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/adhkar-twins-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/system-prompt-parity-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/lock-package-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/source-honesty-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/ledger-telemetry-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/live-search-disclosure-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/answer-shape-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/identity-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/transfer-mode-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/anchor-mode-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/search-budget-p0-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/full-fatwa-contract-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/retired-chat-endpoints-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/guard-honesty-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/prompt-consistency-par-a-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/truncated-tag-fallback-par-a-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/explicit-failure-par-a-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/scholar-separation-par-a-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/card-or-no-context-par-a-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/output-reviewer-matrix-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/attribution-on-output-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/domain-contract-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/no-empty-answer-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/ladder-order-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/tag-honesty-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/standing-notice-band-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/telemetry-text-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/vacuous-assertion-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/boot-invariants-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/lessons-search-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/fiqh-index-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/lessons-browse-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): tools/location-bridge-measure.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): tools/delete-truth-measure.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): tools/schedule-payload-measure.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): tools/save-bridge-measure.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): tools/auth-server-measure.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): tools/auth-bridge-measure.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/lib-book-contract-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/attribution-capture-widen-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/attribution-truth-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/regex-dup-group-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/stream-partial-keep-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/layer1-human-capture-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/name-form-match-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/reject-door-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/articles-public-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/asmaa-attribution-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/lessons-brain-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/chat-bar-actions-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/share-links-guard.cjs
+  [PASS] gate ok (on disk, tracked, eol=lf pinned): guards/prophet-ascription-guard.cjs
+  [PASS] every root .cjs is classified (gate or non-gate)
+
+=== 15) CLIENT/SERVER BODY-CAP MIRROR ===
+  [PASS] body-cap mirror intact: client SERVER_MAX_CHAT_BODY_BYTES == server MAX_CHAT_BODY_BYTES == 2097152 bytes
+
+=== 15B) COMMIT IDS QUOTED IN DOCUMENTATION ===
+  [PASS] every commit id quoted in documentation still resolves (3 ids)
+
+=== 16) CURRENT IMPLEMENTATION-REPORT FACTS ===
+  [PASS] implementation report matches gates.json, wird registration, and this recon summary
+
+==================================================================
+ SUMMARY   PASS=203   WARN=1   FAIL=0
+ No structural FAILs. WARNs are eyeball items, not necessarily bugs.
+==================================================================
