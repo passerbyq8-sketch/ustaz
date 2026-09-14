@@ -717,10 +717,15 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
 
     // M11 — the cut moved ahead of the deduplication. It passes every count above and still hands
     // the reader two cards where three distinct pages were cited.
+    //
+    // ع-٦ MOVED THIS PIN RATHER THAN LOOSENING IT. The fold line it quotes is no longer a tag
+    // comparison, so the literal was re-typed to the line that stands today; the mutant still
+    // removes THE FOLD AND NOTHING ELSE — the two bookkeeping arrays are still pushed, so what
+    // the twin loses is the deduplication and not the accounting under it.
     const orderCapMutant = await loopMutant('cap-before-dedup',
       (source) => source.replace(
-        '    if (card && card.tag && !out.some((item) => item.tag === card.tag)) out.push(card);',
-        '    if (card && card.tag) out.push(card);'),
+        '    if (card && card.tag && !foldsIntoDelivered(keys, tags, key, card.tag)) { keys.push(key); tags.push(card.tag); out.push(card); }',
+        '    if (card && card.tag) { keys.push(key); tags.push(card.tag); out.push(card); } // mutant: fold nothing'),
       async (twinModule) => {
         const got = capped(twinModule, withRepeat);
         return got.length === 3 && new Set(got.map((c) => c.tag)).size === 3;
@@ -729,6 +734,45 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('cap-before-dedup mutant module loaded successfully', orderCapMutant.loaded, orderCapMutant.error);
     ok('MUTANT KILLED: a repeated page cannot evict a distinct one',
       orderCapMutant.loaded && orderCapMutant.survived === false, JSON.stringify(orderCapMutant));
+
+    // ── ع-٦: ONE PAGE, THREE URLS, THREE TITLES — ONE CARD ───────────────────
+    //
+    // THE CASE HAD NO SAMPLE IN THIS TREE, which is why it shipped. Every fixture above hands
+    // `pickReaderCards` a builder that returns only a tag, so every fixture folded on the tag
+    // and the tag was right about all of them: identical URL, identical title, identical
+    // string. The defect lives one step off that path — two retrieval angles reach ONE page by
+    // two spellings of its URL (a `www.`, a trailing slash, an upper-case host) and carry two
+    // titles from two referrers, so the two tags differ in two places and the old fold saw two
+    // pages. The reader was shown the same fatwa twice and a distinct source lost its slot.
+    //
+    // SO THE BUILDER HERE RETURNS `url` BESIDE `tag`, which is what api/ask.js's own
+    // `buildSourceTag` returns — the shape the rule is actually driven with in production, and
+    // the shape none of the fixtures above had.
+    const cardOf = (row) => ({
+      url: row.url, tag: '<source url="' + row.url + '">' + row.title + '</source>',
+    });
+    const onePage = [
+      { ref: 1, url: 'https://binbaz.org.sa/fatwas/7', title: 'حكم الجمع' },
+      { ref: 2, url: 'https://www.binbaz.org.sa/fatwas/7/', title: 'الجمع بين الصلاتين للمسافر' },
+      { ref: 3, url: 'https://BinBaz.org.sa/fatwas/7', title: 'فتوى في الجمع' },
+    ];
+    const otherPage = { ref: 4, url: 'https://islamqa.info/ar/answers/99', title: 'جواب آخر' };
+    const foldedOne = loop.pickReaderCards(onePage, 3, cardOf);
+    const foldedTwo = loop.pickReaderCards([...onePage, otherPage], 3, cardOf);
+    const foldedLedger = loop.citedDeliveryLedger(onePage, 3, cardOf);
+    // FOUR CLAUSES AND THE FIRST IS THE FIXTURE'S OWN WITNESS: the three tags must really be
+    // three, or this assertion would be proving nothing about a fold. Then: three spellings of
+    // one page yield ONE card and it is the FIRST in delivered order; a genuinely distinct page
+    // beside them still gets its own, so the key folds pages and not everything; and the ledger
+    // records the same one card, because a record that disagrees with the screen is a lie.
+    ok('ع-٦: one page reached by three URLs under three titles is ONE card, not three',
+      new Set(onePage.map((r) => cardOf(r).tag)).size === 3
+        && foldedOne.length === 1
+        && foldedOne[0].tag === cardOf(onePage[0]).tag
+        && foldedTwo.length === 2
+        && foldedLedger.filter((r) => r.outcome === 'card').length === 1,
+      JSON.stringify([foldedOne.map((c) => c.tag), foldedTwo.length,
+        foldedLedger.map((r) => r.outcome)]));
 
     // AND THE HANDLER MUST ACTUALLY CALL IT. A pure rule nothing invokes is a green gate over the
     // defect itself, which is exactly the shape XC-13 was.
@@ -1692,6 +1736,14 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
       encTail.trim() !== '', JSON.stringify(encTail));
     ok('...naming the encyclopedia by the publisher the row itself declares',
       encTail.includes(encRows[0].publisher), JSON.stringify([encTail, encRows[0].publisher]));
+    // ع-٥: AND IT NAMES NO ARTICLE. The tail used to end «— مادّة: X», with X cut out of the
+    // row's own title; the owner's ruling removed the article and kept the encyclopedia. Asserted
+    // as an EQUALITY rather than as an absence, because an absence check passes just as loudly
+    // over a tail that came back empty — and the em-dash clause beside it names the separator of
+    // the deleted form, which is the one character that cannot reappear without the form.
+    ok('ع-٥: the tail names the encyclopedia and names no article',
+      encTail === '\n\nالمصدر: ' + encRows[0].publisher + '.' && !encTail.includes('—'),
+      JSON.stringify([encTail, encRows[0].publisher]));
     // THE NEGATIVE WITNESS §٣ NAMES: an answer that did not rest on it gets NOTHING.
     const noEncTail = (mod) => mod.encyclopediaTail(rows(3)) === ''
       && mod.encyclopediaTail([]) === ''
