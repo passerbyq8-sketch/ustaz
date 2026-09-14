@@ -240,6 +240,28 @@ const NOT_A_STORAGE_KEY = {
   // closes, which is the lifetime of "he is in the middle of sending something" and not a byte
   // longer. It is deleted the moment the message is actually sent, and resetAll() sweeps it from
   // sessionStorage beside the key above -- so "delete all my data" pressed mid-complaint takes it.
+  // ITEM 88, DEFECT 14. THE THIRD KEY IN THIS STORE, EXCUSED ON THE SAME TERMS AS THE TWO ABOVE
+  // IT, AND THE CASE BELOW HOLDS THIS SENTENCE TO ACCOUNT THE SAME WAY: it fails the moment
+  // this literal is handed to localStorage anywhere in app.jsx.
+  //
+  // WHAT IT HOLDS. One shelf id -- 'fatwa', 'adhkar', 'articles' and nine others -- so that a
+  // reader who refreshes the page in the middle of a section comes back to that section
+  // instead of being thrown into the chat. Nothing about the reader is in it, nothing about
+  // what he read there, and no position inside it.
+  //
+  // WHY sessionStorage IS NOT A CONVENIENCE HERE BUT THE WHOLE MECHANISM. The owner's ruling
+  // has two halves: a refresh restores the place, and the FIRST opening of the app still lands
+  // on the chat. Those are exactly the two properties of a session store -- it survives a
+  // reload of the same tab and does not exist in a new one -- so the browser tells the two
+  // cases apart and app.jsx never has to set, clear and get right a flag of its own. In
+  // localStorage the second half of the ruling would be silently false.
+  //
+  // AND resetAll() SWEEPS IT, beside the two above: a device whose data has been deleted must
+  // not walk whoever has it next into the section the last reader was in.
+  EZIK_RESUME_KEY: 'a key into sessionStorage -- one browser tab, gone when the tab closes --'
+    + ' and never handed to localStorage. It holds one shelf id so that a refresh comes back to'
+    + ' the section, the store\u2019s own lifetime is what keeps a FIRST opening on the chat, and'
+    + ' resetAll() sweeps it from sessionStorage too',
   EZIK_FB_DRAFT_KEY: 'a key into sessionStorage -- one browser tab, gone when the tab closes -- and'
     + ' never handed to localStorage. It holds the reader\u2019s own unsent complaint for the length'
     + ' of one sign-in redirect, the send deletes it, and resetAll() sweeps it from sessionStorage too',

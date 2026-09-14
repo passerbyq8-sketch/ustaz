@@ -2418,7 +2418,11 @@ const line=isDay&&dhikr?dhikr:g?g.text:'';return/*#__PURE__*/React.createElement
 // ezistQuran. The mushaf keeps its class and its own style object -- the guard asserts both,
 // and asserts that m.id === 'mushaf' still decides them -- and the sheet paints it as the same
 // square as its nine neighbours, which is what the owner asked for.
-function EzistModuleCard({m}){const feature=m.id==='mushaf';return/*#__PURE__*/React.createElement("button",{type:"button",className:'ezhome-focus ezist-'+(feature?'feature':'mod ezist-mod-'+m.id),onClick:m.onClick,"data-ezik-home-module":m.id,style:feature?s.ezistFeature:{...s.ezistCard,...(s['ezistCard_'+m.id]||null)}},/*#__PURE__*/React.createElement("span",{style:s.ezistTileName},m.label),m.fresh?/*#__PURE__*/React.createElement("span",{style:s.ezistCardNew,role:"img","aria-label":ezT('articles.freshMark')}):null);}// THE CHAT ENTRY. There is still exactly ONE, and it is no longer on this screen's chrome at
+function EzistModuleCard({m}){const feature=m.id==='mushaf';return/*#__PURE__*/React.createElement("button",{type:"button",className:'ezhome-focus ezist-'+(feature?'feature':'mod ezist-mod-'+m.id)/* DEFECT 14 (item 88): THE ONE PLACE THE READER'S PLACE IS RECORDED. It is here and not
+         in the twelve handlers because here there is one press, one id and one line -- and
+         because a tile added tomorrow is recorded without anybody remembering to. The tile's
+         own handler is called exactly as before, on the same press, and nothing about what it
+         does changed. */,onClick:()=>{ezikWriteResume(m.id);if(m.onClick)m.onClick();},"data-ezik-home-module":m.id,style:feature?s.ezistFeature:{...s.ezistCard,...(s['ezistCard_'+m.id]||null)}},/*#__PURE__*/React.createElement("span",{style:s.ezistTileName},m.label),m.fresh?/*#__PURE__*/React.createElement("span",{style:s.ezistCardNew,role:"img","aria-label":ezT('articles.freshMark')}):null);}// THE CHAT ENTRY. There is still exactly ONE, and it is no longer on this screen's chrome at
 // all: the bar's menu button opens the chat's own menu, and «محادثة جديدة» there is the entry.
 // That row was already the app's single new-conversation control; S118 only made it navigate as
 // well as reset, so it does from the home what it always did from the chat. The large "ask Ezik"
@@ -3086,7 +3090,7 @@ const g=getHomeGreeting();// GENUINE local progress, or nothing at all. These ar
 // target is stored the line is absent rather than invented, and no other module on this
 // screen claims progress of any kind. Nothing here writes, and nothing here transmits.
 // ITEM 108-أ: the sheet's one piece of state. It is not a route: see PrayerSheet.
-const[prayerOpen,setPrayerOpen]=useState(false);// NIGHT RUN F1 -- THE SHEET REGISTERS ITS LAYER, like every other layer in this file. Without
+const[prayerOpen,setPrayerOpen]=useState(()=>ezikReadResume()==='prayer');// NIGHT RUN F1 -- THE SHEET REGISTERS ITS LAYER, like every other layer in this file. Without
 // this line the sheet owned no history entry, so a hardware back press inside it resolved
 // against `screen` -- still 'home' -- and ezikBackDestination sent the reader to the chat: ONE
 // press closed the sheet AND left the home screen. It is still not a route; a layer is not a
@@ -3100,7 +3104,9 @@ const[compassOpen,setCompassOpen]=useState(false);useEzikBackLayer(compassOpen,(
 // the screen inventory is a cross-file contract, see the note above PrayerSheet -- and LIKE
 // the prayer sheet above it registers a back layer, so it owns one real history entry while it
 // is open and the device button closes IT rather than leaving the home screen underneath it.
-const[artSection,setArtSection]=useState(null);// ITEM 7 / F9. THE SHELF DRAWS FROM THIS AND NEVER WAITS FOR IT. The initial value is computed
+// DEFECT 14 (item 88): restored in the lazy initialiser, for the reason written beside the
+// two App layers -- the section is open on the first render, not one paint later.
+const[artSection,setArtSection]=useState(()=>{const id=ezikReadResume();return id==='articles'||id==='women'?id:null;});// ITEM 7 / F9. THE SHELF DRAWS FROM THIS AND NEVER WAITS FOR IT. The initial value is computed
 // from the DEVICE alone -- what is remembered as seen, against what a previous visit to this
 // screen already learnt -- so the first paint costs no request and no suspense. The probe below
 // may make it true afterwards; nothing it does can make the home screen late.
@@ -3138,7 +3144,14 @@ const[wirdOpen,setWirdOpen]=useState(false);useEzikBackLayer(wirdOpen,()=>setWir
 const[tasbihOpen,setTasbihOpen]=useState(false);useEzikBackLayer(tasbihOpen,()=>setTasbihOpen(false));const[tasbihLogOpen,setTasbihLogOpen]=useState(false);useEzikBackLayer(tasbihLogOpen,()=>setTasbihLogOpen(false));// ITEM 95: the calculator section, in those identical three shapes -- the state,
 // useEzikBackLayer(open, close) and the ezikHistBack() toggle in its handler below. It owns
 // one real history entry while it is open, so the device back button closes IT.
-const[calcOpen,setCalcOpen]=useState(false);useEzikBackLayer(calcOpen,()=>setCalcOpen(false));// ITEM 96: the day's gold price, fetched HERE rather than inside the calculator, on the same
+const[calcOpen,setCalcOpen]=useState(false);useEzikBackLayer(calcOpen,()=>setCalcOpen(false));// DEFECT 14 (item 88) -- WHERE THE RECORD DIES, and it is one place.
+// The reader is standing nowhere in particular exactly when this component has no layer of
+// its own open, which is when it draws the bare shelf; every layer App owns returns before
+// <Home> is reached, so this effect does not run at all while one of those is up and a
+// second refresh inside الأسماء still comes back to it. On the first commit after a
+// restore the layer is ALREADY open -- it was set in a lazy initialiser, not an effect --
+// so this cannot clear the record out from under the very restore that just happened.
+useEffect(()=>{if(artSection||prayerOpen||compassOpen||tasbihOpen||tasbihLogOpen||calcOpen||wirdPickOpen)return;ezikClearResume();},[artSection,prayerOpen,compassOpen,tasbihOpen,tasbihLogOpen,calcOpen,wirdPickOpen]);// ITEM 96: the day's gold price, fetched HERE rather than inside the calculator, on the same
 // discipline the wird and the hijri date below are read on -- the owner reads, the layer is
 // handed the result. It fires on the open, at most once per calendar day of the device, and
 // is the only network call this whole feature makes.
@@ -3383,7 +3396,39 @@ const searchPane=/*#__PURE__*/React.createElement(React.Fragment,null,/*#__PURE_
 // The two are mutually exclusive by construction -- an opened piece has no control that opens the
 // writer, and the writer has no control that opens a piece -- so at most one layer is registered
 // at any moment and "close the deepest" has only ever one candidate.
-const EZIK_ART_LIST_ROUTE='/api/articles-list';const EZIK_ART_ADMIN_ROUTE='/api/articles-admin';const EZIK_ART_TIMEOUT_MS=12000;const EZIK_ART_LIMIT=30;const EZIK_ART_IDLE='idle';const EZIK_ART_LOADING='loading';const EZIK_ART_DONE='done';const EZIK_ART_FAILED='failed';// DEFECT 5 + 6 (item 88) -- A FIFTH WORD, BECAUSE THERE ARE FIVE OUTCOMES AND NOT FOUR.
+// ============================================================
+// DEFECT 14 (item 88) -- A REFRESH COMES BACK TO THE SECTION, AND THE FIRST OPENING
+// STILL LANDS ON THE CHAT
+// ============================================================
+// WHAT WAS MEASURED. A section was opened from the shelf, the page was refreshed, and the
+// reader landed on the CHAT -- in 16 of the check round's 24 readings, and again here on a
+// local bench in all six sections tried (المقالات، الأذكار، الفتاوى، الدروس، المصحف، ركن
+// النساء). Item 87 lost its open phase the same way. The boot effect answers setScreen('chat')
+// for every returning profile, and nothing anywhere remembered that the reader was standing
+// somewhere else when the page went away.
+//
+// WHY sessionStorage AND NOT localStorage, AND IT IS THE WHOLE DESIGN. The owner's ruling is
+// that the chat REMAINS the first thing the app opens on, and that only a refresh restores the
+// place. Those are exactly the two halves of a session store: it survives a reload of the same
+// tab and it does not exist in a new one. So «فتحٌ أوّل» and «تحديث» are told apart by the
+// browser itself rather than by a flag this file would have to set, clear and get right.
+// A locked or full store degrades to «no memory», which is the behaviour that shipped.
+//
+// WHAT IS RECORDED IS A SHELF ID AND NOTHING ELSE. Not a screen name -- several of these
+// sections are LAYERS and own no "screen" value, which is why the check round found the defect
+// in الأسماء and «من الاستيقاظ إلى النوم» as well as in the routed ones. The id is the one the
+// shelf array already carries, so the twelve tiles are covered by construction and a thirteenth
+// is covered the day it is added. Nothing about scroll position, nothing about what was open
+// INSIDE the section, and nothing that could name the reader.
+const EZIK_RESUME_KEY='ezik_resume_section_v1';// THE THREE TABLES ARE THE WHOLE ROUTING, and an id in none of them is not recorded at all.
+// رحلة الكنوز is deliberately absent: it is a page navigation to /quest.html, and a refresh
+// there is the browser reloading quest.html -- there is nothing for this file to restore, and
+// recording it would send a reader who had merely walked back to the shelf somewhere he was
+// not standing.
+const EZIK_RESUME_SCREENS={memorize:'memorize',adhkar:'adhkar',arbaeen:'arbaeen',mushaf:'mushaf',fatwa:'fatwa',lessons:'lessons'};const EZIK_RESUME_APP_LAYERS={asmaa:1,'sunan-day':1};const EZIK_RESUME_HOME_LAYERS={articles:1,women:1,prayer:1};function ezikResumeKnown(id){return!!(EZIK_RESUME_SCREENS[id]||EZIK_RESUME_APP_LAYERS[id]||EZIK_RESUME_HOME_LAYERS[id]);}function ezikWriteResume(id){if(!ezikResumeKnown(id))return;try{window.sessionStorage.setItem(EZIK_RESUME_KEY,String(id));}catch(e){}}function ezikReadResume(){try{const v=window.sessionStorage.getItem(EZIK_RESUME_KEY);return typeof v==='string'&&ezikResumeKnown(v)?v:'';}catch(e){return'';}}function ezikClearResume(){try{window.sessionStorage.removeItem(EZIK_RESUME_KEY);}catch(e){}}// WHERE THE BOOT SHOULD LAND. '' means nothing was recorded, and the answer is the chat --
+// byte for byte the destination that shipped.
+function ezikResumeScreen(){const id=ezikReadResume();if(!id)return'chat';if(EZIK_RESUME_SCREENS[id])return EZIK_RESUME_SCREENS[id];return'home';// a layer: whoever owns it opens it on its own first render
+}const EZIK_ART_LIST_ROUTE='/api/articles-list';const EZIK_ART_ADMIN_ROUTE='/api/articles-admin';const EZIK_ART_TIMEOUT_MS=12000;const EZIK_ART_LIMIT=30;const EZIK_ART_IDLE='idle';const EZIK_ART_LOADING='loading';const EZIK_ART_DONE='done';const EZIK_ART_FAILED='failed';// DEFECT 5 + 6 (item 88) -- A FIFTH WORD, BECAUSE THERE ARE FIVE OUTCOMES AND NOT FOUR.
 // MEASURED, on a bench that forces each answer in turn: /api/articles-list replied 429 to
 // 48 of this round's requests, and every one of them reached the reader as «تعذَّر جلبُ ما في
 // هذا القسم. تحقَّقْ من الاتصال» -- a sentence about his connection, printed while his
@@ -4757,7 +4802,10 @@ const[attachMenuOpen,setAttachMenuOpen]=useState(false);const[drawerOpen,setDraw
 // ITEM 26: أسماء الله الحسنى, open over whatever screen the reader was on. It is NOT a route --
 // the screen inventory is a cross-file contract, the same reason the prayer sheet and the two
 // articles sections are layers -- and like them it registers ONE history entry below.
-const[asmaaOpen,setAsmaaOpen]=useState(false);// ITEM 92-ب: the three panels the menu's new rows open. LAYERS, for the identical reason the
+// DEFECT 14 (item 88): the two layers App owns that are shelf sections read the resume
+// record in their LAZY INITIALISER rather than from an effect, so the layer is open on the
+// very first render and no frame of the home is painted underneath it on the way.
+const[asmaaOpen,setAsmaaOpen]=useState(()=>ezikReadResume()==='asmaa');// ITEM 92-ب: the three panels the menu's new rows open. LAYERS, for the identical reason the
 // asmaa section above is one -- `screen === '...'` is a cross-file inventory (index.html, the
 // theme-coverage guard's table and EZIK-THEME-33-HANDOFF.md all have to agree on it), and this
 // order adds no key to it. Each registers exactly one history entry below, so a device back and
@@ -4770,7 +4818,7 @@ const[aboutOpen,setAboutOpen]=useState(false);const[sourcesOpen,setSourcesOpen]=
 // or a stored role: this file does not know who the owner is and must not start guessing.
 const[inboxOpen,setInboxOpen]=useState(false);// ITEM 87: the day, from waking to sleeping. A FIFTH panel of exactly the same kind as the
 // four above -- one boolean, one history entry, no `screen` key -- opened from the same menu.
-const[sunanOpen,setSunanOpen]=useState(false);const[inboxUnread,setInboxUnread]=useState(null);// DECISION ج١٣'s other half -- the sender's dot. A count of answers this reader has been
+const[sunanOpen,setSunanOpen]=useState(()=>ezikReadResume()==='sunan-day');const[inboxUnread,setInboxUnread]=useState(null);// DECISION ج١٣'s other half -- the sender's dot. A count of answers this reader has been
 // sent and has not yet opened. It is zero for everybody with no account, because `mine`
 // is not asked without a session in hand.
 const[fbUnseen,setFbUnseen]=useState(0);// Where the complaint panel is going after it closes, or null. It is a ref and not state for
@@ -5010,7 +5058,10 @@ setProfile(p);// S92: the app ALWAYS opens on a NEW, EMPTY thread. What the chil
 ezikMigrateLegacyThread(ezikProfileKey(p));// S99: this profile's reading preferences, read once here — the same single read the boot
 // script already performed, so the value React holds agrees with what is on <html> and no
 // repaint follows. A second child on the device gets THEIR settings, not the first one's.
-{const prefs=ezikReadA11y(ezikProfileKey(p));a11yRef.current=prefs;setA11yState(prefs);ezikApplyA11y(prefs);}chatIdRef.current=null;setChatId(null);setMessages([]);setChatList(ezikListChats(ezikProfileKey(p)));setScreen('chat');// D85: a returning profile also lands on the chat
+{const prefs=ezikReadA11y(ezikProfileKey(p));a11yRef.current=prefs;setA11yState(prefs);ezikApplyA11y(prefs);}chatIdRef.current=null;setChatId(null);setMessages([]);setChatList(ezikListChats(ezikProfileKey(p)));// DEFECT 14 (item 88): 'chat' unless THIS TAB was standing somewhere when it
+// reloaded. A new tab has no session record, so the first opening of the app is
+// the chat exactly as D85 wrote it; ezikResumeScreen() answers 'chat' for it.
+setScreen(ezikResumeScreen());// D85: a returning profile also lands on the chat
 }else{setScreen('onboarding');}}catch{setScreen('onboarding');}},[]);// تحميل المصحف الكنسي مسبقاً بعد الإقلاع كي تظهر أول آية فوراً (يُتجاهَل الفشل بهدوء)
 useEffect(()=>{// S117 PERF. The prefetch stays; it no longer races the first paint. Measured cold against
 // live ezik.app, THIS effect issued /quran-uthmani.json (338KB transferred, 1.41MB parsed)
@@ -6025,7 +6076,15 @@ try{localStorage.removeItem(TASBIH_SESSION_KEY);}catch(e){}try{localStorage.remo
 // anyway, on the owner's standing rule that every device key this app writes is erased by
 // "delete all my data". It is entered in tools/delete-truth-measure.cjs in this same
 // commit, which is the roster that holds this line to account.
-try{localStorage.removeItem(EZC_GOLD_PRICE_KEY);}catch(e){}// ITEMS 43-ب / 47-ب -- THE REMINDER TIMES, ON EXACTLY THE TERMS THE POSITION ABOVE GOES ON.
+try{localStorage.removeItem(EZC_GOLD_PRICE_KEY);}catch(e){}// DEFECT 14 (item 88) -- AND THE PLACE THIS TAB WAS STANDING IN, on the owner's standing
+// rule that every key this app writes is erased by «delete all my data». It is the only
+// one of these that lives in sessionStorage rather than localStorage, and it holds one
+// shelf id for the life of one tab -- but leaving it would return the device to half a
+// first open: no profile, no session, and then a refresh that walks the next reader
+// straight into the section the last one was reading. It is entered in
+// tools/delete-truth-measure.cjs in this same commit, which is the roster that holds
+// this line to account.
+ezikClearResume();// ITEMS 43-ب / 47-ب -- THE REMINDER TIMES, ON EXACTLY THE TERMS THE POSITION ABOVE GOES ON.
 // The hours a reader chose to be interrupted at are a record of that reader and of nobody
 // else, and "delete all my data" must not hand them to whoever sets this device up next --
 // still less leave a phone ringing at seven in the morning for a person who has gone. It is

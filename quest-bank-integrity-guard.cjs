@@ -1263,7 +1263,20 @@ const SEALED = {
 //                    digest is re-cut LAST, after every other sw.js edit was final. SW.JS IS OTHERWISE UNTOUCHED
 //                    -- no route, no store and no branch of it moved -- and CACHE IS NOT BUMPED: the merge round
 //                    owns the bump.
-  'sw.js': '0e4828132199de3fe60590506807e434d0ae83224fbb644fafdd85b1ee1760be',
+  //   2026-09-14-vii -- ITEM 88 DEFECT 14: A REFRESH IN THE MIDDLE OF A SECTION COMES BACK TO IT.
+//                    One sessionStorage key records the shelf id the reader pressed; the boot effect and four lazy
+//                    initialisers read it back, «delete all my data» sweeps it, and the theme-coverage guard's N10
+//                    asserts the same claim it always did against the destination's new spelling. The FIRST opening
+//                    of the app still lands on the chat, because a new tab has no session record. No route, no store
+//                    and no cached file is involved. INDEX.HTML DID NOT MOVE and NO FILE JOINED OR LEFT CORE this
+//                    round -- the only CORE entry that changed size is the bundle. app.js was rebuilt 1718515 ->
+//                    1724747 (+6232) by node tools/build-app.cjs, and CORE_BYTES was re-cut 2891605 -> 2897837
+//                    (+6232), verified by node tools/core-bytes.cjs, which is exactly the bundle delta because the
+//                    shell did not grow and CORE gained nothing. The worker's own byte table above the constant and
+//                    the app.js mirror below followed, and THIS digest is re-cut LAST, after every other sw.js edit
+//                    was final. SW.JS IS OTHERWISE UNTOUCHED -- no route, no store and no branch of it moved -- and
+//                    CACHE IS NOT BUMPED: the merge round owns the bump.
+  'sw.js': 'b1f585a6a2f919904375a137780404327d9e9545530a188a33324cd2e13c4c35',
 };
 
 // ---------------------------------------------------------------------------
@@ -2388,7 +2401,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1718515, of: 'app.js' },
+      { n: 1724747, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
