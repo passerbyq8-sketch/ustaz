@@ -591,6 +591,7 @@ const EZ_I18N = {
     'articles.emptyTitle': 'هذا القسمُ جديد',
     'articles.emptyBody': 'لم يُنشرْ فيه شيءٌ بعد. عُدْ إليه قريباً.',
     'articles.error': 'تعذَّر جلبُ ما في هذا القسم. تحقَّقْ من الاتصال ثمّ أعِدِ المحاولة.',
+    'articles.throttled': 'تجاوزتَ حدَّ الطلبات. انتظرْ قليلاً ثمّ أعِدِ المحاولة.',
     'articles.backToList': 'رجوع إلى القائمة',
     'articles.readAria': 'نصُّ المقال',
     'articles.questionLabel': 'السؤال',
@@ -1263,6 +1264,7 @@ const EZ_I18N = {
     'articles.emptyTitle': 'This section is new',
     'articles.emptyBody': 'Nothing has been published here yet. Come back soon.',
     'articles.error': 'This section could not be loaded. Check the connection, then try again.',
+    'articles.throttled': 'Too many requests just now. Wait a moment, then try again.',
     'articles.backToList': 'Back to the list',
     'articles.readAria': 'The text of the article',
     'articles.questionLabel': 'The question',
@@ -10156,6 +10158,19 @@ const EZIK_ART_IDLE = 'idle';
 const EZIK_ART_LOADING = 'loading';
 const EZIK_ART_DONE = 'done';
 const EZIK_ART_FAILED = 'failed';
+// DEFECT 5 + 6 (item 88) -- A FIFTH WORD, BECAUSE THERE ARE FIVE OUTCOMES AND NOT FOUR.
+// MEASURED, on a bench that forces each answer in turn: /api/articles-list replied 429 to
+// 48 of this round's requests, and every one of them reached the reader as «تعذَّر جلبُ ما في
+// هذا القسم. تحقَّقْ من الاتصال» -- a sentence about his connection, printed while his
+// connection was up. He then checked a network that was never the matter and pressed a
+// retry that could only earn him another 429.
+//
+// A THROTTLE IS NOT AN OUTAGE AND IS NOT AN EMPTY SHELF. It is the server saying «not so
+// fast», it passes on its own, and the only useful thing a reader can do about it is wait --
+// which is a different instruction from «check your connection» and needs its own sentence.
+// So the status code is carried out of the fetch instead of being flattened at the door,
+// and no code is dressed as another one anywhere below.
+const EZIK_ART_THROTTLED = 'throttled';
 // The two shapes, and they are the two words lib/articles/store.js stores. D-11.
 // ITEM 7 -- THE MARK ON A SECTION THAT HOLDS SOMETHING THIS READER HAS NOT SEEN
 // ============================================================
@@ -10313,12 +10328,17 @@ async function ezikArticlesFetchList(section, signal) {
     const url = EZIK_ART_LIST_ROUTE + '?section=' + encodeURIComponent(section)
       + '&limit=' + EZIK_ART_LIMIT;
     const response = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' }, signal });
-    if (response.status !== 200) return { ok: false, rows: [] };
+    // DEFECT 5 + 6 (item 88): 429 IS CARRIED OUT UNDER ITS OWN NAME. It is the one status this
+    // screen can say something USEFUL about that the outage line does not say, so it is the one
+    // that is separated. Every other status, an unreadable body, a cut connection and the
+    // timeout stay one bucket, because a reader has one thing to do about all of them.
+    if (response.status === 429) return { ok: false, why: 'throttled', rows: [] };
+    if (response.status !== 200) return { ok: false, why: 'failed', rows: [] };
     const payload = await response.json();
-    if (!payload || payload.ok !== true) return { ok: false, rows: [] };
-    return { ok: true, rows: ezikArticleRows(payload.items) };
+    if (!payload || payload.ok !== true) return { ok: false, why: 'failed', rows: [] };
+    return { ok: true, why: '', rows: ezikArticleRows(payload.items) };
   } catch (e) {
-    return { ok: false, rows: [] };
+    return { ok: false, why: 'failed', rows: [] };
   }
 }
 
@@ -10538,7 +10558,12 @@ function EzikArticlesSection({ section, title, onHome }) {
       clearTimeout(timer);
       if (listAbortRef.current !== controller) return;   // a newer load owns the screen
       listAbortRef.current = null;
-      if (!outcome.ok) { setRows([]); setState(EZIK_ART_FAILED); return; }
+      // DEFECT 5 + 6 (item 88): the reason chooses the sentence, and nothing else does.
+      if (!outcome.ok) {
+        setRows([]);
+        setState(outcome.why === 'throttled' ? EZIK_ART_THROTTLED : EZIK_ART_FAILED);
+        return;
+      }
       setRows(outcome.rows);
       setState(EZIK_ART_DONE);
       // F5: OPENING THE SECTION MARKS IT SEEN, and it is marked from the page the reader is
@@ -10660,6 +10685,19 @@ function EzikArticlesSection({ section, title, onHome }) {
       {state === EZIK_ART_FAILED ? (
         <div role="alert" style={s.artError}>
           <span>{ezT('articles.error')}</span>
+          <button type="button" className="ezhome-focus" style={s.artRetry}
+            onClick={load}>{ezT('common.retry')}</button>
+        </div>
+      ) : null}
+
+      {/* DEFECT 5 + 6 (item 88) -- THE THROTTLE, IN ITS OWN WORDS. Not the outage line, which
+          sends the reader to look at a connection that is working, and emphatically not the
+          empty state, which would tell him the section holds nothing when nobody knows yet what
+          it holds. The retry button stays, because waiting and pressing again IS the remedy
+          here -- it is the only one of the three failure readings where it is. */}
+      {state === EZIK_ART_THROTTLED ? (
+        <div role="alert" style={s.artError}>
+          <span>{ezT('articles.throttled')}</span>
           <button type="button" className="ezhome-focus" style={s.artRetry}
             onClick={load}>{ezT('common.retry')}</button>
         </div>

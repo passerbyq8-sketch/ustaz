@@ -1219,7 +1219,18 @@ const SEALED = {
 //                    sw.js edit was final. SW.JS IS OTHERWISE UNTOUCHED -- no route, no store
 //                    and no branch of it moved -- and CACHE IS NOT BUMPED: the merge round owns
 //                    the bump.
-  'sw.js': 'd4f30208d84cc3306638a4294d9e960f903f32803818124b478621e2ae6a644c',
+  //   2026-09-14-iii -- ITEM 88 DEFECT 5+6: THE THROTTLE GETS ITS OWN SENTENCE. /api/articles-list
+//                    answered 429 to 48 of the check round's requests and every one reached the reader as the
+//                    outage line, so ezikArticlesFetchList now carries the status out and the two sections draw
+//                    a fourth state. INDEX.HTML DID NOT MOVE and NO FILE JOINED OR LEFT CORE this round -- the
+//                    only CORE entry that changed size is the bundle. app.js was rebuilt 1713640 -> 1715759
+//                    (+2119) by node tools/build-app.cjs, and CORE_BYTES was re-cut 2886730 -> 2888849 (+2119),
+//                    verified by node tools/core-bytes.cjs, which is exactly the bundle delta because the shell
+//                    did not grow and CORE gained nothing. The worker's own byte table above the constant and
+//                    the app.js mirror below followed, and THIS digest is re-cut LAST, after every other sw.js
+//                    edit was final. SW.JS IS OTHERWISE UNTOUCHED -- no route, no store and no branch of it
+//                    moved -- and CACHE IS NOT BUMPED: the merge round owns the bump.
+  'sw.js': 'd4084699df04f788b64a505c9fb2b3c2a80fe0c84dc279be897306d8688bfe91',
 };
 
 // ---------------------------------------------------------------------------
@@ -2344,7 +2355,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1713640, of: 'app.js' },
+      { n: 1715759, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
