@@ -1252,7 +1252,18 @@ const SEALED = {
 //                    above the constant and the app.js mirror below followed, and THIS digest is re-cut LAST,
 //                    after every other sw.js edit was final. SW.JS IS OTHERWISE UNTOUCHED -- no route, no store
 //                    and no branch of it moved -- and CACHE IS NOT BUMPED: the merge round owns the bump.
-  'sw.js': '1d0dd122381a10eb123e6295b4696fa4f5016f2a840315716207c0682a29ca09',
+  //   2026-09-14-vi -- ITEM 88 DEFECT 12: THE ADHKAR CHEST NAMES THE SECTION ABOVE THE GROUP.
+//                    The group that opens and the order of the groups are UNCHANGED -- only a label was added over
+//                    the title, read from the same module.adhkar key the shelf tile draws. INDEX.HTML DID NOT MOVE
+//                    and NO FILE JOINED OR LEFT CORE this round -- the only CORE entry that changed size is the
+//                    bundle. app.js was rebuilt 1717848 -> 1718515 (+667) by node tools/build-app.cjs, and
+//                    CORE_BYTES was re-cut 2890938 -> 2891605 (+667), verified by node tools/core-bytes.cjs, which
+//                    is exactly the bundle delta because the shell did not grow and CORE gained nothing. The
+//                    worker's own byte table above the constant and the app.js mirror below followed, and THIS
+//                    digest is re-cut LAST, after every other sw.js edit was final. SW.JS IS OTHERWISE UNTOUCHED
+//                    -- no route, no store and no branch of it moved -- and CACHE IS NOT BUMPED: the merge round
+//                    owns the bump.
+  'sw.js': '0e4828132199de3fe60590506807e434d0ae83224fbb644fafdd85b1ee1760be',
 };
 
 // ---------------------------------------------------------------------------
@@ -2377,7 +2388,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1717848, of: 'app.js' },
+      { n: 1718515, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

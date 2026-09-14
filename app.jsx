@@ -13034,9 +13034,23 @@ function IstanaAdhkarReader(v) {
       <div className="ezia-nav">
         <div className="ezia-nav-inner">
           <button type="button" className="adhkar2-focus" onClick={v.onBack} style={s.eziaNavBtn} aria-label={A2_BACK}>{A2_ICON_BACK}</button>
+          {/* DEFECT 12 (item 88) -- THE SECTION IS NAMED ABOVE THE GROUP.
+              MEASURED: pressing «الأذكار» on the shelf lands on a chest that reads «أذكار
+              المساء», because adhkarTimeDoor opens the group that belongs to the hour. That is
+              the owner's behaviour and it is NOT changed here -- neither the group that opens
+              nor the order of any group moved. What was missing is that the reader had no way
+              to tell, from the top of the screen, that «أذكار المساء» is a group INSIDE الأذكار
+              rather than the whole of what he pressed.
+              So the section's name stands over the group's, in the smaller, dimmer weight the
+              rest of this shell uses for a label above a title. The name is read from
+              module.adhkar -- the very key the shelf tile draws -- so the tile and the chest
+              cannot come to disagree, and no second Arabic string was authored for it. */}
           <span className="ezia-brand">
             <span className="ezia-brand-arch" aria-hidden="true" />
-            <span style={s.eziaReadTitle}>{v.cat.title}</span>
+            <span style={s.eziaReadStack}>
+              <span style={s.eziaReadSection}>{ezT('module.adhkar')}</span>
+              <span style={s.eziaReadTitle}>{v.cat.title}</span>
+            </span>
           </span>
           <button type="button" className="adhkar2-focus" onClick={v.onFav}
             aria-label={v.isFav ? A2_FAV_DEL : A2_FAV_ADD} aria-pressed={v.isFav ? 'true' : 'false'}
@@ -29592,6 +29606,12 @@ const s = {
   eziaReadOuter: { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' },
   eziaReadScroll: { flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' },
   eziaReadTitle: { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 15, fontWeight: 800, color: 'var(--a3-ink)' },
+  // DEFECT 12 (item 88): the section's name over the group's, in one column inside the brand.
+  // .ezia-brand is an inline-flex ROW that centres its children, so a column child stacks the
+  // two lines without any rule in the sheet moving. minWidth 0 is what lets the title below
+  // keep its ellipsis inside a flex parent.
+  eziaReadStack: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0, lineHeight: 1.15 },
+  eziaReadSection: { fontSize: 11, fontWeight: 700, color: 'var(--a3-muted)', whiteSpace: 'nowrap' },
   eziaReadHead: { display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: 6 },
   eziaReadPos: { fontSize: 12.5, fontWeight: 800, color: 'var(--a3-blue)' },
   eziaReadRepeat: { padding: '3px 9px', borderRadius: 999, background: 'var(--a3-ice)', color: 'var(--a3-blue)', fontSize: 12, fontWeight: 800 },
