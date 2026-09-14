@@ -21312,10 +21312,32 @@ function EzikFeedbackSheet({ onBack, onSignIn, onSeen }) {
   // page is about to stop existing: the press navigates to the provider and the tab comes back
   // on a fresh load. 'wants' is the note that says he is coming back HERE and not merely that
   // there is an unsent draft lying about -- the root effect reads it, and this panel clears it.
-  const divertToSignIn = () => {
+  // DEFECT 4 (item 88) -- THE LINE IS SAID, AND THE SCREEN DOES NOT MOVE.
+  //
+  // WHAT WAS MEASURED. Seventy-six characters were typed into the one visible field and
+  // «إرسال» was pressed. The panel set feedback.signInRequired on the line above and then
+  // called onSignIn() ON THE SAME TICK -- which pops this panel's history entry and opens
+  // الإعدادات. React never painted a frame carrying the sentence: the reader watched his
+  // complaint screen turn into a settings screen and was told nothing at all about his
+  // message. Not one of the six outcome lines this panel owns reached the glass, and the
+  // draft it had just saved was invisible from where he now stood.
+  //
+  // SO THE TWO ACTS ARE SPLIT. This one is the REFUSAL: it keeps what he wrote, says why
+  // it was refused, and leaves him looking at his own words. The «تسجيل الدخول» button
+  // below -- which this panel already draws the moment "err" is set -- is the HAND-OFF, and
+  // it is his press and not ours. Nothing about the draft changes: both routes write it
+  // through the same function, so either way the text survives the trip.
+  const refuseForSignIn = () => {
     writeFbDraft({ type, text, contact, wants: EZIK_FB_WANTS_SIGNIN });
     setBusy(false);
     setErr(ezT('feedback.signInRequired'));
+  };
+
+  // THE HAND-OFF, and the only thing in this file that leaves the panel. It is wired to the
+  // button the reader presses after reading the line above, and to nothing else.
+  const divertToSignIn = () => {
+    writeFbDraft({ type, text, contact, wants: EZIK_FB_WANTS_SIGNIN });
+    setBusy(false);
     if (typeof onSignIn === 'function') onSignIn();
   };
 
@@ -21327,7 +21349,7 @@ function EzikFeedbackSheet({ onBack, onSignIn, onSeen }) {
     // makes the check honest, because a session this device believes in may have died in the
     // store and only the server can know that.
     const held = readAuthSession();
-    if (!held || typeof held.session !== 'string' || !held.session) { divertToSignIn(); return; }
+    if (!held || typeof held.session !== 'string' || !held.session) { refuseForSignIn(); return; }
     setErr('');
     setBusy(true);
     let res = null;
@@ -21360,7 +21382,7 @@ function EzikFeedbackSheet({ onBack, onSignIn, onSeen }) {
     // FOUR ANSWERS, AND «وصلت» IS SAID FOR EXACTLY ONE OF THEM. A refusal, a dead session and a
     // transport failure are each told as what they are; none is dressed as a success, which is
     // the one outcome this form is forbidden to fake.
-    if (res && res.status === 401) { divertToSignIn(); return; }
+    if (res && res.status === 401) { refuseForSignIn(); return; }
     if (res && res.status === 429) { setErr(ezT('feedback.capped')); return; }
     if (!res || !res.ok) { setErr(ezT('feedback.failed')); return; }
     // THE DRAFT DIES WITH THE MESSAGE THAT WAS MADE OF IT. Keeping it would re-seed the next
