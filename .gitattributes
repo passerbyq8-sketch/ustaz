@@ -39,6 +39,13 @@ arbaeen-footnotes.json        text eol=lf
 # would rewrite the line endings and make that proof read false about a file nobody touched.
 daily-tafsir.json             text eol=lf
 
+# ITEM 87 -- the day from waking to sleeping, 138 rows in eight phases, shipped from the root
+# the same way arbaeen.json is. Its byte length is asserted by bankintegrity (SW_PROSE) and its
+# path is in the CORE list, so a fresh clone with core.autocrlf=true would inject CR, move its
+# size and fail a gate on a machine that changed nothing. The matn is also a byte copy of the
+# owner's approved text, and a rewritten ending would make that proof read false.
+sunan-day.json                text eol=lf
+
 # ITEM 26 -- the two sheets أسماء الله الحسنى is read from. They are the OWNER'S OWN FILES,
 # dropped into the tree sealed and byte-identical to what was handed over: 153202 bytes /
 # sha256 44d1c38c… for the names, 5931 bytes / sha256 5b1dfbc9… for the seven rules. The new
