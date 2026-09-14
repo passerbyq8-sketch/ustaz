@@ -3428,7 +3428,33 @@ const EZIK_RESUME_KEY='ezik_resume_section_v1';// THE THREE TABLES ARE THE WHOLE
 const EZIK_RESUME_SCREENS={memorize:'memorize',adhkar:'adhkar',arbaeen:'arbaeen',mushaf:'mushaf',fatwa:'fatwa',lessons:'lessons'};const EZIK_RESUME_APP_LAYERS={asmaa:1,'sunan-day':1};const EZIK_RESUME_HOME_LAYERS={articles:1,women:1,prayer:1};function ezikResumeKnown(id){return!!(EZIK_RESUME_SCREENS[id]||EZIK_RESUME_APP_LAYERS[id]||EZIK_RESUME_HOME_LAYERS[id]);}function ezikWriteResume(id){if(!ezikResumeKnown(id))return;try{window.sessionStorage.setItem(EZIK_RESUME_KEY,String(id));}catch(e){}}function ezikReadResume(){try{const v=window.sessionStorage.getItem(EZIK_RESUME_KEY);return typeof v==='string'&&ezikResumeKnown(v)?v:'';}catch(e){return'';}}function ezikClearResume(){try{window.sessionStorage.removeItem(EZIK_RESUME_KEY);}catch(e){}}// WHERE THE BOOT SHOULD LAND. '' means nothing was recorded, and the answer is the chat --
 // byte for byte the destination that shipped.
 function ezikResumeScreen(){const id=ezikReadResume();if(!id)return'chat';if(EZIK_RESUME_SCREENS[id])return EZIK_RESUME_SCREENS[id];return'home';// a layer: whoever owns it opens it on its own first render
-}const EZIK_ART_LIST_ROUTE='/api/articles-list';const EZIK_ART_ADMIN_ROUTE='/api/articles-admin';const EZIK_ART_TIMEOUT_MS=12000;const EZIK_ART_LIMIT=30;const EZIK_ART_IDLE='idle';const EZIK_ART_LOADING='loading';const EZIK_ART_DONE='done';const EZIK_ART_FAILED='failed';// DEFECT 5 + 6 (item 88) -- A FIFTH WORD, BECAUSE THERE ARE FIVE OUTCOMES AND NOT FOUR.
+}// ============================================================
+// BATCH B, ITEM 1 -- WHICH SECTION *THIS BOOT* RESTORED, AND IT IS SPENT ONCE
+// ============================================================
+// WHAT THIS EXISTS FOR, AND IT IS A TRAP THE ITEM-14 REPAIR OPENED ITSELF. That repair
+// made a reload come back to the section the reader was standing in. In المصحف that
+// means the READING PAGE, because item 87 re-opens the page the reader left -- and the
+// reading page carries exactly two controls, «ضع العلامة» and «السور», neither of them
+// a way to the shelf. MEASURED on the bench, both sizes: the reload lands on the very
+// page («النساء · صفحة ١٠٢», head for head), and the shelf then costs TWO presses --
+// «السور» to the index, «رجوع» to the shelf. Before the repair the reader was thrown to
+// the chat, which was wrong differently; a reader must not be given a screen he needs
+// two presses and a guess to leave.
+//
+// THE LIGHTER OF THE TWO REMEDIES, AND WHY THIS ONE. The alternative is to add an exit
+// to the reading page -- a control on a surface the owner deliberately left with two,
+// visible to every reader on every visit, to solve a case that only arises after a
+// reload. This one changes nothing a reader sees when he walks into المصحف from the
+// shelf: item 87 still opens him where he left off, byte for byte. It changes only
+// where a RELOAD lands him -- the index instead of the page -- and the index carries
+// «رجوع», so the shelf is one press away. His place is not lost either: the index draws
+// the resume row at its top, which is the row item 87 kept for exactly this.
+//
+// AND IT IS SPENT ONCE, BY THE SECTION IT NAMES. A bare "this boot was a resume" flag
+// would be consumed by whichever section mounted first and could then suppress the
+// mushaf's ordinary auto-open later in the same run. This holds the id, hands it to
+// that one section, and clears itself in the same breath.
+let EZIK_RESUME_ENTERED='';function ezikResumeMarkEntered(id){EZIK_RESUME_ENTERED=ezikResumeKnown(id)?String(id):'';}function ezikResumeTakeEntered(id){if(!id||EZIK_RESUME_ENTERED!==id)return false;EZIK_RESUME_ENTERED='';return true;}const EZIK_ART_LIST_ROUTE='/api/articles-list';const EZIK_ART_ADMIN_ROUTE='/api/articles-admin';const EZIK_ART_TIMEOUT_MS=12000;const EZIK_ART_LIMIT=30;const EZIK_ART_IDLE='idle';const EZIK_ART_LOADING='loading';const EZIK_ART_DONE='done';const EZIK_ART_FAILED='failed';// DEFECT 5 + 6 (item 88) -- A FIFTH WORD, BECAUSE THERE ARE FIVE OUTCOMES AND NOT FOUR.
 // MEASURED, on a bench that forces each answer in turn: /api/articles-list replied 429 to
 // 48 of this round's requests, and every one of them reached the reader as «تعذَّر جلبُ ما في
 // هذا القسم. تحقَّقْ من الاتصال» -- a sentence about his connection, printed while his
@@ -5061,7 +5087,9 @@ ezikMigrateLegacyThread(ezikProfileKey(p));// S99: this profile's reading prefer
 {const prefs=ezikReadA11y(ezikProfileKey(p));a11yRef.current=prefs;setA11yState(prefs);ezikApplyA11y(prefs);}chatIdRef.current=null;setChatId(null);setMessages([]);setChatList(ezikListChats(ezikProfileKey(p)));// DEFECT 14 (item 88): 'chat' unless THIS TAB was standing somewhere when it
 // reloaded. A new tab has no session record, so the first opening of the app is
 // the chat exactly as D85 wrote it; ezikResumeScreen() answers 'chat' for it.
-setScreen(ezikResumeScreen());// D85: a returning profile also lands on the chat
+// BATCH B, ITEM 1: the boot names the section it is restoring, so that section --
+// and only it -- can tell a reload apart from an ordinary walk-in.
+ezikResumeMarkEntered(ezikReadResume());setScreen(ezikResumeScreen());// D85: a returning profile also lands on the chat
 }else{setScreen('onboarding');}}catch{setScreen('onboarding');}},[]);// تحميل المصحف الكنسي مسبقاً بعد الإقلاع كي تظهر أول آية فوراً (يُتجاهَل الفشل بهدوء)
 useEffect(()=>{// S117 PERF. The prefetch stays; it no longer races the first paint. Measured cold against
 // live ezik.app, THIS effect issued /quran-uthmani.json (338KB transferred, 1.41MB parsed)
@@ -9459,7 +9487,14 @@ const khGoMark=i=>{const mk=khRec.m[i];if(!mk)return;setPicker(false);setOpenAt(
 //
 // THE WAY BACK IS ONE TAP AND IT IS ALREADY THERE: the reader's own «السور» in the top rail
 // calls onExit, which is the same route the hardware back button takes.
-const autoResumedRef=useRef(false);useEffect(()=>{if(autoResumedRef.current)return;autoResumedRef.current=true;const lp=readMushafLastPage();if(!lp)return;setOpenAt(lp);setSelected(lp.s);},[]);// خطأ ٤٦: `selected` (السورة المفتوحة) رُفعت إلى App لتُقشَر بزر الرجوع؛ تصل عبر props بلا تغيير سلوك
+const autoResumedRef=useRef(false);useEffect(()=>{if(autoResumedRef.current)return;autoResumedRef.current=true;// BATCH B, ITEM 1 -- A RELOAD LANDS ON THE INDEX, A WALK-IN STILL LANDS ON THE PAGE.
+// The reading page has no way to the shelf (two controls, «ضع العلامة» and «السور»,
+// and «السور» only reaches the index), so a reader returned to it by a RELOAD is two
+// presses from the shelf with nothing on the screen saying so. Entering المصحف from
+// the shelf is a choice and keeps item 87's promise untouched; being put back by a
+// reload is not, so that one case stops on the index -- which carries «رجوع» -- with
+// the resume row item 87 kept sitting at the top of it.
+if(ezikResumeTakeEntered('mushaf'))return;const lp=readMushafLastPage();if(!lp)return;setOpenAt(lp);setSelected(lp.s);},[]);// خطأ ٤٦: `selected` (السورة المفتوحة) رُفعت إلى App لتُقشَر بزر الرجوع؛ تصل عبر props بلا تغيير سلوك
 useEffect(()=>{let alive=true;loadQuran().then(()=>{if(!alive)return;const c={};for(const k in __quranData){const n=parseInt(k.split(':')[0],10);c[n]=(c[n]||0)+1;}setCounts(c);setReady(true);}).catch(()=>{});return()=>{alive=false;};},[]);// 14.3 — التخطيطُ لا يحبس الفهرس: السورُ تُرسَم فوراً بلا أرقام، ثمّ تُحقن أرقامُ
 // الصفحات وتُدسّ صفوفُ الأجزاء حين يصل. وإن لم يصل بقيت القائمةُ كما كانت.
 useEffect(()=>{let alive=true;loadLayout().then(()=>{if(alive)setNav(buildMushafNav());}).catch(()=>{});return()=>{alive=false;};},[]);// Session 51 -- MushafScreen never unmounts when a surah is left (only `selected` drops to

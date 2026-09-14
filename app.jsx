@@ -10244,6 +10244,40 @@ function ezikResumeScreen() {
   return 'home';   // a layer: whoever owns it opens it on its own first render
 }
 
+// ============================================================
+// BATCH B, ITEM 1 -- WHICH SECTION *THIS BOOT* RESTORED, AND IT IS SPENT ONCE
+// ============================================================
+// WHAT THIS EXISTS FOR, AND IT IS A TRAP THE ITEM-14 REPAIR OPENED ITSELF. That repair
+// made a reload come back to the section the reader was standing in. In المصحف that
+// means the READING PAGE, because item 87 re-opens the page the reader left -- and the
+// reading page carries exactly two controls, «ضع العلامة» and «السور», neither of them
+// a way to the shelf. MEASURED on the bench, both sizes: the reload lands on the very
+// page («النساء · صفحة ١٠٢», head for head), and the shelf then costs TWO presses --
+// «السور» to the index, «رجوع» to the shelf. Before the repair the reader was thrown to
+// the chat, which was wrong differently; a reader must not be given a screen he needs
+// two presses and a guess to leave.
+//
+// THE LIGHTER OF THE TWO REMEDIES, AND WHY THIS ONE. The alternative is to add an exit
+// to the reading page -- a control on a surface the owner deliberately left with two,
+// visible to every reader on every visit, to solve a case that only arises after a
+// reload. This one changes nothing a reader sees when he walks into المصحف from the
+// shelf: item 87 still opens him where he left off, byte for byte. It changes only
+// where a RELOAD lands him -- the index instead of the page -- and the index carries
+// «رجوع», so the shelf is one press away. His place is not lost either: the index draws
+// the resume row at its top, which is the row item 87 kept for exactly this.
+//
+// AND IT IS SPENT ONCE, BY THE SECTION IT NAMES. A bare "this boot was a resume" flag
+// would be consumed by whichever section mounted first and could then suppress the
+// mushaf's ordinary auto-open later in the same run. This holds the id, hands it to
+// that one section, and clears itself in the same breath.
+let EZIK_RESUME_ENTERED = '';
+function ezikResumeMarkEntered(id) { EZIK_RESUME_ENTERED = ezikResumeKnown(id) ? String(id) : ''; }
+function ezikResumeTakeEntered(id) {
+  if (!id || EZIK_RESUME_ENTERED !== id) return false;
+  EZIK_RESUME_ENTERED = '';
+  return true;
+}
+
 const EZIK_ART_LIST_ROUTE = '/api/articles-list';
 const EZIK_ART_ADMIN_ROUTE = '/api/articles-admin';
 const EZIK_ART_TIMEOUT_MS = 12000;
@@ -15408,6 +15442,9 @@ function App() {
         // DEFECT 14 (item 88): 'chat' unless THIS TAB was standing somewhere when it
         // reloaded. A new tab has no session record, so the first opening of the app is
         // the chat exactly as D85 wrote it; ezikResumeScreen() answers 'chat' for it.
+        // BATCH B, ITEM 1: the boot names the section it is restoring, so that section --
+        // and only it -- can tell a reload apart from an ordinary walk-in.
+        ezikResumeMarkEntered(ezikReadResume());
         setScreen(ezikResumeScreen());   // D85: a returning profile also lands on the chat
       } else {
         setScreen('onboarding');
@@ -28753,6 +28790,14 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
   useEffect(() => {
     if (autoResumedRef.current) return;
     autoResumedRef.current = true;
+    // BATCH B, ITEM 1 -- A RELOAD LANDS ON THE INDEX, A WALK-IN STILL LANDS ON THE PAGE.
+    // The reading page has no way to the shelf (two controls, «ضع العلامة» and «السور»,
+    // and «السور» only reaches the index), so a reader returned to it by a RELOAD is two
+    // presses from the shelf with nothing on the screen saying so. Entering المصحف from
+    // the shelf is a choice and keeps item 87's promise untouched; being put back by a
+    // reload is not, so that one case stops on the index -- which carries «رجوع» -- with
+    // the resume row item 87 kept sitting at the top of it.
+    if (ezikResumeTakeEntered('mushaf')) return;
     const lp = readMushafLastPage();
     if (!lp) return;
     setOpenAt(lp);
