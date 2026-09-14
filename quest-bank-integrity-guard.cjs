@@ -1189,7 +1189,22 @@ const SEALED = {
 //                    mirror below followed, and THIS digest is re-cut LAST. SW.JS IS OTHERWISE
 //                    UNTOUCHED and CACHE IS NOT BUMPED: this is a branch for the owner to preview,
 //                    not a ship, and sw.js says the merge round owns the bump.
-  'sw.js': '7b74a9890e2ad0839fe1a7d3d227dea6fbb55341895b87519a65d0c6355fb366',
+  //   2026-09-14   -- ITEM 87: THE DAY, FROM WAKING TO SLEEPING. INDEX.HTML DID NOT MOVE this
+//                    round -- the section is app.jsx and ONE new root file -- so the shell figure
+//                    and its mirror were already true. But that file JOINS CORE, which is the
+//                    difference from the three rounds above it: sunan-day.json (84759 bytes, 138
+//                    rows in eight phases) is precached beside arbaeen.json, so SW_CORE and
+//                    SW_CORE_FILES gained an entry and SW_PROSE gained a row, and CORE_BYTES is
+//                    NOT the bundle delta alone this time. app.js was rebuilt 1697965 -> 1711339
+//                    (+13374) by node tools/build-app.cjs, and CORE_BYTES was re-cut
+//                    2786296 -> 2884429 (+98133) by node tools/core-bytes.cjs --write, which is
+//                    that bundle delta plus the 84759 the new CORE entry weighs. The worker's own
+//                    byte table above the constant gained a term for it and the app.js mirror
+//                    below followed, and THIS digest is re-cut LAST, after every other sw.js edit
+//                    was final. SW.JS IS OTHERWISE UNTOUCHED -- no route, no store and no branch
+//                    of it moved -- and CACHE IS NOT BUMPED: install rewrites every CORE entry
+//                    into the same store, and sw.js says the merge round owns the bump.
+  'sw.js': '60ee485bb09aa4e2412c7e53265546f5ea114ce4e22a56066b2149829e361ff4',
 };
 
 // ---------------------------------------------------------------------------
@@ -1242,7 +1257,7 @@ const SW_REVALIDATED = ['/adhkar.json', '/worship-display.json', '/manifest.json
 const SW_CORE = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png',
   '/icon-maskable-512.png', '/icon-watermark.png', '/adhkar.json',
   '/adhkar-split-27.json', '/arbaeen.json', '/daily-tafsir.json',
-  '/arbaeen-footnotes.json',
+  '/arbaeen-footnotes.json', '/sunan-day.json',
   '/app.js', '/vendor/react.umd.js', '/vendor/react-dom.umd.js',
   '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2',
   '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2'];
@@ -1250,7 +1265,7 @@ const SW_CORE = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png',
 // CORE_BYTES constant that has fallen below it.
 const SW_CORE_FILES = ['index.html', 'manifest.json', 'icon-192.png', 'icon-512.png',
   'icon-maskable-512.png', 'icon-watermark.png', 'adhkar.json', 'adhkar-split-27.json',
-  'arbaeen.json', 'daily-tafsir.json', 'arbaeen-footnotes.json',
+  'arbaeen.json', 'daily-tafsir.json', 'arbaeen-footnotes.json', 'sunan-day.json',
   'app.js', 'vendor/react.umd.js', 'vendor/react-dom.umd.js',
   'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2',
   'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2'];
@@ -2314,7 +2329,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1697965, of: 'app.js' },
+      { n: 1711339, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
@@ -2328,6 +2343,9 @@ async function compare(goldenPath) {
       // ITEM 4. The forty's footnotes, precached beside the corpus they answer, stated in the
       // worker's byte table and re-derived here from the file it names.
       { n: 9322, of: 'arbaeen-footnotes.json' },
+      // ITEM 87. The day from waking to sleeping, the sixth corpus in CORE, stated in the
+      // worker's byte table and re-derived here from the file it names.
+      { n: 84759, of: 'sunan-day.json' },
       { n: 12893, of: 'icon-512.png' },
       { n: 5938, of: 'icon-maskable-512.png' },
       { n: 5053, of: 'icon-192.png' },
