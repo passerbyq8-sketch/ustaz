@@ -93,6 +93,7 @@ function ezLangRelabel() {
   try {
     EZH_SALAM = ezT("home.salam");
     EZH_HELLO = ezT("home.hello");
+    EZH_HELLO_NO_NAME = ezT("home.helloNoName");
     EZH_NAV_MENU = ezT("navigation.menu");
     EZH_MEMORIZE = ezT("module.memorize");
     EZH_ADHKAR = ezT("module.adhkar");
@@ -289,6 +290,7 @@ const EZ_I18N = {
     'errors.saveFailed': 'تعذّر حفظ الإعداد',
     'home.salam': '\u{0627}\u{0644}\u{0633}\u{0644}\u{0627}\u{0645} \u{0639}\u{0644}\u{064A}\u{0643}\u{0645}',
     'home.hello': '\u{0645}\u{0631}\u{062D}\u{0628}\u{0627}\u{064B} \u{064A}\u{0627}',
+    'home.helloNoName': '\u{0645}\u{0631}\u{062D}\u{0628}\u{0627}\u{064B} \u{0628}\u{0643}',
     'module.memorize': '\u{0627}\u{0644}\u{0645}\u{062D}\u{0641}\u{0651}\u{0638}',
     'module.adhkar': '\u{0627}\u{0644}\u{0623}\u{0630}\u{0643}\u{0627}\u{0631}',
     'module.mushaf': '\u{0627}\u{0644}\u{0645}\u{0635}\u{062D}\u{0641}',
@@ -977,6 +979,7 @@ const EZ_I18N = {
     'errors.saveFailed': 'Could not save the setting',
     'home.salam': 'Peace be upon you',
     'home.hello': 'Welcome,',
+    'home.helloNoName': 'Welcome',
     'module.memorize': 'Memoriser',
     'module.adhkar': 'Adhkar',
     'module.mushaf': 'Mushaf',
@@ -6843,6 +6846,11 @@ const getHomeGreeting = () => {
 // EZH_QUICK with the duplicated quick-access row it titled -- it has no other reader.)
 let EZH_SALAM = ezT("home.salam");   // "peace be upon you"
 let EZH_HELLO = ezT("home.hello");                            // "welcome, O"
+// DEFECT 13 (item 88): the whole greeting, for a reader with no stored name. EZH_HELLO ends
+// on a VOCATIVE PARTICLE and is only ever half a sentence: it needs a name after it, and a
+// guest has none. Measured on the shelf: the line read «مرحباً يا» and the tail after it was
+// empty -- the app addressing somebody and then not saying who. This one stands alone.
+let EZH_HELLO_NO_NAME = ezT("home.helloNoName");              // "welcome" -- no vocative
 // S118: EZH_ACCOUNT, EZH_NAV_HOME, EZH_NAV_SET and EZH_BRAND stood here. The emptied top bar
 // was the only thing in the file that read any of them, and a reference sweep run after the
 // bar was rewritten found no second reader; they are removed rather than left behind as four
@@ -7230,7 +7238,10 @@ function EzistMasthead({ name, g, hijri, onOpenAdhkar }) {
     <section className="ezist-masthead">
       <div className="ezist-hello">
         <div style={s.ezistSalam}>{EZH_SALAM}</div>
-        <h1 style={s.ezistName}>{EZH_HELLO} {name}</h1>
+        {/* DEFECT 13 (item 88): a vocative is never drawn bare. With a name the greeting is
+            what it always was, character for character; without one it is the whole-sentence
+            key beside it rather than a half sentence with a space where a person should be. */}
+        <h1 style={s.ezistName}>{name ? <>{EZH_HELLO} {name}</> : EZH_HELLO_NO_NAME}</h1>
         {/* ITEM 109: the date, on the screen that already speaks about the day — MEASURED
             first: this app displayed no date at all before this line, so there was no existing
             place to join. It is a prop, not a read: the owner below reads the store, exactly as
