@@ -314,14 +314,20 @@ ok('E: the profile entry was LOCATED in the pinned row', PROFILE_BTN.length > 80
 // presses onMenuShare. Two ways to share was the defect the order removed; a count of 2 would
 // go on passing against a footer that had grown a second share control and lost a row.
 //
+// ITEM 87 MOVES IT ONCE MORE, AND STILL NOT THE RULE: the day from waking to sleeping is a
+// SEVENTH control in this footer. It is a menu row of exactly the kind the four above it are --
+// it opens a layer, it adds no `screen` key and it reaches no network -- so what it changes here
+// is an integer and nothing else. The invariant under it is what this case exists for and it did
+// not move: a seventh row must not be a second way to share, and it is not.
+//
 // ITEM 92-ج MOVED IT AGAIN, FOR THE SAME REASON AND BY THE SAME RULE: the owner's inbox is a
 // SIXTH control in this footer. It is the first row here that is CONDITIONAL -- it is built only
 // when the server has answered that this session is the owner's -- so the number below counts
 // what the SOURCE holds and not what every reader is shown, which is what this regular expression
 // has always measured. The invariant under it did not move and is what this case exists for: a
 // sixth row must not be a second way to share, and it is not.
-ok('E: the footer holds the account entry, the four menu rows and the owner inbox -- six controls',
-  (PINNED.match(/<button/g) || []).length === 6,
+ok('E: the footer holds the account entry, the five menu rows and the owner inbox -- seven controls',
+  (PINNED.match(/<button/g) || []).length === 7,
   'found ' + (PINNED.match(/<button/g) || []).length);
 ok('E: ...and EXACTLY ONE of them presses onMenuShare',
   (PINNED.match(/onClick=\{onMenuShare\}/g) || []).length === 1,

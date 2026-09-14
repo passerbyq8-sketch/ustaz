@@ -783,6 +783,20 @@ const EZ_I18N = {
     'menu.aboutAria': 'عن عزك — تعريف بالتطبيق',
     'menu.sources': 'المصادر',
     'menu.sourcesAria': 'المصادر — الكتب والمراجع',
+    // ITEM 87 -- the day's sunnahs, from waking to sleeping. A LAYER reached from this menu,
+    // like the two rows above it, and the only text it needs here is its furniture: the name,
+    // the two words on the control that opens a matn, the heading over that matn, the list's
+    // accessible name and the one sentence a dead network is said out loud in. Every WORD OF
+    // CONTENT -- the phase names, the row titles, the plain lines and the matn itself -- comes
+    // out of sunan-day.json and is not a dictionary key, exactly as the asmaa records are not.
+    'menu.sunan': '\u0645\u0646 \u0627\u0644\u0627\u0633\u062A\u064A\u0642\u0627\u0638 \u0625\u0644\u0649 \u0627\u0644\u0646\u0648\u0645',
+    'menu.sunanAria': '\u0645\u0646 \u0627\u0644\u0627\u0633\u062A\u064A\u0642\u0627\u0638 \u0625\u0644\u0649 \u0627\u0644\u0646\u0648\u0645 \u2014 \u0633\u0646\u0646 \u0627\u0644\u064A\u0648\u0645 \u0645\u0646 \u0627\u0644\u0635\u0628\u0627\u062D \u0625\u0644\u0649 \u0627\u0644\u0645\u0646\u0627\u0645',
+    'sunan.title': '\u0645\u0646 \u0627\u0644\u0627\u0633\u062A\u064A\u0642\u0627\u0638 \u0625\u0644\u0649 \u0627\u0644\u0646\u0648\u0645',
+    'sunan.listAria': '\u0645\u0631\u0627\u062D\u0644 \u0627\u0644\u064A\u0648\u0645',
+    'sunan.matnLabel': '\u0627\u0644\u062D\u062F\u064A\u062B',
+    'sunan.showMatn': '\u0625\u0638\u0647\u0627\u0631 \u0646\u0635 \u0627\u0644\u062D\u062F\u064A\u062B',
+    'sunan.hideMatn': '\u0625\u062E\u0641\u0627\u0621 \u0646\u0635 \u0627\u0644\u062D\u062F\u064A\u062B',
+    'sunan.error': '\u062A\u0639\u0630\u0631 \u062C\u0644\u0628 \u0627\u0644\u0645\u062A\u0646. \u062A\u062D\u0642\u0642 \u0645\u0646 \u0627\u0644\u0627\u062A\u0635\u0627\u0644 \u062B\u0645 \u0623\u0639\u062F \u0627\u0644\u0645\u062D\u0627\u0648\u0644\u0629.',
     // THE SECTION HEADINGS OF المصادر, and the only part of that panel that is a dictionary
     // key at all: the names under them are proper names that read the same in either language.
     'sources.quran': 'القرآن والمصحف',
@@ -1433,6 +1447,16 @@ const EZ_I18N = {
     'menu.aboutAria': 'About Ezik — what this app is',
     'menu.sources': 'Sources',
     'menu.sourcesAria': 'Sources — the books and references',
+    // ITEM 87 -- the same eight keys, and the same rule about what is NOT here: the content
+    // of this section is Arabic in one file and is never translated into a second copy.
+    'menu.sunan': 'From waking to sleeping',
+    'menu.sunanAria': 'From waking to sleeping \u2014 the sunnahs of the day',
+    'sunan.title': 'From waking to sleeping',
+    'sunan.listAria': 'The phases of the day',
+    'sunan.matnLabel': 'The hadith',
+    'sunan.showMatn': 'Show the hadith text',
+    'sunan.hideMatn': 'Hide the hadith text',
+    'sunan.error': 'The text could not be fetched. Check the connection and try again.',
     // THE SECTION HEADINGS OF المصادر, and the only part of that panel that is a dictionary
     // key at all: the names under them are proper names that read the same in either language.
     'sources.quran': 'Qur’an and the mushaf',
@@ -2553,6 +2577,25 @@ const loadAsmaaRules = () => {
       .catch((e) => { __asmaaRulesPromise = null; throw e; });
   }
   return __asmaaRulesPromise;
+};
+// ITEM 87. The day, from waking to sleeping: one file, fetched once, by the same memoised
+// loader the two asmaa sheets above are fetched by. It is precached in the worker's CORE
+// beside arbaeen.json for the reason arbaeen.json is there -- this section has no second
+// supply, so a reader who has visited once and opens it with no network would otherwise meet
+// an empty list rather than the matn.
+const SUNAN_DAY_URL = '/sunan-day.json';
+let __sunanDay = null;
+let __sunanDayPromise = null;
+const loadSunanDay = () => {
+  if (__sunanDay) return Promise.resolve(__sunanDay);
+  if (!__sunanDayPromise) {
+    __sunanDayPromise = Promise.resolve()
+      .then(() => fetch(SUNAN_DAY_URL))
+      .then((r) => { if (!r.ok) throw new Error('sunan day fetch ' + r.status); return r.json(); })
+      .then((raw) => { __sunanDay = (raw && typeof raw === 'object') ? raw : null; return __sunanDay; })
+      .catch((e) => { __sunanDayPromise = null; throw e; });
+  }
+  return __sunanDayPromise;
 };
 
 // ── THE ATTRIBUTION RULE, AND THE CLIENT AND THE GATE STATE THE SAME SENTENCE ───────────────
@@ -11155,6 +11198,163 @@ function EzikAsmaaSection({ onHome }) {
 // ITEM 26 -- END OF أسماء الله الحسنى
 
 // ============================================================
+// ITEM 87 -- THE DAY, FROM WAKING TO SLEEPING
+// ============================================================
+// WHAT THIS SECTION IS. One hundred and thirty-eight rows of the day, in the eight phases the
+// owner fixed -- waking, purification, prayer, going out, food, the gathering, coming home,
+// sleep -- and every word of them comes out of sunan-day.json. What this file supplies is the
+// FURNITURE and nothing else: a heading, a control, and the arrangement.
+//
+// WHY IT IS A LAYER AND NOT A SCREEN, in the words the asmaa section above already uses for
+// itself: `screen === '...'` is a CROSS-FILE inventory -- index.html's ladder,
+// theme-coverage-guard's table and EZIK-THEME-33-HANDOFF.md all have to agree on the set and
+// on its count -- so this item adds no key to it. It registers ONE history entry through
+// useEzikBackLayer, beside the menu's other panels and in the same fixed order.
+//
+// AND THE TWO VOICES ARE NEVER IN ONE FRAME. This is the whole discipline of the card. The
+// plain line is OURS: one short sentence in modern Arabic, no harakat, saying what the reader
+// DOES, carrying no citation, no quotation marks and no ascription to anybody. The matn is
+// the narration, with its harakat, and it is drawn in s.asmaaQuote -- the SAME bordered,
+// tinted container the asmaa card already marks a quotation from a book in -- at a different
+// size and line height from the plain line above it, in a box the plain line never enters.
+// A reader cannot mistake our sentence for the narration because the two never share a frame.
+// The citation sits on the card whether the matn is open or closed.
+
+const sunanNonEmpty = (v) => (typeof v === 'string' && v.trim() !== '');
+// THE ATTRIBUTION RULE, applied once on the way in, exactly as asmaaCardShowable applies it:
+// a row that cannot name its source, or has lost its plain line, is NOT DRAWN. No view below
+// can put an uncited matn or a bare hadith with no plain line in front of a reader.
+function sunanRowShowable(r) {
+  if (!r || typeof r !== 'object') return false;
+  return sunanNonEmpty(r.id) && sunanNonEmpty(r.title) && sunanNonEmpty(r.plain)
+    && sunanNonEmpty(r.text) && sunanNonEmpty(r.citation);
+}
+// The phases the section will draw, in the file's own order. Nothing sorts them, nothing
+// renumbers them and nothing appends one: a phase whose rows are all refused is dropped
+// rather than drawn empty.
+function sunanPhases(raw) {
+  const src = (raw && Array.isArray(raw.phases)) ? raw.phases : [];
+  const out = [];
+  for (const p of src) {
+    if (!p || typeof p !== 'object' || !sunanNonEmpty(p.id) || !sunanNonEmpty(p.title)) continue;
+    const rows = (Array.isArray(p.rows) ? p.rows : []).filter(sunanRowShowable);
+    if (rows.length) out.push({ id: p.id, title: p.title, rows: rows });
+  }
+  return out;
+}
+
+// ONE ROW, THREE LAYERS: the short title, our plain line, and the matn behind a control that
+// is CLOSED until the reader presses it. The button is a real button, so Enter and Space
+// already work and the focus ring is the application's own.
+function EzikSunanCard({ row }) {
+  const [matnOpen, setMatnOpen] = useState(false);
+  return (
+    <article style={s.sunanCard}>
+      <h3 style={s.sunanCardTitle}>{row.title}</h3>
+      {/* OUR SENTENCE. No frame, no tint, no border -- the treatment the matn below does not
+          get, and the reason it does not get one. */}
+      <p style={s.sunanPlain}>{row.plain}</p>
+      <div style={s.sunanMatnRow}>
+        <button type="button" className="ezhome-focus" style={s.sunanMatnBtn}
+          aria-expanded={matnOpen ? 'true' : 'false'}
+          onClick={() => setMatnOpen((wasOpen) => !wasOpen)}>
+          {matnOpen ? ezT('sunan.hideMatn') : ezT('sunan.showMatn')}
+        </button>
+        {/* THE CITATION IS ON THE CARD AT ALL TIMES, beside the control that owns the matn it
+            belongs to, so a reader who never opens the matn still sees where the row is from. */}
+        <span style={s.sunanCite}>{row.citation}</span>
+      </div>
+      {matnOpen ? (
+        <div style={s.sunanMatnWrap}>
+          <div style={s.asmaaFieldLabel}>{ezT('sunan.matnLabel')}</div>
+          <p style={s.asmaaQuote}>{row.text}</p>
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
+// ONE PHASE, COLLAPSIBLE. The section opens on phase one and on nothing else, so the reader
+// meets eight headings and one open list rather than a hundred and thirty-eight cards.
+function EzikSunanPhase({ phase, open, onToggle }) {
+  return (
+    <section style={s.sunanPhase}>
+      <button type="button" className="ezhome-focus" style={s.sunanPhaseBtn}
+        aria-expanded={open ? 'true' : 'false'} onClick={onToggle}>
+        <span style={s.sunanPhaseName}>{phase.title}</span>
+        <span style={s.sunanPhaseCount}>{asmaaNum(phase.rows.length)}</span>
+        <span style={s.sunanPhaseArrow} aria-hidden="true">{open ? '\u2303' : '\u2304'}</span>
+      </button>
+      {open ? (
+        <div style={s.sunanCards}>
+          {phase.rows.map((row) => <EzikSunanCard key={row.id} row={row} />)}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+// THE SECTION. One component owns the loading state, the failure state and the list, for the
+// reason EzikAsmaaSection gives for owning three views: a second component is a second place
+// for those states and the back path to drift apart.
+function EzikSunanSection({ onBack }) {
+  const [state, setState] = useState(EZIK_ART_LOADING);
+  const [phases, setPhases] = useState([]);
+  const [note, setNote] = useState('');
+  const [openId, setOpenId] = useState(null);
+  const aliveRef = useRef(true);
+  useEffect(() => () => { aliveRef.current = false; }, []);
+
+  // THE FETCH HAPPENS WHEN THE SECTION MOUNTS, which is when the reader opened it. There is
+  // no probe on the home screen, no warm on boot and no prefetch anywhere in this file.
+  const load = () => {
+    setState(EZIK_ART_LOADING);
+    loadSunanDay().then((raw) => {
+      if (!aliveRef.current) return;
+      const kept = sunanPhases(raw);
+      setPhases(kept);
+      setNote(raw && sunanNonEmpty(raw.note) ? raw.note : '');
+      // ONLY THE FIRST PHASE IS OPEN ON FIRST ENTRY.
+      setOpenId(kept.length ? kept[0].id : null);
+      setState(kept.length > 0 ? EZIK_ART_DONE : EZIK_ART_FAILED);
+    }).catch(() => { if (aliveRef.current) setState(EZIK_ART_FAILED); });
+  };
+  useEffect(load, []);
+
+  return (
+    <EzShell title={ezT('sunan.title')} onBack={onBack} backLabel={ezT('common.back')}>
+      {state === EZIK_ART_LOADING ? (
+        <div role="status" aria-live="polite" style={s.artNote}>{ezT('common.loading')}</div>
+      ) : null}
+
+      {/* A DEAD NETWORK IS SAID OUT LOUD. The section ships with its rows, so an empty list can
+          only mean the file did not arrive, and drawing nothing would be the application lying
+          about the world on its own behalf. */}
+      {state === EZIK_ART_FAILED ? (
+        <div role="alert" style={s.artError}>
+          <span>{ezT('sunan.error')}</span>
+          <button type="button" className="ezhome-focus" style={s.artRetry} onClick={load}>{ezT('common.retry')}</button>
+        </div>
+      ) : null}
+
+      {state === EZIK_ART_DONE ? (
+        <section style={s.sunanList} aria-label={ezT('sunan.listAria')}>
+          {/* The file's own sentence about where every row comes from, printed once and not
+              assembled here: a credit this file composed would be a second answer to a
+              question the file already answers. */}
+          {note ? <p style={s.sunanNote}>{note}</p> : null}
+          {phases.map((p) => (
+            <EzikSunanPhase key={p.id} phase={p} open={openId === p.id}
+              onToggle={() => setOpenId(openId === p.id ? null : p.id)} />
+          ))}
+        </section>
+      ) : null}
+    </EzShell>
+  );
+}
+// ITEM 87 -- END OF THE DAY, FROM WAKING TO SLEEPING
+
+// ============================================================
 // OFFICIAL FATWA SEARCH -- READ ONLY
 // ============================================================
 // The browser speaks only to Ezik's own /api/v1 contract. vercel.json rewrites that path to
@@ -14395,6 +14595,9 @@ function App() {
   // the row exists for the owner and for nobody else. It is never read from a profile, a flag
   // or a stored role: this file does not know who the owner is and must not start guessing.
   const [inboxOpen, setInboxOpen] = useState(false);
+  // ITEM 87: the day, from waking to sleeping. A FIFTH panel of exactly the same kind as the
+  // four above -- one boolean, one history entry, no `screen` key -- opened from the same menu.
+  const [sunanOpen, setSunanOpen] = useState(false);
   const [inboxUnread, setInboxUnread] = useState(null);
   // DECISION ج١٣'s other half -- the sender's dot. A count of answers this reader has been
   // sent and has not yet opened. It is zero for everybody with no account, because `mine`
@@ -15188,6 +15391,9 @@ function App() {
   // ITEM 92-ج: the fourth, on the identical contract and in the same fixed order -- a hook
   // order that changes with state is a hook order that breaks.
   useEzikBackLayer(inboxOpen, () => setInboxOpen(false));
+  // ITEM 87: the fifth, on the identical contract and in the same fixed order -- a hook order
+  // that changes with state is a hook order that breaks.
+  useEzikBackLayer(sunanOpen, () => setSunanOpen(false));
   // ITEM 92: WHAT THE SHARE BUTTON DOES, decided by the injected bridge and by nothing else.
   // In a shell it hands the smart link straight to the platform sheet and returns -- no chooser
   // is opened, so no badge and no store name can reach the page (Apple guideline 2.3.10). In a
@@ -17936,6 +18142,19 @@ function App() {
               </svg>
               <span>{ezT('menu.sources') || '\u0627\u0644\u0645\u0635\u0627\u062f\u0631'}</span>
             </button>
+            {/* ITEM 87 -- from waking to sleeping. The same row template the two above use, and the same
+                contract: it opens a LAYER over whatever screen the menu was opened from, it adds
+                no `screen` key, and it sends nothing at all. */}
+            <button onClick={() => closeDrawerWith(() => setSunanOpen(true))} style={s.drawerItem} className="ezik-focus" aria-label={ezT('menu.sunanAria')}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="18" x2="21" y2="18" />
+                <path d="M7 18a5 5 0 0 1 10 0" />
+                <line x1="12" y1="4" x2="12" y2="6.5" />
+                <line x1="5" y1="7.5" x2="6.8" y2="9.3" />
+                <line x1="19" y1="7.5" x2="17.2" y2="9.3" />
+              </svg>
+              <span>{ezT('menu.sunan') || '\u0645\u0646 \u0627\u0644\u0627\u0633\u062A\u064A\u0642\u0627\u0638 \u0625\u0644\u0649 \u0627\u0644\u0646\u0648\u0645'}</span>
+            </button>
             {/* دعوة صديق -- THE ROW THE SHARE ICON BECAME. It presses onMenuShare DIRECTLY and
                 not through closeDrawerWith, and that is the one place this row departs from the
                 template above it, on purpose: the chooser is a SIBLING of this panel and is built
@@ -18043,6 +18262,7 @@ function App() {
   // entry to spend. The device button is unaffected: it still resolves through the hook above.
   if (aboutOpen) return <EzikAboutSheet onBack={() => { if (ezikHistBack()) return; setAboutOpen(false); }} />;
   if (sourcesOpen) return <EzikSourcesSheet onBack={() => { if (ezikHistBack()) return; setSourcesOpen(false); }} />;
+  if (sunanOpen) return <EzikSunanSection onBack={() => { if (ezikHistBack()) return; setSunanOpen(false); }} />;
   if (feedbackOpen) return (
     <EzikFeedbackSheet
       onBack={() => { if (ezikHistBack()) return; setFeedbackOpen(false); }}
@@ -30054,6 +30274,25 @@ const s = {
   asmaaCredit: { fontSize: 13, lineHeight: 1.9, color: 'var(--a3-muted)', paddingTop: 8, borderTop: '1px solid var(--a3-line)', overflowWrap: 'anywhere' },
   asmaaRule: { display: 'flex', flexDirection: 'column', gap: 8 },
   asmaaRuleTitle: { fontSize: 17, fontWeight: 700, lineHeight: 1.9, color: 'var(--a3-ink)' },
+  // ITEM 87 -- the day, from waking to sleeping. Every colour is one of the four the asmaa
+  // block above already draws from, so the section inherits the identity rather than declaring
+  // one, and the matn itself is drawn in s.asmaaQuote: the plain line and the narration must
+  // not share a frame, so exactly one of the two has one.
+  sunanList: { display: 'flex', flexDirection: 'column', gap: 10 },
+  sunanNote: { fontSize: 13, lineHeight: 1.9, color: 'var(--a3-muted)', margin: 0, overflowWrap: 'anywhere' },
+  sunanPhase: { display: 'flex', flexDirection: 'column', gap: 8 },
+  sunanPhaseBtn: { display: 'flex', alignItems: 'center', gap: 8, width: '100%', minHeight: 44, padding: '10px 12px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontFamily: 'inherit', textAlign: 'start', cursor: 'pointer' },
+  sunanPhaseName: { flex: 1, minWidth: 0, fontSize: 16, fontWeight: 700, lineHeight: 1.8, overflowWrap: 'anywhere' },
+  sunanPhaseCount: { fontSize: 12.5, color: 'var(--a3-muted)' },
+  sunanPhaseArrow: { fontSize: 13, color: 'var(--a3-muted)' },
+  sunanCards: { display: 'flex', flexDirection: 'column', gap: 8 },
+  sunanCard: { display: 'flex', flexDirection: 'column', gap: 6, padding: '12px 14px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)' },
+  sunanCardTitle: { fontSize: 15, fontWeight: 700, lineHeight: 1.8, color: 'var(--a3-ink)', margin: 0, overflowWrap: 'anywhere' },
+  sunanPlain: { fontSize: 15.5, lineHeight: 2.1, color: 'var(--a3-ink)', margin: 0, overflowWrap: 'anywhere' },
+  sunanMatnRow: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  sunanMatnBtn: { minHeight: 44, padding: '8px 12px', borderRadius: 10, border: '1px solid var(--a3-line)', background: 'transparent', color: 'var(--a3-ink)', fontSize: 13.5, fontFamily: 'inherit', cursor: 'pointer' },
+  sunanCite: { fontSize: 13, lineHeight: 1.9, color: 'var(--a3-muted)', overflowWrap: 'anywhere' },
+  sunanMatnWrap: { display: 'flex', flexDirection: 'column', gap: 6 },
   artInput: { width: '100%', minHeight: 44, padding: '10px 14px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontSize: 15, fontFamily: 'inherit', boxSizing: 'border-box' },
   artTextarea: { width: '100%', minHeight: 220, padding: '12px 14px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontSize: 15, lineHeight: 2, fontFamily: 'inherit', boxSizing: 'border-box', resize: 'vertical' },
   artChoiceRow: { display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' },
