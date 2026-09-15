@@ -2129,10 +2129,19 @@ if (tLifted) {
     /if \(compassOpen\) return <CompassSheet onClose=\{ezikGoBack\} \/>;/.test(SRC)
     && /useEzikBackLayer\(compassOpen, \(\) => setCompassOpen\(false\)\);/.test(SRC)
     && SRC.indexOf("screen === 'compass'") === -1 && SRC.indexOf("setScreen('compass')") === -1);
-  ok('66-b: ...reached in ONE press, from the head of the home screen',
-    /<EzistTopNav onOpenMenu=\{v\.onOpenMenu\} onOpenCompass=\{v\.onOpenCompass\} onOpenTafsir=\{v\.onOpenTafsir\} \/>/.test(SRC)
-    && /onOpenCompass: \(\) => setCompassOpen\(true\),/.test(SRC)
-    && /onClick=\{onOpenCompass\}[\s\S]{0,120}aria-label=\{EZH_NAV_COMPASS\}/.test(SRC));
+  // ITEM 66 (15 September 2026) -- THE ONE PRESS MOVED, SO THE CLAIM MOVED WITH IT. This used
+  // to read the home's top bar: the compass mark was its last child and the press started
+  // there. The owner ruled the compass ONE entry, in the head of the prayer sheet, and lifted
+  // the bar's mark away -- so this is not relaxed and not deleted, it is re-pointed at where
+  // the press now lives, and a second clause below proves the bar no longer offers one.
+  ok('66-b: ...reached in ONE press, from the head of the prayer sheet',
+    /lead=\{onOpenCompass \? \(/.test(SHEET_SRC)
+    && /onClick=\{onOpenCompass\}[\s\S]{0,120}aria-label=\{EZH_NAV_COMPASS\}/.test(SHEET_SRC)
+    && /<PrayerSheet onClose=\{ezikGoBack\} onOpenCompass=\{\(\) => setCompassOpen\(true\)\} \/>/.test(SRC));
+  ok('66-b: ...and the home top bar offers no second one',
+    /<EzistTopNav onOpenMenu=\{v\.onOpenMenu\} onOpenTafsir=\{v\.onOpenTafsir\} \/>/.test(SRC)
+    && /function EzistTopNav\(\{ onOpenMenu, onOpenTafsir \}\)/.test(SRC)
+    && SRC.indexOf('onOpenCompass: () => setCompassOpen(true),') === -1);
   ok('66-b: ...and the full-screen dial is one style key, not a second element',
     /style=\{full \? s\.qiblaDialFull : null\}/.test(SRC)
     && /qiblaDialFull: \{ width: '100%'/.test(SRC));

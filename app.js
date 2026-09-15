@@ -2207,10 +2207,12 @@ const EZH_ICON_GO=/*#__PURE__*/React.createElement("svg",{width:"18",height:"18"
 // ITEM 108-أ: the qibla tile's mark. Same 24x24 box, same 1.8 stroke, same round caps as the
 // five marks beside it — a compass rose reduced to a circle, a needle and its pivot. No new
 // artwork file, no image, no data URI.
-const EZH_PRAYER='الصلاة والقبلة';const EZH_ICON_PRAYER=/*#__PURE__*/React.createElement("svg",{width:"24",height:"24",viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"1.8",strokeLinecap:"round",strokeLinejoin:"round"},/*#__PURE__*/React.createElement("circle",{cx:"12",cy:"12",r:"9"}),/*#__PURE__*/React.createElement("path",{d:"M15.5 8.5 L10.5 10.5 L8.5 15.5 L13.5 13.5 Z"}));const EZH_ICON_MENU=/*#__PURE__*/React.createElement("svg",{width:"24",height:"24",viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"1.8",strokeLinecap:"round",strokeLinejoin:"round"},/*#__PURE__*/React.createElement("line",{x1:"3",y1:"6",x2:"21",y2:"6"}),/*#__PURE__*/React.createElement("line",{x1:"3",y1:"12",x2:"21",y2:"12"}),/*#__PURE__*/React.createElement("line",{x1:"3",y1:"18",x2:"21",y2:"18"}));// ITEM 66 (ب): the one name the bar's compass control answers to -- its accessible name and,
-// below, the title of the screen it opens, so the mark the reader presses and the heading he
-// lands on can never say two different things. A plain Arabic literal, written the way every
-// string of the QIBLA_* family it belongs to is written.
+const EZH_PRAYER='الصلاة والقبلة';const EZH_ICON_PRAYER=/*#__PURE__*/React.createElement("svg",{width:"24",height:"24",viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"1.8",strokeLinecap:"round",strokeLinejoin:"round"},/*#__PURE__*/React.createElement("circle",{cx:"12",cy:"12",r:"9"}),/*#__PURE__*/React.createElement("path",{d:"M15.5 8.5 L10.5 10.5 L8.5 15.5 L13.5 13.5 Z"}));const EZH_ICON_MENU=/*#__PURE__*/React.createElement("svg",{width:"24",height:"24",viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"1.8",strokeLinecap:"round",strokeLinejoin:"round"},/*#__PURE__*/React.createElement("line",{x1:"3",y1:"6",x2:"21",y2:"6"}),/*#__PURE__*/React.createElement("line",{x1:"3",y1:"12",x2:"21",y2:"12"}),/*#__PURE__*/React.createElement("line",{x1:"3",y1:"18",x2:"21",y2:"18"}));// ITEM 66 (15 September 2026): the one name the compass mark answers to. The mark now sits in
+// the head of the «الصلاة والقبلة» sheet and no longer in the home's top bar, but the name is
+// unchanged and does the same work: it is that control's accessible name and, below, the title
+// of the screen it opens, so the mark the reader presses and the heading he lands on can never
+// say two different things. A plain Arabic literal, written the way every string of the
+// QIBLA_* family it belongs to is written.
 const EZH_NAV_COMPASS='\u0627\u0644\u0628\u0648\u0635\u0644\u0629';// ITEM 20 / SHELF §3 (8 September) -- WHO SEES «ركن النساء», IN ONE FUNCTION.
 //
 // THIS REVERSES D-10 AND REPLACES IT. D-10's rule was that the section is visible to everyone
@@ -2369,31 +2371,20 @@ let EZIST_SUB_FATWA=ezT("module.fatwa.sub");let EZIST_SUB_LESSONS=ezT("module.le
 // and what the tab ring visits would run against what the eye reads. The composition block
 // states that no `order` property is used anywhere in it and that tab order follows what is on
 // screen; moving the element is what keeps that true.
-// ITEM 66 (ب) -- THE COMPASS MARK, AND WHY IT IS THE LAST CHILD OF THIS ROW.
+// ITEM 66 (15 September 2026) -- AND THE COMPASS MARK IS GONE FROM THIS ROW.
 //
-// The owner ruled it «فوق على اليسار»: at the top, on the visual LEFT, as a mark that says
-// compass without being read. MEASURED, not assumed: this document lays out RTL because the
-// stylesheet declares direction:rtl on body, and a CSS declaration outranks the dir ATTRIBUTE
-// the boot script writes -- which is the same measurement the paragraph above rests on when it
-// says the FIRST child of this row sits on the RIGHT. The visual left is therefore this row's
-// TRAILING edge, and the trailing edge is its LAST child.
+// A compass mark was ruled into this bar as its last child -- the RTL trailing edge, the visual
+// left -- and it was the bar's third member. On 15 September 2026 the owner ruled the compass
+// ONE entry instead: a single mark in the head of the «الصلاة والقبلة» sheet, beside its back
+// control. So the mark, its handler and its prop come out of here entirely, and the row is the
+// two members it was before: the menu button first, and the verse taking the width it leaves.
 //
-// AND IT IS THE DOM ORDER, NOT `order` AND NOT `row-reverse`, for the identical reason the menu
-// button was MOVED rather than re-ordered: either property would paint the mark on the left
-// while leaving it before the verse in the tree, so what a screen reader announces and what the
-// tab ring visits would run against what the eye reads. The composition block promises no
-// `order` property anywhere in it; adding the element in its place is what keeps that true.
-//
-// NOTHING EXISTING MOVED. The menu button is still the first child, still on the right, still
-// s.ezistNavBtn at its own 44x44; the verse panel is still flex:1 1 auto with min-width:0, so
-// it takes the width the two controls leave and WRAPS rather than being cut -- which is what
-// that rule was written to do when there was one control. What changed is that there are two.
-//
-// AND THE MARK IS ONE THIS FILE ALREADY DRAWS. EZH_ICON_PRAYER is described where it is
-// declared as a compass rose reduced to a circle, a needle and its pivot, in the same 24x24 box
-// at the same 1.8 stroke with the same round caps as its neighbours. No icon library, no new
-// dependency, no new artwork file, no image and no data URI -- and one mark for one meaning.
-function EzistTopNav({onOpenMenu,onOpenCompass,onOpenTafsir}){return/*#__PURE__*/React.createElement("div",{className:"ezist-nav"},/*#__PURE__*/React.createElement("div",{className:"ezist-nav-inner"},/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus",onClick:onOpenMenu,style:s.ezistNavBtn,"aria-label":EZH_NAV_MENU},EZH_ICON_MENU),/*#__PURE__*/React.createElement(EzistQuranPanel,{onOpenTafsir:onOpenTafsir}),/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus",onClick:onOpenCompass,style:s.ezistNavBtn,"aria-label":EZH_NAV_COMPASS},EZH_ICON_PRAYER)));}// THE MASTHEAD. The arch is the approved signature radius and nothing else; the tulip is three
+// NOTHING SHARED WAS DELETED WITH IT. EZH_ICON_PRAYER is still drawn by the prayer module tile
+// and by the sheet's own mark, and EZH_NAV_COMPASS is still that mark's accessible name and the
+// title of the screen it opens -- so both constants keep readers and neither is removed. What
+// had no other reader went: this row's button, `onOpenCompass` on this component, and the
+// handler key the home's view object carried for it alone.
+function EzistTopNav({onOpenMenu,onOpenTafsir}){return/*#__PURE__*/React.createElement("div",{className:"ezist-nav"},/*#__PURE__*/React.createElement("div",{className:"ezist-nav-inner"},/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus",onClick:onOpenMenu,style:s.ezistNavBtn,"aria-label":EZH_NAV_MENU},EZH_ICON_MENU),/*#__PURE__*/React.createElement(EzistQuranPanel,{onOpenTafsir:onOpenTafsir})));}// THE MASTHEAD. The arch is the approved signature radius and nothing else; the tulip is three
 // bounded boxes inside a 34x40 span inside a clipped section, so it cannot become a page motif.
 // The greeting and the daily line are the ones the app already picked -- getHomeGreeting() ran
 // once in the owner, and this draws its text. The two adhkar windows stay buttons to the
@@ -2492,7 +2483,7 @@ function ezHomeDuoCards(v){return[{id:'wird',title:/*#__PURE__*/React.createElem
 {id:'calc',title:/*#__PURE__*/React.createElement("span",{style:s.ezistCardTitle},ezT('calc.card.title')),onOpen:()=>v.onOpenCalc(true)}];}// One descriptor per card, one element per descriptor, and the grid's columns read off the array
 // rather than off a number written into a style object.
 function EzikHomeCardRow({cards}){const list=Array.isArray(cards)?cards:[];if(list.length===0)return null;return/*#__PURE__*/React.createElement("div",{style:{...s.ezHomeCardRow,gridTemplateColumns:'repeat('+list.length+', minmax(0, 1fr))'}},list.map(c=>/*#__PURE__*/React.createElement("div",{key:c.id,style:s.ezHomeCardCell},/*#__PURE__*/React.createElement("button",{type:"button",className:"ezhome-focus",onClick:c.onOpen,style:s.ezHomeCardOpen},c.title))));}function EzikIstanaHome(v){const mods=v.modules||[];// the owner's one array, mapped once, in its own order
-return/*#__PURE__*/React.createElement("div",{className:"theme-dark ezhome",style:s.ezistContainer},/*#__PURE__*/React.createElement(EzistTopNav,{onOpenMenu:v.onOpenMenu,onOpenCompass:v.onOpenCompass,onOpenTafsir:v.onOpenTafsir}),/*#__PURE__*/React.createElement("div",{style:s.ezistScroll},/*#__PURE__*/React.createElement("div",{className:"ezist-wrap"},/*#__PURE__*/React.createElement(EzistMasthead,{name:v.name,g:v.greeting,hijri:v.hijri,onOpenAdhkar:v.onOpenAdhkar}),/*#__PURE__*/React.createElement(EzikHomeCardRow,{cards:ezHomeDuoCards(v)}),/*#__PURE__*/React.createElement("div",{className:"ezist-mosaic"},mods.map(m=>/*#__PURE__*/React.createElement(EzistModuleCard,{key:m.id,m:m}))),/*#__PURE__*/React.createElement(EzikHomeWidgetArea,{widgets:v.widgets,nav:{onOpenAdhkar:v.onOpenAdhkar,onOpenPrayer:v.onOpenPrayer}}))));}// ---- S101 ISTANA HOME END ----------------------------------------------------------------
+return/*#__PURE__*/React.createElement("div",{className:"theme-dark ezhome",style:s.ezistContainer},/*#__PURE__*/React.createElement(EzistTopNav,{onOpenMenu:v.onOpenMenu,onOpenTafsir:v.onOpenTafsir}),/*#__PURE__*/React.createElement("div",{style:s.ezistScroll},/*#__PURE__*/React.createElement("div",{className:"ezist-wrap"},/*#__PURE__*/React.createElement(EzistMasthead,{name:v.name,g:v.greeting,hijri:v.hijri,onOpenAdhkar:v.onOpenAdhkar}),/*#__PURE__*/React.createElement(EzikHomeCardRow,{cards:ezHomeDuoCards(v)}),/*#__PURE__*/React.createElement("div",{className:"ezist-mosaic"},mods.map(m=>/*#__PURE__*/React.createElement(EzistModuleCard,{key:m.id,m:m}))),/*#__PURE__*/React.createElement(EzikHomeWidgetArea,{widgets:v.widgets,nav:{onOpenAdhkar:v.onOpenAdhkar,onOpenPrayer:v.onOpenPrayer}}))));}// ---- S101 ISTANA HOME END ----------------------------------------------------------------
 // ============================================================
 // ITEM 05-C -- THE WIRD PICKER
 // ============================================================
@@ -3207,11 +3198,7 @@ onOpenArticles:()=>setArtSection('articles'),onOpenWomen:()=>setArtSection('wome
 // presentation components read the device for nothing, here as everywhere else.
 artFresh:artFresh,// ITEM 20 / §3: handed down like every other reading on this screen, and it is the ACCOUNT's
 // own answer rather than a device flag -- the one input the shelf's filter has.
-gender:genderNow,onOpenSettings:onOpenSettings,onOpenTreasure:()=>{window.location.href='/quest.html';},onOpenPrayer:()=>setPrayerOpen(true),// ITEM 66 (ب): ONE PRESS, and it lands on the compass itself. It is not the prayer sheet's
-// opener and it is not a menu: the owner asked for the compass in one tap instead of the
-// two it costs today, so this handler names the compass layer and nothing else. The sheet
-// above keeps its own door, its own tile and its own behaviour, untouched.
-onOpenCompass:()=>setCompassOpen(true),widgets:widgets};// S87 -- THE MODULE SET IS BUILT HERE, ONCE, AND NOWHERE ELSE. Both styles receive this exact
+gender:genderNow,onOpenSettings:onOpenSettings,onOpenTreasure:()=>{window.location.href='/quest.html';},onOpenPrayer:()=>setPrayerOpen(true),widgets:widgets};// S87 -- THE MODULE SET IS BUILT HERE, ONCE, AND NOWHERE ELSE. Both styles receive this exact
 // array; neither may call ezHomeModules itself. One descriptor per module means one rendered
 // element per module, whichever style is on -- there is no second collection to fall out of
 // sync with this one, and no second callback bound to the same action.

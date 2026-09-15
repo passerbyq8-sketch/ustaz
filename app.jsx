@@ -7024,10 +7024,12 @@ const EZH_ICON_PRAYER = (
 const EZH_ICON_MENU = (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
 );
-// ITEM 66 (ب): the one name the bar's compass control answers to -- its accessible name and,
-// below, the title of the screen it opens, so the mark the reader presses and the heading he
-// lands on can never say two different things. A plain Arabic literal, written the way every
-// string of the QIBLA_* family it belongs to is written.
+// ITEM 66 (15 September 2026): the one name the compass mark answers to. The mark now sits in
+// the head of the «الصلاة والقبلة» sheet and no longer in the home's top bar, but the name is
+// unchanged and does the same work: it is that control's accessible name and, below, the title
+// of the screen it opens, so the mark the reader presses and the heading he lands on can never
+// say two different things. A plain Arabic literal, written the way every string of the
+// QIBLA_* family it belongs to is written.
 const EZH_NAV_COMPASS = '\u0627\u0644\u0628\u0648\u0635\u0644\u0629';
 
 // ITEM 20 / SHELF §3 (8 September) -- WHO SEES «ركن النساء», IN ONE FUNCTION.
@@ -7217,31 +7219,20 @@ let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize
 // and what the tab ring visits would run against what the eye reads. The composition block
 // states that no `order` property is used anywhere in it and that tab order follows what is on
 // screen; moving the element is what keeps that true.
-// ITEM 66 (ب) -- THE COMPASS MARK, AND WHY IT IS THE LAST CHILD OF THIS ROW.
+// ITEM 66 (15 September 2026) -- AND THE COMPASS MARK IS GONE FROM THIS ROW.
 //
-// The owner ruled it «فوق على اليسار»: at the top, on the visual LEFT, as a mark that says
-// compass without being read. MEASURED, not assumed: this document lays out RTL because the
-// stylesheet declares direction:rtl on body, and a CSS declaration outranks the dir ATTRIBUTE
-// the boot script writes -- which is the same measurement the paragraph above rests on when it
-// says the FIRST child of this row sits on the RIGHT. The visual left is therefore this row's
-// TRAILING edge, and the trailing edge is its LAST child.
+// A compass mark was ruled into this bar as its last child -- the RTL trailing edge, the visual
+// left -- and it was the bar's third member. On 15 September 2026 the owner ruled the compass
+// ONE entry instead: a single mark in the head of the «الصلاة والقبلة» sheet, beside its back
+// control. So the mark, its handler and its prop come out of here entirely, and the row is the
+// two members it was before: the menu button first, and the verse taking the width it leaves.
 //
-// AND IT IS THE DOM ORDER, NOT `order` AND NOT `row-reverse`, for the identical reason the menu
-// button was MOVED rather than re-ordered: either property would paint the mark on the left
-// while leaving it before the verse in the tree, so what a screen reader announces and what the
-// tab ring visits would run against what the eye reads. The composition block promises no
-// `order` property anywhere in it; adding the element in its place is what keeps that true.
-//
-// NOTHING EXISTING MOVED. The menu button is still the first child, still on the right, still
-// s.ezistNavBtn at its own 44x44; the verse panel is still flex:1 1 auto with min-width:0, so
-// it takes the width the two controls leave and WRAPS rather than being cut -- which is what
-// that rule was written to do when there was one control. What changed is that there are two.
-//
-// AND THE MARK IS ONE THIS FILE ALREADY DRAWS. EZH_ICON_PRAYER is described where it is
-// declared as a compass rose reduced to a circle, a needle and its pivot, in the same 24x24 box
-// at the same 1.8 stroke with the same round caps as its neighbours. No icon library, no new
-// dependency, no new artwork file, no image and no data URI -- and one mark for one meaning.
-function EzistTopNav({ onOpenMenu, onOpenCompass, onOpenTafsir }) {
+// NOTHING SHARED WAS DELETED WITH IT. EZH_ICON_PRAYER is still drawn by the prayer module tile
+// and by the sheet's own mark, and EZH_NAV_COMPASS is still that mark's accessible name and the
+// title of the screen it opens -- so both constants keep readers and neither is removed. What
+// had no other reader went: this row's button, `onOpenCompass` on this component, and the
+// handler key the home's view object carried for it alone.
+function EzistTopNav({ onOpenMenu, onOpenTafsir }) {
   return (
     <div className="ezist-nav">
       <div className="ezist-nav-inner">
@@ -7249,9 +7240,6 @@ function EzistTopNav({ onOpenMenu, onOpenCompass, onOpenTafsir }) {
           {EZH_ICON_MENU}
         </button>
         <EzistQuranPanel onOpenTafsir={onOpenTafsir} />
-        <button type="button" className="ezhome-focus" onClick={onOpenCompass} style={s.ezistNavBtn} aria-label={EZH_NAV_COMPASS}>
-          {EZH_ICON_PRAYER}
-        </button>
       </div>
     </div>
   );
@@ -7479,7 +7467,7 @@ function EzikIstanaHome(v) {
   return (
     <div className="theme-dark ezhome" style={s.ezistContainer}>
       {/* S101-home-istana */}
-      <EzistTopNav onOpenMenu={v.onOpenMenu} onOpenCompass={v.onOpenCompass} onOpenTafsir={v.onOpenTafsir} />
+      <EzistTopNav onOpenMenu={v.onOpenMenu} onOpenTafsir={v.onOpenTafsir} />
       <div style={s.ezistScroll}>
         <div className="ezist-wrap">
           <EzistMasthead name={v.name} g={v.greeting} hijri={v.hijri} onOpenAdhkar={v.onOpenAdhkar} />
@@ -9591,11 +9579,6 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
     onOpenSettings: onOpenSettings,
     onOpenTreasure: () => { window.location.href = '/quest.html'; },
     onOpenPrayer: () => setPrayerOpen(true),
-    // ITEM 66 (ب): ONE PRESS, and it lands on the compass itself. It is not the prayer sheet's
-    // opener and it is not a menu: the owner asked for the compass in one tap instead of the
-    // two it costs today, so this handler names the compass layer and nothing else. The sheet
-    // above keeps its own door, its own tile and its own behaviour, untouched.
-    onOpenCompass: () => setCompassOpen(true),
     widgets: widgets,
   };
   // S87 -- THE MODULE SET IS BUILT HERE, ONCE, AND NOWHERE ELSE. Both styles receive this exact
