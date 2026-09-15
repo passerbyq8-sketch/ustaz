@@ -1,0 +1,54 @@
+{
+  "at": "2026-09-14T18:11:07.733Z",
+  "back": "رجوع",
+  "steps": [
+    {
+      "label": "ضع العلامة",
+      "where": "still on the page",
+      "textLen": 22
+    },
+    {
+      "label": "السور",
+      "where": "the mushaf index",
+      "textLen": 4169
+    }
+  ],
+  "base": "http://127.0.0.1:55163/",
+  "index": {
+    "head": "المصحف\nاليوم ٠ · حدّد وردك\nالانتقال إلى جزء\nالجزء ١\nصفحة ١\nالجزء ٢\nصفحة ٢٢\nالجزء",
+    "total": 146,
+    "visible": 146,
+    "namedBackVisible": 1
+  },
+  "openedRow": "الجزء ٢ صفحة ٢٢",
+  "reading": {
+    "head": "البقرة · صفحة ٢٢\nالسور",
+    "total": 2,
+    "visible": 2,
+    "namedBackVisible": 0,
+    "namedBackHidden": 0,
+    "controls": [
+      {
+        "i": 0,
+        "g": "button",
+        "visible": true,
+        "t": "",
+        "a": "ضع العلامة",
+        "cls": "ezmr-btn"
+      },
+      {
+        "i": 1,
+        "g": "button",
+        "visible": true,
+        "t": "السور",
+        "a": "",
+        "cls": "ezmr-btn"
+      }
+    ]
+  },
+  "wayOut": {
+    "label": "السور",
+    "to": "the mushaf index"
+  },
+  "browserBack": "the shelf or the chat"
+}

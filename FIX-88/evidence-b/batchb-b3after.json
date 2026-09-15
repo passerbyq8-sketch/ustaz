@@ -1,0 +1,39 @@
+{
+  "at": "2026-09-15T00:23:46.686Z",
+  "tree": "C:\\Users\\passe\\projects\\ustaz-fix88",
+  "label": "b3after",
+  "cases": [
+    {
+      "item": 3,
+      "id": "old-chat-from-home",
+      "pk": "f450defe401a8dc3",
+      "startWhere": "shelf",
+      "menuOpened": true,
+      "rowSeen": true,
+      "shot": "001-b3after-b3-home-drawer.png",
+      "afterWhere": "other",
+      "afterHead": "BENCH-CHAT-ALPHA\nBENCH-Q-ALPHA\nBENCH-A-ALPHA\nاستمع\nنسخ\nمشاركة\nPDF\nاقتباس\nتشكيل\nبلّغ\nبسّط\nمثال\nاختبرني\nاختصر\nكم",
+      "bodyOnScreen": true,
+      "stillOnShelf": false,
+      "shot2": "002-b3after-b3-home-after.png"
+    },
+    {
+      "item": 3,
+      "id": "old-chat-from-chat",
+      "pk": "c6f00064fe3ba95d",
+      "startWhere": "chat",
+      "menuOpened": true,
+      "rowSeen": true,
+      "shot": "003-b3after-b3-chat-drawer.png",
+      "afterWhere": "other",
+      "afterHead": "BENCH-CHAT-ALPHA\nBENCH-Q-ALPHA\nBENCH-A-ALPHA\nاستمع\nنسخ\nمشاركة\nPDF\nاقتباس\nتشكيل\nبلّغ\nبسّط\nمثال\nاختبرني\nاختصر\nكم",
+      "bodyOnScreen": true,
+      "stillOnShelf": false,
+      "shot2": "004-b3after-b3-chat-after.png"
+    }
+  ],
+  "storeKeys": {
+    "idxKey": "ezik_chats_v1",
+    "prefix": "ezik_chat_v1_"
+  }
+}

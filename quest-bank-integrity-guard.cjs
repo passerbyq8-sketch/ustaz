@@ -1219,7 +1219,102 @@ const SEALED = {
 //                    sw.js edit was final. SW.JS IS OTHERWISE UNTOUCHED -- no route, no store
 //                    and no branch of it moved -- and CACHE IS NOT BUMPED: the merge round owns
 //                    the bump.
-  'sw.js': 'd4f30208d84cc3306638a4294d9e960f903f32803818124b478621e2ae6a644c',
+  //   2026-09-14-iii -- ITEM 88 DEFECT 5+6: THE THROTTLE GETS ITS OWN SENTENCE. /api/articles-list
+//                    answered 429 to 48 of the check round's requests and every one reached the reader as the
+//                    outage line, so ezikArticlesFetchList now carries the status out and the two sections draw
+//                    a fourth state. INDEX.HTML DID NOT MOVE and NO FILE JOINED OR LEFT CORE this round -- the
+//                    only CORE entry that changed size is the bundle. app.js was rebuilt 1713640 -> 1715759
+//                    (+2119) by node tools/build-app.cjs, and CORE_BYTES was re-cut 2886730 -> 2888849 (+2119),
+//                    verified by node tools/core-bytes.cjs, which is exactly the bundle delta because the shell
+//                    did not grow and CORE gained nothing. The worker's own byte table above the constant and
+//                    the app.js mirror below followed, and THIS digest is re-cut LAST, after every other sw.js
+//                    edit was final. SW.JS IS OTHERWISE UNTOUCHED -- no route, no store and no branch of it
+//                    moved -- and CACHE IS NOT BUMPED: the merge round owns the bump.
+  //   2026-09-14-iv -- ITEM 88 DEFECT 4: THE COMPLAINT DOOR SAYS WHAT BECAME OF THE MESSAGE
+//                    BEFORE IT MOVES ANYWHERE. It sets the refusal line and no longer navigates on the same tick,
+//                    so the sentence is actually painted; the hand-off to الإعدادات is now the reader's own press
+//                    on the button beside it. Neither half touches a route, a store or a cached file. INDEX.HTML
+//                    DID NOT MOVE and NO FILE JOINED OR LEFT CORE this round -- the only CORE entry that changed
+//                    size is the bundle. app.js was rebuilt 1715759 -> 1717162 (+1403) by node tools/build-app.cjs,
+//                    and CORE_BYTES was re-cut 2888849 -> 2890252 (+1403), verified by node tools/core-bytes.cjs,
+//                    which is exactly the bundle delta because the shell did not grow and CORE gained nothing. The
+//                    worker's own byte table above the constant and the app.js mirror below followed, and THIS
+//                    digest is re-cut LAST, after every other sw.js edit was final. SW.JS IS OTHERWISE UNTOUCHED
+//                    -- no route, no store and no branch of it moved -- and CACHE IS NOT BUMPED: the merge round
+//                    owns the bump.
+  //   2026-09-14-v -- ITEM 88 DEFECT 13: THE GREETING NO LONGER ENDS ON A VOCATIVE WITH NOBODY
+//                    AFTER IT. A whole-sentence key joins home.hello and is drawn instead of it when the app has
+//                    no name for the reader. Nothing else moves. INDEX.HTML DID NOT MOVE and NO FILE JOINED OR
+//                    LEFT CORE this round -- the only CORE entry that changed size is the bundle. app.js was
+//                    rebuilt 1717162 -> 1717848 (+686) by node tools/build-app.cjs, and CORE_BYTES was re-cut
+//                    2890252 -> 2890938 (+686), verified by node tools/core-bytes.cjs, which is exactly the bundle
+//                    delta because the shell did not grow and CORE gained nothing. The worker's own byte table
+//                    above the constant and the app.js mirror below followed, and THIS digest is re-cut LAST,
+//                    after every other sw.js edit was final. SW.JS IS OTHERWISE UNTOUCHED -- no route, no store
+//                    and no branch of it moved -- and CACHE IS NOT BUMPED: the merge round owns the bump.
+  //   2026-09-14-vi -- ITEM 88 DEFECT 12: THE ADHKAR CHEST NAMES THE SECTION ABOVE THE GROUP.
+//                    The group that opens and the order of the groups are UNCHANGED -- only a label was added over
+//                    the title, read from the same module.adhkar key the shelf tile draws. INDEX.HTML DID NOT MOVE
+//                    and NO FILE JOINED OR LEFT CORE this round -- the only CORE entry that changed size is the
+//                    bundle. app.js was rebuilt 1717848 -> 1718515 (+667) by node tools/build-app.cjs, and
+//                    CORE_BYTES was re-cut 2890938 -> 2891605 (+667), verified by node tools/core-bytes.cjs, which
+//                    is exactly the bundle delta because the shell did not grow and CORE gained nothing. The
+//                    worker's own byte table above the constant and the app.js mirror below followed, and THIS
+//                    digest is re-cut LAST, after every other sw.js edit was final. SW.JS IS OTHERWISE UNTOUCHED
+//                    -- no route, no store and no branch of it moved -- and CACHE IS NOT BUMPED: the merge round
+//                    owns the bump.
+  //   2026-09-14-vii -- ITEM 88 DEFECT 14: A REFRESH IN THE MIDDLE OF A SECTION COMES BACK TO IT.
+//                    One sessionStorage key records the shelf id the reader pressed; the boot effect and four lazy
+//                    initialisers read it back, «delete all my data» sweeps it, and the theme-coverage guard's N10
+//                    asserts the same claim it always did against the destination's new spelling. The FIRST opening
+//                    of the app still lands on the chat, because a new tab has no session record. No route, no store
+//                    and no cached file is involved. INDEX.HTML DID NOT MOVE and NO FILE JOINED OR LEFT CORE this
+//                    round -- the only CORE entry that changed size is the bundle. app.js was rebuilt 1718515 ->
+//                    1724747 (+6232) by node tools/build-app.cjs, and CORE_BYTES was re-cut 2891605 -> 2897837
+//                    (+6232), verified by node tools/core-bytes.cjs, which is exactly the bundle delta because the
+//                    shell did not grow and CORE gained nothing. The worker's own byte table above the constant and
+//                    the app.js mirror below followed, and THIS digest is re-cut LAST, after every other sw.js edit
+//                    was final. SW.JS IS OTHERWISE UNTOUCHED -- no route, no store and no branch of it moved -- and
+//                    CACHE IS NOT BUMPED: the merge round owns the bump.
+  //   2026-09-15-i -- ITEM 88 BATCH B, ITEM 1: A RELOAD INSIDE THE MUSHAF LANDS ON THE INDEX, NOT ON
+//                    THE READING PAGE. The item-14 repair returned the reader to the page he was on, and that page
+//                    carries no way to the shelf; entering المصحف from the shelf still opens where he left off, so
+//                    item 87 is untouched. INDEX.HTML DID NOT MOVE and NO FILE JOINED OR LEFT CORE this round -- the
+//                    only CORE entry that changed size is the bundle. app.js was rebuilt 1724747 -> 1727829 (+3082)
+//                    by node tools/build-app.cjs, and CORE_BYTES was re-cut 2897837 -> 2900919 (+3082), verified by
+//                    node tools/core-bytes.cjs, which is exactly the bundle delta because the shell did not grow and
+//                    CORE gained nothing. The worker's own byte table above the constant and the app.js mirror below
+//                    followed, and THIS digest is re-cut LAST, after every other sw.js edit was final. SW.JS IS
+//                    OTHERWISE UNTOUCHED -- no route, no store and no branch of it moved -- and CACHE IS NOT BUMPED:
+//                    the merge round owns the bump.
+  //   2026-09-15-ii -- ITEM 88 BATCH B, ITEM 2: THE ADHKAR OPEN ON THE WHOLE CATALOGUE. The clock's
+//                    door is removed from the section's front entrance by the owner's words; no other entrance and no
+//                    group order changes. INDEX.HTML DID NOT MOVE and NO FILE JOINED OR LEFT CORE this round -- the
+//                    only CORE entry that changed size is the bundle. app.js was rebuilt 1727829 -> 1728316 (+487) by
+//                    node tools/build-app.cjs, and CORE_BYTES was re-cut 2900919 -> 2901406 (+487), verified by node
+//                    tools/core-bytes.cjs, which is exactly the bundle delta because the shell did not grow and CORE
+//                    gained nothing. The worker's own byte table above the constant and the app.js mirror below
+//                    followed, and THIS digest is re-cut LAST, after every other sw.js edit was final. SW.JS IS
+//                    OTHERWISE UNTOUCHED -- no route, no store and no branch of it moved -- and CACHE IS NOT BUMPED:
+//                    the merge round owns the bump.
+  //   2026-09-15-iii -- ITEM 88 BATCH B, ITEM 3: A SAVED CONVERSATION OPENED FROM THE SIDE MENU NOW
+//                    MOVES THE SCREEN TO THE CHAT. One line inside openSavedChat, where every door to a saved
+//                    conversation passes; no call site and no history layer changes. INDEX.HTML DID NOT MOVE and NO
+//                    FILE JOINED OR LEFT CORE this round -- the only CORE entry that changed size is the bundle.
+//                    app.js was rebuilt by node tools/build-app.cjs, and CORE_BYTES was re-cut by the same delta,
+//                    verified by node tools/core-bytes.cjs, because the shell did not grow and CORE gained nothing.
+//                    The worker's own byte table above the constant and the app.js mirror below followed, and THIS
+//                    digest is re-cut LAST, after every other sw.js edit was final. SW.JS IS OTHERWISE UNTOUCHED --
+//                    no route, no store and no branch of it moved -- and CACHE IS NOT BUMPED: the merge round owns
+//                    the bump.
+  //   2026-09-15 merge -- ITEM 88, THE MERGE ROUND: THE STORE NAME IS BUMPED ezik-v34 -> ezik-v35.
+//                    Every seal note in this trip deferred the bump to the merge round, and this is it, so a
+//                    returning reader who holds the old bundle in the old store gets a changed worker that
+//                    installs, sweeps every store that is not the new name, and hands him this trip. NOTHING
+//                    ELSE IN SW.JS MOVED -- no route, no branch and no byte table -- and the file is the same
+//                    48510 bytes because the new name is the same length as the old. SW_CACHE below follows
+//                    it in this same commit, and THIS digest is re-cut LAST, after the name was final.
+  'sw.js': '36fb50573d183e7978014aec1f3a2ae0df744cbbd61968eaa27e37edfce21e08',
 };
 
 // ---------------------------------------------------------------------------
@@ -1243,7 +1338,7 @@ const SEALED = {
 // instead of with "sw.js MOVED".
 // ---------------------------------------------------------------------------
 const SW_FILE = 'sw.js';
-const SW_CACHE = 'ezik-v34';
+const SW_CACHE = 'ezik-v35';
 const SW_ORIGIN = 'https://ezik.app';
 // ITEM 93-B. The tag on the end-of-install brief the worker pushes to every client. Written here
 // rather than read back out of sw.js, because "the worker sent whatever the worker calls it" is a
@@ -2344,7 +2439,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1713640, of: 'app.js' },
+      { n: 1730899, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

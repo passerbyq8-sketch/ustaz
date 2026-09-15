@@ -2854,8 +2854,40 @@ ok('N10: the explicit entry from home still starts a new one',
   html.indexOf("const startChatFromMenu = () => { newChat(); setScreen('chat'); };") !== -1
   && drawerSrc.indexOf('onClick={() => closeDrawerWith(startChatFromMenu)}') !== -1
   && /<Home profile=\{profile\} onOpenMenu=\{openDrawer\}/.test(html));
+// ITEM 88, DEFECT 14 -- THE CLAIM IS UNCHANGED AND THE SPELLING IS NOT. The four statements
+// this line exists to protect -- no chat id, no chat id in state, an EMPTY message list, and the
+// saved index loaded WITHOUT opening anything out of it -- are asserted exactly as before, in the
+// same order, with nothing between them. What moved is the fifth line, the DESTINATION, and it
+// moved on the owner's own ruling: a refresh in the middle of a section must come back to the
+// section. So the destination is now an expression, and this asserts the expression BY NAME --
+// ezikResumeScreen() and nothing else -- rather than accepting any expression at all. The two
+// halves of that ruling are held by the case below, which is what keeps this one honest: a first
+// opening still lands on the chat, and ezikResumeScreen is the only thing that decides.
 ok('N10: the boot lands on an EMPTY thread and opens no saved conversation',
-  /chatIdRef\.current = null;\s*\r?\n\s*setChatId\(null\);\s*\r?\n\s*setMessages\(\[\]\);\s*\r?\n\s*setChatList\(ezikListChats\(ezikProfileKey\(p\)\)\);\s*\r?\n\s*setScreen\('chat'\);/.test(html));
+  /chatIdRef\.current = null;\s*\r?\n\s*setChatId\(null\);\s*\r?\n\s*setMessages\(\[\]\);\s*\r?\n\s*setChatList\(ezikListChats\(ezikProfileKey\(p\)\)\);(?:\s*\r?\n\s*(?:\/\/[^\n]*|ezikResumeMarkEntered\(ezikReadResume\(\)\);))*\s*\r?\n\s*setScreen\(ezikResumeScreen\(\)\);/.test(html));
+// ITEM 88 BATCH B, ITEM 1 -- AND THE MARK THE BOOT LEAVES, PINNED BY NAME. The line above
+// admits exactly one statement between the emptied thread and the destination, and this is
+// what that statement must be: the boot naming the section it is restoring, so that section
+// alone can tell a reload from a walk-in. It is asserted separately rather than only tolerated,
+// because a mark that stopped being set would take the mushaf's reload behaviour with it and
+// nothing else in this file would notice.
+ok('N10: ...and the boot names the section it restored, once, for that section alone',
+  /ezikResumeMarkEntered\(ezikReadResume\(\)\);/.test(html)
+  && /function ezikResumeMarkEntered\(id\) \{ EZIK_RESUME_ENTERED = ezikResumeKnown\(id\) \? String\(id\) : ''; \}/.test(html)
+  && /function ezikResumeTakeEntered\(id\) \{\s*\r?\n\s*if \(!id \|\| EZIK_RESUME_ENTERED !== id\) return false;\s*\r?\n\s*EZIK_RESUME_ENTERED = '';\s*\r?\n\s*return true;\s*\r?\n\s*\}/.test(html));
+// ITEM 88, DEFECT 14 -- AND THE CHAT IS STILL WHERE THE APP OPENS. The destination above is an
+// expression now, so the thing worth pinning is what that expression answers when this tab has
+// never been used: 'chat', by a branch that is the FIRST thing in the function and takes no
+// other path. A session store is what tells a first opening from a refresh, so a record read
+// out of localStorage -- which outlives the tab -- would break the ruling silently; that is
+// pinned too. And the record is a shelf id, never a screen name pulled from the reader.
+ok('N10: ...and a tab that has never been used still opens on the chat',
+  /function ezikResumeScreen\(\) \{\s*\r?\n\s*const id = ezikReadResume\(\);\s*\r?\n\s*if \(!id\) return 'chat';/.test(html));
+ok('N10: ...and the place is remembered for the TAB, never for the device',
+  /window\.sessionStorage\.setItem\(EZIK_RESUME_KEY,/.test(html)
+  && /window\.sessionStorage\.getItem\(EZIK_RESUME_KEY\)/.test(html)
+  && html.indexOf('localStorage.getItem(EZIK_RESUME_KEY') === -1
+  && html.indexOf('localStorage.setItem(EZIK_RESUME_KEY') === -1);
 ok('N10: the welcome is shown ONLY while there is nothing to read',
   /\{messages\.length === 0 && streamingText === null && \(\s*\r?\n\s*<div className="ezc-empty">/.test(chatSrc));
 // S118: this compared two offsets inside the chat's return, which stopped meaning anything the

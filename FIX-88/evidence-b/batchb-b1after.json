@@ -1,0 +1,29 @@
+{
+  "at": "2026-09-14T23:39:24.866Z",
+  "tree": "C:\\Users\\passe\\projects\\ustaz-fix88",
+  "label": "b1after",
+  "cases": [
+    {
+      "item": 1,
+      "id": "mushaf-refresh-trap",
+      "opened": "الجزء ٣ صفحة ٤٢",
+      "beforeHead": "البقرة · صفحة ٤٢\nالسور",
+      "beforeIsReadingPage": true,
+      "afterHead": "المصحف\nاليوم ٠ · حدّد وردك\nعلِّمْ هذه الصفحة\nتابِع القراءة · صفحة ٤٢\nا",
+      "afterWhere": "other",
+      "landedOnChat": false,
+      "afterIsIndex": true,
+      "afterIsReadingPage": false,
+      "stillInMushaf": true,
+      "shot": "001-b1after-b1-after-reload.png",
+      "route": [
+        "رجوع"
+      ],
+      "pressesToShelf": 1
+    }
+  ],
+  "storeKeys": {
+    "idxKey": "ezik_chats_v1",
+    "prefix": "ezik_chat_v1_"
+  }
+}

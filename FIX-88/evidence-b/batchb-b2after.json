@@ -1,0 +1,22 @@
+{
+  "at": "2026-09-15T00:02:20.920Z",
+  "tree": "C:\\Users\\passe\\projects\\ustaz-fix88",
+  "label": "b2after",
+  "cases": [
+    {
+      "item": 2,
+      "id": "adhkar-front-door",
+      "head": "الأدعية\nبلا اختيار\nأذكار الصباح\nأذكار المساء\nأذكار النوم\nأذكار الاستيقاظ من النوم\nدعاء دخول الخلاء\nدعاء الخروج من الخلاء\nالذكر قبل الوضوء\nالذكر بعد الفراغ من ال",
+      "textLen": 6693,
+      "controls": 141,
+      "groupRowsVisible": 138,
+      "looksLikeReader": false,
+      "openedOnAGroup": false,
+      "shot": "001-b2after-b2-adhkar-door.png"
+    }
+  ],
+  "storeKeys": {
+    "idxKey": "ezik_chats_v1",
+    "prefix": "ezik_chat_v1_"
+  }
+}

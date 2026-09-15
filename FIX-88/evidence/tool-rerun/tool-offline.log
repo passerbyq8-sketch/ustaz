@@ -1,0 +1,19 @@
+STAKE_FIRST_HEAD    = 7ad780d32726
+STAKE_FIRST_INDEX   = 153974
+STAKE_FIRST_APPJS   = 1724747
+ROUND_OFFLINE_m390 = running
+ROUND_OFFLINE_t820 = running
+OFFLINE_FALSE_LINES = 0
+
+SECTIONS_VISITED     = 12 of 12
+DEFECTS              = 3
+SUSPICIONS           = 7
+NOT_CHECKED          = 10
+OFFLINE_FALSE_LINES  = 0
+FREE_BRAIN_LOOP      = NOT MEASURED (round B not run)
+STAKE_FIRST          = 7ad780d3 index=153974 app.js=1724747
+STAKE_LAST           = 7ad780d3 index=153974 app.js=1724747
+GROUND_MOVED         = no
+REPORT_FILE          = C:\Users\passe\projects\ustaz-check88\check88\EZIK-CHECK-REPORT.md
+ANSWERS_FILE         = C:\Users\passe\projects\ustaz-check88\check88\EZIK-CHECK-ANSWERS.md
+OFFLINE_EXIT=0

@@ -1,0 +1,24 @@
+{
+  "tree": "C:\\Users\\passe\\projects\\ustaz-fix88",
+  "label": "mid2",
+  "at": "2026-09-14T16:11:14.263Z",
+  "results": [
+    {
+      "family": "one2",
+      "id": "greeting",
+      "found": false,
+      "line": "",
+      "tail": "",
+      "tailEmpty": false,
+      "plainGreetingShown": true,
+      "shot": "001-mid2-greeting.png"
+    },
+    {
+      "family": "one2",
+      "id": "adhkar-head",
+      "head": "الأذكار\nأذكار المساء\n٠ من ٢١\n١ / ٢١\nأَعُوذُ بِاللَّهِ مِنَ الشَّيطَانِ الرَّجِيمِ ﴿اللَّهُ لاَ إِلَهَ إِلاَّ هُوَ الْحَيُّ الْقَيُّومُ لاَ تَأْخُذُهُ سِنَةٌ وَلاَ نَوْمٌ لَّهُ مَا فِي السَّمَوَاتِ وَمَا فِي الأَرْضِ مَن ذَا الَّذِي يَشْفَعُ",
+      "sectionNameInHead": true,
+      "shot": "002-mid2-adhkar-head.png"
+    }
+  ]
+}

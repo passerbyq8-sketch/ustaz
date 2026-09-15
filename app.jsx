@@ -93,6 +93,7 @@ function ezLangRelabel() {
   try {
     EZH_SALAM = ezT("home.salam");
     EZH_HELLO = ezT("home.hello");
+    EZH_HELLO_NO_NAME = ezT("home.helloNoName");
     EZH_NAV_MENU = ezT("navigation.menu");
     EZH_MEMORIZE = ezT("module.memorize");
     EZH_ADHKAR = ezT("module.adhkar");
@@ -289,6 +290,7 @@ const EZ_I18N = {
     'errors.saveFailed': 'تعذّر حفظ الإعداد',
     'home.salam': '\u{0627}\u{0644}\u{0633}\u{0644}\u{0627}\u{0645} \u{0639}\u{0644}\u{064A}\u{0643}\u{0645}',
     'home.hello': '\u{0645}\u{0631}\u{062D}\u{0628}\u{0627}\u{064B} \u{064A}\u{0627}',
+    'home.helloNoName': '\u{0645}\u{0631}\u{062D}\u{0628}\u{0627}\u{064B} \u{0628}\u{0643}',
     'module.memorize': '\u{0627}\u{0644}\u{0645}\u{062D}\u{0641}\u{0651}\u{0638}',
     'module.adhkar': '\u{0627}\u{0644}\u{0623}\u{0630}\u{0643}\u{0627}\u{0631}',
     'module.mushaf': '\u{0627}\u{0644}\u{0645}\u{0635}\u{062D}\u{0641}',
@@ -591,6 +593,7 @@ const EZ_I18N = {
     'articles.emptyTitle': 'هذا القسمُ جديد',
     'articles.emptyBody': 'لم يُنشرْ فيه شيءٌ بعد. عُدْ إليه قريباً.',
     'articles.error': 'تعذَّر جلبُ ما في هذا القسم. تحقَّقْ من الاتصال ثمّ أعِدِ المحاولة.',
+    'articles.throttled': 'تجاوزتَ حدَّ الطلبات. انتظرْ قليلاً ثمّ أعِدِ المحاولة.',
     'articles.backToList': 'رجوع إلى القائمة',
     'articles.readAria': 'نصُّ المقال',
     'articles.questionLabel': 'السؤال',
@@ -976,6 +979,7 @@ const EZ_I18N = {
     'errors.saveFailed': 'Could not save the setting',
     'home.salam': 'Peace be upon you',
     'home.hello': 'Welcome,',
+    'home.helloNoName': 'Welcome',
     'module.memorize': 'Memoriser',
     'module.adhkar': 'Adhkar',
     'module.mushaf': 'Mushaf',
@@ -1263,6 +1267,7 @@ const EZ_I18N = {
     'articles.emptyTitle': 'This section is new',
     'articles.emptyBody': 'Nothing has been published here yet. Come back soon.',
     'articles.error': 'This section could not be loaded. Check the connection, then try again.',
+    'articles.throttled': 'Too many requests just now. Wait a moment, then try again.',
     'articles.backToList': 'Back to the list',
     'articles.readAria': 'The text of the article',
     'articles.questionLabel': 'The question',
@@ -6841,6 +6846,11 @@ const getHomeGreeting = () => {
 // EZH_QUICK with the duplicated quick-access row it titled -- it has no other reader.)
 let EZH_SALAM = ezT("home.salam");   // "peace be upon you"
 let EZH_HELLO = ezT("home.hello");                            // "welcome, O"
+// DEFECT 13 (item 88): the whole greeting, for a reader with no stored name. EZH_HELLO ends
+// on a VOCATIVE PARTICLE and is only ever half a sentence: it needs a name after it, and a
+// guest has none. Measured on the shelf: the line read «مرحباً يا» and the tail after it was
+// empty -- the app addressing somebody and then not saying who. This one stands alone.
+let EZH_HELLO_NO_NAME = ezT("home.helloNoName");              // "welcome" -- no vocative
 // S118: EZH_ACCOUNT, EZH_NAV_HOME, EZH_NAV_SET and EZH_BRAND stood here. The emptied top bar
 // was the only thing in the file that read any of them, and a reference sweep run after the
 // bar was rewritten found no second reader; they are removed rather than left behind as four
@@ -7228,7 +7238,10 @@ function EzistMasthead({ name, g, hijri, onOpenAdhkar }) {
     <section className="ezist-masthead">
       <div className="ezist-hello">
         <div style={s.ezistSalam}>{EZH_SALAM}</div>
-        <h1 style={s.ezistName}>{EZH_HELLO} {name}</h1>
+        {/* DEFECT 13 (item 88): a vocative is never drawn bare. With a name the greeting is
+            what it always was, character for character; without one it is the whole-sentence
+            key beside it rather than a half sentence with a space where a person should be. */}
+        <h1 style={s.ezistName}>{name ? <>{EZH_HELLO} {name}</> : EZH_HELLO_NO_NAME}</h1>
         {/* ITEM 109: the date, on the screen that already speaks about the day — MEASURED
             first: this app displayed no date at all before this line, so there was no existing
             place to join. It is a prop, not a read: the owner below reads the store, exactly as
@@ -7280,7 +7293,12 @@ function EzistModuleCard({ m }) {
   const feature = m.id === 'mushaf';
   return (
     <button type="button" className={'ezhome-focus ezist-' + (feature ? 'feature' : 'mod ezist-mod-' + m.id)}
-      onClick={m.onClick} data-ezik-home-module={m.id}
+      /* DEFECT 14 (item 88): THE ONE PLACE THE READER'S PLACE IS RECORDED. It is here and not
+         in the twelve handlers because here there is one press, one id and one line -- and
+         because a tile added tomorrow is recorded without anybody remembering to. The tile's
+         own handler is called exactly as before, on the same press, and nothing about what it
+         does changed. */
+      onClick={() => { ezikWriteResume(m.id); if (m.onClick) m.onClick(); }} data-ezik-home-module={m.id}
       style={feature ? s.ezistFeature : { ...s.ezistCard, ...(s['ezistCard_' + m.id] || null) }}>
       <span style={s.ezistTileName}>{m.label}</span>
       {/* ITEM 7 / F4. A MARK, NOT A COUNT (F6) -- one dot, in the token the active-design row
@@ -9330,7 +9348,7 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // target is stored the line is absent rather than invented, and no other module on this
   // screen claims progress of any kind. Nothing here writes, and nothing here transmits.
   // ITEM 108-أ: the sheet's one piece of state. It is not a route: see PrayerSheet.
-  const [prayerOpen, setPrayerOpen] = useState(false);
+  const [prayerOpen, setPrayerOpen] = useState(() => ezikReadResume() === 'prayer');
   // NIGHT RUN F1 -- THE SHEET REGISTERS ITS LAYER, like every other layer in this file. Without
   // this line the sheet owned no history entry, so a hardware back press inside it resolved
   // against `screen` -- still 'home' -- and ezikBackDestination sent the reader to the chat: ONE
@@ -9348,7 +9366,12 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // the screen inventory is a cross-file contract, see the note above PrayerSheet -- and LIKE
   // the prayer sheet above it registers a back layer, so it owns one real history entry while it
   // is open and the device button closes IT rather than leaving the home screen underneath it.
-  const [artSection, setArtSection] = useState(null);
+  // DEFECT 14 (item 88): restored in the lazy initialiser, for the reason written beside the
+  // two App layers -- the section is open on the first render, not one paint later.
+  const [artSection, setArtSection] = useState(() => {
+    const id = ezikReadResume();
+    return (id === 'articles' || id === 'women') ? id : null;
+  });
   // ITEM 7 / F9. THE SHELF DRAWS FROM THIS AND NEVER WAITS FOR IT. The initial value is computed
   // from the DEVICE alone -- what is remembered as seen, against what a previous visit to this
   // screen already learnt -- so the first paint costs no request and no suspense. The probe below
@@ -9409,6 +9432,17 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // one real history entry while it is open, so the device back button closes IT.
   const [calcOpen, setCalcOpen] = useState(false);
   useEzikBackLayer(calcOpen, () => setCalcOpen(false));
+  // DEFECT 14 (item 88) -- WHERE THE RECORD DIES, and it is one place.
+  // The reader is standing nowhere in particular exactly when this component has no layer of
+  // its own open, which is when it draws the bare shelf; every layer App owns returns before
+  // <Home> is reached, so this effect does not run at all while one of those is up and a
+  // second refresh inside الأسماء still comes back to it. On the first commit after a
+  // restore the layer is ALREADY open -- it was set in a lazy initialiser, not an effect --
+  // so this cannot clear the record out from under the very restore that just happened.
+  useEffect(() => {
+    if (artSection || prayerOpen || compassOpen || tasbihOpen || tasbihLogOpen || calcOpen || wirdPickOpen) return;
+    ezikClearResume();
+  }, [artSection, prayerOpen, compassOpen, tasbihOpen, tasbihLogOpen, calcOpen, wirdPickOpen]);
   // ITEM 96: the day's gold price, fetched HERE rather than inside the calculator, on the same
   // discipline the wird and the hijri date below are read on -- the owner reads, the layer is
   // handed the result. It fires on the open, at most once per calendar day of the device, and
@@ -10148,6 +10182,102 @@ function LessonsSection({ onHome }) {
 // writer, and the writer has no control that opens a piece -- so at most one layer is registered
 // at any moment and "close the deepest" has only ever one candidate.
 
+// ============================================================
+// DEFECT 14 (item 88) -- A REFRESH COMES BACK TO THE SECTION, AND THE FIRST OPENING
+// STILL LANDS ON THE CHAT
+// ============================================================
+// WHAT WAS MEASURED. A section was opened from the shelf, the page was refreshed, and the
+// reader landed on the CHAT -- in 16 of the check round's 24 readings, and again here on a
+// local bench in all six sections tried (المقالات، الأذكار، الفتاوى، الدروس، المصحف، ركن
+// النساء). Item 87 lost its open phase the same way. The boot effect answers setScreen('chat')
+// for every returning profile, and nothing anywhere remembered that the reader was standing
+// somewhere else when the page went away.
+//
+// WHY sessionStorage AND NOT localStorage, AND IT IS THE WHOLE DESIGN. The owner's ruling is
+// that the chat REMAINS the first thing the app opens on, and that only a refresh restores the
+// place. Those are exactly the two halves of a session store: it survives a reload of the same
+// tab and it does not exist in a new one. So «فتحٌ أوّل» and «تحديث» are told apart by the
+// browser itself rather than by a flag this file would have to set, clear and get right.
+// A locked or full store degrades to «no memory», which is the behaviour that shipped.
+//
+// WHAT IS RECORDED IS A SHELF ID AND NOTHING ELSE. Not a screen name -- several of these
+// sections are LAYERS and own no "screen" value, which is why the check round found the defect
+// in الأسماء and «من الاستيقاظ إلى النوم» as well as in the routed ones. The id is the one the
+// shelf array already carries, so the twelve tiles are covered by construction and a thirteenth
+// is covered the day it is added. Nothing about scroll position, nothing about what was open
+// INSIDE the section, and nothing that could name the reader.
+const EZIK_RESUME_KEY = 'ezik_resume_section_v1';
+
+// THE THREE TABLES ARE THE WHOLE ROUTING, and an id in none of them is not recorded at all.
+// رحلة الكنوز is deliberately absent: it is a page navigation to /quest.html, and a refresh
+// there is the browser reloading quest.html -- there is nothing for this file to restore, and
+// recording it would send a reader who had merely walked back to the shelf somewhere he was
+// not standing.
+const EZIK_RESUME_SCREENS = {
+  memorize: 'memorize', adhkar: 'adhkar', arbaeen: 'arbaeen',
+  mushaf: 'mushaf', fatwa: 'fatwa', lessons: 'lessons',
+};
+const EZIK_RESUME_APP_LAYERS = { asmaa: 1, 'sunan-day': 1 };
+const EZIK_RESUME_HOME_LAYERS = { articles: 1, women: 1, prayer: 1 };
+function ezikResumeKnown(id) {
+  return !!(EZIK_RESUME_SCREENS[id] || EZIK_RESUME_APP_LAYERS[id] || EZIK_RESUME_HOME_LAYERS[id]);
+}
+function ezikWriteResume(id) {
+  if (!ezikResumeKnown(id)) return;
+  try { window.sessionStorage.setItem(EZIK_RESUME_KEY, String(id)); } catch (e) {}
+}
+function ezikReadResume() {
+  try {
+    const v = window.sessionStorage.getItem(EZIK_RESUME_KEY);
+    return (typeof v === 'string' && ezikResumeKnown(v)) ? v : '';
+  } catch (e) { return ''; }
+}
+function ezikClearResume() {
+  try { window.sessionStorage.removeItem(EZIK_RESUME_KEY); } catch (e) {}
+}
+// WHERE THE BOOT SHOULD LAND. '' means nothing was recorded, and the answer is the chat --
+// byte for byte the destination that shipped.
+function ezikResumeScreen() {
+  const id = ezikReadResume();
+  if (!id) return 'chat';
+  if (EZIK_RESUME_SCREENS[id]) return EZIK_RESUME_SCREENS[id];
+  return 'home';   // a layer: whoever owns it opens it on its own first render
+}
+
+// ============================================================
+// BATCH B, ITEM 1 -- WHICH SECTION *THIS BOOT* RESTORED, AND IT IS SPENT ONCE
+// ============================================================
+// WHAT THIS EXISTS FOR, AND IT IS A TRAP THE ITEM-14 REPAIR OPENED ITSELF. That repair
+// made a reload come back to the section the reader was standing in. In المصحف that
+// means the READING PAGE, because item 87 re-opens the page the reader left -- and the
+// reading page carries exactly two controls, «ضع العلامة» and «السور», neither of them
+// a way to the shelf. MEASURED on the bench, both sizes: the reload lands on the very
+// page («النساء · صفحة ١٠٢», head for head), and the shelf then costs TWO presses --
+// «السور» to the index, «رجوع» to the shelf. Before the repair the reader was thrown to
+// the chat, which was wrong differently; a reader must not be given a screen he needs
+// two presses and a guess to leave.
+//
+// THE LIGHTER OF THE TWO REMEDIES, AND WHY THIS ONE. The alternative is to add an exit
+// to the reading page -- a control on a surface the owner deliberately left with two,
+// visible to every reader on every visit, to solve a case that only arises after a
+// reload. This one changes nothing a reader sees when he walks into المصحف from the
+// shelf: item 87 still opens him where he left off, byte for byte. It changes only
+// where a RELOAD lands him -- the index instead of the page -- and the index carries
+// «رجوع», so the shelf is one press away. His place is not lost either: the index draws
+// the resume row at its top, which is the row item 87 kept for exactly this.
+//
+// AND IT IS SPENT ONCE, BY THE SECTION IT NAMES. A bare "this boot was a resume" flag
+// would be consumed by whichever section mounted first and could then suppress the
+// mushaf's ordinary auto-open later in the same run. This holds the id, hands it to
+// that one section, and clears itself in the same breath.
+let EZIK_RESUME_ENTERED = '';
+function ezikResumeMarkEntered(id) { EZIK_RESUME_ENTERED = ezikResumeKnown(id) ? String(id) : ''; }
+function ezikResumeTakeEntered(id) {
+  if (!id || EZIK_RESUME_ENTERED !== id) return false;
+  EZIK_RESUME_ENTERED = '';
+  return true;
+}
+
 const EZIK_ART_LIST_ROUTE = '/api/articles-list';
 const EZIK_ART_ADMIN_ROUTE = '/api/articles-admin';
 const EZIK_ART_TIMEOUT_MS = 12000;
@@ -10156,6 +10286,19 @@ const EZIK_ART_IDLE = 'idle';
 const EZIK_ART_LOADING = 'loading';
 const EZIK_ART_DONE = 'done';
 const EZIK_ART_FAILED = 'failed';
+// DEFECT 5 + 6 (item 88) -- A FIFTH WORD, BECAUSE THERE ARE FIVE OUTCOMES AND NOT FOUR.
+// MEASURED, on a bench that forces each answer in turn: /api/articles-list replied 429 to
+// 48 of this round's requests, and every one of them reached the reader as «تعذَّر جلبُ ما في
+// هذا القسم. تحقَّقْ من الاتصال» -- a sentence about his connection, printed while his
+// connection was up. He then checked a network that was never the matter and pressed a
+// retry that could only earn him another 429.
+//
+// A THROTTLE IS NOT AN OUTAGE AND IS NOT AN EMPTY SHELF. It is the server saying «not so
+// fast», it passes on its own, and the only useful thing a reader can do about it is wait --
+// which is a different instruction from «check your connection» and needs its own sentence.
+// So the status code is carried out of the fetch instead of being flattened at the door,
+// and no code is dressed as another one anywhere below.
+const EZIK_ART_THROTTLED = 'throttled';
 // The two shapes, and they are the two words lib/articles/store.js stores. D-11.
 // ITEM 7 -- THE MARK ON A SECTION THAT HOLDS SOMETHING THIS READER HAS NOT SEEN
 // ============================================================
@@ -10313,12 +10456,17 @@ async function ezikArticlesFetchList(section, signal) {
     const url = EZIK_ART_LIST_ROUTE + '?section=' + encodeURIComponent(section)
       + '&limit=' + EZIK_ART_LIMIT;
     const response = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' }, signal });
-    if (response.status !== 200) return { ok: false, rows: [] };
+    // DEFECT 5 + 6 (item 88): 429 IS CARRIED OUT UNDER ITS OWN NAME. It is the one status this
+    // screen can say something USEFUL about that the outage line does not say, so it is the one
+    // that is separated. Every other status, an unreadable body, a cut connection and the
+    // timeout stay one bucket, because a reader has one thing to do about all of them.
+    if (response.status === 429) return { ok: false, why: 'throttled', rows: [] };
+    if (response.status !== 200) return { ok: false, why: 'failed', rows: [] };
     const payload = await response.json();
-    if (!payload || payload.ok !== true) return { ok: false, rows: [] };
-    return { ok: true, rows: ezikArticleRows(payload.items) };
+    if (!payload || payload.ok !== true) return { ok: false, why: 'failed', rows: [] };
+    return { ok: true, why: '', rows: ezikArticleRows(payload.items) };
   } catch (e) {
-    return { ok: false, rows: [] };
+    return { ok: false, why: 'failed', rows: [] };
   }
 }
 
@@ -10538,7 +10686,12 @@ function EzikArticlesSection({ section, title, onHome }) {
       clearTimeout(timer);
       if (listAbortRef.current !== controller) return;   // a newer load owns the screen
       listAbortRef.current = null;
-      if (!outcome.ok) { setRows([]); setState(EZIK_ART_FAILED); return; }
+      // DEFECT 5 + 6 (item 88): the reason chooses the sentence, and nothing else does.
+      if (!outcome.ok) {
+        setRows([]);
+        setState(outcome.why === 'throttled' ? EZIK_ART_THROTTLED : EZIK_ART_FAILED);
+        return;
+      }
       setRows(outcome.rows);
       setState(EZIK_ART_DONE);
       // F5: OPENING THE SECTION MARKS IT SEEN, and it is marked from the page the reader is
@@ -10660,6 +10813,19 @@ function EzikArticlesSection({ section, title, onHome }) {
       {state === EZIK_ART_FAILED ? (
         <div role="alert" style={s.artError}>
           <span>{ezT('articles.error')}</span>
+          <button type="button" className="ezhome-focus" style={s.artRetry}
+            onClick={load}>{ezT('common.retry')}</button>
+        </div>
+      ) : null}
+
+      {/* DEFECT 5 + 6 (item 88) -- THE THROTTLE, IN ITS OWN WORDS. Not the outage line, which
+          sends the reader to look at a connection that is working, and emphatically not the
+          empty state, which would tell him the section holds nothing when nobody knows yet what
+          it holds. The retry button stays, because waiting and pressing again IS the remedy
+          here -- it is the only one of the three failure readings where it is. */}
+      {state === EZIK_ART_THROTTLED ? (
+        <div role="alert" style={s.artError}>
+          <span>{ezT('articles.throttled')}</span>
           <button type="button" className="ezhome-focus" style={s.artRetry}
             onClick={load}>{ezT('common.retry')}</button>
         </div>
@@ -12636,30 +12802,31 @@ function AdhkarScreenV2({ onBack }) {
     }).catch(() => { if (alive) setDb({ byId: {}, categories: [], byCat: {} }); });
     return () => { alive = false; };
   }, []);
-  // THE CLOCK'S FIRST DOOR, and it is opened ONCE. The ref spends itself on the first pass that
-  // sees a real store, so backing out to the catalogue and standing there does not re-open the
-  // door under the reader's hand, and neither does a re-render or a day that rolls over. The
-  // catalogue is what the door opens ON TOP OF -- the reader's back returns to it through the
-  // same closer every other exit uses -- so the index stays open for manual navigation exactly
-  // as the order requires, and nothing here is a redirect away from it.
+  // BATCH B, ITEM 2 -- THE CLOCK'S DOOR IS GONE FROM THIS ENTRANCE, BY THE OWNER'S WORDS:
+  // «الأذكارُ المفترضُ يفتحُ مباشرةً على جميعِ الأذكار».
   //
-  // IT DOES NOT BUMP THE USAGE MAP. adhkar_usage_v1 records the doors A READER opened; a door
-  // the clock opened is not one of them, and counting it would put a number in that record that
-  // no one performed. open() stays the reader's own way in and is untouched, so it is still the
-  // only usage write in the app.
+  // WHAT STOOD HERE. A ref and an effect that, on the first pass which saw a real store,
+  // called adhkarTimeDoor(db.categories) and opened the group belonging to the hour --
+  // so pressing «الأذكار» on the shelf landed the reader inside «أذكار المساء» and never
+  // on the catalogue. MEASURED on the bench before this: the door opened on a GROUP, its
+  // reader's own counter on the screen, at both sizes.
   //
-  // IT PASSES NO START POSITION. The category resolves its own remembered place below, which is
-  // the same answer by the same reader -- naming it twice would be two sources for one number.
-  const autoDoor = useRef(false);
-  useEffect(() => {
-    if (!ADHKAR_GROUPS_ON || autoDoor.current) return;
-    if (!db || !Array.isArray(db.categories) || db.categories.length === 0) return;
-    autoDoor.current = true;
-    const hit = adhkarTimeDoor(db.categories);
-    if (!hit) return;
-    setStartAt(0);
-    setSelected(hit);
-  }, [db]);
+  // IT IS REMOVED RATHER THAN GATED, and that is the order's own instruction: the function
+  // that picks the hour's group «لا تُستدعى من هذا الباب». A flag left behind is a second
+  // answer to a question that now has one, and the next reader of this file would have to
+  // work out which arm ships.
+  //
+  // WHAT IS NOT TOUCHED. Nothing else opens a group by the clock, so no other entrance
+  // changes: the home card, a notification and any direct link still open the group they
+  // name, because none of them came through here. The catalogue's ORDER is untouched --
+  // it is the store's own, mapped once, and nothing here sorted it. No group is marked,
+  // suggested or promoted: the order forbids inventing a distinction and none is added.
+  // And item 88 defect 12 still stands -- the section's name is drawn above the group's
+  // name in the reader, which is what a reader now sees only after he chooses a group.
+  //
+  // adhkarTimeDoor ITSELF IS LEFT DECLARED AND UNCALLED, on this file's own habit: a
+  // function with no reader is a smaller change than a deleted one, and it is the single
+  // place the hour-to-group rule is written down should the owner want that door again.
   const cats = db ? (db.categories || []) : null;
   // Same filter as V1: normalise both sides, substring, and an empty query keeps EVERY
   // category in the store's own order. Nothing is ranked and nothing is hidden.
@@ -12985,9 +13152,28 @@ function IstanaAdhkarReader(v) {
       <div className="ezia-nav">
         <div className="ezia-nav-inner">
           <button type="button" className="adhkar2-focus" onClick={v.onBack} style={s.eziaNavBtn} aria-label={A2_BACK}>{A2_ICON_BACK}</button>
+          {/* DEFECT 12 (item 88) -- THE SECTION IS NAMED ABOVE THE GROUP.
+              MEASURED, when this was written: pressing «الأذكار» on the shelf landed straight
+              on a chest that read «أذكار المساء», and the reader had no way to tell, from the
+              top of the screen, that it is a group INSIDE الأذكار rather than the whole of what
+              he pressed.
+              So the section's name stands over the group's, in the smaller, dimmer weight the
+              rest of this shell uses for a label above a title. The name is read from
+              module.adhkar -- the very key the shelf tile draws -- so the tile and the chest
+              cannot come to disagree, and no second Arabic string was authored for it.
+
+              BATCH B, ITEM 2 CHANGED WHAT LEADS HERE, AND THIS LINE IS KEPT ON PURPOSE. The
+              clock's door is gone: the shelf now opens the catalogue, so a reader reaches this
+              chest only by CHOOSING a group from it. The label is still right and still wanted
+              -- it is what tells him which section the group he chose belongs to, and it is
+              what every other way in (a home card, a notification, a direct link) still needs,
+              because those open a group without passing the catalogue at all. */}
           <span className="ezia-brand">
             <span className="ezia-brand-arch" aria-hidden="true" />
-            <span style={s.eziaReadTitle}>{v.cat.title}</span>
+            <span style={s.eziaReadStack}>
+              <span style={s.eziaReadSection}>{ezT('module.adhkar')}</span>
+              <span style={s.eziaReadTitle}>{v.cat.title}</span>
+            </span>
           </span>
           <button type="button" className="adhkar2-focus" onClick={v.onFav}
             aria-label={v.isFav ? A2_FAV_DEL : A2_FAV_ADD} aria-pressed={v.isFav ? 'true' : 'false'}
@@ -14618,7 +14804,10 @@ function App() {
   // ITEM 26: أسماء الله الحسنى, open over whatever screen the reader was on. It is NOT a route --
   // the screen inventory is a cross-file contract, the same reason the prayer sheet and the two
   // articles sections are layers -- and like them it registers ONE history entry below.
-  const [asmaaOpen, setAsmaaOpen] = useState(false);
+  // DEFECT 14 (item 88): the two layers App owns that are shelf sections read the resume
+  // record in their LAZY INITIALISER rather than from an effect, so the layer is open on the
+  // very first render and no frame of the home is painted underneath it on the way.
+  const [asmaaOpen, setAsmaaOpen] = useState(() => ezikReadResume() === 'asmaa');
   // ITEM 92-ب: the three panels the menu's new rows open. LAYERS, for the identical reason the
   // asmaa section above is one -- `screen === '...'` is a cross-file inventory (index.html, the
   // theme-coverage guard's table and EZIK-THEME-33-HANDOFF.md all have to agree on it), and this
@@ -14636,7 +14825,7 @@ function App() {
   const [inboxOpen, setInboxOpen] = useState(false);
   // ITEM 87: the day, from waking to sleeping. A FIFTH panel of exactly the same kind as the
   // four above -- one boolean, one history entry, no `screen` key -- opened from the same menu.
-  const [sunanOpen, setSunanOpen] = useState(false);
+  const [sunanOpen, setSunanOpen] = useState(() => ezikReadResume() === 'sunan-day');
   const [inboxUnread, setInboxUnread] = useState(null);
   // DECISION ج١٣'s other half -- the sender's dot. A count of answers this reader has been
   // sent and has not yet opened. It is zero for everybody with no account, because `mine`
@@ -15256,7 +15445,13 @@ function App() {
         setChatId(null);
         setMessages([]);
         setChatList(ezikListChats(ezikProfileKey(p)));
-        setScreen('chat');   // D85: a returning profile also lands on the chat
+        // DEFECT 14 (item 88): 'chat' unless THIS TAB was standing somewhere when it
+        // reloaded. A new tab has no session record, so the first opening of the app is
+        // the chat exactly as D85 wrote it; ezikResumeScreen() answers 'chat' for it.
+        // BATCH B, ITEM 1: the boot names the section it is restoring, so that section --
+        // and only it -- can tell a reload apart from an ordinary walk-in.
+        ezikResumeMarkEntered(ezikReadResume());
+        setScreen(ezikResumeScreen());   // D85: a returning profile also lands on the chat
       } else {
         setScreen('onboarding');
       }
@@ -15975,10 +16170,44 @@ function App() {
   // become the thread and the chat adopts that conversation's id, so the next turn rewrites it
   // rather than filing a second copy. The messages are restored VERBATIM, which is what brings
   // the source cards back -- they are rendered from the reply text that was saved.
+  // BATCH B, ITEM 3 -- AND IT NOW GOES TO THE CHAT, WHICH IS THE WHOLE REPAIR.
+  //
+  // THE OWNER'S WORDS: «لمّا أكونُ في الرئيسيّةِ وهي صفحةُ الأقسام، وأضغطُ القائمةَ الجانبيّةَ
+  // وأروحُ حقّ سؤالٍ سألتُه عزك من قبل — ما يودّيني لها أبدًا. لازم أضغطُ محادثةً جديدةً بعدين
+  // أروحُ للمحادثةِ اللي أبي».
+  //
+  // WHAT WAS MEASURED, with two conversations seeded in the store's own shape. From the CHAT the
+  // row worked: the conversation's own body was on the screen afterwards. From the HOME the row
+  // was seen and pressed, and the reader stayed on the shelf with that body nowhere -- the same
+  // press, the opposite outcome, which is exactly the difference that names the defect.
+  //
+  // AND THE CAUSE IS THE LINE THAT WAS NEVER HERE. Everything below selects the conversation --
+  // the id, the messages, the scroll pins, the folded replies -- and NOTHING moved the screen.
+  // On the chat that is invisible, because the screen is already the chat and the new messages
+  // simply appear. On the home the state changed under a screen that does not draw it, so the
+  // application had faithfully opened a conversation the reader could not see. Pressing «محادثة
+  // جديدة» first worked only because startChatFromMenu carries a setScreen('chat') of its own --
+  // which is the tell, and the reason the owner had found that workaround.
+  //
+  // ONE LINE, AND IT IS PUT WHERE EVERY DOOR PASSES. The drawer's row, the drawer's search
+  // result and the favourites sheet all reach a saved conversation through this function, so a
+  // navigation added here needs no call site to change -- and three guards pin those call sites
+  // byte for byte (chat-history-guard on the row, chat-ux-guard on both closeDrawerWith forms,
+  // theme-coverage on openFavoriteChat's whole body), which a second argument would have broken.
+  //
+  // IT DOES NOT FIGHT THE HISTORY. closeDrawerWith spends the menu's own entry FIRST and runs
+  // this afterwards, so the screen set here is the last word on the drawer's path. On the
+  // favourites path openFavoriteChat calls goEzikBack() immediately after this returns, and that
+  // pop resolves the destination as it always did -- so that sheet behaves exactly as it does
+  // today, which is measured rather than assumed.
+  //
+  // NOTHING IS CLEARED AND NO NEW CONVERSATION IS OPENED: resetThread and newChat are untouched,
+  // and «محادثة جديدة» keeps its own route, character for character.
   const openSavedChat = (id) => {
     try { abortRef.current?.abort(); } catch (e) {}
     abortRef.current = null;
     cancelAudio();
+    setScreen('chat');
     chatIdRef.current = id;
     // S97: arm the pin BEFORE the messages are handed to React, so the layout effect that runs
     // inside this very commit already knows to land at the end. Set after, it would be one paint
@@ -17851,6 +18080,15 @@ function App() {
       // "delete all my data". It is entered in tools/delete-truth-measure.cjs in this same
       // commit, which is the roster that holds this line to account.
       try { localStorage.removeItem(EZC_GOLD_PRICE_KEY); } catch (e) {}
+      // DEFECT 14 (item 88) -- AND THE PLACE THIS TAB WAS STANDING IN, on the owner's standing
+      // rule that every key this app writes is erased by «delete all my data». It is the only
+      // one of these that lives in sessionStorage rather than localStorage, and it holds one
+      // shelf id for the life of one tab -- but leaving it would return the device to half a
+      // first open: no profile, no session, and then a refresh that walks the next reader
+      // straight into the section the last one was reading. It is entered in
+      // tools/delete-truth-measure.cjs in this same commit, which is the roster that holds
+      // this line to account.
+      ezikClearResume();
       // ITEMS 43-ب / 47-ب -- THE REMINDER TIMES, ON EXACTLY THE TERMS THE POSITION ABOVE GOES ON.
       // The hours a reader chose to be interrupted at are a record of that reader and of nobody
       // else, and "delete all my data" must not hand them to whoever sets this device up next --
@@ -21274,10 +21512,32 @@ function EzikFeedbackSheet({ onBack, onSignIn, onSeen }) {
   // page is about to stop existing: the press navigates to the provider and the tab comes back
   // on a fresh load. 'wants' is the note that says he is coming back HERE and not merely that
   // there is an unsent draft lying about -- the root effect reads it, and this panel clears it.
-  const divertToSignIn = () => {
+  // DEFECT 4 (item 88) -- THE LINE IS SAID, AND THE SCREEN DOES NOT MOVE.
+  //
+  // WHAT WAS MEASURED. Seventy-six characters were typed into the one visible field and
+  // «إرسال» was pressed. The panel set feedback.signInRequired on the line above and then
+  // called onSignIn() ON THE SAME TICK -- which pops this panel's history entry and opens
+  // الإعدادات. React never painted a frame carrying the sentence: the reader watched his
+  // complaint screen turn into a settings screen and was told nothing at all about his
+  // message. Not one of the six outcome lines this panel owns reached the glass, and the
+  // draft it had just saved was invisible from where he now stood.
+  //
+  // SO THE TWO ACTS ARE SPLIT. This one is the REFUSAL: it keeps what he wrote, says why
+  // it was refused, and leaves him looking at his own words. The «تسجيل الدخول» button
+  // below -- which this panel already draws the moment "err" is set -- is the HAND-OFF, and
+  // it is his press and not ours. Nothing about the draft changes: both routes write it
+  // through the same function, so either way the text survives the trip.
+  const refuseForSignIn = () => {
     writeFbDraft({ type, text, contact, wants: EZIK_FB_WANTS_SIGNIN });
     setBusy(false);
     setErr(ezT('feedback.signInRequired'));
+  };
+
+  // THE HAND-OFF, and the only thing in this file that leaves the panel. It is wired to the
+  // button the reader presses after reading the line above, and to nothing else.
+  const divertToSignIn = () => {
+    writeFbDraft({ type, text, contact, wants: EZIK_FB_WANTS_SIGNIN });
+    setBusy(false);
     if (typeof onSignIn === 'function') onSignIn();
   };
 
@@ -21289,7 +21549,7 @@ function EzikFeedbackSheet({ onBack, onSignIn, onSeen }) {
     // makes the check honest, because a session this device believes in may have died in the
     // store and only the server can know that.
     const held = readAuthSession();
-    if (!held || typeof held.session !== 'string' || !held.session) { divertToSignIn(); return; }
+    if (!held || typeof held.session !== 'string' || !held.session) { refuseForSignIn(); return; }
     setErr('');
     setBusy(true);
     let res = null;
@@ -21322,7 +21582,7 @@ function EzikFeedbackSheet({ onBack, onSignIn, onSeen }) {
     // FOUR ANSWERS, AND «وصلت» IS SAID FOR EXACTLY ONE OF THEM. A refusal, a dead session and a
     // transport failure are each told as what they are; none is dressed as a success, which is
     // the one outcome this form is forbidden to fake.
-    if (res && res.status === 401) { divertToSignIn(); return; }
+    if (res && res.status === 401) { refuseForSignIn(); return; }
     if (res && res.status === 429) { setErr(ezT('feedback.capped')); return; }
     if (!res || !res.ok) { setErr(ezT('feedback.failed')); return; }
     // THE DRAFT DIES WITH THE MESSAGE THAT WAS MADE OF IT. Keeping it would re-seed the next
@@ -28570,6 +28830,14 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
   useEffect(() => {
     if (autoResumedRef.current) return;
     autoResumedRef.current = true;
+    // BATCH B, ITEM 1 -- A RELOAD LANDS ON THE INDEX, A WALK-IN STILL LANDS ON THE PAGE.
+    // The reading page has no way to the shelf (two controls, «ضع العلامة» and «السور»,
+    // and «السور» only reaches the index), so a reader returned to it by a RELOAD is two
+    // presses from the shelf with nothing on the screen saying so. Entering المصحف from
+    // the shelf is a choice and keeps item 87's promise untouched; being put back by a
+    // reload is not, so that one case stops on the index -- which carries «رجوع» -- with
+    // the resume row item 87 kept sitting at the top of it.
+    if (ezikResumeTakeEntered('mushaf')) return;
     const lp = readMushafLastPage();
     if (!lp) return;
     setOpenAt(lp);
@@ -29521,6 +29789,12 @@ const s = {
   eziaReadOuter: { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' },
   eziaReadScroll: { flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' },
   eziaReadTitle: { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 15, fontWeight: 800, color: 'var(--a3-ink)' },
+  // DEFECT 12 (item 88): the section's name over the group's, in one column inside the brand.
+  // .ezia-brand is an inline-flex ROW that centres its children, so a column child stacks the
+  // two lines without any rule in the sheet moving. minWidth 0 is what lets the title below
+  // keep its ellipsis inside a flex parent.
+  eziaReadStack: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0, lineHeight: 1.15 },
+  eziaReadSection: { fontSize: 11, fontWeight: 700, color: 'var(--a3-muted)', whiteSpace: 'nowrap' },
   eziaReadHead: { display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: 6 },
   eziaReadPos: { fontSize: 12.5, fontWeight: 800, color: 'var(--a3-blue)' },
   eziaReadRepeat: { padding: '3px 9px', borderRadius: 999, background: 'var(--a3-ice)', color: 'var(--a3-blue)', fontSize: 12, fontWeight: 800 },

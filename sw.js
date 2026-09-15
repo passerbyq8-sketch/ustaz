@@ -51,7 +51,7 @@
 // stranded on a dead build. The HTML shell is network-first (6b) so it is always fresh online
 // regardless of the version; the bump refreshes the CACHE-FIRST assets (icons/fonts). The JSON
 // data files no longer NEED the bump -- they revalidate themselves -- but they still honour it.
-const CACHE = 'ezik-v34';
+const CACHE = 'ezik-v35';
 // '/index.html' is NOT here. Vercel serves this document byte-identically for '/' and for
 // '/index.html', so precaching both downloaded the whole shell TWICE on every cold visit --
 // a second copy of the 153974 bytes '/' already holds. The network-first branch below still
@@ -139,7 +139,7 @@ const CORE = [
 // ---------------------------------------------------------------------------
 
 // The measured cost of CORE, byte for byte, at the commit that cut this constant:
-//   /  (index.html) 153974 + app.js 1713640 + icon-watermark.png 368386
+//   /  (index.html) 153974 + app.js 1730899 + icon-watermark.png 368386
 //   + adhkar.json 177392 + vendor/react-dom.umd.js 131835 + sunan-day.json 84759
 //   + arbaeen.json 67360 + daily-tafsir.json 23984 + icon-512.png 12893
 //   + vendor/react.umd.js 10751 + arbaeen-footnotes.json 9322 + adhkar-split-27.json 7182
@@ -162,7 +162,7 @@ const CORE = [
 // constant, that table, and the sw.js digest in quest-bank-integrity-guard.cjs in the SAME
 // commit -- item 89-b is the worked example. CACHE is untouched by all of it: the store name is
 // a ship decision and the merge round owns the bump.
-const CORE_BYTES = 2886730;
+const CORE_BYTES = 2903989;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
 // re-cut by hand always trails the files it describes by some amount.

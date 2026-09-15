@@ -706,7 +706,22 @@ ok('bookmark row keeps the ribbon glyph', SRC.slice(iBookRow, iBookRow + 900).in
 const ms = SRC.indexOf('function MushafScreen(');
 const msEnd = SRC.indexOf('function MemorizeScreen(', ms);
 const msBody = SRC.slice(ms, msEnd > ms ? msEnd : ms + 6000);
-ok('the mushaf resumes on mount', /useEffect\(\(\) => \{[\s\S]{0,400}?setSelected\(lp\.s\);/.test(msBody));
+// ITEM 88 BATCH B, ITEM 1 -- THE CLAIM IS UNCHANGED AND THE WINDOW IS WIDER. The restore
+// still fires on mount from the contracted key, and the three lines below still assert every
+// part of it. What grew is the comment that now stands inside the effect explaining the one
+// path it declines, so the 400-character window this pattern searched simply ran out of room.
+ok('the mushaf resumes on mount', /useEffect\(\(\) => \{[\s\S]{0,1600}?setSelected\(lp\.s\);/.test(msBody));
+// ...AND THE ONE PATH IT NOW DECLINES, PINNED BY NAME. The owner ruled that a RELOAD inside
+// the mushaf must come back to a level the reader can leave in ONE press, and the reading page
+// is not one: it carries two controls, the bookmark and the one that goes up to the index, and
+// neither reaches the shelf. So a mount caused by the boot's own resume stops on the index, and
+// every other mount resumes the page exactly as it did. This asserts the refusal is spelt that
+// way and no other -- a bare early return, or one keyed on something else, would silently take
+// the resume away from the tap as well, which is the half that must not move.
+ok('...except the one mount a reload caused, which stops on the index',
+  /if \(ezikResumeTakeEntered\('mushaf'\)\) return;/.test(msBody)
+  && /const lp = readMushafLastPage\(\);/.test(msBody)
+  && msBody.indexOf("ezikResumeTakeEntered('mushaf')") < msBody.indexOf('const lp = readMushafLastPage();'));
 ok('...from the contracted key, through its one refusing reader',
   /const lp = readMushafLastPage\(\);/.test(msBody)
   && /if \(!lp\) return;/.test(msBody)

@@ -1,0 +1,112 @@
+{
+  "at": "2026-09-14T16:17:18.905Z",
+  "target": "https://ezik.app/",
+  "wire": [
+    {
+      "name": "fatwas-browse",
+      "path": "/api/v1/fatwas/browse?scholar=all&page=1&limit=20&view=full",
+      "ms": [
+        3470,
+        887,
+        949
+      ],
+      "medianMs": 949,
+      "statuses": [
+        200,
+        200,
+        200
+      ],
+      "sizes": [
+        121520,
+        121520,
+        121520
+      ]
+    },
+    {
+      "name": "lessons-browse",
+      "path": "/api/lessons-browse",
+      "ms": [
+        718,
+        531,
+        691
+      ],
+      "medianMs": 691,
+      "statuses": [
+        200,
+        200,
+        200
+      ],
+      "sizes": [
+        2202,
+        2202,
+        2202
+      ]
+    }
+  ],
+  "open": [
+    {
+      "section": "fatwa",
+      "runs": [
+        {
+          "leftHome": 0,
+          "body": -1,
+          "loader": 0,
+          "loaderText": "اسم الشيخ كل الفتاوى ابن باز بحث جارٍ فتح قائمة الفتاوى…",
+          "len": 830,
+          "shot": "001-live-fatwa-0.png"
+        },
+        {
+          "leftHome": 0,
+          "body": -1,
+          "loader": 0,
+          "loaderText": "اسم الشيخ كل الفتاوى ابن باز بحث جارٍ فتح قائمة الفتاوى…",
+          "len": 830,
+          "shot": "002-live-fatwa-1.png"
+        },
+        {
+          "leftHome": 0,
+          "body": -1,
+          "loader": 0,
+          "loaderText": "اسم الشيخ كل الفتاوى ابن باز بحث جارٍ فتح قائمة الفتاوى…",
+          "len": 830,
+          "shot": "003-live-fatwa-2.png"
+        }
+      ],
+      "medianBodyMs": -1,
+      "medianLoaderMs": 0,
+      "loaderEverShown": true
+    },
+    {
+      "section": "lessons",
+      "runs": [
+        {
+          "leftHome": 0,
+          "body": 632,
+          "loader": 0,
+          "loaderText": "الدروس تصفُّح بحث المشايخ ● ● ● يُحمِّلُ الآنَ…",
+          "len": 1057,
+          "shot": "004-live-lessons-0.png"
+        },
+        {
+          "leftHome": 0,
+          "body": 761,
+          "loader": 0,
+          "loaderText": "الدروس تصفُّح بحث المشايخ ● ● ● يُحمِّلُ الآنَ…",
+          "len": 1057,
+          "shot": "005-live-lessons-1.png"
+        },
+        {
+          "leftHome": 0,
+          "body": 744,
+          "loader": 0,
+          "loaderText": "الدروس تصفُّح بحث المشايخ ● ● ● يُحمِّلُ الآنَ…",
+          "len": 1057,
+          "shot": "006-live-lessons-2.png"
+        }
+      ],
+      "medianBodyMs": 744,
+      "medianLoaderMs": 0,
+      "loaderEverShown": true
+    }
+  ]
+}

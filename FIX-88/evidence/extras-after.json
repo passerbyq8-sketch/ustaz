@@ -1,0 +1,559 @@
+{
+  "tree": "C:\\Users\\passe\\projects\\ustaz-fix88",
+  "label": "after",
+  "at": "2026-09-14T17:17:21.045Z",
+  "results": [
+    {
+      "family": "abort",
+      "section": "articles",
+      "textLen": 93,
+      "text": "مقالات عزك\nتعذَّر جلبُ ما في هذا القسم. تحقَّقْ من الاتصال ثمّ أعِدِ المحاولة.\nإعادة المحاولة",
+      "live": [
+        {
+          "role": "alert",
+          "text": "تعذَّر جلبُ ما في هذا القسم. تحقَّقْ من الاتصال ثمّ أعِدِ المحاولة.\nإعادة المحاولة"
+        }
+      ],
+      "keys": [
+        "common.retry",
+        "lessons.retry",
+        "lessons.browseRetry",
+        "module.articles",
+        "articles.error",
+        "articles.shapeArticle",
+        "articles.sectionLabel"
+      ],
+      "spoke": true,
+      "shot": "001-after-abort-articles.png",
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_CONNECTION_FAILED",
+        "Failed to load resource: net::ERR_CONNECTION_FAILED",
+        "Failed to load resource: net::ERR_CONNECTION_FAILED"
+      ]
+    },
+    {
+      "family": "abort",
+      "section": "women",
+      "textLen": 93,
+      "text": "ركن النساء\nتعذَّر جلبُ ما في هذا القسم. تحقَّقْ من الاتصال ثمّ أعِدِ المحاولة.\nإعادة المحاولة",
+      "live": [
+        {
+          "role": "alert",
+          "text": "تعذَّر جلبُ ما في هذا القسم. تحقَّقْ من الاتصال ثمّ أعِدِ المحاولة.\nإعادة المحاولة"
+        }
+      ],
+      "keys": [
+        "common.retry",
+        "lessons.retry",
+        "lessons.browseRetry",
+        "module.women",
+        "articles.error",
+        "articles.sectionLabel"
+      ],
+      "spoke": true,
+      "shot": "002-after-abort-women.png",
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_CONNECTION_FAILED",
+        "Failed to load resource: net::ERR_CONNECTION_FAILED",
+        "Failed to load resource: net::ERR_CONNECTION_FAILED"
+      ]
+    },
+    {
+      "family": "abort",
+      "section": "lessons",
+      "textLen": 63,
+      "text": "الدروس\nتصفُّح\nبحث\nالمشايخ\nتعذّرَ التحميلُ الآنَ.\nأعِدِ المحاولة",
+      "live": [
+        {
+          "role": "alert",
+          "text": "تعذّرَ التحميلُ الآنَ.\nأعِدِ المحاولة"
+        }
+      ],
+      "keys": [
+        "module.lessons",
+        "lessons.retry",
+        "lessons.tabBrowse",
+        "lessons.scholarsTitle",
+        "lessons.browseError",
+        "lessons.browseRetry",
+        "sources.lessons"
+      ],
+      "spoke": true,
+      "shot": "003-after-abort-lessons.png",
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_CONNECTION_FAILED"
+      ]
+    },
+    {
+      "family": "abort",
+      "section": "fatwa",
+      "textLen": 76,
+      "text": "اسم الشيخ\nكل الفتاوى\nابن باز\nبحث\nتعذّر الاتصال بخادم الفتاوى. حاول مرة أخرى.",
+      "live": [
+        {
+          "role": "alert",
+          "text": "تعذّر الاتصال بخادم الفتاوى. حاول مرة أخرى."
+        }
+      ],
+      "keys": [
+        "errors.network",
+        "module.fatwa",
+        "fatwa.scholarLabel",
+        "fatwa.defaultScholar",
+        "fatwa.allScholars",
+        "fatwa.error",
+        "favorites.kind.fatwa",
+        "sources.fatwa"
+      ],
+      "spoke": true,
+      "shot": "004-after-abort-fatwa.png",
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_CONNECTION_FAILED",
+        "Failed to load resource: net::ERR_CONNECTION_FAILED"
+      ]
+    },
+    {
+      "family": "lessons-search",
+      "mode": "429",
+      "tabFound": 1,
+      "inputs": 1,
+      "buttons": 1,
+      "textLen": 59,
+      "live": [
+        {
+          "role": "alert",
+          "text": "تعذّرَ البحثُ الآنَ.\nأعِدِ المحاولة"
+        }
+      ],
+      "keys": [
+        "module.lessons",
+        "lessons.searchButton",
+        "lessons.error",
+        "lessons.retry",
+        "lessons.tabBrowse",
+        "lessons.browseRetry",
+        "sources.lessons"
+      ],
+      "spoke": true,
+      "shot": "005-after-lsearch-429.png",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+      ]
+    },
+    {
+      "family": "lessons-search",
+      "mode": "503",
+      "tabFound": 1,
+      "inputs": 1,
+      "buttons": 1,
+      "textLen": 59,
+      "live": [
+        {
+          "role": "alert",
+          "text": "تعذّرَ البحثُ الآنَ.\nأعِدِ المحاولة"
+        }
+      ],
+      "keys": [
+        "module.lessons",
+        "lessons.searchButton",
+        "lessons.error",
+        "lessons.retry",
+        "lessons.tabBrowse",
+        "lessons.browseRetry",
+        "sources.lessons"
+      ],
+      "spoke": true,
+      "shot": "006-after-lsearch-503.png",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+      ]
+    },
+    {
+      "family": "lessons-search",
+      "mode": "abort",
+      "tabFound": 1,
+      "inputs": 1,
+      "buttons": 1,
+      "textLen": 59,
+      "live": [
+        {
+          "role": "alert",
+          "text": "تعذّرَ البحثُ الآنَ.\nأعِدِ المحاولة"
+        }
+      ],
+      "keys": [
+        "module.lessons",
+        "lessons.searchButton",
+        "lessons.error",
+        "lessons.retry",
+        "lessons.tabBrowse",
+        "lessons.browseRetry",
+        "sources.lessons"
+      ],
+      "spoke": true,
+      "shot": "007-after-lsearch-abort.png",
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_CONNECTION_FAILED"
+      ]
+    },
+    {
+      "family": "lessons-search",
+      "mode": "empty",
+      "tabFound": 1,
+      "inputs": 1,
+      "buttons": 1,
+      "textLen": 45,
+      "live": [
+        {
+          "role": "status",
+          "text": "لا نتائجَ لهذا البحث."
+        }
+      ],
+      "keys": [
+        "module.lessons",
+        "lessons.searchButton",
+        "lessons.empty",
+        "lessons.tabBrowse",
+        "sources.lessons"
+      ],
+      "spoke": true,
+      "shot": "008-after-lsearch-empty.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "one2",
+      "id": "fatwa-source",
+      "rowFound": 1,
+      "present": 1,
+      "shape": {
+        "t": "فتح المصدر الرسمي",
+        "a": "",
+        "g": "a",
+        "h": "https://example.invalid/rig",
+        "tg": "_blank"
+      },
+      "sameTabChanged": false,
+      "newTabOpened": true,
+      "newTabUrl": "chrome-error://chromewebdata/",
+      "shot": "009-after-fatwa-source-open.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "refresh2",
+      "section": "articles",
+      "beforeHead": "مقالات عزك\nRIG-ONE\n٢٠٢٦/٠٩/٠١\nRIG-TWO\nسؤال وجواب\n٢٠٢٦/٠٩/٠٢",
+      "beforeWhere": "other",
+      "afterHead": "مقالات عزك\nRIG-ONE\n٢٠٢٦/٠٩/٠١\nRIG-TWO\nسؤال وجواب\n٢٠٢٦/٠٩/٠٢",
+      "afterWhere": "other",
+      "restored": true,
+      "shot": "010-after-refresh-articles.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "refresh2",
+      "section": "adhkar",
+      "beforeHead": "الأذكار\nأذكار المساء\n٠ من ٢١\n١ / ٢١\nأَعُوذُ بِاللَّهِ مِنَ الشَّيطَانِ الرَّجِيمِ ﴿اللَّهُ لاَ إِلَهَ إِلاَّ هُوَ الْحَيُّ الْقَيُّومُ لاَ تَأْخُذُهُ سِنَةٌ وَل",
+      "beforeWhere": "other",
+      "afterHead": "الأذكار\nأذكار المساء\n٠ من ٢١\n١ / ٢١\nأَعُوذُ بِاللَّهِ مِنَ الشَّيطَانِ الرَّجِيمِ ﴿اللَّهُ لاَ إِلَهَ إِلاَّ هُوَ الْحَيُّ الْقَيُّومُ لاَ تَأْخُذُهُ سِنَةٌ وَل",
+      "afterWhere": "other",
+      "restored": true,
+      "shot": "011-after-refresh-adhkar.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "refresh2",
+      "section": "fatwa",
+      "beforeHead": "اسم الشيخ\nكل الفتاوى\nRIG-SH\nبحث\nالفتاوى مرتبة أبجديًّا — 1 فتوى، الصفحة 1 من 1.\nRIG-FATWA\nRIG-SH",
+      "beforeWhere": "other",
+      "afterHead": "اسم الشيخ\nكل الفتاوى\nRIG-SH\nبحث\nالفتاوى مرتبة أبجديًّا — 1 فتوى، الصفحة 1 من 1.\nRIG-FATWA\nRIG-SH",
+      "afterWhere": "other",
+      "restored": true,
+      "shot": "012-after-refresh-fatwa.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "refresh2",
+      "section": "lessons",
+      "beforeHead": "الدروس\nتصفُّح\nبحث\nالمشايخ\n٧ درسًا\nRIG-SCHOLAR\n٧ درسًا",
+      "beforeWhere": "other",
+      "afterHead": "الدروس\nتصفُّح\nبحث\nالمشايخ\n٧ درسًا\nRIG-SCHOLAR\n٧ درسًا",
+      "afterWhere": "other",
+      "restored": true,
+      "shot": "013-after-refresh-lessons.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "refresh2",
+      "section": "mushaf",
+      "beforeHead": "المصحف\nاليوم ٠ · حدّد وردك\nالانتقال إلى جزء\nالجزء ١\nصفحة ١\nالجزء ٢\nصفحة ٢٢\nالجزء ٣\nصفحة ٤٢\nالجزء ٤\nصفحة ٦٢\nالجزء ٥\nصفحة ٨٢\nالجزء ٦\nصفحة ١٠٢\nالجزء ٧\nصفحة ١٢١\nالج",
+      "beforeWhere": "other",
+      "afterHead": "المصحف\nاليوم ٠ · حدّد وردك\nالانتقال إلى جزء\nالجزء ١\nصفحة ١\nالجزء ٢\nصفحة ٢٢\nالجزء ٣\nصفحة ٤٢\nالجزء ٤\nصفحة ٦٢\nالجزء ٥\nصفحة ٨٢\nالجزء ٦\nصفحة ١٠٢\nالجزء ٧\nصفحة ١٢١\nالج",
+      "afterWhere": "other",
+      "restored": true,
+      "shot": "014-after-refresh-mushaf.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "refresh2",
+      "section": "women",
+      "beforeHead": "ركن النساء\nRIG-ONE\n٢٠٢٦/٠٩/٠١\nRIG-TWO\nسؤال وجواب\n٢٠٢٦/٠٩/٠٢",
+      "beforeWhere": "other",
+      "afterHead": "ركن النساء\nRIG-ONE\n٢٠٢٦/٠٩/٠١\nRIG-TWO\nسؤال وجواب\n٢٠٢٦/٠٩/٠٢",
+      "afterWhere": "other",
+      "restored": true,
+      "shot": "015-after-refresh-women.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "one2",
+      "id": "mushaf-back",
+      "topBackCount": 1,
+      "topHead": "المصحف\nاليوم ٠ · حدّد وردك\nالانتقال إلى جزء\nالجزء ١\nصفحة ١\nالجزء ٢\nصفحة ٢٢\nالجزء ٣\nصفحة ٤٢\nالجزء ٤\nصفحة ٦٢\nالجزء ٥\nصفحة ",
+      "rowsAvailable": 89,
+      "openErr": "locator.click: Timeout 6000ms exceeded.",
+      "insideBackCount": 1,
+      "insideHead": "المصحف\nاليوم ٠ · حدّد وردك\nالانتقال إلى جزء\nالجزء ١\nصفحة ١\nالجزء ٢\nصفحة ٢٢\nالجزء ٣\nصفحة ٤٢\nالجزء ٤\nصفحة ٦٢\nالجزء ٥\nصفحة ",
+      "reenterBackCount": 1,
+      "reenterHead": "المصحف\nاليوم ٠ · حدّد وردك\nالانتقال إلى جزء\nالجزء ١\nصفحة ١\nالجزء ٢\nصفحة ٢٢\nالجزء ٣\nصفحة ٤٢\nالجزء ٤\nصفحة ٦٢\nالجزء ٥\nصفحة ",
+      "shot": "016-after-mushaf-reenter.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "one2",
+      "id": "treasure-overlap",
+      "url": "http://127.0.0.1:49226/quest.html",
+      "pairs": [
+        {
+          "a": "قصصُ الأنبياء\n١٤ محطّات · ١٢٠ سؤالًا\n★ ٠",
+          "b": "الخريطة",
+          "aBox": [
+            201,
+            750,
+            374,
+            968
+          ],
+          "bBox": [
+            293,
+            777,
+            390,
+            832
+          ],
+          "overlap": [
+            82,
+            56
+          ],
+          "hitIsA": false,
+          "hitIsB": true,
+          "hitName": "",
+          "aBuried": false,
+          "bBuried": false
+        },
+        {
+          "a": "قصصُ الأنبياء\n١٤ محطّات · ١٢٠ سؤالًا\n★ ٠",
+          "b": "التحدّيات",
+          "aBox": [
+            201,
+            750,
+            374,
+            968
+          ],
+          "bBox": [
+            195,
+            777,
+            293,
+            832
+          ],
+          "overlap": [
+            92,
+            56
+          ],
+          "hitIsA": false,
+          "hitIsB": true,
+          "hitName": "",
+          "aBuried": false,
+          "bBuried": false
+        },
+        {
+          "a": "السيرةُ النبويّة\n١٤ محطّات · ١٢٥ سؤالًا\n",
+          "b": "الكنوز",
+          "aBox": [
+            16,
+            750,
+            189,
+            968
+          ],
+          "bBox": [
+            98,
+            777,
+            195,
+            832
+          ],
+          "overlap": [
+            92,
+            56
+          ],
+          "hitIsA": false,
+          "hitIsB": true,
+          "hitName": "",
+          "aBuried": false,
+          "bBuried": false
+        },
+        {
+          "a": "السيرةُ النبويّة\n١٤ محطّات · ١٢٥ سؤالًا\n",
+          "b": "أنا",
+          "aBox": [
+            16,
+            750,
+            189,
+            968
+          ],
+          "bBox": [
+            0,
+            777,
+            98,
+            832
+          ],
+          "overlap": [
+            82,
+            56
+          ],
+          "hitIsA": false,
+          "hitIsB": true,
+          "hitName": "",
+          "aBuried": false,
+          "bBuried": false
+        }
+      ],
+      "count": 4,
+      "anyBuried": false,
+      "anyUnreachable": false,
+      "shot": "017-after-treasure-overlap.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "feedback",
+      "mode": "rows",
+      "textareas": 1,
+      "beforeHead": "اقتراح أو شكوى\nالنوع\nاقتراح\nشكوى\nبلاغ خطأ\nالنصّ\nالمتبقّي: 1128\nلا يُرسَلُ مع رسالتِك سؤالٌ ولا جوابٌ ولا شيءٌ من محادثات",
+      "sendButtons": 1,
+      "afterHead": "اقتراح أو شكوى\nالنوع\nاقتراح\nشكوى\nبلاغ خطأ\nالنصّ\nالمتبقّي: 1128\nلا يُرسَلُ مع رسالتِك سؤالٌ ولا جوابٌ ولا شيءٌ من محادثاتِك.\nوسيلة تواصل (اختياريّة)\nاختياريّة — اتركها فارغة إن شئت.\nسجِّلْ دخولَك أوّلًا؛ فبالحسابِ وحدَه يصلُك الرَّدُّ على رس",
+      "live": [
+        {
+          "role": "status",
+          "text": "المتبقّي: 1128"
+        },
+        {
+          "role": "alert",
+          "text": "سجِّلْ دخولَك أوّلًا؛ فبالحسابِ وحدَه يصلُك الرَّدُّ على رسالتِك. ما كتبتَه محفوظٌ كما هو."
+        }
+      ],
+      "outcomeLines": [
+        "feedback.signInRequired",
+        "feedback.noChat"
+      ],
+      "signInGoShown": true,
+      "stillOnDoor": true,
+      "screenChanged": true,
+      "shot": "018-after-feedback-rows.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "feedback",
+      "mode": "429",
+      "textareas": 1,
+      "beforeHead": "اقتراح أو شكوى\nالنوع\nاقتراح\nشكوى\nبلاغ خطأ\nالنصّ\nالمتبقّي: 1128\nلا يُرسَلُ مع رسالتِك سؤالٌ ولا جوابٌ ولا شيءٌ من محادثات",
+      "sendButtons": 1,
+      "afterHead": "اقتراح أو شكوى\nالنوع\nاقتراح\nشكوى\nبلاغ خطأ\nالنصّ\nالمتبقّي: 1128\nلا يُرسَلُ مع رسالتِك سؤالٌ ولا جوابٌ ولا شيءٌ من محادثاتِك.\nوسيلة تواصل (اختياريّة)\nاختياريّة — اتركها فارغة إن شئت.\nسجِّلْ دخولَك أوّلًا؛ فبالحسابِ وحدَه يصلُك الرَّدُّ على رس",
+      "live": [
+        {
+          "role": "status",
+          "text": "المتبقّي: 1128"
+        },
+        {
+          "role": "alert",
+          "text": "سجِّلْ دخولَك أوّلًا؛ فبالحسابِ وحدَه يصلُك الرَّدُّ على رسالتِك. ما كتبتَه محفوظٌ كما هو."
+        }
+      ],
+      "outcomeLines": [
+        "feedback.signInRequired",
+        "feedback.noChat"
+      ],
+      "signInGoShown": true,
+      "stillOnDoor": true,
+      "screenChanged": true,
+      "shot": "019-after-feedback-429.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "feedback",
+      "mode": "503",
+      "textareas": 1,
+      "beforeHead": "اقتراح أو شكوى\nالنوع\nاقتراح\nشكوى\nبلاغ خطأ\nالنصّ\nالمتبقّي: 1128\nلا يُرسَلُ مع رسالتِك سؤالٌ ولا جوابٌ ولا شيءٌ من محادثات",
+      "sendButtons": 1,
+      "afterHead": "اقتراح أو شكوى\nالنوع\nاقتراح\nشكوى\nبلاغ خطأ\nالنصّ\nالمتبقّي: 1128\nلا يُرسَلُ مع رسالتِك سؤالٌ ولا جوابٌ ولا شيءٌ من محادثاتِك.\nوسيلة تواصل (اختياريّة)\nاختياريّة — اتركها فارغة إن شئت.\nسجِّلْ دخولَك أوّلًا؛ فبالحسابِ وحدَه يصلُك الرَّدُّ على رس",
+      "live": [
+        {
+          "role": "status",
+          "text": "المتبقّي: 1128"
+        },
+        {
+          "role": "alert",
+          "text": "سجِّلْ دخولَك أوّلًا؛ فبالحسابِ وحدَه يصلُك الرَّدُّ على رسالتِك. ما كتبتَه محفوظٌ كما هو."
+        }
+      ],
+      "outcomeLines": [
+        "feedback.signInRequired",
+        "feedback.noChat"
+      ],
+      "signInGoShown": true,
+      "stillOnDoor": true,
+      "screenChanged": true,
+      "shot": "020-after-feedback-503.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "feedback",
+      "mode": "abort",
+      "textareas": 1,
+      "beforeHead": "اقتراح أو شكوى\nالنوع\nاقتراح\nشكوى\nبلاغ خطأ\nالنصّ\nالمتبقّي: 1128\nلا يُرسَلُ مع رسالتِك سؤالٌ ولا جوابٌ ولا شيءٌ من محادثات",
+      "sendButtons": 1,
+      "afterHead": "اقتراح أو شكوى\nالنوع\nاقتراح\nشكوى\nبلاغ خطأ\nالنصّ\nالمتبقّي: 1128\nلا يُرسَلُ مع رسالتِك سؤالٌ ولا جوابٌ ولا شيءٌ من محادثاتِك.\nوسيلة تواصل (اختياريّة)\nاختياريّة — اتركها فارغة إن شئت.\nسجِّلْ دخولَك أوّلًا؛ فبالحسابِ وحدَه يصلُك الرَّدُّ على رس",
+      "live": [
+        {
+          "role": "status",
+          "text": "المتبقّي: 1128"
+        },
+        {
+          "role": "alert",
+          "text": "سجِّلْ دخولَك أوّلًا؛ فبالحسابِ وحدَه يصلُك الرَّدُّ على رسالتِك. ما كتبتَه محفوظٌ كما هو."
+        }
+      ],
+      "outcomeLines": [
+        "feedback.signInRequired",
+        "feedback.noChat"
+      ],
+      "signInGoShown": true,
+      "stillOnDoor": true,
+      "screenChanged": true,
+      "shot": "021-after-feedback-abort.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "one2",
+      "id": "greeting",
+      "found": false,
+      "line": "",
+      "tail": "",
+      "tailEmpty": false,
+      "plainGreetingShown": true,
+      "shot": "022-after-greeting.png"
+    },
+    {
+      "family": "one2",
+      "id": "adhkar-head",
+      "head": "الأذكار\nأذكار المساء\n٠ من ٢١\n١ / ٢١\nأَعُوذُ بِاللَّهِ مِنَ الشَّيطَانِ الرَّجِيمِ ﴿اللَّهُ لاَ إِلَهَ إِلاَّ هُوَ الْحَيُّ الْقَيُّومُ لاَ تَأْخُذُهُ سِنَةٌ وَلاَ نَوْمٌ لَّهُ مَا فِي السَّمَوَاتِ وَمَا فِي الأَرْضِ مَن ذَا الَّذِي يَشْفَعُ",
+      "sectionNameInHead": true,
+      "shot": "023-after-adhkar-head.png"
+    }
+  ]
+}

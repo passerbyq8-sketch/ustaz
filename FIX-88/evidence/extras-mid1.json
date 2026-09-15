@@ -1,0 +1,240 @@
+{
+  "tree": "C:\\Users\\passe\\projects\\ustaz-fix88",
+  "label": "mid1",
+  "at": "2026-09-14T16:01:49.849Z",
+  "results": [
+    {
+      "family": "lessons-search",
+      "mode": "429",
+      "tabFound": 1,
+      "inputs": 1,
+      "buttons": 1,
+      "textLen": 59,
+      "live": [
+        {
+          "role": "alert",
+          "text": "تعذّرَ البحثُ الآنَ.\nأعِدِ المحاولة"
+        }
+      ],
+      "keys": [
+        "module.lessons",
+        "lessons.searchButton",
+        "lessons.error",
+        "lessons.retry",
+        "lessons.tabBrowse",
+        "lessons.browseRetry",
+        "sources.lessons"
+      ],
+      "spoke": true,
+      "shot": "001-mid1-lsearch-429.png",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+      ]
+    },
+    {
+      "family": "lessons-search",
+      "mode": "503",
+      "tabFound": 1,
+      "inputs": 1,
+      "buttons": 1,
+      "textLen": 59,
+      "live": [
+        {
+          "role": "alert",
+          "text": "تعذّرَ البحثُ الآنَ.\nأعِدِ المحاولة"
+        }
+      ],
+      "keys": [
+        "module.lessons",
+        "lessons.searchButton",
+        "lessons.error",
+        "lessons.retry",
+        "lessons.tabBrowse",
+        "lessons.browseRetry",
+        "sources.lessons"
+      ],
+      "spoke": true,
+      "shot": "002-mid1-lsearch-503.png",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+      ]
+    },
+    {
+      "family": "lessons-search",
+      "mode": "abort",
+      "tabFound": 1,
+      "inputs": 1,
+      "buttons": 1,
+      "textLen": 59,
+      "live": [
+        {
+          "role": "alert",
+          "text": "تعذّرَ البحثُ الآنَ.\nأعِدِ المحاولة"
+        }
+      ],
+      "keys": [
+        "module.lessons",
+        "lessons.searchButton",
+        "lessons.error",
+        "lessons.retry",
+        "lessons.tabBrowse",
+        "lessons.browseRetry",
+        "sources.lessons"
+      ],
+      "spoke": true,
+      "shot": "003-mid1-lsearch-abort.png",
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_CONNECTION_FAILED"
+      ]
+    },
+    {
+      "family": "lessons-search",
+      "mode": "empty",
+      "tabFound": 1,
+      "inputs": 1,
+      "buttons": 1,
+      "textLen": 45,
+      "live": [
+        {
+          "role": "status",
+          "text": "لا نتائجَ لهذا البحث."
+        }
+      ],
+      "keys": [
+        "module.lessons",
+        "lessons.searchButton",
+        "lessons.empty",
+        "lessons.tabBrowse",
+        "sources.lessons"
+      ],
+      "spoke": true,
+      "shot": "004-mid1-lsearch-empty.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "feedback",
+      "mode": "rows",
+      "textareas": 1,
+      "beforeHead": "اقتراح أو شكوى\nالنوع\nاقتراح\nشكوى\nبلاغ خطأ\nالنصّ\nالمتبقّي: 1128\nلا يُرسَلُ مع رسالتِك سؤالٌ ولا جوابٌ ولا شيءٌ من محادثات",
+      "sendButtons": 1,
+      "afterHead": "اقتراح أو شكوى\nالنوع\nاقتراح\nشكوى\nبلاغ خطأ\nالنصّ\nالمتبقّي: 1128\nلا يُرسَلُ مع رسالتِك سؤالٌ ولا جوابٌ ولا شيءٌ من محادثاتِك.\nوسيلة تواصل (اختياريّة)\nاختياريّة — اتركها فارغة إن شئت.\nسجِّلْ دخولَك أوّلًا؛ فبالحسابِ وحدَه يصلُك الرَّدُّ على رس",
+      "live": [
+        {
+          "role": "status",
+          "text": "المتبقّي: 1128"
+        },
+        {
+          "role": "alert",
+          "text": "سجِّلْ دخولَك أوّلًا؛ فبالحسابِ وحدَه يصلُك الرَّدُّ على رسالتِك. ما كتبتَه محفوظٌ كما هو."
+        }
+      ],
+      "outcomeLines": [
+        "feedback.signInRequired",
+        "feedback.noChat"
+      ],
+      "signInGoShown": true,
+      "stillOnDoor": true,
+      "screenChanged": true,
+      "shot": "005-mid1-feedback-rows.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "feedback",
+      "mode": "429",
+      "textareas": 1,
+      "beforeHead": "اقتراح أو شكوى\nالنوع\nاقتراح\nشكوى\nبلاغ خطأ\nالنصّ\nالمتبقّي: 1128\nلا يُرسَلُ مع رسالتِك سؤالٌ ولا جوابٌ ولا شيءٌ من محادثات",
+      "sendButtons": 1,
+      "afterHead": "اقتراح أو شكوى\nالنوع\nاقتراح\nشكوى\nبلاغ خطأ\nالنصّ\nالمتبقّي: 1128\nلا يُرسَلُ مع رسالتِك سؤالٌ ولا جوابٌ ولا شيءٌ من محادثاتِك.\nوسيلة تواصل (اختياريّة)\nاختياريّة — اتركها فارغة إن شئت.\nسجِّلْ دخولَك أوّلًا؛ فبالحسابِ وحدَه يصلُك الرَّدُّ على رس",
+      "live": [
+        {
+          "role": "status",
+          "text": "المتبقّي: 1128"
+        },
+        {
+          "role": "alert",
+          "text": "سجِّلْ دخولَك أوّلًا؛ فبالحسابِ وحدَه يصلُك الرَّدُّ على رسالتِك. ما كتبتَه محفوظٌ كما هو."
+        }
+      ],
+      "outcomeLines": [
+        "feedback.signInRequired",
+        "feedback.noChat"
+      ],
+      "signInGoShown": true,
+      "stillOnDoor": true,
+      "screenChanged": true,
+      "shot": "006-mid1-feedback-429.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "feedback",
+      "mode": "503",
+      "textareas": 1,
+      "beforeHead": "اقتراح أو شكوى\nالنوع\nاقتراح\nشكوى\nبلاغ خطأ\nالنصّ\nالمتبقّي: 1128\nلا يُرسَلُ مع رسالتِك سؤالٌ ولا جوابٌ ولا شيءٌ من محادثات",
+      "sendButtons": 1,
+      "afterHead": "اقتراح أو شكوى\nالنوع\nاقتراح\nشكوى\nبلاغ خطأ\nالنصّ\nالمتبقّي: 1128\nلا يُرسَلُ مع رسالتِك سؤالٌ ولا جوابٌ ولا شيءٌ من محادثاتِك.\nوسيلة تواصل (اختياريّة)\nاختياريّة — اتركها فارغة إن شئت.\nسجِّلْ دخولَك أوّلًا؛ فبالحسابِ وحدَه يصلُك الرَّدُّ على رس",
+      "live": [
+        {
+          "role": "status",
+          "text": "المتبقّي: 1128"
+        },
+        {
+          "role": "alert",
+          "text": "سجِّلْ دخولَك أوّلًا؛ فبالحسابِ وحدَه يصلُك الرَّدُّ على رسالتِك. ما كتبتَه محفوظٌ كما هو."
+        }
+      ],
+      "outcomeLines": [
+        "feedback.signInRequired",
+        "feedback.noChat"
+      ],
+      "signInGoShown": true,
+      "stillOnDoor": true,
+      "screenChanged": true,
+      "shot": "007-mid1-feedback-503.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "feedback",
+      "mode": "abort",
+      "textareas": 1,
+      "beforeHead": "اقتراح أو شكوى\nالنوع\nاقتراح\nشكوى\nبلاغ خطأ\nالنصّ\nالمتبقّي: 1128\nلا يُرسَلُ مع رسالتِك سؤالٌ ولا جوابٌ ولا شيءٌ من محادثات",
+      "sendButtons": 1,
+      "afterHead": "اقتراح أو شكوى\nالنوع\nاقتراح\nشكوى\nبلاغ خطأ\nالنصّ\nالمتبقّي: 1128\nلا يُرسَلُ مع رسالتِك سؤالٌ ولا جوابٌ ولا شيءٌ من محادثاتِك.\nوسيلة تواصل (اختياريّة)\nاختياريّة — اتركها فارغة إن شئت.\nسجِّلْ دخولَك أوّلًا؛ فبالحسابِ وحدَه يصلُك الرَّدُّ على رس",
+      "live": [
+        {
+          "role": "status",
+          "text": "المتبقّي: 1128"
+        },
+        {
+          "role": "alert",
+          "text": "سجِّلْ دخولَك أوّلًا؛ فبالحسابِ وحدَه يصلُك الرَّدُّ على رسالتِك. ما كتبتَه محفوظٌ كما هو."
+        }
+      ],
+      "outcomeLines": [
+        "feedback.signInRequired",
+        "feedback.noChat"
+      ],
+      "signInGoShown": true,
+      "stillOnDoor": true,
+      "screenChanged": true,
+      "shot": "008-mid1-feedback-abort.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "one2",
+      "id": "greeting",
+      "found": false,
+      "line": "",
+      "tail": "",
+      "tailEmpty": false,
+      "plainGreetingShown": true,
+      "shot": "009-mid1-greeting.png"
+    },
+    {
+      "family": "one2",
+      "id": "adhkar-head",
+      "head": "أذكار المساء\n٠ من ٢١\n١ / ٢١\nأَعُوذُ بِاللَّهِ مِنَ الشَّيطَانِ الرَّجِيمِ ﴿اللَّهُ لاَ إِلَهَ إِلاَّ هُوَ الْحَيُّ الْقَيُّومُ لاَ تَأْخُذُهُ سِنَةٌ وَلاَ نَوْمٌ لَّهُ مَا فِي السَّمَوَاتِ وَمَا فِي الأَرْضِ مَن ذَا الَّذِي يَشْفَعُ عِنْدَه",
+      "sectionNameInHead": false,
+      "shot": "010-mid1-adhkar-head.png"
+    }
+  ]
+}

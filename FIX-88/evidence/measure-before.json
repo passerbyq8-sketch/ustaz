@@ -1,0 +1,1317 @@
+{
+  "tree": "C:\\Users\\passe\\projects\\ustaz-fix88",
+  "label": "before",
+  "at": "2026-09-14T15:45:21.401Z",
+  "results": [
+    {
+      "family": "four",
+      "section": "articles",
+      "mode": "429",
+      "vp": "m390",
+      "opened": true,
+      "textLen": 93,
+      "text": "مقالات عزك\nتعذَّر جلبُ ما في هذا القسم. تحقَّقْ من الاتصال ثمّ أعِدِ المحاولة.\nإعادة المحاولة",
+      "controls": 2,
+      "live": [
+        {
+          "role": "alert",
+          "text": "تعذَّر جلبُ ما في هذا القسم. تحقَّقْ من الاتصال ثمّ أعِدِ المحاولة.\nإعادة المحاولة"
+        }
+      ],
+      "keys": [
+        "common.retry",
+        "lessons.retry",
+        "lessons.browseRetry",
+        "articles.error",
+        "articles.shapeArticle",
+        "articles.sectionLabel"
+      ],
+      "shot": "001-before-articles-429.png",
+      "routes": [
+        "articles-list",
+        "articles-list",
+        "articles-list"
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+        "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+        "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+      ]
+    },
+    {
+      "family": "four",
+      "section": "articles",
+      "mode": "503",
+      "vp": "m390",
+      "opened": true,
+      "textLen": 93,
+      "text": "مقالات عزك\nتعذَّر جلبُ ما في هذا القسم. تحقَّقْ من الاتصال ثمّ أعِدِ المحاولة.\nإعادة المحاولة",
+      "controls": 2,
+      "live": [
+        {
+          "role": "alert",
+          "text": "تعذَّر جلبُ ما في هذا القسم. تحقَّقْ من الاتصال ثمّ أعِدِ المحاولة.\nإعادة المحاولة"
+        }
+      ],
+      "keys": [
+        "common.retry",
+        "lessons.retry",
+        "lessons.browseRetry",
+        "articles.error",
+        "articles.shapeArticle",
+        "articles.sectionLabel"
+      ],
+      "shot": "002-before-articles-503.png",
+      "routes": [
+        "articles-list",
+        "articles-list",
+        "articles-list"
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+      ]
+    },
+    {
+      "family": "four",
+      "section": "articles",
+      "mode": "empty",
+      "vp": "m390",
+      "opened": true,
+      "textLen": 68,
+      "text": "مقالات عزك\nهذا القسمُ جديد\nلم يُنشرْ فيه شيءٌ بعد. عُدْ إليه قريباً.",
+      "controls": 1,
+      "live": [
+        {
+          "role": "status",
+          "text": "هذا القسمُ جديد\nلم يُنشرْ فيه شيءٌ بعد. عُدْ إليه قريباً."
+        }
+      ],
+      "keys": [
+        "articles.emptyTitle",
+        "articles.emptyBody",
+        "articles.shapeArticle",
+        "articles.sectionLabel"
+      ],
+      "shot": "003-before-articles-empty.png",
+      "routes": [
+        "articles-list",
+        "articles-list",
+        "articles-list"
+      ],
+      "consoleErrors": []
+    },
+    {
+      "family": "four",
+      "section": "articles",
+      "mode": "rows",
+      "vp": "m390",
+      "opened": true,
+      "textLen": 59,
+      "text": "مقالات عزك\nRIG-ONE\n٢٠٢٦/٠٩/٠١\nRIG-TWO\nسؤال وجواب\n٢٠٢٦/٠٩/٠٢",
+      "controls": 3,
+      "live": [],
+      "keys": [
+        "articles.qaMark",
+        "articles.shapeArticle",
+        "articles.shapeQa"
+      ],
+      "shot": "004-before-articles-rows.png",
+      "routes": [
+        "articles-list",
+        "articles-list",
+        "articles-list"
+      ],
+      "consoleErrors": []
+    },
+    {
+      "family": "four",
+      "section": "women",
+      "mode": "429",
+      "vp": "m390",
+      "opened": true,
+      "textLen": 93,
+      "text": "ركن النساء\nتعذَّر جلبُ ما في هذا القسم. تحقَّقْ من الاتصال ثمّ أعِدِ المحاولة.\nإعادة المحاولة",
+      "controls": 2,
+      "live": [
+        {
+          "role": "alert",
+          "text": "تعذَّر جلبُ ما في هذا القسم. تحقَّقْ من الاتصال ثمّ أعِدِ المحاولة.\nإعادة المحاولة"
+        }
+      ],
+      "keys": [
+        "common.retry",
+        "lessons.retry",
+        "lessons.browseRetry",
+        "articles.error",
+        "articles.sectionLabel"
+      ],
+      "shot": "005-before-women-429.png",
+      "routes": [
+        "articles-list",
+        "articles-list",
+        "articles-list"
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+        "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+        "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+      ]
+    },
+    {
+      "family": "four",
+      "section": "women",
+      "mode": "503",
+      "vp": "m390",
+      "opened": true,
+      "textLen": 93,
+      "text": "ركن النساء\nتعذَّر جلبُ ما في هذا القسم. تحقَّقْ من الاتصال ثمّ أعِدِ المحاولة.\nإعادة المحاولة",
+      "controls": 2,
+      "live": [
+        {
+          "role": "alert",
+          "text": "تعذَّر جلبُ ما في هذا القسم. تحقَّقْ من الاتصال ثمّ أعِدِ المحاولة.\nإعادة المحاولة"
+        }
+      ],
+      "keys": [
+        "common.retry",
+        "lessons.retry",
+        "lessons.browseRetry",
+        "articles.error",
+        "articles.sectionLabel"
+      ],
+      "shot": "006-before-women-503.png",
+      "routes": [
+        "articles-list",
+        "articles-list",
+        "articles-list"
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+      ]
+    },
+    {
+      "family": "four",
+      "section": "women",
+      "mode": "empty",
+      "vp": "m390",
+      "opened": true,
+      "textLen": 68,
+      "text": "ركن النساء\nهذا القسمُ جديد\nلم يُنشرْ فيه شيءٌ بعد. عُدْ إليه قريباً.",
+      "controls": 1,
+      "live": [
+        {
+          "role": "status",
+          "text": "هذا القسمُ جديد\nلم يُنشرْ فيه شيءٌ بعد. عُدْ إليه قريباً."
+        }
+      ],
+      "keys": [
+        "articles.emptyTitle",
+        "articles.emptyBody",
+        "articles.sectionLabel"
+      ],
+      "shot": "007-before-women-empty.png",
+      "routes": [
+        "articles-list",
+        "articles-list",
+        "articles-list"
+      ],
+      "consoleErrors": []
+    },
+    {
+      "family": "four",
+      "section": "women",
+      "mode": "rows",
+      "vp": "m390",
+      "opened": true,
+      "textLen": 59,
+      "text": "ركن النساء\nRIG-ONE\n٢٠٢٦/٠٩/٠١\nRIG-TWO\nسؤال وجواب\n٢٠٢٦/٠٩/٠٢",
+      "controls": 3,
+      "live": [],
+      "keys": [
+        "articles.qaMark",
+        "articles.shapeQa"
+      ],
+      "shot": "008-before-women-rows.png",
+      "routes": [
+        "articles-list",
+        "articles-list",
+        "articles-list"
+      ],
+      "consoleErrors": []
+    },
+    {
+      "family": "four",
+      "section": "lessons",
+      "mode": "429",
+      "vp": "m390",
+      "opened": true,
+      "textLen": 63,
+      "text": "الدروس\nتصفُّح\nبحث\nالمشايخ\nتعذّرَ التحميلُ الآنَ.\nأعِدِ المحاولة",
+      "controls": 4,
+      "live": [
+        {
+          "role": "alert",
+          "text": "تعذّرَ التحميلُ الآنَ.\nأعِدِ المحاولة"
+        }
+      ],
+      "keys": [
+        "lessons.retry",
+        "lessons.tabBrowse",
+        "lessons.scholarsTitle",
+        "lessons.browseError",
+        "lessons.browseRetry"
+      ],
+      "shot": "009-before-lessons-429.png",
+      "routes": [
+        "articles-list",
+        "articles-list",
+        "lessons-browse"
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+      ]
+    },
+    {
+      "family": "four",
+      "section": "lessons",
+      "mode": "503",
+      "vp": "m390",
+      "opened": true,
+      "textLen": 63,
+      "text": "الدروس\nتصفُّح\nبحث\nالمشايخ\nتعذّرَ التحميلُ الآنَ.\nأعِدِ المحاولة",
+      "controls": 4,
+      "live": [
+        {
+          "role": "alert",
+          "text": "تعذّرَ التحميلُ الآنَ.\nأعِدِ المحاولة"
+        }
+      ],
+      "keys": [
+        "lessons.retry",
+        "lessons.tabBrowse",
+        "lessons.scholarsTitle",
+        "lessons.browseError",
+        "lessons.browseRetry"
+      ],
+      "shot": "010-before-lessons-503.png",
+      "routes": [
+        "articles-list",
+        "articles-list",
+        "lessons-browse"
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+      ]
+    },
+    {
+      "family": "four",
+      "section": "lessons",
+      "mode": "empty",
+      "vp": "m390",
+      "opened": true,
+      "textLen": 38,
+      "text": "الدروس\nتصفُّح\nبحث\nالمشايخ\nلا شيءَ هنا.",
+      "controls": 3,
+      "live": [
+        {
+          "role": "status",
+          "text": "لا شيءَ هنا."
+        }
+      ],
+      "keys": [
+        "lessons.tabBrowse",
+        "lessons.scholarsTitle",
+        "lessons.browseEmpty"
+      ],
+      "shot": "011-before-lessons-empty.png",
+      "routes": [
+        "articles-list",
+        "articles-list",
+        "lessons-browse"
+      ],
+      "consoleErrors": []
+    },
+    {
+      "family": "four",
+      "section": "lessons",
+      "mode": "rows",
+      "vp": "m390",
+      "opened": true,
+      "textLen": 53,
+      "text": "الدروس\nتصفُّح\nبحث\nالمشايخ\n٧ درسًا\nRIG-SCHOLAR\n٧ درسًا",
+      "controls": 4,
+      "live": [],
+      "keys": [
+        "lessons.tabBrowse",
+        "lessons.scholarsTitle"
+      ],
+      "shot": "012-before-lessons-rows.png",
+      "routes": [
+        "articles-list",
+        "articles-list",
+        "lessons-browse"
+      ],
+      "consoleErrors": []
+    },
+    {
+      "family": "four",
+      "section": "fatwa",
+      "mode": "429",
+      "vp": "m390",
+      "opened": true,
+      "textLen": 76,
+      "text": "اسم الشيخ\nكل الفتاوى\nابن باز\nبحث\nتعذّر الاتصال بخادم الفتاوى. حاول مرة أخرى.",
+      "controls": 4,
+      "live": [
+        {
+          "role": "alert",
+          "text": "تعذّر الاتصال بخادم الفتاوى. حاول مرة أخرى."
+        }
+      ],
+      "keys": [
+        "fatwa.scholarLabel",
+        "fatwa.defaultScholar",
+        "fatwa.allScholars",
+        "fatwa.error"
+      ],
+      "shot": "013-before-fatwa-429.png",
+      "routes": [
+        "articles-list",
+        "articles-list",
+        "scholars",
+        "fatwas-browse"
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+        "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+      ]
+    },
+    {
+      "family": "four",
+      "section": "fatwa",
+      "mode": "503",
+      "vp": "m390",
+      "opened": true,
+      "textLen": 76,
+      "text": "اسم الشيخ\nكل الفتاوى\nابن باز\nبحث\nتعذّر الاتصال بخادم الفتاوى. حاول مرة أخرى.",
+      "controls": 4,
+      "live": [
+        {
+          "role": "alert",
+          "text": "تعذّر الاتصال بخادم الفتاوى. حاول مرة أخرى."
+        }
+      ],
+      "keys": [
+        "fatwa.scholarLabel",
+        "fatwa.defaultScholar",
+        "fatwa.allScholars",
+        "fatwa.error"
+      ],
+      "shot": "014-before-fatwa-503.png",
+      "routes": [
+        "articles-list",
+        "articles-list",
+        "scholars",
+        "fatwas-browse"
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+      ]
+    },
+    {
+      "family": "four",
+      "section": "fatwa",
+      "mode": "empty",
+      "vp": "m390",
+      "opened": true,
+      "textLen": 61,
+      "text": "اسم الشيخ\nكل الفتاوى\nابن باز\nبحث\nلا توجد فتاوى في هذه الصفحة.",
+      "controls": 4,
+      "live": [
+        {
+          "role": "status",
+          "text": "لا توجد فتاوى في هذه الصفحة."
+        }
+      ],
+      "keys": [
+        "fatwa.scholarLabel",
+        "fatwa.defaultScholar",
+        "fatwa.allScholars",
+        "fatwa.browseEmpty"
+      ],
+      "shot": "015-before-fatwa-empty.png",
+      "routes": [
+        "articles-list",
+        "articles-list",
+        "scholars",
+        "fatwas-browse"
+      ],
+      "consoleErrors": []
+    },
+    {
+      "family": "four",
+      "section": "fatwa",
+      "mode": "rows",
+      "vp": "m390",
+      "opened": true,
+      "textLen": 96,
+      "text": "اسم الشيخ\nكل الفتاوى\nRIG-SH\nبحث\nالفتاوى مرتبة أبجديًّا — 1 فتوى، الصفحة 1 من 1.\nRIG-FATWA\nRIG-SH",
+      "controls": 5,
+      "live": [
+        {
+          "role": "status",
+          "text": "الفتاوى مرتبة أبجديًّا — 1 فتوى، الصفحة 1 من 1."
+        }
+      ],
+      "keys": [
+        "fatwa.scholarLabel",
+        "fatwa.allScholars"
+      ],
+      "shot": "016-before-fatwa-rows.png",
+      "routes": [
+        "articles-list",
+        "articles-list",
+        "scholars",
+        "fatwas-browse"
+      ],
+      "consoleErrors": []
+    },
+    {
+      "family": "latency",
+      "section": "fatwa",
+      "mode": "rows",
+      "delayMs": 1500,
+      "msFirstBody": -1,
+      "msLoaderSeen": 0,
+      "loaderText": "اسم الشيخ\nكل الفتاوى\nابن باز\nبحث\nجارٍ فتح قائمة الفتاوى…",
+      "wallMs": 25049,
+      "textLen": 96,
+      "live": [
+        {
+          "role": "status",
+          "text": "الفتاوى مرتبة أبجديًّا — 1 فتوى، الصفحة 1 من 1."
+        }
+      ],
+      "shot": "017-before-lat-fatwa-1500.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "latency",
+      "section": "fatwa",
+      "mode": "rows",
+      "delayMs": 1500,
+      "msFirstBody": -1,
+      "msLoaderSeen": 0,
+      "loaderText": "اسم الشيخ\nكل الفتاوى\nابن باز\nبحث\nجارٍ فتح قائمة الفتاوى…",
+      "wallMs": 25057,
+      "textLen": 96,
+      "live": [
+        {
+          "role": "status",
+          "text": "الفتاوى مرتبة أبجديًّا — 1 فتوى، الصفحة 1 من 1."
+        }
+      ],
+      "shot": "018-before-lat-fatwa-1500.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "latency",
+      "section": "fatwa",
+      "mode": "rows",
+      "delayMs": 1500,
+      "msFirstBody": -1,
+      "msLoaderSeen": 0,
+      "loaderText": "اسم الشيخ\nكل الفتاوى\nابن باز\nبحث\nجارٍ فتح قائمة الفتاوى…",
+      "wallMs": 25072,
+      "textLen": 96,
+      "live": [
+        {
+          "role": "status",
+          "text": "الفتاوى مرتبة أبجديًّا — 1 فتوى، الصفحة 1 من 1."
+        }
+      ],
+      "shot": "019-before-lat-fatwa-1500.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "latency",
+      "section": "lessons",
+      "mode": "rows",
+      "delayMs": 1500,
+      "msFirstBody": -1,
+      "msLoaderSeen": 0,
+      "loaderText": "الدروس\nتصفُّح\nبحث\nالمشايخ\n●\n●\n●\nيُحمِّلُ الآنَ…",
+      "wallMs": 25058,
+      "textLen": 53,
+      "live": [],
+      "shot": "020-before-lat-lessons-1500.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "latency",
+      "section": "lessons",
+      "mode": "rows",
+      "delayMs": 1500,
+      "msFirstBody": -1,
+      "msLoaderSeen": 0,
+      "loaderText": "الدروس\nتصفُّح\nبحث\nالمشايخ\n●\n●\n●\nيُحمِّلُ الآنَ…",
+      "wallMs": 25062,
+      "textLen": 53,
+      "live": [],
+      "shot": "021-before-lat-lessons-1500.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "latency",
+      "section": "lessons",
+      "mode": "rows",
+      "delayMs": 1500,
+      "msFirstBody": -1,
+      "msLoaderSeen": 0,
+      "loaderText": "الدروس\nتصفُّح\nبحث\nالمشايخ\n●\n●\n●\nيُحمِّلُ الآنَ…",
+      "wallMs": 25069,
+      "textLen": 53,
+      "live": [],
+      "shot": "022-before-lat-lessons-1500.png",
+      "consoleErrors": []
+    },
+    {
+      "family": "one",
+      "id": "greeting",
+      "helloFound": true,
+      "helloLine": "مرحباً يا",
+      "tail": "",
+      "tailEmpty": true,
+      "shot": "023-before-greeting.png"
+    },
+    {
+      "family": "one",
+      "id": "fatwa-source",
+      "present": 0,
+      "shape": null,
+      "shot": "024-before-fatwa-source.png"
+    },
+    {
+      "family": "one",
+      "id": "back-mushaf",
+      "url": "http://127.0.0.1:52758/",
+      "controlNames": [
+        {
+          "t": "",
+          "a": "رجوع",
+          "g": "button"
+        },
+        {
+          "t": "اليوم ٠ · حدّد وردك",
+          "a": "وردُ اليوم",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ١\nصفحة ١",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ٢\nصفحة ٢٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ٣\nصفحة ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ٤\nصفحة ٦٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ٥\nصفحة ٨٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ٦\nصفحة ١٠٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ٧\nصفحة ١٢١",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ٨\nصفحة ١٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ٩\nصفحة ١٦٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ١٠\nصفحة ١٨٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ١١\nصفحة ٢٠١",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ١٢\nصفحة ٢٢٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ١٣\nصفحة ٢٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ١٤\nصفحة ٢٦٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ١٥\nصفحة ٢٨٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ١٦\nصفحة ٣٠٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ١٧\nصفحة ٣٢٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ١٨\nصفحة ٣٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ١٩\nصفحة ٣٦٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ٢٠\nصفحة ٣٨٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ٢١\nصفحة ٤٠٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ٢٢\nصفحة ٤٢٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ٢٣\nصفحة ٤٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ٢٤\nصفحة ٤٦٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ٢٥\nصفحة ٤٨٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ٢٦\nصفحة ٥٠٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ٢٧\nصفحة ٥٢٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ٢٨\nصفحة ٥٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ٢٩\nصفحة ٥٦٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجزء ٣٠\nصفحة ٥٨٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "١\nمكية\nالفاتحة\n٧ آية\nصفحة ١",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٢\nمدنية\nالبقرة\n٢٨٦ آية\nصفحة ٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٣\nمدنية\nآل عمران\n٢٠٠ آية\nصفحة ٥٠",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٤\nمدنية\nالنساء\n١٧٦ آية\nصفحة ٧٧",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٥\nمدنية\nالمائدة\n١٢٠ آية\nصفحة ١٠٦",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٦\nمكية\nالأنعام\n١٦٥ آية\nصفحة ١٢٨",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٧\nمكية\nالأعراف\n٢٠٦ آية\nصفحة ١٥١",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٨\nمدنية\nالأنفال\n٧٥ آية\nصفحة ١٧٧",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٩\nمدنية\nالتوبة\n١٢٩ آية\nصفحة ١٨٧",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "١٠\nمكية\nيونس\n١٠٩ آية\nصفحة ٢٠٨",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "١١\nمكية\nهود\n١٢٣ آية\nصفحة ٢٢١",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "١٢\nمكية\nيوسف\n١١١ آية\nصفحة ٢٣٥",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "١٣\nمدنية\nالرعد\n٤٣ آية\nصفحة ٢٤٩",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "١٤\nمكية\nإبراهيم\n٥٢ آية\nصفحة ٢٥٥",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "١٥\nمكية\nالحجر\n٩٩ آية\nصفحة ٢٦٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "١٦\nمكية\nالنحل\n١٢٨ آية\nصفحة ٢٦٧",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "١٧\nمكية\nالإسراء\n١١١ آية\nصفحة ٢٨٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "١٨\nمكية\nالكهف\n١١٠ آية\nصفحة ٢٩٣",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "١٩\nمكية\nمريم\n٩٨ آية\nصفحة ٣٠٥",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٢٠\nمكية\nطه\n١٣٥ آية\nصفحة ٣١٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٢١\nمكية\nالأنبياء\n١١٢ آية\nصفحة ٣٢٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٢٢\nمدنية\nالحج\n٧٨ آية\nصفحة ٣٣٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٢٣\nمكية\nالمؤمنون\n١١٨ آية\nصفحة ٣٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٢٤\nمدنية\nالنور\n٦٤ آية\nصفحة ٣٥٠",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٢٥\nمكية\nالفرقان\n٧٧ آية\nصفحة ٣٥٩",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٢٦\nمكية\nالشعراء\n٢٢٧ آية\nصفحة ٣٦٧",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٢٧\nمكية\nالنمل\n٩٣ آية\nصفحة ٣٧٧",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٢٨\nمكية\nالقصص\n٨٨ آية\nصفحة ٣٨٥",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٢٩\nمكية\nالعنكبوت\n٦٩ آية\nصفحة ٣٩٦",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٣٠\nمكية\nالروم\n٦٠ آية\nصفحة ٤٠٤",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٣١\nمكية\nلقمان\n٣٤ آية\nصفحة ٤١١",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٣٢\nمكية\nالسجدة\n٣٠ آية\nصفحة ٤١٥",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٣٣\nمدنية\nالأحزاب\n٧٣ آية\nصفحة ٤١٨",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٣٤\nمكية\nسبأ\n٥٤ آية\nصفحة ٤٢٨",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٣٥\nمكية\nفاطر\n٤٥ آية\nصفحة ٤٣٤",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٣٦\nمكية\nيس\n٨٣ آية\nصفحة ٤٤٠",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٣٧\nمكية\nالصافات\n١٨٢ آية\nصفحة ٤٤٦",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٣٨\nمكية\nص\n٨٨ آية\nصفحة ٤٥٣",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٣٩\nمكية\nالزمر\n٧٥ آية\nصفحة ٤٥٨",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٤٠\nمكية\nغافر\n٨٥ آية\nصفحة ٤٦٧",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٤١\nمكية\nفصلت\n٥٤ آية\nصفحة ٤٧٧",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٤٢\nمكية\nالشورى\n٥٣ آية\nصفحة ٤٨٣",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٤٣\nمكية\nالزخرف\n٨٩ آية\nصفحة ٤٨٩",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٤٤\nمكية\nالدخان\n٥٩ آية\nصفحة ٤٩٦",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٤٥\nمكية\nالجاثية\n٣٧ آية\nصفحة ٤٩٩",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٤٦\nمكية\nالأحقاف\n٣٥ آية\nصفحة ٥٠٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٤٧\nمدنية\nمحمد\n٣٨ آية\nصفحة ٥٠٧",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٤٨\nمدنية\nالفتح\n٢٩ آية\nصفحة ٥١١",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٤٩\nمدنية\nالحجرات\n١٨ آية\nصفحة ٥١٥",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٥٠\nمكية\nق\n٤٥ آية\nصفحة ٥١٨",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٥١\nمكية\nالذاريات\n٦٠ آية\nصفحة ٥٢٠",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٥٢\nمكية\nالطور\n٤٩ آية\nصفحة ٥٢٣",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٥٣\nمكية\nالنجم\n٦٢ آية\nصفحة ٥٢٦",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٥٤\nمكية\nالقمر\n٥٥ آية\nصفحة ٥٢٨",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٥٥\nمدنية\nالرحمن\n٧٨ آية\nصفحة ٥٣١",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٥٦\nمكية\nالواقعة\n٩٦ آية\nصفحة ٥٣٤",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٥٧\nمدنية\nالحديد\n٢٩ آية\nصفحة ٥٣٧",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "٥٨\nمدنية\nالمجادلة\n٢٢ آية\nصفحة ٥٤٢",
+          "a": "",
+          "g": "button"
+        }
+      ],
+      "commonBackCount": 1,
+      "shot": "025-before-mushaf-top.png",
+      "tried": [
+        {
+          "label": "رجوع",
+          "onShelf": true,
+          "url": "http://127.0.0.1:52758/"
+        }
+      ],
+      "hasBackRoute": true,
+      "backRouteName": "رجوع",
+      "browserBackToShelf": true
+    },
+    {
+      "family": "one",
+      "id": "back-treasure",
+      "url": "http://127.0.0.1:52758/quest.html",
+      "controlNames": [
+        {
+          "t": "🚪",
+          "a": "الخروجُ إلى عزك",
+          "g": "button"
+        },
+        {
+          "t": "⚙",
+          "a": "الإعدادات",
+          "g": "button"
+        },
+        {
+          "t": "أصولُ الدين\n١٤ محطّات · ٩٧ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "القرآنُ الكريم\n١٤ محطّات · ١٠٢ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "جزءُ عمّ\n١٤ محطّات · ٩٧ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "جزءُ تبارك\n١٤ محطّات · ٩٥ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "قصصُ الأنبياء\n١٤ محطّات · ١٢٠ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "السيرةُ النبويّة\n١٤ محطّات · ١٢٥ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الأحاديثُ النبويّة\n١٤ محطّات · ٨٤ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الصلاة\n١٤ محطّات · ١٠٠ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "أذكارُ اليوم\n١٤ محطّات · ٩٢ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الآدابُ والأخلاق\n١٤ محطّات · ١٠٠ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "التاريخُ الإسلاميّ\n١٤ محطّات · ٨٦ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الخلفاءُ الراشدون\n١٤ محطّات · ٨٧ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الدولةُ الأمويّة\n١٤ محطّات · ٧٧ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الدولةُ العبّاسيّة\n١٤ محطّات · ٨٤ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الدولةُ الأيّوبيّة\n١٤ محطّات · ٧٧ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "دولةُ المماليك\n١٤ محطّات · ٦٨ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الدولةُ العثمانيّة\n١٤ محطّات · ٦٨ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "تاريخُ فلسطين\n١٤ محطّات · ٥٥ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "تاريخُ الكويت\n١٤ محطّات · ٥٣ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "تاريخُ العالم\n١٤ محطّات · ٦١ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الجغرافيا\n١٤ محطّات · ١٠٤ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "المطبخ\n١٤ محطّات · ٥٧ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "عالمُ الحيوان\n١١ محطّات · ٦٦ سؤالًا\n★ ٠ / ٣٣",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الفيزياء\n١٤ محطّات · ٩٣ سؤالًا\n★ ٠ / ٤٢",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الأحياء\n١١ محطّات · ٦٦ سؤالًا\n★ ٠ / ٣٣",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الكيمياء\n١١ محطّات · ٦٥ سؤالًا\n★ ٠ / ٣٣",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الرياضيات\n٨ محطّات · ٤٨ سؤالًا\n★ ٠ / ٢٤",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الخريطة",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "التحدّيات",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "الكنوز",
+          "a": "",
+          "g": "button"
+        },
+        {
+          "t": "أنا",
+          "a": "",
+          "g": "button"
+        }
+      ],
+      "commonBackCount": 0,
+      "shot": "026-before-treasure-top.png",
+      "tried": [
+        {
+          "label": "الخروجُ إلى عزك",
+          "onShelf": true,
+          "url": "http://127.0.0.1:52758/"
+        }
+      ],
+      "hasBackRoute": true,
+      "backRouteName": "الخروجُ إلى عزك",
+      "browserBackToShelf": true
+    },
+    {
+      "family": "one",
+      "id": "adhkar-head",
+      "head": "أذكار المساء\n٠ من ٢١\n١ / ٢١\nأَعُوذُ بِاللَّهِ مِنَ الشَّيطَانِ الرَّجِيمِ ﴿اللَّهُ لاَ إِلَهَ إِلاَّ هُوَ الْحَيُّ الْقَيُّومُ لاَ تَأْخُذُهُ سِنَةٌ وَلاَ نَوْمٌ لَّهُ مَا فِي السَّمَوَاتِ وَمَا فِي ا",
+      "sectionNameInHead": false,
+      "shot": "027-before-adhkar-head.png"
+    },
+    {
+      "family": "one",
+      "id": "refresh-articles",
+      "beforeHead": "مقالات عزك\nRIG-ONE\n٢٠٢٦/٠٩/٠١\nRIG-TWO\nسؤال وجواب\n٢٠٢٦/٠٩/٠٢",
+      "afterHead": "فتاوى\nبحث موثّق بالسؤال والجواب\nرحلةُ الكنوز\nتعلّم باللعب\nالمصحف\nاقرأ وتابع وردك\nالدروس\nبحثٌ في دروسِ العلماء\nموجز\nعزك ذ",
+      "backInSection": false,
+      "onShelf": true,
+      "shot": "028-before-refresh-articles.png"
+    },
+    {
+      "family": "one",
+      "id": "refresh-adhkar",
+      "beforeHead": "أذكار المساء\n٠ من ٢١\n١ / ٢١\nأَعُوذُ بِاللَّهِ مِنَ الشَّيطَانِ الرَّجِيمِ ﴿اللَّهُ لاَ إِلَهَ إِلاَّ هُوَ الْحَيُّ الْقَ",
+      "afterHead": "فتاوى\nبحث موثّق بالسؤال والجواب\nرحلةُ الكنوز\nتعلّم باللعب\nالمصحف\nاقرأ وتابع وردك\nالدروس\nبحثٌ في دروسِ العلماء\nموجز\nعزك ذ",
+      "backInSection": false,
+      "onShelf": true,
+      "shot": "029-before-refresh-adhkar.png"
+    },
+    {
+      "family": "one",
+      "id": "refresh-fatwa",
+      "beforeHead": "اسم الشيخ\nكل الفتاوى\nRIG-SH\nبحث\nالفتاوى مرتبة أبجديًّا — 1 فتوى، الصفحة 1 من 1.\nRIG-FATWA\nRIG-SH",
+      "afterHead": "فتاوى\nبحث موثّق بالسؤال والجواب\nرحلةُ الكنوز\nتعلّم باللعب\nالمصحف\nاقرأ وتابع وردك\nالدروس\nبحثٌ في دروسِ العلماء\nموجز\nعزك ذ",
+      "backInSection": false,
+      "onShelf": true,
+      "shot": "030-before-refresh-fatwa.png"
+    },
+    {
+      "family": "one",
+      "id": "refresh-lessons",
+      "beforeHead": "الدروس\nتصفُّح\nبحث\nالمشايخ\n٧ درسًا\nRIG-SCHOLAR\n٧ درسًا",
+      "afterHead": "فتاوى\nبحث موثّق بالسؤال والجواب\nرحلةُ الكنوز\nتعلّم باللعب\nالمصحف\nاقرأ وتابع وردك\nالدروس\nبحثٌ في دروسِ العلماء\nموجز\nعزك ذ",
+      "backInSection": false,
+      "onShelf": true,
+      "shot": "031-before-refresh-lessons.png"
+    },
+    {
+      "family": "one",
+      "id": "feedback-signedout",
+      "menuButtons": 1,
+      "doorFound": 1,
+      "textareas": 1,
+      "beforeHead": "اقتراح أو شكوى\nالنوع\nاقتراح\nشكوى\nبلاغ خطأ\nالنصّ\nالمتبقّي: 1128\nلا يُرسَلُ مع رسالتِك سؤالٌ ولا جوابٌ ولا شيءٌ من محادثات",
+      "shot": "032-before-feedback-before.png",
+      "sendButtons": 1,
+      "afterHead": "الإعدادات\nملفُّك\nذكر\nأنثى\nأفضِّلُ عدمَ الإجابة\nواختيارُك هنا هو ما يقرِّرُ «ركن النساء» على رئيسيّتك: يظهرُ مع «أنثى» ومع «أفضِّلُ عدمَ الإجابة»، ولا يظهرُ مع «ذكر». بدِّلْ إجابتَك واحفظْها فيعودُ أو ",
+      "keys": [
+        "articles.shapeArticle",
+        "asmaa.title",
+        "asmaa.gridAria",
+        "feedback.signInGo"
+      ],
+      "screenChanged": true,
+      "stillOnFeedback": true,
+      "live": [],
+      "shot2": "033-before-feedback-after.png"
+    }
+  ]
+}
