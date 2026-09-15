@@ -4130,21 +4130,32 @@ const[dailyWird,setDailyWird]=useState(readDailyWird);useEffect(()=>{let alive=t
 // deployment that does not carry the file, sees category 27 exactly as it ships rather than
 // an empty catalogue. The split is asked for ONLY behind the switch, so a reader with the
 // switch off does not pay a request for a file their screen will not read.
-Promise.all([loadAdhkar(),ADHKAR_GROUPS_ON?loadAdhkarSplit().catch(()=>null):Promise.resolve(null)]).then(([d,sp])=>{if(!alive)return;const store=d||{byId:{},categories:[],byCat:{}};setDb(sp?applyAdhkarSplit(store,sp):store);}).catch(()=>{if(alive)setDb({byId:{},categories:[],byCat:{}});});return()=>{alive=false;};},[]);// THE CLOCK'S FIRST DOOR, and it is opened ONCE. The ref spends itself on the first pass that
-// sees a real store, so backing out to the catalogue and standing there does not re-open the
-// door under the reader's hand, and neither does a re-render or a day that rolls over. The
-// catalogue is what the door opens ON TOP OF -- the reader's back returns to it through the
-// same closer every other exit uses -- so the index stays open for manual navigation exactly
-// as the order requires, and nothing here is a redirect away from it.
+Promise.all([loadAdhkar(),ADHKAR_GROUPS_ON?loadAdhkarSplit().catch(()=>null):Promise.resolve(null)]).then(([d,sp])=>{if(!alive)return;const store=d||{byId:{},categories:[],byCat:{}};setDb(sp?applyAdhkarSplit(store,sp):store);}).catch(()=>{if(alive)setDb({byId:{},categories:[],byCat:{}});});return()=>{alive=false;};},[]);// BATCH B, ITEM 2 -- THE CLOCK'S DOOR IS GONE FROM THIS ENTRANCE, BY THE OWNER'S WORDS:
+// «الأذكارُ المفترضُ يفتحُ مباشرةً على جميعِ الأذكار».
 //
-// IT DOES NOT BUMP THE USAGE MAP. adhkar_usage_v1 records the doors A READER opened; a door
-// the clock opened is not one of them, and counting it would put a number in that record that
-// no one performed. open() stays the reader's own way in and is untouched, so it is still the
-// only usage write in the app.
+// WHAT STOOD HERE. A ref and an effect that, on the first pass which saw a real store,
+// called adhkarTimeDoor(db.categories) and opened the group belonging to the hour --
+// so pressing «الأذكار» on the shelf landed the reader inside «أذكار المساء» and never
+// on the catalogue. MEASURED on the bench before this: the door opened on a GROUP, its
+// reader's own counter on the screen, at both sizes.
 //
-// IT PASSES NO START POSITION. The category resolves its own remembered place below, which is
-// the same answer by the same reader -- naming it twice would be two sources for one number.
-const autoDoor=useRef(false);useEffect(()=>{if(!ADHKAR_GROUPS_ON||autoDoor.current)return;if(!db||!Array.isArray(db.categories)||db.categories.length===0)return;autoDoor.current=true;const hit=adhkarTimeDoor(db.categories);if(!hit)return;setStartAt(0);setSelected(hit);},[db]);const cats=db?db.categories||[]:null;// Same filter as V1: normalise both sides, substring, and an empty query keeps EVERY
+// IT IS REMOVED RATHER THAN GATED, and that is the order's own instruction: the function
+// that picks the hour's group «لا تُستدعى من هذا الباب». A flag left behind is a second
+// answer to a question that now has one, and the next reader of this file would have to
+// work out which arm ships.
+//
+// WHAT IS NOT TOUCHED. Nothing else opens a group by the clock, so no other entrance
+// changes: the home card, a notification and any direct link still open the group they
+// name, because none of them came through here. The catalogue's ORDER is untouched --
+// it is the store's own, mapped once, and nothing here sorted it. No group is marked,
+// suggested or promoted: the order forbids inventing a distinction and none is added.
+// And item 88 defect 12 still stands -- the section's name is drawn above the group's
+// name in the reader, which is what a reader now sees only after he chooses a group.
+//
+// adhkarTimeDoor ITSELF IS LEFT DECLARED AND UNCALLED, on this file's own habit: a
+// function with no reader is a smaller change than a deleted one, and it is the single
+// place the hour-to-group rule is written down should the owner want that door again.
+const cats=db?db.categories||[]:null;// Same filter as V1: normalise both sides, substring, and an empty query keeps EVERY
 // category in the store's own order. Nothing is ranked and nothing is hidden.
 const q=adhkarNormAr(query).trim();const list=(cats||[]).filter(c=>!q||adhkarNormAr(c.title).includes(q));// THE ONLY usage write in the app, and it is still on the OPEN -- one increment per opened
 // door, whichever design drew the door. The optional second argument is a real index inside

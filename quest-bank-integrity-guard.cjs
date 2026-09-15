@@ -1287,7 +1287,17 @@ const SEALED = {
 //                    followed, and THIS digest is re-cut LAST, after every other sw.js edit was final. SW.JS IS
 //                    OTHERWISE UNTOUCHED -- no route, no store and no branch of it moved -- and CACHE IS NOT BUMPED:
 //                    the merge round owns the bump.
-  'sw.js': '692eb02c06dbc9a742785c3ac17bcb8a6de6d82b044738db097dfaf6d9d58c8a',
+  //   2026-09-15-ii -- ITEM 88 BATCH B, ITEM 2: THE ADHKAR OPEN ON THE WHOLE CATALOGUE. The clock's
+//                    door is removed from the section's front entrance by the owner's words; no other entrance and no
+//                    group order changes. INDEX.HTML DID NOT MOVE and NO FILE JOINED OR LEFT CORE this round -- the
+//                    only CORE entry that changed size is the bundle. app.js was rebuilt 1727829 -> 1728316 (+487) by
+//                    node tools/build-app.cjs, and CORE_BYTES was re-cut 2900919 -> 2901406 (+487), verified by node
+//                    tools/core-bytes.cjs, which is exactly the bundle delta because the shell did not grow and CORE
+//                    gained nothing. The worker's own byte table above the constant and the app.js mirror below
+//                    followed, and THIS digest is re-cut LAST, after every other sw.js edit was final. SW.JS IS
+//                    OTHERWISE UNTOUCHED -- no route, no store and no branch of it moved -- and CACHE IS NOT BUMPED:
+//                    the merge round owns the bump.
+  'sw.js': 'b4a8c8bc037e90a8222d28a7d34bf97ab01b1975b7832b09a9bfeb9a7da89bc1',
 };
 
 // ---------------------------------------------------------------------------
@@ -2412,7 +2422,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1727829, of: 'app.js' },
+      { n: 1728316, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

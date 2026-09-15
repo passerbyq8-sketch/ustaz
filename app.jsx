@@ -12802,30 +12802,31 @@ function AdhkarScreenV2({ onBack }) {
     }).catch(() => { if (alive) setDb({ byId: {}, categories: [], byCat: {} }); });
     return () => { alive = false; };
   }, []);
-  // THE CLOCK'S FIRST DOOR, and it is opened ONCE. The ref spends itself on the first pass that
-  // sees a real store, so backing out to the catalogue and standing there does not re-open the
-  // door under the reader's hand, and neither does a re-render or a day that rolls over. The
-  // catalogue is what the door opens ON TOP OF -- the reader's back returns to it through the
-  // same closer every other exit uses -- so the index stays open for manual navigation exactly
-  // as the order requires, and nothing here is a redirect away from it.
+  // BATCH B, ITEM 2 -- THE CLOCK'S DOOR IS GONE FROM THIS ENTRANCE, BY THE OWNER'S WORDS:
+  // «الأذكارُ المفترضُ يفتحُ مباشرةً على جميعِ الأذكار».
   //
-  // IT DOES NOT BUMP THE USAGE MAP. adhkar_usage_v1 records the doors A READER opened; a door
-  // the clock opened is not one of them, and counting it would put a number in that record that
-  // no one performed. open() stays the reader's own way in and is untouched, so it is still the
-  // only usage write in the app.
+  // WHAT STOOD HERE. A ref and an effect that, on the first pass which saw a real store,
+  // called adhkarTimeDoor(db.categories) and opened the group belonging to the hour --
+  // so pressing «الأذكار» on the shelf landed the reader inside «أذكار المساء» and never
+  // on the catalogue. MEASURED on the bench before this: the door opened on a GROUP, its
+  // reader's own counter on the screen, at both sizes.
   //
-  // IT PASSES NO START POSITION. The category resolves its own remembered place below, which is
-  // the same answer by the same reader -- naming it twice would be two sources for one number.
-  const autoDoor = useRef(false);
-  useEffect(() => {
-    if (!ADHKAR_GROUPS_ON || autoDoor.current) return;
-    if (!db || !Array.isArray(db.categories) || db.categories.length === 0) return;
-    autoDoor.current = true;
-    const hit = adhkarTimeDoor(db.categories);
-    if (!hit) return;
-    setStartAt(0);
-    setSelected(hit);
-  }, [db]);
+  // IT IS REMOVED RATHER THAN GATED, and that is the order's own instruction: the function
+  // that picks the hour's group «لا تُستدعى من هذا الباب». A flag left behind is a second
+  // answer to a question that now has one, and the next reader of this file would have to
+  // work out which arm ships.
+  //
+  // WHAT IS NOT TOUCHED. Nothing else opens a group by the clock, so no other entrance
+  // changes: the home card, a notification and any direct link still open the group they
+  // name, because none of them came through here. The catalogue's ORDER is untouched --
+  // it is the store's own, mapped once, and nothing here sorted it. No group is marked,
+  // suggested or promoted: the order forbids inventing a distinction and none is added.
+  // And item 88 defect 12 still stands -- the section's name is drawn above the group's
+  // name in the reader, which is what a reader now sees only after he chooses a group.
+  //
+  // adhkarTimeDoor ITSELF IS LEFT DECLARED AND UNCALLED, on this file's own habit: a
+  // function with no reader is a smaller change than a deleted one, and it is the single
+  // place the hour-to-group rule is written down should the owner want that door again.
   const cats = db ? (db.categories || []) : null;
   // Same filter as V1: normalise both sides, substring, and an empty query keeps EVERY
   // category in the store's own order. Nothing is ranked and nothing is hidden.
@@ -13152,16 +13153,21 @@ function IstanaAdhkarReader(v) {
         <div className="ezia-nav-inner">
           <button type="button" className="adhkar2-focus" onClick={v.onBack} style={s.eziaNavBtn} aria-label={A2_BACK}>{A2_ICON_BACK}</button>
           {/* DEFECT 12 (item 88) -- THE SECTION IS NAMED ABOVE THE GROUP.
-              MEASURED: pressing «الأذكار» on the shelf lands on a chest that reads «أذكار
-              المساء», because adhkarTimeDoor opens the group that belongs to the hour. That is
-              the owner's behaviour and it is NOT changed here -- neither the group that opens
-              nor the order of any group moved. What was missing is that the reader had no way
-              to tell, from the top of the screen, that «أذكار المساء» is a group INSIDE الأذكار
-              rather than the whole of what he pressed.
+              MEASURED, when this was written: pressing «الأذكار» on the shelf landed straight
+              on a chest that read «أذكار المساء», and the reader had no way to tell, from the
+              top of the screen, that it is a group INSIDE الأذكار rather than the whole of what
+              he pressed.
               So the section's name stands over the group's, in the smaller, dimmer weight the
               rest of this shell uses for a label above a title. The name is read from
               module.adhkar -- the very key the shelf tile draws -- so the tile and the chest
-              cannot come to disagree, and no second Arabic string was authored for it. */}
+              cannot come to disagree, and no second Arabic string was authored for it.
+
+              BATCH B, ITEM 2 CHANGED WHAT LEADS HERE, AND THIS LINE IS KEPT ON PURPOSE. The
+              clock's door is gone: the shelf now opens the catalogue, so a reader reaches this
+              chest only by CHOOSING a group from it. The label is still right and still wanted
+              -- it is what tells him which section the group he chose belongs to, and it is
+              what every other way in (a home card, a notification, a direct link) still needs,
+              because those open a group without passing the catalogue at all. */}
           <span className="ezia-brand">
             <span className="ezia-brand-arch" aria-hidden="true" />
             <span style={s.eziaReadStack}>
