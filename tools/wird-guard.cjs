@@ -1683,24 +1683,33 @@ if (qLifted) {
       /headingBridgeRef\.current = ezikShellBridge\(\) \|\| false/.test(QPANEL)
       && /useState\(headingBridgeRef\.current \? 'wait' : 'off'\)/.test(QPANEL)
       && /const DOE = \(typeof window !== 'undefined'\) \? window\.DeviceOrientationEvent : null/.test(QPANEL));
-    // ITEM 66 (side round, 15 September): RE-POINTED, NOT RELAXED, AND THE NEW CALL IS NAMED.
+    // ITEM 66 (side round, 15 September) -- RE-POINTED BACK TO THE PRESS, AND THE ONE IS PINNED
+    // TO THE DIAL.
     //
     // What this case has always been about is that the orientation sensor -- and the permission
-    // prompt behind it -- is never reached at BOOT, by a panel nobody asked to open. That is still
-    // exactly true. What changed is that the compass now has a SCREEN of its own, whose whole
-    // ruling is that it carries a circle, a needle and not one letter -- which takes away the
-    // start button below, because that button IS a letter. A screen with a dial and no way to
-    // make it turn would be worse than the delay it was built to cure, so that ONE screen starts
-    // the sensor itself.
+    // prompt behind it -- is never reached at BOOT, by a panel nobody asked to open. For one
+    // round the compass SCREEN was allowed to start it from its own mount effect, on the
+    // reasoning that the ruling forbade that screen a start button because a button is a letter.
     //
-    // SO THE COUNT IS ONE, NOT ZERO, AND THE ONE IS PINNED. It must be guarded by `full === true`
-    // -- the flag ONLY CompassSheet passes -- so the prayer sheet's copy of this panel, which is
-    // the copy that renders at the reader's first touch of the prayer section, still asks for
-    // nothing at all until the button below is pressed. The button itself is still required.
+    // THAT WAS MEASURED AND IT WAS WRONG. The mount effect is a PASSIVE effect with an empty
+    // dependency list: the press that opened the screen set state and returned, React committed,
+    // painted, and flushed the effect afterwards -- off the gesture. Safari refuses
+    // DeviceOrientationEvent.requestPermission() outside a user gesture, so on the one device
+    // that HAS that method the prompt was never raised and the needle could never turn.
+    //
+    // SO THE COUNT IS STILL ONE AND IT IS NO LONGER AUTOMATIC. The single startCompass() call
+    // expression in the panel is the DIAL'S OWN touch handler, attached to the circle on `bare`
+    // alone -- the ruling is kept (no button, no letter, the circle and the needle and nothing
+    // else) and the gesture is real. The third clause states the automatic call is gone, so this
+    // cannot drift back to a start nobody touched. The prayer sheet's copy still asks for
+    // nothing until the button below is pressed, and that button is still required.
     ok('108-a: the browser sensor is started from a press, and on the compass screen alone',
       /onClick=\{startCompass\}/.test(QPANEL)
       && (QPANEL.match(/startCompass\(\)/g) || []).length === 1
-      && /if \(!bridge && full === true\) startCompass\(\);/.test(QPANEL));
+      && /onClick=\{bare \? \(\) => startCompass\(\) : null\}/.test(QPANEL));
+    ok('108-a: ...and no mount effect starts it -- the automatic call is gone',
+      QPANEL.indexOf('full === true) startCompass();') === -1
+      && !/useEffect\([\s\S]*?startCompass\(\)[\s\S]*?\}, \[\]\)/.test(QPANEL));
     ok('108-a: ...and the permission request sits inside that press',
       QPANEL.indexOf('const startCompass = () =>') < QPANEL.indexOf('DOE.requestPermission()'));
     ok('108-a: the position is asked for from a press too',

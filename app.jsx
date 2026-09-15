@@ -25290,26 +25290,25 @@ function QiblaPanel({ loc, onLoc, full }) {
         setCompass('heading-error');
       }
     }
-    // ITEM 66 (side round) -- THE COMPASS SCREEN STARTS ITSELF, AND ONLY THE COMPASS SCREEN.
+    // ITEM 66 (15 September 2026) -- AND THIS EFFECT STARTS NO SENSOR. It used to end with
+    // `if (!bridge && full === true) startCompass;` -- a call -- so that screen started the browser
+    // orientation sensor on its own mount.
     //
-    // WHY IT IS HERE AND NOT IN A SECOND EFFECT. tools/location-bridge-measure.cjs asserts that
-    // QiblaPanel owns EXACTLY ONE useEffect -- one shell stream, started at mount and stopped at
-    // unmount -- and that claim is worth more than the tidiness of a second hook. So the browser
-    // arm of the same idea goes in the same effect, on the same mount, under the same teardown:
-    // the start below parks its detach in the very stopRef the cleanup below already spends.
+    // MEASURED, NOT ASSUMED: that call was NOT inside the press. This is a useEffect with an
+    // empty dependency list -- a PASSIVE effect. The press on the prayer sheet's compass mark ran
+    // setCompassOpen(true) and returned; React then committed, painted, and flushed this effect
+    // afterwards, off the gesture. DeviceOrientationEvent.requestPermission is refused by Safari
+    // outside a user gesture, so on the iPhone -- the one device that has that method -- the
+    // prompt was never raised and the needle could never turn.
     //
-    // WHY `full === true` AND NOTHING WIDER. Without a shell the panel opens at `off`, whose one
-    // door is the «شغِّلِ البوصلة» button -- and that button is TEXT, which the compass screen is
-    // no longer allowed to draw. Removing the button without starting the sensor would leave that
-    // screen with a dial and no way to make it turn. The PRAYER SHEET is untouched by this line:
-    // it renders this panel WITHOUT `full`, keeps its button, and still asks for nothing at mount
-    // -- which is exactly what tools/web-shell-seam-probe.cjs measures when it requires zero dials
-    // before a permission exists on the panel it mounts with two props and no flag.
+    // THE CURE IS NOT A BUTTON. The owner's ruling for this screen is a circle, a needle and not
+    // one letter, and a button is a letter. So the DIAL is the gesture: the render below attaches
+    // the start to the circle itself on `bare`, and the first touch anywhere on the compass is
+    // the user gesture the prompt is raised from. Nothing is drawn, nothing is read, and nothing
+    // about the prayer sheet's copy of this panel changes -- it never had this call.
     //
-    // AND IT ASKS FOR NO POSITION. startCompass touches the ORIENTATION permission alone; the
-    // location request is still reachable from the reader's press and from nowhere else, which is
-    // the static claim location-bridge-measure makes over this whole file.
-    if (!bridge && full === true) startCompass();
+    // THE SHELL ARM ABOVE IS UNTOUCHED. A native shell still starts its own heading stream at
+    // mount, because that path raises no web permission prompt and needs no gesture.
     return () => {
       stopHeadingWait();
       if (stopRef.current) { stopRef.current(); stopRef.current = null; }
@@ -25466,9 +25465,20 @@ function QiblaPanel({ loc, onLoc, full }) {
           ON THE COMPASS SCREEN IT DOES NOT. `bare` short-circuits the condition, so the circle
           and the needle are in the FIRST paint of that screen: no permission is waited for, no
           position, no first sensor reading, no loading state and no early return. This line was
-          the whole of the delay the owner reported. */}
+          the whole of the delay the owner reported.
+
+          ITEM 66 (15 September 2026) -- AND ON THAT SCREEN THE DIAL IS THE PRESS. Safari grants
+          DeviceOrientationEvent.requestPermission only inside a user gesture, and the mount
+          effect that used to call the starter is not one: the press that opened this screen
+          set state, React committed, painted, and only then flushed that passive effect, so the
+          gesture was spent before the call was made and the prompt would never be raised. So the
+          automatic call is gone and the CIRCLE ITSELF answers the touch -- the same circle, the
+          same needle, painted at the same first paint. No button, no word, nothing to read: the
+          reader touches the compass and the compass starts, which is the gesture Safari wants.
+          It is attached on `bare` ALONE, so the prayer sheet's copy of this panel still asks for
+          nothing until its own button is pressed. */}
       {bare || settled !== null ? (
-        <div style={s.qiblaDialWrap}>
+        <div style={s.qiblaDialWrap} onClick={bare ? () => startCompass() : null}>
           <svg width="132" height="132" viewBox="0 0 100 100" role="img" aria-label={QIBLA_SECTION}
             style={full ? s.qiblaDialFull : null}>
             <circle cx="50" cy="50" r="46" fill="none" stroke="var(--line)" strokeWidth="2" />
