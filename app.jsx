@@ -16170,10 +16170,44 @@ function App() {
   // become the thread and the chat adopts that conversation's id, so the next turn rewrites it
   // rather than filing a second copy. The messages are restored VERBATIM, which is what brings
   // the source cards back -- they are rendered from the reply text that was saved.
+  // BATCH B, ITEM 3 -- AND IT NOW GOES TO THE CHAT, WHICH IS THE WHOLE REPAIR.
+  //
+  // THE OWNER'S WORDS: «لمّا أكونُ في الرئيسيّةِ وهي صفحةُ الأقسام، وأضغطُ القائمةَ الجانبيّةَ
+  // وأروحُ حقّ سؤالٍ سألتُه عزك من قبل — ما يودّيني لها أبدًا. لازم أضغطُ محادثةً جديدةً بعدين
+  // أروحُ للمحادثةِ اللي أبي».
+  //
+  // WHAT WAS MEASURED, with two conversations seeded in the store's own shape. From the CHAT the
+  // row worked: the conversation's own body was on the screen afterwards. From the HOME the row
+  // was seen and pressed, and the reader stayed on the shelf with that body nowhere -- the same
+  // press, the opposite outcome, which is exactly the difference that names the defect.
+  //
+  // AND THE CAUSE IS THE LINE THAT WAS NEVER HERE. Everything below selects the conversation --
+  // the id, the messages, the scroll pins, the folded replies -- and NOTHING moved the screen.
+  // On the chat that is invisible, because the screen is already the chat and the new messages
+  // simply appear. On the home the state changed under a screen that does not draw it, so the
+  // application had faithfully opened a conversation the reader could not see. Pressing «محادثة
+  // جديدة» first worked only because startChatFromMenu carries a setScreen('chat') of its own --
+  // which is the tell, and the reason the owner had found that workaround.
+  //
+  // ONE LINE, AND IT IS PUT WHERE EVERY DOOR PASSES. The drawer's row, the drawer's search
+  // result and the favourites sheet all reach a saved conversation through this function, so a
+  // navigation added here needs no call site to change -- and three guards pin those call sites
+  // byte for byte (chat-history-guard on the row, chat-ux-guard on both closeDrawerWith forms,
+  // theme-coverage on openFavoriteChat's whole body), which a second argument would have broken.
+  //
+  // IT DOES NOT FIGHT THE HISTORY. closeDrawerWith spends the menu's own entry FIRST and runs
+  // this afterwards, so the screen set here is the last word on the drawer's path. On the
+  // favourites path openFavoriteChat calls goEzikBack() immediately after this returns, and that
+  // pop resolves the destination as it always did -- so that sheet behaves exactly as it does
+  // today, which is measured rather than assumed.
+  //
+  // NOTHING IS CLEARED AND NO NEW CONVERSATION IS OPENED: resetThread and newChat are untouched,
+  // and «محادثة جديدة» keeps its own route, character for character.
   const openSavedChat = (id) => {
     try { abortRef.current?.abort(); } catch (e) {}
     abortRef.current = null;
     cancelAudio();
+    setScreen('chat');
     chatIdRef.current = id;
     // S97: arm the pin BEFORE the messages are handed to React, so the layout effect that runs
     // inside this very commit already knows to land at the end. Set after, it would be one paint
