@@ -486,6 +486,37 @@ const EZ_I18N = {
     'reminders.body.daily': 'محتوى اليومِ في انتظارِك.',
     'reminders.probe': 'افحصْ حالَ الجدولةِ الآن',
     'reminders.probe.busy': 'يُسألُ التطبيقُ عن جدولِه…',
+    // ITEM 8 (side round, 15 September) -- THE FOUR ANCHORED LINES, AND THEY LIVE UNDER THIS
+    // PREFIX ON PURPOSE. tools/wird-guard.cjs allows the word «تذكير» inside the values of
+    // `prayer.notify.*` and `reminders.*` and nowhere else in the whole client, because those are
+    // the two switches that NAME an engine which exists rather than promise one that does not.
+    // These four are the same kind of thing, ride the same pipe and are answered by the same
+    // shell, so they belong under the same prefix -- and so do the two controls under them.
+    'reminders.kahf': 'سورةُ الكهف',
+    'reminders.jumua': 'دعاءُ آخرِ ساعةٍ من يومِ الجمعة',
+    'reminders.body.kahf': 'وقتُ سورةِ الكهف.',
+    'reminders.body.jumua': 'آخرُ ساعةٍ من يومِ الجمعة، فادعُ.',
+    // WHERE EACH ONE IS ANCHORED, SAID TO THE READER IN THE SAME WORDS THE ORDER USES. These are
+    // labels for a time this application COMPUTES; no hour is written into any of them, because
+    // no hour belongs to them -- the prayer moves through the year and the reminder moves with it.
+    'reminders.anchor.fajr': 'بعدَ صلاةِ الفجر',
+    'reminders.anchor.asr': 'بعدَ صلاةِ العصر',
+    'reminders.anchor.jumuaTime': 'من وقتِ صلاةِ الجمعة',
+    'reminders.anchor.asrFriday': 'بعدَ صلاةِ العصرِ يومَ الجمعة',
+    'reminders.every.day': 'كلَّ يوم',
+    'reminders.every.friday': 'كلَّ جمعة',
+    'reminders.offset': 'الإزاحةُ عن الموعد: {n} دقيقة',
+    'reminders.offset.more': 'أخِّرْ خمسَ دقائق',
+    'reminders.offset.less': 'قدِّمْ خمسَ دقائق',
+    'reminders.alerts.title': 'مواعيدُ الوِرد',
+    'reminders.alerts.hint': 'مربوطةٌ بأوقاتِ الصلاةِ المحسوبةِ على هذا الجهاز، وتتحرّكُ معها كلَّ يوم.',
+    // ITEM 8 (side round) -- THE PER-WIRD ALERT, AND ITS DEFAULT IS THE OPPOSITE OF THE FOUR.
+    'reminders.own': 'ذكِّرْني بهذا الوِرد',
+    'reminders.own.time': 'وقتُ التذكيرِ بهذا الوِرد',
+    // THE CEILING'S ONE QUIET LINE. It is drawn only when the cut actually happened, and it names
+    // the number rather than describing it -- a reader whose reminders were dropped is owed the
+    // count, not a feeling about it.
+    'reminders.clip': 'بلغَتْ تذكيراتُك حدَّ هذا الجهاز، فلم يُجدوَلْ منها {n}، وأوّلُها: {names}.',
     // THE SIX LINES THE SAVE PIPE CAN SHOW. Five answer the shell's five named reasons; the
     // sixth answers everything else, so no contract word ever reaches a reader's screen.
     'save.tooLarge': 'الملفُّ أكبرُ من أن يُحفَظَ على هذا الجهاز.',
@@ -1164,6 +1195,26 @@ const EZ_I18N = {
     'reminders.body.masaa': 'Time for the evening adhkar.',
     'reminders.body.wird': 'Time for your daily wird.',
     'reminders.body.daily': 'Today\u2019s content is waiting for you.',
+    // ITEM 8 (side round, 15 September) -- the four anchored lines and their two controls, in the
+    // second language the dictionary carries, exactly as items 43-b / 47-b did for the four above.
+    'reminders.kahf': 'Surat al-Kahf',
+    'reminders.jumua': 'The last hour of Friday',
+    'reminders.body.kahf': 'Time for Surat al-Kahf.',
+    'reminders.body.jumua': 'The last hour of Friday \u2014 make your du\u2018a.',
+    'reminders.anchor.fajr': 'After the Fajr prayer',
+    'reminders.anchor.asr': 'After the Asr prayer',
+    'reminders.anchor.jumuaTime': 'From the Friday prayer time',
+    'reminders.anchor.asrFriday': 'After the Asr prayer on Friday',
+    'reminders.every.day': 'Every day',
+    'reminders.every.friday': 'Every Friday',
+    'reminders.offset': 'Shift from that moment: {n} minutes',
+    'reminders.offset.more': 'Five minutes later',
+    'reminders.offset.less': 'Five minutes earlier',
+    'reminders.alerts.title': 'Wird times',
+    'reminders.alerts.hint': 'Tied to the prayer times computed on this device, and they move with them each day.',
+    'reminders.own': 'Remind me of this wird',
+    'reminders.own.time': 'Time of the reminder for this wird',
+    'reminders.clip': 'Your reminders reached this device\u2019s limit, so {n} of them were not scheduled, starting with: {names}.',
     // THE SIX LINES THE SAVE PIPE CAN SHOW. Five answer the shell's five named reasons; the
     // sixth answers everything else, so no contract word ever reaches a reader's screen.
     'save.tooLarge': 'The file is too large to save on this device.',
@@ -7599,15 +7650,24 @@ function EzikWirdSection({ v, onClose }) {
             className="ezhome-focus" style={s.ezwidAct}>{DW_ADD_GLYPH}</button>
         </span>
       )}>
+      {/* 🔴 ITEM 8 (side round) -- THE CEILING'S ONE LINE, AND IT IS THE FIRST THING IN THE
+          SECTION when it exists at all. It renders null in the ordinary case, so a reader whose
+          reminders all fit sees nothing here and never learns it is there. */}
+      <EzikSchedClipLine />
       <EzShellGroup title={DW_CARD_TITLE}>
         {items.map((it) => (
-          <div key={it.k + '|' + it.id} style={s.ezwidPanelRow}>
-            <span style={s.ezwidPanelName}>{it.label}</span>
-            <span className="ez-hit" style={s.ezwidPanelActs}>
-              <button type="button" onClick={() => v.onWirdRemove(it.k, it.id)}
-                aria-label={DW_REMOVE_LABEL + ' ' + it.label}
-                className="ezhome-focus" style={s.ezwidAct}>{DW_REMOVE_GLYPH}</button>
-            </span>
+          <div key={it.k + '|' + it.id}>
+            <div style={s.ezwidPanelRow}>
+              <span style={s.ezwidPanelName}>{it.label}</span>
+              <span className="ez-hit" style={s.ezwidPanelActs}>
+                <button type="button" onClick={() => v.onWirdRemove(it.k, it.id)}
+                  aria-label={DW_REMOVE_LABEL + ' ' + it.label}
+                  className="ezhome-focus" style={s.ezwidAct}>{DW_REMOVE_GLYPH}</button>
+              </span>
+            </div>
+            {/* ITEM 8 (side round) -- every wird he adds carries its own reminder, off until he
+                lights it, stored on this very row and gone the moment the row is. */}
+            <EzikWirdOwnAlert it={it} onSet={v.onWirdAlert} />
           </div>
         ))}
         {/* A-3: THE THREE OLD CHOICE LINES. They moved here with everything else -- same
@@ -7618,6 +7678,13 @@ function EzikWirdSection({ v, onClose }) {
           ? <div style={s.ezistCardSub}>{DW_CARD_EMPTY}</div>
           : null}
       </EzShellGroup>
+      {/* ITEM 8 (side round) -- THE FOUR ANCHORED ALERTS, in this section and in no other. */}
+      <EzikWirdAlerts />
+      {/* ITEM 8 (side round) -- AND THE CARD THAT USED TO LIVE IN THE SETTINGS, whole: the same
+          component, the same two rows, the same record, the same key and the same schedule probe.
+          It is RENDERED here and DECLARED down beside SettingsSheet, where the one region of this
+          file that may carry an <input type="time"> is. */}
+      <EzikReminderSettings />
     </EzShell>
   );
 }
@@ -9479,6 +9546,16 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
     // all four spend history the same way.
     onOpenCalc: (next) => { if (!next && ezikHistBack()) return; setCalcOpen(next); },
     onWirdRemove: (k, id) => setWirdList(writeWirdList(wirdListRemove(wirdList.items, k, id))),
+    // ITEM 8 (side round, 15 September) -- ONE WIRD'S OWN REMINDER, SET THE WAY ITS ROW IS SET.
+    // The identical shape as the two lines around it: a pure array move, through the one writer,
+    // and the state is set from what the writer ANSWERS rather than from what it was asked to
+    // store. The arm follows the write, because the payload is rebuilt whole and never patched --
+    // so lighting a reminder, moving its hour and deleting its wird are all the same operation to
+    // the far side, and a reader never has to reopen the app for one of them to take.
+    onWirdAlert: (k, id, on, at) => {
+      setWirdList(writeWirdList(wirdListSetAlert(wirdList.items, k, id, on, at)));
+      ezikSchedArm();
+    },
     // S118: onOpenChat is gone from this object because the home no longer holds a chat
     // control of its own. The chat is entered from the menu the bar opens, on the menu's own
     // «محادثة جديدة» row, which is the app's ONE new-conversation entry and always was.
@@ -18105,6 +18182,13 @@ function App() {
       // removed unconditionally, and one removal takes all four reminders because all four live
       // in one record.
       localStorage.removeItem(REMINDERS_KEY);
+      // ITEM 8 (side round, 15 September) -- AND THE FOUR PRAYER-ANCHORED ALERTS BESIDE THEM, on
+      // the identical terms. Their record holds which of the four this reader silenced and by how
+      // many minutes he shifted each one, which is a record of him and of nobody else. One removal
+      // takes all four because all four live in one record -- and the reminders the reader attached
+      // to his OWN wirds need no line here at all: they live on the wird rows themselves, and
+      // WIRD_LIST_KEY is already swept a few lines below.
+      localStorage.removeItem(WIRD_ALERTS_KEY);
       // Session 86 -- and the APPLICATION UI STYLE with them, the one key that now governs the
       // home screen and the adhkar screens together. Removing it is enough: the reader is total,
       // so an absent key IS 'journey', and the event tells every mounted screen -- the home, the
@@ -24482,11 +24566,21 @@ const REMINDERS_KEY = 'ezik_reminders_v1';
 const REMINDER_MAX_TIMES = 3;
 // ONE ROW PER REMINDER. `many` is the whole of "where a count is right": the two adhkar doors
 // are a time each and not a count, exactly as the order words it.
+//
+// 🔴 ITEM 8 (side round, 15 September) -- THIS LIST IS TWO ROWS NOW, AND THE OTHER TWO DID NOT DIE.
+//
+// The owner's order moves the whole card out of Settings and into «وِردي اليوم», and it words the
+// move differently for different rows. «الوِرد اليوميّ» and «المحتوى اليوميّ» move «كما هما عملًا
+// وتخزينًا» -- as they are, in behaviour and in storage -- so they are untouched here, keep their
+// hours, their counts, their record shape and this very key.
+//
+// The morning and evening adhkar are named again in the SAME order, in its table of four
+// prayer-anchored alerts: «أذكار الصباح» at the Fajr time, «أذكار المساء» at the Asr time.
+// A row cannot be both a fixed 06:00 and a moment that walks through the year with the sun, so
+// they are not duplicated -- they MOVE, into WIRD_ALERTS below, keeping their two dictionary
+// labels, their two bodies, their two destinations and their `adhkar` type. What they lose is the
+// hour nobody chose for them, which is the whole of what the owner asked to be rid of.
 const REMINDER_FEEDS = [
-  { id: 'sabah', type: 'adhkar', route: 'adhkar_sabah', label: 'reminders.sabah',
-    body: 'reminders.body.sabah', at: '06:00', many: false },
-  { id: 'masaa', type: 'adhkar', route: 'adhkar_masaa', label: 'reminders.masaa',
-    body: 'reminders.body.masaa', at: '17:00', many: false },
   { id: 'wird', type: 'daily', route: 'mushaf', label: 'reminders.wird',
     body: 'reminders.body.wird', at: '20:00', many: true },
   { id: 'daily', type: 'daily', route: 'home', label: 'reminders.daily',
@@ -24604,6 +24698,247 @@ function ezikReminderItems(now) {
   return items;
 }
 
+// ============================================================
+// ITEM 8 (side round, 15 September) — التنبيهاتُ الأربعةُ المربوطةُ بالصلاة
+// ============================================================
+// FOUR ALERTS WHOSE HOUR NOBODY TYPES, BECAUSE NOBODY SHOULD HAVE TO. The four rows above are
+// fixed clock times: a reader sets 06:00 for the morning adhkar in December and is woken an hour
+// before Fajr in June. These four are anchored to a PRAYER instead, so they walk through the year
+// with the sun and are right on every one of the seven days in the window without being touched.
+//
+// 🔴 THE ANCHOR IS THIS PAGE'S OWN CALCULATOR, AND THERE IS NO SECOND ONE. `anchor` names a key of
+// prayerTimesFor() -- the one function in this file that turns a place and a day into prayer times,
+// the same one ezikAdhanItems calls for the call to prayer itself and the same one the prayer sheet draws
+// its table from. Nothing below computes a sunrise, a declination or an hour angle; nothing below
+// imports anything; and a device whose position, method, Asr school or manual offsets move gets
+// four alerts that moved with them, because they are read from the same two stores at the same
+// moment as the five prayer calls they follow.
+//
+// FRIDAY IS `day: 5`, AND THE FRIDAY PRAYER IS THE DHUHR OF THAT DAY. This client has no separate
+// jumu'ah time and inventing one would be exactly the second source this whole design refuses: the
+// only Friday-prayer moment the page owns is `dhuhr` on the day whose getDay() is 5. It is written
+// here, once, where it can be read.
+//
+// ON BY DEFAULT, AND EACH ONE ALONE. The owner ruled the four open at first run, which is the one
+// place they differ from everything else in this file: a store that was never written reads as four
+// alerts, all ON, each at offset zero. There is exactly one value that means OFF -- the boolean
+// false -- so a truncated write cannot silence one by accident, and each switch reaches its own row
+// and no other.
+const WIRD_ALERTS_KEY = 'ezik_wird_alerts_v1';
+// The shift the reader may put between the prayer and the alert, in minutes, and it is BOUNDED.
+// Two hours either way covers "a little before Fajr" and "an hour after Asr" and refuses a number
+// that would carry an alert into a different prayer's territory and make its own name a lie.
+const WIRD_ALERT_OFFSET_MIN = -120;
+const WIRD_ALERT_OFFSET_MAX = 120;
+const WIRD_ALERT_OFFSET_STEP = 5;
+// The hour a wird the reader added starts its own reminder from, and it is a STARTING POINT and not
+// a schedule: the reminder is off until he lights it, and the field beside the switch is his.
+const WIRD_OWN_ALERT_AT = '20:00';
+// ONE ROW PER ALERT, AND EVERY PROPERTY ON IT. The shell's frozen type, the destination, the two
+// dictionary keys its text comes from, the prayer it hangs on, the weekday it is limited to (null
+// = every day) and the two labels the section draws. There is no second list anywhere that a fifth
+// alert could be added to and forgotten in -- and the owner forbade a fifth outright.
+const WIRD_ALERTS = [
+  { id: 'sabah', type: 'adhkar', route: 'adhkar_sabah', label: 'reminders.sabah',
+    body: 'reminders.body.sabah', anchor: 'fajr', day: null,
+    anchorLabel: 'reminders.anchor.fajr', everyLabel: 'reminders.every.day' },
+  { id: 'masaa', type: 'adhkar', route: 'adhkar_masaa', label: 'reminders.masaa',
+    body: 'reminders.body.masaa', anchor: 'asr', day: null,
+    anchorLabel: 'reminders.anchor.asr', everyLabel: 'reminders.every.day' },
+  { id: 'kahf', type: 'daily', route: 'mushaf', label: 'reminders.kahf',
+    body: 'reminders.body.kahf', anchor: 'dhuhr', day: 5,
+    anchorLabel: 'reminders.anchor.jumuaTime', everyLabel: 'reminders.every.friday' },
+  { id: 'jumua', type: 'daily', route: 'home', label: 'reminders.jumua',
+    body: 'reminders.body.jumua', anchor: 'asr', day: 5,
+    anchorLabel: 'reminders.anchor.asrFriday', everyLabel: 'reminders.every.friday' },
+];
+
+/** A shift in whole minutes, inside the bounds above, or nothing. A near-miss is not a near-shift. */
+function wirdAlertOffsetOk(n) {
+  if (typeof n !== 'number' || !isFinite(n) || Math.trunc(n) !== n) return false;
+  return n >= WIRD_ALERT_OFFSET_MIN && n <= WIRD_ALERT_OFFSET_MAX;
+}
+
+/**
+ * WHAT THE READER CHOSE, OR THE FOUR THE OWNER CHOSE FOR THEM.
+ *
+ * ON BY CONSTRUCTION, which is the mirror image of readReminders above and is deliberate. A store
+ * this key was never written to, a damaged JSON, an array, a record whose offsets are all unusable,
+ * a storage that throws on the getter: every one of them reads as four alerts, all on, all at zero.
+ * `on` is read as `!== false` for the same reason `on === true` is read the other way there: the
+ * default has to survive a partial record, and here the default is on.
+ *
+ * IT WRITES NOTHING. This runs at the root for every reader through the arming path, so it reads
+ * its store and creates none -- the rule tools/schedule-payload-measure.cjs holds this whole path
+ * to, by counting writes through a real fake store.
+ */
+function readWirdAlerts() {
+  const out = {};
+  for (let i = 0; i < WIRD_ALERTS.length; i++) out[WIRD_ALERTS[i].id] = { on: true, offset: 0 };
+  let raw = null;
+  try { raw = localStorage.getItem(WIRD_ALERTS_KEY); } catch (e) { return out; }
+  if (typeof raw !== 'string' || !raw) return out;
+  let rec = null;
+  try { rec = JSON.parse(raw); } catch (e) { return out; }
+  if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return out;
+  for (let i = 0; i < WIRD_ALERTS.length; i++) {
+    const a = WIRD_ALERTS[i];
+    const got = rec[a.id];
+    if (!got || typeof got !== 'object' || Array.isArray(got)) continue;
+    out[a.id] = { on: got.on !== false, offset: wirdAlertOffsetOk(got.offset) ? got.offset : 0 };
+  }
+  return out;
+}
+
+// It answers with what is NOW STORED rather than with what it was asked to store -- the discipline
+// writeReminders and writePrayerNotify already keep, so no control paints itself from the
+// assumption that its own write landed.
+function writeWirdAlerts(next) {
+  try { localStorage.setItem(WIRD_ALERTS_KEY, JSON.stringify(next)); } catch (e) {}
+  return readWirdAlerts();
+}
+
+/**
+ * The four anchored alerts of the next seven local days, as ABSOLUTE epoch milliseconds.
+ *
+ * THE CONVERSION IS ezikAdhanItems'S, TO THE LINE, and for its reason: prayerTimesFor() answers in
+ * MINUTES FROM LOCAL MIDNIGHT, and new Date(y, m - 1, d, hh, mm) rebuilds the LOCAL WALL CLOCK of
+ * that day, so a day on the far side of a daylight-saving change lands on the clock the reader will
+ * be reading. The zone offset is taken FOR EACH DAY from noon of that day, so a reading cannot fall
+ * inside the changeover hour itself. Same calculator, same argument -- not a second calculation.
+ *
+ * THE SHIFT IS ADDED IN MINUTES AND THE HOUR IS ALLOWED TO GO NEGATIVE. A -120 on a Fajr at 04:10
+ * is 02:10 of the same day; the Date constructor rolls the field itself, which is the same thing it
+ * does when a count of times pushes past midnight. No clamping, no wrapping, no special case.
+ *
+ * A PRAYER THE CALCULATOR COULD NOT PLACE IS NOT AN ALERT. `null` is the real answer at extreme
+ * latitudes and it is carried through as silence rather than as a guess -- exactly as the prayer
+ * feed carries it.
+ */
+function ezikWirdAlertItems(now) {
+  const items = [];
+  if (!(now instanceof Date) || !isFinite(now.getTime())) return items;
+  const rec = readWirdAlerts();
+  const loc = readQiblaLoc();
+  const prefs = readPrayerPrefs();
+  for (let i = 0; i < ADHAN_WINDOW_DAYS; i++) {
+    const dt = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+    const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
+    // The day's times are computed ONCE, and only if some alert on this day actually wants them.
+    let t = null;
+    for (let a = 0; a < WIRD_ALERTS.length; a++) {
+      const al = WIRD_ALERTS[a];
+      const got = rec[al.id];
+      if (!got || got.on !== true) continue;
+      if (al.day !== null && dt.getDay() !== al.day) continue;
+      if (t === null) {
+        const tz = -(new Date(y, m - 1, d, 12, 0, 0, 0).getTimezoneOffset());
+        t = prayerTimesFor(y, m, d, loc.lat, loc.lng, tz, prefs.method, prefs.asr, prefs.off);
+      }
+      const mins = t[al.anchor];
+      if (typeof mins !== 'number' || !isFinite(mins)) continue;
+      const total = Math.round(mins) + got.offset;
+      const hh = Math.floor(total / 60);
+      const at = new Date(y, m - 1, d, hh, total - hh * 60, 0, 0).getTime();
+      if (!isFinite(at)) continue;
+      items.push({
+        id: al.type + ':alert:' + al.id + ':' + prayerDayKey(dt),
+        type: al.type,
+        at: at,
+        title: ezT(al.label),
+        body: ezT(al.body),
+        route: al.route,
+      });
+    }
+  }
+  return items;
+}
+
+/**
+ * ITEM 8 (side round) — A REMINDER FOR EVERY WIRD THE READER ADDED HIMSELF.
+ *
+ * THE ALERT LIVES INSIDE THE WIRD'S OWN ROW, not in a key beside it -- which is the owner's wording
+ * and is also what makes deleting a wird delete its reminder with no second step: wirdListClean
+ * carries `alert` on the row, wirdListRemove takes the row away, and there is nothing left behind
+ * for a later arm to find. It is OFF when a wird is added, unlike the four above, so nothing a
+ * reader adds starts ringing at an hour he never chose.
+ *
+ * ITS HOUR IS A CLOCK AND NOT AN ANCHOR, deliberately. The four above name moments this application
+ * computes; a wird the reader invented has no such moment, so he names one.
+ */
+function ezikWirdOwnItems(now) {
+  const items = [];
+  if (!(now instanceof Date) || !isFinite(now.getTime())) return items;
+  const list = readWirdList().items;
+  const body = ezT('reminders.body.wird');
+  for (let i = 0; i < list.length; i++) {
+    const it = list[i];
+    if (!it.alert || it.alert.on !== true) continue;
+    const t = it.alert.at;
+    for (let j = 0; j < ADHAN_WINDOW_DAYS; j++) {
+      const dt = new Date(now.getFullYear(), now.getMonth(), now.getDate() + j);
+      const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
+      const at = new Date(y, m - 1, d, Number(t.slice(0, 2)), Number(t.slice(3)), 0, 0).getTime();
+      if (!isFinite(at)) continue;
+      items.push({
+        id: 'daily:own:' + it.k + ':' + it.id + ':' + t + ':' + prayerDayKey(dt),
+        type: 'daily',
+        at: at,
+        title: it.label,
+        body: body,
+        route: 'home',
+      });
+    }
+  }
+  return items;
+}
+
+// ============================================================
+// ITEM 8 (side round) — 🔴 السقف: بوّابةٌ قبلَ الجدولة، لا تنبيهٌ في وثيقة
+// ============================================================
+// THE NUMBER, AND WHY IT IS FINALLY A CONSTANT. murabbi-shell caps the whole application at sixty
+// pending notifications and cuts the FARTHEST when it is reached. Until this round that number
+// lived in this file as PROSE only -- two comments -- and was readable at run time only by pressing
+// the schedule probe. That was survivable while the payload was thirty-five prayers; it stopped
+// being survivable the moment the reader could add reminders without limit.
+//
+// AND IT WAS ALREADY BROKEN. Measured on this tree before this round: the prayers plus the four old
+// reminders at one time each is 63 items -- three over -- and the reader was told nothing at all.
+// The far side simply dropped the three farthest and nobody on this side knew a cut had happened.
+//
+// THE PRIORITY IS THE OWNER'S, FIXED, AND IT IS THE WHOLE POLICY:
+//   1  the five prayers    -- the prayer itself outranks everything built around it;
+//   2  the four anchored  -- the alerts the owner ruled open by default;
+//   3  the two clock rows -- «الوِرد اليوميّ» and «المحتوى اليوميّ», which a reader LIT by hand;
+//   4  the reader's own wird alerts, in the order he added them.
+// Inside a tier the NEAREST survive, because the shell cuts the farthest and an item with time left
+// on it is an item a later arm can still schedule.
+const SHELL_SCHED_CEILING = 60;
+// HOW MANY NAMES THE ONE LINE CARRIES. A line naming twenty reminders is a line nobody reads.
+const SCHED_CLIP_NAMES = 3;
+// WHAT THE LAST ARM ACTUALLY CUT. Module state, not a store: it describes the payload that was just
+// built and it must never outlive the tab or reach the device. `cut` is zero in the ordinary case,
+// which is what makes the reader's line invisible unless the cut really happened.
+let ezikSchedClip = { cut: 0, names: [] };
+const EZ_SCHED_CLIP_SUBS = new Set();
+function ezikSchedClipRead() { return ezikSchedClip; }
+// The subscribers are notified only when the RECORD MOVED. The arming path runs after every render
+// of the components that watch the schedule, so notifying unconditionally would be a setState per
+// render and a loop with it.
+function ezikSchedClipSet(cut, names) {
+  const same = ezikSchedClip.cut === cut && ezikSchedClip.names.join(' ') === names.join(' ');
+  if (same) return;
+  ezikSchedClip = { cut: cut, names: names };
+  for (const fn of Array.from(EZ_SCHED_CLIP_SUBS)) { try { fn(); } catch (e) {} }
+}
+
+// THE FOUR TIERS, IN PRIORITY ORDER, BUILT ONCE. Each is a whole feed behind its own switches; the
+// cut below is the only thing that ever shortens one, and it shortens from the end of the list
+// rather than from the middle of a feed.
+function ezikSchedTiers(now) {
+  return [ezikAdhanFeed(), ezikWirdAlertItems(now), ezikReminderItems(now), ezikWirdOwnItems(now)];
+}
+
 // THE PRAYERS, BEHIND THE SWITCH THAT HAS ALWAYS GATED THEM. This is the function ezikSchedItems
 // used to BE, moved down one level and not changed by a character: the same guard, the same
 // return, the same builder. It is its own function now only because the reminders below it are
@@ -24627,7 +24962,30 @@ function ezikAdhanFeed() {
 // each reminder silences itself and nothing else. A reader who wants the morning adhkar without
 // five prayer notifications a day gets exactly that, which is the whole point of four switches.
 function ezikSchedItems() {
-  return ezikAdhanFeed().concat(ezikReminderItems(new Date()));
+  // 🔴 ITEM 8 (side round) -- THE COUNT IS TAKEN BEFORE THE PAYLOAD IS BUILT, ON EVERY RE-ARM.
+  // The join is no longer one concat because it can no longer be: four feeds now ride this pipe
+  // and their sum is allowed to exceed what the far side will hold. So the tiers are taken in the
+  // owner's priority order, filled until the ceiling is reached, and what does not fit is RECORDED
+  // rather than dropped into silence. `ezikSchedClipSet` is module state and touches no store.
+  const now = new Date();
+  const tiers = ezikSchedTiers(now);
+  const out = [];
+  const names = [];
+  let cut = 0;
+  for (let i = 0; i < tiers.length; i++) {
+    // NEAREST FIRST INSIDE A TIER. The shell cuts the farthest when ITS cap is reached, so the
+    // items worth keeping here are the ones that fire soonest; the ones given up still have time
+    // left on them and a later arm, on a shorter day, can carry them.
+    const tier = tiers[i].slice().sort((a, b) => a.at - b.at);
+    for (let j = 0; j < tier.length; j++) {
+      if (out.length < SHELL_SCHED_CEILING) { out.push(tier[j]); continue; }
+      cut += 1;
+      const nm = tier[j].title;
+      if (names.length < SCHED_CLIP_NAMES && names.indexOf(nm) === -1) names.push(nm);
+    }
+  }
+  ezikSchedClipSet(cut, names);
+  return out;
 }
 
 // THE ARM. It rebuilds the WHOLE payload -- never a difference, never an addition -- and hands it
@@ -26046,6 +26404,197 @@ function EzikReminderSettings() {
     </EzShellGroup>
   );
 }
+
+// ============================================================
+// ITEM 8 (side round, 15 September) — الأربعةُ المربوطةُ بالصلاة، ومعها وِردُ القارئِ نفسِه
+// ============================================================
+// 🔴 WHY ALL THREE COMPONENTS BELOW SIT HERE, BETWEEN THE CARD ABOVE AND SettingsSheet.
+// tools/wird-guard.cjs allows an <input type="time"> in the client in EXACTLY ONE REGION -- the
+// slice from `function EzikReminderSettings() {` to the next `function SettingsSheet(` -- and
+// requires the count anywhere else to be zero. That rule is not an accident of anchoring: round 25
+// forbade a time field anywhere at all, because nothing in the client could ring; item 67 shipped
+// the engine and items 43-ب / 47-ب opened ONE region where a reader may name an hour, so that a
+// second, unbacked one cannot appear somewhere else in thirty thousand lines without being seen.
+// These controls are that same kind of thing, backed by that same engine, so they belong inside
+// that same region rather than beside it. They are DRAWN in «وِردي اليوم» -- JavaScript hoists a
+// top-level function declaration, so the section up at the head of this file renders all three.
+//
+// AND THE THREE ARE SEPARATE COMPONENTS FOR ONE REASON EACH: the four anchored alerts own a store;
+// a wird's own alert owns one row of a different store; and the ceiling's line owns no store at all
+// and only listens. Folding them together would have made one component that writes three things.
+
+// ---- THE FOUR, EACH WITH ITS ANCHOR AND ITS SHIFT ------------------------------------------
+// It mirrors EzikReminderSettings above it deliberately: same switch markup, same three quiet
+// permission lines, same "write through the writer and paint from what it returns" discipline, and
+// the same one sender for the system prompt. What it does NOT mirror is the default -- these four
+// are ON until the reader turns one off, which is the owner's ruling and the one thing about them
+// that is different in kind.
+function EzikWirdAlerts() {
+  const [rec, setRec] = useState(readWirdAlerts);
+  const [said, setSaid] = useState('');
+  const stopRef = useRef(null);
+  useEffect(() => () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } }, []);
+  const shell = !!ezikSchedBridge();
+  const release = () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } };
+  // THE ONE WRITER. The whole record is built by name, never spread from a previous read, so a
+  // field some other version of this application left in the store cannot ride back out.
+  const save = (id, patch) => {
+    const next = {};
+    for (let i = 0; i < WIRD_ALERTS.length; i++) {
+      const a = WIRD_ALERTS[i];
+      const cur = rec[a.id] || { on: true, offset: 0 };
+      const use = a.id === id ? patch : cur;
+      next[a.id] = { on: use.on === true, offset: wirdAlertOffsetOk(use.offset) ? use.offset : 0 };
+    }
+    setRec(writeWirdAlerts(next));
+    ezikSchedArm();
+  };
+  // TURNING ONE BACK ON ASKS THE SYSTEM FIRST, through the sender both switches in this file
+  // already share. Without a shell there is nothing to ask and nothing that could ring, so the
+  // choice is simply stored.
+  const turnOn = (a, cur) => {
+    if (!shell) { save(a.id, { on: true, offset: cur.offset }); return; }
+    release();
+    setSaid('asking');
+    const stop = ezikNotifyRequest((granted) => {
+      stopRef.current = null;
+      if (granted === null) { setSaid('silent'); return; }
+      if (!granted) { setSaid('denied'); return; }
+      setSaid('');
+      save(a.id, { on: true, offset: cur.offset });
+    });
+    if (!stop) { setSaid('silent'); return; }
+    stopRef.current = stop;
+  };
+  const press = (a) => {
+    const cur = rec[a.id] || { on: true, offset: 0 };
+    if (cur.on) { release(); setSaid(''); save(a.id, { on: false, offset: cur.offset }); return; }
+    turnOn(a, cur);
+  };
+  // THE SHIFT, AND IT MOVES BY FIVE. A step that would leave the bounds is refused whole rather
+  // than clamped: a control that silently stops agreeing with its own press is worse than one that
+  // is visibly disabled, and the two buttons below disable themselves at the same edge.
+  const shift = (a, by) => {
+    const cur = rec[a.id] || { on: true, offset: 0 };
+    const next = cur.offset + by;
+    if (!wirdAlertOffsetOk(next)) return;
+    save(a.id, { on: cur.on, offset: next });
+  };
+  // The sign is drawn, never printed from the number: toArabicDigits would leave a latin hyphen
+  // in front of Arabic-Indic digits, and a minus that reads as a dash is a minus nobody trusts.
+  const offsetText = (n) => (n < 0 ? '−' : (n > 0 ? '+' : '')) + ezikBrowseNum(Math.abs(n));
+  return (
+    <EzShellGroup title={ezT('reminders.alerts.title')} hint={ezT('reminders.alerts.hint')}>
+      {shell ? null : <div style={s.settingsHint}>{ezT('reminders.noShell')}</div>}
+      {WIRD_ALERTS.map((a) => {
+        const cur = rec[a.id] || { on: true, offset: 0 };
+        return (
+          <div key={a.id}>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={cur.on ? 'true' : 'false'}
+              aria-label={ezT(a.label)}
+              data-ezik-wird-alert={a.id}
+              onClick={() => press(a)}
+              className="ezik-focus"
+              style={s.a11ySwitchRow}
+            >
+              <span style={s.a11ySwitchText}>
+                <span style={s.a11ySwitchTitle}>{ezT(a.label)}</span>
+                <span style={s.a11ySwitchHint}>{ezT(a.anchorLabel)}{' · '}{ezT(a.everyLabel)}</span>
+              </span>
+              <span style={{ ...s.a11ySwitch, ...(cur.on ? s.a11ySwitchOn : {}) }} aria-hidden="true">
+                <span style={{ ...s.a11yKnob, ...(cur.on ? s.a11yKnobOn : {}) }} />
+              </span>
+            </button>
+            {cur.on ? (
+              <div style={s.remRow}>
+                <span style={s.remSlotLabel}>{ezT('reminders.offset', { n: offsetText(cur.offset) })}</span>
+                <button type="button" className="ezik-focus"
+                  aria-label={ezT(a.label) + ' — ' + ezT('reminders.offset.less')}
+                  disabled={!wirdAlertOffsetOk(cur.offset - WIRD_ALERT_OFFSET_STEP)}
+                  onClick={() => shift(a, -WIRD_ALERT_OFFSET_STEP)}
+                  style={!wirdAlertOffsetOk(cur.offset - WIRD_ALERT_OFFSET_STEP)
+                    ? { ...s.remCount, ...s.remCountOff } : s.remCount}>{'−'}</button>
+                <button type="button" className="ezik-focus"
+                  aria-label={ezT(a.label) + ' — ' + ezT('reminders.offset.more')}
+                  disabled={!wirdAlertOffsetOk(cur.offset + WIRD_ALERT_OFFSET_STEP)}
+                  onClick={() => shift(a, WIRD_ALERT_OFFSET_STEP)}
+                  style={!wirdAlertOffsetOk(cur.offset + WIRD_ALERT_OFFSET_STEP)
+                    ? { ...s.remCount, ...s.remCountOff } : s.remCount}>{String.fromCharCode(43)}</button>
+              </div>
+            ) : null}
+          </div>
+        );
+      })}
+      {said === 'asking' ? <div style={s.qiblaNote}>{ezT('reminders.asking')}</div> : null}
+      {said === 'denied' ? <div style={s.qiblaNote}>{ezT('reminders.denied')}</div> : null}
+      {said === 'silent' ? <div style={s.qiblaNote}>{ezT('reminders.silent')}</div> : null}
+      <div style={s.qiblaNote}>{ezT('reminders.window', { n: ezikBrowseNum(ADHAN_WINDOW_DAYS) })}</div>
+    </EzShellGroup>
+  );
+}
+
+// ---- ONE WIRD'S OWN REMINDER --------------------------------------------------------------
+// Drawn under every row the reader added, and OFF until he lights it. It owns no store of its own:
+// it is handed the row and a setter, and the row is where the choice lives -- so deleting the wird
+// deletes this with it and there is nothing to sweep.
+function EzikWirdOwnAlert({ it, onSet }) {
+  if (typeof onSet !== 'function') return null;
+  const cur = it.alert || { on: false, at: WIRD_OWN_ALERT_AT };
+  return (
+    <div style={s.remRow}>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={cur.on ? 'true' : 'false'}
+        aria-label={ezT('reminders.own') + ' — ' + it.label}
+        data-ezik-wird-own-alert={it.k + '|' + it.id}
+        onClick={() => onSet(it.k, it.id, !cur.on, cur.at)}
+        className="ezik-focus"
+        style={s.a11ySwitchRow}
+      >
+        <span style={s.a11ySwitchText}>
+          <span style={s.a11ySwitchTitle}>{ezT('reminders.own')}</span>
+          <span style={s.a11ySwitchHint}>{cur.on ? ezT('reminders.on') : ezT('reminders.off')}</span>
+        </span>
+        <span style={{ ...s.a11ySwitch, ...(cur.on ? s.a11ySwitchOn : {}) }} aria-hidden="true">
+          <span style={{ ...s.a11yKnob, ...(cur.on ? s.a11yKnobOn : {}) }} />
+        </span>
+      </button>
+      <input
+        type="time"
+        value={cur.at}
+        aria-label={ezT('reminders.own.time') + ' — ' + it.label}
+        onChange={(e) => onSet(it.k, it.id, cur.on, e.target.value)}
+        className="ezik-focus"
+        style={s.remTime}
+      />
+    </div>
+  );
+}
+
+// ---- 🔴 THE CEILING'S ONE LINE, AND IT IS SILENT UNTIL THE CUT HAPPENS ----------------------
+// It reads the record the LAST ARM left -- not a prediction, not a recomputation -- and subscribes
+// so that an arm caused by anything else (the day turning, the reader changing a prayer setting,
+// another tab) reaches this line without the section being reopened. With nothing cut it renders
+// null, so the ordinary reader never learns this component exists.
+function EzikSchedClipLine() {
+  const [clip, setClip] = useState(ezikSchedClipRead);
+  useEffect(() => {
+    const onClip = () => setClip(ezikSchedClipRead());
+    EZ_SCHED_CLIP_SUBS.add(onClip);
+    onClip();
+    return () => { EZ_SCHED_CLIP_SUBS.delete(onClip); };
+  }, []);
+  if (!clip || clip.cut <= 0) return null;
+  return (
+    <div style={s.settingsHint} data-ezik-sched-clip={String(clip.cut)}>
+      {ezT('reminders.clip', { n: ezikBrowseNum(clip.cut), names: clip.names.join('، ') })}
+    </div>
+  );
+}
 function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, onA11yReset, aiConsent, aiConsentBy, onWithdrawAI, onReviewAI, profile, onSaveProfile }) {
   // S90 -- التحكم. The single row that leads to the parental area, and the ONLY thing left in
   // the app that opens the PIN gate. Everything above it -- the theme/dark choice and the
@@ -26440,9 +26989,13 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             no second copy of the bridge test or of the flag test here to drift from the ones
             inside it. */}
         <EzikSignInRow />
-        {/* ITEMS 43-ب / 47-ب -- the four reminders, above the prayer preferences so that
-            every established Settings position stays exactly where the reader learned it. */}
-        <EzikReminderSettings />
+        {/* ITEMS 43-ب / 47-ب -- the reminders card used to stand HERE, above the prayer
+            preferences. ITEM 8 (side round, 15 September) took it out of this screen entirely, in
+            the owner's own words: «ما أبيه» في الإعدادات. It was MOVED and not killed -- both of
+            its rows, their record, their key, their hours and their counts are unchanged, and the
+            card is rendered whole inside «وِردي اليوم» instead, beside the four anchored alerts
+            that now carry the morning and evening adhkar. Nothing of it is left on this screen:
+            not the group, not its title, and not a row of it. */}
         {/* ITEM 05-D -- ARRANGE YOUR HOME, MOVED HERE FROM THE FOOT OF THE HOME SCREEN, and above
             the prayer preferences so that every established Settings position stays exactly where
             the reader learned it. Two things, in this order:
@@ -27893,7 +28446,23 @@ function wirdListClean(items) {
     const key = it.k + '|' + it.id;
     if (seen.indexOf(key) !== -1) continue;
     seen.push(key);
-    out.push({ k: it.k, id: it.id, label: it.label });
+    // ITEM 8 (side round, 15 September) -- THE REMINDER RIDES ON THE ROW AND NOWHERE ELSE.
+    //
+    // The owner's wording is that it is kept WITH the wird's own record rather than in a key beside
+    // it, and this line is the whole of that promise: it is normalised here, written by the one
+    // writer below, and it goes when the row goes -- no orphan, no second store to sweep, and
+    // nothing for «احذفْ بياناتي» to have to learn about separately.
+    //
+    // A ROW THAT IS ALMOST AN ALERT IS NOT AN ALERT. Anything but an object with a usable HH:MM is
+    // DROPPED rather than repaired, exactly as this cleaner drops a row it cannot make sense of --
+    // a repaired hour is an hour the reader did not pick. And a wird that never carried one keeps
+    // the shape it always had, so a device holding the old record reads back unchanged.
+    const row = { k: it.k, id: it.id, label: it.label };
+    if (it.alert && typeof it.alert === 'object' && !Array.isArray(it.alert)
+      && reminderTimeOk(it.alert.at)) {
+      row.alert = { on: it.alert.on === true, at: it.alert.at };
+    }
+    out.push(row);
   }
   return out;
 }
@@ -27930,6 +28499,16 @@ function wirdListAdd(items, k, id, label) {
 }
 function wirdListRemove(items, k, id) {
   return wirdListClean(items).filter((it) => !(it.k === k && it.id === id));
+}
+// ITEM 8 (side round) -- THE ONE WAY A ROW'S REMINDER IS SET, AND IT IS ARRAY WORK LIKE THE REST.
+// `on` and `at` are given together so a row can never hold a lit alert with no hour on it; an hour
+// that does not parse leaves the row exactly as it was, which is the cleaner's rule applied at the
+// call site so the reader's choice is never half-taken.
+function wirdListSetAlert(items, k, id, on, at) {
+  if (!reminderTimeOk(at)) return wirdListClean(items);
+  return wirdListClean(items).map((it) => (it.k === k && it.id === id
+    ? { k: it.k, id: it.id, label: it.label, alert: { on: on === true, at: at } }
+    : it));
 }
 function wirdListHas(items, k, id) {
   return wirdListClean(items).filter((it) => it.k === k && it.id === id).length > 0;

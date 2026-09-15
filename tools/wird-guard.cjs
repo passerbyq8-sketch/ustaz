@@ -2636,9 +2636,27 @@ if (oLifted) {
       && REM.indexOf('readReminders') !== -1
       && SRC.indexOf('out[f.id] = { on: got.on === true, times: times };') !== -1
       && SRC.indexOf('out[f.id] = { on: false, times: [f.at] };') !== -1);
-    ok('A-3: ...and nothing at all is scheduled until the reader turns one on',
+    // ITEM 8 (side round, 15 September): RE-POINTED, AND ONE HALF OF IT IS NOW FALSE ON PURPOSE.
+    //
+    // THE GATE ITSELF IS UNTOUCHED and is still the first half below: every feed on this pipe reads
+    // `on !== true` off the reader's own record and builds NOTHING for a row he has not lit. That
+    // is what this case has always been about and it still holds for all four rows this card draws.
+    //
+    // WHAT CHANGED IS THE SECOND HALF. The join used to be one concat of two feeds, and this line
+    // pinned its exact text. It is four feeds now -- the prayers, the four prayer-anchored alerts,
+    // these two clock rows, and a reminder per wird the reader added -- and they are no longer
+    // simply concatenated: the shell holds sixty pending notifications and their sum is allowed to
+    // exceed it, so ezikSchedItems fills tiers in a fixed priority and RECORDS what would not fit.
+    // A pin on the old text would have been a pin against the ceiling gate the owner ordered.
+    //
+    // !! AND THE FOUR ANCHORED ALERTS ARE ON BY DEFAULT, which is a real change to what a fresh
+    // device schedules and is the owner's explicit ruling. So this no longer claims "nothing at
+    // all": it claims that these two rows are gated, that the join still carries every feed by
+    // name, and that the ceiling is applied rather than assumed.
+    ok('A-3: ...and nothing is scheduled for a row the reader has not lit',
       SRC.indexOf('if (!got || got.on !== true) continue;') !== -1
-      && SRC.indexOf('return ezikAdhanFeed().concat(ezikReminderItems(new Date()));') !== -1);
+      && SRC.indexOf('return [ezikAdhanFeed(), ezikWirdAlertItems(now), ezikReminderItems(now), ezikWirdOwnItems(now)];') !== -1
+      && SRC.indexOf('if (out.length < SHELL_SCHED_CEILING) { out.push(tier[j]); continue; }') !== -1);
     ok('A-3: ...and it asks the system through the one sender both switches share',
       REM.indexOf('ezikNotifyRequest(') !== -1 && REM.indexOf('SHELL_SCHED_ENABLE_OP') === -1);
     ok('A-3: ...and turning one off never cancels the channel the prayers ride on',

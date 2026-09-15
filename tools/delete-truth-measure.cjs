@@ -396,6 +396,18 @@ const MUST_GO_ALREADY = [
   // ONE REMOVAL TAKES ALL FOUR, because all four live in one record. And the switches come back
   // as they ship -- off -- which is the right outcome of "delete all my data", not a regression.
   { c: 'REMINDERS_KEY' },
+  // ITEM 8 (side round, 15 September) -- THE FOUR PRAYER-ANCHORED ALERTS, CLASSIFIED THE SAME WAY
+  // AND FOR THE SAME REASON. The record holds which of the four this reader silenced and by how
+  // many minutes he shifted each one from its prayer. It is not a permission the system granted --
+  // that is still PRAYER_NOTIFY_KEY below, and it is still allowed to stand for the reason written
+  // there -- it is a record of one person's day, of exactly the kind the page's own promise is
+  // about. One removal takes all four, because all four live in one record, and the four come back
+  // as they ship -- open, at zero -- which is the right outcome of "delete all my data".
+  //
+  // AND THE READER'S OWN WIRD ALERTS NEED NO ENTRY HERE AT ALL. They live ON the wird rows, inside
+  // WIRD_LIST_KEY, which is already on this roster further down -- which is the whole reason the
+  // order put them there rather than in a key of their own.
+  { c: 'WIRD_ALERTS_KEY' },
   // ITEM 7 -- the per-section record of what this reader has already been shown. Classified by
   // the same owner's rule the reminder hours are classified by: any new device key is entered
   // here and is wiped with the button. It is not a permission and it is not an answer the page
