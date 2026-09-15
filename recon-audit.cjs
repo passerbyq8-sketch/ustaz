@@ -776,7 +776,7 @@ head('14) GATE ROSTER (single source: gates.json)');
   // the tool is offered on «مفصّل» and «طالب علم», withheld on «موجز», and withheld from every
   // child on every depth. It also pins resetLessons() at one call site, and pins the ABSENCE of
   // a relevance floor on the lessons row -- the owner ruled on 2026-09-09 that there is none.
-  const GATES_EXPECTED = 113;  // 113th: prophetascription -- guards/prophet-ascription-guard.cjs
+  const GATES_EXPECTED = 114;  // 114th: prophetascriptionwiring -- guards/prophet-ascription-wiring-guard.cjs
                                //        (item 36, part b). A description of someone else is not
                                //        news about the Prophet: the guard holds that separation
                                //        and passes 32/32 checks.
