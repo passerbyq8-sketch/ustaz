@@ -742,6 +742,11 @@ tools/fixtures/*.html -text
 # at literal anchors, and that file is already pinned above, so no anchor of its own can miss a
 # CR.
 guards/prophet-ascription-guard.cjs text eol=lf
+guards/prophet-ascription-wiring-guard.cjs text eol=lf
+# The sealed pair of البند ٣٦ (ب): the wiring gate compares a 5340-byte region of these two
+# files BYTE FOR BYTE, so one of them checking out CRLF while the other checks out LF turns
+# that gate red for a reason that has nothing to do with the rule it is sealing.
+lib/prophet-ascription.js text eol=lf
 
 # ITEM 94 -- the card-skin probe. It is a PROBE and not a gate, so recon item 14 does not require
 # this of it; it is pinned for the reason every other tool on this list is. It reads index.html
@@ -766,3 +771,10 @@ api/feedback.js text eol=lf
 # and will therefore read this one on every run; and because every other api/ route a guard reads
 # is pinned.
 api/inbox.js text eol=lf
+
+# ITEM 72 (b) -- the gate that freezes the third khilaf igniter empty. Same mechanical
+# requirement recon-audit item 14 puts on every gate: pinned to LF or the item FAILS. It also
+# mutates lib/free-brain/loop.js at literal anchors written for BOTH line endings, so a machine
+# that checked it out the other way still kills the mutant rather than reporting a moved seam --
+# but the guard's own bytes are pinned so that its anchors read the same everywhere.
+guards/khilaf-probe-freeze-guard.cjs text eol=lf

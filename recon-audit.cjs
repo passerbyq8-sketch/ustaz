@@ -776,7 +776,13 @@ head('14) GATE ROSTER (single source: gates.json)');
   // the tool is offered on «مفصّل» and «طالب علم», withheld on «موجز», and withheld from every
   // child on every depth. It also pins resetLessons() at one call site, and pins the ABSENCE of
   // a relevance floor on the lessons row -- the owner ruled on 2026-09-09 that there is none.
-  const GATES_EXPECTED = 113;  // 113th: prophetascription -- guards/prophet-ascription-guard.cjs
+  const GATES_EXPECTED = 115;  // 115th: khilafprobefreeze -- guards/khilaf-probe-freeze-guard.cjs
+                               //        (item 72, door b). The third igniter of the khilaf notice
+                               //        returns null and stays that way: every filling measured
+                               //        lied on the record, so the guard runs the probe over 199
+                               //        evidence sets, 172 of them multi-source, and proves the
+                               //        negative witness holds with the probe INJECTED true.
+                               // 114th: prophetascriptionwiring -- guards/prophet-ascription-wiring-guard.cjs
                                //        (item 36, part b). A description of someone else is not
                                //        news about the Prophet: the guard holds that separation
                                //        and passes 32/32 checks.
