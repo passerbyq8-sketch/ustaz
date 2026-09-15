@@ -55,7 +55,18 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ ok: false, error: 'method-not-allowed' });
 
   const rl = await checkReadLimit(clientAddress(req, 'unknown'));
-  if (!rl.ok) return res.status(429).json({ ok: false, error: 'articles-rate-limited' });
+  if (!rl.ok) {
+    // A REFUSAL THAT SAYS WHEN. Retry-After is delta-seconds, so the limiter's `reset` (a unix
+    // timestamp in ms, carried through by checkReadLimit) becomes a wait rather than a clock
+    // reading the caller would have to interpret. Never zero or negative: a window that has just
+    // turned over still reads as one second, which is a truthful "very soon" rather than a "now"
+    // that invites an instant retry into the same refusal. The status, the body and the order of
+    // this ladder are unchanged -- this adds a header and nothing else.
+    if (typeof rl.reset === 'number' && Number.isFinite(rl.reset)) {
+      res.setHeader('Retry-After', String(Math.max(1, Math.ceil((rl.reset - Date.now()) / 1000))));
+    }
+    return res.status(429).json({ ok: false, error: 'articles-rate-limited' });
+  }
 
   const query = (req.query && typeof req.query === 'object') ? req.query : {};
   const section = typeof query.section === 'string' ? query.section : '';

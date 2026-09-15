@@ -35,7 +35,14 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ ok: false, error: 'method-not-allowed' });
 
   const rl = await checkReadLimit(clientAddress(req, 'unknown'));
-  if (!rl.ok) return res.status(429).json({ ok: false, error: 'articles-rate-limited' });
+  if (!rl.ok) {
+    // Delta-seconds from the limiter's own `reset`, floored at 1 -- api/articles-list.js records
+    // the reasoning at length, and the two public routes refuse the same way on purpose.
+    if (typeof rl.reset === 'number' && Number.isFinite(rl.reset)) {
+      res.setHeader('Retry-After', String(Math.max(1, Math.ceil((rl.reset - Date.now()) / 1000))));
+    }
+    return res.status(429).json({ ok: false, error: 'articles-rate-limited' });
+  }
 
   const query = (req.query && typeof req.query === 'object') ? req.query : {};
   const slug = typeof query.slug === 'string' ? query.slug : '';
