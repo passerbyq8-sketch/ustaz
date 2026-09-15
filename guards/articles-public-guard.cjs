@@ -248,9 +248,14 @@ const RATELIMIT = namedDeclarations(RATELIMIT_SRC);
 const ATTEMPTS = namedDeclarations(ATTEMPTS_SRC);
 const DAYCAP = namedDeclarations(DAYCAP_SRC);
 
+// ITEM 103. This now lifts TWO throttle families, not one. The name is kept because the
+// AUTH_FAIL_OPEN assertion further down reads this same text, but what comes across is both:
+// the auth family the two ADMIN routes still drink from, and the read family the two
+// PUBLIC_ROUTES moved to. Order matters -- READ_WINDOWS is evaluated after the constants it reads.
 const RATELIMIT_AUTH_TEXT = liftNames('lib/ratelimit.js', RATELIMIT,
   ['ALLOWED_ORIGINS', 'applyCorsOrigin', 'AUTH_FAIL_OPEN', 'AUTH_PER_IP_MIN', 'AUTH_PER_IP_DAY',
-    'AUTH_WINDOWS', 'checkAuthLimit']);
+    'AUTH_WINDOWS', 'checkAuthLimit', 'READ_FAIL_OPEN', 'READ_PER_IP_MIN', 'READ_PER_IP_DAY',
+    'READ_WINDOWS', 'checkReadLimit']);
 const ATTEMPTS_TEXT = liftNames('lib/attempts.js', ATTEMPTS, ['clientAddress']);
 // PHASE 4 -- THE FOUNDER CHAIN IS LIFTED WHOLE, NOT STUBBED. api/articles-admin.js asks
 // hasUnrevokedFounderToken() before it will say anything about a caller's own account, and a
@@ -552,7 +557,8 @@ function buildGraph(options) {
     const text = mutated('lib/ratelimit.js', RATELIMIT_AUTH_TEXT);
     shims.ratelimit = new Function('Ratelimit', 'redis', 'console', text
       + '\n;return { ALLOWED_ORIGINS, applyCorsOrigin, checkAuthLimit, AUTH_FAIL_OPEN,'
-      + ' AUTH_PER_IP_MIN, AUTH_PER_IP_DAY, AUTH_WINDOWS };')(Ratelimit, {}, console_);
+      + ' AUTH_PER_IP_MIN, AUTH_PER_IP_DAY, AUTH_WINDOWS,'
+      + ' checkReadLimit, READ_FAIL_OPEN, READ_PER_IP_MIN, READ_PER_IP_DAY, READ_WINDOWS };')(Ratelimit, {}, console_);
     shims.attempts = new Function(ATTEMPTS_TEXT + '\n;return { clientAddress };')();
     shims.daycap = new Function('crypto', 'Redis', 'console', DAYCAP_TEXT
       + '\n;return { DEVICE_HEADER, safeId, FOUNDER_HEADER, founderTokenFor,'
@@ -1845,12 +1851,24 @@ run('the public routes refuse a method, answer OPTIONS, and never open CORS to a
   return 'four routes: OPTIONS 204, PUT 405, no ACAO for a non-listed origin';
 });
 
-run('all four routes use the throttle family that FAILS CLOSED', async () => {
-  // The lifted declaration, read rather than described.
+run('each route drinks from its own family: the admin pair fails closed, the public pair open', async () => {
+  // The lifted declarations, read rather than described.
   is(/const AUTH_FAIL_OPEN\s*=\s*false/.test(RATELIMIT_AUTH_TEXT),
-    'AUTH_FAIL_OPEN is no longer false -- these four routes chose it because it refuses');
+    'AUTH_FAIL_OPEN is no longer false -- the two admin routes chose it because it refuses');
+  is(/const READ_FAIL_OPEN\s*=\s*true/.test(RATELIMIT_AUTH_TEXT),
+    'READ_FAIL_OPEN is no longer true -- the two public routes chose it because it allows');
+  // ITEM 103. The split is the point. A reader with no account used to spend the same per-IP
+  // budget as someone trying passwords, because these two routes called checkAuthLimit; one bag
+  // for two appetites cannot be tuned. The admin pair are WRITES and stay fail-closed, which is
+  // right for them. So each side is nailed to its own family, and the public pair is nailed
+  // AGAINST the auth one -- a silent move back would otherwise pass this case.
   for (const rel of MODULES.filter((m) => m.startsWith('api/'))) {
-    is(/checkAuthLimit/.test(SOURCES[rel]), rel + ' does not use the auth-family throttle');
+    if (PUBLIC_ROUTES.includes(rel)) {
+      is(/checkReadLimit/.test(SOURCES[rel]), rel + ' does not use the read-family throttle');
+      is(!/checkAuthLimit/.test(SOURCES[rel]), rel + ' is public and still drinks from the auth family');
+    } else {
+      is(/checkAuthLimit/.test(SOURCES[rel]), rel + ' does not use the auth-family throttle');
+    }
   }
   // And a throttle that refuses actually stops each of them.
   const g = buildGraph({
@@ -1863,7 +1881,8 @@ run('all four routes use the throttle family that FAILS CLOSED', async () => {
   codes.push((await callAdmin(g, { session: 's', action: 'create', section: 'articles', title: 'x', body: 'y' })).statusCode);
   codes.push((await callRoles(g, { session: 's', action: 'grant', accountKey: 'acct:v1:google:1', sections: ['articles'] })).statusCode);
   eq(codes, [429, 429, 429, 429], 'a throttled request got through');
-  return 'AUTH_FAIL_OPEN=false; four routes -> 429 when the window refuses';
+  return '2 public routes on the read family (READ_FAIL_OPEN=true) + 2 admin routes on the auth '
+    + 'family (AUTH_FAIL_OPEN=false); all four -> 429 when the window refuses';
 });
 
 run('paging returns every published article exactly once and never a draft', async () => {
