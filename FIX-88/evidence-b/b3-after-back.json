@@ -1,0 +1,30 @@
+{
+  "at": "2026-09-15T00:25:03.604Z",
+  "idxKey": "ezik_chats_v1",
+  "prefix": "ezik_chat_v1_",
+  "cases": [
+    {
+      "id": "back-after-open-from-home",
+      "startedOnShelf": true,
+      "bodyOnScreen": true,
+      "shot": "001-b3-in-chat.png",
+      "afterBackWhere": "other",
+      "afterBackOnShelf": false,
+      "leftTheApp": false,
+      "afterBackHead": "BENCH-CHAT-ALPHA\nBENCH-Q-ALPHA\nBENCH-A-ALPHA\nاستمع\nنسخ\nمشاركة\nPDF\nاقتباس\nتشكيل\nبلّغ\nبسّط\nم",
+      "shot2": "002-b3-after-back.png"
+    },
+    {
+      "id": "item14-still-restores",
+      "restored": true,
+      "afterWhere": "other",
+      "shot": "003-b3-item14.png"
+    },
+    {
+      "id": "first-open-still-chat",
+      "where": "chat",
+      "landsOnChat": true,
+      "shot": "004-b3-first-open.png"
+    }
+  ]
+}

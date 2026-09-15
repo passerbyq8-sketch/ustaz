@@ -1,0 +1,23 @@
+{
+  "at": "2026-09-15T00:28:51.161Z",
+  "tag": "post",
+  "tree": "C:\\Users\\passe\\projects\\ustaz-fix88",
+  "steps": [
+    {
+      "press": 1,
+      "landed": "the conversation",
+      "url": "/",
+      "threw": false,
+      "leftTheApp": false
+    },
+    {
+      "press": 2,
+      "landed": "other",
+      "url": "about:blank",
+      "threw": false,
+      "leftTheApp": true
+    }
+  ],
+  "start": "the shelf",
+  "afterPress": "the conversation"
+}

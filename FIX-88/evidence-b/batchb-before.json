@@ -1,0 +1,69 @@
+{
+  "at": "2026-09-14T23:36:50.028Z",
+  "tree": "C:\\Users\\passe\\projects\\ustaz-fix88",
+  "label": "before",
+  "cases": [
+    {
+      "item": 1,
+      "id": "mushaf-refresh-trap",
+      "opened": "الجزء ٣ صفحة ٤٢",
+      "beforeHead": "البقرة · صفحة ٤٢\nالسور",
+      "beforeIsReadingPage": true,
+      "afterHead": "البقرة · صفحة ٤٢\nالسور",
+      "afterWhere": "other",
+      "landedOnChat": false,
+      "afterIsIndex": false,
+      "afterIsReadingPage": true,
+      "stillInMushaf": true,
+      "shot": "001-before-b1-after-reload.png",
+      "route": [
+        "السور",
+        "رجوع"
+      ],
+      "pressesToShelf": 2
+    },
+    {
+      "item": 2,
+      "id": "adhkar-front-door",
+      "head": "الأذكار\nأذكار الصباح\n٠ من ٢٣\n١ / ٢٣\nأَعُوذُ بِاللَّهِ مِنَ الشَّيطَانِ الرَّجِيمِ ﴿اللَّهُ لاَ إِلَهَ إِلاَّ هُوَ الْحَيُّ الْقَيُّومُ لاَ تَأْخُذُهُ سِنَةٌ وَل",
+      "textLen": 511,
+      "controls": 8,
+      "groupRowsVisible": 2,
+      "looksLikeReader": true,
+      "openedOnAGroup": true,
+      "shot": "002-before-b2-adhkar-door.png"
+    },
+    {
+      "item": 3,
+      "id": "old-chat-from-home",
+      "pk": "c37474e83ea963ba",
+      "startWhere": "shelf",
+      "menuOpened": true,
+      "rowSeen": true,
+      "shot": "003-before-b3-home-drawer.png",
+      "afterWhere": "shelf",
+      "afterHead": "آية اليوم\nإِنَّ ٱللَّهَ غَفُورٌ رَّحِيمٌ\nسورة البقرة، آية ١٧٣\nالسلام عليكم\nمرحباً بك\n٤ ربيع الآخر ١٤٤٨ هـ\nاذكر",
+      "bodyOnScreen": false,
+      "stillOnShelf": true,
+      "shot2": "004-before-b3-home-after.png"
+    },
+    {
+      "item": 3,
+      "id": "old-chat-from-chat",
+      "pk": "188be24ee7e396f8",
+      "startWhere": "chat",
+      "menuOpened": true,
+      "rowSeen": true,
+      "shot": "005-before-b3-chat-drawer.png",
+      "afterWhere": "other",
+      "afterHead": "BENCH-CHAT-ALPHA\nBENCH-Q-ALPHA\nBENCH-A-ALPHA\nاستمع\nنسخ\nمشاركة\nPDF\nاقتباس\nتشكيل\nبلّغ\nبسّط\nمثال\nاختبرني\nاختصر\nكم",
+      "bodyOnScreen": true,
+      "stillOnShelf": false,
+      "shot2": "006-before-b3-chat-after.png"
+    }
+  ],
+  "storeKeys": {
+    "idxKey": "ezik_chats_v1",
+    "prefix": "ezik_chat_v1_"
+  }
+}
