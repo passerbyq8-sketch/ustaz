@@ -1011,27 +1011,30 @@ ok('...bounded and centred rather than loose across the viewport',
   // of 'exactly two' than the regex it replaces gave. What the order meant is asserted on its
   // own two lines below, where it can say why it is the right and not the left.
   const INNER = (NAV.match(/<div className="ezist-nav-inner">([\s\S]*?)\r?\n\s*<\/div>/) || [])[1] || '';
-  // ITEM 66 (ب) -- THREE MEMBERS NOW, AND NO FOURTH. The owner ruled a compass mark into the
-  // head of the home screen, on the visual left, reachable in one press. This check is not
-  // relaxed and it is not deleted: it is re-pointed at the shape that replaced the one it was
-  // written for, and it is asserted member by member exactly as before -- two controls, one
-  // verse panel, and a residue that must still come back empty, so a fourth thing fails here
-  // the way a third one used to.
-  ok('...carrying exactly three elements: the menu button, the daily verse and the compass mark',
-    (INNER.match(/<button /g) || []).length === 2
+  // ITEM 66 (15 September 2026) -- BACK TO TWO MEMBERS, AND NO THIRD. A compass mark was ruled
+  // into this row and made it three; on 15 September 2026 the owner ruled the compass ONE entry
+  // instead -- in the head of the prayer sheet -- and lifted the bar's mark away. This check is
+  // not relaxed and it is not deleted: it is re-pointed at the shape that replaced the one it
+  // was written for, and it is asserted member by member exactly as before -- one control, one
+  // verse panel, and a residue that must still come back empty, so a THIRD thing fails here the
+  // way a fourth one used to.
+  ok('...carrying exactly two elements: the menu button and the daily verse',
+    (INNER.match(/<button /g) || []).length === 1
     && (INNER.match(/<EzistQuranPanel onOpenTafsir=\{onOpenTafsir\} \/>/g) || []).length === 1
     && INNER.replace(/<button [\s\S]*?<\/button>/g, '').replace(/<EzistQuranPanel onOpenTafsir=\{onOpenTafsir\} \/>/, '').trim() === '',
-    'the bar holds two buttons and one verse panel and no fourth thing');
-  // ...AND THE SECOND CONTROL IS THE COMPASS, BY NAME. A count that did not say WHICH controls
-  // would be answered by any two buttons at all.
-  ok('...the second being the compass mark, opening the compass and nothing else',
-    /onClick=\{onOpenCompass\}[\s\S]{0,120}aria-label=\{EZH_NAV_COMPASS\}/.test(INNER)
-    && /\{EZH_ICON_PRAYER\}/.test(INNER));
-  // ...AND IT IS ON THE VISUAL LEFT, which under this document's RTL is the row's LAST child.
-  // The same measurement the menu button's own line rests on, read from the other end.
-  ok('...and it sits LAST, so the RTL trailing edge -- the left -- is where it sits',
-    INNER.lastIndexOf('<button ') > INNER.indexOf('<EzistQuranPanel onOpenTafsir={onOpenTafsir} />')
-    && INNER.lastIndexOf('<button ') > INNER.indexOf('<button '));
+    'the bar holds one button and one verse panel and no third thing');
+  // ITEM 66 (15 September 2026) -- AND THE CLAIM THAT PROVES THE MARK IS GONE. Two checks stood
+  // here: that the bar's second control was the compass by name, and that it sat LAST -- the RTL
+  // trailing edge, the visual left. The owner ruled the compass ONE entry, in the head of the
+  // prayer sheet, and lifted this mark away, so both are REPLACED by the assertion that proves
+  // the new state, written by the same two names they read it by: neither the handler nor the
+  // accessible name appears in this row at all. A mark creeping back under any position fails
+  // here, which is the bite the two lines it replaces had.
+  ok('...and NOT ONE of them is the compass mark, by handler or by name',
+    INNER.length > 0
+    && INNER.indexOf('onOpenCompass') === -1
+    && INNER.indexOf('EZH_NAV_COMPASS') === -1
+    && INNER.indexOf('EZH_ICON_PRAYER') === -1);
   // S119 -- AND THE BUTTON IS THE FIRST OF THE TWO. The document lays out RTL, so the first
   // child of this row sits on the RIGHT. The button was second, and therefore on the left, which
   // is the trailing edge and the wrong side of an Arabic bar; the owner asked for the right.
@@ -1043,10 +1046,10 @@ ok('...bounded and centred rather than loose across the viewport',
   ok('...and moved in the tree, not faked with order or flex-direction',
     !/\.ezist-nav(-inner)?\{(?:[^}]*[;{])?\s*(order|flex-direction):/.test(css)
     && !/ezistNavBtn: \{(?:[^}]*[,{])?\s*order:/.test(html));
-  eq('...and exactly two of them are controls', (NAV.match(/<button/g) || []).length, 2);
+  eq('...and exactly ONE of them is a control -- the compass mark is gone from the bar', (NAV.match(/<button/g) || []).length, 1);
   ok('...whose handler is the menu opener it was handed, named «القائمة»',
     /onClick=\{onOpenMenu\}[\s\S]{0,120}aria-label=\{EZH_NAV_MENU\}/.test(NAV)
-    && /function EzistTopNav\(\{ onOpenMenu, onOpenCompass, onOpenTafsir \}\)/.test(NAV));
+    && /function EzistTopNav\(\{ onOpenMenu, onOpenTafsir \}\)/.test(NAV));
   // THE MENU IT OPENS IS THE CHAT'S. Not a second drawer: the owner hands it App's own opener,
   // and App renders the one ezikDrawer() on the home branch as well as the chat's.
   // S118: the menu paints ONLY tokens, and the two screens that draw it declare them on
@@ -1456,7 +1459,7 @@ ok('105: ...and the title still starts at the pixel it always did',
   const ISTCODE = IST.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/[^\n]*$/gm, ' ');
   eqOn('the composition holds no chat handler of its own', [["IST", IST]], (ISTCODE.match(/onOpenChat/g) || []).length, 0);
   ok('...because the one way in is the menu the bar opens',
-    /function EzistTopNav\(\{ onOpenMenu, onOpenCompass, onOpenTafsir \}\)/.test(IST)
+    /function EzistTopNav\(\{ onOpenMenu, onOpenTafsir \}\)/.test(IST)
     && /className="ezist-nav"[\s\S]*?onClick=\{onOpenMenu\}[\s\S]*?<\/div>\s*\r?\n\s*\);/.test(IST));
   ok('...and that menu lands on the chat, through ONE handler that resets and navigates',
     /const startChatFromMenu = \(\) => \{ newChat\(\); setScreen\('chat'\); \};/.test(html)

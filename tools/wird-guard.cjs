@@ -1708,8 +1708,8 @@ if (qLifted) {
       && (QPANEL.match(/startCompass\(\)/g) || []).length === 1
       && /onClick=\{bare \? \(\) => startCompass\(\) : null\}/.test(QPANEL));
     ok('108-a: ...and no mount effect starts it -- the automatic call is gone',
-      QPANEL.indexOf('full === true) startCompass();') === -1
-      && !/useEffect\([\s\S]*?startCompass\(\)[\s\S]*?\}, \[\]\)/.test(QPANEL));
+      QPANEL.length > 0 && QPANEL.indexOf('full === true) startCompass();') === -1
+      && QPANEL.length > 0 && !/useEffect\([\s\S]*?startCompass\(\)[\s\S]*?\}, \[\]\)/.test(QPANEL));
     ok('108-a: ...and the permission request sits inside that press',
       QPANEL.indexOf('const startCompass = () =>') < QPANEL.indexOf('DOE.requestPermission()'));
     ok('108-a: the position is asked for from a press too',
