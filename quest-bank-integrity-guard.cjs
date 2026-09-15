@@ -113,6 +113,21 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-09-15-a -- SIDE ROUND, ITEM 66: THE COMPASS SCREEN PAINTS AT ONCE AND SAYS NOTHING.
+  //                    INDEX.HTML DID NOT MOVE and NO FILE JOINED OR LEFT CORE: the whole item is
+  //                    app.jsx -- the qibla panel gained one presentation flag that its full-screen
+  //                    caller alone passes, the shell gained one slot beside its back button, and
+  //                    the layer dispatch put the compass above the prayer sheet so the sheet's
+  //                    header can open it. So the shell figure and its mirror were already true and
+  //                    only the BUNDLE figures moved. app.js was rebuilt from app.jsx by node
+  //                    tools/build-app.cjs, 1713640 -> 1720695 (+7055), and CORE_BYTES was re-cut
+  //                    2886730 -> 2893785 (+7055) by node tools/core-bytes.cjs --write, which is
+  //                    exactly the bundle delta because nothing but app.js changed size in CORE.
+  //                    The worker's own byte table at :142 and the SW_PROSE row for app.js below
+  //                    both followed, and THIS digest is re-cut LAST, after every other sw.js edit
+  //                    was final. SW.JS IS OTHERWISE UNTOUCHED -- no route, no store and no branch
+  //                    of it moved -- and CACHE IS NOT BUMPED: this is a branch for the owner to
+  //                    try, not a ship, and sw.js says the merge round owns the bump.
   //   2026-09-13-i -- ITEM 92-ج: THE «عن عزك» MATN IS REPLACED AND المصادر BECOMES THE
 //                    WHOLE LIST. INDEX.HTML DID NOT MOVE and NO FILE JOINED CORE: both matns
 //                    still ship as SOURCE, which is why they were not made data files in the
@@ -1219,7 +1234,7 @@ const SEALED = {
 //                    sw.js edit was final. SW.JS IS OTHERWISE UNTOUCHED -- no route, no store
 //                    and no branch of it moved -- and CACHE IS NOT BUMPED: the merge round owns
 //                    the bump.
-  'sw.js': 'd4f30208d84cc3306638a4294d9e960f903f32803818124b478621e2ae6a644c',
+  'sw.js': '3b0ababcd78da163eba748d14accb8d96ab6eef0d326b1d02b5c915e139af3ec',
 };
 
 // ---------------------------------------------------------------------------
@@ -2344,7 +2359,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1713640, of: 'app.js' },
+      { n: 1720695, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
