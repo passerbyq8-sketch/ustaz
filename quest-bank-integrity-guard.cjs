@@ -113,6 +113,23 @@ const SEALED = {
   'manifest.json': 'b542ce84b30e12d3cc517ee51ba628ac6a669714792063d8d606678305730434',
   // Re-cut history for this one file, newest first. Measured on this tree at CR = 0
   // every time, as the note above requires.
+  //   2026-09-15-d -- SIDE ROUND, ITEM 66: THE DIAL IS THE PRESS THAT STARTS THE SENSOR.
+  //                    INDEX.HTML DID NOT MOVE and NO FILE JOINED OR LEFT CORE: the whole item is
+  //                    app.jsx -- the compass screen's mount effect no longer starts the browser
+  //                    orientation sensor (a passive effect is off the gesture, and Safari refuses
+  //                    the orientation prompt outside one), and the circle itself now answers the
+  //                    touch instead. No element was added and nothing was drawn: one handler
+  //                    moved onto the dial that was already there. So the shell figure and its
+  //                    mirror were already true and only the BUNDLE figures moved. app.js was
+  //                    rebuilt from app.jsx by node tools/build-app.cjs, 1749779 -> 1749677
+  //                    (-102), and CORE_BYTES was re-cut 2922869 -> 2922767 (-102) by node
+  //                    tools/core-bytes.cjs --write, which is exactly the bundle delta because
+  //                    nothing but app.js changed size in CORE. The worker's own byte table at
+  //                    :142 and the SW_PROSE row for app.js below both followed, and THIS digest
+  //                    is re-cut LAST, after every other sw.js edit was final. SW.JS IS OTHERWISE
+  //                    UNTOUCHED -- no route, no store and no branch of it moved -- and CACHE IS
+  //                    NOT BUMPED: this is a branch for the owner to try, not a ship, and sw.js
+  //                    says the merge round owns the bump.
   //   2026-09-15-c -- SIDE ROUND, ITEM 66: THE COMPASS KEEPS ONE ENTRY AND THE TOP BAR'S MARK
   //                    IS LIFTED. INDEX.HTML DID NOT MOVE and NO FILE JOINED OR LEFT CORE: the
   //                    whole item is app.jsx -- the home's top bar loses the compass button, the
@@ -1265,7 +1282,7 @@ const SEALED = {
 //                    sw.js edit was final. SW.JS IS OTHERWISE UNTOUCHED -- no route, no store
 //                    and no branch of it moved -- and CACHE IS NOT BUMPED: the merge round owns
 //                    the bump.
-  'sw.js': '1d2fa37e23e3fb9b6b2bb053050547f4cebb4590dd53ce6d258ba860730dbe0f',
+  'sw.js': '97cb03a05d94dbecfb713bfe5719797e870a2d88da07632deaf470009b8fa802',
 };
 
 // ---------------------------------------------------------------------------
@@ -2390,7 +2407,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1749779, of: 'app.js' },
+      { n: 1749677, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
