@@ -575,5 +575,10 @@
     "name": "prophetascriptionwiring",
     "script": "guards/prophet-ascription-wiring-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "khilafprobefreeze",
+    "script": "guards/khilaf-probe-freeze-guard.cjs",
+    "args": ""
   }
 ]

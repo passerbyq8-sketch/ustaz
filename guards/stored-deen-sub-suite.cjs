@@ -675,6 +675,14 @@ async function runSuite() {
     // EZIK-RFC-V0.5-R2-IMPLEMENTATION-REPORT.md -- gate-count prose, roster, TOTAL_GATES, and
     // the RECON line, which moves by one because item 14 gains a PASS.
     //
+    // ITEM 72 (b): 114 -> 115, same rule again -- the gate `khilafprobefreeze`,
+    // guards/khilaf-probe-freeze-guard.cjs. The khilaf notice has three igniters and the third
+    // one -- `khilafFromOpinionsProbe` in lib/free-brain/loop.js -- has an empty body. That
+    // emptiness is a MEASUREMENT: every candidate filling was tried against the deposited fatwa
+    // set and every one of them lied in the reader's own reply. The gate freezes it, and it does
+    // so by running the probe rather than by reading it, so a filling that answers `true` from
+    // any path at all goes red on the spot.
+    //
     // ITEM 36 (b) PHASE TWO: 113 -> 114, same rule again -- the gate
     // `prophetascriptionwiring`, guards/prophet-ascription-wiring-guard.cjs. It holds the round
     // that moved the rule of the gate below OUT of the battery and INTO the answer path: the
@@ -694,10 +702,10 @@ async function runSuite() {
     // went red here and stayed red, with 104 PASS and no printed FAIL beside the sub-suite's
     // exit code. If you are registering a gate, this line is the fifth stop and the only one
     // whose file name says nothing about gates.
-    function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 114; }
+    function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 115; }
     ok('ORIGINAL_GATE_SET_MATCH', exactGateSet(EXPECTED_GATES));
-    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 114-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
-    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 114-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
+    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 115-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
+    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 115-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
 
     const m13 = await storedMutant(temp, 'fiqh-before-special', (source) => source.replace(
       "if (QURAN_REQUEST.test(folded)) return 'LOCAL_QURAN';",
