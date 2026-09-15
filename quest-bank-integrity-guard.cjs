@@ -1307,7 +1307,14 @@ const SEALED = {
 //                    digest is re-cut LAST, after every other sw.js edit was final. SW.JS IS OTHERWISE UNTOUCHED --
 //                    no route, no store and no branch of it moved -- and CACHE IS NOT BUMPED: the merge round owns
 //                    the bump.
-  'sw.js': '6aa68af8de76728d4e6c6c32154c7c7a881c893a05522262de9b1a545e152acc',
+  //   2026-09-15 merge -- ITEM 88, THE MERGE ROUND: THE STORE NAME IS BUMPED ezik-v34 -> ezik-v35.
+//                    Every seal note in this trip deferred the bump to the merge round, and this is it, so a
+//                    returning reader who holds the old bundle in the old store gets a changed worker that
+//                    installs, sweeps every store that is not the new name, and hands him this trip. NOTHING
+//                    ELSE IN SW.JS MOVED -- no route, no branch and no byte table -- and the file is the same
+//                    48510 bytes because the new name is the same length as the old. SW_CACHE below follows
+//                    it in this same commit, and THIS digest is re-cut LAST, after the name was final.
+  'sw.js': '36fb50573d183e7978014aec1f3a2ae0df744cbbd61968eaa27e37edfce21e08',
 };
 
 // ---------------------------------------------------------------------------
@@ -1331,7 +1338,7 @@ const SEALED = {
 // instead of with "sw.js MOVED".
 // ---------------------------------------------------------------------------
 const SW_FILE = 'sw.js';
-const SW_CACHE = 'ezik-v34';
+const SW_CACHE = 'ezik-v35';
 const SW_ORIGIN = 'https://ezik.app';
 // ITEM 93-B. The tag on the end-of-install brief the worker pushes to every client. Written here
 // rather than read back out of sw.js, because "the worker sent whatever the worker calls it" is a
