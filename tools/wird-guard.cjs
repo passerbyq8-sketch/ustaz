@@ -1683,9 +1683,24 @@ if (qLifted) {
       /headingBridgeRef\.current = ezikShellBridge\(\) \|\| false/.test(QPANEL)
       && /useState\(headingBridgeRef\.current \? 'wait' : 'off'\)/.test(QPANEL)
       && /const DOE = \(typeof window !== 'undefined'\) \? window\.DeviceOrientationEvent : null/.test(QPANEL));
-    ok('108-a: the browser sensor is started from a press and from nowhere else',
+    // ITEM 66 (side round, 15 September): RE-POINTED, NOT RELAXED, AND THE NEW CALL IS NAMED.
+    //
+    // What this case has always been about is that the orientation sensor -- and the permission
+    // prompt behind it -- is never reached at BOOT, by a panel nobody asked to open. That is still
+    // exactly true. What changed is that the compass now has a SCREEN of its own, whose whole
+    // ruling is that it carries a circle, a needle and not one letter -- which takes away the
+    // start button below, because that button IS a letter. A screen with a dial and no way to
+    // make it turn would be worse than the delay it was built to cure, so that ONE screen starts
+    // the sensor itself.
+    //
+    // SO THE COUNT IS ONE, NOT ZERO, AND THE ONE IS PINNED. It must be guarded by `full === true`
+    // -- the flag ONLY CompassSheet passes -- so the prayer sheet's copy of this panel, which is
+    // the copy that renders at the reader's first touch of the prayer section, still asks for
+    // nothing at all until the button below is pressed. The button itself is still required.
+    ok('108-a: the browser sensor is started from a press, and on the compass screen alone',
       /onClick=\{startCompass\}/.test(QPANEL)
-      && (QPANEL.match(/startCompass\(\)/g) || []).length === 0);
+      && (QPANEL.match(/startCompass\(\)/g) || []).length === 1
+      && /if \(!bridge && full === true\) startCompass\(\);/.test(QPANEL));
     ok('108-a: ...and the permission request sits inside that press',
       QPANEL.indexOf('const startCompass = () =>') < QPANEL.indexOf('DOE.requestPermission()'));
     ok('108-a: the position is asked for from a press too',
@@ -1711,8 +1726,13 @@ if (qLifted) {
   // setPrayerOpen(false); it is now ezikGoBack, because the sheet registers a back layer and a
   // layer's visible way out has to SPEND the history entry the layer pushed. What this case
   // claims is unchanged: the sheet opens from the home, over the home, and adds no route.
+  // ITEM 66 (side round, 15 September): RE-PINNED AGAIN, ASSERTION KEPT. The sheet's header now
+  // carries the compass's one entry, so the dispatch line hands it the opener under a second prop.
+  // Everything this case claims is unchanged and is still driven below: it opens from the home,
+  // over the home, its visible back SPENDS the layer's history entry through ezikGoBack, and
+  // neither it nor the compass adds a `screen` value to the inventory that lives in another file.
   ok('108-a: it opens from the home, over the home, without adding a route',
-    /if \(prayerOpen\) return <PrayerSheet onClose=\{ezikGoBack\} \/>;/.test(SRC)
+    /if \(prayerOpen\) return <PrayerSheet onClose=\{ezikGoBack\} onOpenCompass=\{\(\) => setCompassOpen\(true\)\} \/>;/.test(SRC)
     && SRC.indexOf("screen === 'prayer'") === -1 && SRC.indexOf("screen === 'qibla'") === -1);
   ok('108-a: ...and it is reached from a tile in the home\'s own module array',
     /\{ id: 'prayer',   label: EZH_PRAYER,   icon: EZH_ICON_PRAYER,   onClick: v\.onOpenPrayer,   meta: null \}/.test(SRC));

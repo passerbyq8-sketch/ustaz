@@ -804,8 +804,14 @@ ok('the shell column is bounded and centred', /\.ezsh-wrap\{[^}]*max-width:1100p
 ok('...one column, and two only where the content earns it',
   /\.ezsh-grid\{[^}]*grid-template-columns:1fr/.test(css)
   && /@media \(min-width:900px\)\{[\s\S]{0,300}?\.ezsh-grid\{grid-template-columns:repeat\(2,1fr\)/.test(css));
+// ITEM 66 (side round, 15 September): RE-POINTED, NOT RELAXED. The shell gained `lead` -- a seat
+// beside the back button for a tenant's own mark, on the same terms `actions` already sits on the
+// far edge. It is a SLOT: the shell renders whatever it is handed and decides nothing. What this
+// case claims is untouched and is still the whole of the second half below: no state, no store, no
+// screen setter and no navigation resolver anywhere inside the shell. The signature is exact
+// rather than loose on purpose -- a prop added without a reason to add it should fail here.
 ok('the shell owns no navigation state and invents no handler',
-  /function EzShell\(\{ title, onBack, backLabel, actions, children \}\)/.test(html)
+  /function EzShell\(\{ title, onBack, backLabel, lead, actions, children \}\)/.test(html)
   && !/function EzShell[\s\S]{0,1200}?(useState|localStorage|setScreen|ezikGoBack)/.test(html));
 ok('Settings keeps its own back handler', /onBack=\{onBack\}/.test(html));
 // the shell is a page root too: nothing in its own rules may attach a pattern, and none of
@@ -5280,8 +5286,12 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
 
   ok('NIGHT-F1: the prayer sheet registers a back layer, like every other layer in the file',
     PRAYER_REG.length > 0);
+  // ITEM 66 (side round, 15 September): RE-PINNED, ASSERTION KEPT. The dispatch line gained the
+  // second prop that hands the sheet's header the compass's opener. What this case claims is
+  // untouched and is still driven by both halves below: the visible back is ezikGoBack -- which
+  // SPENDS the entry the layer pushed -- and the bare setter that would DROP it is absent.
   ok('NIGHT-F1: ...and its visible back SPENDS that entry rather than dropping it',
-    /if \(prayerOpen\) return <PrayerSheet onClose=\{ezikGoBack\} \/>;/.test(html)
+    /if \(prayerOpen\) return <PrayerSheet onClose=\{ezikGoBack\} onOpenCompass=\{\(\) => setCompassOpen\(true\)\} \/>;/.test(html)
     && !/onClose=\{\(\) => setPrayerOpen\(false\)\}/.test(html),
     'a layer closed without a pop leaves its entry on the stack for a later press to spend');
   ok('NIGHT-F1: the arrange panel registers a back layer through the same hook',

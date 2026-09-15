@@ -9547,10 +9547,19 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // rule closeDrawerWith records -- an entry closed without a pop is an entry left on the stack
   // for a later press to spend on nothing. Same door as the device button, same resolver. The
   // sheet itself is untouched: it is handed a different function under the same prop name.
-  if (prayerOpen) return <PrayerSheet onClose={ezikGoBack} />;
-  // ITEM 66 (ب). Same door as the device button, on the same terms as the sheet above it: the
+  // ITEM 66 (ب). Same door as the device button, on the same terms as the sheet below it: the
   // visible back spends the layer's entry through ezikGoBack rather than dropping it.
+  //
+  // ITEM 66 (side round, 15 September) -- AND IT IS TESTED FIRST, WHICH IS WHY THE PRAYER SHEET
+  // CAN NOW OPEN IT. The compass is reached from inside the prayer sheet's own header, so while
+  // that press is being honoured BOTH layers are open at once and the deeper of the two has to
+  // win the dispatch or the reader would press a control and watch nothing happen. This is the
+  // identical shape the wird picker and the wird section already have below -- picker first,
+  // section second -- and it costs the prayer sheet nothing: each layer took its own history
+  // entry when it opened, so one press of back pops the compass and lands on the sheet, and the
+  // next pops the sheet and lands on the home.
   if (compassOpen) return <CompassSheet onClose={ezikGoBack} />;
+  if (prayerOpen) return <PrayerSheet onClose={ezikGoBack} onOpenCompass={() => setCompassOpen(true)} />;
   // ITEM 05-C. Same door as the device button: the visible back spends the layer's entry
   // through ezikGoBack rather than dropping it, which is the rule closeDrawerWith records.
   if (wirdPickOpen) {
@@ -22679,7 +22688,16 @@ function AyahTafsirScreen({ onBack }) {
     </EzShell>
   );
 }
-function EzShell({ title, onBack, backLabel, actions, children }) {
+// ITEM 66 (side round) -- `lead` IS A SEAT BESIDE THE BACK BUTTON, NOT IN ITS PLACE.
+//
+// The shell already had `actions`, and `actions` is the OTHER edge of the bar: it renders inside
+// `.ezsh-nav-side.is-end`, which under this right-to-left document is the visual left, as far from
+// the back control as the row goes. The owner asked for a mark BESIDE the back button, so the seat
+// has to be the back button's own side -- and it is drawn AFTER it, never before, because
+// guards/i18n-ui-guard.cjs reads `.ezsh-nav button`[0] and requires that first button to be the
+// back control the reader leaves a sheet by. Every screen that passes no `lead` draws nothing here
+// and is unchanged.
+function EzShell({ title, onBack, backLabel, lead, actions, children }) {
   return (
     <div className="theme-dark ezhome" style={s.ezshContainer}>
       <div className="ezsh-nav">
@@ -22689,6 +22707,7 @@ function EzShell({ title, onBack, backLabel, actions, children }) {
               <button type="button" className="ezhome-focus" onClick={onBack} style={s.ezshNavBtn}
                 aria-label={backLabel}>{A2_ICON_BACK}</button>
             ) : null}
+            {lead || null}
           </div>
           <span className="ezsh-brand">
             <span className="ezsh-brand-arch" aria-hidden="true" />
@@ -24815,6 +24834,23 @@ const QIBLA_COMPASS_PERMISSION_DENIED = 'إذنُ الموقعِ مرفوض. ا�
 const QIBLA_COMPASS_HEADING_ERROR = 'تعذّرتْ قراءةُ اتّجاهِ الجهازِ بسببِ عطبٍ طارئ. أعِدِ المحاولة.';
 const QIBLA_COMPASS_RETRY = 'أعِدِ المحاولة';
 const QIBLA_BACK = 'رجوع';
+// ITEM 66 (side round, 15 September) -- THE ONE SENTENCE THE COMPASS SCREEN MAY SAY.
+//
+// The owner's ruling on that screen is that it holds a circle and a needle and NOT ONE LETTER.
+// The single exception he wrote out is the failure road -- a refused permission, or a device with
+// no heading sensor in it -- because a dial that will never turn and says nothing about why is a
+// screen that lies by omission. So this is ONE short line, drawn only when the panel is in `full`
+// AND in a state that cannot produce a heading, and it is unreachable from every successful road.
+//
+// It is deliberately NOT one of the five long status sentences above it. Those belong to the
+// prayer sheet's own qibla section, which keeps every one of them; this is the compass SCREEN's
+// and it is short because the screen it sits on has nothing else on it to read.
+const QIBLA_FULL_FAIL = 'لا تدورُ البوصلةُ على هذا الجهاز.';
+// How long the needle takes to walk from its neutral rest to the first real bearing. It is a
+// TRANSITION and not a timer: the needle is on the screen from the first paint whatever happens,
+// and this only governs how it travels once a reading arrives. The owner allowed a slow SETTLE
+// and forbade a slow APPEARANCE, and those are the two different things this pair of facts is.
+const QIBLA_SETTLE_MS = 600;
 // ITEM 107: the sheet now holds both readings, so it is named for both. The tile that opens it
 // is renamed with it -- one tile, one sheet, one position.
 const PRAYER_SHEET_TITLE = 'الصلاة والقبلة';
@@ -24913,6 +24949,26 @@ function QiblaPanel({ loc, onLoc, full }) {
         setCompass('heading-error');
       }
     }
+    // ITEM 66 (side round) -- THE COMPASS SCREEN STARTS ITSELF, AND ONLY THE COMPASS SCREEN.
+    //
+    // WHY IT IS HERE AND NOT IN A SECOND EFFECT. tools/location-bridge-measure.cjs asserts that
+    // QiblaPanel owns EXACTLY ONE useEffect -- one shell stream, started at mount and stopped at
+    // unmount -- and that claim is worth more than the tidiness of a second hook. So the browser
+    // arm of the same idea goes in the same effect, on the same mount, under the same teardown:
+    // the start below parks its detach in the very stopRef the cleanup below already spends.
+    //
+    // WHY `full === true` AND NOTHING WIDER. Without a shell the panel opens at `off`, whose one
+    // door is the «شغِّلِ البوصلة» button -- and that button is TEXT, which the compass screen is
+    // no longer allowed to draw. Removing the button without starting the sensor would leave that
+    // screen with a dial and no way to make it turn. The PRAYER SHEET is untouched by this line:
+    // it renders this panel WITHOUT `full`, keeps its button, and still asks for nothing at mount
+    // -- which is exactly what tools/web-shell-seam-probe.cjs measures when it requires zero dials
+    // before a permission exists on the panel it mounts with two props and no flag.
+    //
+    // AND IT ASKS FOR NO POSITION. startCompass touches the ORIENTATION permission alone; the
+    // location request is still reachable from the reader's press and from nowhere else, which is
+    // the static claim location-bridge-measure makes over this whole file.
+    if (!bridge && full === true) startCompass();
     return () => {
       stopHeadingWait();
       if (stopRef.current) { stopRef.current(); stopRef.current = null; }
@@ -25039,21 +25095,44 @@ function QiblaPanel({ loc, onLoc, full }) {
   const needle = qiblaNeedleAngle(bearing, heading);
   const needleVisual = qiblaNeedleVisual(compass);
   const placeName = loc.by === 'device' ? QIBLA_DEVICE_PLACE : QIBLA_DEFAULT_PLACE;
+  // ITEM 66 (side round) -- THE TWO FACTS THE COMPASS SCREEN ADDS, AND THEY ARE BOTH DERIVED.
+  //
+  // `bare` is the compass SCREEN and nothing else. It is `full` read once, strictly, so a panel
+  // that is handed no flag -- which is every mount the prayer sheet makes and every mount the two
+  // measuring tools make -- takes the identical road it took before this round, byte for byte.
+  //
+  // `settled` is the condition that USED to decide whether the dial existed at all -- the same
+  // expression, to the character, and tools/wird-guard.cjs still reads it here. It still decides
+  // something, but only WHERE THE NEEDLE POINTS: with no reading it is null, the needle rests at
+  // zero, and the transition below walks it to the bearing when one arrives. That is the whole of
+  // the owner's ruling -- the drawing is immediate, the settling is allowed to take its time.
+  const bare = full === true;
+  const settled = (compass === 'live' || compass === 'ready' || compass === 'calibration-needed') && needle !== null ? needle : null;
+  // The one allowed sentence, and the exact set of states that may draw it. Every one of them is a
+  // road on which no heading can arrive; none of them is reachable while the needle is turning.
+  const bareFailed = bare && (compass === 'none' || compass === 'sensor-unavailable'
+    || compass === 'permission-denied' || compass === 'heading-error');
   return (
-    <EzShellGroup title={QIBLA_SECTION}>
-      {bearing === null ? null : (
+    <EzShellGroup title={bare ? '' : QIBLA_SECTION}>
+      {bare || bearing === null ? null : (
         <>
           <div style={s.qiblaDeg}>{qiblaDegreeText(bearing)} {QIBLA_DEG_SUFFIX}</div>
           <div style={s.qiblaDir}>{QIBLA_TOWARD} {qiblaDirName(bearing)}</div>
         </>
       )}
-      {/* THE DIAL EXISTS ONLY WHILE A HEADING DOES. There is no still needle on this screen. */}
-      {(compass === 'live' || compass === 'ready' || compass === 'calibration-needed') && needle !== null ? (
+      {/* THE DIAL EXISTS ONLY WHILE A HEADING DOES -- on the prayer sheet, which is the screen
+          that sentence was written about and where it still holds exactly as it did.
+          ON THE COMPASS SCREEN IT DOES NOT. `bare` short-circuits the condition, so the circle
+          and the needle are in the FIRST paint of that screen: no permission is waited for, no
+          position, no first sensor reading, no loading state and no early return. This line was
+          the whole of the delay the owner reported. */}
+      {bare || settled !== null ? (
         <div style={s.qiblaDialWrap}>
           <svg width="132" height="132" viewBox="0 0 100 100" role="img" aria-label={QIBLA_SECTION}
             style={full ? s.qiblaDialFull : null}>
             <circle cx="50" cy="50" r="46" fill="none" stroke="var(--line)" strokeWidth="2" />
-            <g style={{ transform: 'rotate(' + needle + 'deg)', transformOrigin: '50px 50px' }}>
+            <g style={{ transform: 'rotate(' + (settled === null ? 0 : settled) + 'deg)', transformOrigin: '50px 50px',
+              transition: bare ? 'transform ' + QIBLA_SETTLE_MS + 'ms ease-out' : null }}>
               <path d="M50 8 L58 54 L50 48 L42 54 Z"
                 fill={needleVisual.fill} stroke={needleVisual.stroke}
                 strokeWidth={needleVisual.strokeWidth} strokeDasharray={needleVisual.strokeDasharray}
@@ -25063,6 +25142,7 @@ function QiblaPanel({ loc, onLoc, full }) {
           </svg>
         </div>
       ) : null}
+      {bare ? null : (
       <div style={s.qiblaNote}>
         {compass === 'live' || compass === 'ready' ? QIBLA_COMPASS_LIVE
           : compass === 'calibration-needed' ? QIBLA_COMPASS_CALIBRATION
@@ -25072,10 +25152,15 @@ function QiblaPanel({ loc, onLoc, full }) {
           : compass === 'wait' ? QIBLA_COMPASS_WAIT
             : compass === 'none' ? QIBLA_COMPASS_NONE : ''}
       </div>
-      {compass === 'off' || compass === 'none' ? (
+      )}
+      {/* THE ONE EXCEPTION, AND IT IS THE FAILURE ROAD ALONE. `bareFailed` is false for `off`,
+          `wait`, `live`, `ready` and `calibration-needed`, so a reader whose compass works never
+          sees a letter on this screen at any moment of its life. */}
+      {bareFailed ? <div style={s.qiblaNote}>{QIBLA_FULL_FAIL}</div> : null}
+      {!bare && (compass === 'off' || compass === 'none') ? (
         <button type="button" onClick={startCompass} className="ezik-focus" style={s.qiblaBtn}>{QIBLA_COMPASS_START}</button>
       ) : null}
-      {compass === 'heading-error' ? (
+      {!bare && compass === 'heading-error' ? (
         <button type="button" onClick={retryShellHeading} className="ezik-focus" style={s.qiblaBtn}>{QIBLA_COMPASS_RETRY}</button>
       ) : null}
       {/* ITEM 66 -- THE FAILURE STATES THAT HAD NO DOOR. Of the shell's five statuses only
@@ -25098,17 +25183,19 @@ function QiblaPanel({ loc, onLoc, full }) {
           not `askLocation`, so the only road to that request was to go back to the default
           position first and then ask for the device again -- the location off-and-on, by hand.
           Nothing below is touched: the default/device pair keeps its meaning and its place. */}
-      {compass === 'permission-denied' || compass === 'sensor-unavailable' ? (
+      {!bare && (compass === 'permission-denied' || compass === 'sensor-unavailable') ? (
         <button type="button" onClick={askLocation} className="ezik-focus" style={s.qiblaBtn}>{QIBLA_COMPASS_RETRY}</button>
       ) : null}
+      {bare ? null : (
       <div style={s.qiblaPlace}>
         {QIBLA_PLACE_LABEL} {placeName}{loc.by === 'device' ? '' : ' (' + QIBLA_PLACE_DEFAULT_NOTE + ')'}
       </div>
-      {locState === 'asking' ? <div style={s.qiblaNote}>{QIBLA_LOC_ASKING}</div> : null}
-      {locState === 'denied' ? <div style={s.qiblaNote}>{QIBLA_LOC_DENIED}</div> : null}
-      {loc.by === 'device'
+      )}
+      {!bare && locState === 'asking' ? <div style={s.qiblaNote}>{QIBLA_LOC_ASKING}</div> : null}
+      {!bare && locState === 'denied' ? <div style={s.qiblaNote}>{QIBLA_LOC_DENIED}</div> : null}
+      {bare ? null : (loc.by === 'device'
         ? <button type="button" onClick={useDefault} className="ezik-focus" style={s.qiblaBtn}>{QIBLA_USE_DEFAULT}</button>
-        : <button type="button" onClick={askLocation} className="ezik-focus" style={s.qiblaBtn}>{QIBLA_USE_DEVICE}</button>}
+        : <button type="button" onClick={askLocation} className="ezik-focus" style={s.qiblaBtn}>{QIBLA_USE_DEVICE}</button>)}
     </EzShellGroup>
   );
 }
@@ -25119,12 +25206,22 @@ function QiblaPanel({ loc, onLoc, full }) {
 // file. That document belongs to a different owner and is not this batch's to edit, so adding a
 // route would have broken a gate for a reason that has nothing to do with the qibla. It opens
 // from the home, over the home, on the home's own screen key, and its back button returns there.
-function PrayerSheet({ onClose }) {
+function PrayerSheet({ onClose, onOpenCompass }) {
   // ONE POSITION FOR BOTH PANELS. The times and the qibla are two readings of the same place,
   // so the place is state here and the controls that change it stay where item 108-أ put them.
   const [loc, setLoc] = useState(readQiblaLoc);
   return (
-    <EzShell title={PRAYER_SHEET_TITLE} onBack={onClose} backLabel={QIBLA_BACK}>
+    <EzShell title={PRAYER_SHEET_TITLE} onBack={onClose} backLabel={QIBLA_BACK}
+      /* ITEM 66 (side round) -- THE COMPASS'S ONE ENTRY, IN THE PRAYER SECTION WHERE IT BELONGS.
+         A mark and no word, beside the back control and not in its place, and one press lands on
+         the compass screen itself rather than scrolling this sheet to its lower half. The mark is
+         EZH_ICON_PRAYER, which this file already declares as a compass rose reduced to a circle, a
+         needle and its pivot -- the same 24x24 box the top bar draws it in -- so nothing new is
+         drawn, imported or fetched for it. */
+      lead={onOpenCompass ? (
+        <button type="button" className="ezhome-focus" onClick={onOpenCompass} style={s.ezshNavBtn}
+          aria-label={EZH_NAV_COMPASS}>{EZH_ICON_PRAYER}</button>
+      ) : null}>
       <PrayerTimesPanel loc={loc} />
       <QiblaPanel loc={loc} onLoc={setLoc} />
     </EzShell>
@@ -25148,10 +25245,16 @@ function PrayerSheet({ onClose }) {
 //
 // AND IT READS THE POSITION THE SAME WAY. readQiblaLoc() is the one reader; a position saved
 // here is the position the prayer sheet shows, because both keep it in the one store.
+//
+// ITEM 66 (side round) -- AND ITS TITLE IS GONE WITH THE REST OF THE WORDS. «البوصلة» was the last
+// letter left standing on this screen once the panel went bare, so it goes too: the shell is handed
+// an empty title and draws an empty brand. The back control keeps its ACCESSIBLE name -- that is
+// not a letter on the screen, it is what a screen reader announces, and taking it would make the
+// one control on the page nameless to anyone who cannot see the arrow.
 function CompassSheet({ onClose }) {
   const [loc, setLoc] = useState(readQiblaLoc);
   return (
-    <EzShell title={EZH_NAV_COMPASS} onBack={onClose} backLabel={QIBLA_BACK}>
+    <EzShell title={''} onBack={onClose} backLabel={QIBLA_BACK}>
       <QiblaPanel loc={loc} onLoc={setLoc} full />
     </EzShell>
   );
