@@ -151,7 +151,12 @@ const ROOTS = ['ezikSchedBridge', 'ezikSchedRoute', 'ezikSchedPayload', 'ezikSch
   // ITEMS 43-b / 47-b. The prayers moved down one level into a feed of their own and three
   // functions joined them: the reminders the reader sets the times for, the store those times
   // live in, and the shape check that decides whether a stored string is a time at all.
-  'ezikAdhanFeed', 'ezikReminderItems', 'readReminders', 'reminderTimeOk'];
+  'ezikAdhanFeed', 'ezikReminderItems', 'readReminders', 'reminderTimeOk',
+  // ITEM 8 (side round, 15 September). Three feeds ride this pipe where two did, and the tier list
+  // that joins them under the ceiling is a root of its own: the four prayer-anchored alerts, the
+  // reminder a reader attaches to a wird of his own, the store the four live in, and the split the
+  // ceiling is applied over. Every one of them must exist or extraction throws, which is the point.
+  'ezikWirdAlertItems', 'ezikWirdOwnItems', 'readWirdAlerts', 'wirdAlertOffsetOk', 'ezikSchedTiers'];
 const ROOT_NODES = ROOTS.map((n) => topFunction(n));
 
 /** Pull the whole top-level closure of a set of roots, in source order, and name what is left. */
@@ -310,6 +315,58 @@ const REMINDER_FEEDS = (function () {
     return row;
   });
 })();
+
+// ITEM 8 (side round, 15 September) -- THE FOUR PRAYER-ANCHORED ALERTS, READ THE SAME WAY.
+// Their key and their four rows come out of their own declarations for the reason every literal
+// above does: a second copy in a second file is the drift these guards exist to stop.
+const WIRD_ALERTS_KEY = literalOf('WIRD_ALERTS_KEY', 'StringLiteral');
+const WIRD_ALERTS = (function () {
+  const decl = TOP.get('WIRD_ALERTS');
+  if (!decl || decl.kind !== 'const' || !decl.node.init || decl.node.init.type !== 'ArrayExpression') {
+    throw new Error('app.jsx no longer declares WIRD_ALERTS as an array literal');
+  }
+  return decl.node.init.elements.map((el) => {
+    if (!el || el.type !== 'ObjectExpression') throw new Error('an alert row is not an object literal');
+    const row = {};
+    for (const p of el.properties) {
+      if (p.type !== 'ObjectProperty' || p.computed) throw new Error('an alert row carries a computed key');
+      row[p.key.name || p.key.value] = (p.value.type === 'NullLiteral') ? null : p.value.value;
+    }
+    return row;
+  });
+})();
+
+/**
+ * 🔴 THE FOUR, SILENCED -- AND WHY EVERY OLD CASE IN THIS FILE IS HANDED THIS.
+ *
+ * Until item 8 a device with nothing stored scheduled nothing, so the cases below could seed a
+ * store with one thing in it and measure that one thing. The owner has now ruled the four anchored
+ * alerts OPEN AT FIRST RUN, which means an empty store is no longer an empty payload: it is sixteen
+ * items over the seven-day window. That is the intended behaviour, and it is driven by a case of
+ * its own further down.
+ *
+ * What it must NOT do is quietly rewrite what every older case in this file is about. Each of them
+ * is a proof about ONE mechanism -- the prayer switch, one reminder's destination, a rebuild that
+ * is not a cancellation -- and a background of sixteen unrelated items would turn each of those
+ * into a proof about the sum of two features. So `fresh()` seeds the four OFF unless a case asks
+ * for the shipped default, and every old expectation stands exactly where it stood, unweakened.
+ */
+function alertsOff(extra) {
+  const rec = {};
+  for (const a of WIRD_ALERTS) rec[a.id] = { on: false, offset: 0 };
+  const store = Object.assign({}, extra || {});
+  store[WIRD_ALERTS_KEY] = JSON.stringify(rec);
+  return store;
+}
+
+/** A seeded store in which one of the four anchored alerts is lit and the other three are not. */
+function alertOn(id, offset, extra) {
+  const rec = {};
+  for (const a of WIRD_ALERTS) rec[a.id] = { on: a.id === id, offset: (a.id === id ? offset : 0) };
+  const store = Object.assign({}, extra || {});
+  store[WIRD_ALERTS_KEY] = JSON.stringify(rec);
+  return store;
+}
 
 /** A seeded store in which the reader has lit one reminder at the times given. */
 function remindersOn(id, times, extra) {
@@ -547,8 +604,14 @@ function wakeAll(env) {
 }
 
 /** A fresh pipe with a fresh module state -- ezikSchedLastSent starts over every time. */
+// ITEM 8 (side round): EVERY CASE GOES THROUGH THIS ONE DOOR, so the four anchored alerts are
+// silenced in one place rather than in fifty. A case that wants the SHIPPED default -- the four
+// open, which is what a real first run does -- passes `wirdAlerts: 'default'` and gets a store this
+// function does not touch. See the note over alertsOff() for why the silence is the right baseline.
 function fresh(opts) {
-  const env = makeEnv(opts);
+  const o = opts || {};
+  const seeded = (o.wirdAlerts === 'default') ? (o.store || {}) : alertsOff(o.store);
+  const env = makeEnv(Object.assign({}, o, { store: seeded }));
   const react = ezikReact(env);
   return { env: env, react: react, h: makeHarness(env) };
 }
@@ -1158,25 +1221,207 @@ run('a lit reminder rides the window once a day, absolute, ascending, and pointe
   return REMINDER_FEEDS.length + ' feeds x ' + DAYS + ' days, every field whitelisted, 0 writes';
 });
 
+// ITEM 8 (side round, 15 September): RE-POINTED AT THE ROWS THAT CARRY THE TWO DOORS NOW.
+//
+// The morning and evening adhkar used to be two rows of REMINDER_FEEDS at a fixed 06:00 and 17:00.
+// The owner's order moved them onto PRAYER ANCHORS -- after the Fajr time, after the Asr time --
+// so they are two rows of WIRD_ALERTS instead. They did not lose one thing this case is about:
+// the same two dictionary labels, the same two bodies, the same `adhkar` type, and the same two
+// destinations, which is exactly what is driven below. The check is also STRICTER than it was: it
+// now follows those destinations through the pipe from the feed that actually builds them today.
 run('the two adhkar reminders point at the two doors and never at the group they came from', () => {
-  const doors = REMINDER_FEEDS.filter((f) => f.type === 'adhkar').map((f) => f.route).sort();
+  const doors = WIRD_ALERTS.filter((a) => a.type === 'adhkar').map((a) => a.route).sort();
   eq(doors, ['adhkar_masaa', 'adhkar_sabah'], 'the destinations the adhkar reminders carry');
   // ...AND THE DESTINATION SURVIVES THE PIPE. ezikSchedRoute judges the SHAPE of a route and a
   // door key that failed it would be dropped silently -- the notification would still fire, at
   // the right minute, pointing nowhere.
-  const { h } = fresh({ store: remindersOn('sabah', ['06:00']) });
-  const built = h.ezikSchedPayload(h.ezikReminderItems(new Date(NOW)), 0);
+  const { h } = fresh({ store: alertOn('sabah', 0), wirdAlerts: 'default' });
+  const built = h.ezikSchedPayload(h.ezikWirdAlertItems(new Date(NOW)), 0);
   eq(built.dropped.past, 0, 'reminders the pipe dropped as past against a floor of zero');
   eq(built.message.items.length, DAYS, 'reminders that reached the wire');
   for (const it of built.message.items) {
     eq(it.route, 'adhkar_sabah', 'the destination the pipe carried for ' + it.id);
   }
   // AND NOT THE GROUP THE SPLIT CAME FROM: '27' is what a reminder must never name, because the
-  // doors are what shipped and the group is what they replaced.
-  for (const f of REMINDER_FEEDS) {
+  // doors are what shipped and the group is what they replaced. BOTH lists are swept, so a row
+  // moved from one to the other cannot slip past this on the way.
+  for (const f of REMINDER_FEEDS.concat(WIRD_ALERTS)) {
     is(String(f.route).indexOf('27') === -1, 'the ' + f.id + ' reminder names category 27');
   }
   return 'adhkar_sabah + adhkar_masaa, ' + DAYS + ' each through the pipe, 0 routes dropped';
+});
+
+// ===========================================================================
+// ITEM 8 (side round, 15 September) -- THE FOUR ANCHORED ALERTS, AND THE CEILING OVER THEM.
+// ===========================================================================
+// These cases exist because the round MOVED behaviour that the cases above were proving, and a
+// re-pointed pin that is not replaced by a pin on the new behaviour is coverage quietly deleted.
+// Everything the owner's order asks for that can be judged without a device is judged here: the
+// default, the independence, the anchor, the weekday, the shift, and the cut.
+
+run('the four are OPEN at first run, which is the one place they differ from everything else', () => {
+  // A STORE THAT WAS NEVER WRITTEN. `wirdAlerts: 'default'` is the only way into this file's
+  // fixtures without the four being silenced first -- and it is what a real first open is.
+  const { h, env } = fresh({ wirdAlerts: 'default' });
+  const rec = h.readWirdAlerts();
+  for (const a of WIRD_ALERTS) {
+    eq(rec[a.id], { on: true, offset: 0 }, 'what a never-written store says about ' + a.id);
+  }
+  // ...AND READING IT CREATES NOTHING. The arming path runs at the root for every reader.
+  eq(env.writes, [], 'stores written by reading the four');
+  // EVERY DAMAGED SHAPE STILL READS AS THE FOUR, OPEN. A record that cannot be trusted must not
+  // be able to SILENCE a reminder the owner ruled open -- that is the mirror of readReminders,
+  // where the untrusted record must not be able to light one.
+  for (const bad of ['', '{', 'null', '[]', '"on"', '{"sabah":5}', '{"sabah":[]}', '{"sabah":{"offset":9.5}}']) {
+    const g = fresh({ store: { [WIRD_ALERTS_KEY]: bad }, wirdAlerts: 'default' });
+    for (const a of WIRD_ALERTS) {
+      eq(g.h.readWirdAlerts()[a.id].on, true, 'the value of ' + a.id + ' read out of ' + bad);
+    }
+  }
+  // ONE VALUE MEANS OFF, AND IT IS THE BOOLEAN. Nothing truthy-adjacent silences an alert.
+  const off = fresh({ store: { [WIRD_ALERTS_KEY]: '{"sabah":{"on":false},"masaa":{"on":0},"kahf":{"on":null},"jumua":{"on":"no"}}' }, wirdAlerts: 'default' });
+  eq(off.h.readWirdAlerts().sabah.on, false, 'the only value that means off');
+  for (const id of ['masaa', 'kahf', 'jumua']) {
+    eq(off.h.readWirdAlerts()[id].on, true, 'a near-miss that silenced ' + id);
+  }
+  return WIRD_ALERTS.length + ' alerts open on a fresh device, 8 damaged records + 3 near-misses, 0 writes';
+});
+
+run('each alert is anchored to THIS page\'s prayer time, on its own days, shifted by its own offset', () => {
+  const { h } = fresh({ store: switchOn(), wirdAlerts: 'default' });
+  const now = new Date(NOW);
+  const prayers = h.ezikAdhanItems(now);
+  const at = (id) => { const hit = prayers.filter((p) => p.id === id)[0]; return hit ? hit.at : null; };
+  const alerts = h.ezikWirdAlertItems(now);
+  is(alerts.length > 0, 'the four built nothing at all');
+  // 🔴 THE ANCHOR IS THE SAME INSTANT THE PRAYER ITSELF IS SCHEDULED AT. Not "about", not
+  // "within a minute": the identical number, because both come out of the one calculator on the
+  // one position with the one set of preferences. A second computation would drift from this.
+  let checked = 0;
+  for (const it of alerts) {
+    const parts = it.id.split(':');           // type : alert : id : YYYY-MM-DD
+    const row = WIRD_ALERTS.filter((a) => a.id === parts[2])[0];
+    is(!!row, 'an alert item names a row that is not declared: ' + it.id);
+    const want = at('adhan:' + row.anchor + ':' + parts[3]);
+    is(want !== null, 'no prayer was scheduled for ' + row.anchor + ' on ' + parts[3]);
+    eq(it.at, want, 'the instant ' + it.id + ' is anchored at');
+    checked += 1;
+  }
+  // THE WEEKDAY RULE, DRIVEN RATHER THAN READ OFF THE ROW. Two of the four are every day and two
+  // are Friday alone, and over a seven-day window that is exactly one occurrence each.
+  const count = (id) => alerts.filter((x) => x.id.split(':')[2] === id).length;
+  for (const a of WIRD_ALERTS) {
+    eq(count(a.id), a.day === null ? DAYS : 1, 'occurrences of ' + a.id + ' in the window');
+  }
+  for (const a of WIRD_ALERTS.filter((x) => x.day !== null)) {
+    const day = alerts.filter((x) => x.id.split(':')[2] === a.id)[0].id.split(':')[3];
+    eq(new Date(day + 'T12:00:00').getDay(), a.day, 'the weekday ' + a.id + ' landed on');
+  }
+  // THE SHIFT IS MINUTES FROM THAT SAME INSTANT, in both directions, and it is the ONLY thing
+  // that moves: the same anchor, the same day, the same id.
+  for (const mins of [15, -30]) {
+    const g = fresh({ store: alertOn('sabah', mins, switchOn()), wirdAlerts: 'default' });
+    const one = g.h.ezikWirdAlertItems(now);
+    eq(one.length, DAYS, 'items a single lit alert offers at ' + mins + ' minutes');
+    for (const it of one) {
+      eq(it.at, at('adhan:fajr:' + it.id.split(':')[3]) + mins * 60000,
+        'the instant ' + it.id + ' fires at with a shift of ' + mins);
+    }
+  }
+  // AN OFFSET THE STORE CANNOT BE TRUSTED WITH IS ZERO, never a repaired guess.
+  for (const bad of [null, '15', 1.5, NaN, Infinity, 121, -121]) {
+    is(!h.wirdAlertOffsetOk(bad), 'an unusable shift was accepted: ' + String(bad));
+  }
+  for (const good of [0, 5, -5, 120, -120]) is(h.wirdAlertOffsetOk(good), String(good) + ' was refused');
+  return checked + ' items, every one on its prayer\'s own instant; 2 every-day + 2 friday-only; '
+    + '+15/-30 applied exactly; 7 unusable shifts refused';
+});
+
+run('each of the four switches alone, and none of them reaches the prayers or the clock rows', () => {
+  const now = new Date(NOW);
+  for (const a of WIRD_ALERTS) {
+    const g = fresh({ store: alertOn(a.id, 0), wirdAlerts: 'default' });
+    const items = g.h.ezikSchedItems();
+    eq(items.length, a.day === null ? DAYS : 1, 'items with only ' + a.id + ' lit');
+    for (const it of items) eq(it.route, a.route, 'the destination of ' + it.id);
+  }
+  // ALL FOUR OFF AND NOTHING ELSE LIT: the pipe is as silent as it was before this round.
+  const none = fresh();
+  eq(none.h.ezikSchedItems(), [], 'items with all four off and nothing else lit');
+  // AND THE FOUR DO NOT TOUCH THE PRAYER SWITCH IN EITHER DIRECTION.
+  const four = fresh({ wirdAlerts: 'default' });
+  eq(four.h.ezikAdhanFeed(), [], 'prayers scheduled by the four alone');
+  const both = fresh({ store: switchOn(), wirdAlerts: 'default' });
+  eq(both.h.ezikSchedItems().length, 5 * DAYS + 2 * DAYS + 2,
+    'the payload of a fresh device whose reader turned the prayers on');
+  eq(both.h.ezikWirdOwnItems(now), [], 'reminders offered for wirds nobody added');
+  return '4 switches driven one at a time; all off = 0; four + prayers = '
+    + (5 * DAYS + 2 * DAYS + 2) + ' items';
+});
+
+run('a wird the reader added carries its own reminder, off until he lights it, and it dies with it', () => {
+  const now = new Date(NOW);
+  const LIST = literalOf('WIRD_LIST_KEY', 'StringLiteral');
+  const row = (alert) => JSON.stringify({ v: 1, items: [Object.assign({ k: 'mushaf', id: 'p1', label: 'LABEL' }, alert ? { alert: alert } : {})] });
+  // ADDED AND NOT LIT: a wird the reader picked schedules nothing at all.
+  eq(fresh({ store: { [LIST]: row(null) } }).h.ezikWirdOwnItems(now), [], 'items for a wird with no reminder');
+  eq(fresh({ store: { [LIST]: row({ on: false, at: '20:00' }) } }).h.ezikWirdOwnItems(now), [],
+    'items for a wird whose reminder is off');
+  // LIT: one a day across the window, at the hour he named, carrying the wird's own name.
+  const lit = fresh({ store: { [LIST]: row({ on: true, at: '20:30' }) } });
+  const items = lit.h.ezikWirdOwnItems(now);
+  eq(items.length, DAYS, 'items for a lit wird reminder');
+  for (const it of items) {
+    eq(it.title, 'LABEL', 'the name ' + it.id + ' carries');
+    eq(new Date(it.at).getHours() * 60 + new Date(it.at).getMinutes(), 20 * 60 + 30,
+      'the local wall clock ' + it.id + ' fires at');
+  }
+  // AN HOUR THE STORE CANNOT BE TRUSTED WITH IS NOT AN HOUR, and the alert is dropped whole
+  // rather than repaired -- a repaired hour is an hour the reader never picked.
+  for (const bad of ['9:05', '24:00', '07:60', '', 'twenty', null, 2030]) {
+    eq(fresh({ store: { [LIST]: row({ on: true, at: bad }) } }).h.ezikWirdOwnItems(now), [],
+      'items built from the unusable hour ' + String(bad));
+  }
+  // AND IT LIVES ON THE ROW: a store with no wird in it has no reminder in it either, with no
+  // second key anywhere to sweep.
+  eq(fresh({ store: { [LIST]: JSON.stringify({ v: 1, items: [] }) } }).h.ezikWirdOwnItems(now), [],
+    'items left behind after the wird was removed');
+  eq(lit.env.writes, [], 'stores written while building a reader\'s own reminders');
+  return DAYS + ' items for one lit wird; 2 unlit shapes + 7 unusable hours = 0; 0 writes';
+});
+
+run('🔴 THE CEILING IS A GATE BEFORE THE PIPE, AND WHAT IT CUTS IS NAMED RATHER THAN SILENT', () => {
+  const CEIL = literalOf('SHELL_SCHED_CEILING', 'NumericLiteral');
+  const LIST = literalOf('WIRD_LIST_KEY', 'StringLiteral');
+  // THE NUMBER IS THE SHELL'S AND IT IS SIXTY. A copy that drifted from the contract would be a
+  // gate that lets the far side do the cutting again, silently, which is the defect being closed.
+  eq(CEIL, 60, 'the ceiling this client cuts at');
+  // A READER WHO FILLS IT. Ten wirds, each with a reminder, is seventy items on its own.
+  const many = { v: 1, items: [] };
+  for (let i = 0; i < 10; i++) many.items.push({ k: 'mushaf', id: 'p' + i, label: 'W' + i, alert: { on: true, at: '20:00' } });
+  const rec = {};
+  for (const f of REMINDER_FEEDS) rec[f.id] = { on: true, times: [f.at] };
+  const g = fresh({ store: Object.assign(switchOn(), { [LIST]: JSON.stringify(many), [REMINDERS_KEY]: JSON.stringify(rec) }), wirdAlerts: 'default' });
+  const items = g.h.ezikSchedItems();
+  eq(items.length, CEIL, 'items handed to the pipe when the reader is over the ceiling');
+  // THE PRIORITY HELD. Every prayer survived, and every one of the four survived with them --
+  // what was given up came from the bottom of the order and from nowhere else.
+  const ADHAN_T = literalOf('ADHAN_TYPE', 'StringLiteral');
+  eq(items.filter((x) => x.type === ADHAN_T).length, 5 * DAYS, 'prayers that survived the cut');
+  eq(items.filter((x) => x.id.indexOf(':alert:') !== -1).length, 2 * DAYS + 2,
+    'anchored alerts that survived the cut');
+  eq(items.filter((x) => x.id.indexOf(':own:') !== -1).length, 0,
+    'the reader\'s own wird reminders, which are last in the order');
+  // AND THE PIPE NEVER SEES THE OVERFLOW. It is cut HERE, before the payload is built, so the
+  // far side is not handed a list it would have to trim on its own.
+  const built = g.h.ezikSchedPayload(items, 0);
+  is(built.message.items.length <= CEIL, 'the wire carried more than the far side will hold');
+  // AND A READER UNDER THE CEILING IS CUT NOTHING AND TOLD NOTHING.
+  const fine = fresh({ store: switchOn(), wirdAlerts: 'default' });
+  eq(fine.h.ezikSchedItems().length, 5 * DAYS + 2 * DAYS + 2, 'items for a reader well under the ceiling');
+  eq(g.env.writes, [], 'stores written by the ceiling');
+  return CEIL + ' items at the cut; ' + (5 * DAYS) + ' prayers and ' + (2 * DAYS + 2)
+    + ' alerts kept; the reader\'s own dropped last; 0 writes';
 });
 
 run('a count is offered where the order allows one, a single time where it does not', () => {
@@ -1198,17 +1443,21 @@ run('a count is offered where the order allows one, a single time where it does 
     + ', ' + REMINDER_FEEDS.filter((f) => !f.many).length + ' take one time; duplicates dropped';
 });
 
-run('the four switches are independent, and so is the prayer switch above them', () => {
+// ITEM 8 (side round): THE ROW THIS CASE DRIVES IS «الوِرد اليوميّ» NOW, for the reason written
+// over the re-pointed case above -- the evening adhkar moved onto an anchor and is no longer a
+// clock row. What is being proved is untouched: one switch lights one feed, the prayer switch
+// lights another, neither reaches across at the other, and with everything off the pipe is silent.
+run('the reminder switches are independent, and so is the prayer switch above them', () => {
   // ONE LIT, AND ONLY ITS OWN ITEMS RIDE.
-  const one = fresh({ store: remindersOn('masaa', ['17:30']) });
+  const one = fresh({ store: remindersOn('wird', ['17:30']) });
   const items = one.h.ezikSchedItems();
   eq(items.length, DAYS, 'items with one reminder lit and the prayer switch off');
-  for (const it of items) eq(it.route, 'adhkar_masaa', 'the destination of ' + it.id);
+  for (const it of items) eq(it.route, 'mushaf', 'the destination of ' + it.id);
   // THE PRAYER SWITCH ON AND EVERY REMINDER OFF -- the payload proved before any of this existed.
   const prayers = fresh({ store: switchOn() });
   eq(prayers.h.ezikSchedItems().length, 5 * DAYS, 'items with the prayer switch on and no reminder');
   // BOTH, AND THE TOTAL IS THE SUM. Neither gate reaches across at the other.
-  const both = fresh({ store: remindersOn('masaa', ['17:30'], switchOn()) });
+  const both = fresh({ store: remindersOn('wird', ['17:30'], switchOn()) });
   eq(both.h.ezikSchedItems().length, 5 * DAYS + DAYS, 'items with both lit');
   // NEITHER, AND THE PIPE SAYS NOTHING AT ALL THROUGH EVERY TRIGGER THERE IS.
   const none = fresh();
@@ -1229,20 +1478,21 @@ run('turning a reminder off is a rebuild and never a cancellation of the whole c
   // THE READER HAS THE PRAYERS AND ONE REMINDER; THE REMINDER GOES; THE PRAYERS STAY. This is the
   // one behaviour a shared channel makes easy to get wrong -- ezikNotifyStop() would have ended
   // both, and no reader asked for that by switching off their evening adhkar.
-  const sc = fresh({ store: remindersOn('masaa', ['17:30'], switchOn()) });
+  // ITEM 8 (side round): «الوِرد اليوميّ» is the clock row this drives now -- see the note above.
+  const sc = fresh({ store: remindersOn('wird', ['17:30'], switchOn()) });
   const armed = sc.h.ezikSchedArm();
   eq(armed.sent, true, 'the first arm');
-  const withBoth = JSON.parse(sc.env.posts[0]).items.filter((x) => x.type === 'adhkar').length;
+  const withBoth = JSON.parse(sc.env.posts[0]).items.filter((x) => x.type === 'daily').length;
   is(withBoth > 0, 'the reminder never reached the wire to begin with');
   // The reader turns it off: the store is rewritten and the SAME arm runs again.
   const rec = JSON.parse(sc.env.store[REMINDERS_KEY]);
-  rec.masaa.on = false;
+  rec.wird.on = false;
   sc.env.store[REMINDERS_KEY] = JSON.stringify(rec);
   const again = sc.h.ezikSchedArm();
   eq(again.sent, true, 'the arm after the reminder was turned off');
   const after = JSON.parse(sc.env.posts[1]);
   eq(after.op, OP, 'the operation an arm still uses after a reminder was turned off');
-  eq(after.items.filter((x) => x.type === 'adhkar').length, 0, 'reminders left on the wire');
+  eq(after.items.filter((x) => x.type === 'daily').length, 0, 'reminders left on the wire');
   is(after.items.filter((x) => x.type === ADHAN).length > 0, 'the prayers went with the reminder');
   // AND NO CANCELLATION WAS SENT. Two arms, two messages, and neither of them is a cancel.
   eq(sc.env.posts.length, 2, 'messages sent across both arms');
@@ -1456,13 +1706,36 @@ run('ON: the payload is the one proved before there was a switch -- nothing adde
   eq(text(statements[0]), 'if (!readPrayerNotify()) return [];', 'the guard');
   eq(text(statements[1]), 'return ezikAdhanItems(new Date());',
     'the statement the feed ends in, whole and unwrapped');
-  // ...AND THE JOIN ABOVE IT IS ONE STATEMENT THAT HIDES NOTHING. A filter, a slice or a sort
-  // between the two feeds and the pipe would be a place a reminder could be lost silently.
-  const joined = topFunction('ezikSchedItems').body.body;
-  eq(joined.length, 1, 'statements in the join');
-  eq(text(joined[0]), 'return ezikAdhanFeed().concat(ezikReminderItems(new Date()));',
-    'the one statement the two feeds are joined by');
-  return (5 * DAYS) + ' items, 1 post, 0 writes; the prayer gate is one early return, the join one concat';
+  // ...AND THE JOIN ABOVE IT NAMES EVERY FEED AND HIDES NONE OF THEM.
+  //
+  // 🔴 ITEM 8 (side round, 15 September) SPENT THE OLD SHAPE OF THIS PIN AND PAID FOR IT HERE.
+  // The join used to be one concat of two feeds, and this case pinned its exact text so that a
+  // filter, a slice or a sort could not appear between the feeds and the pipe and lose a reminder
+  // silently. It is FOUR feeds now, and one of them is unbounded -- the reader may attach a
+  // reminder to every wird he adds -- while the far side holds sixty pending notifications and no
+  // more. So a cut is now the honest behaviour and its absence would be the defect: the owner's
+  // order requires the count to be taken BEFORE the payload is built, a fixed priority applied,
+  // and what will not fit to be recorded rather than dropped into silence.
+  //
+  // WHAT THIS CASE CLAIMS INSTEAD IS STRICTER IN THE ONE WAY THAT MATTERS: the tier list is one
+  // statement naming all four feeds in the owner's priority order, so a feed cannot be dropped
+  // from the pipe without this line moving; and the cut is bounded by a NAMED CEILING rather than
+  // by a number written into an expression. A silent filter is still impossible -- what a tier
+  // loses is counted, named, and handed to the reader's own line.
+  const tiers = topFunction('ezikSchedTiers').body.body;
+  eq(tiers.length, 1, 'statements in the tier list');
+  eq(text(tiers[0]),
+    'return [ezikAdhanFeed(), ezikWirdAlertItems(now), ezikReminderItems(now), ezikWirdOwnItems(now)];',
+    'the one statement the four feeds are named by, in priority order');
+  const joined = text(topFunction('ezikSchedItems'));
+  is(joined.indexOf('const tiers = ezikSchedTiers(now);') !== -1,
+    'the join no longer builds its payload from the one tier list');
+  is(joined.indexOf('if (out.length < SHELL_SCHED_CEILING) { out.push(tier[j]); continue; }') !== -1,
+    'the ceiling is not applied before the payload is built');
+  is(joined.indexOf('ezikSchedClipSet(cut, names);') !== -1,
+    'what would not fit is dropped silently instead of being recorded');
+  return (5 * DAYS) + ' items, 1 post, 0 writes; the prayer gate is one early return, '
+    + 'the join four named tiers under one named ceiling';
 });
 
 run('the operation that raises a system prompt has ONE call site, and it is not in an effect', () => {
@@ -1522,8 +1795,13 @@ run('the operation that raises a system prompt has ONE call site, and it is not 
     callers.push(n);
   });
   is(callers.length >= 2, 'only ' + callers.length + ' caller(s) of the one sender -- the move bought nothing');
+  // ITEM 8 (side round, 15 September): A THIRD SWITCH, AND IT IS STILL A SWITCH. EzikWirdAlerts is
+  // the four prayer-anchored alerts; it asks the system through this same one sender rather than
+  // copying the ask, which is precisely what this case exists to require. The list is still EXACT
+  // and is still a list of switches: nothing here is an effect, a mount or a boot path.
   eq(callers.map((n) => owner(startLine(n))).sort(),
-    ['EzikReminderSettings', 'PrayerNotifyToggle'], 'the functions that reach the one sender');
+    ['EzikReminderSettings', 'EzikWirdAlerts', 'PrayerNotifyToggle'],
+    'the functions that reach the one sender');
   for (const c of callers) {
     eq(effects.filter((r) => c.start >= r[0] && c.end <= r[1]).length, 0,
       'effects the call in ' + owner(startLine(c)) + ' sits inside');
