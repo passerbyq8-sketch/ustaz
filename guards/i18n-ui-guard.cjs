@@ -892,16 +892,18 @@ async function partD() {
     // removed from the bar in the same commit, and their four actions moved into the menu the
     // button below opens. Each is walked to its destination further down this part, so nothing
     // is asserted to exist that is not also proved to WORK.
-    // ITEM 66 (ب): THREE, because the owner ruled a compass mark into this bar -- top, visual
-    // left, one press to the compass. Re-pointed rather than relaxed: the count is still exact,
-    // the verse is still driven as a display below, and the compass control is named and driven
-    // by its accessible name on its own two lines under the menu button's.
-    eq('the top bar carries exactly three elements', d.all('.ezist-nav-inner')[0].children.length, 3);
-    // ITEM 27: ALL THREE ARE CONTROLS NOW. The owner ruled the daily verse a door -- it opens
-    // that verse's tafsir -- so the member that used to be the bar's one display is its third
-    // control. The count is still exact and is not relaxed: three members, three controls, and
-    // each of the three named on its own line below so a fourth cannot hide inside the number.
-    eq('ITEM 27: ...and all three of them are controls now', d.all('.ezist-nav button').length, 3);
+    // ITEM 66 (15 September 2026): BACK TO TWO, AND THIS IS THE TRUTH ABOUT WHY. A compass mark
+    // was ruled into this bar and was the third member; on 15 September 2026 the owner ruled the
+    // compass ONE entry instead -- in the head of the «الصلاة والقبلة» sheet -- and lifted the
+    // bar's mark away. Re-pointed rather than relaxed: the count is still EXACT and never `>=`,
+    // the verse is still driven as a control below, and the mark's ABSENCE is a claim of its own
+    // further down, written by accessible name so it cannot return unnoticed.
+    eq('the top bar carries exactly two elements', d.all('.ezist-nav-inner')[0].children.length, 2);
+    // ITEM 27: BOTH OF THEM ARE CONTROLS NOW. The owner ruled the daily verse a door -- it opens
+    // that verse's tafsir -- so the member that used to be the bar's one display is its second
+    // control. The count is still exact and is not relaxed: two members, two controls, and each
+    // of the two named on its own line below so a third cannot hide inside the number.
+    eq('ITEM 27: ...and both of them are controls now', d.all('.ezist-nav button').length, 2);
     // ...AND THE VERSE IS A REAL BUTTON, not a div wearing a handler. What the old display
     // checks were protecting -- that this member is never a thing you can press without the
     // platform knowing -- is what these assert: it is a <button>, so it is focusable, in the
@@ -915,30 +917,19 @@ async function partD() {
     eq('the four controls the bar used to carry are gone from it',
       d.all('.ezist-nav button').filter((b) => ['عزك', 'الرئيسية', 'الإعدادات', 'الحساب']
         .indexOf(String(b.getAttribute('aria-label') || '')) !== -1).length, 0);
-    // ITEM 66 (ب): the compass mark, asserted as a real control with a real Arabic name and a
-    // mark rather than a word -- the owner's whole requirement was that it be understood
-    // without being read. It is the LAST child of the row, which under this RTL document is the
-    // visual left; the menu button below is still the first and is still on the right.
-    {
-      const navInner = d.all('.ezist-nav-inner')[0];
-      const navKids = Array.prototype.slice.call(navInner.children);
-      // ITEM 27: BY ITS ACCESSIBLE NAME, not by its index. This read the SECOND button in the
-      // bar, and the daily verse became a button between the menu and the compass -- so the
-      // index silently started pointing at the verse, and every assertion below it would have
-      // been made about the wrong element. Its own prose already says the compass is «named
-      // and driven by its accessible name»; this is that, and it cannot drift again when a
-      // fourth member arrives.
-      const compass = d.all('.ezist-nav button')
-        .filter((b) => String(b.getAttribute('aria-label') || '') === '\u0627\u0644\u0628\u0648\u0635\u0644\u0629')[0];
-      if (ok('the top nav carries the compass mark', !!compass)) {
-        eq('...as a type="button"', compass.getAttribute('type'), 'button');
-        eq('...named «البوصلة»', compass.getAttribute('aria-label'), '\u0627\u0644\u0628\u0648\u0635\u0644\u0629');
-        ok('...drawn as a mark, with no text of its own',
-          !String(compass.textContent || '').trim() && !!compass.querySelector('svg'));
-        eq('...and it is the LAST member of the row -- the RTL trailing edge, the visual left',
-          navKids.indexOf(compass), navKids.length - 1);
-      }
-    }
+    // ITEM 66 (15 September 2026) -- AND NO MEMBER OF THIS BAR IS THE COMPASS MARK. This stands
+    // in the place of the block that used to drive the bar's compass control, and it is the claim
+    // that proves the lift: the owner ruled on 15 September 2026 that the compass has ONE entry,
+    // in the head of the «الصلاة والقبلة» sheet, and that the bar's mark comes out. A claim was
+    // not deleted here -- it was REPLACED by one that proves the new state.
+    //
+    // AND IT IS WRITTEN THE WAY THE OLD BLOCK EXTRACTED ITS ELEMENT: by the accessible name
+    // «البوصلة» over every button in the bar, never by index. So a mark that creeps back in under
+    // ANY position -- first, last, or between the menu and the verse -- is still counted here and
+    // still fails, which an index-shaped claim could not promise.
+    eq('ITEM 66: ...and not one of them is the compass mark',
+      d.all('.ezist-nav button')
+        .filter((b) => String(b.getAttribute('aria-label') || '') === '\u0627\u0644\u0628\u0648\u0635\u0644\u0629').length, 0);
     const navMenu = d.all('.ezist-nav button')[0];
     if (ok('the top nav carries the menu button', !!navMenu)) {
       eq('...and IT is the first member -- the RTL leading edge, the visual right',
