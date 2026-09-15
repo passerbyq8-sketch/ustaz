@@ -20,16 +20,26 @@
 // 🔴 NO ACCOUNT KEY LEAVES THIS ROUTE. The response is built by publicArticles(), a whitelist of
 // six named fields, and `authorKey` is not one of them. See lib/articles/public-view.js.
 //
-// THE AUTH-FAMILY THROTTLE, WHICH FAILS CLOSED, IS THE RIGHT ONE HERE AND IT COSTS A READER
-// NOTHING. lib/ratelimit.js AUTH_FAIL_OPEN is false, so a Redis outage refuses this route. That
-// would be a bad trade for /api/ask, where refusing a child's question is worse than the traffic
-// it stops -- but the articles THEMSELVES live in that same Redis. When it cannot be reached
-// there is nothing to serve, so failing closed withholds nothing that failing open could have
-// delivered; it merely says so with a status code instead of an empty list.
+// THE READ-FAMILY THROTTLE IS THE RIGHT ONE HERE, AND IT IS NOT THE ONE THAT GUARDS PASSWORDS.
+// This route used to drink from the auth family -- the one that guards the five sign-in
+// routes. That meant a reader with no account spent the same
+// per-IP budget as someone trying passwords against the five sign-in routes, and the budget
+// could never be tuned for reading: every request of headroom given to a reader was headroom
+// given to a guesser. lib/ratelimit.js now carries a separate READ_* family with its own key
+// prefixes, so the ceilings that apply here are a question about reading alone.
+//
+// AND IT FAILS OPEN, WHICH BUYS LESS THAN IT SOUNDS LIKE -- SAY THE SMALLER TRUE THING.
+// READ_FAIL_OPEN is true, so a counter this route cannot reach no longer refuses a reader over
+// a fault that is not his. But the articles THEMSELVES live in the same Upstash instance as the
+// counters: lib/articles/store.js and lib/ratelimit.js are both built from KV_REST_API_URL and
+// KV_REST_API_TOKEN. When the whole store is unreachable, failing open therefore only changes
+// WHICH refusal the reader gets -- the 503 below, where it used to be a 429. The gain is the
+// narrower fault, the counter stumbling while a plain read still answers, and there the reader
+// now gets his page instead of a refusal he did not earn.
 //
 // ZERO NEW STORE VARIABLES AND ZERO NEW ENVIRONMENT VARIABLES on this page.
 
-import { applyCorsOrigin, checkAuthLimit } from '../lib/ratelimit.js';
+import { applyCorsOrigin, checkReadLimit } from '../lib/ratelimit.js';
 import { clientAddress } from '../lib/attempts.js';
 import { DEVICE_HEADER } from '../lib/daycap.js';
 import { listPublished, SECTIONS } from '../lib/articles/store.js';
@@ -44,7 +54,7 @@ export default async function handler(req, res) {
   }
   if (req.method !== 'GET') return res.status(405).json({ ok: false, error: 'method-not-allowed' });
 
-  const rl = await checkAuthLimit(clientAddress(req, 'unknown'));
+  const rl = await checkReadLimit(clientAddress(req, 'unknown'));
   if (!rl.ok) return res.status(429).json({ ok: false, error: 'articles-rate-limited' });
 
   const query = (req.query && typeof req.query === 'object') ? req.query : {};

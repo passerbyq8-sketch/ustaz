@@ -19,7 +19,7 @@
 // 🔴 NO ACCOUNT KEY LEAVES THIS ROUTE. publicArticle() is a whitelist of six named fields and
 // `authorKey` is not one of them.
 
-import { applyCorsOrigin, checkAuthLimit } from '../lib/ratelimit.js';
+import { applyCorsOrigin, checkReadLimit } from '../lib/ratelimit.js';
 import { clientAddress } from '../lib/attempts.js';
 import { DEVICE_HEADER } from '../lib/daycap.js';
 import { getPublishedBySlug } from '../lib/articles/store.js';
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
   }
   if (req.method !== 'GET') return res.status(405).json({ ok: false, error: 'method-not-allowed' });
 
-  const rl = await checkAuthLimit(clientAddress(req, 'unknown'));
+  const rl = await checkReadLimit(clientAddress(req, 'unknown'));
   if (!rl.ok) return res.status(429).json({ ok: false, error: 'articles-rate-limited' });
 
   const query = (req.query && typeof req.query === 'object') ? req.query : {};
