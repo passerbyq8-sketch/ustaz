@@ -16,6 +16,10 @@
 // JSON, because a number from a replayed stream and a number from the live preview are not the
 // same evidence:
 //
+//   --source=local     every /api/* call is served by importing the REAL api/*.js into this
+//                      process, with .env.local loaded. `vercel dev` cannot be used: the project's
+//                      DEVELOPMENT scope sets every sensitive value to the empty string and that
+//                      beats .env.local. This is the same handler the deployment runs.
 //   --source=preview   every /api/* call is proxied to the preview origin, which is where
 //                      STREAM_V1=on lives. The proxy records each SSE event's arrival time and
 //                      text length as it passes through — that is §4/٢, the raw reference,
@@ -57,6 +61,10 @@ const CHROME = [
 const CDN_CACHE = path.join(os.tmpdir(), 'ezik-cdn-cache');
 
 const PREVIEW = 'https://ustaz-evvkdgi0e-musaed-s-projects1.vercel.app';
+// A LOCAL `vercel dev`, which is the source the owner opened up when the preview turned out to be
+// unreachable behind Deployment Protection. Same repo, same handler, same STREAM_V1 -- and unlike
+// the preview it can be re-measured after a fix, which the order could not assume.
+const LOCAL = 'http://localhost:3000';
 // The secret is read from a file OUTSIDE the repo, or from the environment. It is never printed,
 // never written into the repo, and never put in the JSON record.
 const BYPASS_FILE = path.join(REPO, '..', 'ustaz-102-orders', '.bypass');
@@ -179,7 +187,7 @@ class CDP {
       this.ws.send({ id, method, params: params || {} });
       setTimeout(() => {
         if (this.pending.has(id)) { this.pending.delete(id); rej(new Error('timeout: ' + method)); }
-      }, 180000);
+      }, 600000);
     });
   }
   async evaluate(expression) {
@@ -252,6 +260,184 @@ function servedAppJs() {
 // time it left this process for the browser and the length of the text it carried. That is the
 // raw reference the order asks for in §4/٢, and it is taken here rather than in the page because
 // the page only ever sees the accumulated string, never the events.
+// ── THE REAL HANDLER, IN THIS PROCESS ───────────────────────────────────────────────────────
+// `vercel dev` was tried first and it cannot be used here: the project's DEVELOPMENT environment
+// has every sensitive variable set to the empty string — Vercel does not return a Sensitive value
+// on `env pull`, and an explicitly-empty project value WINS over `.env.local`. MEASURED: a dev
+// server started after the key was put in `.env.local` still answered
+// `500 {"error":"ANTHROPIC_API_KEY غير مضبوط"}`, which is api/ask.js:733.
+//
+// So the handler is imported and called directly. It is an ordinary Node `(req, res)` ESM default
+// export, and this is the SAME file the deployment runs, reading the SAME lib/ and the SAME flags.
+// Two small things Vercel adds around it have to be added here too, and nothing else:
+//   · `req.body`, which the platform parses before the handler sees it (api/ask.js:739);
+//   · `res.status()` and `res.json()`, the two Express-shaped helpers it uses.
+function loadDotEnvLocal() {
+  // Values are never printed, never logged and never put in a JSON record. Only the NAMES of the
+  // variables that were actually applied are reported, and only counted.
+  const file = path.join(REPO, '.env.local');
+  const applied = [];
+  if (!fs.existsSync(file)) return { applied, missing: true };
+  for (const line of fs.readFileSync(file, 'utf8').split(/\r?\n/u)) {
+    const i = line.indexOf('=');
+    if (i <= 0 || line.trim().startsWith('#')) continue;
+    const k = line.slice(0, i).trim();
+    let v = line.slice(i + 1).trim();
+    if (v.length > 1 && v[0] === '"' && v[v.length - 1] === '"') v = v.slice(1, -1);
+    // An empty value is not a value. Leaving those unset is what lets the code default apply,
+    // and the report says which of them that was.
+    if (!v) continue;
+    if (process.env[k]) continue;
+    process.env[k] = v;
+    applied.push(k);
+  }
+  return { applied, missing: false };
+}
+
+// ── THE COUNTER STORE, AND ONLY THE COUNTER STORE ───────────────────────────────────────────
+// `checkDayCap` (lib/daycap.js:340-370) always reaches Redis and FAILS CLOSED when it cannot,
+// which is deliberate and correct — and it means an un-stubbed local run is answered `429
+// cap-unavailable` before a single token is generated. MEASURED on the first real run:
+// «[daycap] store unreachable, fail-CLOSED» and an /api/ask that took 8.6s to say no.
+//
+// So a minimal Upstash-REST server is stood up in this process. It counts requests and holds a
+// revocation set that is always empty. IT TOUCHES NOTHING ABOUT THE ANSWER: no prompt, no model
+// call, no reviewer, no lock, no sentence unit passes through it. The per-IP limiter in
+// lib/ratelimit.js is left alone on purpose — it fails OPEN by design, so it needs no help and
+// stubbing it would be stubbing something that was already working.
+//
+// Commands the day cap actually issues, and nothing more: MGET, SISMEMBER, and a pipeline of
+// INCR/EXPIRE. Anything else answers null, which is what an empty store would say.
+function kvStub() {
+  const store = new Map();
+  const run = (cmd) => {
+    const op = String(cmd[0] || '').toLowerCase();
+    if (op === 'mget') return cmd.slice(1).map((k) => (store.has(k) ? store.get(k) : null));
+    if (op === 'get') return store.has(cmd[1]) ? store.get(cmd[1]) : null;
+    if (op === 'incr') { const n = (Number(store.get(cmd[1])) || 0) + 1; store.set(cmd[1], n); return n; }
+    if (op === 'expire') return 1;
+    if (op === 'sismember') return 0;
+    if (op === 'set') { store.set(cmd[1], cmd[2]); return 'OK'; }
+    return null;
+  };
+  return new Promise((resolve) => {
+    const srv = http.createServer((req, res) => {
+      const chunks = [];
+      req.on('data', (d) => chunks.push(d));
+      req.on('end', () => {
+        let payload = null;
+        try { payload = JSON.parse(Buffer.concat(chunks).toString('utf8') || 'null'); } catch (e) { payload = null; }
+        const pipeline = String(req.url).indexOf('/pipeline') !== -1 || String(req.url).indexOf('/multi-exec') !== -1;
+        const out = pipeline
+          ? (Array.isArray(payload) ? payload : []).map((c) => ({ result: run(c) }))
+          : { result: run(Array.isArray(payload) ? payload : []) };
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(out));
+      });
+    });
+    srv.listen(0, '127.0.0.1', () => resolve({ srv, port: srv.address().port }));
+  });
+}
+
+// EVERY MODEL CALL GOES THROUGH THE GLOBAL fetch, so wrapping it once is the whole picture of a
+// turn's round structure — how many writing rounds there were, how long each took, and where the
+// wall-clock between «sent» and «first character» actually went. Nothing is altered: the original
+// is called and its result returned untouched. The URLs are printed, never the bodies.
+let FETCH_LOG = null;
+function armFetchLog(t0) {
+  FETCH_LOG = [];
+  const f0 = globalThis.fetch;
+  globalThis.fetch = async (url, opts) => {
+    const u = String(typeof url === 'string' ? url : (url && url.url) || url);
+    if (u.indexOf('127.0.0.1') !== -1) return f0(url, opts);
+    const at = Date.now() - t0;
+    const t = Date.now();
+    const host = (() => { try { return new URL(u).host + new URL(u).pathname; } catch (e) { return u.slice(0, 60); } })();
+    try {
+      const r = await f0(url, opts);
+      FETCH_LOG.push({ at, ms: Date.now() - t, status: r.status, url: host });
+      return r;
+    } catch (e) {
+      FETCH_LOG.push({ at, ms: Date.now() - t, error: String((e && e.message) || e).slice(0, 120), url: host });
+      throw e;
+    }
+  };
+}
+
+const HANDLERS = new Map();
+async function callRealHandler(req, res, url, body, rec, notes) {
+  const name = url.replace(/^\/api\//u, '').replace(/[^a-z0-9-]/giu, '');
+  const file = path.join(REPO, 'api', name + '.js');
+  if (!fs.existsSync(file)) { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{}'); return; }
+  let mod = HANDLERS.get(file);
+  if (!mod) {
+    mod = await import('file://' + file.replace(/\\/gu, '/'));
+    HANDLERS.set(file, mod);
+  }
+  // ── EMULATING THE PLATFORM, AND THE ONE PLACE IT MATTERS ────────────────────────────────────
+  // api/ask.js:1540 does `bindUpstreamToClient(res, req.signal)` and its own comment at :671 says
+  // «IncomingMessage does not reliably expose req.signal». ON NODE v24 IT DOES, AND ITS MEANING IS
+  // NOT «the reader went away» — it is bound to the REQUEST STREAM, so it aborts the moment the
+  // body has been read, which is before the handler has done anything.
+  //
+  // MEASURED on node v24.18.0: a bare POST to a bare http server reports `signal.aborted === false`
+  // inside `req.on('end')` and `true` fifty milliseconds later. Behind a real socket the effect on
+  // api/ask.js is total: every upstream fetch fails in 1-2ms with «This operation was aborted», the
+  // writing loop records `[free-brain/round-ledger] []` — zero rounds — and the request then hangs.
+  // That is a HARNESS artifact, not the deployment: package.json pins `"node": "22.x"`, Vercel's
+  // bridge builds its own request object, and the owner does get answers from the preview.
+  //
+  // So the platform is emulated by NOT handing the handler a stream-bound signal, which is exactly
+  // the world its own comment describes. `res.once('close')` is untouched and still cancels the
+  // upstream if the reader really does go away. Nothing in api/ or lib/ is modified.
+  Object.defineProperty(req, 'signal', { value: undefined, configurable: true });
+  try { req.body = body ? JSON.parse(body) : {}; } catch (e) { req.body = body; }
+  // WHAT THE APP ACTUALLY SENT, recorded by SHAPE and never by content. The reader's question is
+  // never logged anywhere in this repository (gate `telemetrytext`) and it is not logged here
+  // either: only the field names, the message count, and the header names.
+  if (req.body && typeof req.body === 'object') {
+    notes.push({
+      url, bodyKeys: Object.keys(req.body).sort(),
+      messages: Array.isArray(req.body.messages) ? req.body.messages.length : null,
+      roles: Array.isArray(req.body.messages) ? req.body.messages.map((m) => (m && m.role) || '?') : null,
+      headerKeys: Object.keys(req.headers).filter((h) => h.indexOf('x-') === 0 || h === 'accept-language').sort(),
+    });
+    log('REQUEST SHAPE ' + JSON.stringify(notes[notes.length - 1]));
+  }
+  res.status = (c) => { res.statusCode = c; return res; };
+  res.json = (o) => {
+    if (!res.headersSent) res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify(o));
+    return res;
+  };
+  // THE RAW REFERENCE IS TAKEN HERE, at the instant the handler hands each frame to the socket —
+  // which is earlier than any point a proxy could observe and earlier than anything the browser
+  // can see. That is what makes «the painting trails the arrival by N ms» a floor and not a guess.
+  const isStream = name === 'ask' || name === 'chat' || name === 'chat-fast';
+  if (isStream) {
+    const write0 = res.write.bind(res);
+    res.write = (chunk, ...rest) => {
+      const s = Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk);
+      for (const line of s.split('\n')) {
+        if (!line.startsWith('data:')) continue;
+        let obj = null;
+        try { obj = JSON.parse(line.slice(5).trim()); } catch (e) { obj = null; }
+        if (!obj) continue;
+        rec.mark(obj.type || 'unknown', (obj.delta && obj.delta.text) || obj.text || '');
+      }
+      return write0(chunk, ...rest);
+    };
+  }
+  const started = Date.now();
+  res.on('finish', () => notes.push({ url, status: res.statusCode, ms: Date.now() - started, via: 'in-process handler' }));
+  try {
+    await mod.default(req, res);
+  } catch (e) {
+    notes.push({ url, error: String((e && e.message) || e).slice(0, 300) });
+    try { if (!res.headersSent) { res.writeHead(500, { 'Content-Type': 'application/json' }); } res.end(JSON.stringify({ error: 'handler threw' })); } catch (e2) { /* gone */ }
+  }
+}
+
 function makeRecorder() {
   const events = [];
   let t0 = null;
@@ -266,21 +452,27 @@ function makeRecorder() {
   };
 }
 
-function proxyToPreview(req, res, url, body, bypass, rec, notes) {
-  const target = new URL(url, PREVIEW);
+function proxyUpstream(req, res, url, body, ctx, rec, notes) {
+  const target = new URL(url, ctx.origin);
+  const secure = target.protocol === 'https:';
   const headers = {
     'content-type': req.headers['content-type'] || 'application/json',
     'user-agent': req.headers['user-agent'] || 'ezik-102-measure/1.0',
     accept: req.headers.accept || '*/*',
-    'x-vercel-protection-bypass': bypass,
   };
+  // Only a protected origin needs the bypass, and only then is it sent. A local `vercel dev` has
+  // no protection to bypass and must never be handed a secret it has no use for.
+  if (ctx.bypass) headers['x-vercel-protection-bypass'] = ctx.bypass;
   // The app's own gates live behind these; they are forwarded verbatim rather than invented.
   for (const h of ['x-ezik-ai-consent', 'x-murabbi-device', 'x-ezik-founder', 'x-ezik-lang', 'accept-language']) {
     if (req.headers[h]) headers[h] = req.headers[h];
   }
   const started = Date.now();
-  const preq = https.request({
-    protocol: 'https:', hostname: target.hostname, path: target.pathname + target.search,
+  const agent = secure ? https : http;
+  const preq = agent.request({
+    protocol: target.protocol, hostname: target.hostname,
+    port: target.port || (secure ? 443 : 80),
+    path: target.pathname + target.search,
     method: req.method, headers,
   }, (pres) => {
     notes.push({ url: target.pathname, status: pres.statusCode, vercelId: String(pres.headers['x-vercel-id'] || ''), ms: Date.now() - started });
@@ -353,7 +545,8 @@ function serve(ctx) {
         req.on('data', (d) => chunks.push(d));
         req.on('end', () => {
           const body = Buffer.concat(chunks).toString('utf8');
-          if (ctx.source === 'preview') { proxyToPreview(req, res, req.url, body, ctx.bypass, ctx.rec, ctx.notes); return; }
+          if (ctx.source === 'local') { callRealHandler(req, res, url, body, ctx.rec, ctx.notes); return; }
+          if (ctx.source === 'preview') { proxyUpstream(req, res, req.url, body, ctx, ctx.rec, ctx.notes); return; }
           if (url === '/api/ask' || url === '/api/chat' || url === '/api/chat-fast') {
             if (ctx.source === 'replay') { emitReplay(res, ctx.timeline, ctx.rec); return; }
             // synthetic: one sentence-sized unit every 300ms, five of them in an opening slab.
@@ -434,6 +627,31 @@ const RECORDER = `
     var u = el.querySelectorAll('.ezc-turn.is-user');
     return u.length ? u[u.length - 1] : null;
   }
+  // ── EVERYTHING BELOW THE READER'S QUESTION ──────────────────────────────────────────────────
+  // MEASURED and it changes the instrument: on a turn where the server releases nothing early,
+  // `.ezc-turn.is-ai` — the streaming preview — never holds a single character of the answer. The
+  // whole reply lands in the COMMITTED bubble, which carries no class of its own -- app.jsx:18903
+  // is the only site of the class in the file. An instrument that watched only the preview
+  // reported «0 paint updates» for a turn in which the reader plainly saw 369 characters appear.
+  //
+  // So what is counted is what the reader looks at: every element after the last question bubble.
+  // That spans the preview AND the committed reply and needs to know which is which no more than
+  // the reader does.
+  function answerArea() {
+    var el = scroller(); if (!el) return [];
+    var kids = Array.prototype.slice.call(el.children);
+    var lastQ = -1;
+    for (var i = 0; i < kids.length; i += 1) {
+      if (kids[i].className && String(kids[i].className).indexOf('is-user') !== -1) lastQ = i;
+    }
+    return kids.slice(lastQ + 1);
+  }
+  function areaText() {
+    var out = '';
+    var k = answerArea();
+    for (var i = 0; i < k.length; i += 1) out += k[i].textContent || '';
+    return out;
+  }
   function painted() {
     var b = liveBubble(); if (!b) return '';
     // The three animated dots and the waiting hint occupy the same box before any answer text
@@ -449,6 +667,7 @@ const RECORDER = `
     var a = anchorEl();
     var p = padEl();
     var txt = painted();
+    var area = areaText();
     var off = null;
     var qoff = null;
     if (el) {
@@ -465,18 +684,19 @@ const RECORDER = `
       off === null ? -99999 : off,
       p ? Math.round(p.offsetHeight) : 0,
       (el && el.className.indexOf('ezc-askpinned') !== -1) ? 1 : 0,
-      txt.length,
-      qoff === null ? -99999 : qoff
+      area.length,
+      qoff === null ? -99999 : qoff,
+      txt.length
     ]);
-    if (txt.length !== S.lastLen) {
+    if (area.length !== S.lastLen) {
       // IS THIS THE ANSWER, OR IS IT STILL THE WAITING STATE? The ternary at app.jsx:18905 is
       // exclusive: either the markdown of the arrived text, or the dots — and the dots branch and
       // the waiting-hint branch BOTH end in exactly three U+25CF. The answer branch contains none.
       // So the presence of a single bullet is a complete and exact discriminator, and it needs to
       // know nothing about what the hint says in any language.
-      var isAnswer = txt.length > 0 && txt.indexOf('●') === -1;
-      S.heads.push([Math.round(now), txt.length, txt.slice(0, 14), txt.slice(-10), isAnswer ? 1 : 0]);
-      S.lastLen = txt.length;
+      var isAnswer = area.length > 0 && area.indexOf('●') === -1;
+      S.heads.push([Math.round(now), area.length, area.slice(0, 14), area.slice(-10), isAnswer ? 1 : 0, txt.length]);
+      S.lastLen = area.length;
     }
   }
   window.__EZ102 = {
@@ -680,6 +900,8 @@ function analyse(dump, rec) {
     firstCharMs,
     paintUpdates: positive.length,
     charsTotal: answer.length ? answer[answer.length - 1][1] : 0,
+    previewCharsMax: heads.reduce((m, h) => Math.max(m, h[5] || 0), 0),
+    previewEverPainted: heads.some((h) => (h[5] || 0) > 3),
     waitStateUpdates: waitHeads.length,
     addMean: adds.length ? Math.round(sum(adds) / adds.length * 10) / 10 : null,
     addMedian: pct(adds, 0.5),
@@ -721,9 +943,18 @@ function analyse(dump, rec) {
 async function main() {
   if (!CHROME) { log('FATAL  no Chrome'); process.exit(1); }
   fs.mkdirSync(OUT_DIR, { recursive: true });
+  const envInfo = SOURCE === 'local' ? loadDotEnvLocal() : { applied: [], missing: true };
+  let kv = null;
+  if (SOURCE === 'local' && !process.env.KV_REST_API_URL) {
+    kv = await kvStub();
+    process.env.KV_REST_API_URL = 'http://127.0.0.1:' + kv.port;
+    process.env.KV_REST_API_TOKEN = 'item102-local-stub';
+    envInfo.kvStubbed = true;
+  }
   const app = servedAppJs();
   const ctx = {
     source: SOURCE, appJs: app.body, rec: makeRecorder(), notes: [], timeline: [],
+    origin: ARG.origin || (SOURCE === 'local' ? LOCAL : PREVIEW),
     bypass: SOURCE === 'preview' ? readBypass() : null,
   };
   if (SOURCE === 'preview' && !ctx.bypass) {
@@ -739,6 +970,16 @@ async function main() {
   }
 
   log('SOURCE        ' + SOURCE + (SOURCE === 'synthetic' ? '   *** SYNTHETIC — NOT EVIDENCE ABOUT EZIK ***' : ''));
+  if (SOURCE === 'preview') log('ORIGIN        ' + ctx.origin);
+  if (SOURCE === 'local') {
+    log('ORIGIN        api/*.js imported into THIS process');
+    log('ENV           ' + envInfo.applied.length + ' non-empty names applied from .env.local');
+    log('              flags: STREAM_V1=' + (process.env.STREAM_V1 || '(unset -> code default)')
+      + '  FREE_BRAIN_V1=' + (process.env.FREE_BRAIN_V1 || '(unset -> code default)')
+      + '  LEDGER_RAG=' + (process.env.LEDGER_RAG || '(unset)')
+      + '  DAY_CAP=' + (process.env.DAY_CAP || '(unset)')
+      + '  KV=' + (envInfo.kvStubbed ? 'LOCAL COUNTER STUB (answer untouched)' : (process.env.KV_REST_API_URL ? 'configured' : 'UNSET')));
+  }
   log('LABEL         ' + LABEL);
   log('QUESTION      #' + QN + '  ' + esc(QUESTIONS[QN - 1]));
   log('APP.JS        ' + (app.patched ? 'PATCHED IN MEMORY  ' + app.applied.join('  ') : 'served byte for byte from disk'));
@@ -769,6 +1010,7 @@ async function main() {
       + (reduced ? '   *** THE REVEAL QUEUE IS BYPASSED — THIS RUN MEASURES ARRIVAL, NOT PAINTING ***' : '   (the queue is live)'));
 
     ctx.rec.reset();
+    if (SOURCE === 'local') armFetchLog(Date.now());
     const sent = await page.run(`(async () => {${H}
       const t = box();
       if (!t) return { error: 'no composer' };
@@ -793,11 +1035,20 @@ async function main() {
     // Wait for the turn to end (composer re-enabled), then keep recording for a further
     // SAMPLE_AFTER_MS — §4/١ asks where the view sits TWO SECONDS AFTER the end, and that is a
     // different number from where it sat at the end.
-    const done = await page.run(`(async () => {${H}
-      for (let i = 0; i < 900; i += 1) { await sleep(200); const t = box(); if (t && !t.disabled) { window.__EZ102.note('turn-end'); return { endedMs: i * 200 }; } }
-      window.__EZ102.note('timeout');
-      return { endedMs: null };
-    })()`);
+    // POLLED FROM NODE, IN SHORT CALLS. A single long-running in-page await races the CDP command
+    // timeout, and when they are set to the same number the run dies with `timeout:
+    // Runtime.evaluate` and throws away a real, complete, paid-for answer. MEASURED once, at
+    // exactly the 180s boundary. Each probe below is a few milliseconds and the waiting is done
+    // here, where no timeout is watching.
+    const waitStarted = Date.now();
+    let endedMs = null;
+    for (;;) {
+      const free = await page.run('(function(){try{var t=Array.prototype.slice.call(document.querySelectorAll("textarea")).filter(function(x){return !x.disabled;})[0];return !!t;}catch(e){return false;}})()');
+      if (free) { endedMs = Date.now() - waitStarted; await page.run('window.__EZ102.note("turn-end")'); break; }
+      if (Date.now() - waitStarted > 600000) { await page.run('window.__EZ102.note("timeout")'); break; }
+      await new Promise((r) => setTimeout(r, 250));
+    }
+    const done = { endedMs };
     await new Promise((r) => setTimeout(r, SAMPLE_AFTER_MS));
     await page.run('window.__EZ102.stop()');
     const dump = await page.run('window.__EZ102.dump()');
@@ -812,18 +1063,20 @@ async function main() {
         turnEndedAfterMs: done.endedMs, sampledAfterEndMs: SAMPLE_AFTER_MS,
         viewport: '430x932', depthLabels: (depth && depth.labels) || [],
         reducedMotion: reduced, reduceMedia: depth.reduceMedia, motionAttr: depth.motionAttr,
+        envNamesApplied: envInfo.applied, kvStubbed: !!envInfo.kvStubbed, envUnset: ['FREE_BRAIN_V1','STREAM_V1','LEDGER_RAG','DAY_CAP','KV_REST_API_URL','MODEL_STANDARD','BRAVE_API_KEY'].filter((k) => !process.env[k]),
       },
       summary: a,
       httpNotes: ctx.notes,
+      outboundCalls: FETCH_LOG || [],
       // The recorded arrival pattern, kept in a shape --source=replay can re-emit.
       timeline: ctx.rec.events.map((e) => ({ t: e.t, kind: e.kind, len: e.len })),
       frames: dump.frames,
-      heads: dump.heads.map((h) => [h[0], h[1], esc(h[2]), esc(h[3]), h[4]]),
+      heads: dump.heads.map((h) => [h[0], h[1], esc(h[2]), esc(h[3]), h[4], h[5]]),
       pageExceptions: page.logs,
     };
     // The replayable timeline needs the TEXT, and only a preview run has it. It is written to a
     // sibling file so the measurement record itself stays small and free of answer prose.
-    if (SOURCE === 'preview') {
+    if (SOURCE === 'preview' || SOURCE === 'local') {
       fs.writeFileSync(path.join(OUT_DIR, LABEL + '-q' + QN + '-timeline.json'),
         JSON.stringify({ meta: out.meta, timeline: ctx.rec.events }, null, 1));
     }
@@ -833,6 +1086,7 @@ async function main() {
     log('  first PAINTED character   ' + a.firstCharMs + ' ms after send');
     log('  paint updates             ' + a.paintUpdates);
     log('  chars painted, total      ' + a.charsTotal);
+    log('  the LIVE preview bubble    ' + (a.previewEverPainted ? 'painted up to ' + a.previewCharsMax + ' chars' : 'NEVER held one character of the answer'));
     log('  chars per update  mean    ' + a.addMean + '   median ' + a.addMedian + '   p90 ' + a.addP90 + '   MAX ' + a.addMax);
     log('  gap between updates ms    mean ' + a.gapMean + '   median ' + a.gapMedian + '   p90 ' + a.gapP90 + '   MAX ' + a.gapMax);
     log('  share of the answer arriving in updates of 40+ chars   ' + a.bigUpdateShare + '%');
@@ -856,12 +1110,15 @@ async function main() {
     log('  offset ' + SAMPLE_AFTER_MS + 'ms after the end  ' + a.offsetAtEnd);
     log('  scrollTop end / max       ' + a.scrollTopEnd + ' / ' + a.scrollTopMax);
     log('  px below the view at end  ' + a.belowAtEnd + '   at the bottom? ' + a.atBottomAtEnd);
+    log('--- OUTBOUND (what the handler called, and when) -------------------');
+    for (const n of (FETCH_LOG || [])) log('  +' + String(n.at).padStart(6) + 'ms  ' + String(n.ms).padStart(6) + 'ms  ' + (n.status || n.error) + '  ' + n.url);
     log('--- HTTP ----------------------------------------------------------');
     for (const n of ctx.notes) log('  ' + JSON.stringify(n));
     if (page.logs.length) log('--- PAGE EXCEPTIONS ---\n  ' + esc(page.logs.join('\n  ')));
   } finally {
     await page.close();
     srv.close();
+    if (kv) kv.srv.close();
   }
   if (out) {
     const file = path.join(OUT_DIR, LABEL + '-q' + QN + '.json');
@@ -871,4 +1128,4 @@ async function main() {
   }
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+main().then(() => process.exit(0)).catch((e) => { console.error(e); process.exit(1); });
