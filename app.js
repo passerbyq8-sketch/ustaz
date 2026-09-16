@@ -5056,7 +5056,20 @@ const setStreamingText=next=>{if(typeof next!=='string'||next===''){// null (ret
 revealStop();revealFullRef.current='';revealAtRef.current=0;setStreamingReveal(next);return;}revealFullRef.current=next;// A cursor can never sit past what has arrived. It cannot happen with an append-only
 // stream; it is clamped anyway, because "never show text that has not arrived" is the
 // promise and a promise that depends on the transport is not one.
-if(revealAtRef.current>next.length)revealAtRef.current=next.length;if(ezikMotionReducedNow()){revealStop();revealAtRef.current=next.length;setStreamingReveal(next);return;}if(revealTimerRef.current===null)revealTimerRef.current=setInterval(revealTick,EZIK_REVEAL_MS);};useEffect(()=>revealStop,[]);// TEXT path only: shows chat.searchingSources during the silent round-1 wait. The name is
+if(revealAtRef.current>next.length)revealAtRef.current=next.length;if(ezikMotionReducedNow()){revealStop();revealAtRef.current=next.length;setStreamingReveal(next);return;}if(revealTimerRef.current===null)revealTimerRef.current=setInterval(revealTick,EZIK_REVEAL_MS);};// ── THE COMPONENT GOING AWAY MUST END THE TURN, NOT HAND IT ON ──────────────────────────────
+// This used to be `useEffect(() => revealStop, [])` -- stop the ticker and nothing else -- and
+// that was enough while the send path had no `await` after `callAI` resolved. ITEM 102-أ put one
+// there, and it opened a gap this effect has to close: unmounting releases the waiting promise,
+// and the code on the other side of that await would then commit the reply, file it, and fire
+// the related-lessons request -- all against a component that no longer exists.
+//
+// MEASURED as a leak between two of `chat-ux-guard`'s own scenarios: a turn still draining in
+// the scenario before was resolved by its teardown and its lessons call landed inside the next
+// one, which asserts page-wide that quoting reaches the network for nothing. Aborting here is
+// what the teardown always meant -- the same thing resetThread and the screen change already do
+// -- and clearing the token sends the awaiting code down the "a newer request owns the UI" exit
+// it already had.
+useEffect(()=>()=>{revealStop();try{abortRef.current?.abort();}catch(e){}abortRef.current=null;},[]);// TEXT path only: shows chat.searchingSources during the silent round-1 wait. The name is
 // historical — XI-02 made the string neutral, because the client cannot know that a search
 // is running and three of ten measured rounds carrying this hint returned no source at all.
 const[searchingSources,setSearchingSources]=useState(false);const abortRef=useRef(null);// aborts the in-flight stream when a new message starts
