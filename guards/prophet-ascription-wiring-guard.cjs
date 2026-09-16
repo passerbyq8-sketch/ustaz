@@ -370,9 +370,13 @@ const marks = (out) => (out.degraded || []).filter((d) => String(d).startsWith('
   // ═════════════════════════════════════════════════════════════════════════════════════════
   const loop = await fresh(LOOP, 'wiring-door');
 
+  // البند ٣٦ · الإصلاحُ الضيّق (١٦ سبتمبر) — THE DROP WAS TURNED INTO A CORRECTION. The sentence
+  // must still be in the answer, rewritten to the man the matn named, and must not be in it as it
+  // stood. A door that drops it fails the first half; a door that does nothing fails the second.
+  const CORRECTED_PROSE = 'وكان داود عليه السلام ينام نصف الليل، ويقوم ثلثه، وينام سدسه.';
   const caught = await drive(loop, [ROUND_4, ROUND_4]);
-  ok('D1 · the measured defect does NOT reach the reader',
-    !caught.text.includes(WITNESS_PROSE), caught.text);
+  ok('D1 · the measured sentence reaches the reader CORRECTED — ascribed to the matn\'s owner, not dropped',
+    caught.text.includes(CORRECTED_PROSE) && !caught.text.includes(WITNESS_PROSE), caught.text);
   ok('D2 · and the rest of the answer does',
     caught.text.includes('وفي هذا تعليم للأمة أن تأخذ من ليلها بنصيب.')
     && caught.text.includes(WITNESS_MATN_HEAD), caught.text);
@@ -380,10 +384,12 @@ const marks = (out) => (out.degraded || []).filter((d) => String(d).startsWith('
     caught.text.trim() !== '');
   ok('D4 · §٥/٣ القيد ١ — exactly ONE regeneration was asked for', caught.calls === 2,
     'provider calls: ' + caught.calls);
-  ok('D5 · ...and the turn says so by name',
+  ok('D5 · ...and the turn says so by name — a correction, and never a drop',
     marks(caught).includes('ascription_caught:1')
     && marks(caught).some((m) => m.startsWith('ascription_retry:still_caught'))
-    && marks(caught).some((m) => m.startsWith('ascription_dropped:1')),
+    && marks(caught).some((m) => m.startsWith('ascription_corrected:1:'))
+    && marks(caught).includes('ascription:corrected_after_retry')
+    && !marks(caught).some((m) => m.startsWith('ascription_dropped')),
     JSON.stringify(marks(caught)));
   ok('D6 · the rewriting call carries NO tools key — it is a writing round',
     caught.bodies.length === 2 && !Object.prototype.hasOwnProperty.call(caught.bodies[1], 'tools'),
@@ -432,14 +438,17 @@ const marks = (out) => (out.degraded || []).filter((d) => String(d).startsWith('
   ok('D12 · ...and the turn says which switch did it',
     marks(switchedOff).includes('ascription:off:env_off'), JSON.stringify(marks(switchedOff)));
 
-  // §٥/٣ القيد ٢ — the one exit that delivers the defect, and it exists so a screen is never blank.
+  // §٥/٣ القيد ٢ — the screen is never blank. Since ١٦ سبتمبر no exit takes a sentence out, so the
+  // answer whose ONLY prose is the refused sentence is corrected like any other, not kept as it was.
   const onlyTheft = await drive(loop, [ONLY_THE_THEFT, ONLY_THE_THEFT]);
   ok('D13 · an answer whose ONLY prose is the refused sentence still reaches the reader as prose',
     loop.carriesReaderProse(onlyTheft.text), JSON.stringify(onlyTheft.text));
-  ok('D14 · ...and this one exit — the only one that delivers the defect — is named, not silent',
-    marks(onlyTheft).includes('ascription:kept_no_prose_left')
-    && marks(onlyTheft).some((m) => m.startsWith('ascription_kept_no_prose_left:')),
-    JSON.stringify(marks(onlyTheft)));
+  ok('D14 · ...and it arrives CORRECTED — the frame naming him replaced by the matn\'s owner — and named so',
+    onlyTheft.text.includes(CORRECTED_PROSE)
+    && !onlyTheft.text.includes('وكان النبي صلى الله عليه وسلم ينام نصف الليل')
+    && marks(onlyTheft).some((m) => m.startsWith('ascription_corrected:1:'))
+    && !marks(onlyTheft).some((m) => m.startsWith('ascription_kept_no_prose_left')),
+    JSON.stringify([onlyTheft.text, marks(onlyTheft)]));
 
   // ═════════════════════════════════════════════════════════════════════════════════════════
   console.log('\n=== M. THE MUTANTS — EVERY REMEDY IS REMOVED AND MUST BE MISSED ===');
@@ -466,18 +475,28 @@ const marks = (out) => (out.degraded || []).filter((d) => String(d).startsWith('
     && marks(exploding.result).some((m) => m.startsWith('ascription_error:')),
     exploding.error || JSON.stringify(exploding.result && marks(exploding.result)));
 
-  const noDrop = await mutate({
+  const dropBack = await mutate({
     file: LOOP,
-    name: 'no-drop',
-    transform: (s) => s.replace(
-      '            if (carriesReaderProse(kept)) {',
-      '            if (false) {',
-    ),
+    name: 'drop-back',
+    transform: (s) => {
+      const a = s.replace(
+        "import { locateStolenAscriptions } from '../prophet-ascription.js';",
+        "import { locateStolenAscriptions, withoutStolenAscriptions } from '../prophet-ascription.js';",
+      );
+      const b = a.replace(
+        'const correction = correctedAscriptions(reviewed.text, located, ascriptionOpts);',
+        'const correction = { text: withoutStolenAscriptions(reviewed.text, located), corrected: located.length, left: [] };',
+      );
+      return a === s || b === a ? s : b;
+    },
     check: async (twin) => drive(twin, [ROUND_4, ROUND_4]),
   });
-  ok('M3 KILLED: removing the drop lets the measured defect reach the reader',
-    noDrop.loaded && noDrop.result && noDrop.result.text.includes(WITNESS_PROSE),
-    noDrop.error || (noDrop.result && noDrop.result.text));
+  ok('M3 KILLED: putting the drop back makes the sentence vanish — neither corrected nor as it stood',
+    dropBack.loaded && dropBack.result
+    && !dropBack.result.text.includes(CORRECTED_PROSE)
+    && !dropBack.result.text.includes(WITNESS_PROSE)
+    && dropBack.result.text.includes('وفي هذا تعليم للأمة أن تأخذ من ليلها بنصيب.'),
+    dropBack.error || (dropBack.result && dropBack.result.text));
 
   const noRetry = await mutate({
     file: LOOP,
@@ -492,32 +511,37 @@ const marks = (out) => (out.degraded || []).filter((d) => String(d).startsWith('
       BLOCK,
     ].join('\n')]),
   });
-  ok('M4 KILLED: removing the regeneration loses the repair — the sentence is only ever dropped',
+  ok('M4 KILLED: removing the regeneration loses the repair — the sentence is only ever corrected',
     noRetry.loaded && noRetry.result
     && noRetry.result.calls === 1
-    && !noRetry.result.text.includes('وكان داود عليه السلام ينام نصف الليل'),
-    noRetry.error || ('calls: ' + (noRetry.result && noRetry.result.calls)));
+    && !marks(noRetry.result).includes('ascription:repaired')
+    && marks(noRetry.result).includes('ascription:corrected')
+    && noRetry.result.text.includes(CORRECTED_PROSE),
+    noRetry.error || ('calls: ' + (noRetry.result && noRetry.result.calls)
+      + ' marks: ' + JSON.stringify(noRetry.result && marks(noRetry.result))));
 
-  const noProseFloor = await mutate({
+  const noCorrection = await mutate({
     file: LOOP,
-    name: 'no-prose-floor',
+    name: 'no-correction',
     transform: (s) => s.replace(
-      '            if (carriesReaderProse(kept)) {',
-      '            if (true) {',
+      'const correction = correctedAscriptions(reviewed.text, located, ascriptionOpts);',
+      "const correction = { text: reviewed.text, corrected: 0, left: ['no_slot'] };",
     ),
     check: async (twin) => drive(twin, [ONLY_THE_THEFT, ONLY_THE_THEFT]),
   });
-  // «الشاشةُ الفاضية» IS MEASURED IN PROSE AND NOT IN BYTES — the same rule ق٥٥ §١ wrote for
-  // this file, and the reason the floor is `carriesReaderProse` and not a test for an empty
-  // string. With the floor removed the turn still returns BYTES: the card the theft was proved
-  // floor removed the turn still returns BYTES: the card the theft was proved by, and the reviewer's
-  // own «فهمٌ لا فتوى» mark. In the reader's eye that is a shell, and a shell is the empty screen
-  // the order forbids.
-  ok('M5 KILLED: dropping the empty-screen floor leaves the reader a shell with no prose in it',
-    noProseFloor.loaded && noProseFloor.result
-    && loop.carriesReaderProse(noProseFloor.result.text) === false
-    && noProseFloor.result.text.trim() !== '',
-    noProseFloor.error || JSON.stringify(noProseFloor.result && noProseFloor.result.text));
+  // «الصمتُ عطبٌ أسوأُ من عطبِ النسبة.» Since ١٦ سبتمبر there is no drop and so no empty-screen floor
+  // under it; the exit that floor used to guard is the one where NO CORRECTION CAN BE MADE. There
+  // the sentence goes out exactly as it stood — the answer keeps its prose, the defect is delivered
+  // rather than silenced — and the exit is named. The twin removes the correction, and every half
+  // of that is what the shipped door must NOT show on this fixture, which D14 already pins.
+  ok('M5 KILLED: removing the correction delivers the sentence as it stood — prose kept, never dropped, and named',
+    noCorrection.loaded && noCorrection.result
+    && loop.carriesReaderProse(noCorrection.result.text) === true
+    && noCorrection.result.text.includes('وكان النبي صلى الله عليه وسلم ينام نصف الليل، ويقوم ثلثه، وينام سدسه.')
+    && marks(noCorrection.result).includes('ascription:kept_uncorrected')
+    && marks(noCorrection.result).some((m) => m.startsWith('ascription_uncorrected:1:no_slot')),
+    noCorrection.error || JSON.stringify(noCorrection.result
+      && [noCorrection.result.text, marks(noCorrection.result)]));
 
   const flagDefaultOff = await mutate({
     file: FLAG,
