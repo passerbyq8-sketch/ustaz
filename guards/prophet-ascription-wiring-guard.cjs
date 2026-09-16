@@ -575,6 +575,124 @@ const marks = (out) => (out.degraded || []).filter((d) => String(d).startsWith('
       !== sealedRegion(guardSource),
     'the seal comparison cannot see an edit to the rule it is sealing');
 
+  // ═════════════════════════════════════════════════════════════════════════════════════════
+  console.log('\n=== T. THE TAIL — THE NEW SUBJECT STOPS WHERE THE CAUGHT RUN STOPS ===');
+  // ═════════════════════════════════════════════════════════════════════════════════════════
+  //
+  // البند ٣٦ · ذيلُ التصحيح (١٦ سبتمبر). MEASURED ON THE WITNESS: the corrected sentence ran on past
+  // the caught run to «وَيَقُول:», and the matn under it is the Prophet's ﷺ saying — so the first
+  // correction made داود عليه السلام its speaker. The sealed sentence break has no Arabic comma, so
+  // the sentence does not stop where the run does. These checks pin the split: the run takes the
+  // matn's owner, the tail takes back the frame the detector read before the run, and a tail that
+  // cannot be given back leaves the whole sentence uncorrected — never swallowed, never removed.
+  const TAIL_SENTENCE = 'وكان ينام نصف الليل، ويقوم ثلثه، وينام سدسه، ويقول:';
+  const TAIL_EXPECTED = 'وكان داود عليه السلام ينام نصف الليل، ويقوم ثلثه، وينام سدسه. ويقول صلى الله عليه وسلم:';
+  const TAIL_SWALLOWED = 'وكان داود عليه السلام ينام نصف الليل، ويقوم ثلثه، وينام سدسه، ويقول:';
+  const TAIL_CASE = [
+    'هدي النبي صلى الله عليه وسلم في ليله هدي معتدل، لا إفراط فيه ولا تفريط.',
+    TAIL_SENTENCE,
+    BLOCK,
+    'وفي هذا تعليم للأمة أن تأخذ من ليلها بنصيب.',
+  ].join('\n');
+  const TAIL_NO_SLOT_SENTENCE = 'وكان ينام نصف الليل، ويقوم ثلثه، وينام سدسه، وهذا هدي حسن.';
+  const TAIL_NO_SLOT = [
+    'هدي النبي صلى الله عليه وسلم في ليله هدي معتدل، لا إفراط فيه ولا تفريط.',
+    TAIL_NO_SLOT_SENTENCE,
+    BLOCK,
+  ].join('\n');
+
+  // Every "on" is read against the SAME fixture with the switch off, so a check says exactly which
+  // bytes moved and cannot be satisfied by a turn that also dropped or added something elsewhere.
+  const offText = async (answer) => {
+    process.env.PROPHET_ASCRIPTION_BLOCK = 'off';
+    try { return (await drive(loop, [answer])).text; } finally { delete process.env.PROPHET_ASCRIPTION_BLOCK; }
+  };
+
+  const tailOn = await drive(loop, [TAIL_CASE, TAIL_CASE]);
+  const tailOff = await offText(TAIL_CASE);
+  ok('T1 · with a tail, the run carries the matn\'s owner and the tail carries the frame read before the run',
+    tailOn.text.includes(TAIL_EXPECTED) && !tailOn.text.includes(TAIL_SWALLOWED)
+    && marks(tailOn).some((m) => m.startsWith('ascription_corrected:1:')),
+    JSON.stringify([tailOn.text, marks(tailOn)]));
+  ok('T2 · ...and that sentence is the ONLY difference from the door switched off — the tail kept, the matn byte for byte',
+    tailOff.includes(TAIL_SENTENCE) && tailOff.includes(WITNESS_MATN_HEAD)
+    && tailOn.text === tailOff.replace(TAIL_SENTENCE, TAIL_EXPECTED),
+    JSON.stringify([tailOn.text, tailOff]));
+
+  const noTailOn = await drive(loop, [ROUND_4, ROUND_4]);
+  const noTailOff = await offText(ROUND_4);
+  const onlyOn = await drive(loop, [ONLY_THE_THEFT, ONLY_THE_THEFT]);
+  const onlyOff = await offText(ONLY_THE_THEFT);
+  ok('T3 · with NO tail, the correction is the one before this rule, byte for byte',
+    noTailOn.text === noTailOff.replace(WITNESS_PROSE + '.', CORRECTED_PROSE)
+    && onlyOn.text === onlyOff.replace('وكان النبي صلى الله عليه وسلم ينام نصف الليل، ويقوم ثلثه، وينام سدسه.', CORRECTED_PROSE),
+    JSON.stringify([noTailOn.text, onlyOn.text]));
+
+  const floorOn = await drive(loop, [TAIL_NO_SLOT, TAIL_NO_SLOT]);
+  const floorOff = await offText(TAIL_NO_SLOT);
+  ok('T4 · a tail that cannot take the frame back leaves the sentence UNCORRECTED, whole, and named tail_after_span',
+    floorOn.text === floorOff && floorOn.text.includes(TAIL_NO_SLOT_SENTENCE)
+    && marks(floorOn).some((m) => m.startsWith('ascription_uncorrected:1:tail_after_span'))
+    && marks(floorOn).includes('ascription:kept_uncorrected'),
+    JSON.stringify([floorOn.text, marks(floorOn)]));
+
+  const swallow = await mutate({
+    file: LOOP,
+    name: 'tail-swallowed',
+    transform: (src) => src.replace(
+      '  if (!hasTail) return correctedSentence(sentence, actor, frame);',
+      '  if (true) return correctedSentence(sentence, actor, frame);',
+    ),
+    check: async (twin) => drive(twin, [TAIL_CASE, TAIL_CASE]),
+  });
+  ok('T5 KILLED: a correction that swallows the tail again hands «يقول» to داود — T1 sees it',
+    swallow.loaded && swallow.result
+    && swallow.result.text.includes(TAIL_SWALLOWED) && !swallow.result.text.includes(TAIL_EXPECTED),
+    swallow.error || (swallow.result && swallow.result.text));
+
+  const cutTail = await mutate({
+    file: LOOP,
+    name: 'tail-deleted',
+    transform: (src) => src.replace(
+      "  return { text: head.text + tail, reason: head.reason + '+tail' };",
+      "  return { text: head.text + '.', reason: head.reason + '+tail' };",
+    ),
+    check: async (twin) => drive(twin, [TAIL_CASE, TAIL_CASE]),
+  });
+  ok('T6 KILLED: a correction that deletes the tail loses «ويقول» — T1 and T2 see it',
+    cutTail.loaded && cutTail.result
+    && !cutTail.result.text.includes('ويقول') && !cutTail.result.text.includes(TAIL_EXPECTED),
+    cutTail.error || (cutTail.result && cutTail.result.text));
+
+  const noFrameBack = await mutate({
+    file: LOOP,
+    name: 'tail-frame-not-restored',
+    transform: (src) => src.replace(
+      "  return '. ' + rest.slice(from, after) + ' ' + name + rest.slice(after);",
+      "  return '. ' + rest.slice(from, after) + rest.slice(after);",
+    ),
+    check: async (twin) => drive(twin, [TAIL_CASE, TAIL_CASE]),
+  });
+  ok('T7 KILLED: a split that does not give the frame back leaves «يقول» with no subject but داود — T1 sees it',
+    noFrameBack.loaded && noFrameBack.result
+    && noFrameBack.result.text.includes('وينام سدسه. ويقول:') && !noFrameBack.result.text.includes(TAIL_EXPECTED),
+    noFrameBack.error || (noFrameBack.result && noFrameBack.result.text));
+
+  const floorSwallows = await mutate({
+    file: LOOP,
+    name: 'tail-floor-corrects-head',
+    transform: (src) => src.replace(
+      "  if (tail === null) return { text: '', reason: 'tail_after_span' };",
+      '  if (tail === null) return head;',
+    ),
+    check: async (twin) => drive(twin, [TAIL_NO_SLOT, TAIL_NO_SLOT]),
+  });
+  ok('T8 KILLED: a floor that corrects the head anyway throws the tail away — T4 sees it',
+    floorSwallows.loaded && floorSwallows.result
+    && !floorSwallows.result.text.includes('وهذا هدي حسن')
+    && floorSwallows.result.text !== floorOff,
+    floorSwallows.error || (floorSwallows.result && floorSwallows.result.text));
+
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'
     : 'FAILED: ' + failures + ' of ' + checks + ' checks failed.'));
