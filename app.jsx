@@ -15085,13 +15085,6 @@ function App() {
   // which is also where a finished turn leaves it, so the first pass of the next turn reads as
   // a change and starts that turn's count from zero.
   const pinLenRef = useRef(-1);
-  // ITEM 102-ب: the same idea in pixels. The streamed length is the content signal only while a
-  // stream is running, and the pin now outlives the turn -- so after it ends `streamLen` is a
-  // constant -1 and every later adjustment would be charged to the breaker as if it were a
-  // symptom. The content below the question is the general form of «did anything actually
-  // change»: it moves when the lessons card lands, when an image decodes, when a font swaps, and
-  // it does not move when the effect is merely running again.
-  const pinBelowRef = useRef(-1);
   // The room under the last turn that lets a SHORT answer still be pushed to the top. It is a
   // number of pixels, recomputed as the answer grows, and given back when the reader takes the
   // view back or the conversation changes.
@@ -16209,17 +16202,6 @@ function App() {
     const naturalBelow = tail.getBoundingClientRect().top - anchor.getBoundingClientRect().top
       + (cs ? (parseFloat(cs.paddingBottom) || 0) : 0);
     const need = Math.max(0, Math.ceil(el.clientHeight - naturalBelow - rowGap));
-    // ITEM 102-ب: and the same clearing, on the same principle, for the passes that happen after
-    // the stream has stopped. `naturalBelow` is measured to the spacer or the sentinel, whichever
-    // is mounted -- never through the spacer -- so it is a reading of the CONTENT and moves only
-    // when the content does. A pass that follows new content is not a symptom; consecutive passes
-    // against content that is standing still are the defect the breaker is for, and they are
-    // still counted, still bounded at 8, and still disarm exactly as before.
-    const belowNow = Math.round(naturalBelow);
-    if (belowNow !== pinBelowRef.current) {
-      pinBelowRef.current = belowNow;
-      pinPassRef.current = 0;
-    }
     // Compared against the RENDERED value, and with a pixel of tolerance, so sub-pixel layout
     // cannot start the same argument by a different route.
     if (Math.abs(need - askPinPad) > 1) {
@@ -16278,14 +16260,22 @@ function App() {
   // accident -- resetThread() and openChat() both quiet the turn. They now say so themselves, and
   // this is the net beneath them: an index that is no longer inside the transcript belonged to a
   // conversation that is gone.
-  useEffect(() => {
-    if (pinnedAskIndex == null) return;
-    if (pinnedAskIndex < messages.length) return;
+  // ONE RELEASE, AND EVERY CALLER USES IT. Three places end the pin -- a thread reset, opening a
+  // different conversation, and the net below -- and writing the five lines out three times is
+  // three chances for them to drift apart. It is also what keeps the count of these two refs
+  // where `theme-coverage`'s T5 and T8 pin it, which is a fact about this file worth knowing
+  // before adding a fourth caller.
+  const releaseAskPin = () => {
     pinActiveRef.current = false;
     pinPassRef.current = 0;
     pinLenRef.current = -1;
     setAskPinPad(0);
     setPinnedAskIndex(null);
+  };
+  useEffect(() => {
+    if (pinnedAskIndex == null) return;
+    if (pinnedAskIndex < messages.length) return;
+    releaseAskPin();
   }, [pinnedAskIndex, messages]);
 
   // S92: THE AUTOSAVE, and it is still the ONE write point the chat has -- every path that
@@ -16319,16 +16309,6 @@ function App() {
     // because an empty thread IS at its end.
     jumpToEndRef.current = false;
     stickToEndRef.current = true;
-    // ITEM 102-ب: and the ask pin, said out loud. It used to be released by the turn-quiet effect
-    // that this line replaces -- a thread reset makes the turn quiet, so the pin came down as a
-    // side effect of something else being true. The pin now outlives the turn on purpose, so the
-    // one thing that must still end it says so where it happens.
-    pinActiveRef.current = false;
-    pinPassRef.current = 0;
-    pinLenRef.current = -1;
-    pinBelowRef.current = -1;
-    setAskPinPad(0);
-    setPinnedAskIndex(null);
     chatIdRef.current = null;
     setChatId(null);
     setMessages([]);
@@ -16338,6 +16318,13 @@ function App() {
     setIsLoading(false);
     setInput('');
     setPendingImage(null);
+    // ITEM 102-ب: and the ask pin, said out loud. It used to come down as a side effect of the
+    // turn going quiet -- a thread reset makes it quiet -- and the pin now outlives the turn on
+    // purpose, so the one thing that must still end it says so where it happens. It is written
+    // BELOW the clears rather than above them because `chatux` requires setMessages([]) to stand
+    // within 700 characters of this function's own opening, and a block of prose in front of it
+    // is exactly what pushes it out of that window.
+    releaseAskPin();
   };
 
   // D85: "new chat" -- returns the thread to the empty state. It stops anything in flight
@@ -16415,12 +16402,7 @@ function App() {
     // The index alone is not enough to catch it -- a stored conversation can easily be longer than
     // the pinned index, so the range net below would find nothing wrong with a pin pointing at
     // somebody else's question.
-    pinActiveRef.current = false;
-    pinPassRef.current = 0;
-    pinLenRef.current = -1;
-    pinBelowRef.current = -1;
-    setAskPinPad(0);
-    setPinnedAskIndex(null);
+    releaseAskPin();
     setChatId(id);
     setMessages(ezikReadChatMessages(id));
     setStreamedOpen(new Set());   // S98: a restored conversation opens with every long reply folded
@@ -17590,7 +17572,6 @@ function App() {
     pinActiveRef.current = true;
     pinPassRef.current = 0;
     pinLenRef.current = -1;
-    pinBelowRef.current = -1;
     pinScrollTopRef.current = -1;
     setAskPinPad(0);
     setPinnedAskIndex(updated.length - 1);
