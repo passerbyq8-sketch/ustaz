@@ -693,6 +693,281 @@ const marks = (out) => (out.degraded || []).filter((d) => String(d).startsWith('
     && floorSwallows.result.text !== floorOff,
     floorSwallows.error || (floorSwallows.result && floorSwallows.result.text));
 
+  // ═════════════════════════════════════════════════════════════════════════════════════════
+  console.log('\n=== X. THE STREAMED TURN — THE CANDIDATE IS HELD, CHECKED, AND RELEASED ===');
+  // ═════════════════════════════════════════════════════════════════════════════════════════
+  //
+  // البند ٣٦ · حبسُ المرشَّح (١٧ سبتمبر). MEASURED LIVE: every section above drives a turn whose
+  // provider answers in JSON and whose caller takes no unit, so none of them ever saw the door stand
+  // down at `inside_emitted_bytes` — and in production STREAM_V1 is on and the witness sentence left
+  // as a unit before its matn was written. These checks drive the turn STREAMED: the provider
+  // answers in SSE, cut into small deltas, and `onWriteUnit` takes every unit it is offered and
+  // records what the reader has and how far the provider had written when each unit left.
+  const STREAM_CHUNK = 9;
+  async function driveStream(loopModule, answer, { stream = true } = {}) {
+    const realFetch = globalThis.fetch;
+    const realLog = console.log;
+    const realWarn = console.warn;
+    let chunksRead = 0;
+    let chunksTotal = 0;
+    const units = [];
+    globalThis.fetch = async (input, init) => {
+      const url = String(input?.url || input);
+      if (!url.startsWith('https://stub.invalid/')) throw new Error('offline: ' + url);
+      const body = JSON.parse(String(init?.body ?? '{}'));
+      if (body.stream !== true) return { ok: true, status: 200, json: async () => textPayload(answer) };
+      const frames = [{ type: 'message_start', message: { content: [] } },
+        { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }];
+      for (let i = 0; i < answer.length; i += STREAM_CHUNK) {
+        frames.push({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: answer.slice(i, i + STREAM_CHUNK) } });
+      }
+      frames.push({ type: 'content_block_stop', index: 0 },
+        { type: 'message_delta', delta: { stop_reason: 'end_turn' } }, { type: 'message_stop' });
+      chunksTotal = frames.length;
+      let at = 0;
+      const reader = { read: async () => {
+        if (at >= frames.length) return { done: true };
+        chunksRead = at + 1;
+        return { done: false, value: new TextEncoder().encode('data: ' + JSON.stringify(frames[at++]) + '\n\n') };
+      } };
+      return { ok: true, status: 200, body: { getReader: () => reader }, text: async () => '' };
+    };
+    console.log = () => {};
+    console.warn = () => {};
+    try {
+      const out = await loopModule.runFreeBrainTurn({
+        messages: [{ role: 'user', content: 'ما هدي النبي صلى الله عليه وسلم في يومه وليلته؟' }],
+        system: 'أنت أستاذ.', model: 'stub', maxTokens: 1024,
+        mode: 'عادي', lexicalRoute: 'GENERAL', providerUrl: PROVIDER, headers: {},
+        ...(stream ? {
+          env: { STREAM_V1: 'on' },
+          onWriteUnit: (d) => { units.push({ text: d.text, chunk: chunksRead }); return true; },
+        } : {}),
+      });
+      const sent = units.length ? units[units.length - 1].text : '';
+      return { ...out, units, sent, chunksTotal };
+    } finally {
+      globalThis.fetch = realFetch;
+      console.log = realLog;
+      console.warn = realWarn;
+    }
+  }
+  const offStream = async (answer) => {
+    process.env.PROPHET_ASCRIPTION_BLOCK = 'off';
+    try { return await driveStream(loop, answer); } finally { delete process.env.PROPHET_ASCRIPTION_BLOCK; }
+  };
+
+  // The witness's own shape, d4 of ١٧ سبتمبر: the sentence, «وكان يقول:», then the matn.
+  const STREAM_WITNESS = [
+    'هدي النبي صلى الله عليه وسلم في ليله هدي معتدل، لا إفراط فيه ولا تفريط.',
+    WITNESS_PROSE + '.',
+    'وكان يقول:',
+    BLOCK,
+    'وفي هذا تعليم للأمة أن تأخذ من ليلها بنصيب.',
+    'والله أعلم.',
+  ].join('\n');
+  const STREAM_CLEAN = [
+    'الوتر سنة مؤكدة عند جمهور أهل العلم.',
+    'ووقته من بعد صلاة العشاء إلى طلوع الفجر الثاني.',
+    'وأقله ركعة واحدة، وأدنى الكمال ثلاث ركعات.',
+    'ومن خشي ألا يقوم آخر الليل فليوتر أوله.',
+    'والله أعلم.',
+  ].join('\n');
+  // A candidate — framed to him, a full MIN_RUN of words — with no matn anywhere after it, and
+  // enough short lines behind it that the ceiling, not the end of the round, would release it if
+  // the early release did not. The line after it is finished prose with no colon: NO MATN FOLLOWS.
+  const STREAM_NO_MATN_SENTENCE = 'وكان يقوم من الليل حتى تتفطر قدماه شكرا لربه.';
+  const STREAM_NO_MATN = [
+    'هدي النبي صلى الله عليه وسلم في ليله هدي معتدل.',
+    STREAM_NO_MATN_SENTENCE,
+    'وهذا حسن.', 'وهو يسير.', 'فاعمل به.', 'ولا تتركه.', 'وداوم عليه.', 'واسأل الله.',
+    'والزم الذكر.', 'ونم مبكرا.', 'وقم نشيطا.', 'والله أعلم.',
+  ].join('\n');
+  // The same candidate, then a colon line — which could introduce a matn — and then text that
+  // opens with a letter, not with «<hadith»: the colon introduced prose, so no matn follows.
+  const STREAM_COLON_THEN_TEXT = [
+    'هدي النبي صلى الله عليه وسلم في ليله هدي معتدل.',
+    STREAM_NO_MATN_SENTENCE,
+    'وفي ذلك فوائد:', 'منها صحة البدن.', 'ومنها صفاء القلب.', 'ومنها البركة في الوقت.',
+    'ومنها حسن الخلق.', 'ومنها قوة الإيمان.', 'والله أعلم.',
+  ].join('\n');
+  // The same candidate, then long lines that carry no letter at all — a table of numbers. The early
+  // release reads no prose in them, so only the CEILING can let the candidate go before the round
+  // ends; each line is long enough that the character bound, not the unit bound, is what trips.
+  const HOLD_MEASURED_CHARS = 450;
+  const HOLD_MEASURED_UNITS = 4;
+  const HOLD_OLD_CHARS = 1000;
+  const CEILING_LINES = Array.from({ length: 10 }, (_, i) => Array.from({ length: 12 },
+    (_, j) => String(1000 + i * 12 + j)).join(' ، '));
+  const STREAM_CEILING = [
+    'هدي النبي صلى الله عليه وسلم في ليله هدي معتدل.',
+    STREAM_NO_MATN_SENTENCE,
+    ...CEILING_LINES,
+    'والله أعلم.',
+  ].join('\n');
+
+  const sw = await driveStream(loop, STREAM_WITNESS);
+  const swOff = await offStream(STREAM_WITNESS);
+  ok('X0 · the turn really is streamed — units left while the provider was still writing',
+    sw.streamedThisTurn === true && sw.units.length > 0 && swOff.units.length > 2
+    && swOff.units[0].chunk < swOff.chunksTotal,
+    JSON.stringify({ streamed: sw.streamedThisTurn, units: sw.units.length, offUnits: swOff.units.length }));
+  ok('X1 · a STREAMED witness-shaped turn: the sentence reaches the reader CORRECTED, on the wire, and never inside_emitted_bytes',
+    sw.sent.includes(CORRECTED_PROSE) && !sw.sent.includes(WITNESS_PROSE)
+    && sw.text.includes(CORRECTED_PROSE) && !sw.text.includes(WITNESS_PROSE)
+    && sw.text.startsWith(sw.sent)
+    && marks(sw).includes('ascription:corrected_in_stream')
+    && !marks(sw).includes('ascription:inside_emitted_bytes'),
+    JSON.stringify([sw.sent, marks(sw)]));
+  ok('X1b · ...and that sentence is the only byte that differs from the door switched off',
+    swOff.text.includes(WITNESS_PROSE + '.')
+    && sw.text === swOff.text.replace(WITNESS_PROSE + '.', CORRECTED_PROSE),
+    JSON.stringify([sw.text, swOff.text]));
+
+  const cleanStreamed = await driveStream(loop, STREAM_CLEAN);
+  const cleanPlain = await driveStream(loop, STREAM_CLEAN, { stream: false });
+  const cleanOff = await offStream(STREAM_CLEAN);
+  ok('X2 · a STREAMED clean answer is byte for byte the unstreamed one, leaves no trace, and nothing is held or late',
+    cleanStreamed.streamedThisTurn === true && cleanStreamed.text === cleanPlain.text
+    && marks(cleanStreamed).length === 0
+    && JSON.stringify(cleanStreamed.units) === JSON.stringify(cleanOff.units)
+    && cleanStreamed.units.length > 0,
+    JSON.stringify({ same: cleanStreamed.text === cleanPlain.text, marks: marks(cleanStreamed),
+      units: cleanStreamed.units.map((u) => u.chunk), off: cleanOff.units.map((u) => u.chunk) }));
+  let heldClean = [];
+  for (const [name, answer] of [['ROUND_1', ROUND_1], ['ROUND_2', ROUND_2], ['ROUND_3', ROUND_3],
+    ['ROUND_5', ROUND_5], ['ABOUT_HIM', ABOUT_HIM], ['ABOUT_DAWUD', ABOUT_DAWUD],
+    ['FRAMED_TO_HIM', FRAMED_TO_HIM], ['SHORT_COINCIDENCE', SHORT_COINCIDENCE]]) {
+    const on = await driveStream(loop, answer);
+    const plain = await driveStream(loop, answer, { stream: false });
+    if (on.text !== plain.text || marks(on).length !== 0 || !on.text.startsWith(on.sent)) {
+      heldClean.push(name + ' same=' + (on.text === plain.text) + ' marks=' + JSON.stringify(marks(on)));
+    }
+  }
+  ok('X2b · every answer outside the measured class, streamed, is the unstreamed answer byte for byte — held or not',
+    heldClean.length === 0, heldClean.join(' | '));
+
+  // THE CEILING, MEASURED (١٧ سبتمبر · تضييقُ كلفةِ الحبس). The 7 catches in the 28 saved texts span at
+  // most 406 characters from the start of the held unit to the close of the matn that proves it
+  // (rA), and at most 3 lines before that matn. The ceiling is 450 characters / 4 units — a margin
+  // of 44 characters and 1 unit — and the old 1000 / 6 is gone. Pinned in the source and in behaviour.
+  ok('X3a · the ceiling in loop.js is the measured one — 450 characters, 4 units',
+    loopSource.includes(`const HOLD_MAX_CHARS = ${HOLD_MEASURED_CHARS};`)
+    && loopSource.includes(`const HOLD_MAX_UNITS = ${HOLD_MEASURED_UNITS};`),
+    (loopSource.match(/const HOLD_MAX_(?:CHARS|UNITS) = \d+;/gu) || []).join(' '));
+  const ceil = await driveStream(loop, STREAM_CEILING);
+  const ceilPlain = await driveStream(loop, STREAM_CEILING, { stream: false });
+  const ceilUnit = ceil.units.find((u) => u.text.includes(STREAM_NO_MATN_SENTENCE));
+  const ceilOffUnit = (await offStream(STREAM_CEILING)).units.find((u) => u.text.includes(STREAM_NO_MATN_SENTENCE));
+  // Where the candidate starts, in provider characters, and the furthest the held text may run past
+  // the measured bound before the ceiling reads it: one finished line and one delta.
+  const ceilFrom = STREAM_CEILING.indexOf(STREAM_NO_MATN_SENTENCE);
+  const ceilSlack = Math.max(...CEILING_LINES.map((line) => line.length + 1)) + STREAM_CHUNK;
+  const ceilHeld = ceilUnit ? ceilUnit.chunk * STREAM_CHUNK - ceilFrom : Infinity;
+  ok('X3 · a candidate no matn follows and the early release cannot clear is RELEASED WITHIN THE MEASURED BOUND (450), as it was, not the old one (1000)',
+    Boolean(ceilUnit) && Boolean(ceilOffUnit) && ceilUnit.chunk > ceilOffUnit.chunk
+    && ceilHeld > HOLD_MEASURED_CHARS && ceilHeld <= HOLD_MEASURED_CHARS + ceilSlack
+    && ceilHeld < HOLD_OLD_CHARS
+    && ceil.text === ceilPlain.text && marks(ceil).length === 0,
+    JSON.stringify({ held: ceilUnit && ceilUnit.chunk, off: ceilOffUnit && ceilOffUnit.chunk, heldChars: ceilHeld,
+      bound: HOLD_MEASURED_CHARS + ceilSlack, total: ceil.chunksTotal, same: ceil.text === ceilPlain.text, marks: marks(ceil) }));
+
+  // THE EARLY RELEASE. A candidate the text after it clears leaves when the reviewer releases it —
+  // at the same delta as with the door switched off — and not a delta later.
+  const nm = await driveStream(loop, STREAM_NO_MATN);
+  const nmPlain = await driveStream(loop, STREAM_NO_MATN, { stream: false });
+  const nmUnit = nm.units.find((u) => u.text.includes(STREAM_NO_MATN_SENTENCE));
+  const nmOffUnit = (await offStream(STREAM_NO_MATN)).units.find((u) => u.text.includes(STREAM_NO_MATN_SENTENCE));
+  ok('X7 · a candidate followed by a finished prose line with no colon is RELEASED AT ONCE — no later than with no hold at all',
+    Boolean(nmUnit) && Boolean(nmOffUnit) && nmUnit.chunk <= nmOffUnit.chunk
+    && nm.text === nmPlain.text && marks(nm).length === 0,
+    JSON.stringify({ on: nmUnit && nmUnit.chunk, off: nmOffUnit && nmOffUnit.chunk, same: nm.text === nmPlain.text, marks: marks(nm) }));
+  const ct = await driveStream(loop, STREAM_COLON_THEN_TEXT);
+  const ctPlain = await driveStream(loop, STREAM_COLON_THEN_TEXT, { stream: false });
+  const ctUnit = ct.units.find((u) => u.text.includes(STREAM_NO_MATN_SENTENCE));
+  const ctOffUnit = (await offStream(STREAM_COLON_THEN_TEXT)).units.find((u) => u.text.includes(STREAM_NO_MATN_SENTENCE));
+  ok('X7b · a candidate followed by a colon line and then a letter, not «<hadith», is RELEASED AT ONCE',
+    Boolean(ctUnit) && Boolean(ctOffUnit) && ctUnit.chunk <= ctOffUnit.chunk
+    && ct.text === ctPlain.text && marks(ct).length === 0,
+    JSON.stringify({ on: ctUnit && ctUnit.chunk, off: ctOffUnit && ctOffUnit.chunk, same: ct.text === ctPlain.text, marks: marks(ct) }));
+
+  const noHold = await mutate({
+    file: LOOP,
+    name: 'stream-no-hold',
+    transform: (src) => src.replace(
+      '      ascription: prophetAscriptionDecision().enabled\n',
+      '      ascription: false && prophetAscriptionDecision().enabled\n',
+    ),
+    check: async (twin) => driveStream(twin, STREAM_WITNESS),
+  });
+  ok('X4 KILLED: a stream that does not hold ships the sentence first — inside_emitted_bytes is back',
+    noHold.loaded && noHold.result
+    && marks(noHold.result).includes('ascription:inside_emitted_bytes')
+    && noHold.result.sent.includes(WITNESS_PROSE),
+    noHold.error || JSON.stringify(noHold.result && marks(noHold.result)));
+
+  const noCeiling = await mutate({
+    file: LOOP,
+    name: 'stream-no-ceiling',
+    transform: (src) => src.replace(
+      ' || queue.length > HOLD_MAX_UNITS || heldChars > HOLD_MAX_CHARS) {',
+      ') {',
+    ),
+    check: async (twin) => driveStream(twin, STREAM_CEILING),
+  });
+  const ncUnit = noCeiling.result && noCeiling.result.units.find((u) => u.text.includes(STREAM_NO_MATN_SENTENCE));
+  ok('X5 KILLED: without the ceiling the candidate stays held until the provider has finished — X3 sees it',
+    noCeiling.loaded && noCeiling.result
+    && (!ncUnit || ncUnit.chunk >= noCeiling.result.chunksTotal - 3),
+    noCeiling.error || JSON.stringify({ unit: ncUnit && ncUnit.chunk, total: noCeiling.result && noCeiling.result.chunksTotal }));
+
+  const noCheck = await mutate({
+    file: LOOP,
+    name: 'stream-release-unchecked',
+    transform: (src) => src.replace(
+      '    if (!located.length) return deliverAsIs(count);',
+      '    return deliverAsIs(count);',
+    ),
+    check: async (twin) => driveStream(twin, STREAM_WITNESS),
+  });
+  ok('X6 KILLED: releasing the held candidate unchecked ships the false ascription — X1 sees it',
+    noCheck.loaded && noCheck.result
+    && noCheck.result.sent.includes(WITNESS_PROSE) && !noCheck.result.sent.includes(CORRECTED_PROSE)
+    && marks(noCheck.result).includes('ascription:inside_emitted_bytes'),
+    noCheck.error || JSON.stringify(noCheck.result && [noCheck.result.sent, marks(noCheck.result)]));
+
+  const noSignal = await mutate({
+    file: LOOP,
+    name: 'stream-no-early-release',
+    transform: (src) => src.replace(
+      '} else if (noMatnFollows(queue[0], fed, pendingLine()) || queue.length',
+      '} else if (queue.length',
+    ),
+    check: async (twin) => ({ prose: await driveStream(twin, STREAM_NO_MATN), colon: await driveStream(twin, STREAM_COLON_THEN_TEXT) }),
+  });
+  const nsProse = noSignal.result && noSignal.result.prose.units.find((u) => u.text.includes(STREAM_NO_MATN_SENTENCE));
+  const nsColon = noSignal.result && noSignal.result.colon.units.find((u) => u.text.includes(STREAM_NO_MATN_SENTENCE));
+  ok('X8 KILLED: without the early release a candidate no matn follows waits for the ceiling — X7 and X7b see it',
+    noSignal.loaded && Boolean(nsProse) && Boolean(nsColon)
+    && nsProse.chunk > nmOffUnit.chunk && nsColon.chunk > ctOffUnit.chunk,
+    noSignal.error || JSON.stringify({ prose: nsProse && nsProse.chunk, proseOff: nmOffUnit && nmOffUnit.chunk,
+      colon: nsColon && nsColon.chunk, colonOff: ctOffUnit && ctOffUnit.chunk }));
+
+  const colonIsProse = await mutate({
+    file: LOOP,
+    name: 'stream-early-release-ignores-colon',
+    transform: (src) => src.replace(
+      '    if (!HOLD_COLON_END_RE.test(bare)) return true;\n',
+      '    return true;\n',
+    ),
+    check: async (twin) => driveStream(twin, STREAM_WITNESS),
+  });
+  ok('X9 KILLED: an early release that reads «وكان يقول:» as «no matn» ships the witness sentence before its matn — X1 sees it',
+    colonIsProse.loaded && colonIsProse.result
+    && colonIsProse.result.sent.includes(WITNESS_PROSE) && !colonIsProse.result.sent.includes(CORRECTED_PROSE)
+    && marks(colonIsProse.result).includes('ascription:inside_emitted_bytes'),
+    colonIsProse.error || JSON.stringify(colonIsProse.result && [colonIsProse.result.sent, marks(colonIsProse.result)]));
+
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'
     : 'FAILED: ' + failures + ' of ' + checks + ' checks failed.'));
