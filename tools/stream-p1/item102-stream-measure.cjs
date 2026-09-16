@@ -33,7 +33,7 @@
 //                      a made-up clock. A number from here is not evidence about Ezik.
 //
 // THE CLIENT CONSTANTS CAN BE OVERRIDDEN WITHOUT EDITING THE FILE, for calibration only:
-//   --reveal-ms=N --reveal-divisor=N --reveal-min-step=N
+//   --reveal-ms=N --reveal-divisor=N --reveal-min-step=N --reveal-max-step=N
 // These patch the three constants in the SERVED copy of app.js in memory. The file on disk is
 // never touched. A run with no override serves app.js byte for byte and says so.
 //
@@ -84,6 +84,7 @@ const OVERRIDE = {
   ms: ARG['reveal-ms'] ? parseInt(ARG['reveal-ms'], 10) : null,
   div: ARG['reveal-divisor'] ? parseInt(ARG['reveal-divisor'], 10) : null,
   min: ARG['reveal-min-step'] ? parseInt(ARG['reveal-min-step'], 10) : null,
+  max: ARG['reveal-max-step'] ? parseInt(ARG['reveal-max-step'], 10) : null,
 };
 
 // ── §7 of the order: the four questions, verbatim ───────────────────────────────────────────
@@ -242,16 +243,26 @@ function servedAppJs() {
   const raw = fs.readFileSync(path.join(REPO, 'app.js'), 'utf8');
   const applied = [];
   let out = raw;
+  // THE BUILT FORM IS NOT THE SOURCE FORM. app.jsx writes `const EZIK_REVEAL_MS = 28;` and Babel
+  // emits `const EZIK_REVEAL_MS=28,EZIK_REVEAL_DIVISOR=8,...` -- one declaration, no spaces, no
+  // semicolon between them. A pattern anchored on `const NAME = N;` matches nothing, and because
+  // it threw rather than silently serving the unpatched file, that cost one run and not a whole
+  // sweep of wrong numbers. The names are unique in the bundle, so the assignment alone is enough.
+  // AND «did the text change?» IS NOT «was the constant found?». Asking for the value the file
+  // already has is the most ordinary request in a sweep -- it is the control point -- and it
+  // produces an identical string. The first version read that as «the constant is missing» and
+  // threw, losing the one run whose number the others are compared against. The match itself is
+  // the test.
   const patch = (name, value) => {
     if (value === null || value === undefined) return;
-    const re = new RegExp('(const ' + name + ' = )(\\d+)(;)', 'u');
-    const before = out;
-    out = out.replace(re, (m0, a, old, c) => { applied.push(name + ': ' + old + ' -> ' + value); return a + value + c; });
-    if (out === before) throw new Error('could not patch ' + name + ' in app.js');
+    const re = new RegExp('\\b(' + name + ')(\\s*=\\s*)(\\d+)\\b', 'u');
+    if (!re.test(out)) throw new Error('could not find ' + name + ' in app.js');
+    out = out.replace(re, (m0, a, eq, old) => { applied.push(name + ': ' + old + ' -> ' + value); return a + eq + value; });
   };
   patch('EZIK_REVEAL_MS', OVERRIDE.ms);
   patch('EZIK_REVEAL_DIVISOR', OVERRIDE.div);
   patch('EZIK_REVEAL_MIN_STEP', OVERRIDE.min);
+  patch('EZIK_REVEAL_MAX_STEP', OVERRIDE.max);
   return { body: out, applied, patched: out !== raw };
 }
 
@@ -438,6 +449,12 @@ async function callRealHandler(req, res, url, body, rec, notes) {
   }
 }
 
+// ONE CLOCK FOR BOTH HALVES OF THE MEASUREMENT. The first version started the recorder's clock at
+// its FIRST EVENT, while the page starts its own at the send -- so "the painting trails the arrival
+// by N ms" was arithmetic between two different zeros, and it produced 20032ms for a run whose real
+// answer was "the last slab painted in the same frame it arrived". reset() is called at the send
+// and is the only thing that sets the origin; an event that arrives before it is impossible,
+// because the request that produces it has not been made.
 function makeRecorder() {
   const events = [];
   let t0 = null;
@@ -448,7 +465,7 @@ function makeRecorder() {
       if (t0 === null) t0 = now;
       events.push(Object.assign({ t: now - t0, kind, len: text ? String(text).length : 0, text: text ? String(text) : '' }, extra || {}));
     },
-    reset() { events.length = 0; t0 = null; },
+    reset() { events.length = 0; t0 = Date.now(); },
   };
 }
 
@@ -629,7 +646,7 @@ const RECORDER = `
   }
   // ── EVERYTHING BELOW THE READER'S QUESTION ──────────────────────────────────────────────────
   // MEASURED and it changes the instrument: on a turn where the server releases nothing early,
-  // `.ezc-turn.is-ai` — the streaming preview — never holds a single character of the answer. The
+  // the streaming preview bubble never holds a single character of the answer. The
   // whole reply lands in the COMMITTED bubble, which carries no class of its own -- app.jsx:18903
   // is the only site of the class in the file. An instrument that watched only the preview
   // reported «0 paint updates» for a turn in which the reader plainly saw 369 characters appear.
@@ -711,6 +728,14 @@ const RECORDER = `
   };
 })();
 `;
+
+// A BACKTICK INSIDE THE IN-PAGE SOURCE ENDS THE TEMPLATE LITERAL AND TURNS THE REST OF THE
+// COMMENT INTO CODE. `node --check` passes it happily -- the failure is a ReferenceError at
+// require time -- and it cost four real, paid-for answers before it was noticed. So it is checked
+// here, where the cost is zero.
+for (const [name, src] of [['RECORDER', RECORDER]]) {
+  if (src.indexOf(String.fromCharCode(96)) !== -1) throw new Error(name + ' contains a backtick');
+}
 
 async function openPage(cdn) {
   const userDir = path.join(os.tmpdir(), 'ezik-102-' + Math.floor(Math.random() * 1e9));
@@ -1009,13 +1034,22 @@ async function main() {
     log('REDUCED MOTION  media=' + depth.reduceMedia + '  html[data-ez-motion]=' + depth.motionAttr
       + (reduced ? '   *** THE REVEAL QUEUE IS BYPASSED — THIS RUN MEASURES ARRIVAL, NOT PAINTING ***' : '   (the queue is live)'));
 
-    ctx.rec.reset();
-    if (SOURCE === 'local') armFetchLog(Date.now());
-    const sent = await page.run(`(async () => {${H}
+    // THE TWO CLOCKS ARE STARTED WITHIN ONE ROUND TRIP OF EACH OTHER. Typing into the composer and
+    // waiting for React to flush takes ~400ms, so resetting the recorder BEFORE all of that put its
+    // zero most of half a second ahead of the page's. The field is filled first, and only then are
+    // both clocks started and the button pressed -- one CDP round trip apart, which is the residual
+    // tolerance on every arrival-versus-paint number in this file.
+    const filled = await page.run(`(async () => {${H}
       const t = box();
       if (!t) return { error: 'no composer' };
       setValue(t, ${JSON.stringify(QUESTIONS[QN - 1])});
       await sleep(400);
+      return { filled: t.value.length };
+    })()`);
+    if (!filled || !filled.filled) { log('FATAL  could not fill the composer ' + JSON.stringify(filled)); return; }
+    ctx.rec.reset();
+    if (SOURCE === 'local') armFetchLog(Date.now());
+    const sent = await page.run(`(async () => {${H}
       // THE SEND BUTTON IS NO LONGER THE TEXTAREA'S SIBLING. Item 05-F moved it out of the field
       // row into its own control row (app.jsx:19113), so the older tool's
       // t.parentElement.querySelector of a button now finds nothing at all. Send is the FIRST
@@ -1059,7 +1093,7 @@ async function main() {
         label: LABEL, source: SOURCE, question: QN, questionText: QUESTIONS[QN - 1],
         at: new Date().toISOString(), head: null,
         appJsPatched: app.patched, appJsPatches: app.applied,
-        revealMs: OVERRIDE.ms, revealDivisor: OVERRIDE.div, revealMinStep: OVERRIDE.min,
+        revealMs: OVERRIDE.ms, revealDivisor: OVERRIDE.div, revealMinStep: OVERRIDE.min, revealMaxStep: OVERRIDE.max,
         turnEndedAfterMs: done.endedMs, sampledAfterEndMs: SAMPLE_AFTER_MS,
         viewport: '430x932', depthLabels: (depth && depth.labels) || [],
         reducedMotion: reduced, reduceMedia: depth.reduceMedia, motionAttr: depth.motionAttr,

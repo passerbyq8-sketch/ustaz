@@ -4833,10 +4833,29 @@ function ezikSearchFavs(favs,q){const out=[];if(!q)return out;for(let i=0;i<(fav
 // and a slow trickle still moves every tick instead of stalling. The floor is what guarantees
 // the cursor always advances, so the queue cannot livelock a byte short of the end.
 //
+// ── ITEM 102-أ: AND A CEILING, BECAUSE A SHARE OF A BIG BACKLOG IS A FLASH ────────────────────
+// A share alone is unbounded in the one direction that matters. «An eighth of the backlog» is
+// eleven characters when 88 have arrived and it is THREE HUNDRED when 2,400 have -- and 2,400 at
+// once is exactly what this server sends. The owner watched it and called it what it is:
+// «مابي فجأه يعطيني سطرين ثلاثه».
+//
+// MEASURED on the four questions of the order, driving the real client against the real handler:
+//
+//   q1  6 text_delta, largest 2,099 chars   -> largest single PAINT 1,497 chars, 76% of the
+//                                             answer arriving in updates of 40+ characters
+//   q2  3 text_delta, largest   327 chars   -> largest single paint   489 chars, 87%
+//   q3  6 text_delta, largest   868 chars   -> largest single paint   631 chars, 64%
+//   q4  2 text_delta, largest 2,169 chars   -> largest single paint 1,598 chars, 84%
+//
+// So the ceiling is a count of characters per tick and not a second share. EZIK_REVEAL_MAX_STEP
+// at 28ms is a top speed in characters per second -- 11 is a little under 400 -- and it binds
+// only on the slabs. Every backlog under MAX*DIVISOR characters still drains on the share, so
+// nothing about a trickle or a short answer changes.
+//
 // REDUCED MOTION SKIPS IT ENTIRELY. A reader who has asked for less movement is not asking for
 // a typewriter; ezikMotionReducedNow() -- the platform preference OR the app's own -- paints the
 // arrived text whole, exactly as the file did before this commit.
-const EZIK_REVEAL_MS=28;const EZIK_REVEAL_DIVISOR=8;const EZIK_REVEAL_MIN_STEP=2;function App(){// S100: mounted here and not only in Settings, because the 'storage' event fires in the
+const EZIK_REVEAL_MS=28;const EZIK_REVEAL_DIVISOR=8;const EZIK_REVEAL_MIN_STEP=2;const EZIK_REVEAL_MAX_STEP=11;function App(){// S100: mounted here and not only in Settings, because the 'storage' event fires in the
 // tabs that did NOT make the change -- a tab sitting on the chat has to repaint too. The
 // hook owns no screen state and renders nothing; it keeps <html> honest.
 // S116: the interface language, subscribed at the root. App owns every screen, so a switch
@@ -4968,9 +4987,15 @@ const pinPassRef=useRef(0);// ITEM 102-ب. The streamed length the PREVIOUS pin 
 // answer grew» from «nothing changed and I am writing anyway». -1 is «no stream in flight»,
 // which is also where a finished turn leaves it, so the first pass of the next turn reads as
 // a change and starts that turn's count from zero.
-const pinLenRef=useRef(-1);// The room under the last turn that lets a SHORT answer still be pushed to the top. It is a
-// number of pixels, recomputed as the answer grows and collapsed to 0 when the turn ends, so
-// no gap is left behind for the reader to scroll through.
+const pinLenRef=useRef(-1);// ITEM 102-ب: the same idea in pixels. The streamed length is the content signal only while a
+// stream is running, and the pin now outlives the turn -- so after it ends `streamLen` is a
+// constant -1 and every later adjustment would be charged to the breaker as if it were a
+// symptom. The content below the question is the general form of «did anything actually
+// change»: it moves when the lessons card lands, when an image decodes, when a font swaps, and
+// it does not move when the effect is merely running again.
+const pinBelowRef=useRef(-1);// The room under the last turn that lets a SHORT answer still be pushed to the top. It is a
+// number of pixels, recomputed as the answer grows, and given back when the reader takes the
+// view back or the conversation changes.
 const[askPinPad,setAskPinPad]=useState(0);// The spacer ELEMENT. Its applied height is read off it rather than remembered, because a ref
 // written when `setAskPinPad` is called is one commit ahead of the DOM — see the layout effect.
 const askPadElRef=useRef(null);// The last scroll position the pin itself wrote, read back from the element. Anything else is
@@ -5003,7 +5028,32 @@ const audioPlayTokenRef=useRef(0);// invalidates stale pause/ended events on the
 const[streamingText,setStreamingReveal]=useState(null);// live streaming text (null = no stream in flight)
 const revealFullRef=useRef('');// everything that has ARRIVED, append-only, never painted whole
 const revealAtRef=useRef(0);// how much of it is on screen
-const revealTimerRef=useRef(null);const revealStop=()=>{if(revealTimerRef.current===null)return;try{clearInterval(revealTimerRef.current);}catch(e){}revealTimerRef.current=null;};const revealTick=()=>{const full=revealFullRef.current;const backlog=full.length-revealAtRef.current;if(backlog<=0){revealStop();return;}const step=Math.max(EZIK_REVEAL_MIN_STEP,Math.ceil(backlog/EZIK_REVEAL_DIVISOR));revealAtRef.current=Math.min(full.length,revealAtRef.current+step);setStreamingReveal(full.slice(0,revealAtRef.current));if(revealAtRef.current>=full.length)revealStop();};// The one door. It takes exactly what the shipped setter took -- null to retire the preview,
+const revealTimerRef=useRef(null);// ITEM 102-أ: whoever is waiting for the queue to reach the end of what it holds. There is at
+// most one, it is always resolved -- by the queue arriving, by the queue being emptied, or by
+// the component going away -- and it is cleared before it is called, so no path can settle it
+// twice.
+const revealDoneRef=useRef(null);const revealRelease=()=>{const done=revealDoneRef.current;if(!done)return;revealDoneRef.current=null;done();};const revealStop=()=>{if(revealTimerRef.current!==null){try{clearInterval(revealTimerRef.current);}catch(e){}revealTimerRef.current=null;}revealRelease();};const revealTick=()=>{const full=revealFullRef.current;const backlog=full.length-revealAtRef.current;if(backlog<=0){revealStop();return;}const share=Math.ceil(backlog/EZIK_REVEAL_DIVISOR);const step=Math.max(EZIK_REVEAL_MIN_STEP,Math.min(EZIK_REVEAL_MAX_STEP,share));revealAtRef.current=Math.min(full.length,revealAtRef.current+step);setStreamingReveal(full.slice(0,revealAtRef.current));if(revealAtRef.current>=full.length)revealStop();};// ── ITEM 102-أ: THE TAIL IS TYPED, NOT FLASHED ───────────────────────────────────────────────
+//
+// THE DEFECT, MEASURED. `paintTrailMs` -- how far the last paint fell behind the last arrival --
+// came back 0.0s on q1 and 0.0s on q4, the two questions whose last event carried 2,099 and
+// 2,169 characters. Zero does not mean the queue was fast. It means the queue never ran on that
+// text at all: setStreamingText(null) is called in the same batch that pushes the finished
+// reply, so the completion EMPTIES the queue and the committed bubble draws the whole remainder
+// in one frame. Whatever rate the ticker is given, the last and largest slab of every answer
+// was exempt from it.
+//
+// WHAT THIS DOES. It waits for the cursor to reach the end of the final text before that swap
+// happens, and not one instant longer. Every one of the queue's four promises is kept:
+//   * nothing is painted that has not arrived -- `text` here IS the arrived text, the same
+//     string callAI accumulated from the deltas and returned;
+//   * nothing is reordered -- it is the same forward walk through the same prefix;
+//   * nothing shown is withdrawn -- and that is CHECKED rather than trusted: if the final text
+//     does not continue what the reader has already read, this declines and the old immediate
+//     swap happens, because a redraw is a withdrawal and the contract forbids it;
+//   * the final text is not touched -- `reply` is pushed into `messages` byte for byte, by the
+//     same line as before.
+// And reduced motion is answered here as it is everywhere else: there is no tail to type.
+const revealSettle=text=>new Promise(resolve=>{if(typeof text!=='string'||!text){resolve();return;}if(ezikMotionReducedNow()){resolve();return;}const painted=revealFullRef.current.slice(0,revealAtRef.current);if(painted&&!text.startsWith(painted)){resolve();return;}revealFullRef.current=text;if(revealAtRef.current>=text.length){resolve();return;}revealDoneRef.current=resolve;if(revealTimerRef.current===null)revealTimerRef.current=setInterval(revealTick,EZIK_REVEAL_MS);});// The one door. It takes exactly what the shipped setter took -- null to retire the preview,
 // '' to arm it, and the cumulative text on every delta -- and it is the reason the delta
 // handler, the abort path and the streaming transition below are all untouched.
 const setStreamingText=next=>{if(typeof next!=='string'||next===''){// null (retire / abort) and '' (arm): both empty the queue and paint immediately. This is
@@ -5419,16 +5469,56 @@ const tail=askPadElRef.current||messagesEndRef.current;if(!tail)return;// The sc
 // layout effect and took the whole app down with it under every DOM guard. There is no
 // layout in that environment either -- every rect is 0 -- so falling back to 0 gives the
 // same answer it would have given anyway, and the browser path is unchanged.
-const view=el.ownerDocument&&el.ownerDocument.defaultView;const cs=view&&typeof view.getComputedStyle==='function'?view.getComputedStyle(el):null;const rowGap=cs?parseFloat(cs.rowGap)||0:0;const naturalBelow=tail.getBoundingClientRect().top-anchor.getBoundingClientRect().top+(cs?parseFloat(cs.paddingBottom)||0:0);const need=Math.max(0,Math.ceil(el.clientHeight-naturalBelow-rowGap));// Compared against the RENDERED value, and with a pixel of tolerance, so sub-pixel layout
+const view=el.ownerDocument&&el.ownerDocument.defaultView;const cs=view&&typeof view.getComputedStyle==='function'?view.getComputedStyle(el):null;const rowGap=cs?parseFloat(cs.rowGap)||0:0;const naturalBelow=tail.getBoundingClientRect().top-anchor.getBoundingClientRect().top+(cs?parseFloat(cs.paddingBottom)||0:0);const need=Math.max(0,Math.ceil(el.clientHeight-naturalBelow-rowGap));// ITEM 102-ب: and the same clearing, on the same principle, for the passes that happen after
+// the stream has stopped. `naturalBelow` is measured to the spacer or the sentinel, whichever
+// is mounted -- never through the spacer -- so it is a reading of the CONTENT and moves only
+// when the content does. A pass that follows new content is not a symptom; consecutive passes
+// against content that is standing still are the defect the breaker is for, and they are
+// still counted, still bounded at 8, and still disarm exactly as before.
+const belowNow=Math.round(naturalBelow);if(belowNow!==pinBelowRef.current){pinBelowRef.current=belowNow;pinPassRef.current=0;}// Compared against the RENDERED value, and with a pixel of tolerance, so sub-pixel layout
 // cannot start the same argument by a different route.
 if(Math.abs(need-askPinPad)>1){pinPassRef.current+=1;if(pinPassRef.current>8){pinActiveRef.current=false;setAskPinPad(0);return;}setAskPinPad(need);// The spacer lands on the next commit, and this effect runs again then. Taking the
 // position now, against a height that is about to change, would pin to a stale number.
 return;}// (2) POSITION. The written value is read back rather than assumed: the browser clamps
 // `scrollTop` to what the content allows, and remembering what we ASKED for instead of what
 // we GOT is what would make the divergence test above fire on the pin's own writes.
-if(Math.abs(el.scrollTop-anchorTop)>1)el.scrollTop=anchorTop;pinScrollTopRef.current=el.scrollTop;});// The turn is over: the room is given back so no gap is left under the answer, and the pin is
-// disarmed. Keyed on the two facts that together mean «nothing more is coming».
-useEffect(()=>{if(pinnedAskIndex==null)return;if(isLoading||streamingText!==null)return;pinActiveRef.current=false;pinPassRef.current=0;pinLenRef.current=-1;setAskPinPad(0);setPinnedAskIndex(null);},[pinnedAskIndex,isLoading,streamingText]);// S92: THE AUTOSAVE, and it is still the ONE write point the chat has -- every path that
+if(Math.abs(el.scrollTop-anchorTop)>1)el.scrollTop=anchorTop;pinScrollTopRef.current=el.scrollTop;});// ── ITEM 102-ب: THE TURN ENDING IS NOT THE READER MOVING ─────────────────────────────────────
+//
+// THIS EFFECT USED TO FIRE HERE, on «isLoading is false and streamingText is null», and give the
+// room back so that no gap was left under the answer. MEASURED on the order's four questions,
+// and it is the whole of defect ب:
+//
+//   q2  the spacer collapses at 22,336ms and the question drops from +14px to +59px. Then at
+//       24,250ms the related-lessons card lands, the transcript grows by 193 characters, and the
+//       view scrolls to 199 -- the question ends up 185px ABOVE the top of the screen.
+//   q3  the same shape, larger: the card lands at 30,539ms and the question ends up at -707px.
+//   q1, q4  no drift at all, because those answers were already taller than the viewport, the
+//       spacer was never needed, and so there was nothing to take away.
+//
+// THE CHAIN. Collapsing the spacer leaves the scroller at the end of its own range; the next
+// scroll event therefore records `stickToEndRef = true` -- «the reader is at the end» -- about a
+// position the reader never chose. The pin is disarmed in the same breath, so when the card
+// arrives two seconds later the follow effect at :16010 is no longer declined, and it scrolls to
+// the bottom. Every step is behaving exactly as written; the fault is the first one.
+//
+// THE ORDER'S OTHER HYPOTHESIS IS NOT WHAT HAPPENED. The breaker at `pinPassRef > 8` did NOT
+// fire in any of the four runs: the spacer collapsed at 42,261 / 22,336 / 28,438 / 44,355ms and
+// each turn ended at 42.4 / 22.2 / 28.3 / 44.5s. It collapsed at the END, every time.
+//
+// SO THE PIN IS NOT DISARMED BY THE TURN ENDING. The owner's rule is one sentence -- «الشاشه
+// تكون ثابته على رأس السؤال مهما كان طول الجواب ولا يتحرك الا لما انا احركه» -- and it is a rule
+// about who moves the view, not about when writing stops. Holding the pin needs NO new
+// suppression anywhere: `pinActiveRef` staying true is already what makes the follow effect
+// decline, and a reader scroll is already what ends it, at :16035, by the divergence test that
+// needs no list of input devices. The room stays because the room is what «the question is at
+// the top» IS on an answer shorter than the screen, and the layout effect keeps shrinking it to
+// nothing by itself as later content fills the space.
+//
+// WHAT STILL HAS TO END THE PIN IS THE THREAD CHANGING, and that used to ride on this effect by
+// accident -- resetThread() and openChat() both quiet the turn. They now say so themselves, and
+// this is the net beneath them: an index that is no longer inside the transcript belonged to a
+// conversation that is gone.
+useEffect(()=>{if(pinnedAskIndex==null)return;if(pinnedAskIndex<messages.length)return;pinActiveRef.current=false;pinPassRef.current=0;pinLenRef.current=-1;setAskPinPad(0);setPinnedAskIndex(null);},[pinnedAskIndex,messages]);// S92: THE AUTOSAVE, and it is still the ONE write point the chat has -- every path that
 // commits a turn (the greeting, a sent message, a call turn) already called this, so filing the
 // conversation here means no path can forget to. The store decides whether there is anything
 // worth filing: an empty thread files nothing and the chat keeps its null id, so an untouched
@@ -5444,7 +5534,11 @@ const refreshChatList=()=>setChatList(ezikListChats(ezikProfileKey(profileRef.cu
 const resetThread=()=>{try{abortRef.current?.abort();}catch(e){}abortRef.current=null;cancelAudio();// S97: an empty thread has no end to land on, so the opening pin is disarmed rather than
 // carried over from whatever conversation was open before. stickToEnd goes back to true
 // because an empty thread IS at its end.
-jumpToEndRef.current=false;stickToEndRef.current=true;chatIdRef.current=null;setChatId(null);setMessages([]);setStreamedOpen(new Set());// S98: a new thread inherits nobody's expanded replies
+jumpToEndRef.current=false;stickToEndRef.current=true;// ITEM 102-ب: and the ask pin, said out loud. It used to be released by the turn-quiet effect
+// that this line replaces -- a thread reset makes the turn quiet, so the pin came down as a
+// side effect of something else being true. The pin now outlives the turn on purpose, so the
+// one thing that must still end it says so where it happens.
+pinActiveRef.current=false;pinPassRef.current=0;pinLenRef.current=-1;pinBelowRef.current=-1;setAskPinPad(0);setPinnedAskIndex(null);chatIdRef.current=null;setChatId(null);setMessages([]);setStreamedOpen(new Set());// S98: a new thread inherits nobody's expanded replies
 newThreadEpoch();// ...and nobody's manual ones either
 setStreamingText(null);setIsLoading(false);setInput('');setPendingImage(null);};// D85: "new chat" -- returns the thread to the empty state. It stops anything in flight
 // (a streaming reply, playing audio) and clears the composer too, so nothing survives it.
@@ -5506,7 +5600,11 @@ const openSavedChat=id=>{try{abortRef.current?.abort();}catch(e){}abortRef.curre
 // inside this very commit already knows to land at the end. Set after, it would be one paint
 // too late -- which is the whole bug this replaces.
 jumpToEndRef.current=true;stickToEndRef.current=true;skipFollowRef.current=1;// the one follow-effect run this open is about to cause
-setChatId(id);setMessages(ezikReadChatMessages(id));setStreamedOpen(new Set());// S98: a restored conversation opens with every long reply folded
+// ITEM 102-ب: the pin belongs to the conversation it was set in, and this is a different one.
+// The index alone is not enough to catch it -- a stored conversation can easily be longer than
+// the pinned index, so the range net below would find nothing wrong with a pin pointing at
+// somebody else's question.
+pinActiveRef.current=false;pinPassRef.current=0;pinLenRef.current=-1;pinBelowRef.current=-1;setAskPinPad(0);setPinnedAskIndex(null);setChatId(id);setMessages(ezikReadChatMessages(id));setStreamedOpen(new Set());// S98: a restored conversation opens with every long reply folded
 newThreadEpoch();// ...including one the reader had expanded a moment ago
 setStreamingText(null);setIsLoading(false);setInput('');setPendingImage(null);};const pinSavedChat=id=>{ezikToggleChatPin(id);refreshChatList();};// ============================================================
 // S98 — المفضلة (favourites), managed centrally and in one place
@@ -5855,7 +5953,7 @@ resetLessons();const lessonsSeq=lessonsSeqRef.current;let attachBlock=null;if(pe
 //
 // «ومع كلِّ سؤالٍ جديدٍ في الصفحةِ نفسِها يتكرّرُ السلوك» — this runs on every send, so a
 // second question re-arms by pointing at its own index; there is no flag to get stuck.
-pinActiveRef.current=true;pinPassRef.current=0;pinLenRef.current=-1;pinScrollTopRef.current=-1;setAskPinPad(0);setPinnedAskIndex(updated.length-1);// S92: the conversation is filed HERE, on the QUESTION -- not after the reply lands. "Saved
+pinActiveRef.current=true;pinPassRef.current=0;pinLenRef.current=-1;pinBelowRef.current=-1;pinScrollTopRef.current=-1;setAskPinPad(0);setPinnedAskIndex(updated.length-1);// S92: the conversation is filed HERE, on the QUESTION -- not after the reply lands. "Saved
 // automatically on the first message" has to survive a reply that never arrives: a dropped
 // connection, an abort, the app being closed mid-stream. This is the write that mints the id
 // and the title; the save after the reply then rewrites the SAME conversation, because
@@ -5871,7 +5969,13 @@ onDelta:partial=>{if(abortRef.current===controller){clearSearchingHint();setStre
 // but ONLY if this controller still owns the UI; if a newer send took over, leave it.
 // The partial reply is discarded (the assistant message is only pushed below on success).
 if(abortRef.current===controller){clearSearchingHint();setIsLoading(false);setStreamingText(null);}return;}reply=getFriendlyError('network',profile?.gender);}if(abortRef.current!==controller)return;// a newer request owns the UI — leave its state alone
-abortRef.current=null;clearSearchingHint();setStreamingText(null);const aiMsg={role:'assistant',content:reply,timestamp:new Date().toISOString()};const final=[...updated,aiMsg];setMessages(final);// S98: THIS LINE IS THE STREAMING TRANSITION — setStreamingText(null) two lines up retires the
+clearSearchingHint();// ITEM 102-أ: let the queue finish typing the tail before the preview is retired. The
+// ownership token is deliberately still held while this waits -- `abortRef` is nulled BELOW,
+// not above -- because a question asked during the tail must be able to cut it: sendMessage
+// takes the token and calls setStreamingText(''), which empties the queue, releases this
+// promise, and sends the line below down the "a newer request owns the UI" exit it already
+// had. Nothing new decides who owns the screen.
+await revealSettle(reply);if(abortRef.current!==controller)return;abortRef.current=null;setStreamingText(null);const aiMsg={role:'assistant',content:reply,timestamp:new Date().toISOString()};const final=[...updated,aiMsg];setMessages(final);// S98: THIS LINE IS THE STREAMING TRANSITION — setStreamingText(null) two lines up retires the
 // live preview and this push puts the finished reply in its place. Recording the position here
 // is what keeps a long answer at the length it was just read at, instead of collapsing under
 // the reader the moment it finished arriving. Batched with the setMessages above, so the
