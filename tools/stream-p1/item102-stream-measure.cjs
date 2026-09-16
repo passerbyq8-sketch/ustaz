@@ -1030,6 +1030,32 @@ async function main() {
         motionAttr: document.documentElement.getAttribute('data-ez-motion'),
       };
     })()`);
+    // ── §7: THE DEPTH IS ASSERTED, AND SWITCHED ONLY ON REQUEST ─────────────────────────────
+    // `depthMode` starts at 'brief' (app.jsx:14868), so الموجز needs no click -- but «it is the
+    // default» is a claim about source, and what the run needs is the state of the control on the
+    // screen in front of it. The pill carries its own current mode as its aria-label, so the mode
+    // can be read rather than assumed, and --depth=detailed presses that same pill exactly once
+    // and reads it back. A run that cannot confirm the mode does not measure it.
+    const DEPTH_BRIEF = 'موجز';            // موجز
+    const DEPTH_DETAILED = 'مفصّل';   // مفصّل
+    const wantDetailed = (ARG.depth || 'brief') === 'detailed';
+    const depthNow = await page.run(`(async () => {${H}
+      const pill = () => QQ('button').filter((b) => b.getAttribute('aria-label') === ${JSON.stringify(DEPTH_BRIEF)}
+        || b.getAttribute('aria-label') === ${JSON.stringify(DEPTH_DETAILED)})[0] || null;
+      const p = pill();
+      if (!p) return { mode: null };
+      if (${wantDetailed ? 'true' : 'false'} && p.getAttribute('aria-label') === ${JSON.stringify(DEPTH_BRIEF)}) {
+        p.click();
+        await sleep(400);
+      }
+      const q = pill();
+      return { mode: q ? q.getAttribute('aria-label') : null };
+    })()`);
+    const depthMode = depthNow && depthNow.mode === DEPTH_DETAILED ? 'detailed'
+      : (depthNow && depthNow.mode === DEPTH_BRIEF ? 'brief' : 'UNREADABLE');
+    log('DEPTH         ' + depthMode + (depthMode === (wantDetailed ? 'detailed' : 'brief') ? '  (as asked)' : '   *** NOT THE MODE THIS RUN ASKED FOR ***'));
+    if (depthMode !== (wantDetailed ? 'detailed' : 'brief')) { log('FATAL  the depth control does not read back as requested'); return; }
+
     const reduced = depth.reduceMedia || depth.motionAttr === 'reduce';
     log('REDUCED MOTION  media=' + depth.reduceMedia + '  html[data-ez-motion]=' + depth.motionAttr
       + (reduced ? '   *** THE REVEAL QUEUE IS BYPASSED — THIS RUN MEASURES ARRIVAL, NOT PAINTING ***' : '   (the queue is live)'));
@@ -1097,6 +1123,7 @@ async function main() {
         turnEndedAfterMs: done.endedMs, sampledAfterEndMs: SAMPLE_AFTER_MS,
         viewport: '430x932', depthLabels: (depth && depth.labels) || [],
         reducedMotion: reduced, reduceMedia: depth.reduceMedia, motionAttr: depth.motionAttr,
+        depthMode,
         envNamesApplied: envInfo.applied, kvStubbed: !!envInfo.kvStubbed, envUnset: ['FREE_BRAIN_V1','STREAM_V1','LEDGER_RAG','DAY_CAP','KV_REST_API_URL','MODEL_STANDARD','BRAVE_API_KEY'].filter((k) => !process.env[k]),
       },
       summary: a,
