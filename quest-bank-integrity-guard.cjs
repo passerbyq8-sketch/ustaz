@@ -1407,7 +1407,25 @@ const SEALED = {
 //                    trip -- so whoever ships this one decides the name, and the report for item
 //                    102 says so out loud rather than leaving it to be noticed.
 //                    THIS digest is re-cut LAST, after every other sw.js edit was final.
-  'sw.js': 'b23d01e1d13842c4d01c2726bdd8a8ef93a235133cb7761a9d21d7c91d4ea530',
+  //   2026-09-16-b -- ITEM 102 GOES TO THE MERGE ROUND: THE STORE NAME GOES ONE STEP,
+//                    ezik-v36 -> ezik-v37. This ANSWERS the question 2026-09-16-a left open one
+//                    commit ago. That entry re-sealed the size and deliberately did NOT bump the
+//                    name, because the CORE_BYTES prose calls the name a ship decision the merge
+//                    round owns and that branch was not yet shipping. It is now, so the round
+//                    that owns the bump is this one and the name moves.
+//                    WHY IT HAS TO MOVE. app.js is 1776728 bytes here against the 1766936 the
+//                    v36 store was cut for, so a returning reader holding v36 would keep serving
+//                    a bundle this tree no longer builds. activate sweeps every name that is not
+//                    the current one, so one step is the whole repair.
+//                    NOTHING ELSE IN SW.JS MOVED -- no route, no branch, no byte table and no
+//                    constant -- and the file is the same 48510 bytes, because v37 is the same
+//                    width as v36. TWO LIVE SITES CARRY THIS NAME and both moved in this commit:
+//                    `const CACHE` in sw.js and `const SW_CACHE` here. The match was word-bounded
+//                    and ezik-mushaf-pages-v1 was counted before and after and did not move --
+//                    bumping THAT store would wipe tens of megabytes of page scans off readers'
+//                    devices, and it is a different store with a different life.
+//                    THIS digest is re-cut LAST, after the name was final.
+  'sw.js': '3a606312d2d64a357239ac25975466fca5b750a84d5e1366e2054601449c59ec',
 };
 
 // ---------------------------------------------------------------------------
@@ -1431,7 +1449,7 @@ const SEALED = {
 // instead of with "sw.js MOVED".
 // ---------------------------------------------------------------------------
 const SW_FILE = 'sw.js';
-const SW_CACHE = 'ezik-v36';
+const SW_CACHE = 'ezik-v37';
 const SW_ORIGIN = 'https://ezik.app';
 // ITEM 93-B. The tag on the end-of-install brief the worker pushes to every client. Written here
 // rather than read back out of sw.js, because "the worker sent whatever the worker calls it" is a
