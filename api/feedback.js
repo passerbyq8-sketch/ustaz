@@ -49,6 +49,7 @@ import { Redis } from '@upstash/redis';
 import { applyCorsOrigin } from '../lib/ratelimit.js';
 import { DEVICE_HEADER, DAY_CAP_TTL_SECONDS, kuwaitDayStamp, safeId } from '../lib/daycap.js';
 import { touchSession } from '../lib/auth/account.js';
+import appVersionFile from '../config/app-version.json' with { type: 'json' };
 
 const redis = new Redis({
   url: process.env.KV_REST_API_URL,
@@ -90,12 +91,16 @@ const ACCOUNT_CAP = 3;
 const FEEDBACK_KEY = 'feedback';
 const FEEDBACK_KEEP = 5000; // LTRIM 0 4999 — the newest 5000 only; bounded on the free tier.
 
-// THE VERSION FIELD, AND IT IS HONESTLY EMPTY. This app declares no version constant anywhere —
-// not in app.jsx, not in index.html, and package.json's 1.0.0 has never been bumped or shipped,
-// so it names nothing. `appv` is kept as a field because the day a real version constant exists
-// it belongs here and the stored records should be one shape throughout; it is '' until then,
-// because a fabricated version on a bug report is worse than no version at all.
-const APP_VERSION = '';
+// THE VERSION FIELD -- ITEM 106. One source of truth, config/app-version.json, read by both ends:
+// tools/build-app.cjs writes it into app.js and the client sends it as `appv`; this route imports
+// the same file. The client's value is kept only if it has the shape a build writes, and anything
+// else -- absent, empty, or malformed -- is replaced by the server's copy, so a stored record never
+// carries '' and never carries a string a caller made up in a shape no build produces.
+const APP_VERSION = typeof appVersionFile.app_version === 'string' ? appVersionFile.app_version : '';
+const APPV_RE = /^[A-Za-z0-9._-]{1,40}$/;
+function appvOf(v) {
+  return typeof v === 'string' && APPV_RE.test(v) ? v : APP_VERSION;
+}
 
 // Coerce to string and hard-cut to `n` characters. Non-strings collapse to ''. Copied from
 // api/report.js so the two routes cut identically.
@@ -270,7 +275,7 @@ export default async function handler(req, res) {
     type: body.type,
     text,
     contact,
-    appv: APP_VERSION,
+    appv: appvOf(body.appv),
     ts: new Date().toISOString(),
     accountKey,
   };

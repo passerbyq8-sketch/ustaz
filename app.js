@@ -3,6 +3,7 @@
 // Verified by `npm run verify:build` and by the gate `babel`, which regenerate this file
 // and fail on any difference. An edit made here is overwritten by the next build and is
 // reported as a difference by the gate before that.
+var EZIK_APP_VERSION = "ezik-v37";
 const{useState,useEffect,useRef}=React;// ============================================================
 // S116 -- THE INTERFACE LANGUAGE (ar / en). READ THIS BEFORE ADDING A KEY.
 //
@@ -7171,7 +7172,11 @@ return/*#__PURE__*/React.createElement(EzShell,{title:ezT('menu.sources'),onBack
 // trust these. A client-side cap is a courtesy, never a control. The DAILY cap is the server's
 // alone and is now two counters -- the account's and the device's, decision ج٣ -- neither of
 // which this file can see, raise or be exempted from.
-const EZIK_FB_TEXT_CAP=1200;const EZIK_FB_CONTACT_CAP=120;// The three the server accepts, in the order the order names them, and the labels are dictionary
+const EZIK_FB_TEXT_CAP=1200;const EZIK_FB_CONTACT_CAP=120;// ITEM 106 -- WHICH BUILD THE COMPLAINT CAME FROM. tools/build-app.cjs writes EZIK_APP_VERSION at
+// the top of app.js from config/app-version.json, the one source the server reads too. A source
+// evaluated without that line (a guard compiling this file directly) sends '', and the server
+// then stamps its own copy of the same value.
+const ezikAppVersion=()=>typeof EZIK_APP_VERSION==='string'?EZIK_APP_VERSION:'';// The three the server accepts, in the order the order names them, and the labels are dictionary
 // keys so the three choices read in the language the rest of the panel reads in.
 const EZIK_FB_TYPES=[{id:'suggestion',k:'feedback.typeSuggestion'},{id:'complaint',k:'feedback.typeComplaint'},{id:'bug',k:'feedback.typeBug'}];// The thank-you is READ before the panel goes. A send that closed the panel on the same tick
 // would be a form that answers by vanishing, which a reader cannot tell from a crash.
@@ -7242,7 +7247,7 @@ const held=readAuthSession();if(!held||typeof held.session!=='string'||!held.ses
 // THE SESSION TRAVELS IN THE BODY and not in a header, which is where every other door in
 // this application takes one. It names the account the answer will be delivered to and
 // nothing else: no address and no name is sent from here, and none is stored there.
-const did=getDeviceId();const headers={'Content-Type':'application/json'};if(did)headers['x-murabbi-device']=did;res=await fetch('/api/feedback',{method:'POST',headers,body:JSON.stringify({type,text:body.slice(0,EZIK_FB_TEXT_CAP),contact:contact.trim().slice(0,EZIK_FB_CONTACT_CAP),session:held.session})});}catch(e){res=null;}setBusy(false);// FOUR ANSWERS, AND «وصلت» IS SAID FOR EXACTLY ONE OF THEM. A refusal, a dead session and a
+const did=getDeviceId();const headers={'Content-Type':'application/json'};if(did)headers['x-murabbi-device']=did;res=await fetch('/api/feedback',{method:'POST',headers,body:JSON.stringify({type,text:body.slice(0,EZIK_FB_TEXT_CAP),contact:contact.trim().slice(0,EZIK_FB_CONTACT_CAP),session:held.session,appv:ezikAppVersion()})});}catch(e){res=null;}setBusy(false);// FOUR ANSWERS, AND «وصلت» IS SAID FOR EXACTLY ONE OF THEM. A refusal, a dead session and a
 // transport failure are each told as what they are; none is dressed as a success, which is
 // the one outcome this form is forbidden to fake.
 if(res&&res.status===401){refuseForSignIn();return;}if(res&&res.status===429){setErr(ezT('feedback.capped'));return;}if(!res||!res.ok){setErr(ezT('feedback.failed'));return;}// THE DRAFT DIES WITH THE MESSAGE THAT WAS MADE OF IT. Keeping it would re-seed the next

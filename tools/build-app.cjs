@@ -55,6 +55,21 @@ const BANNER = [
   '',
 ].join('\n');
 
+// ITEM 106 -- THE APP VERSION HAS ONE SOURCE, config/app-version.json, and this is how the client
+// reads it. It is a committed file, not the clock or the environment, so the determinism contract
+// above still holds: the same tree emits the same bytes. The server (api/feedback.js) imports the
+// same file, so the two ends cannot name different builds without this file changing. The value
+// is validated rather than trusted, and a malformed file stops the build instead of shipping ''.
+const VERSION_FILE = path.join(REPO, 'config', 'app-version.json');
+const VERSION_RE = /^[A-Za-z0-9._-]{1,40}$/;
+function versionLine() {
+  const v = JSON.parse(fs.readFileSync(VERSION_FILE, 'utf8')).app_version;
+  if (typeof v !== 'string' || !VERSION_RE.test(v)) {
+    throw new Error('config/app-version.json: app_version must match ' + VERSION_RE + ', got ' + JSON.stringify(v));
+  }
+  return 'var EZIK_APP_VERSION = ' + JSON.stringify(v) + ';\n';
+}
+
 /**
  * Build the shipped bundle in memory.
  * @returns {{code:string, block:object, sourceBytes:number, outBytes:number, sha:string,
@@ -76,7 +91,7 @@ function build() {
     raw: normalised, runtime: block.runtime,
   }, { retainLines: false, configFile: false, babelrc: false });
   const ms = Number(process.hrtime.bigint() - started) / 1e6;
-  const out = BANNER + code + '\n';
+  const out = BANNER + versionLine() + code + '\n';
   return {
     code: out,
     block: block,

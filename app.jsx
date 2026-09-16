@@ -21625,6 +21625,11 @@ function EzikSourcesSheet({ onBack }) {
 // which this file can see, raise or be exempted from.
 const EZIK_FB_TEXT_CAP = 1200;
 const EZIK_FB_CONTACT_CAP = 120;
+// ITEM 106 -- WHICH BUILD THE COMPLAINT CAME FROM. tools/build-app.cjs writes EZIK_APP_VERSION at
+// the top of app.js from config/app-version.json, the one source the server reads too. A source
+// evaluated without that line (a guard compiling this file directly) sends '', and the server
+// then stamps its own copy of the same value.
+const ezikAppVersion = () => (typeof EZIK_APP_VERSION === 'string' ? EZIK_APP_VERSION : '');
 // The three the server accepts, in the order the order names them, and the labels are dictionary
 // keys so the three choices read in the language the rest of the panel reads in.
 const EZIK_FB_TYPES = [
@@ -21793,6 +21798,7 @@ function EzikFeedbackSheet({ onBack, onSignIn, onSeen }) {
           text: body.slice(0, EZIK_FB_TEXT_CAP),
           contact: contact.trim().slice(0, EZIK_FB_CONTACT_CAP),
           session: held.session,
+          appv: ezikAppVersion(),
         }),
       });
     } catch (e) {

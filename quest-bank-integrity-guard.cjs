@@ -1425,7 +1425,16 @@ const SEALED = {
 //                    bumping THAT store would wipe tens of megabytes of page scans off readers'
 //                    devices, and it is a different store with a different life.
 //                    THIS digest is re-cut LAST, after the name was final.
-  'sw.js': '3a606312d2d64a357239ac25975466fca5b750a84d5e1366e2054601449c59ec',
+  //   2026-09-16-c -- SIDE ROUND, ITEM 106: THE APP VERSION HAS ONE SOURCE. INDEX.HTML DID NOT
+//                    MOVE and NO FILE JOINED OR LEFT CORE: tools/build-app.cjs now writes one
+//                    line, var EZIK_APP_VERSION, from config/app-version.json at the top of the
+//                    bundle, and app.jsx sends it with a feedback message. So only the BUNDLE
+//                    figures moved. app.js was rebuilt by node tools/build-app.cjs, 1776728 ->
+//                    1777203 (+475), and CORE_BYTES was re-cut 2949818 -> 2950293 (+475) by node
+//                    tools/core-bytes.cjs --write and not by hand. sw.js is 48510 bytes before and
+//                    after. SW_CACHE IS NOT BUMPED: the store name is the merge round's decision.
+//                    THIS digest is re-cut LAST, after every other sw.js edit was final.
+  'sw.js': 'a9cb7d9657e3c9cdbfc4d23ebcda3d8b1fd3609aee742e013885de1152eaecf1',
 };
 
 // ---------------------------------------------------------------------------
@@ -2550,7 +2559,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1776728, of: 'app.js' },
+      { n: 1777203, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
