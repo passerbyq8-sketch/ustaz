@@ -1390,7 +1390,24 @@ const SEALED = {
 //                    CORE_BYTES, the last two re-cut by node tools/core-bytes.cjs --write and not by
 //                    hand. SW_CACHE above follows the name in this same commit, and THIS digest is
 //                    re-cut LAST, after every other sw.js edit was final.
-  'sw.js': '943728b0fe2040c14a14eb7fda93caf0521bde1c1e514627a104dbeb63c125ca',
+  //   2026-09-16-a -- SIDE ROUND, ITEM 102: THE ANSWER IS TYPED INSTEAD OF FLASHED AND THE PAGE
+//                    STAYS ON THE QUESTION. INDEX.HTML DID NOT MOVE and NO FILE JOINED OR LEFT
+//                    CORE: the whole item is app.jsx -- the reveal queue gained a ceiling, the
+//                    completion waits for that queue instead of emptying it, and the ask pin is no
+//                    longer disarmed by the turn going quiet. So the shell figure and its mirror
+//                    were already true and only the BUNDLE figures moved. app.js was rebuilt from
+//                    app.jsx by node tools/build-app.cjs, 1766936 -> 1776728 (+9792), and
+//                    CORE_BYTES was re-cut 2940026 -> 2949818 (+9792) by node
+//                    tools/core-bytes.cjs --write and not by hand. sw.js is 48510 bytes before and
+//                    after, because both figures are the same seven digits wide.
+//                    SW_CACHE IS DELIBERATELY NOT BUMPED HERE, and that is a decision and not an
+//                    oversight: the CORE_BYTES prose above says the store name is a ship decision
+//                    the merge round owns, and this branch is neither shipped nor pushed. The
+//                    2026-09-15-e entry bumped it for the opposite reason -- that branch WAS the
+//                    trip -- so whoever ships this one decides the name, and the report for item
+//                    102 says so out loud rather than leaving it to be noticed.
+//                    THIS digest is re-cut LAST, after every other sw.js edit was final.
+  'sw.js': 'b23d01e1d13842c4d01c2726bdd8a8ef93a235133cb7761a9d21d7c91d4ea530',
 };
 
 // ---------------------------------------------------------------------------
@@ -2515,7 +2532,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1766936, of: 'app.js' },
+      { n: 1776728, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
