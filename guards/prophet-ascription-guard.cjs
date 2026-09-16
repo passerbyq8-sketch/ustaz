@@ -38,6 +38,17 @@
 // between «…» with no block, rounds one/three/five of the measurement) is therefore INVISIBLE to
 // this guard BY DESIGN, and section D proves that blindness is a decision and not an accident.
 //
+// ── THE KNOWN LIMIT — A DECISION, NOT A GAP (البند ٣٦ · الإصلاحُ الضيّق · ١٦ سبتمبر ٢٠٢٦) ──────
+//
+// THE DEFECT IS NOT CAUGHT WHEN THE TAGGED MATN CARRIES NO ANCHOR NAMING SOMEONE ELSE.
+// «لا يُلتقَطُ العطبُ إذا خلا المتنُ الموسومُ من مرساةِ الغير — حدٌّ مقصودٌ لا نقص.» Round three of
+// the witness of ١٦ سبتمبر is exactly that shape: «<hadith>كَانَ يَنَامُ نِصْفَ اللَّيْلِ…</hadith>»
+// with no داود in it. Nothing INSIDE THE ANSWER then says the description belongs to anyone but the
+// Prophet ﷺ, and a verdict would be a guess. ITS REMEDY IS FORBIDDEN, because every remedy brings
+// in a judgement without evidence: a list of remembered matns, a comparison against an outside
+// source, or any verdict the answer itself does not prove. It stays uncaught on purpose, and it is
+// written here so that nobody "fixes" it.
+//
 // ── THE PROPHET FRAME IS BORROWED, NEVER RE-WRITTEN ─────────────────────────────────────────
 //
 // lib/output-reviewer.js:838 holds `PROPHET_FRAME_RE` and it is the ONLY place in this tree that
@@ -213,7 +224,15 @@ function detectStolenAscription(answer, opts) {
     const body = scripture(matn.text);
     const run = longestSharedRun(proseTokens, tokenize(body));
     if (run.len < minRun) return;
-    const proseAnchor = nearestBefore(proseAnchors, run.aAt);
+    let proseAnchor = nearestBefore(proseAnchors, run.aAt);
+    // A COMPANION'S ترضّي IS TRANSPARENT, AND ONLY IT. «كما وصفته عائشة رضي الله عنها» names who
+    // REPORTED the description, not whose it is — so the rule looks ONE anchor further back, and if
+    // that one names the Prophet ﷺ, the prose is ascribed to him. Exactly one skip, never two; a
+    // prophet's «عليه السلام» and any other name stay decisive as they were.
+    if (proseAnchor && proseAnchor.kind === 'other' && /رضي\s+الله\s+عنه/u.test(proseAnchor.text)) {
+      const behind = nearestBefore(proseAnchors, proseAnchor.at);
+      if (behind && behind.kind === 'prophet') proseAnchor = behind;
+    }
     const matnAnchor = nearestBefore(anchorsOf(body, o.frame, o.namesTheProphet), run.bAt);
 
     const proseSaysProphet = o.ignoreProseAnchor ? true : Boolean(proseAnchor && proseAnchor.kind === 'prophet');
