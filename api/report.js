@@ -36,6 +36,12 @@ const MAX_REPORT_BODY_BYTES = (LONGEST_CARD_CHARS * 2 * 2) + 8 * 1024; // 21812
 const AI_USER_CAP = LONGEST_CARD_CHARS * 2; // 6810 — a reply may quote a whole card
 const NOTE_CAP = 500;
 const MODE_CAP = 40;
+// ITEM 106 -- the build the report came from. The same shape api/feedback.js accepts, checked
+// here in place because this route imports nothing for it. Anything else -- absent, empty or
+// malformed -- is stored as '' and NOT replaced by the server's version: a report often comes
+// from an old bundle cached on a returning reader, and stamping this build on it would record a
+// version that is not true. The owner's inbox draws '' as a dash, which says "unknown".
+const APPV_RE = /^[A-Za-z0-9._-]{1,40}$/;
 
 const REASONS = new Set(['wrong_info', 'wrong_ruling', 'inappropriate', 'other']);
 const BANDS = new Set(['young', 'teen', 'adult']);
@@ -92,6 +98,7 @@ export default async function handler(req, res) {
     user: cut(body.user, AI_USER_CAP),
     band,
     mode: cut(body.mode, MODE_CAP),
+    appv: typeof body.appv === 'string' && APPV_RE.test(body.appv) ? body.appv : '',
     ts: new Date().toISOString(),
   };
 

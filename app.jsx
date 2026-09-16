@@ -18897,7 +18897,7 @@ function App() {
     let a = (typeof R.ai === 'string' ? R.ai : '').slice(0, 3500);
     let u = (typeof R.user === 'string' ? R.user : '').slice(0, 3500);
     const enc = new TextEncoder();
-    const build = () => JSON.stringify({ reason, note: (note || '').slice(0, 500), ai: a, user: u, band: caps.band, mode: 'chat' });
+    const build = () => JSON.stringify({ reason, note: (note || '').slice(0, 500), ai: a, user: u, band: caps.band, mode: 'chat', appv: ezikAppVersion() });
     let body = build();
     let n = 0;
     while (enc.encode(body).length > 20000 && n < 40) {

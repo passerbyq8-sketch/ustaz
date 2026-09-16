@@ -1443,7 +1443,16 @@ const SEALED = {
 //                    tools/core-bytes.cjs --write. INDEX.HTML DID NOT MOVE and no file joined or left
 //                    CORE. sw.js is 48510 bytes before and after (same-width name and figures).
 //                    THIS digest is re-cut LAST, after every other sw.js edit was final.
-  'sw.js': '3ab6464483b777fad1a98a9afae80a0c650862b3269b6348842f9309d9061ab1',
+  //   2026-09-16-e -- ITEM 106-D: THE VERSION RIDES THE REPORT PATH, CLEANED AND NEVER STAMPED.
+//                    app.jsx's report sender now carries appv from the same built constant the
+//                    feedback sender uses; api/report.js keeps it only if it has a build's shape
+//                    and otherwise stores '' -- it imports nothing new. The store name did NOT
+//                    move -- it stays at v38. app.js was rebuilt by node tools/build-app.cjs,
+//                    1777634 -> 1777656 (+22), and CORE_BYTES was re-cut 2950724 -> 2950746 (+22)
+//                    by node tools/core-bytes.cjs --write. INDEX.HTML DID NOT MOVE and no file joined
+//                    or left CORE. sw.js is 48510 bytes before and after.
+//                    THIS digest is re-cut LAST, after every other sw.js edit was final.
+  'sw.js': '3f1c32ec0756482c7f0beee445f2feeec715c39fea4fcc4b4445311aebb5b7be',
 };
 
 // ---------------------------------------------------------------------------
@@ -2577,7 +2586,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1777634, of: 'app.js' },
+      { n: 1777656, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

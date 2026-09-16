@@ -69,10 +69,11 @@ export const OWNER_ACTIONS = Object.freeze(['list', 'read', 'reply', 'delete']);
  * FEEDBACK_KEY and 'reports' is api/report.js's REPORTS_KEY -- neither is created here and
  * neither is written here except by `reply`, which writes a key of its own beside them.
  *
- * 🔴 'reports' IS READ-ONLY ON THIS ROUTE -- DECISION ج١٠. api/report.js is not opened for edit,
- * its records carry no account, and no branch below can write into that list or answer one of its
- * items. The refusal is STRUCTURAL rather than a flag: `reply` searches the feedback list and
- * only the feedback list, so an id that belongs to a report is an id this route cannot find.
+ * 🔴 'reports' IS READ-ONLY ON THIS ROUTE -- DECISION ج١٠. api/report.js is not opened for edit
+ * (item 106 opened it for the `appv` version field only), its records carry no account, and
+ * no branch below can write into that list or answer one of its items. The refusal is STRUCTURAL
+ * rather than a flag: `reply` searches the feedback list and only the feedback list, so an id that
+ * belongs to a report is an id this route cannot find.
  */
 const KINDS = Object.freeze(['feedback', 'reports']);
 
