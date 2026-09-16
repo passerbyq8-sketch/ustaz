@@ -915,6 +915,16 @@ function analyse(dump, rec) {
   const qDuring = withQ.filter((f) => answerEndMs === null || f[0] <= answerEndMs).map((f) => f[8]);
   const qMaxDuring = qDuring.length ? Math.max(...qDuring.map((v) => Math.abs(v))) : null;
 
+  // ── THE COST OF PAINTING IS MEASURED AGAINST message_stop, NOT AGAINST THE LAST text_delta ──
+  // The first version of this subtracted the last delta's time, and it is the wrong end of the
+  // interval. MEASURED: on one run the server sent its final text at 16,180ms and did not close
+  // the stream until 25,088ms -- an 8.9 SECOND pause of the server's own, after which the client
+  // resolved and handed over 20ms later. The old metric read that as "the painting trailed by
+  // 8.9s" and charged the queue for it. The turn is not over for the reader until the answer is
+  // complete, so what the queue actually costs is the time it keeps painting AFTER the stream
+  // says it has finished.
+  const stopEvent = rec.events.filter((e) => e.kind === 'message_stop');
+  const stopMs = stopEvent.length ? stopEvent[stopEvent.length - 1].t : null;
   const rawDeltas = rec.events.filter((e) => e.kind === 'content_block_delta');
   const rawGaps = [];
   for (let i = 1; i < rawDeltas.length; i += 1) rawGaps.push(rawDeltas[i].t - rawDeltas[i - 1].t);
@@ -940,6 +950,8 @@ function analyse(dump, rec) {
     bigUpdateShare: adds.length ? Math.round(sum(adds.filter((a) => a >= 40)) / sum(adds) * 100) : null,
     answerEndMs,
     paintTrailMs: answerEndMs !== null && rawDeltas.length ? answerEndMs - rawDeltas[rawDeltas.length - 1].t : null,
+    streamStopMs: stopMs,
+    paintAfterStopMs: (answerEndMs !== null && stopMs !== null) ? answerEndMs - stopMs : null,
     previewRetiredMs,
     questionOffsetMaxDuring: qMaxDuring,
     questionOffsetAtPinLoss: qAtPinLoss,
@@ -1151,7 +1163,9 @@ async function main() {
     log('  chars per update  mean    ' + a.addMean + '   median ' + a.addMedian + '   p90 ' + a.addP90 + '   MAX ' + a.addMax);
     log('  gap between updates ms    mean ' + a.gapMean + '   median ' + a.gapMedian + '   p90 ' + a.gapP90 + '   MAX ' + a.gapMax);
     log('  share of the answer arriving in updates of 40+ chars   ' + a.bigUpdateShare + '%');
-    log('  last paint                ' + a.answerEndMs + ' ms   (trailing the last delta by ' + a.paintTrailMs + ' ms)');
+    log('  last paint                ' + a.answerEndMs + ' ms   (last text_delta + ' + a.paintTrailMs + ' ms)');
+    log('  stream said it finished at ' + a.streamStopMs + ' ms');
+    log('  >>> COST OF PAINTING      ' + a.paintAfterStopMs + ' ms painted after the stream finished');
     log('--- RAW ARRIVAL (server side of the same run) ---------------------');
     log('  text_delta events         ' + a.rawDeltaCount);
     log('  first / last delta ms     ' + a.rawFirstDeltaMs + ' / ' + a.rawLastDeltaMs);
