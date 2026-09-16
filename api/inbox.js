@@ -267,6 +267,9 @@ function listRow(item, marks) {
     text: typeof o.text === 'string' ? o.text : (typeof o.note === 'string' ? o.note : ''),
     contact: typeof o.contact === 'string' ? o.contact : '',
     ts: typeof o.ts === 'string' ? o.ts : '',
+    // ITEM 106-B -- which build the message came from. '' for a record that predates the field;
+    // the panel draws a dash for it rather than a blank.
+    appv: typeof o.appv === 'string' ? o.appv : '',
   };
 }
 

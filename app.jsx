@@ -21934,6 +21934,9 @@ function EzikFeedbackSheet({ onBack, onSignIn, onSeen }) {
 // real 'list' call with 200 -- see probeInbox() in the root -- so a reader who edits this page's
 // state into showing the row is a reader who then meets the same 401 the row was hiding.
 const EZIK_INBOX_ROUTE = '/api/inbox';
+// ITEM 106-B -- the build a message came from, as the owner reads it. An absent or empty version
+// is drawn as a dash, never as a blank, so a missing value is visible as missing.
+const ezikInboxAppv = (v) => (typeof v === 'string' && v.trim() ? v : '—');
 const EZIK_INBOX_TIMEOUT_MS = 12000;
 
 // THE ONE CALL, IN THE SHAPE ezikArticlesAdmin() ALREADY HAS. Same route discipline, same
@@ -22204,6 +22207,7 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
           <div style={s.artRowMeta}>
             <span style={s.artQaMark}>{ezT(EZIK_INBOX_STATE_K[it.state] || 'inbox.stateNew')}</span>
             <span style={s.artRowDate}>{ezikInboxWhen(it.ts)}</span>
+            <span style={s.artRowDate} dir="ltr">{ezikInboxAppv(it.appv)}</span>
           </div>
           <div style={s.asmaaField}>
             <span style={s.artFieldLabel}>{ezT('inbox.from')}</span>
@@ -22357,6 +22361,7 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
                   <div style={s.artRowMeta}>
                     <span style={s.artQaMark}>{ezT(EZIK_INBOX_STATE_K[r.state] || 'inbox.stateNew')}</span>
                     <span style={s.artRowDate}>{ezikInboxWhen(r.ts)}</span>
+                    <span style={s.artRowDate} dir="ltr">{ezikInboxAppv(r.appv)}</span>
                     {r.hasSender === false ? <span style={s.artRowDate}>{ezT('inbox.noSender')}</span> : null}
                   </div>
                   <span style={s.artRowTitle} dir="auto">{r.text}</span>

@@ -1434,7 +1434,16 @@ const SEALED = {
 //                    tools/core-bytes.cjs --write and not by hand. sw.js is 48510 bytes before and
 //                    after. SW_CACHE IS NOT BUMPED: the store name is the merge round's decision.
 //                    THIS digest is re-cut LAST, after every other sw.js edit was final.
-  'sw.js': 'a9cb7d9657e3c9cdbfc4d23ebcda3d8b1fd3609aee742e013885de1152eaecf1',
+  //   2026-09-16-d -- ITEM 106-B: THE STORE NAME MOVES ONE STEP AND IS READ FROM ONE SOURCE.
+//                    CACHE in sw.js and app_version in config/app-version.json moved v37 -> v38
+//                    together, and SW_CACHE here stopped being typed: it is read from that file, so
+//                    B11 now holds sw.js to the version file. app.jsx gained the version on the
+//                    owner inbox rows, so app.js was rebuilt by node tools/build-app.cjs, 1777203 ->
+//                    1777634 (+431), and CORE_BYTES was re-cut 2950293 -> 2950724 (+431) by node
+//                    tools/core-bytes.cjs --write. INDEX.HTML DID NOT MOVE and no file joined or left
+//                    CORE. sw.js is 48510 bytes before and after (same-width name and figures).
+//                    THIS digest is re-cut LAST, after every other sw.js edit was final.
+  'sw.js': '3ab6464483b777fad1a98a9afae80a0c650862b3269b6348842f9309d9061ab1',
 };
 
 // ---------------------------------------------------------------------------
@@ -1458,7 +1467,16 @@ const SEALED = {
 // instead of with "sw.js MOVED".
 // ---------------------------------------------------------------------------
 const SW_FILE = 'sw.js';
-const SW_CACHE = 'ezik-v37';
+// ITEM 106-B -- THE STORE NAME IS READ, NOT RETYPED. config/app-version.json is the one source of the
+// version; sw.js's CACHE is the only other hand-written copy, and B11 below is what holds the two
+// together: the worker must open exactly the store this file names.
+const SW_CACHE = (() => {
+  const v = JSON.parse(fs.readFileSync(path.join(__dirname, 'config', 'app-version.json'), 'utf8')).app_version;
+  if (typeof v !== 'string' || !/^[A-Za-z0-9._-]{1,40}$/.test(v)) {
+    throw new Error('config/app-version.json: app_version is not a usable store name: ' + JSON.stringify(v));
+  }
+  return v;
+})();
 const SW_ORIGIN = 'https://ezik.app';
 // ITEM 93-B. The tag on the end-of-install brief the worker pushes to every client. Written here
 // rather than read back out of sw.js, because "the worker sent whatever the worker calls it" is a
@@ -2559,7 +2577,7 @@ async function compare(goldenPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1777203, of: 'app.js' },
+      { n: 1777634, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
