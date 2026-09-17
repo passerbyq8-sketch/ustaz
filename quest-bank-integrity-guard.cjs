@@ -1459,7 +1459,7 @@ const SEALED = {
 //                    in sw.js and the SW_PROSE mirror of it in B14 follow. sw.js is 48468 bytes
 //                    before and after. The store name did NOT move -- it is the merge round's call.
 //                    THIS digest is re-cut LAST, after every other sw.js edit was final.
-  'sw.js': '96d616a2b9a398ada27e474065f9c67d9b71b82b396dcb0a5135a7528b7ae32b',
+  'sw.js': 'b19acf8aa4cc7ef689abde8954353b2acbcec6f72252631019981e1c5d3fdfa1',
 };
 
 // ---------------------------------------------------------------------------
@@ -2415,7 +2415,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1777668, of: 'app.js' },
+      { n: 1780467, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
