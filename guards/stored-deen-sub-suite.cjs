@@ -681,6 +681,11 @@ async function runSuite() {
     // gate lifts the literal out of all three by text and reds by naming the one that moved.
     // The fifth stop was reached deliberately, from the note above and not from a red gate.
     //
+    // SAME ROUND, LATER: a FOURTH copy was found -- inline inside `const SW_CACHE` in
+    // quest-bank-integrity-guard.cjs -- and the gate was widened to hold all four. The roster
+    // did not move (no new gate, so none of the five stops applies); only the gate's own reader
+    // did, from "the const IS the literal" to "the const's initialiser statement CONTAINS it".
+    //
     // ITEM 10 (2026-09-17): 115 -> 111 -- the Kunuz modes replaced the treasure journey; six
     // gates retired with the files they read (reveal, quranquest, prayerquest, contentreview,
     // questux, worldparity) and two joined (kunuznorepeat, kunuzcats). Same rule as below.
