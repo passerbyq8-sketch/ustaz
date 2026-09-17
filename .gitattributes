@@ -772,3 +772,15 @@ guards/kunuz-sim/world.cjs text eol=lf
 quest.html text eol=lf
 quest-ghaws.html text eol=lf
 quest-harb.html text eol=lf
+
+# ITEM 107 -- the report route and the version file both of its sibling routes read. MEASURED
+# 2026-09-17 at 39a228c, before this line existed: git stores api/report.js LF (5349 bytes, 117 LF,
+# 0 CR) and config/app-version.json LF (32 bytes, 3 LF, 0 CR), while this machine's
+# core.autocrlf=true checked both out CRLF (`git ls-files --eol`: i/lf w/crlf attr/ empty). These
+# lines pin what is ALREADY stored and flip nothing. api/report.js is pinned for the reasons
+# api/feedback.js and api/inbox.js above are -- the three share one inbox and lock-package-guard
+# reads this one raw; config/app-version.json because tools/build-app.cjs and
+# quest-bank-integrity-guard.cjs both parse it, and a file two readers depend on should read the same
+# on every machine.
+api/report.js            text eol=lf
+config/app-version.json  text eol=lf

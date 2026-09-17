@@ -43,6 +43,13 @@ const MODE_CAP = 40;
 // version that is not true. The owner's inbox draws '' as a dash, which says "unknown".
 const APPV_RE = /^[A-Za-z0-9._-]{1,40}$/;
 
+// ITEM 107 -- where the report was raised. Five closed values and no sixth: the chat reply, a Kunuz
+// question on its card in either mode, or either Kunuz mode itself. Anything else -- absent, empty or
+// unknown -- is stored as '' and is NOT replaced by a value this route makes up, and it is not a 400
+// either: an old bundle cached on a returning reader sends no `source` at all, and its report must
+// still arrive. The owner's inbox draws '' as a dash.
+const SOURCES = new Set(['chat', 'ghaws-question', 'harb-question', 'ghaws-game', 'harb-game']);
+
 const REASONS = new Set(['wrong_info', 'wrong_ruling', 'inappropriate', 'other']);
 const BANDS = new Set(['young', 'teen', 'adult']);
 
@@ -98,7 +105,9 @@ export default async function handler(req, res) {
     user: cut(body.user, AI_USER_CAP),
     band,
     mode: cut(body.mode, MODE_CAP),
+    // ONE RULE FOR THE VERSION IN BOTH ROUTES (api/feedback.js appvOf): the client's value if it has a build's shape, else ''.
     appv: typeof body.appv === 'string' && APPV_RE.test(body.appv) ? body.appv : '',
+    source: typeof body.source === 'string' && SOURCES.has(body.source) ? body.source : '',
     ts: new Date().toISOString(),
   };
 

@@ -93,13 +93,19 @@ const FEEDBACK_KEEP = 5000; // LTRIM 0 4999 — the newest 5000 only; bounded on
 
 // THE VERSION FIELD -- ITEM 106. One source of truth, config/app-version.json, read by both ends:
 // tools/build-app.cjs writes it into app.js and the client sends it as `appv`; this route imports
-// the same file. The client's value is kept only if it has the shape a build writes, and anything
-// else -- absent, empty, or malformed -- is replaced by the server's copy, so a stored record never
-// carries '' and never carries a string a caller made up in a shape no build produces.
+// the same file. The client's value is kept only if it has the shape a build writes.
+//
+// ITEM 107 -- AND ANYTHING ELSE IS STORED AS '', NO LONGER REPLACED BY THE SERVER'S COPY. A message
+// often comes from an old bundle cached on a returning reader, and stamping THIS build on it recorded
+// a version that reader was not running. '' says "unknown", and the owner's inbox draws it as a dash.
+// APP_VERSION is now read by nothing on this route. It stays, with its import, because
+// tools/build-app.cjs states that this route imports the same file, and removing it is that tool's
+// comment going false in a change that was not allowed to open it.
 const APP_VERSION = typeof appVersionFile.app_version === 'string' ? appVersionFile.app_version : '';
 const APPV_RE = /^[A-Za-z0-9._-]{1,40}$/;
+// ONE RULE FOR THE VERSION IN BOTH ROUTES (api/report.js record.appv): the client's value if it has a build's shape, else ''.
 function appvOf(v) {
-  return typeof v === 'string' && APPV_RE.test(v) ? v : APP_VERSION;
+  return typeof v === 'string' && APPV_RE.test(v) ? v : '';
 }
 
 // Coerce to string and hard-cut to `n` characters. Non-strings collapse to ''. Copied from

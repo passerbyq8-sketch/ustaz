@@ -271,6 +271,9 @@ function listRow(item, marks) {
     // ITEM 106-B -- which build the message came from. '' for a record that predates the field;
     // the panel draws a dash for it rather than a blank.
     appv: typeof o.appv === 'string' ? o.appv : '',
+    // ITEM 107 -- where a report was raised (api/report.js SOURCES). '' for a record that predates
+    // the field and for every message in the feedback list; the panel draws a dash for it.
+    source: typeof o.source === 'string' ? o.source : '',
   };
 }
 

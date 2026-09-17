@@ -228,6 +228,25 @@ textarea:focus{outline:none;border-color:var(--azraq)}
   border-radius:12px;border:1px solid var(--line);background:var(--white);color:var(--ghawr);
   font-family:var(--hd);font-size:1rem;font-weight:600;text-decoration:none}
 .kz-nav a:hover,.kz-nav a:focus-visible{border-color:var(--azraq)}
+/* item 107: the report doors -- a question from its card while playing, the game itself from the mode home and the result. */
+.kzr-flag{display:flex;align-items:center;gap:6px;width:-webkit-fit-content;width:fit-content;min-height:44px;margin:-4px 0 10px;
+  margin-inline-start:auto;padding:0 12px;background:none;border:1px solid var(--line);border-radius:10px;color:var(--muted);
+  font-family:var(--hd);font-size:.85rem;cursor:pointer}
+.kzr-flag svg{width:14px;height:14px}
+.kzr-flag:hover,.kzr-flag:focus-visible{border-color:var(--azraq);color:var(--ghawr)}
+.qtext:empty+.kzr-flag{display:none}
+.kzr-row{text-align:center;margin-top:14px}
+.kzr-row button{background:none;border:0;min-height:44px;padding:6px 10px;color:var(--muted);font:inherit;font-size:.88rem;
+  cursor:pointer;text-decoration:underline}
+.kzr{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center;background:rgba(11,59,84,.45)}
+.kzr-card{width:100%;max-width:620px;max-height:90vh;max-height:90dvh;overflow-y:auto;background:var(--white);
+  border-radius:18px 18px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom))}
+.kzr-card h2{font-family:var(--hd);font-size:1.15rem;color:var(--ghawr);margin:0 0 10px}
+.kzr-q{background:var(--sea0);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 12px;
+  font-size:.95rem;line-height:1.8}
+.kzr-lbl{display:block;color:var(--muted);font-size:.88rem;margin:0 0 4px}
+.kzr-msg{min-height:1.4em;margin:8px 0;font-size:.9rem;color:var(--ink)}
+.kzr-msg.bad{color:var(--no)}
 </style>
 </head>
 <body>
@@ -247,6 +266,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
   <button class="mode" data-go="cfgc"><b>طاقم على جهاز واحد</b>
     <span>من اثنين إلى ستّة — يغوص كلّ واحد بدوره ولا يتكرّر سؤال بين الغوّاصين، ثمّ يُعرض لوح السفينة</span></button>
   <button class="mode" data-go="how"><b>كيف تُلعب</b><span>القامة · النفَس · الحصيلة · الأدوات الثلاث</span></button>
+  <div class="kzr-row"><button type="button" data-kzr="game">الإبلاغ عن مشكلة في اللعبة</button></div>
 </section>
 
 <section id="how" class="hidden">
@@ -355,6 +375,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
   <div class="panel" id="panel">
     <div class="stat"><span id="stat" role="status"></span><button class="exit" id="quit">خروج</button></div>
     <h2 class="qtext" id="qtext"></h2>
+    <button type="button" class="kzr-flag" data-kzr="question" aria-label="الإبلاغ عن خطأ في هذا السؤال"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 15V1.5M3.5 2.5h9l-2.2 3.5 2.2 3.5h-9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>إبلاغ</button>
     <div class="opts" id="opts"></div>
     <div class="why" id="why"></div>
     <button class="sr" id="bankBtn">اطلع بالحصيلة — ٠</button>
@@ -370,6 +391,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
     <div class="row"><button class="btn" data-go="home">الرئيسة</button>
       <button class="btn solid" id="again">غوصة أخرى</button></div>
     <button class="btn" id="toVerdict" style="margin-top:10px">عندي رأي في الطريقة</button>
+    <div class="kzr-row"><button type="button" data-kzr="game">الإبلاغ عن مشكلة في اللعبة</button></div>
   </div>
 </section>
 
@@ -381,6 +403,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
   <div class="row"><button class="btn" data-go="home">الرئيسة</button>
     <button class="btn solid" id="crewAgain">جولة ثانية</button></div>
   <button class="btn" id="toVerdict2" style="margin-top:10px">عندي رأي في الطريقة</button>
+  <div class="kzr-row"><button type="button" data-kzr="game">الإبلاغ عن مشكلة في اللعبة</button></div>
 </section>
 
 <section id="verdict" class="hidden">
@@ -395,6 +418,25 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 </section>
 
 </div>
+<!-- item 107: the report sheet. One sheet for both doors; the script fills its title and field. -->
+<div class="kzr hidden" id="kzr" role="dialog" aria-modal="true" aria-labelledby="kzrTitle">
+  <div class="kzr-card">
+    <h2 id="kzrTitle">—</h2>
+    <p class="kzr-q hidden" id="kzrQ"></p>
+    <div id="kzrForm">
+      <label class="kzr-lbl" for="kzrNote" id="kzrLbl">—</label>
+      <textarea id="kzrNote" maxlength="500" rows="3"></textarea>
+      <p class="kzr-msg" id="kzrMsg" role="status"></p>
+      <div class="row"><button class="btn" type="button" id="kzrCancel">إلغاء</button>
+        <button class="btn solid" type="button" id="kzrSend">أرسِل</button></div>
+    </div>
+    <div class="hidden" id="kzrDone">
+      <p class="kzr-msg">وصل بلاغُك. شكرًا لك.</p>
+      <button class="btn solid" type="button" id="kzrClose">إغلاق</button>
+    </div>
+  </div>
+</div>
+
 <script src="/quest-data/kunuz-bank-3147.js"></script>
 <script>
 var VALS=[1,2,3,5,8,13,21,34,55,89,144,233,377,610,987,1597,2584,4181,6765,10946];
@@ -730,7 +772,7 @@ function openShell(c){
   var bag=[];
   for(var i=0;i<S.pool.length;i++){var k=S.pool[i];if(!S.used[k]&&DATA.qs[k][0]===c)bag.push(k)}
   var k=bag[Math.floor(Math.random()*bag.length)];S.used[k]=1;seenMark(k);
-  var q=DATA.qs[k];S.cur=q;
+  var q=DATA.qs[k];S.cur=q;KZR.q=q;
   $("shells").querySelectorAll(".shell").forEach(function(b){b.disabled=true;
     b.classList.add(+b.dataset.cat===c?"open":"shut")});
   $("why").className="why";
@@ -883,7 +925,7 @@ function startB(){
   stat(L?("النفَس "+cntS(L/1000)):"بلا مهلة");
   if(!L)return;
   S.t0=performance.now();
-  function step(now){var p=1-(now-S.t0)/L;
+  function step(now){if(KZR.open){S.raf=requestAnimationFrame(step);return}var p=1-(now-S.t0)/L;
     if(p<=0){ring(0);tmo();return}
     ring(mt(1)?p:Math.ceil(p*L/1000)*1000/L);
     if(p<.25&&!$("bw").classList.contains("low")){
@@ -945,6 +987,81 @@ $("copyV").onclick=function(){
 function fb(t,ok){var a=document.createElement("textarea");a.value=t;document.body.appendChild(a);
   a.select();try{document.execCommand("copy");ok()}catch(e){$("copied").textContent="انسخه يدويًّا من الأعلى"}
   document.body.removeChild(a)}
+/* ───── البند ١٠٧: الإبلاغ ─────
+   بابان إلى /api/report من الأصل نفسه: سؤالٌ من بطاقته أثناء اللعب، واللعبةُ نفسها من رئيسيّة الطور وشاشة النتيجة.
+   السؤال في user، والجواب ومعه الخيارات في ai، وsource وسمُ المصدر — من خمس قيم مغلقة يعرفها الخادم.
+   reason قيمةٌ يقبلها الخادم اليوم (other)، وappv فارغ لأنّ الصفحة لا تحمل نسخة، وband فارغ لأنّها لا تعرف عمرًا.
+   حارس الحجم يقيس بايتات UTF-8 الحقيقيّة ويقلّص ai ثمّ user حتّى ينزل الجسم تحت 20000 — على منوال submitReport في app.jsx.
+   ولا نجاح إلّا على 200 حقيقيّ؛ 429 كثرة إرسال؛ وما سواهما لم يصل.
+   والورقة مفتوحةً توقف المؤقّت ولا تُغلق الجولة: الخطوة تنتظر، والإغلاق يزيح بدايته بقدر ما انتظر. */
+var KZR={mode:"ghaws",open:false,at:0,q:null,snap:null,kind:"",busy:false,seq:0,from:null};
+function kzrBytes(s){
+  if(typeof TextEncoder==="function")return new TextEncoder().encode(s).length;
+  var n=0;for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);
+    if(c<128)n+=1;else if(c<2048)n+=2;
+    else if(c>=55296&&c<56320&&i+1<s.length&&(s.charCodeAt(i+1)&64512)===56320){n+=4;i++}
+    else n+=3}
+  return n}
+function kzrAnswer(q){
+  var o=Array.isArray(q[4])?q[4]:[],a=o[q[5]];
+  var t="الجواب: "+(a===undefined?"—":String(a));
+  if(o.length)t+="\nالخيارات: "+o.map(String).join(" · ");
+  return t}
+function kzrBody(note){
+  var game=KZR.kind==="game",q=KZR.snap;
+  var u=(game||!q)?"":String(q[3]).slice(0,3500),a=(game||!q)?"":kzrAnswer(q).slice(0,3500);
+  var src=KZR.mode+(game?"-game":"-question");
+  var build=function(){return JSON.stringify({reason:"other",note:note.slice(0,500),ai:a,user:u,band:"",mode:KZR.mode,appv:"",source:src})};
+  var body=build(),n=0;
+  while(kzrBytes(body)>20000&&n<40){
+    if(n%2===0)a=a.slice(0,Math.floor(a.length/2));else u=u.slice(0,Math.floor(u.length/2));
+    body=build();n++}
+  return body}
+function kzrMsg(t,bad){$("kzrMsg").textContent=t;$("kzrMsg").className="kzr-msg"+(bad?" bad":"")}
+function kzrOpen(kind,from){
+  if(KZR.open)return;
+  var game=kind==="game";
+  if(!game&&(kind!=="question"||!KZR.q||!$("qtext").textContent))return;
+  KZR.kind=game?"game":"question";KZR.snap=game?null:KZR.q;
+  KZR.open=true;KZR.at=performance.now();KZR.busy=false;KZR.seq++;KZR.from=from||null;
+  $("kzrTitle").textContent=game?"الإبلاغ عن مشكلة في اللعبة":"الإبلاغ عن خطأ في السؤال";
+  $("kzrQ").textContent=game?"":String(KZR.snap[3]);$("kzrQ").classList.toggle("hidden",game);
+  $("kzrLbl").textContent=game?"صِف المشكلة":"ملاحظة (اختياري)";
+  var t=$("kzrNote");t.value="";t.rows=game?4:3;
+  kzrMsg("",false);$("kzrSend").disabled=false;$("kzrSend").textContent="أرسِل";
+  $("kzrForm").classList.remove("hidden");$("kzrDone").classList.add("hidden");
+  $("kzr").classList.remove("hidden");
+  try{t.focus()}catch(e){}
+}
+function kzrClose(){
+  if(!KZR.open)return;
+  var now=performance.now();
+  KZR.open=false;$("kzr").classList.add("hidden");
+  S.t0+=now-Math.max(KZR.at,S.t0);
+  if(KZR.from&&KZR.from.focus){try{KZR.from.focus()}catch(e){}}
+}
+function kzrSend(){
+  if(!KZR.open||KZR.busy)return;
+  var note=$("kzrNote").value||"";
+  if(KZR.kind==="game"&&!note.trim()){kzrMsg("اكتب المشكلة أوّلًا — لم يُرسَل شيء.",true);return}
+  var body=kzrBody(note),seq=KZR.seq;
+  KZR.busy=true;$("kzrSend").disabled=true;$("kzrSend").textContent="…";kzrMsg("",false);
+  function fin(st){
+    if(seq!==KZR.seq||!KZR.open)return;
+    KZR.busy=false;$("kzrSend").disabled=false;$("kzrSend").textContent="أرسِل";
+    if(st===200){$("kzrForm").classList.add("hidden");$("kzrDone").classList.remove("hidden");try{$("kzrClose").focus()}catch(e){}}
+    else if(st===429)kzrMsg("أرسلتَ بلاغاتٍ كثيرةً الآن. حاول بعد قليل.",true);
+    else kzrMsg("لم يصل بلاغُك. حاول لاحقًا.",true);
+  }
+  if(typeof fetch!=="function"){fin(0);return}
+  try{fetch("/api/report",{method:"POST",headers:{"Content-Type":"application/json"},body:body})
+    .then(function(r){fin(r?r.status:0)},function(){fin(0)})}catch(e){fin(0)}
+}
+$("kzrCancel").onclick=kzrClose;$("kzrClose").onclick=kzrClose;$("kzrSend").onclick=kzrSend;
+document.addEventListener("click",function(e){
+  var b=e.target&&e.target.closest?e.target.closest("[data-kzr]"):null;if(!b)return;kzrOpen(b.dataset.kzr,b)});
+document.addEventListener("keydown",function(e){if(KZR.open&&e.key==="Escape")kzrClose()});
+window.addEventListener("popstate",function(){kzrClose()});
 </script>
 </body>
 </html>

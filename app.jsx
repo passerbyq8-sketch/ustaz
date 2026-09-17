@@ -851,7 +851,7 @@ const EZ_I18N = {
     'feedback.typeLabel': 'النوع',
     'feedback.typeSuggestion': 'اقتراح',
     'feedback.typeComplaint': 'شكوى',
-    'feedback.typeBug': 'بلاغ خطأ',
+    'feedback.typeBug': 'مشكلة في التطبيق',
     'feedback.textLabel': 'النصّ',
     'feedback.remaining': 'المتبقّي: {n}',
     'feedback.contactLabel': 'وسيلة تواصل (اختياريّة)',
@@ -893,6 +893,11 @@ const EZ_I18N = {
     'inbox.replyNoSender': 'رسالةٌ قديمةٌ بلا مُرسِل، فلا سبيلَ إلى الرَّدِّ عليها.',
     'inbox.replyEmpty': 'اكتُبْ ردًّا قبلَ الحفظ.',
     'inbox.reportsReadOnly': 'البلاغاتُ للقراءةِ فقط، ولا يُردُّ عليها.',
+    'inbox.srcChat': 'المحادثة',
+    'inbox.srcGhawsQ': 'سؤالٌ في الغوص على الكنوز',
+    'inbox.srcHarbQ': 'سؤالٌ في حرب الجزر',
+    'inbox.srcGhawsGame': 'لعبةُ الغوص على الكنوز',
+    'inbox.srcHarbGame': 'لعبةُ حرب الجزر',
     'inbox.remaining': 'المتبقّي: {n}',
     'inbox.window': 'يُعرَضُ أحدثُ {n} رسالةً.',
     'inbox.delete': 'مَسْح',
@@ -1533,7 +1538,7 @@ const EZ_I18N = {
     'feedback.typeLabel': 'Kind',
     'feedback.typeSuggestion': 'Suggestion',
     'feedback.typeComplaint': 'Complaint',
-    'feedback.typeBug': 'Bug report',
+    'feedback.typeBug': 'App problem',
     'feedback.textLabel': 'Your message',
     'feedback.remaining': 'Remaining: {n}',
     'feedback.contactLabel': 'How to reach you (optional)',
@@ -1573,6 +1578,11 @@ const EZ_I18N = {
     'inbox.replyNoSender': 'An older message with no sender, so there is no way to answer it.',
     'inbox.replyEmpty': 'Write a reply before saving.',
     'inbox.reportsReadOnly': 'Reports are read-only and are not replied to.',
+    'inbox.srcChat': 'Chat',
+    'inbox.srcGhawsQ': 'A Treasure Dive question',
+    'inbox.srcHarbQ': 'An Island War question',
+    'inbox.srcGhawsGame': 'The Treasure Dive game',
+    'inbox.srcHarbGame': 'The Island War game',
     'inbox.remaining': 'Remaining: {n}',
     'inbox.window': 'Showing the newest {n} messages.',
     'inbox.delete': 'Delete',
@@ -18897,7 +18907,7 @@ function App() {
     let a = (typeof R.ai === 'string' ? R.ai : '').slice(0, 3500);
     let u = (typeof R.user === 'string' ? R.user : '').slice(0, 3500);
     const enc = new TextEncoder();
-    const build = () => JSON.stringify({ reason, note: (note || '').slice(0, 500), ai: a, user: u, band: caps.band, mode: 'chat', appv: ezikAppVersion() });
+    const build = () => JSON.stringify({ reason, note: (note || '').slice(0, 500), ai: a, user: u, band: caps.band, mode: 'chat', appv: ezikAppVersion(), source: 'chat' });
     let body = build();
     let n = 0;
     while (enc.encode(body).length > 20000 && n < 40) {
@@ -21986,6 +21996,18 @@ const EZIK_INBOX_STATE_K = {
   answered: 'inbox.stateAnswered',
 };
 
+// ITEM 107 -- WHERE A REPORT WAS RAISED, the five closed values api/report.js stores. Anything else --
+// '' from a report that predates the field or came from an old bundle -- is drawn as a dash, exactly
+// as an empty version is, and never as a name invented for it here.
+const EZIK_INBOX_SOURCE_K = {
+  chat: 'inbox.srcChat',
+  'ghaws-question': 'inbox.srcGhawsQ',
+  'harb-question': 'inbox.srcHarbQ',
+  'ghaws-game': 'inbox.srcGhawsGame',
+  'harb-game': 'inbox.srcHarbGame',
+};
+const ezikInboxSourceK = (v) => (typeof v === 'string' && Object.prototype.hasOwnProperty.call(EZIK_INBOX_SOURCE_K, v) ? EZIK_INBOX_SOURCE_K[v] : '');
+
 // 🔴 ERASING IS REAL, AND THE THREE SHAPES OF IT ARE ONE CALL -- RULINGS م١..م٨ OF 2026-09-13.
 // «وحده» sends one id, «المحدَّد» sends the ids that are ticked, «الكل» sends `all: true`; all
 // three are `action: 'delete'` on api/inbox.js and there is no fourth path and no client-side
@@ -22208,6 +22230,7 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
             <span style={s.artQaMark}>{ezT(EZIK_INBOX_STATE_K[it.state] || 'inbox.stateNew')}</span>
             <span style={s.artRowDate}>{ezikInboxWhen(it.ts)}</span>
             <span style={s.artRowDate} dir="ltr">{ezikInboxAppv(it.appv)}</span>
+            {kind === 'reports' ? <span style={s.artRowDate}>{ezikInboxSourceK(it.source) ? ezT(ezikInboxSourceK(it.source)) : '—'}</span> : null}
           </div>
           <div style={s.asmaaField}>
             <span style={s.artFieldLabel}>{ezT('inbox.from')}</span>
@@ -22362,6 +22385,7 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
                     <span style={s.artQaMark}>{ezT(EZIK_INBOX_STATE_K[r.state] || 'inbox.stateNew')}</span>
                     <span style={s.artRowDate}>{ezikInboxWhen(r.ts)}</span>
                     <span style={s.artRowDate} dir="ltr">{ezikInboxAppv(r.appv)}</span>
+                    {kind === 'reports' ? <span style={s.artRowDate}>{ezikInboxSourceK(r.source) ? ezT(ezikInboxSourceK(r.source)) : '—'}</span> : null}
                     {r.hasSender === false ? <span style={s.artRowDate}>{ezT('inbox.noSender')}</span> : null}
                   </div>
                   <span style={s.artRowTitle} dir="auto">{r.text}</span>
