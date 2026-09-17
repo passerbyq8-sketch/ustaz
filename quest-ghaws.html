@@ -407,6 +407,27 @@ function ar(n){return String(n).replace(/[0-9]/g,function(d){return "٠١٢٣٤�
 function $(i){return document.getElementById(i)}
 function show(id){["home","how","cfg","turn","dive","end","board","verdict"].forEach(function(x){
   $(x).classList.add("hidden")});$(id).classList.remove("hidden");window.scrollTo(0,0)}
+/* KZNAV back: play -> cfg -> mode home -> kunuz */
+(function(){
+if(typeof show!=="function")return;
+var _show=show;var atCfg=false;var atPlay=false;
+function isPlay(id){return id!=="home"&&id!=="cfg";}
+try{history.replaceState({kz:"home"},"");}catch(e){}
+show=function(id){
+if(id==="home"&&(atCfg||atPlay)){var n=atPlay?2:1;atCfg=false;atPlay=false;try{history.go(-n);return;}catch(e){}}
+if(id==="cfg"&&atPlay){atPlay=false;try{history.go(-1);return;}catch(e){}}
+if(id==="cfg"&&!atCfg){try{history.pushState({kz:"cfg"},"");}catch(e){}atCfg=true;atPlay=false;}
+else if(isPlay(id)&&!atPlay){try{history.pushState({kz:"play"},"");}catch(e){}atPlay=true;}
+else if(id==="home"){atCfg=false;atPlay=false;}
+_show(id);
+};
+window.addEventListener("popstate",function(ev){
+var k=(ev&&ev.state&&ev.state.kz)||"home";
+if(k==="cfg"){atCfg=true;atPlay=false;_show("cfg");}
+else{atCfg=false;atPlay=false;_show("home");}
+});
+})();
+
 function deep(t){document.documentElement.style.setProperty("--t",t)}
 
 
