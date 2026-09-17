@@ -1674,6 +1674,19 @@ export default async function handler(req, res) {
           url: row.url, title: row.title, passage: row.passage || row.text || '',
         });
       }
+      // AND EVERY ROW A STREAMED UNIT WAS LET GO AGAINST. The unit stream judges a card's takhrij
+      // against the rows the answer had cited when the card was written (lib/free-brain/loop.js
+      // `streamTakhrijRows`). Each is a row the model cited by marker, so it is a quoted page and
+      // not a merely retrieved one. It can still be missing from `out.cited`, whose anchor test
+      // drops a row when its citing sentence did not survive into the delivered text — and a seal
+      // without it would remove a card the reader already holds, which is the prefix break that
+      // closes the answer on its head. Added only when absent, so an ordinary turn is unchanged.
+      for (const row of Array.isArray(out.streamTakhrijRows) ? out.streamTakhrijRows : []) {
+        if (out.cited.includes(row)) continue;
+        storedFinalizerSources.push({
+          url: row.url, title: row.title, passage: row.passage || row.text || '',
+        });
+      }
       // ── §٤: THE MINUTE OF WHAT WAS REMOVED (XC-03) ─────────────────────────
       //
       // WHAT THE LOG COULD NOT SAY. The reviewer's three destructive arms keep the original in
