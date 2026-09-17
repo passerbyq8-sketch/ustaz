@@ -1386,9 +1386,13 @@ async function partE() {
   // sets lang/dir BEFORE the first paint and a bundle loaded at the end of <body> cannot. So the
   // page still names the key, and app.js -- the compiled form of the JSX that also names it --
   // joins it rather than replacing it. Exact in both directions still.
-  eq('the interface-language key is named by exactly the two pages, the built bundle and this guard',
+  eq('the interface-language key is named by exactly the page, the built bundle and this guard',
     scanned.filter((f) => slurp(f).indexOf(S.LANG_KEY) !== -1).sort(),
-    ['app.js', 'guards/i18n-ui-guard.cjs', 'index.html', 'quest.html']);
+    ['app.js', 'guards/i18n-ui-guard.cjs', 'index.html']);
+  // ITEM 10 (2026-09-17): quest.html LEFT this set. The treasure journey that read the key was
+  // replaced by the Kunuz hub and its two modes, which are Arabic pages and name the key nowhere.
+  // The key itself lives on -- the app still writes and reads it -- so the set narrows by exactly
+  // that one file and stays exact in both directions.
   eq('...and no server module reads the device language',
     serverTree.filter((f) => /navigator\s*\.\s*languages?/.test(slurp(f))), []);
   eq('...and no server module carries an interface dictionary',
@@ -1516,97 +1520,17 @@ async function partWorshipFailure() {
 }
 
 /* ===================== G. THE TREASURE JOURNEY =========================== */
-// quest.html is a standalone vanilla page with its own tiny layer. It is checked by reading and
-// by RUNNING that layer in isolation — the page itself is driven by quest-ux-guard, in a real
-// browser, and this guard does not duplicate that.
+// ITEM 10 (2026-09-17). The journey's own language layer (QUEST_I18N, qT, the pre-paint boot that
+// read ezik_ui_lang_v1) left with the journey. What replaced it is three Arabic pages. They are
+// checked for the two properties that still apply: each declares Arabic, right to left, in its
+// markup, and none of them writes the app's language choice -- that choice belongs to the app.
 function partF() {
-  console.log('\n=== F. THE TREASURE JOURNEY (quest.html) ===');
-  const q = fs.readFileSync(path.join(REPO, 'quest.html'), 'utf8');
-
-  ok('the journey reads the language the app stored', /localStorage\.getItem\('ezik_ui_lang_v1'\)/.test(q));
-  // Measured with the prose stripped: the comment above the boot script EXPLAINS this rule by
-  // naming navigator.language, and a scanner reads its own explanation as a use of it.
-  const qCode = q.replace(/<!--[\s\S]*?-->/g, ' ').replace(/\/\*[\s\S]*?\*\//g, ' ');
-  ok('...and does NOT read the device — it is proved in a real browser, which reports a real locale',
-    !/navigator\s*\.\s*languages?/.test(qCode));
-  ok('...and writes nothing: the choice belongs to the app',
-    !/localStorage\.setItem\('ezik_ui_lang_v1'/.test(q));
-  ok('the boot script sets lang, dir and the data attribute before the first paint',
-    /d\.setAttribute\('lang',v\);d\.setAttribute\('dir',v==='ar'\?'rtl':'ltr'\);d\.setAttribute\('data-ez-lang',v\);/.test(q));
-  ok('...inside <head>', q.indexOf("localStorage.getItem('ezik_ui_lang_v1')") < q.indexOf('</head>'));
-  ok('...and the THEME boot still runs before it',
-    q.indexOf("localStorage.getItem('murabbi_theme_v1')") < q.indexOf("localStorage.getItem('ezik_ui_lang_v1')"));
-  ok('an unrecognised stored value falls back to ar rather than breaking the page',
-    /if\(v!=='ar'&&v!=='en'\)\{v='ar';\}/.test(q));
-
-  // The layer, run on its own. It declares no DOM dependency, so it needs no browser. Extract
-  // by JavaScript landmarks rather than one checkout's newline bytes: the previous CRLF-only
-  // terminator returned an empty program when Git materialised this protected page with LF.
-  const extractCore = (source) => {
-    const start = source.indexOf('var QUEST_I18N = {');
-    const lookup = source.indexOf('function qT(', start);
-    const nextModule = source.indexOf('/* ==========================================================', lookup);
-    if (start < 0 || lookup < 0 || nextModule < 0) throw new Error('quest i18n extraction landmark moved');
-    return source.slice(start, nextModule);
-  };
-  const evaluateCore = (source) => {
-    const extracted = extractCore(source);
-    const context = { localStorage: { getItem: () => 'en' }, Object, String, RegExp, JSON };
-    vm.runInContext(extracted, vm.createContext(context), { filename: 'quest-i18n.js' });
-    return { extracted, context };
-  };
-  const evaluated = evaluateCore(q);
-  const core = evaluated.extracted;
-  const sandbox = evaluated.context;
-  const lfEvaluation = evaluateCore(q.replace(/\r\n?/g, '\n')).context;
-  const crlfEvaluation = evaluateCore(q.replace(/\r\n?/g, '\n').replace(/\n/g, '\r\n')).context;
-  eq('the same real dictionary executes under LF and CRLF checkout bytes',
-    [Object.keys(lfEvaluation.QUEST_I18N), Object.keys(crlfEvaluation.QUEST_I18N)],
-    [['ar', 'en'], ['ar', 'en']]);
-  const D = sandbox.QUEST_I18N || {};
-  eq('the journey declares exactly ar and en', Object.keys(D).sort(), ['ar', 'en']);
-  const qa = Object.keys(D.ar || {}), qe = Object.keys(D.en || {});
-  ok('...with keys', qa.length > 0);
-  eq('...and the two halves hold the same keys', qa.filter((k) => qe.indexOf(k) === -1).concat(qe.filter((k) => qa.indexOf(k) === -1)), []);
-  eq('...no empty value on either side',
-    qa.filter((k) => !String(D.ar[k]).trim() || !String(D.en[k]).trim()), []);
-  const ph = (v) => (String(v).match(/\{[A-Za-z0-9_]+\}/g) || []).slice().sort();
-  eq('...and every {placeholder} appears on both sides', qa.filter((k) => JSON.stringify(ph(D.ar[k])) !== JSON.stringify(ph(D.en[k]))), []);
-  // Counted per HALF. Both halves declare the same keys by design, so counting across the whole
-  // block would report every key as its own duplicate.
-  const dup = (s) => { const l = (s.match(/^    '([^']+)':/gm) || []); return l.filter((x, i) => l.indexOf(x) !== i); };
-  const qEnAt = core.indexOf('    en: {');
-  eq('...and no key is declared twice in the ar half', dup(core.slice(0, qEnAt)), []);
-  eq('...nor in the en half', dup(core.slice(qEnAt)), []);
-
-  eq('the lookup substitutes a placeholder', sandbox.qT('quest.review', { n: '3' }).indexOf('3') !== -1, true);
-  eq('...leaves an unsupplied one as authored', sandbox.qT('quest.review').indexOf('undefined'), -1);
-  eq('...and never returns a raw key', sandbox.qT('no.such.key'), '');
-  eq('...and is running in the language that was stored', sandbox.QUEST_LANG, 'en');
-
-  const languageMutantSource = q.replace('\n    en: {', '\n    zz: {');
-  if (languageMutantSource === q) throw new Error('quest language mutation seam moved');
-  const languageMutant = evaluateCore(languageMutantSource).context.QUEST_I18N;
-  ok('MUTANT killed: renaming the English dictionary fails the exact language roster',
-    JSON.stringify(Object.keys(D).sort()) === JSON.stringify(['ar', 'en'])
-      && JSON.stringify(Object.keys(languageMutant).sort()) !== JSON.stringify(['ar', 'en']));
-  const fallbackMutantSource = q.replace("if (typeof out !== 'string') return '';",
-    "if (typeof out !== 'string') return k; // mutant: expose the untranslated key");
-  if (fallbackMutantSource === q) throw new Error('quest lookup mutation seam moved');
-  const fallbackMutant = evaluateCore(fallbackMutantSource).context;
-  ok('MUTANT killed: returning a missing raw key violates the shipped empty fallback',
-    sandbox.qT('no.such.key') === '' && fallbackMutant.qT('no.such.key') === 'no.such.key');
-
-  // The bank, and everything else the journey must not have touched.
-  ok('every control the round guard drives is routed through the lookup',
-    ['quest.next', 'quest.result', 'quest.again', 'quest.review', 'quest.exit',
-      'quest.prev', 'quest.backToResult'].every((k) => qa.indexOf(k) !== -1));
-  ok('...and not one question, option, answer or reward rule is in the dictionary',
-    qa.every((k) => k.indexOf('quest.') === 0) && qa.length < 30);
-  ok('the bank is still loaded from the shipped <script id="bank"> block',
-    /<script id="bank" type="application\/json">/.test(q));
-  ok('...and the journey added no dependency and no new script tag',
-    (q.match(/<script[^>]*src=/gi) || []).length === 0);
+  console.log('\n=== F. THE KUNUZ PAGES (item 10) ===');
+  for (const f of ['quest.html', 'quest-ghaws.html', 'quest-harb.html']) {
+    const page = fs.readFileSync(path.join(REPO, f), 'utf8');
+    ok(f + ' declares Arabic, right to left, before anything paints', /<html lang="ar" dir="rtl">/.test(page));
+    ok('...and writes nothing to the app\'s language slot', page.indexOf('ezik_ui_lang_v1') === -1);
+  }
 }
 
 /* ===================== N. THE COUNTERS THEMSELVES ======================== */

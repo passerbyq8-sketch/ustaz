@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>كنوز المعرفة — حرب الجزر</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sea0:#F4FBFE;--sea1:#E2F3FB;--sea2:#C3E5F4;--sea3:#8FCDE6;
+  --azraq:#1B6E9C;--ghawr:#0E4F72;--ink:#0B3B54;--muted:#5D8398;
+  --white:#fff;--line:#BCDFEF;--ok:#12A39C;--no:#C0566A;
+  --hd:'Noto Sans Arabic',system-ui,'Segoe UI',sans-serif;
+  --bd:'Noto Sans Arabic',system-ui,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{color:var(--ink);font-family:var(--bd);font-size:16px;line-height:1.75;min-height:100vh;
+  background:var(--sea0);background-image:radial-gradient(120% 80% at 50% 0%,#fff 0%,var(--sea0) 45%,var(--sea1) 100%);
+  background-attachment:fixed}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.wrap{max-width:620px;margin:0 auto;padding:20px 16px 44px}
+.hidden{display:none!important}
+
+.brand{text-align:center;margin:34px 0 4px}
+.brand h1{font-family:var(--hd);font-weight:700;font-size:2.35rem;margin:0;color:var(--ghawr)}
+.brand p{margin:.35rem 0 0;color:var(--muted);font-size:.95rem}
+.rule{width:56px;height:3px;background:var(--sea3);margin:16px auto 24px;border-radius:3px}
+
+.btn{background:var(--white);border:1px solid var(--line);color:var(--ghawr);border-radius:12px;
+  padding:12px 14px;font-family:var(--hd);font-size:1rem;cursor:pointer;width:100%}
+.btn:hover:not(:disabled),.btn:focus-visible{border-color:var(--azraq)}
+.btn.solid{background:var(--azraq);color:#fff;border-color:var(--azraq);font-weight:600}
+.btn.solid:hover:not(:disabled){background:var(--ghawr)}
+.btn:disabled{opacity:.4;cursor:default}
+.row{display:flex;gap:10px}
+
+.mode{display:block;width:100%;text-align:right;background:var(--white);border:1px solid var(--line);
+  border-radius:16px;padding:16px 18px;margin-bottom:11px;color:inherit;font:inherit;cursor:pointer;
+  box-shadow:0 2px 0 var(--sea1)}
+.mode:hover{border-color:var(--azraq)}
+.mode b{display:block;font-family:var(--hd);font-size:1.25rem;color:var(--ghawr);margin-bottom:2px}
+.mode span{color:var(--muted);font-size:.9rem;display:block;line-height:1.6}
+
+.card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.lbl{font-family:var(--hd);color:var(--ghawr);font-size:1.05rem;margin:0 0 3px}
+.sub{color:var(--muted);font-size:.85rem;margin:0 0 12px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{background:var(--sea0);border:1px solid var(--line);border-radius:999px;padding:6px 13px;
+  font:inherit;font-size:.9rem;color:var(--ink);cursor:pointer}
+.chip.on{background:var(--azraq);border-color:var(--azraq);color:#fff}
+.chip.sm{font-size:.82rem;padding:5px 11px}
+.chip:disabled{opacity:.35;cursor:default}
+.quick{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+.quick button{background:none;border:1px dashed var(--sea3);border-radius:9px;padding:5px 11px;
+  font:inherit;font-size:.82rem;color:var(--azraq);cursor:pointer}
+.tally{color:var(--muted);font-size:.85rem;margin-top:10px}
+.cur{color:var(--muted);font-size:.85rem;align-self:center;padding:6px 2px}
+.freerow{display:flex;align-items:center;gap:8px;margin-top:11px;color:var(--muted);font-size:.88rem}
+.freerow input{width:92px;background:var(--sea0);border:1px solid var(--line);border-radius:9px;
+  padding:8px 9px;font:inherit;font-size:1rem;color:var(--ink);text-align:center}
+.freerow input:focus{outline:none;border-color:var(--azraq)}
+.tally b{color:var(--azraq)}
+
+.pcard{display:flex;align-items:center;gap:9px;background:var(--sea0);border:1px solid var(--line);
+  border-radius:12px;padding:8px 11px;margin-bottom:8px}
+.flag{width:28px;height:28px;border-radius:9px;flex:0 0 auto;padding:0;cursor:pointer;
+  border:2px solid #fff;box-shadow:0 0 0 1px var(--line)}
+.flag:hover,.flag:focus-visible{box-shadow:0 0 0 2px var(--azraq);outline:none}
+.palette{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;background:var(--sea0);
+  border:1px solid var(--line);border-radius:12px;padding:10px;margin:0 0 10px}
+.sw{height:36px;border-radius:9px;padding:0;cursor:pointer;border:2px solid #fff;
+  box-shadow:0 0 0 1px var(--line)}
+.sw:hover:not(:disabled),.sw:focus-visible{box-shadow:0 0 0 2px var(--azraq);outline:none}
+.sw.on{box-shadow:0 0 0 3px var(--ghawr)}
+.sw.taken{opacity:.25;cursor:default}
+.pcard input{flex:1;min-width:0;background:none;border:0;font:inherit;font-size:1.02rem;color:inherit;padding:3px 0}
+.pcard input:focus{outline:none;border-bottom:1px solid var(--azraq)}
+.mini{background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
+
+.dot{display:inline-block;width:11px;height:11px;border-radius:4px;flex:0 0 auto;vertical-align:middle}
+
+/* ───── عالم الأرخبيل ───── */
+#war{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;max-width:620px;margin:0 auto;
+  background:var(--sea0);overflow:hidden}
+.mapbox{position:relative;flex:1 1 auto;min-height:0;overflow:hidden;background:linear-gradient(180deg,#E2F3FB 0%,#8FCDE6 100%);
+  -webkit-user-select:none;user-select:none}
+.mapbox svg{display:block;width:100%;height:100%}
+.sea{stroke:#fff;stroke-width:3;transition:fill .6s ease}
+.tide path{stroke:none}
+.tide{animation:tide 1.4s ease-in-out infinite alternate}
+@keyframes tide{from{opacity:.15}to{opacity:.75}}
+.sealbl{font-family:'Noto Sans Arabic',sans-serif;font-size:22px;font-weight:600;fill:#5D8398;text-anchor:middle;
+  paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round;transition:fill .6s}
+.sealbl.owned{font-weight:700;font-size:25px}
+.route{fill:none;stroke:#fff;stroke-width:4;stroke-dasharray:3 10;stroke-linecap:round;opacity:.9;transition:opacity .25s,stroke .25s}
+.route.hot{stroke:var(--azraq);stroke-width:6;stroke-dasharray:none;opacity:1}
+.route.dim{opacity:.25}
+.isle{cursor:pointer;transition:opacity .25s}
+.isle .shoal{fill:#fff;opacity:.55}
+.isle .land{stroke:#fff;stroke-width:4;transition:fill .6s ease}
+.isle .mast{stroke:var(--ghawr);stroke-width:3;stroke-linecap:round}
+.isle .pf{stroke:#fff;stroke-width:2;transition:fill .6s ease}
+.isle .pf.sm{stroke:#fff;stroke-width:2.5}
+.isle .badge circle{fill:#fff;stroke-width:3}
+.isle .ct{font-family:'Noto Sans Arabic',sans-serif;font-size:22px;font-weight:700;text-anchor:middle;pointer-events:none}
+.isle .nm{font-family:'Noto Sans Arabic',sans-serif;font-size:25px;font-weight:600;fill:var(--ink);text-anchor:middle;pointer-events:none;
+  paint-order:stroke;stroke:#fff;stroke-width:6px;stroke-linejoin:round}
+.isle .ring{fill:none;stroke:#fff;stroke-width:5;stroke-dasharray:14 10;opacity:0;transform-box:fill-box;transform-origin:50% 50%}
+.isle .hit{fill:transparent}
+.isle.sel .shoal{fill:var(--azraq);opacity:1}
+.isle.sel{touch-action:none;cursor:grab}
+.isle.can .shoal{fill:var(--azraq);opacity:.6}
+.isle.hov .shoal{fill:var(--ghawr);opacity:1}
+.isle.tgt .ring{opacity:1;stroke:var(--ghawr)}
+.isle.dim{opacity:.35}
+.isle.dead{opacity:.5}
+.isle.dead .shoal{opacity:.15}
+.isle.dead .nm{fill:var(--muted)}
+.isle.dead .ring{opacity:.9;stroke:#9DB7C4;stroke-width:3;stroke-dasharray:3 9;animation:none}
+.isle.won .ring{opacity:1;animation:spin 1s linear}
+.isle.won .flags{animation:raise 1s ease-in-out}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes raise{0%{transform:translateY(0);opacity:1}40%,55%{transform:translateY(46px);opacity:0}100%{transform:translateY(0);opacity:1}}
+.light .beam{transform-box:fill-box;transform-origin:50% 50%;animation:spin 5s linear infinite}
+.winmap{margin:0 -16px 6px;height:min(58vh,520px);background:linear-gradient(180deg,#E2F3FB 0%,#8FCDE6 100%)}
+.winmap .isle{pointer-events:none}
+
+.panel{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:10px}
+
+/* ───── النزال داخل المشهد ───── */
+#war .panel{flex:0 0 auto;margin:0;border:0;border-radius:18px 18px 0 0;box-shadow:0 -1px 0 var(--line);
+  padding:10px 16px calc(12px + env(safe-area-inset-bottom));position:relative;z-index:2}
+#war.fight .mapbox{flex:0 0 auto;height:max(200px,40vh);height:max(200px,40dvh)}
+#war.fight .mapbox::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:16px;
+  background:radial-gradient(14px 9px at 14px 16px,#EEF4F7 98%,transparent) 0 0/28px 16px repeat-x}
+#war.fight .panel{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;border-radius:0;box-shadow:none;
+  background:linear-gradient(180deg,#EEF4F7 0%,#D9E6EC 100%)}
+#war.fight #btns{display:none}
+.stat{display:flex;align-items:center;flex-wrap:wrap;gap:4px 7px;min-height:48px;margin:0 0 8px;color:var(--ink);font-size:.95rem;line-height:1.5}
+.stat b{color:var(--ghawr);font-family:var(--hd)}
+.stat.warn{color:var(--no)}
+.slab{display:grid;perspective:1000px;margin-top:2px}
+.slab .face{grid-area:1/1;-webkit-backface-visibility:hidden;backface-visibility:hidden;transition:transform .5s ease;border-radius:18px}
+.slab .front{background:linear-gradient(165deg,#FBFDFE 0%,#E6EEF3 100%);border:1px solid #C6D8E2;
+  box-shadow:inset 0 2px 0 #fff,0 4px 0 #C6D8E2;padding:10px 12px 14px}
+.slab .back{transform:rotateY(180deg);border:0;color:#fff;cursor:pointer;min-height:200px;width:100%;font:inherit;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 0 rgba(11,59,84,.25)}
+.slab .back svg{width:40px;height:44px;overflow:visible}
+.slab .back b{font-family:var(--hd);font-size:2rem;line-height:1.3}
+.slab.flip .front{transform:rotateY(-180deg)}
+.slab.flip .back{transform:rotateY(0)}
+.who{display:flex;align-items:center;gap:8px;min-height:32px;margin-bottom:4px;font-size:.9rem;color:var(--muted)}
+.who b{color:var(--ghawr);font-family:var(--hd);font-size:1.05rem}
+.who .secs{margin-inline-start:auto;min-width:34px;text-align:center;font-family:var(--hd);font-weight:700;font-size:.95rem;
+  color:var(--ghawr);background:#fff;border:1px solid var(--line);border-radius:10px;line-height:26px}
+.qtext{font-family:var(--hd);font-weight:500;font-size:max(17px,1.14rem);line-height:1.7;margin:0 0 12px;color:var(--ghawr)}
+.opts{display:grid;gap:9px}
+.opts.moor,.opts.gates{grid-template-columns:1fr 1fr;gap:9px}
+.opts .islet{grid-column:1/-1;display:flex;justify-content:center;height:30px;margin:-4px 0}
+.opts .islet svg{width:120px;height:30px;overflow:visible}
+.opt{position:relative;display:flex;align-items:center;text-align:right;background:#fff;border:1.5px solid var(--line);
+  border-radius:14px;min-height:56px;padding:12px 10px;color:inherit;font:inherit;font-size:max(17px,1.02rem);line-height:1.5;
+  cursor:pointer;width:100%;transition:opacity .18s,border-color .18s,background .18s}
+.opt .mk{position:absolute;top:-9px;width:20px;height:20px;border-radius:50%;background:#fff;border:1.5px solid var(--line);
+  display:flex;align-items:center;justify-content:center}
+.opts .opt:nth-child(odd) .mk{left:12px}
+.opts .opt:nth-child(even) .mk{right:12px}
+.opt .mk svg{width:12px;height:12px;fill:none;stroke:var(--ghawr);stroke-width:2.4;stroke-linecap:round}
+.opt .tx{flex:1;min-width:0;overflow-wrap:anywhere}
+.opts.moor .opt,.opts.gates .opt{margin-top:6px}
+.gates .opt{border-radius:28px 28px 8px 8px;border-width:2px;border-color:#9FBFD0;background:#fff}
+.gates .opt .mk{border-radius:6px 6px 2px 2px}
+.who .secs:empty{display:none}
+.opts.gates{padding:8px;border-radius:12px;background:repeating-linear-gradient(0deg,#D2E1E9 0 17px,#C3D6E0 17px 19px)}
+.opt.reveal,.opt.judge{justify-content:center;text-align:center;grid-column:1/-1}
+.opt:hover:not(:disabled){border-color:var(--azraq)}
+.opt.burn{opacity:.2;text-decoration:line-through;cursor:default}
+.opt.right{border-color:var(--ok);background:#E7F7F6}
+.opt.right .mk{background:var(--ok);border-color:var(--ok)}
+.opt.right .mk svg,.opt.wrong .mk svg{stroke:#fff}
+.opt.wrong{border-color:var(--no);background:#FBECEE}
+.opt.wrong .mk{background:var(--no);border-color:var(--no)}
+.opt:disabled{cursor:default}
+.why{display:none;margin-top:12px;background:#fff;border:1px solid var(--line);border-right:4px solid var(--sea3);border-radius:10px;
+  padding:10px 12px;font-size:.93rem;line-height:1.8}
+.why.on{display:block}
+.why .src{display:block;color:var(--muted);font-size:.8rem;margin-top:4px}
+.boat .sail{stroke:#fff;stroke-width:2}
+.boat .hull{transform-box:fill-box;transform-origin:50% 50%}
+.boat .hull.sink{animation:sink .7s ease-in forwards}
+@keyframes sink{to{transform:translateY(26px) rotate(-16deg);opacity:0}}
+@media (prefers-reduced-motion:reduce){.boat .hull.sink{opacity:0}}
+.wave{fill:none;stroke:#fff;stroke-width:9;stroke-linecap:round}
+.token{pointer-events:none}
+.token path{stroke-linecap:round}
+.moor .mk circle,.moor .mk rect{fill:#fff;stroke:var(--ghawr);stroke-width:3}
+.moor .mk path{fill:none;stroke:var(--ghawr);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.moor .mk{transition:opacity .35s}
+.moor .mk.gone{opacity:.15}
+.moor .mk.right circle,.moor .mk.right rect{fill:var(--ok);stroke:var(--ok)}
+.moor .mk.right path{stroke:#fff}
+.moor .mk.wrong circle,.moor .mk.wrong rect{fill:var(--no);stroke:var(--no)}
+.moor .mk.wrong path{stroke:#fff}
+.isle .wall{fill:none;stroke:var(--ghawr);stroke-width:10;stroke-dasharray:13 8;opacity:0;transition:opacity .3s}
+.isle.walled .wall{opacity:.85}
+.isle.hold .flags{animation:flutter .7s ease-in-out}
+@keyframes flutter{40%{transform:translateY(-14px)}70%{transform:translateY(-6px)}}
+
+.win{text-align:center;padding-top:34px}
+.win .big{font-family:var(--hd);font-size:2.8rem;font-weight:700;color:var(--azraq);margin:8px 0 0}
+table{width:100%;border-collapse:collapse;margin:16px 0}
+td,th{padding:10px 8px;border-bottom:1px solid var(--line);text-align:right}
+th{color:var(--muted);font-weight:500;font-size:.85rem}
+td.n{font-family:var(--hd);font-size:1.12rem;text-align:left;color:var(--ghawr)}
+textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;
+  font-size:.98rem;color:inherit;background:var(--white);resize:vertical;min-height:70px}
+textarea:focus{outline:none;border-color:var(--azraq)}
+.ok{color:var(--ok);font-size:.9rem;min-height:1.4em;text-align:center}
+.seenfoot{text-align:center;margin-top:20px}
+.seenfoot button{background:none;border:0;color:var(--muted);font:inherit;font-size:.82rem;cursor:pointer;text-decoration:underline;padding:6px}
+.seenfoot button:disabled{opacity:.45;cursor:default;text-decoration:none}
+.seenfoot p{color:var(--muted);font-size:.8rem;margin:4px 0 0}
+</style>
+<style>
+/* item 10: the way out. Links, not script -- the browser's own navigation, so the phone's back works. */
+.kz-nav{display:flex;justify-content:space-between;gap:10px;margin:0 0 6px}
+.kz-nav a{display:inline-flex;align-items:center;gap:6px;min-height:48px;min-width:48px;padding:0 16px;
+  border-radius:12px;border:1px solid var(--line);background:var(--white);color:var(--ghawr);
+  font-family:var(--hd);font-size:1rem;font-weight:600;text-decoration:none}
+.kz-nav a:hover,.kz-nav a:focus-visible{border-color:var(--azraq)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<section id="home">
+  <nav class="kz-nav" aria-label="الخروج">
+    <a href="/quest.html" class="kz-back">→ رجوع</a>
+    <a href="/" class="kz-home" aria-label="الرئيسية">🏠 الرئيسية</a>
+  </nav>
+  <div class="brand"><h1>حرب الجزر</h1>
+    <p>لعبة مجموعات · أرخبيل من اثنتي عشرة جزيرة تحمل فئاتك المختارة — تُفتح بالجواب لا بالنرد</p></div>
+  <div class="rule"></div>
+  <button class="mode" data-go="cfg"><b>ابدأ حربًا</b>
+    <span>من لاعبين إلى أربعة على جهاز واحد</span></button>
+  <button class="mode" data-go="how"><b>القواعد</b>
+    <span>شرح كامل: الخريطة · دورك في ثلاث خطوات · النزال ونتائجه الأربع · مثال محسوب — اقرأه قبل أوّل حرب</span></button>
+</section>
+
+<section id="how" class="hidden">
+  <div class="brand"><h1 style="font-size:1.85rem">كيف تُلعب حرب الجزر</h1>
+    <p>اقرأها مرّة واحدة — بعدها تمشي وحدها</p></div>
+  <div class="rule"></div>
+
+  <div class="card">
+    <p class="lbl">الفكرة في سطرين</p>
+    <p style="margin:0">خريطة فيها اثنتا عشرة جزيرة، وكلّ جزيرة تحمل فئة أسئلة من الفئات التي اخترتَها.
+    تختار من ثلاث فئات إلى ستّ، فتُوزَّع على الجزر الاثنتي عشرة — <b>وقد تتكرّر الفئة على أكثر من جزيرة</b>.
+    تبدأ ولك جزر وللخصم جزر، وكلّ نزال تجيب فيه صحيحًا ويخطئ خصمك تأخذ منه راية — فإذا أخذتَ آخر راية في جزيرته صارت لك. ومن ملك بحرين كاملين فاز.</p>
+  </div>
+
+  <div class="card">
+    <p class="lbl">اقرأ الخريطة</p>
+    <table>
+      <tr><td style="width:42%">لون الجزيرة</td><td>صاحبها</td></tr>
+      <tr><td>الرايات على ساريتها والرقم الصغير</td><td>عدد رايات صاحبها فيها — وهي قوّتها</td></tr>
+      <tr><td>الخطّ المنقّط</td><td>طريق بحريّ؛ لا تهجم إلّا على جزيرة يصلك بها خطّ</td></tr>
+      <tr><td>الاسم تحتها</td><td>فئة أسئلتها — وقد يتكرّر الاسم على جزيرتين</td></tr>
+      <tr><td>البحر</td><td>ثلاث جزر — ويتلوّن كلّه بلون من ملكها كلّها</td></tr>
+      <tr><td>جزيرة باهتة بإطار منقّط</td><td>خامدة: نفدت أسئلة فئتها، فلا تُهاجَم ولا يُهاجَم منها، وتبقى راياتها كما هي</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <p class="lbl">قبل أن تبدأ: التوزيع الابتدائيّ</p>
+    <p style="margin:0 0 8px">تُقسَم الجزر الاثنتا عشرة على الفرق، و<b>في كلّ جزيرة حارس واحد</b> لا يُنقل ولا يُهاجَم به.
+    ثمّ يوزّع كلّ فريق بدوره رايات البداية على جزره كما يشاء: يكدّس على جبهة ويترك أخرى خفيفة.</p>
+    <p style="margin:0">والأوّل يوزّع وهو لم يرَ أحدًا، والأخير يوزّع وقد رآهم جميعًا — لكنّ الأوّل يهاجم أوّلًا فتتوازن الكفّتان.
+    <b>وهو التوزيع الوحيد في الحرب كلّها</b>: لا توزيع بعده، والرايات لا تزيد إلا بأخذها من الخصم في النزال — فوزّعها على مهل.
+    وإن أخطأتَ نقرةً فزرّ <b>تراجع</b> يرجعها، نقرةً بنقرة، حتّى تعود كلّ رايتك إلى يدك.</p>
+  </div>
+
+  <div class="card">
+    <p class="lbl">دورك ثلاث خطوات</p>
+    <p style="margin:0 0 10px"><b style="color:var(--azraq)">١ · الهجوم.</b> المس جزيرة لك <b>فيها رايتان فأكثر</b>
+    فتصير <b>قاعدتك في هذا الدور ولا تتغيّر</b> — وما لا يصلح للهجوم عليه يبهت وحده.
+    ثمّ اسحب رايتها إلى جزيرة لخصمك مجاورة تضيء، أو المس تلك الجزيرة، وبدّل هدفك كما تشاء.
+    وتُكمل ما شئت وتقف متى شئت، <b>وينتهي دورك حتمًا إن لم يبقَ في قاعدتك إلا الحارس</b>.
+    وإن لم يكن لك هجوم ممكن — لا جزيرة فيها رايتان تجاور خصمًا — مرّ دورك وحده؛ فإن لم يكن لأحد هجوم ممكن توقّفت الحرب، والغلبة لمن ملك أكثر جزرًا ثمّ رايات.</p>
+    <p style="margin:0 0 10px"><b style="color:var(--azraq)">٢ · النقل بعد الفتح.</b> متى فتحتَ جزيرة صارت لك برايتها الأخيرة،
+    ثمّ لك أن تنقل إليها من قاعدتك ما شئت — لمسة لكلّ راية — ويبقى في القاعدة حارسها، ثمّ اهجم من جديد أو أنهِ دورك.
+    فإن أفرغتَ قاعدتك انتهى دورك.</p>
+    <p style="margin:0"><b style="color:var(--azraq)">٣ · أنهِ الدور.</b> ينتقل الدور إلى اللاعب الذي بعدك.</p>
+  </div>
+
+  <div class="card">
+    <p class="lbl">النزال — أربع نتائج لا خامسة لها</p>
+    <p class="sub">يُسأل المهاجم أوّلًا من فئة الجزيرة المهاجَمة، ثمّ المدافع من الفئة نفسها — ولا تنتقل في النزال الواحد إلا راية واحدة</p>
+    <table>
+      <tr><td style="width:52%">أخطأ المهاجم</td><td>تنتقل راية من قاعدته إلى الجزيرة التي هاجمها، وينتهي الهجوم</td></tr>
+      <tr><td>أصابا كلاهما</td><td>الجزيرة تصمد — الكفّة للمدافع</td></tr>
+      <tr><td>أصاب المهاجم وأخطأ المدافع</td><td>يأخذ المهاجم راية واحدة من الجزيرة إلى قاعدته</td></tr>
+      <tr><td>وسبق المهاجمُ الجمر</td><td>إصابة مزدوجة لا تُصدّ: يأخذ راية واحدة ولا يُسأل المدافع</td></tr>
+    </table>
+    <p style="margin:0 0 8px">وإذا لم يبقَ في الجزيرة إلا راية واحدة وأخذتَها <b>انتقلت الجزيرة إليك بها</b> — ولا تنزل فيها راية من قاعدتك.</p>
+    <p style="margin:0">وتقدر من الإعداد أن تجعل هجومك <b>سؤالين أو ثلاثة</b>: إصابة واحدة يُسأل عنها المدافع فيصدّها بجوابه،
+    وإصابتان فأكثر لا تُصدّ — والغنيمة راية واحدة في الحالين.</p>
+  </div>
+
+  <div class="card">
+    <p class="lbl">الجمر</p>
+    <p style="margin:0 0 8px">مؤقّت لا يعاقب بل يساوم: الخيارات تحترق واحدًا بعد واحد.
+    من أجاب والخيارات كلّها حيّة كانت إصابته <b>مزدوجة لا يصدّها المدافع</b>؛ ومن انتظر حتّى تحترق قلّت خياراته وصحّ جوابه
+    لكنّ إصابته واحدة يُسأل عنها المدافع فيصدّها إن أصاب. والمركب يزحف إلى الجزيرة مع الثواني، فإن بلغ الشاطئ عُدّ خطأً.</p>
+    <p style="margin:0">وللمهلة في الإعداد ستّ درجات وفيها <b>بلا مهلة</b> — وحينها لا جمر ولا إصابة مزدوجة.
+    وإن اخترت <b>بلا خيارات</b> عُرض السؤال وحده، فيجيب اللاعب من رأسه ثمّ يضغط «أظهر الجواب» ويحكم على نفسه،
+    وإصابته فيه واحدة يُسأل عنها المدافع كذلك.</p>
+  </div>
+
+  <div class="card">
+    <p class="lbl">الجهاز يدور بينكم</p>
+    <p style="margin:0">اللعب على جهاز واحد. فإذا جاء دور المدافع انقلب اللوح بلونه واسمه —
+    يمرَّر الجهاز، يجيب، ثمّ يرجع. ولا يُكشف سؤاله قبل أن يلمس اللوح.</p>
+  </div>
+
+  <div class="card">
+    <p class="lbl">مثال محسوب</p>
+    <p style="margin:0">جزيرة «الجغرافيا» عندك بأربع رايات، تهجم منها على «تاريخ الكويت» وفيها ثلاث رايات لخصمك.
+    تجيب صحيحًا والخيارات كلّها حيّة ⟸ إصابة مزدوجة لا تُصدّ: تأخذ راية إلى الجغرافيا فتصير خمسًا، وتبقى لخصمك اثنتان.
+    تهجم ثانية وتصيب بعد أن احترق خيار، ويصيب خصمك ⟸ صمدت الجزيرة ولم تتحرّك راية.
+    تهجم ثالثة وتصيب ويخطئ ⟸ تأخذ راية فتصير الجغرافيا ستًّا وتبقى له واحدة.
+    تهجم رابعة وتصيب ويخطئ ⟸ أخذتَ آخر راية <b>فانتقلت الجزيرة إليك بها</b>، ولك أن تنقل إليها من الجغرافيا ما شئت.
+    ولو أخطأتَ في أيّ هجوم انتقلت راية من الجغرافيا إلى تاريخ الكويت وانتهى ذلك الهجوم.</p>
+  </div>
+
+  <div class="card">
+    <p class="lbl">أسئلة تقع لأوّل مرّة</p>
+    <p style="margin:0 0 8px"><b>لِمَ لا أهجم من جزيرة فيها راية واحدة؟</b> الراية الأخيرة حارسة الجزيرة ولا تغادرها.</p>
+    <p style="margin:0 0 8px"><b>من أين تأتي رايات جديدة؟</b> لا تأتي: الرايات تُوزَّع مرّة واحدة قبل الحرب، وبعدها كلّ راية تكسبها تأخذها من خصمك في النزال — ومجموع الرايات ثابت من أوّل الحرب إلى آخرها.</p>
+    <p style="margin:0 0 8px"><b>لِمَ بهتت أكثر الجزر؟</b> لأنّها ليست مجاورة لقاعدتك، أو لأنّها لك.</p>
+    <p style="margin:0 0 8px"><b>أهجم من جزيرتين في دور واحد؟</b> لا — القاعدة واحدة في الدور، والأهداف متعدّدة ما دامت مجاورة لها.</p>
+    <p style="margin:0 0 8px"><b>هل أخسر إن أخطأ المدافع مرارًا؟</b> لا — الخسارة على المخطئ وحده.</p>
+    <p style="margin:0 0 8px"><b>وإن خمدت جزيرة؟</b> تمضي الحرب على الجزر الحيّة، ويُحسب النصر عليها وحدها؛ فإن خمدت الجزر كلّها انتهت الحرب، والغلبة لمن ملك أكثر جزرًا ثمّ رايات.</p>
+    <p style="margin:0"><b>وكم تطول؟</b> حرب «البحرين الكاملين» تنتهي غالبًا في ربع ساعة.</p>
+  </div>
+
+  <button class="btn solid" data-go="home">فهمت — رجوع</button>
+</section>
+
+<!-- الإعداد -->
+<section id="cfg" class="hidden">
+  <div class="brand"><h1 style="font-size:1.85rem">قبل الحرب</h1><p>كلّ شيء قابل للتغيير</p></div>
+  <div class="rule"></div>
+
+  <div class="card">
+    <p class="lbl">اللاعبون</p><p class="sub">من اثنين إلى أربعة — اضغط المربّع الملوّن لتختار راية فريقك</p>
+    <div id="plist"></div>
+    <button class="btn" id="addP" style="margin-top:6px">إضافة لاعب</button>
+  </div>
+
+  <div class="card">
+    <p class="lbl">فئات الأرخبيل</p><p class="sub">اختر من ثلاث فئات إلى ستّ — وتُوزَّع على جزر الأرخبيل الاثنتي عشرة</p>
+    <div class="quick">
+      <button data-q="rel">دينيّة</button><button data-q="sec">دنيويّة</button>
+      <button data-q="mix">مختلطة</button><button data-q="rnd">عشوائيّة</button><button data-q="none">مسح</button>
+    </div>
+    <div class="chips" id="cats"></div>
+    <p class="tally" id="catTally"></p>
+  </div>
+
+  <div class="card">
+    <p class="lbl">المهلة لكلّ سؤال</p><p class="sub">كم ثانية يصبر السؤال — وفيها تحترق الخيارات واحدًا بعد واحد</p>
+    <div class="chips" id="fuses"></div>
+    <div class="freerow" id="fusesFree"></div>
+  </div>
+
+  <div class="card">
+    <p class="lbl">رايات البداية</p><p class="sub">كم راية يوزّعها كلّ فريق قبل أن تبدأ الحرب</p>
+    <div class="chips" id="deploy"></div>
+    <div class="freerow" id="deployFree"></div>
+  </div>
+
+  <div class="card">
+    <p class="lbl">عدد أسئلة الهجوم</p><p class="sub">كم سؤالًا يُسأل المهاجم في النزال الواحد — وإصابتان فأكثر لا يصدّها المدافع، والغنيمة راية واحدة</p>
+    <div class="chips" id="shots"></div>
+    <div class="freerow" id="shotsFree"></div>
+  </div>
+
+  <div class="card">
+    <p class="lbl">الخيارات</p><p class="sub">تُعرض الخيارات، أو يُعرض السؤال وحده فيجيب اللاعب من رأسه ثمّ يحكم على نفسه</p>
+    <div class="chips" id="opmode"></div>
+  </div>
+
+  <div class="card">
+    <p class="lbl">شرط النصر</p>
+    <div class="chips" id="wins"></div>
+  </div>
+
+  <button class="btn" data-go="how" style="margin-bottom:12px">اقرأ القواعد أوّلًا</button>
+  <div class="row">
+    <button class="btn" data-go="home">رجوع</button>
+    <button class="btn solid" id="startWar">ابدأ</button>
+  </div>
+  <div class="seenfoot">
+    <button id="seenReset">صفّر السجلّ</button>
+    <p class="hidden" id="seenMem">المتصفّح يمنع الحفظ، فالسجلّ يُنسى بإغلاق الصفحة</p>
+  </div>
+</section>
+
+<section id="war" class="hidden">
+  <div id="mapBox" class="mapbox"></div>
+  <div class="panel" id="panel">
+    <p class="stat" id="stat" role="status">—</p>
+    <div class="slab hidden" id="slab">
+      <div class="face front" id="front">
+        <div class="who"><span class="dot" id="sDot"></span><b id="sWho"></b><span class="shot" id="sShot"></span><span class="secs" id="secs"></span></div>
+        <h3 class="qtext" id="qtext"></h3>
+        <div class="opts" id="ops"></div>
+        <div class="why" id="why"></div>
+      </div>
+      <button class="face back" id="pg" disabled><svg viewBox="0 0 40 44" aria-hidden="true"><path d="M6 42V4" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M8 5h26l-7 8l7 8h-26z" fill="#fff"/></svg><b id="pgName"></b></button>
+    </div>
+    <div class="row" id="btns">
+      <button class="btn" id="undoBtn">تراجع</button>
+      <button class="btn solid" id="nextBtn">أنهِ الدور</button>
+    </div>
+  </div>
+</section>
+
+<section id="win" class="hidden">
+  <div class="win">
+    <div class="winmap" id="winMap"></div>
+    <p style="color:var(--muted);margin:0" id="winWhy">رُفعت الراية على الأرخبيل</p>
+    <div class="big" id="winName">—</div>
+    <table><thead><tr><th>اللاعب</th><th>الجزر</th><th style="text-align:left">الرايات</th></tr></thead>
+      <tbody id="winBody"></tbody></table>
+    <div class="row"><button class="btn" data-go="home">الرئيسة</button>
+      <button class="btn solid" id="rematch">حرب جديدة</button></div>
+    <button class="btn" id="toVerdict" style="margin-top:10px">عندي رأي في الطريقة</button>
+  </div>
+</section>
+
+<section id="verdict" class="hidden">
+  <div class="brand"><h1 style="font-size:1.8rem">رأيك يهمّنا</h1><p>ثلاث نقرات ثمّ انسخ سطرك وأرسله</p></div>
+  <div class="rule"></div>
+  <div class="card"><p class="lbl">كم تعطي هذه الطريقة من خمس؟</p><div class="chips" id="stars"></div></div>
+  <div class="card"><p class="lbl">لمن تصلح؟</p><div class="chips" id="forWho"></div></div>
+  <div class="card"><p class="lbl">ملاحظتك</p><textarea id="vnote" placeholder="ما الذي أعجبك؟ وما الذي تغيّره؟"></textarea></div>
+  <button class="btn solid" id="copyV">انسخ رأيي</button>
+  <p class="ok" id="copied"></p>
+  <button class="btn" data-go="home" style="margin-top:8px">رجوع</button>
+</section>
+
+</div>
+
+<script src="/quest-data/kunuz-bank-3147.js"></script>
+<script>
+var MW=600,MH=920;
+var SLOTS=[
+ {x:424,y:120,r:58,s:0},{x:530,y:262,r:54,s:0},{x:386,y:352,r:60,s:0},
+ {x:176,y:120,r:58,s:1},{x:70,y:300,r:52,s:1},{x:216,y:352,r:58,s:1},
+ {x:420,y:574,r:58,s:2},{x:528,y:698,r:54,s:2},{x:386,y:778,r:60,s:2},
+ {x:180,y:574,r:58,s:3},{x:216,y:778,r:60,s:3},{x:72,y:698,r:52,s:3}];
+var SEANM=[["بحر اللؤلؤ",532,44],["بحر المرجان",72,44],["بحر الدانة",528,902],["بحر الصدف",72,902]];
+var SHAPES=[[.10,2,.3,.07,3,1.1],[.08,3,.9,.09,2,2],[.12,2,1.7,.05,5,.4],[.07,4,.2,.1,3,2.6]];
+var LINKS=[[0,1],[1,2],[2,0],[3,4],[4,5],[5,3],[6,7],[7,8],[8,6],[9,10],[10,11],[11,9],
+ [2,5],[2,6],[5,9],[7,10]];
+var PAL=[["#D23B3B","أحمر"],["#E2761B","برتقاليّ"],["#D9A400","ذهبيّ"],["#7E9B1F","زيتونيّ"],
+ ["#2E9E4F","أخضر"],["#0E8F74","زمرّديّ"],["#12A2B8","فيروزيّ"],["#1B6E9C","أزرق"],
+ ["#2F4B9A","كحليّ"],["#7A4BB0","بنفسجيّ"],["#C0397E","ورديّ"],["#8A5A3B","بنّيّ"]];
+function col(i){var p=G.players[i];return (p&&PAL[p.c])?PAL[p.c][0]:"#1B6E9C"}
+function freeColor(){
+  var pref=[7,0,4,2,9,1,5,10,3,8,6,11];
+  for(var i=0;i<pref.length;i++){var k=pref[i];
+    var taken=false;
+    for(var j=0;j<G.players.length;j++)if(G.players[j].c===k)taken=true;
+    if(!taken)return k}
+  return 7;
+}
+var G={players:[],cats:[],fuse:13000,winRule:2,shots:1,noOpts:false,deployMul:2,deployFree:-1,
+  turnNo:0,own:{},ban:{},turn:0,phase:"deploy",pool:0,sel:null,tgt:null,used:{},pick:-1,
+  base:null,attacked:false,moveTgt:null,moveLeft:0,slotCat:[],placed:[]};
+var T={raf:null,t0:0,alive:4,lock:false};
+var V={stars:0,who:"",last:""};
+
+function ar(n){return String(n).replace(/[0-9]/g,function(d){return "٠١٢٣٤٥٦٧٨٩"[+d]})}
+function $(i){return document.getElementById(i)}
+function show(id){["home","how","cfg","war","win","verdict"].forEach(function(x){$(x).classList.add("hidden")});
+  $(id).classList.remove("hidden");window.scrollTo(0,0)}
+function hexA(h,a){return "rgba("+parseInt(h.substr(1,2),16)+","+parseInt(h.substr(3,2),16)+","+
+  parseInt(h.substr(5,2),16)+","+a+")"}
+function catName(k){var c=G.slotCat.length?G.slotCat[k]:G.cats[k%G.cats.length];return DATA.cats[c][1]}
+function buildSlots(){
+  var L=seenByCat(),cs=G.cats.filter(function(c){return L[c]>0});if(!cs.length)cs=G.cats;
+  var n=cs.length,list=[];
+  for(var i=0;i<12;i++)list.push(cs[i%n]);
+  for(var j=list.length-1;j>0;j--){var r=Math.floor(Math.random()*(j+1));
+    var t=list[j];list[j]=list[r];list[r]=t}
+  G.slotCat=list;
+}
+function spread(){
+  var n=G.cats.length,base=Math.floor(12/n),rem=12%n;
+  return rem?(cntI(base)+" أو "+cntI(base+1)):cntI(base);
+}
+function adj(a,b){for(var i=0;i<LINKS.length;i++){var l=LINKS[i];
+  if((l[0]===a&&l[1]===b)||(l[1]===a&&l[0]===b))return true}return false}
+
+
+document.addEventListener("click",function(e){
+  var b=e.target.closest("[data-go]");if(!b)return;var g=b.dataset.go;
+  if(g==="cfg")openCfg();else if(g==="how")show("how");else{quitFight();show("home")}
+});
+$("toVerdict").onclick=function(){show("verdict")};
+
+/* ───── السجلّ المشترك بين الطورين: لا يتكرّر سؤال حتّى تنفد الأسئلة كلّها ─────
+   المفتاح kunuz_seen_v1 · القيمة {v:1,s:ختم البنك,b:بتّة لكلّ سؤال بفهرسه، base64}
+   الختم = عدد الأسئلة + FNV-1a لسلسلة المعرّفات بترتيبها؛ اختلف ⟹ يُطرح السجلّ.
+   الوسم ساعة عرض السؤال، ويُكتب فورًا. رُفض التخزين ⟹ سجلّ في الذاكرة لهذه الجلسة. */
+var SEEN_KEY="kunuz_seen_v1";
+var SEEN={stamp:"",bits:[],mem:false};
+var B64="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+function seenStamp(){
+  var h=2166136261,n=DATA.qs.length;
+  for(var i=0;i<n;i++){var q=DATA.qs[i],s=String(q.length>8?q[8]:q[3])+"\n";
+    for(var j=0;j<s.length;j++)h=Math.imul(h^s.charCodeAt(j),16777619)>>>0}
+  return n+"-"+("0000000"+h.toString(16)).slice(-8);
+}
+function b64e(a){var s="";for(var i=0;i<a.length;i+=3){var n=(a[i]<<16)|((a[i+1]||0)<<8)|(a[i+2]||0);
+  s+=B64.charAt(n>>18&63)+B64.charAt(n>>12&63)+(i+1<a.length?B64.charAt(n>>6&63):"=")+(i+2<a.length?B64.charAt(n&63):"=")}return s}
+function b64d(s){if(typeof s!=="string"||s.length%4)return null;var a=[];
+  for(var i=0;i<s.length;i+=4){var c=[],p=0;
+    for(var k=0;k<4;k++){var ch=s.charAt(i+k);if(ch==="="){c.push(0);p++}else{var v=B64.indexOf(ch);if(v<0||p)return null;c.push(v)}}
+    var n=(c[0]<<18)|(c[1]<<12)|(c[2]<<6)|c[3];a.push(n>>16&255);if(p<2)a.push(n>>8&255);if(p<1)a.push(n&255)}
+  return a}
+function seenEmpty(){var a=[];for(var i=0;i<Math.ceil(DATA.qs.length/8);i++)a.push(0);return a}
+function seenWrite(){
+  if(SEEN.mem)return;
+  try{window.localStorage.setItem(SEEN_KEY,JSON.stringify({v:1,s:SEEN.stamp,b:b64e(SEEN.bits)}))}catch(e){SEEN.mem=true}
+}
+function seenRead(){
+  if(SEEN.mem)return;
+  var raw=null,bits=null;
+  try{raw=window.localStorage.getItem(SEEN_KEY)}catch(e){SEEN.mem=true;return}
+  try{var o=JSON.parse(raw);if(o&&o.v===1&&o.s===SEEN.stamp)bits=b64d(o.b)}catch(e){}
+  if(bits&&bits.length===SEEN.bits.length)SEEN.bits=bits;
+  else{SEEN.bits=seenEmpty();if(raw!==null&&raw!==undefined)seenWrite()}
+}
+function seenHas(i){return (SEEN.bits[i>>3]>>(i&7)&1)===1}
+function seenMark(i){seenRead();SEEN.bits[i>>3]|=1<<(i&7);seenWrite()}
+function seenByCat(){seenRead();var a=DATA.cats.map(function(){return 0});
+  for(var i=0;i<DATA.qs.length;i++)if(!seenHas(i))a[DATA.qs[i][0]]++;return a}
+function seenLeft(cats){var a=seenByCat(),n=0;a.forEach(function(v,c){if(!cats||cats.indexOf(c)>-1)n+=v});return n}
+function seenReset(){SEEN.bits=seenEmpty();if(SEEN.mem)return;
+  try{window.localStorage.removeItem(SEEN_KEY)}catch(e){SEEN.mem=true}}
+function spentText(){return seenLeft(null)?["انتهت أسئلة فئاتك","اختر فئات غيرها، أو صفّر السجلّ من شاشة الإعداد"]:
+  ["انتهت الأسئلة كلّها","رأيتَها جميعًا — التصفير بيدك في شاشة الإعداد"]}
+function seenCard(after){
+  var b=$("seenReset");
+  $("seenMem").classList.toggle("hidden",!SEEN.mem);
+  b.disabled=(seenLeft(null)===DATA.qs.length);b.textContent="صفّر السجلّ";b.dataset.arm="";
+  b.onclick=function(){
+    if(b.dataset.arm!=="1"){b.dataset.arm="1";b.textContent="متأكّد؟ اضغط ثانيةً للتصفير";return}
+    seenReset();seenCard(after);if(after)after()};
+}
+SEEN.stamp=seenStamp();SEEN.bits=seenEmpty();seenRead();
+
+/* ───── الإعداد ───── */
+function openCfg(){
+  if(G.players.length<2)G.players=[{n:"",c:7},{n:"",c:0}];
+  G.pick=-1;
+  for(var i=0;i<G.players.length;i++){if(typeof G.players[i].c!=="number")G.players[i].c=freeColor()}
+  if(G.cats.length!==12)preset("mix");
+  drawPlayers();drawCats();drawFuses();drawDeploy();drawShots();drawOpMode();drawWins();seenCard(drawCats);
+  freeRow("deployFree","أو اكتب العدد:","",2,60,function(v){G.deployFree=v;drawDeploy()});
+  freeRow("fusesFree","أو اكتب الثواني:","ثانية",3,600,function(v){G.fuse=v*1000;drawFuses()});
+  freeRow("shotsFree","أو اكتب العدد:","سؤالًا",1,10,function(v){G.shots=v;drawShots()});
+  show("cfg");
+}
+function drawPlayers(){
+  var L=$("plist");L.innerHTML="";
+  G.players.forEach(function(p,i){
+    var d=document.createElement("div");d.className="pcard";
+    var f=document.createElement("button");f.className="flag";f.style.background=col(i);
+    f.type="button";f.title="غيّر لون الراية";f.setAttribute("aria-label","لون الراية — اضغط لتغييره");
+    f.onclick=function(){G.pick=(G.pick===i?-1:i);drawPlayers()};d.appendChild(f);
+    var inp=document.createElement("input");inp.value=p.n;inp.placeholder="لاعب "+ar(i+1);
+    inp.oninput=function(){p.n=inp.value};d.appendChild(inp);
+    if(G.players.length>2){var x=document.createElement("button");x.className="mini";x.textContent="×";
+      x.onclick=function(){G.players.splice(i,1);G.pick=-1;drawPlayers();tally()};d.appendChild(x)}
+    L.appendChild(d);
+    if(G.pick===i){
+      var pl=document.createElement("div");pl.className="palette";
+      PAL.forEach(function(cc,k){
+        var b=document.createElement("button");b.type="button";
+        var taken=false;
+        for(var j=0;j<G.players.length;j++)if(j!==i&&G.players[j].c===k)taken=true;
+        b.className="sw"+(p.c===k?" on":"")+(taken?" taken":"");
+        b.style.background=cc[0];b.title=cc[1];b.setAttribute("aria-label",cc[1]);
+        if(taken){b.disabled=true}
+        b.onclick=function(){p.c=k;G.pick=-1;drawPlayers()};
+        pl.appendChild(b)});
+      L.appendChild(pl);
+    }});
+  $("addP").disabled=G.players.length>=4;
+}
+$("addP").onclick=function(){if(G.players.length<4){G.players.push({n:"",c:freeColor()});G.pick=-1;drawPlayers();tally()}};
+function preset(k){
+  var rel=[],sec=[],L=seenByCat();
+  DATA.cats.forEach(function(c,i){if(!L[i])return;if(c[2]==="religious")rel.push(i);else sec.push(i)});
+  function pick(a,n){var b=a.slice().sort(function(){return Math.random()-.5});return b.slice(0,n)}
+  if(k==="rel")G.cats=pick(rel,6);
+  if(k==="sec")G.cats=pick(sec,6);
+  if(k==="mix")G.cats=pick(rel,3).concat(pick(sec,3));
+  if(k==="rnd")G.cats=pick(rel.concat(sec),6);
+  if(k==="none")G.cats=[];
+}
+document.querySelectorAll("[data-q]").forEach(function(b){
+  b.onclick=function(){preset(b.dataset.q);drawCats()}});
+function drawCats(){
+  var w=$("cats");w.innerHTML="";
+  DATA.cats.forEach(function(c,i){
+    var on=G.cats.indexOf(i)>-1;
+    var b=document.createElement("button");b.className="chip sm"+(on?" on":"");b.textContent=c[1];
+    if(!on&&G.cats.length>=6)b.disabled=true;
+    b.onclick=function(){var k=G.cats.indexOf(i);
+      if(k>-1)G.cats.splice(k,1);else if(G.cats.length<6)G.cats.push(i);
+      drawCats()};w.appendChild(b)});
+  tally();
+}
+function avail(ci){var n=0;for(var i=0;i<DATA.qs.length;i++){if(DATA.qs[i][0]===ci)n++}return n}
+function tally(){
+  var L=seenByCat(),left=0;
+  G.cats.forEach(function(ci){left+=L[ci]});
+  drawDeploy();
+  var fit=(G.cats.length>=3&&G.cats.length<=6),ok=(fit&&left>=1);
+  $("catTally").innerHTML="اخترتَ <b>"+cntF(G.cats.length)+"</b> — والمسموح من ثلاث إلى ستّ"+
+    (fit?(ok?(" · كلّ فئة تأخذ <b>"+spread()+"</b>."):" · انتهت أسئلتها، فاختر غيرها أو صفّر السجلّ."):".");
+  $("startWar").disabled=!ok;
+}
+function cntQ(n){
+  var r=n%100;
+  if(n>10&&(r===1||r===2||r===0))return ar(n)+" سؤال";
+  if(n===1)return "سؤال واحد";
+  if(n===2)return "سؤالان";
+  if(r>=3&&r<=10)return ar(n)+" أسئلة";
+  return ar(n)+" سؤالًا";
+}
+function cntF(n){
+  if(n===1)return "فئة واحدة";
+  if(n===2)return "فئتين";
+  if(n>=3&&n<=10)return ar(n)+" فئات";
+  return ar(n)+" فئة";
+}
+function cntI(n){
+  if(n===1)return "جزيرة واحدة";
+  if(n===2)return "جزيرتين";
+  if(n>=3&&n<=10)return ar(n)+" جزر";
+  return ar(n)+" جزيرة";
+}
+function cntR(n){
+  var r=n%100;
+  if(n>10&&(r===1||r===2||r===0))return ar(n)+" راية";
+  if(n===1)return "راية واحدة";
+  if(n===2)return "رايتان";
+  if(r>=3&&r<=10)return ar(n)+" رايات";
+  return ar(n)+" راية";
+}
+function cntS(n){
+  var r=n%100;
+  if(n>10&&(r===1||r===2||r===0))return ar(n)+" ثانية";
+  if(n===1)return "ثانية واحدة";
+  if(n===2)return "ثانيتان";
+  if(r>=3&&r<=10)return ar(n)+" ثوانٍ";
+  return ar(n)+" ثانية";
+}
+function freeRow(hostId,label,unit,min,max,set){
+  var h=$(hostId);h.innerHTML="";
+  var l=document.createElement("span");l.textContent=label;h.appendChild(l);
+  var i=document.createElement("input");i.type="number";i.setAttribute("inputmode","numeric");
+  i.min=min;i.max=max;i.placeholder="—";
+  i.oninput=function(){var v=parseInt(i.value,10);if(!isNaN(v)&&v>=min&&v<=max)set(v)};
+  i.onchange=function(){var v=parseInt(i.value,10);
+    if(isNaN(v)){i.value="";return}
+    if(v<min)v=min;
+    if(v>max)v=max;
+    i.value=v;set(v)};
+  h.appendChild(i);
+  var u=document.createElement("span");u.textContent="من "+ar(min)+" إلى "+ar(max);h.appendChild(u);
+}
+function curChip(w,txt){var c=document.createElement("span");c.className="cur";c.textContent=txt;w.appendChild(c)}
+function drawFuses(){
+  var w=$("fuses");w.innerHTML="";
+  [0,30,20,16,12,8].forEach(function(sec){
+    var ms=sec*1000;
+    var b=document.createElement("button");b.className="chip"+(G.fuse===ms?" on":"");
+    b.textContent=(sec?cntS(sec):"بلا مهلة");
+    b.onclick=function(){G.fuse=ms;drawFuses()};w.appendChild(b)});
+  curChip(w,G.fuse?("المختار: "+cntS(G.fuse/1000)):"المختار: بلا مهلة");
+}
+function islandsPer(){return Math.floor(12/G.players.length)}
+function deployCount(){return G.deployFree>=0?G.deployFree:(G.deployMul*islandsPer())}
+function drawDeploy(){
+  var w=$("deploy");if(!w)return;w.innerHTML="";
+  [1,2,3].forEach(function(m){
+    var n=m*islandsPer();
+    var b=document.createElement("button");
+    b.className="chip"+((G.deployFree<0&&G.deployMul===m)?" on":"");
+    b.textContent=cntR(n);
+    b.onclick=function(){G.deployMul=m;G.deployFree=-1;drawDeploy()};w.appendChild(b)});
+  curChip(w,"المختار: "+cntR(deployCount())+" لكلّ فريق");
+}
+function drawShots(){
+  var w=$("shots");w.innerHTML="";
+  [1,2,3].forEach(function(n){
+    var b=document.createElement("button");b.className="chip"+(G.shots===n?" on":"");
+    b.textContent=cntQ(n);
+    b.onclick=function(){G.shots=n;drawShots()};w.appendChild(b)});
+  curChip(w,"المختار: "+cntQ(G.shots)+" في الهجوم الواحد");
+}
+function drawOpMode(){
+  var w=$("opmode");w.innerHTML="";
+  [[false,"تُعرض الخيارات"],[true,"بلا خيارات"]].forEach(function(o){
+    var b=document.createElement("button");b.className="chip"+(G.noOpts===o[0]?" on":"");b.textContent=o[1];
+    b.onclick=function(){G.noOpts=o[0];drawOpMode()};w.appendChild(b)});
+}
+function drawWins(){
+  var w=$("wins");w.innerHTML="";
+  [[2,"بحران كاملان"],[9,"الأرخبيل كلّه"]].forEach(function(o){
+    var b=document.createElement("button");b.className="chip"+(G.winRule===o[0]?" on":"");b.textContent=o[1];
+    b.onclick=function(){G.winRule=o[0];drawWins()};w.appendChild(b)});
+}
+$("startWar").onclick=function(){
+  G.players.forEach(function(p,i){if(!p.n.trim())p.n="لاعب "+ar(i+1)});newWar()};
+$("rematch").onclick=function(){openCfg()};
+
+/* ───── الحرب ───── */
+function newWar(){
+  buildSlots();G.left=seenByCat();
+  var idx=[0,1,2,3,4,5,6,7,8,9,10,11],ok=false,tries=0;
+  while(!ok&&tries<80){
+    tries++;idx.sort(function(){return Math.random()-.5});
+    G.own={};idx.forEach(function(k,j){G.own[k]=j%G.players.length});
+    ok=true;
+    for(var s=0;s<4;s++){var o=null,full=true;
+      for(var k=0;k<12;k++)if(SLOTS[k].s===s){if(o===null)o=G.own[k];else if(o!==G.own[k])full=false}
+      if(full)ok=false}
+  }
+  G.ban={};for(var k=0;k<12;k++)G.ban[k]=1;
+  G.turn=0;G.sel=null;G.tgt=null;G.used={};G.turnNo=0;
+  clearT();$("war").insertBefore($("mapBox"),$("war").querySelector(".panel"));
+  drawMap();beginDeploy();show("war");
+}
+/* الرسم: أشكال عضويّة مولَّدة بمنحنيات ناعمة تمرّ بنقاط حول المركز */
+function fx(v){return Math.round(v*10)/10}
+function smooth(pts){
+  var n=pts.length,d="M"+fx(pts[0][0])+" "+fx(pts[0][1]);
+  for(var i=0;i<n;i++){var a=pts[(i-1+n)%n],b=pts[i],c=pts[(i+1)%n],e=pts[(i+2)%n];
+    d+="C"+fx(b[0]+(c[0]-a[0])/6)+" "+fx(b[1]+(c[1]-a[1])/6)+" "+fx(c[0]-(e[0]-b[0])/6)+" "+fx(c[1]-(e[1]-b[1])/6)+" "+fx(c[0])+" "+fx(c[1])}
+  return d+"Z";
+}
+function isleShape(k,r){
+  var s=SHAPES[k%4],pts=[];
+  for(var i=0;i<18;i++){var a=i/18*Math.PI*2,q=r*(1+s[0]*Math.sin(s[1]*a+s[2])+s[3]*Math.sin(s[4]*a+s[5]));
+    pts.push([q*Math.cos(a),q*Math.sin(a)])}
+  return smooth(pts);
+}
+var SEAD=[];
+function seaShape(q){
+  var ks=[],cx=0,cy=0,pts=[];
+  SLOTS.forEach(function(p,k){if(p.s===q){ks.push(k);cx+=p.x/3;cy+=p.y/3}});
+  for(var i=0;i<16;i++){var a=i/16*Math.PI*2,ux=Math.cos(a),uy=Math.sin(a),m=0;
+    ks.forEach(function(k){var p=SLOTS[k],v=(p.x-cx)*ux+(p.y-cy)*uy+p.r;if(v>m)m=v});
+    m+=42+10*Math.sin(3*a+q*1.7)+6*Math.sin(5*a+q);
+    pts.push([Math.max(10,Math.min(MW-10,cx+m*ux)),Math.max(10,Math.min(MH-10,cy+m*uy))])}
+  return smooth(pts);
+}
+/* الممرّ منحنًى تربيعيّ ينحني بعيدًا عن وسط الخريطة — ونقطة تحكّمه واحدة في الاتّجاهين */
+function ctl(i,j){
+  var a=SLOTS[i],b=SLOTS[j],mx=(a.x+b.x)/2,my=(a.y+b.y)/2,dx=b.x-a.x,dy=b.y-a.y,L=Math.sqrt(dx*dx+dy*dy)||1;
+  var nx=-dy/L,ny=dx/L,sg=(nx*(MW/2-mx)+ny*(MH/2-my))>0?-1:1;
+  return [mx+nx*.16*L*sg,my+ny*.16*L*sg,L];
+}
+function bez(i,j,t){
+  var a=SLOTS[i],b=SLOTS[j],c=ctl(i,j),u=1-t;
+  return {x:u*u*a.x+2*u*t*c[0]+t*t*b.x,y:u*u*a.y+2*u*t*c[1]+t*t*b.y,dx:2*u*(c[0]-a.x)+2*t*(b.x-c[0]),dy:2*u*(c[1]-a.y)+2*t*(b.y-c[1])};
+}
+function routeD(l){
+  var a=SLOTS[l[0]],b=SLOTS[l[1]],c=ctl(l[0],l[1]);
+  return "M"+a.x+" "+a.y+"Q"+fx(c[0])+" "+fx(c[1])+" "+b.x+" "+b.y;
+}
+function nameLines(nm){
+  if(nm.length<=9)return [nm];
+  var mid=nm.length/2,best=-1;
+  for(var i=0;i<nm.length;i++)if(nm.charAt(i)===" "&&(best<0||Math.abs(i-mid)<Math.abs(best-mid)))best=i;
+  return best<0?[nm]:[nm.slice(0,best),nm.slice(best+1)];
+}
+var P={own:{},ban:{}};
+function drawMap(){
+  var s='<svg id="map" viewBox="0 0 '+MW+' '+MH+'" preserveAspectRatio="xMidYMid meet" role="img" aria-label="خريطة الأرخبيل">';
+  s+='<defs><linearGradient id="ocean" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="'+MH+'"><stop offset="0" stop-color="#E2F3FB"/><stop offset="1" stop-color="#8FCDE6"/></linearGradient>'+
+     '<linearGradient id="beamG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>';
+  s+='<rect x="-600" y="-600" width="'+(MW+1200)+'" height="'+(MH+1200)+'" fill="url(#ocean)"/>';
+  SEAD=[];
+  for(var q=0;q<4;q++){SEAD[q]=seaShape(q);s+='<path class="sea" id="sea'+q+'" fill="#F4FBFE" d="'+SEAD[q]+'"/>'}
+  s+='<g class="tide" id="tide"></g>';
+  SEANM.forEach(function(n,q){s+='<text class="sealbl" id="sl'+q+'" x="'+n[1]+'" y="'+n[2]+'">'+n[0]+'</text>'});
+  LINKS.forEach(function(l,i){s+='<path class="route" id="r'+i+'" d="'+routeD(l)+'"/>'});
+  SLOTS.forEach(function(p,k){
+    var lines=nameLines(catName(k)),lx=Math.max(70,Math.min(MW-70,p.x))-p.x,ly=p.r+30,t="";
+    lines.forEach(function(x,i){t+='<tspan x="'+lx+'" y="'+(ly+i*27)+'">'+x+'</tspan>'});
+    s+='<g class="isle" id="g'+k+'" data-shape="'+(k%4)+'" transform="translate('+p.x+' '+p.y+')">'+
+       '<path class="shoal" d="'+isleShape(k,p.r+10)+'"/><path class="land" d="'+isleShape(k,p.r)+'"/>'+
+       '<circle class="wall" r="'+(p.r+22)+'"/><circle class="ring" r="'+(p.r+18)+'"/>'+
+       '<line class="mast" x1="0" y1="'+fx(p.r*.3)+'" x2="0" y2="'+(-p.r-20)+'"/><g class="flags"></g>'+
+       '<g class="badge" transform="translate('+fx(p.r*.66)+' '+fx(p.r*.34)+')"><circle r="17"/><text class="ct" y="7">١</text></g>'+
+       '<text class="nm">'+t+'</text><circle class="hit" r="'+(p.r+14)+'"/></g>'});
+  s+='<g class="moor" id="moor"></g>'+
+     '<path class="wave hidden" id="wave" d="M-38 10Q-19 -14 0 4T38 0"/>'+
+     '<g class="token hidden" id="token"><path d="M0 4V-34" stroke="#0E4F72" stroke-width="4"/><path id="tokenFlag" d="M2 -34h30l-8 9l8 9h-30z" stroke="#fff" stroke-width="2.5"/></g>'+
+     '<g class="boat hidden" id="boat"><g class="hull"><path d="M0 2V-50" stroke="#0E4F72" stroke-width="3.5" stroke-linecap="round"/>'+
+     '<path class="sail" id="sail" d="M3 -48L34 -12H3Z"/><path d="M-36 0H36L25 17H-25Z" fill="#fff" stroke="#0E4F72" stroke-width="3.5" stroke-linejoin="round"/></g></g>';
+  s+='<g class="light hidden" id="light" transform="translate('+(MW/2)+' 470)">'+
+     '<g class="beam"><path d="M0 -80L-250 -118V-42Z M0 -80L250 -118V-42Z" fill="url(#beamG)"/></g>'+
+     '<path d="M-18 24L-11 -66H11L18 24Z" fill="#fff" stroke="#0E4F72" stroke-width="3" stroke-linejoin="round"/>'+
+     '<path d="M-15 -8H15M-13 -36H13" stroke="#1B6E9C" stroke-width="8"/>'+
+     '<rect x="-13" y="-90" width="26" height="22" rx="4" fill="#fff" stroke="#0E4F72" stroke-width="3"/>'+
+     '<path d="M-18 -90L0 -106L18 -90Z" fill="#0E4F72"/><path d="M0 -106V-146" stroke="#0E4F72" stroke-width="3"/>'+
+     '<path id="lightFlag" d="M1 -146h36l-9 10l9 10h-36z" stroke="#fff" stroke-width="2"/></g>';
+  s+='</svg>';
+  $("mapBox").innerHTML=s;P={own:{},ban:{}};CAM.vb=[0,0,MW,MH];
+  SLOTS.forEach(function(p,k){$("g"+k).addEventListener("click",function(){tap(k)})});
+  paint();
+}
+function flagsSvg(p,n,c){
+  var top=-p.r-20,h='<path class="pf top" fill="'+c+'" d="M1 '+top+'h30l-8 9l8 9h-30z"/>';
+  for(var i=1;i<Math.min(n,5);i++){var y=top+6+i*14,sd=i%2?-1:1;h+='<path class="pf sm" fill="'+c+'" d="M'+sd+' '+y+'h'+(sd*20)+'v11h'+(-sd*20)+'z"/>'}
+  return h;
+}
+function paint(){
+  if(!$("map"))return;
+  SLOTS.forEach(function(p,k){
+    var g=$("g"+k),c=col(G.own[k]),n=G.ban[k],was=P.own[k];
+    g.querySelector(".land").setAttribute("fill",c);
+    g.querySelector(".badge circle").setAttribute("stroke",c);
+    var ct=g.querySelector(".ct");ct.setAttribute("fill",c);ct.textContent=ar(n);
+    if(was!==G.own[k]||P.ban[k]!==n){
+      var fl=g.querySelector(".flags");
+      if(was!==undefined&&was!==G.own[k]){
+        fl.innerHTML=flagsSvg(p,n,col(was));g.classList.add("won");
+        later(function(){fl.innerHTML=flagsSvg(p,G.ban[k],col(G.own[k]))},mt(420));
+        later(function(){g.classList.remove("won")},mt(1000));
+      } else fl.innerHTML=flagsSvg(p,n,c);
+      P.own[k]=G.own[k];P.ban[k]=n;
+    }
+    g.classList.remove("sel","tgt","dim");g.classList.toggle("dead",isDead(k));
+    if(G.sel===k)g.classList.add("sel");
+    if(G.tgt===k)g.classList.add("tgt")});
+  if(G.phase==="move"){
+    SLOTS.forEach(function(p,k){if(k!==G.moveTgt&&k!==G.base)$("g"+k).classList.add("dim")})}
+  var from=(G.phase==="attack"&&G.sel!==null)?G.sel:null;
+  if(from!==null&&G.busy&&G.tgt!==null){
+    SLOTS.forEach(function(p,k){if(k!==from&&k!==G.tgt)$("g"+k).classList.add("dim")});
+    LINKS.forEach(function(l,i){var r=$("r"+i);r.classList.remove("hot","dim");
+      r.classList.add((l[0]===from&&l[1]===G.tgt)||(l[1]===from&&l[0]===G.tgt)?"hot":"dim")});
+    from=-1;
+  }
+  if(from!==null&&from>-1){
+    SLOTS.forEach(function(p,k){if(k===from)return;
+      if(!(adj(from,k)&&G.own[k]!==G.turn&&!isDead(k)))$("g"+k).classList.add("dim")})}
+  if(from!==-1)LINKS.forEach(function(l,i){var r=$("r"+i);r.classList.remove("hot","dim");if(from===null)return;
+    var o=l[0]===from?l[1]:(l[1]===from?l[0]:-1);
+    r.classList.add(o>-1&&G.own[o]!==G.turn&&!isDead(o)?"hot":"dim")});
+  var tide="";
+  for(var q=0;q<4;q++){
+    var cnt={},full=null,near=null;
+    SLOTS.forEach(function(p,k){if(p.s===q)cnt[G.own[k]]=(cnt[G.own[k]]||0)+1});
+    Object.keys(cnt).forEach(function(o){if(cnt[o]===2)near=+o});full=seaOwner(q);
+    var sea=$("sea"+q),lb=$("sl"+q);
+    sea.setAttribute("fill",full!==null?hexA(col(full),.34):"#F4FBFE");
+    lb.setAttribute("fill",full!==null?col(full):"#5D8398");lb.classList.toggle("owned",full!==null);
+    if(full===null&&near!==null)tide+='<path fill="'+hexA(col(near),.45)+'" d="'+SEAD[q]+'"/>';
+  }
+  var td=$("tide");if(td.getAttribute("data-t")!==tide){td.innerHTML=tide;td.setAttribute("data-t",tide)}
+}
+var RM=window.matchMedia?window.matchMedia("(prefers-reduced-motion: reduce)"):null;
+function mt(ms){return RM&&RM.matches?0:ms}
+var TM=[];
+function later(f,ms){TM.push(setTimeout(f,ms))}
+function clearT(){TM.forEach(function(t){clearTimeout(t)});TM=[]}
+function count(pi){var c=0;for(var k=0;k<12;k++)if(G.own[k]===pi)c++;return c}
+function banners(pi){var c=0;for(var k=0;k<12;k++)if(G.own[k]===pi)c+=G.ban[k];return c}
+/* الخمود: جزيرة نفدت أسئلة فئتها لا تُهاجَم ولا تُهاجِم، والنصر يُحسب على الجزر الحيّة */
+function isDead(k){return !!G.left&&!(G.left[G.slotCat[k]]>0)}
+function liveIsles(){var a=[];for(var k=0;k<12;k++)if(!isDead(k))a.push(k);return a}
+function seaOwner(s){var lv=[];for(var k=0;k<12;k++)if(SLOTS[k].s===s&&!isDead(k))lv.push(k);
+  if(!lv.length)return null;var o=G.own[lv[0]];
+  for(var i=1;i<lv.length;i++)if(G.own[lv[i]]!==o)return null;return o}
+function seas(pi){var n=0;for(var s=0;s<4;s++)if(seaOwner(s)===pi)n++;return n}
+function warEnd(){
+  var w=whoWon();if(w!==null){victory(w);return true}
+  if(!liveIsles().length){victory(leader(),seenLeft(null)?"خمدت الجزر كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات":"انتهت الأسئلة كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات، والتصفير بيدك في شاشة الإعداد");return true}
+  return false;
+}
+function stat(h,warn){var s=$("stat");s.innerHTML=h;s.className="stat"+(warn?" warn":"")}
+function who(i){return '<i class="dot" style="background:'+col(i)+'"></i><b>'+G.players[i].n+'</b>'}
+function beginDeploy(){
+  var p=G.players[G.turn];
+  G.phase="deploy";G.pool=deployCount();G.sel=null;G.tgt=null;G.placed=[];
+  stat(who(G.turn)+" يوزّع "+cntR(G.pool)+" على جزره");
+  $("nextBtn").disabled=true;
+  $("undoBtn").disabled=true;
+  paint();
+}
+function canAttack(pi){for(var k=0;k<12;k++){if(G.own[k]!==pi||G.ban[k]<2||isDead(k))continue;
+  for(var j=0;j<12;j++)if(G.own[j]!==pi&&adj(k,j)&&!isDead(j))return true}return false}
+function anyCanAttack(){for(var i=0;i<G.players.length;i++)if(canAttack(i))return true;return false}
+function leader(){var b=0;for(var i=1;i<G.players.length;i++){
+  if(count(i)>count(b)||(count(i)===count(b)&&banners(i)>banners(b)))b=i}return b}
+function beginTurn(){
+  var p=G.players[G.turn];G.left=seenByCat();
+  G.turnNo++;
+  G.sel=null;G.tgt=null;
+  G.base=null;G.attacked=false;G.busy=false;
+  G.phase="attack";
+  $("undoBtn").disabled=true;
+  if(!canAttack(G.turn)){
+    $("nextBtn").disabled=true;
+    stat(who(G.turn)+" — لا هجوم ممكن، يمرّ الدور");
+    G.busy=true;paint();later(endTurn,1400);return;
+  }
+  $("nextBtn").disabled=false;
+  stat(who(G.turn)+" — المس جزيرة لك فيها رايتان لتكون قاعدتك");
+  paint();
+}
+function tap(k){
+  if(G.busy)return;
+  if(G.phase==="deploy"){
+    if(G.own[k]!==G.turn||G.pool<=0)return;
+    G.ban[k]++;G.pool--;G.placed.push(k);
+    stat(who(G.turn)+(G.pool?(" — بقي "+cntR(G.pool)):" — وُزِّعت راياتك كلّها"));
+    $("nextBtn").disabled=(G.pool>0);$("undoBtn").disabled=false;
+    paint();return}
+  if(G.phase==="move"){
+    if(k===G.moveTgt&&G.moveLeft>0){
+      G.ban[G.moveTgt]++;G.ban[G.base]--;G.moveLeft--;G.placed.push(k);
+      stat("انقل إلى <b>"+catName(G.moveTgt)+"</b> — المتاح "+cntR(G.moveLeft));
+      $("undoBtn").disabled=false;
+      paint();return}
+    if(!(G.ban[G.base]>=2&&G.own[k]!==G.turn&&adj(G.base,k)&&!isDead(k)&&!isDead(G.base)))return;
+    G.phase="attack";G.moveTgt=null;G.moveLeft=0;G.placed=[];
+  }
+  if(G.phase!=="attack")return;
+  if(G.base===null){
+    if(G.own[k]!==G.turn)return;
+    if(isDead(k)){stat("جزيرة خامدة — نفدت أسئلة فئتها، فلا يُهاجَم منها",true);return}
+    if(G.ban[k]<2){stat("لا يُهاجَم من جزيرة فيها الحارس وحده",true);return}
+    G.base=k;G.sel=k;G.attacked=false;$("undoBtn").disabled=false;
+    stat(who(G.turn)+" — اسحب الراية إلى جزيرة تضيء");
+    paint();return}
+  if(k===G.base)return;
+  if(G.own[k]===G.turn){stat("القاعدة ثابتة في هذا الدور",true);return}
+  if(isDead(k)){stat("جزيرة خامدة — نفدت أسئلة فئتها، فلا تُهاجَم",true);return}
+  if(!adj(G.base,k)){stat("لا ممرّ بين الجزيرتين",true);return}
+  G.tgt=k;G.attacked=true;G.sel=G.base;$("undoBtn").disabled=true;paint();combat();
+}
+function afterAttack(){
+  if(warEnd())return;
+  G.tgt=null;
+  if(G.base!==null&&isDead(G.base)){
+    paint();
+    stat(who(G.turn)+" — خمدت قاعدتك، انتهى الدور");
+    G.busy=true;later(endTurn,1100);return}
+  if(G.base===null||G.ban[G.base]<2){
+    paint();
+    stat(who(G.turn)+" — بقي الحارس وحده، انتهى الدور");
+    G.busy=true;later(endTurn,1100);return}
+  paint();
+  stat(who(G.turn)+" — اسحب الراية من <b>"+catName(G.base)+"</b> أو أنهِ الدور");
+}
+$("undoBtn").onclick=function(){
+  if(G.busy)return;
+  if(G.phase==="deploy"){
+    if(!G.placed.length)return;
+    var k=G.placed.pop();G.ban[k]--;G.pool++;
+    stat(who(G.turn)+" — رجعت راية من <b>"+catName(k)+"</b>، بقي "+cntR(G.pool));
+    $("nextBtn").disabled=true;$("undoBtn").disabled=(G.placed.length===0);
+    paint();return}
+  if(G.phase==="move"){
+    if(!G.placed.length)return;
+    var m=G.placed.pop();G.ban[m]--;G.ban[G.base]++;G.moveLeft++;
+    stat("رجعت راية إلى <b>"+catName(G.base)+"</b> — المتاح "+cntR(G.moveLeft));
+    $("undoBtn").disabled=(G.placed.length===0);
+    paint();return}
+  if(G.attacked)return;
+  G.base=null;G.sel=null;G.tgt=null;$("undoBtn").disabled=true;
+  stat(who(G.turn)+" — المس جزيرة لك فيها رايتان لتكون قاعدتك");paint()};
+$("nextBtn").onclick=function(){
+  if(G.busy)return;
+  if(G.phase==="deploy"){
+    if(G.turn<G.players.length-1){G.turn++;beginDeploy();return}
+    G.turn=0;beginTurn();return}
+  if(G.phase==="move"){G.phase="attack";G.moveTgt=null;G.moveLeft=0;G.placed=[]}
+  endTurn();
+};
+/* الهجوم بالسحب: راية القاعدة تُسحب إلى جزيرة مجاورة للخصم — والبديل المكافئ لمس القاعدة ثمّ الهدف */
+function canHit(k){return G.phase==="attack"&&!G.busy&&G.base!==null&&G.ban[G.base]>=2&&k!==G.base&&G.own[k]!==G.turn&&adj(G.base,k)&&!isDead(k)&&!isDead(G.base)}
+(function(){
+  var box=$("mapBox"),D=null,eat=0;
+  function svgPt(e){
+    var svg=$("map"),r=svg.getBoundingClientRect(),v=CAM.vb,s=Math.min(r.width/v[2],r.height/v[3])||1;
+    return [v[0]+(e.clientX-r.left-(r.width-v[2]*s)/2)/s,v[1]+(e.clientY-r.top-(r.height-v[3]*s)/2)/s];
+  }
+  function isleAt(e){
+    var el=document.elementFromPoint?document.elementFromPoint(e.clientX,e.clientY):null,g=el&&el.closest?el.closest(".isle"):null;
+    return g&&g.id?+g.id.slice(1):-1;
+  }
+  function marks(on,hov){
+    SLOTS.forEach(function(p,k){var g=$("g"+k);if(!g)return;
+      g.classList.toggle("can",on&&canHit(k));g.classList.toggle("hov",on&&k===hov&&canHit(k))});
+  }
+  function drop(){
+    var t=$("token");
+    if(D&&D.on){var p=SLOTS[G.base],from=D.pt;
+      tween(260,function(e){t.setAttribute("transform","translate("+fx(from[0]+(p.x-from[0])*e)+" "+fx(from[1]+(p.y-p.r-10-from[1])*e)+")")},
+        function(){t.classList.add("hidden")})}
+    marks(false,-1);D=null;
+  }
+  box.addEventListener("pointerdown",function(e){
+    if(D||G.phase!=="attack"||G.busy||G.base===null||G.ban[G.base]<2)return;
+    var g=e.target&&e.target.closest?e.target.closest(".isle"):null;
+    if(!g||g.id!=="g"+G.base)return;
+    D={id:e.pointerId,x:e.clientX,y:e.clientY,on:false,pt:null};
+    try{box.setPointerCapture(e.pointerId)}catch(x){}
+  });
+  box.addEventListener("pointermove",function(e){
+    if(!D||e.pointerId!==D.id)return;
+    if(!D.on){if(Math.sqrt(Math.pow(e.clientX-D.x,2)+Math.pow(e.clientY-D.y,2))<24)return;
+      D.on=true;$("tokenFlag").setAttribute("fill",col(G.turn));$("token").classList.remove("hidden")}
+    D.pt=svgPt(e);$("token").setAttribute("transform","translate("+fx(D.pt[0])+" "+fx(D.pt[1])+")");
+    marks(true,isleAt(e));
+  });
+  function up(e){
+    if(!D||e.pointerId!==D.id)return;
+    var k=D.on?isleAt(e):-1,was=D.on;
+    if(was)eat=performance.now();
+    if(was&&k>-1&&canHit(k)){marks(false,-1);$("token").classList.add("hidden");D=null;tap(k);return}
+    if(was)stat("رجعت الراية إلى القاعدة");
+    drop();
+  }
+  box.addEventListener("pointerup",up);
+  box.addEventListener("pointercancel",function(e){if(D&&e.pointerId===D.id)drop()});
+  box.addEventListener("click",function(e){if(performance.now()-eat<400){e.stopPropagation();eat=0}},true);
+})();
+function endTurn(){
+  if(warEnd())return;
+  if(!anyCanAttack())return victory(leader(),"لا هجوم ممكنًا لأحد — الغلبة لمن ملك أكثر جزرًا ثمّ رايات");
+  G.turn=(G.turn+1)%G.players.length;var g=0;
+  while(count(G.turn)===0&&g++<8)G.turn=(G.turn+1)%G.players.length;
+  beginTurn();
+}
+function whoWon(){
+  var lv=liveIsles();if(!lv.length)return null;
+  for(var i=0;i<G.players.length;i++){
+    if(lv.every(function(k){return G.own[k]===i}))return i;
+    if(G.winRule===2&&seas(i)>=2)return i}
+  return null;
+}
+function victory(i,why){
+  G.sel=null;G.tgt=null;G.phase="over";paint();
+  $("lightFlag").setAttribute("fill",col(i));$("light").classList.remove("hidden");
+  $("winMap").appendChild($("mapBox"));
+  $("winWhy").textContent=why||"رُفعت الراية على الأرخبيل";
+  $("winName").textContent=G.players[i].n;$("winName").style.color=col(i);
+  V.last=G.players[i].n+" فاز بـ"+ar(count(i))+" جزيرة";
+  var b=$("winBody");b.innerHTML="";
+  G.players.map(function(p,k){return{p:p,k:k,c:count(k),b:banners(k)}})
+    .sort(function(x,y){return y.c-x.c}).forEach(function(r){
+      b.innerHTML+="<tr><td><span class='dot' style='display:inline-block;background:"+col(r.k)+
+        ";margin-left:6px'></span>"+r.p.n+"</td><td>"+ar(r.c)+"</td><td class='n'>"+ar(r.b)+"</td></tr>"});
+  show("win");
+}
+
+/* ───── النزال ───── */
+function pickQ(ci){
+  var bag=[];seenRead();
+  for(var i=0;i<DATA.qs.length;i++){if(DATA.qs[i][0]===ci&&!G.used[i]&&!seenHas(i))bag.push(i)}
+  if(!bag.length)return null;
+  var k=bag[Math.floor(Math.random()*bag.length)];G.used[k]=1;seenMark(k);G.left=seenByCat();return DATA.qs[k];
+}
+function combat(){
+  var atkI=G.turn,defI=G.own[G.tgt],atk=G.players[atkI],def=G.players[defI];
+  var ci=G.slotCat[G.tgt],shot=0,hits=0,asked=0;
+  startFight();
+  function shoot(){
+    if(shot>=G.shots){settle();return}
+    shot++;
+    askQ(atk,atkI,ci,(G.shots>1?ar(shot)+" / "+ar(G.shots):""),false,function(ok,fast){
+      if(ok===null){
+        if(!asked){result("hold","خمدت <b>"+catName(G.tgt)+"</b> — نفدت أسئلة فئتها، ولم تتحرّك راية.",afterAttack);return}
+        shot=G.shots;settle();return}
+      asked++;if(ok){hits+=(fast?2:1)} shoot() });
+  }
+  function settle(){
+    var base=G.base,tgt=G.tgt;
+    if(hits===0){
+      if(G.ban[base]>1){G.ban[base]--;G.ban[tgt]++}
+      result("lose","رُدَّ الهجوم — انتقلت راية من <b>"+catName(base)+"</b> إلى <b>"+catName(tgt)+"</b>.",afterAttack);
+      return;
+    }
+    function take(lead){
+      if(G.ban[tgt]>1){
+        G.ban[tgt]--;G.ban[base]++;
+        result("take",lead+" أخذتَ راية إلى <b>"+catName(base)+"</b>، وبقي للمدافع "+cntR(G.ban[tgt])+".",afterAttack);
+        return;
+      }
+      var nm=catName(tgt);
+      G.own[tgt]=G.turn;G.moveTgt=tgt;
+      result("fall","فُتحت <b>"+nm+"</b> — "+lead+" أخذتَ آخر راية فيها.",function(){
+        if(warEnd())return;
+        G.tgt=null;G.moveLeft=(isDead(tgt)||isDead(base))?0:Math.max(0,G.ban[base]-1);
+        if(G.moveLeft<=0){afterAttack();return}
+        G.phase="move";
+        stat("انقل إلى <b>"+nm+"</b> — المتاح "+cntR(G.moveLeft));
+        G.placed=[];
+        $("nextBtn").disabled=false;
+        $("undoBtn").disabled=true;
+        paint()});
+    }
+    if(hits>=2){take("إصابة مزدوجة لا تُصدّ —");return}
+    var noDef="صمدت <b>"+catName(tgt)+"</b> — نفدت أسئلة فئتها فلم يُسأل المدافع، ولم تتحرّك راية.";
+    if(!(G.left[ci]>0)){result("hold",noDef,afterAttack);return}
+    pass(def,defI,function(){
+      askQ(def,defI,ci,"",true,function(dok){
+        if(dok===null){result("hold",noDef,afterAttack);return}
+        if(dok){result("hold","صمدت <b>"+catName(tgt)+"</b> — ردَّ المدافع الإصابة، ولم تتحرّك راية.",afterAttack);return}
+        take("أخطأ المدافع —");
+      })});
+  }
+  shoot();
+}
+
+/* المشهد: الكاميرا والمركب والراية الطائرة — كلّها تقفز إلى آخرها مع تقليل الحركة */
+var CAM={vb:[0,0,MW,MH]},FX=[];
+function tween(ms,fn,done){
+  ms=mt(ms);
+  if(!ms){fn(1);if(done)done();return}
+  var t0=performance.now(),id={r:0};FX.push(id);
+  function st(now){var p=Math.min(1,Math.max(0,(now-t0)/ms));fn(p);
+    if(p<1)id.r=requestAnimationFrame(st);else{id.r=0;if(done)done()}}
+  id.r=requestAnimationFrame(st);
+}
+function stopFx(){FX.forEach(function(x){if(x.r)cancelAnimationFrame(x.r)});FX=[]}
+function camTo(vb,ms){
+  var from=CAM.vb.slice();
+  tween(ms,function(p){var e=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
+    CAM.vb=from.map(function(a,i){return a+(vb[i]-a)*e});
+    if($("map"))$("map").setAttribute("viewBox",CAM.vb.map(fx).join(" "))});
+}
+/* التكبير: نحو ضعف ونصف مقياس الخريطة، والهدف في الوسط لا يُقطع، ويميل المشهد قليلًا نحو القاعدة ليُرى المركب يُبحر */
+function camFight(base,tgt){
+  var box=$("mapBox"),w=box.clientWidth||360,h=Math.max(200,Math.round((window.innerHeight||740)*.4)),asp=w/h;
+  var a=SLOTS[base],b=SLOTS[tgt],m=b.r+56,W=400,H=W/asp;
+  if(H<2*m+20){H=2*m+20;W=H*asp}
+  var lx=Math.max(0,W/2-m),ly=Math.max(0,H/2-m);
+  var cx=b.x+Math.max(-lx,Math.min(lx,(a.x-b.x)/2)),cy=b.y+Math.max(-ly,Math.min(ly,(a.y-b.y)/2));
+  camTo([cx-W/2,cy-H/2,W,H],450);
+}
+var BOAT={p:0};
+function boatPos(p){
+  var i=G.base,j=G.tgt,b=SLOTS[j],L=ctl(i,j)[2],tA=0,tB=1-(b.r+26)/L;
+  return bez(i,j,tA+(tB-tA)*Math.max(0,Math.min(1,p)));
+}
+function boatAt(p){
+  BOAT.p=p;var o=boatPos(p);
+  $("boat").setAttribute("transform","translate("+fx(o.x)+" "+fx(o.y)+")"+(o.dx<0?" scale(-1 1)":""));
+}
+function boatGlide(to,ms){var from=BOAT.p;tween(ms,function(e){boatAt(from+(to-from)*e)})}
+function fly(i,j,c,ms){
+  var t=$("token");$("tokenFlag").setAttribute("fill",c);t.classList.remove("hidden");
+  tween(ms,function(p){var o=bez(i,j,p);t.setAttribute("transform","translate("+fx(o.x)+" "+fx(o.y)+")")},
+    function(){t.classList.add("hidden")});
+}
+var ANCHOR='<circle r="19"/><path d="M0 -10V11M-7 -5H7M-10 3Q-9 12 0 12Q9 12 10 3"/>';
+var GATE='<rect x="-17" y="-17" width="34" height="34" rx="4"/><path d="M-8 14V1Q-8 -8 0 -8Q8 -8 8 1V14"/>';
+var MOORP=[[1,-1],[-1,-1],[1,1],[-1,1]];
+function moor(n,defend){
+  var p=SLOTS[G.tgt],h="";
+  for(var i=0;i<n;i++)h+='<g class="mk" id="m'+i+'" transform="translate('+fx(p.x+MOORP[i][0]*(p.r+34))+' '+
+    fx(p.y+MOORP[i][1]*(p.r*.6+18))+')">'+(defend?GATE:ANCHOR)+'</g>';
+  $("moor").innerHTML=h;
+}
+function startFight(){
+  G.busy=true;clearT();
+  $("war").classList.add("fight");
+  $("slab").classList.remove("hidden");$("slab").classList.remove("flip");$("pg").disabled=true;
+  $("sail").setAttribute("fill",col(G.turn));
+  $("boat").querySelector(".hull").classList.remove("sink");
+  $("boat").classList.remove("hidden");boatAt(0);
+  paint();camFight(G.base,G.tgt);
+}
+function endFight(){
+  stopFx();stop();G.busy=false;
+  $("war").classList.remove("fight");$("slab").classList.add("hidden");$("slab").classList.remove("flip");$("pg").disabled=true;
+  $("boat").classList.add("hidden");$("token").classList.add("hidden");$("wave").classList.add("hidden");
+  if($("moor"))$("moor").innerHTML="";
+  SLOTS.forEach(function(p,k){var g=$("g"+k);if(g){g.classList.remove("walled");g.classList.remove("hold")}});
+  camTo([0,0,MW,MH],450);
+}
+function result(kind,msg,go){
+  stop();
+  var base=G.base,tgt=G.tgt;
+  stat(msg);$("moor").innerHTML="";$("g"+tgt).classList.remove("walled");
+  if(kind==="lose"){
+    $("boat").querySelector(".hull").classList.add("sink");
+    fly(base,tgt,col(G.own[tgt]),700);
+  }
+  if(kind==="take")fly(tgt,base,col(G.turn),700);
+  if(kind==="take"||kind==="hold"){
+    var o=boatPos(BOAT.p),b=SLOTS[tgt],w=$("wave");
+    if(kind==="hold"){$("g"+tgt).classList.add("hold");w.classList.remove("hidden")}
+    tween(420,function(p){if(kind!=="hold")return;var k=.3+.7*p,x=b.x+(o.x-b.x)*k,y=b.y+(o.y-b.y)*k;
+        w.setAttribute("transform","translate("+fx(x)+" "+fx(y)+")");w.setAttribute("opacity",fx(1-p*.5))},
+      function(){w.classList.add("hidden");boatGlide(0,700)});
+  }
+  if(kind==="fall")boatGlide(1,300);
+  later(paint,mt(720));
+  later(function(){endFight();go()},1700);
+}
+function pass(p,pi,go){
+  stop();$("moor").innerHTML="";
+  $("pgName").textContent=p.n;$("pg").style.background=col(pi);
+  stat("سلّموا الجهاز إلى "+who(pi)+" — المس اللوح");
+  $("slab").classList.add("flip");$("pg").disabled=false;
+  $("pg").onclick=function(){if($("pg").disabled)return;$("pg").disabled=true;go();$("slab").classList.remove("flip")};
+}
+function askQ(who,pi,ci,shotTxt,defend,then){
+  var q=pickQ(ci);if(!q){then(null,false);return}T.alive=q[4].length;T.lock=false;
+  $("sDot").style.background=col(pi);$("sWho").textContent=who.n;$("sShot").textContent=shotTxt;$("secs").textContent="";
+  $("qtext").textContent=q[3];$("why").className="why";$("why").innerHTML="";
+  stat('<i class="dot" style="background:'+col(pi)+'"></i><b>'+who.n+"</b> "+(defend?"يدافع عن ":"يهاجم ")+"<b>"+catName(G.tgt)+"</b>");
+  $("g"+G.tgt).classList.toggle("walled",!!defend);
+  var box=$("ops");box.innerHTML="";box.className="opts "+(defend?"gates":"moor");
+  var full=q[4].length;
+  if(G.noOpts){
+    var rb=document.createElement("button");rb.className="opt reveal";
+    rb.textContent="أظهر الجواب";
+    rb.onclick=function(){judge(q,then)};box.appendChild(rb);moor(0,defend);
+  } else {
+    var idx=q[4].map(function(c,i){return i}).sort(function(){return Math.random()-.5});
+    idx.forEach(function(j,pos){
+      var b=document.createElement("button");b.className="opt";b.dataset.k=j;b.dataset.pos=pos;
+      var mk=document.createElement("span");mk.className="mk";mk.setAttribute("aria-hidden","true");
+      mk.innerHTML=defend?'<svg viewBox="0 0 12 12"><path d="M3 11V5Q3 2 6 2Q9 2 9 5V11"/></svg>':'<svg viewBox="0 0 12 12"><path d="M6 1V11M3 3.5H9M1.5 7Q2 11 6 11Q10 11 10.5 7"/></svg>';
+      b.appendChild(mk);
+      var tx=document.createElement("span");tx.className="tx";tx.textContent=q[4][j];b.appendChild(tx);
+      b.onclick=function(){land(j,b,q,full,then)};box.appendChild(b);
+      if(pos===1){var il=document.createElement("i");il.className="islet";il.setAttribute("aria-hidden","true");
+        il.innerHTML=defend?'<svg viewBox="0 0 120 30"><path d="M4 26H116M4 26V12H116V26M20 12V6M40 12V6M60 12V6M80 12V6M100 12V6" fill="none" stroke="#8FB3C6" stroke-width="3"/><path d="M52 26V20Q52 15 60 15Q68 15 68 20V26" fill="#fff" stroke="#8FB3C6" stroke-width="3"/></svg>'
+          :'<svg viewBox="0 0 120 30"><path d="M6 4Q40 15 50 15M114 4Q80 15 70 15M6 28Q40 17 50 17M114 28Q80 17 70 17" fill="none" stroke="#8FB3C6" stroke-width="2" stroke-dasharray="3 4"/><path d="M44 16Q46 5 60 6Q75 5 76 16Q74 26 60 25Q45 26 44 16Z" fill="'+col(G.own[G.tgt])+'" stroke="#fff" stroke-width="2"/></svg>';
+        box.appendChild(il)}
+    });
+    moor(idx.length,defend);
+  }
+  boatAt(0);
+  runFuse(q,full,then);
+}
+function judge(q,then){
+  if(T.lock)return;stop();
+  var box=$("ops");box.innerHTML="";
+  var a=document.createElement("div");a.className="opt right reveal";a.textContent=q[4][q[5]];box.appendChild(a);
+  $("why").innerHTML=q[6]+(q[7]?'<span class="src">'+q[7]+'</span>':'');$("why").className="why on";
+  var y=document.createElement("button");y.className="opt judge";y.textContent="أصابَ";
+  y.onclick=function(){T.lock=true;box.innerHTML="";later(function(){then(true,false)},250)};
+  var n=document.createElement("button");n.className="opt judge";n.textContent="أخطأَ";
+  n.onclick=function(){T.lock=true;box.innerHTML="";later(function(){then(false,false)},250)};
+  box.appendChild(y);box.appendChild(n);
+}
+/* المركب هو المؤقّت: يزحف من القاعدة مع الثواني، وبلوغه الشاطئ انتهاء المهلة */
+function runFuse(q,full,then){
+  stop();
+  if(!G.fuse){boatGlide(.5,900);return}
+  T.t0=performance.now();var last=-1;
+  function step(now){
+    var e=now-T.t0,p=1-e/G.fuse;
+    if(p<=0){boatAt(1);$("secs").textContent=ar(0);if(!T.lock)land(-1,null,q,full,then);return}
+    var s=Math.ceil((G.fuse-e)/1000);if(s!==last){last=s;$("secs").textContent=ar(s)}
+    boatAt(mt(1)?e/G.fuse:Math.floor(e/1000)*1000/G.fuse);
+    var want=e>G.fuse*0.66?2:(e>G.fuse*0.33?full-1:full);
+    while(T.alive>want){
+      var wr=[];document.querySelectorAll("#ops .opt[data-k]").forEach(function(b){
+        if(+b.dataset.k!==q[5]&&!b.classList.contains("burn"))wr.push(b)});
+      if(!wr.length)break;
+      var v=wr[Math.floor(Math.random()*wr.length)];v.classList.add("burn");v.disabled=true;T.alive--;
+      var m=$("m"+v.dataset.pos);if(m)m.classList.add("gone")}
+    T.raf=requestAnimationFrame(step)}
+  T.raf=requestAnimationFrame(step);
+}
+function stop(){if(T.raf)cancelAnimationFrame(T.raf);T.raf=null}
+function land(k,btn,q,full,then){
+  if(T.lock)return;T.lock=true;stop();
+  var fast=(G.fuse>0&&T.alive===full),ok=(k===q[5]);
+  document.querySelectorAll("#ops .opt").forEach(function(b){b.disabled=true;
+    if(+b.dataset.k===q[5]){b.classList.add("right");var m=$("m"+b.dataset.pos);if(m)m.classList.add("right")}});
+  if(btn&&!ok){btn.classList.add("wrong");var mw=$("m"+btn.dataset.pos);if(mw)mw.classList.add("wrong")}
+  stat((k===-1?"رسا المركب — نفد الوقت.":(ok?(fast?"إصابة مزدوجة — سبقتَ الجمر.":"إصابة."):"خطأ.")),!ok);
+  $("why").innerHTML=q[6]+(q[7]?'<span class="src">'+q[7]+'</span>':'');$("why").className="why on";
+  later(function(){then(ok,fast)},2300);
+}
+function quitFight(){clearT();if(G.busy)endFight()}
+
+/* ───── الرأي ───── */
+(function(){
+  var w=$("stars");
+  for(var i=1;i<=5;i++)(function(n){
+    var b=document.createElement("button");b.className="chip";b.textContent=ar(n);
+    b.onclick=function(){V.stars=n;w.querySelectorAll(".chip").forEach(function(x,j){
+      x.className="chip"+(j<n?" on":"")})};w.appendChild(b)})(i);
+  var f=$("forWho");
+  ["للصغار","للكبار","للجميع"].forEach(function(t){
+    var b=document.createElement("button");b.className="chip";b.textContent=t;
+    b.onclick=function(){V.who=t;f.querySelectorAll(".chip").forEach(function(x){
+      x.className="chip"+(x.textContent===t?" on":"")})};f.appendChild(b)});
+})();
+$("copyV").onclick=function(){
+  var t="كنوز المعرفة — طريقة «حرب الجزر»\nالتقييم: "+ar(V.stars||0)+"/٥\nتصلح: "+(V.who||"—")+
+    "\nالنتيجة: "+(V.last||"—")+"\nملاحظة: "+($("vnote").value.trim()||"—");
+  var ok=function(){$("copied").textContent="نُسخ — أرسله لصاحب التطبيق"};
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(ok,function(){fb(t,ok)})}else fb(t,ok)};
+function fb(t,ok){var a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();
+  try{document.execCommand("copy");ok()}catch(e){$("copied").textContent="انسخه يدويًّا"}
+  document.body.removeChild(a)}
+</script>
+</body>
+</html>

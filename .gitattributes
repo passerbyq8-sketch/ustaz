@@ -82,7 +82,7 @@ mushaf-layout.json       -text
 
 # Binary. Never convert.
 *.gz                     binary
-quest-data/*.json -text
+quest-data/*.js -text
 
 # Defect 40 extended: these nine guard scripts were brought under git tracking in
 # bug 43. Pin them to LF so a fresh clone with core.autocrlf=true cannot inject CR
@@ -125,25 +125,11 @@ chat-history-guard.cjs text eol=lf
 # Gate 13 (markdown-guard). Same reason as every gate above.
 markdown-guard.cjs text eol=lf
 
-# Gate 14 (quest-reveal-guard). Same reason as every gate above. Its golden lives under
-# quest-data/, already covered by the "quest-data/*.json -text" rule further up.
-quest-reveal-guard.cjs text eol=lf
+# Gates 14, 15, 16 and 18 (the old bank's guards) retired in item 10 with the bank they read.
 
-# Gate 15 (quran-quest-guard). Same reason as every gate above. Its golden also lives
-# under quest-data/, covered by the "quest-data/*.json -text" rule further up.
-quran-quest-guard.cjs text eol=lf
-
-# Gate 16 (prayer-quest-guard). Same reason as every gate above. Its golden also lives
-# under quest-data/, covered by the "quest-data/*.json -text" rule further up.
-prayer-quest-guard.cjs text eol=lf
-
-# Gate 17 (quest-bank-integrity-guard). Same reason as every gate above. Its golden also
-# lives under quest-data/, covered by the "quest-data/*.json -text" rule further up.
+# Gate 17 (quest-bank-integrity-guard). Same reason as every gate above. Since item 10 it seals
+# the shared Kunuz bank, quest-data/kunuz-bank-3147.js, covered by the "quest-data/*.js -text" rule.
 quest-bank-integrity-guard.cjs text eol=lf
-
-# Gate 18 (quest-content-review-guard). Same reason as every gate above. Its manifest also
-# lives under quest-data/, covered by the "quest-data/*.json -text" rule further up.
-quest-content-review-guard.cjs text eol=lf
 
 # Gate 19 (theme-coverage-guard). Same reason as every gate above: it is compared byte-for-byte
 # against what the app ships, so its own line endings must not drift under core.autocrlf.
@@ -157,9 +143,7 @@ chat-ux-guard.cjs text eol=lf
 # its own line endings must not drift under core.autocrlf.
 a11y-guard.cjs text eol=lf
 
-# Gate 22 (quest-ux-guard). It seals the question bank by hash and drives the shipped page in a
-# real browser, so its own line endings must not drift under core.autocrlf.
-quest-ux-guard.cjs text eol=lf
+# Gate 22 (quest-ux-guard) retired in item 10 with the page it drove.
 
 # Gate 23 (attribution-guard). Same reason as every gate above. Its two modules are pinned for
 # the same reason lib/daycap.js is: the gate reads them as text and asserts on their contents, so
@@ -266,7 +250,6 @@ data/source-liveness.json text eol=lf
 lib/ai-consent.js text eol=lf
 tools/ai-consent-probe.cjs text eol=lf
 guards/ruling-source-guard.cjs text eol=lf
-guards/world-parity-guard.cjs text eol=lf
 tools/wird-guard.cjs text eol=lf
 guards/voice-safety-guard.cjs text eol=lf
 
@@ -778,3 +761,14 @@ api/inbox.js text eol=lf
 # that checked it out the other way still kills the mutant rather than reporting a moved seam --
 # but the guard's own bytes are pinned so that its anchors read the same everywhere.
 guards/khilaf-probe-freeze-guard.cjs text eol=lf
+
+# ITEM 10 -- the Kunuz modes. The two gates that accepted them, and the mini DOM and world they
+# simulate the browser with (read as text and sliced on literal markers, so pinned like a gate).
+# The three pages are pinned LF so the bytes the gates read are the bytes git stores.
+guards/kunuz-norepeat-guard.cjs text eol=lf
+guards/kunuz-ghaws-cats-guard.cjs text eol=lf
+guards/kunuz-sim/dom.cjs text eol=lf
+guards/kunuz-sim/world.cjs text eol=lf
+quest.html text eol=lf
+quest-ghaws.html text eol=lf
+quest-harb.html text eol=lf

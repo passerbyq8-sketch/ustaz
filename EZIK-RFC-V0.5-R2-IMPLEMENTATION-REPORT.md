@@ -335,19 +335,19 @@ lib/ledger/source-policy.js` returns **empty**.
 
 ## K. Gates and tests
 
-All 115 gates, run by the canonical `npm run gates` runner from `gates.json`:
+All 111 gates, run by the canonical `npm run gates` runner from `gates.json`:
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
-classifier 0 · hafs 0 · call 0 · history 0 · markdown 0 · reveal 0 · quranquest 0
-prayerquest 0 · bankintegrity 0 · contentreview 0 · themecoverage 0 · chatux 0 · a11y 0
-questux 0 · attribution 0 · claim 0 · sourceregistry 0 · bravequery 0 · smartretrieval 0
+classifier 0 · hafs 0 · call 0 · history 0 · markdown 0
+bankintegrity 0 · themecoverage 0 · chatux 0 · a11y 0
+attribution 0 · claim 0 · sourceregistry 0 · bravequery 0 · smartretrieval 0
 ledgercontract 0 · ledgerretrieval 0 · ledgergates 0 · ledgerruntime 0 · ledgerfixtures 0
 ledgerseam 0 · rfcpolicy 0 · rfcruntime 0 · rfcwiring 0 · rfcround3 0 · rfcmode 0
 rfchistorical 0 · rfcconsistency 0 · rfcworld 0 · scholardrift 0 · shippedreality 0
 pagematch 0 · takhrij 0 · quotedphrase 0 · adaptedcorpus 0 · deaddomains 0
 floorsfilters 0 · liveness 0 · aiconsent 0 · srcattr 0 · referraltail 0 · namepresence 0
-voicesafety 0 · wird 0 · worldparity 0 · rulingsource 0 · retrievalobs 0 · madinahafs 0
+voicesafety 0 · wird 0 · rulingsource 0 · retrievalobs 0 · madinahafs 0
 i18nui 0 · adhkartwins 0 · systemprompt 0 · lockpackage 0 · sourcehonesty 0
 ledgertelemetry 0 · livesearch 0 · answershape 0 · identity 0 · transfermode 0 · anchormode 0
 searchbudgetp0 0 · fullfatwa 0
@@ -361,13 +361,14 @@ locationbridge 0 · deletetruth 0 · schedulepayload 0 · savebridge 0 · authse
 authbridge 0 · libbook 0 · attrwiden 0  attrtruth 0 · regexdup 0 · streamkeep 0 · layer1human 0
 nameform 0 · rejectdoor 0 · articles 0 · asmaa 0 · chatbaractions 0 · sharelinks 0
 prophetascription 0 · prophetascriptionwiring 0 · khilafprobefreeze 0
+kunuznorepeat 0 · kunuzcats 0
 ```
 
 Every one **PASS**, exit code `0`.
 
 ```
-TOTAL_GATES        115/115 PASS
-RECON              PASS=205 WARN=1 FAIL=0
+TOTAL_GATES        111/111 PASS
+RECON              PASS=201 WARN=1 FAIL=0
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision
 NEW_FIXTURES       rfcpolicy 125/125 · rfcruntime 96/96

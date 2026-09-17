@@ -16,8 +16,10 @@
 //   D. LIGHT IS PINNED -- every token introduced by this phase has a light value byte-identical
 //                         to the literal it replaced. This is what stops a future dark tweak from
 //                         quietly moving the light design.
-//   E. THE QUEST PAGE  -- quest.html reads the same theme key, boots before first paint, and has
-//                         a dark value for every token its light palette declares.
+//   E. THE QUEST PAGE  -- ITEM 10 (2026-09-17): quest.html is the Kunuz hub now. The themed
+//                         treasure journey this group, F3, G12, J, the quest half of K and R
+//                         measured was replaced, and those checks left with it. E proves the
+//                         replacement is what is on disk, so the retirement cannot go stale.
 //   G. VISUAL THEMES   -- S100. A THIRD, independent setting: qibla_13 | istana_33, stored
 //                         under its own key, defaulting to istana_33, composing with BOTH of
 //                         the other two rather than replacing either. This group proves the
@@ -304,23 +306,18 @@ ok('...and every one of them has a DIFFERENT dark value', notMoved.length === 0,
 /* ========================= E. THE QUEST PAGE ============================= */
 console.log('\n=== E. THE QUEST PAGE (\\u0643\\u0646\\u0648\\u0632 \\u0627\\u0644\\u0645\\u0639\\u0631\\u0641\\u0629) ===');
 const q = cssOf(QUEST);
-const qLight = palette((/:root\s*\{([^}]*)\}/.exec(q.css) || [, ''])[1]);
-const qDark = palette((/:root\[data-theme="dark"\]\s*\{([^}]*)\}/.exec(q.css) || [, ''])[1]);
-ok('quest.html boots from the SAME theme key as the app',
-  /localStorage\.getItem\('murabbi_theme_v1'\)/.test(q.html));
-ok('...before first paint, so the journey never flashes light',
-  q.html.indexOf("localStorage.getItem('murabbi_theme_v1')") < q.html.indexOf('<style>'));
-ok('...and declares a dark palette', Object.keys(qDark).length > 0);
-// Every COLOUR token in the light palette needs a dark counterpart. Radii, fonts and shadows do
-// not, so only tokens whose light value is a colour are required to move.
+// ITEM 10: the old journey read murabbi_theme_v1 and ezik_visual_theme_v2, declared a dark
+// palette and let reward skins override it inline. None of that page exists any more: quest.html
+// is the Kunuz hub, and the two modes are the owner-accepted light pages. What is asserted here is
+// the replacement itself -- if the themed journey ever came back, this fails and the retired
+// checks have to come back with it.
+ok('E: quest.html is the Kunuz hub (item 10) -- a door to each mode and the way home',
+  q.html.indexOf('href="/quest-ghaws.html"') !== -1 && q.html.indexOf('href="/quest-harb.html"') !== -1
+  && /<a\b[^>]*href="\/"/.test(q.html));
+ok('E: ...and none of the old journey\'s theme machinery is left on it to go unmeasured',
+  !/murabbi_theme_v1|ezik_visual_theme_v2|const Screens = \{|function sheet\(/.test(q.html));
+// Kept: used by group G's settings-control check below.
 const isColour = (v) => /^#|^rgba?\(/i.test(String(v).trim());
-const qMissing = Object.keys(qLight).filter((t) => isColour(qLight[t]) && qDark[t] == null);
-ok('every colour token in the light palette has a dark value', qMissing.length === 0, 'missing: ' + qMissing.join(', '));
-ok('the status bar follows data-theme rather than hardcoding the sand paper',
-  /getAttribute\("data-theme"\) === "dark"/.test(q.html));
-// The reward skins are inline properties on <html> and MUST keep outranking the base palette.
-ok('reward skins still override the base palette (inline properties on <html>)',
-  /documentElement\.style\.setProperty\(k, t\.tokens\[k\]\)/.test(q.html));
 
 /* ================= F. THE THREE DEFECTS THE PHONE VIDEO PROVED ==============
  * Each is asserted by what it actually depends on, not by looking for a string.
@@ -420,47 +417,7 @@ if (ok('F2: the boot paint literals are readable', !!bootDark)) {
     bootDark[2].toUpperCase(), BOOT_LIGHT_PAGE.toUpperCase());
 }
 
-/* --- F3. the quest celebration scrim -------------------------------------
- * Cause: the backdrop was color-mix(in srgb, var(--ink) 46%, transparent), and --ink INVERTS
- * with the theme, so in dark it dimmed with a light cream instead of darkening. Asserted by
- * RESOLVING the scrim in both palettes and measuring it: a scrim darkens in every theme.
- */
-const qL = { ...qLight }, qD = { ...qLight, ...qDark };
-const sheetRule = /\.sheet\s*\{([^}]*)\}/.exec(q.css);
-ok('F3: the celebration/badge/result layer (.sheet) exists', !!sheetRule);
-// pull the FIRST colour out of a value, understanding color-mix(in srgb, X p%, transparent)
-function scrimBase(value, pal) {
-  let v = String(value);
-  for (let i = 0; i < 8 && v.indexOf('var(') !== -1; i++) {
-    v = v.replace(/var\((--[a-z0-9-]+)(?:\s*,\s*([^()]*))?\)/gi, (_, n, fb) => (pal[n] != null ? pal[n] : (fb || '')));
-  }
-  const mix = /color-mix\(\s*in\s+srgb\s*,\s*(#[0-9a-f]{3,6}|rgba?\([^)]*\))/i.exec(v);
-  if (mix) return parseColor(mix[1]);
-  const f = /(#[0-9a-f]{3,6}\b|rgba?\([^)]*\))/i.exec(v);
-  if (!f) return null;
-  const rgba = /^rgba?\(([^)]+)\)$/i.exec(f[1]);
-  if (rgba) { const p = rgba[1].split(',').map(parseFloat); return [p[0], p[1], p[2]]; }
-  return parseColor(f[1]);
-}
-if (sheetRule) {
-  const bgDecl = (/background\s*:\s*([^;]+)/i.exec(sheetRule[1]) || [, ''])[1];
-  ok('F3: it dims through a dedicated token, not through a text colour',
-    /var\(--scrim\)/.test(bgDecl) && !/var\(--ink\)/.test(bgDecl),
-    'background: ' + bgDecl.trim());
-  const sL = scrimBase(bgDecl, qL), sD = scrimBase(bgDecl, qD);
-  ok('F3: the scrim resolves in LIGHT', !!sL);
-  ok('F3: the scrim resolves in DARK', !!sD);
-  // THE defect: in dark the base was #F3E9D8 (luminance ~0.82). A scrim must be dark in BOTH.
-  if (sL) ok('F3: the LIGHT scrim darkens what is behind it', lum(sL) < 0.25, 'base ' + hex(sL) + ' luminance ' + lum(sL).toFixed(3));
-  if (sD) ok('F3: the DARK scrim darkens too -- it is not a pale veil', lum(sD) < 0.25, 'base ' + hex(sD) + ' luminance ' + lum(sD).toFixed(3));
-  // light must not have moved: the token's light value is the colour --ink used to resolve to
-  eq('F3: the light scrim is the exact colour it always was', qLight['--scrim'], 'color-mix(in srgb,#2A2118 46%,transparent)');
-}
-ok('F3: every celebration window still goes through the one sheet() helper',
-  (q.html.match(/function sheet\(/g) || []).length === 1 && (q.css.match(/\.sheet\s*\{/g) || []).length === 1,
-  'more than one sheet implementation would mean a second, unchecked backdrop');
-ok('F3: a reward skin no longer wipes the UA colorScheme off the root',
-  /const scheme = document\.documentElement\.style\.colorScheme[\s\S]{0,300}?if \(scheme\)/.test(q.html));
+/* --- F3. the quest celebration scrim: RETIRED in item 10 with the page that drew it. --- */
 
 
 /* ======================= G. THE VISUAL THEMES (S100) =====================
@@ -936,31 +893,7 @@ ok('...and it maps the owner\'s single descriptor array',
 ok('no identity rule can add a second copy of a module',
   !/data-ezik-visual-theme[^{]*\{[^}]*content\s*:/i.test(css));
 
-/* ---- G12. knowledge treasures follows the identity too ----------------- */
-const qVT = vtBlocks(q.css);
-// S104: quest.html was still reading v1 after the app moved to v2, so a device carrying the
-// undeployed qibla_13 opened the journey green while the app opened istana. It reads v2 now,
-// and the SAME way the app does: one accepted value, everything else istana_33.
-ok('quest.html reads the pre-release v2 key before its first paint',
-  q.html.indexOf('ezik_visual_theme_v2') !== -1 && q.html.indexOf('ezik_visual_theme_v2') < q.html.indexOf('<style>'));
-eq('...and nothing on that page reads v1', (q.html.match(/ezik_visual_theme_v1/g) || []).length, 0);
-ok('...and qibla_13 is not an accepted value there either',
-  !/getItem\('ezik_visual_theme_v2'\)[^;]*qibla_13/.test(q.html));
-for (const id of VT_IDS) {
-  ok('quest.html declares ' + id + ' (light)', Object.keys(qVT.light[id] || {}).length > 0);
-  ok('quest.html declares ' + id + ' (dark)', Object.keys(qVT.dark[id] || {}).length > 0);
-  eq('quest.html ' + id + ' page is plain white in light', qVT.light[id]['--vt-page'], '#FFFFFF');
-}
-const qBody = /:root\[data-ezik-visual-theme\]\s+body\s*\{([^}]*)\}/.exec(q.css);
-ok('quest.html paints its themed page from --vt-page', !!qBody && /background\s*:\s*var\(--vt-page\)/.test(qBody[1]));
-ok('...and drops the two radial washes it paints without a theme',
-  !!qBody && /background-image\s*:\s*none/.test(qBody[1]),
-  'the base palette keeps its washes; a visual identity must not');
-// A reward skin sets this page's OWN tokens inline on <html>, which outranks any stylesheet.
-// The page background survives that only because it is painted from --vt-page, a token no skin
-// declares. If the body rule ever went back to --paper, a skin would repaint the page.
-ok('...so a reward skin cannot put a wash back behind the page',
-  !!qBody && !/var\(--paper/.test(qBody[1]), String(qBody && qBody[1]).trim());
+/* ---- G12. knowledge treasures follows the identity too: RETIRED in item 10 (see E). ---- */
 
 /* ===================== H. THE ISTANA_33 HOME (S101) ======================
  * The first pass made the identities palettes that composed over the legacy journey/deck home.
@@ -1688,65 +1621,7 @@ for (const mode of ['light', 'dark']) {
   else ok('...and stays dark in dark', bg && lum(bg) < 0.08, hex(bg));
 }
 
-/* =============== J. THE ISTANA QUEST CATEGORY MAP (S104) =================
- * The rejected screen had rainbow rosette category badges and an emoji tab bar. Neither is a
- * data question, and neither may come back. The bank itself is sealed by quest-ux-guard, which
- * byte-compares every quest-data file; this group proves the PRESENTATION changed and that it
- * changed without touching an id, a count, a destination or a handler.
- * ---------------------------------------------------------------------- */
-console.log('\n=== J. THE ISTANA QUEST CATEGORY MAP ===');
-
-// the rosette was hue-driven. That is the thing that must be gone.
-// comments stripped first: the comment recording WHY the hue is no longer read is not a read.
-const qCode = q.html.replace(/^[ \t]*\/\/.*$/gm, ' ');
-ok('the category medallion no longer colours itself from r.hue',
-  !/r\.hue/.test(qCode) && !/hsl\(/.test(qCode),
-  'a per-region hue is what made the map a row of differently coloured flowers');
-ok('...and draws in the identity tokens instead',
-  /medal\(r, locked\)[\s\S]{0,1400}?var\(--lapis\)/.test(q.html));
-ok('...as a bounded arch medallion inside its own viewBox',
-  /medal\(r, locked\)[\s\S]{0,1400}?viewBox="0 0 100 100"/.test(q.html));
-ok('the region card carries a bounded arch crest',
-  /el\("span", "crest"\)/.test(q.html) && /\.region \.crest\{[^}]*position:absolute/.test(q.css)
-  && /\.region\{[^}]*overflow:hidden/.test(q.css));
-ok('...and the completed mark is a stroke on a chip, not a trophy sticker',
-  /chest-done/.test(q.html) && !/\uD83C\uDFC6/.test(q.html.slice(q.html.indexOf('_regionCard'), q.html.indexOf('_regionCard') + 1400)));
-
-// the tab bar: same four tabs, same destinations, no emoji.
-ok('the navigation glyphs are stroked line icons', /const NAV_ICON = \{/.test(q.html) && /NAV_SVG\(/.test(q.html));
-const navBlock = q.html.slice(q.html.indexOf('function drawNav()'), q.html.indexOf('function drawNav()') + 1200);
-okOn('...and the old emoji tab glyphs are gone from it', [["navBlock", navBlock]],
-  !/[\u{1F300}-\u{1FAFF}]/u.test(navBlock), 'an emoji remains in the tab bar');
-for (const [id, dest] of [['map', 'Screens.map'], ['challenge', 'Screens.challenges'], ['book', 'Screens.book'], ['me', 'Screens.profile']]) {
-  ok('the ' + id + ' tab still goes to ' + dest, navBlock.indexOf('"' + id + '"') !== -1 && navBlock.indexOf(dest) !== -1);
-}
-ok('...and the tab still reports which one is current', /aria-current", String\(TAB === id\)/.test(navBlock));
-
-// the catalogue stays contained, and nothing is painted behind the page.
-ok('the map catalogue is centred and bounded', /\.map\{[^}]*max-width:1100px/.test(q.css));
-ok('...and lays out in four columns on a desktop', /@media \(min-width:1000px\)\{\.map\{grid-template-columns:repeat\(4,1fr\)/.test(q.css));
-const regionRules = (q.css.match(/\.region[^{]*\{[^}]*\}/g) || []);
-eq('no region rule attaches an image, gradient or repeat',
-  regionRules.filter((r) => /background-image|url\(|repeating/i.test(r)), []);
-
-// THE DATA. Ids, counts and destinations are read, never written, by the presentation.
-ok('the card still reads the region id it was handed', /data-region", r\.id/.test(q.html));
-ok('the card still reports the real station count', /ar\(sts\.length\) \+ " \u0645\u062D\u0637\u0651\u0627\u062A/.test(q.html));
-// scoped to the card itself: the same call appears on the region screen, so an unscoped
-// test would keep passing while the CARD stopped reporting the real number.
-const cardSrc = q.html.slice(q.html.indexOf('_regionCard(r) {'), q.html.indexOf('_regionCard(r) {') + 1600);
-ok('...and the real question count', /Data\.regionQuestions\(r\.id\)\.length/.test(cardSrc));
-// EVERY region the world hands over gets a card: no slice, no filter, no take-n between the
-// data and the map. A dropped region is a category the child can never reach.
-ok('every region in the world data gets exactly one card',
-  /\(w\.regions \|\| \[\]\)\.forEach\(r => g\.appendChild\(Screens\._regionCard\(r\)\)\);/.test(q.html),
-  'the map must map the world own array, unsliced and unfiltered');
-ok('...and the card builder is called from exactly one place',
-  (q.html.match(/Screens\._regionCard\(/g) || []).length === 1);
-ok('...and the real star standing', /P\.regionStars\(r\.id\)/.test(q.html) && /P\.regionPct\(r\.id\)/.test(q.html));
-ok('...and opens the region it names', /b\.onclick = \(\) => Screens\.region\(r\.id\)/.test(q.html));
-ok('the presentation writes no progress of its own',
-  !/_regionCard[\s\S]{0,1600}?P\.(set|save|add|award)/.test(q.html));
+/* =============== J. THE ISTANA QUEST CATEGORY MAP (S104): RETIRED in item 10 (see E). === */
 
 /* ============ K. THE REACHABLE-SCREEN INVENTORY (S105) ====================
  * The identity was being applied screen by screen, and "which screens are left" was being
@@ -1857,47 +1732,11 @@ for (const name of Object.keys(INDEX_INTERSTITIALS)) {
   ok('the interstitial ' + name + ' is reachable and inventoried', html.indexOf('<' + name + ' ') !== -1);
 }
 
-// QUEST: every view on the Screens object, parsed from the object itself.
-const QUEST_SCREENS = {
-  map:        { shell: 'istana', note: 'S104 category map' },
-  _regionCard:{ shell: 'istana', note: 'the card builder the map uses' },
-  // S115: the remaining fifteen. Eleven RENDER a view and carry .ezq on its root; three are
-  // LAUNCHERS whose presentation is the round itself (.ezq-play / .ezq-end), and one is the card
-  // builder the challenges hub uses (.ezq-mode). Every one is bound in group R, and the three
-  // launchers are bound through the surface they actually open.
-  region:     { shell: 'istana', root: 'ezq-region' },
-  startStation: { shell: 'istana', via: 'ezq-play' },
-  challenges: { shell: 'istana', root: 'ezq-challenges' },
-  _modeCard:  { shell: 'istana', root: 'ezq-mode' },
-  daily:      { shell: 'istana', via: 'ezq-play' },
-  speed:      { shell: 'istana', via: 'ezq-play' },
-  teamsSetup: { shell: 'istana', root: 'ezq-teamsSetup' },
-  teamsCats:  { shell: 'istana', root: 'ezq-teamsCats' },
-  teamsTrack: { shell: 'istana', root: 'ezq-teamsTrack' },
-  teamsAsk:   { shell: 'istana', root: 'ezq-teamsAsk' },
-  teamsEnd:   { shell: 'istana', root: 'ezq-teamsEnd' },
-  book:       { shell: 'istana', root: 'ezq-book' },
-  profile:    { shell: 'istana', root: 'ezq-profile' },
-  settings:   { shell: 'istana', root: 'ezq-settings' },
-  inspect:    { shell: 'istana', root: 'ezq-inspect' },
-};
-// bounded to the Screens object itself: an unbounded slice ran to end of file and swept in
-// the play engine own methods (start, judge, render, finish...), which are not screens.
-const qScreensAt = q.html.indexOf('const Screens = {');
-const qScreensBody = q.html.slice(qScreensAt, q.html.indexOf('\n};', qScreensAt));
-const foundQuest = new Set();
-for (const m of qScreensBody.matchAll(/^  ([a-zA-Z_][a-zA-Z0-9_]*)\(/gm)) foundQuest.add(m[1]);
-const kQDeclared = new Set(Object.keys(QUEST_SCREENS));
-const kQMissing = [...foundQuest].filter((k) => !kQDeclared.has(k)).sort();
-const kQStale = [...kQDeclared].filter((k) => !foundQuest.has(k)).sort();
-eq('every reachable quest.html view is in the inventory', kQMissing, []);
-eq('...and every inventoried quest view still exists', kQStale, []);
+// QUEST: the Screens-object inventory RETIRED in item 10 -- quest.html has no Screens object now.
 
 /* ---- K2. what the inventory MEASURES, reported rather than asserted ----- */
 const idxIstana = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shell === 'istana');
 const idxLegacy = Object.keys(INDEX_SCREENS).filter((k) => INDEX_SCREENS[k].shell === 'legacy');
-const qIstana = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'istana');
-const qLegacy = Object.keys(QUEST_SCREENS).filter((k) => QUEST_SCREENS[k].shell === 'legacy');
 eq('every index screen is istana after this commit', idxIstana.length, 16);
 eq('...and NONE is left legacy', idxLegacy.length, 0);
 // ITEM 24-B added the fourteenth by name; ITEM 89 adds the fifteenth the same way -- the
@@ -2061,14 +1900,10 @@ ok('K3: the four future learning actions stay defined and disabled, hidden behin
   && fatwaActionMaps === 1 && fatwaActionMapsGated === 1,
   'switch=' + (fatwaActionsShown ? fatwaActionsShown[1] : 'ABSENT')
   + ', .map uses=' + fatwaActionMaps + ', of them gated=' + fatwaActionMapsGated);
-// S115: quest is finished too. Both numbers are asserted rather than merely printed now, because
-// there is nothing left outstanding for a later batch to be measured against.
-eq('every quest view is istana after this commit', qIstana.length, 17);
-eq('...and NONE is left legacy', qLegacy.length, 0);
 console.log('        index.html : ' + idxIstana.length + ' istana, ' + idxLegacy.length + ' legacy'
   + ' (+' + Object.keys(INDEX_INTERSTITIALS).length + ' interstitials, all istana)');
 console.log('        istana now : ' + idxIstana.join(', '));
-console.log('        quest.html : ' + qIstana.length + ' istana, ' + qLegacy.length + ' legacy');
+console.log('        quest.html : the Kunuz hub (item 10) -- no istana inventory');
 console.log('        outstanding: (none -- the identity is complete)');
 // The one approved sacred opt-out, and it covers the SHEET only -- never the controls round it.
 // An OPT-OUT re-pins the base literals; the .adhkar3/.ezhome rule is a MAPPING onto the
@@ -4289,98 +4124,7 @@ for (const [label, key] of [['boot', 'loadingScreen'], ['welcome', 'welcomeConta
   ok('Q8: ...and its dark face is a real second page', !!drk && hex(drk) !== hex(lit) && lum(drk) < 0.1, String(drk && hex(drk)));
 }
 
-/* ============ R. THE ISTANA QUEST VIEWS (S115) ===========================
- * The fifteen views that were left. Presentation only: this group binds each classification to
- * a real root class, and freezes the tabs, the ids, the destinations, the counts and the data
- * readers that the redesign was not allowed to touch.
- * ---------------------------------------------------------------------- */
-console.log('\n=== R. THE ISTANA QUEST VIEWS ===');
-
-const qCss = q.css;
-const qRules = (qCss.match(/\.ezq[a-z0-9-]*(?:[^{}]*)\{[^}]*\}/g) || []);
-ok('R1: quest declares its own istana rule set', qRules.length >= 8, 'found ' + qRules.length);
-ok('R1: ...and no selector in it can match html, body or :root',
-  !qRules.some((r) => /(^|[,\s])(html|body|:root)[\s,{]/.test(r.split('{')[0])));
-eq('R1: ...and not one of its rules attaches an image, a gradient or a repeat',
-  qRules.filter((r) => /url\(|gradient|repeat|background-image\s*:\s*(?!none)/.test(r)), []);
-ok('R1: ...and none draws a pseudo-element over a question',
-  !/\.ezq[a-z0-9-]*[^{]*::(before|after)/.test(qCss) && !qRules.some((r) => /[;{]\s*content\s*:/.test(r)));
-eq('R1: ...and it states no colour of its own', qRules.filter((r) => /(#[0-9a-fA-F]{3,8}\b|rgba?\()/.test(r)), []);
-ok('R1: no ezq rule declares a viewport-wide box',
-  !/\.ezq[a-z0-9-]*[^{]*\{[^}]*(width|min-width|max-width)\s*:\s*100vw/.test(qCss));
-// EVERY classification is bound to a root the file actually builds.
-{
-  // A view classified by its ROOT must actually call qv() with that name -- `_modeCard` is the one
-  // that tags a card rather than a view root, so it is checked by the class it puts on the card.
-  const missingRoot = Object.keys(QUEST_SCREENS)
-    .filter((k) => QUEST_SCREENS[k].root)
-    .filter((k) => {
-      const n = QUEST_SCREENS[k].root.replace('ezq-', '');
-      return q.html.indexOf('qv("' + n + '")') === -1 && q.html.indexOf('"card ' + QUEST_SCREENS[k].root + '"') === -1;
-    });
-  eq('R2: every view classified istana by its ROOT actually builds that root', missingRoot, []);
-  // A LAUNCHER opens the round, so its classification is bound to the round's own surface.
-  const viaMissing = Object.keys(QUEST_SCREENS)
-    .filter((k) => QUEST_SCREENS[k].via)
-    .filter((k) => q.html.indexOf('qv("' + QUEST_SCREENS[k].via.replace('ezq-', '') + '")') === -1);
-  eq('R2: ...and every launcher\'s surface exists too', viaMissing, []);
-  ok('R2: ...and the three launchers really do open that surface',
-    /startStation\(rid, s\) \{[\s\S]{0,400}?Round\.start\(/.test(q.html)
-    && /daily\(\) \{[\s\S]{0,400}?Round\.start\(/.test(q.html)
-    && /speed\(\) \{[\s\S]{0,300}?Round\.start\(/.test(q.html));
-  ok('R2: the root helper is what builds them, and it is presentation only',
-    /function qv\(name\) \{ const d = document\.createElement\("div"\); d\.className = "ezq ezq-" \+ name; return d; \}/.test(q.html));
-  ok('R2: ...and the head helper reads nothing and invents nothing',
-    /function qhead\(v, eyebrow, title, sub, aside\) \{/.test(q.html)
-    && !/Data\.|P\.s|Store\./.test(q.html.slice(q.html.indexOf('function qhead('), q.html.indexOf('function mount('))));
-  const qvCalls = (q.html.match(/= qv\("/g) || []).length;
-  eq('R2: thirteen view roots are built through it', qvCalls, 13);
-}
-ok('R3: the four tabs are unchanged -- same ids, same names, same destinations, same aria-current',
-  q.html.indexOf('[["map", NAV_ICON.map, "الخريطة", Screens.map], ["challenge", NAV_ICON.challenge, "التحدّيات", Screens.challenges],') !== -1
-  && q.html.indexOf('["book", NAV_ICON.book, "الكنوز", Screens.book], ["me", NAV_ICON.me, "أنا", Screens.profile]]') !== -1
-  && /b\.setAttribute\("aria-current", String\(TAB === id\)\);/.test(q.html));
-// EVERY one of the four is built by NAV_SVG. Counting the calls is what stops one of them being
-// swapped for a glyph while the other three keep the helper alive.
-ok('R3: ...and the nav glyphs are still stroked SVG, never emoji',
-  /const NAV_SVG = \(d\) =>/.test(q.html)
-  && (q.html.match(/: NAV_SVG\('/g) || []).length === 4
-  && !/NAV_ICON = \{[\s\S]{0,900}?\\u[dD][89abAB]/.test(q.html));
-ok('R4: the medallion is still the Iznik arch, and r.hue is still not a colour source',
-  /const ARCH = "M50 12c14 0 24 10 24 24v40a6 6 0 0 1-6 6H32a6 6 0 0 1-6-6V36c0-14 10-24 24-24z";/.test(q.html)
-  && !/r\.hue/.test(qstrip(q.html.slice(q.html.indexOf('function medal('), q.html.indexOf('function reportBtn(')))));
-// COUNTED per tab. A view moving to another tab, a view losing its mount, or a new one appearing
-// all change one of these five numbers -- which is what "same destinations" means in this file.
-{
-  const m = (t) => (q.html.match(new RegExp('mount\\(v, ' + t + '\\)', 'g')) || []).length;
-  eq('R5: every view still mounts through the shipped mount(), with its shipped tab',
-    [m('"map"'), m('"challenge"'), m('"book"'), m('"me"'), m('TAB')].join('/'), '2/7/1/2/3');
-}
-ok('R6: the region view still reads its stations and its stars from the shipped readers',
-  /const r = Data\.regions\[rid\], sts = Data\.stations\(rid\);/.test(q.html)
-  && /const got = P\.s\.stars\[rid \+ ":" \+ s\.index\] \|\| 0;/.test(q.html)
-  && /btn\.onclick = \(\) => Screens\.startStation\(rid, s\);/.test(q.html));
-ok('R6: ...and the four mode cards still point at the four shipped destinations',
-  /Screens\._modeCard\("🗝️", "تحدّي اليوم"[\s\S]{0,220}?Screens\.daily\)/.test(q.html)
-  && /Screens\.speed\)\);/.test(q.html) && /Screens\.teamsSetup\)\);/.test(q.html) && /Screens\.inspect\)\);/.test(q.html));
-ok('R7: the round still scores, stars and progresses the shipped way',
-  /P\.markStation\(cfg\.region, cfg\.station, stars\)/.test(q.html)
-  && /P\.addXP\(/.test(q.html) && /P\.addCoins\(/.test(q.html) && /Rewards\.check\(\)/.test(q.html));
-ok('R7: ...and the store key and its reader are untouched',
-  /save\(\) \{ Store\.set\(this\.KEY, this\.s\); \}/.test(q.html)
-  && /load\(\) \{ this\.s = Object\.assign\(this\.fresh\(\), Store\.get\(this\.KEY, \{\}\)\); \}/.test(q.html));
-// The game has exactly ONE live fetch and it is the asset loader that shipped -- the only other
-// occurrence in the file is inside a comment showing the reporting endpoint that was never wired.
-ok('R8: nothing in this batch added a fetch, an endpoint or a second store to the game',
-  (qstrip(q.html).match(/fetch\(/g) || []).length === 1
-  && /const r = await fetch\(url, \{ cache: "no-store" \}\)/.test(q.html)
-  && /send\(rec\) \{ \}/.test(q.html));
-ok('R9: the question text is still built by the shipped presenter, from the bank',
-  /present\(q\) \{/.test(q.html) && /stem\(p\) \{/.test(q.html)
-  && /setBank\(json\) \{ this\.bank = json; this\.index\(\); \}/.test(q.html));
-ok('R10: the primary action is flat now, and it is the only place that changed colour',
-  /\.btn\.primary\{background:var\(--palm\);color:var\(--paper\);border-color:var\(--palm\);box-shadow:none\}/.test(qCss)
-  && !/\.btn\.primary\{[^}]*linear-gradient/.test(qCss));
+/* ============ R. THE ISTANA QUEST VIEWS (S115): RETIRED in item 10 (see E). ============== */
 
 /* ---- S1. the analytics that were removed for the AI-consent release ------ */
 // Apple 5.1.1(i): both Vercel scripts began measuring on page LOAD -- that is, before the reader
