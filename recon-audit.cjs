@@ -658,6 +658,17 @@ head('12) LINE ENDINGS & BOM');
 
 /* ---------------------------------------------------------------- *
  * 13) REPORT BODY CAP vs WORSHIP GOLDEN  (derived constant -- defect 20)
+ *
+ * WHAT THIS ENFORCES IS A FLOOR, NOT AN EQUALITY -- corrected in the guards round of 2026-09-17.
+ * Defect 20 is a cap SMALLER than the longest card: api/report.js would then slice a whole card
+ * out of a report, or refuse the body outright. That half is a FAIL and is untouched below.
+ * The other half used to WARN whenever the constant sat ABOVE the longest card, calling it
+ * "oversized/stale". It had been firing since 625416f (2026-07-30), which shortened every
+ * worship card by four characters: the cards moved and the cap did not. Obeying that WARN means
+ * LOWERING the cap, and the cap is not a display figure -- it sets AI_USER_CAP, which cut()
+ * slices the ai and user fields at. So the tidy-up the WARN asked for would have taken eight
+ * characters off long replies the owner reads. A cap above the longest card is safe by
+ * construction, so it is now a PASS that PRINTS THE MARGIN; a cap below it still fails.
  * ---------------------------------------------------------------- */
 head('13) REPORT BODY CAP vs WORSHIP GOLDEN');
 {
@@ -679,7 +690,7 @@ head('13) REPORT BODY CAP vs WORSHIP GOLDEN');
     else if (declared === null) warn('LONGEST_CARD_CHARS not found in api/report.js (token may differ)');
     else if (declared === maxCard) pass('LONGEST_CARD_CHARS = ' + declared + ' == longest worship card (' + maxCard + ' UTF-16 units)');
     else if (declared < maxCard) fail('LONGEST_CARD_CHARS = ' + declared + ' < longest card ' + maxCard + ' -> report body cap TOO SMALL, will reject full-card reports (re-derive in api/report.js)');
-    else warn('LONGEST_CARD_CHARS = ' + declared + ' > longest card ' + maxCard + ' -> cap oversized/stale (re-derive in api/report.js)');
+    else pass('LONGEST_CARD_CHARS = ' + declared + ' >= longest worship card ' + maxCard + ' (margin ' + (declared - maxCard) + ' UTF-16 units) -- a ceiling, never lowered; see api/report.js');
   }
 }
 

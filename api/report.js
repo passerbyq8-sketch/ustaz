@@ -23,13 +23,23 @@ const redis = new Redis({
 });
 
 // Body cap — MEASURED, not guessed (step 2a-d):
-//   longest worship card = 3405 codepoints (adult "صفةُ الصلاة", worship-golden.json)
+//   longest worship card AT DERIVATION = 3405 UTF-16 units (adult "صفةُ الصلاة", worship-golden.json)
 //   cap = (3405 chars  x  2 fields [ai, user]  x  2 bytes/char)  +  8 KB margin
 //       =  13620  +  8192  =  21812 bytes
 // The two large fields (ai, user) can each carry a full worship card back; 2 bytes/char
 // is the UTF-8 upper bound for Arabic (measured ratio ~1.83). The small fields
-// (reason/band/mode/note) fit inside the 8 KB margin. Re-derive if a longer card is ever
+// (reason/band/mode/note) fit inside the 8 KB margin. Re-derive UPWARD if a longer card is ever
 // added -- do not nudge this by hand.
+//
+// GUARDS ROUND 2026-09-17 -- THIS NUMBER IS A CEILING AND IT IS NOT LOWERED. Every worship card
+// lost four characters in 625416f (2026-07-30, the brand rename took the old name out of each
+// column), so the longest card measures 3401 today while this constant still reads 3405. That
+// gap is not staleness to be tidied away. LONGEST_CARD_CHARS is not a display figure: it sets
+// AI_USER_CAP below, and cut() SLICES the ai and user fields at it. Re-deriving it down to
+// 3401 would take eight characters off the end of a long reply the owner reads in the inbox,
+// and would drop MAX_REPORT_BODY_BYTES by sixteen bytes, refusing bodies that are accepted
+// today. The rule is therefore "never BELOW the longest card", not "equal to it" --
+// recon-audit.cjs section 13 fails under it and prints the margin above it.
 const LONGEST_CARD_CHARS = 3405;
 const MAX_REPORT_BODY_BYTES = (LONGEST_CARD_CHARS * 2 * 2) + 8 * 1024; // 21812
 
