@@ -773,7 +773,17 @@ head('14) GATE ROSTER (single source: gates.json)');
   // the tool is offered on «مفصّل» and «طالب علم», withheld on «موجز», and withheld from every
   // child on every depth. It also pins resetLessons() at one call site, and pins the ABSENCE of
   // a relevance floor on the lessons row -- the owner ruled on 2026-09-09 that there is none.
-  const GATES_EXPECTED = 111;  // ITEM 10 (2026-09-17): 115 -> 111. The Kunuz modes replaced the
+  const GATES_EXPECTED = 112;  // 112th: appvpattern -- guards/app-version-pattern-parity-guard.cjs
+                               //        (guards round, 2026-09-17). The pattern that decides what a
+                               //        build may call itself is written in THREE independent files --
+                               //        api/feedback.js, api/report.js and tools/build-app.cjs -- and
+                               //        nothing held them together. The three were measured identical,
+                               //        so the gate closes a future drift, not a live defect. It lifts
+                               //        the literal out of all three by text and reds by naming the
+                               //        file that moved. Not a shared import: api/report.js states in
+                               //        prose that it imports nothing for it, and the two serverless
+                               //        routes are not allowed to share a module.
+                               // ITEM 10 (2026-09-17): 115 -> 111. The Kunuz modes replaced the
                                //        treasure journey. SIX gates retired with the files they
                                //        read -- reveal, quranquest, prayerquest, contentreview
                                //        (the old bank and its goldens), questux (the old page),

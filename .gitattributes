@@ -767,6 +767,7 @@ guards/khilaf-probe-freeze-guard.cjs text eol=lf
 # The three pages are pinned LF so the bytes the gates read are the bytes git stores.
 guards/kunuz-norepeat-guard.cjs text eol=lf
 guards/kunuz-ghaws-cats-guard.cjs text eol=lf
+guards/app-version-pattern-parity-guard.cjs text eol=lf
 guards/kunuz-sim/dom.cjs text eol=lf
 guards/kunuz-sim/world.cjs text eol=lf
 quest.html text eol=lf

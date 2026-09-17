@@ -560,5 +560,10 @@
     "name": "kunuzcats",
     "script": "guards/kunuz-ghaws-cats-guard.cjs",
     "args": "quest-ghaws.html"
+  },
+  {
+    "name": "appvpattern",
+    "script": "guards/app-version-pattern-parity-guard.cjs",
+    "args": ""
   }
 ]
