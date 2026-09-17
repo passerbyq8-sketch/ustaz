@@ -669,7 +669,7 @@ self.addEventListener('fetch', (event) => {
 
   // NETWORK-ONLY, never cached: the quest test surface. Its bank JSON is replaced on the
   // server between test rounds, so a cache-first copy would freeze testers on an old bank.
-  if (sameOrigin && (url.pathname === '/quest.html' || url.pathname.startsWith('/quest-data/'))) return;
+  if (sameOrigin && url.pathname.startsWith('/quest')) return;
 
   // NETWORK-FIRST for the app shell: navigations and the HTML entry points. Serving index.html
   // cache-first stranded users on a dead build whenever the cache version was not bumped --

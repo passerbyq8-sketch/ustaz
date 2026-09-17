@@ -158,9 +158,9 @@ const EXPECT = [
   { rel:'lib/limit-message.js',        mustTrack:true  },
   { rel:'lib/data/adhkar.json',        mustTrack:true  },
   { rel:'quran-uthmani.json',          mustTrack:true  },
-  { rel:'quest-data/trivia-golden.json',mustTrack:true  },
-  { rel:'quest-data/world.json',        mustTrack:true  },
-  { rel:'quest-data/rewards.json',      mustTrack:true  },
+  { rel:'quest-ghaws.html',            mustTrack:true  },
+  { rel:'quest-harb.html',             mustTrack:true  },
+  { rel:'quest-data/kunuz-bank-3147.js',mustTrack:true  },
   { rel:'lib/data/fiqh-search.json.gz',mustTrack:true  },
   { rel:'babel-gate.cjs',              mustTrack:true  },
   { rel:'runtime-gate.cjs',            mustTrack:true  },
@@ -587,11 +587,8 @@ const REFERRAL_CASES_EXPECTED = 9;
 checkJson('referral-golden.json', REFERRAL_CASES_EXPECTED, 'cases');
 checkJson('lib/data/adhkar.json');
 checkJson('quran-uthmani.json');
-// Quest game data: validate JSON parses. NO expected count -- the trivia bank grows
-// intentionally each batch; a fixed count would turn red on every legitimate addition.
-checkJson('quest-data/trivia-golden.json');
-checkJson('quest-data/world.json');
-checkJson('quest-data/rewards.json');
+// Quest game data: item 10 removed the three JSON files that were checked here. The Kunuz bank
+// is JavaScript, and gate bankintegrity (K1) evaluates it and pins its count.
 {
   const buf = readBuf('lib/data/fiqh-search.json.gz');
   if (!buf) fail('missing: lib/data/fiqh-search.json.gz');
@@ -776,7 +773,14 @@ head('14) GATE ROSTER (single source: gates.json)');
   // the tool is offered on «مفصّل» and «طالب علم», withheld on «موجز», and withheld from every
   // child on every depth. It also pins resetLessons() at one call site, and pins the ABSENCE of
   // a relevance floor on the lessons row -- the owner ruled on 2026-09-09 that there is none.
-  const GATES_EXPECTED = 115;  // 115th: khilafprobefreeze -- guards/khilaf-probe-freeze-guard.cjs
+  const GATES_EXPECTED = 111;  // ITEM 10 (2026-09-17): 115 -> 111. The Kunuz modes replaced the
+                               //        treasure journey. SIX gates retired with the files they
+                               //        read -- reveal, quranquest, prayerquest, contentreview
+                               //        (the old bank and its goldens), questux (the old page),
+                               //        worldparity (the old page's embedded map vs world.json) --
+                               //        and TWO joined: kunuznorepeat and kunuzcats, the two
+                               //        guards that accepted the modes (15/15 and 7/7).
+                               // 115th: khilafprobefreeze -- guards/khilaf-probe-freeze-guard.cjs
                                //        (item 72, door b). The third igniter of the khilaf notice
                                //        returns null and stays that way: every filling measured
                                //        lied on the record, so the guard runs the probe over 199

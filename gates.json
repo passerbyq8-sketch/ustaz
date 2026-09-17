@@ -65,29 +65,9 @@
     "args": "index.html"
   },
   {
-    "name": "reveal",
-    "script": "quest-reveal-guard.cjs",
-    "args": "--compare quest-data/reveal-golden.json"
-  },
-  {
-    "name": "quranquest",
-    "script": "quran-quest-guard.cjs",
-    "args": "--compare quest-data/quran-quest-golden.json"
-  },
-  {
-    "name": "prayerquest",
-    "script": "prayer-quest-guard.cjs",
-    "args": "--compare quest-data/prayer-quest-golden.json"
-  },
-  {
     "name": "bankintegrity",
     "script": "quest-bank-integrity-guard.cjs",
-    "args": "--compare quest-data/bank-integrity-golden.json"
-  },
-  {
-    "name": "contentreview",
-    "script": "quest-content-review-guard.cjs",
-    "args": "--compare quest-data/content-review-manifest.json"
+    "args": "--compare quest-data/kunuz-bank-3147.js"
   },
   {
     "name": "themecoverage",
@@ -103,11 +83,6 @@
     "name": "a11y",
     "script": "a11y-guard.cjs",
     "args": "index.html"
-  },
-  {
-    "name": "questux",
-    "script": "quest-ux-guard.cjs",
-    "args": "quest.html"
   },
   {
     "name": "attribution",
@@ -277,11 +252,6 @@
   {
     "name": "wird",
     "script": "tools/wird-guard.cjs",
-    "args": ""
-  },
-  {
-    "name": "worldparity",
-    "script": "guards/world-parity-guard.cjs",
     "args": ""
   },
   {
@@ -580,5 +550,15 @@
     "name": "khilafprobefreeze",
     "script": "guards/khilaf-probe-freeze-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "kunuznorepeat",
+    "script": "guards/kunuz-norepeat-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "kunuzcats",
+    "script": "guards/kunuz-ghaws-cats-guard.cjs",
+    "args": "quest-ghaws.html"
   }
 ]
