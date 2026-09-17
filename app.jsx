@@ -10284,7 +10284,7 @@ const EZIK_RESUME_KEY = 'ezik_resume_section_v1';
 // not standing.
 const EZIK_RESUME_SCREENS = {
   memorize: 'memorize', adhkar: 'adhkar', arbaeen: 'arbaeen',
-  mushaf: 'mushaf', fatwa: 'fatwa', lessons: 'lessons',
+  mushaf: 'mushaf', fatwa: 'fatwa', lessons: 'lessons', home: 'home',
 };
 const EZIK_RESUME_APP_LAYERS = { asmaa: 1, 'sunan-day': 1 };
 const EZIK_RESUME_HOME_LAYERS = { articles: 1, women: 1, prayer: 1 };

@@ -1450,7 +1450,16 @@ const SEALED = {
 //                    app.js, app.jsx and index.html are byte-identical, so CORE_BYTES and the
 //                    byte table stand. The store name did NOT move. B11 now dispatches all four
 //                    Kunuz paths. THIS digest is re-cut LAST, after every other sw.js edit was final.
-  'sw.js': '20a66e2bb9cc62adc00343e4b05ada589331e2d4f393784f7d077722bd1a35ae',
+  //   2026-09-17-b -- ITEM 13-B: THE KUNUZ HOME BUTTON OPENS THE SECTIONS. app.jsx gained one
+//                    resume id, home: 'home', in EZIK_RESUME_SCREENS, so a Kunuz page that writes
+//                    it before leaving for / lands on the bare home screen instead of the chat.
+//                    INDEX.HTML DID NOT MOVE and NO FILE JOINED OR LEFT CORE. app.js was rebuilt by
+//                    npm run build:app, 1777656 -> 1777668 (+12), and CORE_BYTES was re-cut
+//                    2950746 -> 2950758 (+12) by node tools/core-bytes.cjs --write; the byte table
+//                    in sw.js and the SW_PROSE mirror of it in B14 follow. sw.js is 48468 bytes
+//                    before and after. The store name did NOT move -- it is the merge round's call.
+//                    THIS digest is re-cut LAST, after every other sw.js edit was final.
+  'sw.js': '96d616a2b9a398ada27e474065f9c67d9b71b82b396dcb0a5135a7528b7ae32b',
 };
 
 // ---------------------------------------------------------------------------
@@ -2406,7 +2415,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1777656, of: 'app.js' },
+      { n: 1777668, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
