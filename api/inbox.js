@@ -70,7 +70,7 @@ export const OWNER_ACTIONS = Object.freeze(['list', 'read', 'reply', 'delete']);
  * neither is written here except by `reply`, which writes a key of its own beside them.
  *
  * 🔴 'reports' IS READ-ONLY ON THIS ROUTE -- DECISION ج١٠. api/report.js is not opened for edit
- * (item 106 opened it for the `appv` version field only), its records carry no account, and
+ * (item 106 opened it for the `appv` version field, item 107 for the `source` tag), its records carry no account, and
  * no branch below can write into that list or answer one of its items. The refusal is STRUCTURAL
  * rather than a flag: `reply` searches the feedback list and only the feedback list, so an id that
  * belongs to a report is an id this route cannot find.
@@ -278,6 +278,22 @@ function listRow(item, marks) {
 }
 
 /**
+ * ITEM 107 -- THE REPORTED QUESTION AND ANSWER, FOR THE ONE REPORT THE OWNER OPENED.
+ *
+ * A report without the exchange it is about cannot be acted on, so `read` hands back `user` and `ai`
+ * as api/report.js stored them -- no cap raised, no text cut. They travel on this path ONLY and for the
+ * reports list ONLY: the list row above stays light (two hundred rows of up to 6810 characters twice
+ * over is a download, not a list), and the feedback list has no such fields to carry.
+ */
+function reportExchangeOf(item) {
+  const o = item.obj;
+  return {
+    user: typeof o.user === 'string' ? o.user : '',
+    ai: typeof o.ai === 'string' ? o.ai : '',
+  };
+}
+
+/**
  * THE ADDRESS, FETCHED AT DISPLAY TIME AND FOR ONE MESSAGE ONLY -- DECISION ج١.
  *
  * It answers '' for every reason a lookup can fail: no account key on the record, a record the
@@ -468,7 +484,11 @@ async function ownerAction(req, res, body, action) {
         return res.status(200).json({
           ok: true,
           kind,
-          item: Object.assign(listRow(found, marks), { from: await addressOf(found.sender) }),
+          item: Object.assign(
+            listRow(found, marks),
+            { from: await addressOf(found.sender) },
+            kind === 'reports' ? reportExchangeOf(found) : null,
+          ),
           reply,
           seenBySender: !!(seenRaw !== null && seenRaw !== undefined && seenRaw !== ''),
         });

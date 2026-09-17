@@ -898,6 +898,9 @@ const EZ_I18N = {
     'inbox.srcHarbQ': 'سؤالٌ في حرب الجزر',
     'inbox.srcGhawsGame': 'لعبةُ الغوص على الكنوز',
     'inbox.srcHarbGame': 'لعبةُ حرب الجزر',
+    'inbox.reportQuestion': 'السؤال',
+    'inbox.reportAnswer': 'الجواب',
+    'inbox.reportNote': 'الملاحظة',
     'inbox.remaining': 'المتبقّي: {n}',
     'inbox.window': 'يُعرَضُ أحدثُ {n} رسالةً.',
     'inbox.delete': 'مَسْح',
@@ -1579,10 +1582,13 @@ const EZ_I18N = {
     'inbox.replyEmpty': 'Write a reply before saving.',
     'inbox.reportsReadOnly': 'Reports are read-only and are not replied to.',
     'inbox.srcChat': 'Chat',
-    'inbox.srcGhawsQ': 'A Treasure Dive question',
+    'inbox.srcGhawsQ': 'A question from The Dive',
     'inbox.srcHarbQ': 'An Island War question',
-    'inbox.srcGhawsGame': 'The Treasure Dive game',
+    'inbox.srcGhawsGame': 'The Dive game',
     'inbox.srcHarbGame': 'The Island War game',
+    'inbox.reportQuestion': 'Question',
+    'inbox.reportAnswer': 'Answer',
+    'inbox.reportNote': 'Note',
     'inbox.remaining': 'Remaining: {n}',
     'inbox.window': 'Showing the newest {n} messages.',
     'inbox.delete': 'Delete',
@@ -22246,7 +22252,34 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
               <span style={s.artRowDate} dir="auto">{it.contact}</span>
             </div>
           ) : null}
-          <p style={s.artPara} dir="auto">{it.text}</p>
+          {/* ITEM 107 -- A REPORT IS READ WITH THE EXCHANGE IT IS ABOUT. api/inbox.js `read` hands back
+              `user` and `ai` for the reports list only, as api/report.js stored them; they are drawn
+              in full, as this panel draws every long text today, and a field that is empty -- a game
+              report has no question and no answer -- is not drawn as an empty box. */}
+          {kind === 'reports' ? (
+            <>
+              {typeof it.user === 'string' && it.user ? (
+                <div style={s.asmaaField}>
+                  <span style={s.artFieldLabel}>{ezT('inbox.reportQuestion')}</span>
+                  <p style={s.asmaaQuote} dir="auto">{it.user}</p>
+                </div>
+              ) : null}
+              {typeof it.ai === 'string' && it.ai ? (
+                <div style={s.asmaaField}>
+                  <span style={s.artFieldLabel}>{ezT('inbox.reportAnswer')}</span>
+                  <p style={s.asmaaQuote} dir="auto">{it.ai}</p>
+                </div>
+              ) : null}
+              {it.text ? (
+                <div style={s.asmaaField}>
+                  <span style={s.artFieldLabel}>{ezT('inbox.reportNote')}</span>
+                  <p style={s.artPara} dir="auto">{it.text}</p>
+                </div>
+              ) : null}
+            </>
+          ) : (
+            <p style={s.artPara} dir="auto">{it.text}</p>
+          )}
 
           {open.reply && open.reply.text ? (
             <div style={s.asmaaField}>

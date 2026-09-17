@@ -246,8 +246,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 .kzr-card{width:100%;max-width:620px;max-height:90vh;max-height:90dvh;overflow-y:auto;background:var(--white);
   border-radius:18px 18px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom))}
 .kzr-card h2{font-family:var(--hd);font-size:1.15rem;color:var(--ghawr);margin:0 0 10px}
-.kzr-q{background:var(--sea0);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 12px;
-  font-size:.95rem;line-height:1.8}
+.kzr-q{color:var(--muted);font-size:.9rem;margin:0 0 12px}
 .kzr-lbl{display:block;color:var(--muted);font-size:.88rem;margin:0 0 4px}
 .kzr-msg{min-height:1.4em;margin:8px 0;font-size:.9rem;color:var(--ink)}
 .kzr-msg.bad{color:var(--no)}
@@ -483,7 +482,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 <div class="kzr hidden" id="kzr" role="dialog" aria-modal="true" aria-labelledby="kzrTitle">
   <div class="kzr-card">
     <h2 id="kzrTitle">—</h2>
-    <p class="kzr-q hidden" id="kzrQ"></p>
+    <p class="kzr-q hidden" id="kzrQ">سيُرسَلُ هذا السؤالُ وجوابُه مع بلاغِك</p>
     <div id="kzrForm">
       <label class="kzr-lbl" for="kzrNote" id="kzrLbl">—</label>
       <textarea id="kzrNote" maxlength="500" rows="3"></textarea>
@@ -1435,7 +1434,7 @@ function kzrOpen(kind,from){
   KZR.kind=game?"game":"question";KZR.snap=game?null:KZR.q;
   KZR.open=true;KZR.at=performance.now();KZR.busy=false;KZR.seq++;KZR.from=from||null;
   $("kzrTitle").textContent=game?"الإبلاغ عن مشكلة في اللعبة":"الإبلاغ عن خطأ في السؤال";
-  $("kzrQ").textContent=game?"":String(KZR.snap[3]);$("kzrQ").classList.toggle("hidden",game);
+  $("kzrQ").classList.toggle("hidden",game);
   $("kzrLbl").textContent=game?"صِف المشكلة":"ملاحظة (اختياري)";
   var t=$("kzrNote");t.value="";t.rows=game?4:3;
   kzrMsg("",false);$("kzrSend").disabled=false;$("kzrSend").textContent="أرسِل";
