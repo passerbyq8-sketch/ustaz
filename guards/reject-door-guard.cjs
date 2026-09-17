@@ -784,6 +784,13 @@ async function mutate({ file, name, transform, check }) {
   // was not cut by the reviewer and not withheld by this door. It was removed AFTER
   // `runFreeBrainTurn` returned, in a file this item may not edit, and the «<incomplete/>» mark
   // is itself part of the tail that arm discards. NOTHING IN lib/ CAN RAISE A FLAG ABOUT IT.
+  //
+  // CLOSED ON 18 SEPTEMBER 2026, AND L2 NOW SAYS SO INSTEAD OF RECORDING THE FAULT. The announcing
+  // line ends in a colon, and lib/sentence-stream.js now holds such a line until the unit it leads
+  // into has passed. Here that unit carries «رواه مسلم» over no page, the per-unit lock refuses it,
+  // and streaming stops BEFORE the colon line. The seal still removes both sentences, but they now
+  // lie OUTSIDE the bytes already sent, so the sealed text opens with them and finish() writes the
+  // rest. Measured with the real delivery code by tools/stream-p1/orphan-leadin-witness.cjs.
 
   const L_S1 = 'صيام يوم عرفة لغير الحاج من أعظم أيام صيام التطوع أجرا، بل هو أفضل أيام السنة.';
   const L_S2 = 'وقد ثبت عن النبي صلى الله عليه وسلم:';
@@ -802,18 +809,19 @@ async function mutate({ file, name, transform, check }) {
   ok('L1 the loop keeps its own promise: what it returns opens with the bytes it streamed',
     lSent !== '' && (lTurn.text || '').startsWith(lSent) && lTurn.streamPrefixValid === true,
     JSON.stringify([lSent.length, (lTurn.text || '').slice(0, 40)]));
-  ok('L2 ...and api/ask.js\u2019s own seal then removes a sentence that lay INSIDE those bytes',
-    lSealed !== '' && !lSealed.startsWith(lSent) && lSealed.includes(L_S1)
-    && !lSealed.includes(L_S2), JSON.stringify(lSealed.slice(0, 120)));
+  ok('L2 ...and api/ask.js\u2019s own seal removes the announcing sentence OUTSIDE those bytes, keeping the rest',
+    lSealed !== '' && lSealed.startsWith(lSent) && lSealed.includes(L_S1)
+    && !lSent.includes(L_S2) && !lSealed.includes(L_S2) && lSealed.includes(L_S4),
+    JSON.stringify([lSent.length, lSealed.slice(0, 120)]));
   // THE ARM ITSELF IS READ AND NOT DRIVEN, because api/ask.js may not be edited or imported by
   // this item. The check is that the comparison is still there and still the one described; a
   // future item that answers the divergence differently changes this line and this prose with it.
   const finishArm = /if \(sealed\.startsWith\(sent\)\) \{[\s\S]{0,600}?\} else \{/u.exec(askSource);
   ok('L3 ...and api/ask.js still decides the whole tail on that one comparison',
     Boolean(finishArm), finishArm && finishArm[0].slice(0, 80));
-  console.log('      [measure] the reader keeps ' + lSent.length + ' streamed chars and loses the '
-    + Math.max(0, lSealed.length - lSent.length) + ' sealed chars behind them, with no «لم يكتملْ» line:');
-  console.log('      [measure] READER = ' + JSON.stringify(lSent));
+  console.log('      [measure] streamed ' + lSent.length + ' chars; the sealed answer is ' + lSealed.length
+    + ' chars and opens with them, so finish() writes the remaining '
+    + Math.max(0, lSealed.length - lSent.length) + ' instead of closing on the head');
 
   // ═══════════════════════════════════════════════════════════════════════════
   console.log('\n=== D. THE NEGATIVE WITNESS: WITH THE REMEDY REMOVED, THIS GATE GOES RED ===');
