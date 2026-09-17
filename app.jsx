@@ -901,6 +901,7 @@ const EZ_I18N = {
     'inbox.reportQuestion': 'السؤال',
     'inbox.reportAnswer': 'الجواب',
     'inbox.reportNote': 'الملاحظة',
+    'inbox.reportNoText': 'بلاغٌ بلا ملاحظةٍ ولا سؤال',
     'inbox.remaining': 'المتبقّي: {n}',
     'inbox.window': 'يُعرَضُ أحدثُ {n} رسالةً.',
     'inbox.delete': 'مَسْح',
@@ -1589,6 +1590,7 @@ const EZ_I18N = {
     'inbox.reportQuestion': 'Question',
     'inbox.reportAnswer': 'Answer',
     'inbox.reportNote': 'Note',
+    'inbox.reportNoText': 'A report with no note and no question',
     'inbox.remaining': 'Remaining: {n}',
     'inbox.window': 'Showing the newest {n} messages.',
     'inbox.delete': 'Delete',
@@ -22421,7 +22423,17 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
                     {kind === 'reports' ? <span style={s.artRowDate}>{ezikInboxSourceK(r.source) ? ezT(ezikInboxSourceK(r.source)) : '—'}</span> : null}
                     {r.hasSender === false ? <span style={s.artRowDate}>{ezT('inbox.noSender')}</span> : null}
                   </div>
-                  <span style={s.artRowTitle} dir="auto">{r.text}</span>
+                  {/* ITEM 107 -- A REPORT ROW IS NEVER BLANK. Its note is drawn exactly as before; with no
+                      note, the question's opening words that api/inbox.js cut for the row are drawn in
+                      the row's secondary style; with neither (a record older than the field), a neutral
+                      line from the dictionary. The feedback tab draws its text as it always did. */}
+                  {kind !== 'reports' || r.text ? (
+                    <span style={s.artRowTitle} dir="auto">{r.text}</span>
+                  ) : (typeof r.userHead === 'string' && r.userHead) ? (
+                    <span style={s.artRowDate} dir="auto">{r.userHead}</span>
+                  ) : (
+                    <span style={s.artRowDate}>{ezT('inbox.reportNoText')}</span>
+                  )}
                 </button>
                 {/* «وحده وحده» ON THE ROW (§4-1). It is not drawn while the selection mode is on:
                     there the row belongs to the batch, and two ways to erase the same row on the

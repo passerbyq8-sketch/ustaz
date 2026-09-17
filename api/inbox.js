@@ -278,6 +278,27 @@ function listRow(item, marks) {
 }
 
 /**
+ * ITEM 107 -- THE OPENING WORDS OF A REPORT'S QUESTION, FOR ITS ROW IN THE LIST.
+ *
+ * The note on a question report is optional, so a row that drew the note alone was a blank row the
+ * owner could not tell apart from another until he opened it. The row now carries the first
+ * USER_HEAD_CAP characters of the question, cut HERE and not on the screen, so two hundred rows
+ * never carry two hundred whole questions. Eighty is about one line of the row on a phone -- enough
+ * to recognise a question, too little to be read instead of opening it. Counted in code points, so
+ * a cut never splits a character in two; runs of whitespace fold to one space because a preview
+ * with a line break in it is two lines of a one-line row. It is a PREVIEW ONLY: `read` still hands
+ * back the question as stored, and the answer never rides on the row.
+ */
+const USER_HEAD_CAP = 80;
+function userHeadOf(item) {
+  const v = item.obj && item.obj.user;
+  if (typeof v !== 'string') return '';
+  const flat = v.replace(/\s+/g, ' ').trim();
+  const points = Array.from(flat);
+  return points.length > USER_HEAD_CAP ? points.slice(0, USER_HEAD_CAP).join('') + '\u2026' : flat;
+}
+
+/**
  * ITEM 107 -- THE REPORTED QUESTION AND ANSWER, FOR THE ONE REPORT THE OWNER OPENED.
  *
  * A report without the exchange it is about cannot be acted on, so `read` hands back `user` and `ai`
@@ -409,7 +430,10 @@ async function ownerAction(req, res, body, action) {
         unread,
         total: items.length,
         stored: Number.isInteger(stored) ? stored : items.length,
-        items: items.slice(0, limit).map((it) => listRow(it, marks)),
+        // ITEM 107 -- the reports tab alone carries `userHead`; the feedback list is untouched.
+        items: items.slice(0, limit).map((it) => (kind === 'reports'
+          ? Object.assign(listRow(it, marks), { userHead: userHeadOf(it) })
+          : listRow(it, marks))),
       });
     } catch (e) {
       console.error('[inbox] list FAILED, fail-CLOSED:', e && e.message ? e.message : e);
