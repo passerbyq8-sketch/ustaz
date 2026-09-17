@@ -810,7 +810,7 @@ async function mutate({ file, name, transform, check }) {
     lSent !== '' && (lTurn.text || '').startsWith(lSent) && lTurn.streamPrefixValid === true,
     JSON.stringify([lSent.length, (lTurn.text || '').slice(0, 40)]));
   ok('L2 ...and api/ask.js\u2019s own seal removes the announcing sentence OUTSIDE those bytes, keeping the rest',
-    lSealed !== '' && lSealed.startsWith(lSent) && lSealed.includes(L_S1)
+    lSent.length > 0 && lSealed !== '' && lSealed.startsWith(lSent) && lSealed.includes(L_S1)
     && !lSent.includes(L_S2) && !lSealed.includes(L_S2) && lSealed.includes(L_S4),
     JSON.stringify([lSent.length, lSealed.slice(0, 120)]));
   // THE ARM ITSELF IS READ AND NOT DRIVEN, because api/ask.js may not be edited or imported by
