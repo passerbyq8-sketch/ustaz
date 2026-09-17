@@ -809,7 +809,13 @@ const marks = (out) => (out.degraded || []).filter((d) => String(d).startsWith('
   const sw = await driveStream(loop, STREAM_WITNESS);
   const swOff = await offStream(STREAM_WITNESS);
   ok('X0 · the turn really is streamed — units left while the provider was still writing',
-    sw.streamedThisTurn === true && sw.units.length > 0 && swOff.units.length > 2
+    // `swOff.units.length > 2` counted the colon line («وكان يقول:») as the third unit. Since the
+    // lead-in hold (lib/sentence-stream.js, 18 September 2026) that line waits for the card it leads
+    // into, and this card's «متفق عليه» is on no page, so the line travels with the card at the end —
+    // it is the byte a seal cut would orphan. What this check exists to show is unchanged and now
+    // said outright: with the door off, the candidate sentence itself left while the provider wrote.
+    sw.streamedThisTurn === true && sw.units.length > 0 && swOff.units.length >= 2
+    && swOff.sent.includes(WITNESS_PROSE)
     && swOff.units[0].chunk < swOff.chunksTotal,
     JSON.stringify({ streamed: sw.streamedThisTurn, units: sw.units.length, offUnits: swOff.units.length }));
   ok('X1 · a STREAMED witness-shaped turn: the sentence reaches the reader CORRECTED, on the wire, and never inside_emitted_bytes',
