@@ -110,8 +110,15 @@ const oppositeRuling = {
   snippet: 'الجمع للمسافر غير جائز في هذه الصورة ولا يباح له فعله.',
 };
 const input = (evidence) => ({ text, evidence, domain: 'fiqh', mode: 'عادي' });
+// ── «THE CLAIM SURVIVES THE CREDIT» — PROVED BY EQUALITY, NOT BY A BADGE ────
+//
+// This read `semanticClaim + ' ' + ATTRIBUTION_REMOVED`: the claim, and the mark that announced
+// the credit had been withdrawn. The mark is no longer written (owner, 18 Sep), so what is left
+// is the stronger statement and always was the one that mattered — the reviewer ships the claim
+// AND NOTHING ELSE. Exact equality is what makes this a witness rather than a formality: it
+// refuses a truncated claim, a paraphrased one, and a claim with anything appended to it.
 const preservesCompleteUnsupportedClaim = (module, out) => out.text
-  === semanticClaim + ' ' + module.REVIEW_TAGS.ATTRIBUTION_REMOVED
+  === semanticClaim
   && out.annotations[0]?.action === 'removed-unsupported-attribution';
 const rejectsWrongScholar = (module) => {
   const out = module.reviewAnswer(input([wrongScholar]));
@@ -160,7 +167,10 @@ const rejectsWrongScholar = (module) => {
       ok('unsupported attribution frame is removed without semantic damage: ' + framed,
         out.annotations[0]?.action === 'removed-unsupported-attribution'
           && !out.text.includes('ابن باز')
-          && out.text === claim + ' ' + module.REVIEW_TAGS.ATTRIBUTION_REMOVED, out.text);
+          // The frame comes off and NOTHING is put in its place: what ships is the bare claim,
+          // exactly, with no badge welded after it. Equality is the whole proof — it refuses a
+          // reviewer that keeps the claim but also damages or decorates it.
+          && out.text === claim, out.text);
     }
 
     const mutant = await runMutant({
@@ -233,7 +243,16 @@ const rejectsWrongScholar = (module) => {
       const reviewed = ` ${fold(out.text)} `;
       const overlap = sourceTokens.filter((token) => reviewed.includes(` ${token} `)).length;
       return handled
-        && out.text.includes(module.REVIEW_TAGS.ATTRIBUTION_REMOVED)
+        // «MARKED» WAS THE BADGE; WHAT IT ANNOUNCED IS READ DIRECTLY NOW (owner, 18 Sep).
+        // The badge said «this claim was handled and still shipped». `handled` above already
+        // carries the first half from the reviewer's own record — and it deliberately admits BOTH
+        // dispositions, the one that strips the credit and the one that keeps it because removing
+        // it would break the sentence, so «the name is gone» cannot be asserted here for all of
+        // them. What can be asserted of every one is the half the reader actually cares about:
+        // the claim was DELIVERED, not exchanged for the apology, and not hollowed out.
+        && out.text.trim().length > 0
+        && out.text !== module.REVIEW_LAST_RESORT
+        && !Object.values(module.REVIEW_TAGS).some((reviewTag) => out.text.includes(reviewTag))
         && overlap >= Math.min(3, sourceTokens.length);
     };
     ok('the same eighteen claims without evidence remain marked and semantically intact',

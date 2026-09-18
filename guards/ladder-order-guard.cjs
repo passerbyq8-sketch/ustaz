@@ -25,14 +25,43 @@ const usesHigherRung = (module) => {
     const module = await fresh(REVIEWER, 'ladder-base');
     ok('matching evidence uses the top rung', usesHigherRung(module));
     const generalized = module.reviewAnswer({ ...matchedInput, evidence: [] });
+    // ── THE RUNG IS READ FROM THE SENTENCE NOW, NOT FROM ITS BADGE (owner, 18 Sep) ──
+    //
+    // «Usable understanding beats apology» was proved by the presence of ATTRIBUTION_REMOVED: the
+    // badge was how this guard knew the reviewer had taken the middle rung rather than the last.
+    // The badge is no longer written, so the same rung is read off the three things it announced,
+    // each of which is still there to be measured:
+    //
+    //   the CREDIT came off  — the authority the reviewer recorded stripping is absent from the text;
+    //   the SENTENCE stayed  — what ships is a suffix of what arrived, so only a prefix was removed
+    //                          and the ruling clause behind it is verbatim, not paraphrased or cut;
+    //   the APOLOGY was not taken — the text is not the last-resort line.
+    //
+    // `endsWith` is the strict form on purpose. A reviewer that deleted the ruling and kept only the
+    // full stop would still satisfy «not the apology», and this clause is what refuses it.
     ok('without matching evidence, usable understanding beats apology',
-      generalized.text.includes(module.REVIEW_TAGS.ATTRIBUTION_REMOVED)
+      generalized.annotations[0]?.action === 'removed-unsupported-attribution'
+        && typeof generalized.annotations[0]?.claimedAuthority === 'string'
+        && generalized.annotations[0].claimedAuthority.length > 0
+        && !generalized.text.includes(generalized.annotations[0].claimedAuthority)
+        && matchedInput.text.endsWith(generalized.text)
+        && generalized.text.length > matchedInput.text.length / 2
         && generalized.text !== module.REVIEW_LAST_RESORT, generalized.text);
-    const plain = module.reviewAnswer({
+    const plainInput = {
       text: 'الجمع للمسافر جائز عند الحاجة.', evidence: [], domain: 'fiqh', mode: 'عادي',
-    });
+    };
+    const plain = module.reviewAnswer(plainInput);
+    // The same reading for the rung below it: an understanding that never claimed a source at all is
+    // delivered WHOLE — byte-for-byte what arrived — and is not exchanged for the apology.
     ok('an unattributed understanding also beats apology',
-      plain.text.includes(module.REVIEW_TAGS.FIQH_UNSOURCED) && plain.text !== module.REVIEW_LAST_RESORT, plain.text);
+      plain.text === plainInput.text
+        && plain.annotations[0]?.action === 'tagged-fiqh-understanding'
+        && plain.text !== module.REVIEW_LAST_RESORT, plain.text);
+    // AND THE OWNER'S REMOVAL IS ITSELF PINNED HERE: neither rung may wear a badge again.
+    ok('...and neither rung wears a review tag any more',
+      !Object.values(module.REVIEW_TAGS).some((reviewTag) =>
+        generalized.text.includes(reviewTag) || plain.text.includes(reviewTag)),
+      generalized.text + ' | ' + plain.text);
 
     const mutant = await runMutant({
       sourceFile: REVIEWER,
