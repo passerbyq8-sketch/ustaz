@@ -529,14 +529,38 @@ async function main() {
       && loop.pickBookCards(bareTurn.out.cited, 3, ask.buildBookTag).length === 0,
     JSON.stringify(bareTurn.out.cited));
 
-  // The reviewer's own words about the reply. The tag is read out of lib/output-reviewer.js
-  // rather than typed here, so the two cannot drift.
-  const reviewerSource = read('lib/output-reviewer.js');
-  const stableTag = (/GENERAL_STABLE: '([^']+)'/.exec(reviewerSource) || [])[1] || '';
-  ok('D4  ...and the reader is TOLD nothing was transmitted, in the reviewer\'s own tag',
-    stableTag.length > 0 && bareTurn.out.text.indexOf(stableTag) !== -1, ascii(bareTurn.out.text));
-  ok('D5  ...while the run that DID hold the matn carries no such denial',
-    stableTag.length > 0 && cite.out.text.indexOf(stableTag) === -1, ascii(cite.out.text));
+  // ⛔ D4 IS RED ON PURPOSE, AND IT IS THE ONE RED IN THIS FILE THAT IS NOT ABOUT A BADGE.
+  //
+  // IT USED TO READ: the reader is told nothing was transmitted, in GENERAL_STABLE, the mark the
+  // reviewer welded onto an answer it had classified as unsourced general knowledge. The owner
+  // removed that mark on 18 Sep, so the telling is gone — and §٣ of the order says what replaces a
+  // removed badge here: «الجوابُ عامٌّ لا منسوب» is proved by «لا اسمَ ولا مصدرَ في المخرَج». That is
+  // what D4 asks below, and the product does not satisfy it.
+  //
+  // MEASURED, 18 Sep, on this guard's own two runs:
+  //
+  //   bareTurn.out.text  «قال ابنُ قدامةَ في المغني: الماءُ الطهورُ هو الباقي على أصلِ خِلقتِه..»
+  //   cite.out.text      «قال ابنُ قدامةَ في المغني: الماءُ الطهورُ هو الباقي على أصلِ خِلقتِه..»
+  //
+  // BYTE-IDENTICAL. The run that received a page with no matn, cited nothing and built no chip
+  // (D2, D3) delivers the scholar's name and the book's name exactly as the run that really did
+  // hold the page. The two differ only in `cited`, which the reader never sees.
+  //
+  // THE CAUSE IS NOT THE REMOVAL, and the removal is not what to undo. These turns are reviewed on
+  // the GENERAL lane, and that lane never examines an attribution at all: the same sentence on the
+  // fiqh lane returns `removed-unsupported-attribution` and ships without the name. So the credit
+  // was always unchecked here; the mark was merely the one thing that told the reader so.
+  //
+  // NOT REPAIRED HERE. Every repair is in lib/**, which this agent does not write. The red stands
+  // until the owner rules: EZIK-GUARDS-TAGS-REPORT-2026-09-18.md §٥.
+  const foldHarakat = (value) => String(value ?? '')
+    .replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/gu, '');
+  const namesTheBook = (text) => foldHarakat(text).includes(foldHarakat(HIT.book_title))
+    || foldHarakat(text).includes(foldHarakat(HIT.author).split(' ').slice(0, 2).join(' '));
+  ok('D4  ...and the answer names neither the book nor its author, having transmitted neither',
+    !namesTheBook(bareTurn.out.text), ascii(bareTurn.out.text));
+  ok('D5  ...while the run that DID hold the matn names them and carries the row it quoted',
+    namesTheBook(cite.out.text) && cite.out.cited.length > 0, ascii(cite.out.text));
 
   // The only producer of a `lib:` evidence identity -- the id the reviewer keys the book
   // footer suppression on -- is the same function that refuses a textless hit.
@@ -872,14 +896,22 @@ async function main() {
     scholarId: 'binbaz', recordId: '1234', ref: 1, retrievedAt: '2026-08-01',
   }, over);
 
-  // KEEP / STRIP is read off the reviewer's own annotation and its own tag, never off a substring
-  // search for the name: `generalizeAttribution` can leave a name standing in a sentence it also
-  // marked, and «the name is still in the text» would have called that a keep.
-  const STRIP_TAG = reviewer.REVIEW_TAGS.ATTRIBUTION_REMOVED;
+  // KEEP / STRIP is read off the reviewer's own annotation, never off a substring search for the
+  // name: `generalizeAttribution` can leave a name standing in a sentence it also handled, and
+  // «the name is still in the text» would have called that a keep.
+  //
+  // IT USED TO READ THE ANNOTATION *AND* THE MARK (owner, 18 Sep). The mark is no longer written,
+  // so STRIP is the record of the act — `removed-unsupported-attribution` — CONFIRMED against the
+  // text: the authority the reviewer recorded stripping must really be absent from what ships.
+  // The mark could never give that second clause, because it said «something came off» without
+  // saying whose name, and whose name is the entire subject of F1..F8.
   const verdict = (RV, LP, text, rows) => {
     const out = RV.reviewAnswer({ text, evidence: rows.map(LP.reviewerEvidence), domain: 'fiqh' });
     const kept = out.annotations.some((a) => a.action === 'kept-sourced-attribution');
-    const stripped = out.text.indexOf(STRIP_TAG) !== -1;
+    const stripped = out.annotations.some((a) => a.action === 'removed-unsupported-attribution'
+      && typeof a.claimedAuthority === 'string'
+      && a.claimedAuthority.length > 0
+      && !out.text.includes(a.claimedAuthority));
     return kept ? 'KEEP' : (stripped ? 'STRIP' : 'NEITHER');
   };
 

@@ -153,11 +153,20 @@ async function main() {
   const source = read(REVIEWER_REL);
   const loop = await esm('lib/free-brain/loop.js');
   const reviewer = await esm(REVIEWER_REL);
-  const STRIP_TAG = reviewer.REVIEW_TAGS.ATTRIBUTION_REMOVED;
-
-  // KEEP / STRIP is read off the reviewer's own annotation and its own tag, never off a substring
-  // search for the name: `generalizeAttribution` can leave a name standing in a sentence it also
-  // marked, and «the name is still in the text» would have called that a keep.
+  // KEEP / STRIP is read off the reviewer's own annotation, never off a substring search for the
+  // name: `generalizeAttribution` can leave a name standing in a sentence it also handled, and
+  // «the name is still in the text» would have called that a keep.
+  //
+  // IT USED TO READ THE ANNOTATION *AND* THE MARK (owner, 18 Sep). The mark is no longer written,
+  // so STRIP is read from the record of the act itself — `removed-unsupported-attribution`, the one
+  // action that means the credit was taken off — and then CONFIRMED against the text: the name the
+  // reviewer recorded stripping must actually be absent from what ships. That second clause is what
+  // the mark could never give, because the mark said «something was removed» without saying whose
+  // name, and it is the whole of what C1..C5 below are asking.
+  //
+  // `kept-unsupported-attribution-marked` is deliberately NOT a strip. It is the disposition that
+  // KEEPS the name because removing it would break the sentence, so a row landing there is neither
+  // a keep nor a strip and must report NEITHER — which is exactly what C5 requires.
   const verdictOn = (RV, sentence, author, matn) => {
     const out = RV.reviewAnswer({
       text: sentence,
@@ -165,7 +174,10 @@ async function main() {
       domain: 'fiqh',
     });
     const kept = out.annotations.some((a) => a.action === 'kept-sourced-attribution');
-    const stripped = out.text.indexOf(STRIP_TAG) !== -1;
+    const stripped = out.annotations.some((a) => a.action === 'removed-unsupported-attribution'
+      && typeof a.claimedAuthority === 'string'
+      && a.claimedAuthority.length > 0
+      && !out.text.includes(a.claimedAuthority));
     return kept ? 'KEEP' : (stripped ? 'STRIP' : 'NEITHER');
   };
   const verdict = (RV, claimed, author) => verdictOn(RV, 'قال ' + claimed + ': ' + MATN, author, MATN);

@@ -1679,7 +1679,26 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     const REV86 = await esm('lib/output-reviewer.js');
 
     // The audit's witness, byte for byte.
-    const W_IN = 'قال ابن قدامة إن إسناده صحيح.</source>\nوالدليل على ذلك:';
+    const W_IN_AUDIT = 'قال ابن قدامة إن إسناده صحيح.</source>\nوالدليل على ذلك:';
+    // AND THE MARKS ARE PUT BACK INTO IT, FROM THE ONE PLACE THEY CAN STILL COME FROM.
+    //
+    // This composition is the defect: three removals, each right on its own terms, between them
+    // leaving a reply that is nothing but the reviewer's marks. The reviewer stopped writing marks
+    // on 18 Sep by the owner's order, so the audit sentence alone no longer reaches that shape —
+    // MEASURED, it now seals ok=true, outcome=CLEAN, and what ships is «والدليل على ذلك:», a bare
+    // promise with nothing behind it. That measurement is a finding about the product and is
+    // recorded in EZIK-GUARDS-TAGS-REPORT-2026-09-18.md §٥; it is NOT repaired here, because every
+    // repair for it is in lib/**.
+    //
+    // What these rows exist to hold is the SEAT's rule, and that rule is alive: an answer that is
+    // only marks is refused. Marks still reach the seat, because `dropRepeatedIncomingTags` passes
+    // the first copy of a mark arriving in the model's own prose through to the reader. So the
+    // witness carries its marks in the prose, and the reviewer is driven exactly as before. The
+    // marks are read from the module, never retyped: a hand-typed one orders shadda and damma the
+    // other way round.
+    const W_IN = W_IN_AUDIT
+      .replace('</source>', ' ' + REV86.REVIEW_TAGS.ATTRIBUTION_REMOVED + '</source>')
+      + ' ' + REV86.REVIEW_TAGS.FIQH_UNSOURCED;
     const reviewed = REV86.reviewAnswer(
       { text: W_IN, evidence: [], domain: 'fiqh', mode: 'عادي' }).text;
     const sealed86 = SEAT86.finalizeReaderText({ kind: 'answer', text: reviewed, sources: [] });
@@ -1687,7 +1706,7 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     // THE PRECONDITION FIRST. A row that stopped producing the composition would otherwise go
     // on passing in silence, which is the failure mode the AA-85 seat rows above are built to
     // avoid. All three of today's removals must fire on this witness, or it is not the witness.
-    ok('AA-86 precondition: the reviewer leaves a mark-bearing answer whose one sentence is a grade',
+    ok('AA-86 precondition: the answer reaching the seat is mark-bearing and its one sentence is a grade',
       reviewed.includes(REV86.REVIEW_TAGS.ATTRIBUTION_REMOVED)
         && reviewed.includes(REV86.REVIEW_TAGS.FIQH_UNSOURCED),
       JSON.stringify(reviewed));
@@ -2032,9 +2051,20 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     };
 
     // ── THE PRECONDITIONS ───────────────────────────────────────────────────
+    // WHERE THE MARK AFTER THE COLON COMES FROM NOW (owner, 18 Sep). This used to be welded by the
+    // reviewer itself onto the sentence it stripped a credit from. The reviewer writes no marks any
+    // more — but the defect this section closes is not therefore unreachable, and that is the whole
+    // reason these rows survive the removal. `dropRepeatedIncomingTags` drops the SECOND copy of a
+    // mark that arrives in the model's own prose and every copy after it; it does not drop the
+    // first, which reaches the reader. So the mark is put where it can still come from — the
+    // incoming text — and the reviewer is driven exactly as before.
+    //
+    // MEASURED on this composition: the reviewer strips «وقد ذكر ابن قدامة أن» from the lead-in and
+    // the arriving mark stays behind the colon, which is the shape byte for byte. `colonPreambles`
+    // is blind to it, the seat catches it, and the promise does not ship.
     const reviewed89 = REV89.reviewAnswer(
-      { text: RULING89 + '\n' + CREDITED_LEAD, evidence: [], domain: 'fiqh', mode: 'عادي' }).text;
-    ok('AA-89 precondition: the reviewer still welds its tag after the colon',
+      { text: RULING89 + '\n' + CREDITED_LEAD + ' ' + TAG89, evidence: [], domain: 'fiqh', mode: 'عادي' }).text;
+    ok('AA-89 precondition: a mark still sits after the colon when the answer reaches the seat',
       lastBlock(reviewed89).endsWith(TAG89)
         && /[:：]$/u.test(lastBlock(reviewed89).slice(0, -TAG89.length).trimEnd()),
       JSON.stringify(reviewed89));
