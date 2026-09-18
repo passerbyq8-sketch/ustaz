@@ -61,7 +61,8 @@
         "domain": "fiqh",
         "mode": "عادي",
         "expectedAction": "tagged-fiqh-understanding",
-        "expectedContains": ["سفينة نوح", "لا موسى", "【فهمٌ لا فتوى】"]
+        "expectedContains": ["سفينة نوح","لا موسى"],
+        "expectedExcludes": ["【فهمٌ لا فتوى】"]
       }
     },
     {
@@ -95,7 +96,8 @@
         "domain": "fiqh",
         "mode": "عادي",
         "expectedAction": "tagged-fiqh-understanding",
-        "expectedContains": ["صلاة الجنازة", "ليس فيها ركوع ولا سجود", "【فهمٌ لا فتوى】"]
+        "expectedContains": ["صلاة الجنازة","ليس فيها ركوع ولا سجود"],
+        "expectedExcludes": ["【فهمٌ لا فتوى】"]
       }
     },
     {
@@ -111,7 +113,8 @@
         "domain": "fiqh",
         "mode": "عادي",
         "expectedAction": "tagged-fiqh-understanding",
-        "expectedContains": ["آدم عليه السلام", "غير أب ولا أم", "【فهمٌ لا فتوى】"]
+        "expectedContains": ["آدم عليه السلام","غير أب ولا أم"],
+        "expectedExcludes": ["【فهمٌ لا فتوى】"]
       }
     },
     {

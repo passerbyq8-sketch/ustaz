@@ -11,32 +11,53 @@ const correct = {
   id: 'bb-1', title: 'حكم الجمع', url: 'https://binbaz.org.sa/fatwas/1/x', scholar: 'ابن باز',
   snippet: 'الجمع للمسافر جائز عند الحاجة إذا وجد سببه.',
 };
-const unsupportedIsTagged = (module) => {
+// ── THE CONTRACT THIS GUARD WAS BUILT ON, AND THE ONE IT HOLDS NOW ─────────
+//
+// IT WAS: «an attribution no evidence supports becomes understanding that is VISIBLY TAGGED».
+// The owner struck the last two words on 18 Sep, and struck them for a stated reason: one answer
+// is mostly transmitted from a published fatwa and partly the app's own reading, so a single
+// verdict stamped across the whole of it lies about half of it — and a reply to a greeting was
+// coming back badged «settled knowledge».
+//
+// SO THE WITNESS IS TURNED AROUND RATHER THAN DELETED. What it asserted has not become false; it
+// has become the opposite obligation. Every row below now holds BOTH halves at once:
+//
+//   the five marks are never written — at any level, in any phase, in any spelling;
+//   and what the mark announced STILL HAPPENS — the credit falls, the ruling is delivered, the
+//   sentence stays whole, and the reviewer records which of those it did.
+//
+// A guard that only asserted the first half would pass on a reviewer that had stopped reviewing.
+const unsupportedIsHandledSilently = (module) => {
   const out = module.reviewAnswer({ text: attributedText, evidence: [], domain: 'fiqh', mode: 'عادي' });
-  return out.text.includes(module.REVIEW_TAGS.ATTRIBUTION_REMOVED)
-    && out.annotations[0]?.action === 'removed-unsupported-attribution';
+  return !Object.values(module.REVIEW_TAGS).some((visible) => out.text.includes(visible))
+    && out.annotations[0]?.action === 'removed-unsupported-attribution'
+    && !out.text.includes('ابن باز')
+    && out.text.includes('الجمع للمسافر جائز عند الحاجة.');
 };
 
 (async () => {
   try {
     const module = await fresh(REVIEWER, 'tag-base');
-    ok('unsupported attribution becomes visibly tagged understanding', unsupportedIsTagged(module));
+    ok('unsupported attribution becomes understanding, silently: credit gone, claim delivered, no mark',
+      unsupportedIsHandledSilently(module));
     const sourced = module.reviewAnswer({
       text: attributedText, evidence: [correct], domain: 'fiqh', mode: 'عادي',
     });
-    ok('genuinely sourced attribution carries no false understanding tag',
+    ok('genuinely sourced attribution is passed through untouched',
       sourced.text === attributedText
         && !Object.values(module.REVIEW_TAGS).some((visible) => sourced.text.includes(visible)), sourced.text);
     const plainFiqh = module.reviewAnswer({
       text: 'الجمع للمسافر جائز.', evidence: [], domain: 'fiqh', mode: 'عادي',
     });
-    ok('unattributed fiqh understanding is tagged as understanding, not fatwa',
-      plainFiqh.text.includes(module.REVIEW_TAGS.FIQH_UNSOURCED), plainFiqh.text);
+    ok('unattributed fiqh understanding is delivered whole and unmarked',
+      plainFiqh.text === 'الجمع للمسافر جائز.'
+        && plainFiqh.annotations[0]?.action === 'tagged-fiqh-understanding', plainFiqh.text);
     const stable = module.reviewAnswer({
       text: 'ناتج اثنين زائد اثنين أربعة.', evidence: [], domain: 'general', mode: 'موجز',
     });
-    ok('stable unsourced general knowledge is tagged without demanding a source',
-      stable.text.includes(module.REVIEW_TAGS.GENERAL_STABLE) && !stable.text.includes('المصدر:'), stable.text);
+    ok('stable unsourced general knowledge is delivered without a source and without a mark',
+      stable.text === 'ناتج اثنين زائد اثنين أربعة.'
+        && stable.annotations[0]?.action === 'tagged-stable-general-knowledge', stable.text);
 
     // ── §٧: THE OLD LAW WAS «A STAMP ON EVERY SENTENCE», AND IT IS INVERTED HERE ──
     //
@@ -57,8 +78,13 @@ const unsupportedIsTagged = (module) => {
     ].join(' ');
     const flood = module.reviewAnswer({ text: FLOOD, evidence: [], domain: 'fiqh', mode: 'عادي' });
     const tagCount = (text, needle) => text.split(needle).length - 1;
-    ok('five unsourced rulings are reported ONCE, not five times',
-      tagCount(flood.text, module.REVIEW_TAGS.FIQH_UNSOURCED) === 1,
+    // ONE was the answer to ninety-six. NONE is the answer the owner gave on 18 Sep, and it is the
+    // same rule carried one step further, not a different one: the flood was never information,
+    // and the last copy of it was not either. The three rows under it are untouched and are what
+    // make this a count of marks rather than a count of what the reader lost — every sentence is
+    // still delivered, and the verdict still records a decision for each.
+    ok('five unsourced rulings are reported not once but not at all',
+      tagCount(flood.text, module.REVIEW_TAGS.FIQH_UNSOURCED) === 0,
       tagCount(flood.text, module.REVIEW_TAGS.FIQH_UNSOURCED) + ' occurrence(s): ' + flood.text);
     ok('...and every one of the five sentences still reaches the reader',
       [
@@ -89,9 +115,10 @@ const unsupportedIsTagged = (module) => {
       structured.text.includes(CHIPS), structured.text);
     ok('a heading is carried through byte-for-byte, unmarked',
       structured.text.includes(HEADING), structured.text);
-    ok('and the ruling itself is still reported, exactly once',
+    ok('and the ruling itself is still reported, and carries no mark',
       structured.text.includes('فلا وضوء عليه')
-        && tagCount(structured.text, module.REVIEW_TAGS.FIQH_UNSOURCED) === 1, structured.text);
+        && Object.values(module.REVIEW_TAGS)
+          .every((visible) => tagCount(structured.text, visible) === 0), structured.text);
 
     // ── ONE ENCODING (§٥/١) ───────────────────────────────────────────────────
     // Comments may name a tag, but every NFC-equivalent occurrence must use the exact same code
@@ -109,15 +136,21 @@ const unsupportedIsTagged = (module) => {
     }
 
     // ── §٧ MUTANT ١: PUT THE STAMP BACK ON EVERY SENTENCE ────────────────────
+    //
+    // The old form of this mutant called `tag(part, TAGS.FIQH_UNSOURCED)`. `tag()` was the writer
+    // and went with the removal, so that seam applied and then threw `ReferenceError: tag is not
+    // defined` on load — a mutant that cannot load is a mutant that cannot be killed. It welds the
+    // mark directly now, which is the same defect without the helper, and the survival test is the
+    // owner's rule rather than the old count: ONE stamp was acceptable before and none is now.
     const floodMutant = await runMutant({
       sourceFile: REVIEWER,
       name: 'stamp-every-sentence-again',
       transform: (source) => source.replace(
         /^ {8}let reviewed = part;$/mu,
-        '        let reviewed = tag(part, TAGS.FIQH_UNSOURCED); // mutant: the old flood'),
+        "        let reviewed = part + ' ' + TAGS.FIQH_UNSOURCED; // mutant: the old flood"),
       survives: (mutantModule) => {
         const out = mutantModule.reviewAnswer({ text: FLOOD, evidence: [], domain: 'fiqh', mode: 'عادي' });
-        return out.text.split(mutantModule.REVIEW_TAGS.FIQH_UNSOURCED).length - 1 === 1;
+        return out.text.split(mutantModule.REVIEW_TAGS.FIQH_UNSOURCED).length - 1 === 0;
       },
     });
     ok('flood mutant seam applied', floodMutant.changed, floodMutant.error);
@@ -125,23 +158,40 @@ const unsupportedIsTagged = (module) => {
     ok('MUTANT KILLED: the stamp cannot go back onto every sentence',
       floodMutant.loaded && floodMutant.survived === false, JSON.stringify(floodMutant));
 
-    // ── §٧ MUTANT ٢: MARK A QUOTED TEXT ──────────────────────────────────────
+    // ── §٧ MUTANT ٢: TREAT A QUOTED TEXT AS PROSE ────────────────────────────
     // Collapsing the structural split is exactly how the defect arose: with card runs treated as
-    // prose, the narration becomes a sentence and is stamped like any other.
+    // prose, the narration becomes a sentence and is judged like any other.
+    //
+    // WHAT THE SURVIVAL TEST READS NOW. It read «the text came back byte-identical», which worked
+    // only because a narration judged as prose was STAMPED and so came back changed. Nothing is
+    // stamped any more, so the mutant's text is identical to the clean one and the old test let it
+    // live. What still separates them is that a card is not judged at all: the clean reviewer
+    // records NO sentence annotation for a narration, and the mutant records one.
     const quoteMutant = await runMutant({
       sourceFile: REVIEWER,
       name: 'mark-transmitted-text-again',
       transform: (source) => source.replace(
         /^ {4}if \(run\.kind === 'card'\) \{$/mu,
         "    if (run.kind === 'card' && false) { // mutant: a hadith is just another sentence"),
-      survives: (mutantModule) => mutantModule.reviewAnswer({
-        text: HADITH, evidence: [], domain: 'fiqh', mode: 'عادي',
-      }).text === HADITH,
+      survives: (mutantModule) => {
+        const out = mutantModule.reviewAnswer({
+          text: HADITH, evidence: [], domain: 'fiqh', mode: 'عادي',
+        });
+        return out.text === HADITH && out.annotations.length === 0;
+      },
     });
     ok('quoted-text mutant seam applied', quoteMutant.changed, quoteMutant.error);
     ok('quoted-text mutant module loaded successfully', quoteMutant.loaded, quoteMutant.error);
-    ok('MUTANT KILLED: transmitted text cannot be marked as understanding',
+    ok('MUTANT KILLED: transmitted text cannot be judged as understanding',
       quoteMutant.loaded && quoteMutant.survived === false, JSON.stringify(quoteMutant));
+
+    // AND THE CLEAN TREE IS THE OTHER HALF OF THAT MUTANT: a narration is carried through with no
+    // sentence annotation at all, which is what makes the mutant above detectable.
+    ok('a narration is not judged as a sentence in the first place',
+      module.reviewAnswer({ text: HADITH, evidence: [], domain: 'fiqh', mode: 'عادي' })
+        .annotations.length === 0,
+      JSON.stringify(module.reviewAnswer({ text: HADITH, evidence: [], domain: 'fiqh', mode: 'عادي' })
+        .annotations));
 
     // ── §٣: THE MARK GOES AT THE END OF THE SENTENCE, OR IT DOES NOT GO ──────
     //
@@ -187,15 +237,19 @@ const unsupportedIsTagged = (module) => {
     ];
 
     // The property, stated once so the mutant below is measured against exactly it: the reviewed
-    // sentence is the reader's own words with the credit removed, and the mark after the full
-    // stop. Nothing between the two halves, and nothing after the mark.
+    // sentence is the reader's own words with the credit removed, and NOTHING ELSE — not between
+    // the two halves, and not after them.
+    //
+    // IT USED TO END «…and the mark after the full stop» (owner, 18 Sep). That clause was how this
+    // block proved the repair had happened at all: the hedge was gone from the middle AND the mark
+    // had landed at the end. With no mark written, the equality below carries the whole property by
+    // itself and carries it more strictly, because it now admits no trailing anything.
     const stitchedCleanly = (mod) => MID_SENTENCE.every((witness) => {
       const out = mod.reviewAnswer({
         text: witness.head + witness.frame + witness.claim,
         evidence: [], domain: 'fiqh', mode: 'عادي',
       });
-      const expected = (witness.head + witness.claim).replace(/\s+/gu, ' ').trim()
-        + ' ' + mod.REVIEW_TAGS.ATTRIBUTION_REMOVED;
+      const expected = (witness.head + witness.claim).replace(/\s+/gu, ' ').trim();
       return out.text.replace(/\s+/gu, ' ').trim() === expected;
     });
 
@@ -208,12 +262,14 @@ const unsupportedIsTagged = (module) => {
         !out.text.includes(HEDGE), out.text);
       ok(witness.id + ': the reader keeps his own words on both sides of the removed credit',
         out.text.includes(witness.head.trim()) && out.text.includes(witness.claim.trim()), out.text);
-      ok(witness.id + ': the mark is the LAST thing in the sentence',
-        out.text.trimEnd().endsWith(module.REVIEW_TAGS.ATTRIBUTION_REMOVED), out.text);
+      ok(witness.id + ': the sentence ENDS where the reader last wrote',
+        out.text.trimEnd().endsWith(witness.claim.replace(/\s+/gu, ' ').trim()), out.text);
       ok(witness.id + ': and the credit itself is gone',
         !out.text.includes(witness.credit), out.text);
     }
     ok('both witnesses stitch back to exactly the sentence minus its credit', stitchedCleanly(module));
+    ok('the hedge phrase exists nowhere in the reviewer any more',
+      !require('fs').readFileSync(REVIEWER, 'utf8').includes(HEDGE));
     ok('the hedge phrase exists nowhere in the reviewer any more',
       !require('fs').readFileSync(REVIEWER, 'utf8').includes(HEDGE));
 
@@ -296,22 +352,22 @@ const unsupportedIsTagged = (module) => {
     const removalSafetyHolds = (mod) => REMOVAL_SAFETY.every((witness) => {
       const out = mod.reviewAnswer({ text: witness.text, evidence: [], domain: 'fiqh', mode: 'عادي' });
       return out.text.includes(witness.text)
-        && out.text.trimEnd().endsWith(mod.REVIEW_TAGS.ATTRIBUTION_REMOVED)
+        && out.text.trimEnd().endsWith(witness.text.trimEnd())
         && out.annotations[0]?.action === 'kept-unsupported-attribution-marked';
     });
     const seamHolds = (mod) => {
       const out = mod.reviewAnswer({ text: Q12, evidence: [], domain: 'fiqh', mode: 'عادي' });
       return out.text.includes(Q12)
         && !/به\s+في\s+رحمه\s+الله/u.test(out.text)
-        && out.text.trimEnd().endsWith(mod.REVIEW_TAGS.ATTRIBUTION_REMOVED)
+        && out.text.trimEnd().endsWith(Q12.trimEnd())
         && removalSafetyHolds(mod);
     };
     {
       const out = module.reviewAnswer({ text: Q12, evidence: [], domain: 'fiqh', mode: 'عادي' });
       ok('q12: the preposition is not left holding nothing', !/به\s+في\s+رحمه\s+الله/u.test(out.text), out.text);
       ok('q12: the reader receives his own sentence, whole', out.text.includes(Q12), out.text);
-      ok('q12: and it is marked as understanding rather than transmitted text',
-        out.text.trimEnd().endsWith(module.REVIEW_TAGS.ATTRIBUTION_REMOVED), out.text);
+      ok('q12: and nothing whatever is welded onto it',
+        out.text.trimEnd().endsWith(Q12.trimEnd()), out.text);
       ok('q12: and the verdict names what actually happened',
         out.annotations[0]?.action === 'kept-unsupported-attribution-marked',
         out.annotations[0]?.action);
@@ -319,9 +375,12 @@ const unsupportedIsTagged = (module) => {
     for (const witness of REMOVAL_SAFETY) {
       const out = module.reviewAnswer({ text: witness.text, evidence: [], domain: 'fiqh', mode: 'عادي' });
       ok(witness.id + ': unsafe removal keeps every original character', out.text.includes(witness.text), out.text);
+      // The disposition is read from the reviewer's own record. It always was the substantive half:
+      // `kept-unsupported-attribution-marked` is the branch that KEEPS the credit because removing
+      // it would break the sentence, and it is what tells this row apart from a clean removal.
       ok(witness.id + ': semantic subject and sentence structure remain intact',
         out.annotations[0]?.action === 'kept-unsupported-attribution-marked'
-          && out.text.trimEnd().endsWith(module.REVIEW_TAGS.ATTRIBUTION_REMOVED), out.text);
+          && out.text.trimEnd().endsWith(witness.text.trimEnd()), out.text);
     }
 
     // Narrowing the destructive branch must not disable attribution review. These unsupported
@@ -345,13 +404,16 @@ const unsupportedIsTagged = (module) => {
       },
     ]) {
       const out = module.reviewAnswer({ text: witness.text, evidence: [], domain: 'fiqh', mode: 'عادي' });
-      const expected = witness.claim + ' ' + module.REVIEW_TAGS.ATTRIBUTION_REMOVED;
+      // The mark used to follow the claim on the same line. Nothing follows it now, so the whole
+      // first line IS the claim — a stricter equality than the old one, and the one that actually
+      // measures «the complete semantic claim survives the removal».
+      const expected = witness.claim;
       const outputLines = out.text.split('\n');
       const expectedKhilafTrigger = witness.khilafTrigger || null;
       ok(witness.id + ': genuinely unsupported credit is still removed',
         out.annotations[0]?.action === 'removed-unsupported-attribution'
           && !out.text.includes('محمد الأمين'), out.text);
-      ok(witness.id + ': removal preserves the complete semantic claim and exact notice count',
+      ok(witness.id + ': removal preserves the complete semantic claim and adds nothing to it',
         outputLines[0] === expected
           && out.verdict.khilafTrigger === expectedKhilafTrigger
           && outputLines.length === (expectedKhilafTrigger ? 2 : 1), out.text);
@@ -456,9 +518,11 @@ const unsupportedIsTagged = (module) => {
       ok('ع-٥٥/ب ' + witness.id + ': the credit is REMOVED, not decorated',
         out.annotations[0]?.action === 'removed-unsupported-attribution',
         out.annotations[0]?.action + ' | ' + out.text);
+      // `delivered` is the whole of what the reader should receive. The mark used to follow it; now
+      // nothing does, so the row asserts equality with it rather than a prefix plus a mark — which
+      // refuses a particle left behind, a truncation, and any appendage, all in one clause.
       ok('ع-٥٥/ب ' + witness.id + ': ...and the particle left with the frame it qualified',
-        out.text.startsWith(witness.delivered)
-          && out.text.trimEnd().endsWith(module.REVIEW_TAGS.ATTRIBUTION_REMOVED),
+        out.text.trim() === witness.delivered,
         out.text);
     }
 
@@ -507,17 +571,37 @@ const unsupportedIsTagged = (module) => {
     ok('ع-٥٥/ب MUTANT KILLED: without «قد» the credit is decorated again, not removed',
       qadMutant.loaded && qadMutant.survived === false, JSON.stringify(qadMutant));
 
+    // ── THE LAST MUTANT, TURNED AROUND WITH THE GUARD ────────────────────────
+    //
+    // It was `strip-unsupported-attribution-without-tag`: it deleted the `tag(...)` call so the
+    // credit fell silently, and this guard had to notice. That mutation IS the owner's change of
+    // 18 Sep — the line it rewrote no longer exists, and the behaviour it simulated is now the
+    // shipped behaviour. A mutant that produces the correct product cannot be killed.
+    //
+    // SO IT RUNS THE OTHER WAY. The fear is no longer that the mark is missing; it is that the mark
+    // comes back. This welds it onto the one branch that ever wrote a per-sentence mark, and the
+    // guard's own headline predicate must kill it. That is what keeps the first row of this file
+    // from being a clause about nothing: without this mutant, «no mark is written» would pass on a
+    // reviewer that had been given a writer back, so long as no other row happened to look.
     const mutant = await runMutant({
       sourceFile: REVIEWER,
-      name: 'strip-unsupported-attribution-without-tag',
+      name: 'weld-the-attribution-mark-back-on',
       transform: (source) => source.replace(
-        'const reviewed = generalized ? tag(generalized, TAGS.ATTRIBUTION_REMOVED) : \'\';',
-        'const reviewed = generalized; // mutant: hide that this is understanding'),
-      survives: unsupportedIsTagged,
+        [
+          "          const reviewed = generalized || '';",
+          '          if (reviewed) {',
+          '            output.push(reviewed);',
+        ].join('\n'),
+        [
+          "          const reviewed = generalized || '';",
+          '          if (reviewed) {',
+          "            output.push(reviewed + ' ' + TAGS.ATTRIBUTION_REMOVED); // mutant: the writer returns",
+        ].join('\n')),
+      survives: unsupportedIsHandledSilently,
     });
     ok('mutant seam applied', mutant.changed, mutant.error);
     ok('mutant module loaded successfully', mutant.loaded, mutant.error);
-    ok('MUTANT KILLED: removing the honesty tag is detected',
+    ok('MUTANT KILLED: the honesty mark cannot be welded back on',
       mutant.loaded && mutant.survived === false, JSON.stringify(mutant));
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
