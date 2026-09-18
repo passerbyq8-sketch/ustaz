@@ -50,15 +50,15 @@
         "mode": "عادي"
       },
       "expect": {
-        "exactText": "الجمع للمسافر جائز عند الحاجة. 【فهمٌ لا نصٌّ منقول】",
+        "exactText": "الجمع للمسافر جائز عند الحاجة.",
         "actions": [
           "removed-unsupported-attribution"
         ],
         "contains": [
-          "【فهمٌ لا نصٌّ منقول】",
           "الجمع للمسافر جائز"
         ],
         "excludes": [
+          "【فهمٌ لا نصٌّ منقول】",
           "ابن باز",
           "ابن عثيمين",
           "المعطياتِ المتاحة",
@@ -80,10 +80,10 @@
           "tagged-fiqh-understanding"
         ],
         "contains": [
-          "الجمع للمسافر جائز",
-          "【فهمٌ لا فتوى】"
+          "الجمع للمسافر جائز"
         ],
         "excludes": [
+          "【فهمٌ لا فتوى】",
           "لم يصلني نصٌّ"
         ]
       }
@@ -135,10 +135,10 @@
           "tagged-stable-general-knowledge"
         ],
         "contains": [
-          "ستة وخمسون",
-          "【معرفةٌ مستقرة غير منقولة】"
+          "ستة وخمسون"
         ],
         "excludes": [
+          "【معرفةٌ مستقرة غير منقولة】",
           "المصدر:",
           "لم يصلني مصدرٌ مؤرّخ",
           "【فهمٌ لا فتوى】"
@@ -173,11 +173,11 @@
           "general"
         ],
         "contains": [
-          "【فهمٌ لا فتوى】",
           "https://weather.example/kuwait/2026-08-16",
           "2026-08-16"
         ],
         "excludes": [
+          "【فهمٌ لا فتوى】",
           "لم يصلني نصٌّ",
           "لم يصلني مصدرٌ مؤرّخ"
         ]
@@ -213,7 +213,7 @@
         },
         "expect": {
           "tailCount": 1,
-          "noticeCount": 1,
+          "noticeCount": 0,
           "reason": null,
           "exactInput": false
         }
@@ -229,7 +229,7 @@
         },
         "expect": {
           "tailCount": 1,
-          "noticeCount": 1,
+          "noticeCount": 0,
           "reason": null,
           "exactInput": false
         }
@@ -351,9 +351,9 @@
         },
         "expect": {
           "adjacent": ["صلى الله عليه وسلم:\n<hadith>"],
-          "ordered": ["صلى الله عليه وسلم:", "<hadith>", "</hadith>", "وتُراجَع المسألة", "【فهمٌ لا فتوى】"],
+          "ordered": ["صلى الله عليه وسلم:", "<hadith>", "</hadith>", "وتُراجَع المسألة"],
           "tailCount": 1,
-          "noticeCount": 1
+          "noticeCount": 0
         }
       },
       {
@@ -366,9 +366,9 @@
         },
         "expect": {
           "adjacent": ["حين\n<hadith>"],
-          "ordered": ["حين", "<hadith>", "</hadith>", "【فهمٌ لا فتوى】"],
+          "ordered": ["حين", "<hadith>", "</hadith>"],
           "tailCount": 0,
-          "noticeCount": 1
+          "noticeCount": 0
         }
       },
       {
@@ -382,9 +382,9 @@
         },
         "expect": {
           "adjacent": ["بالأخذ\n<source", "</source>\nفلا يقع الطلاق\"."],
-          "ordered": ["\"إن كان المقصود", "<source", "</source>", "فلا يقع الطلاق\".", "وتُراجَع المسألة", "【فهمٌ لا فتوى】"],
+          "ordered": ["\"إن كان المقصود", "<source", "</source>", "فلا يقع الطلاق\".", "وتُراجَع المسألة"],
           "tailCount": 1,
-          "noticeCount": 1
+          "noticeCount": 0
         }
       },
       {
@@ -397,9 +397,9 @@
         },
         "expect": {
           "adjacent": ["فالواجب عليه:\n<steps"],
-          "ordered": ["فالواجب عليه:", "<steps", "</steps>", "【فهمٌ لا فتوى】"],
+          "ordered": ["فالواجب عليه:", "<steps", "</steps>"],
           "tailCount": 0,
-          "noticeCount": 1
+          "noticeCount": 0
         }
       }
     ],

@@ -227,11 +227,17 @@ const FRAMING = 'هذه المسألة مما تكلم فيه أهل العلم�
   // them: with FREE_BRAIN_V1 off, api/ask.js runs what it ran on 40f540e.
   //
   // WHAT FLIPS. On the reviewer path this same invented ruling is not dropped and the reply is
-  // not NO_VERIFIED_SOURCE_MESSAGE. It is delivered in the app's own voice under 【فهمٌ لا فتوى】 —
-  // a STRONGER honesty claim than the drop, not a weaker one: the drop hid that the app had a
-  // view at all, while the tag states both the view and its standing. And the screen that would
-  // have dropped it is not merely bypassed, it is explicitly disarmed at the branch, so this path
-  // has one output policy rather than two racing ones.
+  // not NO_VERIFIED_SOURCE_MESSAGE. It is delivered in the app's own voice.
+  //
+  // IT USED TO BE DELIVERED UNDER 【فهمٌ لا فتوى】, and that mark was the reason this was called a
+  // STRONGER honesty claim than the drop: the drop hid that the app had a view at all, while the
+  // mark stated both the view and its standing. The owner removed the mark on 18 Sep, so the
+  // reply now states the view and NOT its standing — the delivery is unchanged, the declaration
+  // is gone. That is the owner's decision and is recorded here rather than argued with; what
+  // these rows still measure is the delivery, which is what «does not refuse» means.
+  //
+  // And the screen that would have dropped it is not merely bypassed, it is explicitly disarmed
+  // at the branch, so this path has one output policy rather than two racing ones.
   console.log('\n=== H. THE REPLACED LAW: the reviewer path tags instead of refusing ===');
   {
     const LAW = require('./replaced-law-lib.cjs');
@@ -246,9 +252,18 @@ const FRAMING = 'هذه المسألة مما تكلم فيه أهل العلم�
       legacy.dropWhole === true || (legacy.droppedSentences || []).length > 0,
       JSON.stringify({ outcome: legacy.outcome, problems: legacy.problems }));
 
+    const RV = await esm('lib/output-reviewer.js');
     const free = await LAW.driveFreeTurn({ module: loop, answer: INVENTED_RULING });
+    // «Delivered instead of refused» used to be read as «the matn is there AND it wears 【فهمٌ لا فتوى】».
+    // The mark is no longer written (owner, 18 Sep). Delivery is read from the two things that say it
+    // without a badge: the ruling matn is in the reply, and the reply is not the reviewer's last rung.
+    // H3 below adds the third: it is not one of the legacy refusal texts either. Together they are
+    // the whole of «this path does not refuse», and none of the three needs a mark to be read.
     ok('H2 FLIPPED — the reviewer path delivers the same ruling instead of refusing',
-      free.text.includes('يجب الطهور') && free.text.includes('【فهمٌ لا فتوى】'), JSON.stringify(free.text));
+      free.text.includes('يجب الطهور')
+        && free.text !== RV.REVIEW_LAST_RESORT
+        && !Object.values(RV.REVIEW_TAGS).some((reviewTag) => free.text.includes(reviewTag)),
+      JSON.stringify(free.text));
     ok('H3 ...and the reply is not one of the legacy refusal texts',
       !/لم أقف|لا يمكنني أن أنسب/.test(free.text), JSON.stringify(free.text));
     ok('H4 the free branch disarms the screen rather than racing it',
@@ -266,7 +281,9 @@ const FRAMING = 'هذه المسألة مما تكلم فيه أهل العلم�
         "        let reviewed = ''; // mutant: the old law — an unsourced ruling is dropped"),
       check: (mod) => {
         const out = mod.reviewAnswer({ text: INVENTED_RULING, evidence: [], domain: 'fiqh', mode: 'عادي' });
-        return out.text.includes('يجب الطهور') && out.text.includes('【فهمٌ لا فتوى】');
+        // The mutant empties `reviewed`, so the ruling disappears. Delivery is therefore read as:
+        // the matn is there, and what is there is not the last rung.
+        return out.text.includes('يجب الطهور') && out.text !== mod.REVIEW_LAST_RESORT;
       },
     });
     ok('H6 mutant restoring the drop applies', twin.changed, twin.error);

@@ -22,11 +22,29 @@ const retrievedButUnneeded = {
   id: 'math-1', title: 'جدول الضرب', url: 'https://education.example/math/seven-times-eight',
   scholar: 'موسوعة تعليمية', snippet: 'سبعة في ثمانية يساوي ستة وخمسين.', date: '2026-08-16',
 };
+// ── WHAT THE BADGE USED TO PROVE, AND WHERE IT IS PROVED NOW (owner, 18 Sep) ─
+//
+// This predicate used to read GENERAL_STABLE off the text: the badge said «this lane recognised
+// a stable general sentence and let it through». The badge is no longer written anywhere, by the
+// owner's order, so the same property is read from the two things that DID survive it — the
+// sentence, and the reviewer's own record of the branch it took.
+//
+// MEASURED, and it is why the annotation is load-bearing here rather than decorative: with the
+// badge gone, the `force-general-through-fiqh-law` mutant below returns text that is
+// BYTE-IDENTICAL to the clean lane's for this input. `out.text` alone can no longer tell the two
+// lanes apart, and a predicate written on text alone would let that mutant live.
+// `annotations[0].action` is the last place in the product where the distinction is recorded.
+//
+// The three negative clauses are kept exactly as they stood — no fiqh wrapper, no refusal, no
+// source tail — and to them is added the owner's new rule: that NO review tag is welded onto a
+// general answer at all. So this predicate now fails in both directions, if the lane stops being
+// general and if a tag ever comes back.
 const keepsStableGeneral = (module) => {
   const out = module.reviewAnswer(stableInput);
   return out.text.includes('ستة وخمسون')
-    && out.text.includes(module.REVIEW_TAGS.GENERAL_STABLE)
-    && !out.text.includes(module.REVIEW_TAGS.FIQH_UNSOURCED)
+    && out.text.includes(stableInput.text)
+    && out.annotations[0]?.action === 'tagged-stable-general-knowledge'
+    && !Object.values(module.REVIEW_TAGS).some((reviewTag) => out.text.includes(reviewTag))
     && !out.text.includes('لم يصلني نصٌّ')
     && !out.text.includes('المصدر:');
 };

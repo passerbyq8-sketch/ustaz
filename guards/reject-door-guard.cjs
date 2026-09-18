@@ -364,9 +364,15 @@ async function mutate({ file, name, transform, check }) {
     rewritten.verdict && rewritten.verdict.counts
     && !rewritten.verdict.counts['removed-unsupported-attribution'],
     JSON.stringify(rewritten.verdict && rewritten.verdict.counts));
+  // «In no form at all» was read as «carries neither the mark the reviewer welded on nor the name».
+  // The mark is gone, so the draft is read by its own sentence instead — CLAIM, the unsupported
+  // attribution itself — which is the stronger of the two and never depended on a badge. The name
+  // clause stays as it was, and the owner's removal is pinned beside them.
   ok('C6 ...and the sutured first draft reaches the reader in no form at all',
-    !rewritten.text.includes(RV.REVIEW_TAGS.ATTRIBUTION_REMOVED)
-    && !rewritten.text.includes('ابن باز'), JSON.stringify(rewritten.text));
+    !rewritten.text.includes(CLAIM)
+    && !rewritten.text.includes('ابن باز')
+    && !Object.values(RV.REVIEW_TAGS).some((reviewTag) => rewritten.text.includes(reviewTag)),
+    JSON.stringify(rewritten.text));
   // §٤/٢ and §٨/٨ — the printed ledger and the paid calls are the same number.
   ok('C7 ...and the round ledger carries one row per provider call, the retry included',
     (rewritten.roundLedger || []).length === rewritten.modelCalls
@@ -845,7 +851,13 @@ async function mutate({ file, name, transform, check }) {
       const two = await drive(twin, [TWO, TWO]);
       return {
         c3: cut.rejectRetries === 1,
-        c6: !cut.text.includes(RV.REVIEW_TAGS.ATTRIBUTION_REMOVED),
+        // c6 mirrors C6 below, and it used to recognise the sutured first draft by the mark the
+        // reviewer welded onto it. No mark is written now (owner, 18 Sep), so the draft is
+        // recognised by the sentence that DEFINES it: CLAIM is the unsupported attribution the
+        // door exists to keep out. MEASURED on this twin — `cut.text` is CLAIM exactly, where the
+        // healthy tree ships the rewrite, which does not contain it. That is what makes this
+        // mirror fail on the twin and pass on the tree, which is the whole of D3.
+        c6: !cut.text.includes(CLAIM),
         c9: two.text === SOUND_HEAD,
         c10: !two.text.includes(CLAIM),
       };

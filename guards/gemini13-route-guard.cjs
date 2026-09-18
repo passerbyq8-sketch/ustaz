@@ -24,6 +24,17 @@ function requireStructure(condition, message) {
 
 const sha256 = (value) => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
+// WHAT «correct-tagged-answer» MEANS AFTER THE MARKS WERE REMOVED (owner, 18 Sep).
+//
+// Each of rows 6, 9 and 10 asked for three needles in the reviewed text: two pieces of the answer
+// itself, and 【فهمٌ لا فتوى】 to show it had been classified as understanding. The mark is no longer
+// written, so it moved from `expectedContains` to `expectedExcludes` on the same row — the same
+// string, MOVED and not retyped — and the classification it announced is read where it has always
+// been recorded, in `expectedAction` against the reviewer's own annotation.
+//
+// The row therefore still carries three expectations and the count is unchanged; what changed is
+// that one of them is now a refusal. `note` is left as it stands: these rows are still the tagged
+// answers of the battery, and renaming a row is renaming the measurement.
 function validReviewShape(row) {
   const review = row?.review;
   return row?.note === 'correct-tagged-answer'
@@ -32,7 +43,8 @@ function validReviewShape(row) {
     && review.domain === 'fiqh'
     && typeof review.mode === 'string' && review.mode.length > 0
     && review.expectedAction === 'tagged-fiqh-understanding'
-    && Array.isArray(review.expectedContains) && review.expectedContains.length >= 3;
+    && Array.isArray(review.expectedContains) && review.expectedContains.length >= 2
+    && Array.isArray(review.expectedExcludes) && review.expectedExcludes.length >= 1;
 }
 
 function reviewTargetPass(row, reviewer) {
@@ -47,6 +59,7 @@ function reviewTargetPass(row, reviewer) {
     && result.annotations.length === 1
     && result.annotations[0].action === row.review.expectedAction
     && row.review.expectedContains.every((needle) => result.text.includes(needle))
+    && row.review.expectedExcludes.every((needle) => !result.text.includes(needle))
     && result.text !== reviewer.REVIEW_LAST_RESORT;
 }
 

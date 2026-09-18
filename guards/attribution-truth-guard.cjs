@@ -412,28 +412,68 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
     const PLAIN = '\u0648\u0627\u0644\u0648\u0636\u0648\u0621 \u064a\u0628\u062f\u0623 \u0628\u0627\u0644\u0646\u064a\u0629.';
     const GENERAL = '\u0627\u0644\u0645\u0627\u0621 \u064a\u063a\u0644\u064a \u0639\u0646\u062f \u0645\u0626\u0629 \u062f\u0631\u062c\u0629 \u0645\u0626\u0648\u064a\u0629.';
 
+    // ── THE LADDER AFTER THE MARKS WERE REMOVED (owner, 18 Sep) ───────────
+    //
+    // H1..H5 were five shapes measured by COUNTING RUNGS in the delivered text: one sentence mark
+    // however many credits fell, one answer-level notice and never two, and rung 3 yielding to a
+    // sentence that already carried rung 1. None of the three rungs is written any more, so a count
+    // of them is a count of zero in every shape and would say nothing about any of these five.
+    //
+    // WHAT THE LADDER DECIDED IS STILL DECIDED, AND STILL RECORDED. The rung was never the
+    // decision; it was the announcement of one. The decision itself is in the verdict's own
+    // counts, which the removal did not touch, and it distinguishes all five shapes exactly as the
+    // rungs did — MEASURED on these same five inputs:
+    //
+    //   H1  two credits fall            removed=2
+    //   H2  four credits fall           removed=4
+    //   H3  a fiqh and a general one    fiqh-understanding=1, stable-general=1
+    //   H4  a credit and a plain ruling removed=1, fiqh-understanding=1
+    //   H5  a credit and a general one  removed=1, stable-general=1
+    //
+    // So each row keeps its shape, reads the decision from the record, and adds the clause the
+    // owner's order makes the point of this section: NO rung reaches the reader, in any shape.
+    // H6..H9 below are untouched and are the other half — a rung the MODEL echoed is still read,
+    // still de-duplicated, and still never doubled.
+    const rungs = (text) => count(text, R1) + count(text, R2) + count(text, R3);
+    const countsOf = (text, domain) => REV.reviewAnswer({ text, domain, evidence: [] }).verdict.counts;
+    const REMOVED_A = 'removed-unsupported-attribution';
+    const FIQH_A = 'tagged-fiqh-understanding';
+    const GENERAL_A = 'tagged-stable-general-knowledge';
+
     const dup2 = review([CREDIT, CREDIT].join(' '), 'fiqh');
-    ok('H1 \u00b7 two sentences that each lose a credit ship ONE sentence mark, not two',
-      count(dup2, R1) === 1, 'rung1=' + count(dup2, R1));
+    ok('H1 \u00b7 two sentences that each lose a credit are both delivered, and neither is marked',
+      countsOf([CREDIT, CREDIT].join(' '), 'fiqh')[REMOVED_A] === 2 && rungs(dup2) === 0,
+      'removed=' + countsOf([CREDIT, CREDIT].join(' '), 'fiqh')[REMOVED_A] + ' rungs=' + rungs(dup2));
 
     const dup4 = review([CREDIT, CREDIT, CREDIT, CREDIT].join(' '), 'fiqh');
-    ok('H2 \u00b7 four of them still ship ONE',
-      count(dup4, R1) === 1, 'rung1=' + count(dup4, R1));
+    ok('H2 \u00b7 four of them, and still not one rung',
+      countsOf([CREDIT, CREDIT, CREDIT, CREDIT].join(' '), 'fiqh')[REMOVED_A] === 4 && rungs(dup4) === 0,
+      'removed=' + countsOf([CREDIT, CREDIT, CREDIT, CREDIT].join(' '), 'fiqh')[REMOVED_A]
+        + ' rungs=' + rungs(dup4));
 
     const bothNotices = review([PLAIN, GENERAL].join(' '), 'mixed');
-    ok('H3 \u00b7 the two answer-level notices no longer contradict: rung 2 ships, rung 3 yields',
-      count(bothNotices, R2) === 1 && count(bothNotices, R3) === 0,
-      'rung2=' + count(bothNotices, R2) + ' rung3=' + count(bothNotices, R3));
+    ok('H3 \u00b7 the two answer-level notices cannot contradict: each lane is recorded, neither is announced',
+      countsOf([PLAIN, GENERAL].join(' '), 'mixed')[FIQH_A] === 1
+        && countsOf([PLAIN, GENERAL].join(' '), 'mixed')[GENERAL_A] === 1
+        && rungs(bothNotices) === 0,
+      'counts=' + JSON.stringify(countsOf([PLAIN, GENERAL].join(' '), 'mixed'))
+        + ' rungs=' + rungs(bothNotices));
 
     const rung1and2 = review([CREDIT, PLAIN].join(' '), 'fiqh');
-    ok('H4 \u00b7 [RED] the sentence mark is NEVER removed by the ladder \u2014 rung 1 and rung 2 together',
-      count(rung1and2, R1) === 1 && count(rung1and2, R2) === 1,
-      'rung1=' + count(rung1and2, R1) + ' rung2=' + count(rung1and2, R2));
+    ok('H4 \u00b7 [RED] a fallen credit and a plain ruling stay two different decisions, both unmarked',
+      countsOf([CREDIT, PLAIN].join(' '), 'fiqh')[REMOVED_A] === 1
+        && countsOf([CREDIT, PLAIN].join(' '), 'fiqh')[FIQH_A] === 1
+        && rungs(rung1and2) === 0,
+      'counts=' + JSON.stringify(countsOf([CREDIT, PLAIN].join(' '), 'fiqh'))
+        + ' rungs=' + rungs(rung1and2));
 
     const rung3vs1 = review([CREDIT, GENERAL].join(' '), 'mixed');
-    ok('H5 \u00b7 rung 3 yields to a sentence carrying rung 1 \u2014 it cannot assert nothing was quoted',
-      count(rung3vs1, R1) === 1 && count(rung3vs1, R3) === 0,
-      'rung1=' + count(rung3vs1, R1) + ' rung3=' + count(rung3vs1, R3));
+    ok('H5 \u00b7 a fallen credit beside stable general knowledge \u2014 recorded apart, announced not at all',
+      countsOf([CREDIT, GENERAL].join(' '), 'mixed')[REMOVED_A] === 1
+        && countsOf([CREDIT, GENERAL].join(' '), 'mixed')[GENERAL_A] === 1
+        && rungs(rung3vs1) === 0,
+      'counts=' + JSON.stringify(countsOf([CREDIT, GENERAL].join(' '), 'mixed'))
+        + ' rungs=' + rungs(rung3vs1));
 
     const echo2 = review([PLAIN, R2 + ' ' + '\u0645\u0627 \u062a\u0642\u062f\u0651\u0645 \u0641\u0647\u0645\u064c \u0645\u0628\u0646\u064a\u064c\u0651 \u0639\u0644\u0649 \u0645\u0627 \u0628\u064a\u0646 \u064a\u062f\u064a\u0651 \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u062f\u0648\u0631\u0629.'].join('\n'), 'fiqh');
     ok('H6 \u00b7 a rung-2 tag the model echoed suppresses the duplicate footer',
@@ -582,9 +622,11 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
     // keep catching it. Asserted from the outside: a plain answer carrying NO incoming tag is
     // delivered with exactly the tags the reviewer decided on, no more and no fewer.
     const clean = verdict(REV, '\u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632 \u0625\u0646 \u0627\u0644\u0623\u0645\u0631 \u062c\u0627\u0626\u0632', []);
-    ok('duplicate-input \u00b7 [RED] an answer with no incoming tag is untouched by the new reader',
-      countOf(unvowelled(clean.text), unvowelled(MARK)) === 1,
-      'count=' + countOf(unvowelled(clean.text), unvowelled(MARK)) + ' text=' + JSON.stringify(clean.text.slice(0, 90)));
+    ok('duplicate-input \u00b7 [RED] an answer with no incoming tag receives none from the reader',
+      countOf(unvowelled(clean.text), unvowelled(MARK)) === 0
+        && clean.action === 'removed-unsupported-attribution',
+      'count=' + countOf(unvowelled(clean.text), unvowelled(MARK)) + ' action=' + clean.action
+        + ' text=' + JSON.stringify(clean.text.slice(0, 90)));
   }
   console.log('\n=== I. THE PERSON ASKED ABOUT IS THE PERSON ANSWERED ABOUT (E75) ===');
   // Every check above asks «is this sourced?». None of them asks «is this the RIGHT MAN?», and

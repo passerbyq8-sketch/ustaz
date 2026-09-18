@@ -30,6 +30,24 @@ const appearsInOrder = (text, needles) => {
   return true;
 };
 
+// ── COUNTING A MARK THAT IS NO LONGER WRITTEN (owner, 18 Sep) ───────────────
+//
+// Four witnesses below used to count one named review tag in the reviewed text. None of the five
+// marks is written any longer, so what is counted here is ALL of them at once, and in every
+// spelling: the frozen text, and the diacritic-folded form beside it. The folding is not
+// decoration — lib/output-reviewer.js folds the same way for the same reason, because a mark
+// welded back with one haraka more than the constant is invisible to an exact-string count, and
+// that is exactly how a writer would come back without any of these counts moving.
+//
+// The tag TEXT is never spelled here. It is read from the module under test, for the reason
+// guards/tag-honesty-guard.cjs pins: a hand-typed mark orders shadda and damma the other way
+// round, and a guard that retypes one is measuring its own typing. `REVIEW_TAGS` is the source.
+const ARABIC_DIACRITICS = /[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/gu;
+const foldMarks = (value) => String(value ?? '').replace(ARABIC_DIACRITICS, '');
+const reviewTagCount = (mod, text) => Object.values(mod.REVIEW_TAGS).reduce(
+  (total, reviewTag) => total + occurrences(foldMarks(text), foldMarks(reviewTag)), 0,
+);
+
 const repoPath = (absolute) => path.relative(ROOT, absolute).split(path.sep).join('/');
 function repositoryFiles(directory = ROOT) {
   const files = [];
@@ -118,10 +136,14 @@ function verbatimMarkerCopies(files, markerSets) {
 
     ok('FIX-C-1 fixture carries truncated, complete, and unknown completion states',
       Array.isArray(fixture.c1?.cases) && fixture.c1.cases.length === 3);
+    // The three-state truncation contract is carried by `tailCount` and `reason`, both of which are
+    // about the disagreement tail and are untouched by the removal. `noticeCount` counted the
+    // honesty notice that the footer used to carry with it; the fixture now asks for zero marks in
+    // all three states, so the clause pins that the footer never brings one back.
     const c1CasePasses = (mod, test) => {
       const result = mod.reviewAnswer(test.input);
       return occurrences(result.text, fixture.c2.tail) === test.expect.tailCount
-        && occurrences(result.text, mod.REVIEW_TAGS.FIQH_UNSOURCED) === test.expect.noticeCount
+        && reviewTagCount(mod, result.text) === test.expect.noticeCount
         && result.verdict.answerFooterSuppressedReason === test.expect.reason
         && (!test.expect.exactInput || result.text === test.input.text);
     };
@@ -170,48 +192,35 @@ function verbatimMarkerCopies(files, markerSets) {
 
     ok('A-2 fixture carries the literal regression, all quote styles, fallback, and controls',
       Array.isArray(fixture.a2?.cases) && fixture.a2.cases.length === 7);
+    // WHAT THE BODY-PLUS-MARK EQUALITY BECOMES WHEN THE MARK IS NEVER WRITTEN (owner, 18 Sep).
+    // `expect.body` in the fixture is, and always was, the whole of what the reader should receive
+    // once the unsupported credit comes off. The mark used to follow it; now nothing does, so the
+    // equality is against the body alone — which is the stricter statement, since it refuses any
+    // appendage at all and not merely a second copy of one particular mark.
     const a2CasePasses = (mod, test) => {
       const result = mod.reviewAnswer(test.input);
-      const tag = mod.REVIEW_TAGS.ATTRIBUTION_REMOVED;
-      return result.text === test.expect.body + ' ' + tag
-        && occurrences(result.text, tag) === 1
+      return result.text === test.expect.body
+        && reviewTagCount(mod, result.text) === 0
         && JSON.stringify(result.annotations.map((item) => item.action))
           === JSON.stringify(test.expect.actions);
     };
     for (const test of fixture.a2?.cases || []) {
       const result = module.reviewAnswer(test.input);
-      const tag = module.REVIEW_TAGS.ATTRIBUTION_REMOVED;
-      ok(test.id + ': quoted prose stays contiguous and the tag remains last',
+      ok(test.id + ': quoted prose reaches the reader whole, with nothing welded onto it',
         a2CasePasses(module, test), result.text);
       ok(test.id + ': review remains exactly one sentence with the expected action',
         result.annotations.length === 1
           && JSON.stringify(result.annotations.map((item) => item.action))
             === JSON.stringify(test.expect.actions), JSON.stringify(result.annotations));
-      if (test.expect.close) {
-        ok(test.id + ': the tag is after the closing quote',
-          result.text.lastIndexOf(test.expect.close) < result.text.indexOf(tag), result.text);
-      } else if (test.expect.unclosed) {
-        ok(test.id + ': an unclosed quote keeps its tag at the part end',
-          result.text.endsWith(tag) && occurrences(result.text, tag) === 1, result.text);
-      }
+      // THE CLOSING-DELIMITER AND UNCLOSED BRANCHES THAT STOOD HERE ARE GONE, AND SAYING SO IS THE
+      // POINT. Both asked where the mark sat relative to the quote — «after the closing quote», and
+      // «at the part end when the quote never closes». With no mark written, both questions are
+      // about a thing that is not in the text. What they were really protecting — that the quoted
+      // prose is not split, truncated, or interrupted — is now carried WHOLE by `a2CasePasses`'s
+      // exact equality against the fixture body, which is strictly stronger than either of them was
+      // and which no placement error can satisfy. `expect.close` and `expect.unclosed` are left in
+      // the fixture untouched: they name the shapes, and the shapes are still the seven measured.
     }
-
-    const tagPlacementMutant = await runMutant({
-      sourceFile: REVIEWER,
-      name: 'tag-inside-open-quote',
-      transform: (source) => source.replace(
-        '    if (SENTENCE_STOP_RE.test(char) && !hasOpenQuote(quoteState)) safeAt = index + 1;',
-        '    if (SENTENCE_STOP_RE.test(char)) safeAt = index + 1; // mutant: tag inside an open quote'),
-      survives: (mutantModule) => (fixture.a2?.cases || [])
-        .every((test) => a2CasePasses(mutantModule, test)),
-    });
-    ok('A-2 tag-inside-open-quote mutant seam applied',
-      tagPlacementMutant.changed, tagPlacementMutant.error);
-    ok('A-2 tag-inside-open-quote mutant module loaded',
-      tagPlacementMutant.loaded, tagPlacementMutant.error);
-    ok('MUTANT KILLED: a sentence tag cannot land inside an open quote',
-      tagPlacementMutant.loaded && tagPlacementMutant.survived === false,
-      JSON.stringify(tagPlacementMutant));
 
     const sentenceSplitMutant = await runMutant({
       sourceFile: REVIEWER,
@@ -230,31 +239,58 @@ function verbatimMarkerCopies(files, markerSets) {
       sentenceSplitMutant.loaded && sentenceSplitMutant.survived === false,
       JSON.stringify(sentenceSplitMutant));
 
-    const droppedTagMutant = await runMutant({
+    // ── THE TWO TAG-PLACEMENT MUTANTS THAT STOOD HERE, AND WHAT REPLACES THEM ──
+    //
+    // `tag-inside-open-quote` and `drop-tag-when-no-safe-slot` both mutated the inside of
+    // `sentenceTagInsertionIndex()` — the locator that walked a sentence past its markup to find a
+    // safe slot to weld a mark into. That function was deleted with the writer it served (owner,
+    // 18 Sep); both seams report `mutation seam moved`, and there is no line left in the product
+    // for either of them to change. A mutant aimed at absent code cannot be killed and cannot be
+    // repaired — only replaced by one aimed at the fear that is still real.
+    //
+    // AND THE FEAR REVERSED WITH THE ORDER. It was «the mark lands in the wrong place, or is lost».
+    // It is now «the mark comes back at all». So the mutant below re-welds the sentence mark in the
+    // exact branch that used to write it — the one branch that ever wrote one per sentence — and
+    // A-2's own seven shapes must kill it. That is what gives the new `reviewTagCount` clause in
+    // `a2CasePasses` teeth: without this mutant it would be a clause no measurement could break.
+    const reweldMutant = await runMutant({
       sourceFile: REVIEWER,
-      name: 'drop-tag-when-no-safe-slot',
+      name: 'weld-the-sentence-mark-back-on',
+      // The seam is spelled as lines and joined rather than written with escapes: this block has to
+      // match lib/output-reviewer.js byte for byte, indentation included, and an escape that a tool
+      // collapses on the way in is a seam that silently matches nothing.
       transform: (source) => source.replace(
-        '  if (hasOpenQuote(quoteState)) return value.length; // KEEP_TAG_AT_UNCLOSED_PART_END',
-        '  if (hasOpenQuote(quoteState)) return -1; // mutant: drop tag when no safe slot exists'),
+        [
+          "          const reviewed = generalized || '';",
+          '          if (reviewed) {',
+          '            output.push(reviewed);',
+        ].join('\n'),
+        [
+          "          const reviewed = generalized || '';",
+          '          if (reviewed) {',
+          "            output.push(reviewed + ' ' + TAGS.ATTRIBUTION_REMOVED); // mutant: the writer comes back",
+        ].join('\n')),
       survives: (mutantModule) => (fixture.a2?.cases || [])
         .every((test) => a2CasePasses(mutantModule, test)),
     });
-    ok('A-2 drop-tag-when-no-safe-slot mutant seam applied',
-      droppedTagMutant.changed, droppedTagMutant.error);
-    ok('A-2 drop-tag-when-no-safe-slot mutant module loaded',
-      droppedTagMutant.loaded, droppedTagMutant.error);
-    ok('MUTANT KILLED: an unclosed quote cannot make the tag disappear',
-      droppedTagMutant.loaded && droppedTagMutant.survived === false,
-      JSON.stringify(droppedTagMutant));
+    ok('A-2 re-weld mutant seam applied', reweldMutant.changed, reweldMutant.error);
+    ok('A-2 re-weld mutant module loaded', reweldMutant.loaded, reweldMutant.error);
+    ok('MUTANT KILLED: the sentence mark cannot be welded back onto a reviewed sentence',
+      reweldMutant.loaded && reweldMutant.survived === false,
+      JSON.stringify(reweldMutant));
 
     ok('C-2 fixture carries the four measured open-structure cases',
       Array.isArray(fixture.c2?.cases) && fixture.c2.cases.length === 4);
+    // The tail in `tailCount` is the disagreement tail, which is ALIVE and is what now carries this
+    // placement contract end to end: it is the note whose position these four cases measure. The
+    // second count was the honesty notice, which is no longer written; the fixture therefore asks
+    // for zero of them, and the clause has become the pin on the owner's removal.
     const c2CasePasses = (mod, test) => {
       const result = mod.reviewAnswer(test.input);
       return (test.expect.adjacent || []).every((needle) => result.text.includes(needle))
         && appearsInOrder(result.text, test.expect.ordered || [])
         && occurrences(result.text, fixture.c2.tail) === test.expect.tailCount
-        && occurrences(result.text, mod.REVIEW_TAGS.FIQH_UNSOURCED) === test.expect.noticeCount;
+        && reviewTagCount(mod, result.text) === test.expect.noticeCount;
     };
     for (const test of fixture.c2?.cases || []) {
       const result = module.reviewAnswer(test.input);
