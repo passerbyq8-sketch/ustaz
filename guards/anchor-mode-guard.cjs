@@ -295,8 +295,18 @@ const PAGES = [{ url: 'fixture://authored-anchor-diagnostic', passage: PAGE_TEXT
       const free = await LAW.driveFreeTurn({ module: loop, answer: CLAIM });
       ok('I2 FLIPPED — the reviewer path answers with zero evidence instead of composing nothing',
         free.text.trim().length > 0 && free.text.includes('جائز'), JSON.stringify(free.text));
-      ok('I3 ...and says so in the open, as understanding rather than as a transmitted text',
-        free.text.includes('【فهمٌ لا فتوى】'), JSON.stringify(free.text));
+      // «Says so in the open» was the mark: 【فهمٌ لا فتوى】 told the reader this was understanding
+      // and not a transmitted text. The owner removed it on 18 Sep, so what is read instead is the
+      // reviewer's own record of the same decision — it classified this sentence as understanding —
+      // together with the two things that would make the reply LOOK transmitted, and are absent:
+      // no source tail under it, and no mark of any kind welded onto it. I4 below adds that nothing
+      // was cited, so between them no transmitted text is claimed anywhere in this turn.
+      const RVI3 = await LAW.fresh(LAW.REVIEWER, 'anchor-i3');
+      ok('I3 ...and nothing in it is presented as a transmitted text',
+        (free.verdict?.counts || {})['tagged-fiqh-understanding'] >= 1
+          && !free.text.includes('المصدر:')
+          && !Object.values(RVI3.REVIEW_TAGS).some((reviewTag) => free.text.includes(reviewTag)),
+        JSON.stringify({ counts: free.verdict?.counts, text: free.text }));
       ok('I4 ...and nothing was cited, so no source is being implied',
         free.cited.length === 0 && free.evidence.length === 0,
         'cited=' + free.cited.length + ' retrieved=' + free.evidence.length);

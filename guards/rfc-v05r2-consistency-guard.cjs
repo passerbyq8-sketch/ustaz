@@ -623,8 +623,17 @@ async function main() {
     const free = await LAW.driveFreeTurn({ module: loop, answer: DRAFT });
     ok('FLIPPED — the free exit delivers the same draft rather than refusing it whole',
       free.text.includes('واجبٌ بلا خلاف'), JSON.stringify(free.text));
-    ok('...marked as understanding, so delivering it is not the same as asserting a fatwa',
-      free.text.includes('【فهمٌ لا فتوى】'), JSON.stringify(free.text));
+    // «Marked as understanding» was 【فهمٌ لا فتوى】. The mark is no longer written (owner, 18 Sep),
+    // so the same statement is read from the reviewer's own record of the classification, and from
+    // the absence of everything that would present the draft as a transmitted ruling instead: no
+    // source tail, and no mark welded on. Delivery itself is the row above; this row is about what
+    // the delivery claims for itself.
+    const RVU = await LAW.fresh(LAW.REVIEWER, 'rfc-understanding');
+    ok('...delivered as understanding, so delivering it is not the same as asserting a fatwa',
+      (free.verdict?.counts || {})['tagged-fiqh-understanding'] >= 1
+        && !free.text.includes('المصدر:')
+        && !Object.values(RVU.REVIEW_TAGS).some((reviewTag) => free.text.includes(reviewTag)),
+      JSON.stringify({ counts: free.verdict?.counts, text: free.text }));
     ok('...and it is reviewed, which is what separates a fourth exit from a hole',
       Boolean(free.verdict) && free.verdict !== 'unreviewed' && free.verdict.version === 'freebrain-b-v1',
       JSON.stringify(free.verdict).slice(0, 160));

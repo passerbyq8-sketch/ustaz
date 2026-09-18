@@ -204,8 +204,14 @@ async function suite() {
   ok('D3 the legacy screen still drops the offending sentence',
     (b1Legacy.droppedSentences || []).length > 0 || b1Legacy.dropWhole === true,
     JSON.stringify(b1Legacy.problems));
-  ok('D4 FLIPPED — the reviewer keeps that sentence and tags it as understanding',
-    b1Free.text.includes('واجبٌ بلا خلاف') && b1Free.text.includes('【فهمٌ لا فتوى】'),
+  // D4 read the sentence AND the mark on it. The mark is gone (owner, 18 Sep) and D5 below already
+  // holds the classification from the verdict, so D4 keeps what is properly its own: the offending
+  // sentence the legacy screen DROPS is still delivered here, whole, and nothing is welded onto it.
+  const RVD4 = await LAW.fresh(LAW.REVIEWER, 'explicit-d4');
+  ok('D4 FLIPPED — the reviewer keeps that sentence and delivers it as understanding',
+    b1Free.text.includes('واجبٌ بلا خلاف')
+      && b1Free.text !== RVD4.REVIEW_LAST_RESORT
+      && !Object.values(RVD4.REVIEW_TAGS).some((reviewTag) => b1Free.text.includes(reviewTag)),
     JSON.stringify(b1Free.text));
   ok('D5 ...and reports it as a tagged understanding, not as a drop',
     (b1Free.verdict?.counts || {})['tagged-fiqh-understanding'] >= 1
@@ -224,7 +230,10 @@ async function suite() {
       "        let reviewed = ''; // mutant: the old law — an unsourced ruling is refused, not tagged"),
     check: (twin) => {
       const out = twin.reviewAnswer({ text: B1_DRAFT, evidence: [], domain: 'fiqh', mode: 'عادي' });
-      return out.text.includes('واجبٌ بلا خلاف') && out.text.includes('【فهمٌ لا فتوى】');
+      // The mutant empties `reviewed`, so the sentence disappears. Survival is read as: the ruling
+      // is still there, and the twin still records it as understanding rather than as a drop.
+      return out.text.includes('واجبٌ بلا خلاف')
+        && out.annotations.some((a) => a.action === 'tagged-fiqh-understanding');
     },
   });
   ok('D6 mutant restoring «nothing survives ⇒ refuse» applies', reviewerTwin.changed, reviewerTwin.error);
