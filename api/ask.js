@@ -93,6 +93,15 @@ import { readerFromBody, dropClientSystem } from '../lib/reader-fields.js';
 // one a live search can answer. It never sees a religious turn (those are DEEN), and refuses
 // one on its own account if it ever did.
 import { classifyWorldIntent } from '../lib/world-intent.js';
+// ── THE 2026-09-19 LIVE-WORLD ROUND, AND ITS ONE SWITCH ──────────────────────
+// Everything this round added is reached through liveWorldV2Enabled() and through nothing else.
+// With the flag absent the three modules below are imported and never called, and the handler
+// produces the bytes it produced before the round. See lib/live-world-v2.js.
+import { liveWorldV2Enabled } from '../lib/live-world-v2.js';
+// The server's own clock, handed to the model as an independent system block.
+import { buildTodayBlock } from '../lib/today-line.js';
+// The print contract: a live number reaches the reader with a source and a date, or not at all.
+import { enforceLiveNumberSourcing } from '../lib/live-number-source.js';
 // The sharia filter on that same path (س٦٫٤). It stops a REQUEST for the forbidden and counsels;
 // it never pronounces a ruling, because «عزك ناقلٌ لا مفتٍ» and a regex has no source behind it.
 import { classifyImpermissibleRequest, impermissibleCounsel } from '../lib/policy/impermissible-request.js';
@@ -903,7 +912,21 @@ export default async function handler(req, res) {
   console.log('[tier]', { band, requestedDepth: body.depth, effectiveDepth, founderUnlocked, depthFreeTrial, usePremium, model });
   // D02ب: BUILT HERE, from the four sanitised fields -- never from the body. `body.system` was
   // deleted at parse time, so there is not even a value in scope to fall back to.
-  const system = appendDepthBlock(wrapSystem(buildSystemPrompt(reader.name, reader.age, reader.gender, reader.mode)), depthInstruction);
+  const systemWithDepth = appendDepthBlock(wrapSystem(buildSystemPrompt(reader.name, reader.age, reader.gender, reader.mode)), depthInstruction);
+  // ── THE DATE BLOCK (LIVE_WORLD_V2) ────────────────────────────────────────
+  // Appended by the SAME mechanism as the depth block and immediately after it, because this is
+  // the only seat in the handler where a per-request text can reach the model without touching
+  // the two places that are sealed against it: buildSystemPrompt() carries five pinned sha256
+  // fingerprints and a determinism contract, and buildDepthInstruction() is adult-only and
+  // pinned empty for the brief depth. lib/today-line.js's header records both measurements.
+  //
+  // UNCONDITIONAL BY DESIGN — no band, no depth, no route, no topic class. A child asking what
+  // day it is deserves the same right answer an adult gets, and every one of those conditions
+  // is a way for the answer to be right for some readers and 2025 for the rest.
+  //
+  // It is appended AFTER the depth block, so with the flag off appendDepthBlock() is handed ''
+  // and returns its input unchanged: the system value is then the very same object today builds.
+  const system = appendDepthBlock(systemWithDepth, liveWorldV2Enabled() ? buildTodayBlock() : '');
 
   // DETERMINISTIC ROUTE (lib/route-classify.js). Decided HERE, on the server, from the
   // messages themselves -- never from a client-supplied field, because the whole point is
@@ -2111,6 +2134,15 @@ export default async function handler(req, res) {
     //     result the four did not carry is then still answerable, and «آخر أخبار غزة» still
     //     comes from al-Jazeera rather than from whatever a snippet says.
     const LIVE_QUANTITY = worldIntent.reason === 'WEATHER' || worldIntent.reason === 'MARKET_PRICE';
+    // ── AND THE THIRD LIVE QUANTITY (LIVE_WORLD_V2) ───────────────────────────
+    //
+    // FX_RATE is the same kind of fact as the two above — a number quoted afresh every day, that
+    // the vetted four cannot answer — and the owner's decision is that it is «يُعامَلُ معاملةَ
+    // MARKET_PRICE تمامًا». It is a SECOND CONSTANT rather than a third disjunct on the line
+    // above because that line is pinned character for character by guards/source-honesty-guard.cjs
+    // (check F4), and editing a pinned line to add a flagged behaviour would have made the pin
+    // useless for the two reasons it was written to protect.
+    const LIVE_QUANTITY_FX = liveWorldV2Enabled() && worldIntent.reason === 'FX_RATE';
     let worldPass = null;
     let worldOpen = false;
     let worldBudget = null;
@@ -2119,10 +2151,13 @@ export default async function handler(req, res) {
         const { retrieveWorld, retrieveOpenWorld } = await import('../lib/retrieve.js');
         worldBudget = paidSearchBudget;
         if (!LIVE_QUANTITY) {
-          // No band, no depth, no purpose: none of them means anything on this list, and passing
-          // one would suggest it did.
-          const w = remember(await retrieveWorld(questionText, { dailyBudget: worldBudget }));
-          if (w && Array.isArray(w.sources) && w.sources.length) worldPass = w;
+          // Nested, not merged: see LIVE_QUANTITY_FX above.
+          if (!LIVE_QUANTITY_FX) {
+            // No band, no depth, no purpose: none of them means anything on this list, and
+            // passing one would suggest it did.
+            const w = remember(await retrieveWorld(questionText, { dailyBudget: worldBudget }));
+            if (w && Array.isArray(w.sources) && w.sources.length) worldPass = w;
+          }
         }
         if (!worldPass) {
           // THE OPEN SEARCH. `band` — the reader-fields effective band — and deliberately NOT
@@ -2143,11 +2178,39 @@ export default async function handler(req, res) {
             // limit. Constructed here rather than threaded from the ledger branch because that
             // branch is below this one and never runs when this one answers.
             dailyBudget: worldBudget,
+            // ── AN ENCYCLOPEDIA MAY NOT QUOTE A LIVE NUMBER (LIVE_WORLD_V2) ──
+            // MEASURED IN PRODUCTION: «كم سعر صرف الدولار؟» was answered out of an encyclopedia
+            // article, with no date on the figure — and the figure in an encyclopedia is
+            // whenever somebody last edited the page, which may be a year ago and says so
+            // nowhere. That is not a bad source; it is the wrong KIND of source for a number
+            // that moves. Wikipedia stays fully admitted for everything else, exactly as the
+            // owner ruled — it is removed from THIS question, not from the list.
+            liveNumber: liveWorldV2Enabled() && (LIVE_QUANTITY || LIVE_QUANTITY_FX),
           }));
           if (o && Array.isArray(o.sources) && o.sources.length) { worldPass = o; worldOpen = true; }
         }
       } catch (e) {
         console.warn('[world-search] threw, falling through to the ordinary general route:', e.message);
+        // ── THE TRACE THAT SEPARATES A CRASH FROM A MISS (LIVE_WORLD_V2) ──────
+        //
+        // THE FALL-THROUGH ITSELF IS UNCHANGED AND MUST BE: gating on the intent instead of the
+        // material would cost a child their age floor whenever a search failed, which is the
+        // measurement the block above this one is built on. What was missing is not a different
+        // outcome, it is a DISTINGUISHABLE one. «the search found nothing» and «the search threw
+        // before it looked» produce byte-identical behaviour from here on — same fall-through,
+        // same liveSearchNotice, same answer — so in the logs the second was invisible inside
+        // the first, and a broken import or a dead provider read as an honest empty result.
+        //
+        // IT IS A LOG LINE AND NOTHING ELSE. Not a header, not an SSE frame, not a word of the
+        // answer: the reader is told what the disclosure already tells them, and a reader has no
+        // use for our stack. The question text is NOT in it — see gate `telemetrytext`.
+        console.error('[world-search] WORLD_SEARCH_THREW', {
+          reason: worldIntent.reason,
+          open: worldOpen,
+          stage: worldPass ? 'after-vetted-pass' : 'before-any-result',
+          name: e && e.name,
+          message: String((e && e.message) || '').slice(0, 200),
+        });
       }
     }
     console.log('[world-search]', {
@@ -2628,6 +2691,34 @@ export default async function handler(req, res) {
             // them to be evidence for.
             if (!wRep.text) return emitOnce(warmTemplateFor('GENERAL_CHILD_BENIGN'));
             wOut = wRep.text;
+          }
+          // ── THE PRINT CONTRACT (LIVE_WORLD_V2) ──────────────────────────────
+          //
+          // LAST BEFORE THE CARDS AND AFTER THE AGE FLOOR, and the order is the whole of it. The
+          // age floor may REWRITE a child's sentence, so running the number check before it would
+          // check text that is not the text that ships. The cards are appended after, because a
+          // card is the server's own evidence and is not subject to a rule about what the MODEL
+          // wrote. Neither lib/output-reviewer.js nor lib/finalize-reader-text.js is touched.
+          //
+          // WHEN NOTHING SURVIVES, THE SERVER'S OWN SENTENCE SPEAKS. Not a sentence composed
+          // here: lib/policy/live-search-disclosure.js owns the one «لم أجد» wording in this
+          // repository, and a second one competing with it is the defect that module exists
+          // against. And the cards go with it — there is no longer a claim for them to back.
+          if (liveWorldV2Enabled()) {
+            const printed = enforceLiveNumberSourcing(wOut, { sources: worldPass.sources });
+            if (printed.removed.length) {
+              // The REASONS and the count. Never the sentences: they are the reader's answer.
+              console.warn('[world-search] LIVE_NUMBER_UNSOURCED', {
+                removed: printed.removed.length,
+                why: printed.removed.map((r) => r.why),
+                emptied: printed.emptied,
+                reason: worldIntent.reason, open: worldOpen,
+              });
+            }
+            if (printed.emptied) {
+              return emitOnce(liveSearchNotice({ worldWanted: true, answeredFromLive: false }));
+            }
+            wOut = printed.text;
           }
           console.log('[world-search] answered', {
             cards: worldCards.length, hosts: worldCards.map((c) => c.host), band: audienceBand,
