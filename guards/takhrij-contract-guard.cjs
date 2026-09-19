@@ -546,6 +546,22 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       both.text.includes('«' + OTHER + '» (مسلم)') && both.text.includes('«' + MATN + '» (البخاري)')
       && !/<\/?hadith/iu.test(both.text), JSON.stringify(both.text));
 
+    // ١٠-أ (٢) · §١/٤ — THE LENGTH FLOOR WAS A LOTTERY ON THE HARAKAT, AND IT IS CLOSED.
+    // «الحمو الموت» reached the owner with no takhrij: 11 characters bare, 17 vocalised, and the
+    // floor demanded 12. The floor is now two WORDS on the bare letters, so the same hadith is the
+    // same hadith however the model spelled it — and «الحج عرفة», nine bare characters and a whole
+    // narration, is inside it.
+    const seenIn = (text) => T.findMatns(text).map((one) => one.matn);
+    ok('10a a matn is not taken or dropped by whether the model vocalised it',
+      seenIn('وقال النبي صلى الله عليه وسلم: «الحمو الموت».').length === 1
+      && seenIn('وقال النبي صلى الله عليه وسلم: «الحَمْوُ المَوْتُ».').length === 1,
+      JSON.stringify([seenIn('وقال النبي صلى الله عليه وسلم: «الحمو الموت».'),
+        seenIn('وقال النبي صلى الله عليه وسلم: «الحَمْوُ المَوْتُ».')]));
+    ok('10a ...and a two-word narration is a matn, nine bare letters and all',
+      seenIn('وقال النبي صلى الله عليه وسلم: «الحج عرفة» فالوقوف ركن.').length === 1);
+    ok('10a CAUSAL: one quoted word is a word being discussed, and is left alone',
+      seenIn('وقال النبي صلى الله عليه وسلم: «الصبر» خير.').length === 0);
+
     // ١٠-ب · §٢ — NO مخرِّج BELOW THE SHAYKHAYN WITHOUT A SUFFIX. EVER.
     // Driven over the WHOLE ladder rather than over one fixture: every row that can be an outlet
     // is asked, and the row fails on the first one that would ship a bare name.
