@@ -892,44 +892,81 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
   // THE ROW THE OWNER ASKED FOR BY NAME: «وزِدْ صفًّا في الحارسِ يمنعُ ظهورَ أيٍّ من وسومِ الثقةِ
   // الأربعةِ المنزوعةِ في المخرَج.» The four were ordered removed on 18 September. Three of them
   // live in lib/output-reviewer.js's REVIEW_TAGS and were removed there; the fourth,
-  // «نص منقول», is app.jsx's NEUTRAL_HADITH_LABEL — a hadith-card HEADING, a different
-  // mechanism, and the one the removal never reached.
+  // the hadith-card heading in app.jsx, was a different mechanism and the removal never reached
+  // it — so it was still being printed over the Prophet's ﷺ words on the live app.
   //
-  // NOT ONE OF THE FOUR IS TYPED HERE. The three are read out of the reviewer's own frozen
-  // object and the fourth out of app.jsx's own literal, because a mark retyped by hand is a mark
-  // this guard invented — and a hand-typed Arabic literal that silently matches nothing is a
-  // measured trap in this tree, not a hypothetical one.
+  // ── AND ON 19 SEPTEMBER THE OWNER ORDERED THE FOURTH REMOVED TOO ────────
+  // «يُنزَعُ الوسمُ نزعًا تامًّا. وبطاقةُ الحديثِ تحملُ «من السنة النبوية» في الحالَينِ — بوجودِ
+  //  الراوي والحكمِ وبعدمِهما. لا وسمَ ثالثَ ولا فراغ.» These rows are REWRITTEN to witness its
+  // ABSENCE, not deleted and not softened: each one below fails the moment the mark comes back.
   //
-  // AND THE PREMISE IS DRIVEN BEFORE THE CONCLUSION IS ASSERTED. First: a surviving <hadith>
-  // card with neither narrator nor ruling really does print «نص منقول» — app.jsx's own
-  // initialiser, evaluated, not described. Then: no exit of this pass lets such a card survive.
+  // NOT ONE OF THE FOUR IS TYPED HERE, and that is unchanged by the removal. The three are read
+  // out of the reviewer's own frozen object; the fourth is read out of the ITEM 28 heading in
+  // app.jsx, which names it and is the last place in the tree that does. A mark retyped by hand
+  // is a mark this guard invented — and a hand-typed Arabic literal that silently matches
+  // nothing is a measured trap in this tree, not a hypothetical one.
+  //
+  // AND THE PREMISE IS DRIVEN BEFORE THE CONCLUSION IS ASSERTED. First: app.jsx's own label
+  // initialiser, lifted and evaluated, prints «من السنة النبوية» for a card with neither
+  // narrator nor ruling. Then: no exit of this pass lets such a card survive at all.
   console.log('\n--- 14. THE FOUR REMOVED MARKS, AND THE CARD THAT PRINTED THE FOURTH ---');
   {
     const fs14 = require('fs');
     const RV = await esm('lib/output-reviewer.js');
     const appSrc = fs14.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
-    const labelLiteral = /const NEUTRAL_HADITH_LABEL = '([^']+)';/u.exec(appSrc);
-    ok('14  app.jsx still declares the fourth mark as one literal this guard can read',
-      !!labelLiteral, 'NEUTRAL_HADITH_LABEL is no longer a single-quoted literal in app.jsx');
-    const NEUTRAL = labelLiteral ? labelLiteral[1] : 'نص منقول';
-    const FOUR = [...Object.values(RV.REVIEW_TAGS), NEUTRAL];
+
+    // THE FOURTH MARK, READ OFF THE ONE HEADING THAT STILL NAMES IT. If that heading ever goes,
+    // this section is blind and says so rather than passing quietly.
+    const named = /A QUR'AN.C SPAN IS NOT A «([^»]+)»/u.exec(appSrc);
+    ok('14  app.jsx still NAMES the removed fourth mark, so this section can read it',
+      !!named, 'the ITEM 28 heading no longer names the mark — re-measure before trusting §14');
+    const NEUTRAL = named ? named[1] : null;
+
+    // THE REMOVAL ITSELF, IN THE SOURCE. The declaration is gone, the conditional is gone, and
+    // the mark survives in app.jsx only inside comments — never as a string the app can print.
+    ok('14  the fourth mark is no longer declared in app.jsx',
+      !/const NEUTRAL_HADITH_LABEL\s*=/u.test(appSrc),
+      'NEUTRAL_HADITH_LABEL is back in app.jsx');
+    ok('14  ...and the card heading is no longer a decision about the attributes',
+      !/\?\s*NEUTRAL_HADITH_LABEL/u.test(appSrc),
+      'the two-way label initialiser is back in HadithCard');
+    if (NEUTRAL) {
+      const codeLines = appSrc.split('\n')
+        .filter((line) => line.includes(NEUTRAL) && !/^\s*(?:\/\/|\*|\/\*)/u.test(line));
+      ok('14  ...and every remaining occurrence of the mark in app.jsx is a comment',
+        codeLines.length === 0, JSON.stringify(codeLines));
+      // AND THE SHIPPED BUNDLE IS THE SAME FILE, checked separately: app.js is what a reader
+      // loads, and a parity failure between the two is exactly how a removed mark ships anyway.
+      const bundle = fs14.readFileSync(path.join(REPO, 'app.js'), 'utf8');
+      const bundleCode = bundle.split('\n')
+        .filter((line) => line.includes(NEUTRAL) && !/^\s*(?:\/\/|\*|\/\*)/u.test(line));
+      ok('14  ...and the same is true of the bundle the reader actually loads',
+        bundleCode.length === 0, JSON.stringify(bundleCode.map((l) => l.slice(0, 120))));
+    }
+
+    // THE NEW CONTRACT, DRIVEN. app.jsx's own constant and its own initialiser, lifted and run —
+    // the same seam theme-coverage-guard.cjs pins the shape of, evaluated here rather than read.
+    const constLiteral = /const SUNNAH_CARD_LABEL = '([^']+)';/u.exec(appSrc);
+    ok('14  the card heading is now ONE constant this guard can read', !!constLiteral,
+      'SUNNAH_CARD_LABEL is no longer a single-quoted literal in app.jsx');
+    const SUNNAH = constLiteral ? constLiteral[1] : null;
+    ok('14  ...and the initialiser reads that constant and asks nothing else',
+      /let label = SUNNAH_CARD_LABEL;/u.test(appSrc),
+      'the label initialiser in HadithCard no longer matches its pinned form');
+    if (SUNNAH) {
+      // eslint-disable-next-line no-new-func
+      const decide = new Function('att', 'SUNNAH_CARD_LABEL', 'let label = SUNNAH_CARD_LABEL; return label;');
+      ok('14  CAUSAL: a card with NO narrator and NO ruling prints «من السنة النبوية»',
+        decide({ narrator: '', ruling: '' }, SUNNAH) === SUNNAH, JSON.stringify(SUNNAH));
+      ok('14  CAUSAL: ...and a card WITH both prints the very same heading — one label, not two',
+        decide({ narrator: 'عمر', ruling: 'صحيح' }, SUNNAH) === SUNNAH, JSON.stringify(SUNNAH));
+      ok('14  ...and it is not the removed mark wearing a new name',
+        NEUTRAL === null || SUNNAH !== NEUTRAL, JSON.stringify([SUNNAH, NEUTRAL]));
+    }
+
+    const FOUR = [...Object.values(RV.REVIEW_TAGS), NEUTRAL].filter((x) => x);
     ok('14  the four are FOUR — three review marks and the card heading',
       FOUR.length === 4 && new Set(FOUR).size === 4, JSON.stringify(FOUR));
-
-    // THE PREMISE. app.jsx's own initialiser, lifted and driven — the same seam
-    // theme-coverage-guard.cjs pins the shape of, evaluated here rather than read.
-    const init = /let label = \(!att\.narrator && !att\.ruling\) \? NEUTRAL_HADITH_LABEL : '([^']+)';/u
-      .exec(appSrc);
-    ok('14  the card heading is still decided by the attributes alone', !!init,
-      'the label initialiser in HadithCard no longer matches its pinned form');
-    if (init) {
-      // eslint-disable-next-line no-new-func
-      const decide = new Function('att', 'NEUTRAL_HADITH_LABEL',
-        'return (!att.narrator && !att.ruling) ? NEUTRAL_HADITH_LABEL : ' + JSON.stringify(init[1]) + ';');
-      ok('14  CAUSAL: a surviving card with no narrator and no ruling DOES print the fourth mark',
-        decide({ narrator: '', ruling: '' }, NEUTRAL) === NEUTRAL,
-        'the premise of this section is gone; re-measure before trusting the rows below');
-    }
 
     // THE CONCLUSION. Four exits of this pass, one card each, and none of them may leave it.
     const CARD = '<hadith>' + MATN + '</hadith>';
@@ -953,7 +990,7 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     }
 
     // MUTANT: the dissolver is disarmed at the silent exit, which is precisely the state the
-    // owner measured on his preview. The card comes back, and with it the mark.
+    // owner measured on his preview. The card comes back — and with it the heading it prints.
     const src14 = fs14.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8');
     const SEAM14 = 'if (isCard) dissolveBare();';
     const mutated = src14.replace(SEAM14, '// mutant: the card is left a card');
@@ -1145,6 +1182,123 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       JSON.stringify(nearMiss.text));
   }
 
+
+  // ── ١٧ · §١ OF THE CLOSING ORDER — NO ANSWER LEAVES HAVING LOST A MATN ──
+  //
+  // THE ROW THE OWNER ASKED FOR BY NAME: «وزِدْ صفًّا في الحارسِ يمنعُ خروجَ جوابٍ فُقِدَ منه
+  // متنٌ كانَ فيه قبلَ الختم.»
+  //
+  // WHAT HE SAW, AND WHERE IT CAME FROM. In the wide battery of 19 September two hadiths were
+  // deleted out of one answer about الإسبال and their commentary was left over nothing, and a
+  // second answer began at «أمّا التفكّرُ في ذاتِ الله» because the sentence that answered the
+  // question was gone. The seat is lib/takhrij-lock.js: a sentence carrying an attribution no
+  // FETCHED page publishes is dropped whole, and a free-brain turn that cites nothing hands the
+  // seal an empty page list — so «أخرجه البخاري» in the model's own prose took the Prophet's ﷺ
+  // words out with it.
+  //
+  // IT IS MEASURED WITH THE SWITCH OFF, AND THAT IS THE POINT OF THIS SECTION. `lockTakhrij` is
+  // the shipped seal (api/ask.js) and runs on every buffered reply whatever TAKHRIJ_V1 says. So
+  // this section drives the LOCK ALONE, with no pass, no library and no flag.
+  //
+  // THE RULE: «ختمُ التسليمِ لا يحذفُ متنًا نبويًّا بحال. إن اضطرَّ إلى إسقاطِ شيءٍ فليُسقِطْ ما
+  // حولَه، والمتنُ يبقى.» — and the other half of it, which is why this is not X-013/ز undone:
+  // nothing of the sentence survives EXCEPT the quotation. No credit, no grade, no clause the
+  // answer built on either.
+  console.log('\n--- 17. THE SEAL MAY NOT DELETE A MATN ---');
+  {
+    const fs17 = require('fs');
+    const LOCK17 = await esm('lib/takhrij-lock.js');
+    // The owner's two witnesses, rebuilt from what SURVIVED on his screen, in the two shapes a
+    // model writes a hadith in — a card, which is what the app's own instruction asks for, and
+    // prose, which is what it sends anyway.
+    const ISBAL_A = 'مَا أَسْفَلَ مِنَ الكَعْبَيْنِ مِنَ الإِزَارِ فَفِي النَّارِ';
+    const ISBAL_B = 'إِزْرَةُ المُسْلِمِ إِلَى نِصْفِ السَّاقِ';
+    const TAFAKKUR = 'تَفَكَّرُوا فِي آلَاءِ اللهِ وَلَا تَفَكَّرُوا فِي اللهِ';
+    const LEAD_IN = 'فمن أدلة السنة:';
+    const witnesses = [
+      ['الإسبال · بطاقتان', [
+        LEAD_IN,
+        '<hadith narrator="أبو هريرة" ruling="أخرجه البخاري">' + ISBAL_A + '</hadith>',
+        'وهذا نص في تحريم ما نزل عن الكعبين مطلقا.',
+        '<hadith narrator="أبو سعيد" ruling="أخرجه أبو داود">' + ISBAL_B + '</hadith>',
+        'وفيه بيان السنة في موضع الثوب.',
+      ].join('\n'), [ISBAL_A, ISBAL_B], ['أخرجه البخاري', 'أخرجه أبو داود']],
+      ['الإسبال · نثر', [
+        LEAD_IN,
+        'قال النبي صلى الله عليه وسلم: «' + ISBAL_A + '» أخرجه البخاري.',
+        'وهذا نص في تحريم ما نزل عن الكعبين مطلقا.',
+      ].join('\n'), [ISBAL_A], ['أخرجه البخاري']],
+      ['تفكروا في آلاء الله · بطاقة', [
+        '<hadith narrator="" ruling="رواه أبو نعيم في الحلية">' + TAFAKKUR + '</hadith>',
+        'أما التفكر في ذات الله فمنهي عنه باتفاق أهل العلم.',
+      ].join('\n'), [TAFAKKUR], ['رواه أبو نعيم']],
+    ];
+    for (const [name, draft, matns, credits] of witnesses) {
+      // NO SOURCES AT ALL — the state a free-brain turn that cited nothing is really in.
+      const sealed = LOCK17.lockTakhrij(draft, []);
+      ok('17  the matn the answer had before the seal is still in it after: ' + name,
+        matns.every((matn) => sealed.text.includes(matn)), JSON.stringify(sealed.text));
+      ok('17  ...and the unpublished credit is gone: ' + name,
+        credits.every((credit) => !sealed.text.includes(credit)), JSON.stringify(sealed.text));
+      ok('17  ...and the removal is RECORDED, matn by matn: ' + name,
+        Array.isArray(sealed.salvagedMatns) && sealed.salvagedMatns.length === matns.length
+          && sealed.degraded.includes('takhrij-matn-kept:' + matns.length),
+        JSON.stringify([sealed.salvagedMatns, sealed.degraded]));
+      ok('17  ...and no card tag is handed to the reader in its place: ' + name,
+        !/<\/?hadith/iu.test(sealed.text), JSON.stringify(sealed.text));
+      // AND THE LEAD-IN THAT INTRODUCED IT STAYS, because it is no longer introducing nothing.
+      if (draft.startsWith(LEAD_IN)) {
+        ok('17  ...and the line that introduced it is not orphaned away with it: ' + name,
+          sealed.text.includes(LEAD_IN), JSON.stringify(sealed.text));
+      }
+    }
+
+    // THE OTHER HALF — X-013/ز IS NOT UNDONE. A sentence that quotes nothing still goes whole,
+    // and a grading is never left standing in this answer's own voice.
+    const graded17 = 'وحديث صلاة الليل حديث صحيح ثابت رواه الترمذي.';
+    const g17 = LOCK17.lockTakhrij(graded17, []);
+    ok('17  a graded claim that quotes NOTHING is still dropped whole',
+      !g17.text.includes('حديث صحيح') && !g17.text.includes('رواه الترمذي')
+        && g17.salvagedMatns.length === 0, JSON.stringify(g17.text));
+    const inside17 = 'قال النبي صلى الله عليه وسلم: «هذا الحديث رواه البخاري ومسلم عن أبي هريرة».';
+    const i17 = LOCK17.lockTakhrij(inside17, []);
+    ok('17  ...and a quotation that CARRIES the unpublished credit is not salvaged either',
+      !i17.text.includes('رواه البخاري') && i17.salvagedMatns.length === 0, JSON.stringify(i17.text));
+    const title17 = 'وقد ضعفه الألباني في «السلسلة الضعيفة» وصححه ابن حبان.';
+    const t17 = LOCK17.lockTakhrij(title17, []);
+    ok('17  ...and a BOOK TITLE in guillemets is not mistaken for a narration',
+      t17.salvagedMatns.length === 0, JSON.stringify([t17.text, t17.salvagedMatns]));
+    const kept17 = LOCK17.lockTakhrij(
+      'قال النبي صلى الله عليه وسلم: «' + ISBAL_A + '» أخرجه البخاري.',
+      [{ title: 'البخاري', passage: 'أخرجه البخاري في صحيحه' }]);
+    ok('17  ...and a PUBLISHED credit is left exactly as written, salvaging nothing',
+      kept17.outcome === 'CLEAN' && kept17.salvagedMatns.length === 0, JSON.stringify(kept17.text));
+
+    // MUTANT — the salvage is disarmed at its one seam, and the guard must see the matn vanish.
+    // Without this the rows above would pass over a seal that never had the behaviour at all.
+    const src17 = fs17.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8');
+    const SEAM17 = 'const salvage = matnToSalvage(s, sen, unsupported);';
+    const mutant17 = src17.replace(SEAM17, 'const salvage = null; // mutant');
+    ok('17  MUTANT: the seam that keeps the matn is findable',
+      mutant17 !== src17, 'the mutant did not apply — the seam moved and §17 is blind');
+    if (mutant17 !== src17) {
+      const tmp17 = path.join(REPO, 'lib', '.takhrij-lock-mutant17-' + process.pid + '.mjs');
+      fs17.writeFileSync(tmp17, mutant17);
+      try {
+        const M17 = await esm('lib/' + path.basename(tmp17));
+        const broken17 = M17.lockTakhrij(
+          'قال النبي صلى الله عليه وسلم: «' + ISBAL_A + '» أخرجه البخاري.', []);
+        ok('17  MUTANT: with it disarmed the hadith is deleted — the defect that was measured',
+          !broken17.text.includes(ISBAL_A), JSON.stringify(broken17.text));
+      } finally { fs17.unlinkSync(tmp17); }
+    }
+
+    // AND THE SEAT IS THE ONE api/ask.js REALLY USES — read off the file, not assumed.
+    const askSrc17 = fs17.readFileSync(path.join(REPO, 'api/ask.js'), 'utf8');
+    ok('17  api/ask.js seals every buffered reply with this very function',
+      /const seal = \(text\) => \{\s*const locked = lockTakhrij\(/u.test(askSrc17),
+      'the seal in api/ask.js is no longer lockTakhrij — §17 measures a seat nothing uses');
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {

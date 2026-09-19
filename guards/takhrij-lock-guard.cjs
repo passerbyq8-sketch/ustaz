@@ -87,14 +87,30 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
   ok('the false attribution to the Ṣaḥīḥayn is removed',
     bare(r.text).indexOf('رواه البخاري ومسلم') === -1 && bare(r.text).indexOf('متفق عليه') === -1,
     'text=' + r.text);
-  // X-013/ز REVERSED THIS. It used to require the matn to stand once its false credit was cut
-  // out. Excising the credit alone leaves the narration asserted with the one attribution a
-  // reader could have checked quietly deleted — a stronger claim than the one that failed. The
-  // sentence is now dropped whole and the drop is explicit.
-  ok('...and the whole sentence goes with it, explicitly, rather than a stripped matn shipping',
-    bare(r.text).indexOf('الراكب شيطان') === -1 && r.outcome === 'REFUSED'
+  // X-013/ز REVERSED THIS ONCE, AND THE CLOSING ORDER OF 19 SEPTEMBER REVERSES ITS SECOND HALF.
+  // X-013/ز was right about the SENTENCE: excise the credit alone and «والحديث صحيح» is left
+  // standing as this answer's own grading, which is a stronger and falser claim than the one
+  // that failed. That half is unchanged and is pinned below — the credit goes, and so does every
+  // clause the sentence built on it.
+  //
+  // IT WAS WRONG ABOUT THE MATN, AND THE OWNER MEASURED WHY. Two hadiths were deleted out of a
+  // live answer about الإسبال — with TAKHRIJ_V1 OFF, so on the shipped path — and their
+  // commentary was left hanging over nothing. His ruling of 19 September: «ختمُ التسليمِ لا
+  // يحذفُ متنًا نبويًّا بحال. إن اضطرَّ إلى إسقاطِ شيءٍ فليُسقِطْ ما حولَه، والمتنُ يبقى.» And
+  // its reason: «السكوتُ نقصٌ يُحتمَل، والحذفُ إتلافٌ لا يُحتمَل.»
+  //
+  // SO THIS ROW IS NOT WEAKENED, IT IS SPLIT IN TWO: the sentence still goes whole, and the
+  // quotation it carried comes back bare — asserting nothing, graded by nobody.
+  ok('...and the whole sentence goes with it — the credit, the grade and every clause built on them',
+    bare(r.text).indexOf('رواه البخاري') === -1 && bare(r.text).indexOf('متفق عليه') === -1
+      && bare(r.text).indexOf('نهى النبي') === -1 && r.outcome === 'REBUILT'
       && Array.isArray(r.degraded) && r.degraded.length > 0,
     'text=' + r.text + ' outcome=' + r.outcome);
+  ok('...and the MATN the sentence quoted is NOT deleted with it',
+    bare(r.text).indexOf('الراكب شيطان') !== -1
+      && Array.isArray(r.salvagedMatns) && r.salvagedMatns.length === 1
+      && r.degraded.indexOf('takhrij-matn-kept:1') !== -1,
+    'text=' + r.text + ' salvaged=' + JSON.stringify(r.salvagedMatns));
   ok('...and the removal is REPORTED, not silent',
     Array.isArray(r.removed) && r.removed.length >= 1, JSON.stringify(r.removed));
 
@@ -121,10 +137,17 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
   const r4 = TL.lockTakhrij(graded, [{ passage: PAGE_WITHOUT }]);
   ok('an unsupported GRADE is removed too',
     bare(r4.text).indexOf('صححه الألباني') === -1, 'text=' + r4.text);
-  // Same reversal as above, for an unsupported GRADE rather than a collector.
-  ok('...and the sentence carrying the grade is dropped whole, not left as a bare matn',
-    bare(r4.text).indexOf('الراكب شيطان') === -1 && r4.outcome === 'REFUSED',
+  // Same split as above, for an unsupported GRADE rather than a collector — and here the matn
+  // is not in guillemets at all: it stands after a colon, which is the shape the fatwa corpus
+  // writes most often. The seal reads it, keeps it, and takes «وقد صححه الألباني» with the rest.
+  ok('...and the sentence carrying the grade is dropped whole, leaving no claim of ours behind',
+    bare(r4.text).indexOf('صححه') === -1 && bare(r4.text).indexOf('وجاء في الحديث') === -1
+      && r4.outcome === 'REBUILT',
     'text=' + r4.text + ' outcome=' + r4.outcome);
+  ok('...while the matn it introduced survives, quoted and ungraded',
+    bare(r4.text).indexOf('الراكب شيطان والراكبان شيطانان والثلاثة ركب') !== -1
+      && Array.isArray(r4.salvagedMatns) && r4.salvagedMatns.length === 1,
+    'text=' + r4.text + ' salvaged=' + JSON.stringify(r4.salvagedMatns));
   const r5 = TL.lockTakhrij(graded, [{ passage: PAGE_WITHOUT + ' وقد صححه الألباني رحمه الله.' }]);
   ok('a SUPPORTED grade is left alone',
     bare(r5.text).indexOf('صححه الألباني') !== -1 && r5.removed.length === 0, 'text=' + r5.text);
@@ -1115,6 +1138,7 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     const F03 = byId.get('F03');
     const f03Wire = wireOf(F03);
     const f03Sealed = sealedOf.get('F03');
+    const f03Sealedrec = TL.lockTakhrij(f03Wire, F03.sources);
     const f03In = blocksOf(f03Wire);
     const f03Out = blocksOf(f03Sealed);
     const f03Card = f03In.find((b) => /^<\s*hadith\b/iu.test(b));
@@ -1128,8 +1152,20 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     ok('F03: no lead-in is left orphaned by this phase', f03NewlyOrphaned.length === 0,
       f03NewlyOrphaned.map((p) => p.line).join(' | '));
     const f03Lead = f03Before.find((p) => !p.orphaned && CARD_OPEN_RE.test(p.next));
-    ok('F03: the lead-in that led into the card is gone from the sealed text',
-      !!f03Lead && !f03Out.includes(f03Lead.line), f03Lead ? f03Lead.line : '(no lead-in found)');
+    // ── §١ OF 19 SEPTEMBER MOVED THIS ROW FROM «IT GOES» TO «IT STAYS», AND SAID WHY ──
+    // This used to require the lead-in to be deleted with the card, because the card was
+    // deleted whole and a promise with nothing behind it is the orphaned-lead-in defect. The
+    // owner's closing order forbids the seal to delete a matn at all: the card's narration is
+    // put back bare, so the line still introduces something and was never orphaned. The
+    // PROPERTY is unchanged and is asserted one row above — no reader is handed an empty
+    // promise — and this row now pins the half of it that the new rule owns.
+    ok('F03: the lead-in stays, because the matn it introduced stays with it',
+      !!f03Lead && f03Out.includes(f03Lead.line),
+      f03Lead ? f03Lead.line : '(no lead-in found)');
+    ok('F03: ...and what now follows it is the narration itself, quoted and uncredited',
+      !!f03Lead && Array.isArray(f03Sealedrec.salvagedMatns) && f03Sealedrec.salvagedMatns.length >= 1
+        && f03Sealedrec.salvagedMatns.every((matn) => f03Sealed.includes(matn)),
+      JSON.stringify(f03Sealedrec.salvagedMatns));
     ok('F03: the seal changed the text (the fix is live)', f03Sealed !== f03Wire);
 
     // ── NON_TARGET_DIFFERENCES ───────────────────────────────────────────────
@@ -1232,12 +1268,25 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       // M-B — the LINK between the lead-in and the block is cut: the preamble is judged on the
       // arriving text alone, so nothing is ever seen to BECOME orphaned and the lead-in stays
       // behind. Re-evaluated under the mutant, this is exactly the property TARGET_FIXED asserts.
+      // AND IT IS DRIVEN OVER A BLOCK WITH NO MATN IN IT, WHICH F03 NO LONGER IS. Since the
+      // closing order of 19 September the seal puts a dropped card's narration back, so F03's
+      // lead-in is never orphaned and could not kill this mutant any more. The fixture below is
+      // F03's SHAPE with an unsalvageable block — a card whose whole content is a grade word —
+      // so the link between a lead-in and the block it introduced is still pinned, exactly.
+      const MB_FIXTURE = 'والدليل على ذلك:\n<hadith narrator="" ruling="رواه الترمذي">صحيح ثابت</hadith>\nوبهذا يتبين الحكم.';
+      const mbHealthy = CP.colonPreambles(MB_FIXTURE)
+        .filter((p) => !p.orphaned).map((p) => p.line);
+      ok('M-B: the lead-in of the fixture really is healthy before the seal touches it',
+        mbHealthy.length === 1, JSON.stringify(mbHealthy));
+      ok('M-B: ...and the seal really does drop that block whole, salvaging nothing',
+        TL.lockTakhrij(MB_FIXTURE, []).salvagedMatns.length === 0,
+        JSON.stringify(TL.lockTakhrij(MB_FIXTURE, []).text));
       await driveMutant('lead-in-no-longer-tied-to-the-dropped-block',
         (s) => s.replace('  for (const p of colonPreambles(after)) {',
           '  for (const p of colonPreambles(s)) {'),
         async (mod) => {
-          const after = CP.colonPreambles(sealWith(mod.lockTakhrij, F03));
-          return !after.some((p) => p.orphaned && f03Healthy.includes(p.line));
+          const after = CP.colonPreambles(mod.lockTakhrij(MB_FIXTURE, []).text);
+          return !after.some((p) => p.orphaned && mbHealthy.includes(p.line));
         });
     } finally {
       try { fs.rmSync(mutantDir, { recursive: true, force: true }); } catch { /* temp only */ }
