@@ -96,6 +96,10 @@ const PROBE = {
   'aljazeera.net': 'https://www.aljazeera.net/news/2026/8/5/%D8%A7%D9%82%D8%AA%D8%AD%D8%A7%D9%85-%D9%85%D8%AE%D9%8A%D9%85-%D9%82%D9%84%D9%86%D8%AF%D9%8A%D8%A7-%D9%88%D9%85%D9%88%D9%82%D8%B9%D9%87-%D9%81%D9%8A-%D8%B3%D9%8A%D8%A7%D9%82',
   'bbc.com': 'https://www.bbc.com/arabic/articles/c62x34m1nkzo',
   'skynewsarabia.com': 'https://www.skynewsarabia.com/middle-east/1884498',
+  // THE PRICE SOURCE (LIVE_WORLD_V2, 2026-09-19). The main world-rates table, which is an
+  // ANSWER page in the strictest sense this file asks for: it is nothing but the fact. Measured
+  // the day it was admitted at 620 clean characters against a declared floor of 150.
+  'cbk.gov.kw': 'https://www.cbk.gov.kw/ar/monetary-policy/market-operations/exchange-rates',
   // The deferred and the refused, probed too — so the day one of them comes back is NOTICED
   // rather than assumed, and so the file records the evidence for the decision rather than
   // asserting it.
