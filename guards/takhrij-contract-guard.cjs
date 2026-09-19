@@ -17,6 +17,12 @@
 //   ٧ درجة عند اختلاف الحكام
 // Section 8 below holds all three, and section 9 holds the wire they travel on.
 //
+// ── AND THE FOUR THE REPAIR ORDER OF THE SAME DAY ADDED, AFTER THE OWNER'S OWN TRIAL ──
+//   ٨ بطاقةُ حديثٍ تبقى بطاقةً (والآيةُ والمصدرُ يبقيانِ بطاقتَين)      §١ — sections 6 and 10a
+//   ٩ مخرِّجٌ دونَ الشيخَينِ بلا لاحقةٍ — درجةً أو تصريحًا بعدمِ الوقوف  §٢ — sections 3 and 10b
+//   ١٠ قوسانِ يكسرانِ جملةً                                          §٣ — section 10c
+//   ١١ وسمُ إغلاقٍ بلا فتحٍ يبلغُ عينَ القارئ                          §٤-أ — section 10d
+//
 // ── AND IT ASSERTS THEM OVER DELIVERED TEXT, NOT OVER INTENTIONS ─────────────
 // Every row below drives lib/takhrij.js with a fixture library and reads what would reach a
 // reader. A guard that only read the source would pass a module that returns the right shape
@@ -147,9 +153,11 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       env: ON,
       lookup: lookupOf({ [MATN]: { matn: MATN, subjectIds: ['FC-000658'], atoms: [atomFor(MATN, 'عمر')] } }),
     });
-    ok('an outlet with no grader beside it carries no grade',
-      outletOnly.text.includes('(الترمذي)') && !GRADES.test(outletOnly.text.split('(الترمذي)')[1] || ''),
-      JSON.stringify(outletOnly.text));
+    // §٢ OF THE REPAIR ORDER — an outlet below the Shaykhayn invents no grade AND does not stand
+    // bare either: it says out loud that no حاكم was found. «(البيهقي)» عارية تقول «ثابت» ولم تقلها.
+    ok('an outlet with no grader beside it invents no grade',
+      outletOnly.text.includes('(الترمذي · ' + L.NO_RULING + ')')
+      && !GRADES.test(L.NO_RULING), JSON.stringify(outletOnly.text));
     const withGrader = await T.applyTakhrij(text, {
       env: ON,
       lookup: lookupOf({
@@ -233,9 +241,22 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     const out = await T.applyTakhrij(shaykh, { env: ON, lookup: lookupOf({}) });
     ok('a shaykh\'s own words are byte-identical and carry no parentheses',
       out.text === shaykh, JSON.stringify(out.text));
+    // §١ OF THE REPAIR ORDER — THE HADITH CARD IS THE ONE CARD THAT IS NOT STEPPED OVER.
+    // The owner measured «إنما الأعمال بالنيات» sitting inside a card with no takhrij at all, and
+    // ruled in د-٨: «حديثٌ يُكتَبُ كاملًا وسطَ الكلامِ لا بطاقة … والبطاقاتُ الباقيةُ مثلَ ما هي».
     const card = `<hadith narrator="عمر">«${MATN}»</hadith>`;
     const cardOut = await T.applyTakhrij(card, { env: ON, lookup: lookupOf({}) });
-    ok('a card is stepped over whole', cardOut.text === card, JSON.stringify(cardOut.text));
+    ok('a hadith card is dissolved into prose, in its own place',
+      cardOut.text === `«${MATN}» (${L.NOT_RAISED})`, JSON.stringify(cardOut.text));
+    ok('...and the matn is not quoted twice over',
+      (cardOut.text.match(/«/gu) || []).length === 1, JSON.stringify(cardOut.text));
+    for (const other of ['verse', 'source', 'surah', 'dhikr', 'worship', 'book', 'document']) {
+      const block = `<${other} ref="x">«${MATN}»</${other}>`;
+      // eslint-disable-next-line no-await-in-loop
+      const kept = await T.applyTakhrij(block, { env: ON, lookup: lookupOf({}) });
+      ok(`a <${other}> card is stepped over whole, with every button it has`,
+        kept.text === block, JSON.stringify(kept.text));
+    }
   }
 
   // ── ٧ · MUTANTS ─────────────────────────────────────────────────────────
@@ -471,6 +492,178 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     const thrown = await T.runnerLookup(async () => { throw new Error('down'); }, ctx)([MATN]);
     ok('9  a runner that throws yields an unsourced matn, not an exception',
       thrown.length === 1 && thrown[0].subjectIds.length === 0);
+  }
+  // ── ١٠ · THE FOUR RULINGS OF THE REPAIR ORDER, AFTER THE OWNER'S OWN TRIAL ──
+  console.log('\n--- 10. THE REPAIR ORDER: THE CARD, THE GRADE, THE SENTENCE, THE STRAY TAG ---');
+  {
+    const lookupWith = (ids, companion) => lookupOf({
+      [MATN]: { matn: MATN, subjectIds: ids, atoms: ids.map(() => atomFor(MATN, companion || 'عمر')) },
+    });
+
+    // ١٠-أ · §١ — THE HADITH CARD BECOMES PROSE, AND THE MATN IS NOT TOUCHED BY A LETTER.
+    // The card is written the way lib/system-prompt.js:817 tells the model to write one, with its
+    // own remembered مخرِّج and درجة in the attributes, and vocalised as the answers ship.
+    const VOCALISED = 'إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ';
+    const answerCard = 'الحمد لله. النية أصل كل عمل.\n'
+      + `<hadith narrator="أخرجه البخاري ومسلم" ruling="متفق عليه">${VOCALISED}</hadith>\n`
+      + 'وهذا الحديث العظيم أصل في الإخلاص.';
+    const dissolved = await T.applyTakhrij(answerCard, {
+      env: ON,
+      lookup: lookupOf({
+        [VOCALISED]: {
+          matn: VOCALISED,
+          subjectIds: ['FC-000645', 'FC-000658'],
+          atoms: [atomFor(VOCALISED, 'عمر بن الخطاب'), atomFor(VOCALISED, 'عمر بن الخطاب')],
+        },
+      }),
+    });
+    ok('10a the hadith card is gone and the matn stands in prose where it stood',
+      !/<\/?hadith/iu.test(dissolved.text)
+      && dissolved.text.includes('«' + VOCALISED + '» (البخاري)'), JSON.stringify(dissolved.text));
+    ok('10a ...not one letter of the matn was added or taken away',
+      dissolved.text.includes(VOCALISED), JSON.stringify(dissolved.text));
+    ok('10a ...and the remembered مخرِّج and درجة of the card reach no reader',
+      !dissolved.text.includes('أخرجه البخاري ومسلم') && !dissolved.text.includes('narrator'),
+      JSON.stringify(dissolved.text));
+    ok('10a ...and the prose around it is byte-identical',
+      dissolved.text.startsWith('الحمد لله. النية أصل كل عمل.\n')
+      && dissolved.text.endsWith('\nوهذا الحديث العظيم أصل في الإخلاص.'), JSON.stringify(dissolved.text));
+    ok('10a the pass names where the matn came from, so this is read and not inferred',
+      dissolved.entries.length === 1 && dissolved.entries[0].from === 'card',
+      JSON.stringify(dissolved.entries));
+    // AND A CARD AND A PROSE MATN IN ONE ANSWER ARE BOTH TAKHRIJ'D — §١/٣: «فيجتمع البابان».
+    const both = await T.applyTakhrij(
+      `قال النبي صلى الله عليه وسلم: «${OTHER}».\n<hadith>${MATN}</hadith>`,
+      {
+        env: ON,
+        lookup: lookupOf({
+          [MATN]: { matn: MATN, subjectIds: ['FC-000645'], atoms: [atomFor(MATN, 'عمر')] },
+          [OTHER]: { matn: OTHER, subjectIds: ['FC-000648'], atoms: [atomFor(OTHER, 'أبو هريرة')] },
+        }),
+      },
+    );
+    ok('10a a prose matn and a card in one answer are BOTH written, neither instead of the other',
+      both.text.includes('«' + OTHER + '» (مسلم)') && both.text.includes('«' + MATN + '» (البخاري)')
+      && !/<\/?hadith/iu.test(both.text), JSON.stringify(both.text));
+
+    // ١٠-ب · §٢ — NO مخرِّج BELOW THE SHAYKHAYN WITHOUT A SUFFIX. EVER.
+    // Driven over the WHOLE ladder rather than over one fixture: every row that can be an outlet
+    // is asked, and the row fails on the first one that would ship a bare name.
+    const bare = [];
+    for (const row of L.TAKHRIJ_LADDER) {
+      if (row.shaykh) continue;
+      const built = L.composeParenthetical(row.ids);
+      if (!built.sourced) continue;
+      if (!built.text.includes(' · ')) bare.push(row.display + ' -> ' + built.text);
+    }
+    ok('10b no ladder row below the Shaykhayn can produce a parenthetical with no suffix',
+      bare.length === 0, JSON.stringify(bare));
+    ok('10b ...and the suffix is the grade when a grader stated one',
+      L.composeParenthetical(['FC-000658', 'FC-000788']).text === 'الترمذي · صحيح'
+      && L.composeParenthetical(['FC-000658', 'FC-000788']).ruled === true);
+    ok('10b ...and otherwise it says the ruling was not found, in those words',
+      L.composeParenthetical(['FC-000760']).text === 'البيهقي · ' + L.NO_RULING
+      && L.composeParenthetical(['FC-000760']).ruled === false);
+    ok('10b CAUSAL: the two Ṣaḥīḥs are the only three strings that stand alone',
+      L.composeParenthetical(['FC-000645']).text === 'البخاري'
+      && L.composeParenthetical(['FC-000648']).text === 'مسلم'
+      && L.composeParenthetical(['FC-000645', 'FC-000648']).text === L.AGREED_UPON);
+    // AND OVER DELIVERED TEXT, because that is where the owner read «(البيهقي)».
+    const below = await T.applyTakhrij(answerWith(MATN), { env: ON, lookup: lookupWith(['FC-000760']) });
+    ok('10b a delivered answer never carries a collection alone below the Shaykhayn',
+      below.text.includes('(البيهقي · ' + L.NO_RULING + ')') && !below.text.includes('(البيهقي)'),
+      JSON.stringify(below.text));
+
+    // ١٠-ج · §٣ — THE PARENTHESES MAY NOT CUT A SENTENCE IN HALF.
+    // The owner's own sentence, which reached his screen broken.
+    const CARRIED = 'اختلاف أمتي رحمة';
+    const embedded = 'وقد اشتهر ما يروى عن النبي صلى الله عليه وسلم، لكن هذا لا يعني أن اللفظ '
+      + `المشهور «${CARRIED}» حديث ثابت عنه.`;
+    const moved = await T.applyTakhrij(embedded, {
+      env: ON,
+      lookup: lookupOf({ [CARRIED]: { matn: CARRIED, subjectIds: ['FC-000791'], atoms: [atomFor(CARRIED, 'عمر')] } }),
+    });
+    ok('10c a matn that is a مضاف إليه does NOT take the parentheses between it and its خبر',
+      moved.text.includes(`«${CARRIED}» حديث ثابت عنه`), JSON.stringify(moved.text));
+    ok('10c ...they stand at the end of the sentence instead, and the sentence reads whole',
+      moved.text.endsWith('حديث ثابت عنه (ضعيف الجامع · ضعيف).'), JSON.stringify(moved.text));
+    ok('10c ...and the pass says it deferred them rather than leaving it to be guessed',
+      moved.entries.length === 1 && moved.entries[0].deferred === true,
+      JSON.stringify(moved.entries));
+    // CAUSAL: مقول القول — a colon in front of the quotation — still takes them immediately.
+    const quoted = await T.applyTakhrij(answerWith(MATN), { env: ON, lookup: lookupWith(['FC-000645']) });
+    ok('10c CAUSAL: a quotation introduced by a colon keeps its parentheses beside it',
+      quoted.text.includes(`«${MATN}» (البخاري)`) && quoted.entries[0].deferred === false,
+      JSON.stringify(quoted.text));
+    // AND WHERE THERE IS NO SAFE POSITION, NOTHING IS WRITTEN AT ALL (§٣/٢).
+    const noRoom = `وسبب ذلك ما ورد عن النبي صلى الله عليه وسلم أن «${MATN}» أصل`;
+    const declined = await T.applyTakhrij(noRoom, { env: ON, lookup: lookupWith(['FC-000645']) });
+    ok('10c with no full stop to defer to, not one character is injected',
+      declined.text === noRoom, JSON.stringify(declined.text));
+    ok('10c ...and it is recorded as a ruling, not lost as a silence',
+      declined.problems.includes(T.TAKHRIJ_NO_SLOT)
+      && declined.entries[0].declined === 'no_safe_slot', JSON.stringify(declined.problems));
+    // THE ORDER'S OWN WORDING OF THE ROW: the parentheses are attached only where a closing mark
+    // is followed by a stop, or at the end of the sentence. Asserted over every delivered fixture
+    // above rather than over one.
+    const readable = [dissolved, both, below, moved, quoted].map((run) => run.text);
+    ok('10c in every delivered fixture the parentheses follow a closing mark or a sentence end',
+      readable.every((text) => [...text.matchAll(/\(([^()]*)\)/gu)].every((hit) => {
+        const before = text.slice(0, hit.index).replace(/\s+$/u, '');
+        return /»$/u.test(before) || /[.!؟،؛:ء-ي]$/u.test(before);
+      })) && readable.every((text) => !/»\s*\([^()]*\)\s*[ء-ي]+\s+(?:حديث|أصل)\b/u.test(text)),
+      JSON.stringify(readable));
+
+    // ١٠-د · §٤-أ — A CLOSING TAG WITH NO OPENING TAG REACHES NO READER.
+    // The defect the owner saw, reproduced through the seat that caused it: the delivery seal at
+    // api/ask.js:1049. `sentences()` used to cut inside a `<hadith>` block, drop the piece holding
+    // the opening tag and its unpublished `ruling`, and leave `</hadith>` standing in the prose.
+    const LOCK = await esm('lib/takhrij-lock.js');
+    const CARD_ANSWER = '<hadith narrator="أخرجه مسلم" ruling="أخرجه مسلم (55)">'
+      + 'الدِّينُ النَّصِيحَةُ. قُلْنَا: لِمَنْ يَا رَسُولَ اللهِ؟ قَالَ: لِلهِ وَلِكِتَابِهِ'
+      + '</hadith>\nوهذا الحديث أصل عظيم في الدين.';
+    const sealedCard = LOCK.lockTakhrij(CARD_ANSWER, []);
+    ok('10d a card whose takhrij nobody published is dropped WHOLE, tag and all',
+      !/<\/hadith>/iu.test(sealedCard.text) && !/<hadith\b/iu.test(sealedCard.text),
+      JSON.stringify(sealedCard.text));
+    ok('10d ...and the reader is never handed the tail of a hadith as the head of an answer',
+      !sealedCard.text.trimStart().startsWith('قُلْنَا'), JSON.stringify(sealedCard.text));
+    ok('10d CAUSAL: a card whose takhrij IS on a fetched page survives entire',
+      /<hadith\b/iu.test(LOCK.lockTakhrij(CARD_ANSWER, [{ passage: 'أخرجه مسلم (55) في صحيحه', title: 'مسلم' }]).text),
+      JSON.stringify(LOCK.lockTakhrij(CARD_ANSWER, [{ passage: 'أخرجه مسلم (55) في صحيحه', title: 'مسلم' }]).text));
+    ok('10d and no delivered fixture of this guard carries a stray closing tag',
+      readable.every((text) => !/<\/(?:hadith|verse|source|surah|dhikr|worship|book|document)\s*>/iu.test(text)));
+
+    // AND THE ONE PHRASE THIS PASS WRITES THAT THE SEAL READS AS AN ATTRIBUTION.
+    // «(متفق عليه)» is a takhrij span, and the seal drops the sentence carrying it unless a FETCHED
+    // page publishes it. The pages that do are the ladder rows the library just confirmed, and the
+    // pass hands them over in `sealProof`. Without them the takhrij deletes the hadith it sourced.
+    const agreedRun = await T.applyTakhrij(answerWith(MATN), {
+      env: ON, lookup: lookupWith(['FC-000645', 'FC-000648'], 'عمر بن الخطاب'),
+    });
+    ok('10d the pass writes «متفق عليه» and names the two books that proved it',
+      agreedRun.text.includes('(' + L.AGREED_UPON + ')')
+      && agreedRun.entries[0].sealProof.includes('البخاري')
+      && agreedRun.entries[0].sealProof.includes('مسلم'), JSON.stringify(agreedRun.entries));
+    const proofRows = agreedRun.entries.flatMap((entry) => entry.sealProof.map((book) => ({ title: book, passage: book })));
+    ok('10d ...and with that proof in hand the seal leaves the sentence standing',
+      LOCK.lockTakhrij(agreedRun.text, proofRows).text === agreedRun.text,
+      JSON.stringify(LOCK.lockTakhrij(agreedRun.text, proofRows).text));
+    ok('10d CAUSAL: without it the seal deletes the very hadith the library sourced',
+      LOCK.lockTakhrij(agreedRun.text, []).text !== agreedRun.text,
+      JSON.stringify(LOCK.lockTakhrij(agreedRun.text, []).text));
+    ok('10d ...and a parenthetical the pass did NOT write hands the seal nothing',
+      below.entries[0].sealProof.length === 0 && quoted.entries[0].sealProof.length === 0,
+      JSON.stringify([below.entries[0].sealProof, quoted.entries[0].sealProof]));
+    // AND api/ask.js REALLY HANDS IT OVER, read off the file rather than assumed.
+    const askSrc = require('fs').readFileSync(path.join(REPO, 'api/ask.js'), 'utf8');
+    ok('10d api/ask.js puts the proven rows into the seal and nowhere else',
+      askSrc.includes('...storedFinalizerSources, ...takhrijProvenRows]')
+      && askSrc.includes('takhrijProvenRows.push({ title: book, passage: book })')
+      // ...and NOT into the finalizer's own source list, where it would widen what counts as
+      // evidence for a card or a citation.
+      && !/sources:\s*\[[^\]]*takhrijProvenRows/u.test(askSrc),
+      'the wire is not the one this row describes');
   }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);

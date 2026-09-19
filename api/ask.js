@@ -1027,6 +1027,19 @@ export default async function handler(req, res) {
   // affecting legacy retrieval choices while still making accepted, used evidence visible to the
   // takhrij/finalization boundary.
   const storedFinalizerSources = [];
+  // ── WHAT THE LIBRARY PROVED FOR البند ٥٠, HANDED TO THE SEAL AND TO NOTHING ELSE ──
+  //
+  // MEASURED 19 September 2026. The takhrij pass writes «(متفق عليه)» only when the library's own
+  // pages for that matn came back from BOTH Ṣaḥīḥs — and «متفق عليه» is one of the four phrases
+  // lib/takhrij-lock.js reads as an attribution, which it then drops the whole sentence for unless
+  // a FETCHED page carries it. The takhrij pass's evidence table is private (never the reader's
+  // cards), so the seal could not see the very page that established the claim, and deleted the
+  // hadith it had just sourced. This array is that page list, by book name.
+  //
+  // IT IS DELIBERATELY NARROW. Only the rows the pass CONFIRMED, only for the parenthetical it
+  // actually wrote, and only into `seal` below — never into the finalizer's `sources`, where it
+  // would widen what counts as evidence for a card or a citation.
+  const takhrijProvenRows = [];
   // REJECTED AND COUNTED — lib/retrieve.js refuses every instruction-bearing page before it can
   // become model context or a source card, and reports the marker shapes it rejected. This is
   // where the request adds them up, so the rejection remains observable across fallback passes.
@@ -1046,7 +1059,10 @@ export default async function handler(req, res) {
   // A template, a refusal or a card carries no takhrij, so for those this returns its input
   // byte-for-byte — which is why it is safe to put on the one path they all share.
   const seal = (text) => {
-    const locked = lockTakhrij(String(text == null ? '' : text), [...fetchedPages, ...storedFinalizerSources]);
+    const locked = lockTakhrij(
+      String(text == null ? '' : text),
+      [...fetchedPages, ...storedFinalizerSources, ...takhrijProvenRows],
+    );
     if (locked.removed.length || locked.droppedSentences.length) {
       console.warn('[takhrij] unsupported takhrij removed:', {
         removed: locked.removed.map((r) => r.kind).join(','),
@@ -1864,6 +1880,15 @@ export default async function handler(req, res) {
             }),
           });
           readerText = pass.text;
+          // ── AND THE SEAL IS TOLD WHICH PAGES PROVED IT (see `takhrijProvenRows`) ──
+          // Without this the lock deletes the whole sentence a «(متفق عليه)» stands in, because no
+          // reader-visible page carries that phrase. `title` is what `haystack` folds and reads;
+          // the book's name is the entire claim, and no atom text travels.
+          for (const entry of pass.entries) {
+            for (const book of Array.isArray(entry.sealProof) ? entry.sealProof : []) {
+              takhrijProvenRows.push({ title: book, passage: book });
+            }
+          }
           // ITEM 87 — every name printed here is on guards/telemetry-text-guard.cjs’s reviewed
           // list, and every one of them is a count, a flag or a fixed code. `requested` is how
           // many quoted matns the answer held, `matched` how many the library sourced; neither
