@@ -122,6 +122,7 @@ import { runClosedDeenTurn } from '../lib/closed-deen.js';
 // what arrives; LIB_MAX_CHARS_PER_HIT_CEILING caps a request parameter this tree never sends.
 import { LIB_MAX_CHARS_PER_HIT_DEFAULT } from '../lib/lib-contract.js';
 import { freeBrainDecision } from '../lib/free-brain/flag.js';
+import { takhrijDecision } from '../lib/takhrij.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 // The free path's own empty-reply text, صنف (ب): the system declaring a limit, not answering.
@@ -1805,8 +1806,61 @@ export default async function handler(req, res) {
       // P5 §٣ — the ONE exit that delivers a whole message. `emitUnits` falls back to
       // `emitOnce` on every decline, so with STREAM_V1 off `out.readerUnits` is empty and
       // this line does exactly what it did before, byte for byte.
+      // ══════════════════════════════════════════════════════════════════════
+      // البند ٥٠ — التخريجُ، خلفَ مفتاحِه المطفأ (TAKHRIJ_V1)
+      // ══════════════════════════════════════════════════════════════════════
+      //
+      // WITH THE SWITCH OFF NOTHING HERE RUNS AND NOTHING IS IMPORTED, so this deployment
+      // answers byte for byte as it did before. That is the owner's §٢-أ in one line: a
+      // takhrij written out of the model's head would ascribe a hadith to مسلم who does not
+      // have it, and a false ascription to the Prophet ﷺ is worse than no takhrij at all.
+      //
+      // ── IT STANDS DOWN ON A STREAMED TURN, AND SAYS SO ────────────────────
+      // MEASURED on ezik.app, 19 September 2026: the reader saw his first text at 8.7s and was
+      // still receiving it 25s later, in four pieces. A pass that rewrites a sentence AFTER the
+      // reader already has it cannot deliver — it can only withdraw text that was sent. The
+      // precedent is the ascription door's own exit at lib/free-brain/loop.js:3615, and this
+      // takes the same one under its own name rather than inventing a second vocabulary.
+      // Seeing the contract end to end therefore needs STREAM_V1 off beside TAKHRIJ_V1 on,
+      // which is one environment write and no deploy.
+      //
+      // ── AND IT RUNS ONLY WHEN THE LIBRARY IS REALLY REACHABLE ─────────────
+      // The floor of the contract is «(لا يثبت مرفوعا)». That sentence is TRUE when the
+      // library was asked and had nothing, and it is a slander when the library was never
+      // asked at all — it would stamp «not established» on صحيح البخاري. So the pass is not
+      // run at all unless the flag, the token and the adult band are all in hand. The depth
+      // is deliberately NOT part of this condition: §٢-ج orders the takhrij in الأطوار
+      // الثلاثة كلها, and the depth gate at :869 is the library's rule, not the takhrij's.
+      // The band gate IS kept, because widening a minor's sources is not this item's to do.
+      let readerText = out.text || FREE_BRAIN_EMPTY;
+      const takhrij = takhrijDecision();
+      if (takhrij.enabled) {
+        const wired = band === 'adult' && libFlagValue === 'on' && libToken !== '';
+        if (out.streamedThisTurn === true) {
+          out.degraded.push('takhrij:inside_emitted_bytes');
+        } else if (!wired) {
+          out.degraded.push('takhrij:library_unreachable');
+        } else {
+          const { applyTakhrij, libraryLookup } = await import('../lib/takhrij.js');
+          const { searchLibrary } = await import('../lib/lib-service.js');
+          const pass = await applyTakhrij(readerText, {
+            lookup: libraryLookup(searchLibrary, {
+              flagValue: libFlagValue, token: libToken, signal: readerGone,
+            }),
+          });
+          readerText = pass.text;
+          console.log('[takhrij]', {
+            applied: pass.applied,
+            reason: pass.reason,
+            matns: pass.entries.length,
+            sourced: pass.entries.filter((entry) => entry.sourced).length,
+            problems: pass.problems,
+          });
+          for (const problem of pass.problems) out.degraded.push('takhrij:' + problem);
+        }
+      }
       return emitFreeBrain(
-        (out.text || FREE_BRAIN_EMPTY) + (out.truncated === true ? TRUNCATED_MARK : ''),
+        readerText + (out.truncated === true ? TRUNCATED_MARK : ''),
         out.readerUnits,
       );
     }
