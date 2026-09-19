@@ -668,38 +668,56 @@ export function pickVerifiedSources(sources, limit = MAX_SOURCES, builder = buil
   return out;
 }
 
-// Bind an upstream stream to the real response lifecycle. IncomingMessage does not reliably
-// expose `req.signal`, while ServerResponse always reports a disconnected reader through `close`.
-// The finalized writer owns downstream bytes; this helper owns only cancellation of the upstream
-// fetch/reader so a closed client cannot leave a model stream running in the background.
-function bindUpstreamToClient(res, req) {
+// THE ONE PLACE THAT TELLS A READER WHO LEFT FROM A REQUEST BODY THAT FINISHED.
+//
+// From node 24 on, `req.signal` is tied to the request stream itself, so it aborts the moment the
+// request BODY has been fully read -- on a response that is still live and open. Read raw, that
+// abort kills the answer three times over: it cancels the outgoing model call, it flips the
+// finalized writer to `aborted` before it releases a byte, and it returns the handler early on the
+// free and stored paths. Three consumers, one misreading, so the discrimination is made ONCE here
+// and every consumer takes the signal derived from it instead of the raw one.
+//
+// The derived signal aborts when, and only when, the reader really leaves: on the response `close`
+// event, and on a request abort that is NOT evidence of a finished body on a live response. It is
+// read against the RAW ServerResponse, before the finalized facade replaces it, because the facade
+// forwards listeners but not `destroyed`/`writableEnded`/`closed`.
+function deriveReaderDepartureSignal(res, req) {
   const controller = new AbortController();
   const requestSignal = req?.signal;
+  const depart = () => { if (!controller.signal.aborted) controller.abort(); };
+  const isRequestBodyCompletion = () => req?.complete === true
+    && res?.destroyed !== true && res?.writableEnded !== true && res?.closed !== true;
+  const onRequestAbort = () => { if (!isRequestBodyCompletion()) depart(); };
+  res?.once?.('close', depart);
+  requestSignal?.addEventListener?.('abort', onRequestAbort, { once: true });
+  if (requestSignal?.aborted) onRequestAbort();
+  return controller.signal;
+}
+
+// Bind an upstream stream to the reader's departure. It takes the derived signal and nothing
+// else, because that signal ALREADY carries both halves of a departure: the response `close`
+// event and a request abort that is not a finished body. Reading `close` a second time here
+// cancelled the same upstream reader TWICE on one disconnect -- measured by the `close` phase of
+// guards/takhrij-lock-guard.cjs, which counts the cancellations.
+// The finalized writer owns downstream bytes; this helper owns only cancellation of the upstream
+// fetch/reader so a closed client cannot leave a model stream running in the background.
+function bindUpstreamToClient(readerGone) {
+  const controller = new AbortController();
   let reader = null;
   let cleaned = false;
   const abort = () => {
     if (!controller.signal.aborted) controller.abort();
     try { Promise.resolve(reader?.cancel?.()).catch(() => {}); } catch {}
   };
-  // From node 24 on, `req.signal` is tied to the request stream itself, so it aborts the moment the
-  // request BODY has been fully read -- not because the reader left. That abort is evidence of a
-  // finished body on a live response, never of a disconnect, so it is ignored. Every other abort
-  // cancels the upstream exactly as before, and a reader who really leaves still arrives through the
-  // response `close` event below.
-  const isRequestBodyCompletion = () => req?.complete === true
-    && res?.destroyed !== true && res?.writableEnded !== true && res?.closed !== true;
-  const onRequestAbort = () => { if (!isRequestBodyCompletion()) abort(); };
-  res.once?.('close', abort);
-  requestSignal?.addEventListener?.('abort', onRequestAbort, { once: true });
-  if (requestSignal?.aborted) onRequestAbort();
+  readerGone?.addEventListener?.('abort', abort, { once: true });
+  if (readerGone?.aborted) abort();
   return {
     signal: controller.signal,
     setReader(value) { reader = value; if (controller.signal.aborted) abort(); },
     cleanup() {
       if (cleaned) return;
       cleaned = true;
-      res.removeListener?.('close', abort);
-      requestSignal?.removeEventListener?.('abort', onRequestAbort);
+      readerGone?.removeEventListener?.('abort', abort);
     },
   };
 }
@@ -1056,6 +1074,10 @@ export default async function handler(req, res) {
       identityVerified: false,
     } : null,
   };
+  // Derived ONCE, on the last line where `res` is still the raw ServerResponse, and read from here
+  // on by all three consumers of a reader's departure: the finalized writer just below, the four
+  // upstream bindings, and the two post-turn early returns. Nothing reads `req.signal` after this.
+  const readerGone = deriveReaderDepartureSignal(res, req);
   res = createFinalizedSseResponse(res, {
     finalize: (input) => {
       const result = finalizeReaderText(input);
@@ -1093,7 +1115,7 @@ export default async function handler(req, res) {
         } : null,
       };
     },
-    signal: req.signal,
+    signal: readerGone,
     failureText: FINALIZER_REFUSAL,
     onReject: (detail) => console.warn('[finalized-sse] rejected', detail),
   });
@@ -1546,7 +1568,7 @@ export default async function handler(req, res) {
       // reviewer is a passthrough, which is precisely why this path is OFF in production.
       finalizerContext.consistencyContext = null;
 
-      const freeUpstream = bindUpstreamToClient(res, req);
+      const freeUpstream = bindUpstreamToClient(readerGone);
       let out;
       try {
         out = await runFreeBrainTurn({
@@ -1590,7 +1612,7 @@ export default async function handler(req, res) {
       } finally {
         freeUpstream.cleanup();
       }
-      if (freeUpstream.signal.aborted || req.signal?.aborted) return;
+      if (freeUpstream.signal.aborted || readerGone.aborted) return;
 
       // THE CARD FOLLOWS THE CITATION. `out.cited` is the rows the DELIVERED text actually cited,
       // in the order the delivered text cites them — not the rows retrieval happened to return,
@@ -1799,7 +1821,7 @@ export default async function handler(req, res) {
       // The legacy plan may legitimately carry an anaphoric identity for its own paths. It is not
       // evidence for this one, so the stored path starts a fresh consistency context.
       finalizerContext.consistencyContext = null;
-      const storedUpstream = bindUpstreamToClient(res, req);
+      const storedUpstream = bindUpstreamToClient(readerGone);
       let storedOut;
       try {
         const shared = {
@@ -1827,7 +1849,7 @@ export default async function handler(req, res) {
       } finally {
         storedUpstream.cleanup();
       }
-      if (storedUpstream.signal.aborted || req.signal?.aborted) return;
+      if (storedUpstream.signal.aborted || readerGone.aborted) return;
 
       const used = new Set(storedOut.validatedUsedRecordIds || []);
       storedFinalizerSources.length = 0;
@@ -3185,7 +3207,7 @@ export default async function handler(req, res) {
         messages: withIdentityFact(body.messages),
         stream: true,
       };
-      const upstream = bindUpstreamToClient(res, req);
+      const upstream = bindUpstreamToClient(readerGone);
       let g;
       try {
         g = await fetch(ANTHROPIC_URL, {
@@ -3892,7 +3914,7 @@ export default async function handler(req, res) {
     }
 
     // ── ROUND 2: streamed, WITHOUT tools (guarantees a streamable text answer) ──
-    const upstream = bindUpstreamToClient(res, req);
+    const upstream = bindUpstreamToClient(readerGone);
     let r2;
     try {
       r2 = await fetch(ANTHROPIC_URL, {

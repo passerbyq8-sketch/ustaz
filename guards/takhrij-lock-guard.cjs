@@ -858,22 +858,21 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         draft: genBody, evidence: genBody, route: 'GEN', disconnectMode: 'body-complete',
       });
       // node 24 aborts req.signal the moment the request BODY is read, on a response that is still
-      // live. bindUpstreamToClient must read that abort as a finished body, not as a reader who
-      // left: the outgoing call keeps its signal and the upstream stream runs to its last frame.
-      //
-      // This row deliberately stops at the outgoing call. The reader-visible answer is NOT asserted
-      // here because a second consumer of the same signal still swallows it: api/ask.js passes
-      // `signal: req.signal` to createFinalizedSseResponse, whose writer flips to `failed =
-      // 'aborted'` (lib/finalized-sse-writer.js) and releases no bytes. Measured on real node 24:
-      // with that one argument neutered the answer lands byte-identical (402 bytes, one
-      // message_stop); with it in place the cycle hangs with an empty log. That site is outside the
-      // playground of this round, so it is named and left to its owner rather than half-guarded.
-      ok('SSE handler node 24 regression: a finished request body on a live response cancels no outgoing call and the upstream stream runs to its end',
+      // live. That abort must be read as a finished body rather than as a reader who left -- and by
+      // EVERY consumer of it, not merely the first. api/ask.js makes the discrimination once and
+      // hands the one derived signal to all three: the outgoing binding, the finalized writer, and
+      // the two post-turn early returns. So this row asserts the whole cycle and not only its head:
+      // no outgoing call is cancelled, the upstream stream runs to its last frame, and the answer
+      // reaches the reader byte for byte, with exactly one message_stop and a closed lifecycle.
+      ok('SSE handler node 24 regression: a finished request body on a live response cancels no outgoing call, and the whole answer still reaches the reader',
         bodyComplete.upstreamCancelCalls === 0 && bodyComplete.upstreamSignalAbortedEver === false
-          && bodyComplete.framesDelivered === 5, JSON.stringify({
+          && bodyComplete.framesDelivered === 5
+          && rawContract(bodyComplete) && bodyComplete.text === genBody, JSON.stringify({
             upstreamCancelCalls: bodyComplete.upstreamCancelCalls,
             upstreamSignalAbortedEver: bodyComplete.upstreamSignalAbortedEver,
             framesDelivered: bodyComplete.framesDelivered,
+            rawContract: rawContract(bodyComplete),
+            text: bodyComplete.text,
           }));
 
       // Stored fiqh now has a stricter evidence -> claim -> sentence contract than the legacy
