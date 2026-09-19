@@ -225,10 +225,33 @@ const EXPECTED_MOVES = {
     // meaningful — the new reason was added beside it, not inside it.
     ok('the original LIVE_QUANTITY line is still character-for-character what it was',
       /const LIVE_QUANTITY = worldIntent\.reason === 'WEATHER' \|\| worldIntent\.reason === 'MARKET_PRICE';/.test(ASK));
-    // And the fall-through is still a fall-through: the trace must not have become a return.
-    ok('the silent catch still falls through and only adds a LOG line',
-      /catch \(e\) \{[\s\S]{0,1600}console\.error\('\[world-search\] WORLD_SEARCH_THREW'/.test(ASK)
-      && !/WORLD_SEARCH_THREW'[\s\S]{0,400}return /.test(ASK));
+    // ── THE FALL-THROUGH IS STILL A FALL-THROUGH ─────────────────────────
+    //
+    // READ BY BRACE-MATCHING THE CATCH BLOCK, NOT BY A CHARACTER WINDOW. The first version of
+    // this check was `/catch \(e\) \{[\s\S]{0,1600}…WORLD_SEARCH_THREW/` and it went red the
+    // moment the trace grew a comment explaining why it stopped printing `e.message`: the gap
+    // became 1696 characters and the window was 1600. A guard whose verdict depends on how much
+    // PROSE sits inside a block is a guard that reds for the wrong reason and gets widened until
+    // it proves nothing. The block's own braces are where it ends, so that is what is read.
+    const catchStart = ASK.indexOf('} catch (e) {', ASK.indexOf('const LIVE_QUANTITY ='));
+    let catchBlock = '';
+    if (catchStart !== -1) {
+      let depth = 0;
+      const open = ASK.indexOf('{', catchStart);
+      for (let k = open; k < ASK.length; k++) {
+        if (ASK[k] === '{') depth++;
+        else if (ASK[k] === '}') { depth--; if (depth === 0) { catchBlock = ASK.slice(open, k + 1); break; } }
+      }
+    }
+    ok('the world search still has a catch that swallows the throw', catchBlock.length > 0);
+    ok('...and it carries the trace that separates a crash from a miss',
+      catchBlock.includes("console.error('[world-search] WORLD_SEARCH_THREW'"));
+    ok('...and it does NOT return — gating on the intent rather than the material would cost a child their age floor',
+      catchBlock.length > 0 && !/\breturn\b/.test(catchBlock),
+      catchBlock.slice(0, 200));
+    ok('...and the trace carries no error MESSAGE, which can contain the question verbatim',
+      !/message:/.test(catchBlock),
+      'lib/retrieve.js puts the reader question in the open-search URL; a transport error quotes it');
   }
 
   // ══════════════════════════════════════════════════════════════════════════
