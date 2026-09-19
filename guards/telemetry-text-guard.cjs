@@ -136,7 +136,37 @@ const STREAM_FIELDS = [
 // that name come back unreviewed, and Rule B's entire value is that a field nobody has read
 // fails. `queries` is absent in the other direction and for the same reason: its deletion is the
 // leak this gate was written for, and admitting it here would quietly undo the fix.
-const ALLOWED = new Set([...ALLOWED_FIELDS, ...STREAM_FIELDS]);
+// ── RULE B, CONTINUED: THE LIVE-WORLD ROUND'S FOUR (2026-09-19) ───────────────
+//
+// Reviewed one line at a time, for the reason the streaming block above states: a block
+// approval of «the LIVE_WORLD_V2 fields» is the thing Rule B exists to prevent. Two of them
+// are printed by the world search's crash trace and two by the print contract.
+//
+// WHAT THIS GATE ALREADY REFUSED, AND IT WAS RIGHT TO. The first version of the crash trace
+// printed `name: e.name` and `message: e.message`. `message` is a genuine leak: lib/retrieve.js
+// builds the open-search URL with the reader's question in its query string, so a transport
+// error's message can contain the question verbatim. It was deleted rather than reviewed, and
+// `name` was renamed so that the generic key never enters this list at all.
+const LIVE_WORLD_V2_FIELDS = [
+  // fixed two-word vocabulary — 'after-vetted-pass' or 'before-any-result', both string
+  // literals in api/ask.js. It says WHERE in the world block the throw happened. Nothing is
+  // derived from the turn; the value is chosen by a boolean test on `worldPass`.
+  'stage',
+  // error class name — `e.name`, i.e. 'TypeError', 'Error', 'AbortError'. A closed vocabulary
+  // owned by the runtime. Deliberately NOT `e.message`; see above.
+  'errorName',
+  // fixed vocabulary, as a list — `removed.map((r) => r.why)`, and every `why` is one of four
+  // literals defined in lib/live-number-source.js ('live-number-without-source',
+  // '...-without-date', '...-without-source-or-date', 'relative-date-without-absolute'). The
+  // SENTENCES that were removed are never printed: they are the reader's own answer text, and
+  // the whole point of the count beside this is to say how many went without saying what they said.
+  'why',
+  // boolean — whether the print contract removed everything, so the server's disclosure line
+  // spoke instead. One bit about an outcome.
+  'emptied',
+];
+
+const ALLOWED = new Set([...ALLOWED_FIELDS, ...STREAM_FIELDS, ...LIVE_WORLD_V2_FIELDS]);
 const NEWLINE = String.fromCharCode(10);
 
 // ── THE BOUNDARY, WRITTEN DOWN RATHER THAN LEFT TO BE REDISCOVERED ────────────

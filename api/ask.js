@@ -2203,13 +2203,19 @@ export default async function handler(req, res) {
         //
         // IT IS A LOG LINE AND NOTHING ELSE. Not a header, not an SSE frame, not a word of the
         // answer: the reader is told what the disclosure already tells them, and a reader has no
-        // use for our stack. The question text is NOT in it — see gate `telemetrytext`.
+        // use for our stack.
+        //
+        // AND IT CARRIES THE ERROR'S CLASS, NOT ITS MESSAGE. Gate `telemetrytext` caught the
+        // first version of this line printing `e.message` under a named field, and it was right
+        // to: the open search builds its provider URL with the reader's question in the query
+        // string, so a transport TypeError's message can contain the question verbatim. The
+        // class name is a closed vocabulary and cannot. (The line above still passes e.message
+        // as a POSITIONAL argument, exactly as it did before this round — untouched.)
         console.error('[world-search] WORLD_SEARCH_THREW', {
           reason: worldIntent.reason,
           open: worldOpen,
           stage: worldPass ? 'after-vetted-pass' : 'before-any-result',
-          name: e && e.name,
-          message: String((e && e.message) || '').slice(0, 200),
+          errorName: (e && e.name) || 'Error',
         });
       }
     }
