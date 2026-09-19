@@ -17,6 +17,14 @@
 //   ٧ درجة عند اختلاف الحكام
 // Section 8 below holds all three, and section 9 holds the wire they travel on.
 //
+// ── AND THE TWO THE SILENCE ORDER OF THE SAME DAY ADDED, AFTER HIS SECOND TRIAL ──
+//   ١٢ (لا يثبت مرفوعا) بلا حكمِ حاكمٍ من السلَّمِ مرافقٍ في السجلّ        §١ — section 11
+//   ١٣ متنٌ واحدٌ يبلغُ القارئَ مرّتَينِ في جوابٍ واحد                    §٢ — section 12
+// AND THE ROWS OF SECTIONS 2, 3, 5, 6 AND 8 THAT STATED «فشلُ البحثِ ⟸ (لا يثبت مرفوعا)» now
+// state its opposite, because the owner overturned that contract in as many words: «عزك لا ينفي
+// بناءً على عجزِه». A guard row is a contract written down, so when the contract is overturned the
+// row is rewritten — it is not softened, and nothing was renamed to make it pass.
+//
 // ── AND THE FOUR THE REPAIR ORDER OF THE SAME DAY ADDED, AFTER THE OWNER'S OWN TRIAL ──
 //   ٨ بطاقةُ حديثٍ تبقى بطاقةً (والآيةُ والمصدرُ يبقيانِ بطاقتَين)      §١ — sections 6 and 10a
 //   ٩ مخرِّجٌ دونَ الشيخَينِ بلا لاحقةٍ — درجةً أو تصريحًا بعدمِ الوقوف  §٢ — sections 3 and 10b
@@ -97,33 +105,40 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
   }
 
   // ── ٢ · A مخرِّج THE LIBRARY DID NOT RETURN MAY NOT BE WRITTEN ────────────
-  console.log('\n--- 2. NO مخرِّج THAT DID NOT COME FROM THE LIBRARY ---');
+  console.log('\n--- 2. NO مخرِّج THAT DID NOT COME FROM THE LIBRARY, AND NO DENIAL EITHER ---');
   {
     const text = answerWith(MATN);
-    // The library answers NOTHING.
+    // The library answers NOTHING. §١ OF THE SILENCE ORDER: that is news about US.
     const none = await T.applyTakhrij(text, { env: ON, lookup: lookupOf({}) });
-    ok('a matn the library does not know ships as (لا يثبت مرفوعا)',
-      none.text.includes('(' + L.NOT_RAISED + ')'), JSON.stringify(none.text));
+    ok('a matn the library does not know is left EXACTLY as the model wrote it',
+      none.text === text && none.applied === false, JSON.stringify(none.text));
+    ok('...and is not denied, softened, marked or hinted at by one character',
+      !none.text.includes(L.NOT_RAISED) && !/[()]/u.test(none.text.slice(text.indexOf('»'))),
+      JSON.stringify(none.text));
     ok('...and no book name is anywhere near it',
       !L.TAKHRIJ_LADDER.some((row) => none.text.includes(row.display)), JSON.stringify(none.text));
-    ok('...and the caller is told WHY',
-      none.problems.includes(T.TAKHRIJ_UNSOURCED), JSON.stringify(none.problems));
+    ok('...and the caller is told it was SILENCE and not a verdict',
+      none.problems.includes(T.TAKHRIJ_SILENT) && !none.problems.includes(T.TAKHRIJ_UNSOURCED),
+      JSON.stringify(none.problems));
+    ok('...and the record says which matn went unanswered, so the silence is not a loss',
+      none.entries.length === 1 && none.entries[0].silent === true
+        && none.entries[0].declined === 'search_found_nothing', JSON.stringify(none.entries));
 
     // The library answers with a book that is NOT on the ladder.
     const offLadder = await T.applyTakhrij(text, {
       env: ON,
       lookup: lookupOf({ [MATN]: { matn: MATN, subjectIds: ['FC-001766'], atoms: [atomFor(MATN, 'عمر')] } }),
     });
-    ok('a book off the ladder cannot fill the parentheses',
-      offLadder.text.includes('(' + L.NOT_RAISED + ')'), JSON.stringify(offLadder.text));
+    ok('a book off the ladder fills no parentheses, and denies nothing either',
+      offLadder.text === text && !offLadder.text.includes(L.NOT_RAISED), JSON.stringify(offLadder.text));
 
     // The library answers with a LADDER book whose text does NOT carry the matn.
     const near = await T.applyTakhrij(text, {
       env: ON,
       lookup: lookupOf({ [MATN]: { matn: MATN, subjectIds: ['FC-000645'], atoms: ['نص لا علاقة له البتة بما سئل عنه'] } }),
     });
-    ok('a near neighbour that does not carry the matn cannot fill them either',
-      near.text.includes('(' + L.NOT_RAISED + ')'), JSON.stringify(near.text));
+    ok('a near neighbour that does not carry the matn is a silence, not a denial',
+      near.text === text && !near.text.includes(L.NOT_RAISED), JSON.stringify(near.text));
 
     // And the honest case still works, or the three rows above would be vacuous.
     // TWO ladder books, because §٢-أ of the route (ب) order requires two before a Companion
@@ -177,8 +192,8 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
         },
       }),
     });
-    ok('a split verdict is not a verdict: nothing is graded off disagreeing books',
-      split.text.includes('(' + L.NOT_RAISED + ')'), JSON.stringify(split.text));
+    ok('a split verdict is not a verdict: nothing is written at all off disagreeing books',
+      split.text === text && !split.text.includes(L.NOT_RAISED), JSON.stringify(split.text));
     ok('...and the contradiction never reaches the reader',
       !/السلسلة الصحيحة · ضعيف|السلسلة الضعيفة · صحيح/u.test(split.text), JSON.stringify(split.text));
     ok('the composer invents no grade of its own for an ungraded ladder book',
@@ -212,8 +227,11 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       T.carriesIsnad('عن عمر رضي الله عنه: كلام') === false);
   }
 
-  // ── ٥ · A RAISED HADITH WITHOUT PARENTHESES AT ALL ───────────────────────
-  console.log('\n--- 5. NO QUOTED MARFUʿ MATN IS LEFT BARE ---');
+  // ── ٥ · WHAT WAS SOURCED IS WRITTEN, AND WHAT WAS NOT IS LEFT ALONE ──────
+  // THE OLD ROW HERE READ «no quoted marfūʿ matn is left bare», and that floor is what filled
+  // three hadiths of the Ṣaḥīḥayn with a denial. A matn the library did not answer for is left
+  // bare ON PURPOSE now, and the row that matters is that the OTHER one still gets its book.
+  console.log('\n--- 5. TWO MATNS, ONE ANSWERED: THE OTHER IS UNTOUCHED, NOT DENIED ---');
   {
     const two = `قال النبي صلى الله عليه وسلم: «${MATN}» ثم قال صلى الله عليه وسلم: «${OTHER}».`;
     const out = await T.applyTakhrij(two, {
@@ -222,14 +240,13 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
         [MATN]: { matn: MATN, subjectIds: ['FC-000645'], atoms: [atomFor(MATN, 'عمر بن الخطاب')] },
       }),
     });
-    const quoted = T.findMatns(out.text);
     ok('both matns were seen', T.findMatns(two).length === 2, String(T.findMatns(two).length));
-    ok('every quoted matn in the delivered text is followed by parentheses',
-      quoted.every((one) => /^\s*\(/u.test(out.text.slice(one.end, one.end + 4))),
-      JSON.stringify(out.text));
-    ok('...including the one the library knew nothing about',
-      out.text.includes('(' + L.NOT_RAISED + ')'), JSON.stringify(out.text));
-    ok('...and the one it did know carries its book', out.text.includes('(البخاري)'), JSON.stringify(out.text));
+    ok('the one the library answered for carries its book',
+      out.text.includes('(البخاري)'), JSON.stringify(out.text));
+    ok('...and the one it knew nothing about carries NOTHING',
+      out.text.includes(`«${OTHER}».`) && !out.text.includes(L.NOT_RAISED), JSON.stringify(out.text));
+    ok('...and both problems are reported, each under its own name',
+      out.problems.includes(T.TAKHRIJ_SILENT), JSON.stringify(out.problems));
     ok('the two were not spliced into one sentence',
       out.text.includes(MATN) && out.text.includes(OTHER), JSON.stringify(out.text));
   }
@@ -245,11 +262,24 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     // The owner measured «إنما الأعمال بالنيات» sitting inside a card with no takhrij at all, and
     // ruled in د-٨: «حديثٌ يُكتَبُ كاملًا وسطَ الكلامِ لا بطاقة … والبطاقاتُ الباقيةُ مثلَ ما هي».
     const card = `<hadith narrator="عمر">«${MATN}»</hadith>`;
-    const cardOut = await T.applyTakhrij(card, { env: ON, lookup: lookupOf({}) });
+    const cardOut = await T.applyTakhrij(card, {
+      env: ON,
+      lookup: lookupOf({ [MATN]: { matn: MATN, subjectIds: ['FC-000645'], atoms: [atomFor(MATN, 'عمر')] } }),
+    });
     ok('a hadith card is dissolved into prose, in its own place',
-      cardOut.text === `«${MATN}» (${L.NOT_RAISED})`, JSON.stringify(cardOut.text));
+      cardOut.text === `«${MATN}» (البخاري)`, JSON.stringify(cardOut.text));
     ok('...and the matn is not quoted twice over',
       (cardOut.text.match(/«/gu) || []).length === 1, JSON.stringify(cardOut.text));
+    // §١ OF THE SILENCE ORDER — AND WITH NOTHING TO CARRY, THE CARD IS NOT DISSOLVED EITHER.
+    // «المتنُ يخرجُ عاريًا كما كانَ قبلَ بنائِنا» is a whole sentence: dissolving a card whose
+    // takhrij was never found would take the model's own narrator and ruling away and hand the
+    // reader less than he had before this item existed.
+    const silentCard = await T.applyTakhrij(card, { env: ON, lookup: lookupOf({}) });
+    ok('a card the library could not answer for stays a card, whole',
+      silentCard.text === card && silentCard.applied === false, JSON.stringify(silentCard.text));
+    ok('...and carries no denial in its place',
+      !silentCard.text.includes(L.NOT_RAISED)
+        && silentCard.problems.includes(T.TAKHRIJ_SILENT), JSON.stringify(silentCard.problems));
     for (const other of ['verse', 'source', 'surah', 'dhikr', 'worship', 'book', 'document']) {
       const block = `<${other} ref="x">«${MATN}»</${other}>`;
       // eslint-disable-next-line no-await-in-loop
@@ -372,12 +402,18 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
         },
       }),
     });
-    ok('8b  both Shaykhs already present: no second call is made',
+    ok('8b  both Shaykhs already CONFIRMED: no second call is made',
       counted.length === 1, String(counted.length));
     counted.length = 0;
     await T.applyTakhrij(text, { env: ON, lookup: countingLookup({}) });
-    ok('8b  neither Shaykh present: no second call is made either',
-      counted.length === 1, String(counted.length));
+    // §٣ OF THE SILENCE ORDER — AND THIS ROW STATED THE DEFECT. It read «neither Shaykh present:
+    // no second call is made either», and neither-present is the case that actually happens: the
+    // ten best rows of a 54-book ladder are the تخريج volumes, not the Ṣaḥīḥ that narrates it
+    // once. Measured live for «إنما الأعمال بالنيات», «أحي والداك» and «الزمها»: zero Shaykhs in
+    // the wide answer for all three, so the narrowed request — the one that finds them — was
+    // never sent, and «(متفق عليه)» could not fire anywhere.
+    ok('8b  neither Shaykh present: the narrowed request IS sent, and that is the §٣ repair',
+      counted.length === 2 && counted[1].length === 2, JSON.stringify(counted.map((c) => c.length)));
 
     // AND IT IS READ ON THE RESULTS, NOT ON THE VERDICT — the owner’s «ظهر في النتائج».
     // The fixture hands back صحيح البخاري whose atom is the CHAPTER HEADING: the id IS in the
@@ -418,8 +454,8 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     // ٢-ج · A SPLIT RULING IS NOT A RULING — asserted on the composer itself, beside the
     // delivered-text witness section 3 already holds.
     const split = L.composeParenthetical(['FC-002060', 'FC-000791']);
-    ok('8c  two graders that disagree produce no grade and no مخرِّج at all',
-      split.grade === null && split.sourced === false && split.text === L.NOT_RAISED,
+    ok('8c  two graders that disagree produce no grade, no مخرِّج and no text at all',
+      split.grade === null && split.sourced === false && split.silent === true && split.text === '',
       JSON.stringify(split.text));
     ok('8c  CAUSAL: one grader alone still states its own ruling',
       L.composeParenthetical(['FC-000791']).grade === 'ضعيف');
@@ -570,9 +606,13 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       if (row.shaykh) continue;
       const built = L.composeParenthetical(row.ids);
       if (!built.sourced) continue;
+      // §١ — AND A DENIAL IS NOT A NAME WITH A MISSING SUFFIX. «(لا يثبت مرفوعا)» is the whole
+      // content of the parentheses when a grader of weakness is the only ladder book that
+      // answered; the ruler travels in the record (`ruledBy`), which row 11 below reads.
+      if (built.text === L.NOT_RAISED) continue;
       if (!built.text.includes(' · ')) bare.push(row.display + ' -> ' + built.text);
     }
-    ok('10b no ladder row below the Shaykhayn can produce a parenthetical with no suffix',
+    ok('10b no ladder row below the Shaykhayn can produce a bare collection name',
       bare.length === 0, JSON.stringify(bare));
     ok('10b ...and the suffix is the grade when a grader stated one',
       L.composeParenthetical(['FC-000658', 'FC-000788']).text === 'الترمذي · صحيح'
@@ -602,7 +642,7 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     ok('10c a matn that is a مضاف إليه does NOT take the parentheses between it and its خبر',
       moved.text.includes(`«${CARRIED}» حديث ثابت عنه`), JSON.stringify(moved.text));
     ok('10c ...they stand at the end of the sentence instead, and the sentence reads whole',
-      moved.text.endsWith('حديث ثابت عنه (ضعيف الجامع · ضعيف).'), JSON.stringify(moved.text));
+      moved.text.endsWith(`حديث ثابت عنه (${L.NOT_RAISED}).`), JSON.stringify(moved.text));
     ok('10c ...and the pass says it deferred them rather than leaving it to be guessed',
       moved.entries.length === 1 && moved.entries[0].deferred === true,
       JSON.stringify(moved.entries));
@@ -680,6 +720,145 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       // evidence for a card or a citation.
       && !/sources:\s*\[[^\]]*takhrijProvenRows/u.test(askSrc),
       'the wire is not the one this row describes');
+  }
+  // ── ١١ · §١ — «لا يثبت مرفوعا» MAY NOT LEAVE WITHOUT A حاكم BEHIND IT ────
+  //
+  // THE OWNER'S ROW, IN HIS WORDS: «وزِدْ صفًّا في الحارسِ يمنعُ خروجَ (لا يثبت مرفوعا) بلا
+  // حكمِ حاكمٍ مرافقٍ في السجلّ». So the assertion is made TWICE over: on the composer, for every
+  // shape of hit it can be handed, and on DELIVERED TEXT, where the owner read the defect.
+  console.log('\n--- 11. THE DENIAL IS A RULING SOMEBODY MADE, OR IT DOES NOT LEAVE ---');
+  {
+    const text = answerWith(MATN);
+    const lookupWith = (ids) => lookupOf({
+      [MATN]: { matn: MATN, subjectIds: ids, atoms: ids.map(() => atomFor(MATN, 'عمر')) },
+    });
+
+    // (أ) THE COMPOSER, OVER EVERY SUBSET OF THE LADDER THAT IS WORTH ASKING ABOUT.
+    // Each row alone, and each row paired with every other: the denial must never appear
+    // without `ruledBy` naming a grader whose own stated ruling is one of NOT_ESTABLISHED_GRADES.
+    const offenders = [];
+    const ladderIds = L.TAKHRIJ_LADDER.map((row) => row.ids[0]);
+    for (let i = 0; i < ladderIds.length; i += 1) {
+      for (let j = i; j < ladderIds.length; j += 1) {
+        const ids = i === j ? [ladderIds[i]] : [ladderIds[i], ladderIds[j]];
+        const built = L.composeParenthetical(ids);
+        if (built.text !== L.NOT_RAISED) continue;
+        const ruled = built.ruled === true && L.NOT_ESTABLISHED_GRADES.includes(built.grade)
+          && String(built.ruledBy || '').length > 0;
+        if (!ruled) offenders.push(ids.join('+') + ' -> ' + JSON.stringify(built));
+      }
+    }
+    ok('11  no combination of ladder books produces a denial nobody ruled',
+      offenders.length === 0, JSON.stringify(offenders.slice(0, 3)));
+    ok('11  ...and the empty library produces no denial at all, but silence',
+      L.composeParenthetical([]).silent === true && L.composeParenthetical([]).text === '');
+    ok('11  ...and a book that merely HOLDS the matn with no stated ruling is silence too',
+      L.composeParenthetical(['FC-002040']).silent === true, JSON.stringify(L.composeParenthetical(['FC-002040'])));
+
+    // (ب) CAUSAL — the denial still leaves when a grader of weakness really is the only answer.
+    // «حب الوطن من الإيمان» is the owner's own example, and السلسلة الضعيفة is the book that
+    // rules it: measured live on ezik-shamela-20260820 on 19 September 2026.
+    const denied = await T.applyTakhrij(text, { env: ON, lookup: lookupWith(['FC-002061']) });
+    ok('11  CAUSAL: a grader of weakness alone DOES print the denial',
+      denied.text.includes('(' + L.NOT_RAISED + ')'), JSON.stringify(denied.text));
+    ok('11  ...and the record beside it names who ruled, and what he ruled',
+      denied.entries[0].ruledBy === 'السلسلة الضعيفة' && denied.entries[0].ruled === true,
+      JSON.stringify(denied.entries));
+    ok('11  ...and no Companion is put in front of a sentence that denies the narration',
+      !/رضي الله عن/u.test(denied.text), JSON.stringify(denied.text));
+
+    // (ج) OVER DELIVERED TEXT, every fixture this guard ships: a denial in the prose and no
+    // ruler in the record is the shape the owner read on his screen, and it cannot occur.
+    const runs = [
+      await T.applyTakhrij(text, { env: ON, lookup: lookupOf({}) }),
+      await T.applyTakhrij(text, { env: ON, lookup: lookupWith(['FC-000658']) }),
+      await T.applyTakhrij(text, { env: ON, lookup: lookupWith(['FC-000645', 'FC-000648']) }),
+      await T.applyTakhrij(text, { env: ON, lookup: lookupWith(['FC-002061']) }),
+      await T.applyTakhrij(text, { env: ON, lookup: lookupWith(['FC-002060', 'FC-000791']) }),
+    ];
+    ok('11  in every delivered fixture, a printed denial has a ruler in the record',
+      runs.every((run) => !run.text.includes(L.NOT_RAISED)
+        || run.entries.some((entry) => entry.parenthetical === L.NOT_RAISED && entry.ruledBy)),
+      JSON.stringify(runs.map((run) => run.text)));
+    ok('11  MUTANT: a run whose library said nothing is byte-identical, every time',
+      runs[0].text === text && runs[4].text === text, JSON.stringify([runs[0].text, runs[4].text]));
+  }
+
+  // ── ١٢ · §٢ — ONE MATN MAY NOT REACH THE READER TWICE ───────────────────
+  console.log('\n--- 12. ONE MATN, ONE APPEARANCE ---');
+  {
+    // The owner's own shape: the model writes the narration in its sentence AND repeats it in a
+    // card underneath. Vocalised in the card and bare in the prose, because that is how it came.
+    const VOCALISED = 'إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ';
+    const BARE = 'إنما الأعمال بالنيات';
+    const answer = `وقال النبي صلى الله عليه وسلم: «${BARE}» فالنية أصل العمل.\n`
+      + `<hadith narrator="أخرجه البخاري" ruling="صحيح">${VOCALISED}</hadith>\n`
+      + 'وهذا أصل عظيم.';
+    const out = await T.applyTakhrij(answer, {
+      env: ON,
+      lookup: lookupOf({
+        [BARE]: { matn: BARE, subjectIds: ['FC-000645'], atoms: [atomFor(BARE, 'عمر بن الخطاب')] },
+        [VOCALISED]: { matn: VOCALISED, subjectIds: ['FC-000645'], atoms: [atomFor(VOCALISED, 'عمر بن الخطاب')] },
+      }),
+    });
+    const appearances = (text, matn) => (text.match(new RegExp(T.tolerant(matn), 'gu')) || []).length;
+    ok('12  the narration reaches the reader ONCE',
+      appearances(out.text, BARE) === 1, JSON.stringify(out.text));
+    ok('12  ...and the copy that survives is the one in the sentence that introduces it',
+      out.text.includes(`«${BARE}» (البخاري) فالنية أصل العمل.`), JSON.stringify(out.text));
+    ok('12  ...and the card is gone whole, with no tag and no blank line behind it',
+      !/<\/?hadith/iu.test(out.text) && !/\n\s*\n/u.test(out.text), JSON.stringify(out.text));
+    ok('12  ...and the prose on both sides is untouched to the character',
+      out.text.startsWith('وقال النبي صلى الله عليه وسلم:')
+        && out.text.endsWith('\nوهذا أصل عظيم.'), JSON.stringify(out.text));
+    ok('12  ...and the drop is recorded as a ruling rather than lost as a silence',
+      out.problems.includes(T.TAKHRIJ_DUPLICATE_DROPPED)
+        && out.entries.some((entry) => entry.dropped === true
+          && entry.declined === 'duplicate_of_prose'), JSON.stringify(out.entries));
+    // AND IT COSTS NO LOOKUP: the dropped card never becomes a query.
+    const asked = [];
+    await T.applyTakhrij(answer, {
+      env: ON,
+      lookup: async (matns) => { asked.push(matns.slice()); return matns.map((m) => ({ matn: m, subjectIds: [], atoms: [] })); },
+    });
+    ok('12  a dropped duplicate is never looked up',
+      asked[0].length === 1 && asked[0][0] === BARE, JSON.stringify(asked));
+    // CAUSAL — A CARD THAT REPEATS NOTHING IS STILL DISSOLVED AND STILL TAKHRIJ'D.
+    const alone = `الحمد لله.\n<hadith narrator="عمر">${VOCALISED}</hadith>\nوبعد.`;
+    const kept = await T.applyTakhrij(alone, {
+      env: ON,
+      lookup: lookupOf({ [VOCALISED]: { matn: VOCALISED, subjectIds: ['FC-000645'], atoms: [atomFor(VOCALISED, 'عمر')] } }),
+    });
+    ok('12  CAUSAL: a card that duplicates nothing keeps its place and gets its book',
+      kept.text.includes(`«${VOCALISED}» (البخاري)`) && !/<\/?hadith/iu.test(kept.text),
+      JSON.stringify(kept.text));
+    // AND THE COMPARISON IS THE FOLDED ONE, so a card vocalised differently is still the same
+    // narration — which is the case that actually shipped.
+    ok('12  the duplicate is recognised across vocalisation',
+      T.findTargets(answer).duplicates.length === 1
+        && T.findTargets(answer).targets.length === 1, JSON.stringify(T.findTargets(answer)));
+  }
+
+  // ── ١٣ · §٣ — THE ROW CAP OF THIS PATH, AND THE MODEL'S OWN ────────────
+  console.log('\n--- 13. TEN ROWS FOR THE TAKHRIJ, FIVE FOR THE MODEL ---');
+  {
+    const fs3 = require('fs');
+    const toolsSrc = fs3.readFileSync(path.join(REPO, 'lib/free-brain/tools.js'), 'utf8');
+    ok('13  the shared ceiling of the model path is untouched and still five',
+      /export const MAX_RESULTS_PER_CALL = 5;/.test(toolsSrc));
+    ok('13  the takhrij path states its own ten as a value',
+      T.TAKHRIJ_ROWS_PER_CALL === 10);
+    ok('13  ...and the runner reads a per-call cap instead of the constant',
+      toolsSrc.includes('const cap = Number.isInteger(ctx.resultCap) && ctx.resultCap > 0'));
+    // AND THE ADAPTER REALLY SENDS IT, driven rather than described.
+    const seenCtx = [];
+    const lookup = T.runnerLookup(async (name, input, ctx) => {
+      seenCtx.push(ctx.resultCap);
+      return { text: '', calls: 1, added: [] };
+    }, { libFlagValue: 'on', libToken: 'fixture' });
+    await lookup([MATN]);
+    ok('13  the takhrij adapter asks the runner for ten rows',
+      seenCtx.length === 1 && seenCtx[0] === 10, JSON.stringify(seenCtx));
   }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
