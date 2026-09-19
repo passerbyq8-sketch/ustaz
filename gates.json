@@ -565,5 +565,15 @@
     "name": "appvpattern",
     "script": "guards/app-version-pattern-parity-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "liveworldkill",
+    "script": "guards/live-world-v2-killswitch-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "livenumbersrc",
+    "script": "guards/live-number-source-guard.cjs",
+    "args": ""
   }
 ]

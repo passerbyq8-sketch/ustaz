@@ -717,10 +717,14 @@ async function runSuite() {
     // went red here and stayed red, with 104 PASS and no printed FAIL beside the sub-suite's
     // exit code. If you are registering a gate, this line is the fifth stop and the only one
     // whose file name says nothing about gates.
-    function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 112; }
+    // LIVE_WORLD_V2 ROUND (2026-09-19): 112 -> 114, same rule again, and TWO gates this time --
+    // `liveworldkill` (guards/live-world-v2-killswitch-guard.cjs) and `livenumbersrc`
+    // (guards/live-number-source-guard.cjs). The fifth stop was reached from the note above and
+    // not from a red gate; adding two at once costs the same five edits, once.
+    function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 114; }
     ok('ORIGINAL_GATE_SET_MATCH', exactGateSet(EXPECTED_GATES));
-    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 112-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
-    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 112-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
+    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 114-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
+    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 114-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
 
     const m13 = await storedMutant(temp, 'fiqh-before-special', (source) => source.replace(
       "if (QURAN_REQUEST.test(folded)) return 'LOCAL_QURAN';",
