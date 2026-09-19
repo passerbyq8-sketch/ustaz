@@ -312,8 +312,8 @@ environment, so `client()` returns `null` on every real path. No key was created
 
 | | |
 |---|---|
-| Policy rows | 28 |
-| Enabled | 22 |
+| Policy rows | 31 |
+| Enabled | 25 |
 | Enabled **and** searchable | 19 |
 | Registry total | 32 |
 | Registry active | 19 |
@@ -323,6 +323,14 @@ environment, so `client()` returns `null` on every real path. No key was created
 | `conformanceProblems()` | `[]` |
 | Capabilities changed by this RFC | **0** |
 | Sources activated by this RFC | **0** |
+
+**Policy rows and Enabled moved 28 -> 31 and 22 -> 25 on 2026-09-20** (LIVE_WORLD_V2, order ع-١):
+`aljazeera.net`, `bbc.com` and `skynewsarabia.com` gained **carriage-only** rows — `caps: {}`,
+`searchable: false` — so the world fetcher can open the pages its own search list returns. The two
+counters below do not move with them: no capability was granted, and no source was activated. Both
+rows are counted here because this table counts DECLARED rows; `policyFor()` withholds all three
+while `LIVE_WORLD_V2` is off, so with the switch off the fetcher refuses them exactly as it always
+has. `Enabled and searchable` is therefore unchanged at 19, and `conformanceProblems()` is still `[]`.
 
 `shamela.ws` — absent from both tables. `shkhudheir.com` — `disabled`, non-searchable.
 `binothaimeen.net` — `enabled`, **adapter-only**, `searchable: false`. Primary-opinion adapters:
