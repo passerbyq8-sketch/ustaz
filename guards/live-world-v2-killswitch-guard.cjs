@@ -177,7 +177,14 @@ const EXPECTED_MOVES = {
       (owner.match(/process\.env\.LIVE_WORLD_V2/g) || []).length === 1);
     // Every other module that acts on the flag must go through the exported function, so there
     // is one definition of "on" and not two spellings of it.
-    for (const rel of ['lib/world-intent.js', 'lib/source-registry.js', 'api/ask.js']) {
+    //
+    // THE SECOND ORDER (2026-09-20) ADDED TWO MORE READERS AND ONE NON-READER. The ledger's source
+    // policy and the free brain's instruction block both test the flag themselves and are listed
+    // here. lib/free-brain/tools.js deliberately is NOT: it reaches the switch through
+    // `asksLiveNumber`, which lib/world-intent.js owns and gates, so the tool layer has no flag
+    // test of its own to keep in step. Section C asserts that wiring by name.
+    for (const rel of ['lib/world-intent.js', 'lib/source-registry.js', 'api/ask.js',
+      'lib/ledger/source-policy.js', 'lib/free-brain/instructions.js']) {
       ok(rel + ' reaches the flag through liveWorldV2Enabled()',
         /import \{ liveWorldV2Enabled \} from '[^']*live-world-v2\.js';/.test(read(rel))
         && read(rel).includes('liveWorldV2Enabled('));
@@ -202,6 +209,38 @@ const EXPECTED_MOVES = {
         && Array.isArray(RET.SITES_GENERAL));
   }
 
+  // ── THE SECOND ORDER'S OWN "OFF" (2026-09-20) ──────────────────────────────
+  // Three behaviours were added on 20 September and every one of them must be absent here.
+  {
+    const SPOL = await esm('lib/ledger/source-policy.js');
+    const CANON = await esm('lib/ledger/canonical.js');
+    // ع-١ — the three news rows. With the switch off the fetcher must refuse them exactly as it
+    // has refused them since the world list shipped: no policy row, `not-an-admissible-url`.
+    const newsOff = withFlag(undefined, () => ['aljazeera.net', 'bbc.com', 'skynewsarabia.com']
+      .filter((d) => SPOL.policyFor(d) !== null || CANON.admissible('https://' + d + '/x') !== false));
+    eq('the three world news hosts are still un-admissible to the fetcher', newsOff, []);
+    eq('...and the searchable set is untouched by their rows',
+      withFlag(undefined, () => SPOL.searchableDomains().length),
+      withFlag('on', () => SPOL.searchableDomains().length));
+    eq('...and the table still conforms to the shipped registry',
+      withFlag(undefined, () => SPOL.conformanceProblems()), []);
+
+    // ٢/٢ — the live-quantity rule answers NO to everything while the switch is off, including
+    // the two classes that are live quantities in their own right.
+    const liveOff = withFlag(undefined, () => [
+      'كم سعر جرام الذهب اليوم في الكويت؟',
+      'شنو الطقس اليوم؟',
+      'كم يساوي الدولار مقابل الدينار الكويتي اليوم؟',
+    ].filter((q) => WI.asksLiveNumber(q) !== false));
+    eq('asksLiveNumber() is false for every question with the switch off', liveOff, []);
+
+    // ٢/١ — the instruction block the free brain is given carries no new line.
+    const INSTR = await esm('lib/free-brain/instructions.js');
+    const offText = withFlag(undefined, () => INSTR.buildFreeBrainInstruction({ band: 'adult' }));
+    ok('the free-brain instruction says nothing about an exchange rate',
+      !offText.includes('search_live كما تطلبُ'), offText.slice(0, 120));
+  }
+
   // THE CALL SITES. Behaviour checks cannot reach the handler, so the handler is read: every
   // thing this round added must be inside a `liveWorldV2Enabled()` test, and the test must be
   // the one from the owning module.
@@ -219,8 +258,58 @@ const EXPECTED_MOVES = {
       /liveNumber: liveWorldV2Enabled\(\) && \(LIVE_QUANTITY \|\| LIVE_QUANTITY_FX\)/.test(ASK));
     ok('the print contract is gated',
       /if \(liveWorldV2Enabled\(\)\) \{[\s\S]{0,900}enforceLiveNumberSourcing\(wOut, \{ sources: worldPass\.sources \}\)/.test(ASK));
-    ok('...and enforceLiveNumberSourcing is called nowhere else in the handler',
-      (ASK.match(/enforceLiveNumberSourcing\(/g) || []).length === 1);
+    // ── THE SECOND SEAT, AND WHY THIS COUNT IS NOW TWO (2026-09-20) ────────
+    // It said ONE until the free brain was wired, and the reason it said one was never «once is
+    // enough» — it was that a call outside a `liveWorldV2Enabled()` test is a behaviour the
+    // switch cannot take back. So the count moves with the owner's order and the CLAIM does not:
+    // every seat is named, and every named seat is gated.
+    ok('...and enforceLiveNumberSourcing is called in exactly the TWO gated seats',
+      (ASK.match(/enforceLiveNumberSourcing\(/g) || []).length === 2);
+    ok('the free-brain seat is gated, and on the QUESTION rather than on the answer',
+      /if \(liveWorldV2Enabled\(\) && asksLiveNumber\(questionText\)\) \{/.test(ASK));
+    ok('...and it reads the live rows the turn actually retrieved',
+      /enforceLiveNumberSourcing\(readerText, \{ sources: liveSources \}\)/.test(ASK));
+    ok('...and it stands down once bytes have gone on the wire, and says so',
+      /if \(out\.streamedThisTurn === true\) \{[\s\S]{0,300}live_number:inside_emitted_bytes/.test(ASK),
+      'a deletion after the reader holds the text can only fail the prefix test');
+    ok('...and an emptied free-brain answer takes the server-owned line, with no cards',
+      /finalizerContext\.readerCards = \[\];[\s\S]{0,200}liveSearchNotice\(\{ worldWanted: true, answeredFromLive: false \}\)/.test(ASK));
+
+    // ٢/٢ — the tool layer decides `liveNumber` through the owning module and not by a list.
+    const TOOLS = read('lib/free-brain/tools.js');
+    ok('search_live decides the live-number question through lib/world-intent.js',
+      /import \{ asksLiveNumber, classifyWorldIntent \} from '\.\.\/world-intent\.js';/.test(TOOLS)
+      && /const liveNumber = asksLiveNumber\(query\);/.test(TOOLS));
+    ok('...and passes it to the open search, which is where the encyclopedia is refused',
+      /retrieveOpenWorld\(query, \{\s*band: ctx\.band, dailyBudget: ctx\.dailyBudget, liveNumber,/.test(TOOLS));
+    ok('...and reads no environment of its own',
+      !/process\.env/.test(TOOLS), 'the tool layer is driven by api/ask.js and by ctx');
+    // ٢/٤ — the trace, and what it may not carry.
+    ok('search_live leaves one trace line per call',
+      /console\.warn\('\[free-brain\/live\]', \{[\s\S]{0,300}sources: added\.length/.test(TOOLS));
+    ok('...and the trace carries no error MESSAGE and no matched WORD from the question',
+      !/\[free-brain\/live\][\s\S]{0,400}(?:message:|matched:)/.test(TOOLS));
+
+    // ٢/١ — the instruction line is appended under the switch, never written into the old lines.
+    const INSTR = read('lib/free-brain/instructions.js');
+    ok('the free-brain governing block is assembled behind the switch',
+      /function governing\(\) \{[\s\S]{0,200}liveWorldV2Enabled\(\) \? \[\.\.\.GOVERNING_LINES, FX_GOVERNING_LINE\]/.test(INSTR));
+    ok('...and the three pre-round lines are untouched',
+      /'- السؤالُ العامّ: أجِبْ مباشرةً، وابحثْ عند الحاجة وحدَها \(خبرٌ، طقسٌ، سعرٌ، رقمٌ متغيّر، أو شيءٌ حدث بعد معرفتك\)\.',/.test(INSTR));
+
+    // ع-١ — the three news rows are declared unconditionally and admitted conditionally.
+    const POL = read('lib/ledger/source-policy.js');
+    ok('the three news rows are declared in the table whatever the switch says',
+      /domain: 'aljazeera\.net'/.test(POL) && /domain: 'bbc\.com'/.test(POL)
+      && /domain: 'skynewsarabia\.com'/.test(POL),
+      'a row that disappears with an environment variable is a row nobody can review');
+    ok('...and policyFor() is the ONE place that withholds them',
+      /const LIVE_WORLD_V2_ROWS = new Set\(\['aljazeera\.net', 'bbc\.com', 'skynewsarabia\.com'\]\);/.test(POL)
+      && /if \(row && LIVE_WORLD_V2_ROWS\.has\(row\.domain\) && !liveWorldV2Enabled\(\)\) return null;/.test(POL));
+    ok('...and they grant nothing but carriage',
+      /domain: 'aljazeera\.net'[\s\S]{0,200}searchable: false, caps: \{\}/.test(POL)
+      && /domain: 'bbc\.com'[\s\S]{0,200}searchable: false, caps: \{\}/.test(POL)
+      && /domain: 'skynewsarabia\.com'[\s\S]{0,200}searchable: false, caps: \{\}/.test(POL));
     // The ORIGINAL line is untouched, which is what keeps guards/source-honesty-guard.cjs F4
     // meaningful — the new reason was added beside it, not inside it.
     ok('the original LIVE_QUANTITY line is still character-for-character what it was',
@@ -281,6 +370,123 @@ const EXPECTED_MOVES = {
       'a row that disappears with an environment variable is a row nobody can review');
     ok('...and it may serve NO religious purpose, switch or no switch',
       REG.PURPOSES.every((p) => REG.sourceAllowsPurpose('cbk.gov.kw', p) === false));
+
+    // ── THE SECOND ORDER'S OWN "ON" (2026-09-20) ────────────────────────────
+    const SPOL = await esm('lib/ledger/source-policy.js');
+    const CANON = await esm('lib/ledger/canonical.js');
+    const newsOn = withFlag('on', () => ['aljazeera.net', 'bbc.com', 'skynewsarabia.com']
+      .filter((d) => {
+        const row = SPOL.policyFor(d);
+        return !(row && row.health === 'enabled' && row.searchable === false
+          && CANON.admissible('https://' + d + '/x') === true);
+      }));
+    eq('the three news hosts become FETCHABLE, and nothing more', newsOn, []);
+    const CAPS = await esm('lib/ledger/capability.js');
+    eq('...and NO capability follows the carriage — a news page backs no ruling',
+      withFlag('on', () => {
+        const granted = [];
+        for (const d of ['aljazeera.net', 'bbc.com', 'skynewsarabia.com']) {
+          for (const c of CAPS.CAPABILITIES) {
+            if (SPOL.capabilityEligible(d, c)) granted.push(d + ':' + c);
+          }
+        }
+        return granted;
+      }), []);
+    eq('...and they are still not a place the engine may search',
+      withFlag('on', () => SPOL.searchableDomains()
+        .filter((d) => ['aljazeera.net', 'bbc.com', 'skynewsarabia.com'].includes(d))), []);
+
+    // ٢/٢ — the live-quantity rule, ON, over the three classes it names and one it does not.
+    const liveOn = withFlag('on', () => ({
+      price: WI.asksLiveNumber('كم سعر جرام الذهب اليوم في الكويت؟'),
+      weather: WI.asksLiveNumber('شنو الطقس اليوم؟'),
+      fx: WI.asksLiveNumber('كم يساوي الدولار مقابل الدينار الكويتي اليوم؟'),
+      news: WI.asksLiveNumber('ما آخر أخبار غزة؟'),
+      clock: WI.asksLiveNumber('كم تاريخ اليوم؟'),
+      religious: WI.asksLiveNumber('كم نصاب زكاة الذهب بالجرام؟'),
+      science: WI.asksLiveNumber('كم تبعد الشمس عن الأرض؟'),
+    }));
+    eq('asksLiveNumber() fires on the three moving-number classes and on nothing else',
+      liveOn,
+      { price: true, weather: true, fx: true, news: false, clock: false, religious: false, science: false });
+
+    // ── ٢/٢ DRIVEN, NOT GREPPED — search_live WITH THE PROVIDER STUBBED ─────
+    //
+    // The three checks above read source. This one runs the tool: the provider is a stub, the
+    // day's budget is a stub that always grants, and what is measured is WHICH RESULTS SURVIVE.
+    // An encyclopedia row and a news row go in; with the switch on and a moving-number question
+    // the encyclopedia is dropped and the news row is kept, and with the switch off both are
+    // kept — which is today's app, exactly.
+    {
+      const TOOLS_M = await esm('lib/free-brain/tools.js');
+      const realFetch = globalThis.fetch;
+      const hadKey = Object.prototype.hasOwnProperty.call(process.env, 'BRAVE_API_KEY');
+      const oldKey = process.env.BRAVE_API_KEY;
+      process.env.BRAVE_API_KEY = 'stub-key-never-sent';
+      // The site-filtered pass returns nothing, so the turn falls to the open search — which is
+      // the pass `liveNumber` narrows, and the only one this check is about.
+      globalThis.fetch = async (url) => ({
+        ok: true,
+        status: 200,
+        text: async () => '',
+        json: async () => ({
+          web: {
+            results: /site(?:%3A|:)/.test(String(url)) ? [] : [
+              { title: 'مقالة موسوعية', url: 'https://ar.wikipedia.org/wiki/x', description: 'نص' },
+              { title: 'تقرير', url: 'https://www.aljazeera.net/ebusiness/2026/9/20/x', description: 'نص' },
+            ],
+          },
+        }),
+      });
+      const drive = async (query) => {
+        const ctx = {
+          table: TOOLS_M.createEvidenceTable(),
+          band: 'adult',
+          dailyBudget: { reserve: async () => ({ ok: true }) },
+          spend: [], degraded: [], injectionMarkers: [], liveCalls: [],
+        };
+        const out = await TOOLS_M.runTool('search_live', { query }, ctx);
+        return { hosts: ctx.liveCalls.flatMap((c) => c.sources.map((s) => s.host)), ctx };
+      };
+      try {
+        const FX = 'سعر صرف الين الياباني مقابل الكرونة السويدية';
+        const on = await (async () => {
+          process.env.LIVE_WORLD_V2 = 'on';
+          return drive(FX);
+        })();
+        eq('ON: a moving-number search keeps the news page and drops the encyclopedia',
+          on.hosts, ['aljazeera.net']);
+        ok('...and the turn records that a live NUMBER was asked for',
+          on.ctx.liveCalls.length === 1 && on.ctx.liveCalls[0].liveNumber === true);
+        const news = await (async () => {
+          process.env.LIVE_WORLD_V2 = 'on';
+          return drive('آخر أخبار غزة اليوم');
+        })();
+        eq('ON: a NEWS search keeps the encyclopedia — it is refused for figures, not for facts',
+          news.hosts, ['ar.wikipedia.org', 'aljazeera.net']);
+        const off = await (async () => {
+          delete process.env.LIVE_WORLD_V2;
+          return drive(FX);
+        })();
+        eq('OFF: the same moving-number search keeps both, exactly as it does today',
+          off.hosts, ['ar.wikipedia.org', 'aljazeera.net']);
+        ok('...and records no live-number request at all',
+          off.ctx.liveCalls.length === 1 && off.ctx.liveCalls[0].liveNumber === false);
+      } finally {
+        globalThis.fetch = realFetch;
+        if (hadKey) process.env.BRAVE_API_KEY = oldKey; else delete process.env.BRAVE_API_KEY;
+        delete process.env.LIVE_WORLD_V2;
+      }
+    }
+
+    // ٢/١ — the instruction gains exactly ONE line, and it is the exchange line.
+    const INSTR = await esm('lib/free-brain/instructions.js');
+    const off = withFlag(undefined, () => INSTR.buildFreeBrainInstruction({ band: 'adult' })).split('\n');
+    const on = withFlag('on', () => INSTR.buildFreeBrainInstruction({ band: 'adult' })).split('\n');
+    const added = on.filter((line) => !off.includes(line));
+    ok('the free-brain instruction gains exactly one line, and it names search_live',
+      added.length === 1 && added[0].includes('search_live'), JSON.stringify(added));
+    eq('...and removes none', off.filter((line) => !on.includes(line)), []);
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -293,6 +499,14 @@ const EXPECTED_MOVES = {
       'drifted=' + drift.length);
     const list = withFlag('on', () => REG.domainsForWorld());
     ok('...and the world-list check is real too', list.length === 5);
+    // The same question asked of the 2026-09-20 half: section C's «still un-admissible» is only
+    // worth something if the switch can make it false.
+    const SPOL = await esm('lib/ledger/source-policy.js');
+    ok('...and the fetcher-admission check is real: ON, all three hosts have a row',
+      withFlag('on', () => ['aljazeera.net', 'bbc.com', 'skynewsarabia.com']
+        .every((d) => SPOL.policyFor(d) !== null)));
+    ok('...and asksLiveNumber is real: ON, the FX question is a live number',
+      withFlag('on', () => WI.asksLiveNumber('كم يساوي الدولار مقابل الدينار الكويتي اليوم؟') === true));
   }
 
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL ===' : ' — PASS ==='));

@@ -226,6 +226,77 @@ const DROP = [
       'an answer may only credit a source it actually had');
   }
 
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('\n=== I. THE FREE-BRAIN SEAT — and the settled number it may not touch ===');
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ٢/٣'s THIRD CONSTRAINT, IN THE OWNER'S WORDS: «الجوابُ الشرعيُّ والعلميُّ لا يُمَسّ… فيهما
+  // أرقامٌ (١٥٠ مليون كم · ٨٫٥ دقائق) وهي معرفةٌ مستقرّةٌ لا رقمٌ يتحرّك. إن حذفَ عقدُك واحدًا
+  // منهما فالعقدُ خطأٌ لا الجواب.»
+  //
+  // AND THE MEASUREMENT THAT DECIDED HOW IT IS KEPT. The enforcement is a rule about UNITS beside
+  // DIGITS, and three of its units — «يساوي», «درجة», «جرام» — are as ordinary in settled prose as
+  // they are in a quoted rate. Run over EVERY free-brain answer it would therefore empty an
+  // astronomy answer that says «يساوي ١٥٠ مليون كم… ٥٥٠٠ درجة مئوية» and a zakat answer that says
+  // «نصابُ الذهبِ ٨٥ جرامًا… أي ٢٫٥٪». Both are measured below, and both are why the seat is gated
+  // on the QUESTION: `asksLiveNumber` answers NO to a science question and NO to a religious one,
+  // so on those turns the contract is never reached. The gate is not a convenience; it is the
+  // constraint, and these assertions are what stop it being deleted as redundant.
+  {
+    const WI = await esm('lib/world-intent.js');
+    const withFlag = (value, fn) => {
+      const had = Object.prototype.hasOwnProperty.call(process.env, 'LIVE_WORLD_V2');
+      const old = process.env.LIVE_WORLD_V2;
+      process.env.LIVE_WORLD_V2 = value;
+      try { return fn(); } finally {
+        if (had) process.env.LIVE_WORLD_V2 = old; else delete process.env.LIVE_WORLD_V2;
+      }
+    };
+
+    // THE SWITCH IS FORCED ON for every check in this section. Off, `asksLiveNumber` is false for
+    // everything and the section would pass while proving nothing.
+    const gated = withFlag('on', () => ({
+      rayleigh: WI.asksLiveNumber('ما سبب زرقة السماء؟ اشرح لي تشتت رايلي'),
+      sun: WI.asksLiveNumber('كم تبعد الشمس عن الأرض؟ وكم يستغرق ضوءها حتى يصلنا؟'),
+      sunHeat: WI.asksLiveNumber('كم درجة حرارة سطح الشمس؟'),
+      zakat: WI.asksLiveNumber('كم نصاب زكاة الذهب بالجرام؟'),
+      fitr: WI.asksLiveNumber('كم مقدار زكاة الفطر بالكيلو؟'),
+      // …and the other direction, so the gate is not simply always-false.
+      fx: WI.asksLiveNumber('كم يساوي الين الياباني مقابل الكرونة السويدية اليوم؟'),
+      price: WI.asksLiveNumber('كم سعر أوقية الفضة اليوم؟'),
+    }));
+    eq('the seat is closed to the science and the fiqh question, and open to the two live ones',
+      gated,
+      { rayleigh: false, sun: false, sunHeat: false, zakat: false, fitr: false, fx: true, price: true });
+
+    // The owner's two witnesses, written as this app writes them. These survive the enforcement
+    // ITSELF, byte for byte, with no source and no date anywhere in them.
+    const RAYLEIGH = 'تشتّتُ رايلي هو تشتّتُ الضوءِ على جُسيماتٍ أصغرَ من طولِ موجتِه. وشدّةُ التشتّتِ '
+      + 'تتناسبُ عكسيًّا مع القوّةِ الرابعةِ لطولِ الموجة، فتُشتَّتُ الأطوالُ القصيرةُ أكثرَ من الطويلة.';
+    const SUN = 'متوسّطُ بُعدِ الشمسِ عن الأرضِ نحو 150 مليون كيلومتر، وهي الوحدةُ الفلكيّة. '
+      + 'والضوءُ يقطعُ هذه المسافةَ في نحو 8.3 دقائق.';
+    for (const [name, text] of [['تشتّت رايلي', RAYLEIGH], ['بُعد الشمس', SUN]]) {
+      const r = run(text);
+      ok('«' + name + '» passes the enforcement byte for byte',
+        r.text === text && r.removed.length === 0 && r.emptied === false,
+        JSON.stringify({ removed: r.removed, text: r.text }));
+    }
+
+    // AND THE TWO THAT WOULD NOT — the reason the gate exists, asserted rather than remembered.
+    const SUN_HEAT = 'بُعدُ الشمسِ عن الأرضِ يساوي 150 مليون كم تقريبًا، ودرجةُ حرارةِ سطحِها نحو 5500 درجة مئوية.';
+    const NISAB = 'نصابُ الذهبِ 85 جرامًا، ونصابُ الفضّةِ 595 جرامًا. ومن ملكَ ذلك وحالَ عليه الحولُ أخرجَ ربعَ العشرِ، أي 2.5%.';
+    ok('a settled astronomy sentence with «يساوي» and «درجة مئوية» WOULD be emptied by the raw contract',
+      run(SUN_HEAT).emptied === true,
+      'this is why the seat is gated on the question and not run over every answer');
+    ok('...and so WOULD a zakat nisab in grams and a quarter-tenth in percent',
+      run(NISAB).emptied === true);
+
+    // The wiring itself: the handler's free-brain seat asks the gate before it asks the contract.
+    const ASK = read('api/ask.js');
+    ok('the handler gates the free-brain seat on asksLiveNumber(questionText)',
+      /if \(liveWorldV2Enabled\(\) && asksLiveNumber\(questionText\)\) \{[\s\S]{0,1400}enforceLiveNumberSourcing\(readerText,/.test(ASK));
+  }
+
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL ===' : ' — PASS ==='));
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
