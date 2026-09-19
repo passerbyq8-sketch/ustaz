@@ -20920,6 +20920,10 @@ function SurahCard({ num, from, to, onPlaySurah, onStopAudio }) {
 // ============================================================
 // ITEM 28. A QUR'ANIC SPAN IS NOT A «نص منقول».
 // ============================================================
+// AND THAT LABEL IS GONE SINCE البند ٥٠ (19 September 2026) — see `SUNNAH_CARD_LABEL` below.
+// Item 28 stands unchanged and is not made redundant by it: the verse branch still replaces the
+// heading with «قَالَ اللهُ تَعَالَى», because «من السنة النبوية» over an āyah is the same category
+// error the neutral label was, only quieter. What follows is why the branch exists.
 // MEASURED BEFORE: HadithCard printed «نص منقول» over WHATEVER its tag carried whenever the
 // model sent no narrator and no ruling. A verse of the Qur'an that arrived inside a <hadith>
 // tag was therefore shown to a child as a "transmitted text" -- in the same conversation where
@@ -20965,12 +20969,26 @@ const readStatedAyahRef = (t) => {
   if (found.some((f) => f.surah !== first.surah || f.ayah !== first.ayah)) return null;
   return first;
 };
-const NEUTRAL_HADITH_LABEL = 'نص منقول';
+// ── البند ٥٠ · أمرُ الإغلاقِ §٢ — الوسمُ الرابعُ نُزِعَ نزعًا تامًّا ──────────────
+//
+// THE FOURTH OF THE FOUR CONFIDENCE MARKS. Three were removed from lib/output-reviewer.js on
+// 18 September; this one was never reached by that order because it is not a reviewer mark at
+// all — it is a hadith CARD'S HEADING, and it stood here printing «نص منقول» over the Prophet's
+// ﷺ own words whenever the card arrived with neither a narrator nor a grade.
+//
+// MEASURED BY THE OWNER ON THE LIVE APP, 14 September 2026, and again in the wide battery of
+// 19 September. His ruling: «يُنزَعُ الوسمُ نزعًا تامًّا. وبطاقةُ الحديثِ تحملُ «من السنة النبوية»
+// في الحالَينِ — بوجودِ الراوي والحكمِ وبعدمِهما. لا وسمَ ثالثَ ولا فراغ.»
+//
+// SO THE LABEL IS A CONSTANT AND NOT A DECISION. `att` is still read below, for the GRADE line
+// under the text — what a card knows about its narrator governs what it prints UNDER the matn,
+// and never what it prints over it.
+const SUNNAH_CARD_LABEL = 'من السنة النبوية';
 
 function HadithCard({ content, narrator, ruling }) {
   // خانةُ المخرِّجِ قد تصلُ مملوءةً بالدرجة، فتُطبَعُ الدرجةُ مرّتين وأُولاهما «رَوَى متفق عليه».
   const att = resolveHadithAttribution(narrator, ruling);
-  let label = (!att.narrator && !att.ruling) ? NEUTRAL_HADITH_LABEL : 'من السنة النبوية';
+  let label = SUNNAH_CARD_LABEL;
   // ITEM 28. Scripture first, and it outranks the attribution entirely: a verse carries no
   // narrator and takes no grading, so a ruling printed under one would be a hadith's apparatus
   // applied to the Qur'an. The reference replaces it, and only if the content stated one.

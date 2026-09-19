@@ -282,15 +282,26 @@ async function mutants() {
 
   // M1 — put mid-sentence surgery back: excise the unsupported credit and ship the claim that was
   // sitting around it. This is the exact defect X-013/z removes, so A2 must go red.
+  //
+  // THE SEAM MOVED ON 19 SEPTEMBER AND THE MUTATION MOVED WITH IT, UNCHANGED IN WHAT IT DOES.
+  // البند ٥٠ §١ made the seal keep a condemned sentence's QUOTATION — the credit, the grade and
+  // every clause around it still go — so the whole-sentence cut now sits in the `else` arm of
+  // `matnToSalvage`. This mutation replaces THAT arm with the excision, which is the same defect
+  // in the same place. DRAFT quotes nothing and carries no colon, so it takes the else arm and
+  // the mutant reaches it exactly as before.
   await mutate('takhrij-restore-mid-sentence-surgery', TAKHRIJ,
     (s) => s.replace(
-      `    cuts.push({ start: sen.start, end: sen.end });
+      `    } else {
+      cuts.push({ start: sen.start, end: sen.end, insert: '' });
+    }
     droppedSentences.push({ text: body.trim(), spans: unsupported.map((x) => x.phrase) });
     for (const sp of unsupported) removed.push({ kind: sp.kind, phrase: sp.phrase });`,
-      `    for (const sp of unsupported) {
-      cuts.push({ start: sen.start + sp.start, end: sen.start + sp.end });
-      removed.push({ kind: sp.kind, phrase: sp.phrase });
-    }`),
+      `    } else {
+      for (const sp of unsupported) {
+        cuts.push({ start: sen.start + sp.start, end: sen.start + sp.end, insert: '' });
+      }
+    }
+    for (const sp of unsupported) removed.push({ kind: sp.kind, phrase: sp.phrase });`),
     (mod) => {
       const r = mod.lockTakhrij(DRAFT, [PAGE]);
       // "Survived" is A2's own assertion re-evaluated: if it still holds under the mutant, the

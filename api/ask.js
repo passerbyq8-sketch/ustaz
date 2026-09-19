@@ -122,6 +122,7 @@ import { runClosedDeenTurn } from '../lib/closed-deen.js';
 // what arrives; LIB_MAX_CHARS_PER_HIT_CEILING caps a request parameter this tree never sends.
 import { LIB_MAX_CHARS_PER_HIT_DEFAULT } from '../lib/lib-contract.js';
 import { freeBrainDecision } from '../lib/free-brain/flag.js';
+import { takhrijDecision } from '../lib/takhrij.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 // The free path's own empty-reply text, صنف (ب): the system declaring a limit, not answering.
@@ -1026,6 +1027,19 @@ export default async function handler(req, res) {
   // affecting legacy retrieval choices while still making accepted, used evidence visible to the
   // takhrij/finalization boundary.
   const storedFinalizerSources = [];
+  // ── WHAT THE LIBRARY PROVED FOR البند ٥٠, HANDED TO THE SEAL AND TO NOTHING ELSE ──
+  //
+  // MEASURED 19 September 2026. The takhrij pass writes «(متفق عليه)» only when the library's own
+  // pages for that matn came back from BOTH Ṣaḥīḥs — and «متفق عليه» is one of the four phrases
+  // lib/takhrij-lock.js reads as an attribution, which it then drops the whole sentence for unless
+  // a FETCHED page carries it. The takhrij pass's evidence table is private (never the reader's
+  // cards), so the seal could not see the very page that established the claim, and deleted the
+  // hadith it had just sourced. This array is that page list, by book name.
+  //
+  // IT IS DELIBERATELY NARROW. Only the rows the pass CONFIRMED, only for the parenthetical it
+  // actually wrote, and only into `seal` below — never into the finalizer's `sources`, where it
+  // would widen what counts as evidence for a card or a citation.
+  const takhrijProvenRows = [];
   // REJECTED AND COUNTED — lib/retrieve.js refuses every instruction-bearing page before it can
   // become model context or a source card, and reports the marker shapes it rejected. This is
   // where the request adds them up, so the rejection remains observable across fallback passes.
@@ -1045,7 +1059,10 @@ export default async function handler(req, res) {
   // A template, a refusal or a card carries no takhrij, so for those this returns its input
   // byte-for-byte — which is why it is safe to put on the one path they all share.
   const seal = (text) => {
-    const locked = lockTakhrij(String(text == null ? '' : text), [...fetchedPages, ...storedFinalizerSources]);
+    const locked = lockTakhrij(
+      String(text == null ? '' : text),
+      [...fetchedPages, ...storedFinalizerSources, ...takhrijProvenRows],
+    );
     if (locked.removed.length || locked.droppedSentences.length) {
       console.warn('[takhrij] unsupported takhrij removed:', {
         removed: locked.removed.map((r) => r.kind).join(','),
@@ -1805,8 +1822,89 @@ export default async function handler(req, res) {
       // P5 §٣ — the ONE exit that delivers a whole message. `emitUnits` falls back to
       // `emitOnce` on every decline, so with STREAM_V1 off `out.readerUnits` is empty and
       // this line does exactly what it did before, byte for byte.
+      // ══════════════════════════════════════════════════════════════════════
+      // البند ٥٠ — التخريجُ، خلفَ مفتاحِه المطفأ (TAKHRIJ_V1)
+      // ══════════════════════════════════════════════════════════════════════
+      //
+      // WITH THE SWITCH OFF THIS PASS RETURNS ITS ARGUMENT AND MAKES NO CALL, so this
+      // deployment answers byte for byte as it did before. That is the owner’s §٢-أ in one
+      // line: a takhrij written out of the model’s head would ascribe a hadith to مسلم who
+      // does not have it, and a false ascription to the Prophet ﷺ is worse than no takhrij.
+      //
+      // ── THE WIRE IS ROUTE (ب), AND THE LIBRARY STILL HAS ONE DOOR ─────────
+      // The owner ruled it on 19 September: the pass reaches the library THROUGH the gated
+      // runner in lib/free-brain/tools.js, not through a second `searchLibrary` call site.
+      // guards/lib-book-contract-guard.cjs row A7 therefore does not move, and this file
+      // names no service and holds no fetch of its own.
+      //
+      // AND THE MODEL DOES NOT CHOOSE THIS. `runTool` is driven here, over prose that is
+      // already written, on a table of its own — the reader’s cards were picked above and
+      // this evidence table is not that one, so a lookup can add no card and move no ref.
+      //
+      // ── IT STANDS DOWN ON A STREAMED TURN, AND SAYS SO ────────────────────
+      // MEASURED on ezik.app, 19 September 2026: the reader saw his first text at 8.7s and was
+      // still receiving it 25s later, in four pieces. A pass that rewrites a sentence AFTER the
+      // reader already has it cannot deliver — it can only withdraw text that was sent. The
+      // precedent is the ascription door’s own exit at lib/free-brain/loop.js:3615, and this
+      // takes the same one under its own name rather than inventing a second vocabulary.
+      // Seeing the contract end to end therefore needs STREAM_V1 off beside TAKHRIJ_V1 on,
+      // which is one environment write and no deploy.
+      //
+      // ── AND IT RUNS ONLY WHEN THE LIBRARY IS REALLY REACHABLE ─────────────
+      // The floor of the contract is «(لا يثبت مرفوعا)». That sentence is TRUE when the
+      // library was asked and had nothing, and it is a slander when the library was never
+      // asked at all — it would stamp «not established» on صحيح البخاري. So the pass is not
+      // run at all unless the flag, the token and the adult band are all in hand. The depth
+      // is deliberately NOT part of this condition: §٢-ج orders the takhrij in الأطوار
+      // الثلاثة كلها, and the depth gate at :869 is the library’s rule, not the takhrij’s.
+      // The band gate IS kept, because widening a minor’s sources is not this item’s to do.
+      let readerText = out.text || FREE_BRAIN_EMPTY;
+      const takhrij = takhrijDecision();
+      if (takhrij.enabled) {
+        const wired = band === 'adult' && libFlagValue === 'on' && libToken !== '';
+        if (out.streamedThisTurn === true) {
+          out.degraded.push('takhrij:inside_emitted_bytes');
+        } else if (!wired) {
+          out.degraded.push('takhrij:library_unreachable');
+        } else {
+          const { applyTakhrij, runnerLookup } = await import('../lib/takhrij.js');
+          const { runTool, createEvidenceTable } = await import('../lib/free-brain/tools.js');
+          const pass = await applyTakhrij(readerText, {
+            lookup: runnerLookup(runTool, {
+              table: createEvidenceTable(),
+              degraded: [],
+              spend: [],
+              libFlagValue,
+              libToken,
+              signal: readerGone,
+            }),
+          });
+          readerText = pass.text;
+          // ── AND THE SEAL IS TOLD WHICH PAGES PROVED IT (see `takhrijProvenRows`) ──
+          // Without this the lock deletes the whole sentence a «(متفق عليه)» stands in, because no
+          // reader-visible page carries that phrase. `title` is what `haystack` folds and reads;
+          // the book's name is the entire claim, and no atom text travels.
+          for (const entry of pass.entries) {
+            for (const book of Array.isArray(entry.sealProof) ? entry.sealProof : []) {
+              takhrijProvenRows.push({ title: book, passage: book });
+            }
+          }
+          // ITEM 87 — every name printed here is on guards/telemetry-text-guard.cjs’s reviewed
+          // list, and every one of them is a count, a flag or a fixed code. `requested` is how
+          // many quoted matns the answer held, `matched` how many the library sourced; neither
+          // is derived from anything the reader typed, and no matn text is printed at all.
+          console.log('[takhrij]', {
+            enabled: true,
+            reason: pass.reason,
+            requested: pass.entries.length,
+            matched: pass.entries.filter((entry) => entry.sourced).length,
+            problems: pass.problems,
+          });
+          for (const problem of pass.problems) out.degraded.push('takhrij:' + problem);
+        }
+      }
       return emitFreeBrain(
-        (out.text || FREE_BRAIN_EMPTY) + (out.truncated === true ? TRUNCATED_MARK : ''),
+        readerText + (out.truncated === true ? TRUNCATED_MARK : ''),
         out.readerUnits,
       );
     }
