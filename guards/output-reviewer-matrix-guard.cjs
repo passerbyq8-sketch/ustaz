@@ -8,6 +8,7 @@ const { runMutant } = require('./output-reviewer-mutant-lib.cjs');
 
 const ROOT = path.resolve(__dirname, '..');
 const FIXTURE = path.join(ROOT, 'fixtures', 'output-reviewer-six-cases.json');
+const IMMUNITY_FIXTURE = path.join(ROOT, 'fixtures', 'output-reviewer-attribution-immunity.json');
 const REVIEWER = path.join(ROOT, 'lib', 'output-reviewer.js');
 const REVIEWER_REPO_PATH = 'lib/output-reviewer.js';
 const REPOSITORY_SCAN_IGNORES = new Set(['.git', 'node_modules']);
@@ -882,6 +883,85 @@ function quantityContradiction(parts) {
     ok('AA-64 mutant module loaded successfully', aa64Mutant.loaded, aa64Mutant.error);
     ok('MUTANT KILLED: the duplicate naming cannot come back',
       aa64Mutant.loaded && aa64Mutant.survived === false, JSON.stringify(aa64Mutant));
+
+    // ── TWO RULINGS THAT TOUCHED THE ATTRIBUTION PATH AND HAD NO GUARD ────────
+    //
+    // `exempt-divine-name` and `kept-attribution-pronoun-tail` both landed on the most dangerous
+    // thing in the brain -- who a statement is credited to -- and NEITHER was measured anywhere:
+    // removing either one reddened nothing in the whole suite. A repair with no guard is not a
+    // kept repair. Each therefore gets a row of its own below.
+    //
+    // Both rows guard BEHAVIOUR and not source text: each drives the real reviewer through the
+    // same public `reviewAnswer` the rows above use, with a case made of its own kind, and reads
+    // only what the reviewer returns. No private function is called and no reviewer logic is
+    // restated here. The carded evidence is not re-typed either -- it is the very record the
+    // matched-attribution case of the six-case fixture already carries, so one card is described
+    // in one place and a change to it is felt in both rows.
+    const immunity = JSON.parse(fs.readFileSync(IMMUNITY_FIXTURE, 'utf8'));
+    ok('attribution-immunity fixture schema is exact',
+      immunity.schema === 'ezik.output-reviewer.attribution-immunity.v1', immunity.schema);
+    const matchedCase = (fixture.cases || []).find((item) => item.id === 'a-matched-attribution');
+    const cardedEvidence = matchedCase && matchedCase.input && matchedCase.input.evidence;
+    ok('the carded witness is the six-case fixture own matched-attribution evidence, not a copy',
+      Array.isArray(cardedEvidence) && cardedEvidence.length === 1
+        && cardedEvidence[0].id === 'binbaz-join-1'
+        && cardedEvidence[0].scholar === immunity.pronounTail.cardedName,
+      JSON.stringify(cardedEvidence));
+
+    // A verdict sentence carries `before`/`after` only for an action inside DESTRUCTIVE_ACTIONS.
+    // A KEEP that arrives carrying that pair is a keep the ledger is reporting to its reader as a
+    // cut, which is the second way either of these rulings can be lost without the text changing.
+    const recordsAStrike = (sentence) => Object.prototype.hasOwnProperty.call(sentence, 'before')
+      || Object.prototype.hasOwnProperty.call(sentence, 'after');
+
+    const divineInput = (witness) => ({
+      text: witness.text,
+      evidence: [],
+      domain: immunity.divineImmunity.domain,
+      mode: immunity.divineImmunity.mode,
+    });
+    const divineImmunityHolds = (mod) => immunity.divineImmunity.cases.every((witness) => {
+      const result = mod.reviewAnswer(divineInput(witness));
+      const sentences = result.verdict.sentences;
+      return result.text === witness.text
+        && result.annotations.length === 1
+        && result.annotations[0].action === immunity.divineImmunity.expect.action
+        && result.annotations[0].claimedAuthority === witness.claimed
+        && sentences.length === 1
+        && sentences[0].action === immunity.divineImmunity.expect.action
+        && !recordsAStrike(sentences[0]);
+    });
+    ok('a claim whose authority is God is exempt: the sentence stands byte for byte, the verdict is the immunity itself, and no strike is recorded',
+      divineImmunityHolds(module),
+      JSON.stringify(immunity.divineImmunity.cases.map((witness) => {
+        const result = module.reviewAnswer(divineInput(witness));
+        return { text: result.text, sentences: result.verdict.sentences };
+      })));
+
+    const tail = immunity.pronounTail;
+    const tailInput = {
+      text: [tail.cardedSentence, tail.unsupportedSentence, tail.tailSentence].join('\n'),
+      evidence: cardedEvidence,
+      domain: tail.domain,
+      mode: tail.mode,
+    };
+    const pronounTailHolds = (mod) => {
+      const result = mod.reviewAnswer(tailInput);
+      const actions = result.annotations.map((item) => item.action);
+      const kept = result.verdict.sentences[1];
+      return result.text === tailInput.text
+        && JSON.stringify(actions) === JSON.stringify(tail.expect.actions)
+        && result.text.includes(tail.unsupportedName)
+        && result.text.includes(tail.cardedName)
+        && !actions.includes('removed-unsupported-attribution')
+        && !!kept && kept.action === 'kept-attribution-pronoun-tail'
+        && !recordsAStrike(kept);
+    };
+    ok('a credit whose strike would hand its tail to a carded name is withheld: the unsupported name still stands, nothing is cut, and the verdict says it was kept',
+      pronounTailHolds(module), JSON.stringify({
+        text: module.reviewAnswer(tailInput).text,
+        sentences: module.reviewAnswer(tailInput).verdict.sentences,
+      }));
 
     ok('the pure reviewer made zero network calls', wireCalls === 0, String(wireCalls));
   } catch (error) {

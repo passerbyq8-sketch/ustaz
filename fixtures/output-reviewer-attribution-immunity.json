@@ -1,0 +1,41 @@
+{
+  "schema": "ezik.output-reviewer.attribution-immunity.v1",
+  "note": "Witnesses for the two attribution rulings that shipped without a guard: exempt-divine-name and kept-attribution-pronoun-tail. Texts only. The carded evidence record is NOT copied here: guards/output-reviewer-matrix-guard.cjs takes it from the matched-attribution case of fixtures/output-reviewer-six-cases.json, so one card is described in one place.",
+  "divineImmunity": {
+    "domain": "fiqh",
+    "mode": "عادي",
+    "expect": { "action": "exempt-divine-name" },
+    "cases": [
+      {
+        "id": "R11-A1",
+        "why": "the primary name, first of the fifteen in DIVINE_AUTHORITY_NAMES",
+        "claimed": "الله",
+        "text": "قال الله إن الصلاة كانت على المؤمنين كتابا موقوتا."
+      },
+      {
+        "id": "R11-A2",
+        "why": "one of the prevention-only names, whose measured strike count in the corpus is zero",
+        "claimed": "الرحمن",
+        "text": "قال الرحمن إن الصلاة كانت على المؤمنين كتابا موقوتا."
+      }
+    ]
+  },
+  "pronounTail": {
+    "id": "R11-B1",
+    "why": "a truthful name with a card under it, then an unsupported name, then a bare tail that would silently re-read onto the carded name if the middle credit were struck",
+    "domain": "fiqh",
+    "mode": "عادي",
+    "cardedSentence": "قال ابن باز إن الجمع للمسافر جائز عند الحاجة.",
+    "unsupportedSentence": "وقال ابن قدامة إن اليسير من الماء المستعمل لا ينجس.",
+    "tailSentence": "ورجح أيضا أن الكثير لا ينجس إلا بالتغير.",
+    "cardedName": "ابن باز",
+    "unsupportedName": "ابن قدامة",
+    "expect": {
+      "actions": [
+        "kept-sourced-attribution",
+        "kept-attribution-pronoun-tail",
+        "tagged-fiqh-understanding"
+      ]
+    }
+  }
+}
