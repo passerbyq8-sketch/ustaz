@@ -672,17 +672,26 @@ export function pickVerifiedSources(sources, limit = MAX_SOURCES, builder = buil
 // expose `req.signal`, while ServerResponse always reports a disconnected reader through `close`.
 // The finalized writer owns downstream bytes; this helper owns only cancellation of the upstream
 // fetch/reader so a closed client cannot leave a model stream running in the background.
-function bindUpstreamToClient(res, requestSignal) {
+function bindUpstreamToClient(res, req) {
   const controller = new AbortController();
+  const requestSignal = req?.signal;
   let reader = null;
   let cleaned = false;
   const abort = () => {
     if (!controller.signal.aborted) controller.abort();
     try { Promise.resolve(reader?.cancel?.()).catch(() => {}); } catch {}
   };
+  // From node 24 on, `req.signal` is tied to the request stream itself, so it aborts the moment the
+  // request BODY has been fully read -- not because the reader left. That abort is evidence of a
+  // finished body on a live response, never of a disconnect, so it is ignored. Every other abort
+  // cancels the upstream exactly as before, and a reader who really leaves still arrives through the
+  // response `close` event below.
+  const isRequestBodyCompletion = () => req?.complete === true
+    && res?.destroyed !== true && res?.writableEnded !== true && res?.closed !== true;
+  const onRequestAbort = () => { if (!isRequestBodyCompletion()) abort(); };
   res.once?.('close', abort);
-  requestSignal?.addEventListener?.('abort', abort, { once: true });
-  if (requestSignal?.aborted) abort();
+  requestSignal?.addEventListener?.('abort', onRequestAbort, { once: true });
+  if (requestSignal?.aborted) onRequestAbort();
   return {
     signal: controller.signal,
     setReader(value) { reader = value; if (controller.signal.aborted) abort(); },
@@ -690,7 +699,7 @@ function bindUpstreamToClient(res, requestSignal) {
       if (cleaned) return;
       cleaned = true;
       res.removeListener?.('close', abort);
-      requestSignal?.removeEventListener?.('abort', abort);
+      requestSignal?.removeEventListener?.('abort', onRequestAbort);
     },
   };
 }
@@ -1537,7 +1546,7 @@ export default async function handler(req, res) {
       // reviewer is a passthrough, which is precisely why this path is OFF in production.
       finalizerContext.consistencyContext = null;
 
-      const freeUpstream = bindUpstreamToClient(res, req.signal);
+      const freeUpstream = bindUpstreamToClient(res, req);
       let out;
       try {
         out = await runFreeBrainTurn({
@@ -1790,7 +1799,7 @@ export default async function handler(req, res) {
       // The legacy plan may legitimately carry an anaphoric identity for its own paths. It is not
       // evidence for this one, so the stored path starts a fresh consistency context.
       finalizerContext.consistencyContext = null;
-      const storedUpstream = bindUpstreamToClient(res, req.signal);
+      const storedUpstream = bindUpstreamToClient(res, req);
       let storedOut;
       try {
         const shared = {
@@ -3176,7 +3185,7 @@ export default async function handler(req, res) {
         messages: withIdentityFact(body.messages),
         stream: true,
       };
-      const upstream = bindUpstreamToClient(res, req.signal);
+      const upstream = bindUpstreamToClient(res, req);
       let g;
       try {
         g = await fetch(ANTHROPIC_URL, {
@@ -3883,7 +3892,7 @@ export default async function handler(req, res) {
     }
 
     // ── ROUND 2: streamed, WITHOUT tools (guarantees a streamable text answer) ──
-    const upstream = bindUpstreamToClient(res, req.signal);
+    const upstream = bindUpstreamToClient(res, req);
     let r2;
     try {
       r2 = await fetch(ANTHROPIC_URL, {

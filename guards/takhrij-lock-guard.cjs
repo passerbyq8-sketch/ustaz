@@ -721,14 +721,18 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     `);
     const drive = async ({ question, draft, evidence, route = 'DEEN', wireMode = 'frames', disconnectMode = '' }) => {
       let planned = false;
-      let activeResponse = null, pendingRead = null, disconnected = false;
+      let activeResponse = null, activeRequest = null, pendingRead = null, disconnected = false;
       let upstreamCancelCalls = 0, upstreamSignalAborted = false, writesAtDisconnect = -1, endsAtDisconnect = -1;
+      let upstreamSignalAbortedEver = false, framesDelivered = 0;
       const requestAbort = new AbortController();
       globalThis.fetch = async (url, init = {}) => {
         const u = String(url);
         if (u.includes('api.anthropic.com')) {
           const b = JSON.parse(init.body || '{}');
-          if (b.stream) { const frames = [
+          if (b.stream) {
+            if (init.signal?.aborted) upstreamSignalAbortedEver = true;
+            else init.signal?.addEventListener?.('abort', () => { upstreamSignalAbortedEver = true; }, { once: true });
+            const frames = [
             event({ type: 'message_start', message: { id: 'msg_a1', type: 'message', role: 'assistant', content: [] } }),
             event({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }),
             delta(draft),
@@ -743,17 +747,29 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
               read: async () => {
                 if (disconnectMode && i === 1 && !disconnected) {
                   disconnected = true;
-                  return new Promise((resolve) => {
-                    pendingRead = resolve;
-                    queueMicrotask(() => {
-                      writesAtDisconnect = activeResponse.writes.length;
-                      endsAtDisconnect = activeResponse.ended;
-                      if (disconnectMode === 'close') activeResponse.emit('close');
-                      else requestAbort.abort();
+                  if (disconnectMode === 'body-complete') {
+                    // node 24 marks the request complete once the body is read, then aborts
+                    // req.signal while the response is still live and open. That is not a
+                    // disconnect: the stream must keep running, so this phase does NOT park the
+                    // read -- it aborts and falls through to the next frame.
+                    writesAtDisconnect = activeResponse.writes.length;
+                    endsAtDisconnect = activeResponse.ended;
+                    activeRequest.complete = true;
+                    requestAbort.abort();
+                  } else {
+                    return new Promise((resolve) => {
+                      pendingRead = resolve;
+                      queueMicrotask(() => {
+                        writesAtDisconnect = activeResponse.writes.length;
+                        endsAtDisconnect = activeResponse.ended;
+                        if (disconnectMode === 'close') activeResponse.emit('close');
+                        else requestAbort.abort();
+                      });
                     });
-                  });
+                  }
                 }
-                return i < chunks.length ? { done: false, value: chunks[i++] } : { done: true };
+                if (i < chunks.length) { framesDelivered++; return { done: false, value: chunks[i++] }; }
+                return { done: true };
               },
               releaseLock() {},
               cancel: async () => {
@@ -774,6 +790,7 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       const req = new EventEmitter(); req.method = 'POST'; req.signal = requestAbort.signal; req.headers = { 'x-murabbi-device': device, 'x-murabbi-founder': founder, 'x-ezik-ai-consent': '2026-08-06-1' }; req.body = { age: 25, band: 'adult', messages: [{ role: 'user', content: question }] };
       const res = new Response();
       activeResponse = res;
+      activeRequest = req;
       const finalizerProblems = [];
       const originalWarn = console.warn;
       console.warn = (...args) => {
@@ -787,6 +804,7 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       return {
         text, res, finalizerProblems,
         upstreamCancelCalls, upstreamSignalAborted, writesAtDisconnect, endsAtDisconnect,
+        upstreamSignalAbortedEver, framesDelivered,
       };
     };
     try {
@@ -835,6 +853,28 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
             && disconnected.endsAtDisconnect === disconnected.res.ended
             && disconnected.res.ended === 0);
       }
+      const bodyComplete = await drive({
+        question: 'ما عاصمة اليابان؟',
+        draft: genBody, evidence: genBody, route: 'GEN', disconnectMode: 'body-complete',
+      });
+      // node 24 aborts req.signal the moment the request BODY is read, on a response that is still
+      // live. bindUpstreamToClient must read that abort as a finished body, not as a reader who
+      // left: the outgoing call keeps its signal and the upstream stream runs to its last frame.
+      //
+      // This row deliberately stops at the outgoing call. The reader-visible answer is NOT asserted
+      // here because a second consumer of the same signal still swallows it: api/ask.js passes
+      // `signal: req.signal` to createFinalizedSseResponse, whose writer flips to `failed =
+      // 'aborted'` (lib/finalized-sse-writer.js) and releases no bytes. Measured on real node 24:
+      // with that one argument neutered the answer lands byte-identical (402 bytes, one
+      // message_stop); with it in place the cycle hangs with an empty log. That site is outside the
+      // playground of this round, so it is named and left to its owner rather than half-guarded.
+      ok('SSE handler node 24 regression: a finished request body on a live response cancels no outgoing call and the upstream stream runs to its end',
+        bodyComplete.upstreamCancelCalls === 0 && bodyComplete.upstreamSignalAbortedEver === false
+          && bodyComplete.framesDelivered === 5, JSON.stringify({
+            upstreamCancelCalls: bodyComplete.upstreamCancelCalls,
+            upstreamSignalAbortedEver: bodyComplete.upstreamSignalAbortedEver,
+            framesDelivered: bodyComplete.framesDelivered,
+          }));
 
       // Stored fiqh now has a stricter evidence -> claim -> sentence contract than the legacy
       // public-page branch above. Keep its acceptance matrix inside this original gate: the
