@@ -92,7 +92,9 @@ import { readerFromBody, dropClientSystem } from '../lib/reader-fields.js';
 // lib/route-classify.js: it decides whether a question the router already called GENERAL is
 // one a live search can answer. It never sees a religious turn (those are DEEN), and refuses
 // one on its own account if it ever did.
-import { classifyWorldIntent } from '../lib/world-intent.js';
+// `asksLiveNumber` is the world branch's own live-quantity rule, named in the module that owns
+// the reasons so the free branch can apply the identical test without a second copy of the list.
+import { classifyWorldIntent, asksLiveNumber } from '../lib/world-intent.js';
 // ── THE 2026-09-19 LIVE-WORLD ROUND, AND ITS ONE SWITCH ──────────────────────
 // Everything this round added is reached through liveWorldV2Enabled() and through nothing else.
 // With the flag absent the three modules below are imported and never called, and the handler
@@ -1924,6 +1926,65 @@ export default async function handler(req, res) {
             problems: pass.problems,
           });
           for (const problem of pass.problems) out.degraded.push('takhrij:' + problem);
+        }
+      }
+      // ══════════════════════════════════════════════════════════════════════
+      // عقدُ الطباعةِ على مخرجِ المخِّ الحرّ (LIVE_WORLD_V2)
+      // ══════════════════════════════════════════════════════════════════════
+      //
+      // THE SAME CONTRACT AS THE WORLD BRANCH'S, IN THE SAME SEAT. There it runs last before the
+      // cards and after the age floor, and that ordering is the whole of it: a pass that may
+      // REWRITE a sentence has to run before the number check, or the check reads text that is not
+      // the text that ships. This path has no age floor of its own — the free branch does not run
+      // for a child on the benign policy at all (`childBenignReserved` above), and there is no
+      // ageRepair() call on it — so the passes that can still rewrite prose here are the reviewer
+      // and the takhrij lock, and this sits BELOW both of them and ABOVE the cards, which are
+      // appended by the finalizer out of `finalizerContext.readerCards`.
+      //
+      // IT IS GATED ON THE QUESTION AND NOT ON THE ANSWER, and that is a measured decision rather
+      // than a convenience. Run over every free-brain answer, the enforcement deletes settled
+      // prose: driven on this tree, «بُعدُ الشمسِ… يساوي ١٥٠ مليون كم، ودرجةُ حرارةِ سطحِها ٥٥٠٠
+      // درجة مئوية» and «نصابُ الذهبِ ٨٥ جرامًا… أي ٢٫٥٪» are BOTH emptied, because «يساوي»،
+      // «درجة» و«جرام» are live units beside digits. Those are settled knowledge, not numbers that
+      // move, and «إن حذفَ عقدُك واحدًا منهما فالعقدُ خطأٌ لا الجواب». `asksLiveNumber` is what
+      // keeps them out of reach: the science question classifies NONE and the zakat question
+      // REFUSED_RELIGIOUS, so on those turns this block does not run at all.
+      //
+      // WHEN NOTHING SURVIVES, THE SERVER'S OWN SENTENCE SPEAKS — the one in
+      // lib/policy/live-search-disclosure.js, never a second one composed here — and the cards and
+      // the encyclopedia footer go with it, because there is no longer a claim for them to back.
+      //
+      // AND IT STANDS DOWN ONCE BYTES HAVE LEFT. A deletion after the reader already holds the
+      // text cannot delete anything; it can only fail the prefix test in `liveFreeBrainUnits`,
+      // where the emitted prose stands and the shortened version is dropped on the floor. The
+      // takhrij pass above takes exactly this exit under `takhrij:inside_emitted_bytes`, and this
+      // takes it under its own name rather than inventing a second vocabulary. It is recorded, not
+      // silent: a contract that quietly did nothing on the turns that stream would be worse than
+      // one that says so.
+      if (liveWorldV2Enabled() && asksLiveNumber(questionText)) {
+        if (out.streamedThisTurn === true) {
+          out.degraded.push('live_number:inside_emitted_bytes');
+          console.warn('[free-brain/live] LIVE_NUMBER_STOOD_DOWN', { reason: 'inside_emitted_bytes' });
+        } else {
+          const liveSources = Array.isArray(out.live?.sources) ? out.live.sources : [];
+          const printed = enforceLiveNumberSourcing(readerText, { sources: liveSources });
+          if (printed.removed.length) {
+            // The REASONS and the count. Never the sentences: they are the reader's answer.
+            console.warn('[free-brain/live] LIVE_NUMBER_UNSOURCED', {
+              removed: printed.removed.length,
+              why: printed.removed.map((r) => r.why),
+              emptied: printed.emptied,
+              sources: liveSources.length,
+              path: 'free-brain',
+            });
+          }
+          if (printed.emptied) {
+            finalizerContext.readerCards = [];
+            finalizerContext.readerCardPrefix = '';
+            finalizerContext.readerSuffix = '';
+            return emitFreeBrain(liveSearchNotice({ worldWanted: true, answeredFromLive: false }), []);
+          }
+          readerText = printed.text;
         }
       }
       return emitFreeBrain(
