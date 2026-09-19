@@ -286,7 +286,7 @@ const EXPECTED_MOVES = {
       !/process\.env/.test(TOOLS), 'the tool layer is driven by api/ask.js and by ctx');
     // ٢/٤ — the trace, and what it may not carry.
     ok('search_live leaves one trace line per call',
-      /console\.warn\('\[free-brain\/live\]', \{[\s\S]{0,300}sources: added\.length/.test(TOOLS));
+      /console\.info\('\[free-brain\/live\]', \{[\s\S]{0,300}sources: added\.length/.test(TOOLS));
     ok('...and the trace carries no error MESSAGE and no matched WORD from the question',
       !/\[free-brain\/live\][\s\S]{0,400}(?:message:|matched:)/.test(TOOLS));
 

@@ -1964,13 +1964,13 @@ export default async function handler(req, res) {
       if (liveWorldV2Enabled() && asksLiveNumber(questionText)) {
         if (out.streamedThisTurn === true) {
           out.degraded.push('live_number:inside_emitted_bytes');
-          console.warn('[free-brain/live] LIVE_NUMBER_STOOD_DOWN', { reason: 'inside_emitted_bytes' });
+          console.info('[free-brain/live] LIVE_NUMBER_STOOD_DOWN', { reason: 'inside_emitted_bytes' });
         } else {
           const liveSources = Array.isArray(out.live?.sources) ? out.live.sources : [];
           const printed = enforceLiveNumberSourcing(readerText, { sources: liveSources });
           if (printed.removed.length) {
             // The REASONS and the count. Never the sentences: they are the reader's answer.
-            console.warn('[free-brain/live] LIVE_NUMBER_UNSOURCED', {
+            console.info('[free-brain/live] LIVE_NUMBER_UNSOURCED', {
               removed: printed.removed.length,
               why: printed.removed.map((r) => r.why),
               emptied: printed.emptied,
