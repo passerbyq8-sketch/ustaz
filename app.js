@@ -6988,6 +6988,10 @@ if(f===1&&sNum!==1&&sNum!==9){const basmala=getVerseText(1,1);if(basmala)pieces.
 }if(missing){setState('fail');return;}setBody(pieces.join(' '));setState('ok');}).catch(()=>{if(alive)setState('fail');});return()=>{alive=false;};},[sNum,from,to]);const metaLabel=!surahName?'':range.whole?`سورة ${surahName}`:range.from?`سورة ${surahName}، الآيات ${toArabicDigits(range.from)}–${toArabicDigits(range.to)}`:`سورة ${surahName}`;const togglePlay=()=>{if(!onPlaySurah)return;if(playing){if(onStopAudio)onStopAudio();setPlaying(false);return;}setAudioFailed(false);setPlaying(true);Promise.resolve(onPlaySurah(sNum,range.from||1,range.to||null)).then(res=>{setPlaying(false);if(res&&res.failed)setAudioFailed(true);}).catch(()=>{setPlaying(false);setAudioFailed(true);});};return/*#__PURE__*/React.createElement("div",{style:s.verseCard},/*#__PURE__*/React.createElement("div",{style:s.verseCardLabel},/*#__PURE__*/React.createElement("span",null,"قَالَ اللهُ تَعَالَى",surahName?` — سُورَةُ ${surahName}`:'')),state==='ok'&&/*#__PURE__*/React.createElement("div",{style:s.surahText},body),/*#__PURE__*/React.createElement("div",{style:s.verseFooter},metaLabel&&/*#__PURE__*/React.createElement("div",{style:s.verseMeta},metaLabel),sNum&&/*#__PURE__*/React.createElement("button",{type:"button",onClick:togglePlay,style:s.versePlayBtn,"aria-label":playing?'إيقاف التلاوة':'تشغيل التلاوة كاملة'},playing?/*#__PURE__*/React.createElement(PauseIcon,{size:14}):/*#__PURE__*/React.createElement(PlayIcon,{size:14}),/*#__PURE__*/React.createElement("span",null,playing?'إيقاف':'استمع للتلاوة (كاملة)'))),audioFailed&&/*#__PURE__*/React.createElement("div",{style:s.verseAudioError},"تعذّر تحميل التلاوة"));}// ============================================================
 // ITEM 28. A QUR'ANIC SPAN IS NOT A «نص منقول».
 // ============================================================
+// AND THAT LABEL IS GONE SINCE البند ٥٠ (19 September 2026) — see `SUNNAH_CARD_LABEL` below.
+// Item 28 stands unchanged and is not made redundant by it: the verse branch still replaces the
+// heading with «قَالَ اللهُ تَعَالَى», because «من السنة النبوية» over an āyah is the same category
+// error the neutral label was, only quieter. What follows is why the branch exists.
 // MEASURED BEFORE: HadithCard printed «نص منقول» over WHATEVER its tag carried whenever the
 // model sent no narrator and no ruling. A verse of the Qur'an that arrived inside a <hadith>
 // tag was therefore shown to a child as a "transmitted text" -- in the same conversation where
@@ -7012,8 +7016,22 @@ const AYAH_CARD_LABEL='قَالَ اللهُ تَعَالَى';// THE REFERENCE 
 // with NO reference line. A citation invented under a verse would be worse than none.
 const readStatedAyahRef=t=>{const src=String(t||'');const found=[];const re=/سورة\s+([^\s،,:()\[\]\uFD3E\uFD3F]+(?:\s+[^\s،,:()\[\]\uFD3E\uFD3F]+)?)\s*[،,:]?\s*(?:الآية|آية)?\s*[:\s]*([٠-٩0-9]+)/g;let m;while((m=re.exec(src))!==null){let name=m[1];if(SURAH_NUMBERS[name]===undefined){// «سورة آل عمران، آية ١٧٣» captures two words; «سورة البقرة» captures one. Try the
 // shorter reading before giving up, so a two-word name does not swallow the next word.
-name=name.split(/\s+/)[0];if(SURAH_NUMBERS[name]===undefined)continue;}found.push({surah:name,ayah:m[2]});}if(!found.length)return null;const first=found[0];if(found.some(f=>f.surah!==first.surah||f.ayah!==first.ayah))return null;return first;};const NEUTRAL_HADITH_LABEL='نص منقول';function HadithCard({content,narrator,ruling}){// خانةُ المخرِّجِ قد تصلُ مملوءةً بالدرجة، فتُطبَعُ الدرجةُ مرّتين وأُولاهما «رَوَى متفق عليه».
-const att=resolveHadithAttribution(narrator,ruling);let label=!att.narrator&&!att.ruling?NEUTRAL_HADITH_LABEL:'من السنة النبوية';// ITEM 28. Scripture first, and it outranks the attribution entirely: a verse carries no
+name=name.split(/\s+/)[0];if(SURAH_NUMBERS[name]===undefined)continue;}found.push({surah:name,ayah:m[2]});}if(!found.length)return null;const first=found[0];if(found.some(f=>f.surah!==first.surah||f.ayah!==first.ayah))return null;return first;};// ── البند ٥٠ · أمرُ الإغلاقِ §٢ — الوسمُ الرابعُ نُزِعَ نزعًا تامًّا ──────────────
+//
+// THE FOURTH OF THE FOUR CONFIDENCE MARKS. Three were removed from lib/output-reviewer.js on
+// 18 September; this one was never reached by that order because it is not a reviewer mark at
+// all — it is a hadith CARD'S HEADING, and it stood here printing «نص منقول» over the Prophet's
+// ﷺ own words whenever the card arrived with neither a narrator nor a grade.
+//
+// MEASURED BY THE OWNER ON THE LIVE APP, 14 September 2026, and again in the wide battery of
+// 19 September. His ruling: «يُنزَعُ الوسمُ نزعًا تامًّا. وبطاقةُ الحديثِ تحملُ «من السنة النبوية»
+// في الحالَينِ — بوجودِ الراوي والحكمِ وبعدمِهما. لا وسمَ ثالثَ ولا فراغ.»
+//
+// SO THE LABEL IS A CONSTANT AND NOT A DECISION. `att` is still read below, for the GRADE line
+// under the text — what a card knows about its narrator governs what it prints UNDER the matn,
+// and never what it prints over it.
+const SUNNAH_CARD_LABEL='من السنة النبوية';function HadithCard({content,narrator,ruling}){// خانةُ المخرِّجِ قد تصلُ مملوءةً بالدرجة، فتُطبَعُ الدرجةُ مرّتين وأُولاهما «رَوَى متفق عليه».
+const att=resolveHadithAttribution(narrator,ruling);let label=SUNNAH_CARD_LABEL;// ITEM 28. Scripture first, and it outranks the attribution entirely: a verse carries no
 // narrator and takes no grading, so a ruling printed under one would be a hadith's apparatus
 // applied to the Qur'an. The reference replaces it, and only if the content stated one.
 const quranic=hasQuranicSpan(content);const ayahRef=quranic?readStatedAyahRef(content):null;if(quranic)label=AYAH_CARD_LABEL;return/*#__PURE__*/React.createElement("div",{style:s.hadithCard},/*#__PURE__*/React.createElement("div",{style:s.hadithCardLabel},/*#__PURE__*/React.createElement("span",null,label)),/*#__PURE__*/React.createElement("div",{style:s.hadithText},content),quranic?ayahRef&&/*#__PURE__*/React.createElement("div",{style:s.hadithMeta},`سورة ${ayahRef.surah}، آية ${ayahRef.ayah}`):att.ruling&&/*#__PURE__*/React.createElement("div",{style:s.hadithMeta},att.ruling));}// بطاقة المصدر: شريحةُ عزوٍ قابلةٌ للنقر في نهاية الجواب — أوّلُ رابطٍ خارجيٍّ في التطبيق.

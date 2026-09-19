@@ -1209,10 +1209,19 @@ ok('...reading the SAME single source the legacy card reads', /const v = getDail
     call('AYAH_CARD_LABEL'), '\u0642\u064E\u0627\u0644\u064E \u0627\u0644\u0644\u0647\u064F \u062A\u064E\u0639\u064E\u0627\u0644\u064E\u0649');
   ok('Q28-2: ...and that string is what the verse card renders',
     html.indexOf('<span>\u0642\u064E\u0627\u0644\u064E \u0627\u0644\u0644\u0647\u064F \u062A\u064E\u0639\u064E\u0627\u0644\u064E\u0649</span>') !== -1);
-  // AND THE NEUTRAL LABEL SURVIVES for what it was written for. Item 28 narrows this label; it
-  // does not delete it, and a hadith with no attribution must still say so.
-  eq('Q28-2: ...and the neutral label is still there for an unattributed REPORT',
-    call('NEUTRAL_HADITH_LABEL'), '\u0646\u0635 \u0645\u0646\u0642\u0648\u0644');
+  // ── AND ON 19 SEPTEMBER 2026 THE OWNER DELETED THE NEUTRAL LABEL OUTRIGHT ──
+  // This row used to assert the label SURVIVED item 28, because item 28 only narrowed it. The
+  // owner then measured what it ships: the words «a transmitted text» standing as a heading
+  // over the Prophet's own speech, on the live app on 14 September and again in the wide
+  // battery of 19 September. His ruling, البند ٥٠ §٢: «يُنزَعُ الوسمُ نزعًا تامًّا. وبطاقةُ
+  // الحديثِ تحملُ «من السنة النبوية» في الحالَينِ. لا وسمَ ثالثَ ولا فراغ.»
+  //
+  // THE ROW IS REWRITTEN, NOT REMOVED, AND IT IS NOT WEAKER: it fails the moment the label is
+  // declared again, and it fails just as loudly if the card is left with no heading at all.
+  eq('Q28-2: ...and the neutral label is GONE — nothing declares it any more',
+    call('typeof NEUTRAL_HADITH_LABEL'), 'undefined');
+  eq('Q28-2: ...and the card heading that replaced it is the Sunnah label, in both cases',
+    call('SUNNAH_CARD_LABEL'), '\u0645\u0646 \u0627\u0644\u0633\u0646\u0629 \u0627\u0644\u0646\u0628\u0648\u064A\u0629');
 
   // THE REFERENCE IS READ, NEVER GUESSED.
   const ref = (t) => JSON.stringify(call('readStatedAyahRef(' + t + ')'));
@@ -1238,11 +1247,14 @@ ok('...reading the SAME single source the legacy card reads', /const v = getDail
   okOn('Q28-4: ...and a verse is never given a hadith GRADING', [['hc', hc]],
     /\{quranic[\s\S]*\? \(ayahRef &&[\s\S]*: \(att\.ruling &&/.test(hc),
     'a ruling printed under a verse is a hadith\'s apparatus applied to the Qur\'an');
-  // THE DECISION THE OTHER GUARD OWNS MUST STAY INSPECTABLE. quest-ux-guard.cjs extracts this
-  // initialiser and evaluates it bound only to `att` and `NEUTRAL_HADITH_LABEL`; a scripture
-  // branch folded INTO it would throw there, and that guard is not this screen's to edit.
-  okOn('Q28-4: ...and the label initialiser stays evaluable on att alone', [['hc', hc]],
-    /let label = \(!att\.narrator && !att\.ruling\) \? NEUTRAL_HADITH_LABEL : '\u0645\u0646 \u0627\u0644\u0633\u0646\u0629 \u0627\u0644\u0646\u0628\u0648\u064A\u0629';/.test(hc)
+  // THE DECISION THE OTHER GUARD OWNS MUST STAY INSPECTABLE. guards/takhrij-contract-guard.cjs
+  // §14 lifts this initialiser and evaluates it; a scripture branch folded INTO it would throw
+  // there, and that guard is not this screen's to edit. Since البند ٥٠ §٢ the initialiser is a
+  // CONSTANT and not a decision — one heading for a card with attributes and for one without —
+  // and the pinned shape is rewritten to that, so a two-way label cannot come back unseen.
+  okOn('Q28-4: ...and the label initialiser is one constant, asked of nothing', [['hc', hc]],
+    /let label = SUNNAH_CARD_LABEL;/.test(hc)
+    && !/NEUTRAL_HADITH_LABEL/.test(hc)
     && /<span>\{label\}<\/span>/.test(hc));
 
   // NOT A RETRIEVAL, CLEANING OR MODEL CHANGE. The brain freeze holds.
