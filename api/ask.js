@@ -2031,8 +2031,33 @@ export default async function handler(req, res) {
           readerText = printed.text;
         }
       }
+      // ـ١١٣ — THE D8 DISCLOSURE REACHES THE READER WHO ACTUALLY EXISTS.
+      //
+      // MEASURED 2026-09-20. `takhrijNote` is computed at :1449 and composed into `referralBlockFor`
+      // at :1453, whose comment says «Every exit below calls it, which is what makes "once" a
+      // property of the reply rather than of the branch». That was true when it was written. Its six
+      // call sites are :3245, :3482, :3924, :4051, :4162 and :4278 — and THIS branch, opened at :1593,
+      // returns above every one of them. So with FREE_BRAIN_V1 on, the one sentence telling a reader
+      // that the grading just read was transmitted from a general source, and not verified against a
+      // takhrij corpus, has never been appended on the path ordinary readers take.
+      //
+      // IT IS APPENDED, NEVER SUBSTITUTED, AND THAT IS WHY IT SURVIVES A STREAMED TURN. Both emit
+      // seams test a PREFIX: liveFreeBrainUnits.finish() sends `sealed.slice(sent.length)` when
+      // `sealed.startsWith(sent)`, and emitUnits() does the same against its joined units. Text ADDED
+      // after the emitted prose lands in that remainder and reaches the reader; text REMOVED fails the
+      // test and is dropped on the floor — which is why the takhrij pass at :1934 and the live-number
+      // contract below both stand down once bytes have left, and why this does not have to.
+      //
+      // IT WEAKENS NOTHING. takhrijDisclosureOnce() returns empty when the draft already carries the
+      // sentence or names the takhrij diwans itself; takhrijDisclosureFor() returns empty unless the
+      // question asked for a grading; and the tail does not hedge, withdraw or apologise for the answer
+      // above it — lib/policy/referral-tail.js states that rule and this obeys it. No matn is touched,
+      // no ruling is softened, and nothing is deleted.
+      const freeBrainBody = readerText + (out.truncated === true ? TRUNCATED_MARK : '');
+      const freeBrainTakhrijTail = takhrijDisclosureOnce(freeBrainBody, takhrijNote);
+      if (freeBrainTakhrijTail) out.degraded.push('takhrij:limit_declared');
       return emitFreeBrain(
-        readerText + (out.truncated === true ? TRUNCATED_MARK : ''),
+        freeBrainBody + (freeBrainTakhrijTail ? '\n\n' + freeBrainTakhrijTail : ''),
         out.readerUnits,
       );
     }
