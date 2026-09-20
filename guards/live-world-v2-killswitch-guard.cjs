@@ -183,8 +183,12 @@ const EXPECTED_MOVES = {
     // here. lib/free-brain/tools.js deliberately is NOT: it reaches the switch through
     // `asksLiveNumber`, which lib/world-intent.js owns and gates, so the tool layer has no flag
     // test of its own to keep in step. Section C asserts that wiring by name.
+    // THE THIRD ORDER (2026-09-20) ADDED ONE MORE READER AND KEPT THE NON-READER. The news
+    // ordering tests the flag inside lib/live-news-order.js, which is why lib/free-brain/tools.js
+    // can call it and still hold no flag test of its own — the property the paragraph above
+    // records, kept true by putting the test in the owning module rather than at the call site.
     for (const rel of ['lib/world-intent.js', 'lib/source-registry.js', 'api/ask.js',
-      'lib/ledger/source-policy.js', 'lib/free-brain/instructions.js']) {
+      'lib/ledger/source-policy.js', 'lib/free-brain/instructions.js', 'lib/live-news-order.js']) {
       ok(rel + ' reaches the flag through liveWorldV2Enabled()',
         /import \{ liveWorldV2Enabled \} from '[^']*live-world-v2\.js';/.test(read(rel))
         && read(rel).includes('liveWorldV2Enabled('));
@@ -241,8 +245,12 @@ const EXPECTED_MOVES = {
       !offText.includes('search_live كما تطلبُ'), offText.slice(0, 120));
     // ع-٣ — …nor anything about how a live number is printed. Same claim, second half of the
     // round: with the switch off this block is what it was before 2026-09-19 opened it.
-    ok('...and nothing about printing a live number, or about where not to send the reader',
-      !["🕒 وإذا كتبتَ رقمًا حيًّا","المصدرُ والتاريخُ في الجملةِ","والتاريخُ من المصدرِ نفسِه لا","والتاريخُ النسبيُّ وحدَه لا","ولا تُحِلِ القارئَ على خدمةٍ","ولا تنفِ عن نفسِك قدرةً","والسؤالُ الواسعُ («وش آخرُ"].some((mark) => offText.includes(mark)),
+    // ع-٢/٢ and ج-٣/٣ (2026-09-20) added two more lines to the same block — the age of a live
+    // number, and the ban on describing a search result to the reader. Both are named here by
+    // their opening words, because a block that grows without this list growing with it is a
+    // block whose newest line nobody proved was behind the switch.
+    ok('...and nothing about printing a live number, its age, or where not to send the reader',
+      !["🕒 وإذا كتبتَ رقمًا حيًّا","المصدرُ والتاريخُ في الجملةِ","والتاريخُ من المصدرِ نفسِه لا","والتاريخُ النسبيُّ وحدَه لا","ولا تُحِلِ القارئَ على خدمةٍ","ولا تنفِ عن نفسِك قدرةً","والسؤالُ الواسعُ («وش آخرُ","وإن كانَ أحدثُ رقمٍ وجدتَه أقدمَ","ولا تصفْ للقارئِ حالَ نتائجِ بحثِك"].some((mark) => offText.includes(mark)),
       offText.slice(-160));
   }
 
@@ -508,12 +516,62 @@ const EXPECTED_MOVES = {
       "ولا تُحِلِ القارئَ على خدمةٍ",
       "ولا تنفِ عن نفسِك قدرةً",
       "والسؤالُ الواسعُ («وش آخرُ",
+      // ع-٢/٢ and ج-٣/٣ (2026-09-20): the age of a live number, and the ban on telling the
+      // reader what was and was not in a search result. Same claim, two more lines in it.
+      "وإن كانَ أحدثُ رقمٍ وجدتَه أقدمَ",
+      "ولا تصفْ للقارئِ حالَ نتائجِ بحثِك",
     ];
     ok('every line the switch adds is one this round owns, and each is added once, in order',
       added.length === ROUND_LINES.length
         && ROUND_LINES.every((mark, i) => String(added[i] || '').includes(mark)),
       JSON.stringify(added));
     eq('...and removes none', off.filter((line) => !on.includes(line)), []);
+  }
+
+  // ── ج-٣/١ · THE GENERAL NEWS QUESTION IS ORDERED, NEVER FILTERED ──────────
+  //
+  // MEASURED: «أهمُّ الأخبار» came back citing akher.news, youm7.com and tunisie-telegraph.com —
+  // Egypt's gold price and Tunisia's weather — and not one of the four outlets this application
+  // admits. The rule the owner gave is a SORT and not a filter: «لا تحذفْ غيرَها ولا تمنعْه —
+  // رتِّبْ فقط».
+  //
+  // THE NEGATIVE HALF IS THE ONE THAT MATTERS HERE, and it is asserted three ways: nothing is
+  // dropped, a non-news question is untouched, and with the switch off the input array comes back
+  // as the SAME OBJECT — not an equal copy, the same one — which is a claim a reordering bug
+  // cannot satisfy by accident.
+  {
+    const ORDER = await esm('lib/live-news-order.js');
+    const rows = [
+      { host: 'akher.news', url: 'https://akher.news/a' },
+      { host: 'youm7.com', url: 'https://youm7.com/b' },
+      { host: 'aljazeera.net', url: 'https://aljazeera.net/c' },
+      { host: 'tunisie-telegraph.com', url: 'https://tunisie-telegraph.com/d' },
+      { host: 'bbc.com', url: 'https://bbc.com/e' },
+    ];
+    const hosts = (list) => list.map((r) => r.host);
+    eq('ON: a general news question puts the admitted outlets first, in provider order',
+      withFlag('on', () => hosts(ORDER.orderNewsSourcesFirst(rows, { reason: 'NEWS_TERM' }))),
+      ['aljazeera.net', 'bbc.com', 'akher.news', 'youm7.com', 'tunisie-telegraph.com']);
+    eq('...and the frame form of the same class is ordered too',
+      withFlag('on', () => hosts(ORDER.orderNewsSourcesFirst(rows, { reason: 'NEWS_PHRASE' }))),
+      ['aljazeera.net', 'bbc.com', 'akher.news', 'youm7.com', 'tunisie-telegraph.com']);
+    ok('...and NOTHING is dropped — it is a sort, not an admission rule',
+      withFlag('on', () => ORDER.orderNewsSourcesFirst(rows, { reason: 'NEWS_TERM' }).length) === rows.length);
+    eq('...and a PRICE question is left in the order the provider ranked it',
+      withFlag('on', () => hosts(ORDER.orderNewsSourcesFirst(rows, { reason: 'MARKET_PRICE' }))),
+      hosts(rows));
+    ok('OFF: the same news question gets the same array back, object for object',
+      withFlag(undefined, () => ORDER.orderNewsSourcesFirst(rows, { reason: 'NEWS_TERM' })) === rows,
+      'with the switch off this file must be invisible');
+
+    // THE WIRING, read rather than driven: the tool layer calls it ABOVE the per-call cap, which
+    // is the only placement at which it can change anything at all.
+    const TOOLS = read('lib/free-brain/tools.js');
+    ok('search_live orders the rows before the per-call cap takes its five',
+      /const ordered = orderNewsSourcesFirst\(pass\?\.sources \|\| \[\], \{ reason: intentReason \}\);\s*\n\s*for \(const source of ordered\.slice\(0, MAX_RESULTS_PER_CALL\)\)/u.test(TOOLS),
+      'ordering below the slice would change nothing');
+    ok('...and the tool layer still reads no environment of its own',
+      !/process\.env/.test(TOOLS));
   }
 
   // ══════════════════════════════════════════════════════════════════════════

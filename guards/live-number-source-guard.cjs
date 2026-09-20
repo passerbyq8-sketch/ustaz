@@ -90,7 +90,14 @@ const DROP = [
   console.log('=== live-number-source-guard — a live number carries a source and a date, or goes ===');
 
   const M = await esm('lib/live-number-source.js');
-  const run = (t) => M.enforceLiveNumberSourcing(t, { sources: SOURCES });
+  // ── THE CLOCK IS PINNED, AND THAT IS NOT HOUSEKEEPING (ع-٢ · 2026-09-20) ──
+  // Every dated fixture in this file was written against 19–20 September 2026, and from today the
+  // module measures HOW OLD a dated figure is. Left on the wall clock, «بتاريخ 2026-09-19» in
+  // section B would pass this week, need an «أحدث ما وجدته» note next week, and be deleted in
+  // December — a gate that reds one morning with no commit behind it, which is the landmine this
+  // repository refuses everywhere else. The instant below is the day the fixtures describe.
+  const NOW = Date.parse('2026-09-20T09:00:00Z');
+  const run = (t) => M.enforceLiveNumberSourcing(t, { sources: SOURCES, nowMs: NOW });
 
   // ══════════════════════════════════════════════════════════════════════════
   console.log('\n=== A. the module exists and says what it did ===');
@@ -98,7 +105,8 @@ const DROP = [
   ok('lib/live-number-source.js exports enforceLiveNumberSourcing',
     typeof M.enforceLiveNumberSourcing === 'function');
   for (const sym of ['carriesLiveNumber', 'carriesAbsoluteDate', 'carriesRelativeDate', 'carriesSource',
-    'offersExternalService', 'introducesWhatFollows', 'isCardLine']) {
+    'offersExternalService', 'introducesWhatFollows', 'isCardLine',
+    'sentenceDayStamp', 'liveNumberAgeInDays', 'statedAsLatestFound']) {
     ok('...and exports ' + sym + ', so each half can be tested on its own', typeof M[sym] === 'function');
   }
   {
@@ -431,6 +439,102 @@ const DROP = [
       M.introducesWhatFollows('تفاوتَتِ الأرقامُ قليلًا بينَ المواقع.', V) === true);
     ok('isCardLine says NO to prose', M.isCardLine('راجعْ موقعَ Oilprice.') === false);
     ok('isCardLine says YES to a card', M.isCardLine('<source site="x" url="https://x/">') === true);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('\n=== N. A LIVE NUMBER HAS AN AGE (ع-٢ · 2026-09-20) ===');
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // THE MEASURED FAILURE: «كم سعرُ طنِّ القمحِ اليوم؟» answered with a figure dated ١٠ يونيو ٢٠٢٤,
+  // and the contract ADMITTED it, because the contract asked for a date and never for a recent
+  // one. The three bands are the owner's: ≤7 passes, 8–60 passes only if the sentence says it is
+  // the newest figure found at its own date, >60 goes.
+  //
+  // EVERY FIXTURE IS MEASURED AGAINST THE PINNED `NOW` ABOVE, so each row below states an AGE and
+  // not a date, and none of them changes meaning tomorrow.
+  {
+    ok('the constants are stated by the module, not retyped here',
+      M.LIVE_NUMBER_FRESH_DAYS === 7 && M.LIVE_NUMBER_STALE_DAYS === 60,
+      JSON.stringify([M.LIVE_NUMBER_FRESH_DAYS, M.LIVE_NUMBER_STALE_DAYS]));
+
+    // ── THE READING, APART FROM THE VERDICT BUILT ON IT ────────────────────
+    // Four shapes of written date, and the two that must read as nothing at all.
+    for (const [name, sentence, stamp] of [
+      ['an ISO date', 'بحسب الجزيرة نت بتاريخ 2026-09-19 بلغ السعر 72 دولارًا.', '2026-09-19'],
+      ['a day-first numeric date', 'بحسب الجزيرة نت في 19/09/2026 بلغ السعر 72 دولارًا.', '2026-09-19'],
+      ['a named month in Arabic-Indic digits', 'بحسب الجزيرة نت في ١٠ يونيو ٢٠٢٤ بلغ السعر 240 دولارًا.', '2024-06-10'],
+      ['a named month with no day is read as that month\'s LAST day',
+        'بحسب الجزيرة نت في يونيو 2024 بلغ السعر 240 دولارًا.', '2024-06-30'],
+      ['a bare year is read as its 31 December', 'بحسب الجزيرة نت في 2024 بلغ السعر 240 دولارًا.', '2024-12-31'],
+      ['a hijri year is NOT read as a Gregorian one', 'كانت غزوة بدر سنة 2 هجرية.', null],
+      ['a sentence with no date at all reads as nothing', 'عاصمة الكويت هي مدينة الكويت.', null],
+    ]) {
+      ok('reads ' + name, M.sentenceDayStamp(sentence) === stamp,
+        'got ' + JSON.stringify(M.sentenceDayStamp(sentence)) + ' want ' + JSON.stringify(stamp));
+    }
+
+    // ── THE THREE BANDS ────────────────────────────────────────────────────
+    const NOTE = 'وهذا أحدثُ رقمٍ وجدتُه';
+    const dated = (iso, tail) => 'بحسب الجزيرة نت في ' + iso + ' بلغ سعر البرميل 72 دولارًا' + (tail || '') + '.';
+
+    const fresh = dated('2026-09-19');
+    ok('≤7 days old passes exactly as it stands', run(fresh).removed.length === 0,
+      JSON.stringify(run(fresh)));
+
+    const aged = dated('2026-08-20');            // 31 days before the pinned NOW
+    const rAged = run(aged);
+    ok('8–60 days old with NO note is removed', rAged.emptied === true
+      && rAged.removed.length === 1 && rAged.removed[0].why === 'live-number-aged-without-latest-note',
+      JSON.stringify(rAged));
+
+    const agedNoted = dated('2026-08-20', '، ' + NOTE);
+    ok('...and the SAME figure passes once the sentence says it is the newest found',
+      run(agedNoted).removed.length === 0, JSON.stringify(run(agedNoted)));
+
+    // «لا سعرُ اليوم» is the second half of the owner's condition and it is enforced: a sentence
+    // that claims to be the newest available AND presents it as the price right now contradicts
+    // itself in the one direction that misleads.
+    const agedNotedNow = dated('2026-08-20', '، ' + NOTE + ' وهو السعر حاليًّا');
+    ok('...but not when the same sentence also offers it as the price right now',
+      run(agedNotedNow).emptied === true, JSON.stringify(run(agedNotedNow)));
+
+    const stale = 'بحسب الجزيرة نت في 10 يونيو 2024 بلغ سعر طن القمح 240 دولارًا.';
+    const rStale = run(stale);
+    ok('>60 days old goes whatever the sentence says about it', rStale.emptied === true
+      && rStale.removed[0].why === 'live-number-older-than-the-stale-day', JSON.stringify(rStale));
+    const staleNoted = 'بحسب الجزيرة نت في 10 يونيو 2024 بلغ سعر طن القمح 240 دولارًا، ' + NOTE + '.';
+    ok('...and the note does not buy it past the sixty-day line',
+      run(staleNoted).emptied === true, JSON.stringify(run(staleNoted)));
+
+    // ── AND THE OTHER DIRECTION, WHICH IS THE HALF THAT COULD EMPTY GOOD ANSWERS ──
+    // The owner's first constraint, stated as fixtures: a date in a sentence that never carried a
+    // moving number is not measured at all. Both of these are OLDER than sixty days by centuries
+    // and by two years respectively, and both must survive untouched.
+    for (const [name, sentence] of [
+      ['a historical date in a settled sentence', 'كانت غزوة بدر في السنة الثانية من الهجرة سنة 624 ميلادية.'],
+      ['a scientific constant beside an old publication year',
+        'بُعد الشمس عن الأرض نحو 150 مليون كيلومتر، وهو رقم مستقر منذ 1976.'],
+      ['a dated event that quotes no moving quantity',
+        'اندلع الحريق يوم 18 سبتمبر 2024 في المنطقة الصناعية.'],
+    ]) {
+      ok(name + ' is never dated by this rule', run(sentence).removed.length === 0,
+        JSON.stringify(run(sentence)));
+    }
+
+    // AND AN UNREADABLE DATE IS NOT A STALE DATE. The sentence is sourced, carries a date the
+    // module's own `carriesAbsoluteDate` accepts, and dates itself in a way the reader cannot be
+    // measured against — it passes, because deleting what could not be parsed would delete under
+    // a reason code that says «stale» about a date nobody read.
+    const hijriDated = 'بحسب الجزيرة نت في 5 رمضان 1447 بلغ سعر البرميل 72 دولارًا.';
+    ok('a sourced figure dated only in hijri is passed, not called stale',
+      run(hijriDated).removed.length === 0, JSON.stringify(run(hijriDated)));
+
+    // THE INSTRUCTION TEACHES THE WORDS THE LOCK READS FOR. A contract whose two halves use
+    // different vocabulary is a contract that deletes answers written exactly as it asked.
+    const INSTR = read('lib/free-brain/instructions.js');
+    ok('the free-brain instruction teaches the middle band in the words the lock accepts',
+      /أحدثُ رقمٍ وجدتَه/u.test(INSTR) && M.statedAsLatestFound('وهذا أحدثُ رقمٍ وجدتُه، وتاريخُه كذا'),
+      'the taught phrasing must be a phrasing statedAsLatestFound() recognises');
   }
 
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL ===' : ' — PASS ==='));
