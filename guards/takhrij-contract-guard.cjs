@@ -727,11 +727,33 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       agreedRun.text.includes('(' + L.AGREED_UPON + ')')
       && agreedRun.entries[0].sealProof.includes('البخاري')
       && agreedRun.entries[0].sealProof.includes('مسلم'), JSON.stringify(agreedRun.entries));
+    // ── AND ON 20 SEPTEMBER 2026 THE SEAL STOPPED ACCEPTING A BARE BOOK NAME ──
+    // `lib/takhrij-lock.js` used to establish a bare «متفق عليه» from the two names appearing
+    // ANYWHERE on a fetched page. That is how «ما ثبت في الصحيحين» reached the owner's screen over
+    // a narration the Ṣaḥīḥayn do not carry; guards/sahihayn-link-guard.cjs holds that case. The
+    // rule now asks that ONE passage name both Shaykhs AND speak about the matn being claimed.
+    //
+    // THIS PASS'S OWN PROOF ROWS NO LONGER MEET IT, AND THAT IS MEASURED, NOT ASSUMED. `sealProof`
+    // hands over the ladder books BY NAME and nothing else — «no atom text travels», lib/takhrij.js
+    // :1252 — so the rows fold to «صحيح البخاري» · «صحيح مسلم» and share no word with the sentence
+    // they exist to prove. The seal therefore now drops a «متفق عليه» THIS APP ITSELF VERIFIED.
+    //
+    // THAT IS A LIVE OVER-REFUSAL, and it is recorded here rather than papered over. Its seat is
+    // api/ask.js:1957, which the order of 20 September forbids touching; closing it means giving
+    // those rows the matn they are proving. The two rows below say exactly what the seal does now.
     const proofRows = agreedRun.entries.flatMap((entry) => entry.sealProof.map((book) => ({ title: book, passage: book })));
-    ok('10d ...and with that proof in hand the seal leaves the sentence standing',
-      LOCK.lockTakhrij(agreedRun.text, proofRows).text === agreedRun.text,
+    ok('10d a proof row that is a BARE BOOK NAME no longer establishes «متفق عليه»',
+      LOCK.lockTakhrij(agreedRun.text, proofRows).text !== agreedRun.text,
       JSON.stringify(LOCK.lockTakhrij(agreedRun.text, proofRows).text));
-    ok('10d CAUSAL: without it the seal deletes the very hadith the library sourced',
+    // AND THE MECHANISM IS INTACT where the row carries what a real fetched page carries: both
+    // names in one passage, about this matn. Without this row the one above would read as «the
+    // seal refuses every «متفق عليه»», which is not the rule and would hide a far worse defect.
+    const matnProofRows = [{ title: 'صحيح البخاري',
+      passage: 'أخرجه البخاري ومسلم عن عمر بن الخطاب رضي الله عنه قال: ' + MATN }];
+    ok('10d ...while a page naming both Shaykhs ABOUT THIS MATN still leaves the sentence standing',
+      LOCK.lockTakhrij(agreedRun.text, matnProofRows).text === agreedRun.text,
+      JSON.stringify(LOCK.lockTakhrij(agreedRun.text, matnProofRows).text));
+    ok('10d CAUSAL: with no proof at all the seal deletes the very hadith the library sourced',
       LOCK.lockTakhrij(agreedRun.text, []).text !== agreedRun.text,
       JSON.stringify(LOCK.lockTakhrij(agreedRun.text, []).text));
     ok('10d ...and a parenthetical the pass did NOT write hands the seal nothing',

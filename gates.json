@@ -580,5 +580,10 @@
     "name": "livenumbersrc",
     "script": "guards/live-number-source-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "sahihaynlink",
+    "script": "guards/sahihayn-link-guard.cjs",
+    "args": ""
   }
 ]
