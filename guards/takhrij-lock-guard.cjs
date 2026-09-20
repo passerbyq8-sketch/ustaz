@@ -1834,15 +1834,43 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         JSON.stringify({ ok: out.ok, problems: out.problems, text: out.text }));
     }
     {
-      // AN ANSWER THAT ARRIVED AS MARKS ALONE IS NOT NEWLY REFUSED. The rule forbids TURNING a
-      // substantial answer into an insubstantial one; it does not invent a refusal for input
-      // this function had no hand in shaping.
+      // AN ANSWER THAT ARRIVED AS MARKS ALONE. The AA-86 rule forbids TURNING a substantial
+      // answer into an insubstantial one; it does not invent a refusal for input this function
+      // had no hand in shaping. That is still the rule, and the second row below still measures
+      // it — `answer:marks-only` must NOT be the reason — but what «leaves exactly as it
+      // arrived» DENOTES has changed underneath it.
+      //
+      // WHAT CHANGED IN THE WORLD, AND WHEN. البند ٣ (owner, 18 Sep 2026):
+      // `const finalText = stripReaderTags(text);` at the foot of lib/finalize-reader-text.js
+      // strips every mark of the five from what leaves the seat.
+      // An answer that was nothing BUT a mark therefore has nothing left to leave, so the old
+      // expectation — `out.text === marksOnly` — now asks for a mark to be delivered to a reader,
+      // which is the one thing البند ٣ forbids. Read the other way it is satisfied only by a
+      // blank reply, and a blank reply is not what «leaves as it arrived» was written to mean.
+      //
+      // SO THE ROW IS TIGHTENED ONTO THE SEAT'S OWN ANSWER, NOT DROPPED.
+      // The block headed «AND AN ANSWER THAT WAS NOTHING BUT MARKS IS NOW NOTHING AT ALL» in
+      // lib/finalize-reader-text.js gives that answer in words and in code: the code is
+      // recorded, it is NOT marked repaired, and the refusal at the foot of the function hands
+      // the reader a sentence. Two outcomes were available — a blank screen or a plain sentence
+      // — and between them the sentence is not a close call. The three rows below pin that
+      // outcome, pin that it is reached by the ARRIVED branch and not by the transition rule
+      // AA-86 owns, and pin that no mark reaches the reader by either.
       const marksOnly = REV86.REVIEW_TAGS.FIQH_UNSOURCED;
       const out = SEAT86.finalizeReaderText({ kind: 'answer', text: marksOnly, sources: [] });
-      ok('AA-86 an answer that ARRIVED as marks alone leaves exactly as it arrived',
-        out.ok === true && out.text === marksOnly
-          && !out.problems.includes(SEAT86.ANSWER_WITHOUT_SUBSTANCE),
+      ok('AA-86 an answer that ARRIVED as marks alone is refused with a sentence, not blanked',
+        out.ok === false && out.text === SEAT86.FINALIZER_REFUSAL
+          && out.problems.includes(SEAT86.ANSWER_WITHOUT_SUBSTANCE),
         JSON.stringify({ ok: out.ok, text: out.text, problems: out.problems }));
+      ok('AA-86 ...and by the ARRIVED branch, not by the transition rule AA-86 owns',
+        Array.isArray(out.degraded)
+          && out.degraded.includes('answer:marks-only-removed')
+          && !out.degraded.includes('answer:marks-only'),
+        JSON.stringify(out.degraded));
+      ok('AA-86 ...and no mark of the five is in what the reader is handed',
+        !out.text.includes(marksOnly)
+          && !out.text.includes(REV86.REVIEW_TAGS.ATTRIBUTION_REMOVED),
+        JSON.stringify(out.text));
     }
     {
       // The AA-85 row above asserts this answer is left alone; here it is asserted that the new
@@ -2188,6 +2216,26 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
 
     // ── THE NEGATIVES, AND THEY ARE THE WHOLE RISK ──────────────────────────
     // A colon with REAL CONTENT behind it that happens to also carry a mark is untouched.
+    //
+    // ── WHY THE COMPARISON IS AGAINST THE DELIVERED TEXT AND NOT THE INPUT ──────────
+    // WHAT CHANGED IN THE WORLD, AND WHEN. البند ٣ (owner, 18 Sep 2026) put the line
+    // `const finalText = stripReaderTags(text);` at the foot of lib/finalize-reader-text.js:
+    // no mark of the five leaves that seat any
+    // more, by any route. These four rows were written before that, when a mark was still
+    // deliverable text, and `out.text === text` was then the exact way to say «this seat cut
+    // nothing here».
+    //
+    // WHY THE OLD EXPECTATION MEASURES SOMETHING THAT NO LONGER EXISTS. It asserts that the mark
+    // is still standing in the answer the reader receives. No answer carries one any more, on
+    // purpose, so the row cannot hold again on any tree — and what it fails on is the ONE
+    // difference that is not a defect. MEASURED on all four, 20 Sep 2026:
+    // `out.text === stripReaderTags(text)` byte for byte, `problems` empty, and every letter
+    // behind the colon present. The difference is the mark and nothing else.
+    //
+    // SO THE CLAIM IS RESTATED, NOT RELAXED. What these rows own is «this seat cuts nothing
+    // here», and that is now said over the text as it is DELIVERED. The second row in the loop
+    // is what keeps the restatement from being a loosening: it is written WITHOUT the seat's own
+    // stripping function, and it fails on the removal of any byte that is not part of a mark.
     for (const [label, text] of [
       ['a colon whose content is a quotation, and the quotation carries the mark',
         'قال النبيُّ صلّى الله عليه وسلّم:\n«إنّما الأعمالُ بالنيّاتِ» ' + TAG89 + '\nوبهذا يتبيّنُ الحكمُ.'],
@@ -2199,9 +2247,20 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         'الدليل على ذلك: ' + TAG89],
     ]) {
       const out = seal89(text);
-      ok('AA-89 byte-identical: ' + label,
-        out.text === text && !out.problems.includes(SEAT89.DANGLING_LEAD_IN),
-        JSON.stringify({ text: out.text, problems: out.problems }));
+      const delivered = REV89.stripReaderTags(text);
+      ok('AA-89 byte-identical as delivered: ' + label,
+        out.text === delivered && !out.problems.includes(SEAT89.DANGLING_LEAD_IN),
+        JSON.stringify({ text: out.text, expected: delivered, problems: out.problems }));
+      // AND THE ROW THAT HOLDS WHAT THE OLD COMPARISON HELD. `stripReaderTags` is the seat's
+      // own last act, so the row above on its own would also pass a seat that removed the mark
+      // AND a sentence with it. This one never calls it: with the marks folded out of BOTH texts
+      // and every space dropped, the characters must be the same characters in the same order,
+      // over the same number of lines. A cut of any other byte fails here.
+      ok('AA-89 nothing but the mark left the text: ' + label,
+        REV89.foldReaderMarks(out.text).replace(/\s+/gu, '')
+          === REV89.foldReaderMarks(text).replace(/\s+/gu, '')
+          && out.text.split('\n').length === text.split('\n').length,
+        JSON.stringify({ out: out.text, in: text }));
     }
 
     // ── NO MORE AND NO LESS: THE EQUIVALENCE ────────────────────────────────
