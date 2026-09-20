@@ -369,16 +369,22 @@ const DROP = [
     ok('the OFFICIAL body in our own lists is not a referral', run(official).removed.length === 0,
       JSON.stringify(run(official)));
 
-    // AND A SOURCE CARD IS NOT A REFERRAL EITHER — «تلك تبقى، فهي دليلُنا لا إحالةُ عجز». The
-    // card below names a host that is in neither the retrieved set nor the registry, which is
-    // the hardest case: nothing but «this line is markup the server built» saves it.
-    const carded = 'راجعْ موقعَ Oilprice للحصولِ على السعر.\n'
-      + '<source site="Oilprice" url="https://oilprice.com/oil-price-charts" title="Oil Prices">';
+    // AND A SOURCE CARD IS NOT A REFERRAL EITHER — «تلك تبقى، فهي دليلُنا لا إحالةُ عجز».
+    //
+    // THE CARD IS BUILT TO BE THE HARDEST CASE, and the first version of this row was not: a card
+    // whose title is plain English trips no rule at all, so it survived whether isCardLine existed
+    // or not, and the row proved nothing. MEASURED: with the card test disarmed by hand, that
+    // fixture still passed 77/77. This one names a host that is in neither the retrieved set nor
+    // the registry AND carries «موقع» in its Arabic title — the exact two halves the referral lock
+    // fires on — so the ONLY thing standing between it and deletion is «this line is markup the
+    // server built». Disarm that line and this row goes red.
+    const CARD = '<source site="Oilprice" url="https://oilprice.com/oil-price-charts" '
+      + 'title="أسعارُ النفطِ لحظةً بلحظةٍ على موقعِ Oilprice">';
+    const carded = 'راجعْ موقعَ Oilprice للحصولِ على السعر.\n' + CARD;
     const rk = run(carded);
     ok('the prose referral goes', !rk.text.includes('راجعْ موقعَ'), JSON.stringify(rk.text));
     ok('...and the source card standing beside it is untouched, byte for byte',
-      rk.text.includes('<source site="Oilprice" url="https://oilprice.com/oil-price-charts" title="Oil Prices">'),
-      JSON.stringify(rk.text));
+      rk.text.includes(CARD), JSON.stringify(rk.text));
   }
 
   // ══════════════════════════════════════════════════════════════════════════
