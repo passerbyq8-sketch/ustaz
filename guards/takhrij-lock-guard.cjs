@@ -1834,15 +1834,43 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         JSON.stringify({ ok: out.ok, problems: out.problems, text: out.text }));
     }
     {
-      // AN ANSWER THAT ARRIVED AS MARKS ALONE IS NOT NEWLY REFUSED. The rule forbids TURNING a
-      // substantial answer into an insubstantial one; it does not invent a refusal for input
-      // this function had no hand in shaping.
+      // AN ANSWER THAT ARRIVED AS MARKS ALONE. The AA-86 rule forbids TURNING a substantial
+      // answer into an insubstantial one; it does not invent a refusal for input this function
+      // had no hand in shaping. That is still the rule, and the second row below still measures
+      // it — `answer:marks-only` must NOT be the reason — but what «leaves exactly as it
+      // arrived» DENOTES has changed underneath it.
+      //
+      // WHAT CHANGED IN THE WORLD, AND WHEN. البند ٣ (owner, 18 Sep 2026):
+      // `const finalText = stripReaderTags(text);` at the foot of lib/finalize-reader-text.js
+      // strips every mark of the five from what leaves the seat.
+      // An answer that was nothing BUT a mark therefore has nothing left to leave, so the old
+      // expectation — `out.text === marksOnly` — now asks for a mark to be delivered to a reader,
+      // which is the one thing البند ٣ forbids. Read the other way it is satisfied only by a
+      // blank reply, and a blank reply is not what «leaves as it arrived» was written to mean.
+      //
+      // SO THE ROW IS TIGHTENED ONTO THE SEAT'S OWN ANSWER, NOT DROPPED.
+      // The block headed «AND AN ANSWER THAT WAS NOTHING BUT MARKS IS NOW NOTHING AT ALL» in
+      // lib/finalize-reader-text.js gives that answer in words and in code: the code is
+      // recorded, it is NOT marked repaired, and the refusal at the foot of the function hands
+      // the reader a sentence. Two outcomes were available — a blank screen or a plain sentence
+      // — and between them the sentence is not a close call. The three rows below pin that
+      // outcome, pin that it is reached by the ARRIVED branch and not by the transition rule
+      // AA-86 owns, and pin that no mark reaches the reader by either.
       const marksOnly = REV86.REVIEW_TAGS.FIQH_UNSOURCED;
       const out = SEAT86.finalizeReaderText({ kind: 'answer', text: marksOnly, sources: [] });
-      ok('AA-86 an answer that ARRIVED as marks alone leaves exactly as it arrived',
-        out.ok === true && out.text === marksOnly
-          && !out.problems.includes(SEAT86.ANSWER_WITHOUT_SUBSTANCE),
+      ok('AA-86 an answer that ARRIVED as marks alone is refused with a sentence, not blanked',
+        out.ok === false && out.text === SEAT86.FINALIZER_REFUSAL
+          && out.problems.includes(SEAT86.ANSWER_WITHOUT_SUBSTANCE),
         JSON.stringify({ ok: out.ok, text: out.text, problems: out.problems }));
+      ok('AA-86 ...and by the ARRIVED branch, not by the transition rule AA-86 owns',
+        Array.isArray(out.degraded)
+          && out.degraded.includes('answer:marks-only-removed')
+          && !out.degraded.includes('answer:marks-only'),
+        JSON.stringify(out.degraded));
+      ok('AA-86 ...and no mark of the five is in what the reader is handed',
+        !out.text.includes(marksOnly)
+          && !out.text.includes(REV86.REVIEW_TAGS.ATTRIBUTION_REMOVED),
+        JSON.stringify(out.text));
     }
     {
       // The AA-85 row above asserts this answer is left alone; here it is asserted that the new
@@ -2188,6 +2216,26 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
 
     // ── THE NEGATIVES, AND THEY ARE THE WHOLE RISK ──────────────────────────
     // A colon with REAL CONTENT behind it that happens to also carry a mark is untouched.
+    //
+    // ── WHY THE COMPARISON IS AGAINST THE DELIVERED TEXT AND NOT THE INPUT ──────────
+    // WHAT CHANGED IN THE WORLD, AND WHEN. البند ٣ (owner, 18 Sep 2026) put the line
+    // `const finalText = stripReaderTags(text);` at the foot of lib/finalize-reader-text.js:
+    // no mark of the five leaves that seat any
+    // more, by any route. These four rows were written before that, when a mark was still
+    // deliverable text, and `out.text === text` was then the exact way to say «this seat cut
+    // nothing here».
+    //
+    // WHY THE OLD EXPECTATION MEASURES SOMETHING THAT NO LONGER EXISTS. It asserts that the mark
+    // is still standing in the answer the reader receives. No answer carries one any more, on
+    // purpose, so the row cannot hold again on any tree — and what it fails on is the ONE
+    // difference that is not a defect. MEASURED on all four, 20 Sep 2026:
+    // `out.text === stripReaderTags(text)` byte for byte, `problems` empty, and every letter
+    // behind the colon present. The difference is the mark and nothing else.
+    //
+    // SO THE CLAIM IS RESTATED, NOT RELAXED. What these rows own is «this seat cuts nothing
+    // here», and that is now said over the text as it is DELIVERED. The second row in the loop
+    // is what keeps the restatement from being a loosening: it is written WITHOUT the seat's own
+    // stripping function, and it fails on the removal of any byte that is not part of a mark.
     for (const [label, text] of [
       ['a colon whose content is a quotation, and the quotation carries the mark',
         'قال النبيُّ صلّى الله عليه وسلّم:\n«إنّما الأعمالُ بالنيّاتِ» ' + TAG89 + '\nوبهذا يتبيّنُ الحكمُ.'],
@@ -2199,9 +2247,20 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         'الدليل على ذلك: ' + TAG89],
     ]) {
       const out = seal89(text);
-      ok('AA-89 byte-identical: ' + label,
-        out.text === text && !out.problems.includes(SEAT89.DANGLING_LEAD_IN),
-        JSON.stringify({ text: out.text, problems: out.problems }));
+      const delivered = REV89.stripReaderTags(text);
+      ok('AA-89 byte-identical as delivered: ' + label,
+        out.text === delivered && !out.problems.includes(SEAT89.DANGLING_LEAD_IN),
+        JSON.stringify({ text: out.text, expected: delivered, problems: out.problems }));
+      // AND THE ROW THAT HOLDS WHAT THE OLD COMPARISON HELD. `stripReaderTags` is the seat's
+      // own last act, so the row above on its own would also pass a seat that removed the mark
+      // AND a sentence with it. This one never calls it: with the marks folded out of BOTH texts
+      // and every space dropped, the characters must be the same characters in the same order,
+      // over the same number of lines. A cut of any other byte fails here.
+      ok('AA-89 nothing but the mark left the text: ' + label,
+        REV89.foldReaderMarks(out.text).replace(/\s+/gu, '')
+          === REV89.foldReaderMarks(text).replace(/\s+/gu, '')
+          && out.text.split('\n').length === text.split('\n').length,
+        JSON.stringify({ out: out.text, in: text }));
     }
 
     // ── NO MORE AND NO LESS: THE EQUIVALENCE ────────────────────────────────
@@ -2303,6 +2362,187 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
           });
       } finally {
         try { fs.rmSync(dir89, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
+  console.log('\n=== AA-90 · A PROMISE THIS SEAT EMPTIED IS NOT HANDED OVER BARE ===');
+  {
+    // FOUND BY MEASUREMENT, 20 Sep 2026 — and the measurement was already written down. The
+    // AA-86 block above records, in its own comment, that the audit sentence driven through the
+    // seat as it stands today «seals ok=true, outcome=CLEAN, and what ships is
+    // «والدليل على ذلك:», a bare promise with nothing behind it», and says in the same breath
+    // that it is NOT repaired there «because every repair for it is in lib/**». These rows hold
+    // that repair, at that seat.
+    //
+    // WHAT THE DEFECT IS, IN ONE LINE: the seat removed the only sentence the answer had, and
+    // then handed the reader the line whose whole job was to introduce it — a colon with
+    // nothing after it — and called the result CLEAN.
+    const SEAT90 = await esm('lib/finalize-reader-text.js');
+    const REV90 = await esm('lib/output-reviewer.js');
+    const TAG90 = REV90.REVIEW_TAGS.ATTRIBUTION_REMOVED;
+    const CREDIT90 = 'قال ابن قدامة إن إسناده صحيح.';
+    const PROMISE90 = 'والدليل على ذلك:';
+    const RULING90 = 'المسح على الخفين جائز للمسافر ثلاثة أيام بلياليها.';
+    const W90 = CREDIT90 + '</source>\n' + PROMISE90;
+    const seal90 = (text, extra) => SEAT90.finalizeReaderText(
+      { kind: 'answer', text, sources: [], ...(extra || {}) });
+
+    // ── THE PRECONDITIONS ─────────────────────────────────────────────────
+    // A witness that stopped being the witness passes in silence. Two things must hold or these
+    // rows measure nothing: the answer did NOT arrive as a bare promise, and it is THIS SEAT
+    // that empties it.
+    ok('AA-90 precondition: the witness arrived with a sentence standing above its promise',
+      W90.split('\n').filter((line) => line.trim()).length === 2
+        && W90.split('\n')[0].includes('قدامة')
+        && W90.split('\n')[1] === PROMISE90,
+      JSON.stringify(W90));
+    ok('AA-90 precondition: the seat is what removes that sentence',
+      !seal90(RULING90 + '\n' + W90).text.includes('قدامة'),
+      JSON.stringify(seal90(RULING90 + '\n' + W90).text));
+
+    // ── THE RULE ────────────────────────────────────────────────────────
+    {
+      const out = seal90(W90);
+      ok('AA-90 a promise this seat emptied does not reach the reader',
+        out.ok === false && out.problems.includes(SEAT90.ANSWER_IS_ONLY_A_PROMISE)
+          && out.outcome === 'REFUSED',
+        JSON.stringify({ ok: out.ok, problems: out.problems, outcome: out.outcome }));
+      ok('AA-90 ...and what he gets is a sentence, not a colon with nothing after it',
+        out.text === SEAT90.FINALIZER_REFUSAL
+          && !/[:：]\s*$/u.test(out.text)
+          && !out.text.includes(PROMISE90),
+        JSON.stringify(out.text));
+      ok('AA-90 ...and the caller can see WHY, not only that it happened',
+        Array.isArray(out.degraded) && out.degraded.includes('lead-in:all-that-is-left'),
+        JSON.stringify(out.degraded));
+    }
+
+    // ── THE NEGATIVES, AND THEY ARE THE WHOLE RISK ──────────────────────────
+    // This rule REFUSES. Every row below is an answer it must not touch.
+    {
+      // The AA-85 product decision is NOT reopened: an answer that ARRIVED as nothing but a
+      // promise is left exactly as it arrived. Same witness the AA-86 block keeps, asked again
+      // from this rule’s side, because this is the rule that could now take it away.
+      const only = seal90('قال النبيُّ صلّى الله عليه وسلّم:');
+      ok('AA-90 an answer that ARRIVED as nothing but a promise is still delivered',
+        only.ok === true && !only.problems.includes(SEAT90.ANSWER_IS_ONLY_A_PROMISE),
+        JSON.stringify(only));
+    }
+    {
+      // AND A MARK IS NOT A TRANSITION. «promise + mark» in and «promise» out is ONE answer read
+      // the way the reader reads it — AA-89’s equivalence, asked from this rule’s side. This is
+      // the fourth AA-89 negative, and it is the row that stops this rule from quietly
+      // undoing البند ٣ by refusing every answer a mark was stripped from.
+      const text = 'الدليل على ذلك: ' + TAG90;
+      const out = seal90(text);
+      ok('AA-90 a promise that arrived carrying a mark is not newly refused',
+        out.ok === true && !out.problems.includes(SEAT90.ANSWER_IS_ONLY_A_PROMISE)
+          && out.text === REV90.stripReaderTags(text),
+        JSON.stringify({ ok: out.ok, text: out.text, problems: out.problems }));
+    }
+    {
+      // A CARD IS STILL TO BE APPENDED, so the promise is not bare on the wire. The reason is
+      // the one the AA-85 block in the seat states: lib/finalized-sse-writer.js appends the
+      // approved attachments AFTER this function returns.
+      const out = seal90(W90, { cards: [{ title: 'x' }] });
+      ok('AA-90 a promise with a card still to come behind it is not refused',
+        out.ok === true && !out.problems.includes(SEAT90.ANSWER_IS_ONLY_A_PROMISE),
+        JSON.stringify({ ok: out.ok, problems: out.problems, text: out.text }));
+    }
+    {
+      // ONE SURVIVING RULING and the answer ships: the lead-in rule cuts the promise, and this
+      // rule has nothing to say. The commonest shape of the defect’s own witness.
+      const out = seal90(RULING90 + '\n' + W90);
+      ok('AA-90 an answer with one surviving ruling is delivered, not refused',
+        out.ok === true && !out.problems.includes(SEAT90.ANSWER_IS_ONLY_A_PROMISE)
+          && out.text.includes('ثلاثة أيام بلياليها'),
+        JSON.stringify({ ok: out.ok, problems: out.problems, text: out.text }));
+    }
+    {
+      // A PLAIN ANSWER WITH NO COLON IN IT AT ALL is the commonest case by far, and the rule
+      // must be invisible to it.
+      const out = seal90(RULING90);
+      ok('AA-90 a plain answer is byte-identical and untouched',
+        out.ok === true && out.text === RULING90 && out.problems.length === 0,
+        JSON.stringify(out));
+    }
+
+    // ── ONE QUESTION, ASKED OF BOTH TEXTS ─────────────────────────────────
+    {
+      const seatSrc90 = read('lib/finalize-reader-text.js');
+      ok('AA-90 the problem code is named once and exported for the guard to pin',
+        /export const ANSWER_IS_ONLY_A_PROMISE = 'ANSWER_IS_ONLY_A_PROMISE';/u.test(seatSrc90));
+      // THE SHAPE IS NOT MEASURED A SECOND TIME. `dropDanglingLeadIn` already computes it — it
+      // is the branch that declines to cut — and a separate copy of the test beside it would be
+      // a second answer to one question the day either copy is edited.
+      ok('AA-90 the shape is read off the detector, not recomputed beside it',
+        seatSrc90.includes('dropDanglingLeadIn(text, mayBeFollowed).onlyPromise')
+          && seatSrc90.includes('dropDanglingLeadIn(original, mayBeFollowed).onlyPromise'),
+        JSON.stringify(seatSrc90.split(/\r?\n/).filter((line) => line.includes('onlyPromise'))));
+      // ORDER IS THE CONTRACT, as it is for AA-83 and AA-86: the question can only be asked once
+      // the lead-in rule has had its cut, and it must stand ABOVE the identity notice, or an
+      // appended notice would be standing behind the colon and the naked promise would ship with
+      // a disclaimer for a body.
+      const atLeadIn90 = seatSrc90.indexOf('const leadIn = dropDanglingLeadIn(text, mayBeFollowed);');
+      const atPromise90 = seatSrc90.indexOf('if (onlyPromiseNow && !onlyPromiseOnArrival)');
+      const atNotice90 = seatSrc90.indexOf('const askedIdentity = carriesARuling');
+      ok('AA-90 ...and it is asked after the lead-in cut and before the identity notice',
+        atLeadIn90 > -1 && atPromise90 > atLeadIn90 && atNotice90 > atPromise90,
+        JSON.stringify({ atLeadIn90, atPromise90, atNotice90 }));
+      // AND IT IS NEVER EXCUSED. Recording the code is not what refuses the answer; NOT adding
+      // it to `repaired` is. A single `repaired.add` would turn this whole section green while
+      // the naked colon went on shipping.
+      ok('AA-90 the code is recorded and deliberately never marked repaired',
+        /problems\.push\(ANSWER_IS_ONLY_A_PROMISE\);/u.test(seatSrc90)
+          && !/repaired\.add\(ANSWER_IS_ONLY_A_PROMISE\)/u.test(seatSrc90));
+    }
+
+    // ── MUTANTS ──────────────────────────────────────────────────────
+    {
+      const seat90Path = path.join(REPO, 'lib', 'finalize-reader-text.js');
+      const seat90Src = read('lib/finalize-reader-text.js');
+      const seat90Dir = path.dirname(seat90Path);
+      const absolute90 = (source) => source.replace(
+        /from\s+(['"])(\.[^'"]*)\1/gu,
+        (_all, quote, spec) => 'from ' + quote
+          + 'file:///' + path.resolve(seat90Dir, spec).replace(/\\/g, '/') + quote,
+      );
+      const dir90 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-a90-mut-'));
+      const drive90 = async (name, apply, survives) => {
+        const changed = apply(seat90Src);
+        if (changed === seat90Src) {
+          ok('MUTANT ' + name, false, 'seam moved: the mutation did not apply, so nothing was tested');
+          return;
+        }
+        const file = path.join(dir90, name.replace(/[^a-z0-9-]/gi, '_') + '.mjs');
+        fs.writeFileSync(file, absolute90(changed), 'utf8');
+        let alive = true;
+        try { alive = await survives(await import('file:///' + file.replace(/\\/g, '/'))); }
+        catch { alive = false; }
+        ok('MUTANT KILLED: ' + name, !alive, 'the mutant survived — this property is not guarded');
+      };
+      try {
+        // M-S — the detector stops reporting the shape it measured, which is the tree exactly as
+        // it stood before this rule. `alive` is «the property still holds under the mutation», as
+        // everywhere else in this file: the property is «a promise this seat emptied does not
+        // reach the reader».
+        await drive90('the-detector-stops-reporting-what-it-emptied',
+          (s) => s.replace(
+            "  if (!kept.trim()) return { text, removed: '', onlyPromise: true };",
+            "  if (!kept.trim()) return { text, removed: '', onlyPromise: false };"),
+          async (mod) => mod.finalizeReaderText(
+            { kind: 'answer', text: W90, sources: [] }).ok === false);
+
+        // M-T — the rule fires on the SHAPE instead of on the transition. This is the
+        // OVER-REFUSING direction, and it is the one that costs the reader an answer he was
+        // entitled to: the negative above — an answer that arrived as nothing but a promise —
+        // is its witness.
+        await drive90('rule-fires-on-the-shape-not-on-the-transition',
+          (s) => s.replace('if (onlyPromiseNow && !onlyPromiseOnArrival)', 'if (onlyPromiseNow)'),
+          async (mod) => mod.finalizeReaderText(
+            { kind: 'answer', text: 'قال النبيُّ صلّى الله عليه وسلّم:', sources: [] }).ok === true);
+      } finally {
+        try { fs.rmSync(dir90, { recursive: true, force: true }); } catch { /* temp only */ }
       }
     }
   }
