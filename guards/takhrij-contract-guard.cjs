@@ -1321,6 +1321,94 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       /const seal = \(text\) => \{\s*const locked = lockTakhrij\(/u.test(askSrc17),
       'the seal in api/ask.js is no longer lockTakhrij — §17 measures a seat nothing uses');
   }
+
+  // ── ١٨ · فقرةٌ كتبَها الجوابُ مرّةً لا تُكتَبُ مرّتَين ────────────────────
+  //
+  // MEASURED, turn F14 of EZIK-RAW-CORPUS-2026-08-19.jsonl driven on this tree: two rounds,
+  // no stream, `end_turn`; round two was round one word for word with ONE «[1]» added, the
+  // whitespace fold made neither contain the other, and `joinRoundTexts` wrote 533 characters
+  // twice — a paragraph and two cards, delivered to the reader a second time.
+  //
+  // THE WITNESS IS BUILT HERE AND NOT READ FROM THE CORPUS. The corpus lives outside the
+  // repository; a guard that needs it is a guard that is skipped on a fresh clone. What is
+  // reproduced is its SHAPE, which is the whole of the defect: one part, and that part again
+  // with a citation marker in it.
+  {
+    const FB18 = await esm('lib/free-brain/loop.js');
+    const fs18 = require('fs');
+    const fold18 = (v) => String(v).replace(/\s+/gu, ' ').trim();
+    const longestRepeat18 = (text) => {
+      const f = fold18(text);
+      const twice = (len) => {
+        if (len <= 0) return '';
+        const seen = new Set();
+        for (let i = 0; i + len <= f.length; i += 1) {
+          const k = f.slice(i, i + len);
+          if (seen.has(k)) return k;
+          seen.add(k);
+        }
+        return '';
+      };
+      let lo = 1; let hi = Math.floor(f.length / 2); let best = '';
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        const hit = twice(mid);
+        if (hit) { best = hit; lo = mid + 1; } else hi = mid - 1;
+      }
+      return best;
+    };
+    const ROUND_A = [
+      'الأضحية سنة وليست واجبة، وتُجزئُ الشاةُ الواحدةُ عن الرجل وأهل بيته إذا جمعهم بيتٌ واحد.',
+      'أمّا إن كان الابنُ مستقلاً في بيتٍ آخرَ عن أبيه فلا تُجزئُه أضحيةُ والده، بل يُشرَعُ له أن يضحّي عن نفسه.',
+    ].join(' ');
+    // The same round again, with ONE citation marker added mid-paragraph. Nothing else moves.
+    const ROUND_B = ROUND_A.replace('بيتٌ واحد.', 'بيتٌ واحد [1].');
+    ok('18  the witness really is one part and that part again with a marker',
+      ROUND_B !== ROUND_A && ROUND_B.length > ROUND_A.length,
+      'the citation marker did not land — §18 is measuring nothing');
+
+    const joined18 = FB18.joinRoundTexts([ROUND_A, ROUND_B]);
+    const repeat18 = longestRepeat18(joined18);
+    ok('18  a round that restates another modulo one citation marker is not shipped twice',
+      repeat18.length < 60, 'longest run written twice: ' + repeat18.length + ' chars — ' + JSON.stringify(repeat18.slice(0, 80)));
+    ok('18  ...and the part that CARRIES the citation is the one that survives',
+      fold18(joined18) === fold18(ROUND_B), JSON.stringify(joined18.slice(0, 120)));
+    ok('18  ...and the pinned join agrees, except that it keeps its head',
+      longestRepeat18(FB18.joinRoundTextsHeadPinned([ROUND_B, ROUND_A])).length < 60,
+      JSON.stringify(FB18.joinRoundTextsHeadPinned([ROUND_B, ROUND_A]).slice(0, 120)));
+
+    // ── AND THE DROP IS A CONTAINMENT, NOT A RESEMBLANCE ───────────────────
+    // The negative gate the order names by name: two DIFFERENT paragraphs that open alike are
+    // both the reader’s, and a rule that deletes one of them is worse than the repetition.
+    const NEAR_A = 'الصلاةُ ركنٌ من أركانِ الإسلام، وهي أوّلُ ما يُحاسَبُ عليه العبدُ يومَ القيامة.';
+    const NEAR_B = 'الصلاةُ ركنٌ من أركانِ الإسلام، وتجبُ على كلِّ مسلمٍ بالغٍ عاقل، ولا تسقطُ بحال.';
+    const near18 = FB18.joinRoundTexts([NEAR_A, NEAR_B]);
+    ok('18  two different paragraphs that open alike are BOTH delivered',
+      near18.includes(NEAR_A) && near18.includes(NEAR_B), JSON.stringify(near18));
+    ok('18  ...and an exact repeat is still dropped, as it always was',
+      FB18.joinRoundTexts([NEAR_A, NEAR_A]) === NEAR_A);
+    ok('18  ...and a part that folds away to markers alone is not swallowed',
+      FB18.joinRoundTexts([NEAR_A, '[1] [2]']).includes('[1] [2]'));
+
+    // MUTANT — the fold is put back to whitespace alone, and the duplicate must return. Without
+    // this the rows above would pass over a join that never had the behaviour at all.
+    const loopPath18 = path.join(REPO, 'lib/free-brain/loop.js');
+    const src18 = fs18.readFileSync(loopPath18, 'utf8');
+    const SEAM18 = 'const fold = (value) => restateKey(value) || value.replace(';
+    ok('18  MUTANT: the fold seam is findable', src18.includes(SEAM18),
+      'the seam moved — §18 is blind and the duplicate can come back unseen');
+    if (src18.includes(SEAM18)) {
+      const mutant18 = src18.split(SEAM18).join('const fold = (value) => String(value).replace(');
+      const tmp18 = path.join(REPO, 'lib', 'free-brain', '.loop-mutant18-' + process.pid + '.mjs');
+      fs18.writeFileSync(tmp18, mutant18);
+      try {
+        const M18 = await esm('lib/free-brain/' + path.basename(tmp18));
+        const broken18 = longestRepeat18(M18.joinRoundTexts([ROUND_A, ROUND_B]));
+        ok('18  MUTANT: with the old fold the paragraph is written twice — the measured defect',
+          broken18.length >= 60, 'the mutant shipped only ' + broken18.length + ' repeated chars');
+      } finally { fs18.unlinkSync(tmp18); }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
