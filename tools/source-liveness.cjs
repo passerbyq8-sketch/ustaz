@@ -134,6 +134,9 @@ const PROBE_ALT = {
   const RT = await esm('lib/retrieve.js');
   const R = await esm('lib/source-registry.js');
   const PG = await esm('lib/source-page-gates.js');
+  // ـ١١٢ — through the ONE reader guards/live-world-v2-killswitch-guard.cjs allows. A second
+  // process.env read of this flag is a second opinion about what «off» means, and the gate says so.
+  const LW = await esm(lib/live-world-v2.js);
 
   const registered = R.SOURCES.map((s) => s.domain).filter(Boolean);
   const rows = [];
@@ -201,7 +204,16 @@ const PROBE_ALT = {
     // the status alone recorded al-badr.net as `live-cites` — coverage that does not exist, in
     // a file that drives a gate. The detector is a separate module so this tool and the gate
     // that proves it cannot hold two different ideas of what a soft 404 looks like.
-    const soft = httpStatus ? { soft: false } : detectSoftNotFound({
+    // ـ١١٢ — A FETCH THAT NEVER HAPPENED IS NOT A SOFT 404, AND MUST NOT BORROW ONE'S SENTENCE.
+    // MEASURED 2026-09-20: eight registered domains came back `fetch-failed preflight:not-an-admissible-url`
+    // — refused by THIS app's own policy in lib/ledger/safe-fetch.js's preflight(), before a socket was
+    // opened. `httpStatus` is 0 for a reason-shaped failure, so the detector below ran on an empty body that
+    // never existed, reported `soft`, and all eight shipped as `probe-stale` carrying the sentence «the host
+    // answered 2xx and served something that is not the requested document. Fix the URL». The host answered
+    // nothing; it was never asked. THREE of those rows were `live-cites` in the committed file and were about
+    // to be overwritten with a verdict no network had produced, in the file that drives the gate.
+    const refusedBeforeSocket = !httpStatus && /^fetch-failed/.test(note);
+    const soft = (httpStatus || refusedBeforeSocket) ? { soft: false } : detectSoftNotFound({
       requestedUrl: url, finalUrl: res.finalUrl || url, title: res.title, text, rawLen: res.rawLen,
     });
     // The second article, for the hosts that need one. Only reached when the first page looked
@@ -228,6 +240,8 @@ const PROBE_ALT = {
       status = 'probe-stale';                // the URL is gone; the DOMAIN said nothing wrong
     } else if (boilerplate) {
       status = 'live-no-citation';           // two different articles, one identical extraction
+    } else if (/^fetch-failed preflight:not-an-admissible-url/.test(note)) {
+      status = 'not-admissible';             // WE refused it, before a socket. The host said nothing.
     } else if (/^fetch-failed/.test(note) || /^BLOCKED \(cloudflare/.test(note)) {
       status = 'dead';                       // the host refused us, or challenged us
     } else if (/^BLOCKED/.test(note) || text.length < floor) {
@@ -258,12 +272,17 @@ const PROBE_ALT = {
       + 'domain measured DEAD is still on a production list, or when this measurement is stale.',
     tool: 'tools/source-liveness.cjs',
     measuredAt: new Date().toISOString().slice(0, 10),
+    // ـ١١٢ — the three world news hosts have policy rows that policyFor() hides while LIVE_WORLD_V2 is
+    // off, so the same probe reaches them or does not depending on one variable. A file that does not say
+    // which way that variable was set is a file nobody can re-measure.
+    measuredWith: { [LW.LIVE_WORLD_V2_FLAG]: LW.liveWorldV2Enabled() ? on : off },
     states: {
       'live-cites': 'the page came back and cleared every gate — a citation is producible',
       'live-no-citation': 'the host served bytes, but the page does not survive the gates',
       dead: 'the host refused us (403/429/5xx), challenged us, or could not be reached at all',
       'probe-stale': 'the host answered 404/410 — the probe URL in this tool is wrong, not the domain',
       unprobed: 'no probe URL is declared for this domain',
+      'not-admissible': "this app's own fetch policy refused the URL before a socket was opened — the host was never asked, and this row is NOT a statement about the host",
     },
     domains: rows.sort((a, b) => a.domain.localeCompare(b.domain)),
   };

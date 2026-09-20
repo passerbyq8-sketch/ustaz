@@ -289,10 +289,13 @@ const stripComments = (s) => String(s)
   {
     const doc = JSON.parse(read('data/source-liveness.json'));
     const row = (d) => doc.domains.find((r) => r.domain === d) || {};
+    // ـ١١٢ — MEASURED 2026-09-20: al-badr.net is `health: 'deferred'` in lib/ledger/source-policy.js, so
+    // admissible() refuses its URL and the probe never opens a socket. `live-no-citation` was a
+    // statement ABOUT THE HOST; there is no longer a measurement behind it, and the row now says so.
     ok('B9: al-badr.net is recorded as what it actually is',
-      row('al-badr.net').status === 'live-no-citation', JSON.stringify(row('al-badr.net').status));
-    ok('B9: ...tafsir.app is recorded as unreadable, not as missing',
-      row('tafsir.app').status === 'live-no-citation', JSON.stringify(row('tafsir.app').status));
+      row('al-badr.net').status === 'not-admissible', JSON.stringify(row('al-badr.net').status));
+    ok('B9: ...tafsir.app is recorded as refused-by-us, not as unreadable',
+      row('tafsir.app').status === 'not-admissible', JSON.stringify(row('tafsir.app').status));
     ok('B9: ...ferkous.app is not recorded dead on a blink',
       row('ferkous.app').status === 'live-cites', JSON.stringify(row('ferkous.app').status));
     ok('B9: ...and every probed row carries a response time',

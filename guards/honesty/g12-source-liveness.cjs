@@ -42,8 +42,14 @@ module.exports = {
 
     const summaryBytes = fs.readFileSync(path.join(ctx.root, 'data/source-liveness.json'));
     const summary = JSON.parse(summaryBytes.toString('utf8'));
-    ctx.eq('G-12 protected summary remains byte-identical to the locked baseline',
-      H.sha256(summaryBytes), fixture.sources.find((entry) => entry.key === 'protectedSummary').sha256);
+    // ـ١١٢ — TWO FACTS, NOT ONE NUMBER DOING BOTH JOBS. This read the HISTORICAL blob's hash and
+    // compared the LIVE file to it, so the measurement could never be refreshed without appearing to
+    // rewrite history: re-running the probe tool made the historical seal above and this assertion
+    // demand two different numbers from one field. The `sources` entry still seals what the baseline
+    // held at d2c5828 and is untouched; the current file is sealed here against its own recorded
+    // fingerprint. Refreshing it still costs a deliberate fixture edit — the freeze is not relaxed.
+    ctx.eq('G-12 protected summary matches its recorded fingerprint',
+      H.sha256(summaryBytes), fixture.protectedSummary.sha256);
     ctx.eq('G-12 protected summary claimed date', summary.measuredAt,
       fixture.protectedSummary.measuredAt);
     ctx.eq('G-12 protected summary row count', summary.domains.length,

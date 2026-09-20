@@ -36,8 +36,9 @@
     }
   ],
   "protectedSummary": {
-    "measuredAt": "2026-08-07",
-    "rows": 31,
+    "sha256": "587aaf7d28e6397bc1d78bf62dc5c58b962fc9328708ebf41d44faa573c5eba7",
+    "measuredAt": "2026-09-20",
+    "rows": 32,
     "signaturePresent": false,
     "rawResponseShaRows": 0
   },
