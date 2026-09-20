@@ -200,6 +200,11 @@
     "args": ""
   },
   {
+    "name": "takhrijcontract",
+    "script": "guards/takhrij-contract-guard.cjs",
+    "args": ""
+  },
+  {
     "name": "quotedphrase",
     "script": "guards/quoted-phrase-guard.cjs",
     "args": ""

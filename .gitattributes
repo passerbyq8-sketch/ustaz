@@ -220,6 +220,7 @@ guards/page-match-guard.cjs text eol=lf
 lib/page-match.js text eol=lf
 guards/takhrij-lock-guard.cjs text eol=lf
 lib/takhrij-lock.js text eol=lf
+guards/takhrij-contract-guard.cjs text eol=lf
 # The same defect as lib/route-classify.js below, found by fixing that one: with the route seam
 # repaired, gate takhrij went 84/87 -> 85/87 and uncovered two more assertions of its own that had
 # been dark behind the earlier abort. takhrij-lock-guard.cjs:425 mutates lib/finalized-sse-writer.js

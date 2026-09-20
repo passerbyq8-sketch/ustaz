@@ -349,7 +349,7 @@ every purpose and `capabilityEligible()` is false for every capability. **Regist
 
 ## K. Gates and tests
 
-All 114 gates, run by the canonical `npm run gates` runner from `gates.json`:
+All 115 gates, run by the canonical `npm run gates` runner from `gates.json`:
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -359,7 +359,7 @@ attribution 0 · claim 0 · sourceregistry 0 · bravequery 0 · smartretrieval 0
 ledgercontract 0 · ledgerretrieval 0 · ledgergates 0 · ledgerruntime 0 · ledgerfixtures 0
 ledgerseam 0 · rfcpolicy 0 · rfcruntime 0 · rfcwiring 0 · rfcround3 0 · rfcmode 0
 rfchistorical 0 · rfcconsistency 0 · rfcworld 0 · scholardrift 0 · shippedreality 0
-pagematch 0 · takhrij 0 · quotedphrase 0 · adaptedcorpus 0 · deaddomains 0
+pagematch 0 · takhrij 0 · takhrijcontract 0 · quotedphrase 0 · adaptedcorpus 0 · deaddomains 0
 floorsfilters 0 · liveness 0 · aiconsent 0 · srcattr 0 · referraltail 0 · namepresence 0
 voicesafety 0 · wird 0 · rulingsource 0 · retrievalobs 0 · madinahafs 0
 i18nui 0 · adhkartwins 0 · systemprompt 0 · lockpackage 0 · sourcehonesty 0
@@ -382,7 +382,7 @@ liveworldkill 0 · livenumbersrc 0
 Every one **PASS**, exit code `0`.
 
 ```
-TOTAL_GATES        114/114 PASS
+TOTAL_GATES        115/115 PASS
 RECON              PASS=205 WARN=0 FAIL=0
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision

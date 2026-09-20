@@ -721,10 +721,13 @@ async function runSuite() {
     // `liveworldkill` (guards/live-world-v2-killswitch-guard.cjs) and `livenumbersrc`
     // (guards/live-number-source-guard.cjs). The fifth stop was reached from the note above and
     // not from a red gate; adding two at once costs the same five edits, once.
-    function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 114; }
+        // ITEM 50-ب (2026-09-20): 114 -> 115, same rule again -- the gate `takhrijcontract`,
+    // guards/takhrij-contract-guard.cjs. The guard was on disk and unregistered, so it ran
+    // nowhere and its verdict was read by nobody. Registering it is the whole round.
+function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 115; }
     ok('ORIGINAL_GATE_SET_MATCH', exactGateSet(EXPECTED_GATES));
-    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 114-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
-    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 114-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
+    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 115-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
+    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 115-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
 
     const m13 = await storedMutant(temp, 'fiqh-before-special', (source) => source.replace(
       "if (QURAN_REQUEST.test(folded)) return 'LOCAL_QURAN';",
