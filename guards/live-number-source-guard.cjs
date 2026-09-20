@@ -97,7 +97,8 @@ const DROP = [
   // ══════════════════════════════════════════════════════════════════════════
   ok('lib/live-number-source.js exports enforceLiveNumberSourcing',
     typeof M.enforceLiveNumberSourcing === 'function');
-  for (const sym of ['carriesLiveNumber', 'carriesAbsoluteDate', 'carriesRelativeDate', 'carriesSource']) {
+  for (const sym of ['carriesLiveNumber', 'carriesAbsoluteDate', 'carriesRelativeDate', 'carriesSource',
+    'offersExternalService', 'introducesWhatFollows', 'isCardLine']) {
     ok('...and exports ' + sym + ', so each half can be tested on its own', typeof M[sym] === 'function');
   }
   {
@@ -295,6 +296,135 @@ const DROP = [
     const ASK = read('api/ask.js');
     ok('the handler gates the free-brain seat on asksLiveNumber(questionText)',
       /if \(liveWorldV2Enabled\(\) && asksLiveNumber\(questionText\)\) \{[\s\S]{0,1400}enforceLiveNumberSourcing\(readerText,/.test(ASK));
+  }
+
+
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('\n=== J. THE LEAD-IN GOES WITH WHAT IT LED INTO (2026-09-20) ===');
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // THE MEASURED ANSWER, on the preview, to the owner's exchange-rate question: five sentences
+  // removed, «emptied: false», and what the reader was handed was «تفاوتَتِ الأرقامُ قليلًا بينَ
+  // المواقعِ، وهذا طبيعيٌّ…» and then nothing whatever. «وهذا أسوأُ من لم أجد: وعدٌ بلا وفاء.»
+  //
+  // AND THE OTHER DIRECTION IS ASSERTED JUST AS HARD, for the reason section B exists: a rule
+  // that removes the sentence BEFORE a deletion is one shape away from removing the sentence
+  // before every deletion, and the answer around it would go quietly.
+  {
+    const orphaned = 'تفاوتَتِ الأرقامُ قليلًا بينَ المواقعِ، وهذا طبيعيٌّ.\n'
+      + 'سعرُ صرفِ الدولارِ مقابلَ الدينارِ الكويتيِّ 307.350 فلسًا.';
+    const r = run(orphaned);
+    ok('the promise goes with the figure it promised', !r.text.includes('تفاوتَتِ'),
+      JSON.stringify(r));
+    ok('...and it is recorded under its own reason, not the figure\'s',
+      r.removed.length === 2 && r.removed.some((x) => x.why === 'lead-in-to-a-removed-sentence'),
+      JSON.stringify(r.removed));
+    ok('...and an answer that was nothing but the promise and the figure is emptied',
+      r.emptied === true, JSON.stringify(r.text));
+
+    const colon = 'وهذه أسعارُ النفطِ كما وردتْ:\nسعرُ برميلِ برنت 67.44 دولارًا.';
+    const rc = run(colon);
+    ok('a colon lead-in whose content was deleted goes too', rc.emptied === true, JSON.stringify(rc));
+
+    // THE OTHER DIRECTION, AND IT IS THE ONE THAT MATTERS: the paragraph of section E, whose
+    // FIRST sentence names «أسعار» and is followed by a deletion. It carries its own source, its
+    // own date and its own figures, so it is a statement and not a promise, and it must stand.
+    const para = 'بحسب الجزيرة نت في 18 سبتمبر 2026، ارتفعت أسعار النفط. وبلغ سعر البرميل 72 دولارًا. والكويت عضو في أوبك.';
+    const rp = run(para);
+    ok('a sourced, dated sentence that MENTIONS prices is not a lead-in',
+      rp.text.includes('ارتفعت أسعار النفط') && rp.text.includes('والكويت عضو في أوبك'),
+      JSON.stringify(rp));
+
+    const survived = 'وهذه أسعارُ النفطِ كما وردتْ:\nبحسب الجزيرة نت في 18 سبتمبر 2026 بلغ سعرُ البرميل 72 دولارًا.';
+    ok('...and a lead-in whose content SURVIVED is never touched',
+      run(survived).removed.length === 0, JSON.stringify(run(survived)));
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('\n=== K. WE DO NOT SEND THE READER SOMEWHERE ELSE (2026-09-20) ===');
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // «هذا ممنوعٌ منعًا باتًّا. عزك لا يدلُّ قارئَه على خدمةٍ أخرى ليأخذَ منها ما عجزَ هو عنه.»
+  // The five names below are the ones the preview actually offered, in three separate answers.
+  {
+    for (const [name, sentence] of [
+      ['XE.com and Investing, offered as somewhere to look',
+        'يمكنكَ التحقُّقُ من السعرِ عبرَ موقعِ XE.com أو Investing.'],
+      ['Kitco, with the bare noun of a destination',
+        'أسعارُ الذهبِ لحظةً بلحظةٍ متاحةٌ على موقعِ Kitco.com.'],
+      ['Oilprice, named as the place to go',
+        'راجعْ Oilprice للاطّلاعِ على سعرِ البرميلِ الآن.'],
+      ['Google, in Arabic letters',
+        'ابحثْ في جوجل عن آخرِ الأسعارِ لتجدَها محدَّثة.'],
+    ]) {
+      const r = run(sentence);
+      ok(name, r.emptied === true && r.removed.length === 1
+        && r.removed[0].why === 'external-service-referral', JSON.stringify(r));
+    }
+
+    // AND THE ALLOWED ALTERNATIVE, WHICH COSTS NO EXCEPTION. «ودلَّ على الجهةِ الرسميّةِ صاحبةِ
+    // الرقمِ إن كانتْ في قوائمِنا» — the central bank has a registry row, so the "is this ours"
+    // test answers for it and the sentence stands with no rule written for it.
+    const official = 'ولكَ مراجعةُ موقعِ بنك الكويت المركزي cbk.gov.kw لأسعارِ الصرفِ الرسميّة.';
+    ok('the OFFICIAL body in our own lists is not a referral', run(official).removed.length === 0,
+      JSON.stringify(run(official)));
+
+    // AND A SOURCE CARD IS NOT A REFERRAL EITHER — «تلك تبقى، فهي دليلُنا لا إحالةُ عجز». The
+    // card below names a host that is in neither the retrieved set nor the registry, which is
+    // the hardest case: nothing but «this line is markup the server built» saves it.
+    const carded = 'راجعْ موقعَ Oilprice للحصولِ على السعر.\n'
+      + '<source site="Oilprice" url="https://oilprice.com/oil-price-charts" title="Oil Prices">';
+    const rk = run(carded);
+    ok('the prose referral goes', !rk.text.includes('راجعْ موقعَ'), JSON.stringify(rk.text));
+    ok('...and the source card standing beside it is untouched, byte for byte',
+      rk.text.includes('<source site="Oilprice" url="https://oilprice.com/oil-price-charts" title="Oil Prices">'),
+      JSON.stringify(rk.text));
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('\n=== L. THE ANSWER THAT ALREADY WORKS — NO REGRESSION, BYTE FOR BYTE ===');
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // «جوابُ النفطِ الناجحُ (رقمٌ + aljazeera.net + تاريخٌ صريح) يمرُّ بايتًا ببايتٍ بلا حذف. إن حذفَ
+  // عقدُك منه شيئًا فالعقدُ خطأ.» This is the owner's second preview question, written as the
+  // model wrote it: the figure, the site and the day in the same sentence, twice over.
+  {
+    const OIL = 'بحسبِ الجزيرة نت في 18 سبتمبر 2026، أغلقَ خامُ برنت عندَ 67.44 دولارًا للبرميل. '
+      + 'وخامُ غربِ تكساسَ الوسيطِ عندَ 63.68 دولارًا في 18 سبتمبر 2026 بحسبِ الجزيرة نت. '
+      + 'والسوقُ متأثّرةٌ بقراراتِ أوبك+ وبمستوياتِ المخزونِ الأمريكيّ.';
+    const r = run(OIL);
+    ok('the reference answer passes byte for byte, with nothing removed',
+      r.text === OIL && r.removed.length === 0 && r.emptied === false,
+      JSON.stringify({ removed: r.removed, text: r.text }));
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('\n=== M. the two new rules can fail — each predicate asked to say NO ===');
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Section H's discipline, applied to the 2026-09-20 half: a predicate that says YES to
+  // everything proves nothing about the sections that rest on it.
+  {
+    const V = M.sourceVocabulary(SOURCES);
+    ok('offersExternalService says NO when no foreign name is in the sentence',
+      M.offersExternalService('يمكنكَ مراجعةُ الجدولِ أعلاه.', V) === false);
+    ok('offersExternalService says NO to a foreign name that is NOT a destination',
+      M.offersExternalService('بحسب XE.com بلغ السعر 307 فلسًا.', V) === false,
+      'an attribution to a page we did not fetch is a different defect, ruled on elsewhere');
+    ok('offersExternalService says YES when both halves are there',
+      M.offersExternalService('يمكنكَ زيارةُ موقعِ XE.com.', V) === true);
+    ok('...and NO to a page this very answer retrieved',
+      M.offersExternalService('يمكنكَ مراجعةُ موقعِ cbk.gov.kw.', V) === false);
+    ok('introducesWhatFollows says NO to ordinary prose',
+      M.introducesWhatFollows('والكويت عضو في أوبك.', V) === false);
+    ok('introducesWhatFollows says NO to a sentence carrying its own figure',
+      M.introducesWhatFollows('بلغت الأرقام 307 فلسًا في 2026.', V) === false);
+    ok('introducesWhatFollows says YES to a line ending in a colon',
+      M.introducesWhatFollows('وهذه الأسعارُ:', V) === true);
+    ok('introducesWhatFollows says YES to a promise that gives nothing',
+      M.introducesWhatFollows('تفاوتَتِ الأرقامُ قليلًا بينَ المواقع.', V) === true);
+    ok('isCardLine says NO to prose', M.isCardLine('راجعْ موقعَ Oilprice.') === false);
+    ok('isCardLine says YES to a card', M.isCardLine('<source site="x" url="https://x/">') === true);
   }
 
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL ===' : ' — PASS ==='));

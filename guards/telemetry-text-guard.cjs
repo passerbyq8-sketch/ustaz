@@ -155,9 +155,11 @@ const LIVE_WORLD_V2_FIELDS = [
   // error class name — `e.name`, i.e. 'TypeError', 'Error', 'AbortError'. A closed vocabulary
   // owned by the runtime. Deliberately NOT `e.message`; see above.
   'errorName',
-  // fixed vocabulary, as a list — `removed.map((r) => r.why)`, and every `why` is one of four
+  // fixed vocabulary, as a list — `removed.map((r) => r.why)`, and every `why` is one of six
   // literals defined in lib/live-number-source.js ('live-number-without-source',
-  // '...-without-date', '...-without-source-or-date', 'relative-date-without-absolute'). The
+  // '...-without-date', '...-without-source-or-date', 'relative-date-without-absolute', and, since
+  // 2026-09-20, 'external-service-referral' and 'lead-in-to-a-removed-sentence'). Reviewed one at
+  // a time like the rest: each names a RULE this repository owns and nothing the reader typed. The
   // SENTENCES that were removed are never printed: they are the reader's own answer text, and
   // the whole point of the count beside this is to say how many went without saying what they said.
   'why',
