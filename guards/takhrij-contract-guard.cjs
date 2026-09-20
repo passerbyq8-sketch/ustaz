@@ -406,10 +406,21 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     const agreed = await T.applyTakhrij(text, { env: ON, lookup: narrowing });
     ok('8b  one Shaykh in the wide call is re-asked, and both make «متفق عليه»',
       agreed.text.includes('(متفق عليه)'), JSON.stringify(agreed.text));
-    ok('8b  ...in exactly ONE extra call, and it is narrowed to the two Sahihs alone',
-      seen.length === 2 && seen[1].bookIds.length === 2
-        && seen[1].bookIds.includes('FC-000645') && seen[1].bookIds.includes('FC-000648'),
-      JSON.stringify(seen.map((one) => one.bookIds.length)));
+    // ١١١/٤ — ONE CALL PER ṢAḤĪH, TEN ROWS EACH. This row read «one extra call, narrowed to
+    // the two Ṣaḥīḥs», and that narrowing left the same crowding running between those two:
+    // measured on the live index, «الصلاة على وقتها» asked of both together returns ten rows
+    // of which ZERO carry the matn, and asked of البخاري alone returns five of which TWO do. So
+    // the row states the contract that replaced it — and the thing it was really protecting,
+    // that this is one extra call FOR THE ANSWER and not one per hadith, is still asserted, by
+    // the matn list going down whole in each.
+    ok('8b  ...in one narrowed call PER Ṣaḥīḥ, each naming a single book',
+      seen.length === 1 + L.SHAYKHAYN_IDS.length
+        && seen.slice(1).every((one) => one.bookIds.length === 1)
+        && L.SHAYKHAYN_IDS.every((id) => seen.slice(1).some((one) => one.bookIds[0] === id)),
+      JSON.stringify(seen.map((one) => one.bookIds)));
+    ok('8b  ...and each narrowed call carries ALL the matns, not one call per hadith',
+      seen.slice(1).every((one) => JSON.stringify(one.matns) === JSON.stringify(seen[1].matns)),
+      JSON.stringify(seen.map((one) => one.matns.length)));
     ok('8b  ...and the wide call was narrowed to the ladder, never to nothing',
       seen[0].bookIds.length === L.TAKHRIJ_LADDER_IDS.length,
       String(seen[0].bookIds.length));
@@ -441,7 +452,9 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     // the wide answer for all three, so the narrowed request — the one that finds them — was
     // never sent, and «(متفق عليه)» could not fire anywhere.
     ok('8b  neither Shaykh present: the narrowed request IS sent, and that is the §٣ repair',
-      counted.length === 2 && counted[1].length === 2, JSON.stringify(counted.map((c) => c.length)));
+      counted.length === 1 + L.SHAYKHAYN_IDS.length
+        && counted.slice(1).every((c) => c.length === 1),
+      JSON.stringify(counted.map((c) => c.length)));
 
     // AND IT IS READ ON THE RESULTS, NOT ON THE VERDICT — the owner’s «ظهر في النتائج».
     // The fixture hands back صحيح البخاري whose atom is the CHAPTER HEADING: the id IS in the
@@ -462,7 +475,9 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     };
     const recovered = await T.applyTakhrij(text, { env: ON, lookup: headingFirst });
     ok('8b  a Shaykh that was RETURNED but not confirmed still triggers the recheck',
-      heads.length === 2 && heads[1].length === 2, JSON.stringify(heads.map((h) => h.length)));
+      heads.length === 1 + L.SHAYKHAYN_IDS.length
+        && heads.slice(1).every((h) => h.length === 1),
+      JSON.stringify(heads.map((h) => h.length)));
     ok('8b  ...and the hadith is rescued from a false «لا يثبت مرفوعا»',
       recovered.text.includes('(متفق عليه)') && !recovered.text.includes(L.NOT_RAISED),
       JSON.stringify(recovered.text));
@@ -1172,10 +1187,12 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     const asked = opened.calls.flatMap((c) => c.matns);
     ok('16  a matn a ladder book carries IS asked again under its one-word variant',
       asked.includes(NIYYA), JSON.stringify(asked));
-    ok('16  ...and the narrowed requests are narrowed — the Shaykhayn, then the ruling books',
-      opened.calls.some((c) => JSON.stringify(c.ids) === JSON.stringify([...L.SHAYKHAYN_IDS]))
+    // ١١١/٤ — the Ṣaḥīḥayn request is now one call per book; the graders are still asked
+    // together, because splitting them was measured and bought nothing.
+    ok('16  ...and the narrowed requests are narrowed — each Shaykh alone, then the graders',
+      L.SHAYKHAYN_IDS.every((id) => opened.calls.some((c) => JSON.stringify(c.ids) === JSON.stringify([id])))
         && opened.calls.some((c) => JSON.stringify(c.ids) === JSON.stringify([...L.RULING_BOOK_IDS])),
-      JSON.stringify(opened.calls.map((c) => c.ids.length)));
+      JSON.stringify(opened.calls.map((c) => c.ids)));
     ok('16  ...and the FIRST call is still the whole ladder on the matn itself, unwidened',
       JSON.stringify(opened.calls[0].ids) === JSON.stringify([...L.TAKHRIJ_LADDER_IDS])
         && JSON.stringify(opened.calls[0].matns) === JSON.stringify([NIYYAT]),
@@ -1525,6 +1542,95 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       ok('19  ...and the ascription door\'s borrowed name is still beside it',
         ask19.includes("out.degraded.push('takhrij:inside_emitted_bytes');"));
     }
+  }
+
+  // ── ٢٠ · الطلبُ المضيَّقُ يحملُ معرِّفَ كتابٍ واحد ──────────────────────────
+  //
+  // Phase two exists because ten globally-best rows are not ten rows per book. Narrowing to the
+  // two Ṣaḥīḥs TOGETHER left the same contest running between those two, and the measured cost
+  // was a reader told nothing about a hadith البخاري publishes. ١١١/٤ splits it.
+  //
+  // THE ROWS BELOW DRIVE THE REAL PASS WITH A FIXTURE LIBRARY that answers a narrowed request
+  // ONLY when it names exactly one book. A single call for both books gets nothing back — which
+  // is the crowding-out, made deterministic — so a tree that merges the calls again cannot pass.
+  {
+    const fs20 = require('fs');
+    const T20 = await esm('lib/takhrij.js');
+    const L20 = await esm('lib/takhrij-ladder.js');
+    const MATN20 = 'الصلاة على وقتها ثم بر الوالدين';
+    const ANSWER20 = 'قال النبي صلى الله عليه وسلم: «' + MATN20 + '» وهذا أصل في الباب.';
+    const BUKHARI20 = L20.SHAYKHAYN_IDS[0];
+    const asked20 = [];
+    // THE LIBRARY THAT ONLY ANSWERS A ONE-BOOK REQUEST. Everything else comes back empty, which
+    // is the measured shape: the two books together return ten rows and none of them carry it.
+    const lookup20 = async (matns, options) => {
+      const ids = (options && options.bookIds) || [];
+      asked20.push(ids.slice());
+      const oneBook = ids.length === 1 && ids[0] === BUKHARI20;
+      return matns.map((m) => (oneBook
+        ? { matn: m, subjectIds: [BUKHARI20], atoms: ['حدثنا سفيان عن ابن مسعود رضي الله عنه قال: ' + m] }
+        : { matn: m, subjectIds: [], atoms: [] }));
+    };
+    const pass20 = await T20.applyTakhrij(ANSWER20, { env: ON, lookup: lookup20 });
+
+    const narrowed20 = asked20.filter((ids) => ids.length && ids.length < L20.TAKHRIJ_LADDER_IDS.length);
+    ok('20  the narrowed request was made at all', narrowed20.length > 0,
+      JSON.stringify(asked20.map((x) => x.length)));
+    ok('20  and every narrowed Ṣaḥīḥayn request carries exactly ONE book id',
+      asked20.filter((ids) => ids.some((id) => L20.SHAYKHAYN_IDS.includes(id))
+        && ids.every((id) => L20.SHAYKHAYN_IDS.includes(id)))
+        .every((ids) => ids.length === 1),
+      JSON.stringify(asked20));
+    ok('20  ...and BOTH Ṣaḥīḥs are still asked, one after the other',
+      L20.SHAYKHAYN_IDS.every((id) => asked20.some((ids) => ids.length === 1 && ids[0] === id)),
+      JSON.stringify(asked20));
+    ok('20  the matns go down TOGETHER in the call for one book — not one call per hadith',
+      asked20.filter((ids) => ids.length === 1).length === L20.SHAYKHAYN_IDS.length,
+      String(asked20.filter((ids) => ids.length === 1).length));
+    ok('20  and the book that only a one-book request could reach is named to the reader',
+      pass20.text.includes('البخاري'), JSON.stringify(pass20.text));
+
+    // ── AND WHAT COUNTS AS CARRYING THE MATN DID NOT MOVE ─────────────────
+    // The one line the order locks: «ما اتّسعَ هو عددُ المرشّحينَ لا ما يُعَدُّ حملًا للمتن».
+    // A guard that only counted calls would pass a tree that bought its extra witnesses by
+    // loosening the test, which is the false-ascription door reopened from the side.
+    const NEAR20 = 'حدثنا سفيان قال: الصلاة في أوّل الوقت أفضلُ الأعمال';
+    ok('20  a near neighbour is still not a carrier',
+      T20.atomCarriesMatn(NEAR20, MATN20) === false, JSON.stringify(NEAR20));
+    ok('20  ...and an atom that really holds the matn still is one',
+      T20.atomCarriesMatn('عن ابن مسعود قال: ' + MATN20, MATN20) === true);
+    // AND THE ANCHOR RULE ITSELF, which is what the widening would have had to touch.
+    const src20 = fs20.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8');
+    ok('20  the anchor is still four words and six tenths, untouched by this step',
+      src20.includes('const MIN_ANCHOR_WORDS = 4;')
+        && src20.includes('Math.max(MIN_ANCHOR_WORDS, Math.ceil(words.length * 0.6))'));
+
+    // MUTANT — the two books are merged back into one call, and the reader loses the book.
+    ok('20  MUTANT: the per-book seam is findable',
+      src20.includes('for (const bookId of SHAYKHAYN_IDS) {'),
+      'the seam moved — §20 is blind and the calls can be merged again unseen');
+    if (src20.includes('for (const bookId of SHAYKHAYN_IDS) {')) {
+      const mutant20 = src20
+        .replace('for (const bookId of SHAYKHAYN_IDS) {', 'for (const bookId of [SHAYKHAYN_IDS]) {');
+      const tmp20 = path.join(REPO, 'lib', '.takhrij-mutant20-' + process.pid + '.mjs');
+      fs20.writeFileSync(tmp20, mutant20);
+      try {
+        const M20 = await esm('lib/' + path.basename(tmp20));
+        const broken20 = await M20.applyTakhrij(ANSWER20, { env: ON, lookup: lookup20 });
+        ok('20  MUTANT: merged back into one call, the book goes unnamed — the measured defect',
+          !broken20.text.includes('البخاري'), JSON.stringify(broken20.text));
+      } finally { fs20.unlinkSync(tmp20); }
+    }
+
+    // ── AND PHASE THREE IS DELIBERATELY NOT SPLIT, WITH ITS MEASUREMENT WRITTEN DOWN ──
+    // ١١١/٤ measured the same question on the five graders and found ZERO gained on ten matns,
+    // so it is left alone. The row pins the DECISION and its reason, so a later round that
+    // splits it is made to re-measure rather than to copy a pattern.
+    ok('20  the narrowed grader request still names all the graders at once',
+      src20.includes('{ bookIds: RULING_BOOK_IDS }'),
+      'phase three was split — ١١١/٤ measured that it buys nothing; re-measure before changing it');
+    ok('20  ...and the measurement that decided it is written where the code is',
+      src20.includes('AND THIS PHASE IS *NOT* SPLIT PER BOOK, BECAUSE IT WAS MEASURED'));
   }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
