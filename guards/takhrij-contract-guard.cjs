@@ -1446,7 +1446,11 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     const os19 = require('os');
     const T19 = await esm('lib/takhrij.js');
     const L19 = await esm('lib/takhrij-ladder.js');
-    const MATNS19 = [
+    // ١١١/٥ — THE WITNESS IS BUILT FROM THE CAP, NOT FROM A NUMBER. A fixture written with six
+    // matns stopped exceeding the cap the moment the cap became six, and §19 passed while
+    // measuring nothing. The answer now always holds TWO more matns than the cap examines,
+    // whatever the cap is, so the next round that moves it cannot blind this section.
+    const POOL19 = [
       'انما الاعمال بالنيات وانما لكل امرئ ما نوى',
       'من غشنا فليس منا وهو حديث مشهور بين اهل العلم',
       'المسلم من سلم المسلمون من لسانه ويده في كل حال',
@@ -1454,6 +1458,9 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       'الصلاة على وقتها ثم بر الوالدين ثم الجهاد في سبيل الله',
       'الدين النصيحة قلنا لمن قال لله ولكتابه ولرسوله',
     ];
+    const NEED19 = T19.TAKHRIJ_MAX_MATNS + 2;
+    const MATNS19 = Array.from({ length: NEED19 }, (_unused, i19) => POOL19[i19 % POOL19.length]
+      + (i19 < POOL19.length ? '' : ' وهذا لفظ آخر رقم ' + String(i19 + 1)));
     const ANSWER19 = MATNS19.map((m, i) => 'الوجه ' + (i + 1)
       + ': قال النبي صلى الله عليه وسلم: «' + m + '» وهذا أصل في الباب.').join('\n');
     const silent19 = async (matns) => matns.map((m) => ({ matn: m, subjectIds: [], atoms: [] }));
