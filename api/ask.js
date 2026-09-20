@@ -111,7 +111,10 @@ import { classifyImpermissibleRequest, impermissibleCounsel } from '../lib/polic
 import { lockTakhrij } from '../lib/takhrij-lock.js';
 import { finalizeReaderText, FINALIZER_REFUSAL } from '../lib/finalize-reader-text.js';
 import { createFinalizedSseResponse } from '../lib/finalized-sse-writer.js';
-import { guardEmptyAnswer } from '../lib/empty-answer.js';
+// §١ — `askInFlight` beside it, from the same module and for the same reason: the wrapper is the
+// one seat every request to this handler passes through, so it is the only place that can say
+// whether a request that never closed was open beside the one that collapsed.
+import { guardEmptyAnswer, askInFlight } from '../lib/empty-answer.js';
 // قرار ١ب: OFF by default. The import is unconditional and the BEHAVIOUR is flagged — a
 // conditional import would make the flag decide what the module graph is, which is a second
 // thing that can differ between environments.
@@ -1883,7 +1886,48 @@ export default async function handler(req, res) {
       // is deliberately NOT part of this condition: §٢-ج orders the takhrij in الأطوار
       // الثلاثة كلها, and the depth gate at :869 is the library’s rule, not the takhrij’s.
       // The band gate IS kept, because widening a minor’s sources is not this item’s to do.
-      let readerText = out.text || FREE_BRAIN_EMPTY;
+      // ══════════════════════════════════════════════════════════════════════
+      // §١ — الانهيارُ الصامتُ يُسجَّلُ قبلَ أن يُرسَل (٢٠٢٦-٠٩-٢٠)
+      // ══════════════════════════════════════════════════════════════════════
+      //
+      // THE SEAT THAT PRODUCED THE MEASURED SENTENCE. `out.text || FREE_BRAIN_EMPTY` has been the
+      // line since the free branch shipped, and lib/free-brain/loop.js:49 calls the constant
+      // unreachable because the reviewer's last rung returns a non-empty string for every input.
+      // It is NOT unreachable: the loop's own L8 case delivers an EMPTY text on purpose — «لا
+      // نثرَ ألبتّة» is no answer, not a short one — and that delivery lands exactly here.
+      //
+      // WHAT IT COST. Twice on the preview the reader read «تعذَّر توليدُ الجوابِ الآن…» and the
+      // log held twenty `info` entries, no `warn`, no `error` and no timeout. `[free-brain/turn]`
+      // above does print `degraded`, so a careful reader COULD have found `empty_answer:no_prose`
+      // inside an array among twenty other fields — but nothing said the reader had just been
+      // handed a failure sentence, and that is the difference between a log and a record.
+      //
+      // THE FOUR FACTS ARE THE OWNER'S FOUR, and each is a count, a flag or a fixed literal:
+      // `kind` names the CLASS of text the reader is about to receive, `stage` the phase the turn
+      // had reached, `streamedThisTurn` whether bytes had already gone on the wire, and
+      // `inFlight` whether a request that never closed was open beside this one — the fourth
+      // question, which nothing on this request could answer, so lib/empty-answer.js counts it at
+      // the one seat every request passes through.
+      //
+      // NOT A BYTE OF IT REACHES THE READER, and no question text is in it (`telemetrytext`):
+      // `degraded` is this loop's own closed vocabulary of reason codes, and every other field is
+      // a number, a boolean or a word written in this file.
+      let readerText = out.text;
+      if (!readerText) {
+        console.warn('[free-brain/empty]', {
+          kind: 'reader-gets-the-apology',
+          stage: 'free-brain-delivery',
+          streamedThisTurn: out.streamedThisTurn === true,
+          deliveredStop: out.deliveredStop ?? null,
+          truncated: out.truncated ?? null,
+          rounds: out.rounds,
+          modelCalls: out.modelCalls,
+          degraded: out.degraded,
+          inFlight: askInFlight(),
+          elapsedMs: out.elapsedMs,
+        });
+        readerText = FREE_BRAIN_EMPTY;
+      }
       const takhrij = takhrijDecision();
       if (takhrij.enabled) {
         const wired = band === 'adult' && libFlagValue === 'on' && libToken !== '';

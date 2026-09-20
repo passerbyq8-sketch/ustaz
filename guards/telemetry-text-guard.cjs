@@ -167,8 +167,24 @@ const LIVE_WORLD_V2_FIELDS = [
   // spoke instead. One bit about an outcome.
   'emptied',
 ];
+// ── RULE B, CONTINUED: THE SILENT-COLLAPSE TRACE (§١ · 2026-09-20) ───────────
+//
+// ONE new name, reviewed on its own line like the rest. `[free-brain/empty]` in api/ask.js is
+// the line that was missing when the reader was handed «تعذَّر توليدُ الجوابِ الآن…» twice with
+// twenty `info` entries and no `warn` behind it. Every OTHER field on that call is already
+// above — `kind`, `stage`, `streamedThisTurn`, `deliveredStop`, `truncated`, `rounds`,
+// `modelCalls`, `degraded`, `elapsedMs` — and each carries the same value it carries elsewhere.
+const COLLAPSE_FIELDS = [
+  // integer — `askInFlight()`, the number of requests lib/empty-answer.js has open in THIS
+  // container at the moment of the collapse, itself included. It is counted by that module out
+  // of its own install and `res.end` hooks; nothing about it is derived from a request body, a
+  // header or a question, and it cannot carry a character of prose. It is here because the
+  // owner's fourth question about a collapse — «هل سبقَه طلبٌ لم يُغلَقْ» — has no other answer.
+  'inFlight',
+];
 
-const ALLOWED = new Set([...ALLOWED_FIELDS, ...STREAM_FIELDS, ...LIVE_WORLD_V2_FIELDS]);
+const ALLOWED = new Set([...ALLOWED_FIELDS, ...STREAM_FIELDS, ...LIVE_WORLD_V2_FIELDS,
+  ...COLLAPSE_FIELDS]);
 const NEWLINE = String.fromCharCode(10);
 
 // ── THE BOUNDARY, WRITTEN DOWN RATHER THAN LEFT TO BE REDISCOVERED ────────────
