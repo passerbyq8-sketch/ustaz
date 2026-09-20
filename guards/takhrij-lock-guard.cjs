@@ -1567,17 +1567,41 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         JSON.stringify(out));
       // AND THE PROPHETIC TEXT IS NEVER REMOVED. Deleting the hadith to delete its grade would be
       // a far worse defect than the one being repaired, and this row is what says so.
+      // ١١١/٢ — «فليُسقِطْ ما حولَه، والمتنُ يبقى». The sentence carrying the grade goes WHOLE now,
+      // its credit frame with it, and `matnToSalvage` leaves the narration standing bare in
+      // «…». So the property this row was written to protect — the Prophet’s words are never
+      // deleted in order to delete a grade — is asserted exactly as before, and the row beside
+      // it states what changed: the frame around them is what paid, which IS the ruling.
       ok('AA-83 ...and the prophetic text it was attached to is untouched',
-        out.text.includes(MATN) && out.text.includes(SAYS), JSON.stringify(out.text));
+        out.text.includes(MATN), JSON.stringify(out.text));
+      ok('AA-83 ...and it is the frame around the narration that paid, not the narration',
+        !out.text.includes(SAYS) && !/صحيح/u.test(out.text), JSON.stringify(out.text));
     }
+    // ── ١١١/٢ · EACH SHAPE IS CARRIED, BECAUSE THE NEVER-EMPTY NET WOULD MASK IT ────
+    // Every row below used to state the WORD-CUT — a sentence with a word torn out of its
+    // middle, which is the owner’s measured defect of 20 September wearing a guard row. The
+    // contract is overturned, so the rows are REWRITTEN to the contract that replaced it,
+    // not softened and not deleted: the sentence goes WHOLE, or it does not go. Each shape
+    // now travels behind a ruling line, because a block whose only sentence is condemned
+    // hits the module’s own never-empty net and comes back untouched — which would make
+    // every row below pass while measuring nothing.
+    const CARRIER83 = 'الحكمُ في البابِ ظاهرٌ عند أهل العلم.';
     for (const [label, text, gone] of [
-      ['the matn shape', 'وهذا حديثٌ صحيحٌ عن النبيِّ صلّى الله عليه وسلّم.', 'وهذا حديثٌ عن النبيِّ صلّى الله عليه وسلّم.'],
+      ['the matn shape', 'وهذا حديثٌ صحيحٌ عن النبيِّ صلّى الله عليه وسلّم.', ''],
       ['the chain shape', 'الحكمُ ثابتٌ في البابِ. صحيحُ الإسنادِ.', 'الحكمُ ثابتٌ في البابِ.'],
-      ['the definite form with its conjunction', 'والحديثُ الصحيحُ في البابِ يدلُّ على ذلك.', 'والحديثُ في البابِ يدلُّ على ذلك.'],
-      ['a weak grading, equally unsourced', 'وهو حديثٌ ضعيفٌ.', 'وهو حديثٌ.'],
+      ['the definite form with its conjunction', 'والحديثُ الصحيحُ في البابِ يدلُّ على ذلك.', ''],
+      ['a weak grading, equally unsourced', 'وهو حديثٌ ضعيفٌ.', ''],
     ]) {
-      ok('AA-83 ' + label + ': the grade goes and the rest is byte-identical',
-        sealG(text).text === gone, JSON.stringify(sealG(text).text));
+      const carried = CARRIER83 + '\n' + text;
+      ok('AA-83 ' + label + ': the sentence goes whole, the ruling beside it is byte-identical',
+        sealG(carried).text === CARRIER83 + '\n' + gone, JSON.stringify(sealG(carried).text));
+      // AND THE SHAPE, NOT ONLY THE STRING. Whatever comes back, no sentence of it is a
+      // sentence of the input with a word taken out of the middle — the row the owner’s
+      // witness «بل هو حديثٌ جدًّا» would have failed.
+      ok('AA-83 ' + label + ': no sentence comes back with a word missing from its middle',
+        sealG(carried).text.split(/[.؟!\n]/u)
+          .every((sen) => sen.trim() === '' || carried.includes(sen.trim())),
+        JSON.stringify(sealG(carried).text));
     }
 
     // ── THE NEGATIVE, AND IT IS THE WHOLE RISK ──────────────────────────────
@@ -1683,7 +1707,9 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
           (src) => src.replace('  return takhrijSpans(block).length > 0',
             '  return false && takhrijSpans(block).length > 0'),
           async (mod) => {
-            const text = 'وهو حديثٌ صحيحٌ، متفقٌ عليه.';
+            // CARRIED, since ١١١/٢: a lone condemned sentence empties the block and the
+            // module's never-empty net hands the original back, which would mask the mutant.
+            const text = 'الحكمُ في البابِ ظاهرٌ عند أهل العلم.\nوهو حديثٌ صحيحٌ، متفقٌ عليه.';
             return mod.dropUnsourcedGrades(text).text === text;
           });
 
@@ -1692,15 +1718,19 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         await drive('grade-rule-stops-requiring-the-noun-beside-it',
           (src) => src.replace('if (before && MATN_NOUNS.has(before))', 'if (before)'),
           async (mod) => {
-            const text = 'نعم، هذا كلامٌ صحيحٌ لا غبارَ عليه.';
+            // CARRIED, for the same reason as M-F above.
+            const text = 'الحكمُ في البابِ ظاهرٌ عند أهل العلم.\nنعم، هذا كلامٌ صحيحٌ لا غبارَ عليه.';
             return mod.dropUnsourcedGrades(text).text === text;
           });
 
-        // M-H — the rule removes the SENTENCE rather than the word, which deletes the prophetic
-        // text in order to delete its grade. Explicitly forbidden, so explicitly guarded.
-        await drive('grade-rule-removes-the-sentence-not-the-word',
-          (src) => src.replace('cuts.push(leavesAStatement(rest) ? { start: sp.start, end: sp.end }',
-            'cuts.push(false ? { start: sp.start, end: sp.end }'),
+        // M-H — ١١١/٢ · THE SAME PROPERTY, THROUGH THE SEAM THAT NOW CARRIES IT. The prophetic
+        // text is never deleted in order to delete its grade. Until ١١١/٢ that was protected by
+        // cutting the WORD instead of the sentence; the owner overturned that, and what protects
+        // the matn now is `matnToSalvage`. So the mutant disarms THAT, and the row reads exactly
+        // as it read before: with the seam gone, the narration goes out with the grade.
+        await drive('grade-rule-stops-salvaging-the-matn-from-the-sentence',
+          (src) => src.replace('      const salvage = matnToSalvage(block, sen, within);',
+            '      const salvage = null; // mutant'),
           async (mod) => {
             // TWO LINES, deliberately. With one, cutting the sentence empties the answer and the
             // rule’s own never-empty net hands the original back — which would mask the mutant.
@@ -2035,45 +2065,81 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         out.text === CARRY + '\n', JSON.stringify(out.text));
     }
 
-    // ── 3 · THE NEGATIVES, AND THEY ARE THE WHOLE RISK ──────────────────────
-    // A grade beside GENUINE CONTENT comes out exactly as it does today: the grading word goes
-    // and every other byte stays. All three are corpus sentences, not constructions.
+    // ── 3 · ١١١/٢ · THE PRICE, STATED AND MEASURED RATHER THAN HIDDEN ──────────
+    //
+    // These rows used to state the WORD-CUT, and the strings they pinned were the defect:
+    //
+    //     «وقال الحاكم:، ووافقه الذهبي.»          a colon with nothing behind it
+    //     «وقال الألباني: مظلم، وصححه بالشواهد.»  an adjective with its noun gone
+    //     «وهو حديثٌ.»                              the owner’s «بل هو حديثٌ جدًّا», one shape over
+    //
+    // The contract is overturned, so each row is REWRITTEN to the contract that replaced it.
+    // The price is real and is named here rather than buried: a true clause standing in the
+    // same sentence as an unsourced grade goes with it. «قال: لا يثبت عندي؛ إسناده ضعيف.»
+    // loses its refusal — «السكوتُ خسارةُ فائدة» — and what it stops costing is a sentence with a
+    // hole in the middle of it.
     for (const [label, text, expected] of [
-      ['a refusal stated before the grade',
-        'قال: لا يثبت عندي؛ إسناده ضعيف.', 'قال: لا يثبت عندي.'],
+      ['a refusal stated before the grade', 'قال: لا يثبت عندي؛ إسناده ضعيف.', ''],
       ['a second scholar agreeing, after the grade',
-        'وقال الحاكم: صحيح الإسناد، ووافقه الذهبي.', 'وقال الحاكم:، ووافقه الذهبي.'],
+        'وقال الحاكم: صحيح الإسناد، ووافقه الذهبي.', ''],
       ['a reason and a correction standing with it',
-        'وقال الألباني: إسناده ضعيف مظلم، وصححه بالشواهد.', 'وقال الألباني: مظلم، وصححه بالشواهد.'],
-    ]) {
-      ok('AA-88 byte-identical, a grade beside real content: ' + label,
-        LOCK88.dropUnsourcedGrades(text).text === expected,
-        JSON.stringify(LOCK88.dropUnsourcedGrades(text).text));
-    }
-    // ...and the shapes the AA-83 rows above already pin are untouched by the new question.
-    for (const [label, text, expected] of [
-      ['no verb of saying anywhere: the matn shape', 'وهو حديثٌ ضعيفٌ.', 'وهو حديثٌ.'],
+        'وقال الألباني: إسناده ضعيف مظلم، وصححه بالشواهد.', ''],
+      ['no verb of saying anywhere: the matn shape', 'وهو حديثٌ ضعيفٌ.', ''],
       ['no verb of saying anywhere: the definite form',
-        'والحديثُ الصحيحُ في البابِ يدلُّ على ذلك.', 'والحديثُ في البابِ يدلُّ على ذلك.'],
-      ['a verb of saying with the whole narration behind it',
-        'قال النبيُّ صلّى الله عليه وسلّم: من صام رمضان إيمانًا واحتسابًا، وهو حديثٌ صحيحٌ.',
-        'قال النبيُّ صلّى الله عليه وسلّم: من صام رمضان إيمانًا واحتسابًا، وهو حديثٌ.'],
+        'والحديثُ الصحيحُ في البابِ يدلُّ على ذلك.', ''],
       ['a verb of saying with a ruling behind the complementizer',
-        'قال ابن قدامة إن المسح جائز للمسافر ثلاثة أيام وإسناده صحيح.',
-        'قال ابن قدامة إن المسح جائز للمسافر ثلاثة أيام.'],
+        'قال ابن قدامة إن المسح جائز للمسافر ثلاثة أيام وإسناده صحيح.', ''],
     ]) {
-      ok('AA-88 byte-identical, ' + label,
-        LOCK88.dropUnsourcedGrades(text).text === expected,
-        JSON.stringify(LOCK88.dropUnsourcedGrades(text).text));
+      const carried = CARRY + '\n' + text;
+      ok('AA-88 the condemned sentence goes whole, the ruling beside it is byte-identical: ' + label,
+        LOCK88.dropUnsourcedGrades(carried).text === CARRY + '\n' + expected,
+        JSON.stringify(LOCK88.dropUnsourcedGrades(carried).text));
+      ok('AA-88 ...and no sentence comes back missing a word from its middle: ' + label,
+        LOCK88.dropUnsourcedGrades(carried).text.split(/[.؟!\n]/u)
+          .every((sen) => sen.trim() === '' || carried.includes(sen.trim())),
+        JSON.stringify(LOCK88.dropUnsourcedGrades(carried).text));
+    }
+    // ── AND THE NARRATION IS NEVER WHAT PAYS ──────────────────────────
+    // The one row of the old table whose sentence held the Prophet’s words. The sentence goes
+    // whole like every other, and `matnToSalvage` leaves the narration standing bare — the
+    // second half of the same ruling, and the reason the price above is payable at all.
+    {
+      const narrated = 'قال النبيُّ صلّى الله عليه وسلّم: من صام رمضان إيمانًا واحتسابًا، وهو حديثٌ صحيحٌ.';
+      const got88 = LOCK88.dropUnsourcedGrades(narrated).text;
+      ok('AA-88 a verb of saying with the whole narration behind it: the narration survives bare',
+        got88 === '«من صام رمضان إيمانًا واحتسابًا»', JSON.stringify(got88));
+      ok('AA-88 ...and the grade it was wearing is gone with the sentence',
+        !/صحيح/u.test(got88), JSON.stringify(got88));
+    }
+    // ── AND THE OWNER’S OWN WITNESS OF 20 SEPTEMBER, VERBATIM ───────────────
+    {
+      const W88 = 'حديث «أنا مدينة العلم وعلي بابها» لا يصح عن النبي صلى الله عليه وسلم. بل هو حديث موضوع جدا. وقد حكم عليه أهل العلم بذلك.';
+      const gotW = LOCK88.dropUnsourcedGrades(W88).text;
+      ok('AA-88 the measured witness: «بل هو حديث جدا» is not shipped',
+        !gotW.includes('بل هو حديث جدا'), JSON.stringify(gotW));
+      ok('AA-88 ...the whole sentence went, and the two beside it are byte-identical',
+        gotW === 'حديث «أنا مدينة العلم وعلي بابها» لا يصح عن النبي صلى الله عليه وسلم. وقد حكم عليه أهل العلم بذلك.',
+        JSON.stringify(gotW));
     }
 
-    // ── 4 · THE PINS ────────────────────────────────────────────────────────
+    // ── 4 · THE PINS ────────────────────────────────────────
     {
       const lockSrc88 = read('lib/takhrij-lock.js');
       const BS88 = String.fromCharCode(92);
-      ok('AA-88 the decision is the question, not the letters test',
-        lockSrc88.includes('cuts.push(leavesAStatement(rest) ?')
+      // ١١١/٢ — NEITHER QUESTION DECIDES ANY LONGER. The letters test was the audit’s defect;
+      // the statement test was its repair; and the owner overturned both by ruling that a cut
+      // ends at a sentence boundary or does not happen. So the pin is on the SEAM that now
+      // carries the rule, and on the absence of BOTH retired branches.
+      ok('AA-88 the cut is the sentence, and neither retired test decides it',
+        lockSrc88.includes('const salvage = matnToSalvage(block, sen, within);')
+          && lockSrc88.includes("cuts.push({ start: sen.start, end: sen.end, insert: '' });")
+          && !lockSrc88.includes('cuts.push(leavesAStatement(rest) ?')
           && !lockSrc88.includes('cuts.push(/[' + BS88 + 'u0621-' + BS88 + 'u064A]/u.test(rest)'));
+      // AND THE QUESTION IS STILL EXPORTED AND STILL MEASURED, because it is the EVIDENCE for
+      // the ruling that retired it: 91.4% of the residues of a word-cut are a credit frame.
+      ok('AA-88 the retired question is kept with its measurement, not deleted',
+        typeof LOCK88.leavesAStatement === 'function'
+          && lockSrc88.includes('IT NO LONGER DECIDES ANYTHING, AND THE MEASUREMENT IS WHY IT STAYS'));
       ok('AA-88 the three sets are declared where the measurement that produced them is written',
         lockSrc88.includes('const SAYING_VERBS = new Set([')
           && lockSrc88.includes('const COMPLEMENTIZERS = new Set([')
@@ -2115,31 +2181,45 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         ok('MUTANT KILLED: ' + name, !alive, 'the mutant survived — this property is not guarded');
       };
       try {
-        // M-M — the letters test restored, which is the tree exactly as the audit found it.
+        // M-M — ١١١/٢ · THE WORD-CUT RESTORED, the tree exactly as the owner measured it on
         // `alive` is «the property still holds under the mutation», as everywhere else in this
-        // file: the property is «a truncated sentence is not left in a named scholar's mouth».
-        await drive88('grade-rule-asks-for-letters-again',
-          (s) => s.replace('  const toks = tokenize(rest);\n',
-            '  return true;\n  const toks = tokenize(rest);\n'),
-          async (mod) => mod.dropUnsourcedGrades(CARRY + '\n' + CREDIT).text === CARRY + '\n');
+        // 20 September. The property is «no sentence reaches a reader with a word taken out of
+        // its middle», and the witness is his own sentence rather than a construction.
+        await drive88('the-word-cut-comes-back',
+          (m) => m.replace('      const salvage = matnToSalvage(block, sen, within);',
+            '      const salvage = null; // mutant')
+            .replace("        cuts.push({ start: sen.start, end: sen.end, insert: '' });",
+              "        cuts.push({ start: sp.start, end: sp.end, insert: '' }); // mutant"),
+          async (mod) => {
+            const WM = 'حديث «أنا مدينة العلم وعلي بابها» لا يصح عن النبي صلى الله عليه وسلم. بل هو حديث موضوع جدا. وقد حكم عليه أهل العلم بذلك.';
+            return !mod.dropUnsourcedGrades(WM).text.includes('بل هو حديث جدا');
+          });
 
-        // M-N — THE OVER-REACHING DIRECTION, and it is the one that costs the reader a sentence:
-        // what stands behind the introduction stops being looked at, so every credit is cut whole.
-        await drive88('what-stands-behind-the-credit-stops-counting',
-          (s) => s.replace(
-            '  for (const t of toks) if (t.start >= intro && isSubstantive(t.bare)) return true;\n'
-            + '  return false;',
-            '  return false;'),
-          async (mod) => mod.dropUnsourcedGrades('قال: لا يثبت عندي؛ إسناده ضعيف.').text
-            === 'قال: لا يثبت عندي.');
+        // M-N — ١١١/٢ · THE OVER-REACHING DIRECTION, through the door that is now live: the cut
+        // stops being bounded by the sentence and takes the whole BLOCK. That is the direction
+        // that costs the reader settled prose, and this rule must never take it.
+        await drive88('the-cut-stops-being-bounded-by-the-sentence',
+          (m) => m.replace('      const sen = sentenceAround(block, sp.start);',
+            '      const sen = { start: 0, end: block.length }; // mutant'),
+          async (mod) => {
+            // CARRIED, or the mutant empties the block and the never-empty net masks it.
+            const TN = 'الحكمُ في البابِ ظاهرٌ عند أهل العلم.\nالمسح على الخفين جائز للمسافر. وهو حديث ضعيف.';
+            return mod.dropUnsourcedGrades(TN).text.includes('المسح على الخفين جائز للمسافر');
+          });
 
-        // M-O — a sentence with no credit in it at all starts being cut whole. The same
-        // over-reaching direction through the other door, and the AA-83 rows above are its
-        // witness: «وهو حديثٌ ضعيفٌ.» must lose its grade and keep its sentence.
-        await drive88('a-sentence-with-no-credit-is-cut-whole',
-          (s) => s.replace('  if (verb < 0) return true;', '  if (verb < 0) return false;'),
-          async (mod) => mod.dropUnsourcedGrades(CARRY + '\nوهو حديثٌ ضعيفٌ.').text
-            === CARRY + '\nوهو حديثٌ.');
+        // M-O — ١١١/٢ · the salvage is folded into the removal beside it, which is the merge
+        // mistake `lockTakhrij` names at its own merge: the matn the replacement was carrying is
+        // the thing that gets deleted. The narration must survive, or the ruling is broken in
+        // the half that protects the Prophet’s words.
+        await drive88('a-salvaged-matn-is-folded-into-the-removal-beside-it',
+          (m) => m.replace('      if (last && !last.insert && !c.insert && c.start <= last.end) {',
+            '      if (last && c.start <= last.end) { // mutant'),
+          async (mod) => {
+            // A PURE REMOVAL IMMEDIATELY BEFORE A SALVAGE, because sentences() returns its
+            // ranges CONTIGUOUS: that is the only shape in which a fold can swallow the matn.
+            const TM = 'الحكمُ في البابِ ظاهرٌ عند أهل العلم.\nوإسنادُه صحيحٌ. قال النبيُّ صلّى الله عليه وسلّم: «من صام رمضان إيمانا واحتسابا غفر له ما تقدم من ذنبه»، وهو حديثٌ صحيحٌ.';
+            return mod.dropUnsourcedGrades(TM).text.includes('من صام رمضان');
+          });
       } finally {
         try { fs.rmSync(dir88, { recursive: true, force: true }); } catch { /* temp only */ }
       }
