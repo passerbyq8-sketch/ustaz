@@ -60,6 +60,8 @@ function ok(name, cond, detail) {
   return false;
 }
 const esm = (rel) => import('file://' + path.join(REPO, rel).replace(/\\/g, '/'));
+/** ١٩ — the same import, for a file written outside the repository tree. */
+const esm19 = (abs) => import('file:///' + abs.replace(/\\/g, '/'));
 
 // The matn every fixture quotes, and an atom that really carries it with a Companion in
 // front of it. Built here rather than pasted, so no harakat sequence is typed by hand.
@@ -1407,6 +1409,121 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
         ok('18  MUTANT: with the old fold the paragraph is written twice — the measured defect',
           broken18.length >= 60, 'the mutant shipped only ' + broken18.length + ' repeated chars');
       } finally { fs18.unlinkSync(tmp18); }
+    }
+  }
+
+  // ── ١٩ · متنٌ يسقُطُ بالسقفِ يتركُ أثرًا، والجولةُ المبثوثةُ تقولُ ذلك ────────
+  //
+  // THREE EXITS OF THIS PASS WRITE NOTHING TO THE READER. Two of them said so —
+  // `TAKHRIJ_SILENT` and `TAKHRIJ_UNSOURCED` — and the third, the matn cap, said nothing at
+  // all: `targets.slice(0, TAKHRIJ_MAX_MATNS)` dropped the fifth matn of an answer with no
+  // entry, no problem code and no line of trace. A reader who asked for six hadiths and was
+  // given four takhrij could not be told apart from a reader whose library went quiet, and a
+  // deliberate ruling nobody can see is indistinguishable from a bug.
+  //
+  // THE ROWS BELOW ASSERT THE RECORD AND, IN THE SAME BREATH, THAT IT COST NO BEHAVIOUR:
+  // the text this pass ships is compared byte for byte against the SAME INPUTS run through
+  // the same module with the records removed.
+  {
+    const fs19 = require('fs');
+    const os19 = require('os');
+    const T19 = await esm('lib/takhrij.js');
+    const L19 = await esm('lib/takhrij-ladder.js');
+    const MATNS19 = [
+      'انما الاعمال بالنيات وانما لكل امرئ ما نوى',
+      'من غشنا فليس منا وهو حديث مشهور بين اهل العلم',
+      'المسلم من سلم المسلمون من لسانه ويده في كل حال',
+      'لا ضرر ولا ضرار في الاسلام على احد من الناس',
+      'الصلاة على وقتها ثم بر الوالدين ثم الجهاد في سبيل الله',
+      'الدين النصيحة قلنا لمن قال لله ولكتابه ولرسوله',
+    ];
+    const ANSWER19 = MATNS19.map((m, i) => 'الوجه ' + (i + 1)
+      + ': قال النبي صلى الله عليه وسلم: «' + m + '» وهذا أصل في الباب.').join('\n');
+    const silent19 = async (matns) => matns.map((m) => ({ matn: m, subjectIds: [], atoms: [] }));
+    const loud19 = async (matns, options) => matns.map((m) => {
+      const ids = (options && options.bookIds) || L19.TAKHRIJ_LADDER_IDS;
+      const use = ids.filter((id) => L19.SHAYKHAYN_IDS.includes(id));
+      return {
+        matn: m,
+        subjectIds: use,
+        atoms: use.map(() => 'عن ابي هريرة رضي الله عنه قال قال رسول الله صلى الله عليه وسلم ' + m),
+      };
+    });
+
+    ok('19  precondition: the answer really holds more matns than the cap examines',
+      T19.findTargets(ANSWER19).targets.length > T19.TAKHRIJ_MAX_MATNS,
+      String(T19.findTargets(ANSWER19).targets.length) + ' vs cap ' + String(T19.TAKHRIJ_MAX_MATNS));
+
+    for (const [name19, lookup19] of [['silent', silent19], ['loud', loud19]]) {
+      const pass19 = await T19.applyTakhrij(ANSWER19, { env: ON, lookup: lookup19 });
+      const tr19 = pass19.trace;
+      ok('19  [' + name19 + '] the pass counts itself: found/examined/dropped/emitted',
+        !!tr19 && [tr19.found, tr19.examined, tr19.dropped, tr19.emitted]
+          .every((v) => Number.isInteger(v)), JSON.stringify(tr19));
+      ok('19  [' + name19 + '] and the counts are the measurement, not a shape',
+        tr19.found === MATNS19.length && tr19.examined === T19.TAKHRIJ_MAX_MATNS
+          && tr19.dropped === MATNS19.length - T19.TAKHRIJ_MAX_MATNS, JSON.stringify(tr19));
+      ok('19  [' + name19 + '] the cap names itself in `problems`',
+        pass19.problems.includes(T19.TAKHRIJ_CAP_REACHED), JSON.stringify(pass19.problems));
+      const over19 = pass19.entries.filter((e) => e.declined === 'over_matn_cap');
+      ok('19  [' + name19 + '] every matn the cap dropped leaves an entry of its own',
+        over19.length === MATNS19.length - T19.TAKHRIJ_MAX_MATNS,
+        String(over19.length));
+      ok('19  [' + name19 + '] ...and a dropped matn claims no source and wears no parentheses',
+        over19.every((e) => e.parenthetical === '' && e.sourced === false && e.rewritten === false),
+        JSON.stringify(over19));
+      // THE RECORD IS COUNTS AND CODES. No question text, and nothing derived from one.
+      ok('19  [' + name19 + '] the trace is four numbers and holds no text at all',
+        Object.values(tr19).every((v) => typeof v === 'number'), JSON.stringify(tr19));
+    }
+
+    // ── AND IT COST NO BEHAVIOUR, PROVED AGAINST THE MODULE WITH THE RECORDS REMOVED ──
+    // Not «the text looks the same»: the same module, with the two record-writing lines taken
+    // out, driven on the same inputs, and the two outputs compared byte for byte.
+    {
+      const src19 = fs19.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8');
+      const SEAM19 = '  if (overCap.length) {';
+      ok('19  MUTANT: the seam that writes the record is findable', src19.includes(SEAM19),
+        'the seam moved — §19 is blind and the cap can go silent again unseen');
+      const noRecord = src19.replace(SEAM19, '  if (false) { // mutant');
+      const dir19 = fs19.mkdtempSync(path.join(os19.tmpdir(), 'ustaz-n111-19-'));
+      const file19 = path.join(dir19, 'takhrij-norecord.mjs');
+      fs19.writeFileSync(file19, noRecord.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///'
+          + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q));
+      try {
+        const M19 = await esm19(file19);
+        const broken = await M19.applyTakhrij(ANSWER19, { env: ON, lookup: loud19 });
+        ok('19  MUTANT: with the record removed the cap goes silent again — the measured defect',
+          !broken.problems.includes('TAKHRIJ_CAP_REACHED')
+            && broken.entries.every((e) => e.declined !== 'over_matn_cap'),
+          JSON.stringify(broken.problems));
+        // AND THE TEXT IS THE SAME EITHER WAY. This is the row that says the traces are free.
+        const live = await T19.applyTakhrij(ANSWER19, { env: ON, lookup: loud19 });
+        ok('19  the shipped text is byte-identical with the records and without them',
+          live.text === broken.text, JSON.stringify([live.text.length, broken.text.length]));
+        const liveS = await T19.applyTakhrij(ANSWER19, { env: ON, lookup: silent19 });
+        const brokeS = await M19.applyTakhrij(ANSWER19, { env: ON, lookup: silent19 });
+        ok('19  ...and on the silent path too', liveS.text === brokeS.text);
+      } finally { try { fs19.rmSync(dir19, { recursive: true, force: true }); } catch { /* temp */ } }
+    }
+
+    // ── AND THE MODULE STILL HAS NO LOGGER OF ITS OWN ────────────────────
+    // The counts ride back on the return value; the seat that already prints `[takhrij]` prints
+    // them. That is what keeps this module drivable by a guard with no logger in the process.
+    {
+      const code19 = fs19.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8')
+        .split(/\r?\n/u).filter((line) => !/^\s*(\/\/|\*|\/\*)/u.test(line)).join('\n');
+      ok('19  lib/takhrij.js writes no log line of its own', !/console\s*\./u.test(code19));
+      const ask19 = fs19.readFileSync(path.join(REPO, 'api/ask.js'), 'utf8');
+      ok('19  the four counts reach the seat that prints [takhrij]',
+        ask19.includes('...(pass.trace || {}),'));
+      ok('19  a streamed turn records the takhrij\'s OWN stand-down code',
+        ask19.includes("out.degraded.push('takhrij:' + TAKHRIJ_SKIPPED_STREAMED);")
+          && ask19.includes("import { takhrijDecision, TAKHRIJ_SKIPPED_STREAMED }"));
+      // AND THE BORROWED NAME IS NOT REPLACED: three guards read `inside_emitted_bytes`.
+      ok('19  ...and the ascription door\'s borrowed name is still beside it',
+        ask19.includes("out.degraded.push('takhrij:inside_emitted_bytes');"));
     }
   }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);

@@ -136,7 +136,7 @@ import { runClosedDeenTurn } from '../lib/closed-deen.js';
 // what arrives; LIB_MAX_CHARS_PER_HIT_CEILING caps a request parameter this tree never sends.
 import { LIB_MAX_CHARS_PER_HIT_DEFAULT } from '../lib/lib-contract.js';
 import { freeBrainDecision } from '../lib/free-brain/flag.js';
-import { takhrijDecision } from '../lib/takhrij.js';
+import { takhrijDecision, TAKHRIJ_SKIPPED_STREAMED } from '../lib/takhrij.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 // The free path's own empty-reply text, صنف (ب): the system declaring a limit, not answering.
@@ -1932,7 +1932,13 @@ export default async function handler(req, res) {
       if (takhrij.enabled) {
         const wired = band === 'adult' && libFlagValue === 'on' && libToken !== '';
         if (out.streamedThisTurn === true) {
+          // ١١١/٣ — TWO CODES, AND THE OLD ONE IS NOT REPLACED. `inside_emitted_bytes` is the
+          // ascription door’s name for the same stand-down and three guards read it, so it stays
+          // exactly where it was. Beside it goes the takhrij’s OWN code, because a reader of this
+          // turn’s record should be able to ask «was a takhrij skipped?» without knowing which
+          // door’s vocabulary was borrowed to say so.
           out.degraded.push('takhrij:inside_emitted_bytes');
+          out.degraded.push('takhrij:' + TAKHRIJ_SKIPPED_STREAMED);
         } else if (!wired) {
           out.degraded.push('takhrij:library_unreachable');
         } else {
@@ -1968,6 +1974,11 @@ export default async function handler(req, res) {
             requested: pass.entries.length,
             matched: pass.entries.filter((entry) => entry.sourced).length,
             problems: pass.problems,
+            // ١١١/٣ — the pass’s own four counts, spread so the sweep sees them by name.
+            // `found` is how many quoted matns the answer held, `examined` how many were looked
+            // up, `dropped` how many the cap refused, `emitted` how many left with parentheses.
+            // Four integers built in lib/takhrij.js out of its own control state.
+            ...(pass.trace || {}),
           });
           for (const problem of pass.problems) out.degraded.push('takhrij:' + problem);
         }

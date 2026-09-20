@@ -82,7 +82,13 @@ const ALLOWED_FIELDS = [
   'budgetReason', 'candidates', 'card', 'cards', 'carried', 'citationRetries', 'cited',
   'contentModes', 'corpusCalls', 'count', 'degraded', 'deliveredStop', 'destructive', 'domain',
   'dropWhole', 'dropped', 'droppedSentences', 'duplicate', 'elapsedMs', 'emitted', 'enabled',
-  'entity', 'evidence', 'fatwaScholars', 'fatwaSearch', 'fatwaStatus', 'fatwaTotal', 'flag',
+  // ١١١/٣ — 'examined' is a COUNT: `targets.length` on [takhrij], how many of the answer’s
+  // quoted matns were actually looked up after the cap. An integer beside 'found' and 'dropped',
+  // which are already here; there is no string in it, and nothing about it is derived from
+  // anything the reader typed. The other three names that line prints — found, dropped, emitted
+  // — were already reviewed onto this list and are not re-approved here.
+  'entity', 'evidence', 'examined', 'fatwaScholars', 'fatwaSearch', 'fatwaStatus', 'fatwaTotal',
+  'flag',
   'flips', 'footer', 'found', 'hasDescriptor', 'host', 'hosts', 'ibnBazTotal', 'id',
   'injectionMarkers', 'intent', 'judged', 'kept', 'khilafFromOpinions', 'kind', 'lexicalRoute',
   'liveFetch', 'markers', 'matched', 'minuteMissing', 'mode', 'model', 'modelCalls', 'noUrl',
