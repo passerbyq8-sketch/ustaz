@@ -239,6 +239,11 @@ const EXPECTED_MOVES = {
     const offText = withFlag(undefined, () => INSTR.buildFreeBrainInstruction({ band: 'adult' }));
     ok('the free-brain instruction says nothing about an exchange rate',
       !offText.includes('search_live كما تطلبُ'), offText.slice(0, 120));
+    // ع-٣ — …nor anything about how a live number is printed. Same claim, second half of the
+    // round: with the switch off this block is what it was before 2026-09-19 opened it.
+    ok('...and nothing about printing a live number, or about where not to send the reader',
+      !["🕒 وإذا كتبتَ رقمًا حيًّا","المصدرُ والتاريخُ في الجملةِ","والتاريخُ من المصدرِ نفسِه لا","والتاريخُ النسبيُّ وحدَه لا","ولا تُحِلِ القارئَ على خدمةٍ","ولا تنفِ عن نفسِك قدرةً","والسؤالُ الواسعُ («وش آخرُ"].some((mark) => offText.includes(mark)),
+      offText.slice(-160));
   }
 
   // THE CALL SITES. Behaviour checks cannot reach the handler, so the handler is read: every
@@ -484,8 +489,30 @@ const EXPECTED_MOVES = {
     const off = withFlag(undefined, () => INSTR.buildFreeBrainInstruction({ band: 'adult' })).split('\n');
     const on = withFlag('on', () => INSTR.buildFreeBrainInstruction({ band: 'adult' })).split('\n');
     const added = on.filter((line) => !off.includes(line));
-    ok('the free-brain instruction gains exactly one line, and it names search_live',
-      added.length === 1 && added[0].includes('search_live'), JSON.stringify(added));
+    // ── WHY THIS IS NO LONGER «EXACTLY ONE» (٢٠٢٦-٠٩-٢٠) ─────────────────
+    // It was one line — the exchange-rate line — until the print contract's WRITING half landed
+    // beside its code half: seven clauses that put the source and the date inside the sentence
+    // carrying the figure, drop a figure the source did not date, forbid sending the reader to
+    // somebody else's service, and forbid denying a tool the model is holding.
+    //
+    // THE CLAIM HAS NOT MOVED, ONLY THE ARITHMETIC. What this row defends is that the switch
+    // adds NOTHING it does not own and takes nothing away; a count was the cheap way to say it
+    // while there was one line, and a list is the honest way to say it now. Each mark is a slice
+    // of the line it pins, so a line silently reworded fails here rather than passing on a count.
+    const ROUND_LINES = [
+      "search_live كما تطلبُ",
+      "🕒 وإذا كتبتَ رقمًا حيًّا",
+      "المصدرُ والتاريخُ في الجملةِ",
+      "والتاريخُ من المصدرِ نفسِه لا",
+      "والتاريخُ النسبيُّ وحدَه لا",
+      "ولا تُحِلِ القارئَ على خدمةٍ",
+      "ولا تنفِ عن نفسِك قدرةً",
+      "والسؤالُ الواسعُ («وش آخرُ",
+    ];
+    ok('every line the switch adds is one this round owns, and each is added once, in order',
+      added.length === ROUND_LINES.length
+        && ROUND_LINES.every((mark, i) => String(added[i] || '').includes(mark)),
+      JSON.stringify(added));
     eq('...and removes none', off.filter((line) => !on.includes(line)), []);
   }
 
