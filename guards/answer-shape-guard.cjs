@@ -728,6 +728,13 @@ function answerShapeViolations(reply) {
     }
     // THE COUNTER IS A COUNTER: it rises while a request is open and comes back down when it
     // ends. A counter that only goes up would report every collapse as a crowded container.
+    //
+    // AND IT COMES DOWN EXACTLY ONCE. This is the half a first draft of this block did not
+    // measure: a response leaves through `res.end` OR through the socket closing under a handler
+    // that returned without ending, and BOTH are wired to the same release. Take the one-shot
+    // flag out and the two paths fire twice on one request — the count goes NEGATIVE, and every
+    // later collapse reports an emptier container than the truth. So the double below fires the
+    // `close` event as well, which is the only shape that can tell the two apart.
     {
       const before = EA.askInFlight();
       const a = EA.guardEmptyAnswer(mkRes(), 'witness');
@@ -737,6 +744,30 @@ function answerShapeViolations(reply) {
       openSse(a); a.write(delta('نعم.')); a.write(STOP); a.end();
       openSse(b); b.write(delta('نعم.')); b.write(STOP); b.end();
       ok('...and ending both brings it back to where it started',
+        EA.askInFlight() === before, String(EA.askInFlight()) + ' vs ' + String(before));
+
+      // The double that can leave BOTH ways, which the plain `mkRes` above cannot.
+      const mkClosable = () => {
+        const r = mkRes();
+        const listeners = [];
+        r.once = (ev, fn) => { if (ev === 'close') listeners.push(fn); return r; };
+        r.emitClose = () => { for (const fn of listeners.splice(0)) fn(); };
+        return r;
+      };
+      const c = EA.guardEmptyAnswer(mkClosable(), 'witness');
+      openSse(c); c.write(delta('نعم.')); c.write(STOP); c.end();
+      c.emitClose();
+      ok('a response that both ENDS and then CLOSES is released exactly once',
+        EA.askInFlight() === before, String(EA.askInFlight()) + ' vs ' + String(before));
+
+      // ...and the other order: the socket closes under a handler that returned without ending.
+      const d = EA.guardEmptyAnswer(mkClosable(), 'witness');
+      openSse(d);
+      d.emitClose();
+      ok('...and a response that closes without ending is released too',
+        EA.askInFlight() === before, String(EA.askInFlight()) + ' vs ' + String(before));
+      d.end();
+      ok('...and a late end after that close does not release it a second time',
         EA.askInFlight() === before, String(EA.askInFlight()) + ' vs ' + String(before));
     }
     // AND THE HANDLER'S OWN SEAT RECORDS THE SAME COLLAPSE. api/ask.js substitutes the apology for
