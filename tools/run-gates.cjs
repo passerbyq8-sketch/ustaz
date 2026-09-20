@@ -131,7 +131,7 @@ try {
 } catch (e) { /* recon may not be in the roster */ }
 
 console.log('');
-console.log('=== SUITE: ' + (results.length - failed.length) + '/' + results.length + ' EXIT=0 ===');
+console.log('=== SUITE: ' + (results.length - failed.length) + '/' + results.length + ' EXIT=' + (failed.length ? 1 : 0) + ' ===');
 if (reconSummary) console.log('recon:    ' + reconSummary);
 console.log('tree after: ' + (dirtyAfter === null ? '(no git)' : dirtyAfter.count + ' dirty path(s)'));
 if (treeDirtiedByRun) {
