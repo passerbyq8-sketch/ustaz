@@ -436,9 +436,74 @@ const stripComments = (s) => String(s)
 
   {
     const ASK = read('api/ask.js');
-    ok('D5: the live path composes it into the ONE block every exit appends',
-      /const referralBlockFor = \(draft\) => \{[\s\S]{0,260}takhrijDisclosureOnce/.test(ASK),
-      'five exits append that block; adding it at five call sites is how "once" rots');
+    // ── ١١٣/٢ · THE SEAT MOVED, BECAUSE THE BLOCK WAS NOT COMMON ─────────────
+    //
+    // This row read «the ONE block every exit appends». It was not: `referralBlockFor` reaches
+    // FOUR exits, the free-brain branch returns above all four and had a second call of its own,
+    // and every other exit that hands a reader a graded answer passed neither. MEASURED on the
+    // owner’s five of 20 September: three graded without the sentence.
+    //
+    // The seat is now `seal`, which guards/takhrij-lock-guard.cjs already pins as the one
+    // function every buffered reply passes. The row is rewritten to the contract that replaced
+    // the old one, and a second row below makes the ENUMERATION itself the test — so the day a
+    // new reader-text seam is added that does not seal, this fails by itself.
+    ok('D5: the sentence is composed at ONE seat, and that seat is `seal`',
+      /return withTakhrijLimit\(locked\.text\);/u.test(ASK)
+        && /const referralBlockFor = \(draft\) => referralOnce\(draft, referral\);/u.test(ASK),
+      'the old two seats were referralBlockFor and the free-brain branch; both are gone');
+    {
+      // Comment lines are dropped first: this file names the function in prose more than once.
+      const code = ASK.split('\n').filter((l) => !/^\s*(\/\/|\*)/u.test(l)).join('\n');
+      ok('D5: ...and exactly TWO calls remain — the seat, and the one that records it',
+        (code.match(/takhrijDisclosureOnce\(/gu) || []).length === 2,
+        'found ' + (code.match(/takhrijDisclosureOnce\(/gu) || []).length);
+    }
+    {
+      // ── THE ENUMERATION IS THE TEST ───────────────────────────────
+      // Every seam in api/ask.js that writes reader text as a `text_delta` must either pass
+      // `seal` — and so the sentence — or be one of the fixed server messages, which carry no
+      // grading whose provenance there would be anything to describe. A new exit that does
+      // neither fails this row on the day it is added, which is what «every answer» means.
+      const DELTA = /delta:\s*\{\s*type:\s*'text_delta',\s*text:\s*([^}]*)\}/gu;
+      const seams = [...ASK.matchAll(DELTA)].map((m) => m[1].trim());
+      const FIXED = ['NEEDS_MATERIAL', 'NO_VERIFIED_SOURCE_MESSAGE', 'CLAIM_REFUSAL'];
+      const loose = seams.filter((x) => !/\bseal\(/u.test(x)
+        && !FIXED.some((f) => x.includes(f))
+        && !/\b(piece|remainder)\b/u.test(x)
+        && x !== "text || ''");
+      ok('D5: every reader-text seam seals, or is a fixed server message',
+        seams.length > 0 && loose.length === 0, JSON.stringify(loose));
+      // ...and the one seam that is neither is `sendSynthesizedText`, whose only two callers
+      // are the per-minute limit and the day cap.
+      ok('D5: ...and the synthesized-text seam really carries only those two messages',
+        /sendSynthesizedText\(res, ASK_LIMIT_MESSAGE\)/u.test(ASK)
+          && /sendSynthesizedText\(res, dayCapMessage\(/u.test(ASK)
+          && (ASK.match(/sendSynthesizedText\(res,/gu) || []).length === 3,
+        'three matches: the declaration and its two call sites');
+    }
+    {
+      // ── AND THE SEAT ITSELF, DRIVEN ──────────────────────────────
+      // The helper is a closure inside the handler, so it is read OUT OF THE FILE and driven,
+      // rather than retyped here where it could drift away from the code it claims to test.
+      const from = ASK.indexOf('const TAKHRIJ_CARD_NAMES');
+      const to = ASK.indexOf('const seal = (text)');
+      ok('D5: the seat is readable out of the file', from > 0 && to > from);
+      const seat = new Function('takhrijDisclosureOnce', 'takhrijNote',
+        ASK.slice(from, to) + '\nreturn withTakhrijLimit;')(TD.takhrijDisclosureOnce, TD.TAKHRIJ_DISCLOSURE);
+      const off = new Function('takhrijDisclosureOnce', 'takhrijNote',
+        ASK.slice(from, to) + '\nreturn withTakhrijLimit;')(TD.takhrijDisclosureOnce, '');
+      const graded = 'حديث «أنا مدينة العلم وعلي بابها» لا يصح عند أهل العلم.';
+      ok('D5: a graded answer receives the sentence', seat(graded).includes(TD.TAKHRIJ_DISCLOSURE));
+      ok('D5: ...exactly once, however many times the seat runs',
+        seat(seat(seat(graded))).split(TD.TAKHRIJ_DISCLOSURE).length - 1 === 1);
+      ok('D5: ...and a question that asked for no grading receives nothing at all',
+        off(graded) === graded);
+      const carded = graded + '\n<source site="s" url="https://x/y">ت</source>';
+      const out = seat(carded);
+      ok('D5: ...and it lands BEFORE the cards, never inside one',
+        out.indexOf(TD.TAKHRIJ_DISCLOSURE) < out.indexOf('<source')
+          && out.includes('<source site="s" url="https://x/y">ت</source>'), JSON.stringify(out));
+    }
     // The pairing that must not rot: an empty corpus list is the ONLY thing that makes passing
     // [] honest. If a domain is ever added, this fails until the real domains are threaded in.
     ok('D5: ...and sourceDomains:[] is paired with an EMPTY corpus list',

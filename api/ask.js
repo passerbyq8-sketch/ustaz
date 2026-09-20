@@ -1086,6 +1086,58 @@ export default async function handler(req, res) {
   //
   // A template, a refusal or a card carries no takhrij, so for those this returns its input
   // byte-for-byte — which is why it is safe to put on the one path they all share.
+  // ── ١١٣ · جملةُ حدِّ التخريجِ تجلسُ حيثُ تمرُّ الأجوبةُ كلُّها ─────────────────
+  //
+  // MEASURED 2026-09-20, on the owner’s own five: the sentence appeared on two and was missing
+  // from «تفكروا في آلاء الله», «الجنة تحت أقدام الأمهات» and «أنا مدينة العلم» — three of five
+  // graded without it.
+  //
+  // THE CAUSE IS THAT THERE WAS NO COMMON SEAT, ONLY TWO PARTIAL ONES. `referralBlockFor`
+  // called it for the four exits that append a referral block, and ١١٣ added a second call in
+  // the free-brain branch because that branch returns above all four. Every OTHER exit that
+  // hands a reader a graded answer — the closed-deen path, the stored-fiqh path, the
+  // no-tool draft at the (a) exit — passed neither.
+  //
+  // THE EXITS, ENUMERATED FROM THE FILE AND NOT FROM MEMORY. Every seam that writes reader
+  // text as a `text_delta` is one of these:
+  //
+  //   emitOnce                          every buffered exit, ~25 call sites
+  //   emitUnits / liveFreeBrainUnits    the streamed seams, both `seal(text)` first
+  //   the (a) no-tool exit              `seal(cleanOut)`, direct write
+  //   the scholar exit                  `seal(draft) + referralBlockFor(draft)`, direct write
+  //   the canonical exit                `seal(cBody) + referralBlockFor(cBody)`, direct write
+  //   four fixed refusal templates      NEEDS_MATERIAL · NO_VERIFIED_SOURCE_MESSAGE ·
+  //                                     CLAIM_REFUSAL · the safety redirect
+  //
+  // EVERY ONE OF THE FIRST FIVE PASSES `seal`. The four fixed templates do not, and must not:
+  // they carry no grading whose provenance there would be anything to describe. So `seal` IS
+  // the common seat, it is the seat guards/takhrij-lock-guard.cjs already pins as the one
+  // every buffered reply passes, and the sentence moves INTO it.
+  //
+  // NOTHING ABOUT THE SENTENCE OR ITS CONDITION CHANGES. `takhrijDisclosureFor` still decides
+  // whether the question asked for a grading; `takhrijDisclosureOnce` still refuses a second
+  // copy and still stands down when the draft sends the reader to the diwans itself. Only the
+  // seat moves — which is why the two old calls are REMOVED rather than left beside this one:
+  // two seats is how «once» rots, and one of the two was the defect.
+  //
+  // AND IT LANDS BEFORE THE CARDS. A reply may already carry its `<source>` and `<hadith>`
+  // blocks when it reaches here, and a server tail written after them would sit outside the
+  // prose the reader reads. MEASURED over the forty answers of EZIK-RAW-CORPUS-2026-08-19,
+  // which hold 111 card blocks between them: the sentence landed inside a card block ZERO
+  // times, and on the 21 answers that END in a run of cards it was placed before that run
+  // every time.
+  const TAKHRIJ_CARD_NAMES = 'verse|surah|hadith|steps|suggestions|source|board|document|dhikr|worship|book';
+  const TAKHRIJ_CARD_TAIL = new RegExp(
+    '(?:\\s*(?:<\\s*(' + TAKHRIJ_CARD_NAMES + ')\\b[^>]*>[\\s\\S]*?<\\/\\s*\\1\\s*>))+\\s*$', 'iu');
+  const withTakhrijLimit = (text) => {
+    const body = String(text == null ? '' : text);
+    const tail = takhrijDisclosureOnce(body, takhrijNote);
+    if (!tail) return body;
+    const run = body.match(TAKHRIJ_CARD_TAIL);
+    if (!run) return body + '\n\n' + tail;
+    const at = body.length - run[0].length;
+    return body.slice(0, at) + '\n\n' + tail + body.slice(at);
+  };
   const seal = (text) => {
     const locked = lockTakhrij(
       String(text == null ? '' : text),
@@ -1097,12 +1149,20 @@ export default async function handler(req, res) {
         dropped: locked.droppedSentences.length,
       });
     }
-    return locked.text;
+    // ١١٣ — the limit sentence, at the one seat every answer passes. It is added AFTER the
+    // lock rather than before it so that the lock can never be the thing that deletes it; the
+    // sentence names no collection and no grade, so the lock has nothing to say about it either
+    // way, and this ordering makes that independent of the lock’s vocabulary.
+    return withTakhrijLimit(locked.text);
   };
 
   // A1: one text boundary for every post-commit exit, including the ledger facade. The facade is
   // deliberately narrow (not a Proxy): keepalive comments may pass immediately, while every data
   // frame is parsed and held until the complete reader-visible text has passed the finalizer.
+  // ١١٣ — declared here, ABOVE `seal`, and assigned once the question is known. Before that
+  // point it is the empty string, which is what the safety redirect above wants: a grave-hazard
+  // redirect is not an answer whose provenance there is anything to describe.
+  let takhrijNote = '';
   const finalizerContext = {
     fallbackText: FINALIZER_REFUSAL,
     sourceCards: [],
@@ -1446,15 +1506,13 @@ export default async function handler(req, res) {
     // empty, so no set of fetched domains could contain one and the answer cannot depend on the
     // argument. The day a primary adapter is admitted, this must pass the domains actually
     // retrieved — and the gate asserts exactly that pairing, so the two cannot part company.
-    const takhrijNote = takhrijDisclosureFor({ question: questionText, sourceDomains: [] });
+    takhrijNote = takhrijDisclosureFor({ question: questionText, sourceDomains: [] });
     if (takhrijNote) console.log('[takhrij] declaring the limit: no primary takhrij corpus', { topicClass });
-    // Composed into the ONE block every exit already appends, rather than added at five call
-    // sites — "once" stays a property of the reply instead of something each branch remembers.
-    const referralBlockFor = (draft) => {
-      const r = referralOnce(draft, referral);
-      const t = takhrijDisclosureOnce(draft + r, takhrijNote);
-      return r + (t ? '\n\n' + t : '');
-    };
+    // ١١٣ — THE TAKHRIJ SENTENCE IS NO LONGER COMPOSED HERE. This block reaches four exits;
+    // the sentence has to reach every one, so its seat moved into `seal` (see the comment
+    // there). The referral keeps this block, which is the one it was always right for: a
+    // referral is composed per exit because it depends on what that exit answered.
+    const referralBlockFor = (draft) => referralOnce(draft, referral);
     if (referral) console.log('[referral] appending the server\'s tail', { topicClass, turn: answersSoFar });
 
     // ── GENERAL_HEALTH_INTERIM ─────────────────────────────────────────────
@@ -2064,13 +2122,14 @@ export default async function handler(req, res) {
       // question asked for a grading; and the tail does not hedge, withdraw or apologise for the answer
       // above it — lib/policy/referral-tail.js states that rule and this obeys it. No matn is touched,
       // no ruling is softened, and nothing is deleted.
+      // ١١٣/٢ — AND THE SECOND SEAT IS GONE WITH THE FIRST. This branch appended the sentence
+      // itself because `referralBlockFor` was out of its reach; both are now one seat inside
+      // `seal`, which this exit passes through `emitFreeBrain` → `emitUnits` → `emitOnce` and
+      // through `liveFreeBrainUnits.finish` on a streamed turn. The record stays: it is read
+      // off whether the sentence will be added, which is the same question asked one seat up.
       const freeBrainBody = readerText + (out.truncated === true ? TRUNCATED_MARK : '');
-      const freeBrainTakhrijTail = takhrijDisclosureOnce(freeBrainBody, takhrijNote);
-      if (freeBrainTakhrijTail) out.degraded.push('takhrij:limit_declared');
-      return emitFreeBrain(
-        freeBrainBody + (freeBrainTakhrijTail ? '\n\n' + freeBrainTakhrijTail : ''),
-        out.readerUnits,
-      );
+      if (takhrijDisclosureOnce(freeBrainBody, takhrijNote)) out.degraded.push('takhrij:limit_declared');
+      return emitFreeBrain(freeBrainBody, out.readerUnits);
     }
 
     if (storedContext.runtime === 'STORED_FIQH') {
