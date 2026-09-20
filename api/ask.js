@@ -92,7 +92,18 @@ import { readerFromBody, dropClientSystem } from '../lib/reader-fields.js';
 // lib/route-classify.js: it decides whether a question the router already called GENERAL is
 // one a live search can answer. It never sees a religious turn (those are DEEN), and refuses
 // one on its own account if it ever did.
-import { classifyWorldIntent } from '../lib/world-intent.js';
+// `asksLiveNumber` is the world branch's own live-quantity rule, named in the module that owns
+// the reasons so the free branch can apply the identical test without a second copy of the list.
+import { classifyWorldIntent, asksLiveNumber } from '../lib/world-intent.js';
+// ── THE 2026-09-19 LIVE-WORLD ROUND, AND ITS ONE SWITCH ──────────────────────
+// Everything this round added is reached through liveWorldV2Enabled() and through nothing else.
+// With the flag absent the three modules below are imported and never called, and the handler
+// produces the bytes it produced before the round. See lib/live-world-v2.js.
+import { liveWorldV2Enabled } from '../lib/live-world-v2.js';
+// The server's own clock, handed to the model as an independent system block.
+import { buildTodayBlock } from '../lib/today-line.js';
+// The print contract: a live number reaches the reader with a source and a date, or not at all.
+import { enforceLiveNumberSourcing } from '../lib/live-number-source.js';
 // The sharia filter on that same path (س٦٫٤). It stops a REQUEST for the forbidden and counsels;
 // it never pronounces a ruling, because «عزك ناقلٌ لا مفتٍ» and a regex has no source behind it.
 import { classifyImpermissibleRequest, impermissibleCounsel } from '../lib/policy/impermissible-request.js';
@@ -100,7 +111,10 @@ import { classifyImpermissibleRequest, impermissibleCounsel } from '../lib/polic
 import { lockTakhrij } from '../lib/takhrij-lock.js';
 import { finalizeReaderText, FINALIZER_REFUSAL } from '../lib/finalize-reader-text.js';
 import { createFinalizedSseResponse } from '../lib/finalized-sse-writer.js';
-import { guardEmptyAnswer } from '../lib/empty-answer.js';
+// §١ — `askInFlight` beside it, from the same module and for the same reason: the wrapper is the
+// one seat every request to this handler passes through, so it is the only place that can say
+// whether a request that never closed was open beside the one that collapsed.
+import { guardEmptyAnswer, askInFlight } from '../lib/empty-answer.js';
 // قرار ١ب: OFF by default. The import is unconditional and the BEHAVIOUR is flagged — a
 // conditional import would make the flag decide what the module graph is, which is a second
 // thing that can differ between environments.
@@ -903,7 +917,21 @@ export default async function handler(req, res) {
   console.log('[tier]', { band, requestedDepth: body.depth, effectiveDepth, founderUnlocked, depthFreeTrial, usePremium, model });
   // D02ب: BUILT HERE, from the four sanitised fields -- never from the body. `body.system` was
   // deleted at parse time, so there is not even a value in scope to fall back to.
-  const system = appendDepthBlock(wrapSystem(buildSystemPrompt(reader.name, reader.age, reader.gender, reader.mode)), depthInstruction);
+  const systemWithDepth = appendDepthBlock(wrapSystem(buildSystemPrompt(reader.name, reader.age, reader.gender, reader.mode)), depthInstruction);
+  // ── THE DATE BLOCK (LIVE_WORLD_V2) ────────────────────────────────────────
+  // Appended by the SAME mechanism as the depth block and immediately after it, because this is
+  // the only seat in the handler where a per-request text can reach the model without touching
+  // the two places that are sealed against it: buildSystemPrompt() carries five pinned sha256
+  // fingerprints and a determinism contract, and buildDepthInstruction() is adult-only and
+  // pinned empty for the brief depth. lib/today-line.js's header records both measurements.
+  //
+  // UNCONDITIONAL BY DESIGN — no band, no depth, no route, no topic class. A child asking what
+  // day it is deserves the same right answer an adult gets, and every one of those conditions
+  // is a way for the answer to be right for some readers and 2025 for the rest.
+  //
+  // It is appended AFTER the depth block, so with the flag off appendDepthBlock() is handed ''
+  // and returns its input unchanged: the system value is then the very same object today builds.
+  const system = appendDepthBlock(systemWithDepth, liveWorldV2Enabled() ? buildTodayBlock() : '');
 
   // DETERMINISTIC ROUTE (lib/route-classify.js). Decided HERE, on the server, from the
   // messages themselves -- never from a client-supplied field, because the whole point is
@@ -1858,7 +1886,48 @@ export default async function handler(req, res) {
       // is deliberately NOT part of this condition: §٢-ج orders the takhrij in الأطوار
       // الثلاثة كلها, and the depth gate at :869 is the library’s rule, not the takhrij’s.
       // The band gate IS kept, because widening a minor’s sources is not this item’s to do.
-      let readerText = out.text || FREE_BRAIN_EMPTY;
+      // ══════════════════════════════════════════════════════════════════════
+      // §١ — الانهيارُ الصامتُ يُسجَّلُ قبلَ أن يُرسَل (٢٠٢٦-٠٩-٢٠)
+      // ══════════════════════════════════════════════════════════════════════
+      //
+      // THE SEAT THAT PRODUCED THE MEASURED SENTENCE. `out.text || FREE_BRAIN_EMPTY` has been the
+      // line since the free branch shipped, and lib/free-brain/loop.js:49 calls the constant
+      // unreachable because the reviewer's last rung returns a non-empty string for every input.
+      // It is NOT unreachable: the loop's own L8 case delivers an EMPTY text on purpose — «لا
+      // نثرَ ألبتّة» is no answer, not a short one — and that delivery lands exactly here.
+      //
+      // WHAT IT COST. Twice on the preview the reader read «تعذَّر توليدُ الجوابِ الآن…» and the
+      // log held twenty `info` entries, no `warn`, no `error` and no timeout. `[free-brain/turn]`
+      // above does print `degraded`, so a careful reader COULD have found `empty_answer:no_prose`
+      // inside an array among twenty other fields — but nothing said the reader had just been
+      // handed a failure sentence, and that is the difference between a log and a record.
+      //
+      // THE FOUR FACTS ARE THE OWNER'S FOUR, and each is a count, a flag or a fixed literal:
+      // `kind` names the CLASS of text the reader is about to receive, `stage` the phase the turn
+      // had reached, `streamedThisTurn` whether bytes had already gone on the wire, and
+      // `inFlight` whether a request that never closed was open beside this one — the fourth
+      // question, which nothing on this request could answer, so lib/empty-answer.js counts it at
+      // the one seat every request passes through.
+      //
+      // NOT A BYTE OF IT REACHES THE READER, and no question text is in it (`telemetrytext`):
+      // `degraded` is this loop's own closed vocabulary of reason codes, and every other field is
+      // a number, a boolean or a word written in this file.
+      let readerText = out.text;
+      if (!readerText) {
+        console.warn('[free-brain/empty]', {
+          kind: 'reader-gets-the-apology',
+          stage: 'free-brain-delivery',
+          streamedThisTurn: out.streamedThisTurn === true,
+          deliveredStop: out.deliveredStop ?? null,
+          truncated: out.truncated ?? null,
+          rounds: out.rounds,
+          modelCalls: out.modelCalls,
+          degraded: out.degraded,
+          inFlight: askInFlight(),
+          elapsedMs: out.elapsedMs,
+        });
+        readerText = FREE_BRAIN_EMPTY;
+      }
       const takhrij = takhrijDecision();
       if (takhrij.enabled) {
         const wired = band === 'adult' && libFlagValue === 'on' && libToken !== '';
@@ -1901,6 +1970,65 @@ export default async function handler(req, res) {
             problems: pass.problems,
           });
           for (const problem of pass.problems) out.degraded.push('takhrij:' + problem);
+        }
+      }
+      // ══════════════════════════════════════════════════════════════════════
+      // عقدُ الطباعةِ على مخرجِ المخِّ الحرّ (LIVE_WORLD_V2)
+      // ══════════════════════════════════════════════════════════════════════
+      //
+      // THE SAME CONTRACT AS THE WORLD BRANCH'S, IN THE SAME SEAT. There it runs last before the
+      // cards and after the age floor, and that ordering is the whole of it: a pass that may
+      // REWRITE a sentence has to run before the number check, or the check reads text that is not
+      // the text that ships. This path has no age floor of its own — the free branch does not run
+      // for a child on the benign policy at all (`childBenignReserved` above), and there is no
+      // ageRepair() call on it — so the passes that can still rewrite prose here are the reviewer
+      // and the takhrij lock, and this sits BELOW both of them and ABOVE the cards, which are
+      // appended by the finalizer out of `finalizerContext.readerCards`.
+      //
+      // IT IS GATED ON THE QUESTION AND NOT ON THE ANSWER, and that is a measured decision rather
+      // than a convenience. Run over every free-brain answer, the enforcement deletes settled
+      // prose: driven on this tree, «بُعدُ الشمسِ… يساوي ١٥٠ مليون كم، ودرجةُ حرارةِ سطحِها ٥٥٠٠
+      // درجة مئوية» and «نصابُ الذهبِ ٨٥ جرامًا… أي ٢٫٥٪» are BOTH emptied, because «يساوي»،
+      // «درجة» و«جرام» are live units beside digits. Those are settled knowledge, not numbers that
+      // move, and «إن حذفَ عقدُك واحدًا منهما فالعقدُ خطأٌ لا الجواب». `asksLiveNumber` is what
+      // keeps them out of reach: the science question classifies NONE and the zakat question
+      // REFUSED_RELIGIOUS, so on those turns this block does not run at all.
+      //
+      // WHEN NOTHING SURVIVES, THE SERVER'S OWN SENTENCE SPEAKS — the one in
+      // lib/policy/live-search-disclosure.js, never a second one composed here — and the cards and
+      // the encyclopedia footer go with it, because there is no longer a claim for them to back.
+      //
+      // AND IT STANDS DOWN ONCE BYTES HAVE LEFT. A deletion after the reader already holds the
+      // text cannot delete anything; it can only fail the prefix test in `liveFreeBrainUnits`,
+      // where the emitted prose stands and the shortened version is dropped on the floor. The
+      // takhrij pass above takes exactly this exit under `takhrij:inside_emitted_bytes`, and this
+      // takes it under its own name rather than inventing a second vocabulary. It is recorded, not
+      // silent: a contract that quietly did nothing on the turns that stream would be worse than
+      // one that says so.
+      if (liveWorldV2Enabled() && asksLiveNumber(questionText)) {
+        if (out.streamedThisTurn === true) {
+          out.degraded.push('live_number:inside_emitted_bytes');
+          console.info('[free-brain/live] LIVE_NUMBER_STOOD_DOWN', { reason: 'inside_emitted_bytes' });
+        } else {
+          const liveSources = Array.isArray(out.live?.sources) ? out.live.sources : [];
+          const printed = enforceLiveNumberSourcing(readerText, { sources: liveSources });
+          if (printed.removed.length) {
+            // The REASONS and the count. Never the sentences: they are the reader's answer.
+            console.info('[free-brain/live] LIVE_NUMBER_UNSOURCED', {
+              removed: printed.removed.length,
+              why: printed.removed.map((r) => r.why),
+              emptied: printed.emptied,
+              sources: liveSources.length,
+              path: 'free-brain',
+            });
+          }
+          if (printed.emptied) {
+            finalizerContext.readerCards = [];
+            finalizerContext.readerCardPrefix = '';
+            finalizerContext.readerSuffix = '';
+            return emitFreeBrain(liveSearchNotice({ worldWanted: true, answeredFromLive: false }), []);
+          }
+          readerText = printed.text;
         }
       }
       return emitFreeBrain(
@@ -2111,6 +2239,15 @@ export default async function handler(req, res) {
     //     result the four did not carry is then still answerable, and «آخر أخبار غزة» still
     //     comes from al-Jazeera rather than from whatever a snippet says.
     const LIVE_QUANTITY = worldIntent.reason === 'WEATHER' || worldIntent.reason === 'MARKET_PRICE';
+    // ── AND THE THIRD LIVE QUANTITY (LIVE_WORLD_V2) ───────────────────────────
+    //
+    // FX_RATE is the same kind of fact as the two above — a number quoted afresh every day, that
+    // the vetted four cannot answer — and the owner's decision is that it is «يُعامَلُ معاملةَ
+    // MARKET_PRICE تمامًا». It is a SECOND CONSTANT rather than a third disjunct on the line
+    // above because that line is pinned character for character by guards/source-honesty-guard.cjs
+    // (check F4), and editing a pinned line to add a flagged behaviour would have made the pin
+    // useless for the two reasons it was written to protect.
+    const LIVE_QUANTITY_FX = liveWorldV2Enabled() && worldIntent.reason === 'FX_RATE';
     let worldPass = null;
     let worldOpen = false;
     let worldBudget = null;
@@ -2119,10 +2256,13 @@ export default async function handler(req, res) {
         const { retrieveWorld, retrieveOpenWorld } = await import('../lib/retrieve.js');
         worldBudget = paidSearchBudget;
         if (!LIVE_QUANTITY) {
-          // No band, no depth, no purpose: none of them means anything on this list, and passing
-          // one would suggest it did.
-          const w = remember(await retrieveWorld(questionText, { dailyBudget: worldBudget }));
-          if (w && Array.isArray(w.sources) && w.sources.length) worldPass = w;
+          // Nested, not merged: see LIVE_QUANTITY_FX above.
+          if (!LIVE_QUANTITY_FX) {
+            // No band, no depth, no purpose: none of them means anything on this list, and
+            // passing one would suggest it did.
+            const w = remember(await retrieveWorld(questionText, { dailyBudget: worldBudget }));
+            if (w && Array.isArray(w.sources) && w.sources.length) worldPass = w;
+          }
         }
         if (!worldPass) {
           // THE OPEN SEARCH. `band` — the reader-fields effective band — and deliberately NOT
@@ -2143,11 +2283,45 @@ export default async function handler(req, res) {
             // limit. Constructed here rather than threaded from the ledger branch because that
             // branch is below this one and never runs when this one answers.
             dailyBudget: worldBudget,
+            // ── AN ENCYCLOPEDIA MAY NOT QUOTE A LIVE NUMBER (LIVE_WORLD_V2) ──
+            // MEASURED IN PRODUCTION: «كم سعر صرف الدولار؟» was answered out of an encyclopedia
+            // article, with no date on the figure — and the figure in an encyclopedia is
+            // whenever somebody last edited the page, which may be a year ago and says so
+            // nowhere. That is not a bad source; it is the wrong KIND of source for a number
+            // that moves. Wikipedia stays fully admitted for everything else, exactly as the
+            // owner ruled — it is removed from THIS question, not from the list.
+            liveNumber: liveWorldV2Enabled() && (LIVE_QUANTITY || LIVE_QUANTITY_FX),
           }));
           if (o && Array.isArray(o.sources) && o.sources.length) { worldPass = o; worldOpen = true; }
         }
       } catch (e) {
         console.warn('[world-search] threw, falling through to the ordinary general route:', e.message);
+        // ── THE TRACE THAT SEPARATES A CRASH FROM A MISS (LIVE_WORLD_V2) ──────
+        //
+        // THE FALL-THROUGH ITSELF IS UNCHANGED AND MUST BE: gating on the intent instead of the
+        // material would cost a child their age floor whenever a search failed, which is the
+        // measurement the block above this one is built on. What was missing is not a different
+        // outcome, it is a DISTINGUISHABLE one. «the search found nothing» and «the search threw
+        // before it looked» produce byte-identical behaviour from here on — same fall-through,
+        // same liveSearchNotice, same answer — so in the logs the second was invisible inside
+        // the first, and a broken import or a dead provider read as an honest empty result.
+        //
+        // IT IS A LOG LINE AND NOTHING ELSE. Not a header, not an SSE frame, not a word of the
+        // answer: the reader is told what the disclosure already tells them, and a reader has no
+        // use for our stack.
+        //
+        // AND IT CARRIES THE ERROR'S CLASS, NOT ITS MESSAGE. Gate `telemetrytext` caught the
+        // first version of this line printing `e.message` under a named field, and it was right
+        // to: the open search builds its provider URL with the reader's question in the query
+        // string, so a transport TypeError's message can contain the question verbatim. The
+        // class name is a closed vocabulary and cannot. (The line above still passes e.message
+        // as a POSITIONAL argument, exactly as it did before this round — untouched.)
+        console.error('[world-search] WORLD_SEARCH_THREW', {
+          reason: worldIntent.reason,
+          open: worldOpen,
+          stage: worldPass ? 'after-vetted-pass' : 'before-any-result',
+          errorName: (e && e.name) || 'Error',
+        });
       }
     }
     console.log('[world-search]', {
@@ -2628,6 +2802,34 @@ export default async function handler(req, res) {
             // them to be evidence for.
             if (!wRep.text) return emitOnce(warmTemplateFor('GENERAL_CHILD_BENIGN'));
             wOut = wRep.text;
+          }
+          // ── THE PRINT CONTRACT (LIVE_WORLD_V2) ──────────────────────────────
+          //
+          // LAST BEFORE THE CARDS AND AFTER THE AGE FLOOR, and the order is the whole of it. The
+          // age floor may REWRITE a child's sentence, so running the number check before it would
+          // check text that is not the text that ships. The cards are appended after, because a
+          // card is the server's own evidence and is not subject to a rule about what the MODEL
+          // wrote. Neither lib/output-reviewer.js nor lib/finalize-reader-text.js is touched.
+          //
+          // WHEN NOTHING SURVIVES, THE SERVER'S OWN SENTENCE SPEAKS. Not a sentence composed
+          // here: lib/policy/live-search-disclosure.js owns the one «لم أجد» wording in this
+          // repository, and a second one competing with it is the defect that module exists
+          // against. And the cards go with it — there is no longer a claim for them to back.
+          if (liveWorldV2Enabled()) {
+            const printed = enforceLiveNumberSourcing(wOut, { sources: worldPass.sources });
+            if (printed.removed.length) {
+              // The REASONS and the count. Never the sentences: they are the reader's answer.
+              console.warn('[world-search] LIVE_NUMBER_UNSOURCED', {
+                removed: printed.removed.length,
+                why: printed.removed.map((r) => r.why),
+                emptied: printed.emptied,
+                reason: worldIntent.reason, open: worldOpen,
+              });
+            }
+            if (printed.emptied) {
+              return emitOnce(liveSearchNotice({ worldWanted: true, answeredFromLive: false }));
+            }
+            wOut = printed.text;
           }
           console.log('[world-search] answered', {
             cards: worldCards.length, hosts: worldCards.map((c) => c.host), band: audienceBand,

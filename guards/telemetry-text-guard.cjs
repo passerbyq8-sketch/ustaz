@@ -136,7 +136,55 @@ const STREAM_FIELDS = [
 // that name come back unreviewed, and Rule B's entire value is that a field nobody has read
 // fails. `queries` is absent in the other direction and for the same reason: its deletion is the
 // leak this gate was written for, and admitting it here would quietly undo the fix.
-const ALLOWED = new Set([...ALLOWED_FIELDS, ...STREAM_FIELDS]);
+// ── RULE B, CONTINUED: THE LIVE-WORLD ROUND'S FOUR (2026-09-19) ───────────────
+//
+// Reviewed one line at a time, for the reason the streaming block above states: a block
+// approval of «the LIVE_WORLD_V2 fields» is the thing Rule B exists to prevent. Two of them
+// are printed by the world search's crash trace and two by the print contract.
+//
+// WHAT THIS GATE ALREADY REFUSED, AND IT WAS RIGHT TO. The first version of the crash trace
+// printed `name: e.name` and `message: e.message`. `message` is a genuine leak: lib/retrieve.js
+// builds the open-search URL with the reader's question in its query string, so a transport
+// error's message can contain the question verbatim. It was deleted rather than reviewed, and
+// `name` was renamed so that the generic key never enters this list at all.
+const LIVE_WORLD_V2_FIELDS = [
+  // fixed two-word vocabulary — 'after-vetted-pass' or 'before-any-result', both string
+  // literals in api/ask.js. It says WHERE in the world block the throw happened. Nothing is
+  // derived from the turn; the value is chosen by a boolean test on `worldPass`.
+  'stage',
+  // error class name — `e.name`, i.e. 'TypeError', 'Error', 'AbortError'. A closed vocabulary
+  // owned by the runtime. Deliberately NOT `e.message`; see above.
+  'errorName',
+  // fixed vocabulary, as a list — `removed.map((r) => r.why)`, and every `why` is one of six
+  // literals defined in lib/live-number-source.js ('live-number-without-source',
+  // '...-without-date', '...-without-source-or-date', 'relative-date-without-absolute', and, since
+  // 2026-09-20, 'external-service-referral' and 'lead-in-to-a-removed-sentence'). Reviewed one at
+  // a time like the rest: each names a RULE this repository owns and nothing the reader typed. The
+  // SENTENCES that were removed are never printed: they are the reader's own answer text, and
+  // the whole point of the count beside this is to say how many went without saying what they said.
+  'why',
+  // boolean — whether the print contract removed everything, so the server's disclosure line
+  // spoke instead. One bit about an outcome.
+  'emptied',
+];
+// ── RULE B, CONTINUED: THE SILENT-COLLAPSE TRACE (§١ · 2026-09-20) ───────────
+//
+// ONE new name, reviewed on its own line like the rest. `[free-brain/empty]` in api/ask.js is
+// the line that was missing when the reader was handed «تعذَّر توليدُ الجوابِ الآن…» twice with
+// twenty `info` entries and no `warn` behind it. Every OTHER field on that call is already
+// above — `kind`, `stage`, `streamedThisTurn`, `deliveredStop`, `truncated`, `rounds`,
+// `modelCalls`, `degraded`, `elapsedMs` — and each carries the same value it carries elsewhere.
+const COLLAPSE_FIELDS = [
+  // integer — `askInFlight()`, the number of requests lib/empty-answer.js has open in THIS
+  // container at the moment of the collapse, itself included. It is counted by that module out
+  // of its own install and `res.end` hooks; nothing about it is derived from a request body, a
+  // header or a question, and it cannot carry a character of prose. It is here because the
+  // owner's fourth question about a collapse — «هل سبقَه طلبٌ لم يُغلَقْ» — has no other answer.
+  'inFlight',
+];
+
+const ALLOWED = new Set([...ALLOWED_FIELDS, ...STREAM_FIELDS, ...LIVE_WORLD_V2_FIELDS,
+  ...COLLAPSE_FIELDS]);
 const NEWLINE = String.fromCharCode(10);
 
 // ── THE BOUNDARY, WRITTEN DOWN RATHER THAN LEFT TO BE REDISCOVERED ────────────

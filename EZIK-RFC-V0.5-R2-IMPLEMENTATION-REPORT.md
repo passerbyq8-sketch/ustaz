@@ -312,10 +312,10 @@ environment, so `client()` returns `null` on every real path. No key was created
 
 | | |
 |---|---|
-| Policy rows | 27 |
-| Enabled | 21 |
+| Policy rows | 31 |
+| Enabled | 25 |
 | Enabled **and** searchable | 19 |
-| Registry total | 31 |
+| Registry total | 32 |
 | Registry active | 19 |
 | Registry blocked | 2 |
 | Registry deferred | 6 |
@@ -324,18 +324,32 @@ environment, so `client()` returns `null` on every real path. No key was created
 | Capabilities changed by this RFC | **0** |
 | Sources activated by this RFC | **0** |
 
+**Policy rows and Enabled moved 28 -> 31 and 22 -> 25 on 2026-09-20** (LIVE_WORLD_V2, order ع-١):
+`aljazeera.net`, `bbc.com` and `skynewsarabia.com` gained **carriage-only** rows — `caps: {}`,
+`searchable: false` — so the world fetcher can open the pages its own search list returns. The two
+counters below do not move with them: no capability was granted, and no source was activated. Both
+rows are counted here because this table counts DECLARED rows; `policyFor()` withholds all three
+while `LIVE_WORLD_V2` is off, so with the switch off the fetcher refuses them exactly as it always
+has. `Enabled and searchable` is therefore unchanged at 19, and `conformanceProblems()` is still `[]`.
+
 `shamela.ws` — absent from both tables. `shkhudheir.com` — `disabled`, non-searchable.
 `binothaimeen.net` — `enabled`, **adapter-only**, `searchable: false`. Primary-opinion adapters:
 `ibn-baz`, `ibn-uthaymeen` — unchanged.
 
 **Proof of no activation:** `git diff 2046114..HEAD -- lib/source-registry.js
-lib/ledger/source-policy.js` returns **empty**.
+lib/ledger/source-policy.js` was **empty** until the LIVE_WORLD_V2 round of 2026-09-19, which added
+ONE row to each: `cbk.gov.kw`, the Central Bank of Kuwait, as the owner-named reference for the
+exchange rate. It activates nothing this RFC governs and the counts above move with it — the row
+carries `status: 'world-v2'`, `scopes: []` and `caps: {}`, so `sourceAllowsPurpose()` is false for
+every purpose and `capabilityEligible()` is false for every capability. **Registry active**,
+**Registry world** and **Enabled and searchable** are therefore all unmoved; what moved is
+**Registry total**, **Policy rows** and **Enabled**.
 
 ---
 
 ## K. Gates and tests
 
-All 112 gates, run by the canonical `npm run gates` runner from `gates.json`:
+All 114 gates, run by the canonical `npm run gates` runner from `gates.json`:
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -362,13 +376,14 @@ authbridge 0 · libbook 0 · attrwiden 0  attrtruth 0 · regexdup 0 · streamkee
 nameform 0 · rejectdoor 0 · articles 0 · asmaa 0 · chatbaractions 0 · sharelinks 0
 prophetascription 0 · prophetascriptionwiring 0 · khilafprobefreeze 0
 kunuznorepeat 0 · kunuzcats 0 · appvpattern 0
+liveworldkill 0 · livenumbersrc 0
 ```
 
 Every one **PASS**, exit code `0`.
 
 ```
-TOTAL_GATES        112/112 PASS
-RECON              PASS=203 WARN=0 FAIL=0
+TOTAL_GATES        114/114 PASS
+RECON              PASS=205 WARN=0 FAIL=0
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision
 NEW_FIXTURES       rfcpolicy 125/125 · rfcruntime 96/96

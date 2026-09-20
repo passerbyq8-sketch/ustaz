@@ -695,12 +695,104 @@ function answerShapeViolations(reply) {
       ok('a stream carrying only whitespace counts as empty', apologised(r));
     }
 
+    // ── §١ (2026-09-20) · AND IT LEAVES A RECORD BEFORE IT SPEAKS ─────────
+    //
+    // THE MEASURED FAILURE: the reader was handed this apology twice on the preview and the
+    // platform log held twenty `info` entries, no `warn`, no `error` and no timeout. The owner
+    // asked for four facts on the line that goes out ahead of it — the class, the phase, whether
+    // bytes were already flowing, and whether a request that never closed was open beside it.
+    {
+      const warned = [];
+      const realWarn = console.warn;
+      console.warn = (...args) => { warned.push(args); };
+      let r;
+      try {
+        r = EA.guardEmptyAnswer(mkRes(), 'witness');
+        openSse(r); r.write(STOP); r.end();
+      } finally { console.warn = realWarn; }
+      const line = warned.find((a) => a[0] === '[empty-answer]');
+      ok('a silent stream leaves a warn line before the apology goes out', !!line,
+        JSON.stringify(warned.map((a) => a[0])));
+      const f = (line && line[1]) || {};
+      ok('...and it names the class of text the reader is about to get',
+        f.kind === 'apology-substituted', JSON.stringify(f));
+      ok('...and the phase the response had reached',
+        f.stage === 'stream-opened-and-said-nothing', JSON.stringify(f));
+      ok('...and whether bytes had already gone on the wire', f.streaming === true, JSON.stringify(f));
+      ok('...and how many requests this container had open beside it',
+        Number.isInteger(f.inFlight) && Number.isInteger(f.openedBeside), JSON.stringify(f));
+      ok('...and NOT the apology text itself — printing a constant back is noise',
+        !JSON.stringify(f).includes('تعذ'), JSON.stringify(f));
+      ok('the reader still got the apology — the record does not replace the repair',
+        apologised(r));
+    }
+    // THE COUNTER IS A COUNTER: it rises while a request is open and comes back down when it
+    // ends. A counter that only goes up would report every collapse as a crowded container.
+    //
+    // AND IT COMES DOWN EXACTLY ONCE. This is the half a first draft of this block did not
+    // measure: a response leaves through `res.end` OR through the socket closing under a handler
+    // that returned without ending, and BOTH are wired to the same release. Take the one-shot
+    // flag out and the two paths fire twice on one request — the count goes NEGATIVE, and every
+    // later collapse reports an emptier container than the truth. So the double below fires the
+    // `close` event as well, which is the only shape that can tell the two apart.
+    {
+      const before = EA.askInFlight();
+      const a = EA.guardEmptyAnswer(mkRes(), 'witness');
+      const b = EA.guardEmptyAnswer(mkRes(), 'witness');
+      ok('two open responses raise the in-flight count by two',
+        EA.askInFlight() === before + 2, String(EA.askInFlight()) + ' vs ' + String(before));
+      openSse(a); a.write(delta('نعم.')); a.write(STOP); a.end();
+      openSse(b); b.write(delta('نعم.')); b.write(STOP); b.end();
+      ok('...and ending both brings it back to where it started',
+        EA.askInFlight() === before, String(EA.askInFlight()) + ' vs ' + String(before));
+
+      // The double that can leave BOTH ways, which the plain `mkRes` above cannot.
+      const mkClosable = () => {
+        const r = mkRes();
+        const listeners = [];
+        r.once = (ev, fn) => { if (ev === 'close') listeners.push(fn); return r; };
+        r.emitClose = () => { for (const fn of listeners.splice(0)) fn(); };
+        return r;
+      };
+      const c = EA.guardEmptyAnswer(mkClosable(), 'witness');
+      openSse(c); c.write(delta('نعم.')); c.write(STOP); c.end();
+      c.emitClose();
+      ok('a response that both ENDS and then CLOSES is released exactly once',
+        EA.askInFlight() === before, String(EA.askInFlight()) + ' vs ' + String(before));
+
+      // ...and the other order: the socket closes under a handler that returned without ending.
+      const d = EA.guardEmptyAnswer(mkClosable(), 'witness');
+      openSse(d);
+      d.emitClose();
+      ok('...and a response that closes without ending is released too',
+        EA.askInFlight() === before, String(EA.askInFlight()) + ' vs ' + String(before));
+      d.end();
+      ok('...and a late end after that close does not release it a second time',
+        EA.askInFlight() === before, String(EA.askInFlight()) + ' vs ' + String(before));
+    }
+    // AND THE HANDLER'S OWN SEAT RECORDS THE SAME COLLAPSE. api/ask.js substitutes the apology for
+    // an empty free-brain text; read here rather than driven, because driving it needs the whole
+    // handler harness and tools/ask-sequence-probe.cjs is where that drive lives.
+    {
+      const s = read('api/ask.js');
+      ok('api/ask.js logs the collapse BEFORE it substitutes the apology',
+        /console\.warn\('\[free-brain\/empty\]', \{[\s\S]{0,900}\}\);\s*\n\s*readerText = FREE_BRAIN_EMPTY;/u.test(s),
+        'a substitution with no line above it is the silent collapse again');
+      ok('...and the line carries the four facts the owner asked for',
+        /\[free-brain\/empty\][\s\S]{0,400}kind:[\s\S]{0,400}stage:[\s\S]{0,400}streamedThisTurn:[\s\S]{0,400}inFlight:/u.test(s));
+    }
+
     // ── AND ALL THREE ROUTES ACTUALLY INSTALL IT ──────────────────────────
     // The wrapper is only worth anything on a response that was wrapped.
+    // The import list is read as a LIST and not as one exact name: §١ (2026-09-20) put
+    // `askInFlight` beside it, from the same module, and pinning the brace contents byte for
+    // byte would make every future co-import of this module a red gate about nothing. What is
+    // claimed here is that the wrapper comes from that file and is installed on the response —
+    // which is the whole of the claim — so the name is still anchored and the list is not.
     for (const rel of ['api/ask.js']) {
       const s = read(rel);
       ok(rel + ' installs the empty-answer guard',
-        /import \{ guardEmptyAnswer \} from '\.\.\/lib\/empty-answer\.js';/.test(s)
+        /import \{[^}]*\bguardEmptyAnswer\b[^}]*\} from '\.\.\/lib\/empty-answer\.js';/.test(s)
         && /guardEmptyAnswer\(res, '/.test(s));
     }
     for (const rel of ['api/chat.js', 'api/chat-fast.js']) {

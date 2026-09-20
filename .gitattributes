@@ -785,3 +785,21 @@ quest-harb.html text eol=lf
 # on every machine.
 api/report.js            text eol=lf
 config/app-version.json  text eol=lf
+
+# LIVE_WORLD_V2 ROUND (2026-09-19). The two new gate scripts, pinned because recon-audit item 14
+# requires an eol=lf pin for every script named in gates.json, and the three new lib modules they
+# drive, pinned for the reason lib/retrieve.js above is: a file a guard reads raw must read the
+# same on every machine, and all three carry Arabic prose whose bytes the guards compare.
+guards/live-world-v2-killswitch-guard.cjs text eol=lf
+guards/live-number-source-guard.cjs text eol=lf
+lib/live-world-v2.js text eol=lf
+lib/today-line.js text eol=lf
+lib/live-number-source.js text eol=lf
+
+# ج-٣/١ (2026-09-20) -- lib/live-news-order.js, the fourth module of the same round. Pinned for
+# the reason the three above it are, and for one MEASURED on this tree: without the pin a
+# `git checkout --` under core.autocrlf=true rewrote its 76 line endings to CRLF while every
+# sibling in lib/ stayed LF, and the next gate run reported «TREE DIRTYING (1)» and exited 1 on
+# a file whose content nobody had touched. guards/live-world-v2-killswitch-guard.cjs reads it and
+# drives it, so it must read the same on every machine.
+lib/live-news-order.js text eol=lf
