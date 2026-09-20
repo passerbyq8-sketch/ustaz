@@ -1955,7 +1955,7 @@ export default async function handler(req, res) {
           // the book's name is the entire claim, and no atom text travels.
           for (const entry of pass.entries) {
             for (const book of Array.isArray(entry.sealProof) ? entry.sealProof : []) {
-              takhrijProvenRows.push({ title: book, passage: book });
+              takhrijProvenRows.push({ title: book, passage: book + ' ' + String(entry.matn || '') });
             }
           }
           // ITEM 87 — every name printed here is on guards/telemetry-text-guard.cjs’s reviewed

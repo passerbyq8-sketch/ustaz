@@ -736,10 +736,10 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     // THIS PASS'S OWN PROOF ROWS NO LONGER MEET IT, AND THAT IS MEASURED, NOT ASSUMED. `sealProof`
     // hands over the ladder books BY NAME and nothing else — «no atom text travels», lib/takhrij.js
     // :1252 — so the rows fold to «صحيح البخاري» · «صحيح مسلم» and share no word with the sentence
-    // they exist to prove. The seal therefore now drops a «متفق عليه» THIS APP ITSELF VERIFIED.
+    // they exist to prove. The seal therefore now drops a «متفق عليه» THIS APP ITSELF VERIFIED, until that seat was changed to hand the matn over with the name.
     //
-    // THAT IS A LIVE OVER-REFUSAL, and it is recorded here rather than papered over. Its seat is
-    // api/ask.js:1957, which the order of 20 September forbids touching; closing it means giving
+    // THAT OVER-REFUSAL WAS CLOSED ON 20 September 2026, hours after it was measured. Its seat is
+    // api/ask.js:1958, and it was closed by giving
     // those rows the matn they are proving. The two rows below say exactly what the seal does now.
     const proofRows = agreedRun.entries.flatMap((entry) => entry.sealProof.map((book) => ({ title: book, passage: book })));
     ok('10d a proof row that is a BARE BOOK NAME no longer establishes «متفق عليه»',
@@ -763,7 +763,7 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     const askSrc = require('fs').readFileSync(path.join(REPO, 'api/ask.js'), 'utf8');
     ok('10d api/ask.js puts the proven rows into the seal and nowhere else',
       askSrc.includes('...storedFinalizerSources, ...takhrijProvenRows]')
-      && askSrc.includes('takhrijProvenRows.push({ title: book, passage: book })')
+      && askSrc.includes("takhrijProvenRows.push({ title: book, passage: book + ' ' + String(entry.matn || '') })")
       // ...and NOT into the finalizer's own source list, where it would widen what counts as
       // evidence for a card or a citation.
       && !/sources:\s*\[[^\]]*takhrijProvenRows/u.test(askSrc),
