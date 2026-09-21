@@ -228,7 +228,9 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
     const a2 = verdict(REV, A2, []);
     ok('E1 \u00b7 the A2 sentence \u2192 removed, the delivered text opens on \u00ab\u0625\u0646 \u0635\u0627\u0645\u0647\u00bb, and the name is gone',
       // THIRD ORDER, STEP 6: was «opens on A2_HEAD»; the speaker is generalised, so it opens on it behind one.
-      a2.action === REMOVED && a2.text.indexOf('\u0648\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645: ' + A2_HEAD) === 0 && a2.text.indexOf(A2_NAME) < 0,
+      // FIFTH ORDER [r44] (1): name first, with «فصّل» between the name and «فقال» — the name (and its
+      // title and prayer) alone is replaced; «فصّل فقال:» and «إن صامه» stay where the model put them.
+      a2.action === REMOVED && a2.text.indexOf('\u0648\u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0641\u0635\u0644 \u0641\u0642\u0627\u0644: ' + A2_HEAD) === 0 && a2.text.indexOf(A2_NAME) < 0,
       'action=' + JSON.stringify(a2.action) + ' text=' + JSON.stringify(a2.text.slice(0, 60)));
 
     // 2. A B-shaped input \u2014 name first, joined fa, colon, unquoted prose \u2014 is removed and the prose
@@ -244,9 +246,11 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
     const AN_PROSE = '\u0627\u0644\u0623\u0645\u0631 \u0641\u064a \u0647\u0630\u0627 \u0648\u0627\u0633\u0639';
     const an = verdict(REV, '\u0642\u0627\u0644 \u0627\u0628\u0646 \u0642\u062f\u0627\u0645\u0629: \u0623\u0646 ' + AN_PROSE, []);
     const bian = verdict(REV, '\u0623\u0641\u062a\u0649 \u0627\u0628\u0646 \u0642\u062f\u0627\u0645\u0629: \u0628\u0623\u0646 ' + AN_PROSE, []);
-    ok('E3 \u00b7 \u00ab\u0623\u0646\u00bb and \u00ab\u0628\u0623\u0646\u00bb are still stripped from the delivered text',
+    // FIFTH ORDER [r44] (1): «أنّ» after a general speaker is kept — the contract names it — so
+    // under «قال» it stays; under «أفتى», which takes no general speaker, it is stripped as before.
+    ok('E3 \u00b7 \u00ab\u0623\u0646\u00bb stays behind a general speaker; \u00ab\u0628\u0623\u0646\u00bb is still stripped where none is put',
       // THIRD ORDER, STEP 6: «قال» takes the general speaker; «أفتى» (bian) is not one of the five and is unchanged.
-      an.action === REMOVED && an.text.indexOf('\u0648\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645: ' + AN_PROSE) === 0
+      an.action === REMOVED && an.text.indexOf('\u0648\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645: \u0623\u0646 ' + AN_PROSE) === 0
         && bian.action === REMOVED && bian.text.indexOf(AN_PROSE) === 0,
       'an=' + JSON.stringify(an.text.slice(0, 40)) + ' bian=' + JSON.stringify(bian.text.slice(0, 40)));
 
@@ -334,7 +338,8 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
     ok('G1 \u00b7 [OWNER RULING] the owner\u2019s sentence \u2192 REMOVED: the name goes, the ruling stays',
       owner.action === REMOVED && owner.text.indexOf('\u0627\u0628\u0646 \u0628\u0627\u0632') < 0
         // THIRD ORDER, STEP 6: was «opens on the ruling»; now the ruling behind the general speaker.
-        && owner.text.indexOf('\u0648\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645: \u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629') === 0,
+        // FIFTH ORDER [r44] (1): the ruling follows the general speaker with no colon of the reviewer's own.
+        && owner.text.indexOf('\u0648\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629') === 0,
       'action=' + JSON.stringify(owner.action) + ' text=' + JSON.stringify(owner.text.slice(0, 80)));
 
     // \ud83d\udd12 THE FIFTH DOOR IS NOT WEAKENED BY THAT RULING, AND HERE IS THE PROOF. A remainder
@@ -350,7 +355,8 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
     const a2g = verdict(REV, A2G, []);
     ok('G2 \u00b7 A2 did not flip: still removed, the delivered text still opens on \u00ab\u0625\u0646 \u0635\u0627\u0645\u0647\u00bb',
       // THIRD ORDER, STEP 6: «إن صامه» still heads the claim, now behind the general speaker.
-      a2g.action === REMOVED && a2g.text.indexOf('\u0648\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645: \u0625\u0646 \u0635\u0627\u0645\u0647 \u0644\u0633\u0628\u0628') === 0,
+      // FIFTH ORDER [r44] (1): as E1 — «فصّل فقال:» stays, and «إن صامه» still heads the claim.
+      a2g.action === REMOVED && a2g.text.indexOf('\u0648\u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0641\u0635\u0644 \u0641\u0642\u0627\u0644: \u0625\u0646 \u0635\u0627\u0645\u0647 \u0644\u0633\u0628\u0628') === 0,
       'action=' + JSON.stringify(a2g.action) + ' text=' + JSON.stringify(a2g.text.slice(0, 60)));
 
     // \u2500\u2500 M1+M2 night 3, task 1: THE SAME PARTICLES CARRIED BY A JOINED \u00ab\u0648\u00bb OR \u00ab\u0641\u00bb \u2500\u2500
@@ -378,7 +384,8 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
         // ruling rather than on the particle.
         if (v.action !== REMOVED || v.text.indexOf(j) === 0
           // THIRD ORDER, STEP 6: the ruling now follows the general speaker.
-          || v.text.indexOf('\u0627\u0628\u0646 \u0628\u0627\u0632') >= 0 || v.text.indexOf('\u0648\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645: \u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629') !== 0) joinBad.push(j + '=' + v.action);
+          // FIFTH ORDER [r44] (1): no colon of the reviewer's own in front of the ruling.
+          || v.text.indexOf('\u0627\u0628\u0646 \u0628\u0627\u0632') >= 0 || v.text.indexOf('\u0648\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629') !== 0) joinBad.push(j + '=' + v.action);
         if (v.action !== bare.action) joinDrift.push(j + '(' + v.action + ')!=' + p + '(' + bare.action + ')');
       }
     }

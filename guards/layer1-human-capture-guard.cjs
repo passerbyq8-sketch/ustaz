@@ -80,6 +80,15 @@ function capturedAsExpected(module, row) {
     suite.ok('rule B ' + row.id + ' keeps its existing capture and verdict', capturedAsExpected(live, row),
       ascii(JSON.stringify(result.annotations)));
   }
+  // FIFTH ORDER [r44] (2): «العلماء» and «أكثر أهل العلم» still pass layer 1 (rule B above is
+  // untouched), but a speaker who names nobody is not an attribution: the sentence is carried whole,
+  // with no claimed authority and no verdict — «جمهور/أكثر» is never turned into «بعض».
+  suite.ok('fixture has nameless-scholar cases', Array.isArray(fixture.namelessScholars) && fixture.namelessScholars.length === 2);
+  for (const row of fixture.namelessScholars || []) {
+    const result = review(live, row.text);
+    suite.ok('r44 ' + row.id + ' names nobody: no capture, and the sentence is byte-identical',
+      droppedLikeNoCapture(live, row), ascii(JSON.stringify(result.annotations)));
+  }
   for (const row of fixture.passing) {
     const result = review(live, row.text);
     suite.ok('ordinary passing ' + row.id + ' keeps its capture', capturedAsExpected(live, row),

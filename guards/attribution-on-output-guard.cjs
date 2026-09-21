@@ -119,8 +119,10 @@ const input = (evidence) => ({ text, evidence, domain: 'fiqh', mode: 'عادي' 
 // refuses a truncated claim, a paraphrased one, and a claim with anything appended to it.
 // REWRITTEN BY THE THIRD ORDER, STEP 6 (the owner's decision 2). It pinned the bare claim with the
 // name erased; the name is still gone and the claim still whole, now behind «وقال بعض أهل العلم:».
+// REWRITTEN AGAIN BY THE FIFTH ORDER [r44] (1): the name alone is replaced, so the «إن» that
+// followed it stays, and no colon is put where the model wrote none.
 const preservesCompleteUnsupportedClaim = (module, out) => out.text
-  === 'وقال بعض أهل العلم: ' + semanticClaim
+  === 'وقال بعض أهل العلم إن ' + semanticClaim
   && out.annotations[0]?.action === 'removed-unsupported-attribution';
 const rejectsWrongScholar = (module) => {
   const out = module.reviewAnswer(input([wrongScholar]));

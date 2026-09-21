@@ -20,9 +20,11 @@
     { "id": "compilation", "text": "قال صحيح مسلم: إن الأمر جائز.", "claimed": "صحيح مسلم", "action": "removed-unsupported-attribution" },
     { "id": "institution", "text": "قالت الشرطة إن الأمر جائز.", "claimed": "الشرطة", "action": "removed-unsupported-attribution" },
     { "id": "school", "text": "قال الحنابلة: إن الأمر جائز.", "claimed": "الحنابلة", "action": "removed-unsupported-attribution" },
-    { "id": "collective", "text": "قال العلماء: إن الأمر جائز.", "claimed": "العلماء", "action": "removed-unsupported-attribution" },
-    { "id": "majority", "text": "قال أكثر أهل العلم: إن الأمر جائز.", "claimed": "أكثر أهل العلم", "action": "removed-unsupported-attribution" },
     { "id": "registered-institution-spelling", "text": "قال الإسلام سؤال وجواب: إن الأمر جائز.", "claimed": "الإسلام سؤال وجواب", "action": "removed-unsupported-attribution" }
+  ],
+  "namelessScholars": [
+    { "id": "collective", "text": "قال العلماء: إن الأمر جائز." },
+    { "id": "majority", "text": "قال أكثر أهل العلم: إن الأمر جائز." }
   ],
   "passing": [
     { "id": "registered-pattern", "text": "قال ابن باز: إن الأمر جائز.", "claimed": "ابن باز" },
