@@ -2448,6 +2448,84 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       }
     }
   }
+  console.log('\n=== 111 STEP 6 · THE EVIDENCE TAIL GOES, THE RULING BEFORE IT STAYS ===');
+  {
+    // THE OWNER'S DECISION 2, taken only because it measured zero holes: 29 firings over 115
+    // texts (20 crafted shapes x two page lists, the 35 drafts, the forty real answers), each
+    // read before -> after in EZIK-111-FIX-ROUND-EVIDENCE-2026-09-21.md. When every unsupported
+    // span of a sentence stands in a tail that opens after a comma with an evidence particle and
+    // runs to the end, only the tail goes; the ruling keeps its own end mark. «في الصحيحين» is
+    // removed, not restored — no licence comes back.
+    const L6 = await esm('lib/takhrij-lock.js');
+    const PAGE6 = [{ title: 'حكم صلاة الوتر', passage: 'الوتر سنة مؤكدة عند جمهور العلماء، وقد روى البخاري في صحيحه أحاديث في قيام الليل، وروى مسلم أحاديث في صلاة الضحى.' }];
+    for (const [label, text, expected] of [
+      ['«لما ثبت في الصحيحين» (chain A\'s measured sentence)',
+        'ويجب على المرأة أن لا تسافر بلا محرم، لما ثبت في الصحيحين من نهي النبي صلى الله عليه وسلم عن ذلك.',
+        'ويجب على المرأة أن لا تسافر بلا محرم.'],
+      ['«لما في صحيح مسلم»', 'ويستحب صيام ستة أيام من شوال بعد رمضان، لما في صحيح مسلم من حديث أبي أيوب الأنصاري.',
+        'ويستحب صيام ستة أيام من شوال بعد رمضان.'],
+      ['«كما في صحيح مسلم»', 'ويجوز الجمع بين الصلاتين للمطر، كما في صحيح مسلم عن ابن عباس رضي الله عنهما.',
+        'ويجوز الجمع بين الصلاتين للمطر.'],
+      ['«بدليل … أخرجه البخاري ومسلم»', 'وزكاة الفطر واجبة على كل مسلم، بدليل حديث ابن عمر الذي أخرجه البخاري ومسلم.',
+        'وزكاة الفطر واجبة على كل مسلم.'],
+      ['a quotation in the tail is salvaged after the ruling, as its own sentence',
+        'وتجب الطمأنينة في الركوع والسجود، لقوله صلى الله عليه وسلم للمسيء صلاته: «ثم اركع حتى تطمئن راكعا» متفق عليه.',
+        'وتجب الطمأنينة في الركوع والسجود. «ثم اركع حتى تطمئن راكعا».'],
+      ['a fabricated quotation in the tail is NOT salvaged (step 5)',
+        'ويستحب حب الوطن، لحديث «حب الوطن من الإيمان» وهو موضوع رواه الصغاني.',
+        'ويستحب حب الوطن.'],
+    ]) {
+      for (const [pl, pages] of [['no page', []], ['a page naming both shaykhs elsewhere', PAGE6]]) {
+        const out = L6.lockTakhrij(text, pages);
+        ok('111-6 ' + label + ', ' + pl + ': only the tail goes', out.text === expected, JSON.stringify(out.text));
+        ok('111-6 ' + label + ', ' + pl + ': ...and no attribution survives',
+          !/الصحيحين|صحيح مسلم|البخاري|متفق عليه|رواه/u.test(out.text), JSON.stringify(out.text));
+      }
+    }
+    ok('111-6 the cut is recorded under its own name',
+      L6.lockTakhrij('ويجب على المرأة أن لا تسافر بلا محرم، لما ثبت في الصحيحين من نهي النبي صلى الله عليه وسلم عن ذلك.', [])
+        .degraded.includes('takhrij-evidence-tail:1'));
+    // THE NEGATIVES — each is the whole-sentence rule, byte for byte as before.
+    for (const [label, text] of [
+      ['the attribution stands BEFORE the comma', 'الحكم في الباب ظاهر.\nوقد نهى النبي صلى الله عليه وسلم عن ذلك متفق عليه، لما فيه من الضرر.'],
+      ['no evidence particle opens the tail', 'الحكم في الباب ظاهر.\nويجب الوضوء للصلاة، وهذا ثابت في الصحيحين.'],
+      ['the ruling left would be under three words', 'الحكم في الباب ظاهر.\nويحرم، لما ثبت في الصحيحين.'],
+      ['the ruling left would end on a preposition', 'الحكم في الباب ظاهر.\nويجب أن يحافظ على، لحديث رواه مسلم.'],
+      ['the ruling left would end on a conjunction', 'الحكم في الباب ظاهر.\nوالصلاة واجبة على المسلم و، لما ثبت في الصحيحين.'],
+      ['an ayah stands in the tail', 'الحكم في الباب ظاهر.\nوالحج واجب على المستطيع، لقوله تعالى: ﴿وَلِلَّهِ عَلَى النَّاسِ حِجُّ الْبَيْتِ﴾ رواه البخاري.'],
+    ]) {
+      const out = L6.lockTakhrij(text, []);
+      ok('111-6 NOT a tail — ' + label + ': the sentence goes whole, as before',
+        out.text.trim() === 'الحكم في الباب ظاهر.' && !out.degraded.some((d) => d.startsWith('takhrij-evidence-tail')),
+        JSON.stringify(out.text));
+    }
+    {
+      const src6 = read('lib/takhrij-lock.js');
+      const dir6 = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
+      const tmp6 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-111-6-mut-'));
+      const load6 = async (tag, from, to) => {
+        const changed = src6.split(from).join(to);
+        ok('MUTANT 111-6 ' + tag + ' seam applied', changed !== src6);
+        const file = path.join(tmp6, tag + '.mjs');
+        fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir6, spec).replace(/\\/g, '/') + q), 'utf8');
+        return import('file:///' + file.replace(/\\/g, '/'));
+      };
+      try {
+        const off = await load6('tail-rule-off', '    const evidenceTail = trailingEvidenceTail(body, unsupported);',
+          '    const evidenceTail = null; // mutant');
+        ok('MUTANT KILLED: without the tail rule the mahram ruling is lost again',
+          !off.lockTakhrij('ويجب على المرأة أن لا تسافر بلا محرم، لما ثبت في الصحيحين من نهي النبي صلى الله عليه وسلم عن ذلك.', [])
+            .text.includes('بلا محرم'));
+        const loose = await load6('dangling-head-allowed', '    if (DANGLING_HEAD_END.has(head[head.length - 1].bare)) return null;',
+          '    // mutant: a head ending on a preposition is accepted');
+        ok('MUTANT KILLED: without the dangling-end test a ruling is left ending on «على»',
+          /على\.?$/u.test(loose.lockTakhrij('ويجب أن يحافظ على، لحديث رواه مسلم.', []).text.trim()));
+      } finally {
+        try { fs.rmSync(tmp6, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
   console.log('\n=== AA-89 · A MARK IS NOT THE CONTENT A LEAD-IN PROMISED ===');
   {
     // FOUND BY THE PRE-MERGE AUDIT (PRE-MERGE-AUDIT-2026-09-04.md §4/C2). The reviewer welds
