@@ -1798,6 +1798,48 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       }
     }
   }
+  console.log('\n=== 111 THIRD ORDER · STEP 4 · NO GLUED OPENER, NO LINE THAT OPENS ON A COMMA ===');
+  {
+    const T4 = await esm('lib/takhrij.js');
+    const two = { [MATN]: { matn: MATN, subjectIds: ['FC-000645', 'FC-000658'], atoms: [atomFor(MATN, 'عمر بن الخطاب'), atomFor(MATN, 'عمر بن الخطاب')] } };
+    {
+      // (أ) MEASURED on the preview: «…آخر عهده بالبيت»عن ابن عباس رضي الله عنهما: «…»».
+      const glued = 'الحكم واجب، لقوله صلى الله عليه وسلم: «' + OTHER + '»«' + MATN + '».';
+      const out = (await T4.applyTakhrij(glued, { env: ON, lookup: lookupOf(two) })).text;
+      ok('111-T4a an opener after a closing guillemet is written with a space before it',
+        out.includes('» عن عمر بن الخطاب') && !/»عن/u.test(out), JSON.stringify(out));
+      const spaced = 'الحمد لله. قال النبي صلى الله عليه وسلم: «' + MATN + '» وهذا أصل.';
+      const out2 = (await T4.applyTakhrij(spaced, { env: ON, lookup: lookupOf(two) })).text;
+      ok('111-T4a ...and where whitespace already stands, no second space is added',
+        !/  عن عمر/u.test(out2) && out2.includes('عن عمر بن الخطاب'), JSON.stringify(out2));
+    }
+    {
+      // (ب) MEASURED on the preview: the dissolved card's matn on its own line, then «، والعبد…».
+      const carded = 'شروط وجوب الحج خمسة.\n<hadith narrator="رواه أبو داود" ruling="صحيح">' + MATN + '</hadith>\n، والعبد لا يلزمه الحج حتى يعتق.';
+      const out = (await T4.applyTakhrij(carded, { env: ON, lookup: lookupOf({}) })).text;
+      ok('111-T4b a dissolved card leaves no line that opens on a comma',
+        !/(^|\n)\s*[،,]/u.test(out) && out.includes('، والعبد لا يلزمه الحج حتى يعتق.'), JSON.stringify(out));
+      ok('111-T4b ...and an answer the pass did not touch stays byte-identical, comma line and all',
+        (await T4.applyTakhrij('نص.\n، ثم نص.', { env: ON, lookup: lookupOf({}) })).text === 'نص.\n، ثم نص.');
+      const fs = require('fs'); const os = require('os');
+      const src = fs.readFileSync(path.join(REPO, 'lib', 'takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+      const SEAM = "      .replace(/\\n[ \\t]*[،,][ \\t]*/gu, '، ')";
+      const changed = src.split(SEAM).join('');
+      ok('MUTANT 111-T4b comma-line seam applied', changed !== src);
+      const dir = path.dirname(path.join(REPO, 'lib', 'takhrij.js'));
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-111-t4-mut-'));
+      try {
+        const file = path.join(tmp, 'comma-line.mjs');
+        fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir, spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + file.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: without the tidy the line opens on a comma again',
+          /(^|\n)\s*[،,]/u.test((await mod.applyTakhrij(carded, { env: ON, lookup: lookupOf({}) })).text));
+      } finally {
+        try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {

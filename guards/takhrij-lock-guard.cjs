@@ -3184,6 +3184,30 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         !/أخرجه/u.test(out) && out.includes('«المسلم من سلم المسلمون من لسانه ويده، والمهاجر من هجر ما نهى الله عنه»'), JSON.stringify(out));
     }
   }
+  console.log('\n=== 111 THIRD ORDER · STEP 4 · «أيضا» DOES NOT OUTLIVE THE CREDIT IT POINTED AT ===');
+  {
+    // MEASURED on the preview, «الدين النصيحة»: «رواه مسلم» went with no page and «ورواه أيضا أبو
+    // داود والترمذي والنسائي» stayed, pointing at nothing.
+    const L4 = await esm('lib/takhrij-lock.js');
+    const HEAD4 = 'قال النبي ﷺ: «الدين النصيحة، قلنا: لمن؟ قال: لله ولكتابه ولرسوله ولأئمة المسلمين وعامتهم».';
+    const T4 = HEAD4 + '\nرواه مسلم في صحيحه عن تميم الداري.\nورواه أيضا أبو داود في سننه.';
+    const PAGE_AD = [{ title: 'حديث', passage: 'ورواه أيضا أبو داود في سننه عن تميم الداري.' }];
+    const PAGE_BOTH = [{ title: 'حديث', passage: 'رواه مسلم في صحيحه عن تميم الداري. ورواه أيضا أبو داود في سننه.' }];
+    {
+      const out = L4.lockTakhrij(T4, PAGE_AD).text;
+      ok('111-T4c the credit before it gone, «ورواه أيضا أبو داود» keeps its credit and loses «أيضا»',
+        out.includes('ورواه أبو داود في سننه.') && !/أيضا/u.test(out) && !/رواه مسلم/u.test(out), JSON.stringify(out));
+    }
+    ok('111-T4c ...with the credit before it standing, «أيضا» stands too (byte-identical)',
+      L4.lockTakhrij(T4, PAGE_BOTH).text === T4, JSON.stringify(L4.lockTakhrij(T4, PAGE_BOTH).text));
+    ok('111-T4c ...with no page at all, neither credit reaches the reader',
+      !/رواه/u.test(L4.lockTakhrij(T4, []).text), JSON.stringify(L4.lockTakhrij(T4, []).text));
+    {
+      const plain = 'الصيام من شوال مستحب، رواه مسلم.\nويستحب أيضا صيام يوم عرفة لغير الحاج.';
+      const out = L4.lockTakhrij(plain, []).text;
+      ok('111-T4c «أيضا» anywhere else is never touched', out.includes('ويستحب أيضا صيام يوم عرفة'), JSON.stringify(out));
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
