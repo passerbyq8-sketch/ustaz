@@ -3468,6 +3468,47 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       }
     }
   }
+  // ── [111-log2] · ONE `[finalize/drop]` ENTRY PER CUT, AND `removed` IS THE CUT ITSELF ──────
+  // Measured on the preview at 6119411 (21:13:31Z): two cuts far apart in the grade stage printed
+  // one `removed` that ran from the first to the second, so the second was never named. The text
+  // is not what is tested here — the reader's bytes are pinned elsewhere — only the record of it.
+  {
+    const SEATL = await esm('lib/finalize-reader-text.js');
+    const G1 = 'وهذا الحديث صحيح.';
+    const MID = 'ويستحب التبكير إلى الجمعة، والتطيب لها، ولبس أحسن الثياب.';
+    const G2 = 'وروي في فضل التبكير أن من راح في الساعة الأولى فكأنما قرب بدنة، وإسناده حسن.';
+    const TWO = ['غسل الجمعة سنة مؤكدة عند جمهور أهل العلم.', G1, MID, 'ووقته من طلوع الفجر إلى صلاتها.', G2].join('\n');
+    const gradeDrops = (mod) => (mod.finalizeReaderText({ kind: 'answer', text: TWO, sources: [] }).drops || [])
+      .filter((d) => d.stage === 'grades');
+    const got = gradeDrops(SEATL);
+    ok('111-log2 two cuts far apart in one stage are two entries', got.length === 2, JSON.stringify(got));
+    ok('111-log2 ...the first is exactly the first cut', got[0] && got[0].removed === G1, JSON.stringify(got[0]));
+    ok('111-log2 ...the second is exactly the second cut', got[1] && got[1].removed === G2, JSON.stringify(got[1]));
+    ok('111-log2 ...and nothing kept between them is reported as removed',
+      got.every((d) => !d.removed.includes(MID)), JSON.stringify(got));
+    const ONE = ['غسل الجمعة سنة مؤكدة عند جمهور أهل العلم.', G1, MID].join('\n');
+    const one = (SEATL.finalizeReaderText({ kind: 'answer', text: ONE, sources: [] }).drops || []).filter((d) => d.stage === 'grades');
+    ok('111-log2 one cut is still one entry, exactly as before', one.length === 1 && one[0].removed === G1, JSON.stringify(one));
+    ok('111-log2 a cut is still capped at DROP_REMOVED_MAX', SEATL.DROP_REMOVED_MAX === 200
+      && got.every((d) => d.removed.length <= SEATL.DROP_REMOVED_MAX));
+    const src = read('lib/finalize-reader-text.js').replace(/\r\n/g, '\n');
+    const dir = path.dirname(path.join(REPO, 'lib', 'finalize-reader-text.js'));
+    const SEAM = '(wa.length + 1) * (wb.length + 1) > DROP_DIFF_MAX_CELLS';
+    const changed = src.split(SEAM).join('(wa.length + 1) * (wb.length + 1) > 0');
+    ok('MUTANT 111-log2 one-span seam applied', changed !== src);
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-111-log2-mut-'));
+    try {
+      const file = path.join(tmp, 'one-span.mjs');
+      fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir, spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      const m = gradeDrops(mod);
+      ok('MUTANT KILLED: with one span per stage the two cuts print as one line that swallows the kept text',
+        m.length === 1 && m[0].removed.includes(MID), JSON.stringify(m));
+    } finally {
+      try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
