@@ -2236,8 +2236,11 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       // false), and the matn must not be left standing bare in its place.
       const W10A = 'حديث «أحبوا العرب لثلاث: لأني عربي، والقرآن عربي، وكلام أهل الجنة عربي» حديث موضوع، أورده ابن الجوزي في الموضوعات.';
       const w10 = deliver5(W10A + '\n' + W9C);
-      ok('111-5 a verdict sharing its sentence with an unsourced credit: the sentence goes, no bare matn',
-        w10 === W9C, JSON.stringify(w10));
+      // REWRITTEN BY THE SECOND ORDER, STEP 3. This row held that the whole sentence goes; the
+      // owner's decision 1 is that a verdict of fabrication stays with its matn, so now only the
+      // «، أورده …» tail goes. What it still holds: the false credit is gone and no matn is bare.
+      ok('111-5/S3 a verdict sharing its sentence with an unsourced credit: the credit goes, the verdict stays, no bare matn',
+        w10 === W10A.slice(0, W10A.indexOf('، أورده')) + '.\n' + W9C, JSON.stringify(w10));
       // The class is narrow: a sound quotation elsewhere in the answer is still salvaged.
       const SOUND = 'قال النبي صلى الله عليه وسلم: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى»، رواه البخاري.';
       ok('111-5 a matn NOT judged fabricated is still salvaged exactly as before',
@@ -2635,6 +2638,75 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
           /رواه البخاري/u.test(mod.lockTakhrij(RULE2 + '\n' + WIT2, []).text));
       } finally {
         try { fs.rmSync(tmp2, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
+  console.log('\n=== 111 SECOND ORDER · STEP 3 · A VERDICT OF FABRICATION KEEPS ITS SENTENCE WHEN ONLY ITS ATTRIBUTION TAIL GOES ===');
+  {
+    // W10: «…حديث موضوع، أورده ابن الجوزي في الموضوعات.» — the unsourced credit took the whole
+    // sentence and step 5 forbade the bare matn, so the answer stopped saying the text is
+    // fabricated. The tail now goes and the verdict stays (the owner's decision 1). And a matn
+    // placed «في» a book of fabrications or of weak narrations is never salvaged bare (W8b).
+    const SEAT3 = await esm('lib/finalize-reader-text.js');
+    const L3 = await esm('lib/takhrij-lock.js');
+    const deliver3 = (text) => SEAT3.finalizeReaderText({ kind: 'answer', text: L3.lockTakhrij(text, []).text, sources: [] }).text;
+    const bareLine = (text) => String(text).split(/(?<=[.؟!\n])/u).some((x) => /^«[^«»]+»[.؟!]?$/u.test(x.trim()));
+    const W10M = 'حديث «أحبوا العرب لثلاث: لأني عربي، والقرآن عربي، وكلام أهل الجنة عربي» حديث موضوع';
+    const W10 = W10M + '، أورده ابن الجوزي في الموضوعات.\nوأما فضل لسان العرب فهذا أمر ثابت بنص القرآن الكريم.';
+    {
+      const out = deliver3(W10);
+      ok('111-S3 W10: «…حديث موضوع.» stays with its matn', out.includes(W10M + '.'), JSON.stringify(out));
+      ok('111-S3 ...its attribution tail is gone', !/أورده/u.test(out), JSON.stringify(out));
+      ok('111-S3 ...and no matn stands bare', !bareLine(out), JSON.stringify(out));
+    }
+    const W8B = 'حديث «حب الوطن من الإيمان» أورده الصغاني في الموضوعات، وقال السخاوي في المقاصد الحسنة: لم أقف عليه.\n'
+      + 'وأما المعنى الذي يحمله الناس من هذا القول فمعنى صحيح في ذاته، فحب الإنسان لبلده أمر فطري لا يذم.';
+    ok('111-S3 W8b: a matn placed in a book of fabrications is not salvaged bare at the head',
+      !bareLine(deliver3(W8B)) && !deliver3(W8B).includes('«حب الوطن من الإيمان»'), JSON.stringify(deliver3(W8B)));
+    for (const [label, book] of [['المجروحين', 'رواه ابن حبان في المجروحين'], ['الكامل في ضعفاء الرجال', 'أخرجه ابن عدي في الكامل في ضعفاء الرجال'],
+      ['السلسلة الضعيفة', 'أورده الألباني في السلسلة الضعيفة']]) {
+      const txt = 'قال رسول الله صلى الله عليه وسلم: «من عرف نفسه فقد عرف ربه» ' + book + '.\nوأما معناه فصحيح في الجملة.';
+      ok('111-S3 a book judging its contents (' + label + '): no bare matn', !bareLine(deliver3(txt)), JSON.stringify(deliver3(txt)));
+    }
+    for (const tail of ['صححه الألباني', 'قاله الألباني في صحيح الجامع', 'ذكره ابن حجر']) {
+      const out = deliver3('حديث «من عرف نفسه فقد عرف ربه» حديث صحيح، ' + tail + '.\nوأما معناه فصحيح في الجملة.');
+      ok('111-S3 «حديث صحيح، ' + tail + '» with no source: the sentence goes, no «صحيح» is left',
+        !/حديث صحيح|صححه/u.test(out) && out.includes('وأما معناه فصحيح في الجملة.'), JSON.stringify(out));
+    }
+    {
+      // NOT OVER-BROAD: an ordinary unsourced credit still salvages its matn as before, and a
+      // passing mention of «كتب الموضوعات» condemns nothing.
+      const plain = 'قال رسول الله صلى الله عليه وسلم: «المسلم من سلم المسلمون من لسانه ويده» رواه البخاري.';
+      ok('111-S3 an ordinary credit to al-Bukhari still salvages its matn, as before', bareLine(deliver3(plain)), JSON.stringify(deliver3(plain)));
+      const kutub = 'قال رسول الله صلى الله عليه وسلم: «من كذب علي متعمدا فليتبوأ مقعده من النار» رواه البخاري، ولهذا صنف العلماء كتب الموضوعات.';
+      ok('111-S3 «كتب الموضوعات» mentioned in passing is not a book the matn was placed in', bareLine(deliver3(kutub)), JSON.stringify(deliver3(kutub)));
+    }
+    {
+      const fiqh = 'ويجب الوضوء من مس الذكر، أورده الترمذي في جامعه.';
+      ok('111-S3 a ruling before «، أورده …» keeps its sentence', deliver3(fiqh) === 'ويجب الوضوء من مس الذكر.', JSON.stringify(deliver3(fiqh)));
+    }
+    {
+      const src3 = read('lib/takhrij-lock.js');
+      const dir3 = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
+      const tmp3 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-111-s3-mut-'));
+      const load3 = async (tag, from, to) => {
+        const changed = src3.split(from).join(to);
+        ok('MUTANT 111-S3 ' + tag + ' seam applied', changed !== src3);
+        const file = path.join(tmp3, tag + '.mjs');
+        fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir3, spec).replace(/\\/g, '/') + q), 'utf8');
+        return import('file:///' + file.replace(/\\/g, '/'));
+      };
+      try {
+        const noVerb = await load3('no-verdict-verbs', "  'أورده', 'ذكره', 'قاله', 'قال ذلك', 'حكم عليه', 'نص عليه', 'كما قال', 'كما ذكر'].map(", '  ].map(');
+        ok('MUTANT KILLED: without the verdict verbs W10 stops saying the text is fabricated',
+          !noVerb.lockTakhrij(W10, []).text.includes(W10M));
+        const noBook = await load3('no-judging-book', 'function namesAJudgingBook(text) {\n  return JUDGING_BOOK_RE.test(foldTitle(text));',
+          'function namesAJudgingBook(text) {\n  return false && JUDGING_BOOK_RE.test(foldTitle(text));');
+        ok('MUTANT KILLED: without the book list W8b\'s matn stands bare again',
+          noBook.lockTakhrij(W8B, []).text.includes('«حب الوطن من الإيمان»'));
+      } finally {
+        try { fs.rmSync(tmp3, { recursive: true, force: true }); } catch { /* temp only */ }
       }
     }
   }
