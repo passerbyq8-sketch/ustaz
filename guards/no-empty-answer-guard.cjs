@@ -1243,6 +1243,49 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
       (retryFailed.degraded || []).some((d) => /^citation_retry:error:529:/u.test(d)),
       JSON.stringify(retryFailed.degraded));
 
+    // §٢ — CITING IS NOT FINISHING. The preview log of 21 September, turn T7: `end_turn 588`
+    // then `cite-retry refusal 688`. The retry cited twice, so it was adopted, and the reader got
+    // it cut mid-word in place of the whole answer. A retry is adopted only on `end_turn`; on any
+    // other stop the finished answer goes out, and the rejection is named with its stop.
+    const CUT_RECITED = 'الجمع للمسافر جائز عند الحاجة [[1]]، ولا حر';
+    const stoppedPayload = (stop) => () => ({ stop_reason: stop, content: [{ type: 'text', text: CUT_RECITED }] });
+    async function warnedFor(loopModule, script) {
+      const realWarn = console.warn;
+      const warned = [];
+      console.warn = (...args) => { warned.push(args.map(String).join(' ')); };
+      let turn;
+      try { turn = await driveScript(loopModule, script); } finally { console.warn = realWarn; }
+      return { turn, warned };
+    }
+    for (const stop of ['refusal', 'max_tokens']) {
+      const { turn: t7, warned } = await warnedFor(loop, retryScript(stoppedPayload(stop)));
+      ok(`a CITING retry that stopped on ${stop} is not adopted — the finished answer goes out whole (T7)`,
+        firstAnswerSurvives(t7) && (t7.cited || []).length === 0,
+        JSON.stringify([t7.text, (t7.cited || []).map((r) => r.ref)]));
+      ok(`...and its finish state is the answer's own, not the discarded retry's (${stop})`,
+        t7.deliveredStop === 'end_turn' && t7.truncated === false,
+        JSON.stringify([t7.deliveredStop, t7.truncated]));
+      ok(`...and the rejection is named in degraded WITH its stop (${stop})`,
+        (t7.degraded || []).includes(`citation_retry:CITE_RETRY_REJECTED_STOP:${stop}`),
+        JSON.stringify(t7.degraded));
+      ok(`...and printed to the log under the explicit token (${stop})`,
+        warned.some((w) => w.includes('CITE_RETRY_REJECTED_STOP') && w.includes(stop)),
+        JSON.stringify(warned));
+    }
+    ok('...while a citing retry that ended on end_turn is adopted exactly as before',
+      (retried.degraded || []).some((d) => /^citation_retry:cited:\d+$/u.test(d))
+        && (retried.cited || []).length === 1,
+      JSON.stringify([retried.degraded, retried.text]));
+    // M-STOP — the stop test removed: every citing retry adopted again, which is T7 itself.
+    const stopMutant = await loopMutant('retry-adopted-whatever-its-stop',
+      (source) => source.replace("        if (retryStop !== 'end_turn') {",
+        '        if (false) { // mutant: a citing retry is adopted however it stopped'),
+      async (twinModule) => firstAnswerSurvives(await driveScript(twinModule, retryScript(stoppedPayload('refusal')))));
+    ok('stop-test mutant seam applied', stopMutant.changed, stopMutant.error);
+    ok('stop-test mutant module loaded successfully', stopMutant.loaded, stopMutant.error);
+    ok('MUTANT KILLED: a citing retry cut by refusal cannot replace the finished answer',
+      stopMutant.loaded && stopMutant.survived === false, JSON.stringify(stopMutant));
+
     // ── L2. THE THREE CASES THAT MUST NOT TRIGGER IT ──────────────────────────
     // An answer that already cited. Nothing is missing, so nothing is spent.
     const alreadyCited = await driveScript(loop, (i) => (i === 0 ? oneTool('t0') : textPayload(RECITED)));
