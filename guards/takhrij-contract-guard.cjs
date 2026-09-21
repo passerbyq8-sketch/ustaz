@@ -1753,6 +1753,51 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try { fsB.rmSync(dirB, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  console.log('\n=== 111 THIRD ORDER · STEP 3 · A KINSHIP PRONOUN IS NEVER TAKEN FOR A COMPANION ===');
+  {
+    // MEASURED on the preview: «عن أبيه رضي الله عنه: «دعهما فإني أدخلتهما طاهرتين» (متفق عليه)».
+    // The atoms say «عن عروة بن المغيرة عن أبيه», so the last anchored run was a pronoun.
+    const T3k = await esm('lib/takhrij.js');
+    const KHUFF = 'دعهما فإني أدخلتهما طاهرتين';
+    const ATOM_KIN = 'حدثنا أبو نعيم قال حدثنا زكرياء عن عامر عن عروة بن المغيرة عن أبيه رضي الله عنه قال كنت مع النبي صلى الله عليه وسلم في سفر فأهويت لأنزع خفيه فقال ' + KHUFF + ' فمسح عليهما';
+    const ATOM_OK = 'حدثنا سفيان عن سليمان عن طاوس عن ابن عباس رضي الله عنهما قال أمر الناس أن يكون آخر عهدهم بالبيت إلا أنه خفف عن الحائض';
+    ok('111-T3 «عن أبيه رضي الله عنه» names no Companion — the opener is dropped, nothing inferred',
+      T3k.companionFrom(ATOM_KIN, KHUFF).name === '', JSON.stringify(T3k.companionFrom(ATOM_KIN, KHUFF)));
+    ok('111-T3 ...and «المغيرة» is not read out of «عروة بن المغيرة» either',
+      !/المغيرة/u.test(T3k.companionFrom(ATOM_KIN, KHUFF).name));
+    ok('111-T3 a Companion named by his name is taken, and he alone: «ابن عباس», never «طاوس ابن عباس» out of «عن طاوس عن ابن عباس»',
+      T3k.companionFrom(ATOM_OK, 'أمر الناس أن يكون آخر عهدهم بالبيت').name === 'ابن عباس'
+        && T3k.companionFrom(ATOM_OK, 'أمر الناس أن يكون آخر عهدهم بالبيت').prayer === 'عنهما');
+    {
+      // «أبي» is the genitive of «أبو» as well as «my father»: a kunya is a name and stays one.
+      const ATOM_KUNYA = 'حدثنا عبد الله عن أبي صالح عن أبي هريرة رضي الله عنه قال قال رسول الله صلى الله عليه وسلم للصائم فرحتان فرحة عند فطره وفرحة عند لقاء ربه';
+      ok('111-T3 ...and «عن أبي هريرة» is a kunya, not a kinship word: taken as «أبي هريرة»',
+        T3k.companionFrom(ATOM_KUNYA, 'للصائم فرحتان').name === 'أبي هريرة', JSON.stringify(T3k.companionFrom(ATOM_KUNYA, 'للصائم فرحتان')));
+    }
+    for (const kin of ['أبيها', 'أمه', 'جده', 'أخيه', 'عمها', 'خاله', 'ابنه', 'زوجها']) {
+      const atom = 'حدثنا فلان عن فلان عن ' + kin + ' رضي الله عنه قال سمعت رسول الله صلى الله عليه وسلم يقول إنما الأعمال بالنيات';
+      ok('111-T3 «عن ' + kin + '» names no Companion', T3k.companionFrom(atom, 'إنما الأعمال بالنيات').name === '');
+    }
+    {
+      const fs = require('fs'); const os = require('os');
+      const src = fs.readFileSync(path.join(REPO, 'lib', 'takhrij.js'), 'utf8');
+      const SEAM = "  if (words.some((word) => KINSHIP_WORDS.has(foldArabic(word)))) return { name: '', prayer: '', kinship: true };";
+      const changed = src.split(SEAM).join('');
+      ok('MUTANT 111-T3 kinship seam applied', changed !== src);
+      const dir = path.dirname(path.join(REPO, 'lib', 'takhrij.js'));
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-111-t3-mut-'));
+      try {
+        const file = path.join(tmp, 'kin-blind.mjs');
+        fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir, spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + file.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: without the rule the pronoun ships as a name again',
+          mod.companionFrom(ATOM_KIN, KHUFF).name !== '');
+      } finally {
+        try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
