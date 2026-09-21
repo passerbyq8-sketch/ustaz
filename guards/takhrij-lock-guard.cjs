@@ -2526,6 +2526,57 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       }
     }
   }
+  console.log('\n=== 111 STEP 8 · A GRADE IN THE EVIDENCE TAIL TAKES THE TAIL, NOT THE RULING ===');
+  {
+    // MEASURED at the round's governing gate: three W1 shapes lost condition 2 — «العقل: فلا يجب
+    // على المجنون» — which main keeps. The grade «وهو حديث صحيح» belongs to the evidence after
+    // «، لقول النبي ﷺ», and the predicative rule took the whole sentence. The step-6 tail now
+    // serves the grade rule too: the tail goes, the ruling stays, the quoted matn follows it.
+    const L8 = await esm('lib/takhrij-lock.js');
+    const LEAD8 = 'للحج شروط خمسة يجب توافرها.';
+    const RULE8 = 'العقل: فلا يجب على المجنون';
+    const MATN8 = '«رفع القلم عن ثلاثة: عن النائم حتى يستيقظ، وعن الصبي حتى يحتلم، وعن المجنون حتى يعقل»';
+    const item8 = RULE8 + '، لقول النبي صلى الله عليه وسلم: ' + MATN8 + ' وهو حديث صحيح';
+    {
+      const out = L8.dropUnsourcedGrades(LEAD8 + '\n1. الإسلام: فلا يجب الحج على الكافر\n2. ' + item8 + '\n3. البلوغ: فلا يجب على الصبي').text;
+      ok('111-8 a numbered item: the ruling stays, the matn follows it as its own sentence',
+        out.includes('2. ' + RULE8 + '. ' + MATN8), JSON.stringify(out));
+      ok('111-8 ...and no grade is left standing', !/صحيح/u.test(out), JSON.stringify(out));
+    }
+    {
+      const out = L8.dropUnsourcedGrades(LEAD8 + '\n1- الإسلام: فلا يجب الحج على الكافر 2- ' + item8 + ' 3- البلوغ: فلا يجب على الصبي').text;
+      ok('111-8 a one-line list: item 2 keeps its marker and its ruling',
+        out.includes('2- ' + RULE8 + '. ' + MATN8 + ' 3- البلوغ'), JSON.stringify(out));
+    }
+    {
+      // The owner's screen: the matn is NOT quoted. Before this, the colon-window salvage put the
+      // RULING inside quotation marks as though it were the Prophet's words. Now the ruling stands
+      // as the answer's own, the unquoted evidence goes with its grade, and nothing is quoted.
+      const unq = RULE8 + '، لقول النبي صلى الله عليه وسلم: رفع القلم عن ثلاثة: عن النائم حتى يستيقظ، وعن الصبي حتى يحتلم، وعن المجنون حتى يعقل وهو حديث صحيح';
+      const out = L8.dropUnsourcedGrades(LEAD8 + '\n1- الإسلام: فلا يجب الحج على الكافر 2- ' + unq + ' 3- البلوغ: فلا يجب على الصبي').text;
+      ok('111-8 the owner\'s W1 screen: the ruling stays, and it is not put in quotation marks',
+        out.includes('2- ' + RULE8 + ' 3- البلوغ') && !/«[^»]*فلا يجب على المجنون/u.test(out), JSON.stringify(out));
+    }
+    {
+      const src8 = read('lib/takhrij-lock.js');
+      const dir8 = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
+      const SEAM8 = '      const tail = trailingEvidenceTail(block.slice(sen.start, sen.end), within);';
+      const changed = src8.split(SEAM8).join('      const tail = null; // mutant');
+      ok('MUTANT 111-8 grade-tail-off seam applied', changed !== src8);
+      const tmp8 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-111-8-mut-'));
+      try {
+        const file = path.join(tmp8, 'grade-tail-off.mjs');
+        fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir8, spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + file.replace(/\\/g, '/'));
+        const out = mod.dropUnsourcedGrades(LEAD8 + '\n1. الإسلام: فلا يجب الحج على الكافر\n2. ' + item8 + '\n3. البلوغ: فلا يجب على الصبي').text;
+        ok('MUTANT KILLED: without the grade tail the condition «فلا يجب على المجنون» is lost again',
+          !out.includes('فلا يجب على المجنون'), JSON.stringify(out));
+      } finally {
+        try { fs.rmSync(tmp8, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
   console.log('\n=== AA-89 · A MARK IS NOT THE CONTENT A LEAD-IN PROMISED ===');
   {
     // FOUND BY THE PRE-MERGE AUDIT (PRE-MERGE-AUDIT-2026-09-04.md §4/C2). The reviewer welds
