@@ -3509,6 +3509,59 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── FIFTH ORDER [r42] · «الحديث الضعيف» SPOKEN OF AS A KIND IS NOT A GRADE ─────────────────
+  // Measured on the preview at 6119411 (21:13:31Z) and in the fourth order's run notes (٤): the grade
+  // rule took «الضعيف» out of a sentence about the class, and «والحديث لا يُعمَلُ به في الأحكام»
+  // reached the reader — the opposite rule. Each sentence stands under a carrier line, because the
+  // rule never empties an answer and a lone sentence would prove nothing.
+  {
+    const L42 = await esm('lib/takhrij-lock.js');
+    const SEAT42 = await esm('lib/finalize-reader-text.js');
+    const REV42 = await esm('lib/output-reviewer.js');
+    const CARRIER = 'يستحب صيام ثلاثة أيام من كل شهر.';
+    const graded = (mod, t) => mod.dropUnsourcedGrades(CARRIER + '\n' + t).text.slice(CARRIER.length + 1);
+    const sealed = (t) => SEAT42.finalizeReaderText({ kind: 'answer', text: CARRIER + '\n' + t, sources: [] }).text.slice(CARRIER.length + 1);
+    for (const [id, t] of [
+      ['the genus sentence', 'والحديث الضعيف لا يُعمَلُ به في الأحكام.'],
+      ['sib لا يعمل بالحديث الضعيف مطلقا', 'ذهب طائفة من أهل العلم إلى أنه لا يعمل بالحديث الضعيف مطلقا'],
+      ['sib الأحاديث الضعيفة', 'الأحاديث الضعيفة لا يعتمد عليها في إثبات شيء من الشرع'],
+      ['sib لو ذكر الضعيف', 'لكن لو ذكر الضعيف كما ذكره الجمهور فلا حرج'],
+      ['sib ذكر الحديث الموضوع', 'ولا يجوز ذكر الحديث الموضوع إلا لبيان أنه كذب'],
+      ['sib الحسن حجة', 'والحديث الحسن حجة في الأحكام'],
+    ]) {
+      ok('r42 ' + id + ': the grade rule leaves it letter for letter', graded(L42, t) === t, graded(L42, t));
+      ok('r42 ' + id + ': ...and so does the whole seal', sealed(t) === t, sealed(t));
+    }
+    const Q9 = 'ذهب طائفةٌ من أهل العلم إلى أنّه يجوزُ ذكرُ الحديث الضعيف في الترغيب والترهيب وفضائل الأعمال، لا في إثبات الأحكام ولا العقائد، وذلك بشروط ثلاثة اشترطها المحدّثون:';
+    const reviewed = REV42.reviewAnswer({ text: Q9, evidence: [], domain: 'fiqh', mode: 'chat' }).text;
+    const chain = SEAT42.finalizeReaderText({ kind: 'answer', text: L42.lockTakhrij(reviewed, []).text, sources: [] }).text;
+    ok('r42 the logged sentence («قبل») through the reviewer, the lock and the finalizer is letter for letter what the model wrote',
+      chain === Q9, chain);
+    ok('r42 control: «وهذا الحديث ضعيف.» still goes', graded(L42, 'وهذا الحديث ضعيف.') === '', graded(L42, 'وهذا الحديث ضعيف.'));
+    ok('r42 control: «… وهو حديث ضعيف» still loses its clause, the quotation stays',
+      graded(L42, '«من صلى البردين دخل الجنة» وهو حديث ضعيف') === '«من صلى البردين دخل الجنة»',
+      graded(L42, '«من صلى البردين دخل الجنة» وهو حديث ضعيف'));
+    ok('r42 control: «والحديث الصحيح في الباب يدلّ على ذلك» still loses its word — one text, as r41 ruled',
+      graded(L42, 'والحديث الصحيح في الباب يدلّ على ذلك') === 'والحديث في الباب يدلّ على ذلك',
+      graded(L42, 'والحديث الصحيح في الباب يدلّ على ذلك'));
+    const src = read('lib/takhrij-lock.js').replace(/\r\n/g, '\n');
+    const dir = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
+    const SEAM = '\n      .filter((sp) => !speaksOfAGenus(block, sp)); // FIFTH ORDER [r42] — a class, not a verdict';
+    const changed = src.split(SEAM).join(';');
+    ok('MUTANT r42 genus seam applied', changed !== src);
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-111-r42-mut-'));
+    try {
+      const file = path.join(tmp, 'genus-graded.mjs');
+      fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir, spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without (1) «والحديث لا يُعمَلُ به» reaches the reader again',
+        graded(mod, 'والحديث الضعيف لا يُعمَلُ به في الأحكام.') === 'والحديث لا يُعمَلُ به في الأحكام.',
+        graded(mod, 'والحديث الضعيف لا يُعمَلُ به في الأحكام.'));
+    } finally {
+      try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
