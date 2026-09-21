@@ -3111,6 +3111,79 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       }
     }
   }
+  console.log('\n=== 111 THIRD ORDER · STEP 2 · THE VERB «روى» IS AN ATTRIBUTION TOO ===');
+  {
+    // MEASURED at 030da4b: «…، لما روى البخاري أن النبي ﷺ…» passed with no page, because the
+    // verb set held «رواه» and not «روى». The active verb now opens a span when a collector's
+    // name follows it — and only then, because «روى» and the passive «رُوي» fold to one word.
+    const L3o = await esm('lib/takhrij-lock.js');
+    const WIT3o = 'ويحرم بيع الكلب، لما روى البخاري أن النبي ﷺ نهى عن ثمن الكلب.';
+    const PAGE3o = [{ title: 'بيع الكلب', passage: 'وقد روى البخاري أن النبي ﷺ نهى عن ثمن الكلب ومهر البغي.' }];
+    ok('111-T2 the witness with no page: the tail goes and the ruling keeps its end mark',
+      L3o.lockTakhrij(WIT3o, []).text === 'ويحرم بيع الكلب.', JSON.stringify(L3o.lockTakhrij(WIT3o, []).text));
+    ok('111-T2 ...over a page that carries it the sentence stays byte-identical',
+      L3o.lockTakhrij(WIT3o, PAGE3o).text === WIT3o);
+    ok('111-T2 «كما روى مسلم» after a ruling: the tail goes, the ruling stays',
+      L3o.lockTakhrij('ويسن أن يقول المصلي بعد التشهد الأخير الاستعاذة من أربع، كما روى مسلم عن أبي هريرة.', []).text
+        === 'ويسن أن يقول المصلي بعد التشهد الأخير الاستعاذة من أربع.');
+    ok('111-T2 «وأخرج البخاري» opens a span too',
+      L3o.takhrijSpans('وأخرج البخاري عن عائشة رضي الله عنها ذلك.').some((sp) => sp.kind === 'attribution'));
+    {
+      // The passive «رُوي عن» names no collection, and «روى أبو هريرة» names a Companion: neither
+      // is a takhrij, and neither may be touched by this rule.
+      const PASSIVE = 'ورُوي عن ابن عمر رضي الله عنهما أنه كان يفعل ذلك. والأمر فيه واسع.';
+      const COMPANION = 'روى أبو هريرة رضي الله عنه أن النبي ﷺ قال: «من غشنا فليس منا».';
+      ok('111-T2 the passive «رُوي عن» opens no span and stays byte-identical',
+        L3o.takhrijSpans(PASSIVE).length === 0 && L3o.lockTakhrij(PASSIVE, []).text === PASSIVE);
+      ok('111-T2 «روى أبو هريرة» names a Companion, not a book: byte-identical',
+        L3o.takhrijSpans(COMPANION).length === 0 && L3o.lockTakhrij(COMPANION, []).text === COMPANION);
+    }
+    {
+      const src3o = read('lib/takhrij-lock.js');
+      const dir3o = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
+      const SEAM3o = '    if (NARRATION_VERBS.has(verb)) {';
+      const changed = src3o.split(SEAM3o).join('    if (false && NARRATION_VERBS.has(verb)) {');
+      ok('MUTANT 111-T2 narration-verb seam applied', changed !== src3o);
+      const tmp3o = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-111-t2-mut-'));
+      try {
+        const file = path.join(tmp3o, 'rawa-blind.mjs');
+        fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir3o, spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + file.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: blind to «روى», the unsourced «لما روى البخاري» ships again',
+          /روى البخاري/u.test(mod.lockTakhrij(WIT3o, []).text));
+      } finally {
+        try { fs.rmSync(tmp3o, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
+  console.log('\n=== 111 THIRD ORDER · STEP 2 · «ورواه» IS «رواه» WITH ITS CONJUNCTION JOINED ===');
+  {
+    // MEASURED at 030da4b: «ورواه أيضا أبو داود والترمذي والنسائي في السنن.» — the owner's preview
+    // witness under «الدين النصيحة» — and «وأخرجه البخاري» opened no span: the token is «ورواه».
+    const L3w = await esm('lib/takhrij-lock.js');
+    const WAW = 'ورواه أيضا أبو داود والترمذي والنسائي في السنن.';
+    ok('111-T2 «ورواه …» opens an attribution span, and the «و» stays outside it',
+      L3w.takhrijSpans(WAW).some((sp) => sp.kind === 'attribution' && sp.start === 1));
+    ok('111-T2 ...with no page it does not reach the reader',
+      !/رواه/u.test(L3w.lockTakhrij('ويستحب ذلك للمسلم. ' + WAW, []).text), JSON.stringify(L3w.lockTakhrij('ويستحب ذلك للمسلم. ' + WAW, []).text));
+    ok('111-T2 «فرواه مسلم» is read the same way',
+      L3w.takhrijSpans('فرواه مسلم في صحيحه.').length === 1);
+    ok('111-T2 ...but a joined GRADE verb is not a span: «وصححه بالشواهد» names no source (AA-88)',
+      L3w.takhrijSpans('وصححه بالشواهد.').length === 0);
+    {
+      const PAGE = [{ title: 'حديث', passage: 'رواه مسلم في صحيحه عن تميم الداري.' }];
+      const T = 'والنصيحة واجبة على كل مسلم. ورواه مسلم في صحيحه.';
+      ok('111-T2 ...and a page carrying it keeps it byte-identical', L3w.lockTakhrij(T, PAGE).text === T);
+    }
+    {
+      // «بلفظ» names the wording of a narration: the condemned sentence keeps its quotation.
+      const T = 'وأخرجه البخاري أيضا بلفظ: «المسلم من سلم المسلمون من لسانه ويده، والمهاجر من هجر ما نهى الله عنه».';
+      const out = L3w.lockTakhrij(T, []).text;
+      ok('111-T2 «وأخرجه … بلفظ: «…»» with no page: the credit goes, the matn stays',
+        !/أخرجه/u.test(out) && out.includes('«المسلم من سلم المسلمون من لسانه ويده، والمهاجر من هجر ما نهى الله عنه»'), JSON.stringify(out));
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
