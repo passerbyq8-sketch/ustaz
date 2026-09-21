@@ -1589,7 +1589,8 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     for (const [label, text, gone] of [
       ['the matn shape', 'وهذا حديثٌ صحيحٌ عن النبيِّ صلّى الله عليه وسلّم.', ''],
       ['the chain shape', 'الحكمُ ثابتٌ في البابِ. صحيحُ الإسنادِ.', 'الحكمُ ثابتٌ في البابِ.'],
-      ['the definite form with its conjunction', 'والحديثُ الصحيحُ في البابِ يدلُّ على ذلك.', ''],
+      // «والحديثُ الصحيحُ …» — the ATTRIBUTIVE shape — left this table in ١١١ step 4: it no longer
+      // loses its sentence, only its grade word. Its rows are below, under that contract.
       ['a weak grading, equally unsourced', 'وهو حديثٌ ضعيفٌ.', ''],
     ]) {
       const carried = CARRIER83 + '\n' + text;
@@ -2085,8 +2086,7 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       ['a reason and a correction standing with it',
         'وقال الألباني: إسناده ضعيف مظلم، وصححه بالشواهد.', ''],
       ['no verb of saying anywhere: the matn shape', 'وهو حديثٌ ضعيفٌ.', ''],
-      ['no verb of saying anywhere: the definite form',
-        'والحديثُ الصحيحُ في البابِ يدلُّ على ذلك.', ''],
+      // the definite form moved out in ١١١ step 4 — see «THE GRADE AS A DESCRIPTION» below.
       ['a verb of saying with a ruling behind the complementizer',
         'قال ابن قدامة إن المسح جائز للمسافر ثلاثة أيام وإسناده صحيح.', ''],
     ]) {
@@ -2120,6 +2120,83 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       ok('AA-88 ...the whole sentence went, and the two beside it are byte-identical',
         gotW === 'حديث «أنا مدينة العلم وعلي بابها» لا يصح عن النبي صلى الله عليه وسلم. وقد حكم عليه أهل العلم بذلك.',
         JSON.stringify(gotW));
+    }
+
+    // ── ١١١ STEP 4 · THE GRADE AS A DESCRIPTION LOSES ITS WORD, THE GRADE AS A CLAIM ITS SENTENCE ──
+    //
+    // MEASURED on two RAW answers of EZIK-RAW-CORPUS-2026-08-19 (W4 = F20, W5 = F07). The sentence
+    // rule took «الحديث الصحيح عن النبي ﷺ صريح … وهذا هو الذي رجحه ابن باز وابن عثيمين: أنه لا
+    // يجوز للمرأة أن تسافر للحج بلا محرم» whole — a tarjih and a ruling, for one word — and «وقد
+    // ثبت في الحديث الصحيح أن النبي ﷺ مسح على الجوربين» with the proof of the masḥ. Claude's
+    // ruling: a definite noun with its definite grade adjective is ATTRIBUTIVE — a name for a text
+    // — and loses the grade WORD only; a predicative grade («هو حديث صحيح») is the claim, and its
+    // sentence still goes whole. No «صحيح» without a source stands in either output.
+    //
+    // REWRITTEN ROWS. The definite form sat in the two whole-sentence tables above (AA-83 «the
+    // definite form with its conjunction», AA-88 «no verb of saying anywhere: the definite form»)
+    // pinned as «the sentence goes whole». It is moved here and pinned as «the word goes, the
+    // sentence stays», and the no-grade-left property it protected is asserted on it unchanged.
+    {
+      const SEAT111 = await esm('lib/finalize-reader-text.js');
+      const DEF = 'والحديثُ الصحيحُ في البابِ يدلُّ على ذلك.';
+      const DEF_OUT = DEF.replace('الصحيحُ ', '');
+      const defCarried = CARRY + '\n' + DEF;
+      const viaRule = LOCK88.dropUnsourcedGrades(defCarried).text;
+      const viaSeat = SEAT111.finalizeReaderText({ kind: 'answer', text: defCarried, sources: [] }).text;
+      ok('AA-83/AA-88 the definite form (rewritten, step 4): only its grade word goes, the sentence stays',
+        viaRule === CARRY + '\n' + DEF_OUT, JSON.stringify(viaRule));
+      ok('AA-83/AA-88 ...and the same at the reader seat',
+        viaSeat === CARRY + '\n' + DEF_OUT, JSON.stringify(viaSeat));
+      ok('AA-83/AA-88 ...and no grade word is left standing without a source',
+        !/صحيح/u.test(viaRule) && !/صحيح/u.test(viaSeat), JSON.stringify([viaRule, viaSeat]));
+
+      const W5 = 'المسح على الجوارب جائز عند جمهور أهل العلم. وقد ثبت في الحديث الصحيح أن النبي صلى الله عليه وسلم مسح على الجوربين والنعلين، وكان جماعة من الصحابة يمسحون عليهما.';
+      const w5 = LOCK88.dropUnsourcedGrades(W5).text;
+      ok('111-4 W5 (F07 RAW): the proof of the masḥ and the practice of the Companions stay',
+        w5 === W5.replace('الصحيح ', ''), JSON.stringify(w5));
+      const W4 = 'اشتراط المحرم في سفر الحج: الحديث الصحيح عن النبي صلى الله عليه وسلم صريح: «لا تسافر امرأة إلا مع ذي محرم»، وهذا هو الذي رجحه ابن باز وابن عثيمين: أنه لا يجوز للمرأة أن تسافر للحج بلا محرم.';
+      const w4 = LOCK88.dropUnsourcedGrades(CARRY + '\n' + W4).text;
+      ok('111-4 W4 (F20 RAW): the tarjih of Ibn Baz and Ibn Uthaymin stays',
+        w4.includes('رجحه ابن باز وابن عثيمين'), JSON.stringify(w4));
+      ok('111-4 ...and the ruling «لا يجوز للمرأة أن تسافر للحج بلا محرم» stays',
+        w4.includes('لا يجوز للمرأة أن تسافر للحج بلا محرم'), JSON.stringify(w4));
+      ok('111-4 ...and what went is the word «الصحيح» and nothing else',
+        w4 === CARRY + '\n' + W4.replace('الصحيح ', ''), JSON.stringify(w4));
+
+      for (const [label, text] of [
+        ['a predicative grade on an indefinite noun', 'بل هو حديث ضعيف جدا.'],
+        ['a predicative grade after «هو»', 'وهو حديث صحيح عن النبي صلى الله عليه وسلم.'],
+        ['a sentence holding BOTH shapes is a claim', 'والحديث الصحيح في الباب هو حديث ضعيف.'],
+      ]) {
+        const out = LOCK88.dropUnsourcedGrades(CARRY + '\n' + text).text;
+        ok('111-4 ' + label + ': the sentence still goes whole — no hole', out === CARRY + '\n', JSON.stringify(out));
+      }
+    }
+    {
+      // MUTANTS — each direction of the one flag.
+      const src4 = read('lib/takhrij-lock.js');
+      const dir4 = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
+      const SEAM4 = "push(i, i, 'matn', /^ال/u.test(before) && /^ال/u.test(toks[i].bare));";
+      const tmp4 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-111-4-mut-'));
+      const load4 = async (tag, to) => {
+        const changed = src4.split(SEAM4).join(to);
+        ok('MUTANT 111-4 ' + tag + ' seam applied', changed !== src4);
+        const file = path.join(tmp4, tag + '.mjs');
+        fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir4, spec).replace(/\\/g, '/') + q), 'utf8');
+        return import('file:///' + file.replace(/\\/g, '/'));
+      };
+      try {
+        const never = await load4('never-attributive', "push(i, i, 'matn', false);");
+        const W5M = 'المسح على الجوارب جائز. وقد ثبت في الحديث الصحيح أن النبي صلى الله عليه وسلم مسح على الجوربين.';
+        ok('MUTANT KILLED: with no attributive shape the proof of the masḥ is lost again',
+          !never.dropUnsourcedGrades(W5M).text.includes('مسح على الجوربين'));
+        const always = await load4('always-attributive', "push(i, i, 'matn', true);");
+        ok('MUTANT KILLED: with every grade attributive a predicative sentence comes back with a hole',
+          always.dropUnsourcedGrades(CARRY + '\nبل هو حديث ضعيف جدا.').text.includes('بل هو حديث جدا'));
+      } finally {
+        try { fs.rmSync(tmp4, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
     }
 
     // ── 4 · THE PINS ────────────────────────────────────────
