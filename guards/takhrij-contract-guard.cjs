@@ -68,6 +68,12 @@ const esm19 = (abs) => import('file:///' + abs.replace(/\\/g, '/'));
 const MATN = 'إنما الأعمال بالنيات';
 const OTHER = 'المسلم من سلم المسلمون من لسانه ويده';
 const atomFor = (matn, companion) => `حدثنا سفيان عن ${companion} رضي الله عنه قال: ${matn}`;
+// A SILSILA ATOM IS AN ENTRY, NOT A NARRATION. In ezik-shamela-20260820 an entry of the two
+// Silsilas opens with its number and its matn («36 - حب الوطن من الإيمان…»), and the second order
+// of item 111 (step 8) lets their title grade only such an entry. Fixtures that hand a Silsila an
+// isnad-shaped atom now hand it the shape the index holds; what each row asserts is unchanged.
+const SILSILA_ENTRY_IDS = new Set(['FC-002060', 'FC-002061']);
+const shapedAtomFor = (id, matn, companion) => (SILSILA_ENTRY_IDS.has(id) ? '36 - ' + matn + '. رواه ابن عدي.' : atomFor(matn, companion));
 const answerWith = (matn) => `الحمد لله. قال النبي صلى الله عليه وسلم: «${matn}» وهذا أصل.`;
 
 const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
@@ -199,7 +205,7 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
         [MATN]: {
           matn: MATN,
           subjectIds: ['FC-002060', 'FC-000791'],
-          atoms: [atomFor(MATN, 'عمر'), atomFor(MATN, 'عمر')],
+          atoms: [shapedAtomFor('FC-002060', MATN, 'عمر'), atomFor(MATN, 'عمر')],
         },
       }),
     });
@@ -821,7 +827,7 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
   {
     const text = answerWith(MATN);
     const lookupWith = (ids) => lookupOf({
-      [MATN]: { matn: MATN, subjectIds: ids, atoms: ids.map(() => atomFor(MATN, 'عمر')) },
+      [MATN]: { matn: MATN, subjectIds: ids, atoms: ids.map((id) => shapedAtomFor(id, MATN, 'عمر')) },
     });
 
     // (أ) THE COMPOSER, OVER EVERY SUBSET OF THE LADDER THAT IS WORTH ASKING ABOUT.
@@ -1708,6 +1714,43 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
         (await runWith(mutS8, HEADING_ONLY)).includes('(' + L.AGREED_UPON + ')'));
     } finally {
       try { fsS8.rmSync(dirS8, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
+  // ── ١١١ SECOND ORDER · A HADITH THE SILSILA MENTIONS IS NOT A HADITH IT GRADES ──────────
+  // MEASURED 21 September 2026: «الصيام والقرآن يشفعان للعبد يوم القيامة» left as «(أحمد · ضعيف)»
+  // because السلسلة الضعيفة 7129 CITES it — as an authentic merit, «وهو مخرج في تمام المنة» — while
+  // grading another hadith. A Silsila's title rules only the matn that opens an entry.
+  console.log('\n--- S8b. THE SILSILA GRADES ITS ENTRIES, NOT ITS QUOTATIONS ---');
+  {
+    const fsB = require('fs'); const osB = require('os');
+    const MATNB = 'الصيام والقرآن يشفعان للعبد يوم القيامة';
+    const AHMAD = 'حدثنا موسى بن داود حدثنا ابن لهيعة عن حيي بن عبد الله عن عبد الله بن عمرو أن رسول الله صلى الله عليه وسلم قال: ' + MATNB;
+    const CITED = 'نعم أنا لا أنكر أن لبعض الأعمال الصالحة فضائل خاصة بعد الموت مثل قوله صلى الله عليه وسلم: ' + MATNB + ' وهو مخرج في تمام المنة';
+    const ENTRY = '7130 - ' + MATNB + '. ضعيف. رواه فلان عن فلان';
+    const runB = async (mod, daifaAtom) => (await mod.applyTakhrij(answerWith(MATNB), {
+      env: ON,
+      lookup: lookupOf({ [MATNB]: { matn: MATNB, subjectIds: ['FC-000630', 'FC-002061'], atoms: [AHMAD, daifaAtom] } }),
+    })).text;
+    const cited = await runB(T, CITED);
+    ok('S8b a matn السلسلة الضعيفة only quotes is not graded «ضعيف» by its title',
+      !/ضعيف/u.test(cited) && cited.includes('(أحمد · ' + L.NO_RULING + ')'), JSON.stringify(cited));
+    ok('S8b CAUSAL: a matn that opens an entry of السلسلة الضعيفة is graded by it, as before',
+      (await runB(T, ENTRY)).includes('(أحمد · ضعيف)'), JSON.stringify(await runB(T, ENTRY)));
+    const srcB = fsB.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8');
+    const SEAM_B = 'if (ENTRY_GRADED_IDS.has(ids[i]) && !entryIsMatn(atom, matn)) continue;';
+    const mutatedB = srcB.split(SEAM_B).join('/* mutant: every quotation graded */');
+    ok('MUTANT S8b quotation-graded seam applied', mutatedB !== srcB);
+    const dirB = fsB.mkdtempSync(path.join(osB.tmpdir(), 'ustaz-111-s8b-mut-'));
+    try {
+      const libDir = path.join(REPO, 'lib');
+      const fileB = path.join(dirB, 'takhrij.mjs');
+      fsB.writeFileSync(fileB, mutatedB.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(libDir, spec).replace(/\\/g, '/') + q), 'utf8');
+      const mutB = await import('file:///' + fileB.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: with every quotation graded, the false «(أحمد · ضعيف)» comes back',
+        (await runB(mutB, CITED)).includes('(أحمد · ضعيف)'));
+    } finally {
+      try { fsB.rmSync(dirB, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
