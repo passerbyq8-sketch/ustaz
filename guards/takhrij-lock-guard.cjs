@@ -3208,6 +3208,68 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       ok('111-T4c «أيضا» anywhere else is never touched', out.includes('ويستحب أيضا صيام يوم عرفة'), JSON.stringify(out));
     }
   }
+  console.log('\n=== 111 THIRD ORDER · STEP 1-C · A LIST ITEM TAKES ITSELF, NOT THE LIST — AND ITS CREDIT, NOT ITS RULING ===');
+  {
+    // The owner's «نواقض الوضوء ثمانية» came out as five items. The draft is not on disk; these are
+    // the shapes that reproduce it at 030da4b, each losing an item's ruling with its credit.
+    const L1c = await esm('lib/takhrij-lock.js');
+    const HEADc = 'نواقض الوضوء ثمانية عند أهل العلم:\n<steps title="نواقض الوضوء">\n- الخارج من السبيلين\n';
+    const TAILc = '\n- الردة عن الإسلام\n</steps>';
+    {
+      const out = L1c.lockTakhrij(HEADc + '- أكل لحم الإبل: لقوله ﷺ: «توضؤوا من لحوم الإبل» (متفق عليه)' + TAILc, []).text;
+      ok('111-T1c a <steps> item with an unproven «(متفق عليه)»: the bracket goes, the item and its matn stay',
+        out.includes('- أكل لحم الإبل: لقوله ﷺ: «توضؤوا من لحوم الإبل»\n') && !/متفق عليه/u.test(out), JSON.stringify(out));
+    }
+    {
+      const out = L1c.lockTakhrij(HEADc + '- أكل لحم الإبل <hadith narrator="رواه مسلم" ruling="صحيح">توضؤوا من لحوم الإبل</hadith>' + TAILc, []).text;
+      ok('111-T1c an item whose <hadith> card carries the credit: the card dissolves, «أكل لحم الإبل» stays',
+        out.includes('- أكل لحم الإبل «توضؤوا من لحوم الإبل»') && !/رواه مسلم/u.test(out), JSON.stringify(out));
+    }
+    {
+      const out = L1c.lockTakhrij('النواقض:\n6.\nتغسيل الميت.\n7.\nأكل لحم الإبل: لقوله ﷺ: «توضؤوا من لحوم الإبل» (متفق عليه).\n8.\nالردة.', []).text;
+      ok('111-T1c a numbered item under a bare «7.»: no empty number is left behind',
+        /7\.\nأكل لحم الإبل: لقوله ﷺ: «توضؤوا من لحوم الإبل»\./u.test(out), JSON.stringify(out));
+    }
+    {
+      const one = 'شروط وجوب الحج: الإسلام، والعقل والبلوغ لقوله ﷺ: «رفع القلم عن ثلاثة: عن النائم حتى يستيقظ، وعن الصبي حتى يحتلم» رواه أبو داود، والحرية، والاستطاعة لقوله تعالى: ﴿من استطاع إليه سبيلا﴾.';
+      const out = L1c.lockTakhrij(one, []).text;
+      ok('111-T1c a one-line list: one credit takes itself, and every item stays',
+        !/رواه/u.test(out) && ['الإسلام', 'والعقل والبلوغ', 'والحرية', 'والاستطاعة', '«رفع القلم'].every((w) => out.includes(w)), JSON.stringify(out));
+    }
+    {
+      const glued = HEADc + '- أكل لحم الإبل: أنتوضأ من لحوم الإبل؟ قال: «نعم، فتوضأ من لحوم الإبل» رواه مسلم' + TAILc;
+      const out = L1c.lockTakhrij(glued, []).text;
+      ok('111-T1c ...and the item after it keeps its own line',
+        out.includes('«نعم، فتوضأ من لحوم الإبل»\n- الردة عن الإسلام'), JSON.stringify(out));
+    }
+    {
+      // X-013/ز: an item that carries a GRADE is never cut mid-sentence; the rules below apply.
+      const graded = HEADc + '- أكل لحم الإبل، وهو حديث صحيح رواه مسلم' + TAILc;
+      const out = L1c.lockTakhrij(graded, []);
+      ok('111-T1c an item carrying a grade is not a list-item cut (X-013/ز stands)',
+        !out.degraded.some((d) => /list-item/u.test(d)), JSON.stringify(out.degraded));
+      ok('111-T1c prose that is not a list is untouched by this rule',
+        !L1c.lockTakhrij('ويحرم ذلك رواه البخاري في صحيحه.', []).degraded.some((d) => /list-item/u.test(d)));
+    }
+    {
+      const src = read('lib/takhrij-lock.js');
+      const dir = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
+      const SEAM = '    const item = listItemCut(s, sen, body, unsupported);';
+      const changed = src.split(SEAM).join('    const item = null;');
+      ok('MUTANT 111-T1c list-item seam applied', changed !== src);
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-111-t1c-mut-'));
+      try {
+        const file = path.join(tmp, 'item-blind.mjs');
+        fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir, spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + file.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: without the rule the item «أكل لحم الإبل» goes with its credit again',
+          !mod.lockTakhrij(HEADc + '- أكل لحم الإبل: لقوله ﷺ: «توضؤوا من لحوم الإبل» (متفق عليه)' + TAILc, []).text.includes('- أكل لحم الإبل'));
+      } finally {
+        try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
