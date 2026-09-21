@@ -3270,6 +3270,55 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       }
     }
   }
+  console.log('\n=== 111 THIRD ORDER · STEP 7 · THE GRADE RULE RUNS ON EVERY UNIT BEFORE IT LEAVES ===');
+  {
+    // MEASURED (second order, step6/stream-lock-witness.mjs): «وهذا حديث صحيح.» went on the wire,
+    // the finalizer took it, the writer closed on early-release:not-a-prefix and the rest of the
+    // answer was lost. A unit the grade rule would change is now held with everything after it.
+    const S7 = await esm('lib/sentence-stream.js');
+    const HEAD7 = 'الغناء المصحوب بالمعازف مسألة تكلم فيها أهل العلم قديما وحديثا وبينوا حكمها بالأدلة.\n';
+    const TAIL7 = '\nواستثنى العلماء الدف للنساء في الأعراس والأعياد لورود النص فيه.\nوالله أعلم بالصواب وإليه المرجع والمآب في كل أمر من الأمور.\n';
+    const drive7 = (mod, probe) => {
+      const st = mod.createSentenceStream({ evidence: [], domain: 'general', mode: 'standard', sources: [] });
+      const sent = [];
+      const text = HEAD7 + probe + TAIL7;
+      for (let i = 0; i < text.length; i += 9) sent.push(...st.push(text.slice(i, i + 9)));
+      const end = st.end();
+      return { sent: sent.join('\n'), end };
+    };
+    for (const probe of ['وهذا حديث صحيح.', 'والحديث الصحيح في هذا الباب يدل على التحريم.']) {
+      const r = drive7(S7, probe);
+      ok('111-T7 an unsourced grade does not leave early: ' + probe, !r.sent.includes(probe), JSON.stringify(r.sent));
+      ok('111-T7 ...it is held, and counted as a grade hold', r.end.gradeHolds === 1, JSON.stringify(r.end.gradeHolds));
+      ok('111-T7 ...what went early is still a prefix of what ships', r.end.violations.every((v) => v.kind !== 'emitted-not-a-prefix'));
+      ok('111-T7 ...and the tail travels with the answer', r.end.text.includes('والله أعلم بالصواب'));
+    }
+    ok('111-T7 a grade with its source in the unit is not held',
+      S7.wouldDropGrade('وهو حديث صحيح رواه البخاري.') === false);
+    ok('111-T7 a unit with no grade is not held', S7.wouldDropGrade('والأولى بالمسلم أن يشغل وقته بما ينفعه.') === false);
+    {
+      const r = drive7(S7, 'وهذا نص في المسألة</source>');
+      ok('111-T7 a stray «</source>» closer is held for the finalizer, never sent', !r.sent.includes('</source>'), JSON.stringify(r.sent));
+    }
+    {
+      const src = read('lib/sentence-stream.js');
+      const dir = path.dirname(path.join(REPO, 'lib', 'sentence-stream.js'));
+      const SEAM = '    if (wouldDropGrade(unit)) {';
+      const changed = src.replace(/\r\n/g, '\n').split(SEAM).join('    if (false && wouldDropGrade(unit)) {');
+      ok('MUTANT 111-T7 grade-hold seam applied', changed !== src.replace(/\r\n/g, '\n'));
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-111-t7-mut-'));
+      try {
+        const file = path.join(tmp, 'grade-leaks.mjs');
+        fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir, spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + file.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: without the hold «وهذا حديث صحيح.» goes on the wire again',
+          drive7(mod, 'وهذا حديث صحيح.').sent.includes('وهذا حديث صحيح.'));
+      } finally {
+        try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
