@@ -2679,6 +2679,56 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       }
     }
   }
+  console.log('\n=== 111 FOURTH ORDER [r13] · A COLLECTOR\'S NAME IS MATCHED AS A WORD ===');
+  {
+    // MEASURED (fourth order §6): `occurrences(hay, 'مسلم')` found «مسلم» inside «المسلمين», so a
+    // page naming al-Bukhari beside «حقوق المسلمين» licensed «متفق عليه»; and `supported` found
+    // «رواه النسائي» inside «رواه النسائية». At 2aaf987 every row of NOT_MUSLIM below KEPT the claim.
+    const L13 = await esm('lib/takhrij-lock.js');
+    const MATN13 = "من كان يؤمن بالله واليوم الآخر فليقل خيرا أو ليصمت";
+    const SAY13 = 'قال النبي ﷺ: «' + MATN13 + '» متفق عليه.';
+    const page13 = (tail) => [{ title: 'حقوق الجار', passage: 'حديث ' + MATN13 + ' رواه البخاري، ' + tail }];
+    for (const [form, tail] of [["المسلمين","وهو من حقوق المسلمين على بعضهم."],["للمسلمين","وهذا للمسلمين عامة."],["بالمسلمين","وفيه رفق بالمسلمين."],["للمسلم","وهذا للمسلم على أخيه."],["المسلم","والمسلم أخو المسلم."],["مسلمون","والناس مسلمون."],["مسلمة","وكل نفس مسلمة."]]) {
+      const out = L13.lockTakhrij(SAY13, page13(tail));
+      ok('r13 «' + form + '» on the page is not Muslim: «متفق عليه» does not stand', !/متفق عليه/u.test(out.text), out.text);
+    }
+    for (const [form, tail] of [["رواه مسلم","ورواه مسلم أيضا."],["ومسلم","ومسلم."],["لمسلم","لمسلم."],["ولمسلم","ولمسلم نحوه."],["واللفظ لمسلم","واللفظ لمسلم."],["صحيح مسلم","وهو في صحيح مسلم."],["مسلمٌ","وأخرجه مسلمٌ."]]) {
+      const out = L13.lockTakhrij(SAY13, page13(tail));
+      ok('r13 «' + form + '» on the page IS Muslim: «متفق عليه» stands', /متفق عليه/u.test(out.text), out.text);
+    }
+    {
+      const out = L13.lockTakhrij(SAY13, [{ title: 'x', passage: 'حديث ' + MATN13 + ' أخرجه البخاري في كتاب الأدب، وهو أدب من آداب المسلمين.' }]);
+      ok('r13 al-Bukhari alone of the two, with «المسلمين» beside him: no «متفق عليه»', !/متفق عليه/u.test(out.text), out.text);
+    }
+    for (const [claim, pg, stands] of [['رواه النسائي', 'رواه النسائية', false], ['رواه النسائي', 'رواه النسائي', true],
+      ['رواه أحمد', 'رواه الأحمدي', false], ['رواه أحمد', 'رواه أحمد', true]]) {
+      const out = L13.lockTakhrij('قال النبي ﷺ: «' + MATN13 + '» ' + claim + '.', [{ title: 'x', passage: 'حديث ' + MATN13 + ' ' + pg + ' في سننه.' }]);
+      ok('r13 «' + claim + '» against a page reading «' + pg + '»: ' + (stands ? 'stands' : 'does not stand'), out.text.includes(claim) === stands, out.text);
+    }
+    {
+      const src13 = read('lib/takhrij-lock.js');
+      const dir13 = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
+      const tmp13 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-r13-mut-'));
+      const load13 = async (tag, from, to) => {
+        const changed = src13.split(from).join(to);
+        ok('MUTANT r13 ' + tag + ' seam applied', changed !== src13);
+        const file = path.join(tmp13, tag + '.mjs');
+        fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir13, spec).replace(/\\/g, '/') + q), 'utf8');
+        return import('file:///' + file.replace(/\\/g, '/'));
+      };
+      try {
+        const letters = await load13('name-as-letters', '    if (standsAsWord(hay, i, needle)) out.push(i);', '    out.push(i); // mutant');
+        ok('MUTANT KILLED: with the name matched as letters, «المسلمين» licenses «متفق عليه» again',
+          /متفق عليه/u.test(letters.lockTakhrij(SAY13, page13("وهو من حقوق المسلمين على بعضهم.")).text));
+        const phrase = await load13('phrase-as-letters', '  if (containsAsWord(hay, p)) return true;', '  if (hay.indexOf(p) !== -1) return true; // mutant');
+        ok('MUTANT KILLED: with the phrase matched as letters, «رواه النسائية» licenses «رواه النسائي» again',
+          phrase.lockTakhrij('قال النبي ﷺ: «' + MATN13 + '» رواه النسائي.', [{ title: 'x', passage: 'حديث ' + MATN13 + ' رواه النسائية في سننه.' }]).text.includes('رواه النسائي'));
+      } finally {
+        try { fs.rmSync(tmp13, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
   console.log('\n=== 111 SECOND ORDER · STEP 2 · A FROZEN SALUTATION NEVER EXEMPTS THE ATTRIBUTION BESIDE IT ===');
   {
     // MEASURED on main and at a23a737: «رواه البخاري أن النبي صلى الله عليه وسلم نهى عن ذلك…»
