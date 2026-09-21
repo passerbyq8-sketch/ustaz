@@ -2225,6 +2225,68 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       }
     }
   }
+  console.log('\n=== 111 · AN INLINE LIST MARKER ENDS A SENTENCE (W1) ===');
+  {
+    // MEASURED (EZIK-111-CONTENT-LOSS-REPORT-2026-09-21 §٣-٢). `sentences()` cut only at
+    // [.؟!\n], so «1- … 2- … 3- …» written on ONE line was one sentence, and one unsourced item
+    // took all five conditions of Hajj with it: 342 characters under the lock for a «رواه أبو
+    // داود», 261 under the grade rule for a «وهو حديث صحيح». The marker is now a boundary, in both
+    // rules at once, and the item that carries the defect is the only thing that pays.
+    const LOCK111 = await esm('lib/takhrij-lock.js');
+    const LEAD = 'للحج شروط خمسة يجب توافرها.';
+    const items = (d, bad) => [
+      d[0] + '- الإسلام: فلا يجب الحج على الكافر ولا يصح منه',
+      d[1] + '- العقل: فلا يجب على المجنون' + bad,
+      d[2] + '- البلوغ: فلا يجب على الصبي ولو حج صح حجه',
+      d[3] + '- الحرية: فلا يجب على المملوك فإن عتق وجب عليه',
+      d[4] + '- الاستطاعة: وهي القدرة بالمال والبدن',
+    ];
+    const KEPT = [0, 2, 3, 4];
+    for (const [label, digits] of [['Western digits', ['1', '2', '3', '4', '5']],
+      ['Eastern Arabic digits', ['١', '٢', '٣', '٤', '٥']]]) {
+      for (const [rule, bad, run] of [
+        ['the grade rule', '، وهو حديث صحيح', (t) => LOCK111.dropUnsourcedGrades(t).text],
+        ['the lock', '، رواه أبو داود', (t) => LOCK111.lockTakhrij(t, []).text],
+      ]) {
+        const list = items(digits, bad);
+        const text = LEAD + '\n' + list.join(' ');
+        const out = run(text);
+        ok('111 W1 one-line list, ' + label + ', ' + rule + ': the other four items are kept',
+          KEPT.every((k) => out.includes(list[k])) && out.startsWith(LEAD), JSON.stringify(out));
+        ok('111 W1 one-line list, ' + label + ', ' + rule + ': ...and the defect in item 2 is gone',
+          !/صحيح|رواه/u.test(out), JSON.stringify(out));
+      }
+    }
+    // The marker needs a space after it and a number of at most two digits: a year or a
+    // hadith number inside prose is not a list, and that sentence is not split.
+    {
+      const prose = 'توفي سنة 256 - رحمه الله - وهو حديث صحيح';
+      ok('111 a three-digit number is not a list marker: the sentence is cut whole',
+        LOCK111.dropUnsourcedGrades(LEAD + '\n' + prose).text === LEAD + '\n',
+        JSON.stringify(LOCK111.dropUnsourcedGrades(LEAD + '\n' + prose).text));
+    }
+    // MUTANT — the inline boundary taken out of the one regex that carries it: W1 comes back.
+    {
+      const src111 = read('lib/takhrij-lock.js');
+      const dir111 = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
+      const INLINE = '|\\s(?=(?:\\d{1,2}|[\\u0660-\\u0669]{1,2})\\s?[-.)]\\s)';
+      const changed = src111.split(INLINE).join('');
+      ok('MUTANT 111 inline-marker-boundary seam applied', changed !== src111);
+      const tmp111 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-111-mut-'));
+      try {
+        const file = path.join(tmp111, 'no-inline-boundary.mjs');
+        fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir111, spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + file.replace(/\\/g, '/'));
+        const list = items(['1', '2', '3', '4', '5'], '، وهو حديث صحيح');
+        const out = mod.dropUnsourcedGrades(LEAD + '\n' + list.join(' ')).text;
+        ok('MUTANT KILLED: without the inline boundary the four sound conditions are lost',
+          !KEPT.every((k) => out.includes(list[k])), JSON.stringify(out));
+      } finally {
+        try { fs.rmSync(tmp111, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
   console.log('\n=== AA-89 · A MARK IS NOT THE CONTENT A LEAD-IN PROMISED ===');
   {
     // FOUND BY THE PRE-MERGE AUDIT (PRE-MERGE-AUDIT-2026-09-04.md §4/C2). The reviewer welds
