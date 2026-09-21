@@ -2087,8 +2087,13 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         'وقال الألباني: إسناده ضعيف مظلم، وصححه بالشواهد.', ''],
       ['no verb of saying anywhere: the matn shape', 'وهو حديثٌ ضعيفٌ.', ''],
       // the definite form moved out in ١١١ step 4 — see «THE GRADE AS A DESCRIPTION» below.
+      // REWRITTEN in the fourth order [r41] («جملةٌ فيها حكمٌ فقهيٌّ لا تذهبُ أبدًا»). This row
+      // pinned '' — the ruling «المسح جائز للمسافر ثلاثة أيام» taken whole for «وإسناده صحيح». The
+      // clause that points back at the evidence goes; the ruling keeps its end mark and no hole.
+      // (The name in front of it is the reviewer's to generalise, upstream of this rule.)
       ['a verb of saying with a ruling behind the complementizer',
-        'قال ابن قدامة إن المسح جائز للمسافر ثلاثة أيام وإسناده صحيح.', ''],
+        'قال ابن قدامة إن المسح جائز للمسافر ثلاثة أيام وإسناده صحيح.',
+        'قال ابن قدامة إن المسح جائز للمسافر ثلاثة أيام.'],
     ]) {
       const carried = CARRY + '\n' + text;
       ok('AA-88 the condemned sentence goes whole, the ruling beside it is byte-identical: ' + label,
@@ -2491,10 +2496,11 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     // THE NEGATIVES — each is the whole-sentence rule, byte for byte as before.
     for (const [label, text] of [
       ['the attribution stands BEFORE the comma', 'الحكم في الباب ظاهر.\nوقد نهى النبي صلى الله عليه وسلم عن ذلك متفق عليه، لما فيه من الضرر.'],
-      ['no evidence particle opens the tail', 'الحكم في الباب ظاهر.\nويجب الوضوء للصلاة، وهذا ثابت في الصحيحين.'],
-      ['the ruling left would be under three words', 'الحكم في الباب ظاهر.\nويحرم، لما ثبت في الصحيحين.'],
+      // FOURTH ORDER [r41] — three rows of this table moved OUT: «، وهذا ثابت في الصحيحين»،
+      // «ويحرم، لما ثبت…» and «… على المسلم و، لما ثبت…» were rulings `main` kept and this branch
+      // dropped (the only three on the 154 drafts). They are pinned as tails below.
       ['the ruling left would end on a preposition', 'الحكم في الباب ظاهر.\nويجب أن يحافظ على، لحديث رواه مسلم.'],
-      ['the ruling left would end on a conjunction', 'الحكم في الباب ظاهر.\nوالصلاة واجبة على المسلم و، لما ثبت في الصحيحين.'],
+      ['a one-word head with no ruling word in it', 'الحكم في الباب ظاهر.\nوقد، لما ثبت في الصحيحين.'],
       ['an ayah stands in the tail', 'الحكم في الباب ظاهر.\nوالحج واجب على المستطيع، لقوله تعالى: ﴿وَلِلَّهِ عَلَى النَّاسِ حِجُّ الْبَيْتِ﴾ رواه البخاري.'],
     ]) {
       const out = L6.lockTakhrij(text, []);
@@ -2573,10 +2579,103 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
           (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir8, spec).replace(/\\/g, '/') + q), 'utf8');
         const mod = await import('file:///' + file.replace(/\\/g, '/'));
         const out = mod.dropUnsourcedGrades(LEAD8 + '\n1. الإسلام: فلا يجب الحج على الكافر\n2. ' + item8 + '\n3. البلوغ: فلا يجب على الصبي').text;
-        ok('MUTANT KILLED: without the grade tail the condition «فلا يجب على المجنون» is lost again',
-          !out.includes('فلا يجب على المجنون'), JSON.stringify(out));
+        // REWRITTEN in the fourth order [r41]. This row asserted that with step 8 off the ruling
+        // «فلا يجب على المجنون» is LOST — i.e. it required a tree that drops a ruling. The fourth
+        // order's clause rule now keeps that ruling on its own, so the mutant is killed on what
+        // step 8 alone does: the ruling and then the matn as a sentence of its own, with the
+        // unsourced evidence frame «، لقول النبي …:» gone.
+        ok('MUTANT KILLED: without the grade tail the item no longer reads ruling, then matn',
+          !out.includes('2. ' + RULE8 + '. ' + MATN8), JSON.stringify(out));
       } finally {
         try { fs.rmSync(tmp8, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
+  console.log('\n=== 111 FOURTH ORDER [r41] · THE GRADE RULE NEVER TAKES A RULING, AND NEVER TOUCHES A GENUS ===');
+  {
+    // MEASURED (EZIK-111-BATTERY-MEASURE-REPORT-2026-09-21 §2): at 2aaf987 the grade rule took the
+    // Hanafi definition of fard whole for «أو خبر متواتر» (A3; the answer began «أما الواجب عندهم…»)
+    // and item 8 of an eight-item list for «، وهو حديث صحيح» (B7/B8; «ثمانية» headed seven). The
+    // shapes below are that report's own texts, verbatim; the siblings are written for this order
+    // and match no shape letter for letter. Each fix has a mutant that brings its defect back.
+    const L41 = await esm('lib/takhrij-lock.js');
+    const SEAT41 = await esm('lib/finalize-reader-text.js');
+    const seat41 = (t) => SEAT41.finalizeReaderText({ kind: 'answer', text: L41.lockTakhrij(t, []).text, sources: [], cards: [] }).text;
+    const SH41 = {"A1":"الفرض عند الحنفية ما ثبت بدليل قطعي لا شبهة فيه، كالقرآن والسنة المتواترة، وحكمه أنه يكفر جاحده.\n\nأما الواجب عندهم فما ثبت بدليل ظني فيه شبهة، كخبر الواحد، وحكمه أنه لا يكفر جاحده ويفسق تاركه.\n\nوأما الجمهور فلا يفرقون بين الفرض والواجب، فهما عندهم بمعنى واحد.","A2":"الفرض عند الحنفية ما ثبت بدليل قطعي لا شبهة فيه، كالكتاب والخبر المتواتر، وحكمه أنه يكفر جاحده.\n\nأما الواجب عندهم فما ثبت بدليل ظني فيه شبهة، كخبر الواحد، وحكمه أنه لا يكفر جاحده ويفسق تاركه.\n\nوأما الجمهور فلا يفرقون بين الفرض والواجب، فهما عندهم بمعنى واحد.","A3":"الفرض عند الحنفية ما ثبت بدليل قطعي لا شبهة فيه كآية محكمة أو خبر متواتر، وحكمه أنه يكفر جاحده.\n\nأما الواجب عندهم فما ثبت بدليل ظني فيه شبهة، كخبر الواحد، وحكمه أنه لا يكفر جاحده ويفسق تاركه.\n\nوأما الجمهور فلا يفرقون بين الفرض والواجب، فهما عندهم بمعنى واحد.","A4":"الفرض عند الحنفية: ما ثبت بدليل قطعي الثبوت والدلالة، كنص القرآن أو حديث متواتر.\n\nأما الواجب عندهم فما ثبت بدليل ظني فيه شبهة، كخبر الواحد، وحكمه أنه لا يكفر جاحده ويفسق تاركه.\n\nوأما الجمهور فلا يفرقون بين الفرض والواجب، فهما عندهم بمعنى واحد.","B1":"موجبات الغسل ثمانية:\n1. خروج المني دفقًا بلذة: لقوله ﷺ: «إنما الماء من الماء».\n2. التقاء الختانين ولو لم ينزل.\n3. الحيض.\n4. النفاس.\n5. الولادة.\n6. الاحتلام إذا رأى الماء.\n7. الموت.\n8. إسلام الكافر: فقد أمر النبي ﷺ قيس بن عاصم أن يغتسل حين أسلم، وهو حديث صحيح.\nفهذه ثمانية موجبات للغسل.","B2":"موجبات الغسل ثمانية:\n1. خروج المني دفقًا بلذة: لقوله ﷺ: «إنما الماء من الماء».\n2. التقاء الختانين ولو لم ينزل.\n3. الحيض.\n4. النفاس.\n5. الولادة.\n6. الاحتلام إذا رأى الماء.\n7. الموت.\n8. إسلام الكافر، لحديث قيس بن عاصم أنه أسلم فأمره النبي ﷺ أن يغتسل، وهو حديث صحيح.\nفهذه ثمانية موجبات للغسل.","B3":"موجبات الغسل ثمانية:\n1. خروج المني دفقًا بلذة: لقوله ﷺ: «إنما الماء من الماء».\n2. التقاء الختانين ولو لم ينزل.\n3. الحيض.\n4. النفاس.\n5. الولادة.\n6. الاحتلام إذا رأى الماء.\n7. الموت.\n8. إسلام الكافر: لحديث قيس بن عاصم رضي الله عنه أنه أسلم فأمره النبي ﷺ أن يغتسل بماء وسدر (رواه أبو داود والترمذي، وهو حديث صحيح).\nفهذه ثمانية موجبات للغسل.","B4":"موجبات الغسل ثمانية:\n1. خروج المني دفقًا بلذة: لقوله ﷺ: «إنما الماء من الماء».\n2. التقاء الختانين ولو لم ينزل.\n3. الحيض.\n4. النفاس.\n5. الولادة.\n6. الاحتلام إذا رأى الماء.\n7. الموت.\n8. إسلام الكافر: لأن النبي ﷺ أمر قيس بن عاصم أن يغتسل لما أسلم (رواه أبو داود).\nفهذه ثمانية موجبات للغسل.","B6":"موجبات الغسل ثمانية:\n<steps>\n1. خروج المني.\n2. التقاء الختانين.\n3. الحيض.\n4. النفاس.\n5. الولادة.\n6. الاحتلام.\n7. الموت.\n8. إسلام الكافر: لحديث قيس بن عاصم (رواه أبو داود)، وهو حديث صحيح.\n</steps>\nفهذه ثمانية موجبات.","B7":"موجبات الغسل ثمانية:\n- خروج المني دفقًا بلذة.\n- التقاء الختانين ولو لم ينزل.\n- الحيض.\n- النفاس.\n- الولادة.\n- الاحتلام إذا رأى الماء.\n- الموت.\n- إسلام الكافر، لحديث قيس بن عاصم أنه أسلم فأمره النبي ﷺ أن يغتسل، وهو حديث صحيح.\nفهذه ثمانية موجبات.","B8":"موجبات الغسل ثمانية:\nخروج المني دفقًا بلذة.\nالتقاء الختانين ولو لم ينزل.\nالحيض.\nالنفاس.\nالولادة.\nالاحتلام إذا رأى الماء.\nالموت.\nإسلام الكافر، لحديث قيس بن عاصم أنه أسلم فأمره النبي ﷺ أن يغتسل، وهو حديث صحيح.\nفهذه ثمانية موجبات."};
+    // ONE · A GENUS IS NOT GRADED: A1-A4 byte-identical through the seal and the seat, «المتواتر» and all.
+    for (const id of ['A1', 'A2', 'A3', 'A4']) {
+      ok('r41 ' + id + ': the definition of fard reaches the reader letter for letter', seat41(SH41[id]) === SH41[id], JSON.stringify(seat41(SH41[id])));
+    }
+    // TWO · THE ITEM KEEPS ITS RULING, THE LIST KEEPS ITS COUNT.
+    const items41 = (t) => t.split('\n').filter((l) => /^(?:\d{1,2}[.)]|-)\s/u.test(l) || (l.trim() && !/[:：]$/u.test(l) && !/^فهذه/u.test(l) && !/^<\/?steps>/u.test(l))).length;
+    for (const id of ['B1', 'B2', 'B7', 'B8']) {
+      const out = seat41(SH41[id]);
+      ok('r41 ' + id + ': «إسلام الكافر» is still an item, a whole ruling', out.includes('إسلام الكافر'), JSON.stringify(out));
+      ok('r41 ' + id + ': ...the list still has the eight it announces', items41(out) === 8, JSON.stringify(out));
+      ok('r41 ' + id + ': ...no grade is left and no hole («، وهو حديث.») is made', !/صحيح/u.test(out) && !/وهو حديث[.،]/u.test(out) && !/^\s*8\.\s*$/mu.test(out), JSON.stringify(out));
+    }
+    // B3 B4 B6 carry «رواه»: the SEAL cuts them and records it, as it did; the other seven stay.
+    for (const id of ['B3', 'B4', 'B6']) {
+      const sealed = L41.lockTakhrij(SH41[id], []);
+      ok('r41 ' + id + ': the seal cuts it and records the cut', sealed.droppedSentences.length > 0 || sealed.removed.length > 0, JSON.stringify(sealed.removed));
+      const out = seat41(SH41[id]);
+      ok('r41 ' + id + ': ...and the seven other items are untouched', ['التقاء الختانين', 'الحيض', 'النفاس', 'الولادة', 'الاحتلام', 'الموت'].every((w) => out.includes(w)), JSON.stringify(out));
+    }
+    // THE SIBLINGS.
+    const SIB41 = {"wajib":"والواجب عند الحنفية ما ثبت بدليل ظني الثبوت، كخبر الآحاد الصحيح، ويأثم تاركه ولا يكفر جاحده.","list":"أركان الصلاة كثيرة، وهذه خمسة منها:\n1. القيام مع القدرة.\n2. تكبيرة الإحرام.\n3. الفاتحة، لحديث عبادة بن الصامت أن النبي ﷺ قال لا صلاة لمن لم يقرأ بفاتحة الكتاب، وهو حديث حسن.\n4. الركوع.\n5. الطمأنينة في الأركان.\nفهذه خمسة من أركانها.","thabit":"ويستحب الغسل للإحرام لفعل النبي ﷺ ذلك، وهو حديث ثابت.","thabitKept":"ويستحب الغسل للإحرام لفعل النبي ﷺ ذلك.","only":"وهذا الحديث صحيح.","mawdu":"3. حديث «من حج ولم يزرني فقد جفاني» موضوع."};
+    ok('r41 sibling: the Hanafi wajib «كخبر الآحاد الصحيح» stays letter for letter', seat41(SIB41.wajib) === SIB41.wajib, JSON.stringify(seat41(SIB41.wajib)));
+    {
+      const out = seat41(SIB41.list);
+      ok('r41 sibling: a numbered list keeps the five it announces', (out.match(/^\d\.\s/gmu) || []).length === 5, JSON.stringify(out));
+      ok('r41 sibling: ...item 3 is a whole ruling with no grade', /^3\. الفاتحة، لحديث عبادة/mu.test(out) && !/حسن/u.test(out) && !/وهو حديث/u.test(out), JSON.stringify(out));
+    }
+    ok('r41 sibling: a ruling ending «وهو حديث ثابت» keeps the ruling', seat41(SIB41.thabit) === SIB41.thabitKept, JSON.stringify(seat41(SIB41.thabit)));
+    ok('r41 sibling: a sentence that is ONLY a grade still goes', L41.dropUnsourcedGrades('الحكم في الباب ظاهر.\n' + SIB41.only).text === 'الحكم في الباب ظاهر.\n', JSON.stringify(L41.dropUnsourcedGrades('الحكم في الباب ظاهر.\n' + SIB41.only).text));
+    ok('r41 sibling: an item judging a hadith «موضوع» stays with its matn', L41.dropUnsourcedGrades('الحكم في الباب ظاهر.\n' + SIB41.mawdu).text === 'الحكم في الباب ظاهر.\n' + SIB41.mawdu, JSON.stringify(L41.dropUnsourcedGrades('الحكم في الباب ظاهر.\n' + SIB41.mawdu).text));
+    // THREE · THE SAME RULE IN THE LOCK: the three rulings main kept (on a false licence) and 2aaf987 dropped.
+    const PAGE41 = [{ title: 'حكم صلاة الوتر', passage: 'الوتر سنة مؤكدة عند جمهور العلماء، وقد روى البخاري في صحيحه أحاديث في قيام الليل، وروى مسلم أحاديث في صلاة الضحى.' }];
+    for (const [label, text, expected] of [["a back-reference opens the tail","ويجب الوضوء للصلاة، وهذا ثابت في الصحيحين.","ويجب الوضوء للصلاة."],["a one-word head that IS a ruling (a verb with its subject in it)","ويحرم، لما ثبت في الصحيحين.","ويحرم."],["a lone conjunction the draft left before the comma","والصلاة واجبة على المسلم و، لما ثبت في الصحيحين.","والصلاة واجبة على المسلم."]]) {
+      for (const [pl, pages] of [['no page', []], ['a page naming both shaykhs elsewhere', PAGE41]]) {
+        const out = L41.lockTakhrij('الحكم في الباب ظاهر.\n' + text, pages);
+        ok('r41 lock tail — ' + label + ', ' + pl + ': the ruling stays, whole', out.text === 'الحكم في الباب ظاهر.\n' + expected, JSON.stringify(out.text));
+        ok('r41 lock tail — ' + label + ', ' + pl + ': ...no «الصحيحين» survives, and the cut is recorded', !/الصحيحين/u.test(out.text) && out.degraded.includes('takhrij-evidence-tail:1'), JSON.stringify(out.degraded));
+      }
+    }
+    // A back-reference opens a tail only with nothing between it and the credit. RAW-F16's shape:
+    // «، وهذا خلاف مشهور، لكن …» points at the dispute, and cutting from it took the tarjih with the
+    // credit and left the ruling closing on the «؟» of a question three clauses on (measured on the
+    // forty real answers before this condition was written). No tail is taken here; no credit stays.
+    {
+      const out = L41.lockTakhrij('الحكم في الباب ظاهر.\n' + "فيما يخص الحجامة، فالراجح أنها لا تفطر الصائم، وهذا خلاف مشهور، لكن الأقوى دليلا أن الحكم بكونها مفطرة منسوخ؛ فقد ثبت أن النبي صلى الله عليه وسلم احتجم وهو صائم كما رواه البخاري.", []);
+      ok('r41 lock tail — a back-reference with a separator before the credit opens no tail',
+        !out.degraded.includes('takhrij-evidence-tail:1') && !/رواه البخاري/u.test(out.text), JSON.stringify(out.degraded));
+    }
+    // MUTANTS — each fix taken out brings its defect back.
+    {
+      const src41 = read('lib/takhrij-lock.js');
+      const dir41 = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
+      const tmp41 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-r41-mut-'));
+      const load41 = async (tag, from, to) => {
+        const changed = src41.split(from).join(to);
+        ok('MUTANT r41 ' + tag + ' seam applied', changed !== src41);
+        const file = path.join(tmp41, tag + '.mjs');
+        fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir41, spec).replace(/\\/g, '/') + q), 'utf8');
+        return import('file:///' + file.replace(/\\/g, '/'));
+      };
+      try {
+        const genus = await load41('genus-read-as-a-grade', '      if (describesAGenus(block.slice(sen.start, sen.end),', '      if (false && describesAGenus(block.slice(sen.start, sen.end),');
+        ok('MUTANT KILLED: with the genus read as a grade the definition of fard is cut again (A3)', genus.dropUnsourcedGrades(SH41.A3).text !== SH41.A3);
+        const clause = await load41('no-clause-rule', '      const clause = trailingGradeClause(block.slice(sen.start, sen.end), within);', '      const clause = null; // mutant');
+        ok('MUTANT KILLED: without the clause rule item 8 is lost again (B8)', !clause.dropUnsourcedGrades(SH41.B8).text.includes('إسلام الكافر'));
+        const backRef = await load41('no-back-reference-tail', '      || (backReference && BACK_REFERENCES.has(lead[0]) && !/[،؛,:]/u.test(body.slice(at + 1, first)));', '      || false; // mutant');
+        ok('MUTANT KILLED: without the back-reference tail «ويجب الوضوء للصلاة» is lost again', !backRef.lockTakhrij('الحكم في الباب ظاهر.\n' + "ويجب الوضوء للصلاة، وهذا ثابت في الصحيحين.", []).text.includes('ويجب الوضوء للصلاة'));
+        const shortHead = await load41('no-short-ruling-head', '    if (head.length < 3 && !(head.length && rulingHead)) return null;', '    if (head.length < 3) return null; // mutant');
+        ok('MUTANT KILLED: without the ruling-word head «ويحرم» is lost again', !shortHead.lockTakhrij('الحكم في الباب ظاهر.\n' + "ويحرم، لما ثبت في الصحيحين.", []).text.includes('ويحرم'));
+        const conj = await load41('no-lone-conjunction', '    if (head.length > 1 && LONE_CONJUNCTIONS.has(head[head.length - 1].bare)) {', '    if (false) { // mutant');
+        ok('MUTANT KILLED: without the lone-conjunction step «الصلاة واجبة على المسلم» is lost again', !conj.lockTakhrij('الحكم في الباب ظاهر.\n' + "والصلاة واجبة على المسلم و، لما ثبت في الصحيحين.", []).text.includes('واجبة على المسلم'));
+      } finally {
+        try { fs.rmSync(tmp41, { recursive: true, force: true }); } catch { /* temp only */ }
       }
     }
   }
