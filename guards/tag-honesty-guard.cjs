@@ -664,6 +664,43 @@ const unsupportedIsHandledSilently = (module) => {
       ok('MUTANT KILLED: with the speaker erased again, the view is left in the answer\'s own voice',
         gen6.loaded && gen6.survived === false, JSON.stringify(gen6));
     }
+    // ── FOURTH ORDER [r36] · THE REVIEWER NEVER GENERALISES A SPEAKER WHO IS THE PROPHET ﷺ ──────
+    // MEASURED (battery measure report, rows د and و): the logged T6 and T10 rows, replayed here
+    // verbatim, were «وجاء في الأثر:» for «وقال لعائشةَ رضي الله عنها لمّا حاضت:» (she is addressed)
+    // and «وقال بعض أهل العلم:» for «فلما أكثرَ عليه قال:» (the Prophet's ﷺ own word). A frame that
+    // names no speaker stays exactly as written; «رضي الله عنه» counts on the speaker alone.
+    {
+      const say36 = (t) => module.reviewAnswer({ text: t, evidence: [], domain: 'fiqh', mode: 'chat' }).text;
+      for (const [id, input] of [["T6","وقال لعائشةَ رضي الله عنها لمّا حاضت: «افعلي ما يفعل الحاجّ، غير ألا تطوفي بالبيت»."],["T10","ويؤكّد هذا الجمعَ ما رواه ابن حبان أنَّ أبا محصن استأذن النبيَّ صَلَّى اللهُ عَلَيْهِ وَسَلَّم في أخذ خراج حجّامه فأبى، فلما أكثرَ عليه قال: \"أَطْعِمْهُ رَقِيقَكَ وَاعْلِفْهُ نَاضِحَكَ\"، ولو كان حرامً لم يعطه."],["sib-saw-faqala","سئل النبي ﷺ عن الوضوء من لحوم الإبل فقال ﷺ: «نعم، فتوضأ من لحوم الإبل»."],["sib-saw-muadh","وقال صلى الله عليه وسلم لمعاذ رضي الله عنه: «إنك تأتي قوما من أهل الكتاب»."],["sib-rajul","سأل رجلٌ النبيَّ ﷺ عن الصلاة في مرابض الغنم، فقال: «صلوا فيها فإنها بركة»."],["sib-lahaa","ودخل النبي ﷺ على عائشة رضي الله عنها وهي تبكي. ثم قال لها: «إن هذا أمر كتبه الله على بنات آدم»."],["undet-qaala","وقال: «من لم يدع قول الزور والعمل به فليس لله حاجة في أن يدع طعامه وشرابه»."]]) {
+        const out = say36(input);
+        ok('r36 ' + id + ': no general speaker, the frame is exactly as the model wrote it',
+          out.replace(/\s+/gu, ' ') === input.replace(/\s+/gu, ' ') &&!/وجاء في الأثر|بعض أهل العلم/u.test(out), out);
+      }
+      for (const [id, input, expected] of [["ctl-aisha","وقالت عائشة رضي الله عنها: «كنا نؤمر بقضاء الصوم ولا نؤمر بقضاء الصلاة».","وجاء في الأثر: «كنا نؤمر بقضاء الصوم ولا نؤمر بقضاء الصلاة»."],["ctl-ibnumar","وقال ابن عمر رضي الله عنهما: «إذا أمسيت فلا تنتظر الصباح».","وجاء في الأثر: «إذا أمسيت فلا تنتظر الصباح»."],["ctl-ibntaymiyya","وقال ابن تيمية: «الواجب على المسلم أن يتحرى الحق».","وقال بعض أهل العلم: «الواجب على المسلم أن يتحرى الحق»."],["ctl-ibnbaz","وسُئل ابن باز عن ذلك فقال: «لا حرج في ذلك إن شاء الله».","وقال بعض أهل العلم: «لا حرج في ذلك إن شاء الله»."]]) {
+        ok('r36 control ' + id + ': generalised exactly as before', say36(input) === expected, say36(input));
+      }
+      ok('r36 the prayer on the person ADDRESSED is not the speaker\'s: al-Shafi\'i is a scholar',
+        say36("وقال الشافعي لأبي هريرة رضي الله عنه: «هذا حسن».") === 'وقال بعض أهل العلم: «هذا حسن».', say36("وقال الشافعي لأبي هريرة رضي الله عنه: «هذا حسن»."));
+      const noSpeaker = await runMutant({
+        sourceFile: REVIEWER,
+        name: 'a-frame-naming-nobody-is-a-credit-again',
+        transform: (source) => source.replace(
+          '    if (frameNamesNoSpeaker(claimed)) continue; // [r36] — the frame names nobody; see above\n', ''),
+        survives: (mod) => !/وجاء في الأثر|بعض أهل العلم/u.test(mod.reviewAnswer({ text: "وقال لعائشةَ رضي الله عنها لمّا حاضت: «افعلي ما يفعل الحاجّ، غير ألا تطوفي بالبيت».", evidence: [], domain: 'fiqh', mode: 'chat' }).text),
+      });
+      ok('r36 speakerless-frame mutant seam applied', noSpeaker.changed, noSpeaker.error);
+      ok('MUTANT KILLED: with a frame naming nobody read as a credit, T6 takes a general speaker again',
+        noSpeaker.loaded && noSpeaker.survived === false, JSON.stringify(noSpeaker));
+      const anyPrayer = await runMutant({
+        sourceFile: REVIEWER,
+        name: 'the-prayer-anywhere-makes-a-companion-again',
+        transform: (source) => source.replace('!reachedThrough(matched.slice(0, prayerAt))', 'true'),
+        survives: (mod) => !/وجاء في الأثر/u.test(mod.reviewAnswer({ text: "وقال الشافعي لأبي هريرة رضي الله عنه: «هذا حسن».", evidence: [], domain: 'fiqh', mode: 'chat' }).text),
+      });
+      ok('r36 speaker-only-prayer mutant seam applied', anyPrayer.changed, anyPrayer.error);
+      ok('MUTANT KILLED: with the prayer read anywhere, al-Shafi\'i is «in the athar» again',
+        anyPrayer.loaded && anyPrayer.survived === false, JSON.stringify(anyPrayer));
+    }
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
