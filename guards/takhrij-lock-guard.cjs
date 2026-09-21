@@ -2117,8 +2117,12 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       const gotW = LOCK88.dropUnsourcedGrades(W88).text;
       ok('AA-88 the measured witness: «بل هو حديث جدا» is not shipped',
         !gotW.includes('بل هو حديث جدا'), JSON.stringify(gotW));
-      ok('AA-88 ...the whole sentence went, and the two beside it are byte-identical',
-        gotW === 'حديث «أنا مدينة العلم وعلي بابها» لا يصح عن النبي صلى الله عليه وسلم. وقد حكم عليه أهل العلم بذلك.',
+      // REWRITTEN in ١١١ step 5 (owner's decision 1, face «أ»). This row pinned «the whole
+      // sentence went». Its only grade is «موضوع» — a verdict of fabrication — and such a
+      // sentence now stays exactly as the model wrote it, with its matn. What the row protected,
+      // «no hole in a sentence», is the row above and holds unchanged.
+      ok('AA-88 ...a verdict of fabrication is not cut: all three sentences byte-identical (step 5)',
+        gotW === W88,
         JSON.stringify(gotW));
     }
 
@@ -2199,6 +2203,83 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       }
     }
 
+    // ── ١١١ STEP 5 · A FABRICATED MATN IS NEVER SALVAGED BARE, ITS VERDICT STAYS WITH IT ──
+    //
+    // THE OWNER'S DECISION 1, FACE «أ». A sentence whose every grade is a verdict of fabrication
+    // (the matn shape of «موضوع») is not cut: it is a warning, not an authentication. And no
+    // salvage — the seal's or the grade rule's — stands a matn bare in «…» when its own sentence,
+    // or any sentence of the answer, judges that text fabricated. «ضعيف» and «منكر» are outside
+    // the class and stay on step 4's rule (asserted there: «بل هو حديث ضعيف جدا» goes whole).
+    {
+      const SEAT5 = await esm('lib/finalize-reader-text.js');
+      const deliver5 = (text) => SEAT5.finalizeReaderText({ kind: 'answer',
+        text: LOCK88.lockTakhrij(text, []).text, sources: [] }).text;
+      const TAIL5 = 'وأما المعنى الذي يحمله الناس من هذا القول فمعنى صحيح في ذاته، فحب الإنسان لبلده أمر فطري لا يذم.';
+      const W8A = 'هذا الحديث موضوع لا أصل له في شيء من كتب السنة المعتمدة.';
+      ok('111-5 W8 «هذا الحديث موضوع لا أصل له…»: the verdict stays exactly as the model wrote it',
+        deliver5(W8A + '\n' + TAIL5) === W8A + '\n' + TAIL5, JSON.stringify(deliver5(W8A + '\n' + TAIL5)));
+      const W8C = 'حديث «حب الوطن من الإيمان» ليس بحديث ثابت، بل هو حديث موضوع لا أصل له.';
+      const W8C_CREDIT = 'أورده الصغاني في الموضوعات، وقال السخاوي في المقاصد الحسنة: لم أقف عليه.';
+      const w8c = deliver5(W8C + '\n' + W8C_CREDIT + '\n' + TAIL5);
+      ok('111-5 W8 «…ليس بحديث ثابت، بل هو حديث موضوع…»: the verdict stays, the «أورده» line goes alone',
+        w8c === W8C + '\n' + TAIL5, JSON.stringify(w8c));
+      const W9A = 'حديث «اطلبوا العلم ولو بالصين» حديث موضوع، لا يصح عن النبي صلى الله عليه وسلم.';
+      const W9B = 'وقد رواه ابن عدي والعقيلي عن النبي صلى الله عليه وسلم بلفظ: «اطلبوا العلم ولو بالصين، فإن طلب العلم فريضة على كل مسلم».';
+      const W9C = 'والمعنى أن طلب العلم مطلوب في كل حال.';
+      const w9 = deliver5(W9A + '\n' + W9B + '\n' + W9C);
+      ok('111-5 W9: «حديث «اطلبوا العلم…» حديث موضوع، لا يصح…» stays',
+        w9.startsWith(W9A), JSON.stringify(w9));
+      ok('111-5 W9: ...and the seal salvages NO bare copy of it from the «رواه ابن عدي» sentence',
+        !w9.split('\n').some((line) => /^«[^«»]+»$/u.test(line.trim())) && !/فريضة على كل مسلم/u.test(w9),
+        JSON.stringify(w9));
+      // The verdict and its unsourced credit in ONE sentence: that sentence must go (the credit is
+      // false), and the matn must not be left standing bare in its place.
+      const W10A = 'حديث «أحبوا العرب لثلاث: لأني عربي، والقرآن عربي، وكلام أهل الجنة عربي» حديث موضوع، أورده ابن الجوزي في الموضوعات.';
+      const w10 = deliver5(W10A + '\n' + W9C);
+      ok('111-5 a verdict sharing its sentence with an unsourced credit: the sentence goes, no bare matn',
+        w10 === W9C, JSON.stringify(w10));
+      // The class is narrow: a sound quotation elsewhere in the answer is still salvaged.
+      const SOUND = 'قال النبي صلى الله عليه وسلم: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى»، رواه البخاري.';
+      ok('111-5 a matn NOT judged fabricated is still salvaged exactly as before',
+        deliver5(W9C + '\n' + SOUND).includes('«إنما الأعمال بالنيات وإنما لكل امرئ ما نوى»'),
+        JSON.stringify(deliver5(W9C + '\n' + SOUND)));
+      // THE TIGHTENING ROW. The moment a matn judged fabricated leads an answer without its
+      // verdict, this fails — over every witness above at once.
+      const bareLead = [W8C + '\n' + W8C_CREDIT, W9A + '\n' + W9B, W10A + '\n' + W9C]
+        .map(deliver5).filter((out) => /^«[^«»]+»/u.test(out.trim()));
+      ok('111-5 no answer is led by a matn judged fabricated, standing bare', bareLead.length === 0,
+        JSON.stringify(bareLead));
+    }
+    {
+      const src5 = read('lib/takhrij-lock.js');
+      const dir5 = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
+      const tmp5 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-111-5-mut-'));
+      const load5 = async (tag, from, to) => {
+        const changed = src5.split(from).join(to);
+        ok('MUTANT 111-5 ' + tag + ' seam applied', changed !== src5);
+        const file = path.join(tmp5, tag + '.mjs');
+        fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir5, spec).replace(/\\/g, '/') + q), 'utf8');
+        return import('file:///' + file.replace(/\\/g, '/'));
+      };
+      try {
+        const cut = await load5('verdict-cut-again',
+          "        && FABRICATION_GRADES.has(String(x.phrase).split(' ').pop()))) continue;",
+          "        && FABRICATION_GRADES.has(String(x.phrase).split(' ').pop())) && false) continue; // mutant");
+        const W8AM = 'الحكم في الباب ظاهر.\nهذا الحديث موضوع لا أصل له في شيء من كتب السنة المعتمدة.';
+        ok('MUTANT KILLED: with the class gone the verdict of fabrication is cut again',
+          !cut.dropUnsourcedGrades(W8AM).text.includes('موضوع لا أصل له'));
+        const bare = await load5('fabricated-matn-salvaged-bare',
+          '  if (carriesFabricationVerdict(body)) return true;',
+          '  return false; // mutant');
+        const W9M = 'حديث «اطلبوا العلم ولو بالصين» حديث موضوع، لا يصح عن النبي صلى الله عليه وسلم.\nوقد رواه ابن عدي والعقيلي عن النبي صلى الله عليه وسلم بلفظ: «اطلبوا العلم ولو بالصين، فإن طلب العلم فريضة على كل مسلم».';
+        ok('MUTANT KILLED: with the refusal gone the seal salvages the fabricated matn bare again',
+          bare.lockTakhrij(W9M, []).text.includes('فريضة على كل مسلم'));
+      } finally {
+        try { fs.rmSync(tmp5, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+
     // ── 4 · THE PINS ────────────────────────────────────────
     {
       const lockSrc88 = read('lib/takhrij-lock.js');
@@ -2268,7 +2349,10 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
             .replace("        cuts.push({ start: sen.start, end: sen.end, insert: '' });",
               "        cuts.push({ start: sp.start, end: sp.end, insert: '' }); // mutant"),
           async (mod) => {
-            const WM = 'حديث «أنا مدينة العلم وعلي بابها» لا يصح عن النبي صلى الله عليه وسلم. بل هو حديث موضوع جدا. وقد حكم عليه أهل العلم بذلك.';
+            // REWRITTEN in ١١١ step 5: «موضوع» is now kept whole, so the word-cut mutant never
+            // reaches this sentence. The same witness with a grade OUTSIDE that class («ضعيف»)
+            // is what the word-cut still bites on, and the property is unchanged.
+            const WM = 'حديث «أنا مدينة العلم وعلي بابها» لا يصح عن النبي صلى الله عليه وسلم. بل هو حديث ضعيف جدا. وقد حكم عليه أهل العلم بذلك.';
             return !mod.dropUnsourcedGrades(WM).text.includes('بل هو حديث جدا');
           });
 
