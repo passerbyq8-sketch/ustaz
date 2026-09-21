@@ -2230,7 +2230,9 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     const V4_HEAD = 'الوضوء عبادة عظيمة، وقد جاءت صفته في السنة على وجه معلوم.';
     const V4_STEPS = ['1. غسل الكفين ثلاثا.', '2. المضمضة والاستنشاق.', '3. غسل الوجه ثلاثا.'].join('\n');
     const V4_CARD = '<hadith>لا وضوء لمن لم يذكر اسم الله عليه</hadith>';
-    const V4_NAMED = 'قال ابن باز إن الجمع للمسافر جائز.';
+    // REWRITTEN BY THE THIRD ORDER, STEP 1-C: was «قال ابن باز إن …», which decision 2 now generalises
+    // instead of cutting; «ذكر» is outside the five and still cut, so the two doors still meet here.
+    const V4_NAMED = 'ذكر ابن باز أن الجمع للمسافر جائز.';
 
     // The scripted provider, in this file's own idiom: SSE when the body asks for a stream, JSON
     // otherwise, and any host but the stub throws. The LAST entry is replayed for every call past

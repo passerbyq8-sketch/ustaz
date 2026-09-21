@@ -1815,7 +1815,11 @@ const HUMAN_DIVINE_NAME_CASES = [
     // unequal, so the assertion failed on a difference no reader could ever see.
     const RV = await esm('lib/output-reviewer.js');
     const NAMED_CLAIM = 'الجمع للمسافر جائز عند الحاجة.';
-    const NAMED = 'قال ابن باز إن ' + NAMED_CLAIM;
+    // REWRITTEN BY THE THIRD ORDER, STEP 1-C. It was «قال ابن باز إن …». Since the owner's decision 2
+    // a «قال X» credit is generalised to «وقال بعض أهل العلم:» and is no longer a cut, so the reject
+    // door H3 describes does not open on it. «ذكر» is outside the five and still cut: every row below
+    // asserts exactly what it asserted, on a witness the door still sees.
+    const NAMED = 'ذكر ابن باز أن ' + NAMED_CLAIM;
     const REVIEWED_CLAIM = NAMED_CLAIM + ' ' + RV.REVIEW_TAGS.ATTRIBUTION_REMOVED;
 
     const free = await LAW.driveFreeTurn({ module: loop, answer: NAMED });

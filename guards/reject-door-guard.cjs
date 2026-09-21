@@ -59,7 +59,11 @@ function ok(label, pass, detail) {
 // «what stood before the point of rejection» means when something did stand there.
 const SOUND_HEAD = 'الصلاة ركن من أركان الإسلام.';
 const CLAIM = 'الجمع للمسافر جائز عند الحاجة.';
-const NAMED = 'قال ابن باز إن ' + CLAIM;
+// REWRITTEN BY THE THIRD ORDER, STEP 1-C. It was «قال ابن باز إن …». Since the owner's decision 2 a
+// «قال X» credit is generalised to «وقال بعض أهل العلم:» — whole and true, so no longer a cut, and
+// the door no longer opens on it. The witness is now a frame outside the five, which is still cut,
+// so every row below drives the door exactly as it did.
+const NAMED = 'ذكر ابن باز أن ' + CLAIM;
 const TWO = SOUND_HEAD + '\n' + NAMED;
 const CLEAN_REWRITE = 'الجمع للمسافر جائز عند الحاجة عند جمهور أهل العلم.';
 // ق٥٥ §١ — the owner witness, in fixture form: a QUOTED block and nothing else. The card is
@@ -1326,6 +1330,28 @@ async function mutate({ file, name, transform, check }) {
     gates.some((g) => g && g.script === 'guards/reject-door-guard.cjs'));
   ok('E2 .gitattributes pins it to LF',
     /guards\/reject-door-guard\.cjs text eol=lf/.test(read(path.join(ROOT, '.gitattributes'))));
+
+  console.log('\n=== THIRD ORDER · STEP 1-C · A GENERALISED SPEAKER IS NOT A CUT ===');
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════
+  // T9 on the owner's preview: one removed credit opened this door, the rewrite came back still cut,
+  // and the reader got the 221 characters before the credit under «لم يكتملْ». Since the owner's
+  // decision 2 the reviewer puts a general speaker in the name's place; that sentence is whole.
+  {
+    const rv1c = (text) => RV.reviewAnswer({ text, evidence: [], domain: 'fiqh', mode: 'عادي' });
+    const COMP = 'ولا فدية على الحائض، فقد قالت عائشة رضي الله عنها: «كان الركبان يمرون بنا ونحن محرمات».';
+    const SCH = 'وقال ابن عثيمين: يجوز لها أن تغطي وجهها بغير النقاب إذا مر بها الرجال.';
+    const OTHER = 'الأمر واسع، فقد ذكر ابن قدامة أن المسح على الخفين جائز.';
+    const vc = rv1c(COMP).verdict; const vs = rv1c(SCH).verdict; const vo = rv1c(OTHER).verdict;
+    ok('T1c a Companion generalised to «وجاء في الأثر:» is flagged and counts as no rejection',
+      vc.sentences.some((r) => r.generalizedSpeaker === true) && loop.rejectedCount(vc) === 0, JSON.stringify(vc.sentences));
+    ok('T1c a scholar generalised to «وقال بعض أهل العلم:» counts as no rejection',
+      loop.rejectedCount(vs) === 0, JSON.stringify(vs.counts));
+    ok('T1c a removal with NO general speaker («ذكر») still counts as one, exactly as before',
+      loop.rejectedCount(vo) === 1 && !vo.sentences.some((r) => r.generalizedSpeaker), JSON.stringify(vo.counts));
+    ok('T1c the counts are unchanged: the action is still recorded under its own name',
+      vc.counts['removed-unsupported-attribution'] === 1);
+  }
 
   console.log('\n' + (failures ? 'FAILED: ' + failures + ' of ' + checks + ' checks failed.'
     : 'OK: ' + checks + '/' + checks + ' checks passed.'));
