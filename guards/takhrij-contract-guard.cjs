@@ -1665,6 +1665,51 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     ok('20  ...and the measurement that decided it is written where the code is',
       src20.includes('AND THIS PHASE IS *NOT* SPLIT PER BOOK, BECAUSE IT WAS MEASURED'));
   }
+  // ── ١١١ SECOND ORDER · A CHAPTER HEADING IS NOT A NARRATION ──────────────────
+  // MEASURED 21 September 2026 on ezik-shamela-20260820: «الدين النصيحة» left as «(متفق عليه)»
+  // because al-Bukhari's atom FC-000645:0044:001 carries the matn in its CHAPTER HEADING only —
+  // the narrations under it are Jarir's pledge. That bracket was a false ascription. An atom that
+  // opens with «باب» is now read from its first isnad; this row falls the moment a heading proves
+  // a book again.
+  console.log('\n--- S8. A CHAPTER HEADING IS NOT A NARRATION ---');
+  {
+    const fsS8 = require('fs'); const osS8 = require('os');
+    const MATN8 = 'الدين النصيحة';
+    const HEADING_ONLY = 'بَابُ قَوْلِ النَّبِيِّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: " الدِّينُ النَّصِيحَةُ: لِلَّهِ وَلِرَسُولِهِ وَلِأَئِمَّةِ المُسْلِمِينَ وَعَامَّتِهِمْ "\n'
+      + '57 - حَدَّثَنَا مُسَدَّدٌ، قَالَ: حَدَّثَنَا يَحْيَى، عَنْ إِسْمَاعِيلَ، قَالَ: حَدَّثَنِي قَيْسٌ، عَنْ جَرِيرِ بْنِ عَبْدِ اللَّهِ، قَالَ: بَايَعْتُ رَسُولَ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ عَلَى إِقَامِ الصَّلاَةِ، وَالنُّصْحِ لِكُلِّ مُسْلِمٍ';
+    const MUSLIM_NARRATION = '23 - بَابُ بَيَانِ أَنَّ الدِّينَ النَّصِيحَةُ\n95 - (55) حَدَّثَنَا مُحَمَّدُ بْنُ عَبَّادٍ، عَنْ تَمِيمٍ الدَّارِيِّ، أَنَّ النَّبِيَّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ قَالَ: «الدِّينُ النَّصِيحَةُ» قُلْنَا: لِمَنْ؟';
+    const HEADING_AND_NARRATION = HEADING_ONLY + '\n58 - حَدَّثَنَا فُلاَنٌ عَنْ تَمِيمٍ قَالَ: قَالَ رَسُولُ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: الدِّينُ النَّصِيحَةُ';
+    const runWith = async (mod, bukhariAtom) => (await mod.applyTakhrij(answerWith(MATN8), {
+      env: ON,
+      lookup: lookupOf({ [MATN8]: { matn: MATN8, subjectIds: ['FC-000645', 'FC-000648'], atoms: [bukhariAtom, MUSLIM_NARRATION] } }),
+    })).text;
+    const headingOnly = await runWith(T, HEADING_ONLY);
+    ok('S8 a matn al-Bukhari holds only in a chapter heading is NOT «(متفق عليه)»',
+      !headingOnly.includes('(' + L.AGREED_UPON + ')'), JSON.stringify(headingOnly));
+    ok('S8 ...it is Muslim\'s, and the bracket says so', headingOnly.includes('(مسلم)'), JSON.stringify(headingOnly));
+    ok('S8 CAUSAL: where al-Bukhari narrates it under the heading, «(متفق عليه)» stands',
+      (await runWith(T, HEADING_AND_NARRATION)).includes('(' + L.AGREED_UPON + ')'));
+    ok('S8 an atom that does not open with a heading is handed over byte-identical',
+      T.narrationOf(MUSLIM_NARRATION.split('\n')[1]) === MUSLIM_NARRATION.split('\n')[1]);
+    ok('S8 ...and `atomCarriesMatn` itself did not move: the heading atom still reads as a carrier when asked directly',
+      T.atomCarriesMatn(HEADING_ONLY, MATN8) === true);
+    const srcS8 = fsS8.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8');
+    const SEAM_S8 = 'if (!atomCarriesMatn(narrationOf(atom), matn)) continue;';
+    const mutatedS8 = srcS8.split(SEAM_S8).join('if (!atomCarriesMatn(atom, matn)) continue;');
+    ok('MUTANT S8 heading-proves-a-book seam applied', mutatedS8 !== srcS8);
+    const dirS8 = fsS8.mkdtempSync(path.join(osS8.tmpdir(), 'ustaz-111-s8-mut-'));
+    try {
+      const libDir = path.join(REPO, 'lib');
+      const fileS8 = path.join(dirS8, 'takhrij.mjs');
+      fsS8.writeFileSync(fileS8, mutatedS8.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(libDir, spec).replace(/\\/g, '/') + q), 'utf8');
+      const mutS8 = await import('file:///' + fileS8.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: with the heading counted, the false «(متفق عليه)» comes back',
+        (await runWith(mutS8, HEADING_ONLY)).includes('(' + L.AGREED_UPON + ')'));
+    } finally {
+      try { fsS8.rmSync(dirS8, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
