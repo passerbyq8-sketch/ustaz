@@ -2513,6 +2513,29 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     ok('MUTANT KILLED: a rewrite that says the head again does not make the reader read it twice',
       restateMutant.loaded && restateMutant.survived === false, JSON.stringify(restateMutant));
 
+    // ── THIRD ORDER, STEP 1-C · «في سطر واحد» IS THE READER NAMING THE SHAPE HE WANTS ──────────
+    // T3 on the owner's preview: «اذكرها في سطر واحد» — the model answered in one line, the door judged
+    // it hollow, spent a rewrite on it and put «لم يكتملْ» over a complete answer.
+    {
+      const lp1c = await fresh(LOOP, 'one-line');
+      const ONE = 'شروط وجوب الحج خمسة: الإسلام لقوله تعالى كذا، والعقل والبلوغ لحديث رفع القلم، والحرية، والاستطاعة.';
+      ok('T1c a reader who asked for ONE LINE is not refused a one-line answer',
+        lp1c.hollowAnswerReason(ONE, 'ما هي شروط وجوب الحج؟ اذكرها في سطر واحد مع دليل كل شرط.') === '');
+      ok('T1c ...nor one who asked «بجملة واحدة»',
+        lp1c.hollowAnswerReason(ONE, 'اذكر نواقض الوضوء بجملة واحدة.') === '');
+      ok('T1c ...and a list question that named no line is judged exactly as before',
+        lp1c.hollowAnswerReason(ONE, 'ما هي شروط وجوب الحج؟') === 'no_enumeration');
+      ok('T1c ...and «no_prose» is untouched by the one-line ask',
+        lp1c.hollowAnswerReason('<source site="s" url="https://x/y">ت</source>', 'اذكرها في سطر واحد') === 'no_prose');
+      const oneLineMutant = await loopMutant('one-line-ask-ignored',
+        (source) => source.replace(
+          "  const asked = ONE_LINE_ASK_RE.test(folded) ? '' : folded;",
+          '  const asked = folded; // mutant: the reader named one line and is not heard'),
+        async (twin) => twin.hollowAnswerReason(ONE, 'ما هي شروط وجوب الحج؟ اذكرها في سطر واحد مع دليل كل شرط.') === '');
+      ok('T1c one-line mutant seam applied', oneLineMutant.changed, oneLineMutant.error);
+      ok('MUTANT KILLED: without it the one-line answer is judged hollow again',
+        oneLineMutant.loaded && oneLineMutant.survived === false, JSON.stringify(oneLineMutant));
+    }
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
