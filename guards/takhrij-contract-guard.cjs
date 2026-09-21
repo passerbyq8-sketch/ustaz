@@ -785,6 +785,32 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       // evidence for a card or a citation.
       && !/sources:\s*\[[^\]]*takhrijProvenRows/u.test(askSrc),
       'the wire is not the one this row describes');
+
+    // ── ١١١ SECOND ORDER, STEP 1 — THE SEAT KEEPS WHAT THE SEAL KEPT ──────────
+    // MEASURED 21 September 2026 on the twin, in three of four shapes (T14 T23 T25): the seal kept
+    // «(متفق عليه)» over these rows, and lib/finalize-reader-text.js — locking a second time over
+    // `sources` alone — deleted the sentence and salvaged the matn bare. The seat is now handed the
+    // same rows as `takhrijProven`, for its lock and nothing else. This row falls the moment the
+    // finalizer deletes a parenthetical the pass proved.
+    const FIN = await esm('lib/finalize-reader-text.js');
+    const askRows = agreedRun.entries.flatMap((entry) => entry.sealProof.map((book) => (
+      { title: book, passage: book + ' ' + String(entry.matn || '') })));
+    const sealedAgreed = LOCK.lockTakhrij(agreedRun.text, askRows).text;
+    const seat1 = (text, extra) => FIN.finalizeReaderText({ kind: 'answer', text, sources: [], ...extra }).text;
+    ok('111-S1 the seal keeps the proven «(متفق عليه)» over the rows api/ask.js builds',
+      sealedAgreed === agreedRun.text, JSON.stringify(sealedAgreed));
+    ok('111-S1 the finalizer handed the same rows keeps it too — parenthetical, frame and matn',
+      seat1(sealedAgreed, { takhrijProven: askRows }) === sealedAgreed,
+      JSON.stringify(seat1(sealedAgreed, { takhrijProven: askRows })));
+    ok('111-S1 CAUSAL: without the rows the finalizer deletes the parenthetical the pass proved',
+      !seat1(sealedAgreed).includes('(' + L.AGREED_UPON + ')'), JSON.stringify(seat1(sealedAgreed)));
+    const modelAgreed = sealedAgreed + '\nقال رسول الله صلى الله عليه وسلم: «لا يدخل الجنة قتات» (متفق عليه).';
+    const seatedBoth = seat1(modelAgreed, { takhrijProven: askRows });
+    ok('111-S1 ...a «(متفق عليه)» the MODEL wrote over another matn still goes, the proven one stays',
+      seatedBoth.includes(sealedAgreed.trim()) && seatedBoth.split('(' + L.AGREED_UPON + ')').length === 2,
+      JSON.stringify(seatedBoth));
+    ok('111-S1 api/ask.js hands the proven rows to the finalizer as `takhrijProven`, not as `sources`',
+      askSrc.includes('takhrijProven: takhrijProvenRows,'), 'the finalizer context does not carry them');
   }
   // ── ١١ · §١ — «لا يثبت مرفوعا» MAY NOT LEAVE WITHOUT A حاكم BEHIND IT ────
   //

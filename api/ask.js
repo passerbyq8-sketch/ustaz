@@ -1225,6 +1225,9 @@ export default async function handler(req, res) {
         strippedWireText,
         kind: ledgerFinalizerKind(finalizerContext.ledgerOutcome),
         sources: [...fetchedPages, ...ledgerFinalizerSources, ...storedFinalizerSources],
+        // ١١١ — the rows that proved the takhrij pass's parentheticals, for the finalizer's
+        // lock and nothing else: the seal keeps a proven «(متفق عليه)», so the seat must too.
+        takhrijProven: takhrijProvenRows,
         consistencyContext: finalizerContext.consistencyContext ? {
           ...finalizerContext.consistencyContext,
           pageTexts: fetchedPages.map((p) => (p && p.passage) || ''),
