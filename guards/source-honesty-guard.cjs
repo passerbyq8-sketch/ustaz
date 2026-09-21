@@ -503,6 +503,26 @@ const stripComments = (s) => String(s)
       ok('D5: ...and it lands BEFORE the cards, never inside one',
         out.indexOf(TD.TAKHRIJ_DISCLOSURE) < out.indexOf('<source')
           && out.includes('<source site="s" url="https://x/y">ت</source>'), JSON.stringify(out));
+      // ── ١١٣ · BUT NEVER BETWEEN A COLON AND THE CARD IT INTRODUCES (W10) ──────────
+      // «…بنص القرآن الكريم:» and its `<verse>` are one sentence split across a tag. At e11f6ca
+      // the run of cards counted the verse as a tail and wrote the sentence into that split. The
+      // sentence now goes after the card the colon line introduces, before any card after it,
+      // and not one character of the draft is removed or reordered.
+      const verse = '<verse surah_num="12" ayah="2"></verse>';
+      const colonLed = graded + '\nوأما فضل لسان العرب فهذا أمر ثابت بنص القرآن الكريم:\n' + verse;
+      const w10 = seat(colonLed);
+      ok('D5: ...and after a colon line, it lands AFTER the card that line introduces (W10)',
+        w10.indexOf(TD.TAKHRIJ_DISCLOSURE) > w10.indexOf(verse)
+          && /الكريم:\s*<verse/u.test(w10), JSON.stringify(w10));
+      ok('D5: ...and there it removes nothing: the draft is still the head of what goes out',
+        w10.startsWith(colonLed), JSON.stringify(w10));
+      const w10Carded = colonLed + '\n<source site="s" url="https://x/y">ت</source>';
+      const w10c = seat(w10Carded);
+      ok('D5: ...and it goes before any card AFTER the introduced one',
+        w10c.indexOf(verse) < w10c.indexOf(TD.TAKHRIJ_DISCLOSURE)
+          && w10c.indexOf(TD.TAKHRIJ_DISCLOSURE) < w10c.indexOf('<source'), JSON.stringify(w10c));
+      ok('D5: ...and a colon line with no card under it keeps the sentence at the end',
+        seat(graded + '\nوالدليل:').endsWith(TD.TAKHRIJ_DISCLOSURE));
     }
     // The pairing that must not rot: an empty corpus list is the ONLY thing that makes passing
     // [] honest. If a domain is ever added, this fails until the real domains are threaded in.

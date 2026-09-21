@@ -1129,13 +1129,24 @@ export default async function handler(req, res) {
   const TAKHRIJ_CARD_NAMES = 'verse|surah|hadith|steps|suggestions|source|board|document|dhikr|worship|book';
   const TAKHRIJ_CARD_TAIL = new RegExp(
     '(?:\\s*(?:<\\s*(' + TAKHRIJ_CARD_NAMES + ')\\b[^>]*>[\\s\\S]*?<\\/\\s*\\1\\s*>))+\\s*$', 'iu');
+  // ...EXCEPT WHERE THE LINE BEFORE THE RUN ENDS IN A COLON. «…بنص القرآن الكريم:» exists to
+  // introduce the card under it, so the run is not a tail there: its FIRST card is the rest of
+  // that line's sentence, and a sentence written between the two splits a colon from what it
+  // introduces (W10, EZIK-111-CONTENT-LOSS-REPORT §٣-د). The sentence goes after that first
+  // card and before whatever cards follow it. Nothing is removed and nothing else moves.
+  const TAKHRIJ_FIRST_CARD = new RegExp(
+    '^\\s*<\\s*(' + TAKHRIJ_CARD_NAMES + ')\\b[^>]*>[\\s\\S]*?<\\/\\s*\\1\\s*>', 'iu');
   const withTakhrijLimit = (text) => {
     const body = String(text == null ? '' : text);
     const tail = takhrijDisclosureOnce(body, takhrijNote);
     if (!tail) return body;
     const run = body.match(TAKHRIJ_CARD_TAIL);
     if (!run) return body + '\n\n' + tail;
-    const at = body.length - run[0].length;
+    let at = body.length - run[0].length;
+    if (/[:：]\s*$/u.test(body.slice(0, at))) {
+      const introduced = body.slice(at).match(TAKHRIJ_FIRST_CARD);
+      if (introduced) at += introduced[0].length;
+    }
     return body.slice(0, at) + '\n\n' + tail + body.slice(at);
   };
   const seal = (text) => {
