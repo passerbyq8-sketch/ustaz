@@ -1194,10 +1194,35 @@ export default async function handler(req, res) {
   // on by all three consumers of a reader's departure: the finalized writer just below, the four
   // upstream bindings, and the two post-turn early returns. Nothing reads `req.signal` after this.
   const readerGone = deriveReaderDepartureSignal(res, req);
+  // ── [111-log] · WHAT WAS CUT, WHAT WAS DEGRADED, WHAT FAILED — PRINTED, NOT THROWN AWAY ──
+  //
+  // MEASURED (EZIK-111-BATTERY-MEASURE-REPORT-2026-09-21 §2): three of the owner's complaints were
+  // judged by elimination, because the finalizer computed its cuts and its `degraded` and this
+  // file printed neither, the runner's `degraded` below was a fresh array nobody read, and the
+  // takhrij pass returned [] for a failed library call. Three fixed tags now carry them:
+  //   [finalize/drop]      one line per cut: {stage, kind, removed} — removed ≤ 200 characters
+  //   [takhrij/degraded]   {source, degraded} — the finalizer's list and the runner's list
+  //   [takhrij/call-fail]  {call, status, error, q} — call 1 ladder · 2 per Ṣaḥīḥ · 3 grade; q ≤ 80
+  // THE TEXT IS UNTOUCHED: every line reads a value already computed. No other line of this log
+  // carries a turn id, so neither do these. And a turn prints at most DROP_LOG_CAP of them.
+  const DROP_LOG_CAP = 40;
+  let dropLogLines = 0;
+  const dropLogRoom = () => {
+    if (dropLogLines >= DROP_LOG_CAP) return false;
+    dropLogLines += 1;
+    return true;
+  };
   res = createFinalizedSseResponse(res, {
     finalize: (input) => {
       const result = finalizeReaderText(input);
       if (!result.ok) console.warn('[finalizer] reader text replaced', { problems: result.problems });
+      for (const drop of Array.isArray(result.drops) ? result.drops : []) {
+        if (!dropLogRoom()) break;
+        console.log('[finalize/drop]', JSON.stringify({ stage: drop.stage, kind: drop.kind, removed: drop.removed }));
+      }
+      if (Array.isArray(result.degraded) && result.degraded.length && dropLogRoom()) {
+        console.log('[takhrij/degraded]', JSON.stringify({ source: 'finalizer', degraded: result.degraded }));
+      }
       return result;
     },
     context: ({ wireText, events }) => {
@@ -2016,10 +2041,11 @@ export default async function handler(req, res) {
         } else {
           const { applyTakhrij, runnerLookup } = await import('../lib/takhrij.js');
           const { runTool, createEvidenceTable } = await import('../lib/free-brain/tools.js');
+          const runnerDegraded = [];
           const pass = await applyTakhrij(readerText, {
             lookup: runnerLookup(runTool, {
               table: createEvidenceTable(),
-              degraded: [],
+              degraded: runnerDegraded,
               spend: [],
               libFlagValue,
               libToken,
@@ -2053,6 +2079,16 @@ export default async function handler(req, res) {
             ...(pass.trace || {}),
           });
           for (const problem of pass.problems) out.degraded.push('takhrij:' + problem);
+          // [111-log] — see DROP_LOG_CAP above.
+          if (runnerDegraded.length && dropLogRoom()) {
+            console.log('[takhrij/degraded]', JSON.stringify({ source: 'runner', degraded: runnerDegraded }));
+          }
+          for (const failure of Array.isArray(pass.callFailures) ? pass.callFailures : []) {
+            if (!dropLogRoom()) break;
+            console.warn('[takhrij/call-fail]', JSON.stringify({
+              call: failure.call, status: failure.status, error: failure.error, q: failure.q,
+            }));
+          }
         }
       }
       // ══════════════════════════════════════════════════════════════════════

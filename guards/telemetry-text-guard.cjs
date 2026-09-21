@@ -189,8 +189,36 @@ const COLLAPSE_FIELDS = [
   'inFlight',
 ];
 
+// ── RULE B, CONTINUED: THE SWALLOWED LIBRARY CALL (EZIK-111 FOURTH ORDER, [111-log]) ──────
+//
+// FOUR new names, all on `[takhrij/call-fail]` in api/ask.js, reviewed one line at a time. The
+// line exists because lib/takhrij.js returned [] for every failed library call, so «the library
+// did not answer» and «nobody narrated this» were one record. The other two new lines of that
+// order print only names already above: `[finalize/drop]` {stage, kind, removed} and
+// `[takhrij/degraded]` {source, degraded}. `removed` there is ANSWER prose, capped at 200
+// characters in lib/finalize-reader-text.js, exactly the class of the reviewer's `rows` minute
+// named at THE BOUNDARY below — never the question.
+const CALL_FAIL_FIELDS = [
+  // integer — 1, 2 or 3: which of the takhrij pass's three library calls failed (the ladder,
+  // one Ṣaḥīḥ at a time, the grade books). A literal passed at each call site in lib/takhrij.js.
+  'call',
+  // short code — an HTTP status parsed out of the runner's reason ('401', '502'), or one of
+  // 'threw' / 'not-a-list' / the runner's own reason word. Built from the library's reply,
+  // never from a request body.
+  'status',
+  // the runner's own `degraded` codes for that call ('library:http_401'), joined and capped at
+  // 120 characters. The same codes `degraded` already prints on [free-brain/empty]. The library
+  // is reached by POST to a fixed URL, so no transport error can carry the reader's words in it.
+  'error',
+  // the MATN the pass asked the library for — a quotation the ANSWER wrote, lifted by
+  // lib/takhrij.js out of the model's text, cut at 80 characters. Answer prose, not the question,
+  // for the reason given for `rows` at THE BOUNDARY below; without it a failed call cannot be
+  // told from a silent one, which is the defect the line exists for.
+  'q',
+];
+
 const ALLOWED = new Set([...ALLOWED_FIELDS, ...STREAM_FIELDS, ...LIVE_WORLD_V2_FIELDS,
-  ...COLLAPSE_FIELDS]);
+  ...COLLAPSE_FIELDS, ...CALL_FAIL_FIELDS]);
 const NEWLINE = String.fromCharCode(10);
 
 // ── THE BOUNDARY, WRITTEN DOWN RATHER THAN LEFT TO BE REDISCOVERED ────────────
