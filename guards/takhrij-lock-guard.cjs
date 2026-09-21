@@ -2577,6 +2577,67 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       }
     }
   }
+  console.log('\n=== 111 SECOND ORDER · STEP 2 · A FROZEN SALUTATION NEVER EXEMPTS THE ATTRIBUTION BESIDE IT ===');
+  {
+    // MEASURED on main and at a23a737: «رواه البخاري أن النبي صلى الله عليه وسلم نهى عن ذلك…»
+    // passed the lock with no page. The attribution span overlapped «النبي صلى الله عليه وسلم»,
+    // a run of a known dhikr, and the frozen exemption let it through. It is now judged as if the
+    // salutation were not there; the salutation's letters are never edited.
+    const L2 = await esm('lib/takhrij-lock.js');
+    const SAW2 = 'صلى الله عليه وسلم';
+    const RULE2 = 'ويحرم بيع الكلب، لأن النبي ' + SAW2 + ' نهى عن ثمنه.';
+    const WIT2 = 'رواه البخاري أن النبي ' + SAW2 + ' نهى عن ذلك في حديث أبي مسعود.';
+    const PAGE2 = [{ title: 'حكم بيع الكلب', passage: 'بيع الكلب محرم، رواه البخاري أن النبي ' + SAW2 + ' نهى عن ذلك في حديث أبي مسعود الأنصاري.' }];
+    {
+      const out = L2.lockTakhrij(RULE2 + '\n' + WIT2, []).text;
+      ok('111-S2 the witness with no page: no «رواه البخاري» is left standing',
+        !/رواه البخاري/u.test(out), JSON.stringify(out));
+      ok('111-S2 ...the ruling beside it is byte-identical, salutation and all',
+        out === RULE2, JSON.stringify(out));
+    }
+    ok('111-S2 the same shape over a page that carries it stays byte-identical',
+      L2.lockTakhrij(RULE2 + '\n' + WIT2, PAGE2).text === RULE2 + '\n' + WIT2);
+    {
+      // AS IF THE SALUTATION WERE NOT THERE: the sentence without it is judged the same way.
+      const bare = (x) => x.split(' ' + SAW2).join('');
+      const withSaw = L2.lockTakhrij(RULE2 + '\n' + WIT2, []);
+      const without = L2.lockTakhrij(bare(RULE2) + '\n' + bare(WIT2), []);
+      ok('111-S2 ...and it is judged exactly as the same sentence with no salutation in it',
+        withSaw.droppedSentences.length === without.droppedSentences.length
+        && bare(withSaw.text) === without.text, JSON.stringify([withSaw.text, without.text]));
+    }
+    {
+      // The evidence tail: «، لما رواه البخاري …» takes the tail, and the ruling keeps its end mark.
+      const out = L2.lockTakhrij('ويحرم بيع الكلب، لما رواه البخاري أن النبي ' + SAW2 + ' نهى عن ثمن الكلب.', []).text;
+      ok('111-S2 a salutation inside an evidence tail: the tail goes, the ruling stays',
+        out === 'ويحرم بيع الكلب.', JSON.stringify(out));
+    }
+    {
+      // A real dhikr keeps the exemption it was written for: a run that is more than the salutation.
+      const DHIKR2 = 'اللهم رب هذه الدعوة التامة والصلاة القائمة آت محمدا الوسيلة والفضيلة';
+      const txt = 'ومن السنة بعد الأذان ما رواه البخاري ' + DHIKR2 + '.';
+      ok('111-S2 a span overlapping a real dhikr run is still exempt, as before',
+        L2.lockTakhrij(txt, []).text === txt, JSON.stringify(L2.lockTakhrij(txt, []).text));
+    }
+    {
+      const src2 = read('lib/takhrij-lock.js');
+      const dir2 = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
+      const SEAM2 = '    const frozen = frozenRunBesideSalutation(body);';
+      const changed = src2.split(SEAM2).join('    const frozen = containsFrozenRun(body);');
+      ok('MUTANT 111-S2 salutation-shield seam applied', changed !== src2);
+      const tmp2 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-111-s2-mut-'));
+      try {
+        const file = path.join(tmp2, 'salutation-shield.mjs');
+        fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir2, spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + file.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: with the salutation as a shield the unsourced «رواه البخاري» ships again',
+          /رواه البخاري/u.test(mod.lockTakhrij(RULE2 + '\n' + WIT2, []).text));
+      } finally {
+        try { fs.rmSync(tmp2, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
   console.log('\n=== AA-89 · A MARK IS NOT THE CONTENT A LEAD-IN PROMISED ===');
   {
     // FOUND BY THE PRE-MERGE AUDIT (PRE-MERGE-AUDIT-2026-09-04.md §4/C2). The reviewer welds
