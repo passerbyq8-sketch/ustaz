@@ -44,7 +44,9 @@ const usesHigherRung = (module) => {
         && typeof generalized.annotations[0]?.claimedAuthority === 'string'
         && generalized.annotations[0].claimedAuthority.length > 0
         && !generalized.text.includes(generalized.annotations[0].claimedAuthority)
-        && matchedInput.text.endsWith(generalized.text)
+        // THIRD ORDER, STEP 6: what ships is the general speaker and then a suffix of what arrived.
+        && generalized.text.startsWith('وقال بعض أهل العلم: ')
+        && matchedInput.text.endsWith(generalized.text.slice('وقال بعض أهل العلم: '.length))
         && generalized.text.length > matchedInput.text.length / 2
         && generalized.text !== module.REVIEW_LAST_RESORT, generalized.text);
     const plainInput = {

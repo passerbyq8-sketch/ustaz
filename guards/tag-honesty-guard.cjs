@@ -249,7 +249,8 @@ const unsupportedIsHandledSilently = (module) => {
         text: witness.head + witness.frame + witness.claim,
         evidence: [], domain: 'fiqh', mode: 'عادي',
       });
-      const expected = (witness.head + witness.claim).replace(/\s+/gu, ' ').trim();
+      // THIRD ORDER, STEP 6: was head + claim; «كما قال X:» is now «كما قال بعض أهل العلم:» between them.
+      const expected = (witness.head + ' كما قال بعض أهل العلم:' + witness.claim).replace(/\s+/gu, ' ').trim();
       return out.text.replace(/\s+/gu, ' ').trim() === expected;
     });
 
@@ -389,7 +390,8 @@ const unsupportedIsHandledSilently = (module) => {
       {
         id: 'joined-waw-credit',
         text: 'وقال الشيخ محمد الأمين إن الجمع للمسافر جائز عند الحاجة.',
-        claim: 'الجمع للمسافر جائز عند الحاجة.',
+        // THIRD ORDER, STEP 6: was the bare claim; now the claim behind the general speaker.
+        claim: 'وقال بعض أهل العلم: الجمع للمسافر جائز عند الحاجة.',
       },
       {
         id: 'joined-fa-connector',
@@ -400,7 +402,8 @@ const unsupportedIsHandledSilently = (module) => {
       {
         id: 'joined-honorific-prayer',
         text: 'قال الشيخ محمد الأمين: ورحمه الله، الجمع للمسافر جائز عند الحاجة.',
-        claim: 'الجمع للمسافر جائز عند الحاجة.',
+        // THIRD ORDER, STEP 6: was the bare claim; now the claim behind the general speaker.
+        claim: 'وقال بعض أهل العلم: الجمع للمسافر جائز عند الحاجة.',
       },
     ]) {
       const out = module.reviewAnswer({ text: witness.text, evidence: [], domain: 'fiqh', mode: 'عادي' });
@@ -480,7 +483,11 @@ const unsupportedIsHandledSilently = (module) => {
         '  return `${head} ${claim}`;',
         '  return `${head} ` + \'\\u0627\\u0644\\u0641\\u0647\\u0645\\u064f \\u0627\\u0644\\u0639\\u0627'
         + '\\u0645\\u0651\\u064f \\u0645\\u0646 \\u0627\\u0644\\u0645\\u0639\\u0637\\u064a\\u0627\\u062a'
-        + '\\u0650 \\u0627\\u0644\\u0645\\u062a\\u0627\\u062d\\u0629\' + `: ${claim}`; // mutant'),
+        + '\\u0650 \\u0627\\u0644\\u0645\\u062a\\u0627\\u062d\\u0629\' + `: ${claim}`; // mutant')
+        // THIRD ORDER, STEP 6 — the two «كما قال» witnesses now leave through the general-speaker seam,
+        // so the phrase is injected there too; without this the mutant never reaches them and proves nothing.
+        .replace("    const line = lead + ' ' + said;",
+          "    const line = lead + ' \\u0627\\u0644\\u0641\\u0647\\u0645\\u064f \\u0627\\u0644\\u0639\\u0627\\u0645\\u0651\\u064f: ' + said; // mutant"),
       survives: stitchedCleanly,
     });
     ok('mid-sentence mutant seam applied', midMutant.changed, midMutant.error);
@@ -506,7 +513,8 @@ const unsupportedIsHandledSilently = (module) => {
         delivered: 'المسألة فيها سعة، المسح على الخفين جائز.' },
       { id: 'waqad-qala-inna-summary',
         text: 'خلاصة الجواب أن المسح جائز، وقد قال ابن قدامة إن مدته يوم وليلة.',
-        delivered: 'خلاصة الجواب أن المسح جائز، مدته يوم وليلة.' },
+        // THIRD ORDER, STEP 6: was «…جائز، مدته…»; «وقد قال X إن» now reads «وقال بعض أهل العلم:».
+        delivered: 'خلاصة الجواب أن المسح جائز، وقال بعض أهل العلم: مدته يوم وليلة.' },
       { id: 'faqad-zakara-anna',
         text: 'الأمر واسع، فقد ذكر ابن قدامة أن المسح على الخفين جائز.',
         delivered: 'الأمر واسع، المسح على الخفين جائز.' },
@@ -603,6 +611,59 @@ const unsupportedIsHandledSilently = (module) => {
     ok('mutant module loaded successfully', mutant.loaded, mutant.error);
     ok('MUTANT KILLED: the honesty mark cannot be welded back on',
       mutant.loaded && mutant.survived === false, JSON.stringify(mutant));
+    // ── THIRD ORDER, STEP 6 · THE SPEAKER IS GENERALISED, NEVER ERASED (THE OWNER'S DECISION 2) ──
+    // The four places measured in the second order, the five frames, and the two lines this rule
+    // must never cross: a Companion is «in the athar» and never «رُوي», and a Companion narrating the
+    // Prophet ﷺ is a chain — no speaker is put in front of the Prophet's words.
+    {
+      const say6 = (t) => module.reviewAnswer({ text: t, evidence: [], domain: 'fiqh', mode: 'عادي' });
+      for (const [id, input, expected] of [
+        ['W9 قال', 'وحكم عليه ابن الجوزي بالوضع، وقال ابن حبان: باطل لا أصل له.',
+          'وحكم عليه ابن الجوزي بالوضع، وقال بعض أهل العلم: باطل لا أصل له.'],
+        ['F20 يرى', 'وشيخ الإسلام ابن تيمية يرى أن وجه المرأة ويديها كبدن الرجل في الإحرام.',
+          'ومن أهل العلم من يرى أن وجه المرأة ويديها كبدن الرجل في الإحرام.'],
+        ['F20 صحابي', 'ولا فدية على الحائض، فقد قال ابن عباس رضي الله عنهما: «أمر الناس أن يكون آخر عهدهم بالبيت، إلا أنه خفف عن الحائض».',
+          'ولا فدية على الحائض، وجاء في الأثر: «أمر الناس أن يكون آخر عهدهم بالبيت، إلا أنه خفف عن الحائض».'],
+        ['F17 كما قال', 'ويجوز لها ذلك من غير حرج، كما قال الكاساني رحمه الله: «يجب على الحائض قضاء الصوم».',
+          'ويجوز لها ذلك من غير حرج، كما قال بعض أهل العلم: «يجب على الحائض قضاء الصوم».'],
+        ['ذهب', 'والوضوء من لحم الإبل واجب، وذهب الإمام أحمد وجوب الوضوء منه على كل حال.',
+          'والوضوء من لحم الإبل واجب، وذهب بعض أهل العلم إلى وجوب الوضوء منه على كل حال.'],
+        ['قال بـ', 'قال ابن باز بجواز الجمع للمسافر.', 'وقال بعض أهل العلم بجواز الجمع للمسافر.'],
+      ]) {
+        const out = say6(input);
+        ok('111-T6 ' + id + ': the name goes, a general speaker takes its place, the claim is whole',
+          out.text === expected && out.annotations[0]?.action === 'removed-unsupported-attribution', out.text);
+      }
+      {
+        const out = say6('ولا فدية على الحائض، فقد قال ابن عباس رضي الله عنهما: «أمر الناس أن يكون آخر عهدهم بالبيت».').text;
+        ok('111-T6 a Companion is never «رُوي» — the weakening form is not in what the reader gets',
+          !/رُ?وي/u.test(out.replace(/«[^»]*»/gu, '')) && out.includes('وجاء في الأثر:'), out);
+      }
+      {
+        const narr = 'الصدق واجب. عن ابن مسعود رضي الله عنه قال: قال رسول الله ﷺ: «إن الصدق يهدي إلى البر».';
+        const out = say6(narr);
+        ok('111-T6 a Companion narrating the Prophet ﷺ takes no speaker in front of the Prophet\'s words',
+          !/أهل العلم|في الأثر/u.test(out.text) && out.text.includes('«إن الصدق يهدي إلى البر»'), out.text);
+      }
+      {
+        // A frame outside the five is exactly as it was: the name goes and nothing takes its place.
+        const out = say6('الأمر واسع، فقد ذكر ابن قدامة أن المسح على الخفين جائز.');
+        ok('111-T6 a frame outside the five («ذكر») is handled exactly as before',
+          out.text === 'الأمر واسع، المسح على الخفين جائز.', out.text);
+      }
+      const gen6 = await runMutant({
+        sourceFile: REVIEWER,
+        name: 'erase-the-speaker-again',
+        transform: (source) => source.replace(
+          '  const speaker = generalSpeakerFor(sentence, attribution);',
+          '  const speaker = null; // mutant'),
+        survives: (mod) => mod.reviewAnswer({ text: 'وحكم عليه ابن الجوزي بالوضع، وقال ابن حبان: باطل لا أصل له.', evidence: [], domain: 'fiqh', mode: 'عادي' })
+          .text.includes('وقال بعض أهل العلم:'),
+      });
+      ok('111-T6 generalise mutant seam applied', gen6.changed, gen6.error);
+      ok('MUTANT KILLED: with the speaker erased again, the view is left in the answer\'s own voice',
+        gen6.loaded && gen6.survived === false, JSON.stringify(gen6));
+    }
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }

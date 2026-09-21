@@ -227,7 +227,8 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
     const A2_NAME = '\u0627\u0644\u0639\u062b\u064a\u0645\u064a\u0646';
     const a2 = verdict(REV, A2, []);
     ok('E1 \u00b7 the A2 sentence \u2192 removed, the delivered text opens on \u00ab\u0625\u0646 \u0635\u0627\u0645\u0647\u00bb, and the name is gone',
-      a2.action === REMOVED && a2.text.indexOf(A2_HEAD) === 0 && a2.text.indexOf(A2_NAME) < 0,
+      // THIRD ORDER, STEP 6: was «opens on A2_HEAD»; the speaker is generalised, so it opens on it behind one.
+      a2.action === REMOVED && a2.text.indexOf('\u0648\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645: ' + A2_HEAD) === 0 && a2.text.indexOf(A2_NAME) < 0,
       'action=' + JSON.stringify(a2.action) + ' text=' + JSON.stringify(a2.text.slice(0, 60)));
 
     // 2. A B-shaped input \u2014 name first, joined fa, colon, unquoted prose \u2014 is removed and the prose
@@ -235,7 +236,8 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
     const B_PROSE = '\u0627\u0644\u0623\u0645\u0631 \u0641\u064a \u0647\u0630\u0627 \u0648\u0627\u0633\u0639 \u0648\u0644\u0627 \u062d\u0631\u062c \u0641\u064a\u0647';
     const b = verdict(REV, '\u0627\u0628\u0646 \u0642\u062f\u0627\u0645\u0629 \u0641\u0642\u0627\u0644: ' + B_PROSE, []);
     ok('E2 \u00b7 B-shape (name first, joined fa, colon, prose) \u2192 removed, and the remaining prose is intact',
-      b.action === REMOVED && b.text.indexOf(B_PROSE) === 0 && b.text.indexOf('\u0642\u062f\u0627\u0645\u0629') < 0,
+      // THIRD ORDER, STEP 6: was «opens on B_PROSE»; now B_PROSE behind the general speaker.
+      b.action === REMOVED && b.text.indexOf('\u0648\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645: ' + B_PROSE) === 0 && b.text.indexOf('\u0642\u062f\u0627\u0645\u0629') < 0,
       'action=' + JSON.stringify(b.action) + ' text=' + JSON.stringify(b.text.slice(0, 60)));
 
     // 3. \u00ab\u0623\u0646\u00bb and \u00ab\u0628\u0623\u0646\u00bb after the colon are still taken off the delivered text.
@@ -243,7 +245,8 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
     const an = verdict(REV, '\u0642\u0627\u0644 \u0627\u0628\u0646 \u0642\u062f\u0627\u0645\u0629: \u0623\u0646 ' + AN_PROSE, []);
     const bian = verdict(REV, '\u0623\u0641\u062a\u0649 \u0627\u0628\u0646 \u0642\u062f\u0627\u0645\u0629: \u0628\u0623\u0646 ' + AN_PROSE, []);
     ok('E3 \u00b7 \u00ab\u0623\u0646\u00bb and \u00ab\u0628\u0623\u0646\u00bb are still stripped from the delivered text',
-      an.action === REMOVED && an.text.indexOf(AN_PROSE) === 0
+      // THIRD ORDER, STEP 6: «قال» takes the general speaker; «أفتى» (bian) is not one of the five and is unchanged.
+      an.action === REMOVED && an.text.indexOf('\u0648\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645: ' + AN_PROSE) === 0
         && bian.action === REMOVED && bian.text.indexOf(AN_PROSE) === 0,
       'an=' + JSON.stringify(an.text.slice(0, 40)) + ' bian=' + JSON.stringify(bian.text.slice(0, 40)));
 
@@ -330,7 +333,8 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
     const owner = verdict(REV, OWNER, []);
     ok('G1 \u00b7 [OWNER RULING] the owner\u2019s sentence \u2192 REMOVED: the name goes, the ruling stays',
       owner.action === REMOVED && owner.text.indexOf('\u0627\u0628\u0646 \u0628\u0627\u0632') < 0
-        && owner.text.indexOf('\u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629') === 0,
+        // THIRD ORDER, STEP 6: was «opens on the ruling»; now the ruling behind the general speaker.
+        && owner.text.indexOf('\u0648\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645: \u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629') === 0,
       'action=' + JSON.stringify(owner.action) + ' text=' + JSON.stringify(owner.text.slice(0, 80)));
 
     // \ud83d\udd12 THE FIFTH DOOR IS NOT WEAKENED BY THAT RULING, AND HERE IS THE PROOF. A remainder
@@ -345,7 +349,8 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
     const A2G = '\u0648\u0627\u0644\u0634\u064a\u062e \u0645\u062d\u0645\u062f \u0628\u0646 \u0635\u0627\u0644\u062d \u0627\u0644\u0639\u062b\u064a\u0645\u064a\u0646 \u0631\u062d\u0645\u0647 \u0627\u0644\u0644\u0647 \u0641\u0635\u0644 \u0641\u0642\u0627\u0644: \u0625\u0646 \u0635\u0627\u0645\u0647 \u0644\u0633\u0628\u0628 \u2014 \u0643\u0635\u0648\u0645 \u0639\u0631\u0641\u0629 \u0623\u0648 \u0639\u0627\u0634\u0648\u0631\u0627\u0621 \u0623\u0648 \u064a\u0648\u0645 \u0645\u0646 \u0623\u064a\u0627\u0645 \u0627\u0644\u0628\u064a\u0636 \u0623\u0648 \u0642\u0636\u0627\u0621 \u0623\u0648 \u0643\u0641\u0627\u0631\u0629 \u0623\u0648 \u0635\u064a\u0627\u0645 \u062f\u0627\u0648\u062f \u0641\u0648\u0627\u0641\u0642 \u0627\u0644\u0633\u0628\u062a \u2014 \u0641\u0644\u0627 \u0628\u0623\u0633 \u0628\u0647 \u0648\u0644\u0627 \u0643\u0631\u0627\u0647\u0629\u061b \u0648\u0625\u0646 \u0623\u0641\u0631\u062f\u0647 \u062a\u0639\u0638\u064a\u0645\u0627 \u0644\u0647 \u0645\u0646 \u063a\u064a\u0631 \u0633\u0628\u0628 \u0641\u0647\u0630\u0627 \u0645\u0648\u0636\u0639 \u0627\u0644\u0646\u0647\u064a.';
     const a2g = verdict(REV, A2G, []);
     ok('G2 \u00b7 A2 did not flip: still removed, the delivered text still opens on \u00ab\u0625\u0646 \u0635\u0627\u0645\u0647\u00bb',
-      a2g.action === REMOVED && a2g.text.indexOf('\u0625\u0646 \u0635\u0627\u0645\u0647 \u0644\u0633\u0628\u0628') === 0,
+      // THIRD ORDER, STEP 6: «إن صامه» still heads the claim, now behind the general speaker.
+      a2g.action === REMOVED && a2g.text.indexOf('\u0648\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645: \u0625\u0646 \u0635\u0627\u0645\u0647 \u0644\u0633\u0628\u0628') === 0,
       'action=' + JSON.stringify(a2g.action) + ' text=' + JSON.stringify(a2g.text.slice(0, 60)));
 
     // \u2500\u2500 M1+M2 night 3, task 1: THE SAME PARTICLES CARRIED BY A JOINED \u00ab\u0648\u00bb OR \u00ab\u0641\u00bb \u2500\u2500
@@ -372,7 +377,8 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
         // stricter in content: the verdict, the name gone, and the delivered text opening on the
         // ruling rather than on the particle.
         if (v.action !== REMOVED || v.text.indexOf(j) === 0
-          || v.text.indexOf('\u0627\u0628\u0646 \u0628\u0627\u0632') >= 0 || v.text.indexOf('\u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629') !== 0) joinBad.push(j + '=' + v.action);
+          // THIRD ORDER, STEP 6: the ruling now follows the general speaker.
+          || v.text.indexOf('\u0627\u0628\u0646 \u0628\u0627\u0632') >= 0 || v.text.indexOf('\u0648\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645: \u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629') !== 0) joinBad.push(j + '=' + v.action);
         if (v.action !== bare.action) joinDrift.push(j + '(' + v.action + ')!=' + p + '(' + bare.action + ')');
       }
     }

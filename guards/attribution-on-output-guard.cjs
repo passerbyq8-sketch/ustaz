@@ -117,8 +117,10 @@ const input = (evidence) => ({ text, evidence, domain: 'fiqh', mode: 'عادي' 
 // is the stronger statement and always was the one that mattered — the reviewer ships the claim
 // AND NOTHING ELSE. Exact equality is what makes this a witness rather than a formality: it
 // refuses a truncated claim, a paraphrased one, and a claim with anything appended to it.
+// REWRITTEN BY THE THIRD ORDER, STEP 6 (the owner's decision 2). It pinned the bare claim with the
+// name erased; the name is still gone and the claim still whole, now behind «وقال بعض أهل العلم:».
 const preservesCompleteUnsupportedClaim = (module, out) => out.text
-  === semanticClaim
+  === 'وقال بعض أهل العلم: ' + semanticClaim
   && out.annotations[0]?.action === 'removed-unsupported-attribution';
 const rejectsWrongScholar = (module) => {
   const out = module.reviewAnswer(input([wrongScholar]));
@@ -155,12 +157,13 @@ const rejectsWrongScholar = (module) => {
     ok('a joined Arabic conjunction before an honorific still resolves the exact authority',
       joinedHonorific.text === text && joinedHonorific.annotations[0]?.action === 'kept-sourced-attribution');
     for (const { framed, claim } of [
-      { framed: 'يرى ابن باز جواز الجمع للمسافر.', claim: 'جواز الجمع للمسافر.' },
+      // THIRD ORDER, STEP 6 — the three «يرى» / «قال» frames below take a general speaker (decision 2).
+      { framed: 'يرى ابن باز جواز الجمع للمسافر.', claim: 'ومن أهل العلم من يرى جواز الجمع للمسافر.' },
       { framed: 'رأي الشيخ ابن باز أن الجمع للمسافر جائز.', claim: 'الجمع للمسافر جائز.' },
-      { framed: 'ابن باز يرى أن الجمع للمسافر جائز.', claim: 'الجمع للمسافر جائز.' },
+      { framed: 'ابن باز يرى أن الجمع للمسافر جائز.', claim: 'ومن أهل العلم من يرى أن الجمع للمسافر جائز.' },
       { framed: 'حكم ابن باز هو تحريم الدخان.', claim: 'هو تحريم الدخان.' },
       { framed: 'ابن باز يحرّم الدخان.', claim: 'يحرّم الدخان.' },
-      { framed: 'قال ابنُ بازٍ بجواز الجمع للمسافر.', claim: 'جواز الجمع للمسافر.' },
+      { framed: 'قال ابنُ بازٍ بجواز الجمع للمسافر.', claim: 'وقال بعض أهل العلم بجواز الجمع للمسافر.' },
       { framed: 'وفقًا لابن باز، الجمع للمسافر جائز.', claim: 'الجمع للمسافر جائز.' },
     ]) {
       const out = module.reviewAnswer({ text: framed, evidence: [], domain: 'fiqh', mode: 'عادي' });
