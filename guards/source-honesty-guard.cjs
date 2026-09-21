@@ -511,8 +511,33 @@ const stripComments = (s) => String(s)
     TD.takhrijDisclosureOnce('نص الجواب. ' + TD.TAKHRIJ_DISCLOSURE, TD.TAKHRIJ_DISCLOSURE) === '');
   ok('D4: ...and a draft that already sent the reader to the takhrij books gets none either',
     TD.takhrijDisclosureOnce('راجع كتب التخريج في ذلك.', TD.TAKHRIJ_DISCLOSURE) === '');
-  ok('D4: ...but an ordinary draft receives it',
-    TD.takhrijDisclosureOnce('نص الجواب.', TD.TAKHRIJ_DISCLOSURE) === TD.TAKHRIJ_DISCLOSURE);
+  // REWRITTEN BY THE THIRD ORDER, STEP 5. This row held that ANY draft receives the sentence
+  // («نص الجواب.»). The sentence speaks of «the grade quoted above», so it now goes only where a
+  // grade still stands once the grade rule has run: a graded draft receives it, an ungraded one not.
+  ok('D4: ...but a draft that carries a grade receives it',
+    TD.takhrijDisclosureOnce('حديث «من حج ولم يزرني فقد جفاني» حديث موضوع.', TD.TAKHRIJ_DISCLOSURE) === TD.TAKHRIJ_DISCLOSURE);
+  {
+    // ── THIRD ORDER, STEP 5 · NO LIMIT SENTENCE IN AN ANSWER THAT HOLDS NO GRADE ──────────
+    // MEASURED on the preview: «وهذا النقل لدرجة الحديث…» under «الدين النصيحة» (a credit, no
+    // grade), Ibn Mas'ud's hadith, and «الصيام والقرآن يشفعان» once its unsourced «صحيح» went.
+    const once = (t) => TD.takhrijDisclosureOnce(t, TD.TAKHRIJ_DISCLOSURE) === TD.TAKHRIJ_DISCLOSURE;
+    ok('T5: an ordinary draft with no grade in it receives nothing', !once('نص الجواب.'));
+    ok('T5: a credit with no grade («رواه مسلم») receives nothing',
+      !once('قال النبي ﷺ: «الدين النصيحة». رواه مسلم في صحيحه.'));
+    ok('T5: a grade the grade rule is about to take does not count («حديث صحيح» with no source)',
+      !once('حديث «الصيام والقرآن يشفعان للعبد يوم القيامة» حديث صحيح.'));
+    ok('T5: a book title is not a grade («صحيح البخاري»)', !once('وهو في صحيح البخاري من حديث أبي هريرة.'));
+    ok('T5: «أمر ثابت» and «حسن الخلق» grade nothing',
+      !once('وهذا أمر ثابت بنص القرآن الكريم. وحسن الخلق من الإيمان.'));
+    ok('T5: a verdict stands and receives it («لا يصح مرفوعا»)',
+      once('حديث «تفكروا في خلق الله ولا تفكروا في الله» لا يصح مرفوعا.'));
+    ok('T5: a grade in a bracket receives it («(أحمد · ضعيف)»)', once('«اطلبوا العلم ولو بالصين» (أحمد · ضعيف)'));
+    ok('T5: «ستة أحاديث ثابتة» — the plural and the feminine are grades too',
+      once('فهذه ستة أحاديث ثابتة في فضل الصيام.'));
+    ok('T5: a sourced grade stands and receives it', once('وهو حديث صحيح رواه البخاري.'));
+    ok('T5: the question gate is untouched — a question that asked for no grading gets nothing',
+      TD.takhrijDisclosureFor({ question: 'ما حكم الحديث أثناء خطبة الجمعة؟', sourceDomains: [] }) === '');
+  }
 
   {
     const ASK = read('api/ask.js');
