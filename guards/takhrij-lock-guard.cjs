@@ -3958,6 +3958,46 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp43, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── BATCH 4 [b15] · THE REPEATED PREAMBLE STAYS ONCE ───────────────────────────────────
+  // MEASURED at 2aaf987 and 92d3c7d (EZIK-CX-M111 row 15): «اختلف علماء الحديث في درجة هذا الحديث.»
+  // twice in one part — under lib/repeated-matn.js's 12-word / 60-character floor. The owner's
+  // contract: the repeated preamble stays once, the first; nothing that is not a repeat goes. No
+  // guard owned lib/repeated-matn.js before this block; it is driven through the finalizer, the
+  // seat that calls it.
+  console.log('\n=== BATCH 4 [b15] · THE REPEATED PREAMBLE STAYS ONCE ===');
+  {
+    const SEAT15 = await esm('lib/finalize-reader-text.js');
+    const REP15 = await esm('lib/repeated-matn.js');
+    const fin = (t) => SEAT15.finalizeReaderText({ kind: 'answer', text: t, sources: [] }).text;
+    const S = 'اختلف علماء الحديث في درجة هذا الحديث.';
+    ok('b15 W · «' + S + '» twice in one part: the first stays, the second goes',
+      fin(S + '\n\n' + S + '\nوالراجح أنه حسن لغيره.') === S + '\n\nوالراجح أنه حسن لغيره.', JSON.stringify(fin(S + '\n\n' + S + '\nوالراجح أنه حسن لغيره.')));
+    const H = 'اختلف العلماء في زكاة الحلي المعد للاستعمال على قولين.';
+    const HULLI = H + '\nالقول الأول: تجب فيه الزكاة.\n' + H + '\nالقول الثاني: لا تجب فيه الزكاة.';
+    ok('b15 sibling · زكاة الحلي: the preamble repeated between the two opinions stays once, both opinions stay',
+      fin(HULLI) === H + '\nالقول الأول: تجب فيه الزكاة.\nالقول الثاني: لا تجب فيه الزكاة.', JSON.stringify(fin(HULLI)));
+    const LISTS = 'شروط الصلاة:\n- الطهارة من الحدث.\n- ستر العورة.\nشروط الطواف:\n- الطهارة من الحدث.\n- ستر العورة.';
+    ok('b15 control · two lists sharing an item are not a repeat: every item stays', fin(LISTS) === LISTS, JSON.stringify(fin(LISTS)));
+    ok('b15 control · two lines that differ by one word both stay',
+      REP15.dropRepeatedMatn('اختلف العلماء في زكاة الحلي على قولين.\nاختلف العلماء في زكاة الذهب على قولين.').dropped.length === 0);
+    ok('b15 control · a two-word closing formula is below the shape and stays',
+      REP15.dropRepeatedMatn('ويستحب ذلك.\nوالله أعلم.\nوالله أعلم.').dropped.length === 0);
+    const src15 = read('lib/repeated-matn.js').replace(/\r\n/g, '\n');
+    const dir15 = path.dirname(path.join(REPO, 'lib', 'repeated-matn.js'));
+    const tmp15 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-b15-mut-'));
+    try {
+      const changed = src15.split('      if (ak && ak === norm(b.body) && words(ak) >= 3) {').join('      if (false) { // mutant');
+      ok('MUTANT b15 identical-line seam applied', changed !== src15);
+      const file = path.join(tmp15, 'no-short-repeat.mjs');
+      fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir15, spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b15] the preamble reaches the reader twice again',
+        mod.dropRepeatedMatn(S + '\n\n' + S).dropped.length === 0 && REP15.dropRepeatedMatn(S + '\n\n' + S).dropped.length === 1);
+    } finally {
+      try { fs.rmSync(tmp15, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
