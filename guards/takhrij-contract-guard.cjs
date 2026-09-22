@@ -2123,6 +2123,55 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── BATCH 4 [b25] · THE MATN AT THE HEAD OF THE ANSWER ─────────────────────────────────────
+  // MEASURED at 92d3c7d: an answer opening on «الطهور شطر الإيمان». alone on its line gave zero
+  // targets and no parentheses, while behind «قال رسول الله صلى الله عليه وسلم:» it gave «(مسلم)». The contract: framed with what the atom proves —
+  // the parentheses the library proved, a Companion only where two books agree — and no speaker and
+  // no narrator invented. A failed search writes nothing; an āyah or a dhikr is not a hadith target.
+  console.log('\n--- B25. THE MATN AT THE HEAD OF THE ANSWER ---');
+  {
+    const T25 = await esm('lib/takhrij.js');
+    const TUHUR = 'الطهور شطر الإيمان';
+    const REST = '\n\nوالطهارة مفتاح الصلاة، ولا تصح الصلاة بغير طهارة.';
+    const muslim = lookupOf({ [TUHUR]: { matn: TUHUR, subjectIds: ['FC-000648'], atoms: [atomFor(TUHUR, 'أبي مالك الأشعري')] } });
+    const head = '«' + TUHUR + '».' + REST;
+    const w = (await T25.applyTakhrij(head, { env: ON, lookup: muslim })).text;
+    ok('B25 W · the matn opening the answer takes the parentheses the library proved', w === '«' + TUHUR + '» (مسلم).' + REST, JSON.stringify(w));
+    ok('B25 ...and no speaker is invented in front of it', !/قال|رسول|النبي/u.test(w.split('\n')[0]), JSON.stringify(w));
+    const two = lookupOf({ [TUHUR]: { matn: TUHUR, subjectIds: ['FC-000648', 'FC-000630'],
+      atoms: [atomFor(TUHUR, 'أبي مالك الأشعري'), atomFor(TUHUR, 'أبي مالك الأشعري')] } });
+    const named = (await T25.applyTakhrij(head, { env: ON, lookup: two })).text;
+    ok('B25 sibling · where two books agree on the Companion he opens it, on the locked shape',
+      /^عن أبي مالك الأشعري رضي الله عنه: «الطهور شطر الإيمان» \(مسلم\)\./u.test(named), JSON.stringify(named));
+    const silent = (await T25.applyTakhrij(head, { env: ON, lookup: lookupOf({}) })).text;
+    ok('B25 control · the library proved nothing: not one character is written', silent === head, JSON.stringify(silent));
+    const VERSE = 'إن الصلاة كانت على المؤمنين كتابا موقوتا';
+    const verseHead = '«' + VERSE + '».\n\nالصلاة فرض على كل مسلم بالغ عاقل.';
+    const verseLookup = lookupOf({ [VERSE]: { matn: VERSE, subjectIds: ['FC-000648'], atoms: [atomFor(VERSE, 'ابن مسعود')] } });
+    const verse = (await T25.applyTakhrij(verseHead, { env: ON, lookup: verseLookup })).text;
+    ok('B25 control · an āyah at the head is not a hadith target, even where an atom quotes it', verse === verseHead, JSON.stringify(verse));
+    const mid = 'والطهارة مفتاح الصلاة.\n«' + TUHUR + '».';
+    ok('B25 control · an unframed quotation that does not open the answer is left as it was',
+      (await T25.applyTakhrij(mid, { env: ON, lookup: muslim })).text === mid);
+    const running = '«' + TUHUR + '» عبارة يكثر السؤال عنها.';
+    ok('B25 control · a head quotation inside a running sentence is not a matn standing alone',
+      (await T25.applyTakhrij(running, { env: ON, lookup: muslim })).text === running);
+    const src25 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam = '        if (opensTheAnswer(value, at, at + match[0].length, inner)) {';
+    const mutated = src25.split(seam).join('        if (false) { // mutant');
+    ok('MUTANT B25 head seam applied', mutated !== src25);
+    const tmp = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-b25-mut-'));
+    try {
+      const file = path.join(tmp, 'takhrij.mjs');
+      require('fs').writeFileSync(file, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b25] the matn at the head leaves bare again',
+        (await mod.applyTakhrij(head, { env: ON, lookup: muslim })).text === head);
+    } finally {
+      try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {

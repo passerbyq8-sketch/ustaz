@@ -4076,6 +4076,46 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp24, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── BATCH 4 [b25] · THE LIBRARY'S PARENTHESES STAY WITH THEIR MATN ──────────────────────────
+  // MEASURED on the 154 drafts at the dev head: «حديث «من عرف نفسه فقد عرف ربه» حديث صحيح، صححه
+  // الألباني (لا يثبت مرفوعا).» shipped as «حديث «…».» — the false grade went and took the library's
+  // ruling with it, leaving a bare matn at the head of the answer that reads as a hadith.
+  console.log('\n=== BATCH 4 [b25] · THE LIBRARY\'S PARENTHESES STAY WITH THEIR MATN ===');
+  {
+    const L25 = await esm('lib/takhrij-lock.js');
+    const LAD25 = await esm('lib/takhrij-ladder.js');
+    const M25 = 'حديث «من عرف نفسه فقد عرف ربه»';
+    const W25 = M25 + ' حديث صحيح، صححه الألباني (لا يثبت مرفوعا).';
+    ok('b25 W · the seal keeps the library\'s ruling behind the salvaged matn',
+      L25.lockTakhrij(W25, []).text === M25 + ' (لا يثبت مرفوعا).', JSON.stringify(L25.lockTakhrij(W25, []).text));
+    const S25 = 'حديث «الصيام والقرآن يشفعان للعبد يوم القيامة» حديث صحيح (أحمد · لم يوقف على حكم).';
+    ok('b25 sibling · the finalizer\'s grade drop keeps «(أحمد · لم يوقف على حكم)» with its matn',
+      L25.dropUnsourcedGrades(S25).text === 'حديث «الصيام والقرآن يشفعان للعبد يوم القيامة» (أحمد · لم يوقف على حكم).',
+      JSON.stringify(L25.dropUnsourcedGrades(S25).text));
+    const MODEL = M25 + ' حديث صحيح، صححه الألباني (رواه الحاكم في المستدرك).';
+    ok('b25 control · a bracket not in the ladder\'s shape goes with its sentence', L25.lockTakhrij(MODEL, []).text === M25 + '.',
+      JSON.stringify(L25.lockTakhrij(MODEL, []).text));
+    const AGREED = 'حديث «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى» حديث صحيح (متفق عليه).';
+    ok('b25 control · a «(متفق عليه)» no page proves is itself condemned and is not carried',
+      !L25.lockTakhrij(AGREED, []).text.includes('متفق عليه'), JSON.stringify(L25.lockTakhrij(AGREED, []).text));
+    ok('b25 pin · the four bare strings are the ladder\'s own, read off lib/takhrij-ladder.js',
+      JSON.stringify([...L25.LADDER_BARE_PARENTHESES].sort()) === JSON.stringify([LAD25.AGREED_UPON, LAD25.NOT_RAISED,
+        ...LAD25.TAKHRIJ_LADDER.filter((r) => r.shaykh).map((r) => r.display)].sort()));
+    const src25 = read('lib/takhrij-lock.js').replace(/\r\n/g, '\n');
+    const dir25 = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
+    const tmp25 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-b25-mut-'));
+    try {
+      const changed = src25.split('      const carried = paren && composedByTheLadder(paren[1])').join('      const carried = false && composedByTheLadder(paren[1])');
+      ok('MUTANT b25 carried seam applied', changed !== src25);
+      const file = path.join(tmp25, 'paren-dropped.mjs');
+      fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir25, spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b25] the library\'s ruling leaves with the false grade', mod.lockTakhrij(W25, []).text === M25 + '.');
+    } finally {
+      try { fs.rmSync(tmp25, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
