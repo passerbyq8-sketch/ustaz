@@ -4302,6 +4302,83 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmpE, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-n57] · NO NUMBER LEFT ALONE IN A LIST ─────────────────────────────────────────────────
+  // MEASURED on the owner's battery (fix round): «وفي تصحيحه وجهان: ⏎ 1. … ⏎ 2. أنه صحيح، صححه الألباني …» —
+  // the seal cut item 2's text and left «2.» alone on its line; and the reviewer split every «1. نص» into
+  // «1.» and «نص» (question 1: «1. ⏎ الختان: …»). The contract: an item whose text the seal or the
+  // finalizer cut takes its number or its dash with it, what is left is numbered again as c56 re-reads its
+  // ordinals, and the count is c56's.
+  console.log('\n--- n57. NO NUMBER LEFT ALONE IN A LIST ---');
+  {
+    const REV57 = await esm('lib/output-reviewer.js');
+    const SEAT57 = await esm('lib/finalize-reader-text.js');
+    const PAGE = [{ title: 'الشيخ سليمان الماجد', passage: 'قال الشيخ سليمان الماجد: حديث جيد' }];
+    const MAJID = 'أنه حديث جيد، وهو قول الشيخ سليمان الماجد.';
+    const ALBANI = 'أنه صحيح، صححه الألباني في السلسلة الصحيحة.';
+    const LAST = 'أنه لا بأس به عند أهل العلم.';
+    const END = '\n\nوالله أعلم.';
+    const lock = (t) => TL.lockTakhrij(t, PAGE).text;
+    const W = 'وفي تصحيحه وجهان:\n1. ' + MAJID + '\n2. ' + ALBANI + END;
+    const w = lock(W);
+    ok('n57 W · «وجهان» with item 2 cut: no «2.» alone or glued, and the count is c56\'s («وجه», one item, no number)',
+      w === 'وفي تصحيحه وجه:\n' + MAJID + '\nوالله أعلم.', JSON.stringify(w));
+    const FITRA = '1. الختان: وهو واجب في حق الرجال.\n2. الاستحداد: وهو حلق شعر العانة.';
+    const rv = REV57.reviewAnswer({ text: FITRA, evidence: [], domain: 'fiqh', mode: 'chat' }).text;
+    ok('n57 W · question 1: the reviewer keeps «1. الختان: …» on one line', rv === FITRA, JSON.stringify(rv));
+    const stream = REV57.createReviewStream({ evidence: [], domain: 'fiqh', mode: 'chat' });
+    const pushed = stream.push(FITRA);
+    const streamed = stream.end().text;
+    ok('n57 W · ...and the streamed reviewer gives the same text, the item whole', streamed === rv && !pushed.includes('1.'), JSON.stringify(streamed));
+    const three = lock('وفي تصحيحه ثلاثة أقوال:\n1. ' + MAJID + '\n2. ' + ALBANI + '\n3. ' + LAST + END);
+    ok('n57 sibling · three numbered, the middle cut: «قولان», and 1, 2 again', three === 'وفي تصحيحه قولان:\n1. ' + MAJID + '\n2. ' + LAST + '\nوالله أعلم.', JSON.stringify(three));
+    const plain = lock('وهذه أقوال أهل العلم فيه:\n1. ' + MAJID + '\n2. ' + ALBANI + '\n3. ' + LAST + END);
+    ok('n57 sibling · a numbered list with no count: 1, 2 again, nothing else touched', plain === 'وهذه أقوال أهل العلم فيه:\n1. ' + MAJID + '\n2. ' + LAST + '\nوالله أعلم.', JSON.stringify(plain));
+    const first = lock('وفي تصحيحه وجهان:\n1. ' + ALBANI + '\n2. ' + MAJID + END);
+    ok('n57 sibling · the FIRST item cut: the count line stays over what is left, and no «2.» opens the list', first === 'وفي تصحيحه وجه:\n' + MAJID + '\nوالله أعلم.', JSON.stringify(first));
+    const east = lock('وفي تصحيحه ثلاثة أقوال:\n١. ' + MAJID + '\n٢. ' + ALBANI + '\n٣. ' + LAST + END);
+    ok('n57 sibling · Eastern digits are numbered again in Eastern digits', east === 'وفي تصحيحه قولان:\n١. ' + MAJID + '\n٢. ' + LAST + '\nوالله أعلم.', JSON.stringify(east));
+    const dash = lock('وفي تصحيحه وجهان:\n- ' + MAJID + '\n- ' + ALBANI + END);
+    ok('n57 sibling · dashes: the cut item goes with its dash, the count is c56\'s', dash === 'وفي تصحيحه وجه:\n- ' + MAJID + '\nوالله أعلم.', JSON.stringify(dash));
+    const adv = lock('وفي تصحيحه وجهان:\nأول\u064Bا: ' + MAJID + '\nثاني\u064Bا: ' + ALBANI + END);
+    ok('n57 sibling · «أولًا/ثانيًا»: the cut item goes whole, the count is c56\'s, and the one left carries no ordinal', adv === 'وفي تصحيحه وجه:\n' + MAJID + '\nوالله أعلم.', JSON.stringify(adv));
+    const adv3 = lock('وفي تصحيحه ثلاثة أقوال:\nأول\u064Bا: ' + MAJID + '\nثاني\u064Bا: ' + ALBANI + '\nثالث\u064Bا: ' + LAST + END);
+    ok('n57 sibling · three «أولًا/ثانيًا/ثالثًا», the middle cut: «أولًا» and «ثانيًا» again', adv3 === 'وفي تصحيحه قولان:\nأول\u064Bا: ' + MAJID + '\nثاني\u064Bا: ' + LAST + '\nوالله أعلم.', JSON.stringify(adv3));
+    const fin = SEAT57.finalizeReaderText({ kind: 'answer', text: 'وفيه:\n1. أنه يستحب الجلوس بعد الفجر.\n2. أنه حديث حسن.\n3. أنه يذكر الله حتى تطلع الشمس.' + END, sources: [] }).text;
+    ok('n57 sibling · the finalizer\'s own grade cut takes the item\'s number too, and 1, 2 read again',
+      !/^\s*\d[.)-]?\s*$/mu.test(fin) && !/(^|\n)3\./u.test(fin) && fin.includes('2. أنه يذكر الله'), JSON.stringify(fin));
+    const NONE = 'وفي المسألة وجهان:\n1. يستحب الجلوس بعد الفجر للذكر.\n2. يستحب الانصراف لمن له حاجة.' + END;
+    ok('n57 control · nothing cut: the list stands byte for byte', TL.lockTakhrij(NONE, []).text === NONE);
+    const BARE = 'وهذه خطوات الوضوء:\n1.\nالنية.\n2.\nغسل الكفين.';
+    ok('n57 control · the model\'s own «1.» ⏎ «text» shape is its own: untouched by the reviewer and the reconcile',
+      REV57.reviewAnswer({ text: BARE, evidence: [], domain: 'fiqh', mode: 'chat' }).text === BARE
+        && TL.reconcileAnnouncedCounts(BARE, BARE) === BARE);
+    ok('n57 control · a number inside a sentence is still a sentence\'s end («المادة 5. ثم …»)',
+      REV57.reviewAnswer({ text: 'ذكر ذلك في المادة 5. ثم قال بعده.', evidence: [], domain: 'fiqh', mode: 'chat' }).text === 'ذكر ذلك في المادة 5.\nثم قال بعده.');
+    const srcL = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seamL = '  const markCuts = itemMarkCuts(s, cuts);';
+    const mutL = srcL.split(seamL).join('  const markCuts = []; // mutant');
+    ok('MUTANT n57 item-mark seam applied', mutL !== srcL);
+    const srcR = fs.readFileSync(path.join(REPO, 'lib/output-reviewer.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seamR = "    if (char === '.' && value[index + 1] !== '\\n' && LIST_NUMERAL_PART_RE.test(value.slice(start, index))) continue;";
+    const mutR = srcR.split(seamR).join('    // mutant');
+    ok('MUTANT n57 reviewer seam applied', mutR !== srcR);
+    const tmp57 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-n57-mut-'));
+    try {
+      const load = async (src, name) => {
+        const mfile = path.join(tmp57, name);
+        fs.writeFileSync(mfile, src.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+        return import('file:///' + mfile.replace(/\\/g, '/'));
+      };
+      const mL = await load(mutL, 'takhrij-lock.mjs');
+      ok('MUTANT KILLED: without [n57] the witness shows «2.» glued to the next line again', /(^|\n)2\.والله/u.test(mL.lockTakhrij(W, PAGE).text), JSON.stringify(mL.lockTakhrij(W, PAGE).text));
+      const mR = await load(mutR, 'output-reviewer.mjs');
+      ok('MUTANT KILLED: without [n57] the reviewer splits «1.» from its item again',
+        mR.reviewAnswer({ text: FITRA, evidence: [], domain: 'fiqh', mode: 'chat' }).text.startsWith('1.\n'));
+    } finally {
+      try { fs.rmSync(tmp57, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
