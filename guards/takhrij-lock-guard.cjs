@@ -3998,6 +3998,48 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp15, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── BATCH 4 [b16] · THE MATN ONCE — IN THE CARD, WHERE THERE IS ONE ─────────────────────
+  // MEASURED (EZIK-CX-M111 row 16; the battery's الحائض والقرآن and طواف الإفاضة; RAW-F19 of the
+  // forty): a matn line then a card carrying it, and a card dissolved by the seal left «…» alone on a
+  // line under a sentence that already quotes it.
+  console.log('\n=== BATCH 4 [b16] · THE MATN ONCE, IN THE CARD WHERE THERE IS ONE ===');
+  {
+    const L16 = await esm('lib/takhrij-lock.js');
+    const SEAT16 = await esm('lib/finalize-reader-text.js');
+    const REP16 = await esm('lib/repeated-matn.js');
+    const fin = (t) => SEAT16.finalizeReaderText({ kind: 'answer', text: t, sources: [] }).text;
+    const ship = (t) => fin(L16.lockTakhrij(t, []).text);
+    const M = 'من حسن إسلام المرء تركه ما لا يعنيه';
+    ok('b16 W · the matn in two prose lines reaches the reader once', fin(M + '\n' + M + '\nوهذا أصل.') === M + '\nوهذا أصل.', JSON.stringify(fin(M + '\n' + M + '\nوهذا أصل.')));
+    const IFADA = 'لا ينفرن أحد حتى يكون آخر عهده بالبيت';
+    const withCard = 'طواف الوداع واجب.\nقال رسول الله صلى الله عليه وسلم: «' + IFADA + '».\n<hadith narrator="ابن عباس" ruling="صحيح">' + IFADA + '</hadith>\nوهذا عند الجمهور.';
+    ok('b16 W · a matn line then its card: the line goes, the card stays',
+      fin(withCard) === 'طواف الوداع واجب.\n<hadith narrator="ابن عباس" ruling="صحيح">' + IFADA + '</hadith>\nوهذا عند الجمهور.', JSON.stringify(fin(withCard)));
+    const HAID = 'لا تقرأ الحائض ولا الجنب شيئا من القرآن';
+    const dissolved = 'ذهب الجمهور إلى المنع.\nواستدلوا بحديث «' + HAID + '»، وهو حديث ضعيف.\n<hadith narrator="رواه الترمذي" ruling="ضعيف">' + HAID + '</hadith>';
+    ok('b16 W · الحائض: the card the seal dissolved does not stand a second time under the sentence that quotes it',
+      ship(dissolved).split('«' + HAID + '»').length === 2 && ship(dissolved).includes('وهو حديث ضعيف'), JSON.stringify(ship(dissolved)));
+    const ruled = 'ويجب طواف الوداع لقوله صلى الله عليه وسلم: «' + IFADA + '».\n<hadith narrator="ابن عباس" ruling="صحيح">' + IFADA + '</hadith>';
+    ok('b16 control · a line that carries a ruling is not a matn line: it stays beside the card',
+      fin(ruled) === ruled, JSON.stringify(fin(ruled)));
+    ok('b16 control · two different matns each stay',
+      REP16.dropRepeatedMatn('قال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات».\nقال رسول الله صلى الله عليه وسلم: «' + M + '».').dropped.length === 0);
+    const src16 = read('lib/repeated-matn.js').replace(/\r\n/g, '\n');
+    const dir16 = path.dirname(path.join(REPO, 'lib', 'repeated-matn.js'));
+    const tmp16 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-b16-mut-'));
+    try {
+      const changed = src16.split("    if (card) { cut.add(line); line.keptKind = 'hadith'; line.reason = 'matn-line-beside-card'; line.keep = card; continue; }").join('');
+      ok('MUTANT b16 card seam applied', changed !== src16);
+      const file = path.join(tmp16, 'line-and-card.mjs');
+      fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir16, spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b16] the matn line stands beside its card again',
+        mod.dropRepeatedMatn(withCard).dropped.length === 0 && REP16.dropRepeatedMatn(withCard).dropped.length === 1);
+    } finally {
+      try { fs.rmSync(tmp16, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
