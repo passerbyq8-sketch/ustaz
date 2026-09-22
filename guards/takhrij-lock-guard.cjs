@@ -4040,6 +4040,42 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp16, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── BATCH 4 [b24] · NO CHAIN OF NARRATORS IN THE PROSE ────────────────────────────────
+  // MEASURED at 92d3c7d: «هذا الحديث من رواية يحيى بن أبي كثير، عن زيد بن سلام، عن جده أبي سلام، عن
+  // أبي مالك الأشعري رضي الله عنه.» reached the reader. «لا عنعنة ولا سند».
+  console.log('\n=== BATCH 4 [b24] · NO CHAIN OF NARRATORS IN THE PROSE ===');
+  {
+    const L24 = await esm('lib/takhrij-lock.js');
+    const M24 = 'قال رسول الله صلى الله عليه وسلم: «الطهور شطر الإيمان».';
+    const W24 = M24 + ' هذا الحديث من رواية يحيى بن أبي كثير، عن زيد بن سلام، عن جده أبي سلام، عن أبي مالك الأشعري رضي الله عنه. وهو حديث عظيم.';
+    ok('b24 W · the sentence that is only a chain goes whole, no hole', L24.lockTakhrij(W24, []).text === M24 + ' وهو حديث عظيم.', JSON.stringify(L24.lockTakhrij(W24, []).text));
+    const TOLD = 'حدثنا مسدد، حدثنا يحيى، عن شعبة، عن قتادة، عن أنس رضي الله عنه قال: قال رسول الله صلى الله عليه وسلم: «لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه».';
+    ok('b24 sibling · «حدثنا… عن… عن…» before a matn: the chain goes, the Companion stays',
+      L24.lockTakhrij(TOLD, []).text.startsWith('عن أنس رضي الله عنه قال: قال رسول الله'), JSON.stringify(L24.lockTakhrij(TOLD, []).text));
+    const NAMED = 'وقد رواه البيهقي بإسناده عن ابن عباس أن النبي صلى الله عليه وسلم قال: «الحج عرفة».';
+    ok('b24 sibling · «بإسناده عن…» with the credit on a page: «بإسناده» goes, the rest stays',
+      L24.lockTakhrij(NAMED, [{ title: 'السنن الكبرى', passage: 'رواه البيهقي الحج عرفة' }]).text === 'وقد رواه البيهقي عن ابن عباس أن النبي صلى الله عليه وسلم قال: «الحج عرفة».',
+      JSON.stringify(L24.lockTakhrij(NAMED, [{ title: 'السنن الكبرى', passage: 'رواه البيهقي الحج عرفة' }]).text));
+    for (const [label, t] of [
+      ['a Companion and the Prophet ﷺ are two links, not a chain', 'وعن ابن عمر رضي الله عنهما عن النبي صلى الله عليه وسلم قال: «صلاة الجماعة أفضل».'],
+      ['«عن … عن …» inside the matn is the matn', 'العقل: فلا يجب على المجنون، لقول النبي صلى الله عليه وسلم: «رفع القلم عن ثلاثة: عن النائم حتى يستيقظ، وعن الصبي حتى يحتلم، وعن المجنون حتى يعقل».'],
+      ['one link after a ruling is no chain', 'ويجب الوضوء من لحم الإبل، عن جابر بن سمرة رضي الله عنه.'],
+    ]) ok('b24 control · ' + label, L24.lockTakhrij(t, []).text === t, JSON.stringify(L24.lockTakhrij(t, []).text));
+    const src24 = read('lib/takhrij-lock.js').replace(/\r\n/g, '\n');
+    const dir24 = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
+    const tmp24 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-b24-mut-'));
+    try {
+      const changed = src24.split('    const isnad = proseIsnadCut(s, sen);').join('    const isnad = null; // mutant');
+      ok('MUTANT b24 isnad seam applied', changed !== src24);
+      const file = path.join(tmp24, 'isnad-kept.mjs');
+      fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir24, spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b24] the chain reaches the reader again', mod.lockTakhrij(W24, []).text.includes('عن زيد بن سلام'));
+    } finally {
+      try { fs.rmSync(tmp24, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
