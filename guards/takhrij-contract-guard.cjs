@@ -1640,7 +1640,10 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       asked20.push(ids.slice());
       const oneBook = ids.length === 1 && ids[0] === BUKHARI20;
       return matns.map((m) => (oneBook
-        ? { matn: m, subjectIds: [BUKHARI20], atoms: ['حدثنا سفيان عن ابن مسعود رضي الله عنه قال: ' + m] }
+        // [111-roots-69] — the atom in the shape al-Bukhari 527 has it: the Companion asks and the Prophet ﷺ
+        // answers. (It read «عن ابن مسعود رضي الله عنه قال: <matn>» — the matn in the Companion's voice, which a
+        // short matn may no longer be confirmed by.)
+        ? { matn: m, subjectIds: [BUKHARI20], atoms: ['حدثنا سفيان عن ابن مسعود رضي الله عنه قال: سألت النبي صلى الله عليه وسلم أي العمل أحب إلى الله؟ قال: ' + m] }
         : { matn: m, subjectIds: [], atoms: [] }));
     };
     const pass20 = await T20.applyTakhrij(ANSWER20, { env: ON, lookup: lookup20 });
@@ -2779,6 +2782,98 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
         (await run60(mod, W60, SEEN, 'باطل')) === W60);
     } finally {
       try { require('fs').rmSync(tmp60, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
+  // ── [111-roots-69] · THE ATOM CARRIES THE MATN BY ITS WORDS, AND A SHORT ONE IN THE PROPHET'S ﷺ VOICE ──
+  // MEASURED on the preview of 20308f8 (roots, round 1): Q5 «مفصّل» «ما أسفلَ من الكعبين ففي النار» ⟸ «(متفق عليه)» —
+  // مسلم's atom was the muḥrim's khuffs, matched by LETTERS («…ما أسفل» inside «وليقطعهما أسفل»); Q6 «مفصّل» «ليس في
+  // الحلي زكاة» ⟸ «(الترمذي · لم يوقف على حكم)» — the Tirmidhī atom has it as four Companions' saying. And the b4b
+  // battery's three: «إماطة الأذى عن الطريق صدقة»، «احتجم وهو صائم» (متفق عليه)، «مسح على العمامة والموقين».
+  console.log('\n--- ROOTS-69. THE ATOM CARRIES THE MATN BY ITS WORDS, NOT ITS LETTERS OR ITS FORMULA ---');
+  {
+    const T69 = await esm('lib/takhrij.js');
+    const MUSLIM_KHUFF = 'وحدثنا يحيى بن يحيى قال قرأت على مالك عن نافع عن ابن عمر رضي الله عنهما أن رجلا سأل رسول الله صلى الله عليه وسلم ما يلبس المحرم من الثياب فقال رسول الله صلى الله عليه وسلم: «لا تلبسوا القمص ولا العمائم ولا السراويلات ولا البرانس ولا الخفاف إلا أحد لا يجد النعلين فليلبس الخفين وليقطعهما أسفل من الكعبين»';
+    const BUKHARI_5787 = 'حدثنا آدم حدثنا شعبة حدثنا سعيد بن أبي سعيد المقبري عن أبي هريرة رضي الله عنه عن النبي صلى الله عليه وسلم قال: «ما أسفل من الكعبين من الإزار ففي النار»';
+    const TIRMIDHI_HULI = 'وقد روي عن عمرو بن شعيب عن أبيه عن جده عن النبي صلى الله عليه وسلم أنه رأى في الحلي زكاة. وفي إسناد هذا الحديث مقال. واختلف أهل العلم في ذلك، فرأى بعض أهل العلم من أصحاب النبي صلى الله عليه وسلم والتابعين في الحلي زكاة. وقال بعض أصحاب النبي صلى الله عليه وسلم منهم: ابن عمر، وعائشة، وجابر بن عبد الله، وأنس بن مالك: ليس في الحلي زكاة، وهكذا روي عن بعض فقهاء التابعين';
+    const SHAYBA_HASAN = '10182 - حدثنا أبو أسامة، عن هشام، عن الحسن، قال: «ليس في الحلي زكاة يعار ويلبس»';
+    const SHORT = 'ما أسفلَ من الكعبين ففي النار';
+    const run69 = async (mod, matn, ids, atoms, frame) => (await mod.applyTakhrij((frame || 'قال النبي صلى الله عليه وسلم: «') + matn + '» وهذا أصل في الباب.',
+      { env: ON, lookup: lookupOf({ [matn]: { matn, subjectIds: ids, atoms } }) })).text;
+    const w1 = await run69(T69, SHORT, ['FC-000645', 'FC-000648'], [BUKHARI_5787, MUSLIM_KHUFF]);
+    ok('ROOTS-69 W1 · «ما أسفلَ من الكعبين ففي النار»: مسلم\'s khuff atom does not carry it — no «(متفق عليه)», no «(مسلم)»',
+      !w1.includes('(متفق عليه)') && !w1.includes('(مسلم)'), JSON.stringify(w1));
+    ok('ROOTS-69 W1 · ...word by word: «ما أسفل» is not found inside «وليقطعهما أسفل»', T69.atomCarriesMatn(MUSLIM_KHUFF, SHORT) === false);
+    const full = 'ما أسفل من الكعبين من الإزار ففي النار';
+    ok('ROOTS-69 sibling · the whole wording al-Bukhari carries still takes «(البخاري)», and the khuff atom still adds nothing',
+      (await run69(T69, full, ['FC-000645', 'FC-000648'], [BUKHARI_5787, MUSLIM_KHUFF])).includes('(البخاري)'));
+    const huliFrame = 'واستدلّوا بأنّه رُوي عن النبي صلى الله عليه وسلم: «';
+    const w2 = await run69(T69, 'ليس في الحلي زكاة', ['FC-000658', 'FC-000626'], [TIRMIDHI_HULI, SHAYBA_HASAN], huliFrame);
+    ok('ROOTS-69 W2 · «ليس في الحلي زكاة»: the Companions\' saying in الترمذي and al-Hasan\'s in ابن أبي شيبة prove no book',
+      !/\((?:الترمذي|ابن أبي شيبة)/u.test(w2), JSON.stringify(w2));
+    const V = (atom, matn) => T69.carriedInTheProphetsVoice(atom, matn);
+    ok('ROOTS-69 sibling · «عن ابن عمر رضي الله عنهما قال: …» — a Companion\'s own words are not the Prophet\'s',
+      !V('حدثنا مالك عن نافع عن ابن عمر رضي الله عنهما قال: ليس في الحلي زكاة', 'ليس في الحلي زكاة'));
+    ok('ROOTS-69 sibling · «قالت عائشة رضي الله عنها: …» after the Prophet is named — her words, not his',
+      !V('عن عائشة أنها كانت تحلي بنات أخيها في حجرها ولا تزكيه، وسئلت عن النبي صلى الله عليه وسلم فقالت عائشة رضي الله عنها: ليس في الحلي زكاة', 'ليس في الحلي زكاة'));
+    ok('ROOTS-69 sibling · a Successor\'s words («عن الحسن قال: …») with no Prophet named before them are nobody\'s marfūʿ',
+      !V(SHAYBA_HASAN, 'ليس في الحلي زكاة'));
+    ok('ROOTS-69 sibling · the Prophet named in the entry before does not voice the next one (الدارقطني 1954 → 1955 «عن جابر»)',
+      !V('عن الشعبي عن فاطمة بنت قيس أن النبي صلى الله عليه وسلم قال: «في الحلي زكاة» 1955 - وعن أبي حمزة عن الشعبي عن جابر بن عبد الله: قال «ليس في الحلي زكاة»', 'ليس في الحلي زكاة'));
+    ok('ROOTS-69 control · «عن أبي هريرة رضي الله عنه عن النبي ﷺ قال: …» — his words, confirmed',
+      V(BUKHARI_5787, 'ما أسفل من الكعبين من الإزار ففي النار') && V('عن أبي هريرة رضي الله عنه عن النبي صلى الله عليه وسلم قال: الدين النصيحة', 'الدين النصيحة'));
+    ok('ROOTS-69 control · a short clause deep in a long marfūʿ is still his («…والحياء شعبة من الإيمان»)',
+      V('عن أبي هريرة عن النبي صلى الله عليه وسلم قال: الإيمان بضع وسبعون شعبة فأفضلها قول لا إله إلا الله وأدناها إماطة الأذى عن الطريق والحياء شعبة من الإيمان', 'والحياء شعبة من الإيمان'));
+    ok('ROOTS-69 control · a numbered entry of a book of entries opens on its matn and is confirmed as before',
+      V('3913 - «طلب العلم فريضة على كل مسلم» . (صحيح) [عد هب] عن أنس', 'طلب العلم فريضة على كل مسلم'));
+    // the b4b battery's three
+    ok('ROOTS-69 battery · «إماطة الأذى عن الطريق صدقة»: the شعب hadith carries «إماطة الأذى عن الطريق» and not «صدقة» — not carried',
+      !T69.atomCarriesMatn('عن أبي هريرة قال قال رسول الله صلى الله عليه وسلم الإيمان بضع وسبعون أو بضع وستون شعبة فأفضلها قول لا إله إلا الله وأدناها إماطة الأذى عن الطريق والحياء شعبة من الإيمان', 'إماطة الأذى عن الطريق صدقة'));
+    ok('ROOTS-69 battery · «أن النبي ﷺ احتجم وهو صائم»: «أن النبي ﷺ كان يقبل وهو صائم» is another hadith — not carried',
+      !T69.atomCarriesMatn('عن عائشة رضي الله عنها أن النبي صلى الله عليه وسلم كان يقبل وهو صائم', 'أن النبي صلى الله عليه وسلم احتجم وهو صائم')
+        && T69.atomCarriesMatn('عن ابن عباس رضي الله عنهما أن النبي صلى الله عليه وسلم احتجم وهو صائم', 'أن النبي صلى الله عليه وسلم احتجم وهو صائم'));
+    ok('ROOTS-69 battery · «مسح رسول الله ﷺ على العمامة والموقين»: Bilāl\'s khuffs are not carried by the formula',
+      !T69.atomCarriesMatn('عن بلال قال مسح رسول الله صلى الله عليه وسلم على الخفين وعلى خماره للعمامة', 'مسح رسول الله صلى الله عليه وسلم على العمامة والموقين'));
+    const LONG = 'أن رسول الله صلى الله عليه وسلم كان إذا قام إلى الصلاة رفع يديه حتى يكونا حذو منكبيه';
+    const LONG_OTHER = 'عن حذيفة أن رسول الله صلى الله عليه وسلم كان إذا قام إلى الصلاة من الليل يشوص فاه بالسواك';
+    ok('ROOTS-69 sibling · a long matn whose anchor is the formula and two words is not carried by another hadith sharing them',
+      !T69.atomCarriesMatn(LONG_OTHER, LONG));
+    ok('ROOTS-69 control · a long quotation that differs after a real anchor is still carried (B21\'s own control)',
+      T69.atomCarriesMatn('أمر الناس أن يكون آخر عهدهم بالبيت إلا أنه خفف عن المرأة الحائض', 'أمر الناس أن يكون آخر عهدهم بالبيت، إلا أنه خفف عن الحائض'));
+    const TAHUR = 'الطهور شطر الإيمان والحمد لله تملأ الميزان';
+    const TAHUR_OTHER = 'عن أبي مالك الأشعري قال قال رسول الله صلى الله عليه وسلم: الطهور شطر الإيمان والحمد لله حمد الشاكرين';
+    ok('ROOTS-69 sibling · a matn under eight words of its own is carried whole or not at all — an anchor that differs after it proves nothing',
+      !T69.atomCarriesMatn(TAHUR_OTHER, TAHUR));
+    const SUFFIX_ATOM = 'فليقطعهما أسفل من الكعبين من الإزار وغيره';
+    const SUFFIX_MATN = 'ما أسفل من الكعبين من الإزار ففي النار يوم القيامة';
+    ok('ROOTS-69 sibling · a long matn\'s anchor is not found inside another word', !T69.atomCarriesMatn(SUFFIX_ATOM, SUFFIX_MATN));
+    ok('ROOTS-69 control · the book\'s «وما أعطي…» carries the quotation «ما أعطي…» — a joining «و» or «ف» on its first word only',
+      T69.atomCarriesMatn('عن أبي سعيد الخدري أن رسول الله صلى الله عليه وسلم قال: ومن يتصبر يصبره الله، وما أعطي أحد عطاء خيرا وأوسع من الصبر', 'ما أعطي أحد عطاء خيرا وأوسع من الصبر')
+        && !T69.atomCarriesMatn('وليقطعهما أسفل من الكعبين', 'ما أسفل من الكعبين'));
+    const src69 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seams69 = [
+      ['letters', "const carriesWords = (haystack, needle) => (' ' + haystack + ' ').includes(' ' + needle + ' ')\n",
+        'const carriesWords = (haystack, needle) => haystack.includes(needle)\n',
+        (mod) => mod.atomCarriesMatn(SUFFIX_ATOM, SUFFIX_MATN)],
+      ['short-whole', '  if (ownWordCount(words) < ANCHOR_MIN_OWN_WORDS) return false; // [111-roots-69]\n', '',
+        (mod) => mod.atomCarriesMatn(TAHUR_OTHER, TAHUR)],
+      ['formula-anchor', '  if (ownWordCount(words.slice(0, cut)) < MIN_ANCHOR_WORDS) return false; // [111-roots-69]\n', '',
+        (mod) => mod.atomCarriesMatn(LONG_OTHER, LONG)],
+      ['voice', '    if (!carriedInTheProphetsVoice(atom, matn)) continue;\n', '',
+        async (mod) => /\(الترمذي/u.test(await run69(mod, 'ليس في الحلي زكاة', ['FC-000658', 'FC-000626'], [TIRMIDHI_HULI, SHAYBA_HASAN], huliFrame))],
+    ];
+    for (const [tag, from, to, back] of seams69) {
+      const mutated = src69.split(from).join(to);
+      ok('MUTANT ROOTS-69 ' + tag + ' seam applied', mutated !== src69);
+      const tmp = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-roots69-mut-'));
+      try {
+        const f = path.join(tmp, 'takhrij.mjs');
+        require('fs').writeFileSync(f, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + f.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: without [roots-69] ' + tag + ' the false carrier is back', await back(mod));
+      } finally {
+        try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
     }
   }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
