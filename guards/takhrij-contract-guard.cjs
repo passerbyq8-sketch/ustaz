@@ -2235,6 +2235,56 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── BATCH 4 [b28] · THE LAFZ FUNCTION TRIES THE INTENDED WORD ────────────────────────────────
+  // MEASURED at 2aaf987 (EZIK-CX-M111 row 28), unchanged at 92d3c7d: «الصلاة على وقتها» → «الصلاات على
+  // وقتها»، and in «النية والصدقة والأعمال بالنيات» the cap of two was spent before «بالنيات». The owner's
+  // ruling: the intended word, inside the locked rule (one word, نيات ⇆ نية) and under its cap.
+  console.log('\n--- B28. THE LAFZ FUNCTION TRIES THE INTENDED WORD ---');
+  {
+    const T28 = await esm('lib/takhrij.js');
+    ok('B28 W · «الصلاة» is not swapped into «الصلاات», a form no book writes',
+      JSON.stringify(T28.lafzVariants('الصلاة على وقتها')) === '[]', JSON.stringify(T28.lafzVariants('الصلاة على وقتها')));
+    const MIX = 'النية والصدقة والأعمال بالنيات';
+    ok('B28 W · the plural the door was opened for is tried first, before the cap is spent',
+      T28.lafzVariants(MIX)[0] === 'النية والصدقة والأعمال بالنية', JSON.stringify(T28.lafzVariants(MIX)));
+    ok('B28 sibling · a singular is still read to its plural when nothing else is there',
+      JSON.stringify(T28.lafzVariants('إنما الأعمال بالنية')) === JSON.stringify(['إنما الأعمال بالنيات']));
+    ok('B28 control · the cap and the one-word rule are the same',
+      T28.LAFZ_MAX_VARIANTS === 2 && T28.lafzVariants(MIX).length === 2 && T28.lafzVariants(MIX).every((v) => {
+        const a = MIX.split(' '); const b = v.split(' ');
+        return a.length === b.length && a.filter((w, i) => w !== b[i]).length === 1;
+      }));
+    // Through the real pass: البخاري carries the matn as the answer writes it, مسلم only in the singular.
+    const MUSLIM_WORDING = 'النية والصدقة والأعمال بالنية';
+    const lookup28 = async (matns, options) => {
+      const ids = (options && options.bookIds) || [];
+      const muslim = ids.length === 1 && ids[0] === 'FC-000648';
+      return matns.map((matn) => {
+        if (muslim) return matn === MUSLIM_WORDING
+          ? { matn, subjectIds: ['FC-000648'], atoms: [atomFor(MUSLIM_WORDING, 'عمر بن الخطاب')] } : { matn, subjectIds: [], atoms: [] };
+        return matn === MIX ? { matn, subjectIds: ['FC-000645'], atoms: [atomFor(MIX, 'عمر بن الخطاب')] } : { matn, subjectIds: [], atoms: [] };
+      });
+    };
+    const A28 = answerWith(MIX);
+    const live = (await T28.applyTakhrij(A28, { env: ON, lookup: lookup28 })).text;
+    ok('B28 W · through the pass: مسلم is asked in his own wording and the matn is «(متفق عليه)»',
+      live.includes('(' + L.AGREED_UPON + ')'), JSON.stringify(live));
+    const src28 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam = '  tries.sort((a, b) => a.kind - b.kind || a.i - b.i);';
+    const mutated = src28.split(seam).join('  // mutant: the words in the order they stand, as before');
+    ok('MUTANT B28 order seam applied', mutated !== src28);
+    const tmp = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-b28-mut-'));
+    try {
+      const file = path.join(tmp, 'takhrij.mjs');
+      require('fs').writeFileSync(file, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b28] the cap is spent first and the matn leaves as «(البخاري)» again',
+        (await mod.applyTakhrij(A28, { env: ON, lookup: lookup28 })).text.includes('(البخاري)'));
+    } finally {
+      try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
