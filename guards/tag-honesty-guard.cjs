@@ -786,7 +786,9 @@ const unsupportedIsHandledSilently = (module) => {
         (mod) => mod.reviewAnswer({ text: 'وقال طائفةٌ من أهل العلم: إن الأمر فيه سعة.', evidence: [], domain: 'fiqh', mode: 'chat' }).text === 'وقال طائفةٌ من أهل العلم: إن الأمر فيه سعة.');
       await killed44('without the first condition of (4) the Prophet\'s ﷺ words go to a general speaker again',
         '  if (PROPHET_FRAME_RE.test(view(text)) || (previous && PROPHET_FRAME_RE.test(view(previous)))) return null;\n', '',
-        (mod) => !/بعض أهل العلم|في الأثر/u.test(mod.reviewAnswer({ text: 'وسأل ابن عمر النبيَّ ﷺ عن ذلك. فقال: «افعل ولا حرج».', evidence: [], domain: 'fiqh', mode: 'chat' }).text));
+        // [h53]: was the first witness alone; [h53] keeps it too, so a twin it does not shield joins it.
+        (mod) => ['وسأل ابن عمر النبيَّ ﷺ عن ذلك. فقال: «افعل ولا حرج».', 'وكان ابن باز يستدل بسنة النبيِّ ﷺ في ذلك. فقال: «افعل ولا حرج».']
+          .every((text) => !/بعض أهل العلم|في الأثر/u.test(mod.reviewAnswer({ text, evidence: [], domain: 'fiqh', mode: 'chat' }).text)));
     }
     // ── [h46] · GOD'S NAME IS NEVER REPLACED, AND A PRAYER IS ONE PIECE ───────────────────────
     // MEASURED (batch 4, W-mash-c) at 92d3c7d, in production wherever the seal keeps the sentence:
@@ -849,6 +851,42 @@ const unsupportedIsHandledSilently = (module) => {
       ok('h46 speaker-from-before mutant seam applied', before46.changed, before46.error);
       ok('MUTANT KILLED: without [h46] «وعن علي رضي الله عنه قال:» takes a speaker from the sentence before',
         before46.loaded && before46.survived === false, JSON.stringify(before46));
+    }
+    // ── [h53] · A VERB OF NARRATION IS NO FRAME, AND A COMPANION IS NEVER «بعض أهل العلم» ─────────
+    // MEASURED on the owner's battery (batch-4 preview 7f671f7, 22 Sep, question 11) and in production
+    // (2026-09-22T03:48:04Z): «فبعث إليهم أبا عبيدة وقال» → «فبعث إليهم بعض أهل العلم وقال»، «بل تمنى عمر
+    // … فقال» → «بل تمنى بعض أهل العلم …»، «فلمّا ذهب أبو طالبٍ ليأخذَه» → «فلمّا وذهب بعض أهل العلم ليأخذَه».
+    // The owner's invariant: a name is generalised only as the subject of a verb of saying or view that
+    // brings in words or a school; a narrated man, an object and a Companion keep the text as written
+    // (a Companion who SAYS takes «وجاء في الأثر:», as he always has with his prayer).
+    // The witnesses are the log's own «before» texts (the second completed after the log's 200-char cut).
+    // null = the text exactly as the model wrote it; otherwise the whole delivered text.
+    {
+      const say53 = (t) => module.reviewAnswer({ text: t, evidence: [], domain: 'fiqh', mode: 'chat' }).text;
+      const ROWS53 = [["W53-abu-talib-log","كان النبي ﷺ في صغره مع عمه في تجارة الشام.\nثمّ انصرف بحيرى فصنع لهم طعامًا، فلمّا ذهب أبو طالبٍ ليأخذَه معه استخبرَه بحيرى عمّا هو له، فأخبره أنّه ابنُ أخيه، فقال له: ما ينبغي لهذا الغلامِ أن يذهبَ إلى الشام، فإنّ اليهودَ إن رأَوه وعرفوا منه م",null],["W53-bath-abu-ubayda-log","وشهد له النبي صلى الله عليه وسلم بالجنة ضمن العشرة المبشرين، وائتمنه على أموال الأمة وأسرارها، حتى إن وفداً جاء يطلب من النبي صلى الله عليه وسلم أن يبعث معهم أميناً، فبعث إليهم أبا عبيدة وقال: «هذا أمين هذه الأمة».",null],["W53-tamanna-umar-log","وكان أبو عبيدة محبوبا عند الصحابة.\nبل تمنى عمر ذات مرة وهو بين جلسائه فقال: «لكني أتمنى بيتاً ممتلئاً رجالاً مثل أبي عبيدة بن الجراح».",null],["O53-arsala-muadh","والدعوة إلى التوحيد أول الواجبات.\nثم أرسل النبي ﷺ معاذا إلى اليمن وقال: «إنك تأتي قوما من أهل الكتاب».",null],["O53-jaa-abubakr","وكان الصديق أسبق الناس إلى الخير.\nفجاء أبو بكر رضي الله عنه فقال: «يا رسول الله، هذا مالي كله».","وكان الصديق أسبق الناس إلى الخير.\nوجاء في الأثر: «يا رسول الله، هذا مالي كله»."],["O53-dhahaba-ibnumar-souq","وكان ابن عمر شديد الاتباع.\nوذهب ابن عمر إلى السوق فاشترى طعاما لأهله.",null],["O53-dhahaba-ahmad-wujub","واختلف العلماء في الوضوء من لحم الإبل.\nوذهب الإمام أحمد إلى وجوب الوضوء من لحم الإبل.","واختلف العلماء في الوضوء من لحم الإبل.\nوذهب بعض أهل العلم إلى وجوب الوضوء من لحم الإبل.\nوتُراجَع المسألة مع أهل العلم لظهور الخلاف فيها."],["O53-qala-ibnbaz","وصلاة الجماعة واجبة.\nوقال ابن باز رحمه الله: صلاة الجماعة في المسجد واجبة على الرجال القادرين.","وصلاة الجماعة واجبة.\nوقال بعض أهل العلم رحمه الله: صلاة الجماعة في المسجد واجبة على الرجال القادرين."],["S53-jaa-umar-bare","وكان عمر وقافا عند كتاب الله.\nفجاء عمر فقال: «يا رسول الله، ألسنا على الحق؟».",null],["S53-kharaja-ibnmasud","وكان ابن مسعود من فقهاء الصحابة.\nوخرج ابن مسعود إلى الناس فقال: «اتبعوا ولا تبتدعوا».",null],["S53-raa-ibnumar","والسنة في الصلاة الطمأنينة.\nورأى ابن عمر رجلا يصلي فقال له: «ارجع فصل».",null],["S53-saala-abuhurayra","وكان أبو هريرة حريصا على العلم.\nوسأل أبو هريرة النبي ﷺ فقال: «من أسعد الناس بشفاعتك؟».",null],["S53-baatha-umar-abumusa","وكان عمر يولي الأكفاء.\nوبعث عمر أبا موسى إلى البصرة وقال: «علمهم السنة».",null],["S53-ata-rajul-ibnabbas","وكان ابن عباس ترجمان القرآن.\nوأتى ابن عباس رجل فسأله عن ذلك فقال: «لا بأس».",null],["S53-dhahaba-malik-madina","وكان مالك محدثا.\nوذهب مالك إلى المدينة فلقي شيوخها.",null],["S53-dhahaba-shafii-anna","واختلفوا في مس الذكر.\nوذهب الشافعي إلى أن مس الذكر ينقض الوضوء.",null],["S53-dhahaba-ibnqudama-qawl","واختلفوا في المسألة.\nوذهب ابن قدامة إلى القول بالاستحباب.","واختلفوا في المسألة.\nوذهب بعض أهل العلم إلى القول بالاستحباب."],["S53-suila-ibnbaz","والمسألة فيها سعة.\nوسُئل ابن باز عن ذلك فقال: «لا حرج في ذلك إن شاء الله».","والمسألة فيها سعة.\nوسُئل بعض أهل العلم عن ذلك فقال: «لا حرج في ذلك إن شاء الله»."],["S53-yara-ibnuthaymin","والجمع للمسافر جائز.\nويرى ابن عثيمين أن الجمع للمسافر جائز عند الحاجة.","والجمع للمسافر جائز.\nومن أهل العلم من يرى أن الجمع للمسافر جائز عند الحاجة."],["S53-dhakara-nawawi","والسواك سنة.\nوذكر النووي أن السواك مستحب في كل وقت.","والسواك سنة.\nالسواك مستحب في كل وقت."],["S53-ibntaymiyya-namefirst","والتوبة واجبة.\nوابن تيمية قال: «التوبة واجبة من كل ذنب».","والتوبة واجبة.\nوقال بعض أهل العلم: «التوبة واجبة من كل ذنب»."],["C53-qala-umar-bare","والتراويح سنة.\nوقال عمر: «نعمت البدعة هذه».","والتراويح سنة.\nوجاء في الأثر: «نعمت البدعة هذه»."],["C53-qalat-aisha-bare","وقضاء الحائض الصوم واجب.\nوقالت عائشة: «كنا نؤمر بقضاء الصوم ولا نؤمر بقضاء الصلاة».","وقضاء الحائض الصوم واجب.\nوجاء في الأثر: «كنا نؤمر بقضاء الصوم ولا نؤمر بقضاء الصلاة»."],["C53-qala-ibnabbas-bare","والكفر دركات.\nوقال ابن عباس: «هو كفر دون كفر».","والكفر دركات.\nوجاء في الأثر: «هو كفر دون كفر»."],["C53-qala-umar-abdalaziz","والعدل أساس الملك.\nوقال عمر بن عبد العزيز: «إن الله لا يؤاخذ العامة بعمل الخاصة».","والعدل أساس الملك.\nوقال بعض أهل العلم: «إن الله لا يؤاخذ العامة بعمل الخاصة»."],["C53-qala-ali-qari","والشرح مفيد.\nوقال علي القاري: «هذا حديث حسن المعنى».","والشرح مفيد.\nوقال بعض أهل العلم: «هذا حديث حسن المعنى»."],["C53-qala-malik-ibn-anas","والسنة سفينة نوح.\nوقال مالك بن أنس: «السنة سفينة نوح من ركبها نجا».","والسنة سفينة نوح.\nوقال بعض أهل العلم: «السنة سفينة نوح من ركبها نجا»."]];
+      for (const [id, input, expected] of ROWS53) {
+        const out = say53(input);
+        ok('h53 ' + id + (expected === null ? ': exactly as the model wrote it' : ': as before h53, or «وجاء في الأثر:» for a Companion'),
+          out === (expected === null ? input : expected), out);
+      }
+      const W53 = (id) => ROWS53.find((row) => row[0] === id)[1];
+      const killed53 = async (name, from, to, survives) => {
+        const m = await runMutant({ sourceFile: REVIEWER, name, transform: (source) => source.replace(from, to), survives });
+        ok('h53 mutant seam applied — ' + name, m.changed, m.error);
+        ok('MUTANT KILLED: ' + name, m.loaded && m.survived === false, JSON.stringify(m));
+      };
+      await killed53('without [h53] «ذهب أبو طالب ليأخذه» is a school again',
+        "    if (at.verb === 'ذهب' && !DHAHABA_TO_A_SCHOOL_RE.test(next)) continue; // [h53] — he walked\n", '',
+        (mod) => mod.reviewAnswer({ text: W53('W53-abu-talib-log'), evidence: [], domain: 'fiqh', mode: 'chat' }).text === W53('W53-abu-talib-log'));
+      await killed53('without [h53] «فبعث إليهم أبا عبيدة وقال» names «بعض أهل العلم» again',
+        '  if (narratesTheName(sentence.slice(match.index, nameStart)) || /^أبا\\s/u.test(name.name) || isCompanionName(name.name)) return null;\n', '',
+        (mod) => mod.reviewAnswer({ text: W53('W53-bath-abu-ubayda-log'), evidence: [], domain: 'fiqh', mode: 'chat' }).text === W53('W53-bath-abu-ubayda-log'));
+      await killed53('without [h53] «وخرج ابن مسعود إلى الناس فقال:» takes «بعض أهل العلم» after the verb again',
+        '    if (told(text.slice(0, m.index)) || (previous && told(previous)) || (!companion && isCompanionName(claimed))) return null;\n', '',
+        (mod) => mod.reviewAnswer({ text: W53('S53-kharaja-ibnmasud'), evidence: [], domain: 'fiqh', mode: 'chat' }).text === W53('S53-kharaja-ibnmasud'));
+      await killed53('without [h53] «وقال عمر:» becomes «وقال بعض أهل العلم:» again',
+        '  const companion = isCompanionName(attribution.claimed) // [h53]\n    || (', '  const companion = (',
+        (mod) => !/بعض أهل العلم/u.test(mod.reviewAnswer({ text: W53('C53-qala-umar-bare'), evidence: [], domain: 'fiqh', mode: 'chat' }).text));
     }
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
