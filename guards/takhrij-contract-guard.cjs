@@ -2172,6 +2172,69 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── BATCH 4 [b27] · A QUESTION ABOUT THE GRADE AND THE SOURCE HAS A HEAD ────────────────────
+  // MEASURED (the owner's battery; EZIK-SIDE-111-HANDOFF-2026-09-21-B row ٢٧; and «الطهور شطر الإيمان من
+  // رواه؟» at 92d3c7d): the grade, the grader and the source were asked and not answered. The contract:
+  // the answer opens with what the library proved — the book, the grade with its ladder grader — or
+  // says plainly that the library did not prove it; never a denial; a split verdict is said split.
+  console.log('\n--- B27. A QUESTION ABOUT THE GRADE AND THE SOURCE HAS A HEAD ---');
+  {
+    const T27 = await esm('lib/takhrij.js');
+    const TUHUR = 'الطهور شطر الإيمان';
+    const TALAB = 'طلب العلم فريضة على كل مسلم';
+    const A_TUHUR = 'قال رسول الله صلى الله عليه وسلم: «' + TUHUR + '».\n\nومعناه أن الطهارة نصف الإيمان.';
+    const A_TALAB = 'قال النبي صلى الله عليه وسلم: «' + TALAB + '».\n\nوالمقصود العلم الذي لا يسع المسلم جهله.';
+    const muslim = lookupOf({ [TUHUR]: { matn: TUHUR, subjectIds: ['FC-000648'], atoms: [atomFor(TUHUR, 'أبي مالك الأشعري')] } });
+    const run = async (mod, answer, question, lookup) => mod.applyTakhrij(answer, { env: ON, question, lookup });
+    const w1 = (await run(T27, A_TUHUR, 'الطهور شطر الإيمان من رواه؟', muslim)).text;
+    ok('B27 W · «من رواه؟» is answered first, from the library: «تخريج الحديث: مسلم.»',
+      w1.startsWith('تخريج الحديث: مسلم.\n\n' + A_TUHUR.split('»')[0]), JSON.stringify(w1));
+    const ruledLib = (rulings) => lookupOf({ [TALAB]: { matn: TALAB, subjectIds: ['FC-000652', ...Object.keys(rulings)],
+      atoms: [atomFor(TALAB, 'أنس بن مالك'), ...Object.values(rulings).map((r) => rulingAtomFor(TALAB, r))] } });
+    const w2 = (await run(T27, A_TALAB, 'ما صحة حديث «طلب العلم فريضة على كل مسلم»؟ اذكر تخريجه ومن حكم عليه', ruledLib({ 'FC-000788': 'صحيح' }))).text;
+    ok('B27 W · «ومن حكم عليه؟» names the grader the atom proved, with his grade',
+      w2.startsWith('تخريج الحديث: ابن ماجه، والحكم عليه في صحيح الجامع: صحيح.\n\n'), JSON.stringify(w2));
+    const split = (await run(T27, A_TALAB, 'ما درجة هذا الحديث؟', ruledLib({ 'FC-000788': 'صحيح', 'FC-000791': 'ضعيف' }))).text;
+    ok('B27 sibling · a split verdict is said split, with both graders, and nothing preferred',
+      split.startsWith('تخريج الحديث: ابن ماجه، والحكم عليه مختلف: صحيح في صحيح الجامع، وضعيف في ضعيف الجامع.\n\n'), JSON.stringify(split));
+    const WATAN = 'حب الوطن من الإيمان';
+    const A_WATAN = 'قال رسول الله صلى الله عليه وسلم: «' + WATAN + '».\n\nوحب الوطن أمر فطري.';
+    const fab = lookupOf({ [WATAN]: { matn: WATAN, subjectIds: ['FC-002061'], atoms: ['36 - " ' + WATAN + ' ". موضوع.'] } });
+    const w3 = (await run(T27, A_WATAN, 'هل حديث حب الوطن من الإيمان صحيح؟', fab)).text;
+    ok('B27 sibling · «(لا يثبت مرفوعا)» opens as a sentence naming the grader and his word',
+      w3.startsWith('الحديث لا يثبت مرفوعا إلى النبي صلى الله عليه وسلم، والحكم عليه في السلسلة الضعيفة: موضوع.\n\n'), JSON.stringify(w3));
+    const none = (await run(T27, A_TUHUR, 'ما درجة هذا الحديث؟', lookupOf({}))).text;
+    ok('B27 sibling · the library proved nothing: it says so, and denies nothing',
+      none.startsWith(T27.GRADING_HEAD_NOT_PROVED + '\n\n') && !/لا أصل له|لا يثبت|موضوع/u.test(T27.GRADING_HEAD_NOT_PROVED), JSON.stringify(none));
+    const threw = async () => { throw new Error('socket hang up'); };
+    ok('B27 control · a library that failed is not «did not prove»: no head',
+      (await run(T27, A_TUHUR, 'ما درجة هذا الحديث؟', threw)).text === A_TUHUR);
+    ok('B27 control · a question that asks no grade and no source gets no head',
+      !(await run(T27, A_TUHUR, 'ما حكم الوضوء قبل الصلاة؟', muslim)).text.startsWith('تخريج'));
+    const TWO = A_TUHUR + '\n\nوقال صلى الله عليه وسلم: «إنما الأعمال بالنيات».';
+    ok('B27 control · with two matns each keeps its own parentheses and no head chooses between them',
+      !(await run(T27, TWO, 'ما درجة هذه الأحاديث؟', muslim)).text.startsWith('تخريج'));
+    const STATED = 'قال رسول الله صلى الله عليه وسلم: «' + TUHUR + '» رواه البخاري.';
+    ok('B27 control · where the prose already states its own attribution, no head argues with it',
+      !(await run(T27, STATED, 'من رواه؟', muslim)).text.startsWith('تخريج'));
+    ok('B27 wiring · api/ask.js hands the reader\'s question to the takhrij pass',
+      /applyTakhrij\(readerText, \{[\s\S]{0,200}question: questionText,/u.test(require('fs').readFileSync(path.join(REPO, 'api/ask.js'), 'utf8')));
+    const src27 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam = "  if (head) out = head + '\\n\\n' + out;";
+    const mutated = src27.split(seam).join('  // mutant: no head');
+    ok('MUTANT B27 head seam applied', mutated !== src27);
+    const tmp = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-b27-mut-'));
+    try {
+      const file = path.join(tmp, 'takhrij.mjs');
+      require('fs').writeFileSync(file, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b27] «من رواه؟» is left unanswered again',
+        !(await run(mod, A_TUHUR, 'الطهور شطر الإيمان من رواه؟', muslim)).text.startsWith('تخريج'));
+    } finally {
+      try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {

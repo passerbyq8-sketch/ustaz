@@ -2043,6 +2043,8 @@ export default async function handler(req, res) {
           const { runTool, createEvidenceTable } = await import('../lib/free-brain/tools.js');
           const runnerDegraded = [];
           const pass = await applyTakhrij(readerText, {
+            // BATCH 4 [b27] — the question, read only to know whether it asks for the grade or the source.
+            question: questionText,
             lookup: runnerLookup(runTool, {
               table: createEvidenceTable(),
               degraded: runnerDegraded,
