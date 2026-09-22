@@ -101,15 +101,19 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
   //
   // SO THIS ROW IS NOT WEAKENED, IT IS SPLIT IN TWO: the sentence still goes whole, and the
   // quotation it carried comes back bare — asserting nothing, graded by nobody.
-  ok('...and the whole sentence goes with it — the credit, the grade and every clause built on them',
-    bare(r.text).indexOf('رواه البخاري') === -1 && bare(r.text).indexOf('متفق عليه') === -1
-      && bare(r.text).indexOf('نهى النبي') === -1 && r.outcome === 'REBUILT'
-      && Array.isArray(r.degraded) && r.degraded.length > 0,
+  // BATCH 4 [b26] — THE OWNER'S RULING: the unsourced credit goes ALONE, and what it credited stays
+  // whole with no hole. «، رواه البخاري ومسلم.» trails the quotation after a separator, holds no
+  // grade and nothing after it leans on it, so it is the credit that goes; the report of the
+  // Prophet's ﷺ prohibition stays, and his words stay in their own frame («وقال: «…»»). X-013/ز's
+  // half is not undone: a credit whose removal would leave a grade in our voice still takes its
+  // sentence (row 3 below, and the rows of §17 in takhrij-contract-guard).
+  ok('...and the credit goes ALONE — the report and its quotation stay, no clause leans on it [b26]',
+    bare(r.text) === bare('وقد نهى النبي صلى الله عليه وسلم عن السفر وحده، وقال: «' + MATN + '».')
+      && r.outcome === 'REBUILT' && Array.isArray(r.degraded)
+      && r.degraded.indexOf('takhrij-credit-only:1') !== -1,
     'text=' + r.text + ' outcome=' + r.outcome);
-  ok('...and the MATN the sentence quoted is NOT deleted with it',
-    bare(r.text).indexOf('الراكب شيطان') !== -1
-      && Array.isArray(r.salvagedMatns) && r.salvagedMatns.length === 1
-      && r.degraded.indexOf('takhrij-matn-kept:1') !== -1,
+  ok('...and the MATN the sentence quoted is NOT deleted with it, and keeps its frame [b26]',
+    bare(r.text).indexOf('وقال: «الراكب شيطان') !== -1,
     'text=' + r.text + ' salvaged=' + JSON.stringify(r.salvagedMatns));
   ok('...and the removal is REPORTED, not silent',
     Array.isArray(r.removed) && r.removed.length >= 1, JSON.stringify(r.removed));
@@ -140,8 +144,10 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
   // Same split as above, for an unsupported GRADE rather than a collector — and here the matn
   // is not in guillemets at all: it stands after a colon, which is the shape the fatwa corpus
   // writes most often. The seal reads it, keeps it, and takes «وقد صححه الألباني» with the rest.
-  ok('...and the sentence carrying the grade is dropped whole, leaving no claim of ours behind',
-    bare(r4.text).indexOf('صححه') === -1 && bare(r4.text).indexOf('وجاء في الحديث') === -1
+  // BATCH 4 [b26] — «يبقى بإطاره»: «وجاء في الحديث:» says whose words these are and carries
+  // neither the grade nor a credit, so the matn keeps it; the grade and all after the matn go.
+  ok('...and the grade goes with all after the matn; the frame «وجاء في الحديث:» stays with it [b26]',
+    bare(r4.text) === bare('وجاء في الحديث: «' + MATN + '».') && bare(r4.text).indexOf('صححه') === -1
       && r4.outcome === 'REBUILT',
     'text=' + r4.text + ' outcome=' + r4.outcome);
   ok('...while the matn it introduced survives, quoted and ungraded',
@@ -1574,8 +1580,10 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       // it states what changed: the frame around them is what paid, which IS the ruling.
       ok('AA-83 ...and the prophetic text it was attached to is untouched',
         out.text.includes(MATN), JSON.stringify(out.text));
-      ok('AA-83 ...and it is the frame around the narration that paid, not the narration',
-        !out.text.includes(SAYS) && !/صحيح/u.test(out.text), JSON.stringify(out.text));
+      // BATCH 4 [b26] — «يبقى بإطاره»: the frame saying whose words they are stays with them;
+      // what pays is everything after the quotation — the grade and its clause.
+      ok('AA-83 ...and it is the grade after the narration that paid; its frame stays with it [b26]',
+        out.text.includes(SAYS + ': «' + MATN + '»') && !/صحيح/u.test(out.text), JSON.stringify(out.text));
     }
     // ── ١١١/٢ · EACH SHAPE IS CARRIED, BECAUSE THE NEVER-EMPTY NET WOULD MASK IT ────
     // Every row below used to state the WORD-CUT — a sentence with a word torn out of its
@@ -1730,7 +1738,7 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         // the matn now is `matnToSalvage`. So the mutant disarms THAT, and the row reads exactly
         // as it read before: with the seam gone, the narration goes out with the grade.
         await drive('grade-rule-stops-salvaging-the-matn-from-the-sentence',
-          (src) => src.replace('      const salvage = matnToSalvage(block, sen, within);',
+          (src) => src.replace('      const salvage = matnToSalvage(block, sen, within, { framed: true });',
             '      const salvage = null; // mutant'),
           async (mod) => {
             // TWO LINES, deliberately. With one, cutting the sentence empties the answer and the
@@ -2111,8 +2119,9 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     {
       const narrated = 'قال النبيُّ صلّى الله عليه وسلّم: من صام رمضان إيمانًا واحتسابًا، وهو حديثٌ صحيحٌ.';
       const got88 = LOCK88.dropUnsourcedGrades(narrated).text;
-      ok('AA-88 a verb of saying with the whole narration behind it: the narration survives bare',
-        got88 === '«من صام رمضان إيمانًا واحتسابًا»', JSON.stringify(got88));
+      // BATCH 4 [b26] — the narration survives IN ITS FRAME, not bare.
+      ok('AA-88 a verb of saying with the whole narration behind it: the narration survives in its frame [b26]',
+        got88 === 'قال النبيُّ صلّى الله عليه وسلّم: «من صام رمضان إيمانًا واحتسابًا».', JSON.stringify(got88));
       ok('AA-88 ...and the grade it was wearing is gone with the sentence',
         !/صحيح/u.test(got88), JSON.stringify(got88));
     }
@@ -2280,7 +2289,12 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         const bare = await load5('fabricated-matn-salvaged-bare',
           '  if (carriesFabricationVerdict(body)) return true;',
           '  return false; // mutant');
-        const W9M = 'حديث «اطلبوا العلم ولو بالصين» حديث موضوع، لا يصح عن النبي صلى الله عليه وسلم.\nوقد رواه ابن عدي والعقيلي عن النبي صلى الله عليه وسلم بلفظ: «اطلبوا العلم ولو بالصين، فإن طلب العلم فريضة على كل مسلم».';
+        // BATCH 4 [b26] — the witness's second sentence used to have its quotation salvaged BARE out
+        // of «وقد رواه ابن عدي … بلفظ:»; a quotation whose only frame is the credit now goes with it,
+        // so that sentence could no longer show the refusal. The same fabricated matn, in a frame of
+        // its own with its credit trailing, is the shape the refusal now guards (and the credit-only
+        // cut asks the same question before keeping a quotation).
+        const W9M = 'حديث «اطلبوا العلم ولو بالصين» حديث موضوع، لا يصح عن النبي صلى الله عليه وسلم.\nوفي الحديث: «اطلبوا العلم ولو بالصين، فإن طلب العلم فريضة على كل مسلم» رواه ابن عدي والعقيلي.';
         ok('MUTANT KILLED: with the refusal gone the seal salvages the fabricated matn bare again',
           bare.lockTakhrij(W9M, []).text.includes('فريضة على كل مسلم'));
       } finally {
@@ -2297,7 +2311,7 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       // ends at a sentence boundary or does not happen. So the pin is on the SEAM that now
       // carries the rule, and on the absence of BOTH retired branches.
       ok('AA-88 the cut is the sentence, and neither retired test decides it',
-        lockSrc88.includes('const salvage = matnToSalvage(block, sen, within);')
+        lockSrc88.includes('const salvage = matnToSalvage(block, sen, within, { framed: true });')
           && lockSrc88.includes("cuts.push({ start: sen.start, end: sen.end, insert: '' });")
           && !lockSrc88.includes('cuts.push(leavesAStatement(rest) ?')
           && !lockSrc88.includes('cuts.push(/[' + BS88 + 'u0621-' + BS88 + 'u064A]/u.test(rest)'));
@@ -2476,16 +2490,19 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         'ويجوز الجمع بين الصلاتين للمطر.'],
       ['«بدليل … أخرجه البخاري ومسلم»', 'وزكاة الفطر واجبة على كل مسلم، بدليل حديث ابن عمر الذي أخرجه البخاري ومسلم.',
         'وزكاة الفطر واجبة على كل مسلم.'],
-      ['a quotation in the tail is salvaged after the ruling, as its own sentence',
+      // BATCH 4 [b26] — «متفق عليه» trails the quotation, so the credit goes ALONE and the
+      // quotation keeps its frame «لقوله ﷺ للمسيء صلاته:» instead of standing bare after the ruling.
+      ['[b26] a quotation right before its credit keeps its frame; the credit alone goes',
         'وتجب الطمأنينة في الركوع والسجود، لقوله صلى الله عليه وسلم للمسيء صلاته: «ثم اركع حتى تطمئن راكعا» متفق عليه.',
-        'وتجب الطمأنينة في الركوع والسجود. «ثم اركع حتى تطمئن راكعا».'],
+        'وتجب الطمأنينة في الركوع والسجود، لقوله صلى الله عليه وسلم للمسيء صلاته: «ثم اركع حتى تطمئن راكعا».'],
       ['a fabricated quotation in the tail is NOT salvaged (step 5)',
         'ويستحب حب الوطن، لحديث «حب الوطن من الإيمان» وهو موضوع رواه الصغاني.',
         'ويستحب حب الوطن.'],
     ]) {
       for (const [pl, pages] of [['no page', []], ['a page naming both shaykhs elsewhere', PAGE6]]) {
         const out = L6.lockTakhrij(text, pages);
-        ok('111-6 ' + label + ', ' + pl + ': only the tail goes', out.text === expected, JSON.stringify(out.text));
+        ok('111-6 ' + label + ', ' + pl + (label.startsWith('[b26]') ? ': only the credit goes' : ': only the tail goes'),
+          out.text === expected, JSON.stringify(out.text));
         ok('111-6 ' + label + ', ' + pl + ': ...and no attribution survives',
           !/الصحيحين|صحيح مسلم|البخاري|متفق عليه|رواه/u.test(out.text), JSON.stringify(out.text));
       }
@@ -2501,11 +2518,22 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       // dropped (the only three on the 154 drafts). They are pinned as tails below.
       ['the ruling left would end on a preposition', 'الحكم في الباب ظاهر.\nويجب أن يحافظ على، لحديث رواه مسلم.'],
       ['a one-word head with no ruling word in it', 'الحكم في الباب ظاهر.\nوقد، لما ثبت في الصحيحين.'],
-      ['an ayah stands in the tail', 'الحكم في الباب ظاهر.\nوالحج واجب على المستطيع، لقوله تعالى: ﴿وَلِلَّهِ عَلَى النَّاسِ حِجُّ الْبَيْتِ﴾ رواه البخاري.'],
     ]) {
       const out = L6.lockTakhrij(text, []);
       ok('111-6 NOT a tail — ' + label + ': the sentence goes whole, as before',
         out.text.trim() === 'الحكم في الباب ظاهر.' && !out.degraded.some((d) => d.startsWith('takhrij-evidence-tail')),
+        JSON.stringify(out.text));
+    }
+    // BATCH 4 [b26] — MOVED OUT OF THE NEGATIVES ABOVE. «رواه البخاري» after an āyah is a credit
+    // standing alone behind the āyah's closing bracket: it goes, and the ruling with its āyah stays.
+    // As a negative this row pinned the loss of the ruling (S6-18 on the 154 drafts at 92d3c7d).
+    // It is still not an evidence-tail cut — the āyah in the tail still refuses that rule.
+    {
+      const out = L6.lockTakhrij('الحكم في الباب ظاهر.\nوالحج واجب على المستطيع، لقوله تعالى: ﴿وَلِلَّهِ عَلَى النَّاسِ حِجُّ الْبَيْتِ﴾ رواه البخاري.', []);
+      ok('111-6 [b26] an ayah before an unsourced credit: the credit alone goes, the ruling and its ayah stay',
+        out.text === 'الحكم في الباب ظاهر.\nوالحج واجب على المستطيع، لقوله تعالى: ﴿وَلِلَّهِ عَلَى النَّاسِ حِجُّ الْبَيْتِ﴾.'
+          && !out.degraded.some((d) => d.startsWith('takhrij-evidence-tail'))
+          && out.degraded.includes('takhrij-credit-only:1'),
         JSON.stringify(out.text));
     }
     {
@@ -2826,9 +2854,14 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       // NOT OVER-BROAD: an ordinary unsourced credit still salvages its matn as before, and a
       // passing mention of «كتب الموضوعات» condemns nothing.
       const plain = 'قال رسول الله صلى الله عليه وسلم: «المسلم من سلم المسلمون من لسانه ويده» رواه البخاري.';
-      ok('111-S3 an ordinary credit to al-Bukhari still salvages its matn, as before', bareLine(deliver3(plain)), JSON.stringify(deliver3(plain)));
+      // BATCH 4 [b26] — an ordinary credit is still no verdict, so its matn is still kept; it is
+      // now kept where it stood, in its frame, with the trailing credit gone alone.
+      ok('111-S3 an ordinary credit to al-Bukhari still keeps its matn — in its frame [b26]',
+        deliver3(plain) === 'قال رسول الله صلى الله عليه وسلم: «المسلم من سلم المسلمون من لسانه ويده».', JSON.stringify(deliver3(plain)));
       const kutub = 'قال رسول الله صلى الله عليه وسلم: «من كذب علي متعمدا فليتبوأ مقعده من النار» رواه البخاري، ولهذا صنف العلماء كتب الموضوعات.';
-      ok('111-S3 «كتب الموضوعات» mentioned in passing is not a book the matn was placed in', bareLine(deliver3(kutub)), JSON.stringify(deliver3(kutub)));
+      ok('111-S3 «كتب الموضوعات» mentioned in passing is not a book the matn was placed in — the matn stays in its frame [b26]',
+        deliver3(kutub) === 'قال رسول الله صلى الله عليه وسلم: «من كذب علي متعمدا فليتبوأ مقعده من النار»، ولهذا صنف العلماء كتب الموضوعات.',
+        JSON.stringify(deliver3(kutub)));
     }
     {
       const fiqh = 'ويجب الوضوء من مس الذكر، أورده الترمذي في جامعه.';
@@ -3329,8 +3362,10 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       // «بلفظ» names the wording of a narration: the condemned sentence keeps its quotation.
       const T = 'وأخرجه البخاري أيضا بلفظ: «المسلم من سلم المسلمون من لسانه ويده، والمهاجر من هجر ما نهى الله عنه».';
       const out = L3w.lockTakhrij(T, []).text;
-      ok('111-T2 «وأخرجه … بلفظ: «…»» with no page: the credit goes, the matn stays',
-        !/أخرجه/u.test(out) && out.includes('«المسلم من سلم المسلمون من لسانه ويده، والمهاجر من هجر ما نهى الله عنه»'), JSON.stringify(out));
+      // BATCH 4 [b26] — «يبقى بإطاره أو يذهب مع عزوه»: this quotation's only frame IS the credit
+      // («وأخرجه البخاري أيضا بلفظ:»), so there is no frame to keep it in, and it goes with it.
+      ok('111-T2 «وأخرجه … بلفظ: «…»» with no page: the credit goes, and the matn with it — its only frame was the credit [b26]',
+        !/أخرجه/u.test(out) && !out.includes('«المسلم من سلم المسلمون من لسانه ويده'), JSON.stringify(out));
     }
   }
   console.log('\n=== 111 THIRD ORDER · STEP 4 · «أيضا» DOES NOT OUTLIVE THE CREDIT IT POINTED AT ===');
@@ -3412,8 +3447,12 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
           (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir, spec).replace(/\\/g, '/') + q), 'utf8');
         const mod = await import('file:///' + file.replace(/\\/g, '/'));
+        // BATCH 4 [b26] — the bracket «(متفق عليه)» is now cut alone by the credit-only rule
+        // whatever the list rule does, so that witness can no longer tell the list rule is there.
+        // The card whose attributes carry the credit is the list rule's own shape (it dissolves
+        // into its matn), and without the rule the item goes with it again.
         ok('MUTANT KILLED: without the rule the item «أكل لحم الإبل» goes with its credit again',
-          !mod.lockTakhrij(HEADc + '- أكل لحم الإبل: لقوله ﷺ: «توضؤوا من لحوم الإبل» (متفق عليه)' + TAILc, []).text.includes('- أكل لحم الإبل'));
+          !mod.lockTakhrij(HEADc + '- أكل لحم الإبل <hadith narrator="رواه مسلم">توضؤوا من لحوم الإبل</hadith>' + TAILc, []).text.includes('- أكل لحم الإبل'));
       } finally {
         try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
       }
@@ -3560,6 +3599,94 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         graded(mod, 'والحديث الضعيف لا يُعمَلُ به في الأحكام.'));
     } finally {
       try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
+  // ── BATCH 4 [b26] · THE SEAL CUTS THE CREDIT AND NEVER EATS THE RULING ─────────────────────
+  // The owner's ruling: the unsourced credit goes alone and the ruling stays a whole sentence with
+  // no hole; no «فقال:» is left answering nothing; no «(» inside «»; a reference to evidence
+  // («لحديث…») is not salvaged as a matn; a quotation stays with its frame or goes with its credit.
+  // Measured at 92d3c7d: B3 and B6 shipped «8. «لحديث قيس… (»», T10 shipped «"أطعمه رقيقك…"» alone
+  // on a line, S6-18 lost «والحج واجب على المستطيع» for a credit after an āyah, and S-W6a opened on
+  // «فقال: «…»». Driven through the lock (no page) and then the finalizer, as a turn ships.
+  console.log('\n=== BATCH 4 [b26] · THE SEAL CUTS THE CREDIT AND NEVER EATS THE RULING ===');
+  {
+    const L26 = await esm('lib/takhrij-lock.js');
+    const SEAT26 = await esm('lib/finalize-reader-text.js');
+    const ship = (mod, t) => SEAT26.finalizeReaderText({ kind: 'answer', text: mod.lockTakhrij(t, []).text, sources: [] }).text;
+    const LIST8 = 'موجبات الغسل ثمانية:\n1. خروج المني دفقًا بلذة: لقوله ﷺ: «إنما الماء من الماء».\n2. التقاء الختانين ولو لم ينزل.\n3. الحيض.\n4. النفاس.\n5. الولادة.\n6. الاحتلام إذا رأى الماء.\n7. الموت.\n';
+    const STEPS8 = 'موجبات الغسل ثمانية:\n<steps>\n1. خروج المني.\n2. التقاء الختانين.\n3. الحيض.\n4. النفاس.\n5. الولادة.\n6. الاحتلام.\n7. الموت.\n';
+    const HAJJAM = 'أجرة الحجام جائزة عند الجمهور، والنهي فيها محمول على التنزيه.\nويؤكّد هذا الجمعَ ما رواه ابن حبان أنَّ أبا محصن استأذن النبيَّ صَلَّى اللهُ عَلَيْهِ وَسَلَّم في أخذ خراج حجّامه فأبى، فلما أكثرَ عليه قال: "أَطْعِمْهُ رَقِيقَكَ وَاعْلِفْهُ نَاضِحَكَ"، ولو كان حرامًا لم يأذن له فيه.\nفالراجح أن كسب الحجام حلال مع الكراهة.';
+    const W6A = 'أخرجه البخاري ومسلم من حديث عبد الله بن عمرو رضي الله عنهما أن رجلا سأل النبي صلى الله عليه وسلم: أي المسلمين خير؟\nفقال: «من سلم المسلمون من لسانه ويده».\nومعناه أن المسلم الكامل الإسلام هو الذي لا يؤذي المسلمين بقول ولا فعل.';
+    const PAREN = 'ويجب غسل الجمعة على كل محتلم (رواه البخاري).\nوالأفضل أن يكون قبل الذهاب إلى الصلاة.';
+    const rows26 = [
+      ['B3 · the item keeps its ruling; the bracket and the grade in it go',
+        LIST8 + '8. إسلام الكافر: لحديث قيس بن عاصم رضي الله عنه أنه أسلم فأمره النبي ﷺ أن يغتسل بماء وسدر (رواه أبو داود والترمذي، وهو حديث صحيح).\nفهذه ثمانية موجبات للغسل.',
+        LIST8 + '8. إسلام الكافر: لحديث قيس بن عاصم رضي الله عنه أنه أسلم فأمره النبي ﷺ أن يغتسل بماء وسدر.\nفهذه ثمانية موجبات للغسل.'],
+      ['B6 · the item keeps its ruling; the bracket goes and the grade clause with it',
+        STEPS8 + '8. إسلام الكافر: لحديث قيس بن عاصم (رواه أبو داود)، وهو حديث صحيح.\n</steps>\nفهذه ثمانية موجبات.',
+        STEPS8 + '8. إسلام الكافر: لحديث قيس بن عاصم.\n</steps>\nفهذه ثمانية موجبات.'],
+      ['T10 · a quotation whose frame holds the credit goes with it — no bare matn line',
+        HAJJAM, 'أجرة الحجام جائزة عند الجمهور، والنهي فيها محمول على التنزيه.\nفالراجح أن كسب الحجام حلال مع الكراهة.'],
+      ['S-W6a · the reply whose question went with its credit goes too — no «فقال:» answering nothing',
+        W6A, 'ومعناه أن المسلم الكامل الإسلام هو الذي لا يؤذي المسلمين بقول ولا فعل.'],
+      ['S6-18 · a credit after an āyah goes alone; the ruling and the āyah stay',
+        'والحج واجب على المستطيع، لقوله تعالى: ﴿وَلِلَّهِ عَلَى النَّاسِ حِجُّ الْبَيْتِ مَنِ اسْتَطَاعَ إِلَيْهِ سَبِيلًا﴾ رواه البخاري.\nوهو ركن من أركان الإسلام.',
+        'والحج واجب على المستطيع، لقوله تعالى: ﴿وَلِلَّهِ عَلَى النَّاسِ حِجُّ الْبَيْتِ مَنِ اسْتَطَاعَ إِلَيْهِ سَبِيلًا﴾.\nوهو ركن من أركان الإسلام.'],
+      ['sibling · a list item «…، لحديث …، رواه أبو داود والترمذي.» keeps its ruling',
+        'موجبات الغسل:\n- الحيض.\n- إسلام الكافر، لحديث قيس بن عاصم أنه أسلم فأمره النبي ﷺ أن يغتسل، رواه أبو داود والترمذي.\n- الموت.',
+        'موجبات الغسل:\n- الحيض.\n- إسلام الكافر، لحديث قيس بن عاصم أنه أسلم فأمره النبي ﷺ أن يغتسل.\n- الموت.'],
+      ['sibling · a ruling ending in «(رواه البخاري)» with no page keeps its sentence',
+        PAREN, 'ويجب غسل الجمعة على كل محتلم.\nوالأفضل أن يكون قبل الذهاب إلى الصلاة.'],
+      ['sibling · «فقال:» before an unquoted matn keeps it, the credit alone goes',
+        'الوضوء من لحوم الإبل واجب عند الحنابلة.\nوسُئل النبي ﷺ: أنتوضأ من لحوم الإبل؟ فقال: نعم فتوضأ من لحوم الإبل، رواه مسلم.\nوالجمهور على أنه مستحب.',
+        'الوضوء من لحوم الإبل واجب عند الحنابلة.\nوسُئل النبي ﷺ: أنتوضأ من لحوم الإبل؟ فقال: نعم فتوضأ من لحوم الإبل.\nوالجمهور على أنه مستحب.'],
+      ['sibling · «لحديث «…» رواه…» keeps the quotation in its frame',
+        'ويستحب السواك عند كل صلاة، لحديث «لولا أن أشق على أمتي لأمرتهم بالسواك عند كل صلاة» رواه البخاري ومسلم وأحمد.\nوهو سنة مؤكدة.',
+        'ويستحب السواك عند كل صلاة، لحديث «لولا أن أشق على أمتي لأمرتهم بالسواك عند كل صلاة».\nوهو سنة مؤكدة.'],
+      ['control · X-013/ز: a credit behind a grade still takes its sentence',
+        'والحديث صحيح رواه البخاري ومسلم.\nوالعمل عليه عند أهل العلم.', 'والعمل عليه عند أهل العلم.'],
+      ['control · «، فهو في أعلى درجات الصحة» leans on its credit: not a credit-only cut',
+        'حديث «المسلم من سلم المسلمون من لسانه ويده» متفق عليه، فهو في أعلى درجات الصحة.\nومعناه أن المسلم لا يؤذي أحدا.',
+        'حديث «المسلم من سلم المسلمون من لسانه ويده».\nومعناه أن المسلم لا يؤذي أحدا.'],
+      ['control · «أورده … في الموضوعات» is a verdict, never cut alone',
+        'حديث «من عرف نفسه فقد عرف ربه» أورده الصغاني في الموضوعات.\nوأما معناه فصحيح في الجملة.', 'وأما معناه فصحيح في الجملة.'],
+    ];
+    for (const [label, input, want] of rows26) {
+      const got = ship(L26, input);
+      ok('b26 ' + label, got === want, JSON.stringify(got));
+      ok('b26 ' + label + ': ...no «(» inside «», no bare «فقال:» opening a line, no credit left',
+        !/«[^«»]*\([^«»]*»/u.test(got) && !/(^|\n)فقال:/u.test(got) && !/رواه|أخرجه|متفق عليه/u.test(got), JSON.stringify(got));
+    }
+    ok('b26 a PUBLISHED credit in a bracket is left exactly as written',
+      L26.lockTakhrij('ويجب غسل الجمعة على كل محتلم (رواه البخاري).', [{ title: 'صحيح البخاري', passage: 'غسل الجمعة واجب على كل محتلم رواه البخاري' }]).text
+        === 'ويجب غسل الجمعة على كل محتلم (رواه البخاري).');
+    ok('b26 a credit in a card attribute is the card rule\'s, not the credit-only cut',
+      !L26.lockTakhrij('- أكل لحم الإبل <hadith narrator="رواه مسلم">توضؤوا من لحوم الإبل</hadith>', []).degraded.some((d) => d.startsWith('takhrij-credit-only')));
+    ok('b26 the cut is recorded under its own name', L26.lockTakhrij(PAREN, []).degraded.includes('takhrij-credit-only:1'));
+    ok('b26 ...and so is the orphaned reply', L26.lockTakhrij(W6A, []).degraded.includes('takhrij-orphan-reply:1'));
+    const src26 = read('lib/takhrij-lock.js').replace(/\r\n/g, '\n');
+    const dir26 = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
+    const tmp26 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-b26-mut-'));
+    const load26 = async (tag, from, to) => {
+      const changed = src26.split(from).join(to);
+      ok('MUTANT b26 ' + tag + ' seam applied', changed !== src26);
+      const file = path.join(tmp26, tag + '.mjs');
+      fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir26, spec).replace(/\\/g, '/') + q), 'utf8');
+      return import('file:///' + file.replace(/\\/g, '/'));
+    };
+    try {
+      const m1 = await load26('credit-only-off', '    const creditCuts = creditOnlyCut(s, sen, body, unsupported);', '    const creditCuts = null; // mutant');
+      ok('MUTANT KILLED: without the credit-only cut «ويجب غسل الجمعة على كل محتلم» is lost for «(رواه البخاري)» again',
+        !ship(m1, PAREN).includes('ويجب غسل الجمعة'), JSON.stringify(ship(m1, PAREN)));
+      const m2 = await load26('orphan-reply-off', '    cuts.push({ start: next.start, end: next.end, insert: \'\' });\n    orphanReplies += 1;', '    orphanReplies += 0; // mutant');
+      ok('MUTANT KILLED: without the orphan-reply rule the answer opens on «فقال:» again',
+        /^فقال:/u.test(ship(m2, W6A)), JSON.stringify(ship(m2, W6A)));
+      const m3 = await load26('bare-salvage-again', 'function matnToSalvage(s, sen, unsupported, { framed = false } = {}) {', 'function matnToSalvage(s, sen, unsupported, { framed: _f = false } = {}) { const framed = false; // mutant');
+      ok('MUTANT KILLED: with the frame rule gone T10\'s matn stands bare on a line again',
+        ship(m3, HAJJAM).split('\n').some((line) => /^"أَطْعِمْهُ/u.test(line.trim())), JSON.stringify(ship(m3, HAJJAM)));
+    } finally {
+      try { fs.rmSync(tmp26, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');

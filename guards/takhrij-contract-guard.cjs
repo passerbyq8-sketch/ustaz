@@ -1313,9 +1313,15 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
         matns.every((matn) => sealed.text.includes(matn)), JSON.stringify(sealed.text));
       ok('17  ...and the unpublished credit is gone: ' + name,
         credits.every((credit) => !sealed.text.includes(credit)), JSON.stringify(sealed.text));
+      // BATCH 4 [b26] — a credit trailing a quotation in prose is now cut ALONE, so that matn never
+      // leaves its sentence and there is nothing to salvage: the record is the credit-only cut. A
+      // card's credit lives in its attributes and is still salvaged matn by matn.
+      const creditOnly17 = !/<hadith/iu.test(draft);
       ok('17  ...and the removal is RECORDED, matn by matn: ' + name,
-        Array.isArray(sealed.salvagedMatns) && sealed.salvagedMatns.length === matns.length
-          && sealed.degraded.includes('takhrij-matn-kept:' + matns.length),
+        creditOnly17
+          ? sealed.degraded.includes('takhrij-credit-only:' + matns.length)
+          : Array.isArray(sealed.salvagedMatns) && sealed.salvagedMatns.length === matns.length
+            && sealed.degraded.includes('takhrij-matn-kept:' + matns.length),
         JSON.stringify([sealed.salvagedMatns, sealed.degraded]));
       ok('17  ...and no card tag is handed to the reader in its place: ' + name,
         !/<\/?hadith/iu.test(sealed.text), JSON.stringify(sealed.text));
@@ -1350,7 +1356,7 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     // MUTANT — the salvage is disarmed at its one seam, and the guard must see the matn vanish.
     // Without this the rows above would pass over a seal that never had the behaviour at all.
     const src17 = fs17.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8');
-    const SEAM17 = 'const salvage = matnToSalvage(s, sen, unsupported);';
+    const SEAM17 = 'const salvage = matnToSalvage(s, sen, unsupported, { framed: true });';
     const mutant17 = src17.replace(SEAM17, 'const salvage = null; // mutant');
     ok('17  MUTANT: the seam that keeps the matn is findable',
       mutant17 !== src17, 'the mutant did not apply — the seam moved and §17 is blind');
@@ -1359,8 +1365,10 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       fs17.writeFileSync(tmp17, mutant17);
       try {
         const M17 = await esm('lib/' + path.basename(tmp17));
+        // BATCH 4 [b26] — a trailing credit is cut alone before the salvage is asked, so the
+        // mutant is driven with a condemning GRADE, which the salvage alone keeps the matn from.
         const broken17 = M17.lockTakhrij(
-          'قال النبي صلى الله عليه وسلم: «' + ISBAL_A + '» أخرجه البخاري.', []);
+          'قال النبي صلى الله عليه وسلم: «' + ISBAL_A + '»، صححه الألباني.', []);
         ok('17  MUTANT: with it disarmed the hadith is deleted — the defect that was measured',
           !broken17.text.includes(ISBAL_A), JSON.stringify(broken17.text));
       } finally { fs17.unlinkSync(tmp17); }
