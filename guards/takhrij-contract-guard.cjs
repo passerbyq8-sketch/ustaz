@@ -1957,6 +1957,41 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try { require('fs').rmSync(tmp34, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── BATCH 4 [b17] · «حديث «…»» IS A MATN'S OWN FRAME ───────────────────────────────────
+  // MEASURED at 2aaf987 and 92d3c7d (EZIK-CX-M111 row 17): the three matns written «حديث «…».» gave
+  // zero targets and left with no parentheses; after «قال رسول الله ﷺ:» they gave one each.
+  console.log('\n--- B17. «حديث «…»» IS THE FORM OF A MATN ---');
+  {
+    const T17 = await esm('lib/takhrij.js');
+    for (const m of ['اطلبوا العلم ولو بالصين', 'إنما الأعمال بالنيات', 'من حسن إسلام المرء تركه ما لا يعنيه']) {
+      ok('B17 «حديث «' + m + '».» is one target', T17.findTargets('حديث «' + m + '».').targets.length === 1);
+    }
+    const mid = 'واستدلوا بحديث «إنما الأعمال بالنيات» على اشتراط النية.';
+    const t = T17.findTargets(mid).targets[0];
+    ok('B17 «واستدلوا بحديث «…» على…» is a target whose lead-in is the quotation itself: the sentence is not broken',
+      !!t && t.leadStart === mid.indexOf('«'), JSON.stringify(t));
+    const run = await T17.applyTakhrij(mid, { env: ON, lookup: lookupOf({ 'إنما الأعمال بالنيات': { matn: 'إنما الأعمال بالنيات',
+      subjectIds: ['FC-000645', 'FC-000658'], atoms: [atomFor('إنما الأعمال بالنيات', 'عمر بن الخطاب'), atomFor('إنما الأعمال بالنيات', 'عمر بن الخطاب')] } }) });
+    ok('B17 ...and with the library behind it the sentence keeps its words and gains the parentheses',
+      run.text.startsWith('واستدلوا بحديث') && run.text.includes('(البخاري)') && run.text.includes('على اشتراط النية'), JSON.stringify(run.text));
+    ok('B17 control · «حديث» earlier in a sentence is a word about a hadith: the last speaker named is still a man',
+      T17.findTargets('قال ابن باز: هذا حديث صحيح، وقال: «إنما الأعمال بالنيات».').targets.length === 0);
+    ok('B17 control · a one-word quotation after «حديث» is still no matn', T17.findTargets('حديث «الإحسان».').targets.length === 0);
+    const src17 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam = '      const hadithFrame = HADITH_WORD_FRAME_END_RE.exec(segment);';
+    const mutated = src17.split(seam).join('      const hadithFrame = null; // mutant');
+    ok('MUTANT B17 hadith-frame seam applied', mutated !== src17);
+    const tmp = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-b17-mut-'));
+    try {
+      const file = path.join(tmp, 'takhrij.mjs');
+      require('fs').writeFileSync(file, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b17] «حديث «…»» is no target again', mod.findTargets('حديث «إنما الأعمال بالنيات».').targets.length === 0);
+    } finally {
+      try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
