@@ -230,7 +230,9 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
       // THIRD ORDER, STEP 6: was «opens on A2_HEAD»; the speaker is generalised, so it opens on it behind one.
       // FIFTH ORDER [r44] (1): name first, with «فصّل» between the name and «فقال» — the name (and its
       // title and prayer) alone is replaced; «فصّل فقال:» and «إن صامه» stay where the model put them.
-      a2.action === REMOVED && a2.text.indexOf('\u0648\u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0641\u0635\u0644 \u0641\u0642\u0627\u0644: ' + A2_HEAD) === 0 && a2.text.indexOf(A2_NAME) < 0,
+      // [h46]: the prayer is no part of the name — it stays, whole, behind the general speaker. Was
+      // «وبعض أهل العلم فصل فقال: إن صامه».
+      a2.action === REMOVED && a2.text.indexOf('\u0648\u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0631\u062d\u0645\u0647 \u0627\u0644\u0644\u0647 \u0641\u0635\u0644 \u0641\u0642\u0627\u0644: ' + A2_HEAD) === 0 && a2.text.indexOf(A2_NAME) < 0,
       'action=' + JSON.stringify(a2.action) + ' text=' + JSON.stringify(a2.text.slice(0, 60)));
 
     // 2. A B-shaped input \u2014 name first, joined fa, colon, unquoted prose \u2014 is removed and the prose
@@ -356,7 +358,8 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
     ok('G2 \u00b7 A2 did not flip: still removed, the delivered text still opens on \u00ab\u0625\u0646 \u0635\u0627\u0645\u0647\u00bb',
       // THIRD ORDER, STEP 6: «إن صامه» still heads the claim, now behind the general speaker.
       // FIFTH ORDER [r44] (1): as E1 — «فصّل فقال:» stays, and «إن صامه» still heads the claim.
-      a2g.action === REMOVED && a2g.text.indexOf('\u0648\u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0641\u0635\u0644 \u0641\u0642\u0627\u0644: \u0625\u0646 \u0635\u0627\u0645\u0647 \u0644\u0633\u0628\u0628') === 0,
+      // [h46]: as E1 — «رحمه الله» stays behind the general speaker.
+      a2g.action === REMOVED && a2g.text.indexOf('\u0648\u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0631\u062d\u0645\u0647 \u0627\u0644\u0644\u0647 \u0641\u0635\u0644 \u0641\u0642\u0627\u0644: \u0625\u0646 \u0635\u0627\u0645\u0647 \u0644\u0633\u0628\u0628') === 0,
       'action=' + JSON.stringify(a2g.action) + ' text=' + JSON.stringify(a2g.text.slice(0, 60)));
 
     // \u2500\u2500 M1+M2 night 3, task 1: THE SAME PARTICLES CARRIED BY A JOINED \u00ab\u0648\u00bb OR \u00ab\u0641\u00bb \u2500\u2500
