@@ -2440,9 +2440,9 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     const EXACT = '137 - (85) حَدَّثَنَا أَبُو بَكْرِ بْنُ أَبِي شَيْبَةَ، عَنْ عَبْدِ اللهِ بْنِ مَسْعُودٍ، قَالَ: سَأَلْتُ رَسُولَ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ أَيُّ الْعَمَلِ أَفْضَلُ؟ قَالَ: «الصَّلَاةُ لِوَقْتِهَا»';
     const C1 = 'سئل النبي صلى الله عليه وسلم عن أفضل الأعمال فقال: «' + LIWAQT + '».';
     ok('B4B-61 control · a short matn whose atom quotes exactly it keeps its parentheses', (await run(T61, C1, one(LIWAQT, 'FC-000648', EXACT))) === C1.replace('».', '» (مسلم).'));
-    const LONG = 'من كان يؤمن بالله واليوم الآخر';
-    const C2 = 'قال النبي صلى الله عليه وسلم: «' + LONG + '» في حق الجار.';
-    const lookLong = one(LONG, 'FC-000645', 'حَدَّثَنَا قُتَيْبَةُ، عَنْ أَبِي هُرَيْرَةَ، قَالَ: قَالَ رَسُولُ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: «مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَاليَوْمِ الآخِرِ فَلاَ يُؤْذِ جَارَهُ»');
+    const LONG = OTHER; // [111-b4b-50] «من كان يؤمن بالله واليوم الآخر» is a run of 65:2
+    const C2 = 'قال النبي صلى الله عليه وسلم: «' + LONG + '» وهذا أصل في حفظ اللسان.';
+    const lookLong = one(LONG, 'FC-000645', 'حَدَّثَنَا آدَمُ، عَنْ عَبْدِ اللَّهِ بْنِ عَمْرٍو، عَنِ النَّبِيِّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ قَالَ: «الْمُسْلِمُ مَنْ سَلِمَ الْمُسْلِمُونَ مِنْ لِسَانِهِ وَيَدِهِ، وَالْمُهَاجِرُ مَنْ هَجَرَ مَا نَهَى اللَّهُ عَنْهُ»');
     ok('B4B-61 control · at four words and more nothing moved: the atom that holds it proves it as before', (await run(T61, C2, lookLong)).includes('(البخاري)'));
     ok('B4B-61 the floor is four words, read on the folded letters',
       T61.SHORT_QUOTE_WORDS === 4 && T61.isShortQuote('إِنَّ اللَّهَ يُحِبُّ') && !T61.isShortQuote('إنما الأعمال بالنيات وإنما'));
@@ -2465,6 +2465,71 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
         (await run(mod, W, lookW)).includes('(مسلم)'));
     } finally {
       try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
+  // ── [111-b4b-50] · AN ĀYAH IN THE MODEL'S RASM IS FROZEN, AND NEVER BRACKETED ─────────────────
+  // MEASURED at eca359e: «إن الصلاة كانت على المؤمنين كتابا موقوتا» was not 4:103 to lib/frozen-text.js
+  // (الصلوٰة/كتٰبا in the muṣḥaf), and after a sentence naming the Prophet ﷺ four āyāt in the model's
+  // rasm left the takhrij pass bracketed: «وأقيموا الصلاة وآتوا الزكاة» (متفق عليه), «حافظوا على الصلوات
+  // والصلاة الوسطى» (متفق عليه), «إن الصلاة تنهى عن الفحشاء والمنكر» (ابن حبان · لم يوقف على حكم),
+  // «يا أيها الذين آمنوا كتب عليكم الصيام…» (البخاري). The contract: a whole āyah is known in that rasm,
+  // frozen, never bracketed, and not one letter of it changes.
+  console.log('\n--- B4B-50. AN ĀYAH IN THE MODEL\'S RASM IS FROZEN, AND NEVER BRACKETED ---');
+  {
+    const T50 = await esm('lib/takhrij.js');
+    const F50 = await esm('lib/frozen-text.js');
+    const TL50 = await esm('lib/takhrij-lock.js');
+    const VERSE = 'إن الصلاة كانت على المؤمنين كتابا موقوتا';
+    const cls = F50.classifyFrozenPhrase(VERSE);
+    ok('B4B-50 W · «' + VERSE + '» is 4:103, whole', !!cls && cls.kind === 'quran' && cls.ref === '4:103', JSON.stringify(cls));
+    const vocal = F50.classifyFrozenPhrase('إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَوْقُوتًا');
+    ok('B4B-50 W · ...vocalised as the model vocalises it, too', !!vocal && vocal.ref === '4:103', JSON.stringify(vocal));
+    const sibs = [
+      ['وأقيموا الصلاة وآتوا الزكاة', 'وقد أمر النبي صلى الله عليه وسلم بالزكاة، قال الله تعالى:'],
+      ['حافظوا على الصلوات والصلاة الوسطى', 'فسرها النبي صلى الله عليه وسلم بصلاة العصر في قوله تعالى:'],
+      ['إن الصلاة تنهى عن الفحشاء والمنكر', 'وبيّن النبي صلى الله عليه وسلم أثرها، وقال تعالى:'],
+      ['يا أيها الذين آمنوا كتب عليكم الصيام كما كتب على الذين من قبلكم', 'وصام النبي صلى الله عليه وسلم رمضان، والأصل فيه قوله تعالى:'],
+      ['وأحل الله البيع وحرم الربا', 'ونهى النبي صلى الله عليه وسلم عن الربا، قال تعالى:'],
+      [VERSE, 'وكان النبي صلى الله عليه وسلم يصلي الصلاة لوقتها، وقد قال الله تعالى:'],
+    ];
+    for (const [v, lead] of sibs) {
+      const whole = F50.classifyFrozenPhrase(v);
+      ok('B4B-50 sibling · «' + v + '» is an āyah, whole', !!whole && whole.kind === 'quran', JSON.stringify(whole));
+      const quoting = lookupOf({ [v]: { matn: v, subjectIds: ['FC-000645', 'FC-000648'],
+        atoms: [atomFor(v, 'ابن عباس'), atomFor(v, 'ابن عباس')] } });
+      const draft = lead + ' «' + v + '».\n\nوالله أعلم.';
+      const pass = await T50.applyTakhrij(draft, { env: ON, lookup: quoting });
+      ok('B4B-50 sibling · ...after a sentence naming the Prophet ﷺ it is no target: not one character written', pass.text === draft, JSON.stringify(pass.text));
+      ok('B4B-50 sibling · ...and the seal leaves every letter of it', TL50.lockTakhrij(pass.text, []).text.includes('«' + v + '»'));
+    }
+    for (const h of ['إنما الأعمال بالنيات', 'الطهور شطر الإيمان', 'من صام رمضان إيمانا واحتسابا غفر له ما تقدم من ذنبه', 'المسلم من سلم المسلمون من لسانه ويده']) {
+      ok('B4B-50 control · the hadith «' + h + '» is not taken for an āyah', F50.classifyFrozenPhrase(h) === null);
+    }
+    ok('B4B-50 control · the floor is untouched: «الحمد لله» identifies nothing', F50.classifyFrozenPhrase('الحمد لله') === null);
+    ok('B4B-50 control · an alif the muṣḥaf does write is never read past: «رضي الله عنهما» is not 5:119\'s «عنهم»',
+      F50.findQuran('رضي الله عنهما') === null && !!F50.findQuran('رضي الله عنهم'));
+    ok('B4B-50 control · nor is a sentence carrying «رضي الله عنهما» handed an āyah',
+      (F50.containsFrozenRun('ويجوز الجمع بين الصلاتين للمطر، كما في صحيح مسلم عن ابن عباس رضي الله عنهما.') || {}).kind !== 'quran');
+    const hadithFramed = answerWith(MATN);
+    const niy = await T50.applyTakhrij(hadithFramed, { env: ON, lookup: lookupOf({ [MATN]: { matn: MATN, subjectIds: ['FC-000645'], atoms: [atomFor(MATN, 'عمر بن الخطاب')] } }) });
+    ok('B4B-50 control · a hadith after the same frame is still a target', niy.text !== hadithFramed, JSON.stringify(niy.text));
+    const srcF = require('fs').readFileSync(path.join(REPO, 'lib/frozen-text.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seamF = '  return lookupQuranRasm(phrase); // [111-b4b-50]\n';
+    const mutatedF = srcF.split(seamF).join('  return null;\n');
+    ok('MUTANT B4B-50 rasm seam applied', mutatedF !== srcF);
+    const tmpF = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-b4b50-mut-'));
+    try {
+      const fileF = path.join(tmpF, 'frozen-text.mjs');
+      require('fs').writeFileSync(fileF, mutatedF.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const cwd = process.cwd();
+      process.chdir(REPO);
+      try {
+        const mod = await import('file:///' + fileF.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: without [b4b-50] 4:103 in the model\'s rasm is no āyah again', mod.classifyFrozenPhrase(VERSE) === null);
+      } finally { process.chdir(cwd); }
+    } finally {
+      try { require('fs').rmSync(tmpF, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
