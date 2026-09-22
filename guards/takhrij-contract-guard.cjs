@@ -2235,6 +2235,72 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-b27b] · THE HEAD SPEAKS OF THE TEXT THAT WAS ASKED ABOUT, AND OF NOTHING ELSE ───────────
+  // MEASURED on the owner's battery (the batch-4 preview 7f671f7, question 2): «حديث «خير الأسماء ما حمد
+  // وعبد» هل له أصل؟» opened on «تخريج الحديث: أبو داود، …» — the book of ANOTHER matn in the answer. The
+  // contract: the head is about the quoted text alone — what the library proves for it, or «لم تُثبت
+  // المكتبة هذا اللفظ…» — never a denial and never another matn's book; that matn keeps its parentheses.
+  console.log('\n--- B27b. THE HEAD SPEAKS OF THE TEXT THAT WAS ASKED ABOUT ---');
+  {
+    const T27b = await esm('lib/takhrij.js');
+    const KHAYR = 'خير الأسماء ما حمد وعبد';
+    const AHABB = 'أحب الأسماء إلى الله عبد الله وعبد الرحمن، وأصدقها حارث وهمام';
+    const A_Q2 = 'ليس له أصل، وهو حديث موضوع لا تصح نسبته إلى النبي صلى الله عليه وسلم.\n\nوالثابت في هذا الباب قوله صلى الله عليه وسلم: «' + AHABB + '».\n\nفالتسمية بعبد الله وعبد الرحمن مستحبة.';
+    const Q2 = 'حديث «' + KHAYR + '» هل له أصل؟';
+    const TUHUR = 'الطهور شطر الإيمان';
+    const WATAN = 'حب الوطن من الإيمان';
+    const KALIMA = 'الكلمة الطيبة صدقة';
+    const SULAMA = 'كل سلامى من الناس عليه صدقة، والكلمة الطيبة صدقة';
+    const table = {
+      [AHABB]: { matn: AHABB, subjectIds: ['FC-000656'], atoms: [atomFor(AHABB, 'أبي وهب الجشمي')] },
+      [TUHUR]: { matn: TUHUR, subjectIds: ['FC-000648'], atoms: [atomFor(TUHUR, 'أبي مالك الأشعري')] },
+      [WATAN]: { matn: WATAN, subjectIds: ['FC-002061'], atoms: ['36 - " ' + WATAN + ' ". موضوع.'] },
+      [SULAMA]: { matn: SULAMA, subjectIds: ['FC-000648'], atoms: [atomFor(SULAMA, 'أبي هريرة')] },
+    };
+    const lib = lookupOf(table);
+    const run = async (answer, question, lookup = lib) => (await T27b.applyTakhrij(answer, { env: ON, question, lookup })).text;
+    const w = await run(A_Q2, Q2);
+    ok('B27b W · question 2: the head does not credit the asked text to the other matn\'s book',
+      w.startsWith(T27b.GRADING_HEAD_LAFZ_NOT_PROVED + '\n\n') && !w.split('\n')[0].includes('أبو داود'), JSON.stringify(w));
+    ok('B27b W · ...it denies nothing, and the other matn keeps its parentheses where they stand',
+      !/لا أصل له|موضوع|لا يثبت/u.test(T27b.GRADING_HEAD_LAFZ_NOT_PROVED) && w.includes('«' + AHABB + '» (أبو داود · لم يوقف على حكم)'), JSON.stringify(w));
+    const graded = await run('قال رسول الله صلى الله عليه وسلم: «' + TUHUR + '».\n\nوالطهارة شطر.', 'ما درجة حديث «' + WATAN + '»؟');
+    ok('B27b sibling · the asked text the library does prove is headed with ITS grader, not the answer\'s matn',
+      graded.startsWith('الحديث لا يثبت مرفوعا إلى النبي صلى الله عليه وسلم، والحكم عليه في السلسلة الضعيفة: موضوع.\n\n') && graded.includes('«' + TUHUR + '» (مسلم)'), JSON.stringify(graded));
+    const near = await run('هذا اللفظ مشهور.\n\nوالثابت في الباب قوله صلى الله عليه وسلم: «' + TUHUR + '».', 'حديث «اختلاف أمتي رحمة» هل له أصل؟');
+    ok('B27b sibling · no origin for the asked text, a sound hadith near it in the answer: «not this wording», and the sound one keeps «(مسلم)»',
+      near.startsWith(T27b.GRADING_HEAD_LAFZ_NOT_PROVED + '\n\n') && near.includes('«' + TUHUR + '» (مسلم)'), JSON.stringify(near));
+    const A_TUHUR = 'قال رسول الله صلى الله عليه وسلم: «' + TUHUR + '».\n\nومعناه أن الطهارة نصف الإيمان.';
+    ok('B27b control · the answer\'s matn IS the asked text (question 9\'s shape): b27\'s head, byte for byte',
+      (await run(A_TUHUR, 'حديث «' + TUHUR + '» من رواه؟')) === (await run(A_TUHUR, 'الطهور شطر الإيمان من رواه؟'))
+        && (await run(A_TUHUR, 'حديث «' + TUHUR + '» من رواه؟')).startsWith('تخريج الحديث: مسلم.\n\n'));
+    ok('B27b control · the asked text inside a longer matn of the answer is that matn: b27\'s head',
+      (await run('قال رسول الله صلى الله عليه وسلم: «' + SULAMA + '».', 'حديث «' + KALIMA + '» من رواه؟')).startsWith('تخريج الحديث: مسلم.\n\n'));
+    ok('B27b control · the asked text and another matn: two matns, no head, as b27',
+      !(await run(A_TUHUR + '\n\nوقال صلى الله عليه وسلم: «' + AHABB + '».', 'حديث «' + TUHUR + '» من رواه؟')).startsWith('تخريج'));
+    const threwForAsked = async (matns, options) => {
+      if (matns.includes(KHAYR)) throw new Error('socket hang up');
+      return lib(matns, options);
+    };
+    const failed = await run(A_Q2, Q2, threwForAsked);
+    ok('B27b control · a failed lookup of the asked text is no «not proved»: no head at all',
+      failed.startsWith('ليس له أصل') && !failed.includes('تخريج الحديث'), JSON.stringify(failed));
+    const src = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam = '  const head = await headForTheAskedText(input, entries, callFailures, gradingHead(input.question, entries, callFailures));';
+    const mutated = src.split(seam).join('  const head = gradingHead(input.question, entries, callFailures); // mutant');
+    ok('MUTANT B27b asked-text seam applied', mutated !== src);
+    const tmp = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-b27b-mut-'));
+    try {
+      const file = path.join(tmp, 'takhrij.mjs');
+      require('fs').writeFileSync(file, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b27b] question 2 is headed with «أبو داود» again',
+        (await mod.applyTakhrij(A_Q2, { env: ON, question: Q2, lookup: lib })).text.split('\n')[0].includes('أبو داود'));
+    } finally {
+      try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   // ── BATCH 4 [b28] · THE LAFZ FUNCTION TRIES THE INTENDED WORD ────────────────────────────────
   // MEASURED at 2aaf987 (EZIK-CX-M111 row 28), unchanged at 92d3c7d: «الصلاة على وقتها» → «الصلاات على
   // وقتها»، and in «النية والصدقة والأعمال بالنيات» the cap of two was spent before «بالنيات». The owner's
