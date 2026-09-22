@@ -4223,6 +4223,85 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp56, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-e55] · THE PROSE'S CREDIT, HELD TO WHAT THE LIBRARY PROVED — AND NO BLANK ANSWER ────────
+  // MEASURED on the owner's battery (fix round, questions 10 and 1): the pass found «البخاري» and withheld
+  // its parentheses because the prose had credited the matn itself; the seal found no page for «رواه
+  // البخاري ومسلم» and cut the sentence — the whole answer in question 10, the credit in question 1. The
+  // contract: the books the library proved for that matn reach the seal, which keeps the prose's credit
+  // as far as they reach and cuts the rest; no book is added and none is swapped; and a lock that still
+  // leaves nothing is a refusal in a sentence, never a blank.
+  console.log('\n--- e55. THE PROSE\'S CREDIT, HELD TO WHAT THE LIBRARY PROVED ---');
+  {
+    const SEATe = await esm('lib/finalize-reader-text.js');
+    const proof = (book, matn) => ({ title: '', passage: '', proseProof: { book, matn } });
+    const KALIMA = 'الكلمة الطيبة صدقة';
+    const SULAMA = 'كل سلامى من الناس عليه صدقة';
+    const Q10 = 'حديث «' + KALIMA + '» رواه البخاري ومسلم من حديث أبي هريرة رضي الله عنه، وهو جزء من حديث أطول أوله: «' + SULAMA + '»، وفيه: «والكلمة الطيبة صدقة».';
+    const FITRA = 'الفطرة خمس، أو خمس من الفطرة: الختان، والاستحداد، ونتف الإبط، وتقليم الأظفار، وقص الشارب';
+    const Q1 = 'ودليلها قول النبي صلى الله عليه وسلم: «' + FITRA + '».\nرواه البخاري ومسلم من حديث أبي هريرة رضي الله عنه.\n1. الختان: وهو واجب في حق الرجال.';
+    const w10 = TL.lockTakhrij(Q10, [proof('البخاري', KALIMA)]);
+    ok('e55 W · question 10: «رواه البخاري» and the matn stay, «ومسلم» goes, nothing else is touched',
+      w10.text === Q10.replace('رواه البخاري ومسلم', 'رواه البخاري') && w10.outcome === 'REBUILT', JSON.stringify(w10.text));
+    ok('e55 W · ...and the cut is recorded as a pruned credit, not as a dropped sentence',
+      w10.degraded.includes('takhrij-credit-pruned:1') && w10.droppedSentences.length === 0, JSON.stringify(w10.degraded));
+    const w1 = TL.lockTakhrij(Q1, [proof('البخاري', FITRA), proof('أبو داود', FITRA)]).text;
+    ok('e55 W · question 1: «رواه البخاري» stays under its matn, and «أبو داود» — proved, but never named by the prose — is not written',
+      w1 === Q1.replace('رواه البخاري ومسلم', 'رواه البخاري') && !w1.includes('أبو داود'), JSON.stringify(w1));
+    const fin = SEATe.finalizeReaderText({ kind: 'answer', text: w10.text, sources: [], takhrijProven: [proof('البخاري', KALIMA)] });
+    ok('e55 W · the finalizer seat, locking again over the same rows, keeps what the seal kept', fin.ok && fin.text === w10.text, JSON.stringify(fin.text));
+    const TIRMIDHI = 'قال رسول الله صلى الله عليه وسلم: «من حسن إسلام المرء تركه ما لا يعنيه» رواه الترمذي.';
+    const tSeal = TL.lockTakhrij(TIRMIDHI, [proof('الترمذي', 'من حسن إسلام المرء تركه ما لا يعنيه')]);
+    ok('e55 sibling · the whole answer is «… رواه الترمذي» and the library proved الترمذي: it stays byte for byte',
+      tSeal.text === TIRMIDHI && tSeal.outcome === 'CLEAN' && TL.lockTakhrij(TIRMIDHI, []).text !== TIRMIDHI, JSON.stringify(tSeal.text));
+    const NOTHING = Q10.replace('رواه البخاري ومسلم', 'رواه مسلم والترمذي');
+    const nSeal = TL.lockTakhrij(NOTHING, [proof('البخاري', KALIMA)]);
+    ok('e55 sibling · the whole answer is a credit the library proved none of: REFUSED, never pruned into something else',
+      nSeal.outcome === 'REFUSED' && nSeal.text === '', JSON.stringify(nSeal));
+    const MUSLIM = 'قال النبي صلى الله عليه وسلم: «' + KALIMA + '». رواه مسلم.\nوفيه فضل الكلام الحسن.';
+    const m = TL.lockTakhrij(MUSLIM, [proof('البخاري', KALIMA)]).text;
+    ok('e55 sibling · «رواه مسلم» and the library proved البخاري alone: the credit goes and «البخاري» is not written in its place',
+      !m.includes('رواه مسلم') && !m.includes('البخاري') && m === TL.lockTakhrij(MUSLIM, []).text, JSON.stringify(m));
+    const second = TL.lockTakhrij('حديث «' + KALIMA + '» رواه البخاري ومسلم.', [proof('مسلم', KALIMA)]).text;
+    ok('e55 sibling · «رواه البخاري ومسلم» and the library proved مسلم: «رواه مسلم», in the prose\'s own letters',
+      second === 'حديث «' + KALIMA + '» رواه مسلم.', JSON.stringify(second));
+    const other = TL.lockTakhrij(MUSLIM, [proof('مسلم', SULAMA)]).text;
+    ok('e55 control · a proof for ANOTHER matn prunes nothing: the lock judges as it did', other === TL.lockTakhrij(MUSLIM, []).text, JSON.stringify(other));
+    const GRADED = 'حديث «' + KALIMA + '» رواه البخاري ومسلم وصححه الألباني.\nوفيه فضل الكلام الحسن.';
+    ok('e55 control · a grade in the same sentence is never pruned: b26 judges the sentence as before',
+      TL.lockTakhrij(GRADED, [proof('البخاري', KALIMA)]).text === TL.lockTakhrij(GRADED, []).text);
+    const BRACKET = 'قال النبي صلى الله عليه وسلم: «إنما الأعمال بالنيات» (البخاري).\nوفيه فضل الكلام الحسن.';
+    ok('e55 control · a prose proof is no page: it supports nothing else in the answer',
+      TL.lockTakhrij(BRACKET, [proof('البخاري', 'إنما الأعمال بالنيات')]).text === TL.lockTakhrij(BRACKET, []).text);
+    const PHRASE = 'وسئل عن المقيم فقال: «يوم وليلة» رواه مسلم.\nوالمسح على ظاهر الخف.';
+    ok('e55 control · a quotation of fewer than three words is a phrase: its credit is judged as before, not pruned',
+      TL.lockTakhrij(PHRASE, [proof('مسلم', 'يوم وليلة')]).text === TL.lockTakhrij(PHRASE, []).text);
+    const GROUP = 'حديث «' + KALIMA + '» رواه الخمسة.';
+    ok('e55 control · a collective («الخمسة») is not a name to prune: judged as before',
+      TL.lockTakhrij(GROUP, [proof('البخاري', KALIMA)]).outcome === TL.lockTakhrij(GROUP, []).outcome);
+    const askE = fs.readFileSync(path.join(REPO, 'api/ask.js'), 'utf8').replace(/\r\n/g, '\n');
+    ok('e55 seat · api/ask.js: a lock that REFUSED returns FINALIZER_REFUSAL, not the empty text and not the limit sentence',
+      askE.includes("    if (locked.outcome === 'REFUSED') {\n      takhrijSealRefused = true;\n      return FINALIZER_REFUSAL;\n    }\n    return withTakhrijLimit(locked.text);"));
+    ok('e55 seat · ...and the finalizer seat refuses that answer as its own (ok:false, the caller\'s fallback sentence)',
+      askE.includes("      const result = takhrijSealRefused\n        ? { ok: false, text: String(input.fallbackText || FINALIZER_REFUSAL), problems: ['TAKHRIJ_SEAL_REFUSED'],"));
+    ok('e55 seat · ...and the prose proofs travel with the proven rows, beside and not instead of them',
+      askE.includes("takhrijProvenRows.push({ title: '', passage: '', proseProof: { book, matn: String(entry.matn || '') } });")
+        && askE.includes("takhrijProvenRows.push({ title: book, passage: book + ' ' + String(entry.matn || '') })"));
+    const srcE = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seamE = '    const prune = prunedProseCredit(s, sen, body, unsupported, proseProofs);';
+    const mutatedE = srcE.split(seamE).join('    const prune = null; // mutant');
+    ok('MUTANT e55 prune seam applied', mutatedE !== srcE);
+    const tmpE = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-e55-mut-'));
+    try {
+      const mfile = path.join(tmpE, 'takhrij-lock.mjs');
+      fs.writeFileSync(mfile, mutatedE.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + mfile.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [e55] question 10 is cut to nothing again',
+        mod.lockTakhrij(Q10, [proof('البخاري', KALIMA)]).outcome === 'REFUSED');
+    } finally {
+      try { fs.rmSync(tmpE, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });

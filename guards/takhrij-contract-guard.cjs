@@ -2301,6 +2301,48 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-e55] · THE PROSE CREDITED THE MATN: THE SEAL IS HANDED WHAT THE LIBRARY PROVED ─────────
+  // MEASURED on the owner's battery (fix round, question 10): the parentheses were withheld because the
+  // prose had credited the matn, and nothing the library had proved reached the seal. The contract: the
+  // books whose own atoms carried THIS matn travel as `proseProof` — no grader, nothing for a matn ruled
+  // not raised — and no parentheses are written beside the prose.
+  console.log('\n--- E55. THE PROSE CREDITED THE MATN: THE SEAL IS HANDED WHAT THE LIBRARY PROVED ---');
+  {
+    const TE = await esm('lib/takhrij.js');
+    const TLE = await esm('lib/takhrij-lock.js');
+    const KALIMA = 'الكلمة الطيبة صدقة';
+    const A10 = 'حديث «' + KALIMA + '» رواه البخاري ومسلم من حديث أبي هريرة رضي الله عنه، وفيه فضل الكلام الحسن.';
+    const Q10 = 'حديث «الكلمة الطيبة صدقة» من رواه؟';
+    const bukhari = async (matns) => matns.map((matn) => ({ matn, subjectIds: ['FC-000645', 'FC-001824'], atoms: [atomFor(matn, 'أبي هريرة'), atomFor(matn, 'أبي هريرة')] }));
+    const pass = await TE.applyTakhrij(A10, { env: ON, question: Q10, lookup: bukhari });
+    const e = pass.entries.find((x) => x.declined === 'prose_states_attribution') || {};
+    ok('E55 W · the prose exit hands over the matn books the atoms proved, and no grader',
+      JSON.stringify(e.proseProof) === JSON.stringify(['البخاري']), JSON.stringify(e.proseProof));
+    ok('E55 W · ...and writes no parentheses beside the prose', !pass.text.includes('(البخاري)') && pass.text.endsWith(A10), JSON.stringify(pass.text));
+    const rows = (entries) => entries.flatMap((x) => (x.proseProof || []).map((book) => ({ title: '', passage: '', proseProof: { book, matn: String(x.matn || '') } })));
+    const sealed = TLE.lockTakhrij(pass.text, rows(pass.entries)).text;
+    ok('E55 W · pass and seal together: «رواه البخاري» and the matn reach the reader, «ومسلم» does not',
+      sealed.includes('«' + KALIMA + '» رواه البخاري من حديث') && !sealed.includes('ومسلم'), JSON.stringify(sealed));
+    const other = await TE.applyTakhrij('قال النبي صلى الله عليه وسلم: «' + KALIMA + '».\n\nوفيه فضل الكلام الحسن.', { env: ON, question: Q10, lookup: bukhari });
+    ok('E55 control · no prose credit: no prose proof, and the parentheses are written as before',
+      other.entries.every((x) => !x.proseProof) && other.text.includes('(البخاري)'), JSON.stringify(other.text));
+    const src = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam = '        proseProof: proseProofFor(state, parenthetical),';
+    const mutated = src.split(seam).join('        proseProof: [], // mutant');
+    ok('MUTANT E55 prose-proof seam applied', mutated !== src);
+    const tmp = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-e55-mut-'));
+    try {
+      const file = path.join(tmp, 'takhrij.mjs');
+      require('fs').writeFileSync(file, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      const mp = await mod.applyTakhrij(A10, { env: ON, question: Q10, lookup: bukhari });
+      ok('MUTANT KILLED: without [e55] the seal cuts question 10\'s only credit sentence again',
+        TLE.lockTakhrij(mp.text, rows(mp.entries)).outcome === 'REFUSED');
+    } finally {
+      try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   // ── BATCH 4 [b28] · THE LAFZ FUNCTION TRIES THE INTENDED WORD ────────────────────────────────
   // MEASURED at 2aaf987 (EZIK-CX-M111 row 28), unchanged at 92d3c7d: «الصلاة على وقتها» → «الصلاات على
   // وقتها»، and in «النية والصدقة والأعمال بالنيات» the cap of two was spent before «بالنيات». The owner's

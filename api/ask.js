@@ -1151,6 +1151,8 @@ export default async function handler(req, res) {
     }
     return body.slice(0, at) + '\n\n' + tail + body.slice(at);
   };
+  // [111-e55] — set when the lock refused the whole answer; the finalizer seat below refuses with it.
+  let takhrijSealRefused = false;
   const seal = (text) => {
     const locked = lockTakhrij(
       String(text == null ? '' : text),
@@ -1166,6 +1168,14 @@ export default async function handler(req, res) {
     // lock rather than before it so that the lock can never be the thing that deletes it; the
     // sentence names no collection and no grade, so the lock has nothing to say about it either
     // way, and this ordering makes that independent of the lock’s vocabulary.
+    // [111-e55] — AND A REFUSAL IS NEVER A BLANK. MEASURED (fix round, question 10): the lock cut the one
+    // sentence the answer was and returned REFUSED with an empty text, and this seat passed the empty
+    // text on. The lock's explicit refusal is treated as the finalizer's: the reader is told in a
+    // sentence (FINALIZER_REFUSAL) — no limit sentence and no card under a text that is not there.
+    if (locked.outcome === 'REFUSED') {
+      takhrijSealRefused = true;
+      return FINALIZER_REFUSAL;
+    }
     return withTakhrijLimit(locked.text);
   };
 
@@ -1216,7 +1226,11 @@ export default async function handler(req, res) {
   };
   res = createFinalizedSseResponse(res, {
     finalize: (input) => {
-      const result = finalizeReaderText(input);
+      // [111-e55] — the seal refused this answer (see `seal`), so the seat refuses it as its own.
+      const result = takhrijSealRefused
+        ? { ok: false, text: String(input.fallbackText || FINALIZER_REFUSAL), problems: ['TAKHRIJ_SEAL_REFUSED'],
+          replaced: true, degraded: ['takhrij-rebuild-empty'], drops: [], outcome: 'REFUSED' }
+        : finalizeReaderText(input);
       if (!result.ok) console.warn('[finalizer] reader text replaced', { problems: result.problems });
       for (const drop of Array.isArray(result.drops) ? result.drops : []) {
         if (!dropLogRoom()) break;
@@ -2081,6 +2095,11 @@ export default async function handler(req, res) {
           for (const entry of pass.entries) {
             for (const book of Array.isArray(entry.sealProof) ? entry.sealProof : []) {
               takhrijProvenRows.push({ title: book, passage: book + ' ' + String(entry.matn || '') });
+            }
+            // [111-e55] — and, for a matn the PROSE credited, the books its atoms proved. The lock reads
+            // these rows to prune that credit and for nothing else; they are no page (lib/takhrij-lock.js).
+            for (const book of Array.isArray(entry.proseProof) ? entry.proseProof : []) {
+              takhrijProvenRows.push({ title: '', passage: '', proseProof: { book, matn: String(entry.matn || '') } });
             }
           }
           // ITEM 87 — every name printed here is on guards/telemetry-text-guard.cjs’s reviewed
