@@ -1384,9 +1384,11 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try {
         const M17 = await esm('lib/' + path.basename(tmp17));
         // BATCH 4 [b26] — a trailing credit is cut alone before the salvage is asked, so the
-        // mutant is driven with a condemning GRADE, which the salvage alone keeps the matn from.
+        // mutant is driven with a credit that does NOT stand apart (a narrator and a chapter follow
+        // it), which the salvage alone keeps the matn from. [b12] — a trailing «، صححه الألباني» is
+        // now a credit cut alone as well, so it could no longer be that witness.
         const broken17 = M17.lockTakhrij(
-          'قال النبي صلى الله عليه وسلم: «' + ISBAL_A + '»، صححه الألباني.', []);
+          'قال النبي صلى الله عليه وسلم: «' + ISBAL_A + '» رواه البخاري عن ابن عمر في كتاب اللباس.', []);
         ok('17  MUTANT: with it disarmed the hadith is deleted — the defect that was measured',
           !broken17.text.includes(ISBAL_A), JSON.stringify(broken17.text));
       } finally { fs17.unlinkSync(tmp17); }

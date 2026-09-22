@@ -3689,6 +3689,79 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp26, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── BATCH 4 [b12] · THE JOINED GRADE VERB IS THE DIRECT ONE, AND A NAMELESS SPEAKER HAS NO GRADE ──
+  // MEASURED at 2aaf987 and 92d3c7d (EZIK-CX-M111 row 12): «فحسّنَه النوويُّ، وصحّحَه ابنُ حبّانَ
+  // والألبانيُّ.» reached the reader with no page; «قال الألباني: صحيح.» reached it as «وقال بعض أهل
+  // العلم: صحيح.». The owner's ruling: the joined verb passes only by what passes the direct one, and
+  // under the general formula there is no grade — the grade goes, the rest stays with no hole.
+  console.log('\n=== BATCH 4 [b12] · THE JOINED GRADE VERB, AND NO GRADE FOR A NAMELESS SPEAKER ===');
+  {
+    const L12 = await esm('lib/takhrij-lock.js');
+    const SEAT12 = await esm('lib/finalize-reader-text.js');
+    const REV12 = await esm('lib/output-reviewer.js');
+    const STREAM12 = await esm('lib/sentence-stream.js');
+    const ship = (mod, t) => SEAT12.finalizeReaderText({ kind: 'answer', text: mod.lockTakhrij(t, []).text, sources: [] }).text;
+    const viaReviewer = (mod, t) => ship(mod, REV12.reviewAnswer({ text: t, evidence: [], domain: 'fiqh', mode: 'chat' }).text);
+    const HADITH = 'قال رسول الله صلى الله عليه وسلم: «من حسن إسلام المرء تركه ما لا يعنيه».';
+    const W1 = HADITH + '\nفحسّنَه النوويُّ، وصحّحَه ابنُ حبّانَ والألبانيُّ.\nوهو أصل في ترك الفضول.';
+    const W2 = 'ويستحب ذلك.\nقال الألباني: صحيح.\nوالعمل عليه عند أهل العلم.';
+    ok('b12 W1 · «فحسّنه النووي، وصحّحه ابن حبان والألباني» with no page goes like the direct verb',
+      ship(L12, W1) === HADITH + '\nوهو أصل في ترك الفضول.', JSON.stringify(ship(L12, W1)));
+    ok('b12 ...and it is read as spans, each its own phrase',
+      L12.takhrijSpans('فحسّنَه النوويُّ، وصحّحَه ابنُ حبّانَ والألبانيُّ.').map((x) => x.kind + ':' + x.phrase).join('|')
+        === 'grade:حسنه النووي|grade:صححه ابن حبان والالباني', JSON.stringify(L12.takhrijSpans('فحسّنَه النوويُّ، وصحّحَه ابنُ حبّانَ والألبانيُّ.')));
+    ok('b12 W2 · «قال الألباني: صحيح.» does not reach the reader as a grade credited to nobody',
+      viaReviewer(L12, W2) === 'ويستحب ذلك.\nوالعمل عليه عند أهل العلم.', JSON.stringify(viaReviewer(L12, W2)));
+    for (const [label, input, want] of [
+      ['sibling · «وضعّفه الألبانيّ» joined, no page: goes',
+        'قال رسول الله صلى الله عليه وسلم: «لا تقرأ الحائض ولا الجنب شيئا من القرآن».\nوضعّفه الألبانيّ.\nوذهب الجمهور إلى المنع.',
+        'قال رسول الله صلى الله عليه وسلم: «لا تقرأ الحائض ولا الجنب شيئا من القرآن».\nوذهب الجمهور إلى المنع.\nوتُراجَع المسألة مع أهل العلم لظهور الخلاف فيها.'],
+      ['sibling · «قال ابن باز: إسناده جيد» through the reviewer: the grade goes, and with it the sentence it was all of',
+        'ويجوز ذلك.\nقال ابن باز: إسناده جيد.\nوالله أعلم.', 'ويجوز ذلك.\nوالله أعلم.'],
+      ['sibling · a general speaker with more to say keeps it; only the grade clause goes',
+        'قال الشيخ محمد ناصر الدين الألباني: صحيح، والعمل عليه عند أهل العلم.\nويستحب ذلك.',
+        'وقال بعض أهل العلم: والعمل عليه عند أهل العلم.\nويستحب ذلك.'],
+      ['sibling · a ruling before «، وصحّحه ابن حبان» keeps its sentence; the grade credit goes alone',
+        'ويستحب صيام ثلاثة أيام من كل شهر، وصححه ابن حبان.\nوالله أعلم.', 'ويستحب صيام ثلاثة أيام من كل شهر.\nوالله أعلم.'],
+      ['control · «وصححه بالشواهد» names nobody and is no span (AA-88), as before',
+        'قال رسول الله صلى الله عليه وسلم: «الصيام جنة».\nوصححه بالشواهد.\nوالصيام من أفضل الأعمال.',
+        'قال رسول الله صلى الله عليه وسلم: «الصيام جنة».\nوصححه بالشواهد.\nوالصيام من أفضل الأعمال.'],
+      ['control · a general speaker with no grade is not touched',
+        'قال ابن عثيمين: الأفضل أن يصلي في بيته.\nوالله أعلم.', 'وقال بعض أهل العلم: الأفضل أن يصلي في بيته.\nوالله أعلم.'],
+    ]) ok('b12 ' + label, viaReviewer(L12, input) === want, JSON.stringify(viaReviewer(L12, input)));
+    ok('b12 sibling · «وقد صحّحه ابن خزيمة وحسّنه الترمذي» is two spans; a page carrying one keeps that one only',
+      L12.takhrijSpans('وقد صحّحه ابن خزيمة وحسّنه الترمذي.').length === 2);
+    ok('b12 control · a joined grade credit a page carries is left exactly as written',
+      L12.lockTakhrij(HADITH + '\nوصحّحه ابن حبان.', [{ title: 'صحيح ابن حبان', passage: 'من حسن إسلام المرء تركه ما لا يعنيه صححه ابن حبان' }]).text
+        === HADITH + '\nوصحّحه ابن حبان.');
+    ok('b12 the stream holds a unit carrying a general speaker\'s grade, so the finalizer never withdraws sent text',
+      STREAM12.wouldDropGrade('وقال بعض أهل العلم: صحيح.') === true
+        && STREAM12.wouldDropGrade('وقال بعض أهل العلم: الأفضل أن يصلي في بيته.') === false);
+    const src12 = read('lib/takhrij-lock.js').replace(/\r\n/g, '\n');
+    const dir12 = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
+    const tmp12 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-b12-mut-'));
+    const load12 = async (tag, from, to) => {
+      const changed = src12.split(from).join(to);
+      ok('MUTANT b12 ' + tag + ' seam applied', changed !== src12);
+      const file = path.join(tmp12, tag + '.mjs');
+      fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir12, spec).replace(/\\/g, '/') + q), 'utf8');
+      return import('file:///' + file.replace(/\\/g, '/'));
+    };
+    try {
+      const m1 = await load12('joined-grade-unread', '(ATTRIB_VERBS.has(b.slice(1)) || (GRADE_VERBS.has(b.slice(1)) && namesAGrader))', 'ATTRIB_VERBS.has(b.slice(1))');
+      // Driven through the mutated module ALONE: the finalizer imports the real lock and would mask it.
+      ok('MUTANT KILLED: with the joined grade verb unread, «وصحّحه ابن حبان والألباني» reaches the reader again',
+        m1.lockTakhrij(W1, []).text.includes('وصحّحَه ابنُ حبّانَ') && !L12.lockTakhrij(W1, []).text.includes('وصحّحَه'),
+        JSON.stringify(m1.lockTakhrij(W1, []).text));
+      const m2 = await load12('general-grade-kept', '    const general = generalSpeakerGradeCuts(lines[i]);', '    const general = []; // mutant');
+      ok('MUTANT KILLED: with the general-speaker rule gone, «وقال بعض أهل العلم: صحيح.» reaches the reader again',
+        m2.dropUnsourcedGrades(REV12.reviewAnswer({ text: W2, evidence: [], domain: 'fiqh', mode: 'chat' }).text).text.includes('وقال بعض أهل العلم: صحيح')
+          && !L12.dropUnsourcedGrades(REV12.reviewAnswer({ text: W2, evidence: [], domain: 'fiqh', mode: 'chat' }).text).text.includes('صحيح'));
+    } finally {
+      try { fs.rmSync(tmp12, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
