@@ -2027,6 +2027,61 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── BATCH 4 [b22] · A FAILED CALL IS ASKED ONCE MORE ─────────────────────────────────────
+  // MEASURED on the preview (T7, «إنما الأعمال بالنيات» → «(أبو داود · لم يوقف على حكم)»; «الطهور شطر
+  // الإيمان» → no parentheses at 92d3c7d) while the twin writes «(متفق عليه)» and «(مسلم)»: a failed
+  // call was printed and then read as «the book has nothing».
+  console.log('\n--- B22. A FAILED CALL IS ASKED AGAIN, ONCE ---');
+  {
+    const T22 = await esm('lib/takhrij.js');
+    const NIYYAT = 'إنما الأعمال بالنيات';
+    const BUKHARI = atomFor(NIYYAT, 'عمر بن الخطاب');
+    const MUSLIM = atomFor('إنما الأعمال بالنية', 'عمر بن الخطاب');
+    // Call one: البخاري only. The مسلم-narrowed call fails the first time it is asked.
+    const flaky = (failTimes) => {
+      let muslimCalls = 0;
+      return async (matns, options) => {
+        const ids = (options && options.bookIds) || [];
+        const muslim = ids.length === 1 && ids[0] === 'FC-000648';
+        if (muslim) muslimCalls += 1; // one call, however many matns (the variant rides in it)
+        return matns.map((matn) => {
+          if (muslim) {
+            if (muslimCalls <= failTimes) return { matn, subjectIds: [], atoms: [], failure: { status: '502', error: 'bad gateway' } };
+            return { matn, subjectIds: ['FC-000648'], atoms: [MUSLIM] };
+          }
+          return { matn, subjectIds: ['FC-000645', 'FC-000658'], atoms: [BUKHARI, BUKHARI] };
+        });
+      };
+    };
+    const once = await T22.applyTakhrij(answerWith(NIYYAT), { env: ON, lookup: flaky(1) });
+    ok('B22 W · the مسلم call failed once and was asked again: «(متفق عليه)», not «(البخاري)»',
+      once.text.includes('(' + L.AGREED_UPON + ')'), JSON.stringify(once.text));
+    ok('B22 ...and the failure is still recorded for the log, with its attempt',
+      once.callFailures.some((f) => f.call === 2 && f.status === '502' && f.attempt === 1), JSON.stringify(once.callFailures));
+    const twice = await T22.applyTakhrij(answerWith(NIYYAT), { env: ON, lookup: flaky(2) });
+    ok('B22 control · a call that fails twice leaves the parentheses the library DID confirm, and both failures are printed',
+      twice.text.includes('(البخاري)') && twice.callFailures.filter((f) => f.call === 2 && f.status === '502').length >= 2,
+      JSON.stringify([twice.text, twice.callFailures]));
+    const threw = async (matns) => { throw new Error('socket hang up'); };
+    const dead = await T22.applyTakhrij(answerWith(NIYYAT), { env: ON, lookup: threw });
+    ok('B22 control · a library that is down is asked twice and the matn stays as written — silence, no invented bracket',
+      dead.text === answerWith(NIYYAT) && dead.callFailures.filter((f) => f.status === 'threw').length >= 2, JSON.stringify(dead.callFailures));
+    const src22 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam = '    const again = await callOnce(failed, options, n, 2);';
+    const mutated = src22.split(seam).join('    const again = null; // mutant');
+    ok('MUTANT B22 retry seam applied', mutated !== src22);
+    const tmp = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-b22-mut-'));
+    try {
+      const file = path.join(tmp, 'takhrij.mjs');
+      require('fs').writeFileSync(file, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b22] one failed call reduces «(متفق عليه)» to «(البخاري)» again',
+        (await mod.applyTakhrij(answerWith(NIYYAT), { env: ON, lookup: flaky(1) })).text.includes('(البخاري)'));
+    } finally {
+      try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
