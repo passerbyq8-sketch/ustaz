@@ -888,6 +888,37 @@ const unsupportedIsHandledSilently = (module) => {
         '  const companion = isCompanionName(attribution.claimed) // [h53]\n    || (', '  const companion = (',
         (mod) => !/بعض أهل العلم/u.test(mod.reviewAnswer({ text: W53('C53-qala-umar-bare'), evidence: [], domain: 'fiqh', mode: 'chat' }).text));
     }
+    // ── [111-b4b-66] · «أنه قال» NAMES ITS SPEAKER: THE PRONOUN ────────────────────────────────
+    // MEASURED at eca359e (r44, alive in production): «ونقل الخطيب البغدادي عن يحيى بن معين أنه قال: إنه
+    // كذب لا أصل له.» left as «…أنه قال بعض أهل العلم: …». The name after «عن» is no subject, and the verb
+    // after «أنه» has its subject already: no category is stuffed into such a frame — it stays as written.
+    // Every row below was «…أنه قال بعض أهل العلم:» at eca359e.
+    {
+      const say66 = (t) => module.reviewAnswer({ text: t, evidence: [], domain: 'fiqh', mode: 'chat' }).text;
+      const ROWS66 = [
+        ['W66-naqala-khatib-ibnmain', 'وفي الحديث كلام كثير.\nونقل الخطيب البغدادي عن يحيى بن معين أنه قال: إنه كذب لا أصل له.'],
+        ['S66-haka-ibnabdalbarr-ahmad', 'وفي الباب أحاديث.\nوحكى ابن عبد البر عن الإمام أحمد أنه قال: لا يصح في هذا الباب شيء.'],
+        ['S66-haka-tirmidhi-bukhari', 'وفي الحديث كلام.\nوحكى الترمذي عن البخاري أنه قال: هذا حديث منكر.'],
+        ['S66-naqala-ibnkathir-ibnabbas', 'وفي الآية أقوال للمفسرين.\nونقل ابن كثير عن ابن عباس رضي الله عنهما أنه قال: هي منسوخة.'],
+        ['S66-naqala-aisha-annaha-qalat', 'والمسألة قديمة.\nونقل ابن المنذر عن عائشة رضي الله عنها أنها قالت: لا بأس بذلك.'],
+        ['S66-qawluhu-innahu-qala', 'وفي الحديث كلام.\nونقل ابن حجر عن الدارقطني قوله إنه قال: المحفوظ أنه مرسل.'],
+      ];
+      for (const [id, input] of ROWS66) {
+        const out = say66(input);
+        // (the answer-level khilaf tail may follow; the model's own lines are what is asserted)
+        ok('b4b-66 ' + id + ': the frame whose subject is the pronoun stays exactly as the model wrote it',
+          out.split('\n').slice(0, input.split('\n').length).join('\n') === input, out);
+      }
+      const R44 = 'وصلاة الجماعة واجبة.\nوتكلم ابن باز في المسألة ثم قال: صلاة الجماعة في المسجد واجبة.';
+      ok('b4b-66 control · a name that IS the subject is still generalised, and the nameless «ثم قال:» after it is untouched',
+        say66(R44) === 'وصلاة الجماعة واجبة.\nوتكلم بعض أهل العلم في المسألة ثم قال: صلاة الجماعة في المسجد واجبة.', say66(R44));
+      const W66 = ROWS66[0][1];
+      const m66 = await runMutant({ sourceFile: REVIEWER, name: 'without [b4b-66] «أنه قال» takes «بعض أهل العلم» again',
+        transform: (source) => source.replace('    if (PRONOUN_SUBJECT_BEFORE_RE.test(view(text.slice(0, m.index)))) continue; // [111-b4b-66]\n', ''),
+        survives: (mod) => !/أنه قال بعض أهل العلم/u.test(mod.reviewAnswer({ text: W66, evidence: [], domain: 'fiqh', mode: 'chat' }).text) });
+      ok('b4b-66 mutant seam applied', m66.changed, m66.error);
+      ok('MUTANT KILLED: without [b4b-66] «أنه قال» takes «بعض أهل العلم» again', m66.loaded && m66.survived === false, JSON.stringify(m66));
+    }
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
