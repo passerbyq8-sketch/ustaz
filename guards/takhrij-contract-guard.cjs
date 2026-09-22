@@ -67,7 +67,11 @@ const esm19 = (abs) => import('file:///' + abs.replace(/\\/g, '/'));
 // front of it. Built here rather than pasted, so no harakat sequence is typed by hand.
 const MATN = 'إنما الأعمال بالنيات';
 const OTHER = 'المسلم من سلم المسلمون من لسانه ويده';
-const atomFor = (matn, companion) => `حدثنا سفيان عن ${companion} رضي الله عنه قال: ${matn}`;
+// [111-b4b-61] — A NARRATION QUOTES THE MATN, AFTER THE PROPHET ﷺ. The index's atoms carry his words
+// in «» behind «قال رسول الله ﷺ», and since [111-b4b-61] a matn under four words is proved only by
+// such a span that IS it, so a fixture that handed the matn bare now hands it that way. What each row
+// asserts is unchanged.
+const atomFor = (matn, companion) => `حدثنا سفيان عن ${companion} رضي الله عنه قال: قال رسول الله صلى الله عليه وسلم: «${matn}»`;
 // A SILSILA ATOM IS AN ENTRY, NOT A NARRATION. In ezik-shamela-20260820 an entry of the two
 // Silsilas opens with its number and its matn («36 - حب الوطن من الإيمان…»), and the second order
 // of item 111 (step 8) lets their title grade only such an entry. Fixtures that hand a Silsila an
@@ -235,7 +239,7 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     const text = answerWith(MATN);
     // Two books, both handing back the full chain, so the row still asks the question it was
     // written to ask: when a name IS taken, does its isnad come with it?
-    const CHAIN = 'حدثنا الحميدي حدثنا سفيان عن يحيى بن سعيد عن محمد بن إبراهيم عن علقمة عن عمر بن الخطاب رضي الله عنه قال: ' + MATN;
+    const CHAIN = 'حدثنا الحميدي حدثنا سفيان عن يحيى بن سعيد عن محمد بن إبراهيم عن علقمة عن عمر بن الخطاب رضي الله عنه قال: قال رسول الله صلى الله عليه وسلم: «' + MATN + '»'; // [111-b4b-61] quoted
     const chained = await T.applyTakhrij(text, {
       env: ON,
       lookup: lookupOf({
@@ -1711,8 +1715,11 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     const MATN8 = 'الدين النصيحة';
     const HEADING_ONLY = 'بَابُ قَوْلِ النَّبِيِّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: " الدِّينُ النَّصِيحَةُ: لِلَّهِ وَلِرَسُولِهِ وَلِأَئِمَّةِ المُسْلِمِينَ وَعَامَّتِهِمْ "\n'
       + '57 - حَدَّثَنَا مُسَدَّدٌ، قَالَ: حَدَّثَنَا يَحْيَى، عَنْ إِسْمَاعِيلَ، قَالَ: حَدَّثَنِي قَيْسٌ، عَنْ جَرِيرِ بْنِ عَبْدِ اللَّهِ، قَالَ: بَايَعْتُ رَسُولَ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ عَلَى إِقَامِ الصَّلاَةِ، وَالنُّصْحِ لِكُلِّ مُسْلِمٍ';
+    // [111-b4b-61] — the same heading quoting the matn whole, so the seam below is tested on a heading that
+    // could prove it: the real one above now fails the short-matn rule on its own.
+    const HEADING_QUOTES_MATN = HEADING_ONLY.replace("\" الدِّينُ النَّصِيحَةُ: لِلَّهِ وَلِرَسُولِهِ وَلِأَئِمَّةِ المُسْلِمِينَ وَعَامَّتِهِمْ \"", "«الدِّينُ النَّصِيحَةُ»");
     const MUSLIM_NARRATION = '23 - بَابُ بَيَانِ أَنَّ الدِّينَ النَّصِيحَةُ\n95 - (55) حَدَّثَنَا مُحَمَّدُ بْنُ عَبَّادٍ، عَنْ تَمِيمٍ الدَّارِيِّ، أَنَّ النَّبِيَّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ قَالَ: «الدِّينُ النَّصِيحَةُ» قُلْنَا: لِمَنْ؟';
-    const HEADING_AND_NARRATION = HEADING_ONLY + '\n58 - حَدَّثَنَا فُلاَنٌ عَنْ تَمِيمٍ قَالَ: قَالَ رَسُولُ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: الدِّينُ النَّصِيحَةُ';
+    const HEADING_AND_NARRATION = HEADING_ONLY + '\n58 - حَدَّثَنَا فُلاَنٌ عَنْ تَمِيمٍ قَالَ: قَالَ رَسُولُ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: «الدِّينُ النَّصِيحَةُ»'; // [111-b4b-61] quoted
     const runWith = async (mod, bukhariAtom) => (await mod.applyTakhrij(answerWith(MATN8), {
       env: ON,
       lookup: lookupOf({ [MATN8]: { matn: MATN8, subjectIds: ['FC-000645', 'FC-000648'], atoms: [bukhariAtom, MUSLIM_NARRATION] } }),
@@ -1725,6 +1732,8 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       (await runWith(T, HEADING_AND_NARRATION)).includes('(' + L.AGREED_UPON + ')'));
     ok('S8 an atom that does not open with a heading is handed over byte-identical',
       T.narrationOf(MUSLIM_NARRATION.split('\n')[1]) === MUSLIM_NARRATION.split('\n')[1]);
+    ok('S8 [111-b4b-61] a heading that quotes the matn whole still proves no book: it is read from its isnad',
+      !(await runWith(T, HEADING_QUOTES_MATN)).includes('(' + L.AGREED_UPON + ')'));
     ok('S8 ...and `atomCarriesMatn` itself did not move: the heading atom still reads as a carrier when asked directly',
       T.atomCarriesMatn(HEADING_ONLY, MATN8) === true);
     const srcS8 = fsS8.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8');
@@ -1739,7 +1748,7 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
         (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(libDir, spec).replace(/\\/g, '/') + q), 'utf8');
       const mutS8 = await import('file:///' + fileS8.replace(/\\/g, '/'));
       ok('MUTANT KILLED: with the heading counted, the false «(متفق عليه)» comes back',
-        (await runWith(mutS8, HEADING_ONLY)).includes('(' + L.AGREED_UPON + ')'));
+        (await runWith(mutS8, HEADING_QUOTES_MATN)).includes('(' + L.AGREED_UPON + ')'));
     } finally {
       try { fsS8.rmSync(dirS8, { recursive: true, force: true }); } catch { /* temp only */ }
     }
@@ -2090,7 +2099,7 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
   {
     const T23 = await esm('lib/takhrij.js');
     const NIY = 'إنما الأعمال بالنيات';
-    const agreed = lookupOf({ [NIY]: { matn: NIY, subjectIds: ['FC-000645', 'FC-000648'], atoms: ['حدثنا الحميدي حدثنا سفيان قال: ' + NIY, 'حدثنا عبد الله بن مسلمة قال: ' + NIY] } });
+    const agreed = lookupOf({ [NIY]: { matn: NIY, subjectIds: ['FC-000645', 'FC-000648'], atoms: ['حدثنا الحميدي حدثنا سفيان قال رسول الله صلى الله عليه وسلم: «' + NIY + '»', 'حدثنا عبد الله بن مسلمة قال رسول الله صلى الله عليه وسلم: «' + NIY + '»'] } }); // [111-b4b-61] quoted
     const run = (mod, lead, lookup) => mod.applyTakhrij(lead + ' «' + NIY + '».', { env: ON, lookup });
     for (const [lead, want] of [
       ['ورُوي عن النبي صلى الله عليه وسلم أنه قال:', 'وثبت عن النبي صلى الله عليه وسلم أنه قال:'],
@@ -2389,6 +2398,70 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       const mod = await import('file:///' + file.replace(/\\/g, '/'));
       ok('MUTANT KILLED: without [b28] the cap is spent first and the matn leaves as «(البخاري)» again',
         (await mod.applyTakhrij(A28, { env: ON, lookup: lookup28 })).text.includes('(البخاري)'));
+    } finally {
+      try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
+  // ── [111-b4b-61] · A SHORT QUOTATION IS BRACKETED ONLY AS A WHOLE MATN ──────────────────────
+  // MEASURED at eca359e (production), fixed drafts through the pass and the library twin: «يوتر «كل ليلة»»
+  // left as «(مسلم)» off Muslim's chapter on dividing the nights between wives; «إن الله يحب» as
+  // «(البخاري)», «في الدنيا والآخرة» as «(مسلم)» and «إلى يوم القيامة» as «(متفق عليه)», each off a
+  // narration that merely holds the words. The ruling: under four words, only an atom whose own quoted
+  // matn IS the quotation — and that the atom gives to the Prophet ﷺ — proves a book. Four words and more are untouched.
+  console.log('\n--- B4B-61. A SHORT QUOTATION IS BRACKETED ONLY AS A WHOLE MATN ---');
+  {
+    const T61 = await esm('lib/takhrij.js');
+    const one = (matn, id, atom) => lookupOf({ [matn]: { matn, subjectIds: [id], atoms: [atom] } });
+    const run = async (mod, text, lookup) => (await mod.applyTakhrij(text, { env: ON, lookup })).text;
+    const KULL = 'كل ليلة';
+    const W = 'كان النبي صلى الله عليه وسلم يوتر «' + KULL + '»، والوتر سنة مؤكدة.';
+    const WIVES = '13 - بَابُ الْقَسْمِ بَيْنَ الزَّوْجَاتِ 46 - (1462) حَدَّثَنَا أَبُو بَكْرِ بْنُ أَبِي شَيْبَةَ، عَنْ أَنَسٍ، قَالَ: كَانَ لِلنَّبِيِّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ تِسْعُ نِسْوَةٍ، فَكَانَ يَطُوفُ عَلَيْهِنَّ كُلَّ لَيْلَةٍ';
+    const lookW = one(KULL, 'FC-000648', WIVES);
+    ok('B4B-61 W · «كل ليلة» off the chapter on the wives: no parentheses, not one character written', (await run(T61, W, lookW)) === W);
+    const sibs = [
+      ['إن الله يحب', 'FC-000645', 'حَدَّثَنَا عَمْرُو بْنُ عَلِيٍّ، عَنْ عَائِشَةَ، قَالَتْ: قَالَ رَسُولُ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: «إِنَّ اللَّهَ يُحِبُّ الرِّفْقَ فِي الأَمْرِ كُلِّهِ»',
+        'قال النبي صلى الله عليه وسلم في الحث على الإتقان: «إن الله يحب» من عمل عملا أن يتقنه.'],
+      ['في الدنيا والآخرة', 'FC-000648', '38 - (2699) حَدَّثَنَا يَحْيَى بْنُ يَحْيَى، عَنْ أَبِي هُرَيْرَةَ، قَالَ: قَالَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: «مَنْ نَفَّسَ عَنْ مُؤْمِنٍ كُرْبَةً مِنْ كُرَبِ الدُّنْيَا، نَفَّسَ اللهُ عَنْهُ كُرْبَةً مِنْ كُرَبِ يَوْمِ الْقِيَامَةِ، وَمَنْ يَسَّرَ عَلَى مُعْسِرٍ، يَسَّرَ اللهُ عَلَيْهِ فِي الدُّنْيَا وَالْآخِرَةِ»',
+        'أخبر النبي صلى الله عليه وسلم أن بر الوالدين سبب للخير «في الدنيا والآخرة» كما هو معلوم.'],
+      ['إلى يوم القيامة', 'FC-000645', '2849 - حَدَّثَنَا عَبْدُ اللَّهِ بْنُ مَسْلَمَةَ، عَنْ عَبْدِ اللَّهِ بْنِ عُمَرَ رَضِيَ اللَّهُ عَنْهُمَا، قَالَ: قَالَ رَسُولُ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: «الخَيْلُ فِي نَوَاصِيهَا الخَيْرُ إِلَى يَوْمِ القِيَامَةِ»',
+        'بيّن النبي صلى الله عليه وسلم أن باب التوبة مفتوح «إلى يوم القيامة» لمن صدق فيها.'],
+      ['يوم وليلة', 'FC-000648', 'قَالَ: فَفَرَضَ اللهُ عَلَى أُمَّتِي خَمْسِينَ صَلَاةً فِي كُلِّ يَوْمٍ وَلَيْلَةٍ، فَنَزَلْتُ إِلَى مُوسَى صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ',
+        '«يوم وليلة»\n\nهذه مدة المسح على الخفين للمقيم.'],
+    ];
+    const TUHUR61 = 'الطهور شطر الإيمان';
+    const T61TEXT = 'قال رسول الله صلى الله عليه وسلم: «' + TUHUR61 + '».';
+    const tuhurLook = one(TUHUR61, 'FC-000626', '30431 - حَدَّثَنَا ابْنُ مَهْدِيٍّ، عَنْ حُجْرِ بْنِ عَدِيٍّ قَالَ: حَدَّثَنَا عَلِيٌّ أَنَّ «الطُّهُورَ شَطْرُ الْإِيمَانِ»');
+    ok('B4B-61 sibling · «الطهور شطر الإيمان» where the only exact span is ʿAlī\'s own saying: nothing written', (await run(T61, T61TEXT, tuhurLook)) === T61TEXT);
+    for (const [matn, id, atom, text] of sibs) {
+      ok('B4B-61 sibling · «' + matn + '» off a narration that only holds it: nothing written', (await run(T61, text, one(matn, id, atom))) === text);
+    }
+    const LIWAQT = 'الصلاة لوقتها';
+    const EXACT = '137 - (85) حَدَّثَنَا أَبُو بَكْرِ بْنُ أَبِي شَيْبَةَ، عَنْ عَبْدِ اللهِ بْنِ مَسْعُودٍ، قَالَ: سَأَلْتُ رَسُولَ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ أَيُّ الْعَمَلِ أَفْضَلُ؟ قَالَ: «الصَّلَاةُ لِوَقْتِهَا»';
+    const C1 = 'سئل النبي صلى الله عليه وسلم عن أفضل الأعمال فقال: «' + LIWAQT + '».';
+    ok('B4B-61 control · a short matn whose atom quotes exactly it keeps its parentheses', (await run(T61, C1, one(LIWAQT, 'FC-000648', EXACT))) === C1.replace('».', '» (مسلم).'));
+    const LONG = 'من كان يؤمن بالله واليوم الآخر';
+    const C2 = 'قال النبي صلى الله عليه وسلم: «' + LONG + '» في حق الجار.';
+    const lookLong = one(LONG, 'FC-000645', 'حَدَّثَنَا قُتَيْبَةُ، عَنْ أَبِي هُرَيْرَةَ، قَالَ: قَالَ رَسُولُ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: «مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَاليَوْمِ الآخِرِ فَلاَ يُؤْذِ جَارَهُ»');
+    ok('B4B-61 control · at four words and more nothing moved: the atom that holds it proves it as before', (await run(T61, C2, lookLong)).includes('(البخاري)'));
+    ok('B4B-61 the floor is four words, read on the folded letters',
+      T61.SHORT_QUOTE_WORDS === 4 && T61.isShortQuote('إِنَّ اللَّهَ يُحِبُّ') && !T61.isShortQuote('إنما الأعمال بالنيات وإنما'));
+    ok('B4B-61 an atom\'s quoted matn is read in «», “” and "", vocalised or not',
+      T61.atomMatnIs('قال رسول الله صلى الله عليه وسلم: «الصَّلَاةُ لِوَقْتِهَا»', LIWAQT) && T61.atomMatnIs('عن النبي صلى الله عليه وسلم قال: “الصلاة لوقتها”', LIWAQT)
+      && T61.atomMatnIs('قال رسول الله ﷺ: "الصلاة لوقتها"', LIWAQT) && !T61.atomMatnIs('قال رسول الله صلى الله عليه وسلم: «الصلاة لوقتها وبر الوالدين»', LIWAQT));
+    ok('B4B-61 ...and only where the atom gives it to the Prophet ﷺ: a Companion\'s own saying proves nothing',
+      !T61.atomMatnIs('حَدَّثَنَا عَلِيٌّ أَنَّ «الطُّهُورَ شَطْرُ الْإِيمَانِ»', 'الطهور شطر الإيمان'));
+    const src61 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam = '    if (isShortQuote(matn) && !atomMatnIs(atom, matn)) continue;\n';
+    const mutated = src61.split(seam).join('');
+    ok('MUTANT B4B-61 whole-matn seam applied', mutated !== src61);
+    const tmp = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-b4b61-mut-'));
+    try {
+      const file = path.join(tmp, 'takhrij.mjs');
+      require('fs').writeFileSync(file, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b4b-61] «كل ليلة» leaves as «(مسلم)» off the chapter on the wives again',
+        (await run(mod, W, lookW)).includes('(مسلم)'));
     } finally {
       try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
     }
