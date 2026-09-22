@@ -3998,6 +3998,46 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp15, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-d59] · A LINE OF DIALOGUE IS NOT A REPEATED MATN ──────────────────────────────────────
+  // MEASURED on the owner's battery (fix round, question 11, «فضائل أبي عبيدة»): the second «قيل: ثم من؟»
+  // went as `identical-line:prose` and the dialogue broke. The contract: b15's identical line is for a
+  // repeated matn — a quoted text or a card — not for a short line a dialogue rightly says twice; what b15
+  // and b16 keep is kept.
+  console.log('\n=== [111-d59] · A LINE OF DIALOGUE IS NOT A REPEATED MATN ===');
+  {
+    const SEAT59 = await esm('lib/finalize-reader-text.js');
+    const REP59 = await esm('lib/repeated-matn.js');
+    const fin = (t) => SEAT59.finalizeReaderText({ kind: 'answer', text: t, sources: [] }).text;
+    const DIALOGUE = 'وسئلت عائشة رضي الله عنها عن أحب أصحاب النبي صلى الله عليه وسلم إليه، فكان الحوار هكذا:\n'
+      + 'قالت: أبو بكر.\nقيل: ثم من؟\nقالت: عمر.\nقيل: ثم من؟\nقالت: أبو عبيدة بن الجراح.';
+    const w = fin(DIALOGUE);
+    ok('d59 W · «فضائل أبي عبيدة»: «قيل: ثم من؟» stays twice, the dialogue whole', w === DIALOGUE && w.split('قيل: ثم من؟').length === 3, JSON.stringify(w));
+    const LONGER = 'سأله رجل عن ذلك.\nفقال: لا يجوز ذلك عندنا.\nفأعاد عليه السؤال.\nفقال: لا يجوز ذلك عندنا.';
+    ok('d59 sibling · «فقال: لا يجوز ذلك عندنا.» twice in a reported exchange: both stay', fin(LONGER) === LONGER, JSON.stringify(fin(LONGER)));
+    const QULTU = 'قلت: وما ذاك يا رسول الله؟\nقال: الصلاة لوقتها.\nقلت: وما ذاك يا رسول الله؟\nقال: بر الوالدين.';
+    ok('d59 sibling · «قلت: …؟» twice: both stay', REP59.dropRepeatedMatn(QULTU).dropped.length === 0);
+    const S = 'اختلف علماء الحديث في درجة هذا الحديث.';
+    ok('d59 control · b15\'s own witness still goes once', fin(S + '\n\n' + S + '\nوالراجح أنه حسن لغيره.') === S + '\n\nوالراجح أنه حسن لغيره.');
+    const QUOTED = 'قال: «من حسن إسلام المرء تركه ما لا يعنيه».\nوفيه فضل ترك الفضول.\nقال: «من حسن إسلام المرء تركه ما لا يعنيه».';
+    ok('d59 control · a saying line that carries a quoted matn is a repeated matn: the second goes',
+      REP59.dropRepeatedMatn(QUOTED).dropped.length === 1, JSON.stringify(REP59.dropRepeatedMatn(QUOTED)));
+    const NAMED = 'قال ابن عباس رضي الله عنهما في ذلك.\nوفيه بيان.\nقال ابن عباس رضي الله عنهما في ذلك.';
+    ok('d59 control · a line with a named speaker is no dialogue line: b15 judges it as before', REP59.dropRepeatedMatn(NAMED).dropped.length === 1);
+    const src59 = read('lib/repeated-matn.js').replace(/\r\n/g, '\n');
+    const dir59 = path.dirname(path.join(REPO, 'lib', 'repeated-matn.js'));
+    const tmp59 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-d59-mut-'));
+    try {
+      const changed = src59.split('      if (isDialogueLine(b.body)) continue; // [111-d59]\n').join('');
+      ok('MUTANT d59 dialogue seam applied', changed !== src59);
+      const file = path.join(tmp59, 'dialogue.mjs');
+      fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir59, spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [d59] the second «قيل: ثم من؟» goes again', mod.dropRepeatedMatn(DIALOGUE).dropped.length === 1);
+    } finally {
+      try { fs.rmSync(tmp59, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   // ── BATCH 4 [b16] · THE MATN ONCE — IN THE CARD, WHERE THERE IS ONE ─────────────────────
   // MEASURED (EZIK-CX-M111 row 16; the battery's الحائض والقرآن and طواف الإفاضة; RAW-F19 of the
   // forty): a matn line then a card carrying it, and a card dissolved by the seal left «…» alone on a
