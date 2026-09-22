@@ -1585,6 +1585,10 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       ok('AA-83 ...and it is the grade after the narration that paid; its frame stays with it [b26]',
         out.text.includes(SAYS + ': «' + MATN + '»') && !/صحيح/u.test(out.text), JSON.stringify(out.text));
     }
+    // BATCH 4 [b35] — MOVED OUT OF THE TABLE BELOW: the weak grading stays, whole, as written.
+    ok('AA-83 [b35] a weak grading stays with its text, byte-identical — weakness is kept as fabrication is',
+      sealG('الحكمُ في البابِ ظاهرٌ عند أهل العلم.\nوهو حديثٌ ضعيفٌ.').text === 'الحكمُ في البابِ ظاهرٌ عند أهل العلم.\nوهو حديثٌ ضعيفٌ.',
+      JSON.stringify(sealG('الحكمُ في البابِ ظاهرٌ عند أهل العلم.\nوهو حديثٌ ضعيفٌ.').text));
     // ── ١١١/٢ · EACH SHAPE IS CARRIED, BECAUSE THE NEVER-EMPTY NET WOULD MASK IT ────
     // Every row below used to state the WORD-CUT — a sentence with a word torn out of its
     // middle, which is the owner’s measured defect of 20 September wearing a guard row. The
@@ -1599,7 +1603,8 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       ['the chain shape', 'الحكمُ ثابتٌ في البابِ. صحيحُ الإسنادِ.', 'الحكمُ ثابتٌ في البابِ.'],
       // «والحديثُ الصحيحُ …» — the ATTRIBUTIVE shape — left this table in ١١١ step 4: it no longer
       // loses its sentence, only its grade word. Its rows are below, under that contract.
-      ['a weak grading, equally unsourced', 'وهو حديثٌ ضعيفٌ.', ''],
+      // BATCH 4 [b35] — «a weak grading, equally unsourced» left this table: a verdict of weakness
+      // now stays with its matn as fabrication does (the owner's ruling 35). Its row is below.
     ]) {
       const carried = CARRIER83 + '\n' + text;
       ok('AA-83 ' + label + ': the sentence goes whole, the ruling beside it is byte-identical',
@@ -2068,8 +2073,16 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       'قَالَ أَبُو عِيسَى: هَذَا حَدِيثٌ صَحِيحٌ.',
       'قَالَ التِّرْمِذِيُّ: هَذَا حَدِيثٌ حَسَنٌ صَحِيحٌ.',
     ];
+    // BATCH 4 [b35] — a frame closing on a verdict of WEAKNESS («ضعيف»، «منكر»، «ضعاف») now stays with
+    // its text, whole and byte-identical; a frame closing on an authentication still goes whole.
+    const WEAK88 = /ضعيف|منكر|ضعاف/u;
     for (const shape of FRAMES88) {
       const out = LOCK88.dropUnsourcedGrades(CARRY + '\n' + shape);
+      if (WEAK88.test(shape)) {
+        ok('AA-88 [b35] a credit closing on a weakness verdict stays whole, as written: ' + shape,
+          out.text === CARRY + '\n' + shape, JSON.stringify(out.text));
+        continue;
+      }
       ok('AA-88 a credit closing on its grade goes whole: ' + shape,
         out.text === CARRY + '\n', JSON.stringify(out.text));
     }
@@ -2088,12 +2101,14 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     // loses its refusal — «السكوتُ خسارةُ فائدة» — and what it stops costing is a sentence with a
     // hole in the middle of it.
     for (const [label, text, expected] of [
-      ['a refusal stated before the grade', 'قال: لا يثبت عندي؛ إسناده ضعيف.', ''],
+      // BATCH 4 [b35] — the refusal and its weak grade now stay together, as written.
+      ['[b35] a refusal stated before a weak grade', 'قال: لا يثبت عندي؛ إسناده ضعيف.', 'قال: لا يثبت عندي؛ إسناده ضعيف.'],
       ['a second scholar agreeing, after the grade',
         'وقال الحاكم: صحيح الإسناد، ووافقه الذهبي.', ''],
       ['a reason and a correction standing with it',
         'وقال الألباني: إسناده ضعيف مظلم، وصححه بالشواهد.', ''],
-      ['no verb of saying anywhere: the matn shape', 'وهو حديثٌ ضعيفٌ.', ''],
+      ['[b35] no verb of saying anywhere: the matn shape, weak', 'وهو حديثٌ ضعيفٌ.', 'وهو حديثٌ ضعيفٌ.'],
+      ['no verb of saying anywhere: the matn shape, sound', 'وهو حديثٌ صحيحٌ.', ''],
       // the definite form moved out in ١١١ step 4 — see «THE GRADE AS A DESCRIPTION» below.
       // REWRITTEN in the fourth order [r41] («جملةٌ فيها حكمٌ فقهيٌّ لا تذهبُ أبدًا»). This row
       // pinned '' — the ruling «المسح جائز للمسافر ثلاثة أيام» taken whole for «وإسناده صحيح». The
@@ -2104,7 +2119,8 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         'قال ابن قدامة إن المسح جائز للمسافر ثلاثة أيام.'],
     ]) {
       const carried = CARRY + '\n' + text;
-      ok('AA-88 the condemned sentence goes whole, the ruling beside it is byte-identical: ' + label,
+      ok((label.startsWith('[b35]') ? 'AA-88 the weak sentence stays whole, the ruling beside it is byte-identical: '
+        : 'AA-88 the condemned sentence goes whole, the ruling beside it is byte-identical: ') + label,
         LOCK88.dropUnsourcedGrades(carried).text === CARRY + '\n' + expected,
         JSON.stringify(LOCK88.dropUnsourcedGrades(carried).text));
       ok('AA-88 ...and no sentence comes back missing a word from its middle: ' + label,
@@ -2182,7 +2198,9 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         w4 === CARRY + '\n' + W4.replace('الصحيح ', ''), JSON.stringify(w4));
 
       for (const [label, text] of [
-        ['a predicative grade on an indefinite noun', 'بل هو حديث ضعيف جدا.'],
+        // BATCH 4 [b35] — the witness was «ضعيف», which now stays with its text; its sound twin is
+        // what a predicative grade on an indefinite noun still loses its sentence for.
+        ['a predicative grade on an indefinite noun', 'بل هو حديث صحيح جدا.'],
         ['a predicative grade after «هو»', 'وهو حديث صحيح عن النبي صلى الله عليه وسلم.'],
         ['a sentence holding BOTH shapes is a claim', 'والحديث الصحيح في الباب هو حديث ضعيف.'],
       ]) {
@@ -2211,7 +2229,7 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
           !never.dropUnsourcedGrades(W5M).text.includes('مسح على الجوربين'));
         const always = await load4('always-attributive', "push(i, i, 'matn', true);");
         ok('MUTANT KILLED: with every grade attributive a predicative sentence comes back with a hole',
-          always.dropUnsourcedGrades(CARRY + '\nبل هو حديث ضعيف جدا.').text.includes('بل هو حديث جدا'));
+          always.dropUnsourcedGrades(CARRY + '\nبل هو حديث صحيح جدا.').text.includes('بل هو حديث جدا'));
       } finally {
         try { fs.rmSync(tmp4, { recursive: true, force: true }); } catch { /* temp only */ }
       }
@@ -2374,7 +2392,9 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
             // REWRITTEN in ١١١ step 5: «موضوع» is now kept whole, so the word-cut mutant never
             // reaches this sentence. The same witness with a grade OUTSIDE that class («ضعيف»)
             // is what the word-cut still bites on, and the property is unchanged.
-            const WM = 'حديث «أنا مدينة العلم وعلي بابها» لا يصح عن النبي صلى الله عليه وسلم. بل هو حديث ضعيف جدا. وقد حكم عليه أهل العلم بذلك.';
+            // BATCH 4 [b35] — «ضعيف» now stays with its text too, so the word-cut bites on a SOUND
+            // grade in the same place; the property is unchanged.
+            const WM = 'حديث «أنا مدينة العلم وعلي بابها» لا يصح عن النبي صلى الله عليه وسلم. بل هو حديث صحيح جدا. وقد حكم عليه أهل العلم بذلك.';
             return !mod.dropUnsourcedGrades(WM).text.includes('بل هو حديث جدا');
           });
 
@@ -2386,7 +2406,8 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
             '      const sen = { start: 0, end: block.length }; // mutant'),
           async (mod) => {
             // CARRIED, or the mutant empties the block and the never-empty net masks it.
-            const TN = 'الحكمُ في البابِ ظاهرٌ عند أهل العلم.\nالمسح على الخفين جائز للمسافر. وهو حديث ضعيف.';
+            // BATCH 4 [b35] — a sound grade: a weak one now stays and would cut nothing.
+            const TN = 'الحكمُ في البابِ ظاهرٌ عند أهل العلم.\nالمسح على الخفين جائز للمسافر. وهو حديث صحيح.';
             return mod.dropUnsourcedGrades(TN).text.includes('المسح على الخفين جائز للمسافر');
           });
 
@@ -3576,10 +3597,16 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     const chain = SEAT42.finalizeReaderText({ kind: 'answer', text: L42.lockTakhrij(reviewed, []).text, sources: [] }).text;
     ok('r42 the logged sentence («قبل») through the reviewer, the lock and the finalizer is letter for letter what the model wrote',
       chain === Q9, chain);
-    ok('r42 control: «وهذا الحديث ضعيف.» still goes', graded(L42, 'وهذا الحديث ضعيف.') === '', graded(L42, 'وهذا الحديث ضعيف.'));
-    ok('r42 control: «… وهو حديث ضعيف» still loses its clause, the quotation stays',
-      graded(L42, '«من صلى البردين دخل الجنة» وهو حديث ضعيف') === '«من صلى البردين دخل الجنة»',
+    // BATCH 4 [b35] — the two weak controls: a verdict of weakness now STAYS with its text, as the
+    // owner ruled (35), and their sound twins still go exactly as r41 ruled.
+    ok('r42 control [b35]: «وهذا الحديث ضعيف.» stays, as written', graded(L42, 'وهذا الحديث ضعيف.') === 'وهذا الحديث ضعيف.', graded(L42, 'وهذا الحديث ضعيف.'));
+    ok('r42 control [b35]: «… وهو حديث ضعيف» stays with its quotation, as written',
+      graded(L42, '«من صلى البردين دخل الجنة» وهو حديث ضعيف') === '«من صلى البردين دخل الجنة» وهو حديث ضعيف',
       graded(L42, '«من صلى البردين دخل الجنة» وهو حديث ضعيف'));
+    ok('r42 control: «وهذا الحديث صحيح.» still goes', graded(L42, 'وهذا الحديث صحيح.') === '', graded(L42, 'وهذا الحديث صحيح.'));
+    ok('r42 control: «… وهو حديث صحيح» still loses its clause, the quotation stays',
+      graded(L42, '«من صلى البردين دخل الجنة» وهو حديث صحيح') === '«من صلى البردين دخل الجنة»',
+      graded(L42, '«من صلى البردين دخل الجنة» وهو حديث صحيح'));
     ok('r42 control: «والحديث الصحيح في الباب يدلّ على ذلك» still loses its word — one text, as r41 ruled',
       graded(L42, 'والحديث الصحيح في الباب يدلّ على ذلك') === 'والحديث في الباب يدلّ على ذلك',
       graded(L42, 'والحديث الصحيح في الباب يدلّ على ذلك'));
@@ -3594,9 +3621,11 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
         (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir, spec).replace(/\\/g, '/') + q), 'utf8');
       const mod = await import('file:///' + file.replace(/\\/g, '/'));
-      ok('MUTANT KILLED: without (1) «والحديث لا يُعمَلُ به» reaches the reader again',
-        graded(mod, 'والحديث الضعيف لا يُعمَلُ به في الأحكام.') === 'والحديث لا يُعمَلُ به في الأحكام.',
-        graded(mod, 'والحديث الضعيف لا يُعمَلُ به في الأحكام.'));
+      // BATCH 4 [b35] — «الضعيف» now stays whatever (1) says, so the mutant is shown the class
+      // sentence of a SOUND kind: without (1) it loses its word again.
+      ok('MUTANT KILLED: without (1) «والحديث حجة في الأحكام» reaches the reader again',
+        graded(mod, 'والحديث الحسن حجة في الأحكام') === 'والحديث حجة في الأحكام',
+        graded(mod, 'والحديث الحسن حجة في الأحكام'));
     } finally {
       try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
     }
@@ -3760,6 +3789,70 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
           && !L12.dropUnsourcedGrades(REV12.reviewAnswer({ text: W2, evidence: [], domain: 'fiqh', mode: 'chat' }).text).text.includes('صحيح'));
     } finally {
       try { fs.rmSync(tmp12, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
+  // ── BATCH 4 [b35] · WEAKNESS STAYS WITH ITS MATN ─────────────────────────────────────────
+  // MEASURED (EZIK-111-BATTERY-MEASURE §0-ج, C1 C2): a card ruled «ضعيف» with no narrator had its
+  // ruling emptied — the client printed «من السنة النبوية» and no grade line — and «…، وهو حديث
+  // ضعيف» lost its verdict. The owner's ruling (35): the weakness stays with its matn as
+  // fabrication does; an unsourced authentication still goes.
+  console.log('\n=== BATCH 4 [b35] · WEAKNESS STAYS WITH ITS MATN ===');
+  {
+    const L35 = await esm('lib/takhrij-lock.js');
+    const SEAT35 = await esm('lib/finalize-reader-text.js');
+    const ship = (mod, t) => SEAT35.finalizeReaderText({ kind: 'answer', text: mod.lockTakhrij(t, []).text, sources: [] }).text;
+    const HEAD = 'ذهب الجمهور إلى تحريم قراءة القرآن على الحائض.';
+    const LINE = 'واستدلوا بحديث «لا تقرأ الحائض ولا الجنب شيئا من القرآن»، وهو حديث ضعيف.';
+    const CARD = '<hadith ruling="ضعيف">لا تقرأ الحائض ولا الجنب شيئا من القرآن</hadith>';
+    const C1 = HEAD + '\n' + LINE + '\n' + CARD;
+    // A line with no card after it: the card a line introduces is its source, and would shield it.
+    const LINE2 = 'ويستحب ذلك عند بعضهم.\nقال رسول الله صلى الله عليه وسلم: «من صلى البردين دخل الجنة وعد به»، وهو حديث ضعيف.';
+    ok('b35 C1 · the card keeps «ضعيف», and the line keeps «وهو حديث ضعيف»',
+      ship(L35, C1).includes(LINE) && ship(L35, C1).includes(CARD), JSON.stringify(ship(L35, C1)));
+    for (const [label, input, want] of [
+      ['sibling · a card ruled «ضعيف» with no narrator keeps its ruling',
+        'ومما يستدل به في الباب:\n<hadith ruling="ضعيف">من صلى البردين دخل الجنة وعد به</hadith>\nوالعمدة على غيره.', null],
+      ['sibling · «…، وهو حديث ضعيف» after a matn stays',
+        'ويستحب ذلك عند بعضهم.\nقال رسول الله صلى الله عليه وسلم: «من صلى البردين دخل الجنة وعد به»، وهو حديث ضعيف.\nوالعمدة على غيره.', null],
+      ['sibling · «وإسناده ضعيف» stays with its matn',
+        'ويستحب ذلك عند بعضهم.\nقال رسول الله صلى الله عليه وسلم: «من صلى البردين دخل الجنة وعد به»، وإسناده ضعيف.\nوالعمدة على غيره.', null],
+      ['sibling · «رواه الترمذي وهو ضعيف»: the credit goes, the weakness stays',
+        'ويستحب ذلك عند بعضهم.\nقال رسول الله صلى الله عليه وسلم: «من صلى البردين دخل الجنة وعد به» رواه الترمذي وهو ضعيف.\nوالعمدة على غيره.',
+        'ويستحب ذلك عند بعضهم.\nقال رسول الله صلى الله عليه وسلم: «من صلى البردين دخل الجنة وعد به» وهو ضعيف.\nوالعمدة على غيره.'],
+      ['control · an unsourced «صحيح» still goes, the matn in its frame',
+        'ويستحب ذلك.\nقال رسول الله صلى الله عليه وسلم: «من صلى البردين دخل الجنة»، وهو حديث صحيح.\nوالعمل عليه.',
+        'ويستحب ذلك.\nقال رسول الله صلى الله عليه وسلم: «من صلى البردين دخل الجنة».\nوالعمل عليه.'],
+      ['control · a card ruled «صحيح» with no narrator is still emptied',
+        'ومما يستدل به:\n<hadith ruling="صحيح">من صلى البردين دخل الجنة</hadith>\nوالعمل عليه.',
+        'ومما يستدل به:\n<hadith ruling="">من صلى البردين دخل الجنة</hadith>\nوالعمل عليه.'],
+      ['control · a weak grade beside an authentication («وصحّحه بالشواهد») goes as before',
+        'المسح على الخفين جائز للمسافر ثلاثة أيام بلياليها.\nوقال الألباني: إسناده ضعيف مظلم، وصححه بالشواهد.',
+        'المسح على الخفين جائز للمسافر ثلاثة أيام بلياليها.\n'],
+    ]) {
+      const got = ship(L35, input);
+      ok('b35 ' + label, got === (want === null ? input : want), JSON.stringify(got));
+    }
+    const src35 = read('lib/takhrij-lock.js').replace(/\r\n/g, '\n');
+    const dir35 = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
+    const tmp35 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-b35-mut-'));
+    const load35 = async (tag, from, to) => {
+      const changed = src35.split(from).join(to);
+      ok('MUTANT b35 ' + tag + ' seam applied', changed !== src35);
+      const file = path.join(tmp35, tag + '.mjs');
+      fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir35, spec).replace(/\\/g, '/') + q), 'utf8');
+      return import('file:///' + file.replace(/\\/g, '/'));
+    };
+    try {
+      const m1 = await load35('card-blanked-again', '    if (rulingOnlyWeakens(ruling)) return whole; // BATCH 4 [b35] — weakness stays with its matn', '');
+      ok('MUTANT KILLED: with the card rule back, «ضعيف» is emptied off the card again',
+        m1.dropUnsourcedGrades(C1).text.includes('ruling=""'), JSON.stringify(m1.dropUnsourcedGrades(C1).text));
+      const m2 = await load35('weak-cut-again', '      if (inSentence.some(spanIsWeak) && inSentence.every(spanOnlyWeakens)', '      if (false && inSentence.some(spanIsWeak) && inSentence.every(spanOnlyWeakens)');
+      ok('MUTANT KILLED: with the prose rule back, «وهو حديث ضعيف» is taken off its matn again',
+        !m2.dropUnsourcedGrades(LINE2).text.includes('وهو حديث ضعيف') && L35.dropUnsourcedGrades(LINE2).text === LINE2,
+        JSON.stringify(m2.dropUnsourcedGrades(LINE2).text));
+    } finally {
+      try { fs.rmSync(tmp35, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
