@@ -2585,6 +2585,29 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try { require('fs').rmSync(tmp20, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-b4b-47] · THE PASS READS THE PROSE'S CREDIT IN ALL ITS SHAPES ───────────────────────
+  // MEASURED at eca359e: «روى البخاري أن…» in the head of its sentence, «عند مسلم أيضا» and «لاتفاق الشيخين عليه»
+  // were no attribution to this pass, so it was free to write parentheses beside a credit the prose had made.
+  console.log('\n--- B4B-47. THE PASS READS THE PROSE\'S CREDIT IN ALL ITS SHAPES ---');
+  {
+    const T47 = await esm('lib/takhrij.js');
+    const target = (text) => { const found = T47.findMatns(text); return found[found.length - 1]; };
+    for (const [label, text] of [
+      ['«روى البخاري أن…» in the head of its sentence', 'ويحرم الغش، لما روى البخاري أن النبي صلى الله عليه وسلم قال: «' + MATN + '».'],
+      ['«عند مسلم أيضا» with no verb', 'قال النبي صلى الله عليه وسلم: «' + MATN + '».\nوهو عند مسلم أيضا.'],
+      ['«في صحيح مسلم» with no verb', 'قال النبي صلى الله عليه وسلم: «' + MATN + '».\nوهو في صحيح مسلم.'],
+      ['«لاتفاق الشيخين عليه»', 'قال النبي صلى الله عليه وسلم: «' + MATN + '».\nفالحديث صحيح لاتفاق الشيخين عليه.'],
+    ]) {
+      ok('B4B-47 ' + label + ': the pass reads it as the prose\'s own credit',
+        T47.statedAttributionNear(text, target(text)) !== '', JSON.stringify(T47.statedAttributionNear(text, target(text))));
+    }
+    ok('B4B-47 control · «متفق عليه بين العلماء» is the jurists\' agreement and names no book, as before',
+      T47.statedAttributionNear('قال النبي صلى الله عليه وسلم: «' + MATN + '».\nوهذا متفق عليه بين العلماء.',
+        target('قال النبي صلى الله عليه وسلم: «' + MATN + '».\nوهذا متفق عليه بين العلماء.')) === '');
+    ok('B4B-47 control · an ordinary sentence with no book named is no credit',
+      T47.statedAttributionNear('قال النبي صلى الله عليه وسلم: «' + MATN + '».\nوهذا أصل عظيم.',
+        target('قال النبي صلى الله عليه وسلم: «' + MATN + '».\nوهذا أصل عظيم.')) === '');
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
