@@ -1182,7 +1182,11 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     const noopTurns = CORPUS_TURNS.filter((t) => !cutting.includes(t.id));
     const drifted = noopTurns.filter((t) => sealedOf.get(t.id) !== wireOf(t));
     ok('NON_TARGET_DIFFERENCES=0 over the ' + noopTurns.length + ' embedded turns the seal does not cut',
-      drifted.length === 0 && JSON.stringify(cutting) === JSON.stringify(['F03', 'F04']),
+      // BATCH 4 [b43] — F04 left the cutting set BY MEASUREMENT: its one cut was «وهذا متّفقٌ عليه
+      // عند الأئمّة الأربعة», the jurists' agreement read as a credit, and the lock no longer
+      // touches it. So the whole of F04 now comes out byte-identical too, and is asserted so.
+      drifted.length === 0 && JSON.stringify(cutting) === JSON.stringify(['F03'])
+        && sealedOf.get('F04') === wireOf(byId.get('F04')),
       'cutting=' + JSON.stringify(cutting) + ' drifted=' + JSON.stringify(drifted.map((t) => t.id)));
 
     // ── RECORDS_LEFT_EMPTY / LOSING_LAST_SUBSTANTIVE_BLOCK ───────────────────
@@ -1269,7 +1273,14 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         (s) => s.replace(
           '  for (const p of colonPreambles(s)) {\n    if (p.orphaned) continue;',
           '  for (const p of colonPreambles(s)) {\n    if (false && p.orphaned) continue;'),
-        async (mod) => sealWith(mod.lockTakhrij, byId.get('F04')) === sealedOf.get('F04'));
+        // BATCH 4 [b43] — F04 is no longer cut at all, and a lead-in is judged only where a cut
+        // happens; so F04 is driven with one more sentence whose credit is cut, which puts its
+        // already-orphaned lead-in back in front of the rule.
+        async (mod) => {
+          const F04X = { ...byId.get('F04'), loopText: byId.get('F04').loopText + '\nوالحديث صحيح رواه البخاري ومسلم.' };
+          return sealWith(mod.lockTakhrij, F04X) === sealWith(TL.lockTakhrij, F04X)
+            && sealWith(TL.lockTakhrij, F04X) !== wireOf(F04X);
+        });
 
       // M-B — the LINK between the lead-in and the block is cut: the preamble is judged on the
       // arriving text alone, so nothing is ever seen to BECOME orphaned and the lead-in stays
@@ -3902,6 +3913,49 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         graded(mod, 'فالحديث الصحيح هو ما اتصل سنده بنقل العدل الضابط عن مثله.'));
     } finally {
       try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
+  // ── BATCH 4 [b43] · ATTRIBUTION PHRASES ARE WORDS, AND THE JURISTS' AGREEMENT IS NOT A CREDIT ──
+  // MEASURED at 92d3c7d: RAW-F04 lost «وهذا متّفقٌ عليه عند الأئمّة الأربعة» — the four imams'
+  // agreement read as «متفق عليه» the credit, which no page carried; «قال ابنُه» read as «قال ابن».
+  console.log('\n=== BATCH 4 [b43] · ATTRIBUTION PHRASES ARE WORDS; THE JURISTS\' AGREEMENT IS NOT A CREDIT ===');
+  {
+    const L43 = await esm('lib/takhrij-lock.js');
+    const T43 = await esm('lib/takhrij.js');
+    const F04S = 'وأمّا لمسُ المصحفِ مباشرةً بلا حائلٍ فمحرَّمٌ على كلّ من كان مُحدِثًا حدثًا أصغر، سواءٌ كانت حائضًا أم غيرها، وهذا متّفقٌ عليه عند الأئمّة الأربعة.';
+    ok('b43 F04 · the sentence of the four imams\' agreement comes out of the lock whole, no page',
+      L43.lockTakhrij(F04S, []).text === F04S, JSON.stringify(L43.lockTakhrij(F04S, []).text));
+    for (const [label, t] of [
+      ['«متفق عليه بين أهل العلم»', 'ويحرم ذلك، وهذا متفق عليه بين أهل العلم.'],
+      ['«متفق عليه عند الفقهاء»', 'ويجب ذلك، وهو متفق عليه عند الفقهاء.'],
+      ['«متفق عليه بين العلماء»', 'والإجماع على ذلك متفق عليه بين العلماء.'],
+    ]) ok('b43 sibling · ' + label + ' is no credit', L43.takhrijSpans(t).length === 0 && L43.lockTakhrij(t, []).text === t, JSON.stringify(L43.lockTakhrij(t, []).text));
+    ok('b43 control · «متفق عليه» after a hadith is still a credit, and still goes with no page',
+      L43.takhrijSpans('والحديث متفق عليه.').length === 1 && !L43.lockTakhrij('يجب ذلك. والحديث متفق عليه.', []).text.includes('متفق'));
+    ok('b43 control · «متفق عليه عند البخاري ومسلم» names the Shaykhs, and is a credit',
+      L43.takhrijSpans('وهذا متفق عليه عند البخاري ومسلم.').length === 1);
+    ok('b43 the prose attribution beside a matn: the jurists\' agreement silences no takhrij',
+      T43.statedAttributionNear('وهذا متفق عليه عند الأئمة الأربعة. قال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات».',
+        { start: 72, end: 93 }) === '');
+    ok('b43 ...and «رواه الشيخان» is still one', T43.statedAttributionNear('قال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات» رواه الشيخان.',
+      { start: 34, end: 55 }) !== '');
+    ok('b43 «قال ابنُه» is not «قال ابن»: the phrase is matched as words (r13)',
+      T43.findTargets('قال رسول الله صلى الله عليه وسلم، فقال ابنُه: «إنما الأعمال بالنيات».').targets.length === 1
+        && T43.findTargets('قال رسول الله صلى الله عليه وسلم، فقال ابن عمر: «إنما الأعمال بالنيات».').targets.length === 0);
+    const src43 = read('lib/takhrij-lock.js').replace(/\r\n/g, '\n');
+    const dir43 = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
+    const tmp43 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-b43-mut-'));
+    try {
+      const changed = src43.split('      if (jurists(toks, i + 2)) { i += 1; continue; }').join('');
+      ok('MUTANT b43 jurists seam applied', changed !== src43);
+      const file = path.join(tmp43, 'jurists-credited.mjs');
+      fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir43, spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: with the jurists\' agreement read as a credit, F04\'s sentence goes again',
+        !mod.lockTakhrij(F04S, []).text.includes('الأئمّة الأربعة'), JSON.stringify(mod.lockTakhrij(F04S, []).text));
+    } finally {
+      try { fs.rmSync(tmp43, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
