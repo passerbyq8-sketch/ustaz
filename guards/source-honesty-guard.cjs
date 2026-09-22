@@ -531,7 +531,42 @@ const stripComments = (s) => String(s)
       !once('وهذا أمر ثابت بنص القرآن الكريم. وحسن الخلق من الإيمان.'));
     ok('T5: a verdict stands and receives it («لا يصح مرفوعا»)',
       once('حديث «تفكروا في خلق الله ولا تفكروا في الله» لا يصح مرفوعا.'));
-    ok('T5: a grade in a bracket receives it («(أحمد · ضعيف)»)', once('«اطلبوا العلم ولو بالصين» (أحمد · ضعيف)'));
+    // [111-b4b-49] — a bracket grade is still a grade (what this row always asked), and the library's own
+    // bracket names its takhrij book, so the sentence «…لا من كتب التخريج» is not written beside it.
+    ok('T5: a grade in a bracket is a grade («(أحمد · ضعيف)»), and [b4b-49] the library\'s bracket takes no disclosure',
+      TD.gradeStandsIn('«اطلبوا العلم ولو بالصين» (أحمد · ضعيف)') && !once('«اطلبوا العلم ولو بالصين» (أحمد · ضعيف)'));
+    // ── [111-b4b-49] · THE DISCLOSURE NEVER CONTRADICTS THE SOURCE OF THE GRADE BESIDE IT ──────────
+    // MEASURED at eca359e (S3-book-nocomma-silsila, S-W8c-both-lines): «…لا من كتب التخريج نفسِها» under
+    // «والحكم عليه في السلسلة الضعيفة: موضوع» and «(لا يثبت مرفوعا)» — grades the library wrote from a takhrij book.
+    {
+      const W1 = 'الحديث لا يثبت مرفوعا إلى النبي صلى الله عليه وسلم، والحكم عليه في السلسلة الضعيفة: لا أصل له.\n\nحديث «من عرف نفسه فقد عرف ربه» ذكره الألباني في السلسلة الضعيفة وقال: لا أصل له (لا يثبت مرفوعا).';
+      const W2 = 'الحديث لا يثبت مرفوعا إلى النبي صلى الله عليه وسلم، والحكم عليه في السلسلة الضعيفة: موضوع.\nحديث «حب الوطن من الإيمان» ليس بحديث ثابت، بل هو حديث موضوع لا أصل له (لا يثبت مرفوعا).';
+      ok('B4B-49 W1 · the Silsila head and «(لا يثبت مرفوعا)»: no «…لا من كتب التخريج»', !once(W1));
+      ok('B4B-49 W2 · the head with «موضوع» and the model\'s own «حديث موضوع» beside it: none either', !once(W2));
+      ok('B4B-49 sibling · a ladder bracket with a grade («(الترمذي · حسن)»): none', !once('قال النبي ﷺ: «الدعاء هو العبادة» (الترمذي · حسن).'));
+      ok('B4B-49 sibling · the head «تخريج الحديث: …، والحكم عليه في صحيح الجامع: صحيح.»: none',
+        !once('تخريج الحديث: الترمذي، والحكم عليه في صحيح الجامع: صحيح.\n\nوهو حديث صحيح.'));
+      ok('B4B-49 sibling · «(لا يثبت مرفوعا)» alone beside the model\'s «موضوع»: none', !once('حديث «من حج ولم يزرني فقد جفاني» موضوع (لا يثبت مرفوعا).'));
+      ok('B4B-49 control · the model\'s own grade with no library grade beside it still receives it',
+        once('حديث «من حج ولم يزرني فقد جفاني» حديث موضوع.'));
+      ok('B4B-49 control · «(البخاري · لم يوقف على حكم)» is no grade of the library\'s: the model\'s grade still receives it',
+        once('«اطلبوا العلم ولو بالصين» (البخاري · لم يوقف على حكم) وهو حديث موضوع.'));
+      const src49 = fs.readFileSync(path.join(REPO, 'lib/policy/takhrij-disclosure.js'), 'utf8').replace(/\r\n/g, '\n');
+      const seam49 = "  if (LIBRARY_GRADE_RE.test(d)) return ''; // [111-b4b-49]\n";
+      const mut49 = src49.split(seam49).join('');
+      ok('MUTANT B4B-49 seam applied', mut49 !== src49);
+      const tmp49 = fs.mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-b4b49-mut-'));
+      try {
+        const f49 = path.join(tmp49, 'takhrij-disclosure.mjs');
+        fs.writeFileSync(f49, mut49.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', 'policy', spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + f49.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: without [b4b-49] the Silsila head takes «…لا من كتب التخريج» again',
+          mod.takhrijDisclosureOnce(W1, mod.TAKHRIJ_DISCLOSURE) === mod.TAKHRIJ_DISCLOSURE);
+      } finally {
+        try { fs.rmSync(tmp49, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
     ok('T5: «ستة أحاديث ثابتة» — the plural and the feminine are grades too',
       once('فهذه ستة أحاديث ثابتة في فضل الصيام.'));
     ok('T5: a sourced grade stands and receives it', once('وهو حديث صحيح رواه البخاري.'));
