@@ -73,7 +73,17 @@ const atomFor = (matn, companion) => `حدثنا سفيان عن ${companion} ر
 // of item 111 (step 8) lets their title grade only such an entry. Fixtures that hand a Silsila an
 // isnad-shaped atom now hand it the shape the index holds; what each row asserts is unchanged.
 const SILSILA_ENTRY_IDS = new Set(['FC-002060', 'FC-002061']);
-const shapedAtomFor = (id, matn, companion) => (SILSILA_ENTRY_IDS.has(id) ? '36 - ' + matn + '. رواه ابن عدي.' : atomFor(matn, companion));
+// BATCH 4 [b34] — AND AN ENTRY WRITES ITS RULING. A grade is now the ruling word the entry writes
+// right after its matn («" حب الوطن من الإيمان ". موضوع.»، ««…» . (صحيح)»), never the book's title,
+// so a fixture that stood the title in for the ruling hands the grader the entry the index holds:
+// السلسلة الضعيفة writes «ضعيف», السلسلة الصحيحة «صحيح»; a list grader (صحيح الجامع، ضعيف الجامع) writes
+// its ruling in brackets after the matn in «». What each row asserts is unchanged.
+const rulingAtomFor = (matn, ruling) => '3913 - «' + matn + '» . (' + ruling + ') [حم] عن أنس.';
+const SILSILA_RULING = { 'FC-002060': 'صحيح', 'FC-002061': 'ضعيف' };
+const LIST_RULING = { 'FC-000788': 'صحيح', 'FC-000791': 'ضعيف' };
+const shapedAtomFor = (id, matn, companion) => (SILSILA_ENTRY_IDS.has(id) ? '36 - " ' + matn + ' ". ' + SILSILA_RULING[id] + '. رواه ابن عدي.'
+  : LIST_RULING[id] ? rulingAtomFor(matn, LIST_RULING[id]) : atomFor(matn, companion));
+
 const answerWith = (matn) => `الحمد لله. قال النبي صلى الله عليه وسلم: «${matn}» وهذا أصل.`;
 
 const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
@@ -193,7 +203,8 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     const withGrader = await T.applyTakhrij(text, {
       env: ON,
       lookup: lookupOf({
-        [MATN]: { matn: MATN, subjectIds: ['FC-000658', 'FC-000788'], atoms: [atomFor(MATN, 'عمر'), atomFor(MATN, 'عمر')] },
+        // BATCH 4 [b34] — صحيح الجامع's entry writes «(صحيح)»; its title no longer grades.
+        [MATN]: { matn: MATN, subjectIds: ['FC-000658', 'FC-000788'], atoms: [atomFor(MATN, 'عمر'), rulingAtomFor(MATN, 'صحيح')] },
       }),
     });
     ok('CAUSAL: with صحيح الجامع beside it the grade appears, and it is that book\'s own',
@@ -205,7 +216,8 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
         [MATN]: {
           matn: MATN,
           subjectIds: ['FC-002060', 'FC-000791'],
-          atoms: [shapedAtomFor('FC-002060', MATN, 'عمر'), atomFor(MATN, 'عمر')],
+          // BATCH 4 [b34] — both entries write their ruling, so the split is a split of written rulings.
+          atoms: [shapedAtomFor('FC-002060', MATN, 'عمر'), rulingAtomFor(MATN, 'ضعيف')],
         },
       }),
     });
@@ -502,12 +514,13 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
 
     // ٢-ج · A SPLIT RULING IS NOT A RULING — asserted on the composer itself, beside the
     // delivered-text witness section 3 already holds.
-    const split = L.composeParenthetical(['FC-002060', 'FC-000791']);
+    // BATCH 4 [b34] — the composer reads WRITTEN rulings (by id), no longer the row's title.
+    const split = L.composeParenthetical(['FC-002060', 'FC-000791'], { 'FC-002060': ['صحيح'], 'FC-000791': ['ضعيف'] });
     ok('8c  two graders that disagree produce no grade, no مخرِّج and no text at all',
       split.grade === null && split.sourced === false && split.silent === true && split.text === '',
       JSON.stringify(split.text));
     ok('8c  CAUSAL: one grader alone still states its own ruling',
-      L.composeParenthetical(['FC-000791']).grade === 'ضعيف');
+      L.composeParenthetical(['FC-000791'], { 'FC-000791': ['ضعيف'] }).grade === 'ضعيف');
   }
 
   // ── ٩ · THE WIRE IS ROUTE (ب): ONE DOOR, AND THE MODEL DOES NOT PICK IT ──
@@ -664,8 +677,8 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     ok('10b no ladder row below the Shaykhayn can produce a bare collection name',
       bare.length === 0, JSON.stringify(bare));
     ok('10b ...and the suffix is the grade when a grader stated one',
-      L.composeParenthetical(['FC-000658', 'FC-000788']).text === 'الترمذي · صحيح'
-      && L.composeParenthetical(['FC-000658', 'FC-000788']).ruled === true);
+      L.composeParenthetical(['FC-000658', 'FC-000788'], { 'FC-000788': ['صحيح'] }).text === 'الترمذي · صحيح'
+      && L.composeParenthetical(['FC-000658', 'FC-000788'], { 'FC-000788': ['صحيح'] }).ruled === true);
     ok('10b ...and otherwise it says the ruling was not found, in those words',
       L.composeParenthetical(['FC-000760']).text === 'البيهقي · ' + L.NO_RULING
       && L.composeParenthetical(['FC-000760']).ruled === false);
@@ -686,7 +699,8 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       + `المشهور «${CARRIED}» حديث ثابت عنه.`;
     const moved = await T.applyTakhrij(embedded, {
       env: ON,
-      lookup: lookupOf({ [CARRIED]: { matn: CARRIED, subjectIds: ['FC-000791'], atoms: [atomFor(CARRIED, 'عمر')] } }),
+      // BATCH 4 [b34] — ضعيف الجامع's entry writes «(ضعيف)».
+      lookup: lookupOf({ [CARRIED]: { matn: CARRIED, subjectIds: ['FC-000791'], atoms: [rulingAtomFor(CARRIED, 'ضعيف')] } }),
     });
     ok('10c a matn that is a مضاف إليه does NOT take the parentheses between it and its خبر',
       moved.text.includes(`«${CARRIED}» حديث ثابت عنه`), JSON.stringify(moved.text));
@@ -838,7 +852,11 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     for (let i = 0; i < ladderIds.length; i += 1) {
       for (let j = i; j < ladderIds.length; j += 1) {
         const ids = i === j ? [ladderIds[i]] : [ladderIds[i], ladderIds[j]];
-        const built = L.composeParenthetical(ids);
+        // BATCH 4 [b34] — each grader is handed the ruling its title states AS IF its entry wrote
+        // it, so the denial door is still exercised over every subset; nothing else is handed.
+        const written = {};
+        for (const id of ids) { const row = L.ladderRowFor(id); if (row && row.grader && row.grade) written[id] = [row.grade]; }
+        const built = L.composeParenthetical(ids, written);
         if (built.text !== L.NOT_RAISED) continue;
         const ruled = built.ruled === true && L.NOT_ESTABLISHED_GRADES.includes(built.grade)
           && String(built.ruledBy || '').length > 0;
@@ -1755,8 +1773,12 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       fsB.writeFileSync(fileB, mutatedB.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
         (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(libDir, spec).replace(/\\/g, '/') + q), 'utf8');
       const mutB = await import('file:///' + fileB.replace(/\\/g, '/'));
+      // BATCH 4 [b34] — a quotation with no ruling written after it grades nothing under any
+      // mutation now, so the mutant is shown a quotation the Silsila follows with a ruling word
+      // outside an entry of its own: only the entry check keeps that word off the matn.
+      const CITED_RULED = 'وقد سبق في الحديث الذي قبله: «' + MATNB + '» . ضعيف كما تقدم في موضعه';
       ok('MUTANT KILLED: with every quotation graded, the false «(أحمد · ضعيف)» comes back',
-        (await runB(mutB, CITED)).includes('(أحمد · ضعيف)'));
+        (await runB(mutB, CITED_RULED)).includes('(أحمد · ضعيف)') && !(await runB(T, CITED_RULED)).includes('ضعيف'));
     } finally {
       try { fsB.rmSync(dirB, { recursive: true, force: true }); } catch { /* temp only */ }
     }
@@ -1846,6 +1868,91 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       } finally {
         try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
       }
+    }
+  }
+  // ── BATCH 4 [b34] · THE GRADE IS THE RULING WORD WRITTEN IN THE ATOM ─────────────────────
+  // The owner's rule 34: the grade is the ruling word written in the atom; «باطل»، «موضوع»، «لا أصل
+  // له» ⟸ «(لا يثبت مرفوعا)»; a split verdict carries no grade. The atoms below are excerpts, letter
+  // for letter, of what ezik-shamela-20260820 (the twin on :8799) returned on 22 September 2026 for
+  // the order's three witnesses; at 92d3c7d they left as «(البزار · ضعيف)», «(الترمذي · ضعيف)» and
+  // «(ابن ماجه · ضعيف)» — the «ضعيف» of a book's title, not of anything the book wrote.
+  console.log('\n--- B34. THE GRADE IS WHAT THE ENTRY WRITES ---');
+  {
+    const T34 = await esm('lib/takhrij.js');
+    const L34 = await esm('lib/takhrij-ladder.js');
+    const A = {
+      chinaSilsila: '416 - " اطلبوا العلم ولو بالصين ". باطل. رواه ابن عدي (207 / 2) وأبو نعيم في " أخبار أصبهان " (2 / 106)',
+      chinaBazzar: '95 - وحديث أبي العاتكة: «اطلبوا العلم ولو بالصين» لا يعرف أبو العاتكة ولا يدرى من أين هو، فليس لهذا الحديث',
+      chinaDj: '906 - (اطلبوا العلم ولو بالصين فإن) طلب العلم فريضة على كل مسلم (عد عق هب ابن عبد البر في العلم) عن أنس.',
+      talabSj: '3913 - «طلب العلم فريضة على كل مسلم» . (صحيح) [عد هب] عن أنس [طص خط] عن الحسين بن علي',
+      talabBazzar: 'حديث روي عن حماد بن سلمة، عن ثابت، عن أنس، عن النبي صلى الله عليه وسلم: «طلب العلم فريضة» هذا كذب ليس له أصل عن ثابت عن أنس فأما ما يذكر عن النبي صلى الله عليه وسلم أنه قال: «طلب العلم فريضة على كل مسلم» . فقد روي عن أنس من غير وجه، وكل ما يروى فيها عن أنس، فغير صحيح',
+      talabIbnMajah: 'حدثنا كثير بن شنظير، عن محمد بن سيرين، عن أنس بن مالك قال: قال رسول الله صلى الله عليه وسلم: «طلب العلم فريضة على كل مسلم، وواضع العلم عند غير أهله كمقلد الخنازير الجوهر واللؤلؤ والذهب»',
+      talabDj: '3625 - طلب العلم فريضة على كل مسلم والله يحب إغاثة اللهفان (هب ابن عبد البر) عن أنس.',
+      laysaTirmidhi: 'فقال النبي صلى الله عليه وسلم: ليس منا من لم يرحم صغيرنا ويوقر كبيرنا. وفي الباب عن عبد الله بن عمرو، وأبي هريرة، وابن عباس، وأبي أمامة. هذا حديث غريب',
+      laysaDj: '4938 - ليس منا من لم يرحم صغيرنا ويوقر كبيرنا ويأمر بالمعروف وينه عن المنكر (حم ت) عن ابن عباس.',
+      ahdSj: '4143 - «العهد الذي بيننا وبينهم الصلاة فمن تركها فقد كفر» . (صحيح) حم ت ن حب ك عن بريدة.',
+    };
+    const CHINA = 'اطلبوا العلم ولو بالصين';
+    const TALAB = 'طلب العلم فريضة على كل مسلم';
+    const LAYSA = 'ليس منا من لم يرحم صغيرنا';
+    const AHD = 'العهد الذي بيننا وبينهم الصلاة فمن تركها فقد كفر';
+    const run34 = async (mod, matn, ids, atoms) => mod.applyTakhrij(answerWith(matn),
+      { env: ON, lookup: lookupOf({ [matn]: { matn, subjectIds: ids, atoms } }) });
+    const china = await run34(T34, CHINA, ['FC-000668', 'FC-000791', 'FC-002061'], [A.chinaBazzar, A.chinaDj, A.chinaSilsila]);
+    ok('B34 «اطلبوا العلم ولو بالصين»: السلسلة الضعيفة writes «باطل» ⟸ «(لا يثبت مرفوعا)», not «ضعيف»',
+      china.text.includes('(' + L34.NOT_RAISED + ')') && !/ضعيف\)/u.test(china.text), JSON.stringify(china.text));
+    ok('B34 ...and the record names who wrote it, and what he wrote',
+      china.entries[0].ruledBy === 'السلسلة الضعيفة', JSON.stringify(china.entries));
+    const laysa = await run34(T34, LAYSA, ['FC-000658', 'FC-000791'], [A.laysaTirmidhi, A.laysaDj]);
+    ok('B34 «ليس منا من لم يرحم صغيرنا»: an entry that writes no ruling grades nothing ⟸ no grade',
+      laysa.text.includes('(الترمذي · ' + L34.NO_RULING + ')'), JSON.stringify(laysa.text));
+    const talab = await run34(T34, TALAB, ['FC-000652', 'FC-000788', 'FC-000668', 'FC-000791'],
+      [A.talabIbnMajah, A.talabSj, A.talabBazzar, A.talabDj]);
+    ok('B34 «طلب العلم فريضة»: صحيح الجامع writes «(صحيح)», البزار writes «كذب … غير صحيح» ⟸ split, no grade',
+      talab.text.includes('(ابن ماجه · ' + L34.NO_RULING + ')'), JSON.stringify(talab.text));
+    const ahd = await run34(T34, AHD, ['FC-000703', 'FC-000788'], [atomFor(AHD, 'بريدة'), A.ahdSj]);
+    ok('B34 control: an entry that writes «(صحيح)» with nobody writing otherwise still grades',
+      ahd.text.includes('(ابن حبان · صحيح)'), JSON.stringify(ahd.text));
+    ok('B34 sibling: «ومعناه صحيح» and a grade word heading a definite noun are no ruling',
+      [...T34.judgementsNear('36 - حب الوطن من الإيمان. قال الصغاني: موضوع. وقال في المقاصد: لم أقف عليه، ومعناه صحيح.', 'حب الوطن من الإيمان')].join() === 'weak'
+        && T34.judgementsNear('حب الوطن من الإيمان حسن العهد من الإيمان', 'حب الوطن من الإيمان').size === 0);
+    ok('B34 sibling: the ruling is read where the entry writes it, and «وهو حسن» three words on is not',
+      T34.rulingWrittenFor(A.talabSj, TALAB) === 'صحيح'
+        && T34.rulingWrittenFor('بلفظ: "' + TALAB + '". وهو حسن. وقال المزي', TALAB) === ''
+        && T34.rulingWrittenFor(A.chinaSilsila, CHINA) === 'باطل' && T34.rulingWrittenFor(A.talabDj, TALAB) === '');
+    ok('B34 the composer handed no written ruling states no grade, whatever the title says',
+      L34.composeParenthetical(['FC-000658', 'FC-000791']).text === 'الترمذي · ' + L34.NO_RULING);
+    const read34 = (rel) => require('fs').readFileSync(path.join(REPO, rel), 'utf8');
+    const src34 = read34('lib/takhrij-ladder.js').replace(/\r\n/g, '\n');
+    const tmp34 = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-b34-mut-'));
+    try {
+      const load34 = async (tag, from, to) => {
+        const changed = src34.split(from).join(to);
+        ok('MUTANT B34 ' + tag + ' seam applied', changed !== src34);
+        const ladderFile = path.join(tmp34, tag + '-ladder.mjs');
+        require('fs').writeFileSync(ladderFile, changed, 'utf8');
+        const tsrc = read34('lib/takhrij.js').replace(/from\s+(['"])\.\/takhrij-ladder\.js\1/gu,
+          (_a, q) => 'from ' + q + 'file:///' + ladderFile.replace(/\\/g, '/') + q)
+          .replace(/from\s+(['"])(\.[^'"]*)\1/gu, (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q);
+        const tfile = path.join(tmp34, tag + '-takhrij.mjs');
+        require('fs').writeFileSync(tfile, tsrc, 'utf8');
+        return import('file:///' + tfile.replace(/\\/g, '/'));
+      };
+      const title = await load34('title-grades-again',
+        "      const words = rulings && Array.isArray(rulings[id]) ? rulings[id] : [];",
+        "      const words = row.grade ? [row.grade] : []; // mutant");
+      const back = await run34(title, CHINA, ['FC-000668', 'FC-000791', 'FC-002061'], [A.chinaBazzar, A.chinaDj, A.chinaSilsila]);
+      ok('MUTANT KILLED: with the title grading again, «(البزار · ضعيف)» comes back',
+        back.text.includes('(البزار · ضعيف)'), JSON.stringify(back.text));
+      const deaf = await load34('split-unheard',
+        "  const voices = rulings && Array.isArray(rulings['#voices']) ? rulings['#voices'] : [];",
+        "  const voices = []; // mutant");
+      const one = await run34(deaf, TALAB, ['FC-000652', 'FC-000788', 'FC-000668', 'FC-000791'],
+        [A.talabIbnMajah, A.talabSj, A.talabBazzar, A.talabDj]);
+      ok('MUTANT KILLED: with the other books unheard, «طلب العلم فريضة» is graded «صحيح» over البزار\'s «كذب»',
+        one.text.includes('(ابن ماجه · صحيح)'), JSON.stringify(one.text));
+    } finally {
+      try { require('fs').rmSync(tmp34, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
