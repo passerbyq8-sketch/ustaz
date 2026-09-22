@@ -10,7 +10,7 @@
     { "id": "broken-clause", "text": "قال احلق لحيتك: إن الأمر جائز." }
   ],
   "nameBearing": [
-    { "id": "name-before-fragment", "text": "قال ابن القيم رحمه الله وغيره: إن الأمر جائز.", "claimed": "ابن القيم رحمه الله وغيره", "action": "removed-unsupported-attribution" },
+    { "id": "name-before-fragment", "text": "قال ابن القيم رحمه الله وغيره: إن الأمر جائز.", "claimed": "ابن القيم رحمه الله وغيره", "action": "kept-unsupported-attribution-marked" },
     { "id": "name-before-isnad-grade", "text": "قال ابن مفلح إسناده صحيح: إن الأمر جائز.", "claimed": "ابن مفلح إسناده صحيح", "action": "removed-unsupported-attribution" },
     { "id": "leading-prose-before-name", "text": "هذا ابن القيم وغيره قال: إن الأمر جائز.", "claimed": "هذا ابن القيم وغيره", "action": "removed-unsupported-attribution" },
     { "id": "ordinary-name-before-book", "text": "قال محمد الفلاني في كتابه: إن الأمر جائز.", "claimed": "محمد الفلاني في كتابه", "action": "removed-unsupported-attribution" }

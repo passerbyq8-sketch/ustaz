@@ -404,7 +404,9 @@ const unsupportedIsHandledSilently = (module) => {
         id: 'joined-honorific-prayer',
         text: 'قال الشيخ محمد الأمين: ورحمه الله، الجمع للمسافر جائز عند الحاجة.',
         // THIRD ORDER, STEP 6: was the bare claim; now the claim behind the general speaker.
-        claim: 'وقال بعض أهل العلم: الجمع للمسافر جائز عند الحاجة.',
+        // [h46]: was 'وقال بعض أهل العلم: الجمع للمسافر جائز عند الحاجة.' — the prayer is no part of the
+        // name, so it stays behind the general speaker, exactly where the model wrote it.
+        claim: 'وقال بعض أهل العلم: ورحمه الله، الجمع للمسافر جائز عند الحاجة.',
       },
     ]) {
       const out = module.reviewAnswer({ text: witness.text, evidence: [], domain: 'fiqh', mode: 'عادي' });
@@ -438,13 +440,17 @@ const unsupportedIsHandledSilently = (module) => {
         && noSpaceSentences.text.includes('الجمع للمسافر جائز.')
         && noSpaceSentences.text.includes('والقصر للمسافر سنة.'), noSpaceSentences.text);
     // The prayer belongs to the name, so when the name CAN be cut the prayer goes with it.
+    // [h46] — REVERSED by the owner's invariant: a prayer is one piece and no part of a name that is
+    // generalised. The name goes and the prayer stays, behind the general speaker. Was:
+    //   ok('a removed name takes its honorific prayer with it',
+    //     !out.text.includes('ابن باز') && !out.text.includes('رحمه الله') && out.text.includes('الجمع للمسافر جائز'))
     {
       const out = module.reviewAnswer({
         text: 'قال ابن باز رحمه الله إن الجمع للمسافر جائز عند الحاجة.',
         evidence: [], domain: 'fiqh', mode: 'عادي',
       });
-      ok('a removed name takes its honorific prayer with it',
-        !out.text.includes('ابن باز') && !out.text.includes('رحمه الله')
+      ok('a removed name leaves its honorific prayer whole behind the general speaker [h46]',
+        !out.text.includes('ابن باز') && out.text === 'وقال بعض أهل العلم رحمه الله إن الجمع للمسافر جائز عند الحاجة.'
           && out.text.includes('الجمع للمسافر جائز'), out.text);
     }
 
@@ -627,8 +633,9 @@ const unsupportedIsHandledSilently = (module) => {
           'ومن أهل العلم من يرى أن وجه المرأة ويديها كبدن الرجل في الإحرام.'],
         ['F20 صحابي', 'ولا فدية على الحائض، فقد قال ابن عباس رضي الله عنهما: «أمر الناس أن يكون آخر عهدهم بالبيت، إلا أنه خفف عن الحائض».',
           'ولا فدية على الحائض، وجاء في الأثر: «أمر الناس أن يكون آخر عهدهم بالبيت، إلا أنه خفف عن الحائض».'],
+        // [h46]: was '…، كما قال بعض أهل العلم: «…».' — the prayer stays whole behind the general speaker.
         ['F17 كما قال', 'ويجوز لها ذلك من غير حرج، كما قال الكاساني رحمه الله: «يجب على الحائض قضاء الصوم».',
-          'ويجوز لها ذلك من غير حرج، كما قال بعض أهل العلم: «يجب على الحائض قضاء الصوم».'],
+          'ويجوز لها ذلك من غير حرج، كما قال بعض أهل العلم رحمه الله: «يجب على الحائض قضاء الصوم».'],
         // FIFTH ORDER [r44] (1)(6): what followed the name follows the general speaker byte for byte;
         // the reviewer no longer adds an «إلى» the model did not write.
         ['ذهب', 'والوضوء من لحم الإبل واجب، وذهب الإمام أحمد وجوب الوضوء منه على كل حال.',
@@ -695,7 +702,10 @@ const unsupportedIsHandledSilently = (module) => {
         name: 'a-frame-naming-nobody-is-a-credit-again',
         transform: (source) => source.replace(
           '    if (frameNamesNoSpeaker(claimed)) continue; // [r36] — the frame names nobody; see above\n', ''),
-        survives: (mod) => !/وجاء في الأثر|بعض أهل العلم/u.test(mod.reviewAnswer({ text: "وقال لعائشةَ رضي الله عنها لمّا حاضت: «افعلي ما يفعل الحاجّ، غير ألا تطوفي بالبيت».", evidence: [], domain: 'fiqh', mode: 'chat' }).text),
+        // [h46] — on T6 itself the mutant's rewrite would also drop «رضي الله عنها», which [h46] refuses on
+        // its own; so T6 is asked together with its prayer-free twin, where only [r36] stands.
+        survives: (mod) => ["وقال لعائشةَ رضي الله عنها لمّا حاضت: «افعلي ما يفعل الحاجّ، غير ألا تطوفي بالبيت».", "وقال لعائشةَ لمّا حاضت: «افعلي ما يفعل الحاجّ، غير ألا تطوفي بالبيت»."]
+          .every((text) => !/وجاء في الأثر|بعض أهل العلم/u.test(mod.reviewAnswer({ text, evidence: [], domain: 'fiqh', mode: 'chat' }).text)),
       });
       ok('r36 speakerless-frame mutant seam applied', noSpeaker.changed, noSpeaker.error);
       ok('MUTANT KILLED: with a frame naming nobody read as a credit, T6 takes a general speaker again',
@@ -735,8 +745,9 @@ const unsupportedIsHandledSilently = (module) => {
           'وقال بعض أهل العلم عن حديث عائشة رضي الله عنها: «هذا يدل على الاستحباب».'],
         // siblings written for this order
         ['sib ذهب إلى أنّه', 'وذهب ابن حزم إلى أنّه يجب الوتر على كل مسلم.', 'وذهب بعض أهل العلم إلى أنّه يجب الوتر على كل مسلم.'],
+        // [h46]: was 'وقال بعض أهل العلم بعد أن ذكر الخلاف: «…».' — the title goes with the name, the prayer stays.
         ['sib لقب ودعاء ثم ظرف', 'وقال الشيخ ابن عثيمين رحمه الله بعد أن ذكر الخلاف: «والأقرب أن الأمر واسع».',
-          'وقال بعض أهل العلم بعد أن ذكر الخلاف: «والأقرب أن الأمر واسع».'],
+          'وقال بعض أهل العلم رحمه الله بعد أن ذكر الخلاف: «والأقرب أن الأمر واسع».'],
         ['sib ثم قال: عالم متعيّن', 'وذكر ابن القيم أنّ الأمرَ فيه سعة، ثم قال: «والصواب أن يفعل ما هو أيسر».',
           'وذكر ابن القيم أنّ الأمرَ فيه سعة، ثم قال بعض أهل العلم: «والصواب أن يفعل ما هو أيسر».'],
       ]) {
@@ -776,6 +787,68 @@ const unsupportedIsHandledSilently = (module) => {
       await killed44('without the first condition of (4) the Prophet\'s ﷺ words go to a general speaker again',
         '  if (PROPHET_FRAME_RE.test(view(text)) || (previous && PROPHET_FRAME_RE.test(view(previous)))) return null;\n', '',
         (mod) => !/بعض أهل العلم|في الأثر/u.test(mod.reviewAnswer({ text: 'وسأل ابن عمر النبيَّ ﷺ عن ذلك. فقال: «افعل ولا حرج».', evidence: [], domain: 'fiqh', mode: 'chat' }).text));
+    }
+    // ── [h46] · GOD'S NAME IS NEVER REPLACED, AND A PRAYER IS ONE PIECE ───────────────────────
+    // MEASURED (batch 4, W-mash-c) at 92d3c7d, in production wherever the seal keeps the sentence:
+    //   in   «وعن علي رضي الله عنه قال: …»   out  «وعن علي رضي بعض أهل العلم عنه قال: …»
+    // The owner's invariant: «الله» is never replaced, dropped or parted from its formula; each formula
+    // is one piece and no part of a name that is generalised. A Companion's whole frame may become
+    // «وجاء في الأثر:» and take its prayer with it — that alone. Anything else keeps the frame as written.
+    {
+      const say46 = (t) => module.reviewAnswer({ text: t, evidence: [], domain: 'fiqh', mode: 'chat' }).text;
+      const LEAD = 'المسح على الخفين جائز باتفاق أهل العلم.';
+      for (const [id, input, expected] of [
+        ['W-mash-c (b26, with «رواه»)', 'وعن علي رضي الله عنه قال: لو كان الدين بالرأي لكان أسفل الخف أولى بالمسح من أعلاه، رواه أبو داود.', null],
+        ['the live shape (no «رواه», the seal keeps it)', 'وعن علي رضي الله عنه قال: لو كان الدين بالرأي لكان أسفل الخف أولى بالمسح من أعلاه.', null],
+        ['عن ابن عمر … عنهما', 'وعن ابن عمر رضي الله عنهما قال: صحبت النبي ﷺ فكان لا يزيد في السفر على ركعتين.', null],
+        ['عن عائشة … عنها قالت', 'وعن عائشة رضي الله عنها قالت: فرضت الصلاة ركعتين ركعتين.', null],
+        ['عن أنس … «…»', 'وعن أنس رضي الله عنه قال: «كان النبي ﷺ يفطر على رطبات قبل أن يصلي».', null],
+        ['عن ابن مسعود … موقوفا', 'وعن ابن مسعود رضي الله عنه موقوفا: إنما يكفي أحدكم أن يقول ما يكفيه.', null],
+        ['قال عمر … عنه: (the athar takes the whole frame)', 'قال عمر بن الخطاب رضي الله عنه: نعمت البدعة هذه.', 'وجاء في الأثر: نعمت البدعة هذه.'],
+        ['قال ابن القيم رحمه الله:', 'قال ابن القيم رحمه الله: منزلة التوبة أول المنازل وأوسطها وآخرها.',
+          'وقال بعض أهل العلم رحمه الله: منزلة التوبة أول المنازل وأوسطها وآخرها.'],
+        ['وقال الشيخ ابن باز رحمه الله تعالى:', 'وقال الشيخ ابن باز رحمه الله تعالى: صلاة الجماعة في المسجد واجبة على الرجال القادرين.',
+          'وقال بعض أهل العلم رحمه الله تعالى: صلاة الجماعة في المسجد واجبة على الرجال القادرين.'],
+      ]) {
+        const out = say46(LEAD + '\n' + input).split('\n')[1];
+        const want = expected === null ? input : expected;
+        ok('h46 ' + id + (expected === null ? ': the frame is exactly as the model wrote it' : ': generalised, every formula whole'),
+          out === want && !/رضي بعض|رحمه بعض/u.test(out), out);
+      }
+      const ALI = LEAD + '\n' + 'وعن علي رضي الله عنه قال: لو كان الدين بالرأي لكان أسفل الخف أولى بالمسح من أعلاه.';
+      const net46 = await runMutant({
+        sourceFile: REVIEWER,
+        name: 'a-rewrite-may-cut-a-formula-again',
+        transform: (source) => source.replace(
+          '  if (rewriteCutsSacredText(sentence, attribution, generalizeAttribution(sentence, attribution))) return true;\n', ''),
+        survives: (mod) => !mod.reviewAnswer({ text: ALI, evidence: [], domain: 'fiqh', mode: 'chat' }).text.includes('رضي بعض أهل العلم عنه'),
+      });
+      ok('h46 formula mutant seam applied', net46.changed, net46.error);
+      ok('MUTANT KILLED: without [h46] «رضي الله عنه» becomes «رضي بعض أهل العلم عنه» again',
+        net46.loaded && net46.survived === false, JSON.stringify(net46));
+      const implied46 = await runMutant({
+        sourceFile: REVIEWER,
+        name: 'the-divine-name-is-a-subject-again',
+        transform: (source) => source.replace(
+          '  return nameMentions(text).filter((item) => !item.through && !DIVINE_AUTHORITY_HEAD_RE.test(item.name));',
+          '  return nameMentions(text).filter((item) => !item.through); // mutant'),
+        survives: (mod) => !/قال بعض أهل العلم/u.test(mod.reviewAnswer({ text: ALI, evidence: [], domain: 'fiqh', mode: 'chat' }).text),
+      });
+      ok('h46 divine-subject mutant seam applied', implied46.changed, implied46.error);
+      ok('MUTANT KILLED: without [h46] «الله» is read as the speaker and «قال بعض أهل العلم» is put after it',
+        implied46.loaded && implied46.survived === false, JSON.stringify(implied46));
+      const before46 = await runMutant({
+        sourceFile: REVIEWER,
+        name: 'a-named-frame-takes-a-speaker-from-before-again',
+        transform: (source) => source.replace(
+          '    if (!named.length && previous && !nameMentions(text.slice(0, m.index)).length) named = subjectMentions(previous);',
+          '    if (!named.length && previous) named = subjectMentions(previous); // mutant'),
+        // «على» in the sentence before is read as «علي»; the Companion's own frame must not take him.
+        survives: (mod) => !/قال بعض أهل العلم/u.test(mod.reviewAnswer({ text: ALI, evidence: [], domain: 'fiqh', mode: 'chat' }).text),
+      });
+      ok('h46 speaker-from-before mutant seam applied', before46.changed, before46.error);
+      ok('MUTANT KILLED: without [h46] «وعن علي رضي الله عنه قال:» takes a speaker from the sentence before',
+        before46.loaded && before46.survived === false, JSON.stringify(before46));
     }
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
