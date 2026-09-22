@@ -2690,6 +2690,55 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try { require('fs').rmSync(tmp52, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-b4b-58] · THE READER QUOTED THE MATN AND THE ANSWER DID NOT ─────────────────────────
+  // MEASURED at eca359e: «ما درجة حديث «…»؟» answered in prose that quotes nothing left the pass at `no_matn`,
+  // before [b27] is reached, so the question went unanswered. The head is for the text the reader asked about
+  // ([b27b] byte for byte): his own quotation, asked of the library on its own.
+  console.log('\n--- B4B-58. THE READER QUOTED THE MATN AND THE ANSWER DID NOT ---');
+  {
+    const T58 = await esm('lib/takhrij.js');
+    const ANSWER58 = 'هذا الحديث من الأحاديث المشهورة، ومعناه ظاهر لكل مسلم.';
+    const proved = (matn) => lookupOf({ [matn]: { matn, subjectIds: ['FC-000648'], atoms: [atomFor(matn, 'أبي مالك الأشعري')] } });
+    const none = lookupOf({});
+    const run58 = async (mod, question, lookup, answer = ANSWER58) => mod.applyTakhrij(answer, { env: ON, question, lookup });
+    const w = await run58(T58, 'ما درجة حديث «' + MATN + '»؟', proved(MATN));
+    ok('B4B-58 W · the head is written from the reader\'s own quotation, and the answer follows it',
+      w.gradingHead && w.text.startsWith(w.gradingHead) && w.text.endsWith(ANSWER58) && w.reason === 'no_matn', JSON.stringify(w.text));
+    ok('B4B-58 W · ...and it names the book the library proved for THAT text', w.gradingHead.includes('مسلم'), w.gradingHead);
+    for (const [label, question] of [
+      ['«من رواه؟»', 'حديث «' + MATN + '» من رواه؟'],
+      ['«من أخرجه؟»', 'من أخرجه حديث «' + MATN + '»؟'],
+      ['«ومن حكم عليه؟»', 'حديث «' + MATN + '» ومن حكم عليه؟'],
+    ]) {
+      const r = await run58(T58, question, proved(MATN));
+      ok('B4B-58 sibling · ' + label + ': the question is answered first', Boolean(r.gradingHead) && r.text.startsWith(r.gradingHead), JSON.stringify(r.text));
+    }
+    const nothing = await run58(T58, 'ما درجة حديث «' + MATN + '»؟', none);
+    ok('B4B-58 sibling · where the library proved nothing, the head says so and denies nothing',
+      nothing.gradingHead === T58.GRADING_HEAD_NOT_PROVED, JSON.stringify(nothing.gradingHead));
+    const noQuote = await run58(T58, 'ما حكم المسح على الخفين؟', proved(MATN));
+    ok('B4B-58 control · a question that quotes nothing takes no head, and the answer is byte for byte',
+      !noQuote.gradingHead && noQuote.text === ANSWER58 && noQuote.applied === false, JSON.stringify(noQuote.text));
+    const notAsked = await run58(T58, 'ما معنى حديث «' + MATN + '»؟', proved(MATN));
+    ok('B4B-58 control · a question that asks for no grade and no source takes none either', !notAsked.gradingHead, JSON.stringify(notAsked.gradingHead));
+    const quoting = await run58(T58, 'ما درجة حديث «' + MATN + '»؟', proved(MATN), 'قال رسول الله صلى الله عليه وسلم: «' + MATN + '».');
+    ok('B4B-58 control · an answer that DOES quote the matn is [b27]\'s, unchanged', quoting.reason === 'applied' && Boolean(quoting.gradingHead));
+    const src58 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam58 = '    const askedAlone = askedText(input.question);\n';
+    const mutated58 = src58.split(seam58).join('    const askedAlone = \'\';\n');
+    ok('MUTANT B4B-58 seam applied', mutated58 !== src58);
+    const tmp58 = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-b4b58-mut-'));
+    try {
+      const f58 = path.join(tmp58, 'takhrij.mjs');
+      require('fs').writeFileSync(f58, mutated58.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + f58.replace(/\\/g, '/'));
+      const back = await run58(mod, 'ما درجة حديث «' + MATN + '»؟', proved(MATN));
+      ok('MUTANT KILLED: without [b4b-58] the question goes unanswered again', !back.gradingHead && back.text === ANSWER58);
+    } finally {
+      try { require('fs').rmSync(tmp58, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
