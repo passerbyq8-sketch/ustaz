@@ -4174,6 +4174,55 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp18, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-c56] · A COUNT THE TEXT ANNOUNCED MATCHES WHAT IS LEFT ─────────────────────────────────
+  // MEASURED on the owner's battery (the batch-4 preview 7f671f7, question 3): «وفي درجته قولان منقولان:»
+  // and ONE opinion under it — the seal dropped the second («حسنه الألباني…», a grade no page carried).
+  // The contract: a lawful removal that takes some of what the text counted corrects the count to what is
+  // left, or its phrase goes — with no hole; the count of rulings r41 keeps is not touched.
+  console.log('\n--- c56. A COUNT THE TEXT ANNOUNCED MATCHES WHAT IS LEFT ---');
+  {
+    const MAJID = '- الأول: أنه حديث جيد، وهو قول الشيخ سليمان الماجد.';
+    const ALBANI = '- الثاني: أنه حديث حسن، حسنه الألباني في صحيح الترغيب.';
+    const PAGE = [{ title: 'الشيخ سليمان الماجد', passage: 'قال الشيخ سليمان الماجد: حديث جيد' }];
+    const W = 'وفي درجته قولان منقولان:\n\n' + MAJID + '\n' + ALBANI + '\n\nوفيه الحث على المكث في المسجد بعد صلاة الفجر لذكر الله.';
+    const w = TL.lockTakhrij(W, PAGE).text;
+    ok('c56 W · question 3: one opinion left under «قولان منقولان» — the count says one, and no ordinal is left alone',
+      w.startsWith('وفي درجته قول منقول:\n- أنه حديث جيد، وهو قول الشيخ سليمان الماجد.') && !/قولان|الأول:/u.test(w), JSON.stringify(w));
+    const three = 'وفي درجته ثلاثة أقوال:\n' + MAJID + '\n' + ALBANI.replace('الثاني', 'الثاني') + '\n- الثالث: أنه لا بأس به عند أهل العلم.\n\nوالله أعلم.';
+    const t = TL.lockTakhrij(three, PAGE).text;
+    ok('c56 sibling · three counted, one cut: «قولان», and the ordinals read in order again',
+      t.startsWith('وفي درجته قولان:\n- الأول: أنه حديث جيد') && t.includes('\n- الثاني: أنه لا بأس به عند أهل العلم.') && !t.includes('الثالث'), JSON.stringify(t));
+    const all = TL.lockTakhrij('وفي درجته قولان:\n- الأول: صححه الألباني في صحيح الترغيب.\n- الثاني: حسنه الترمذي في سننه.\n\nوفيه الحث على الذكر.', []).text;
+    ok('c56 sibling · everything counted was cut: the count goes with it, and nothing dangles',
+      !/قولان|:\s*$/mu.test(all) && all.includes('وفيه الحث على الذكر.'), JSON.stringify(all));
+    const adj = TL.lockTakhrij('وفي درجته ثلاثة أقوال مشهورة:\n' + MAJID + '\n- الثاني: أنه صحيح، صححه الألباني في صحيح الترغيب.\n- الثالث: أنه لا بأس به عند أهل العلم.\n\nوالله أعلم.', PAGE).text;
+    ok('c56 sibling · a count that cannot be said again in Arabic («ثلاثة أقوال مشهورة» → ?) goes whole; no hole',
+      !/أقوال|قولان/u.test(adj) && adj.startsWith('- الأول: أنه حديث جيد') && adj.includes('- الثاني: أنه لا بأس به'), JSON.stringify(adj));
+    const fin = TL.dropUnsourcedGrades('وفي درجته قولان منقولان:\n- الأول: أنه يستحب الجلوس بعد الفجر.\n- الثاني: أنه حديث حسن، وهو قول ابن باز.\n\nوالله أعلم.').text;
+    ok('c56 sibling · the finalizer\'s own grade cut reconciles the count too',
+      fin.startsWith('وفي درجته قول منقول:\n- أنه يستحب الجلوس بعد الفجر.'), JSON.stringify(fin));
+    const NONE = 'وفي المسألة قولان:\n- الأول: يستحب الجلوس بعد الفجر للذكر.\n- الثاني: يستحب الانصراف لمن له حاجة.\n\nوالأمر واسع.';
+    ok('c56 control · nothing cut: the count stands byte for byte', TL.lockTakhrij(NONE, []).text === NONE);
+    ok('c56 control · a count the model itself left short is not this cut\'s to correct',
+      TL.reconcileAnnouncedCounts('وفيه قولان:\n- الأول: كذا.\n\nوالله أعلم.', 'وفيه قولان:\n- الأول: كذا.\nوالله أعلم.') === 'وفيه قولان:\n- الأول: كذا.\nوالله أعلم.');
+    const R41 = 'أحكام المسح خمسة:\n- الأول: المسح جائز.\n- الثاني: صححه الألباني في صحيح أبي داود.\n- الثالث: مدته يوم وليلة للمقيم.';
+    ok('c56 control · the count of rulings (r41) is no count noun here: untouched', /^أحكام المسح خمسة:/u.test(TL.lockTakhrij(R41, []).text));
+    const src56 = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam56 = "  return { text: reconcileAnnouncedCounts(s, out), removed, droppedSentences, outcome: 'REBUILT', degraded, repairAttempted: true, salvagedMatns }; // [111-c56]";
+    const mutated56 = src56.split(seam56).join("  return { text: out, removed, droppedSentences, outcome: 'REBUILT', degraded, repairAttempted: true, salvagedMatns }; // mutant");
+    ok('MUTANT c56 seal seam applied', mutated56 !== src56);
+    const tmp56 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-c56-mut-'));
+    try {
+      const mfile = path.join(tmp56, 'takhrij-lock.mjs');
+      fs.writeFileSync(mfile, mutated56.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + mfile.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [c56] question 3 announces «قولان» over one opinion again',
+        mod.lockTakhrij(W, PAGE).text.startsWith('وفي درجته قولان منقولان:'));
+    } finally {
+      try { fs.rmSync(tmp56, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
