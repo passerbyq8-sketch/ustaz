@@ -119,10 +119,15 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     Array.isArray(r.removed) && r.removed.length >= 1, JSON.stringify(r.removed));
 
   // ── 2. THE SAME SENTENCE OVER A PAGE THAT DOES CARRY IT ────────────────────
-  const r2 = TL.lockTakhrij(FALSE_TAKHRIJ, [{ passage: PAGE_WITH }]);
-  ok('a SUPPORTED attribution is left exactly as written',
-    bare(r2.text).indexOf('رواه البخاري ومسلم') !== -1 && r2.removed.length === 0,
-    'text=' + r2.text + ' removed=' + JSON.stringify(r2.removed));
+  // [111-roots-64] — MIGRATED: «supported» is now the library's atoms for both books (the owner's ruling: a page that
+  // prints «رواه البخاري ومسلم» proves nothing for a quoted matn). The page is still handed over, and is not enough.
+  const atomsBoth = ['البخاري', 'مسلم'].map((book) => ({ title: '', passage: '', proseProof: { book, matn: MATN } }));
+  const r2 = TL.lockTakhrij(FALSE_TAKHRIJ, [{ passage: PAGE_WITH }, ...atomsBoth]);
+  const r2page = TL.lockTakhrij(FALSE_TAKHRIJ, [{ passage: PAGE_WITH }]);
+  ok('a SUPPORTED attribution is left exactly as written — supported by the atoms, not by the page',
+    bare(r2.text).indexOf('رواه البخاري ومسلم') !== -1 && r2.removed.length === 0
+      && bare(r2page.text).indexOf('رواه البخاري ومسلم') === -1,
+    'text=' + r2.text + ' removed=' + JSON.stringify(r2.removed) + ' pageOnly=' + r2page.text);
 
   // ── 3. WHEN THE TAKHRIJ IS THE WHOLE SENTENCE, THE SENTENCE GOES ───────────
   const onlyTakhrij = 'حكم السفر وحده مكروه عند أهل العلم. والحديث متفق عليه رواه البخاري ومسلم.';
@@ -1633,14 +1638,16 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     // A grade that DOES carry a source — a named collection, a card, a citation — is untouched.
     const CARDTAG = '<source site="s" url="https://islamqa.info/ar/answers/1/x">T</source>';
     for (const [label, text, extra] of [
-      ['a named collection', SAYS + ': «' + MATN + '»، رواه البخاريُّ، وهو حديثٌ صحيحٌ.', null],
+      // [111-roots-64] — MIGRATED (this row and the one below): the named collection is proved by the library's atom,
+      // handed to the seat as api/ask.js hands it (`takhrijProven`); a page printing «رواه البخاري» proves nothing.
+      ['a named collection', SAYS + ': «' + MATN + '»، رواه البخاريُّ، وهو حديثٌ صحيحٌ.', { takhrijProven: [{ title: '', passage: '', proseProof: { book: 'البخاري', matn: MATN } }] }],
       ['a card in the block', 'وهو حديثٌ صحيحٌ.\n<hadith narrator="البخاري" ruling="صحيح">' + MATN + '</hadith>', null],
       ['a numbered citation', 'وهو حديثٌ صحيحٌ (البخاري ٦٤٥).', null],
       ['a link', 'وهو حديثٌ صحيحٌ — https://islamqa.info/ar/answers/1/x', null],
       ['«متفق عليه» beside it', 'وهو حديثٌ صحيحٌ، متفقٌ عليه.', null],
       ['a man graded it', 'وهو حديثٌ صحيحٌ صححه الألبانيُّ.', null],
       ['the collection one sentence earlier in the same block',
-        SAYS + ': «' + MATN + '». رواه البخاريُّ. وهو حديثٌ صحيحٌ.', null],
+        SAYS + ': «' + MATN + '». رواه البخاريُّ. وهو حديثٌ صحيحٌ.', { takhrijProven: [{ title: '', passage: '', proseProof: { book: 'البخاري', matn: MATN } }] }],
       ['the card the line introduces is the next block',
         'وهو حديثٌ صحيحٌ:\n<hadith narrator="البخاري">' + MATN + '</hadith>', null],
       ['a card is still to be appended, so the last block is left alone',
@@ -2754,17 +2761,26 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       const out = L13.lockTakhrij(SAY13, page13(tail));
       ok('r13 «' + form + '» on the page is not Muslim: «متفق عليه» does not stand', !/متفق عليه/u.test(out.text), out.text);
     }
+    // [111-roots-64] — MIGRATED, seven rows kept: these read «the page names Muslim, so «متفق عليه» stands». The
+    // owner's ruling (23 Sep, row 64): a page proves no credit for a quoted matn — the library's atoms alone do.
+    // Each row now says both halves: the page naming Muslim is not enough, and the two Ṣaḥīḥs' atoms are.
+    const atoms13 = ['البخاري', 'مسلم'].map((book) => ({ title: '', passage: '', proseProof: { book, matn: MATN13 } }));
     for (const [form, tail] of [["رواه مسلم","ورواه مسلم أيضا."],["ومسلم","ومسلم."],["لمسلم","لمسلم."],["ولمسلم","ولمسلم نحوه."],["واللفظ لمسلم","واللفظ لمسلم."],["صحيح مسلم","وهو في صحيح مسلم."],["مسلمٌ","وأخرجه مسلمٌ."]]) {
-      const out = L13.lockTakhrij(SAY13, page13(tail));
-      ok('r13 «' + form + '» on the page IS Muslim: «متفق عليه» stands', /متفق عليه/u.test(out.text), out.text);
+      const pageOnly = L13.lockTakhrij(SAY13, page13(tail));
+      const withAtoms = L13.lockTakhrij(SAY13, [...page13(tail), ...atoms13]);
+      ok('r13 «' + form + '» on the page is not the proof — «متفق عليه» stands on the two Ṣaḥīḥs\' atoms alone',
+        !/متفق عليه/u.test(pageOnly.text) && /متفق عليه/u.test(withAtoms.text), pageOnly.text + ' | ' + withAtoms.text);
     }
     {
       const out = L13.lockTakhrij(SAY13, [{ title: 'x', passage: 'حديث ' + MATN13 + ' أخرجه البخاري في كتاب الأدب، وهو أدب من آداب المسلمين.' }]);
       ok('r13 al-Bukhari alone of the two, with «المسلمين» beside him: no «متفق عليه»', !/متفق عليه/u.test(out.text), out.text);
     }
+    // [111-roots-64] — MIGRATED: a credit for a QUOTED matn no longer reads the page at all, so the word-not-letters
+    // matching these four rows guard is asked where it still decides — a credit in a sentence quoting nothing.
+    const UNQUOTED13 = 'وحديث الأمر بقول الخير أو الصمت ';
     for (const [claim, pg, stands] of [['رواه النسائي', 'رواه النسائية', false], ['رواه النسائي', 'رواه النسائي', true],
       ['رواه أحمد', 'رواه الأحمدي', false], ['رواه أحمد', 'رواه أحمد', true]]) {
-      const out = L13.lockTakhrij('قال النبي ﷺ: «' + MATN13 + '» ' + claim + '.', [{ title: 'x', passage: 'حديث ' + MATN13 + ' ' + pg + ' في سننه.' }]);
+      const out = L13.lockTakhrij(UNQUOTED13 + claim + '.', [{ title: 'x', passage: 'حديث ' + MATN13 + ' ' + pg + ' في سننه.' }]);
       ok('r13 «' + claim + '» against a page reading «' + pg + '»: ' + (stands ? 'stands' : 'does not stand'), out.text.includes(claim) === stands, out.text);
     }
     {
@@ -2781,11 +2797,13 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       };
       try {
         const letters = await load13('name-as-letters', '    if (standsAsWord(hay, i, needle)) out.push(i);', '    out.push(i); // mutant');
-        ok('MUTANT KILLED: with the name matched as letters, «المسلمين» licenses «متفق عليه» again',
-          /متفق عليه/u.test(letters.lockTakhrij(SAY13, page13("وهو من حقوق المسلمين على بعضهم.")).text));
+        // [111-roots-64] — asked on the sentence quoting nothing, where the page still decides (see above).
+        ok('MUTANT KILLED: with the name matched as letters, «رواه مسلمة» licenses «رواه مسلم» again',
+          letters.lockTakhrij(UNQUOTED13 + 'رواه مسلم.', [{ title: 'x', passage: 'حديث ' + MATN13 + ' رواه مسلمة في سننه.' }]).text.includes('رواه مسلم')
+            && !L13.lockTakhrij(UNQUOTED13 + 'رواه مسلم.', [{ title: 'x', passage: 'حديث ' + MATN13 + ' رواه مسلمة في سننه.' }]).text.includes('رواه مسلم'));
         const phrase = await load13('phrase-as-letters', '  if (containsAsWord(hay, p)) return true;', '  if (hay.indexOf(p) !== -1) return true; // mutant');
         ok('MUTANT KILLED: with the phrase matched as letters, «رواه النسائية» licenses «رواه النسائي» again',
-          phrase.lockTakhrij('قال النبي ﷺ: «' + MATN13 + '» رواه النسائي.', [{ title: 'x', passage: 'حديث ' + MATN13 + ' رواه النسائية في سننه.' }]).text.includes('رواه النسائي'));
+          phrase.lockTakhrij(UNQUOTED13 + 'رواه النسائي.', [{ title: 'x', passage: 'حديث ' + MATN13 + ' رواه النسائية في سننه.' }]).text.includes('رواه النسائي'));
       } finally {
         try { fs.rmSync(tmp13, { recursive: true, force: true }); } catch { /* temp only */ }
       }
@@ -4097,10 +4115,11 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     const TOLD = 'حدثنا مسدد، حدثنا يحيى، عن شعبة، عن قتادة، عن أنس رضي الله عنه قال: قال رسول الله صلى الله عليه وسلم: «لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه».';
     ok('b24 sibling · «حدثنا… عن… عن…» before a matn: the chain goes, the Companion stays',
       L24.lockTakhrij(TOLD, []).text.startsWith('عن أنس رضي الله عنه قال: قال رسول الله'), JSON.stringify(L24.lockTakhrij(TOLD, []).text));
-    const NAMED = 'وقد رواه البيهقي بإسناده عن ابن عباس أن النبي صلى الله عليه وسلم قال: «الحج عرفة».';
+    const NAMED = 'وقد رواه البيهقي بإسناده عن ابن عباس أن النبي صلى الله عليه وسلم قال: «الحج عرفة، من جاء ليلة جمع قبل طلوع الفجر فقد أدرك الحج».';
     ok('b24 sibling · «بإسناده عن…» with the credit on a page: «بإسناده» goes, the rest stays',
-      L24.lockTakhrij(NAMED, [{ title: 'السنن الكبرى', passage: 'رواه البيهقي الحج عرفة' }]).text === 'وقد رواه البيهقي عن ابن عباس أن النبي صلى الله عليه وسلم قال: «الحج عرفة».',
-      JSON.stringify(L24.lockTakhrij(NAMED, [{ title: 'السنن الكبرى', passage: 'رواه البيهقي الحج عرفة' }]).text));
+      // [111-roots-64] — MIGRATED: the credit is carried by the library's atom for البيهقي (a page proves nothing).
+      L24.lockTakhrij(NAMED, [{ title: 'السنن الكبرى', passage: 'رواه البيهقي الحج عرفة من جاء ليلة جمع قبل طلوع الفجر فقد أدرك الحج' }, { title: '', passage: '', proseProof: { book: 'البيهقي', matn: 'الحج عرفة، من جاء ليلة جمع قبل طلوع الفجر فقد أدرك الحج' } }]).text === 'وقد رواه البيهقي عن ابن عباس أن النبي صلى الله عليه وسلم قال: «الحج عرفة، من جاء ليلة جمع قبل طلوع الفجر فقد أدرك الحج».',
+      JSON.stringify(L24.lockTakhrij(NAMED, [{ title: 'السنن الكبرى', passage: 'رواه البيهقي الحج عرفة من جاء ليلة جمع قبل طلوع الفجر فقد أدرك الحج' }, { title: '', passage: '', proseProof: { book: 'البيهقي', matn: 'الحج عرفة، من جاء ليلة جمع قبل طلوع الفجر فقد أدرك الحج' } }]).text));
     for (const [label, t] of [
       ['a Companion and the Prophet ﷺ are two links, not a chain', 'وعن ابن عمر رضي الله عنهما عن النبي صلى الله عليه وسلم قال: «صلاة الجماعة أفضل».'],
       ['«عن … عن …» inside the matn is the matn', 'العقل: فلا يجب على المجنون، لقول النبي صلى الله عليه وسلم: «رفع القلم عن ثلاثة: عن النائم حتى يستيقظ، وعن الصبي حتى يحتلم، وعن المجنون حتى يعقل».'],
@@ -4458,8 +4477,51 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     }
     const tied = page('قال رسول الله صلى الله عليه وسلم: النظافة من الإيمان. رواه الترمذي وقال: حديث غريب.');
     const c1 = TL.lockTakhrij(W, [tied]);
-    ok('B4B-64 control · a page naming الترمذي beside THIS matn still carries the credit, byte for byte',
-      c1.text === W && c1.outcome === 'CLEAN', JSON.stringify(c1.text));
+    // [111-roots-64] — FLIPPED by the owner's ruling (23 Sep, row 64: «الذرّة وحدها»): a page naming الترمذي beside
+    // THIS matn — Ibn Bāz's page, live on the b4b battery's Q3 — no longer carries the credit.
+    ok('ROOTS-64 W · a page naming الترمذي beside THIS matn does not carry the credit either: judged as with no page',
+      c1.text === TL.lockTakhrij(W, []).text && !c1.text.includes('رواه الترمذي'), JSON.stringify(c1.text));
+    // ── [111-roots-64] · THE ATOM ALONE — the second witness, siblings, and the controls that keep the door where it was ──
+    const JUMUA = 'لا تصوموا يوم الجمعة إلا أن تصوموا يوما قبله أو يوما بعده';
+    const W2 = 'فالصيام في يوم الجمعة وحده مكروه لأحاديث صحيحة في الصحيحين، منها: «' + JUMUA + '».\nوالله أعلم.';
+    const pageJ = page('ثبت في الصحيحين قوله صلى الله عليه وسلم: «' + JUMUA + '».');
+    ok('ROOTS-64 W2 · «في الصحيحين» for a wording neither Ṣaḥīḥ carries, off a page that says it beside this matn: it does not reach the reader',
+      !TL.lockTakhrij(W2, [pageJ]).text.includes('في الصحيحين'), JSON.stringify(TL.lockTakhrij(W2, [pageJ]).text));
+    for (const [credit, text, pg] of [
+      ['أخرجه البخاري ومسلم', 'قال النبي صلى الله عليه وسلم: «' + NADHAFA + '»، أخرجه البخاري ومسلم.\nوالله أعلم.', page('قال النبي صلى الله عليه وسلم: النظافة من الإيمان. أخرجه البخاري ومسلم.')],
+      ['متفق عليه', 'قال النبي صلى الله عليه وسلم: «' + NADHAFA + '» متفق عليه.\nوالله أعلم.', page('النظافة من الإيمان متفق عليه رواه البخاري ومسلم.')],
+      ['رواه أبو داود', 'حديث «' + NADHAFA + '» رواه أبو داود.\nوالله أعلم.', page('حديث النظافة من الإيمان رواه أبو داود في سننه.')],
+    ]) {
+      ok('ROOTS-64 sibling · «' + credit + '» off a page printing it beside THIS matn: judged as with no page',
+        TL.lockTakhrij(text, [pg]).text === TL.lockTakhrij(text, []).text && !TL.lockTakhrij(text, [pg]).text.includes(credit),
+        JSON.stringify(TL.lockTakhrij(text, [pg]).text));
+    }
+    ok('ROOTS-64 control · the same «متفق عليه» on the two Ṣaḥīḥs\' atoms stands, byte for byte',
+      TL.lockTakhrij('قال النبي صلى الله عليه وسلم: «' + NADHAFA + '» متفق عليه.\nوالله أعلم.', [proof('البخاري', NADHAFA), proof('مسلم', NADHAFA)]).text
+        === 'قال النبي صلى الله عليه وسلم: «' + NADHAFA + '» متفق عليه.\nوالله أعلم.');
+    const NIYYAT = 'إنما الأعمال بالنيات وإنما لكل امرئ ما نوى';
+    ok('ROOTS-64 control · the pass\'s own parenthesised «(متفق عليه)» over its rows (api/ask.js: book + matn) is judged as before',
+      /متفق عليه/u.test(TL.lockTakhrij('قال النبي صلى الله عليه وسلم: «' + NIYYAT + '» (متفق عليه).', [{ title: 'البخاري', passage: 'البخاري ' + NIYYAT }, { title: 'مسلم', passage: 'مسلم ' + NIYYAT }]).text));
+    const src64r = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    for (const [tag, from, to, back] of [
+      ['page-proves-again', '  if (words.length < 2) return true;\n  return false;\n}', '  if (words.length < 2) return true;\n  return true; // mutant\n}',
+        (mod) => mod.lockTakhrij(W, [tied]).text === W],
+      ['sahihayn-by-page', ' && !SHAYKHAYN_PHRASES.has(p)) return true;', ') return true; // mutant',
+        (mod) => mod.lockTakhrij(W2, [pageJ]).text.includes('في الصحيحين')],
+    ]) {
+      const mutated = src64r.split(from).join(to);
+      ok('MUTANT ROOTS-64 ' + tag + ' seam applied', mutated !== src64r);
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-roots64-mut-'));
+      try {
+        const mfile = path.join(tmp, 'takhrij-lock.mjs');
+        fs.writeFileSync(mfile, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + mfile.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: without [roots-64] ' + tag + ' a page proves the credit again', back(mod));
+      } finally {
+        try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
     const NONE = 'وحديث صلاة الليل رواه الترمذي.';
     ok('B4B-64 control · a sentence quoting nothing is judged as before: the page carries its credit',
       TL.lockTakhrij(NONE, [OTHER_T]).text === NONE);

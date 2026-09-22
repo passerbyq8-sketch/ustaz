@@ -1372,7 +1372,8 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     const kept17 = LOCK17.lockTakhrij(
       'قال النبي صلى الله عليه وسلم: «' + ISBAL_A + '» أخرجه البخاري.',
       // [111-b4b-64] — a page publishes a credit for THIS matn only where it names the book beside it.
-      [{ title: 'البخاري', passage: 'أخرجه البخاري في صحيحه: «' + ISBAL_A + '»' }]);
+      // [111-roots-64] — MIGRATED: published = the library's atom (the page alone proves nothing now).
+      [{ title: 'البخاري', passage: 'أخرجه البخاري في صحيحه: «' + ISBAL_A + '»' }, { title: '', passage: '', proseProof: { book: 'البخاري', matn: ISBAL_A } }]);
     ok('17  ...and a PUBLISHED credit is left exactly as written, salvaging nothing',
       kept17.outcome === 'CLEAN' && kept17.salvagedMatns.length === 0, JSON.stringify(kept17.text));
 
