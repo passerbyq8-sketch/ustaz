@@ -241,7 +241,7 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
     const b = verdict(REV, '\u0627\u0628\u0646 \u0642\u062f\u0627\u0645\u0629 \u0641\u0642\u0627\u0644: ' + B_PROSE, []);
     ok('E2 \u00b7 B-shape (name first, joined fa, colon, prose) \u2192 removed, and the remaining prose is intact',
       // THIRD ORDER, STEP 6: was «opens on B_PROSE»; now B_PROSE behind the general speaker.
-      b.action === REMOVED && b.text.indexOf('\u0648\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645: ' + B_PROSE) === 0 && b.text.indexOf('\u0642\u062f\u0627\u0645\u0629') < 0,
+      b.action === REMOVED && b.text.indexOf('\u0648\u0645\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0645\u0646 \u064a\u0631\u0649: ' + B_PROSE) === 0 /* [111-b4b-14] */ && b.text.indexOf('\u0642\u062f\u0627\u0645\u0629') < 0,
       'action=' + JSON.stringify(b.action) + ' text=' + JSON.stringify(b.text.slice(0, 60)));
 
     // 3. \u00ab\u0623\u0646\u00bb and \u00ab\u0628\u0623\u0646\u00bb after the colon are still taken off the delivered text.
@@ -250,10 +250,12 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
     const bian = verdict(REV, '\u0623\u0641\u062a\u0649 \u0627\u0628\u0646 \u0642\u062f\u0627\u0645\u0629: \u0628\u0623\u0646 ' + AN_PROSE, []);
     // FIFTH ORDER [r44] (1): «أنّ» after a general speaker is kept — the contract names it — so
     // under «قال» it stays; under «أفتى», which takes no general speaker, it is stripped as before.
-    ok('E3 \u00b7 \u00ab\u0623\u0646\u00bb stays behind a general speaker; \u00ab\u0628\u0623\u0646\u00bb is still stripped where none is put',
+    // [111-b4b-14] \u2014 \u00ab\u0623\u0641\u062a\u0649\u00bb is one of the owner's verbs now: it takes the formula, and \u00ab\u064a\u0631\u0649\u00bb takes \u00ab\u0623\u0646\u0651\u00bb
+    // where \u00ab\u0623\u0641\u062a\u0649\u00bb took \u00ab\u0628\u0623\u0646\u0651\u00bb \u2014 the \u00ab\u0628\u00bb goes and nothing else.
+    ok('E3 \u00b7 \u00ab\u0623\u0646\u00bb stays behind a general speaker; \u00ab\u0628\u0623\u0646\u00bb behind \u00ab\u0623\u0641\u062a\u0649\u00bb becomes the formula\'s \u00ab\u0623\u0646\u00bb',
       // THIRD ORDER, STEP 6: «قال» takes the general speaker; «أفتى» (bian) is not one of the five and is unchanged.
-      an.action === REMOVED && an.text.indexOf('\u0648\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645: \u0623\u0646 ' + AN_PROSE) === 0
-        && bian.action === REMOVED && bian.text.indexOf(AN_PROSE) === 0,
+      an.action === REMOVED && an.text.indexOf('\u0648\u0645\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0645\u0646 \u064a\u0631\u0649: \u0623\u0646 ' + AN_PROSE) === 0
+        && bian.action === REMOVED && bian.text.indexOf('\u0648\u0645\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0645\u0646 \u064a\u0631\u0649: \u0623\u0646 ' + AN_PROSE) === 0,
       'an=' + JSON.stringify(an.text.slice(0, 40)) + ' bian=' + JSON.stringify(bian.text.slice(0, 40)));
 
     // 4. A hadith matn is never removed. Only the matn is pinned here: measured on 2026-09-02 the
@@ -341,7 +343,7 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
       owner.action === REMOVED && owner.text.indexOf('\u0627\u0628\u0646 \u0628\u0627\u0632') < 0
         // THIRD ORDER, STEP 6: was «opens on the ruling»; now the ruling behind the general speaker.
         // FIFTH ORDER [r44] (1): the ruling follows the general speaker with no colon of the reviewer's own.
-        && owner.text.indexOf('\u0648\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629') === 0,
+        && owner.text.indexOf('\u0648\u0645\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0645\u0646 \u064a\u0631\u0649: \u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629') === 0 /* [111-b4b-14] the formula's colon before a bare ruling */,
       'action=' + JSON.stringify(owner.action) + ' text=' + JSON.stringify(owner.text.slice(0, 80)));
 
     // \ud83d\udd12 THE FIFTH DOOR IS NOT WEAKENED BY THAT RULING, AND HERE IS THE PROOF. A remainder
@@ -388,7 +390,7 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
         if (v.action !== REMOVED || v.text.indexOf(j) === 0
           // THIRD ORDER, STEP 6: the ruling now follows the general speaker.
           // FIFTH ORDER [r44] (1): no colon of the reviewer's own in front of the ruling.
-          || v.text.indexOf('\u0627\u0628\u0646 \u0628\u0627\u0632') >= 0 || v.text.indexOf('\u0648\u0642\u0627\u0644 \u0628\u0639\u0636 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629') !== 0) joinBad.push(j + '=' + v.action);
+          || v.text.indexOf('\u0627\u0628\u0646 \u0628\u0627\u0632') >= 0 || v.text.indexOf('\u0648\u0645\u0646 \u0623\u0647\u0644 \u0627\u0644\u0639\u0644\u0645 \u0645\u0646 \u064a\u0631\u0649: \u064a\u062d\u0631\u0645 \u062d\u0644\u0642 \u0627\u0644\u0644\u062d\u064a\u0629') !== 0 /* [111-b4b-14] */) joinBad.push(j + '=' + v.action);
         if (v.action !== bare.action) joinDrift.push(j + '(' + v.action + ')!=' + p + '(' + bare.action + ')');
       }
     }

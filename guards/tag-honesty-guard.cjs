@@ -250,7 +250,8 @@ const unsupportedIsHandledSilently = (module) => {
         evidence: [], domain: 'fiqh', mode: 'عادي',
       });
       // THIRD ORDER, STEP 6: was head + claim; «كما قال X:» is now «كما قال بعض أهل العلم:» between them.
-      const expected = (witness.head + ' كما قال بعض أهل العلم:' + witness.claim).replace(/\s+/gu, ' ').trim();
+      // [111-b4b-14] — and «كما قال X:» is «كما يرى بعض أهل العلم:», the owner's formula after «كما».
+      const expected = (witness.head + ' كما يرى بعض أهل العلم:' + witness.claim).replace(/\s+/gu, ' ').trim();
       return out.text.replace(/\s+/gu, ' ').trim() === expected;
     });
 
@@ -392,7 +393,8 @@ const unsupportedIsHandledSilently = (module) => {
         text: 'وقال الشيخ محمد الأمين إن الجمع للمسافر جائز عند الحاجة.',
         // THIRD ORDER, STEP 6: was the bare claim; now the claim behind the general speaker.
         // FIFTH ORDER [r44] (1): the name alone goes; «إن» stays and no colon is added.
-        claim: 'وقال بعض أهل العلم إن الجمع للمسافر جائز عند الحاجة.',
+        // [111-b4b-14]: the owner's one formula, and «يرى» takes «أنّ» where «قال» took «إنّ».
+        claim: 'ومن أهل العلم من يرى أن الجمع للمسافر جائز عند الحاجة.',
       },
       {
         id: 'joined-fa-connector',
@@ -406,7 +408,8 @@ const unsupportedIsHandledSilently = (module) => {
         // THIRD ORDER, STEP 6: was the bare claim; now the claim behind the general speaker.
         // [h46]: was 'وقال بعض أهل العلم: الجمع للمسافر جائز عند الحاجة.' — the prayer is no part of the
         // name, so it stays behind the general speaker, exactly where the model wrote it.
-        claim: 'وقال بعض أهل العلم: ورحمه الله، الجمع للمسافر جائز عند الحاجة.',
+        // [111-b4b-14]: the owner's formula, and the prayer behind it — never after the colon (item 14's witness).
+        claim: 'ومن أهل العلم من يرى رحمه الله: الجمع للمسافر جائز عند الحاجة.',
       },
     ]) {
       const out = module.reviewAnswer({ text: witness.text, evidence: [], domain: 'fiqh', mode: 'عادي' });
@@ -450,7 +453,7 @@ const unsupportedIsHandledSilently = (module) => {
         evidence: [], domain: 'fiqh', mode: 'عادي',
       });
       ok('a removed name leaves its honorific prayer whole behind the general speaker [h46]',
-        !out.text.includes('ابن باز') && out.text === 'وقال بعض أهل العلم رحمه الله إن الجمع للمسافر جائز عند الحاجة.'
+        !out.text.includes('ابن باز') && out.text === 'ومن أهل العلم من يرى رحمه الله أن الجمع للمسافر جائز عند الحاجة.' /* [111-b4b-14] */
           && out.text.includes('الجمع للمسافر جائز'), out.text);
     }
 
@@ -515,21 +518,21 @@ const unsupportedIsHandledSilently = (module) => {
     for (const witness of [
       { id: 'waqad-zakara-anna-book',
         text: 'وقد ذكر ابن قدامة في المغني أن المسح على الخفين جائز.',
-        delivered: 'المسح على الخفين جائز.' },
+        delivered: 'ومن أهل العلم من يرى أن المسح على الخفين جائز.' }, // [111-b4b-14] «ذكر» takes the formula; the particle still goes
       { id: 'waqad-zakara-anna-mid',
         text: 'المسألة فيها سعة، وقد ذكر ابن قدامة أن المسح على الخفين جائز.',
-        delivered: 'المسألة فيها سعة، المسح على الخفين جائز.' },
+        delivered: 'المسألة فيها سعة، ومن أهل العلم من يرى أن المسح على الخفين جائز.' }, // [111-b4b-14]
       { id: 'waqad-qala-inna-summary',
         text: 'خلاصة الجواب أن المسح جائز، وقد قال ابن قدامة إن مدته يوم وليلة.',
         // THIRD ORDER, STEP 6: was «…جائز، مدته…»; «وقد قال X إن» now reads «وقال بعض أهل العلم:».
         // FIFTH ORDER [r44] (1): «إن» after the name is the claim's, and stays.
-        delivered: 'خلاصة الجواب أن المسح جائز، وقال بعض أهل العلم إن مدته يوم وليلة.' },
+        delivered: 'خلاصة الجواب أن المسح جائز، ومن أهل العلم من يرى أن مدته يوم وليلة.' }, // [111-b4b-14]
       { id: 'faqad-zakara-anna',
         text: 'الأمر واسع، فقد ذكر ابن قدامة أن المسح على الخفين جائز.',
-        delivered: 'الأمر واسع، المسح على الخفين جائز.' },
+        delivered: 'الأمر واسع، ومن أهل العلم من يرى أن المسح على الخفين جائز.' }, // [111-b4b-14]
       { id: 'qad-zakara-anna-head',
         text: 'قد ذكر ابن قدامة أن المسح على الخفين جائز.',
-        delivered: 'المسح على الخفين جائز.' },
+        delivered: 'ومن أهل العلم من يرى أن المسح على الخفين جائز.' }, // [111-b4b-14] «ذكر» takes the formula; the particle still goes
     ]) {
       const out = module.reviewAnswer({ text: witness.text, evidence: [], domain: 'fiqh', mode: 'عادي' });
       ok('ع-٥٥/ب ' + witness.id + ': the credit is REMOVED, not decorated',
@@ -628,19 +631,19 @@ const unsupportedIsHandledSilently = (module) => {
       const say6 = (t) => module.reviewAnswer({ text: t, evidence: [], domain: 'fiqh', mode: 'عادي' });
       for (const [id, input, expected] of [
         ['W9 قال', 'وحكم عليه ابن الجوزي بالوضع، وقال ابن حبان: باطل لا أصل له.',
-          'وحكم عليه ابن الجوزي بالوضع، وقال بعض أهل العلم: باطل لا أصل له.'],
+          'وحكم عليه ابن الجوزي بالوضع، ومن أهل العلم من يرى: باطل لا أصل له.'],
         ['F20 يرى', 'وشيخ الإسلام ابن تيمية يرى أن وجه المرأة ويديها كبدن الرجل في الإحرام.',
           'ومن أهل العلم من يرى أن وجه المرأة ويديها كبدن الرجل في الإحرام.'],
         ['F20 صحابي', 'ولا فدية على الحائض، فقد قال ابن عباس رضي الله عنهما: «أمر الناس أن يكون آخر عهدهم بالبيت، إلا أنه خفف عن الحائض».',
           'ولا فدية على الحائض، وجاء في الأثر: «أمر الناس أن يكون آخر عهدهم بالبيت، إلا أنه خفف عن الحائض».'],
         // [h46]: was '…، كما قال بعض أهل العلم: «…».' — the prayer stays whole behind the general speaker.
         ['F17 كما قال', 'ويجوز لها ذلك من غير حرج، كما قال الكاساني رحمه الله: «يجب على الحائض قضاء الصوم».',
-          'ويجوز لها ذلك من غير حرج، كما قال بعض أهل العلم رحمه الله: «يجب على الحائض قضاء الصوم».'],
+          'ويجوز لها ذلك من غير حرج، كما يرى بعض أهل العلم رحمه الله: «يجب على الحائض قضاء الصوم».'],
         // FIFTH ORDER [r44] (1)(6): what followed the name follows the general speaker byte for byte;
         // the reviewer no longer adds an «إلى» the model did not write.
         ['ذهب', 'والوضوء من لحم الإبل واجب، وذهب الإمام أحمد وجوب الوضوء منه على كل حال.',
-          'والوضوء من لحم الإبل واجب، وذهب بعض أهل العلم وجوب الوضوء منه على كل حال.'],
-        ['قال بـ', 'قال ابن باز بجواز الجمع للمسافر.', 'وقال بعض أهل العلم بجواز الجمع للمسافر.'],
+          'والوضوء من لحم الإبل واجب، ومن أهل العلم من يرى وجوب الوضوء منه على كل حال.'],
+        ['قال بـ', 'قال ابن باز بجواز الجمع للمسافر.', 'ومن أهل العلم من يرى جواز الجمع للمسافر.'],
       ]) {
         const out = say6(input);
         ok('111-T6 ' + id + ': the name goes, a general speaker takes its place, the claim is whole',
@@ -659,8 +662,9 @@ const unsupportedIsHandledSilently = (module) => {
       }
       {
         // A frame outside the five is exactly as it was: the name goes and nothing takes its place.
-        const out = say6('الأمر واسع، فقد ذكر ابن قدامة أن المسح على الخفين جائز.');
-        ok('111-T6 a frame outside the five («ذكر») is handled exactly as before',
+        // [111-b4b-14] — «ذكر» is inside the owner's formula now; «وفقًا لـ» is still outside it.
+        const out = say6('الأمر واسع، ووفقا لابن قدامة، المسح على الخفين جائز.');
+        ok('111-T6 a frame outside the formula («وفقًا لـ») is handled exactly as before',
           out.text === 'الأمر واسع، المسح على الخفين جائز.', out.text);
       }
       const gen6 = await runMutant({
@@ -670,7 +674,7 @@ const unsupportedIsHandledSilently = (module) => {
           '  const speaker = generalSpeakerFor(sentence, attribution);',
           '  const speaker = null; // mutant'),
         survives: (mod) => mod.reviewAnswer({ text: 'وحكم عليه ابن الجوزي بالوضع، وقال ابن حبان: باطل لا أصل له.', evidence: [], domain: 'fiqh', mode: 'عادي' })
-          .text.includes('وقال بعض أهل العلم:'),
+          .text.includes('ومن أهل العلم من يرى'), // [111-b4b-14]
       });
       ok('111-T6 generalise mutant seam applied', gen6.changed, gen6.error);
       ok('MUTANT KILLED: with the speaker erased again, the view is left in the answer\'s own voice',
@@ -686,9 +690,9 @@ const unsupportedIsHandledSilently = (module) => {
       for (const [id, input] of [["T6","وقال لعائشةَ رضي الله عنها لمّا حاضت: «افعلي ما يفعل الحاجّ، غير ألا تطوفي بالبيت»."],["T10","ويؤكّد هذا الجمعَ ما رواه ابن حبان أنَّ أبا محصن استأذن النبيَّ صَلَّى اللهُ عَلَيْهِ وَسَلَّم في أخذ خراج حجّامه فأبى، فلما أكثرَ عليه قال: \"أَطْعِمْهُ رَقِيقَكَ وَاعْلِفْهُ نَاضِحَكَ\"، ولو كان حرامً لم يعطه."],["sib-saw-faqala","سئل النبي ﷺ عن الوضوء من لحوم الإبل فقال ﷺ: «نعم، فتوضأ من لحوم الإبل»."],["sib-saw-muadh","وقال صلى الله عليه وسلم لمعاذ رضي الله عنه: «إنك تأتي قوما من أهل الكتاب»."],["sib-rajul","سأل رجلٌ النبيَّ ﷺ عن الصلاة في مرابض الغنم، فقال: «صلوا فيها فإنها بركة»."],["sib-lahaa","ودخل النبي ﷺ على عائشة رضي الله عنها وهي تبكي. ثم قال لها: «إن هذا أمر كتبه الله على بنات آدم»."],["undet-qaala","وقال: «من لم يدع قول الزور والعمل به فليس لله حاجة في أن يدع طعامه وشرابه»."]]) {
         const out = say36(input);
         ok('r36 ' + id + ': no general speaker, the frame is exactly as the model wrote it',
-          out.replace(/\s+/gu, ' ') === input.replace(/\s+/gu, ' ') &&!/وجاء في الأثر|بعض أهل العلم/u.test(out), out);
+          out.replace(/\s+/gu, ' ') === input.replace(/\s+/gu, ' ') &&!/وجاء في الأثر|بعض أهل العلم|من أهل العلم من يرى/u.test(out), out);
       }
-      for (const [id, input, expected] of [["ctl-aisha","وقالت عائشة رضي الله عنها: «كنا نؤمر بقضاء الصوم ولا نؤمر بقضاء الصلاة».","وجاء في الأثر: «كنا نؤمر بقضاء الصوم ولا نؤمر بقضاء الصلاة»."],["ctl-ibnumar","وقال ابن عمر رضي الله عنهما: «إذا أمسيت فلا تنتظر الصباح».","وجاء في الأثر: «إذا أمسيت فلا تنتظر الصباح»."],["ctl-ibntaymiyya","وقال ابن تيمية: «الواجب على المسلم أن يتحرى الحق».","وقال بعض أهل العلم: «الواجب على المسلم أن يتحرى الحق»."],["ctl-ibnbaz","وسُئل ابن باز عن ذلك فقال: «لا حرج في ذلك إن شاء الله».","وسُئل بعض أهل العلم عن ذلك فقال: «لا حرج في ذلك إن شاء الله»."]]) {
+      for (const [id, input, expected] of [["ctl-aisha","وقالت عائشة رضي الله عنها: «كنا نؤمر بقضاء الصوم ولا نؤمر بقضاء الصلاة».","وجاء في الأثر: «كنا نؤمر بقضاء الصوم ولا نؤمر بقضاء الصلاة»."],["ctl-ibnumar","وقال ابن عمر رضي الله عنهما: «إذا أمسيت فلا تنتظر الصباح».","وجاء في الأثر: «إذا أمسيت فلا تنتظر الصباح»."],["ctl-ibntaymiyya","وقال ابن تيمية: «الواجب على المسلم أن يتحرى الحق».","ومن أهل العلم من يرى: «الواجب على المسلم أن يتحرى الحق»."],["ctl-ibnbaz","وسُئل ابن باز عن ذلك فقال: «لا حرج في ذلك إن شاء الله».","وسُئل بعض أهل العلم عن ذلك فقال: «لا حرج في ذلك إن شاء الله»."]]) {
         // FIFTH ORDER [r44] (1): ctl-ibnbaz was «وقال بعض أهل العلم: «…»» — «سُئل … عن ذلك ف» eaten with
         // the name. The name alone is replaced now; the other three are byte for byte what they were.
         ok('r36 control ' + id + ': generalised exactly as before', say36(input) === expected, say36(input));
@@ -696,7 +700,7 @@ const unsupportedIsHandledSilently = (module) => {
       ok('r36 the prayer on the person ADDRESSED is not the speaker\'s: al-Shafi\'i is a scholar',
         // FIFTH ORDER [r44] (3): was 'وقال بعض أهل العلم: «هذا حسن».' — «لأبي هريرة رضي الله عنه» eaten.
         // The name alone is replaced; the person addressed and his prayer stay, and he is still a scholar.
-        say36("وقال الشافعي لأبي هريرة رضي الله عنه: «هذا حسن».") === 'وقال بعض أهل العلم لأبي هريرة رضي الله عنه: «هذا حسن».', say36("وقال الشافعي لأبي هريرة رضي الله عنه: «هذا حسن»."));
+        say36("وقال الشافعي لأبي هريرة رضي الله عنه: «هذا حسن».") === 'ومن أهل العلم من يرى لأبي هريرة رضي الله عنه: «هذا حسن».' /* [111-b4b-14] */, say36("وقال الشافعي لأبي هريرة رضي الله عنه: «هذا حسن»."));
       const noSpeaker = await runMutant({
         sourceFile: REVIEWER,
         name: 'a-frame-naming-nobody-is-a-credit-again',
@@ -705,7 +709,7 @@ const unsupportedIsHandledSilently = (module) => {
         // [h46] — on T6 itself the mutant's rewrite would also drop «رضي الله عنها», which [h46] refuses on
         // its own; so T6 is asked together with its prayer-free twin, where only [r36] stands.
         survives: (mod) => ["وقال لعائشةَ رضي الله عنها لمّا حاضت: «افعلي ما يفعل الحاجّ، غير ألا تطوفي بالبيت».", "وقال لعائشةَ لمّا حاضت: «افعلي ما يفعل الحاجّ، غير ألا تطوفي بالبيت»."]
-          .every((text) => !/وجاء في الأثر|بعض أهل العلم/u.test(mod.reviewAnswer({ text, evidence: [], domain: 'fiqh', mode: 'chat' }).text)),
+          .every((text) => !/وجاء في الأثر|بعض أهل العلم|من أهل العلم من يرى/u.test(mod.reviewAnswer({ text, evidence: [], domain: 'fiqh', mode: 'chat' }).text)),
       });
       ok('r36 speakerless-frame mutant seam applied', noSpeaker.changed, noSpeaker.error);
       ok('MUTANT KILLED: with a frame naming nobody read as a credit, T6 takes a general speaker again',
@@ -736,20 +740,20 @@ const unsupportedIsHandledSilently = (module) => {
       for (const [id, input, expected] of [
         // (1)(3) — the three shapes of the fourth order's run notes (1) and (2), and one more of (2).
         ['shape-1 بعد', 'قال ابن باز بعد ذكر حديث أنس رضي الله عنه: «من صلى البردين دخل الجنة».',
-          'وقال بعض أهل العلم بعد ذكر حديث أنس رضي الله عنه: «من صلى البردين دخل الجنة».'],
+          'ومن أهل العلم من يرى بعد ذكر حديث أنس رضي الله عنه: «من صلى البردين دخل الجنة».'],
         ['shape-2 عن', 'وقال ابن تيمية عن ابن عباس رضي الله عنهما: «كان فقيها في الدين».',
-          'وقال بعض أهل العلم عن ابن عباس رضي الله عنهما: «كان فقيها في الدين».'],
+          'ومن أهل العلم من يرى عن ابن عباس رضي الله عنهما: «كان فقيها في الدين».'],
         ['shape-2 في', 'وقال ابن القيم في حديث أبي هريرة رضي الله عنه: «فيه دليل على جواز ذلك».',
-          'وقال بعض أهل العلم في حديث أبي هريرة رضي الله عنه: «فيه دليل على جواز ذلك».'],
+          'ومن أهل العلم من يرى في حديث أبي هريرة رضي الله عنه: «فيه دليل على جواز ذلك».'],
         ['shape-2 عن حديث', 'وقال ابن عثيمين عن حديث عائشة رضي الله عنها: «هذا يدل على الاستحباب».',
-          'وقال بعض أهل العلم عن حديث عائشة رضي الله عنها: «هذا يدل على الاستحباب».'],
+          'ومن أهل العلم من يرى عن حديث عائشة رضي الله عنها: «هذا يدل على الاستحباب».'],
         // siblings written for this order
-        ['sib ذهب إلى أنّه', 'وذهب ابن حزم إلى أنّه يجب الوتر على كل مسلم.', 'وذهب بعض أهل العلم إلى أنّه يجب الوتر على كل مسلم.'],
+        ['sib ذهب إلى أنّه', 'وذهب ابن حزم إلى أنّه يجب الوتر على كل مسلم.', 'ومن أهل العلم من يرى أنّه يجب الوتر على كل مسلم.'],
         // [h46]: was 'وقال بعض أهل العلم بعد أن ذكر الخلاف: «…».' — the title goes with the name, the prayer stays.
         ['sib لقب ودعاء ثم ظرف', 'وقال الشيخ ابن عثيمين رحمه الله بعد أن ذكر الخلاف: «والأقرب أن الأمر واسع».',
-          'وقال بعض أهل العلم رحمه الله بعد أن ذكر الخلاف: «والأقرب أن الأمر واسع».'],
+          'ومن أهل العلم من يرى رحمه الله بعد أن ذكر الخلاف: «والأقرب أن الأمر واسع».'],
         ['sib ثم قال: عالم متعيّن', 'وذكر ابن القيم أنّ الأمرَ فيه سعة، ثم قال: «والصواب أن يفعل ما هو أيسر».',
-          'وذكر ابن القيم أنّ الأمرَ فيه سعة، ثم قال بعض أهل العلم: «والصواب أن يفعل ما هو أيسر».'],
+          'ومن أهل العلم من يرى أنّ الأمرَ فيه سعة، ثم قال: «والصواب أن يفعل ما هو أيسر».'],
       ]) {
         ok('r44 ' + id + ': the name alone is generalised, every byte after it stays', say44(input) === expected, say44(input));
       }
@@ -767,7 +771,7 @@ const unsupportedIsHandledSilently = (module) => {
       ]) {
         const out = say44(input);
         ok('r44 ' + id + ': the frame is exactly as the model wrote it',
-          out.replace(/\s+/gu, ' ') === input.replace(/\s+/gu, ' ') && !/وجاء في الأثر|بعض أهل العلم/u.test(out), out);
+          out.replace(/\s+/gu, ' ') === input.replace(/\s+/gu, ' ') && !/وجاء في الأثر|بعض أهل العلم|من أهل العلم من يرى/u.test(out), out);
       }
       const killed44 = async (name, from, to, survives) => {
         const m = await runMutant({ sourceFile: REVIEWER, name, transform: (source) => source.replace(from, to), survives });
@@ -788,7 +792,7 @@ const unsupportedIsHandledSilently = (module) => {
         '  if (PROPHET_FRAME_RE.test(view(text)) || (previous && PROPHET_FRAME_RE.test(view(previous)))) return null;\n', '',
         // [h53]: was the first witness alone; [h53] keeps it too, so a twin it does not shield joins it.
         (mod) => ['وسأل ابن عمر النبيَّ ﷺ عن ذلك. فقال: «افعل ولا حرج».', 'وكان ابن باز يستدل بسنة النبيِّ ﷺ في ذلك. فقال: «افعل ولا حرج».']
-          .every((text) => !/بعض أهل العلم|في الأثر/u.test(mod.reviewAnswer({ text, evidence: [], domain: 'fiqh', mode: 'chat' }).text)));
+          .every((text) => !/بعض أهل العلم|من أهل العلم من يرى|في الأثر/u.test(mod.reviewAnswer({ text, evidence: [], domain: 'fiqh', mode: 'chat' }).text)));
     }
     // ── [h46] · GOD'S NAME IS NEVER REPLACED, AND A PRAYER IS ONE PIECE ───────────────────────
     // MEASURED (batch 4, W-mash-c) at 92d3c7d, in production wherever the seal keeps the sentence:
@@ -808,9 +812,9 @@ const unsupportedIsHandledSilently = (module) => {
         ['عن ابن مسعود … موقوفا', 'وعن ابن مسعود رضي الله عنه موقوفا: إنما يكفي أحدكم أن يقول ما يكفيه.', null],
         ['قال عمر … عنه: (the athar takes the whole frame)', 'قال عمر بن الخطاب رضي الله عنه: نعمت البدعة هذه.', 'وجاء في الأثر: نعمت البدعة هذه.'],
         ['قال ابن القيم رحمه الله:', 'قال ابن القيم رحمه الله: منزلة التوبة أول المنازل وأوسطها وآخرها.',
-          'وقال بعض أهل العلم رحمه الله: منزلة التوبة أول المنازل وأوسطها وآخرها.'],
+          'ومن أهل العلم من يرى رحمه الله: منزلة التوبة أول المنازل وأوسطها وآخرها.'],
         ['وقال الشيخ ابن باز رحمه الله تعالى:', 'وقال الشيخ ابن باز رحمه الله تعالى: صلاة الجماعة في المسجد واجبة على الرجال القادرين.',
-          'وقال بعض أهل العلم رحمه الله تعالى: صلاة الجماعة في المسجد واجبة على الرجال القادرين.'],
+          'ومن أهل العلم من يرى رحمه الله تعالى: صلاة الجماعة في المسجد واجبة على الرجال القادرين.'],
       ]) {
         const out = say46(LEAD + '\n' + input).split('\n')[1];
         const want = expected === null ? input : expected;
@@ -863,7 +867,7 @@ const unsupportedIsHandledSilently = (module) => {
     // null = the text exactly as the model wrote it; otherwise the whole delivered text.
     {
       const say53 = (t) => module.reviewAnswer({ text: t, evidence: [], domain: 'fiqh', mode: 'chat' }).text;
-      const ROWS53 = [["W53-abu-talib-log","كان النبي ﷺ في صغره مع عمه في تجارة الشام.\nثمّ انصرف بحيرى فصنع لهم طعامًا، فلمّا ذهب أبو طالبٍ ليأخذَه معه استخبرَه بحيرى عمّا هو له، فأخبره أنّه ابنُ أخيه، فقال له: ما ينبغي لهذا الغلامِ أن يذهبَ إلى الشام، فإنّ اليهودَ إن رأَوه وعرفوا منه م",null],["W53-bath-abu-ubayda-log","وشهد له النبي صلى الله عليه وسلم بالجنة ضمن العشرة المبشرين، وائتمنه على أموال الأمة وأسرارها، حتى إن وفداً جاء يطلب من النبي صلى الله عليه وسلم أن يبعث معهم أميناً، فبعث إليهم أبا عبيدة وقال: «هذا أمين هذه الأمة».",null],["W53-tamanna-umar-log","وكان أبو عبيدة محبوبا عند الصحابة.\nبل تمنى عمر ذات مرة وهو بين جلسائه فقال: «لكني أتمنى بيتاً ممتلئاً رجالاً مثل أبي عبيدة بن الجراح».",null],["O53-arsala-muadh","والدعوة إلى التوحيد أول الواجبات.\nثم أرسل النبي ﷺ معاذا إلى اليمن وقال: «إنك تأتي قوما من أهل الكتاب».",null],["O53-jaa-abubakr","وكان الصديق أسبق الناس إلى الخير.\nفجاء أبو بكر رضي الله عنه فقال: «يا رسول الله، هذا مالي كله».","وكان الصديق أسبق الناس إلى الخير.\nوجاء في الأثر: «يا رسول الله، هذا مالي كله»."],["O53-dhahaba-ibnumar-souq","وكان ابن عمر شديد الاتباع.\nوذهب ابن عمر إلى السوق فاشترى طعاما لأهله.",null],["O53-dhahaba-ahmad-wujub","واختلف العلماء في الوضوء من لحم الإبل.\nوذهب الإمام أحمد إلى وجوب الوضوء من لحم الإبل.","واختلف العلماء في الوضوء من لحم الإبل.\nوذهب بعض أهل العلم إلى وجوب الوضوء من لحم الإبل.\nوتُراجَع المسألة مع أهل العلم لظهور الخلاف فيها."],["O53-qala-ibnbaz","وصلاة الجماعة واجبة.\nوقال ابن باز رحمه الله: صلاة الجماعة في المسجد واجبة على الرجال القادرين.","وصلاة الجماعة واجبة.\nوقال بعض أهل العلم رحمه الله: صلاة الجماعة في المسجد واجبة على الرجال القادرين."],["S53-jaa-umar-bare","وكان عمر وقافا عند كتاب الله.\nفجاء عمر فقال: «يا رسول الله، ألسنا على الحق؟».",null],["S53-kharaja-ibnmasud","وكان ابن مسعود من فقهاء الصحابة.\nوخرج ابن مسعود إلى الناس فقال: «اتبعوا ولا تبتدعوا».",null],["S53-raa-ibnumar","والسنة في الصلاة الطمأنينة.\nورأى ابن عمر رجلا يصلي فقال له: «ارجع فصل».",null],["S53-saala-abuhurayra","وكان أبو هريرة حريصا على العلم.\nوسأل أبو هريرة النبي ﷺ فقال: «من أسعد الناس بشفاعتك؟».",null],["S53-baatha-umar-abumusa","وكان عمر يولي الأكفاء.\nوبعث عمر أبا موسى إلى البصرة وقال: «علمهم السنة».",null],["S53-ata-rajul-ibnabbas","وكان ابن عباس ترجمان القرآن.\nوأتى ابن عباس رجل فسأله عن ذلك فقال: «لا بأس».",null],["S53-dhahaba-malik-madina","وكان مالك محدثا.\nوذهب مالك إلى المدينة فلقي شيوخها.",null],["S53-dhahaba-shafii-anna","واختلفوا في مس الذكر.\nوذهب الشافعي إلى أن مس الذكر ينقض الوضوء.",null],["S53-dhahaba-ibnqudama-qawl","واختلفوا في المسألة.\nوذهب ابن قدامة إلى القول بالاستحباب.","واختلفوا في المسألة.\nوذهب بعض أهل العلم إلى القول بالاستحباب."],["S53-suila-ibnbaz","والمسألة فيها سعة.\nوسُئل ابن باز عن ذلك فقال: «لا حرج في ذلك إن شاء الله».","والمسألة فيها سعة.\nوسُئل بعض أهل العلم عن ذلك فقال: «لا حرج في ذلك إن شاء الله»."],["S53-yara-ibnuthaymin","والجمع للمسافر جائز.\nويرى ابن عثيمين أن الجمع للمسافر جائز عند الحاجة.","والجمع للمسافر جائز.\nومن أهل العلم من يرى أن الجمع للمسافر جائز عند الحاجة."],["S53-dhakara-nawawi","والسواك سنة.\nوذكر النووي أن السواك مستحب في كل وقت.","والسواك سنة.\nالسواك مستحب في كل وقت."],["S53-ibntaymiyya-namefirst","والتوبة واجبة.\nوابن تيمية قال: «التوبة واجبة من كل ذنب».","والتوبة واجبة.\nوقال بعض أهل العلم: «التوبة واجبة من كل ذنب»."],["C53-qala-umar-bare","والتراويح سنة.\nوقال عمر: «نعمت البدعة هذه».","والتراويح سنة.\nوجاء في الأثر: «نعمت البدعة هذه»."],["C53-qalat-aisha-bare","وقضاء الحائض الصوم واجب.\nوقالت عائشة: «كنا نؤمر بقضاء الصوم ولا نؤمر بقضاء الصلاة».","وقضاء الحائض الصوم واجب.\nوجاء في الأثر: «كنا نؤمر بقضاء الصوم ولا نؤمر بقضاء الصلاة»."],["C53-qala-ibnabbas-bare","والكفر دركات.\nوقال ابن عباس: «هو كفر دون كفر».","والكفر دركات.\nوجاء في الأثر: «هو كفر دون كفر»."],["C53-qala-umar-abdalaziz","والعدل أساس الملك.\nوقال عمر بن عبد العزيز: «إن الله لا يؤاخذ العامة بعمل الخاصة».","والعدل أساس الملك.\nوقال بعض أهل العلم: «إن الله لا يؤاخذ العامة بعمل الخاصة»."],["C53-qala-ali-qari","والشرح مفيد.\nوقال علي القاري: «هذا حديث حسن المعنى».","والشرح مفيد.\nوقال بعض أهل العلم: «هذا حديث حسن المعنى»."],["C53-qala-malik-ibn-anas","والسنة سفينة نوح.\nوقال مالك بن أنس: «السنة سفينة نوح من ركبها نجا».","والسنة سفينة نوح.\nوقال بعض أهل العلم: «السنة سفينة نوح من ركبها نجا»."]];
+      const ROWS53 = [["W53-abu-talib-log","كان النبي ﷺ في صغره مع عمه في تجارة الشام.\nثمّ انصرف بحيرى فصنع لهم طعامًا، فلمّا ذهب أبو طالبٍ ليأخذَه معه استخبرَه بحيرى عمّا هو له، فأخبره أنّه ابنُ أخيه، فقال له: ما ينبغي لهذا الغلامِ أن يذهبَ إلى الشام، فإنّ اليهودَ إن رأَوه وعرفوا منه م",null],["W53-bath-abu-ubayda-log","وشهد له النبي صلى الله عليه وسلم بالجنة ضمن العشرة المبشرين، وائتمنه على أموال الأمة وأسرارها، حتى إن وفداً جاء يطلب من النبي صلى الله عليه وسلم أن يبعث معهم أميناً، فبعث إليهم أبا عبيدة وقال: «هذا أمين هذه الأمة».",null],["W53-tamanna-umar-log","وكان أبو عبيدة محبوبا عند الصحابة.\nبل تمنى عمر ذات مرة وهو بين جلسائه فقال: «لكني أتمنى بيتاً ممتلئاً رجالاً مثل أبي عبيدة بن الجراح».",null],["O53-arsala-muadh","والدعوة إلى التوحيد أول الواجبات.\nثم أرسل النبي ﷺ معاذا إلى اليمن وقال: «إنك تأتي قوما من أهل الكتاب».",null],["O53-jaa-abubakr","وكان الصديق أسبق الناس إلى الخير.\nفجاء أبو بكر رضي الله عنه فقال: «يا رسول الله، هذا مالي كله».","وكان الصديق أسبق الناس إلى الخير.\nوجاء في الأثر: «يا رسول الله، هذا مالي كله»."],["O53-dhahaba-ibnumar-souq","وكان ابن عمر شديد الاتباع.\nوذهب ابن عمر إلى السوق فاشترى طعاما لأهله.",null],["O53-dhahaba-ahmad-wujub","واختلف العلماء في الوضوء من لحم الإبل.\nوذهب الإمام أحمد إلى وجوب الوضوء من لحم الإبل.","واختلف العلماء في الوضوء من لحم الإبل.\nومن أهل العلم من يرى وجوب الوضوء من لحم الإبل.\nوتُراجَع المسألة مع أهل العلم لظهور الخلاف فيها."],["O53-qala-ibnbaz","وصلاة الجماعة واجبة.\nوقال ابن باز رحمه الله: صلاة الجماعة في المسجد واجبة على الرجال القادرين.","وصلاة الجماعة واجبة.\nومن أهل العلم من يرى رحمه الله: صلاة الجماعة في المسجد واجبة على الرجال القادرين."],["S53-jaa-umar-bare","وكان عمر وقافا عند كتاب الله.\nفجاء عمر فقال: «يا رسول الله، ألسنا على الحق؟».",null],["S53-kharaja-ibnmasud","وكان ابن مسعود من فقهاء الصحابة.\nوخرج ابن مسعود إلى الناس فقال: «اتبعوا ولا تبتدعوا».",null],["S53-raa-ibnumar","والسنة في الصلاة الطمأنينة.\nورأى ابن عمر رجلا يصلي فقال له: «ارجع فصل».",null],["S53-saala-abuhurayra","وكان أبو هريرة حريصا على العلم.\nوسأل أبو هريرة النبي ﷺ فقال: «من أسعد الناس بشفاعتك؟».",null],["S53-baatha-umar-abumusa","وكان عمر يولي الأكفاء.\nوبعث عمر أبا موسى إلى البصرة وقال: «علمهم السنة».",null],["S53-ata-rajul-ibnabbas","وكان ابن عباس ترجمان القرآن.\nوأتى ابن عباس رجل فسأله عن ذلك فقال: «لا بأس».",null],["S53-dhahaba-malik-madina","وكان مالك محدثا.\nوذهب مالك إلى المدينة فلقي شيوخها.",null],["S53-dhahaba-shafii-anna","واختلفوا في مس الذكر.\nوذهب الشافعي إلى أن مس الذكر ينقض الوضوء.",null],["S53-dhahaba-ibnqudama-qawl","واختلفوا في المسألة.\nوذهب ابن قدامة إلى القول بالاستحباب.","واختلفوا في المسألة.\nومن أهل العلم من يرى القول بالاستحباب."],["S53-suila-ibnbaz","والمسألة فيها سعة.\nوسُئل ابن باز عن ذلك فقال: «لا حرج في ذلك إن شاء الله».","والمسألة فيها سعة.\nوسُئل بعض أهل العلم عن ذلك فقال: «لا حرج في ذلك إن شاء الله»."],["S53-yara-ibnuthaymin","والجمع للمسافر جائز.\nويرى ابن عثيمين أن الجمع للمسافر جائز عند الحاجة.","والجمع للمسافر جائز.\nومن أهل العلم من يرى أن الجمع للمسافر جائز عند الحاجة."],["S53-dhakara-nawawi","والسواك سنة.\nوذكر النووي أن السواك مستحب في كل وقت.","والسواك سنة.\nومن أهل العلم من يرى أن السواك مستحب في كل وقت."],["S53-ibntaymiyya-namefirst","والتوبة واجبة.\nوابن تيمية قال: «التوبة واجبة من كل ذنب».","والتوبة واجبة.\nومن أهل العلم من يرى: «التوبة واجبة من كل ذنب»."],["C53-qala-umar-bare","والتراويح سنة.\nوقال عمر: «نعمت البدعة هذه».","والتراويح سنة.\nوجاء في الأثر: «نعمت البدعة هذه»."],["C53-qalat-aisha-bare","وقضاء الحائض الصوم واجب.\nوقالت عائشة: «كنا نؤمر بقضاء الصوم ولا نؤمر بقضاء الصلاة».","وقضاء الحائض الصوم واجب.\nوجاء في الأثر: «كنا نؤمر بقضاء الصوم ولا نؤمر بقضاء الصلاة»."],["C53-qala-ibnabbas-bare","والكفر دركات.\nوقال ابن عباس: «هو كفر دون كفر».","والكفر دركات.\nوجاء في الأثر: «هو كفر دون كفر»."],["C53-qala-umar-abdalaziz","والعدل أساس الملك.\nوقال عمر بن عبد العزيز: «إن الله لا يؤاخذ العامة بعمل الخاصة».","والعدل أساس الملك.\nومن أهل العلم من يرى: «إن الله لا يؤاخذ العامة بعمل الخاصة»."],["C53-qala-ali-qari","والشرح مفيد.\nوقال علي القاري: «هذا حديث حسن المعنى».","والشرح مفيد.\nومن أهل العلم من يرى: «هذا حديث حسن المعنى»."],["C53-qala-malik-ibn-anas","والسنة سفينة نوح.\nوقال مالك بن أنس: «السنة سفينة نوح من ركبها نجا».","والسنة سفينة نوح.\nومن أهل العلم من يرى: «السنة سفينة نوح من ركبها نجا»."]];
       for (const [id, input, expected] of ROWS53) {
         const out = say53(input);
         ok('h53 ' + id + (expected === null ? ': exactly as the model wrote it' : ': as before h53, or «وجاء في الأثر:» for a Companion'),
@@ -886,7 +890,7 @@ const unsupportedIsHandledSilently = (module) => {
         (mod) => mod.reviewAnswer({ text: W53('S53-kharaja-ibnmasud'), evidence: [], domain: 'fiqh', mode: 'chat' }).text === W53('S53-kharaja-ibnmasud'));
       await killed53('without [h53] «وقال عمر:» becomes «وقال بعض أهل العلم:» again',
         '  const companion = isCompanionName(attribution.claimed) // [h53]\n    || (', '  const companion = (',
-        (mod) => !/بعض أهل العلم/u.test(mod.reviewAnswer({ text: W53('C53-qala-umar-bare'), evidence: [], domain: 'fiqh', mode: 'chat' }).text));
+        (mod) => !/بعض أهل العلم|من أهل العلم من يرى/u.test(mod.reviewAnswer({ text: W53('C53-qala-umar-bare'), evidence: [], domain: 'fiqh', mode: 'chat' }).text));
     }
     // ── [111-b4b-66] · «أنه قال» NAMES ITS SPEAKER: THE PRONOUN ────────────────────────────────
     // MEASURED at eca359e (r44, alive in production): «ونقل الخطيب البغدادي عن يحيى بن معين أنه قال: إنه
@@ -918,6 +922,46 @@ const unsupportedIsHandledSilently = (module) => {
         survives: (mod) => !/أنه قال بعض أهل العلم/u.test(mod.reviewAnswer({ text: W66, evidence: [], domain: 'fiqh', mode: 'chat' }).text) });
       ok('b4b-66 mutant seam applied', m66.changed, m66.error);
       ok('MUTANT KILLED: without [b4b-66] «أنه قال» takes «بعض أهل العلم» again', m66.loaded && m66.survived === false, JSON.stringify(m66));
+    }
+    // ── [111-b4b-14] · THE OWNER'S ONE FORMULA: «ومن أهل العلم من يرى» ────────────────────────────
+    // THE OWNER'S DECISION (batch-4 sheet, row 14): the general speaker is one formula whatever verb framed
+    // the name — and «ذكر · قرر · تقول · يقول · أفتى · أجاب» are verbs it covers — a Companion stays «وجاء في
+    // الأثر:», a nameless fatwa («كما جاء في فتوى…») takes it too, and no prayer ever follows the colon.
+    // MEASURED at eca359e: «كما جاء في فتوى نصت على أن…» and «كما قرر ذلك ابن قدامة في المغني» passed with no
+    // page; «ذكر/أجاب/تقول X أن…» lost the speaker and read as the answer's own voice; «وقال ابن باز: ورحمه
+    // الله، …» left as «وقال بعض أهل العلم: ورحمه الله، …».
+    {
+      const say14 = (t) => module.reviewAnswer({ text: t, evidence: [], domain: 'fiqh', mode: 'chat' }).text;
+      const ROWS14 = [
+        ['W14-vague-fatwa', 'والوتر سنة.\nكما جاء في فتوى نصت على أن الوتر سنة مؤكدة.', 'والوتر سنة.\nكما يرى بعض أهل العلم أن الوتر سنة مؤكدة.'],
+        ['W14-qarrara-dhalika-mughni', 'والماء طهور.\nكما قرر ذلك ابن قدامة في المغني.', 'والماء طهور.\nكما يرى بعض أهل العلم.'],
+        ['W14-prayer-after-colon', 'والجمع جائز.\nوقال ابن باز: ورحمه الله، الجمع للمسافر جائز.', 'والجمع جائز.\nومن أهل العلم من يرى رحمه الله: الجمع للمسافر جائز.'],
+        ['S14-dhakara', 'والسواك سنة.\nوذكر النووي أن السواك مستحب في كل وقت.', 'والسواك سنة.\nومن أهل العلم من يرى أن السواك مستحب في كل وقت.'],
+        ['S14-afta-bi', 'والجمع جائز.\nوأفتى ابن باز بجواز الجمع للمسافر.', 'والجمع جائز.\nومن أهل العلم من يرى جواز الجمع للمسافر.'],
+        ['S14-ajaba-bianna', 'والجمع جائز.\nوأجاب ابن عثيمين بأن الجمع جائز للحاجة.', 'والجمع جائز.\nومن أهل العلم من يرى أن الجمع جائز للحاجة.'],
+        ['S14-qarrara-shaykh', 'والجمع جائز.\nوقرر شيخ الإسلام أن الجمع جائز للحاجة.', 'والجمع جائز.\nومن أهل العلم من يرى أن الجمع جائز للحاجة.'],
+        ['S14-qala-prayer-before-colon', 'والجمع جائز.\nوقال ابن باز رحمه الله: الجمع للمسافر جائز.', 'والجمع جائز.\nومن أهل العلم من يرى رحمه الله: الجمع للمسافر جائز.'],
+      ];
+      for (const [id, input, expected] of ROWS14) {
+        const out = say14(input);
+        ok('b4b-14 ' + id + ': the owner\'s formula, the claim whole', out === expected, out);
+      }
+      ok('b4b-14 no prayer is ever left after the formula\'s colon',
+        ROWS14.every(([, input]) => !/من يرى:\s*(?:[وف])?رحم/u.test(say14(input))));
+      ok('b4b-14 control · a Companion who says stays «وجاء في الأثر:»',
+        say14('والتراويح سنة.\nوقال عمر: «نعمت البدعة هذه».') === 'والتراويح سنة.\nوجاء في الأثر: «نعمت البدعة هذه».');
+      ok('b4b-14 control · a speaker who names nobody is not touched',
+        say14('ويرى بعض أهل العلم أنّه يجب قضاء الصوم على الفور.').split('\n')[0] === 'ويرى بعض أهل العلم أنّه يجب قضاء الصوم على الفور.');
+      const m14a = await runMutant({ sourceFile: REVIEWER, name: 'without [b4b-14] the retired formula comes back',
+        transform: (source) => source.replace("  return kama ? 'كما يرى بعض أهل العلم' : 'ومن أهل العلم من يرى';\n", "  return kama ? 'كما قال بعض أهل العلم:' : 'وقال بعض أهل العلم:';\n"),
+        survives: (mod) => mod.reviewAnswer({ text: ROWS14[5][1], evidence: [], domain: 'fiqh', mode: 'chat' }).text === ROWS14[5][2] });
+      ok('b4b-14 formula mutant seam applied', m14a.changed, m14a.error);
+      ok('MUTANT KILLED: without [b4b-14] «وقال بعض أهل العلم:» comes back', m14a.loaded && m14a.survived === false, JSON.stringify(m14a));
+      const m14b = await runMutant({ sourceFile: REVIEWER, name: 'without [b4b-14] the nameless fatwa passes again',
+        transform: (source) => source.replace('  const vague = VAGUE_FATWA_RE.exec(sentence);\n', '  const vague = null;\n'),
+        survives: (mod) => mod.reviewAnswer({ text: ROWS14[0][1], evidence: [], domain: 'fiqh', mode: 'chat' }).text === ROWS14[0][2] });
+      ok('b4b-14 vague-fatwa mutant seam applied', m14b.changed, m14b.error);
+      ok('MUTANT KILLED: without [b4b-14] «كما جاء في فتوى…» passes with no page again', m14b.loaded && m14b.survived === false, JSON.stringify(m14b));
     }
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));

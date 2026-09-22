@@ -1819,7 +1819,8 @@ const HUMAN_DIVINE_NAME_CASES = [
     // a «قال X» credit is generalised to «وقال بعض أهل العلم:» and is no longer a cut, so the reject
     // door H3 describes does not open on it. «ذكر» is outside the five and still cut: every row below
     // asserts exactly what it asserted, on a witness the door still sees.
-    const NAMED = 'ذكر ابن باز أن ' + NAMED_CLAIM;
+    // [111-b4b-14] — «ذكر» takes the owner's formula now and is no cut; «وفقًا لـ» is still one.
+    const NAMED = 'وفقا لابن باز، ' + NAMED_CLAIM;
     const REVIEWED_CLAIM = NAMED_CLAIM + ' ' + RV.REVIEW_TAGS.ATTRIBUTION_REMOVED;
 
     const free = await LAW.driveFreeTurn({ module: loop, answer: NAMED });

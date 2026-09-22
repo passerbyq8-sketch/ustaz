@@ -403,7 +403,7 @@ const knownKey = (row) => [row.domain, row.alias, row.shape, row.flavour].join('
     // name erased; the name is still gone and the claim still whole, now behind «وقال بعض أهل العلم:».
     ok('ع-٧٤/ب the span ends after «فقال», and «الأمر في هذا واسع» is still delivered, behind a general speaker',
       // FIFTH ORDER [r44] (1): no colon of the reviewer's own — the model wrote none.
-      !!hit && hit.claimedAuthority === 'ابن قدامة' && r.text.indexOf('وقال بعض أهل العلم الأمر في هذا واسع') === 0
+      !!hit && hit.claimedAuthority === 'ابن قدامة' && r.text.indexOf('ومن أهل العلم من يرى: الأمر في هذا واسع') === 0 /* [111-b4b-14] the formula's colon */
         && r.text.indexOf('فقال') < 0,
       JSON.stringify({ name: hit && hit.claimedAuthority, text: r.text.slice(0, 70) }));
   }
@@ -609,7 +609,7 @@ const knownKey = (row) => [row.domain, row.alias, row.shape, row.flavour].join('
     // name erased; the name is still gone and the claim still whole, now behind «وقال بعض أهل العلم:».
     ok('ع-٧٤/ج the «لا» of a negated ruling is never taken for the last word of the name',
       // FIFTH ORDER [r44] (1): the negation still opens the ruling; no colon is added in front of it.
-      negated.name === 'ابن باز' && negated.text.startsWith('وقال بعض أهل العلم لا يجوز حلق اللحية.'),
+      negated.name === 'ابن باز' && negated.text.startsWith('ومن أهل العلم من يرى: لا يجوز حلق اللحية.') /* [111-b4b-14] the «لا» still opens the ruling */,
       JSON.stringify(negated));
 
     // ── THE NEGATIVES · A COLON IS NOT AN ATTRIBUTION BOUNDARY BY ITSELF ───

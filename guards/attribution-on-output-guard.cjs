@@ -122,7 +122,7 @@ const input = (evidence) => ({ text, evidence, domain: 'fiqh', mode: 'عادي' 
 // REWRITTEN AGAIN BY THE FIFTH ORDER [r44] (1): the name alone is replaced, so the «إن» that
 // followed it stays, and no colon is put where the model wrote none.
 const preservesCompleteUnsupportedClaim = (module, out) => out.text
-  === 'وقال بعض أهل العلم إن ' + semanticClaim
+  === 'ومن أهل العلم من يرى أن ' + semanticClaim // [111-b4b-14] the owner's formula; «يرى» takes «أنّ»
   && out.annotations[0]?.action === 'removed-unsupported-attribution';
 const rejectsWrongScholar = (module) => {
   const out = module.reviewAnswer(input([wrongScholar]));
@@ -165,7 +165,7 @@ const rejectsWrongScholar = (module) => {
       { framed: 'ابن باز يرى أن الجمع للمسافر جائز.', claim: 'ومن أهل العلم من يرى أن الجمع للمسافر جائز.' },
       { framed: 'حكم ابن باز هو تحريم الدخان.', claim: 'هو تحريم الدخان.' },
       { framed: 'ابن باز يحرّم الدخان.', claim: 'يحرّم الدخان.' },
-      { framed: 'قال ابنُ بازٍ بجواز الجمع للمسافر.', claim: 'وقال بعض أهل العلم بجواز الجمع للمسافر.' },
+      { framed: 'قال ابنُ بازٍ بجواز الجمع للمسافر.', claim: 'ومن أهل العلم من يرى جواز الجمع للمسافر.' }, // [111-b4b-14]
       { framed: 'وفقًا لابن باز، الجمع للمسافر جائز.', claim: 'الجمع للمسافر جائز.' },
     ]) {
       const out = module.reviewAnswer({ text: framed, evidence: [], domain: 'fiqh', mode: 'عادي' });

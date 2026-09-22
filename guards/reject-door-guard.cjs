@@ -63,7 +63,9 @@ const CLAIM = 'الجمع للمسافر جائز عند الحاجة.';
 // «قال X» credit is generalised to «وقال بعض أهل العلم:» — whole and true, so no longer a cut, and
 // the door no longer opens on it. The witness is now a frame outside the five, which is still cut,
 // so every row below drives the door exactly as it did.
-const NAMED = 'ذكر ابن باز أن ' + CLAIM;
+// [111-b4b-14] — and moved again: «ذكر» is one of the verbs the owner's one formula now covers, so
+// «ذكر ابن باز أنّ…» leaves as «ومن أهل العلم من يرى أنّ…», whole. «وفقًا لابن باز،» is still cut.
+const NAMED = 'وفقا لابن باز، ' + CLAIM;
 const TWO = SOUND_HEAD + '\n' + NAMED;
 const CLEAN_REWRITE = 'الجمع للمسافر جائز عند الحاجة عند جمهور أهل العلم.';
 // ق٥٥ §١ — the owner witness, in fixture form: a QUOTED block and nothing else. The card is
@@ -1364,13 +1366,13 @@ async function mutate({ file, name, transform, check }) {
     const rv1c = (text) => RV.reviewAnswer({ text, evidence: [], domain: 'fiqh', mode: 'عادي' });
     const COMP = 'ولا فدية على الحائض، فقد قالت عائشة رضي الله عنها: «كان الركبان يمرون بنا ونحن محرمات».';
     const SCH = 'وقال ابن عثيمين: يجوز لها أن تغطي وجهها بغير النقاب إذا مر بها الرجال.';
-    const OTHER = 'الأمر واسع، فقد ذكر ابن قدامة أن المسح على الخفين جائز.';
+    const OTHER = 'الأمر واسع، ووفقا لابن قدامة، المسح على الخفين جائز.'; // [111-b4b-14] «ذكر» takes the formula now
     const vc = rv1c(COMP).verdict; const vs = rv1c(SCH).verdict; const vo = rv1c(OTHER).verdict;
     ok('T1c a Companion generalised to «وجاء في الأثر:» is flagged and counts as no rejection',
       vc.sentences.some((r) => r.generalizedSpeaker === true) && loop.rejectedCount(vc) === 0, JSON.stringify(vc.sentences));
-    ok('T1c a scholar generalised to «وقال بعض أهل العلم:» counts as no rejection',
+    ok('T1c a scholar generalised to «ومن أهل العلم من يرى» counts as no rejection',
       loop.rejectedCount(vs) === 0, JSON.stringify(vs.counts));
-    ok('T1c a removal with NO general speaker («ذكر») still counts as one, exactly as before',
+    ok('T1c a removal with NO general speaker («وفقًا لـ») still counts as one, exactly as before',
       loop.rejectedCount(vo) === 1 && !vo.sentences.some((r) => r.generalizedSpeaker), JSON.stringify(vo.counts));
     ok('T1c the counts are unchanged: the action is still recorded under its own name',
       vc.counts['removed-unsupported-attribution'] === 1);

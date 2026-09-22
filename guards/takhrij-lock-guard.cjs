@@ -3763,14 +3763,14 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         'ويجوز ذلك.\nقال ابن باز: إسناده جيد.\nوالله أعلم.', 'ويجوز ذلك.\nوالله أعلم.'],
       ['sibling · a general speaker with more to say keeps it; only the grade clause goes',
         'قال الشيخ محمد ناصر الدين الألباني: صحيح، والعمل عليه عند أهل العلم.\nويستحب ذلك.',
-        'وقال بعض أهل العلم: والعمل عليه عند أهل العلم.\nويستحب ذلك.'],
+        'ومن أهل العلم من يرى: والعمل عليه عند أهل العلم.\nويستحب ذلك.'], // [111-b4b-14]
       ['sibling · a ruling before «، وصحّحه ابن حبان» keeps its sentence; the grade credit goes alone',
         'ويستحب صيام ثلاثة أيام من كل شهر، وصححه ابن حبان.\nوالله أعلم.', 'ويستحب صيام ثلاثة أيام من كل شهر.\nوالله أعلم.'],
       ['control · «وصححه بالشواهد» names nobody and is no span (AA-88), as before',
         'قال رسول الله صلى الله عليه وسلم: «الصيام جنة».\nوصححه بالشواهد.\nوالصيام من أفضل الأعمال.',
         'قال رسول الله صلى الله عليه وسلم: «الصيام جنة».\nوصححه بالشواهد.\nوالصيام من أفضل الأعمال.'],
       ['control · a general speaker with no grade is not touched',
-        'قال ابن عثيمين: الأفضل أن يصلي في بيته.\nوالله أعلم.', 'وقال بعض أهل العلم: الأفضل أن يصلي في بيته.\nوالله أعلم.'],
+        'قال ابن عثيمين: الأفضل أن يصلي في بيته.\nوالله أعلم.', 'ومن أهل العلم من يرى: الأفضل أن يصلي في بيته.\nوالله أعلم.'], // [111-b4b-14]
     ]) ok('b12 ' + label, viaReviewer(L12, input) === want, JSON.stringify(viaReviewer(L12, input)));
     ok('b12 sibling · «وقد صحّحه ابن خزيمة وحسّنه الترمذي» is two spans; a page carrying one keeps that one only',
       L12.takhrijSpans('وقد صحّحه ابن خزيمة وحسّنه الترمذي.').length === 2);
@@ -3778,8 +3778,8 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       L12.lockTakhrij(HADITH + '\nوصحّحه ابن حبان.', [{ title: 'صحيح ابن حبان', passage: 'من حسن إسلام المرء تركه ما لا يعنيه صححه ابن حبان' }]).text
         === HADITH + '\nوصحّحه ابن حبان.');
     ok('b12 the stream holds a unit carrying a general speaker\'s grade, so the finalizer never withdraws sent text',
-      STREAM12.wouldDropGrade('وقال بعض أهل العلم: صحيح.') === true
-        && STREAM12.wouldDropGrade('وقال بعض أهل العلم: الأفضل أن يصلي في بيته.') === false);
+      STREAM12.wouldDropGrade('ومن أهل العلم من يرى: صحيح.') === true // [111-b4b-14]
+        && STREAM12.wouldDropGrade('ومن أهل العلم من يرى: الأفضل أن يصلي في بيته.') === false);
     const src12 = read('lib/takhrij-lock.js').replace(/\r\n/g, '\n');
     const dir12 = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
     const tmp12 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-b12-mut-'));
@@ -3798,8 +3798,8 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         m1.lockTakhrij(W1, []).text.includes('وصحّحَه ابنُ حبّانَ') && !L12.lockTakhrij(W1, []).text.includes('وصحّحَه'),
         JSON.stringify(m1.lockTakhrij(W1, []).text));
       const m2 = await load12('general-grade-kept', '    const general = generalSpeakerGradeCuts(lines[i]);', '    const general = []; // mutant');
-      ok('MUTANT KILLED: with the general-speaker rule gone, «وقال بعض أهل العلم: صحيح.» reaches the reader again',
-        m2.dropUnsourcedGrades(REV12.reviewAnswer({ text: W2, evidence: [], domain: 'fiqh', mode: 'chat' }).text).text.includes('وقال بعض أهل العلم: صحيح')
+      ok('MUTANT KILLED: with the general-speaker rule gone, «ومن أهل العلم من يرى: صحيح.» reaches the reader again',
+        m2.dropUnsourcedGrades(REV12.reviewAnswer({ text: W2, evidence: [], domain: 'fiqh', mode: 'chat' }).text).text.includes('ومن أهل العلم من يرى: صحيح')
           && !L12.dropUnsourcedGrades(REV12.reviewAnswer({ text: W2, evidence: [], domain: 'fiqh', mode: 'chat' }).text).text.includes('صحيح'));
     } finally {
       try { fs.rmSync(tmp12, { recursive: true, force: true }); } catch { /* temp only */ }

@@ -2232,7 +2232,8 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     const V4_CARD = '<hadith>لا وضوء لمن لم يذكر اسم الله عليه</hadith>';
     // REWRITTEN BY THE THIRD ORDER, STEP 1-C: was «قال ابن باز إن …», which decision 2 now generalises
     // instead of cutting; «ذكر» is outside the five and still cut, so the two doors still meet here.
-    const V4_NAMED = 'ذكر ابن باز أن الجمع للمسافر جائز.';
+    // [111-b4b-14] — «ذكر» takes the owner's formula now and opens no reject door; «وفقًا لـ» still does.
+    const V4_NAMED = 'وفقا لابن باز، الجمع للمسافر جائز.';
 
     // The scripted provider, in this file's own idiom: SSE when the body asks for a stream, JSON
     // otherwise, and any host but the stub throws. The LAST entry is replayed for every call past

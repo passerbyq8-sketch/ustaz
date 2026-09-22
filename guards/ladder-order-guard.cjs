@@ -47,8 +47,10 @@ const usesHigherRung = (module) => {
         // THIRD ORDER, STEP 6: what ships is the general speaker and then a suffix of what arrived.
         // FIFTH ORDER [r44] (1): the suffix is everything after the name, «إن» included, with no
         // colon of the reviewer's own in front of it.
-        && generalized.text.startsWith('وقال بعض أهل العلم ')
-        && matchedInput.text.endsWith(generalized.text.slice('وقال بعض أهل العلم'.length))
+        // [111-b4b-14] the owner's formula; «يرى» takes «أنّ» where «قال» took «إنّ» — that one letter
+        // is the only byte of the suffix that moves, so the suffix is compared from the letter after it.
+        && generalized.text.startsWith('ومن أهل العلم من يرى أ')
+        && matchedInput.text.endsWith(generalized.text.slice('ومن أهل العلم من يرى أ'.length))
         && generalized.text.length > matchedInput.text.length / 2
         && generalized.text !== module.REVIEW_LAST_RESORT, generalized.text);
     const plainInput = {
