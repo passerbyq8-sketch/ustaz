@@ -2708,7 +2708,9 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     {
       const out = L41.lockTakhrij('الحكم في الباب ظاهر.\n' + "فيما يخص الحجامة، فالراجح أنها لا تفطر الصائم، وهذا خلاف مشهور، لكن الأقوى دليلا أن الحكم بكونها مفطرة منسوخ؛ فقد ثبت أن النبي صلى الله عليه وسلم احتجم وهو صائم كما رواه البخاري.", []);
       ok('r41 lock tail — a back-reference with a separator before the credit opens no tail',
-        !out.degraded.includes('takhrij-evidence-tail:1') && !/رواه البخاري/u.test(out.text), JSON.stringify(out.degraded));
+        // [111-b4b-51] — the tail opens on «؛ فقد ثبت», never on «، وهذا خلاف مشهور»: what that points at stays.
+        out.text.includes('وهذا خلاف مشهور، لكن الأقوى دليلا أن الحكم بكونها مفطرة منسوخ.')
+          && !/رواه البخاري/u.test(out.text), JSON.stringify([out.text, out.degraded]));
     }
     // MUTANTS — each fix taken out brings its defect back.
     {
@@ -4571,6 +4573,57 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
           (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
         const mod = await import('file:///' + f.replace(/\\/g, '/'));
         ok('MUTANT KILLED: without [b4b-47] ' + tag + ' the credit reaches the reader again', back(mod));
+      } finally {
+        try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
+  // ── [111-b4b-51] · S6'S TAIL READS «؛ فقد ثبت…», AND A TAIL THAT ASKED TAKES ITS ANSWER ───────
+  // MEASURED at eca359e (RAW-F16 of the forty real answers): «فيما يخص الحجامة، فالراجح أنها لا تفطر الصائم …،
+  // لكن الأقوى دليلًا أن الحكم بكونها مفطرة منسوخ؛ فقد ثبت أن النبي ﷺ احتجم وهو صائم كما رواه البخاري، وسئل أنس
+  // …؟» went whole for its unsupported «رواه البخاري», and the fiqh ruling went with it. The proof opens after
+  // «؛» on «فقد ثبت», so the semicolon separates a tail as the comma does; and a tail ending on the question's
+  // «؟» takes the answer that follows it, the ruling keeping «.». RAW-F16's own negative — a back-reference with
+  // a separator between it and the credit — still opens nothing.
+  console.log('\n--- B4B-51. THE TAIL AFTER «؛», AND THE QUESTION IT ASKED ---');
+  {
+    const lock51 = (t) => TL.lockTakhrij(t, []).text;
+    const rows = [
+      ['W · «؛ فقد ثبت … كما رواه البخاري»', 'وأما الاحتجام فالراجح أنه لا يفطر الصائم؛ فقد ثبت أن النبي صلى الله عليه وسلم احتجم وهو صائم كما رواه البخاري.',
+        'وأما الاحتجام فالراجح أنه لا يفطر الصائم.'],
+      ['sibling · «؛ وقد ثبت … في صحيح مسلم»', 'ويجب قضاء الصوم على الحائض؛ وقد ثبت ذلك في صحيح مسلم.', 'ويجب قضاء الصوم على الحائض.'],
+      ['sibling · «؛ فقد ثبت … كما أخرجه البخاري»', 'ويسن السواك عند كل صلاة؛ فقد ثبت عن النبي صلى الله عليه وسلم أنه كان يستاك كما أخرجه البخاري.',
+        'ويسن السواك عند كل صلاة.'],
+    ];
+    for (const [label, input, want] of rows) {
+      ok('B4B-51 ' + label + ': the tail goes, the ruling keeps its end mark', lock51(input) === want, JSON.stringify(lock51(input)));
+    }
+    const ASKED = 'وأما الاحتجام فالراجح أنه لا يفطر؛ فقد ثبت أن النبي صلى الله عليه وسلم احتجم كما رواه البخاري، وسئل أنس رضي الله عنه: أكنتم تكرهون الحجامة للصائم؟\nفقال: «لا، إلا من أجل الضعف» رواه البخاري.\nوالله أعلم.';
+    const asked = lock51(ASKED);
+    ok('B4B-51 W · a tail that ends on «؟» takes the answer that follows it, and the ruling ends on «.»',
+      asked === 'وأما الاحتجام فالراجح أنه لا يفطر.\nوالله أعلم.', JSON.stringify(asked));
+    const BACKREF = 'والحجامة لا تفطر، وهذا خلاف مشهور، لكن الراجح ما ذكرنا كما رواه البخاري.';
+    ok('B4B-51 control · RAW-F16\'s own negative: a back-reference with a separator before the credit opens nothing',
+      !lock51(BACKREF).includes('وهذا خلاف مشهور'), JSON.stringify(lock51(BACKREF)));
+    ok('B4B-51 control · a semicolon with no evidence particle after it opens nothing',
+      lock51('ويجب الوضوء؛ وهذا معروف عند أهل العلم كما رواه البخاري.') === '', JSON.stringify(lock51('ويجب الوضوء؛ وهذا معروف عند أهل العلم كما رواه البخاري.')));
+    const src51 = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seams51 = [
+      ['semicolon', "    if (ch !== '،' && ch !== ',' && ch !== '؛') continue;\n", "    if (ch !== '،' && ch !== ',') continue;\n",
+        (mod) => mod.lockTakhrij(rows[0][1], []).text === '' || !mod.lockTakhrij(rows[0][1], []).text.includes('لا يفطر الصائم')],
+      ['asked', '      const askedInTail = !matn && evidenceTail.mark === \'؟\';\n', '      const askedInTail = false;\n',
+        (mod) => mod.lockTakhrij(ASKED, []).text.includes('؟') || mod.lockTakhrij(ASKED, []).text.includes('الضعف')],
+    ];
+    for (const [tag, from, to, back] of seams51) {
+      const mutated = src51.split(from).join(to);
+      ok('MUTANT B4B-51 ' + tag + ' seam applied', mutated !== src51);
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-b4b51-mut-'));
+      try {
+        const f = path.join(tmp, 'takhrij-lock.mjs');
+        fs.writeFileSync(f, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + f.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: without [b4b-51] ' + tag + ' the ruling goes with the credit again', back(mod));
       } finally {
         try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
       }
