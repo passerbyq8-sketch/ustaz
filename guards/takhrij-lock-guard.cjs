@@ -4477,6 +4477,58 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp64, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-b4b-65] · A GRADE'S REMOVAL LEAVES NO HOLE ─────────────────────────────────────────
+  // MEASURED at eca359e, fixed drafts through the chain: «وقال الحاكم: صحيح الإسناد، لكن تعقبه الذهبي…»
+  // reached the reader as «وقال بعض أهل العلم: لكن تعقبه الذهبي…», and «ويجب الغسل، وقال ابن الجوزي: وهو
+  // حديث صحيح.» as «ويجب الغسل، وقال ابن الجوزي:.». The ruling: no hole after a grade goes — the sentence
+  // is left whole-worded or goes, and a ruling in front of the torn clause keeps its end mark.
+  console.log('\n--- B4B-65. A GRADE\'S REMOVAL LEAVES NO HOLE ---');
+  {
+    const drop = (t) => TL.dropUnsourcedGrades(t, {}).text;
+    const NEXT = '\nوالخلاصة أن الحديث لا يصح.';
+    const W = 'وقال بعض أهل العلم: صحيح الإسناد، لكن تعقبه الذهبي فقال: بل هو موضوع.' + NEXT;
+    const w = drop(W);
+    ok('B4B-65 W · «وقال بعض أهل العلم: لكن…» is never left: the sentence goes whole, the next one stays',
+      !w.includes('لكن تعقبه') && !/أهل العلم:\s*لكن/u.test(w) && w.includes('والخلاصة أن الحديث لا يصح.'), JSON.stringify(w));
+    for (const s of ['وقال بعض أهل العلم: حسن صحيح، لكن في إسناده مقال.', 'وقال بعض أهل العلم: صحيح، ولكن خالفه غيره فضعفه.',
+      'وقال بعض أهل العلم: إسناده جيد، غير أن فيه انقطاعا.', 'وقال بعض أهل العلم: صحيح، بل هو متواتر عنده.',
+      'وقال بعض أهل العلم: حديث حسن، ثم رجع عن ذلك.']) {
+      const r = drop(s + NEXT);
+      ok('B4B-65 sibling · «' + s.split(': ')[1].split('،')[1].trim().split(' ')[0] + '…» after the grade: the sentence goes whole',
+        r.trim() === NEXT.trim(), JSON.stringify(r));
+    }
+    const KEEP = 'وقال بعض أهل العلم: صحيح، وفيه فضل الصيام.' + NEXT;
+    ok('B4B-65 control · a clause that does not lean on the grade stays behind the formula, as [b12] left it',
+      drop(KEEP).includes('وفيه فضل الصيام'), JSON.stringify(drop(KEEP)));
+    const COLON = 'ويجب الغسل، وقال ابن الجوزي: وهو حديث صحيح.\nوالله أعلم.';
+    ok('B4B-65 W · «فلان:.» — the torn clause goes from its comma, and the ruling keeps its end mark',
+      drop(COLON) === 'ويجب الغسل.\nوالله أعلم.', JSON.stringify(drop(COLON)));
+    const LIST = 'أقوال العلماء فيه:\n- قال ابن الجوزي: وهو حديث صحيح.\n- الترمذي: منكر.';
+    const l = drop(LIST);
+    ok('B4B-65 sibling · a list line left as «- قال ابن الجوزي:.» goes as a line, and the model\'s own lead-in colon stays',
+      !/الجوزي:\s*\.?$/mu.test(l) && l.includes('أقوال العلماء فيه:') && !l.includes('الجوزي'), JSON.stringify(l));
+    const MODEL = 'أقوال العلماء فيه:\n- الترمذي: منكر.';
+    ok('B4B-65 control · a colon the model wrote at a sentence\'s end is untouched', drop(MODEL) === MODEL, JSON.stringify(drop(MODEL)));
+    const src65 = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const mutants = [
+      ['leaning', '    if (firstKept > 0 && leansOnWhatWent(', '    if (false && leansOnWhatWent(', W, (t) => /أهل العلم:\s*لكن/u.test(t)],
+      ['colon', '      if (!hole || arrived[i].includes(seg.trim())) continue;', '      continue;', COLON, (t) => t.includes('الجوزي:.')],
+    ];
+    for (const [name, seam, into, input, back] of mutants) {
+      const mutated = src65.split(seam).join(into);
+      ok('MUTANT B4B-65 ' + name + ' seam applied', mutated !== src65);
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-b4b65-mut-'));
+      try {
+        const mfile = path.join(tmp, 'takhrij-lock.mjs');
+        fs.writeFileSync(mfile, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + mfile.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: without [b4b-65] ' + name + ' the hole comes back', back(mod.dropUnsourcedGrades(input, {}).text));
+      } finally {
+        try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
