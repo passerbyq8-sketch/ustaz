@@ -4116,6 +4116,64 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp25, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── BATCH 4 [b18] · THE PARENTHESES OF A STREAMED ANSWER ────────────────────────────────────
+  // MEASURED at 92d3c7d with the takhrij pass on against the library twin (batch4/streq-tk.mjs): all
+  // 69 streamed turns of the 154 drafts and all 36 of the 40 real answers stood the pass down, and the
+  // streamed text differed from the unstreamed in 10 of 154 and 14 of 40 — no parentheses at all on a
+  // streamed turn. The owner's contract: the same parentheses, letter for letter; the unit carrying a
+  // matn is held until they are judged, as a grade unit is; the stream is not held whole for them.
+  console.log('\n=== BATCH 4 [b18] · THE PARENTHESES OF A STREAMED ANSWER ===');
+  {
+    const S18 = await esm('lib/sentence-stream.js');
+    const TEXT18 = 'الطهارة شرط لصحة الصلاة عند أهل العلم.\nقال رسول الله صلى الله عليه وسلم: «الطهور شطر الإيمان».\nفلا تصح الصلاة بغير طهارة.\nوالله أعلم.';
+    const drive = (mod, opts, text = TEXT18) => {
+      const s = mod.createSentenceStream({ domain: 'fiqh', sources: [], ...opts });
+      const sent = [];
+      for (const ch of text.match(/[\s\S]{1,9}/gu)) sent.push(...s.push(ch));
+      return { sent, end: s.end() };
+    };
+    const held = drive(S18, { holdMatn: true });
+    ok('b18 W · the unit carrying the matn is held; the sentence before it goes',
+      JSON.stringify(held.sent) === JSON.stringify(['الطهارة شرط لصحة الصلاة عند أهل العلم.']) && held.end.matnHolds === 1,
+      JSON.stringify([held.sent, held.end.matnHolds]));
+    ok('b18 ...and the answer that ships is the same text, letter for letter', held.end.text === TEXT18);
+    const card = drive(S18, { holdMatn: true }, 'الطهارة شرط.\n<hadith>«الطهور شطر الإيمان»</hadith>\nوالله أعلم.');
+    ok('b18 sibling · a <hadith> card, which the pass dissolves into prose, is held too',
+      JSON.stringify(card.sent) === JSON.stringify(['الطهارة شرط.']), JSON.stringify(card.sent));
+    const grade = drive(S18, { holdMatn: true, holdFromStart: true });
+    ok('b18 sibling · a grade question: nothing leaves before the head the pass writes in front',
+      grade.sent.length === 0 && grade.end.text === TEXT18, JSON.stringify(grade.sent));
+    const plain = drive(S18, {});
+    ok('b18 control · a caller that does not ask for the hold streams exactly as before',
+      plain.sent.length === 3 && plain.end.matnHolds === 0, JSON.stringify(plain.sent));
+    const noMatn = drive(S18, { holdMatn: true }, 'الطهارة شرط لصحة الصلاة.\nولا تصح الصلاة بغير طهارة.\nوالله أعلم.');
+    ok('b18 control · an answer with no matn is not held at all', noMatn.sent.length === 2 && noMatn.end.matnHolds === 0,
+      JSON.stringify(noMatn.sent));
+    const ask18 = read('api/ask.js');
+    ok('b18 wiring · api/ask.js asks the loop to hold on the pass\'s own three conditions, and from the start for a grade question',
+      ask18.includes("takhrijHold: takhrijDecision().enabled && band === 'adult' && libFlagValue === 'on' && libToken !== ''")
+        && ask18.includes('? { matn: true, fromStart: asksGradeOrSource(questionText) } : null,'));
+    ok('b18 wiring · a streamed turn is takhrij\'d, and its text is taken only if it keeps the bytes already sent',
+      ask18.includes('if (out.streamedThisTurn === true && !(wired && streamedHead)) {')
+        && ask18.includes('if (streamedHead && !pass.text.startsWith(streamedHead)) {'));
+    ok('b18 wiring · the loop hands the hold to the unit stream',
+      /holdMatn: !!\(takhrijHold && takhrijHold\.matn\)/u.test(read('lib/free-brain/loop.js')));
+    const src18 = read('lib/sentence-stream.js').replace(/\r\n/g, '\n');
+    const dir18 = path.dirname(path.join(REPO, 'lib', 'sentence-stream.js'));
+    const tmp18 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-b18-mut-'));
+    try {
+      const changed = src18.split('    if (holdMatn && carriesTakhrijTarget(unit)) {').join('    if (false) { // mutant');
+      ok('MUTANT b18 hold seam applied', changed !== src18);
+      const file = path.join(tmp18, 'stream-unheld.mjs');
+      fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir18, spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b18] the matn leaves before its parentheses are judged',
+        drive(mod, { holdMatn: true }).sent.some((u) => u.includes('«الطهور شطر الإيمان»')));
+    } finally {
+      try { fs.rmSync(tmp18, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });

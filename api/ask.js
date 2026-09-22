@@ -137,6 +137,8 @@ import { runClosedDeenTurn } from '../lib/closed-deen.js';
 import { LIB_MAX_CHARS_PER_HIT_DEFAULT } from '../lib/lib-contract.js';
 import { freeBrainDecision } from '../lib/free-brain/flag.js';
 import { takhrijDecision, TAKHRIJ_SKIPPED_STREAMED } from '../lib/takhrij.js';
+// BATCH 4 [b18] — on its own line: guards/takhrij-contract-guard.cjs row 19 pins the line above.
+import { asksGradeOrSource } from '../lib/takhrij.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 // The free path's own empty-reply text, صنف (ب): the system declaring a limit, not answering.
@@ -1748,6 +1750,10 @@ export default async function handler(req, res) {
           lessonsEligible: libDepthEligible && band === 'adult',
           lessonsToken: (libDepthEligible && band === 'adult') ? libToken : '',
           onWriteUnit: (detail) => liveFreeBrainUnits.push(detail),
+          // BATCH 4 [b18] — the takhrij pass below runs on a streamed turn too, so the stream holds
+          // the units it could change. The same three conditions the pass itself is gated on.
+          takhrijHold: takhrijDecision().enabled && band === 'adult' && libFlagValue === 'on' && libToken !== ''
+            ? { matn: true, fromStart: asksGradeOrSource(questionText) } : null,
           // E75 — carried, not read. The loop hands it to the reviewer and nothing else.
           requestedIdentity,
         });
@@ -2028,7 +2034,13 @@ export default async function handler(req, res) {
       const takhrij = takhrijDecision();
       if (takhrij.enabled) {
         const wired = band === 'adult' && libFlagValue === 'on' && libToken !== '';
-        if (out.streamedThisTurn === true) {
+        // BATCH 4 [b18] — A STREAMED TURN IS TAKHRIJ'D TOO, when the bytes already sent are untouched.
+        // The unit stream held every unit the pass could change (`holdMatn`, lib/sentence-stream.js),
+        // so the pass runs on the whole answer as it does unstreamed, and its text is taken only if it
+        // still opens with exactly what the reader already holds. If it does not, the pass stands down
+        // as it always did, under the same two codes — never a second answer over the first.
+        const streamedHead = out.streamedThisTurn === true ? String(liveFreeBrainUnits.sent || '') : '';
+        if (out.streamedThisTurn === true && !(wired && streamedHead)) {
           // ١١١/٣ — TWO CODES, AND THE OLD ONE IS NOT REPLACED. `inside_emitted_bytes` is the
           // ascription door’s name for the same stand-down and three guards read it, so it stays
           // exactly where it was. Beside it goes the takhrij’s OWN code, because a reader of this
@@ -2054,6 +2066,13 @@ export default async function handler(req, res) {
               signal: readerGone,
             }),
           });
+          if (streamedHead && !pass.text.startsWith(streamedHead)) {
+            out.degraded.push('takhrij:inside_emitted_bytes');
+            out.degraded.push('takhrij:' + TAKHRIJ_SKIPPED_STREAMED);
+            pass.entries = [];
+            pass.problems = [];
+            pass.text = readerText;
+          }
           readerText = pass.text;
           // ── AND THE SEAL IS TOLD WHICH PAGES PROVED IT (see `takhrijProvenRows`) ──
           // Without this the lock deletes the whole sentence a «(متفق عليه)» stands in, because no
