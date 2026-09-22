@@ -2739,6 +2739,48 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try { require('fs').rmSync(tmp58, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-b4b-60] · A DENIAL IS NOT A COMPETING CREDIT ────────────────────────────────────────
+  // MEASURED at eca359e (e55-nothing-proved-whole): «حديث «اطلبوا العلم ولو بالصين» رواه البخاري ومسلم…» — the
+  // grader's «(لا يثبت مرفوعا)» was withheld because the prose had named books, the seal cut that credit (no page
+  // proves it), and the reader was left «حديث «اطلبوا العلم ولو بالصين».»: a fabricated matn framed as a hadith
+  // with nothing said about it. §٢'s rule is about not ARGUING with a credit; a denial credits no book (b34).
+  console.log('\n--- B4B-60. A DENIAL IS NOT A COMPETING CREDIT ---');
+  {
+    const T60 = await esm('lib/takhrij.js');
+    const SEEN = 'اطلبوا العلم ولو بالصين';
+    const silsila = (matn, ruling) => lookupOf({ [matn]: { matn, subjectIds: ['FC-002061'],
+      atoms: ['36 - " ' + matn + ' ". ' + ruling + '. رواه ابن عدي.'] } });
+    const run60 = async (mod, text, matn, ruling) => (await mod.applyTakhrij(text, { env: ON, lookup: silsila(matn, ruling) })).text;
+    const W60 = 'حديث «' + SEEN + '» رواه البخاري ومسلم من حديث أنس رضي الله عنه.';
+    const w = await run60(T60, W60, SEEN, 'باطل');
+    ok('B4B-60 W · the grader\'s denial is written even where the prose named books', w.includes('(' + L.NOT_RAISED + ')'), w);
+    for (const [label, ruling] of [['موضوع', 'موضوع'], ['لا أصل له', 'لا أصل له'], ['باطل', 'باطل']]) {
+      const t = 'حديث «حب الوطن من الإيمان» رواه الترمذي من حديث أنس.';
+      const out = await run60(T60, t, 'حب الوطن من الإيمان', ruling);
+      ok('B4B-60 sibling · «' + label + '» beside a credit the prose wrote: «(لا يثبت مرفوعا)» stands', out.includes('(' + L.NOT_RAISED + ')'), out);
+    }
+    const sound = await run60(T60, W60, SEEN, 'صحيح');
+    ok('B4B-60 control · a grade that is not a denial is still withheld beside the prose\'s own credit (§٢)',
+      sound === W60, sound);
+    const bare = 'قال رسول الله صلى الله عليه وسلم: «' + SEEN + '».';
+    ok('B4B-60 control · with no credit in the prose, the denial is written exactly as before',
+      (await run60(T60, bare, SEEN, 'باطل')).includes('(' + L.NOT_RAISED + ')'));
+    const src60 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam60 = '    if (stated && parenthetical.text === NOT_RAISED) {\n      problems.push(TAKHRIJ_PROSE_ATTRIBUTION);\n    } else if (stated) {\n';
+    const mutated60 = src60.split(seam60).join('    if (stated) {\n');
+    ok('MUTANT B4B-60 seam applied', mutated60 !== src60);
+    const tmp60 = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-b4b60-mut-'));
+    try {
+      const f60 = path.join(tmp60, 'takhrij.mjs');
+      require('fs').writeFileSync(f60, mutated60.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + f60.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b4b-60] the denial is withheld and the matn stands bare again',
+        (await run60(mod, W60, SEEN, 'باطل')) === W60);
+    } finally {
+      try { require('fs').rmSync(tmp60, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
