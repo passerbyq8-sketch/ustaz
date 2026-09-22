@@ -4632,6 +4632,43 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       }
     }
   }
+  // ── [111-b4b-62] · THE GRADE'S CLAUSE GOES, THE RULING JOINED TO IT STAYS ─────────────────────
+  // MEASURED at eca359e (S-W7a): «فالحديث صحيح لأنه في صحيح مسلم، وهو أصل في تحريم الغش في البيع وغيره.» went
+  // whole for its unsupported «صحيح مسلم», and the ruling with it. r41: the grade's clause goes, the ruling stays.
+  console.log('\n--- B4B-62. THE GRADE\'S CLAUSE GOES, THE RULING JOINED TO IT STAYS ---');
+  {
+    const lock = (t) => TL.lockTakhrij(t, []).text;
+    const H = 'قال رسول الله صلى الله عليه وسلم: «من غش فليس مني».\n';
+    const rows = [
+      ['W · «…في صحيح مسلم، وهو أصل في تحريم الغش…»', 'فالحديث صحيح لأنه في صحيح مسلم، وهو أصل في تحريم الغش في البيع وغيره.', 'وهو أصل في تحريم الغش في البيع وغيره.'],
+      ['sibling · «…في صحيح البخاري، وهو دليل على وجوب الوضوء…»', 'فالحديث صحيح لأنه في صحيح البخاري، وهو دليل على وجوب الوضوء للصلاة.', 'وهو دليل على وجوب الوضوء للصلاة.'],
+      ['sibling · «…رواه الترمذي، وفيه استحباب السواك…»', 'والحديث حسن رواه الترمذي، وفيه استحباب السواك في كل وقت.', 'وفيه استحباب السواك في كل وقت.'],
+      ['sibling · «…كما في صحيح مسلم، ويجب رد السلام…»', 'وإسناده صحيح كما في صحيح مسلم، ويجب رد السلام على المسلم.', 'ويجب رد السلام على المسلم.'],
+    ];
+    for (const [label, sentence, ruling] of rows) {
+      const out = lock(H + sentence);
+      ok('B4B-62 ' + label + ': the ruling stays whole, the credit and its grade go', out === H + ruling, JSON.stringify(out));
+    }
+    const noRuling = H + 'فالحديث صحيح لأنه في صحيح مسلم، وقد رواه غيره أيضا.';
+    ok('B4B-62 control · no ruling after the comma: the sentence goes whole, as before', lock(noRuling) === H.trimEnd(), JSON.stringify(lock(noRuling)));
+    const quoted = 'وقد قال رسول الله صلى الله عليه وسلم: «من غش فليس مني» رواه مسلم، وهو أصل في تحريم الغش.';
+    ok('B4B-62 control · a head holding a quotation is not cut this way', !lock(quoted).startsWith('وهو أصل'), JSON.stringify(lock(quoted)));
+    const src62 = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam62 = '    const leadingClause = leadingGradeClause(body, unsupported);\n';
+    const mut62 = src62.split(seam62).join('    const leadingClause = null;\n');
+    ok('MUTANT B4B-62 seam applied', mut62 !== src62);
+    const tmp62 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-b4b62-mut-'));
+    try {
+      const f62 = path.join(tmp62, 'takhrij-lock.mjs');
+      fs.writeFileSync(f62, mut62.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + f62.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b4b-62] «أصل في تحريم الغش» goes with the credit again',
+        !mod.lockTakhrij(H + rows[0][1], []).text.includes('تحريم الغش'));
+    } finally {
+      try { fs.rmSync(tmp62, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
