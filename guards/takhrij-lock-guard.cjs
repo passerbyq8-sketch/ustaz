@@ -4419,6 +4419,64 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp57, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-b4b-64] · A PAGE PROVES A PROSE CREDIT ONLY BESIDE THE MATN IT CREDITS ───────────────
+  // MEASURED at eca359e (production), fixed drafts through the pass and this seal: «قال النبي ﷺ:
+  // «النظافة من الإيمان»، فقد رواه الترمذي بإسناد ضعيف.» reached the reader whole because the cited page
+  // printed «رواه الترمذي» after ANOTHER hadith; «رواه أبو داود», «أخرجه أحمد» and «رواه النسائي» passed
+  // the same way. The rule: a credit to a named book, in a sentence crediting a quotation, is carried by
+  // a page only where the page names that book within the window of the quotation's opening words.
+  console.log('\n--- B4B-64. A PAGE PROVES A PROSE CREDIT ONLY BESIDE THE MATN IT CREDITS ---');
+  {
+    const page = (passage) => ({ title: 'x', passage });
+    const proof = (book, matn) => ({ title: '', passage: '', proseProof: { book, matn } });
+    const NADHAFA = 'النظافة من الإيمان';
+    const W = 'قال النبي صلى الله عليه وسلم: «' + NADHAFA + '»، فقد رواه الترمذي بإسناد ضعيف.\nوالنظافة مطلوبة شرعا في البدن والثوب.';
+    const OTHER_T = page('عن سعد عن النبي صلى الله عليه وسلم قال: إن الله طيب يحب الطيب نظيف يحب النظافة كريم يحب الكرم، رواه الترمذي وقال: هذا حديث غريب.');
+    const w = TL.lockTakhrij(W, [OTHER_T]);
+    ok('B4B-64 W · «رواه الترمذي» off a page crediting الترمذي with ANOTHER hadith: the credit does not reach the reader',
+      !w.text.includes('رواه الترمذي') && w.outcome !== 'CLEAN', JSON.stringify(w.text));
+    ok('B4B-64 W · ...and the answer is judged exactly as with no page at all, the ruling kept',
+      w.text === TL.lockTakhrij(W, []).text && w.text.includes('والنظافة مطلوبة شرعا'), JSON.stringify(w.text));
+    const sibs = [
+      ['رواه أبو داود', 'حديث «' + NADHAFA + '» رواه أبو داود بإسناد ضعيف.\nوالله أعلم.',
+        page('عن أبي هريرة قال رسول الله صلى الله عليه وسلم: إذا توضأ أحدكم فليجعل في أنفه ماء. رواه أبو داود.')],
+      ['أخرجه أحمد', 'قال رسول الله صلى الله عليه وسلم: «تنظفوا بكل ما استطعتم»، وقد أخرجه أحمد في مسنده.\nوالله أعلم.',
+        page('عن أنس قال: قال رسول الله صلى الله عليه وسلم: إن الله جميل يحب الجمال. أخرجه أحمد في مسنده.')],
+      ['رواه النسائي', 'قال النبي صلى الله عليه وسلم: «الإسلام نظيف فتنظفوا»، رواه النسائي.\nوالله أعلم.',
+        page('السواك مطهرة للفم مرضاة للرب. رواه النسائي وأحمد.')],
+      ['رواه الترمذي', 'قال النبي صلى الله عليه وسلم: «' + NADHAFA + '».\nرواه الترمذي.\nوالله أعلم.', OTHER_T],
+    ];
+    for (const [credit, text, pg] of sibs) {
+      const r = TL.lockTakhrij(text, [pg]);
+      ok('B4B-64 sibling · «' + credit + '» off a page about another hadith: judged as with no page',
+        r.text === TL.lockTakhrij(text, []).text && !r.text.includes(credit), JSON.stringify(r.text));
+    }
+    const tied = page('قال رسول الله صلى الله عليه وسلم: النظافة من الإيمان. رواه الترمذي وقال: حديث غريب.');
+    const c1 = TL.lockTakhrij(W, [tied]);
+    ok('B4B-64 control · a page naming الترمذي beside THIS matn still carries the credit, byte for byte',
+      c1.text === W && c1.outcome === 'CLEAN', JSON.stringify(c1.text));
+    const NONE = 'وحديث صلاة الليل رواه الترمذي.';
+    ok('B4B-64 control · a sentence quoting nothing is judged as before: the page carries its credit',
+      TL.lockTakhrij(NONE, [OTHER_T]).text === NONE);
+    const lib = TL.lockTakhrij(W, [OTHER_T, proof('الترمذي', NADHAFA)]);
+    ok('B4B-64 control · where the LIBRARY proved الترمذي for this matn, [e55] keeps the credit as before',
+      lib.text.includes('رواه الترمذي'), JSON.stringify(lib.text));
+    const src64 = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam64 = '\n      || !creditTiedToMatn(sp, s, sen, body, hay))); // [111-b4b-64]';
+    const mutated64 = src64.split(seam64).join('));');
+    ok('MUTANT B4B-64 matn-tie seam applied', mutated64 !== src64);
+    const tmp64 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-b4b64-mut-'));
+    try {
+      const mfile = path.join(tmp64, 'takhrij-lock.mjs');
+      fs.writeFileSync(mfile, mutated64.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + mfile.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b4b-64] «رواه الترمذي» rides a page about another hadith again',
+        mod.lockTakhrij(W, [OTHER_T]).text === W);
+    } finally {
+      try { fs.rmSync(tmp64, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
