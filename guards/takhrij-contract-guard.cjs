@@ -2082,6 +2082,47 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── BATCH 4 [b23] · «رُوي» DOES NOT STAND BEFORE A SOUND HADITH ──────────────────────────
+  // The form of weakening («رُوي»، «فيما رُوي»، «يُروى») before a hadith the library proves to be in the
+  // two Ṣaḥīḥs, or graded sound, tells the reader the opposite; it becomes «ثبت». Before a weak one,
+  // or where nothing was proved, it is not touched.
+  console.log('\n--- B23. THE FORM OF WEAKENING BEFORE A SOUND HADITH ---');
+  {
+    const T23 = await esm('lib/takhrij.js');
+    const NIY = 'إنما الأعمال بالنيات';
+    const agreed = lookupOf({ [NIY]: { matn: NIY, subjectIds: ['FC-000645', 'FC-000648'], atoms: ['حدثنا الحميدي حدثنا سفيان قال: ' + NIY, 'حدثنا عبد الله بن مسلمة قال: ' + NIY] } });
+    const run = (mod, lead, lookup) => mod.applyTakhrij(lead + ' «' + NIY + '».', { env: ON, lookup });
+    for (const [lead, want] of [
+      ['ورُوي عن النبي صلى الله عليه وسلم أنه قال:', 'وثبت عن النبي صلى الله عليه وسلم أنه قال:'],
+      ['وفيما رُوي عن رسول الله صلى الله عليه وسلم:', 'وفيما ثبت عن رسول الله صلى الله عليه وسلم:'],
+      ['ويُروى عن النبي صلى الله عليه وسلم:', 'وثبت عن النبي صلى الله عليه وسلم:'],
+    ]) {
+      const out = (await run(T23, lead, agreed)).text;
+      ok('B23 «' + lead.split(' ')[0] + '» before «(متفق عليه)» becomes «ثبت»', out.startsWith(want) && out.includes('(متفق عليه)'), JSON.stringify(out));
+    }
+    const weak = lookupOf({ [NIY]: { matn: NIY, subjectIds: ['FC-002061'], atoms: ['36 - " ' + NIY + ' ". ضعيف. رواه ابن عدي.'] } });
+    const w = (await run(T23, 'ويُروى عن النبي صلى الله عليه وسلم:', weak)).text;
+    ok('B23 control · before a weak one it is not touched', w.startsWith('ويُروى عن النبي'), JSON.stringify(w));
+    const none = (await run(T23, 'ورُوي عن النبي صلى الله عليه وسلم:', lookupOf({}))).text;
+    ok('B23 control · where the library proved nothing it is not touched', none.startsWith('ورُوي عن النبي'), JSON.stringify(none));
+    const active = (await run(T23, 'وروى أبو هريرة أن النبي صلى الله عليه وسلم قال:', agreed)).text;
+    ok('B23 control · «روى» with its alif maqṣūra is the active verb naming a narrator, and stays', active.startsWith('وروى أبو هريرة'), JSON.stringify(active));
+    const src23 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam = '    if (tamrid.changed) out = tamrid.text;';
+    const mutated = src23.split(seam).join('    // mutant: the form of weakening kept');
+    ok('MUTANT B23 tamrid seam applied', mutated !== src23);
+    const tmp = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-b23-mut-'));
+    try {
+      const file = path.join(tmp, 'takhrij.mjs');
+      require('fs').writeFileSync(file, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b23] «رُوي» stands before «(متفق عليه)» again',
+        (await run(mod, 'ورُوي عن النبي صلى الله عليه وسلم أنه قال:', agreed)).text.startsWith('ورُوي'));
+    } finally {
+      try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
