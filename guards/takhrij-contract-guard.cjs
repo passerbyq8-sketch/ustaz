@@ -2608,6 +2608,47 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       T47.statedAttributionNear('قال النبي صلى الله عليه وسلم: «' + MATN + '».\nوهذا أصل عظيم.',
         target('قال النبي صلى الله عليه وسلم: «' + MATN + '».\nوهذا أصل عظيم.')) === '');
   }
+  // ── [111-b4b-48] · THE COMPANION'S OPENER, ONCE ────────────────────────────────────────────
+  // MEASURED at eca359e: «ومن ذلك حديث علي رضي الله عنه أن النبي ﷺ قال: «…»» left as «…أن النبي عن علي رضي
+  // الله عنه: «…»». Where the prose already names the Companion in the matn's own frame — its sentence, or the
+  // line ending on a colon that introduces it — no opener is added, and the lead-in stays as written.
+  console.log('\n--- B4B-48. THE COMPANION\'S OPENER, ONCE ---');
+  {
+    const T48 = await esm('lib/takhrij.js');
+    const agreedOn = (matn, companion) => lookupOf({ [matn]: { matn, subjectIds: ['FC-000645', 'FC-000648'],
+      atoms: [atomFor(matn, companion), atomFor(matn, companion)] } });
+    const run48 = async (mod, t, lookup) => (await mod.applyTakhrij(t, { env: ON, lookup })).text;
+    const count = (t, s) => t.split(s).length - 1;
+    const W = 'ومن ذلك حديث علي رضي الله عنه أن النبي صلى الله عليه وسلم قال: «' + MATN + '».';
+    const w = await run48(T48, W, agreedOn(MATN, 'علي'));
+    ok('B4B-48 W · «حديث علي رضي الله عنه أن النبي ﷺ قال:» takes no second «عن علي رضي الله عنه:», and «ﷺ قال» stays',
+      count(w, 'علي رضي الله عنه') === 1 && w.includes('أن النبي صلى الله عليه وسلم قال: «'), w);
+    for (const [label, t, who, name] of [
+      ['a card introduced by «بحديث علي رضي الله عنه:»', 'واستدلوا بحديث علي رضي الله عنه:\n<hadith narrator="x">' + MATN + '</hadith>', 'علي', 'علي رضي الله عنه'],
+      ['«وعن ابن عباس رضي الله عنهما قال: قال رسول الله ﷺ:»', 'وعن ابن عباس رضي الله عنهما قال: قال رسول الله صلى الله عليه وسلم: «' + MATN + '».', 'ابن عباس', 'ابن عباس'],
+      ['the name with no prayer: «وفي حديث أبي هريرة أن رسول الله ﷺ قال:»', 'وفي حديث أبي هريرة أن رسول الله صلى الله عليه وسلم قال: «' + MATN + '».', 'أبي هريرة', 'هريرة'],
+    ]) {
+      const out = await run48(T48, t, agreedOn(MATN, who));
+      ok('B4B-48 sibling · ' + label + ': the Companion is named once', count(out, name) === 1, out);
+    }
+    const c = await run48(T48, answerWith(MATN), agreedOn(MATN, 'عمر بن الخطاب'));
+    ok('B4B-48 control · a frame naming no Companion still takes the opener two books agree on',
+      c.includes('عن عمر بن الخطاب رضي الله عنه: «' + MATN + '»'), c);
+    const src48 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam48 = '    const named = denied || namedInFrame ? { name: \'\', prayer: \'\', books: 0 } : agreed;\n';
+    const mutated48 = src48.split(seam48).join('    const named = denied ? { name: \'\', prayer: \'\', books: 0 } : agreed;\n');
+    ok('MUTANT B4B-48 opener-once seam applied', mutated48 !== src48);
+    const tmp48 = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-b4b48-mut-'));
+    try {
+      const f48 = path.join(tmp48, 'takhrij.mjs');
+      require('fs').writeFileSync(f48, mutated48.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + f48.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b4b-48] «علي رضي الله عنه» is written twice again', count(await run48(mod, W, agreedOn(MATN, 'علي')), 'علي رضي الله عنه') === 2);
+    } finally {
+      try { require('fs').rmSync(tmp48, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
