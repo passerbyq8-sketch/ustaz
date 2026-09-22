@@ -1992,6 +1992,41 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── BATCH 4 [b21] · A COMPANION'S WORDS INSIDE A QUOTED HADITH ─────────────────────────
+  // MEASURED at 92d3c7d on the twin: «إنما الأعمال بالنيات … فهجرته إلى الله ورسوله، قال عمر رضي الله
+  // عنه: فسمعته يقول ذلك» left as «(أبو داود · لم يوقف على حكم)» — the atom carried the Prophet's
+  // words (the anchor), and the Companion's sentence the answer added rode on it into the book.
+  console.log('\n--- B21. THE MIXTURE OF THE MARFŪʿ AND A COMPANION IS CREDITED TO NO BOOK ---');
+  {
+    const T21 = await esm('lib/takhrij.js');
+    const MARFU = 'إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى، فمن كانت هجرته إلى الله ورسوله فهجرته إلى الله ورسوله';
+    const ATOM = 'حدثنا الحميدي حدثنا سفيان عن عمر بن الخطاب رضي الله عنه قال سمعت رسول الله صلى الله عليه وسلم يقول ' + MARFU + ' ومن كانت هجرته لدنيا يصيبها.';
+    const MIXED = MARFU + '، قال عمر رضي الله عنه: فسمعته يقول ذلك';
+    ok('B21 W · the atom carries the marfūʿ, not the Companion\'s sentence the quotation adds: it does not carry the quotation',
+      T21.atomCarriesMatn(ATOM, MIXED) === false && T21.atomCarriesMatn(ATOM, MARFU) === true);
+    const run = async (mod, matn) => mod.applyTakhrij('قال رسول الله صلى الله عليه وسلم: «' + matn + '».',
+      { env: ON, lookup: lookupOf({ [matn]: { matn, subjectIds: ['FC-000645', 'FC-000656'], atoms: [ATOM, ATOM] } }) });
+    const mixed = await run(T21, MIXED);
+    ok('B21 W · ...so the mixture leaves with no parentheses at all', !/\(/u.test(mixed.text), JSON.stringify(mixed.text));
+    const pure = await run(T21, MARFU);
+    ok('B21 control · the marfūʿ alone still takes its parentheses', pure.text.includes('(البخاري)'), JSON.stringify(pure.text));
+    ok('B21 control · a wording that differs after the anchor, with no second speaker, is still carried',
+      T21.atomCarriesMatn('أمر الناس أن يكون آخر عهدهم بالبيت إلا أنه خفف عن المرأة الحائض', 'أمر الناس أن يكون آخر عهدهم بالبيت، إلا أنه خفف عن الحائض'));
+    const src21 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam = "  return !COMPANION_VOICE_RE.test(' ' + words.slice(cut).join(' ') + ' ');";
+    const mutated = src21.split(seam).join('  return true; // mutant');
+    ok('MUTANT B21 companion-voice seam applied', mutated !== src21);
+    const tmp = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-b21-mut-'));
+    try {
+      const file = path.join(tmp, 'takhrij.mjs');
+      require('fs').writeFileSync(file, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b21] the mixture is credited to a book again', (await run(mod, MIXED)).text.includes('(البخاري)'));
+    } finally {
+      try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
