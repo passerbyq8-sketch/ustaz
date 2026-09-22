@@ -2649,6 +2649,47 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try { require('fs').rmSync(tmp48, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-b4b-52] · A KINSMAN IS A SPEAKER, AND HIS WORDS TAKE NO PARENTHESES ─────────────────
+  // MEASURED at eca359e, driven through the pass: «وكان النبي ﷺ يمسح على الخفين، وقال ابنُه: «كان أبي يمسح على
+  // الجوربين».» left as «… وقال ابنُه: «…» (متفق عليه)». [b43] stopped «قال ابنُه» being read as the collector
+  // «قال ابن» and nothing took its place, so the son's own words were credited to the Prophet's ﷺ books.
+  console.log('\n--- B4B-52. A KINSMAN IS A SPEAKER ---');
+  {
+    const T52 = await esm('lib/takhrij.js');
+    const both = (matn) => lookupOf({ [matn]: { matn, subjectIds: ['FC-000645', 'FC-000648'],
+      atoms: [atomFor(matn, 'أبي هريرة'), atomFor(matn, 'أبي هريرة')] } });
+    const say52 = async (mod, text, matn) => (await mod.applyTakhrij(text, { env: ON, lookup: both(matn) })).text;
+    const KIN = 'كان أبي يمسح على الجوربين كل يوم';
+    const W52 = 'وكان النبي صلى الله عليه وسلم يمسح على الخفين، وقال ابنُه: «' + KIN + '».';
+    ok('B4B-52 W · «وقال ابنُه: «…»» after the Prophet ﷺ is named: no parentheses are written',
+      (await say52(T52, W52, KIN)) === W52, await say52(T52, W52, KIN));
+    for (const [label, frame, matn] of [
+      ['أبوه', 'وكان النبي صلى الله عليه وسلم يصلي الضحى، وقال أبوه: «__»', 'رأيت ذلك منه مرارا في بيته'],
+      ['أمها', 'وكان النبي صلى الله عليه وسلم يقبل وهو صائم، وقالت أمها: «__»', 'كانت تفعل ذلك في رمضان'],
+      ['جده', 'وسئل النبي صلى الله عليه وسلم عن ذلك، وقال جده: «__»', 'سمعته يقول ذلك مرارا'],
+      ['زوجته', 'وكان النبي صلى الله عليه وسلم يعتكف، وقالت زوجته: «__»', 'كان يعتكف العشر الأواخر دائما'],
+    ]) {
+      const t = frame.replace('__', matn);
+      ok('B4B-52 sibling · «' + label + '» is the last speaker named: no parentheses', (await say52(T52, t, matn)) === t, await say52(T52, t, matn));
+    }
+    const C52 = answerWith(MATN);
+    ok('B4B-52 control · the Prophet\'s ﷺ own frame still takes them', (await say52(T52, C52, MATN)).includes('(' + L.AGREED_UPON + ')'));
+    const src52 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam52 = 'HUMAN_CREDIT_WORDS.push(...KIN_CREDIT_WORDS);\n';
+    const mutated52 = src52.split(seam52).join('');
+    ok('MUTANT B4B-52 seam applied', mutated52 !== src52);
+    const tmp52 = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-b4b52-mut-'));
+    try {
+      const f52 = path.join(tmp52, 'takhrij.mjs');
+      require('fs').writeFileSync(f52, mutated52.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + f52.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b4b-52] the son\'s words take «(متفق عليه)» again',
+        (await say52(mod, W52, KIN)).includes('(' + L.AGREED_UPON + ')'));
+    } finally {
+      try { require('fs').rmSync(tmp52, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {

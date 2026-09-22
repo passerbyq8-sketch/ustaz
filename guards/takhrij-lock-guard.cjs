@@ -3941,9 +3941,12 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         { start: 72, end: 93 }) === '');
     ok('b43 ...and «رواه الشيخان» is still one', T43.statedAttributionNear('قال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات» رواه الشيخان.',
       { start: 34, end: 55 }) !== '');
-    ok('b43 «قال ابنُه» is not «قال ابن»: the phrase is matched as words (r13)',
-      T43.findTargets('قال رسول الله صلى الله عليه وسلم، فقال ابنُه: «إنما الأعمال بالنيات».').targets.length === 1
-        && T43.findTargets('قال رسول الله صلى الله عليه وسلم، فقال ابن عمر: «إنما الأعمال بالنيات».').targets.length === 0);
+    ok('b43 «قال ابنُه» is not «قال ابن» (r13) — and [111-b4b-52] the son is a speaker, so he is no target',
+      T43.findTargets('قال رسول الله صلى الله عليه وسلم، فقال ابنُه: «إنما الأعمال بالنيات».').targets.length === 0
+        && T43.findTargets('قال رسول الله صلى الله عليه وسلم، فقال ابن عمر: «إنما الأعمال بالنيات».').targets.length === 0
+        // ...and the Prophet's ﷺ own frame, with no human speaker after it, is still a target: the pair above
+        // is a refusal of two credits, not a rule that stopped finding matns.
+        && T43.findTargets('قال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات».').targets.length === 1);
     const src43 = read('lib/takhrij-lock.js').replace(/\r\n/g, '\n');
     const dir43 = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
     const tmp43 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-b43-mut-'));
