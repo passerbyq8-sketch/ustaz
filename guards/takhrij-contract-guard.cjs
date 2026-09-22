@@ -2532,6 +2532,59 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try { require('fs').rmSync(tmpF, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-b4b-20] · THE FOURTH DOOR: ONE LEADING LETTER OF FIVE, ON ONE WORD ─────────────────
+  // THE OWNER'S DECISION (22 September): one letter of «ب و ف ل ك» joined to the start of one word, present on
+  // one side and absent on the other, the rest letter for letter. MEASURED: «أوصاني خليلي … صيام ثلاثة أيام…»
+  // left as «(البخاري)» because مسلم 721 writes «بصيام». Bounds (Claude's): one word; only after a ladder book
+  // carries the matn exactly; never with the singular/plural door; never under four words; no grader through it.
+  console.log('\n--- B4B-20. THE FOURTH DOOR ---');
+  {
+    const T20 = await esm('lib/takhrij.js');
+    const muslimSaying = (matn) => 'حدثنا شيبان عن أبي هريرة قال: قال رسول الله صلى الله عليه وسلم: «' + matn + '»';
+    const twoBooks = (asked, bukhari, muslim) => lookupOf({ [asked]: { matn: asked, subjectIds: ['FC-000645', 'FC-000648'],
+      atoms: [muslimSaying(bukhari), muslimSaying(muslim)] } });
+    const run20 = async (mod, matn, lookup) => (await mod.applyTakhrij(answerWith(matn), { env: ON, lookup })).text;
+    const K = 'أوصاني خليلي بثلاث صيام ثلاثة أيام من كل شهر وركعتي الضحى وأن أوتر قبل أن أنام';
+    const KM = 'أوصاني خليلي بثلاث بصيام ثلاثة أيام من كل شهر وركعتي الضحى وأن أوتر قبل أن أرقد';
+    const w = await run20(T20, K, twoBooks(K, K, KM));
+    ok('B4B-20 W · «صيام» against مسلم\'s «بصيام», al-Bukhari exact: «(متفق عليه)»', w.includes('(' + L.AGREED_UPON + ')'), w);
+    for (const [label, answer, muslim] of [
+      ['ف · «إذا» against «فإذا»', 'إذا استيقظ أحدكم من نومه فليغسل يده قبل أن يدخلها في الإناء', 'فإذا استيقظ أحدكم من نومه فليغسل يده قبل أن يدخلها في الإناء'],
+      ['و · «الصلاة» against «والصلاة» in the middle', 'الطهور شطر الإيمان الصلاة نور والصدقة برهان', 'الطهور شطر الإيمان والصلاة نور والصدقة برهان'],
+      ['ب · the answer carries the letter, the book does not', 'لا تحلفوا بآبائكم ولا بأمهاتكم ولا بالأنداد', 'لا تحلفوا آبائكم ولا بأمهاتكم ولا بالأنداد'],
+    ]) {
+      ok('B4B-20 sibling · ' + label + ': «(متفق عليه)»', (await run20(T20, answer, twoBooks(answer, answer, muslim))).includes('(' + L.AGREED_UPON + ')'));
+    }
+    const TWO = 'أوصاني خليلي بثلاث بصيام ثلاثة أيام من كل شهر وركعتي الضحى وأن أوتر قبل أن أنام';
+    const twoAway = K.replace('أوصاني', 'وأوصاني');
+    ok('B4B-20 control · two words through the door is not one: al-Bukhari alone',
+      (await run20(T20, twoAway, twoBooks(twoAway, twoAway, KM.replace('أوصاني', 'فأوصاني')))).includes('(البخاري)'));
+    const S = K.replace('صيام', 'سصيام');
+    ok('B4B-20 control · a letter outside the five opens nothing', !T20.atomCarriesMatnByOnePrefix(muslimSaying(S), K));
+    const onlyMuslim = lookupOf({ [K]: { matn: K, subjectIds: ['FC-000648'], atoms: [muslimSaying(KM)] } });
+    const alone = await run20(T20, K, onlyMuslim);
+    ok('B4B-20 control · with no book carrying the matn exactly, the door is not a search by near wording: nothing written',
+      !alone.includes('(مسلم)') && !alone.includes('(' + L.AGREED_UPON + ')'), alone);
+    ok('B4B-20 control · a matn under four words never takes the door', !T20.atomCarriesMatnByOnePrefix(muslimSaying('بالصيام جنة'), 'الصيام جنة'));
+    ok('B4B-20 control · the door with a plural swap is two doors, not one', !T20.atomCarriesMatnByOnePrefix(muslimSaying(KM.replace('أيام', 'يوم')), K));
+    ok('B4B-20 the door reads exactly one leading letter of the five', T20.atomCarriesMatnByOnePrefix(muslimSaying(KM), K)
+      && T20.atomCarriesMatnByOnePrefix(muslimSaying(K), KM));
+    const src20 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam20 = '  if (!throughDoor.length || !state.confirmed.length) return;\n';
+    const mutated20 = src20.split(seam20).join('  return;\n');
+    ok('MUTANT B4B-20 door seam applied', mutated20 !== src20);
+    const tmp20 = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-b4b20-mut-'));
+    try {
+      const f20 = path.join(tmp20, 'takhrij.mjs');
+      require('fs').writeFileSync(f20, mutated20.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + f20.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b4b-20] «صيام» against «بصيام» is «(البخاري)» alone again',
+        (await run20(mod, K, twoBooks(K, K, KM))).includes('(البخاري)'));
+    } finally {
+      try { require('fs').rmSync(tmp20, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
