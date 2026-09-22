@@ -1055,7 +1055,11 @@ async function mutate({ file, name, transform, check }) {
   // AND THE PIN IS NOT WHAT IS REMOVED. H4 above still holds: a rewrite that did NOT restate the
   // head still reopens with the emitted bytes. What §J adds is the other half.
 
-  const J_H1 = 'لم أجد في المصادر المتاحة فتوى منسوبة للشيخ في هذه المسألة.';
+  // BATCH 4 [b37] — the head's first sentence was «لم أجد في المصادر المتاحة فتوى منسوبة للشيخ في
+  // هذه المسألة.», which is now the narration of what the tool holds and is never delivered; it
+  // could no longer be half of an emitted head. The disclosure that survives (loop.js §٣'s own
+  // witness shape) stands in its place, and the dropped sentence has its own rows (J7-J9).
+  const J_H1 = 'لم أجد في بحثي عن هذه المسألة فتوى منسوبة للشيخ بعينه.';
   const J_H2 = 'والذي وقفت عليه من ترجيحات أهل العلم فيها ثلاثة أقوال.';
   const J_HEAD = J_H1 + '\n' + J_H2;
   const J_FIRST = J_HEAD + '\n' + NAMED;
@@ -1101,6 +1105,22 @@ async function mutate({ file, name, transform, check }) {
     && restated.streamPrefixValid === true && restated.streamPrefixRepaired === false
     && restated.rejectRetries === 1,
     JSON.stringify([restated.streamPrefixValid, restated.text.slice(0, 60)]));
+  // ── J7-J9 · BATCH 4 [b37] · A HEAD OPENED BY A DROPPED NARRATION ─────────────────────────
+  // «لم أجد في المصادر المتاحة…» is never delivered, so the emitted head is the sentence after it;
+  // a rewrite that restates both must still lose the restatement, or the reader reads it twice.
+  const J_HX = 'لم أجد في المصادر المتاحة فتوى منسوبة للشيخ في هذه المسألة.';
+  const dropped = await drive(loop, [SEARCH, J_HX + '\n' + J_H2 + '\n' + NAMED, J_HX + '\n' + J_H2 + '\n' + J_CLEAN], {
+    env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
+  });
+  ok('J7 [b37] the narration of what the tool holds is not delivered: the emitted head is the sentence after it',
+    dropped.streamedPrefix === J_H2, JSON.stringify(dropped.streamedPrefix));
+  ok('J8 [b37] ...and the rewrite restating both is still recognised: the reader reads the head ONCE, the narration never',
+    countOf(dropped.text, J_H2) === 1 && countOf(dropped.text, J_HX) === 0 && dropped.text.includes(J_CLEAN),
+    JSON.stringify([countOf(dropped.text, J_HX), countOf(dropped.text, J_H2), dropped.text]));
+  ok('J9 [b37] ...and the predicate itself skips the dropped sentence only where it does not match the head',
+    loop.withoutRestatedHead(J_H2, J_HX + '\n' + J_H2 + '\n' + J_CLEAN) === J_CLEAN
+      && loop.withoutRestatedHead(J_HX + '\n' + J_H2, J_HX + '\n' + J_H2 + '\n' + J_CLEAN) === J_CLEAN,
+    JSON.stringify(loop.withoutRestatedHead(J_H2, J_HX + '\n' + J_H2 + '\n' + J_CLEAN)));
   console.log('      [measure] a rewrite that restates a ' + J_HEAD.length
     + '-char head now delivers ' + restated.text.length + ' chars where it delivered '
     + (restated.text.length + J_HEAD.length + 1) + ' before');

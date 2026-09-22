@@ -2538,6 +2538,41 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
       ok('MUTANT KILLED: without it the one-line answer is judged hollow again',
         oneLineMutant.loaded && oneLineMutant.survived === false, JSON.stringify(oneLineMutant));
     }
+    // ── BATCH 4 [b37] · THE IMPURITIES ────────────────────────────────────────────────────
+    // MEASURED on the owner's battery at 92d3c7d: «這は» inside an Arabic line (كشف الوجه); «ممن أخذ
+    // عنهم في هذا الملف»; «Hadith هذا لم يرد نصه الصريح في المادة المتاحة لدي حتى الآن، فدعني أتأكد من
+    // مصدره بدقة.»؛ «سؤال يمس صميم الفقه الحنفي، فدعني أرجع إلى مصادره لأجيبك بدقة.»؛ «لم أجد في
+    // المصادر المتاحة إجابة خاصة بهذا السؤال بالضبط، فأحيلك إلى…».
+    {
+      const lb37 = await fresh(LOOP, 'loop-b37');
+      const dl = (line) => lb37.deliverableText('الجواب:\n' + line).split('\n').slice(1).join('\n');
+      ok('b37 W «這は» inside an Arabic line goes, with no hole',
+        dl('ذهب جمهور أهل العلم إلى وجوب ستر الوجه 這は عند الحنابلة.') === 'ذهب جمهور أهل العلم إلى وجوب ستر الوجه عند الحنابلة.');
+      ok('b37 W «في هذا الملف» goes, the sentence stays',
+        dl('وقد نقل ذلك ابن باز ممن أخذ عنهم في هذا الملف.') === 'وقد نقل ذلك ابن باز ممن أخذ عنهم.');
+      for (const s of [
+        'Hadith هذا لم يرد نصه الصريح في المادة المتاحة لدي حتى الآن، فدعني أتأكد من مصدره بدقة.',
+        'سؤال يمس صميم الفقه الحنفي، فدعني أرجع إلى مصادره لأجيبك بدقة.',
+        'لم أجد في المصادر المتاحة إجابة خاصة بهذا السؤال بالضبط، فأحيلك إلى أهل العلم.',
+      ]) ok('b37 W the narration of what the tool holds goes whole: ' + s.slice(0, 30), dl(s) === '', JSON.stringify(dl(s)));
+      for (const [label, s] of [
+        ['a ruling beside the narration keeps the sentence whole', 'والراجح الجواز، ولم أجد في المصادر المتاحة خلافه.'],
+        ['the disclosure the reader is owed stays («لم أجد في بحثي…»)', 'لم أجد في بحثي عن هذه المسألة نصًّا لعالمٍ بعينِه.'],
+        ['a Latin term inside an Arabic line stays', 'استخدم تطبيق WhatsApp للتواصل.'],
+        ['a Latin command inside an Arabic line stays', 'ويكتب في الطرفية: npm run gates'],
+      ]) ok('b37 control · ' + label, dl(s) === s, JSON.stringify(dl(s)));
+      const strayOff = await loopMutant('b37-stray-scripts-kept',
+        (source) => source.replace('    line = withoutStrayScripts(line);', '    // mutant: stray scripts kept'),
+        async (twin) => twin.deliverableText('الجواب:\nستر الوجه 這は واجب.').includes('這は'));
+      ok('MUTANT b37 stray-scripts seam applied', strayOff.changed, strayOff.error);
+      ok('MUTANT KILLED: without [b37] «這は» reaches the reader again', strayOff.loaded && strayOff.survived === true, JSON.stringify(strayOff));
+      const holdOff = await loopMutant('b37-holdings-kept',
+        (source) => source.replace('&& !isToolAnnouncement(part) && !isToolResultReport(part) && !isToolHoldingsReport(part));',
+          '&& !isToolAnnouncement(part) && !isToolResultReport(part)); // mutant'),
+        async (twin) => twin.deliverableText('الجواب:\nلم أجد في المصادر المتاحة إجابة خاصة بهذا السؤال بالضبط، فأحيلك إلى أهل العلم.').includes('المتاحة'));
+      ok('MUTANT b37 holdings seam applied', holdOff.changed, holdOff.error);
+      ok('MUTANT KILLED: without [b37] «لم أجد في المصادر المتاحة…» reaches the reader again', holdOff.loaded && holdOff.survived === true, JSON.stringify(holdOff));
+    }
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
