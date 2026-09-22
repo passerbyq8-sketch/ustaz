@@ -1074,6 +1074,39 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
     }
   }
 
+  // ── BATCH 4 [b45] · THE KHILAF TAIL FOLLOWS ITS SENTENCE, OR ENDS THE PART ───────────────
+  // MEASURED at every tree (the fifth order's run notes): «لكن لو ذكر الضعيف كما ذكره الجمهور فلا
+  // حرج» closes its answer with no full stop, and the tail it called was put in front of it.
+  {
+    const REV45 = await esm('lib/output-reviewer.js');
+    const TAIL45 = 'وتُراجَع المسألة مع أهل العلم لظهور الخلاف فيها.';
+    const T45 = 'والحديث الضعيف لا يعمل به في الأحكام.\nلكن لو ذكر الضعيف كما ذكره الجمهور فلا حرج';
+    const out45 = REV45.reviewAnswer({ text: T45, evidence: [], domain: 'fiqh', mode: 'chat' }).text;
+    ok('b45 W · the tail follows the unterminated sentence that called it, at the end of the part',
+      out45 === T45 + '\n' + TAIL45, JSON.stringify(out45));
+    ok('b45 ...and the placement answers the same on the chunks directly',
+      REV45.noticeInsertionIndex(['والحديث الضعيف لا يعمل به في الأحكام.', 'لكن لو ذكر الضعيف كما ذكره الجمهور فلا حرج']) === 2);
+    ok('b45 control · an answer ending inside an open quotation keeps the tail before the quotation',
+      REV45.noticeInsertionIndex(['والحكم جائز.', 'قال ﷺ: «لا ينفرن أحد حتى']) === 1);
+    ok('b45 control · closed sentences place the tail at the end, as before',
+      REV45.noticeInsertionIndex(['الأول.', 'الثاني.']) === 2);
+    const os45 = require('os');
+    const src45 = fs.readFileSync(path.join(REPO, 'lib', 'output-reviewer.js'), 'utf8');
+    const seam45 = '  if (chunks.length && !hasOpenQuote(quoteState)) return chunks.length;';
+    const changed45 = src45.split(seam45).join('');
+    ok('MUTANT b45 end-boundary seam applied', changed45 !== src45);
+    const tmp45 = fs.mkdtempSync(path.join(os45.tmpdir(), 'ustaz-b45-mut-'));
+    try {
+      const file = path.join(tmp45, 'output-reviewer.mjs');
+      fs.writeFileSync(file, changed45.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b45] the tail stands in front of the sentence that called it',
+        mod.noticeInsertionIndex(['والحديث الضعيف لا يعمل به في الأحكام.', 'لكن لو ذكر الضعيف كما ذكره الجمهور فلا حرج']) === 1);
+    } finally {
+      try { fs.rmSync(tmp45, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n' + (failures === 0
     ? 'OK: ' + checks + '/' + checks + ' checks passed.'
     : 'FAILED: ' + failures + ' of ' + checks + ' checks failed.'));
