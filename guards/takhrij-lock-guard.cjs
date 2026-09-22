@@ -3623,9 +3623,12 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       const mod = await import('file:///' + file.replace(/\\/g, '/'));
       // BATCH 4 [b35] — «الضعيف» now stays whatever (1) says, so the mutant is shown the class
       // sentence of a SOUND kind: without (1) it loses its word again.
+      // BATCH 4 [b42] — an unpinned kind is now kept by [b42] whatever (1) says, so the witness
+      // carries a pronoun pointing back (which pins a text for [b42]) and only (1) keeps its word.
       ok('MUTANT KILLED: without (1) «والحديث حجة في الأحكام» reaches the reader again',
-        graded(mod, 'والحديث الحسن حجة في الأحكام') === 'والحديث حجة في الأحكام',
-        graded(mod, 'والحديث الحسن حجة في الأحكام'));
+        graded(mod, 'والحديث الحسن حجة في الأحكام، وهو الذي عليه العمل') === 'والحديث حجة في الأحكام، وهو الذي عليه العمل'
+          && graded(L42, 'والحديث الحسن حجة في الأحكام، وهو الذي عليه العمل') === 'والحديث الحسن حجة في الأحكام، وهو الذي عليه العمل',
+        graded(mod, 'والحديث الحسن حجة في الأحكام، وهو الذي عليه العمل'));
     } finally {
       try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
     }
@@ -3853,6 +3856,52 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         JSON.stringify(m2.dropUnsourcedGrades(LINE2).text));
     } finally {
       try { fs.rmSync(tmp35, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
+  // ── BATCH 4 [b42] · THE NAME OF A KIND, IN A DEFINITION OR A COMPARISON, IS NOT A GRADE ─────
+  // MEASURED on the owner's battery at 92d3c7d («ما الفرق بين الحديث الصحيح والحديث الحسن؟»): the
+  // reader got «كلا من الحديث والحديث الحسن مقبول»، «فالحديث هو ما اتصل سنده…»، «أما الحديث فهو
+  // مثله…»، «وهو الحديث ضعفا يسيرا». The contract: a definite grade word is a KIND until one hadith
+  // is pinned; a definition, a comparison, a division is not touched.
+  console.log('\n=== BATCH 4 [b42] · THE NAME OF A KIND IS NOT A GRADE ===');
+  {
+    const L = await esm('lib/takhrij-lock.js');
+    const SEAT = await esm('lib/finalize-reader-text.js');
+    const CARRIER = 'ويختلفان في درجة ضبط الراوي.';
+    const sealed = (t) => SEAT.finalizeReaderText({ kind: 'answer', text: CARRIER + '\n' + t, sources: [] }).text.slice(CARRIER.length + 1);
+    const graded = (mod, t) => mod.dropUnsourcedGrades(CARRIER + '\n' + t).text.slice(CARRIER.length + 1);
+    for (const [id, t] of [
+      ['W1 «كلا من … و…»', 'كلا من الحديث الصحيح والحديث الحسن مقبول يحتج به في الأحكام.'],
+      ['W2 «… هو ما …»', 'فالحديث الصحيح هو ما اتصل سنده بنقل العدل الضابط عن مثله إلى منتهاه من غير شذوذ ولا علة.'],
+      ['W3 «أما … فهو …»', 'أما الحديث الحسن فهو مثله إلا أن راويه خف ضبطه.'],
+      ['W4 «… : وهو الحديث …»', 'والحسن لغيره: وهو الحديث الضعيف ضعفا يسيرا إذا تعددت طرقه.'],
+      ['sibling · the definition of الضعيف', 'والحديث الضعيف هو ما لم يجمع صفات الحديث الحسن.'],
+      ['sibling · «والحسن لغيره ما …»', 'والحسن لغيره ما كان في إسناده ضعف يسير وجاء من طرق أخرى تقويه.'],
+      ['sibling · «والصحيح قسمان»', 'والصحيح قسمان: صحيح لذاته وصحيح لغيره.'],
+      ['sibling · a comparison with «الفرق بين»', 'والفرق بين الحديث الصحيح والحديث الحسن في ضبط الراوي.'],
+    ]) ok('b42 ' + id + ': through the whole seal, letter for letter', sealed(t) === t, sealed(t));
+    for (const [id, t, want] of [
+      ['control · «في الباب» pins one text: the word goes, as r41 ruled', 'والحديث الصحيح في الباب يدلّ على ذلك', 'والحديث في الباب يدلّ على ذلك'],
+      ['control · «ثبت في الحديث الصحيح أنّ النبي ﷺ…» pins a narration: the word goes', 'وقد ثبت في الحديث الصحيح أن النبي صلى الله عليه وسلم مسح على الجوربين.', 'وقد ثبت في الحديث أن النبي صلى الله عليه وسلم مسح على الجوربين.'],
+      ['control · «جاء في الحديث الصحيح أنّ…» introduces a narration: the word goes', 'وقد جاء في الحديث الصحيح أن الصلاة في أول وقتها أفضل.', 'وقد جاء في الحديث أن الصلاة في أول وقتها أفضل.'],
+      ['control · «وهذا الحديث صحيح.» still goes', 'وهذا الحديث صحيح.', ''],
+    ]) ok('b42 ' + id, graded(L, t) === want, graded(L, t));
+    const src = read('lib/takhrij-lock.js').replace(/\r\n/g, '\n');
+    const dir = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
+    const SEAM = '    for (let k = spans.length - 1; k >= 0; k -= 1) if (namesAKind(block, spans[k])) spans.splice(k, 1);';
+    const changed = src.split(SEAM).join('');
+    ok('MUTANT b42 kind seam applied', changed !== src);
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-b42-mut-'));
+    try {
+      const file = path.join(tmp, 'kind-graded.mjs');
+      fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(dir, spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + file.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [b42] «فالحديث هو ما اتصل سنده…» reaches the reader again',
+        graded(mod, 'فالحديث الصحيح هو ما اتصل سنده بنقل العدل الضابط عن مثله.') === 'فالحديث هو ما اتصل سنده بنقل العدل الضابط عن مثله.',
+        graded(mod, 'فالحديث الصحيح هو ما اتصل سنده بنقل العدل الضابط عن مثله.'));
+    } finally {
+      try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
