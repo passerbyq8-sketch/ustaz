@@ -390,9 +390,11 @@ console.log('\n=== D. THE WIRING (index.html) ===');
   // APPLIED TO PROSE ONLY — after parseRichMessage has lifted every card out.
   ok('the renderer is applied to the text segment',
     /seg\.type === 'text'[\s\S]{0,900}?<EzikMarkdown text=\{tashkeel \? seg\.content : stripTashkeelOutsideQuran\(seg\.content\)\} \/>/.test(html));
-  ok('...and to the live stream preview',
-    /<EzikMarkdown text=\{formatForStreamPreview\(streamingText\)\} \/>/.test(html));
-  eq('...and to NOTHING else — two display sites, no more', countIn(html, '<EzikMarkdown'), 2);
+  // 2026-09-23: the live preview no longer has a site of its own. It draws the finished reply's
+  // own segments through ezikRenderSegments, so its prose reaches the renderer at the site above.
+  ok('...and to the live stream preview, through the same segment renderer',
+    /ezikRenderSegments\(ezikStreamPreviewSegments\(streamingText, profile\?\.age\), \{ tashkeel: tashkeelOn, age: profile\?\.age,/.test(html));
+  eq('...and to NOTHING else — one display site, no more', countIn(html, '<EzikMarkdown'), 1);
   // S97: the split is now MEMOISED (a keystroke used to re-parse every bubble in the thread), so
   // this pins the memoised form. It asserts strictly more than the bare call it replaced: the
   // split is still parseRichMessage's, still on (message.content, age) -- and the dependency list

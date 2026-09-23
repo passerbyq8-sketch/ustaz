@@ -6720,6 +6720,55 @@ const formatForStreamPreview = (text) => {
 };
 
 // ============================================================
+// THE CARD APPEARS WHOLE, IN ITS PLACE (owner's ruling, 2026-09-23)
+// ============================================================
+// The reveal queue types prose as it always has. A card is not prose: it is never typed letter by
+// letter and the cursor never rests inside one. When the cursor reaches a card whose closing tag
+// has arrived, it jumps past the close in that one tick; when the close has not arrived yet, it
+// waits in front of the opening tag. And the preview draws what the cursor has passed through the
+// SAME parse and the SAME renderer the finished reply uses, so the last tick and the finished
+// bubble show the same segments and nothing jumps when the one replaces the other.
+
+// Where the card that opens at `at` ends (exclusive), -1 while it is still arriving, and null when
+// `at` does not open a card. «A card» is a known tag, by the same names parseRichMessage lifts.
+function ezikCardSpanAt(text, at) {
+  if (text[at] !== '<') return null;
+  const name = /^[a-z]*/.exec(text.slice(at + 1))[0];
+  const after = at + 1 + name.length;
+  // `<ste` at the very end of what has arrived may still become `<steps`: wait for it.
+  if (after >= text.length) return KNOWN_TAG_NAMES.some((n) => n.startsWith(name)) ? -1 : null;
+  if (KNOWN_TAG_NAMES.indexOf(name) === -1 || !/[\s>\/]/.test(text[after])) return null;
+  const gt = text.indexOf('>', after);
+  if (gt === -1) return -1;
+  if (text[gt - 1] === '/') return gt + 1;   // <verse …/>, which the parser treats as closed
+  const close = text.indexOf('</' + name + '>', gt + 1);
+  return close === -1 ? -1 : close + name.length + 3;
+}
+
+// One tick of the reveal cursor: `step` characters of prose, never ending inside a card. When the
+// queue is settling on the finished text (`settling`), a card that will never close is the rest of
+// the text, and the cursor goes to the end rather than waiting for a close that is not coming.
+function ezikRevealAdvance(full, at, step, settling) {
+  const to = Math.min(full.length, at + step);
+  for (let p = full.indexOf('<', at); p !== -1 && p < to; p = full.indexOf('<', p + 1)) {
+    const end = ezikCardSpanAt(full, p);
+    if (end === null) continue;
+    if (end > 0) return end;
+    return settling ? full.length : p;
+  }
+  return to;
+}
+
+// The live preview as segments. A card still arriving is cut exactly as before (stripIncompleteTags,
+// without the rescue: mid-stream an open tag is normal); a complete one is a segment like any other.
+function ezikStreamPreviewSegments(text, viewerAge) {
+  const shown = stripIncompleteTags(ezikStripIncomplete(text));
+  if (!shown || !shown.trim()) return [];
+  return parseRichMessage(shown, viewerAge).segments
+    .filter((seg) => !(seg && seg.type === 'text' && !String(seg.content || '').trim()));
+}
+
+// ============================================================
 // شخصية الأستاذ (System Prompt) — رحلتْ إلى الخادم (D02ب)
 // ============================================================
 // كانت تُبنى هنا وتُرسَل في جسدِ كلِّ طلب، فكان النصُّ الحاكمُ لما يُقالُ للطفلِ
@@ -15186,7 +15235,8 @@ function App() {
     if (backlog <= 0) { revealStop(); return; }
     const share = Math.ceil(backlog / EZIK_REVEAL_DIVISOR);
     const step = Math.max(EZIK_REVEAL_MIN_STEP, Math.min(EZIK_REVEAL_MAX_STEP, share));
-    revealAtRef.current = Math.min(full.length, revealAtRef.current + step);
+    // A card is passed whole or waited for, never typed: see ezikRevealAdvance.
+    revealAtRef.current = ezikRevealAdvance(full, revealAtRef.current, step, revealDoneRef.current !== null);
     setStreamingReveal(full.slice(0, revealAtRef.current));
     if (revealAtRef.current >= full.length) revealStop();
   };
@@ -19064,12 +19114,15 @@ function App() {
         {streamingText !== null && (
           <div className="ezc-turn is-ai">
           <div style={{ ...s.messageBubble, ...s.assistantBubble }}>
-            {formatForStreamPreview(streamingText)
+            {ezikStreamPreviewSegments(streamingText, profile?.age).length
               /* S93: the live preview formats too, so a heading or a bold phrase does not appear
                  as ## and ** for a second and then re-flow when the reply settles. The renderer
                  only formats constructs whose closing side has arrived, so the half-written tail
-                 of the stream stays literal text instead of flickering. */
-              ? <div style={s.bubbleText}><EzikMarkdown text={formatForStreamPreview(streamingText)} /></div>
+                 of the stream stays literal text instead of flickering.
+                 2026-09-23: and it is the finished reply's own parse and renderer, so a complete
+                 card stands in its place while the prose around it is typed, keyed by its index
+                 exactly as it will be in the finished bubble. */
+              ? <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{ezikRenderSegments(ezikStreamPreviewSegments(streamingText, profile?.age), { tashkeel: tashkeelOn, age: profile?.age, onPlayVerse: cbPlayVerse, onPlaySurah: cbPlaySurah, onStopAudio: cbStopAudio, onFavoriteAyah: cbFavoriteAyah, ayahFavIds })}</div>
               : searchingSources
                 ? <div style={s.searchingHint}>
                     {/* XI-02: read from the dictionary, so the string a reader sees exists in

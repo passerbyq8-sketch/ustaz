@@ -2834,7 +2834,10 @@ ok('N22: the source card is still built from the segment\'s own site and url',
   /<SourceCard key=\{i\} site=\{seg\.site\} url=\{seg\.url\} content=\{seg\.content\} \/>/.test(html));
 ok('N22: ...through the ONE renderer, called by the chat sheet and nothing new',
   (html.split('function ezikRenderSegments').length - 1) === 1
-  && ((html.match(/ezikRenderSegments\(/g) || []).length - 1) === 2
+  // 2026-09-23: three callers -- the chat sheet, the favourites card, and the live stream preview,
+  // which draws the finished reply's own segments so a card typed in place is the card drawn.
+  && ((html.match(/ezikRenderSegments\(/g) || []).length - 1) === 3
+  && /ezikRenderSegments\(ezikStreamPreviewSegments\(streamingText, /.test(html)
   // Item 86 re-pinned the context literal. It read:
   //   ezikRenderSegments\(shownSegments, \{ tashkeel, age, onPlayVerse, onPlaySurah, onStopAudio \}\)
   // and the ayah star adds two keys to it. What this check is FOR is unchanged and is what it
@@ -3774,7 +3777,7 @@ ok('P9: ...and every card is keyed by the record\'s OWN id',
 ok('P10: the card still renders through the SAME segment renderer the chat bubble uses',
   /function FavoriteReplyBody[\s\S]{0,900}?ezikRenderSegments\(shown/.test(html)
   && (html.split('function ezikRenderSegments').length - 1) === 1
-  && ((html.match(/ezikRenderSegments\(/g) || []).length - 1) === 2);
+  && ((html.match(/ezikRenderSegments\(/g) || []).length - 1) === 3);   // + the live preview (2026-09-23)
 ok('P10: ...so the ayah, the hadith and the source card arrive by that one path',
   /<FavoriteReplyBody segments=\{parsed\.segments\} age=\{age\} tashkeel=\{tashkeel\} \/>/.test(favView)
   && /const parsed = parseRichMessage\(f\.text, age\);/.test(favView));

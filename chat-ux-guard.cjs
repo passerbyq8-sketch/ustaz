@@ -1650,7 +1650,9 @@ function partE() {
   // map of its own. A second mapping is how the two would eventually drift.
   eq('the segment renderer is defined exactly once', (decoded.split('function ezikRenderSegments').length - 1), 1);
   const callers = (decoded.match(/ezikRenderSegments\(/g) || []).length - 1;   // minus the definition
-  eq('...and both display sites call it', callers, 2);
+  // 2026-09-23: the third is the live stream preview, so a card typed in place is the card drawn.
+  eq('...and all three display sites call it', callers, 3);
+  ok('...the live stream preview among them', /ezikRenderSegments\(ezikStreamPreviewSegments\(streamingText, /.test(decoded));
   ok('...so no screen maps segments to cards on its own',
     !/segments\.map\(\(seg/.test(decoded) && !/\.map\(\(seg, i\) => \{[\s\S]{0,200}seg\.type === 'verse'/.test(decoded));
   ok('the favourites card renders through it', /function FavoriteReplyBody[\s\S]{0,900}?ezikRenderSegments\(shown/.test(decoded));
