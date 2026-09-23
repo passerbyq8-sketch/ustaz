@@ -4889,6 +4889,33 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-close-4] · A RULING THAT NAMES ITSELF «الحكم» KEEPS ITS CLAUSE WHEN THE CREDIT BEFORE IT IS CUT ──
+  // MEASURED on the preview of efcdcf4 (battery Q30 «ما حكم بيع الكلب؟», `[finalize/drop] lock · attribution,sentence`).
+  console.log('\n--- CLOSE-4. «فالحكمُ على هذا واحدٌ…» STAYS WHEN THE CREDIT BEFORE IT GOES ---');
+  {
+    const PRE4 = 'فإن احتاج الإنسانُ إلى كلبٍ للحراسة، فالمخرجُ الشرعيّ أن يُربّيَه هو بنفسِه، لا أن يشتريَه بثمنٍ.';
+    const W4 = 'وقد سُئل بعضُ أهل العلمِ عن كلبِ الصيدِ خاصّةً، فذكروا أنّ هناك حديثًا عند النسائي يستثني كلبَ الصيد، لكنّه حديثٌ ضعيفٌ لا يُعارَضُ به ما في الصحيحين من النهيِ المطلق، فالحكمُ على هذا واحدٌ في كلِّ أنواعِ الكلاب.';
+    const lock4 = (mod, t) => mod.lockTakhrij(PRE4 + '\n' + t + '\nوالله أعلم.', []).text;
+    ok('CLOSE-4 W · the credits go and «فالحكمُ على هذا واحدٌ في كلِّ أنواعِ الكلاب.» stays', lock4(TL, W4) === PRE4 + '\nفالحكمُ على هذا واحدٌ في كلِّ أنواعِ الكلاب.\nوالله أعلم.', JSON.stringify(lock4(TL, W4)));
+    const S4 = 'وفي الباب حديثٌ رواه أبو داود في استثناء كلب الصيد، فحكمُه واحدٌ في الكلاب كلّها.';
+    ok('CLOSE-4 sibling · «فحكمُه واحدٌ…» after a cut credit stays', lock4(TL, S4).includes('فحكمُه واحدٌ في الكلاب كلّها.'), JSON.stringify(lock4(TL, S4)));
+    const C4 = 'وقد رواه النسائي بإسناد ضعيف، وهذا لا يغيّر شيئًا.';
+    ok('CLOSE-4 control · a clause that states no ruling still goes with its credit', lock4(TL, C4) === PRE4 + '\nوالله أعلم.', JSON.stringify(lock4(TL, C4)));
+    const src4 = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam4 = ' || RULING_SUBJECTS.has(words[0]))) return null;';
+    const mut4 = src4.split(seam4).join(')) return null;');
+    ok('MUTANT CLOSE-4 seam applied', mut4 !== src4);
+    const tmp4 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-close4-mut-'));
+    try {
+      const f4 = path.join(tmp4, 'takhrij-lock.mjs');
+      fs.writeFileSync(f4, mut4.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + f4.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [close-4] the ruling goes with the credit again', !lock4(mod, W4).includes('فالحكمُ'));
+    } finally {
+      try { fs.rmSync(tmp4, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
