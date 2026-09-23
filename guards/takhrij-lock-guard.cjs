@@ -2580,7 +2580,9 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       const dir6 = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
       const tmp6 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-111-6-mut-'));
       const load6 = async (tag, from, to) => {
-        const changed = src6.split(from).join(to);
+        const changed = src6.split(from).join(to)
+          .split(tag === 'tail-rule-off' ? '    const shaykhaynCut = shaykhaynPhraseCut(sen, body, unsupported);' : '\u0000')
+          .join('    const shaykhaynCut = null; // [111-close-2b] off with the tail rule');
         ok('MUTANT 111-6 ' + tag + ' seam applied', changed !== src6);
         const file = path.join(tmp6, tag + '.mjs');
         fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
@@ -5029,6 +5031,42 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       ok('MUTANT KILLED: without [close-10] «والنووي في شرح،» again', mod.lockTakhrij(W10, []).text !== W10);
     } finally {
       try { fs.rmSync(tmp10, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
+  // ── [111-close-2b] · «ثبت في الصحيحين» OVER A PROSE REPORT THAT NOTHING PROVES: THE TWO WORDS GO ──────────────
+  // ── [111-close-3b] · «فلا يُنسَب … على أنّه حديثٌ ثابت» IS DECISION 3'S RULING WITHOUT ITS MODAL VERB ────────────
+  // MEASURED on this round's preview: battery Q16 (a Saturday-and-Sunday fast credited to both Ṣaḥīḥs off a page) and
+  // round 5 Q4 «موجز» (`[finalize/drop] grades`).
+  console.log('\n--- CLOSE-2b/3b. «في الصحيحين» NEEDS AN ATOM; «فلا يُنسَب» IS A RULING ---');
+  {
+    const Q16 = 'فمنهم من قال بجوازِ إفرادِ السبتِ بالصومِ، وممّن قال بهذا الشيخُ ابنُ باز، حيث قال إنّ الحديثَ ضعيفٌ شاذٌّ، ومنها ما ثبتَ في الصحيحين من أنّ النبيَّ صلى الله عليه وسلم كان يصومُ يومَ السبتِ ويومَ الأحد.';
+    const PAGE2b = { title: 'صيام يوم السبت', passage: 'وفي البخاري ومسلم أن النبي صلى الله عليه وسلم كان يصوم يوم السبت ويوم الأحد، وأخرجه البخاري ومسلم' };
+    const w2b = TL.lockTakhrij(Q16, [PAGE2b]).text;
+    ok('CLOSE-2b W · «في الصحيحين» goes; Ibn Bāz\'s permission and the report stay', w2b === Q16.replace(' في الصحيحين', ''), JSON.stringify(w2b));
+    const T2b = 'والدليلُ على ذلك ما ثبتَ في الصحيحين من نهي النبي صلى الله عليه وسلم عن ثمن الكلب، وأنّه خبيثٌ.';
+    ok('CLOSE-2b sibling · a report of a prohibition keeps its ruling', TL.lockTakhrij(T2b, [PAGE2b]).text.includes('وأنّه خبيثٌ'));
+    const Q2bq = 'قال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات» في الصحيحين.';
+    ok('CLOSE-2b control · a QUOTED matn is judged by its atoms as before, not by this rule', TL.lockTakhrij(Q2bq, [PAGE2b]).text === TL.lockTakhrij(Q2bq, [PAGE2b]).text && !TL.lockTakhrij(Q2bq, [PAGE2b]).droppedSentences.some((d) => d.cut === 'shaykhayn-phrase'));
+    const C3b = 'حديثٌ لا يصح.\n';
+    const Q4 = 'فلا يُنسَبُ هذا اللفظُ إليه صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ على أنّه حديثٌ ثابتٌ، بل يُذكَرُ حكمةً أو مأثورًا لا حديثًا صحيحًا.';
+    ok('CLOSE-3b W · «فلا يُنسَب … على أنّه حديثٌ ثابت» stays', TL.dropUnsourcedGrades(C3b + Q4).text === C3b + Q4, JSON.stringify(TL.dropUnsourcedGrades(C3b + Q4).text));
+    const src2b = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    for (const [tag, from, to, back] of [
+      ['2b', '    const shaykhaynCut = shaykhaynPhraseCut(sen, body, unsupported);\n', '    const shaykhaynCut = null;\n', (mod) => !mod.lockTakhrij(Q16, [PAGE2b]).text.includes('ابنُ باز') || mod.lockTakhrij(Q16, [PAGE2b]).text.includes('في الصحيحين')],
+      ['3b', '(?:(?:يجوز|يصح|ينبغي|يحل|يسوغ|يجوز لاحد)(?: \\S+){0,3} (?:ان )?)?(?:ينسب', '(?:يجوز|يصح|ينبغي|يحل|يسوغ|يجوز لاحد)(?: \\S+){0,3} (?:ان )?(?:ينسب', (mod) => mod.dropUnsourcedGrades(C3b + Q4).text !== C3b + Q4],
+    ]) {
+      const mutated = src2b.split(from).join(to);
+      ok('MUTANT CLOSE-' + tag + ' seam applied', mutated !== src2b);
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-close' + tag + '-mut-'));
+      try {
+        const mf = path.join(tmp, 'takhrij-lock.mjs');
+        fs.writeFileSync(mf, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + mf.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: without [close-' + tag + '] the witness is lost again', back(mod));
+      } finally {
+        try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
     }
   }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
