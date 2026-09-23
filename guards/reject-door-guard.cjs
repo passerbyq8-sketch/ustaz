@@ -1262,7 +1262,9 @@ async function mutate({ file, name, transform, check }) {
     file: LOOP,
     name: 'restated-head-joined-twice',
     transform: (src) => src.replace('          withoutRestatedHead(emittedPrefix, textOf(rejectPayload.content))])',
-      '          textOf(rejectPayload.content)]) // mutant: the head goes in front of itself'),
+      '          textOf(rejectPayload.content)]) // mutant: the head goes in front of itself')
+      // [111-close-11] — and the join's own restated-opening rule with it, or the mutant is masked by it
+      .split("    .map((part, index, all) => (index === 0 ? part : withoutRestatedOpening(all[0], part).trim())) // [111-close-11]\n").join(''),
     check: async (twin) => {
       const t = await drive(twin, [SEARCH, J_FIRST, J_HEAD + '\n' + J_CLEAN], {
         env: { STREAM_V1: 'on' }, onWriteUnit: () => true,

@@ -2507,7 +2507,9 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
       (source) => source.replace(
         '        ? joinRoundTextsHeadPinned([emittedPrefix,\n'
         + '          withoutRestatedHead(emittedPrefix, textOf(emptyPayload.content))])',
-        '        ? joinRoundTextsHeadPinned([emittedPrefix, textOf(emptyPayload.content)]) // mutant'),
+        '        ? joinRoundTextsHeadPinned([emittedPrefix, textOf(emptyPayload.content)]) // mutant')
+        // [111-close-11] — and the join's own restated-opening rule with it, or the mutant is masked by it
+        .split("    .map((part, index, all) => (index === 0 ? part : withoutRestatedOpening(all[0], part).trim())) // [111-close-11]\n").join(''),
       async (twin) => {
         const t = await v4Drive(twin, [V4_TOOL, V4_HEAD + '\n' + V4_FRAME, V4_HEAD + '\n' + V4_STEPS],
           { env: { STREAM_V1: 'on' }, onWriteUnit: () => true });
@@ -2628,6 +2630,37 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
         async (twin) => twin.deliverableText('الجواب:\nلم أجد في المصادر المتاحة إجابة خاصة بهذا السؤال بالضبط، فأحيلك إلى أهل العلم.').includes('المتاحة'));
       ok('MUTANT b37 holdings seam applied', holdOff.changed, holdOff.error);
       ok('MUTANT KILLED: without [b37] «لم أجد في المصادر المتاحة…» reaches the reader again', holdOff.loaded && holdOff.survived === true, JSON.stringify(holdOff));
+    }
+    // ── [111-close-11] · THE FINISHING ROUND DOES NOT OPEN THE ANSWER A SECOND TIME ───────────────────────────
+    // MEASURED over the roots rounds (C-join-head, 7 turns) and phase 3 round 4 Q8: «نعم، هذا من المسائل…» then, after the tool
+    // round, «نعم يا عبدالله، هذا من المسائل…» — joined whole because neither part contains the other.
+    {
+      const L11 = await fresh(LOOP, 'close11-base');
+      const A = 'نعم، هذا من المسائل التي انعقد عليها إجماع الأمّة، فلم يختلف فيها أحدٌ من أهل العلم عبر العصور.\nالزنا محرَّمٌ بالكتاب والسنّة والإجماع، وهو من كبائر الذنوب التي توعّد الله عليها بالعذاب الشديد.';
+      const B = 'نعم يا عبدالله، هذا من المسائل التي انعقد عليها إجماع الأمّة، فلم يختلف فيها أحدٌ من أهل العلم عبر العصور.\nالزنا محرَّمٌ بالكتاب والسنّة والإجماع، وهو من أعظم الكبائر التي توعّد الله عليها بالعذاب الشديد.\nوحرمته ثابتةٌ من عدّة أوجه.';
+      const j = L11.joinRoundTexts([A, B]);
+      ok('close-11 W · the restated opening is carried once, and what the finishing round adds stays',
+        (j.match(/انعقد عليها إجماع/gu) || []).length === 1 && j.includes('وحرمته ثابتةٌ من عدّة أوجه.') && j.startsWith(A), JSON.stringify(j));
+      ok('close-11 W · the pinned join keeps the head byte for byte and drops the same restatement',
+        L11.joinRoundTextsHeadPinned([A, B]).startsWith(A) && (L11.joinRoundTextsHeadPinned([A, B]).match(/انعقد عليها إجماع/gu) || []).length === 1);
+      const C = 'نعم، هذه المسألة محلُّ إجماعٍ صريح، فقد نصّت الموسوعة الفقهية الكويتية على ذلك.';
+      ok('close-11 sibling · a repeated «نعم،» opener goes and the new sentence stands',
+        L11.joinRoundTexts(['نعم، وجوب صيام شهر رمضان من المسائل التي انعقد عليها إجماع الأمة.', C]).endsWith('هذه المسألة محلُّ إجماعٍ صريح، فقد نصّت الموسوعة الفقهية الكويتية على ذلك.'));
+      ok('close-11 control · rounds saying different things are joined as before',
+        L11.joinRoundTexts(['الصلاة ركن من أركان الإسلام.', 'وحكم تاركها تهاونًا فيه خلاف بين أهل العلم.']) === 'الصلاة ركن من أركان الإسلام.\n\nوحكم تاركها تهاونًا فيه خلاف بين أهل العلم.');
+      const src11 = fs.readFileSync(LOOP, 'utf8').replace(/\r\n/g, '\n');
+      const seam11 = "    .map((part, index, all) => (index === 0 ? part : withoutRestatedOpening(all[0], part).trim())) // [111-close-11]\n";
+      const mut11 = src11.split(seam11).join('');
+      ok('MUTANT close-11 seam applied', mut11 !== src11);
+      const tmp11 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-close11-mut-'));
+      try {
+        const f11 = path.join(tmp11, 'loop.mjs');
+        fs.writeFileSync(f11, importsFromTree(mut11, LOOP), 'utf8');
+        const mod = await fresh(f11, 'close11-mutant');
+        ok('MUTANT KILLED: without [close-11] the opening is read twice again', (mod.joinRoundTexts([A, B]).match(/انعقد عليها إجماع/gu) || []).length === 2);
+      } finally {
+        fs.rmSync(tmp11, { recursive: true, force: true });
+      }
     }
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
