@@ -5199,6 +5199,33 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp1, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-complete-2] · A COUNTED VIEW IN A KHILAF KEEPS ITS GRADE ───────────────────────────────────
+  // MEASURED on the preview of 70e12db: battery Q16 «طالب علم», `[finalize/drop] grades` took the third of three views.
+  console.log('\n--- COMPLETE-2. «القول الثالث: … أي أن الحديث صحيح…» STAYS WHERE THE ANSWER COUNTS TWO VIEWS OR MORE ---');
+  {
+    const H2 = 'وهذا الحديث اختُلف في صحته اختلافًا كبيرًا بين أهل الحديث والفقهاء، على أقوال:\nالقول الأول: أنه حديث ضعيف بل شديد الضعف.\nالقول الثاني: أنه حديث شاذ.\n';
+    const W2 = 'القول الثالث: أنه منسوخ، أي أن الحديث صحيح لكن حكمه نُسخ بأدلة أخرى.';
+    ok('COMPLETE-2 W · the third view stays whole, with its grade', TL.dropUnsourcedGrades(H2 + W2).text === H2 + W2, JSON.stringify(TL.dropUnsourcedGrades(H2 + W2).text));
+    const C2 = [
+      ['a single labeled view is no khilaf the answer counts', 'وقيل في هذا الحديث أقوال.\n' + W2],
+      ['«الراجح» is not a view', H2 + 'القول الثالث، وهو الراجح: أن الحديث صحيح.'],
+      ['the answer\'s own voice after the views is not a view', H2 + W2 + '\nوالصحيح أن الحديث ثابت.'],
+    ];
+    for (const [name, t] of C2) ok('COMPLETE-2 control · ' + name + ' — its grade still goes', TL.dropUnsourcedGrades(t).text !== t, JSON.stringify(TL.dropUnsourcedGrades(t).text));
+    const src2 = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const mut2 = src2.split('if (statesACountedView(block, spans[k], viewCount)) spans.splice(k, 1);').join('/* mutant */');
+    ok('MUTANT COMPLETE-2 seam applied', mut2 !== src2);
+    const tmp2 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-complete2-mut-'));
+    try {
+      const mf = path.join(tmp2, 'takhrij-lock.mjs');
+      fs.writeFileSync(mf, mut2.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + mf.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [complete-2] the third view goes again', mod.dropUnsourcedGrades(H2 + W2).text !== H2 + W2);
+    } finally {
+      try { fs.rmSync(tmp2, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
