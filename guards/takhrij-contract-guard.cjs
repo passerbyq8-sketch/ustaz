@@ -2961,6 +2961,39 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       }
     }
   }
+  // ── [111-close-7] · ROW 70: THE LEAD-IN LINE IS THE MATN'S SENTENCE — NO BRACKET BESIDE A CREDIT THE PROSE WROTE ──
+  // MEASURED in the owner's own trial: «رواه مسلم: «صلّى رسولُ الله…» (مسلم)» — the matn set on a line of its own under a
+  // lead-in ending on «:», so the newline ended `statedAttributionNear`'s window one line short of the credit.
+  console.log('\n--- CLOSE-7. A CREDIT ON THE LEAD-IN LINE SILENCES THE BRACKET ---');
+  {
+    const T7 = await esm('lib/takhrij.js');
+    const at = (t) => { const m = /«([^»]+)»/u.exec(t); return { start: m.index + 1, end: m.index + 1 + m[1].length }; };
+    const W7 = 'ويدل على ذلك ما رواه مسلم:\n«صلى رسول الله صلى الله عليه وسلم الظهر والعصر جميعا»\nفدل على الجواز.';
+    ok('CLOSE-7 W · «…ما رواه مسلم:⏎«…»» — the credit on the lead-in line is read', T7.statedAttributionNear(W7, at(W7)) === 'رواه مسلم');
+    const S7 = 'ودليله حديث أبي ذر عند مسلم:\n\n«المسبل إزاره، والمنان، والمنفق سلعته بالحلف الكاذب»';
+    ok('CLOSE-7 sibling · «…عند مسلم:⏎⏎«…»» — past a blank line too', T7.statedAttributionNear(S7, at(S7)) === 'عند مسلم');
+    const MUSLIM_705 = 'حدثنا يحيى بن يحيى قال قرأت على مالك عن أبي الزبير عن سعيد بن جبير عن ابن عباس قال: «صلى رسول الله صلى الله عليه وسلم الظهر والعصر جميعا والمغرب والعشاء جميعا في غير خوف ولا سفر»';
+    const M7 = 'صلى رسول الله صلى الله عليه وسلم الظهر والعصر جميعا';
+    const out7 = (await T7.applyTakhrij(W7, { env: ON, lookup: lookupOf({ [M7]: { matn: M7, subjectIds: ['FC-000648'], atoms: [MUSLIM_705] } }) })).text;
+    ok('CLOSE-7 W · through the pass: no «(مسلم)» beside the matn the prose already credited', !out7.includes('(مسلم)'), JSON.stringify(out7));
+    const C7 = 'قال ابن القيم في زاد المعاد:\n«صلى رسول الله صلى الله عليه وسلم الظهر والعصر جميعا»';
+    ok('CLOSE-7 control · a lead-in line that credits nothing silences nothing', T7.statedAttributionNear(C7, at(C7)) === '');
+    ok('CLOSE-7 control · a lead-in line ended by a full stop is another sentence', T7.statedAttributionNear('رواه مسلم.\n«' + M7 + '»', at('رواه مسلم.\n«' + M7 + '»')) === '');
+    const src7 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam7 = '  while (boundary >= 0 && !/\\S/u.test(';
+    const mut7 = src7.split(seam7).join('  while (false && !/\\S/u.test(');
+    ok('MUTANT CLOSE-7 seam applied', mut7 !== src7);
+    const tmp7 = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-close7-mut-'));
+    try {
+      const f7 = path.join(tmp7, 'takhrij.mjs');
+      require('fs').writeFileSync(f7, mut7.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + f7.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [close-7] the credit on the lead-in line is missed again', mod.statedAttributionNear(W7, at(W7)) === '');
+    } finally {
+      try { require('fs').rmSync(tmp7, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
