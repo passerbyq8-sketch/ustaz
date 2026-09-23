@@ -2785,6 +2785,35 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try { require('fs').rmSync(tmp60, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-roots-isnad] · A MATN THAT SAYS «عن … : عن …» IS NOT A CHAIN ──────────────────────────────
+  // MEASURED on the preview of 20308f8 (roots R2 Q12, «هل يصح حديث «رفع القلم عن ثلاثة»؟», all three modes): no
+  // parentheses, `TAKHRIJ_ISNAD_REFUSED` — «عَنْ ثَلَاثَةٍ: عَنِ النَّائِمِ» was read as «عن فلان عن فلان».
+  console.log('\n--- ROOTS-ISNAD. «عن ثلاثة: عن النائم» IS THE MATN, NOT A CHAIN ---');
+  {
+    const TI = await esm('lib/takhrij.js');
+    const QALAM = 'رُفِعَ القَلَمُ عَنْ ثَلَاثَةٍ: عَنِ النَّائِمِ حَتَّى يَسْتَيْقِظَ، وَعَنِ الصَّبِيِّ حَتَّى يَحْتَلِمَ، وَعَنِ المَجْنُونِ حَتَّى يَعْقِلَ';
+    ok('ROOTS-ISNAD W · «رفع القلم عن ثلاثة: عن النائم…» carries no isnad', TI.carriesIsnad('«' + QALAM + '» (أبو داود)') === false);
+    const ATOM_Q = 'حدثنا موسى بن إسماعيل عن حماد عن عائشة رضي الله عنها أن رسول الله صلى الله عليه وسلم قال: ' + QALAM;
+    const wq = (await TI.applyTakhrij('قال رسول الله صلى الله عليه وسلم: «' + QALAM + '» وهذا أصل في التكليف.',
+      { env: ON, lookup: lookupOf({ [QALAM]: { matn: QALAM, subjectIds: ['FC-000656'], atoms: [ATOM_Q] } }) }));
+    ok('ROOTS-ISNAD W · ...so the library\'s book is written: «(أبو داود …)»', /\(أبو داود/u.test(wq.text) && !wq.problems.includes('TAKHRIJ_ISNAD_REFUSED'), JSON.stringify([wq.text, wq.problems]));
+    ok('ROOTS-ISNAD sibling · «ونهانا عن سبع: عن آنية الفضة، وعن…» is a matn too', TI.carriesIsnad('«أمرنا بسبع ونهانا عن سبع: عن آنية الفضة، وعن خواتيم الذهب»') === false);
+    ok('ROOTS-ISNAD control · «حدثنا سفيان عن يحيى عن محمد قال» is still a chain', TI.carriesIsnad('حدثنا سفيان عن يحيى عن محمد قال') === true);
+    ok('ROOTS-ISNAD control · «عن الزهري عن سالم عن أبيه» is still a chain', TI.carriesIsnad('عن الزهري عن سالم عن أبيه') === true);
+    const srcI = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const mutI = srcI.split("'\\\\s+[^\\\\s:،,؛.]+\\\\s+'").join("'\\\\s+\\\\S+\\\\s+'");
+    ok('MUTANT ROOTS-ISNAD seam applied', mutI !== srcI);
+    const tmpI = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-roots-isnad-mut-'));
+    try {
+      const fI = path.join(tmpI, 'takhrij.mjs');
+      require('fs').writeFileSync(fI, mutI.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + fI.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [roots-isnad] «عن ثلاثة: عن النائم» is a chain again', mod.carriesIsnad('«' + QALAM + '» (أبو داود)') === true);
+    } finally {
+      try { require('fs').rmSync(tmpI, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   // ── [111-roots-69] · THE ATOM CARRIES THE MATN BY ITS WORDS, AND A SHORT ONE IN THE PROPHET'S ﷺ VOICE ──
   // MEASURED on the preview of 20308f8 (roots, round 1): Q5 «مفصّل» «ما أسفلَ من الكعبين ففي النار» ⟸ «(متفق عليه)» —
   // مسلم's atom was the muḥrim's khuffs, matched by LETTERS («…ما أسفل» inside «وليقطعهما أسفل»); Q6 «مفصّل» «ليس في
