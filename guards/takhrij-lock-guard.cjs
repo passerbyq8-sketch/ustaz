@@ -5171,6 +5171,34 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp3c, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-complete-1] · «ولا يجوز أن يُستشهد به على أنّه حديثٌ ثابت» IS DECISION 3'S RULING; SO IS «الاحتجاج» ─────
+  // MEASURED on the preview of 27dfa58: battery Q27 «موجز», `[finalize/drop] grades`. The siblings are the two that
+  // appeared in the corpus and the saved batteries, without the «نبويّ» that happened to save them there.
+  console.log('\n--- COMPLETE-1. «يُستشهد به» AND «الاحتجاج به» … «على أنّه حديثٌ ثابت» STAY ---');
+  {
+    const C1 = 'حديثٌ لا يصح.\n';
+    const W1 = [
+      'فلا يصحّ أن يُنسب هذا اللفظ إلى النبيّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ، ولا يجوز أن يُستشهد به على أنّه حديثٌ ثابت.',
+      'ولا يجوزُ الاحتجاجُ به على أنّه حديثٌ ثابت.',
+      'فلا يصحّ الاحتجاجُ بلفظه على أنّه حديثٌ صحيح.',
+    ];
+    for (const w of W1) ok('COMPLETE-1 W · «' + w.slice(0, 24) + '…» stays', TL.dropUnsourcedGrades(C1 + w).text === C1 + w, JSON.stringify(TL.dropUnsourcedGrades(C1 + w).text));
+    const P1 = 'نعم، هذا الحديثُ ثابتٌ صحيح، ويُستشهد به.';
+    ok('COMPLETE-1 control · a grade the prose asserts with no source still goes', TL.dropUnsourcedGrades(C1 + P1).text !== C1 + P1);
+    const src1 = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const mut1 = src1.split('|يروي|يحدث|يقال|يذكر|يستشهد|الاحتجاج)').join('|يروي|يحدث|يقال|يذكر)');
+    ok('MUTANT COMPLETE-1 seam applied', mut1 !== src1);
+    const tmp1 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-complete1-mut-'));
+    try {
+      const mf = path.join(tmp1, 'takhrij-lock.mjs');
+      fs.writeFileSync(mf, mut1.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + mf.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [complete-1] the three sentences go again', W1.every((w) => mod.dropUnsourcedGrades(C1 + w).text !== C1 + w));
+    } finally {
+      try { fs.rmSync(tmp1, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
