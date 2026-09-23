@@ -2240,6 +2240,14 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     const v4Sse = (payload) => {
       const frames = [{ type: 'message_start', message: { content: [] } }];
       (payload.content || []).forEach((block, index) => {
+        if (block.type === 'tool_use') {
+          // A GENERAL turn's tool round is itself a streamed round, so it is spoken as SSE too.
+          frames.push({ type: 'content_block_start', index, content_block: { ...block, input: undefined } });
+          frames.push({ type: 'content_block_delta', index,
+            delta: { type: 'input_json_delta', partial_json: JSON.stringify(block.input || {}) } });
+          frames.push({ type: 'content_block_stop', index });
+          return;
+        }
         frames.push({ type: 'content_block_start', index, content_block: { type: 'text', text: '' } });
         frames.push({ type: 'content_block_delta', index, delta: { type: 'text_delta', text: block.text } });
         frames.push({ type: 'content_block_stop', index });
@@ -2261,7 +2269,8 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
         const step = script[Math.min(call, script.length - 1)];
         call += 1;
         const payload = (step && typeof step === 'object' && step.tool)
-          ? { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: 't' + call, name: 'search_sources', input: { query: 'الوضوء' } }] }
+          ? { stop_reason: 'tool_use', content: (step.names || ['search_sources']).map((name, i) => (
+            { type: 'tool_use', id: 't' + call + '-' + i, name, input: { query: 'الوضوء' } })) }
           : textPayload(step);
         const body = JSON.parse(String(init?.body ?? '{}'));
         if (body.stream === true) return { ok: true, status: 200, body: v4Sse(payload), text: async () => '' };
@@ -2278,6 +2287,13 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     // that tool returns ZERO rows, `roundRulingWithoutCards` is true, and the turn streams nothing
     // at all — which would leave the two streamed checks below asserting on an unstreamed turn.
     const V4_TOOL = { tool: true };
+    // THE OWNER'S RULING (2026-09-23): A FIQH ANSWER IS REVIEWED WHOLE, THEN TYPED. A fiqh round, rows
+    // in hand or not, and a mixed round, stream nothing — so V4_TOOL under the DEEN route is no longer
+    // a streamed turn, and L10 pins that. The arms that need bytes on the wire (L7, M41, M42) are
+    // driven by a GENERAL turn: the GEN route and a `search_live` round (offline here, so it finds
+    // nothing; the domain is `general` by what the turn did). The round count is unchanged.
+    const V4_LIVE = { tool: true, names: ['search_live'] };
+    const V4_GENERAL_STREAMED = { lexicalRoute: 'GEN', env: { STREAM_V1: 'on' }, onWriteUnit: () => true };
     const v4Deg = (turn, re) => (turn.degraded || []).filter((d) => re.test(d));
 
     // ── L1 · THE WITNESS, AND THE READER'S OWN TEXT PRINTED RATHER THAN DESCRIBED ──
@@ -2356,14 +2372,33 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     // is pinned at index 0, the delivered text still opens with it, and `withoutRestatedHead` keeps
     // a tail that says the head again from making the reader read it twice — which is exactly the
     // defect ق٥٨ §١ was called in to fix on the door above.
-    const l7 = await v4Drive(loop, [V4_TOOL, V4_HEAD + '\n' + V4_FRAME, V4_HEAD + '\n' + V4_STEPS],
-      { env: { STREAM_V1: 'on' }, onWriteUnit: () => true });
+    const l7 = await v4Drive(loop, [V4_LIVE, V4_HEAD + '\n' + V4_FRAME, V4_HEAD + '\n' + V4_STEPS],
+      V4_GENERAL_STREAMED);
     const l7Sent = String(l7.streamedPrefix || '');
     const l7Head = (String(l7.text || '').match(/الوضوء عبادة عظيمة/gu) || []).length;
     ok('L7 a streamed turn keeps the bytes the reader has, gains the list, and never reads the head twice',
       l7Sent !== '' && String(l7.text).startsWith(l7Sent)
       && l7Head === 1 && /غسل الكفين/u.test(l7.text) && l7.emptyRetries === 1,
       'sent=' + JSON.stringify(l7Sent) + ' · READER = ' + JSON.stringify(l7.text));
+
+    // ── L10 · THE OWNER'S RULING, PINNED: «الجوابُ الفقهيُّ يُراجَعُ كاملًا، ثمّ يُطبَعُ» ──
+    // L7's old scenario — the DEEN route with a real `search_sources` round, rows in hand — and a
+    // turn whose writing round is `mixed`, driven with streaming ON and a writer that counts. Not
+    // one unit may leave before the turn ends; the empty door still fills the list over the whole.
+    const l10Writes = { fiqh: [], mixed: [] };
+    const l10Fiqh = await v4Drive(loop, [V4_TOOL, V4_HEAD + '\n' + V4_FRAME, V4_HEAD + '\n' + V4_STEPS],
+      { env: { STREAM_V1: 'on' }, onWriteUnit: (u) => { l10Writes.fiqh.push(u); return true; } });
+    const l10Mixed = await v4Drive(loop,
+      [{ tool: true, names: ['search_sources', 'search_live'] }, V4_HEAD + '\n' + V4_FRAME, V4_HEAD + '\n' + V4_STEPS],
+      { lexicalRoute: 'GEN', env: { STREAM_V1: 'on' }, onWriteUnit: (u) => { l10Writes.mixed.push(u); return true; } });
+    ok('L10 a fiqh turn with evidence, and a mixed turn, put not one byte on the wire before the end',
+      l10Writes.fiqh.length === 0 && l10Fiqh.streamedThisTurn !== true && !l10Fiqh.streamedPrefix
+      && v4Deg(l10Fiqh, /^stream_withheld:fiqh_reviewed_whole:fiqh$/u).length === 1
+      && l10Writes.mixed.length === 0 && l10Mixed.streamedThisTurn !== true && !l10Mixed.streamedPrefix
+      && v4Deg(l10Mixed, /^stream_withheld:fiqh_reviewed_whole:mixed$/u).length === 1
+      && /غسل الكفين/u.test(l10Fiqh.text) && /غسل الكفين/u.test(l10Mixed.text),
+      JSON.stringify([l10Writes.fiqh.length, l10Fiqh.streamedThisTurn, l10Writes.mixed.length,
+        l10Mixed.streamedThisTurn, l10Fiqh.degraded, l10Mixed.degraded]));
 
     // ── L8 · «لا نثرَ ألبتّة» GOES OUT EMPTY, AND api/ask.js SAYS THE WORD ──
     // §٢/٤ of the order: «والدلوُ technical في FRIENDLY_ERRORS يصلحُ لحالِ الخواءِ بلا لمسِ العميل
@@ -2478,8 +2513,8 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
           + '          || String(candidateReviewed.text || \'\').startsWith(emittedPrefix);',
           '        const keepsEmitted = true; // mutant: the sent bytes are replaceable'),
       async (twin) => {
-        const t = await v4Drive(twin, [V4_TOOL, V4_HEAD + '\n' + V4_FRAME, V4_STEPS],
-          { env: { STREAM_V1: 'on' }, onWriteUnit: () => true });
+        const t = await v4Drive(twin, [V4_LIVE, V4_HEAD + '\n' + V4_FRAME, V4_STEPS],
+          V4_GENERAL_STREAMED);
         return /غسل الكفين/u.test(String(t.text || '')) && t.streamPrefixRepaired !== true;
       });
     ok('M41 emitted-prefix mutant seam applied', prefixMutant.changed, prefixMutant.error);
@@ -2506,8 +2541,8 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
         + '          withoutRestatedHead(emittedPrefix, textOf(emptyPayload.content))])',
         '        ? joinRoundTextsHeadPinned([emittedPrefix, textOf(emptyPayload.content)]) // mutant'),
       async (twin) => {
-        const t = await v4Drive(twin, [V4_TOOL, V4_HEAD + '\n' + V4_FRAME, V4_HEAD + '\n' + V4_STEPS],
-          { env: { STREAM_V1: 'on' }, onWriteUnit: () => true });
+        const t = await v4Drive(twin, [V4_LIVE, V4_HEAD + '\n' + V4_FRAME, V4_HEAD + '\n' + V4_STEPS],
+          V4_GENERAL_STREAMED);
         return (String(t.text || '').match(/الوضوء عبادة عظيمة/gu) || []).length === 1;
       });
     ok('M42 restated-head mutant seam applied', restateMutant.changed, restateMutant.error);

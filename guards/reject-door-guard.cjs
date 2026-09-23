@@ -85,12 +85,29 @@ function importsFromTree(source, originalFile) {
 const PROVIDER = 'https://stub.invalid/v1/messages';
 const textPayload = (text) => ({ stop_reason: 'end_turn', content: [{ type: 'text', text }] });
 // A REAL tool round, not an injected table. `search_sources` runs `searchStoredCorpus` over the
-// Kuwaiti fiqh encyclopedia in-process, so the rows are genuine — and a fiqh round with rows in
-// hand is the ONE shape this loop will stream, which is what §C-E needs to exist at all.
+// Kuwaiti fiqh encyclopedia in-process, so the rows are genuine.
+//
+// THE OWNER'S RULING (2026-09-23): A FIQH ANSWER IS REVIEWED WHOLE, THEN TYPED. A fiqh round, with
+// rows in hand or without them, and a mixed round, stream nothing — so `SEARCH` under the DEEN route
+// is no longer a streamed turn, and §S pins that it releases no byte before the end. Every arm
+// below that needs a turn whose bytes the reader already has is driven by a GENERAL turn instead:
+// the GEN route and a `search_live` round (offline here, so it finds nothing, and the domain is
+// `general` by what the turn did). The round count, and so every call count asserted, is the same.
 const SEARCH = { search: 'الوضوء' };
-const searchPayload = (query) => ({
+const LIVE = { search: 'الوضوء', tool: 'search_live' };
+const GENERAL_STREAMED = { lexicalRoute: 'GEN', env: { STREAM_V1: 'on' }, onWriteUnit: () => true };
+const searchPayload = (query, tool = 'search_sources') => ({
   stop_reason: 'tool_use',
-  content: [{ type: 'tool_use', id: 'reject-door-1', name: 'search_sources', input: { query } }],
+  content: [{ type: 'tool_use', id: 'reject-door-1', name: tool, input: { query } }],
+});
+// One round that calls the fiqh encyclopedia AND the live world: the round after it is `mixed`.
+const BOTH = { search: 'الوضوء', both: true };
+const bothPayload = (query) => ({
+  stop_reason: 'tool_use',
+  content: [
+    { type: 'tool_use', id: 'reject-door-1', name: 'search_sources', input: { query } },
+    { type: 'tool_use', id: 'reject-door-2', name: 'search_live', input: { query } },
+  ],
 });
 
 /**
@@ -144,7 +161,8 @@ async function drive(loopModule, script, extra = {}) {
     // is String.prototype.search — a function, and truthy — so every text round would have been
     // answered with a tool call.
     const payload = (step && typeof step === 'object' && step.search)
-      ? searchPayload(step.search) : textPayload(step);
+      ? (step.both ? bothPayload(step.search) : searchPayload(step.search, step.tool))
+      : textPayload(step);
     // A round the loop asked to STREAM is answered with a real SSE body, because that is the only
     // way `streamedThisTurn` can become true — and §C-E is a claim about a turn whose bytes the
     // reader has already seen.
@@ -434,9 +452,7 @@ async function mutate({ file, name, transform, check }) {
   // turn is not sent, and a rejection lying after the emitted bytes has been read by nobody. What
   // is inviolable is unchanged and is asserted below: the delivered answer opens with the bytes
   // the reader already has, byte for byte.
-  const streamed = await drive(loop, [SEARCH, TWO, SOUND_HEAD + '\n' + CLEAN_REWRITE], {
-    env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
-  });
+  const streamed = await drive(loop, [LIVE, TWO, SOUND_HEAD + '\n' + CLEAN_REWRITE], GENERAL_STREAMED);
   ok('C16 a streamed turn whose rejection lies AFTER the emitted bytes is rewritten, not shipped cut',
     streamed.streamedThisTurn === true && streamed.rejectRetries === 1
     && !streamed.text.includes('ابن باز')
@@ -446,6 +462,29 @@ async function mutate({ file, name, transform, check }) {
     streamed.streamedPrefix !== '' && streamed.text.startsWith(streamed.streamedPrefix)
     && streamed.streamPrefixValid === true,
     JSON.stringify([streamed.streamedPrefix, streamed.text.slice(0, 40)]));
+
+  // S — THE OWNER'S RULING, PINNED (2026-09-23): «الجوابُ الفقهيُّ يُراجَعُ كاملًا، ثمّ يُطبَعُ».
+  // C16's old scenario — the DEEN route with a real `search_sources` round, rows in hand — and a
+  // turn whose writing round is `mixed` are driven with streaming ON and a writer that counts. Not
+  // one unit may leave before the turn ends, and each withhold is named. On a tree that still
+  // streams a fiqh round this goes red, because C16 was built on exactly that stream.
+  const countingWriter = (writes) => ({
+    env: { STREAM_V1: 'on' }, onWriteUnit: (unit) => { writes.push(unit); return true; },
+  });
+  const fiqhWrites = [];
+  const fiqhTurn = await drive(loop, [SEARCH, TWO, SOUND_HEAD + '\n' + CLEAN_REWRITE],
+    countingWriter(fiqhWrites));
+  const mixedWrites = [];
+  const mixedTurn = await drive(loop, [BOTH, TWO, SOUND_HEAD + '\n' + CLEAN_REWRITE],
+    { ...countingWriter(mixedWrites), lexicalRoute: 'GEN' });
+  ok('S1 a fiqh turn with evidence, and a mixed turn, put not one byte on the wire before the end',
+    fiqhWrites.length === 0 && fiqhTurn.streamedThisTurn !== true && !fiqhTurn.streamedPrefix
+    && (fiqhTurn.degraded || []).includes('stream_withheld:fiqh_reviewed_whole:fiqh')
+    && mixedWrites.length === 0 && mixedTurn.streamedThisTurn !== true && !mixedTurn.streamedPrefix
+    && (mixedTurn.degraded || []).includes('stream_withheld:fiqh_reviewed_whole:mixed')
+    && fiqhTurn.text !== '' && mixedTurn.text !== '',
+    JSON.stringify([fiqhWrites.length, fiqhTurn.streamedThisTurn, mixedWrites.length,
+      mixedTurn.streamedThisTurn, fiqhTurn.degraded, mixedTurn.degraded]));
 
   // C-F — the two exits E6/E7 have nothing to rewrite. The reviewer's last rung is an honest
   // declaration, not a cut, and withholding it would replace silence with silence.
@@ -652,9 +691,7 @@ async function mutate({ file, name, transform, check }) {
     name: 'fixture-everything-was-sent',
     transform: widenEmitted,
     check: async (twin) => {
-      const t = await drive(twin, [SEARCH, TWO, CLEAN_REWRITE], {
-        env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
-      });
+      const t = await drive(twin, [LIVE, TWO, CLEAN_REWRITE], GENERAL_STREAMED);
       return {
         retries: t.rejectRetries, calls: t.modelCalls, text: t.text,
         named: (t.degraded || []).some((d) => /^reject_retry:inside_emitted_bytes:\d+\/\d+$/u.test(d)),
@@ -690,9 +727,7 @@ async function mutate({ file, name, transform, check }) {
   // ── H4 · THE HEAD OF THE REWRITE IS PINNED EXACTLY AS `collected` IS ──────
   // The scripted rewrite below does NOT restate the emitted head. Without the pin the delivered
   // text would not begin with what the reader already read; with it, it does.
-  const pinned = await drive(loop, [SEARCH, TWO, CLEAN_REWRITE], {
-    env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
-  });
+  const pinned = await drive(loop, [LIVE, TWO, CLEAN_REWRITE], GENERAL_STREAMED);
   ok('H4 a rewrite that did not restate the head still reopens with the emitted bytes',
     pinned.streamedPrefix !== '' && pinned.text.startsWith(pinned.streamedPrefix)
     && pinned.rejectRetries === 1 && pinned.streamPrefixValid === true
@@ -713,9 +748,7 @@ async function mutate({ file, name, transform, check }) {
     name: 'rewrite-head-not-pinned',
     transform: unpinHead,
     check: async (twin) => {
-      const t = await drive(twin, [SEARCH, TWO, CLEAN_REWRITE], {
-        env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
-      });
+      const t = await drive(twin, [LIVE, TWO, CLEAN_REWRITE], GENERAL_STREAMED);
       return {
         text: t.text, sent: t.streamedPrefix, truncated: t.truncated,
         outcome: (t.degraded || []).filter((d) => /reject_retry_prefix_lost|reject_stream_head_kept|reject_retry:stream_prefix_lost/.test(d)),
@@ -752,9 +785,7 @@ async function mutate({ file, name, transform, check }) {
     transform: (src) => unpinHead(src)
       .replace('      if (rewriteKeepsEmitted) {', '      if (true) { // mutant: adopt regardless'),
     check: async (twin) => {
-      const t = await drive(twin, [SEARCH, TWO, CLEAN_REWRITE], {
-        env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
-      });
+      const t = await drive(twin, [LIVE, TWO, CLEAN_REWRITE], GENERAL_STREAMED);
       return {
         holds: t.streamedPrefix !== '' && t.text.startsWith(t.streamedPrefix),
         judged: t.streamPrefixValid, repaired: t.streamPrefixRepaired, truncated: t.truncated,
@@ -808,9 +839,7 @@ async function mutate({ file, name, transform, check }) {
   const L_S4 = 'وعليه فصيامه سنة مؤكدة لغير الحاج عند جمهور أهل العلم.';
   const L_ANSWER = [L_S1, L_S2, L_S3, L_S4].join('\n');
   const TK = await fresh(path.join(ROOT, 'lib', 'takhrij-lock.js'), 'reject-door-takhrij');
-  const lTurn = await drive(loop, [SEARCH, L_ANSWER], {
-    env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
-  });
+  const lTurn = await drive(loop, [LIVE, L_ANSWER], GENERAL_STREAMED);
   const lSent = lTurn.streamedPrefix || '';
   const lComposed = (lTurn.text || '') + (lTurn.truncated === true ? '\n<incomplete/>' : '');
   // api/ask.js:1020 — `seal`, with the page list a turn that reached no web page actually has.
@@ -938,9 +967,7 @@ async function mutate({ file, name, transform, check }) {
     transform: (src) => widenEmitted(src).replace(INSIDE_RULE,
       '  const rejectionInsideEmitted = false; // mutant: withdraw text the reader already has'),
     check: async (twin) => {
-      const t = await drive(twin, [SEARCH, TWO, CLEAN_REWRITE], {
-        env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
-      });
+      const t = await drive(twin, [LIVE, TWO, CLEAN_REWRITE], GENERAL_STREAMED);
       return { h1: t.rejectRetries === 0, retries: t.rejectRetries };
     },
   });
@@ -1031,9 +1058,7 @@ async function mutate({ file, name, transform, check }) {
       .replace('    reviewed = { text: streamedPrefix, annotations: reviewed.annotations, verdict: reviewed.verdict };',
         '    // mutant: only a console.warn stands between the reader and a lost tail'),
     check: async (twin) => {
-      const t = await drive(twin, [SEARCH, TWO, CLEAN_REWRITE], {
-        env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
-      });
+      const t = await drive(twin, [LIVE, TWO, CLEAN_REWRITE], GENERAL_STREAMED);
       return { holds: t.streamedPrefix !== '' && t.text.startsWith(t.streamedPrefix), text: t.text };
     },
   });
@@ -1091,9 +1116,7 @@ async function mutate({ file, name, transform, check }) {
     JSON.stringify(loop.withoutRestatedHead(SOUND_HEAD, 'الصلاة ركن عظيم.')));
 
   // ── J4-J6 · AND ON THE REAL TURN, WHICH IS WHERE THE OWNER READ IT TWICE ──
-  const restated = await drive(loop, [SEARCH, J_FIRST, J_HEAD + '\n' + J_CLEAN], {
-    env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
-  });
+  const restated = await drive(loop, [LIVE, J_FIRST, J_HEAD + '\n' + J_CLEAN], GENERAL_STREAMED);
   ok('J4 the emitted head really is the two sentences the rewrite will restate',
     restated.streamedPrefix === J_HEAD, JSON.stringify(restated.streamedPrefix));
   ok('J5 ...and the reader reads each of them ONCE',
@@ -1109,9 +1132,7 @@ async function mutate({ file, name, transform, check }) {
   // «لم أجد في المصادر المتاحة…» is never delivered, so the emitted head is the sentence after it;
   // a rewrite that restates both must still lose the restatement, or the reader reads it twice.
   const J_HX = 'لم أجد في المصادر المتاحة فتوى منسوبة للشيخ في هذه المسألة.';
-  const dropped = await drive(loop, [SEARCH, J_HX + '\n' + J_H2 + '\n' + NAMED, J_HX + '\n' + J_H2 + '\n' + J_CLEAN], {
-    env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
-  });
+  const dropped = await drive(loop, [LIVE, J_HX + '\n' + J_H2 + '\n' + NAMED, J_HX + '\n' + J_H2 + '\n' + J_CLEAN], GENERAL_STREAMED);
   ok('J7 [b37] the narration of what the tool holds is not delivered: the emitted head is the sentence after it',
     dropped.streamedPrefix === J_H2, JSON.stringify(dropped.streamedPrefix));
   ok('J8 [b37] ...and the rewrite restating both is still recognised: the reader reads the head ONCE, the narration never',
@@ -1172,9 +1193,7 @@ async function mutate({ file, name, transform, check }) {
     name: 'exit-rejection-inside-emitted',
     transform: widenEmitted,
     check: async (twin) => {
-      const t = await drive(twin, [SEARCH, K_WITNESS, K_CLEAN], {
-        env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
-      });
+      const t = await drive(twin, [LIVE, K_WITNESS, K_CLEAN], GENERAL_STREAMED);
       return {
         truncated: t.truncated, retries: t.rejectRetries, withheld: t.rejectWithheld,
         repaired: t.streamPrefixRepaired,
@@ -1262,9 +1281,7 @@ async function mutate({ file, name, transform, check }) {
     transform: (src) => src.replace('          withoutRestatedHead(emittedPrefix, textOf(rejectPayload.content))])',
       '          textOf(rejectPayload.content)]) // mutant: the head goes in front of itself'),
     check: async (twin) => {
-      const t = await drive(twin, [SEARCH, J_FIRST, J_HEAD + '\n' + J_CLEAN], {
-        env: { STREAM_V1: 'on' }, onWriteUnit: () => true,
-      });
+      const t = await drive(twin, [LIVE, J_FIRST, J_HEAD + '\n' + J_CLEAN], GENERAL_STREAMED);
       return { j5: countOf(t.text, J_H1) === 1 && countOf(t.text, J_H2) === 1, text: t.text };
     },
   });
