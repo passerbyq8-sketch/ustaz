@@ -5144,6 +5144,33 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp5d, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-close-3c] · «ألّا يُنسب … على أنه حديثٌ ثابت» IS DECISION 3'S RULING; «بغير سندٍ صحيح» IS NO GRADE ──────────
+  // MEASURED on the preview of 70e12db: round 5 Q4 «موجز» and battery Q28, both at `[finalize/drop] grades`.
+  console.log('\n--- CLOSE-3c. «ألّا يُنسب» AND «بغير سندٍ صحيح» STAY ---');
+  {
+    const C3c = 'حديثٌ لا يصح.\n';
+    const W3c = [
+      'فالأحوط ألّا يُنسب إلى النبي صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ على أنه حديثٌ ثابتٌ عنه ما لم يُتحقّق من تخريجه عند أهل الاختصاص.',
+      'لكنّ صحّةَ المعنى في نفسه لا تجعله حديثًا، فالفرقُ واضحٌ بين كلامٍ حسنٍ يُقال، وحديثٍ يُنسبُ للنبيِّ صَلَّى اللهُ عَلَيْهِ وَسَلَّم بغير سند صحيح.',
+    ];
+    for (const w of W3c) ok('CLOSE-3c W · «' + w.slice(0, 24) + '…» stays', TL.dropUnsourcedGrades(C3c + w).text === C3c + w, JSON.stringify(TL.dropUnsourcedGrades(C3c + w).text));
+    const P3c = 'نعم، هذا الحديثُ ثابتٌ صحيح، وهو من حديثِ عبدِ اللهِ بنِ مسعودٍ رضيَ اللهُ عنه.';
+    ok('CLOSE-3c control · a grade the prose asserts with no source still goes', TL.dropUnsourcedGrades(C3c + P3c).text !== C3c + P3c);
+    const src3c = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const mut3c = src3c.split("(?:[وف]?(?:لا|ليس|الا)|لكن لا|فلا|ولا|ان لا) (?:").join('(?:[وف]?(?:لا|ليس)|لكن لا|فلا|ولا) (?:')
+      .split(", 'ولم', 'بغير', 'وبغير', 'بدون', 'بلا']);").join(", 'ولم']);");
+    ok('MUTANT CLOSE-3c seam applied', mut3c !== src3c);
+    const tmp3c = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-close3c-mut-'));
+    try {
+      const mf = path.join(tmp3c, 'takhrij-lock.mjs');
+      fs.writeFileSync(mf, mut3c.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + mf.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [close-3c] both sentences go again', W3c.every((w) => mod.dropUnsourcedGrades(C3c + w).text !== C3c + w));
+    } finally {
+      try { fs.rmSync(tmp3c, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
