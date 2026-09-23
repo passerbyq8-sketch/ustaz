@@ -2994,6 +2994,35 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try { require('fs').rmSync(tmp7, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-close-13] · THE OWNER'S DECISION 6: THE SILSILA ENTRY'S RULING IS READ WHERE THE ENTRY WRITES IT ──
+  // MEASURED over the roots rounds (round 1 Q12): «(أبو داود · لم يوقف على حكم)» while السلسلة الصحيحة 599 closes its entry on
+  // «…والسند صحيح رجاله ثقات رجال مسلم».
+  console.log('\n--- CLOSE-13. A LATE VERDICT IN THE ENTRY IS THE ENTRY\'S ---');
+  {
+    const T13 = await esm('lib/takhrij.js');
+    const M13 = 'إن الله يبعث لهذه الأمة على رأس كل مائة سنة من يجدد لها دينها';
+    const E599 = '599 - " ' + M13 + ' ". أخرجه أبو داود (4291) والحاكم (4 / 522) من طرق عن ابن وهب عن أبي هريرة عن رسول الله صلى الله عليه وسلم قال: فذكره. قلت: وسكت عليه الحاكم والذهبي، والسند صحيح رجاله ثقات رجال مسلم. والله أعلم. 600 - " حديث آخر ". ضعيف.';
+    ok('CLOSE-13 W · the entry\'s «والسند صحيح» is its ruling', T13.rulingWrittenFor(E599, M13) === 'صحيح', T13.rulingWrittenFor(E599, M13));
+    const SPLIT = '599 - " ' + M13 + ' ". أخرجه أبو داود. قلت: والسند صحيح. وفي طريق أخرى: وهذا إسناد ضعيف.';
+    ok('CLOSE-13 control · an entry that writes both verdicts has no single ruling', T13.rulingWrittenFor(SPLIT, M13) === '');
+    const INSIDE = 'قال: وهذا نحو حديث: " ' + M13 + ' ". والسند صحيح.';
+    ok('CLOSE-13 control · a matn that does not OPEN the entry is not ruled by it', T13.rulingWrittenFor(INSIDE, M13) === '');
+    ok('CLOSE-13 control · the next entry\'s verdict is not this entry\'s', T13.rulingWrittenFor('599 - " ' + M13 + ' ". أخرجه أبو داود. 600 - " حديث آخر ". والسند ضعيف.', M13) === '');
+    const src13 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam13 = '  return entryVerdictFor(raw, matn); // [111-close-13]\n';
+    const mut13 = src13.split(seam13).join("  return '';\n");
+    ok('MUTANT CLOSE-13 seam applied', mut13 !== src13);
+    const tmp13 = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-close13-mut-'));
+    try {
+      const f13 = path.join(tmp13, 'takhrij.mjs');
+      require('fs').writeFileSync(f13, mut13.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + f13.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [close-13] the late verdict is unread again', mod.rulingWrittenFor(E599, M13) === '');
+    } finally {
+      try { require('fs').rmSync(tmp13, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
