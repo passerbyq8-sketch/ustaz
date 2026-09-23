@@ -7,6 +7,9 @@ const { fresh, runMutant, harness } = require('./output-reviewer-mutant-lib.cjs'
 // several older rows too; a mutant that removes one of those older rules removes this line with it, or it is masked.
 const CLOSE6B_LINE = "      if (here.length && !/[.؟!«»:\"]/u.test(gap)) return null;\n";
 const noClose6b = (source) => source.split(CLOSE6B_LINE).join('');
+const noClose6c = (source) => source
+  .split('function formulaOutOfPlace(before, after) {\n').join('function formulaOutOfPlace(before, after) {\n  return false; // mutant\n')
+  .split("        && /^[وف]?(?:ال|ابن|ابو|أبو|الإمام|الامام|الحافظ|الشيخ)/u.test(clause)) return null;\n").join('        && false) return null;\n');
 const REVIEWER = path.resolve(__dirname, '..', 'lib', 'output-reviewer.js');
 const { ok, finish } = harness('tag-honesty');
 
@@ -754,8 +757,10 @@ const unsupportedIsHandledSilently = (module) => {
         // siblings written for this order
         ['sib ذهب إلى أنّه', 'وذهب ابن حزم إلى أنّه يجب الوتر على كل مسلم.', 'ومن أهل العلم من يرى أنّه يجب الوتر على كل مسلم.'],
         // [h46]: was 'وقال بعض أهل العلم بعد أن ذكر الخلاف: «…».' — the title goes with the name, the prayer stays.
+        // [111-close-6c]: was 'ومن أهل العلم من يرى رحمه الله بعد أن ذكر الخلاف: «…».' — the formula, the prayer and then a frame
+        // where the claim should begin: the shape order row 6 (23 Sep) forbids by name. The sentence stays as the model wrote it.
         ['sib لقب ودعاء ثم ظرف', 'وقال الشيخ ابن عثيمين رحمه الله بعد أن ذكر الخلاف: «والأقرب أن الأمر واسع».',
-          'ومن أهل العلم من يرى رحمه الله بعد أن ذكر الخلاف: «والأقرب أن الأمر واسع».'],
+          'وقال الشيخ ابن عثيمين رحمه الله بعد أن ذكر الخلاف: «والأقرب أن الأمر واسع».'],
         ['sib ثم قال: عالم متعيّن', 'وذكر ابن القيم أنّ الأمرَ فيه سعة، ثم قال: «والصواب أن يفعل ما هو أيسر».',
           'ومن أهل العلم من يرى أنّ الأمرَ فيه سعة، ثم قال: «والصواب أن يفعل ما هو أيسر».'],
       ]) {
@@ -879,7 +884,7 @@ const unsupportedIsHandledSilently = (module) => {
       }
       const W53 = (id) => ROWS53.find((row) => row[0] === id)[1];
       const killed53 = async (name, from, to, survives) => {
-        const m = await runMutant({ sourceFile: REVIEWER, name, transform: (source) => noClose6b(source).replace(from, to), survives });
+        const m = await runMutant({ sourceFile: REVIEWER, name, transform: (source) => noClose6c(noClose6b(source)).replace(from, to), survives });
         ok('h53 mutant seam applied — ' + name, m.changed, m.error);
         ok('MUTANT KILLED: ' + name, m.loaded && m.survived === false, JSON.stringify(m));
       };
@@ -1145,6 +1150,33 @@ const unsupportedIsHandledSilently = (module) => {
       for (const input of ROWS6B) ok('close-6b ' + input.slice(0, 28) + '…: left as the model wrote it', say68(input) === input, say68(input));
       ok('close-6b · «أبو زرعة الرازي قال:» — a name taken whole, never «بعض أهل العلم الرازي»',
         !/بعض أهل العلم (?:الرازي|العيد)/u.test(say68('أبو زرعة الرازي قال: خلقٌ كثيرٌ افتُضِحوا فيه.') + say68('ابن دقيق العيد قال: لم يثبتوه.')));
+      // [111-close-6c] — the preview of 70e12db (this order's second battery): the formula followed by anything but its claim.
+      {
+        const ROWS6C = [
+          'قال الإمامُ النوويُّ رحمه الله في هذا الحديث: هذا نصٌّ صريحٌ لا يتطرّقُ إليه تأويل، ولا أظنُّ عالمًا يبلغه هذا اللفظُ ويعتقدُه صحيحًا فيخالفه.',
+          'ابن دقيق العيد قال: لم يثبتوه.',
+          'أما الإجماعُ على أصل وجوب الحج نفسه، فمنقولٌ عن أئمة عدة، وقد ذكر ابن قدامة في المغني نقولًا عن جمعٍ من الصحابة والتابعين في مسائل متصلة به.',
+          'الحافظُ الذهبي حكم عليه بالوضع في مختصر الموضوعات، وقال عن راويه أبي الصلت الهروي: ليس بثقةٍ ولا مأمون.',
+        ];
+        for (const input of ROWS6C) ok('close-6c ' + input.slice(0, 28) + '…: left as the model wrote it', say68(input) === input, say68(input));
+        const CTX6C = 'ابن دقيق العيد قال: لم يثبتوه.\nالسخاوي في المقاصد الحسنة قال: بالجملة فكلُّها ضعيفة، وألفاظُ أكثرها ركيكة.';
+        const said6c = (mod) => mod.reviewAnswer({ text: CTX6C, evidence: [], domain: 'fiqh', mode: 'chat' }).text;
+        ok('close-6c · «السخاوي في المقاصد الحسنة قال:» keeps its own subject, never «قال بعض أهل العلم»', said6c(module) === CTX6C, said6c(module));
+        const GOOD6C = 'قال النوويُّ: هذه الرخصةُ لمن يصلّي جماعةً في مسجدٍ يأتيه من بُعد.';
+        ok('close-6c control · «قال النوويُّ:» still takes the owner\'s formula', say68(GOOD6C).startsWith('ومن أهل العلم من يرى:'), say68(GOOD6C));
+        const seams6c = [
+          ['out-of-place', '  if (formulaOutOfPlace(sentence, generalizeAttribution(sentence, attribution))) return true;\n',
+            (mod) => mod.reviewAnswer({ text: ROWS6C[0], evidence: [], domain: 'fiqh', mode: 'chat' }).text.split('\n')[0] === ROWS6C[0]],
+          ['own-subject', "        && /^[وف]?(?:ال|ابن|ابو|أبو|الإمام|الامام|الحافظ|الشيخ)/u.test(clause)) return null;\n",
+            (mod) => said6c(mod) === CTX6C],
+        ];
+        for (const [tag, from, survives] of seams6c) {
+          const m6c = await runMutant({ sourceFile: REVIEWER, name: 'without [close-6c] ' + tag,
+            transform: (source) => source.split(from).join(tag === 'own-subject' ? '        && false) return null;\n' : ''), survives });
+          ok('close-6c ' + tag + ' mutant seam applied', m6c.changed, m6c.error);
+          ok('MUTANT KILLED: without [close-6c] ' + tag + ' the formula is written out of its place again', m6c.loaded && m6c.survived === false, JSON.stringify(m6c));
+        }
+      }
       const seams6 = [
         ['narrator', "  if (OWNER_FORMULA_NARRATOR_LEAD_RE.test(frame)) return 'narrator';\n", 'close6-narrator-sulayman'],
         ['story', "  if (OWNER_FORMULA_REPORTED_STORY_RE.test(said)) return 'narration';\n", 'close6-story-bayhaqi'],
@@ -1152,7 +1184,7 @@ const unsupportedIsHandledSilently = (module) => {
       for (const [tag, from, id] of seams6) {
         const input = ROWS6.find((r) => r[0] === id)[1];
         const m6 = await runMutant({ sourceFile: REVIEWER, name: 'without [close-6] ' + tag,
-          transform: (source) => source.split(from).join(''),
+          transform: (source) => noClose6c(source.split(from).join('')),
           survives: (mod) => mod.reviewAnswer({ text: input, evidence: [], domain: 'fiqh', mode: 'chat' }).text.split('\n')[0] === input });
         ok('close-6 ' + tag + ' mutant seam applied', m6.changed, m6.error);
         ok('MUTANT KILLED: without [close-6] ' + tag + ' «' + id + '» is generalised again', m6.loaded && m6.survived === false, JSON.stringify(m6));
