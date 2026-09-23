@@ -5069,6 +5069,34 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       }
     }
   }
+  // ── [111-close-9b] · NO BRACKET WRITTEN BACK UNDER A LEAD-IN LINE THAT STILL CREDITS ──────────────────────────
+  // ── [111-close-5b] · NO «…في الحديث الذي.» AND NO «وقد،» LEFT BY A CREDIT CUT ─────────────────────────────────
+  // MEASURED on this round's preview: battery Q26 (row 70 through the restore), round 5 Q11 «موجز» and Q1 «موجز».
+  console.log('\n--- CLOSE-9b/5b. THE RESTORE READS THE LEAD-IN; NO RELATIVE OR «قد» HOLE ---');
+  {
+    const M9b = 'الدين النصيحة قلنا لمن قال لله ولكتابه ولرسوله';
+    const rows9b = [{ title: '', passage: '', withheldBracket: { matn: M9b, paren: 'مسلم' } }, { title: '', passage: '', proseProof: { book: 'مسلم', matn: M9b } }];
+    const W9b = 'وأصلُه في صحيح مسلم من حديثِ تميمٍ الدَّاريِّ، بلفظِ:\n«' + M9b + '»\nأخرجه أبو داود والترمذي والنسائي.\nوالله أعلم.';
+    const w9b = TL.lockTakhrij(W9b, rows9b).text;
+    ok('CLOSE-9b W · the lead-in «في صحيح مسلم» still stands: no «(مسلم)» is written under it', !w9b.includes('» (مسلم)') || !w9b.includes('في صحيح مسلم'), JSON.stringify(w9b));
+    const H5b = 'سؤال.\nالحدثُ، لأنّ الطهارة شرطٌ لصحة الصلاة، وقد قال النبي صلى الله عليه وسلم في الحديث الذي رواه الشيخان.\nاستدبارُ القبلة.';
+    ok('CLOSE-5b W · «…في الحديث الذي.» is not left; the ruling before it stays', TL.lockTakhrij(H5b, []).text === 'سؤال.\nالحدثُ، لأنّ الطهارة شرطٌ لصحة الصلاة.\nاستدبارُ القبلة.', JSON.stringify(TL.lockTakhrij(H5b, []).text));
+    ok('CLOSE-5b W · no «وقد،» is left where a credit was cut', !/وقد،/u.test(TL.lockTakhrij('سؤال.\nفهو من حديث عثمان أيضًا، وقد رواه مسلم، لكنّي لا أملك إسناده الآن.\nوالله أعلم.', []).text));
+    const src5b = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam5b = '  if (keptWords.length && RELATIVE_END.has(keptWords[keptWords.length - 1].bare)) {';
+    const mut5b = src5b.split(seam5b).join('  if (false) {');
+    ok('MUTANT CLOSE-5b seam applied', mut5b !== src5b);
+    const tmp5b = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-close5b-mut-'));
+    try {
+      const mf = path.join(tmp5b, 'takhrij-lock.mjs');
+      fs.writeFileSync(mf, mut5b.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + mf.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [close-5b] «…في الحديث الذي.» again', /الذي\./u.test(mod.lockTakhrij(H5b, []).text));
+    } finally {
+      try { fs.rmSync(tmp5b, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
