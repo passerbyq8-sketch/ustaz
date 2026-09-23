@@ -7,6 +7,7 @@ const { fresh, runMutant, harness } = require('./output-reviewer-mutant-lib.cjs'
 // several older rows too; a mutant that removes one of those older rules removes this line with it, or it is masked.
 const CLOSE6B_LINE = "      if (here.length && !/[.؟!«»:\"]/u.test(gap)) return null;\n";
 const noClose6b = (source) => source.split(CLOSE6B_LINE).join('');
+const noComplete4 = (source) => source.split('const COMPLETE4_COLON_JAR_RE = /').join('const COMPLETE4_COLON_JAR_RE = /(?!)');
 const noClose6c = (source) => source
   .split('function formulaOutOfPlace(before, after) {\n').join('function formulaOutOfPlace(before, after) {\n  return false; // mutant\n')
   .split("        && /^[وف]?(?:ال|ابن|ابو|أبو|الإمام|الامام|الحافظ|الشيخ)/u.test(clause)) return null;\n").join('        && false) return null;\n');
@@ -1172,10 +1173,27 @@ const unsupportedIsHandledSilently = (module) => {
         ];
         for (const [tag, from, survives] of seams6c) {
           const m6c = await runMutant({ sourceFile: REVIEWER, name: 'without [close-6c] ' + tag,
-            transform: (source) => source.split(from).join(tag === 'own-subject' ? '        && false) return null;\n' : ''), survives });
+            transform: (source) => noComplete4(source).split(from).join(tag === 'own-subject' ? '        && false) return null;\n' : ''), survives });
           ok('close-6c ' + tag + ' mutant seam applied', m6c.changed, m6c.error);
           ok('MUTANT KILLED: without [close-6c] ' + tag + ' the formula is written out of its place again', m6c.loaded && m6c.survived === false, JSON.stringify(m6c));
         }
+      }
+      // [111-complete-4] — the preview of 96828f4 (battery Q7 «مفصّل»): «ومن أهل العلم من يرى في الكامل:» — the formula and then
+      // a book's title. r36/h53: the preposition that opens a source goes with the name; a «في» phrase the colon closes is one.
+      {
+        const ROWS4 = [
+          ['وقال ابن عدي في الكامل: إن أبا الصلت الهروي أنكر هذا الحديث على أبي معاوية.',
+            'ومن أهل العلم من يرى: أن أبا الصلت الهروي أنكر هذا الحديث على أبي معاوية.'],
+          ['وقال شيخ الإسلام ابن تيمية في منهاج السنة: هذا الحديث كذب.', 'ومن أهل العلم من يرى: هذا الحديث كذب.'],
+        ];
+        for (const [input, want] of ROWS4) ok('complete-4 ' + input.slice(0, 28) + '…: the title goes with the name', say68(input) === want, say68(input));
+        const SAME4 = 'قال ابن قدامة في المغني: إن الماء الطهور هو الباقي على أصل خلقته.';
+        ok('complete-4 control · «في المغني:» goes with the name as it did', say68(SAME4) === 'ومن أهل العلم من يرى: أن الماء الطهور هو الباقي على أصل خلقته.', say68(SAME4));
+        const m4 = await runMutant({ sourceFile: REVIEWER, name: 'without [complete-4]',
+          transform: (source) => source.split('const COMPLETE4_COLON_JAR_RE = /').join('const COMPLETE4_COLON_JAR_RE = /(?!)'),
+          survives: (mod) => ROWS4.every(([input, want]) => mod.reviewAnswer({ text: input, evidence: [], domain: 'fiqh', mode: 'chat' }).text.split('\n')[0] === want) });
+        ok('complete-4 mutant seam applied', m4.changed, m4.error);
+        ok('MUTANT KILLED: without [complete-4] the formula is followed by a book title again', m4.loaded && m4.survived === false, JSON.stringify(m4));
       }
       const seams6 = [
         ['narrator', "  if (OWNER_FORMULA_NARRATOR_LEAD_RE.test(frame)) return 'narrator';\n", 'close6-narrator-sulayman'],
