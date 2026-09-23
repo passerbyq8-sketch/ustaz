@@ -2102,6 +2102,13 @@ export default async function handler(req, res) {
               takhrijProvenRows.push({ title: '', passage: '', proseProof: { book, matn: String(entry.matn || '') } });
             }
           }
+          // [111-close-2] — the question's own matn, and the books its atoms proved, for a credit that quotes nothing.
+          if (pass.askedProof && pass.askedProof.matn) {
+            takhrijProvenRows.push({ title: '', passage: '', askedMatn: String(pass.askedProof.matn) });
+            for (const book of pass.askedProof.books || []) {
+              takhrijProvenRows.push({ title: '', passage: '', proseProof: { book, matn: String(pass.askedProof.matn) } });
+            }
+          }
           // ITEM 87 — every name printed here is on guards/telemetry-text-guard.cjs’s reviewed
           // list, and every one of them is a count, a flag or a fixed code. `requested` is how
           // many quoted matns the answer held, `matched` how many the library sourced; neither

@@ -4355,7 +4355,7 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       askE.includes("takhrijProvenRows.push({ title: '', passage: '', proseProof: { book, matn: String(entry.matn || '') } });")
         && askE.includes("takhrijProvenRows.push({ title: book, passage: book + ' ' + String(entry.matn || '') })"));
     const srcE = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
-    const seamE = '    const prune = prunedProseCredit(s, sen, body, unsupported, proseProofs);';
+    const seamE = '    const prune = prunedProseCredit(s, sen, body, unsupported, proseProofs, asked);';
     const mutatedE = srcE.split(seamE).join('    const prune = null; // mutant');
     ok('MUTANT e55 prune seam applied', mutatedE !== srcE);
     const tmpE = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-e55-mut-'));
@@ -4508,7 +4508,7 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       /متفق عليه/u.test(TL.lockTakhrij('قال النبي صلى الله عليه وسلم: «' + NIYYAT + '» (متفق عليه).', [{ title: 'البخاري', passage: 'البخاري ' + NIYYAT }, { title: 'مسلم', passage: 'مسلم ' + NIYYAT }]).text));
     const src64r = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
     for (const [tag, from, to, back] of [
-      ['page-proves-again', '  if (words.length < 2) return true;\n  return false;\n}', '  if (words.length < 2) return true;\n  return true; // mutant\n}',
+      ['page-proves-again', '  if (words.length < 2) return !asked;\n  return false;\n}', '  if (words.length < 2) return !asked;\n  return true; // mutant\n}',
         (mod) => mod.lockTakhrij(W, [tied]).text === W],
       ['sahihayn-by-page', ' && !SHAYKHAYN_PHRASES.has(p)) return true;', ') return true; // mutant',
         (mod) => mod.lockTakhrij(W2, [pageJ]).text.includes('في الصحيحين')],
@@ -4533,7 +4533,7 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     ok('B4B-64 control · where the LIBRARY proved الترمذي for this matn, [e55] keeps the credit as before',
       lib.text.includes('رواه الترمذي'), JSON.stringify(lib.text));
     const src64 = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
-    const seam64 = '\n      || !creditTiedToMatn(sp, s, sen, body, hay))); // [111-b4b-64]';
+    const seam64 = '\n      || !creditTiedToMatn(sp, s, sen, body, hay, asked))); // [111-b4b-64]';
     const mutated64 = src64.split(seam64).join('));');
     ok('MUTANT B4B-64 matn-tie seam applied', mutated64 !== src64);
     const tmp64 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-b4b64-mut-'));
@@ -4815,6 +4815,46 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         !mod.lockTakhrij(H + rows[0][1], []).text.includes('تحريم الغش'));
     } finally {
       try { fs.rmSync(tmp62, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
+  // ── [111-close-2] · THE OWNER'S DECISION 2: THE QUESTION'S OWN MATN IS THE MATN OF A CREDIT THAT QUOTES NONE ──
+  // MEASURED on the preview of efcdcf4 (battery Q3, the owner's witness of row 64): «ما صحة حديث النظافة من الإيمان؟»
+  // answered «حديثٌ ضعيفٌ لا يصحّ…، رواه الترمذيُّ بإسنادٍ ضعيف، كما بيّن ذلك ابنُ باز رحمه الله.» — no Tirmidhī row, and
+  // the credit passed because the sentence quoted nothing. Now the pass hands the seal the asked text and the books its
+  // atoms proved; the credit is held to them, and where none is proved its clause goes and the verdict stays.
+  console.log('\n--- CLOSE-2. A CREDIT THAT QUOTES NOTHING IS HELD TO THE QUESTION\'S OWN MATN ---');
+  {
+    const TK = await esm('lib/takhrij.js');
+    const asked = TK.askedMatnOf('ما صحة حديث النظافة من الإيمان؟');
+    ok('CLOSE-2 · the unquoted question\'s matn is read after «حديث»', asked === 'النظافة من الإيمان', JSON.stringify(asked));
+    ok('CLOSE-2 · a quoted question is read as [b27b] reads it, and a trailing «ثابت؟» is not the matn',
+      TK.askedMatnOf('هل حديث «نوم الصائم عبادة» ثابت؟') === 'نوم الصائم عبادة' && TK.askedMatnOf('هل حديث سيد القوم خادمهم ثابت؟') === 'سيد القوم خادمهم');
+    ok('CLOSE-2 control · a question naming no hadith has no asked matn', TK.askedMatnOf('ما حكم بيع الكلب؟') === '');
+    const W = 'حديثٌ ضعيفٌ لا يصحّ عن النبيّ صَلَّى اللهُ عَلَيْهِ وَسَلَّم، رواه الترمذيُّ بإسنادٍ ضعيف، كما بيّن ذلك ابنُ باز رحمه الله.';
+    const PAGE = { title: 'الحكم على حديث: (النظافة من الإيمان)', passage: 'هذا الحديث رواه الترمذي بإسناد ضعيف: النظافة من الإيمان' };
+    const ASK = { title: '', passage: '', askedMatn: asked };
+    const w = TL.lockTakhrij(W, [PAGE, ASK]).text;
+    ok('CLOSE-2 W · «رواه الترمذيُّ بإسنادٍ ضعيف» goes; «حديثٌ ضعيفٌ لا يصحّ… كما بيّن ذلك ابنُ باز» stays',
+      w === 'حديثٌ ضعيفٌ لا يصحّ عن النبيّ صَلَّى اللهُ عَلَيْهِ وَسَلَّم، كما بيّن ذلك ابنُ باز رحمه الله.', JSON.stringify(w));
+    ok('CLOSE-2 control · with the Tirmidhī proved by the atoms the credit stands',
+      TL.lockTakhrij(W, [PAGE, ASK, { title: '', passage: '', proseProof: { book: 'الترمذي', matn: asked } }]).text === W);
+    ok('CLOSE-2 control · with no asked-matn row the lock reads the sentence as before', TL.lockTakhrij(W, [PAGE]).text === W);
+    const two = 'رواه أبو داود والترمذي، وهو حديث ضعيف.';
+    const pr = TL.lockTakhrij('قال: نعم.\n' + two, [ASK, { title: '', passage: '', proseProof: { book: 'أبو داود', matn: asked } }]).text;
+    ok('CLOSE-2 sibling · two names, one proved: [e55] keeps the proved one and prunes the other', pr.includes('رواه أبو داود') && !pr.includes('الترمذي'), JSON.stringify(pr));
+    const src = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam = '  if (words.length < 2) return !asked;\n';
+    const mut = src.split(seam).join('  if (words.length < 2) return true;\n');
+    ok('MUTANT CLOSE-2 seam applied', mut !== src);
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-close2-mut-'));
+    try {
+      const f = path.join(tmp, 'takhrij-lock.mjs');
+      fs.writeFileSync(f, mut.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + f.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [close-2] «رواه الترمذي» passes off the page again', mod.lockTakhrij(W, [PAGE, ASK]).text === W);
+    } finally {
+      try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
