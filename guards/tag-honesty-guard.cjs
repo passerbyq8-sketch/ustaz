@@ -1195,6 +1195,24 @@ const unsupportedIsHandledSilently = (module) => {
         ok('complete-4 mutant seam applied', m4.changed, m4.error);
         ok('MUTANT KILLED: without [complete-4] the formula is followed by a book title again', m4.loaded && m4.survived === false, JSON.stringify(m4));
       }
+      // [111-complete-5] — the preview of 27dfa58 (round 5 Q14 «موجز»): «الفريقُ الأوّل يرى…» took the formula and left «أما
+      // الفريقُ الآخر…» with no first party. h53: a speaker who names nobody is not touched.
+      {
+        const ROWS5 = [
+          'الفريقُ الأوّل يرى التفريق بين نوعَين: التأمين التجاري، وهو أن تدفع مالاً لشركةٍ مقابل تعويضٍ محتمَل.',
+          'والفريق الثاني يرى أن التأمين كله محرم.',
+          'وقالت طائفة: لا يجوز.',
+          'وقال قومٌ: يجوز.',
+        ];
+        for (const input of ROWS5) ok('complete-5 ' + input.slice(0, 24) + '…: a party that names nobody is left as written', say68(input) === input, say68(input));
+        const SCHOOL5 = 'وقالت طائفة من أصحاب الشافعي: يجوز.';
+        ok('complete-5 control · a party reaching into a school keeps what it had', say68(SCHOOL5) === 'ومن أهل العلم من يرى: يجوز.', say68(SCHOOL5));
+        const m5 = await runMutant({ sourceFile: REVIEWER, name: 'without [complete-5]',
+          transform: (source) => source.split(' || COMPLETE5_NAMELESS_PARTY_RE.test(').join(' || false && COMPLETE5_NAMELESS_PARTY_RE.test('),
+          survives: (mod) => ROWS5.every((input) => mod.reviewAnswer({ text: input, evidence: [], domain: 'fiqh', mode: 'chat' }).text.split('\n')[0] === input) });
+        ok('complete-5 mutant seam applied', m5.changed, m5.error);
+        ok('MUTANT KILLED: without [complete-5] a nameless party takes the formula again', m5.loaded && m5.survived === false, JSON.stringify(m5));
+      }
       const seams6 = [
         ['narrator', "  if (OWNER_FORMULA_NARRATOR_LEAD_RE.test(frame)) return 'narrator';\n", 'close6-narrator-sulayman'],
         ['story', "  if (OWNER_FORMULA_REPORTED_STORY_RE.test(said)) return 'narration';\n", 'close6-story-bayhaqi'],
