@@ -5097,6 +5097,28 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp5b, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-close-5c] · «…والدليلُ على النسخ ما، …» — «ما» OF «ما رواه» IS A RELATIVE TOO ─────────────────────────
+  // MEASURED on the preview of 70e12db (battery Q21 «طالب علم»), reproduced offline on this lock.
+  console.log('\n--- CLOSE-5c. NO «ما،» LEFT BY A CREDIT CUT ---');
+  {
+    const H5c = 'سؤال.\nأما حديث «أفطر الحاجم والمحجوم» الذي يستدل به من قال بأنها تفطر، فقد بيّن أهل العلم أنه منسوخ، والدليل على النسخ ما رواه النسائي عن أبي سعيد الخدري أن النبي صلى الله عليه وسلم رخّص في الحجامة للصائم، والرخصة لا تكون إلا بعد عزيمة، فدل ذلك على أن الحكم بالإفطار كان أولًا ثم نُسخ.\nوالله أعلم.';
+    const w5c = TL.lockTakhrij(H5c, []).text;
+    ok('CLOSE-5c W · no «ما،» is left; the ruling «أنه منسوخ» and the reasoning after it stay',
+      !/ما،/u.test(w5c) && w5c.includes('فقد بيّن أهل العلم أنه منسوخ، والرخصة لا تكون إلا بعد عزيمة'), JSON.stringify(w5c));
+    const src5c = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const mut5c = src5c.split(", 'ما', 'مما', 'فيما', 'بما'].map((w) => norm(w)));").join('].map((w) => norm(w)));');
+    ok('MUTANT CLOSE-5c seam applied', mut5c !== src5c);
+    const tmp5c = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-close5c-mut-'));
+    try {
+      const mf = path.join(tmp5c, 'takhrij-lock.mjs');
+      fs.writeFileSync(mf, mut5c.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + mf.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [close-5c] «…على النسخ ما،» again', /ما،/u.test(mod.lockTakhrij(H5c, []).text));
+    } finally {
+      try { fs.rmSync(tmp5c, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
