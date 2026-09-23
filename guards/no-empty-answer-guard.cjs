@@ -2662,6 +2662,33 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
         fs.rmSync(tmp11, { recursive: true, force: true });
       }
     }
+    // ── [111-close-12] · NO «لكن…» AFTER A DROPPED ANNOUNCEMENT, NO DISCLOSURE WHERE NO GRADE STANDS ─────────────
+    // MEASURED over the roots rounds: round 1 Q9 «موجز» and round 2 Q1 opened on «لكن…» (`tool_announcement_dropped`);
+    // round 1 Q1 carried «وهذا النقلُ لدرجةِ الحديث…» under an answer whose only «grade» was the noun «ألف حسنة».
+    {
+      const L12 = await fresh(LOOP, 'close12-base');
+      ok('close-12 W · the announcement goes and so does the «لكنّ» that answered it',
+        L12.deliverableText('سأبحث لك في المصادر الآن. لكنّ الأصل في المسألة الجواز.\nوالله أعلم.') === 'الأصل في المسألة الجواز.\nوالله أعلم.');
+      ok('close-12 control · a «لكنّ» whose first half stands is untouched',
+        L12.deliverableText('الأصل الجواز. لكنّ الأحوط الترك.') === 'الأصل الجواز. لكنّ الأحوط الترك.');
+      const D12 = await fresh(path.join(ROOT, 'lib', 'policy', 'takhrij-disclosure.js'), 'close12-disclosure');
+      ok('close-12 W · «ألف حسنة» grades nothing, and the disclosure has no grade to speak of',
+        D12.gradeStandsIn('ولو كان في ظاهره ألف حسنة') === false && D12.gradeStandsIn('وحسّنه الترمذي') === true);
+      const src12 = fs.readFileSync(LOOP, 'utf8').replace(/\r\n/g, '\n');
+      const seam12 = '    : repairOrphanedOpeners(stripToolProtocol(text), joinedOut).text;';
+      const mut12 = src12.split(seam12).join('    : joinedOut;');
+      ok('MUTANT close-12 seam applied', mut12 !== src12);
+      const tmp12 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-close12-mut-'));
+      try {
+        const f12 = path.join(tmp12, 'loop.mjs');
+        fs.writeFileSync(f12, importsFromTree(mut12, LOOP), 'utf8');
+        const mod = await fresh(f12, 'close12-mutant');
+        ok('MUTANT KILLED: without [close-12] the answer opens on «لكنّ» again',
+          mod.deliverableText('سأبحث لك في المصادر الآن. لكنّ الأصل في المسألة الجواز.\nوالله أعلم.').startsWith('لكنّ'));
+      } finally {
+        fs.rmSync(tmp12, { recursive: true, force: true });
+      }
+    }
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
