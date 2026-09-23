@@ -3782,7 +3782,8 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     for (const [label, input, want] of [
       ['sibling · «وضعّفه الألبانيّ» joined, no page: goes',
         'قال رسول الله صلى الله عليه وسلم: «لا تقرأ الحائض ولا الجنب شيئا من القرآن».\nوضعّفه الألبانيّ.\nوذهب الجمهور إلى المنع.',
-        'قال رسول الله صلى الله عليه وسلم: «لا تقرأ الحائض ولا الجنب شيئا من القرآن».\nوذهب الجمهور إلى المنع.\nوتُراجَع المسألة مع أهل العلم لظهور الخلاف فيها.'],
+        // [111-close-14] — one view («وذهب الجمهور إلى المنع») sets out no disagreement: no khilaf tail after it.
+        'قال رسول الله صلى الله عليه وسلم: «لا تقرأ الحائض ولا الجنب شيئا من القرآن».\nوذهب الجمهور إلى المنع.'],
       ['sibling · «قال ابن باز: إسناده جيد» through the reviewer: the grade goes, and with it the sentence it was all of',
         'ويجوز ذلك.\nقال ابن باز: إسناده جيد.\nوالله أعلم.', 'ويجوز ذلك.\nوالله أعلم.'],
       ['sibling · a general speaker with more to say keeps it; only the grade clause goes',

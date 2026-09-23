@@ -425,7 +425,7 @@ const unsupportedIsHandledSilently = (module) => {
       ok(witness.id + ': removal preserves the complete semantic claim and adds nothing to it',
         outputLines[0] === expected
           && out.verdict.khilafTrigger === expectedKhilafTrigger
-          && outputLines.length === (expectedKhilafTrigger ? 2 : 1), out.text);
+          && outputLines.length === (expectedKhilafTrigger && module.presentsTwoViews(expected) ? 2 : 1), out.text); // [111-close-14]
     }
 
     const joinedCalculation = 'سعر اليوم وس + ص مجموع المبلغين.';
@@ -1138,6 +1138,26 @@ const unsupportedIsHandledSilently = (module) => {
         ok('close-6 ' + tag + ' mutant seam applied', m6.changed, m6.error);
         ok('MUTANT KILLED: without [close-6] ' + tag + ' «' + id + '» is generalised again', m6.loaded && m6.survived === false, JSON.stringify(m6));
       }
+    }
+    // ── [111-close-14] · THE OWNER'S DECISION 7: THE KHILAF TAIL FOLLOWS ONLY AN ANSWER THAT SET OUT TWO VIEWS ──
+    // MEASURED over the 246 stored replies (close/fix14/count.txt): the tail stood on 98; 37 of them set out two views.
+    {
+      const R14 = await fresh(REVIEWER, 'close14-base');
+      const TAIL14 = 'وتُراجَع المسألة مع أهل العلم لظهور الخلاف فيها.';
+      const ev14 = [{ id: 'k1', title: 'فتوى', snippet: 'اختلف العلماء في هذه المسألة على قولين', url: 'https://example.org/k1' }];
+      const said = (mod, text) => mod.reviewAnswer({ text, evidence: ev14, domain: 'fiqh', mode: 'chat' }).text;
+      const IJMA = 'نعم، تحريم الزنا من المسائل التي انعقد عليها إجماع الأمة، ولم يختلف فيها أحد.';
+      ok('close-14 W · a consensus answer takes no khilaf tail', !said(R14, IJMA).includes(TAIL14), said(R14, IJMA));
+      const DENY = 'وليس بين أهل العلم خلاف في وجوب الصلاة.';
+      ok('close-14 W · nor does an answer that DENIES a disagreement', !said(R14, DENY).includes(TAIL14));
+      const TWO = 'اختلف العلماء في زكاة الحلي على قولين: فذهب الحنفية إلى الوجوب، وذهب الجمهور إلى عدمه.';
+      ok('close-14 control · an answer that sets out two views keeps the tail', said(R14, TWO).includes(TAIL14), said(R14, TWO));
+      ok('close-14 control · presentsTwoViews reads «ومنهم من…» and «خلافًا لـ…»', R14.presentsTwoViews('ومنهم من قال بالجواز.') && R14.presentsTwoViews('وهو قول الجمهور خلافًا للحنفية.'));
+      const m14 = await runMutant({ sourceFile: REVIEWER, name: 'without [close-14]',
+        transform: (source) => source.split("if (khilafTrigger && presentsTwoViews(output.join('\\n')) // [111-close-14]").join('if (khilafTrigger'),
+        survives: (mod) => !mod.reviewAnswer({ text: DENY, evidence: [], domain: 'fiqh', mode: 'chat' }).text.includes(TAIL14) });
+      ok('close-14 mutant seam applied', m14.changed, m14.error);
+      ok('MUTANT KILLED: without [close-14] the consensus answer takes the tail again', m14.loaded && m14.survived === false, JSON.stringify(m14));
     }
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));

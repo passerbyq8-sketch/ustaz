@@ -1085,7 +1085,8 @@ const HONEST = Object.freeze([REMOVED, MARKED]);
   {
     const REV45 = await esm('lib/output-reviewer.js');
     const TAIL45 = 'وتُراجَع المسألة مع أهل العلم لظهور الخلاف فيها.';
-    const T45 = 'والحديث الضعيف لا يعمل به في الأحكام.\nلكن لو ذكر الضعيف كما ذكره الجمهور فلا حرج';
+    // [111-close-14] — a first line that sets out the two views, so the tail is due (decision 7); the placement is the row's.
+    const T45 = 'اختلف العلماء في العمل بالحديث الضعيف على قولين.\nوالحديث الضعيف لا يعمل به في الأحكام.\nلكن لو ذكر الضعيف كما ذكره الجمهور فلا حرج';
     const out45 = REV45.reviewAnswer({ text: T45, evidence: [], domain: 'fiqh', mode: 'chat' }).text;
     ok('b45 W · the tail follows the unterminated sentence that called it, at the end of the part',
       out45 === T45 + '\n' + TAIL45, JSON.stringify(out45));

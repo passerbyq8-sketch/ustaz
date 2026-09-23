@@ -318,9 +318,12 @@ function verbatimMarkerCopies(files, markerSets) {
 
     ok('B-2 fixture carries the six required source/opinion/prose witnesses',
       Array.isArray(fixture.b2?.cases) && fixture.b2.cases.length === 6);
+    // [111-close-14] — the owner's decision 7: the tail follows only an answer that sets out two views. The fixture's
+    // count stands where the text does; where it sets out one view the count is zero, asked of the module under test.
+    const tailUnder = (mod, text, n) => (typeof mod.presentsTwoViews === 'function' && !mod.presentsTwoViews(text) ? 0 : n);
     const b2CasePasses = (mod, test) => {
       const result = mod.reviewAnswer(test.input);
-      return occurrences(result.text, fixture.c2.tail) === test.expect.tailCount
+      return occurrences(result.text, fixture.c2.tail) === tailUnder(mod, test.input.text, test.expect.tailCount)
         && result.verdict.khilafTrigger === test.expect.trigger
         && result.verdict.khilafFromSource === test.expect.fromSource
         && result.verdict.khilafFromOpinions === test.expect.fromOpinions
@@ -350,7 +353,7 @@ function verbatimMarkerCopies(files, markerSets) {
       });
       ok(test.id + ': source construction classification is exact',
         result.verdict.khilafFromSource === test.expect
-          && occurrences(result.text, fixture.c2.tail) === (test.expect ? 1 : 0),
+          && occurrences(result.text, fixture.c2.tail) === tailUnder(module, markerBase.text, test.expect ? 1 : 0), // [111-close-14]
         JSON.stringify(result.verdict));
     }
 
@@ -358,7 +361,7 @@ function verbatimMarkerCopies(files, markerSets) {
       Array.isArray(fixture.b2b?.cases) && fixture.b2b.cases.length === 8);
     const b2bCasePasses = (mod, test) => {
       const result = mod.reviewAnswer(test.input);
-      return occurrences(result.text, fixture.c2.tail) === test.expect.tailCount
+      return occurrences(result.text, fixture.c2.tail) === tailUnder(mod, test.input.text, test.expect.tailCount) // [111-close-14]
         && result.verdict.khilafTrigger === test.expect.trigger
         && result.verdict.khilafFromSource === test.expect.fromSource
         && result.verdict.khilafFromOpinions === test.expect.fromOpinions
@@ -548,7 +551,7 @@ function verbatimMarkerCopies(files, markerSets) {
       sourceFile: REVIEWER,
       name: 'three-triggers-three-tails',
       transform: (source) => source.replace(
-        '    if (khilafTrigger && !output.some((chunk) => chunk.includes(KHILAF_TAIL.trim()))) {\n      notices.push(KHILAF_TAIL.trim());\n    }',
+        "    if (khilafTrigger && presentsTwoViews(output.join('\\n')) // [111-close-14]\n      && !output.some((chunk) => chunk.includes(KHILAF_TAIL.trim()))) {\n      notices.push(KHILAF_TAIL.trim());\n    }",
         '    if (khilafFromSource) notices.push(KHILAF_TAIL.trim());\n    if (normalizedKhilafFromOpinions === true) notices.push(KHILAF_TAIL.trim());\n    if (khilafFromModelProse) notices.push(KHILAF_TAIL.trim()); // mutant: one tail per trigger'),
       survives: (mutantModule) => (fixture.b2b?.cases || [])
         .every((test) => b2bCasePasses(mutantModule, test)),
