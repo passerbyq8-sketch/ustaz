@@ -109,6 +109,7 @@ import { enforceLiveNumberSourcing } from '../lib/live-number-source.js';
 import { classifyImpermissibleRequest, impermissibleCounsel } from '../lib/policy/impermissible-request.js';
 // A takhrij nobody published is never emitted. See lib/takhrij-lock.js for the measured incident.
 import { lockTakhrij } from '../lib/takhrij-lock.js';
+import { repairOrphanedOpeners } from '../lib/orphan-openers.js';
 import { finalizeReaderText, FINALIZER_REFUSAL } from '../lib/finalize-reader-text.js';
 import { createFinalizedSseResponse } from '../lib/finalized-sse-writer.js';
 // §١ — `askInFlight` beside it, from the same module and for the same reason: the wrapper is the
@@ -1175,6 +1176,10 @@ export default async function handler(req, res) {
     if (locked.outcome === 'REFUSED') {
       takhrijSealRefused = true;
       return FINALIZER_REFUSAL;
+    }
+    // [111-close-5] — the sentence after one this seal cut does not open on its connective, frame or back-reference.
+    if (locked.text !== String(text == null ? '' : text)) {
+      locked.text = repairOrphanedOpeners(String(text == null ? '' : text), locked.text).text;
     }
     return withTakhrijLimit(locked.text);
   };

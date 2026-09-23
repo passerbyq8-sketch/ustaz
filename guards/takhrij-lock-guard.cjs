@@ -4348,7 +4348,8 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       TL.lockTakhrij(GROUP, [proof('البخاري', KALIMA)]).outcome === TL.lockTakhrij(GROUP, []).outcome);
     const askE = fs.readFileSync(path.join(REPO, 'api/ask.js'), 'utf8').replace(/\r\n/g, '\n');
     ok('e55 seat · api/ask.js: a lock that REFUSED returns FINALIZER_REFUSAL, not the empty text and not the limit sentence',
-      askE.includes("    if (locked.outcome === 'REFUSED') {\n      takhrijSealRefused = true;\n      return FINALIZER_REFUSAL;\n    }\n    return withTakhrijLimit(locked.text);"));
+      askE.includes("    if (locked.outcome === 'REFUSED') {\n      takhrijSealRefused = true;\n      return FINALIZER_REFUSAL;\n    }\n    // [111-close-5]")
+        && askE.includes('    }\n    return withTakhrijLimit(locked.text);\n  };')); // [111-close-5] the orphan repair sits between them
     ok('e55 seat · ...and the finalizer seat refuses that answer as its own (ok:false, the caller\'s fallback sentence)',
       askE.includes("      const result = takhrijSealRefused\n        ? { ok: false, text: String(input.fallbackText || FINALIZER_REFUSAL), problems: ['TAKHRIJ_SEAL_REFUSED'],"));
     ok('e55 seat · ...and the prose proofs travel with the proven rows, beside and not instead of them',
@@ -4914,6 +4915,49 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       ok('MUTANT KILLED: without [close-4] the ruling goes with the credit again', !lock4(mod, W4).includes('فالحكمُ'));
     } finally {
       try { fs.rmSync(tmp4, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
+  // ── [111-close-5] · A SENTENCE THAT LEANED ON A CUT ONE DOES NOT OPEN ON ITS CONNECTIVE, FRAME OR BACK-REFERENCE ──
+  // MEASURED over the roots rounds (C-lock-orphan, 10 turns) and on the owner's own screen («المستشار مؤتمن»).
+  console.log('\n--- CLOSE-5. NO ORPHANED OPENER AFTER A CUT ---');
+  {
+    const OO = await esm('lib/orphan-openers.js');
+    const R = (a, b) => OO.repairOrphanedOpeners(a, b).text;
+    ok('CLOSE-5 W · «لكنَّ…» after its cut predecessor loses the connective',
+      R('حديث «الدعاء مخ العبادة» رواه الترمذي.\nلكنَّ ضعفَ هذا اللفظ لا يعني أن الدعاء ليس عبادة.', 'لكنَّ ضعفَ هذا اللفظ لا يعني أن الدعاء ليس عبادة.')
+        === 'ضعفَ هذا اللفظ لا يعني أن الدعاء ليس عبادة.');
+    ok('CLOSE-5 W · «قال: «…».» whose speaker was cut goes (round 4 Q12)',
+      R('نعم، هو حديث صحيح ثابت، وتمام لفظه: «لا عدوى ولا طيرة» قيل: وما الفأل؟\nقال: «الكلمة الطيبة».\nوالعدوى المنفية هي اعتقاد التأثير.', 'قال: «الكلمة الطيبة».\nوالعدوى المنفية هي اعتقاد التأثير.')
+        === 'والعدوى المنفية هي اعتقاد التأثير.');
+    ok('CLOSE-5 W · «ورد هذا الكلامُ…» with its referent cut goes (round 1 Q4)',
+      R('قال رسول الله كذا، رواه أحمد. وقال فيه الألباني: موضوع.\nورد هذا الكلامُ حديثًا عند أهل العلم ولا يصح.\nوالصحيح في الباب ما رواه مسلم.', 'ورد هذا الكلامُ حديثًا عند أهل العلم ولا يصح.\nوالصحيح في الباب ما رواه مسلم.')
+        === 'والصحيح في الباب ما رواه مسلم.');
+    ok('CLOSE-5 sibling · «وقد…» loses its «و», and a cascade «ولفظه:» then «ومنهم…» goes sentence by sentence',
+      R('وهذا حديث صحيح رواه الترمذي.\nوقد سُئل عنه ابن عثيمين فقال: إنه ضعيف.', 'وقد سُئل عنه ابن عثيمين فقال: إنه ضعيف.') === 'قد سُئل عنه ابن عثيمين فقال: إنه ضعيف.'
+        && R('رواه أبو داود بإسناد صحيح.\nولفظه: «كذا».\nومنهم من ضعّفه.\nوالمسألة فيها سعة.', 'ولفظه: «كذا».\nومنهم من ضعّفه.\nوالمسألة فيها سعة.') === 'والمسألة فيها سعة.');
+    ok('CLOSE-5 control · a frame that carries a ruling is never paid for style',
+      R('قال ابن حجر في الفتح: صحيح.\nقال: فيجب على المأموم أن يتابع إمامه.', 'قال: فيجب على المأموم أن يتابع إمامه.') === 'قال: فيجب على المأموم أن يتابع إمامه.');
+    ok('CLOSE-5 control · a sentence whose predecessor stands is untouched, and an untouched answer is byte-identical',
+      R('الأصل الجواز.\nلكنّ الأحوط الترك.', 'الأصل الجواز.\nلكنّ الأحوط الترك.') === 'الأصل الجواز.\nلكنّ الأحوط الترك.'
+        && R('حكم رواه البخاري.\nالأصل الجواز.\nلكنّ الأحوط الترك.', 'الأصل الجواز.\nلكنّ الأحوط الترك.') === 'الأصل الجواز.\nلكنّ الأحوط الترك.');
+    const SEAT5 = await esm('lib/finalize-reader-text.js');
+    const f5 = SEAT5.finalizeReaderText({ text: 'وهذا الحديث صحيحٌ ثابتٌ رواه الترمذي.\nلكنَّ الأحوطَ أن يُترَك.', sources: [], kind: 'answer' });
+    ok('CLOSE-5 seat · the finalizer runs it after its own cuts, and says so', !/^\s*لكن/u.test(f5.text) && (f5.degraded || []).some((d) => /^orphan-opener:/u.test(d)), JSON.stringify(f5.text));
+    const src5 = fs.readFileSync(path.join(REPO, 'lib/finalize-reader-text.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam5 = '  const orphans = repairOrphanedOpeners(original, text);\n';
+    const mut5 = src5.split(seam5).join("  const orphans = { text, repaired: [] };\n");
+    ok('MUTANT CLOSE-5 seam applied', mut5 !== src5);
+    ok('CLOSE-5 seal · api/ask.js runs the same repair on what its own seal cut', fs.readFileSync(path.join(REPO, 'api/ask.js'), 'utf8').includes('      locked.text = repairOrphanedOpeners(String(text == null ? ' + "''" + ' : text), locked.text).text;'));
+    const tmp5 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-close5-mut-'));
+    try {
+      const m5 = path.join(tmp5, 'finalize-reader-text.mjs');
+      fs.writeFileSync(m5, mut5.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + m5.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [close-5] the answer opens on «لكنَّ» again',
+        /^\s*لكن/u.test(mod.finalizeReaderText({ text: 'وهذا الحديث صحيحٌ ثابتٌ رواه الترمذي.\nلكنَّ الأحوطَ أن يُترَك.', sources: [], kind: 'answer' }).text));
+    } finally {
+      try { fs.rmSync(tmp5, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
