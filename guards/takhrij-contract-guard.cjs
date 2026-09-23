@@ -3023,6 +3023,33 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try { require('fs').rmSync(tmp13, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-close-1b] · THE FOURTH DOOR CARRIES BY THE SAME RULES AS THE EXACT COMPARISON ──────────────────────────
+  // MEASURED on this round's preview (battery Q21 «مفصّل»): «أن النبي ﷺ احتجم وهو صائم» ⟸ «(متفق عليه)»; مسلم's atom came
+  // through the door on the formula alone, one prefix letter away.
+  console.log('\n--- CLOSE-1b. THE DOOR TAKES NO FORMULA-ONLY ANCHOR ---');
+  {
+    const T1b = await esm('lib/takhrij.js');
+    const M1b = 'أن النبي صلى الله عليه وسلم احتجم وهو صائم';
+    const MUSLIM_OTHER = 'عن عائشة فأن النبي صلى الله عليه وسلم كان يقبل وهو صائم';
+    ok('CLOSE-1b W · a three-word matn is not carried through the door by its formula', !T1b.atomCarriesMatnByOnePrefix(MUSLIM_OTHER, M1b));
+    const KHALILI = 'أوصاني خليلي صلى الله عليه وسلم بثلاث صيام ثلاثة أيام من كل شهر وركعتي الضحى وأن أوتر قبل أن أنام';
+    ok('CLOSE-1b control · the door\'s own witness (مسلم 721 «بصيام») still passes it',
+      T1b.atomCarriesMatnByOnePrefix('عن أبي هريرة قال أوصاني خليلي صلى الله عليه وسلم بثلاث بصيام ثلاثة أيام من كل شهر وركعتي الضحى وأن أوتر قبل أن أرقد', KHALILI));
+    const src1b = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam1b = '  if (ownWordCount(words) < ANCHOR_MIN_OWN_WORDS) return false; // [111-close-1b]\n';
+    const mut1b = src1b.split(seam1b).join('').split('  if (ownWordCount(words.slice(0, cut)) < MIN_ANCHOR_WORDS) return false; // [111-close-1b]\n').join('');
+    ok('MUTANT CLOSE-1b seam applied', mut1b !== src1b);
+    const tmp1b = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-close1b-mut-'));
+    try {
+      const f1b = path.join(tmp1b, 'takhrij.mjs');
+      require('fs').writeFileSync(f1b, mut1b.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + f1b.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [close-1b] the formula carries the matn through the door again', mod.atomCarriesMatnByOnePrefix(MUSLIM_OTHER, M1b));
+    } finally {
+      try { require('fs').rmSync(tmp1b, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
