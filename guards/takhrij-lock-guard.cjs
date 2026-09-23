@@ -4600,6 +4600,13 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       g62(KAHF) === 'وقد استحبَّ العلماء قراءتها لذلك.', JSON.stringify(g62(KAHF)));
     ok('ROOTS-62 control · an unsourced authentication with nothing after it still goes', g62('وهو حديثٌ صحيحٌ ثابت.') === '', JSON.stringify(g62('وهو حديثٌ صحيحٌ ثابت.')));
     ok('ROOTS-62 control · a negation in ANOTHER clause protects nothing', g62('لم يرد غيره في الباب، وهو حديثٌ صحيحٌ ثابت.') === '', JSON.stringify(g62('لم يرد غيره في الباب، وهو حديثٌ صحيحٌ ثابت.')));
+    // [111-roots-62] follow-up — MEASURED on the corpus replay after 7e589ae (S-W1x-grade-in-item): the negation window
+    // read the «لم» of the pass's own bracket «(أبو داود · لم يوقف على حكم)» and kept «وهو حديث صحيح» beside it.
+    const BRK = '2. العقل: فلا يجب على المجنون، لقول النبي صلى الله عليه وسلم: «رفع القلم عن ثلاثة: عن النائم حتى يستيقظ» (أبو داود · لم يوقف على حكم) وهو حديث صحيح';
+    ok('ROOTS-62 control · a bracket\'s «لم يوقف على حكم» negates nothing: the model\'s «وهو حديث صحيح» beside it still goes',
+      !/حديث صحيح/u.test(g62(BRK)), JSON.stringify(g62(BRK)));
+    ok('ROOTS-62 control · nor does a negation inside the quoted matn', !/حديث صحيح/u.test(g62('قال: «لا يؤمن أحدكم حتى يحب لأخيه» وهو حديث صحيح')),
+      JSON.stringify(g62('قال: «لا يؤمن أحدكم حتى يحب لأخيه» وهو حديث صحيح')));
     ok('ROOTS-62 control · a grade clause with no ruling after the comma still goes whole',
       g62('فهو حديثٌ حسنٌ، وقد صنّف فيه العلماء.') === '', JSON.stringify(g62('فهو حديثٌ حسنٌ، وقد صنّف فيه العلماء.')));
     const src62r = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
