@@ -90,6 +90,10 @@ const shapedAtomFor = (id, matn, companion) => (SILSILA_ENTRY_IDS.has(id) ? '36 
 
 const answerWith = (matn) => `الحمد لله. قال النبي صلى الله عليه وسلم: «${matn}» وهذا أصل.`;
 
+// [111-complete-6] — the whole-carry rule out, for the older mutants it would otherwise mask.
+const noComplete6 = (source) => source
+  .split('function carriesTheWholeMatn(narration, matn) {').join('function carriesTheWholeMatn(narration, matn) {\n  return true; // mutant')
+  .split('function carriesTheWholeMatnByOnePrefix(narration, matn) {').join('function carriesTheWholeMatnByOnePrefix(narration, matn) {\n  return true; // mutant');
 const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
   || { matn, subjectIds: [], atoms: [] });
 
@@ -1743,7 +1747,7 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       T.atomCarriesMatn(HEADING_ONLY, MATN8) === true);
     const srcS8 = fsS8.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8');
     const SEAM_S8 = 'if (!atomCarriesMatn(narrationOf(atom), matn)) continue;';
-    const mutatedS8 = srcS8.split(SEAM_S8).join('if (!atomCarriesMatn(atom, matn)) continue;');
+    const mutatedS8 = noComplete6(srcS8).split(SEAM_S8).join('if (!atomCarriesMatn(atom, matn)) continue;'); // [111-complete-6]
     ok('MUTANT S8 heading-proves-a-book seam applied', mutatedS8 !== srcS8);
     const dirS8 = fsS8.mkdtempSync(path.join(osS8.tmpdir(), 'ustaz-111-s8-mut-'));
     try {
@@ -2028,7 +2032,7 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       T21.atomCarriesMatn('أمر الناس أن يكون آخر عهدهم بالبيت إلا أنه خفف عن المرأة الحائض', 'أمر الناس أن يكون آخر عهدهم بالبيت، إلا أنه خفف عن الحائض'));
     const src21 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
     const seam = "  return !COMPANION_VOICE_RE.test(' ' + words.slice(cut).join(' ') + ' ');";
-    const mutated = src21.split(seam).join('  return true; // mutant');
+    const mutated = noComplete6(src21).split(seam).join('  return true; // mutant'); // [111-complete-6]
     ok('MUTANT B21 companion-voice seam applied', mutated !== src21);
     const tmp = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-b21-mut-'));
     try {
@@ -2551,7 +2555,10 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     const K = 'أوصاني خليلي بثلاث صيام ثلاثة أيام من كل شهر وركعتي الضحى وأن أوتر قبل أن أنام';
     const KM = 'أوصاني خليلي بثلاث بصيام ثلاثة أيام من كل شهر وركعتي الضحى وأن أوتر قبل أن أرقد';
     const w = await run20(T20, K, twoBooks(K, K, KM));
-    ok('B4B-20 W · «صيام» against مسلم\'s «بصيام», al-Bukhari exact: «(متفق عليه)»', w.includes('(' + L.AGREED_UPON + ')'), w);
+    // [111-complete-6]: was «(متفق عليه)». مسلم 721 closes «وأن أوتر قبل أن أرقد», the quotation (al-Bukhari's wording) «…قبل أن
+    // أنام»: the door takes «بصيام» and nothing takes «أرقد/أنام», so مسلم's atom does not carry the whole quotation and proves
+    // no half of the bracket. al-Bukhari, who carries it whole, stands alone. The door itself is untouched (the rows below).
+    ok('B4B-20 W · «صيام» against مسلم\'s «بصيام… أرقد», al-Bukhari exact: «(البخاري)» — مسلم does not carry the whole quotation [complete-6]', w.includes('(البخاري)') && !w.includes('(' + L.AGREED_UPON + ')'), w);
     for (const [label, answer, muslim] of [
       ['ف · «إذا» against «فإذا»', 'إذا استيقظ أحدكم من نومه فليغسل يده قبل أن يدخلها في الإناء', 'فإذا استيقظ أحدكم من نومه فليغسل يده قبل أن يدخلها في الإناء'],
       ['و · «الصلاة» against «والصلاة» in the middle', 'الطهور شطر الإيمان الصلاة نور والصدقة برهان', 'الطهور شطر الإيمان والصلاة نور والصدقة برهان'],
@@ -2923,7 +2930,9 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     const runC = async (mod) => (await mod.applyTakhrij('قال النبي صلى الله عليه وسلم: «' + MATN + '» وهذا فضل عظيم.',
       { env: ON, lookup: lookupOf({ [MATN]: { matn: MATN, subjectIds: ['FC-000685', 'FC-000703'], atoms: [KHUZAYMA_HEADING, HIBBAN_3652] } }) })).text;
     const wc = await runC(TC);
-    ok('CLOSE-1 W · no «(ابن خزيمة…)» off the heading; ابن حبان, who has it from the Prophet ﷺ, stands', !wc.includes('(ابن خزيمة') && wc.includes('(ابن حبان'), JSON.stringify(wc));
+    // [111-complete-6]: was «…ابن حبان stands». ابن حبان 3652 says «صيام الدهر وقيامه», the quotation «صوم الدهر كله»: his atom
+    // carries the opening and not the whole quotation, so it proves no parentheses either.
+    ok('CLOSE-1 W · no «(ابن خزيمة…)» off the heading; and no «(ابن حبان…)», whose atom does not carry the whole quotation [complete-6]', !wc.includes('(ابن خزيمة') && !wc.includes('(ابن حبان'), JSON.stringify(wc));
     ok('CLOSE-1 sibling · an author\'s own words («قال أبو بكر: …») carrying a long matn are not his',
       !V('قال أبو بكر: وفي هذا دليل على أن صوم ثلاثة أيام من كل شهر صوم الدهر كله إذا كانت الحسنة بعشر أمثالها', MATN));
     ok('CLOSE-1 sibling · a long report that names the Prophet ﷺ in its opening, inside a heading, is the heading',
@@ -2947,7 +2956,7 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
         (mod) => mod.carriedInTheProphetsVoice('باب ما جاء أن النبي صلى الله عليه وسلم كان إذا قام إلى الصلاة رفع يديه حتى يكونا حذو منكبيه', 'أن النبي صلى الله عليه وسلم كان إذا قام إلى الصلاة رفع يديه حتى يكونا حذو منكبيه')],
     ];
     for (const [tag, from, to, back] of seamsC) {
-      const mutated = srcC.split(from).join(to);
+      const mutated = noComplete6(srcC).split(from).join(to); // [111-complete-6]
       ok('MUTANT CLOSE-1 ' + tag + ' seam applied', mutated !== srcC);
       const tmp = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-close1-mut-'));
       try {
@@ -3048,6 +3057,36 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       ok('MUTANT KILLED: without [close-1b] the formula carries the matn through the door again', mod.atomCarriesMatnByOnePrefix(MUSLIM_OTHER, M1b));
     } finally {
       try { require('fs').rmSync(tmp1b, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
+  // ── [111-complete-6] · THE ATOM CARRIES THE WHOLE QUOTATION, OR IT PROVES NO PARENTHESES ────────────────────────
+  // MEASURED on the preview of 70e12db (battery Q1 «طالب علم»): «جعل رسول الله ﷺ ثلاثة أيام… إذا تطهّر فلبس خفّيه أن يمسح
+  // عليهما» ⟸ «(مسلم)». The atom (FC-000648, مسلم 276, as the twin returned it) carries the opening; the tail is Abū Bakra's.
+  console.log('\n--- COMPLETE-6. AN ATOM THAT CARRIES THE OPENING ALONE PROVES NO PARENTHESES ---');
+  {
+    const T6 = await esm('lib/takhrij.js');
+    const MUSLIM_276 = "24 - بَابُ التَّوْقِيتِ فِي الْمَسْحِ عَلَى الْخُفَّيْنِ 85 - (276) وَحَدَّثَنَا إِسْحَاقُ بْنُ إِبْرَاهِيمَ الْحَنْظَلِيُّ، أَخْبَرَنَا عَبْدُ الرَّزَّاقِ، أَخْبَرَنَا الثَّوْرِيُّ، عَنْ عَمْرِو بْنِ قَيْسٍ الْمُلَائِيِّ، عَنِ الْحَكَمِ بْنِ عُتَيْبَةَ، عَنِ الْقَاسِمِ بْنِ مُخَيْمِرَةَ، عَنْ شُرَيْحِ بْنِ هَانِئٍ، قَالَ: أَتَيْتُ عَائِشَةَ أَسْأَلُهَا عَنِ الْمَسْحِ عَلَى الْخُفَّيْنِ، فَقَالَتْ: عَلَيْكَ بِابْنِ أَبِي طَالِبٍ، فَسَلْهُ فَإِنَّهُ كَانَ يُسَافِرُ مَعَ رَسُولِ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ فَسَأَلْنَاهُ فَقَالَ: «جَعَلَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ ثَلَاثَةَ أَيَّامٍ وَلَيَالِيَهُنَّ لِلْمُسَافِرِ، وَيَوْمًا وَلَيْلَةً لِلْمُقِيمِ» قَالَ: وَكَانَ سُفْيَانُ، إِذَا ذَكَرَ عَمْرًا، أَثْنَى عَلَيْهِ (276) وَحَدَّثَنَا إِسْحَاقُ، أَخْبَرَنَا زَكَرِيَّا بْنُ عَدِيٍّ، عَنْ عُبَيْدِ اللهِ بْنِ عَمْرٍو، عَنْ زَيْدِ بْنِ أَبِي أُنَيْسَةَ، عَنِ الْحَكَمِ، بِهَذَا الْإِسْنَادِ مِثْلَهُ وحَدَّثَنِي زُهَيْرُ بْنُ حَرْبٍ، حَدَّثَنَا أَبُو مُعَاوِيَةَ، عَنِ الْأَعْمَشِ، عَنِ الْحَكَمِ، عَنِ الْقَاسِمِ بْنِ مُخَيْمِرَةَ، عَنْ شُرَيْحِ بْنِ هَانِئٍ، قَالَ سَأَلْتُ عائشةَ، عَنِ الْمَسْحِ عَلَى الْخُفَّيْنِ، فَقَالَتْ: ائْتِ عَلِيًّا فَإِنَّهُ أَعْلَمُ";
+    const W6 = 'جَعَلَ رَسُولُ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ ثَلَاثَةَ أَيَّامٍ وَلَيَالِيَهُنَّ لِلْمُسَافِرِ، وَيَوْمًا وَلَيْلَةً لِلْمُقِيمِ، إِذَا تَطَهَّرَ فَلَبِسَ خُفَّيْهِ أَنْ يَمْسَحَ عَلَيْهِمَا';
+    const C6 = 'جَعَلَ رَسُولُ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ ثَلَاثَةَ أَيَّامٍ وَلَيَالِيَهُنَّ لِلْمُسَافِرِ، وَيَوْمًا وَلَيْلَةً لِلْمُقِيمِ';
+    const run6 = async (mod, matn) => (await mod.applyTakhrij('قال رسول الله صلى الله عليه وسلم: «' + matn + '». وهذا هو التوقيت.',
+      { env: ON, lookup: lookupOf({ [matn]: { matn, subjectIds: ['FC-000648'], atoms: [MUSLIM_276] } }) })).text;
+    ok('COMPLETE-6 W · the atom carries the opening (the anchor holds)', T6.atomCarriesMatn(MUSLIM_276, W6));
+    const w6 = await run6(T6, W6);
+    ok('COMPLETE-6 W · no «(مسلم)» on a quotation whose tail مسلم does not carry; the matn and its frame stay', !w6.includes('(مسلم') && w6.includes('«' + W6 + '»') && w6.startsWith('قال رسول الله'), JSON.stringify(w6));
+    const c6 = await run6(T6, C6);
+    ok('COMPLETE-6 control · the part مسلم carries whole keeps «(مسلم)»', c6.includes('(مسلم'), JSON.stringify(c6));
+    const src6 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const mut6 = src6.split('    if (!carriesTheWholeMatn(narrationOf(atom), matn)) continue; // [111-complete-6]\n').join('');
+    ok('MUTANT COMPLETE-6 seam applied', mut6 !== src6);
+    const tmp6 = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-complete6-mut-'));
+    try {
+      const f6 = path.join(tmp6, 'takhrij.mjs');
+      require('fs').writeFileSync(f6, mut6.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + f6.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [complete-6] the anchor proves «(مسلم)» for the whole quotation again', (await run6(mod, W6)).includes('(مسلم'));
+    } finally {
+      try { require('fs').rmSync(tmp6, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
