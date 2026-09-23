@@ -147,6 +147,51 @@ const keepsStableGeneral = (module) => {
     ok('MUTANT KILLED: one marker on its own cannot condemn a sentence again',
       flatMutant.loaded && flatMutant.survived === false, JSON.stringify(flatMutant));
 
+    // ── [111-roots-dynamic]: A SENTENCE THAT SAYS IT HAS NO FIGURE IS NOT A CLAIM ABOUT NOW ───────
+    // MEASURED on the preview of 20308f8 (roots R1–R3): nine sentences were replaced with
+    // DYNAMIC_UNSOURCED, and every one was the model saying it held no current value. Six of those
+    // answers were then cut by the reject gate to «لم يكتمل» or «تعذَّر توليدُ الجوابِ الآن». These are
+    // eight of the nine (the ninth, «لا يتوفَّرُ لديَّ الآن مصدرٌ… فأنصحُك…», is cut in the log). The controls:
+    // a disclaimer that still states a figure, a digit after the disclaimer, a «تعذّر» that is itself
+    // news, and the corpus's own «أسعار النفط الآن» are all still replaced.
+    const ROOTS_DYN_WITNESSES = [
+      "الأفضلُ أن تتحقّقَ من السعرِ الآنيِّ بنفسِك من مصدرٍ مباشر قبل أيِّ قرارِ شراءٍ أو بيع.",
+      "لا يتوفّرُ لديّ الآن سعرٌ محدَّثٌ لجرامِ الذهبِ في الكويت، وأسعارُ الذهبِ تتغيّرُ خلالَ اليومِ الواحدِ بحسبِ الأسواقِ العالميّة.",
+      "لم تُثمِر محاولةُ البحثِ عن رقمٍ محدَّث للأسف، فسعرُ الذهبِ يتغيّرُ عدّةَ مرّاتٍ في اليومِ الواحد، ولا أريدُ أن أُعطيَك رقمًا قد يكونُ قديمًا أو غيرَ دقيق.",
+      "تعذّر الوصولُ إلى سعرِ الصرفِ اللحظيِّ الآن.",
+      "لم أجد نتائجَ محدّثةً عن الأخبار الاقتصاديّة لهذا اليوم بالذات.",
+      "لم يتيسّرْ لي الآن سعرُ برميلِ النفطِ اللحظيّ.",
+      "سعرُ برميلِ النفطِ يتغيّرُ لحظةً بلحظةٍ في الأسواقِ العالميّة، ولم يصلْني الآن رقمٌ دقيقٌ أستطيعُ أن أنسبَه إليك بثقة.",
+      "سعرُ برميلِ النفطِ يتغيّرُ لحظةً بلحظةٍ خلالَ اليومِ الواحد، فلا يصحُّ أن أذكرَ لك رقمًا قد يكونُ تجاوزَه الزمنُ فيُضلِّلَك."
+    ];
+    const ROOTS_DYN_CONTROLS = [
+      "لا يتوفّر لديّ الآن سعرٌ محدّث، وآخر ما رأيتُه ٢٥ دينارًا للجرام.",
+      "لم يتيسّر لي مصدرٌ، لكن سعر الذهب اليوم 3000 دولار للأوقية.",
+      "تعذّر إجراء المباراة اليوم بحسب آخر الأخبار.",
+      "أسعار النفط الآن في أعلى مستوى لها منذ سنوات."
+    ];
+    const dynAction = (mod, t) => mod.reviewAnswer({ text: t, evidence: [], domain: 'general', mode: 'عادي' })
+      .annotations[0]?.action;
+    for (const t of ROOTS_DYN_WITNESSES) {
+      ok('ROOTS-DYNAMIC · a sentence that says it has no figure is not replaced: ' + t.slice(0, 40),
+        dynAction(module, t) !== 'replaced-unsupported-dynamic-claim', dynAction(module, t));
+    }
+    for (const t of ROOTS_DYN_CONTROLS) {
+      ok('ROOTS-DYNAMIC control · a figure or a real claim is still replaced: ' + t.slice(0, 40),
+        dynAction(module, t) === 'replaced-unsupported-dynamic-claim', dynAction(module, t));
+    }
+    const disclaimerMutant = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'a-disclaimer-is-a-claim-again',
+      transform: (source) => source.replace(
+        '  if (disclaimsTheFigure(sentence)) return false; // [111-roots-dynamic]', ''),
+      survives: (mod) => ROOTS_DYN_WITNESSES.every((t) => dynAction(mod, t) !== 'replaced-unsupported-dynamic-claim'),
+    });
+    ok('ROOTS-DYNAMIC mutant seam applied', disclaimerMutant.changed, disclaimerMutant.error);
+    ok('ROOTS-DYNAMIC mutant module loaded successfully', disclaimerMutant.loaded, disclaimerMutant.error);
+    ok('MUTANT KILLED: «I have no number» is not replaced as if it were a number',
+      disclaimerMutant.loaded && disclaimerMutant.survived === false, JSON.stringify(disclaimerMutant));
+
     // ── §١ MUTANT ٢: DRIVE THE REFUSAL BACK INTO A CALCULATION ───────────────
     // The shape the owner actually read: a price, today, and an equation, all in one sentence.
     const CALCULATION = 'لنفترض أن سعر الدلاغ اليوم س دينارًا، وسعر الجوتي س + 50.';
