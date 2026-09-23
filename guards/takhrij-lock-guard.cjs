@@ -5119,6 +5119,31 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp5c, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-close-5d] · «في المقابل،» AFTER A CUT OPENS NOTHING EITHER ─────────────────────────────────────────
+  // MEASURED on the preview of 70e12db (battery Q10): the seal dropped the weakening view (`dropped 3`) and the answer went
+  // on «في المقابل، ذهب آخرون إلى تصحيحه».
+  console.log('\n--- CLOSE-5d. NO «في المقابل» AFTER A CUT ---');
+  {
+    const OO5d = await esm('lib/orphan-openers.js');
+    const SRC5d = 'هذا حديثٌ عظيمُ الشأن، وقد اختلف فيه أهل العلم بين تصحيحٍ وتضعيف:\nفضعّفه بعضُهم وقال: «لا يصح».\nفي المقابل، ذهب آخرون إلى تصحيحه، وصحّحه الألباني في السلسلة الصحيحة.';
+    const CUT5d = 'هذا حديثٌ عظيمُ الشأن، وقد اختلف فيه أهل العلم بين تصحيحٍ وتضعيف:\nفي المقابل، ذهب آخرون إلى تصحيحه، وصحّحه الألباني في السلسلة الصحيحة.';
+    const w5d = OO5d.repairOrphanedOpeners(SRC5d, CUT5d).text;
+    ok('CLOSE-5d W · «في المقابل،» goes where its first half was cut; the sentence stands on its claim',
+      w5d === 'هذا حديثٌ عظيمُ الشأن، وقد اختلف فيه أهل العلم بين تصحيحٍ وتضعيف:\nذهب آخرون إلى تصحيحه، وصحّحه الألباني في السلسلة الصحيحة.', JSON.stringify(w5d));
+    ok('CLOSE-5d control · an uncut «في المقابل» stays', OO5d.repairOrphanedOpeners(SRC5d, SRC5d).text === SRC5d);
+    const src5d = fs.readFileSync(path.join(REPO, 'lib/orphan-openers.js'), 'utf8').replace(/\r\n/g, '\n');
+    const mut5d = src5d.split('|غير ان|و?في المقابل|و?بالمقابل)(?= |$)/u;').join('|غير ان)(?= |$)/u;');
+    ok('MUTANT CLOSE-5d seam applied', mut5d !== src5d);
+    const tmp5d = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-close5d-mut-'));
+    try {
+      const mf = path.join(tmp5d, 'orphan-openers.mjs');
+      fs.writeFileSync(mf, mut5d, 'utf8');
+      const mod = await import('file:///' + mf.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [close-5d] «في المقابل،» opens the breath again', mod.repairOrphanedOpeners(SRC5d, CUT5d).text === CUT5d);
+    } finally {
+      try { fs.rmSync(tmp5d, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
