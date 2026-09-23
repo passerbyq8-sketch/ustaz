@@ -2539,6 +2539,38 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
       ok('MUTANT KILLED: without it the one-line answer is judged hollow again',
         oneLineMutant.loaded && oneLineMutant.survived === false, JSON.stringify(oneLineMutant));
     }
+    // ── [111-roots-enum] · A YES-OR-NO QUESTION ASKS FOR NO LIST, AND PROSE ORDINALS OR LABELS ENUMERATE ──
+    // MEASURED on the preview of 20308f8 (roots): R1 Q8 «هل أجمع العلماء على أن صيام رمضان ركن من أركان الإسلام؟» in
+    // all three modes, R1 Q10 «مفصّل» («الأوّل، … والثاني، …»), R3 Q9 «طالب علم» («الصيغة: …» lines) and «موجز» («الركنُ
+    // الأوّلُ … الركنُ الثاني …») — each judged «no_enumeration», rewritten, and shipped under «لم يكتمل».
+    {
+      const lpE = await fresh(LOOP, 'roots-enum');
+      const YESNO = 'نعم، صيامُ رمضانَ ركنٌ من أركانِ الإسلامِ الخمسة، وقد أجمع المسلمون على فرضيّته، وهو معلومٌ من الدين بالضرورة.';
+      const ORD = 'شروط الصحة عند الحنفية قسمان.\nالأوّل، الشروطُ العامّة: وهي شروط الانعقاد نفسها.\nوالثاني، الشروطُ الخاصّة: العلم بالمبيع والثمن، والخلو من الشرط الفاسد.';
+      const LABELS = 'للنكاح عند المالكية أركان وشروط.\nالصيغة: الإيجاب والقبول بلفظ النكاح أو التزويج.\nالشهادة: شاهدان عدلان قبل الدخول.\nالشروط المقترنة: صحيحة وفاسدة.';
+      const RUKN = 'النكاح عند المالكية أربعة أركان. الركنُ الأوّلُ الزوجان خاليان من الموانع. الركنُ الثاني الصيغة. والولي والصداق بعدهما.';
+      ok('roots-enum W · «هل أجمع… ركن من أركان…؟» is a yes-or-no question: not hollow',
+        lpE.hollowAnswerReason(YESNO, 'هل أجمع العلماء على أن صيام رمضان ركن من أركان الإسلام؟') === '');
+      ok('roots-enum W · «الأوّل، … والثاني، …» enumerates in prose', lpE.hollowAnswerReason(ORD, 'ما شروط صحة البيع عند الحنفية؟') === '');
+      ok('roots-enum W · three lines opening on «label:» enumerate', lpE.hollowAnswerReason(LABELS, 'ما شروط النكاح عند المالكية؟') === '');
+      ok('roots-enum sibling · «الركنُ الأوّلُ … الركنُ الثاني» enumerates', lpE.hollowAnswerReason(RUKN, 'ما شروط النكاح عند المالكية؟') === '');
+      ok('roots-enum control · a list question answered with one flat line is still hollow (T1c\'s own)',
+        lpE.hollowAnswerReason('شروط وجوب الحج خمسة: الإسلام لقوله تعالى كذا، والعقل والبلوغ لحديث رفع القلم، والحرية، والاستطاعة.', 'ما هي شروط وجوب الحج؟') === 'no_enumeration');
+      ok('roots-enum control · a yes-or-no question with no prose is still «no_prose»',
+        lpE.hollowAnswerReason('<source site="s" url="https://x/y">ت</source>', 'هل يجب الوتر؟') === 'no_prose');
+      for (const [tag, from, to, probe] of [
+        ['yes-no', "  if (YES_NO_ASK_RE.test(folded)) return ''; // [111-roots-enum] — a yes-or-no question asks for no list\n", '',
+          (twin) => twin.hollowAnswerReason(YESNO, 'هل أجمع العلماء على أن صيام رمضان ركن من أركان الإسلام؟') === ''],
+        ['ordinals', '  if ((bare.match(ORDINAL_WORD_RE) || []).length >= 2) return true;\n', '',
+          (twin) => twin.hollowAnswerReason(ORD, 'ما شروط صحة البيع عند الحنفية؟') === ''],
+        ['labels', "  return raw.split('\\n').filter((line) => LABEL_LINE_RE.test(line)).length >= 3;\n", '  return false;\n',
+          (twin) => twin.hollowAnswerReason(LABELS, 'ما شروط النكاح عند المالكية؟') === ''],
+      ]) {
+        const m = await loopMutant('roots-enum-' + tag, (source) => source.split(from).join(to), async (twin) => probe(twin));
+        ok('roots-enum ' + tag + ' mutant seam applied', m.changed, m.error);
+        ok('MUTANT KILLED: without [roots-enum] ' + tag + ' a complete answer is judged hollow again', m.loaded && m.survived === false, JSON.stringify(m));
+      }
+    }
     // ── BATCH 4 [b37] · THE IMPURITIES ────────────────────────────────────────────────────
     // MEASURED on the owner's battery at 92d3c7d: «這は» inside an Arabic line (كشف الوجه); «ممن أخذ
     // عنهم في هذا الملف»; «Hadith هذا لم يرد نصه الصريح في المادة المتاحة لدي حتى الآن، فدعني أتأكد من
