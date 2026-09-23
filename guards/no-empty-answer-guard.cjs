@@ -2641,8 +2641,10 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
       const j = L11.joinRoundTexts([A, B]);
       ok('close-11 W · the restated opening is carried once, and what the finishing round adds stays',
         (j.match(/انعقد عليها إجماع/gu) || []).length === 1 && j.includes('وحرمته ثابتةٌ من عدّة أوجه.') && j.startsWith(A), JSON.stringify(j));
-      ok('close-11 W · the pinned join keeps the head byte for byte and drops the same restatement',
-        L11.joinRoundTextsHeadPinned([A, B]).startsWith(A) && (L11.joinRoundTextsHeadPinned([A, B]).match(/انعقد عليها إجماع/gu) || []).length === 1);
+      // [111-close-11b] — MEASURED on this round's preview (round 5 Q8 «مفصّل», streamed): trimming a later part in the pinned
+      // join broke the emitted prefix. The pinned join is left exactly as it was.
+      ok('close-11b · the pinned (streamed) join is left as it was — every emitted part byte for byte',
+        L11.joinRoundTextsHeadPinned([A, B]) === A + '\n\n' + B);
       const C = 'نعم، هذه المسألة محلُّ إجماعٍ صريح، فقد نصّت الموسوعة الفقهية الكويتية على ذلك.';
       ok('close-11 sibling · a repeated «نعم،» opener goes and the new sentence stands',
         L11.joinRoundTexts(['نعم، وجوب صيام شهر رمضان من المسائل التي انعقد عليها إجماع الأمة.', C]).endsWith('هذه المسألة محلُّ إجماعٍ صريح، فقد نصّت الموسوعة الفقهية الكويتية على ذلك.'));
@@ -2730,6 +2732,28 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
       }
       ok('close-8 · the instruction carries the line, switch off and on', texts.every((t) => t.includes("وإذا سألكَ القارئُ بعدَ جوابٍ عن مصدرِه") && t.includes("ولا أنسبُه إلى كتابٍ بعينِه")));
       ok('close-8 · under the one «📚» heading, after the persona', texts.every((t) => t.indexOf('📚 وفي نسبةِ الأقوالِ إلى أصحابِها:') > t.indexOf('🕌') && t.indexOf("وإذا سألكَ القارئُ بعدَ جوابٍ عن مصدرِه") > t.indexOf('📚')));
+    }
+    // ── [111-close-enum] and [111-close-cite] — this round's preview: round 5 Q11 ×3 (ten items, one per line under
+    // «…أذكرُ أشهرَها:», judged «no_enumeration»); battery Q6 (eight «()» left where citation marks stood).
+    {
+      const LE = await fresh(LOOP, 'close-enum-base');
+      const LIST = 'أذكرُ أشهرَها:\nالكلامُ العمد، ولو حرفًا واحدًا مفهِمًا.\nالأكلُ والشربُ عمدًا، لأنّهما ينافيان الصلاة.\nالعملُ الكثيرُ المتوالي الذي ليس من جنسِ الصلاة.\n';
+      ok('close-enum W · items one per line under a lead-in ending on «:» enumerate', LE.carriesEnumeration(LIST) === true);
+      ok('close-enum control · two lines under a colon do not', LE.carriesEnumeration('الجواب:\nالصلاة ركن من أركان الإسلام.\nوهي واجبة على كل مسلم.') === false);
+      ok('close-cite W · no «()» is left where a citation mark stood, and a real bracket stays',
+        LE.stripCitations('أخرجه مسلم ([[3]]). وقال (الترمذي) كذا.') === 'أخرجه مسلم. وقال (الترمذي) كذا.');
+      const srcE = fs.readFileSync(LOOP, 'utf8').replace(/\r\n/g, '\n');
+      const mutE = srcE.split('  if (leadThenLines(raw)) return true;\n').join('');
+      ok('MUTANT close-enum seam applied', mutE !== srcE);
+      const tmpE = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-close-enum-mut-'));
+      try {
+        const fE = path.join(tmpE, 'loop.mjs');
+        fs.writeFileSync(fE, importsFromTree(mutE, LOOP), 'utf8');
+        const mod = await fresh(fE, 'close-enum-mutant');
+        ok('MUTANT KILLED: without [close-enum] the listed answer is «no_enumeration» again', mod.carriesEnumeration(LIST) === false);
+      } finally {
+        fs.rmSync(tmpE, { recursive: true, force: true });
+      }
     }
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
