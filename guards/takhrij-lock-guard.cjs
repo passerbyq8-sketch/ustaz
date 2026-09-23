@@ -4544,6 +4544,52 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp64, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-roots-62] · THE GRADE RULE'S SECOND FORM: A NEGATED, A CLASS, A MEANING, AND A RULING AFTER THE CLAUSE ──
+  // MEASURED on the preview of 20308f8 (roots rounds 1–3, the b4b battery): each sentence below went whole at the
+  // finalizer's grade rule, a ruling or a weakening with it.
+  console.log('\n--- ROOTS-62. THE GRADE RULE DOES NOT TAKE A RULING, A CLASS OR A NEGATION ---');
+  {
+    const C62 = 'وهذا بيان المسألة.\n';
+    const g62 = (t) => TL.dropUnsourcedGrades(C62 + t).text.slice(C62.length);
+    const KEEP = [
+      ['W · «…ولأنه لم يثبت عندهم في ذلك حديثٌ صحيحٌ صريح» — the evidence of a fiqh view',
+        'واستدلّوا بأن الحلي المعدّ للُّبس المباح كسائر المتاع الذي يُستعمل، فأشبه الثياب والأثاث لا يجب فيه زكاة، ولأنه لم يثبت عندهم في ذلك حديثٌ صحيحٌ صريح يُلزم به.'],
+      ['W · «…وليس له إسنادٌ صحيحٌ ولا حسنٌ يُعتمَد؛ ولذلك لا يجوز نسبتُه…» — the b4b battery\'s Q4',
+        'لا، هذا الحديث غير ثابت، بل هو موضوعٌ مكذوبٌ عند أهل العلم، وليس له إسنادٌ صحيحٌ ولا حسنٌ يُعتمَد؛ ولذلك لا يجوز نسبتُه إلى النبيِّ صلى الله عليه وسلم.'],
+      ['W · «لكنَّ معناه صحيحٌ… في أحاديث صحيحة أخرى، منها:» — the meaning, and a class',
+        'لكنَّ معناه صحيحٌ ثابتٌ بأدلّةٍ أخرى، فالإسلامُ يأمر بالنظافة فعلاً، وقد جاء ذلك في أحاديث صحيحة أخرى، منها:'],
+      ['sibling · «…أحاديث صحيحة تُغني عن هذا الحديث…» — a class, and «مطلوب شرعا» stays',
+        'ومع ذلك فمعناه ليس باطلاً، فطلب العلم النافع مطلوبٌ شرعاً ولو احتاج الأمر سفراً بعيداً، وقد ثبتت في فضل طلب العلم أحاديث صحيحة تُغني عنه.'],
+    ];
+    for (const [label, text] of KEEP) ok('ROOTS-62 ' + label + ': the sentence stays', g62(text) === text, JSON.stringify(g62(text)));
+    const KAHF = 'وعلى كل حال، فهو حديثٌ حسنٌ يُعمل به في فضل قراءة سورة الكهف يوم الجمعة أو ليلتها، وقد استحبَّ العلماء قراءتها لذلك.';
+    ok('ROOTS-62 W · «فهو حديثٌ حسنٌ…، وقد استحبَّ العلماء قراءتها» — the grade\'s clause goes, the ruling stays',
+      g62(KAHF) === 'وقد استحبَّ العلماء قراءتها لذلك.', JSON.stringify(g62(KAHF)));
+    ok('ROOTS-62 control · an unsourced authentication with nothing after it still goes', g62('وهو حديثٌ صحيحٌ ثابت.') === '', JSON.stringify(g62('وهو حديثٌ صحيحٌ ثابت.')));
+    ok('ROOTS-62 control · a negation in ANOTHER clause protects nothing', g62('لم يرد غيره في الباب، وهو حديثٌ صحيحٌ ثابت.') === '', JSON.stringify(g62('لم يرد غيره في الباب، وهو حديثٌ صحيحٌ ثابت.')));
+    ok('ROOTS-62 control · a grade clause with no ruling after the comma still goes whole',
+      g62('فهو حديثٌ حسنٌ، وقد صنّف فيه العلماء.') === '', JSON.stringify(g62('فهو حديثٌ حسنٌ، وقد صنّف فيه العلماء.')));
+    const src62r = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    for (const [tag, from, to, back] of [
+      ['negated-or-class', '    for (let k = spans.length - 1; k >= 0; k -= 1) if (negatedOrClassGrade(block, spans[k])) spans.splice(k, 1);\n', '',
+        (mod) => mod.dropUnsourcedGrades(C62 + KEEP[0][1]).text.slice(C62.length) === ''],
+      ['leading-clause', '      const lead62 = leadingGradeThenRuling(block.slice(sen.start, sen.end), within);\n', '      const lead62 = null;\n',
+        (mod) => mod.dropUnsourcedGrades(C62 + KAHF).text.slice(C62.length) === ''],
+    ]) {
+      const mutated = src62r.split(from).join(to);
+      ok('MUTANT ROOTS-62 ' + tag + ' seam applied', mutated !== src62r);
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-roots62-mut-'));
+      try {
+        const mfile = path.join(tmp, 'takhrij-lock.mjs');
+        fs.writeFileSync(mfile, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + mfile.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: without [roots-62] ' + tag + ' the ruling goes with the grade again', back(mod));
+      } finally {
+        try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
   // ── [111-b4b-65] · A GRADE'S REMOVAL LEAVES NO HOLE ─────────────────────────────────────────
   // MEASURED at eca359e, fixed drafts through the chain: «وقال الحاكم: صحيح الإسناد، لكن تعقبه الذهبي…»
   // reached the reader as «وقال بعض أهل العلم: لكن تعقبه الذهبي…», and «ويجب الغسل، وقال ابن الجوزي: وهو
