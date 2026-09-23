@@ -4960,6 +4960,52 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp5, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-close-9] · A BRACKET WITHHELD FOR A CREDIT THE SEAL THEN CUT COMES BACK ─────────────────────────────
+  // MEASURED over the roots rounds (C-withheld-then-sealed; round 1 Q2 «موجز»): the pass proved «(مسلم)» and withheld it for
+  // the prose's «رواه مسلم في صحيحه، ورواه أيضا…»; the seal cut that credit; the reader got the bare matn.
+  console.log('\n--- CLOSE-9. THE WITHHELD BRACKET COMES BACK WHERE ITS CREDIT WAS CUT ---');
+  {
+    const M9 = 'مَنْ صَامَ رَمَضَانَ، ثُمَّ أَتْبَعَهُ سِتًّا مِنْ شَوَّالٍ، كَانَ كَصِيَامِ الدَّهْرِ';
+    const rows9 = [{ title: '', passage: '', withheldBracket: { matn: M9, paren: 'مسلم' } }, { title: 'مسلم', passage: 'مسلم ' + M9 },
+      { title: '', passage: '', proseProof: { book: 'مسلم', matn: M9 } }];
+    const W9 = 'هذا الحديث صحيح ثابت، أن رسول الله صلى الله عليه وسلم قال:\n«' + M9 + '»\nرواه مسلم في صحيحه، ورواه أيضا أبو داود والترمذي وابن ماجه.\nومعناه أنه يعدل صيام السنة.';
+    const w9 = TL.lockTakhrij(W9, rows9);
+    ok('CLOSE-9 W · the credit the seal cut leaves «…» (مسلم), not a bare matn', w9.text.includes('«' + M9 + '» (مسلم)') && !w9.text.includes('رواه مسلم'), JSON.stringify(w9.text));
+    const S9 = 'قال رسول الله صلى الله عليه وسلم:\n«' + M9 + '»\nأخرجه أبو داود والنسائي.\nومعناه أنه يعدل صيام السنة.';
+    ok('CLOSE-9 sibling · an unproved credit cut, the proved bracket written back', TL.lockTakhrij(S9, rows9).text.includes('«' + M9 + '» (مسلم)'));
+    const K9 = 'قال رسول الله صلى الله عليه وسلم: «' + M9 + '» رواه مسلم وأبو داود.\nوالله أعلم.';
+    const k9 = TL.lockTakhrij(K9, rows9).text;
+    ok('CLOSE-9 control · a credit [e55] keeps stands, and no bracket is added beside it', k9.includes('رواه مسلم') && !k9.includes('(مسلم)'), JSON.stringify(k9));
+    const N9 = 'قال رسول الله صلى الله عليه وسلم: «' + M9 + '».\nوالله أعلم.';
+    ok('CLOSE-9 control · a matn that never had a credit is not given one here', TL.lockTakhrij(N9, rows9).text === N9);
+    ok('CLOSE-9 control · with no withheld row the seal is as before', !TL.lockTakhrij(W9, rows9.slice(1)).text.includes('(مسلم)'));
+    // MEASURED on the corpus replay of the first draft (S1-model-agreed-false-beside-proven): rows pushed for a withheld
+    // SINGLE-book bracket let the model's own false «(متفق عليه)» beside it read as proved. api/ask.js pushes rows only
+    // for a withheld «متفق عليه»; here the model's false one goes and the pass's «(مسلم)» comes back.
+    const SADAQA = 'ما نقصت صدقة من مال';
+    const NAHI = 'المسلم من سلم المسلمون من لسانه ويده';
+    const s9 = TL.lockTakhrij('قال رسول الله صلى الله عليه وسلم: «' + NAHI + '» (متفق عليه).\nقال رسول الله صلى الله عليه وسلم: «' + SADAQA + '» (متفق عليه).\nوالله أعلم.',
+      [{ title: 'البخاري', passage: 'البخاري ' + NAHI }, { title: 'مسلم', passage: 'مسلم ' + NAHI },
+        { title: '', passage: '', withheldBracket: { matn: SADAQA, paren: 'مسلم' } }, { title: '', passage: '', proseProof: { book: 'مسلم', matn: SADAQA } }]).text;
+    ok('CLOSE-9 hazard · the model\'s false «(متفق عليه)» beside a withheld «(مسلم)» goes, and «(مسلم)» comes back',
+      s9.includes('«' + SADAQA + '» (مسلم)') && !s9.includes('«' + SADAQA + '» (متفق عليه)'), JSON.stringify(s9));
+    ok('CLOSE-9 seat · api/ask.js pushes proving rows for a withheld «متفق عليه» only',
+      fs.readFileSync(path.join(REPO, 'api/ask.js'), 'utf8').includes("if (String(entry.withheld) === 'متفق عليه') {"));
+    const src9 = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam9 = '  const restored = restoreWithheldBrackets(s, out, sources);\n';
+    const mut9 = src9.split(seam9).join('  const restored = { text: out, count: 0 };\n');
+    ok('MUTANT CLOSE-9 seam applied', mut9 !== src9);
+    const tmp9 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-close9-mut-'));
+    try {
+      const f9 = path.join(tmp9, 'takhrij-lock.mjs');
+      fs.writeFileSync(f9, mut9.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + f9.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [close-9] the matn is left bare again', !mod.lockTakhrij(W9, rows9).text.includes('(مسلم)'));
+    } finally {
+      try { fs.rmSync(tmp9, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });

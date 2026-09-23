@@ -2107,6 +2107,17 @@ export default async function handler(req, res) {
               takhrijProvenRows.push({ title: '', passage: '', proseProof: { book, matn: String(entry.matn || '') } });
             }
           }
+          // [111-close-9] — the bracket the pass WITHHELD because the prose had credited the matn, with the rows that
+          // prove it: the seal writes it back only where it cut that credit and the matn was left with none.
+          for (const entry of pass.entries) {
+            if (!entry.withheld || !entry.matn) continue;
+            takhrijProvenRows.push({ title: '', passage: '', withheldBracket: { matn: String(entry.matn), paren: String(entry.withheld) } });
+            // Rows for a written-back «(متفق عليه)» only, exactly as a written one gets them: a single book's bracket is
+            // no span, and rows for it would let a neighbouring «(متفق عليه)» the model wrote read as proved (measured).
+            if (String(entry.withheld) === 'متفق عليه') {
+              for (const book of ['البخاري', 'مسلم']) takhrijProvenRows.push({ title: book, passage: book + ' ' + String(entry.matn) });
+            }
+          }
           // [111-close-2] — the question's own matn, and the books its atoms proved, for a credit that quotes nothing.
           if (pass.askedProof && pass.askedProof.matn) {
             takhrijProvenRows.push({ title: '', passage: '', askedMatn: String(pass.askedProof.matn) });
