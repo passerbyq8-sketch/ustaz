@@ -5006,6 +5006,30 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp9, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-close-10] · A COMMENTARY'S TITLE NAMES A BOOK, IT CREDITS NOTHING ───────────────────────────────────
+  // MEASURED over the roots rounds (C-67-hole; round 3 Q7 «موجز»): «…والنووي في شرح صحيح مسلم، وابن تيمية.» ⟸ «والنووي في شرح،».
+  console.log('\n--- CLOSE-10. «شرح صحيح مسلم» IS A TITLE ---');
+  {
+    const W10 = 'وقد نقل الإجماع على تحريمه ابن قدامة في المغني، والنووي في شرح صحيح مسلم، وابن تيمية.';
+    ok('CLOSE-10 W · the title stays whole', TL.lockTakhrij(W10, []).text === W10, JSON.stringify(TL.lockTakhrij(W10, []).text));
+    for (const t of ['قال النووي في شرح صحيح مسلم: هذا الحديث أصل في الباب.', 'ووقع في شرح النووي على صحيح مسلم أن المراد بالحديث الحث على الترك.',
+      'وذكر الحافظ في فتح الباري شرح صحيح البخاري أن المراد التأكيد.']) ok('CLOSE-10 sibling · ' + t.slice(0, 30) + '… stays', TL.lockTakhrij(t, []).text === t);
+    ok('CLOSE-10 control · «والحديث في صحيح مسلم.» with no page is still judged a credit', TL.lockTakhrij('والحديث في صحيح مسلم.', []).text === '');
+    const src10 = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam10 = ' && contiguous(i, i + 1) && inCommentaryTitle()) {';
+    const mut10 = src10.split(seam10).join(' && contiguous(i, i + 1) && false) {');
+    ok('MUTANT CLOSE-10 seam applied', mut10 !== src10);
+    const tmp10 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-close10-mut-'));
+    try {
+      const f10 = path.join(tmp10, 'takhrij-lock.mjs');
+      fs.writeFileSync(f10, mut10.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + f10.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [close-10] «والنووي في شرح،» again', mod.lockTakhrij(W10, []).text !== W10);
+    } finally {
+      try { fs.rmSync(tmp10, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
