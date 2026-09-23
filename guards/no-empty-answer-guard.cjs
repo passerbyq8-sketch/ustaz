@@ -2717,6 +2717,20 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
       ok('close-16 · the instruction carries the line, switch off and on', texts.every((t) => t.includes("ولا تنسبْ حكمًا إلى مذهبٍ بعينِه") && t.includes("بلا تسميةِ مذهب")));
       ok('close-16 · under the one «📚» heading, after the persona', texts.every((t) => t.indexOf('📚 وفي نسبةِ الأقوالِ إلى أصحابِها:') > t.indexOf('🕌') && t.indexOf("ولا تنسبْ حكمًا إلى مذهبٍ بعينِه") > t.indexOf('📚')));
     }
+    // ── [111-close-8] · row 71: «شنو مصدرك؟» names only what was retrieved, or says plainly that nothing was — a line of the free-brain instruction, in both states of LIVE_WORLD_V2 ──
+    {
+      const I = await fresh(INSTRUCTIONS, 'close-8-instructions');
+      const prior = process.env.LIVE_WORLD_V2;
+      const texts = [];
+      try {
+        delete process.env.LIVE_WORLD_V2; texts.push(I.buildFreeBrainInstruction({ band: 'adult' }));
+        process.env.LIVE_WORLD_V2 = 'on'; texts.push(I.buildFreeBrainInstruction({ band: 'adult' }));
+      } finally {
+        if (prior === undefined) delete process.env.LIVE_WORLD_V2; else process.env.LIVE_WORLD_V2 = prior;
+      }
+      ok('close-8 · the instruction carries the line, switch off and on', texts.every((t) => t.includes("وإذا سألكَ القارئُ بعدَ جوابٍ عن مصدرِه") && t.includes("ولا أنسبُه إلى كتابٍ بعينِه")));
+      ok('close-8 · under the one «📚» heading, after the persona', texts.every((t) => t.indexOf('📚 وفي نسبةِ الأقوالِ إلى أصحابِها:') > t.indexOf('🕌') && t.indexOf("وإذا سألكَ القارئُ بعدَ جوابٍ عن مصدرِه") > t.indexOf('📚')));
+    }
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
