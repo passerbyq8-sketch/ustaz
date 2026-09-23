@@ -2689,6 +2689,20 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
         fs.rmSync(tmp12, { recursive: true, force: true });
       }
     }
+    // ── [111-close-15] · decision 4: «إجماع» in the application's voice has a named carrier or is «قول الجمهور» — a line of the free-brain instruction, in both states of LIVE_WORLD_V2 ──
+    {
+      const I = await fresh(INSTRUCTIONS, 'close-15-instructions');
+      const prior = process.env.LIVE_WORLD_V2;
+      const texts = [];
+      try {
+        delete process.env.LIVE_WORLD_V2; texts.push(I.buildFreeBrainInstruction({ band: 'adult' }));
+        process.env.LIVE_WORLD_V2 = 'on'; texts.push(I.buildFreeBrainInstruction({ band: 'adult' }));
+      } finally {
+        if (prior === undefined) delete process.env.LIVE_WORLD_V2; else process.env.LIVE_WORLD_V2 = prior;
+      }
+      ok('close-15 · the instruction carries the line, switch off and on', texts.every((t) => t.includes("لا تكتبْ «إجماع» ولا «أجمعَ العلماء»") && t.includes("وما نقلَه عالمٌ مسمًّى من إجماعٍ فانقلْه كما قاله")));
+      ok('close-15 · under the one «📚» heading, after the persona', texts.every((t) => t.indexOf('📚 وفي نسبةِ الأقوالِ إلى أصحابِها:') > t.indexOf('🕌') && t.indexOf("لا تكتبْ «إجماع» ولا «أجمعَ العلماء»") > t.indexOf('📚')));
+    }
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
