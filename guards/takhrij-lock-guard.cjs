@@ -5251,6 +5251,42 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp3, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-complete-7] · «وعند <books>» NO ATOM CARRIES: THE BOOKS GO, AND «عند» WITH THEM ────────────────────────
+  // MEASURED on the preview of 70e12db: round 5 Q6 and Q4 «مفصّل» reached the reader with a book no atom carried.
+  console.log('\n--- COMPLETE-7. «وعند مسلمٍ عن…» / «وعند الحاكمِ بلفظِ…» LOSE THE BOOK AND NOTHING ELSE ---');
+  {
+    const lock7 = (mod, t, src = []) => { const r = mod.lockTakhrij(t, src); return typeof r === 'string' ? r : r.text; };
+    const W7 = [
+      ['وفي روايةٍ: «أَنْهِكُوا الشَّوَارِبَ وَأَعْفُوا اللِّحَى»، وعند مسلمٍ عن أبي هريرة مرفوعًا:\n«جُزُّوا الشَّوَارِبَ وَأَرْخُوا اللِّحَى، خَالِفُوا الْمَجُوسَ»',
+        'وفي روايةٍ: «أَنْهِكُوا الشَّوَارِبَ وَأَعْفُوا اللِّحَى»، وعن أبي هريرة مرفوعًا:\n«جُزُّوا الشَّوَارِبَ وَأَرْخُوا اللِّحَى، خَالِفُوا الْمَجُوسَ»'],
+      ['فقد ذكره الخطيبُ البغداديُّ بسندٍ فيه انقطاعٌ وضعف، وعند أبي نُعيم بلفظِ «وساقيهم آخرَهم شرابًا»، وعند الحاكمِ بلفظِ «سيدُ القومِ في السفرِ خادمُهم»، وكلُّ هذه الطرقِ ضعيفةٌ لا تصحُّ.',
+        'فقد ذكره الخطيبُ البغداديُّ بسندٍ فيه انقطاعٌ وضعف، وعند أبي نُعيم بلفظِ «وساقيهم آخرَهم شرابًا»، وبلفظِ «سيدُ القومِ في السفرِ خادمُهم»، وكلُّ هذه الطرقِ ضعيفةٌ لا تصحُّ.'],
+    ];
+    for (const [input, want] of W7) ok('COMPLETE-7 W · «' + input.slice(0, 30) + '…»: the book goes, the matn and the verdict stay', lock7(TL, input) === want, JSON.stringify(lock7(TL, input)));
+    const PROVED7 = [{ proseProof: { book: 'مسلم', matn: 'جزوا الشوارب وأرخوا اللحى خالفوا المجوس' } }];
+    ok('COMPLETE-7 control · the book the library proved stays as written', lock7(TL, W7[0][0], PROVED7) === W7[0][0], JSON.stringify(lock7(TL, W7[0][0], PROVED7)));
+    const BARE7 = 'وفي روايةٍ: «أَنْهِكُوا الشَّوَارِبَ وَأَعْفُوا اللِّحَى»، وعند مسلمٍ: «جُزُّوا الشَّوَارِبَ وَأَرْخُوا اللِّحَى»';
+    ok('COMPLETE-7 control · «وعند مسلمٍ:» with no «عن/بلفظ» after it is not read, as before', TL.takhrijSpans(BARE7).length === 0, JSON.stringify(TL.takhrijSpans(BARE7)));
+    const src7 = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seams7 = [
+      ['cut', (x) => x.split('const indaCuts = indaCreditCut(s, sen, body, unsupported, proseProofs);').join('const indaCuts = null;')],
+      ['read', (x) => x.split("const indaWithWaw = b === norm('وعند') && (() => {").join("const indaWithWaw = false && (() => {")],
+    ];
+    for (const [tag, transform] of seams7) {
+      const mut7 = transform(src7);
+      ok('MUTANT COMPLETE-7 ' + tag + ' seam applied', mut7 !== src7);
+      const tmp7 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-complete7-mut-'));
+      try {
+        const mf = path.join(tmp7, 'takhrij-lock.mjs');
+        fs.writeFileSync(mf, mut7.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + mf.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: without [complete-7] ' + tag + ' the witnesses are not what they must be', W7.some(([input, want]) => lock7(mod, input) !== want));
+      } finally {
+        try { fs.rmSync(tmp7, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
