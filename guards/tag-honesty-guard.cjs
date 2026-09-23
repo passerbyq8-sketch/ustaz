@@ -1105,15 +1105,38 @@ const unsupportedIsHandledSilently = (module) => {
         ['refusal-gate', '  if (ownersFormulaRefused(sentence, attribution)) return true;\n', '', 'companion-ibn-abbas-ikrima'],
         ['whole-name', '    attribution = { ...attribution, nameOnly: wholeNameSpan(sentence, attribution.nameOnly || reported) };', '    attribution = { ...attribution, nameOnly: attribution.nameOnly || reported };', 'mangle-shaykh-barrak'],
         ['reported-frame', '  const reported = speaker && !attribution.nameOnly ? reportingFrameNameOnly(sentence, attribution) : null;', '  const reported = null;', 'frame-ibn-hajar-daraqutni'],
-        ['implied-same-sentence', "      if (here.length && (/،/u.test(gap) || /(?:^|\\s)(?:الذي|التي)\\s*[وف]?\\s*$/u.test(gap))) return null;\n", '', 'implied-ibn-hajar'],
+        ['implied-same-sentence', "      if (here.length && (/،/u.test(gap) || /(?:^|\\s)(?:الذي|التي)\\s*[وف]?\\s*$/u.test(gap))) return null;\n", '', 'implied-ibn-hajar', "      if (here.length && /^و/u.test(m.groups.verb) && !/[.؟!«»:\"]/u.test(gap)) return null;\n"],
       ];
-      for (const [tag, from, to, id] of seams68) {
+      for (const [tag, from, to, id, also] of seams68) {
         const [, input, expected] = pick(id);
         const m68 = await runMutant({ sourceFile: REVIEWER, name: 'without [roots-68] ' + tag,
-          transform: (source) => source.split(from).join(to),
+          transform: (source) => { const one = source.split(from).join(to); return also ? one.split(also).join('') : one; }, // [111-close-6] the widened line goes with it
           survives: (mod) => mod.reviewAnswer({ text: input, evidence: [], domain: 'fiqh', mode: 'chat' }).text.split('\n')[0] === expected });
         ok('roots-68 ' + tag + ' mutant seam applied', m68.changed, m68.error);
         ok('MUTANT KILLED: without [roots-68] ' + tag + ' «' + id + '» is rewritten again', m68.loaded && m68.survived === false, JSON.stringify(m68));
+      }
+      // ── [111-close-6] · THE REST OF ROW 68, MEASURED ON THE PREVIEW OF efcdcf4 (roots phase 3) ──────────────────────
+      const ROWS6 = [
+        ['close6-narrator-shurayh', 'جمهورُ الفقهاءِ على أنّ مدّةَ المسحِ يومٌ وليلةٌ للمقيم، لحديثِ شُريحِ بنِ هانئٍ قال: سألتُ عائشةَ رضي الله عنها عن المسحِ على الخفَّين، فقالت: سَلْ عليًّا.'],
+        ['close6-narrator-sulayman', 'حديثٌ ضعيفٌ جدًّا: ففي سندِه معروفُ بنُ حسّانَ وهو ضعيف، وفيه سليمانُ بنُ عمرٍو النخعيّ الذي قال: حدثنا فلان.'],
+        ['close6-story-bayhaqi', 'وقد ذكر البيهقيُّ في كتاب الاعتقاد أن سبب الحديث أن النبي صلى الله عليه وسلم لما بعث عليًّا رضي الله عنه إلى اليمن كثرت الشكوى منه.'],
+        ['close6-consensus-nawawi', 'قال الإمامُ النوويُّ رحمه الله في هذا الحديث: «واتَّفَقَ الحُفَّاظُ عَلَى ضَعْفِهِ، وَإِنْ كَثُرَتْ طُرُقُهُ».'],
+        ['close6-implied-mubarak', 'فقد كره ابنُ المبارك أن يُسألَ عن حديثٍ وهو يمشي وقال: «ليس هذا من توقير العلم»، وأن يتقدّمَ عليه في المواطنِ الخطيرة.'],
+      ];
+      for (const [id, input] of ROWS6) ok('close-6 ' + id + ': left as the model wrote it', say68(input) === input, say68(input));
+      ok('close-6 control · «وقد قال فيها ابن عساكر: منكر…» still takes it', say68('فهذه أشد نكارة، وقد قال فيها ابن عساكر: منكر جداً إسناداً ومتناً.') === 'فهذه أشد نكارة، ومن أهل العلم من يرى: منكر جداً إسناداً ومتناً.',
+        say68('فهذه أشد نكارة، وقد قال فيها ابن عساكر: منكر جداً إسناداً ومتناً.'));
+      const seams6 = [
+        ['narrator', "  if (OWNER_FORMULA_NARRATOR_LEAD_RE.test(frame)) return 'narrator';\n", 'close6-narrator-sulayman'],
+        ['story', "  if (OWNER_FORMULA_REPORTED_STORY_RE.test(said)) return 'narration';\n", 'close6-story-bayhaqi'],
+      ];
+      for (const [tag, from, id] of seams6) {
+        const input = ROWS6.find((r) => r[0] === id)[1];
+        const m6 = await runMutant({ sourceFile: REVIEWER, name: 'without [close-6] ' + tag,
+          transform: (source) => source.split(from).join(''),
+          survives: (mod) => mod.reviewAnswer({ text: input, evidence: [], domain: 'fiqh', mode: 'chat' }).text.split('\n')[0] === input });
+        ok('close-6 ' + tag + ' mutant seam applied', m6.changed, m6.error);
+        ok('MUTANT KILLED: without [close-6] ' + tag + ' «' + id + '» is generalised again', m6.loaded && m6.survived === false, JSON.stringify(m6));
       }
     }
   } catch (error) {
