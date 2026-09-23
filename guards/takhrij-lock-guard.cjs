@@ -4630,6 +4630,38 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       }
     }
   }
+  // ── [111-close-3] · THE OWNER'S DECISION 3: «IT MAY NOT BE ASCRIBED … AS A SOUND HADITH» IS A RULING ──
+  // MEASURED on the preview of efcdcf4 (battery Q3, `[finalize/drop] grades · matn`): «فلا حرج أن يقول الإنسان "…"، لكن لا
+  // يجوز أن ينسب هذا اللفظ للنبيّ ﷺ على أنه حديثٌ صحيح.» — the «لا» thirteen words before the grade, the window six.
+  console.log('\n--- CLOSE-3. A CLAUSE FORBIDDING THE ASCRIPTION IS A RULING, HOWEVER FAR ITS NEGATION ---');
+  {
+    const C3 = 'حديثٌ ضعيفٌ لا يصحّ.\n';
+    const g3 = (t) => TL.dropUnsourcedGrades(C3 + t).text.slice(C3.length);
+    const W3 = 'فلا حرج أن يقول الإنسان "النظافة أمرٌ محمود في الإسلام"، لكن لا يجوز أن ينسب هذا اللفظ للنبيّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ على أنه حديثٌ صحيح.';
+    ok('CLOSE-3 W · the battery Q3 sentence stays whole', g3(W3) === W3, JSON.stringify(g3(W3)));
+    for (const [label, t] of [
+      ['«ولا يصحّ أن يُنسَب … بأنه حديث صحيح»', 'يقول الناس "من عرف نفسه فقد عرف ربه"، ولا يصحّ أن يُنسَب هذا الكلام إلى رسول الله صلى الله عليه وسلم بأنه حديث صحيح.'],
+      ['«ولا يجوز نسبته … على أنه حديث ثابت»', 'يقول الناس "النظافة من الإيمان"، ولا يجوز نسبته إلى النبي صلى الله عليه وسلم على أنه حديث ثابت.'],
+    ]) ok('CLOSE-3 sibling · ' + label + ' stays', g3(t) === t, JSON.stringify(g3(t)));
+    ok('CLOSE-3 control · a plain authentication beside a quotation still goes', g3('وقد جاء "النظافة من الإيمان"، وهو حديث صحيح.') === '',
+      JSON.stringify(g3('وقد جاء "النظافة من الإيمان"، وهو حديث صحيح.')));
+    ok('CLOSE-3 control · «لا يجوز» about something else does not shield a grade', g3('قال "النظافة من الإيمان"، ولا يجوز أن نقول غير هذا، وهو حديث صحيح.') === 'قال "النظافة من الإيمان"، ولا يجوز أن نقول غير هذا.',
+      JSON.stringify(g3('قال "النظافة من الإيمان"، ولا يجوز أن نقول غير هذا، وهو حديث صحيح.')));
+    const src3 = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seam3 = "  if (FORBIDDEN_ASCRIPTION_RE.test(tokenize(clause).map((t) => t.bare).join(' '))) return true; // [111-close-3]\n";
+    const mut3 = src3.split(seam3).join('');
+    ok('MUTANT CLOSE-3 seam applied', mut3 !== src3);
+    const tmp3 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-close3-mut-'));
+    try {
+      const f3 = path.join(tmp3, 'takhrij-lock.mjs');
+      fs.writeFileSync(f3, mut3.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + f3.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [close-3] the Q3 sentence goes again', mod.dropUnsourcedGrades(C3 + W3).text.slice(C3.length) === '');
+    } finally {
+      try { fs.rmSync(tmp3, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   // ── [111-b4b-65] · A GRADE'S REMOVAL LEAVES NO HOLE ─────────────────────────────────────────
   // MEASURED at eca359e, fixed drafts through the chain: «وقال الحاكم: صحيح الإسناد، لكن تعقبه الذهبي…»
   // reached the reader as «وقال بعض أهل العلم: لكن تعقبه الذهبي…», and «ويجب الغسل، وقال ابن الجوزي: وهو
