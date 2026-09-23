@@ -2495,7 +2495,9 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
       v4Loop.indexOf('const keepsEmitted = emittedPrefix') > 0
       && v4Loop.indexOf('const keepsEmitted = emittedPrefix')
         < v4Loop.indexOf('          emptyOutcome = \'filled\';')
-      && /if \(keepsEmitted && stillHollow === '' && candidateCuts === 0\) \{/u.test(v4Loop),
+      // [111-roots-55] — MIGRATED: the condition gained a fourth term (a rewrite that says itself twice is refused);
+      // the row's point — the prefix test is a condition of adoption, read first — is unchanged.
+      && /if \(keepsEmitted && stillHollow === '' && candidateCuts === 0(?: && !saysItselfTwice)?\) \{/u.test(v4Loop),
       'the adoption condition');
     // ── V-M42: THE RESTATED HEAD. §٤/٥ by name: «واحذرْ ما وقعَ الليلة» — the door above was
     // repaired and produced a doubled head because its note said «أعِدْ كتابةَ الجوابِ كاملاً».
@@ -2570,6 +2572,27 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
         ok('roots-enum ' + tag + ' mutant seam applied', m.changed, m.error);
         ok('MUTANT KILLED: without [roots-enum] ' + tag + ' a complete answer is judged hollow again', m.loaded && m.survived === false, JSON.stringify(m));
       }
+    }
+    // ── [111-roots-55] · A REWRITE THAT SAYS ITSELF TWICE IS NOT A FILLED ANSWER ──────────────────
+    // MEASURED on the preview of 20308f8 (roots R1 Q10 «طالب علم»): `empty_retry:filled` adopted a rewrite that held the
+    // draft's list and the same list again; the reader read five conditions twice.
+    {
+      const lp55 = await fresh(LOOP, 'roots-55');
+      const L = ['1. غسل الكفين ثلاثا قبل إدخالهما في الإناء.', '2. المضمضة والاستنشاق ثلاثا بغرفة واحدة.', '3. غسل الوجه ثلاثا من منابت الشعر إلى الذقن.'];
+      const TWICE = [...L, 'وتفصيل ذلك:', '4. غسل الكفين ثلاثا قبل إدخالهما في الإناء.', '5. المضمضة والاستنشاق ثلاثا بغرفة واحدة.', '6. غسل الوجه ثلاثا من منابت الشعر إلى الذقن.'].join('\n');
+      ok('roots-55 W · the measure: a list written twice restates itself three times', lp55.restatesItself(TWICE) >= lp55.RESTATED_LINES_REFUSED, String(lp55.restatesItself(TWICE)));
+      ok('roots-55 control · the same list once restates nothing', lp55.restatesItself(L.join('\n')) === 0);
+      ok('roots-55 control · prose summarised by its own <steps> card is not read as a restatement',
+        lp55.restatesItself(L.join('\n') + '\n<steps title="t">\n- ' + L.join('\n- ') + '\n</steps>') === 0);
+      const t55 = await v4Drive(lp55, [V4_FRAME, TWICE]);
+      ok('roots-55 W · the empty door does not adopt it: the reader never reads the list twice',
+        (t55.degraded || []).includes('empty_retry:rewrite_restates_itself') && (String(t55.text).match(/غسل الكفين ثلاثا/gu) || []).length <= 1,
+        'READER = ' + JSON.stringify(t55.text) + ' · ' + JSON.stringify(t55.degraded));
+      const m55 = await loopMutant('roots-55-adopts-a-restatement',
+        (source) => source.split('        const saysItselfTwice = restatesItself(candidateReviewed.text) >= RESTATED_LINES_REFUSED;\n').join('        const saysItselfTwice = false;\n'),
+        async (twin) => !(await v4Drive(twin, [V4_FRAME, TWICE])).degraded.includes('empty_retry:filled'));
+      ok('roots-55 mutant seam applied', m55.changed, m55.error);
+      ok('MUTANT KILLED: without [roots-55] the rewrite said twice is adopted again', m55.loaded && m55.survived === false, JSON.stringify(m55));
     }
     // ── BATCH 4 [b37] · THE IMPURITIES ────────────────────────────────────────────────────
     // MEASURED on the owner's battery at 92d3c7d: «這は» inside an Arabic line (كشف الوجه); «ممن أخذ
