@@ -2888,7 +2888,7 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
         (mod) => mod.atomCarriesMatn(TAHUR_OTHER, TAHUR)],
       ['formula-anchor', '  if (ownWordCount(words.slice(0, cut)) < MIN_ANCHOR_WORDS) return false; // [111-roots-69]\n', '',
         (mod) => mod.atomCarriesMatn(LONG_OTHER, LONG)],
-      ['voice', '    if (!carriedInTheProphetsVoice(atom, matn)) continue;\n', '',
+      ['voice', '    if (!carriedInTheProphetsVoice(atom, matn, { listBook: LIST_ENTRY_IDS.has(ids[i]) })) continue;\n', '',
         async (mod) => /\(الترمذي/u.test(await run69(mod, 'ليس في الحلي زكاة', ['FC-000658', 'FC-000626'], [TIRMIDHI_HULI, SHAYBA_HASAN], huliFrame))],
     ];
     for (const [tag, from, to, back] of seams69) {
@@ -2901,6 +2901,61 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
           (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
         const mod = await import('file:///' + f.replace(/\\/g, '/'));
         ok('MUTANT KILLED: without [roots-69] ' + tag + ' the false carrier is back', await back(mod));
+      } finally {
+        try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
+  // ── [111-close-1] · THE OWNER'S DECISION 1: A CHAPTER HEADING IS NOT A HADITH, HOWEVER LONG THE MATN ──
+  // MEASURED on the preview of efcdcf4 (roots phase 3, battery Q13 «طالب علم» and «مفصّل»): «صَوْمُ ثَلَاثَةِ أَيَّامٍ مِنْ
+  // كُلِّ شَهْرٍ صَوْمُ الدَّهْرِ كُلِّه» ⟸ «(ابن خزيمة · صحيح)» off FC-000685, whose words are Ibn Khuzayma's comment and a
+  // chapter heading — «(182) باب ذكر الدليل على أن صوم ثلاثة أيام من كل شهر يقوم مقام صيام الدهر». The voice check
+  // ran only under eight words; it now runs on every matn. Re-proved on the twin: the two brackets become «(ابن حبان ·
+  // صحيح)» (3652, «عن النبي ﷺ قال: صوم ثلاثة أيام من كل شهر صيام الدهر وقيامه»), and no other of the 53 live brackets moves.
+  console.log('\n--- CLOSE-1. THE VOICE IS ASKED OF EVERY MATN — A HEADING, AN AUTHOR, A NARRATOR PROVE NOTHING ---');
+  {
+    const TC = await esm('lib/takhrij.js');
+    const MATN = 'صوم ثلاثة أيام من كل شهر صوم الدهر كله';
+    const KHUZAYMA_HEADING = 'قال أبو بكر: هذا الخبر يحتمل أن يكون كخبر أبي عثمان عن أبي هريرة: أوصاني خليلي بثلاث: صوم ثلاثة أيام من أول الشهر، أو خوف نزول المنية. (182) باب ذكر الدليل على أن صوم ثلاثة أيام من كل شهر يقوم مقام صيام الدهر، كان صوم الثلاثة أيام من أول الشهر، أو من وسطه، أو من آخره 2129/ 1 - قال أبو بكر: في خبر أبي سلمة';
+    const HIBBAN_3652 = 'ذكر تفضل الله بكتبة صيام الدهر وقيامه لمن صام الأيام الثلاثة من الشهر 3652 - أخبرنا أبو يعلى، حدثنا عبيد الله بن عمر القواريري، حدثنا يحيى بن سعيد، عن شعبة، عن معاوية بن قرة، عن أبيه، عن النبي صلى الله عليه وسلم، قال: «صوم ثلاثة أيام من كل شهر صيام الدهر وقيامه»';
+    const V = (atom, matn, o) => TC.carriedInTheProphetsVoice(atom, matn, o);
+    ok('CLOSE-1 W · the heading atom carries the anchor — and it is not his voice', TC.atomCarriesMatn(KHUZAYMA_HEADING, MATN) && !V(KHUZAYMA_HEADING, MATN));
+    const runC = async (mod) => (await mod.applyTakhrij('قال النبي صلى الله عليه وسلم: «' + MATN + '» وهذا فضل عظيم.',
+      { env: ON, lookup: lookupOf({ [MATN]: { matn: MATN, subjectIds: ['FC-000685', 'FC-000703'], atoms: [KHUZAYMA_HEADING, HIBBAN_3652] } }) })).text;
+    const wc = await runC(TC);
+    ok('CLOSE-1 W · no «(ابن خزيمة…)» off the heading; ابن حبان, who has it from the Prophet ﷺ, stands', !wc.includes('(ابن خزيمة') && wc.includes('(ابن حبان'), JSON.stringify(wc));
+    ok('CLOSE-1 sibling · an author\'s own words («قال أبو بكر: …») carrying a long matn are not his',
+      !V('قال أبو بكر: وفي هذا دليل على أن صوم ثلاثة أيام من كل شهر صوم الدهر كله إذا كانت الحسنة بعشر أمثالها', MATN));
+    ok('CLOSE-1 sibling · a long report that names the Prophet ﷺ in its opening, inside a heading, is the heading',
+      !V('باب ما جاء أن النبي صلى الله عليه وسلم كان إذا قام إلى الصلاة رفع يديه حتى يكونا حذو منكبيه', 'أن النبي صلى الله عليه وسلم كان إذا قام إلى الصلاة رفع يديه حتى يكونا حذو منكبيه'));
+    ok('CLOSE-1 control · a long matn after «عن النبي ﷺ قال» — his, confirmed', V(HIBBAN_3652, 'صوم ثلاثة أيام من كل شهر صيام الدهر وقيامه'));
+    ok('CLOSE-1 control · a long Companion\'s report of him («أن رجلا سأل رسول الله ﷺ…») after a numbered «وعن جابر» is his report',
+      V('274 - وعن جابر بن سمرة رضي الله عنهما أن رجلا سأل رسول الله صلى الله عليه وسلم أأتوضأ من لحوم الغنم قال إن شئت فتوضأ وإن شئت فلا', 'أن رجلا سأل رسول الله صلى الله عليه وسلم أأتوضأ من لحوم الغنم قال إن شئت فتوضأ'));
+    ok('CLOSE-1 control · a footnote digit in the narration («مسكتان 2 غليظتان») does not cut him from his words',
+      V('عن جده أن امرأة أتت رسول الله صلى الله عليه وسلم ومعها ابنة لها وفي يد ابنتها مسكتان 2 غليظتان من ذهب فقال لها: أتعطين زكاة هذا؟ قالت: لا. قال: أيسرك أن يسورك الله بهما يوم القيامة', 'أتعطين زكاة هذا؟ قالت: لا. قال: أيسرك أن يسورك الله بهما يوم القيامة'));
+    ok('CLOSE-1 control · an atom that opens on a long matn, and a list book\'s entry, are read as before',
+      V('لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه 17208 حدثنا', 'لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه')
+        && V('2082 - «إني أراكم تقرءون وراء إمامكم؟ فلا تفعلوا إلا بأم القرآن فإنه لا صلاة لمن لم يقرأ بها»', 'لا تفعلوا إلا بأم القرآن فإنه لا صلاة لمن لم يقرأ بها', { listBook: true }));
+    ok('CLOSE-1 control · «عن أبي هريرة روايةً: …» (البخاري 5889) and «أوصاني خليلي ﷺ بثلاث…» — his, as the replay kept them',
+      V('5889 - حدثنا علي حدثنا سفيان قال الزهري حدثنا عن سعيد بن المسيب عن أبي هريرة رواية: «الفطرة خمس، أو خمس من الفطرة: الختان، والاستحداد، ونتف الإبط، وتقليم الأظفار، وقص الشارب»', 'الفطرة خمس، أو خمس من الفطرة: الختان، والاستحداد، ونتف الإبط، وتقليم الأظفار، وقص الشارب')
+        && V('1981 - حدثنا أبو معمر حدثنا عبد الوارث حدثنا أبو التياح قال حدثني أبو عثمان عن أبي هريرة رضي الله عنه قال: أوصاني خليلي صلى الله عليه وسلم بثلاث: صيام ثلاثة أيام من كل شهر، وركعتي الضحى، وأن أوتر قبل أن أنام', 'أوصاني خليلي صلى الله عليه وسلم بثلاث: صيام ثلاثة أيام من كل شهر، وركعتي الضحى، وأن أوتر قبل أن أنام'));
+    ok('CLOSE-1 control · the short-matn rule is untouched (the ROOTS-69 Companion row)', !V('حدثنا مالك عن نافع عن ابن عمر رضي الله عنهما قال: ليس في الحلي زكاة', 'ليس في الحلي زكاة'));
+    const srcC = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seamsC = [
+      ['long-skipped', '  if (long && listBook) return true;\n', '  if (long) return true;\n', async (mod) => (await runC(mod)).includes('(ابن خزيمة')],
+      ['heading-gap', '    if (namesHim && !HEADING_GAP_RE.test(', '    if (namesHim && !/$^/u.test(',
+        (mod) => mod.carriedInTheProphetsVoice('باب ما جاء أن النبي صلى الله عليه وسلم كان إذا قام إلى الصلاة رفع يديه حتى يكونا حذو منكبيه', 'أن النبي صلى الله عليه وسلم كان إذا قام إلى الصلاة رفع يديه حتى يكونا حذو منكبيه')],
+    ];
+    for (const [tag, from, to, back] of seamsC) {
+      const mutated = srcC.split(from).join(to);
+      ok('MUTANT CLOSE-1 ' + tag + ' seam applied', mutated !== srcC);
+      const tmp = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-close1-mut-'));
+      try {
+        const f = path.join(tmp, 'takhrij.mjs');
+        require('fs').writeFileSync(f, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + f.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: without [close-1] ' + tag + ' the heading proves a bracket again', await back(mod));
       } finally {
         try { require('fs').rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
       }
