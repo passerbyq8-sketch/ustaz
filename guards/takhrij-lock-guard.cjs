@@ -5083,8 +5083,8 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     ok('CLOSE-5b W · «…في الحديث الذي.» is not left; the ruling before it stays', TL.lockTakhrij(H5b, []).text === 'سؤال.\nالحدثُ، لأنّ الطهارة شرطٌ لصحة الصلاة.\nاستدبارُ القبلة.', JSON.stringify(TL.lockTakhrij(H5b, []).text));
     ok('CLOSE-5b W · no «وقد،» is left where a credit was cut', !/وقد،/u.test(TL.lockTakhrij('سؤال.\nفهو من حديث عثمان أيضًا، وقد رواه مسلم، لكنّي لا أملك إسناده الآن.\nوالله أعلم.', []).text));
     const src5b = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
-    const seam5b = '  if (keptWords.length && RELATIVE_END.has(keptWords[keptWords.length - 1].bare)) {';
-    const mut5b = src5b.split(seam5b).join('  if (false) {');
+    const seam5b = '(RELATIVE_END.has(keptWords[keptWords.length - 1].bare) || isBareFrame(keptWords))';
+    const mut5b = src5b.split(seam5b).join('(false || isBareFrame(keptWords))'); // [111-complete-3] — 5b's half of the line alone
     ok('MUTANT CLOSE-5b seam applied', mut5b !== src5b);
     const tmp5b = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-close5b-mut-'));
     try {
@@ -5224,6 +5224,31 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       ok('MUTANT KILLED: without [complete-2] the third view goes again', mod.dropUnsourcedGrades(H2 + W2).text !== H2 + W2);
     } finally {
       try { fs.rmSync(tmp2, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
+  // ── [111-complete-3] · A FRAME THE CUT EMPTIED GOES FROM ITS OWN COMMA ─────────────────────────────
+  // MEASURED on the preview of 27dfa58: battery Q27 «موجز» shipped «…رضي الله عنه، وفي إسناده، حتى إنّ…». The draft before the
+  // lock is not logged; this draft gives the same two `attribution` cuts and the same hole back.
+  console.log('\n--- COMPLETE-3. NO «وفي إسناده،» LEFT BEHIND TWO CUT CREDITS ---');
+  {
+    const lockText3 = (mod, t) => { const r = mod.lockTakhrij(t, []); return typeof r === 'string' ? r : r.text; };
+    const D3 = 'فقد جاء من طريق أنس بن مالك رضي الله عنه، وفي إسناده رواه ابن عدي، وأخرجه العقيلي، حتى إنّ بعض المحدّثين حكم عليه بالوضع لشدّة ضعف رجاله.';
+    const W3 = 'فقد جاء من طريق أنس بن مالك رضي الله عنه، حتى إنّ بعض المحدّثين حكم عليه بالوضع لشدّة ضعف رجاله.';
+    ok('COMPLETE-3 W · the emptied frame goes, the ruling of fabrication stays', lockText3(TL, D3) === W3, JSON.stringify(lockText3(TL, D3)));
+    const C3 = 'فقد جاء من طريق أنس، وفي إسناده ضعف رواه ابن عدي، وأخرجه العقيلي، حتى إنّ بعضهم حكم عليه بالوضع.';
+    ok('COMPLETE-3 control · «وفي إسناده ضعف» is a whole clause and stays', lockText3(TL, C3) === 'فقد جاء من طريق أنس، وفي إسناده ضعف، حتى إنّ بعضهم حكم عليه بالوضع.', JSON.stringify(lockText3(TL, C3)));
+    const src3 = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const mut3 = src3.split(' || isBareFrame(keptWords))) { // [111-complete-3]').join(')) {');
+    ok('MUTANT COMPLETE-3 seam applied', mut3 !== src3);
+    const tmp3 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-complete3-mut-'));
+    try {
+      const mf = path.join(tmp3, 'takhrij-lock.mjs');
+      fs.writeFileSync(mf, mut3.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + mf.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [complete-3] «وفي إسناده،» is left again', lockText3(mod, D3) !== W3);
+    } finally {
+      try { fs.rmSync(tmp3, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
