@@ -3434,8 +3434,12 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       ok('111-T4c the credit before it gone, «ورواه أيضا أبو داود» keeps its credit and loses «أيضا»',
         out.includes('ورواه أبو داود في سننه.') && !/أيضا/u.test(out) && !/رواه مسلم/u.test(out), JSON.stringify(out));
     }
+    // [111-roots-split] + [111-roots-64] — MIGRATED: with the quotation one piece (its own «؟» no longer splits it), the
+    // two credits are read as crediting that matn, and a page proves neither: «standing» is the library's atoms for both.
+    const MATN4 = 'الدين النصيحة، قلنا: لمن؟ قال: لله ولكتابه ولرسوله ولأئمة المسلمين وعامتهم';
+    const ATOMS_BOTH = [...PAGE_BOTH, ...['مسلم', 'أبو داود'].map((book) => ({ title: '', passage: '', proseProof: { book, matn: MATN4 } }))];
     ok('111-T4c ...with the credit before it standing, «أيضا» stands too (byte-identical)',
-      L4.lockTakhrij(T4, PAGE_BOTH).text === T4, JSON.stringify(L4.lockTakhrij(T4, PAGE_BOTH).text));
+      L4.lockTakhrij(T4, ATOMS_BOTH).text === T4, JSON.stringify(L4.lockTakhrij(T4, ATOMS_BOTH).text));
     ok('111-T4c ...with no page at all, neither credit reaches the reader',
       !/رواه/u.test(L4.lockTakhrij(T4, []).text), JSON.stringify(L4.lockTakhrij(T4, []).text));
     {
@@ -4542,6 +4546,35 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         mod.lockTakhrij(W, [OTHER_T]).text === W);
     } finally {
       try { fs.rmSync(tmp64, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
+  // ── [111-roots-split] · A STOP INSIDE A QUOTATION ENDS NOTHING ───────────────────────────────────
+  // MEASURED on the preview of 20308f8 (roots R1 Q4 «موجز»): «…ثُمَّ مَنْ؟فحتى مع ضعف…» — the seal cut the Prophet's
+  // words at their own «؟», dropped «قَالَ: ثُمَّ أَبُوكَ» رواه البخاري ومسلم.» and the guillemet with it.
+  console.log('\n--- ROOTS-SPLIT. THE QUOTATION IS ONE PIECE ---');
+  {
+    const AHAQQ = 'ولذلك جاء في الحديثِ أنّ رجلًا سأل النبيَّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ:\n«مَنْ أَحَقُّ النَّاسِ بِحُسْنِ صَحَابَتِي؟ قَالَ: أُمُّكَ. قَالَ: ثُمَّ مَنْ؟ قَالَ: ثُمَّ أُمُّكَ. قَالَ: ثُمَّ مَنْ؟ قَالَ: ثُمَّ أُمُّكَ. قَالَ: ثُمَّ مَنْ؟ قَالَ: ثُمَّ أَبُوكَ» رواه البخاري ومسلم.\nفحتى مع ضعفِ لفظِ «الجنة تحت أقدام الأمهات» سندًا، فمعناه صحيحٌ مقرَّرٌ بنصوصٍ أخرى ثابتة.';
+    const w = TL.lockTakhrij(AHAQQ, []).text;
+    ok('ROOTS-SPLIT W · the whole matn reaches the reader, closed, «…قَالَ: ثُمَّ أَبُوكَ»', w.includes('قَالَ: ثُمَّ أَبُوكَ»') && !w.includes('مَنْ؟فحتى'), JSON.stringify(w));
+    ok('ROOTS-SPLIT W · ...and the unproven credit does not', !/رواه البخاري/u.test(w), JSON.stringify(w));
+    const DOTS = 'وفي الحديث: «الدِّينُ النَّصِيحَةُ. قُلْنَا: لِمَنْ؟ قَالَ: لِلهِ وَلِكِتَابِهِ» رواه مسلم.\nوالله أعلم.';
+    const d = TL.lockTakhrij(DOTS, []).text;
+    ok('ROOTS-SPLIT sibling · «.» and «؟» inside «الدين النصيحة…» split nothing: the matn stays closed', d.includes('وَلِكِتَابِهِ»') && d.includes('«الدِّينُ النَّصِيحَةُ.'), JSON.stringify(d));
+    const OPEN = 'قال بعضهم: «هذا كلام لم يغلق. رواه مسلم.\nوالله أعلم.';
+    ok('ROOTS-SPLIT control · an unclosed «« holds nothing: the line still splits at its stops', TL.lockTakhrij(OPEN, []).text.includes('والله أعلم.'), JSON.stringify(TL.lockTakhrij(OPEN, []).text));
+    ok('ROOTS-SPLIT control · a sentence with no quotation splits exactly as before', TL.lockTakhrij('يجب الوضوء. رواه مسلم. ويستحب السواك.', []).text === 'يجب الوضوء. ويستحب السواك.', JSON.stringify(TL.lockTakhrij('يجب الوضوء. رواه مسلم. ويستحب السواك.', []).text));
+    const srcS = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const mutS = srcS.split('    if (quoted) { re.lastIndex = quoted.end; continue; } // [111-roots-split]\n').join('');
+    ok('MUTANT ROOTS-SPLIT seam applied', mutS !== srcS);
+    const tmpS = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-roots-split-mut-'));
+    try {
+      const fS = path.join(tmpS, 'takhrij-lock.mjs');
+      fs.writeFileSync(fS, mutS.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      const mod = await import('file:///' + fS.replace(/\\/g, '/'));
+      ok('MUTANT KILLED: without [roots-split] the matn is cut at its own «؟» again', mod.lockTakhrij(AHAQQ, []).text.includes('مَنْ؟فحتى'));
+    } finally {
+      try { fs.rmSync(tmpS, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
   // ── [111-roots-62] · THE GRADE RULE'S SECOND FORM: A NEGATED, A CLASS, A MEANING, AND A RULING AFTER THE CLAUSE ──
