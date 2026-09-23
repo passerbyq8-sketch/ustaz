@@ -3,6 +3,10 @@
 
 const path = require('path');
 const { fresh, runMutant, harness } = require('./output-reviewer-mutant-lib.cjs');
+// [111-close-6b] — the implied speaker's wider rule («a man named in this very sentence keeps his own verb») answers
+// several older rows too; a mutant that removes one of those older rules removes this line with it, or it is masked.
+const CLOSE6B_LINE = "      if (here.length && !/[.؟!«»:\"]/u.test(gap)) return null;\n";
+const noClose6b = (source) => source.split(CLOSE6B_LINE).join('');
 const REVIEWER = path.resolve(__dirname, '..', 'lib', 'output-reviewer.js');
 const { ok, finish } = harness('tag-honesty');
 
@@ -774,7 +778,7 @@ const unsupportedIsHandledSilently = (module) => {
           out.replace(/\s+/gu, ' ') === input.replace(/\s+/gu, ' ') && !/وجاء في الأثر|بعض أهل العلم|من أهل العلم من يرى/u.test(out), out);
       }
       const killed44 = async (name, from, to, survives) => {
-        const m = await runMutant({ sourceFile: REVIEWER, name, transform: (source) => source.replace(from, to), survives });
+        const m = await runMutant({ sourceFile: REVIEWER, name, transform: (source) => noClose6b(source).replace(from, to), survives });
         ok('r44 mutant seam applied — ' + name, m.changed, m.error);
         ok('MUTANT KILLED: ' + name, m.loaded && m.survived === false, JSON.stringify(m));
       };
@@ -835,7 +839,7 @@ const unsupportedIsHandledSilently = (module) => {
       const implied46 = await runMutant({
         sourceFile: REVIEWER,
         name: 'the-divine-name-is-a-subject-again',
-        transform: (source) => source.replace(
+        transform: (source) => noClose6b(source).replace(
           '  return nameMentions(text).filter((item) => !item.through && !DIVINE_AUTHORITY_HEAD_RE.test(item.name));',
           '  return nameMentions(text).filter((item) => !item.through); // mutant'),
         survives: (mod) => !/قال بعض أهل العلم/u.test(mod.reviewAnswer({ text: ALI, evidence: [], domain: 'fiqh', mode: 'chat' }).text),
@@ -875,7 +879,7 @@ const unsupportedIsHandledSilently = (module) => {
       }
       const W53 = (id) => ROWS53.find((row) => row[0] === id)[1];
       const killed53 = async (name, from, to, survives) => {
-        const m = await runMutant({ sourceFile: REVIEWER, name, transform: (source) => source.replace(from, to), survives });
+        const m = await runMutant({ sourceFile: REVIEWER, name, transform: (source) => noClose6b(source).replace(from, to), survives });
         ok('h53 mutant seam applied — ' + name, m.changed, m.error);
         ok('MUTANT KILLED: ' + name, m.loaded && m.survived === false, JSON.stringify(m));
       };
@@ -918,7 +922,7 @@ const unsupportedIsHandledSilently = (module) => {
         say66(R44) === 'وصلاة الجماعة واجبة.\nوتكلم بعض أهل العلم في المسألة ثم قال: صلاة الجماعة في المسجد واجبة.', say66(R44));
       const W66 = ROWS66[0][1];
       const m66 = await runMutant({ sourceFile: REVIEWER, name: 'without [b4b-66] «أنه قال» takes «بعض أهل العلم» again',
-        transform: (source) => source.replace('    if (PRONOUN_SUBJECT_BEFORE_RE.test(view(text.slice(0, m.index)))) continue; // [111-b4b-66]\n', ''),
+        transform: (source) => noClose6b(source).replace('    if (PRONOUN_SUBJECT_BEFORE_RE.test(view(text.slice(0, m.index)))) continue; // [111-b4b-66]\n', ''),
         survives: (mod) => !/أنه قال بعض أهل العلم/u.test(mod.reviewAnswer({ text: W66, evidence: [], domain: 'fiqh', mode: 'chat' }).text) });
       ok('b4b-66 mutant seam applied', m66.changed, m66.error);
       ok('MUTANT KILLED: without [b4b-66] «أنه قال» takes «بعض أهل العلم» again', m66.loaded && m66.survived === false, JSON.stringify(m66));
@@ -1105,7 +1109,7 @@ const unsupportedIsHandledSilently = (module) => {
         ['refusal-gate', '  if (ownersFormulaRefused(sentence, attribution)) return true;\n', '', 'companion-ibn-abbas-ikrima'],
         ['whole-name', '    attribution = { ...attribution, nameOnly: wholeNameSpan(sentence, attribution.nameOnly || reported) };', '    attribution = { ...attribution, nameOnly: attribution.nameOnly || reported };', 'mangle-shaykh-barrak'],
         ['reported-frame', '  const reported = speaker && !attribution.nameOnly ? reportingFrameNameOnly(sentence, attribution) : null;', '  const reported = null;', 'frame-ibn-hajar-daraqutni'],
-        ['implied-same-sentence', "      if (here.length && (/،/u.test(gap) || /(?:^|\\s)(?:الذي|التي)\\s*[وف]?\\s*$/u.test(gap))) return null;\n", '', 'implied-ibn-hajar', "      if (here.length && /^و/u.test(m.groups.verb) && !/[.؟!«»:\"]/u.test(gap)) return null;\n"],
+        ['implied-same-sentence', "      if (here.length && (/،/u.test(gap) || /(?:^|\\s)(?:الذي|التي)\\s*[وف]?\\s*$/u.test(gap))) return null;\n", '', 'implied-ibn-hajar', CLOSE6B_LINE],
       ];
       for (const [tag, from, to, id, also] of seams68) {
         const [, input, expected] = pick(id);
@@ -1126,6 +1130,21 @@ const unsupportedIsHandledSilently = (module) => {
       for (const [id, input] of ROWS6) ok('close-6 ' + id + ': left as the model wrote it', say68(input) === input, say68(input));
       ok('close-6 control · «وقد قال فيها ابن عساكر: منكر…» still takes it', say68('فهذه أشد نكارة، وقد قال فيها ابن عساكر: منكر جداً إسناداً ومتناً.') === 'فهذه أشد نكارة، ومن أهل العلم من يرى: منكر جداً إسناداً ومتناً.',
         say68('فهذه أشد نكارة، وقد قال فيها ابن عساكر: منكر جداً إسناداً ومتناً.'));
+      // [111-close-6b] — this round's preview (battery Q1, Q7 «مفصّل»; round 5 Q6, Q7, Q8, Q14)
+      const ROWS6B = [
+        'والدليلُ على ذلك حديثُ شُريحِ بنِ هانئ قال: سألتُ عائشةَ عن المسح على الخفين، فقالت: ائتِ عليَّ بنَ أبي طالب فسَلْه.',
+        'الترمذي قال: هو حديثٌ منكر، وقال أيضاً في كتاب العلل: سألتُ محمداً (يعني البخاري) عن هذا الحديث فأنكره.',
+        'يحيى بن معين قال: هو حديثٌ لا أصل له، وقال أيضاً: إنه كذبٌ لا أصل له.',
+        'وممّن نقلَ هذا الإجماعَ أيضًا: الغزاليُّ، وابنُ العربيِّ إذ قال: "قد اجتمعتِ الأمةُ على وجوبِ الوضوء".',
+        'القولُ الأوّل: تحريمُ حلقِ اللحيةِ، وهو ما نقلَه ابنُ حزمٍ حين قال: اتّفقوا أنّ حلقَ جميعِ اللحيةِ مُثلةٌ لا تجوز.',
+        'وذكرَ ابنُ عابدين من الحنفيّةِ أنّ الأخذَ من اللحيةِ دون القبضةِ لم يُبِحْه أحد.',
+        'القولُ الثاني: المنعُ مطلقًا، وممّا استُدلَّ به لتشديدِ المنعِ ما نقله ابنُ عابدين من أنّ الأخذَ من اللحيةِ دونَ القبضةِ لم يُبِحْه أحد.',
+        'فقد نقل القرطبي هذا الإجماع صراحة فقال: "أجمع المسلمون على وجوب الحج في الجملة".',
+        'فالخلاصةُ: إن كانت الشركةُ تعاونيةً حقيقةً، فأكثرُ من أفتى في المسألة يُجيز العملَ فيها.',
+      ];
+      for (const input of ROWS6B) ok('close-6b ' + input.slice(0, 28) + '…: left as the model wrote it', say68(input) === input, say68(input));
+      ok('close-6b · «أبو زرعة الرازي قال:» — a name taken whole, never «بعض أهل العلم الرازي»',
+        !/بعض أهل العلم (?:الرازي|العيد)/u.test(say68('أبو زرعة الرازي قال: خلقٌ كثيرٌ افتُضِحوا فيه.') + say68('ابن دقيق العيد قال: لم يثبتوه.')));
       const seams6 = [
         ['narrator', "  if (OWNER_FORMULA_NARRATOR_LEAD_RE.test(frame)) return 'narrator';\n", 'close6-narrator-sulayman'],
         ['story', "  if (OWNER_FORMULA_REPORTED_STORY_RE.test(said)) return 'narration';\n", 'close6-story-bayhaqi'],
