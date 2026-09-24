@@ -655,5 +655,10 @@
     "name": "bwencyc",
     "script": "guards/before-writing-i-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "facontinue",
+    "script": "guards/full-answer-a-guard.cjs",
+    "args": ""
   }
 ]

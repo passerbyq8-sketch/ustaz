@@ -741,6 +741,9 @@ function bindUpstreamToClient(readerGone) {
 }
 
 export default async function handler(req, res) {
+  // م٣-أ (FULL_ANSWER_V1) — the function's own start. The 300 s kill is counted from here, so a
+  // continuation is timed from here too, not from the free-brain turn's later start.
+  const handlerStartedAt = Date.now();
   applyCorsOrigin(req, res);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-murabbi-device, x-murabbi-founder, ' + AI_CONSENT_ALLOW_HEADERS);
@@ -911,6 +914,10 @@ export default async function handler(req, res) {
   // character (lib/before-writing.js), and a hadith question gets no fiqh books and no
   // encyclopedia on any road. OFF unless exactly 'on'; read here, beside the others, and nowhere else.
   const beforeWritingValue = String(process.env.BEFORE_WRITING_V1 || '').trim().toLowerCase();
+  // PROGRAM ORDER 2026-09-24, م٣ (FULL_ANSWER_V1) — «الجوابُ كاملًا وشكلُه». With this switch on, a
+  // writing call that stops on the token cap is continued from its last whole sentence, on the
+  // handler's clock (lib/full-answer.js). OFF unless exactly 'on'; read here, beside the others.
+  const fullAnswerValue = String(process.env.FULL_ANSWER_V1 || '').trim().toLowerCase();
 
   // Age band for RAG source-gating (khilaf-policy §6). reader-fields resolves an absent or
   // garbled age to young, so retrieve() fails CLOSED to the minor list (NOT adult).
@@ -1842,6 +1849,8 @@ export default async function handler(req, res) {
           // offer, so the depth rule for the tool is untouched. Null means "as before".
           beforeWriting: (beforeWritingValue === 'on' && band === 'adult')
             ? { libFlagValue, libToken } : null,
+          // م٣-أ — the switch and the clock. Null means "as before".
+          fullAnswer: fullAnswerValue === 'on' ? { startedAt: handlerStartedAt } : null,
         });
       } finally {
         freeUpstream.cleanup();

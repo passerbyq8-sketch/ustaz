@@ -827,3 +827,5 @@ lib/issue-match.js text eol=lf
 guards/before-writing-g-guard.cjs text eol=lf
 guards/before-writing-h-guard.cjs text eol=lf
 guards/before-writing-i-guard.cjs text eol=lf
+guards/full-answer-a-guard.cjs text eol=lf
+lib/full-answer.js text eol=lf
