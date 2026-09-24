@@ -630,5 +630,10 @@
     "name": "bwnotext",
     "script": "guards/before-writing-d-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "bwmadhhab",
+    "script": "guards/before-writing-e-guard.cjs",
+    "args": ""
   }
 ]

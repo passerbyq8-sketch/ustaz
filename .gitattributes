@@ -821,3 +821,4 @@ guards/before-writing-b-guard.cjs text eol=lf
 guards/before-writing-c-guard.cjs text eol=lf
 lib/ruling-review.js text eol=lf
 guards/before-writing-d-guard.cjs text eol=lf
+guards/before-writing-e-guard.cjs text eol=lf
