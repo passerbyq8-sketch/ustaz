@@ -595,5 +595,10 @@
     "name": "libmujaz",
     "script": "guards/lib-mujaz-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "libquote",
+    "script": "guards/lib-quote-guard.cjs",
+    "args": ""
   }
 ]
