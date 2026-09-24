@@ -725,5 +725,10 @@
     "name": "libsectionui",
     "script": "guards/lib-nav-f-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "harvesttools",
+    "script": "guards/harvest-tools-guard.cjs",
+    "args": ""
   }
 ]
