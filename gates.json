@@ -715,5 +715,10 @@
     "name": "libsearchcap",
     "script": "guards/lib-search-16a-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "libsection",
+    "script": "guards/lib-nav-e-guard.cjs",
+    "args": ""
   }
 ]
