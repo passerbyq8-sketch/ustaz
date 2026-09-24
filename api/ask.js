@@ -886,6 +886,11 @@ export default async function handler(req, res) {
   const libDepthEligible = libRequestedDepth === 'deep' || libRequestedDepth === 'scholar';
   const libFlagValue = String(process.env.SHAMELA_BRAIN || '').trim().toLowerCase();
   const libToken = String(process.env.SEARCH_API_TOKEN || '').trim();
+  // SOURCES ORDER 2026-09-24 -- LIB_QUOTE_V1. A reader who asks for the TEXT of a named book is
+  // answered with the book's own words, composed by the server (lib/lib-quote.js), below the route
+  // classification. OFF unless exactly 'on'; it rides the library's own two switches as well, so
+  // a deployment without them never takes the quote path. Read here, beside them, and nowhere else.
+  const libQuoteValue = String(process.env.LIB_QUOTE_V1 || '').trim().toLowerCase();
 
   // Age band for RAG source-gating (khilaf-policy §6). reader-fields resolves an absent or
   // garbled age to young, so retrieve() fails CLOSED to the minor list (NOT adult).
@@ -1017,6 +1022,34 @@ export default async function handler(req, res) {
     purpose: currentPlan.purpose, mode: currentPlan.attributionMode,
     entity: currentPlan.namedEntity || null, officialDomain: currentPlan.officialDomain || null,
   });
+
+  // ── LIB_QUOTE_V1 · «انقل لي من كتاب …» ANSWERED WITH THE BOOK'S OWN WORDS ──────────────
+  // An adult who asks for the text of a named book gets a SERVER-COMPOSED reply and no model
+  // call: a card line (book, author, volume and page -- or the chapter heading when the book has
+  // no printed pages) and the library atom's text letter for letter. The title is resolved
+  // offline, the one library call goes through runTool('search_library') narrowed to that book,
+  // and a page asked for by NUMBER is answered honestly (there is no page door).
+  //
+  // WHY HERE: after consent, the throttle, the body checks, the day cap, the band and the route;
+  // BEFORE the stream is committed, because the reply is written on the raw response by its own
+  // writer (lib/lib-quote.js writeQuoteReply) -- the seal below reads a classical book's own
+  // «روى فلان» as an unsupported attribution and would refuse the quotation whole. The two
+  // protections that run later on every path are asked here too: a grave hazard or a health
+  // referral is never answered by a quotation, so those requests go on down the ordinary path.
+  // Anything the detector does not claim goes on unchanged; with the flag off nothing is loaded.
+  if (libQuoteValue === 'on' && band === 'adult' && libFlagValue === 'on' && libToken !== '') {
+    const libQuote = await import('../lib/lib-quote.js');
+    const quoteAsk = libQuote.detectQuoteRequest(currentQuestionText);
+    if (quoteAsk && !graveHazard(currentQuestionText)
+      && access({ topicClass: classifyTopic(currentQuestionText, currentPlan, effectiveRoute), audienceBand }).outcome !== 'REFER_ADULT') {
+      const { runTool, createEvidenceTable } = await import('../lib/free-brain/tools.js');
+      const quoted = await libQuote.answerQuoteRequest(quoteAsk, { runTool, createEvidenceTable, libFlagValue, libToken });
+      if (quoted) {
+        console.log('[lib-quote]', { outcome: quoted.outcome });
+        return libQuote.writeQuoteReply(res, quoted.text);
+      }
+    }
+  }
 
   const headers = {
     'Content-Type': 'application/json',
