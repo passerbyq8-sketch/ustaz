@@ -959,14 +959,40 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
   }
 
   // ── ١٣ · §٣ — THE ROW CAP OF THIS PATH, AND THE MODEL'S OWN ────────────
-  console.log('\n--- 13. TEN ROWS FOR THE TAKHRIJ, FIVE FOR THE MODEL ---');
+  console.log('\n--- 13. THIRTY ROWS FOR THE TAKHRIJ, FIVE FOR THE MODEL ---');
   {
     const fs3 = require('fs');
     const toolsSrc = fs3.readFileSync(path.join(REPO, 'lib/free-brain/tools.js'), 'utf8');
     ok('13  the shared ceiling of the model path is untouched and still five',
       /export const MAX_RESULTS_PER_CALL = 5;/.test(toolsSrc));
-    ok('13  the takhrij path states its own ten as a value',
-      T.TAKHRIJ_ROWS_PER_CALL === 10);
+    // R1 (brain-night 24 September 2026) — THE PIN MOVES FROM TEN TO THIRTY, AND WHY. Ten was «what
+    // LIB_LIMIT_MAX makes the service return»; MEASURED tonight it is not: the service's own ceiling is
+    // MAX_LIMIT 50 (C:\EZIK-LIB\service\src\contract.mjs:4), and the local twin of the production index
+    // returned 30 rows for «لا ضرر ولا ضرار» over TEN distinct books at limit 30 (5 books at limit 10;
+    // 100 is refused 400). At ten, one takhrij volume (إرواء الغليل ×7-8) filled the one ladder call and
+    // the highest book that narrates the matn never reached the rows — «(البيهقي · صحيح)» where مالك
+    // narrates it (H02), «(الضياء · صحيح)» where ابن خزيمة does (H04-b); six lower-book brackets in 43
+    // graded answers. The row below drives that crowding and is RED at ten.
+    ok('13  the takhrij path states its own thirty as a value',
+      T.TAKHRIJ_ROWS_PER_CALL === 30);
+    ok('13  ...and LIB_LIMIT_MAX lets thirty through (the runner clamps to it)',
+      require('fs').readFileSync(path.join(REPO, 'lib/lib-contract.js'), 'utf8').includes('export const LIB_LIMIT_MAX = 30;'));
+    {
+      // THIRTY LADDER ROWS, ONE OF THEM THE TOP BOOK, AT POSITION 15. Rows 1-14 and 16-30 are البيهقي
+      // (ladder 16); row 15 is مالك في الموطأ (ladder 3). The fake runner slices to ctx.resultCap exactly
+      // as lib/free-brain/tools.js does. At ten the top book is never seen and the bracket names البيهقي.
+      const rows30 = Array.from({ length: 30 }, (_, i) => ({ subjectId: i === 14 ? 'FC-000600' : 'FC-000760', text: atomFor(MATN, 'عمر') }));
+      const crowded = T.runnerLookup(async (name, input, ctx) => {
+        const ladderCall = Array.isArray(ctx.bookIds) && ctx.bookIds.length === L.TAKHRIJ_LADDER_IDS.length;
+        const cap = Number.isInteger(ctx.resultCap) && ctx.resultCap > 0 ? ctx.resultCap : 5;
+        return { text: '', calls: 1, added: ladderCall ? rows30.slice(0, cap) : [] };
+      }, { libFlagValue: 'on', libToken: 'fixture' });
+      const out = await T.applyTakhrij(answerWith(MATN), { env: ON, lookup: crowded });
+      const paren = String((out.entries[0] || {}).parenthetical || '');
+      ok('13  R1 · the top ladder book at row 15 of 30 wins the bracket (crowding by one volume)',
+        paren.startsWith(L.ladderRowFor('FC-000600').display + ' · ') && !paren.includes(L.ladderRowFor('FC-000760').display),
+        JSON.stringify(paren));
+    }
     ok('13  ...and the runner reads a per-call cap instead of the constant',
       toolsSrc.includes('const cap = Number.isInteger(ctx.resultCap) && ctx.resultCap > 0'));
     // AND THE ADAPTER REALLY SENDS IT, driven rather than described.
@@ -976,8 +1002,33 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       return { text: '', calls: 1, added: [] };
     }, { libFlagValue: 'on', libToken: 'fixture' });
     await lookup([MATN]);
-    ok('13  the takhrij adapter asks the runner for ten rows',
-      seenCtx.length === 1 && seenCtx[0] === 10, JSON.stringify(seenCtx));
+    ok('13  the takhrij adapter asks the runner for thirty rows',
+      seenCtx.length === 1 && seenCtx[0] === 30, JSON.stringify(seenCtx));
+    // R1 · AND THE WIRE CARRIES IT. The cap was sliced from the reply but never asked of the
+    // service: with resultCap already thirty the recorded body was still `{ q, limit: 10 }`
+    // (measured on the twin of the production index, brain-night 2026-09-24), so the slice of
+    // thirty was a slice of ten. The real runner is driven here with a fake fetch that records
+    // the body: the takhrij path asks for thirty; a caller with no resultCap sends the ten it
+    // always sent, byte for byte.
+    {
+      const TOOLS13 = await esm('lib/free-brain/tools.js');
+      const bodies = [];
+      const fetchImpl = async (url, init) => {
+        bodies.push(JSON.parse(init.body));
+        return {
+          ok: true, status: 200, url: String(url),
+          headers: { get: (k) => (String(k).toLowerCase() === 'content-type' ? 'application/json' : '') },
+          text: async () => JSON.stringify({ hits: [] }),
+        };
+      };
+      const wire = { table: TOOLS13.createEvidenceTable(), degraded: [], spend: [], libFlagValue: 'on', libToken: 'fixture', fetchImpl };
+      await T.runnerLookup(TOOLS13.runTool, wire)([MATN]);
+      await TOOLS13.runTool('search_library', { query: MATN }, wire);
+      ok('13  R1 · the takhrij call asks the service for thirty rows on the wire',
+        bodies.length === 2 && bodies[0].limit === 30, JSON.stringify(bodies.map((b) => b.limit)));
+      ok('13  R1 · ...and a caller with no resultCap still sends the ten it always sent',
+        bodies.length === 2 && bodies[1].limit === 10, JSON.stringify(bodies.map((b) => b.limit)));
+    }
   }
 
   // ── ١٤ · §١ — NOT ONE OF THE FOUR CONFIDENCE MARKS REACHES THE READER ───
