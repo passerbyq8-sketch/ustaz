@@ -685,5 +685,10 @@
     "name": "fahead",
     "script": "guards/full-answer-f-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "falessons",
+    "script": "guards/full-answer-g-guard.cjs",
+    "args": ""
   }
 ]

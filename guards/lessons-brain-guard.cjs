@@ -308,6 +308,15 @@ async function run() {
     // A NOTE FOR WHOEVER READS THE SCORE AND THINKS IT IS RELEVANCE: it is not. The service's
     // `score` tracks the LENGTH of the query -- an irrelevant long query outscores a relevant short
     // one -- so a floor built on it would not filter for relevance even if one were wanted.
+    //
+    // 🔑 THE OWNER RULED AGAIN ON 2026-09-24, AND THE NEW RULING STANDS BESIDE THE OLD ONE, BEHIND A
+    // SWITCH. Program order م٣-ز: «لا دروسَ تحتَ السؤالِ العامّ، ولا يتكرّرُ الدرسُ نفسُه، وعتبةُ صلة»,
+    // with his witnesses («الطلاق عبر رسائل الجوال» under a CV question; one title three times). With
+    // FULL_ANSWER_V1 on, api/lessons-search.js filters on the SERVER, by the question's route and by
+    // an issue word shared with the title, and draws each title once (lib/lessons-relevance.js,
+    // gate falessons). It is still not a SCORE floor, so C1-C5 below stay literally true: nothing
+    // reads `score`, and the client's row mapper keeps every usable hit it is handed. With the switch
+    // off the server hands over every hit as before, and falessons proves it byte for byte.
 
     // MEASURED, not assumed: `score` DOES appear in app.jsx -- four times, every one of them in a
     // comment, and two of those (at the lessons endpoint) say in so many words that «score, unit_id

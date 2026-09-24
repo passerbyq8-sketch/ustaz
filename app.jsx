@@ -15307,7 +15307,8 @@ function App() {
     const controller = new AbortController();
     lessonsAbortRef.current = controller;
     const timer = setTimeout(() => { try { controller.abort(); } catch (e) {} }, EZIK_LESSONS_TIMEOUT_MS);
-    ezikFetchLessonRows(query, controller.signal).then((rows) => {
+    // م٣-ز — the question rides beside the query; the server decides relevance from it (FULL_ANSWER_V1).
+    ezikFetchLessonRows(query, controller.signal, turn ? turn.question : '').then((rows) => {
       clearTimeout(timer);
       if (lessonsSeqRef.current !== seq) return; // a newer question owns the screen
       lessonsAbortRef.current = null;
@@ -17691,7 +17692,7 @@ function App() {
     // ONCE, AND ONLY ONCE. There is no second call on this path: `resetLessons()` at the start
     // of the send clears the previous card and nothing draws one again until this landing, so a
     // reader is never shown a list built from the question and then handed a different one.
-    lessonsTurnRef.current = { msg: aiMsg, msgs: final, cid: chatIdRef.current };
+    lessonsTurnRef.current = { msg: aiMsg, msgs: final, cid: chatIdRef.current, question: text };
     startLessonsSearch(ezikLessonsQuery(reply, text), lessonsSeq);
   };
 
@@ -20245,14 +20246,16 @@ function ezikLessonsQuery(reply, question) {
 // list draws nothing. There is no error line, no empty frame and no spinner left behind,
 // because this runs AFTER the answer is already on the screen and has nothing to say to a
 // reader who is already reading.
-async function ezikFetchLessonRows(q, signal) {
+async function ezikFetchLessonRows(q, signal, question) {
   const query = typeof q === 'string' ? q.trim() : '';
   if (query.length < EZIK_LESSONS_MIN_Q) return [];
   try {
     const r = await fetch(EZIK_LESSONS_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q: query }),
+      // م٣-ز — `question` is the reader's own question, which the server reads to decide which of
+      // the hits are related. It is never sent further than this app's own endpoint.
+      body: JSON.stringify({ q: query, question: typeof question === 'string' ? question.trim().slice(0, 400) : '' }),
       signal,
     });
     if (r.status !== 200) return [];

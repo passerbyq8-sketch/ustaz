@@ -5096,7 +5096,8 @@ const resetLessons=()=>{lessonsSeqRef.current+=1;if(lessonsAbortRef.current){try
 // delay a single character of the reply, the stream, or the paint that follows it.
 const startLessonsSearch=(q,seq)=>{const query=typeof q==='string'?q.trim():'';if(query.length<EZIK_LESSONS_MIN_Q)return;// Read ONCE, here, not at the landing: the turn this call belongs to is the one that was on
 // the screen when it was fired, whatever has happened by the time it comes back.
-const turn=lessonsTurnRef.current;const aiMsg=turn?turn.msg:null;const controller=new AbortController();lessonsAbortRef.current=controller;const timer=setTimeout(()=>{try{controller.abort();}catch(e){}},EZIK_LESSONS_TIMEOUT_MS);ezikFetchLessonRows(query,controller.signal).then(rows=>{clearTimeout(timer);if(lessonsSeqRef.current!==seq)return;// a newer question owns the screen
+const turn=lessonsTurnRef.current;const aiMsg=turn?turn.msg:null;const controller=new AbortController();lessonsAbortRef.current=controller;const timer=setTimeout(()=>{try{controller.abort();}catch(e){}},EZIK_LESSONS_TIMEOUT_MS);// م٣-ز — the question rides beside the query; the server decides relevance from it (FULL_ANSWER_V1).
+ezikFetchLessonRows(query,controller.signal,turn?turn.question:'').then(rows=>{clearTimeout(timer);if(lessonsSeqRef.current!==seq)return;// a newer question owns the screen
 lessonsAbortRef.current=null;if(rows&&rows.length)setMessages(prev=>prev.map(mm=>mm===aiMsg?{...mm,lessonRows:rows}:mm));// What is stored must match what is on screen. Same identity test, and only while the
 // reader is still inside the conversation that asked -- see the ref's note above.
 if(rows&&rows.length&&turn&&chatIdRef.current===turn.cid)saveMessages(turn.msgs.map(mm=>mm===aiMsg?{...mm,lessonRows:rows}:mm));});};// ===== Live voice-call mode (Layer 2) — dedicated recognition + one-turn loop, isolated from the dictation mic =====
@@ -6005,7 +6006,7 @@ markStreamedOpen(final.length-1);saveMessages(final);setIsLoading(false);if(voic
 // ONCE, AND ONLY ONCE. There is no second call on this path: `resetLessons()` at the start
 // of the send clears the previous card and nothing draws one again until this landing, so a
 // reader is never shown a list built from the question and then handed a different one.
-lessonsTurnRef.current={msg:aiMsg,msgs:final,cid:chatIdRef.current};startLessonsSearch(ezikLessonsQuery(reply,text),lessonsSeq);};// ============================================================
+lessonsTurnRef.current={msg:aiMsg,msgs:final,cid:chatIdRef.current,question:text};startLessonsSearch(ezikLessonsQuery(reply,text),lessonsSeq);};// ============================================================
 // THE SECTION SUGGESTIONS -- four ways out of an empty chat, above the composer
 // ============================================================
 // WHAT THEY ARE. Four of the app's own sections, each opened by the SAME handler the home
@@ -6868,7 +6869,9 @@ function ezikLessonsQuery(reply,question){const body=String(reply==null?'':reply
 // list draws nothing. There is no error line, no empty frame and no spinner left behind,
 // because this runs AFTER the answer is already on the screen and has nothing to say to a
 // reader who is already reading.
-async function ezikFetchLessonRows(q,signal){const query=typeof q==='string'?q.trim():'';if(query.length<EZIK_LESSONS_MIN_Q)return[];try{const r=await fetch(EZIK_LESSONS_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:query}),signal});if(r.status!==200)return[];const payload=await r.json();return ezikLessonRows(payload&&payload.hits);}catch(e){return[];}}// THE CARD. Three fields, one link each, and null when there is nothing -- never a heading
+async function ezikFetchLessonRows(q,signal,question){const query=typeof q==='string'?q.trim():'';if(query.length<EZIK_LESSONS_MIN_Q)return[];try{const r=await fetch(EZIK_LESSONS_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},// م٣-ز — `question` is the reader's own question, which the server reads to decide which of
+// the hits are related. It is never sent further than this app's own endpoint.
+body:JSON.stringify({q:query,question:typeof question==='string'?question.trim().slice(0,400):''}),signal});if(r.status!==200)return[];const payload=await r.json();return ezikLessonRows(payload&&payload.hits);}catch(e){return[];}}// THE CARD. Three fields, one link each, and null when there is nothing -- never a heading
 // standing over an empty box. The link leaves the app, so it carries target="_blank" with
 // rel="noopener noreferrer" on every row.
 function EzikLessonCards({rows}){if(!Array.isArray(rows)||rows.length===0)return null;return/*#__PURE__*/React.createElement("div",{className:"ezik-lessons",style:s.lessonsBox},/*#__PURE__*/React.createElement("div",{style:s.lessonsHead},ezT('chat.lessons')),rows.map((row,i)=>/*#__PURE__*/React.createElement("a",{key:i,href:row.url,target:"_blank",rel:"noopener noreferrer",className:"ezik-focus",style:s.lessonsItem},/*#__PURE__*/React.createElement("span",{style:s.lessonsTitle},row.title),row.scholar?/*#__PURE__*/React.createElement("span",{style:s.lessonsScholar},row.scholar):null)));}const MessageBubble=React.memo(function MessageBubble({message,index,onSuggestionClick,onPlayVerse,onPlaySurah,onStopAudio,onPlayMessage,age,onReport,tashkeel,onToggleTashkeel,onQuote,onFavorite,isFavorite,onFavoriteAyah,ayahFavIds,defaultOpen,foldEpoch,lessonRows}){const isUser=message.role==='user';// S97 PERF. This parse used to run on EVERY render of EVERY assistant bubble, and the chat's

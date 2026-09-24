@@ -201,8 +201,15 @@ function exactShapedResponse(api, level, value) {
       && shapingSrc.includes("carry(out, row, 'title');")
       && shapingSrc.includes("carry(out, row, 'url');"));
 
-  const browseEnv = envNames(apiSrc);
-  const searchEnv = envNames(searchSrc);
+  // م٣-ز (program order 2026-09-24): the search function reads one SWITCH, FULL_ANSWER_V1, beside
+  // its credential. A switch is not a credential, so the shared set is compared without names that
+  // end in _V<n>, and the one switch the search may read is named by its own check below.
+  const credentialsOf = (names) => names.filter((name) => !/_V\d+$/u.test(name));
+  const browseEnv = credentialsOf(envNames(apiSrc));
+  const searchEnv = credentialsOf(envNames(searchSrc));
+  check('the search function reads no switch but FULL_ANSWER_V1',
+    envNames(searchSrc).filter((name) => /_V\d+$/u.test(name)).every((name) => name === 'FULL_ANSWER_V1'),
+    envNames(searchSrc).join(','));
   check('the browse and search functions read the same environment-name set',
     sameSet(browseEnv, searchEnv), browseEnv.join(',') + ' vs ' + searchEnv.join(','));
   check('that shared set contains SEARCH_API_TOKEN and no second name',

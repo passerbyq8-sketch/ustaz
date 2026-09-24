@@ -63,7 +63,10 @@
 // This round is purely additive and has NO INTERFACE: nothing in the answer path and nothing in
 // index.html calls this endpoint.
 import { HIT_FIELDS, DROPPED_HIT_FIELD } from '../lib/lessons-source-card.js';
-// NOTE FOR THE GUARD, AND FOR ANYONE ADDING A SECOND ONE: this file imports exactly ONE module
+// م٣-ز (FULL_ANSWER_V1) — the second module, and the guard now names both: the relevance filter, pure,
+// importing only the router.
+import { lessonsForQuestion } from '../lib/lessons-relevance.js';
+// NOTE FOR THE GUARD, AND FOR ANYONE ADDING A THIRD ONE: this file imports exactly TWO modules
 // and section 6 of guards/lessons-search-guard.cjs asserts that by name. The free-brain tool
 // imports THIS file; this file imports nothing of the free brain's, so the dependency has one
 // direction and no cycle.
@@ -269,6 +272,10 @@ export default async function handler(req, res) {
   const body = readBody(req);
   const q = typeof body.q === 'string' ? body.q.trim() : '';
   if (!q) return res.status(400).json(BAD_REQUEST_BODY);
+  // م٣-ز (FULL_ANSWER_V1) — the reader's question, sent by the client beside the query. It decides
+  // which hits the reader is shown and nothing else: it is never sent upstream (the upstream body
+  // stays `{q, limit}`) and never logged.
+  const questionText = typeof body.question === 'string' ? body.question.trim().slice(0, MAX_Q_CHARS) : '';
 
   const out = await fetchLessonsPayload(q, {
     token: process.env.SEARCH_API_TOKEN,
@@ -299,5 +306,11 @@ export default async function handler(req, res) {
   }
 
   res.setHeader('Cache-Control', 'private, no-store');
-  return res.status(200).json(shapeSearchResponse(out.payload));
+  const shaped = shapeSearchResponse(out.payload);
+  // م٣-ز — no lessons under a general question, none that shares no issue word with the question,
+  // and no title twice (lib/lessons-relevance.js). OFF unless exactly 'on'; no question, no change.
+  if (String(process.env.FULL_ANSWER_V1 || '').trim().toLowerCase() === 'on' && questionText && Array.isArray(shaped.hits)) {
+    shaped.hits = lessonsForQuestion(shaped.hits, questionText);
+  }
+  return res.status(200).json(shaped);
 }

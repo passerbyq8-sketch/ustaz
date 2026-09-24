@@ -250,7 +250,11 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   check('the snippet mutant is a real mutation, not a no-op',
     snippetMutantSrc !== apiSrc && snippetMutantSrc.includes(SMUT_TO),
     'the anchor ' + SMUT_FROM + ' matched nothing');
-  const snippetMutant = await loadMutant(snippetMutantSrc, { "'../lib/lessons-source-card.js'": 'lib/lessons-source-card.js' });
+  // م٣-ز — the mutant is the endpoint, and the endpoint now imports the relevance filter too.
+  const snippetMutant = await loadMutant(snippetMutantSrc, {
+    "'../lib/lessons-source-card.js'": 'lib/lessons-source-card.js',
+    "'../lib/lessons-relevance.js'": 'lib/lessons-relevance.js',
+  });
   const mutantBody = snippetMutant.shapeSearchResponse(filledPayload);
   check('THE GUARD BITES: the mutated function returns the filled snippet',
     ('snippet' in mutantBody.hits[0]) && serialize(mutantBody).includes(SNIPPET_MARKER),
@@ -841,8 +845,11 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   // function drops on the floor. This is asserted against the function's own source.
   const apiBodyReads = [...new Set([...apiSrc.matchAll(/body\.([A-Za-z_][A-Za-z0-9_]*)/g)]
     .map((m) => m[1]))].sort();
-  check('the function accepts exactly q and limit -- no offset, page, scholar or kind',
-    apiBodyReads.join(',') === 'limit,q', apiBodyReads.join(','));
+  // م٣-ز (program order 2026-09-24) adds ONE field, `question`: the reader's own question, which the
+  // server reads to decide which hits are related and never sends upstream. It is not a pager or a
+  // filter a control could bind to, so the claim below stands for the screen.
+  check('the function accepts exactly q, limit and the م٣-ز question -- no offset, page, scholar or kind',
+    apiBodyReads.join(',') === 'limit,q,question', apiBodyReads.join(','));
   check('...so the screen sends exactly those two and invents no third',
     /JSON\.stringify\(\{ q: query, limit: EZIK_LESSONS_SCREEN_LIMIT \}\)/.test(screenCode));
   const PAGER_WORDS = ['offset', 'page', 'pageSize', 'nextPage', 'loadMore', 'hasMore'];
@@ -1264,8 +1271,10 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   // reader has to be able to find them. What must not exist is a dependency: an import, a
   // require, or a read. So the check is over the import graph, not over the words.
   const importsOf = (src) => Array.from(src.matchAll(/(?:^|\n)\s*import[^\n]*from\s*['"]([^'"]+)['"]/g)).map((m) => m[1]);
-  check('this round imports exactly one module, and it is its own card builder',
-    importsOf(apiSrc).join(',') === '../lib/lessons-source-card.js', importsOf(apiSrc).join(','));
+  // م٣-ز (program order 2026-09-24): a second import, named here by the order that added it. The
+  // relevance filter is pure and imports only the router; guards/full-answer-g-guard.cjs holds it.
+  check('this round imports its own card builder and the م٣-ز relevance filter, and nothing else',
+    importsOf(apiSrc).join(',') === '../lib/lessons-source-card.js,../lib/lessons-relevance.js', importsOf(apiSrc).join(','));
   check('the card builder imports nothing at all', importsOf(cardSrc).length === 0,
     importsOf(cardSrc).join(','));
   check('neither new module requires or reads any of the four',
