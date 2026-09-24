@@ -191,6 +191,33 @@ function answerShapeViolations(reply) {
   }
 
   // =========================================================================
+  console.log('\n=== A0/R4. A CITATION MARKER TAKES ITS OWN PARENTHESES WITH IT ===');
+  {
+    // MEASURED on the night of 24 September 2026 (brain-night, smoke1 and the smoking answer): the
+    // model wraps a citation marker in parentheses — «… لأمر الله ([[1]]).» — and `stripCitations`
+    // removed the marker alone, so the reader was handed «… لأمر الله ().» and «له (, ).» three
+    // times in one answer. Nothing after it sweeps an empty pair (the finalizer keeps them).
+    // THE RULE: a pair left holding only spaces and commas after the marker went is the marker's
+    // own, and goes with it, together with the space before it. A pair holding a word stays.
+    const strip = (value) => LOOP.stripCitations(value);
+    const ONE = 'وليست اختيارًا منه بل تبليغًا لأمرِ الله';
+    const TWO = 'ويُعلَّمُ ويُبيَّنُ له';
+    const GLOSS = '(أي النبي ﷺ)';
+    const LADDER = '«الدعاء هو العبادة» (ابن حبان · صحيح).';
+    eq('R4: «… ([[1]]).» leaves no empty pair behind', strip(ONE + ' ([[1]]).'), ONE + '.');
+    eq('R4: «… ([[1]], [[2]]).» — the ASCII comma the model writes between two markers goes too',
+      strip(TWO + ' ([[1]], [[2]]).'), TWO + '.');
+    eq('R4: ...and the Arabic comma', strip(TWO + ' ([[1]]، [[2]]).'), TWO + '.');
+    eq('R4: ...and two refs inside one marker', strip(TWO + ' ([[1, 2]]).'), TWO + '.');
+    eq('R4: a marker on its own line inside parentheses leaves no «()» line',
+      /\(\s*[,،]?\s*\)/u.test(strip(ONE + '.\n([[2]])\n' + TWO + '.')), false);
+    // AND WHAT MUST NOT MOVE.
+    eq('R4 control: a parenthesised gloss holding words stays', strip(ONE + ' ' + GLOSS + ' [[1]].'), ONE + ' ' + GLOSS + '.');
+    eq('R4 control: a takhrij bracket is not an empty pair', strip(LADDER), LADDER);
+    eq('R4 control: a bare marker strips exactly as before', strip(ONE + ' [[1]].'), ONE + '.');
+  }
+
+  // =========================================================================
   console.log('\n=== A0/AA-72. A LIST DOES NOT BEGIN AT THE SECOND ===');
   {
     // WHAT THIS DEFENDS, AND WHICH RULE PRODUCED IT. `deliverableText` removes a line of
