@@ -585,5 +585,25 @@
     "name": "sahihaynlink",
     "script": "guards/sahihayn-link-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "previewdaycap",
+    "script": "guards/preview-daycap-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "libmujaz",
+    "script": "guards/lib-mujaz-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "libquote",
+    "script": "guards/lib-quote-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "encycbrain",
+    "script": "guards/encyc-brain-guard.cjs",
+    "args": ""
   }
 ]
