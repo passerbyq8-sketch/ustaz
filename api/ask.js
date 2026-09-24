@@ -140,6 +140,8 @@ import { freeBrainDecision } from '../lib/free-brain/flag.js';
 import { takhrijDecision, TAKHRIJ_SKIPPED_STREAMED } from '../lib/takhrij.js';
 // BATCH 4 [b18] — on its own line: guards/takhrij-contract-guard.cjs row 19 pins the line above.
 import { asksGradeOrSource } from '../lib/takhrij.js';
+// م٣-و (FULL_ANSWER_V1) — the takhrij head stands down when the answer's first sentence already says it.
+import { headRestatedBy } from '../lib/takhrij.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 // The free path's own empty-reply text, صنف (ب): the system declaring a limit, not answering.
@@ -2187,6 +2189,13 @@ export default async function handler(req, res) {
             pass.entries = [];
             pass.problems = [];
             pass.text = readerText;
+          }
+          // م٣-و (FULL_ANSWER_V1) — «الحكمُ المكرّرُ في صدرِ «حب الوطن»»: the head this pass prepended says
+          // what the answer's own first sentence says, so the reader would read one ruling twice.
+          if (fullAnswerValue === 'on' && pass.gradingHead && pass.text.startsWith(pass.gradingHead + '\n\n')
+            && headRestatedBy(pass.gradingHead, pass.text.slice(pass.gradingHead.length + 2))) {
+            pass.text = pass.text.slice(pass.gradingHead.length + 2);
+            out.degraded.push('takhrij:head_restated');
           }
           readerText = pass.text;
           // ── AND THE SEAL IS TOLD WHICH PAGES PROVED IT (see `takhrijProvenRows`) ──

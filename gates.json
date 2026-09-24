@@ -680,5 +680,10 @@
     "name": "famechanism",
     "script": "guards/full-answer-e-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "fahead",
+    "script": "guards/full-answer-f-guard.cjs",
+    "args": ""
   }
 ]
