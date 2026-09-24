@@ -142,6 +142,8 @@ import { takhrijDecision, TAKHRIJ_SKIPPED_STREAMED } from '../lib/takhrij.js';
 import { asksGradeOrSource } from '../lib/takhrij.js';
 // م٣-و (FULL_ANSWER_V1) — the takhrij head stands down when the answer's first sentence already says it.
 import { headRestatedBy } from '../lib/takhrij.js';
+// م٤-ب (LIB_NAV_V1) — where the last quotation stopped. Zero imports, so it costs nothing to load here.
+import { readCursor, stripCursorMarkers, isContinueRequest, cursorMarker } from '../lib/quote-cursor.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 // The free path's own empty-reply text, صنف (ب): the system declaring a limit, not answering.
@@ -818,6 +820,10 @@ export default async function handler(req, res) {
   const messages = providerMessages(body.messages);
   if (!messages) return res.status(400).json({ error: 'invalid messages' });
   body.messages = messages;
+  // م٤-ب (LIB_NAV_V1) — the last quotation's cursor is read here, and every marker is taken out of the
+  // history before anything reads it: the switch on or off, so a marker never reaches a model.
+  const quoteCursor = readCursor(body.messages);
+  body.messages = stripCursorMarkers(body.messages);
 
   // DAILY QUESTION CAP (directive 78). Sits AFTER body parse + the size cap and BEFORE the
   // first Anthropic call, so a capped request costs nothing. NO IP: identity is the device
@@ -1083,10 +1089,14 @@ export default async function handler(req, res) {
     && !graveHazard(currentQuestionText)
     && access({ topicClass: classifyTopic(currentQuestionText, currentPlan, effectiveRoute), audienceBand }).outcome !== 'REFER_ADULT') {
     const libNav = await import('../lib/lib-nav.js');
-    const navReply = await libNav.answerPageRequest(currentQuestionText, { flagValue: libFlagValue, token: libToken, baseUrl: libNavBase });
+    const navDeps = { flagValue: libFlagValue, token: libToken, baseUrl: libNavBase };
+    // م٤-ب — «كمّل» right after a quotation continues it; anything else may be a page by its number.
+    const navReply = (quoteCursor && isContinueRequest(currentQuestionText)
+      ? await libNav.answerContinue(quoteCursor, navDeps) : null)
+      || await libNav.answerPageRequest(currentQuestionText, navDeps);
     if (navReply) {
       console.log('[lib-nav]', { outcome: navReply.outcome });
-      return (await import('../lib/lib-quote.js')).writeQuoteReply(res, navReply.text);
+      return (await import('../lib/lib-quote.js')).writeQuoteReply(res, navReply.text + cursorMarker(navReply.cursor));
     }
   }
   if (libQuoteValue === 'on' && band === 'adult' && libFlagValue === 'on' && libToken !== '') {
@@ -1098,6 +1108,8 @@ export default async function handler(req, res) {
       const quoted = await libQuote.answerQuoteRequest(quoteAsk, { runTool, createEvidenceTable, libFlagValue, libToken });
       if (quoted) {
         console.log('[lib-quote]', { outcome: quoted.outcome });
+        // م٤-ب — with the navigation switch on, the quotation carries where it stopped, for «كمّل».
+        if (libNavValue === 'on' && quoted.cursor) quoted.text += cursorMarker(quoted.cursor);
         return libQuote.writeQuoteReply(res, quoted.text);
       }
     }

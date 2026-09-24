@@ -695,5 +695,10 @@
     "name": "navpage",
     "script": "guards/lib-nav-a-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "navcontinue",
+    "script": "guards/lib-nav-b-guard.cjs",
+    "args": ""
   }
 ]
