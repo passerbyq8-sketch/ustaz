@@ -615,5 +615,10 @@
     "name": "bwevidence",
     "script": "guards/before-writing-a-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "bwsinglewrite",
+    "script": "guards/before-writing-b-guard.cjs",
+    "args": ""
   }
 ]

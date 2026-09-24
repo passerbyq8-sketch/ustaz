@@ -817,3 +817,4 @@ lib/live-number-source.js text eol=lf
 lib/live-news-order.js text eol=lf
 guards/before-writing-a-guard.cjs text eol=lf
 lib/before-writing.js text eol=lf
+guards/before-writing-b-guard.cjs text eol=lf
