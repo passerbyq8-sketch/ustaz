@@ -3896,8 +3896,14 @@ const CALL_STREAM_SPEECH = true; // false = classic (speak full reply after gene
 // byte-for-byte as it came. Everything outside them loses the harakat marks only.
 const QURAN_SPAN_RE = /\uFD3F[\s\S]*?\uFD3E/g;
 const HARAKAT_RE = /[\u064B-\u0652\u0670]/g;
+// LIB_QUOTE_V1 (quote order, 24 Sep 2026): a quotation the SERVER composed (lib/lib-quote.js) is
+// the whole segment -- one card line \u00AB\uD83D\uDCD6 \u00AB\u2026\u00BB \u00B7 \u2026\u00BB, a blank line, then the book's own text as a
+// blockquote and nothing after it. That text is the book's, harakat included, so the toggle does
+// not reach it; the card line is still prose and still loses its marks.
+const BOOK_QUOTE_REPLY_RE = /^\u{1F4D6} \u00AB[^\n]*\n\n>[^\n]*(?:\n>[^\n]*)*$/u;
 const stripTashkeelOutsideQuran = (s) => {
   const src = s || '';
+  if (BOOK_QUOTE_REPLY_RE.test(src)) { const nl = src.indexOf('\n'); return src.slice(0, nl).replace(HARAKAT_RE, '') + src.slice(nl); }
   let out = '';
   let last = 0;
   let m;

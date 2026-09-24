@@ -1470,7 +1470,18 @@ const SEALED = {
 //                    sw.js is 48468 bytes before and after. The store name did NOT move -- it is
 //                    the merge round's call. THIS digest is re-cut LAST, after every other sw.js
 //                    edit was final.
-  'sw.js': '44ee58e0488c6f4a6acadabb03b3ad6a3628763f3bcf561d5c5952db37862b80',
+  //   2026-09-24   -- QUOTE ORDER: A BOOK'S QUOTATION KEEPS ITS HARAKAT. app.jsx gained
+//                    BOOK_QUOTE_REPLY_RE and one line in stripTashkeelOutsideQuran: a reply the
+//                    server composed from a library atom (lib/lib-quote.js) keeps its blockquote
+//                    byte for byte with the toggle off. INDEX.HTML DID NOT MOVE and NO FILE
+//                    JOINED OR LEFT CORE. app.js was rebuilt by npm run build:app,
+//                    1782018 -> 1782629 (+611), and CORE_BYTES was re-cut 2955108 -> 2955719
+//                    (+611) by node tools/core-bytes.cjs --write; the byte table in sw.js:142
+//                    and the SW_PROSE mirror of it in B14 follow, both 1782018 -> 1782629.
+//                    sw.js is 48468 bytes before and after. The store name did NOT move -- it is
+//                    the merge round's call. THIS digest is re-cut LAST, after every other sw.js
+//                    edit was final.
+  'sw.js': '7789643685b3f11dc489f4db6432ba852114d9a6af1d24b3af2c6fd7de9f9bdb',
 };
 
 // ---------------------------------------------------------------------------
@@ -2426,7 +2437,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1782018, of: 'app.js' },
+      { n: 1782629, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

@@ -605,5 +605,10 @@
     "name": "encycbrain",
     "script": "guards/encyc-brain-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "quotetashkeel",
+    "script": "guards/quote-tashkeel-guard.cjs",
+    "args": ""
   }
 ]

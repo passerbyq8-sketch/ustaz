@@ -1080,7 +1080,11 @@ const CALL_STREAM_SPEECH=true;// false = classic (speak full reply after generat
 // Tashkeel is stripped from the tutor's prose by default (the owner's call), but NEVER from a
 // Quranic span: anything between the ornate parentheses U+FD3F..U+FD3E is scripture and is left
 // byte-for-byte as it came. Everything outside them loses the harakat marks only.
-const QURAN_SPAN_RE=/\uFD3F[\s\S]*?\uFD3E/g;const HARAKAT_RE=/[\u064B-\u0652\u0670]/g;const stripTashkeelOutsideQuran=s=>{const src=s||'';let out='';let last=0;let m;QURAN_SPAN_RE.lastIndex=0;while((m=QURAN_SPAN_RE.exec(src))!==null){out+=src.slice(last,m.index).replace(HARAKAT_RE,'');out+=m[0];last=m.index+m[0].length;}return out+src.slice(last).replace(HARAKAT_RE,'');};const miniBtnStyle={display:'inline-flex',alignItems:'center',gap:5,background:'none',border:'1px solid var(--line)',borderRadius:8,padding:'4px 8px',fontSize:12,cursor:'pointer',fontFamily:'inherit',color:'inherit',opacity:0.7};// D91. Two live-browser failures the in-process harness could not see:
+const QURAN_SPAN_RE=/\uFD3F[\s\S]*?\uFD3E/g;const HARAKAT_RE=/[\u064B-\u0652\u0670]/g;// LIB_QUOTE_V1 (quote order, 24 Sep 2026): a quotation the SERVER composed (lib/lib-quote.js) is
+// the whole segment -- one card line \u00AB\uD83D\uDCD6 \u00AB\u2026\u00BB \u00B7 \u2026\u00BB, a blank line, then the book's own text as a
+// blockquote and nothing after it. That text is the book's, harakat included, so the toggle does
+// not reach it; the card line is still prose and still loses its marks.
+const BOOK_QUOTE_REPLY_RE=/^\u{1F4D6} \u00AB[^\n]*\n\n>[^\n]*(?:\n>[^\n]*)*$/u;const stripTashkeelOutsideQuran=s=>{const src=s||'';if(BOOK_QUOTE_REPLY_RE.test(src)){const nl=src.indexOf('\n');return src.slice(0,nl).replace(HARAKAT_RE,'')+src.slice(nl);}let out='';let last=0;let m;QURAN_SPAN_RE.lastIndex=0;while((m=QURAN_SPAN_RE.exec(src))!==null){out+=src.slice(last,m.index).replace(HARAKAT_RE,'');out+=m[0];last=m.index+m[0].length;}return out+src.slice(last).replace(HARAKAT_RE,'');};const miniBtnStyle={display:'inline-flex',alignItems:'center',gap:5,background:'none',border:'1px solid var(--line)',borderRadius:8,padding:'4px 8px',fontSize:12,cursor:'pointer',fontFamily:'inherit',color:'inherit',opacity:0.7};// D91. Two live-browser failures the in-process harness could not see:
 //
 // (1) WHEN the text is built. It used to be built during MessageBubble's render. But the
 //     canonical stores (quran / adhkar / worship) fill asynchronously AFTER the cards mount,
