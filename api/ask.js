@@ -904,6 +904,13 @@ export default async function handler(req, res) {
   // classification. OFF unless exactly 'on'; it rides the library's own two switches as well, so
   // a deployment without them never takes the quote path. Read here, beside them, and nowhere else.
   const libQuoteValue = String(process.env.LIB_QUOTE_V1 || '').trim().toLowerCase();
+  // PROGRAM ORDER 2026-09-24, م٤ (LIB_NAV_V1) — «النقلُ في المحادثة». With this switch on (and the quote
+  // switch, which it builds on), a page is quoted by its number from the library's navigation routes
+  // (lib/lib-nav.js). OFF unless exactly 'on'; read here, beside the others, and nowhere else.
+  const libNavValue = String(process.env.LIB_NAV_V1 || '').trim().toLowerCase();
+  // The navigation routes' base: one of lib/lib-nav.js LIB_NAV_ORIGINS, or empty for the live origin
+  // (which has no navigation routes, so every page request there is answered «تعذّر»).
+  const libNavBase = String(process.env.LIB_NAV_URL || '').trim();
   // SOURCES ORDER 2026-09-24, item 4 (ENCYC_V1). The Kuwaiti encyclopedia already reaches the
   // model when the model calls search_sources; with this switch on, the loop also searches it
   // itself for the religious question, beside the fatwa-store prefetch, and a cited row earns a
@@ -1066,6 +1073,22 @@ export default async function handler(req, res) {
   // protections that run later on every path are asked here too: a grave hazard or a health
   // referral is never answered by a quotation, so those requests go on down the ordinary path.
   // Anything the detector does not claim goes on unchanged; with the flag off nothing is loaded.
+  // ── م٤-أ (LIB_NAV_V1): A PAGE BY ITS NUMBER ─────────────────────────────────
+  // «انقل لي نص الصفحة ١٤٠ من الجزء الأول من كتاب بداية المجتهد» is answered from the page itself: the
+  // whole page for a heritage or fatwa book, one paragraph with its attribution for a modern one, the
+  // chapters for an auto-numbered one, a refusal for a withheld one. Same gate and same two
+  // protections as the quote seat below, whose own lines this block does not touch (its switch opens
+  // this condition, so guards/lib-quote-guard.cjs A2-A5 read the seat they always read).
+  if (libNavValue === 'on' && libQuoteValue === 'on' && band === 'adult' && libFlagValue === 'on' && libToken !== ''
+    && !graveHazard(currentQuestionText)
+    && access({ topicClass: classifyTopic(currentQuestionText, currentPlan, effectiveRoute), audienceBand }).outcome !== 'REFER_ADULT') {
+    const libNav = await import('../lib/lib-nav.js');
+    const navReply = await libNav.answerPageRequest(currentQuestionText, { flagValue: libFlagValue, token: libToken, baseUrl: libNavBase });
+    if (navReply) {
+      console.log('[lib-nav]', { outcome: navReply.outcome });
+      return (await import('../lib/lib-quote.js')).writeQuoteReply(res, navReply.text);
+    }
+  }
   if (libQuoteValue === 'on' && band === 'adult' && libFlagValue === 'on' && libToken !== '') {
     const libQuote = await import('../lib/lib-quote.js');
     const quoteAsk = libQuote.detectQuoteRequest(currentQuestionText);

@@ -690,5 +690,10 @@
     "name": "falessons",
     "script": "guards/full-answer-g-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "navpage",
+    "script": "guards/lib-nav-a-guard.cjs",
+    "args": ""
   }
 ]

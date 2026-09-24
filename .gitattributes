@@ -836,3 +836,5 @@ guards/full-answer-e-guard.cjs text eol=lf
 guards/full-answer-f-guard.cjs text eol=lf
 guards/full-answer-g-guard.cjs text eol=lf
 lib/lessons-relevance.js text eol=lf
+guards/lib-nav-a-guard.cjs text eol=lf
+lib/lib-nav.js text eol=lf
