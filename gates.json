@@ -665,5 +665,10 @@
     "name": "fabracket",
     "script": "guards/full-answer-b-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "falongmatn",
+    "script": "guards/full-answer-c-guard.cjs",
+    "args": ""
   }
 ]
