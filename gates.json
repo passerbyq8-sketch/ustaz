@@ -660,5 +660,10 @@
     "name": "facontinue",
     "script": "guards/full-answer-a-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "fabracket",
+    "script": "guards/full-answer-b-guard.cjs",
+    "args": ""
   }
 ]

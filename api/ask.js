@@ -1217,6 +1217,8 @@ export default async function handler(req, res) {
     const locked = lockTakhrij(
       String(text == null ? '' : text),
       [...fetchedPages, ...storedFinalizerSources, ...takhrijProvenRows],
+      // م٣-ب — the bracket the pass wrote right after a governed matn stays with it.
+      { bracketAfterQuote: fullAnswerValue === 'on' },
     );
     if (locked.removed.length || locked.droppedSentences.length) {
       console.warn('[takhrij] unsupported takhrij removed:', {
@@ -1254,6 +1256,8 @@ export default async function handler(req, res) {
     readerCards: [],
     readerCardPrefix: '',
     allowWireOwnedCards: true,
+    // م٣-ب (FULL_ANSWER_V1) — the seat's lock and grade rule carry a bracket standing right after its matn.
+    bracketAfterQuote: fullAnswerValue === 'on',
     consistencyContext: trustedReaderEntity ? {
       entity: trustedReaderEntity,
       subjectEntity: trustedReaderEntity,
