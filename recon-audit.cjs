@@ -784,7 +784,7 @@ head('14) GATE ROSTER (single source: gates.json)');
   // the tool is offered on «مفصّل» and «طالب علم», withheld on «موجز», and withheld from every
   // child on every depth. It also pins resetLessons() at one call site, and pins the ABSENCE of
   // a relevance floor on the lessons row -- the owner ruled on 2026-09-09 that there is none.
-  const GATES_EXPECTED = 116;  // 116th: sahihaynlink -- the bare «fi al-Sahihayn» must be about THIS matn (2026-09-20)
+  const GATES_EXPECTED = 117;  // 117th: previewdaycap -- the per-IP day window is skipped on preview deployments only (2026-09-24)
                                //        (guards round, 2026-09-17). The pattern that decides what a
                                //        build may call itself is written in THREE independent files --
                                //        api/feedback.js, api/report.js and tools/build-app.cjs -- and
