@@ -2522,6 +2522,21 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       ok('R2 · ...and the pass writes (البخاري) off that atom', (await run(T61, R2T, one(MASUL, 'FC-000645', B50))).includes('(البخاري)'));
       ok('R2 · ...and (مسلم) off مسلم 9, printed the same way', (await run(T61, R2T, one(MASUL, 'FC-000648', M9))).includes('(مسلم)'));
     }
+    // R3 (brain-night 2026-09-24) — THE SHORT-QUOTE WINDOW IS READ ON THE LETTERS, NOT THE VOWELS.
+    // The eighty characters before a quotation were sliced off the atom as printed, and البخاري 1986
+    // spends half of them on tashkīl: 106 vocalised, 64 bare, before «أَصُمْتِ أَمْسِ». So البخاري «did
+    // not present it as the Prophet's ﷺ» and the bracket fell to النسائي (H04-b, reproduced on the
+    // twin). The atom below is البخاري 1984-1986 as the index holds it. RED on 1c9dc43 in two rows;
+    // the control is green on both trees.
+    {
+      const J = "فَإِذَا أَصْبَحَ صَائِمًا يَوْمَ الجُمُعَةِ فَعَلَيْهِ أَنْ يُفْطِرَ، يَعْنِي: إِذَا لَمْ يَصُمْ قَبْلَهُ، وَلاَ يُرِيدُ أَنْ يَصُومَ بَعْدَهُ\n1984 - حَدَّثَنَا أَبُو عَاصِمٍ، عَنِ ابْنِ جُرَيْجٍ، عَنْ عَبْدِ الحَمِيدِ بْنِ جُبَيْرِ بْنِ شَيْبَةَ، عَنْ مُحَمَّدِ بْنِ عَبَّادٍ، قَالَ: سَأَلْتُ جَابِرًا رَضِيَ اللَّهُ عَنْهُ: نَهَى النَّبِيُّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ عَنْ صَوْمِ يَوْمِ الجُمُعَةِ؟ قَالَ: «نَعَمْ»، زَادَ غَيْرُ أَبِي عَاصِمٍ، يَعْنِي: أَنْ يَنْفَرِدَ بِصَوْمٍ\n1985 - حَدَّثَنَا عُمَرُ بْنُ حَفْصِ بْنِ غِيَاثٍ، حَدَّثَنَا أَبِي، حَدَّثَنَا الأَعْمَشُ، حَدَّثَنَا أَبُو صَالِحٍ، عَنْ أَبِي هُرَيْرَةَ رَضِيَ اللَّهُ عَنْهُ، قَالَ: سَمِعْتُ النَّبِيَّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ، يَقُولُ: «لاَ يَصُومَنَّ أَحَدُكُمْ يَوْمَ الجُمُعَةِ، إِلَّا يَوْمًا قَبْلَهُ أَوْ بَعْدَهُ»\n1986 - حَدَّثَنَا مُسَدَّدٌ، حَدَّثَنَا يَحْيَى، عَنْ شُعْبَةَ، ح وحَدَّثَنِي مُحَمَّدٌ، حَدَّثَنَا غُنْدَرٌ، حَدَّثَنَا شُعْبَةُ، عَنْ قَتَادَةَ، عَنْ أَبِي أَيُّوبَ، عَنْ جُوَيْرِيَةَ بِنْتِ الحَارِثِ رَضِيَ اللَّهُ عَنْهَا، أَنَّ النَّبِيَّ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ، دَخَلَ عَلَيْهَا يَوْمَ الجُمُعَةِ وَهِيَ صَائِمَةٌ، فَقَالَ: «أَصُمْتِ أَمْسِ؟»، قَالَتْ: لاَ، قَالَ: «تُرِيدِينَ أَنْ";
+      const ASUMT = 'أصمت أمس';
+      ok('R3 · the window before a short quote is measured on the bare letters: «أصمت أمس» in البخاري 1986', T61.atomMatnIs(J, ASUMT));
+      const R3T = 'قال النبي صلى الله عليه وسلم لجويرية: «' + ASUMT + '» فقالت: لا.';
+      ok('R3 · ...and the pass writes (البخاري) off that atom', (await run(T61, R3T, one(ASUMT, 'FC-000645', J))).includes('(البخاري)'));
+      ok('R3 · control · the window is still a window: a marker eighty-five bare letters back proves nothing',
+        !T61.atomMatnIs('قال رسول الله صلى الله عليه وسلم ' + 'كلمة '.repeat(17) + ': «' + ASUMT + '»', ASUMT));
+    }
     const src61 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
     const seam = '    if (isShortQuote(matn) && !atomMatnIs(atom, matn)) continue;\n';
     const mutated = src61.split(seam).join('');
