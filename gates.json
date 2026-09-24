@@ -670,5 +670,10 @@
     "name": "falongmatn",
     "script": "guards/full-answer-c-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "fagrade",
+    "script": "guards/full-answer-d-guard.cjs",
+    "args": ""
   }
 ]
