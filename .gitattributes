@@ -815,3 +815,5 @@ lib/live-number-source.js text eol=lf
 # a file whose content nobody had touched. guards/live-world-v2-killswitch-guard.cjs reads it and
 # drives it, so it must read the same on every machine.
 lib/live-news-order.js text eol=lf
+guards/before-writing-a-guard.cjs text eol=lf
+lib/before-writing.js text eol=lf

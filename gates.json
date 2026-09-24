@@ -610,5 +610,10 @@
     "name": "quotetashkeel",
     "script": "guards/quote-tashkeel-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "bwevidence",
+    "script": "guards/before-writing-a-guard.cjs",
+    "args": ""
   }
 ]

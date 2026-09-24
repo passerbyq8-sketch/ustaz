@@ -905,6 +905,11 @@ export default async function handler(req, res) {
   // 'on'. In-process and free, so it rides no token and no depth rule -- only the adult band.
   // Read here, beside the other switches, and nowhere else.
   const encycValue = String(process.env.ENCYC_V1 || '').trim().toLowerCase();
+  // PROGRAM ORDER 2026-09-24, م٢ (BEFORE_WRITING_V1) — «المخُّ يُبنى على قبلَ الكتابة». With this
+  // switch on, an adult's fiqh question has its evidence gathered and pinned before the first
+  // character (lib/before-writing.js), and a hadith question gets no fiqh books and no
+  // encyclopedia on any road. OFF unless exactly 'on'; read here, beside the others, and nowhere else.
+  const beforeWritingValue = String(process.env.BEFORE_WRITING_V1 || '').trim().toLowerCase();
 
   // Age band for RAG source-gating (khilaf-policy §6). reader-fields resolves an absent or
   // garbled age to young, so retrieve() fails CLOSED to the minor list (NOT adult).
@@ -1824,6 +1829,11 @@ export default async function handler(req, res) {
             ? { matn: true, fromStart: asksGradeOrSource(questionText) } : null,
           // E75 — carried, not read. The loop hands it to the reviewer and nothing else.
           requestedIdentity,
+          // م٢ (BEFORE_WRITING_V1) — the switch and an adult band. The library's own two switches ride
+          // along at EVERY depth: the comparative books are part of the pinned evidence, not a tool
+          // offer, so the depth rule for the tool is untouched. Null means "as before".
+          beforeWriting: (beforeWritingValue === 'on' && band === 'adult')
+            ? { libFlagValue, libToken } : null,
         });
       } finally {
         freeUpstream.cleanup();
