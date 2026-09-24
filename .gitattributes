@@ -801,6 +801,7 @@ guards/fixtures-lib-quote.json text eol=lf
 lib/lib-quote.js text eol=lf
 lib/data/lib-catalog.js text eol=lf
 tools/gen-lib-catalog.mjs text eol=lf
+guards/encyc-brain-guard.cjs text eol=lf
 lib/live-world-v2.js text eol=lf
 lib/today-line.js text eol=lf
 lib/live-number-source.js text eol=lf

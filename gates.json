@@ -600,5 +600,10 @@
     "name": "libquote",
     "script": "guards/lib-quote-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "encycbrain",
+    "script": "guards/encyc-brain-guard.cjs",
+    "args": ""
   }
 ]
