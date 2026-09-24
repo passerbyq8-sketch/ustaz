@@ -620,5 +620,10 @@
     "name": "bwsinglewrite",
     "script": "guards/before-writing-b-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "bwruling",
+    "script": "guards/before-writing-c-guard.cjs",
+    "args": ""
   }
 ]

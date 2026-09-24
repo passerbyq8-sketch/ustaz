@@ -108,13 +108,16 @@ async function main() {
   const NOTFOUND = 'لم أقف على نص في حكم الدم الكثير خاصة.\n<suggestions>\n- هل ينقض القيء الوضوء؟\n</suggestions>';
 
   const one = await drive(T7, BWON, CITED);
-  const call = one.provider[0] || {};
+  // M2-ج adds ONE reading call after the write (the sentence-level door, on the fast model); what this
+  // item pins is that there is ONE WRITING call, so the reader's calls are set aside by their system.
+  const writes = one.provider.filter((b) => !String(b.system || "").startsWith("أنتَ فاحصُ أمانةٍ فقهيّة"));
+  const call = writes[0] || {};
   const lastUser = [...(call.messages || [])].reverse().find((m) => m.role === 'user');
   const blockText = lastUser && Array.isArray(lastUser.content) ? lastUser.content.slice(1).map((b) => b.text || '').join('\n') : '';
-  ok('D1  one provider call, with no tools, carrying the pinned texts and the writing rules',
-    one.provider.length === 1 && !('tools' in call) && blockText.includes(BW.BW_WRITE_RULES || '\u0000')
+  ok('D1  one WRITING call, with no tools, carrying the pinned texts and the writing rules',
+    writes.length === 1 && !('tools' in call) && blockText.includes(BW.BW_WRITE_RULES || '\u0000')
     && (one.out.degraded || []).includes('before_writing:single_write'),
-    JSON.stringify({ calls: one.provider.length, tools: 'tools' in call, degraded: one.out && one.out.degraded }));
+    JSON.stringify({ writes: writes.length, calls: one.provider.length, tools: 'tools' in call, degraded: one.out && one.out.degraded }));
   ok('D2  that call is the non-streamed write, and its finish state is the answer\'s',
     call.stream === false && one.out.deliveredStop === 'end_turn' && one.out.truncated === false,
     JSON.stringify({ stream: call.stream, deliveredStop: one.out.deliveredStop }));

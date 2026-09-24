@@ -818,3 +818,5 @@ lib/live-news-order.js text eol=lf
 guards/before-writing-a-guard.cjs text eol=lf
 lib/before-writing.js text eol=lf
 guards/before-writing-b-guard.cjs text eol=lf
+guards/before-writing-c-guard.cjs text eol=lf
+lib/ruling-review.js text eol=lf
