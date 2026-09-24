@@ -19,7 +19,8 @@
 //   F5  the section from the menu: sections → a section's books → a book (then its chapters) → a chapter's
 //       page; the visible back walks one rung; a notice is said in the dictionary's words;
 //   F6  App: the layer is one boolean with one history entry and a line in the ladder; the menu row is
-//       drawn only under the server's answer, asked once for an adult and never when the menu opens.
+//       drawn for an adult once a library card has been seen this session -- nothing is ever asked to
+//       learn it (chat-ux-guard.cjs: the chat sends nothing while quoting and searching);
 // Red on the tree before this item: `node guards/lib-nav-f-guard.cjs --root <tree>`.
 'use strict';
 const fs = require('fs');
@@ -107,6 +108,7 @@ function boot() {
     function __unmount(r) { ReactDOM.flushSync(function () { r.unmount(); }); }
     // The status answer is kept for the session by design; each scene here is a new session.
     function __resetLibStatus() { for (var k in ezikLibStatusAsked) delete ezikLibStatusAsked[k]; }
+    function __resetSeen() { ezikLibrarySeen = false; }
     // What App does on a pop (its onPop): the entry is spent and the deepest layer closes. App itself
     // is not mounted here, so its resolver is stood in for by the two calls it makes for a layer.
     window.addEventListener('popstate', function () {
@@ -134,7 +136,7 @@ async function main() {
   const plain = A && A.buildBookTag ? A.buildBookTag(row).tag : '';
   const lib = A && A.buildLibraryBookTag ? A.buildLibraryBookTag(row).tag : '';
   ok('F1  the server: bid/atom/vol/pg in front, buildBookTag\'s attributes byte for byte; "-" for no library book; picked only under the switch',
-    !!lib && !/ bid=/.test(plain)
+    !!lib && plain.length > 0 && !/ bid=/.test(plain)
     && lib === plain.replace(/^<book/, '<book bid="FC-003660" atom="FC-003660:0275:001" vol="1" pg="275"')
     && A.buildLibraryBookTag(autoRow).tag.startsWith('<book bid="FC-000530" atom="FC-000530:0005:001" author=')
     && A.buildLibraryBookTag(encRow).tag.startsWith('<book bid="-" author=')
@@ -278,16 +280,34 @@ async function main() {
 
   // ── F6 ────────────────────────────────────────────────────────────────────
   const app = jsx.slice(jsx.indexOf('const [sunanOpen, setSunanOpen]'));
-  ok('F6  App: one boolean, one history entry, one ladder line; the menu row under the server\'s answer, asked once for an adult and never when the menu opens',
+  ok('F6  App: one boolean, one history entry, one ladder line; the menu row under the server\'s answer, learned from a library card and never asked',
     /const \[libraryOpen, setLibraryOpen\] = useState\(false\);/.test(app)
     && /useEzikBackLayer\(libraryOpen, \(\) => setLibraryOpen\(false\)\);/.test(app)
     && /if \(libraryOpen\) return <EzikLibrarySection target=\{libTarget\}/.test(app)
-    && /\{libraryOn \? \(\s*<button onClick=\{\(\) => closeDrawerWith\(\(\) => \{ setLibTarget\(null\); setLibraryOpen\(true\); \}\)\}/.test(app)
-    && /const libAge = profile \? profile\.age : undefined;\s*useEffect\(\(\) => \{\s*let alive = true;\s*ezikLibraryEnabled\(libAge\)/.test(app)
-    && !/drawerOpen[^\n]*\n[^\n]*ezikLibraryEnabled/.test(app)
-    && (jsx.match(/ezikLibraryEnabled\(/g) || []).length === 3
+    && /\{libraryOn && deriveCaps\(profile \? profile\.age : 0\)\.band === 'adult' \? \(\s*<button onClick=\{\(\) => closeDrawerWith\(\(\) => \{ setLibTarget\(null\); setLibraryOpen\(true\); \}\)\}/.test(app)
+    && /window\.addEventListener\(EZIK_LIB_SEEN_EVENT, seen\);\s*if \(ezikLibrarySeen\) setLibraryOn\(true\);/.test(app)
+    && (jsx.match(/ezikLibraryEnabled\(/g) || []).length === 2
+    && /function BookCard\([^)]*\) \{\s*const \[matnOpen, setMatnOpen\] = useState\(false\);[^\n]*\n[^\n]*\n\s*useEffect\(\(\) => \{ if \(EZIK_LIB_BOOK_ID_RE\.test\(String\(bid \|\| ''\)\)\) ezikMarkLibrarySeen\(\); \}, \[bid\]\);/.test(jsx)
     && !/screen === 'library'/.test(jsx),
     'app.jsx wiring');
+
+  // ── F7 ────────────────────────────────────────────────────────────────────
+  grab('__resetSeen')();
+  const seenEvents = [];
+  window.addEventListener('ezik-library-seen', () => seenEvents.push(1));
+  net = [];
+  const drawCard = async (attrs) => {
+    const kids = grab('ezikRenderSegments')([segOf(reply(attrs))], { tashkeel: false, age: 30 });
+    grab('__mount')(R.createElement(R.Fragment, null, kids));
+    await tick();
+  };
+  await drawCard('');
+  const afterPlain = seenEvents.length;
+  await drawCard(' bid="FC-003660" pg="275"');
+  await drawCard(' bid="FC-000002"');
+  ok('F7  the signal: a card without a library id says nothing; the first card with one marks the section seen, once; nothing is asked',
+    afterPlain === 0 && seenEvents.length === 1 && grab('ezikLibrarySeen') === true && libCalls().length === 0,
+    JSON.stringify({ afterPlain, seen: seenEvents.length, calls: libCalls().length }));
 
   done();
 }

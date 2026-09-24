@@ -1491,7 +1491,13 @@ const SEALED = {
 //                    sw.js is 48468 bytes before and after. The store name did NOT move -- it is
 //                    the merge round's call. THIS digest is re-cut LAST, after every other sw.js
 //                    edit was final.
-  'sw.js': '57bfb7dc405fef522fb467cbe00b2415a350a5a02eaf78443abaa3ad716bc84f',
+  //   2026-09-25   -- M5-b REPAIR: the client no longer ASKS whether «المكتبة» is on (chat-ux-guard.cjs:
+//                    the chat sends nothing while quoting and searching); a library card seen this
+//                    session is the signal. app.js 1812316 -> 1813262 (+946), CORE_BYTES 2985406 ->
+//                    2986352 (+946), the sw.js:142 byte table and the B14 mirror with it. INDEX.HTML
+//                    DID NOT MOVE, NO FILE JOINED OR LEFT CORE, sw.js is 48468 bytes before and
+//                    after, and the store name did NOT move. THIS digest is re-cut LAST.
+  'sw.js': '58f9822fcee55c9db153a03f1c4f0c4662d80a7e37568e02fb17107f2da3d46c',
 };
 
 // ---------------------------------------------------------------------------
@@ -2447,7 +2453,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1812316, of: 'app.js' },
+      { n: 1813262, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

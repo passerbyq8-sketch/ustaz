@@ -10394,6 +10394,19 @@ async function ezikLibFetch(request, age, signal) {
 // (guards/i18n-ui-guard.cjs, a11y-guard.cjs). A child is not asked about: the answer is no. A failure is
 // asked again next time; an answer is kept.
 const ezikLibStatusAsked = {};
+// WHETHER THIS SESSION HAS SEEN THE SECTION ON, learned without asking: the server writes a card's
+// library id only with the switch on, so the first such card drawn -- or a section call that answered
+// -- is the signal. In memory only (no stored key), and it raises one event App listens to. MEASURED
+// (program-2026-09-24, D49): any automatic question -- at boot or when the menu opens -- reached the
+// network inside windows where the chat must send nothing (chat-ux-guard.cjs, i18n-ui-guard.cjs,
+// a11y-guard.cjs).
+const EZIK_LIB_SEEN_EVENT = 'ezik-library-seen';
+let ezikLibrarySeen = false;
+function ezikMarkLibrarySeen() {
+  if (ezikLibrarySeen) return;
+  ezikLibrarySeen = true;
+  try { window.dispatchEvent(new CustomEvent(EZIK_LIB_SEEN_EVENT)); } catch (e) {}
+}
 function ezikLibraryEnabled(age) {
   const band = deriveCaps(age).band;
   if (band !== 'adult') return Promise.resolve(false);
@@ -16331,15 +16344,14 @@ function App() {
   useEzikBackLayer(sunanOpen, () => setSunanOpen(false));
   // م٥: the sixth, on the identical contract and in the same fixed order.
   useEzikBackLayer(libraryOpen, () => setLibraryOpen(false));
-  // Whether to draw the library's menu row is asked ONCE a session, when an adult profile is in hand --
-  // never when the menu opens, which sends nothing (guards/i18n-ui-guard.cjs, a11y-guard.cjs) -- and a
-  // child is not asked about at all (ezikLibraryEnabled).
-  const libAge = profile ? profile.age : undefined;
+  // The library's menu row follows the session's signal (ezikMarkLibrarySeen): nothing is ASKED to draw
+  // it -- not at boot, not when the menu opens -- and it is drawn for an adult only.
   useEffect(() => {
-    let alive = true;
-    ezikLibraryEnabled(libAge).then((on) => { if (alive) setLibraryOn(on); });
-    return () => { alive = false; };
-  }, [libAge]);
+    const seen = () => setLibraryOn(true);
+    window.addEventListener(EZIK_LIB_SEEN_EVENT, seen);
+    if (ezikLibrarySeen) setLibraryOn(true);
+    return () => window.removeEventListener(EZIK_LIB_SEEN_EVENT, seen);
+  }, []);
   // A book card under an answer opens its page here (EzikLibraryOpenLine raises the event).
   useEffect(() => {
     const onOpen = (e) => {
@@ -19076,7 +19088,7 @@ function App() {
               {myFavs.length > 0 && <span style={s.drawerBadge}>{myFavs.length}</span>}
             </button>
             {/* م٥ -- «المكتبة». Drawn only when the server said the section is on for this reader. */}
-            {libraryOn ? (
+            {libraryOn && deriveCaps(profile ? profile.age : 0).band === 'adult' ? (
               <button onClick={() => closeDrawerWith(() => { setLibTarget(null); setLibraryOpen(true); })} style={s.drawerItem} className="ezik-focus" aria-label={ezT('menu.libraryAria')}>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 4h5v16H3z" />
@@ -21657,6 +21669,8 @@ function SourceCard({ site, url, content }) {
 // print would be a citation this app invented.
 function BookCard({ title, author, where, text, cut, bid, atom, vol, pg, age }) {
   const [matnOpen, setMatnOpen] = useState(false);
+  // م٥ — a card carrying a library id means the section is on (the server writes one only then).
+  useEffect(() => { if (EZIK_LIB_BOOK_ID_RE.test(String(bid || ''))) ezikMarkLibrarySeen(); }, [bid]);
   const name = String(title || '').trim();
   if (!name) return null;
   const by = String(author || '').trim();
