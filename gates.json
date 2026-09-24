@@ -590,5 +590,10 @@
     "name": "previewdaycap",
     "script": "guards/preview-daycap-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "libmujaz",
+    "script": "guards/lib-mujaz-guard.cjs",
+    "args": ""
   }
 ]

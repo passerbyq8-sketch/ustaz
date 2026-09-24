@@ -886,6 +886,13 @@ export default async function handler(req, res) {
   const libDepthEligible = libRequestedDepth === 'deep' || libRequestedDepth === 'scholar';
   const libFlagValue = String(process.env.SHAMELA_BRAIN || '').trim().toLowerCase();
   const libToken = String(process.env.SEARCH_API_TOKEN || '').trim();
+  // SOURCES ORDER 2026-09-24 — «الكتبُ في موجز» (LIB_MUJAZ_V1). A brief turn is never OFFERED the
+  // library tool (the depth rule above is untouched), but when this switch is on, the loop makes
+  // ONE library call itself for the religious question, in parallel with the fatwa-store
+  // prefetch, and hands the rows to the model as candidate evidence. OFF unless exactly 'on';
+  // the flag and token ride the same two switches the tool rides (SHAMELA_BRAIN, SEARCH_API_TOKEN),
+  // so a preview without them makes no call. Read here, beside the other two, and nowhere else.
+  const libMujazValue = String(process.env.LIB_MUJAZ_V1 || '').trim().toLowerCase();
 
   // Age band for RAG source-gating (khilaf-policy §6). reader-fields resolves an absent or
   // garbled age to young, so retrieve() fails CLOSED to the minor list (NOT adult).
@@ -1753,6 +1760,10 @@ export default async function handler(req, res) {
           libEligible: libDepthEligible && band === 'adult',
           libFlagValue: (libDepthEligible && band === 'adult') ? libFlagValue : '',
           libToken: (libDepthEligible && band === 'adult') ? libToken : '',
+          // LIB_MUJAZ_V1 — the brief turn's single library call (adult, brief depth only; the
+          // deep depths already hold the tool). Null means "as before": no call, no rows.
+          libPrefetch: (libMujazValue === 'on' && !libDepthEligible && band === 'adult' && libFlagValue === 'on' && libToken !== '')
+            ? { flagValue: libFlagValue, token: libToken } : null,
           // ITEM 37/١ — THE LESSONS RIDE THE LIBRARY'S TWO CONDITIONS AND NOT A THIRD RULE. The
           // owner's order names the depth half («تُعرَضُ في المفصّل وطالبِ العلم، ولا تُعرَضُ في
           // الموجز») and says to read the rest off `search_library`'s own contract in the code,
