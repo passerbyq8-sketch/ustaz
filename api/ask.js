@@ -893,6 +893,13 @@ export default async function handler(req, res) {
   // the flag and token ride the same two switches the tool rides (SHAMELA_BRAIN, SEARCH_API_TOKEN),
   // so a preview without them makes no call. Read here, beside the other two, and nowhere else.
   const libMujazValue = String(process.env.LIB_MUJAZ_V1 || '').trim().toLowerCase();
+  // SOURCES ORDER 2026-09-24, item 4 (ENCYC_V1). The Kuwaiti encyclopedia already reaches the
+  // model when the model calls search_sources; with this switch on, the loop also searches it
+  // itself for the religious question, beside the fatwa-store prefetch, and a cited row earns a
+  // reader card naming the encyclopedia and its volume (the footer stays). OFF unless exactly
+  // 'on'. In-process and free, so it rides no token and no depth rule -- only the adult band.
+  // Read here, beside the other switches, and nowhere else.
+  const encycValue = String(process.env.ENCYC_V1 || '').trim().toLowerCase();
 
   // Age band for RAG source-gating (khilaf-policy §6). reader-fields resolves an absent or
   // garbled age to young, so retrieve() fails CLOSED to the minor list (NOT adult).
@@ -1716,7 +1723,7 @@ export default async function handler(req, res) {
       // answers a sum from memory must not pay for loading them.
       const {
         runFreeBrainTurn, pickReaderCards, pickBookCards, reviewerEvidence, encyclopediaTail,
-        citedDeliveryLedger,
+        citedDeliveryLedger, pickEncyclopediaCards,
       } = await import('../lib/free-brain/loop.js');
       const { buildFreeBrainInstruction } = await import('../lib/free-brain/instructions.js');
 
@@ -1764,6 +1771,9 @@ export default async function handler(req, res) {
           // deep depths already hold the tool). Null means "as before": no call, no rows.
           libPrefetch: (libMujazValue === 'on' && !libDepthEligible && band === 'adult' && libFlagValue === 'on' && libToken !== '')
             ? { flagValue: libFlagValue, token: libToken } : null,
+          // ENCYC_V1 -- the encyclopedia's first-second offer: the switch and an adult band, every
+          // depth; the loop adds the religious key. False means "as before": no search, no rows.
+          encycPrefetch: encycValue === 'on' && band === 'adult',
           // ITEM 37/١ — THE LESSONS RIDE THE LIBRARY'S TWO CONDITIONS AND NOT A THIRD RULE. The
           // owner's order names the depth half («تُعرَضُ في المفصّل وطالبِ العلم، ولا تُعرَضُ في
           // الموجز») and says to read the rest off `search_library`'s own contract in the code,
@@ -1828,7 +1838,14 @@ export default async function handler(req, res) {
       // three a reply stops citing and starts listing» is just as true of books, but the two lists
       // are counted apart, so three fatwa pages and two books is three cards and two chips.
       const bookCards = registerOwnedCards(pickBookCards(out.cited, MAX_SOURCES, buildBookTag));
-      finalizerContext.readerCards = [...cards, ...bookCards];
+      // ENCYC_V1 -- AND THE ENCYCLOPEDIA, WHICH NEITHER SELECTION ABOVE CAN SEE: it has no URL and
+      // is not a library atom. With the switch on, a cited encyclopedia row earns the book chip
+      // (the same builder, the same tag, drawn by app.jsx unchanged) naming the encyclopedia and its
+      // volume -- never a page, never the article. With it off this is an empty list and the reply
+      // is what it was. The footer below still rides in both cases.
+      const encycCards = encycValue === 'on'
+        ? registerOwnedCards(pickEncyclopediaCards(out.cited, MAX_SOURCES, buildBookTag)) : [];
+      finalizerContext.readerCards = [...cards, ...bookCards, ...encycCards];
       finalizerContext.readerCardPrefix = finalizerContext.readerCards.length ? '\n\n' : '';
       // ── §٣ (C): THE ENCYCLOPEDIA IS ATTRIBUTED IN A LINE, NOT IN A CARD ────
       //

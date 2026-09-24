@@ -595,5 +595,10 @@
     "name": "libmujaz",
     "script": "guards/lib-mujaz-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "encycbrain",
+    "script": "guards/encyc-brain-guard.cjs",
+    "args": ""
   }
 ]
