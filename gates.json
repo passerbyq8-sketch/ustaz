@@ -705,5 +705,10 @@
     "name": "navexplain",
     "script": "guards/lib-nav-c-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "navform",
+    "script": "guards/lib-nav-d-guard.cjs",
+    "args": ""
   }
 ]

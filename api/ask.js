@@ -1124,7 +1124,9 @@ export default async function handler(req, res) {
     if (quoteAsk && !graveHazard(currentQuestionText)
       && access({ topicClass: classifyTopic(currentQuestionText, currentPlan, effectiveRoute), audienceBand }).outcome !== 'REFER_ADULT') {
       const { runTool, createEvidenceTable } = await import('../lib/free-brain/tools.js');
-      const quoted = await libQuote.answerQuoteRequest(quoteAsk, { runTool, createEvidenceTable, libFlagValue, libToken });
+      const quoted = await libQuote.answerQuoteRequest(quoteAsk, { runTool, createEvidenceTable, libFlagValue, libToken,
+        // م٤-د — «للقرضاوي» not «لـالقرضاوي», and no request for an author already named.
+        form: libNavValue === 'on' });
       if (quoted) {
         console.log('[lib-quote]', { outcome: quoted.outcome });
         // م٤-ب — with the navigation switch on, the quotation carries where it stopped, for «كمّل».
