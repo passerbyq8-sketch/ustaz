@@ -645,5 +645,10 @@
     "name": "bwspeaker",
     "script": "guards/before-writing-g-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "bwreconnect",
+    "script": "guards/before-writing-h-guard.cjs",
+    "args": ""
   }
 ]
