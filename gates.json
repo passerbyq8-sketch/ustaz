@@ -710,5 +710,10 @@
     "name": "navform",
     "script": "guards/lib-nav-d-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "libsearchcap",
+    "script": "guards/lib-search-16a-guard.cjs",
+    "args": ""
   }
 ]

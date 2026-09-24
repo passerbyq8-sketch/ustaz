@@ -14,7 +14,8 @@
 // page reaching for it at runtime dies offline. The card is shaped in api/lib-search.js now and
 // travels as the hit field source_card; F0 asserts the browser holds no runtime module load.
 //
-// Still no network, still no token, and still not registered in gates.json.
+// Still no network and still no token. Registered in gates.json as `libsearchcap` by program order
+// 2026-09-24 (م٤-هـ).
 //
 // ══ WHAT THIS GUARD IS FOR ═══════════════════════════════════════════════════
 // Item 16-A adds one server function (api/lib-search.js) and one pure builder
@@ -42,8 +43,9 @@
 // repo's recon secret scanner treats a 16+ character token-shaped literal as a real
 // leaked credential and would red a gate over a test fixture.
 //
-// This guard is NOT registered in gates.json. Item 16-A adds no gate: the run-gates
-// count stays 90/90 and this file is run on its own by name.
+// Item 16-A added no gate and this file was run on its own by name. PROGRAM ORDER 2026-09-24, م٤-هـ
+// («حارسُ سقفِ الخادمِ العامِّ للمكتبة (api/lib-search.js) يدخلُ gates.json»): it is gate `libsearchcap`
+// now, so a change to the public endpoint's ceiling of 10 reds the suite instead of passing unseen.
 //
 // Output is ASCII only, by order.
 
