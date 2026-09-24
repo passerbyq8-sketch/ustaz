@@ -635,5 +635,10 @@
     "name": "bwmadhhab",
     "script": "guards/before-writing-e-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "bwissue",
+    "script": "guards/before-writing-f-guard.cjs",
+    "args": ""
   }
 ]

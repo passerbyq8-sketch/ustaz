@@ -187,8 +187,10 @@ async function main() {
     };
     const on = await drive({ beforeWriting: { libFlagValue: 'on', libToken: 'tk-guard-bw' } });
     const review = on.provider.find((b) => String(b.system || '').startsWith('أنتَ فاحصُ أمانةٍ فقهيّة'));
+    const writerIdx = on.provider.findIndex((b) => b.system === 'system');
+    const reviews = on.provider.filter((b) => String(b.system || '').startsWith('أنتَ فاحصُ أمانةٍ فقهيّة'));
     ok('R4a under the switch the review runs once, on the fast model, after the write',
-      on.provider.length === 2 && review && review.model === 'claude-haiku-4-5' && on.provider.indexOf(review) === 1
+      reviews.length === 1 && review && review.model === 'claude-haiku-4-5' && writerIdx >= 0 && on.provider.indexOf(review) > writerIdx
       && String(review.messages[0].content).includes('الجمهورُ من أهل العلم'),
       JSON.stringify(on.provider.map((b) => b.model)));
     const text = String(on.out && on.out.text || '');

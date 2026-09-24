@@ -182,7 +182,9 @@ async function main() {
           providerUrl: 'https://provider.invalid/v1/messages', headers: {}, env: {}, fetchImpl,
         }, extra)));
       } finally { globalThis.fetch = realFetch; }
-      const first = provider[0] ? provider[0].body : null;
+      // M2-و puts the resolver's and the judge's calls first; the WRITING call carries the turn's system.
+      const writerCall = provider.find((p) => p.body.system === 'system') || provider[0];
+      const first = writerCall ? writerCall.body : null;
       const lastUser = first ? [...(first.messages || [])].reverse().find((m) => m.role === 'user') : null;
       const blocks = lastUser ? (Array.isArray(lastUser.content) ? lastUser.content : [{ type: 'text', text: lastUser.content }]) : [];
       const appended = blocks.slice(1).map((b) => String(b.text || '')).join('\n');
@@ -218,8 +220,9 @@ async function main() {
     ok('C6  the fatwa store is asked short queries (≤ 180 characters, ≤ 3 words), never the raw question',
       fatwaCalls.length >= 1 && fatwaCalls.every((c) => c.q.length <= 180 && c.q.split(' ').length <= 3 && c.q !== T7),
       JSON.stringify(fatwaCalls.map((c) => c.q)));
-    const firstAt = fiqh.provider[0] ? fiqh.provider[0].at : -1;
-    ok('C7  every store was asked BEFORE the first provider call (gathered before the first character)',
+    const writerAt = fiqh.provider.find((p) => p.body.system === 'system');
+    const firstAt = writerAt ? writerAt.at : -1;
+    ok('C7  every store was asked BEFORE the writing call (gathered before the first character)',
       firstAt >= 0 && [...libCalls, ...fatwaCalls].every((c) => c.at <= firstAt));
 
     // C8-C10 — the hadith turn: no fiqh books, no encyclopedia, on any road, even with the old switches on.

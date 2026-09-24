@@ -90,7 +90,7 @@ async function main() {
         beforeWriting: { libFlagValue: 'on', libToken: 'tk-guard-bw' },
       }));
     } finally { globalThis.fetch = real; }
-    const first = provider[0] || {};
+    const first = provider.find((b) => b.system === 'system') || provider[0] || {};
     const lastUser = [...(first.messages || [])].reverse().find((m) => m.role === 'user');
     const block = lastUser && Array.isArray(lastUser.content) ? lastUser.content.slice(1).map((b) => b.text || '').join('\n') : '';
     return { out, provider, block };
@@ -103,7 +103,8 @@ async function main() {
   const text = String(empty.out.text || '');
   ok('N2  and a ruling written anyway is taken out, the answer says no text was found, the reader is offered the widening',
     !text.includes('يجوز ذلك') && text.includes('ولم أقفْ على نصٍّ') && text.includes(WIDEN)
-    && empty.provider.length === 1, JSON.stringify({ calls: empty.provider.length, text }));
+    && empty.provider.filter((b) => b.system === 'system').length === 1
+    && !empty.provider.some((b) => String(b.system || '').startsWith('أنتَ فاحصُ')), JSON.stringify({ calls: empty.provider.length, text }));
   const full = await drive(HAS_TEXT_Q, 'لا ينقض خروج الدم الوضوء [[1]].');
   ok('N3  texts gathered: no no-text rule', full.out.storedInjection.rows > 0 && !full.block.includes(BW.BW_NO_TEXT_RULE || '\u0000'),
     JSON.stringify({ rows: full.out.storedInjection.rows }));

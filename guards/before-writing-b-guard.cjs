@@ -110,7 +110,7 @@ async function main() {
   const one = await drive(T7, BWON, CITED);
   // M2-ج adds ONE reading call after the write (the sentence-level door, on the fast model); what this
   // item pins is that there is ONE WRITING call, so the reader's calls are set aside by their system.
-  const writes = one.provider.filter((b) => !String(b.system || "").startsWith("أنتَ فاحصُ أمانةٍ فقهيّة"));
+  const writes = one.provider.filter((b) => b.system === 'system');
   const call = writes[0] || {};
   const lastUser = [...(call.messages || [])].reverse().find((m) => m.role === 'user');
   const blockText = lastUser && Array.isArray(lastUser.content) ? lastUser.content.slice(1).map((b) => b.text || '').join('\n') : '';

@@ -105,7 +105,7 @@ async function main() {
         beforeWriting: { libFlagValue: 'on', libToken: 'tk-guard-bw' },
       }));
     } finally { globalThis.fetch = real; }
-    const first = provider[0] || {};
+    const first = provider.find((b) => b.system === 'system') || provider[0] || {};
     const lastUser = [...(first.messages || [])].reverse().find((m) => m.role === 'user');
     const block = lastUser && Array.isArray(lastUser.content) ? lastUser.content.slice(1).map((b) => b.text || '').join('\n') : '';
     return { out, lib, block };
