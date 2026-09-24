@@ -675,5 +675,10 @@
     "name": "fagrade",
     "script": "guards/full-answer-d-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "famechanism",
+    "script": "guards/full-answer-e-guard.cjs",
+    "args": ""
   }
 ]
