@@ -904,13 +904,6 @@ export default async function handler(req, res) {
   // classification. OFF unless exactly 'on'; it rides the library's own two switches as well, so
   // a deployment without them never takes the quote path. Read here, beside them, and nowhere else.
   const libQuoteValue = String(process.env.LIB_QUOTE_V1 || '').trim().toLowerCase();
-  // PROGRAM ORDER 2026-09-24, م٤ (LIB_NAV_V1) — «النقلُ في المحادثة». With this switch on (and the quote
-  // switch, which it builds on), a page is quoted by its number from the library's navigation routes
-  // (lib/lib-nav.js). OFF unless exactly 'on'; read here, beside the others, and nowhere else.
-  const libNavValue = String(process.env.LIB_NAV_V1 || '').trim().toLowerCase();
-  // The navigation routes' base: one of lib/lib-nav.js LIB_NAV_ORIGINS, or empty for the live origin
-  // (which has no navigation routes, so every page request there is answered «تعذّر»).
-  const libNavBase = String(process.env.LIB_NAV_URL || '').trim();
   // SOURCES ORDER 2026-09-24, item 4 (ENCYC_V1). The Kuwaiti encyclopedia already reaches the
   // model when the model calls search_sources; with this switch on, the loop also searches it
   // itself for the religious question, beside the fatwa-store prefetch, and a cited row earns a
@@ -927,6 +920,13 @@ export default async function handler(req, res) {
   // writing call that stops on the token cap is continued from its last whole sentence, on the
   // handler's clock (lib/full-answer.js). OFF unless exactly 'on'; read here, beside the others.
   const fullAnswerValue = String(process.env.FULL_ANSWER_V1 || '').trim().toLowerCase();
+  // PROGRAM ORDER 2026-09-24, م٤ (LIB_NAV_V1) — «النقلُ في المحادثة». With this switch on (and the quote
+  // switch, which it builds on), a page is quoted by its number from the library's navigation routes
+  // (lib/lib-nav.js). OFF unless exactly 'on'; read here, beside the others, and nowhere else.
+  const libNavValue = String(process.env.LIB_NAV_V1 || '').trim().toLowerCase();
+  // The navigation routes' base: one of lib/lib-nav.js LIB_NAV_ORIGINS, or empty for the live origin
+  // (which has no navigation routes, so every page request there is answered «تعذّر»).
+  const libNavBase = String(process.env.LIB_NAV_URL || '').trim();
 
   // Age band for RAG source-gating (khilaf-policy §6). reader-fields resolves an absent or
   // garbled age to young, so retrieve() fails CLOSED to the minor list (NOT adult).
