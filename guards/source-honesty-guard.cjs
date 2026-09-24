@@ -517,6 +517,39 @@ const stripComments = (s) => String(s)
   ok('D4: ...but a draft that carries a grade receives it',
     TD.takhrijDisclosureOnce('حديث «من حج ولم يزرني فقد جفاني» حديث موضوع.', TD.TAKHRIJ_DISCLOSURE) === TD.TAKHRIJ_DISCLOSURE);
   {
+    // ── R5 (brain-night 24 September 2026) · THE TAIL DOES NOT CONTRADICT THE LADDER HEAD ──
+    // MEASURED on the delivered exam answers H01/H02/H04: line 1 «تخريج الحديث: ابن حبان، والحكم عليه
+    // في صحيح الجامع: صحيح.» — the grade the takhrij pass itself proved from the ladder's grading
+    // books — and, eleven lines down, «وهذا النقل لدرجة الحديث من المصدر المذكور، لا من كتب التخريج
+    // نفسها». The sentence was written for a grade COPIED from a fatwa page (D8, PRIMARY_TAKHRIJ_DOMAINS
+    // empty); a grade the ladder pass composed IS from the takhrij books, and the head that carries it
+    // is composed by lib/takhrij.js gradingHead() with one exported prefix. The tail stands down
+    // when a line of the draft opens with that prefix, and only then: a fatwa-copied grade under no
+    // head still receives it, byte for byte as before.
+    const once = (t) => TD.takhrijDisclosureOnce(t, TD.TAKHRIJ_DISCLOSURE);
+    const H01_HEAD = 'تخريج الحديث: ابن حبان، والحكم عليه في صحيح الجامع: صحيح.';
+    const H01_BODY = 'قال النبي ﷺ: «الدعاء هو العبادة» (ابن حبان · صحيح).\n\nوالحديث حسن صحيح عند الترمذي.';
+    ok('R5: the head prefix is exported and is what tonight\'s head opens with',
+      typeof TD.TAKHRIJ_LADDER_HEAD === 'string' && H01_HEAD.startsWith(TD.TAKHRIJ_LADDER_HEAD));
+    ok('R5: a draft whose first line is the ladder head gets NO disclosure tail',
+      once(H01_HEAD + '\n\n' + H01_BODY) === '', JSON.stringify(once(H01_HEAD + '\n\n' + H01_BODY)));
+    ok('R5: ...and «تخريج الحديث: البخاري ومسلم.» over a graded body gets none either',
+      once('تخريج الحديث: البخاري ومسلم.\n\n' + H01_BODY) === '');
+    ok('R5 control: the same graded body with NO head still receives it',
+      once(H01_BODY) === TD.TAKHRIJ_DISCLOSURE);
+    ok('R5 control: a fatwa-copied grade and no head still receives it',
+      once('حديث «من حج ولم يزرني فقد جفاني» حديث موضوع.') === TD.TAKHRIJ_DISCLOSURE);
+    ok('R5 control: the words «تخريج الحديث» inside a sentence are not the head',
+      once('وأما تخريج الحديث: فقد رواه ابن ماجه، وهو حديث ضعيف.') === TD.TAKHRIJ_DISCLOSURE);
+    // AND THE COMPOSER USES THE SAME NAME, so the two cannot drift apart.
+    const TK = fs.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8');
+    const codeLines = TK.split('\n').filter((l) => !/^\s*(\/\/|\*)/u.test(l));
+    ok('R5: lib/takhrij.js composes every head with TAKHRIJ_LADDER_HEAD and no bare literal',
+      codeLines.filter((l) => l.includes('TAKHRIJ_LADDER_HEAD +')).length >= 4
+        && !codeLines.some((l) => l.includes("'تخريج الحديث: '")),
+      'with=' + codeLines.filter((l) => l.includes('TAKHRIJ_LADDER_HEAD +')).length);
+  }
+  {
     // ── THIRD ORDER, STEP 5 · NO LIMIT SENTENCE IN AN ANSWER THAT HOLDS NO GRADE ──────────
     // MEASURED on the preview: «وهذا النقل لدرجة الحديث…» under «الدين النصيحة» (a credit, no
     // grade), Ibn Mas'ud's hadith, and «الصيام والقرآن يشفعان» once its unsourced «صحيح» went.
