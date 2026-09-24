@@ -720,5 +720,10 @@
     "name": "libsection",
     "script": "guards/lib-nav-e-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "libsectionui",
+    "script": "guards/lib-nav-f-guard.cjs",
+    "args": ""
   }
 ]

@@ -818,6 +818,49 @@ const EZ_I18N = {
     'menu.aboutAria': 'عن عزك — تعريف بالتطبيق',
     'menu.sources': 'المصادر',
     'menu.sourcesAria': 'المصادر — الكتب والمراجع',
+    'menu.library': 'المكتبة',
+    'menu.libraryAria': 'المكتبة — تصفّحُ الكتبِ وقراءتُها',
+    'library.title': 'المكتبة',
+    'library.findBooks': 'ابحث عن كتابٍ أو مؤلِّف',
+    'library.findBooksGo': 'ابحث',
+    'library.findIn': 'ابحث داخلَ هذا الكتاب',
+    'library.findInGo': 'ابحث',
+    'library.sectionsAria': 'أقسامُ المكتبة',
+    'library.countBooks': '{n} كتاب',
+    'library.books': 'الكتب',
+    'library.authors': 'المؤلِّفون',
+    'library.booksAria': 'الكتب',
+    'library.authorsAria': 'المؤلِّفون',
+    'library.empty': 'لا كتبَ هنا.',
+    'library.noAuthor': 'مؤلِّفٌ غيرُ مذكور',
+    'library.modeModern': 'كتابٌ معاصر: يُعرَضُ منه ما يُعرَضُ في النقل، فقرةٌ واحدةٌ بعزوها تجدُها بالبحث داخلَه.',
+    'library.modeChapters': 'مرقّمٌ ترقيمًا آليًّا: ليس له صفحاتُ طبعة، ويُقرَأُ بأبوابه.',
+    'library.chapters': 'الأبواب',
+    'library.chaptersAria': 'أبوابُ الكتاب',
+    'library.noChapters': 'لا أبوابَ مفهرسةً لهذا الكتاب.',
+    'library.pageShort': 'ص{n}',
+    'library.loading': 'يُحمَّل…',
+    'library.readAria': 'نصُّ الكتاب',
+    'library.leadMissing': 'تعذّرَ جلبُ أوّلِ فقرةٍ من هذا الموضع، فيبدأُ النصُّ بما بعدها.',
+    'library.pagerAria': 'التنقّلُ بين الصفحات',
+    'library.prev': 'السابق',
+    'library.next': 'التالي',
+    'library.pageOf': 'صفحةُ {n} من {of}',
+    'library.hitsAria': 'نتائجُ البحث في الكتاب',
+    'library.noHits': 'لم أجدْ في هذا الكتاب ما يطابقُ بحثَك.',
+    'library.cut': 'هذا بعضُ الموضع لا كلُّه.',
+    'library.readHere': 'اقرأ من هنا',
+    'library.unavailable': 'هذا الكتابُ لا يُفتَحُ في المكتبة الآن.',
+    'library.error': 'تعذّرَ التحميل.',
+    'library.retry': 'أعِدِ المحاولة',
+    'library.end': 'انتهى الكتاب.',
+    'library.noticePages': 'هذا الكتابُ لا يُقرَأُ صفحةً صفحة.',
+    'library.noticeVolume': 'الكتابُ في أكثر من جزء، ولم يُذكَرِ الجزء.',
+    'library.noticePage': 'لم تُوجَدْ هذه الصفحة في الكتاب.',
+    'library.noticeBroad': 'البحثُ أوسعُ ممّا يُجاب؛ زِدْ كلمةً تخصُّه.',
+    'library.notInLibrary': 'هذا المصدرُ ليس من كتب المكتبة، فلا يُفتَحُ منها.',
+    'library.open': 'افتح في المكتبة',
+    'library.openNoPage': 'لم يصلْ مع البطاقة موضعُ الصفحة، فيُفتَحُ الكتابُ على أبوابه.',
     // ITEM 87 -- the day's sunnahs, from waking to sleeping. A LAYER, reached now from a tile on
     // the home shelf rather than from a row in this menu, and the only text it needs here is its
     // furniture: the name, the two words on the control that opens a matn, the heading over that
@@ -1516,6 +1559,49 @@ const EZ_I18N = {
     'menu.aboutAria': 'About Ezik — what this app is',
     'menu.sources': 'Sources',
     'menu.sourcesAria': 'Sources — the books and references',
+    'menu.library': 'Library',
+    'menu.libraryAria': 'Library — browse and read the books',
+    'library.title': 'Library',
+    'library.findBooks': 'Search for a book or an author',
+    'library.findBooksGo': 'Search',
+    'library.findIn': 'Search inside this book',
+    'library.findInGo': 'Search',
+    'library.sectionsAria': 'Library sections',
+    'library.countBooks': '{n} books',
+    'library.books': 'Books',
+    'library.authors': 'Authors',
+    'library.booksAria': 'Books',
+    'library.authorsAria': 'Authors',
+    'library.empty': 'No books here.',
+    'library.noAuthor': 'Author not named',
+    'library.modeModern': 'A contemporary book: it shows what a quotation shows, one paragraph with its attribution, found by searching inside it.',
+    'library.modeChapters': 'Automatically numbered: it has no printed pages and is read by its chapters.',
+    'library.chapters': 'Chapters',
+    'library.chaptersAria': 'The book\'s chapters',
+    'library.noChapters': 'This book has no indexed chapters.',
+    'library.pageShort': 'p. {n}',
+    'library.loading': 'Loading…',
+    'library.readAria': 'The book\'s text',
+    'library.leadMissing': 'The first paragraph of this place could not be fetched, so the text starts after it.',
+    'library.pagerAria': 'Move between pages',
+    'library.prev': 'Previous',
+    'library.next': 'Next',
+    'library.pageOf': 'Page {n} of {of}',
+    'library.hitsAria': 'Search results in the book',
+    'library.noHits': 'Nothing in this book matches your search.',
+    'library.cut': 'This is part of the place, not all of it.',
+    'library.readHere': 'Read from here',
+    'library.unavailable': 'This book cannot be opened in the library now.',
+    'library.error': 'Could not load.',
+    'library.retry': 'Try again',
+    'library.end': 'The book ends here.',
+    'library.noticePages': 'This book is not read page by page.',
+    'library.noticeVolume': 'The book has more than one volume, and none was given.',
+    'library.noticePage': 'This page was not found in the book.',
+    'library.noticeBroad': 'The search is too broad to answer; add a word that narrows it.',
+    'library.notInLibrary': 'This source is not one of the library\'s books, so it does not open there.',
+    'library.open': 'Open in the library',
+    'library.openNoPage': 'The card did not carry the page, so the book opens on its chapters.',
     // ITEM 87 -- the same six keys, and the same rule about what is NOT here: the content
     // of this section is Arabic in one file and is never translated into a second copy.
     // (The two `menu.*` keys that stood at the head of this block went with the drawer row
@@ -6399,6 +6485,11 @@ const parseRichMessage = (text, viewerAge) => {
       // passage on purpose: a mark appended to the text would make the text no longer the text.
       const matnMatch = attrsStr.match(/matn=["']([^"']+)["']/);
       const cutMatch = attrsStr.match(/cut=["']([^"']+)["']/);
+      // م٥ (LIB_NAV_V1) — where the card opens in «المكتبة»; the server writes these only with the switch on.
+      const bidMatch = attrsStr.match(/bid=["']([^"']+)["']/);
+      const atomMatch = attrsStr.match(/atom=["']([^"']+)["']/);
+      const volMatch = attrsStr.match(/vol=["'](\d{1,5})["']/);
+      const pgMatch = attrsStr.match(/pg=["'](\d{1,6})["']/);
       segments.push({
         type: 'book',
         title: content,
@@ -6406,6 +6497,10 @@ const parseRichMessage = (text, viewerAge) => {
         where: refMatch ? refMatch[1] : '',
         text: matnMatch ? ezikDecodeMatn(matnMatch[1]) : '',
         cut: !!cutMatch,
+        bid: bidMatch ? bidMatch[1] : '',
+        atom: atomMatch ? atomMatch[1] : '',
+        vol: volMatch ? Number(volMatch[1]) : null,
+        pg: pgMatch ? Number(pgMatch[1]) : null,
       });
     } else if (tagName === 'steps') {
       const items = content.split('\n')
@@ -10249,6 +10344,430 @@ function LessonsSection({ onHome }) {
   );
 }
 // ITEM 24-B -- END OF THE LESSONS SECTION
+
+// ============================================================
+// ITEM M5 -- THE LIBRARY SECTION («المكتبة», LIB_NAV_V1)
+// ============================================================
+// THE OWNER'S ITEM (program order 2026-09-24, م٥): browse the books by their sections and their
+// authors, a book's chapters, reading page by page with next and previous, a search inside the book,
+// copying and sharing -- under the same rules as a quotation in the chat.
+//
+// WHO DECIDES WHAT. Every rule is the SERVER's (api/lib-nav.js -> lib/lib-nav.js readOp): which books
+// exist here (a withheld one does not), how a book may be read (pages for heritage and fatwa books,
+// chapters for an auto-numbered one, one paragraph found by a search for a modern one), and who may
+// open it at all (an adult, with the switch on). This block draws what comes back and nothing else:
+// every field it reads is named below by hand, the catalogue never reaches the client, and no word
+// on the screen is written here -- they are all dictionary keys.
+//
+// WHY A LAYER AND NOT A SCREEN KEY. The screen inventory is a cross-file contract (theme-coverage
+// guard, EZIK-THEME-33-HANDOFF.md); like the menu's other panels this is one boolean in App with one
+// history entry, and each rung inside it takes one more, so the device back and the visible back walk
+// the same ladder (program-2026-09-24/05-library/measure/B-costs.md §4).
+const EZIK_LIB_NAV_ROUTE = '/api/lib-nav';
+const EZIK_LIB_OPEN_EVENT = 'ezik-open-library';
+const EZIK_LIB_TIMEOUT_MS = 12000;
+const EZIK_LIB_BOOK_ID_RE = /^FC-\d{6}$/;
+const EZIK_LIB_ATOM_ID_RE = /^[A-Za-z0-9_.:-]{1,80}$/;
+// Seven rungs at most: shelf, section, authors, author, book, hits, page. Each owns one entry.
+const EZIK_LIB_MAX_DEPTH = 7;
+
+// THE CALL. 200 or nothing; the server's own words never reach the screen. The reader's band and age
+// ride on it as they ride on /api/ask, because the section is served to an adult only.
+async function ezikLibFetch(request, age, signal) {
+  try {
+    const response = await fetch(EZIK_LIB_NAV_ROUTE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...request, band: deriveCaps(age).band, age: age }),
+      signal,
+    });
+    if (response.status !== 200) return { ok: false, payload: null };
+    const payload = await response.json();
+    return { ok: true, payload: (payload && typeof payload === 'object') ? payload : {} };
+  } catch (e) {
+    return { ok: false, payload: null };
+  }
+}
+
+// WHETHER THE SECTION EXISTS FOR THIS READER. Asked once per session, when an adult profile is in hand
+// (App) or a book card with a library id is opened -- never when the menu opens, which sends nothing
+// (guards/i18n-ui-guard.cjs, a11y-guard.cjs). A child is not asked about: the answer is no. A failure is
+// asked again next time; an answer is kept.
+const ezikLibStatusAsked = {};
+function ezikLibraryEnabled(age) {
+  const band = deriveCaps(age).band;
+  if (band !== 'adult') return Promise.resolve(false);
+  if (!ezikLibStatusAsked[band]) {
+    ezikLibStatusAsked[band] = ezikLibFetch({ op: 'status' }, age, undefined).then((outcome) => {
+      if (!outcome.ok) delete ezikLibStatusAsked[band];
+      return !!(outcome.ok && outcome.payload && outcome.payload.enabled === true);
+    });
+  }
+  return ezikLibStatusAsked[band];
+}
+
+// THE WHITELISTS. A field the server grows tomorrow cannot reach a reader without a name typed here.
+const ezikLibText = (v) => (typeof v === 'string' ? v.trim() : '');
+const ezikLibInt = (v) => ((typeof v === 'number' && isFinite(v) && v >= 0) ? Math.floor(v) : null);
+function ezikLibSections(rows) {
+  return (Array.isArray(rows) ? rows : []).map((r) => (r && typeof r === 'object'
+    ? { id: ezikLibInt(r.id), name: ezikLibText(r.name), count: ezikLibInt(r.count) || 0 } : null))
+    .filter((r) => r && r.id !== null && r.name);
+}
+function ezikLibBooks(rows) {
+  return (Array.isArray(rows) ? rows : []).map((r) => (r && typeof r === 'object'
+    ? { id: ezikLibText(r.id), title: ezikLibText(r.title), author: ezikLibText(r.author) } : null))
+    .filter((r) => r && EZIK_LIB_BOOK_ID_RE.test(r.id) && r.title);
+}
+function ezikLibAuthors(rows) {
+  return (Array.isArray(rows) ? rows : []).map((r) => (r && typeof r === 'object' && typeof r.name === 'string'
+    ? { name: r.name.trim(), count: ezikLibInt(r.count) || 0 } : null)).filter(Boolean);
+}
+// The chapters, flattened in order with their depth, so the list is one list and not a tree of lists.
+function ezikLibHeadings(nodes, depth, out) {
+  const list = out || [];
+  if (!Array.isArray(nodes) || depth > 6) return list;
+  for (const n of nodes) {
+    if (!n || typeof n !== 'object') continue;
+    const heading = ezikLibText(n.heading);
+    const atom = ezikLibText(n.atom_id);
+    if (!heading || !EZIK_LIB_ATOM_ID_RE.test(atom)) continue;
+    list.push({ heading, atom, depth, volume: ezikLibInt(n.volume), page: ezikLibInt(n.page) });
+    ezikLibHeadings(n.children, depth + 1, list);
+  }
+  return list;
+}
+function ezikLibAtoms(rows) {
+  return (Array.isArray(rows) ? rows : []).map((r) => (r && typeof r === 'object' && typeof r.text === 'string'
+    ? { atom: ezikLibText(r.atom_id), text: r.text, heading: ezikLibText(r.heading) } : null))
+    .filter((r) => r && EZIK_LIB_ATOM_ID_RE.test(r.atom) && r.text.trim());
+}
+function ezikLibPointer(p) {
+  if (!p || typeof p !== 'object' || !EZIK_LIB_ATOM_ID_RE.test(ezikLibText(p.atom_id))) return null;
+  return { atom: ezikLibText(p.atom_id), volume: ezikLibInt(p.volume), page: ezikLibInt(p.page) };
+}
+function ezikLibHits(rows) {
+  return (Array.isArray(rows) ? rows : []).map((r) => (r && typeof r === 'object' && typeof r.text === 'string'
+    ? {
+      card: ezikLibText(r.card), text: r.text, cut: r.cut === true,
+      atom: EZIK_LIB_ATOM_ID_RE.test(ezikLibText(r.atom_id)) ? ezikLibText(r.atom_id) : '',
+      volume: ezikLibInt(r.volume), page: ezikLibInt(r.page),
+    } : null)).filter((r) => r && r.text.trim());
+}
+// What a book-level notice says. The code is the server's; the sentence is the dictionary's.
+const EZIK_LIB_NOTICES = {
+  end: 'library.end', not_pages: 'library.noticePages', numbering_auto: 'library.noticePages',
+  numbering_unavailable: 'library.noticePages', volume_required: 'library.noticeVolume',
+  page_not_found: 'library.noticePage', too_broad: 'library.noticeBroad',
+};
+
+// THE REQUEST FOR A RUNG, written out per rung.
+function ezikLibRequest(rung) {
+  if (rung.k === 'shelf') return { op: 'shelf' };
+  if (rung.k === 'section') return { op: 'books', section: rung.section.id, page: rung.page };
+  if (rung.k === 'authors') return { op: 'authors', section: rung.section.id };
+  if (rung.k === 'author') return { op: 'author', author: rung.author, section: rung.section.id, page: rung.page };
+  if (rung.k === 'results') return { op: 'search', q: rung.q, page: rung.page };
+  if (rung.k === 'book') return { op: 'book', book_id: rung.book };
+  if (rung.k === 'hits') return { op: 'find', book_id: rung.book, q: rung.q };
+  return { ...rung.req, book_id: rung.book };
+}
+// Where a chapter, a hit or a pointer opens: its printed page where it has one, else the atom itself.
+function ezikLibReadAt(mode, place) {
+  if (mode === 'pages' && place.page !== null) {
+    return place.volume !== null ? { op: 'page', page: place.page, volume: place.volume } : { op: 'page', page: place.page };
+  }
+  return { op: 'at', atom_id: place.atom };
+}
+
+function EzikLibrarySection({ target, age, onBack }) {
+  const first = [];
+  if (target && EZIK_LIB_BOOK_ID_RE.test(String(target.bid || ''))) {
+    first.push({ k: 'book', book: target.bid });
+    const pg = ezikLibInt(target.pg);
+    const vol = ezikLibInt(target.vol);
+    if (pg !== null) first.push({ k: 'read', book: target.bid, req: vol !== null ? { op: 'page', page: pg, volume: vol } : { op: 'page', page: pg } });
+    else if (EZIK_LIB_ATOM_ID_RE.test(String(target.atom || ''))) first.push({ k: 'read', book: target.bid, req: { op: 'at', atom_id: target.atom } });
+  } else {
+    first.push({ k: 'shelf' });
+  }
+  const [stack, setStack] = useState(first);
+  const [attempt, setAttempt] = useState(0);
+  const [state, setState] = useState('loading');
+  const [data, setData] = useState(null);
+  const [toc, setToc] = useState(null);
+  const [query, setQuery] = useState('');
+  const genRef = useRef(0);
+  const topRef = useRef(null);
+  const rung = stack[stack.length - 1];
+  const depth = stack.length;
+  const push = (next) => setStack((st) => (st.length >= EZIK_LIB_MAX_DEPTH ? st.slice(0, -1) : st).concat([next]));
+  const replace = (next) => setStack((st) => st.slice(0, -1).concat([next]));
+  const pop = () => setStack((st) => (st.length > 1 ? st.slice(0, -1) : st));
+  // ONE ENTRY PER RUNG, registered unconditionally and in a fixed order.
+  useEzikBackLayer(depth >= 2, pop);
+  useEzikBackLayer(depth >= 3, pop);
+  useEzikBackLayer(depth >= 4, pop);
+  useEzikBackLayer(depth >= 5, pop);
+  useEzikBackLayer(depth >= 6, pop);
+  useEzikBackLayer(depth >= 7, pop);
+  const back = () => {
+    if (depth > 1) { if (ezikHistBack()) return; pop(); return; }
+    onBack();
+  };
+
+  // ONE EFFECT ASKS, and every move is a dependency of it; the generation drops an answer a later
+  // move has made stale. A book rung asks twice -- the book, then its chapters.
+  const key = JSON.stringify(rung);
+  useEffect(() => {
+    const controller = new AbortController();
+    genRef.current += 1;
+    const gen = genRef.current;
+    setState('loading');
+    setToc(null);
+    const timer = setTimeout(() => { try { controller.abort(); } catch (e) {} }, EZIK_LIB_TIMEOUT_MS);
+    (async () => {
+      const got = await ezikLibFetch(ezikLibRequest(rung), age, controller.signal);
+      if (genRef.current !== gen) return;
+      if (!got.ok) { setData(null); setState('failed'); return; }
+      setData(got.payload);
+      setState('ready');
+      if (rung.k === 'book' && got.payload && got.payload.book) {
+        const t = await ezikLibFetch({ op: 'toc', book_id: rung.book }, age, controller.signal);
+        if (genRef.current !== gen) return;
+        setToc(t.ok && t.payload ? ezikLibHeadings(t.payload.headings, 0) : []);
+      }
+    })().finally(() => clearTimeout(timer));
+    try { if (topRef.current && topRef.current.scrollIntoView) topRef.current.scrollIntoView({ block: 'start' }); } catch (e) {}
+    return () => { clearTimeout(timer); try { controller.abort(); } catch (e) {} };
+  }, [key, attempt]);
+
+  const num = (n) => ezikBrowseNum(n);
+  const body = data || {};
+  const notice = typeof body.notice === 'string' ? (EZIK_LIB_NOTICES[body.notice] || 'library.error') : '';
+  const book = body.book && typeof body.book === 'object' ? body.book : null;
+  const mode = typeof body.mode === 'string' ? body.mode : (book && typeof book.mode === 'string' ? book.mode : '');
+  const searchForm = (label, go, onSubmit) => (
+    <form style={s.lsnForm} role="search" onSubmit={(e) => { e.preventDefault(); const q = query.trim(); if (q) onSubmit(q); }}>
+      <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} style={s.lsnInput}
+        aria-label={label} placeholder={label} maxLength={120} />
+      <button type="submit" className="ezhome-focus" style={s.lsnSubmit}>{go}</button>
+    </form>
+  );
+  const pager = (page, pages, move) => (pages > 1 ? (
+    <nav style={s.lsbPager} aria-label={ezT('library.pagerAria')}>
+      <button type="button" className="ezhome-focus" style={s.lsbPageBtn} disabled={page <= 1}
+        onClick={() => move(page - 1)}>{ezT('library.prev')}</button>
+      <span role="status" style={s.lsbPageOf}>{ezT('library.pageOf', { n: num(page), of: num(pages) })}</span>
+      <button type="button" className="ezhome-focus" style={s.lsbPageBtn} disabled={page >= pages}
+        onClick={() => move(page + 1)}>{ezT('library.next')}</button>
+    </nav>
+  ) : null);
+  const bookRow = (b, i) => (
+    <button key={b.id + i} type="button" className="ezhome-focus" style={s.lsbRow}
+      onClick={() => { setQuery(''); push({ k: 'book', book: b.id }); }}>
+      <span style={s.lsnItemTitle}>{b.title}</span>
+      <span style={s.lsnItemScholar}>{b.author || ezT('library.noAuthor')}</span>
+    </button>
+  );
+
+  let view = null;
+  if (state === 'ready' && notice) {
+    view = <div role="status" style={s.lsnNote}>{ezT(notice)}</div>;
+  } else if (state === 'ready' && rung.k === 'shelf') {
+    const sections = ezikLibSections(body.sections);
+    view = (
+      <div style={s.lsbPane}>
+        {searchForm(ezT('library.findBooks'), ezT('library.findBooksGo'), (q) => push({ k: 'results', q, page: 1 }))}
+        <section style={s.lsnList} aria-label={ezT('library.sectionsAria')}>
+          {sections.map((sec) => (
+            <button key={sec.id} type="button" className="ezhome-focus" style={s.lsbRow}
+              onClick={() => push({ k: 'section', section: { id: sec.id, name: sec.name }, page: 1 })}>
+              <span style={s.lsnItemTitle}>{sec.name}</span>
+              <span style={s.lsnItemScholar}>{ezT('library.countBooks', { n: num(sec.count) })}</span>
+            </button>
+          ))}
+        </section>
+      </div>
+    );
+  } else if (state === 'ready' && (rung.k === 'section' || rung.k === 'author' || rung.k === 'results')) {
+    const books = ezikLibBooks(body.items);
+    const page = ezikLibInt(body.page) || 1;
+    const pages = ezikLibInt(body.pages) || 1;
+    const heading = rung.k === 'section' ? rung.section.name : (rung.k === 'author' ? (rung.author || ezT('library.noAuthor')) : rung.q);
+    view = (
+      <div style={s.lsbPane}>
+        <div style={s.lsbHead}>
+          <span style={s.lsbHeadName}>{heading}</span>
+          <span style={s.lsbHeadCount}>{ezT('library.countBooks', { n: num(ezikLibInt(body.total) || 0) })}</span>
+        </div>
+        {rung.k === 'section' ? (
+          <div style={s.lsbTabs}>
+            <button type="button" className="ezhome-focus" style={s.lsbTabOn} aria-pressed="true">{ezT('library.books')}</button>
+            <button type="button" className="ezhome-focus" style={s.lsbTab} aria-pressed="false"
+              onClick={() => push({ k: 'authors', section: rung.section })}>{ezT('library.authors')}</button>
+          </div>
+        ) : null}
+        {books.length ? <section style={s.lsnList} aria-label={ezT('library.booksAria')}>{books.map(bookRow)}</section>
+          : <div role="status" style={s.lsnNote}>{ezT('library.empty')}</div>}
+        {pager(page, pages, (p) => replace({ ...rung, page: p }))}
+      </div>
+    );
+  } else if (state === 'ready' && rung.k === 'authors') {
+    const authors = ezikLibAuthors(body.authors);
+    view = (
+      <div style={s.lsbPane}>
+        <div style={s.lsbHead}><span style={s.lsbHeadName}>{rung.section.name}</span></div>
+        <section style={s.lsnList} aria-label={ezT('library.authorsAria')}>
+          {authors.map((a, i) => (
+            <button key={i} type="button" className="ezhome-focus" style={s.lsbRow}
+              onClick={() => push({ k: 'author', section: rung.section, author: a.name, page: 1 })}>
+              <span style={s.lsnItemTitle}>{a.name || ezT('library.noAuthor')}</span>
+              <span style={s.lsnItemScholar}>{ezT('library.countBooks', { n: num(a.count) })}</span>
+            </button>
+          ))}
+        </section>
+      </div>
+    );
+  } else if (state === 'ready' && rung.k === 'book' && book) {
+    const chapters = toc || [];
+    view = (
+      <div style={s.lsbPane}>
+        <div style={s.lsbHead}>
+          <span style={s.lsbHeadName}>{ezikLibText(book.title)}</span>
+          <span style={s.lsbHeadCount}>{ezikLibText(book.author) || ezT('library.noAuthor')}</span>
+        </div>
+        {mode === 'paragraph' ? <div role="note" style={s.lsnNote}>{ezT('library.modeModern')}</div> : null}
+        {mode === 'chapters' ? <div role="note" style={s.lsnNote}>{ezT('library.modeChapters')}</div> : null}
+        {searchForm(ezT('library.findIn'), ezT('library.findInGo'), (q) => push({ k: 'hits', book: rung.book, q }))}
+        <div style={s.lsbHead}><span style={s.lsbHeadName}>{ezT('library.chapters')}</span></div>
+        {toc === null ? <div role="status" aria-live="polite" style={s.lsnNote}>{ezT('library.loading')}</div> : null}
+        {toc !== null && !chapters.length ? <div role="status" style={s.lsnNote}>{ezT('library.noChapters')}</div> : null}
+        {chapters.length ? (
+          <section style={s.lsnList} aria-label={ezT('library.chaptersAria')}>
+            {chapters.map((c, i) => (mode === 'paragraph' ? (
+              <div key={i} style={{ ...s.lsnItemTitle, paddingInlineStart: c.depth * 14 }}>{c.heading}</div>
+            ) : (
+              <button key={i} type="button" className="ezhome-focus" style={{ ...s.lsbRow, paddingInlineStart: 14 + c.depth * 14 }}
+                onClick={() => push({ k: 'read', book: rung.book, req: ezikLibReadAt(mode, c) })}>
+                <span style={s.lsnItemTitle}>{c.heading}</span>
+                {mode === 'pages' && c.page !== null
+                  ? <span style={s.lsnItemScholar}>{ezT('library.pageShort', { n: num(c.page) })}</span> : null}
+              </button>
+            )))}
+          </section>
+        ) : null}
+      </div>
+    );
+  } else if (state === 'ready' && rung.k === 'read') {
+    const atoms = ezikLibAtoms(body.atoms);
+    const card = ezikLibText(body.card);
+    const next = ezikLibPointer(body.next);
+    const prev = ezikLibPointer(body.prev);
+    const last = atoms.length ? atoms[atoms.length - 1].atom : '';
+    const pageText = [card, atoms.map((a) => a.text).join('\n')].filter(Boolean).join('\n\n');
+    view = (
+      <article style={s.lsbPane} aria-label={ezT('library.readAria')}>
+        {card ? <div style={s.bookMatnHead}><span style={s.bookMatnBook}>{card}</span></div> : null}
+        {body.lead_missing === true ? <div role="note" style={s.lsnNote}>{ezT('library.leadMissing')}</div> : null}
+        {atoms.map((a, i) => (
+          <div key={a.atom + i}>
+            {a.heading && (i === 0 || atoms[i - 1].heading !== a.heading) ? <div style={s.bookMatnWhere}>{a.heading}</div> : null}
+            <div style={s.bookMatnText}>{a.text}</div>
+          </div>
+        ))}
+        <div style={s.lsnForm}>
+          <CopyReplyButton text={pageText} getText={() => pageText} />
+          <ShareReplyButton getText={() => pageText} />
+        </div>
+        <nav style={s.lsbPager} aria-label={ezT('library.pagerAria')}>
+          <button type="button" className="ezhome-focus" style={s.lsbPageBtn} disabled={!prev} aria-disabled={!prev}
+            onClick={() => { if (prev) replace({ k: 'read', book: rung.book, req: ezikLibReadAt(mode, prev) }); }}>{ezT('library.prev')}</button>
+          <button type="button" className="ezhome-focus" style={s.lsbPageBtn} disabled={!next || !last} aria-disabled={!next || !last}
+            onClick={() => { if (next && last) replace({ k: 'read', book: rung.book, req: { op: 'next', atom_id: last } }); }}>{ezT('library.next')}</button>
+        </nav>
+      </article>
+    );
+  } else if (state === 'ready' && rung.k === 'hits') {
+    const hits = ezikLibHits(body.hits);
+    view = (
+      <section style={s.lsbPane} aria-label={ezT('library.hitsAria')}>
+        <div style={s.lsbHead}><span style={s.lsbHeadName}>{rung.q}</span></div>
+        {!hits.length ? <div role="status" style={s.lsnNote}>{ezT('library.noHits')}</div> : null}
+        {hits.map((h, i) => {
+          const quoted = [h.card, h.text].filter(Boolean).join('\n\n');
+          return (
+            <div key={i} style={s.bookMatn}>
+              {h.card ? <div style={s.bookMatnHead}><span style={s.bookMatnBook}>{h.card}</span></div> : null}
+              <div style={s.bookMatnText}>{h.text}</div>
+              {h.cut ? <div style={s.bookMatnCut}>{ezT('library.cut')}</div> : null}
+              <div style={s.lsnForm}>
+                {h.atom && mode !== 'paragraph' ? (
+                  <button type="button" className="ezhome-focus" style={s.lsnRetry}
+                    onClick={() => push({ k: 'read', book: rung.book, req: ezikLibReadAt(mode, h) })}>{ezT('library.readHere')}</button>
+                ) : null}
+                <CopyReplyButton text={quoted} getText={() => quoted} />
+                <ShareReplyButton getText={() => quoted} />
+              </div>
+            </div>
+          );
+        })}
+      </section>
+    );
+  } else if (state === 'ready' && rung.k === 'book') {
+    view = <div role="status" style={s.lsnNote}>{ezT('library.unavailable')}</div>;
+  }
+
+  return (
+    <EzShell title={ezT('library.title')} onBack={back} backLabel={ezT('common.back')}>
+      <div ref={topRef} />
+      {state === 'loading' ? (
+        <div role="status" aria-live="polite" style={s.lsnNote}>
+          <span style={s.dot}>●</span>
+          <span style={{ ...s.dot, animationDelay: '0.2s' }}>●</span>
+          <span style={{ ...s.dot, animationDelay: '0.4s' }}>●</span>
+          <span>{ezT('library.loading')}</span>
+        </div>
+      ) : null}
+      {state === 'failed' ? (
+        <div role="alert" style={s.lsnError}>
+          <span>{rung.k === 'book' || rung.k === 'read' ? ezT('library.unavailable') : ezT('library.error')}</span>
+          <button type="button" className="ezhome-focus" style={s.lsnRetry} onClick={() => setAttempt(attempt + 1)}>{ezT('library.retry')}</button>
+        </div>
+      ) : null}
+      {view}
+    </EzShell>
+  );
+}
+
+// THE CARD UNDER AN ANSWER, OPENED IN THE SECTION. Drawn inside the book card's opened panel, AFTER the
+// passage (guards/lib-book-contract-guard.cjs reads the passage positionally and counts the buttons of
+// a folded card). Nothing is asked unless the card carries a library id, which the server writes only
+// with the switch on -- so with it off this draws nothing and asks nothing. With it on and the reader
+// allowed: the card opens its page when its data suffices, and otherwise says what is missing.
+function EzikLibraryOpenLine({ bid, atom, vol, pg, age }) {
+  const [on, setOn] = useState(false);
+  const id = String(bid || '');
+  useEffect(() => {
+    if (!id) return undefined;
+    let alive = true;
+    ezikLibraryEnabled(age).then((yes) => { if (alive) setOn(yes); });
+    return () => { alive = false; };
+  }, [id]);
+  if (!id || !on) return null;
+  if (!EZIK_LIB_BOOK_ID_RE.test(id)) return <div style={s.bookMatnCut}>{ezT('library.notInLibrary')}</div>;
+  const hasPlace = ezikLibInt(pg) !== null || EZIK_LIB_ATOM_ID_RE.test(String(atom || ''));
+  return (
+    <div style={s.bookMatnCut}>
+      <button type="button" className="ezhome-focus" style={s.lsnRetry}
+        onClick={() => { try { window.dispatchEvent(new CustomEvent(EZIK_LIB_OPEN_EVENT, { detail: { bid: id, atom: String(atom || ''), vol, pg } })); } catch (e) {} }}>
+        {ezT('library.open')}
+      </button>
+      {hasPlace ? null : <span> {ezT('library.openNoPage')}</span>}
+    </div>
+  );
+}
+// ITEM M5 -- END OF THE LIBRARY SECTION
 
 // ============================================================
 // ITEM 20 -- THE TWO READER SECTIONS, AND THE SCREEN THE OWNER WRITES ON
@@ -14939,6 +15458,12 @@ function App() {
   // ITEM 87: the day, from waking to sleeping. A FIFTH panel of exactly the same kind as the
   // four above -- one boolean, one history entry, no `screen` key -- opened from the same menu.
   const [sunanOpen, setSunanOpen] = useState(() => ezikReadResume() === 'sunan-day');
+  // م٥ (LIB_NAV_V1): «المكتبة», a SIXTH panel of exactly the same kind -- one boolean, one history
+  // entry, no `screen` key. Its menu row is drawn only once the SERVER has said the section is on for
+  // this reader, and `libTarget` is the book card that opened it (null when the menu did).
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [libTarget, setLibTarget] = useState(null);
+  const [libraryOn, setLibraryOn] = useState(false);
   const [inboxUnread, setInboxUnread] = useState(null);
   // DECISION ج١٣'s other half -- the sender's dot. A count of answers this reader has been
   // sent and has not yet opened. It is zero for everybody with no account, because `mine`
@@ -15804,6 +16329,28 @@ function App() {
   // ITEM 87: the fifth, on the identical contract and in the same fixed order -- a hook order
   // that changes with state is a hook order that breaks.
   useEzikBackLayer(sunanOpen, () => setSunanOpen(false));
+  // م٥: the sixth, on the identical contract and in the same fixed order.
+  useEzikBackLayer(libraryOpen, () => setLibraryOpen(false));
+  // Whether to draw the library's menu row is asked ONCE a session, when an adult profile is in hand --
+  // never when the menu opens, which sends nothing (guards/i18n-ui-guard.cjs, a11y-guard.cjs) -- and a
+  // child is not asked about at all (ezikLibraryEnabled).
+  const libAge = profile ? profile.age : undefined;
+  useEffect(() => {
+    let alive = true;
+    ezikLibraryEnabled(libAge).then((on) => { if (alive) setLibraryOn(on); });
+    return () => { alive = false; };
+  }, [libAge]);
+  // A book card under an answer opens its page here (EzikLibraryOpenLine raises the event).
+  useEffect(() => {
+    const onOpen = (e) => {
+      const d = e && e.detail;
+      if (!d || typeof d.bid !== 'string') return;
+      setLibTarget({ bid: d.bid, atom: d.atom, vol: d.vol, pg: d.pg });
+      setLibraryOpen(true);
+    };
+    window.addEventListener(EZIK_LIB_OPEN_EVENT, onOpen);
+    return () => window.removeEventListener(EZIK_LIB_OPEN_EVENT, onOpen);
+  }, []);
   // ITEM 92: WHAT THE SHARE BUTTON DOES, decided by the injected bridge and by nothing else.
   // In a shell it hands the smart link straight to the platform sheet and returns -- no chooser
   // is opened, so no badge and no store name can reach the page (Apple guideline 2.3.10). In a
@@ -18528,6 +19075,17 @@ function App() {
               <span style={{ flex: 1, minWidth: 0 }}>{EZIK_FAV_TITLE}</span>
               {myFavs.length > 0 && <span style={s.drawerBadge}>{myFavs.length}</span>}
             </button>
+            {/* م٥ -- «المكتبة». Drawn only when the server said the section is on for this reader. */}
+            {libraryOn ? (
+              <button onClick={() => closeDrawerWith(() => { setLibTarget(null); setLibraryOpen(true); })} style={s.drawerItem} className="ezik-focus" aria-label={ezT('menu.libraryAria')}>
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 4h5v16H3z" />
+                  <path d="M8 4h5v16H8z" />
+                  <path d="M14.5 5.2l4.6-1.2 3 15.4-4.6 1.2z" />
+                </svg>
+                <span>{ezT('menu.library')}</span>
+              </button>
+            ) : null}
             {/* S92: THE HISTORY. \u00ab\u0645\u062d\u0627\u062f\u062b\u0629 \u062c\u062f\u064a\u062f\u0629\u00bb stays the one and only new-chat entry -- this
                 section adds the saved conversations UNDER the existing items and duplicates
                 none of them. The order is the store's: pinned first, then the most recent.
@@ -18772,6 +19330,9 @@ function App() {
   if (aboutOpen) return <EzikAboutSheet onBack={() => { if (ezikHistBack()) return; setAboutOpen(false); }} />;
   if (sourcesOpen) return <EzikSourcesSheet onBack={() => { if (ezikHistBack()) return; setSourcesOpen(false); }} />;
   if (sunanOpen) return <EzikSunanSection onBack={() => { if (ezikHistBack()) return; setSunanOpen(false); }} />;
+  // م٥ -- «المكتبة» stands here for the feedback panel's reason: it reaches a library service, never a
+  // model, and carries no conversation; the server serves it to an adult only.
+  if (libraryOpen) return <EzikLibrarySection target={libTarget} age={profile ? profile.age : undefined} onBack={() => { if (ezikHistBack()) return; setLibraryOpen(false); }} />;
   if (feedbackOpen) return (
     <EzikFeedbackSheet
       onBack={() => { if (ezikHistBack()) return; setFeedbackOpen(false); }}
@@ -20125,7 +20686,8 @@ function ezikRenderSegments(segments, ctx) {
       return <SourceCard key={i} site={seg.site} url={seg.url} content={seg.content} />;
     }
     if (seg.type === 'book') {
-      return <BookCard key={i} title={seg.title} author={seg.author} where={seg.where} text={seg.text} cut={seg.cut} />;
+      return <BookCard key={i} title={seg.title} author={seg.author} where={seg.where} text={seg.text} cut={seg.cut}
+        bid={seg.bid} atom={seg.atom} vol={seg.vol} pg={seg.pg} age={age} />;
     }
     if (seg.type === 'dhikr') {
       return <DhikrCard key={i} catId={seg.catId} />;
@@ -21093,7 +21655,7 @@ function SourceCard({ site, url, content }) {
 // lib/free-brain/tools.js drops it again when the numbering is automatic). When the chip shows
 // no place, the panel shows no place: a passage under a page number the card itself refused to
 // print would be a citation this app invented.
-function BookCard({ title, author, where, text, cut }) {
+function BookCard({ title, author, where, text, cut, bid, atom, vol, pg, age }) {
   const [matnOpen, setMatnOpen] = useState(false);
   const name = String(title || '').trim();
   if (!name) return null;
@@ -21131,6 +21693,7 @@ function BookCard({ title, author, where, text, cut }) {
           </div>
           <div style={s.bookMatnText}>{matn}</div>
           {cut ? <div style={s.bookMatnCut}>{BOOK_MATN_CUT_NOTE}</div> : null}
+          <EzikLibraryOpenLine bid={bid} atom={atom} vol={vol} pg={pg} age={age} />
         </div>
       ) : null}
     </div>

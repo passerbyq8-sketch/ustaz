@@ -849,3 +849,4 @@ api/lib-nav.js text eol=lf
 lib/lib-shelf.js text eol=lf
 lib/data/lib-sections.js text eol=lf
 tools/gen-lib-sections.mjs text eol=lf
+guards/lib-nav-f-guard.cjs text eol=lf

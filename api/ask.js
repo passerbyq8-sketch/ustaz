@@ -631,6 +631,27 @@ export function buildBookTag(row) {
   return { tag: `<book${attrs}${matnAttrs}>${title}</book>` };
 }
 
+// م٥ (LIB_NAV_V1) — THE CARD OPENS ITS PAGE IN «المكتبة». With the switch on, a library card carries the
+// book's id (`bid`), the atom it came from (`atom`), and where the place is print its volume and first
+// page (`vol`, `pg`), so the client can open that page. A card that is no library book says so with
+// bid="-". Added in FRONT of the attributes buildBookTag wrote, which stay byte for byte what they were;
+// with the switch off this is never called and the tag is exactly buildBookTag's.
+function libraryCardAttrs(row) {
+  const id = String((row && row.subjectId) || '');
+  if (!/^FC-\d{6}$/.test(id)) return ' bid="-"';
+  const atom = String((row && row.recordId) || '').replace(/^lib:/, '');
+  const span = (row && row.locatorSpan) || {};
+  return ` bid="${id}"`
+    + (/^[A-Za-z0-9_.:-]{1,80}$/.test(atom) && atom.startsWith(id + ':') ? ` atom="${atom}"` : '')
+    + (/^\d{1,5}$/.test(String(span.volume || '')) ? ` vol="${span.volume}"` : '')
+    + (/^\d{1,6}$/.test(String(span.pageStart || '')) ? ` pg="${span.pageStart}"` : '');
+}
+export function buildLibraryBookTag(row) {
+  const built = buildBookTag(row);
+  if (!built || typeof built.tag !== 'string') return built;
+  return { ...built, tag: built.tag.replace(/^<book/, '<book' + libraryCardAttrs(row)) };
+}
+
 // Hard ceiling on cards in one reply. Three is the number of distinct rulings/references
 // a compound question is allowed to rest on; past that a reply stops citing and starts
 // listing. Also the cap on retrieval angles below, so the two can never disagree.
@@ -1973,7 +1994,7 @@ export default async function handler(req, res) {
       // chip displays no page and opens nothing. It is reused as the ceiling here because «past
       // three a reply stops citing and starts listing» is just as true of books, but the two lists
       // are counted apart, so three fatwa pages and two books is three cards and two chips.
-      const bookCards = registerOwnedCards(pickBookCards(out.cited, MAX_SOURCES, buildBookTag));
+      const bookCards = registerOwnedCards(pickBookCards(out.cited, MAX_SOURCES, libNavValue === 'on' ? buildLibraryBookTag : buildBookTag));
       // ENCYC_V1 -- AND THE ENCYCLOPEDIA, WHICH NEITHER SELECTION ABOVE CAN SEE: it has no URL and
       // is not a library atom. With the switch on, a cited encyclopedia row earns the book chip
       // (the same builder, the same tag, drawn by app.jsx unchanged) naming the encyclopedia and its
