@@ -650,5 +650,10 @@
     "name": "bwreconnect",
     "script": "guards/before-writing-h-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "bwencyc",
+    "script": "guards/before-writing-i-guard.cjs",
+    "args": ""
   }
 ]

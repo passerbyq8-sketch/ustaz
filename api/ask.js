@@ -125,6 +125,7 @@ import {
   classifyReligiousRuntime,
   resolveStoredContext,
   runStoredFiqhTurn,
+  warmStoredCorpusIndex,
 } from '../lib/stored-deen.js';
 import { runClosedDeenTurn } from '../lib/closed-deen.js';
 // جولة «الاستعادة»، الفرع أ. Only the SWITCH is imported at module top — it is three environment
@@ -1640,6 +1641,13 @@ export default async function handler(req, res) {
       currentPlan,
       lexicalRoute: effectiveRoute,
     });
+    // ── م٢-ط — THE COLD INSTANCE CATCHES ITS FIRST QUESTION ────────────────────────────────────
+    // MEASURED (02-brain/measure/A, D, E): the index build is 1.6-2.4 s (yielding 2.1-2.4 s) and ~105 MB
+    // of heap, and it started only inside the loop, so a cold instance's first religious question raced
+    // it and lost. Under the switch it starts HERE, the moment the turn is known to be an adult's sharia
+    // turn — yielding, not awaited, idempotent — so its build overlaps the routing, the day cap and the
+    // gathering's own first calls. Worldly turns and minors never build it (the memory stays theirs).
+    if (beforeWritingValue === 'on' && band === 'adult' && effectiveRoute === 'DEEN') warmStoredCorpusIndex();
     const closedOut = runClosedDeenTurn(storedContext);
     if (closedOut) {
       // The browser expands these server-owned tags from frozen local data.  No
@@ -1908,6 +1916,15 @@ export default async function handler(req, res) {
       // §٣/٢ is therefore a property of which field each side reads, not a subtraction anybody has
       // to remember to perform.
       finalizerContext.readerSuffix = encyclopediaTail(out.cited);
+      // ── م٢-ط — THE CARD OR THE FOOTER, NOT BOTH ──────────────────────────────────────────────
+      // Measured (E): with ENCYC_V1 on every cited encyclopedia row showed its card AND the footer line.
+      // On a before-writing turn the encyclopedia is named ONCE: when it already stands as a card —
+      // ENCYC_V1's volume card, or the library's own copy (FC-003910) as a book card with its page —
+      // the footer is not added. With no card, the footer is the attribution, as the owner first ruled.
+      if (beforeWritingValue === 'on' && band === 'adult'
+        && (encycCards.length > 0 || out.cited.some((row) => row && row.kind === 'lib_book' && row.subjectId === 'FC-003910'))) {
+        finalizerContext.readerSuffix = '';
+      }
       // ── §٣/٣ (C): THE SILENT LOSS, ENDED ──────────────────────────────────
       // One line per cited row with the reason it did or did not reach the reader. Serialised
       // rather than handed over as an object, for the reason [free-brain/redactions] below states:
