@@ -337,7 +337,7 @@ async function main() {
       ok('E1  a cited row gets the book chip «<publisher> · ج<part>»: no author, no ref, no link',
         cards.length === rows.length && rows.length > 0
         && labelOf(first) === '<book>' + firstRow.publisher + ' · ج' + firstRow.part + '</book>'
-        && !/ author=| ref=| url=| site=/.test(first),
+        && first.length > 0 && !/ author=| ref=| url=| site=/.test(first),
         labelOf(first));
       ok('E2  ...its passage is the row\'s own text, letter for letter',
         cards.length > 0 && cards.every((c, i) => matnOf(c.tag) === rows[i].text));
