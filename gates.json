@@ -625,5 +625,10 @@
     "name": "bwruling",
     "script": "guards/before-writing-c-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "bwnotext",
+    "script": "guards/before-writing-d-guard.cjs",
+    "args": ""
   }
 ]
