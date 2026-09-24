@@ -700,5 +700,10 @@
     "name": "navcontinue",
     "script": "guards/lib-nav-b-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "navexplain",
+    "script": "guards/lib-nav-c-guard.cjs",
+    "args": ""
   }
 ]

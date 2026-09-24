@@ -144,6 +144,8 @@ import { asksGradeOrSource } from '../lib/takhrij.js';
 import { headRestatedBy } from '../lib/takhrij.js';
 // م٤-ب (LIB_NAV_V1) — where the last quotation stopped. Zero imports, so it costs nothing to load here.
 import { readCursor, stripCursorMarkers, isContinueRequest, cursorMarker } from '../lib/quote-cursor.js';
+// م٤-ج — «اشرح» after a quotation, and «… ثمّ لخّصه».
+import { explainsPreviousQuote, quoteTail, withQuoteTail, previousAssistantText, quotedPlace } from '../lib/quote-cursor.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 // The free path's own empty-reply text, صنف (ب): the system declaring a limit, not answering.
@@ -1079,6 +1081,11 @@ export default async function handler(req, res) {
   // protections that run later on every path are asked here too: a grave hazard or a health
   // referral is never answered by a quotation, so those requests go on down the ordinary path.
   // Anything the detector does not claim goes on unchanged; with the flag off nothing is loaded.
+  // م٤-ج — set below, read after the stream is committed: a quotation to write ahead of the model's
+  // summary, and a quotation re-read so the seal knows its words.
+  let pendingQuote = null;
+  let navLicensed = null;
+  let navExplainsQuote = false;
   // ── م٤-أ (LIB_NAV_V1): A PAGE BY ITS NUMBER ─────────────────────────────────
   // «انقل لي نص الصفحة ١٤٠ من الجزء الأول من كتاب بداية المجتهد» is answered from the page itself: the
   // whole page for a heritage or fatwa book, one paragraph with its attribution for a modern one, the
@@ -1094,14 +1101,26 @@ export default async function handler(req, res) {
     const navReply = (quoteCursor && isContinueRequest(currentQuestionText)
       ? await libNav.answerContinue(quoteCursor, navDeps) : null)
       || await libNav.answerPageRequest(currentQuestionText, navDeps);
-    if (navReply) {
+    const navTail = navReply && navReply.outcome === 'page_quoted' ? quoteTail(currentQuestionText) : null;
+    if (navReply && !navTail) {
       console.log('[lib-nav]', { outcome: navReply.outcome });
       return (await import('../lib/lib-quote.js')).writeQuoteReply(res, navReply.text + cursorMarker(navReply.cursor));
+    }
+    if (navReply) {
+      // م٤-ج — «… ثمّ لخّصه» on a page: the page first, then the model's summary of it.
+      console.log('[lib-nav]', { outcome: navReply.outcome });
+      pendingQuote = { text: navReply.text + cursorMarker(navReply.cursor), page: navReply.page || null };
+      body.messages = withQuoteTail(body.messages, navReply.text, navTail);
+    } else if (quoteCursor && explainsPreviousQuote(currentQuestionText)) {
+      // م٤-ج — «اشرح …» right after a quotation goes to the model with the quotation in front of it (it
+      // already is, byte for byte), and the quote seat below does not quote it again.
+      navExplainsQuote = true;
+      navLicensed = await libNav.licensedQuote(quoteCursor, quotedPlace(previousAssistantText(body.messages)), navDeps);
     }
   }
   if (libQuoteValue === 'on' && band === 'adult' && libFlagValue === 'on' && libToken !== '') {
     const libQuote = await import('../lib/lib-quote.js');
-    const quoteAsk = libQuote.detectQuoteRequest(currentQuestionText);
+    const quoteAsk = navExplainsQuote || pendingQuote ? null : libQuote.detectQuoteRequest(currentQuestionText);
     if (quoteAsk && !graveHazard(currentQuestionText)
       && access({ topicClass: classifyTopic(currentQuestionText, currentPlan, effectiveRoute), audienceBand }).outcome !== 'REFER_ADULT') {
       const { runTool, createEvidenceTable } = await import('../lib/free-brain/tools.js');
@@ -1110,7 +1129,11 @@ export default async function handler(req, res) {
         console.log('[lib-quote]', { outcome: quoted.outcome });
         // م٤-ب — with the navigation switch on, the quotation carries where it stopped, for «كمّل».
         if (libNavValue === 'on' && quoted.cursor) quoted.text += cursorMarker(quoted.cursor);
-        return libQuote.writeQuoteReply(res, quoted.text);
+        const tail = libNavValue === 'on' && quoted.outcome === 'quoted' ? quoteTail(currentQuestionText) : null;
+        if (!tail) return libQuote.writeQuoteReply(res, quoted.text);
+        // م٤-ج — «… ثمّ لخّصه»: the quotation first, as the book's own text, then the model's summary of it.
+        pendingQuote = { text: quoted.text, page: quoted.page || null };
+        body.messages = withQuoteTail(body.messages, quoted.text, tail);
       }
     }
   }
@@ -1136,6 +1159,10 @@ export default async function handler(req, res) {
   res.flushHeaders?.();
   let keepAlive = setInterval(() => { try { res.write(': keepalive\n\n'); } catch {} }, 10000);
   const clearKeepAlive = () => { if (keepAlive) { clearInterval(keepAlive); keepAlive = null; } };
+  // م٤-ج — a quotation the reader asked to have summarised goes out FIRST, as the book's own text, on the
+  // committed stream and outside the finalizer, whose seal would refuse a classical book's «روى فلان»
+  // (lib/lib-quote.js explains the writer). The model's summary follows it in the same bubble.
+  if (pendingQuote) res.write((await import('../lib/lib-quote.js')).quoteFrame(pendingQuote.text + '\n\n'));
 
   // ONE WAY OUT, USED BY EVERY DETERMINISTIC BRANCH BELOW. The headers are already committed at
   // this point, so this is not sendSynthesizedText(): it writes one text delta, one message_stop
@@ -1146,6 +1173,10 @@ export default async function handler(req, res) {
   // question has nowhere to be asked unless the pages are reachable from the emission point.
   // Every retrieval below hands its result to `remember()`, which returns it unchanged.
   const fetchedPages = [];
+  // م٤-ج — the quotation this turn stands on is a page this request read (or re-read), so the seal keeps
+  // the book's own words where the model repeats them.
+  if (pendingQuote && pendingQuote.page && pendingQuote.page.passage) fetchedPages.push(pendingQuote.page);
+  if (navLicensed) fetchedPages.push(navLicensed);
   // Ledger owns a separate evidence lifecycle inside runLedgerTurn. Its accepted, card-backing
   // pages are registered through the seam before that branch writes or closes; they are not
   // mixed into legacy retrieval decisions or source-selection state.

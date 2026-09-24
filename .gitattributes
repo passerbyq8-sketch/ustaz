@@ -840,3 +840,4 @@ guards/lib-nav-a-guard.cjs text eol=lf
 lib/lib-nav.js text eol=lf
 guards/lib-nav-b-guard.cjs text eol=lf
 lib/quote-cursor.js text eol=lf
+guards/lib-nav-c-guard.cjs text eol=lf
