@@ -640,5 +640,10 @@
     "name": "bwissue",
     "script": "guards/before-writing-f-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "bwspeaker",
+    "script": "guards/before-writing-g-guard.cjs",
+    "args": ""
   }
 ]

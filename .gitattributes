@@ -824,3 +824,4 @@ guards/before-writing-d-guard.cjs text eol=lf
 guards/before-writing-e-guard.cjs text eol=lf
 guards/before-writing-f-guard.cjs text eol=lf
 lib/issue-match.js text eol=lf
+guards/before-writing-g-guard.cjs text eol=lf
