@@ -11,7 +11,7 @@
 //   id       the library's own subject id (FC-000002), the value `filters.book_ids` takes
 //   title    the catalogue title, verbatim
 //   author   the catalogue author string, verbatim
-//   cls      'turath' | 'fatwa' | 'modern'  (decision D8 of the sources round)
+//   cls      'turath' | 'fatwa' | 'modern'  (decision D8 of the sources round, turath line 1300)
 //   autoFlag 1 when the census says the book is automatically numbered (no printed pages)
 //   blocked  1 when the book is on the citation deny list (15 ids)
 // Rows are compact arrays and not objects because 7,400 objects with six keys each would be
@@ -31,13 +31,27 @@ const census = JSON.parse(fs.readFileSync(SRC, 'utf8'));
 const books = Array.isArray(census.books) ? census.books : [];
 if (!books.length) throw new Error('no books in ' + SRC);
 
+// THE TURATH LINE (quote order, 24 September 2026, the owner's decision 2): a book is turath when
+// its author died in 1300 AH or before, not 1400. The census drew the line at 1400, so the
+// 1301-1400 band it counted as turath is modern here. Everything else the census decided stands:
+// the 1442 marker and its 14 named exceptions (turath with 1442), the 3 undated diwans, and a
+// fatwa book is fatwa whatever its era (decision D8 of the sources round).
+const TURATH_LAST_DEATH = 1300;
+const MARKER_1442 = 1442;
+function classOf(b) {
+  const cls = String(b.class || '').trim();
+  if (cls !== 'turath') return cls;
+  const death = b.death;
+  return Number.isInteger(death) && death > TURATH_LAST_DEATH && death !== MARKER_1442 ? 'modern' : cls;
+}
+
 const CLASSES = new Set(['turath', 'fatwa', 'modern']);
 const rows = [];
 for (const b of books) {
   const id = String(b.id || '').trim();
   const title = String(b.title || '').trim();
   const author = String(b.author || '').trim();
-  const cls = String(b.class || '').trim();
+  const cls = classOf(b);
   if (!/^FC-\d{6}$/.test(id)) throw new Error('bad id ' + id);
   if (!title) throw new Error('empty title ' + id);
   if (!CLASSES.has(cls)) throw new Error('bad class ' + cls + ' on ' + id);
@@ -53,6 +67,7 @@ const head = [
   '// Source: ' + path.basename(SRC) + ' (sources round 2026-09-24, 00-src/); ' + rows.length + ' books.',
   '// Row: [id, title, author, cls, autoFlag, blocked]  cls = turath | fatwa | modern;',
   '// autoFlag 1 = automatically numbered (no printed page); blocked 1 = citation deny list.',
+  '// Turath = the author died in ' + TURATH_LAST_DEATH + ' AH or before (quote order 2026-09-24); fatwa wins over era.',
   '// Counts: turath ' + counts.turath + ', fatwa ' + counts.fatwa + ', modern ' + counts.modern
     + ', auto ' + counts.auto + ', blocked ' + counts.blocked + '.',
   'export const LIB_CATALOG = [',
