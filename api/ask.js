@@ -145,7 +145,7 @@ import { headRestatedBy } from '../lib/takhrij.js';
 // م٤-ب (LIB_NAV_V1) — where the last quotation stopped. Zero imports, so it costs nothing to load here.
 import { readCursor, stripCursorMarkers, isContinueRequest, cursorMarker } from '../lib/quote-cursor.js';
 // م٤-ج — «اشرح» after a quotation, and «… ثمّ لخّصه».
-import { explainsPreviousQuote, quoteTail, withQuoteTail, previousAssistantText, quotedPlace } from '../lib/quote-cursor.js';
+import { explainsPreviousQuote, quoteTail, withQuoteTail, previousAssistantText, quotedPlace, bareQuote } from '../lib/quote-cursor.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 // The free path's own empty-reply text, صنف (ب): the system declaring a limit, not answering.
@@ -1159,10 +1159,6 @@ export default async function handler(req, res) {
   res.flushHeaders?.();
   let keepAlive = setInterval(() => { try { res.write(': keepalive\n\n'); } catch {} }, 10000);
   const clearKeepAlive = () => { if (keepAlive) { clearInterval(keepAlive); keepAlive = null; } };
-  // م٤-ج — a quotation the reader asked to have summarised goes out FIRST, as the book's own text, on the
-  // committed stream and outside the finalizer, whose seal would refuse a classical book's «روى فلان»
-  // (lib/lib-quote.js explains the writer). The model's summary follows it in the same bubble.
-  if (pendingQuote) res.write((await import('../lib/lib-quote.js')).quoteFrame(pendingQuote.text + '\n\n'));
 
   // ONE WAY OUT, USED BY EVERY DETERMINISTIC BRANCH BELOW. The headers are already committed at
   // this point, so this is not sendSynthesizedText(): it writes one text delta, one message_stop
@@ -1324,6 +1320,12 @@ export default async function handler(req, res) {
     readerCards: [],
     readerCardPrefix: '',
     allowWireOwnedCards: true,
+    // م٤-ج — a quotation the reader asked to have summarised goes FIRST, as the book's own text, on the
+    // server-owned prefix (the channel the presence lead and the live-search notice use; a raw write here
+    // would bypass the finalized writer, gate takhrij). The finalizer judges it with the summary, against
+    // the page this request read (fetchedPages below), so the book's own credit stands. Without its
+    // cursor: «كمّل» after a summary is not a continuation of the book.
+    ...(pendingQuote ? { readerPrefix: bareQuote(pendingQuote.text) } : {}),
     // م٣-ب (FULL_ANSWER_V1) — the seat's lock and grade rule carry a bracket standing right after its matn.
     bracketAfterQuote: fullAnswerValue === 'on',
     consistencyContext: trustedReaderEntity ? {

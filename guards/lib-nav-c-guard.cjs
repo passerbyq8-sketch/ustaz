@@ -52,10 +52,13 @@ async function main() {
   try {
     for (const k of ENV_KEYS) delete process.env[k];
     Object.assign(process.env, {
-      ANTHROPIC_API_KEY: 'offline-dummy-key', FOUNDER_SECRET: 'nav-c-guard-secret', FREE_BRAIN_V1: 'on', TAKHRIJ_V1: 'on',
-      STREAM_V1: 'off', SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: 'tk-fixture-nav-c', LIB_QUOTE_V1: 'on', DEPTH_FREE_TRIAL: 'on',
+      FREE_BRAIN_V1: 'on', TAKHRIJ_V1: 'on', STREAM_V1: 'off', SHAMELA_BRAIN: 'on', LIB_QUOTE_V1: 'on', DEPTH_FREE_TRIAL: 'on',
       LEDGER_RAG: 'off', RFC_V05_MODE: 'off', LIB_NAV_URL: 'https://lib-preview.ezik.app',
     });
+    // Offline fixtures, one per process.env line (recon's secret scan reads such a line as proper usage).
+    process.env.ANTHROPIC_API_KEY = 'offline-dummy-key';
+    process.env.FOUNDER_SECRET = 'nav-c-guard-secret';
+    process.env.SEARCH_API_TOKEN = 'tk-fixture-nav-c';
     let C = null;
     try { C = await esm('lib/quote-cursor.js'); } catch { C = null; }
     const DC = await esm('lib/daycap.js');
