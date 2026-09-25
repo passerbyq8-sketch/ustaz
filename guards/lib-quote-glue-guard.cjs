@@ -16,7 +16,9 @@
 //   N4  the owner's own example: the index holds neither the title nor the author, so nothing is split
 //       and the reply stays today's (the rule is the index's, not the wording's);
 //   N5  every index title that holds a plain-ل word, typed verbatim, gets the same plan with the switch on;
-//   N6  «لل/لا» are read as before (M4-d): «فقه الزكاة للقرضاوي» echoes the title and names the author.
+//   N6  «لل/لا» are read as before (M4-d): «فقه الزكاة للقرضاوي» echoes the title and names the author;
+//   N10-N13 (the owner's ruling, D64): a not-found reply to a request that already names its author does not
+//       ask for the author; a title whose «ل»-word is a word of the index's titles still asks (switch on).
 // Red on the tree before this item: `node guards/lib-quote-glue-guard.cjs --root <tree>`.
 'use strict';
 const path = require('path');
@@ -109,6 +111,32 @@ async function main() {
   const n9 = plan('انقل لي من كتاب مباحث في علوم القرآن لصبحي الصالح لصبحي الصالح ما جاء في الصلاة', true);
   ok('N9  a name that is only among a title\'s words («لصبحي الصالح» in the title) does not split there',
     n9 && n9.outcome === 'search' && ids(n9) === 'FC-000360' && n9.titleText === 'مباحث في علوم القرآن لصبحي الصالح', show(n9));
+
+  // ── N10-N13 (the owner's ruling of 25 September, D64) ────────────────────────────────────────────
+  // «When the requested book is not found and the request already names its author, the not-found reply
+  // does not ask for the author's name; the rest of the reply stays as it is.»
+  const deps = (form) => ({ runTool: async () => ({ added: [] }), createEvidenceTable: () => ({}), libFlagValue: 'on', libToken: 'tk-glue', form });
+  const reply = async (s, form) => { const a = Q.detectQuoteRequest(s); const r = a ? await Q.answerQuoteRequest(a, deps(form)) : null; return r ? r.text : ''; };
+  const ASK = ' إن كان للكتاب اسم آخر يعرف به، أو كان عندك اسم مؤلفه، فاذكره لي.';
+  const NOASK = ' إن كان للكتاب اسم آخر يعرف به فاذكره لي.';
+  const n10on = await reply(OWNER, true); const n10off = await reply(OWNER, false);
+  ok('N10 the owner\'s example (report §5 row 8): the author is named, so he is not asked for; the title stays as it was',
+    n10on === `ليس عندي كتاب باسم «في ظلال القرآن لسيد قطب».${NOASK}` && n10off === `ليس عندي كتاب باسم «في ظلال القرآن لسيد قطب».${ASK}`,
+    JSON.stringify([n10on, n10off]));
+  const n11 = [];
+  for (const t of ['مختصر لسان العرب', 'رسالة لطالب العلم']) n11.push(await reply(`انقل لي من كتاب ${t} ما جاء في الصلاة`, true));
+  ok('N11 a title whose «ل»-word is a word of the index\'s titles names no author: he is still asked for',
+    n11.every((r) => r.endsWith(ASK)), JSON.stringify(n11));
+  const n12 = await reply('انقل لي من كتاب الموطأ لمالك ما جاء في صلاة الليل', true);
+  ok('N12 «الموطأ لمالك»: مالك is named, and not asked for', n12 === `ليس عندي كتاب باسم «الموطأ لمالك».${NOASK}`, n12);
+  const NAV = await esm('lib/lib-nav.js');
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async () => { throw new Error('this row makes no network call'); };
+  let n13 = null;
+  try { n13 = await NAV.answerPageRequest('انقل لي نص الصفحة ١٠ من كتاب فقه الزكاة للقرضاوي', { flagValue: 'on', token: 'tk-glue', baseUrl: 'https://lib-preview.ezik.app' }); }
+  finally { globalThis.fetch = realFetch; }
+  ok('N13 the page path\'s not-found reply follows the same rule («للقرضاوي» named, not asked for)',
+    !!n13 && n13.outcome === 'page_no_book' && n13.text.endsWith(NOASK), JSON.stringify(n13));
 
   console.log(`\n=== lib-quote-glue: ${checks - failures}/${checks} PASS ===`);
   process.exit(failures ? 1 : 0);
