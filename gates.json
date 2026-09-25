@@ -755,5 +755,10 @@
     "name": "navglue",
     "script": "guards/lib-quote-glue-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "navauthorbook",
+    "script": "guards/lib-quote-author-book-guard.cjs",
+    "args": ""
   }
 ]
