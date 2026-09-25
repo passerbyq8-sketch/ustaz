@@ -21,6 +21,11 @@
 //   G15       a matn that opens on the Prophet ﷺ; G16 the book the parentheses name, not another book's;
 //   G17       a lead-in that points back at the narrator («قال له») keeps the model's name, and says so;
 //   M1-M3     three mutants of lib/takhrij.js are killed: no adjacency, the «قال» anchor, any book.
+//   G18-G24   (the order-B review, D61) one opener only beside a kept model opener; a kept opener keeps
+//             its whole lead-in; no removal that breaks a sentence or orphans a word; «أنه سمع عمر» and
+//             «قال عمر:» are links; a mawquf atom, a closed earlier narration, the book's own prayer;
+//   M4-M8     five more mutants killed: the Prophet ﷺ not required, no closing-mark test, one prayer
+//             for all, a second opener, no clean left edge.
 // Red on the tree before this item (64f458c): `node guards/full-answer-companion-guard.cjs --root <tree>`.
 'use strict';
 const fs = require('fs');
@@ -137,6 +142,42 @@ async function rows(T, report) {
   const g17 = await run(back, ON, lib([], []));
   r.G17 = report('G17 a lead-in that points back at the narrator («قال له») keeps the model\'s name, and says so',
     g17.text === back && (g17.problems || []).includes('TAKHRIJ_MODEL_COMPANION_KEPT'), JSON.stringify([g17.text, g17.problems]));
+  // ── the order-B review (D61) ──────────────────────────────────────────────────────────────────────
+  const samitu = `عن عمر بن الخطاب رضي الله عنه قال: سمعت رسول الله ${P} يقول: «${M}».`;
+  const g18 = await run(samitu, ON, lib(['FC-000645'], [UMAR]));
+  r.G18 = report('G18 a model opener that cannot come out whole stays, and the book\'s name is not written beside it: one opener',
+    prayers(g18.text) === 1 && (g18.problems || []).includes('TAKHRIJ_MODEL_COMPANION_KEPT'), JSON.stringify([g18.text, g18.problems]));
+  const muadh = `عن معاذ بن جبل رضي الله عنه قال: قال رسول الله ${P} له يوما: «${M}».`;
+  const g19 = await run(muadh, ON, lib(['FC-000645'], [UMAR]));
+  r.G19 = report('G19 a kept opener keeps its whole lead-in («له») and takes the parentheses alone',
+    g19.text === `عن معاذ بن جبل رضي الله عنه قال: قال رسول الله ${P} له يوما: «${M}» (البخاري).`, g19.text);
+  const breakers = [
+    `وفي حديث أبي هريرة رضي الله عنه أن النبي ${P} قال: «${M}».`,
+    `روى مسلم عن عمر بن الخطاب رضي الله عنه قال: قال رسول الله ${P}: «${M}».`,
+    `وقد سئل عن الأمر فأجاب أبو بكر رضي الله عنه أن النبي ${P} قال: «${M}».`,
+    `عن أبي ذر رضي الله عنه أن رسول الله ${P} قال لي: «${M}».`,
+    `عن ابن عمر رضي الله عنهما أن رسول الله ${P} أخذ بمنكبه فقال: «${M}».`,
+  ];
+  const g20 = [];
+  for (const b of breakers) g20.push(await run(b, ON, lib([], [])));
+  r.G20 = report('G20 an opener whose removal would break the sentence or orphan a word is left as the model wrote it',
+    g20.every((x, i) => x.text === breakers[i]), g20.map((x) => x.text).join(' || '));
+  const SAMI = `حدثنا مالك عن نافع عن ابن عمر رضي الله عنهما أنه سمع عمر بن الخطاب يقول: قال رسول الله ${P}: «${M}»`;
+  const QALA = `حدثنا عكرمة عن ابن عباس رضي الله عنهما قال: قال عمر: قال رسول الله ${P}: «${M}»`;
+  const g21a = await run(plain, ON, lib(['FC-000645'], [SAMI]));
+  const g21b = await run(plain, ON, lib(['FC-000645'], [QALA]));
+  r.G21 = report('G21 «أنه سمع عمر …» and «قال عمر: …» stand between the Companion and the Prophet ﷺ: no name',
+    prayers(g21a.text) === 0 && prayers(g21b.text) === 0, g21a.text + ' || ' + g21b.text);
+  const MAWQUF = `حدثنا نافع عن ابن عمر رضي الله عنهما قال: «${M}»`;
+  const g22 = await run(plain, ON, lib(['FC-000645'], [MAWQUF]));
+  r.G22 = report('G22 an atom that never names the Prophet ﷺ (mawquf) names nobody', prayers(g22.text) === 0, g22.text);
+  const RUWIYA = `حدثنا قتيبة عن أنس رضي الله عنه قال: قال رسول الله ${P}: «الدين النصيحة». وروي عن رسول الله ${P}: «${M}»`;
+  const g23 = await run(plain, ON, lib(['FC-000645'], [RUWIYA]));
+  r.G23 = report('G23 a closing mark ends an earlier narration: its Companion is not lent to the next matn', prayers(g23.text) === 0, g23.text);
+  const AISHA = `حدثنا عروة عن عائشة رضي الله عنها قالت: قال رسول الله ${P}: «${M}»`;
+  const g24 = await run(plain, ON, lib(['FC-000645'], [AISHA]));
+  r.G24 = report('G24 the book\'s own prayer is written as it stands («رضي الله عنها»)',
+    g24.text === `عن عائشة رضي الله عنها: «${M}» (البخاري).`, g24.text);
   return r;
 }
 
@@ -174,6 +215,20 @@ async function main() {
   ok('M2  mutant «the قال anchor allowed» is killed (G14)', m2.applied && m2.killed, JSON.stringify(m2));
   const m3 = await probe('G16')('outlet', ".filter((c) => shown.includes(String(c.book).split('|').slice(1).join('|')))", '/* mutant: any book */');
   ok('M3  mutant «any book, not the bracket\'s» is killed (G16)', m3.applied && m3.killed, JSON.stringify(m3));
+  // The order-B review (D61) found these conditions unpinned; each now has its row and its mutant.
+  const m4 = await probe('G22')('prophet', '  return (B2_PROPHET_RE.test(gap) || B2_PROPHET_RE.test(head)) && !B2_LINK_RE.test(links);',
+    '  return !B2_LINK_RE.test(links);');
+  ok('M4  mutant «the Prophet ﷺ need not be named» is killed (G22)', m4.applied && m4.killed, JSON.stringify(m4));
+  const m5 = await probe('G23')('closing', '  if (/[»”]/u.test(gapBare) || (gapBare.match(/"/gu) || []).length > 1) return false;', '  // mutant: no closing-mark test');
+  ok('M5  mutant «no closing-mark test» is killed (G23)', m5.applied && m5.killed, JSON.stringify(m5));
+  const m6 = await probe('G24')('prayer', '    return { name: b2Genitive(found.name), prayer: found.prayer };',
+    "    return { name: b2Genitive(found.name), prayer: 'عنه' };");
+  ok('M6  mutant «one prayer for all» is killed (G24)', m6.applied && m6.killed, JSON.stringify(m6));
+  const m7 = await probe('G18')('second', 'if (b2 && b2.name && !isCard && B2_PRAYER_IN_LEAD_RE.test(',
+    'if (false && b2 && b2.name && !isCard && B2_PRAYER_IN_LEAD_RE.test(');
+  ok('M7  mutant «a second opener beside a kept one» is killed (G18)', m7.applied && m7.killed, JSON.stringify(m7));
+  const m8 = await probe('G20')('edge', 'if (opener && (!B2_BEFORE_OPENER_RE.test(', 'if (opener && (false && !B2_BEFORE_OPENER_RE.test(');
+  ok('M8  mutant «no clean left edge needed» is killed (G20)', m8.applied && m8.killed, JSON.stringify(m8));
   console.log(`\n=== full-answer-companion: ${checks - failures}/${checks} PASS ===`);
   process.exit(failures ? 1 : 0);
 }
