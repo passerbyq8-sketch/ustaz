@@ -97,6 +97,19 @@ async function main() {
   ok('N6  «لل/لا» are read as before (M4-d): «فقه الزكاة» with القرضاوي named', n6 && n6.outcome === 'no_book'
     && n6.titleText === 'فقه الزكاة' && n6.authorText === 'القرضاوي', show(n6));
 
+  // ── N7-N9 (the order-B review, D63): «ITS author», read from the author field ────────────────────
+  // Without these rows, dropping the author test (a split on the title alone) or reading the author from
+  // the title's words passed every gate. N1's positives each have one ل-word, so neither mattered there.
+  const n7 = plan('انقل لي من كتاب تفسير مجاهد لسفيان الثوري ما جاء في الصلاة', true);
+  ok('N7  a title of the index glued to somebody else\'s name is not split: the name must be that book\'s author',
+    n7 && n7.outcome === 'no_book' && n7.titleText === 'تفسير مجاهد لسفيان الثوري', show(n7));
+  const n8 = plan('انقل لي من كتاب التفسير الوسيط لطنطاوي لمحمد سيد طنطاوي ما جاء في الصلاة', true);
+  ok('N8  two ل-words: the one whose tail is the book\'s author field splits, and that book is searched',
+    n8 && n8.outcome === 'search' && ids(n8) === 'FC-000125' && n8.titleText === 'التفسير الوسيط لطنطاوي', show(n8));
+  const n9 = plan('انقل لي من كتاب مباحث في علوم القرآن لصبحي الصالح لصبحي الصالح ما جاء في الصلاة', true);
+  ok('N9  a name that is only among a title\'s words («لصبحي الصالح» in the title) does not split there',
+    n9 && n9.outcome === 'search' && ids(n9) === 'FC-000360' && n9.titleText === 'مباحث في علوم القرآن لصبحي الصالح', show(n9));
+
   console.log(`\n=== lib-quote-glue: ${checks - failures}/${checks} PASS ===`);
   process.exit(failures ? 1 : 0);
 }
