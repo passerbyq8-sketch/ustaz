@@ -15846,7 +15846,10 @@ function App() {
     lessonsAbortRef.current = controller;
     const timer = setTimeout(() => { try { controller.abort(); } catch (e) {} }, EZIK_LESSONS_TIMEOUT_MS);
     // م٣-ز — the question rides beside the query; the server decides relevance from it (FULL_ANSWER_V1).
-    ezikFetchLessonRows(query, controller.signal, turn ? turn.question : '').then((rows) => {
+    // ب٣ — and the reader's age, read here from the profile that asked, so the server can keep the
+    // strip from a reader below adult.
+    const age = profileRef.current ? profileRef.current.age : undefined;
+    ezikFetchLessonRows(query, controller.signal, turn ? turn.question : '', age).then((rows) => {
       clearTimeout(timer);
       if (lessonsSeqRef.current !== seq) return; // a newer question owns the screen
       lessonsAbortRef.current = null;
@@ -20820,7 +20823,7 @@ function ezikLessonsQuery(reply, question) {
 // list draws nothing. There is no error line, no empty frame and no spinner left behind,
 // because this runs AFTER the answer is already on the screen and has nothing to say to a
 // reader who is already reading.
-async function ezikFetchLessonRows(q, signal, question) {
+async function ezikFetchLessonRows(q, signal, question, age) {
   const query = typeof q === 'string' ? q.trim() : '';
   if (query.length < EZIK_LESSONS_MIN_Q) return [];
   try {
@@ -20829,7 +20832,9 @@ async function ezikFetchLessonRows(q, signal, question) {
       headers: { 'Content-Type': 'application/json' },
       // م٣-ز — `question` is the reader's own question, which the server reads to decide which of
       // the hits are related. It is never sent further than this app's own endpoint.
-      body: JSON.stringify({ q: query, question: typeof question === 'string' ? question.trim().slice(0, 400) : '' }),
+      // ب٣ (order B) — and the reader's band and age, the two fields /api/ask and the library section
+      // carry, because the server shows this strip to an adult only (FULL_ANSWER_V1).
+      body: JSON.stringify({ q: query, question: typeof question === 'string' ? question.trim().slice(0, 400) : '', band: deriveCaps(age).band, age: age }),
       signal,
     });
     if (r.status !== 200) return [];

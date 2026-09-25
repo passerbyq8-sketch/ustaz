@@ -1497,7 +1497,7 @@ const SEALED = {
 //                    2986352 (+946), the sw.js:142 byte table and the B14 mirror with it. INDEX.HTML
 //                    DID NOT MOVE, NO FILE JOINED OR LEFT CORE, sw.js is 48468 bytes before and
 //                    after, and the store name did NOT move. THIS digest is re-cut LAST.
-  'sw.js': '58f9822fcee55c9db153a03f1c4f0c4662d80a7e37568e02fb17107f2da3d46c',
+  'sw.js': 'eb08219dde5fac4437d96112d175c05e172a9c122605c5c5ce30fb92abb48769',
 };
 
 // ---------------------------------------------------------------------------
@@ -2453,7 +2453,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1813262, of: 'app.js' },
+      { n: 1813684, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

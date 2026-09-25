@@ -254,6 +254,8 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   const snippetMutant = await loadMutant(snippetMutantSrc, {
     "'../lib/lessons-source-card.js'": 'lib/lessons-source-card.js',
     "'../lib/lessons-relevance.js'": 'lib/lessons-relevance.js',
+    // ب٣ (order B) — and the reader's age band, which the strip is now gated on.
+    "'../lib/reader-fields.js'": 'lib/reader-fields.js',
   });
   const mutantBody = snippetMutant.shapeSearchResponse(filledPayload);
   check('THE GUARD BITES: the mutated function returns the filled snippet',
@@ -847,7 +849,9 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
     .map((m) => m[1]))].sort();
   // م٣-ز (program order 2026-09-24) adds ONE field, `question`: the reader's own question, which the
   // server reads to decide which hits are related and never sends upstream. It is not a pager or a
-  // filter a control could bind to, so the claim below stands for the screen.
+  // filter a control could bind to, so the claim below stands for the screen. ب٣ (order B) adds the
+  // reader's band and age, read through readerFromBody(body) and not as `body.` fields: they gate the
+  // strip under an answer, never the screen's query, and they are never sent upstream either.
   check('the function accepts exactly q, limit and the م٣-ز question -- no offset, page, scholar or kind',
     apiBodyReads.join(',') === 'limit,q,question', apiBodyReads.join(','));
   check('...so the screen sends exactly those two and invents no third',
@@ -1273,8 +1277,10 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   const importsOf = (src) => Array.from(src.matchAll(/(?:^|\n)\s*import[^\n]*from\s*['"]([^'"]+)['"]/g)).map((m) => m[1]);
   // م٣-ز (program order 2026-09-24): a second import, named here by the order that added it. The
   // relevance filter is pure and imports only the router; guards/full-answer-g-guard.cjs holds it.
-  check('this round imports its own card builder and the م٣-ز relevance filter, and nothing else',
-    importsOf(apiSrc).join(',') === '../lib/lessons-source-card.js,../lib/lessons-relevance.js', importsOf(apiSrc).join(','));
+  // ب٣ (order B, 2026-09-25): a third, lib/reader-fields.js, the reader's age band the strip is gated on
+  // (FULL_ANSWER_V1); guards/full-answer-lessons-age-guard.cjs holds it.
+  check('this round imports its own card builder, the م٣-ز relevance filter and the ب٣ reader fields, and nothing else',
+    importsOf(apiSrc).join(',') === '../lib/lessons-source-card.js,../lib/lessons-relevance.js,../lib/reader-fields.js', importsOf(apiSrc).join(','));
   check('the card builder imports nothing at all', importsOf(cardSrc).length === 0,
     importsOf(cardSrc).join(','));
   check('neither new module requires or reads any of the four',

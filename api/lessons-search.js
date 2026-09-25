@@ -66,7 +66,11 @@ import { HIT_FIELDS, DROPPED_HIT_FIELD } from '../lib/lessons-source-card.js';
 // م٣-ز (FULL_ANSWER_V1) — the second module, and the guard now names both: the relevance filter, pure,
 // importing only the router.
 import { lessonsForQuestion } from '../lib/lessons-relevance.js';
-// NOTE FOR THE GUARD, AND FOR ANYONE ADDING A THIRD ONE: this file imports exactly TWO modules
+// ب٣ (order B, FULL_ANSWER_V1) — the third module: the reader's age band, read the way every route reads
+// it (an absent or garbled age is young; a claim may restrict and may not release). The strip under an
+// answer is shown to an adult only; see the handler.
+import { readerFromBody } from '../lib/reader-fields.js';
+// NOTE FOR THE GUARD, AND FOR ANYONE ADDING A FOURTH ONE: this file imports exactly THREE modules
 // and section 6 of guards/lessons-search-guard.cjs asserts that by name. The free-brain tool
 // imports THIS file; this file imports nothing of the free brain's, so the dependency has one
 // direction and no cycle.
@@ -276,6 +280,19 @@ export default async function handler(req, res) {
   // which hits the reader is shown and nothing else: it is never sent upstream (the upstream body
   // stays `{q, limit}`) and never logged.
   const questionText = typeof body.question === 'string' ? body.question.trim().slice(0, MAX_Q_CHARS) : '';
+  const fullAnswerOn = String(process.env.FULL_ANSWER_V1 || '').trim().toLowerCase() === 'on';
+  // ب٣ (order B) — THE AGE BARRIER ON THE «دروسٌ ذاتُ صلة» STRIP, the owner's ruling of 25 September.
+  // The answer's own barrier gives lessons all or nothing: the lessons tool is an adult's only. A single
+  // lesson cannot be judged by the answer's rule (its scholar name does not resolve to a vetted source,
+  // and its title passes the text floor), so the strip is not shown below adult, and an absent age is
+  // young. A strip request is one carrying `question`, or no `limit`: every strip the client has ever
+  // sent. The Lessons screen always sends a `limit`, and its policy is not this item's. Nothing is asked
+  // of the service for a reader below adult, so the answer's text of that turn does not leave the server.
+  const stripAsk = body.question !== undefined || body.limit === undefined;
+  if (fullAnswerOn && stripAsk && readerFromBody(body).band !== 'adult') {
+    res.setHeader('Cache-Control', 'private, no-store');
+    return res.status(200).json({ hits: [] });
+  }
 
   const out = await fetchLessonsPayload(q, {
     token: process.env.SEARCH_API_TOKEN,

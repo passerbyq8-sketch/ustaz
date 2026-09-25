@@ -740,5 +740,10 @@
     "name": "facompanion",
     "script": "guards/full-answer-companion-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "falessonsage",
+    "script": "guards/full-answer-lessons-age-guard.cjs",
+    "args": ""
   }
 ]

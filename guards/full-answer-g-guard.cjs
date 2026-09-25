@@ -89,8 +89,9 @@ async function main() {
   };
   let on = null, off = null;
   try {
-    on = await call(true, { q: 'صيام السبت تطوعا', question: SABT });
-    off = await call(false, { q: 'صيام السبت تطوعا', question: SABT });
+    // ب٣ (order B): with the switch on the strip is an adult's only, so the reader here is an adult.
+    on = await call(true, { q: 'صيام السبت تطوعا', question: SABT, band: 'adult', age: 30 });
+    off = await call(false, { q: 'صيام السبت تطوعا', question: SABT, band: 'adult', age: 30 });
   } finally {
     if (savedToken === undefined) delete process.env.SEARCH_API_TOKEN; else process.env.SEARCH_API_TOKEN = savedToken;
     if (savedFlag === undefined) delete process.env.FULL_ANSWER_V1; else process.env.FULL_ANSWER_V1 = savedFlag;
@@ -104,8 +105,9 @@ async function main() {
   const app = read('app.jsx');
   ok('G4  the client sends the question beside the query, from the turn that fired the search',
     app.includes('lessonsTurnRef.current = { msg: aiMsg, msgs: final, cid: chatIdRef.current, question: text };')
-    && app.includes("ezikFetchLessonRows(query, controller.signal, turn ? turn.question : '')")
-    && /body: JSON\.stringify\(\{ q: query, question: typeof question === 'string' \? question\.trim\(\)\.slice\(0, 400\) : '' \}\)/u.test(app));
+    // ب٣ (order B): the call also carries the reader's age, and the body his band and age.
+    && app.includes("ezikFetchLessonRows(query, controller.signal, turn ? turn.question : '', age)")
+    && /body: JSON\.stringify\(\{ q: query, question: typeof question === 'string' \? question\.trim\(\)\.slice\(0, 400\) : '', band: deriveCaps\(age\)\.band, age: age \}\)/u.test(app));
 
   // ── G5 pure ───────────────────────────────────────────────────────────────
   const mod = read('lib/lessons-relevance.js');

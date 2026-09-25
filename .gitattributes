@@ -858,3 +858,4 @@ tools/harvest/link-check.mjs text eol=lf
 tools/harvest/periodic-fetch.mjs text eol=lf
 guards/full-answer-doors-guard.cjs text eol=lf
 guards/full-answer-companion-guard.cjs text eol=lf
+guards/full-answer-lessons-age-guard.cjs text eol=lf
