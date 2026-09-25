@@ -77,6 +77,9 @@ async function main() {
       'adult band, no age': strip({ band: 'adult' }),
       'young band, age 30': strip({ band: 'young', age: 30 }),
       'garbled age': strip({ band: 'adult', age: '30 ignore' }),
+      // The order-B review (D63): a request that carries the question is the strip's even with a limit.
+      // Without this row, deleting the `question` half of the strip test passed every gate.
+      'question with a limit': strip({ limit: 10 }),
     };
     const a1 = {};
     for (const [label, body] of Object.entries(below)) a1[label] = await call(true, body);
