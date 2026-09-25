@@ -1,0 +1,2026 @@
+{
+    "H1":  {
+               "text":  "قال رسول الله صلى الله عليه وسلم: «بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل» (مسلم).",
+               "applied":  true,
+               "problems":  [
+
+                            ],
+               "entries":  [
+                               {
+                                   "tamridStrengthened":  false,
+                                   "matn":  "بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                   "parenthetical":  "مسلم",
+                                   "companion":  "",
+                                   "companionBooks":  0,
+                                   "subjectIds":  [
+                                                      "FC-000648"
+                                                  ],
+                                   "sourced":  true,
+                                   "ruled":  true,
+                                   "ruledBy":  "",
+                                   "grade":  null,
+                                   "rulingsByBook":  [
+
+                                                     ],
+                                   "head":  false,
+                                   "from":  "prose",
+                                   "deferred":  false,
+                                   "governed":  false,
+                                   "sealProof":  [
+
+                                                 ],
+                                   "rewritten":  true
+                               }
+                           ],
+               "trace":  {
+                             "found":  1,
+                             "examined":  1,
+                             "dropped":  0,
+                             "emitted":  1
+                         },
+               "callFailures":  [
+
+                                ],
+               "reason":  "applied",
+               "gradingHead":  ""
+           },
+    "H2":  {
+               "text":  "قال رسول الله صلى الله عليه وسلم: «كنا مع رسول الله ﷺ في سفر فمنا الصائم ومنا المفطر» (مسلم).",
+               "applied":  true,
+               "problems":  [
+
+                            ],
+               "entries":  [
+                               {
+                                   "tamridStrengthened":  false,
+                                   "matn":  "كنا مع رسول الله ﷺ في سفر فمنا الصائم ومنا المفطر",
+                                   "parenthetical":  "مسلم",
+                                   "companion":  "",
+                                   "companionBooks":  0,
+                                   "subjectIds":  [
+                                                      "FC-000648"
+                                                  ],
+                                   "sourced":  true,
+                                   "ruled":  true,
+                                   "ruledBy":  "",
+                                   "grade":  null,
+                                   "rulingsByBook":  [
+
+                                                     ],
+                                   "head":  false,
+                                   "from":  "prose",
+                                   "deferred":  false,
+                                   "governed":  false,
+                                   "sealProof":  [
+
+                                                 ],
+                                   "rewritten":  true
+                               }
+                           ],
+               "trace":  {
+                             "found":  1,
+                             "examined":  1,
+                             "dropped":  0,
+                             "emitted":  1
+                         },
+               "callFailures":  [
+
+                                ],
+               "reason":  "applied",
+               "gradingHead":  ""
+           },
+    "H3":  {
+               "text":  "قال رسول الله صلى الله عليه وسلم: «جاء رجل إلى رسول الله ﷺ فقال يا رسول الله من أحق الناس بحسن صحابتي» (مسلم).",
+               "applied":  true,
+               "problems":  [
+
+                            ],
+               "entries":  [
+                               {
+                                   "tamridStrengthened":  false,
+                                   "matn":  "جاء رجل إلى رسول الله ﷺ فقال يا رسول الله من أحق الناس بحسن صحابتي",
+                                   "parenthetical":  "مسلم",
+                                   "companion":  "",
+                                   "companionBooks":  0,
+                                   "subjectIds":  [
+                                                      "FC-000648"
+                                                  ],
+                                   "sourced":  true,
+                                   "ruled":  true,
+                                   "ruledBy":  "",
+                                   "grade":  null,
+                                   "rulingsByBook":  [
+
+                                                     ],
+                                   "head":  false,
+                                   "from":  "prose",
+                                   "deferred":  false,
+                                   "governed":  false,
+                                   "sealProof":  [
+
+                                                 ],
+                                   "rewritten":  true
+                               }
+                           ],
+               "trace":  {
+                             "found":  1,
+                             "examined":  1,
+                             "dropped":  0,
+                             "emitted":  1
+                         },
+               "callFailures":  [
+
+                                ],
+               "reason":  "applied",
+               "gradingHead":  ""
+           },
+    "H4":  {
+               "text":  "قال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى» (مسلم).",
+               "applied":  true,
+               "problems":  [
+
+                            ],
+               "entries":  [
+                               {
+                                   "tamridStrengthened":  false,
+                                   "matn":  "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى",
+                                   "parenthetical":  "مسلم",
+                                   "companion":  "",
+                                   "companionBooks":  0,
+                                   "subjectIds":  [
+                                                      "FC-000648"
+                                                  ],
+                                   "sourced":  true,
+                                   "ruled":  true,
+                                   "ruledBy":  "",
+                                   "grade":  null,
+                                   "rulingsByBook":  [
+
+                                                     ],
+                                   "head":  false,
+                                   "from":  "prose",
+                                   "deferred":  false,
+                                   "governed":  false,
+                                   "sealProof":  [
+
+                                                 ],
+                                   "rewritten":  true
+                               }
+                           ],
+               "trace":  {
+                             "found":  1,
+                             "examined":  1,
+                             "dropped":  0,
+                             "emitted":  1
+                         },
+               "callFailures":  [
+
+                                ],
+               "reason":  "applied",
+               "gradingHead":  ""
+           },
+    "H5":  {
+               "text":  "قال رسول الله صلى الله عليه وسلم: «لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه» (مسلم).",
+               "applied":  true,
+               "problems":  [
+
+                            ],
+               "entries":  [
+                               {
+                                   "tamridStrengthened":  false,
+                                   "matn":  "لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه",
+                                   "parenthetical":  "مسلم",
+                                   "companion":  "",
+                                   "companionBooks":  0,
+                                   "subjectIds":  [
+                                                      "FC-000648"
+                                                  ],
+                                   "sourced":  true,
+                                   "ruled":  true,
+                                   "ruledBy":  "",
+                                   "grade":  null,
+                                   "rulingsByBook":  [
+
+                                                     ],
+                                   "head":  false,
+                                   "from":  "prose",
+                                   "deferred":  false,
+                                   "governed":  false,
+                                   "sealProof":  [
+
+                                                 ],
+                                   "rewritten":  true
+                               }
+                           ],
+               "trace":  {
+                             "found":  1,
+                             "examined":  1,
+                             "dropped":  0,
+                             "emitted":  1
+                         },
+               "callFailures":  [
+
+                                ],
+               "reason":  "applied",
+               "gradingHead":  ""
+           },
+    "H6":  {
+               "text":  "قال رسول الله صلى الله عليه وسلم: «بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل».",
+               "applied":  false,
+               "problems":  [
+                                "TAKHRIJ_SILENT"
+                            ],
+               "entries":  [
+                               {
+                                   "matn":  "بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                   "parenthetical":  "",
+                                   "companion":  "",
+                                   "subjectIds":  [
+
+                                                  ],
+                                   "rulingsByBook":  [
+
+                                                     ],
+                                   "head":  false,
+                                   "sourced":  false,
+                                   "ruled":  false,
+                                   "silent":  true,
+                                   "from":  "prose",
+                                   "dissolved":  false,
+                                   "rewritten":  false,
+                                   "declined":  "search_found_nothing"
+                               }
+                           ],
+               "trace":  {
+                             "found":  1,
+                             "examined":  1,
+                             "dropped":  0,
+                             "emitted":  0
+                         },
+               "callFailures":  [
+
+                                ],
+               "reason":  "applied",
+               "gradingHead":  ""
+           },
+    "H7":  {
+               "text":  "قال رسول الله صلى الله عليه وسلم: «بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل». رواه مسلم.",
+               "applied":  false,
+               "problems":  [
+                                "TAKHRIJ_PROSE_ATTRIBUTION"
+                            ],
+               "entries":  [
+                               {
+                                   "matn":  "بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                   "parenthetical":  "",
+                                   "withheld":  "مسلم",
+                                   "proseAttribution":  "رواه مسلم",
+                                   "proseProof":  [
+                                                      "مسلم"
+                                                  ],
+                                   "companion":  "",
+                                   "subjectIds":  [
+                                                      "FC-000648"
+                                                  ],
+                                   "sourced":  false,
+                                   "ruled":  false,
+                                   "from":  "prose",
+                                   "dissolved":  false,
+                                   "rewritten":  false,
+                                   "declined":  "prose_states_attribution"
+                               }
+                           ],
+               "trace":  {
+                             "found":  1,
+                             "examined":  1,
+                             "dropped":  0,
+                             "emitted":  0
+                         },
+               "callFailures":  [
+
+                                ],
+               "reason":  "applied",
+               "gradingHead":  ""
+           },
+    "H8":  {
+               "text":  "قال رسول الله صلى الله عليه وسلم: «بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل» (الترمذي · لم يوقف على حكم) وهو حديث حسن.",
+               "applied":  true,
+               "problems":  [
+
+                            ],
+               "entries":  [
+                               {
+                                   "tamridStrengthened":  false,
+                                   "matn":  "بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                   "parenthetical":  "الترمذي · لم يوقف على حكم",
+                                   "companion":  "",
+                                   "companionBooks":  0,
+                                   "subjectIds":  [
+                                                      "FC-000658"
+                                                  ],
+                                   "sourced":  true,
+                                   "ruled":  false,
+                                   "ruledBy":  "",
+                                   "grade":  null,
+                                   "rulingsByBook":  [
+
+                                                     ],
+                                   "head":  false,
+                                   "from":  "prose",
+                                   "deferred":  false,
+                                   "governed":  false,
+                                   "sealProof":  [
+
+                                                 ],
+                                   "rewritten":  true
+                               }
+                           ],
+               "trace":  {
+                             "found":  1,
+                             "examined":  1,
+                             "dropped":  0,
+                             "emitted":  1
+                         },
+               "callFailures":  [
+
+                                ],
+               "reason":  "applied",
+               "gradingHead":  ""
+           },
+    "H9":  {
+               "text":  "قال رسول الله صلى الله عليه وسلم: «بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل» (مسلم)",
+               "applied":  true,
+               "problems":  [
+
+                            ],
+               "entries":  [
+                               {
+                                   "tamridStrengthened":  false,
+                                   "matn":  "بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                   "parenthetical":  "مسلم",
+                                   "companion":  "",
+                                   "companionBooks":  0,
+                                   "subjectIds":  [
+                                                      "FC-000648"
+                                                  ],
+                                   "sourced":  true,
+                                   "ruled":  true,
+                                   "ruledBy":  "",
+                                   "grade":  null,
+                                   "rulingsByBook":  [
+
+                                                     ],
+                                   "head":  false,
+                                   "from":  "card",
+                                   "deferred":  false,
+                                   "governed":  false,
+                                   "sealProof":  [
+
+                                                 ],
+                                   "rewritten":  true
+                               }
+                           ],
+               "trace":  {
+                             "found":  1,
+                             "examined":  1,
+                             "dropped":  0,
+                             "emitted":  1
+                         },
+               "callFailures":  [
+
+                                ],
+               "reason":  "applied",
+               "gradingHead":  ""
+           },
+    "H10":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل»",
+                "applied":  true,
+                "problems":  [
+                                 "TAKHRIJ_SILENT"
+                             ],
+                "entries":  [
+                                {
+                                    "matn":  "بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                    "parenthetical":  "",
+                                    "companion":  "",
+                                    "subjectIds":  [
+
+                                                   ],
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "sourced":  false,
+                                    "ruled":  false,
+                                    "silent":  true,
+                                    "from":  "card",
+                                    "dissolved":  true,
+                                    "rewritten":  true,
+                                    "declined":  "search_found_nothing"
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  0
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H11":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل».",
+                "applied":  false,
+                "problems":  [
+                                 "TAKHRIJ_SILENT"
+                             ],
+                "entries":  [
+                                {
+                                    "matn":  "بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                    "parenthetical":  "",
+                                    "companion":  "",
+                                    "subjectIds":  [
+
+                                                   ],
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "sourced":  false,
+                                    "ruled":  false,
+                                    "silent":  true,
+                                    "from":  "prose",
+                                    "dissolved":  false,
+                                    "rewritten":  false,
+                                    "declined":  "search_found_nothing"
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  0
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H12":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H13":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «جاء رجل إلى رسول الله ﷺ فقال يا رسول الله من أحق الناس بحسن صحابتي» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "جاء رجل إلى رسول الله ﷺ فقال يا رسول الله من أحق الناس بحسن صحابتي",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H14":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H15":  {
+                "text":  "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: «بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H16":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «كنا مع رسول الله ﷺ في سفر فمنا الصائم ومنا المفطر» (مسلم).",
+                "applied":  true,
+                "problems":  [
+                                 "TAKHRIJ_COMPANION_UNCONFIRMED"
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "كنا مع رسول الله ﷺ في سفر فمنا الصائم ومنا المفطر",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H17":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى» (مسلم).",
+                "applied":  true,
+                "problems":  [
+                                 "TAKHRIJ_COMPANION_UNCONFIRMED"
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H18":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H19":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H21":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى قال الراوي بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى قال الراوي بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H22":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H23":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «أنا رسول الله إليكم جميعا ورحمة للعالمين» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "أنا رسول الله إليكم جميعا ورحمة للعالمين",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H24":  {
+                "text":  "قول النبي ﷺ «بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل» يروى",
+                "applied":  false,
+                "problems":  [
+                                 "TAKHRIJ_NO_SLOT"
+                             ],
+                "entries":  [
+                                {
+                                    "matn":  "بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "sourced":  true,
+                                    "from":  "prose",
+                                    "dissolved":  false,
+                                    "rewritten":  false,
+                                    "declined":  "no_safe_slot"
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H25":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى ثم قال خالد بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى ثم قال خالد بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H26":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «ذكر من مضى ثم قال خالد لصاحبه إنه يوم عظيم» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "ذكر من مضى ثم قال خالد لصاحبه إنه يوم عظيم",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H27":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H28":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى 0».\nقال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى 1».\nقال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى 2».\nقال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى 3».\nقال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى 4».\nقال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى 5».\nقال رسول الله صلى الله عليه وسلم: «بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل».",
+                "applied":  false,
+                "problems":  [
+                                 "TAKHRIJ_SILENT",
+                                 "TAKHRIJ_CAP_REACHED"
+                             ],
+                "entries":  [
+                                {
+                                    "matn":  "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى 0",
+                                    "parenthetical":  "",
+                                    "companion":  "",
+                                    "subjectIds":  [
+
+                                                   ],
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "sourced":  false,
+                                    "ruled":  false,
+                                    "silent":  true,
+                                    "from":  "prose",
+                                    "dissolved":  false,
+                                    "rewritten":  false,
+                                    "declined":  "search_found_nothing"
+                                },
+                                {
+                                    "matn":  "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى 1",
+                                    "parenthetical":  "",
+                                    "companion":  "",
+                                    "subjectIds":  [
+
+                                                   ],
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "sourced":  false,
+                                    "ruled":  false,
+                                    "silent":  true,
+                                    "from":  "prose",
+                                    "dissolved":  false,
+                                    "rewritten":  false,
+                                    "declined":  "search_found_nothing"
+                                },
+                                {
+                                    "matn":  "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى 2",
+                                    "parenthetical":  "",
+                                    "companion":  "",
+                                    "subjectIds":  [
+
+                                                   ],
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "sourced":  false,
+                                    "ruled":  false,
+                                    "silent":  true,
+                                    "from":  "prose",
+                                    "dissolved":  false,
+                                    "rewritten":  false,
+                                    "declined":  "search_found_nothing"
+                                },
+                                {
+                                    "matn":  "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى 3",
+                                    "parenthetical":  "",
+                                    "companion":  "",
+                                    "subjectIds":  [
+
+                                                   ],
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "sourced":  false,
+                                    "ruled":  false,
+                                    "silent":  true,
+                                    "from":  "prose",
+                                    "dissolved":  false,
+                                    "rewritten":  false,
+                                    "declined":  "search_found_nothing"
+                                },
+                                {
+                                    "matn":  "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى 4",
+                                    "parenthetical":  "",
+                                    "companion":  "",
+                                    "subjectIds":  [
+
+                                                   ],
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "sourced":  false,
+                                    "ruled":  false,
+                                    "silent":  true,
+                                    "from":  "prose",
+                                    "dissolved":  false,
+                                    "rewritten":  false,
+                                    "declined":  "search_found_nothing"
+                                },
+                                {
+                                    "matn":  "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى 5",
+                                    "parenthetical":  "",
+                                    "companion":  "",
+                                    "subjectIds":  [
+
+                                                   ],
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "sourced":  false,
+                                    "ruled":  false,
+                                    "silent":  true,
+                                    "from":  "prose",
+                                    "dissolved":  false,
+                                    "rewritten":  false,
+                                    "declined":  "search_found_nothing"
+                                },
+                                {
+                                    "matn":  "بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                    "parenthetical":  "",
+                                    "companion":  "",
+                                    "subjectIds":  [
+
+                                                   ],
+                                    "sourced":  false,
+                                    "ruled":  false,
+                                    "from":  "prose",
+                                    "rewritten":  false,
+                                    "declined":  "over_matn_cap"
+                                }
+                            ],
+                "trace":  {
+                              "found":  7,
+                              "examined":  6,
+                              "dropped":  1,
+                              "emitted":  0
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H29":  {
+                "text":  "والدليل أن رسول الله صلى الله عليه وسلم قال: «بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H30":  {
+                "text":  "رسول الله ﷺ يقول: «بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H31":  {
+                "text":  "والأصل قول النبي ﷺ: «بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H32":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى ثم خرج عمر إلى السوق» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى ثم خرج عمر إلى السوق",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H33":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى» (الترمذي · لم يوقف على حكم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى",
+                                    "parenthetical":  "الترمذي · لم يوقف على حكم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000658"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  false,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H34":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H35":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H36":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «بني الإسلام على خمس: شهادة أن لا إله إلا الله، وأن محمدا» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "بني الإسلام على خمس: شهادة أن لا إله إلا الله، وأن محمدا",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H37":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «من أحدث في أمرنا هذا ما ليس منه فهو رد» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "من أحدث في أمرنا هذا ما ليس منه فهو رد",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H38":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «حفظت من رسول الله صلى الله عليه وسلم دع ما يريبك إلى» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "حفظت من رسول الله صلى الله عليه وسلم دع ما يريبك إلى",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H39":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «حفظت من رسول الله صلى الله عليه وسلم دع ما يريبك إلى» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "حفظت من رسول الله صلى الله عليه وسلم دع ما يريبك إلى",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H40":  {
+                "text":  "سمعت رسول الله صلى الله عليه وسلم يقول: «بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H41":  {
+                "text":  "كنا في سفر فقال النبي صلى الله عليه وسلم: «بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H42":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H43":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  1,
+                              "examined":  1,
+                              "dropped":  0,
+                              "emitted":  1
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            },
+    "H20":  {
+                "text":  "قال رسول الله صلى الله عليه وسلم: «بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل» (مسلم).\nقال رسول الله صلى الله عليه وسلم: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى» (مسلم).",
+                "applied":  true,
+                "problems":  [
+
+                             ],
+                "entries":  [
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "بينما نحن جلوس عند رسول الله ﷺ ذات يوم إذ طلع علينا رجل",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                },
+                                {
+                                    "tamridStrengthened":  false,
+                                    "matn":  "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى",
+                                    "parenthetical":  "مسلم",
+                                    "companion":  "",
+                                    "companionBooks":  0,
+                                    "subjectIds":  [
+                                                       "FC-000648"
+                                                   ],
+                                    "sourced":  true,
+                                    "ruled":  true,
+                                    "ruledBy":  "",
+                                    "grade":  null,
+                                    "rulingsByBook":  [
+
+                                                      ],
+                                    "head":  false,
+                                    "from":  "prose",
+                                    "deferred":  false,
+                                    "governed":  false,
+                                    "sealProof":  [
+
+                                                  ],
+                                    "rewritten":  true
+                                }
+                            ],
+                "trace":  {
+                              "found":  2,
+                              "examined":  2,
+                              "dropped":  0,
+                              "emitted":  2
+                          },
+                "callFailures":  [
+
+                                 ],
+                "reason":  "applied",
+                "gradingHead":  ""
+            }
+}

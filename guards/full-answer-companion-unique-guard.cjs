@@ -76,10 +76,11 @@ async function main() {
   ok('U1  the Jibril opening, carried by three men\'s hadiths, names no Companion, and says why',
     prayers(u1.text) === 0 && entry(u1).companion === '' && (u1.problems || []).includes('TAKHRIJ_COMPANION_MANY_HADITHS'),
     JSON.stringify([u1.text, u1.problems]));
+  // D3A H1: narration frame corrected; this U2 still pins its pre-H2 bracket.
   // The parentheses are the pass's own: the same books, the same ruling, as the pass wrote them for the same
   // atoms before this item — read here off the parentheses in the text, which this item never writes.
   ok('U2  ...and its parentheses are untouched: «(متفق عليه)» off the same match',
-    entry(u1).parenthetical === 'متفق عليه' && u1.text === `قال رسول الله ${P}: «${J}» (متفق عليه).`,
+    entry(u1).parenthetical === 'متفق عليه' && u1.text === `ورد في الرواية: «${J}» (متفق عليه).`,
     JSON.stringify([u1.text, entry(u1).parenthetical]));
 
   const u3 = await run(M, ON, ['FC-000645', 'FC-000648'], [M_BUKHARI, M_MUSLIM]);

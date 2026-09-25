@@ -95,8 +95,8 @@ async function rows(T, report) {
     prayers(g3a.text) === 0 && prayers(g3b.text) === 0, g3a.text + ' || ' + g3b.text);
   const model = `الأصل في ذلك: عن أبي هريرة رضي الله عنه قال: قال رسول الله ${P}: «${M}».`;
   const g4 = await run(model, ON, lib([], []));
-  r.G4 = report('G4  the model\'s «عن أبي هريرة رضي الله عنه قال:», the library silent: removed; the frame and the matn kept',
-    g4.text === `الأصل في ذلك: قال رسول الله ${P}: «${M}».` && (g4.problems || []).includes('TAKHRIJ_MODEL_COMPANION_REMOVED'), g4.text);
+  r.G4 = report('G4  the model\'s «عن أبي هريرة رضي الله عنه قال:», the library silent: removed; matn kept, unproved speech frame becomes narration (D3A H1)',
+    g4.text === `الأصل في ذلك: ورد في الرواية: «${M}».` && (g4.problems || []).includes('TAKHRIJ_MODEL_COMPANION_REMOVED'), g4.text);
   const g5 = await run(model, ON, lib(['FC-000645'], [UMAR]));
   r.G5 = report('G5  the model says «أبي هريرة», the book «عمر»: only the book\'s, exactly once',
     g5.text === `الأصل في ذلك: عن عمر بن الخطاب رضي الله عنه: «${M}» (البخاري).`, g5.text);
@@ -122,9 +122,9 @@ async function rows(T, report) {
   const g11c = await run(addressee, ON, lib([], []));
   const story = `عن أنس رضي الله عنه قال: كنا مع النبي ${P} في سفر فقال النبي ${P}: «${M}».`;
   const g11d = await run(story, ON, lib([], []));
-  r.G11 = report('G11 «ما جاء عن X … أن رسول الله ﷺ» and «حديث X … أن النبي ﷺ» are cut; an addressee and a story are not',
-    g11a.text === `الأصل في ذلك ما جاء أن رسول الله ${P} قال: «${M}».` && g11b.text === `والدليل على ذلك أن النبي ${P} قال: «${M}».`
-    && g11c.text === addressee && g11d.text === story, [g11a.text, g11b.text, g11c.text, g11d.text].join(' || '));
+  r.G11 = report('G11 «ما جاء عن X … أن رسول الله ﷺ» and «حديث X … أن النبي ﷺ» are cut; narrator/addressee context stays; unproved direct frames become narration',
+    g11a.text === `الأصل في ذلك ما جاء أن في الرواية: «${M}».` && g11b.text === `والدليل على ذلك أن في الرواية: «${M}».`
+    && g11c.text === addressee && g11d.text === `عن أنس رضي الله عنه قال: كنا مع النبي ${P} في سفر فورد في الرواية: «${M}».`, [g11a.text, g11b.text, g11c.text, g11d.text].join(' || '));
   const g12 = await run(model, OFF, lib([], []));
   r.G12 = report('G12 the switch off: the model\'s text comes back unchanged on a silent library', g12.text === model, g12.text);
   const lead = 'هذه مقدمة الجواب.\n';
@@ -151,7 +151,7 @@ async function rows(T, report) {
   const back = `والدليل على ذلك حديث أبي جري الهجيمي رضي الله عنه أن النبي ${P} قال له: «${M}».`;
   const g17 = await run(back, ON, lib([], []));
   r.G17 = report('G17 a lead-in that points back at the narrator («قال له») keeps the model\'s name, and says so',
-    g17.text === back && (g17.problems || []).includes('TAKHRIJ_MODEL_COMPANION_KEPT'), JSON.stringify([g17.text, g17.problems]));
+    g17.text === `والدليل على ذلك حديث أبي جري الهجيمي رضي الله عنه أن في الرواية: «${M}».` && (g17.problems || []).includes('TAKHRIJ_MODEL_COMPANION_KEPT'), JSON.stringify([g17.text, g17.problems]));
   // ── the order-B review (D61) ──────────────────────────────────────────────────────────────────────
   const samitu = `عن عمر بن الخطاب رضي الله عنه قال: سمعت رسول الله ${P} يقول: «${M}».`;
   const g18 = await run(samitu, ON, lib(['FC-000645'], [UMAR]));
@@ -168,10 +168,18 @@ async function rows(T, report) {
     `عن أبي ذر رضي الله عنه أن رسول الله ${P} قال لي: «${M}».`,
     `عن ابن عمر رضي الله عنهما أن رسول الله ${P} أخذ بمنكبه فقال: «${M}».`,
   ];
+  // D3A H1 changes only unproved direct-speech frames; B2 must still retain every unsafe-to-cut name.
+  const neutralBreakers = [
+    `وفي حديث أبي هريرة رضي الله عنه أن في الرواية: «${M}».`,
+    `روى مسلم عن عمر بن الخطاب رضي الله عنه قال: ورد في الرواية: «${M}».`,
+    `وقد سئل عن الأمر فأجاب أبو بكر رضي الله عنه أن في الرواية: «${M}».`,
+    `عن أبي ذر رضي الله عنه أن في الرواية: «${M}».`,
+    breakers[4],
+  ];
   const g20 = [];
   for (const b of breakers) g20.push(await run(b, ON, lib([], [])));
-  r.G20 = report('G20 an opener whose removal would break the sentence or orphan a word is left as the model wrote it',
-    g20.every((x, i) => x.text === breakers[i]), g20.map((x) => x.text).join(' || '));
+  r.G20 = report('G20 unsafe-to-cut Companion openers stay; only unproved speech frames become narration (D3A H1)',
+    g20.every((x, i) => x.text === neutralBreakers[i] && (x.problems || []).includes('TAKHRIJ_MODEL_COMPANION_KEPT')), g20.map((x) => x.text).join(' || '));
   const SAMI = `حدثنا مالك عن نافع عن ابن عمر رضي الله عنهما أنه سمع عمر بن الخطاب يقول: قال رسول الله ${P}: «${M}»`;
   const QALA = `حدثنا عكرمة عن ابن عباس رضي الله عنهما قال: قال عمر: قال رسول الله ${P}: «${M}»`;
   const g21a = await run(plain, ON, lib(['FC-000645'], [SAMI]));

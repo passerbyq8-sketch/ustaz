@@ -820,5 +820,10 @@
     "name": "d2rejecttail",
     "script": "guards/fix-d2-e8-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "fanarratorframe",
+    "script": "guards/full-answer-narrator-frame-guard.cjs",
+    "args": ""
   }
 ]
