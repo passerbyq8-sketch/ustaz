@@ -735,5 +735,10 @@
     "name": "fadoors",
     "script": "guards/full-answer-doors-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "facompanion",
+    "script": "guards/full-answer-companion-guard.cjs",
+    "args": ""
   }
 ]
