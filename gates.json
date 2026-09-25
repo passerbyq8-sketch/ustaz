@@ -745,5 +745,10 @@
     "name": "falessonsage",
     "script": "guards/full-answer-lessons-age-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "navsummary",
+    "script": "guards/lib-nav-summary-guard.cjs",
+    "args": ""
   }
 ]

@@ -1346,9 +1346,11 @@ export default async function handler(req, res) {
     // م٤-ج — a quotation the reader asked to have summarised goes FIRST, as the book's own text, on the
     // server-owned prefix (the channel the presence lead and the live-search notice use; a raw write here
     // would bypass the finalized writer, gate takhrij). The finalizer judges it with the summary, against
-    // the page this request read (fetchedPages below), so the book's own credit stands. Without its
-    // cursor: «كمّل» after a summary is not a continuation of the book.
-    ...(pendingQuote ? { readerPrefix: bareQuote(pendingQuote.text) } : {}),
+    // the page this request read (fetchedPages below), so the book's own credit stands. ب٤ (order B,
+    // D41): WITH its cursor, exactly as the plain quote reply carries it, so «كمّل» after a summary goes
+    // on with the book from the last quoted atom. The model still reads the quotation bare
+    // (withQuoteTail), and the cursor is stripped from every turn before any model reads the history.
+    ...(pendingQuote ? { readerPrefix: pendingQuote.text } : {}),
     // م٣-ب (FULL_ANSWER_V1) — the seat's lock and grade rule carry a bracket standing right after its matn.
     bracketAfterQuote: fullAnswerValue === 'on',
     consistencyContext: trustedReaderEntity ? {
