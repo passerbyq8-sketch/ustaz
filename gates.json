@@ -815,5 +815,10 @@
     "name": "d2notfound",
     "script": "guards/fix-d2-e7-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "d2rejecttail",
+    "script": "guards/fix-d2-e8-guard.cjs",
+    "args": ""
   }
 ]

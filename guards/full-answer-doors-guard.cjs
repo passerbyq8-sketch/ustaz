@@ -15,7 +15,7 @@
 //   F3  empty: the capped fill is continued and adopted whole: all six steps;
 //   F4  ascription: the capped rewrite is continued and adopted whole: corrected and complete;
 //   F5  at most two continuations of a door's rewrite; still cut over a whole answer, it is refused:
-//       the reject door withholds from the first rejected sentence, and says so;
+//       D-2 E8 lifts only the rejected sentence and keeps the complete answer's tail;
 //   F6  no time to continue the ascription rewrite: refused over the whole answer, which is corrected
 //       in place and delivered complete;
 //   F7  over an answer whose writing did NOT finish, a still-cut rewrite is adopted as before;
@@ -261,11 +261,11 @@ async function main() {
   // The draft ends whole; the reject rewrite caps and both of its continuations cap too.
   const capTwice = [['والأفضلُ للمسافرِ أن يجمعَ عند الحاجة. ثمّ إن', 'max_tokens'], ['ويقصرُ الرباعيّةَ في سفره. وإن', 'max_tokens'], ['@@a third@@', 'end_turn']];
   const f5 = await drive({ fixture: REJECT, script: doorScript(REJECT, { draftWhole: true, doorConts: capTwice }) });
-  ok('F5  at most two continuations of a door\'s rewrite; still cut over a whole answer, it is refused and the door withholds',
+  ok('F5  at most two continuations; a still-cut rewrite is refused and only the rejected sentence is lifted',
     f5.kinds.filter((k) => k.startsWith('reject-continue')).length === 2
     && has(f5, /^rewrite_continue:reject_retry:done:2:max_tokens:\d+$/u) && has(f5, /^reject_retry:rewrite_cut_over_whole$/u)
-    && has(f5, /^reject_withheld:\d+$/u) && f5.out.truncated === true
-    && text(f5).trim() === R.head && !text(f5).includes('ابن باز') && !text(f5).includes('جمهور'),
+    && has(f5, /^reject_lifted:1:1:0$/u) && f5.out.truncated === false
+    && text(f5).startsWith(R.head) && text(f5).includes(R.s3) && !text(f5).includes('ابن باز') && !text(f5).includes('جمهور'),
     brief(f5));
 
   // ── F6 no time to continue: refused, the whole answer corrected in place ──────────────────────

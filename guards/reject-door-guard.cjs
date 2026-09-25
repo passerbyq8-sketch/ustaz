@@ -885,7 +885,7 @@ async function mutate({ file, name, transform, check }) {
     file: LOOP,
     name: 'second-cut-shipped-anyway',
     transform: (src) => src.replace(
-      '    } else if (rejectedCount(reviewed.verdict) > 0) {\n      const sound = textBeforeFirstRejection(reviewed);',
+      '    } else if (rejectedCount(reviewed.verdict) > 0 && !rejectRewriteLift) {\n      const sound = textBeforeFirstRejection(reviewed);',
       '    } else if (false) {\n      const sound = textBeforeFirstRejection(reviewed); // mutant: ship the second cut'),
     check: async (twin) => {
       const two = await drive(twin, [TWO, TWO]);

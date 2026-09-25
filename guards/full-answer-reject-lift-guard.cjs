@@ -21,8 +21,8 @@
 //   L5  a line the answer already carries is not said again;
 //   L6  the line is the one for the credit the reviewer rejected — a credit to a named sayer — never one
 //       about a majority or a madhhab the same sentence mentions, which the reviewer did not judge;
-//   L7  (scope) the door that had time and whose capped rewrite could not be continued keeps §٣-ج: the
-//       prefix before the first rejected sentence, told «لم يكتملْ» — ج١ is the no-time exit only;
+//   L7  D-2 E8: a capped rewrite rejected over a complete answer lifts only the rejected sentence,
+//       retains the tail, and adds no incomplete mark for that lift alone;
 //   L8  (scope) a door with time adopts its clean rewrite exactly as before — nothing is lifted;
 //   L9  the switch off: nothing is lifted and nothing is continued;
 //   L10 an earlier verse sentence that ends in the same words as the reviewer's cut is not touched: the
@@ -221,13 +221,14 @@ async function main() {
     && has(l6s, /^reject_lifted:1:1:0$/u) && text(l6s) === [R.head, SCHOLAR_LINE, R.s3].join(NL),
     brief(l6) + ' || ' + brief(l6s));
 
-  // ── L7 scope: time for the door, none to continue its capped rewrite — §٣-ج stands ──────────────
+  // ── L7 D-2 E8: time for the door, none to continue its capped rewrite — retain the rest ─────────
   // The capped-notime clock of B1-MEASURE.md T3: the door starts at 215.2 s and fits; its rewrite caps at
   // 276.0 s and 4.0 s are left, so it is not continued and not adopted over the whole answer.
   const l7 = await drive({ fixture: REJECT, pre: 124206, script: script(REJECT, { times: { draft: 60894, cont: 29900, door: 60894 } }) });
-  ok('L7  (scope) a door that ran and whose capped rewrite was refused keeps §٣-ج: the prefix, told «لم يكتملْ»',
+  ok('L7  a capped reject rewrite over a complete answer lifts the rejected sentence and retains the tail',
     l7.kinds.includes('reject-retry:max_tokens') && has(l7, /^reject_retry:rewrite_cut_over_whole$/u)
-    && text(l7).trim() === R.head && l7.out.truncated === true && !has(l7, /reject_lift/u),
+    && text(l7).startsWith([R.head, SCHOLAR_LINE, R.s3].join(NL)) && l7.out.truncated === false
+    && has(l7, /^reject_lifted:1:1:0$/u) && !text(l7).includes('ابن باز'),
     brief(l7));
 
   // ── L8 scope: time for the door, a clean rewrite — adopted as before ────────────────────────────
