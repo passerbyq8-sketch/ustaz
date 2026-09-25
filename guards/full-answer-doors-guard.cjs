@@ -21,7 +21,10 @@
 //   F7  over an answer whose writing did NOT finish, a still-cut rewrite is adopted as before;
 //   F8  with the switch on, no two ledger rows share an ordinal, and rows equal model calls;
 //   F9  a continued rewrite counts for the doors' clock: the next door that no longer fits is refused;
-//   F10 the switch off: the capped rewrite is adopted exactly as before, and nothing is continued.
+//   F10 the switch off: the capped rewrite is adopted exactly as before, and nothing is continued;
+//   F8b (order-B review) on a before-writing fiqh turn, a continuation's ledger row is the decimal of the
+//       row it continues and meets no other row (a positional number met the ruling review);
+//   F11 (order-B review) the empty door keeps adopting a fill its continuations could not finish (D53).
 // Red on the tree before this item (c00e8f5): `node guards/full-answer-doors-guard.cjs --root <tree>`.
 'use strict';
 const path = require('path');
@@ -145,7 +148,7 @@ async function main() {
   const fetchImpl = async (url) => ({ ok: false, status: 503, url: String(url), headers: hdrs, text: async () => '', json: async () => ({}) });
 
   // `script(kind, n)` returns { text | tool | empty, stop, ms } for the n-th call of that kind.
-  const drive = async ({ fixture, script, pre = 5000, flag = true }) => {
+  const drive = async ({ fixture, script, pre = 5000, flag = true, extra = {} }) => {
     const calls = [];
     const counts = {};
     const realFetch = globalThis.fetch;
@@ -173,6 +176,7 @@ async function main() {
         band: 'adult', mode: 'chat', lexicalRoute: 'DEEN', storedRuntime: '',
         providerUrl: 'https://provider.invalid/v1/messages', headers: {}, env: {}, fetchImpl,
         fullAnswer: flag ? { startedAt: turnStart - pre } : null,
+        ...extra,
       }));
     } catch (e) { out = { threw: String(e && e.stack || e) }; }
     finally { globalThis.fetch = realFetch; }
@@ -314,6 +318,37 @@ async function main() {
     && f10.out.truncated === true && !deg(f10).some((d) => /continue/u.test(d))
     && !(f10.out.roundLedger || []).some((row) => /continue/u.test(row.phase)) && (f10.out.rewriteContinuations || 0) === 0,
     brief(f10));
+
+  // ── F8b ordinals on a before-writing fiqh turn (the order-B review) ───────────────────────────────
+  // The before-writing and ruling-review rows are numbered by position there; a continuation numbered
+  // by position met the ruling review (`6:write-continue … 6:ruling-review`). A continuation's row is the
+  // decimal of the row it continues, so it can meet no other row. (The before-writing rows and the
+  // write/cite-retry rows already shared 1 and 2 before this item; that is not a continuation's.)
+  const BWF = { q: 'ما حكم الجمع للمسافر؟', draftCut: [R.head, R.clean, R.s3.slice(0, 60)].join(NL), cont: R.s3 };
+  const f8b = await drive({ fixture: BWF, extra: { storedRuntime: 'STORED_FIQH', beforeWriting: { libFlagValue: 'off', libToken: '' } },
+    script: (kind) => {
+      if (kind === 'write') return { text: BWF.draftCut, stop: 'max_tokens', ms: 60894 };
+      if (kind === 'write-continue') return { text: BWF.cont, stop: 'end_turn', ms: 19800 };
+      if (kind === 'cite-retry') return { text: [R.head + ' [[1]]', R.clean, R.s3].join(NL), stop: 'end_turn', ms: 30000 };
+      return { text: [R.head, R.s3].join(NL), stop: 'end_turn', ms: 30000 };
+    } });
+  const rows8b = f8b.out.roundLedger || [];
+  const ns8b = rows8b.map((row) => row.n);
+  const conts8b = rows8b.filter((row) => /continue/u.test(row.phase));
+  ok('F8b on a before-writing fiqh turn, a continuation\'s row is the decimal of the row it continues and meets no other',
+    conts8b.length > 0 && rows8b.some((row) => row.phase === 'ruling-review')
+    && conts8b.every((row) => !Number.isInteger(row.n) && ns8b.filter((n) => n === row.n).length === 1),
+    JSON.stringify(rows8b.map((row) => `${row.n}:${row.phase}`)));
+
+  // ── F11 the empty door keeps its adoption (D53) ───────────────────────────────────────────────────
+  // The answer in hand is hollow, which this file already tells the reader is short, so it is not a whole
+  // answer a cut fill could displace: a fill its two continuations could not finish is still adopted.
+  const capTwiceSteps = [['4. غسل اليدين إلى المرفقين ثلاثا. ثمّ إن', 'max_tokens'], ['5. مسح الرأس والأذنين. وإن', 'max_tokens'], ['@@a third@@', 'end_turn']];
+  const f11 = await drive({ fixture: EMPTY, script: doorScript(EMPTY, { draftWhole: true, doorConts: capTwiceSteps }) });
+  ok('F11 the empty door: a fill its continuations could not finish is still adopted over the hollow answer, and says it stopped short',
+    has(f11, /^rewrite_continue:empty_retry:done:2:max_tokens:\d+$/u) && has(f11, /^empty_retry:filled$/u)
+    && !has(f11, /rewrite_cut_over_whole/u) && f11.out.truncated === true && text(f11).includes('غسل الوجه ثلاثا'),
+    brief(f11));
 
   console.log(`\n=== full-answer-doors: ${checks - failures}/${checks} PASS ===`);
   process.exit(failures ? 1 : 0);
