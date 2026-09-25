@@ -134,6 +134,16 @@ async function main() {
       && !t2.reader.includes('قال الشافعي') && t2.reader.includes('وقال أصحابنا'),
       JSON.stringify({ nav: t2.navCalls, calls: t2.providerCalls.length, reader: t2.reader.slice(0, 200) }));
 
+    // X6e (the order-B review, D63) — the chip now stands in the MIDDLE of an assistant turn (after the
+    // quotation, before the summary). A later turn that goes to the model must still carry no chip: a strip
+    // that removed only a chip at the end of a turn passed every other row while this one reached the model.
+    const t3 = await drive([{ role: 'user', content: Q_TAIL }, { role: 'assistant', content: t1.reader },
+      { role: 'user', content: 'وما حكم السواك للصائم قبل الزوال عند الحنابلة؟' }]);
+    ok('X6e  a later turn that goes to the model carries no chip, though the summary reply holds it mid-turn',
+      /<book bid=[^>]*><\/book>\n\n/u.test(t1.reader) && t3.providerCalls.length > 0
+      && t3.providerCalls.every((b) => !JSON.stringify(b.messages).includes('<book bid=')),
+      JSON.stringify({ calls: t3.providerCalls.length, leaked: t3.providerCalls.filter((b) => JSON.stringify(b.messages).includes('<book bid=')).length }));
+
     delete process.env.LIB_NAV_V1;
     const off1 = await drive([{ role: 'user', content: Q_TAIL }]);
     const off2 = await drive([{ role: 'user', content: Q_TAIL }, { role: 'assistant', content: off1.reader }, { role: 'user', content: C.CONTINUE_PROMPT }]);
