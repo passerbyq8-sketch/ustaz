@@ -872,3 +872,4 @@ lib/diag-trace.js text eol=lf
 tools/trace-read.mjs text eol=lf
 guards/fix-d2-e1-guard.cjs text eol=lf
 guards/fixtures/fix-d2-replay.json text eol=lf
+guards/fix-d2-e3-guard.cjs text eol=lf

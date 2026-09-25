@@ -795,5 +795,10 @@
     "name": "d2rowids",
     "script": "guards/fix-d2-e1-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "d2schools",
+    "script": "guards/fix-d2-e3-guard.cjs",
+    "args": ""
   }
 ]
