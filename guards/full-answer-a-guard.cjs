@@ -95,7 +95,10 @@ async function main() {
   };
   const isCite = (body) => {
     const last = (body.messages || [])[(body.messages || []).length - 1];
-    return !!last && last.role === 'user' && last.content === INS.CITATION_RETRY_NOTE;
+    // D-2 E5 appends the explicit bracket instruction on before-writing turns.
+    // Recognize that retry so C9 still measures its clock and its call count.
+    return !!last && last.role === 'user' && typeof last.content === 'string'
+      && last.content.startsWith(INS.CITATION_RETRY_NOTE);
   };
   await quiet(() => ENC.searchStoredCorpus('الوضوء', { limit: 1 }));
   const scholars = CONTRACT.FATWA_SCHOLARS.map((entry) => ({ id: entry.id, snapshot: { records: entry.count } }));

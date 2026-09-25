@@ -805,5 +805,10 @@
     "name": "d2sections",
     "script": "guards/fix-d2-e4-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "d2citations",
+    "script": "guards/fix-d2-e5-guard.cjs",
+    "args": ""
   }
 ]

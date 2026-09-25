@@ -875,3 +875,4 @@ guards/fixtures/fix-d2-replay.json text eol=lf
 guards/fix-d2-e3-guard.cjs text eol=lf
 guards/fix-d2-e4-guard.cjs text eol=lf
 guards/fixtures/fix-d2-articles.json text eol=lf
+guards/fix-d2-e5-guard.cjs text eol=lf
