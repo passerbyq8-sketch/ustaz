@@ -750,5 +750,10 @@
     "name": "navsummary",
     "script": "guards/lib-nav-summary-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "navglue",
+    "script": "guards/lib-quote-glue-guard.cjs",
+    "args": ""
   }
 ]

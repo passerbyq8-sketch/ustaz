@@ -860,3 +860,4 @@ guards/full-answer-doors-guard.cjs text eol=lf
 guards/full-answer-companion-guard.cjs text eol=lf
 guards/full-answer-lessons-age-guard.cjs text eol=lf
 guards/lib-nav-summary-guard.cjs text eol=lf
+guards/lib-quote-glue-guard.cjs text eol=lf
