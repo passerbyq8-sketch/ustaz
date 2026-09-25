@@ -730,5 +730,10 @@
     "name": "harvesttools",
     "script": "guards/harvest-tools-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "fadoors",
+    "script": "guards/full-answer-doors-guard.cjs",
+    "args": ""
   }
 ]
