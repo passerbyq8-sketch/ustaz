@@ -800,5 +800,10 @@
     "name": "d2schools",
     "script": "guards/fix-d2-e3-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "d2sections",
+    "script": "guards/fix-d2-e4-guard.cjs",
+    "args": ""
   }
 ]
