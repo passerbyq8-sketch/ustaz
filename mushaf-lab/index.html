@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2F6B4F">
+<title>مصحف عزك — المختبر</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://ezik.app">
+<link rel="preconnect" href="https://everyayah.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="loading" id="loading">يُحمَّل المصحف…</div>
+<header class="top">
+  <button type="button" class="ib" id="exitBtn" hidden aria-label="الرجوع إلى عزك">رجوع</button>
+  <button type="button" class="ib" id="prevBtn" aria-label="الصفحة السابقة">السابقة</button>
+  <div class="ttl"><h1 id="surahTitle">…</h1><div class="sub" id="subTitle"></div></div>
+  <button type="button" class="ib" id="nextBtn" aria-label="الصفحة التالية">التالية</button>
+</header>
+<main id="main">
+  <div class="notice" id="notice"></div>
+  <div class="spread" id="spread"></div>
+  <div class="hint" id="hint" hidden>
+    <p>اضغطْ على أيِّ آيةٍ، ضغطةً قصيرةً أو مطوّلة، لتفتحَ قائمتَها: التفسير والتلاوة والنسخ وغيرها. ولتحديدِ جزءٍ من آيةٍ بإصبعك اخترْ «تحديد النصّ» من القائمة. واسحبْ يمينًا للصفحة التالية.</p>
+    <button type="button" id="hintOk">فهمت</button>
+  </div>
+</main>
+<div class="selbar" id="selbar" hidden><span>وضعُ التحديد: اضغطْ مطوّلًا على كلمةٍ واسحبْ، ثمّ انسخْ.</span><button type="button" id="selDone">إنهاء</button></div>
+<section class="player" id="player" hidden aria-label="التلاوة">
+  <div class="row1"><span><b id="plNow">…</b></span><span id="plInfo"></span></div>
+  <div class="ctl">
+    <button type="button" id="plPrev" aria-label="الآية السابقة">السابقة</button>
+    <button type="button" class="main" id="plToggle">إيقاف مؤقت</button>
+    <button type="button" id="plNext" aria-label="الآية التالية">التالية</button>
+    <button type="button" id="plSet">الإعدادات</button>
+    <button type="button" id="plStop">إنهاء</button>
+  </div>
+</section>
+<nav class="nav" aria-label="القوائم">
+  <button type="button" id="navIndex"><b>الفهرس</b></button>
+  <button type="button" id="navSearch"><b>البحث</b></button>
+  <button type="button" id="navGo"><b id="navPage">١</b>انتقال</button>
+  <button type="button" id="navSaved"><b>المحفوظات</b></button>
+  <button type="button" id="navMore"><b>الإعدادات</b></button>
+</nav>
+<div class="scrim" id="scrim"></div>
+<section class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="grab"></div><div id="sheetBody"></div></section>
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button type="button" id="toastAct" hidden></button></div>
+<script src="app.js"></script>
+</body>
+</html>

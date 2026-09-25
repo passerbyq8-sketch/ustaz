@@ -29571,6 +29571,29 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   );
 }
 
+// PREVIEW ONLY -- branch side/mushaf-preview-20260925, never merged. The interactive mushaf lab,
+// served from /mushaf-lab/ on this same origin, stands in for PagedMushaf so the owner can try it
+// inside Ezik. The lab posts {type:'mushaf-lab:exit'} to this window when its back button is pressed.
+function MushafLabFrame({ startSurah, startPage, onExit }) {
+  useEffect(() => {
+    const onMsg = (e) => {
+      if (e.origin !== window.location.origin) return;
+      if (e.data && e.data.type === 'mushaf-lab:exit' && typeof onExit === 'function') onExit();
+    };
+    window.addEventListener('message', onMsg);
+    return () => window.removeEventListener('message', onMsg);
+  }, [onExit]);
+  const hash = startPage ? ('p=' + startPage) : ('s=' + startSurah);
+  return (
+    <iframe
+      src={'/mushaf-lab/index.html#' + hash}
+      title={'\u0627\u0644\u0645\u0635\u062d\u0641'}
+      allow="clipboard-read; clipboard-write; autoplay; fullscreen"
+      style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', border: 0, zIndex: 1500, background: 'var(--madina-desk, #E6EBE7)' }}
+    />
+  );
+}
+
 function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio }) {
   const [ready, setReady] = useState(!!__quranData);
   const [counts, setCounts] = useState(null);       // { [surah]: ayahCount } -- ONE pass
@@ -29817,7 +29840,7 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
   // SurahCard انسحبت من هنا وبقيت في المحادثة، حيث وُلدت — ومعها قِشرتها.
   // S91: same route as the device button -- the pop spends the entry this open surah took, and
   // the registry then runs leaveSurah, so the recitation is silenced exactly as before.
-  if (selected) return <PagedMushaf startSurah={selected} startPage={openAt && openAt.s === selected ? openAt.p : null} onExit={ezikGoBack} />;
+  if (selected) return <MushafLabFrame startSurah={selected} startPage={openAt && openAt.s === selected ? openAt.p : null} onExit={ezikGoBack} />;
 
   // S110 -- ONE array, split once, right here. buildMushafNav still owns the data and the order;
   // this only asks each row which of the two lists it belongs to, so the surah grid holds surah
