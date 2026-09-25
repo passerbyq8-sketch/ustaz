@@ -775,5 +775,10 @@
     "name": "fadoorclock",
     "script": "guards/full-answer-door-clock-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "facompanionunique",
+    "script": "guards/full-answer-companion-unique-guard.cjs",
+    "args": ""
   }
 ]

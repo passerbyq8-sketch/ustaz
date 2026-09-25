@@ -19,6 +19,7 @@
 //   G12       the switch off: today's text, byte for byte; G13 nothing before the matn's sentence moves;
 //   G14       «قال أبو حاتم رضي الله عنه» (the author, Ibn Hibban) names nobody;
 //   G15       a matn that opens on the Prophet ﷺ; G16 the book the parentheses name, not another book's;
+//   G16c      (order C, ج٤) the same, with ONE man in both books, so ج٤'s one-hadith rule does not decide it;
 //   G17       a lead-in that points back at the narrator («قال له») keeps the model's name, and says so;
 //   M1-M3     three mutants of lib/takhrij.js are killed: no adjacency, the «قال» anchor, any book.
 //   G18-G24   (the order-B review, D61) one opener only beside a kept model opener; a kept opener keeps
@@ -64,6 +65,8 @@ const IBN_HIBBAN = `رقم طبعة با وزير = (2128) قال أبو حات�
 const DARAR = 'لا ضرر ولا ضرار';
 const AHMAD = `حدثنا عبد الرزاق عن معمر عن جابر عن عكرمة عن ابن عباس قال: قال رسول الله ${P}: «${DARAR}»`;
 const HAKIM = `حدثنا الدراوردي عن عمرو بن يحيى المازني عن أبيه عن أبي سعيد الخدري رضي الله عنه أن رسول الله ${P} قال: «${DARAR}، من ضار ضاره الله»`;
+// ج٤ (order C): the same man in the other book, printed there WITH the prayer (G16c).
+const HAKIM_SAME = `حدثنا أبو العباس عن عكرمة عن ابن عباس رضي الله عنهما أن رسول الله ${P} قال: «${DARAR}»`;
 
 const lib = (ids, atoms, matn = M) => async (ms) => ms.map((m) => (m === matn ? { matn: m, subjectIds: ids, atoms } : { matn: m, subjectIds: [], atoms: [] }));
 const prayers = (s) => (String(s).match(/رضي الله عن/gu) || []).length;
@@ -138,6 +141,13 @@ async function rows(T, report) {
   const g16b = await run(darar, ON, lib(['FC-000735'], [HAKIM], DARAR));
   r.G16 = report('G16 «(أحمد · …)» with Abū Saʿīd only in al-Ḥākim\'s atom: no name; al-Ḥākim alone names him',
     prayers(g16.text) === 0 && /\(أحمد · /u.test(g16.text) && /^عن أبي سعيد الخدري رضي الله عنه: «/u.test(g16b.text), g16.text + ' || ' + g16b.text);
+  // ج٤ (order C) changed this guard openly: G16's two books name two different men, so ج٤ names nobody there
+  // whatever book is read, and G16 no longer tells «the bracket's book» from «any book». G16c keeps ONE man —
+  // Ibn ʿAbbās, without the prayer in Aḥmad (the bracket's book) and with it in al-Ḥākim — so only the rule
+  // «the book the parentheses name» keeps his name out, and mutant M3 is killed here.
+  const g16c = await run(darar, ON, lib(['FC-000630', 'FC-000735'], [AHMAD, HAKIM_SAME], DARAR));
+  r.G16c = report('G16c one man, the prayer only in the other book\'s atom: «(أحمد · …)» names nobody',
+    prayers(g16c.text) === 0 && /\(أحمد · /u.test(g16c.text), g16c.text);
   const back = `والدليل على ذلك حديث أبي جري الهجيمي رضي الله عنه أن النبي ${P} قال له: «${M}».`;
   const g17 = await run(back, ON, lib([], []));
   r.G17 = report('G17 a lead-in that points back at the narrator («قال له») keeps the model\'s name, and says so',
@@ -213,8 +223,8 @@ async function main() {
   ok('M1  mutant «no adjacency test» is killed (G1b)', m1.applied && m1.killed, JSON.stringify(m1));
   const m2 = await probe('G14')('anchor', "const B2_ANCHORS_REFUSED = new Set(['قال', 'قالت']);", 'const B2_ANCHORS_REFUSED = new Set([]);');
   ok('M2  mutant «the قال anchor allowed» is killed (G14)', m2.applied && m2.killed, JSON.stringify(m2));
-  const m3 = await probe('G16')('outlet', ".filter((c) => shown.includes(String(c.book).split('|').slice(1).join('|')))", '/* mutant: any book */');
-  ok('M3  mutant «any book, not the bracket\'s» is killed (G16)', m3.applied && m3.killed, JSON.stringify(m3));
+  const m3 = await probe('G16c')('outlet', ".filter((c) => shown.includes(String(c.book).split('|').slice(1).join('|')))", '/* mutant: any book */');
+  ok('M3  mutant «any book, not the bracket\'s» is killed (G16c)', m3.applied && m3.killed, JSON.stringify(m3));
   // The order-B review (D61) found these conditions unpinned; each now has its row and its mutant.
   const m4 = await probe('G22')('prophet', '  return (B2_PROPHET_RE.test(gap) || B2_PROPHET_RE.test(head)) && !B2_LINK_RE.test(links);',
     '  return !B2_LINK_RE.test(links);');
