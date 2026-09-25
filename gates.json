@@ -790,5 +790,10 @@
     "name": "diagtrace",
     "script": "guards/diag-trace-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "d2rowids",
+    "script": "guards/fix-d2-e1-guard.cjs",
+    "args": ""
   }
 ]
