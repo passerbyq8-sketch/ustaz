@@ -349,7 +349,7 @@ every purpose and `capabilityEligible()` is false for every capability. **Regist
 
 ## K. Gates and tests
 
-All 152 gates, run by the canonical `npm run gates` runner from `gates.json`:
+All 153 gates, run by the canonical `npm run gates` runner from `gates.json`:
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -376,14 +376,14 @@ authbridge 0 · libbook 0 · attrwiden 0  attrtruth 0 · regexdup 0 · streamkee
 nameform 0 · rejectdoor 0 · articles 0 · asmaa 0 · chatbaractions 0 · sharelinks 0
 prophetascription 0 · prophetascriptionwiring 0 · khilafprobefreeze 0
 kunuznorepeat 0 · kunuzcats 0 · appvpattern 0
-liveworldkill 0 · livenumbersrc 0 · sahihaynlink 0 · previewdaycap 0 · libmujaz 0 · libquote 0 · encycbrain 0 · quotetashkeel 0 · bwevidence 0 · bwsinglewrite 0 · bwruling 0 · bwnotext 0 · bwmadhhab 0 · bwissue 0 · bwspeaker 0 · bwreconnect 0 · bwencyc 0 · facontinue 0 · fabracket 0 · falongmatn 0 · fagrade 0 · famechanism 0 · fahead 0 · falessons 0 · navpage 0 · navcontinue 0 · navexplain 0 · navform 0 · libsearchcap 0 · libsection 0 · libsectionui 0 · harvesttools 0 · fadoors 0 · facompanion 0 · falessonsage 0 · navsummary 0 · navglue 0 · navauthorbook 0 · farejectlift 0
+liveworldkill 0 · livenumbersrc 0 · sahihaynlink 0 · previewdaycap 0 · libmujaz 0 · libquote 0 · encycbrain 0 · quotetashkeel 0 · bwevidence 0 · bwsinglewrite 0 · bwruling 0 · bwnotext 0 · bwmadhhab 0 · bwissue 0 · bwspeaker 0 · bwreconnect 0 · bwencyc 0 · facontinue 0 · fabracket 0 · falongmatn 0 · fagrade 0 · famechanism 0 · fahead 0 · falessons 0 · navpage 0 · navcontinue 0 · navexplain 0 · navform 0 · libsearchcap 0 · libsection 0 · libsectionui 0 · harvesttools 0 · fadoors 0 · facompanion 0 · falessonsage 0 · navsummary 0 · navglue 0 · navauthorbook 0 · farejectlift 0 · faascriptionlift 0
 ```
 
 Every one **PASS**, exit code `0`.
 
 ```
-TOTAL_GATES        152/152 PASS
-RECON              PASS=243 WARN=0 FAIL=0
+TOTAL_GATES        153/153 PASS
+RECON              PASS=244 WARN=0 FAIL=0
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision
 NEW_FIXTURES       rfcpolicy 125/125 · rfcruntime 96/96

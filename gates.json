@@ -765,5 +765,10 @@
     "name": "farejectlift",
     "script": "guards/full-answer-reject-lift-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "faascriptionlift",
+    "script": "guards/full-answer-ascription-lift-guard.cjs",
+    "args": ""
   }
 ]
