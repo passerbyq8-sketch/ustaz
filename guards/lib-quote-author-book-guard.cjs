@@ -87,6 +87,18 @@ async function main() {
   ok('K7  the detector is untouched: `explicitBook` stays the lexical fact (false without «كتاب»)',
     d && d.explicitBook === false && d.shape === 'kalam', JSON.stringify(d && { shape: d.shape, explicitBook: d.explicitBook }));
 
+  // ── K8-K9 (the order-B review, D63) ─────────────────────────────────────────────────────────────
+  // K8: «فتاويه/فتاواه» names his fatwas, not a title; the author-scope branch matched no title, and the
+  // reply named one arbitrary tract as the book. K9: only the shapes that name an author: a shape without
+  // one whose author comes from a «لـ» glue reading is not this rule's (without this row, dropping the shape
+  // test changed 1,461 plans and passed every gate).
+  const k8 = ['انقل لي نص كلام ابن باز في فتاويه', 'ما نص كلام ابن عثيمين في فتاواه'].map((s) => [s, plan(s, true), plan(s, false)]);
+  ok('K8  «نص كلام X في فتاويه» names no title: not recognised by this rule, as before',
+    k8.every(([, on, off]) => on === null && off === null), JSON.stringify(k8.map(([s, a, b]) => [s, show(a), show(b)])));
+  const k9 = ['انقل لي من زاد المعاد لابن القيم', 'انقل لي من تفسير مجاهد لمجاهد بن جبر'].map((s) => [s, plan(s, true)]);
+  ok('K9  a shape without an author of its own is not this rule\'s, even with a «لـ» glue reading',
+    k9.every(([, on]) => on === null), JSON.stringify(k9.map(([s, a]) => [s, show(a)])));
+
   console.log(`\n=== lib-quote-author-book: ${checks - failures}/${checks} PASS ===`);
   process.exit(failures ? 1 : 0);
 }
