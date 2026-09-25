@@ -303,9 +303,13 @@ async function main() {
 
   // ── F9 a continued rewrite counts for the doors' clock ────────────────────────────────────────
   // The draft ends whole (nothing continued); the citation retry caps and is continued, and its whole
-  // text carries a credit the reviewer cuts, so the reject door wants a call at ~250 s it cannot fit.
+  // text carries a credit the reviewer cuts, so the reject door wants a call at ~231 s it cannot fit.
+  // ج٣ (order C) changed this row openly: every door now asks the clock on every turn, the citation retry
+  // included, with the draft's own writing speed. The draft was written in 49.6 s (40 tok/s), at which the
+  // citation retry itself no longer fits at 170 s and is refused before it can be continued; written in
+  // 30 s (67 tok/s) it fits at 150 s, is continued, and the row pins what it always pinned.
   const CITE_NAMED = { ...CITE, rewriteRest: [cited(C.s3), 'ذكر ابن باز أن التيمم يرفع الحدث رفعا مؤقتا.', C.s4].join(PARA) };
-  const f9 = await drive({ fixture: CITE_NAMED, pre: 100000, script: doorScript(CITE_NAMED, { draftWhole: true, times: { draft: 49600 } }) });
+  const f9 = await drive({ fixture: CITE_NAMED, pre: 100000, script: doorScript(CITE_NAMED, { draftWhole: true, times: { draft: 30000 } }) });
   ok('F9  a continued rewrite counts for the doors\' clock: the next door that no longer fits is refused by name',
     has(f9, /^rewrite_continue:citation_retry:done:1:end_turn:\d+$/u) && has(f9, /^citation_retry:cited:\d+$/u)
     && has(f9, /^write_continue:no_time_for:reject_retry:\d+:-?\d+$/u) && !f9.kinds.some((k) => k.startsWith('reject-retry')),
