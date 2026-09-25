@@ -9,7 +9,7 @@
 //
 // WHAT THIS PINS (the real applyTakhrij, the library answered in-process with atoms shaped on the measured ones):
 //   U1  the witness: the Jibril opening names no Companion, and says why (TAKHRIJ_COMPANION_MANY_HADITHS);
-//   U2  ...and its parentheses are exactly what they were: the match behind them is not touched;
+//   U2  (D3A H2 update) the shared opener carries no parenthetical or combined citation proof;
 //   U3  one hadith in two books, one man with the prayer in one and without it in the other: named, as before;
 //   U4  one man written two ways («ابن عمر» / «عبد الله بن عمر رضي الله عنهما»): named, as before;
 //   U5  one wording narrated by two Companions (Abū Hurayra, Abū Shurayḥ): nobody is named — the rule's letter;
@@ -76,11 +76,14 @@ async function main() {
   ok('U1  the Jibril opening, carried by three men\'s hadiths, names no Companion, and says why',
     prayers(u1.text) === 0 && entry(u1).companion === '' && (u1.problems || []).includes('TAKHRIJ_COMPANION_MANY_HADITHS'),
     JSON.stringify([u1.text, u1.problems]));
-  // D3A H1: narration frame corrected; this U2 still pins its pre-H2 bracket.
-  // The parentheses are the pass's own: the same books, the same ruling, as the pass wrote them for the same
-  // atoms before this item — read here off the parentheses in the text, which this item never writes.
-  ok('U2  ...and its parentheses are untouched: «(متفق عليه)» off the same match',
-    entry(u1).parenthetical === 'متفق عليه' && u1.text === `ورد في الرواية: «${J}» (متفق عليه).`,
+  // D3A H1 retains its narration frame; H2 now removes the ambiguous parenthetical.
+  // D3A H2 explicitly supersedes C4's old unchanged-parenthetical expectation: the same
+  // multi-hadith match that prevents naming now prevents a mixed citation. H1 repairs the frame.
+  ok('U2  D3A H2: the shared opener has no parenthetical or combined citation proof',
+    entry(u1).parenthetical === '' && entry(u1).declined === 'multiple_hadiths'
+    && u1.text === `ورد في الرواية: «${J}».`
+    && (u1.problems || []).includes('TAKHRIJ_PARENTHETICAL_MANY_HADITHS')
+    && !(entry(u1).sealProof || []).length,
     JSON.stringify([u1.text, entry(u1).parenthetical]));
 
   const u3 = await run(M, ON, ['FC-000645', 'FC-000648'], [M_BUKHARI, M_MUSLIM]);

@@ -139,8 +139,9 @@ async function rows(T, report) {
   const darar = `قال رسول الله ${P}: «${DARAR}».`;
   const g16 = await run(darar, ON, lib(['FC-000630', 'FC-000735'], [AHMAD, HAKIM], DARAR));
   const g16b = await run(darar, ON, lib(['FC-000735'], [HAKIM], DARAR));
-  r.G16 = report('G16 «(أحمد · …)» with Abū Saʿīd only in al-Ḥākim\'s atom: no name; al-Ḥākim alone names him',
-    prayers(g16.text) === 0 && /\(أحمد · /u.test(g16.text) && /^عن أبي سعيد الخدري رضي الله عنه: «/u.test(g16b.text), g16.text + ' || ' + g16b.text);
+  r.G16 = report('G16 D3A H2: two narrators get no bracket or name; al-Ḥākim alone names Abū Saʿīd',
+    prayers(g16.text) === 0 && !g16.entries[0].parenthetical && (g16.problems || []).includes('TAKHRIJ_PARENTHETICAL_MANY_HADITHS') && /^عن أبي سعيد الخدري رضي الله عنه: «/u.test(g16b.text), g16.text + ' || ' + g16b.text);
+  // D3A H2 additionally removes G16's mixed bracket; G16c and its mutation test stay unchanged.
   // ج٤ (order C) changed this guard openly: G16's two books name two different men, so ج٤ names nobody there
   // whatever book is read, and G16 no longer tells «the bracket's book» from «any book». G16c keeps ONE man —
   // Ibn ʿAbbās, without the prayer in Aḥmad (the bracket's book) and with it in al-Ḥākim — so only the rule

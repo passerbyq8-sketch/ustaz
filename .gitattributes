@@ -879,3 +879,4 @@ guards/fix-d2-e5-guard.cjs text eol=lf
 guards/fix-d2-e7-guard.cjs text eol=lf
 guards/fix-d2-e8-guard.cjs text eol=lf
 guards/full-answer-narrator-frame-guard.cjs text eol=lf
+guards/full-answer-parenthetical-unique-guard.cjs text eol=lf

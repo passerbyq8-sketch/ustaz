@@ -825,5 +825,10 @@
     "name": "fanarratorframe",
     "script": "guards/full-answer-narrator-frame-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "faparentheticalunique",
+    "script": "guards/full-answer-parenthetical-unique-guard.cjs",
+    "args": ""
   }
 ]
