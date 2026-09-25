@@ -785,5 +785,10 @@
     "name": "navnoauthorask",
     "script": "guards/lib-quote-no-author-ask-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "diagtrace",
+    "script": "guards/diag-trace-guard.cjs",
+    "args": ""
   }
 ]

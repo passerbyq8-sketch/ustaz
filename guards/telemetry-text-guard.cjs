@@ -18,6 +18,10 @@
 //                                              being pointed at; no guard read it, so nothing but
 //                                              a sweep was ever going to find it.
 //
+// THE ONE EXCEPTION (owner ruling 2026-09-25, order د-١): the diagnostic trace in lib/diag-trace.js writes the
+// question with DIAG_TRACE_V1 on, off production, on the side/program-20260924 preview alone. Section E fences it:
+// the trace is the only other writer, and it can never emit in production.
+//
 // HOW IT DECIDES, AND WHY IT IS TWO RULES AND NOT ONE. Neither half is sufficient alone:
 //
 //   RULE A — DENIED SOURCES. No console call on a delivery path may mention an expression that
@@ -373,6 +377,103 @@ const sweep = (source, file) => {
       benign !== askSource && sweep(benign, 'api/ask.js').length === 0);
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
+  }
+
+  // ── SECTION E — THE DIAGNOSTIC TRACE (DIAG_TRACE_V1, order د-١, owner ruling 2026-09-25) ─────
+  //
+  // THE ONE EXCEPTION, AND ITS FENCE. The owner authorised the trace in lib/diag-trace.js to write the
+  // question and the texts derived from it (planner queries, drafts, claim sentences) -- ONLY with
+  // DIAG_TRACE_V1 on, ONLY on a deployment that is not production, and only as the side/program-20260924
+  // preview's row. The rule above stays whole for everything else. So this section proves three things:
+  //   E1  the trace is the only other road to stdout: its writer lives in lib/diag-trace.js alone (two
+  //       console.log seats, the turn's writer and the probe's), only the reviewed files call diagTrace,
+  //       and api/ask.js opens a traced turn only behind `diagTraceDecision().enabled`;
+  //   E2  production can never emit: with VERCEL_ENV=production and DIAG_TRACE_V1 (any spelling) and every
+  //       other switch on, the decision is off, a traced turn writes nothing, and the probe is not answered;
+  //   E3  E2 has teeth: a mutant of lib/diag-trace.js without its production line is caught by E2's checks.
+  try {
+    const { pathToFileURL } = require('url');
+    const os = require('os');
+    const DT_FILE = path.join(REPO, 'lib', 'diag-trace.js');
+    const dtSource = fs.readFileSync(DT_FILE, 'utf8');
+    const code = (src) => src.split('\n').filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n');
+    // E1 — one writer, reviewed callers, a guarded entry.
+    const writers = (code(dtSource).match(/console\.(log|warn|info|error|debug)\(/g) || []).length;
+    ok('E1a lib/diag-trace.js writes to stdout at exactly two seats (the turn and the probe), and not through process.stdout',
+      writers === 2 && !/process\.stdout|process\.stderr/.test(code(dtSource)), 'console seats=' + writers);
+    const REVIEWED = ['api/ask.js', 'lib/before-writing.js', 'lib/diag-trace.js', 'lib/encyclopedia.js', 'lib/free-brain/loop.js',
+      'lib/issue-match.js', 'lib/ruling-review.js'];
+    const callers = [];
+    const walk = (dir) => {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        const p = path.join(dir, e.name);
+        if (e.isDirectory()) { if (e.name !== 'node_modules' && e.name !== 'data') walk(p); continue; }
+        if (!/\.(m?js|cjs)$/.test(e.name)) continue;
+        if (/\bdiagTrace(Watch)?\s*\(/.test(code(fs.readFileSync(p, 'utf8')))) callers.push(path.relative(REPO, p).split(path.sep).join('/'));
+      }
+    };
+    walk(path.join(REPO, 'api'));
+    walk(path.join(REPO, 'lib'));
+    ok('E1b only the reviewed files call diagTrace (a new caller is a new review, written here)',
+      callers.every((c) => REVIEWED.includes(c)) && callers.includes('api/ask.js'), JSON.stringify(callers));
+    const apiCallers = fs.readdirSync(API_DIR).filter((f) => f.endsWith('.js'))
+      .filter((f) => /runDiagTraced|diagTraceProbe/.test(code(fs.readFileSync(path.join(API_DIR, f), 'utf8'))));
+    const askCode = code(fs.readFileSync(path.join(API_DIR, 'ask.js'), 'utf8'));
+    const entry = /if \(diagTraceDecision\(\)\.enabled && !diagTraceActive\(\)\) \{\s*if \(await diagTraceProbe\(req, res\)\) return;\s*return runDiagTraced\(req, res, \(\) => handler\(req, res\)\);\s*\}/;
+    ok('E1c a traced turn is opened in api/ask.js alone, and only behind diagTraceDecision().enabled',
+      JSON.stringify(apiCallers) === JSON.stringify(['ask.js']) && entry.test(askCode)
+      && (askCode.match(/runDiagTraced\(/g) || []).length === 1 && (askCode.match(/diagTraceProbe\(/g) || []).length === 1,
+      JSON.stringify(apiCallers));
+
+    // E2 — production never emits, whatever the other switches say.
+    const prodChecks = async (DT) => {
+      const results = [];
+      const ALL_ON = { FREE_BRAIN_V1: 'on', STREAM_V1: 'on', BEFORE_WRITING_V1: 'on', FULL_ANSWER_V1: 'on', ENCYC_V1: 'on', LIB_NAV_V1: 'on',
+        LIB_QUOTE_V1: 'on', LIB_MUJAZ_V1: 'on', TAKHRIJ_V1: 'on', DEPTH_FREE_TRIAL: 'on', VERCEL_URL: 'ustaz.example.vercel.app' };
+      for (const v of ['on', 'ON', 'true', '1', ' on ']) {
+        const env = { ...ALL_ON, VERCEL_ENV: 'production', DIAG_TRACE_V1: v };
+        results.push(DT.diagTraceDecision(env).enabled === false);
+        const lines = [];
+        let ran = false;
+        await DT.runDiagTraced({ method: 'POST', url: '/api/ask' }, null, async () => {
+          ran = true;
+          DT.diagTrace('route', { question: 'سؤال القارئ' });
+          results.push(DT.diagTraceActive() === false);
+        }, { env, write: (l) => lines.push(l) });
+        results.push(ran && lines.length === 0);
+        const probeLines = [];
+        const res = { setHeader() {}, end() {} };
+        results.push(await DT.diagTraceProbe({ method: 'GET', url: '/api/ask?diag_trace_probe=sizes' }, res, { env, write: (l) => probeLines.push(l) }) === false && probeLines.length === 0);
+      }
+      // and the preview, as a control: the same call writes there.
+      const lines = [];
+      await DT.runDiagTraced({ method: 'POST', url: '/api/ask' }, null, async () => { DT.diagTrace('route', { question: 'q' }); },
+        { env: { VERCEL_ENV: 'preview', DIAG_TRACE_V1: 'on' }, write: (l) => lines.push(l) });
+      return { prodSilent: results.every(Boolean), previewWrites: lines.length > 0 };
+    };
+    const real = await prodChecks(await import(pathToFileURL(DT_FILE).href));
+    ok('E2  production: the decision is off for every spelling of on, a traced turn writes nothing, the probe is not answered',
+      real.prodSilent, JSON.stringify(real));
+    ok('E2c control: on a preview the same traced turn writes', real.previewWrites, JSON.stringify(real));
+
+    // E3 — the production line is load-bearing.
+    const prodLine = /^\s*if \(String\(env\.VERCEL_ENV \|\| ''\)\.trim\(\)\.toLowerCase\(\) === 'production'\) return \{ enabled: false, reason: 'production' \};\n/m;
+    const mutated = dtSource.replace(prodLine, '');
+    ok('E3a mutant seam applied — the production line removed from diagTraceDecision', mutated !== dtSource);
+    if (mutated !== dtSource) {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'telemetry-e3-'));
+      try {
+        const file = path.join(dir, 'diag-trace-mutant.mjs');
+        fs.writeFileSync(file, mutated);
+        const mutant = await prodChecks(await import(pathToFileURL(file).href));
+        ok('E3b MUTANT KILLED — without its production line the trace would emit in production, and E2 sees it',
+          mutant.prodSilent === false, JSON.stringify(mutant));
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    }
+  } catch (error) {
+    ok('section E completed without exception', false, error?.stack || String(error));
   }
   process.exit(finish());
 })();

@@ -146,6 +146,8 @@ import { headRestatedBy } from '../lib/takhrij.js';
 import { readCursor, stripCursorMarkers, isContinueRequest, cursorMarker } from '../lib/quote-cursor.js';
 // م٤-ج — «اشرح» after a quotation, and «… ثمّ لخّصه».
 import { explainsPreviousQuote, quoteTail, withQuoteTail, previousAssistantText, quotedPlace, bareQuote } from '../lib/quote-cursor.js';
+// د-١ (DIAG_TRACE_V1) — the diagnostic trace of one turn: preview only, never production (lib/diag-trace.js).
+import { diagTraceDecision, diagTraceActive, diagTraceProbe, runDiagTraced, diagTrace } from '../lib/diag-trace.js';
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 // The free path's own empty-reply text, صنف (ب): the system declaring a limit, not answering.
@@ -768,6 +770,12 @@ function bindUpstreamToClient(readerGone) {
 }
 
 export default async function handler(req, res) {
+  // د-١ (DIAG_TRACE_V1) — with the switch on (never in production) the turn runs inside a trace that
+  // copies what it did to the runtime log and changes nothing the reader receives. Off: not entered.
+  if (diagTraceDecision().enabled && !diagTraceActive()) {
+    if (await diagTraceProbe(req, res)) return;
+    return runDiagTraced(req, res, () => handler(req, res));
+  }
   // م٣-أ (FULL_ANSWER_V1) — the function's own start. The 300 s kill is counted from here, so a
   // continuation is timed from here too, not from the free-brain turn's later start.
   const handlerStartedAt = Date.now();
@@ -987,6 +995,7 @@ export default async function handler(req, res) {
     ? (process.env.MODEL_PREMIUM  || process.env.MODEL || 'claude-opus-5')
     : STANDARD_MODEL;
   console.log('[tier]', { band, requestedDepth: body.depth, effectiveDepth, founderUnlocked, depthFreeTrial, usePremium, model });
+  diagTrace('tier', () => ({ band, requestedDepth: body.depth, effectiveDepth, readerMode: reader.mode, founderUnlocked, depthFreeTrial, usePremium, model, round2Effort, libDepthEligible }));
   // D02ب: BUILT HERE, from the four sanitised fields -- never from the body. `body.system` was
   // deleted at parse time, so there is not even a value in scope to fall back to.
   const systemWithDepth = appendDepthBlock(wrapSystem(buildSystemPrompt(reader.name, reader.age, reader.gender, reader.mode)), depthInstruction);
@@ -1087,6 +1096,11 @@ export default async function handler(req, res) {
     purpose: currentPlan.purpose, mode: currentPlan.attributionMode,
     entity: currentPlan.namedEntity || null, officialDomain: currentPlan.officialDomain || null,
   });
+  diagTrace('route', () => ({
+    question: currentQuestionText, turns: Array.isArray(body.messages) ? body.messages.length : 0,
+    route: effectiveRoute, lexicalRoute: route, currentRuntime, band, purpose: currentPlan.purpose,
+    mode: currentPlan.attributionMode, entity: currentPlan.namedEntity || null,
+  }));
 
   // ── LIB_QUOTE_V1 · «انقل لي من كتاب …» ANSWERED WITH THE BOOK'S OWN WORDS ──────────────
   // An adult who asks for the text of a named book gets a SERVER-COMPOSED reply and no model
@@ -1390,6 +1404,10 @@ export default async function handler(req, res) {
         ? { ok: false, text: String(input.fallbackText || FINALIZER_REFUSAL), problems: ['TAKHRIJ_SEAL_REFUSED'],
           replaced: true, degraded: ['takhrij-rebuild-empty'], drops: [], outcome: 'REFUSED' }
         : finalizeReaderText(input);
+      diagTrace('finalizer', () => ({
+        before: input && input.text, after: result.text, ok: result.ok, outcome: result.outcome, replaced: result.replaced,
+        problems: result.problems, degraded: result.degraded, drops: result.drops,
+      }));
       if (!result.ok) console.warn('[finalizer] reader text replaced', { problems: result.problems });
       for (const drop of Array.isArray(result.drops) ? result.drops : []) {
         if (!dropLogRoom()) break;
@@ -1893,6 +1911,12 @@ export default async function handler(req, res) {
       finalizerContext.consistencyContext = null;
 
       const freeUpstream = bindUpstreamToClient(readerGone);
+      diagTrace('free-brain', () => ({
+        storedRuntime: storedContext.runtime, lexicalRoute: effectiveRoute, band, mode: readerMode, model, maxTokens,
+        libDepthEligible, libFlagOn: libFlagValue === 'on', libToken: libToken !== '', libMujaz: libMujazValue,
+        encyc: encycValue, beforeWriting: beforeWritingValue, fullAnswer: fullAnswerValue,
+        takhrij: takhrijDecision().enabled, freeBrainReason: freeBrain.reason,
+      }));
       let out;
       try {
         out = await runFreeBrainTurn({
@@ -1954,6 +1978,22 @@ export default async function handler(req, res) {
       } finally {
         freeUpstream.cleanup();
       }
+      diagTrace('loop-out', () => ({
+        text: out.text, deliveredStop: out.deliveredStop, truncated: out.truncated, failure: out.failure,
+        cited: (out.cited || []).map((r) => r && r.ref),
+        evidence: (out.evidence || []).map((r) => ({
+          ref: r.ref, kind: r.kind, tool: r.tool, title: r.title, book: r.bookTitle, author: r.author,
+          volume: r.locatorSpan ? r.locatorSpan.volume : r.part, page: r.locatorSpan ? r.locatorSpan.pageStart : r.page,
+          pageEnd: r.locatorSpan ? r.locatorSpan.pageEnd : undefined, locator: r.locator, id: r.recordId || r.id,
+          subject: r.subjectId, url: r.url, madhhab: r.madhhab, chars: String(r.fullText || r.text || '').length,
+        })),
+        storedInjection: out.storedInjection, rulingReview: out.rulingReview, prophetReview: out.prophetReview,
+        verdict: out.verdict, rewriteBudget: out.rewriteBudget, writeContinuations: out.writeContinuations,
+        rewriteContinuations: out.rewriteContinuations, citationRetries: out.citationRetries, rejectRetries: out.rejectRetries,
+        rejectWithheld: out.rejectWithheld, emptyRetries: out.emptyRetries, rounds: out.rounds, modelCalls: out.modelCalls,
+        terminalWriteMs: out.terminalWriteMs, degraded: out.degraded, roundLedger: out.roundLedger,
+        spend: out.spend, elapsedMs: out.elapsedMs, streamedThisTurn: out.streamedThisTurn,
+      }));
       if (freeUpstream.signal.aborted || readerGone.aborted) return;
 
       // THE CARD FOLLOWS THE CITATION. `out.cited` is the rows the DELIVERED text actually cited,

@@ -867,3 +867,6 @@ guards/full-answer-ascription-lift-guard.cjs text eol=lf
 guards/full-answer-door-clock-guard.cjs text eol=lf
 guards/full-answer-companion-unique-guard.cjs text eol=lf
 guards/lib-quote-no-author-ask-guard.cjs text eol=lf
+guards/diag-trace-guard.cjs text eol=lf
+lib/diag-trace.js text eol=lf
+tools/trace-read.mjs text eol=lf
