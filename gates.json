@@ -760,5 +760,10 @@
     "name": "navauthorbook",
     "script": "guards/lib-quote-author-book-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "farejectlift",
+    "script": "guards/full-answer-reject-lift-guard.cjs",
+    "args": ""
   }
 ]
