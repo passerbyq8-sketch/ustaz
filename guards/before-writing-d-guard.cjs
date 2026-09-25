@@ -102,7 +102,7 @@ async function main() {
     && empty.out.storedInjection.rows === 0, JSON.stringify({ rows: empty.out.storedInjection.rows, tail: empty.block.slice(-200) }));
   const text = String(empty.out.text || '');
   ok('N2  and a ruling written anyway is taken out, the answer says no text was found, the reader is offered the widening',
-    !text.includes('يجوز ذلك') && text.includes('ولم أقفْ على نصٍّ') && text.includes(WIDEN)
+    !text.includes('يجوز ذلك') && text.includes('لم أقفْ على نصٍّ') && text.includes(WIDEN)
     && empty.provider.filter((b) => b.system === 'system').length === 1
     && !empty.provider.some((b) => String(b.system || '').startsWith('أنتَ فاحصُ')), JSON.stringify({ calls: empty.provider.length, text }));
   const full = await drive(HAS_TEXT_Q, 'لا ينقض خروج الدم الوضوء [[1]].');

@@ -142,8 +142,9 @@ async function main() {
   const PW = `قال النبي ﷺ: «${REAL_MATN}».\nوقال رسول الله ﷺ: «${FAKE_MATN}».`;
   const k3 = await drive({ write: PW, reading: '{"claims":[]}' });
   const t3 = String(k3.out && k3.out.text || '');
-  const NF = RR && RR.PROPHET_NOT_FOUND ? RR.PROPHET_NOT_FOUND : 'ولم أقفْ على هذا اللفظِ';
-  ok('K3  a quotation the ladder carries is kept; one nothing carries is replaced by «ولم أقفْ على هذا اللفظِ…»',
+  // D-2 E7 removes the leading conjunction in the terminal before-writing summary.
+  const NF = (RR && RR.PROPHET_NOT_FOUND ? RR.PROPHET_NOT_FOUND : 'ولم أقفْ على هذا اللفظِ').replace(/^و/u, '');
+  ok('K3  a quotation the ladder carries is kept; one nothing carries is replaced by «لم أقفْ على هذا اللفظِ…»',
     t3.includes('خرجت خطاياه') && !t3.includes('ولو كان من جرح') && t3.includes(NF) && k3.ladder.length >= 1,
     JSON.stringify({ ladder: k3.ladder, text: t3 }));
   const k4 = await drive({ write: PW, reading: '{"claims":[]}', libOn: false });

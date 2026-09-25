@@ -810,5 +810,10 @@
     "name": "d2citations",
     "script": "guards/fix-d2-e5-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "d2notfound",
+    "script": "guards/fix-d2-e7-guard.cjs",
+    "args": ""
   }
 ]

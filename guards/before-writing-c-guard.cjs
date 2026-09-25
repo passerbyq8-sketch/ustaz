@@ -113,7 +113,7 @@ async function main() {
     const n07 = FIX.find((f) => f[0] === 'N07-majority')[2];
     const r2 = await RR.reviewRulings({ text: n07, rows: [encRow], ask: ask({ claims: [{ id: 1, verdict: 'not_found' }] }) });
     ok('R3b «الجمهور» with no text ⟹ removed, and one sentence says no text names the majority',
-      !r2.text.includes('حرامٌ على الرجل') && r2.text.includes('الجمهور') && r2.text.startsWith('ولم أقفْ') && r2.record.notFound === 1, r2.text);
+      !r2.text.includes('حرامٌ على الرجل') && r2.text.includes('الجمهور') && r2.text.startsWith('لم أقفْ') && r2.record.notFound === 1, r2.text);
     const f12 = FIX.find((f) => f[0] === 'F12-agreement')[2];
     const r3 = await RR.reviewRulings({ text: f12, rows: [encRow], ask: ask({ claims: [{ id: 1, verdict: 'supported', row: 1, quote: 'اتفق الفقهاء على وقوع طلاق الحائض بلا خلاف بينهم' }] }) });
     ok('R3c a «support» whose quote is not in its text is not support: the agreement claim is removed',
@@ -195,7 +195,7 @@ async function main() {
       JSON.stringify(on.provider.map((b) => b.model)));
     const text = String(on.out && on.out.text || '');
     ok('R4b and the reader receives its remedy: the unsupported «الجمهور» sentence is gone, «لم أقفْ» stands',
-      !text.includes('ينقض الوضوء') && text.includes('ولم أقفْ على نصٍّ ينسبُ هذا القولَ إلى الجمهور') && text.includes('والأحوط الوضوء'), text);
+      !text.includes('ينقض الوضوء') && text.includes('لم أقفْ على نصٍّ ينسبُ هذا القولَ إلى الجمهور') && text.includes('والأحوط الوضوء'), text);
     const off = await drive({});
     ok('R4c the switch off: no review call, and the sentence ships as the model wrote it',
       !off.provider.some((b) => String(b.system || '').startsWith('أنتَ فاحصُ أمانةٍ فقهيّة'))
