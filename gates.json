@@ -780,5 +780,10 @@
     "name": "facompanionunique",
     "script": "guards/full-answer-companion-unique-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "navnoauthorask",
+    "script": "guards/lib-quote-no-author-ask-guard.cjs",
+    "args": ""
   }
 ]

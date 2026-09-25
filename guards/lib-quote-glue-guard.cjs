@@ -18,7 +18,9 @@
 //   N5  every index title that holds a plain-ل word, typed verbatim, gets the same plan with the switch on;
 //   N6  «لل/لا» are read as before (M4-d): «فقه الزكاة للقرضاوي» echoes the title and names the author;
 //   N10-N13 (the owner's ruling, D64): a not-found reply to a request that already names its author does not
-//       ask for the author; a title whose «ل»-word is a word of the index's titles still asks (switch on).
+//       ask for the author. ج٥ (order C, D67/D72) changed N11 openly: with the switch on no not-found reply
+//       asks for the author any more, so a title whose «ل»-word is a word of the index's titles is not asked
+//       either (the switch off still asks, as before).
 // Red on the tree before this item: `node guards/lib-quote-glue-guard.cjs --root <tree>`.
 'use strict';
 const path = require('path');
@@ -125,8 +127,10 @@ async function main() {
     JSON.stringify([n10on, n10off]));
   const n11 = [];
   for (const t of ['مختصر لسان العرب', 'رسالة لطالب العلم']) n11.push(await reply(`انقل لي من كتاب ${t} ما جاء في الصلاة`, true));
-  ok('N11 a title whose «ل»-word is a word of the index\'s titles names no author: he is still asked for',
-    n11.every((r) => r.endsWith(ASK)), JSON.stringify(n11));
+  const n11off = [];
+  for (const t of ['مختصر لسان العرب', 'رسالة لطالب العلم']) n11off.push(await reply(`انقل لي من كتاب ${t} ما جاء في الصلاة`, false));
+  ok('N11 (ج٥) a title whose «ل»-word is a word of the index\'s titles: not asked for with the switch on, asked with it off',
+    n11.every((r) => r.endsWith(NOASK)) && n11off.every((r) => r.endsWith(ASK)), JSON.stringify([n11, n11off]));
   const n12 = await reply('انقل لي من كتاب الموطأ لمالك ما جاء في صلاة الليل', true);
   ok('N12 «الموطأ لمالك»: مالك is named, and not asked for', n12 === `ليس عندي كتاب باسم «الموطأ لمالك».${NOASK}`, n12);
   const NAV = await esm('lib/lib-nav.js');
