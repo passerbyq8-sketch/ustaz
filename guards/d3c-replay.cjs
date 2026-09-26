@@ -70,9 +70,26 @@ exports.run=async function(group) {
         ok(r.file+' confirmed authenticity sentence survives',sealed.text.includes(head),JSON.stringify(sealed.droppedSentences));
       }
       if(r.file.includes('000645')) {
-        const sealed=lock.lockTakhrij(pass.text,pass.entries.filter(e=>e.authenticityProof).map(e=>({authenticityProof:e.authenticityProof})),{bracketAfterQuote:true});
-        ok('Q18 confirmed grade survives an unproved combined credit',tk.foldArabic(sealed.text).startsWith('هذا حديث صحيح'));
-        ok('Q18 retained sentence keeps its separator',/صحيحٌ\.\s+قال رسول الله/u.test(sealed.text),sealed.text.slice(0,150));
+        const originalHead=r.text.split('\n')[0], grade=originalHead.slice(0,originalHead.indexOf(' متّفقٌ عليه'));
+        const variants=[
+          ['Q18',r.text],
+          ['Q18 shaykhan',r.text.replace(' متّفقٌ عليه، رواه البخاريُّ ومسلمٌ في صحيحيهما','، أخرجه الشيخان')],
+          ['Q18 named joint credit',r.text.replace(' متّفقٌ عليه','')],
+        ];
+        for(const [name,text] of variants) {
+          const candidate=text===r.text?pass:await tk.applyTakhrij(text,{env:{TAKHRIJ_V1:'on',FULL_ANSWER_V1:'on'},question:r.question,lookup:lookupFor(r)});
+          // The same duplicate-head step that the production API runs before sealing.
+          const head=candidate.gradingHead, prefix=head+'\n\n';
+          const delivered=head && candidate.text.startsWith(prefix) && tk.headRestatedBy(head,candidate.text.slice(prefix.length))
+            ? candidate.text.slice(prefix.length) : candidate.text;
+          const sealed=lock.lockTakhrij(delivered,candidate.entries.filter(e=>e.authenticityProof).map(e=>({authenticityProof:e.authenticityProof})),{bracketAfterQuote:true});
+          ok(name+' grade clause stays verbatim after folding',tk.foldArabic(sealed.text.split('\n')[0])===tk.foldArabic(grade),sealed.text.slice(0,160));
+          ok(name+' joint credit clauses leave no words behind',!/متفق عليه|اخرجه الشيخان|رواه البخاري ومسلم|في صحيحيهما|من حديث ابن عمر/u.test(tk.foldArabic(sealed.text)),sealed.text.slice(0,220));
+          const sourced=candidate.entries.filter(e=>e.sourced);
+          ok(name+' confirmed collector stays only in the library parenthesis',sourced.length===1 && sourced[0].parenthetical==='البخاري'
+            && sealed.text.includes('«'+sourced[0].matn+'» (البخاري)') && (sealed.text.match(/البخاري/gu)||[]).length===1);
+          ok(name+' complete grade and T4 frame have no gap',sealed.text.startsWith(grade+'.\nقال رسول الله ﷺ: «'),sealed.text.slice(0,160));
+        }
       }
     }
     const source=rowsOf(get('224754'))[0];
