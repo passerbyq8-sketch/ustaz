@@ -16,16 +16,27 @@ let checks = 0, failed = 0;
 const ok = (name, pass, info) => { checks++; if (!pass) failed++; console.log((pass ? 'PASS ' : 'FAIL ') + name + (pass || info === undefined ? '' : ' :: ' + info)); };
 const prose = (text) => String(text).replace(/<suggestions>[\s\S]*?<\/suggestions>/gu, '').trim();
 const absenceLine = (text) => prose(text).split('\n').filter((l) => /^لم أقف/u.test(l.trim())).at(-1) || '';
-// The recorded reply, with the listed sentences' verdicts set to not_found.
-function replyWith(t, notFound) {
-  const raw = t.raw;
-  const json = JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1));
-  json.claims = json.claims.map((c) => (notFound.includes(Number(c.id)) ? { id: c.id, verdict: 'not_found' } : c));
-  return JSON.stringify(json);
-}
 (async () => {
   const RR = await import(pathToFileURL(path.join(ROOT, 'lib/ruling-review.js')));
-  const run = (q, notFound = []) => { const t = turn(q); return RR.reviewRulings({ text: t.text, rows: rowsOf(t), ask: async () => replyWith(t, notFound), question: t.question }); };
+  // The recorded reply, answered PER ASKED SENTENCE: each numbered sentence of the request gets the
+  // verdict the model wrote for that same sentence (matched by its text), renumbered for the request.
+  // A reply is then right whatever batch the door sends (D3B F3); a sentence never reviewed gets none.
+  const RC = await import(pathToFileURL(path.join(ROOT, 'lib/route-classify.js')));
+  const key = (s) => RC.normalizeArabic(String(s || '').replace(/\[\[\s*[0-9\s،,و]+?\s*\]\]/gu, ' ')).replace(/\s+/gu, ' ').trim();
+  const perSentence = (t, notFound = []) => {
+    const json = JSON.parse(t.raw.slice(t.raw.indexOf('{'), t.raw.lastIndexOf('}') + 1));
+    const items = new Map(json.claims.map((c) => [Number(c.id), notFound.includes(Number(c.id)) ? { id: c.id, verdict: 'not_found' } : c]));
+    const idOf = new Map(t.recordedDoor.claims.map((c, i) => [key(c.sentence), i + 1]));
+    return async (system, user) => {
+      const claims = [];
+      for (const [, n, s] of (user.split('\nالجمل:\n')[1] || '').matchAll(/^\((\d+)\) (.*)$/gmu)) {
+        const item = items.get(idOf.get(key(s)));
+        if (item) claims.push({ ...item, id: Number(n) });
+      }
+      return JSON.stringify({ claims, khilaf: json.khilaf || { exists: false } });
+    };
+  };
+  const run = (q, notFound = []) => { const t = turn(q); return RR.reviewRulings({ text: t.text, rows: rowsOf(t), ask: perSentence(t, notFound), question: t.question }); };
 
   // F2a — Q32: the Hanafi opening removed ⟹ «وقالوا» goes with it.
   const q32 = await run(32, [1]);

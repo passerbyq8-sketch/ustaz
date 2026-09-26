@@ -730,10 +730,11 @@ async function runSuite() {
     // (2026-09-26) renumbered openly 164 -> 165.
     // D3B F1 (2026-09-26): d3bquotes, 165 -> 166. D3C numbers collide by design; the merge renumbers openly.
     // D3B F2 (2026-09-26): d3bdepends, 166 -> 167.
-function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 167; }
+    // D3B F3 (2026-09-26): d3breviewer, 167 -> 168.
+function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 168; }
     ok('ORIGINAL_GATE_SET_MATCH', exactGateSet(EXPECTED_GATES));
-    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 167-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
-    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 167-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
+    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 168-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
+    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 168-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
 
     const m13 = await storedMutant(temp, 'fiqh-before-special', (source) => source.replace(
       "if (QURAN_REQUEST.test(folded)) return 'LOCAL_QURAN';",
