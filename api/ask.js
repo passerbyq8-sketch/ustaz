@@ -24,6 +24,7 @@ import {
 import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 import { guardDayCap, dayCapMessage, hasUnrevokedFounderToken } from '../lib/daycap.js';
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
+import { writerReadMaterial } from '../lib/reader-card-material.js';
 import { classifyRoute, createSourceFilter, isReligiousText, normalizeArabic, isRulingFrame } from '../lib/route-classify.js';
 import { verifyAttributedReply } from '../lib/attribution.js';
 import { planAsk, unattributedNote, REASON, ambiguousScholarPrompt, NEEDS_MATERIAL } from '../lib/ask-plan.js';
@@ -625,10 +626,11 @@ export function buildBookTag(row) {
   // AND IT CANNOT EXCEED THE MEASURED CEILING, whatever a caller hands in. `cut` is true when
   // THIS slice dropped something or when the row already knew it was holding a cut passage
   // (lib/free-brain/tools.js), because a silent truncation is the defect either way.
-  const matn = typeof (row && row.text) === 'string' ? row.text : '';
-  const kept = matn.slice(0, LIB_MAX_CHARS_PER_HIT_DEFAULT);
+  const fullMaterial = typeof row?.writerText === 'string' || typeof row?.fullText === 'string';
+  const matn = fullMaterial ? writerReadMaterial(row) : typeof (row && row.text) === 'string' ? row.text : '';
+  const kept = fullMaterial ? matn : matn.slice(0, LIB_MAX_CHARS_PER_HIT_DEFAULT);
   const carried = kept.trim() ? Buffer.from(kept, 'utf8').toString('base64') : '';
-  const cut = kept.length < matn.length || (row && row.matnCut === true);
+  const cut = kept.length < matn.length || (!fullMaterial && row && row.matnCut === true);
   const matnAttrs = carried ? ` matn="${carried}"` + (cut ? ' cut="1"' : '') : '';
   return { tag: `<book${attrs}${matnAttrs}>${title}</book>` };
 }
@@ -2010,19 +2012,8 @@ export default async function handler(req, res) {
       // constant exists. The selection rule, and why deduplication runs before the cut, are
       // written out in `pickReaderCards`; the constant stays here, where every other path reads it.
       const buildFreeCard = (row) => buildSourceTag({ url: row.url, title: row.title });
-      const reviewSentences = Array.isArray(out.verdict?.sentences) ? out.verdict.sentences : [];
-      const explicitlyRejectedAttribution = reviewSentences.some((sentence) => sentence
-        && (sentence.action === 'kept-unsupported-attribution-marked'
-          || sentence.action === 'removed-unsupported-attribution'));
-      // A rejection action names no evidence row. It identifies a card only when one cited row
-      // remains, and even that row stays when the reviewer explicitly passed it elsewhere.
-      // Multiple rows are ambiguous, so the governing default there is KEEP.
-      const onlyCitedRow = out.cited.length === 1 ? out.cited[0] : null;
-      const onlyCitedRowPassed = onlyCitedRow && reviewSentences
-        .some((sentence) => sentence?.evidenceId === reviewerEvidence(onlyCitedRow).id);
-      const rejectedCardRow = explicitlyRejectedAttribution && onlyCitedRow && !onlyCitedRowPassed
-        ? onlyCitedRow : null;
-      const buildReviewedCard = (row) => row === rejectedCardRow ? null : buildFreeCard(row);
+      // D3C C1f: a rejection qualifies the claim, not access to its only source.
+      const buildReviewedCard = (row) => buildFreeCard(row);
       const cards = registerOwnedCards(pickReaderCards(out.cited, MAX_SOURCES, buildReviewedCard));
       // ── ع-٤٩: AND THE BOOKS, WHICH THAT SELECTION CANNOT SEE ───────────────
       //
@@ -2036,14 +2027,15 @@ export default async function handler(req, res) {
       // chip displays no page and opens nothing. It is reused as the ceiling here because «past
       // three a reply stops citing and starts listing» is just as true of books, but the two lists
       // are counted apart, so three fatwa pages and two books is three cards and two chips.
-      const bookCards = registerOwnedCards(pickBookCards(out.cited, MAX_SOURCES, libNavValue === 'on' ? buildLibraryBookTag : buildBookTag));
+      const cardOptions = { locations: true, question: questionText };
+      const bookCards = registerOwnedCards(pickBookCards(out.cited, MAX_SOURCES, libNavValue === 'on' ? buildLibraryBookTag : buildBookTag, cardOptions));
       // ENCYC_V1 -- AND THE ENCYCLOPEDIA, WHICH NEITHER SELECTION ABOVE CAN SEE: it has no URL and
       // is not a library atom. With the switch on, a cited encyclopedia row earns the book chip
       // (the same builder, the same tag, drawn by app.jsx unchanged) naming the encyclopedia and its
       // volume -- never a page, never the article. With it off this is an empty list and the reply
       // is what it was. The footer below still rides in both cases.
       const encycCards = encycValue === 'on'
-        ? registerOwnedCards(pickEncyclopediaCards(out.cited, MAX_SOURCES, buildBookTag)) : [];
+        ? registerOwnedCards(pickEncyclopediaCards(out.cited, MAX_SOURCES, buildBookTag, cardOptions)) : [];
       finalizerContext.readerCards = [...cards, ...bookCards, ...encycCards];
       finalizerContext.readerCardPrefix = finalizerContext.readerCards.length ? '\n\n' : '';
       // ── §٣ (C): THE ENCYCLOPEDIA IS ATTRIBUTED IN A LINE, NOT IN A CARD ────
@@ -2100,7 +2092,7 @@ export default async function handler(req, res) {
       storedFinalizerSources.length = 0;
       for (const row of out.cited) {
         storedFinalizerSources.push({
-          url: row.url, title: row.title, passage: row.passage || row.text || '',
+          url: row.url, title: row.title, passage: writerReadMaterial(row),
         });
       }
       // AND EVERY ROW A STREAMED UNIT WAS LET GO AGAINST. The unit stream judges a card's takhrij
@@ -2113,7 +2105,7 @@ export default async function handler(req, res) {
       for (const row of Array.isArray(out.streamTakhrijRows) ? out.streamTakhrijRows : []) {
         if (out.cited.includes(row)) continue;
         storedFinalizerSources.push({
-          url: row.url, title: row.title, passage: row.passage || row.text || '',
+          url: row.url, title: row.title, passage: writerReadMaterial(row),
         });
       }
       // ── §٤: THE MINUTE OF WHAT WAS REMOVED (XC-03) ─────────────────────────
@@ -2336,6 +2328,7 @@ export default async function handler(req, res) {
           // reader-visible page carries that phrase. `title` is what `haystack` folds and reads;
           // the book's name is the entire claim, and no atom text travels.
           for (const entry of pass.entries) {
+            if (entry.authenticityProof) takhrijProvenRows.push({ authenticityProof: entry.authenticityProof });
             for (const book of Array.isArray(entry.sealProof) ? entry.sealProof : []) {
               takhrijProvenRows.push({ title: book, passage: book + ' ' + String(entry.matn || '') });
             }
