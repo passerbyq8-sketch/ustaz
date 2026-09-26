@@ -4462,9 +4462,9 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
     ok('B4B-64 control · where the LIBRARY proved الترمذي for this matn, [e55] keeps the credit as before',
       lib.text.includes('رواه الترمذي'), JSON.stringify(lib.text));
     const src64 = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
-    const seam64 = '\n      || !creditTiedToMatn(sp, s, sen, body, hay))); // [111-b4b-64]';
-    const mutated64 = src64.split(seam64).join('));');
-    ok('MUTANT B4B-64 matn-tie seam applied', mutated64 !== src64);
+    const seam64 = '\n      || !creditTiedToMatn(sp, s, sen, body, hay)) && !supportedNarrativeCredit(sp, body, hay)); // [111-b4b-64]';
+    const mutated64 = src64.replace(seam64, ') && !supportedNarrativeCredit(sp, body, hay)); // [111-b4b-64]');
+    ok('MUTANT B4B-64 matn-tie seam applied', src64.split(seam64).length === 2 && mutated64 !== src64);
     const tmp64 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-b4b64-mut-'));
     try {
       const mfile = path.join(tmp64, 'takhrij-lock.mjs');
