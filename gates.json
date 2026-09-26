@@ -855,5 +855,10 @@
     "name": "d3bdepends",
     "script": "guards/d3b-f2-depends-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "d3breviewer",
+    "script": "guards/d3b-f3-reviewer-guard.cjs",
+    "args": ""
   }
 ]

@@ -893,3 +893,4 @@ tools/d3c-replay.mjs text eol=lf
 guards/d3b-f1-quotes-guard.cjs text eol=lf
 guards/fixtures/fix-d3b-witnesses.json text eol=lf
 guards/d3b-f2-depends-guard.cjs text eol=lf
+guards/d3b-f3-reviewer-guard.cjs text eol=lf
