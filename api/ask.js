@@ -2027,7 +2027,7 @@ export default async function handler(req, res) {
       // chip displays no page and opens nothing. It is reused as the ceiling here because «past
       // three a reply stops citing and starts listing» is just as true of books, but the two lists
       // are counted apart, so three fatwa pages and two books is three cards and two chips.
-      const cardOptions = { locations: true, question: questionText };
+      const cardOptions = { locations: true, question: questionText, coalesce: fullAnswerValue === 'on' };
       const bookCards = registerOwnedCards(pickBookCards(out.cited, MAX_SOURCES, libNavValue === 'on' ? buildLibraryBookTag : buildBookTag, cardOptions));
       // ENCYC_V1 -- AND THE ENCYCLOPEDIA, WHICH NEITHER SELECTION ABOVE CAN SEE: it has no URL and
       // is not a library atom. With the switch on, a cited encyclopedia row earns the book chip

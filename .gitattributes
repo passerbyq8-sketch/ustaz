@@ -896,3 +896,18 @@ guards/d3b-f2-depends-guard.cjs text eol=lf
 guards/d3b-f3-reviewer-guard.cjs text eol=lf
 guards/d3b-f4-notfound-guard.cjs text eol=lf
 guards/d3b-f5-disclosure-guard.cjs text eol=lf
+
+# D4: terminal prose and six recorded-witness gates.
+lib/reader-prose.js text eol=lf
+guards/d4-replay.cjs text eol=lf
+guards/d4-checks.cjs text eol=lf
+guards/fixtures/d4-recorded.json text eol=lf
+tools/d4-inputs.mjs text eol=lf
+tools/d4-replay.cjs text eol=lf
+guards/d4-s1-frame-guard.cjs text eol=lf
+guards/d4-s2-tail-guard.cjs text eol=lf
+guards/d4-s3-prose-guard.cjs text eol=lf
+guards/d4-s4-ordinal-guard.cjs text eol=lf
+guards/d4-s5-enumeration-guard.cjs text eol=lf
+guards/d4-s6-cards-guard.cjs text eol=lf
+tools/d4-validate.cjs text eol=lf

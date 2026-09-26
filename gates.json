@@ -870,5 +870,35 @@
     "name": "d3bdisclose",
     "script": "guards/d3b-f5-disclosure-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "d4s1",
+    "script": "guards/d4-s1-frame-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "d4s2",
+    "script": "guards/d4-s2-tail-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "d4s3",
+    "script": "guards/d4-s3-prose-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "d4s4",
+    "script": "guards/d4-s4-ordinal-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "d4s5",
+    "script": "guards/d4-s5-enumeration-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "d4s6",
+    "script": "guards/d4-s6-cards-guard.cjs",
+    "args": ""
   }
 ]
