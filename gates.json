@@ -830,5 +830,10 @@
     "name": "faparentheticalunique",
     "script": "guards/full-answer-parenthetical-unique-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "d3bquotes",
+    "script": "guards/d3b-f1-quotes-guard.cjs",
+    "args": ""
   }
 ]
