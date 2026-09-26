@@ -865,5 +865,10 @@
     "name": "d3bnotfound",
     "script": "guards/d3b-f4-notfound-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "d3bdisclose",
+    "script": "guards/d3b-f5-disclosure-guard.cjs",
+    "args": ""
   }
 ]

@@ -895,3 +895,4 @@ guards/fixtures/fix-d3b-witnesses.json text eol=lf
 guards/d3b-f2-depends-guard.cjs text eol=lf
 guards/d3b-f3-reviewer-guard.cjs text eol=lf
 guards/d3b-f4-notfound-guard.cjs text eol=lf
+guards/d3b-f5-disclosure-guard.cjs text eol=lf
