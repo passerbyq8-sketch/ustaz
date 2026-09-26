@@ -605,5 +605,10 @@
     "name": "encycbrain",
     "script": "guards/encyc-brain-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "speedbw2",
+    "script": "guards/speed-bw2-guard.cjs",
+    "args": ""
   }
 ]

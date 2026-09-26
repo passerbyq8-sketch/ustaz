@@ -217,8 +217,41 @@ const CALL_FAIL_FIELDS = [
   'q',
 ];
 
+// -- RULE B, CONTINUED: THE BEFORE-WRITING PATH (SPEED ITEM 17, order 3.9) --
+//
+// The owner's condition for this path: new telemetry is numbers and enums only. Each name is built
+// in lib/before-writing-v2.js out of the turn's own control state and printed by api/ask.js as
+// `name: t.name` from that one object (guards/speed-bw2-guard.cjs T10d holds the name-for-name
+// shape; T10b drives a question carrying a digit run and finds it in no field).
+const BW2_FIELDS = [
+  // boolean -- this turn took the before-writing path (on [bw2] and on the [free-brain] seat line).
+  'bw2',
+  // boolean -- the request body carried liveSearch: true. A flag, not the body.
+  'liveSearch',
+  // per source, three each: milliseconds until it returned (the budget when it did not), the count
+  // of candidate rows it returned, and whether the budget ran out first. Durations, counts, flags.
+  'fatwaMs', 'fatwaHits', 'fatwaTimedOut',
+  'libraryMs', 'libraryHits', 'libraryTimedOut',
+  'encyclopediaMs', 'encyclopediaHits', 'encyclopediaTimedOut',
+  'lessonsMs', 'lessonsHits', 'lessonsTimedOut',
+  // the judge: duration, rows it kept, whether its decision set covered every candidate, rows kept
+  // by the lexical fallback, and the closed enum none|complete|incomplete|failed.
+  'judgeMs', 'judgeKept', 'judgeComplete', 'unjudgedKept', 'judgeOutcome',
+  // an array drawn only from the closed enum hanafi|maliki|shafii|hanbali (lib/before-writing-v2.js
+  // BW2_SCHOOLS): which schools' books kept rows. Source metadata, never text.
+  'schools',
+  // the one writer round: call count (0 or 1), duration, the closed enum none|ok|failed.
+  'writerCalls', 'writerMs', 'writerOutcome',
+  // milliseconds from the start of the request to the first released byte, or null.
+  'firstReleaseMs',
+  // counts of released units, held units and card tags sent; the live-offer flag.
+  'unitsReleased', 'unitsHeld', 'cardsSent', 'liveOffer',
+  // provider billing integers off the writer's usage record.
+  'inTokens', 'outTokens',
+];
+
 const ALLOWED = new Set([...ALLOWED_FIELDS, ...STREAM_FIELDS, ...LIVE_WORLD_V2_FIELDS,
-  ...COLLAPSE_FIELDS, ...CALL_FAIL_FIELDS]);
+  ...COLLAPSE_FIELDS, ...CALL_FAIL_FIELDS, ...BW2_FIELDS]);
 const NEWLINE = String.fromCharCode(10);
 
 // ── THE BOUNDARY, WRITTEN DOWN RATHER THAN LEFT TO BE REDISCOVERED ────────────

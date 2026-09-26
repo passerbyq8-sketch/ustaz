@@ -135,7 +135,7 @@ import { runClosedDeenTurn } from '../lib/closed-deen.js';
 // row at the same 1200 under the name SNIPPET_CHARS. That number is the one that actually binds
 // what arrives; LIB_MAX_CHARS_PER_HIT_CEILING caps a request parameter this tree never sends.
 import { LIB_MAX_CHARS_PER_HIT_DEFAULT } from '../lib/lib-contract.js';
-import { freeBrainDecision } from '../lib/free-brain/flag.js';
+import { freeBrainDecision, beforeWritingV2Decision, beforeWritingV2Takes, readLiveSearch } from '../lib/free-brain/flag.js';
 import { takhrijDecision, TAKHRIJ_SKIPPED_STREAMED } from '../lib/takhrij.js';
 // BATCH 4 [b18] — on its own line: guards/takhrij-contract-guard.cjs row 19 pins the line above.
 import { asksGradeOrSource } from '../lib/takhrij.js';
@@ -740,6 +740,8 @@ function bindUpstreamToClient(readerGone) {
 }
 
 export default async function handler(req, res) {
+  // SPEED ITEM 17: the before-writing path reports its first release from here (firstReleaseMs).
+  const requestStartedAt = Date.now();
   applyCorsOrigin(req, res);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-murabbi-device, x-murabbi-founder, ' + AI_CONSENT_ALLOW_HEADERS);
@@ -1264,6 +1266,12 @@ export default async function handler(req, res) {
   //   [takhrij/call-fail]  {call, status, error, q} — call 1 ladder · 2 per Ṣaḥīḥ · 3 grade; q ≤ 80
   // THE TEXT IS UNTOUCHED: every line reads a value already computed. No other line of this log
   // carries a turn id, so neither do these. And a turn prints at most DROP_LOG_CAP of them.
+  // SPEED ITEM 17 (BW2). Set only by the before-writing branch below, before its first frame. On that
+  // path every unit was checked and normalized BEFORE it was released, and nothing released may be
+  // changed, replaced or sent again (order 3.6), so the whole-answer finalizer is not run over it:
+  // the finished answer is the released text, byte for byte. Each whole-answer check and where it
+  // went instead (per unit, an append, or not run) is listed in lib/bw2-units.js and the report.
+  let bw2Delivery = false;
   const DROP_LOG_CAP = 40;
   let dropLogLines = 0;
   const dropLogRoom = () => {
@@ -1273,6 +1281,9 @@ export default async function handler(req, res) {
   };
   res = createFinalizedSseResponse(res, {
     finalize: (input) => {
+      if (bw2Delivery) {
+        return { ok: true, text: String(input.text == null ? '' : input.text), problems: [], replaced: false, drops: [], degraded: [] };
+      }
       // [111-e55] — the seal refused this answer (see `seal`), so the seat refuses it as its own.
       const result = takhrijSealRefused
         ? { ok: false, text: String(input.fallbackText || FINALIZER_REFUSAL), problems: ['TAKHRIJ_SEAL_REFUSED'],
@@ -1746,10 +1757,81 @@ export default async function handler(req, res) {
     const freeBrain = freeBrainDecision();
     const childBenignReserved = ageAccess.sourcePolicy === 'GENERAL_CHILD_BENIGN'
       && (audienceBand === 'young' || audienceBand === 'teen');
+    // SPEED ITEM 17 (order 3.1, 3.7). Inside the free-brain seat, the before-writing path takes an
+    // adult's STORED_FIQH or HADITH question unless the reader asked for live search (liveSearch:
+    // true, a boolean and nothing else) or BEFORE_WRITING_V2 is off. The frozen dispatcher above has
+    // already had its turn and keeps its priority; the reserved child path never reaches here.
+    const liveSearch = readLiveSearch(body);
+    const bw2Route = beforeWritingV2Takes({
+      enabled: beforeWritingV2Decision().enabled, band, runtime: currentRuntime, liveSearch,
+    });
+    const bw2Taken = freeBrain.enabled && !childBenignReserved && bw2Route.takes;
     console.log('[free-brain]', {
       enabled: freeBrain.enabled, reason: freeBrain.reason, childBenignReserved,
-      lexicalRoute: effectiveRoute, band, audienceBand,
+      lexicalRoute: effectiveRoute, band, audienceBand, bw2: bw2Taken, liveSearch,
     });
+    if (bw2Taken) {
+      const { runBw2Turn, createBw2Wire } = await import('../lib/before-writing-v2.js');
+      // The wire carries server-built card tags inline (protocol 4.2), so no owned-card suffix is
+      // separated and nothing is stripped: the facade replays the released text as it went out.
+      finalizerContext.allowWireOwnedCards = true;
+      finalizerContext.consistencyContext = null;
+      finalizerContext.sourceCards = [];
+      finalizerContext.readerCards = [];
+      finalizerContext.readerCardPrefix = '';
+      finalizerContext.readerSuffix = '';
+      bw2Delivery = true;
+      const bw2Upstream = bindUpstreamToClient(readerGone);
+      let bw2Out = null;
+      try {
+        bw2Out = await runBw2Turn({
+          question: questionText,
+          messages: body.messages,
+          mode: readRequestedDepth(body.depth) || 'brief',
+          band,
+          system,
+          model,
+          maxTokens,
+          usePremium,
+          effort: round2Effort,
+          providerUrl: ANTHROPIC_URL,
+          headers,
+          signal: bw2Upstream.signal,
+          libFlagValue,
+          libToken,
+          lessonsToken: band === 'adult' ? libToken : '',
+          takhrijWired: takhrijDecision().enabled && band === 'adult' && libFlagValue === 'on' && libToken !== '',
+          cards: { buildSourceTag, buildBookTag, encyclopediaCards: encycValue === 'on', max: MAX_SOURCES },
+          wire: createBw2Wire(res, { onOpen: clearKeepAlive }),
+          requestStartedAt,
+          requestedIdentity,
+          takhrijNote,
+          truncatedMark: TRUNCATED_MARK,
+        });
+      } finally {
+        bw2Upstream.cleanup();
+      }
+      // NUMBERS AND ENUMS ONLY (order 3.9): every key is reviewed onto guards/telemetry-text-guard.cjs.
+      const t = bw2Out ? bw2Out.telemetry : null;
+      if (t) {
+        console.log('[bw2]', {
+          bw2: t.bw2,
+          fatwaMs: t.fatwaMs, fatwaHits: t.fatwaHits, fatwaTimedOut: t.fatwaTimedOut,
+          libraryMs: t.libraryMs, libraryHits: t.libraryHits, libraryTimedOut: t.libraryTimedOut,
+          encyclopediaMs: t.encyclopediaMs, encyclopediaHits: t.encyclopediaHits, encyclopediaTimedOut: t.encyclopediaTimedOut,
+          lessonsMs: t.lessonsMs, lessonsHits: t.lessonsHits, lessonsTimedOut: t.lessonsTimedOut,
+          judgeMs: t.judgeMs, judgeKept: t.judgeKept, judgeComplete: t.judgeComplete,
+          unjudgedKept: t.unjudgedKept, judgeOutcome: t.judgeOutcome,
+          schools: t.schools,
+          writerCalls: t.writerCalls, writerMs: t.writerMs, writerOutcome: t.writerOutcome,
+          firstReleaseMs: t.firstReleaseMs,
+          unitsReleased: t.unitsReleased, unitsHeld: t.unitsHeld, cardsSent: t.cardsSent,
+          liveOffer: t.liveOffer,
+          inTokens: t.inTokens, outTokens: t.outTokens,
+        });
+      }
+      return;
+    }
     if (freeBrain.enabled && !childBenignReserved) {
       // Lazy for the reason the head of this file gives about retrieve(): the loop reaches
       // linkedom/Readability only if the model actually calls a web tool, and a turn that
@@ -1824,6 +1906,8 @@ export default async function handler(req, res) {
             ? { matn: true, fromStart: asksGradeOrSource(questionText) } : null,
           // E75 — carried, not read. The loop hands it to the reviewer and nothing else.
           requestedIdentity,
+          // SPEED ITEM 17 (order 3.7): the reader pressed the live offer, so the first round searches.
+          forceFirstTool: liveSearch ? 'search_sources' : null,
         });
       } finally {
         freeUpstream.cleanup();

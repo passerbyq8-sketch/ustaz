@@ -89,7 +89,7 @@ const hit0 = (key) => FIX.atoms[key].response.hits[0];
     'LIB_MUJAZ_V1', 'DEPTH_FREE_TRIAL', 'RFC_V05_MODE', 'RFC_V05_LEGACY_POLICY', 'LEDGER_RAG', 'VERCEL_ENV',
     'VERCEL_URL', 'SEARCH_BUDGET_GLOBAL_PRODUCTION', 'SEARCH_BUDGET_GLOBAL_PREVIEW', 'SEARCH_BUDGET_GLOBAL_DEVELOPMENT',
     'SEARCH_BUDGET_PER_CALLER', 'FOUNDER_SECRET', 'KV_REST_API_URL', 'KV_REST_API_TOKEN', 'UPSTASH_REDIS_REST_URL',
-    'UPSTASH_REDIS_REST_TOKEN', 'ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'LIVE_WORLD_V2', 'ENCYC_V1'];
+    'UPSTASH_REDIS_REST_TOKEN', 'ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'LIVE_WORLD_V2', 'ENCYC_V1', 'BEFORE_WRITING_V2'];
   const savedEnv = {};
   for (const k of ENV_KEYS) savedEnv[k] = process.env[k];
   try {
@@ -483,14 +483,17 @@ const hit0 = (key) => FIX.atoms[key].response.hits[0];
     // OFF by default, and never for a child, a hazard or an ordinary question
     {
       const q = 'انقل لي من كتاب تاريخ الإسلام ما جاء في الزكاة';
-      const off = await drive(q, { env: { SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: TOKEN, FREE_BRAIN_V1: 'on' }, lib: serve('turath_print') });
+      // SPEED ITEM 17: Dj1/Dj2/Dj3/Dk3 describe TODAY'S free-brain path answering when the quote shortcut is
+      // not taken, so they state it: BEFORE_WRITING_V2=off. With the before-writing path on (its default)
+      // the library is searched before the one writer round BY DESIGN -- guards/speed-bw2-guard.cjs owns that.
+      const off = await drive(q, { env: { SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: TOKEN, FREE_BRAIN_V1: 'on', BEFORE_WRITING_V2: 'off' }, lib: serve('turath_print') });
       ok('Dj1 OFF BY DEFAULT: flag unset -> the model IS called, the library is not called before it, no quote card',
         !off.crashed && off.modelCalls >= 1 && !off.libBeforeModel && off.libCalls.length === 0 && !off.text.startsWith(BOOK)
         && off.outcome === null && off.res.ended === 1, pathDetail(off) + ' lib=' + off.libCalls.length);
-      const offExplicit = await drive(q, { env: { LIB_QUOTE_V1: 'off', SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: TOKEN, FREE_BRAIN_V1: 'on' }, lib: serve('turath_print') });
+      const offExplicit = await drive(q, { env: { LIB_QUOTE_V1: 'off', SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: TOKEN, FREE_BRAIN_V1: 'on', BEFORE_WRITING_V2: 'off' }, lib: serve('turath_print') });
       ok('Dj2 LIB_QUOTE_V1=off: the same', !offExplicit.crashed && offExplicit.modelCalls >= 1 && offExplicit.libCalls.length === 0 && offExplicit.outcome === null,
         pathDetail(offExplicit));
-      const noToken = await drive(q, { env: { LIB_QUOTE_V1: 'on', SHAMELA_BRAIN: 'on', FREE_BRAIN_V1: 'on' }, lib: serve('turath_print') });
+      const noToken = await drive(q, { env: { LIB_QUOTE_V1: 'on', SHAMELA_BRAIN: 'on', FREE_BRAIN_V1: 'on', BEFORE_WRITING_V2: 'off' }, lib: serve('turath_print') });
       ok('Dj3 ON but no library token: not taken, the model answers', !noToken.crashed && noToken.modelCalls >= 1 && noToken.outcome === null,
         pathDetail(noToken));
       const child = await drive(q, { env: { ...ON, FREE_BRAIN_V1: 'on' }, band: 'teen', age: 15, lib: serve('turath_print') });
@@ -500,7 +503,7 @@ const hit0 = (key) => FIX.atoms[key].response.hits[0];
       ok('Dk2 ON but a grave hazard: the safety redirect, not a quotation, and no call',
         !hazard.crashed && hazard.outcome === null && hazard.libCalls.length === 0 && /خلط بعض المواد يطلع منه غاز/.test(hazard.text),
         ascii(hazard.text.slice(0, 80)));
-      const plain = await drive('ما حكم صلاة الجماعة؟', { env: { ...ON, FREE_BRAIN_V1: 'on' }, lib: serve('fatwa_print') });
+      const plain = await drive('ما حكم صلاة الجماعة؟', { env: { ...ON, FREE_BRAIN_V1: 'on', BEFORE_WRITING_V2: 'off' }, lib: serve('fatwa_print') });
       ok('Dk3 ON and an ordinary question: not taken, the model answers, the library is not called before it',
         !plain.crashed && plain.outcome === null && plain.modelCalls >= 1 && !plain.libBeforeModel, pathDetail(plain));
     }

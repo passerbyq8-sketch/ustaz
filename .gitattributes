@@ -813,3 +813,9 @@ lib/live-number-source.js text eol=lf
 # a file whose content nobody had touched. guards/live-world-v2-killswitch-guard.cjs reads it and
 # drives it, so it must read the same on every machine.
 lib/live-news-order.js text eol=lf
+# SPEED ITEM 17 (2026-09-27) -- the before-writing path. The gate script and the two new modules
+# it drives are pinned LF for the reason every gate script is: a CRLF checkout must not move the
+# bytes a guard reads or mutates.
+guards/speed-bw2-guard.cjs text eol=lf
+lib/before-writing-v2.js text eol=lf
+lib/bw2-units.js text eol=lf
