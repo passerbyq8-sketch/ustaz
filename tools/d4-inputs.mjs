@@ -98,9 +98,11 @@ for (const m of manifest) {
 const liveReport = fs.readFileSync(path.join(E, 'EZIK-ACCEPT-LIVE-VS-PREVIEW-2026-09-26.md'));
 const live = [21, 30].map(q => {
   const section = new RegExp('### ' + q + ' [^\\n]*الحيّ[^\\n]*\\n([\\s\\S]*?)(?=\\n###|$)').exec(liveReport.toString())?.[1];
-  const text = /```[^\n]*\n([\s\S]*?)```/.exec(section || '')?.[1];
-  if (!text) throw Error('Missing recorded live Q' + q);
-  return { id: 'live-Q' + q, question: rows.find(r => r.id === 'Q' + q).question, text };
+  const renderedText = /```[^\n]*\n([\s\S]*?)```/.exec(section || '')?.[1];
+  if (!renderedText) throw Error('Missing recorded live Q' + q);
+  // UI annotations are not answer prose: lesson numbers must not certify enumeration.
+  const text = renderedText.split('\n').filter(line => !/^\[(?:بطاقة|بطاقات|أزرار|اقتراحات|دروس ذات صلة|شريط)\]/u.test(line)).join('\n').trim();
+  return { id: 'live-Q' + q, question: rows.find(r => r.id === 'Q' + q).question, text, renderedText };
 });
 const output = { base: 'f412ecc3ac82bd61ab50dd2c03a5b5222bc21872', diagnosisSeal: seal[0].trim(),
   method: 'Saved writer drafts, recorded source bytes only. BEFORE_WRITING_V1 door skipped. Missing material is explicitly identified; no invented source or network call.',

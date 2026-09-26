@@ -56,6 +56,8 @@ module.exports = async function run(fix) {
     ok('live Q30 honest qualification retained', fold(liveClean).includes('فلا انسبه اليهما من غير نص'));
     const quote = 'قال الشيخ: «لم أقف في النصوص المتاحة على هذا الحكم.»';
     ok('T2 quoted scholar text is opaque to mechanism cleanup', M.loop.withoutMechanismTalk(quote) === quote);
+    const quotedPeriod = 'قال الشيخ: «هذا بيان واضح».\nثم بيّن الدليل.';
+    ok('punctuation following a quotation is unchanged', M.loop.withoutMechanismTalk(quotedPeriod) === quotedPeriod);
     ok('non-retrieval physical hands untouched', prose.cleanRetrievalProse('غسل ما بين يديه.') === 'غسل ما بين يديه.');
     ok('pure cutoff report removed', prose.cleanRetrievalProse('انقطع النص عندي.').trim() === '');
     for (const row of R.data.rows) {

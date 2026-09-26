@@ -2357,11 +2357,13 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
             < lockSrc88.indexOf('const SAYING_VERBS = new Set(['));
       ok('AA-88 the fillers are the five words that were measured, and no others',
         lockSrc88.includes("const FRAME_FILLERS = new Set(['هذا', 'هذه', 'هو', 'له', 'انها']);"));
-      // THE MODULE STILL IMPORTS NOTHING NEW. A list of names would have meant reaching for
-      // lib/attribution.js; the party credited is read off the sentence's own shape instead,
-      // deliberately, so that this stays true.
-      ok('AA-88 ...and no import was added to reach a list of names',
-        (lockSrc88.match(/^import /gum) || []).length === 3,
+      // D4 adds only the structural ordinal helper, with no speaker/authority registry.
+      // Keep the original three imports and admit exactly this one explicit new dependency.
+      const ordinalImport88 = "import { repairOrdinalLabels } from './reader-prose.js';";
+      ok('AA-88 only the ordinal helper was added, never a list of speaker names',
+        (lockSrc88.match(/^import /gum) || []).length === 4
+        && lockSrc88.split(ordinalImport88).length === 2
+        && !/^import .*from ['"].*attribution/um.test(lockSrc88),
         JSON.stringify(lockSrc88.match(/^import .*/gum)));
     }
 
