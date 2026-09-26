@@ -860,5 +860,10 @@
     "name": "d3breviewer",
     "script": "guards/d3b-f3-reviewer-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "d3bnotfound",
+    "script": "guards/d3b-f4-notfound-guard.cjs",
+    "args": ""
   }
 ]
