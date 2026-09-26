@@ -882,3 +882,4 @@ guards/full-answer-narrator-frame-guard.cjs text eol=lf
 guards/full-answer-parenthetical-unique-guard.cjs text eol=lf
 guards/d3b-f1-quotes-guard.cjs text eol=lf
 guards/fixtures/fix-d3b-witnesses.json text eol=lf
+guards/d3b-f2-depends-guard.cjs text eol=lf
