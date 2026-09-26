@@ -850,5 +850,10 @@
     "name": "d3bquotes",
     "script": "guards/d3b-f1-quotes-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "d3bdepends",
+    "script": "guards/d3b-f2-depends-guard.cjs",
+    "args": ""
   }
 ]
