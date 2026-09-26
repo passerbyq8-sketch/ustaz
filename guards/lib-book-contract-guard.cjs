@@ -644,7 +644,7 @@ async function main() {
   // E3's mutant: the ceiling goes. A caller handing in more than the service can send would then
   // have all of it carried, and -- because the cut is measured by the slice -- carried in silence.
   const askNoCeiling = await mutantModule(temp, 'api/ask.js', 'book-no-ceiling', (src) => src.replace(
-    '  const kept = matn.slice(0, LIB_MAX_CHARS_PER_HIT_DEFAULT);',
+    '  const kept = fullMaterial ? matn : matn.slice(0, LIB_MAX_CHARS_PER_HIT_DEFAULT);',
     '  const kept = matn;  // mutant-no-ceiling',
   ), 'const kept = matn;  // mutant-no-ceiling').then((mod) => ({ mod }), (error) => ({ error }));
 

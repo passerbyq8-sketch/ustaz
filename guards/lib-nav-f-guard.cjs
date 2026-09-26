@@ -140,7 +140,7 @@ async function main() {
     && lib === plain.replace(/^<book/, '<book bid="FC-003660" atom="FC-003660:0275:001" vol="1" pg="275"')
     && A.buildLibraryBookTag(autoRow).tag.startsWith('<book bid="FC-000530" atom="FC-000530:0005:001" author=')
     && A.buildLibraryBookTag(encRow).tag.startsWith('<book bid="-" author=')
-    && /pickBookCards\(out\.cited, MAX_SOURCES, libNavValue === 'on' \? buildLibraryBookTag : buildBookTag\)/.test(ask)
+    && /pickBookCards\(out\.cited, MAX_SOURCES, libNavValue === 'on' \? buildLibraryBookTag : buildBookTag, cardOptions\)/.test(ask)
     && (ask.match(/buildLibraryBookTag\b/g) || []).length === 2,
     JSON.stringify({ plain: plain.slice(0, 120), lib: lib.slice(0, 160) }));
 

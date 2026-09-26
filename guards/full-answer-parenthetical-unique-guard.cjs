@@ -61,7 +61,10 @@ async function main() {
     const e = on.entries[0] || {};
     const groups = T.narratorGroups(f.atoms.map((a) => T.matnNarrator(a, f.matn)).filter((n) => n.name && !n.kin).map((n) => n.name));
     ok(f.id + ' fixture matches existing C4 rule', (groups.length > 1) === f.many, groups);
-    ok(f.id + ' ' + f.name, f.many ? e.parenthetical === '' && e.declined === 'multiple_hadiths' && on.problems.includes(CODE) && !/[（(]/u.test(on.text) && !e.companion && !(e.sealProof || []).length && !(e.proseProof || []).length : e.parenthetical === f.offParen && on.text.includes(`(${f.offParen})`) && !on.problems.includes(CODE), { text: on.text, entry: e, problems: on.problems });
+    ok(f.id + ' ' + f.name, f.many ? e.separateCollectors?.length > 0 && e.declined === 'combined_parenthetical_only'
+      && on.problems.includes(CODE) && !on.text.includes('(متفق عليه)') && !e.companion
+      && e.separateCollectors.every(one => on.text.includes(`(${one})`))
+      : e.parenthetical === f.offParen && on.text.includes(`(${f.offParen})`) && !on.problems.includes(CODE), { text: on.text, entry: e, problems: on.problems });
     ok(f.id + ' quoted wording survives byte for byte', on.text.includes(`«${f.matn}»`), on.text);
     const expectedOff = `قال رسول الله ${P}: «${f.matn}» (${f.offParen}).`;
     ok(f.id + ' FULL_ANSWER_V1 off keeps baseline text', off.text === expectedOff && !off.problems.includes(CODE), off.text);
@@ -69,9 +72,11 @@ async function main() {
   }
   const j = fixtures[0];
   const card = await T.applyTakhrij(`<hadith narrator="راو" ruling="صحيح">${j.matn}</hadith>`, { env: ON, lookup: lookup(j) });
-  ok('H2-6 ambiguous card dissolves without a parenthetical or citation proof', !/<hadith/u.test(card.text) && card.text.includes(`«${j.matn}»`) && !(card.entries[0] || {}).parenthetical && card.problems.includes(CODE), card);
+  ok('H2-6 D3C C2e ambiguous card keeps each separately confirmed collector', !/<hadith/u.test(card.text) && card.text.includes(`«${j.matn}»`)
+    && card.text.includes('(البخاري) (مسلم)') && !card.text.includes('(متفق عليه)') && card.problems.includes(CODE), card);
   const prose = await T.applyTakhrij(`${draft(j)} أخرجه البخاري ومسلم.`, { env: ON, lookup: lookup(j) });
-  ok('H2-7 ambiguous match cannot lend a combined proof to prose attribution', prose.problems.includes(CODE) && !(prose.entries[0] || {}).parenthetical && !((prose.entries[0] || {}).proseProof || []).length, prose);
+  ok('H2-7 ambiguous match supplies separate collector proofs', prose.problems.includes(CODE)
+    && prose.entries[0].separateCollectors.length === 2 && prose.entries[0].proseProof.length === 2, prose);
   if (arg('--out')) fs.writeFileSync(arg('--out'), JSON.stringify({ root: REPO, checks, failures, observations, card, prose }, null, 2) + '\n');
   console.log(`\n=== full-answer-parenthetical-unique: ${checks - failures}/${checks} PASS ===`);
   process.exitCode = failures ? 1 : 0;

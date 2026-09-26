@@ -70,8 +70,8 @@ async function main() {
     ? { matn: m, subjectIds: ['FC-000648'], atoms: [MUSLIM] } : { matn: m, subjectIds: [], atoms: [] }));
   const on = await T.applyTakhrij(answer, { env: { TAKHRIJ_V1: 'on', FULL_ANSWER_V1: 'on' }, lookup });
   const off = await T.applyTakhrij(answer, { env: { TAKHRIJ_V1: 'on' }, lookup });
-  ok('L4  the switch on, the long matn takes «(مسلم)»; off, it stays as the model wrote it',
-    on.text.includes(`«${MATN}» (مسلم)`) && !off.text.includes('(مسلم)'),
+  ok('L4  D3C T3 requires all words; a missing middle is not proved by two ends',
+    !on.text.includes('(مسلم)') && !off.text.includes('(مسلم)') && on.entries[0].silent === true,
     JSON.stringify({ on: on.text, off: off.text, problems: off.problems }));
 
   // ── L5 the other callers ──────────────────────────────────────────────────

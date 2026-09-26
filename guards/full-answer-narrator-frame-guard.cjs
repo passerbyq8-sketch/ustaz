@@ -46,9 +46,9 @@ const cases = [
   { id: 'H26', label: 'quoted Prophet story can mention another speaker', matn: 'ذكر من مضى ثم قال خالد لصاحبه إنه يوم عظيم', atom: speech('ذكر من مضى ثم قال خالد لصاحبه إنه يوم عظيم'), prophetic: true },
   { id: 'H27', label: 'conflicting confirmed narration vetoes speech frame', matn: J, atom: narrative(J), otherAtoms: [speech(J)] },
   { id: 'H28', label: 'over-cap quote has no proof for its frame', matn: J, atom: narrative(J), cap: true, draft: Array.from({ length: 6 }, (_, n) => frame(M + ' ' + n)).join('\n') + '\n' + frame(J) },
-  { id: 'H29', label: 'subject-first subordinate frame preserves grammar', matn: J, atom: narrative(J), draft: `والدليل أن رسول الله ${P} قال: «${J}».`, exact: `والدليل أن في الرواية: «${J}» (مسلم).` },
-  { id: 'H30', label: 'subject-first saying frame becomes narration', matn: J, atom: narrative(J), draft: `رسول الله ﷺ يقول: «${J}».`, exact: `ورد في الرواية: «${J}» (مسلم).` },
-  { id: 'H31', label: 'nominal frame preserves governing prose', matn: J, atom: narrative(J), draft: `والأصل قول النبي ﷺ: «${J}».`, exact: `والأصل رواية الحديث: «${J}» (مسلم).` },
+  { id: 'H29', label: 'subject-first subordinate frame preserves grammar', matn: J, atom: narrative(J), draft: `والدليل أن رسول الله ${P} قال: «${J}».`, exact: `والدليل نص الحديث: «${J}» (مسلم).` },
+  { id: 'H30', label: 'subject-first saying frame becomes narration', matn: J, atom: narrative(J), draft: `رسول الله ﷺ يقول: «${J}».`, exact: `نص الحديث: «${J}» (مسلم).` },
+  { id: 'H31', label: 'nominal frame preserves governing prose', matn: J, atom: narrative(J), draft: `والأصل قول النبي ﷺ: «${J}».`, exact: `والأصل نص الحديث: «${J}» (مسلم).` },
   { id: 'H32', label: 'excerpt crossing a closing quote into narration has no single speaker', matn: M + ' ثم خرج عمر إلى السوق', atom: speech(M) + ' ثم خرج عمر إلى السوق' },
   { id: 'H33', label: 'lafz variant cannot prove speech of original excerpt', matn: M, atom: '«' + M + '»', variantAtom: speech(M.replace('بالنيات', 'بالنية')), ids: ['FC-000658'] },
   { id: 'H34', label: 'actual direct speech below a chapter heading remains proven', matn: M, atom: 'باب فضل العمل ' + speech(M), prophetic: true },
@@ -57,8 +57,8 @@ const cases = [
   { id: 'H37', label: 'saved row5 same-Prophet wording variant is unknown rather than narrator speech', matn: 'من أحدث في أمرنا هذا ما ليس منه فهو رد', atom: speech('من أحدث في أمرنا هذا ما ليس منه فهو رد'), otherAtoms: ['عن عائشة قالت قال رسول الله صلى الله عليه وسلم: «من أحدث في أمرنا هذا ما ليس فيه فهو رد»'], prophetic: true },
   { id: 'H38', label: 'question before narrator answer cannot become subject-first Prophet speech', matn: 'حفظت من رسول الله صلى الله عليه وسلم دع ما يريبك إلى', atom: 'عن أبي الحوراء السعدي قال قلت للحسن بن علي ما حفظت من رسول الله صلى الله عليه وسلم؟ قال: حفظت من رسول الله صلى الله عليه وسلم دع ما يريبك إلى ما لا يريبك' },
   { id: 'H39', label: 'quoted narrator answer keeps its preceding question boundary', matn: 'حفظت من رسول الله صلى الله عليه وسلم دع ما يريبك إلى', atom: 'عن أبي الحوراء السعدي قال قلت للحسن بن علي ما حفظت من رسول الله صلى الله عليه وسلم؟ قال: «حفظت من رسول الله صلى الله عليه وسلم دع ما يريبك إلى ما لا يريبك»' },
-  { id: 'H40', label: 'hearing frame is replaced whole without orphaned سمعت', matn: J, atom: narrative(J), draft: 'سمعت رسول الله صلى الله عليه وسلم يقول: «' + J + '».', exact: 'ورد في الرواية: «' + J + '» (مسلم).' },
-  { id: 'H41', label: 'connecting ف survives frame correction', matn: J, atom: narrative(J), draft: 'كنا في سفر فقال النبي صلى الله عليه وسلم: «' + J + '».', exact: 'كنا في سفر فورد في الرواية: «' + J + '» (مسلم).' },
+  { id: 'H40', label: 'hearing frame is replaced whole without orphaned سمعت', matn: J, atom: narrative(J), draft: 'سمعت رسول الله صلى الله عليه وسلم يقول: «' + J + '».', exact: 'نص الحديث: «' + J + '» (مسلم).' },
+  { id: 'H41', label: 'connecting ف survives frame correction', matn: J, atom: narrative(J), draft: 'كنا في سفر فقال النبي صلى الله عليه وسلم: «' + J + '».', exact: 'كنا في سفر فنص الحديث: «' + J + '» (مسلم).' },
   { id: 'H42', label: 'unreadable full direct frame with addressee cannot veto another complete proof', matn: M, atom: speech(M), otherAtoms: ['حدثنا وكيع عن عمر أن النبي صلى الله عليه وسلم قال له: «' + M + '»'], prophetic: true },
   { id: 'H43', label: 'narrator words in heading cannot veto proven body speech', matn: M, atom: speech(M), prophetic: true, otherAtoms: ['باب عن عمر قال: ' + M + ' حدثنا وكيع عن عمر قال: إنما الأعمال بالنيات وإنما لكل امرئ شأن آخر'] },
   { id: 'H20', label: 'two independent targets keep their own speaker', matn: J, atom: narrative(J), draft: frame(J) + '\n' + frame(M), extra: { matn: M, atom: speech(M) } },
@@ -84,7 +84,7 @@ globalThis.fetch = async () => { throw new Error('H1 guard forbids network'); };
     ok(c.id + ' ' + c.label, c.named ? on.entries[0].companion === c.named : c.prophetic ? propheticFrame : !propheticFrame, on.text);
     ok(c.id + '-matn quoted letters survive', on.text.includes('«' + c.matn + '»'), on.text);
     if (c.exact) ok(c.id + '-grammar exact prose', on.text === c.exact, on.text);
-    if (c.extra) ok(c.id + '-other other matn retains proven frame', on.text.includes(frame(M).slice(0, -1)), on.text);
+    if (c.extra) ok(c.id + '-other other matn retains proven frame', on.text.includes('قال رسول الله ﷺ: «' + M + '»'), on.text);
     if (c.cap) ok(c.id + '-cap still unexamined', on.entries.some(e => e.matn === J && e.declined === 'over_matn_cap' && e.subjectIds.length === 0), JSON.stringify(on.entries));
     rows.push({ id: c.id, label: c.label, draft, on, off });
   }

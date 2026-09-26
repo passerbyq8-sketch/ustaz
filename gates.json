@@ -830,5 +830,20 @@
     "name": "faparentheticalunique",
     "script": "guards/full-answer-parenthetical-unique-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "d3c-cards",
+    "script": "guards/d3c-cards-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "d3c-takhrij",
+    "script": "guards/d3c-takhrij-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "d3c-frame",
+    "script": "guards/d3c-frame-guard.cjs",
+    "args": ""
   }
 ]
