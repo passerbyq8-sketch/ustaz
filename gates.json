@@ -845,5 +845,10 @@
     "name": "d3c-frame",
     "script": "guards/d3c-frame-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "d3bquotes",
+    "script": "guards/d3b-f1-quotes-guard.cjs",
+    "args": ""
   }
 ]

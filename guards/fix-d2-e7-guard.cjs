@@ -10,7 +10,11 @@ const terminal = text => { const p = prose(text), lines = p.split('\n').filter(B
   const RR = await import(pathToFileURL(path.join(ROOT, 'lib/ruling-review.js')));
   const owner = fixture.owners[0];
   const out = await RR.reviewRulings({ text: owner.text, rows: owner.rows, ask: async () => owner.raw });
-  ok('E7 recorded owner decisions unchanged', out.record.claims === 5 && out.record.notFound === 5);
+  // D3B F1 (2026-09-26) supersedes the recorded 5/5 strikes: three of them carried another sentence's
+  // quote (kinds, al-Nawawi's sixteen, the Hanafi and Maliki mistaken-enemy rules) and are now re-checked
+  // once with the correct quote from their own cited text and kept. E7 itself still changes no decision.
+  ok('E7 recorded owner decisions (D3B F1: three mispaired school quotes re-checked and kept)',
+    out.record.claims === 5 && out.record.notFound === 2 && out.record.supported === 3 && out.record.rechecked === 3);
   ok('E7 recorded owner one terminal absence line without wa', terminal(out.text));
   for (const s of fixture.siblings) {
     const bad = 'يحرم هذا الفعل مطلقا.';

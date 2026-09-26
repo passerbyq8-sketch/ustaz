@@ -890,3 +890,5 @@ tools/d3c-measure.mjs text eol=lf
 tools/d3c-offline-belt.mjs text eol=lf
 tools/d3c-overlap.mjs text eol=lf
 tools/d3c-replay.mjs text eol=lf
+guards/d3b-f1-quotes-guard.cjs text eol=lf
+guards/fixtures/fix-d3b-witnesses.json text eol=lf
