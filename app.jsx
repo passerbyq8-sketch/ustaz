@@ -29571,6 +29571,50 @@ function PagedMushaf({ startSurah, startPage, onExit }) {
   );
 }
 
+// THE NEW MUSHAF -- a self-contained reader served from /mushaf-lab/ on this origin, shown in place of
+// PagedMushaf. It posts the page it shows and a page mark; this frame writes exactly what PagedMushaf
+// wrote: the last page at once, the wird credit after WIRD_DWELL_MS of visible dwell on one page, and the
+// hand-placed mark. Rollback on a device: ?mushaflab=0 (remembered), ?mushaflab=1 to return.
+const MUSHAF_LAB_KEY = 'mushaf_lab_v1';   // device key. '0' = the old reader, anything else = the new one
+function readMushafLabFlag() {
+  try {
+    const q = new URLSearchParams(window.location.search).get('mushaflab');
+    if (q === '0' || q === '1') localStorage.setItem(MUSHAF_LAB_KEY, q);
+  } catch (e) {}
+  try { return localStorage.getItem(MUSHAF_LAB_KEY) !== '0'; } catch (e) { return true; }
+}
+const MUSHAF_LAB_ON = readMushafLabFlag();
+function MushafLabFrame({ startSurah, startPage, onExit }) {
+  useEffect(() => {
+    let t = null, pg = 0;
+    const disarm = () => { if (t) { clearTimeout(t); t = null; } };
+    const visible = () => { try { return document.visibilityState !== 'hidden'; } catch (e) { return true; } };
+    const arm = () => { disarm(); if (!pg || !visible()) return; const at = pg; t = setTimeout(() => { t = null; markWirdPageRead(at); }, WIRD_DWELL_MS); };
+    const onMsg = (e) => {
+      if (e.origin !== window.location.origin || !e.data || typeof e.data !== 'object') return;
+      const d = e.data;
+      if (d.type === 'mushaf-lab:exit') { if (typeof onExit === 'function') onExit(); return; }
+      const p = Number(d.page), sr = Number(d.s) || startSurah;
+      if (!Number.isInteger(p) || p < 1 || p > 604) return;
+      if (d.type === 'mushaf-lab:page') { pg = p; writeMushafLastPage(p, sr); arm(); }
+      else if (d.type === 'mushaf-lab:bookmark') writeMushafBookmark(p, sr);
+    };
+    const onVis = () => { if (visible()) arm(); else disarm(); };
+    window.addEventListener('message', onMsg);
+    document.addEventListener('visibilitychange', onVis);
+    return () => { disarm(); window.removeEventListener('message', onMsg); document.removeEventListener('visibilitychange', onVis); };
+  }, [onExit, startSurah]);
+  const hash = startPage ? ('p=' + startPage) : ('s=' + startSurah);
+  return (
+    <iframe
+      src={'/mushaf-lab/index.html#' + hash}
+      title={'\u0627\u0644\u0645\u0635\u062d\u0641'}
+      allow="clipboard-read; clipboard-write; autoplay; fullscreen"
+      style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', border: 0, zIndex: 1500, background: MADINA_DESK }}
+    />
+  );
+}
+
 function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio }) {
   const [ready, setReady] = useState(!!__quranData);
   const [counts, setCounts] = useState(null);       // { [surah]: ayahCount } -- ONE pass
@@ -29817,7 +29861,7 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
   // SurahCard انسحبت من هنا وبقيت في المحادثة، حيث وُلدت — ومعها قِشرتها.
   // S91: same route as the device button -- the pop spends the entry this open surah took, and
   // the registry then runs leaveSurah, so the recitation is silenced exactly as before.
-  if (selected) return <PagedMushaf startSurah={selected} startPage={openAt && openAt.s === selected ? openAt.p : null} onExit={ezikGoBack} />;
+  if (selected) return MUSHAF_LAB_ON ? <MushafLabFrame startSurah={selected} startPage={openAt && openAt.s === selected ? openAt.p : null} onExit={ezikGoBack} /> : <PagedMushaf startSurah={selected} startPage={openAt && openAt.s === selected ? openAt.p : null} onExit={ezikGoBack} />;
 
   // S110 -- ONE array, split once, right here. buildMushafNav still owns the data and the order;
   // this only asks each row which of the two lists it belongs to, so the surah grid holds surah
