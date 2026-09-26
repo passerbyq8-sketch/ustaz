@@ -127,8 +127,11 @@ async function main() {
       (r5.text.match(/ينسبُ هذا القولَ إلى الجمهور/gu) || []).length === 1 && r5.record.notFound === 2, r5.text);
     const r6 = await RR.reviewRulings({ text: n07 + '\n' + FIX.find((f) => f[0] === 'KHAWF-hanbali')[2], rows: [{ ...encRow, fullText: 'نص لا يذكر شيئا من ذلك في هذه المادة.' }],
       ask: async () => { throw Object.assign(new Error('upstream 529'), { status: 529 }); } });
+    // D3B F4c (2026-09-26): the one «لم أقف» line now names the struck sentence by its head, in quotes,
+    // wherever the answer keeps another claim; the sentence itself is gone from the prose, checked there.
+    const r6prose = r6.text.split('\n').filter((l) => !/^لم أقف/u.test(l.trim())).join('\n');
     ok('R3f the reader down: a majority claim whose marker is in no text is still removed; the madhhab claim is left and counted',
-      !r6.text.includes('حرامٌ على الرجل') && r6.text.includes('تتم الطائفتان') && r6.record.unverified === 1
+      !r6prose.includes('حرامٌ على الرجل') && r6.text.includes('تتم الطائفتان') && r6.record.unverified === 1
       && String(r6.record.verifier).startsWith('error:'), r6.text + ' | ' + JSON.stringify(r6.record));
     const r7 = await RR.reviewRulings({ text: n07, rows: [], ask: ask({ claims: [] }) });
     ok('R3g no text gathered at all: the claim has nothing behind it and is removed', !r7.text.includes('حرامٌ على الرجل') && r7.record.verifier === 'no_rows', r7.text);

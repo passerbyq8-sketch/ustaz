@@ -13,7 +13,10 @@ function ok(name,pass){checks++;if(!pass)failed++;console.log((pass?'PASS ':'FAI
  const turn=fixtures.owners.find(f=>f.id.endsWith('3ddb4fcd'));
  let calls=0;
  const replay=await RR.reviewRulings({text:turn.text,rows:turn.rows,ask:async()=>{calls++;return turn.raw;}});
- ok('E1 owner 3 recorded provider: three holder-checked verbatim claims recovered',calls===1&&replay.record.supported===3&&replay.record.notFound===2);
+ // D3B F4 (2026-09-26): the owner turn's first sentence is the writer's own «لم أقفْ على نصٍّ لمذهبِ
+ // الحنفية…» disclosure; it is still asked but never struck (it is moved whole into the one line), so the
+ // struck count is 1, not 2. The three recovered supports are unchanged.
+ ok('E1 owner 3 recorded provider: three holder-checked verbatim claims recovered',calls===1&&replay.record.supported===3&&replay.record.notFound===1&&replay.record.disclosures===1);
  for(const f of fixtures.siblings){
   const rows=[f.row]; const text=f.claim;
   const raw=JSON.stringify({claims:[{id:1,verdict:'supported',row:2,quote:f.quote}]});

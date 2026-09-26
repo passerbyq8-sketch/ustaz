@@ -56,13 +56,14 @@ const absenceLine = (text) => prose(text).split('\n').filter((l) => /^لم أق�
   // F2b — Q28: Maliki and Hanbali removed ⟹ named in the one line; the Shafi'i contradiction keeps its label.
   const q28 = await run(28, [3, 6]);
   const line28 = absenceLine(q28.text);
-  ok('F2b Q28 the removed Maliki and Hanbali schools are named in the «لم أقف» line', /للمالكية/u.test(line28) && /للحنابلة/u.test(line28), line28);
+  // D3B F4c: a school's struck sentence is named by the school and its head («يُسنِدُ إلى المالكية…»).
+  ok('F2b Q28 the removed Maliki and Hanbali schools are named in the «لم أقف» line', /المالكية/u.test(line28) && /الحنابلة/u.test(line28), line28);
   const full28 = await run(28, []);
   ok('F2b Q28 the contradicted Shafi\'i sentence keeps «الشافعية» before the source\'s words', /الشافعية: والذي في/u.test(full28.text), full28.text.slice(0, 900));
   // F2b — Q32 on the recorded base verdicts: Hanafi and Shafi'i are named, never silently lost.
   const q32base = await run(32, [1, 2, 6]);
   const line32 = absenceLine(q32base.text);
-  ok('F2b Q32 on the base verdicts: Hanafi and Shafi\'i are named in the line', /للحنفية/u.test(line32) && /للشافعية/u.test(line32), line32);
+  ok('F2b Q32 on the base verdicts: Hanafi and Shafi\'i are named in the line', /الحنفية/u.test(line32) && /الشافعية/u.test(line32), line32);
   // F2b — a question school the answer never mentions is named; one the answer keeps is not.
   const lone = await RR.reviewRulings({ text: 'قال الحنفية بالجواز [[1]].', rows: [{ ref: 1, kind: 'encyclopedia', title: 'م', fullText: 'قال الحنفية بالجواز في هذه المسألة عندهم.' }],
     ask: async () => JSON.stringify({ claims: [{ id: 1, verdict: 'supported', row: 1, quote: 'قال الحنفية بالجواز في هذه المسألة' }] }), question: 'ما حكمها عند الحنفية والحنابلة؟' });
