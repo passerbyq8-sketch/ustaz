@@ -18268,6 +18268,10 @@ function App() {
       // The khatmah goes with everything else: "delete all my data" must not leave a
       // reading record behind for whoever sets this device up next.
       localStorage.removeItem(KHATMAH_KEY);
+      // THE NEW MUSHAF'S OWN STORE, on the same promise: its marks, notes, reflections, tags,
+      // favourites, recent pages, last page and settings -- every key under MUSHAF_LAB_STORE_PREFIX.
+      // Entered in tools/delete-truth-measure.cjs in the same commit, which seeds and checks them.
+      ezikClearMushafLab();
       localStorage.removeItem(WIRD_TARGET_KEY);
       localStorage.removeItem(WIRD_DAY_KEY);
       // ITEM 75 RIDER 1 (owner ruling, 2026-09-10) -- THE OTHER HALF OF THE TWO FEATURES THE
@@ -29584,6 +29588,22 @@ function readMushafLabFlag() {
   try { return localStorage.getItem(MUSHAF_LAB_KEY) !== '0'; } catch (e) { return true; }
 }
 const MUSHAF_LAB_ON = readMushafLabFlag();
+// THE READER'S OWN STORE. mushaf-lab/app.js keeps the reader's marks, notes, reflections, tags,
+// favourites, recent pages, last page and settings on this origin under keys that all begin with
+// this prefix (its store.get/store.set). "Delete all my data" promises the place in the Mushaf and
+// says everything is wiped, so resetAll sweeps every key under it -- by prefix, because the names
+// are the reader's, not this file's. The rollback flag MUSHAF_LAB_KEY is not under it and stays.
+const MUSHAF_LAB_STORE_PREFIX = 'lab.';
+function ezikClearMushafLab() {
+  try {
+    const mine = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (typeof k === 'string' && k.indexOf(MUSHAF_LAB_STORE_PREFIX) === 0) mine.push(k);
+    }
+    mine.forEach((k) => { try { localStorage.removeItem(k); } catch (e) {} });
+  } catch (e) {}
+}
 function MushafLabFrame({ startSurah, startPage, onExit }) {
   useEffect(() => {
     let t = null, pg = 0;
@@ -29861,7 +29881,8 @@ function MushafScreen({ selected, setSelected, onBack, onPlaySurah, onStopAudio 
   // SurahCard انسحبت من هنا وبقيت في المحادثة، حيث وُلدت — ومعها قِشرتها.
   // S91: same route as the device button -- the pop spends the entry this open surah took, and
   // the registry then runs leaveSurah, so the recitation is silenced exactly as before.
-  if (selected) return MUSHAF_LAB_ON ? <MushafLabFrame startSurah={selected} startPage={openAt && openAt.s === selected ? openAt.p : null} onExit={ezikGoBack} /> : <PagedMushaf startSurah={selected} startPage={openAt && openAt.s === selected ? openAt.p : null} onExit={ezikGoBack} />;
+  if (selected && MUSHAF_LAB_ON) return <MushafLabFrame startSurah={selected} startPage={openAt && openAt.s === selected ? openAt.p : null} onExit={ezikGoBack} />;
+  if (selected) return <PagedMushaf startSurah={selected} startPage={openAt && openAt.s === selected ? openAt.p : null} onExit={ezikGoBack} />;
 
   // S110 -- ONE array, split once, right here. buildMushafNav still owns the data and the order;
   // this only asks each row which of the two lists it belongs to, so the surah grid holds surah

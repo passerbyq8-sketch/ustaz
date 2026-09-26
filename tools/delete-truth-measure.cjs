@@ -329,6 +329,7 @@ function keyOf(name) {
 function keyFor(e) {
   if (e.c) return keyOf(e.c);
   if (e.chat) return keyOf('EZIK_CHAT_PREFIX') + e.chat;
+  if (e.lab) return keyOf('MUSHAF_LAB_STORE_PREFIX') + e.lab;
   if (!literalKeys.has(e.lit)) {
     throw new Error('this tool expects the bare literal "' + e.lit + '" to be a storage key, but '
       + 'app.jsx hands no such string to localStorage any more');
@@ -343,6 +344,15 @@ for (const v of literalKeys) ALL_KEYS.add(v);
 
 // Two saved conversations, so "every stored body" is a claim with bodies behind it.
 const CHAT_IDS = ['c_alpha', 'c_beta'];
+
+// THE NEW MUSHAF'S OWN STORE (mushaf-lab/, 2026-09-26). The embedded reader writes the reader's own
+// content on this origin under MUSHAF_LAB_STORE_PREFIX, through its store.get/store.set, and those
+// names are the reader's, not app.jsx's -- so they cannot be read out of app.jsx like the rest of
+// the seed. They are written out here and held to the reader's source in BOTH directions by the
+// case below: a name the reader starts writing that is not on this list fails, and so does a name
+// on this list the reader no longer writes.
+const LAB_SRC = path.join(REPO, 'mushaf-lab', 'app.js');
+const LAB_NAMES = ['settings', 'bm', 'tags', 'fav', 'notes', 'refl', 'recent', 'last', 'hintSeen'];
 
 // ---------------------------------------------------------------------------
 // THE EXPECTATIONS -- written out, not derived. See the header.
@@ -518,6 +528,20 @@ const MUST_GO_NEW = [
     clause: 'NOT a sentence of delete.html -- the page names the shelf in neither language. Entered on the owner ruling of 2026-09-10 that every device key is wiped' },
   { c: 'HOME_ORDER_KEY',
     clause: 'NOT a sentence of delete.html -- the page names the shelf in neither language. Entered on the owner ruling of 2026-09-10 that every device key is wiped' },
+  // THE NEW MUSHAF'S OWN STORE, 2026-09-26. Swept by prefix in resetAll (ezikClearMushafLab), and
+  // each name is entered here beside the sentence that asks for it. The marks, the last page and
+  // the recent pages are "your place in the Mushaf" (delete.html:107 / :180); the rest are the
+  // reader's own notes and settings, which that page covers in its line "Everything is wiped
+  // immediately" / «يُمحى كلُّ شيءٍ في الحال» in section 2 -- and names no further.
+  { lab: 'bm', clause: 'your place in the Mushaf -- the marks the reader placed in the new reader' },
+  { lab: 'last', clause: 'your place in the Mushaf -- the last page of the new reader' },
+  { lab: 'recent', clause: 'your place in the Mushaf -- the pages the new reader opened recently' },
+  { lab: 'notes', clause: 'Everything is wiped immediately -- the notes the reader wrote' },
+  { lab: 'refl', clause: 'Everything is wiped immediately -- the reflections the reader wrote' },
+  { lab: 'tags', clause: 'Everything is wiped immediately -- the tags the reader placed' },
+  { lab: 'fav', clause: 'Everything is wiped immediately -- the favourites the reader kept' },
+  { lab: 'settings', clause: 'Everything is wiped immediately -- the settings of the new reader' },
+  { lab: 'hintSeen', clause: 'Everything is wiped immediately -- the hint the new reader has seen' },
 ];
 
 // What must be standing afterwards, and the reason each one is allowed to stand.
@@ -549,6 +573,9 @@ const MUST_STAY = [
   { c: 'ADHKAR_STREAK_KEY', why: 'not promised' },
   { c: 'MUSHAF_SVG_KEY', why: 'not promised' },
   { c: 'MADINA_IMG_KEY', why: 'not promised' },
+  // 2026-09-26 -- the new mushaf's rollback flag, a device renderer switch of exactly the kind of
+  // the two above. It holds no reading and no content; the reader's own store is swept by prefix.
+  { c: 'MUSHAF_LAB_KEY', why: 'not promised' },
   // ITEM 75 RIDER 1 -- WHERE FOUR OF THESE WENT, 2026-09-10. WIRD_LIST_KEY, DAILY_WIRD_KEY,
   // HOME_ORDER_KEY and EZWID_KEY stood here, the last two under a note asking the owner to
   // confirm. He ruled: every device key is wiped by "delete all my data", and the four move
@@ -559,7 +586,7 @@ const MUST_STAY = [
 
 // Resolved once, here, so every case below compares real keys and a rename fails loudly above.
 const GONE_ALREADY = MUST_GO_ALREADY.map(keyFor);
-const GONE_NEW = MUST_GO_NEW.map((e) => ({ key: keyFor(e), clause: e.clause }));
+const GONE_NEW = MUST_GO_NEW.map((e) => ({ key: keyFor(e), clause: e.clause, family: !!e.lab }));
 const STAYS = MUST_STAY.map((e) => ({ key: keyFor(e), why: e.why }));
 
 const GO = new Set(GONE_ALREADY.concat(GONE_NEW.map((x) => x.key)));
@@ -576,6 +603,9 @@ function fakeStorage() {
     getItem: (k) => (m.has(k) ? m.get(k) : null),
     setItem: (k, v) => { m.set(k, String(v)); },
     removeItem: (k) => { m.delete(k); },
+    // The two a prefix sweep walks the store with, as the real Storage has them.
+    get length() { return m.size; },
+    key: (i) => { const a = Array.from(m.keys()); return i >= 0 && i < a.length ? a[i] : null; },
     has: (k) => m.has(k),
     keys: () => Array.from(m.keys()),
     size: () => m.size,
@@ -619,6 +649,8 @@ function scene(opts) {
   // The conversation index is real JSON, because ezikClearAllChats parses it to find the bodies.
   storage.setItem(keyOf('EZIK_CHATS_KEY'), JSON.stringify(CHAT_IDS.map((id) => ({ id: id, pk: 'p1', at: 1 }))));
   for (const id of CHAT_IDS) storage.setItem(keyOf('EZIK_CHAT_PREFIX') + id, JSON.stringify([{ role: 'user', text: 'x' }]));
+  // The new mushaf's own store, every name its reader writes.
+  for (const n of LAB_NAMES) storage.setItem(keyOf('MUSHAF_LAB_STORE_PREFIX') + n, JSON.stringify('SEED:' + n));
 
   const env = {
     window: fakeWindow(events),
@@ -728,6 +760,26 @@ run('the keys the page promises and the code did not keep are gone, each by name
   return lines.join(' · ') + ' -- all ' + lines.length + ' gone';
 });
 
+// ---- 1b. The new mushaf's names are the names its reader really writes. ---------------------
+run('the new mushaf store names on this roster are exactly the ones its reader writes', () => {
+  const lab = fs.readFileSync(LAB_SRC, 'utf8');
+  is(lab.indexOf("localStorage.getItem('" + keyOf('MUSHAF_LAB_STORE_PREFIX') + "' + k)") !== -1
+    && lab.indexOf("localStorage.setItem('" + keyOf('MUSHAF_LAB_STORE_PREFIX') + "' + k,") !== -1,
+    'mushaf-lab/app.js no longer keeps its store under ' + keyOf('MUSHAF_LAB_STORE_PREFIX'));
+  const used = new Set();
+  const re = /store\.(?:get|set)\('([A-Za-z0-9_]+)'/g;
+  let m;
+  while ((m = re.exec(lab))) used.add(m[1]);
+  is(used.size > 0, 'no store names found in mushaf-lab/app.js -- this case is measuring nothing');
+  const unlisted = Array.from(used).filter((n) => LAB_NAMES.indexOf(n) === -1).sort();
+  is(unlisted.length === 0, 'the reader writes ' + unlisted.join(', ') + ' and this roster does not seed it');
+  const stale = LAB_NAMES.filter((n) => !used.has(n)).sort();
+  is(stale.length === 0, 'this roster seeds ' + stale.join(', ') + ' and the reader no longer writes it');
+  const onRoster = GONE_NEW.filter((x) => x.family).length;
+  eq(onRoster, LAB_NAMES.length, 'store names entered in MUST_GO_NEW');
+  return used.size + ' names, each seeded and each on the roster';
+});
+
 // ---- 2. The control: what was not promised is not touched. ----------------------------------
 run('ezik_hijri_offset_v1 is still there -- the page promises it in neither language', () => {
   const r = press();
@@ -834,9 +886,13 @@ run('the new removals use the named constant, never a second string literal', ()
   }
   // And each new key's literal still appears exactly once in the whole file: at its declaration.
   for (const item of GONE_NEW) {
+    if (item.family) continue;   // named by the reader, not by app.jsx: its prefix is checked below
     const hits = source.split("'" + item.key + "'").length - 1;
     eq(hits, 1, "occurrences of the literal '" + item.key + "' in app.jsx");
   }
+  const labPrefix = keyOf('MUSHAF_LAB_STORE_PREFIX');
+  eq(source.split("'" + labPrefix + "'").length - 1, 1,
+    "occurrences of the literal '" + labPrefix + "' in app.jsx");
   return wanted.length + ' by constant; each literal still appears exactly once in app.jsx';
 });
 
@@ -1342,7 +1398,7 @@ console.log('lifted:  resetAll@' + startLine(V_RESET) + '-' + endLine(V_RESET)
   + '  + ' + CLOSURE.order.length + ' top-level names it closes over');
 console.log('faked:   ' + ENV_NAMES.length + ' -- ' + ENV_NAMES.join(', '));
 console.log('seeded:  ' + ALL_KEYS.size + ' keys read out of app.jsx, plus '
-  + CHAT_IDS.length + ' conversation bodies');
+  + CHAT_IDS.length + ' conversation bodies and ' + LAB_NAMES.length + ' new-mushaf store keys');
 console.log('');
 
 let failed = 0;

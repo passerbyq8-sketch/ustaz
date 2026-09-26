@@ -1470,7 +1470,19 @@ const SEALED = {
 //                    sw.js is 48468 bytes before and after. The store name did NOT move -- it is
 //                    the merge round's call. THIS digest is re-cut LAST, after every other sw.js
 //                    edit was final.
-  'sw.js': '44ee58e0488c6f4a6acadabb03b3ad6a3628763f3bcf561d5c5952db37862b80',
+  //   2026-09-26   -- THE NEW MUSHAF (mushaf_lab_v1) GOES TO MAIN. app.jsx gained MushafLabFrame, an
+//                    iframe of /mushaf-lab/index.html opened before PagedMushaf behind a device flag,
+//                    and resetAll gained ezikClearMushafLab, which sweeps the embedded reader's own
+//                    lab.* keys. INDEX.HTML DID NOT MOVE and NO FILE JOINED OR LEFT CORE: mushaf-lab/
+//                    is not precached. app.js was rebuilt by node tools/build-app.cjs,
+//                    1782018 -> 1785502 (+3484), and CORE_BYTES was re-cut 2955108 -> 2958592
+//                    (+3484) by node tools/core-bytes.cjs --write; the byte table in sw.js:142 and
+//                    the SW_PROSE mirror of it in B14 follow, both 1782018 -> 1785502. sw.js is
+//                    48468 bytes before and after, measured at CR = 0. The store name did NOT move
+//                    -- it stays at v38, as it did for every app.js-only ship since 2026-09-16-d:
+//                    the changed worker installs and rewrites every CORE entry into the same store.
+//                    THIS digest is re-cut LAST, after every other sw.js edit was final.
+  'sw.js': '1c0cb74cf1462102d71db9c151a2a2c0111d52e76bd91dad47f9f73777cc4fb5',
 };
 
 // ---------------------------------------------------------------------------
@@ -2426,7 +2438,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1782018, of: 'app.js' },
+      { n: 1785502, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
