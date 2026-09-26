@@ -122,6 +122,24 @@
 
   // ------------------------------------------------------------------ pages
   const isSpread = () => S.spread && window.innerWidth >= 900 && window.innerWidth > window.innerHeight;
+  const FILL_Q = '(orientation: portrait) and (max-width: 700px)';   // same rule as Ezik's reader: a phone held upright fills the screen
+  const pageAspect = (st) => st._aspect || (S.mode === 'vector' ? 382.68 / 547.09 : (+st.dataset.p < 3 ? 851 / 1368 : 747 / 1229));
+  function sizeStages() {
+    const stages = Array.from(document.querySelectorAll('.stage')); if (!stages.length) return;
+    const W = window.innerWidth, H = window.innerHeight;
+    let fill = false; try { fill = stages.length === 1 && window.matchMedia(FILL_Q).matches; } catch (e) {}
+    if (fill) stages.forEach((st) => { st.style.width = W + 'px'; st.style.height = H + 'px'; });
+    else {
+      const gap = stages.length > 1 ? 10 : 0; const sumA = stages.reduce((t, st) => t + pageAspect(st), 0);
+      const h = Math.max(1, Math.floor(Math.min(H, (W - gap) / sumA)));
+      stages.forEach((st) => { st.style.height = h + 'px'; st.style.width = Math.floor(h * pageAspect(st)) + 'px'; });
+    }
+    stages.forEach(fitStage);
+  }
+  // the bars float over the page; one short tap hides or shows all of them
+  let chromeAuto = false;
+  const setImmersive = (on) => document.body.classList.toggle('immersive', !!on);
+  const toggleChrome = () => setImmersive(!document.body.classList.contains('immersive'));
   const geoUrl = (p) => 'geometry/' + pad3(p) + '.json?v=' + encodeURIComponent((META && META.built) || '1');   // a rebuild gets fresh URLs past every cache
   function visiblePages(p) { if (!isSpread()) return [p]; const odd = p % 2 ? p : p - 1; return [odd, odd + 1].filter((x) => x >= 1 && x <= 604); }
   async function loadGeo(p) {
@@ -148,13 +166,14 @@
       st.className = 'stage' + (S.mode === 'vector' ? ' vector' : '') + (p < 3 ? ' list-only' : ''); st.dataset.p = p;
       const im = document.createElement('img'); im.alt = 'صفحة ' + ar(p); im.decoding = 'async'; im.draggable = false;
       im.src = S.mode === 'vector' ? SVG(p) : IMG(p);
-      im.addEventListener('load', () => fitStage(st)); im.addEventListener('error', () => { const ph = document.createElement('div'); ph.className = 'ph'; ph.textContent = 'تعذّر تحميل صورة الصفحة'; st.appendChild(ph); });
+      im.addEventListener('load', () => { if (im.naturalWidth && im.naturalHeight) st._aspect = im.naturalWidth / im.naturalHeight; sizeStages(); }); im.addEventListener('error', () => { const ph = document.createElement('div'); ph.className = 'ph'; ph.textContent = 'تعذّر تحميل صورة الصفحة'; st.appendChild(ph); });
       const layer = document.createElement('div'); layer.className = 'layer';
       const tl = document.createElement('div'); tl.className = 'tl';
       st.append(im, layer, tl); sp.appendChild(st);
       heads.push(p);
       if (p >= 3) loadGeo(p).then((g) => { if (g && st.isConnected) { buildTextLayer(st, g); drawMarks(st); } });
     }
+    sizeStages();
     // header
     const ss = []; heads.forEach((p) => pageAyat[p].forEach((k) => { const s = +k.split(':')[0]; if (ss.indexOf(s) < 0) ss.push(s); }));
     $('surahTitle').textContent = ss.map((s) => 'سورة ' + surahName(s)).join('، ');
@@ -671,7 +690,7 @@
     const [s] = startKey.split(':').map(Number);
     const end = endKey || (s + ':' + T.nAyah[s - 1]);
     P.list = keysBetween(startKey, end); P.i = 0; P.rrep = 0; P.on = true; P.paused = false;
-    $('player').hidden = false; playIndex(0);
+    $('player').hidden = false; setImmersive(false); playIndex(0);
   }
   function playIndex(i) {
     if (!P.list.length) return;
@@ -779,7 +798,8 @@
     sp.addEventListener('pointerup', (e) => {
       if (!press) return; const pr = press; press = null; clearTimeout(pr.timer);
       if (pr.fired || Math.hypot(e.clientX - pr.x, e.clientY - pr.y) > 12) return;
-      openFromPress(pr.st, e.clientX, e.clientY);
+      if (rangeStart) { openFromPress(pr.st, e.clientX, e.clientY); return; }
+      toggleChrome();
     });
     sp.addEventListener('pointercancel', cancelPress);
     sp.addEventListener('contextmenu', (e) => { if (!document.body.classList.contains('selmode')) e.preventDefault(); });
@@ -791,7 +811,7 @@
       const s1 = window.getSelection && window.getSelection(); if (s1 && !s1.isCollapsed) return;
       if (document.body.classList.contains('selmode')) return;
       if (window.visualViewport && window.visualViewport.scale > 1.05) return;
-      if (Math.abs(dx) > 70 && Math.abs(dy) < 50 && dt < 600) step(dx > 0 ? 1 : -1);
+      if (Math.abs(dx) > 70 && Math.abs(dy) < 50 && dt < 600) { step(dx > 0 ? 1 : -1); if (!chromeAuto) { chromeAuto = true; setImmersive(true); } }
     }, { passive: true });
     document.addEventListener('copy', (e) => {
       const s1 = window.getSelection && window.getSelection(); if (!s1 || s1.isCollapsed) return;
@@ -799,8 +819,8 @@
       if (!a || !a.closest || !a.closest('.tl')) return;
       const t = String(s1).replace(/\s+/g, ' ').trim(); if (t && e.clipboardData) { e.clipboardData.setData('text/plain', t); e.preventDefault(); }
     });
-    let rt = 0; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { const n = document.querySelectorAll('.stage').length; if (n !== visiblePages(cur).length) render(); else document.querySelectorAll('.stage').forEach(fitStage); }, 150); });
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => document.querySelectorAll('.stage').forEach(fitStage));
+    let rt = 0; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { const n = document.querySelectorAll('.stage').length; if (n !== visiblePages(cur).length) render(); else sizeStages(); }, 150); });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(sizeStages);
     window.addEventListener('hashchange', () => route(false));
   }
   function route(first) {
@@ -815,5 +835,5 @@
   }
 
   // test hooks (read-only use by the build's smoke test)
-  window.__lab = { wordsOf, normalize, keysBetween, citeRange, visiblePages, quarterLabel, get state() { return { cur, P, S }; }, ayahSheet, savedSheet, searchSheet, runSearch, indexSheet, goSheet, settingsSheet, playFrom, stopPlay, toggleBookmark, findBookmark, rangeSheet, closeSheet, render, goPage, exportCsv };
+  window.__lab = { sizeStages, toggleChrome, wordsOf, normalize, keysBetween, citeRange, visiblePages, quarterLabel, get state() { return { cur, P, S }; }, ayahSheet, savedSheet, searchSheet, runSearch, indexSheet, goSheet, settingsSheet, playFrom, stopPlay, toggleBookmark, findBookmark, rangeSheet, closeSheet, render, goPage, exportCsv };
 })();
