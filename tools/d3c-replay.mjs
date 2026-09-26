@@ -32,13 +32,17 @@ for(const r of input.rows) {
   });
   const rows=r.materials.map(m=>({ ...m,recordId:m.id,bookTitle:m.book,subjectId:m.subject,
     locatorSpan:{volume:m.volume,pageStart:m.page,pageEnd:m.pageEnd},part:m.volume,publisher:m.kind==='encyclopedia'?'الموسوعة الفقهية الكويتية':undefined,
-    fullText:m.text,writerText:m.text }));
+    fullText:m.fullText||m.text,writerText:m.writerText||m.text }));
   const cited=rows.filter(m=>r.cited.includes(m.ref));
   const options=label==='before'?{}:{locations:true,question:r.question};
-  const cards=[...loop.pickReaderCards(cited,3,row=>ask.buildSourceTag({url:row.url,title:row.title})),
+  const reviews=r.verdict?.sentences || [];
+  const rejected=label==='before' && cited.length===1 && reviews.some(s=>['kept-unsupported-attribution-marked','removed-unsupported-attribution'].includes(s?.action))
+    && !reviews.some(s=>s?.evidenceId===loop.reviewerEvidence(cited[0]).id) ? cited[0] : null;
+  const cards=[...loop.pickReaderCards(cited,3,row=>row===rejected?null:ask.buildSourceTag({url:row.url,title:row.title})),
     ...loop.pickBookCards(cited,3,ask.buildBookTag,options),...loop.pickEncyclopediaCards(cited,3,ask.buildBookTag,options)];
   const pass=await tk.applyTakhrij(r.text,{env:{TAKHRIJ_V1:'on',FULL_ANSWER_V1:'on'},lookup,question:r.question});
-  let sources=cited.map(m=>({title:m.title,passage:label==='before'?m.text.slice(0,1200):m.text}));
+  if(pass.gradingHead && pass.text.startsWith(pass.gradingHead+'\n\n') && tk.headRestatedBy(pass.gradingHead,pass.text.slice(pass.gradingHead.length+2))) pass.text=pass.text.slice(pass.gradingHead.length+2);
+  let sources=cited.map(m=>({title:m.title,passage:label==='before'?m.text.slice(0,1200):m.fullText||m.text}));
   for(const entry of pass.entries || []) {
     for(const book of entry.sealProof || []) sources.push({title:book,passage:book+' '+entry.matn});
     for(const book of entry.proseProof || []) sources.push({proseProof:{book,matn:entry.matn}});

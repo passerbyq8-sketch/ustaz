@@ -80,15 +80,15 @@ async function main() {
   // D3A H2 explicitly supersedes C4's old unchanged-parenthetical expectation: the same
   // multi-hadith match that prevents naming now prevents a mixed citation. H1 repairs the frame.
   ok('U2  D3A H2: the shared opener has no parenthetical or combined citation proof',
-    entry(u1).parenthetical === '' && entry(u1).declined === 'multiple_hadiths'
-    && u1.text === `ورد في الرواية: «${J}».`
+    entry(u1).separateCollectors.length === 2 && entry(u1).declined === 'combined_parenthetical_only'
+    && u1.text === `نص الحديث: «${J}» (البخاري) (مسلم).`
     && (u1.problems || []).includes('TAKHRIJ_PARENTHETICAL_MANY_HADITHS')
     && !(entry(u1).sealProof || []).length,
     JSON.stringify([u1.text, entry(u1).parenthetical]));
 
   const u3 = await run(M, ON, ['FC-000645', 'FC-000648'], [M_BUKHARI, M_MUSLIM]);
   ok('U3  one hadith in two books, one man (the prayer in one book only): named, as before',
-    u3.text === `عن عمر بن الخطاب رضي الله عنه: «${M}» (متفق عليه).`, u3.text);
+    u3.text === `عن عمر بن الخطاب رضي الله عنه: قال رسول الله ﷺ: «${M}» (متفق عليه).`, u3.text);
 
   const u4 = await run(G, ON, ['FC-000645', 'FC-000658'], [G_BUKHARI, G_TIRMIDHI]);
   ok('U4  one man written two ways («عبد الله بن عمر» / «ابن عمر»): named, as before',

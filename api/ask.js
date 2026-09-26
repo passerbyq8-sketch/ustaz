@@ -24,7 +24,7 @@ import {
 import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 import { guardDayCap, dayCapMessage, hasUnrevokedFounderToken } from '../lib/daycap.js';
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
-import { writerReadMaterial } from '../lib/reader-card-material.js';
+import { writerReadMaterial, fullSourceMaterial } from '../lib/reader-card-material.js';
 import { classifyRoute, createSourceFilter, isReligiousText, normalizeArabic, isRulingFrame } from '../lib/route-classify.js';
 import { verifyAttributedReply } from '../lib/attribution.js';
 import { planAsk, unattributedNote, REASON, ambiguousScholarPrompt, NEEDS_MATERIAL } from '../lib/ask-plan.js';
@@ -2092,7 +2092,7 @@ export default async function handler(req, res) {
       storedFinalizerSources.length = 0;
       for (const row of out.cited) {
         storedFinalizerSources.push({
-          url: row.url, title: row.title, passage: writerReadMaterial(row),
+          url: row.url, title: row.title, passage: fullSourceMaterial(row),
         });
       }
       // AND EVERY ROW A STREAMED UNIT WAS LET GO AGAINST. The unit stream judges a card's takhrij
@@ -2105,7 +2105,7 @@ export default async function handler(req, res) {
       for (const row of Array.isArray(out.streamTakhrijRows) ? out.streamTakhrijRows : []) {
         if (out.cited.includes(row)) continue;
         storedFinalizerSources.push({
-          url: row.url, title: row.title, passage: writerReadMaterial(row),
+          url: row.url, title: row.title, passage: fullSourceMaterial(row),
         });
       }
       // ── §٤: THE MINUTE OF WHAT WAS REMOVED (XC-03) ─────────────────────────

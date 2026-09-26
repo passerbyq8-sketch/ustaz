@@ -87,7 +87,7 @@ async function rows(T, report) {
   const g2 = await run(plain, ON, lib(['FC-000645'], [UMAR]));
   const g2Off = await run(plain, OFF, lib(['FC-000645'], [UMAR]));
   r.G2 = report('G2  one book, next to the Prophet ﷺ, with the prayer: «عن عمر بن الخطاب رضي الله عنه: «…» (البخاري)»; off: UNCONFIRMED',
-    g2.text === `عن عمر بن الخطاب رضي الله عنه: «${M}» (البخاري).`
+    g2.text === `عن عمر بن الخطاب رضي الله عنه: قال رسول الله ﷺ: «${M}» (البخاري).`
     && prayers(g2Off.text) === 0 && (g2Off.problems || []).includes('TAKHRIJ_COMPANION_UNCONFIRMED'), g2.text + ' || off: ' + g2Off.text);
   const g3a = await run(plain, ON, lib(['FC-000645', 'FC-000648'], [NOT_ADJ, NOT_ADJ]));
   const g3b = await run(plain, ON, lib(['FC-000645', 'FC-000648'], [NOT_ADJ2, NOT_ADJ2]));
@@ -96,20 +96,20 @@ async function rows(T, report) {
   const model = `الأصل في ذلك: عن أبي هريرة رضي الله عنه قال: قال رسول الله ${P}: «${M}».`;
   const g4 = await run(model, ON, lib([], []));
   r.G4 = report('G4  the model\'s «عن أبي هريرة رضي الله عنه قال:», the library silent: removed; matn kept, unproved speech frame becomes narration (D3A H1)',
-    g4.text === `الأصل في ذلك: ورد في الرواية: «${M}».` && (g4.problems || []).includes('TAKHRIJ_MODEL_COMPANION_REMOVED'), g4.text);
+    g4.text === `الأصل في ذلك: نص الحديث: «${M}».` && (g4.problems || []).includes('TAKHRIJ_MODEL_COMPANION_REMOVED'), g4.text);
   const g5 = await run(model, ON, lib(['FC-000645'], [UMAR]));
   r.G5 = report('G5  the model says «أبي هريرة», the book «عمر»: only the book\'s, exactly once',
-    g5.text === `الأصل في ذلك: عن عمر بن الخطاب رضي الله عنه: «${M}» (البخاري).`, g5.text);
+    g5.text === `الأصل في ذلك: عن عمر بن الخطاب رضي الله عنه: قال رسول الله ﷺ: «${M}» (البخاري).`, g5.text);
   const g6 = await run(`عن عمر بن الخطاب رضي الله عنه قال: قال رسول الله ${P}: «${M}».`, ON, lib(['FC-000645', 'FC-000648'], [UMAR, UMAR]));
   r.G6 = report('G6  never «عن X رضي الله عنه قال: عن X رضي الله عنه:»',
-    prayers(g6.text) === 1 && g6.text.startsWith('عن عمر بن الخطاب رضي الله عنه: «'), g6.text);
+    prayers(g6.text) === 1 && g6.text.startsWith('عن عمر بن الخطاب رضي الله عنه: قال رسول الله ﷺ: «'), g6.text);
   const g7 = await run(`والأصل قول النبي ﷺ: «${M}».`, ON, lib(['FC-000645', 'FC-000648'], [UMAR, UMAR]));
   r.G7 = report('G7  «قول النبي ﷺ: «…»»: ﷺ kept, no opener, «(متفق عليه)», NO_LEADIN',
     g7.text === `والأصل قول النبي ﷺ: «${M}» (متفق عليه).` && (g7.problems || []).includes('TAKHRIJ_COMPANION_NO_LEADIN'), g7.text);
   const g8 = await run(plain, ON, lib(['FC-000645', 'FC-000648'], [ABA, ABI]));
   const g8b = await run(plain, ON, lib(['FC-000645'], [ABA]));
   r.G8 = report('G8  «أبا هريرة» + «أبي هريرة» are one man, «عن أبي هريرة»; one book «سمعت أبا هريرة» is never «عن أبا هريرة»',
-    g8.text === `عن أبي هريرة رضي الله عنه: «${M}» (متفق عليه).` && !/عن أبا /u.test(g8b.text) && /عن أبي هريرة/u.test(g8b.text),
+    g8.text === `عن أبي هريرة رضي الله عنه: قال رسول الله ﷺ: «${M}» (متفق عليه).` && !/عن أبا /u.test(g8b.text) && /عن أبي هريرة/u.test(g8b.text),
     g8.text + ' || ' + g8b.text);
   const g9 = await run(plain, ON, lib(['FC-000645', 'FC-000648'], [UMAR, ABI]));
   r.G9 = report('G9  «عمر» in one book, «أبي هريرة» in the other: no name, TAKHRIJ_COMPANION_CONFLICT',
@@ -123,8 +123,8 @@ async function rows(T, report) {
   const story = `عن أنس رضي الله عنه قال: كنا مع النبي ${P} في سفر فقال النبي ${P}: «${M}».`;
   const g11d = await run(story, ON, lib([], []));
   r.G11 = report('G11 «ما جاء عن X … أن رسول الله ﷺ» and «حديث X … أن النبي ﷺ» are cut; narrator/addressee context stays; unproved direct frames become narration',
-    g11a.text === `الأصل في ذلك ما جاء أن في الرواية: «${M}».` && g11b.text === `والدليل على ذلك أن في الرواية: «${M}».`
-    && g11c.text === addressee && g11d.text === `عن أنس رضي الله عنه قال: كنا مع النبي ${P} في سفر فورد في الرواية: «${M}».`, [g11a.text, g11b.text, g11c.text, g11d.text].join(' || '));
+    g11a.text === `الأصل في ذلك ما جاء نص الحديث: «${M}».` && g11b.text === `والدليل على ذلك نص الحديث: «${M}».`
+    && g11c.text === addressee.replace('«', 'نص الحديث: «') && g11d.text === `عن أنس رضي الله عنه قال: كنا مع النبي ${P} في سفر فنص الحديث: «${M}».`, [g11a.text, g11b.text, g11c.text, g11d.text].join(' || '));
   const g12 = await run(model, OFF, lib([], []));
   r.G12 = report('G12 the switch off: the model\'s text comes back unchanged on a silent library', g12.text === model, g12.text);
   const lead = 'هذه مقدمة الجواب.\n';
@@ -135,12 +135,12 @@ async function rows(T, report) {
   const FIL = 'جعل رسول الله صلى الله عليه وسلم ثلاثة أيام ولياليهن للمسافر ويوما وليلة للمقيم';
   const DARIMI = `أخبرنا محمد بن يوسف عن شريح بن هانئ عن علي بن أبي طالب رضي الله عنه قال: «${FIL}»`;
   const g15 = await run(`والمسح مؤقت، وفي الحديث: «${FIL}».`, ON, lib(['FC-000637'], [DARIMI], FIL));
-  r.G15 = report('G15 «عن علي رضي الله عنه قال: «جعل رسول الله ﷺ …»»: named', g15.text.includes('عن علي بن أبي طالب رضي الله عنه: «جعل'), g15.text);
+  r.G15 = report('G15 narrator passage keeps its named narrator and T4 neutral frame', g15.text.includes('عن علي بن أبي طالب رضي الله عنه: نص الحديث: «جعل'), g15.text);
   const darar = `قال رسول الله ${P}: «${DARAR}».`;
   const g16 = await run(darar, ON, lib(['FC-000630', 'FC-000735'], [AHMAD, HAKIM], DARAR));
   const g16b = await run(darar, ON, lib(['FC-000735'], [HAKIM], DARAR));
   r.G16 = report('G16 D3A H2: two narrators get no bracket or name; al-Ḥākim alone names Abū Saʿīd',
-    prayers(g16.text) === 0 && !g16.entries[0].parenthetical && (g16.problems || []).includes('TAKHRIJ_PARENTHETICAL_MANY_HADITHS') && /^عن أبي سعيد الخدري رضي الله عنه: «/u.test(g16b.text), g16.text + ' || ' + g16b.text);
+    prayers(g16.text) === 0 && g16.entries[0].separateCollectors.length > 0 && (g16.problems || []).includes('TAKHRIJ_PARENTHETICAL_MANY_HADITHS') && /^عن أبي سعيد الخدري رضي الله عنه: قال رسول الله ﷺ: «/u.test(g16b.text), g16.text + ' || ' + g16b.text);
   // D3A H2 additionally removes G16's mixed bracket; G16c and its mutation test stay unchanged.
   // ج٤ (order C) changed this guard openly: G16's two books name two different men, so ج٤ names nobody there
   // whatever book is read, and G16 no longer tells «the bracket's book» from «any book». G16c keeps ONE man —
@@ -152,7 +152,7 @@ async function rows(T, report) {
   const back = `والدليل على ذلك حديث أبي جري الهجيمي رضي الله عنه أن النبي ${P} قال له: «${M}».`;
   const g17 = await run(back, ON, lib([], []));
   r.G17 = report('G17 a lead-in that points back at the narrator («قال له») keeps the model\'s name, and says so',
-    g17.text === `والدليل على ذلك حديث أبي جري الهجيمي رضي الله عنه أن في الرواية: «${M}».` && (g17.problems || []).includes('TAKHRIJ_MODEL_COMPANION_KEPT'), JSON.stringify([g17.text, g17.problems]));
+    g17.text === `والدليل على ذلك حديث أبي جري الهجيمي رضي الله عنه نص الحديث: «${M}».` && (g17.problems || []).includes('TAKHRIJ_MODEL_COMPANION_KEPT'), JSON.stringify([g17.text, g17.problems]));
   // ── the order-B review (D61) ──────────────────────────────────────────────────────────────────────
   const samitu = `عن عمر بن الخطاب رضي الله عنه قال: سمعت رسول الله ${P} يقول: «${M}».`;
   const g18 = await run(samitu, ON, lib(['FC-000645'], [UMAR]));
@@ -171,11 +171,11 @@ async function rows(T, report) {
   ];
   // D3A H1 changes only unproved direct-speech frames; B2 must still retain every unsafe-to-cut name.
   const neutralBreakers = [
-    `وفي حديث أبي هريرة رضي الله عنه أن في الرواية: «${M}».`,
-    `روى مسلم عن عمر بن الخطاب رضي الله عنه قال: ورد في الرواية: «${M}».`,
-    `وقد سئل عن الأمر فأجاب أبو بكر رضي الله عنه أن في الرواية: «${M}».`,
-    `عن أبي ذر رضي الله عنه أن في الرواية: «${M}».`,
-    breakers[4],
+    `وفي حديث أبي هريرة رضي الله عنه نص الحديث: «${M}».`,
+    `روى مسلم عن عمر بن الخطاب رضي الله عنه قال: نص الحديث: «${M}».`,
+    `وقد سئل عن الأمر فأجاب أبو بكر رضي الله عنه نص الحديث: «${M}».`,
+    `عن أبي ذر رضي الله عنه نص الحديث: «${M}».`,
+    breakers[4].replace('«', 'نص الحديث: «'),
   ];
   const g20 = [];
   for (const b of breakers) g20.push(await run(b, ON, lib([], [])));
@@ -196,7 +196,7 @@ async function rows(T, report) {
   const AISHA = `حدثنا عروة عن عائشة رضي الله عنها قالت: قال رسول الله ${P}: «${M}»`;
   const g24 = await run(plain, ON, lib(['FC-000645'], [AISHA]));
   r.G24 = report('G24 the book\'s own prayer is written as it stands («رضي الله عنها»)',
-    g24.text === `عن عائشة رضي الله عنها: «${M}» (البخاري).`, g24.text);
+    g24.text === `عن عائشة رضي الله عنها: قال رسول الله ﷺ: «${M}» (البخاري).`, g24.text);
   return r;
 }
 

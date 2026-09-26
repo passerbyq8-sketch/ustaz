@@ -7,6 +7,7 @@ const session = 'C:/Users/passe/projects/ustaz-archive/sessions/program-2026-09-
 const E = path.join(session, '14-tool-test');
 const P = path.join(session, '16-fix-d3c');
 const tk = await import(pathToFileURL(path.join(root, 'lib/takhrij.js')));
+const { selectPinnedText } = await import(pathToFileURL(path.join(root,'lib/before-writing.js')));
 globalThis.fetch = async () => { throw new Error('D3C offline: network forbidden'); };
 const read = p => JSON.parse(fs.readFileSync(p, 'utf8'));
 const archive = path.resolve(session, '../..');
@@ -29,6 +30,20 @@ const plain = s => String(s || '').replace(/\s+/gu,' ').trim();
 const recover = hit => saved.find(a => a.book === hit.book && a.text.length === hit.chars && plain(a.text).startsWith(plain(hit.head)))
   || saved.find(a => a.book === hit.book && plain(a.text).startsWith(plain(hit.head)));
 const corpus = readGzip(path.join(root,'lib/data/fiqh-search.json.gz'));
+const articlePages = read(path.join(root,'guards/fixtures/fix-d2-articles.json')).pages;
+function recoveredArticle(term, volume) {
+  const atoms = new Map();
+  for (const page of articlePages) for (const atom of page.payload?.atoms || []) {
+    if (Number(atom.volume) === Number(volume) && atom.heading_path?.some(h=>tk.foldArabic(h)===tk.foldArabic(term))) atoms.set(atom.atom_id,atom);
+  }
+  const sections=[];
+  for (const atom of atoms.values()) {
+    const heading=atom.heading_path.slice(2).join(' — ') || term;
+    if (sections.at(-1)?.heading === heading) sections.at(-1).text += '\n'+atom.text;
+    else sections.push({heading,text:atom.text});
+  }
+  return {text:[...atoms.values()].map(a=>a.text).join('\n'),sections};
+}
 function readGzip(p) {return JSON.parse(gunzipSync(fs.readFileSync(p)));}
 const rows=[];
 for (const dir of ['traces','traces-hadith','traces-compare']) for (const name of fs.readdirSync(path.join(E,dir))) {
@@ -57,6 +72,10 @@ for (const dir of ['traces','traces-hadith','traces-compare']) for (const name o
       const match=re.exec(prompt);
       if(match && (!text || match[1].length === m.chars)) {text=match[1].trimEnd();origin='recorded writer prompt';}
     }
+    const article=local?recoveredArticle(local.term,m.volume):null;
+    if (article?.text.length === m.chars) return {...m,text,fullText:article.text,
+      writerText:selectPinnedText({title:m.title,fullText:article.text,articleSections:article.sections},get('route')?.question),
+      origin:'recorded D2 article pages, exact full character count',availableChars:article.text.length};
     return {...m, text, origin, availableChars:text.length};
   });
   rows.push({file:dir+'/'+name,question:get('route')?.question || '',draft:get('draft')?.draft || '',text:loop.text,delivered,cited:loop.cited,materials,

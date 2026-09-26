@@ -1136,7 +1136,7 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     // MUTANT: the dissolver is disarmed at the silent exit, which is precisely the state the
     // owner measured on his preview. The card comes back — and with it the heading it prints.
     const src14 = fs14.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8');
-    const SEAM14 = 'if (isCard) dissolveBare();';
+    const SEAM14 = 'if (isCard || bracketAfterQuote) dissolveBare();';
     const mutated = src14.replace(SEAM14, '// mutant: the card is left a card');
     ok('14  MUTANT: the seam that dissolves a declined card is findable',
       mutated !== src14, 'the mutant did not apply — the seam moved and this row is blind');

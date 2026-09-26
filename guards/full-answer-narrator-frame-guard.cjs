@@ -84,7 +84,7 @@ globalThis.fetch = async () => { throw new Error('H1 guard forbids network'); };
     ok(c.id + ' ' + c.label, c.named ? on.entries[0].companion === c.named : c.prophetic ? propheticFrame : !propheticFrame, on.text);
     ok(c.id + '-matn quoted letters survive', on.text.includes('«' + c.matn + '»'), on.text);
     if (c.exact) ok(c.id + '-grammar exact prose', on.text === c.exact, on.text);
-    if (c.extra) ok(c.id + '-other other matn retains proven frame', on.text.includes('قال رسول الله ﷺ: «' + M + '»'), on.text);
+    if (c.extra) ok(c.id + '-other other matn retains proven frame', on.text.includes(frame(M).slice(0, -1)), on.text);
     if (c.cap) ok(c.id + '-cap still unexamined', on.entries.some(e => e.matn === J && e.declined === 'over_matn_cap' && e.subjectIds.length === 0), JSON.stringify(on.entries));
     rows.push({ id: c.id, label: c.label, draft, on, off });
   }

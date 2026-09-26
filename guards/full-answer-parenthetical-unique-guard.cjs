@@ -76,7 +76,7 @@ async function main() {
     && card.text.includes('(البخاري) (مسلم)') && !card.text.includes('(متفق عليه)') && card.problems.includes(CODE), card);
   const prose = await T.applyTakhrij(`${draft(j)} أخرجه البخاري ومسلم.`, { env: ON, lookup: lookup(j) });
   ok('H2-7 ambiguous match supplies separate collector proofs', prose.problems.includes(CODE)
-    && prose.entries[0].separateCollectors.length === 2 && prose.entries[0].proseProof.length === 2, prose);
+    && prose.entries[0].separateCollectors.length === 2 && !(prose.entries[0].proseProof || []).length, prose);
   if (arg('--out')) fs.writeFileSync(arg('--out'), JSON.stringify({ root: REPO, checks, failures, observations, card, prose }, null, 2) + '\n');
   console.log(`\n=== full-answer-parenthetical-unique: ${checks - failures}/${checks} PASS ===`);
   process.exitCode = failures ? 1 : 0;

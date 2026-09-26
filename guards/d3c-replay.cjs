@@ -13,7 +13,7 @@ exports.run=async function(group) {
   const get=id=>data.rows.find(r=>r.file.includes(id));
   const rowsOf=r=>r.materials.map(m=>({...m,recordId:m.id,bookTitle:m.book,subjectId:m.subject,
     part:m.volume,publisher:m.kind==='encyclopedia'?'الموسوعة الفقهية الكويتية':undefined,
-    locatorSpan:{volume:m.volume,pageStart:m.page,pageEnd:m.pageEnd},writerText:m.text,fullText:m.text}));
+    locatorSpan:{volume:m.volume,pageStart:m.page,pageEnd:m.pageEnd},writerText:m.writerText||m.text,fullText:m.fullText||m.text}));
   const lookupFor=r=>async(matns,options={})=>matns.map(matn=>{
     const hits=r.hits.filter(h=>h.fullText&&(!options.bookIds?.length||options.bookIds.includes(h.book)));
     return {matn,atoms:hits.map(h=>h.fullText),subjectIds:hits.map(h=>h.book)};
@@ -69,9 +69,19 @@ exports.run=async function(group) {
         const head=r.text.split('\n')[0];
         ok(r.file+' confirmed authenticity sentence survives',sealed.text.includes(head),JSON.stringify(sealed.droppedSentences));
       }
+      if(r.file.includes('000645')) {
+        const sealed=lock.lockTakhrij(pass.text,pass.entries.filter(e=>e.authenticityProof).map(e=>({authenticityProof:e.authenticityProof})),{bracketAfterQuote:true});
+        ok('Q18 confirmed grade survives an unproved combined credit',tk.foldArabic(sealed.text).startsWith('هذا حديث صحيح'));
+        ok('Q18 retained sentence keeps its separator',/صحيحٌ\.\s+قال رسول الله/u.test(sealed.text),sealed.text.slice(0,150));
+      }
     }
     const source=rowsOf(get('224754'))[0];
-    ok('C2c seal reads full material',material.writerReadMaterial(source)===source.writerText && fs.readFileSync(path.join(root,'api/ask.js'),'utf8').includes('passage: writerReadMaterial(row)'));
+    ok('C2c seal reads full material',material.fullSourceMaterial(source)===source.fullText && fs.readFileSync(path.join(root,'api/ask.js'),'utf8').includes('passage: fullSourceMaterial(row)'));
+    const q1=get('224754'), full=material.fullSourceMaterial(source);
+    const sealWith=passage=>lock.lockTakhrij(q1.text,[{passage}],{bracketAfterQuote:true});
+    ok('Q1 full source retains the narrative attribution',sealWith(full).text.includes('منها ما رواه جابر'));
+    ok('Q1 excerpt cannot certify the later narrative attribution',!sealWith(full.slice(0,1200)).text.includes('منها ما رواه جابر'));
+    ok('Q1 a different narrator cannot certify the attribution',!sealWith(full.replace(/جَابِرٌ/gu,'زيد')).text.includes('منها ما رواه جابر'));
   }
   if(group==='C3') {
     for(const id of ['000050','000645','001120']) {

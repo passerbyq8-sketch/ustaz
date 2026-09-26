@@ -198,7 +198,7 @@ async function main() {
         && handsDown('on', 'minor') === false && handsDown('on', 'child') === false
         && handsDown('on', 'teen') === false && handsDown('on', '') === false,
         handExpr);
-      const cardExpr = (/const encycCards = ([^\n]+)\n\s*\? registerOwnedCards\(pickEncyclopediaCards\(out\.cited, MAX_SOURCES, buildBookTag\)\) : \[\];/.exec(askSrc) || [])[1] || '';
+      const cardExpr = (/const encycCards = ([^\n]+)\n\s*\? registerOwnedCards\(pickEncyclopediaCards\(out\.cited, MAX_SOURCES, buildBookTag, cardOptions\)\) : \[\];/.exec(askSrc) || [])[1] || '';
       const cardsOn = (v) => { try { return new Function('encycValue', 'return (' + cardExpr + ');')(v); } catch { return 'threw'; } };
       ok('A4  the card picker is called only with the switch on, through buildBookTag, and its cards ride last',
         cardExpr !== '' && cardsOn('on') === true && cardsOn('') === false && cardsOn('off') === false
