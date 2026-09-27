@@ -1662,7 +1662,16 @@ const SEALED = {
 //                    because the stored bundle changed; app.js was regenerated and verified
 //                    with that version stamp. sw.js is 55908 bytes at CR = 0. THIS digest was
 //                    re-cut LAST, after the count, prose, mirror and cache edits were final.
-  'sw.js': '256cf631d3a6443d68005b7b2c8dc4994c986009b2a3d134e618f0c9c42cbc4b',
+  //   2026-09-28-b -- WIDGET REPLY COMPATIBILITY, B1/B2 FOLLOW-UP.
+//                    The generated app.js changed 1811970 -> 1813455 bytes: page-scoped
+//                    capability reserves one initial widget-data send and stops for the page
+//                    after the legacy unknown-op reply. Supported replies release only queued
+//                    changes. CORE_BYTES was derived by tools/core-bytes.cjs --write,
+//                    2985060 -> 2986545; the worker's prose row and SW_PROSE mirror followed.
+//                    No asset joined or left CORE. CACHE remains ezik-v42 by the owner's ruling.
+//                    sw.js is 55908 bytes at CR = 0. THIS digest was re-cut LAST, after every
+//                    count, prose and mirror edit was final.
+  'sw.js': '7aa062f718257edbdcc690db3eb06bbbd21a28ec5e20f572695d5727d3d3d7e7',
 };
 
 // ---------------------------------------------------------------------------
@@ -2618,7 +2627,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1811970, of: 'app.js' },
+      { n: 1813455, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
