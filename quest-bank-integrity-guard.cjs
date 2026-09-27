@@ -1609,7 +1609,16 @@ const SEALED = {
 //                    no number here, and CACHE stays ezik-v40: index.html is a network-first navigation, so
 //                    the new pair is requested and stored under its new URLs. sw.js is 55702 -> 55908 bytes,
 //                    measured at CR = 0. THIS digest is re-cut LAST, after every other sw.js edit was final.
-  'sw.js': '1d74c5b8ce7e344b2c39959ff935a9bf428b02a65c448f2c3a2d4e133469812d',
+  //   2026-09-27-m -- VOICE + CALL T4 FIX 4, H1: THE CALL SHOWS THE WORDS IT HEARD.
+//                    A turn's transcript is shown under the call's state line, after a fixed prefix,
+//                    before the answer is requested; it is cleared when the next turn listens and on
+//                    hang-up, and it is never spoken. CallScreen takes one new prop, heardWords.
+//                    app.js was rebuilt by node tools/build-app.cjs, and CORE_BYTES was
+//                    re-cut by node tools/core-bytes.cjs --write; the byte table in sw.js and the
+//                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
+//                    stays ezik-v40. sw.js is 55908 bytes, measured at CR = 0. THIS digest is
+//                    re-cut LAST, after every other sw.js edit was final.
+  'sw.js': 'a28af60ddbc52b8b96a8ad3f58f23e6f1620b3da51d461c8de17589fbb493b10',
 };
 
 // ---------------------------------------------------------------------------
@@ -2565,7 +2574,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1795700, of: 'app.js' },
+      { n: 1796730, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

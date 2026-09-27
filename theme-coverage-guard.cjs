@@ -3290,7 +3290,7 @@ ok('O1: no ezcall selector can match html, body or :root',
 /* ---- O2. the dark room and its white-on-navy captions are GONE ---------- */
 okOn('O2: the call screen paints no gradient anywhere', [["callView", callView]], !/gradient/.test(callCode));
 const CALL_STYLE_KEYS = ['callContainer', 'callAvatarWrap', 'callRing', 'callAvatar', 'callStatusLabel',
-  'callSubLabel', 'callHint', 'callErrorBanner', 'callControls', 'callMuteBtn', 'callEndBtn', 'callBtnLabel'];
+  'callSubLabel', 'callHint', 'callHeardWords', 'callErrorBanner', 'callControls', 'callMuteBtn', 'callEndBtn', 'callBtnLabel'];
 eq('O2: ...nor does any object it draws from',
   CALL_STYLE_KEYS.filter((k) => /gradient/.test(JSON.stringify(s[k] || {}))), []);
 ok('O2: the caption and the free-floating centre column are gone, keys and all',
@@ -3394,7 +3394,7 @@ ok('O6: no ezcall rule declares a viewport-wide box',
 /* ---- O9/O10. the way in, and the two barriers in front of it ----------- */
 ok('O9: the screen is still entered by setting the screen, and by nothing else',
   /onClick=\{\(\) => setScreen\('call'\)\}/.test(html)
-  && /if \(screen === 'call'\) return <CallScreen profileName=\{profile\?\.name\} gender=\{profile\?\.gender\} callState=\{callState\} heard=\{callHeard\} isMuted=\{isCallMuted\} error=\{voiceError\} onToggleMute=\{toggleCallMute\} onTalk=\{onCallTalk\} onExit=\{goEzikBack\} \/>;/.test(html));
+  && /if \(screen === 'call'\) return <CallScreen profileName=\{profile\?\.name\} gender=\{profile\?\.gender\} callState=\{callState\} heard=\{callHeard\} heardWords=\{callHeardWords\} isMuted=\{isCallMuted\} error=\{voiceError\} onToggleMute=\{toggleCallMute\} onTalk=\{onCallTalk\} onExit=\{goEzikBack\} \/>;/.test(html));
 {
   const spendAt = html.indexOf("if ((screen === 'chat' || screen === 'call') && !spendGateOpenState) return <SpendGate");
   const childAt = html.indexOf("if (screen === 'call' && childVoiceBlocked()) return <ChildVoiceNotice");
@@ -3543,6 +3543,7 @@ ok('O18: ...and no ezcall selector was smuggled into the reduced-motion block',
     MUTE_ON: 'مكتوم',
     MUTE_OFF: 'كتم',
     END: 'إنهاء',
+    HEARD: 'سمعتُ: ',   // H1 (T4 fix 4): the one word the owner's order added -- the heard-words prefix
   };
   const decodedCall = callView.replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
   const wrong = Object.keys(WORDS).filter((k) => decodedCall.indexOf(k + ':' + ' '.repeat(Math.max(1, 11 - k.length)) + "'" + WORDS[k] + "'") === -1
