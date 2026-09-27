@@ -15402,6 +15402,25 @@ function App() {
   const cloudChunksRef = useRef([]);
   const mediaRecRef = useRef(null);
   const vadAnalyserRef = useRef(null);
+  // ---- H2 (T4 fix 4, the owner's option A): a level gate between turns. ----
+  // A voice far quieter than the reader's own -- a television across the room -- opened a turn and
+  // was answered. The call keeps the peak level (the VAD's own RMS) of every turn it accepted; from
+  // the second turn on, a turn whose peak is under FAINT_TURN_RATIO x their median is dropped before
+  // /api/stt, says so in the error panel, and the mic re-opens. The first turn always passes, and so
+  // does the turn a barge-in tap opens. The trade-off is the owner's: a reader who drops to a
+  // whisper, or walks away from the phone, is asked to repeat.
+  const FAINT_TURN_RATIO = 0.25;   // -12 dB
+  const FAINT_TURN_LINE = 'لم ألتقطْ كلامَك — أعِدْ من فضلك.';
+  const turnPeakRef = useRef(0);             // this turn's peak RMS
+  const callPeaksRef = useRef([]);           // the peaks of the turns this call accepted
+  const callTurnExemptRef = useRef(false);   // the next turn was opened by a barge-in tap
+  const faintTurn = (peak) => {
+    const acc = callPeaksRef.current.slice().sort((x, y) => x - y);
+    if (!acc.length) return false;           // the first turn has no baseline, and passes
+    const mid = acc.length >> 1;
+    const median = acc.length % 2 ? acc[mid] : (acc[mid - 1] + acc[mid]) / 2;
+    return peak < FAINT_TURN_RATIO * median;
+  };
   const pickRecMime = () => {
     const cands = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
     for (let i = 0; i < cands.length; i++) {
@@ -15496,6 +15515,7 @@ function App() {
       const startedAt = Date.now();
       vadLastVoiceRef.current = startedAt;
       let heard = false;
+      turnPeakRef.current = 0;          // H2: a new turn, a new peak
       const tick = () => {
         if (callGenRef.current !== myGen) { stopCloudAll(); return; }
         if (!callActiveRef.current) { setTimeout(tick, 200); return; } // keep watching for the exit so the mic is always released
@@ -15504,7 +15524,9 @@ function App() {
         let sum = 0;
         for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
         const now = Date.now();
-        if (Math.sqrt(sum / buf.length) > VAD_RMS_ON) { vadLastVoiceRef.current = now; heard = true; armInactivityTimer(); }
+        const rms = Math.sqrt(sum / buf.length);
+        if (rms > turnPeakRef.current) turnPeakRef.current = rms;   // H2
+        if (rms > VAD_RMS_ON) { vadLastVoiceRef.current = now; heard = true; armInactivityTimer(); }
         else if (heard && (now - vadLastVoiceRef.current) > VAD_SILENCE_MS) { stopCloudTurn(); return; }
         if (heard && (now - startedAt) > CLOUD_MAX_TURN_MS) { stopCloudTurn(); return; }
         setTimeout(tick, 100);
@@ -15527,6 +15549,7 @@ function App() {
     if (!callActiveRef.current) return;
     callActiveRef.current = false;
     const myGen = callGenRef.current;
+    const peak = turnPeakRef.current;   // H2: read now; the next turn resets it
     setCallState('thinking');
     let blob = null;
     const mr = mediaRecRef.current;
@@ -15539,6 +15562,10 @@ function App() {
     mediaRecRef.current = null;
     if (callGenRef.current !== myGen) { stopCloudAll(); return; }
     if (!blob || blob.size < 1500) { startCloudListening(); return; }
+    // H2: far quieter than this call's accepted turns -> not sent to /api/stt; say so, listen again
+    const exempt = callTurnExemptRef.current;
+    callTurnExemptRef.current = false;
+    if (!exempt && faintTurn(peak)) { showCallError(FAINT_TURN_LINE); startCloudListening(); return; }
     const b64 = await blobToBase64(blob);
     if (callGenRef.current !== myGen) { stopCloudAll(); return; }
     let text = '';
@@ -15569,6 +15596,7 @@ function App() {
     }
     // Transcribed OK but empty => genuine silence. THAT is the one case that keeps listening.
     if (!text) { startCloudListening(); return; }
+    callPeaksRef.current.push(peak);   // H2: an accepted turn joins the baseline
     setCallHeard('');
     if (callTurnRef.current) callTurnRef.current(text);
   };
@@ -18223,6 +18251,7 @@ function App() {
       // Manual interrupt: cancel the in-flight turn + tutor audio, then open the mic for the child.
       if (abortRef.current) abortRef.current.abort(); // thinking: aborts callAI -> runCallTurn bails at the AbortError guard (before re-arm)
       cancelAudio();                                  // speaking: stops playback (speakReply resolves; EDIT-A re-arm suppressed by its callActiveRef guard)
+      callTurnExemptRef.current = true;             // H2: the turn a barge-in opens is never dropped as faint
       startCallListening();
       return;
     }
@@ -18260,6 +18289,8 @@ function App() {
     cancelAudio();
     callActiveRef.current = false;
     callTranscriptRef.current = '';
+    callPeaksRef.current = [];        // H2: each call learns its reader's level afresh
+    callTurnExemptRef.current = false;
     setCallHeard('');
     setCallHeardWords('');
     setCallState('idle');

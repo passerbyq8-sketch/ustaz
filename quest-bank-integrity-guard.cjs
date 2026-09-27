@@ -1610,7 +1610,17 @@ const SEALED = {
 //                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
 //                    stays ezik-v40. sw.js is 55702 bytes, measured at CR = 0. THIS digest is
 //                    re-cut LAST, after every other sw.js edit was final.
-  'sw.js': '7fd1867619ef5dd4c928c26cd9d05bebda66b9ae36888b1797118fd5989a1105',
+  //   2026-09-27-m -- VOICE + CALL T4 FIX 4, H2: A LEVEL GATE BETWEEN TURNS (OPTION A).
+//                    The call keeps the peak RMS of every accepted turn; from the second turn on, a
+//                    turn under 0.25 x their median (-12 dB) is dropped before /api/stt, one line
+//                    shows in the error panel, and the mic re-opens. The first turn and the turn a
+//                    barge-in opens always pass.
+//                    app.js was rebuilt by node tools/build-app.cjs, and CORE_BYTES was
+//                    re-cut by node tools/core-bytes.cjs --write; the byte table in sw.js and the
+//                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
+//                    stays ezik-v40. sw.js is 55702 bytes, measured at CR = 0. THIS digest is
+//                    re-cut LAST, after every other sw.js edit was final.
+  'sw.js': '23ec2e8afde1098b65409471a3c9ff4312057d7fceafd93de8438e40ce5b223a',
 };
 
 // ---------------------------------------------------------------------------
@@ -2566,7 +2576,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1796730, of: 'app.js' },
+      { n: 1798692, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
