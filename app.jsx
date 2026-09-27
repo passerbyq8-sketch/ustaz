@@ -102,6 +102,7 @@ function ezLangRelabel() {
     EZH_TREASURE = ezT("module.treasure");
     EZH_FATWA = ezT("module.fatwa");
     EZH_LESSONS = ezT("module.lessons");
+    EZH_LIBRARY = ezT("module.library");
     EZH_ARTICLES = ezT("module.articles");
     EZH_WOMEN = ezT("module.women");
     EZH_ASMAA = ezT("asmaa.title");
@@ -115,11 +116,11 @@ function ezLangRelabel() {
     EZIST_SUB_TREASURE = ezT("module.treasure.sub");
     EZIST_SUB_FATWA = ezT("module.fatwa.sub");
     EZIST_SUB_LESSONS = ezT("module.lessons.sub");
-    // The three entries below are NOT relabelled -- EZIST_SUB_ASMAA, EZIST_SUB_PRAYER and
-    // EZIST_SUB_LIBRARY are plain strings, not ezT lookups -- but they must still be CARRIED. This is a whole-table
+    // The two entries below are NOT relabelled -- EZIST_SUB_ASMAA and EZIST_SUB_PRAYER are
+    // plain strings, not ezT lookups -- but they must still be CARRIED. This is a whole-table
     // replacement, so an id left out of it is not left at its old wording: it is deleted, and
     // the prayer card lost its second line on the first language switch of every session.
-    EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, arbaeen: EZIST_SUB_ARBAEEN, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
+    EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, arbaeen: EZIST_SUB_ARBAEEN, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER };
     A2_BACK = ezT("common.back");
     EZIK_FAV_TITLE = ezT("favorites.title");
     EZIK_FAV_HEADING = ezT("favorites.heading");
@@ -253,6 +254,8 @@ const EZ_I18N = {
     // and the screen it opens cannot drift apart -- they read the same key.
     'module.lessons': 'الدروس',
     'module.lessons.sub': 'بحثٌ في دروسِ العلماء',
+    // ITEM 108 (ORDER-108C): the library section's name, exactly this word and no longer one.
+    'module.library': 'المكتبة',
     'lessons.searchPlaceholder': 'ابحثْ في الدروس…',
     'lessons.searchAria': 'البحثُ في الدروس',
     'lessons.searchButton': 'ابحثْ',
@@ -985,6 +988,7 @@ const EZ_I18N = {
     'chat.lessons': 'Related lessons',
     'module.lessons': 'Lessons',
     'module.lessons.sub': 'Search the scholars’ lessons',
+    'module.library': 'Library',
     'lessons.searchPlaceholder': 'Search the lessons…',
     'lessons.searchAria': 'Search the lessons',
     'lessons.searchButton': 'Search',
@@ -3664,6 +3668,8 @@ function ezikDecodeMatn(encoded) {
 const BOOK_MATN_CUT_NOTE = '… بقيّةُ النصِّ لم تصلْ';
 // الكلمةُ التي يلمسُها القارئُ ليرى النصّ.
 const BOOK_MATN_LABEL = 'النصّ';
+// ITEM 108 (ORDER-108C B3): the link from a library source to the book in the library page.
+const BOOK_LIBRARY_LINK_LABEL = 'افتح في المكتبة';
 
 // ============================================================
 // §٢ (C) — «هذا الجوابُ لم يكتملْ»: العلامةُ التي يرسلُها الخادم، والقراءةُ التي يقرؤها العميل
@@ -6393,6 +6399,13 @@ const parseRichMessage = (text, viewerAge) => {
       // passage on purpose: a mark appended to the text would make the text no longer the text.
       const matnMatch = attrsStr.match(/matn=["']([^"']+)["']/);
       const cutMatch = attrsStr.match(/cut=["']([^"']+)["']/);
+      // ITEM 108 (ORDER-108C B3): where the book is -- its library id and, when the server called
+      // the page citable, the volume and page. Read with the matn attribute removed first, so no
+      // run of base64 can ever be read as one of them.
+      const placeStr = attrsStr.replace(/matn=["'][^"']*["']/, '');
+      const bookIdMatch = placeStr.match(/\bbook=["'](FC-[0-9]{6})["']/);
+      const volMatch = placeStr.match(/\bvol=["']([0-9]{1,4})["']/);
+      const pageMatch = placeStr.match(/\bpage=["']([0-9]{1,6})["']/);
       segments.push({
         type: 'book',
         title: content,
@@ -6400,6 +6413,9 @@ const parseRichMessage = (text, viewerAge) => {
         where: refMatch ? refMatch[1] : '',
         text: matnMatch ? ezikDecodeMatn(matnMatch[1]) : '',
         cut: !!cutMatch,
+        bookId: bookIdMatch ? bookIdMatch[1] : '',
+        vol: volMatch ? volMatch[1] : '',
+        page: pageMatch ? pageMatch[1] : '',
       });
     } else if (tagName === 'steps') {
       const items = content.split('\n')
@@ -6978,6 +6994,13 @@ const EZH_ICON_FATWA = (
 const EZH_ICON_LESSONS = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M7 9h10" /><path d="M7 12h6" /><path d="M12 16v4" /><path d="M8 20h8" /></svg>
 );
+// ITEM 108 (ORDER-108C): the library. Its name reads through ezT like the lessons beside it, and
+// is rebound by ezLangRelabel(). The mark is three books standing on a shelf, in the same 24x24
+// box and 1.8 stroke, so it reads as neither the mushaf nor the lessons.
+let EZH_LIBRARY = ezT("module.library");
+const EZH_ICON_LIBRARY = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="4" height="15" rx="1" /><rect x="10" y="6" width="4" height="13" rx="1" /><path d="M16.5 7.5l3.5-1 3 12.5-3.5 1z" /><path d="M2 21h20" /></svg>
+);
 // ITEM 20. THE TWO SECTIONS THE OWNER AND HIS WIFE WRITE INTO. Both labels come through ezT
 // like the six above them, and both are rebound by ezLangRelabel() -- see the note there about
 // what happens to an id that is left out of the replacement table.
@@ -7120,7 +7143,7 @@ function ezHomeModules(v) {
     // landed since this sentence was first written -- item 89 put the Forty after the adhkar,
     // and order 87D put the day from waking to sleeping between them -- so it is re-cut rather
     // than patched: asmaa, articles, memorize, adhkar, sunan-day, arbaeen, mushaf, treasure,
-    // fatwa, lessons, prayer, women. Twelve.
+    // fatwa, lessons, prayer, women. Twelve. (ITEM 108 then put the library after lessons: thirteen.)
     //
     // ITEM 20 / SHELF §2 (8 September) -- THE WOMEN'S CORNER IS STILL LAST, and that half of §2
     // was NOT overturned. D-9 put articles and the women's corner together at the head; the
@@ -7171,6 +7194,10 @@ function ezHomeModules(v) {
     { id: 'treasure', label: EZH_TREASURE, icon: EZH_ICON_TREASURE, onClick: v.onOpenTreasure, meta: null },
     { id: 'fatwa',    label: EZH_FATWA,    icon: EZH_ICON_FATWA,    onClick: v.onOpenFatwa,    meta: null },
     { id: 'lessons',  label: EZH_LESSONS,  icon: EZH_ICON_LESSONS,  onClick: v.onOpenLessons,  meta: null },
+    // ITEM 108 (ORDER-108C): the library, beside the other two sections of reading and knowledge.
+    // It is a separate page (/library.html), opened in the same window exactly as the treasure
+    // journey opens /quest.html, so the id is deliberately absent from the resume tables.
+    { id: 'library',  label: EZH_LIBRARY,  icon: EZH_ICON_LIBRARY,  onClick: v.onOpenLibrary,  meta: null },
     { id: 'prayer',   label: EZH_PRAYER,   icon: EZH_ICON_PRAYER,   onClick: v.onOpenPrayer,   meta: null },
     { id: 'women',    label: EZH_WOMEN,    icon: EZH_ICON_WOMEN,    onClick: v.onOpenWomen,    meta: null, fresh: !!(v.artFresh && v.artFresh.women) },
   ].filter((m) => !(m.id === 'women' && ezWomenSectionHidden(v.gender)));
@@ -7209,8 +7236,7 @@ let EZIST_SUB_ARTICLES = ezT("module.articles.sub");
 let EZIST_SUB_WOMEN = ezT("module.women.sub");
 let EZIST_SUB_ASMAA = 'تسعةٌ وتسعون اسمًا، بمعانيها ومصادرها';
 let EZIST_SUB_PRAYER = 'المواقيت والقبلة، محسوبةً على هذا الجهاز';
-let EZIST_SUB_LIBRARY = 'بحثٌ في نصوص المكتبة، بمصادرها';
-let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, arbaeen: EZIST_SUB_ARBAEEN, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
+let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, arbaeen: EZIST_SUB_ARBAEEN, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER };
 
 // THE TOP NAVIGATION. TWO ELEMENTS AND NO THIRD -- the daily verse, and the menu button.
 //
@@ -9606,6 +9632,7 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
     gender: genderNow,
     onOpenSettings: onOpenSettings,
     onOpenTreasure: () => { window.location.href = '/quest.html'; },
+    onOpenLibrary: () => { window.location.href = '/library.html'; },
     onOpenPrayer: () => setPrayerOpen(true),
     widgets: widgets,
   };
@@ -10331,6 +10358,50 @@ function ezikReadResume() {
 }
 function ezikClearResume() {
   try { window.sessionStorage.removeItem(EZIK_RESUME_KEY); } catch (e) {}
+}
+
+// ============================================================
+// ITEM 108 (ORDER-108C) -- THE LIBRARY PAGE'S THREE SEAMS WITH THIS FILE.
+// /library.html is its own page (the catalogue lives on its own host, which this file never
+// names). What passes between the two is small and all of it is here:
+//   1. the question «ask Ezik» leaves in this tab's sessionStorage, taken once by the chat;
+//   2. «delete all my data» also erases what the library keeps on this device -- its notes
+//      database and every localStorage key under its prefix;
+//   3. a library source in an answer links to the book at its page.
+const EZIK_ASK_PREFILL_SLOT = 'ezik_ask_prefill_v1';
+const EZLIB_STORE_PREFIX = 'ezlib_';
+const EZLIB_NOTES_DB = 'ezik-library-v1';
+function ezikTakeAskPrefill() {
+  let q = '';
+  try {
+    q = window.sessionStorage.getItem(EZIK_ASK_PREFILL_SLOT) || '';
+    if (q) window.sessionStorage.removeItem(EZIK_ASK_PREFILL_SLOT);
+  } catch (e) { q = ''; }
+  return String(q).trim().slice(0, 1000);
+}
+function ezikClearLibrary() {
+  try {
+    const mine = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (typeof k === 'string' && k.indexOf(EZLIB_STORE_PREFIX) === 0) mine.push(k);
+    }
+    mine.forEach((k) => { try { localStorage.removeItem(k); } catch (e) {} });
+  } catch (e) {}
+  try { window.sessionStorage.removeItem(EZIK_ASK_PREFILL_SLOT); } catch (e) {}
+  try {
+    const idb = typeof window !== 'undefined' ? window.indexedDB : null;
+    if (idb && typeof idb.deleteDatabase === 'function') idb.deleteDatabase(EZLIB_NOTES_DB);
+  } catch (e) {}
+}
+// The book's id is the library's own (FC- and six digits), carried by the server on the card and
+// never derived here; volume and page arrive only when the server already called the page citable.
+function ezikLibraryHref(bookId, vol, page) {
+  const id = String(bookId || '');
+  if (!/^FC-[0-9]{6}$/.test(id)) return '';
+  const p = /^[0-9]{1,6}$/.test(String(page || '')) ? String(page) : '';
+  const v = p && /^[0-9]{1,4}$/.test(String(vol || '')) ? String(vol) : '';
+  return '/library.html?book=' + id + (v ? '&vol=' + v : '') + (p ? '&page=' + p : '');
 }
 // WHERE THE BOOT SHOULD LAND. '' means nothing was recorded, and the answer is the chat --
 // byte for byte the destination that shipped.
@@ -16501,6 +16572,19 @@ function App() {
   // So it resets AND lands on the chat. From the chat, setScreen('chat') is the screen already
   // showing, so that path is byte-for-byte the behaviour it had.
   const startChatFromMenu = () => { newChat(); setScreen('chat'); };
+  // ITEM 108 (ORDER-108C B5): «ask Ezik» from the library page. library.html leaves the question
+  // in this tab's sessionStorage (never in a URL) and navigates here; the first time the chat is
+  // on screen it is taken ONCE, a fresh thread is opened and the question waits in the composer,
+  // NOT sent. The screen is read into a local first: chat-history-guard takes the first
+  // `if (screen === ` in the file as the first screen return, and this is an effect, not a return.
+  const prefillScreen = screen;
+  useEffect(() => {
+    if (prefillScreen !== 'chat') return;
+    const q = ezikTakeAskPrefill();
+    if (!q) return;
+    newChat();
+    setInput(q);
+  }, [prefillScreen]);
 
   // Open a saved conversation: the same stop-everything as a new chat, then the stored messages
   // become the thread and the chat adopts that conversation's id, so the next turn rewrites it
@@ -18481,6 +18565,9 @@ function App() {
       // favourites, recent pages, last page and settings -- every key under MUSHAF_LAB_STORE_PREFIX.
       // Entered in tools/delete-truth-measure.cjs in the same commit, which seeds and checks them.
       ezikClearMushafLab();
+      // ITEM 108 (ORDER-108C B4) -- AND THE LIBRARY'S OWN STORE: its notes database
+      // (IndexedDB ezik-library-v1) and every localStorage key under its ezlib_ prefix.
+      ezikClearLibrary();
       localStorage.removeItem(WIRD_TARGET_KEY);
       localStorage.removeItem(WIRD_DAY_KEY);
       // ITEM 75 RIDER 1 (owner ruling, 2026-09-10) -- THE OTHER HALF OF THE TWO FEATURES THE
@@ -20331,7 +20418,7 @@ function ezikRenderSegments(segments, ctx) {
       return <SourceCard key={i} site={seg.site} url={seg.url} content={seg.content} />;
     }
     if (seg.type === 'book') {
-      return <BookCard key={i} title={seg.title} author={seg.author} where={seg.where} text={seg.text} cut={seg.cut} />;
+      return <BookCard key={i} title={seg.title} author={seg.author} where={seg.where} text={seg.text} cut={seg.cut} bookId={seg.bookId} vol={seg.vol} page={seg.page} />;
     }
     if (seg.type === 'dhikr') {
       return <DhikrCard key={i} catId={seg.catId} />;
@@ -21297,19 +21384,42 @@ function SourceCard({ site, url, content }) {
 // lib/free-brain/tools.js drops it again when the numbering is automatic). When the chip shows
 // no place, the panel shows no place: a passage under a page number the card itself refused to
 // print would be a citation this app invented.
-function BookCard({ title, author, where, text, cut }) {
+// ITEM 108 (ORDER-108C B3) -- AND A WAY TO THE BOOK ITSELF. When the server carried the book's
+// library id, a second, separate control under the chip opens /library.html at that book -- at
+// the cited volume and page when the page was citable, at the book's card otherwise. It is a
+// same-origin page of this app, not a host: the chip above it stays exactly the attribution it
+// was, and a card that arrived without an id (every answer saved before this item) draws none.
+function BookLibraryLink({ bookId, vol, page }) {
+  const href = ezikLibraryHref(bookId, vol, page);
+  if (!href) return null;
+  return (
+    <a href={href} style={s.sourceChip} data-ezik-library-link="1">
+      <span style={s.bookMatnToggle}>{BOOK_LIBRARY_LINK_LABEL}</span>
+      <span style={s.sourceChipArrow} aria-hidden="true">{'←'}</span>
+    </a>
+  );
+}
+function BookCard({ title, author, where, text, cut, bookId, vol, page }) {
   const [matnOpen, setMatnOpen] = useState(false);
   const name = String(title || '').trim();
   if (!name) return null;
   const by = String(author || '').trim();
   const at = String(where || '').trim();
   const matn = typeof text === 'string' ? text : '';
+  const libHref = ezikLibraryHref(bookId, vol, page);
   if (!matn) {
-    return (
+    const chip = (
       <div style={s.sourceChip}>
         <span style={s.sourceChipSite}>{name}</span>
         {by ? <span style={s.sourceChipText}>{by}</span> : null}
         {at ? <span style={s.sourceChipText}>{at}</span> : null}
+      </div>
+    );
+    if (!libHref) return chip;
+    return (
+      <div style={s.bookCardWrap}>
+        {chip}
+        <BookLibraryLink bookId={bookId} vol={vol} page={page} />
       </div>
     );
   }
@@ -21337,6 +21447,7 @@ function BookCard({ title, author, where, text, cut }) {
           {cut ? <div style={s.bookMatnCut}>{BOOK_MATN_CUT_NOTE}</div> : null}
         </div>
       ) : null}
+      {libHref ? <BookLibraryLink bookId={bookId} vol={vol} page={page} /> : null}
     </div>
   );
 }

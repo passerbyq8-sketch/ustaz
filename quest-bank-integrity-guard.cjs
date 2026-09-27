@@ -1654,7 +1654,15 @@ const SEALED = {
 //                    JOINED OR LEFT CORE: CORE_BYTES, the byte table and SW_PROSE stand. sw.js is 55702
 //                    bytes, measured at CR = 0. THIS digest is re-cut LAST, after every other sw.js edit
 //                    was final.
-  'sw.js': '75db684b308445885723d71a9c08b55ebe24c3a2c6fd618d3298c8b0c418b56a',
+  //   2026-09-28-a -- ITEM 108 (ORDER-108C): THE LIBRARY PAGE JOINS EZIK. app.jsx gained the
+//                    library tile, the «ask Ezik» composer hand-off, the library erase in «delete all
+//                    my data» and the book-card link; app.js was rebuilt by node tools/build-app.cjs,
+//                    and CORE_BYTES was re-cut by node tools/core-bytes.cjs --write; the byte table in
+//                    sw.js and the SW_PROSE mirror in B14 follow. /library.html is NOT in CORE (the
+//                    navigation arm caches it network-first), NO FILE JOINED OR LEFT CORE and the store
+//                    name stays ezik-v41. sw.js is 55908 bytes, measured at CR = 0. THIS digest is
+//                    re-cut LAST, after every other sw.js edit was final.
+  'sw.js': '88e372371391b68cee391ad04e2f81969ce059bb1268ea5ff7ad6b8317e14fa3',
 };
 
 // ---------------------------------------------------------------------------
@@ -2610,7 +2618,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1799739, of: 'app.js' },
+      { n: 1805823, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
