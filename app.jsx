@@ -15999,6 +15999,12 @@ function App() {
     };
   }, []);
 
+  // G2 (T4 fix 3): is a dictation recognizer session open right now -- start() succeeded and its
+  // onend has not fired yet? On Android the recognizer can still hold the microphone after stop()
+  // until its own onend, and a getUserMedia inside that window fails with NotReadableError. The
+  // call's entry effect waits for that onend (bounded) before it opens its own capture.
+  const dictationOpenRef = useRef(false);
+  const dictationEndWaiterRef = useRef(null);   // set by the call's entry effect, called once by onend
   // إعداد التعرف على الصوت
   // The dependency is `aiConsent`, not []. Without consent ezNewRecognition() returns null and
   // NO engine is built at all -- so no microphone permission is ever requested for dictation.
@@ -16035,6 +16041,8 @@ function App() {
       setInput(joinSpeech(joinSpeech(baseTextRef.current, transcriptRef.current), interim));
     };
     recognition.onend = () => {
+      dictationOpenRef.current = false;                               // G2: the session is over
+      if (dictationEndWaiterRef.current) { const w = dictationEndWaiterRef.current; dictationEndWaiterRef.current = null; w(); }
       const heard = heardThisSession;                                 // F3: did THIS session hear words?
       heardThisSession = false;
       if (childVoiceBlocked()) {                                 // غ‑٣: لا إعادةَ فتحٍ بعد الحجب — أوقفِ الحلقة
@@ -16062,7 +16070,7 @@ function App() {
         // unconditional restart chimed again and again for as long as the reader stayed silent.
         // Dictation ends instead; the text stays in the box. A session that heard words restarts.
         if (!heard) { shouldListenRef.current = false; setIsListening(false); return; }
-        if (ezStartRecognition(recognition)) return;
+        if (ezStartRecognition(recognition)) { dictationOpenRef.current = true; return; }
         // Restart failed (mic dropped, rapid toggling, or consent gone) — stop cleanly, no loop.
         shouldListenRef.current = false;
         setIsListening(false);
@@ -16096,6 +16104,8 @@ function App() {
       shouldListenRef.current = false;
       recognitionRef.current = null;
       ezKillRecognizer(recognition);
+      dictationOpenRef.current = false;                               // G2: killed handlers fire no onend
+      if (dictationEndWaiterRef.current) { const w = dictationEndWaiterRef.current; dictationEndWaiterRef.current = null; w(); }
     };
   }, [aiConsent]);
 
@@ -17278,6 +17288,7 @@ function App() {
     // for as long as the reader likes, and consent may have been withdrawn in another tab while
     // it did. ezStartRecognition refuses and tears the engine down if so.
     if (!ezStartRecognition(recognitionRef.current)) { shouldListenRef.current = false; setIsListening(false); }
+    else dictationOpenRef.current = true;                             // G2: a session is open until its onend
   };
 
   const stopListening = () => {
@@ -18322,7 +18333,23 @@ function App() {
     };
     if (rec) { rec.onresult = onRecResult; rec.onend = onRecEnd; rec.onerror = onRecError; }
     callRecognitionRef.current = rec;
-    startCallListening();    // child just enters and talks - no button
+    // G2: the stop() above does not free the microphone at once. On Android the dictation
+    // recognizer holds it until its own onend, and a getUserMedia before that fails with
+    // NotReadableError («busy»). So when a dictation session is still open, the first turn waits
+    // for that onend, bounded by CALL_RESTART_GRACE_MS (the recognizer's own hand-over window on
+    // this screen), and goes on after the bound if onend never comes. No session open: no wait.
+    if (dictationOpenRef.current) {
+      const genAtEntry = callGenRef.current;
+      let handedOver = false;
+      const afterDictation = () => {
+        if (handedOver) return;
+        handedOver = true;
+        dictationEndWaiterRef.current = null;
+        if (callGenRef.current === genAtEntry) startCallListening();
+      };
+      dictationEndWaiterRef.current = afterDictation;
+      setTimeout(afterDictation, CALL_RESTART_GRACE_MS);
+    } else startCallListening();    // child just enters and talks - no button
 
     return () => {
       callGenRef.current++; // EXIT: invalidate every in-flight continuation (re-arm / backoff / inactivity)

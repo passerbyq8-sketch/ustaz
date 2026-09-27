@@ -1583,7 +1583,16 @@ const SEALED = {
 //                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
 //                    stays ezik-v40. sw.js is 55702 bytes, measured at CR = 0. THIS digest is
 //                    re-cut LAST, after every other sw.js edit was final.
-  'sw.js': '91295a08b0e0f8a0e3dd6fc2ed8c9960bce09de8045bb9960a9ef633bd6952b4',
+  //   2026-09-27-j -- VOICE + CALL T4 FIX 3, G2: THE CALL WAITS FOR THE DICTATION ONEND.
+//                    The call entry effect stopped the dictation recognizer and called getUserMedia at
+//                    once; on Android the recognizer holds the mic until its onend. An open session is
+//                    now waited for (bound CALL_RESTART_GRACE_MS); with none, no wait is added.
+//                    app.js was rebuilt by node tools/build-app.cjs, and CORE_BYTES was
+//                    re-cut by node tools/core-bytes.cjs --write; the byte table in sw.js and the
+//                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
+//                    stays ezik-v40. sw.js is 55702 bytes, measured at CR = 0. THIS digest is
+//                    re-cut LAST, after every other sw.js edit was final.
+  'sw.js': '08f6d6162faa9dec9488921894cedbcdfe9258d2eb66c5a712f5faebdb2f6da5',
 };
 
 // ---------------------------------------------------------------------------
@@ -2539,7 +2548,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1792457, of: 'app.js' },
+      { n: 1794222, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

@@ -5349,7 +5349,12 @@ const src=ctx.createBufferSource();src.buffer=ctx.createBuffer(1,1,22050);src.co
 // iOS keeps audio muted. A 1-sample silent WAV (built inline as a Blob — no network) does it.
 try{const wav=new Uint8Array([82,73,70,70,38,0,0,0,87,65,86,69,102,109,116,32,16,0,0,0,1,0,1,0,64,31,0,0,128,62,0,0,2,0,16,0,100,97,116,97,2,0,0,0,0,0]);const url=URL.createObjectURL(new Blob([wav],{type:'audio/wav'}));const u=audioElRef.current||(audioElRef.current=new Audio());u.src=url;const pr=u.play();if(pr&&pr.then)pr.then(()=>{try{u.pause();}catch(e){}URL.revokeObjectURL(url);}).catch(()=>{try{URL.revokeObjectURL(url);}catch(e){}audioUnlockedRef.current=false;});// play() rejected -> not actually unlocked; allow a later gesture to retry
 }catch(e){audioUnlockedRef.current=false;/* prime threw -> allow a later gesture to retry */}};useEffect(()=>{const handler=()=>{unlockAudioPlayback();};const opts={capture:true};// Stay armed: after a real success the ref guard makes each call a no-op; before success we retry on every gesture.
-window.addEventListener('pointerdown',handler,opts);window.addEventListener('keydown',handler,opts);return()=>{window.removeEventListener('pointerdown',handler,opts);window.removeEventListener('keydown',handler,opts);};},[]);// إعداد التعرف على الصوت
+window.addEventListener('pointerdown',handler,opts);window.addEventListener('keydown',handler,opts);return()=>{window.removeEventListener('pointerdown',handler,opts);window.removeEventListener('keydown',handler,opts);};},[]);// G2 (T4 fix 3): is a dictation recognizer session open right now -- start() succeeded and its
+// onend has not fired yet? On Android the recognizer can still hold the microphone after stop()
+// until its own onend, and a getUserMedia inside that window fails with NotReadableError. The
+// call's entry effect waits for that onend (bounded) before it opens its own capture.
+const dictationOpenRef=useRef(false);const dictationEndWaiterRef=useRef(null);// set by the call's entry effect, called once by onend
+// إعداد التعرف على الصوت
 // The dependency is `aiConsent`, not []. Without consent ezNewRecognition() returns null and
 // NO engine is built at all -- so no microphone permission is ever requested for dictation.
 // When consent is granted the effect re-runs and the engine appears; when it is withdrawn the
@@ -5363,7 +5368,8 @@ recognition.onresult=event=>{// This ar-SA engine emits CUMULATIVE isFinal resul
 let finalText='',interim='';for(let i=0;i<event.results.length;i++){const t=event.results[i][0].transcript;if(event.results[i].isFinal){const seg=t.trim();if(!seg)continue;if(!finalText)finalText=seg;else if(seg.startsWith(finalText))finalText=seg;// cumulative restatement -> replace
 else if(finalText.startsWith(seg)){/* shorter prefix already covered -> skip */}else finalText=finalText+' '+seg;// genuine new segment -> append
 }else{interim+=t;}}transcriptRef.current=finalText;// REPLACE (not append) — dedupes cumulative finals
-if((finalText+interim).trim())heardThisSession=true;setInput(joinSpeech(joinSpeech(baseTextRef.current,transcriptRef.current),interim));};recognition.onend=()=>{const heard=heardThisSession;// F3: did THIS session hear words?
+if((finalText+interim).trim())heardThisSession=true;setInput(joinSpeech(joinSpeech(baseTextRef.current,transcriptRef.current),interim));};recognition.onend=()=>{dictationOpenRef.current=false;// G2: the session is over
+if(dictationEndWaiterRef.current){const w=dictationEndWaiterRef.current;dictationEndWaiterRef.current=null;w();}const heard=heardThisSession;// F3: did THIS session hear words?
 heardThisSession=false;if(childVoiceBlocked()){// غ‑٣: لا إعادةَ فتحٍ بعد الحجب — أوقفِ الحلقة
 shouldListenRef.current=false;setIsListening(false);return;}// THE AUTO-RESTART IS THE DANGEROUS ONE. This loop was armed while consent was held; if it
 // has been withdrawn since, restarting here would re-open the microphone to Google or Apple
@@ -5375,12 +5381,13 @@ if(shouldListenRef.current){baseTextRef.current=joinSpeech(baseTextRef.current,t
 // recognizer's own chime, and the engine ends an empty session on its own schedule, so the
 // unconditional restart chimed again and again for as long as the reader stayed silent.
 // Dictation ends instead; the text stays in the box. A session that heard words restarts.
-if(!heard){shouldListenRef.current=false;setIsListening(false);return;}if(ezStartRecognition(recognition))return;// Restart failed (mic dropped, rapid toggling, or consent gone) — stop cleanly, no loop.
+if(!heard){shouldListenRef.current=false;setIsListening(false);return;}if(ezStartRecognition(recognition)){dictationOpenRef.current=true;return;}// Restart failed (mic dropped, rapid toggling, or consent gone) — stop cleanly, no loop.
 shouldListenRef.current=false;setIsListening(false);return;}shouldListenRef.current=false;setIsListening(false);// Transcribed text stays in the box for the owner to review/edit/send. No auto-send.
 };recognition.onerror=event=>{// Fatal errors end dictation; transient ones (e.g. no-speech) let onend restart it.
 const fatal=['not-allowed','audio-capture','service-not-allowed','network'];if(fatal.includes(event.error))shouldListenRef.current=false;const errorMap={'not-allowed':'🚫 لم يتم السماح بالميكروفون. افتح إعدادات المتصفح واسمح بالميكروفون.','no-speech':'🤫 لم أسمع شيئاً، جرب مرة أخرى.','audio-capture':'🎤 الميكروفون غير متصل.','network':'📡 خطأ في الشبكة.','aborted':''};const msg=errorMap[event.error]!==undefined?errorMap[event.error]:`خطأ: ${event.error}`;if(msg){setVoiceError(msg);setTimeout(()=>setVoiceError(''),6000);}};recognitionRef.current=recognition;// Teardown on rebuild AND on unmount. Handlers first, then abort: an abort() fires onend, and
 // a live onend is precisely what would restart the engine we are trying to end.
-return()=>{shouldListenRef.current=false;recognitionRef.current=null;ezKillRecognizer(recognition);};},[aiConsent]);// ============================================================
+return()=>{shouldListenRef.current=false;recognitionRef.current=null;ezKillRecognizer(recognition);dictationOpenRef.current=false;// G2: killed handlers fire no onend
+if(dictationEndWaiterRef.current){const w=dictationEndWaiterRef.current;dictationEndWaiterRef.current=null;w();}};},[aiConsent]);// ============================================================
 // S97: WHERE A CONVERSATION OPENS.
 // This used to be one line:
 //     useEffect(() => { messagesEndRef.current?.scrollIntoView({behavior:'smooth'}); },
@@ -5847,7 +5854,8 @@ setVoiceError(hasValidAIConsent()?'🚫 متصفحك لا يدعم التعرف 
 baseTextRef.current=input&&!/\s$/.test(input)?input+' ':input;transcriptRef.current='';shouldListenRef.current=true;setVoiceError('');setIsListening(true);// Re-read at the instant of starting: the getUserMedia permission prompt above can sit open
 // for as long as the reader likes, and consent may have been withdrawn in another tab while
 // it did. ezStartRecognition refuses and tears the engine down if so.
-if(!ezStartRecognition(recognitionRef.current)){shouldListenRef.current=false;setIsListening(false);}};const stopListening=()=>{if(DICTATE_CLOUD){stopCloudDictation();return;}// User tapped the mic off: prevent the onend auto-restart and keep the text in the box.
+if(!ezStartRecognition(recognitionRef.current)){shouldListenRef.current=false;setIsListening(false);}else dictationOpenRef.current=true;// G2: a session is open until its onend
+};const stopListening=()=>{if(DICTATE_CLOUD){stopCloudDictation();return;}// User tapped the mic off: prevent the onend auto-restart and keep the text in the box.
 shouldListenRef.current=false;if(recognitionRef.current)recognitionRef.current.stop();};const startChat=async(name,age,gender)=>{// Session 06 / Commit 2 (DOB, option A): birthYear is the authoritative stored datum.
 // age stays on the object as a DERIVED value (approx, +/- 1y: month unknown) and is
 // recomputed from birthYear on every boot load, so accounts grow automatically.
@@ -6271,7 +6279,12 @@ if(!hasValidAIConsent()){ezKillRecognizer(rec);callActiveRef.current=false;setCa
 if(!callActiveRef.current)return;// turn ended during the gap
 if(!ezStartRecognition(rec)&&attempt<5)setTimeout(()=>tryStart(attempt+1),150);// never leave the mic dead
 };setTimeout(()=>tryStart(0),120);};const onRecError=event=>{if(silenceTimerRef.current){clearTimeout(silenceTimerRef.current);silenceTimerRef.current=null;}callActiveRef.current=false;setCallHeard('');setCallState('idle');// A denied mic is fatal and MUST be said. 'no-speech'/'aborted' are routine and stay quiet.
-const fatal=['not-allowed','audio-capture','service-not-allowed'];if(fatal.includes(event.error)){showCallError(event.error==='audio-capture'?'🎤 الميكروفون غير متاح على هذا الجهاز.':'🚫 لم يُمنح إذن الميكروفون. افتح إعدادات التطبيق واسمح بالميكروفون ثم أعد الدخول للمكالمة.');}else if(event.error==='network'){showCallError('📡 انقطع الاتّصال بمحرّك التعرّف على الصوت. تحقّق من الإنترنت ثم أعد المحاولة.');}};if(rec){rec.onresult=onRecResult;rec.onend=onRecEnd;rec.onerror=onRecError;}callRecognitionRef.current=rec;startCallListening();// child just enters and talks - no button
+const fatal=['not-allowed','audio-capture','service-not-allowed'];if(fatal.includes(event.error)){showCallError(event.error==='audio-capture'?'🎤 الميكروفون غير متاح على هذا الجهاز.':'🚫 لم يُمنح إذن الميكروفون. افتح إعدادات التطبيق واسمح بالميكروفون ثم أعد الدخول للمكالمة.');}else if(event.error==='network'){showCallError('📡 انقطع الاتّصال بمحرّك التعرّف على الصوت. تحقّق من الإنترنت ثم أعد المحاولة.');}};if(rec){rec.onresult=onRecResult;rec.onend=onRecEnd;rec.onerror=onRecError;}callRecognitionRef.current=rec;// G2: the stop() above does not free the microphone at once. On Android the dictation
+// recognizer holds it until its own onend, and a getUserMedia before that fails with
+// NotReadableError («busy»). So when a dictation session is still open, the first turn waits
+// for that onend, bounded by CALL_RESTART_GRACE_MS (the recognizer's own hand-over window on
+// this screen), and goes on after the bound if onend never comes. No session open: no wait.
+if(dictationOpenRef.current){const genAtEntry=callGenRef.current;let handedOver=false;const afterDictation=()=>{if(handedOver)return;handedOver=true;dictationEndWaiterRef.current=null;if(callGenRef.current===genAtEntry)startCallListening();};dictationEndWaiterRef.current=afterDictation;setTimeout(afterDictation,CALL_RESTART_GRACE_MS);}else startCallListening();// child just enters and talks - no button
 return()=>{callGenRef.current++;// EXIT: invalidate every in-flight continuation (re-arm / backoff / inactivity)
 callActiveRef.current=false;if(silenceTimerRef.current){clearTimeout(silenceTimerRef.current);silenceTimerRef.current=null;}clearInactivityTimer();// Clear the banner WITH its dismiss timer. Cancelling the timer alone would strand a
 // call-mode error on the chat screen with nothing left running to ever take it down.

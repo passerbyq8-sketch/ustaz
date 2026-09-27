@@ -24,7 +24,8 @@
 //          lead at once, and the pump prefetches the next sentence while one plays (E1, E2);
 //          source lines, URLs and domains are silent in speech (E3); the mic re-opens only after
 //          our own voice stopped sounding (E4); a silent dictation session is not restarted (E5);
-//          a suspended capture context is resumed, or the reader is asked for one tap (E6).
+//          a suspended capture context is resumed, or the reader is asked for one tap (E6); the
+//          call waits for an open dictation session's onend before its getUserMedia (E7).
 //
 // Arabic needles live as string literals but are NEVER printed. All console output is
 // ASCII (ids/labels only), safe for a Windows terminal.
@@ -1488,6 +1489,7 @@ function simulateDictation(html, sessions) {
     joinSpeech: (a, b) => [a, b].filter((x) => x && String(x).trim()).join(' '),
     setInput: (v) => { box = v; }, ezStartRecognition: () => { starts++; return true; }, ezKillRecognizer: () => {},
     setVoiceError: () => {}, setTimeout: () => 0,
+    dictationOpenRef: { current: true }, dictationEndWaiterRef: { current: null },
   };
   const names = Object.keys(deps);
   new Function(...names, html.slice(from, to))(...names.map((k) => deps[k]));
@@ -1630,6 +1632,113 @@ async function checkCaptureResume(html) {
   else fail('E6 a tap does not bring the capture back: state=' + tapped.state + ', line gone@' + tapped.lineGoneAt + ', heard@' + tapped.heardAt + ', listeners=' + tapped.live);
 }
 
+// E7 (T4 fix 3, G2): the call's entry effect stopped the dictation recognizer and called
+// getUserMedia at once. On Android the recognizer holds the microphone until its own onend, so a
+// dictation session left open in the chat turned the call into «busy». When a session is open the
+// first getUserMedia now waits for that onend, bounded by CALL_RESTART_GRACE_MS; with none, it
+// runs at once. EXECUTED on a simulated clock: the real dictation effect, startListening, the
+// call's entry effect, startCallListening and startCloudListening all run, in one scope, against a
+// fake recognizer whose stop() fires onend after 400 ms, or never.
+async function simulateHandOver(html, mode) {
+  const dictFrom = html.indexOf('    const recognition = ezNewRecognition();\n    if (!recognition) { recognitionRef.current = null; return; }');
+  const dictTo = dictFrom === -1 ? -1 : html.indexOf('\n  }, [aiConsent]);', dictFrom);
+  const callAt = html.indexOf("  useEffect(() => {\n    if (screen !== 'call') return;");
+  const callBody = callAt === -1 ? null : braceSlice(html, callAt + '  useEffect(() => '.length);
+  const decls = ['const startListening = async () => ', 'const startCallListening = (armIdleClock = true) => ',
+    'const startCloudListening = async () => ', 'const clearCaptureTap = () => ', 'const resumeCapture = (ctx) => ',
+    'const askTapForCapture = (ctx) => ', 'const ensureCaptureRunning = (ctx, myGen) => ', 'const stopCloudAll = () => ']
+    .map((h) => extractDecl(html, h));
+  if (dictFrom === -1 || dictTo === -1 || !callBody || !decls[0] || !decls[1] || !decls[2]) throw new Error('a hand-over piece is missing');
+  const constLine = (n) => { const m = new RegExp('\\n\\s*(const ' + n + ' = [^\\n]*;)').exec(html); return m ? m[1] : ''; };
+  const grace = Number((/\n\s*const CALL_RESTART_GRACE_MS = (\d+);/.exec(html) || [])[1]);
+  let now = 0, seqn = 0; const timers = [];
+  const at = (ms, fn) => { timers.push({ t: now + Math.max(0, ms || 0), n: seqn++, fn }); return seqn; };
+  const gum = [];
+  let phase = 'chat';
+  const engine = { starts: 0, open: false };
+  const dictRec = {
+    start() { engine.starts++; engine.open = true; },
+    stop() {
+      if (!engine.open) return;
+      engine.open = false;
+      if (mode === 'onend') at(400, () => { if (dictRec.onend) dictRec.onend(); });   // Android: onend comes later
+    },
+    abort() {},
+  };
+  let built = 0;
+  const ctx = { state: 'running', onstatechange: null, outputLatency: 0, resume: async () => {}, close() {},
+    createAnalyser: () => ({ fftSize: 0, getByteTimeDomainData(b) { b.fill(128); } }), createMediaStreamSource: () => ({ connect() {} }) };
+  function FakeRecorder() { this.state = 'inactive'; }
+  FakeRecorder.prototype.start = function () { this.state = 'recording'; };
+  FakeRecorder.prototype.stop = function () { this.state = 'inactive'; };
+  const ov = {
+    screen: 'call', CALL_STT_CLOUD: true, DICTATE_CLOUD: false, isSpeaking: false, input: '',
+    childVoiceBlocked: () => false, hasValidAIConsent: () => true, hasFounderToken: () => true,
+    ezSpeechEngine: () => function () {}, ezNewRecognition: () => (built++ === 0 ? dictRec : null),
+    ezStartRecognition: (r) => { if (!r) return false; r.start(); return true; }, ezKillRecognizer: () => {},
+    navigator: { mediaDevices: { getUserMedia: async () => { gum.push({ t: now, phase }); return { getTracks: () => [] }; } } },
+    window: { AudioContext: function () { return ctx; }, addEventListener() {}, removeEventListener() {} },
+    MediaRecorder: FakeRecorder, setTimeout: (fn, ms) => at(ms, fn), clearTimeout: () => {},
+    Date: { now: () => now }, console: { error: () => {} }, CALL_RESTART_GRACE_MS: grace,
+  };
+  const stubs = {};
+  const stub = () => { const f = function () {}; f.current = null; return f; };
+  const scope = new Proxy(ov, {
+    has: (t, k) => typeof k === 'string',
+    get: (t, k) => {
+      if (k === Symbol.unscopables) return undefined;
+      if (k in t) return t[k];
+      if (k in globalThis) return globalThis[k];
+      if (!(k in stubs)) stubs[k] = /Ref$/.test(k) ? { current: null } : stub();
+      return stubs[k];
+    },
+    set: (t, k, v) => { t[k] = v; return true; },
+  });
+  for (const k of ['callGenRef', 'shouldListenRef', 'recognitionRef', 'callMutedRef', 'callActiveRef', 'dictationOpenRef']) ov[k] = { current: k === 'callGenRef' ? 0 : null };
+  ov.callMutedRef.current = false;
+  ov.dictationOpenRef.current = false;
+  // eslint-disable-next-line no-new-func
+  const run = new Function('scope', 'with (scope) {\n' + ['CAPTURE_TAP_LINE', 'CAPTURE_RESUME_WAIT_MS', 'VAD_RMS_ON', 'VAD_SILENCE_MS', 'CLOUD_MAX_TURN_MS'].map(constLine).join('\n')
+    + '\n' + decls.filter(Boolean).join(';\n') + ';\n'
+    + 'const dictationEffect = () => {\n' + html.slice(dictFrom, dictTo) + '\n};\n'
+    + 'const callEffect = () => ' + callBody + ';\n'
+    + 'return { dictationEffect, callEffect, startListening };\n}');
+  const fns = run(scope);
+  fns.dictationEffect();
+  if (mode !== 'none') await fns.startListening();          // the reader dictates in the chat
+  const drain = async () => { for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r)); };
+  await drain();
+  phase = 'call';
+  fns.callEffect();                                          // ...then taps the call button
+  const atOnce = gum.filter((g) => g.phase === 'call').length;
+  for (let guard = 0; guard < 100000; guard++) {
+    await drain();
+    if (!timers.length) break;
+    timers.sort((a, b) => a.t - b.t || a.n - b.n);
+    if (timers[0].t > 10000) break;
+    const x = timers.shift(); now = x.t; x.fn();
+  }
+  await drain();
+  const callGum = gum.filter((g) => g.phase === 'call');
+  return { first: callGum.length ? callGum[0].t : null, count: callGum.length, atOnce, grace, dictStarts: engine.starts };
+}
+async function checkHandOver(html) {
+  let a, b, c;
+  try {
+    a = await simulateHandOver(html, 'onend');
+    b = await simulateHandOver(html, 'never');
+    c = await simulateHandOver(html, 'none');
+  } catch (e) { fail('E7 the hand-over does not run: ' + e.message); return; }
+  info('E7 bound CALL_RESTART_GRACE_MS=' + a.grace + ' | dictation open, onend at 400 ms: first getUserMedia at ' + a.first
+    + ' ms | onend never: at ' + b.first + ' ms | no dictation: at ' + c.first + ' ms (in the entry tick: ' + (c.atOnce > 0) + ')');
+  if (a.dictStarts === 1 && a.first === 400 && a.count === 1) pass('E7 with a dictation session open, the call opens the microphone only after its onend (400 ms)');
+  else fail('E7 the call opens the microphone before the dictation onend: at ' + a.first + ' ms (onend at 400), ' + a.count + ' call(s)');
+  if (b.first === b.grace && b.count === 1 && b.grace > 0) pass('E7 an onend that never comes is bounded: the microphone opens at ' + b.first + ' ms');
+  else fail('E7 without an onend the call waits ' + b.first + ' ms (bound ' + b.grace + ')');
+  if (c.first === 0 && c.atOnce === 1) pass('E7 with no dictation session the microphone opens at once, in the entry tick');
+  else fail('E7 a call with no dictation session waited: first getUserMedia at ' + c.first + ' ms, in the entry tick: ' + c.atOnce);
+}
+
 // ===========================================================================
 (async () => {
   // ITEM 32: the call screen is in app.jsx now, so this reads the shipped client, not the shell.
@@ -1654,6 +1763,7 @@ async function checkCaptureResume(html) {
   await checkRearm(html);
   checkDictationRestart(html);
   await checkCaptureResume(html);
+  await checkHandOver(html);
 
   console.log('  SUMMARY   PASS=' + P + '   FAIL=' + F);
   if (F > 0) {
