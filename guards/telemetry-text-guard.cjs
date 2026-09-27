@@ -248,6 +248,19 @@ const BW2_FIELDS = [
   'unitsReleased', 'unitsHeld', 'cardsSent', 'liveOffer',
   // provider billing integers off the writer's usage record.
   'inTokens', 'outTokens',
+  // SPEED FIX 2, C3 (order EZIK-SPEED-FIX2B-ORDER-2026-09-27): milliseconds from the request start to
+  // the writer call and to its first text delta (or null); units held before the first release; whether
+  // the writer's not-covered marker came; the takhrij lookups, their summed milliseconds and the matns
+  // they matched; the pinned table's row count and character count; whether the encyclopedia index was
+  // still cold. Numbers, booleans and null.
+  'writerStartMs', 'firstTokenMs', 'heldBeforeFirst', 'markerSeen',
+  'takhrijLookups', 'takhrijMs', 'takhrijMatched', 'pinnedRows', 'pinnedChars', 'encyclopediaCold',
+  // one count per hold reason, held<Reason> over the closed list lib/bw2-units.js BW2_HOLD_REASONS.
+  'heldEmpty', 'heldToolAnnouncement', 'heldReviewFailed', 'heldUnsupportedAttribution',
+  'heldUncitedAttribution', 'heldUncitedRuling', 'heldUnsupportedGroup', 'heldUnsupportedConsensus',
+  'heldUnsupportedSchool', 'heldUnsupportedMatn', 'heldTakhrijRefused', 'heldTakhrijEmptied',
+  'heldGradeRuleFailed', 'heldGradeEmptied', 'heldRepeat', 'heldDependentOnHeld',
+  'heldDependentOpening', 'heldDanglingLeadIn', 'heldNotCovered', 'heldNotCoveredSentence',
 ];
 
 const ALLOWED = new Set([...ALLOWED_FIELDS, ...STREAM_FIELDS, ...LIVE_WORLD_V2_FIELDS,

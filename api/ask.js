@@ -1831,6 +1831,16 @@ export default async function handler(req, res) {
           unitsReleased: t.unitsReleased, unitsHeld: t.unitsHeld, cardsSent: t.cardsSent,
           liveOffer: t.liveOffer,
           inTokens: t.inTokens, outTokens: t.outTokens,
+          // SPEED FIX 2, C3: the split of the time to the first release, and the holds by reason.
+          writerStartMs: t.writerStartMs, firstTokenMs: t.firstTokenMs, heldBeforeFirst: t.heldBeforeFirst,
+          markerSeen: t.markerSeen, takhrijLookups: t.takhrijLookups, takhrijMs: t.takhrijMs,
+          takhrijMatched: t.takhrijMatched, pinnedRows: t.pinnedRows, pinnedChars: t.pinnedChars,
+          encyclopediaCold: t.encyclopediaCold,
+          heldEmpty: t.heldEmpty, heldToolAnnouncement: t.heldToolAnnouncement, heldReviewFailed: t.heldReviewFailed, heldUnsupportedAttribution: t.heldUnsupportedAttribution,
+          heldUncitedAttribution: t.heldUncitedAttribution, heldUncitedRuling: t.heldUncitedRuling, heldUnsupportedGroup: t.heldUnsupportedGroup, heldUnsupportedConsensus: t.heldUnsupportedConsensus,
+          heldUnsupportedSchool: t.heldUnsupportedSchool, heldUnsupportedMatn: t.heldUnsupportedMatn, heldTakhrijRefused: t.heldTakhrijRefused, heldTakhrijEmptied: t.heldTakhrijEmptied,
+          heldGradeRuleFailed: t.heldGradeRuleFailed, heldGradeEmptied: t.heldGradeEmptied, heldRepeat: t.heldRepeat, heldDependentOnHeld: t.heldDependentOnHeld,
+          heldDependentOpening: t.heldDependentOpening, heldDanglingLeadIn: t.heldDanglingLeadIn, heldNotCovered: t.heldNotCovered, heldNotCoveredSentence: t.heldNotCoveredSentence,
         });
       }
       return;

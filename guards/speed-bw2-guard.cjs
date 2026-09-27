@@ -29,6 +29,15 @@
 //   R4  a group attribution (q4) with no [[n]], or cited to rows that do not name the group, is held;
 //       BW2_HOLD_UNCITED_RULINGS (default off) holds an uncited ruling unit in STORED_FIQH only
 //   R5  a unit that leans on a held one (q11's orphan quote) is held, and no answer opens on one
+//
+// SPEED FIX 2 (order EZIK-SPEED-FIX2B-ORDER-2026-09-27), built from the owner tool's question 6 and the
+// live-search answer after it (EZIK-SPEED-PREVIEW2-LIVE-2026-09-27):
+//   C1  a matn a cited row carries (spacing-free fold, at least 12 letters) is released on that row though
+//       the takhrij lookup matched nothing; one no row carries stays held; R5 and the lead-in hold around it
+//   C2  a cold encyclopedia costs at most BW2_ENCYC_COLD_MS (300), its build goes on in the background, and
+//       the warm path is as before
+//   C3  the new telemetry: writer start, first token, holds before the first release and by reason, the
+//       marker, the takhrij lookups, the pinned table, the cold encyclopedia
 'use strict';
 
 const fs = require('fs');
@@ -136,8 +145,9 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
   };
 
   function makeDeps({ fatwa = [ROW_F1, ROW_F2], library = [], encyclopedia = [], lessons = [], hang = {},
-    judge = 'all', writerText = '', seed = 1, takhrij = false, writerThrows = false } = {}) {
-    const calls = { writer: 0, ask: 0, askUser: '', writerBody: null, writerAt: null, tools: [] };
+    judge = 'all', writerText = '', seed = 1, takhrij = false, writerThrows = false,
+    takhrijImpl = null, encyclopediaReady = () => true, warm = null } = {}) {
+    const calls = { writer: 0, ask: 0, askUser: '', writerBody: null, writerAt: null, tools: [], search: 0, warm: 0 };
     const started = Date.now();
     const deps = {
       runTool: (name, input, ctx) => {
@@ -149,8 +159,12 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         const added = rows.map((row) => ctx.table.add({ ...row }));
         return Promise.resolve({ text: '', added, calls: 1 });
       },
-      searchStoredCorpus: () => (hang.encyclopedia ? new Promise(() => {}) : Promise.resolve({ records: encyclopedia })),
-      warmEncyclopedia: () => Promise.resolve(true),
+      searchStoredCorpus: () => {
+        calls.search += 1;
+        return hang.encyclopedia ? new Promise(() => {}) : Promise.resolve({ records: encyclopedia });
+      },
+      warmEncyclopedia: () => { calls.warm += 1; return warm ? warm() : Promise.resolve(true); },
+      encyclopediaReady,
       encyclopediaRow: TOOLS.encyclopediaRow,
       ask: async ({ user, maxTokens }) => {
         calls.ask += 1;
@@ -169,14 +183,14 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         for (const piece of chunk(writerText, seed)) onText(piece);
         return { usage: { input_tokens: 1200, output_tokens: 340 }, stop_reason: 'end_turn', content: [] };
       },
-      applyTakhrij: takhrij ? async (text) => {
+      applyTakhrij: takhrijImpl || (takhrij ? async (text) => {
         if (!text.includes(FASTING_MATN)) return { text, entries: [] };
         const at = text.indexOf('\u00bb', text.indexOf(FASTING_MATN)) + 1;
         return {
           text: text.slice(0, at) + TAKHRIJ_PAREN + text.slice(at),
           entries: [{ matn: FASTING_MATN, sourced: true, sealProof: ['\u0635\u062d\u064a\u062d \u0627\u0644\u0628\u062e\u0627\u0631\u064a', '\u0635\u062d\u064a\u062d \u0645\u0633\u0644\u0645'], proseProof: ['\u0627\u0644\u0628\u062e\u0627\u0631\u064a', '\u0645\u0633\u0644\u0645'] }],
         };
-      } : undefined,
+      } : undefined),
       runnerLookup: () => async () => [],
     };
     return { deps, calls };
@@ -199,7 +213,7 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       mode: 'brief', band: 'adult', system: 'SYSTEM', model: 'writer-model', maxTokens: 4096,
       providerUrl: 'https://api.anthropic.invalid/v1/messages', headers: {},
       libFlagValue: opts.libOn ? 'on' : '', libToken: opts.libOn ? 'guard-token' : '', lessonsToken: '',
-      takhrijWired: !!opts.takhrij, cards, wire, requestStartedAt: Date.now(),
+      takhrijWired: !!opts.takhrij || !!opts.takhrijImpl, cards, wire, requestStartedAt: Date.now(),
       env: { BW2_RETRIEVAL_MS: String(opts.budget || 400), BW2_JUDGE_MS: '400', ...(opts.env || {}) },
       runtime: opts.runtime || '',
       deps,
@@ -525,6 +539,156 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         k(F.a11[0]) === 'speech' && k(F.a1[0]) === 'connector' && k(F.a10[0]) === 'pronoun' && k(U.s2) === '' && k(MASAH_RULING) === ''
         && k(String.fromCharCode(0x00ab) + MASAH_RULING + String.fromCharCode(0x00bb)) === 'quote',
         JSON.stringify([k(F.a11[0]), k(F.a1[0]), k(F.a10[0]), k(U.s2)]));
+    }
+
+    // ---------------------------------------------------------------- SPEED FIX 2: C1, C2, C3
+    // Built from the owner tool's round 2 (EZIK-SPEED-PREVIEW2-LIVE-2026-09-27): question 6 verbatim, and
+    // the lead-in, the matn and the sentences after it exactly as the live-search answer that followed wrote
+    // them. The row quotes the same hadith with its own vocalisation, "yarasul" written as one word and
+    // semicolons between the four -- the spacing and punctuation today's word test does not fold.
+    const TK = await esm('lib/takhrij.js');
+    {
+      const Q6 = '\u0623\u064a\u0646 \u0648\u0631\u062f \u062d\u062f\u064a\u062b: \u0627\u0644\u062f\u064a\u0646 \u0627\u0644\u0646\u0635\u064a\u062d\u0629\u061f \u0648\u0645\u0646 \u0631\u0648\u0627\u0647\u061f';
+      const Q6_LEAD = '\u0648\u0646\u0635\u0647 \u0623\u0646 \u0627\u0644\u0646\u0628\u064a \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645 \u0642\u0627\u0644:';
+      const Q6_MATN = '\u0627\u0644\u062f\u064a\u0646 \u0627\u0644\u0646\u0635\u064a\u062d\u0629. \u0642\u0644\u0646\u0627: \u0644\u0645\u0646 \u064a\u0627 \u0631\u0633\u0648\u0644 \u0627\u0644\u0644\u0647\u061f \u0642\u0627\u0644: \u0644\u0644\u0647 \u0648\u0644\u0643\u062a\u0627\u0628\u0647 \u0648\u0644\u0631\u0633\u0648\u0644\u0647 \u0648\u0644\u0623\u0626\u0645\u0629 \u0627\u0644\u0645\u0633\u0644\u0645\u064a\u0646 \u0648\u0639\u0627\u0645\u062a\u0647\u0645';
+      // The frame on the quote's own line: today's matn finder reads a quotation as a matn only then
+      // (TOOLREP3's answer put it on the line before, where no matn is found and no matn check runs).
+      const Q6_QUOTE = Q6_LEAD + ' \u00ab' + Q6_MATN + '\u00bb [[1]]';
+      // A lead-in line ending in a colon, and the frame and matn on the line it introduces.
+      const Q6_LEADIN = '\u0648\u0646\u0635\u0647:';
+      const Q6_FRAMED = '\u0642\u0627\u0644 \u0627\u0644\u0646\u0628\u064a \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645: \u00ab' + Q6_MATN + '\u00bb [[1]]';
+      const Q6_AFTER = '\u0648\u0647\u0630\u0627 \u064a\u062f\u0644 \u0639\u0644\u0649 \u0639\u0638\u0645 \u0634\u0623\u0646 \u0627\u0644\u0646\u0635\u064a\u062d\u0629.';
+      const Q6_MEANING = '\u0648\u0645\u0639\u0646\u0649 \u0647\u0630\u0627 \u0627\u0644\u062d\u062f\u064a\u062b \u0627\u0644\u0639\u0638\u064a\u0645 \u0623\u0646 \u0627\u0644\u062f\u064a\u0646 \u0643\u0644\u0647 \u064a\u0631\u062c\u0639 \u0625\u0644\u0649 \u0627\u0644\u0646\u0635\u064a\u062d\u0629 [[1]].';
+      const Q6_ROW_TEXT = '\u0639\u0646 \u062a\u0645\u064a\u0645 \u0627\u0644\u062f\u0627\u0631\u064a \u0631\u0636\u064a \u0627\u0644\u0644\u0647 \u0639\u0646\u0647 \u0623\u0646 \u0627\u0644\u0646\u0628\u064a \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645 \u0642\u0627\u0644: \u00ab\u0627\u0644\u062f\u0650\u0651\u064a\u0646\u064f \u0627\u0644\u0646\u064e\u0651\u0635\u0650\u064a\u062d\u064e\u0629\u064f\u00bb \u0642\u064f\u0644\u0652\u0646\u064e\u0627: \u0644\u0650\u0645\u064e\u0646\u0652 \u064a\u064e\u0627\u0631\u064e\u0633\u064f\u0648\u0644\u064e \u0627\u0644\u0644\u064e\u0651\u0647\u0650\u061f \u0642\u064e\u0627\u0644\u064e: \u00ab\u0644\u0650\u0644\u064e\u0651\u0647\u0650\u061b \u0648\u064e\u0644\u0650\u0643\u0650\u062a\u064e\u0627\u0628\u0650\u0647\u0650\u061b \u0648\u064e\u0644\u0650\u0631\u064e\u0633\u064f\u0648\u0644\u0650\u0647\u0650\u061b \u0648\u064e\u0644\u0650\u0623\u064e\u0626\u0650\u0645\u064e\u0651\u0629\u0650 \u0627\u0644\u0652\u0645\u064f\u0633\u0652\u0644\u0650\u0645\u0650\u064a\u0646\u064e \u0648\u064e\u0639\u064e\u0627\u0645\u064e\u0651\u062a\u0650\u0647\u0650\u0645\u0652\u00bb. \u0631\u0648\u0627\u0647 \u0645\u0633\u0644\u0645. \u0648\u0645\u0639\u0646\u0649 \u0647\u0630\u0627 \u0627\u0644\u062d\u062f\u064a\u062b \u0627\u0644\u0639\u0638\u064a\u0645 \u0623\u0646 \u0627\u0644\u062f\u064a\u0646 \u0643\u0644\u0647 \u064a\u0631\u062c\u0639 \u0625\u0644\u0649 \u0627\u0644\u0646\u0635\u064a\u062d\u0629.';
+      const OTHER_ROW_TEXT = '\u0642\u0627\u0644 \u0627\u0644\u0646\u0628\u064a \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645: \u00ab\u0645\u0646 \u063a\u0634\u0646\u0627 \u0641\u0644\u064a\u0633 \u0645\u0646\u0627\u00bb. \u0631\u0648\u0627\u0647 \u0645\u0633\u0644\u0645. \u0648\u0645\u0639\u0646\u0649 \u0647\u0630\u0627 \u0627\u0644\u062d\u062f\u064a\u062b \u0627\u0644\u0639\u0638\u064a\u0645 \u0623\u0646 \u0627\u0644\u062f\u064a\u0646 \u0643\u0644\u0647 \u064a\u0631\u062c\u0639 \u0625\u0644\u0649 \u0627\u0644\u0646\u0635\u064a\u062d\u0629.';
+      const ROW_Q6 = { ...ROW_F1, title: 'Q6-ROW', url: 'https://binbaz.org.sa/fatwas/6006', recordId: '6006', text: Q6_ROW_TEXT, passage: Q6_ROW_TEXT };
+      const ROW_OTHER = { ...ROW_Q6, title: 'Q6-OTHER', url: 'https://binbaz.org.sa/fatwas/6007', recordId: '6007', text: OTHER_ROW_TEXT, passage: OTHER_ROW_TEXT };
+      const PAREN_Q6 = ' (\u0631\u0648\u0627\u0647 \u0645\u0633\u0644\u0645)';
+      // The takhrij lookup of question 6 as the preview measured it: examined 1, matched 0 (TAKHRIJ_SILENT).
+      const silent = async (text) => ({ text, entries: text.includes(Q6_MATN) ? [{ matn: Q6_MATN, silent: true, sourced: false }] : [] });
+      const matched = async (text) => {
+        if (!text.includes(Q6_MATN)) return { text, entries: [] };
+        const at = text.indexOf('\u00bb', text.indexOf(Q6_MATN)) + 1;
+        return { text: text.slice(0, at) + PAREN_Q6 + text.slice(at), entries: [{ matn: Q6_MATN, sourced: true, sealProof: ['\u0635\u062d\u064a\u062d \u0645\u0633\u0644\u0645'], proseProof: ['\u0645\u0633\u0644\u0645'] }] };
+      };
+      const w = [Q6_QUOTE, Q6_AFTER, Q6_MEANING].join('\n');
+
+      const c1 = await run({ question: Q6, fatwa: [ROW_Q6], writerText: w, takhrijImpl: silent });
+      const t1 = c1.deltas.join('');
+      const tel1 = c1.out.telemetry;
+      ok('C1a q6: a matn the cited row carries is released on that row though the takhrij lookup matched nothing',
+        t1.includes('\u00ab' + Q6_MATN + '\u00bb') && tel1.heldUnsupportedMatn === 0 && tel1.takhrijLookups === 1 && tel1.takhrijMatched === 0
+        && !t1.includes(PAREN_Q6.trim()) && !hasOffer(c1) && !t1.includes(NOT_COVERED), ascii(t1) + ' ' + JSON.stringify(tel1));
+      const q6Matn = TK.findTargets(Q6_QUOTE).targets.map((x) => x.matn)[0] || '';
+      ok('C1b ...the fixture measures the change: today\'s word test does not carry it, the spacing-free test does',
+        q6Matn.length > 0 && !TK.atomCarriesMatn(Q6_ROW_TEXT, q6Matn) && UNITS.rowCarriesMatn(Q6_ROW_TEXT, q6Matn),
+        JSON.stringify([q6Matn.length, TK.atomCarriesMatn(Q6_ROW_TEXT, q6Matn)]));
+      ok('C1c ...the connector after it followed it out (R5 around a released matn)',
+        (c1.deltas[0] || '').startsWith(Q6_LEAD) && (c1.deltas[0] || '').includes(Q6_MATN) && t1.includes(Q6_AFTER)
+        && tel1.unitsHeld === 0 && tel1.unitsReleased === 3, ascii(c1.deltas.join('|')));
+      const ld = await run({ question: Q6, fatwa: [ROW_Q6], writerText: [Q6_LEADIN, Q6_FRAMED, Q6_AFTER].join('\n'), takhrijImpl: silent });
+      const ldn = await run({ question: Q6, fatwa: [ROW_OTHER], writerText: [Q6_LEADIN, Q6_FRAMED, Q6_MEANING].join('\n'), takhrijImpl: silent });
+      ok('C1c2 a lead-in goes out with the carried matn it introduces, in one delta; and is held with it when no row carries it',
+        (ld.deltas[0] || '').startsWith(Q6_LEADIN + '\n') && (ld.deltas[0] || '').includes(Q6_MATN) && ld.out.telemetry.heldUnsupportedMatn === 0
+        && !ldn.deltas.join('').includes(Q6_LEADIN) && !ldn.deltas.join('').includes(Q6_MATN.slice(0, 12)) && ldn.out.telemetry.heldUnsupportedMatn === 1
+        && ldn.deltas.join('').includes('\u0648\u0645\u0639\u0646\u0649 \u0647\u0630\u0627'), ascii(ld.deltas.join('|') + ' || ' + ldn.deltas.join('|')));
+
+      const c1n = await run({ question: Q6, fatwa: [ROW_OTHER], writerText: w, takhrijImpl: silent });
+      const t1n = c1n.deltas.join('');
+      const teln = c1n.out.telemetry;
+      ok('C1d a matn no cited row carries, with no takhrij proof, stays held -- its frame with it',
+        !t1n.includes(Q6_MATN.slice(0, 12)) && !t1n.includes(Q6_LEAD.slice(0, 8)) && teln.heldUnsupportedMatn === 1, ascii(t1n) + ' ' + JSON.stringify(teln));
+      ok('C1e ...and R5 still holds the connector that leans on it; the independent unit after goes out',
+        !t1n.includes(Q6_AFTER) && teln.heldDependentOnHeld === 1 && t1n.includes('\u0648\u0645\u0639\u0646\u0649 \u0647\u0630\u0627 \u0627\u0644\u062d\u062f\u064a\u062b') && teln.heldBeforeFirst === 2,
+        ascii(t1n));
+      const op = await run({ question: Q6, fatwa: [ROW_Q6], writerText: [Q6_AFTER, Q6_QUOTE].join('\n'), takhrijImpl: silent });
+      ok('C1f ...and no answer opens on a connector: held (dependent_opening), the carried matn after it released',
+        op.deltas.join('').startsWith(Q6_LEAD) && !op.deltas.join('').includes(Q6_AFTER) && op.out.telemetry.heldDependentOpening === 1,
+        ascii(op.deltas.join('|')));
+      const cm = await run({ question: Q6, fatwa: [ROW_Q6], writerText: w, takhrijImpl: matched });
+      ok('C1g the lookup still runs first and adds its parenthetical when it matches, inside the unit',
+        (cm.deltas[0] || '').includes(Q6_MATN + '\u00bb' + PAREN_Q6) && cm.out.telemetry.takhrijMatched === 1, ascii(cm.deltas.join('|')));
+      const SHORT = '\u0627\u0644\u062d\u062c \u0639\u0631\u0641\u0629';
+      const SHORT_ROW = '\u0627\u0644\u062d\u062c\u064f\u0651\u2026\u0639\u0631\u0641\u0629\u064f';
+      ok('C1h the minimum: MIN_CARRIED_LETTERS is 12, and a shorter matn is never carried by the spacing-free test alone',
+        UNITS.MIN_CARRIED_LETTERS === 12 && UNITS.foldCarried(SHORT).length < 12
+        && UNITS.foldCarried(SHORT_ROW).includes(UNITS.foldCarried(SHORT)) && !UNITS.rowCarriesMatn(SHORT_ROW, SHORT)
+        && UNITS.foldCarried(Q6_MATN).length >= 12, JSON.stringify([UNITS.foldCarried(SHORT).length, UNITS.foldCarried(Q6_MATN).length]));
+      ok('C1i the fold removes diacritics, tatweel, punctuation, quote marks and spacing, and nothing else',
+        UNITS.foldCarried('\u00ab\u0627\u0644\u062f\u0650\u0651\u064a\u0646\u064f \u0640 \u0627\u0644\u0646\u064e\u0651\u0635\u0650\u064a\u062d\u064e\u0629\u064f\u00bb\u2026 \u061b') === UNITS.foldCarried('\u0627\u0644\u062f\u064a\u0646 \u0627\u0644\u0646\u0635\u064a\u062d\u0629')
+        && UNITS.foldCarried('\u0627\u0644\u062f\u064a\u0646 \u0627\u0644\u0646\u0635\u064a\u062d\u0629') !== UNITS.foldCarried('\u0627\u0644\u062f\u064a\u0646 \u0646\u0635\u064a\u062d\u0629'));
+    }
+    {
+      const TOL = 250;
+      const REC = { id: 'E1', term: '\u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0631\u0628', part: 1, snippet: MASAH_RULING, text: MASAH_RULING + '\u060c ' + MASAH_TERM };
+      const cold = await run({ encyclopediaReady: () => false, warm: () => new Promise(() => {}), hang: { encyclopedia: true }, budget: 1500, writerText: U.s1 });
+      const ct = cold.out.telemetry;
+      ok('C2a a cold encyclopedia that never finishes building costs at most BW2_ENCYC_COLD_MS (300) + ' + TOL + ' ms, not the budget',
+        cold.calls.writerAt !== null && cold.calls.writerAt <= 300 + TOL && ct.encyclopediaCold === true && ct.encyclopediaTimedOut === false
+        && ct.encyclopediaHits === 0 && ct.encyclopediaMs <= 300 + TOL && cold.calls.search === 0, JSON.stringify({ at: cold.calls.writerAt, ct }));
+      ok('C2b ...its load was started in the background for later requests (and the turn still answered)',
+        cold.calls.warm >= 2 && cold.deltas.join('').includes(MASAH_RULING), String(cold.calls.warm));
+      const hung = await run({ encyclopediaReady: () => true, hang: { encyclopedia: true }, budget: 1500, writerText: U.s1 });
+      ok('C2c control: a WARM encyclopedia whose search hangs still waits the retrieval budget, as before',
+        hung.calls.writerAt >= 1500 && hung.out.telemetry.encyclopediaTimedOut === true && hung.out.telemetry.encyclopediaCold === false,
+        String(hung.calls.writerAt));
+      const envCold = await run({ encyclopediaReady: () => false, warm: () => new Promise(() => {}), budget: 1500, writerText: U.s1, env: { BW2_ENCYC_COLD_MS: '60' } });
+      ok('C2d BW2_ENCYC_COLD_MS sets the wait (default 300)', envCold.calls.writerAt <= 60 + TOL && BW2.encyclopediaColdMs({}) === 300
+        && BW2.BW2_ENCYC_COLD_MS_DEFAULT === 300 && BW2.encyclopediaColdMs({ BW2_ENCYC_COLD_MS: '60' }) === 60, String(envCold.calls.writerAt));
+      let built = false;
+      const quick = await run({ encyclopediaReady: () => built, warm: () => new Promise((r) => setTimeout(() => { built = true; r(true); }, 40)), encyclopedia: [REC], budget: 1500, writerText: U.s1 });
+      ok('C2e a cold index that finishes inside the wait is searched as usual (not cold, its rows used)',
+        quick.out.telemetry.encyclopediaCold === false && quick.out.telemetry.encyclopediaHits === 1 && quick.calls.search === 1,
+        JSON.stringify(quick.out.telemetry));
+      const warmRun = async () => {
+        const { deps, calls } = makeDeps({ encyclopedia: [REC], encyclopediaReady: () => true });
+        const g = await BW2.gatherBw2({ question: Q_MASAH, budgetMs: 1500, deps });
+        return { g, calls };
+      };
+      const a = await warmRun();
+      const b = await warmRun();
+      const expect = [{ ...TOOLS.encyclopediaRow(REC), fullText: String(REC.text).slice(0, BW2.BW2_ENCYC_CHARS) }];
+      ok('C2f the warm path: rows exactly as the unchanged mapping builds them, one search, no warm call, never cold',
+        JSON.stringify(a.g.results.encyclopedia) === JSON.stringify(expect) && JSON.stringify(a.g.results) === JSON.stringify(b.g.results)
+        && a.calls.search === 1 && a.calls.warm === 0 && a.g.encyclopediaCold === false && a.g.report.encyclopedia.timedOut === false
+        && a.g.report.encyclopedia.hits === 1, ascii(JSON.stringify(a.g.results.encyclopedia)));
+      const ENC = await esm('lib/encyclopedia.js');
+      ok('C2g lib/encyclopedia.js reports readiness without building (false before any build in this process)',
+        typeof ENC.encyclopediaReady === 'function' && ENC.encyclopediaReady() === false);
+    }
+    {
+      const r = await run({ writerText: [U.bad, U.s1, U.bad, U.s3].join(' ') });
+      const t = r.out.telemetry;
+      const heldSum = UNITS.BW2_HOLD_REASONS.reduce((n, reason) => n + t[UNITS.heldFieldOf(reason)], 0);
+      ok('C3a holds before the first release are counted apart: 1 of the 2 held units came before it',
+        t.heldBeforeFirst === 1 && t.unitsHeld === 2 && heldSum === 2 && t.heldUnsupportedAttribution === 2, JSON.stringify(t));
+      ok('C3b writerStartMs <= firstTokenMs <= firstReleaseMs, all integers from the request start',
+        [t.writerStartMs, t.firstTokenMs, t.firstReleaseMs].every(Number.isInteger)
+        && t.writerStartMs <= t.firstTokenMs && t.firstTokenMs <= t.firstReleaseMs, JSON.stringify([t.writerStartMs, t.firstTokenMs, t.firstReleaseMs]));
+      const one = await run({ fatwa: [ROW_F1], writerText: U.s1 });
+      ok('C3c pinnedRows and pinnedChars measure the pinned table',
+        t.pinnedRows === 2 && one.out.telemetry.pinnedRows === 1 && Number.isInteger(t.pinnedChars)
+        && t.pinnedChars > one.out.telemetry.pinnedChars && one.out.telemetry.pinnedChars > 0, JSON.stringify([t.pinnedChars, one.out.telemetry.pinnedChars]));
+      const mk = await run({ writerText: MARKER });
+      ok('C3d markerSeen: true on the writer\'s marker, false otherwise', mk.out.telemetry.markerSeen === true && t.markerSeen === false
+        && mk.out.telemetry.heldNotCovered === 0);
+      const tk = await run({ writerText: [U.matn, U.s3].join(' '), takhrij: true });
+      ok('C3e the takhrij lookups: one lookup, one matched matn, an integer sum of milliseconds; none without a matn',
+        tk.out.telemetry.takhrijLookups === 1 && tk.out.telemetry.takhrijMatched === 1 && Number.isInteger(tk.out.telemetry.takhrijMs)
+        && t.takhrijLookups === 0 && t.takhrijMs === 0, JSON.stringify(tk.out.telemetry));
+      const src = read('lib/bw2-units.js');
+      const named = new Set([...src.matchAll(/hold\('([a-z_]+)'/g), ...src.matchAll(/reason: '([a-z_]+)'/g),
+        ...src.matchAll(/\? '([a-z_]+)' : '([a-z_]+)', pendingLead/g)].flatMap((m) => m.slice(1).filter(Boolean)));
+      ok('C3f every hold reason the code names is in BW2_HOLD_REASONS, and the list names no other',
+        named.size === UNITS.BW2_HOLD_REASONS.length && [...named].every((n) => UNITS.BW2_HOLD_REASONS.includes(n)),
+        JSON.stringify([...named].filter((n) => !UNITS.BW2_HOLD_REASONS.includes(n))) + ' ' + named.size);
+      const askSrc = read('api/ask.js');
+      const logAt = askSrc.indexOf("console.log('[bw2]', {");
+      const block = askSrc.slice(logAt, askSrc.indexOf('});', logAt));
+      const NEW = ['writerStartMs', 'firstTokenMs', 'heldBeforeFirst', 'markerSeen', 'takhrijLookups', 'takhrijMs', 'takhrijMatched',
+        'pinnedRows', 'pinnedChars', 'encyclopediaCold', ...UNITS.BW2_HOLD_REASONS.map(UNITS.heldFieldOf)];
+      ok('C3g api/ask.js prints every new field from the telemetry object, and the turn builds every one of them',
+        NEW.every((n) => block.includes(n + ': t.' + n + ',') && n in t), JSON.stringify(NEW.filter((n) => !block.includes(n + ': t.' + n + ','))));
     }
 
     // ---------------------------------------------------------------- T10 (unit level)
