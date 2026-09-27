@@ -12515,7 +12515,10 @@ function toggleAdhkarFavorite(key) {
   if (!A2_ID_RE.test(key)) return cur;
   const at = cur.indexOf(key);
   const next = at === -1 ? cur.concat([key]) : cur.slice(0, at).concat(cur.slice(at + 1));
-  try { localStorage.setItem(ADHKAR_FAVORITES_KEY, JSON.stringify(next)); } catch (e) {}
+  try {
+    localStorage.setItem(ADHKAR_FAVORITES_KEY, JSON.stringify(next));
+    ezikWidgetDataChanged();
+  } catch (e) {}
   return next;
 }
 
@@ -14909,6 +14912,7 @@ function App() {
   useEzikNativeAuthRoot();
   useEzikVisualTheme();
   const [screen, setScreen] = useState('loading');
+  useEzikWidgetDataRoot(screen !== 'loading');
   const [selectedSurah, setSelectedSurah] = useState(null); // خطأ ٤٦: سورة المصحف المفتوحة، مرفوعة إلى App كي يقشرها زر الرجوع طبقةً طبقة
   const [profile, setProfile] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -18716,6 +18720,7 @@ function App() {
       setChatId(null);
       setChatList([]);
       setScreen('onboarding');
+      try { ezikWidgetDataChanged(); } catch (e) {}
     }
   };
 
@@ -23534,6 +23539,7 @@ function writePrayerPrefs(next) {
     }
   }
   try { localStorage.setItem(PRAYER_PREFS_KEY, JSON.stringify(rec)); } catch (e) { return readPrayerPrefs(); }
+  try { ezikWidgetDataChanged(); } catch (e) {}
   return rec;
 }
 // One prayer's offset moved by one step, clamped. It returns the WHOLE record, so the control
@@ -23988,10 +23994,11 @@ function writeQiblaLoc(lat, lng) {
   if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return readQiblaLoc();
   try { localStorage.setItem(QIBLA_LOC_KEY, JSON.stringify({ lat: lat, lng: lng })); }
   catch (e) { return readQiblaLoc(); }
+  try { ezikWidgetDataChanged(); } catch (e) {}
   return { lat: lat, lng: lng, by: 'device' };
 }
 function clearQiblaLoc() {
-  try { localStorage.removeItem(QIBLA_LOC_KEY); } catch (e) {}
+  try { localStorage.removeItem(QIBLA_LOC_KEY); ezikWidgetDataChanged(); } catch (e) {}
   return readQiblaLoc();
 }
 
@@ -25763,6 +25770,156 @@ function useEzikSchedWatch() {
   useEffect(() => { ezikSchedArm(); });
 }
 
+// ITEM 45 / C3. The web supplies the native widgets with its own data and calculations.
+// Writers announce a local change only; this event has no loader or scheduling dependency.
+const EZIK_WIDGET_DATA_EVENT = 'ezik-widget-data-change';
+const EZIK_WIDGET_DATA_DEBOUNCE_MS = 200;
+const EZIK_WIDGET_DATA_DAYS = 30;
+function ezikWidgetDataChanged() {
+  if (typeof window === 'undefined') return;
+  try { window.dispatchEvent(new CustomEvent(EZIK_WIDGET_DATA_EVENT)); } catch (e) {}
+}
+
+function ezikWidgetClock(mins) {
+  if (typeof mins !== 'number' || !isFinite(mins)) return null;
+  const t = ((Math.round(mins) % 1440) + 1440) % 1440;
+  return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0');
+}
+
+function ezikWidgetPrayerDays(now) {
+  const loc = readQiblaLoc();
+  const prefs = readPrayerPrefs();
+  const offset = readHijriOffset();
+  const days = [];
+  for (let i = 0; i < EZIK_WIDGET_DATA_DAYS; i++) {
+    // Local noon selects the offset used during this day's prayers, including a DST change.
+    const dt = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i, 12);
+    const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
+    const computed = prayerTimesFor(y, m, d, loc.lat, loc.lng, -dt.getTimezoneOffset(),
+      prefs.method, prefs.asr, prefs.off);
+    const times = {};
+    for (const key of PRAYER_KEYS) times[key] = ezikWidgetClock(computed[key]);
+    days.push({
+      date: prayerDayKey(dt),
+      // Home shows only Hijri; the Gregorian label reuses the app's saved-date formatter.
+      gregorianLabel: ezikFavDate(dt.getTime()) || null,
+      hijriLabel: hijriLabel(hijriForCivilDay(y, m, d, offset)) || null,
+      times: times,
+    });
+  }
+  return days;
+}
+
+function ezikWidgetSections() {
+  return [
+    { route: 'memorize', label: EZH_MEMORIZE },
+    { route: 'fatwa', label: EZH_FATWA },
+    { route: 'lessons', label: EZH_LESSONS },
+    { route: 'adhkar', label: EZH_ADHKAR },
+    { route: 'arbaeen', label: EZH_ARBAEEN },
+    { route: 'articles', label: EZH_ARTICLES },
+    { route: 'women', label: EZH_WOMEN },
+    { route: 'prayer', label: EZH_PRAYER },
+    { route: 'tasbih', label: ezT('tasbih.card.title') },
+    { route: 'calc', label: ezT('calc.card.title') },
+    { route: 'compass', label: EZH_NAV_COMPASS },
+    { route: 'ayah-tafsir', label: ezT('home.verseOfDay2') },
+    { route: 'asmaa', label: EZH_ASMAA },
+    { route: 'sunan-day', label: EZH_SUNAN },
+    { route: 'treasure', label: EZH_TREASURE },
+  ];
+}
+
+function ezikWidgetDhikr(id, item) {
+  return { id: id, text: item && typeof item.text === 'string' ? item.text : null,
+    count: item ? adhkarTarget(item) : null };
+}
+
+async function ezikWidgetData(now) {
+  // The root checks the shell before reaching this builder. Every text comes from these
+  // existing loaders, including the morning/evening wording overrides, never a second copy.
+  const [raw, split, book] = await Promise.all([
+    loadAdhkar().catch(() => null),
+    loadAdhkarSplit().catch(() => null),
+    loadArbaeen().catch(() => null),
+  ]);
+  const db = raw && split ? applyAdhkarSplit(raw, split) : raw;
+  const favorites = raw ? readAdhkarFavorites().map((id) => {
+    const parts = id.split(':');
+    return ezikWidgetDhikr(id, adhkarItemsFor(db && db.byCat, parts[0])[Number(parts[1])]);
+  }) : null;
+  const door = (key) => {
+    if (!raw || !split || !db || !db.byCat || !Array.isArray(db.byCat[key])) return null;
+    return db.byCat[key].map((item, i) => ezikWidgetDhikr(adhkarItemKey(key, i), item));
+  };
+  const at = now || new Date();
+  return {
+    version: 1,
+    generatedAt: at.toISOString(),
+    prayer: { days: ezikWidgetPrayerDays(at) },
+    adhkar: { favorites: favorites, sabah: door('adhkar_sabah'), masaa: door('adhkar_masaa') },
+    arbaeen: book && Array.isArray(book.hadith)
+      ? book.hadith.map((h) => ({ n: h.n, title: h.title, text: h.text })) : null,
+    sections: ezikWidgetSections(),
+  };
+}
+
+function useEzikWidgetDataRoot(ready) {
+  useEffect(() => {
+    if (!ready || !ezikSchedBridge()) return undefined;
+    let timer = null, midnight = null, generation = 0, stopped = false;
+    const wake = () => {
+      const mine = ++generation;
+      if (timer) { clearTimeout(timer); timer = null; }
+      if (stopped || !ezikSchedBridge()) return;
+      timer = setTimeout(async () => {
+        timer = null;
+        if (stopped || mine !== generation || !ezikSchedBridge()) return;
+        try {
+          const data = await ezikWidgetData();
+          // A setting change, unmount, or disappearing bridge invalidates an in-flight load.
+          if (stopped || mine !== generation) return;
+          const bridge = ezikSchedBridge();
+          if (!bridge) return;
+          bridge.postMessage(JSON.stringify({ channel: SHELL_SCHED_CHANNEL,
+            v: SHELL_SCHED_VERSION, op: 'widget-data', data: data }));
+        } catch (e) {}
+      }, EZIK_WIDGET_DATA_DEBOUNCE_MS);
+      if (timer && typeof timer.unref === 'function') timer.unref();
+    };
+    const onStorage = (ev) => {
+      if (!ev || ev.key === null || [PRAYER_PREFS_KEY, QIBLA_LOC_KEY,
+        HIJRI_OFFSET_KEY, ADHKAR_FAVORITES_KEY].indexOf(ev.key) !== -1) wake();
+    };
+    const atMidnight = () => {
+      const n = new Date();
+      const next = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1, 0, 0, 5);
+      midnight = setTimeout(() => { wake(); atMidnight(); }, Math.max(1000, next.getTime() - n.getTime()));
+      if (midnight && typeof midnight.unref === 'function') midnight.unref();
+    };
+    window.addEventListener(EZIK_WIDGET_DATA_EVENT, wake);
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('pageshow', wake);
+    window.addEventListener('focus', wake);
+    document.addEventListener('visibilitychange', wake);
+    EZ_LANG_SUBS.add(wake);
+    wake();
+    atMidnight();
+    return () => {
+      stopped = true;
+      generation++;
+      if (timer) clearTimeout(timer);
+      if (midnight) clearTimeout(midnight);
+      EZ_LANG_SUBS.delete(wake);
+      window.removeEventListener(EZIK_WIDGET_DATA_EVENT, wake);
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('pageshow', wake);
+      window.removeEventListener('focus', wake);
+      document.removeEventListener('visibilitychange', wake);
+    };
+  }, [ready]);
+}
+
 const QIBLA_TITLE = 'القبلة';
 const QIBLA_SECTION = 'اتّجاه القبلة';
 const QIBLA_DEG_SUFFIX = 'درجةً عن الشمال';
@@ -26401,6 +26558,7 @@ function writeHijriOffset(n) {
   if (typeof n !== 'number' || !isFinite(n) || Math.trunc(n) !== n
     || n < HIJRI_OFFSET_MIN || n > HIJRI_OFFSET_MAX) return readHijriOffset();
   try { localStorage.setItem(HIJRI_OFFSET_KEY, String(n)); } catch (e) { return readHijriOffset(); }
+  try { ezikWidgetDataChanged(); } catch (e) {}
   return n;
 }
 function hijriLabel(h) {
