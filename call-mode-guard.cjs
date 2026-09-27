@@ -30,7 +30,8 @@
 //          call waits for an open dictation session's onend before its getUserMedia (E7); the words
 //          the call heard are shown before the answer is requested, and never spoken (E8); a turn
 //          far quieter than this call's accepted turns is dropped before /api/stt (E9); a delta
-//          that stops at a domain's dot is not cut there, so the domain reaches the filter whole (E10).
+//          that stops at a domain's dot is not cut there, so the domain reaches the filter whole (E10);
+//          a pause the call did not ask for stops the answer and goes on as a barge-in (E11).
 //
 // Arabic needles live as string literals but are NEVER printed. All console output is
 // ASCII (ids/labels only), safe for a Windows terminal.
@@ -2117,6 +2118,136 @@ async function checkDomainDot(html) {
   else fail('E10 the domain was split across segments or spoken: whole=' + whole + ', split=' + half);
 }
 
+// E11 (T4 fix 4, H4): playPreparedSpeech resolved a segment on ANY `pause`. A pause from outside
+// -- a media key, the phone taking audio focus -- therefore skipped to the next sentence, and on
+// the last one re-opened the microphone while the voice was only paused. A pause at the end of the
+// media is still the end of the segment (the element fires `pause` just before `ended`); any other
+// pause the call did not ask for stops the rest of the answer, and the call goes on exactly as
+// after a barge-in. EXECUTED on a simulated clock in one scope: takeAudioFocus, cancelAudio,
+// playPreparedSpeech, createCallSpeechStream, waitForSpeakerTail, runCallTurn and onCallTalk, with
+// a fake <audio> element that fires `pause` then `ended` at the end of each 2 s sentence.
+async function simulateExternalPause(html, opts) {
+  const o = opts || {};
+  const heads = ['const takeAudioFocus = () => ', 'const cancelAudio = () => ', 'const onExternalPause = () => ',
+    'const playPreparedSpeech = async (prepPromise, myId) => ', 'const createCallSpeechStream = () => ',
+    'const waitForSpeakerTail = () => ', 'const runCallTurn = async (text) => ', 'const onCallTalk = () => '];
+  const decls = heads.map((h) => extractDecl(html, h));
+  const need = [0, 1, 3, 4, 5, 6, 7];
+  if (need.some((i) => !decls[i])) throw new Error('missing: ' + need.filter((i) => !decls[i]).map((i) => heads[i]).join(' | '));
+  const effectLine = (/\n\s*(useEffect\(\(\) => \{ callTalkRef\.current = [^\n]*)\n/.exec(html) || [])[1] || '';
+  const tailCap = Number((/\n\s*const SPEAKER_TAIL_MAX_MS = (\d+);/.exec(html) || [])[1]);
+  let now = 0, seqn = 0; const timers = [];
+  const at = (ms, fn) => { timers.push({ t: now + Math.max(0, ms || 0), n: seqn++, fn }); return seqn; };
+  const SEG_MS = 2000, TTS_MS = 300;
+  const plays = [];
+  const mic = [];
+  let inTalk = false;
+  let el = null;
+  function FakeAudio() { el = this; this.paused = true; this.ended = false; this.src = ''; this.onpause = null; this.onended = null; this.onerror = null; }
+  FakeAudio.prototype.play = function () {
+    const me = this; const src = this.src;
+    this.paused = false; this.ended = false;
+    const rec = { text: src, start: now, stop: null }; plays.push(rec);
+    const token = ++FakeAudio.token;
+    at(SEG_MS, () => {
+      if (FakeAudio.token !== token || me.paused) return;
+      me.paused = true; me.ended = true; rec.stop = now;
+      if (me.onpause) me.onpause({ type: 'pause' });           // Chrome: `pause` first...
+      if (me.onended) me.onended({ type: 'ended' });           // ...then `ended`
+    });
+    return Promise.resolve();
+  };
+  FakeAudio.token = 0;
+  FakeAudio.prototype.pause = function () {
+    if (this.paused) return;
+    this.paused = true; FakeAudio.token++;
+    const rec = plays[plays.length - 1]; if (rec && rec.stop === null) rec.stop = now;
+    const me = this; at(0, () => { if (me.onpause) me.onpause({ type: 'pause' }); });   // the event is queued
+  };
+  let callState = 'idle';
+  const REPLY = 'Sentence one is here. Sentence two is here. Sentence three is here. Sentence four is here.';
+  const split = (t) => String(t).split(/(?<=[.!?])\s+/).map((x) => x.trim()).filter(Boolean);
+  const ov = {
+    Audio: FakeAudio, URL: { revokeObjectURL: () => {} }, setTimeout: (fn, ms) => at(ms, fn), clearTimeout: () => {},
+    fetchSpeechAudio: (text) => new Promise((r) => at(TTS_MS, () => r({ kind: 'blob', url: text }))),
+    splitSpeechIntoSentences: split, stripIncompleteTags: (t) => t, resolveWorshipTags: async (t) => t,
+    buildAudioSequence: (t) => split(t).map((x) => ({ kind: 'speak', text: x })),
+    deriveCaps: () => ({ band: 'adult' }), profileRef: { current: {} }, EZ_TTS_SOURCE_LINE_SRC: evalConst(html, 'EZ_TTS_SOURCE_LINE_SRC'),
+    CALL_STREAM_SPEECH: true, messages: [], profile: {}, sliceHistoryForAPI: (m) => m, getFriendlyError: () => 'err',
+    callAI: async (h, p, x) => { x.onDelta(REPLY); return REPLY; },
+    setCallState: (v) => { callState = v; }, childVoiceBlocked: () => false, SPEAKER_TAIL_MAX_MS: tailCap,
+    vadCtxRef: { current: { outputLatency: 0 } }, callGenRef: { current: 1 }, callActiveRef: { current: false },
+    callMutedRef: { current: !!o.muted }, abortRef: { current: null }, sequenceIdRef: { current: 0 },
+    audioRef: { current: null }, audioElRef: { current: null }, audioPlayTokenRef: { current: 0 }, audioDoneRef: { current: null },
+    callTalkRef: { current: null }, callTurnExemptRef: { current: false }, screen: 'call', useEffect: (fn) => fn(),
+    startCallListening: () => { mic.push({ t: now, viaBargeIn: inTalk, audioPaused: el ? el.paused : true }); ov.callActiveRef.current = true; },
+  };
+  Object.defineProperty(ov, 'callState', { get: () => callState });
+  const stubs = {};
+  const scope = new Proxy(ov, {
+    has: (t, k) => typeof k === 'string',
+    get: (t, k) => {
+      if (k === Symbol.unscopables) return undefined;
+      if (k in t) return t[k];
+      if (k in globalThis) return globalThis[k];
+      if (!(k in stubs)) stubs[k] = /Ref$/.test(k) ? { current: null } : function () {};
+      return stubs[k];
+    },
+    set: (t, k, v) => { t[k] = v; return true; },
+  });
+  // onCallTalk is wrapped only to record that the mic was opened FROM it (the barge-in path)
+  const talkBody = decls[7].slice('const onCallTalk = '.length);
+  const src = decls.filter((d, i) => d && i !== 7).join(';\n') + ';\n'
+    + 'const onCallTalk = () => { __enter(); try { return (' + talkBody + ')(); } finally { __leave(); } };\n'
+    + (effectLine ? effectLine + '\n' : '')
+    + 'return { runCallTurn, onCallTalk, cancelAudio };';
+  ov.__enter = () => { inTalk = true; }; ov.__leave = () => { inTalk = false; };
+  const fns = new Function('scope', 'with (scope) {\n' + src + '\n}')(scope);
+  let settled = false;
+  fns.runCallTurn('question').then(() => { settled = true; });
+  const pauseAt = TTS_MS + SEG_MS + SEG_MS / 2;               // the middle of sentence 2
+  if (o.event === 'external') at(pauseAt, () => { el.pause(); });
+  if (o.event === 'hangup') at(pauseAt, () => { ov.callGenRef.current++; fns.cancelAudio(); });
+  if (o.event === 'bargein') at(pauseAt, () => { fns.onCallTalk(); });
+  const drain = async () => { for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r)); };
+  for (let guard = 0; guard < 10000; guard++) {
+    await drain();
+    if (!timers.length) break;
+    timers.sort((a, b) => a.t - b.t || a.n - b.n);
+    const x = timers.shift(); now = x.t; x.fn();
+  }
+  await drain();
+  const idx = (t) => split(REPLY).indexOf(t) + 1;
+  return { played: plays.map((p) => idx(p.text)), plays, mic, settled, pauseAt, state: callState };
+}
+async function checkExternalPause(html) {
+  let n, x, h, b, m;
+  try {
+    n = await simulateExternalPause(html, {});
+    x = await simulateExternalPause(html, { event: 'external' });
+    h = await simulateExternalPause(html, { event: 'hangup' });
+    b = await simulateExternalPause(html, { event: 'bargein' });
+    m = await simulateExternalPause(html, { event: 'external', muted: true });
+  } catch (e) { fail('E11 the call playback does not run on the simulated clock: ' + e.message); return; }
+  const fmt = (r) => 'played [' + r.played.join(',') + '], mic ' + (r.mic.length ? r.mic.map((q) => q.t + 'ms' + (q.viaBargeIn ? ' via barge-in' : ' via re-arm')).join(' + ') : 'never');
+  info('E11 external pause at ' + x.pauseAt + ' ms (mid sentence 2): ' + fmt(x));
+  info('E11 no pause: ' + fmt(n) + ' | hang-up: ' + fmt(h) + ' | barge-in tap: ' + fmt(b) + ' | external pause while muted: ' + fmt(m) + ', state ' + m.state);
+  if (x.played.join(',') === '1,2' && x.settled) pass('E11 an external pause in the middle of sentence 2: sentences 3 and 4 never play');
+  else fail('E11 an external pause did not stop the answer: played [' + x.played.join(',') + ']');
+  if (x.mic.length === 1 && x.mic[0].viaBargeIn && x.mic[0].audioPaused && x.mic[0].t >= x.pauseAt)
+    pass('E11 ...and the mic opens once, through the barge-in path, after the voice has stopped (' + x.mic[0].t + ' ms)');
+  else fail('E11 after an external pause the mic did not open once through the barge-in path: ' + fmt(x));
+  if (n.played.join(',') === '1,2,3,4' && n.mic.length === 1 && !n.mic[0].viaBargeIn && n.mic[0].t === n.plays[3].stop)
+    pass('E11 the end of each segment is unchanged: all four play and the mic re-opens after the last (' + n.mic[0].t + ' ms)');
+  else fail('E11 the end of a segment is no longer a finished segment: ' + fmt(n));
+  if (h.played.join(',') === '1,2' && h.mic.length === 0) pass('E11 a hang-up is unchanged: the answer stops and nothing re-opens');
+  else fail('E11 a hang-up now behaves differently: ' + fmt(h));
+  if (b.played.join(',') === '1,2' && b.mic.length === 1 && b.mic[0].viaBargeIn) pass('E11 a barge-in tap is unchanged: the answer stops and the mic opens once');
+  else fail('E11 a barge-in tap now behaves differently: ' + fmt(b));
+  if (m.played.join(',') === '1,2' && m.mic.length === 0 && m.state === 'idle') pass('E11 muted: an external pause still stops the answer, opens no mic, and the call goes idle');
+  else fail('E11 muted: an external pause does not behave as a muted barge-in: ' + fmt(m) + ', state ' + m.state);
+}
+
 // ===========================================================================
 (async () => {
   // ITEM 32: the call screen is in app.jsx now, so this reads the shipped client, not the shell.
@@ -2143,6 +2274,7 @@ async function checkDomainDot(html) {
   checkDictationRestart(html);
   await checkCaptureResume(html);
   await checkHandOver(html);
+  await checkExternalPause(html);
   await checkDomainDot(html);
   await checkLevelGate(html);
   await checkHeardWords(html);

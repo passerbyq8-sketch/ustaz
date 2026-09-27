@@ -1629,7 +1629,16 @@ const SEALED = {
 //                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
 //                    stays ezik-v40. sw.js is 55702 bytes, measured at CR = 0. THIS digest is
 //                    re-cut LAST, after every other sw.js edit was final.
-  'sw.js': 'c737bedbcb8f67b625be228895aaaf7790edbd28f6e0cd4d7cae2852ca7578ba',
+  //   2026-09-27-o -- VOICE + CALL T4 FIX 4, H4: AN EXTERNAL PAUSE IS NOT A FINISHED SEGMENT.
+//                    playPreparedSpeech still ends a segment on the pause that comes with the end of
+//                    the media; any other pause the app did not ask for cancels the rest of the
+//                    answer, and on the call screen runs onCallTalk (the barge-in path).
+//                    app.js was rebuilt by node tools/build-app.cjs, and CORE_BYTES was
+//                    re-cut by node tools/core-bytes.cjs --write; the byte table in sw.js and the
+//                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
+//                    stays ezik-v40. sw.js is 55702 bytes, measured at CR = 0. THIS digest is
+//                    re-cut LAST, after every other sw.js edit was final.
+  'sw.js': 'eb6f22d6d048bd2455b861c04f5e912563dbbc069fb4df8382c2739a50417845',
 };
 
 // ---------------------------------------------------------------------------
@@ -2585,7 +2594,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1798896, of: 'app.js' },
+      { n: 1799739, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

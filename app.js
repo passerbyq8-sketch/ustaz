@@ -5772,11 +5772,19 @@ return{kind:'blob',url,consumed:false};}console.warn('ElevenLabs TTS failed (HTT
 // في واجهة المحادثة (يُمسح تلقائياً بعد ٦ ثوانٍ) — لا نُشغّل احتياط المتصفح.
 if(isCurrent()){setVoiceError('🔇 تعذّر تشغيل الصوت — تحقّق من الاتصال وحاول مرة أخرى.');setTimeout(()=>setVoiceError(''),6000);}return null;};// playPreparedSpeech يستقبل وعدَ تحضيرٍ (قد يكون اكتمل مسبقاً) ويُشغّله. هنا فقط نسحب
 // التركيز ونشغّل — awaitable حتى الانتهاء/الخطأ/الإيقاف. يحترم الإلغاء قبل التشغيل.
-const playPreparedSpeech=async(prepPromise,myId)=>{const isCurrent=()=>myId===undefined||myId===sequenceIdRef.current;if(!prepPromise)return;let r=null;try{r=await prepPromise;}catch(e){r=null;}if(!r)return;if(!isCurrent()){// أُلغِيَ قبل أن نُشغّله — تخلّص من blob المُحضَّر دون تشغيلٍ بائت
+// H4 (T4 fix 4): a `pause` the app did not ask for -- a media key, the phone taking audio focus --
+// is not a finished segment. It ends the rest of the answer, and on the call screen the call goes
+// on exactly as after a barge-in (onCallTalk). The app's own stops (hang-up, barge-in, a new
+// sequence) never come here: takeAudioFocus detaches the element's handlers before it pauses.
+const callTalkRef=useRef(null);// the live onCallTalk while the call screen is up, else null
+const onExternalPause=()=>{cancelAudio();if(callTalkRef.current)callTalkRef.current();};const playPreparedSpeech=async(prepPromise,myId)=>{const isCurrent=()=>myId===undefined||myId===sequenceIdRef.current;if(!prepPromise)return;let r=null;try{r=await prepPromise;}catch(e){r=null;}if(!r)return;if(!isCurrent()){// أُلغِيَ قبل أن نُشغّله — تخلّص من blob المُحضَّر دون تشغيلٍ بائت
 if(r.kind==='blob'&&r.url){r.consumed=true;URL.revokeObjectURL(r.url);}return;}r.consumed=true;takeAudioFocus();if(r.kind==='blob'){const audio=audioElRef.current||(audioElRef.current=new Audio());// REUSE the unlocked element (iOS)
 audioRef.current=audio;const myPlay=++audioPlayTokenRef.current;await new Promise(resolve=>{let settled=false;const finish=()=>{if(settled)return;settled=true;audio.onended=null;audio.onerror=null;audio.onpause=null;try{URL.revokeObjectURL(r.url);}catch(e){}if(audioRef.current===audio)audioRef.current=null;if(audioDoneRef.current===finish)audioDoneRef.current=null;resolve();};audioDoneRef.current=finish;// lets takeAudioFocus cancel cleanly
 const guard=()=>{if(myPlay===audioPlayTokenRef.current)finish();};// ignore stale events
-audio.onended=guard;audio.onerror=guard;audio.onpause=guard;audio.src=r.url;const p=audio.play();if(p&&p.catch)p.catch(guard);});return;}// فشل آمن: لم يَعُد هناك احتياط صوت نظام. أيّ نتيجةٍ غير 'blob' لا تُنطَق إطلاقاً
+audio.onended=guard;audio.onerror=guard;audio.onpause=()=>{// H4
+if(myPlay!==audioPlayTokenRef.current)return;// a stale event
+finish();if(!audio.ended)onExternalPause();// at the end of the media `pause` comes just before `ended`
+};audio.src=r.url;const p=audio.play();if(p&&p.catch)p.catch(guard);});return;}// فشل آمن: لم يَعُد هناك احتياط صوت نظام. أيّ نتيجةٍ غير 'blob' لا تُنطَق إطلاقاً
 // (تطبيق أطفال يجب ألّا يُصدر صوتاً مجهولاً). عملياً الآن تكون النتيجة إمّا 'blob' أو null.
 };// تشغيل مقطعِ تلاوةٍ (mp3) على العنصر المفتوح بإيماءة المستخدم — نفس عنصر TTS (audioElRef).
 // العطبُ عاش سنةً لأن التلاوة كانت تُنشئ new Audio() بعد await‑ات فيَنقضي التفعيلُ الصوتيّ
@@ -6259,7 +6267,8 @@ if(abortRef.current)abortRef.current.abort();// thinking: aborts callAI -> runCa
 cancelAudio();// speaking: stops playback (speakReply resolves; EDIT-A re-arm suppressed by its callActiveRef guard)
 callTurnExemptRef.current=true;// H2: the turn a barge-in opens is never dropped as faint
 startCallListening();return;}if(callState==='idle')startCallListening();// 'listening' → no-op (unchanged from Layer 2)
-};// Call-screen lifecycle: create/tear down the dedicated recognition with the call screen.
+};useEffect(()=>{callTalkRef.current=screen==='call'?onCallTalk:null;});// H4: the external-pause exit
+// Call-screen lifecycle: create/tear down the dedicated recognition with the call screen.
 // On entry: force the dictation mic OFF and stop any audio so the two can never fight.
 // On exit: stop recognition, clear the timer, abort any in-flight turn, and stop audio.
 useEffect(()=>{if(screen!=='call')return;if(childVoiceBlocked())return;// غ‑٣: لا يُبنى معرِّفُ كلامٍ أصلاً — الرسمُ يعرض التنبيهَ بدل الشاشة
