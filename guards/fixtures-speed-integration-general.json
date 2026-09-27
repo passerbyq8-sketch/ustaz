@@ -1,0 +1,32 @@
+{
+  "head": "af3e995f866a30ebea4b194ad2dece05584f87e9",
+  "note": "I4 baseline: production tree, real handler + real client, general question, recorded by --record-baseline",
+  "body": {
+    "max_tokens": 4096,
+    "stream": true,
+    "name": "سلمى",
+    "age": 30,
+    "gender": "female",
+    "mode": "chat",
+    "messages": [
+      {
+        "role": "user",
+        "content": "كيف أتعلم؟"
+      }
+    ],
+    "band": "adult"
+  },
+  "writes": 5,
+  "frameTypes": [
+    "message_start",
+    "content_block_start",
+    "content_block_delta",
+    "content_block_stop",
+    "message_stop"
+  ],
+  "wireSha256": "93612edc2baef0031fa645ac9605cc859889075b3aeda25ef012127b88b2fa73",
+  "views": {
+    "true": "2e80b8d254a990bd653eb36690a5041b9d6cd4039bd4ce3fc2497c0263acb47f",
+    "false": "2e80b8d254a990bd653eb36690a5041b9d6cd4039bd4ce3fc2497c0263acb47f"
+  }
+}

@@ -784,7 +784,7 @@ head('14) GATE ROSTER (single source: gates.json)');
   // the tool is offered on «مفصّل» and «طالب علم», withheld on «موجز», and withheld from every
   // child on every depth. It also pins resetLessons() at one call site, and pins the ABSENCE of
   // a relevance floor on the lessons row -- the owner ruled on 2026-09-09 that there is none.
-  const GATES_EXPECTED = 122;  // 122nd: speedclient -- status, atomic cards, offers and stable completion (speed item 17 client half, 2026-09-27; merged with speedbw2); 121st: speedbw2 -- the before-writing path, BEFORE_WRITING_V2 (speed item 17, 2026-09-27); 120th: encycbrain -- the Kuwaiti encyclopedia in the first second, and its reader card (ENCYC_V1, 2026-09-24); 119th: libquote; 118th: libmujaz
+  const GATES_EXPECTED = 123;  // 123rd: speedintegration -- the real handler's socket bytes fed to the real client, I1-I4 (speed item 17 merge, 2026-09-27); 122nd: speedclient -- status, atomic cards, offers and stable completion (speed item 17 client half, 2026-09-27; merged with speedbw2); 121st: speedbw2 -- the before-writing path, BEFORE_WRITING_V2 (speed item 17, 2026-09-27); 120th: encycbrain -- the Kuwaiti encyclopedia in the first second, and its reader card (ENCYC_V1, 2026-09-24); 119th: libquote; 118th: libmujaz
                                //        (guards round, 2026-09-17). The pattern that decides what a
                                //        build may call itself is written in THREE independent files --
                                //        api/feedback.js, api/report.js and tools/build-app.cjs -- and

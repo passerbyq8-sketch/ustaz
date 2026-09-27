@@ -823,3 +823,8 @@ lib/bw2-units.js text eol=lf
 # SPEED item 17: the registered DOM guard and its measured legacy-render fixture.
 guards/speed-client-guard.cjs text eol=lf
 guards/fixtures-speed-client-old-path.json text eol=lf
+
+# SPEED item 17 merge: the integration guard (real handler bytes into the real client) and its
+# production baseline for I4.
+guards/speed-integration-guard.cjs text eol=lf
+guards/fixtures-speed-integration-general.json text eol=lf

@@ -615,5 +615,10 @@
     "name": "speedbw2",
     "script": "guards/speed-bw2-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "speedintegration",
+    "script": "guards/speed-integration-guard.cjs",
+    "args": "index.html"
   }
 ]
