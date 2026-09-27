@@ -2072,12 +2072,18 @@ if (tLifted) {
     const DECL = "const ADHAN_TYPE = 'adhan';";
     const declAt = SRC.indexOf(DECL);
     const hits = [];
-    for (let i = SRC.indexOf('adhan'); i !== -1; i = SRC.indexOf('adhan', i + 1)) hits.push(i);
-    const stray = hits.filter((i) => declAt === -1 || i < declAt || i >= declAt + DECL.length);
-    ok('107: the latin word is a scheduler type and nothing else (occurrences=' + hits.length
-      + ', outside its one declaration=' + stray.length + ')',
-      hits.length === 0 || (declAt !== -1 && stray.length === 0
-        && SRC.indexOf(DECL, declAt + 1) === -1));
+    const CONTROL = 'data-ezik-prayer-setting="adhan-sound"';
+    const controlAt = SRC.indexOf(CONTROL);
+    // C2 adds a sound-selection identifier and one settings control. The protocol type still
+    // has one declaration; native playback remains outside this client.
+    const word = /\badhan\b/g;
+    let hit;
+    while ((hit = word.exec(SRC))) hits.push(hit.index);
+    const allowed = [[declAt, DECL.length], [controlAt, CONTROL.length]];
+    const stray = hits.filter((i) => !allowed.some(([at, len]) => at !== -1 && i >= at && i < at + len));
+    ok('107: the protocol type and its sound control are the only standalone uses (outside=' + stray.length + ')',
+      declAt !== -1 && controlAt !== -1 && stray.length === 0
+        && SRC.indexOf(DECL, declAt + 1) === -1 && SRC.indexOf(CONTROL, controlAt + 1) === -1);
     // The neighbourhood, only when there is one. 600 characters each way is the whole block that
     // declares the type and builds its items -- far more than a sound would need to hide in.
     if (declAt !== -1) {
@@ -2113,7 +2119,8 @@ if (tLifted) {
     && TPANEL.indexOf('PRAYER_METHOD_LABEL') === -1
     && TPANEL.indexOf('PRAYER_ASR_LABEL') === -1
     && TPANEL.indexOf('PRAYER_HINT') === -1
-    && (PSET.match(/className="ez-hit" style=\{s\.prayerOptRow\}/g) || []).length === 2
+    && (PSET.match(/className="ez-hit" style=\{s\.prayerOptRow\}/g) || []).length === 3
+    && PSET.indexOf('data-ezik-prayer-setting="adhan-sound"') !== -1
     && PSET.indexOf('data-ezik-prayer-setting="method"') !== -1
     && PSET.indexOf('data-ezik-prayer-setting="asr"') !== -1
     && /<EzShellGroup title=\{PRAYER_SETTINGS_TITLE\} hint=\{PRAYER_HINT\}>[\s\S]*?<PrayerSettingsControl \/>/.test(SRC));

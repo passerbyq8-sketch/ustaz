@@ -1660,13 +1660,14 @@ run('OFF: the feed builds nothing and the pipe says nothing, through every trigg
   return '0 items, 0 posts across 9 triggers, 0 writes';
 });
 
-run('ON: the payload is the one proved before there was a switch -- nothing added, nothing taken', () => {
+run('ON: every prayer carries the C2 sound selection through the existing schedule pipe', () => {
   const { h, env } = fresh({ store: switchOn() });
   const items = h.ezikSchedItems();
   eq(items.length, 5 * DAYS, 'items the gated feed offers');
   for (const it of items) {
-    eq(Object.keys(it).sort(), ['at', 'body', 'id', 'title', 'type'], 'the fields of ' + it.id);
+    eq(Object.keys(it).sort(), ['adhanSound', 'at', 'body', 'id', 'title', 'type'], 'the fields of ' + it.id);
     eq(it.type, ADHAN, 'the type of ' + it.id);
+    eq(it.adhanSound, it.id.split(':')[1] === 'fajr' ? 'fajr' : 'other', 'the default sound of ' + it.id);
   }
   const r = h.ezikSchedArm();
   eq(r.sent, true, 'sent');
@@ -1674,6 +1675,7 @@ run('ON: the payload is the one proved before there was a switch -- nothing adde
   const msg = JSON.parse(env.posts[0]);
   eq(Object.keys(msg), ['channel', 'v', 'op', 'items'], 'the envelope');
   eq(msg.op, OP, 'the operation an arm still uses');
+  for (const it of msg.items) eq(it.adhanSound, it.id.split(':')[1] === 'fajr' ? 'fajr' : 'other', 'sound retained on the wire');
   // THE ONLY THING BETWEEN THE FEED AND THE WIRE IS THE PIPE'S OWN RULE ABOUT THE PAST: an arm
   // reads the real clock, and today's prayers that have already been and gone are dropped by the
   // sender exactly as they were before this switch existed. Nothing ELSE may be lost, and the

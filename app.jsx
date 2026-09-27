@@ -23369,6 +23369,7 @@ function EzShell({ title, onBack, backLabel, lead, actions, children }) {
 const PRAYER_PREFS_KEY = 'ezik_prayer_prefs_v1';
 const PRAYER_METHOD_DEFAULT = 'kuwait';
 const PRAYER_ASR_DEFAULT = 'standard';
+const PRAYER_ADHAN_SOUND_LABEL = '\u0635\u0648\u062A \u0627\u0644\u0623\u0630\u0627\u0646';
 const PRAYER_OFFSET_MIN = -15;
 const PRAYER_OFFSET_MAX = 15;
 const PRAYER_KEYS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
@@ -23495,7 +23496,7 @@ function prayerClock(mins) {
 // THE PREFERENCES. One record, every field checked, and a broken store reads as the shipped
 // defaults rather than as an exception on a screen.
 function readPrayerPrefs() {
-  const out = { method: PRAYER_METHOD_DEFAULT, asr: PRAYER_ASR_DEFAULT, off: {} };
+  const out = { method: PRAYER_METHOD_DEFAULT, asr: PRAYER_ASR_DEFAULT, off: {}, adhanSound: true };
   for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) out.off[PRAYER_OFFSETTABLE[i]] = 0;
   let raw = null;
   try { raw = localStorage.getItem(PRAYER_PREFS_KEY); } catch (e) { return out; }
@@ -23505,6 +23506,7 @@ function readPrayerPrefs() {
   if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return out;
   if (typeof rec.method === 'string' && prayerMethodIds().indexOf(rec.method) !== -1) out.method = rec.method;
   if (rec.asr === 'hanafi' || rec.asr === 'standard') out.asr = rec.asr;
+  if (typeof rec.adhanSound === 'boolean') out.adhanSound = rec.adhanSound;
   const o = rec.off;
   if (o && typeof o === 'object' && !Array.isArray(o)) {
     for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) {
@@ -23519,9 +23521,10 @@ function readPrayerPrefs() {
 function writePrayerPrefs(next) {
   const cur = readPrayerPrefs();
   if (!next || typeof next !== 'object') return cur;
-  const rec = { method: cur.method, asr: cur.asr, off: cur.off };
+  const rec = { method: cur.method, asr: cur.asr, off: cur.off, adhanSound: cur.adhanSound };
   if (typeof next.method === 'string' && prayerMethodIds().indexOf(next.method) !== -1) rec.method = next.method;
   if (next.asr === 'hanafi' || next.asr === 'standard') rec.asr = next.asr;
+  if (typeof next.adhanSound === 'boolean') rec.adhanSound = next.adhanSound;
   if (next.off && typeof next.off === 'object') {
     for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) {
       const k = PRAYER_OFFSETTABLE[i];
@@ -23826,6 +23829,15 @@ function PrayerSettingsControl() {
   const [prefs, setPrefs] = useState(readPrayerPrefs);
   return (
     <>
+      <div style={s.a11yGroupLabel}>{PRAYER_ADHAN_SOUND_LABEL}</div>
+      <div className="ez-hit" style={s.prayerOptRow}>
+        <button type="button" role="switch" aria-checked={prefs.adhanSound ? 'true' : 'false'}
+          aria-label={PRAYER_ADHAN_SOUND_LABEL} data-ezik-prayer-setting="adhan-sound"
+          onClick={() => { setPrefs(writePrayerPrefs({ adhanSound: !prefs.adhanSound })); ezikSchedArm(); }}
+          className="ezik-focus" style={prefs.adhanSound ? { ...s.prayerOpt, ...s.themeOptActive } : s.prayerOpt}>
+          {prefs.adhanSound ? ezT('prayer.notify.on') : ezT('prayer.notify.off')}
+        </button>
+      </div>
       <div style={s.a11yGroupLabel}>{PRAYER_METHOD_LABEL}</div>
       <div className="ez-hit" style={s.prayerOptRow} role="radiogroup" aria-label={PRAYER_METHOD_LABEL}>
         {prayerMethodIds().map((id) => (
@@ -24208,7 +24220,7 @@ function ezikSchedRoute(raw) {
 // not treated as "no lower bound"; it is treated as a bound nothing can clear. An unusable clock
 // must send no notification, never an unchecked one.
 function ezikSchedPayload(items, nowMs) {
-  const dropped = { notAnObject: 0, badTime: 0, past: 0, missingType: 0, missingText: 0, duplicateId: 0 };
+  const dropped = { notAnObject: 0, badTime: 0, past: 0, missingType: 0, missingText: 0, duplicateId: 0, badAdhanSound: 0 };
   const now = (typeof nowMs === 'number' && isFinite(nowMs)) ? nowMs : Infinity;
   const list = Array.isArray(items) ? items : [];
   const seen = new Set();
@@ -24226,11 +24238,16 @@ function ezikSchedPayload(items, nowMs) {
     if (typeof it.title !== 'string' || !it.title.trim()) { dropped.missingText++; continue; }
     if (typeof it.body !== 'string' || !it.body.trim()) { dropped.missingText++; continue; }
     const type = it.type.trim();
+    if (type === ADHAN_TYPE && ['fajr', 'other', 'none'].indexOf(it.adhanSound) === -1) {
+      dropped.badAdhanSound++;
+      continue;
+    }
     // A stable key, derived when it is not given. Deriving a key is not composing text.
     const id = (typeof it.id === 'string' && it.id.trim()) ? it.id.trim() : (type + ':' + at);
     if (seen.has(id)) { dropped.duplicateId++; continue; }
     seen.add(id);
     const rec = { id: id, type: type, at: at, title: it.title.trim(), body: it.body.trim() };
+    if (type === ADHAN_TYPE) rec.adhanSound = it.adhanSound;
     const route = ezikSchedRoute(it.route);
     if (route !== null) rec.route = route;
     out.push(rec);
@@ -25089,6 +25106,7 @@ function ezikAdhanItems(now) {
       items.push({
         id: ADHAN_TYPE + ':' + k + ':' + prayerDayKey(dt),
         type: ADHAN_TYPE,
+        adhanSound: prefs.adhanSound ? (k === 'fajr' ? 'fajr' : 'other') : 'none',
         at: at,
         title: title,
         body: ezT(ADHAN_BODY_KEY, { name: title }),
