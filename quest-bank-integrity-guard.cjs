@@ -1529,7 +1529,16 @@ const SEALED = {
 //                    store name does not move here (commit 3 of the fix moves it). sw.js is 55702
 //                    bytes, measured at CR = 0. THIS digest is re-cut LAST, after every other sw.js
 //                    edit was final.
-  'sw.js': 'b44a3eff819d3b9bfb7db1efa0f4dc1016ea3cc24f307a3b2d658d0b967ea1d0',
+  //   2026-09-27-d -- VOICE + CALL T4 FIX 1, P2: THE CALL PREFETCHES THE NEXT SENTENCE WHILE ONE PLAYS.
+//                    createCallSpeechStream's pump fetched segment N+1 only after N had finished
+//                    playing; it now starts that fetch when N is ready to play, one ahead as speakReply
+//                    does, and a hang-up aborts it (fetchSpeechAudio takes an optional signal). app.js
+//                    was rebuilt by node tools/build-app.cjs, 1785844 -> 1787023, and CORE_BYTES was
+//                    re-cut by node tools/core-bytes.cjs --write; the byte table in sw.js and the
+//                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name does
+//                    not move here (commit 3 of the fix moves it). sw.js is 55702 bytes, measured at
+//                    CR = 0. THIS digest is re-cut LAST, after every other sw.js edit was final.
+  'sw.js': 'a12eff7534c8ccf354d7a69cdba506bd5fde9f68fcdf4f0358c6afc84fb2f0a4',
 };
 
 // ---------------------------------------------------------------------------
@@ -2485,7 +2494,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1785844, of: 'app.js' },
+      { n: 1787023, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

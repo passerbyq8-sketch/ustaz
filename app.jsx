@@ -16640,7 +16640,7 @@ function App() {
   // ودون سحبِ التركيز — فيمكن استدعاؤه مُسبقاً أثناء تشغيل مقطعٍ آخر، فيزول صمتُ الانتظار.
   // يُرجع {kind:'blob',url} (صوت ElevenLabs) أو null (فارغ/مُلغى/فشل — فشل آمن بلا صوت).
   const SPEAK_EMOJI_RE = /[\u{1F600}-\u{1F6FF}\u{2700}-\u{27BF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2300}-\u{23FF}\u{2B50}\u{1F900}-\u{1F9FF}]/gu;
-  const fetchSpeechAudio = async (rawText, myId) => {
+  const fetchSpeechAudio = async (rawText, myId, signal) => {   // signal: the call pump aborts its prefetch on hang-up
     if (!spendGateRef.current) return null;                      // قفل الإنفاق مغلق ⇐ لا نداءَ tashkeel/tts
     if (!hasValidAIConsent()) return null;                       // لا موافقة ⇐ لا نصَّ يُرسَل لـ Anthropic ولا لـ ElevenLabs
     if (childVoiceBlocked()) {                                   // غ‑٣: لا إرسالَ نصٍّ لأيّ خدمةِ نطقٍ من ملفّ طفل
@@ -16670,6 +16670,7 @@ function App() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: cleanText, gender: profileRef.current?.gender, band: bandForVoice }),
+          ...(signal ? { signal } : {}),
         });
         if (tashkeelResponse.ok) {
           const tashkeelData = await tashkeelResponse.json();
@@ -16693,6 +16694,7 @@ function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: spokenText, gender: profileRef.current?.gender, band: bandForVoice }),
+        ...(signal ? { signal } : {}),
       });
       if (!isCurrent()) return null; // أُلغِيَ أثناء جلب الصوت
       if (response.ok) {
@@ -17022,7 +17024,26 @@ function App() {
     let resolveDone;
     const donePromise = new Promise((r) => { resolveDone = r; });
     const isCurrent = () => myId === sequenceIdRef.current;
-    const finishUp = () => { if (isCurrent()) setIsSpeaking(false); resolveDone(); };
+    // Prefetch, one ahead, the way speakReply does: the next sentence's audio is fetched while the
+    // current one plays, so no TTS wait sits between two sentences. A hang-up or barge-in aborts
+    // whatever is still in flight and frees any audio that was fetched but never played.
+    const fetchCtl = new AbortController();
+    const prepared = new Map();                           // speak segment -> Promise<audio|null>
+    let playing = false;
+    const prepare = (seg) => {
+      if (!seg || seg.kind !== 'speak' || !isCurrent()) return null;
+      if (!prepared.has(seg)) prepared.set(seg, fetchSpeechAudio(seg.text, myId, fetchCtl.signal));
+      return prepared.get(seg);
+    };
+    const prefetchNext = () => { if (playing) prepare(queue[0]); };
+    const release = () => {
+      try { fetchCtl.abort(); } catch (e) {}
+      for (const pr of prepared.values()) {
+        Promise.resolve(pr).then((r) => { if (r && r.kind === 'blob' && r.url && !r.consumed) URL.revokeObjectURL(r.url); }).catch(() => {});
+      }
+      prepared.clear();
+    };
+    const finishUp = () => { release(); if (isCurrent()) setIsSpeaking(false); resolveDone(); };
     const pump = async () => {
       if (consuming) return;
       consuming = true;
@@ -17034,14 +17055,22 @@ function App() {
         }
         const seg = queue.shift();
         try {
-          if (seg.kind === 'speak') await playPreparedSpeech(fetchSpeechAudio(seg.text, myId), myId);
-          else if (seg.kind === 'reciteSurah') await playSurahRecitation(seg.sNum, seg.from || 1, seg.to, myId);
-          else if (seg.kind === 'reciteDhikr') await playDhikrRecitation(seg.catId, myId);
-          else await playRecitation(seg.sNum, seg.aNum, myId);
+          if (seg.kind === 'speak') {
+            const pr = prepare(seg);
+            prepared.delete(seg);                                             // playPreparedSpeech owns it now
+            if (pr) pr.then(() => { playing = true; prefetchNext(); }, () => {}); // N ready to play -> fetch N+1
+            await playPreparedSpeech(pr, myId);
+          } else {
+            playing = true; prefetchNext();
+            if (seg.kind === 'reciteSurah') await playSurahRecitation(seg.sNum, seg.from || 1, seg.to, myId);
+            else if (seg.kind === 'reciteDhikr') await playDhikrRecitation(seg.catId, myId);
+            else await playRecitation(seg.sNum, seg.aNum, myId);
+          }
         } catch (e) {}
+        playing = false;
       }
     };
-    const enqueue = (segs) => { for (const s of segs) queue.push(s); pump(); };
+    const enqueue = (segs) => { for (const s of segs) queue.push(s); prefetchNext(); pump(); };
     // last safe cut inside tag-free prose: end of the last COMPLETE sentence
     const lastSentenceCut = (s) => {
       let cut = 0, re = /[.!\u061F?\u061B]\s|\n/g, m;

@@ -1200,6 +1200,98 @@ function checkSpeechPump(html) {
   else fail('E1 streamed segments differ from the whole reply: ' + spoken.length + ' vs ' + whole.length);
 }
 
+// E2 (T4 fix 1, P2): the pump fetched segment N+1's audio only after segment N had finished
+// playing, so every sentence was preceded by a silence as long as its TTS request. It now
+// starts N+1's fetch the moment N is ready to play -- one ahead, the way speakReply does.
+// createCallSpeechStream is EXECUTED here on a simulated clock: TTS 1.5 s, playback 8 s.
+const TTS_MS = 1500, PLAY_MS = 8000;
+async function simulatePump(html, opts) {
+  const src = extractDecl(html, 'const createCallSpeechStream = () => ');
+  if (!src) throw new Error('createCallSpeechStream not found');
+  let now = 0, seqn = 0; const timers = [];
+  const at = (ms, fn) => timers.push({ t: now + ms, n: seqn++, fn });
+  const drain = async () => { for (let i = 0; i < 4; i++) await new Promise((r) => setImmediate(r)); };
+  const sequenceIdRef = { current: 0 };
+  const log = { fetches: [], plays: [], aborted: 0 };
+  let stopPlaying = null;
+  const takeAudioFocus = () => { const f = stopPlaying; stopPlaying = null; if (f) f(); };
+  const fetchSpeechAudio = (text, myId, signal) => new Promise((resolve) => {
+    const rec = { text, t: now, pending: true }; log.fetches.push(rec);
+    if (signal) signal.addEventListener('abort', () => { if (rec.pending) { rec.pending = false; log.aborted++; resolve(null); } });
+    at(TTS_MS, () => {
+      if (!rec.pending) return;
+      rec.pending = false;
+      if (myId !== sequenceIdRef.current) return resolve(null);
+      resolve(opts.fail && opts.fail(text) ? null : { kind: 'blob', url: text, consumed: false });
+    });
+  });
+  const playPreparedSpeech = async (pr, myId) => {
+    if (!pr) return;
+    const r = await pr;
+    if (!r || myId !== sequenceIdRef.current) return;
+    r.consumed = true;
+    takeAudioFocus();
+    const rec = { text: r.url, start: now, end: null }; log.plays.push(rec);
+    await new Promise((res) => {
+      let done = false;
+      const fin = () => { if (done) return; done = true; rec.end = now; res(); };
+      stopPlaying = fin; at(PLAY_MS, fin);
+    });
+  };
+  const split = (t) => String(t).split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter(Boolean);
+  const deps = {
+    sequenceIdRef, takeAudioFocus, setIsSpeaking: () => {}, fetchSpeechAudio, playPreparedSpeech,
+    splitSpeechIntoSentences: split, stripIncompleteTags: (t) => t,
+    resolveWorshipTags: async (t) => t, deriveCaps: () => ({ band: 'adult' }), profileRef: { current: {} },
+    buildAudioSequence: (t) => split(t).map((s) => ({ kind: 'speak', text: s })),
+    playSurahRecitation: async () => {}, playDhikrRecitation: async () => {}, playRecitation: async () => {},
+    URL: { revokeObjectURL: () => {} },
+  };
+  const names = Object.keys(deps);
+  const make = new Function(...names, src + ';\nreturn createCallSpeechStream;')(...names.map((k) => deps[k]));
+  const stream = make();
+  const text = 'Sentence one is here. Sentence two is here. Sentence three is here. Sentence four is here.';
+  let settled = false;
+  stream.feed(text);
+  stream.finish(text).then(() => { settled = true; });
+  if (opts.hangUpAt !== undefined) at(opts.hangUpAt, () => { sequenceIdRef.current++; takeAudioFocus(); });
+  for (let guard = 0; guard < 10000; guard++) {
+    await drain();
+    if (!timers.length) break;
+    timers.sort((a, b) => a.t - b.t || a.n - b.n);
+    const x = timers.shift(); now = x.t; x.fn();
+  }
+  await drain();
+  const gaps = [];
+  for (let i = 1; i < log.plays.length; i++) gaps.push(log.plays[i].start - log.plays[i - 1].end);
+  return { log, gaps, settled, text: split(text) };
+}
+async function checkPrefetch(html) {
+  let a, f, h;
+  try {
+    a = await simulatePump(html, {});
+    f = await simulatePump(html, { fail: (t) => /two/.test(t) });
+    h = await simulatePump(html, { hangUpAt: TTS_MS + PLAY_MS + 500 });
+  } catch (e) { fail('E2 createCallSpeechStream does not run on the simulated clock: ' + e.message); return; }
+  info('E2 simulated TTS=' + TTS_MS + 'ms play=' + PLAY_MS + 'ms: first audio at ' + (a.log.plays[0] ? a.log.plays[0].start : -1)
+    + 'ms, gaps between segments [' + a.gaps.join(',') + ']ms');
+  if (a.gaps.length === 3 && a.gaps.every((g) => g === 0)) pass('E2 no silence between spoken sentences: the next one is fetched while the current one plays');
+  else fail('E2 silence between sentences: gaps=[' + a.gaps.join(',') + ']ms (TTS latency ' + TTS_MS + 'ms)');
+  if (a.log.plays.length === 4 && a.log.plays.every((p, i) => p.text === a.text[i]) && a.settled) pass('E2 all four sentences play once, in order, and finish() resolves');
+  else fail('E2 order or completeness broken: played ' + a.log.plays.length + ' of 4');
+  const ahead = a.log.fetches.filter((x) => a.log.plays.some((p) => p.start <= x.t && x.t < p.end)).length;
+  if (a.log.fetches.length === 4 && ahead === 3) pass('E2 exactly one fetch ahead: each later fetch starts while the previous sentence plays');
+  else fail('E2 fetch pattern wrong: fetches=' + a.log.fetches.length + ' started-during-playback=' + ahead);
+  if (f.log.plays.map((p) => p.text).join('|') === [a.text[0], a.text[2], a.text[3]].join('|') && f.settled) pass('E2 a failed segment is skipped and the rest still play in order');
+  else fail('E2 a failed segment breaks the pump: played ' + f.log.plays.length);
+  const hangAt = TTS_MS + PLAY_MS + 500;
+  const late = h.log.plays.filter((p) => p.start >= hangAt).length;
+  if (late === 0 && h.settled) pass('E2 hang-up mid-sentence: nothing plays afterwards and the stream settles');
+  else fail('E2 audio after hang-up: ' + late + ' segment(s) started after it, settled=' + h.settled);
+  if (h.log.aborted >= 1) pass('E2 hang-up aborts the prefetch still in flight');
+  else fail('E2 hang-up leaves the prefetch running (no abort seen)');
+}
+
 // ===========================================================================
 (async () => {
   // ITEM 32: the call screen is in app.jsx now, so this reads the shipped client, not the shell.
@@ -1219,6 +1311,7 @@ function checkSpeechPump(html) {
   await checkModelRouting();
   console.log('  -- CHECK E: the call speech pump (executed) --');
   checkSpeechPump(html);
+  await checkPrefetch(html);
 
   console.log('  SUMMARY   PASS=' + P + '   FAIL=' + F);
   if (F > 0) {
