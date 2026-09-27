@@ -813,3 +813,9 @@ lib/live-number-source.js text eol=lf
 # a file whose content nobody had touched. guards/live-world-v2-killswitch-guard.cjs reads it and
 # drives it, so it must read the same on every machine.
 lib/live-news-order.js text eol=lf
+
+# ITEM 108 (ORDER-108C): the library page and its integration test. library.html is served
+# as it is written and guards/lib108-integration-guard.cjs cuts its scripts out by regex, so
+# both read the same bytes on every machine.
+library.html                        text eol=lf
+guards/lib108-integration-guard.cjs text eol=lf
