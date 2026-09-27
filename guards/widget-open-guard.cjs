@@ -1,450 +1,423 @@
-// guards/widget-open-guard.cjs -- ITEM 45, the web half: the widget's press reaches its section.
-//
-// WHAT IS PROVED, AND ON WHAT. The shell (murabbi-shell, feat/item45-widget-20260915 at 399f8e6)
-// turns a widget tap into ezik://open?route=<VALUE> and hands the page, through deliverOpen, ONE
-// CustomEvent('ezik-scheduler') whose detail is
-//   { channel: 'ezik-scheduler', v: 1, op: 'open', route, type: null, id: null }
-// This guard throws exactly that event -- built the way the shell's buildReplyInjection builds it,
-// JSON through CustomEvent on window -- into the SHIPPED app.js, mounted whole under node on
-// linkedom the way runtime-gate.cjs mounts it, and reads where the reader is standing afterwards.
-//
-//   A  cold    the press arrives before React's first commit and still lands on its section
-//   B  warm    from any screen the app switches to the section
-//   C  layers  prayer and wirdi open over the home, and a back from them returns to the home
-//   D  top     a layer App draws in front of every screen (الأسماء) is put away, not landed behind
-//   E  new     a reader in onboarding is not interrupted and nothing is written to the ledger
-//   F  twice   two presses in a row end on the last one
-//   G  foreign any other route, op, version or channel changes nothing; `rearm-request` still arms
-//   H  offline every scene runs with every fetch rejecting
-//
-// EACH SCENE IS ITS OWN PROCESS. Two linkedom windows in one process share React's module state
-// and cross-talk, so the parent spawns this same file once per scene and reads one result line.
-//
-// AND THE PROOF IS SHOWN TO BE ABLE TO FAIL. Each MUTANT below is the application source with one
-// named edit, compiled through tools/babel-block.cjs exactly as build-app compiles it, and driven
-// through the scene that defends the rule it breaks. A mutant whose edit does not apply is itself
-// a failure, so a stale needle cannot turn into a silent pass.
-//
-// The terminal gets ASCII only; the section titles are read out of the application at runtime.
+// ITEM 45 / C1-C3. Whole-app runtime scenes, local public fixtures, and source mutations.
+// Normal gates execute shipped app.js. --source compiles app.jsx without writing app.js.
+// Each scene gets its own process: React state must not leak between linkedom windows.
+// No request leaves this harness. DOM focus cannot measure a native WebView keyboard.
 'use strict';
-
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 const { spawn } = require('child_process');
-
 const REPO = path.join(__dirname, '..');
+const SOURCE_MODE = process.argv.includes('--source');
 const NODE_TICK = setTimeout;
-const tick = (ms) => new Promise((r) => NODE_TICK(r, ms == null ? 40 : ms));
-
+const tick = (ms = 40) => new Promise((resolve) => NODE_TICK(resolve, ms));
+const ascii = (s) => String(s).replace(/[^\x00-\x7f]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
+const say = (s) => process.stdout.write(ascii(s) + '\n');
+const ROUTES = ['mushaf', 'adhkar_sabah', 'adhkar_masaa', 'home', 'adhkar', 'arbaeen', 'prayer', 'chat',
+  'memorize', 'fatwa', 'lessons', 'articles', 'women', 'tasbih', 'calc', 'compass',
+  'ayah-tafsir', 'asmaa', 'sunan-day', 'treasure'];
+const SECTIONS = ['memorize', 'fatwa', 'lessons', 'adhkar', 'arbaeen', 'articles', 'women', 'prayer',
+  'tasbih', 'calc', 'compass', 'ayah-tafsir', 'asmaa', 'sunan-day', 'treasure'];
 const PROFILE_PID = 'W45-GUARD';
-const PROFILE = JSON.stringify({ name: 'Noor', age: 30, gender: 'male', birthYear: 1996, pid: PROFILE_PID, createdAt: '2026-01-01T00:00:00.000Z' });
-const LEDGER = 'ezik_resume_section_v1';
-// The mushaf's own shell title is a literal inside MushafScreen, not a named constant.
-const MUSHAF_TITLE = 'المصحف';
-
-/* ============================== THE CHILD: ONE SCENE ============================== */
-
+const PROFILE = { name: 'Noor', age: 30, gender: 'male', birthYear: 1996, pid: PROFILE_PID, createdAt: '2026-01-01T00:00:00.000Z' };
+const FIXTURES = new Set(['/adhkar.json', '/adhkar-split-27.json', '/arbaeen.json', '/arbaeen-footnotes.json']);
+const destination = (r) => /^adhkar_(sabah|masaa)$/.test(r) ? 'adhkar' : r;
 function makeStore(seed) {
   const m = new Map(Object.entries(seed || {}));
-  return {
-    getItem: (k) => (m.has(k) ? m.get(k) : null),
-    setItem: (k, v) => { m.set(k, String(v)); },
-    removeItem: (k) => { m.delete(k); },
-    clear: () => { m.clear(); },
-    key: (i) => Array.from(m.keys())[i] || null,
-    get length() { return m.size; },
-  };
+  return { getItem: (k) => m.has(k) ? m.get(k) : null,
+    setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), clear: () => m.clear(),
+    key: (i) => Array.from(m.keys())[i] || null, get length() { return m.size; } };
 }
-
 function compile(mutantName) {
-  if (!mutantName) return { code: fs.readFileSync(path.join(REPO, 'app.js'), 'utf8'), applied: true };
+  if (!mutantName && !SOURCE_MODE) return { code: fs.readFileSync(path.join(REPO, 'app.js'), 'utf8'), applied: true };
   const BB = require(path.join(REPO, 'tools', 'babel-block.cjs'));
   const block = BB.readBabelBlock();
-  const raw = block.raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-  const mut = MUTANTS.find((m) => m.name === mutantName);
+  const raw = block.raw.replace(/\r\n?/g, '\n');
+  const mutant = mutantName && MUTANTS.find((m) => m.name === mutantName);
   let out = raw;
-  for (const [from, to] of mut.edits) {
+  for (const [from, to] of mutant ? mutant.edits : []) {
     const at = out.indexOf(from);
-    if (at === -1 || out.indexOf(from, at + 1) !== -1) return { code: '', applied: false };
+    if (at === -1 || out.indexOf(from, at + 1) !== -1) return { applied: false };
     out = out.slice(0, at) + to + out.slice(at + from.length);
   }
-  const code = BB.transformBabelBlock({ raw: out, runtime: block.runtime }, { retainLines: false, configFile: false, babelrc: false });
-  return { code, applied: out !== raw };
+  return { applied: !mutant || out !== raw,
+    code: BB.transformBabelBlock({ raw: out, runtime: block.runtime }, { retainLines: false, configFile: false, babelrc: false }) };
 }
-
 function boot(opts) {
   const { parseHTML } = require(path.join(REPO, 'node_modules', 'linkedom'));
   const { window } = parseHTML('<!DOCTYPE html><html lang="ar" dir="rtl"><body><div id="root"></div></body></html>');
   window.self = window; window.window = window; window.globalThis = window;
   window.matchMedia = (q) => ({ matches: false, media: String(q), addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} });
-  window.scrollTo = () => {};
-  window.alert = () => {}; window.confirm = () => true;
-  const EP = window.Element && window.Element.prototype;
-  if (EP && !EP.scrollIntoView) EP.scrollIntoView = function () {};
-  if (!window.crypto) { try { window.crypto = require('crypto').webcrypto; } catch (e) {} }
+  window.scrollTo = () => {}; window.alert = () => {}; window.confirm = () => true;
+  window.location = { href: '/', pathname: '/', search: '', hash: '' };
+  const focuses = [], posts = [], browserPosts = [], requests = [];
+  const EP = window.HTMLElement.prototype;
+  EP.scrollIntoView = function () {};
+  EP.focus = function () { focuses.push(this); };
+  if (!window.crypto) window.crypto = require('crypto').webcrypto;
   const seed = {};
   if (opts.profile) {
-    seed.child_profile = PROFILE;
-    seed.ezik_ai_consent_v1 = JSON.stringify({ status: 'granted', version: '2026-08-06-1', pid: PROFILE_PID, grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
+    seed.child_profile = JSON.stringify(PROFILE);
+    if (opts.consent !== false) seed.ezik_ai_consent_v1 = JSON.stringify({ status: 'granted', version: '2026-08-06-1', pid: PROFILE_PID, grantedBy: 'user', at: '2026-08-06T00:00:00.000Z' });
   }
-  window.localStorage = makeStore(seed);
-  window.sessionStorage = makeStore({});
-  // H: OFFLINE. Every request the application makes in any scene is refused.
-  window.fetch = () => Promise.reject(new TypeError('offline'));
+  seed.ezik_qibla_loc_v1 = JSON.stringify({ lat: 29.3759, lng: 47.9774 });
+  seed.ezik_prayer_prefs_v1 = JSON.stringify({ method: 'kuwait', asr: 'standard', off: { fajr: 2 } });
+  seed.adhkar_favorites_v1 = JSON.stringify(['adhkar_sabah:0']);
+  window.localStorage = makeStore(seed); window.sessionStorage = makeStore({});
+  window.postMessage = (wire) => browserPosts.push(String(wire));
+  if (opts.shell) window.ReactNativeWebView = { postMessage: (wire) => posts.push(String(wire)) };
+  window.fetch = (url) => {
+    const key = String(url); requests.push(key);
+    if (opts.offline || !FIXTURES.has(key)) return Promise.reject(new TypeError('offline fixture boundary'));
+    const value = fs.readFileSync(path.join(REPO, key.slice(1)), 'utf8');
+    return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(value)), text: () => Promise.resolve(value) });
+  };
   const entries = [{}]; let at = 0;
-  window.history = {
-    get length() { return entries.length; }, get state() { return entries[at]; },
+  window.history = { get length() { return entries.length; }, get state() { return entries[at]; },
     pushState: (st) => { entries.splice(at + 1); entries.push(st); at = entries.length - 1; },
     replaceState: (st) => { entries[at] = st; },
-    back: () => { if (at <= 0) return; at--; NODE_TICK(() => { try { window.dispatchEvent(new window.Event('popstate')); } catch (e) {} }, 0); },
-  };
+    back: () => { if (at > 0) { at--; NODE_TICK(() => window.dispatchEvent(new window.Event('popstate')), 0); } } };
   global.window = window; global.document = window.document;
-  try { Object.defineProperty(global, 'navigator', { configurable: true, value: window.navigator }); } catch (e) {}
-
+  Object.defineProperty(global, 'navigator', { configurable: true, value: window.navigator });
   const ctx = vm.createContext(window);
-  for (const f of ['react.umd.js', 'react-dom.umd.js']) {
-    vm.runInContext(fs.readFileSync(path.join(REPO, 'vendor', f), 'utf8'), ctx, { filename: f });
-  }
+  for (const f of ['react.umd.js', 'react-dom.umd.js']) vm.runInContext(fs.readFileSync(path.join(REPO, 'vendor', f), 'utf8'), ctx, { filename: f });
   let caught = null;
-  window.addEventListener('error', (ev) => { caught = caught || (ev && (ev.error || ev.message)); });
+  window.addEventListener('error', (ev) => { caught = caught || (ev.error || ev.message); });
   window.console.error = () => {};
   const built = compile(opts.mutant);
   if (!built.applied) return { notApplied: true };
-  vm.runInContext(built.code, ctx, { filename: 'app.js' });
-
-  const grab = (expr) => { try { return vm.runInContext('(' + expr + ')', ctx); } catch (e) { return undefined; } };
+  vm.runInContext(built.code, ctx, { filename: SOURCE_MODE || opts.mutant ? 'compiled-app.jsx' : 'app.js' });
+  const read = (expr) => vm.runInContext('(' + expr + ')', ctx);
   const root = window.document.getElementById('root');
-  const titles = {
-    prayer: grab('PRAYER_SHEET_TITLE'),
-    wirdi: grab('DW_CARD_TITLE'),
-    asmaa: grab("ezT('asmaa.title')"),
-    mushaf: MUSHAF_TITLE,
-  };
+  const titleExpr = { prayer: 'PRAYER_SHEET_TITLE', memorize: 'MEM.TITLE', lessons: "ezT('module.lessons')",
+    articles: 'EZH_ARTICLES', women: 'EZH_WOMEN', tasbih: "ezT('tasbih.title')", calc: "ezT('calc.title')",
+    'ayah-tafsir': "ezT('home.verseOfDay2')", asmaa: "ezT('asmaa.title')", 'sunan-day': "ezT('sunan.title')" };
+  const titles = Object.fromEntries(Object.entries(titleExpr).map(([key, expr]) => [key, read(expr)]));
+  titles.mushaf = '\u0627\u0644\u0645\u0635\u062d\u0641';
   const where = () => {
+    if (window.location.href === '/quest.html') return 'treasure';
     const top = root.firstElementChild;
     const cls = top ? String(top.getAttribute('class') || '') : '';
     if (/\bezonb\b/.test(cls)) return 'onboarding';
     if (/\bezgate\b/.test(cls)) return 'gate';
+    if (/\bezf\b/.test(cls)) return 'fatwa';
+    if (Array.from(root.querySelectorAll('svg')).some((el) => el.getAttribute('aria-label') === read('QIBLA_SECTION'))) return 'compass';
+    const shellBrand = root.querySelector('.ezsh-brand');
+    if (shellBrand) {
+      const spans = shellBrand.querySelectorAll('span');
+      const title = spans.length ? String(spans[spans.length - 1].textContent || '').trim() : '';
+      for (const key of Object.keys(titles)) if (titles[key] && title === titles[key]) return key;
+    }
+    const bookBrand = root.querySelector('.ezia-brand');
+    if (bookBrand && bookBrand.textContent.trim() === read('EZH_ARBAEEN')) return 'arbaeen';
     if (/\badhkar3\b/.test(cls)) return 'adhkar';
     if (root.querySelector('.ezc-rail')) return 'chat';
     if (root.querySelector('[data-ezik-home-module]')) return 'home';
-    const brand = root.querySelector('.ezsh-brand');
-    const spans = brand ? brand.querySelectorAll('span') : [];
-    const t = spans.length ? String(spans[spans.length - 1].textContent || '').trim() : '';
-    for (const k of Object.keys(titles)) if (titles[k] && t === titles[k]) return k;
     return 'other';
   };
-  const send = (detail) => {
-    // The shell's injection, reproduced: JSON parsed in the page, then one CustomEvent on window.
-    vm.runInContext('(function(){try{var d=JSON.parse(' + JSON.stringify(JSON.stringify(detail)) +
-      ');window.dispatchEvent(new CustomEvent("ezik-scheduler",{detail:d}));}catch(e){}})();', ctx);
+  const send = (detail) => vm.runInContext('window.dispatchEvent(new CustomEvent("ezik-scheduler",{detail:JSON.parse(' + JSON.stringify(JSON.stringify(detail)) + ')}))', ctx);
+  const open = (route) => send({ channel: 'ezik-scheduler', v: 1, op: 'open', route, type: null, id: null });
+  const untilValue = async (fn, want, cap = 6000) => {
+    const end = Date.now() + cap;
+    while (fn() !== want && Date.now() < end) await tick(30);
+    await tick(60); return fn();
   };
-  const open = (route) => send({ channel: 'ezik-scheduler', v: 1, op: 'open', route: route, type: null, id: null });
-  const ledger = () => window.sessionStorage.getItem(LEDGER);
-  const pending = () => grab('EZIK_WIDGET_PENDING');
-  // Wait for a place, polling, so a slow machine is waited for rather than misread.
-  const until = async (want, cap) => {
-    const end = Date.now() + (cap || 5000);
-    for (;;) {
-      if (where() === want) { await tick(60); return where(); }
-      if (Date.now() > end) return where();
-      await tick(30);
+  const until = (want, cap) => untilValue(where, want, cap);
+  const quiet = async () => { await untilValue(() => read('EZIK_WIDGET_PENDING'), ''); await tick(120); };
+  const props = (el) => el && el[Object.keys(el).find((k) => k.startsWith('__reactProps$'))];
+  const componentProps = (name) => {
+    for (const el of root.querySelectorAll('*')) {
+      let fiber = el[Object.keys(el).find((k) => k.startsWith('__reactFiber$'))];
+      while (fiber) { if (fiber.type && fiber.type.name === name) return fiber.memoizedProps; fiber = fiber.return; }
     }
+    return null;
   };
-  // Wait until nothing is held any more and React has had its turns -- the moment a press that
-  // WAS going to move the app has already moved it.
-  const quiet = async () => {
-    const end = Date.now() + 5000;
-    while (pending() && Date.now() < end) await tick(30);
-    await tick(250);
-  };
-  const click = async (el) => { el.dispatchEvent(new window.Event('click', { bubbles: true })); await tick(80); };
-  const back = async () => { window.history.back(); await tick(200); };
-  return { window, root, where, send, open, ledger, pending, until, quiet, click, back, grab, caught: () => caught };
+  const widgetPosts = () => posts.filter((wire) => { try { return JSON.parse(wire).op === 'widget-data'; } catch (_) { return false; } });
+  return { window, root, read, where, open, send, until, untilValue, quiet, focuses, posts, browserPosts, requests, widgetPosts,
+    props, componentProps, ledger: () => read('window.sessionStorage.getItem(EZIK_RESUME_KEY)'),
+    click: async (el) => { if (!el) throw new Error('missing fixture button'); el.dispatchEvent(new window.Event('click', { bubbles: true })); await tick(100); },
+    back: async () => { window.history.back(); await tick(160); }, caught: () => caught };
 }
-
-const SCENES = {
-  // A: the press is thrown before React's first commit -- the listener must already be there.
-  'cold-mushaf': async (c, t) => {
-    c.open('mushaf');
-    t('A cold mushaf lands on the mushaf', await c.until('mushaf'), 'mushaf');
-    t('A ...and the ledger names it', c.ledger(), 'mushaf');
-  },
-  'cold-adhkar': async (c, t) => {
-    c.open('adhkar');
-    t('A cold adhkar lands on the adhkar', await c.until('adhkar'), 'adhkar');
-  },
-  'cold-prayer': async (c, t) => {
-    c.open('prayer');
-    t('A cold prayer opens the prayer sheet', await c.until('prayer'), 'prayer');
-    t('A ...and the ledger holds it while it is open', c.ledger(), 'prayer');
-    await c.back();
-    t('C back from prayer lands on the home', await c.until('home'), 'home');
-    t('C ...and the home cleared the ledger', c.ledger(), null);
-  },
-  'cold-wirdi': async (c, t) => {
-    c.open('wirdi');
-    t('A cold wirdi opens the wird section', await c.until('wirdi'), 'wirdi');
-    t('C ...and the ledger holds it while it is open', c.ledger(), 'wirdi');
-    await c.back();
-    t('C back from wirdi lands on the home', await c.until('home'), 'home');
-    t('C ...and the home cleared the ledger', c.ledger(), null);
-  },
-  // B: already running, from several different screens.
-  'warm-switch': async (c, t) => {
-    t('B the boot lands on the chat', await c.until('chat'), 'chat');
-    c.open('adhkar');
-    t('B chat -> adhkar', await c.until('adhkar'), 'adhkar');
-    c.open('mushaf');
-    t('B adhkar -> mushaf', await c.until('mushaf'), 'mushaf');
-    c.open('prayer');
-    t('B mushaf -> prayer', await c.until('prayer'), 'prayer');
-    c.open('wirdi');
-    t('B prayer (a home layer) -> wirdi', await c.until('wirdi'), 'wirdi');
-    c.open('mushaf');
-    t('B wirdi -> mushaf', await c.until('mushaf'), 'mushaf');
-  },
-  // C + section 4-4: the home is ALREADY mounted and bare when the press for one of its layers comes.
-  'warm-home': async (c, t) => {
-    t('C the boot lands on the chat', await c.until('chat'), 'chat');
-    c.open('prayer');
-    t('C chat -> prayer', await c.until('prayer'), 'prayer');
-    await c.back();
-    t('C back -> home', await c.until('home'), 'home');
-    c.open('prayer');
-    t('C prayer over a home that is already standing', await c.until('prayer'), 'prayer');
-    await c.back();
-    t('C back -> home again', await c.until('home'), 'home');
-    c.open('wirdi');
-    t('C wirdi over a home that is already standing', await c.until('wirdi'), 'wirdi');
-    t('C ...and the ledger holds it', c.ledger(), 'wirdi');
-    await c.back();
-    t('C back from wirdi -> home', await c.until('home'), 'home');
-    t('C ...and nothing is left in the ledger', c.ledger(), null);
-  },
-  // D: a layer App draws in front of every screen.
-  'top-layer': async (c, t) => {
-    t('D the boot lands on the chat', await c.until('chat'), 'chat');
-    c.open('prayer');
-    await c.until('prayer');
-    await c.back();
-    t('D on the home', await c.until('home'), 'home');
-    const tile = c.root.querySelector('[data-ezik-home-module="asmaa"]');
-    t('D the asmaa tile exists', !!tile, true);
-    if (tile) await c.click(tile);
-    t('D asmaa stands in front', await c.until('asmaa'), 'asmaa');
-    c.open('adhkar');
-    t('D the press is not landed behind asmaa', await c.until('adhkar'), 'adhkar');
-    c.open('prayer');
-    t('D ...and asmaa does not come back over the home', await c.until('prayer'), 'prayer');
-  },
-  // E: a new reader.
-  'onboarding': async (c, t) => {
-    c.open('mushaf');
-    t('E cold press on a new reader stays on onboarding', await c.until('onboarding'), 'onboarding');
-    await c.quiet();
-    t('E ...still onboarding once everything settled', c.where(), 'onboarding');
-    t('E ...nothing written to the ledger', c.ledger(), null);
-    t('E ...and the press is dropped, not held for later', c.pending(), '');
-    c.open('prayer');
-    await c.quiet();
-    t('E warm press during onboarding changes nothing', c.where(), 'onboarding');
-    t('E ...nothing written to the ledger', c.ledger(), null);
-    t('E ...and it is dropped too', c.pending(), '');
-  },
-  // F: two presses.
-  'twice': async (c, t) => {
-    c.open('mushaf'); c.open('prayer');
-    t('F two presses before the first commit end on the last', await c.until('prayer'), 'prayer');
-    c.open('mushaf'); c.open('adhkar');
-    t('F two presses in one turn end on the last', await c.until('adhkar'), 'adhkar');
-    c.open('mushaf');
-    await c.until('mushaf');
-    c.open('prayer');
-    t('F mushaf then prayer, one after the other, ends on prayer', await c.until('prayer'), 'prayer');
-  },
-  // G: everything that is not ours.
-  'foreign': async (c, t) => {
-    t('G the boot lands on the chat', await c.until('chat'), 'chat');
-    const base = { channel: 'ezik-scheduler', v: 1, op: 'open', route: 'mushaf', type: null, id: null };
-    const bad = [
-      ['a fifth route (fatwa)', Object.assign({}, base, { route: 'fatwa' })],
-      ['the home', Object.assign({}, base, { route: 'home' })],
-      ['asmaa', Object.assign({}, base, { route: 'asmaa' })],
-      ['a translated spelling', Object.assign({}, base, { route: 'Mushaf' })],
-      ['a prototype key', Object.assign({}, base, { route: 'constructor' })],
-      ['an empty route', Object.assign({}, base, { route: '' })],
-      ['a non-string route', Object.assign({}, base, { route: 1 })],
-      ['op schedule', Object.assign({}, base, { op: 'schedule' })],
-      ['op result', Object.assign({}, base, { op: 'result' })],
-      ['op status', Object.assign({}, base, { op: 'status' })],
-      ['op enable', Object.assign({}, base, { op: 'enable' })],
-      ['another version', Object.assign({}, base, { v: 2 })],
-      ['another channel', Object.assign({}, base, { channel: 'ezik-other' })],
-    ];
-    for (const [label, d] of bad) {
-      c.send(d);
-      await c.quiet();
-      t('G ' + label + ' is ignored', c.where(), 'chat');
-    }
-    t('G ...and nothing reached the ledger', c.ledger(), null);
-    // rearm-request keeps its behaviour, and open does not borrow it.
-    const posts = [];
-    c.window.ReactNativeWebView = { postMessage: (m) => { posts.push(String(m)); } };
-    c.grab('ezikSchedLastSent = SHELL_SCHED_EMPTY');
-    c.send({ channel: 'ezik-scheduler', v: 1, op: 'rearm-request', route: 'mushaf', type: null, id: null });
-    await c.quiet();
-    t('G rearm-request still arms the schedule (one post)', posts.length, 1);
-    t('G ...and does not navigate', c.where(), 'chat');
-    c.grab('ezikSchedLastSent = SHELL_SCHED_EMPTY');
-    c.open('mushaf');
-    t('G open still navigates with a bridge present', await c.until('mushaf'), 'mushaf');
-    t('G ...and open is not a rearm (no post)', posts.length, 1);
-  },
+const SCENES = {};
+for (const route of ROUTES) SCENES['cold-' + route] = async (c, t) => {
+  c.open(route);
+  t('C1 cold ' + route + ' opens ' + destination(route), await c.until(destination(route)), destination(route));
+  if (route === 'chat') t('chat focuses its composer', c.focuses.some((el) => el.tagName === 'TEXTAREA'), true);
 };
-
-async function runScene(name, mutant) {
-  const results = [];
-  const t = (label, got, want) => results.push({ label, ok: got === want, got: got === undefined ? 'undefined' : got, want });
-  const c = boot({ profile: name !== 'onboarding', mutant });
-  if (c.notApplied) return { notApplied: true, results };
-  try { await SCENES[name](c, t); } catch (e) { results.push({ label: 'scene threw: ' + String(e && e.message), ok: false }); }
-  const err = c.caught();
-  if (err) results.push({ label: 'runtime error: ' + String(err && err.message || err).slice(0, 200), ok: false });
-  return { results };
+SCENES['warm-all'] = async (c, t) => {
+  t('profile boot', await c.until('chat'), 'chat');
+  for (const route of ROUTES) { c.open(route); t('C1 warm ' + route + ' opens ' + destination(route), await c.until(destination(route)), destination(route)); }
+};
+SCENES['warm-home'] = async (c, t) => {
+  await c.until('chat'); c.open('home'); await c.until('home');
+  for (const route of ['prayer', 'tasbih', 'calc', 'compass', 'articles', 'women']) {
+    c.open(route); t('mounted home opens ' + route, await c.until(route), route);
+    await c.back(); t('back from ' + route + ' returns home', await c.until('home'), 'home');
+    t('home clears resume record', c.ledger(), null);
+  }
+};
+SCENES['top-layer'] = async (c, t) => {
+  for (const layer of ['asmaa', 'sunan-day']) {
+    c.open(layer); t(layer + ' opens explicitly', await c.until(layer), layer);
+    c.open('adhkar'); t(layer + ' closes before next destination', await c.until('adhkar'), 'adhkar');
+    c.open('home'); t(layer + ' stays closed on home', await c.until('home'), 'home');
+  }
+};
+SCENES['onboarding'] = async (c, t) => {
+  for (const route of ['mushaf', 'prayer', 'chat']) {
+    c.open(route); await c.until('onboarding'); await c.quiet();
+    t('onboarding drops ' + route, c.where(), 'onboarding');
+    t('onboarding keeps no pending route', c.read('EZIK_WIDGET_PENDING'), '');
+    t('onboarding writes no resume record', c.ledger(), null);
+  }
+};
+SCENES['twice'] = async (c, t) => {
+  c.open('mushaf'); c.open('prayer'); t('two cold presses end on last', await c.until('prayer'), 'prayer');
+  c.open('mushaf'); c.open('adhkar'); t('two warm presses end on last', await c.until('adhkar'), 'adhkar');
+};
+SCENES['foreign'] = async (c, t) => {
+  await c.until('chat');
+  const base = { channel: 'ezik-scheduler', v: 1, op: 'open', route: 'mushaf', type: null, id: null };
+  const invalid = ['unknown', 'wirdi', 'constructor', '__proto__', 'Mushaf', ' prayer', '', 1, null];
+  const messages = invalid.map((route) => ({ ...base, route })).concat(
+    ['schedule', 'result', 'status', 'enable', 'widget-data'].map((op) => ({ ...base, op })),
+    [{ ...base, v: 2 }, { ...base, channel: 'other' }]);
+  for (const message of messages) {
+    c.send(message); await c.quiet();
+    t('foreign ignored ' + JSON.stringify({ route: message.route, op: message.op, v: message.v, channel: message.channel }), c.where(), 'chat');
+    t('foreign writes no resume record', c.ledger(), null);
+  }
+  c.window.ReactNativeWebView = { postMessage: (wire) => c.posts.push(String(wire)) };
+  c.read('ezikSchedLastSent = SHELL_SCHED_EMPTY');
+  c.send({ ...base, op: 'rearm-request' }); await c.quiet();
+  t('rearm-request still schedules', c.posts.filter((wire) => JSON.parse(wire).op === 'schedule').length, 1);
+  const count = c.posts.length; c.open('mushaf'); await c.until('mushaf');
+  t('open does not rearm schedule', c.posts.length, count);
+};
+SCENES['list-reset'] = async (c, t) => {
+  for (const [route, selector] of [['adhkar', '[data-ezia-cat]'], ['arbaeen', '[data-ezia-hadith]']]) {
+    c.open(route); await c.until(route);
+    await c.untilValue(() => !!c.root.querySelector(selector), true);
+    await c.click(c.root.querySelector(selector));
+    t(route + ' fixture entered detail', !!c.root.querySelector(selector), false);
+    c.open(route); await c.quiet();
+    t(route + ' repeated tap returns to index', await c.untilValue(() => !!c.root.querySelector(selector), true), true);
+  }
+};
+SCENES['chat-reset'] = async (c, t) => {
+  await c.until('chat'); const input = c.root.querySelector('textarea');
+  c.props(input).onChange({ target: { value: 'fixture draft' } }); await tick(100);
+  t('fixture draft exists', c.root.querySelector('textarea').value, 'fixture draft');
+  const count = c.focuses.length; c.open('chat'); await c.quiet();
+  t('chat starts a new empty thread', c.root.querySelector('textarea').value, '');
+  t('chat focuses after its new render', c.focuses.length > count && c.focuses[c.focuses.length - 1] === c.root.querySelector('textarea'), true);
+};
+SCENES['chat-consent'] = async (c, t) => {
+  c.open('chat'); await c.until('gate'); await c.quiet();
+  t('no composer before consent', !!c.root.querySelector('textarea'), false);
+  t('no composer focus before consent', c.focuses.some((el) => el.tagName === 'TEXTAREA'), false);
+  const gate = c.componentProps('AIConsentGate'); t('consent gate is mounted', !!gate, true);
+  if (gate) gate.onGrant('user');
+  t('grant mounts chat', await c.until('chat'), 'chat');
+  t('pending widget focus runs after grant', c.focuses.some((el) => el === c.root.querySelector('textarea')), true);
+};
+SCENES['offline'] = async (c, t) => {
+  for (const route of ['adhkar', 'arbaeen', 'prayer', 'asmaa', 'sunan-day']) { c.open(route); t('offline ' + route + ' opens', await c.until(route), route); }
+};
+SCENES['adhan'] = async (c, t) => {
+  await c.until('chat');
+  t('sound setting defaults on', c.read('readPrayerPrefs().adhanSound'), true);
+  t('sound label is exact contract text', c.read('PRAYER_ADHAN_SOUND_LABEL'), '\u0635\u0648\u062a \u0627\u0644\u0623\u0630\u0627\u0646');
+  const items = c.read('ezikAdhanItems(new Date(2026, 8, 28))');
+  t('five prayers for seven days', items.length, 35);
+  for (const prayer of ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha']) {
+    const group = items.filter((it) => it.id.split(':')[1] === prayer);
+    t(prayer + ' sound matches C2', group.length === 7 && group.every((it) => it.adhanSound === (prayer === 'fajr' ? 'fajr' : 'other')), true);
+  }
+  const payload = c.read('ezikSchedPayload(' + JSON.stringify(items) + ', 0)');
+  t('whitelist retains every sound', payload.message.items.length === 35 && payload.message.items.every((it) => ['fajr', 'other'].includes(it.adhanSound)), true);
+  for (const value of [undefined, '', 'invalid', null, 1]) {
+    const bad = { ...items[0] }; if (value === undefined) delete bad.adhanSound; else bad.adhanSound = value;
+    const out = c.read('ezikSchedPayload(' + JSON.stringify([bad]) + ', 0)');
+    t('missing/invalid sound rejected ' + String(value), out.message.items.length, 0);
+    t('invalid sound counted ' + String(value), out.dropped.badAdhanSound, 1);
+  }
+  c.read('writePrayerPrefs({adhanSound:false})');
+  t('sound off reaches all prayers', c.read('ezikAdhanItems(new Date(2026,8,28)).every((it) => it.adhanSound === "none")'), true);
+  c.open('home'); await c.until('home');
+  const home = c.componentProps('Home');
+  if (home) home.onOpenSettings();
+  await c.untilValue(() => !!c.root.querySelector('[data-ezik-prayer-setting="adhan-sound"]'), true);
+  const control = c.root.querySelector('[data-ezik-prayer-setting="adhan-sound"]');
+  t('sound switch beside prayer settings', !!control, true);
+  if (control) {
+    t('rendered sound label exactly matches C2', control.getAttribute('aria-label'), '\u0635\u0648\u062a \u0627\u0644\u0623\u0630\u0627\u0646');
+    t('switch draws stored off', control.getAttribute('aria-checked'), 'false');
+    await c.click(control); t('switch stores on', c.read('readPrayerPrefs().adhanSound'), true);
+  }
+};
+function assertWidgetData(c, t, message) {
+  t('C3 exact envelope', Object.keys(message).sort(), ['channel', 'data', 'op', 'v']);
+  t('C3 channel/version/op', [message.channel, message.v, message.op], ['ezik-scheduler', 1, 'widget-data']);
+  const d = message.data;
+  t('C3 data keys', Object.keys(d).sort(), ['adhkar', 'arbaeen', 'generatedAt', 'prayer', 'sections', 'version']);
+  t('C3 version', d.version, 1); t('C3 ISO time', new Date(d.generatedAt).toISOString(), d.generatedAt);
+  t('30 local days', d.prayer.days.length, 30);
+  const expected = c.read('(function(){const now=new Date(' + JSON.stringify(d.generatedAt) + '),loc=readQiblaLoc(),prefs=readPrayerPrefs(),off=readHijriOffset();return Array.from({length:30},(_,i)=>{const dt=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i,12),y=dt.getFullYear(),m=dt.getMonth()+1,n=dt.getDate();const v=prayerTimesFor(y,m,n,loc.lat,loc.lng,-dt.getTimezoneOffset(),prefs.method,prefs.asr,prefs.off);const times={};for(const k of ["fajr","sunrise","dhuhr","asr","maghrib","isha"]){const x=v[k];times[k]=typeof x==="number"&&isFinite(x)?String(Math.floor(x/60)).padStart(2,"0")+":"+String(x%60).padStart(2,"0"):null;}return {date:prayerDayKey(dt),gregorianLabel:ezikFavDate(dt.getTime())||null,hijriLabel:hijriLabel(hijriForCivilDay(y,m,n,off))||null,times};});})()');
+  t('all dates labels and times use settings/calculator', d.prayer.days, expected);
+  const raw = JSON.parse(fs.readFileSync(path.join(REPO, 'adhkar.json'), 'utf8'));
+  const split = JSON.parse(fs.readFileSync(path.join(REPO, 'adhkar-split-27.json'), 'utf8'));
+  const byId = new Map(raw.adhkar.map((row) => [String(row.id), row])); const expectedDoors = {};
+  for (const [field, route] of [['sabah', 'adhkar_sabah'], ['masaa', 'adhkar_masaa']]) {
+    expectedDoors[field] = split.doors.find((x) => x.key === route).items.map((row, i) => {
+      const original = byId.get(String(row.id)); const item = row.text ? { ...original, text: row.text } : original;
+      return { id: route + ':' + i, text: item.text, count: c.read('adhkarTarget(' + JSON.stringify(item) + ')') };
+    });
+    t(field + ' original split wording/counts', d.adhkar[field], expectedDoors[field]);
+  }
+  t('favorite uses app data', d.adhkar.favorites, [expectedDoors.sabah[0]]);
+  const book = JSON.parse(fs.readFileSync(path.join(REPO, 'arbaeen.json'), 'utf8'));
+  t('every hadith copied without rewriting', d.arbaeen, book.hadith.map(({ n, title, text }) => ({ n, title, text })));
+  t('exact section-widget roster', d.sections.map((x) => x.route), SECTIONS);
+  const labels = ['EZH_MEMORIZE','EZH_FATWA','EZH_LESSONS','EZH_ADHKAR','EZH_ARBAEEN','EZH_ARTICLES','EZH_WOMEN','EZH_PRAYER',"ezT('tasbih.card.title')","ezT('calc.card.title')",'EZH_NAV_COMPASS',"ezT('home.verseOfDay2')",'EZH_ASMAA','EZH_SUNAN','EZH_TREASURE'];
+  t('every section label uses display text', d.sections.map((x) => x.label), labels.map((x) => c.read(x)));
 }
-
-/* ============================== THE MUTANTS ============================== */
-
+SCENES['widget-data'] = async (c, t, notes) => {
+  await c.until('chat'); t('boot sends once after debounce', await c.untilValue(() => c.widgetPosts().length, 1), 1);
+  const wire = c.widgetPosts()[0]; assertWidgetData(c, t, JSON.parse(wire));
+  notes.push('FIXTURE widget-data UTF8_BYTES=' + Buffer.byteLength(wire, 'utf8') + ' profile=Noor adult Kuwait custom-fajr-offset favorite=sabah:0; not a real profile');
+  const writers = [
+    ['prayer settings', 'writePrayerPrefs({off:{fajr:7}})', (a,b) => a.prayer.days[0].times.fajr !== b.prayer.days[0].times.fajr],
+    ['location', 'writeQiblaLoc(21.4225,39.8262)', (a,b) => a.prayer.days[0].times.dhuhr !== b.prayer.days[0].times.dhuhr],
+    ['hijri offset', 'writeHijriOffset(1)', (a,b) => a.prayer.days[0].hijriLabel !== b.prayer.days[0].hijriLabel],
+    ['adhkar favorites', 'toggleAdhkarFavorite("adhkar_masaa:0")', (a,b) => b.adhkar.favorites.length === a.adhkar.favorites.length + 1],
+  ];
+  for (const [label, expr, changed] of writers) {
+    const count = c.widgetPosts().length, before = JSON.parse(c.widgetPosts()[count - 1]).data;
+    c.read(expr); await tick(60); t(label + ' is debounced', c.widgetPosts().length, count);
+    t(label + ' sends refreshed snapshot', await c.untilValue(() => c.widgetPosts().length, count + 1), count + 1);
+    t(label + ' refresh uses stored change', changed(before, JSON.parse(c.widgetPosts().slice(-1)[0]).data), true);
+  }
+  const count = c.widgetPosts().length;
+  for (const value of [8,9,10]) { c.read('writePrayerPrefs({off:{fajr:' + value + '}})'); await tick(50); }
+  t('burst has not sent before final debounce', c.widgetPosts().length, count);
+  t('burst sends only one snapshot', await c.untilValue(() => c.widgetPosts().length, count + 1), count + 1);
+  await tick(300); t('burst leaves no extra snapshot', c.widgetPosts().length, count + 1);
+};
+SCENES['no-shell'] = async (c, t) => {
+  await c.until('chat'); await tick(350);
+  c.read('writePrayerPrefs({off:{fajr:7}})'); c.read('writeQiblaLoc(21.4,39.8)'); c.read('writeHijriOffset(1)'); c.read('toggleAdhkarFavorite("adhkar_masaa:0")');
+  c.window.dispatchEvent(new c.window.Event('focus')); await tick(400);
+  t('no widget-data without shell', c.widgetPosts().length, 0);
+  t('no browser postMessage fallback', c.browserPosts.filter((wire) => { try { return JSON.parse(wire).op === 'widget-data'; } catch (_) { return false; } }).length, 0);
+  t('no widget loaders outside shell', c.requests.filter((url) => FIXTURES.has(url)).length, 0);
+};
+// Every needle must match exactly once; assertions execute the mutant, never recognize it.
 const MUTANTS = [
-  {
-    name: 'listener-in-effect', scene: 'cold-mushaf', rule: '4-1 the listener is attached at file level',
-    edits: [
-      ['(function ezikWidgetListen() {', 'const ezikWidgetListenLate = (function ezikWidgetListen() {'],
-      ['  } catch (e) {}\n})();\n\n// The bridge, or null.', '  } catch (e) {}\n});\n\n// The bridge, or null.'],
-      ['  const [homeEpoch, setHomeEpoch] = useState(0);\n', '  const [homeEpoch, setHomeEpoch] = useState(0);\n  useEffect(() => { ezikWidgetListenLate(); }, []);\n'],
-    ],
-  },
-  { name: 'no-onboarding-drop', scene: 'onboarding', rule: 'E onboarding drops the press',
-    edits: [["    if (cur === 'onboarding') return;\n    ezikWriteResume(route);", '    ezikWriteResume(route);']] },
-  { name: 'applies-during-loading', scene: 'onboarding', rule: '4-2 nothing is applied over loading',
-    edits: [["    if (cur === 'loading') return;\n    const route = ezikWidgetTake();", '    const route = ezikWidgetTake();']] },
-  { name: 'no-home-remount', scene: 'warm-home', rule: '4-4 a standing home opens the layer',
-    edits: [[" key={homeEpoch} />", ' />']] },
-  { name: 'wird-not-restored', scene: 'cold-wirdi', rule: '4-3 wirdOpen restores from the ledger',
-    edits: [["useState(() => ezikReadResume() === 'wirdi')", 'useState(false)']] },
-  { name: 'wird-not-in-clear-guard', scene: 'cold-wirdi', rule: '4-3 the clear guard knows wirdOpen',
-    edits: [['calcOpen || wirdPickOpen || wirdOpen) return;', 'calcOpen || wirdPickOpen) return;']] },
-  { name: 'top-layer-left-open', scene: 'top-layer', rule: 'D App layers are put away',
-    edits: [['    ezikWriteResume(route);\n    setAsmaaOpen(false);\n', '    ezikWriteResume(route);\n']] },
-  { name: 'any-route', scene: 'foreign', rule: 'G only the four routes',
-    edits: [["if (typeof d.route !== 'string' || EZIK_WIDGET_ROUTES.indexOf(d.route) === -1) return;", "if (typeof d.route !== 'string' || !d.route) return;"]] },
-  { name: 'any-op', scene: 'foreign', rule: 'G only op open',
-    edits: [[' || d.op !== SHELL_SCHED_OPEN_OP) return;', ') return;']] },
+  { name: 'listener-in-effect', scene: 'cold-mushaf', edits: [
+    ['(function ezikWidgetListen() {', 'const ezikWidgetListenLate = (function ezikWidgetListen() {'],
+    ['  } catch (e) {}\n})();\n\n// The bridge, or null.', '  } catch (e) {}\n});\n\n// The bridge, or null.'],
+    ['  const [homeEpoch, setHomeEpoch] = useState(0);\n', '  const [homeEpoch, setHomeEpoch] = useState(0);\n  useEffect(() => { ezikWidgetListenLate(); }, []);\n']] },
+  { name: 'no-onboarding-drop', scene: 'onboarding', edits: [["    if (cur === 'onboarding') return;", '']] },
+  { name: 'applies-during-loading', scene: 'onboarding', edits: [["    if (cur === 'loading') return;\n    const requested = ezikWidgetTake();", '    const requested = ezikWidgetTake();']] },
+  { name: 'no-home-remount', scene: 'warm-home', edits: [["onOpenTafsir={() => setScreen('ayah-tafsir')} key={homeEpoch} />", "onOpenTafsir={() => setScreen('ayah-tafsir')} />"]] },
+  { name: 'any-route', scene: 'foreign', edits: [["if (typeof d.route !== 'string' || EZIK_WIDGET_ROUTES.indexOf(d.route) === -1) return;", "if (typeof d.route !== 'string' || !d.route) return;"]] },
+  { name: 'any-op', scene: 'foreign', edits: [[' || d.op !== SHELL_SCHED_OPEN_OP) return;', ') return;']] },
+  { name: 'asmaa-not-opened', scene: 'cold-asmaa', edits: [["    setAsmaaOpen(route === 'asmaa');", '    setAsmaaOpen(false);']] },
+  { name: 'sunan-not-opened', scene: 'cold-sunan-day', edits: [["    setSunanOpen(route === 'sunan-day');", '    setSunanOpen(false);']] },
+  { name: 'top-layer-left-open', scene: 'top-layer', edits: [["    setAsmaaOpen(route === 'asmaa');", "    if (route === 'asmaa') setAsmaaOpen(true);"]] },
+  { name: 'treasure-wrong-page', scene: 'cold-treasure', edits: [["      window.location.href = '/quest.html';", "      window.location.href = '/wrong.html';"]] },
+  { name: 'adhkar-index-not-reset', scene: 'list-reset', edits: [['<AdhkarScreen onBack={goEzikBack} key={homeEpoch} />', '<AdhkarScreen onBack={goEzikBack} />']] },
+  { name: 'arbaeen-list-not-reset', scene: 'list-reset', edits: [['<ArbaeenScreen onBack={goEzikBack} key={homeEpoch} />', '<ArbaeenScreen onBack={goEzikBack} />']] },
+  { name: 'chat-thread-not-new', scene: 'chat-reset', edits: [["      newChat();\n      setScreen('chat');", "      setScreen('chat');"]] },
+  { name: 'chat-focus-missing', scene: 'chat-consent', edits: [['    el.focus();\n    widgetChatFocusRef.current = false;', '    widgetChatFocusRef.current = false;']] },
+  { name: 'adhan-sound-missing', scene: 'adhan', edits: [["        adhanSound: prefs.adhanSound ? (k === 'fajr' ? 'fajr' : 'other') : 'none',\n", '']] },
+  { name: 'adhan-whitelist-drops-sound', scene: 'adhan', edits: [['    if (type === ADHAN_TYPE) rec.adhanSound = it.adhanSound;\n', '']] },
+  { name: 'adhan-missing-sound-accepted', scene: 'adhan', edits: [["    if (type === ADHAN_TYPE && ['fajr', 'other', 'none'].indexOf(it.adhanSound) === -1) {", '    if (false) {']] },
+  { name: 'widget-browser-leak', scene: 'no-shell', edits: [["  const b = window.ReactNativeWebView;\n  if (!b || typeof b.postMessage !== 'function') return null;\n  return b;\n}\n\n// A DESTINATION", "  const b = window.ReactNativeWebView || { postMessage: window.postMessage };\n  if (!b || typeof b.postMessage !== 'function') return null;\n  return b;\n}\n\n// A DESTINATION"]] },
+  { name: 'widget-boot-send-missing', scene: 'widget-data', edits: [['    EZ_LANG_SUBS.add(wake);\n    wake();\n    atMidnight();', '    EZ_LANG_SUBS.add(wake);\n    atMidnight();']] },
+  { name: 'widget-not-debounced', scene: 'widget-data', edits: [['const EZIK_WIDGET_DATA_DEBOUNCE_MS = 200;', 'const EZIK_WIDGET_DATA_DEBOUNCE_MS = 0;']] },
+  { name: 'widget-day-window-short', scene: 'widget-data', edits: [['const EZIK_WIDGET_DATA_DAYS = 30;', 'const EZIK_WIDGET_DATA_DAYS = 29;']] },
+  { name: 'widget-local-change-ignored', scene: 'widget-data', edits: [['    window.addEventListener(EZIK_WIDGET_DATA_EVENT, wake);', '']] },
 ];
-
-/* ============================== THE PARENT ============================== */
-
+for (const route of ROUTES) MUTANTS.push({ name: 'route-dropped-' + route, scene: 'cold-' + route,
+  edits: [['      EZIK_WIDGET_PENDING = d.route;', '      if (d.route === ' + JSON.stringify(route) + ') return;\n      EZIK_WIDGET_PENDING = d.route;']] });
+async function runScene(name, mutant) {
+  const results = [], notes = [];
+  const t = (label, got, want) => {
+    const ok = JSON.stringify(got) === JSON.stringify(want);
+    const result = { label, ok };
+    if (!ok) {
+      result.got = typeof got === 'object' ? JSON.stringify(got).slice(0,250) : got;
+      result.want = typeof want === 'object' ? JSON.stringify(want).slice(0,250) : want;
+    }
+    results.push(result);
+    // One failed assertion already kills a mutant. Avoid waiting for every later timeout.
+    if (mutant && !ok) throw new Error('mutation assertion failed: ' + label);
+  };
+  const c = boot({ profile: name !== 'onboarding', consent: name !== 'chat-consent', shell: name === 'widget-data', offline: name === 'offline', mutant });
+  if (c.notApplied) return { notApplied: true, results, notes };
+  try { await SCENES[name](c, t, notes); } catch (e) { results.push({ label: 'scene threw: ' + String(e && e.message), ok: false }); }
+  if (c.caught()) results.push({ label: 'runtime error: ' + String(c.caught()), ok: false });
+  return { results, notes };
+}
 function spawnScene(name, mutant) {
   return new Promise((resolve) => {
-    const args = [__filename, '--scene', name].concat(mutant ? ['--mutant', mutant] : []);
-    const p = spawn(process.execPath, args, { cwd: REPO, stdio: ['ignore', 'pipe', 'pipe'] });
-    let out = '';
-    p.stdout.on('data', (b) => { out += b; });
-    p.stderr.on('data', (b) => { out += b; });
-    const kill = NODE_TICK(() => { try { p.kill(); } catch (e) {} }, 90000);
-    p.on('close', () => {
-      clearTimeout(kill);
-      const line = out.split(/\r?\n/).find((l) => l.startsWith('WIDGET45-RESULT '));
+    const args = [__filename, '--scene', name].concat(SOURCE_MODE ? ['--source'] : [], mutant ? ['--mutant', mutant] : []);
+    const child = spawn(process.execPath, args, { cwd: REPO, stdio: ['ignore', 'pipe', 'pipe'] }); let out = '';
+    child.stdout.on('data', (b) => { out += b; }); child.stderr.on('data', (b) => { out += b; });
+    const deadline = NODE_TICK(() => child.kill(), 90000);
+    child.on('error', (error) => { clearTimeout(deadline); resolve({ crashed: error.message, results: [] }); });
+    child.on('close', () => {
+      clearTimeout(deadline); const line = out.split(/\r?\n/).find((l) => l.startsWith('WIDGET45-RESULT '));
       if (!line) return resolve({ crashed: out.slice(-600), results: [] });
-      try { resolve(JSON.parse(line.slice('WIDGET45-RESULT '.length))); } catch (e) { resolve({ crashed: 'unparseable result', results: [] }); }
+      try { resolve(JSON.parse(line.slice('WIDGET45-RESULT '.length))); } catch (_) { resolve({ crashed: 'unparseable result', results: [] }); }
     });
   });
 }
-
 async function pool(jobs, width) {
-  const out = new Array(jobs.length);
-  let next = 0;
+  const out = new Array(jobs.length); let next = 0;
   const lane = async () => { while (next < jobs.length) { const i = next++; out[i] = await jobs[i](); } };
-  await Promise.all(Array.from({ length: Math.min(width, jobs.length) }, lane));
-  return out;
+  await Promise.all(Array.from({ length: Math.min(width, jobs.length) }, lane)); return out;
 }
-
 function staticChecks() {
-  const src = fs.readFileSync(path.join(REPO, 'app.jsx'), 'utf8').replace(/\r\n/g, '\n');
-  const res = [];
-  const ok = (label, cond) => res.push({ label, ok: !!cond });
-  const a = src.indexOf("const SHELL_SCHED_OPEN_OP = 'open';");
-  const b = src.indexOf('// The bridge, or null.', a);
-  const listener = a !== -1 && b !== -1 ? src.slice(a, b) : '';
-  const c0 = src.indexOf('// ===== ITEM 45 -- THE WIDGET');
-  const c1 = src.indexOf('}, [screen, widgetSeq]);', c0);
-  const consumer = c0 !== -1 && c1 !== -1 ? src.slice(c0, c1) : '';
-  ok('S the file-level listener is present', listener.length > 0);
-  ok('S the App consumer is present', consumer.length > 0);
-  ok('S exactly the four routes, spelt as the shell spells them',
-    listener.indexOf("const EZIK_WIDGET_ROUTES = ['mushaf', 'adhkar', 'wirdi', 'prayer'];") !== -1);
-  ok('S the listener is not inside a hook', listener.length > 0 && listener.indexOf('useEffect') === -1);
-  ok('S the consumer opens through the ledger and the boot tools',
-    consumer.indexOf('ezikWriteResume(route);') !== -1
-    && consumer.indexOf('ezikResumeMarkEntered(ezikReadResume());') !== -1
-    && consumer.indexOf('const next = ezikResumeScreen();') !== -1
-    && consumer.indexOf('setScreen(next);') !== -1);
-  // Its own comment names the boot's setScreen line, so only code lines are counted.
-  const consumerCode = consumer.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
-  ok('S the consumer sets no screen of its own choosing', (consumerCode.match(/setScreen\(/g) || []).length === 1);
-  ok('H neither half touches the network',
-    listener.length > 0 && consumer.length > 0 && !/\bfetch\(|XMLHttpRequest|sendBeacon|WebSocket/.test(listener + consumer));
-  ok('S the boot line is unchanged',
-    src.indexOf('        ezikResumeMarkEntered(ezikReadResume());\n        setScreen(ezikResumeScreen());') !== -1);
-  ok('S the rearm listener still accepts rearm-request only',
-    src.indexOf('if (d.channel !== SHELL_SCHED_CHANNEL || d.op !== SHELL_SCHED_REARM_OP) return;') !== -1);
-  ok('S wirdi is a home layer in the ledger tables',
-    src.indexOf('const EZIK_RESUME_HOME_LAYERS = { articles: 1, women: 1, prayer: 1, wirdi: 1 };') !== -1);
-  return res;
+  const src = fs.readFileSync(path.join(REPO, 'app.jsx'), 'utf8').replace(/\r\n?/g, '\n');
+  const parser = require(path.join(REPO, 'node_modules', '@babel', 'parser'));
+  const ast = parser.parse(src, { sourceType: 'script', plugins: ['jsx'] }); let routes = null;
+  for (const n of ast.program.body) if (n.type === 'VariableDeclaration') for (const d of n.declarations) if (d.id.name === 'EZIK_WIDGET_ROUTES') routes = d.init.elements.map((x) => x.value);
+  const a = src.indexOf('// ===== ITEM 45 -- THE WIDGET'), b = src.indexOf('}, [screen, widgetSeq]);', a); const consumer = src.slice(a,b);
+  return [
+    ['C1 exact independent 20-route whitelist', JSON.stringify(routes) === JSON.stringify(ROUTES)],
+    ['normal routes use resume writer and both boot tools', ['ezikWriteResume(route);','ezikResumeMarkEntered(ezikReadResume());','const next = ezikResumeScreen();','setScreen(next);'].every((s) => consumer.includes(s))],
+    ['chat focus waits for SpendGate and consent', src.includes("if (!widgetChatFocusRef.current || screen !== 'chat' || !spendGateOpenState\n      || aiConsent !== EZ_AI_CONSENT_GRANTED || aiConsentReview) return;")],
+    ['boot keeps the resume path', src.includes('        ezikResumeMarkEntered(ezikReadResume());\n        setScreen(ezikResumeScreen());')],
+    ['rearm handler stays independent', src.includes('if (d.channel !== SHELL_SCHED_CHANNEL || d.op !== SHELL_SCHED_REARM_OP) return;')],
+  ];
 }
-
 async function main() {
-  let fails = 0, passes = 0;
-  const report = (label, ok, extra) => {
-    if (ok) passes++; else fails++;
-    console.log((ok ? 'PASS ' : 'FAIL ') + label + (extra ? '  ' + extra : ''));
-  };
-  for (const r of staticChecks()) report(r.label, r.ok);
-
-  const sceneNames = Object.keys(SCENES);
-  const jobs = sceneNames.map((n) => () => spawnScene(n, null))
-    .concat(MUTANTS.map((m) => () => spawnScene(m.scene, m.name)));
-  const all = await pool(jobs, 4);
-
-  sceneNames.forEach((n, i) => {
-    const r = all[i];
-    if (r.crashed) { report('scene ' + n + ' ran', false, 'crashed: ' + r.crashed.replace(/[^\x20-\x7e\n]/g, '?')); return; }
-    for (const x of r.results) report('[' + n + '] ' + x.label, x.ok, x.ok ? '' : 'got=' + JSON.stringify(x.got) + ' want=' + JSON.stringify(x.want));
+  let passes = 0, fails = 0;
+  const report = (label, ok, extra) => { if (ok) passes++; else fails++; say((ok ? 'PASS ' : 'FAIL ') + label + (extra ? '  ' + extra : '')); };
+  for (const [label, ok] of staticChecks()) report(label,ok);
+  const names = Object.keys(SCENES);
+  const jobs = names.map((name) => () => spawnScene(name)).concat(MUTANTS.map((m) => () => spawnScene(m.scene,m.name)));
+  const all = await pool(jobs,4);
+  names.forEach((name,i) => {
+    const r = all[i]; if (r.crashed) return report('scene ' + name + ' ran',false,r.crashed);
+    for (const x of r.results) report('[' + name + '] ' + x.label,x.ok,x.ok ? '' : 'got=' + JSON.stringify(x.got) + ' want=' + JSON.stringify(x.want));
+    for (const note of r.notes || []) say(note);
   });
-  MUTANTS.forEach((m, j) => {
-    const r = all[sceneNames.length + j];
-    if (r.notApplied) { report('MUTANT ' + m.name + ': its edit applies', false, 'needle not found exactly once'); return; }
-    if (r.crashed) { report('MUTANT ' + m.name + ' ran', false, 'crashed: ' + r.crashed.replace(/[^\x20-\x7e\n]/g, '?')); return; }
-    const killed = r.results.some((x) => !x.ok);
-    const why = r.results.filter((x) => !x.ok).map((x) => x.label).slice(0, 2).join(' | ');
-    report('MUTANT KILLED ' + m.name + ' (' + m.rule + ') by scene ' + m.scene, killed, killed ? '<- ' + why.replace(/[^\x20-\x7e]/g, '?') : '');
+  MUTANTS.forEach((m,i) => {
+    const r = all[names.length+i];
+    if (r.notApplied) return report('MUTANT ' + m.name + ' edit applies',false,'needle not found exactly once');
+    if (r.crashed) return report('MUTANT ' + m.name + ' ran',false,r.crashed);
+    const failed = r.results.filter((x) => !x.ok);
+    report('MUTANT KILLED ' + m.name,failed.length>0,failed.slice(0,2).map((x) => x.label).join(' | '));
   });
-
-  console.log('\nwidget-open-guard: PASS=' + passes + ' FAIL=' + fails);
-  process.exit(fails ? 1 : 0);
+  say('widget-open-guard: PASS=' + passes + ' FAIL=' + fails + ' SCENES=' + names.length + ' MUTANTS=' + MUTANTS.length + ' MODE=' + (SOURCE_MODE?'source':'shipped'));
+  process.exit(fails?1:0);
 }
-
-if (process.argv[2] === '--scene') {
-  const name = process.argv[3];
-  const mi = process.argv.indexOf('--mutant');
-  const mutant = mi !== -1 ? process.argv[mi + 1] : null;
-  runScene(name, mutant).then((r) => {
-    process.stdout.write('WIDGET45-RESULT ' + JSON.stringify(r) + '\n', () => process.exit(0));
-  }, (e) => {
-    process.stdout.write('WIDGET45-RESULT ' + JSON.stringify({ crashed: String(e && e.stack || e), results: [] }) + '\n', () => process.exit(0));
-  });
-} else {
-  main();
-}
+if (process.argv.includes('--scene')) {
+  const name = process.argv[process.argv.indexOf('--scene')+1], mi = process.argv.indexOf('--mutant');
+  runScene(name,mi===-1?null:process.argv[mi+1]).then((r) => { say('WIDGET45-RESULT ' + JSON.stringify(r)); process.exit(0); },
+    (error) => { say('WIDGET45-RESULT ' + JSON.stringify({ crashed: String(error && error.stack || error), results: [] })); process.exit(0); });
+} else main().catch((error) => { say(String(error && error.stack || error)); process.exit(1); });

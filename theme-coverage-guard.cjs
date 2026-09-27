@@ -4521,7 +4521,8 @@ const prayerTouch = (prayerTouchAt !== -1 && prayerTouchEnd > prayerTouchAt)
   ? html.slice(prayerTouchAt, prayerTouchEnd) : '';
 ok('W5: every compact action group carries the non-painting 44px hit scope',
   /className="ez-hit" style=\{s\.quickRow\} role="group"/.test(html)
-  && (prayerTouch.match(/className="ez-hit" style=\{s\.prayerOptRow\}/g) || []).length === 2
+  && (prayerTouch.match(/className="ez-hit" style=\{s\.prayerOptRow\}/g) || []).length === 3
+  && /data-ezik-prayer-setting="adhan-sound"/.test(prayerTouch)
   && /data-ezik-prayer-setting="hijri"[\s\S]{0,100}style=\{\{ \.\.\.s\.a11yOpt/.test(html)
   && /a11yOpt:\s*\{[^}]*minHeight:\s*44/.test(html),
   'prayer region=' + prayerTouch.length
