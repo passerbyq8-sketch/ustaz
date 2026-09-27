@@ -6719,6 +6719,70 @@ const formatForStreamPreview = (text) => {
   return t.replace(/\n{3,}/g, '\n\n').trim();
 };
 
+// SPEED item 17: reuse the archived stream branch's card boundaries independently
+// of its whole-fiqh hold. A complete card crosses the cursor in one tick; an open
+// card waits at its opening bracket. Prose keeps today's reveal cadence.
+function ezikCardSpanAt(text, at) {
+  if (text[at] !== '<') return null;
+  const name = /^[a-z]*/.exec(text.slice(at + 1))[0];
+  const after = at + 1 + name.length;
+  if (after >= text.length) return KNOWN_TAG_NAMES.some((n) => n.startsWith(name)) ? -1 : null;
+  if (KNOWN_TAG_NAMES.indexOf(name) === -1 || !/[\s>\/]/.test(text[after])) return null;
+  const opening = /^(?:"[^"]*"|'[^']*'|[^>"'])*>/.exec(text.slice(after));
+  if (!opening) return -1;
+  const gt = after + opening[0].length - 1;
+  if (text[gt - 1] === '/') return gt + 1;
+  const close = text.indexOf('</' + name + '>', gt + 1);
+  return close === -1 ? -1 : close + name.length + 3;
+}
+
+function ezikRevealAdvance(full, at, step, settling) {
+  const to = Math.min(full.length, at + step);
+  for (let p = full.indexOf('<', at); p !== -1 && p < to; p = full.indexOf('<', p + 1)) {
+    const end = ezikCardSpanAt(full, p);
+    if (end === null) continue;
+    if (end > 0) return end;
+    // EOF must release the drain even on a broken legacy tag. The preview still
+    // withholds that tag; the existing completed-message rescue owns failures.
+    return settling ? full.length : p;
+  }
+  return to;
+}
+
+function ezikStreamPreviewSegments(text, viewerAge) {
+  let arrived = ezikStripIncomplete(text);
+  for (let p = arrived.indexOf('<'); p !== -1; p = arrived.indexOf('<', p + 1)) {
+    const end = ezikCardSpanAt(arrived, p);
+    if (end === -1) { arrived = arrived.slice(0, p); break; }
+    if (end > 0) p = end - 1;
+  }
+  const shown = stripIncompleteTags(arrived);
+  if (!shown || !shown.trim()) return [];
+  return parseRichMessage(shown, viewerAge).segments;
+}
+
+const EZIK_READING_STAGES = Object.freeze({
+  retrieve: 'يبحث في مصادر عزك…',
+  fatwa: 'يقرأ في الفتاوى…',
+  library: 'يقرأ في كتب الشاملة…',
+  encyclopedia: 'يقرأ في الموسوعة الفقهية…',
+  lessons: 'يقرأ في الدروس…',
+  judge: 'يختار النصوص التي تجيب عن المسألة…',
+  write: 'يكتب الجواب…',
+});
+function ezikReadingStatus(evt) {
+  if (!evt || !Object.prototype.hasOwnProperty.call(EZIK_READING_STAGES, evt.stage)) return null;
+  const source = ['fatwa', 'library', 'encyclopedia', 'lessons'].includes(evt.stage);
+  const hits = source && Number.isInteger(evt.hits) && evt.hits > 0
+    ? ' وجد ' + toArabicDigits(evt.hits) : '';
+  return EZIK_READING_STAGES[evt.stage] + hits;
+}
+
+function EzikLiveOffer({ used, busy, onAccept }) {
+  return <button type="button" data-ezik-live-offer="" className="ezik-focus"
+    style={s.quickBtn} disabled={used || busy} onClick={onAccept}>ابحث في المواقع الآن</button>;
+}
+
 // ============================================================
 // شخصية الأستاذ (System Prompt) — رحلتْ إلى الخادم (D02ب)
 // ============================================================
@@ -15159,6 +15223,9 @@ function App() {
   // The RAW setter is deliberately renamed: everything in this component calls setStreamingText
   // below, which is the queue, and nothing outside these few lines paints the preview directly.
   const [streamingText, setStreamingReveal] = useState(null); // live streaming text (null = no stream in flight)
+  const [readingStatus, setReadingStatus] = useState(null);
+  const [streamingLiveOffer, setStreamingLiveOffer] = useState(false);
+  const usedLiveOffersRef = useRef(new Set());
   const revealFullRef = useRef('');    // everything that has ARRIVED, append-only, never painted whole
   const revealAtRef = useRef(0);       // how much of it is on screen
   const revealTimerRef = useRef(null);
@@ -15186,7 +15253,7 @@ function App() {
     if (backlog <= 0) { revealStop(); return; }
     const share = Math.ceil(backlog / EZIK_REVEAL_DIVISOR);
     const step = Math.max(EZIK_REVEAL_MIN_STEP, Math.min(EZIK_REVEAL_MAX_STEP, share));
-    revealAtRef.current = Math.min(full.length, revealAtRef.current + step);
+    revealAtRef.current = ezikRevealAdvance(full, revealAtRef.current, step, !!revealDoneRef.current);
     setStreamingReveal(full.slice(0, revealAtRef.current));
     if (revealAtRef.current >= full.length) revealStop();
   };
@@ -15233,6 +15300,8 @@ function App() {
       revealFullRef.current = '';
       revealAtRef.current = 0;
       setStreamingReveal(next);
+      setReadingStatus(null);
+      setStreamingLiveOffer(false);
       return;
     }
     revealFullRef.current = next;
@@ -17247,7 +17316,7 @@ function App() {
     return true;
   };
 
-  const callAI = async (history, p, { onDelta, signal, mode = 'chat', endpoint = '/api/ask' } = {}) => {
+  const callAI = async (history, p, { onDelta, onStatus, onLiveOffer, liveSearch = false, signal, mode = 'chat', endpoint = '/api/ask' } = {}) => {
     if (!spendGateRef.current) return '';                        // قفل الإنفاق مغلق ⇐ لا يُنفَق رصيد (يشمل تحيّة الإقلاع 0d)
     // بلا موافقةٍ صريحةٍ سارية: لا سؤال، ولا تصنيف، ولا تحيّةَ إقلاع. يُقرأ المخزنُ هنا لا رايةٌ
     // محفوظةٌ سلفاً، فسحبُ الموافقةِ أثناءَ فتحِ الشاشةِ يُطاع فوراً.
@@ -17327,6 +17396,7 @@ function App() {
       // Arabic reply (each diacritic = a token); server effort caps overall spend. depth/band below
       // are TEXT-route (/api/ask) only.
       const __extra = {
+        ...(liveSearch === true ? { liveSearch: true } : {}),
         // depth: adult-only, non-'brief' -> server reads body.depth==='deep'/'scholar' for round-2 effort.
         // Item 84: `&& hasFounderToken()` was here and is gone. It meant the client refused to
         // SEND a depth it had let the reader select, so the field never reached the one place
@@ -17418,6 +17488,10 @@ function App() {
         if (evt.type === 'content_block_delta' && evt.delta && evt.delta.type === 'text_delta') {
           full += evt.delta.text;
           if (onDelta) onDelta(full);
+        } else if (evt.type === 'ezik_status') {
+          if (!full && onStatus) onStatus(evt);
+        } else if (evt.type === 'ezik_live_offer') {
+          if (onLiveOffer) onLiveOffer();
         } else if (evt.type === 'error') {
           streamError = evt.error || { message: 'stream error' };
         }
@@ -17563,11 +17637,22 @@ function App() {
     setSearchingSources(false);
   };
 
-  const sendMessage = async (text) => {
-    if ((!text.trim() && !pendingImage) || isLoading) return;
+  const sendMessage = async (text, { liveSearch = false, offerIndex = null } = {}) => {
+    const offered = liveSearch && Number.isInteger(offerIndex) ? messages[offerIndex] : null;
+    const repeat = offered && messages[offerIndex - 1];
+    const offerKey = threadEpoch + ':' + offerIndex;
+    if (liveSearch && (!offered?.liveOffer || offered.liveOfferUsed || repeat?.role !== 'user'
+      || usedLiveOffersRef.current.has(offerKey))) return;
+    if ((!repeat && !text.trim() && !pendingImage) || isLoading) return;
     // بلا موافقةٍ سارية لا تُكتب الرسالةُ في السجلّ ولا تُرسَل: الشاشةُ نفسُها مستبدَلةٌ بوضعِ
     // «بلا ذكاء اصطناعيّ»، وهذا حاجزٌ ثانٍ كي لا يفتح مسارٌ آخرُ هذا البابَ لاحقاً.
     if (!hasValidAIConsent()) { setAiConsent(aiConsentStatus()); return; }
+    if (repeat) {
+      // Latch before any await or React commit, so a double press is one turn.
+      usedLiveOffersRef.current.add(offerKey);
+      text = typeof repeat.content === 'string' ? repeat.content
+        : (repeat.content.find((b) => b?.type === 'text')?.text || '');
+    }
     // New message mid audio sequence -> cancel current audio so the new reply starts clean.
     cancelAudio();
     // Abort any in-flight stream cleanly (ties into the cancellation discipline).
@@ -17578,7 +17663,7 @@ function App() {
     resetLessons();
     const lessonsSeq = lessonsSeqRef.current;
     let attachBlock = null;
-    if (pendingImage) {
+    if (pendingImage && !repeat) {
       if (pendingImage.kind === 'pdf') {
         attachBlock = { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: pendingImage.data } };
       } else if (pendingImage.kind === 'txt') {
@@ -17587,14 +17672,16 @@ function App() {
         attachBlock = { type: 'image', source: { type: 'base64', media_type: pendingImage.media_type, data: pendingImage.data } };
       }
     }
-    const content = attachBlock
+    const content = repeat ? repeat.content : attachBlock
       ? [
           attachBlock,
           ...(text.trim() ? [{ type: 'text', text: text.trim() }] : [{ type: 'text', text: 'اشرح لي هذا' }]),
         ]
       : text;
     const userMsg = { role: 'user', content, timestamp: new Date().toISOString() };
-    const updated = [...messages, userMsg];
+    const priorMessages = repeat
+      ? messages.map((m, i) => i === offerIndex ? { ...m, liveOfferUsed: true } : m) : messages;
+    const updated = [...priorMessages, userMsg];
     setMessages(updated);
     // ── STREAM-P4 §٣/١: ARM THE PIN ON THE QUESTION THAT WAS JUST ASKED ──────
     // Batched with the setMessages above, so the question's very first commit is already the
@@ -17616,8 +17703,7 @@ function App() {
     // and the title; the save after the reply then rewrites the SAME conversation, because
     // chatIdRef already carries the id this call set.
     saveMessages(updated);
-    setInput('');
-    setPendingImage(null);
+    if (!repeat) { setInput(''); setPendingImage(null); }
     setIsLoading(true);
     setStreamingText('');
     // Sliding window: send only the last 12 messages to the API (avoids 429, fewer tokens).
@@ -17633,11 +17719,23 @@ function App() {
       if (abortRef.current === controller) setSearchingSources(true);
     }, 4000);
     let reply;
+    let liveOffer = false;
     try {
       reply = await callAI(apiHistory, profile, {
         signal: controller.signal,
+        liveSearch,
+        onStatus: (evt) => {
+          if (abortRef.current !== controller) return;
+          const label = ezikReadingStatus(evt);
+          if (label) { clearSearchingHint(); setReadingStatus(label); }
+        },
+        onLiveOffer: () => {
+          if (abortRef.current !== controller) return;
+          liveOffer = true;
+          setStreamingLiveOffer(true);
+        },
         // First delta = streaming has begun -> retire the searching hint and show real text.
-        onDelta: (partial) => { if (abortRef.current === controller) { clearSearchingHint(); setStreamingText(partial); } },
+        onDelta: (partial) => { if (partial && abortRef.current === controller) { clearSearchingHint(); setReadingStatus(null); setStreamingText(partial); } },
       });
     } catch (e) {
       if (e.name === 'AbortError') {
@@ -17662,14 +17760,11 @@ function App() {
     if (abortRef.current !== controller) return;
     abortRef.current = null;
     setStreamingText(null);
-    const aiMsg = { role: 'assistant', content: reply, timestamp: new Date().toISOString() };
+    const aiMsg = { role: 'assistant', content: reply, timestamp: new Date().toISOString(), ...(liveOffer ? { liveOffer: true } : {}) };
     const final = [...updated, aiMsg];
     setMessages(final);
-    // S98: THIS LINE IS THE STREAMING TRANSITION — setStreamingText(null) two lines up retires the
-    // live preview and this push puts the finished reply in its place. Recording the position here
-    // is what keeps a long answer at the length it was just read at, instead of collapsing under
-    // the reader the moment it finished arriving. Batched with the setMessages above, so the
-    // bubble's first commit already knows it is open and there is no intermediate folded frame.
+    // S98: keep the same mounted bubble expanded after its stream settles.
+    // Batched with setMessages, so no intermediate folded frame is painted.
     markStreamedOpen(final.length - 1);
     saveMessages(final);
     setIsLoading(false);
@@ -17827,6 +17922,7 @@ function App() {
   useEffect(() => {
     bubbleFnRef.current = {
       send: sendMessage,
+      liveSearch: (i) => sendMessage('', { liveSearch: true, offerIndex: i }),
       playVerse: playVerseManual,
       playSurah: playSurahManual,
       stopAudio: cancelAudio,
@@ -17840,6 +17936,7 @@ function App() {
     };
   });
   const cbSuggestion = React.useCallback((sg) => bubbleFnRef.current.send(sg), []);
+  const cbLiveSearch = React.useCallback((i) => bubbleFnRef.current.liveSearch(i), []);
   const cbPlayVerse = React.useCallback((sNum, aNum) => bubbleFnRef.current.playVerse(sNum, aNum), []);
   const cbPlaySurah = React.useCallback((sNum, from, to) => bubbleFnRef.current.playSurah(sNum, from, to), []);
   const cbStopAudio = React.useCallback(() => bubbleFnRef.current.stopAudio(), []);
@@ -19009,7 +19106,7 @@ function App() {
         {messages.length === 0 && streamingText === null && (
           <div className="ezc-empty"></div>
         )}
-        {messages.map((m, i) => (
+        {(streamingText !== null ? [...messages, { role: 'assistant', content: streamingText, liveOffer: streamingLiveOffer }] : messages).map((m, i) => (
           /* STREAM-P4 §٣/١: a zero-height marker immediately BEFORE the pinned question, which
              is what the pin measures against. It is a bare element rather than a ref threaded
              into MessageBubble because that component's props are deliberately pinned for
@@ -19017,7 +19114,7 @@ function App() {
              that on every message in the thread, to locate one of them. */
           <React.Fragment key={i}>
             {i === pinnedAskIndex && <div ref={pinAnchorRef} aria-hidden="true" data-ezik-ask-pin="" />}
-            <MessageBubble index={i} tashkeel={tashkeelOn} onToggleTashkeel={cbToggleTashkeel} message={m} onSuggestionClick={cbSuggestion} onPlayVerse={cbPlayVerse} onPlaySurah={cbPlaySurah} onStopAudio={cbStopAudio} onPlayMessage={cbPlayMessage} age={profile?.age} onReport={cbReport} onQuote={cbQuote} onFavorite={cbFavorite} isFavorite={favFlags[i]} onFavoriteAyah={cbFavoriteAyah} ayahFavIds={ayahFavIds} defaultOpen={streamedOpen.has(i)} foldEpoch={threadEpoch} lessonRows={m && m.lessonRows ? m.lessonRows : null} />
+            <MessageBubble index={i} streaming={streamingText !== null && i === messages.length} readingStatus={i === messages.length ? readingStatus : null} searchingSources={i === messages.length && searchingSources} tashkeel={tashkeelOn} onToggleTashkeel={cbToggleTashkeel} message={m} onSuggestionClick={cbSuggestion} onLiveSearch={cbLiveSearch} liveSearchBusy={!!m.liveOffer && isLoading} onPlayVerse={cbPlayVerse} onPlaySurah={cbPlaySurah} onStopAudio={cbStopAudio} onPlayMessage={cbPlayMessage} age={profile?.age} onReport={cbReport} onQuote={cbQuote} onFavorite={cbFavorite} isFavorite={favFlags[i]} onFavoriteAyah={cbFavoriteAyah} ayahFavIds={ayahFavIds} defaultOpen={i === messages.length || streamedOpen.has(i)} foldEpoch={threadEpoch} lessonRows={m && m.lessonRows ? m.lessonRows : null} />
           </React.Fragment>
         ))}
         {/* S98: the quick actions. They are rendered ONCE, here, under the newest reply — not
@@ -19063,32 +19160,6 @@ function App() {
                 {qa.label}
               </button>
             ))}
-          </div>
-        )}
-        {streamingText !== null && (
-          <div className="ezc-turn is-ai">
-          <div style={{ ...s.messageBubble, ...s.assistantBubble }}>
-            {formatForStreamPreview(streamingText)
-              /* S93: the live preview formats too, so a heading or a bold phrase does not appear
-                 as ## and ** for a second and then re-flow when the reply settles. The renderer
-                 only formats constructs whose closing side has arrived, so the half-written tail
-                 of the stream stays literal text instead of flickering. */
-              ? <div style={s.bubbleText}><EzikMarkdown text={formatForStreamPreview(streamingText)} /></div>
-              : searchingSources
-                ? <div style={s.searchingHint}>
-                    {/* XI-02: read from the dictionary, so the string a reader sees exists in
-                        exactly one place and cannot drift back into a promise of a search. */}
-                    <span>{ezT('chat.searchingSources')}</span>
-                    <span style={s.dot}>●</span>
-                    <span style={{ ...s.dot, animationDelay: '0.2s' }}>●</span>
-                    <span style={{ ...s.dot, animationDelay: '0.4s' }}>●</span>
-                  </div>
-                : <div style={s.typingDots}>
-                    <span style={s.dot}>●</span>
-                    <span style={{ ...s.dot, animationDelay: '0.2s' }}>●</span>
-                    <span style={{ ...s.dot, animationDelay: '0.4s' }}>●</span>
-                  </div>}
-          </div>
           </div>
         )}
         {/* STREAM-P4 §٣/١: the room that lets a SHORT answer still carry its question to the top.
@@ -20286,13 +20357,14 @@ function EzikLessonCards({ rows }) {
   );
 }
 
-const MessageBubble = React.memo(function MessageBubble({ message, index, onSuggestionClick, onPlayVerse, onPlaySurah, onStopAudio, onPlayMessage, age, onReport, tashkeel, onToggleTashkeel, onQuote, onFavorite, isFavorite, onFavoriteAyah, ayahFavIds, defaultOpen, foldEpoch, lessonRows }) {
+const MessageBubble = React.memo(function MessageBubble({ message, index, streaming = false, readingStatus, searchingSources, onSuggestionClick, onLiveSearch, liveSearchBusy, onPlayVerse, onPlaySurah, onStopAudio, onPlayMessage, age, onReport, tashkeel, onToggleTashkeel, onQuote, onFavorite, isFavorite, onFavoriteAyah, ayahFavIds, defaultOpen, foldEpoch, lessonRows }) {
   const isUser = message.role === 'user';
   // S97 PERF. This parse used to run on EVERY render of EVERY assistant bubble, and the chat's
   // composer state lives on App -- so a single keystroke re-parsed the whole thread. On a 120-turn
   // conversation that was ~60 full re-parses per typed character, and nothing about them changed.
-  // parseRichMessage is a pure function of exactly the two inputs in the dependency list: it reads
-  // the text and the viewer's age band and returns segment DESCRIPTORS. It touches no store. The
+  // The memo depends on the text, age band and whether incomplete stream tags must be withheld.
+  // Both parsers return segment DESCRIPTORS and touch no store. The same mounted bubble and
+  // keyed cards survive completion, preserving an opened passage or a playing card. The
   // cards that DO read stores (dhikr, worship, verse) are separate components below and still
   // re-render and re-read on every pass, exactly as before -- so the D91 note further down ("the
   // stores the cards read are still filling while this runs") is untouched by caching descriptors.
@@ -20304,8 +20376,10 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
   //     content, and parseRichMessage calls text.search() before its own typeof guard, so parsing
   //     one would throw. The branch is inside the callback, so the hook stays unconditional.
   const { segments, suggestions } = React.useMemo(
-    () => (isUser ? { segments: [], suggestions: [] } : parseRichMessage(message.content, age)),
-    [isUser, message.content, age]);
+    () => (isUser ? { segments: [], suggestions: [] } : streaming
+      ? { segments: ezikStreamPreviewSegments(message.content, age), suggestions: [] }
+      : parseRichMessage(message.content, age)),
+    [isUser, message.content, age, streaming]);
   // S98 THE FOLD. Two hooks, both unconditional and both ABOVE the isUser return, for the same
   // reason the memo above is: bubbles are keyed by index, so React reuses the instance at index i
   // when a conversation is replaced, and a hook below the return would change the hook COUNT the
@@ -20381,12 +20455,25 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
           ayah, the hadith and the source chips beneath them. Nothing was reordered, moved out or
           re-grouped; what changed is that the sheet is now the full width of a bounded column
           instead of 92% of an unbounded viewport. */}
-      <div className="ezc-ans" style={{ ...s.assistantBubble, maxWidth: '100%', /* 13.4-b2 */ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div className="ezc-ans" data-ezik-stream={streaming ? "" : undefined} style={{ ...s.assistantBubble, maxWidth: '100%', /* 13.4-b2 */ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {ezikRenderSegments(shownSegments, { tashkeel, age, onPlayVerse, onPlaySurah, onStopAudio, onFavoriteAyah, ayahFavIds })}
+        {streaming && !segments.length && (readingStatus || searchingSources
+          ? <div style={s.searchingHint}>
+              <span role="status" data-ezik-reading="">{readingStatus || ezT('chat.searchingSources')}</span>
+              <span style={s.dot}>●</span>
+              <span style={{ ...s.dot, animationDelay: '0.2s' }}>●</span>
+              <span style={{ ...s.dot, animationDelay: '0.4s' }}>●</span>
+            </div>
+          : <div style={s.typingDots}>
+              <span style={s.dot}>●</span>
+              <span style={{ ...s.dot, animationDelay: '0.2s' }}>●</span>
+              <span style={{ ...s.dot, animationDelay: '0.4s' }}>●</span>
+            </div>)}
+
         {/* S98: the toggle lives INSIDE the bubble, under the prose it governs, so it reads as
             part of the reply rather than as a fourth action button. It exists only when there is
             something folded away — a short reply never grows one. */}
-        {canFold && (
+        {!streaming && canFold && (
           <button
             type="button"
             onClick={() => setFoldOverride({ epoch: foldEpoch, open: !foldOpen })}
@@ -20402,11 +20489,13 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
           </button>
         )}
       </div>
+      {message.liveOffer && <EzikLiveOffer used={message.liveOfferUsed} busy={liveSearchBusy}
+        onAccept={() => onLiveSearch && onLiveSearch(index)} />}
       {/* S112: the reply's own action rail -- a small row belonging to the sheet above it, at the
           reading edge of the column. It is not a floating bar and it is not per-screen furniture:
           the same buttons, the same handlers, the same aria-pressed, and not one action that was
           not already here. */}
-      <div className="ezc-acts" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-start', padding: '0 2px' }}>
+      {!streaming && <div className="ezc-acts" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-start', padding: '0 2px' }}>
         <MessageListenButton text={message.content} onPlayMessage={onPlayMessage} onStopAudio={onStopAudio} />
         {/* text= decides only VISIBILITY, and is deliberately store-independent: the raw reply
             always exists, so the button can no longer vanish because a fetch had not landed. */}
@@ -20452,7 +20541,7 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, onSugg
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
           <span>بلّغ</span>
         </button>
-      </div>
+      </div>}
       {suggestions && suggestions.length > 0 && (
         <div style={s.suggestionsInline}>
           {suggestions.map((sg, i) => (

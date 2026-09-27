@@ -726,10 +726,12 @@ async function runSuite() {
     // nowhere and its verdict was read by nobody. Registering it is the whole round.
     // SPEED ITEM 17 (2026-09-27): 120 -> 121, same rule -- the gate `speedbw2`,
     // guards/speed-bw2-guard.cjs, the before-writing path (BEFORE_WRITING_V2).
-function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 121; }
+    // SPEED ITEM 17 MERGE (2026-09-27): 121 -> 122, same rule -- both halves registered a 121st gate
+    // in parallel; the merge keeps `speedbw2` and the client's `speedclient` (guards/speed-client-guard.cjs).
+function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 122; }
     ok('ORIGINAL_GATE_SET_MATCH', exactGateSet(EXPECTED_GATES));
-    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 121-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
-    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 121-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
+    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 122-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
+    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 122-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
 
     const m13 = await storedMutant(temp, 'fiqh-before-special', (source) => source.replace(
       "if (QURAN_REQUEST.test(folded)) return 'LOCAL_QURAN';",

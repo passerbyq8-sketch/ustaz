@@ -122,7 +122,7 @@ function buildExit(source) {
     '"use strict";',
     'return (async function (deps) {',
     '  const { mode, endpoint, aiFetch, capHeaders, signal, p, onDelta, depthMode, deriveCaps,',
-    '    FAST_CHANNEL_ENABLED, __classifyFast,',
+    '    FAST_CHANNEL_ENABLED, __classifyFast, liveSearch = false, onStatus, onLiveOffer,',
     '    getFriendlyError, ezikCutMark, fitMessagesToBudget, history } = deps;',
     sliceExit(source),
     '});',
