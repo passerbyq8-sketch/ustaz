@@ -15333,6 +15333,9 @@ function App() {
   const [callState, setCallState] = useState('idle'); // 'idle' | 'listening' | 'thinking' | 'speaking'
   const [isCallMuted, setIsCallMuted] = useState(false);
   const [callHeard, setCallHeard] = useState(''); // light "what I'm hearing" feedback (interim transcript)
+  // H1 (T4 fix 4): the words of the turn being answered, shown under the call's state line from the
+  // moment its transcript arrives until the next listening turn starts or the call ends. Display only.
+  const [callHeardWords, setCallHeardWords] = useState('');
   const CALL_SILENCE_MS = 1500; // silence after which a non-empty turn auto-ends (tunable)
   // Item 84: `unlockAsk` stood here. It remembered which LOCKED depth tier had been tapped so
   // a successful PIN could apply it, and it existed only for the lock this item lifted --
@@ -18096,6 +18099,7 @@ function App() {
       callTranscriptRef.current = '';
       callBaseTextRef.current = '';
       setCallHeard('');
+      setCallHeardWords('');   // H1: a new listening turn -- the last turn's words go
       callActiveRef.current = true;
       setCallState('listening');
       startCloudListening();
@@ -18107,6 +18111,7 @@ function App() {
     callTranscriptRef.current = '';
     callBaseTextRef.current = '';
     setCallHeard('');
+    setCallHeardWords('');
     callActiveRef.current = true;
     setCallState('listening');
     // Re-read here too: startCallListening is re-entered on every turn of a call that may have
@@ -18147,6 +18152,7 @@ function App() {
   const runCallTurn = async (text) => {
     const myGen = callGenRef.current; // capture the call session; re-arm after playback only if still valid
     setCallHeard('');
+    setCallHeardWords(text);   // H1: on the screen before the answer is requested; never passed to speech
     setCallState('thinking');
     clearInactivityTimer(); // child is engaged (thinking/speaking) — pause the idle clock
     cancelAudio();
@@ -18255,6 +18261,7 @@ function App() {
     callActiveRef.current = false;
     callTranscriptRef.current = '';
     setCallHeard('');
+    setCallHeardWords('');
     setCallState('idle');
 
     // `rec` is NULL when the engine has no Web Speech and the cloud path is carrying the call.
@@ -18384,6 +18391,7 @@ function App() {
       callMutedRef.current = false;
       setIsCallMuted(false);
       setCallHeard('');
+      setCallHeardWords('');   // H1: hang-up clears the heard words
       setCallState('idle');
     };
   }, [screen]);
@@ -19020,7 +19028,7 @@ function App() {
   if (screen === 'call' && !hasFounderToken()) return <UnlockSheet onUnlocked={() => setFounderUnlocked(true)} onBack={goEzikBack} />;
   // `error` is what makes a failed call SAY something: voiceError was rendered on the chat screen
   // ONLY, so every banner a call raised was written to a view the user was not looking at.
-  if (screen === 'call') return <CallScreen profileName={profile?.name} gender={profile?.gender} callState={callState} heard={callHeard} isMuted={isCallMuted} error={voiceError} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={goEzikBack} />;
+  if (screen === 'call') return <CallScreen profileName={profile?.name} gender={profile?.gender} callState={callState} heard={callHeard} heardWords={callHeardWords} isMuted={isCallMuted} error={voiceError} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={goEzikBack} />;
   // المحفّظ — full screen (mirrors CallScreen). Quran playback reuses the App-scoped manual
   // entry points (playVerseManual/playSurahManual) passed down as props; no new audio code.
   // S87 -- THE FEATURE SECTIONS. Each hands goEzikBack to its OWN section-level back
@@ -27585,6 +27593,7 @@ function ParentDashboard({ profile, messages, onBack, onReset, directConvoLocked
 // S113 -- THE WORDS THIS SCREEN SAYS, gathered in one place so a redesign cannot quietly invent
 // one. Every string below is byte-for-byte a string this screen already shipped; not a word was
 // added, removed or reworded, and nothing devotional appears here at all.
+// H1 (T4 fix 4) added ONE, by the owner's order: HEARD, the prefix of the heard-words line.
 const CALL_TXT = {
   TITLE:      'مكالمة مع عزك',
   DISCLAIMER: 'تتحدّث إلى ذكاءٍ اصطناعيّ — لا إلى إنسان.',
@@ -27592,8 +27601,9 @@ const CALL_TXT = {
   MUTE_ON:    'مكتوم',
   MUTE_OFF:   'كتم',
   END:        'إنهاء',
+  HEARD:      'سمعتُ: ',
 };
-function CallScreen({ profileName, gender, callState, heard, isMuted, error, onToggleMute, onTalk, onExit }) {
+function CallScreen({ profileName, gender, callState, heard, heardWords, isMuted, error, onToggleMute, onTalk, onExit }) {
   // Accessibility: respect reduced-motion — fall back to a static (non-pulsing) ring.
   const reduceMotion = (typeof window !== 'undefined' && window.matchMedia)
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
@@ -27649,6 +27659,9 @@ function CallScreen({ profileName, gender, callState, heard, isMuted, error, onT
           {/* THE REAL STATE, said out loud: جاهز / يستمع / يفكر / يتحدّث, straight off callState. */}
           <div style={s.callStatusLabel}>{cs.label}</div>
           <span className={'ezcall-mark is-' + callState} aria-hidden="true" />
+          {/* H1 (T4 fix 4): the words the call took from the reader for the turn it is answering, so a
+              misheard question can be seen. Right-to-left, at most two lines, never spoken. */}
+          {heardWords ? <div style={s.callHeardWords} dir="rtl">{CALL_TXT.HEARD + heardWords}</div> : null}
           {profileName && <div style={s.callSubLabel}>{profileName}</div>}
           {/* Live feedback: what the mic is hearing (interim). Absent when there is none. */}
           {hint ? <div style={s.callHint}>{hint}</div> : null}
@@ -32052,6 +32065,7 @@ const s = {
   callStatusLabel: { color: 'var(--a3-ink)', fontSize: 22, fontWeight: 700, fontFamily: "'Amiri', 'Tajawal', serif", marginTop: 6 },
   callSubLabel: { color: 'var(--a3-muted)', fontSize: 14 },
   callHint: { color: 'var(--a3-muted)', fontSize: 12.5, lineHeight: 1.7, maxWidth: '100%', overflowWrap: 'anywhere' },
+  callHeardWords: { color: 'var(--a3-ink)', fontSize: 14, lineHeight: 1.6, maxWidth: '100%', direction: 'rtl', textAlign: 'center', overflowWrap: 'anywhere', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
   // Call-screen failure banner. It reads the SAME warning tokens the chat banner does now that
   // the room is no longer a dark slab -- one warning surface, theme-aware, in both screens.
   callErrorBanner: { width: '100%', maxWidth: 420, margin: '6px 0 0', padding: '10px 14px', background: 'var(--warn-bg)', border: '1px solid var(--warn-line)', borderRadius: 12, color: 'var(--warn-ink)', fontSize: 13, lineHeight: 1.6, fontWeight: 500, textAlign: 'center' },

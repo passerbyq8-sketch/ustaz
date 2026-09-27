@@ -27,7 +27,8 @@
 //          source lines, URLs and domains are silent in speech (E3); the mic re-opens only after
 //          our own voice stopped sounding (E4); a silent dictation session is not restarted (E5);
 //          a suspended capture context is resumed, or the reader is asked for one tap (E6); the
-//          call waits for an open dictation session's onend before its getUserMedia (E7).
+//          call waits for an open dictation session's onend before its getUserMedia (E7); the words
+//          the call heard are shown before the answer is requested, and never spoken (E8).
 //
 // Arabic needles live as string literals but are NEVER printed. All console output is
 // ASCII (ids/labels only), safe for a Windows terminal.
@@ -1459,7 +1460,7 @@ async function simulateRearm(html, opts) {
   });
   const deps = {
     callGenRef, callActiveRef, callMutedRef: { current: false }, abortRef: { current: null },
-    setCallHeard: () => {}, setCallState: () => {}, clearInactivityTimer: () => {}, cancelAudio: () => {},
+    setCallHeard: () => {}, setCallHeardWords: () => {}, setCallState: () => {}, clearInactivityTimer: () => {}, cancelAudio: () => {},
     messages: [], sliceHistoryForAPI: (m) => m, profile: {}, CALL_STREAM_SPEECH: true, createCallSpeechStream,
     callAI: async (h, p, o) => { o.onDelta('Reply one. Reply two. Reply three.'); return 'Reply one. Reply two. Reply three.'; },
     getFriendlyError: () => 'err', setMessages: () => {}, saveMessages: () => {}, speakReply: async () => {},
@@ -1781,6 +1782,163 @@ async function checkHandOver(html) {
   else fail('E7 a call with no dictation session waited: first getUserMedia at ' + c.first + ' ms, in the entry tick: ' + c.atOnce);
 }
 
+// E8 (T4 fix 4, H1): in the owner's own recording the call heard one word as another and
+// answered a question he never asked, and nothing on the screen showed what it had heard. The
+// words of a turn's transcript are now shown under the state line, after a fixed prefix, from the
+// moment the transcript arrives -- before the answer is requested -- until the next listening turn
+// starts, and they are cleared on hang-up. They are display only and never reach speech.
+// EXECUTED: CallScreen is compiled from app.jsx and rendered against a fake React; runCallTurn and
+// startCallListening run on a simulated clock; the call's entry effect runs and its cleanup is
+// called.
+const HEARD_PREFIX = String.fromCharCode(0x0633, 0x0645, 0x0639, 0x062A, 0x064F, 0x3A, 0x20);
+const HEARD_Q = String.fromCharCode(0x0639, 0x0634, 0x0631, 0x0629) + ' ' + String.fromCharCode(0x0635, 0x064A, 0x0627, 0x0645);
+function renderCallScreen(html, props) {
+  const from = html.indexOf('const CALL_TXT = {');
+  const to = html.indexOf('\n// ====', html.indexOf('function CallScreen('));
+  if (from === -1 || to <= from) throw new Error('CallScreen not found');
+  const bb = require('./tools/babel-block.cjs');
+  const code = bb.transformBabelBlock({ raw: html.slice(from, to), runtime: bb.PINNED_RUNTIME });
+  const styleOf = (k) => {
+    const m = new RegExp('\\n  ' + k + ': (\\{[^\\n]*\\}),\\r?\\n').exec(html);
+    return m ? new Function('return (' + m[1] + ');')() : {};
+  };
+  const s = new Proxy({}, { get: (t, k) => (typeof k === 'string' ? styleOf(k) : undefined) });
+  const React = { createElement: (type, p, ...children) => ({ type, props: p || {}, children: children.flat(Infinity) }) };
+  const icon = () => null;
+  const CallScreen = new Function('React', 's', 'window', 'A2_ICON_BACK', 'MoonStarsIcon', 'MicIcon', 'MicOffIcon', 'PhoneOffIcon',
+    code + ';\nreturn CallScreen;')(React, s, undefined, null, icon, icon, icon, icon);
+  const nodes = [];
+  const walk = (n) => { if (!n || typeof n !== 'object') return; nodes.push(n); (n.children || []).forEach(walk); };
+  walk(CallScreen(props));
+  const text = (n) => (n && typeof n === 'object') ? (n.children || []).map(text).join('') : (n == null || n === false ? '' : String(n));
+  return { nodes, text };
+}
+async function simulateHeardWords(html) {
+  const turnSrc = extractDecl(html, 'const runCallTurn = async (text) => ');
+  const listenSrc = extractDecl(html, 'const startCallListening = (armIdleClock = true) => ');
+  const tailSrc = extractDecl(html, 'const waitForSpeakerTail = () => ');
+  if (!turnSrc || !listenSrc || !tailSrc) throw new Error('runCallTurn / startCallListening / waitForSpeakerTail not found');
+  let now = 0, seqn = 0; const timers = [];
+  const at = (ms, fn) => { timers.push({ t: now + Math.max(0, ms || 0), n: seqn++, fn }); return seqn; };
+  const REPLY = 'Reply one. Reply two.';
+  let words = '';
+  const log = [];
+  const spoken = [];
+  const deps = {
+    callGenRef: { current: 1 }, callActiveRef: { current: false }, callMutedRef: { current: false }, abortRef: { current: null },
+    setCallHeard: () => {},
+    setCallHeardWords: (v) => { words = typeof v === 'function' ? v(words) : v; log.push({ t: now, ev: 'words', words }); },
+    setCallState: (v) => { log.push({ t: now, ev: 'state:' + v, words }); },
+    clearInactivityTimer: () => {}, cancelAudio: () => {}, armInactivityTimer: () => {},
+    messages: [], sliceHistoryForAPI: (m) => m, profile: {}, CALL_STREAM_SPEECH: true,
+    createCallSpeechStream: () => ({
+      feed: (t) => { spoken.push(String(t)); },
+      finish: (t) => { spoken.push(String(t)); return new Promise((r) => at(2000, r)); },
+    }),
+    callAI: async (h, p, o) => {
+      log.push({ t: now, ev: 'request', words });
+      await new Promise((r) => at(1500, r));
+      o.onDelta(REPLY);
+      return REPLY;
+    },
+    getFriendlyError: () => 'err', setMessages: () => {}, saveMessages: () => {},
+    speakReply: async (t) => { spoken.push(String(t)); },
+    childVoiceBlocked: () => false, hasValidAIConsent: () => true, hasFounderToken: () => true,
+    CALL_STT_CLOUD: true, callTranscriptRef: { current: '' }, callBaseTextRef: { current: '' },
+    startCloudListening: () => { log.push({ t: now, ev: 'listen', words }); },
+    callRecognitionRef: { current: null }, ezStartRecognition: () => false, CALL_VAD: false, ensureVad: () => {},
+    vadLastVoiceRef: { current: 0 }, setTimeout: (fn, ms) => at(ms, fn), vadCtxRef: { current: { outputLatency: 0 } },
+    SPEAKER_TAIL_MAX_MS: 1000,
+  };
+  const names = Object.keys(deps);
+  const fns = new Function(...names, tailSrc + ';\n' + listenSrc + ';\n' + turnSrc
+    + ';\nreturn { runCallTurn, startCallListening };')(...names.map((k) => deps[k]));
+  fns.runCallTurn(HEARD_Q);
+  const drain = async () => { for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r)); };
+  for (let guard = 0; guard < 10000; guard++) {
+    await drain();
+    if (!timers.length) break;
+    timers.sort((a, b) => a.t - b.t || a.n - b.n);
+    const x = timers.shift(); now = x.t; x.fn();
+  }
+  await drain();
+  return { log, spoken };
+}
+function hangUpClearsHeardWords(html) {
+  const callAt = html.indexOf("  useEffect(() => {\n    if (screen !== 'call') return;");
+  const callBody = callAt === -1 ? null : braceSlice(html, callAt + '  useEffect(() => '.length);
+  if (!callBody) throw new Error('the call entry effect not found');
+  let words = '';
+  const ov = {
+    screen: 'call', CALL_STT_CLOUD: true, childVoiceBlocked: () => false, hasValidAIConsent: () => true,
+    hasFounderToken: () => true, ezSpeechEngine: () => null, ezNewRecognition: () => null,
+    setTimeout: () => 0, clearTimeout: () => {}, console: { error: () => {} },
+    setCallHeardWords: (v) => { words = typeof v === 'function' ? v(words) : v; },
+  };
+  const stubs = {};
+  const scope = new Proxy(ov, {
+    has: (t, k) => typeof k === 'string',
+    get: (t, k) => {
+      if (k === Symbol.unscopables) return undefined;
+      if (k in t) return t[k];
+      if (k in globalThis) return globalThis[k];
+      if (!(k in stubs)) stubs[k] = /Ref$/.test(k) ? { current: null } : (() => { const f = function () {}; return f; })();
+      return stubs[k];
+    },
+    set: (t, k, v) => { t[k] = v; return true; },
+  });
+  ov.callGenRef = { current: 0 };
+  ov.dictationOpenRef = { current: false };
+  // eslint-disable-next-line no-new-func
+  const effect = new Function('scope', 'with (scope) {\nreturn () => ' + callBody + ';\n}')(scope);
+  const cleanup = effect();
+  if (typeof cleanup !== 'function') throw new Error('the call entry effect returned no cleanup');
+  words = HEARD_Q;            // a turn was heard and is being answered...
+  cleanup();                  // ...and the reader hangs up
+  return words;
+}
+async function checkHeardWords(html) {
+  let shown, empty, sim, afterHangUp;
+  try {
+    shown = renderCallScreen(html, { profileName: '', gender: 'male', callState: 'thinking', heard: '', heardWords: HEARD_Q,
+      isMuted: false, error: '', onToggleMute() {}, onTalk() {}, onExit() {} });
+    empty = renderCallScreen(html, { profileName: '', gender: 'male', callState: 'listening', heard: '', heardWords: '',
+      isMuted: false, error: '', onToggleMute() {}, onTalk() {}, onExit() {} });
+  } catch (e) { fail('E8 CallScreen does not render against a fake React: ' + e.message); return; }
+  try { sim = await simulateHeardWords(html); } catch (e) { fail('E8 runCallTurn does not run on the simulated clock: ' + e.message); return; }
+  try { afterHangUp = hangUpClearsHeardWords(html); } catch (e) { fail('E8 the call entry effect does not run: ' + e.message); return; }
+  const LINE = HEARD_PREFIX + HEARD_Q;
+  const lineAt = shown.nodes.findIndex((n) => shown.text(n) === LINE);
+  const label = String.fromCharCode(0x0644, 0x062D, 0x0638, 0x0629) + '...';   // the thinking state line
+  const labelAt = shown.nodes.findIndex((n) => shown.text(n) === label);
+  const node = shown.nodes[lineAt] || { props: {} };
+  const st = node.props.style || {};
+  const clamp = st.WebkitLineClamp === 2 && st.overflow === 'hidden' && st.display === '-webkit-box' && st.WebkitBoxOrient === 'vertical';
+  const rtl = node.props.dir === 'rtl' || st.direction === 'rtl';
+  info('E8 render: line at node ' + lineAt + ', state line at node ' + labelAt + ', two-line clamp ' + clamp + ', rtl ' + rtl);
+  if (lineAt !== -1 && labelAt !== -1 && lineAt > labelAt) pass('E8 the call screen shows the prefix and the heard words, under the state line');
+  else fail('E8 the heard words are not on the call screen under the state line (line at ' + lineAt + ', state line at ' + labelAt + ')');
+  if (lineAt !== -1 && clamp && rtl) pass('E8 ...right-to-left, at most two lines, cut with an ellipsis (line clamp 2)');
+  else fail('E8 the heard-words line is not a right-to-left two-line clamp');
+  if (!empty.nodes.some((n) => shown.text(n).indexOf(HEARD_PREFIX) === 0)) pass('E8 with no heard words the line is absent (no empty band)');
+  else fail('E8 the heard-words line is drawn with nothing to say');
+  const req = sim.log.find((e) => e.ev === 'request');
+  const setAt = sim.log.findIndex((e) => e.ev === 'words' && e.words === HEARD_Q);
+  const listenState = sim.log.find((e) => e.ev === 'state:listening');
+  const cleared = sim.log.find((e, i) => i > setAt && e.ev === 'words' && e.words === '');
+  info('E8 simulated turn: words set at ' + (setAt === -1 ? 'never' : sim.log[setAt].t + ' ms') + ', answer requested at '
+    + (req ? req.t : -1) + ' ms, next listening turn at ' + (listenState ? listenState.t : -1) + ' ms, words cleared at ' + (cleared ? cleared.t : -1) + ' ms');
+  if (req && req.words === HEARD_Q && setAt !== -1 && setAt < sim.log.indexOf(req)) pass('E8 the transcript is on the screen before the answer request is sent');
+  else fail('E8 the transcript is not on the screen when the answer is requested');
+  if (listenState && cleared && cleared.t === listenState.t && listenState.words === '' && !sim.log.some((e) => e.ev === 'words' && e.words === '' && e.t < listenState.t && sim.log.indexOf(e) > setAt))
+    pass('E8 the words stay through the answer and are gone when the next turn listens (' + listenState.t + ' ms)');
+  else fail('E8 the heard words are not cleared exactly when the next turn listens');
+  if (sim.spoken.length && sim.spoken.every((t) => t.indexOf(HEARD_PREFIX) === -1 && t.indexOf(HEARD_Q) === -1)) pass('E8 the heard words are never in the text sent to speech (' + sim.spoken.length + ' speech inputs)');
+  else fail('E8 the heard words reach the text sent to speech');
+  if (afterHangUp === '') pass('E8 a hang-up clears the heard words');
+  else fail('E8 the heard words survive the hang-up');
+}
+
 // ===========================================================================
 (async () => {
   // ITEM 32: the call screen is in app.jsx now, so this reads the shipped client, not the shell.
@@ -1807,6 +1965,7 @@ async function checkHandOver(html) {
   checkDictationRestart(html);
   await checkCaptureResume(html);
   await checkHandOver(html);
+  await checkHeardWords(html);
 
   console.log('  SUMMARY   PASS=' + P + '   FAIL=' + F);
   if (F > 0) {
