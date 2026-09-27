@@ -9,7 +9,7 @@
  *   bank, quest-data/kunuz-bank-3147.js. The old bank and every golden that described
  *   it were removed (copies in _superseded/), so B1..B9 left with them -- a check of a
  *   file that no longer ships would be a check of nothing. The gate itself stays,
- *   because B10..B16 seal the scripture files and the service worker, and nothing else
+ *   because B10..B17 seal the scripture files and the service worker, and nothing else
  *   in the repository does.
  *
  * OFFLINE. No network. Reads only.
@@ -54,6 +54,12 @@
  *                      a clean install, one entry down, several entries down, and NOBODY
  *                      LISTENING -- plus a browser with no clients.matchAll, a client that
  *                      throws, and the quota skip. Item 93-b.
+ *   B17 new mushaf  -- the reader in mushaf-lab/ offline: activate keeps its downloads
+ *                      store, a page and a geometry file stored only there are served with
+ *                      no network, IDLE warms every same-origin file the reader requests
+ *                      (parsed from its files), the store name is one string on both
+ *                      sides, and the reader's own text and recitation paths run against a
+ *                      stored copy. Item 4 of the register (offline).
  *
  * USAGE
  *   node quest-bank-integrity-guard.cjs --compare quest-data/kunuz-bank-3147.js
@@ -1497,7 +1503,24 @@ const SEALED = {
 //                    moved, and it is 1785502 bytes before and after. sw.js is 48468 -> 49632
 //                    bytes, measured at CR = 0. THIS digest is re-cut LAST, after every other sw.js edit
 //                    was final.
-  'sw.js': '46e8deb50c4fa688b506df9a7d26c4f7d99b82fea48ca63ef8d62eec76af78f8',
+  //   2026-09-27-b -- ITEM 4 OF THE REGISTER (OFFLINE), PART TWO: THE NEW MUSHAF OPENS AND READS WITH
+//                    NO NETWORK. sw.js named mushaf-lab nowhere, so the iframe app.jsx opens found no
+//                    stored document offline. IDLE gains the reader's same-origin files exactly as it
+//                    requests them (index.html, app.js?v=5, style.css?v=4, the manifest, two icons,
+//                    data/tables.json, meta.json, imlaei.json and the new offline-sizes.json); a
+//                    navigation inside /mushaf-lab/ falls back to that document, never to '/'; ONE
+//                    unversioned store, DOWNLOADS_CACHE = 'ezik-mushaf-downloads-v1', which activate
+//                    never sweeps and evictOld still may (item 33's contract, unchanged); the page arm
+//                    reads MUSHAF_CACHE, then that store, then the network, and the geometry request
+//                    reads CACHE, then that store, then the network; a request carrying the
+//                    x-ezik-download header is not also written into MUSHAF_CACHE or CACHE. Every other
+//                    origin is still ignored. NO FILE JOINED OR LEFT CORE: CORE_BYTES, the byte table,
+//                    SW_CORE and SW_CORE_FILES stand (tools/core-bytes.cjs: MATCH), and the new prose
+//                    states no number, so SW_PROSE is unchanged. The store name stays ezik-v39: this
+//                    branch is not merged, so the one bump of 2026-09-27 carries both commits. B17 below
+//                    executes all of it. sw.js is 49632 -> 55702 bytes, measured at CR = 0.
+//                    THIS digest is re-cut LAST, after every other sw.js edit was final.
+  'sw.js': 'bfada249b9e0c78bba28420cc897d0a7c3282176107cda5cdcb1f0d00d0da5cc',
 };
 
 // ---------------------------------------------------------------------------
@@ -3082,6 +3105,245 @@ async function compare(bankPath) {
         ok('the page store still carries its own unversioned name (' + SW_MUSHAF_CACHE + ')');
       } else {
         no('B16', 'the mushaf store name moved; every page a reader already paid for is orphaned');
+      }
+    }
+  }
+
+  // -- B17 the new mushaf, offline (item 4 of the register, part two) ---------
+  //
+  // MEASURED BEFORE: sw.js named mushaf-lab nowhere. app.jsx opens the new reader as an iframe of
+  // /mushaf-lab/index.html, so with no network that navigation found no stored document and the
+  // mushaf did not open at all; and the reader's own "download this surah" wrote three stores
+  // (lab-pages, lab-static, lab-audio) that this worker never reads and that activate deleted on
+  // every store-name bump. This section runs the worker the way B11 and B15 do, reads the reader
+  // the way a browser would request it, and asserts six things:
+  //   (1) activate keeps the downloads store;
+  //   (2) a page stored ONLY in the downloads store is served with the network dead;
+  //   (3) a geometry file stored ONLY there is served with the network dead;
+  //   (4) IDLE covers every same-origin asset mushaf-lab/index.html references and every file the
+  //       reader fetches by a literal name -- parsed from the files, not typed here;
+  //   (5) the downloads store is the same string in sw.js and mushaf-lab/app.js;
+  //   (6) the reader's own offline paths exist: a stored whole tafsir or translation file answers
+  //       an ayah when its per-ayah fetch fails, and a stored ayah plays from a blob URL.
+  // And a seventh, because the sheet shows sizes before a download starts: the size table the
+  // reader reads (mushaf-lab/data/offline-sizes.json) is what the tree measures.
+  console.log('\n-- B17 the new mushaf opens and reads offline (item 4 of the register) --');
+  {
+    const SW_DL_CACHE = 'ezik-mushaf-downloads-v1';
+    const LAB = 'mushaf-lab';
+    const labPath = (f) => path.join(__dirname, LAB, f);
+    const swSrc17 = fs.existsSync(swPath) ? fs.readFileSync(swPath, 'utf8') : '';
+    const labSrc = fs.existsSync(labPath('app.js')) ? fs.readFileSync(labPath('app.js'), 'utf8') : '';
+    const labHtml = fs.existsSync(labPath('index.html')) ? fs.readFileSync(labPath('index.html'), 'utf8') : '';
+    const deadNet = () => Promise.reject(swAddError('network'));
+    if (!swSrc17 || !labSrc || !labHtml) {
+      no('B17', 'sw.js, mushaf-lab/app.js or mushaf-lab/index.html is ABSENT -- nothing to execute');
+    } else {
+      // (1) ACTIVATE KEEPS THE DOWNLOADS STORE. A stale shipment store beside it is the control:
+      // an activate that swept nothing at all would otherwise pass this.
+      {
+        const h = swLoad(swPath, deadNet, null, undefined);
+        h.seedStore(SW_DL_CACHE); h.seed(SW_DL_CACHE, swPageUrl(7), 'KEPT');
+        h.seedStore('ezik-v1'); h.seedStore(SW_CACHE);
+        const act = h.activate();
+        await swSettle(act.waits);
+        if (act.missing) no('B17', SW_FILE + ' registered no activate listener');
+        else if (h.stores().indexOf(SW_DL_CACHE) === -1 || !h.has(SW_DL_CACHE, swPageUrl(7))) {
+          no('B17', 'activate DELETED "' + SW_DL_CACHE + '". Everything in it is there because the reader\n'
+            + '        pressed a download button; a ship must not take it back. Deleted: ' + JSON.stringify(h.deleted()));
+        } else if (h.stores().indexOf('ezik-v1') !== -1) {
+          no('B17', 'activate swept nothing at all -- the stale store "ezik-v1" survived, so (1) proves nothing');
+        } else {
+          ok('activate keeps "' + SW_DL_CACHE + '" and still sweeps the stale shipment store');
+        }
+      }
+
+      // (2) A PAGE IN THE DOWNLOADS STORE ONLY, NETWORK DEAD.
+      {
+        const h = swLoad(swPath, deadNet, null, undefined);
+        h.seed(SW_DL_CACHE, swPageUrl(5), 'DLPAGE');
+        const d = h.dispatch(swPageUrl(5));
+        const body = await swBody(d.responded);
+        await swSettle(d.waits);
+        if (!d.responded) no('B17', swPageUrl(5) + ' is not handled by the worker at all');
+        else if (body !== 'DLPAGE') {
+          no('B17', 'a page stored only in "' + SW_DL_CACHE + '" was NOT served with the network dead (got '
+            + JSON.stringify(body) + '). A downloaded juz would show blank pages offline.');
+        } else ok('a page stored only in the downloads store is served with no network');
+      }
+
+      // (3) A GEOMETRY FILE IN THE DOWNLOADS STORE ONLY, NETWORK DEAD. The URL carries the build
+      // query exactly as the reader requests it.
+      {
+        const h = swLoad(swPath, deadNet, null, undefined);
+        const geo = '/' + LAB + '/geometry/005.json?v=B17';
+        h.seed(SW_DL_CACHE, geo, 'DLGEO');
+        const d = h.dispatch(geo);
+        const body = await swBody(d.responded);
+        await swSettle(d.waits);
+        if (!d.responded) no('B17', geo + ' is not handled by the worker at all');
+        else if (body !== 'DLGEO') {
+          no('B17', 'a geometry file stored only in "' + SW_DL_CACHE + '" was NOT served with the network dead (got '
+            + JSON.stringify(body) + '). A downloaded page would open with no ayah layer: no menu, no copy.');
+        } else ok('a geometry file stored only in the downloads store is served with no network');
+      }
+
+      // (4) IDLE COVERS THE READER. Both sides are parsed: the IDLE array out of sw.js, and out of
+      // mushaf-lab/ every same-origin href/src index.html names plus every literal fetch('...') in
+      // app.js and every literal path in its boot array, each resolved against the page the way a
+      // browser resolves it. The two mushaf files at the root are part of that boot.
+      {
+        const at = swSrc17.indexOf('const IDLE = [');
+        const idle = at === -1 ? [] : (swSrc17.slice(at, swSrc17.indexOf('];', at)).match(/'[^']+'/g) || []).map((s) => s.slice(1, -1));
+        const base = SW_ORIGIN + '/' + LAB + '/index.html';
+        const want = new Set();
+        const add = (ref) => {
+          if (!ref || /^(?:[a-z]+:|\/\/|#)/i.test(ref)) return;       // other origins and fragments
+          const u = new URL(ref, base);
+          if (u.origin === SW_ORIGIN) want.add(u.pathname + u.search);
+        };
+        want.add('/' + LAB + '/index.html');
+        for (const m of labHtml.matchAll(/\b(?:href|src)\s*=\s*"([^"]+)"/g)) add(m[1]);
+        for (const m of labSrc.matchAll(/\bfetch\(\s*'([^']+)'/g)) add(m[1]);
+        const bootAt = labSrc.indexOf('async function boot()');
+        const boot = bootAt === -1 ? '' : labSrc.slice(bootAt, labSrc.indexOf('buildIndexes();', bootAt));
+        // Inside Ezik the reader takes the left arm of each IN_EZIK ternary; that arm is what boots.
+        const bootInEzik = boot.replace(/IN_EZIK\s*\?\s*('[^']*')\s*:\s*'[^']*'/g, '$1');
+        for (const m of bootInEzik.matchAll(/'([^']+\.json)'/g)) add(m[1]);
+        const missing = Array.from(want).filter((u) => idle.indexOf(u) === -1).sort();
+        if (!idle.length) no('B17', 'the IDLE list could not be read out of ' + SW_FILE);
+        else if (!boot || want.size < 8) {
+          no('B17', 'the reader\'s boot could not be parsed out of mushaf-lab/app.js (' + want.size + ' URL(s) found)'
+            + ' -- (4) would be measuring nothing');
+        } else if (missing.length) {
+          no('B17', 'the worker does not warm ' + missing.join(', ') + '.\n'
+            + '        The reader requests it, so with no network it is missing and the mushaf does not open\n'
+            + '        (or opens without it). Add it to IDLE in ' + SW_FILE + ' exactly as requested, query included.');
+        } else {
+          ok('IDLE warms all ' + want.size + ' same-origin files the new mushaf references or boots from, as requested');
+        }
+        // And the navigation the iframe makes must fall back to the reader's document, not Ezik's.
+        const h = swLoad(swPath, deadNet, null, undefined);
+        h.seed(SW_CACHE, '/' + LAB + '/index.html', 'LABSHELL');
+        h.seed(SW_CACHE, '/', 'EZIKSHELL');
+        const d = h.dispatch('/' + LAB + '/index.html', 'navigate');
+        const body = await swBody(d.responded);
+        // A navigation inside the reader's directory that is not itself stored (its bare directory)
+        // must still get the reader, never Ezik's own shell drawn inside the mushaf frame.
+        const d2 = h.dispatch('/' + LAB + '/', 'navigate');
+        const body2 = await swBody(d2.responded);
+        if (body !== 'LABSHELL') {
+          no('B17', 'with no network the iframe navigation to /' + LAB + '/index.html was answered with '
+            + JSON.stringify(body) + ', not the stored reader');
+        } else if (body2 !== 'LABSHELL') {
+          no('B17', 'with no network a navigation to /' + LAB + '/ was answered with ' + JSON.stringify(body2)
+            + ' -- Ezik\'s shell inside the mushaf frame is not an offline mushaf');
+        } else ok('with no network the mushaf frame is answered with the stored reader document');
+      }
+
+      // (5) ONE STORE NAME, DECLARED ONCE ON EACH SIDE.
+      {
+        const swName = (swSrc17.match(/const DOWNLOADS_CACHE = '([^']+)';/) || [])[1];
+        const labName = (labSrc.match(/const DL_STORE = '([^']+)';/) || [])[1];
+        const once = (src, s) => src.split("'" + s + "'").length - 1;
+        if (!swName || !labName) {
+          no('B17', 'the downloads store is not declared (sw.js DOWNLOADS_CACHE=' + JSON.stringify(swName)
+            + ', mushaf-lab/app.js DL_STORE=' + JSON.stringify(labName) + ')');
+        } else if (swName !== labName) {
+          no('B17', 'the reader writes its downloads to "' + labName + '" and the worker reads "' + swName
+            + '" -- every download would be invisible offline');
+        } else if (swName !== SW_DL_CACHE) {
+          no('B17', 'the downloads store was renamed to "' + swName + '" -- every download a reader already made is orphaned');
+        } else if (once(swSrc17, swName) !== 1 || once(labSrc, labName) !== 1) {
+          no('B17', 'the store name is written ' + once(swSrc17, swName) + ' time(s) in sw.js and ' + once(labSrc, labName)
+            + ' in mushaf-lab/app.js; it must be declared once on each side and referenced by name');
+        } else ok('the downloads store is "' + swName + '" on both sides, declared once in each');
+      }
+
+      // (6) THE READER'S OWN OFFLINE PATHS, EXECUTED. The functions are lifted out of
+      // mushaf-lab/app.js by name and run against a domesticated Cache API -- no DOM, no network.
+      {
+        const lift = (name) => {
+          const at = labSrc.search(new RegExp('(?:async )?function ' + name + '\\('));
+          if (at === -1) return null;
+          let i = labSrc.indexOf('{', at), depth = 0;
+          for (; i < labSrc.length; i++) {
+            if (labSrc[i] === '{') depth++;
+            else if (labSrc[i] === '}' && --depth === 0) return labSrc.slice(at, i + 1);
+          }
+          return null;
+        };
+        const constLine = (name) => (labSrc.match(new RegExp('const ' + name + ' = [^\\n]+')) || [])[0];
+        const need = ['getJson', 'fromStoredWhole', 'storedJson', 'storedAudio', 'startTrack', 'stopPlay', 'releaseBlob'];
+        const got = {};
+        need.forEach((n) => { got[n] = lift(n); });
+        const consts = ['DL_STORE', 'TAFSIR_BASES', 'TRANS_BASES', 'TAFSIR_WHOLE', 'TRANS_WHOLE', 'textCache', 'textWhole'].map(constLine);
+        const absent = need.filter((n) => !got[n]);
+        if (absent.length || consts.some((c) => !c)) {
+          no('B17', 'the reader\'s offline paths are missing from mushaf-lab/app.js: '
+            + absent.concat(consts.some((c) => !c) ? ['(a store or base constant)'] : []).join(', '));
+        } else {
+          const stored = new Map();
+          const blobs = [];
+          const ctx = {
+            caches: { open: () => Promise.resolve({ match: (u) => Promise.resolve(stored.get(String(u))) }) },
+            fetch: () => Promise.reject(new TypeError('Failed to fetch (synthetic)')),
+            window: { caches: true }, Map: Map, Promise: Promise, JSON: JSON, Array: Array, Number: Number, String: String,
+          };
+          vm.createContext(ctx);
+          vm.runInContext(consts.join('\n') + '\n' + need.map((n) => got[n]).join('\n')
+            + '\nthis.__t = { getJson, storedAudio, TAFSIR_BASES, TRANS_BASES };', ctx);
+          const t = ctx.__t;
+          const resp = (body) => ({ json: () => Promise.resolve(JSON.parse(body)), blob: () => Promise.resolve({ blob: body }) });
+          // The two whole-file shapes, as the hosts serve them (measured on the day of this item).
+          stored.set(t.TAFSIR_BASES[0] + 'b17-tafsir/2.json',
+            JSON.stringify([{ text: 'T-2-1', ayah: 1, surah: 2 }, { text: 'T-2-255', ayah: 255, surah: 2 }]));
+          stored.set(t.TRANS_BASES[0] + 'b17-trans.min.json',
+            JSON.stringify({ quran: [{ chapter: 1, verse: 1, text: 'X-1-1' }, { chapter: 2, verse: 255, text: 'X-2-255' }] }));
+          stored.set('https://everyayah.com/data/B17/002255.mp3', 'MP3');
+          for (const [k, v] of Array.from(stored)) stored.set(k, resp(v));
+          let tf, tr, au, raised = null;
+          try {
+            tf = await t.getJson(t.TAFSIR_BASES, 'b17-tafsir/2/255.json');
+            tr = await t.getJson(t.TRANS_BASES, 'b17-trans/2/255.json');
+            au = await t.storedAudio('https://everyayah.com/data/B17/002255.mp3', true);
+          } catch (e) { raised = e; }
+          if (raised) no('B17', 'the reader\'s offline text path threw: ' + raised.message);
+          else if (!tf || tf.text !== 'T-2-255') {
+            no('B17', 'with every host dead, a STORED whole tafsir file did not answer the ayah (got ' + JSON.stringify(tf) + ')');
+          } else if (!tr || tr.text !== 'X-2-255') {
+            no('B17', 'with every host dead, a STORED whole translation did not answer the ayah (got ' + JSON.stringify(tr) + ')');
+          } else ok('with every host dead, a stored whole tafsir file and a stored translation answer the ayah');
+          const st = got.startTrack, sp = got.stopPlay + got.releaseBlob;
+          if (!au || au.blob !== 'MP3') no('B17', 'a stored ayah is not read back from the downloads store (got ' + JSON.stringify(au) + ')');
+          else if (!/storedAudio\([^)]*, true\)/.test(st) || st.indexOf('URL.createObjectURL(') === -1
+            || !/P\.audio\.src = P\.blob \|\| /.test(st) || st.indexOf('URL.revokeObjectURL(') === -1
+            || sp.indexOf('URL.revokeObjectURL(') === -1) {
+            no('B17', 'startTrack no longer plays a stored ayah from a blob URL it revokes (and stopPlay no longer\n'
+              + '        revokes the last one). Through the worker instead, the iOS webview would need range requests.');
+          } else ok('a stored ayah plays from a blob URL made from the stored response, and every blob URL is revoked');
+          const legacy = (labSrc.match(/'lab-(?:pages|static|audio)'/g) || []);
+          if (legacy.length) no('B17', 'mushaf-lab/app.js still writes ' + legacy.join(', ') + ' -- stores the worker never reads');
+          else ok('nothing in the reader writes lab-pages, lab-static or lab-audio any more');
+        }
+      }
+
+      // (7) THE SIZE TABLE IS WHAT THE TREE MEASURES.
+      {
+        let sizes = null;
+        try { sizes = JSON.parse(fs.readFileSync(labPath('data/offline-sizes.json'), 'utf8')); } catch (e) { sizes = null; }
+        let measured = null;
+        try { measured = require('./tools/mushaf-lab-offline-sizes.cjs').measure(__dirname); } catch (e) { measured = null; }
+        if (!sizes || !measured) no('B17', 'mushaf-lab/data/offline-sizes.json or its generator could not be read');
+        else if (JSON.stringify(sizes.pages) !== JSON.stringify(measured.pages)
+          || JSON.stringify(sizes.geometry) !== JSON.stringify(measured.geometry)
+          || JSON.stringify(sizes.totals) !== JSON.stringify(measured.totals)) {
+          no('B17', 'mushaf-lab/data/offline-sizes.json is not what the tree measures -- the downloads sheet would\n'
+            + '        show the reader a wrong size. Re-run: node tools/mushaf-lab-offline-sizes.cjs');
+        } else {
+          ok('the size table the downloads sheet reads is what the tree measures ('
+            + measured.totals.pageFiles + ' pages, ' + measured.totals.geometryFiles + ' geometry files)');
+        }
       }
     }
   }
