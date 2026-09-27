@@ -6441,6 +6441,16 @@ const parseRichMessage = (text, viewerAge) => {
   return { segments: ezikLiftNotices(segments), suggestions };
 };
 
+// Q1 (owner, option A): a line that STARTS with the source label -- al-masdar / al-masadir
+// followed by a colon -- is attribution for the eye, never a sentence for the ear. Diacritics
+// and a tatweel may sit between the letters; bullets, quote marks or bold/heading marks may wrap it.
+// Speech only: the written reply keeps every byte. The call pump reads the same pattern so a
+// streamed cut never lands inside such a line (it would speak the half after the cut).
+const EZ_TTS_SOURCE_LINE_SRC = '^[ \\t\u200e\u200f]*(?:[-\u2022*>_#][ \\t]*)*'
+  + ['\u0627', '\u0644', '\u0645', '\u0635', '(?:\u0627[\u064B-\u0652\u0670\u0640]*)?', '\u062F', '\u0631']
+    .map((c) => c + (c.length === 1 ? '[\u064B-\u0652\u0670\u0640]*' : '')).join('')
+  + '[ \\t*_]*[:\uFF1A]';
+
 // ============================================================
 // تحضير النص للصوت (إزالة الوسوم، إنشاء سياق طبيعي)
 // ============================================================
@@ -6509,14 +6519,15 @@ const formatForTTS = (text) => {
   // precedes it to the one that follows and ElevenLabs would read the two as a single word.
   t = t.replace(EZIK_NOTICE_ALL, ' ');
   t = t.replace(/^#{1,6}\s+/gm, '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/[﴿﴾«»""“”‹›\[\]<>]/g, ' ').replace(/[ \t]{2,}/g, ' ');
-  // Keep links opaque while pronunciation-only math substitutions run. In particular, neither a
-  // trig name in a path nor any slash/query operator in a URL is spoken as mathematics.
-  const protectedUrls = [];
-  t = t.replace(/\b(?:https?:\/\/|www\.)[^\s<>"'﴿﴾]+/gi, (url) => {
-    const token = '\uE000' + String.fromCharCode(0xE100 + protectedUrls.length) + '\uE001';
-    protectedUrls.push({ token, url });
-    return token;
-  });
+  // Q1 (owner, option A) -- IN SPEECH ONLY, three kinds of attribution are silenced: a line that
+  // starts with the source label, every URL, and every site or domain name (binothaimeen.net,
+  // an e-mail address too). The hadith's collector and its grading are NOT touched: they are
+  // prose, and they are kept. Silencing the links here, before the math pass, is also what keeps
+  // a trig name in a path or a slash in a query from ever being spoken as mathematics.
+  t = t.replace(new RegExp(EZ_TTS_SOURCE_LINE_SRC + '[^\\n]*$', 'gm'), '');
+  t = t.replace(/\b(?:https?:\/\/|www\.)[^\s<>"'﴿﴾]+/gi, ' ');
+  t = t.replace(/(?<![A-Za-z0-9_.@-])(?:[A-Za-z0-9_.+-]+@)?(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z]{2,24}(?![A-Za-z0-9_-])(?:\/[^\s]*)?/g, ' ');
+  t = t.replace(/\([\s\u060C,.:;\u061B-]*\)/g, ' ');   // a bracket the link lived in, now empty
   // رموزٌ ودوالُّ رياضيّةٌ خارج <board> → أسماؤها المتعارَف عليها (شبكة أمان للنطق)
   const trigNames = { cos: ' كوساين ', sin: ' ساين ', tan: ' تانجنت ' };
   t = t
@@ -6574,7 +6585,6 @@ const formatForTTS = (text) => {
   t = t.replace(/\b(steps|hadith|narrator|ruling|suggestions|source|verse|surah|board|document|book)\b/gi, ' ');
   // تنظيف الفراغات
   t = t.replace(/\s+/g, ' ').trim();
-  for (const { token, url } of protectedUrls) t = t.split(token).join(url);
   return t;
 };
 
@@ -17087,7 +17097,11 @@ function App() {
       const tm = /<(verse|surah|hadith|steps|suggestions|source|dhikr|worship|book)[\s>\/]/.exec(safe);
       const firstTag = tm ? tm.index : safe.length;           // prose is streamable only BEFORE the first tag
       const region = safe.slice(consumedLen, firstTag);       // tag-free prose not yet spoken
-      const cut = tm ? region.length : lastSentenceCut(region); // tag present -> flush prose up to it; else complete sentences only
+      let cut = tm ? region.length : lastSentenceCut(region); // tag present -> flush prose up to it; else complete sentences only
+      // Q1: an unfinished source line waits for its end (or for finish()), so formatForTTS sees
+      // it whole and silences all of it -- a cut at a stop inside it would speak the rest.
+      const lastLine = region.lastIndexOf('\n') + 1;   // only the LAST line can still be open
+      if (lastLine < cut && new RegExp(EZ_TTS_SOURCE_LINE_SRC).test(region.slice(lastLine))) cut = lastLine;
       if (cut > 0) {
         const segs = [];
         for (const c of splitSpeechIntoSentences(region.slice(0, cut))) segs.push({ kind: 'speak', text: c });

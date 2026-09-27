@@ -1546,7 +1546,17 @@ const SEALED = {
 //                    JOINED OR LEFT CORE: CORE_BYTES, the byte table and SW_PROSE stand. sw.js is 55702
 //                    bytes, measured at CR = 0. THIS digest is re-cut LAST, after every other sw.js edit
 //                    was final.
-  'sw.js': 'd3a374894f085c6a67791efca2a098413eccf1f6e2b23b9bb18faa0941021c2e',
+  //   2026-09-27-f -- VOICE + CALL T4 FIX 2, F1: ATTRIBUTION IS SILENT IN SPEECH (the owner's option A).
+//                    formatForTTS now silences a line starting with the source label, every URL and
+//                    every site or domain name; the hadith's collector and grading are still spoken,
+//                    and the written reply is untouched. The call pump holds an unfinished source line
+//                    for finish(). app.js was rebuilt by node tools/build-app.cjs, and CORE_BYTES was
+//                    re-cut by node tools/core-bytes.cjs --write; the byte table in sw.js and the
+//                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
+//                    stays ezik-v40 (already one step past live on this branch). sw.js is 55702 bytes,
+//                    measured at CR = 0. THIS digest is re-cut LAST, after every other sw.js edit was
+//                    final.
+  'sw.js': 'a7b870d8c05d3ff1c29322d182aefae67123693b76ef833b58a4600c20cfb596',
 };
 
 // ---------------------------------------------------------------------------
@@ -2502,7 +2512,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1787023, of: 'app.js' },
+      { n: 1788485, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

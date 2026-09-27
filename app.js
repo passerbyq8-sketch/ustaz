@@ -1920,7 +1920,12 @@ const matnMatch=attrsStr.match(/matn=["']([^"']+)["']/);const cutMatch=attrsStr.
 if(lastIndex<text.length){const plainText=text.slice(lastIndex).trim();if(plainText)segments.push({type:'text',content:plainText});}// إن لم نجد وسوماً، النص كله نصّ عادي
 if(segments.length===0&&!suggestions.length){segments.push({type:'text',content:text.trim()});}// XI-04: the review mark leaves the prose here, LAST — after every card has been separated, so
 // a mark that landed inside a hadith or a source body is not lifted out of a card it belongs to.
-return{segments:ezikLiftNotices(segments),suggestions};};// ============================================================
+return{segments:ezikLiftNotices(segments),suggestions};};// Q1 (owner, option A): a line that STARTS with the source label -- al-masdar / al-masadir
+// followed by a colon -- is attribution for the eye, never a sentence for the ear. Diacritics
+// and a tatweel may sit between the letters; bullets, quote marks or bold/heading marks may wrap it.
+// Speech only: the written reply keeps every byte. The call pump reads the same pattern so a
+// streamed cut never lands inside such a line (it would speak the half after the cut).
+const EZ_TTS_SOURCE_LINE_SRC='^[ \\t\u200e\u200f]*(?:[-\u2022*>_#][ \\t]*)*'+['\u0627','\u0644','\u0645','\u0635','(?:\u0627[\u064B-\u0652\u0670\u0640]*)?','\u062F','\u0631'].map(c=>c+(c.length===1?'[\u064B-\u0652\u0670\u0640]*':'')).join('')+'[ \\t*_]*[:\uFF1A]';// ============================================================
 // تحضير النص للصوت (إزالة الوسوم، إنشاء سياق طبيعي)
 // ============================================================
 const formatForTTS=text=>{if(!text)return'';// §٢ (C): العلامةُ لا تُنطَق. هي شارةٌ عن الجواب لا جملةٌ منه، كوسمِ المراجعةِ سواءً بسواء.
@@ -1956,9 +1961,13 @@ t=t.replace(/<worship[^>]*>[\s\S]*?<\/worship>/g,' ');t=t.replace(/<worship[^>]*
 // A SPACE AND NOT AN EMPTY STRING. `tag()` appends the mark straight after the full stop
 // («…لا واجبٌ.【فهمٌ لا نصٌّ منقول】»), so deleting it to nothing would weld the sentence that
 // precedes it to the one that follows and ElevenLabs would read the two as a single word.
-t=t.replace(EZIK_NOTICE_ALL,' ');t=t.replace(/^#{1,6}\s+/gm,'').replace(/\*\*([^*]+)\*\*/g,'$1').replace(/[﴿﴾«»""“”‹›\[\]<>]/g,' ').replace(/[ \t]{2,}/g,' ');// Keep links opaque while pronunciation-only math substitutions run. In particular, neither a
-// trig name in a path nor any slash/query operator in a URL is spoken as mathematics.
-const protectedUrls=[];t=t.replace(/\b(?:https?:\/\/|www\.)[^\s<>"'﴿﴾]+/gi,url=>{const token='\uE000'+String.fromCharCode(0xE100+protectedUrls.length)+'\uE001';protectedUrls.push({token,url});return token;});// رموزٌ ودوالُّ رياضيّةٌ خارج <board> → أسماؤها المتعارَف عليها (شبكة أمان للنطق)
+t=t.replace(EZIK_NOTICE_ALL,' ');t=t.replace(/^#{1,6}\s+/gm,'').replace(/\*\*([^*]+)\*\*/g,'$1').replace(/[﴿﴾«»""“”‹›\[\]<>]/g,' ').replace(/[ \t]{2,}/g,' ');// Q1 (owner, option A) -- IN SPEECH ONLY, three kinds of attribution are silenced: a line that
+// starts with the source label, every URL, and every site or domain name (binothaimeen.net,
+// an e-mail address too). The hadith's collector and its grading are NOT touched: they are
+// prose, and they are kept. Silencing the links here, before the math pass, is also what keeps
+// a trig name in a path or a slash in a query from ever being spoken as mathematics.
+t=t.replace(new RegExp(EZ_TTS_SOURCE_LINE_SRC+'[^\\n]*$','gm'),'');t=t.replace(/\b(?:https?:\/\/|www\.)[^\s<>"'﴿﴾]+/gi,' ');t=t.replace(/(?<![A-Za-z0-9_.@-])(?:[A-Za-z0-9_.+-]+@)?(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z]{2,24}(?![A-Za-z0-9_-])(?:\/[^\s]*)?/g,' ');t=t.replace(/\([\s\u060C,.:;\u061B-]*\)/g,' ');// a bracket the link lived in, now empty
+// رموزٌ ودوالُّ رياضيّةٌ خارج <board> → أسماؤها المتعارَف عليها (شبكة أمان للنطق)
 const trigNames={cos:' كوساين ',sin:' ساين ',tan:' تانجنت '};t=t.replace(/(^|[^\p{L}\p{N}_])(cos|sin|tan)(?=$|[^\p{L}\p{N}_])/giu,(_all,left,name)=>left+trigNames[name.toLowerCase()]).replace(/π/g,' باي ').replace(/°/g,' درجة ').replace(/√/g,' الجذر التربيعيّ لـ ').replace(/×/g,' في ').replace(/÷/g,' على ').replace(/\//g,' على ').replace(/\+/g,' زائد ').replace(/−/g,' ناقص ').replace(/=/g,' يساوي ').replace(/≤/g,' أصغر أو يساوي ').replace(/≥/g,' أكبر أو يساوي ').replace(/≠/g,' لا يساوي ').replace(/²/g,' تربيع ').replace(/³/g,' تكعيب ').replace(/\^/g,' أُس ').replace(/%/g,' بالمئة ').replace(/½/g,' نصف ').replace(/⅓/g,' ثلث ').replace(/⅔/g,' ثلثين ').replace(/¼/g,' ربع ').replace(/¾/g,' ثلاثة أرباع ');// شبكة أمان أخيرة (دفاعٌ في العمق): أيّ اسمِ وسمٍ إنجليزيّ ناجٍ — بقايا وسمٍ مشوّهٍ فلَتَ من
 // المحوّلات أعلاه — يُحذَف كي لا يُنطَق أبداً. نطابق كلماتِ ASCII وحدها عبر \b…\b، فلا يُمَسّ
 // النصُّ العربيّ إطلاقاً (لا حدودَ كلماتٍ ASCII داخله).
@@ -1966,7 +1975,7 @@ const trigNames={cos:' كوساين ',sin:' ساين ',tan:' تانجنت '};t=t
 // ينطقها ElevenLabs صحيحةً بدل تلعثمٍ رقمًا-رقمًا. العرضُ المرئيُّ لا يتأثّر (نصُّ الصوت فقط)،
 // وأرقامُ <board> لا تُقرأ أصلًا لأنّها حُذِفت قبل هذا السطر.
 {const _ones=['','واحد','اثنان','ثلاثة','أربعة','خمسة','ستة','سبعة','ثمانية','تسعة'];const _tens=['','عشرة','عشرون','ثلاثون','أربعون','خمسون','ستون','سبعون','ثمانون','تسعون'];const _teens=['عشرة','أحد عشر','اثنا عشر','ثلاثة عشر','أربعة عشر','خمسة عشر','ستة عشر','سبعة عشر','ثمانية عشر','تسعة عشر'];const _huns=['','مئة','مئتان','ثلاثمئة','أربعمئة','خمسمئة','ستمئة','سبعمئة','ثمانمئة','تسعمئة'];const _digitWord=['صفر','واحد','اثنان','ثلاثة','أربعة','خمسة','ستة','سبعة','ثمانية','تسعة'];const _three=n=>{const out=[];const h=Math.floor(n/100),r=n%100;if(h)out.push(_huns[h]);if(r){if(r<10)out.push(_ones[r]);else if(r<20)out.push(_teens[r-10]);else{const u=r%10,tn=Math.floor(r/10);out.push(u?_ones[u]+' و'+_tens[tn]:_tens[tn]);}}return out.join(' و');};const _int=n=>{if(n===0)return'صفر';const out=[];const th=Math.floor(n/1000),r=n%1000;if(th)out.push(th===1?'ألف':th===2?'ألفان':_three(th)+' آلاف');if(r)out.push(_three(r));return out.join(' و');};const _dbd=s=>s.split('').map(d=>_digitWord[+d]).join(' ');const _norm=s=>s.replace(/[٠-٩]/g,d=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)));t=t.replace(/[٠-٩0-9]+(?:[.٫‚][٠-٩0-9]+)?/g,tok=>{const m=tok.match(/^([٠-٩0-9]+)(?:[.٫‚]([٠-٩0-9]+))?$/);if(!m)return tok;const ip=_norm(m[1]),fp=m[2]?_norm(m[2]):null;const n=parseInt(ip,10);const iw=ip.length<=4&&n<=9999?_int(n):_dbd(ip);return' '+(fp===null?iw:iw+' فاصلة '+_dbd(fp))+' ';});}t=t.replace(/\b(steps|hadith|narrator|ruling|suggestions|source|verse|surah|board|document|book)\b/gi,' ');// تنظيف الفراغات
-t=t.replace(/\s+/g,' ').trim();for(const{token,url}of protectedUrls)t=t.split(token).join(url);return t;};// ============================================================
+t=t.replace(/\s+/g,' ').trim();return t;};// ============================================================
 // تجهيز النص لسجل الأهل (عرض فقط) — مثل formatForTTS لكنه يُبقي نصّ الآية مقروءاً
 // ============================================================
 // الصوت يحذف الآية (يسمعها الطفل من القارئ)، أما الأهل فيجب أن يَرَوا نصّها في السجلّ.
@@ -5793,8 +5802,11 @@ const lastSentenceCut=s=>{let cut=0,re=/[.!\u061F?\u061B]\s|\n/g,m;while((m=re.e
 if(/(?:^|[^0-9\u0660-\u0669\u06F0-\u06F9])[.!?\u061F\u2026]$/.test(s))cut=s.length;return cut;};const feed=full=>{if(!isCurrent()||hitTag)return;const safe=stripIncompleteTags(full);// drops any incomplete trailing tag
 const tm=/<(verse|surah|hadith|steps|suggestions|source|dhikr|worship|book)[\s>\/]/.exec(safe);const firstTag=tm?tm.index:safe.length;// prose is streamable only BEFORE the first tag
 const region=safe.slice(consumedLen,firstTag);// tag-free prose not yet spoken
-const cut=tm?region.length:lastSentenceCut(region);// tag present -> flush prose up to it; else complete sentences only
-if(cut>0){const segs=[];for(const c of splitSpeechIntoSentences(region.slice(0,cut)))segs.push({kind:'speak',text:c});consumedLen+=cut;enqueue(segs);}if(tm)hitTag=true;// reached a tag -> stop streaming; finish() plays the rest via buildAudioSequence
+let cut=tm?region.length:lastSentenceCut(region);// tag present -> flush prose up to it; else complete sentences only
+// Q1: an unfinished source line waits for its end (or for finish()), so formatForTTS sees
+// it whole and silences all of it -- a cut at a stop inside it would speak the rest.
+const lastLine=region.lastIndexOf('\n')+1;// only the LAST line can still be open
+if(lastLine<cut&&new RegExp(EZ_TTS_SOURCE_LINE_SRC).test(region.slice(lastLine)))cut=lastLine;if(cut>0){const segs=[];for(const c of splitSpeechIntoSentences(region.slice(0,cut)))segs.push({kind:'speak',text:c});consumedLen+=cut;enqueue(segs);}if(tm)hitTag=true;// reached a tag -> stop streaming; finish() plays the rest via buildAudioSequence
 };const finish=async fullReply=>{let rest=(fullReply||'').slice(consumedLen);// tags + any trailing prose not yet spoken
 rest=await resolveWorshipTags(rest,deriveCaps(profileRef.current?.age).band);if(rest.trim())enqueue(buildAudioSequence(rest));inputDone=true;pump();await donePromise;};return{feed,finish};};// Chat dictation goes through api/stt (Scribe) too: tap to record, tap again to transcribe.
 // The Google engine is not used here at all -- it mishears Kuwaiti Arabic and cannot be tuned,

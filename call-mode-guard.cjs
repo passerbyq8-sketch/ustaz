@@ -62,6 +62,16 @@ function braceSlice(src, from) {
   return null;
 }
 
+// Evaluate a module-level `const NAME = <expr>;` of the client (an expression with no braces).
+// A client without it yields undefined, which the executed checks then report as a failure.
+function evalConst(src, name) {
+  const at = src.indexOf('\nconst ' + name + ' = ');
+  if (at === -1) return undefined;
+  const from = at + ('\nconst ' + name + ' = ').length;
+  const end = src.indexOf(';\n', from);
+  try { return new Function('return (' + src.slice(from, end) + ');')(); } catch (e) { return undefined; }
+}
+
 // Extract `<header> ... }` as runnable source, e.g. extract(src, 'const sttErrorMessage = (status) => ')
 function extractDecl(src, header) {
   const at = src.indexOf(header);
@@ -1246,13 +1256,16 @@ async function simulatePump(html, opts) {
     buildAudioSequence: (t) => split(t).map((s) => ({ kind: 'speak', text: s })),
     playSurahRecitation: async () => {}, playDhikrRecitation: async () => {}, playRecitation: async () => {},
     URL: { revokeObjectURL: () => {} },
+    EZ_TTS_SOURCE_LINE_SRC: evalConst(html, 'EZ_TTS_SOURCE_LINE_SRC'),
   };
+  Object.assign(deps, opts.deps || {});
   const names = Object.keys(deps);
   const make = new Function(...names, src + ';\nreturn createCallSpeechStream;')(...names.map((k) => deps[k]));
   const stream = make();
-  const text = 'Sentence one is here. Sentence two is here. Sentence three is here. Sentence four is here.';
+  const text = opts.full || 'Sentence one is here. Sentence two is here. Sentence three is here. Sentence four is here.';
   let settled = false;
-  stream.feed(text);
+  let fed = '';
+  for (const d of (opts.deltas || [text])) { fed += d; stream.feed(fed); }
   stream.finish(text).then(() => { settled = true; });
   if (opts.hangUpAt !== undefined) at(opts.hangUpAt, () => { sequenceIdRef.current++; takeAudioFocus(); });
   for (let guard = 0; guard < 10000; guard++) {
@@ -1292,6 +1305,81 @@ async function checkPrefetch(html) {
   else fail('E2 hang-up leaves the prefetch running (no abort seen)');
 }
 
+// E3 (T4 fix 2, F1 -- the owner's option A): in SPEECH only, a line starting with the source
+// label, every URL and every site or domain name are silent; the hadith's collector -- "(Muslim)",
+// "rawahu Muslim", the <hadith narrator> -- and its grading are still spoken. The client's own
+// formatForTTS, splitSpeechIntoSentences, buildAudioSequence and createCallSpeechStream are
+// EXECUTED: once as the listen button speaks a whole reply, once as the call streams it in two
+// deltas whose boundary falls INSIDE the source line, after a full stop.
+async function checkSpokenAttribution(html) {
+  const get = (h) => extractDecl(html, h);
+  const srcs = {
+    formatForTTS: get('const formatForTTS = (text) => '),
+    splitSpeechIntoSentences: get('const splitSpeechIntoSentences = (prose) => '),
+    buildAudioSequence: get('const buildAudioSequence = (text) => '),
+  };
+  const missing = Object.keys(srcs).filter((k) => !srcs[k]);
+  if (missing.length) { fail('E3 client speech code not found: ' + missing.join(', ')); return; }
+  const env = {
+    stripIncompleteTags: (t) => String(t == null ? '' : t), ezikStripIncomplete: (t) => String(t == null ? '' : t),
+    resolveHadithAttribution: (narrator, ruling) => ({ narrator, ruling }), readStepsTitle: () => '',
+    resolveSurahNumber: () => 0,
+    EZIK_NOTICE_ALL: evalConst(html, 'EZIK_NOTICE_ALL') || /(?!)/g,
+    EZ_TTS_SOURCE_LINE_SRC: evalConst(html, 'EZ_TTS_SOURCE_LINE_SRC'),
+  };
+  let fx;
+  try {
+    const names = Object.keys(env);
+    fx = new Function(...names, srcs.formatForTTS + ';\n' + srcs.splitSpeechIntoSentences + ';\n' + srcs.buildAudioSequence
+      + ';\nreturn { formatForTTS, splitSpeechIntoSentences, buildAudioSequence };')(...names.map((k) => env[k]));
+  } catch (e) { fail('E3 extracted speech code does not evaluate: ' + e.message); return; }
+  const lead = 'الصلاة في وقتها واجبة على كل مسلم بالغ عاقل.';
+  // The call bans tags, so its reply is tag-free prose (a tag would stop the stream at once and
+  // hand everything to finish()); the listen button's reply also carries a <hadith> card.
+  const HADITH = '<hadith narrator="مسلم" ruling="صحيح">إنما الأعمال بالنيات</hadith>\n';
+  const body = 'قال النبي: إنما الأعمال بالنيات (مسلم). وفي لفظ رواه مسلم أيضا، وهو حديث صحيح.\n'
+    + 'وللمزيد راجع binothaimeen.net أو (islamqa.info) أو اكتب إلى info@dorar.net\n'
+    + 'https://binbaz.org.sa/fatwas/123?x=cos\n'
+    + '**المصادر:** فتاوى نور على الدرب. الجزء الثالث binbaz.org.sa\n'
+    + 'والله أعلم.';
+  const reply = lead + '\n' + body;
+  const card = lead + '\n' + HADITH + body;
+  const replyBefore = require('crypto').createHash('sha256').update(reply).digest('hex');
+  const cardBefore = require('crypto').createHash('sha256').update(card).digest('hex');
+  const KEEP = ['(مسلم)', 'رواه مسلم', 'حديث صحيح', 'والله أعلم'];
+  const DROP = ['binothaimeen', 'islamqa', 'dorar', 'binbaz', 'http', 'المصادر', 'نور على الدرب', 'الجزء الثالث', '( )', '()'];
+  const judge = (label, spoken, extra) => {
+    const want = KEEP.concat(extra || []);
+    const kept = want.filter((k) => !spoken.includes(k)).length;
+    const leaked = DROP.filter((d) => spoken.includes(d)).length;
+    if (kept === 0) pass('E3 ' + label + ': the collector and the grading are still spoken (' + want.length + ' of ' + want.length + ')');
+    else fail('E3 ' + label + ': ' + kept + ' of ' + want.length + ' collector/grading needles missing from speech');
+    if (leaked === 0) pass('E3 ' + label + ': no source line, URL or domain name reaches speech (0 of ' + DROP.length + ' needles)');
+    else fail('E3 ' + label + ': ' + leaked + ' of ' + DROP.length + ' source/URL/domain needles reach speech');
+  };
+  // (a) the listen button: speakReply -> buildAudioSequence -> fetchSpeechAudio(formatForTTS)
+  // the card's collector and grading become prose: "rawa Muslim: <matn>. sahih."
+  judge('listen button', fx.buildAudioSequence(card).filter((p) => p.kind === 'speak').map((p) => fx.formatForTTS(p.text)).join(' '), ['مسلم:', 'بالنيات. صحيح.']);
+  // (b) the call: two deltas; the boundary sits after the full stop INSIDE the source line
+  const split = reply.indexOf('الجزء الثالث');
+  let r;
+  try {
+    r = await simulatePump(html, {
+      full: reply, deltas: [reply.slice(0, split), reply.slice(split)],
+      deps: { splitSpeechIntoSentences: fx.splitSpeechIntoSentences, buildAudioSequence: fx.buildAudioSequence,
+        EZ_TTS_SOURCE_LINE_SRC: env.EZ_TTS_SOURCE_LINE_SRC },
+    });
+  } catch (e) { fail('E3 the call pump does not run on the fixture: ' + e.message); return; }
+  judge('call, streamed', r.log.fetches.map((f) => fx.formatForTTS(f.text)).join(' '));
+  if (r.log.fetches.length && fx.formatForTTS(r.log.fetches[0].text).startsWith(lead.slice(0, 20)) && r.settled)
+    pass('E3 call: the lead is still spoken first and the stream settles');
+  else fail('E3 call: the lead is not spoken first, or the stream did not settle');
+  const replyAfter = require('crypto').createHash('sha256').update(reply).digest('hex');
+  const cardAfter = require('crypto').createHash('sha256').update(card).digest('hex');
+  if (replyAfter === replyBefore && cardAfter === cardBefore) pass('E3 the written reply is byte-identical after both speech paths ran (sha256 ' + replyAfter.slice(0, 8) + ')');
+  else fail('E3 the written reply changed');
+}
+
 // ===========================================================================
 (async () => {
   // ITEM 32: the call screen is in app.jsx now, so this reads the shipped client, not the shell.
@@ -1312,6 +1400,7 @@ async function checkPrefetch(html) {
   console.log('  -- CHECK E: the call speech pump (executed) --');
   checkSpeechPump(html);
   await checkPrefetch(html);
+  await checkSpokenAttribution(html);
 
   console.log('  SUMMARY   PASS=' + P + '   FAIL=' + F);
   if (F > 0) {

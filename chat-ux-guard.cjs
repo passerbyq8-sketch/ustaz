@@ -610,8 +610,12 @@ function partA() {
   eq('trig letter sequences inside Latin words and names stay unchanged',
     formatForTTS(LATIN_WORDS), LATIN_WORDS);
   const URL = 'https://example.com/cos/sin?x=tan&ratio=3/4';
-  eq('a URL keeps its trig names, operators and every slash unchanged',
-    formatForTTS(URL), URL);
+  // Q1 (owner, option A, 2026-09-27): a URL is never spoken at all -- so no trig name in its path
+  // and no operator in its query can be read out as mathematics either.
+  eq('a URL is silent in speech: none of its trig names, operators or slashes is spoken',
+    formatForTTS(URL), '');
+  eq('...and the prose around a URL is spoken unchanged',
+    formatForTTS('before ' + URL + ' after'), 'before after');
   eq('standalone trig tokens are pronounced as mathematics',
     formatForTTS('cos + sin + tan'), 'كوساين زائد ساين زائد تانجنت');
   eq('a numeric fraction still pronounces its slash as division',
