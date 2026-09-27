@@ -9443,7 +9443,7 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // ezikGoBack below. It is NOT a route and adds no `screen` value, for the reason written over
   // PrayerSheet: the screen inventory is a cross-file contract. So the device back button closes
   // the compass and leaves the reader on the home, rather than leaving the home screen.
-  const [compassOpen, setCompassOpen] = useState(false);
+  const [compassOpen, setCompassOpen] = useState(() => ezikReadResume() === 'compass');
   useEzikBackLayer(compassOpen, () => setCompassOpen(false));
   // ITEM 20: which articles section is open over the home, or null. It is not a route either --
   // the screen inventory is a cross-file contract, see the note above PrayerSheet -- and LIKE
@@ -9507,14 +9507,14 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // ITEM 93: the tasbih section and its log, in the identical three shapes -- the state,
   // useEzikBackLayer(open, close) and the ezikHistBack() toggle in each handler below. Each owns
   // one real history entry while it is open, so the device back button closes IT.
-  const [tasbihOpen, setTasbihOpen] = useState(false);
+  const [tasbihOpen, setTasbihOpen] = useState(() => ezikReadResume() === 'tasbih');
   useEzikBackLayer(tasbihOpen, () => setTasbihOpen(false));
   const [tasbihLogOpen, setTasbihLogOpen] = useState(false);
   useEzikBackLayer(tasbihLogOpen, () => setTasbihLogOpen(false));
   // ITEM 95: the calculator section, in those identical three shapes -- the state,
   // useEzikBackLayer(open, close) and the ezikHistBack() toggle in its handler below. It owns
   // one real history entry while it is open, so the device back button closes IT.
-  const [calcOpen, setCalcOpen] = useState(false);
+  const [calcOpen, setCalcOpen] = useState(() => ezikReadResume() === 'calc');
   useEzikBackLayer(calcOpen, () => setCalcOpen(false));
   // DEFECT 14 (item 88) -- WHERE THE RECORD DIES, and it is one place.
   // The reader is standing nowhere in particular exactly when this component has no layer of
@@ -10314,11 +10314,12 @@ const EZIK_RESUME_KEY = 'ezik_resume_section_v1';
 const EZIK_RESUME_SCREENS = {
   memorize: 'memorize', adhkar: 'adhkar', arbaeen: 'arbaeen',
   mushaf: 'mushaf', fatwa: 'fatwa', lessons: 'lessons', home: 'home',
+  'ayah-tafsir': 'ayah-tafsir',
 };
 const EZIK_RESUME_APP_LAYERS = { asmaa: 1, 'sunan-day': 1 };
 // ITEM 45: `wirdi` is the wird section (EzikWirdSection), a layer over the home exactly as the
 // prayer sheet is -- the widget names it, and it is restored the way `prayer` is.
-const EZIK_RESUME_HOME_LAYERS = { articles: 1, women: 1, prayer: 1, wirdi: 1 };
+const EZIK_RESUME_HOME_LAYERS = { articles: 1, women: 1, prayer: 1, wirdi: 1, tasbih: 1, calc: 1, compass: 1 };
 function ezikResumeKnown(id) {
   return !!(EZIK_RESUME_SCREENS[id] || EZIK_RESUME_APP_LAYERS[id] || EZIK_RESUME_HOME_LAYERS[id]);
 }
@@ -15996,6 +15997,7 @@ function App() {
   // harmless step on the device back, which then resolves through the table as usual.
   const [widgetSeq, setWidgetSeq] = useState(0);
   const [homeEpoch, setHomeEpoch] = useState(0);
+  const widgetChatFocusRef = useRef(false);
   useEffect(() => {
     const bump = () => setWidgetSeq((n) => n + 1);
     EZIK_WIDGET_SUBS.add(bump);
@@ -16006,14 +16008,16 @@ function App() {
     // be the first RENDER return; these two are an effect's early exits, not screens.
     const cur = screen;
     if (cur === 'loading') return;
-    const route = ezikWidgetTake();
-    if (!route) return;
+    const requested = ezikWidgetTake();
+    if (!requested) return;
     if (cur === 'onboarding') return;
-    ezikWriteResume(route);
-    setAsmaaOpen(false);
+    // Notification aliases open the index, preserving the cancellation of group deep links.
+    const route = requested === 'adhkar_sabah' || requested === 'adhkar_masaa' ? 'adhkar' : requested;
+    widgetChatFocusRef.current = false;
+    setAsmaaOpen(route === 'asmaa');
     setAboutOpen(false);
     setSourcesOpen(false);
-    setSunanOpen(false);
+    setSunanOpen(route === 'sunan-day');
     setFeedbackOpen(false);
     setInboxOpen(false);
     setShareOpen(false);
@@ -16021,12 +16025,25 @@ function App() {
     drawerNavRef.current = null;
     feedbackNavRef.current = null;
     sheetOriginRef.current = [];
+    setHomeEpoch((n) => n + 1);
+    if (route === 'treasure') {
+      ezikClearResume();
+      window.location.href = '/quest.html';
+      return;
+    }
+    if (route === 'chat') {
+      ezikClearResume();
+      newChat();
+      setScreen('chat');
+      widgetChatFocusRef.current = true;
+      return;
+    }
+    ezikWriteResume(route);
     ezikResumeMarkEntered(ezikReadResume());
     const next = ezikResumeScreen();
     // Already standing on that screen: no mount will spend the mark, so spend it here, or the
     // reader's next ordinary walk into المصحف would be taken for a reload.
     if (next === screenRef.current) ezikResumeTakeEntered(route);
-    setHomeEpoch((n) => n + 1);
     setScreen(next);
   }, [screen, widgetSeq]);
   // ONE ENTRY PER OPENED SCREEN, and never one for a back. Opening a section pushes; a back
@@ -17309,6 +17326,16 @@ function App() {
   // restores the Web Speech path untouched.
   const DICTATE_CLOUD = false; // OFF until the silent failure after the second tap is measured (call mode is unaffected)
   const inputElRef = useRef(null);
+  // A widget starts an empty thread; focus waits until both gates allow the composer to mount.
+  // This is ordinary DOM focus. Whether a shell WebView opens its keyboard is a device measure.
+  useEffect(() => {
+    if (!widgetChatFocusRef.current || screen !== 'chat' || !spendGateOpenState
+      || aiConsent !== EZ_AI_CONSENT_GRANTED || aiConsentReview) return;
+    const el = inputElRef.current;
+    if (!el) return;
+    el.focus();
+    widgetChatFocusRef.current = false;
+  }, [screen, homeEpoch, spendGateOpenState, aiConsent, aiConsentReview]);
   // The composer grows from STATE, not from the keystroke: dictation fills it programmatically
   // and an onChange-only resize would leave a one-line box holding six lines of speech.
   useEffect(() => { const el = inputElRef.current; if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 200) + 'px'; }, [input]);
@@ -19143,10 +19170,10 @@ function App() {
   // retained, and only a back taken from the section's own top level goes home.
   if (screen === 'memorize') return <MemorizeScreen profile={profile} onExit={goEzikBack} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
   if (screen === 'mushaf') return <MushafScreen selected={selectedSurah} setSelected={setSelectedSurah} onBack={goEzikBack} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
-  if (screen === 'adhkar') return <AdhkarScreen onBack={goEzikBack} />;
+  if (screen === 'adhkar') return <AdhkarScreen onBack={goEzikBack} key={homeEpoch} />;
   // ITEM 89: a feature section, in NEITHER screen register -- exactly like the adhkar line
   // above it. ezikBackTarget's fall-through gives it its back destination.
-  if (screen === 'arbaeen') return <ArbaeenScreen onBack={goEzikBack} />;
+  if (screen === 'arbaeen') return <ArbaeenScreen onBack={goEzikBack} key={homeEpoch} />;
   // ITEM 27: the daily verse's tafsir. A feature section like the two above it, so it is in
   // NEITHER screen register and takes its back destination from ezikBackTarget's fall-through.
   if (screen === 'ayah-tafsir') return <AyahTafsirScreen onBack={goEzikBack} />;
@@ -24117,7 +24144,12 @@ const SHELL_SCHED_RESULT_OP = 'result';
 // `rearm-request`, `result` and `status` are not touched: this listener returns on every op but
 // `open`, and useEzikSchedRoot keeps its own listener exactly as it was.
 const SHELL_SCHED_OPEN_OP = 'open';
-const EZIK_WIDGET_ROUTES = ['mushaf', 'adhkar', 'wirdi', 'prayer'];
+const EZIK_WIDGET_ROUTES = [
+  'mushaf', 'adhkar_sabah', 'adhkar_masaa', 'home',
+  'adhkar', 'arbaeen', 'prayer', 'chat',
+  'memorize', 'fatwa', 'lessons', 'articles', 'women', 'tasbih', 'calc', 'compass',
+  'ayah-tafsir', 'asmaa', 'sunan-day', 'treasure',
+];
 let EZIK_WIDGET_PENDING = '';
 const EZIK_WIDGET_SUBS = new Set();
 function ezikWidgetTake() {
