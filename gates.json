@@ -605,5 +605,10 @@
     "name": "encycbrain",
     "script": "guards/encyc-brain-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "widgetopen",
+    "script": "guards/widget-open-guard.cjs",
+    "args": ""
   }
 ]

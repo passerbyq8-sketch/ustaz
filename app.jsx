@@ -9491,7 +9491,8 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // state, useEzikBackLayer(open, close) and the ezikHistBack() toggle in its handler below. It
   // is a layer for the same reason the picker is, and it owns one real history entry while it is
   // open, so back walks picker unit -> picker section -> wird section -> home.
-  const [wirdOpen, setWirdOpen] = useState(false);
+  // ITEM 45: restored from the ledger in the lazy initialiser, exactly as prayerOpen above is.
+  const [wirdOpen, setWirdOpen] = useState(() => ezikReadResume() === 'wirdi');
   useEzikBackLayer(wirdOpen, () => setWirdOpen(false));
   // ITEM 93: the tasbih section and its log, in the identical three shapes -- the state,
   // useEzikBackLayer(open, close) and the ezikHistBack() toggle in each handler below. Each owns
@@ -9513,9 +9514,9 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // restore the layer is ALREADY open -- it was set in a lazy initialiser, not an effect --
   // so this cannot clear the record out from under the very restore that just happened.
   useEffect(() => {
-    if (artSection || prayerOpen || compassOpen || tasbihOpen || tasbihLogOpen || calcOpen || wirdPickOpen) return;
+    if (artSection || prayerOpen || compassOpen || tasbihOpen || tasbihLogOpen || calcOpen || wirdPickOpen || wirdOpen) return;
     ezikClearResume();
-  }, [artSection, prayerOpen, compassOpen, tasbihOpen, tasbihLogOpen, calcOpen, wirdPickOpen]);
+  }, [artSection, prayerOpen, compassOpen, tasbihOpen, tasbihLogOpen, calcOpen, wirdPickOpen, wirdOpen]);
   // ITEM 96: the day's gold price, fetched HERE rather than inside the calculator, on the same
   // discipline the wird and the hijri date below are read on -- the owner reads, the layer is
   // handed the result. It fires on the open, at most once per calendar day of the device, and
@@ -10305,7 +10306,9 @@ const EZIK_RESUME_SCREENS = {
   mushaf: 'mushaf', fatwa: 'fatwa', lessons: 'lessons', home: 'home',
 };
 const EZIK_RESUME_APP_LAYERS = { asmaa: 1, 'sunan-day': 1 };
-const EZIK_RESUME_HOME_LAYERS = { articles: 1, women: 1, prayer: 1 };
+// ITEM 45: `wirdi` is the wird section (EzikWirdSection), a layer over the home exactly as the
+// prayer sheet is -- the widget names it, and it is restored the way `prayer` is.
+const EZIK_RESUME_HOME_LAYERS = { articles: 1, women: 1, prayer: 1, wirdi: 1 };
 function ezikResumeKnown(id) {
   return !!(EZIK_RESUME_SCREENS[id] || EZIK_RESUME_APP_LAYERS[id] || EZIK_RESUME_HOME_LAYERS[id]);
 }
@@ -15871,6 +15874,62 @@ function App() {
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
+
+  // ===== ITEM 45 -- THE WIDGET'S PRESS, APPLIED =====
+  // The slot is filled by the file-level listener beside SHELL_SCHED_CHANNEL; this is its one
+  // consumer. It is re-run by a press (the subscription bumps widgetSeq) and by every screen
+  // change, which is how a press that arrived during the boot is picked up the moment the boot
+  // has decided where to land -- and not a moment before: nothing is applied over 'loading'.
+  //
+  // WHAT IT DOES IS WHAT A RELOAD DOES. The section is written to the resume ledger and then the
+  // boot's own two lines run -- ezikResumeMarkEntered, then setScreen(ezikResumeScreen()) -- so
+  // the widget opens a section by the one road the app already has, and a layer (prayer, wirdi)
+  // is opened by its owner's lazy initialiser exactly as after a refresh. homeEpoch remounts the
+  // home so that initialiser runs even when the home is already the screen underneath.
+  //
+  // A NEW READER IS NEVER INTERRUPTED. On the onboarding screen the press is taken and dropped:
+  // nothing is written, and the introduction stays where it was.
+  //
+  // WHAT STANDS IN FRONT IS PUT AWAY. App's own layers (الأسماء, the menu's panels, السنن) and
+  // the side menu all draw before the screen, so a press that only moved `screen` would land
+  // behind them. They are closed as state; the history entry each one held is not popped here,
+  // because a pop is asynchronous and would race the screen change -- it is left as one extra,
+  // harmless step on the device back, which then resolves through the table as usual.
+  const [widgetSeq, setWidgetSeq] = useState(0);
+  const [homeEpoch, setHomeEpoch] = useState(0);
+  useEffect(() => {
+    const bump = () => setWidgetSeq((n) => n + 1);
+    EZIK_WIDGET_SUBS.add(bump);
+    return () => { EZIK_WIDGET_SUBS.delete(bump); };
+  }, []);
+  useEffect(() => {
+    // Read into `cur` because chat-history-guard takes the first `if (screen === ...` in App to
+    // be the first RENDER return; these two are an effect's early exits, not screens.
+    const cur = screen;
+    if (cur === 'loading') return;
+    const route = ezikWidgetTake();
+    if (!route) return;
+    if (cur === 'onboarding') return;
+    ezikWriteResume(route);
+    setAsmaaOpen(false);
+    setAboutOpen(false);
+    setSourcesOpen(false);
+    setSunanOpen(false);
+    setFeedbackOpen(false);
+    setInboxOpen(false);
+    setShareOpen(false);
+    setDrawerOpen(false);
+    drawerNavRef.current = null;
+    feedbackNavRef.current = null;
+    sheetOriginRef.current = [];
+    ezikResumeMarkEntered(ezikReadResume());
+    const next = ezikResumeScreen();
+    // Already standing on that screen: no mount will spend the mark, so spend it here, or the
+    // reader's next ordinary walk into المصحف would be taken for a reload.
+    if (next === screenRef.current) ezikResumeTakeEntered(route);
+    setHomeEpoch((n) => n + 1);
+    setScreen(next);
+  }, [screen, widgetSeq]);
   // ONE ENTRY PER OPENED SCREEN, and never one for a back. Opening a section pushes; a back
   // relabels the entry it is standing on (replaceState) instead of stacking a second copy of the
   // parent; a pop-driven change pushes nothing at all, because the pop already spent the entry.
@@ -18832,7 +18891,7 @@ function App() {
   // an onOpenChat: the chat is entered from that menu's «محادثة جديدة» row.
   if (screen === 'home') return (
     <>
-      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenSunan={() => setSunanOpen(true)} onOpenArbaeen={() => setScreen('arbaeen')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} onOpenTafsir={() => setScreen('ayah-tafsir')} />
+      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenSunan={() => setSunanOpen(true)} onOpenArbaeen={() => setScreen('arbaeen')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} onOpenTafsir={() => setScreen('ayah-tafsir')} key={homeEpoch} />
       {ezikDrawer()}
     </>
   );
@@ -23828,6 +23887,51 @@ const SHELL_SCHED_REARM_OP = 'rearm-request';
 const SHELL_SCHED_ENABLE_OP = 'enable';
 const SHELL_SCHED_CANCEL_OP = 'cancel';
 const SHELL_SCHED_RESULT_OP = 'result';
+
+// ============================================================
+// ITEM 45 -- THE WIDGET'S PRESS, CAUGHT AT THE DOOR AND HANDED TO THE ONE ROUTER
+// ============================================================
+// THE SHELL SPEAKS ON THIS SAME CHANNEL WITH A SIXTH WORD, `open`, and it carries one of four
+// section names and nothing else: { channel, v, op: 'open', route, type: null, id: null }
+// (murabbi-shell src/deeplink.js, delivered by SiteScreen's deliverOpen). The four are the
+// widget's tiles, spelt exactly as the shell spells them; any other word is not ours and is
+// dropped here, before it can reach a store or a screen.
+//
+// WHY THE LISTENER HANGS HERE AND NOT IN A HOOK. On a cold start the shell holds the press
+// until the page reports loaded and then injects it at once -- which can be before React has
+// committed its first tree, so a listener attached inside a useEffect may not exist yet and
+// the press would be lost without trace. This one is attached while this file executes. It
+// decides nothing: it keeps the LAST valid press in one slot and tells whoever subscribed.
+// App is the only subscriber, and it routes the press through the resume ledger and the boot's
+// own two tools -- there is no second way to open a section.
+//
+// `rearm-request`, `result` and `status` are not touched: this listener returns on every op but
+// `open`, and useEzikSchedRoot keeps its own listener exactly as it was.
+const SHELL_SCHED_OPEN_OP = 'open';
+const EZIK_WIDGET_ROUTES = ['mushaf', 'adhkar', 'wirdi', 'prayer'];
+let EZIK_WIDGET_PENDING = '';
+const EZIK_WIDGET_SUBS = new Set();
+function ezikWidgetTake() {
+  const r = EZIK_WIDGET_PENDING;
+  EZIK_WIDGET_PENDING = '';
+  return r;
+}
+(function ezikWidgetListen() {
+  // The same two guards the schedule hook carries: no window under a node harness that loads
+  // this file without a DOM, and a throwing addEventListener degrades to «the widget opens the
+  // app as it is» rather than to a broken page.
+  if (typeof window === 'undefined') return;
+  try {
+    window.addEventListener(SHELL_SCHED_CHANNEL, (ev) => {
+      const d = ev && ev.detail;
+      if (!d || typeof d !== 'object') return;
+      if (d.channel !== SHELL_SCHED_CHANNEL || d.v !== SHELL_SCHED_VERSION || d.op !== SHELL_SCHED_OPEN_OP) return;
+      if (typeof d.route !== 'string' || EZIK_WIDGET_ROUTES.indexOf(d.route) === -1) return;
+      EZIK_WIDGET_PENDING = d.route;
+      EZIK_WIDGET_SUBS.forEach((f) => { try { f(); } catch (e) {} });
+    });
+  } catch (e) {}
+})();
 
 // The bridge, or null. The injected object is the whole test; navigator.userAgent is deliberately
 // not consulted here either, for the reason written out at ezikShellBridge above.
