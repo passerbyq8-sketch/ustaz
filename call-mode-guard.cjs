@@ -28,7 +28,8 @@
 //          our own voice stopped sounding (E4); a silent dictation session is not restarted (E5);
 //          a suspended capture context is resumed, or the reader is asked for one tap (E6); the
 //          call waits for an open dictation session's onend before its getUserMedia (E7); the words
-//          the call heard are shown before the answer is requested, and never spoken (E8).
+//          the call heard are shown before the answer is requested, and never spoken (E8); a turn
+//          far quieter than this call's accepted turns is dropped before /api/stt (E9).
 //
 // Arabic needles live as string literals but are NEVER printed. All console output is
 // ASCII (ids/labels only), safe for a Windows terminal.
@@ -1626,7 +1627,7 @@ async function simulateCapture(html, mode, tapAt) {
     vadLastVoiceRef: { current: 0 }, VAD_RMS_ON: 0.02, VAD_SILENCE_MS: 1200, CLOUD_MAX_TURN_MS: 60000,
     armInactivityTimer: () => { if (heardAt === null) heardAt = now; }, stopCloudTurn: () => {},
     setTimeout: (fn, ms) => at(ms, fn), setCallHeard: () => {}, showCallError: (m) => setVoiceError(m),
-    micErrorMessage: () => 'mic error', setVoiceError, captureTapOffRef: { current: null },
+    micErrorMessage: () => 'mic error', setVoiceError, captureTapOffRef: { current: null }, turnPeakRef: { current: 0 },
     Date: { now: () => now }, console: { error: () => {} },
   };
   const names = Object.keys(deps);
@@ -1939,6 +1940,127 @@ async function checkHeardWords(html) {
   else fail('E8 the heard words survive the hang-up');
 }
 
+// E9 (T4 fix 4, H2 -- the owner's option A): a faint voice far quieter than the reader, a
+// television across the room, opened a turn and was answered. The call now keeps the peak level
+// (the VAD's own RMS) of every turn it accepted; from the second turn on, a turn whose peak is
+// below 0.25 x the median of those peaks (-12 dB) is dropped: it never reaches /api/stt, one line
+// shows in the error panel, and the mic re-opens. The first turn always passes, and so does the
+// turn a barge-in tap opens. EXECUTED on a simulated clock: startCloudListening, stopCloudTurn,
+// their helpers and onCallTalk run against a fake context whose analyser plays a scripted level
+// per turn (speech 300..1100 ms into the turn, then silence).
+const FAINT_LINE = String.fromCharCode(0x0644, 0x0645, 0x20, 0x0623, 0x0644, 0x062A, 0x0642, 0x0637, 0x0652, 0x20,
+  0x0643, 0x0644, 0x0627, 0x0645, 0x064E, 0x0643, 0x20, 0x2014, 0x20, 0x0623, 0x0639, 0x0650, 0x062F, 0x0652, 0x20,
+  0x0645, 0x0646, 0x20, 0x0641, 0x0636, 0x0644, 0x0643, 0x2E);
+const NORMAL_AMP = 100;                                  // RMS 100/128 = 0.78; -16 dB rounds to 16 (-15.9 dB)
+const dbAmp = (db) => NORMAL_AMP * Math.pow(10, db / 20);
+async function simulateLevelGate(html, amps, opts) {
+  const o = opts || {};
+  const get = (h) => extractDecl(html, h);
+  const startSrc = get('const startCloudListening = async () => ');
+  const stopSrc = get('const stopCloudTurn = async () => ');
+  const talkSrc = get('const onCallTalk = () => ');
+  if (!startSrc || !stopSrc || !talkSrc) throw new Error('startCloudListening / stopCloudTurn / onCallTalk not found');
+  const helpers = ['const clearCaptureTap = () => ', 'const resumeCapture = (ctx) => ', 'const askTapForCapture = (ctx) => ',
+    'const ensureCaptureRunning = (ctx, myGen) => ', 'const stopCloudAll = () => ', 'const faintTurn = (peak) => ']
+    .map(get).filter(Boolean);
+  const constLine = (n) => { const m = new RegExp('\\n\\s*(const ' + n + ' = [^\\n]*;)').exec(html); return m ? m[1] : ''; };
+  const consts = ['CAPTURE_TAP_LINE', 'CAPTURE_RESUME_WAIT_MS', 'FAINT_TURN_RATIO', 'FAINT_TURN_LINE'].map(constLine).join('\n');
+  let now = 0, seqn = 0; const timers = [];
+  const at = (ms, fn) => { timers.push({ t: now + Math.max(0, ms || 0), n: seqn++, fn }); return seqn; };
+  let turn = -1, turnStart = 0;
+  const log = { stt: [], answered: [], shown: [], opens: 0 };
+  const ctx = {
+    state: 'running', onstatechange: null, outputLatency: 0, resume: async () => {}, close() {},
+    createAnalyser: () => ({ fftSize: 0, getByteTimeDomainData(buf) {
+      const dt = now - turnStart;
+      const a = (turn >= 0 && turn < amps.length && dt >= 300 && dt < 1100) ? Math.round(amps[turn]) : 0;
+      for (let i = 0; i < buf.length; i++) buf[i] = 128 + (i % 2 ? a : -a);
+    } }),
+    createMediaStreamSource: () => ({ connect() {} }),
+  };
+  function FakeRecorder() { this.state = 'inactive'; this.mimeType = 'audio/webm'; }
+  FakeRecorder.prototype.start = function () { this.state = 'recording'; turn++; turnStart = now; log.opens++; };
+  FakeRecorder.prototype.stop = function () {
+    if (this.state === 'inactive') return;
+    this.state = 'inactive';
+    if (this.ondataavailable) this.ondataavailable({ data: { size: 4000 } });
+    const self = this; at(0, () => { if (self.onstop) self.onstop(); });
+  };
+  function FakeBlob(chunks, opt) { this.size = chunks.reduce((n, c) => n + (c.size || 0), 0); this.type = (opt && opt.type) || ''; }
+  const callActiveRef = { current: false };
+  let callState = 'idle';
+  const deps = {
+    hasValidAIConsent: () => true, setCallState: (v) => { callState = v; }, callGenRef: { current: 1 },
+    cloudStreamRef: { current: null }, navigator: { mediaDevices: { getUserMedia: async () => ({ getTracks: () => [] }) } },
+    mediaRecRef: { current: null }, cloudChunksRef: { current: [] }, MediaRecorder: FakeRecorder, pickRecMime: () => ({}),
+    callActiveRef, vadCtxRef: { current: null }, window: { AudioContext: function () { return ctx; }, addEventListener() {}, removeEventListener() {} },
+    vadAnalyserRef: { current: null }, vadLastVoiceRef: { current: 0 }, VAD_RMS_ON: 0.02, VAD_SILENCE_MS: 1200, CLOUD_MAX_TURN_MS: 60000,
+    armInactivityTimer: () => {}, setTimeout: (fn, ms) => at(ms, fn), setCallHeard: () => {},
+    showCallError: (m) => { log.shown.push({ t: now, turn, m }); }, micErrorMessage: () => 'mic error', setVoiceError: () => {},
+    captureTapOffRef: { current: null }, Date: { now: () => now }, console: { error: () => {} }, Blob: FakeBlob,
+    blobToBase64: async () => 'b64', deriveCaps: () => ({ band: 'adult' }), profileRef: { current: {} },
+    aiFetch: async (url) => { if (url === '/api/stt') log.stt.push({ t: now, turn }); return { ok: true, json: async () => ({ text: 'words ' + turn }) }; },
+    sttErrorMessage: () => 'stt error', callTurnRef: { current: null },
+    turnPeakRef: { current: 0 }, callPeaksRef: { current: [] }, callTurnExemptRef: { current: false },
+    callMutedRef: { current: false }, abortRef: { current: null }, cancelAudio: () => {},
+  };
+  let fns;
+  deps.startCallListening = () => fns.startCloudListening();
+  const names = Object.keys(deps).concat(['callState']);
+  // callState is read through a getter so onCallTalk sees the live value, as React's render would
+  const make = new Function(...Object.keys(deps), 'getCallState',
+    consts + '\n' + helpers.join(';\n') + ';\n' + startSrc + ';\n' + stopSrc + ';\n'
+    + 'const onCallTalk = () => { const callState = getCallState(); return (' + talkSrc.slice('const onCallTalk = '.length) + ')(); };\n'
+    + 'return { startCloudListening, stopCloudTurn, onCallTalk };');
+  void names;
+  fns = make(...Object.keys(deps).map((k) => deps[k]), () => callState);
+  deps.callTurnRef.current = (text) => {
+    log.answered.push({ t: now, turn });
+    const t = turn;
+    callState = 'speaking';
+    if (o.bargeInAfter === t) at(500, () => fns.onCallTalk());          // the reader taps mid-answer
+    else at(3000, () => { callState = 'idle'; fns.startCloudListening(); }); // the answer ends, the mic re-opens
+  };
+  fns.startCloudListening();
+  const drain = async () => { for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r)); };
+  const HORIZON = 30000;
+  for (let guard = 0; guard < 100000; guard++) {
+    await drain();
+    if (!timers.length) break;
+    timers.sort((a, b) => a.t - b.t || a.n - b.n);
+    if (timers[0].t > HORIZON) break;
+    const x = timers.shift(); now = x.t; x.fn();
+  }
+  await drain();
+  const faintShown = log.shown.filter((e) => e.m === FAINT_LINE);
+  const errMs = Number((/\n\s*const CALL_ERROR_MS = (\d+);/.exec(html) || [])[1]);
+  return { log, faintShown, sttTurns: log.stt.map((e) => e.turn), answered: log.answered.map((e) => e.turn), opens: log.opens, errMs };
+}
+async function checkLevelGate(html) {
+  let a, b, c, d;
+  try {
+    a = await simulateLevelGate(html, [NORMAL_AMP, NORMAL_AMP, dbAmp(-16), NORMAL_AMP]);
+    b = await simulateLevelGate(html, [dbAmp(-16), NORMAL_AMP]);
+    c = await simulateLevelGate(html, [NORMAL_AMP, NORMAL_AMP, dbAmp(-16)], { bargeInAfter: 1 });
+    d = await simulateLevelGate(html, [NORMAL_AMP, NORMAL_AMP, dbAmp(-10)]);
+  } catch (e) { fail('E9 the capture path does not run on the simulated clock: ' + e.message); return; }
+  info('E9 normal,normal,-16dB,normal: /api/stt for turns [' + a.sttTurns.join(',') + '], answered [' + a.answered.join(',')
+    + '], faint line shown ' + a.faintShown.length + 'x (turn ' + a.faintShown.map((e) => e.turn).join(',') + '), mic opened ' + a.opens + 'x');
+  info('E9 -16dB first: stt [' + b.sttTurns.join(',') + '] | barge-in then -16dB: stt [' + c.sttTurns.join(',') + '] | normal,normal,-10dB: stt [' + d.sttTurns.join(',') + ']');
+  if (a.sttTurns.join(',') === '0,1,3' && a.answered.join(',') === '0,1,3') pass('E9 two normal turns then a -16 dB turn: the faint turn is dropped and /api/stt is not called for it');
+  else fail('E9 the -16 dB third turn was not dropped: /api/stt for turns [' + a.sttTurns.join(',') + ']');
+  if (a.faintShown.length === 1 && a.faintShown[0].turn === 2) pass('E9 ...the dropped turn shows its line in the call error panel (for CALL_ERROR_MS = ' + a.errMs + ' ms)');
+  else fail('E9 the dropped turn does not show its line exactly once: ' + a.faintShown.length);
+  if (a.opens === 5 && a.answered.indexOf(3) !== -1) pass('E9 ...the microphone re-opens and the normal turn after it passes');
+  else fail('E9 after a dropped turn the mic did not re-open or the next normal turn failed: opens=' + a.opens);
+  if (b.sttTurns.join(',') === '0,1' && b.faintShown.length === 0) pass('E9 a faint FIRST turn passes (there is no baseline yet)');
+  else fail('E9 a faint first turn was dropped: stt [' + b.sttTurns.join(',') + ']');
+  if (c.sttTurns.join(',') === '0,1,2' && c.faintShown.length === 0) pass('E9 a barge-in is not affected: the turn a tap opens is never dropped');
+  else fail('E9 the turn a barge-in opened was dropped: stt [' + c.sttTurns.join(',') + ']');
+  if (d.sttTurns.join(',') === '0,1,2' && d.faintShown.length === 0) pass('E9 a -10 dB turn (above the -12 dB line) still passes');
+  else fail('E9 a -10 dB turn was dropped: stt [' + d.sttTurns.join(',') + ']');
+}
+
 // ===========================================================================
 (async () => {
   // ITEM 32: the call screen is in app.jsx now, so this reads the shipped client, not the shell.
@@ -1965,6 +2087,7 @@ async function checkHeardWords(html) {
   checkDictationRestart(html);
   await checkCaptureResume(html);
   await checkHandOver(html);
+  await checkLevelGate(html);
   await checkHeardWords(html);
 
   console.log('  SUMMARY   PASS=' + P + '   FAIL=' + F);
