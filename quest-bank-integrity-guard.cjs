@@ -1482,7 +1482,22 @@ const SEALED = {
 //                    -- it stays at v38, as it did for every app.js-only ship since 2026-09-16-d:
 //                    the changed worker installs and rewrites every CORE entry into the same store.
 //                    THIS digest is re-cut LAST, after every other sw.js edit was final.
-  'sw.js': '1c0cb74cf1462102d71db9c151a2a2c0111d52e76bd91dad47f9f73777cc4fb5',
+  //   2026-09-27   -- ITEM 4 OF THE REGISTER (OFFLINE): THREE DATA FILES JOIN THE IDLE WARM AND
+//                    THE STORE NAME MOVES ONE STEP, ezik-v38 -> ezik-v39. asmaa-dataset-final-r3.json,
+//                    asmaa-rules-page-r2.json and worship-display.json were stored only once a reader
+//                    had fetched them online, so a reader who had never opened those two sections
+//                    online could not open them with no network. They are appended to IDLE, not
+//                    CORE: guards/asmaa-attribution-guard.cjs holds the two sheets out of install
+//                    (item 26: the boot must not carry them), and the three travel together. NO FILE
+//                    JOINED OR LEFT CORE, so CORE_BYTES, the byte table and SW_CORE / SW_CORE_FILES
+//                    stand; SW_PROSE gained the two sheet sizes the new IDLE note states, and the
+//                    asmaa gate's note was corrected -- its check is unchanged. CACHE in sw.js and
+//                    app_version in config/app-version.json moved together (SW_CACHE is read from that
+//                    file), and app.js was rebuilt by npm run build:app: only its EZIK_APP_VERSION line
+//                    moved, and it is 1785502 bytes before and after. sw.js is 48468 -> 49632
+//                    bytes, measured at CR = 0. THIS digest is re-cut LAST, after every other sw.js edit
+//                    was final.
+  'sw.js': '46e8deb50c4fa688b506df9a7d26c4f7d99b82fea48ca63ef8d62eec76af78f8',
 };
 
 // ---------------------------------------------------------------------------
@@ -2462,6 +2477,11 @@ async function compare(bankPath) {
       { n: 1412005, of: 'quran-uthmani.json' },
       { n: 996528, of: 'mushaf-layout.json' },
       { n: 18132, of: 'worship-display.json' },
+      // ITEM 4 OF THE REGISTER (OFFLINE). The two sheets of the names of Allah joined the worker's
+      // IDLE list beside worship-display.json; each size is stated in the worker's prose and
+      // re-derived here from the file it names.
+      { n: 153202, of: 'asmaa-dataset-final-r3.json' },
+      { n: 7180, of: 'asmaa-rules-page-r2.json' },
       { n: 2408533, sum: ['quran-uthmani.json', 'mushaf-layout.json'] },
       // ITEM 33. The three the page-cap prose states, each re-derived from the directory.
       { n: 604, dir: 'count' },

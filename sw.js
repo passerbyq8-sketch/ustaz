@@ -51,7 +51,7 @@
 // stranded on a dead build. The HTML shell is network-first (6b) so it is always fresh online
 // regardless of the version; the bump refreshes the CACHE-FIRST assets (icons/fonts). The JSON
 // data files no longer NEED the bump -- they revalidate themselves -- but they still honour it.
-const CACHE = 'ezik-v38';
+const CACHE = 'ezik-v39';
 // '/index.html' is NOT here. Vercel serves this document byte-identically for '/' and for
 // '/index.html', so precaching both downloaded the whole shell TWICE on every cold visit --
 // a second copy of the 153974 bytes '/' already holds. The network-first branch below still
@@ -282,6 +282,21 @@ function evictOld() {
 const IDLE = [
   '/quran-uthmani.json',
   '/mushaf-layout.json',
+  // ITEM 4 OF THE REGISTER (OFFLINE). The three data files two sections are drawn from, and
+  // nothing else can supply them: the names of Allah read the two sheets below and the worship
+  // section reads the third. Until this entry a returning reader who had never opened either
+  // section online could not open it with no network, because nothing precached these files
+  // and the stale-while-revalidate branch only stores what a reader has already fetched.
+  // They are here and NOT in CORE on purpose. The names sheet must never ride the boot -- that
+  // is item 26's order, and guards/asmaa-attribution-guard.cjs holds both sheets out of CORE --
+  // so they warm AFTER the boot goes idle, as the two mushaf files above do, and the worship
+  // file travels with them rather than alone. warmIdle adds only what the store lacks, and the
+  // fetch branch still serves all three stale-while-revalidate, so an edited sheet reaches the
+  // reader on the next read without another bump. Their sizes on disk, in the order below: 153202,
+  // 7180 and 18132 bytes.
+  '/asmaa-dataset-final-r3.json',
+  '/asmaa-rules-page-r2.json',
+  '/worship-display.json',
 ];
 const IDLE_BACKSTOP_MS = 1500;
 
