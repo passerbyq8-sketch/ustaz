@@ -16838,6 +16838,15 @@ function App() {
 
   // playPreparedSpeech يستقبل وعدَ تحضيرٍ (قد يكون اكتمل مسبقاً) ويُشغّله. هنا فقط نسحب
   // التركيز ونشغّل — awaitable حتى الانتهاء/الخطأ/الإيقاف. يحترم الإلغاء قبل التشغيل.
+  // H4 (T4 fix 4): a `pause` the app did not ask for -- a media key, the phone taking audio focus --
+  // is not a finished segment. It ends the rest of the answer, and on the call screen the call goes
+  // on exactly as after a barge-in (onCallTalk). The app's own stops (hang-up, barge-in, a new
+  // sequence) never come here: takeAudioFocus detaches the element's handlers before it pauses.
+  const callTalkRef = useRef(null);   // the live onCallTalk while the call screen is up, else null
+  const onExternalPause = () => {
+    cancelAudio();
+    if (callTalkRef.current) callTalkRef.current();
+  };
   const playPreparedSpeech = async (prepPromise, myId) => {
     const isCurrent = () => myId === undefined || myId === sequenceIdRef.current;
     if (!prepPromise) return;
@@ -16869,7 +16878,11 @@ function App() {
         const guard = () => { if (myPlay === audioPlayTokenRef.current) finish(); };  // ignore stale events
         audio.onended = guard;
         audio.onerror = guard;
-        audio.onpause = guard;
+        audio.onpause = () => {                           // H4
+          if (myPlay !== audioPlayTokenRef.current) return;   // a stale event
+          finish();
+          if (!audio.ended) onExternalPause();                 // at the end of the media `pause` comes just before `ended`
+        };
         audio.src = r.url;
         const p = audio.play();
         if (p && p.catch) p.catch(guard);
@@ -18260,6 +18273,7 @@ function App() {
     if (callState === 'idle') startCallListening();
     // 'listening' → no-op (unchanged from Layer 2)
   };
+  useEffect(() => { callTalkRef.current = screen === 'call' ? onCallTalk : null; });   // H4: the external-pause exit
 
   // Call-screen lifecycle: create/tear down the dedicated recognition with the call screen.
   // On entry: force the dictation mic OFF and stop any audio so the two can never fight.
