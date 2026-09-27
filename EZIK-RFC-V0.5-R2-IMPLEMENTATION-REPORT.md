@@ -383,7 +383,7 @@ Every one **PASS**, exit code `0`.
 
 ```
 TOTAL_GATES        121/121 PASS
-RECON              PASS=211 WARN=0 FAIL=0
+RECON              PASS=212 WARN=0 FAIL=0
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision
 NEW_FIXTURES       rfcpolicy 125/125 · rfcruntime 96/96
