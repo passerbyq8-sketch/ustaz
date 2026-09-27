@@ -1520,7 +1520,16 @@ const SEALED = {
 //                    branch is not merged, so the one bump of 2026-09-27 carries both commits. B17 below
 //                    executes all of it. sw.js is 49632 -> 55702 bytes, measured at CR = 0.
 //                    THIS digest is re-cut LAST, after every other sw.js edit was final.
-  'sw.js': 'bfada249b9e0c78bba28420cc897d0a7c3282176107cda5cdcb1f0d00d0da5cc',
+  //   2026-09-27-c -- VOICE + CALL T4 FIX 1, P1: THE CALL SPEAKS AN EARLY-RELEASED LEAD AT ONCE.
+//                    lastSentenceCut in createCallSpeechStream now also counts a stop at the very end
+//                    of the received text (. ! ? U+061F U+2026, never after a digit) as a sentence
+//                    end. app.js was rebuilt by node tools/build-app.cjs, 1785502 -> 1785844, and
+//                    CORE_BYTES was re-cut by node tools/core-bytes.cjs --write; the byte table in
+//                    sw.js and the SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the
+//                    store name does not move here (commit 3 of the fix moves it). sw.js is 55702
+//                    bytes, measured at CR = 0. THIS digest is re-cut LAST, after every other sw.js
+//                    edit was final.
+  'sw.js': 'b44a3eff819d3b9bfb7db1efa0f4dc1016ea3cc24f307a3b2d658d0b967ea1d0',
 };
 
 // ---------------------------------------------------------------------------
@@ -2476,7 +2485,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1785502, of: 'app.js' },
+      { n: 1785844, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

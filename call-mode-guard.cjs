@@ -20,6 +20,8 @@
 //          fails here rather than on a child's screen.
 // CHECK C  index.html structure: the invariants that cannot be executed outside a browser
 //          (SR gating, no-silent-restart, the call-screen banner) are asserted on source.
+// CHECK E  app.jsx call speech pump, EXECUTED: the sentence-end rule speaks an early-released
+//          lead at once, and the pump prefetches the next sentence while one plays.
 //
 // Arabic needles live as string literals but are NEVER printed. All console output is
 // ASCII (ids/labels only), safe for a Windows terminal.
@@ -1144,6 +1146,61 @@ function checkStructure(html) {
 }
 
 // ===========================================================================
+// CHECK E -- the call's speech pump, EXECUTED on the client's own code
+// ===========================================================================
+// E1 (T4 fix 1, P1): the early-released lead arrives ending on its full stop with nothing after
+// it. The sentence-end rule used to need whitespace AFTER the stop, so the lead stayed silent
+// until the next delta (~10 s on the live probe). A stop at the very end of the received text
+// now ends a sentence -- but never after a digit, where "3." may still become "3.5".
+const U = (cp) => String.fromCharCode(cp);
+function checkSpeechPump(html) {
+  const cutSrc = extractDecl(html, 'const lastSentenceCut = (s) => ');
+  const splitSrc = extractDecl(html, 'const splitSpeechIntoSentences = (prose) => ');
+  if (!cutSrc || !splitSrc) { fail('E1 lastSentenceCut / splitSpeechIntoSentences not found'); return; }
+  let lastSentenceCut, split;
+  try {
+    // formatForTTS is the identity here: E1 is about WHERE the stream cuts, not what TTS hears.
+    ({ lastSentenceCut, split } = new Function('formatForTTS',
+      cutSrc + ';\n' + splitSrc + ';\nreturn { lastSentenceCut, split: splitSpeechIntoSentences };')((t) => String(t)));
+  } catch (e) { fail('E1 extracted speech code does not evaluate: ' + e.message); return; }
+
+  const cases = [
+    ['end full stop', 'abc def.', 8], ['end !', 'abc def!', 8], ['end ?', 'abc def?', 8],
+    ['end Arabic ?', 'abc def' + U(0x061F), 8], ['end ellipsis char', 'abc def' + U(0x2026), 8],
+    ['end three dots', 'abc def...', 10],
+    ['digit then stop', 'costs 3.', 0], ['Arabic-Indic digit then stop', 'costs ' + U(0x0663) + '.', 0],
+    ['no stop', 'abc def', 0], ['stop + space mid-text', 'abc. def', 5], ['newline mid-text', 'abc\ndef', 4],
+  ];
+  let bad = cases.filter(([, s, want]) => lastSentenceCut(s) !== want).map(([n]) => n);
+  if (bad.length) fail('E1 lastSentenceCut wrong for: ' + bad.join(', '));
+  else pass('E1 lastSentenceCut: a stop at the end of the text is a sentence end (not after a digit); mid-text rules unchanged');
+
+  // The probe-3 shape: a 115-char lead ending on its stop, then the rest in one later delta.
+  const word = U(0x0635) + U(0x064A) + U(0x0627) + U(0x0645);   // an Arabic word, never printed
+  let lead = '';
+  while (lead.length < 114) lead += (lead ? ' ' : '') + word;
+  lead = lead.slice(0, 114) + '.';
+  const rest = '\n' + 'The ruling is restated here in a longer second sentence, with a clause.'
+    + ' A third sentence follows' + U(0x061F) + ' And a closing sentence.';
+  const deltas = [lead, rest];
+  let full = '', consumed = 0; const perDelta = []; const spoken = [];
+  for (const d of deltas) {                  // the same arithmetic as feed() for tag-free prose
+    full += d;
+    const region = full.slice(consumed);
+    const cut = lastSentenceCut(region);
+    const segs = cut > 0 ? split(region.slice(0, cut)) : [];
+    consumed += cut;
+    perDelta.push(segs.length); spoken.push(...segs);
+  }
+  spoken.push(...split(full.slice(consumed)));   // finish(): whatever is left
+  if (lead.length === 115 && perDelta[0] === 1) pass('E1 a 115-char lead ending on its stop is enqueued after delta 1 (1 segment, was 0)');
+  else fail('E1 the lead is not enqueued after delta 1: segments=' + perDelta[0] + ' lead=' + lead.length);
+  const whole = split(full);
+  if (spoken.join('\u0000') === whole.join('\u0000')) pass('E1 text sent to speech across both deltas is byte-identical to speaking the whole reply');
+  else fail('E1 streamed segments differ from the whole reply: ' + spoken.length + ' vs ' + whole.length);
+}
+
+// ===========================================================================
 (async () => {
   // ITEM 32: the call screen is in app.jsx now, so this reads the shipped client, not the shell.
   let html = null;
@@ -1160,6 +1217,8 @@ function checkStructure(html) {
   checkStructure(html);
   console.log('  -- CHECK D: complete model routing (executed) --');
   await checkModelRouting();
+  console.log('  -- CHECK E: the call speech pump (executed) --');
+  checkSpeechPump(html);
 
   console.log('  SUMMARY   PASS=' + P + '   FAIL=' + F);
   if (F > 0) {

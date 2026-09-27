@@ -17046,6 +17046,10 @@ function App() {
     const lastSentenceCut = (s) => {
       let cut = 0, re = /[.!\u061F?\u061B]\s|\n/g, m;
       while ((m = re.exec(s)) !== null) cut = m.index + m[0].length;
+      // A stop at the very END of the received text ends a sentence too: an early-released lead
+      // arrives ending on its full stop with nothing after it, and waiting for the next delta
+      // held it silent for ~10 s. Not after a digit -- "3." may still become "3.5".
+      if (/(?:^|[^0-9\u0660-\u0669\u06F0-\u06F9])[.!?\u061F\u2026]$/.test(s)) cut = s.length;
       return cut;
     };
     const feed = (full) => {
