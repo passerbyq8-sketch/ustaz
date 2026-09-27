@@ -50,7 +50,8 @@ function boot(opts) {
   const { window } = parseHTML('<!DOCTYPE html><html lang="ar" dir="rtl"><body><div id="root"></div></body></html>');
   window.self = window; window.window = window; window.globalThis = window;
   window.matchMedia = (q) => ({ matches: false, media: String(q), addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} });
-  const focuses = [], posts = [], browserPosts = [], requests = [], logs = [], dialogs = [], storageWrites = [];
+  const focuses = [], posts = [], browserPosts = [], requests = [], logs = [], dialogs = [], storageWrites = [], heldFixtures = [];
+  let fixtureHold = !!opts.deferFixtures;
   window.scrollTo = () => {};
   window.alert = () => { dialogs.push('alert'); };
   window.confirm = () => { dialogs.push('confirm'); return true; };
@@ -76,7 +77,9 @@ function boot(opts) {
     const key = String(url); requests.push(key);
     if (opts.offline || !FIXTURES.has(key)) return Promise.reject(new TypeError('offline fixture boundary'));
     const value = fs.readFileSync(path.join(REPO, key.slice(1)), 'utf8');
-    return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(JSON.parse(value)), text: () => Promise.resolve(value) });
+    const response = { ok: true, status: 200, json: () => Promise.resolve(JSON.parse(value)), text: () => Promise.resolve(value) };
+    if (fixtureHold) return new Promise((resolve) => heldFixtures.push(() => resolve(response)));
+    return Promise.resolve(response);
   };
   const entries = [{}]; let at = 0;
   window.history = { get length() { return entries.length; }, get state() { return entries[at]; },
@@ -142,7 +145,9 @@ function boot(opts) {
     return null;
   };
   const widgetPosts = () => posts.filter((wire) => { try { return JSON.parse(wire).op === 'widget-data'; } catch (_) { return false; } });
+  const mountWidgetRoot = () => read('(function(){const host=document.createElement("div");document.body.appendChild(host);const extra=ReactDOM.createRoot(host);extra.render(React.createElement(function WidgetGuardRoot(){useEzikWidgetDataRoot(true);return null;}));return function(){extra.unmount();host.remove();};})()');
   return { window, root, read, where, open, send, until, untilValue, quiet, focuses, posts, browserPosts, requests, logs, dialogs, storageWrites, widgetPosts,
+    mountWidgetRoot, heldFixtures, releaseFixtures: () => { fixtureHold = false; heldFixtures.splice(0).forEach((release) => release()); },
     props, componentProps, ledger: () => read('window.sessionStorage.getItem(EZIK_RESUME_KEY)'),
     click: async (el) => { if (!el) throw new Error('missing fixture button'); el.dispatchEvent(new window.Event('click', { bubbles: true })); await tick(100); },
     back: async () => { window.history.back(); await tick(160); }, caught: () => caught };
@@ -293,6 +298,7 @@ function assertWidgetData(c, t, message) {
 }
 SCENES['widget-data'] = async (c, t, notes) => {
   await c.until('chat'); t('boot sends once after debounce', await c.untilValue(() => c.widgetPosts().length, 1), 1);
+  c.send({ channel: 'ezik-scheduler', v: 1, op: 'result', inReplyTo: 'widget-data', ok: true, stored: true, dropped: 0 });
   const wire = c.widgetPosts()[0]; assertWidgetData(c, t, JSON.parse(wire));
   notes.push('FIXTURE widget-data UTF8_BYTES=' + Buffer.byteLength(wire, 'utf8') + ' profile=Noor adult Kuwait custom-fajr-offset favorite=sabah:0; not a real profile');
   const writers = [
@@ -384,6 +390,95 @@ SCENES['widget-reply-silence'] = async (c, t, notes) => {
     if (typeof stopProbe === 'function') stopProbe();
   }
 };
+const WIDGET_RESULT = { channel: 'ezik-scheduler', v: 1, op: 'result', inReplyTo: 'widget-data', requestId: null, ok: true, stored: true, dropped: 0 };
+const WIDGET_LEGACY_ERROR = { channel: 'ezik-scheduler', v: 1, op: 'error', requestId: null, ok: false, reason: 'unknown-op', received: 'widget-data' };
+function wakeWidgetFixtures(c, value) {
+  c.read('writePrayerPrefs({off:{fajr:' + value + '}})');
+  c.read('writeQiblaLoc(21.4225,39.8262)');
+  c.read('writeHijriOffset(1)');
+  c.read('toggleAdhkarFavorite("adhkar_masaa:0")');
+  for (const name of ['focus', 'pageshow', 'storage']) {
+    const ev = new c.window.Event(name);
+    if (name === 'storage') ev.key = null;
+    c.window.dispatchEvent(ev);
+  }
+  c.window.document.dispatchEvent(new c.window.Event('visibilitychange'));
+  c.read('EZ_LANG_SUBS.forEach((wake) => wake())');
+}
+SCENES['widget-legacy-session'] = async (c, t, notes) => {
+  const roots = [c.mountWidgetRoot(), c.mountWidgetRoot()];
+  try {
+    await c.until('chat');
+    t('fresh page sends its first capability probe', await c.untilValue(() => c.widgetPosts().length, 1), 1);
+    wakeWidgetFixtures(c, 5); await tick(450);
+    t('pending reply allows only one post across competing roots and changes', c.widgetPosts().length, 1);
+    const writes = c.storageWrites.length;
+    c.send(WIDGET_LEGACY_ERROR); await tick(50);
+    t('legacy capability rejection is not persisted', c.storageWrites.length, writes);
+    wakeWidgetFixtures(c, 7); await tick(450);
+    t('legacy rejection blocks all four settings and foreground refreshes', c.widgetPosts().length, 1);
+    roots.splice(0).forEach((stop) => stop());
+    roots.push(c.mountWidgetRoot()); await tick(350);
+    t('a remounted root remains disabled in this page', c.widgetPosts().length, 1);
+    c.send(WIDGET_RESULT); wakeWidgetFixtures(c, 9); await tick(450);
+    t('a late matching success cannot reenable a rejected shell', c.widgetPosts().length, 1);
+    c.send({ ...WIDGET_RESULT, ok: false }); wakeWidgetFixtures(c, 11); await tick(450);
+    t('a late matching failure cannot reenable a rejected shell', c.widgetPosts().length, 1);
+    notes.push('SESSION_STOP delayed legacy reply; three competing roots; four writers and foreground events; remount and late success/failure remain stopped');
+  } finally { roots.forEach((stop) => stop()); }
+};
+SCENES['widget-supported-failure'] = async (c, t) => {
+  await c.until('chat');
+  t('new page probes once before support is known', await c.untilValue(() => c.widgetPosts().length, 1), 1);
+  const first = JSON.parse(c.widgetPosts()[0]).data;
+  for (const value of [5, 8, 11]) { c.read('writePrayerPrefs({off:{fajr:' + value + '}})'); await tick(70); }
+  await tick(300);
+  t('changes wait for a delayed capability reply', c.widgetPosts().length, 1);
+  const writes = c.storageWrites.length;
+  c.send({ ...WIDGET_RESULT, ok: false, reason: 'invalid-widget-data' });
+  t('failed result still proves support and flushes one queued change', await c.untilValue(() => c.widgetPosts().length, 2), 2);
+  t('capability acknowledgement is not persisted', c.storageWrites.length, writes);
+  const latest = JSON.parse(c.widgetPosts().slice(-1)[0]).data;
+  const mins = (value) => Number(value.slice(0, 2)) * 60 + Number(value.slice(3));
+  t('queued refresh uses latest offset across all 30 days', latest.prayer.days.map((day, i) =>
+    (mins(day.times.fajr) - mins(first.prayer.days[i].times.fajr) + 1440) % 1440), Array(30).fill(9));
+  for (let i = 0; i < 3; i++) { c.send(WIDGET_RESULT); c.send({ ...WIDGET_RESULT, ok: false }); }
+  await tick(350);
+  t('repeated acknowledgements without queued changes never echo', c.widgetPosts().length, 2);
+  c.read('writePrayerPrefs({off:{fajr:13}})');
+  t('support survives a failed result and permits later changes', await c.untilValue(() => c.widgetPosts().length, 3), 3);
+  await tick(300); t('queued change leaves no duplicate send', c.widgetPosts().length, 3);
+};
+SCENES['widget-capability-foreign'] = async (c, t) => {
+  await c.until('chat');
+  t('foreign-reply fixture sends its first probe', await c.untilValue(() => c.widgetPosts().length, 1), 1);
+  const messages = [
+    ['wrong channel', { ...WIDGET_LEGACY_ERROR, channel: 'other' }],
+    ['wrong version', { ...WIDGET_LEGACY_ERROR, v: 2 }],
+    ['wrong operation', { ...WIDGET_LEGACY_ERROR, op: 'result' }],
+    ['wrong reason', { ...WIDGET_LEGACY_ERROR, reason: 'invalid-data' }],
+    ['wrong received operation', { ...WIDGET_LEGACY_ERROR, received: 'schedule' }],
+    ['null detail', null], ['array detail', []], ['string detail', 'widget-data'],
+    ['result for another operation', { ...WIDGET_RESULT, inReplyTo: 'schedule' }],
+    ['result on another channel', { ...WIDGET_RESULT, channel: 'other' }],
+    ['result with another version', { ...WIDGET_RESULT, v: 2 }],
+  ];
+  for (const [label, message] of messages) {
+    c.send(message); await tick(20);
+    t(label + ' leaves capability pending', c.read('ezikWidgetDataCapability'), 'pending');
+  }
+  c.read('writePrayerPrefs({off:{fajr:6}})'); c.send(WIDGET_RESULT);
+  t('unrelated replies do not disable a later supported refresh', await c.untilValue(() => c.widgetPosts().length, 2), 2);
+};
+SCENES['widget-inflight-rejection'] = async (c, t) => {
+  await c.until('chat');
+  t('actual local widget fixtures are held during loading', await c.untilValue(() => c.heldFixtures.length >= 3, true), true);
+  t('held loader has not posted yet', c.widgetPosts().length, 0);
+  c.send(WIDGET_LEGACY_ERROR); c.releaseFixtures(); await tick(500);
+  t('legacy rejection during awaited data load prevents an escaped post', c.widgetPosts().length, 0);
+  wakeWidgetFixtures(c, 7); await tick(350);
+  t('rejected in-flight sender remains stopped on later changes', c.widgetPosts().length, 0);
+};
 // Every needle must match exactly once; assertions execute the mutant, never recognize it.
 const MUTANTS = [
   { name: 'listener-in-effect', scene: 'cold-mushaf', edits: [
@@ -433,6 +528,23 @@ const MUTANTS = [
   { name: 'legacy-widget-reply-opens-ui', scene: 'widget-reply-silence', edits: [
     ['      if (d.channel !== SHELL_SCHED_CHANNEL || d.op !== SHELL_SCHED_REARM_OP) return;',
       "      if (d.op === 'error' && d.reason === 'unknown-op' && d.received === 'widget-data') window.alert('widget reply');\n      if (d.channel !== SHELL_SCHED_CHANNEL || d.op !== SHELL_SCHED_REARM_OP) return;"]] },
+  { name: 'widget-disabled-latch-missing', scene: 'widget-legacy-session', edits: [
+    ["        ezikWidgetDataCapability = 'disabled';\n", '']] },
+  { name: 'widget-pending-reservation-missing', scene: 'widget-legacy-session', edits: [
+    ["          if (ezikWidgetDataCapability === 'unknown') ezikWidgetDataCapability = 'pending';\n", '']] },
+  { name: 'widget-postawait-gate-missing', scene: 'widget-inflight-rejection', edits: [
+    ['          if (stopped || mine !== generation || !canSend()) return;', '          if (stopped || mine !== generation) return;']] },
+  { name: 'widget-error-match-too-broad', scene: 'widget-capability-foreign', edits: [
+    ["      if (d.op === 'error' && d.reason === 'unknown-op' && d.received === 'widget-data') {", "      if (d.op === 'error') {"]] },
+  { name: 'widget-version-check-missing', scene: 'widget-capability-foreign', edits: [
+    ["      if (!d || typeof d !== 'object' || Array.isArray(d)) return;\n      if (d.channel !== SHELL_SCHED_CHANNEL || d.v !== SHELL_SCHED_VERSION) return;",
+      "      if (!d || typeof d !== 'object' || Array.isArray(d)) return;\n      if (d.channel !== SHELL_SCHED_CHANNEL) return;"]] },
+  { name: 'widget-failure-ack-ignored', scene: 'widget-supported-failure', edits: [
+    ["      ezikWidgetDataCapability = 'supported';", "      if (d.ok !== true) return;\n      ezikWidgetDataCapability = 'supported';"]] },
+  { name: 'widget-deferred-changes-lost', scene: 'widget-supported-failure', edits: [
+    ['      waiting.forEach((wake) => { try { wake(); } catch (e) {} });', '']] },
+  { name: 'widget-late-ack-reenables', scene: 'widget-legacy-session', edits: [
+    ["      if (ezikWidgetDataCapability !== 'pending' || d.op !== SHELL_SCHED_RESULT_OP", '      if (d.op !== SHELL_SCHED_RESULT_OP']] },
 ];
 for (const route of ROUTES) MUTANTS.push({ name: 'route-dropped-' + route, scene: 'cold-' + route,
   edits: [['      EZIK_WIDGET_PENDING = d.route;', '      if (d.route === ' + JSON.stringify(route) + ') return;\n      EZIK_WIDGET_PENDING = d.route;']] });
@@ -449,7 +561,8 @@ async function runScene(name, mutant) {
     // One failed assertion already kills a mutant. Avoid waiting for every later timeout.
     if (mutant && !ok) throw new Error('mutation assertion failed: ' + label);
   };
-  const c = boot({ profile: name !== 'onboarding', consent: name !== 'chat-consent', shell: name === 'widget-data' || name === 'widget-reply-silence', offline: name === 'offline', mutant });
+  const c = boot({ profile: name !== 'onboarding', consent: name !== 'chat-consent', shell: name.startsWith('widget-'),
+    deferFixtures: name === 'widget-inflight-rejection', offline: name === 'offline', mutant });
   if (c.notApplied) return { notApplied: true, results, notes };
   try { await SCENES[name](c, t, notes); } catch (e) { results.push({ label: 'scene threw: ' + String(e && e.message), ok: false }); }
   if (c.caught()) results.push({ label: 'runtime error: ' + String(c.caught()), ok: false });
@@ -504,8 +617,10 @@ async function main() {
     const r = all[names.length+i];
     if (r.notApplied) return report('MUTANT ' + m.name + ' edit applies',false,'needle not found exactly once');
     if (r.crashed) return report('MUTANT ' + m.name + ' ran',false,r.crashed);
-    const failed = r.results.filter((x) => !x.ok);
-    report('MUTANT KILLED ' + m.name,failed.length>0,failed.slice(0,2).map((x) => x.label).join(' | '));
+    const failed = r.results.filter((x) => !x.ok && !/^(scene threw:|runtime error:)/.test(x.label));
+    const exceptions = r.results.filter((x) => !x.ok && /^(scene threw:|runtime error:)/.test(x.label));
+    report('MUTANT KILLED ' + m.name,failed.length>0,failed.length ? failed.slice(0,2).map((x) => x.label).join(' | ')
+      : exceptions.length ? 'exception-only failure: ' + exceptions.map((x) => x.label).join(' | ') : 'no assertion failed');
   });
   say('widget-open-guard: PASS=' + passes + ' FAIL=' + fails + ' SCENES=' + names.length + ' MUTANTS=' + MUTANTS.length + ' MODE=' + (SOURCE_MODE?'source':'shipped'));
   process.exit(fails?1:0);

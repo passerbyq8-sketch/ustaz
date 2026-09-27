@@ -25763,6 +25763,33 @@ function useEzikSchedWatch() {
 const EZIK_WIDGET_DATA_EVENT = 'ezik-widget-data-change';
 const EZIK_WIDGET_DATA_DEBOUNCE_MS = 200;
 const EZIK_WIDGET_DATA_DAYS = 30;
+// Capability belongs to this page, not to a hook or a persistent store. Reserve the first
+// send before crossing the bridge so delayed replies and competing roots cannot probe twice.
+let ezikWidgetDataCapability = 'unknown';
+const EZIK_WIDGET_DATA_WAITERS = new Set();
+(function ezikWidgetDataListen() {
+  if (typeof window === 'undefined') return;
+  try {
+    window.addEventListener(SHELL_SCHED_CHANNEL, (ev) => {
+      const d = ev && ev.detail;
+      if (!d || typeof d !== 'object' || Array.isArray(d)) return;
+      if (d.channel !== SHELL_SCHED_CHANNEL || d.v !== SHELL_SCHED_VERSION) return;
+      if (d.op === 'error' && d.reason === 'unknown-op' && d.received === 'widget-data') {
+        ezikWidgetDataCapability = 'disabled';
+        EZIK_WIDGET_DATA_WAITERS.clear();
+        return;
+      }
+      if (ezikWidgetDataCapability !== 'pending' || d.op !== SHELL_SCHED_RESULT_OP
+        || d.inReplyTo !== 'widget-data') return;
+      // Even a validation failure proves the operation is understood. Only deferred changes
+      // need another send; ordinary or repeated acknowledgements do not cause a reply loop.
+      ezikWidgetDataCapability = 'supported';
+      const waiting = Array.from(EZIK_WIDGET_DATA_WAITERS);
+      EZIK_WIDGET_DATA_WAITERS.clear();
+      waiting.forEach((wake) => { try { wake(); } catch (e) {} });
+    });
+  } catch (e) {}
+})();
 function ezikWidgetDataChanged() {
   if (typeof window === 'undefined') return;
   try { window.dispatchEvent(new CustomEvent(EZIK_WIDGET_DATA_EVENT)); } catch (e) {}
@@ -25854,21 +25881,30 @@ async function ezikWidgetData(now) {
 
 function useEzikWidgetDataRoot(ready) {
   useEffect(() => {
-    if (!ready || !ezikSchedBridge()) return undefined;
+    if (!ready || ezikWidgetDataCapability === 'disabled' || !ezikSchedBridge()) return undefined;
     let timer = null, midnight = null, generation = 0, stopped = false;
+    const canSend = () => {
+      if (stopped || ezikWidgetDataCapability === 'disabled' || !ezikSchedBridge()) return false;
+      if (ezikWidgetDataCapability === 'pending') {
+        EZIK_WIDGET_DATA_WAITERS.add(wake);
+        return false;
+      }
+      return true;
+    };
     const wake = () => {
       const mine = ++generation;
       if (timer) { clearTimeout(timer); timer = null; }
-      if (stopped || !ezikSchedBridge()) return;
+      if (!canSend()) return;
       timer = setTimeout(async () => {
         timer = null;
-        if (stopped || mine !== generation || !ezikSchedBridge()) return;
+        if (mine !== generation || !canSend()) return;
         try {
           const data = await ezikWidgetData();
           // A setting change, unmount, or disappearing bridge invalidates an in-flight load.
-          if (stopped || mine !== generation) return;
+          if (stopped || mine !== generation || !canSend()) return;
           const bridge = ezikSchedBridge();
           if (!bridge) return;
+          if (ezikWidgetDataCapability === 'unknown') ezikWidgetDataCapability = 'pending';
           bridge.postMessage(JSON.stringify({ channel: SHELL_SCHED_CHANNEL,
             v: SHELL_SCHED_VERSION, op: 'widget-data', data: data }));
         } catch (e) {}
@@ -25895,6 +25931,7 @@ function useEzikWidgetDataRoot(ready) {
     atMidnight();
     return () => {
       stopped = true;
+      EZIK_WIDGET_DATA_WAITERS.delete(wake);
       generation++;
       if (timer) clearTimeout(timer);
       if (midnight) clearTimeout(midnight);
