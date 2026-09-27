@@ -1620,7 +1620,16 @@ const SEALED = {
 //                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
 //                    stays ezik-v40. sw.js is 55702 bytes, measured at CR = 0. THIS digest is
 //                    re-cut LAST, after every other sw.js edit was final.
-  'sw.js': '23ec2e8afde1098b65409471a3c9ff4312057d7fceafd93de8438e40ce5b223a',
+  //   2026-09-27-n -- VOICE + CALL T4 FIX 4, H3: NO SENTENCE END ON A DOMAIN'S DOT.
+//                    lastSentenceCut's end-of-text rule no longer ends a sentence on a `.` after an
+//                    ASCII letter, so a delta that stops at `binothaimeen.` waits for the rest of the
+//                    domain; an Arabic sentence ending in `.` is still cut at once.
+//                    app.js was rebuilt by node tools/build-app.cjs, and CORE_BYTES was
+//                    re-cut by node tools/core-bytes.cjs --write; the byte table in sw.js and the
+//                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
+//                    stays ezik-v40. sw.js is 55702 bytes, measured at CR = 0. THIS digest is
+//                    re-cut LAST, after every other sw.js edit was final.
+  'sw.js': 'c737bedbcb8f67b625be228895aaaf7790edbd28f6e0cd4d7cae2852ca7578ba',
 };
 
 // ---------------------------------------------------------------------------
@@ -2576,7 +2585,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1798692, of: 'app.js' },
+      { n: 1798896, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
