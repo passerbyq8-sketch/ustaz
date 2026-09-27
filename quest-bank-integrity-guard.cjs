@@ -1574,7 +1574,16 @@ const SEALED = {
 //                    mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name stays
 //                    ezik-v40. sw.js is 55702 bytes, measured at CR = 0. THIS digest is re-cut LAST,
 //                    after every other sw.js edit was final.
-  'sw.js': 'e4204ea15d7dfec0d07975b49f48cb7c27787dabe930bda2ce9f3b726e1a4aeb',
+  //   2026-09-27-i -- VOICE + CALL T4 FIX 3, G1: THE CAPTURE CONTEXT IS RESUMED.
+//                    startCloudListening's AudioContext is created after an await getUserMedia inside
+//                    an effect and was never resumed; a suspended context fed the VAD flat samples.
+//                    It is resumed at once, and when it stays suspended one line asks for a tap that
+//                    resumes it. app.js was rebuilt by node tools/build-app.cjs, and CORE_BYTES was
+//                    re-cut by node tools/core-bytes.cjs --write; the byte table in sw.js and the
+//                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
+//                    stays ezik-v40. sw.js is 55702 bytes, measured at CR = 0. THIS digest is
+//                    re-cut LAST, after every other sw.js edit was final.
+  'sw.js': '91295a08b0e0f8a0e3dd6fc2ed8c9960bce09de8045bb9960a9ef633bd6952b4',
 };
 
 // ---------------------------------------------------------------------------
@@ -2530,7 +2539,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1790011, of: 'app.js' },
+      { n: 1792457, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

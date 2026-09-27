@@ -23,7 +23,8 @@
 // CHECK E  app.jsx call speech pump, EXECUTED: the sentence-end rule speaks an early-released
 //          lead at once, and the pump prefetches the next sentence while one plays (E1, E2);
 //          source lines, URLs and domains are silent in speech (E3); the mic re-opens only after
-//          our own voice stopped sounding (E4); a silent dictation session is not restarted (E5).
+//          our own voice stopped sounding (E4); a silent dictation session is not restarted (E5);
+//          a suspended capture context is resumed, or the reader is asked for one tap (E6).
 //
 // Arabic needles live as string literals but are NEVER printed. All console output is
 // ASCII (ids/labels only), safe for a Windows terminal.
@@ -1514,6 +1515,121 @@ function checkDictationRestart(html) {
   else fail('E5 the dictated text was lost or doubled across the restart');
 }
 
+// E6 (T4 fix 3, G1): startCloudListening creates its capture AudioContext after an `await
+// getUserMedia` inside the call's entry effect, not inside a tap. Chrome can create that context
+// 'suspended', and a suspended context feeds the analyser flat samples: the VAD never hears the
+// reader, the call sits in listening and ends itself after 45 s. The context is now resumed at
+// once; if it stays suspended, one line asks for a tap, and a tap anywhere resumes it.
+// startCloudListening and its helpers are EXECUTED on a simulated clock against a fake context
+// that is either running, suspended-but-resumable, or suspended until a user activation.
+async function simulateCapture(html, mode, tapAt) {
+  const startSrc = extractDecl(html, 'const startCloudListening = async () => ');
+  if (!startSrc) throw new Error('startCloudListening not found');
+  const helpers = ['const clearCaptureTap = () => ', 'const resumeCapture = (ctx) => ',
+    'const askTapForCapture = (ctx) => ', 'const ensureCaptureRunning = (ctx, myGen) => ', 'const stopCloudAll = () => ']
+    .map((h) => extractDecl(html, h)).filter(Boolean);
+  const consts = ['CAPTURE_TAP_LINE', 'CAPTURE_RESUME_WAIT_MS'].map((n) => {
+    const m = new RegExp('\\n\\s*(const ' + n + ' = [^\\n]*;)').exec(html);
+    return m ? m[1] : '';
+  }).join('\n');
+  let now = 0, seqn = 0; const timers = [];
+  const at = (ms, fn) => { timers.push({ t: now + Math.max(0, ms || 0), n: seqn++, fn }); return seqn; };
+  let activation = false, speaking = false;
+  const pending = [];
+  const ctx = {
+    state: mode === 'running' ? 'running' : 'suspended', resumes: 0, onstatechange: null, outputLatency: 0,
+    start() { if (ctx.state === 'running') return; ctx.state = 'running'; if (ctx.onstatechange) ctx.onstatechange(); pending.splice(0).forEach((r) => r()); },
+    resume() {
+      ctx.resumes++;
+      return new Promise((resolve) => {
+        if (ctx.state === 'running') return resolve();
+        pending.push(resolve);
+        if (mode === 'resumable' || activation) at(20, () => ctx.start());   // allowed: runs a moment later
+      });                                                                      // not allowed: stays pending (spec)
+    },
+    createAnalyser() {
+      return { fftSize: 0, getByteTimeDomainData(buf) {
+        for (let i = 0; i < buf.length; i++) buf[i] = (ctx.state === 'running' && speaking) ? (i % 2 ? 188 : 68) : 128;
+      } };
+    },
+    createMediaStreamSource() { return { connect() {} }; },
+    close() { ctx.state = 'closed'; },
+  };
+  const listeners = new Map();
+  const win = {
+    AudioContext: function () { return ctx; },
+    addEventListener: (ev, fn) => { if (!listeners.has(ev)) listeners.set(ev, new Set()); listeners.get(ev).add(fn); },
+    removeEventListener: (ev, fn) => { if (listeners.has(ev)) listeners.get(ev).delete(fn); },
+  };
+  const tap = () => {
+    activation = true;
+    for (const ev of ['pointerup', 'click']) for (const fn of Array.from(listeners.get(ev) || [])) fn({ type: ev });
+    activation = false;
+  };
+  let voiceError = '';
+  const shown = [];
+  const setVoiceError = (v) => { voiceError = typeof v === 'function' ? v(voiceError) : v; shown.push({ t: now, v: voiceError }); };
+  let heardAt = null;
+  function FakeRecorder() { this.state = 'inactive'; this.mimeType = 'audio/webm'; }
+  FakeRecorder.prototype.start = function () { this.state = 'recording'; };
+  FakeRecorder.prototype.stop = function () { this.state = 'inactive'; };
+  const deps = {
+    hasValidAIConsent: () => true, setCallState: () => {}, callGenRef: { current: 1 },
+    cloudStreamRef: { current: null }, navigator: { mediaDevices: { getUserMedia: async () => ({ getTracks: () => [] }) } },
+    mediaRecRef: { current: null }, cloudChunksRef: { current: [] }, MediaRecorder: FakeRecorder, pickRecMime: () => ({}),
+    callActiveRef: { current: false }, vadCtxRef: { current: null }, window: win, vadAnalyserRef: { current: null },
+    vadLastVoiceRef: { current: 0 }, VAD_RMS_ON: 0.02, VAD_SILENCE_MS: 1200, CLOUD_MAX_TURN_MS: 60000,
+    armInactivityTimer: () => { if (heardAt === null) heardAt = now; }, stopCloudTurn: () => {},
+    setTimeout: (fn, ms) => at(ms, fn), setCallHeard: () => {}, showCallError: (m) => setVoiceError(m),
+    micErrorMessage: () => 'mic error', setVoiceError, captureTapOffRef: { current: null },
+    Date: { now: () => now }, console: { error: () => {} },
+  };
+  const names = Object.keys(deps);
+  const startCloudListening = new Function(...names,
+    consts + '\n' + helpers.join(';\n') + ';\n' + startSrc + ';\nreturn startCloudListening;')(...names.map((k) => deps[k]));
+  const tapLine = (/\n\s*const CAPTURE_TAP_LINE = '([^']*)';/.exec(html) || [])[1] || null;
+  at(500, () => { speaking = true; });
+  if (tapAt !== undefined) at(tapAt, tap);
+  startCloudListening();
+  const drain = async () => { for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r)); };
+  const HORIZON = 3000;
+  for (let guard = 0; guard < 100000; guard++) {
+    await drain();
+    if (!timers.length) break;
+    timers.sort((a, b) => a.t - b.t || a.n - b.n);
+    if (timers[0].t > HORIZON) break;
+    const x = timers.shift(); now = x.t; x.fn();
+  }
+  await drain();
+  const lineShownAt = (shown.find((e) => tapLine && e.v === tapLine) || {}).t;
+  const lineGoneAt = lineShownAt === undefined ? undefined : (shown.find((e) => e.t >= lineShownAt && e.v !== tapLine) || {}).t;
+  const live = Array.from(listeners.values()).reduce((n, s) => n + s.size, 0);
+  return { resumes: ctx.resumes, state: ctx.state, heardAt, lineShownAt, lineGoneAt,
+    lineNow: !!tapLine && voiceError === tapLine, live, tapLine };
+}
+async function checkCaptureResume(html) {
+  let run, res, stuck, tapped;
+  try {
+    run = await simulateCapture(html, 'running');
+    res = await simulateCapture(html, 'resumable');
+    stuck = await simulateCapture(html, 'stuck');
+    tapped = await simulateCapture(html, 'stuck', 1000);
+  } catch (e) { fail('E6 startCloudListening does not run against a fake context: ' + e.message); return; }
+  info('E6 running: resumes=' + run.resumes + ' heard@' + run.heardAt + ' | resumable: resumes=' + res.resumes + ' state=' + res.state
+    + ' heard@' + res.heardAt + ' | stuck: line@' + stuck.lineShownAt + ' heard@' + stuck.heardAt
+    + ' | stuck+tap@1000: state=' + tapped.state + ' line ' + tapped.lineShownAt + '->' + tapped.lineGoneAt + ' heard@' + tapped.heardAt);
+  if (run.resumes === 0 && run.lineShownAt === undefined && run.heardAt === 500) pass('E6 a context that starts running is left alone and shows nothing new; speech is heard at once');
+  else fail('E6 a running context was disturbed: resumes=' + run.resumes + ', line@' + run.lineShownAt + ', heard@' + run.heardAt);
+  if (res.resumes >= 1 && res.state === 'running' && res.lineShownAt === undefined && res.heardAt === 500) pass('E6 a context that starts suspended is resumed, without the tap line, and hears speech');
+  else fail('E6 a suspended context is not resumed: resumes=' + res.resumes + ', state=' + res.state + ', heard@' + res.heardAt);
+  if (stuck.state === 'suspended' && stuck.lineNow && stuck.heardAt === null) pass('E6 a context that stays suspended shows the tap line (at ' + stuck.lineShownAt + ' ms) and it stays up');
+  else fail('E6 a context that stays suspended shows no tap line: line@' + stuck.lineShownAt + ', state=' + stuck.state);
+  if (tapped.state === 'running' && tapped.lineShownAt !== undefined && tapped.lineGoneAt !== undefined && !tapped.lineNow
+    && tapped.heardAt !== null && tapped.heardAt >= 1000 && tapped.live === 0)
+    pass('E6 a tap resumes it: the line leaves at ' + tapped.lineGoneAt + ' ms, the VAD sees speech at ' + tapped.heardAt + ' ms, no listener is left');
+  else fail('E6 a tap does not bring the capture back: state=' + tapped.state + ', line gone@' + tapped.lineGoneAt + ', heard@' + tapped.heardAt + ', listeners=' + tapped.live);
+}
+
 // ===========================================================================
 (async () => {
   // ITEM 32: the call screen is in app.jsx now, so this reads the shipped client, not the shell.
@@ -1537,6 +1653,7 @@ function checkDictationRestart(html) {
   await checkSpokenAttribution(html);
   await checkRearm(html);
   checkDictationRestart(html);
+  await checkCaptureResume(html);
 
   console.log('  SUMMARY   PASS=' + P + '   FAIL=' + F);
   if (F > 0) {

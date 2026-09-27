@@ -15400,6 +15400,46 @@ function App() {
     fr.onerror = () => resolve('');
     fr.readAsDataURL(blob);
   });
+  // ---- G1 (T4 fix 3): the capture context must RUN, or the VAD hears nothing. ----
+  // startCloudListening creates it after an `await getUserMedia` inside the call's entry effect,
+  // not inside a tap, so Chrome may create it 'suspended' (no user activation -- on a phone a
+  // touch pointerdown is not one). A suspended context feeds the analyser flat samples: `heard`
+  // never becomes true, the call sits in listening and ends itself after 45 s with no text, and
+  // waitForSpeakerTail reads outputLatency 0 from it. So it is resumed at once; if it still does
+  // not run, one line asks for a tap, and the next tap ANYWHERE resumes it (pointerup is the touch
+  // activation, click and keydown the rest). The line leaves the moment the context runs.
+  const CAPTURE_TAP_LINE = '🎤 المسِ الشاشةَ مرّةً ليبدأَ الاستماع.';
+  const CAPTURE_RESUME_WAIT_MS = 250;   // how long resume() may take before the tap line shows (the VAD is not held back)
+  const captureTapOffRef = useRef(null);
+  const clearCaptureTap = () => {
+    if (captureTapOffRef.current) { captureTapOffRef.current(); captureTapOffRef.current = null; }
+    setVoiceError((v) => (v === CAPTURE_TAP_LINE ? '' : v));
+  };
+  const resumeCapture = (ctx) => {
+    if (!ctx || ctx.state === 'running') return Promise.resolve(true);
+    let p = null;
+    try { p = ctx.resume(); } catch (e) { p = null; }
+    return Promise.race([Promise.resolve(p).catch(() => {}), new Promise((r) => setTimeout(r, CAPTURE_RESUME_WAIT_MS))])
+      .then(() => ctx.state === 'running');
+  };
+  const askTapForCapture = (ctx) => {
+    if (captureTapOffRef.current) return;   // already asking
+    const onTap = () => { resumeCapture(ctx).then((running) => { if (running && vadCtxRef.current === ctx) clearCaptureTap(); }); };
+    const evs = ['pointerup', 'click', 'keydown'];
+    evs.forEach((ev) => window.addEventListener(ev, onTap, true));
+    captureTapOffRef.current = () => evs.forEach((ev) => window.removeEventListener(ev, onTap, true));
+    setVoiceError(CAPTURE_TAP_LINE);
+  };
+  const ensureCaptureRunning = (ctx, myGen) => {
+    if (!ctx) return Promise.resolve(true);
+    ctx.onstatechange = () => { if (ctx.state === 'running' && vadCtxRef.current === ctx) clearCaptureTap(); };
+    if (ctx.state === 'running') return Promise.resolve(true);   // the usual case: nothing new is shown
+    return resumeCapture(ctx).then((running) => {
+      if (callGenRef.current !== myGen || vadCtxRef.current !== ctx) return running;
+      if (running) clearCaptureTap(); else askTapForCapture(ctx);
+      return running;
+    });
+  };
   const stopCloudAll = () => {
     try { if (mediaRecRef.current && mediaRecRef.current.state !== 'inactive') mediaRecRef.current.stop(); } catch (e) {}
     mediaRecRef.current = null;
@@ -15408,6 +15448,7 @@ function App() {
     try { vadCtxRef.current?.close(); } catch (e) {}
     vadCtxRef.current = null;
     vadAnalyserRef.current = null;
+    clearCaptureTap();                // a closed context needs no tap
   };
   const startCloudListening = async () => {
     // آخرُ حاجزٍ قبل getUserMedia نفسِه: بلا موافقةٍ سارية لا يُفتح الميكروفون. سحبُ الموافقةِ
@@ -15432,6 +15473,7 @@ function App() {
         vadAnalyserRef.current.fftSize = 1024;
         vadCtxRef.current.createMediaStreamSource(cloudStreamRef.current).connect(vadAnalyserRef.current);
       }
+      ensureCaptureRunning(vadCtxRef.current, myGen);   // G1: not awaited -- the VAD starts now either way
       const an = vadAnalyserRef.current;
       const buf = new Uint8Array(an.fftSize);
       const startedAt = Date.now();
