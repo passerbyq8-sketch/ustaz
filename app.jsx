@@ -23829,8 +23829,17 @@ function PrayerTimesPanel({ loc }) {
 // handlers above are unchanged; only this owner moved from the reading sheet to Settings.
 function PrayerSettingsControl() {
   const [prefs, setPrefs] = useState(readPrayerPrefs);
+  const [widgetDataSupported, setWidgetDataSupported] = useState(() => ezikWidgetDataCapability === 'supported');
+  useEffect(() => {
+    // The page-level reply handler runs first; read its capability without consuming a reply.
+    const sync = () => setWidgetDataSupported(ezikWidgetDataCapability === 'supported');
+    window.addEventListener(SHELL_SCHED_CHANNEL, sync);
+    sync();
+    return () => window.removeEventListener(SHELL_SCHED_CHANNEL, sync);
+  }, []);
   return (
     <>
+      {widgetDataSupported && ezikSchedBridge() ? <>
       <div style={s.a11yGroupLabel}>{PRAYER_ADHAN_SOUND_LABEL}</div>
       <div className="ez-hit" style={s.prayerOptRow}>
         <button type="button" role="switch" aria-checked={prefs.adhanSound ? 'true' : 'false'}
@@ -23840,6 +23849,7 @@ function PrayerSettingsControl() {
           {prefs.adhanSound ? ezT('prayer.notify.on') : ezT('prayer.notify.off')}
         </button>
       </div>
+      </> : null}
       <div style={s.a11yGroupLabel}>{PRAYER_METHOD_LABEL}</div>
       <div className="ez-hit" style={s.prayerOptRow} role="radiogroup" aria-label={PRAYER_METHOD_LABEL}>
         {prayerMethodIds().map((id) => (

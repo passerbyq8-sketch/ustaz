@@ -240,6 +240,8 @@ SCENES['offline'] = async (c, t) => {
 };
 SCENES['adhan'] = async (c, t) => {
   await c.until('chat');
+  t('sound control fixture probes the shell', await c.untilValue(() => c.widgetPosts().length, 1), 1);
+  c.send(WIDGET_RESULT);
   t('sound setting defaults on', c.read('readPrayerPrefs().adhanSound'), true);
   t('sound label is exact contract text', c.read('PRAYER_ADHAN_SOUND_LABEL'), '\u0635\u0648\u062a \u0627\u0644\u0623\u0630\u0627\u0646');
   const items = c.read('ezikAdhanItems(new Date(2026, 8, 28))');
@@ -392,6 +394,78 @@ SCENES['widget-reply-silence'] = async (c, t, notes) => {
 };
 const WIDGET_RESULT = { channel: 'ezik-scheduler', v: 1, op: 'result', inReplyTo: 'widget-data', requestId: null, ok: true, stored: true, dropped: 0 };
 const WIDGET_LEGACY_ERROR = { channel: 'ezik-scheduler', v: 1, op: 'error', requestId: null, ok: false, reason: 'unknown-op', received: 'widget-data' };
+const soundControl = (c) => c.root.querySelector('[data-ezik-prayer-setting="adhan-sound"]');
+const soundItems = (c) => c.read('ezikAdhanItems(new Date(2026,8,28))');
+const rawPrayerPrefs = (c) => c.window.localStorage.getItem('ezik_prayer_prefs_v1');
+async function openPrayerSettings(c) {
+  c.open('home'); await c.until('home');
+  const home = c.componentProps('Home');
+  if (!home) throw new Error('missing Home settings fixture');
+  home.onOpenSettings();
+  await c.untilValue(() => !!c.root.querySelector('[data-ezik-prayer-setting="method"]'), true);
+}
+function hiddenSound(c, t, label) {
+  t(label + ' switch hidden', !!soundControl(c), false);
+  t(label + ' label hidden', c.root.textContent.includes(c.read('PRAYER_ADHAN_SOUND_LABEL')), false);
+}
+function preservedSound(c, t, label, saved, sounds) {
+  t(label + ' preserves explicit stored sound value', JSON.parse(rawPrayerPrefs(c)).adhanSound, saved);
+  t(label + ' preserves sound fields on all 35 adhan items', soundItems(c).map((it) => it.adhanSound), sounds);
+}
+for (const mode of ['browser', 'legacy']) SCENES['adhan-' + mode + '-hidden'] = async (c, t) => {
+  await c.until('chat');
+  if (mode === 'legacy') t('legacy fixture sends initial probe', await c.untilValue(() => c.widgetPosts().length, 1), 1);
+  for (const saved of [false, true]) {
+    const label = mode + ' saved ' + saved;
+    c.read('writePrayerPrefs({adhanSound:' + saved + ',method:"kuwait",asr:"standard",off:{fajr:2}})');
+    const before = rawPrayerPrefs(c), items = soundItems(c), sounds = items.map((it) => it.adhanSound);
+    t(label + ' fixture has 35 adhan items', items.length, 35);
+    await openPrayerSettings(c);
+    hiddenSound(c, t, label + ' before reply');
+    t(label + ' hidden mount preserves raw preferences', rawPrayerPrefs(c), before);
+    t(label + ' hidden mount preserves complete adhan items', soundItems(c), items);
+    if (mode === 'legacy') { c.send(WIDGET_LEGACY_ERROR); await tick(100); }
+    hiddenSound(c, t, label + ' after reply');
+    t(label + ' reply preserves raw preferences', rawPrayerPrefs(c), before);
+    t(label + ' reply preserves complete adhan items', soundItems(c), items);
+    const method = Array.from(c.root.querySelectorAll('[data-ezik-prayer-setting="method"]')).find((el) => el.getAttribute('aria-checked') === 'false');
+    await c.click(method);
+    t(label + ' ordinary method control still works', c.read('readPrayerPrefs().method') !== 'kuwait', true);
+    preservedSound(c, t, label + ' method edit', saved, sounds);
+    const asr = Array.from(c.root.querySelectorAll('[data-ezik-prayer-setting="asr"]')).find((el) => el.getAttribute('aria-checked') === 'false');
+    await c.click(asr);
+    t(label + ' ordinary asr control still works', c.read('readPrayerPrefs().asr'), 'hanafi');
+    preservedSound(c, t, label + ' asr edit', saved, sounds);
+    c.open('prayer'); await c.until('prayer');
+    const offsetLabel = c.read('PRAYER_LABELS.fajr + " " + PRAYER_PLUS');
+    await c.click(Array.from(c.root.querySelectorAll('button')).find((el) => el.getAttribute('aria-label') === offsetLabel));
+    t(label + ' ordinary offset control still works', c.read('readPrayerPrefs().off.fajr'), 3);
+    preservedSound(c, t, label + ' offset edit', saved, sounds);
+    const afterEdits = rawPrayerPrefs(c);
+    await openPrayerSettings(c); hiddenSound(c, t, label + ' remount');
+    t(label + ' remount preserves edited raw preferences', rawPrayerPrefs(c), afterEdits);
+  }
+};
+for (const ok of [true, false]) SCENES['adhan-supported-' + ok] = async (c, t) => {
+  await c.until('chat');
+  t('supported ' + ok + ' fixture sends initial probe', await c.untilValue(() => c.widgetPosts().length, 1), 1);
+  for (const saved of [false, true]) {
+    const label = 'supported ' + ok + ' saved ' + saved;
+    c.read('writePrayerPrefs({adhanSound:' + saved + '})');
+    const before = rawPrayerPrefs(c), items = soundItems(c);
+    await openPrayerSettings(c);
+    if (!saved) {
+      hiddenSound(c, t, label + ' pending');
+      c.send(ok ? WIDGET_RESULT : { channel: 'ezik-scheduler', v: 1, op: 'result', inReplyTo: 'widget-data', ok: false, reason: 'invalid-widget-data' });
+    }
+    t(label + ' shows switch after support, including pre-mount acknowledgement', await c.untilValue(() => !!soundControl(c), true), true);
+    const control = soundControl(c);
+    t(label + ' renders exact sound label', control && control.getAttribute('aria-label'), c.read('PRAYER_ADHAN_SOUND_LABEL'));
+    t(label + ' displays saved switch value', control && control.getAttribute('aria-checked'), String(saved));
+    t(label + ' support preserves raw preferences', rawPrayerPrefs(c), before);
+    t(label + ' support preserves complete adhan items', soundItems(c), items);
+  }
+};
 function wakeWidgetFixtures(c, value) {
   c.read('writePrayerPrefs({off:{fajr:' + value + '}})');
   c.read('writeQiblaLoc(21.4225,39.8262)');
@@ -545,6 +619,21 @@ const MUTANTS = [
     ['      waiting.forEach((wake) => { try { wake(); } catch (e) {} });', '']] },
   { name: 'widget-late-ack-reenables', scene: 'widget-legacy-session', edits: [
     ["      if (ezikWidgetDataCapability !== 'pending' || d.op !== SHELL_SCHED_RESULT_OP", '      if (d.op !== SHELL_SCHED_RESULT_OP']] },
+  { name: 'sound-browser-incorrectly-shown', scene: 'adhan-browser-hidden', edits: [
+    ['      {widgetDataSupported && ezikSchedBridge() ? <>', '      {true ? <>']] },
+  { name: 'sound-legacy-incorrectly-shown', scene: 'adhan-legacy-hidden', edits: [
+    ["    const sync = () => setWidgetDataSupported(ezikWidgetDataCapability === 'supported');", "    const sync = () => setWidgetDataSupported(ezikWidgetDataCapability === 'supported' || ezikWidgetDataCapability === 'disabled');"]] },
+  { name: 'sound-supported-success-hidden', scene: 'adhan-supported-true', edits: [
+    ['      {widgetDataSupported && ezikSchedBridge() ? <>', '      {false ? <>']] },
+  { name: 'sound-supported-failure-hidden', scene: 'adhan-supported-false', edits: [
+    ['      {widgetDataSupported && ezikSchedBridge() ? <>', '      {false ? <>']] },
+  { name: 'sound-hidden-saved-value-changed', scene: 'adhan-browser-hidden', edits: [
+    ["    const sync = () => setWidgetDataSupported(ezikWidgetDataCapability === 'supported');", "    const sync = () => { if (ezikWidgetDataCapability !== 'supported') writePrayerPrefs({adhanSound:!readPrayerPrefs().adhanSound}); setWidgetDataSupported(ezikWidgetDataCapability === 'supported'); };"]] },
+  { name: 'sound-reply-subscription-missing', scene: 'adhan-supported-true', edits: [
+    ['    window.addEventListener(SHELL_SCHED_CHANNEL, sync);\n', '']] },
+  { name: 'sound-premount-support-lost', scene: 'adhan-supported-false', edits: [
+    ["  const [widgetDataSupported, setWidgetDataSupported] = useState(() => ezikWidgetDataCapability === 'supported');", '  const [widgetDataSupported, setWidgetDataSupported] = useState(false);'],
+    ['    window.addEventListener(SHELL_SCHED_CHANNEL, sync);\n    sync();', '    window.addEventListener(SHELL_SCHED_CHANNEL, sync);']] },
 ];
 for (const route of ROUTES) MUTANTS.push({ name: 'route-dropped-' + route, scene: 'cold-' + route,
   edits: [['      EZIK_WIDGET_PENDING = d.route;', '      if (d.route === ' + JSON.stringify(route) + ') return;\n      EZIK_WIDGET_PENDING = d.route;']] });
@@ -561,7 +650,8 @@ async function runScene(name, mutant) {
     // One failed assertion already kills a mutant. Avoid waiting for every later timeout.
     if (mutant && !ok) throw new Error('mutation assertion failed: ' + label);
   };
-  const c = boot({ profile: name !== 'onboarding', consent: name !== 'chat-consent', shell: name.startsWith('widget-'),
+  const c = boot({ profile: name !== 'onboarding', consent: name !== 'chat-consent',
+    shell: name.startsWith('widget-') || name === 'adhan' || name === 'adhan-legacy-hidden' || name.startsWith('adhan-supported-'),
     deferFixtures: name === 'widget-inflight-rejection', offline: name === 'offline', mutant });
   if (c.notApplied) return { notApplied: true, results, notes };
   try { await SCENES[name](c, t, notes); } catch (e) { results.push({ label: 'scene threw: ' + String(e && e.message), ok: false }); }
