@@ -1592,7 +1592,16 @@ const SEALED = {
 //                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
 //                    stays ezik-v40. sw.js is 55702 bytes, measured at CR = 0. THIS digest is
 //                    re-cut LAST, after every other sw.js edit was final.
-  'sw.js': '08f6d6162faa9dec9488921894cedbcdfe9258d2eb66c5a712f5faebdb2f6da5',
+  //   2026-09-27-k -- VOICE + CALL T4 FIX 3, G3: THE MICROPHONE MESSAGES NAME THEIR ERROR.
+//                    Rows 9-12 end with the error name; in a browser row 9 points at the browser site
+//                    settings and the phone settings, the shell keeps its text; a recorder/context
+//                    failure after getUserMedia keeps its own name. app.js was rebuilt by node
+//                    tools/build-app.cjs, and CORE_BYTES was
+//                    re-cut by node tools/core-bytes.cjs --write; the byte table in sw.js and the
+//                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
+//                    stays ezik-v40. sw.js is 55702 bytes, measured at CR = 0. THIS digest is
+//                    re-cut LAST, after every other sw.js edit was final.
+  'sw.js': '319c45aaac2bf60935bdf54482a592dbd2c875dd956c17f3df4dba998771363b',
 };
 
 // ---------------------------------------------------------------------------
@@ -2548,7 +2557,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1794222, of: 'app.js' },
+      { n: 1795700, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

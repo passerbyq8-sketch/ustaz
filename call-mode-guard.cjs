@@ -18,6 +18,8 @@
 // CHECK B  index.html message maps, EXECUTED: the three message functions are extracted
 //          from the page and run, so a message that goes blank or collapses into another
 //          fails here rather than on a child's screen.
+//          B4: the microphone messages end with the error name, and a browser is sent to the
+//          browser settings (the app shell keeps its text).
 // CHECK C  index.html structure: the invariants that cannot be executed outside a browser
 //          (SR gating, no-silent-restart, the call-screen banner) are asserted on source.
 // CHECK E  app.jsx call speech pump, EXECUTED: the sentence-end rule speaks an early-released
@@ -1068,6 +1070,46 @@ function checkMessages(html) {
   else fail('B3 the denial message does not tell the user where to grant the permission');
 }
 
+// B4 (T4 fix 3, G3): the microphone messages name their error, and a BROWSER is sent to the
+// browser's site settings, not to "the app settings" it does not have. micErrorMessage is EXECUTED
+// once with a browser window (no ReactNativeWebView) and once with the app shell's, for every
+// error name the call path can meet, and once for a failure after getUserMedia had succeeded.
+function checkMicMessages(html) {
+  const mic = extractDecl(html, 'const micErrorMessage = (e) => ');
+  if (!mic) { fail('B4 micErrorMessage not found'); return; }
+  const make = (win) => new Function('window', mic + ';\nreturn micErrorMessage;')(win);
+  let browser, shell;
+  try { browser = make({}); shell = make({ ReactNativeWebView: { postMessage() {} } }); }
+  catch (e) { fail('B4 micErrorMessage does not evaluate: ' + e.message); return; }
+  const TAG = ' (' + U(0x0631) + U(0x0645) + U(0x0632) + ': ';          // the stt messages' own word for "code"
+  const BROWSER_PLACE = U(0x0627) + U(0x0644) + U(0x0645) + U(0x062A) + U(0x0635) + U(0x0641) + U(0x0651) + U(0x062D);   // the browser
+  const APP_PLACE = U(0x0627) + U(0x0644) + U(0x062A) + U(0x0637) + U(0x0628) + U(0x064A) + U(0x0642);                  // the app
+  const ROWS = [
+    ['NotAllowedError', 9], ['PermissionDeniedError', 9], ['SecurityError', 9],
+    ['NotReadableError', 10], ['TrackStartError', 10],
+    ['NotFoundError', 11], ['DevicesNotFoundError', 11],
+    ['AbortError', 12], ['TypeError', 12], ['NotSupportedError', 12], ['InvalidStateError', 12],
+  ];
+  const untagged = [];
+  for (const [n] of ROWS) for (const [where, f] of [['browser', browser], ['shell', shell]]) {
+    const m = f({ name: n });
+    if (!(typeof m === 'string' && m.endsWith(TAG + n + ')'))) untagged.push(where + ':' + n);
+  }
+  if (!untagged.length) pass('B4 rows 9-12 end with the error name, in a browser and in the shell (' + ROWS.length + ' names x 2)');
+  else fail('B4 messages without their error name: ' + untagged.join(', '));
+  const bDenied = browser({ name: 'NotAllowedError' }), sDenied = shell({ name: 'NotAllowedError' });
+  if (bDenied.indexOf(BROWSER_PLACE) !== -1 && bDenied.indexOf(APP_PLACE) === -1) pass('B4 in a browser, a denied microphone points at the browser settings, not the app settings');
+  else fail('B4 in a browser, the denial still points at the app settings');
+  if (sDenied.indexOf(APP_PLACE) !== -1 && sDenied !== bDenied) pass('B4 in the app shell, the denial keeps its app-settings text');
+  else fail('B4 in the app shell, the denial text changed');
+  const same = (a, b) => a.slice(0, a.lastIndexOf(TAG)) === b.slice(0, b.lastIndexOf(TAG));
+  const rec = browser({ name: 'NotSupportedError', afterOpen: true }), ctxDenied = browser({ name: 'NotAllowedError', afterOpen: true });
+  if (rec.endsWith(TAG + 'NotSupportedError)') && ctxDenied.endsWith(TAG + 'NotAllowedError)')
+    && same(rec, browser({ name: 'AbortError' })) && !same(ctxDenied, bDenied))
+    pass('B4 a failure after getUserMedia succeeded keeps its own name and is never read as a permission answer');
+  else fail('B4 a recorder/AudioContext failure is folded into another row or loses its name');
+}
+
 // ===========================================================================
 // CHECK C -- structure that cannot be executed outside a browser
 // ===========================================================================
@@ -1752,6 +1794,7 @@ async function checkHandOver(html) {
   await checkRelays();
   console.log('  -- CHECK B: message maps (executed) --');
   checkMessages(html);
+  checkMicMessages(html);
   console.log('  -- CHECK C: call-path structure --');
   checkStructure(html);
   console.log('  -- CHECK D: complete model routing (executed) --');

@@ -15365,15 +15365,27 @@ function App() {
     callErrorTimerRef.current = setTimeout(() => setVoiceError(''), CALL_ERROR_MS);
   };
   // getUserMedia rejection -> a sentence naming what the user must actually DO about it.
+  // G3 (T4 fix 3): each sentence ends with the error's own name, so a screenshot tells which
+  // row fired. In a browser the permission lives in the browser's site settings (and Chrome on
+  // Android reports NotAllowedError also when Chrome itself lacks the phone's microphone
+  // permission), so a browser is told both places; the app shell keeps its app-settings text.
+  // `e.afterOpen`: getUserMedia had already succeeded, so the failure is the recorder or the
+  // AudioContext -- it is never read as a permission or device answer, and keeps its own name.
   const micErrorMessage = (e) => {
-    const name = String((e && (e.name || e.code)) || '');
+    const afterOpen = !!(e && e.afterOpen);
+    const name = String((e && (e.name || e.code)) || '') || 'Error';
+    const tag = ' (رمز: ' + name + ')';
+    const inShell = !!(typeof window !== 'undefined' && window.ReactNativeWebView);
+    if (afterOpen) return '🎤 تعذّر فتح الميكروفون. تحقّق من الإذن ثم أعد المحاولة.' + tag;
     if (name === 'NotAllowedError' || name === 'PermissionDeniedError' || name === 'SecurityError')
-      return '🚫 لم يُسمح باستخدام الميكروفون. افتح إعدادات التطبيق واسمح بالميكروفون ثم أعد الدخول للمكالمة.';
+      return (inShell
+        ? '🚫 لم يُسمح باستخدام الميكروفون. افتح إعدادات التطبيق واسمح بالميكروفون ثم أعد الدخول للمكالمة.'
+        : '🚫 لم يُسمح باستخدام الميكروفون. اسمح به لهذا الموقع من إعدادات المتصفّح — رمز القفل بجانب العنوان — وتأكّد أنّ المتصفّح نفسه مسموحٌ له بالميكروفون في إعدادات الهاتف، ثم أعد الدخول للمكالمة.') + tag;
     if (name === 'NotFoundError' || name === 'DevicesNotFoundError')
-      return '🎤 لا يوجد ميكروفون متاح على هذا الجهاز.';
+      return '🎤 لا يوجد ميكروفون متاح على هذا الجهاز.' + tag;
     if (name === 'NotReadableError' || name === 'TrackStartError')
-      return '🎤 الميكروفون مشغول بتطبيق آخر. أغلقه ثم أعد المحاولة.';
-    return '🎤 تعذّر فتح الميكروفون. تحقّق من الإذن ثم أعد المحاولة.';
+      return '🎤 الميكروفون مشغول بتطبيق آخر. أغلقه ثم أعد المحاولة.' + tag;
+    return '🎤 تعذّر فتح الميكروفون. تحقّق من الإذن ثم أعد المحاولة.' + tag;
   };
   // A NON-OK /api/stt. Distinct from "heard nothing": the audio WAS recorded and sent.
   const sttErrorMessage = (status) => {
@@ -15455,8 +15467,10 @@ function App() {
     // أثناءَ مكالمةٍ جاريةٍ يمنع الدَّورَ التالي حتى لو نجا مؤقّتٌ من دورةِ الإنهاء.
     if (!hasValidAIConsent()) { stopCloudAll(); setCallState('idle'); return; }
     const myGen = callGenRef.current;
+    let micOpen = false;
     try {
       if (!cloudStreamRef.current) cloudStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micOpen = true;                 // G3: from here on a failure is the recorder's or the context's
       if (callGenRef.current !== myGen) { stopCloudAll(); return; }
       try { if (mediaRecRef.current && mediaRecRef.current.state !== 'inactive') mediaRecRef.current.stop(); } catch (e) {}
       cloudChunksRef.current = [];
@@ -15501,6 +15515,8 @@ function App() {
       stopCloudAll();                 // release whatever half-opened, so a retry starts clean
       setCallHeard('');
       setCallState('idle');
+      // G3: a failure after the microphone opened is the recorder's or the context's; it keeps its name
+      if (micOpen) e = { name: String((e && (e.name || e.code)) || '') || 'Error', afterOpen: true };
       showCallError(micErrorMessage(e));
     }
   };
