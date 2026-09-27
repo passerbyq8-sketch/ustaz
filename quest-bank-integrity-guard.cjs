@@ -1646,7 +1646,15 @@ const SEALED = {
 //                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
 //                    stays ezik-v40. sw.js is 55908 bytes, measured at CR = 0. THIS digest is
 //                    re-cut LAST, after every other sw.js edit was final.
-  'sw.js': '2c7e6269d561da28e6f42af121096e0e4bc62d5d8d53dc375be81dc8f647a71d',
+  //   2026-09-27-q -- VOICE + CALL SHIP FIX 4, THE STORE NAME MOVES ONE STEP, ezik-v40 -> ezik-v41, so
+//                    FIX 4 (H1-H4 above) reaches readers through a fresh install. CACHE in sw.js and
+//                    app_version in config/app-version.json moved together (SW_CACHE is read from that
+//                    file), and app.js was rebuilt by node tools/build-app.cjs: only its
+//                    EZIK_APP_VERSION line moved, and it is 1799739 bytes before and after. NO FILE
+//                    JOINED OR LEFT CORE: CORE_BYTES, the byte table and SW_PROSE stand. sw.js is 55702
+//                    bytes, measured at CR = 0. THIS digest is re-cut LAST, after every other sw.js edit
+//                    was final.
+  'sw.js': '75db684b308445885723d71a9c08b55ebe24c3a2c6fd618d3298c8b0c418b56a',
 };
 
 // ---------------------------------------------------------------------------
