@@ -18054,6 +18054,18 @@ function App() {
   // One full call turn — mirrors sendMessage exactly: pushes the same user+assistant messages to
   // the SHARED messages array (so the Q&A shows in chat history and guardrails are identical), then
   // speaks the reply via the existing speakReply(). No setInput, no streamingText bubble.
+  // T4 fix 2, F2: the mic re-opens only after our own voice has really stopped. The <audio>
+  // element fires `ended` when ITS clock reaches the end (measured in Chrome 152: 44-75 ms after
+  // the duration), but the output device still plays what it holds in its buffer, and a mic opened
+  // at `ended` recorded that tail. Wait the latency the device reports (AudioContext.outputLatency
+  // on the call's own capture context); a device that reports none adds no wait at all.
+  const SPEAKER_TAIL_MAX_MS = 1000;
+  const waitForSpeakerTail = () => {
+    let s = 0;
+    try { s = Number(vadCtxRef.current && vadCtxRef.current.outputLatency) || 0; } catch (e) { s = 0; }
+    const ms = Math.min(SPEAKER_TAIL_MAX_MS, Math.max(0, Math.round(s * 1000)));
+    return ms ? new Promise((resolve) => setTimeout(resolve, ms)) : Promise.resolve();
+  };
   const runCallTurn = async (text) => {
     const myGen = callGenRef.current; // capture the call session; re-arm after playback only if still valid
     setCallHeard('');
@@ -18089,6 +18101,7 @@ function App() {
     setCallState('speaking');
     if (CALL_STREAM_SPEECH && callStream) await callStream.finish(reply); // stream: flush remainder + await playback drain (same completion contract)
     else await speakReply(reply); // completion hook -- resolves when playback fully finishes
+    await waitForSpeakerTail();   // F2: `ended` is the element's clock; the speaker may still be sounding
     // Layer 3 guarded auto-rearm. speakReply cannot reject and resolves only after playback ends.
     if (callGenRef.current !== myGen) return;                   // End/exit or session change during playback → do NOT re-arm
     if (callActiveRef.current) return;                          // a manual interrupt already re-opened the mic → don't double-arm

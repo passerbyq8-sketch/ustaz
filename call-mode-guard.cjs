@@ -1380,6 +1380,91 @@ async function checkSpokenAttribution(html) {
   else fail('E3 the written reply changed');
 }
 
+// E4 (T4 fix 2, F2): after answer 1 the call went back to listening while its own voice was still
+// coming out of the speaker, and a faint tail was transcribed as a question nobody asked. The mic
+// re-opened on the <audio> element's `ended`, which marks the end of the ELEMENT's clock (measured
+// in Chrome 152: +44..+75 ms after the duration) -- not the end of what the output device still
+// holds in its buffer. runCallTurn now waits out the device's reported output latency first.
+// runCallTurn is EXECUTED on a simulated clock: three segments of 2 s each, a device that keeps
+// sounding L ms after `ended`, and the moment startCallListening is called is recorded.
+async function simulateRearm(html, opts) {
+  const turnSrc = extractDecl(html, 'const runCallTurn = async (text) => ');
+  if (!turnSrc) throw new Error('runCallTurn not found');
+  const tailSrc = extractDecl(html, 'const waitForSpeakerTail = () => ');
+  let now = 0, seqn = 0; const timers = [];
+  const at = (ms, fn) => timers.push({ t: now + ms, n: seqn++, fn });
+  const fakeSetTimeout = (fn, ms) => { at(Math.max(0, ms || 0), fn); return seqn; };
+  const SEG_MS = 2000, SEGS = 3;
+  const plays = [];
+  const callGenRef = { current: 1 };
+  const callActiveRef = { current: false };
+  const rec = { micAt: null, reopened: 0 };
+  const createCallSpeechStream = () => ({
+    feed: () => {},
+    finish: () => new Promise((resolve) => {
+      let k = 0;
+      const next = () => {
+        if (k === SEGS) return resolve();
+        const start = now; k++;
+        at(SEG_MS, () => { plays.push({ start, ended: now, audibleUntil: now + opts.latencyMs }); next(); });
+      };
+      next();
+    }),
+  });
+  const deps = {
+    callGenRef, callActiveRef, callMutedRef: { current: false }, abortRef: { current: null },
+    setCallHeard: () => {}, setCallState: () => {}, clearInactivityTimer: () => {}, cancelAudio: () => {},
+    messages: [], sliceHistoryForAPI: (m) => m, profile: {}, CALL_STREAM_SPEECH: true, createCallSpeechStream,
+    callAI: async (h, p, o) => { o.onDelta('Reply one. Reply two. Reply three.'); return 'Reply one. Reply two. Reply three.'; },
+    getFriendlyError: () => 'err', setMessages: () => {}, saveMessages: () => {}, speakReply: async () => {},
+    childVoiceBlocked: () => false,
+    startCallListening: () => { rec.micAt = now; rec.reopened++; callActiveRef.current = true; },
+    setTimeout: fakeSetTimeout,
+    vadCtxRef: { current: { outputLatency: opts.reportedLatencyMs / 1000 } },
+  };
+  let waitForSpeakerTail;
+  if (tailSrc) {
+    const cap = (/\n\s*const SPEAKER_TAIL_MAX_MS = (\d+);/.exec(html) || [])[1];
+    deps.SPEAKER_TAIL_MAX_MS = Number(cap);
+    const tn = ['vadCtxRef', 'setTimeout', 'SPEAKER_TAIL_MAX_MS'];
+    waitForSpeakerTail = new Function(...tn, tailSrc + ';\nreturn waitForSpeakerTail;')(...tn.map((k) => deps[k]));
+  }
+  deps.waitForSpeakerTail = waitForSpeakerTail;
+  const names = Object.keys(deps);
+  const runCallTurn = new Function(...names, turnSrc + ';\nreturn runCallTurn;')(...names.map((k) => deps[k]));
+  let settled = false;
+  runCallTurn('question').then(() => { settled = true; });
+  if (opts.hangUpAt !== undefined) at(opts.hangUpAt, () => { callGenRef.current++; });
+  const drain = async () => { for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r)); };
+  for (let guard = 0; guard < 10000; guard++) {
+    await drain();
+    if (!timers.length) break;
+    timers.sort((a, b) => a.t - b.t || a.n - b.n);
+    const x = timers.shift(); now = x.t; x.fn();
+  }
+  await drain();
+  const last = plays[plays.length - 1];
+  return { plays, micAt: rec.micAt, reopened: rec.reopened, settled, lastEnded: last && last.ended, lastAudible: last && last.audibleUntil };
+}
+async function checkRearm(html) {
+  const L = 120;   // a device that keeps sounding 120 ms after `ended`, and says so
+  let a, z, h;
+  try {
+    a = await simulateRearm(html, { latencyMs: L, reportedLatencyMs: L });
+    z = await simulateRearm(html, { latencyMs: 0, reportedLatencyMs: 0 });
+    h = await simulateRearm(html, { latencyMs: L, reportedLatencyMs: L, hangUpAt: 3 * 2000 + 50 });
+  } catch (e) { fail('E4 runCallTurn does not run on the simulated clock: ' + e.message); return; }
+  info('E4 simulated: 3 segments x 2000 ms, device latency ' + L + ' ms: last `ended` at ' + a.lastEnded
+    + ' ms, audible until ' + a.lastAudible + ' ms, mic re-opened at ' + a.micAt + ' ms');
+  const overlap = a.plays.filter((p) => a.micAt !== null && a.micAt < p.audibleUntil).length;
+  if (a.reopened === 1 && overlap === 0) pass('E4 the mic re-opens only after the last segment has stopped sounding (0 of 3 segments overlap)');
+  else fail('E4 the mic re-opens while our own voice is still sounding: ' + overlap + ' segment(s) overlap, mic at ' + a.micAt + ' ms, audible until ' + a.lastAudible + ' ms');
+  if (z.reopened === 1 && z.micAt === z.lastEnded) pass('E4 a device that reports no latency adds no wait: the mic re-opens at `ended` (' + z.micAt + ' ms)');
+  else fail('E4 a zero-latency device waits anyway: mic at ' + z.micAt + ' ms, ended at ' + z.lastEnded + ' ms');
+  if (h.reopened === 0 && h.settled) pass('E4 a hang-up inside the tail wait re-opens nothing and the turn settles');
+  else fail('E4 a hang-up inside the tail wait still re-opened the mic (' + h.reopened + ')');
+}
+
 // ===========================================================================
 (async () => {
   // ITEM 32: the call screen is in app.jsx now, so this reads the shipped client, not the shell.
@@ -1401,6 +1486,7 @@ async function checkSpokenAttribution(html) {
   checkSpeechPump(html);
   await checkPrefetch(html);
   await checkSpokenAttribution(html);
+  await checkRearm(html);
 
   console.log('  SUMMARY   PASS=' + P + '   FAIL=' + F);
   if (F > 0) {
