@@ -1671,7 +1671,15 @@ const SEALED = {
 //                    No asset joined or left CORE. CACHE remains ezik-v42 by the owner's ruling.
 //                    sw.js is 55908 bytes at CR = 0. THIS digest was re-cut LAST, after every
 //                    count, prose and mirror edit was final.
-  'sw.js': '7aa062f718257edbdcc690db3eb06bbbd21a28ec5e20f572695d5727d3d3d7e7',
+  //   2026-09-28-c -- SOUND CONTROL VISIBILITY, FOLLOW-UP D.
+//                    The generated app.js changed 1813455 -> 1813966 bytes. The sound control
+//                    is shown only after this page establishes widget-data support; saved
+//                    preferences and scheduled sound fields are unchanged. CORE_BYTES was
+//                    derived by tools/core-bytes.cjs --write, 2986545 -> 2987056; the worker's
+//                    app.js prose row and SW_PROSE mirror followed. No asset joined or left
+//                    CORE. CACHE remains ezik-v42 by the owner's ruling. sw.js is 55908 bytes
+//                    at CR = 0. THIS digest was re-cut LAST, after the count, prose and mirror.
+  'sw.js': '4338670e0459865c93a91f9b2ba786b8dcf193d36e77813c25c3663f4b3a72d3',
 };
 
 // ---------------------------------------------------------------------------
@@ -2627,7 +2635,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1813455, of: 'app.js' },
+      { n: 1813966, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
