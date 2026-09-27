@@ -9,6 +9,10 @@
   const TRANS_BASES = ['https://cdn.jsdelivr.net/gh/fawazahmed0/quran-api@1/editions/', 'https://raw.githubusercontent.com/fawazahmed0/quran-api/1/editions/'];
   const SVG_W = 382.68, SVG_H = 547.09, PRINT_H = 1229, Y_A = 2.5009, Y_B = -63.05;   // measured mapping, svg -> print
   const FALLBACK_RECITER = { id: 'Hudhaify_64kbps', name: 'علي الحذيفي' };
+  // Ezik register item 4 (offline): the ONE store every download lands in. Ezik's sw.js declares the same
+  // string once and never sweeps it on a ship; its guard fails when the two differ.
+  const DL_STORE = 'ezik-mushaf-downloads-v1';
+  const DL_HEADER = 'x-ezik-download';   // tells Ezik's worker the downloads sheet stores this response itself
   const AR = '٠١٢٣٤٥٦٧٨٩';
   let EMBED = false; try { EMBED = window.top !== window.self; } catch (e) { EMBED = true; }   // inside Ezik's preview frame
 
@@ -374,7 +378,8 @@
   const textCache = new Map();
   async function getJson(bases, path) {
     const ck = bases[0] + path; if (textCache.has(ck)) return textCache.get(ck);
-    const pr = (async () => { for (const b of bases) { try { const r = await fetch(b + path); if (r.ok) return await r.json(); if (r.status === 404) return null; } catch (e) {} } return undefined; })();
+    // every host failed (offline, or down): read the ayah from the whole file the downloads sheet stored, if any
+    const pr = (async () => { for (const b of bases) { try { const r = await fetch(b + path); if (r.ok) return await r.json(); if (r.status === 404) return null; } catch (e) {} } return fromStoredWhole(bases, path); })();
     textCache.set(ck, pr); const v = await pr; if (v === undefined) textCache.delete(ck); return v;
   }
   async function fillText(boxId, bases, slug, key, walkBack) {
@@ -648,7 +653,7 @@
       '<h3>العرض</h3><div class="chips"><button type="button" data-act="spread" aria-pressed="' + S.spread + '">صفحتانِ متجاورتانِ في الشاشاتِ العريضة</button><button type="button" data-act="markBm" aria-pressed="' + S.markBm + '">تلوينُ الآياتِ المعلَّمة</button></div>' +
       '<h3>التفسير</h3><div class="row"><button type="button" class="chip" data-act="pickTafsir">اختيار المفسّرين</button></div><div class="field"><label for="tfs">حجمُ خطِّ التفسيرِ والترجمة</label><input type="range" id="tfs" min="14" max="30" step="1" value="' + S.tfs + '"></div>' +
       '<h3>التلاوة</h3><div class="field"><label for="rcSel">القارئ</label><select id="rcSel">' + reciters().map((r) => '<option value="' + r.id + '"' + (r.id === S.reciter ? ' selected' : '') + '>' + esc(r.name) + '</option>').join('') + '</select></div>' +
-      '<h3>دونَ اتّصال</h3><p class="muted">ينزّلُ صفحاتِ السورةِ الحاليّةِ وتلاوتَها بصوتِ القارئِ المختار، فتفتحُ بعدَها دونَ إنترنت.</p><div class="row"><button type="button" class="chip" data-act="offline">تنزيلُ السورةِ الحاليّة</button></div><div class="muted" id="offProg"></div>' +
+      '<h3>دونَ اتّصال</h3><p class="muted">نزّلْ صفحاتِ جزءٍ أو المصحفَ كلَّه، أو ترجمةً أو تفسيرًا أو تلاوةَ سورة، فتفتحُها بعدَها دونَ إنترنت.</p><div class="row"><button type="button" class="chip" data-act="downloads">التنزيلات</button></div>' +
       '<div class="row" style="margin-top:14px"><button type="button" class="chip" data-act="hint">إظهارُ الإرشاد</button></div>' +
       '<p class="foot">صفحةُ مختبرٍ خارجَ عزك. صورُ الصفحات: مصحفُ المدينة النبويّة برواية حفص عن عاصم، مجمّعُ الملك فهد لطباعة المصحف الشريف. نصُّ الآياتِ هو النصُّ المعتمَدُ في عزك. التفاسير من مجموعة «tafsir_api» المفتوحة، والترجمات من «quran-api»، والتلاوات من «EveryAyah».' + (META.built ? ' بُنيت البيانات: ' + esc(META.built) + '.' : '') + '</p>', (e) => {
       const b = e.target.closest('button'); if (!b) return;
@@ -658,7 +663,7 @@
       if (act === 'spread') { S.spread = !S.spread; saveSettings(); b.setAttribute('aria-pressed', S.spread); render(); }
       else if (act === 'markBm') { S.markBm = !S.markBm; saveSettings(); b.setAttribute('aria-pressed', S.markBm); redrawMarks(); }
       else if (act === 'pickTafsir') tafsirPicker(settingsSheet);
-      else if (act === 'offline') downloadSurah();
+      else if (act === 'downloads') downloadsSheet();
       else if (act === 'hint') { closeSheet(); $('hint').hidden = false; }
     });
     $('nb').oninput = (e) => { S.nightB = +e.target.value; saveSettings(); };
@@ -666,25 +671,259 @@
     $('tfs').oninput = (e) => { S.tfs = +e.target.value; saveSettings(); };
     $('rcSel').onchange = (e) => { S.reciter = e.target.value; saveSettings(); if (P.on) { playIndex(P.i); } };
   }
-  async function downloadSurah() {
-    if (!('caches' in window)) { toast('هذا المتصفّحُ لا يدعمُ التنزيلَ للاستخدامِ دونَ اتّصال'); return; }
-    const s = +((pageAyat[cur][0] || '2:1').split(':')[0]);
-    const p0 = T.pageForSura[s - 1]; let p1 = p0;
-    while (p1 < 604 && pageAyat[p1 + 1].some((k) => +k.split(':')[0] === s)) p1++;
-    const jobs = [];
-    for (let p = p0; p <= p1; p++) { jobs.push(['lab-pages', S.mode === 'vector' ? SVG(p) : IMG(p), true]); if (p >= 3) jobs.push(['lab-static', geoUrl(p), false]); }
-    for (let a = 1; a <= T.nAyah[s - 1]; a++) jobs.push(['lab-audio', AUDIO(S.reciter, s, a), true]);
-    if (s !== 1 && s !== 9) jobs.push(['lab-audio', AUDIO(S.reciter, 1, 1), true]);
-    let done = 0, fail = 0; const prog = $('offProg');
-    for (const [cn, url, opaque] of jobs) {
-      try { const c = await caches.open(cn); const hit = await c.match(url); if (!hit) { const r = await fetch(url, opaque ? { mode: 'no-cors' } : {}); if (r.type === 'opaque' || r.ok) await c.put(url, r); else fail++; } } catch (e) { fail++; }
-      done++; if (prog) prog.textContent = 'نُزِّل ' + ar(done) + ' من ' + ar(jobs.length) + (fail ? '، وتعذّر ' + ar(fail) : '');
-    }
-    toast(fail ? 'انتهى التنزيلُ وتعذّر ' + ar(fail) + ' ملفًّا' : 'نُزِّلت سورةُ ' + surahName(s) + ' للاستخدامِ دونَ اتّصال');
+  // ------------------------------------------------------------------ downloads (Ezik register item 4: offline)
+  // One sheet, five kinds of download, one store. Everything the reader downloads lands in DL_STORE and
+  // nothing else writes there. Inside Ezik the service worker reads pages and geometry from it; the
+  // texts and the recitation are read from it here (fillText and startTrack). The sheet never keeps a
+  // list of its own: what it shows as downloaded is read from the store every time it opens.
+  const abs = (u) => new URL(u, location.href).href;
+  const TAFSIR_WHOLE = (slug, s) => slug + '/' + s + '.json';          // appended to a TAFSIR_BASES entry
+  const TRANS_WHOLE = (id) => id + '.min.json';                        // appended to a TRANS_BASES entry
+  // Whole-edition sizes in bytes, uncompressed, measured 2026-09-27. Shown labelled approximate: the
+  // text hosts send no Content-Length, so nothing better can be measured before the download.
+  const APPROX_BYTES = {
+    'ar-tafsir-muyassar': 3151034, 'ar-tafsir-al-mukhtasar': 2258310, 'ar-tafseer-al-saddi': 6276861,
+    'ar-tafsir-ibn-kathir': 89802658, 'ar-tafsir-al-tabari': 61392111, 'ar-tafsir-al-baghawi': 38629513,
+    'adwa-al-bayan': 17326181, 'tafsir-ibn-al-qayyim': 29786429, 'fath-al-qadir-al-shawkani': 180032340,
+    'tafsir-ibn-abi-hatim': 10849975, 'al-muyassar-fi-al-gharib': 1375403, 'tadabbur-wa-amal': 48119576,
+    'eng-ummmuhammad': 1073728, 'urd-muhammadjunagar': 1631747, 'ind-kingfahdcomplex': 1347716,
+    'ben-abubakrzakaria': 2402906, 'tur-diyanetisleri': 1190382, 'fra-muhammadhamidul': 1122651,
+    'msa-abdullahmuhamma': 1663361, 'spa-juliocortes': 978132, 'rus-elmirkuliev': 1628777,
+    'deu-frankbubenheima': 1156491, 'hin-suhelfarooqkhan': 2593512
+  };
+  const MB = (b) => ar((b / 1048576).toFixed(b < 10485760 ? 1 : 0)) + ' ميغابايت';
+  let SIZES = null;                 // data/offline-sizes.json, generated from the tree
+  async function sizes() {
+    if (SIZES) return SIZES;
+    try { const r = await fetch('data/offline-sizes.json'); if (r.ok) SIZES = await r.json(); } catch (e) {}
+    return SIZES;
+  }
+  const juzRange = (j) => [T.pageForJuz[j - 1], j < 30 ? T.pageForJuz[j] - 1 : 604];
+  const pageItem = (p) => ({ key: abs(IMG(p)), src: [abs(IMG(p))], init: { headers: { [DL_HEADER]: '1' } }, name: 'صفحة ' + ar(p), bytes: (SIZES && SIZES.pages[p - 1]) || 0 });
+  const geoItem = (p) => ({ key: abs(geoUrl(p)), src: [abs(geoUrl(p))], init: { headers: { [DL_HEADER]: '1' } }, name: 'آيات الصفحة ' + ar(p), bytes: (SIZES && SIZES.geometry[p - 1]) || 0 });
+  function pagesJob(p0, p1, title) {
+    const items = [];
+    for (let p = p0; p <= p1; p++) { items.push(pageItem(p)); if (p >= 3) items.push(geoItem(p)); }
+    return { title, items, exact: true };
+  }
+  function tafsirJob(slug) {
+    const t = (META.tafsirs || []).find((x) => x.id === slug); const items = [];
+    for (let s = 1; s <= 114; s++) items.push({ key: TAFSIR_BASES[0] + TAFSIR_WHOLE(slug, s), src: TAFSIR_BASES.map((b) => b + TAFSIR_WHOLE(slug, s)), init: {}, name: 'سورة ' + surahName(s), bytes: (APPROX_BYTES[slug] || 0) / 114 });
+    return { title: t ? t.name : slug, items, exact: false };
+  }
+  function transJob(id) {
+    const t = (META.translations || []).find((x) => x.id === id);
+    return { title: t ? t.name : id, items: [{ key: TRANS_BASES[0] + TRANS_WHOLE(id), src: TRANS_BASES.map((b) => b + TRANS_WHOLE(id)), init: {}, name: 'ملفّ الترجمة', bytes: APPROX_BYTES[id] || 0 }], exact: false };
+  }
+  function reciteJob(rec, s) {
+    const items = []; const one = (ss, a, name) => { const u = AUDIO(rec, ss, a); items.push({ key: u, src: [u], init: { mode: 'cors' }, name, bytes: 0 }); };
+    // the player's basmala is surah 1, ayah 1, played before ayah 1 of every surah but 1 and 9
+    if (s !== 1 && s !== 9) one(1, 1, 'البسملة');
+    for (let a = 1; a <= T.nAyah[s - 1]; a++) one(s, a, shortRef(s + ':' + a));
+    return { title: 'تلاوة سورة ' + surahName(s) + ' بصوت ' + reciterName(rec), items, exact: false, head: true };
   }
 
+  let persistAsked = false;        // navigator.storage.persist(), asked once, before the first download
+  async function askPersist() {
+    if (persistAsked) return; persistAsked = true;
+    try { if (navigator.storage && navigator.storage.persist && !(navigator.storage.persisted && await navigator.storage.persisted())) await navigator.storage.persist(); } catch (e) {}
+  }
+  async function freeSpace() {
+    try { if (navigator.storage && navigator.storage.estimate) { const e = await navigator.storage.estimate(); if (typeof e.quota === 'number' && typeof e.usage === 'number') return e.quota - e.usage; } } catch (e) {}
+    return null;
+  }
+  // HEAD each file still missing, a few at a time; the recitation host sends Content-Length and allows CORS.
+  async function headSizes(items) {
+    const q = items.slice(); let known = 0;
+    await Promise.all([0, 1, 2, 3, 4, 5].map(async () => {
+      while (q.length) { const it = q.shift(); try { const r = await fetch(it.src[0], { method: 'HEAD', mode: 'cors' }); const n = +r.headers.get('content-length'); if (r.ok && n > 0) { it.bytes = n; known++; } } catch (e) {} }
+    }));
+    const unknown = items.length - known;
+    if (unknown && known) { const avg = items.reduce((t, x) => t + x.bytes, 0) / known; items.forEach((x) => { if (!x.bytes) x.bytes = avg; }); }
+    return { known, unknown };
+  }
+
+  let DL = null;                   // the one running download: { job, done, fail: [], skipped, cancelled, ctl }
+  let dlPending = null;            // a sized job waiting for "start"
+  async function dlPrepare(kind) {
+    const panel = $('dlPanel'); if (!panel) return;
+    if (DL) { dlPaint(); return; }
+    panel.innerHTML = '<p class="muted">يُحسَبُ الحجم…</p>';
+    await sizes();
+    let job;
+    if (kind === 'juz') { const j = juzOf(cur); const [a, b] = juzRange(j); job = pagesJob(a, b, 'الجزء ' + ar(j)); }
+    else if (kind === 'all') job = pagesJob(1, 604, 'المصحف كاملًا');
+    else if (kind === 'trans') { const id = $('dlTr') && $('dlTr').value; if (!id) { panel.innerHTML = '<p class="empty">اخترْ ترجمةً أوّلًا.</p>'; return; } job = transJob(id); }
+    else if (kind === 'tafsir') { const id = $('dlTf') && $('dlTf').value; if (!id) { panel.innerHTML = '<p class="empty">اخترْ تفسيرًا أوّلًا.</p>'; return; } job = tafsirJob(id); }
+    else if (kind === 'recite') job = reciteJob(($('dlRc') && $('dlRc').value) || S.reciter, surahOfPage(cur));
+    if (!job) return;
+    if (job.exact && !SIZES) { panel.innerHTML = '<p class="note">تعذّرت قراءةُ جدولِ الأحجام. تحقّقْ من الاتصال ثمّ أعِدِ المحاولة.</p>'; return; }
+    let c; try { c = await caches.open(DL_STORE); } catch (e) { panel.innerHTML = '<p class="note">هذا المتصفّحُ لا يسمحُ بالتخزينِ للاستخدامِ دونَ اتّصال.</p>'; return; }
+    const missing = [];
+    let have; try { have = new Set((await c.keys()).map((r) => r.url)); } catch (e) { have = new Set(); }   // one read, not one per file
+    for (const it of job.items) { if (!have.has(it.key)) missing.push(it); }
+    let approx = !job.exact, headNote = '';
+    if (job.head && missing.length) {
+      const h = await headSizes(missing);
+      if (!h.known) { panel.innerHTML = '<h3>' + esc(job.title) + '</h3><p class="note">تعذّر قياسُ الحجم، فلم يبدأ التنزيل. تحقّقْ من الاتصال ثمّ أعِدِ المحاولة.</p>'; return; }
+      if (h.unknown) headNote = ' (قِيسَ ' + ar(h.known) + ' من ' + ar(missing.length) + ' ملفًّا، والباقي مُقدَّر)'; approx = !!h.unknown;
+    }
+    const total = job.head ? null : job.items.reduce((t, x) => t + x.bytes, 0);
+    const need = missing.reduce((t, x) => t + x.bytes, 0);
+    const free = await freeSpace();
+    const tilde = approx ? 'نحوُ ' : '';
+    let h = '<h3>' + esc(job.title) + '</h3>' +
+      (total !== null ? '<p>الحجمُ الكامل: ' + tilde + MB(total) + (approx ? ' (تقريبًا)' : '') + '</p>' : '') +
+      '<p>المتبقّي للتنزيل: ' + ar(missing.length) + ' من ' + ar(job.items.length) + ' ملفًّا، ' + tilde + MB(need) + (approx ? ' (تقريبًا)' : '') + esc(headNote) + '</p>' +
+      '<p>المساحةُ المتاحة على الجهاز: ' + (free === null ? 'لا يُعرَف على هذا المتصفّح' : MB(free)) + '</p>';
+    if (!missing.length) { panel.innerHTML = h + '<p class="empty">هذا كلُّه منزَّلٌ على الجهاز.</p>'; return; }
+    if (!(need > 0)) { panel.innerHTML = h + '<p class="note">لا يُعرَفُ حجمُ هذا المصدر، فلا يبدأ تنزيلُه.</p>'; return; }
+    if (free !== null && free < need * 1.5) {
+      panel.innerHTML = h + '<p class="note">لا تكفي المساحة: يلزمُ مثلُ الحجمِ ونصفُه، ' + MB(need * 1.5) + '، والمتاحُ ' + MB(free) + '. لم يبدأ التنزيل.</p>';
+      return;
+    }
+    dlPending = { job, missing, need };
+    panel.innerHTML = h + '<div class="row"><button type="button" class="chip" data-dlgo="1">ابدأ التنزيل</button><button type="button" class="chip" data-dlno="1">إلغاء</button></div>';
+  }
+  async function dlStart() {
+    if (DL || !dlPending) return;
+    const { job, missing } = dlPending; dlPending = null;
+    await askPersist();
+    DL = { job, total: missing.length, done: 0, skipped: 0, fail: [], cancelled: false, ctl: typeof AbortController === 'function' ? new AbortController() : null, finished: false };
+    const run = DL; dlPaint();
+    let c; try { c = await caches.open(DL_STORE); } catch (e) { run.fail.push({ name: 'المخزن', why: 'تعذّر فتحه' }); }
+    const q = missing.slice();
+    const worker = async () => {
+      while (q.length && !run.cancelled && c) {
+        const it = q.shift();
+        try { if (await c.match(it.key)) { run.skipped++; run.done++; dlPaint(); continue; } } catch (e) {}
+        let why = '';
+        for (const u of it.src) {
+          let r = null;
+          try { r = await fetch(u, Object.assign({}, it.init, run.ctl ? { signal: run.ctl.signal } : {})); } catch (e) { why = run.cancelled ? '' : 'الشبكة'; continue; }
+          if (!r.ok) { why = 'HTTP ' + r.status; continue; }
+          try { await c.put(it.key, r); why = null; } catch (e) { why = (e && /quota/i.test(String(e.name) + String(e.message))) ? 'امتلأت المساحة' : 'تعذّر الحفظ'; }
+          break;
+        }
+        if (why !== null && !run.cancelled) run.fail.push({ name: it.name, why });
+        run.done++; dlPaint();
+      }
+    };
+    await Promise.all([0, 1, 2, 3].map(worker));
+    run.finished = true; DL = null;
+    const msg = run.cancelled ? 'أُوقف التنزيل' : (run.fail.length ? 'انتهى التنزيلُ وتعذّر ' + ar(run.fail.length) + ' ملفًّا' : 'اكتمل تنزيلُ ' + run.job.title);
+    toast(msg); dlPaint(run); dlHave();
+  }
+  function dlPaint(last) {
+    const panel = $('dlPanel'); const r = last || DL; if (!panel || !r) return;
+    const fails = r.fail.length ? '<p class="note">تعذّر ' + ar(r.fail.length) + ': ' + r.fail.slice(0, 12).map((f) => esc(f.name) + ' (' + esc(f.why) + ')').join('، ') + (r.fail.length > 12 ? '، وغيرُها' : '') + '</p>' : '';
+    const head = '<h3>' + esc(r.job.title) + '</h3><progress max="' + r.total + '" value="' + r.done + '" style="width:100%"></progress>' +
+      '<p class="muted">' + ar(r.done) + ' من ' + ar(r.total) + (r.skipped ? '، منها ' + ar(r.skipped) + ' كانت منزَّلة' : '') + '</p>';
+    if (r.finished) panel.innerHTML = head + (r.cancelled ? '<p class="muted">أُوقف التنزيل. ما نُزِّل يبقى، ويُكمَلُ الباقي إذا ضغطتَ التنزيلَ مرّةً أخرى.</p>' : '<p>انتهى.</p>') + fails;
+    else panel.innerHTML = head + fails + '<div class="row"><button type="button" class="chip" data-dlstop="1">إيقاف</button></div>';
+  }
+  function dlCancel() { if (!DL) return; DL.cancelled = true; if (DL.ctl) try { DL.ctl.abort(); } catch (e) {} }
+
+  // What is in the store, grouped the way it was downloaded. Read from the store itself on every call.
+  async function dlInventory() {
+    const inv = { pages: new Set(), geo: new Set(), tafsir: {}, trans: {}, audio: {}, other: 0, keys: [] };
+    let c; try { c = await caches.open(DL_STORE); } catch (e) { return null; }
+    const reqs = await c.keys();
+    for (const rq of reqs) {
+      const u = rq.url; inv.keys.push(u); let m;
+      const path = (() => { try { return new URL(u).pathname; } catch (e) { return ''; } })();
+      if ((m = /\/assets\/madina-hafs\/page-(\d{3})\.webp$/.exec(path))) inv.pages.add(+m[1]);
+      else if ((m = /\/mushaf-lab\/geometry\/(\d{3})\.json$/.exec(path))) inv.geo.add(+m[1]);
+      else if ((m = /^(?:https:\/\/cdn\.jsdelivr\.net\/gh\/spa5k\/tafsir_api@main|https:\/\/raw\.githubusercontent\.com\/spa5k\/tafsir_api\/main)\/tafsir\/([^/]+)\/(\d+)\.json$/.exec(u))) (inv.tafsir[m[1]] = inv.tafsir[m[1]] || new Set()).add(+m[2]);
+      else if ((m = /\/editions\/([^/]+)\.min\.json$/.exec(u))) inv.trans[m[1]] = true;
+      else if ((m = /^https:\/\/everyayah\.com\/data\/([^/]+)\/(\d{3})(\d{3})\.mp3$/.exec(u))) { const a = (inv.audio[m[1]] = inv.audio[m[1]] || {}); (a[+m[2]] = a[+m[2]] || new Set()).add(+m[3]); }
+      else inv.other++;
+    }
+    return inv;
+  }
+  async function dlHave() {
+    const box = $('dlHave'); if (!box) return;
+    const inv = await dlInventory();
+    if (!inv) { box.innerHTML = '<p class="note">تعذّرت قراءةُ المخزن.</p>'; return; }
+    if (!inv.keys.length) { box.innerHTML = '<p class="empty">لم تنزّلْ شيئًا بعد.</p>'; return; }
+    const li = (label, attrs) => '<li><div class="row sp"><span>' + label + '</span><button type="button" class="chip" ' + attrs + '>حذف</button></div></li>';
+    let h = '<ul class="list">';
+    for (let j = 1; j <= 30; j++) {
+      const [a, b] = juzRange(j); let np = 0, ng = 0;
+      for (let p = a; p <= b; p++) { if (inv.pages.has(p)) np++; if (inv.geo.has(p)) ng++; }
+      if (np || ng) h += li('الجزء ' + ar(j) + ': ' + ar(np) + ' من ' + ar(b - a + 1) + ' صفحة، و' + ar(ng) + ' من ' + ar(b - Math.max(a, 3) + 1) + ' ملفَّ آيات', 'data-dldel="juz" data-v="' + j + '"');
+    }
+    for (const id of Object.keys(inv.trans)) { const t = (META.translations || []).find((x) => x.id === id); h += li('الترجمة: ' + esc(t ? t.name : id), 'data-dldel="trans" data-v="' + esc(id) + '"'); }
+    for (const id of Object.keys(inv.tafsir)) { const t = (META.tafsirs || []).find((x) => x.id === id); h += li(esc(t ? t.name : id) + ': ' + ar(inv.tafsir[id].size) + ' من ١١٤ سورة', 'data-dldel="tafsir" data-v="' + esc(id) + '"'); }
+    for (const rec of Object.keys(inv.audio)) for (const s of Object.keys(inv.audio[rec]).map(Number).sort((x, y) => x - y)) {
+      h += li('تلاوة ' + esc(reciterName(rec)) + '، سورة ' + esc(surahName(s)) + ': ' + ar(inv.audio[rec][s].size) + ' من ' + ar(T.nAyah[s - 1]) + ' آية' + (s === 1 ? ' (الآيةُ الأولى هي البسملةُ التي تسبقُ السور)' : ''), 'data-dldel="audio" data-v="' + esc(rec) + '|' + s + '"');
+    }
+    if (inv.other) h += li('ملفّاتٌ أخرى: ' + ar(inv.other), 'data-dldel="other"');
+    h += '</ul><div class="row" style="margin-top:8px"><button type="button" class="chip" data-dldel="all">حذفُ كلِّ التنزيلات</button></div>';
+    box.innerHTML = h;
+  }
+  async function dlDelete(kind, v) {
+    if (DL) { toast('أوقفِ التنزيلَ الجاريَ أوّلًا'); return; }
+    let c; try { c = await caches.open(DL_STORE); } catch (e) { return; }
+    if (kind === 'all') { if (!confirm('ستُحذَفُ كلُّ التنزيلاتِ من هذا الجهاز. هل تتابع؟')) return; await caches.delete(DL_STORE); }
+    else {
+      const inv = await dlInventory(); if (!inv) return;
+      const doomed = inv.keys.filter((u) => {
+        const path = (() => { try { return new URL(u).pathname; } catch (e) { return ''; } })(); let m;
+        if (kind === 'juz') { const [a, b] = juzRange(+v); m = /\/assets\/madina-hafs\/page-(\d{3})\.webp$/.exec(path) || /\/mushaf-lab\/geometry\/(\d{3})\.json$/.exec(path); return !!m && +m[1] >= a && +m[1] <= b; }
+        if (kind === 'trans') return new RegExp('/editions/' + v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\.min\\.json$').test(u);
+        if (kind === 'tafsir') return u.indexOf('/tafsir/' + v + '/') > 0;
+        if (kind === 'audio') { const [rec, s] = v.split('|'); return u.indexOf('https://everyayah.com/data/' + rec + '/' + pad3(s)) === 0; }
+        if (kind === 'other') return !/\/assets\/madina-hafs\/|\/mushaf-lab\/geometry\/|\/tafsir\/|\/editions\/|everyayah\.com/.test(u);
+        return false;
+      });
+      await Promise.all(doomed.map((u) => c.delete(u).catch(() => false)));
+    }
+    textWhole.clear(); toast('حُذف'); dlHave();
+  }
+  async function downloadsSheet() {
+    if (!('caches' in window)) { toast('هذا المتصفّحُ لا يدعمُ التنزيلَ للاستخدامِ دونَ اتّصال'); return; }
+    await sizes();
+    const s = surahOfPage(cur); const j = juzOf(cur);
+    const juzBytes = SIZES ? (() => { const [a, b] = juzRange(j); let t = 0; for (let p = a; p <= b; p++) t += SIZES.pages[p - 1] + SIZES.geometry[p - 1]; return t; })() : 0;
+    const allBytes = SIZES ? SIZES.totals.pages + SIZES.totals.geometry : 0;
+    const opt = (list) => '<option value="">اخترْ</option>' + list.map((t) => '<option value="' + esc(t.id) + '">' + esc(t.name) + (APPROX_BYTES[t.id] ? '، نحوُ ' + MB(APPROX_BYTES[t.id]) : '') + '</option>').join('');
+    openSheet('<h2>التنزيلات</h2><p class="muted">ما تنزّله هنا يبقى على هذا الجهاز، فتقرؤه وتسمعه دون إنترنت. لا يبدأ تنزيلٌ حتى تضغطَ «ابدأ التنزيل» بعد أن ترى حجمه.</p>' +
+      (IN_EZIK ? '<h3>صفحات المصحف</h3><div class="chips"><button type="button" data-dl="juz">الجزء الحالي (الجزء ' + ar(j) + ')' + (juzBytes ? '، ' + MB(juzBytes) : '') + '</button><button type="button" data-dl="all">المصحف كاملًا' + (allBytes ? '، ' + MB(allBytes) : '') + '</button></div>' : '') +
+      '<div class="field"><label for="dlTr">ترجمة</label><select id="dlTr">' + opt(META.translations || []) + '</select></div><div class="row"><button type="button" class="chip" data-dl="trans">تنزيل الترجمة</button></div>' +
+      '<div class="field"><label for="dlTf">تفسير (١١٤ ملفًّا، ملفٌّ لكلِّ سورة)</label><select id="dlTf">' + opt(META.tafsirs || []) + '</select></div><div class="row"><button type="button" class="chip" data-dl="tafsir">تنزيل التفسير</button></div>' +
+      '<div class="field"><label for="dlRc">تلاوة سورة ' + esc(surahName(s)) + ' كاملةً</label><select id="dlRc">' + reciters().map((r) => '<option value="' + r.id + '"' + (r.id === S.reciter ? ' selected' : '') + '>' + esc(r.name) + '</option>').join('') + '</select></div><div class="row"><button type="button" class="chip" data-dl="recite">تنزيل التلاوة</button></div>' +
+      '<div id="dlPanel"></div><h3>على هذا الجهاز</h3><div id="dlHave"><p class="muted">يُقرأ المخزن…</p></div>', (e) => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.dl) dlPrepare(b.dataset.dl);
+      else if (b.dataset.dlgo) dlStart();
+      else if (b.dataset.dlno) { dlPending = null; $('dlPanel').innerHTML = ''; }
+      else if (b.dataset.dlstop) dlCancel();
+      else if (b.dataset.dldel) dlDelete(b.dataset.dldel, b.dataset.v);
+    });
+    if (DL) dlPaint();
+    dlHave();
+  }
+
+  // Stored whole files, read back when the per-ayah fetch fails. Shapes, measured 2026-09-27:
+  //   tafsir/{slug}/{surah}.json   an array of { text, ayah, surah }
+  //   editions/{id}.min.json       { quran: [ { chapter, verse, text } ] }
+  const textWhole = new Map();
+  async function storedJson(bases, rel) {
+    if (textWhole.has(rel)) return textWhole.get(rel);
+    const pr = (async () => { try { const c = await caches.open(DL_STORE); for (const b of bases) { const r = await c.match(b + rel); if (r) return await r.json(); } } catch (e) {} return undefined; })();
+    textWhole.set(rel, pr); if (textWhole.size > 4) textWhole.delete(textWhole.keys().next().value);
+    const v = await pr; if (v === undefined) textWhole.delete(rel); return v;
+  }
+  async function fromStoredWhole(bases, path) {
+    const m = /^([^/]+)\/(\d+)\/(\d+)\.json$/.exec(path); if (!m || !('caches' in window)) return undefined;
+    const id = m[1], s = +m[2], a = +m[3];
+    if (bases === TAFSIR_BASES) { const d = await storedJson(bases, TAFSIR_WHOLE(id, s)); if (!Array.isArray(d)) return undefined; return d.find((x) => +x.ayah === a) || null; }
+    if (bases === TRANS_BASES) { const d = await storedJson(bases, TRANS_WHOLE(id)); if (!d || !Array.isArray(d.quran)) return undefined; return d.quran.find((x) => +x.chapter === s && +x.verse === a) || null; }
+    return undefined;
+  }
   // ------------------------------------------------------------------ recitation player
-  const P = { on: false, list: [], i: 0, rep: 0, rrep: 0, phase: 'ayah', key: null, audio: new Audio(), pre: new Audio(), paused: false };
+  const P = { on: false, list: [], i: 0, rep: 0, rrep: 0, phase: 'ayah', key: null, audio: new Audio(), pre: new Audio(), paused: false, seq: 0, blob: null };
   P.audio.preload = 'auto'; P.pre.preload = 'auto';
   function playFrom(startKey, endKey) {
     const [s] = startKey.split(':').map(Number);
@@ -700,13 +939,27 @@
     startTrack();
   }
   function trackUrl() { const [s, a] = P.list[P.i].split(':').map(Number); return P.phase === 'basm' ? AUDIO(S.reciter, 1, 1) : AUDIO(S.reciter, s, a); }
+  // A stored ayah plays from a blob URL made from the stored response -- online too, it saves data -- and not
+  // through Ezik's worker, so no range request is involved, which is what lets it play in the iOS webview.
+  // Each blob URL is revoked when the next track replaces it, and on stop.
+  async function storedAudio(url, body) {
+    try { if (!('caches' in window)) return null; const c = await caches.open(DL_STORE); const r = await c.match(url); return r ? (body ? await r.blob() : true) : null; } catch (e) { return null; }
+  }
+  function releaseBlob() { if (P.blob) { try { URL.revokeObjectURL(P.blob); } catch (e) {} P.blob = null; } }
   function startTrack() {
-    const key = P.list[P.i]; P.key = key;
-    P.audio.src = trackUrl(); P.audio.playbackRate = S.speed; P.audio.defaultPlaybackRate = S.speed;
-    const pr = P.audio.play(); if (pr && pr.catch) pr.catch(() => { if (P.on) { P.paused = true; updatePlayerUi(); } });
+    const key = P.list[P.i]; P.key = key; const seq = ++P.seq; const url = trackUrl();
+    storedAudio(url, true).then((b) => {
+      if (seq !== P.seq || !P.on) return;
+      const old = P.blob; P.blob = b ? URL.createObjectURL(b) : null;
+      P.audio.src = P.blob || url; P.audio.playbackRate = S.speed; P.audio.defaultPlaybackRate = S.speed;
+      if (old) { try { URL.revokeObjectURL(old); } catch (e) {} }
+      const pr = P.audio.play(); if (pr && pr.catch) pr.catch(() => { if (P.on) { P.paused = true; updatePlayerUi(); } });
+      updatePlayerUi();
+    });
     if (S.follow !== false && ayahPage[key] && visiblePages(cur).indexOf(ayahPage[key]) < 0) goPage(ayahPage[key], { keepScroll: false });
     redrawMarks(); updatePlayerUi(); mediaSession();
-    const nk = P.phase === 'basm' ? key : P.list[P.i + 1]; if (nk) { const [s2, a2] = nk.split(':').map(Number); P.pre.src = AUDIO(S.reciter, s2, a2); }
+    const nk = P.phase === 'basm' ? key : P.list[P.i + 1];
+    if (nk) { const [s2, a2] = nk.split(':').map(Number); const nu = AUDIO(S.reciter, s2, a2); storedAudio(nu, false).then((has) => { if (seq === P.seq && !has) P.pre.src = nu; }); }   // a stored ayah needs no preload
   }
   P.audio.addEventListener('ended', () => {
     if (!P.on) return;
@@ -720,7 +973,7 @@
     stopPlay(); toast('انتهت التلاوة');
   });
   P.audio.addEventListener('error', () => { if (P.on && P.audio.src) { toast('تعذّر تشغيلُ التلاوة. تحقّقْ من الاتصال أو غيّرِ القارئ.'); stopPlay(); } });
-  function stopPlay() { P.on = false; P.key = null; try { P.audio.pause(); } catch (e) {} P.audio.removeAttribute('src'); $('player').hidden = true; redrawMarks(); if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none'; }
+  function stopPlay() { P.on = false; P.key = null; P.seq++; try { P.audio.pause(); } catch (e) {} P.audio.removeAttribute('src'); releaseBlob(); $('player').hidden = true; redrawMarks(); if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none'; }
   function togglePlay() { if (!P.on) return; if (P.audio.paused) { const pr = P.audio.play(); if (pr && pr.catch) pr.catch(() => {}); P.paused = false; } else { P.audio.pause(); P.paused = true; } updatePlayerUi(); }
   function updatePlayerUi() {
     if (!P.on) return; const key = P.list[P.i];
@@ -835,5 +1088,5 @@
   }
 
   // test hooks (read-only use by the build's smoke test)
-  window.__lab = { sizeStages, toggleChrome, wordsOf, normalize, keysBetween, citeRange, visiblePages, quarterLabel, get state() { return { cur, P, S }; }, ayahSheet, savedSheet, searchSheet, runSearch, indexSheet, goSheet, settingsSheet, playFrom, stopPlay, toggleBookmark, findBookmark, rangeSheet, closeSheet, render, goPage, exportCsv };
+  window.__lab = { sizeStages, toggleChrome, wordsOf, normalize, keysBetween, citeRange, visiblePages, quarterLabel, get state() { return { cur, P, S }; }, ayahSheet, savedSheet, searchSheet, runSearch, indexSheet, goSheet, settingsSheet, playFrom, stopPlay, toggleBookmark, findBookmark, rangeSheet, closeSheet, render, goPage, exportCsv, downloadsSheet, dlInventory };
 })();
