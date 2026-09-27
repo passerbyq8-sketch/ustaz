@@ -1482,7 +1482,13 @@ const SEALED = {
 //                    -- it stays at v38, as it did for every app.js-only ship since 2026-09-16-d:
 //                    the changed worker installs and rewrites every CORE entry into the same store.
 //                    THIS digest is re-cut LAST, after every other sw.js edit was final.
-  'sw.js': '1c0cb74cf1462102d71db9c151a2a2c0111d52e76bd91dad47f9f73777cc4fb5',
+  //   2026-09-27   -- SPEED item 17 client branch: status frames, atomic cards and live offers.
+  //                    app.js rebuilt by tools/build-app.cjs: 1785502 -> 1789622 (+4120).
+  //                    CORE_BYTES re-derived by tools/core-bytes.cjs --write: 2958592 -> 2962712.
+  //                    The worker byte table and SW_PROSE mirror follow the measured bundle.
+  //                    sw.js remains 48468 bytes, CR = 0; this digest is cut LAST.
+  //                    CACHE stays ezik-v38: this branch is not a ship; the merge round owns it.
+  'sw.js': 'b2f90892e0918fd107b974c2e9862da4ded086d3c4e224824297b6534d111ca2',
 };
 
 // ---------------------------------------------------------------------------
@@ -2438,7 +2444,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1785502, of: 'app.js' },
+      { n: 1789622, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

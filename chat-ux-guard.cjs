@@ -1646,11 +1646,15 @@ function partE() {
   ok('...nor under one of the client\'s own error lines', /quickActionsVisible[\s\S]{0,400}?ezikIsErrorReply\(lastMsg\.content\)/.test(decoded));
 
   // ONE RENDERER, and this is what keeps a raw tag off the favourites screen forever: the chat
-  // bubble and the favourites card must both go through ezikRenderSegments and neither may grow a
-  // map of its own. A second mapping is how the two would eventually drift.
+  // bubble, live preview and favourites card all go through ezikRenderSegments;
+  // none may grow a map of its own and drift from the others.
   eq('the segment renderer is defined exactly once', (decoded.split('function ezikRenderSegments').length - 1), 1);
   const callers = (decoded.match(/ezikRenderSegments\(/g) || []).length - 1;   // minus the definition
   eq('...and both display sites call it', callers, 2);
+  ok('the live preview renders through it with the same diacritic preference',
+    /segments: ezikStreamPreviewSegments\(message\.content, age\)/.test(decoded)
+    && /ezikRenderSegments\(shownSegments, \{ tashkeel, age,/.test(decoded)
+    && /<MessageBubble index=\{i\} streaming=\{streamingText !== null && i === messages\.length\}[^>]*tashkeel=\{tashkeelOn\}/.test(decoded));
   ok('...so no screen maps segments to cards on its own',
     !/segments\.map\(\(seg/.test(decoded) && !/\.map\(\(seg, i\) => \{[\s\S]{0,200}seg\.type === 'verse'/.test(decoded));
   ok('the favourites card renders through it', /function FavoriteReplyBody[\s\S]{0,900}?ezikRenderSegments\(shown/.test(decoded));

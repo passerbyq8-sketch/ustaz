@@ -2642,7 +2642,7 @@ ok('N4: ...and nothing inline can beat that padding',
 // forbidden: the map must be a direct child expression of the scroller, and the bubble must be
 // the first element the Fragment opens.
 ok('N4: ...and no wrapper was inserted between the scroll container and the messages',
-  /className=\{'ezc-scroll'[^>]*style=\{s\.messagesArea\}>[\s\S]{0,1400}?\{messages\.map\(\(m, i\) => \([\s\S]{0,900}?<React\.Fragment key=\{i\}>[\s\S]{0,400}?<MessageBubble/.test(chatSrc));
+  /className=\{'ezc-scroll'[^>]*style=\{s\.messagesArea\}>[\s\S]{0,1400}?\{\(streamingText !== null \? \[\.\.\.messages, \{ role: 'assistant', content: streamingText, liveOffer: streamingLiveOffer \}\] : messages\)\.map\(\(m, i\) => \([\s\S]{0,900}?<React\.Fragment key=\{i\}>[\s\S]{0,400}?<MessageBubble/.test(chatSrc));
 ok('N4: ...and the marker it wraps them for is a bare node that draws nothing',
   /<div ref=\{pinAnchorRef\} aria-hidden="true" data-ezik-ask-pin="" \/>/.test(chatSrc));
 ok('N5: the composer dock is bounded by the same measure',
@@ -2796,9 +2796,10 @@ ok('N16: ...including the depth and band terms and the size fit',
   && /depth: depthMode === 'scholar' \? 'scholar' : 'deep'/.test(html));
 ok('N17: the stream is still read delta by delta into the live preview',
   /if \(evt\.type === 'content_block_delta' && evt\.delta && evt\.delta\.type === 'text_delta'\)/.test(html)
-  && /onDelta: \(partial\) => \{ if \(abortRef\.current === controller\) \{ clearSearchingHint\(\); setStreamingText\(partial\); \} \}/.test(html));
+  && /onDelta: \(partial\) => \{ if \(partial && abortRef\.current === controller\) \{ clearSearchingHint\(\); setReadingStatus\(null\); setStreamingText\(partial\); \} \}/.test(html));
 ok('N17: ...and the live preview is still drawn, on the chat\'s own surface',
-  /\{streamingText !== null && \(\s*\r?\n\s*<div className="ezc-turn is-ai">\s*\r?\n\s*<div style=\{\{ \.\.\.s\.messageBubble, \.\.\.s\.assistantBubble \}\}>/.test(chatSrc));
+  /<MessageBubble index=\{i\} streaming=\{streamingText !== null && i === messages\.length\}/.test(chatSrc)
+  && /<div className="ezc-ans" data-ezik-stream=\{streaming \? "" : undefined\} style=\{\{ \.\.\.s\.assistantBubble, maxWidth: '100%', \/\* 13\.4-b2 \*\/ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 10 \}\}>/.test(mbSrc));
 
 /* ---- N18. where a conversation opens ---------------------------------- */
 ok('N18: the opening pin is still the pre-paint layout effect',
@@ -2832,15 +2833,16 @@ ok('N21: the star still toggles through the shipped writer, and still says so',
   && /isFavorite=\{favFlags\[i\]\}/.test(chatSrc));
 ok('N22: the source card is still built from the segment\'s own site and url',
   /<SourceCard key=\{i\} site=\{seg\.site\} url=\{seg\.url\} content=\{seg\.content\} \/>/.test(html));
-ok('N22: ...through the ONE renderer, called by the chat sheet and nothing new',
+ok('N22: ...through the ONE renderer, shared by the chat sheet, preview and favourites',
   (html.split('function ezikRenderSegments').length - 1) === 1
   && ((html.match(/ezikRenderSegments\(/g) || []).length - 1) === 2
+  && /segments: ezikStreamPreviewSegments\(message\.content, age\)/.test(mbSrc)
   // Item 86 re-pinned the context literal. It read:
   //   ezikRenderSegments\(shownSegments, \{ tashkeel, age, onPlayVerse, onPlaySurah, onStopAudio \}\)
   // and the ayah star adds two keys to it. What this check is FOR is unchanged and is what it
   // still pins: there is one renderer, it has exactly two callers, and the chat sheet reaches
   // its cards only through it.
-  && /<div className="ezc-ans" style=\{\{ \.\.\.s\.assistantBubble[\s\S]{0,260}?ezikRenderSegments\(shownSegments, \{ tashkeel, age, onPlayVerse, onPlaySurah, onStopAudio, onFavoriteAyah, ayahFavIds \}\)/.test(mbSrc));
+  && /<div className="ezc-ans" data-ezik-stream=\{streaming \? "" : undefined\} style=\{\{ \.\.\.s\.assistantBubble[\s\S]{0,260}?ezikRenderSegments\(shownSegments, \{ tashkeel, age, onPlayVerse, onPlaySurah, onStopAudio, onFavoriteAyah, ayahFavIds \}\)/.test(mbSrc));
   ok('N22: ...and the ayah star is handed DOWN, never read from a store by the card',
     /function VerseCard\(\{ surah, surahNum, ayah, onPlayVerse, onStopAudio, onFavorite, isFavorite \}\)/.test(html)
       && !/function VerseCard[\s\S]{0,3000}?localStorage/.test(html));

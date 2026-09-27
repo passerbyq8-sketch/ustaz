@@ -80,6 +80,11 @@
     "args": "index.html"
   },
   {
+    "name": "speedclient",
+    "script": "guards/speed-client-guard.cjs",
+    "args": "index.html"
+  },
+  {
     "name": "a11y",
     "script": "a11y-guard.cjs",
     "args": "index.html"

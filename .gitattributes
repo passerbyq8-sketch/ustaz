@@ -813,3 +813,7 @@ lib/live-number-source.js text eol=lf
 # a file whose content nobody had touched. guards/live-world-v2-killswitch-guard.cjs reads it and
 # drives it, so it must read the same on every machine.
 lib/live-news-order.js text eol=lf
+
+# SPEED item 17: the registered DOM guard and its measured legacy-render fixture.
+guards/speed-client-guard.cjs text eol=lf
+guards/fixtures-speed-client-old-path.json text eol=lf
