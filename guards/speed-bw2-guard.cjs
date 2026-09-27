@@ -19,6 +19,16 @@
 //   T9  liveSearch: true takes today's path with a forced first-round search; BEFORE_WRITING_V2=off
 //       takes today's path; a minor takes today's path; a closed-deen question stays closed-deen
 //   T10 telemetry carries numbers and enums only: a question containing digits leaks into no field
+//
+// SPEED FIX 1 (order EZIK-SPEED-FIX1-ORDER-2026-09-27), built from the owner tool's exact text of the
+// preview's questions 16, 9, 4 and 11 (guards/fixtures-speed-fix1.json):
+//   R1  an adhkar question (q16) and three siblings take today's path, through the real handler
+//   R2  an estate division (q9) and three siblings take today's path, through the real handler
+//   R3  the writer's marker (or its own not-covered sentence) releases exactly the sentence once and
+//       the offer; nothing it wrote before or after goes out
+//   R4  a group attribution (q4) with no [[n]], or cited to rows that do not name the group, is held;
+//       BW2_HOLD_UNCITED_RULINGS (default off) holds an uncited ruling unit in STORED_FIQH only
+//   R5  a unit that leans on a held one (q11's orphan quote) is held, and no answer opens on one
 'use strict';
 
 const fs = require('fs');
@@ -190,7 +200,8 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       providerUrl: 'https://api.anthropic.invalid/v1/messages', headers: {},
       libFlagValue: opts.libOn ? 'on' : '', libToken: opts.libOn ? 'guard-token' : '', lessonsToken: '',
       takhrijWired: !!opts.takhrij, cards, wire, requestStartedAt: Date.now(),
-      env: { BW2_RETRIEVAL_MS: String(opts.budget || 400), BW2_JUDGE_MS: '400' },
+      env: { BW2_RETRIEVAL_MS: String(opts.budget || 400), BW2_JUDGE_MS: '400', ...(opts.env || {}) },
+      runtime: opts.runtime || '',
       deps,
     });
     const frames = framesOf(target);
@@ -408,6 +419,114 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       ok('T8h parseDecisions keeps none of the missing', JSON.stringify(BW2.parseDecisions('{"d":{"1":1,"2":0}}', 3)) === '{"keep":[1],"missing":[3]}');
     }
 
+    // ---------------------------------------------------------------- SPEED FIX 1: R3, R4, R5 (unit level)
+    const F = JSON.parse(read('guards/fixtures-speed-fix1.json'));
+    const UNITS = await esm('lib/bw2-units.js');
+    const FLAGS1 = await esm('lib/free-brain/flag.js');
+    const MARKER = UNITS.BW2_NOT_COVERED_MARKER;
+    const count = (hay, needle) => hay.split(needle).length - 1;
+    const hasOffer = (r) => r.frames.some((f) => f.type === 'ezik_live_offer');
+    {
+      // R3a: the writer's marker, alone.
+      const m = await run({ question: F.q16, writerText: MARKER });
+      ok('R3a the writer writes the marker alone: the reader gets exactly the not-covered sentence, once, then the offer',
+        m.deltas.join('') === NOT_COVERED && hasOffer(m) && m.out.telemetry.unitsReleased === 0, ascii(m.deltas.join('|')));
+      // R3b: q16 as it happened -- the writer wrote the sentence (here with tanween and shadda, as a
+      // model writes it) and BW2 appended its own: now exactly one, compared on the fold.
+      const variant = F.a16[0].replace(NOT_COVERED.split(' ')[5], NOT_COVERED.split(' ')[5] + String.fromCharCode(0x064b, 0x0651));
+      const q16 = await run({ question: F.q16, writerText: variant + '\n' + F.a16[1] });
+      ok('R3b q16: the writer\'s own not-covered sentence (with diacritics, twice) -> the sentence exactly once, then the offer',
+        variant !== F.a16[0] && q16.deltas.join('') === NOT_COVERED && hasOffer(q16), ascii(q16.deltas.join('|')));
+      // R3c: q9 with the marker first and the continuation after it (even cited): nothing after it goes out.
+      const q9m = await run({ question: F.q9, writerText: MARKER + '\n' + F.a9[1].replace(/\.$/u, ' [[1]].') });
+      ok('R3c q9: marker then a continuation -> only the sentence and the offer; the continuation is not released',
+        q9m.deltas.join('') === NOT_COVERED && hasOffer(q9m) && q9m.out.telemetry.cardsSent === 0, ascii(q9m.deltas.join('|')));
+      // R3d: q9 as it happened: the sentence first, then 305 characters -> only the sentence.
+      const q9s = await run({ question: F.q9, writerText: F.a9.join('\n').replace(/\.$/u, ' [[1]].') });
+      ok('R3d q9: the writer\'s sentence then the rest -> only the sentence and the offer',
+        q9s.deltas.join('') === NOT_COVERED && hasOffer(q9s), ascii(q9s.deltas.join('|')));
+      // R3e: text before the marker that has not gone out does not go out, for every chunking.
+      let before = 0;
+      for (let seed = 1; seed <= 6; seed += 1) {
+        const r = await run({ writerText: U.s1 + ' ' + U.s3 + ' ' + MARKER + ' ' + U.s1, seed });
+        if (r.deltas.join('') === NOT_COVERED && hasOffer(r)) before += 1;
+      }
+      ok('R3e the marker split across deltas (6 chunkings): the units written before it are not released, nor after it',
+        before === 6, String(before));
+      // R3f: already released cited text, then the writer's sentence: appended once, and never twice.
+      const mid = await run({ writerText: U.s1 + ' ' + variant + ' ' + U.s3 });
+      const mt = mid.deltas.join('');
+      ok('R3f a cited unit, then the writer\'s sentence: the unit stays, the sentence goes out once, the rest does not',
+        mt.startsWith(MASAH_RULING) && mt.endsWith(NOT_COVERED) && count(mt, NOT_COVERED) === 1 && !mt.includes(MASAH_TERM)
+        && hasOffer(mid), ascii(mt));
+      const tat = NOT_COVERED.replace(' ', String.fromCharCode(0x0640) + '  ').replace(/\.$/u, ' !');
+      ok('R3g the comparison fold ignores diacritics, tatweel, spaces and punctuation, and nothing else',
+        UNITS.carriesNotCovered(tat, NOT_COVERED) && UNITS.carriesNotCovered(variant, NOT_COVERED)
+        && !UNITS.carriesNotCovered(MASAH_RULING, NOT_COVERED) && UNITS.foldNotCovered(tat) === UNITS.foldNotCovered(NOT_COVERED));
+      ok('R3h the writer is told to write the marker, and is no longer given the sentence to write',
+        BW2.BW2_WRITE_RULES.includes(MARKER) && !BW2.BW2_WRITE_RULES.includes(NOT_COVERED) && ![...MARKER].some((c) => c.charCodeAt(0) > 0x7e));
+    }
+    {
+      // R4a: q4's released first unit, uncited: its group claim now holds it.
+      const q4 = await run({ question: F.q4, writerText: F.a4[0] + ' ' + U.s1 });
+      const t4 = q4.deltas.join('');
+      ok('R4a q4: a unit naming the scholars as a group with no [[n]] is held; the stream continues',
+        !t4.includes(F.q4Clause.slice(0, 20)) && t4.includes(MASAH_RULING), ascii(t4));
+      const rowWith = { ...ROW_F1, url: 'https://binbaz.org.sa/fatwas/4001', recordId: '4001', title: 'R4-ROW', text: F.authRowScholars, passage: F.authRowScholars };
+      const rowWithout = { ...rowWith, url: 'https://binbaz.org.sa/fatwas/4002', recordId: '4002', text: F.authRowNoGroup, passage: F.authRowNoGroup };
+      const cited = F.q4Clause.replace(/\.$/u, ' [[1]].');
+      const ok4 = await run({ question: F.q4, fatwa: [rowWith], writerText: cited });
+      ok('R4b ...the same claim cited to a row that names the group is released',
+        ok4.deltas.join('').startsWith(F.q4Clause.replace(/\.$/u, '')), ascii(ok4.deltas.join('|')));
+      const no4 = await run({ question: F.q4, fatwa: [rowWithout], writerText: cited + ' ' + U.s1 });
+      ok('R4c ...cited to a row that does not name it: held (unsupported group)',
+        !no4.deltas.join('').includes(F.q4Clause.slice(0, 20)), ascii(no4.deltas.join('|')));
+      const fam = UNITS.groupFamiliesIn;
+      const norm = (await esm('lib/route-classify.js')).normalizeArabic;
+      const listed = F.a4[0].length > 0 && [F.q4Clause].every((s) => fam(norm(s)).length === 1);
+      ok('R4d the group list: q4\'s "ahl al-ilm" is a group claim, with the conjunction welded on too',
+        listed && fam(norm(String.fromCharCode(0x0648) + F.q4Clause)).length === 1 && fam(norm(MASAH_RULING)).length === 0);
+      // R4(b): q4's second line states a ruling (it drops the night at Mina) with no [[n]].
+      const line2 = F.a4[1].split('. ')[0] + '.';
+      const offRun = await run({ question: F.q4, writerText: U.s1 + ' ' + line2, runtime: 'STORED_FIQH' });
+      const onRun = await run({ question: F.q4, writerText: U.s1 + ' ' + line2, runtime: 'STORED_FIQH', env: { BW2_HOLD_UNCITED_RULINGS: 'on' } });
+      const hadRun = await run({ question: F.q4, writerText: U.s1 + ' ' + line2, runtime: 'HADITH', env: { BW2_HOLD_UNCITED_RULINGS: 'on' } });
+      const citedOn = await run({ question: F.q4, writerText: U.s1 + ' ' + line2.replace(/\.$/u, ' [[1]].'), runtime: 'STORED_FIQH', env: { BW2_HOLD_UNCITED_RULINGS: 'on' } });
+      const probe = line2.slice(0, 12);
+      ok('R4e BW2_HOLD_UNCITED_RULINGS is off by default: q4\'s uncited ruling unit goes out as before',
+        offRun.deltas.join('').includes(probe) && FLAGS1.bw2HoldUncitedRulingsDecision({}).enabled === false
+        && FLAGS1.BW2_HOLD_UNCITED_RULINGS_DEFAULT === false, ascii(offRun.deltas.join('|')));
+      ok('R4f ...on: held in STORED_FIQH; released in HADITH and when it carries a valid [[n]]',
+        !onRun.deltas.join('').includes(probe) && hadRun.deltas.join('').includes(probe) && citedOn.deltas.join('').includes(probe)
+        && FLAGS1.bw2HoldUncitedRulingsDecision({ BW2_HOLD_UNCITED_RULINGS: 'on' }).enabled === true,
+        ascii([onRun, hadRun, citedOn].map((r) => r.deltas.join('')).join(' || ')));
+    }
+    {
+      // R5a: q11 -- the unit naming the hadith, its narrator and the Prophet is held; the quote after it
+      // (the tool's exact first line) leans on it and is held too; the stream continues.
+      const q11 = await run({ question: F.q11, writerText: F.authHeld11 + ' ' + F.a11[0] + ' ' + U.s1 });
+      const t11 = q11.deltas.join('');
+      const quote = F.a11[0].slice(F.a11[0].indexOf(String.fromCharCode(0x00ab)), F.a11[0].indexOf(String.fromCharCode(0x00ab)) + 12);
+      ok('R5a q11: the quote that leans on a held unit is held with it; the answer does not begin with it',
+        !t11.includes(quote) && t11.startsWith(MASAH_RULING) && q11.out.telemetry.unitsHeld === 2, ascii(t11));
+      const open = await run({ question: F.q11, writerText: F.a11[0] + ' ' + U.s1 });
+      ok('R5b ...and no answer opens on it even when nothing before it was held',
+        !open.deltas.join('').includes(quote) && open.deltas.join('').startsWith(MASAH_RULING), ascii(open.deltas.join('|')));
+      const q1 = await run({ question: F.q1, writerText: F.a1[0].replace(/\.$/u, ' [[1]].') + ' ' + U.s1 });
+      ok('R5c q1\'s opening "wa-hadha ..." (a connector) does not open an answer',
+        q1.deltas.join('').startsWith(MASAH_RULING), ascii(q1.deltas.join('|')));
+      const pr = await run({ writerText: [U.s1, U.bad, F.authPronoun, U.s3].join(' ') });
+      const tp = pr.deltas.join('');
+      ok('R5d a bare demonstrative right after a held unit is held; one after a released unit is not',
+        !tp.includes(F.authPronoun.slice(0, 8)) && tp.includes(MASAH_TERM)
+        && (await run({ writerText: [U.s1, F.authPronoun].join(' ') })).deltas.join('').includes(F.authPronoun.slice(0, 8)), ascii(tp));
+      const k = UNITS.dependentKind;
+      ok('R5e the kinds: q11\'s "qala:" is speech, q1 a connector, q10 a bare demonstrative; a named speaker and "qawluhu ta\'ala" are not',
+        k(F.a11[0]) === 'speech' && k(F.a1[0]) === 'connector' && k(F.a10[0]) === 'pronoun' && k(U.s2) === '' && k(MASAH_RULING) === ''
+        && k(String.fromCharCode(0x00ab) + MASAH_RULING + String.fromCharCode(0x00bb)) === 'quote',
+        JSON.stringify([k(F.a11[0]), k(F.a1[0]), k(F.a10[0]), k(U.s2)]));
+    }
+
     // ---------------------------------------------------------------- T10 (unit level)
     const DIGITS = '7391';
     {
@@ -592,6 +711,28 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         const fbOff = await drive(Q_MASAH, { env: { FREE_BRAIN_V1: 'off' } });
         ok('T9i FREE_BRAIN_V1=off: the before-writing switch is never reached (the pre-free-brain path runs)',
           !fbOff.logOf('[bw2]') && !fbOff.frames.some((f) => f.type === 'ezik_status'));
+
+        // SPEED FIX 1, R1/R2: through the real handler, each question is a DEEN turn on the free-brain
+        // seat that BW2 leaves alone -- today's tool loop answers it (its first round carries tools).
+        const today = async (q) => {
+          const r = await drive(q);
+          const seat = r.logOf('[free-brain]');
+          const route = r.logOf('[route]');
+          return !r.crashed && !!seat && seat.bw2 === false && !!route && route.route === 'DEEN' && !r.logOf('[bw2]')
+            && !r.logOf('[closed-deen]') && !r.frames.some((f) => f.type === 'ezik_status')
+            && r.model.length >= 1 && Array.isArray(r.model[0].tools);
+        };
+        const r1 = [];
+        for (const q of [F.q16, ...F.sibR1]) r1.push(await today(q));
+        ok('R1a q16 (the adhkar after the obligatory prayer) takes today\'s path through the real handler', r1[0] === true);
+        ok('R1b ...and so do three sibling phrasings', r1.length === 4 && r1.slice(1).every((v) => v === true), JSON.stringify(r1));
+        const r2 = [];
+        for (const q of [F.q9, ...F.sibR2]) r2.push(await today(q));
+        ok('R2a q9 (an estate division) takes today\'s path through the real handler', r2[0] === true);
+        ok('R2b ...and so do three sibling phrasings', r2.length === 4 && r2.slice(1).every((v) => v === true), JSON.stringify(r2));
+        const stays = await drive(F.q4);
+        ok('R2c a ruling question the fix does not name (q4) still takes BW2', (stays.logOf('[free-brain]') || {}).bw2 === true
+          && !!stays.logOf('[bw2]'));
       } finally {
         globalThis.fetch = realFetch;
         for (const k of ENV_KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }
@@ -610,6 +751,17 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         take({}) && take({ runtime: 'HADITH' }) && !take({ runtime: 'GENERAL' }) && !take({ runtime: 'LOCAL_QURAN' })
         && !take({ runtime: 'LOCAL_ADHKAR' }) && !take({ runtime: 'LOCAL_WORSHIP' }) && !take({ band: 'teen' })
         && !take({ liveSearch: true }) && !take({ enabled: false }));
+      const SCOPE = await esm('lib/bw2-scope.js');
+      const ex = SCOPE.bw2ScopeExclusion;
+      ok('R1c the exclusion is deterministic: q16 and its siblings -> canonical_store, q9 and its siblings -> estate_division',
+        [F.q16, ...F.sibR1].every((q) => ex(q) === 'canonical_store') && [F.q9, ...F.sibR2].every((q) => ex(q) === 'estate_division'),
+        JSON.stringify([F.q16, ...F.sibR1, F.q9, ...F.sibR2].map(ex)));
+      ok('R2d ...and names nothing else among the fixture\'s ruling and hadith questions',
+        [F.q4, F.q11, F.q1, F.q10, Q_MASAH].every((q) => ex(q) === ''), JSON.stringify([F.q4, F.q11, F.q1, F.q10, Q_MASAH].map(ex)));
+      ok('R2e the scope turns an exclusion into its reason, and only the two named ones',
+        FLAGS.beforeWritingV2Takes({ enabled: true, band: 'adult', runtime: 'STORED_FIQH', excluded: 'canonical_store' }).reason === 'canonical_store'
+        && FLAGS.beforeWritingV2Takes({ enabled: true, band: 'adult', runtime: 'HADITH', excluded: 'estate_division' }).reason === 'estate_division'
+        && take({ excluded: 'typo' }) && take({ excluded: '' }));
     }
   } catch (error) {
     ok('guard completed without exception', false, error && error.stack ? error.stack : String(error));

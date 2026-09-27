@@ -828,3 +828,7 @@ guards/fixtures-speed-client-old-path.json text eol=lf
 # production baseline for I4.
 guards/speed-integration-guard.cjs text eol=lf
 guards/fixtures-speed-integration-general.json text eol=lf
+
+# SPEED item 17 fix 1: the before-writing scope exclusion and the guard fixture built from the preview.
+lib/bw2-scope.js text eol=lf
+guards/fixtures-speed-fix1.json text eol=lf

@@ -136,6 +136,7 @@ import { runClosedDeenTurn } from '../lib/closed-deen.js';
 // what arrives; LIB_MAX_CHARS_PER_HIT_CEILING caps a request parameter this tree never sends.
 import { LIB_MAX_CHARS_PER_HIT_DEFAULT } from '../lib/lib-contract.js';
 import { freeBrainDecision, beforeWritingV2Decision, beforeWritingV2Takes, readLiveSearch } from '../lib/free-brain/flag.js';
+import { bw2ScopeExclusion } from '../lib/bw2-scope.js';
 import { takhrijDecision, TAKHRIJ_SKIPPED_STREAMED } from '../lib/takhrij.js';
 // BATCH 4 [b18] — on its own line: guards/takhrij-contract-guard.cjs row 19 pins the line above.
 import { asksGradeOrSource } from '../lib/takhrij.js';
@@ -1764,6 +1765,7 @@ export default async function handler(req, res) {
     const liveSearch = readLiveSearch(body);
     const bw2Route = beforeWritingV2Takes({
       enabled: beforeWritingV2Decision().enabled, band, runtime: currentRuntime, liveSearch,
+      excluded: bw2ScopeExclusion(currentQuestionText),
     });
     const bw2Taken = freeBrain.enabled && !childBenignReserved && bw2Route.takes;
     console.log('[free-brain]', {
@@ -1807,6 +1809,7 @@ export default async function handler(req, res) {
           requestedIdentity,
           takhrijNote,
           truncatedMark: TRUNCATED_MARK,
+          runtime: currentRuntime,
         });
       } finally {
         bw2Upstream.cleanup();
