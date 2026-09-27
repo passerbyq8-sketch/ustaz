@@ -21,7 +21,9 @@
 // CHECK C  index.html structure: the invariants that cannot be executed outside a browser
 //          (SR gating, no-silent-restart, the call-screen banner) are asserted on source.
 // CHECK E  app.jsx call speech pump, EXECUTED: the sentence-end rule speaks an early-released
-//          lead at once, and the pump prefetches the next sentence while one plays.
+//          lead at once, and the pump prefetches the next sentence while one plays (E1, E2);
+//          source lines, URLs and domains are silent in speech (E3); the mic re-opens only after
+//          our own voice stopped sounding (E4); a silent dictation session is not restarted (E5).
 //
 // Arabic needles live as string literals but are NEVER printed. All console output is
 // ASCII (ids/labels only), safe for a Windows terminal.
@@ -1465,6 +1467,53 @@ async function checkRearm(html) {
   else fail('E4 a hang-up inside the tail wait still re-opened the mic (' + h.reopened + ')');
 }
 
+// E5 (T4 fix 2, F3): dictation in the composer runs on the WebView's own SpeechRecognition (the
+// Android shell injects no speech bridge), and on Android every start() plays the recognizer's own
+// chime. The engine ends a session on its own schedule; onend restarted it unconditionally, so a
+// reader who stayed silent heard the chime again after every empty session. A session that heard
+// nothing now ends dictation instead; a session that heard words still restarts, as before.
+// The dictation effect's own handlers are EXECUTED against a fake engine that counts start()s.
+function simulateDictation(html, sessions) {
+  const from = html.indexOf('    const recognition = ezNewRecognition();\n    if (!recognition) { recognitionRef.current = null; return; }');
+  const to = from === -1 ? -1 : html.indexOf('\n  }, [aiConsent]);', from);
+  if (from === -1 || to === -1) throw new Error('the dictation effect not found');
+  const fake = { lang: '', continuous: false, interimResults: false };
+  let starts = 0, box = '';
+  const st = { listening: true };
+  const deps = {
+    ezNewRecognition: () => fake, recognitionRef: { current: null }, childVoiceBlocked: () => false,
+    hasValidAIConsent: () => true, shouldListenRef: { current: true }, setIsListening: (v) => { st.listening = v; },
+    baseTextRef: { current: '' }, transcriptRef: { current: '' },
+    joinSpeech: (a, b) => [a, b].filter((x) => x && String(x).trim()).join(' '),
+    setInput: (v) => { box = v; }, ezStartRecognition: () => { starts++; return true; }, ezKillRecognizer: () => {},
+    setVoiceError: () => {}, setTimeout: () => 0,
+  };
+  const names = Object.keys(deps);
+  new Function(...names, html.slice(from, to))(...names.map((k) => deps[k]));
+  const result = (t, isFinal) => { const r = [{ transcript: t }]; r.isFinal = isFinal; return r; };
+  for (const words of sessions) {
+    if (!deps.shouldListenRef.current) break;         // dictation already ended: nothing restarts it
+    if (words) { fake.onresult({ results: [result(words, false)] }); fake.onresult({ results: [result(words, true)] }); }
+    else fake.onerror({ error: 'no-speech' });
+    fake.onend();
+  }
+  return { starts, box, listening: st.listening };
+}
+function checkDictationRestart(html) {
+  let silent, spoke;
+  try {
+    silent = simulateDictation(html, [null, null, null, null, null]);
+    spoke = simulateDictation(html, ['first words', 'second words', null, null, null]);
+  } catch (e) { fail('E5 the dictation handlers do not run: ' + e.message); return; }
+  info('E5 five silent sessions -> ' + silent.starts + ' restart(s); two spoken then three silent -> ' + spoke.starts + ' restart(s)');
+  if (silent.starts === 0 && silent.listening === false) pass('E5 a session that heard nothing is not restarted: no second chime, dictation ends');
+  else fail('E5 silent sessions restart the recognizer (and its chime) ' + silent.starts + ' time(s)');
+  if (spoke.starts === 2 && spoke.listening === false) pass('E5 a session that heard words still restarts (2), and the first silent one ends dictation');
+  else fail('E5 restarts after speech changed: ' + spoke.starts + ' (want 2), listening=' + spoke.listening);
+  if (spoke.box === 'first words second words') pass('E5 the dictated words stay in the box across the restart');
+  else fail('E5 the dictated text was lost or doubled across the restart');
+}
+
 // ===========================================================================
 (async () => {
   // ITEM 32: the call screen is in app.jsx now, so this reads the shipped client, not the shell.
@@ -1487,6 +1536,7 @@ async function checkRearm(html) {
   await checkPrefetch(html);
   await checkSpokenAttribution(html);
   await checkRearm(html);
+  checkDictationRestart(html);
 
   console.log('  SUMMARY   PASS=' + P + '   FAIL=' + F);
   if (F > 0) {

@@ -5343,20 +5343,26 @@ window.addEventListener('pointerdown',handler,opts);window.addEventListener('key
 // effect re-runs, the cleanup below kills the old engine, and the rebuild refuses. That is the
 // whole lifecycle in one place, instead of a mount-time singleton that outlives the choice.
 useEffect(()=>{const recognition=ezNewRecognition();if(!recognition){recognitionRef.current=null;return;}recognition.lang='ar-SA';recognition.continuous=true;// keep listening across pauses until the user taps the mic off
-recognition.interimResults=true;recognition.onresult=event=>{// This ar-SA engine emits CUMULATIVE isFinal results (each later final RE-INCLUDES the
+recognition.interimResults=true;let heardThisSession=false;// F3: set by any non-empty result, read and reset by onend
+recognition.onresult=event=>{// This ar-SA engine emits CUMULATIVE isFinal results (each later final RE-INCLUDES the
 // earlier text), so appending stacks/duplicates. Mirror the proven call-mode handler:
 // rebuild from index 0 with a prefix-merge and REPLACE the committed buffer (not +=).
 let finalText='',interim='';for(let i=0;i<event.results.length;i++){const t=event.results[i][0].transcript;if(event.results[i].isFinal){const seg=t.trim();if(!seg)continue;if(!finalText)finalText=seg;else if(seg.startsWith(finalText))finalText=seg;// cumulative restatement -> replace
 else if(finalText.startsWith(seg)){/* shorter prefix already covered -> skip */}else finalText=finalText+' '+seg;// genuine new segment -> append
 }else{interim+=t;}}transcriptRef.current=finalText;// REPLACE (not append) — dedupes cumulative finals
-setInput(joinSpeech(joinSpeech(baseTextRef.current,transcriptRef.current),interim));};recognition.onend=()=>{if(childVoiceBlocked()){// غ‑٣: لا إعادةَ فتحٍ بعد الحجب — أوقفِ الحلقة
+if((finalText+interim).trim())heardThisSession=true;setInput(joinSpeech(joinSpeech(baseTextRef.current,transcriptRef.current),interim));};recognition.onend=()=>{const heard=heardThisSession;// F3: did THIS session hear words?
+heardThisSession=false;if(childVoiceBlocked()){// غ‑٣: لا إعادةَ فتحٍ بعد الحجب — أوقفِ الحلقة
 shouldListenRef.current=false;setIsListening(false);return;}// THE AUTO-RESTART IS THE DANGEROUS ONE. This loop was armed while consent was held; if it
 // has been withdrawn since, restarting here would re-open the microphone to Google or Apple
 // moments after the reader said no. Re-read the store, never a captured flag.
 if(!hasValidAIConsent()){shouldListenRef.current=false;setIsListening(false);ezKillRecognizer(recognition);return;}// Browsers end recognition periodically even in continuous mode. If the user still
 // wants to dictate, fold finalized speech into the base and restart so dictation
 // continues until the mic is tapped off. The mic NEVER sends.
-if(shouldListenRef.current){baseTextRef.current=joinSpeech(baseTextRef.current,transcriptRef.current);transcriptRef.current='';if(ezStartRecognition(recognition))return;// Restart failed (mic dropped, rapid toggling, or consent gone) — stop cleanly, no loop.
+if(shouldListenRef.current){baseTextRef.current=joinSpeech(baseTextRef.current,transcriptRef.current);transcriptRef.current='';// F3: a session that heard nothing is NOT restarted. On Android every start() plays the
+// recognizer's own chime, and the engine ends an empty session on its own schedule, so the
+// unconditional restart chimed again and again for as long as the reader stayed silent.
+// Dictation ends instead; the text stays in the box. A session that heard words restarts.
+if(!heard){shouldListenRef.current=false;setIsListening(false);return;}if(ezStartRecognition(recognition))return;// Restart failed (mic dropped, rapid toggling, or consent gone) — stop cleanly, no loop.
 shouldListenRef.current=false;setIsListening(false);return;}shouldListenRef.current=false;setIsListening(false);// Transcribed text stays in the box for the owner to review/edit/send. No auto-send.
 };recognition.onerror=event=>{// Fatal errors end dictation; transient ones (e.g. no-speech) let onend restart it.
 const fatal=['not-allowed','audio-capture','service-not-allowed','network'];if(fatal.includes(event.error))shouldListenRef.current=false;const errorMap={'not-allowed':'🚫 لم يتم السماح بالميكروفون. افتح إعدادات المتصفح واسمح بالميكروفون.','no-speech':'🤫 لم أسمع شيئاً، جرب مرة أخرى.','audio-capture':'🎤 الميكروفون غير متصل.','network':'📡 خطأ في الشبكة.','aborted':''};const msg=errorMap[event.error]!==undefined?errorMap[event.error]:`خطأ: ${event.error}`;if(msg){setVoiceError(msg);setTimeout(()=>setVoiceError(''),6000);}};recognitionRef.current=recognition;// Teardown on rebuild AND on unmount. Handlers first, then abort: an abort() fires onend, and

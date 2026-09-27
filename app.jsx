@@ -15969,6 +15969,7 @@ function App() {
     recognition.lang = 'ar-SA';
     recognition.continuous = true;       // keep listening across pauses until the user taps the mic off
     recognition.interimResults = true;
+    let heardThisSession = false;        // F3: set by any non-empty result, read and reset by onend
     recognition.onresult = (event) => {
       // This ar-SA engine emits CUMULATIVE isFinal results (each later final RE-INCLUDES the
       // earlier text), so appending stacks/duplicates. Mirror the proven call-mode handler:
@@ -15988,9 +15989,12 @@ function App() {
         }
       }
       transcriptRef.current = finalText;                              // REPLACE (not append) — dedupes cumulative finals
+      if ((finalText + interim).trim()) heardThisSession = true;
       setInput(joinSpeech(joinSpeech(baseTextRef.current, transcriptRef.current), interim));
     };
     recognition.onend = () => {
+      const heard = heardThisSession;                                 // F3: did THIS session hear words?
+      heardThisSession = false;
       if (childVoiceBlocked()) {                                 // غ‑٣: لا إعادةَ فتحٍ بعد الحجب — أوقفِ الحلقة
         shouldListenRef.current = false;
         setIsListening(false);
@@ -16011,6 +16015,11 @@ function App() {
       if (shouldListenRef.current) {
         baseTextRef.current = joinSpeech(baseTextRef.current, transcriptRef.current);
         transcriptRef.current = '';
+        // F3: a session that heard nothing is NOT restarted. On Android every start() plays the
+        // recognizer's own chime, and the engine ends an empty session on its own schedule, so the
+        // unconditional restart chimed again and again for as long as the reader stayed silent.
+        // Dictation ends instead; the text stays in the box. A session that heard words restarts.
+        if (!heard) { shouldListenRef.current = false; setIsListening(false); return; }
         if (ezStartRecognition(recognition)) return;
         // Restart failed (mic dropped, rapid toggling, or consent gone) — stop cleanly, no loop.
         shouldListenRef.current = false;
