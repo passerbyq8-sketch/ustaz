@@ -2014,7 +2014,7 @@ if (tLifted) {
     eq('107: reading the preferences writes nothing', ro.writes, 0);
   })();
 
-  // ---- ZERO WIRE, ZERO ADHAN, ZERO PROMISE OF ONE ------------------------
+  // ---- LOCAL CALCULATOR; NATIVE SCHEDULING AND SOUND LIVE ELSEWHERE -------
   for (const t of ['fetch', 'XMLHttpRequest', 'sendBeacon', 'WebSocket', 'EventSource', 'import(',
     'document.cookie', 'indexedDB', 'sessionStorage', '/api/', 'aladhan', 'api.']) {
     ok('107: the calculator contains no ' + t, T_LIFTED.indexOf(t) === -1);
@@ -2043,30 +2043,11 @@ if (tLifted) {
         TPANEL.indexOf(t) === -1 && PSET.indexOf(t) === -1);
     }
   }
-  // 107 + ITEM 67 -- WHY THIS SCAN NARROWED, AND IN WHICH DIRECTION ONLY.
-  //
-  // This check was a whole-file ban on seven latin characters, and for as long as nothing could
-  // ring that ban and this check's own LABEL said the same thing. Item 67 separates them. The
-  // latin word is now a PROTOCOL IDENTIFIER: it is the shell's own frozen notification type
-  // (murabbi-shell src/scheduler/core.js:24, `TYPES = ['adhan','daily','adhkar']`), and an item
-  // typed anything else is refused there and counted `unknownType`. The web half cannot schedule
-  // the call at its time without naming it.
-  //
-  // So the ban does not become a permission. It becomes an EXACT ALLOWANCE, and everything the
-  // label ever claimed is now asserted DIRECTLY instead of through a substring that stood in for
-  // it. Three things are stricter here than they were:
-  //
-  //   * the ARABIC word is still banned outright, everywhere, with no exception -- it is what a
-  //     reader would SEE, and this application still promises nobody a call it does not make;
-  //   * the latin word is allowed in EXACTLY ONE declaration, named below, and the count of
-  //     occurrences outside it must be zero -- a second one anywhere fails, including in a
-  //     comment, which the old substring ban could not distinguish either;
-  //   * and no sound is built for it: the neighbourhood of that declaration is scanned for audio
-  //     construction, which the old check never did (it could not -- it had banned the word, so
-  //     there was never a neighbourhood to look at). This client DOES construct audio elsewhere,
-  //     for recitation; what it must never do is construct it for this.
+  // C2 exposes a sound preference; the native shell owns playback. The escaped source
+  // spelling is checked here, and widgetopen checks the rendered label and sound values.
+  // The type literal and the settings control are the two allowed standalone protocol words.
   const AR_ADHAN = '\u0623\u0630\u0627\u0646';
-  ok('107: the reader is shown no such word, anywhere in the client',
+  ok('107: the native sound label uses escaped source spelling',
     SRC.indexOf(AR_ADHAN) === -1);
   {
     const DECL = "const ADHAN_TYPE = 'adhan';";

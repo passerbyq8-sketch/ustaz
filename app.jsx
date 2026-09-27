@@ -10317,8 +10317,7 @@ const EZIK_RESUME_SCREENS = {
   'ayah-tafsir': 'ayah-tafsir',
 };
 const EZIK_RESUME_APP_LAYERS = { asmaa: 1, 'sunan-day': 1 };
-// ITEM 45: `wirdi` is the wird section (EzikWirdSection), a layer over the home exactly as the
-// prayer sheet is -- the widget names it, and it is restored the way `prayer` is.
+// Resume records name home layers. `wirdi` remains restorable, but is not an accepted C1 route.
 const EZIK_RESUME_HOME_LAYERS = { articles: 1, women: 1, prayer: 1, wirdi: 1, tasbih: 1, calc: 1, compass: 1 };
 function ezikResumeKnown(id) {
   return !!(EZIK_RESUME_SCREENS[id] || EZIK_RESUME_APP_LAYERS[id] || EZIK_RESUME_HOME_LAYERS[id]);
@@ -15985,11 +15984,9 @@ function App() {
   // change, which is how a press that arrived during the boot is picked up the moment the boot
   // has decided where to land -- and not a moment before: nothing is applied over 'loading'.
   //
-  // WHAT IT DOES IS WHAT A RELOAD DOES. The section is written to the resume ledger and then the
-  // boot's own two lines run -- ezikResumeMarkEntered, then setScreen(ezikResumeScreen()) -- so
-  // the widget opens a section by the one road the app already has, and a layer (prayer, wirdi)
-  // is opened by its owner's lazy initialiser exactly as after a refresh. homeEpoch remounts the
-  // home so that initialiser runs even when the home is already the screen underneath.
+  // Sections use the resume ledger and the boot tools. Home layers initialize from that record;
+  // homeEpoch remounts Home even when it was already underneath, and resets the two list screens.
+  // App layers open explicitly. Chat starts a new thread; treasure navigates to its own page.
   //
   // A NEW READER IS NEVER INTERRUPTED. On the onboarding screen the press is taken and dropped:
   // nothing is written, and the introduction stays where it was.
@@ -23368,9 +23365,8 @@ function EzShell({ title, onBack, backLabel, lead, actions, children }) {
 // because it was compared against anything. The batch report prints thirty days at Kuwait City
 // coordinates for every method offered, so the owner can make that comparison and then choose.
 //
-// 🔴 ZERO ADHAN, ZERO NOTIFICATION, ZERO SOUND. A call at the right moment needs a scheduled
-// notification in a native shell; that rides with the store release (item 67). Nothing here
-// plays, schedules, or hints in the interface that it might.
+// The calculator supplies the native scheduler and widgets below. The native shell schedules
+// notifications and owns sound playback; browser tabs calculate and display these times locally.
 const PRAYER_PREFS_KEY = 'ezik_prayer_prefs_v1';
 const PRAYER_METHOD_DEFAULT = 'kuwait';
 const PRAYER_ASR_DEFAULT = 'standard';
@@ -24146,19 +24142,17 @@ const SHELL_SCHED_RESULT_OP = 'result';
 // ============================================================
 // ITEM 45 -- THE WIDGET'S PRESS, CAUGHT AT THE DOOR AND HANDED TO THE ONE ROUTER
 // ============================================================
-// THE SHELL SPEAKS ON THIS SAME CHANNEL WITH A SIXTH WORD, `open`, and it carries one of four
-// section names and nothing else: { channel, v, op: 'open', route, type: null, id: null }
-// (murabbi-shell src/deeplink.js, delivered by SiteScreen's deliverOpen). The four are the
-// widget's tiles, spelt exactly as the shell spells them; any other word is not ours and is
-// dropped here, before it can reach a store or a screen.
+// Notifications and widget Linking both reach SiteScreen's deliverOpen on this channel:
+// { channel, v, op: 'open', route, type, id }. The web enforces the complete C1 whitelist
+// below before any store or screen changes. Mushaf belongs to notifications, not widget sections.
 //
 // WHY THE LISTENER HANGS HERE AND NOT IN A HOOK. On a cold start the shell holds the press
 // until the page reports loaded and then injects it at once -- which can be before React has
 // committed its first tree, so a listener attached inside a useEffect may not exist yet and
 // the press would be lost without trace. This one is attached while this file executes. It
 // decides nothing: it keeps the LAST valid press in one slot and tells whoever subscribed.
-// App is the only subscriber, and it routes the press through the resume ledger and the boot's
-// own two tools -- there is no second way to open a section.
+// App consumes the slot through the resume ledger and boot tools for sections, with the explicit
+// new-chat and page-navigation paths described by C1.
 //
 // `rearm-request`, `result` and `status` are not touched: this listener returns on every op but
 // `open`, and useEzikSchedRoot keeps its own listener exactly as it was.
@@ -25063,15 +25057,13 @@ function ezikNotifyAnswer(detail) {
 // TEXT ARRIVES READY OR IT DOES NOT ARRIVE. The shell composes nothing and translates nothing; a
 // title or body that came back empty is dropped by the pipe and counted, never invented.
 //
-// AND NO DESTINATION IS SENT. `route` is optional in the contract and a notification without one
-// is explicitly correct there: the press opens the application as it is. Sending a destination
-// this client has no listener for would be a promise about a screen, and the round that teaches
-// this app to answer `op:'open'` is not this one.
+// Prayer notifications retain their optional, absent destination: a press opens the application
+// as it is. The file-level open listener handles C1 destinations on notifications that carry one.
 
 /**
  * The shell's frozen notification type -- `TYPES` in murabbi-shell src/scheduler/core. An item typed
- * anything else is refused there and counted `unknownType`. This is the ONE place the word is
- * written in this client, and tools/wird-guard.cjs holds it to exactly that.
+ * anything else is refused there and counted `unknownType`. The type literal is declared once;
+ * C2 separately carries the sound selection for the native shell.
  */
 const ADHAN_TYPE = 'adhan';
 const ADHAN_WINDOW_DAYS = 7;
@@ -25149,13 +25141,9 @@ function ezikAdhanItems(now) {
 // are both 'daily', which is the only word left that describes either of them. They are told
 // apart by their ids and by their destinations, never by a fourth word the far side would drop.
 //
-// AND THE DESTINATIONS ARE CARRIED, NOT ACTED ON -- yet. `route` is an opaque string the shell
-// stores in the notification and hands back verbatim on a press (buildOpenPayload, op:'open').
-// This client still registers no listener for that message: item 97 revoked the adhkar deep
-// link with the navigation that fed it, and re-cutting one is not this round's work. So the
-// morning reminder POINTS AT adhkar_sabah and the evening one at adhkar_masaa, which is what
-// the order asks of them, and the round that teaches this app to answer op:'open' is still
-// ahead. Nothing here promises the reader a screen.
+// The shell stores each destination and returns it on a press. The open listener accepts
+// adhkar_sabah and adhkar_masaa as aliases for the adhkar index. Item 97 remains revoked:
+// neither alias deep-links into a group. Other notification routes use the C1 whitelist.
 const REMINDERS_KEY = 'ezik_reminders_v1';
 // The ceiling on "how many times a day", and it is a SMALL number on purpose. The shell caps
 // the whole application at sixty pending notifications and cuts the FARTHEST when it is

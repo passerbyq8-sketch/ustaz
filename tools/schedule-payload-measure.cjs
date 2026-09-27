@@ -1046,8 +1046,8 @@ run('the type is the shell\'s own, written once, and the id is the shell\'s own 
   }
   // A stable key is the far side's only defence against a double notification across two arms.
   eq(new Set(items.map((x) => x.id)).size, items.length, 'distinct keys');
-  // And no destination is sent: this client has no listener for one yet, and the contract says
-  // a notification without one opens the application as it is.
+  // Prayer notifications keep their optional destination absent, opening the application as it
+  // is. The C1 listener handles destinations on the other notification feeds.
   for (const it of items) {
     is(!Object.prototype.hasOwnProperty.call(it, 'route'), it.id + ' carries a destination');
   }
