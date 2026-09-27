@@ -304,12 +304,14 @@ const IDLE = [
   // written EXACTLY as it requests them -- the ?v= query included, because the cache-first arm
   // matches the whole URL. The reader's script moved to ?v=5 in this same change: a store of this
   // name may already hold the previous script under ?v=4, and cache-first would keep serving it.
+  // The three fixes of the reader, rebased onto this item, moved script and sheet both to ?v=7, for
+  // the same reason; index.html itself is a navigation, network-first, so it names the new pair online.
   // The two mushaf files above are the rest of its boot. The per-page geometry is deliberately
   // NOT here: it arrives with the page downloads the reader chooses (see DOWNLOADS_CACHE below). quest-bank-integrity-guard.cjs B17 parses index.html and app.js in
   // mushaf-lab/ and fails when this list stops covering them.
   '/mushaf-lab/index.html',
-  '/mushaf-lab/app.js?v=5',
-  '/mushaf-lab/style.css?v=4',
+  '/mushaf-lab/app.js?v=7',
+  '/mushaf-lab/style.css?v=7',
   '/mushaf-lab/manifest.webmanifest',
   '/mushaf-lab/icon-192.png',
   '/mushaf-lab/icon-512.png',

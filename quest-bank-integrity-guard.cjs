@@ -1601,7 +1601,15 @@ const SEALED = {
 //                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
 //                    stays ezik-v40. sw.js is 55702 bytes, measured at CR = 0. THIS digest is
 //                    re-cut LAST, after every other sw.js edit was final.
-  'sw.js': '319c45aaac2bf60935bdf54482a592dbd2c875dd956c17f3df4dba998771363b',
+  //   2026-09-27-l -- THE READER'S V6 FIXES, REBASED ONTO ITEM 4. mushaf-lab/ took the owner's three fixes
+//                    (Android inset bars, the page that follows the finger, no word marked by a touch) on
+//                    top of the offline code, and its index.html now requests app.js?v=7 and style.css?v=7.
+//                    The two IDLE entries follow those URLs exactly, as B17 requires, and the comment above
+//                    them says why. NO FILE JOINED OR LEFT CORE (tools/core-bytes.cjs: MATCH), SW_PROSE states
+//                    no number here, and CACHE stays ezik-v40: index.html is a network-first navigation, so
+//                    the new pair is requested and stored under its new URLs. sw.js is 55702 -> 55908 bytes,
+//                    measured at CR = 0. THIS digest is re-cut LAST, after every other sw.js edit was final.
+  'sw.js': '1d74c5b8ce7e344b2c39959ff935a9bf428b02a65c448f2c3a2d4e133469812d',
 };
 
 // ---------------------------------------------------------------------------

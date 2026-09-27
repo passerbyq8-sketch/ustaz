@@ -34,6 +34,7 @@
   const pageAyat = [], pageTypes = [];
   const ayahPage = {};
   const quarterByPage = {};
+  let slots = null;               // [next | current | previous] slot elements of the page track
   let selKey = null;              // ayah with its menu open
   let rangeStart = null, rangeKeys = null;
   let flashKey = null, flashTimer = 0;
@@ -59,6 +60,7 @@
     const okT = new Set((META.tafsirs || []).map((x) => x.id));
     S.tafsirs = S.tafsirs.filter((x) => okT.has(x));
     applySettings();
+    syncInsets();
     wire();
     const last = store.get('last', 3);
     cur = clampPage(last);
@@ -128,17 +130,34 @@
   const isSpread = () => S.spread && window.innerWidth >= 900 && window.innerWidth > window.innerHeight;
   const FILL_Q = '(orientation: portrait) and (max-width: 700px)';   // same rule as Ezik's reader: a phone held upright fills the screen
   const pageAspect = (st) => st._aspect || (S.mode === 'vector' ? 382.68 / 547.09 : (+st.dataset.p < 3 ? 851 / 1368 : 747 / 1229));
+  // Inside Ezik's frame this page is an iframe, where env(safe-area-inset-*) is always 0, so the bars sat
+  // under Android's three navigation buttons. Ezik's own document (same origin) sees the real insets:
+  // measure them there and hand them to the bars and the page area as --sat / --sab.
+  function syncInsets() {
+    if (!EMBED) return;
+    let t = 0, b = 0;
+    try {
+      const pd = window.parent.document, el = pd.createElement('div');
+      el.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)';
+      pd.body.appendChild(el); const cs = window.parent.getComputedStyle(el);
+      t = parseFloat(cs.paddingTop) || 0; b = parseFloat(cs.paddingBottom) || 0; el.remove();
+    } catch (e) {}
+    document.documentElement.style.setProperty('--sat', t + 'px'); document.documentElement.style.setProperty('--sab', b + 'px');
+  }
   function sizeStages() {
-    const stages = Array.from(document.querySelectorAll('.stage')); if (!stages.length) return;
-    const W = window.innerWidth, H = window.innerHeight;
-    let fill = false; try { fill = stages.length === 1 && window.matchMedia(FILL_Q).matches; } catch (e) {}
-    if (fill) stages.forEach((st) => { st.style.width = W + 'px'; st.style.height = H + 'px'; });
-    else {
-      const gap = stages.length > 1 ? 10 : 0; const sumA = stages.reduce((t, st) => t + pageAspect(st), 0);
-      const h = Math.max(1, Math.floor(Math.min(H, (W - gap) / sumA)));
-      stages.forEach((st) => { st.style.height = h + 'px'; st.style.width = Math.floor(h * pageAspect(st)) + 'px'; });
+    const box = $('main'); const W = (box && box.clientWidth) || window.innerWidth, H = (box && box.clientHeight) || window.innerHeight;
+    const groups = slots ? slots.map((sl) => Array.from(sl.querySelectorAll('.stage'))) : [Array.from(document.querySelectorAll('.stage'))];
+    for (const stages of groups) {
+      if (!stages.length) continue;
+      let fill = false; try { fill = stages.length === 1 && window.matchMedia(FILL_Q).matches; } catch (e) {}
+      if (fill) stages.forEach((st) => { st.style.width = W + 'px'; st.style.height = H + 'px'; });
+      else {
+        const gap = stages.length > 1 ? 10 : 0; const sumA = stages.reduce((t, st) => t + pageAspect(st), 0);
+        const h = Math.max(1, Math.floor(Math.min(H, (W - gap) / sumA)));
+        stages.forEach((st) => { st.style.height = h + 'px'; st.style.width = Math.floor(h * pageAspect(st)) + 'px'; });
+      }
+      stages.forEach(fitStage);
     }
-    stages.forEach(fitStage);
   }
   // the bars float over the page; one short tap hides or shows all of them
   let chromeAuto = false;
@@ -155,30 +174,41 @@
   }
   const toEzik = (msg) => { if (!EMBED) return; try { window.parent.postMessage(msg, location.origin); } catch (e) {} };
   const surahOfPage = (p) => { const k = pageAyat[p] && pageAyat[p][0]; return k ? +k.split(':')[0] : 1; };
-  function goPage(p, opts) {
-    cur = clampPage(p); store.set('last', cur); toEzik({ type: 'mushaf-lab:page', page: cur, s: surahOfPage(cur) });
+  function notePage() {
+    store.set('last', cur); toEzik({ type: 'mushaf-lab:page', page: cur, s: surahOfPage(cur) });
     const rec = store.get('recent', []).filter((x) => x !== cur); rec.unshift(cur); store.set('recent', rec.slice(0, 12));
-    render(); if (!(opts && opts.keepScroll)) window.scrollTo(0, 0);
-    [cur - 2, cur - 1, cur + 1, cur + 2].forEach((q) => { if (q >= 3 && q <= 604) loadGeo(q); });
   }
-  async function render() {
-    const pages = visiblePages(cur);
-    const sp = $('spread'); sp.textContent = '';
-    const heads = [];
-    for (const p of pages) {
-      const st = document.createElement('div');
+  const prefetchAround = () => [cur - 4, cur - 3, cur - 2, cur - 1, cur + 1, cur + 2, cur + 3, cur + 4].forEach((q) => { if (q >= 3 && q <= 604) loadGeo(q); });
+  function goPage(p) { cur = clampPage(p); notePage(); render(); prefetchAround(); }
+  // Three slots side by side, [next | current | previous]: the next page lies to the LEFT, as in a printed mushaf.
+  // The track follows the finger; on release it glides to the neighbour or back, then the slots rotate.
+  function neighborAnchor(p, dir) { const inc = isSpread() ? 2 : 1; const base = isSpread() ? (p % 2 ? p : p - 1) : p; const n = base + dir * inc; return n >= 1 && n <= 604 ? n : 0; }
+  function makeStage(p) {
+    const st = document.createElement('div');
       st.className = 'stage' + (S.mode === 'vector' ? ' vector' : '') + (p < 3 ? ' list-only' : ''); st.dataset.p = p;
       const im = document.createElement('img'); im.alt = 'صفحة ' + ar(p); im.decoding = 'async'; im.draggable = false;
       im.src = S.mode === 'vector' ? SVG(p) : IMG(p);
       im.addEventListener('load', () => { if (im.naturalWidth && im.naturalHeight) st._aspect = im.naturalWidth / im.naturalHeight; sizeStages(); }); im.addEventListener('error', () => { const ph = document.createElement('div'); ph.className = 'ph'; ph.textContent = 'تعذّر تحميل صورة الصفحة'; st.appendChild(ph); });
       const layer = document.createElement('div'); layer.className = 'layer';
       const tl = document.createElement('div'); tl.className = 'tl';
-      st.append(im, layer, tl); sp.appendChild(st);
-      heads.push(p);
+      st.append(im, layer, tl);
       if (p >= 3) loadGeo(p).then((g) => { if (g && st.isConnected) { buildTextLayer(st, g); drawMarks(st); } });
-    }
-    sizeStages();
-    // header
+    return st;
+  }
+  function fillSlot(sl, anchor) { sl.textContent = ''; sl.dataset.anchor = anchor || ''; if (anchor) visiblePages(anchor).forEach((p) => sl.appendChild(makeStage(p))); }
+  function setTrack(dx, animate) {
+    const sp = $('spread');
+    sp.style.transition = animate ? 'transform .28s cubic-bezier(.2,.7,.2,1)' : 'none';
+    sp.style.transform = 'translate3d(calc(-100% / 3 + ' + Math.round(dx) + 'px), 0, 0)';
+  }
+  function render() {
+    const sp = $('spread'); sp.textContent = '';
+    slots = [0, 1, 2].map(() => { const d = document.createElement('div'); d.className = 'slot'; sp.appendChild(d); return d; });
+    fillSlot(slots[1], cur); fillSlot(slots[0], neighborAnchor(cur, 1)); fillSlot(slots[2], neighborAnchor(cur, -1));
+    setTrack(0, false); sizeStages(); updateHeader();
+  }
+  function updateHeader() {
+    const heads = visiblePages(cur);
     const ss = []; heads.forEach((p) => pageAyat[p].forEach((k) => { const s = +k.split(':')[0]; if (ss.indexOf(s) < 0) ss.push(s); }));
     $('surahTitle').textContent = ss.map((s) => 'سورة ' + surahName(s)).join('، ');
     $('subTitle').textContent = 'الجزء ' + ar(juzOf(heads[0])) + '، صفحة ' + heads.map(ar).join(' و');
@@ -186,6 +216,26 @@
     const qs = []; heads.forEach((p) => (quarterByPage[p] || []).forEach((i) => qs.push(quarterLabel(i))));
     $('notice').textContent = qs.length ? 'في هذه الصفحة بدايةُ ' + qs.join('، و') : '';
     $('prevBtn').disabled = heads[0] <= 1; $('nextBtn').disabled = heads[heads.length - 1] >= 604;
+  }
+  let settling = false;
+  function turn(dir, byHand) {
+    if (settling) return;
+    const target = neighborAnchor(cur, dir); if (!target) { setTrack(0, true); return; }
+    settling = true; closeSheet();
+    const W = ($('main') && $('main').clientWidth) || window.innerWidth; const sp = $('spread'); let done = false, fb = 0;
+    const finish = () => {
+      if (done) return; done = true; sp.removeEventListener('transitionend', finish); clearTimeout(fb);
+      commitTurn(dir, target); settling = false;
+      if (byHand && !chromeAuto) { chromeAuto = true; setImmersive(true); }
+    };
+    sp.addEventListener('transitionend', finish); fb = setTimeout(finish, 420);
+    setTrack(dir * W, true);
+  }
+  function commitTurn(dir, target) {
+    cur = target; notePage(); const sp = $('spread');
+    if (dir > 0) { const r = slots[2]; sp.insertBefore(r, slots[0]); slots = [r, slots[0], slots[1]]; fillSlot(r, neighborAnchor(cur, 1)); }
+    else { const r = slots[0]; sp.appendChild(r); slots = [slots[1], slots[2], r]; fillSlot(r, neighborAnchor(cur, -1)); }
+    setTrack(0, false); sizeStages(); updateHeader(); redrawMarks(); prefetchAround();
   }
   function itemBox(g, it, ln) {
     if (S.mode !== 'vector') return { l: it.l, w: it.w, t: ln.top, h: ln.h };
@@ -244,18 +294,19 @@
     const hit = document.elementFromPoint(cx, cy);
     if (hit && hit.dataset && hit.dataset.a && st.contains(hit)) return hit.dataset.a;
     const g = st._g; if (!g) return null;
-    const r = st.getBoundingClientRect(); const px = (cx - r.left) / r.width * 100, py = (cy - r.top) / r.height * 100;
+    const r = st.getBoundingClientRect(); if (!r.width || !r.height) return null;
+    const px = (cx - r.left) / r.width * 100, py = (cy - r.top) / r.height * 100;
     let best = null, bd = Infinity;
     for (const ln of g.lines) for (const it of ln.items) {
-      const b = itemBox(g, it, ln); if (py < b.t || py > b.t + b.h) continue;
-      const d = Math.abs(px - (b.l + b.w / 2)); if (d < bd) { bd = d; best = it.m || it.k.split(':').slice(0, 2).join(':'); }
+      const b = itemBox(g, it, ln);
+      const dx = px < b.l ? b.l - px : (px > b.l + b.w ? px - b.l - b.w : 0);
+      const dy = py < b.t ? b.t - py : (py > b.t + b.h ? py - b.t - b.h : 0);
+      const d = dx * dx + 4 * dy * dy;
+      if (d < bd) { bd = d; best = it.m || it.k.split(':').slice(0, 2).join(':'); }
     }
-    return best;
+    return bd <= 64 ? best : null;
   }
-  function step(dir) {
-    const inc = isSpread() ? 2 : 1; const base = isSpread() ? (cur % 2 ? cur : cur - 1) : cur;
-    const n = base + dir * inc; if (n < 1 || n > 604) return; closeSheet(); goPage(n);
-  }
+  function step(dir) { turn(dir, false); }
   function showAyah(key, openMenu) {
     const p = ayahPage[key]; if (!p) return;
     if (visiblePages(cur).indexOf(p) < 0) goPage(p);
@@ -956,7 +1007,7 @@
       const pr = P.audio.play(); if (pr && pr.catch) pr.catch(() => { if (P.on) { P.paused = true; updatePlayerUi(); } });
       updatePlayerUi();
     });
-    if (S.follow !== false && ayahPage[key] && visiblePages(cur).indexOf(ayahPage[key]) < 0) goPage(ayahPage[key], { keepScroll: false });
+    if (S.follow !== false && ayahPage[key] && visiblePages(cur).indexOf(ayahPage[key]) < 0) { const nx = neighborAnchor(cur, 1); if (nx && visiblePages(nx).indexOf(ayahPage[key]) >= 0) turn(1, false); else goPage(ayahPage[key]); }
     redrawMarks(); updatePlayerUi(); mediaSession();
     const nk = P.phase === 'basm' ? key : P.list[P.i + 1];
     if (nk) { const [s2, a2] = nk.split(':').map(Number); const nu = AUDIO(S.reciter, s2, a2); storedAudio(nu, false).then((has) => { if (seq === P.seq && !has) P.pre.src = nu; }); }   // a stored ayah needs no preload
@@ -1039,40 +1090,51 @@
     };
     const cancelPress = () => { if (press) { clearTimeout(press.timer); press = null; } };
     sp.addEventListener('pointerdown', (e) => {
-      if (document.body.classList.contains('selmode')) return;
+      if (document.body.classList.contains('selmode') || settling) return;
       if (e.pointerType === 'mouse' && e.button !== 0) return;
-      const st = e.target.closest('.stage'); if (!st) return;
+      if (window.visualViewport && window.visualViewport.scale > 1.05) return;
       cancelPress();
-      const pr = { x: e.clientX, y: e.clientY, st, fired: false };
-      pr.timer = setTimeout(() => { if (press === pr) { pr.fired = true; openFromPress(st, pr.x, pr.y); } }, 450);
+      const st = e.target.closest('.stage');
+      const pr = { x: e.clientX, y: e.clientY, st, fired: false, drag: false, moved: false, lx: e.clientX, lt: Date.now(), vx: 0, id: e.pointerId };
+      pr.timer = setTimeout(() => { if (press === pr && !pr.drag && !pr.moved && st) { pr.fired = true; openFromPress(st, pr.x, pr.y); } }, 450);
       press = pr;
     });
-    sp.addEventListener('pointermove', (e) => { if (press && !press.fired && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 12) cancelPress(); });
-    sp.addEventListener('pointerup', (e) => {
-      if (!press) return; const pr = press; press = null; clearTimeout(pr.timer);
-      if (pr.fired || Math.hypot(e.clientX - pr.x, e.clientY - pr.y) > 12) return;
-      if (rangeStart) { openFromPress(pr.st, e.clientX, e.clientY); return; }
-      toggleChrome();
+    sp.addEventListener('pointermove', (e) => {
+      const pr = press; if (!pr || pr.fired) return;
+      const dx = e.clientX - pr.x, dy = e.clientY - pr.y;
+      if (!pr.drag) {
+        if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) { pr.drag = true; clearTimeout(pr.timer); try { sp.setPointerCapture(pr.id); } catch (err) {} }
+        else if (Math.hypot(dx, dy) > 12) { pr.moved = true; clearTimeout(pr.timer); }
+      }
+      if (pr.drag) {
+        const now = Date.now(); if (now > pr.lt) { pr.vx = (e.clientX - pr.lx) / (now - pr.lt); pr.lx = e.clientX; pr.lt = now; }
+        let d = dx; if ((d > 0 && !neighborAnchor(cur, 1)) || (d < 0 && !neighborAnchor(cur, -1))) d *= 0.25;
+        setTrack(d, false);
+      }
     });
-    sp.addEventListener('pointercancel', cancelPress);
+    const endPress = (e, cancelled) => {
+      const pr = press; if (!pr) return; press = null; clearTimeout(pr.timer);
+      if (pr.drag) {
+        const dx = cancelled ? 0 : e.clientX - pr.x; const W = ($('main') && $('main').clientWidth) || window.innerWidth;
+        const dir = (dx > W * 0.2 || (pr.vx > 0.45 && dx > 20)) ? 1 : ((dx < -W * 0.2 || (pr.vx < -0.45 && dx < -20)) ? -1 : 0);
+        if (dir && neighborAnchor(cur, dir)) turn(dir, true); else setTrack(0, true);
+        return;
+      }
+      if (cancelled || pr.fired || pr.moved || Math.hypot(e.clientX - pr.x, e.clientY - pr.y) > 12) return;
+      if (rangeStart && pr.st) { openFromPress(pr.st, e.clientX, e.clientY); return; }
+      toggleChrome();
+    };
+    sp.addEventListener('pointerup', (e) => endPress(e, false));
+    sp.addEventListener('pointercancel', (e) => endPress(e, true));
     sp.addEventListener('contextmenu', (e) => { if (!document.body.classList.contains('selmode')) e.preventDefault(); });
     $('selDone').onclick = endSelMode;
-    let sw = null; const main = $('main');
-    main.addEventListener('touchstart', (e) => { if (e.touches.length === 1) sw = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() }; else sw = null; }, { passive: true });
-    main.addEventListener('touchend', (e) => {
-      if (!sw || !e.changedTouches.length) return; const t = e.changedTouches[0]; const dx = t.clientX - sw.x, dy = t.clientY - sw.y, dt = Date.now() - sw.t; sw = null;
-      const s1 = window.getSelection && window.getSelection(); if (s1 && !s1.isCollapsed) return;
-      if (document.body.classList.contains('selmode')) return;
-      if (window.visualViewport && window.visualViewport.scale > 1.05) return;
-      if (Math.abs(dx) > 70 && Math.abs(dy) < 50 && dt < 600) { step(dx > 0 ? 1 : -1); if (!chromeAuto) { chromeAuto = true; setImmersive(true); } }
-    }, { passive: true });
     document.addEventListener('copy', (e) => {
       const s1 = window.getSelection && window.getSelection(); if (!s1 || s1.isCollapsed) return;
       const a = s1.anchorNode && (s1.anchorNode.nodeType === 1 ? s1.anchorNode : s1.anchorNode.parentElement);
       if (!a || !a.closest || !a.closest('.tl')) return;
       const t = String(s1).replace(/\s+/g, ' ').trim(); if (t && e.clipboardData) { e.clipboardData.setData('text/plain', t); e.preventDefault(); }
     });
-    let rt = 0; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { const n = document.querySelectorAll('.stage').length; if (n !== visiblePages(cur).length) render(); else sizeStages(); }, 150); });
+    let rt = 0; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { const n = slots && slots[1] ? slots[1].querySelectorAll('.stage').length : 0; syncInsets(); if (n !== visiblePages(cur).length) render(); else sizeStages(); }, 150); });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(sizeStages);
     window.addEventListener('hashchange', () => route(false));
   }
@@ -1088,5 +1150,5 @@
   }
 
   // test hooks (read-only use by the build's smoke test)
-  window.__lab = { sizeStages, toggleChrome, wordsOf, normalize, keysBetween, citeRange, visiblePages, quarterLabel, get state() { return { cur, P, S }; }, ayahSheet, savedSheet, searchSheet, runSearch, indexSheet, goSheet, settingsSheet, playFrom, stopPlay, toggleBookmark, findBookmark, rangeSheet, closeSheet, render, goPage, exportCsv, downloadsSheet, dlInventory };
+  window.__lab = { turn, get slots() { return slots; }, syncInsets, sizeStages, toggleChrome, wordsOf, normalize, keysBetween, citeRange, visiblePages, quarterLabel, get state() { return { cur, P, S }; }, ayahSheet, savedSheet, searchSheet, runSearch, indexSheet, goSheet, settingsSheet, playFrom, stopPlay, toggleBookmark, findBookmark, rangeSheet, closeSheet, render, goPage, exportCsv, downloadsSheet, dlInventory };
 })();
