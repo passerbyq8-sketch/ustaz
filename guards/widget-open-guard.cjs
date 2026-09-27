@@ -22,10 +22,12 @@ const PROFILE_PID = 'W45-GUARD';
 const PROFILE = { name: 'Noor', age: 30, gender: 'male', birthYear: 1996, pid: PROFILE_PID, createdAt: '2026-01-01T00:00:00.000Z' };
 const FIXTURES = new Set(['/adhkar.json', '/adhkar-split-27.json', '/arbaeen.json', '/arbaeen-footnotes.json']);
 const destination = (r) => /^adhkar_(sabah|masaa)$/.test(r) ? 'adhkar' : r;
-function makeStore(seed) {
+function makeStore(seed, writes, name) {
   const m = new Map(Object.entries(seed || {}));
   return { getItem: (k) => m.has(k) ? m.get(k) : null,
-    setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), clear: () => m.clear(),
+    setItem: (k, v) => { if (writes) writes.push([name, 'set', k]); m.set(k, String(v)); },
+    removeItem: (k) => { if (writes) writes.push([name, 'remove', k]); m.delete(k); },
+    clear: () => { if (writes) writes.push([name, 'clear']); m.clear(); },
     key: (i) => Array.from(m.keys())[i] || null, get length() { return m.size; } };
 }
 function compile(mutantName) {
@@ -48,9 +50,12 @@ function boot(opts) {
   const { window } = parseHTML('<!DOCTYPE html><html lang="ar" dir="rtl"><body><div id="root"></div></body></html>');
   window.self = window; window.window = window; window.globalThis = window;
   window.matchMedia = (q) => ({ matches: false, media: String(q), addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} });
-  window.scrollTo = () => {}; window.alert = () => {}; window.confirm = () => true;
+  const focuses = [], posts = [], browserPosts = [], requests = [], logs = [], dialogs = [], storageWrites = [];
+  window.scrollTo = () => {};
+  window.alert = () => { dialogs.push('alert'); };
+  window.confirm = () => { dialogs.push('confirm'); return true; };
+  window.prompt = () => { dialogs.push('prompt'); return null; };
   window.location = { href: '/', pathname: '/', search: '', hash: '' };
-  const focuses = [], posts = [], browserPosts = [], requests = [];
   const EP = window.HTMLElement.prototype;
   EP.scrollIntoView = function () {};
   EP.focus = function () { focuses.push(this); };
@@ -63,7 +68,8 @@ function boot(opts) {
   seed.ezik_qibla_loc_v1 = JSON.stringify({ lat: 29.3759, lng: 47.9774 });
   seed.ezik_prayer_prefs_v1 = JSON.stringify({ method: 'kuwait', asr: 'standard', off: { fajr: 2 } });
   seed.adhkar_favorites_v1 = JSON.stringify(['adhkar_sabah:0']);
-  window.localStorage = makeStore(seed); window.sessionStorage = makeStore({});
+  window.localStorage = makeStore(seed, storageWrites, 'local');
+  window.sessionStorage = makeStore({}, storageWrites, 'session');
   window.postMessage = (wire) => browserPosts.push(String(wire));
   if (opts.shell) window.ReactNativeWebView = { postMessage: (wire) => posts.push(String(wire)) };
   window.fetch = (url) => {
@@ -83,7 +89,10 @@ function boot(opts) {
   for (const f of ['react.umd.js', 'react-dom.umd.js']) vm.runInContext(fs.readFileSync(path.join(REPO, 'vendor', f), 'utf8'), ctx, { filename: f });
   let caught = null;
   window.addEventListener('error', (ev) => { caught = caught || (ev.error || ev.message); });
-  window.console.error = () => {};
+  // A private console records calls without printing application text or mutating node's console.
+  // Reply-silence checks snapshot this after boot, so React's startup output is not the subject.
+  window.console = Object.fromEntries(['log', 'info', 'warn', 'error', 'debug', 'trace', 'count', 'assert', 'dir', 'table', 'group', 'groupEnd']
+    .map((level) => [level, () => { logs.push(level); }]));
   const built = compile(opts.mutant);
   if (!built.applied) return { notApplied: true };
   vm.runInContext(built.code, ctx, { filename: SOURCE_MODE || opts.mutant ? 'compiled-app.jsx' : 'app.js' });
@@ -133,7 +142,7 @@ function boot(opts) {
     return null;
   };
   const widgetPosts = () => posts.filter((wire) => { try { return JSON.parse(wire).op === 'widget-data'; } catch (_) { return false; } });
-  return { window, root, read, where, open, send, until, untilValue, quiet, focuses, posts, browserPosts, requests, widgetPosts,
+  return { window, root, read, where, open, send, until, untilValue, quiet, focuses, posts, browserPosts, requests, logs, dialogs, storageWrites, widgetPosts,
     props, componentProps, ledger: () => read('window.sessionStorage.getItem(EZIK_RESUME_KEY)'),
     click: async (el) => { if (!el) throw new Error('missing fixture button'); el.dispatchEvent(new window.Event('click', { bubbles: true })); await tick(100); },
     back: async () => { window.history.back(); await tick(160); }, caught: () => caught };
@@ -312,6 +321,69 @@ SCENES['no-shell'] = async (c, t) => {
   t('no browser postMessage fallback', c.browserPosts.filter((wire) => { try { return JSON.parse(wire).op === 'widget-data'; } catch (_) { return false; } }).length, 0);
   t('no widget loaders outside shell', c.requests.filter((url) => FIXTURES.has(url)).length, 0);
 };
+SCENES['widget-reply-silence'] = async (c, t, notes) => {
+  await c.until('chat');
+  t('reply fixture completes the widget boot send', await c.untilValue(() => c.widgetPosts().length, 1), 1);
+  // Count entry into the REAL arm function, even when its fingerprint would suppress a post.
+  c.window.__widgetReplyArms = 0;
+  c.read('ezikSchedArm = ((arm) => function() { window.__widgetReplyArms++; return arm.apply(this, arguments); })(ezikSchedArm)');
+  c.window.__widgetReplyEnableAnswers = [];
+  c.window.__widgetReplyProbeAnswers = [];
+  const stopEnable = c.read('ezikNotifyRequest((answer) => window.__widgetReplyEnableAnswers.push(answer))');
+  const stopProbe = c.read('ezikSchedProbeAsk(SHELL_SCHED_STATUS_OP, null, (answer) => window.__widgetReplyProbeAnswers.push(answer))');
+  t('enable request has a live listener', typeof stopEnable, 'function');
+  t('probe request has a live listener', typeof stopProbe, 'function');
+  const probe = JSON.parse(c.posts[c.posts.length - 1]);
+  const base = { channel: 'ezik-scheduler', v: 1 };
+  const success = { ...base, op: 'result', inReplyTo: 'widget-data', requestId: null, ok: true, stored: true, dropped: 0 };
+  const failure = { ...base, op: 'result', inReplyTo: 'widget-data', requestId: null, ok: false, reason: 'invalid-widget-data' };
+  const legacy = { ...base, op: 'error', requestId: null, ok: false, reason: 'unknown-op', received: 'widget-data' };
+  const cases = [
+    ['new success', success], ['new failure', failure],
+    // A matching request id must not make the answer to a DIFFERENT operation ours.
+    ['new success with active probe id', { ...success, requestId: probe.requestId }],
+    ['new failure with active probe id', { ...failure, requestId: probe.requestId }],
+    ['exact legacy unknown-op error', legacy],
+  ];
+  const storeSnapshot = () => [c.window.localStorage, c.window.sessionStorage].map((store) => {
+    const keys = Array.from({ length: store.length }, (_, i) => store.key(i)).sort();
+    return keys.map((key) => [key, store.getItem(key)]);
+  });
+  const before = { html: c.root.outerHTML, screen: c.where(), location: c.window.location.href,
+    history: [c.window.history.length, c.window.history.state], stores: storeSnapshot(),
+    writes: c.storageWrites.length, posts: c.posts.length, browserPosts: c.browserPosts.length,
+    logs: c.logs.length, dialogs: c.dialogs.length, requests: c.requests.filter((url) => FIXTURES.has(url)).length,
+    focuses: c.focuses.length, ledger: c.ledger() };
+  try {
+    for (const [label, message] of cases) {
+      for (let i = 0; i < 3; i++) { c.send(message); await tick(30); }
+      await tick(250); // Longer than the widget sender's debounce; a reply loop cannot hide.
+      t(label + ': UI unchanged', c.root.outerHTML, before.html);
+      t(label + ': no visible dialog', c.dialogs.length, before.dialogs);
+      t(label + ': no scheduler rearm call', c.window.__widgetReplyArms, 0);
+      t(label + ': no outbound message', [c.posts.length, c.browserPosts.length], [before.posts, before.browserPosts]);
+      t(label + ': navigation unchanged', [c.where(), c.window.location.href, c.window.history.length, c.window.history.state],
+        [before.screen, before.location, before.history[0], before.history[1]]);
+      t(label + ': stores unchanged', storeSnapshot(), before.stores);
+      t(label + ': no storage writes', c.storageWrites.length, before.writes);
+      t(label + ': no queued open or resume change', [c.read('EZIK_WIDGET_PENDING'), c.ledger()], ['', before.ledger]);
+      t(label + ': enable/probe callbacks not consumed', [c.window.__widgetReplyEnableAnswers.length, c.window.__widgetReplyProbeAnswers.length], [0, 0]);
+      t(label + ': no logging, including repeated replies', c.logs.length, before.logs);
+      t(label + ': no widget loader or focus activity', [c.requests.filter((url) => FIXTURES.has(url)).length, c.focuses.length], [before.requests, before.focuses]);
+    }
+    // Positive controls: ignored widget replies must leave both real listeners alive.
+    c.send({ ...base, op: 'result', inReplyTo: 'enable', ok: true });
+    c.send({ ...base, op: 'result', inReplyTo: probe.op, requestId: probe.requestId, ok: true });
+    await tick(40);
+    t('real enable reply still reaches its callback', c.window.__widgetReplyEnableAnswers, [true]);
+    t('real probe reply still reaches its callback', c.window.__widgetReplyProbeAnswers.length, 1);
+    t('real probe reply retains its correlation', c.window.__widgetReplyProbeAnswers[0] && c.window.__widgetReplyProbeAnswers[0].requestId, probe.requestId);
+    notes.push('REPLY_SILENCE 5 reply shapes x 3 repeats = 15 messages; active enable/status listeners; zero rearms/posts/UI/store/log changes');
+  } finally {
+    if (typeof stopEnable === 'function') stopEnable();
+    if (typeof stopProbe === 'function') stopProbe();
+  }
+};
 // Every needle must match exactly once; assertions execute the mutant, never recognize it.
 const MUTANTS = [
   { name: 'listener-in-effect', scene: 'cold-mushaf', edits: [
@@ -339,6 +411,28 @@ const MUTANTS = [
   { name: 'widget-not-debounced', scene: 'widget-data', edits: [['const EZIK_WIDGET_DATA_DEBOUNCE_MS = 200;', 'const EZIK_WIDGET_DATA_DEBOUNCE_MS = 0;']] },
   { name: 'widget-day-window-short', scene: 'widget-data', edits: [['const EZIK_WIDGET_DATA_DAYS = 30;', 'const EZIK_WIDGET_DATA_DAYS = 29;']] },
   { name: 'widget-local-change-ignored', scene: 'widget-data', edits: [['    window.addEventListener(EZIK_WIDGET_DATA_EVENT, wake);', '']] },
+  { name: 'widget-reply-consumes-enable', scene: 'widget-reply-silence', edits: [
+    ['  if (detail.inReplyTo !== SHELL_SCHED_ENABLE_OP) return null;\n', '']] },
+  { name: 'widget-reply-consumes-probe', scene: 'widget-reply-silence', edits: [
+    ['  if (detail.inReplyTo !== op) return null;\n', '']] },
+  { name: 'widget-reply-rearms-schedule', scene: 'widget-reply-silence', edits: [
+    ['      if (d.channel !== SHELL_SCHED_CHANNEL || d.op !== SHELL_SCHED_REARM_OP) return;',
+      '      if (d.channel !== SHELL_SCHED_CHANNEL || (d.op !== SHELL_SCHED_REARM_OP && d.op !== SHELL_SCHED_RESULT_OP)) return;']] },
+  { name: 'widget-reply-logs-repeatedly', scene: 'widget-reply-silence', edits: [
+    ['      if (d.channel !== SHELL_SCHED_CHANNEL || d.op !== SHELL_SCHED_REARM_OP) return;',
+      "      if (d.inReplyTo === 'widget-data' || d.received === 'widget-data') console.warn('widget reply');\n      if (d.channel !== SHELL_SCHED_CHANNEL || d.op !== SHELL_SCHED_REARM_OP) return;"]] },
+  { name: 'widget-reply-opens-ui', scene: 'widget-reply-silence', edits: [
+    ["      if (d.channel !== SHELL_SCHED_CHANNEL || d.v !== SHELL_SCHED_VERSION || d.op !== SHELL_SCHED_OPEN_OP) return;",
+      "      if (d.inReplyTo === 'widget-data') { EZIK_WIDGET_PENDING = 'prayer'; EZIK_WIDGET_SUBS.forEach((f) => f()); return; }\n      if (d.channel !== SHELL_SCHED_CHANNEL || d.v !== SHELL_SCHED_VERSION || d.op !== SHELL_SCHED_OPEN_OP) return;"]] },
+  { name: 'legacy-widget-reply-rearms-schedule', scene: 'widget-reply-silence', edits: [
+    ['      if (d.channel !== SHELL_SCHED_CHANNEL || d.op !== SHELL_SCHED_REARM_OP) return;',
+      "      if (d.channel !== SHELL_SCHED_CHANNEL || (d.op !== SHELL_SCHED_REARM_OP && !(d.op === 'error' && d.reason === 'unknown-op' && d.received === 'widget-data'))) return;"]] },
+  { name: 'legacy-widget-reply-logs-repeatedly', scene: 'widget-reply-silence', edits: [
+    ['      if (d.channel !== SHELL_SCHED_CHANNEL || d.op !== SHELL_SCHED_REARM_OP) return;',
+      "      if (d.op === 'error' && d.received === 'widget-data') console.warn('legacy widget reply');\n      if (d.channel !== SHELL_SCHED_CHANNEL || d.op !== SHELL_SCHED_REARM_OP) return;"]] },
+  { name: 'legacy-widget-reply-opens-ui', scene: 'widget-reply-silence', edits: [
+    ['      if (d.channel !== SHELL_SCHED_CHANNEL || d.op !== SHELL_SCHED_REARM_OP) return;',
+      "      if (d.op === 'error' && d.reason === 'unknown-op' && d.received === 'widget-data') window.alert('widget reply');\n      if (d.channel !== SHELL_SCHED_CHANNEL || d.op !== SHELL_SCHED_REARM_OP) return;"]] },
 ];
 for (const route of ROUTES) MUTANTS.push({ name: 'route-dropped-' + route, scene: 'cold-' + route,
   edits: [['      EZIK_WIDGET_PENDING = d.route;', '      if (d.route === ' + JSON.stringify(route) + ') return;\n      EZIK_WIDGET_PENDING = d.route;']] });
@@ -355,7 +449,7 @@ async function runScene(name, mutant) {
     // One failed assertion already kills a mutant. Avoid waiting for every later timeout.
     if (mutant && !ok) throw new Error('mutation assertion failed: ' + label);
   };
-  const c = boot({ profile: name !== 'onboarding', consent: name !== 'chat-consent', shell: name === 'widget-data', offline: name === 'offline', mutant });
+  const c = boot({ profile: name !== 'onboarding', consent: name !== 'chat-consent', shell: name === 'widget-data' || name === 'widget-reply-silence', offline: name === 'offline', mutant });
   if (c.notApplied) return { notApplied: true, results, notes };
   try { await SCENES[name](c, t, notes); } catch (e) { results.push({ label: 'scene threw: ' + String(e && e.message), ok: false }); }
   if (c.caught()) results.push({ label: 'runtime error: ' + String(c.caught()), ok: false });
