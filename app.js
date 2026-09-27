@@ -5852,7 +5852,9 @@ await playPreparedSpeech(pr,myId);}else{playing=true;prefetchNext();if(seg.kind=
 const lastSentenceCut=s=>{let cut=0,re=/[.!\u061F?\u061B]\s|\n/g,m;while((m=re.exec(s))!==null)cut=m.index+m[0].length;// A stop at the very END of the received text ends a sentence too: an early-released lead
 // arrives ending on its full stop with nothing after it, and waiting for the next delta
 // held it silent for ~10 s. Not after a digit -- "3." may still become "3.5".
-if(/(?:^|[^0-9\u0660-\u0669\u06F0-\u06F9])[.!?\u061F\u2026]$/.test(s))cut=s.length;return cut;};const feed=full=>{if(!isCurrent()||hitTag)return;const safe=stripIncompleteTags(full);// drops any incomplete trailing tag
+// H3 (T4 fix 4): and not a `.` after an ASCII letter -- a delta can stop inside a domain name
+// (`binothaimeen.`), and the filter that silences domains must see the whole of it.
+if(!/[A-Za-z]\.$/.test(s)&&/(?:^|[^0-9\u0660-\u0669\u06F0-\u06F9])[.!?\u061F\u2026]$/.test(s))cut=s.length;return cut;};const feed=full=>{if(!isCurrent()||hitTag)return;const safe=stripIncompleteTags(full);// drops any incomplete trailing tag
 const tm=/<(verse|surah|hadith|steps|suggestions|source|dhikr|worship|book)[\s>\/]/.exec(safe);const firstTag=tm?tm.index:safe.length;// prose is streamable only BEFORE the first tag
 const region=safe.slice(consumedLen,firstTag);// tag-free prose not yet spoken
 let cut=tm?region.length:lastSentenceCut(region);// tag present -> flush prose up to it; else complete sentences only

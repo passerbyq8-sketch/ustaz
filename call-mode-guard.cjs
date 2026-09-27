@@ -29,7 +29,8 @@
 //          a suspended capture context is resumed, or the reader is asked for one tap (E6); the
 //          call waits for an open dictation session's onend before its getUserMedia (E7); the words
 //          the call heard are shown before the answer is requested, and never spoken (E8); a turn
-//          far quieter than this call's accepted turns is dropped before /api/stt (E9).
+//          far quieter than this call's accepted turns is dropped before /api/stt (E9); a delta
+//          that stops at a domain's dot is not cut there, so the domain reaches the filter whole (E10).
 //
 // Arabic needles live as string literals but are NEVER printed. All console output is
 // ASCII (ids/labels only), safe for a Windows terminal.
@@ -1223,7 +1224,8 @@ function checkSpeechPump(html) {
   } catch (e) { fail('E1 extracted speech code does not evaluate: ' + e.message); return; }
 
   const cases = [
-    ['end full stop', 'abc def.', 8], ['end !', 'abc def!', 8], ['end ?', 'abc def?', 8],
+    ['end full stop (Arabic word)', U(0x0635) + U(0x064A) + U(0x0627) + U(0x0645) + ' ' + U(0x0642) + U(0x0648) + U(0x0644) + '.', 9],
+    ['ASCII letter then stop (H3: a domain may go on)', 'abc def.', 0], ['end !', 'abc def!', 8], ['end ?', 'abc def?', 8],
     ['end Arabic ?', 'abc def' + U(0x061F), 8], ['end ellipsis char', 'abc def' + U(0x2026), 8],
     ['end three dots', 'abc def...', 10],
     ['digit then stop', 'costs 3.', 0], ['Arabic-Indic digit then stop', 'costs ' + U(0x0663) + '.', 0],
@@ -1239,7 +1241,7 @@ function checkSpeechPump(html) {
   while (lead.length < 114) lead += (lead ? ' ' : '') + word;
   lead = lead.slice(0, 114) + '.';
   const rest = '\n' + 'The ruling is restated here in a longer second sentence, with a clause.'
-    + ' A third sentence follows' + U(0x061F) + ' And a closing sentence.';
+    + ' A third sentence follows' + U(0x061F) + ' And a closing ' + word + '.';   // H3: ends on an Arabic word, as a real reply does
   const deltas = [lead, rest];
   let full = '', consumed = 0; const perDelta = []; const spoken = [];
   for (const d of deltas) {                  // the same arithmetic as feed() for tag-free prose
@@ -2061,6 +2063,60 @@ async function checkLevelGate(html) {
   else fail('E9 a -10 dB turn was dropped: stt [' + d.sttTurns.join(',') + ']');
 }
 
+// E10 (T4 fix 4, H3): FIX 1's end-of-text rule also ended a sentence on a `.` after an ASCII
+// letter, so a streamed delta that stopped at `binothaimeen.` spoke half a domain name before F1's
+// filter could see the whole of it. A `.` after an ASCII letter at the end of the received text is
+// no longer a sentence end; an Arabic sentence ending in `.` still ends at once. The client's own
+// lastSentenceCut, formatForTTS, splitSpeechIntoSentences and createCallSpeechStream are EXECUTED.
+async function checkDomainDot(html) {
+  const cutSrc = extractDecl(html, 'const lastSentenceCut = (s) => ');
+  const get = (h) => extractDecl(html, h);
+  const srcs = [get('const formatForTTS = (text) => '), get('const splitSpeechIntoSentences = (prose) => '), get('const buildAudioSequence = (text) => ')];
+  if (!cutSrc || srcs.some((x) => !x)) { fail('E10 the client speech code was not found'); return; }
+  let lastSentenceCut, fx;
+  try {
+    lastSentenceCut = new Function(cutSrc + ';\nreturn lastSentenceCut;')();
+    const env = {
+      stripIncompleteTags: (t) => String(t == null ? '' : t), ezikStripIncomplete: (t) => String(t == null ? '' : t),
+      resolveHadithAttribution: (narrator, ruling) => ({ narrator, ruling }), readStepsTitle: () => '', resolveSurahNumber: () => 0,
+      EZIK_NOTICE_ALL: evalConst(html, 'EZIK_NOTICE_ALL') || /(?!)/g, EZ_TTS_SOURCE_LINE_SRC: evalConst(html, 'EZ_TTS_SOURCE_LINE_SRC'),
+    };
+    const names = Object.keys(env);
+    fx = new Function(...names, srcs.join(';\n') + ';\nreturn { formatForTTS, splitSpeechIntoSentences, buildAudioSequence };')(...names.map((k) => env[k]));
+  } catch (e) { fail('E10 extracted speech code does not evaluate: ' + e.message); return; }
+  const AR = U(0x0631) + U(0x0627) + U(0x062C) + U(0x0639);            // an Arabic word, never printed
+  const lead = U(0x0627) + U(0x0644) + U(0x0635) + U(0x0644) + U(0x0627) + U(0x0629) + ' ' + U(0x0648) + U(0x0627) + U(0x062C) + U(0x0628) + U(0x0629) + '.';
+  const d1 = lead + '\n' + AR + ' binothaimeen.';
+  const cutDomain = lastSentenceCut(d1);
+  const arStop = AR + ' ' + AR + '.';
+  const cutArabic = lastSentenceCut(arStop);
+  info('E10 cut of a delta ending at `binothaimeen.`: ' + cutDomain + ' of ' + d1.length + ' (the lead ends at ' + (lead.length + 1)
+    + ') | cut of an Arabic word + `.`: ' + cutArabic + ' of ' + arStop.length);
+  if (cutDomain === lead.length + 1) pass('E10 a delta ending at `binothaimeen.` is not cut at its end (only the finished lead before it is)');
+  else fail('E10 a delta ending at `binothaimeen.` is cut at ' + cutDomain + ' (the lead ends at ' + (lead.length + 1) + ')');
+  if (cutArabic === arStop.length) pass('E10 a delta ending in an Arabic word and `.` is cut at once');
+  else fail('E10 an Arabic sentence ending in `.` is no longer cut at once: ' + cutArabic);
+  const d2 = 'net ' + AR + '.\n' + AR + ' ' + AR + '.';
+  const full = d1 + d2;
+  // What reaches the speech filter: the pump hands prose to splitSpeechIntoSentences (feed) or to
+  // buildAudioSequence (finish), and both run formatForTTS on exactly that text.
+  const texts = [];
+  let r;
+  try {
+    r = await simulatePump(html, { full, deltas: [d1, d2],
+      deps: { splitSpeechIntoSentences: (t) => { texts.push(String(t)); return fx.splitSpeechIntoSentences(t); },
+        buildAudioSequence: (t) => { texts.push(String(t)); return fx.buildAudioSequence(t); },
+        EZ_TTS_SOURCE_LINE_SRC: evalConst(html, 'EZ_TTS_SOURCE_LINE_SRC') } });
+  } catch (e) { fail('E10 the call pump does not run: ' + e.message); return; }
+  const whole = texts.filter((t) => t.indexOf('binothaimeen.net') !== -1).length;
+  const half = texts.filter((t) => /binothaimeen(?!\.net)/.test(t)).length;
+  const spoken = r.log.fetches.map((f) => fx.formatForTTS(f.text)).join(' ');
+  info('E10 streamed in two deltas split after `binothaimeen.`: ' + texts.length + ' filter inputs, the domain whole in ' + whole + ', split in ' + half);
+  if (whole === 1 && half === 0 && spoken.indexOf('binothaimeen') === -1 && spoken.indexOf('net') === -1 && r.settled)
+    pass('E10 the whole domain reaches the speech filter in one piece, and none of it is spoken');
+  else fail('E10 the domain was split across segments or spoken: whole=' + whole + ', split=' + half);
+}
+
 // ===========================================================================
 (async () => {
   // ITEM 32: the call screen is in app.jsx now, so this reads the shipped client, not the shell.
@@ -2087,6 +2143,7 @@ async function checkLevelGate(html) {
   checkDictationRestart(html);
   await checkCaptureResume(html);
   await checkHandOver(html);
+  await checkDomainDot(html);
   await checkLevelGate(html);
   await checkHeardWords(html);
 
