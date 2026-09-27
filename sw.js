@@ -51,7 +51,7 @@
 // stranded on a dead build. The HTML shell is network-first (6b) so it is always fresh online
 // regardless of the version; the bump refreshes the CACHE-FIRST assets (icons/fonts). The JSON
 // data files no longer NEED the bump -- they revalidate themselves -- but they still honour it.
-const CACHE = 'ezik-v38';
+const CACHE = 'ezik-v39';
 // '/index.html' is NOT here. Vercel serves this document byte-identically for '/' and for
 // '/index.html', so precaching both downloaded the whole shell TWICE on every cold visit --
 // a second copy of the 153974 bytes '/' already holds. The network-first branch below still
@@ -282,6 +282,43 @@ function evictOld() {
 const IDLE = [
   '/quran-uthmani.json',
   '/mushaf-layout.json',
+  // ITEM 4 OF THE REGISTER (OFFLINE). The three data files two sections are drawn from, and
+  // nothing else can supply them: the names of Allah read the two sheets below and the worship
+  // section reads the third. Until this entry a returning reader who had never opened either
+  // section online could not open it with no network, because nothing precached these files
+  // and the stale-while-revalidate branch only stores what a reader has already fetched.
+  // They are here and NOT in CORE on purpose. The names sheet must never ride the boot -- that
+  // is item 26's order, and guards/asmaa-attribution-guard.cjs holds both sheets out of CORE --
+  // so they warm AFTER the boot goes idle, as the two mushaf files above do, and the worship
+  // file travels with them rather than alone. warmIdle adds only what the store lacks, and the
+  // fetch branch still serves all three stale-while-revalidate, so an edited sheet reaches the
+  // reader on the next read without another bump. Their sizes on disk, in the order below: 153202,
+  // 7180 and 18132 bytes.
+  '/asmaa-dataset-final-r3.json',
+  '/asmaa-rules-page-r2.json',
+  '/worship-display.json',
+  // ITEM 4 OF THE REGISTER (OFFLINE), PART TWO: THE NEW MUSHAF BOOTS WITH NO NETWORK. app.jsx
+  // shows the reader as an iframe of /mushaf-lab/index.html, and until this entry nothing here
+  // named mushaf-lab at all: offline, that navigation found no stored document and the mushaf did
+  // not open. These are the same-origin files that page references and the files it boots from,
+  // written EXACTLY as it requests them -- the ?v= query included, because the cache-first arm
+  // matches the whole URL. The reader's script moved to ?v=5 in this same change: a store of this
+  // name may already hold the previous script under ?v=4, and cache-first would keep serving it.
+  // The two mushaf files above are the rest of its boot. The per-page geometry is deliberately
+  // NOT here: it arrives with the page downloads the reader chooses (see DOWNLOADS_CACHE below). quest-bank-integrity-guard.cjs B17 parses index.html and app.js in
+  // mushaf-lab/ and fails when this list stops covering them.
+  '/mushaf-lab/index.html',
+  '/mushaf-lab/app.js?v=5',
+  '/mushaf-lab/style.css?v=4',
+  '/mushaf-lab/manifest.webmanifest',
+  '/mushaf-lab/icon-192.png',
+  '/mushaf-lab/icon-512.png',
+  '/mushaf-lab/data/tables.json',
+  '/mushaf-lab/data/meta.json',
+  '/mushaf-lab/data/imlaei.json',
+  // The size table the downloads sheet reads. Small, and warmed so the sheet can still say what
+  // is downloaded and how large each group is when the reader opens it with no network.
+  '/mushaf-lab/data/offline-sizes.json',
 ];
 const IDLE_BACKSTOP_MS = 1500;
 
@@ -470,7 +507,11 @@ self.addEventListener('activate', (event) => {
       // disk that is genuinely full', and a reader who must choose between an app that opens
       // offline and pages they can fetch again keeps the app. Two contracts, two filters, and
       // the guard drives both so the asymmetry cannot become an accident.
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== MUSHAF_CACHE).map((k) => caches.delete(k))))
+      //
+      // ITEM 4 OF THE REGISTER (OFFLINE): DOWNLOADS_CACHE is exempt for the same reason and by the
+      // same clause. Everything in it is there because the reader pressed a download button, and
+      // a ship that threw it away would take back what they chose to keep.
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== MUSHAF_CACHE && k !== DOWNLOADS_CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
       // ITEM 91-A. The sweep above has just deleted the old stores -- which is precisely the
       // space install was short of. Without this, a quota-skipped install would leave the reader
@@ -557,6 +598,38 @@ self.addEventListener('message', (event) => {
 // No version in this name, and that is the whole point: these files are immutable, so the one
 // reason to bump a store name -- the bytes behind it changed -- can never apply to them.
 const MUSHAF_CACHE = 'ezik-mushaf-pages-v1';
+
+// ITEM 4 OF THE REGISTER (OFFLINE). THE ONE STORE EVERY MUSHAF DOWNLOAD LANDS IN. The new reader in
+// mushaf-lab/ has one downloads sheet: a juz, the whole mushaf, a translation, a tafsir, a surah's
+// recitation. It writes all of them here, and nothing else writes here. The same string is declared
+// once in this file and once in mushaf-lab/app.js, and B17 fails when the two differ.
+//   - No version in the name, for MUSHAF_CACHE's reason: a ship does not change what was downloaded.
+//   - activate never sweeps it (see the filter there).
+//   - evictOld DOES, and that is item 33's contract unchanged: the last resort to fit the shell on a
+//     disk that is genuinely full. The sheet reads what is in this store every time it opens -- it
+//     keeps no list of its own -- so after such a sweep it shows the truth.
+//   - Only same-origin pages and geometry are READ from it here, by the two arms below. The texts
+//     and the recitation it also holds are cross-origin; the worker still ignores those origins (see
+//     the register above `if (!sameOrigin) return;`), and the reader reads them from this store
+//     itself.
+const DOWNLOADS_CACHE = 'ezik-mushaf-downloads-v1';
+// A request the downloads sheet makes carries this header, so the two arms that would otherwise
+// ALSO write the response into MUSHAF_CACHE or CACHE leave it to the sheet: one copy, in the store
+// the reader controls, rather than two.
+const DOWNLOAD_HEADER = 'x-ezik-download';
+const isDownload = (req) => {
+  try { return !!(req.headers && typeof req.headers.get === 'function' && req.headers.get(DOWNLOAD_HEADER)); }
+  catch (e) { return false; }
+};
+// The geometry a page's ayah layer is drawn from: mushaf-lab/geometry/NNN.json?v=<build>.
+const LAB_GEOMETRY_RE = /^\/mushaf-lab\/geometry\/\d{3}\.json$/;
+// The reader's own document, answered from the store when a navigation to it finds no network.
+const LAB_DIR = '/mushaf-lab/';
+const LAB_SHELL = '/mushaf-lab/index.html';
+// Read-only: the answer from DOWNLOADS_CACHE, or undefined. A store that cannot be opened is a miss.
+function fromDownloads(req) {
+  return caches.open(DOWNLOADS_CACHE).then((dl) => dl.match(req)).catch(() => undefined);
+}
 // Matched on what the request IS, like every other branch in this worker: 'page-', three
 // digits, '.webp', under that one directory. No other asset can drift into this policy.
 const MUSHAF_PAGE_RE = /^\/assets\/madina-hafs\/page-\d{3}\.webp$/;
@@ -683,7 +756,11 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE).then((cache) => cache.put(req, copy)).catch(() => {});
         }
         return res;
-      }).catch(() => caches.match(req).then((m) => m || caches.match('/')))
+      // ITEM 4 OF THE REGISTER (OFFLINE). A navigation inside /mushaf-lab/ -- the iframe app.jsx
+      // opens -- falls back to the reader's OWN document, which IDLE stores, and never to Ezik's
+      // shell: Ezik's home screen drawn inside the mushaf frame is not an offline mushaf.
+      }).catch(() => caches.match(req).then((m) => m
+        || (url.pathname.startsWith(LAB_DIR) ? caches.match(LAB_SHELL) : caches.match('/'))))
     );
     return;
   }
@@ -717,21 +794,29 @@ self.addEventListener('fetch', (event) => {
   // three, zero for the two below -- so the exclusion cannot quietly widen to swallow adhkar.
   const sealedMushaf = url.pathname === '/quran-uthmani.json' || url.pathname === '/mushaf-layout.json';
   if (sameOrigin && url.pathname.endsWith('.json') && !sealedMushaf) {
+    // ITEM 4 OF THE REGISTER (OFFLINE). The new reader's per-page geometry takes one more stop:
+    // CACHE as before, then DOWNLOADS_CACHE, then the network. A downloaded page is useless without
+    // its ayah layer, so the layer is read from where the reader's download put it.
+    const labGeometry = LAB_GEOMETRY_RE.test(url.pathname);
+    const fromSheet = isDownload(req);
     event.respondWith(
       caches.open(CACHE).then((cache) => cache.match(req).then((hit) => {
         // Never rejects and never deletes. A dead network resolves it to undefined and the
-        // stored copy stays exactly as it was.
-        const revalidate = fetch(req).then((res) => {
-          if (res && res.status === 200) cache.put(req, res.clone()).catch(() => {});
+        // stored copy stays exactly as it was. A function now, so that the downloads-store read
+        // below is not raced by a network read it would only throw away.
+        const revalidate = () => fetch(req).then((res) => {
+          if (res && res.status === 200 && !fromSheet) cache.put(req, res.clone()).catch(() => {});
           return res;
         }).catch(() => undefined);
         if (hit) {
           // Keep the worker alive for the write, but do not make the page wait on it.
-          event.waitUntil(revalidate);
+          const pending = revalidate();
+          event.waitUntil(pending);
           return hit;
         }
+        if (labGeometry) return fromDownloads(req).then((got) => got || revalidate());
         // Cold cache: there is nothing stale to serve, so this read is the network read.
-        return revalidate;
+        return revalidate();
       }))
     );
     return;
@@ -744,17 +829,23 @@ self.addEventListener('fetch', (event) => {
   // Cache-first with no revalidation, like the two sealed mushaf JSON files above and for the
   // same reason: a scanned page of the printed mushaf cannot change. What is different is that
   // there are 604 of them, so this arm also carries a ceiling, an eviction rule and an estimate.
+  //
+  // ITEM 4 OF THE REGISTER (OFFLINE). Three stops now: MUSHAF_CACHE, then DOWNLOADS_CACHE -- the
+  // pages the reader chose to download, which the ceiling here never evicts -- then the network.
+  // A request from the downloads sheet itself is not written into MUSHAF_CACHE: the sheet stores
+  // it, and a whole-mushaf download must not churn this capped store for nothing.
   if (sameOrigin && MUSHAF_PAGE_RE.test(url.pathname)) {
     const page = url.pathname;
+    const fromSheet = isDownload(req);
     event.respondWith(
       caches.open(MUSHAF_CACHE)
         .then((cache) => mushafSeed(cache).then(() => cache.match(req)).then((hit) => {
           if (hit) { mushafTouch(page); return hit; }
-          return fetch(req).then((res) => {
+          return fromDownloads(req).then((got) => got || fetch(req).then((res) => {
             // The write is deliberately NOT on the path the reader waits on: the response is
             // handed back the moment it arrives and the store happens beside it, so an estimate,
             // an eviction and a put cannot add a frame to turning a page.
-            if (res && res.status === 200) {
+            if (res && res.status === 200 && !fromSheet) {
               event.waitUntil(mushafStore(cache, page, req, res.clone()));
             }
             return res;
@@ -764,7 +855,7 @@ self.addEventListener('fetch', (event) => {
           // is the network error the page would have met with no worker at all. The image element
           // in the reader latches that as onError and re-renders on its SVG branch. Storage
           // failures do NOT come through here; every one of them lands in mushafNote.
-          () => undefined);
+          () => undefined));
         }))
     );
     return;
@@ -787,6 +878,13 @@ self.addEventListener('fetch', (event) => {
   //     pages in assets/madina-hafs and never asks for it.
   // None of the three is on the boot path, so none of them is precached and none is cached
   // here: a worker that intercepted them would be caching bytes the first screen never wants.
+  //
+  // ITEM 4 OF THE REGISTER (OFFLINE) KEEPS THIS RETURN AS IT IS. The new mushaf's downloads sheet
+  // stores a surah's recitation from everyayah.com and whole tafsir and translation files from
+  // cdn.jsdelivr.net (raw.githubusercontent.com as the fallback) in DOWNLOADS_CACHE, and the
+  // reader in mushaf-lab/ reads them back ITSELF: the texts when the per-ayah fetch fails, the
+  // recitation as a blob URL made from the stored response. No cross-origin request is
+  // intercepted here for any of it, so this line still means exactly what it says.
   if (!sameOrigin) return;
 
   // CACHE-FIRST for same-origin static assets.

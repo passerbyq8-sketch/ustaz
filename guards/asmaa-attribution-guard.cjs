@@ -352,8 +352,11 @@ head('F. THE LAZY LOAD');
     (APPJS.match(/ASMAA_NAMES_URLs*=s*'([^']+)'/) || [, ''])[1], '/' + NAMES_REL);
   eq('the rules URL is the file at the origin root',
     (APPJS.match(/ASMAA_RULES_URLs*=s*'([^']+)'/) || [, ''])[1], '/' + RULES_REL);
-  // AND NEITHER IS PRECACHED. A CORE entry would be fetched during install -- at boot, for every
+  // AND NEITHER IS IN CORE. A CORE entry would be fetched during install -- at boot, for every
   // reader, including the ones who never open the section -- which is the thing the order forbids.
+  // Item 4 of the register (offline) put both sheets in the worker's IDLE list instead: they warm
+  // AFTER the boot goes idle, so a returning reader can open the section with no network while
+  // the boot still carries none of their bytes. This check is what keeps them out of install.
   const SW = read('sw.js');
   const coreAt = SW.indexOf('const CORE = [');
   const CORE = coreAt === -1 ? '' : SW.slice(coreAt, SW.indexOf('];', coreAt));
