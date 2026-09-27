@@ -1836,6 +1836,8 @@ export default async function handler(req, res) {
           markerSeen: t.markerSeen, takhrijLookups: t.takhrijLookups, takhrijMs: t.takhrijMs,
           takhrijMatched: t.takhrijMatched, pinnedRows: t.pinnedRows, pinnedChars: t.pinnedChars,
           encyclopediaCold: t.encyclopediaCold,
+          // SPEED FIX 3, C4: units released by a hadith proof.
+          unitsProvedHadith: t.unitsProvedHadith,
           heldEmpty: t.heldEmpty, heldToolAnnouncement: t.heldToolAnnouncement, heldReviewFailed: t.heldReviewFailed, heldUnsupportedAttribution: t.heldUnsupportedAttribution,
           heldUncitedAttribution: t.heldUncitedAttribution, heldUncitedRuling: t.heldUncitedRuling, heldUnsupportedGroup: t.heldUnsupportedGroup, heldUnsupportedConsensus: t.heldUnsupportedConsensus,
           heldUnsupportedSchool: t.heldUnsupportedSchool, heldUnsupportedMatn: t.heldUnsupportedMatn, heldTakhrijRefused: t.heldTakhrijRefused, heldTakhrijEmptied: t.heldTakhrijEmptied,

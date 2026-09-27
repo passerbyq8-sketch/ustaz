@@ -38,6 +38,13 @@
 //       the warm path is as before
 //   C3  the new telemetry: writer start, first token, holds before the first release and by reason, the
 //       marker, the takhrij lookups, the pinned table, the cold encyclopedia
+//
+// SPEED FIX 3 (order EZIK-SPEED-FIX3-ORDER-2026-09-27), built from the owner tool's round-3 question 1 and the
+// live-search answer after it (EZIK-SPEED-PREVIEW3-CHAT-2026-09-27):
+//   C4  a unit that attributes a hadith to a collection or a narrator is proved before it is held: released
+//       on the kept row that carries the text and every name, or on the takhrij's proof; no not-covered
+//       sentence because of it; the wrong collection, a scholar with no row, a failed lookup and the R5 and
+//       lead-in rules hold as today
 'use strict';
 
 const fs = require('fs');
@@ -689,6 +696,119 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         'pinnedRows', 'pinnedChars', 'encyclopediaCold', ...UNITS.BW2_HOLD_REASONS.map(UNITS.heldFieldOf)];
       ok('C3g api/ask.js prints every new field from the telemetry object, and the turn builds every one of them',
         NEW.every((n) => block.includes(n + ': t.' + n + ',') && n in t), JSON.stringify(NEW.filter((n) => !block.includes(n + ': t.' + n + ','))));
+    }
+
+    // ---------------------------------------------------------------- SPEED FIX 3: C4
+    // Built from the owner tool's round 3 (EZIK-SPEED-PREVIEW3-CHAT-2026-09-27): question 1 verbatim, and the
+    // live-search answer after it, whose opening names the collection and the narrator. Seven writer units in
+    // the shape the preview measured: on c38aa44 they give exactly its record -- 1 released, 6 held
+    // (unsupported attribution 3, uncited attribution 2, dependent on a held unit 1) and the not-covered
+    // sentence. The kept rows: one carries the hadith's text with the collection and the narrator named, one
+    // the text alone, one neither.
+    {
+      const Q1 = '\u0623\u064a\u0646 \u0648\u0631\u062f \u062d\u062f\u064a\u062b: \u0627\u0644\u062f\u064a\u0646 \u0627\u0644\u0646\u0635\u064a\u062d\u0629\u061f \u0648\u0645\u0646 \u0631\u0648\u0627\u0647\u061f';
+      const MATN = '\u0627\u0644\u062f\u064a\u0646 \u0627\u0644\u0646\u0635\u064a\u062d\u0629';
+      const R_ALL_TEXT = '\u0639\u0646 \u062a\u0645\u064a\u0645 \u0627\u0644\u062f\u0627\u0631\u064a \u0631\u0636\u064a \u0627\u0644\u0644\u0647 \u0639\u0646\u0647 \u0623\u0646 \u0627\u0644\u0646\u0628\u064a \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645 \u0642\u0627\u0644: \u00ab\u0627\u0644\u062f\u0650\u0651\u064a\u0646\u064f \u0627\u0644\u0646\u064e\u0651\u0635\u0650\u064a\u062d\u064e\u0629\u064f\u00bb \u0642\u064f\u0644\u0652\u0646\u064e\u0627: \u0644\u0650\u0645\u064e\u0646\u0652 \u064a\u064e\u0627 \u0631\u064e\u0633\u064f\u0648\u0644\u064e \u0627\u0644\u0644\u064e\u0651\u0647\u0650\u061f \u0642\u064e\u0627\u0644\u064e: \u00ab\u0644\u0650\u0644\u064e\u0651\u0647\u0650 \u0648\u064e\u0644\u0650\u0643\u0650\u062a\u064e\u0627\u0628\u0650\u0647\u0650 \u0648\u064e\u0644\u0650\u0631\u064e\u0633\u064f\u0648\u0644\u0650\u0647\u0650 \u0648\u064e\u0644\u0650\u0623\u064e\u0626\u0650\u0645\u064e\u0651\u0629\u0650 \u0627\u0644\u0652\u0645\u064f\u0633\u0652\u0644\u0650\u0645\u0650\u064a\u0646\u064e \u0648\u064e\u0639\u064e\u0627\u0645\u064e\u0651\u062a\u0650\u0647\u0650\u0645\u0652\u00bb. \u0631\u0648\u0627\u0647 \u0645\u0633\u0644\u0645 \u0641\u064a \u0635\u062d\u064a\u062d\u0647. \u0648\u0647\u0630\u0627 \u062d\u062f\u064a\u062b \u0639\u0638\u064a\u0645 \u062c\u0627\u0645\u0639.';
+      const R_TEXT_TEXT = '\u0642\u0627\u0644 \u0627\u0644\u0646\u0628\u064a \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645: \u00ab\u0627\u0644\u062f\u064a\u0646 \u0627\u0644\u0646\u0635\u064a\u062d\u0629\u00bb \u0642\u0644\u0646\u0627 \u0644\u0645\u0646 \u064a\u0627 \u0631\u0633\u0648\u0644 \u0627\u0644\u0644\u0647\u061f \u0642\u0627\u0644: \u00ab\u0644\u0644\u0647 \u0648\u0644\u0643\u062a\u0627\u0628\u0647 \u0648\u0644\u0631\u0633\u0648\u0644\u0647 \u0648\u0644\u0623\u0626\u0645\u0629 \u0627\u0644\u0645\u0633\u0644\u0645\u064a\u0646 \u0648\u0639\u0627\u0645\u062a\u0647\u0645\u00bb. \u0648\u0627\u0644\u0646\u0635\u064a\u062d\u0629 \u0643\u0644\u0645\u0629 \u062c\u0627\u0645\u0639\u0629.';
+      const R_NONE_TEXT = '\u0627\u0644\u0646\u0635\u064a\u062d\u0629 \u0644\u0648\u0644\u0627\u0629 \u0627\u0644\u0623\u0645\u0631 \u062a\u0643\u0648\u0646 \u0628\u0627\u0644\u062f\u0639\u0627\u0621 \u0644\u0647\u0645 \u0648\u0628\u064a\u0627\u0646 \u0627\u0644\u062d\u0642 \u0644\u0647\u0645 \u0633\u0631\u0627.';
+      const R_ALL = { ...ROW_F1, title: 'Q1-ALL', url: 'https://binbaz.org.sa/audios/101', recordId: '101', text: R_ALL_TEXT, passage: R_ALL_TEXT };
+      const R_TEXT = { ...ROW_F1, title: 'Q1-TEXT', url: 'https://binbaz.org.sa/audios/102', recordId: '102', text: R_TEXT_TEXT, passage: R_TEXT_TEXT };
+      const R_NONE = { ...ROW_F1, title: 'Q1-NONE', url: 'https://binbaz.org.sa/fatwas/103', recordId: '103', text: R_NONE_TEXT, passage: R_NONE_TEXT };
+      const W1 = '\u0648\u0631\u062f \u0647\u0630\u0627 \u0627\u0644\u062d\u062f\u064a\u062b \u0639\u0646\u062f \u0627\u0644\u0625\u0645\u0627\u0645 \u0645\u0633\u0644\u0645 \u0641\u064a \u0635\u062d\u064a\u062d\u0647\u060c \u0645\u0646 \u062d\u062f\u064a\u062b \u062a\u0645\u064a\u0645 \u0627\u0644\u062f\u0627\u0631\u064a \u0631\u0636\u064a \u0627\u0644\u0644\u0647 \u0639\u0646\u0647.';
+      const W2 = (textRef) => '\u0648\u0646\u0635 \u0627\u0644\u062d\u062f\u064a\u062b \u0639\u0646\u062f \u0627\u0644\u0625\u0645\u0627\u0645 \u0645\u0633\u0644\u0645 \u0641\u064a \u0635\u062d\u064a\u062d\u0647: \u00ab\u0627\u0644\u062f\u064a\u0646 \u0627\u0644\u0646\u0635\u064a\u062d\u0629\u00bb [[' + textRef + ']].';
+      const W3 = '\u0648\u062d\u062f\u064a\u062b \u00ab\u0627\u0644\u062f\u064a\u0646 \u0627\u0644\u0646\u0635\u064a\u062d\u0629\u00bb \u0623\u062e\u0631\u062c\u0647 \u0645\u0633\u0644\u0645 \u0641\u064a \u0635\u062d\u064a\u062d\u0647.';
+      const W4 = '\u0648\u0647\u0630\u0627 \u064a\u062f\u0644 \u0639\u0644\u0649 \u0639\u0638\u0645 \u0634\u0623\u0646 \u0627\u0644\u0646\u0635\u064a\u062d\u0629.';
+      const W5 = (noneRef) => '\u0648\u0642\u0627\u0644 \u0627\u0644\u0646\u0648\u0648\u064a: \u0647\u0630\u0627 \u0627\u0644\u062d\u062f\u064a\u062b \u0639\u0644\u064a\u0647 \u0645\u062f\u0627\u0631 \u0627\u0644\u0625\u0633\u0644\u0627\u0645 [[' + noneRef + ']].';
+      const W6 = '\u0648\u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a \u0623\u064a\u0636\u0627.';
+      const W7 = '\u0648\u0627\u0644\u0646\u0635\u064a\u062d\u0629 \u0645\u0646 \u0623\u0639\u0638\u0645 \u0623\u0628\u0648\u0627\u0628 \u0627\u0644\u062f\u064a\u0646.';
+      const q1Text = (textRef, noneRef) => [W1, W2(textRef), W3, W4, W5(noneRef), W6, W7].join('\n');
+      const silent = async (text) => ({ text, entries: text.includes(MATN) ? [{ matn: MATN, silent: true, sourced: false }] : [] });
+      const drop = (s) => String(s).replace(/\s*\[\[\d+\]\]/g, '');
+
+      // Refs follow the candidate order: R_ALL 1, R_TEXT 2, R_NONE 3.
+      const c = await run({ question: Q1, fatwa: [R_ALL, R_TEXT, R_NONE], writerText: q1Text(2, 3), takhrijImpl: silent });
+      const t = c.deltas.join('');
+      const tel = c.out.telemetry;
+      ok('C4a q1: the units the carrying row proves are released on it -- the opening that names Muslim and Tamim al-Dari, cited or not',
+        t.startsWith(W1) && t.includes(drop(W2(2))) && t.includes(W3) && tel.unitsProvedHadith === 3
+        && t.includes('binbaz.org.sa/audios/101'), ascii(c.deltas.join('|')) + ' ' + JSON.stringify(tel));
+      ok('C4b ...no not-covered sentence and no offer; the connector after a proved unit follows it out; the rest held as today',
+        !t.includes(NOT_COVERED) && !hasOffer(c) && t.includes(W4) && t.includes(W7) && tel.unitsReleased === 5 && tel.unitsHeld === 2
+        && tel.heldUnsupportedAttribution === 1 && tel.heldUncitedAttribution === 1 && tel.heldDependentOnHeld === 0, JSON.stringify(tel));
+      ok('C4c a unit naming the wrong collection stays held, and a scholar\'s credit with no row for it stays held',
+        !t.includes(W6) && !t.includes(drop(W5(3))), ascii(t));
+
+      // The same answer when no kept row names Muslim: the row that carries the text alone proves nothing more.
+      const n = await run({ question: Q1, fatwa: [R_TEXT, R_NONE], writerText: q1Text(1, 2), takhrijImpl: silent });
+      const nt = n.deltas.join('');
+      ok('C4d a row that carries the text without the named collection does not prove it: held, as today, and the not-covered sentence',
+        !nt.includes(W1) && !nt.includes(W3) && n.out.telemetry.unitsProvedHadith === 0 && nt.includes(NOT_COVERED) && hasOffer(n)
+        && n.out.telemetry.heldUnsupportedAttribution === 3 && n.out.telemetry.heldUncitedAttribution === 2 && n.out.telemetry.heldDependentOnHeld === 1,
+        ascii(nt) + ' ' + JSON.stringify(n.out.telemetry));
+      // ...unless the takhrij proves it. The local library's own answer for this hadith, measured: sourced, "(Muslim)",
+      // no Companion named. So it proves the unit that names Muslim, and not the one that also names Tamim al-Dari.
+      const byLibrary = async (text) => {
+        if (!text.includes(MATN)) return { text, entries: [] };
+        const stated = /\u0623\u062e\u0631\u062c\u0647|\u0645\u0633\u0644\u0645/u.test(text.replace(/\u00ab[^\u00bb]*\u00bb/gu, ''));
+        return stated
+          ? { text, entries: [{ matn: MATN, sourced: false, withheld: '\u0645\u0633\u0644\u0645', proseProof: ['\u0645\u0633\u0644\u0645', '\u0627\u0644\u0646\u0633\u0627\u0626\u064a'], companion: '', declined: 'prose_states_attribution' }] }
+          : { text: text.replace('\u00bb', '\u00bb (\u0645\u0633\u0644\u0645)'), entries: [{ matn: MATN, sourced: true, parenthetical: '\u0645\u0633\u0644\u0645', companion: '' }] };
+      };
+      const b = await run({ question: Q1, fatwa: [R_TEXT, R_NONE], writerText: [W3, W1].join('\n'), takhrijImpl: byLibrary });
+      const bt = b.deltas.join('');
+      ok('C4e (b) the takhrij proves the text and Muslim: that unit is released, uncited, and counts as covered; the one naming the narrator it did not name stays held',
+        bt.startsWith(W3) && !bt.includes(W1) && b.out.telemetry.unitsProvedHadith === 1 && !bt.includes(NOT_COVERED) && !hasOffer(b)
+        && b.out.telemetry.heldUnsupportedAttribution === 1 && b.out.telemetry.takhrijLookups === 2, ascii(bt) + ' ' + JSON.stringify(b.out.telemetry));
+      const NARRATED = '\u0639\u0646 \u062a\u0645\u064a\u0645 \u0627\u0644\u062f\u0627\u0631\u064a \u0631\u0636\u064a \u0627\u0644\u0644\u0647 \u0639\u0646\u0647 \u0623\u0646 \u0627\u0644\u0646\u0628\u064a \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645 \u0642\u0627\u0644: \u00ab\u0627\u0644\u062f\u064a\u0646 \u0627\u0644\u0646\u0635\u064a\u062d\u0629\u00bb.';
+      const withCompanion = async (text) => (text.includes(MATN)
+        ? { text: text.replace('\u00bb', '\u00bb (\u0645\u0633\u0644\u0645)'), entries: [{ matn: MATN, sourced: true, parenthetical: '\u0645\u0633\u0644\u0645', companion: '\u062a\u0645\u064a\u0645 \u0627\u0644\u062f\u0627\u0631\u064a' }] }
+        : { text, entries: [] });
+      const bc = await run({ question: Q1, fatwa: [R_NONE], writerText: NARRATED, takhrijImpl: withCompanion });
+      ok('C4f (b) with the Companion named: released with the takhrij\'s parenthetical, as today, and one lookup',
+        bc.deltas.join('').includes('\u00bb (\u0645\u0633\u0644\u0645)') && bc.out.telemetry.unitsProvedHadith === 1 && bc.out.telemetry.takhrijLookups === 1
+        && !bc.deltas.join('').includes(NOT_COVERED), ascii(bc.deltas.join('|')) + ' ' + JSON.stringify(bc.out.telemetry));
+
+      // A failed or timed-out lookup proves nothing: the units are held exactly as with a silent one.
+      const fails = async () => { throw new Error('library 503'); };
+      const late = () => new Promise((resolve, reject) => setTimeout(() => reject(new Error('timeout')), 30));
+      const f1 = await run({ question: Q1, fatwa: [R_TEXT, R_NONE], writerText: q1Text(1, 2), takhrijImpl: fails });
+      const f2 = await run({ question: Q1, fatwa: [R_TEXT, R_NONE], writerText: q1Text(1, 2), takhrijImpl: late });
+      const same = (r) => ['unitsReleased', 'unitsHeld', 'heldUnsupportedAttribution', 'heldUncitedAttribution', 'heldDependentOnHeld', 'unitsProvedHadith']
+        .every((k) => r.out.telemetry[k] === n.out.telemetry[k]) && r.deltas.join('') === nt;
+      ok('C4g a takhrij failure or timeout holds as today (the same text and holds as the silent lookup), and every lookup is counted',
+        same(f1) && same(f2) && f1.out.telemetry.takhrijLookups >= 3 && f2.out.telemetry.takhrijLookups >= 3,
+        JSON.stringify([f1.out.telemetry.takhrijLookups, f2.out.telemetry.takhrijLookups]));
+
+      // The dependency and lead-in rules around a proved unit.
+      const LEAD = '\u0648\u0646\u0635\u0647:';
+      const ld = await run({ question: Q1, fatwa: [R_ALL], writerText: [LEAD, NARRATED].join('\n'), takhrijImpl: silent });
+      ok('C4h a lead-in goes out with the proved unit it introduces, in one delta',
+        (ld.deltas[0] || '').startsWith(LEAD + '\n') && (ld.deltas[0] || '').includes(MATN) && ld.out.telemetry.unitsProvedHadith === 1,
+        ascii(ld.deltas.join('|')));
+      const OPEN = '\u0648\u0647\u0630\u0627 \u0627\u0644\u062d\u062f\u064a\u062b \u0631\u0648\u0627\u0647 \u0645\u0633\u0644\u0645.';
+      const op = await run({ question: Q1, fatwa: [R_ALL], writerText: [OPEN, W3].join('\n'), takhrijImpl: silent });
+      const dh = await run({ question: Q1, fatwa: [R_ALL, R_NONE], writerText: [W5(2), OPEN, W3].join('\n'), takhrijImpl: silent });
+      ok('C4i no answer opens on a connector, proved or not; and a proved unit that leans on a held one is held with it',
+        !op.deltas.join('').includes(OPEN) && op.out.telemetry.heldDependentOpening === 1 && op.deltas.join('').startsWith(W3)
+        && !dh.deltas.join('').includes(OPEN) && dh.out.telemetry.heldDependentOnHeld === 1 && dh.deltas.join('').includes(W3),
+        ascii(op.deltas.join('|') + ' || ' + dh.deltas.join('|')));
+      const WRONG = '\u0648\u062d\u062f\u064a\u062b \u00ab\u0627\u0644\u062f\u064a\u0646 \u0627\u0644\u0646\u0635\u064a\u062d\u0629\u00bb \u0623\u062e\u0631\u062c\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a \u0641\u064a \u0635\u062d\u064a\u062d\u0647.';
+      const SCHOLAR = '\u0648\u0642\u0627\u0644 \u0627\u0644\u0646\u0648\u0648\u064a: \u0647\u0630\u0627 \u0627\u0644\u062d\u062f\u064a\u062b \u0639\u0644\u064a\u0647 \u0645\u062f\u0627\u0631 \u0627\u0644\u0625\u0633\u0644\u0627\u0645.';
+      const wr = await run({ question: Q1, fatwa: [R_ALL], writerText: [W3, WRONG, SCHOLAR].join('\n'), takhrijImpl: silent });
+      ok('C4j with the carrying row kept: the wrong collection and the scholar\'s uncited credit stay held; the right one goes out',
+        wr.deltas.join('').startsWith(W3) && !wr.deltas.join('').includes('\u0627\u0644\u0628\u062e\u0627\u0631\u064a') && !wr.deltas.join('').includes('\u0627\u0644\u0646\u0648\u0648\u064a')
+        && wr.out.telemetry.unitsProvedHadith === 1 && wr.out.telemetry.unitsHeld === 2, ascii(wr.deltas.join('|')));
+      ok('C4k the readers: the question\'s hadith, the collections and the narrator a unit names, and a credit holding an unknown name is not waived',
+        UNITS.askedHadithOf(Q1) === MATN && UNITS.askedHadithOf('\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u0645\u0633\u062d \u0639\u0644\u0649 \u0627\u0644\u062c\u0648\u0627\u0631\u0628\u061f') === ''
+        && JSON.stringify(UNITS.collectionsNamed(W1)) === JSON.stringify(['\u0645\u0633\u0644\u0645']) && UNITS.collectionsNamed('\u064a\u062c\u0628 \u0639\u0644\u0649 \u0643\u0644 \u0645\u0633\u0644\u0645').length === 0
+        && JSON.stringify(UNITS.collectionsNamed('\u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a \u0648\u0645\u0633\u0644\u0645')) === JSON.stringify(['\u0627\u0644\u0628\u062e\u0627\u0631\u064a', '\u0645\u0633\u0644\u0645'])
+        && JSON.stringify(UNITS.narratorsNamed(W1)) === JSON.stringify(['\u062a\u0645\u064a\u0645 \u0627\u0644\u062f\u0627\u0631\u064a'])
+        && UNITS.claimOnlyNames('\u0645\u0633\u0644\u0645 \u0641\u064a \u0635\u062d\u064a\u062d\u0647', { collections: ['\u0645\u0633\u0644\u0645'], narrators: [] })
+        && !UNITS.claimOnlyNames('\u0645\u0633\u0644\u0645 \u0648\u0627\u0628\u0646 \u0623\u0628\u064a \u0634\u064a\u0628\u0629', { collections: ['\u0645\u0633\u0644\u0645'], narrators: [] }));
+      const askSrc = read('api/ask.js');
+      ok('C4l unitsProvedHadith is built by the turn, printed by api/ask.js [bw2] and allow-listed',
+        Number.isInteger(tel.unitsProvedHadith) && askSrc.includes('unitsProvedHadith: t.unitsProvedHadith,')
+        && read('guards/telemetry-text-guard.cjs').includes("'unitsProvedHadith',"));
     }
 
     // ---------------------------------------------------------------- T10 (unit level)
