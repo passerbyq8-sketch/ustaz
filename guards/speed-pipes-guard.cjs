@@ -87,6 +87,82 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
     ok('W3a4 the before-writing path asks them beside fatwaQueries', q.every((x) => asked.includes(x)) && BW2.fatwaQueries(OWNER).every((x) => asked.includes(x)), ascii(JSON.stringify(asked)));
   }
 
+  // ---------------------------------------------------------------- W3b (WASL) the stored answer itself, then the explanation
+  // On the before-writing path: when the judge says a fatwa's OWN question or title asks the reader's question (the value 2,
+  // strictly) and a floor on the issue's words agrees, the answer opens with that fatwa as lib/full-fatwa.js serverOwnedBlock
+  // writes it, named to its mufti, with its page card; then the writer explains, citing it. The store answers from its own
+  // recorded replies (fixtures-speed-wasl-fatwas.json); the judge and the writer are fakes; the judge's 2 is given to the
+  // candidate a strict judge would mark, and to an off-question one in the control, where the floor must refuse it.
+  {
+    const STORE = require('./fixtures-speed-wasl-fatwas.json');
+    const WQ = require('./fixtures-speed-wasl.json');
+    const TOOLS = await esm('lib/free-brain/tools.js');
+    const SSE = await esm('lib/finalized-sse-writer.js');
+    const ASKM = await esm('api/ask.js');
+    const replay = async (u) => {
+      const e = STORE[String(u)];
+      if (!e) return { ok: false, status: 404, url: String(u), headers: { get: () => 'application/json' }, text: async () => '{}', json: async () => ({}) };
+      return { ok: true, status: e.status, url: String(u), redirected: false, headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? e.ct : null) }, text: async () => e.body, json: async () => JSON.parse(e.body) };
+    };
+    const storeRecord = (host, id) => {
+      for (const e of Object.values(STORE)) {
+        let j = null; try { j = JSON.parse(e.body); } catch { continue; }
+        for (const r of (j && j.results) || []) if (String(r.id) === String(id) && String(r.source && r.source.url || '').includes(host)) return r;
+      }
+      return null;
+    };
+    const target = () => {
+      const t = { writes: [], ended: 0, headers: {}, statusCode: 200, status(c) { this.statusCode = c; return this; }, setHeader(k, v) { this.headers[k] = v; },
+        write(c) { this.writes.push(String(c)); return true; }, end() { this.ended += 1; }, flushHeaders() {} };
+      return t;
+    };
+    const textOf = (t) => t.writes.join('').split('\n\n').filter((l) => l.startsWith('data: ')).map((l) => { try { return JSON.parse(l.slice(6)); } catch { return null; } })
+      .filter((f) => f && f.type === 'content_block_delta').map((f) => f.delta.text).join('');
+    const turn = async (question, markTitle) => {
+      const t = target();
+      const facade = SSE.createFinalizedSseResponse(t, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [] }) });
+      let listing = '';
+      const out = await BW2.runBw2Turn({
+        question, messages: [{ role: 'user', content: question }], wire: BW2.createBw2Wire(facade), band: 'adult',
+        cards: { buildSourceTag: ASKM.buildSourceTag, buildBookTag: ASKM.buildBookTag, encyclopediaCards: false, max: 3 },
+        deps: {
+          runTool: (name, input, ctx) => (name === 'search_fatawa' ? TOOLS.runTool(name, input, { ...ctx, fetchImpl: replay }) : Promise.resolve({ text: '', added: [], calls: 0 })),
+          searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true, warmEncyclopedia: () => true,
+          ask: async ({ user }) => {
+            listing = user;
+            const d = {};
+            for (const m of user.matchAll(/^\[(\d+)\] fatwa: (.*)$/gmu)) d[m[1]] = markTitle && m[2].trim() === markTitle ? 2 : 1;
+            return JSON.stringify({ d });
+          },
+          callWriter: async ({ onText, body }) => { onText('تبيّن الفتوى الحكم [[1]].'); return { stop_reason: 'end_turn', usage: {}, body }; },
+        },
+      });
+      return { out, text: textOf(t), listing };
+    };
+    const letters = (s) => String(s || '').replace(/\s+/gu, '');
+    const shows = (text, rec) => text.startsWith('## نص الفتوى') && letters(text).includes(letters(rec.content.question)) && letters(text).includes(letters(rec.content.answer));
+    const cases = [
+      ['owner', WQ.w1.question, 'حكم إخراج الزكاة من الأقمشة', 'binbaz.org.sa', 6518],
+      ['fitr', 'هل يجوز دفع زكاة الفطر نقودا بدل الطعام؟', 'حكم إخراج زكاة الفطر نقوداً', 'binbaz.org.sa', 5348],
+      ['ghanam', 'هل تجزئ زكاة الغنم نقدا؟', 'حكم إخراج القيمة في زكاة الغنم', 'binbaz.org.sa', 14611],
+    ];
+    for (const [name, q, title, host, id] of cases) {
+      const r = await turn(q, title);
+      const rec = storeRecord(host, id);
+      const card = r.text.indexOf('https://' + host + '/fatwas/' + id);
+      ok('W3b ' + name + ': the answer opens with the stored fatwa ' + host + ' ' + id + ' letter for letter (its question and answer), named to its mufti, its page card, then the writer\'s explanation',
+        !!rec && shows(r.text, rec) && r.text.includes('ابن باز') && card > 0 && r.text.indexOf('تبيّن الفتوى') > card
+        && (r.text.match(/نص الفتوى/gu) || []).length === 1 && r.out.telemetry.directFatwa === true,
+        ascii(JSON.stringify({ rec: !!rec, head: r.text.slice(0, 60), card, direct: r.out.telemetry.directFatwa })));
+    }
+    const ctl = await turn('ما حكم تغطية المرآة في غرفة النوم؟', 'الحمام المغربي للمرأة في الأماكن المخصصة للنساء');
+    ok('W3b control: a question with no stored answer shows no block even when the judge marks a fatwa 2 (the floor refuses an off-question title)',
+      !ctl.text.includes('نص الفتوى') && ctl.out.telemetry.directFatwa !== true, ascii(ctl.text.slice(0, 80)));
+    const one = await turn(WQ.w1.question, null);
+    ok('W3b control 2: the judge marks no direct match -> no block, the answer is the writer\'s as before', !one.text.includes('نص الفتوى') && one.text.includes('تبيّن الفتوى'));
+    ok('W3b judge: the system asks for 2 only for a fatwa whose own question or title asks the reader\'s question', /\b2\b/.test(BW2.BW2_JUDGE_SYSTEM) && /own question or title/i.test(BW2.BW2_JUDGE_SYSTEM));
+  }
+
   // ---------------------------------------------------------------- P10 (PIPES2 fix 2) round 7, question 5
   {
     const Q7_5 = '\u0645\u0627 \u062d\u0643\u0645 \u062a\u062f\u0627\u0648\u0644 \u0627\u0644\u0639\u0645\u0644\u0627\u062a \u0627\u0644\u0645\u0634\u0641\u0631\u0629 \u0645\u062b\u0644 \u0627\u0644\u0628\u062a\u0643\u0648\u064a\u0646\u061f';

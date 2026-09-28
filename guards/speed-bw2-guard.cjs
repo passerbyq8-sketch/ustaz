@@ -455,7 +455,9 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const slow = await run({ fatwa: [ROW_F2], judge: () => new Promise(() => {}), writerText: MASAH_RULING + ' [[1]].' });
       ok('T8g a judge that never answers: failure after BW2_JUDGE_MS, and no row qualifies -> nothing kept -> not covered',
         slow.out.telemetry.judgeOutcome === 'failed' && slow.deltas.join('') === NOT_COVERED, JSON.stringify(slow.out.telemetry));
-      ok('T8h parseDecisions keeps none of the missing', JSON.stringify(BW2.parseDecisions('{"d":{"1":1,"2":0}}', 3)) === '{"keep":[1],"missing":[3]}');
+      // SPEED WASL W3 b): the shape carries `direct` (the candidates the judge marked 2); a 2 is also kept.
+      ok('T8h parseDecisions keeps none of the missing', JSON.stringify(BW2.parseDecisions('{"d":{"1":1,"2":0}}', 3)) === '{"keep":[1],"missing":[3],"direct":[]}'
+        && JSON.stringify(BW2.parseDecisions('{"d":{"1":2,"2":0,"3":1}}', 3)) === '{"keep":[1,3],"missing":[],"direct":[1]}');
     }
 
     // ---------------------------------------------------------------- SPEED FIX 1: R3, R4, R5 (unit level)
