@@ -246,6 +246,62 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       BW2.madhhabTermQueries(Q1).length === 0 && BW2.madhhabTermQueries(WQ.w1.question).length === 1);
   }
 
+  // ---------------------------------------------------------------- W6A A1 a school's own book names its school by «عندنا»
+  // Owner, 28 Sep: «إذا قال كتابٌ من كتبِ مذهبٍ «عندنا» أو «أصحابنا» أو «مذهبنا»، يُنسَبُ القولُ إلى ذلك المذهب، بشرطين: أن يكونَ
+  // الكتابُ موسومًا بمذهبِه في الفهرس، وأن تكونَ العبارةُ كلامَ مصنّفِه لا حكايةً عن غيرِه». The holder (lib/bw2-units.js) now also
+  // licenses a unit naming school S by a candidate row of a book tagged S whose author says it for his school in his own voice
+  // (lib/madhhab-books.js). Rows: W6's recorded rows for the owner's question (fixtures-speed-wasl-madhhab.json) and three more
+  // real rows (fixtures-speed-w6a.json). The writer is a fake; each unit is what a writer quoting that row would write.
+  {
+    const UNITS = await esm('lib/bw2-units.js');
+    const MX = require('./fixtures-speed-wasl-madhhab.json');
+    const XA = require('./fixtures-speed-w6a.json');
+    const hitOf = (id) => { for (const v of Object.values(MX)) for (const h of v.hits) if (h.atom_id === id) return h; return null; };
+    const rowOf = (h, ref, bookId) => ({ ref, kind: 'lib_book', recordId: 'lib:' + (bookId ? h.atom_id.replace(/^FC-\d{6}/, bookId) : h.atom_id),
+      bookTitle: h.book_title, title: h.book_title, author: h.author, locator: 'ج' + h.volume + ' · ص' + h.page_start, fullText: h.text, text: h.text });
+    const BADAI73 = rowOf(hitOf('FC-003532:0150:009'), 1);
+    const MAJMU428 = rowOf(hitOf('FC-003660:0106:044'), 2);
+    const rel = async (rows, writer) => {
+      const out = [];
+      const r = UNITS.createBw2Releaser({ rows, emit: (p) => { out.push(p); return true; },
+        cards: { buildSourceTag: () => null, buildBookTag: (row) => ({ tag: '<book id="' + row.recordId + '"></book>' }), max: 5 } });
+      r.push(writer + '\n');
+      const s = await r.end();
+      return { text: out.join(''), holds: s.holds || {} };
+    };
+    const HANAFI = 'ذهب الحنفية إلى جواز إخراج القيمة في الزكاة، فيعطي عن الواجب دراهم أو دنانير أو عروضا';
+    const a = await rel([BADAI73, MAJMU428], HANAFI + ' [[1]].');
+    ok('W6A1a the owner\'s question: «مذهب الحنفية» from Bada\'i 2:73 («فيجوز أن يعطي عن جميع ذلك القيمة … وهذا عندنا») is released',
+      a.text.includes('ذهب الحنفية') && a.text.includes('lib:FC-003532:0150:009'), ascii(JSON.stringify(a)));
+    const a2 = await rel([BADAI73, MAJMU428], 'وذهب الحنفية إلى أنه لا يجوز إخراج القيمة في الزكاة [[1]].');
+    ok('W6A1b control: the same row does not license the opposite view («لا يجوز») for the Hanafis; it is held as today',
+      !a2.text.includes('الحنفية') && a2.holds.unsupported_school === 1, ascii(JSON.stringify(a2)));
+    const SHAFII = 'ومذهب الشافعية أنه لا يجوز إخراج القيمة في شيء من الزكوات';
+    const b = await rel([BADAI73, MAJMU428], SHAFII + ' [[2]].');
+    ok('W6A1c «مذهب الشافعية» from al-Majmu\' 5:428-429 («قد ذكرنا أن مذهبنا أنه لا يجوز إخراج القيمة») is released',
+      b.text.includes('مذهب الشافعية') && b.text.includes('lib:FC-003660:0106:044'), ascii(JSON.stringify(b)));
+    const b2 = await rel([BADAI73, MAJMU428], SHAFII + ' [[1]].');
+    ok('W6A1d Bada\'i\'s own report «وقال الشافعي: لا يجوز إخراج القيمة» licenses no «الشافعية»: the unit citing Bada\'i is held, even with al-Majmu\' among the candidates (the licence is the unit\'s own citation)',
+      !b2.text.includes('الشافعية') && b2.holds.unsupported_school === 1, ascii(JSON.stringify(b2)));
+    const c = await rel([BADAI73], SHAFII + ' [[1]].');
+    ok('W6A1e ...and with Bada\'i alone: held (a row never licenses a school but its own tag)',
+      !c.text.includes('الشافعية') && c.holds.unsupported_school === 1, ascii(JSON.stringify(c)));
+    const BAYAN = rowOf(XA.bayan_2_44, 1);
+    const TA = 'وعند الشافعية أن المؤخر مقصر بإضافته إلى من صلى في أول الوقت';
+    const d = await rel([BAYAN], TA + ' [[1]].');
+    const d2 = await rel([rowOf(XA.bayan_2_44, 1, 'FC-003660')], TA + ' [[1]].');
+    ok('W6A1f a book with no school tag (al-Bayan, FC-003653) licenses no school by «قال أصحابنا»; control: the same page as a row of the tagged Shafi\'i book is licensed',
+      !d.text.includes('الشافعية') && d.holds.unsupported_school === 1 && d2.text.includes('وعند الشافعية'), ascii(JSON.stringify([d, d2])));
+    const e = await rel([rowOf(XA.badai_4_137, 1)], 'ومذهب الحنفية أن الخمر مال متقوم [[1]].');
+    const e2 = await rel([rowOf(XA.badai_7_352, 1)], 'ومذهب الحنفية أن الكلب المعلم مال متقوم تجوز الوصية به [[1]].');
+    ok('W6A1g a Hanafi row whose «عندهم» is about others (Bada\'i 4:137 «مال متقوم عندهم كالخل والشاة عندنا») licenses no Hanafi view; control: Bada\'i 7:352 «لأنه متقوم عندنا» does',
+      !e.text.includes('الحنفية') && e.holds.unsupported_school === 1 && e2.text.includes('ومذهب الحنفية'), ascii(JSON.stringify([e, e2])));
+    const ENC = { ref: 1, kind: 'encyclopedia', title: 'الموسوعة', recordId: 'enc:1', fullText: 'ذهب الحنفية إلى جواز إخراج القيمة في الزكاة.', text: '' };
+    const f = await rel([ENC], HANAFI + ' [[1]].');
+    ok('W6A1h control: today\'s test is unchanged: a cited row that writes the school\'s name licenses it',
+      f.text.includes('ذهب الحنفية'), ascii(JSON.stringify(f)));
+  }
+
   // ---------------------------------------------------------------- W7 (WASL) the letter test, a standing case
   // Bada'i al-Sana'i 2:73 through every door that brings text equals the library's page letter for letter: (1) the /search
   // door (lib/lib-service.js searchLibrary through the gated runner) over the six atoms that cover it -- the service's own
