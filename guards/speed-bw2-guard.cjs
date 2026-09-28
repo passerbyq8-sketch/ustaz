@@ -492,12 +492,14 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       }
       ok('R3e the marker split across deltas (6 chunkings): the units written before it are not released, nor after it',
         before === 6, String(before));
-      // R3f: already released cited text, then the writer's sentence: appended once, and never twice.
+      // R3f: already released cited text, then the writer's sentence. Since SPEED PIPES fix 4 (order
+      // EZIK-SPEED-PIPES-ORDER-2026-09-28, 6.2: the not-covered sentence never after a written answer, question 13)
+      // the unit stays and the answer ends there: no not-covered sentence, no offer, and the rest is not released.
       const mid = await run({ writerText: U.s1 + ' ' + variant + ' ' + U.s3 });
       const mt = mid.deltas.join('');
-      ok('R3f a cited unit, then the writer\'s sentence: the unit stays, the sentence goes out once, the rest does not',
-        mt.startsWith(MASAH_RULING) && mt.endsWith(NOT_COVERED) && count(mt, NOT_COVERED) === 1 && !mt.includes(MASAH_TERM)
-        && hasOffer(mid), ascii(mt));
+      ok('R3f a cited unit, then the writer\'s sentence: the unit stays, and neither the sentence, the offer nor the rest follows it',
+        mt.startsWith(MASAH_RULING) && count(mt, NOT_COVERED) === 0 && !mt.includes(MASAH_TERM)
+        && !hasOffer(mid), ascii(mt));
       const tat = NOT_COVERED.replace(' ', String.fromCharCode(0x0640) + '  ').replace(/\.$/u, ' !');
       ok('R3g the comparison fold ignores diacritics, tatweel, spaces and punctuation, and nothing else',
         UNITS.carriesNotCovered(tat, NOT_COVERED) && UNITS.carriesNotCovered(variant, NOT_COVERED)

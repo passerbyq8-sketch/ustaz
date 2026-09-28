@@ -163,6 +163,43 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
         d() && d('on') && d('typo') && !d('off') && !d('FALSE') && !d('0') && FLAGS.BW2_CONTINUE_DEFAULT === true);
     }
 
+    // P4: question 13's shape -- units that went out with their card, then the writer's marker.
+    {
+      const UNITS = await esm('lib/bw2-units.js');
+      const S1 = '\u064a\u062c\u0648\u0632 \u0627\u0644\u062a\u0639\u0627\u0645\u0644 \u0628\u0627\u0644\u0639\u0645\u0644\u0627\u062a \u0625\u0630\u0627 \u0643\u0627\u0646 \u064a\u062f\u0627 \u0628\u064a\u062f';
+      const S2 = '\u0648\u064a\u062d\u0631\u0645 \u062a\u0623\u062e\u064a\u0631 \u0627\u0644\u0642\u0628\u0636 \u0641\u064a \u0627\u0644\u0635\u0631\u0641';
+      const rec = { id: 'F13', term: '\u0635\u0631\u0641', part: 26, snippet: S1 + '. ' + S2 + '.', text: S1 + '. ' + S2 + '.' };
+      const p4 = async (continueWhenNotCovered) => {
+        const target = makeTarget();
+        const facade = SSE.createFinalizedSseResponse(target, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [] }) });
+        const out = await BW2.runBw2Turn({
+          question: '\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u062a\u062f\u0627\u0648\u0644 \u0641\u064a \u0627\u0644\u0639\u0645\u0644\u0627\u062a \u0627\u0644\u0631\u0642\u0645\u064a\u0629\u061f', messages: [{ role: 'user', content: 'x' }], wire: BW2.createBw2Wire(facade),
+          continueWhenNotCovered,
+          deps: {
+            runTool: async () => ({ text: '', added: [], calls: 0 }), searchStoredCorpus: async () => ({ records: [rec] }),
+            encyclopediaReady: () => true, warmEncyclopedia: () => true, ask: async () => '{"d":{"1":1}}',
+            callWriter: async ({ onText }) => {
+              onText(S1 + ' [[1]]. ' + S2 + ' [[1]].\n');
+              // As on the preview: the units stream and are checked before the marker comes.
+              await new Promise((resolve) => setTimeout(resolve, 200));
+              onText(UNITS.BW2_NOT_COVERED_MARKER);
+              return { stop_reason: 'end_turn', usage: {} };
+            },
+          },
+        });
+        const frames = framesOf(target.writes);
+        return { out, frames, text: frames.filter((f) => f.type === 'content_block_delta').map((f) => f.delta.text).join('') };
+      };
+      const a = await p4(true);
+      const b = await p4(false);
+      ok('P4a units went out with their card, then the marker: the answer ends there -- no not-covered sentence, no offer, not handed on',
+        a.text.includes(S1) && a.text.includes(S2) && !a.text.includes(NOT_COVERED) && !a.frames.some((f) => f.type === 'ezik_live_offer')
+        && !a.out.continued && a.out.telemetry.markerSeen === true && a.out.telemetry.unitsReleased >= 2,
+        ascii(JSON.stringify({ t: a.out.telemetry.unitsReleased, text: a.text.slice(0, 60) })));
+      ok('P4b ...and the same with the continuation switched off',
+        b.text.includes(S1) && !b.text.includes(NOT_COVERED) && !b.frames.some((f) => f.type === 'ezik_live_offer'), ascii(b.text.slice(-80)));
+    }
+
     // P3c/P3d: the real handler. Every source is empty or refused and the judge keeps nothing, so the
     // before-writing path finds no text; today's path must then run by itself, first round forced to search.
     const LEDGER_REDIS = await esm('lib/ledger/redis.js');
