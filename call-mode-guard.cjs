@@ -18,8 +18,20 @@
 // CHECK B  index.html message maps, EXECUTED: the three message functions are extracted
 //          from the page and run, so a message that goes blank or collapses into another
 //          fails here rather than on a child's screen.
+//          B4: the microphone messages end with the error name, and a browser is sent to the
+//          browser settings (the app shell keeps its text).
 // CHECK C  index.html structure: the invariants that cannot be executed outside a browser
 //          (SR gating, no-silent-restart, the call-screen banner) are asserted on source.
+// CHECK E  app.jsx call speech pump, EXECUTED: the sentence-end rule speaks an early-released
+//          lead at once, and the pump prefetches the next sentence while one plays (E1, E2);
+//          source lines, URLs and domains are silent in speech (E3); the mic re-opens only after
+//          our own voice stopped sounding (E4); a silent dictation session is not restarted (E5);
+//          a suspended capture context is resumed, or the reader is asked for one tap (E6); the
+//          call waits for an open dictation session's onend before its getUserMedia (E7); the words
+//          the call heard are shown before the answer is requested, and never spoken (E8); a turn
+//          far quieter than this call's accepted turns is dropped before /api/stt (E9); a delta
+//          that stops at a domain's dot is not cut there, so the domain reaches the filter whole (E10);
+//          a pause the call did not ask for stops the answer and goes on as a barge-in (E11).
 //
 // Arabic needles live as string literals but are NEVER printed. All console output is
 // ASCII (ids/labels only), safe for a Windows terminal.
@@ -58,6 +70,16 @@ function braceSlice(src, from) {
     else if (src[i] === '}') { depth--; if (depth === 0) return src.slice(start, i + 1); }
   }
   return null;
+}
+
+// Evaluate a module-level `const NAME = <expr>;` of the client (an expression with no braces).
+// A client without it yields undefined, which the executed checks then report as a failure.
+function evalConst(src, name) {
+  const at = src.indexOf('\nconst ' + name + ' = ');
+  if (at === -1) return undefined;
+  const from = at + ('\nconst ' + name + ' = ').length;
+  const end = src.indexOf(';\n', from);
+  try { return new Function('return (' + src.slice(from, end) + ');')(); } catch (e) { return undefined; }
 }
 
 // Extract `<header> ... }` as runnable source, e.g. extract(src, 'const sttErrorMessage = (status) => ')
@@ -1052,6 +1074,46 @@ function checkMessages(html) {
   else fail('B3 the denial message does not tell the user where to grant the permission');
 }
 
+// B4 (T4 fix 3, G3): the microphone messages name their error, and a BROWSER is sent to the
+// browser's site settings, not to "the app settings" it does not have. micErrorMessage is EXECUTED
+// once with a browser window (no ReactNativeWebView) and once with the app shell's, for every
+// error name the call path can meet, and once for a failure after getUserMedia had succeeded.
+function checkMicMessages(html) {
+  const mic = extractDecl(html, 'const micErrorMessage = (e) => ');
+  if (!mic) { fail('B4 micErrorMessage not found'); return; }
+  const make = (win) => new Function('window', mic + ';\nreturn micErrorMessage;')(win);
+  let browser, shell;
+  try { browser = make({}); shell = make({ ReactNativeWebView: { postMessage() {} } }); }
+  catch (e) { fail('B4 micErrorMessage does not evaluate: ' + e.message); return; }
+  const TAG = ' (' + U(0x0631) + U(0x0645) + U(0x0632) + ': ';          // the stt messages' own word for "code"
+  const BROWSER_PLACE = U(0x0627) + U(0x0644) + U(0x0645) + U(0x062A) + U(0x0635) + U(0x0641) + U(0x0651) + U(0x062D);   // the browser
+  const APP_PLACE = U(0x0627) + U(0x0644) + U(0x062A) + U(0x0637) + U(0x0628) + U(0x064A) + U(0x0642);                  // the app
+  const ROWS = [
+    ['NotAllowedError', 9], ['PermissionDeniedError', 9], ['SecurityError', 9],
+    ['NotReadableError', 10], ['TrackStartError', 10],
+    ['NotFoundError', 11], ['DevicesNotFoundError', 11],
+    ['AbortError', 12], ['TypeError', 12], ['NotSupportedError', 12], ['InvalidStateError', 12],
+  ];
+  const untagged = [];
+  for (const [n] of ROWS) for (const [where, f] of [['browser', browser], ['shell', shell]]) {
+    const m = f({ name: n });
+    if (!(typeof m === 'string' && m.endsWith(TAG + n + ')'))) untagged.push(where + ':' + n);
+  }
+  if (!untagged.length) pass('B4 rows 9-12 end with the error name, in a browser and in the shell (' + ROWS.length + ' names x 2)');
+  else fail('B4 messages without their error name: ' + untagged.join(', '));
+  const bDenied = browser({ name: 'NotAllowedError' }), sDenied = shell({ name: 'NotAllowedError' });
+  if (bDenied.indexOf(BROWSER_PLACE) !== -1 && bDenied.indexOf(APP_PLACE) === -1) pass('B4 in a browser, a denied microphone points at the browser settings, not the app settings');
+  else fail('B4 in a browser, the denial still points at the app settings');
+  if (sDenied.indexOf(APP_PLACE) !== -1 && sDenied !== bDenied) pass('B4 in the app shell, the denial keeps its app-settings text');
+  else fail('B4 in the app shell, the denial text changed');
+  const same = (a, b) => a.slice(0, a.lastIndexOf(TAG)) === b.slice(0, b.lastIndexOf(TAG));
+  const rec = browser({ name: 'NotSupportedError', afterOpen: true }), ctxDenied = browser({ name: 'NotAllowedError', afterOpen: true });
+  if (rec.endsWith(TAG + 'NotSupportedError)') && ctxDenied.endsWith(TAG + 'NotAllowedError)')
+    && same(rec, browser({ name: 'AbortError' })) && !same(ctxDenied, bDenied))
+    pass('B4 a failure after getUserMedia succeeded keeps its own name and is never read as a permission answer');
+  else fail('B4 a recorder/AudioContext failure is folded into another row or loses its name');
+}
+
 // ===========================================================================
 // CHECK C -- structure that cannot be executed outside a browser
 // ===========================================================================
@@ -1144,6 +1206,1049 @@ function checkStructure(html) {
 }
 
 // ===========================================================================
+// CHECK E -- the call's speech pump, EXECUTED on the client's own code
+// ===========================================================================
+// E1 (T4 fix 1, P1): the early-released lead arrives ending on its full stop with nothing after
+// it. The sentence-end rule used to need whitespace AFTER the stop, so the lead stayed silent
+// until the next delta (~10 s on the live probe). A stop at the very end of the received text
+// now ends a sentence -- but never after a digit, where "3." may still become "3.5".
+const U = (cp) => String.fromCharCode(cp);
+function checkSpeechPump(html) {
+  const cutSrc = extractDecl(html, 'const lastSentenceCut = (s) => ');
+  const splitSrc = extractDecl(html, 'const splitSpeechIntoSentences = (prose) => ');
+  if (!cutSrc || !splitSrc) { fail('E1 lastSentenceCut / splitSpeechIntoSentences not found'); return; }
+  let lastSentenceCut, split;
+  try {
+    // formatForTTS is the identity here: E1 is about WHERE the stream cuts, not what TTS hears.
+    ({ lastSentenceCut, split } = new Function('formatForTTS',
+      cutSrc + ';\n' + splitSrc + ';\nreturn { lastSentenceCut, split: splitSpeechIntoSentences };')((t) => String(t)));
+  } catch (e) { fail('E1 extracted speech code does not evaluate: ' + e.message); return; }
+
+  const cases = [
+    ['end full stop (Arabic word)', U(0x0635) + U(0x064A) + U(0x0627) + U(0x0645) + ' ' + U(0x0642) + U(0x0648) + U(0x0644) + '.', 9],
+    ['ASCII letter then stop (H3: a domain may go on)', 'abc def.', 0], ['end !', 'abc def!', 8], ['end ?', 'abc def?', 8],
+    ['end Arabic ?', 'abc def' + U(0x061F), 8], ['end ellipsis char', 'abc def' + U(0x2026), 8],
+    ['end three dots', 'abc def...', 10],
+    ['digit then stop', 'costs 3.', 0], ['Arabic-Indic digit then stop', 'costs ' + U(0x0663) + '.', 0],
+    ['no stop', 'abc def', 0], ['stop + space mid-text', 'abc. def', 5], ['newline mid-text', 'abc\ndef', 4],
+  ];
+  let bad = cases.filter(([, s, want]) => lastSentenceCut(s) !== want).map(([n]) => n);
+  if (bad.length) fail('E1 lastSentenceCut wrong for: ' + bad.join(', '));
+  else pass('E1 lastSentenceCut: a stop at the end of the text is a sentence end (not after a digit); mid-text rules unchanged');
+
+  // The probe-3 shape: a 115-char lead ending on its stop, then the rest in one later delta.
+  const word = U(0x0635) + U(0x064A) + U(0x0627) + U(0x0645);   // an Arabic word, never printed
+  let lead = '';
+  while (lead.length < 114) lead += (lead ? ' ' : '') + word;
+  lead = lead.slice(0, 114) + '.';
+  const rest = '\n' + 'The ruling is restated here in a longer second sentence, with a clause.'
+    + ' A third sentence follows' + U(0x061F) + ' And a closing ' + word + '.';   // H3: ends on an Arabic word, as a real reply does
+  const deltas = [lead, rest];
+  let full = '', consumed = 0; const perDelta = []; const spoken = [];
+  for (const d of deltas) {                  // the same arithmetic as feed() for tag-free prose
+    full += d;
+    const region = full.slice(consumed);
+    const cut = lastSentenceCut(region);
+    const segs = cut > 0 ? split(region.slice(0, cut)) : [];
+    consumed += cut;
+    perDelta.push(segs.length); spoken.push(...segs);
+  }
+  spoken.push(...split(full.slice(consumed)));   // finish(): whatever is left
+  if (lead.length === 115 && perDelta[0] === 1) pass('E1 a 115-char lead ending on its stop is enqueued after delta 1 (1 segment, was 0)');
+  else fail('E1 the lead is not enqueued after delta 1: segments=' + perDelta[0] + ' lead=' + lead.length);
+  const whole = split(full);
+  if (spoken.join('\u0000') === whole.join('\u0000')) pass('E1 text sent to speech across both deltas is byte-identical to speaking the whole reply');
+  else fail('E1 streamed segments differ from the whole reply: ' + spoken.length + ' vs ' + whole.length);
+}
+
+// E2 (T4 fix 1, P2): the pump fetched segment N+1's audio only after segment N had finished
+// playing, so every sentence was preceded by a silence as long as its TTS request. It now
+// starts N+1's fetch the moment N is ready to play -- one ahead, the way speakReply does.
+// createCallSpeechStream is EXECUTED here on a simulated clock: TTS 1.5 s, playback 8 s.
+const TTS_MS = 1500, PLAY_MS = 8000;
+async function simulatePump(html, opts) {
+  const src = extractDecl(html, 'const createCallSpeechStream = () => ');
+  if (!src) throw new Error('createCallSpeechStream not found');
+  let now = 0, seqn = 0; const timers = [];
+  const at = (ms, fn) => timers.push({ t: now + ms, n: seqn++, fn });
+  const drain = async () => { for (let i = 0; i < 4; i++) await new Promise((r) => setImmediate(r)); };
+  const sequenceIdRef = { current: 0 };
+  const log = { fetches: [], plays: [], aborted: 0 };
+  let stopPlaying = null;
+  const takeAudioFocus = () => { const f = stopPlaying; stopPlaying = null; if (f) f(); };
+  const fetchSpeechAudio = (text, myId, signal) => new Promise((resolve) => {
+    const rec = { text, t: now, pending: true }; log.fetches.push(rec);
+    if (signal) signal.addEventListener('abort', () => { if (rec.pending) { rec.pending = false; log.aborted++; resolve(null); } });
+    at(TTS_MS, () => {
+      if (!rec.pending) return;
+      rec.pending = false;
+      if (myId !== sequenceIdRef.current) return resolve(null);
+      resolve(opts.fail && opts.fail(text) ? null : { kind: 'blob', url: text, consumed: false });
+    });
+  });
+  const playPreparedSpeech = async (pr, myId) => {
+    if (!pr) return;
+    const r = await pr;
+    if (!r || myId !== sequenceIdRef.current) return;
+    r.consumed = true;
+    takeAudioFocus();
+    const rec = { text: r.url, start: now, end: null }; log.plays.push(rec);
+    await new Promise((res) => {
+      let done = false;
+      const fin = () => { if (done) return; done = true; rec.end = now; res(); };
+      stopPlaying = fin; at(PLAY_MS, fin);
+    });
+  };
+  const split = (t) => String(t).split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter(Boolean);
+  const deps = {
+    sequenceIdRef, takeAudioFocus, setIsSpeaking: () => {}, fetchSpeechAudio, playPreparedSpeech,
+    splitSpeechIntoSentences: split, stripIncompleteTags: (t) => t,
+    resolveWorshipTags: async (t) => t, deriveCaps: () => ({ band: 'adult' }), profileRef: { current: {} },
+    buildAudioSequence: (t) => split(t).map((s) => ({ kind: 'speak', text: s })),
+    playSurahRecitation: async () => {}, playDhikrRecitation: async () => {}, playRecitation: async () => {},
+    URL: { revokeObjectURL: () => {} },
+    EZ_TTS_SOURCE_LINE_SRC: evalConst(html, 'EZ_TTS_SOURCE_LINE_SRC'),
+  };
+  Object.assign(deps, opts.deps || {});
+  const names = Object.keys(deps);
+  const make = new Function(...names, src + ';\nreturn createCallSpeechStream;')(...names.map((k) => deps[k]));
+  const stream = make();
+  const text = opts.full || 'Sentence one is here. Sentence two is here. Sentence three is here. Sentence four is here.';
+  let settled = false;
+  let fed = '';
+  for (const d of (opts.deltas || [text])) { fed += d; stream.feed(fed); }
+  stream.finish(text).then(() => { settled = true; });
+  if (opts.hangUpAt !== undefined) at(opts.hangUpAt, () => { sequenceIdRef.current++; takeAudioFocus(); });
+  for (let guard = 0; guard < 10000; guard++) {
+    await drain();
+    if (!timers.length) break;
+    timers.sort((a, b) => a.t - b.t || a.n - b.n);
+    const x = timers.shift(); now = x.t; x.fn();
+  }
+  await drain();
+  const gaps = [];
+  for (let i = 1; i < log.plays.length; i++) gaps.push(log.plays[i].start - log.plays[i - 1].end);
+  return { log, gaps, settled, text: split(text) };
+}
+async function checkPrefetch(html) {
+  let a, f, h;
+  try {
+    a = await simulatePump(html, {});
+    f = await simulatePump(html, { fail: (t) => /two/.test(t) });
+    h = await simulatePump(html, { hangUpAt: TTS_MS + PLAY_MS + 500 });
+  } catch (e) { fail('E2 createCallSpeechStream does not run on the simulated clock: ' + e.message); return; }
+  info('E2 simulated TTS=' + TTS_MS + 'ms play=' + PLAY_MS + 'ms: first audio at ' + (a.log.plays[0] ? a.log.plays[0].start : -1)
+    + 'ms, gaps between segments [' + a.gaps.join(',') + ']ms');
+  if (a.gaps.length === 3 && a.gaps.every((g) => g === 0)) pass('E2 no silence between spoken sentences: the next one is fetched while the current one plays');
+  else fail('E2 silence between sentences: gaps=[' + a.gaps.join(',') + ']ms (TTS latency ' + TTS_MS + 'ms)');
+  if (a.log.plays.length === 4 && a.log.plays.every((p, i) => p.text === a.text[i]) && a.settled) pass('E2 all four sentences play once, in order, and finish() resolves');
+  else fail('E2 order or completeness broken: played ' + a.log.plays.length + ' of 4');
+  const ahead = a.log.fetches.filter((x) => a.log.plays.some((p) => p.start <= x.t && x.t < p.end)).length;
+  if (a.log.fetches.length === 4 && ahead === 3) pass('E2 exactly one fetch ahead: each later fetch starts while the previous sentence plays');
+  else fail('E2 fetch pattern wrong: fetches=' + a.log.fetches.length + ' started-during-playback=' + ahead);
+  if (f.log.plays.map((p) => p.text).join('|') === [a.text[0], a.text[2], a.text[3]].join('|') && f.settled) pass('E2 a failed segment is skipped and the rest still play in order');
+  else fail('E2 a failed segment breaks the pump: played ' + f.log.plays.length);
+  const hangAt = TTS_MS + PLAY_MS + 500;
+  const late = h.log.plays.filter((p) => p.start >= hangAt).length;
+  if (late === 0 && h.settled) pass('E2 hang-up mid-sentence: nothing plays afterwards and the stream settles');
+  else fail('E2 audio after hang-up: ' + late + ' segment(s) started after it, settled=' + h.settled);
+  if (h.log.aborted >= 1) pass('E2 hang-up aborts the prefetch still in flight');
+  else fail('E2 hang-up leaves the prefetch running (no abort seen)');
+}
+
+// E3 (T4 fix 2, F1 -- the owner's option A): in SPEECH only, a line starting with the source
+// label, every URL and every site or domain name are silent; the hadith's collector -- "(Muslim)",
+// "rawahu Muslim", the <hadith narrator> -- and its grading are still spoken. The client's own
+// formatForTTS, splitSpeechIntoSentences, buildAudioSequence and createCallSpeechStream are
+// EXECUTED: once as the listen button speaks a whole reply, once as the call streams it in two
+// deltas whose boundary falls INSIDE the source line, after a full stop.
+async function checkSpokenAttribution(html) {
+  const get = (h) => extractDecl(html, h);
+  const srcs = {
+    formatForTTS: get('const formatForTTS = (text) => '),
+    splitSpeechIntoSentences: get('const splitSpeechIntoSentences = (prose) => '),
+    buildAudioSequence: get('const buildAudioSequence = (text) => '),
+  };
+  const missing = Object.keys(srcs).filter((k) => !srcs[k]);
+  if (missing.length) { fail('E3 client speech code not found: ' + missing.join(', ')); return; }
+  const env = {
+    stripIncompleteTags: (t) => String(t == null ? '' : t), ezikStripIncomplete: (t) => String(t == null ? '' : t),
+    resolveHadithAttribution: (narrator, ruling) => ({ narrator, ruling }), readStepsTitle: () => '',
+    resolveSurahNumber: () => 0,
+    EZIK_NOTICE_ALL: evalConst(html, 'EZIK_NOTICE_ALL') || /(?!)/g,
+    EZ_TTS_SOURCE_LINE_SRC: evalConst(html, 'EZ_TTS_SOURCE_LINE_SRC'),
+  };
+  let fx;
+  try {
+    const names = Object.keys(env);
+    fx = new Function(...names, srcs.formatForTTS + ';\n' + srcs.splitSpeechIntoSentences + ';\n' + srcs.buildAudioSequence
+      + ';\nreturn { formatForTTS, splitSpeechIntoSentences, buildAudioSequence };')(...names.map((k) => env[k]));
+  } catch (e) { fail('E3 extracted speech code does not evaluate: ' + e.message); return; }
+  const lead = 'الصلاة في وقتها واجبة على كل مسلم بالغ عاقل.';
+  // The call bans tags, so its reply is tag-free prose (a tag would stop the stream at once and
+  // hand everything to finish()); the listen button's reply also carries a <hadith> card.
+  const HADITH = '<hadith narrator="مسلم" ruling="صحيح">إنما الأعمال بالنيات</hadith>\n';
+  const body = 'قال النبي: إنما الأعمال بالنيات (مسلم). وفي لفظ رواه مسلم أيضا، وهو حديث صحيح.\n'
+    + 'وللمزيد راجع binothaimeen.net أو (islamqa.info) أو اكتب إلى info@dorar.net\n'
+    + 'https://binbaz.org.sa/fatwas/123?x=cos\n'
+    + '**المصادر:** فتاوى نور على الدرب. الجزء الثالث binbaz.org.sa\n'
+    + 'والله أعلم.';
+  const reply = lead + '\n' + body;
+  const card = lead + '\n' + HADITH + body;
+  const replyBefore = require('crypto').createHash('sha256').update(reply).digest('hex');
+  const cardBefore = require('crypto').createHash('sha256').update(card).digest('hex');
+  const KEEP = ['(مسلم)', 'رواه مسلم', 'حديث صحيح', 'والله أعلم'];
+  const DROP = ['binothaimeen', 'islamqa', 'dorar', 'binbaz', 'http', 'المصادر', 'نور على الدرب', 'الجزء الثالث', '( )', '()'];
+  const judge = (label, spoken, extra) => {
+    const want = KEEP.concat(extra || []);
+    const kept = want.filter((k) => !spoken.includes(k)).length;
+    const leaked = DROP.filter((d) => spoken.includes(d)).length;
+    if (kept === 0) pass('E3 ' + label + ': the collector and the grading are still spoken (' + want.length + ' of ' + want.length + ')');
+    else fail('E3 ' + label + ': ' + kept + ' of ' + want.length + ' collector/grading needles missing from speech');
+    if (leaked === 0) pass('E3 ' + label + ': no source line, URL or domain name reaches speech (0 of ' + DROP.length + ' needles)');
+    else fail('E3 ' + label + ': ' + leaked + ' of ' + DROP.length + ' source/URL/domain needles reach speech');
+  };
+  // (a) the listen button: speakReply -> buildAudioSequence -> fetchSpeechAudio(formatForTTS)
+  // the card's collector and grading become prose: "rawa Muslim: <matn>. sahih."
+  judge('listen button', fx.buildAudioSequence(card).filter((p) => p.kind === 'speak').map((p) => fx.formatForTTS(p.text)).join(' '), ['مسلم:', 'بالنيات. صحيح.']);
+  // (b) the call: two deltas; the boundary sits after the full stop INSIDE the source line
+  const split = reply.indexOf('الجزء الثالث');
+  let r;
+  try {
+    r = await simulatePump(html, {
+      full: reply, deltas: [reply.slice(0, split), reply.slice(split)],
+      deps: { splitSpeechIntoSentences: fx.splitSpeechIntoSentences, buildAudioSequence: fx.buildAudioSequence,
+        EZ_TTS_SOURCE_LINE_SRC: env.EZ_TTS_SOURCE_LINE_SRC },
+    });
+  } catch (e) { fail('E3 the call pump does not run on the fixture: ' + e.message); return; }
+  judge('call, streamed', r.log.fetches.map((f) => fx.formatForTTS(f.text)).join(' '));
+  if (r.log.fetches.length && fx.formatForTTS(r.log.fetches[0].text).startsWith(lead.slice(0, 20)) && r.settled)
+    pass('E3 call: the lead is still spoken first and the stream settles');
+  else fail('E3 call: the lead is not spoken first, or the stream did not settle');
+  const replyAfter = require('crypto').createHash('sha256').update(reply).digest('hex');
+  const cardAfter = require('crypto').createHash('sha256').update(card).digest('hex');
+  if (replyAfter === replyBefore && cardAfter === cardBefore) pass('E3 the written reply is byte-identical after both speech paths ran (sha256 ' + replyAfter.slice(0, 8) + ')');
+  else fail('E3 the written reply changed');
+}
+
+// E4 (T4 fix 2, F2): after answer 1 the call went back to listening while its own voice was still
+// coming out of the speaker, and a faint tail was transcribed as a question nobody asked. The mic
+// re-opened on the <audio> element's `ended`, which marks the end of the ELEMENT's clock (measured
+// in Chrome 152: +44..+75 ms after the duration) -- not the end of what the output device still
+// holds in its buffer. runCallTurn now waits out the device's reported output latency first.
+// runCallTurn is EXECUTED on a simulated clock: three segments of 2 s each, a device that keeps
+// sounding L ms after `ended`, and the moment startCallListening is called is recorded.
+async function simulateRearm(html, opts) {
+  const turnSrc = extractDecl(html, 'const runCallTurn = async (text) => ');
+  if (!turnSrc) throw new Error('runCallTurn not found');
+  const tailSrc = extractDecl(html, 'const waitForSpeakerTail = () => ');
+  let now = 0, seqn = 0; const timers = [];
+  const at = (ms, fn) => timers.push({ t: now + ms, n: seqn++, fn });
+  const fakeSetTimeout = (fn, ms) => { at(Math.max(0, ms || 0), fn); return seqn; };
+  const SEG_MS = 2000, SEGS = 3;
+  const plays = [];
+  const callGenRef = { current: 1 };
+  const callActiveRef = { current: false };
+  const rec = { micAt: null, reopened: 0 };
+  const createCallSpeechStream = () => ({
+    feed: () => {},
+    finish: () => new Promise((resolve) => {
+      let k = 0;
+      const next = () => {
+        if (k === SEGS) return resolve();
+        const start = now; k++;
+        at(SEG_MS, () => { plays.push({ start, ended: now, audibleUntil: now + opts.latencyMs }); next(); });
+      };
+      next();
+    }),
+  });
+  const deps = {
+    callGenRef, callActiveRef, callMutedRef: { current: false }, abortRef: { current: null },
+    setCallHeard: () => {}, setCallHeardWords: () => {}, setCallState: () => {}, clearInactivityTimer: () => {}, cancelAudio: () => {},
+    messages: [], sliceHistoryForAPI: (m) => m, profile: {}, CALL_STREAM_SPEECH: true, createCallSpeechStream,
+    callAI: async (h, p, o) => { o.onDelta('Reply one. Reply two. Reply three.'); return 'Reply one. Reply two. Reply three.'; },
+    getFriendlyError: () => 'err', setMessages: () => {}, saveMessages: () => {}, speakReply: async () => {},
+    childVoiceBlocked: () => false,
+    startCallListening: () => { rec.micAt = now; rec.reopened++; callActiveRef.current = true; },
+    setTimeout: fakeSetTimeout,
+    vadCtxRef: { current: { outputLatency: opts.reportedLatencyMs / 1000 } },
+  };
+  let waitForSpeakerTail;
+  if (tailSrc) {
+    const cap = (/\n\s*const SPEAKER_TAIL_MAX_MS = (\d+);/.exec(html) || [])[1];
+    deps.SPEAKER_TAIL_MAX_MS = Number(cap);
+    const tn = ['vadCtxRef', 'setTimeout', 'SPEAKER_TAIL_MAX_MS'];
+    waitForSpeakerTail = new Function(...tn, tailSrc + ';\nreturn waitForSpeakerTail;')(...tn.map((k) => deps[k]));
+  }
+  deps.waitForSpeakerTail = waitForSpeakerTail;
+  const names = Object.keys(deps);
+  const runCallTurn = new Function(...names, turnSrc + ';\nreturn runCallTurn;')(...names.map((k) => deps[k]));
+  let settled = false;
+  runCallTurn('question').then(() => { settled = true; });
+  if (opts.hangUpAt !== undefined) at(opts.hangUpAt, () => { callGenRef.current++; });
+  const drain = async () => { for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r)); };
+  for (let guard = 0; guard < 10000; guard++) {
+    await drain();
+    if (!timers.length) break;
+    timers.sort((a, b) => a.t - b.t || a.n - b.n);
+    const x = timers.shift(); now = x.t; x.fn();
+  }
+  await drain();
+  const last = plays[plays.length - 1];
+  return { plays, micAt: rec.micAt, reopened: rec.reopened, settled, lastEnded: last && last.ended, lastAudible: last && last.audibleUntil };
+}
+async function checkRearm(html) {
+  const L = 120;   // a device that keeps sounding 120 ms after `ended`, and says so
+  let a, z, h;
+  try {
+    a = await simulateRearm(html, { latencyMs: L, reportedLatencyMs: L });
+    z = await simulateRearm(html, { latencyMs: 0, reportedLatencyMs: 0 });
+    h = await simulateRearm(html, { latencyMs: L, reportedLatencyMs: L, hangUpAt: 3 * 2000 + 50 });
+  } catch (e) { fail('E4 runCallTurn does not run on the simulated clock: ' + e.message); return; }
+  info('E4 simulated: 3 segments x 2000 ms, device latency ' + L + ' ms: last `ended` at ' + a.lastEnded
+    + ' ms, audible until ' + a.lastAudible + ' ms, mic re-opened at ' + a.micAt + ' ms');
+  const overlap = a.plays.filter((p) => a.micAt !== null && a.micAt < p.audibleUntil).length;
+  if (a.reopened === 1 && overlap === 0) pass('E4 the mic re-opens only after the last segment has stopped sounding (0 of 3 segments overlap)');
+  else fail('E4 the mic re-opens while our own voice is still sounding: ' + overlap + ' segment(s) overlap, mic at ' + a.micAt + ' ms, audible until ' + a.lastAudible + ' ms');
+  if (z.reopened === 1 && z.micAt === z.lastEnded) pass('E4 a device that reports no latency adds no wait: the mic re-opens at `ended` (' + z.micAt + ' ms)');
+  else fail('E4 a zero-latency device waits anyway: mic at ' + z.micAt + ' ms, ended at ' + z.lastEnded + ' ms');
+  if (h.reopened === 0 && h.settled) pass('E4 a hang-up inside the tail wait re-opens nothing and the turn settles');
+  else fail('E4 a hang-up inside the tail wait still re-opened the mic (' + h.reopened + ')');
+}
+
+// E5 (T4 fix 2, F3): dictation in the composer runs on the WebView's own SpeechRecognition (the
+// Android shell injects no speech bridge), and on Android every start() plays the recognizer's own
+// chime. The engine ends a session on its own schedule; onend restarted it unconditionally, so a
+// reader who stayed silent heard the chime again after every empty session. A session that heard
+// nothing now ends dictation instead; a session that heard words still restarts, as before.
+// The dictation effect's own handlers are EXECUTED against a fake engine that counts start()s.
+function simulateDictation(html, sessions) {
+  const from = html.indexOf('    const recognition = ezNewRecognition();\n    if (!recognition) { recognitionRef.current = null; return; }');
+  const to = from === -1 ? -1 : html.indexOf('\n  }, [aiConsent]);', from);
+  if (from === -1 || to === -1) throw new Error('the dictation effect not found');
+  const fake = { lang: '', continuous: false, interimResults: false };
+  let starts = 0, box = '';
+  const st = { listening: true };
+  const deps = {
+    ezNewRecognition: () => fake, recognitionRef: { current: null }, childVoiceBlocked: () => false,
+    hasValidAIConsent: () => true, shouldListenRef: { current: true }, setIsListening: (v) => { st.listening = v; },
+    baseTextRef: { current: '' }, transcriptRef: { current: '' },
+    joinSpeech: (a, b) => [a, b].filter((x) => x && String(x).trim()).join(' '),
+    setInput: (v) => { box = v; }, ezStartRecognition: () => { starts++; return true; }, ezKillRecognizer: () => {},
+    setVoiceError: () => {}, setTimeout: () => 0,
+    dictationOpenRef: { current: true }, dictationEndWaiterRef: { current: null },
+  };
+  const names = Object.keys(deps);
+  new Function(...names, html.slice(from, to))(...names.map((k) => deps[k]));
+  const result = (t, isFinal) => { const r = [{ transcript: t }]; r.isFinal = isFinal; return r; };
+  for (const words of sessions) {
+    if (!deps.shouldListenRef.current) break;         // dictation already ended: nothing restarts it
+    if (words) { fake.onresult({ results: [result(words, false)] }); fake.onresult({ results: [result(words, true)] }); }
+    else fake.onerror({ error: 'no-speech' });
+    fake.onend();
+  }
+  return { starts, box, listening: st.listening };
+}
+function checkDictationRestart(html) {
+  let silent, spoke;
+  try {
+    silent = simulateDictation(html, [null, null, null, null, null]);
+    spoke = simulateDictation(html, ['first words', 'second words', null, null, null]);
+  } catch (e) { fail('E5 the dictation handlers do not run: ' + e.message); return; }
+  info('E5 five silent sessions -> ' + silent.starts + ' restart(s); two spoken then three silent -> ' + spoke.starts + ' restart(s)');
+  if (silent.starts === 0 && silent.listening === false) pass('E5 a session that heard nothing is not restarted: no second chime, dictation ends');
+  else fail('E5 silent sessions restart the recognizer (and its chime) ' + silent.starts + ' time(s)');
+  if (spoke.starts === 2 && spoke.listening === false) pass('E5 a session that heard words still restarts (2), and the first silent one ends dictation');
+  else fail('E5 restarts after speech changed: ' + spoke.starts + ' (want 2), listening=' + spoke.listening);
+  if (spoke.box === 'first words second words') pass('E5 the dictated words stay in the box across the restart');
+  else fail('E5 the dictated text was lost or doubled across the restart');
+}
+
+// E6 (T4 fix 3, G1): startCloudListening creates its capture AudioContext after an `await
+// getUserMedia` inside the call's entry effect, not inside a tap. Chrome can create that context
+// 'suspended', and a suspended context feeds the analyser flat samples: the VAD never hears the
+// reader, the call sits in listening and ends itself after 45 s. The context is now resumed at
+// once; if it stays suspended, one line asks for a tap, and a tap anywhere resumes it.
+// startCloudListening and its helpers are EXECUTED on a simulated clock against a fake context
+// that is either running, suspended-but-resumable, or suspended until a user activation.
+async function simulateCapture(html, mode, tapAt) {
+  const startSrc = extractDecl(html, 'const startCloudListening = async () => ');
+  if (!startSrc) throw new Error('startCloudListening not found');
+  const helpers = ['const clearCaptureTap = () => ', 'const resumeCapture = (ctx) => ',
+    'const askTapForCapture = (ctx) => ', 'const ensureCaptureRunning = (ctx, myGen) => ', 'const stopCloudAll = () => ']
+    .map((h) => extractDecl(html, h)).filter(Boolean);
+  const consts = ['CAPTURE_TAP_LINE', 'CAPTURE_RESUME_WAIT_MS'].map((n) => {
+    const m = new RegExp('\\n\\s*(const ' + n + ' = [^\\n]*;)').exec(html);
+    return m ? m[1] : '';
+  }).join('\n');
+  let now = 0, seqn = 0; const timers = [];
+  const at = (ms, fn) => { timers.push({ t: now + Math.max(0, ms || 0), n: seqn++, fn }); return seqn; };
+  let activation = false, speaking = false;
+  const pending = [];
+  const ctx = {
+    state: mode === 'running' ? 'running' : 'suspended', resumes: 0, onstatechange: null, outputLatency: 0,
+    start() { if (ctx.state === 'running') return; ctx.state = 'running'; if (ctx.onstatechange) ctx.onstatechange(); pending.splice(0).forEach((r) => r()); },
+    resume() {
+      ctx.resumes++;
+      return new Promise((resolve) => {
+        if (ctx.state === 'running') return resolve();
+        pending.push(resolve);
+        if (mode === 'resumable' || activation) at(20, () => ctx.start());   // allowed: runs a moment later
+      });                                                                      // not allowed: stays pending (spec)
+    },
+    createAnalyser() {
+      return { fftSize: 0, getByteTimeDomainData(buf) {
+        for (let i = 0; i < buf.length; i++) buf[i] = (ctx.state === 'running' && speaking) ? (i % 2 ? 188 : 68) : 128;
+      } };
+    },
+    createMediaStreamSource() { return { connect() {} }; },
+    close() { ctx.state = 'closed'; },
+  };
+  const listeners = new Map();
+  const win = {
+    AudioContext: function () { return ctx; },
+    addEventListener: (ev, fn) => { if (!listeners.has(ev)) listeners.set(ev, new Set()); listeners.get(ev).add(fn); },
+    removeEventListener: (ev, fn) => { if (listeners.has(ev)) listeners.get(ev).delete(fn); },
+  };
+  const tap = () => {
+    activation = true;
+    for (const ev of ['pointerup', 'click']) for (const fn of Array.from(listeners.get(ev) || [])) fn({ type: ev });
+    activation = false;
+  };
+  let voiceError = '';
+  const shown = [];
+  const setVoiceError = (v) => { voiceError = typeof v === 'function' ? v(voiceError) : v; shown.push({ t: now, v: voiceError }); };
+  let heardAt = null;
+  function FakeRecorder() { this.state = 'inactive'; this.mimeType = 'audio/webm'; }
+  FakeRecorder.prototype.start = function () { this.state = 'recording'; };
+  FakeRecorder.prototype.stop = function () { this.state = 'inactive'; };
+  const deps = {
+    hasValidAIConsent: () => true, setCallState: () => {}, callGenRef: { current: 1 },
+    cloudStreamRef: { current: null }, navigator: { mediaDevices: { getUserMedia: async () => ({ getTracks: () => [] }) } },
+    mediaRecRef: { current: null }, cloudChunksRef: { current: [] }, MediaRecorder: FakeRecorder, pickRecMime: () => ({}),
+    callActiveRef: { current: false }, vadCtxRef: { current: null }, window: win, vadAnalyserRef: { current: null },
+    vadLastVoiceRef: { current: 0 }, VAD_RMS_ON: 0.02, VAD_SILENCE_MS: 1200, CLOUD_MAX_TURN_MS: 60000,
+    armInactivityTimer: () => { if (heardAt === null) heardAt = now; }, stopCloudTurn: () => {},
+    setTimeout: (fn, ms) => at(ms, fn), setCallHeard: () => {}, showCallError: (m) => setVoiceError(m),
+    micErrorMessage: () => 'mic error', setVoiceError, captureTapOffRef: { current: null }, turnPeakRef: { current: 0 },
+    Date: { now: () => now }, console: { error: () => {} },
+  };
+  const names = Object.keys(deps);
+  const startCloudListening = new Function(...names,
+    consts + '\n' + helpers.join(';\n') + ';\n' + startSrc + ';\nreturn startCloudListening;')(...names.map((k) => deps[k]));
+  const tapLine = (/\n\s*const CAPTURE_TAP_LINE = '([^']*)';/.exec(html) || [])[1] || null;
+  at(500, () => { speaking = true; });
+  if (tapAt !== undefined) at(tapAt, tap);
+  startCloudListening();
+  const drain = async () => { for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r)); };
+  const HORIZON = 3000;
+  for (let guard = 0; guard < 100000; guard++) {
+    await drain();
+    if (!timers.length) break;
+    timers.sort((a, b) => a.t - b.t || a.n - b.n);
+    if (timers[0].t > HORIZON) break;
+    const x = timers.shift(); now = x.t; x.fn();
+  }
+  await drain();
+  const lineShownAt = (shown.find((e) => tapLine && e.v === tapLine) || {}).t;
+  const lineGoneAt = lineShownAt === undefined ? undefined : (shown.find((e) => e.t >= lineShownAt && e.v !== tapLine) || {}).t;
+  const live = Array.from(listeners.values()).reduce((n, s) => n + s.size, 0);
+  return { resumes: ctx.resumes, state: ctx.state, heardAt, lineShownAt, lineGoneAt,
+    lineNow: !!tapLine && voiceError === tapLine, live, tapLine };
+}
+async function checkCaptureResume(html) {
+  let run, res, stuck, tapped;
+  try {
+    run = await simulateCapture(html, 'running');
+    res = await simulateCapture(html, 'resumable');
+    stuck = await simulateCapture(html, 'stuck');
+    tapped = await simulateCapture(html, 'stuck', 1000);
+  } catch (e) { fail('E6 startCloudListening does not run against a fake context: ' + e.message); return; }
+  info('E6 running: resumes=' + run.resumes + ' heard@' + run.heardAt + ' | resumable: resumes=' + res.resumes + ' state=' + res.state
+    + ' heard@' + res.heardAt + ' | stuck: line@' + stuck.lineShownAt + ' heard@' + stuck.heardAt
+    + ' | stuck+tap@1000: state=' + tapped.state + ' line ' + tapped.lineShownAt + '->' + tapped.lineGoneAt + ' heard@' + tapped.heardAt);
+  if (run.resumes === 0 && run.lineShownAt === undefined && run.heardAt === 500) pass('E6 a context that starts running is left alone and shows nothing new; speech is heard at once');
+  else fail('E6 a running context was disturbed: resumes=' + run.resumes + ', line@' + run.lineShownAt + ', heard@' + run.heardAt);
+  if (res.resumes >= 1 && res.state === 'running' && res.lineShownAt === undefined && res.heardAt === 500) pass('E6 a context that starts suspended is resumed, without the tap line, and hears speech');
+  else fail('E6 a suspended context is not resumed: resumes=' + res.resumes + ', state=' + res.state + ', heard@' + res.heardAt);
+  if (stuck.state === 'suspended' && stuck.lineNow && stuck.heardAt === null) pass('E6 a context that stays suspended shows the tap line (at ' + stuck.lineShownAt + ' ms) and it stays up');
+  else fail('E6 a context that stays suspended shows no tap line: line@' + stuck.lineShownAt + ', state=' + stuck.state);
+  if (tapped.state === 'running' && tapped.lineShownAt !== undefined && tapped.lineGoneAt !== undefined && !tapped.lineNow
+    && tapped.heardAt !== null && tapped.heardAt >= 1000 && tapped.live === 0)
+    pass('E6 a tap resumes it: the line leaves at ' + tapped.lineGoneAt + ' ms, the VAD sees speech at ' + tapped.heardAt + ' ms, no listener is left');
+  else fail('E6 a tap does not bring the capture back: state=' + tapped.state + ', line gone@' + tapped.lineGoneAt + ', heard@' + tapped.heardAt + ', listeners=' + tapped.live);
+}
+
+// E7 (T4 fix 3, G2): the call's entry effect stopped the dictation recognizer and called
+// getUserMedia at once. On Android the recognizer holds the microphone until its own onend, so a
+// dictation session left open in the chat turned the call into «busy». When a session is open the
+// first getUserMedia now waits for that onend, bounded by CALL_RESTART_GRACE_MS; with none, it
+// runs at once. EXECUTED on a simulated clock: the real dictation effect, startListening, the
+// call's entry effect, startCallListening and startCloudListening all run, in one scope, against a
+// fake recognizer whose stop() fires onend after 400 ms, or never.
+async function simulateHandOver(html, mode) {
+  const dictFrom = html.indexOf('    const recognition = ezNewRecognition();\n    if (!recognition) { recognitionRef.current = null; return; }');
+  const dictTo = dictFrom === -1 ? -1 : html.indexOf('\n  }, [aiConsent]);', dictFrom);
+  const callAt = html.indexOf("  useEffect(() => {\n    if (screen !== 'call') return;");
+  const callBody = callAt === -1 ? null : braceSlice(html, callAt + '  useEffect(() => '.length);
+  const decls = ['const startListening = async () => ', 'const startCallListening = (armIdleClock = true) => ',
+    'const startCloudListening = async () => ', 'const clearCaptureTap = () => ', 'const resumeCapture = (ctx) => ',
+    'const askTapForCapture = (ctx) => ', 'const ensureCaptureRunning = (ctx, myGen) => ', 'const stopCloudAll = () => ']
+    .map((h) => extractDecl(html, h));
+  if (dictFrom === -1 || dictTo === -1 || !callBody || !decls[0] || !decls[1] || !decls[2]) throw new Error('a hand-over piece is missing');
+  const constLine = (n) => { const m = new RegExp('\\n\\s*(const ' + n + ' = [^\\n]*;)').exec(html); return m ? m[1] : ''; };
+  const grace = Number((/\n\s*const CALL_RESTART_GRACE_MS = (\d+);/.exec(html) || [])[1]);
+  let now = 0, seqn = 0; const timers = [];
+  const at = (ms, fn) => { timers.push({ t: now + Math.max(0, ms || 0), n: seqn++, fn }); return seqn; };
+  const gum = [];
+  let phase = 'chat';
+  const engine = { starts: 0, open: false };
+  const dictRec = {
+    start() { engine.starts++; engine.open = true; },
+    stop() {
+      if (!engine.open) return;
+      engine.open = false;
+      if (mode === 'onend') at(400, () => { if (dictRec.onend) dictRec.onend(); });   // Android: onend comes later
+    },
+    abort() {},
+  };
+  let built = 0;
+  const ctx = { state: 'running', onstatechange: null, outputLatency: 0, resume: async () => {}, close() {},
+    createAnalyser: () => ({ fftSize: 0, getByteTimeDomainData(b) { b.fill(128); } }), createMediaStreamSource: () => ({ connect() {} }) };
+  function FakeRecorder() { this.state = 'inactive'; }
+  FakeRecorder.prototype.start = function () { this.state = 'recording'; };
+  FakeRecorder.prototype.stop = function () { this.state = 'inactive'; };
+  const ov = {
+    screen: 'call', CALL_STT_CLOUD: true, DICTATE_CLOUD: false, isSpeaking: false, input: '',
+    childVoiceBlocked: () => false, hasValidAIConsent: () => true, hasFounderToken: () => true,
+    ezSpeechEngine: () => function () {}, ezNewRecognition: () => (built++ === 0 ? dictRec : null),
+    ezStartRecognition: (r) => { if (!r) return false; r.start(); return true; }, ezKillRecognizer: () => {},
+    navigator: { mediaDevices: { getUserMedia: async () => { gum.push({ t: now, phase }); return { getTracks: () => [] }; } } },
+    window: { AudioContext: function () { return ctx; }, addEventListener() {}, removeEventListener() {} },
+    MediaRecorder: FakeRecorder, setTimeout: (fn, ms) => at(ms, fn), clearTimeout: () => {},
+    Date: { now: () => now }, console: { error: () => {} }, CALL_RESTART_GRACE_MS: grace,
+  };
+  const stubs = {};
+  const stub = () => { const f = function () {}; f.current = null; return f; };
+  const scope = new Proxy(ov, {
+    has: (t, k) => typeof k === 'string',
+    get: (t, k) => {
+      if (k === Symbol.unscopables) return undefined;
+      if (k in t) return t[k];
+      if (k in globalThis) return globalThis[k];
+      if (!(k in stubs)) stubs[k] = /Ref$/.test(k) ? { current: null } : stub();
+      return stubs[k];
+    },
+    set: (t, k, v) => { t[k] = v; return true; },
+  });
+  for (const k of ['callGenRef', 'shouldListenRef', 'recognitionRef', 'callMutedRef', 'callActiveRef', 'dictationOpenRef']) ov[k] = { current: k === 'callGenRef' ? 0 : null };
+  ov.callMutedRef.current = false;
+  ov.dictationOpenRef.current = false;
+  // eslint-disable-next-line no-new-func
+  const run = new Function('scope', 'with (scope) {\n' + ['CAPTURE_TAP_LINE', 'CAPTURE_RESUME_WAIT_MS', 'VAD_RMS_ON', 'VAD_SILENCE_MS', 'CLOUD_MAX_TURN_MS'].map(constLine).join('\n')
+    + '\n' + decls.filter(Boolean).join(';\n') + ';\n'
+    + 'const dictationEffect = () => {\n' + html.slice(dictFrom, dictTo) + '\n};\n'
+    + 'const callEffect = () => ' + callBody + ';\n'
+    + 'return { dictationEffect, callEffect, startListening };\n}');
+  const fns = run(scope);
+  fns.dictationEffect();
+  if (mode !== 'none') await fns.startListening();          // the reader dictates in the chat
+  const drain = async () => { for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r)); };
+  await drain();
+  phase = 'call';
+  fns.callEffect();                                          // ...then taps the call button
+  const atOnce = gum.filter((g) => g.phase === 'call').length;
+  for (let guard = 0; guard < 100000; guard++) {
+    await drain();
+    if (!timers.length) break;
+    timers.sort((a, b) => a.t - b.t || a.n - b.n);
+    if (timers[0].t > 10000) break;
+    const x = timers.shift(); now = x.t; x.fn();
+  }
+  await drain();
+  const callGum = gum.filter((g) => g.phase === 'call');
+  return { first: callGum.length ? callGum[0].t : null, count: callGum.length, atOnce, grace, dictStarts: engine.starts };
+}
+async function checkHandOver(html) {
+  let a, b, c;
+  try {
+    a = await simulateHandOver(html, 'onend');
+    b = await simulateHandOver(html, 'never');
+    c = await simulateHandOver(html, 'none');
+  } catch (e) { fail('E7 the hand-over does not run: ' + e.message); return; }
+  info('E7 bound CALL_RESTART_GRACE_MS=' + a.grace + ' | dictation open, onend at 400 ms: first getUserMedia at ' + a.first
+    + ' ms | onend never: at ' + b.first + ' ms | no dictation: at ' + c.first + ' ms (in the entry tick: ' + (c.atOnce > 0) + ')');
+  if (a.dictStarts === 1 && a.first === 400 && a.count === 1) pass('E7 with a dictation session open, the call opens the microphone only after its onend (400 ms)');
+  else fail('E7 the call opens the microphone before the dictation onend: at ' + a.first + ' ms (onend at 400), ' + a.count + ' call(s)');
+  if (b.first === b.grace && b.count === 1 && b.grace > 0) pass('E7 an onend that never comes is bounded: the microphone opens at ' + b.first + ' ms');
+  else fail('E7 without an onend the call waits ' + b.first + ' ms (bound ' + b.grace + ')');
+  if (c.first === 0 && c.atOnce === 1) pass('E7 with no dictation session the microphone opens at once, in the entry tick');
+  else fail('E7 a call with no dictation session waited: first getUserMedia at ' + c.first + ' ms, in the entry tick: ' + c.atOnce);
+}
+
+// E8 (T4 fix 4, H1): in the owner's own recording the call heard one word as another and
+// answered a question he never asked, and nothing on the screen showed what it had heard. The
+// words of a turn's transcript are now shown under the state line, after a fixed prefix, from the
+// moment the transcript arrives -- before the answer is requested -- until the next listening turn
+// starts, and they are cleared on hang-up. They are display only and never reach speech.
+// EXECUTED: CallScreen is compiled from app.jsx and rendered against a fake React; runCallTurn and
+// startCallListening run on a simulated clock; the call's entry effect runs and its cleanup is
+// called.
+const HEARD_PREFIX = String.fromCharCode(0x0633, 0x0645, 0x0639, 0x062A, 0x064F, 0x3A, 0x20);
+const HEARD_Q = String.fromCharCode(0x0639, 0x0634, 0x0631, 0x0629) + ' ' + String.fromCharCode(0x0635, 0x064A, 0x0627, 0x0645);
+function renderCallScreen(html, props) {
+  const from = html.indexOf('const CALL_TXT = {');
+  const to = html.indexOf('\n// ====', html.indexOf('function CallScreen('));
+  if (from === -1 || to <= from) throw new Error('CallScreen not found');
+  const bb = require('./tools/babel-block.cjs');
+  const code = bb.transformBabelBlock({ raw: html.slice(from, to), runtime: bb.PINNED_RUNTIME });
+  const styleOf = (k) => {
+    const m = new RegExp('\\n  ' + k + ': (\\{[^\\n]*\\}),\\r?\\n').exec(html);
+    return m ? new Function('return (' + m[1] + ');')() : {};
+  };
+  const s = new Proxy({}, { get: (t, k) => (typeof k === 'string' ? styleOf(k) : undefined) });
+  const React = { createElement: (type, p, ...children) => ({ type, props: p || {}, children: children.flat(Infinity) }) };
+  const icon = () => null;
+  const CallScreen = new Function('React', 's', 'window', 'A2_ICON_BACK', 'MoonStarsIcon', 'MicIcon', 'MicOffIcon', 'PhoneOffIcon',
+    code + ';\nreturn CallScreen;')(React, s, undefined, null, icon, icon, icon, icon);
+  const nodes = [];
+  const walk = (n) => { if (!n || typeof n !== 'object') return; nodes.push(n); (n.children || []).forEach(walk); };
+  walk(CallScreen(props));
+  const text = (n) => (n && typeof n === 'object') ? (n.children || []).map(text).join('') : (n == null || n === false ? '' : String(n));
+  return { nodes, text };
+}
+async function simulateHeardWords(html) {
+  const turnSrc = extractDecl(html, 'const runCallTurn = async (text) => ');
+  const listenSrc = extractDecl(html, 'const startCallListening = (armIdleClock = true) => ');
+  const tailSrc = extractDecl(html, 'const waitForSpeakerTail = () => ');
+  if (!turnSrc || !listenSrc || !tailSrc) throw new Error('runCallTurn / startCallListening / waitForSpeakerTail not found');
+  let now = 0, seqn = 0; const timers = [];
+  const at = (ms, fn) => { timers.push({ t: now + Math.max(0, ms || 0), n: seqn++, fn }); return seqn; };
+  const REPLY = 'Reply one. Reply two.';
+  let words = '';
+  const log = [];
+  const spoken = [];
+  const deps = {
+    callGenRef: { current: 1 }, callActiveRef: { current: false }, callMutedRef: { current: false }, abortRef: { current: null },
+    setCallHeard: () => {},
+    setCallHeardWords: (v) => { words = typeof v === 'function' ? v(words) : v; log.push({ t: now, ev: 'words', words }); },
+    setCallState: (v) => { log.push({ t: now, ev: 'state:' + v, words }); },
+    clearInactivityTimer: () => {}, cancelAudio: () => {}, armInactivityTimer: () => {},
+    messages: [], sliceHistoryForAPI: (m) => m, profile: {}, CALL_STREAM_SPEECH: true,
+    createCallSpeechStream: () => ({
+      feed: (t) => { spoken.push(String(t)); },
+      finish: (t) => { spoken.push(String(t)); return new Promise((r) => at(2000, r)); },
+    }),
+    callAI: async (h, p, o) => {
+      log.push({ t: now, ev: 'request', words });
+      await new Promise((r) => at(1500, r));
+      o.onDelta(REPLY);
+      return REPLY;
+    },
+    getFriendlyError: () => 'err', setMessages: () => {}, saveMessages: () => {},
+    speakReply: async (t) => { spoken.push(String(t)); },
+    childVoiceBlocked: () => false, hasValidAIConsent: () => true, hasFounderToken: () => true,
+    CALL_STT_CLOUD: true, callTranscriptRef: { current: '' }, callBaseTextRef: { current: '' },
+    startCloudListening: () => { log.push({ t: now, ev: 'listen', words }); },
+    callRecognitionRef: { current: null }, ezStartRecognition: () => false, CALL_VAD: false, ensureVad: () => {},
+    vadLastVoiceRef: { current: 0 }, setTimeout: (fn, ms) => at(ms, fn), vadCtxRef: { current: { outputLatency: 0 } },
+    SPEAKER_TAIL_MAX_MS: 1000,
+  };
+  const names = Object.keys(deps);
+  const fns = new Function(...names, tailSrc + ';\n' + listenSrc + ';\n' + turnSrc
+    + ';\nreturn { runCallTurn, startCallListening };')(...names.map((k) => deps[k]));
+  fns.runCallTurn(HEARD_Q);
+  const drain = async () => { for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r)); };
+  for (let guard = 0; guard < 10000; guard++) {
+    await drain();
+    if (!timers.length) break;
+    timers.sort((a, b) => a.t - b.t || a.n - b.n);
+    const x = timers.shift(); now = x.t; x.fn();
+  }
+  await drain();
+  return { log, spoken };
+}
+function hangUpClearsHeardWords(html) {
+  const callAt = html.indexOf("  useEffect(() => {\n    if (screen !== 'call') return;");
+  const callBody = callAt === -1 ? null : braceSlice(html, callAt + '  useEffect(() => '.length);
+  if (!callBody) throw new Error('the call entry effect not found');
+  let words = '';
+  const ov = {
+    screen: 'call', CALL_STT_CLOUD: true, childVoiceBlocked: () => false, hasValidAIConsent: () => true,
+    hasFounderToken: () => true, ezSpeechEngine: () => null, ezNewRecognition: () => null,
+    setTimeout: () => 0, clearTimeout: () => {}, console: { error: () => {} },
+    setCallHeardWords: (v) => { words = typeof v === 'function' ? v(words) : v; },
+  };
+  const stubs = {};
+  const scope = new Proxy(ov, {
+    has: (t, k) => typeof k === 'string',
+    get: (t, k) => {
+      if (k === Symbol.unscopables) return undefined;
+      if (k in t) return t[k];
+      if (k in globalThis) return globalThis[k];
+      if (!(k in stubs)) stubs[k] = /Ref$/.test(k) ? { current: null } : (() => { const f = function () {}; return f; })();
+      return stubs[k];
+    },
+    set: (t, k, v) => { t[k] = v; return true; },
+  });
+  ov.callGenRef = { current: 0 };
+  ov.dictationOpenRef = { current: false };
+  // eslint-disable-next-line no-new-func
+  const effect = new Function('scope', 'with (scope) {\nreturn () => ' + callBody + ';\n}')(scope);
+  const cleanup = effect();
+  if (typeof cleanup !== 'function') throw new Error('the call entry effect returned no cleanup');
+  words = HEARD_Q;            // a turn was heard and is being answered...
+  cleanup();                  // ...and the reader hangs up
+  return words;
+}
+async function checkHeardWords(html) {
+  let shown, empty, sim, afterHangUp;
+  try {
+    shown = renderCallScreen(html, { profileName: '', gender: 'male', callState: 'thinking', heard: '', heardWords: HEARD_Q,
+      isMuted: false, error: '', onToggleMute() {}, onTalk() {}, onExit() {} });
+    empty = renderCallScreen(html, { profileName: '', gender: 'male', callState: 'listening', heard: '', heardWords: '',
+      isMuted: false, error: '', onToggleMute() {}, onTalk() {}, onExit() {} });
+  } catch (e) { fail('E8 CallScreen does not render against a fake React: ' + e.message); return; }
+  try { sim = await simulateHeardWords(html); } catch (e) { fail('E8 runCallTurn does not run on the simulated clock: ' + e.message); return; }
+  try { afterHangUp = hangUpClearsHeardWords(html); } catch (e) { fail('E8 the call entry effect does not run: ' + e.message); return; }
+  const LINE = HEARD_PREFIX + HEARD_Q;
+  const lineAt = shown.nodes.findIndex((n) => shown.text(n) === LINE);
+  const label = String.fromCharCode(0x0644, 0x062D, 0x0638, 0x0629) + '...';   // the thinking state line
+  const labelAt = shown.nodes.findIndex((n) => shown.text(n) === label);
+  const node = shown.nodes[lineAt] || { props: {} };
+  const st = node.props.style || {};
+  const clamp = st.WebkitLineClamp === 2 && st.overflow === 'hidden' && st.display === '-webkit-box' && st.WebkitBoxOrient === 'vertical';
+  const rtl = node.props.dir === 'rtl' || st.direction === 'rtl';
+  info('E8 render: line at node ' + lineAt + ', state line at node ' + labelAt + ', two-line clamp ' + clamp + ', rtl ' + rtl);
+  if (lineAt !== -1 && labelAt !== -1 && lineAt > labelAt) pass('E8 the call screen shows the prefix and the heard words, under the state line');
+  else fail('E8 the heard words are not on the call screen under the state line (line at ' + lineAt + ', state line at ' + labelAt + ')');
+  if (lineAt !== -1 && clamp && rtl) pass('E8 ...right-to-left, at most two lines, cut with an ellipsis (line clamp 2)');
+  else fail('E8 the heard-words line is not a right-to-left two-line clamp');
+  if (!empty.nodes.some((n) => shown.text(n).indexOf(HEARD_PREFIX) === 0)) pass('E8 with no heard words the line is absent (no empty band)');
+  else fail('E8 the heard-words line is drawn with nothing to say');
+  const req = sim.log.find((e) => e.ev === 'request');
+  const setAt = sim.log.findIndex((e) => e.ev === 'words' && e.words === HEARD_Q);
+  const listenState = sim.log.find((e) => e.ev === 'state:listening');
+  const cleared = sim.log.find((e, i) => i > setAt && e.ev === 'words' && e.words === '');
+  info('E8 simulated turn: words set at ' + (setAt === -1 ? 'never' : sim.log[setAt].t + ' ms') + ', answer requested at '
+    + (req ? req.t : -1) + ' ms, next listening turn at ' + (listenState ? listenState.t : -1) + ' ms, words cleared at ' + (cleared ? cleared.t : -1) + ' ms');
+  if (req && req.words === HEARD_Q && setAt !== -1 && setAt < sim.log.indexOf(req)) pass('E8 the transcript is on the screen before the answer request is sent');
+  else fail('E8 the transcript is not on the screen when the answer is requested');
+  if (listenState && cleared && cleared.t === listenState.t && listenState.words === '' && !sim.log.some((e) => e.ev === 'words' && e.words === '' && e.t < listenState.t && sim.log.indexOf(e) > setAt))
+    pass('E8 the words stay through the answer and are gone when the next turn listens (' + listenState.t + ' ms)');
+  else fail('E8 the heard words are not cleared exactly when the next turn listens');
+  if (sim.spoken.length && sim.spoken.every((t) => t.indexOf(HEARD_PREFIX) === -1 && t.indexOf(HEARD_Q) === -1)) pass('E8 the heard words are never in the text sent to speech (' + sim.spoken.length + ' speech inputs)');
+  else fail('E8 the heard words reach the text sent to speech');
+  if (afterHangUp === '') pass('E8 a hang-up clears the heard words');
+  else fail('E8 the heard words survive the hang-up');
+}
+
+// E9 (T4 fix 4, H2 -- the owner's option A): a faint voice far quieter than the reader, a
+// television across the room, opened a turn and was answered. The call now keeps the peak level
+// (the VAD's own RMS) of every turn it accepted; from the second turn on, a turn whose peak is
+// below 0.25 x the median of those peaks (-12 dB) is dropped: it never reaches /api/stt, one line
+// shows in the error panel, and the mic re-opens. The first turn always passes, and so does the
+// turn a barge-in tap opens. EXECUTED on a simulated clock: startCloudListening, stopCloudTurn,
+// their helpers and onCallTalk run against a fake context whose analyser plays a scripted level
+// per turn (speech 300..1100 ms into the turn, then silence).
+const FAINT_LINE = String.fromCharCode(0x0644, 0x0645, 0x20, 0x0623, 0x0644, 0x062A, 0x0642, 0x0637, 0x0652, 0x20,
+  0x0643, 0x0644, 0x0627, 0x0645, 0x064E, 0x0643, 0x20, 0x2014, 0x20, 0x0623, 0x0639, 0x0650, 0x062F, 0x0652, 0x20,
+  0x0645, 0x0646, 0x20, 0x0641, 0x0636, 0x0644, 0x0643, 0x2E);
+const NORMAL_AMP = 100;                                  // RMS 100/128 = 0.78; -16 dB rounds to 16 (-15.9 dB)
+const dbAmp = (db) => NORMAL_AMP * Math.pow(10, db / 20);
+async function simulateLevelGate(html, amps, opts) {
+  const o = opts || {};
+  const get = (h) => extractDecl(html, h);
+  const startSrc = get('const startCloudListening = async () => ');
+  const stopSrc = get('const stopCloudTurn = async () => ');
+  const talkSrc = get('const onCallTalk = () => ');
+  if (!startSrc || !stopSrc || !talkSrc) throw new Error('startCloudListening / stopCloudTurn / onCallTalk not found');
+  const helpers = ['const clearCaptureTap = () => ', 'const resumeCapture = (ctx) => ', 'const askTapForCapture = (ctx) => ',
+    'const ensureCaptureRunning = (ctx, myGen) => ', 'const stopCloudAll = () => ', 'const faintTurn = (peak) => ']
+    .map(get).filter(Boolean);
+  const constLine = (n) => { const m = new RegExp('\\n\\s*(const ' + n + ' = [^\\n]*;)').exec(html); return m ? m[1] : ''; };
+  const consts = ['CAPTURE_TAP_LINE', 'CAPTURE_RESUME_WAIT_MS', 'FAINT_TURN_RATIO', 'FAINT_TURN_LINE'].map(constLine).join('\n');
+  let now = 0, seqn = 0; const timers = [];
+  const at = (ms, fn) => { timers.push({ t: now + Math.max(0, ms || 0), n: seqn++, fn }); return seqn; };
+  let turn = -1, turnStart = 0;
+  const log = { stt: [], answered: [], shown: [], opens: 0 };
+  const ctx = {
+    state: 'running', onstatechange: null, outputLatency: 0, resume: async () => {}, close() {},
+    createAnalyser: () => ({ fftSize: 0, getByteTimeDomainData(buf) {
+      const dt = now - turnStart;
+      const a = (turn >= 0 && turn < amps.length && dt >= 300 && dt < 1100) ? Math.round(amps[turn]) : 0;
+      for (let i = 0; i < buf.length; i++) buf[i] = 128 + (i % 2 ? a : -a);
+    } }),
+    createMediaStreamSource: () => ({ connect() {} }),
+  };
+  function FakeRecorder() { this.state = 'inactive'; this.mimeType = 'audio/webm'; }
+  FakeRecorder.prototype.start = function () { this.state = 'recording'; turn++; turnStart = now; log.opens++; };
+  FakeRecorder.prototype.stop = function () {
+    if (this.state === 'inactive') return;
+    this.state = 'inactive';
+    if (this.ondataavailable) this.ondataavailable({ data: { size: 4000 } });
+    const self = this; at(0, () => { if (self.onstop) self.onstop(); });
+  };
+  function FakeBlob(chunks, opt) { this.size = chunks.reduce((n, c) => n + (c.size || 0), 0); this.type = (opt && opt.type) || ''; }
+  const callActiveRef = { current: false };
+  let callState = 'idle';
+  const deps = {
+    hasValidAIConsent: () => true, setCallState: (v) => { callState = v; }, callGenRef: { current: 1 },
+    cloudStreamRef: { current: null }, navigator: { mediaDevices: { getUserMedia: async () => ({ getTracks: () => [] }) } },
+    mediaRecRef: { current: null }, cloudChunksRef: { current: [] }, MediaRecorder: FakeRecorder, pickRecMime: () => ({}),
+    callActiveRef, vadCtxRef: { current: null }, window: { AudioContext: function () { return ctx; }, addEventListener() {}, removeEventListener() {} },
+    vadAnalyserRef: { current: null }, vadLastVoiceRef: { current: 0 }, VAD_RMS_ON: 0.02, VAD_SILENCE_MS: 1200, CLOUD_MAX_TURN_MS: 60000,
+    armInactivityTimer: () => {}, setTimeout: (fn, ms) => at(ms, fn), setCallHeard: () => {},
+    showCallError: (m) => { log.shown.push({ t: now, turn, m }); }, micErrorMessage: () => 'mic error', setVoiceError: () => {},
+    captureTapOffRef: { current: null }, Date: { now: () => now }, console: { error: () => {} }, Blob: FakeBlob,
+    blobToBase64: async () => 'b64', deriveCaps: () => ({ band: 'adult' }), profileRef: { current: {} },
+    aiFetch: async (url) => { if (url === '/api/stt') log.stt.push({ t: now, turn }); return { ok: true, json: async () => ({ text: 'words ' + turn }) }; },
+    sttErrorMessage: () => 'stt error', callTurnRef: { current: null },
+    turnPeakRef: { current: 0 }, callPeaksRef: { current: [] }, callTurnExemptRef: { current: false },
+    callMutedRef: { current: false }, abortRef: { current: null }, cancelAudio: () => {},
+  };
+  let fns;
+  deps.startCallListening = () => fns.startCloudListening();
+  const names = Object.keys(deps).concat(['callState']);
+  // callState is read through a getter so onCallTalk sees the live value, as React's render would
+  const make = new Function(...Object.keys(deps), 'getCallState',
+    consts + '\n' + helpers.join(';\n') + ';\n' + startSrc + ';\n' + stopSrc + ';\n'
+    + 'const onCallTalk = () => { const callState = getCallState(); return (' + talkSrc.slice('const onCallTalk = '.length) + ')(); };\n'
+    + 'return { startCloudListening, stopCloudTurn, onCallTalk };');
+  void names;
+  fns = make(...Object.keys(deps).map((k) => deps[k]), () => callState);
+  deps.callTurnRef.current = (text) => {
+    log.answered.push({ t: now, turn });
+    const t = turn;
+    callState = 'speaking';
+    if (o.bargeInAfter === t) at(500, () => fns.onCallTalk());          // the reader taps mid-answer
+    else at(3000, () => { callState = 'idle'; fns.startCloudListening(); }); // the answer ends, the mic re-opens
+  };
+  fns.startCloudListening();
+  const drain = async () => { for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r)); };
+  const HORIZON = 30000;
+  for (let guard = 0; guard < 100000; guard++) {
+    await drain();
+    if (!timers.length) break;
+    timers.sort((a, b) => a.t - b.t || a.n - b.n);
+    if (timers[0].t > HORIZON) break;
+    const x = timers.shift(); now = x.t; x.fn();
+  }
+  await drain();
+  const faintShown = log.shown.filter((e) => e.m === FAINT_LINE);
+  const errMs = Number((/\n\s*const CALL_ERROR_MS = (\d+);/.exec(html) || [])[1]);
+  return { log, faintShown, sttTurns: log.stt.map((e) => e.turn), answered: log.answered.map((e) => e.turn), opens: log.opens, errMs };
+}
+async function checkLevelGate(html) {
+  let a, b, c, d;
+  try {
+    a = await simulateLevelGate(html, [NORMAL_AMP, NORMAL_AMP, dbAmp(-16), NORMAL_AMP]);
+    b = await simulateLevelGate(html, [dbAmp(-16), NORMAL_AMP]);
+    c = await simulateLevelGate(html, [NORMAL_AMP, NORMAL_AMP, dbAmp(-16)], { bargeInAfter: 1 });
+    d = await simulateLevelGate(html, [NORMAL_AMP, NORMAL_AMP, dbAmp(-10)]);
+  } catch (e) { fail('E9 the capture path does not run on the simulated clock: ' + e.message); return; }
+  info('E9 normal,normal,-16dB,normal: /api/stt for turns [' + a.sttTurns.join(',') + '], answered [' + a.answered.join(',')
+    + '], faint line shown ' + a.faintShown.length + 'x (turn ' + a.faintShown.map((e) => e.turn).join(',') + '), mic opened ' + a.opens + 'x');
+  info('E9 -16dB first: stt [' + b.sttTurns.join(',') + '] | barge-in then -16dB: stt [' + c.sttTurns.join(',') + '] | normal,normal,-10dB: stt [' + d.sttTurns.join(',') + ']');
+  if (a.sttTurns.join(',') === '0,1,3' && a.answered.join(',') === '0,1,3') pass('E9 two normal turns then a -16 dB turn: the faint turn is dropped and /api/stt is not called for it');
+  else fail('E9 the -16 dB third turn was not dropped: /api/stt for turns [' + a.sttTurns.join(',') + ']');
+  if (a.faintShown.length === 1 && a.faintShown[0].turn === 2) pass('E9 ...the dropped turn shows its line in the call error panel (for CALL_ERROR_MS = ' + a.errMs + ' ms)');
+  else fail('E9 the dropped turn does not show its line exactly once: ' + a.faintShown.length);
+  if (a.opens === 5 && a.answered.indexOf(3) !== -1) pass('E9 ...the microphone re-opens and the normal turn after it passes');
+  else fail('E9 after a dropped turn the mic did not re-open or the next normal turn failed: opens=' + a.opens);
+  if (b.sttTurns.join(',') === '0,1' && b.faintShown.length === 0) pass('E9 a faint FIRST turn passes (there is no baseline yet)');
+  else fail('E9 a faint first turn was dropped: stt [' + b.sttTurns.join(',') + ']');
+  if (c.sttTurns.join(',') === '0,1,2' && c.faintShown.length === 0) pass('E9 a barge-in is not affected: the turn a tap opens is never dropped');
+  else fail('E9 the turn a barge-in opened was dropped: stt [' + c.sttTurns.join(',') + ']');
+  if (d.sttTurns.join(',') === '0,1,2' && d.faintShown.length === 0) pass('E9 a -10 dB turn (above the -12 dB line) still passes');
+  else fail('E9 a -10 dB turn was dropped: stt [' + d.sttTurns.join(',') + ']');
+}
+
+// E10 (T4 fix 4, H3): FIX 1's end-of-text rule also ended a sentence on a `.` after an ASCII
+// letter, so a streamed delta that stopped at `binothaimeen.` spoke half a domain name before F1's
+// filter could see the whole of it. A `.` after an ASCII letter at the end of the received text is
+// no longer a sentence end; an Arabic sentence ending in `.` still ends at once. The client's own
+// lastSentenceCut, formatForTTS, splitSpeechIntoSentences and createCallSpeechStream are EXECUTED.
+async function checkDomainDot(html) {
+  const cutSrc = extractDecl(html, 'const lastSentenceCut = (s) => ');
+  const get = (h) => extractDecl(html, h);
+  const srcs = [get('const formatForTTS = (text) => '), get('const splitSpeechIntoSentences = (prose) => '), get('const buildAudioSequence = (text) => ')];
+  if (!cutSrc || srcs.some((x) => !x)) { fail('E10 the client speech code was not found'); return; }
+  let lastSentenceCut, fx;
+  try {
+    lastSentenceCut = new Function(cutSrc + ';\nreturn lastSentenceCut;')();
+    const env = {
+      stripIncompleteTags: (t) => String(t == null ? '' : t), ezikStripIncomplete: (t) => String(t == null ? '' : t),
+      resolveHadithAttribution: (narrator, ruling) => ({ narrator, ruling }), readStepsTitle: () => '', resolveSurahNumber: () => 0,
+      EZIK_NOTICE_ALL: evalConst(html, 'EZIK_NOTICE_ALL') || /(?!)/g, EZ_TTS_SOURCE_LINE_SRC: evalConst(html, 'EZ_TTS_SOURCE_LINE_SRC'),
+    };
+    const names = Object.keys(env);
+    fx = new Function(...names, srcs.join(';\n') + ';\nreturn { formatForTTS, splitSpeechIntoSentences, buildAudioSequence };')(...names.map((k) => env[k]));
+  } catch (e) { fail('E10 extracted speech code does not evaluate: ' + e.message); return; }
+  const AR = U(0x0631) + U(0x0627) + U(0x062C) + U(0x0639);            // an Arabic word, never printed
+  const lead = U(0x0627) + U(0x0644) + U(0x0635) + U(0x0644) + U(0x0627) + U(0x0629) + ' ' + U(0x0648) + U(0x0627) + U(0x062C) + U(0x0628) + U(0x0629) + '.';
+  const d1 = lead + '\n' + AR + ' binothaimeen.';
+  const cutDomain = lastSentenceCut(d1);
+  const arStop = AR + ' ' + AR + '.';
+  const cutArabic = lastSentenceCut(arStop);
+  info('E10 cut of a delta ending at `binothaimeen.`: ' + cutDomain + ' of ' + d1.length + ' (the lead ends at ' + (lead.length + 1)
+    + ') | cut of an Arabic word + `.`: ' + cutArabic + ' of ' + arStop.length);
+  if (cutDomain === lead.length + 1) pass('E10 a delta ending at `binothaimeen.` is not cut at its end (only the finished lead before it is)');
+  else fail('E10 a delta ending at `binothaimeen.` is cut at ' + cutDomain + ' (the lead ends at ' + (lead.length + 1) + ')');
+  if (cutArabic === arStop.length) pass('E10 a delta ending in an Arabic word and `.` is cut at once');
+  else fail('E10 an Arabic sentence ending in `.` is no longer cut at once: ' + cutArabic);
+  const d2 = 'net ' + AR + '.\n' + AR + ' ' + AR + '.';
+  const full = d1 + d2;
+  // What reaches the speech filter: the pump hands prose to splitSpeechIntoSentences (feed) or to
+  // buildAudioSequence (finish), and both run formatForTTS on exactly that text.
+  const texts = [];
+  let r;
+  try {
+    r = await simulatePump(html, { full, deltas: [d1, d2],
+      deps: { splitSpeechIntoSentences: (t) => { texts.push(String(t)); return fx.splitSpeechIntoSentences(t); },
+        buildAudioSequence: (t) => { texts.push(String(t)); return fx.buildAudioSequence(t); },
+        EZ_TTS_SOURCE_LINE_SRC: evalConst(html, 'EZ_TTS_SOURCE_LINE_SRC') } });
+  } catch (e) { fail('E10 the call pump does not run: ' + e.message); return; }
+  const whole = texts.filter((t) => t.indexOf('binothaimeen.net') !== -1).length;
+  const half = texts.filter((t) => /binothaimeen(?!\.net)/.test(t)).length;
+  const spoken = r.log.fetches.map((f) => fx.formatForTTS(f.text)).join(' ');
+  info('E10 streamed in two deltas split after `binothaimeen.`: ' + texts.length + ' filter inputs, the domain whole in ' + whole + ', split in ' + half);
+  if (whole === 1 && half === 0 && spoken.indexOf('binothaimeen') === -1 && spoken.indexOf('net') === -1 && r.settled)
+    pass('E10 the whole domain reaches the speech filter in one piece, and none of it is spoken');
+  else fail('E10 the domain was split across segments or spoken: whole=' + whole + ', split=' + half);
+}
+
+// E11 (T4 fix 4, H4): playPreparedSpeech resolved a segment on ANY `pause`. A pause from outside
+// -- a media key, the phone taking audio focus -- therefore skipped to the next sentence, and on
+// the last one re-opened the microphone while the voice was only paused. A pause at the end of the
+// media is still the end of the segment (the element fires `pause` just before `ended`); any other
+// pause the call did not ask for stops the rest of the answer, and the call goes on exactly as
+// after a barge-in. EXECUTED on a simulated clock in one scope: takeAudioFocus, cancelAudio,
+// playPreparedSpeech, createCallSpeechStream, waitForSpeakerTail, runCallTurn and onCallTalk, with
+// a fake <audio> element that fires `pause` then `ended` at the end of each 2 s sentence.
+async function simulateExternalPause(html, opts) {
+  const o = opts || {};
+  const heads = ['const takeAudioFocus = () => ', 'const cancelAudio = () => ', 'const onExternalPause = () => ',
+    'const playPreparedSpeech = async (prepPromise, myId) => ', 'const createCallSpeechStream = () => ',
+    'const waitForSpeakerTail = () => ', 'const runCallTurn = async (text) => ', 'const onCallTalk = () => '];
+  const decls = heads.map((h) => extractDecl(html, h));
+  const need = [0, 1, 3, 4, 5, 6, 7];
+  if (need.some((i) => !decls[i])) throw new Error('missing: ' + need.filter((i) => !decls[i]).map((i) => heads[i]).join(' | '));
+  const effectLine = (/\n\s*(useEffect\(\(\) => \{ callTalkRef\.current = [^\n]*)\n/.exec(html) || [])[1] || '';
+  const tailCap = Number((/\n\s*const SPEAKER_TAIL_MAX_MS = (\d+);/.exec(html) || [])[1]);
+  let now = 0, seqn = 0; const timers = [];
+  const at = (ms, fn) => { timers.push({ t: now + Math.max(0, ms || 0), n: seqn++, fn }); return seqn; };
+  const SEG_MS = 2000, TTS_MS = 300;
+  const plays = [];
+  const mic = [];
+  let inTalk = false;
+  let el = null;
+  function FakeAudio() { el = this; this.paused = true; this.ended = false; this.src = ''; this.onpause = null; this.onended = null; this.onerror = null; }
+  FakeAudio.prototype.play = function () {
+    const me = this; const src = this.src;
+    this.paused = false; this.ended = false;
+    const rec = { text: src, start: now, stop: null }; plays.push(rec);
+    const token = ++FakeAudio.token;
+    at(SEG_MS, () => {
+      if (FakeAudio.token !== token || me.paused) return;
+      me.paused = true; me.ended = true; rec.stop = now;
+      if (me.onpause) me.onpause({ type: 'pause' });           // Chrome: `pause` first...
+      if (me.onended) me.onended({ type: 'ended' });           // ...then `ended`
+    });
+    return Promise.resolve();
+  };
+  FakeAudio.token = 0;
+  FakeAudio.prototype.pause = function () {
+    if (this.paused) return;
+    this.paused = true; FakeAudio.token++;
+    const rec = plays[plays.length - 1]; if (rec && rec.stop === null) rec.stop = now;
+    const me = this; at(0, () => { if (me.onpause) me.onpause({ type: 'pause' }); });   // the event is queued
+  };
+  let callState = 'idle';
+  const REPLY = 'Sentence one is here. Sentence two is here. Sentence three is here. Sentence four is here.';
+  const split = (t) => String(t).split(/(?<=[.!?])\s+/).map((x) => x.trim()).filter(Boolean);
+  const ov = {
+    Audio: FakeAudio, URL: { revokeObjectURL: () => {} }, setTimeout: (fn, ms) => at(ms, fn), clearTimeout: () => {},
+    fetchSpeechAudio: (text) => new Promise((r) => at(TTS_MS, () => r({ kind: 'blob', url: text }))),
+    splitSpeechIntoSentences: split, stripIncompleteTags: (t) => t, resolveWorshipTags: async (t) => t,
+    buildAudioSequence: (t) => split(t).map((x) => ({ kind: 'speak', text: x })),
+    deriveCaps: () => ({ band: 'adult' }), profileRef: { current: {} }, EZ_TTS_SOURCE_LINE_SRC: evalConst(html, 'EZ_TTS_SOURCE_LINE_SRC'),
+    CALL_STREAM_SPEECH: true, messages: [], profile: {}, sliceHistoryForAPI: (m) => m, getFriendlyError: () => 'err',
+    callAI: async (h, p, x) => { x.onDelta(REPLY); return REPLY; },
+    setCallState: (v) => { callState = v; }, childVoiceBlocked: () => false, SPEAKER_TAIL_MAX_MS: tailCap,
+    vadCtxRef: { current: { outputLatency: 0 } }, callGenRef: { current: 1 }, callActiveRef: { current: false },
+    callMutedRef: { current: !!o.muted }, abortRef: { current: null }, sequenceIdRef: { current: 0 },
+    audioRef: { current: null }, audioElRef: { current: null }, audioPlayTokenRef: { current: 0 }, audioDoneRef: { current: null },
+    callTalkRef: { current: null }, callTurnExemptRef: { current: false }, screen: 'call', useEffect: (fn) => fn(),
+    startCallListening: () => { mic.push({ t: now, viaBargeIn: inTalk, audioPaused: el ? el.paused : true }); ov.callActiveRef.current = true; },
+  };
+  Object.defineProperty(ov, 'callState', { get: () => callState });
+  const stubs = {};
+  const scope = new Proxy(ov, {
+    has: (t, k) => typeof k === 'string',
+    get: (t, k) => {
+      if (k === Symbol.unscopables) return undefined;
+      if (k in t) return t[k];
+      if (k in globalThis) return globalThis[k];
+      if (!(k in stubs)) stubs[k] = /Ref$/.test(k) ? { current: null } : function () {};
+      return stubs[k];
+    },
+    set: (t, k, v) => { t[k] = v; return true; },
+  });
+  // onCallTalk is wrapped only to record that the mic was opened FROM it (the barge-in path)
+  const talkBody = decls[7].slice('const onCallTalk = '.length);
+  const src = decls.filter((d, i) => d && i !== 7).join(';\n') + ';\n'
+    + 'const onCallTalk = () => { __enter(); try { return (' + talkBody + ')(); } finally { __leave(); } };\n'
+    + (effectLine ? effectLine + '\n' : '')
+    + 'return { runCallTurn, onCallTalk, cancelAudio };';
+  ov.__enter = () => { inTalk = true; }; ov.__leave = () => { inTalk = false; };
+  const fns = new Function('scope', 'with (scope) {\n' + src + '\n}')(scope);
+  let settled = false;
+  fns.runCallTurn('question').then(() => { settled = true; });
+  const pauseAt = TTS_MS + SEG_MS + SEG_MS / 2;               // the middle of sentence 2
+  if (o.event === 'external') at(pauseAt, () => { el.pause(); });
+  if (o.event === 'hangup') at(pauseAt, () => { ov.callGenRef.current++; fns.cancelAudio(); });
+  if (o.event === 'bargein') at(pauseAt, () => { fns.onCallTalk(); });
+  const drain = async () => { for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r)); };
+  for (let guard = 0; guard < 10000; guard++) {
+    await drain();
+    if (!timers.length) break;
+    timers.sort((a, b) => a.t - b.t || a.n - b.n);
+    const x = timers.shift(); now = x.t; x.fn();
+  }
+  await drain();
+  const idx = (t) => split(REPLY).indexOf(t) + 1;
+  return { played: plays.map((p) => idx(p.text)), plays, mic, settled, pauseAt, state: callState };
+}
+async function checkExternalPause(html) {
+  let n, x, h, b, m;
+  try {
+    n = await simulateExternalPause(html, {});
+    x = await simulateExternalPause(html, { event: 'external' });
+    h = await simulateExternalPause(html, { event: 'hangup' });
+    b = await simulateExternalPause(html, { event: 'bargein' });
+    m = await simulateExternalPause(html, { event: 'external', muted: true });
+  } catch (e) { fail('E11 the call playback does not run on the simulated clock: ' + e.message); return; }
+  const fmt = (r) => 'played [' + r.played.join(',') + '], mic ' + (r.mic.length ? r.mic.map((q) => q.t + 'ms' + (q.viaBargeIn ? ' via barge-in' : ' via re-arm')).join(' + ') : 'never');
+  info('E11 external pause at ' + x.pauseAt + ' ms (mid sentence 2): ' + fmt(x));
+  info('E11 no pause: ' + fmt(n) + ' | hang-up: ' + fmt(h) + ' | barge-in tap: ' + fmt(b) + ' | external pause while muted: ' + fmt(m) + ', state ' + m.state);
+  if (x.played.join(',') === '1,2' && x.settled) pass('E11 an external pause in the middle of sentence 2: sentences 3 and 4 never play');
+  else fail('E11 an external pause did not stop the answer: played [' + x.played.join(',') + ']');
+  if (x.mic.length === 1 && x.mic[0].viaBargeIn && x.mic[0].audioPaused && x.mic[0].t >= x.pauseAt)
+    pass('E11 ...and the mic opens once, through the barge-in path, after the voice has stopped (' + x.mic[0].t + ' ms)');
+  else fail('E11 after an external pause the mic did not open once through the barge-in path: ' + fmt(x));
+  if (n.played.join(',') === '1,2,3,4' && n.mic.length === 1 && !n.mic[0].viaBargeIn && n.mic[0].t === n.plays[3].stop)
+    pass('E11 the end of each segment is unchanged: all four play and the mic re-opens after the last (' + n.mic[0].t + ' ms)');
+  else fail('E11 the end of a segment is no longer a finished segment: ' + fmt(n));
+  if (h.played.join(',') === '1,2' && h.mic.length === 0) pass('E11 a hang-up is unchanged: the answer stops and nothing re-opens');
+  else fail('E11 a hang-up now behaves differently: ' + fmt(h));
+  if (b.played.join(',') === '1,2' && b.mic.length === 1 && b.mic[0].viaBargeIn) pass('E11 a barge-in tap is unchanged: the answer stops and the mic opens once');
+  else fail('E11 a barge-in tap now behaves differently: ' + fmt(b));
+  if (m.played.join(',') === '1,2' && m.mic.length === 0 && m.state === 'idle') pass('E11 muted: an external pause still stops the answer, opens no mic, and the call goes idle');
+  else fail('E11 muted: an external pause does not behave as a muted barge-in: ' + fmt(m) + ', state ' + m.state);
+}
+
+// ===========================================================================
 (async () => {
   // ITEM 32: the call screen is in app.jsx now, so this reads the shipped client, not the shell.
   let html = null;
@@ -1156,10 +2261,23 @@ function checkStructure(html) {
   await checkRelays();
   console.log('  -- CHECK B: message maps (executed) --');
   checkMessages(html);
+  checkMicMessages(html);
   console.log('  -- CHECK C: call-path structure --');
   checkStructure(html);
   console.log('  -- CHECK D: complete model routing (executed) --');
   await checkModelRouting();
+  console.log('  -- CHECK E: the call speech pump (executed) --');
+  checkSpeechPump(html);
+  await checkPrefetch(html);
+  await checkSpokenAttribution(html);
+  await checkRearm(html);
+  checkDictationRestart(html);
+  await checkCaptureResume(html);
+  await checkHandOver(html);
+  await checkExternalPause(html);
+  await checkDomainDot(html);
+  await checkLevelGate(html);
+  await checkHeardWords(html);
 
   console.log('  SUMMARY   PASS=' + P + '   FAIL=' + F);
   if (F > 0) {

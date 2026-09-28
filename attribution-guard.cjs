@@ -697,6 +697,8 @@ const user = (t) => [{ role: 'user', content: t }];
     sandbox.EZIK_INCOMPLETE_STRIP = vm.runInNewContext('(' + initializer('EZIK_INCOMPLETE_STRIP') + ')', sandbox);
     sandbox.EZIK_INCOMPLETE_TEST = vm.runInNewContext('(' + initializer('EZIK_INCOMPLETE_TEST') + ')', sandbox);
     sandbox.ezikStripIncomplete = vm.runInNewContext('(' + initializer('ezikStripIncomplete') + ')', sandbox);
+    // Q1: formatForTTS silences a source-label line with the client's own pattern, hoisted like the rest.
+    sandbox.EZ_TTS_SOURCE_LINE_SRC = vm.runInNewContext('(' + initializer('EZ_TTS_SOURCE_LINE_SRC') + ')', sandbox);
     const clientFunction = (name) => {
       const source = initializer(name);
       ok('the client exposes ' + name + ' as a structural unit', !!source);

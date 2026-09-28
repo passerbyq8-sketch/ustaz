@@ -590,6 +590,22 @@ export function buildSourceTag(src) {
 // citation of nothing. The same grammar `buildSourceTag` satisfies is satisfied here, for the
 // same reason: the client parses these tags back out with `([^>]*)` and `["']([^"']+)["']`, so a
 // quote or an angle bracket inside an attribute would truncate the card silently.
+//
+// ITEM 108 (ORDER-108C B3) -- AND WHERE THE BOOK IS, SO THE READER CAN OPEN IT. Still no link and
+// no host: the card carries the book's LIBRARY ID (the row's `subjectId`, which is the service's
+// own `subject_id` -- FC- and six digits -- carried by lib/free-brain/tools.js and never derived)
+// and, only when the locator survived both page gates upstream, the volume and first page from
+// the row's `locatorSpan`. The client turns these into a same-origin /library.html link. A row
+// whose id is not of that exact shape yields no attribute at all, and the answer text is untouched.
+const LIB_BOOK_ID_SHAPE = /^FC-[0-9]{6}$/;
+function bookPlaceAttrs(row) {
+  const id = String((row && row.subjectId) || '');
+  if (!LIB_BOOK_ID_SHAPE.test(id)) return '';
+  const span = (row && row.locatorSpan) || {};
+  const page = /^[0-9]{1,6}$/.test(String(span.pageStart || '')) ? String(span.pageStart) : '';
+  const vol = page && /^[0-9]{1,4}$/.test(String(span.volume || '')) ? String(span.volume) : '';
+  return ` book="${id}"` + (vol ? ` vol="${vol}"` : '') + (page ? ` page="${page}"` : '');
+}
 export function buildBookTag(row) {
   const attr = (value) => String(value == null ? '' : value)
     .replace(/["'<>]/g, ' ')
@@ -601,7 +617,7 @@ export function buildBookTag(row) {
   if (!title) return dropCard('book-without-title', row && row.recordId);
   const author = attr(row && row.author);
   const where = attr(row && row.locator);
-  const attrs = (author ? ` author="${author}"` : '') + (where ? ` ref="${where}"` : '');
+  const attrs = (author ? ` author="${author}"` : '') + (where ? ` ref="${where}"` : '') + bookPlaceAttrs(row);
   // ع-٤٩/د١ — THE MATN RIDES ON THE CARD, BASE64, AND THE ENCODING IS NOT DECORATION.
   //
   // The client parses these tags back out with `([^>]*)` for the attributes and

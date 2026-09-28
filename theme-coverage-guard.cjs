@@ -2719,8 +2719,17 @@ ok('N10: the explicit entry from home still starts a new one',
 // ezikResumeScreen() and nothing else -- rather than accepting any expression at all. The two
 // halves of that ruling are held by the case below, which is what keeps this one honest: a first
 // opening still lands on the chat, and ezikResumeScreen is the only thing that decides.
-ok('N10: the boot lands on an EMPTY thread and opens no saved conversation',
-  /chatIdRef\.current = null;\s*\r?\n\s*setChatId\(null\);\s*\r?\n\s*setMessages\(\[\]\);\s*\r?\n\s*setChatList\(ezikListChats\(ezikProfileKey\(p\)\)\);(?:\s*\r?\n\s*(?:\/\/[^\n]*|ezikResumeMarkEntered\(ezikReadResume\(\)\);))*\s*\r?\n\s*setScreen\(ezikResumeScreen\(\)\);/.test(html));
+// ORDER-108D D2 (owner's order, 28 September) -- ONE NAMED EXCEPTION, AND ONLY ONE. Coming back
+// from the library must reopen the conversation the reader left, so the boot may now open exactly
+// ONE saved conversation: the one ezikTakeBootIntent returned as kind 'thread', through
+// openSavedChat, on the line directly after the destination. The four statements and the
+// destination are asserted exactly as before; the added tail admits that one line by name and
+// nothing else, and the case after this one pins where bootIntent comes from.
+ok('N10: the boot lands on an EMPTY thread and opens no saved conversation but the library\'s named one',
+  /chatIdRef\.current = null;\s*\r?\n\s*setChatId\(null\);\s*\r?\n\s*setMessages\(\[\]\);\s*\r?\n\s*setChatList\(ezikListChats\(ezikProfileKey\(p\)\)\);(?:\s*\r?\n\s*(?:\/\/[^\n]*|ezikResumeMarkEntered\(ezikReadResume\(\)\);))*\s*\r?\n\s*setScreen\(ezikResumeScreen\(\)\);[^\n]*\r?\n\s*if \(bootIntent\.kind === 'thread'\) openSavedChat\(bootIntent\.thread\);[^\n]*\r?\n\s*\} else \{/.test(html));
+ok('N10: ...and that one is the boot intent taken from the tab, for a conversation this profile still has',
+  html.indexOf("const bootIntent = ezikTakeBootIntent((id) => ezikListChats(ezikProfileKey(p)).some((r) => r.id === id));") !== -1
+  && (html.match(/openSavedChat\(bootIntent\.thread\)/g) || []).length === 1);
 // ITEM 88 BATCH B, ITEM 1 -- AND THE MARK THE BOOT LEAVES, PINNED BY NAME. The line above
 // admits exactly one statement between the emptied thread and the destination, and this is
 // what that statement must be: the boot naming the section it is restoring, so that section
@@ -3292,7 +3301,7 @@ ok('O1: no ezcall selector can match html, body or :root',
 /* ---- O2. the dark room and its white-on-navy captions are GONE ---------- */
 okOn('O2: the call screen paints no gradient anywhere', [["callView", callView]], !/gradient/.test(callCode));
 const CALL_STYLE_KEYS = ['callContainer', 'callAvatarWrap', 'callRing', 'callAvatar', 'callStatusLabel',
-  'callSubLabel', 'callHint', 'callErrorBanner', 'callControls', 'callMuteBtn', 'callEndBtn', 'callBtnLabel'];
+  'callSubLabel', 'callHint', 'callHeardWords', 'callErrorBanner', 'callControls', 'callMuteBtn', 'callEndBtn', 'callBtnLabel'];
 eq('O2: ...nor does any object it draws from',
   CALL_STYLE_KEYS.filter((k) => /gradient/.test(JSON.stringify(s[k] || {}))), []);
 ok('O2: the caption and the free-floating centre column are gone, keys and all',
@@ -3396,7 +3405,7 @@ ok('O6: no ezcall rule declares a viewport-wide box',
 /* ---- O9/O10. the way in, and the two barriers in front of it ----------- */
 ok('O9: the screen is still entered by setting the screen, and by nothing else',
   /onClick=\{\(\) => setScreen\('call'\)\}/.test(html)
-  && /if \(screen === 'call'\) return <CallScreen profileName=\{profile\?\.name\} gender=\{profile\?\.gender\} callState=\{callState\} heard=\{callHeard\} isMuted=\{isCallMuted\} error=\{voiceError\} onToggleMute=\{toggleCallMute\} onTalk=\{onCallTalk\} onExit=\{goEzikBack\} \/>;/.test(html));
+  && /if \(screen === 'call'\) return <CallScreen profileName=\{profile\?\.name\} gender=\{profile\?\.gender\} callState=\{callState\} heard=\{callHeard\} heardWords=\{callHeardWords\} isMuted=\{isCallMuted\} error=\{voiceError\} onToggleMute=\{toggleCallMute\} onTalk=\{onCallTalk\} onExit=\{goEzikBack\} \/>;/.test(html));
 {
   const spendAt = html.indexOf("if ((screen === 'chat' || screen === 'call') && !spendGateOpenState) return <SpendGate");
   const childAt = html.indexOf("if (screen === 'call' && childVoiceBlocked()) return <ChildVoiceNotice");
@@ -3545,6 +3554,7 @@ ok('O18: ...and no ezcall selector was smuggled into the reduced-motion block',
     MUTE_ON: 'مكتوم',
     MUTE_OFF: 'كتم',
     END: 'إنهاء',
+    HEARD: 'سمعتُ: ',   // H1 (T4 fix 4): the one word the owner's order added -- the heard-words prefix
   };
   const decodedCall = callView.replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
   const wrong = Object.keys(WORDS).filter((k) => decodedCall.indexOf(k + ':' + ' '.repeat(Math.max(1, 11 - k.length)) + "'" + WORDS[k] + "'") === -1
@@ -4522,7 +4532,8 @@ const prayerTouch = (prayerTouchAt !== -1 && prayerTouchEnd > prayerTouchAt)
   ? html.slice(prayerTouchAt, prayerTouchEnd) : '';
 ok('W5: every compact action group carries the non-painting 44px hit scope',
   /className="ez-hit" style=\{s\.quickRow\} role="group"/.test(html)
-  && (prayerTouch.match(/className="ez-hit" style=\{s\.prayerOptRow\}/g) || []).length === 2
+  && (prayerTouch.match(/className="ez-hit" style=\{s\.prayerOptRow\}/g) || []).length === 3
+  && /data-ezik-prayer-setting="adhan-sound"/.test(prayerTouch)
   && /data-ezik-prayer-setting="hijri"[\s\S]{0,100}style=\{\{ \.\.\.s\.a11yOpt/.test(html)
   && /a11yOpt:\s*\{[^}]*minHeight:\s*44/.test(html),
   'prayer region=' + prayerTouch.length
@@ -5327,8 +5338,10 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
     // not relaxed, not deleted and not made dynamic: it is still the one line that says what the
     // shelf IS, and a shelf that grows, loses or reorders a section without a ruling still fails
     // here. Twelve ids now, and `sunan-day` is the id the data file itself carries.
-    eq('ITEM20/3: ...eleven of them, still in the order the shelf rulings fixed', hidden,
-      ['asmaa', 'articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
+    // ITEM 108 (ORDER-108C, 28 September): the owner's order adds the library section after the lessons;
+    // re-cut on that ruling, not relaxed. Thirteen ids now, twelve with the women's corner hidden.
+    eq('ITEM20/3: ...twelve of them, still in the order the shelf rulings fixed', hidden,
+      ['asmaa', 'articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'library', 'prayer']);
     // ITEM 26 / SHIP §1-2 (9 September) -- THE DEFAULT ORDER, STATED IN FULL. It replaced D-9's
     // «articles then women first» on 8 September, and the owner has replaced its own head today:
     // «أسماء الله الحسنى» is FIRST, ahead of the articles section, which item 20 §2 had put
@@ -5345,13 +5358,15 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
       JSON.stringify(shown));
     // ORDER 87D: one more id between the two ends, for the ruling stated above -- the head is
     // still the names section and the tail is still the women's corner, and neither moved.
-    eq('ITEM26/1-2: ...and the ten between them keep the order the shelf rulings fixed',
-      shown.slice(1, -1), ['articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer']);
+    // ITEM 108 (ORDER-108C, 28 September): the owner's order adds the library section after the lessons: eleven between the two ends.
+    eq('ITEM26/1-2: ...and the eleven between them keep the order the shelf rulings fixed',
+      shown.slice(1, -1), ['articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'library', 'prayer']);
     // ORDER 87D: the same line, re-cut for the same ruling. Eleven became TWELVE on 14 September
     // because the owner said item 87 is a section; it did not become twelve because a tile was
     // added and this line was in the way.
-    eq('ITEM26/1-2: ...so the default shelf is these twelve, in this order', shown,
-      ['asmaa', 'articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'prayer', 'women']);
+    // ITEM 108 (ORDER-108C, 28 September): the owner's order adds the library section after the lessons: twelve became THIRTEEN on that ruling.
+    eq('ITEM26/1-2: ...so the default shelf is these thirteen, in this order', shown,
+      ['asmaa', 'articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'library', 'prayer', 'women']);
     // AND WHERE IT COMES BACK IS THE END. The hidden shelf is the shown shelf with one row cut
     // out, so putting the row back can only put it where the array holds it -- last. This is the
     // same fact the two F15 cases below state from the other side, asserted here as the ORDER

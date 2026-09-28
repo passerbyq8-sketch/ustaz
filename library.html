@@ -1,0 +1,1811 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0B5F8E">
+<title>المكتبة</title>
+<style>
+/* Identity: Ezik istana_33 tokens (inputs/ezik-index-snapshot.html, S100), day = light,
+   night = dark. Sepia is the library's own third mode. Fonts are named, never downloaded. */
+:root{
+  --vt-page:#FFFFFF; --vt-surface:#FFFFFF; --vt-surface2:#EEF6F7;
+  --vt-ink:#10364E; --vt-muted:#647780;
+  --vt-accent:#0B5F8E; --vt-accent2:#C43E38;
+  --vt-line:#C8DDE2;
+  --vt-radius:18px; --vt-radius-sig:120px 120px 18px 18px;
+  --vt-shadow:0 18px 45px rgba(12,78,105,.12);
+  --vt-focus:#08486E;
+  --vt-on-accent:#FFFFFF; --vt-accent-ink:#0A5480; --vt-accent2-ink:#9E2F2A;
+  --vt-on-accent2:#FFFFFF; --vt-marker:#C43E38;
+  --vt-deep:#083A57; --vt-soft:#E3EFF5;
+  --vt-font:'Noto Naskh Arabic', 'Amiri', 'Traditional Arabic', Georgia, serif;
+  --ez-ui-font:'Tajawal', 'Noto Kufi Arabic', Tahoma, sans-serif;
+  --hl1:rgba(255,213,79,.55); --hl2:rgba(129,199,132,.50); --hl3:rgba(100,181,246,.45);
+  --rd-scale:1; --rd-lh:1.9;
+  color-scheme:light;
+}
+:root[data-mode="night"]{
+  --vt-page:#0A141B; --vt-surface:#101F29; --vt-surface2:#182D39;
+  --vt-ink:#E6F1F7; --vt-muted:#A8BBC5;
+  --vt-accent:#63B6E4; --vt-accent2:#EE8A83;
+  --vt-line:#25404E;
+  --vt-shadow:0 18px 45px rgba(0,0,0,.50);
+  --vt-focus:#8CCDEE;
+  --vt-on-accent:#04202F; --vt-accent-ink:#8CCDEE; --vt-accent2-ink:#F4B2AC;
+  --vt-on-accent2:#04202F; --vt-marker:#EE8A83;
+  --vt-deep:#4A9CCB; --vt-soft:#142C3A;
+  --hl1:rgba(255,213,79,.30); --hl2:rgba(129,199,132,.30); --hl3:rgba(100,181,246,.30);
+  color-scheme:dark;
+}
+:root[data-mode="sepia"]{
+  --vt-page:#F5ECD7; --vt-surface:#FBF4E4; --vt-surface2:#EFE3C8;
+  --vt-ink:#43301C; --vt-muted:#7A6650;
+  --vt-accent:#7B4F22; --vt-accent2:#A63A33;
+  --vt-line:#DCCBA8;
+  --vt-shadow:0 18px 45px rgba(90,60,20,.14);
+  --vt-focus:#5C3A17;
+  --vt-on-accent:#FFFFFF; --vt-accent-ink:#6A421B; --vt-accent2-ink:#8E2F29;
+  --vt-deep:#5C3A17; --vt-soft:#EADBBC;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--vt-page);color:var(--vt-ink);font-family:var(--ez-ui-font);-webkit-text-size-adjust:100%}
+body{overscroll-behavior:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+:focus-visible{outline:2px solid var(--vt-focus);outline-offset:2px}
+.hidden{display:none!important}
+#app{height:100%;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;gap:8px;padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top));background:var(--vt-surface);border-bottom:1px solid var(--vt-line);min-height:56px;flex:none}
+.top h1{font-size:18px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ibtn{min-width:40px;height:40px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:15px;color:var(--vt-accent-ink);background:var(--vt-surface2);padding:0 10px;white-space:nowrap}
+.ibtn[aria-pressed="true"]{background:var(--vt-accent);color:var(--vt-on-accent)}
+.scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+.wrap{max-width:880px;margin:0 auto;padding:16px}
+.search{width:100%;height:46px;border-radius:14px;border:1px solid var(--vt-line);background:var(--vt-surface);padding:0 14px;font-size:16px}
+.hero{border-radius:var(--vt-radius-sig);background:var(--vt-soft);padding:36px 20px 18px;text-align:center;margin-bottom:14px}
+.hero h2{margin:0 0 6px;font-family:var(--vt-font);font-size:26px;color:var(--vt-accent-ink)}
+.hero p{margin:0;color:var(--vt-muted);font-size:14px}
+.sec-title{font-size:15px;color:var(--vt-muted);margin:18px 2px 8px}
+.row{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}
+.cont{flex:none;width:210px;scroll-snap-align:start;background:var(--vt-surface);border:1px solid var(--vt-line);border-radius:var(--vt-radius);padding:12px;text-align:right}
+.cont b{display:block;font-family:var(--vt-font);font-size:16px;line-height:1.5;max-height:3em;overflow:hidden}
+.cont span{font-size:13px;color:var(--vt-muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.cat{background:var(--vt-surface);border:1px solid var(--vt-line);border-radius:var(--vt-radius);padding:14px 12px;text-align:right;min-height:78px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 1px 0 var(--vt-line)}
+.cat b{font-size:15px;line-height:1.45}
+.cat span{font-size:13px;color:var(--vt-muted)}
+.cat.empty{opacity:.55}
+.results{margin-top:8px}
+.item{display:block;width:100%;text-align:right;padding:10px 12px;border-bottom:1px solid var(--vt-line);background:var(--vt-surface)}
+.item b{display:block;font-family:var(--vt-font);font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item span{font-size:13px;color:var(--vt-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.tools{display:flex;gap:8px;padding:10px 16px;background:var(--vt-surface);border-bottom:1px solid var(--vt-line);flex:none}
+.tools input{flex:1;min-width:0;height:42px;border-radius:12px;border:1px solid var(--vt-line);background:var(--vt-page);padding:0 12px;font-size:16px}
+.tools select{height:42px;border-radius:12px;border:1px solid var(--vt-line);background:var(--vt-page);padding:0 8px}
+.vlist{flex:1;overflow:auto;position:relative;-webkit-overflow-scrolling:touch}
+.vlist .item{position:absolute;right:0;left:0;height:64px}
+.muted{color:var(--vt-muted)}
+.note{background:var(--vt-soft);border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.7;margin:12px 0}
+.card{background:var(--vt-surface);border:1px solid var(--vt-line);border-radius:var(--vt-radius);padding:16px;box-shadow:var(--vt-shadow)}
+.card h2{font-family:var(--vt-font);font-size:22px;line-height:1.6;margin:0 0 4px}
+.card dl{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:12px 0 0;font-size:14px}
+.card dt{color:var(--vt-muted)}
+.card dd{margin:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:46px;padding:0 22px;border-radius:14px;background:var(--vt-accent);color:var(--vt-on-accent);font-size:16px;font-weight:600}
+.btn.ghost{background:var(--vt-surface2);color:var(--vt-accent-ink)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.toc{list-style:none;margin:0;padding:0}
+.toc li button,.toc li span{display:block;width:100%;text-align:right;padding:8px 4px;border-bottom:1px solid var(--vt-line);font-family:var(--vt-font);font-size:15px;line-height:1.6}
+.toc li[data-d="2"]{padding-right:14px}.toc li[data-d="3"]{padding-right:28px}.toc li[data-d="4"]{padding-right:42px}.toc li[data-d="5"]{padding-right:56px}.toc li.deep{padding-right:66px}
+.toc small{color:var(--vt-muted);font-family:var(--ez-ui-font)}
+.msg{padding:28px 16px;text-align:center;color:var(--vt-muted)}
+/* ---------- search (ORDER-108B) ---------- */
+.sbox{display:flex;gap:8px;align-items:center}
+.sbox select{height:46px;border-radius:14px;border:1px solid var(--vt-line);background:var(--vt-surface);padding:0 8px;font-size:15px;flex:none;max-width:40%}
+.sbox .search{flex:1;min-width:0}
+.sbox .ask{flex:none;height:46px;border-radius:14px;padding:0 12px;background:var(--vt-surface2);color:var(--vt-accent-ink);font-size:14px;white-space:nowrap}
+.sscope{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0}
+.sscope button{padding:6px 12px;border-radius:999px;background:var(--vt-surface2);font-size:13px}
+.sscope button[aria-pressed="true"]{background:var(--vt-accent);color:var(--vt-on-accent)}
+.snote{font-size:13px;color:var(--vt-muted);margin:8px 2px 0}
+.hit{display:block;width:100%;text-align:right;padding:10px 12px;border-bottom:1px solid var(--vt-line);background:var(--vt-surface)}
+.hit .snip{display:block;font-family:var(--vt-font);font-size:16px;line-height:1.8;color:var(--vt-ink)}
+.hit .src{display:block;font-size:13px;color:var(--vt-muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+mark.qh{background:var(--hl1);color:inherit;border-radius:3px;outline:1px solid var(--vt-accent2);outline-offset:0}
+.more{display:block;margin:12px auto}
+.ssheet{position:fixed;inset:0;z-index:45;background:var(--vt-page);display:flex;flex-direction:column}
+.ssheet .wrap{width:100%}
+/* ---------- reader: one printed page per screen (ORDER-108B 4b) ---------- */
+.rd{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--vt-page)}
+.rd-view{flex:1;position:relative;overflow:hidden;touch-action:pan-y}
+.rd-stage{position:absolute;inset:0;display:flex;flex-direction:row;justify-content:center;gap:0;will-change:transform}
+.rd-stage.anim{transition:transform .22s ease,opacity .22s ease}
+.scr{position:relative;height:100%;display:flex;flex-direction:column;padding:12px 16px 10px;overflow:hidden;
+  font-family:var(--vt-font);font-size:calc(19px * var(--rd-scale) * var(--fit,1));line-height:var(--rd-lh);text-align:justify;overflow-wrap:break-word}
+.rd-stage .scr{flex:0 0 auto}
+.rd-stage.two .scr + .scr{box-shadow:inset -1px 0 0 var(--vt-line)}
+.scr.blank{visibility:hidden}
+.scr-clip{overflow:hidden;flex:none;position:relative}
+.scr-clip > .pg-body,.scr-clip > .pg-foot{position:relative}
+.scr-foot{margin-top:auto;flex:none;padding-top:.5em}
+.pg-mark{display:block;text-align:center;margin:0 0 8px;font-family:var(--ez-ui-font);font-size:12px;line-height:1.4;flex:none}
+.pg-mark span{display:inline-block;border:1px solid var(--vt-line);border-radius:999px;padding:2px 10px;color:var(--vt-muted);background:var(--vt-surface)}
+.pg-mark.bm span{border-color:var(--vt-accent2);color:var(--vt-accent2-ink)}
+.pg-mark.cont span{border-style:dashed}
+.pg-body{white-space:pre-line}
+.pg-foot{white-space:pre-line;font-size:.8em;line-height:1.7;color:var(--vt-muted)}
+.foot-rule{border-top:1px solid var(--vt-muted);width:30%;margin:0 0 .4em auto;opacity:.7}
+.rd-measure{position:absolute;visibility:hidden;pointer-events:none;top:0;right:0;contain:layout}
+.rd-edge{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--vt-muted);font-size:14px}
+.s-title{color:var(--vt-accent2-ink);font-weight:700}
+.s-red{color:var(--vt-accent2)}
+.s-matn{color:var(--vt-accent-ink);font-weight:700;background:var(--vt-soft);border-radius:4px;box-decoration-break:clone;-webkit-box-decoration-break:clone;padding:0 2px}
+mark{color:inherit;border-radius:3px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+mark.h1{background:var(--hl1)}mark.h2{background:var(--hl2)}mark.h3{background:var(--hl3)}
+mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
+.rd-bar{display:flex;align-items:center;gap:10px;padding:8px 16px;padding-bottom:max(8px,env(safe-area-inset-bottom));border-top:1px solid var(--vt-line);background:var(--vt-surface);font-size:13px;color:var(--vt-muted);flex:none;min-height:40px}
+.rd-bar .where{flex:1;color:var(--vt-ink)}
+.rd-bar .ibtn{height:30px;min-width:30px;font-size:12px;border-radius:10px}
+.selbar{position:fixed;left:50%;transform:translateX(-50%);top:64px;z-index:30;display:flex;gap:8px;align-items:center;background:var(--vt-surface);border:1px solid var(--vt-line);box-shadow:var(--vt-shadow);border-radius:999px;padding:6px 10px}
+.dot{width:30px;height:30px;border-radius:50%;border:2px solid var(--vt-line)}
+.dot.h1{background:#FFD54F}.dot.h2{background:#81C784}.dot.h3{background:#64B5F6}
+.dot[aria-pressed="true"]{border-color:var(--vt-ink)}
+.drawer{position:fixed;inset:0;z-index:40;display:flex}
+.drawer .shade{flex:1;background:rgba(0,0,0,.35)}
+.drawer .panel{width:min(92vw,420px);background:var(--vt-surface);height:100%;display:flex;flex-direction:column;box-shadow:var(--vt-shadow)}
+.tabs{display:flex;gap:6px;padding:10px;border-bottom:1px solid var(--vt-line);flex-wrap:wrap}
+.tabs button{padding:8px 12px;border-radius:10px;background:var(--vt-surface2);font-size:14px}
+.tabs button[aria-selected="true"]{background:var(--vt-accent);color:var(--vt-on-accent)}
+.panel .body{flex:1;overflow:auto;padding:12px 14px}
+.field{display:flex;gap:8px;align-items:center;margin:10px 0}
+.field input{width:90px;height:42px;border-radius:10px;border:1px solid var(--vt-line);background:var(--vt-page);padding:0 10px;font-size:16px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{padding:8px 14px;border-radius:10px;background:var(--vt-surface2)}
+.seg button[aria-pressed="true"]{background:var(--vt-accent);color:var(--vt-on-accent)}
+.nrec{border:1px solid var(--vt-line);border-radius:14px;padding:10px 12px;margin:8px 0;background:var(--vt-page)}
+.nrec q{display:block;font-family:var(--vt-font);font-size:15px;line-height:1.7;quotes:none;border-right:4px solid var(--hl1);padding-right:8px}
+.nrec q.h2{border-color:#81C784}.nrec q.h3{border-color:#64B5F6}
+.nrec p{margin:6px 0 0;font-size:14px;white-space:pre-wrap}
+.nrec .meta{font-size:12px;color:var(--vt-muted);margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.nrec .meta button{color:var(--vt-accent-ink);font-size:13px;padding:4px 6px}
+.modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;padding:16px}
+.modal .box{background:var(--vt-surface);border-radius:var(--vt-radius);padding:16px;width:min(100%,460px)}
+.modal textarea{width:100%;min-height:120px;border-radius:12px;border:1px solid var(--vt-line);background:var(--vt-page);padding:10px;font-size:16px;line-height:1.7}
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--vt-ink);color:var(--vt-page);padding:10px 16px;border-radius:12px;z-index:60;font-size:14px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script id="ezlib-strings" type="application/json">
+{
+  "app_title": ["المكتبة", "عنوان الصفحة ورأس الصفحة الرئيسية"],
+  "home_hero": ["المكتبة", "بطاقة الترحيب في الرئيسية"],
+  "home_hero_sub": ["أقسام المكتبة الشاملة، وكتبنا في كل قسم", "تحت عنوان الترحيب"],
+  "search_ph": ["ابحث باسم الكتاب", "مربع البحث في الرئيسية"],
+  "search_none": ["لا توجد كتب بهذا الاسم", "نتيجة بحث فارغة"],
+  "continue": ["تابع القراءة", "عنوان صف متابعة القراءة في الرئيسية"],
+  "sections": ["الأقسام", "عنوان شبكة الأقسام في الرئيسية"],
+  "books_n": ["{n} كتاب", "عدد الكتب تحت اسم القسم"],
+  "my_notes": ["ملاحظاتي", "زر في الرئيسية وعنوان صفحة الملاحظات"],
+  "back": ["رجوع", "زر الرجوع في الرأس"],
+  "filter_ph": ["تصفية الكتب في هذا القسم", "مربع التصفية في صفحة القسم"],
+  "sort_title": ["ترتيب: العنوان", "قائمة الترتيب في صفحة القسم"],
+  "sort_author": ["ترتيب: المؤلف", "قائمة الترتيب في صفحة القسم"],
+  "sort_death": ["ترتيب: سنة الوفاة", "قائمة الترتيب في صفحة القسم"],
+  "loading": ["جارٍ التحميل…", "أثناء تحميل البيانات"],
+  "load_error": ["تعذّر الاتصال بالمكتبة. حاول مرة أخرى.", "عند فشل طلب الخادم"],
+  "retry": ["إعادة المحاولة", "زر بعد فشل التحميل"],
+  "no_books": ["لا توجد كتب", "قسم أو تصفية بلا نتائج"],
+  "died": ["ت {y} هـ", "سنة الوفاة بجانب اسم المؤلف"],
+  "f_title": ["الكتاب", "بطاقة الكتاب"],
+  "f_author": ["المؤلف", "بطاقة الكتاب"],
+  "f_death": ["سنة الوفاة", "بطاقة الكتاب"],
+  "f_editor": ["المحقق", "بطاقة الكتاب"],
+  "f_publisher": ["الناشر", "بطاقة الكتاب"],
+  "f_edition": ["الطبعة", "بطاقة الكتاب"],
+  "f_pages": ["الصفحات", "بطاقة الكتاب"],
+  "f_vols": ["الأجزاء", "بطاقة الكتاب"],
+  "f_numbering": ["الترقيم", "بطاقة الكتاب"],
+  "num_print": ["موافق للمطبوع", "قيمة الترقيم في البطاقة"],
+  "num_auto": ["ترقيم آلي", "قيمة الترقيم في البطاقة وشريط القارئ"],
+  "num_unknown": ["غير مذكور في البطاقة", "قيمة الترقيم حين لا تذكره البطاقة"],
+  "num_none": ["لا بطاقة للكتاب", "قيمة الترقيم لكتاب بلا بطاقة"],
+  "hijri_suffix": ["{y} هـ", "سنة الوفاة في البطاقة"],
+  "unknown": ["غير معروف", "قيمة مجهولة في البطاقة"],
+  "read": ["اقرأ", "زر القراءة في بطاقة الكتاب"],
+  "continue_btn": ["تابع القراءة", "زر المتابعة في بطاقة الكتاب"],
+  "card_only_note": ["يعرض هذا الإصدار بطاقة الكتاب فقط، ويمكنك أن تسأل عزك عنه في المحادثة فينقل لك منه مع ذكر المصدر.", "بطاقة كتاب متاح كبطاقة فقط (نص المالك، ORDER-108B)"],
+  "toc": ["الفهرس", "عنوان الفهرس في البطاقة ولسان القارئ"],
+  "toc_empty": ["لا فهرس لهذا الكتاب", "فهرس فارغ"],
+  "page_short": ["ص {p}", "رقم الصفحة في الفهرس والملاحظات"],
+  "mark_print": ["ج {v} · ص {p}", "علامة الصفحة المطبوعة داخل النص وشريط القارئ"],
+  "mark_print_nov": ["ص {p}", "علامة صفحة مطبوعة بلا جزء"],
+  "mark_auto": ["ترقيم آلي · {p}", "علامة الصفحة لكتاب مرقم آليا"],
+  "mark_unknown": ["صفحة {p} (ترقيم غير موثق)", "علامة الصفحة لكتاب لا تؤكد بطاقته الترقيم"],
+  "mark_seq": ["الموضع {s}", "علامة موضع بلا رقم صفحة"],
+  "page_of": ["{i} / {n}", "عدّاد صفحات الكتاب في شريط القارئ (صفحة واحدة)"],
+  "pages_of": ["{a}–{b} / {n}", "عدّاد صفحات الكتاب في شريط القارئ (صفحتان)"],
+  "mark_cont": ["تابع {m}", "علامة شاشة تكمل صفحة مطبوعة لم تتسع لها شاشة واحدة"],
+  "two_pages": ["صفحتان", "زر في رأس القارئ على الشاشات الكبيرة: عرض صفحتين متقابلتين"],
+  "search_btn": ["بحث", "زر البحث في رأس القسم والبطاقة والقارئ"],
+  "search_title": ["البحث", "عنوان لوحة البحث"],
+  "smode_label": ["نوع البحث", "قائمة نوع البحث بجانب مربع البحث"],
+  "smode_text": ["كلمات في الكتب", "قائمة نوع البحث"],
+  "smode_title": ["اسم الكتاب", "قائمة نوع البحث"],
+  "smode_author": ["المؤلف", "قائمة نوع البحث"],
+  "sph_text": ["ابحث عن كلمات داخل الكتب", "مربع البحث حين يكون النوع كلمات"],
+  "sph_author": ["ابحث باسم المؤلف", "مربع البحث حين يكون النوع مؤلفا"],
+  "scope_all": ["المكتبة كلها", "نطاق البحث"],
+  "scope_section": ["هذا القسم", "نطاق البحث داخل قسم"],
+  "scope_book": ["هذا الكتاب", "نطاق البحث داخل كتاب"],
+  "none_text": ["لا توجد نتائج لهذه الكلمات", "نتيجة بحث الكلمات الفارغة"],
+  "none_author": ["لا يوجد مؤلف بهذا الاسم", "نتيجة بحث المؤلفين الفارغة"],
+  "s_refused": ["كلمات البحث شائعة جدًا؛ أضف كلمة أدق.", "حين يرفض محرك البحث استعلاما واسعا جدا"],
+  "s_total": ["{n} نتيجة", "عدد نتائج البحث"],
+  "s_window": ["تُعرض أفضل {n} نتيجة", "حين تزيد النتائج على نافذة الترتيب"],
+  "s_more": ["المزيد", "زر تحميل المزيد من النتائج"],
+  "s_all_authors": ["كل المؤلفين", "رجوع من كتب مؤلف إلى قائمة المؤلفين"],
+  "ask_ezik": ["اسأل عزك", "زر بجانب مربع البحث يرسل السؤال إلى محادثة عزك"],
+  "ask_note": ["يعمل هذا الزر داخل تطبيق عزك.", "حين تُفتح المكتبة خارج عزك"],
+  "hl_clear": ["إخفاء تظليل البحث", "زر في شريط القارئ بعد فتح نتيجة بحث"],
+  "contents": ["الفهرس", "زر في رأس القارئ"],
+  "settings": ["العرض", "لسان إعدادات العرض في القارئ"],
+  "jump": ["انتقل", "لسان الانتقال إلى جزء وصفحة"],
+  "notes_tab": ["ملاحظاتي", "لسان ملاحظات الكتاب في القارئ"],
+  "vol": ["الجزء", "حقل الانتقال"],
+  "page": ["الصفحة", "حقل الانتقال"],
+  "go": ["اذهب", "زر الانتقال"],
+  "jump_not_found": ["لم توجد هذه الصفحة", "رسالة انتقال فاشل"],
+  "jump_near": ["انتقلت إلى أقرب صفحة بعدها", "رسالة انتقال تقريبي"],
+  "jump_auto_note": ["أرقام هذا الكتاب آلية وليست أرقام المطبوع", "تحت حقل الانتقال لكتاب مرقم آليا"],
+  "font_size": ["حجم الخط", "إعدادات العرض"],
+  "line_spacing": ["تباعد الأسطر", "إعدادات العرض"],
+  "ls_tight": ["ضيق", "تباعد الأسطر"],
+  "ls_normal": ["متوسط", "تباعد الأسطر"],
+  "ls_wide": ["واسع", "تباعد الأسطر"],
+  "mode": ["الوضع", "إعدادات العرض"],
+  "mode_day": ["نهاري", "زر الوضع"],
+  "mode_night": ["ليلي", "زر الوضع"],
+  "mode_sepia": ["بني", "زر الوضع"],
+  "mode_follow": ["كما في عزك", "زر الوضع: اتباع وضع عزك"],
+  "smaller": ["أصغر", "زر تصغير الخط"],
+  "larger": ["أكبر", "زر تكبير الخط"],
+  "bookmark": ["علامة", "زر العلامة في رأس القارئ"],
+  "bookmark_added": ["أضيفت علامة لهذه الصفحة", "تنبيه بعد إضافة علامة"],
+  "bookmark_removed": ["أزيلت العلامة", "تنبيه بعد إزالة علامة"],
+  "hl_color": ["تظليل", "شريط التحديد: عنوان الألوان"],
+  "add_note": ["ملاحظة", "شريط التحديد: زر الملاحظة"],
+  "cancel": ["إلغاء", "أزرار الإلغاء"],
+  "save": ["حفظ", "زر الحفظ في محرر الملاحظة"],
+  "delete": ["حذف", "زر الحذف في الملاحظات"],
+  "edit": ["تعديل", "زر التعديل في الملاحظات"],
+  "open": ["افتح", "زر فتح موضع الملاحظة"],
+  "note_ph": ["اكتب ملاحظتك", "محرر الملاحظة"],
+  "note_title": ["ملاحظة", "عنوان محرر الملاحظة"],
+  "notes_empty": ["لا ملاحظات بعد. حدّد نصًا في القارئ لتظليله أو للتعليق عليه.", "صفحة الملاحظات الفارغة"],
+  "t_highlight": ["تظليل", "نوع السجل في الملاحظات"],
+  "t_note": ["ملاحظة", "نوع السجل في الملاحظات"],
+  "t_bookmark": ["علامة", "نوع السجل في الملاحظات"],
+  "all_books": ["كل الكتب", "تصفية الملاحظات"],
+  "this_book": ["هذا الكتاب", "تصفية الملاحظات"],
+  "confirm_delete": ["أتحذف هذا السجل؟", "تأكيد الحذف"],
+  "saved": ["حُفظ", "تنبيه بعد الحفظ"],
+  "sel_one_page": ["حُفظ التحديد داخل صفحة واحدة فقط", "تنبيه حين يمتد التحديد إلى صفحة تالية"],
+  "card_only_reader": ["هذا الكتاب متاح كبطاقة فقط", "إذا فُتح القارئ لكتاب بطاقة"],
+  "end_of_book": ["نهاية الكتاب", "بعد آخر صفحة"],
+  "start_of_book": ["بداية الكتاب", "قبل أول صفحة"]
+}
+</script>
+
+<script id="ezlib-core">
+/* Pure logic of the library page. No DOM, no network. Tested by
+   app/tests/library-core.test.mjs under node:test. */
+(function (root) {
+  'use strict';
+  var KEEP = { title: 1, red: 1, matn: 1 };
+
+  // Parse the stored minimal markup: text with \n, <span class="title|red|matn">,
+  // and the escapes &amp; &lt; &gt;. Returns segments with their class stacks and
+  // the page plain text (the anchor space for notes).
+  function parseMarkup(markup) {
+    var segs = [], stack = [], plain = '', re = /<span class="([a-z]+)">|<\/span>|([^<]+)|</g, m;
+    markup = String(markup || '');
+    while ((m = re.exec(markup))) {
+      if (m[1] !== undefined) { stack.push(KEEP[m[1]] ? m[1] : ''); continue; }
+      if (m[0] === '</span>') { stack.pop(); continue; }
+      var t = m[2] !== undefined ? m[2] : '<';
+      t = t.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+      if (!t) continue;
+      segs.push({ t: t, cls: stack.filter(Boolean), start: plain.length });
+      plain += t;
+    }
+    return { segs: segs, plain: plain };
+  }
+
+  // Split segments at highlight boundaries. ranges: [{id,start,end,color,note}]
+  // Later ranges win where they overlap. Returns [{t, cls, hl|null}].
+  function applyHighlights(segs, ranges) {
+    var cuts = {}, out = [], i, j;
+    ranges = (ranges || []).filter(function (r) { return r.end > r.start; });
+    for (i = 0; i < ranges.length; i++) { cuts[ranges[i].start] = 1; cuts[ranges[i].end] = 1; }
+    for (i = 0; i < segs.length; i++) {
+      var s = segs[i], a = s.start, b = s.start + s.t.length, pts = [a];
+      for (var k in cuts) { var n = +k; if (n > a && n < b) pts.push(n); }
+      pts.sort(function (x, y) { return x - y; }); pts.push(b);
+      for (j = 0; j + 1 < pts.length; j++) {
+        var p = pts[j], q = pts[j + 1], hl = null;
+        for (var r = 0; r < ranges.length; r++) if (ranges[r].start <= p && ranges[r].end >= q) hl = ranges[r];
+        out.push({ t: s.t.slice(p - a, q - a), cls: s.cls, hl: hl, start: p });
+      }
+    }
+    return out;
+  }
+
+  // ---- one printed page per screen (ORDER-108B 4b) ----
+  // Every printed page starts on a new screen and a screen never shows parts of
+  // two printed pages. A page that does not fit is first shrunk, down to
+  // FIT_MIN of the chosen size; if it still does not fit it continues on the
+  // next screen(s) at the chosen size, its footnotes at the bottom of its last
+  // screen. Never a scroll inside a page.
+  var FIT_MIN = 0.85, FIT_STEP = 0.01;
+  // fitsAt(scale) -> boolean. Returns { scale, split }: the largest scale in
+  // [FIT_MIN, 1] (on a FIT_STEP grid) at which the page fits one screen, or
+  // { scale: 1, split: true } when it does not fit even at FIT_MIN.
+  function chooseFit(fitsAt) {
+    if (fitsAt(1)) return { scale: 1, split: false };
+    if (!fitsAt(FIT_MIN)) return { scale: 1, split: true };
+    var lo = Math.round(FIT_MIN / FIT_STEP), hi = Math.round(1 / FIT_STEP) - 1;   // lo fits, hi+1 does not
+    while (lo < hi) {
+      var mid = (lo + hi + 1) >> 1;
+      if (fitsAt(mid * FIT_STEP)) lo = mid; else hi = mid - 1;
+    }
+    return { scale: +(lo * FIT_STEP).toFixed(2), split: false };
+  }
+  // Cut a stream of line boxes [{top,bottom}] (px from the top of the stream)
+  // into windows no taller than `room`, always between two lines. Returns
+  // [[top, bottom], ...] clip windows. A single line taller than `room` gets a
+  // window of its own (it is clipped, never scrolled).
+  function cutLines(lines, room) {
+    var out = [], start = null, i;
+    if (!lines.length) return out;
+    start = Math.min(0, lines[0].top);          // the first window starts at the top of the text box
+    for (i = 0; i < lines.length; i++) {
+      var ln = lines[i];
+      if (ln.bottom - start > room && ln.top > start) {
+        var cut = i > 0 ? Math.min((lines[i - 1].bottom + ln.top) / 2, start + room) : ln.top;
+        if (cut <= start) cut = ln.top;
+        out.push([start, cut]);
+        start = cut;
+      }
+    }
+    out.push([start, lines[lines.length - 1].bottom]);
+    return out;
+  }
+  // The screens of one printed page. body/foot: { h, lines:[{top,bottom}] } in
+  // px at the chosen size; room: the height a screen gives to text; ruleH: the
+  // footnote rule. Returns [{ body:[top,bottom]|null, foot:[top,bottom]|null }]
+  // - body windows first; the footnotes go to the bottom of the LAST screen,
+  // on a screen of their own when the last body window leaves no room for them.
+  function planPageScreens(body, foot, room, ruleH) {
+    var footH = foot && foot.h > 0 ? foot.h + (ruleH || 0) : 0;
+    if (body.h + footH <= room) return [{ body: [0, body.h], foot: footH ? [0, foot.h] : null }];
+    var wins = body.h > 0 ? cutLines(body.lines && body.lines.length ? body.lines : [{ top: 0, bottom: body.h }], room) : [];
+    // the last window reaches the bottom of the text box (marks below the last line), within the room
+    if (wins.length) { var lw = wins[wins.length - 1]; lw[1] = Math.max(lw[1], Math.min(body.h, lw[0] + room)); }
+    var screens = wins.map(function (w) { return { body: w, foot: null }; });
+    if (!footH) return screens.length ? screens : [{ body: null, foot: null }];
+    var last = screens[screens.length - 1];
+    if (last && last.body[1] - last.body[0] + footH <= room) { last.foot = [0, foot.h]; return screens; }
+    var fwins = footH <= room ? [[0, foot.h]] : cutLines(foot.lines && foot.lines.length ? foot.lines : [{ top: 0, bottom: foot.h }], room - (ruleH || 0));
+    fwins.forEach(function (w) { screens.push({ body: null, foot: w }); });
+    return screens;
+  }
+  // Large screens: landscape and at least SPREAD_MIN_W CSS px wide.
+  var SPREAD_MIN_W = 1100;
+  function isLargeScreen(w, h) { return w >= SPREAD_MIN_W && w > h; }
+  // pref: true / false / null (never chosen). Default on large screens: two pages.
+  function spreadMode(w, h, pref) { return isLargeScreen(w, h) ? pref !== false : false; }
+  // The sequence of what the reader turns through. screensBySeq[seq] = number
+  // of screens of that page (>= 1). seqs: the loaded pages, ascending and
+  // contiguous. Single mode: one item per screen. Two-page mode: pages are
+  // paired as an open Arabic book, (1,2), (3,4), ... - the earlier page on the
+  // right half, the next on the left - and within a pair the screens are laid
+  // two by two, so a pair of one-screen pages is exactly one spread.
+  // Item: { right: {seq, part, parts}, left: {seq, part, parts}|null }.
+  function buildItems(seqs, screensBySeq, two) {
+    var items = [], i, j;
+    function scr(seq) { var n = Math.max(1, screensBySeq[seq] || 1), a = []; for (var p = 0; p < n; p++) a.push({ seq: seq, part: p, parts: n }); return a; }
+    if (!two) { for (i = 0; i < seqs.length; i++) items = items.concat(scr(seqs[i]).map(function (s) { return { right: s, left: null }; })); return items; }
+    for (i = 0; i < seqs.length; i++) {
+      var s = seqs[i];
+      if (s % 2 === 0 && i > 0 && seqs[i - 1] === s - 1) continue;          // already paired
+      var group = scr(s);
+      if (s % 2 === 1 && i + 1 < seqs.length && seqs[i + 1] === s + 1) group = group.concat(scr(s + 1));
+      for (j = 0; j < group.length; j += 2) items.push({ right: group[j], left: group[j + 1] || null });
+    }
+    return items;
+  }
+  // The item that holds screen `part` of page `seq` (jump, locate, contents
+  // and search land on the spread that holds the target page).
+  function itemIndexFor(items, seq, part) {
+    part = part || 0;
+    var firstOfSeq = -1;
+    for (var i = 0; i < items.length; i++) {
+      var r = items[i].right, l = items[i].left;
+      if ((r && r.seq === seq) || (l && l.seq === seq)) {
+        if (firstOfSeq < 0) firstOfSeq = i;
+        if ((r && r.seq === seq && r.part === part) || (l && l.seq === seq && l.part === part)) return i;
+      }
+    }
+    return firstOfSeq;
+  }
+  // Which pages an item shows, for the bottom bar and the page counter.
+  function itemSeqs(item) {
+    var a = [item.right.seq];
+    if (item.left && item.left.seq !== item.right.seq) a.push(item.left.seq);
+    return a;
+  }
+  // Page windows aligned to the two-page pairing (always start on an odd seq),
+  // so that a spread is never cut in half by a window.
+  function alignedWindow(seq, total, size) {
+    var from = Math.max(1, seq - 1);
+    if (from % 2 === 0) from -= 1;
+    if (from + size - 1 > total) { from = Math.max(1, total - size + 1); if (from % 2 === 0) from += 1; }
+    return { from: from, count: Math.min(size, total - from + 1) };
+  }
+  function clampPage(k, n) { return Math.max(0, Math.min(n - 1, k)); }
+  // Horizontal drag: the finger moving from left to right (dx > 0) brings the next page.
+  function swipeTarget(k, dx, width, n) {
+    var th = Math.min(80, width * 0.18);
+    if (dx > th) return clampPage(k + 1, n);
+    if (dx < -th) return clampPage(k - 1, n);
+    return k;
+  }
+  // Tap zones: left third = next, right third = previous, middle = none.
+  function tapAction(x, width) {
+    if (x < width / 3) return 'next';
+    if (x > width * 2 / 3) return 'prev';
+    return 'none';
+  }
+  // Line boxes from client rects (px relative to `top`): rects on the same line
+  // are merged, so each visual line is one {top, bottom}.
+  function mergeLines(rects, top) {
+    var a = [], i;
+    var rs = rects.filter(function (r) { return r.bottom - r.top > 0.5 && r.right - r.left > 0.5; })
+      .map(function (r) { return { top: r.top - top, bottom: r.bottom - top }; })
+      .sort(function (x, y) { return x.top - y.top || x.bottom - y.bottom; });
+    for (i = 0; i < rs.length; i++) {
+      var last = a[a.length - 1], r = rs[i];
+      var overlap = last ? Math.min(last.bottom, r.bottom) - Math.max(last.top, r.top) : -1;
+      if (last && overlap > 0.5 * Math.min(last.bottom - last.top, r.bottom - r.top)) { last.top = Math.min(last.top, r.top); last.bottom = Math.max(last.bottom, r.bottom); }
+      else a.push({ top: r.top, bottom: r.bottom });
+    }
+    return a;
+  }
+  // Which window to fetch. loaded = [lo, hi] (inclusive) or null.
+  function nextWindow(loaded, total, size) {
+    if (!loaded) return null;
+    if (loaded[1] >= total) return null;
+    return { from: loaded[1] + 1, count: Math.min(size, total - loaded[1]) };
+  }
+  function prevWindow(loaded, size) {
+    if (!loaded || loaded[0] <= 1) return null;
+    var from = Math.max(1, loaded[0] - size);
+    return { from: from, count: loaded[0] - from };
+  }
+  function initialWindow(seq, total, size) {
+    var from = Math.max(1, Math.min(seq - 1, total - size + 1));
+    return { from: from, count: Math.min(size, total - from + 1) };
+  }
+
+  // ---- anchors ----
+  function makeAnchor(bookId, seq, start, end, plainLength) {
+    if (!/^FC-[0-9]{6}$/.test(bookId)) throw new Error('bad book_id');
+    if (!(seq >= 1)) throw new Error('bad seq');
+    start = Math.max(0, Math.floor(start)); end = Math.floor(end);
+    if (plainLength !== undefined) end = Math.min(end, plainLength);
+    if (end < start) { var t = start; start = end; end = t; }
+    return { book_id: bookId, seq: seq, start: start, end: end };
+  }
+
+  // ---- client-side filter normalization (list filtering only; the server
+  //      search uses the engine normalizer) ----
+  function foldArabic(s) {
+    return String(s || '').replace(/[ً-ٰٟـ]/g, '')
+      .replace(/[آأإٱ]/g, 'ا').replace(/ى/g, 'ي')
+      .replace(/ة/g, 'ه').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي')
+      .replace(/[٠-٩]/g, function (d) { return String(d.charCodeAt(0) - 0x660); })
+      .replace(/\s+/g, ' ').trim().toLowerCase();
+  }
+  // ---- search (ORDER-108B) ----
+  // The search route. o = { mode, q, scope, id, offset, limit, expand }.
+  var SEARCH_MODES = { text: 1, title: 1, author: 1 }, SEARCH_SCOPES = { all: 1, section: 1, book: 1 };
+  function buildSearchPath(o) {
+    var mode = SEARCH_MODES[o.mode] ? o.mode : 'text';
+    var scope = SEARCH_SCOPES[o.scope] && o.id != null && o.id !== '' ? o.scope : 'all';
+    var parts = ['mode=' + mode, 'q=' + encodeURIComponent(String(o.q || '').trim()), 'scope=' + scope];
+    if (scope !== 'all') parts.push('id=' + encodeURIComponent(String(o.id)));
+    parts.push('offset=' + Math.max(0, Math.floor(+o.offset || 0)));
+    parts.push('limit=' + Math.max(1, Math.min(50, Math.floor(+o.limit || 20))));
+    if (o.expand) parts.push('expand=1');
+    return 'search?' + parts.join('&');
+  }
+  // Snippet + [start,end) highlights -> [{t, hit}] (plain text, never HTML).
+  function snippetSegments(snippet, highlights) {
+    var s = String(snippet || ''), out = [], pos = 0;
+    var hs = (highlights || []).filter(function (h) { return h && h[1] > h[0] && h[0] >= 0 && h[1] <= s.length; })
+      .slice().sort(function (a, b) { return a[0] - b[0]; });
+    for (var i = 0; i < hs.length; i++) {
+      var a = Math.max(hs[i][0], pos), b = hs[i][1];
+      if (b <= a) continue;
+      if (a > pos) out.push({ t: s.slice(pos, a), hit: false });
+      out.push({ t: s.slice(a, b), hit: true });
+      pos = b;
+    }
+    if (pos < s.length) out.push({ t: s.slice(pos), hit: false });
+    return out;
+  }
+  // One character as the engine normalizer folds it inside a word: '' = dropped
+  // (marks, tatweel, invisibles, hamza), null = a word separator, else the
+  // folded letter(s). Mirrors C:\EZIK-LIB\engine\src\normalize.js for matching
+  // words on a page; the server does the searching.
+  var FOLD_MAP = { 0x0622: 'ا', 0x0623: 'ا', 0x0625: 'ا', 0x0671: 'ا', 0x0672: 'ا', 0x0673: 'ا', 0x0675: 'ا',
+    0x0649: 'ي', 0x0629: 'ه', 0x0624: 'و', 0x0626: 'ي', 0x06A9: 'ك', 0x06CC: 'ي', 0x06C1: 'ه', 0x06D5: 'ه',
+    0x06D2: 'ي', 0x06BE: 'ه', 0x06C3: 'ه', 0x06C2: 'ه', 0x06C0: 'ه', 0x06D3: 'ي' };
+  var DROP = [[0x064B, 0x065F], [0x0670, 0x0670], [0x06D6, 0x06ED], [0x0640, 0x0640], [0x0621, 0x0621], [0x0674, 0x0674],
+    [0x200B, 0x200F], [0x061C, 0x061C], [0x2066, 0x2069], [0x202A, 0x202E], [0xFEFF, 0xFEFF], [0x00AD, 0x00AD], [0xFD3E, 0xFD3F]];
+  var WORDCH = (function () { try { return new RegExp('^[\\p{L}\\p{N}]$', 'u'); } catch (e) { return /^[A-Za-z0-9\u00C0-\u024F\u0621-\u064A\u066E-\u06D3\u06FA-\u06FF\u0750-\u077F]$/; } })();
+  var foldCache = {};
+  function foldChar(ch) {
+    if (Object.prototype.hasOwnProperty.call(foldCache, ch)) return foldCache[ch];
+    var cp = ch.charCodeAt(0), v, i;
+    for (i = 0; i < DROP.length; i++) if (cp >= DROP[i][0] && cp <= DROP[i][1]) { v = ''; break; }
+    if (v === undefined) {
+      if (FOLD_MAP[cp]) v = FOLD_MAP[cp];
+      else if (cp >= 0x0660 && cp <= 0x0669) v = String(cp - 0x0660);
+      else if (cp >= 0x06F0 && cp <= 0x06F9) v = String(cp - 0x06F0);
+      else if ((cp >= 0xFB50 && cp <= 0xFDFF) || (cp >= 0xFE70 && cp <= 0xFEFF)) {
+        var ex = ch.normalize ? ch.normalize('NFKC') : ch;
+        if (ex === ch) v = WORDCH.test(ch) ? ch : null;
+        else { v = ''; for (i = 0; i < ex.length; i++) { var f = foldChar(ex[i]); if (f === null) { v = null; break; } v += f; } }
+      } else if (WORDCH.test(ch)) v = ch.toLowerCase();
+      else v = null;
+    }
+    foldCache[ch] = v;
+    return v;
+  }
+  // Words of a text as the index sees them: [{norm, start, end}] (end includes trailing marks).
+  function foldWords(text) {
+    var words = [], cur = null, s = String(text || '');
+    for (var i = 0; i < s.length; i++) {
+      var ch = s[i], c = s.charCodeAt(i);
+      if (c >= 0xD800 && c <= 0xDBFF && i + 1 < s.length) ch = s.slice(i, i + 2);
+      var f = foldChar(ch);
+      if (f === null) { if (cur) { words.push(cur); cur = null; } }
+      else if (f === '') { if (cur) cur.end = i + ch.length; }
+      else { if (!cur) cur = { norm: '', start: i, end: i }; cur.norm += f; cur.end = i + ch.length; }
+      i += ch.length - 1;
+    }
+    if (cur) words.push(cur);
+    return words;
+  }
+  // Spans of `text` whose words equal one of the normalized search terms.
+  function findTermSpans(text, terms) {
+    var want = {}, n = 0;
+    (terms || []).forEach(function (t) { if (t) { want[t] = 1; n++; } });
+    if (!n) return [];
+    return foldWords(text).filter(function (w) { return want[w.norm] === 1; }).map(function (w) { return { start: w.start, end: w.end }; });
+  }
+  // Digits typed in any style -> ASCII (jump fields).
+  function asciiDigits(s) {
+    return String(s == null ? '' : s).replace(/[\u0660-\u0669]/g, function (d) { return String(d.charCodeAt(0) - 0x660); })
+      .replace(/[\u06F0-\u06F9]/g, function (d) { return String(d.charCodeAt(0) - 0x6F0); });
+  }
+  function sortBooks(books, key) {
+    var a = books.slice();
+    var cmpText = function (x, y) { return x < y ? -1 : x > y ? 1 : 0; };
+    a.sort(function (x, y) {
+      if (key === 'death') {
+        var dx = x.death_hijri == null ? 1e9 : x.death_hijri, dy = y.death_hijri == null ? 1e9 : y.death_hijri;
+        return dx - dy || cmpText(x._ft, y._ft);
+      }
+      if (key === 'author') return cmpText(x._fa, y._fa) || cmpText(x._ft, y._ft);
+      return cmpText(x._ft, y._ft) || cmpText(x.book_id, y.book_id);
+    });
+    return a;
+  }
+  function filterBooks(books, q) {
+    q = foldArabic(q);
+    if (!q) return books;
+    var terms = q.split(' ');
+    return books.filter(function (b) {
+      for (var i = 0; i < terms.length; i++) if (b._ft.indexOf(terms[i]) < 0 && b._fa.indexOf(terms[i]) < 0) return false;
+      return true;
+    });
+  }
+  function prepBooks(books) {
+    return books.map(function (b) { var o = {}; for (var k in b) o[k] = b[k]; o._ft = foldArabic(b.title); o._fa = foldArabic(b.author); return o; });
+  }
+  // virtual list window
+  function visibleRange(scrollTop, viewHeight, rowHeight, count, overscan) {
+    overscan = overscan == null ? 6 : overscan;
+    var first = Math.max(0, Math.floor(scrollTop / rowHeight) - overscan);
+    var last = Math.min(count, Math.ceil((scrollTop + viewHeight) / rowHeight) + overscan);
+    return [first, last];
+  }
+
+  // ---- notes storage ----
+  // A backend is { getAll(): Promise<rec[]>, put(rec): Promise, del(id): Promise, clear(): Promise }.
+  function MemoryBackend() { this.m = new Map(); }
+  MemoryBackend.prototype.getAll = function () { return Promise.resolve(Array.from(this.m.values()).map(function (r) { return JSON.parse(JSON.stringify(r)); })); };
+  MemoryBackend.prototype.put = function (r) { this.m.set(r.id, JSON.parse(JSON.stringify(r))); return Promise.resolve(); };
+  MemoryBackend.prototype.del = function (id) { this.m.delete(id); return Promise.resolve(); };
+  MemoryBackend.prototype.clear = function () { this.m.clear(); return Promise.resolve(); };
+
+  var TYPES = { highlight: 1, note: 1, bookmark: 1 };
+  var COLORS = { h1: 1, h2: 1, h3: 1 };
+  var idCounter = 0;
+  function newId(now) { idCounter = (idCounter + 1) % 1e6; return 'n' + now.toString(36) + '-' + idCounter.toString(36) + '-' + Math.floor(Math.random() * 1e9).toString(36); }
+
+  function NotesStore(backend, clock) { this.b = backend; this.clock = clock || function () { return Date.now(); }; }
+  NotesStore.prototype.add = function (rec) {
+    if (!TYPES[rec.type]) return Promise.reject(new Error('bad type'));
+    var a = makeAnchor(rec.book_id, rec.seq, rec.start || 0, rec.end || 0);
+    var now = this.clock();
+    var r = {
+      id: newId(now), type: rec.type, book_id: a.book_id, seq: a.seq, start: a.start, end: a.end,
+      color: rec.type === 'bookmark' ? null : (COLORS[rec.color] ? rec.color : 'h1'),
+      text: String(rec.text || '').slice(0, 400), note: rec.type === 'note' ? String(rec.note || '') : (rec.note ? String(rec.note) : ''),
+      book_title: rec.book_title || '', vol: rec.vol == null ? null : rec.vol, page: rec.page == null ? null : rec.page,
+      numbering: rec.numbering || null, created: now, updated: now
+    };
+    var self = this;
+    return this.b.put(r).then(function () { return r; });
+  };
+  NotesStore.prototype.update = function (id, patch) {
+    var self = this;
+    return this.b.getAll().then(function (all) {
+      var r = all.filter(function (x) { return x.id === id; })[0];
+      if (!r) throw new Error('not found');
+      if (patch.note !== undefined) r.note = String(patch.note);
+      if (patch.color !== undefined && COLORS[patch.color]) r.color = patch.color;
+      if (r.type === 'highlight' && r.note) r.type = 'note';
+      if (r.type === 'note' && !r.note && patch.note !== undefined) r.type = 'highlight';
+      r.updated = self.clock();
+      return self.b.put(r).then(function () { return r; });
+    });
+  };
+  NotesStore.prototype.remove = function (id) { return this.b.del(id); };
+  NotesStore.prototype.listAll = function () {
+    return this.b.getAll().then(function (a) { return a.sort(function (x, y) { return y.updated - x.updated; }); });
+  };
+  NotesStore.prototype.listByBook = function (bookId) {
+    return this.b.getAll().then(function (a) {
+      return a.filter(function (r) { return r.book_id === bookId; }).sort(function (x, y) { return x.seq - y.seq || x.start - y.start; });
+    });
+  };
+  NotesStore.prototype.forPage = function (all, seq) { return all.filter(function (r) { return r.seq === seq && r.type !== 'bookmark'; }); };
+  NotesStore.prototype.bookmarkAt = function (all, seq) { return all.filter(function (r) { return r.seq === seq && r.type === 'bookmark'; })[0] || null; };
+  NotesStore.prototype.exportAll = function () {
+    return this.b.getAll().then(function (a) { return { version: 1, notes: a.sort(function (x, y) { return x.created - y.created; }) }; });
+  };
+  NotesStore.prototype.deleteAll = function () { return this.b.clear(); };
+
+  /* SyncAdapter - the interface Ezik implements later to sync notes with the
+     user's account. Not implemented in this version (device storage only).
+       push(records: NoteRecord[]): Promise<void>   send local records (upsert by id)
+       pull(since: number): Promise<NoteRecord[]>   records changed on the server after `since` (ms)
+       deleteAll(): Promise<void>                    delete every server copy of this user's notes
+     NoteRecord = { id, type:'highlight'|'note'|'bookmark', book_id, seq, start, end,
+                    color, text, note, book_title, vol, page, numbering, created, updated } */
+  function SyncAdapter() {}
+  SyncAdapter.prototype.push = function () { return Promise.reject(new Error('SyncAdapter.push not implemented')); };
+  SyncAdapter.prototype.pull = function () { return Promise.reject(new Error('SyncAdapter.pull not implemented')); };
+  SyncAdapter.prototype.deleteAll = function () { return Promise.reject(new Error('SyncAdapter.deleteAll not implemented')); };
+
+  function fmt(tpl, vars) { return String(tpl).replace(/\{(\w+)\}/g, function (w, k) { return vars && vars[k] != null ? vars[k] : w; }); }
+  // THE ONE DIGIT STYLE of the library chrome and card fields: Arabic-Indic
+  // (U+0660..U+0669), the style Ezik writes its own numbers in. ASCII and
+  // Extended (Persian) digits are both converted. Never applied to book text.
+  function toArabicDigits(s) {
+    return String(s == null ? '' : s).replace(/[0-9]/g, function (d) { return String.fromCharCode(0x660 + +d); })
+      .replace(/[۰-۹]/g, function (d) { return String.fromCharCode(0x660 + d.charCodeAt(0) - 0x6F0); });
+  }
+
+  // EZIK (ORDER-108C B1): the deep link Ezik's chat sources open. ?book=FC-xxxxxx&vol=V&page=P
+  // names a printed page (resolved through /locate); ?book=FC-xxxxxx&seq=N names a page by its
+  // sequence. Anything malformed is ignored rather than guessed: no book id, no deep link.
+  function parseDeepLink(search) {
+    var q = {};
+    String(search || '').replace(/^\?/, '').split('&').forEach(function (kv) {
+      if (!kv) return;
+      var i = kv.indexOf('='), k = i < 0 ? kv : kv.slice(0, i), v = i < 0 ? '' : kv.slice(i + 1);
+      try { k = decodeURIComponent(k.replace(/\+/g, ' ')); v = decodeURIComponent(v.replace(/\+/g, ' ')); } catch (e) { return; }
+      if (!Object.prototype.hasOwnProperty.call(q, k)) q[k] = v.trim();
+    });
+    if (!/^FC-[0-9]{6}$/.test(q.book || '')) return null;
+    var out = { book: q.book, vol: null, page: null, seq: null };
+    if (/^[0-9]{1,7}$/.test(q.seq || '') && +q.seq > 0) { out.seq = +q.seq; return out; }
+    if (/^[0-9]{1,6}$/.test(q.page || '') && +q.page > 0) {
+      out.page = +q.page;
+      if (/^[0-9]{1,4}$/.test(q.vol || '') && +q.vol > 0) out.vol = +q.vol;
+    }
+    return out;
+  }
+
+  root.EzLibCore = {
+    parseDeepLink: parseDeepLink,
+    parseMarkup: parseMarkup, applyHighlights: applyHighlights,
+    chooseFit: chooseFit, cutLines: cutLines, planPageScreens: planPageScreens, mergeLines: mergeLines,
+    isLargeScreen: isLargeScreen, spreadMode: spreadMode, buildItems: buildItems, itemIndexFor: itemIndexFor, itemSeqs: itemSeqs,
+    alignedWindow: alignedWindow, FIT_MIN: FIT_MIN, SPREAD_MIN_W: SPREAD_MIN_W,
+    clampPage: clampPage, swipeTarget: swipeTarget, tapAction: tapAction,
+    nextWindow: nextWindow, prevWindow: prevWindow, initialWindow: initialWindow,
+    makeAnchor: makeAnchor, foldArabic: foldArabic, sortBooks: sortBooks, filterBooks: filterBooks, prepBooks: prepBooks, visibleRange: visibleRange,
+    buildSearchPath: buildSearchPath, snippetSegments: snippetSegments, foldWords: foldWords, findTermSpans: findTermSpans, asciiDigits: asciiDigits,
+    MemoryBackend: MemoryBackend, NotesStore: NotesStore, SyncAdapter: SyncAdapter, fmt: fmt, toArabicDigits: toArabicDigits
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  var C = window.EzLibCore;
+  var S = {};
+  try { var raw = JSON.parse(document.getElementById('ezlib-strings').textContent); for (var k in raw) S[k] = raw[k][0]; } catch (e) {}
+  function T(k, v) { return C.fmt(S[k] || k, v); }
+  function D(n) { return C.toArabicDigits(n); }
+  var $app = document.getElementById('app');
+  function el(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    if (attrs) for (var k in attrs) {
+      if (k === 'text') e.textContent = attrs[k];
+      else if (k === 'on') for (var ev in attrs.on) e.addEventListener(ev, attrs.on[ev]);
+      else if (attrs[k] !== null && attrs[k] !== undefined) e.setAttribute(k, attrs[k]);
+    }
+    (kids || []).forEach(function (c) { if (c != null) e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
+    return e;
+  }
+  function toast(msg) {
+    var t = el('div', { class: 'toast', role: 'status', text: msg });
+    document.body.appendChild(t); setTimeout(function () { t.remove(); }, 2200);
+  }
+
+  // ---------------- storage (every access wrapped) ----------------
+  var LS = {
+    get: function (k, d) { try { var v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+    del: function (k) { try { localStorage.removeItem(k); } catch (e) {} },
+    raw: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  };
+  var K_MODE = 'ezlib_mode_v1', K_READER = 'ezlib_reader_v1', K_POS = 'ezlib_pos_v1', K_SPREAD = 'ezlib_spread_v1';
+  var OWN_KEYS = [K_MODE, K_READER, K_POS, K_SPREAD];
+
+  function IDBBackend() { this.p = null; }
+  IDBBackend.prototype.db = function () {
+    if (this.p) return this.p;
+    this.p = new Promise(function (res, rej) {
+      if (!window.indexedDB) return rej(new Error('no indexedDB'));
+      var rq = indexedDB.open('ezik-library-v1', 1);
+      rq.onupgradeneeded = function () { var s = rq.result.createObjectStore('notes', { keyPath: 'id' }); s.createIndex('book_id', 'book_id'); };
+      rq.onsuccess = function () { res(rq.result); };
+      rq.onerror = function () { rej(rq.error); };
+    });
+    return this.p;
+  };
+  IDBBackend.prototype.tx = function (mode, fn) {
+    return this.db().then(function (db) {
+      return new Promise(function (res, rej) {
+        var t = db.transaction('notes', mode), st = t.objectStore('notes'), out;
+        var r = fn(st); if (r) r.onsuccess = function () { out = r.result; };
+        t.oncomplete = function () { res(out); }; t.onerror = function () { rej(t.error); }; t.onabort = function () { rej(t.error); };
+      });
+    });
+  };
+  IDBBackend.prototype.getAll = function () { return this.tx('readonly', function (s) { return s.getAll(); }).then(function (a) { return a || []; }); };
+  IDBBackend.prototype.put = function (r) { return this.tx('readwrite', function (s) { return s.put(r); }); };
+  IDBBackend.prototype.del = function (id) { return this.tx('readwrite', function (s) { return s.delete(id); }); };
+  IDBBackend.prototype.clear = function () { return this.tx('readwrite', function (s) { return s.clear(); }); };
+  // falls back to memory when IndexedDB is unavailable (private mode, previews)
+  function SafeBackend() { this.i = new IDBBackend(); this.m = new C.MemoryBackend(); this.useMem = false; }
+  ['getAll', 'put', 'del', 'clear'].forEach(function (fn) {
+    SafeBackend.prototype[fn] = function (a) {
+      var self = this;
+      if (self.useMem) return self.m[fn](a);
+      return self.i[fn](a).catch(function () { self.useMem = true; return self.m[fn](a); });
+    };
+  });
+  var notes = new C.NotesStore(new SafeBackend());
+
+  /* window.EzikLibrary - the page's hooks for Ezik.
+       exportAll()          -> Promise<object>  every note, position and preference kept on this device
+       deleteAllLocalData() -> Promise<void>    Ezik's "delete all my data": notes, positions, preferences
+       askEzik(query)       PROVIDED BY EZIK, not by this page (ORDER-108B). The "ask Ezik" button next to
+                            the search box calls window.EzikLibrary.askEzik(query: string) when Ezik has set
+                            it to a function (Ezik opens its chat with the query; smart search lives only
+                            there). While it is absent - the page opened outside Ezik - the button shows a
+                            short note that it works inside Ezik. The page never calls a model itself.
+     Ezik sets it with: window.EzikLibrary.askEzik = function (query) { ... }; */
+  window.EzikLibrary = {
+    askEzik: null,
+    exportAll: function () {
+      return notes.exportAll().then(function (x) {
+        return { version: 1, exported_at: new Date().toISOString(), notes: x.notes, positions: LS.get(K_POS, {}), reader_prefs: LS.get(K_READER, null), mode: LS.get(K_MODE, null),
+          two_pages: LS.get(K_SPREAD, null) };
+      });
+    },
+    deleteAllLocalData: function () {
+      OWN_KEYS.forEach(LS.del);
+      return notes.deleteAll().then(function () {
+        return new Promise(function (res) {
+          try { var rq = indexedDB.deleteDatabase('ezik-library-v1'); rq.onsuccess = rq.onerror = rq.onblocked = function () { res(); }; } catch (e) { res(); }
+        });
+      }).then(function () { notes = new C.NotesStore(new SafeBackend()); });
+    }
+  };
+
+  // ---------------- theme ----------------
+  function ezikMode() { var t = LS.raw('murabbi_theme_v1'); return t === 'dark' ? 'night' : 'day'; }
+  function applyMode() {
+    var m = LS.get(K_MODE, null);
+    if (m !== 'day' && m !== 'night' && m !== 'sepia') m = ezikMode();
+    document.documentElement.setAttribute('data-mode', m);
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', m === 'night' ? '#0A141B' : m === 'sepia' ? '#F5ECD7' : '#0B5F8E');
+    return m;
+  }
+  applyMode();
+  window.addEventListener('storage', function (e) { if (e.key === 'murabbi_theme_v1' || e.key === K_MODE) applyMode(); });
+
+  // ---------------- API ----------------
+  // EZIK (ORDER-108C B1): inside Ezik the catalogue lives on its own host; a local server
+  // (localhost / 127.0.0.1) keeps the same-origin path it was tested on.
+  var API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? '' : 'https://lib.ezik.app';
+  try {
+    var qa = new URLSearchParams(location.search).get('api');
+    if (qa && /^https?:\/\/[^\s]+$/.test(qa)) API = qa.replace(/\/+$/, '');
+  } catch (e) {}
+  var cache = {};
+  function api(path, noCache) {
+    if (!noCache && cache[path]) return Promise.resolve(cache[path]);
+    return fetch(API + '/lib/v1/' + path, { headers: { Accept: 'application/json' } }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (j) {
+        if (!r.ok) { var e = new Error(j.error || ('http_' + r.status)); e.status = r.status; e.body = j; throw e; }
+        if (!noCache) cache[path] = j;
+        return j;
+      });
+    });
+  }
+  function errorView(target, retry) {
+    target.innerHTML = '';
+    target.appendChild(el('div', { class: 'msg' }, [el('p', { text: T('load_error') }), el('button', { class: 'btn ghost', text: T('retry'), on: { click: retry } })]));
+  }
+
+  // ---------------- positions ----------------
+  function getPos(id) { var p = LS.get(K_POS, {}); return p && p[id] ? p[id] : null; }
+  function setPos(id, pos) {
+    var p = LS.get(K_POS, {}) || {};
+    p[id] = pos;
+    var keys = Object.keys(p).sort(function (a, b) { return (p[b].at || 0) - (p[a].at || 0); });
+    keys.slice(200).forEach(function (k) { delete p[k]; });
+    LS.set(K_POS, p);
+  }
+
+  // ---------------- router ----------------
+  var current = null;
+  function route() {
+    if (current && current.destroy) current.destroy();
+    current = null;
+    $app.innerHTML = '';
+    Array.prototype.forEach.call(document.querySelectorAll('.ssheet'), function (x) { x.remove(); });
+    var h = location.hash.replace(/^#\/?/, '').split('/').map(function (x) { try { return decodeURIComponent(x); } catch (e) { return ''; } });
+    if (h[0] === 'cat' && h[1]) current = viewSection(+h[1]);
+    else if (h[0] === 'book' && h[1]) current = viewBook(h[1]);
+    else if (h[0] === 'read' && h[1]) current = viewReader(h[1], h[2] ? +h[2] : null, h[3] ? h[3].split(' ').filter(Boolean) : null);
+    else if (h[0] === 'notes') current = viewNotes(h[1] || null);
+    else current = viewHome();
+  }
+  window.addEventListener('hashchange', route);
+  function go(hash) { location.hash = hash; }
+  function topBar(title, back, extra) {
+    var kids = [];
+    if (back) kids.push(el('button', { class: 'ibtn', 'aria-label': T('back'), text: '→', on: { click: function () { if (history.length > 1) history.back(); else go(back); } } }));
+    kids.push(el('h1', { text: title }));
+    (extra || []).forEach(function (x) { kids.push(x); });
+    return el('header', { class: 'top' }, kids);
+  }
+  function modeCycleBtn() {
+    var b = el('button', { class: 'ibtn', 'aria-label': T('mode') });
+    function label() { var m = document.documentElement.getAttribute('data-mode'); b.textContent = m === 'night' ? T('mode_night') : m === 'sepia' ? T('mode_sepia') : T('mode_day'); }
+    b.addEventListener('click', function () {
+      var m = document.documentElement.getAttribute('data-mode');
+      var nx = m === 'day' ? 'night' : m === 'night' ? 'sepia' : 'day';
+      LS.set(K_MODE, nx); applyMode(); label();
+    });
+    label(); return b;
+  }
+  function deathText(y) { return y == null || y === 1442 ? '' : T('died', { y: D(y) }); }
+
+  // ---------------- home ----------------
+  function viewHome() {
+    var body = el('div', { class: 'wrap' });
+    var scroll = el('main', { class: 'scroll' }, [body]);
+    var bar = topBar(T('app_title'), null, [el('button', { class: 'ibtn', text: T('my_notes'), on: { click: function () { go('#/notes'); } } }), modeCycleBtn()]);
+    // EZIK (ORDER-108C B2): the library's home has no parent inside the page, so its back goes to Ezik.
+    bar.insertBefore(el('button', { class: 'ibtn', 'aria-label': T('back'), text: '→', on: { click: backToEzik } }), bar.firstChild);
+    $app.appendChild(bar);
+    $app.appendChild(scroll);
+    // ORDER-108B: one search box at the top - title / author / words (default words)
+    body.appendChild(searchPanel({}).el);
+    body.appendChild(el('section', { class: 'hero', style: 'margin-top:14px' }, [el('h2', { text: T('home_hero') }), el('p', { text: T('home_hero_sub') })]));
+    // continue reading
+    var pos = LS.get(K_POS, {}) || {};
+    var recent = Object.keys(pos).map(function (k) { return pos[k]; }).filter(function (p) { return p && p.book_id; }).sort(function (a, b) { return b.at - a.at; }).slice(0, 12);
+    if (recent.length) {
+      body.appendChild(el('h3', { class: 'sec-title', text: T('continue') }));
+      var row = el('div', { class: 'row' });
+      recent.forEach(function (p) {
+        row.appendChild(el('button', { class: 'cont', on: { click: function () { go('#/read/' + p.book_id + '/' + p.seq); } } },
+          [el('b', { text: D(p.title || p.book_id) }), el('span', { text: p.where || '' })]));
+      });
+      body.appendChild(row);
+    }
+    body.appendChild(el('h3', { class: 'sec-title', text: T('sections') }));
+    var grid = el('div', { class: 'grid' }, [el('p', { class: 'msg', text: T('loading') })]);
+    body.appendChild(grid);
+    function load() {
+      api('categories').then(function (j) {
+        grid.innerHTML = '';
+        j.categories.forEach(function (c) {
+          grid.appendChild(el('button', { class: 'cat' + (c.ours ? '' : ' empty'), on: { click: function () { go('#/cat/' + c.id); } } },
+            [el('b', { text: D(c.name) }), el('span', { text: T('books_n', { n: D(c.ours) }) })]));
+        });
+      }).catch(function () { errorView(grid, load); });
+    }
+    load();
+    return {};
+  }
+  function bookItem(b, style) {
+    var sub = [D(b.author || ''), deathText(b.death_hijri)].filter(Boolean).join(' · ');
+    return el('button', { class: 'item', style: style || null, on: { click: function () { go('#/book/' + b.book_id); } } }, [el('b', { text: D(b.title) }), el('span', { text: sub })]);
+  }
+
+  // ---------------- search (ORDER-108B) ----------------
+  // Literal search only (title, author, words); smart search lives in Ezik's chat.
+  // ctx: { catId, bookId, scope, openHit(hit, terms), onDone() } -> { el, focus() }
+  function searchPanel(ctx) {
+    var PAGE = 20;
+    var st = { mode: 'text', scope: ctx.scope || 'all', offset: 0, seq: 0, last: null };
+    var mode = el('select', { 'aria-label': T('smode_label') }, [
+      el('option', { value: 'text', text: T('smode_text') }),
+      el('option', { value: 'title', text: T('smode_title') }),
+      el('option', { value: 'author', text: T('smode_author') })]);
+    var input = el('input', { class: 'search', type: 'search', enterkeyhint: 'search' });
+    var ask = el('button', { class: 'ask', type: 'button', text: T('ask_ezik') });
+    var scopes = el('div', { class: 'sscope', role: 'group' });
+    var info = el('p', { class: 'snote', 'aria-live': 'polite' });
+    var results = el('div', { class: 'results' });
+    var form = el('form', { class: 'sbox', role: 'search' }, [mode, input, ask]);
+    var root = el('div', { class: 'spanel' }, [form, scopes, info, results]);
+    function placeholder() {
+      var p = st.mode === 'text' ? T('sph_text') : st.mode === 'author' ? T('sph_author') : T('search_ph');
+      input.setAttribute('placeholder', p); input.setAttribute('aria-label', p);
+    }
+    function scopeId() { return st.scope === 'section' ? ctx.catId : st.scope === 'book' ? ctx.bookId : null; }
+    function paintScopes() {
+      scopes.innerHTML = '';
+      var opts = [['all', T('scope_all')]];
+      if (ctx.catId) opts.push(['section', T('scope_section')]);
+      if (ctx.bookId) opts.push(['book', T('scope_book')]);
+      scopes.classList.toggle('hidden', opts.length < 2);
+      opts.forEach(function (o) {
+        scopes.appendChild(el('button', { type: 'button', 'aria-pressed': st.scope === o[0] ? 'true' : 'false', text: o[1],
+          on: { click: function () { st.scope = o[0]; paintScopes(); run(true); } } }));
+      });
+    }
+    function hitItem(h, terms) {
+      var snip = el('span', { class: 'snip' });
+      if (h.cut_start) snip.appendChild(document.createTextNode('… '));
+      C.snippetSegments(h.snippet, h.highlights).forEach(function (s) {
+        snip.appendChild(s.hit ? el('mark', { class: 'qh', text: s.t }) : document.createTextNode(s.t));
+      });
+      if (h.cut_end) snip.appendChild(document.createTextNode(' …'));
+      var where = markLabel(h.numbering, { seq: h.seq, vol: h.vol, page: h.page });
+      return el('button', { class: 'hit', type: 'button', on: { click: function () {
+        if (ctx.openHit) ctx.openHit(h, terms);
+        else go('#/read/' + h.book_id + '/' + h.seq + '/' + encodeURIComponent(terms.join(' ')));
+        if (ctx.onDone) ctx.onDone();
+      } } }, [snip, el('span', { class: 'src', text: D(h.title) + ' · ' + where })]);
+    }
+    function authorItem(a) {
+      return el('button', { class: 'item', type: 'button', on: { click: function () { showAuthor(a); } } },
+        [el('b', { text: D(a.author) }), el('span', { text: T('books_n', { n: D(a.count) }) })]);
+    }
+    function showAuthor(a) {
+      var my = ++st.seq;
+      results.innerHTML = ''; info.textContent = T('loading');
+      api(C.buildSearchPath({ mode: 'author', q: a.key, scope: st.scope, id: scopeId(), expand: 1, limit: 1 })).then(function (j) {
+        if (my !== st.seq) return;
+        var r = j.results.filter(function (x) { return x.key === a.key; })[0] || a;
+        info.textContent = D(r.author) + ' · ' + T('books_n', { n: D(r.count) });
+        results.appendChild(el('button', { class: 'btn ghost', type: 'button', style: 'margin:8px 0', text: T('s_all_authors'), on: { click: function () { run(true); } } }));
+        (r.books || []).forEach(function (b) { results.appendChild(bookItem({ book_id: b.book_id, title: b.title, author: r.author, death_hijri: b.death_hijri })); });
+      }).catch(function () { if (my === st.seq) errorView(results, function () { showAuthor(a); }); });
+    }
+    function run(reset) {
+      var q = input.value.trim();
+      if (reset) { st.offset = 0; }
+      if (!q) { ++st.seq; results.innerHTML = ''; info.textContent = ''; return; }
+      var my = ++st.seq;
+      if (reset) { results.innerHTML = ''; info.textContent = T('loading'); }
+      var path = C.buildSearchPath({ mode: st.mode, q: q, scope: st.scope, id: scopeId(), offset: st.offset, limit: PAGE });
+      api(path).then(function (j) {
+        if (my !== st.seq) return;
+        var old = results.querySelector('.more'); if (old) old.remove();
+        if (st.offset === 0) results.innerHTML = '';
+        if (j.refused) { info.textContent = T('s_refused'); return; }
+        if (!j.total) { info.textContent = st.mode === 'text' ? T('none_text') : st.mode === 'author' ? T('none_author') : T('search_none'); return; }
+        info.textContent = T('s_total', { n: D(j.total) }) + (j.truncated ? ' · ' + T('s_window', { n: D(j.window) }) : '');
+        j.results.forEach(function (r) {
+          results.appendChild(st.mode === 'text' ? hitItem(r, j.terms || []) : st.mode === 'author' ? authorItem(r) : bookItem(r));
+        });
+        if (j.more) results.appendChild(el('button', { class: 'btn ghost more', type: 'button', text: T('s_more'), on: { click: function () { st.offset += PAGE; run(false); } } }));
+      }).catch(function () { if (my === st.seq) { info.textContent = ''; errorView(results, function () { run(true); }); } });
+    }
+    var timer = null;
+    input.addEventListener('input', function () {
+      clearTimeout(timer);
+      // words go to the full-text index: wait for a pause (or Enter); titles and authors answer as you type
+      timer = setTimeout(function () { run(true); }, st.mode === 'text' ? 700 : 260);
+    });
+    form.addEventListener('submit', function (e) { e.preventDefault(); clearTimeout(timer); run(true); try { input.blur(); } catch (x) {} });
+    mode.addEventListener('change', function () { st.mode = mode.value; placeholder(); run(true); });
+    ask.addEventListener('click', function () {
+      var q = input.value.trim();
+      var hook = window.EzikLibrary && window.EzikLibrary.askEzik;
+      if (typeof hook === 'function') { try { hook(q); } catch (e) { toast(T('ask_note')); } }
+      else { info.textContent = T('ask_note'); toast(T('ask_note')); }
+    });
+    placeholder(); paintScopes();
+    return { el: root, focus: function () { try { input.focus(); } catch (e) {} } };
+  }
+  // A full-screen search sheet over the current view (section, book card, reader).
+  function openSearchSheet(ctx) {
+    var sheet = el('div', { class: 'ssheet', role: 'dialog', 'aria-modal': 'true', 'aria-label': T('search_title') });
+    function close() { sheet.remove(); document.removeEventListener('keydown', onEsc, true); }
+    function onEsc(e) { if (e.key === 'Escape') { e.stopPropagation(); close(); } }
+    var panel = searchPanel({ catId: ctx.catId, bookId: ctx.bookId, scope: ctx.scope, openHit: ctx.openHit, onDone: close });
+    sheet.appendChild(el('header', { class: 'top' }, [
+      el('button', { class: 'ibtn', 'aria-label': T('back'), text: '→', on: { click: close } }),
+      el('h1', { text: T('search_title') })]));
+    sheet.appendChild(el('main', { class: 'scroll' }, [el('div', { class: 'wrap' }, [panel.el])]));
+    document.body.appendChild(sheet);
+    document.addEventListener('keydown', onEsc, true);
+    panel.focus();
+    return close;
+  }
+  function searchBtn(ctx) { return el('button', { class: 'ibtn', text: T('search_btn'), on: { click: function () { openSearchSheet(ctx); } } }); }
+
+  // ---------------- section ----------------
+  function viewSection(id) {
+    var title = el('h1', { text: '' });
+    var header = topBar('', '#/', [searchBtn({ catId: id, scope: 'section' })]);
+    header.replaceChild(title, header.querySelector('h1'));
+    $app.appendChild(header);
+    var filter = el('input', { type: 'search', placeholder: T('filter_ph'), 'aria-label': T('filter_ph') });
+    var sort = el('select', { 'aria-label': T('sort_title') }, [
+      el('option', { value: 'title', text: T('sort_title') }), el('option', { value: 'author', text: T('sort_author') }), el('option', { value: 'death', text: T('sort_death') })]);
+    $app.appendChild(el('div', { class: 'tools' }, [filter, sort]));
+    var list = el('div', { class: 'vlist', role: 'list' });
+    var spacer = el('div', {});
+    list.appendChild(spacer);
+    $app.appendChild(list);
+    var all = [], shown = [], ROW = 64, dead = false;
+    function render() {
+      var r = C.visibleRange(list.scrollTop, list.clientHeight || 600, ROW, shown.length);
+      spacer.style.height = (shown.length * ROW) + 'px';
+      Array.prototype.slice.call(list.querySelectorAll('.item')).forEach(function (n) { n.remove(); });
+      for (var i = r[0]; i < r[1]; i++) { var it = bookItem(shown[i], 'top:' + (i * ROW) + 'px'); it.setAttribute('role', 'listitem'); list.appendChild(it); }
+      if (!shown.length && all.length) list.appendChild(el('p', { class: 'msg item', style: 'top:0', text: T('no_books') }));
+    }
+    function refresh() { shown = C.sortBooks(C.filterBooks(all, filter.value), sort.value); render(); }
+    list.addEventListener('scroll', function () { requestAnimationFrame(render); }, { passive: true });
+    filter.addEventListener('input', refresh);
+    sort.addEventListener('change', refresh);
+    window.addEventListener('resize', render);
+    list.appendChild(el('p', { class: 'msg item', style: 'top:0', text: T('loading') }));
+    function loadPage(offset) {
+      return api('categories/' + id + '/books?offset=' + offset + '&limit=100').then(function (j) {
+        if (dead) return;
+        title.textContent = D(j.category.name); document.title = D(j.category.name) + ' - ' + T('app_title');
+        all = all.concat(C.prepBooks(j.books));
+        refresh();
+        if (offset + j.books.length < j.total && j.books.length) return loadPage(offset + j.books.length);
+        if (!all.length) { render(); list.appendChild(el('p', { class: 'msg item', style: 'top:0', text: T('no_books') })); }
+      });
+    }
+    loadPage(0).catch(function () { errorView(list, function () { route(); }); });
+    return { destroy: function () { dead = true; window.removeEventListener('resize', render); } };
+  }
+
+  // ---------------- book card ----------------
+  function numberingText(n) { return n === 'print' ? T('num_print') : n === 'auto' ? T('num_auto') : n === 'no_card' ? T('num_none') : T('num_unknown'); }
+  function cardField(card, label) {
+    if (!card || !card.fields) return null;
+    for (var i = 0; i < card.fields.length; i++) if (card.fields[i][0] === label) return card.fields[i][1];
+    return null;
+  }
+  function tocList(toc, onPick) {
+    var ul = el('ul', { class: 'toc' });
+    if (!toc || !toc.length) { ul.appendChild(el('li', {}, [el('span', { class: 'muted', text: T('toc_empty') })])); return ul; }
+    var frag = document.createDocumentFragment();
+    toc.forEach(function (t) {
+      var d = t[0], label = t[1], seq = t[2];
+      var li = el('li', { 'data-d': String(Math.min(d, 5)), class: d > 5 ? 'deep' : null });
+      var kids = [label, ' ', seq ? el('small', { text: '(' + D(seq) + ')' }) : null];
+      li.appendChild(onPick && seq ? el('button', { on: { click: function () { onPick(seq); } } }, kids) : el('span', {}, kids));
+      frag.appendChild(li);
+    });
+    ul.appendChild(frag);
+    return ul;
+  }
+  function viewBook(bookId) {
+    var sctx = { bookId: bookId, scope: 'book' };
+    $app.appendChild(topBar('', '#/', [searchBtn(sctx), modeCycleBtn()]));
+    var body = el('div', { class: 'wrap' }, [el('p', { class: 'msg', text: T('loading') })]);
+    $app.appendChild(el('main', { class: 'scroll' }, [body]));
+    function load() {
+      api('books/' + encodeURIComponent(bookId)).then(function (b) {
+        sctx.catId = b.site_category_id || null;
+        document.title = D(b.title) + ' - ' + T('app_title');
+        $app.querySelector('.top h1').textContent = D(b.title);
+        body.innerHTML = '';
+        var card = b.card;
+        var dl = el('dl');
+        // every card field in the one digit style (ORDER-108B)
+        function row(label, value) { if (value == null || value === '') return; dl.appendChild(el('dt', { text: label })); dl.appendChild(el('dd', { text: D(String(value)) })); }
+        row(T('f_author'), cardField(card, 'المؤلف') || b.author);
+        row(T('f_death'), b.death_hijri != null && b.death_hijri !== 1442 ? T('hijri_suffix', { y: D(b.death_hijri) }) : T('unknown'));
+        row(T('f_editor'), cardField(card, 'المحقق'));
+        row(T('f_publisher'), cardField(card, 'الناشر'));
+        row(T('f_edition'), cardField(card, 'الطبعة'));
+        row(T('f_vols'), cardField(card, 'عدد الأجزاء'));
+        row(T('f_pages'), D(cardField(card, 'عدد الصفحات') || b.pages));
+        row(T('f_numbering'), numberingText(b.numbering));
+        var cardEl = el('article', { class: 'card' }, [el('h2', { text: D(b.title) }), dl]);
+        if (card && card.note) cardEl.appendChild(el('p', { class: 'muted', style: 'font-size:13px;margin:10px 0 0', text: D(card.note) }));
+        var actions = el('div', { class: 'actions' });
+        if (b.access === 'full') {
+          var p = getPos(b.book_id);
+          actions.appendChild(el('button', { class: 'btn', text: p ? T('continue_btn') : T('read'), on: { click: function () { go('#/read/' + b.book_id + (p ? '/' + p.seq : '')); } } }));
+          if (p) actions.appendChild(el('button', { class: 'btn ghost', text: T('read'), on: { click: function () { go('#/read/' + b.book_id + '/1'); } } }));
+          actions.appendChild(el('button', { class: 'btn ghost', text: T('my_notes'), on: { click: function () { go('#/notes/' + b.book_id); } } }));
+          cardEl.appendChild(actions);
+        } else {
+          cardEl.appendChild(el('p', { class: 'note', text: T('card_only_note') }));
+        }
+        body.appendChild(cardEl);
+        body.appendChild(el('h3', { class: 'sec-title', text: T('toc') }));
+        body.appendChild(tocList(b.toc, b.access === 'full' ? function (seq) { go('#/read/' + b.book_id + '/' + seq); } : null));
+      }).catch(function () { errorView(body, load); });
+    }
+    load();
+    return {};
+  }
+
+  // ---------------- reader: one printed page per screen (ORDER-108B 4b) ----------------
+  var READER_DEF = { scale: 1, lh: 1.9 };
+  function readerPrefs() { var p = LS.get(K_READER, null); return p && typeof p === 'object' ? { scale: +p.scale || 1, lh: +p.lh || 1.9 } : { scale: READER_DEF.scale, lh: READER_DEF.lh }; }
+  function applyReaderPrefs(p) { document.documentElement.style.setProperty('--rd-scale', String(p.scale)); document.documentElement.style.setProperty('--rd-lh', String(p.lh)); }
+
+  function markLabel(numbering, pg) {
+    if (pg.page == null) return T('mark_seq', { s: D(pg.seq) });
+    if (numbering === 'print') return pg.vol != null ? T('mark_print', { v: D(pg.vol), p: D(pg.page) }) : T('mark_print_nov', { p: D(pg.page) });
+    if (numbering === 'auto') return T('mark_auto', { p: D(pg.page) });
+    return T('mark_unknown', { p: D(pg.page) });
+  }
+
+  function viewReader(bookId, startSeq, hlTerms) {
+    var WIN = 4, MAXLOADED = 24;
+    var book = null, pages = {}, loaded = null, bookNotes = [], dead = false, busy = false;
+    var plans = {}, planKey = '', geo = null;      // seq -> { scale, screens:[{body,foot}], offsets:[] }
+    var items = [], idx = 0, two = false, gen = 0;      // gen: bumped on every jump; stale fetches are dropped
+    var terms = hlTerms && hlTerms.length ? hlTerms : null;
+    var prefs = readerPrefs(); applyReaderPrefs(prefs);
+    var rd = el('div', { class: 'rd' });
+    var titleEl = el('h1', { text: T('loading') });
+    var bmBtn = el('button', { class: 'ibtn', 'aria-pressed': 'false', text: T('bookmark') });
+    var twoBtn = el('button', { class: 'ibtn hidden', 'aria-pressed': 'false', text: T('two_pages') });
+    var top = el('header', { class: 'top' }, [
+      el('button', { class: 'ibtn', 'aria-label': T('back'), text: '→', on: { click: function () { go('#/book/' + bookId); } } }),
+      titleEl,
+      el('button', { class: 'ibtn', text: T('search_btn'), on: { click: function () { openBookSearch(); } } }),
+      el('button', { class: 'ibtn', text: T('contents'), on: { click: function () { openDrawer('toc'); } } }),
+      bmBtn, twoBtn,
+      el('button', { class: 'ibtn', 'aria-label': T('settings'), text: 'Aa', on: { click: function () { openDrawer('settings'); } } })
+    ]);
+    var view = el('div', { class: 'rd-view' });
+    var stage = el('div', { class: 'rd-stage one', dir: 'rtl' });
+    var measureBox = el('div', { class: 'rd-measure', 'aria-hidden': 'true' });
+    view.appendChild(stage); view.appendChild(measureBox);
+    var where = el('span', { class: 'where', 'aria-live': 'polite' });
+    var counter = el('span', {});
+    var hlBtn = el('button', { class: 'ibtn hidden', text: T('hl_clear'), on: { click: function () { terms = null; hlBtn.classList.add('hidden'); show(); } } });
+    var bar = el('footer', { class: 'rd-bar' }, [where, hlBtn, counter]);
+    rd.appendChild(top); rd.appendChild(view); rd.appendChild(bar);
+    $app.appendChild(rd);
+    if (terms) hlBtn.classList.remove('hidden');
+
+    // ---- geometry and measuring ----
+    function geometry() {
+      var W = view.clientWidth, H = view.clientHeight;
+      two = C.spreadMode(window.innerWidth, window.innerHeight, LS.get(K_SPREAD, null));
+      var sw = two ? Math.floor(W / 2) : Math.min(W, 760);
+      twoBtn.classList.toggle('hidden', !C.isLargeScreen(window.innerWidth, window.innerHeight));
+      twoBtn.setAttribute('aria-pressed', two ? 'true' : 'false');
+      stage.className = 'rd-stage ' + (two ? 'two' : 'one');
+      return { W: W, H: H, sw: sw, key: [sw, H, prefs.scale, prefs.lh, two ? 2 : 1].join('|') };
+    }
+    var mScr = null, mMark = null, mClip = null, mFoot = null;
+    function measureShell() {
+      measureBox.innerHTML = '';
+      mScr = el('div', { class: 'scr' }); mScr.style.width = geo.sw + 'px'; mScr.style.height = geo.H + 'px';
+      mMark = el('div', { class: 'pg-mark' }, [el('span', { text: '0' })]);
+      mClip = el('div', { class: 'scr-clip' });
+      mFoot = el('div', { class: 'scr-foot' });
+      mScr.appendChild(mMark); mScr.appendChild(mClip); mScr.appendChild(mFoot);
+      measureBox.appendChild(mScr);
+      var cs = getComputedStyle(mScr), mk = getComputedStyle(mMark);
+      geo.room = mScr.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - mMark.offsetHeight - parseFloat(mk.marginBottom || 0) - 2;
+    }
+    function textLines(node) {
+      var r = document.createRange(); r.selectNodeContents(node);
+      return C.mergeLines(Array.prototype.slice.call(r.getClientRects()), node.getBoundingClientRect().top);
+    }
+    function charOffsetAtY(body, y) {
+      var walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT), node, off = 0, r = document.createRange();
+      while ((node = walker.nextNode())) {
+        var len = node.data.length; if (!len) continue;
+        r.setStart(node, len - 1); r.setEnd(node, len);
+        var b = r.getBoundingClientRect();
+        if (b.height && b.bottom > y) {
+          var lo = 0, hi = len - 1;
+          while (lo < hi) { var mid = (lo + hi) >> 1; r.setStart(node, mid); r.setEnd(node, mid + 1); var rr = r.getBoundingClientRect(); if (rr.height && rr.bottom > y) hi = mid; else lo = mid + 1; }
+          return off + lo;
+        }
+        off += len;
+      }
+      return off;
+    }
+    // One page: the fit rule, then the screens.
+    function planPage(pg) {
+      mClip.innerHTML = ''; mFoot.innerHTML = '';
+      var body = renderBody(pg), foot = renderFoot(pg);
+      mClip.appendChild(body);
+      if (foot) { mFoot.appendChild(el('div', { class: 'foot-rule' })); mFoot.appendChild(foot); }
+      function sizes(f) {
+        mScr.style.setProperty('--fit', String(f));
+        var bh = body.getBoundingClientRect().height, fh = foot ? mFoot.getBoundingClientRect().height : 0;
+        return { bh: bh, fh: fh };
+      }
+      var fit = C.chooseFit(function (f) { var s = sizes(f); return s.bh + s.fh <= geo.room; });
+      var s = sizes(fit.scale);
+      var plan = { scale: fit.scale, screens: null, offsets: [0] };
+      if (!fit.split) plan.screens = [{ body: [0, s.bh], foot: foot ? [0, foot.getBoundingClientRect().height] : null }];
+      else {
+        var footH = foot ? foot.getBoundingClientRect().height : 0;
+        plan.screens = C.planPageScreens({ h: s.bh, lines: textLines(body) }, foot ? { h: footH, lines: textLines(foot) } : null, geo.room, foot ? s.fh - footH : 0);
+        var btop = body.getBoundingClientRect().top;
+        plan.offsets = plan.screens.map(function (sc, i) { return i === 0 || !sc.body ? (i === 0 ? 0 : (pg.plain || '').length) : charOffsetAtY(body, btop + sc.body[0] + 1); });
+      }
+      mScr.style.removeProperty('--fit');
+      return plan;
+    }
+    function planAll() {
+      var g = geometry();
+      if (!geo || g.key !== planKey) { geo = g; planKey = g.key; plans = {}; measureShell(); }
+      for (var s = loaded[0]; s <= loaded[1]; s++) if (pages[s] && !plans[s]) plans[s] = planPage(pages[s]);
+    }
+    function rebuild(anchor) {
+      planAll();
+      var seqs = [], counts = {};
+      for (var s = loaded[0]; s <= loaded[1]; s++) if (pages[s]) { seqs.push(s); counts[s] = plans[s].screens.length; }
+      items = C.buildItems(seqs, counts, two);
+      if (anchor) {
+        var part = 0, pl = plans[anchor.seq];
+        if (pl && anchor.offset) for (var i = 0; i < pl.offsets.length; i++) if (pl.offsets[i] <= anchor.offset) part = i;
+        if (anchor.part != null && !anchor.offset) part = Math.min(anchor.part, pl ? pl.screens.length - 1 : 0);
+        var k = C.itemIndexFor(items, anchor.seq, part);
+        idx = k < 0 ? 0 : k;
+      }
+      idx = C.clampPage(idx, items.length);
+    }
+    function currentAnchor() {
+      var it = items[idx]; if (!it) return null;
+      var pl = plans[it.right.seq];
+      return { seq: it.right.seq, part: it.right.part, offset: pl ? pl.offsets[it.right.part] || 0 : 0 };
+    }
+
+    // ---- rendering ----
+    function renderBody(pg) {
+      var parsed = C.parseMarkup(pg.body);
+      pg.plain = parsed.plain;
+      var ranges = [];
+      if (terms) C.findTermSpans(parsed.plain, terms).forEach(function (r) { ranges.push({ start: r.start, end: r.end, search: true }); });
+      notes.forPage(bookNotes, pg.seq).forEach(function (r) { ranges.push({ id: r.id, start: r.start, end: r.end, color: r.color, note: r.note }); });
+      var parts = C.applyHighlights(parsed.segs, ranges);
+      var body = el('div', { class: 'pg-body', 'data-seq': String(pg.seq) });
+      parts.forEach(function (p) {
+        var node = document.createTextNode(p.t);
+        for (var i = p.cls.length - 1; i >= 0; i--) { var sp = document.createElement('span'); sp.className = 's-' + p.cls[i]; sp.appendChild(node); node = sp; }
+        if (p.hl) {
+          var m = document.createElement('mark');
+          if (p.hl.search) m.className = 'qh';
+          else { m.className = (p.hl.color || 'h1') + (p.hl.note ? ' has-note' : ''); m.setAttribute('data-note', p.hl.id); }
+          m.appendChild(node); node = m;
+        }
+        body.appendChild(node);
+      });
+      return body;
+    }
+    function renderFoot(pg) {
+      if (!pg.foot) return null;
+      var parsed = C.parseMarkup(pg.foot);
+      var f = el('div', { class: 'pg-foot' });
+      parsed.segs.forEach(function (p) {
+        var node = document.createTextNode(p.t);
+        for (var i = p.cls.length - 1; i >= 0; i--) { var sp = document.createElement('span'); sp.className = 's-' + p.cls[i]; sp.appendChild(node); node = sp; }
+        f.appendChild(node);
+      });
+      return f;
+    }
+    function renderScreen(s) {
+      var scr = el('div', { class: 'scr' + (s ? '' : ' blank') });
+      scr.style.width = geo.sw + 'px';
+      if (!s) return scr;
+      var pg = pages[s.seq], plan = plans[s.seq], sc = plan.screens[s.part] || plan.screens[0];
+      scr.setAttribute('data-seq', String(s.seq));
+      scr.style.setProperty('--fit', String(plan.scale));
+      var label = markLabel(book.numbering, pg);
+      var bm = notes.bookmarkAt(bookNotes, pg.seq);
+      scr.appendChild(el('div', { class: 'pg-mark' + (bm ? ' bm' : '') + (s.part > 0 ? ' cont' : '') }, [el('span', { text: s.part > 0 ? T('mark_cont', { m: label }) : label })]));
+      if (sc.body) {
+        var clip = el('div', { class: 'scr-clip' }); clip.style.height = (sc.body[1] - sc.body[0]) + 'px';
+        var b = renderBody(pg); b.style.top = (-sc.body[0]) + 'px';
+        clip.appendChild(b); scr.appendChild(clip);
+      }
+      if (sc.foot) {
+        var fw = el('div', { class: 'scr-foot' }, [el('div', { class: 'foot-rule' })]);
+        var f = renderFoot(pg);
+        if (f) {
+          var fc = el('div', { class: 'scr-clip' }); fc.style.height = (sc.foot[1] - sc.foot[0]) + 'px';
+          f.style.top = (-sc.foot[0]) + 'px'; fc.appendChild(f); fw.appendChild(fc);
+        }
+        scr.appendChild(fw);
+      }
+      return scr;
+    }
+    function show(dir) {
+      if (!book || !items.length) return;
+      var it = items[idx];
+      stage.innerHTML = '';
+      stage.style.transform = '';
+      stage.appendChild(renderScreen(it.right));
+      if (two) stage.appendChild(renderScreen(it.left));
+      if (dir) {
+        stage.classList.remove('anim'); stage.style.transform = 'translateX(' + (dir === 'next' ? -28 : 28) + 'px)'; stage.style.opacity = '.4';
+        void stage.offsetWidth;
+        stage.classList.add('anim'); stage.style.transform = 'translateX(0)'; stage.style.opacity = '';
+      }
+      updateBar();
+      maybeLoadMore();
+    }
+    function updateBar() {
+      var it = items[idx]; if (!it) return;
+      var seqs = C.itemSeqs(it);
+      where.textContent = seqs.map(function (s) { return markLabel(book.numbering, pages[s]); }).join(' | ');
+      counter.textContent = seqs.length > 1 ? T('pages_of', { a: D(seqs[0]), b: D(seqs[1]), n: D(book.pages) }) : T('page_of', { i: D(seqs[0]), n: D(book.pages) });
+      bmBtn.setAttribute('aria-pressed', notes.bookmarkAt(bookNotes, it.right.seq) ? 'true' : 'false');
+      savePosition();
+    }
+    var posTimer = null;
+    function savePosition() {
+      clearTimeout(posTimer);
+      posTimer = setTimeout(function () {
+        var a = currentAnchor(); if (!a || !book) return;
+        setPos(book.book_id, { book_id: book.book_id, seq: a.seq, part: a.part, offset: a.offset, at: Date.now(), title: book.title, where: markLabel(book.numbering, pages[a.seq]) });
+      }, 400);
+    }
+
+    // ---- loading (small windows aligned to the two-page pairing) ----
+    function fetchWindow(w) {
+      return api('books/' + encodeURIComponent(bookId) + '/pages?from=' + w.from + '&count=' + w.count, true).then(function (j) {
+        j.pages.forEach(function (p) { pages[p.seq] = p; });
+        return j;
+      });
+    }
+    function trim(keepSeq) {
+      var lo = loaded[0], hi = loaded[1];
+      while (hi - lo + 1 > MAXLOADED) {
+        if (keepSeq - lo > hi - keepSeq) { delete pages[lo]; delete plans[lo]; delete pages[lo + 1]; delete plans[lo + 1]; lo += 2; }
+        else { var cut = (hi - lo + 1) % 2 === 1 ? 1 : 2; for (var c = 0; c < cut; c++) { delete pages[hi]; delete plans[hi]; hi--; } }
+      }
+      loaded = [lo, hi];
+    }
+    function maybeLoadMore() {
+      if (busy || !book || !loaded || idx < items.length - 2) return;
+      var nw = C.nextWindow(loaded, book.pages, WIN);
+      if (!nw) return;
+      busy = true;
+      var g = gen;
+      fetchWindow(nw).then(function () {
+        if (dead || g !== gen || !loaded) return;
+        var a = currentAnchor();
+        loaded = [loaded[0], nw.from + nw.count - 1];
+        trim(a ? a.seq : loaded[1]);
+        rebuild(a);
+        updateBar();
+      }).then(function () { busy = false; maybeLoadMore(); }, function () { busy = false; toast(T('load_error')); });
+    }
+    function loadPrev(then) {
+      var pw = C.prevWindow(loaded, WIN);
+      if (!pw || busy) return false;
+      busy = true;
+      var a = currentAnchor(), g = gen;
+      fetchWindow(pw).then(function () {
+        if (dead || g !== gen || !loaded) return;
+        loaded = [pw.from, loaded[1]]; trim(a ? a.seq : pw.from);
+        rebuild(a);
+        if (then) then();
+      }).catch(function () { toast(T('load_error')); }).then(function () { busy = false; });
+      return true;
+    }
+    function next() {
+      if (idx < items.length - 1) { idx++; show('next'); return; }
+      if (loaded && loaded[1] >= book.pages) toast(T('end_of_book')); else maybeLoadMore();
+    }
+    function prev() {
+      if (idx > 0) { idx--; show('prev'); return; }
+      if (loaded && loaded[0] <= 1) { toast(T('start_of_book')); return; }
+      loadPrev(function () { idx = Math.max(0, idx - 1); show('prev'); });
+    }
+    function openAt(seq, anchor) {
+      var w = C.alignedWindow(seq, book.pages, WIN);
+      busy = true;
+      var g = gen;
+      return fetchWindow(w).then(function () {
+        if (dead || g !== gen) return;
+        loaded = [w.from, w.from + w.count - 1];
+        rebuild(anchor || { seq: seq, part: 0, offset: 0 });
+        show();
+      }).catch(function () { stage.innerHTML = ''; errorView(stage, function () { openAt(seq, anchor); }); }).then(function () { busy = false; maybeLoadMore(); });
+    }
+    function jumpTo(seq) {
+      seq = Math.max(1, Math.min(book.pages, seq));
+      if (loaded && seq >= loaded[0] && seq <= loaded[1] && pages[seq]) { var k = C.itemIndexFor(items, seq, 0); if (k >= 0) { idx = k; show(); return; } }
+      gen++; pages = {}; plans = {}; loaded = null; openAt(seq, null);
+    }
+    function relayout() { if (!book || !loaded) return; var a = currentAnchor(); planKey = ''; rebuild(a); show(); }
+    function openBookSearch() {
+      openSearchSheet({ bookId: bookId, catId: book ? book.site_category_id : null, scope: 'book', openHit: function (h, t) {
+        if (h.book_id !== bookId) { go('#/read/' + h.book_id + '/' + h.seq + '/' + encodeURIComponent(t.join(' '))); return; }
+        terms = t && t.length ? t : null; hlBtn.classList.toggle('hidden', !terms);
+        jumpTo(h.seq);
+      } });
+    }
+
+    // ---- input: taps, swipes, keys ----
+    var touch = null;
+    view.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 1) { touch = null; return; }
+      touch = { x: e.touches[0].clientX, y: e.touches[0].clientY, moved: false };
+    }, { passive: true });
+    view.addEventListener('touchmove', function (e) {
+      if (!touch) return;
+      var dx = e.touches[0].clientX - touch.x, dy = e.touches[0].clientY - touch.y;
+      if (!touch.moved && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) && !hasSelection()) touch.moved = true;
+      if (touch.moved) { stage.classList.remove('anim'); stage.style.transform = 'translateX(' + dx + 'px)'; }
+    }, { passive: true });
+    view.addEventListener('touchend', function (e) {
+      if (!touch) return;
+      var dx = (e.changedTouches[0] ? e.changedTouches[0].clientX : touch.x) - touch.x;
+      var s = touch; touch = null;
+      if (!s.moved) return;
+      // the finger moving from left to right (dx > 0) brings the next page
+      var target = C.swipeTarget(1, dx, view.clientWidth, 3);
+      if (target === 2) next(); else if (target === 0) prev();
+      else { stage.classList.add('anim'); stage.style.transform = 'translateX(0)'; }
+      suppressNextClick = true; setTimeout(function () { suppressNextClick = false; }, 400);
+    });
+    var suppressNextClick = false;
+    view.addEventListener('click', function (e) {
+      if (suppressNextClick) return;
+      var m = e.target.closest && e.target.closest('mark[data-note]');
+      if (m && !hasSelection()) { editNote(m.getAttribute('data-note')); return; }
+      if (hasSelection()) return;
+      var rect = view.getBoundingClientRect();
+      var a = C.tapAction(e.clientX - rect.left, rect.width);
+      if (a === 'next') next(); else if (a === 'prev') prev();
+    });
+    function onKey(e) {
+      if (document.querySelector('.drawer,.modal,.ssheet')) return;
+      if (e.key === 'ArrowLeft') { e.preventDefault(); next(); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); prev(); }
+    }
+    document.addEventListener('keydown', onKey);
+    var rsTimer = null;
+    function onResize() { clearTimeout(rsTimer); rsTimer = setTimeout(relayout, 150); }
+    window.addEventListener('resize', onResize);
+    twoBtn.addEventListener('click', function () { LS.set(K_SPREAD, !two); relayout(); });
+
+    // ---- selection -> highlight / note (anchors unchanged: book_id, seq, start, end) ----
+    var selbar = null;
+    function hasSelection() { var s = window.getSelection && window.getSelection(); return !!(s && !s.isCollapsed && String(s).trim()); }
+    function selectionAnchor() {
+      var s = window.getSelection(); if (!s || s.isCollapsed || !s.rangeCount) return null;
+      var r = s.getRangeAt(0);
+      var startBody = r.startContainer.parentElement && r.startContainer.parentElement.closest('.pg-body');
+      if (!startBody || !stage.contains(startBody)) return null;
+      var seq = +startBody.getAttribute('data-seq');
+      function offsetIn(body, container, offset) {
+        var pre = document.createRange(); pre.selectNodeContents(body); pre.setEnd(container, offset);
+        return pre.toString().length;
+      }
+      var start = offsetIn(startBody, r.startContainer, r.startOffset);
+      var endBody = r.endContainer.parentElement && r.endContainer.parentElement.closest('.pg-body');
+      var clipped = endBody !== startBody;
+      var plain = pages[seq].plain || '';
+      var end = clipped ? plain.length : offsetIn(startBody, r.endContainer, r.endOffset);
+      var a = C.makeAnchor(bookId, seq, start, end, plain.length);
+      a.text = plain.slice(a.start, a.end); a.clipped = clipped;
+      return a.end > a.start ? a : null;
+    }
+    function hideSelbar() { if (selbar) { selbar.remove(); selbar = null; } }
+    function showSelbar() {
+      if (selbar || !hasSelection() || !selectionAnchor()) return;
+      selbar = el('div', { class: 'selbar', role: 'toolbar', 'aria-label': T('hl_color') });
+      ['h1', 'h2', 'h3'].forEach(function (c) { selbar.appendChild(el('button', { class: 'dot ' + c, 'aria-label': T('hl_color') + ' ' + D(c.slice(1)), on: { click: function () { saveSel('highlight', c); } } })); });
+      selbar.appendChild(el('button', { class: 'ibtn', text: T('add_note'), on: { click: function () { saveSel('note', 'h1'); } } }));
+      selbar.appendChild(el('button', { class: 'ibtn', text: T('cancel'), on: { click: function () { window.getSelection().removeAllRanges(); hideSelbar(); } } }));
+      document.body.appendChild(selbar);
+    }
+    var selTimer = null;
+    function onSel() { clearTimeout(selTimer); selTimer = setTimeout(function () { if (hasSelection()) showSelbar(); else hideSelbar(); }, 250); }
+    document.addEventListener('selectionchange', onSel);
+    function pageInfo(seq) { var p = pages[seq] || {}; return { vol: p.vol == null ? null : p.vol, page: p.page == null ? null : p.page }; }
+    function saveSel(type, color) {
+      var a = selectionAnchor(); if (!a) return hideSelbar();
+      window.getSelection().removeAllRanges(); hideSelbar();
+      var info = pageInfo(a.seq);
+      var rec = { type: type === 'note' ? 'highlight' : type, book_id: bookId, seq: a.seq, start: a.start, end: a.end, color: color, text: a.text, book_title: book.title, vol: info.vol, page: info.page, numbering: book.numbering };
+      notes.add(rec).then(function (r) {
+        bookNotes.push(r); show();
+        if (a.clipped) toast(T('sel_one_page'));
+        if (type === 'note') editNote(r.id);
+      });
+    }
+    function editNote(id) {
+      var r = bookNotes.filter(function (x) { return x.id === id; })[0]; if (!r) return;
+      noteEditor(r, function (saved) {
+        bookNotes = bookNotes.map(function (x) { return x.id === id ? saved : x; }); show();
+      }, function () {
+        bookNotes = bookNotes.filter(function (x) { return x.id !== id; }); show();
+      });
+    }
+    bmBtn.addEventListener('click', function () {
+      var it = items[idx]; if (!it) return;
+      var seq = it.right.seq;
+      var bm = notes.bookmarkAt(bookNotes, seq);
+      if (bm) notes.remove(bm.id).then(function () { bookNotes = bookNotes.filter(function (x) { return x.id !== bm.id; }); show(); toast(T('bookmark_removed')); });
+      else {
+        var info = pageInfo(seq);
+        notes.add({ type: 'bookmark', book_id: bookId, seq: seq, start: 0, end: 0, text: (pages[seq].plain || '').slice(0, 120), book_title: book.title, vol: info.vol, page: info.page, numbering: book.numbering })
+          .then(function (r) { bookNotes.push(r); show(); toast(T('bookmark_added')); });
+      }
+    });
+
+    // ---- drawer: contents, jump, notes, settings ----
+    function openDrawer(tab) {
+      if (!book) return;
+      var panelBody = el('div', { class: 'body' });
+      var tabs = el('div', { class: 'tabs', role: 'tablist' });
+      var names = [['toc', T('toc')], ['jump', T('jump')], ['notes', T('notes_tab')], ['settings', T('settings')]];
+      var dr = el('div', { class: 'drawer', role: 'dialog', 'aria-modal': 'true' });
+      function close() { dr.remove(); }
+      names.forEach(function (nm) { tabs.appendChild(el('button', { role: 'tab', 'aria-selected': nm[0] === tab ? 'true' : 'false', text: nm[1], on: { click: function () { tab = nm[0]; paint(); } } })); });
+      function paint() {
+        Array.prototype.forEach.call(tabs.children, function (b, i) { b.setAttribute('aria-selected', names[i][0] === tab ? 'true' : 'false'); });
+        panelBody.innerHTML = '';
+        if (tab === 'toc') panelBody.appendChild(tocList(book.toc, function (seq) { close(); jumpTo(seq); }));
+        else if (tab === 'jump') {
+          // digits in either style are accepted; shown in the one digit style
+          var vIn = el('input', { type: 'text', inputmode: 'numeric', dir: 'rtl', 'aria-label': T('vol'), value: '' });
+          var pIn = el('input', { type: 'text', inputmode: 'numeric', dir: 'rtl', 'aria-label': T('page') });
+          var it = items[idx], cur = it ? pages[it.right.seq] || {} : {};
+          if (cur.vol != null) vIn.value = D(cur.vol);
+          var msg = el('p', { class: 'muted' });
+          panelBody.appendChild(el('div', { class: 'field' }, [el('label', { text: T('vol') }), vIn]));
+          panelBody.appendChild(el('div', { class: 'field' }, [el('label', { text: T('page') }), pIn]));
+          if (book.numbering === 'auto') panelBody.appendChild(el('p', { class: 'muted', text: T('jump_auto_note') }));
+          panelBody.appendChild(el('button', { class: 'btn', text: T('go'), on: { click: function () {
+            var pv = C.asciiDigits(pIn.value).trim(), vv = C.asciiDigits(vIn.value).trim();
+            if (!/^[0-9]{1,6}$/.test(pv) || (vv !== '' && !/^[0-9]{1,4}$/.test(vv))) { msg.textContent = T('jump_not_found'); return; }
+            var q = 'books/' + encodeURIComponent(bookId) + '/locate?page=' + pv + (vv !== '' ? '&vol=' + vv : '');
+            api(q, true).then(function (j) { close(); if (!j.exact) toast(T('jump_near')); jumpTo(j.seq); })
+              .catch(function (e) { msg.textContent = e.status === 404 ? T('jump_not_found') : T('load_error'); });
+          } } }));
+          panelBody.appendChild(msg);
+        } else if (tab === 'notes') {
+          notesList(panelBody, bookId, function (r) { close(); jumpTo(r.seq); }, function () { notes.listByBook(bookId).then(function (a) { bookNotes = a; show(); }); });
+        } else {
+          var p = readerPrefs();
+          function setP(np) { LS.set(K_READER, np); prefs = np; applyReaderPrefs(np); relayout(); paint(); }
+          panelBody.appendChild(el('h4', { text: T('font_size') }));
+          panelBody.appendChild(el('div', { class: 'seg' }, [
+            el('button', { text: T('smaller'), on: { click: function () { setP({ scale: Math.max(0.8, +(p.scale - 0.1).toFixed(2)), lh: p.lh }); } } }),
+            el('span', { class: 'muted', style: 'padding:8px', text: D(Math.round(p.scale * 100)) + '٪' }),
+            el('button', { text: T('larger'), on: { click: function () { setP({ scale: Math.min(1.8, +(p.scale + 0.1).toFixed(2)), lh: p.lh }); } } })
+          ]));
+          panelBody.appendChild(el('h4', { text: T('line_spacing') }));
+          var ls = el('div', { class: 'seg' });
+          [[1.6, 'ls_tight'], [1.9, 'ls_normal'], [2.3, 'ls_wide']].forEach(function (o) {
+            ls.appendChild(el('button', { 'aria-pressed': p.lh === o[0] ? 'true' : 'false', text: T(o[1]), on: { click: function () { setP({ scale: p.scale, lh: o[0] }); } } }));
+          });
+          panelBody.appendChild(ls);
+          panelBody.appendChild(el('h4', { text: T('mode') }));
+          var md = el('div', { class: 'seg' }); var cm = LS.get(K_MODE, null);
+          [['day', 'mode_day'], ['night', 'mode_night'], ['sepia', 'mode_sepia'], [null, 'mode_follow']].forEach(function (o) {
+            md.appendChild(el('button', { 'aria-pressed': cm === o[0] ? 'true' : 'false', text: T(o[1]), on: { click: function () { if (o[0]) LS.set(K_MODE, o[0]); else LS.del(K_MODE); applyMode(); paint(); } } }));
+          });
+          panelBody.appendChild(md);
+        }
+      }
+      var panel = el('div', { class: 'panel' }, [tabs, panelBody]);
+      dr.appendChild(panel);
+      dr.appendChild(el('div', { class: 'shade', on: { click: close } }));
+      document.body.appendChild(dr);
+      paint();
+    }
+
+    // ---- boot ----
+    Promise.all([api('books/' + encodeURIComponent(bookId)), notes.listByBook(bookId)]).then(function (res) {
+      if (dead) return;
+      book = res[0]; bookNotes = res[1];
+      titleEl.textContent = D(book.title); document.title = D(book.title) + ' - ' + T('app_title');
+      if (book.access !== 'full') { stage.appendChild(el('p', { class: 'note', text: T('card_only_reader') })); setTimeout(function () { go('#/book/' + bookId); }, 1200); return; }
+      var p = getPos(bookId);
+      var seq = startSeq && startSeq >= 1 ? Math.min(startSeq, book.pages) : p ? p.seq : 1;
+      var anchor = p && p.seq === seq && !startSeq ? { seq: seq, part: p.part || 0, offset: p.offset || 0 } : { seq: seq, part: 0, offset: 0 };
+      openAt(seq, anchor);
+    }).catch(function () { errorView(stage, function () { route(); }); });
+
+    return {
+      destroy: function () {
+        dead = true; savePosition();
+        document.removeEventListener('keydown', onKey); document.removeEventListener('selectionchange', onSel);
+        window.removeEventListener('resize', onResize); hideSelbar();
+        Array.prototype.forEach.call(document.querySelectorAll('.drawer,.modal,.ssheet'), function (x) { x.remove(); });
+      }
+    };
+  }
+
+  // ---------------- notes UI ----------------
+  function noteEditor(rec, onSaved, onDeleted) {
+    var ta = el('textarea', { placeholder: T('note_ph'), 'aria-label': T('note_ph') });
+    ta.value = rec.note || '';
+    var colors = el('div', { class: 'seg', style: 'margin:10px 0' });
+    var color = rec.color || 'h1';
+    ['h1', 'h2', 'h3'].forEach(function (c) {
+      colors.appendChild(el('button', { class: 'dot ' + c, 'aria-label': T('hl_color') + ' ' + c.slice(1), 'aria-pressed': c === color ? 'true' : 'false', on: { click: function (e) {
+        color = c; Array.prototype.forEach.call(colors.children, function (b) { b.setAttribute('aria-pressed', b === e.currentTarget ? 'true' : 'false'); });
+      } } }));
+    });
+    var box = el('div', { class: 'box' }, [
+      el('h3', { style: 'margin:0 0 8px', text: T('note_title') }),
+      rec.text ? el('q', { style: 'display:block;font-family:var(--vt-font);margin-bottom:8px;color:var(--vt-muted)', text: rec.text }) : null,
+      rec.type !== 'bookmark' ? colors : null, ta,
+      el('div', { class: 'actions' }, [
+        el('button', { class: 'btn', text: T('save'), on: { click: function () { notes.update(rec.id, { note: ta.value, color: color }).then(function (r) { md.remove(); toast(T('saved')); if (onSaved) onSaved(r); }); } } }),
+        el('button', { class: 'btn ghost', text: T('delete'), on: { click: function () { if (!confirm(T('confirm_delete'))) return; notes.remove(rec.id).then(function () { md.remove(); if (onDeleted) onDeleted(); }); } } }),
+        el('button', { class: 'btn ghost', text: T('cancel'), on: { click: function () { md.remove(); } } })
+      ])
+    ]);
+    var md = el('div', { class: 'modal', role: 'dialog', 'aria-modal': 'true' }, [box]);
+    document.body.appendChild(md);
+    ta.focus();
+  }
+  function recWhere(r) {
+    if (r.page == null) return T('mark_seq', { s: D(r.seq) });
+    return markLabel(r.numbering, { seq: r.seq, vol: r.vol, page: r.page });
+  }
+  function notesList(target, bookId, onOpen, onChange) {
+    target.innerHTML = '';
+    target.appendChild(el('p', { class: 'msg', text: T('loading') }));
+    (bookId ? notes.listByBook(bookId) : notes.listAll()).then(function (list) {
+      target.innerHTML = '';
+      if (!list.length) { target.appendChild(el('p', { class: 'msg', text: T('notes_empty') })); return; }
+      var lastBook = null;
+      list.forEach(function (r) {
+        if (!bookId && r.book_id !== lastBook) { lastBook = r.book_id; target.appendChild(el('h3', { class: 'sec-title', text: D(r.book_title || r.book_id) })); }
+        var kind = r.type === 'bookmark' ? T('t_bookmark') : r.type === 'note' ? T('t_note') : T('t_highlight');
+        var box = el('div', { class: 'nrec' }, [
+          r.text ? el('q', { class: r.color || '', text: r.text }) : null,
+          r.note ? el('p', { text: r.note }) : null,
+          el('div', { class: 'meta' }, [
+            el('span', { text: kind + ' · ' + recWhere(r) }),
+            el('button', { text: T('open'), on: { click: function () { if (onOpen) onOpen(r); else go('#/read/' + r.book_id + '/' + r.seq); } } }),
+            el('button', { text: T('edit'), on: { click: function () { noteEditor(r, function () { notesList(target, bookId, onOpen, onChange); if (onChange) onChange(); }, function () { notesList(target, bookId, onOpen, onChange); if (onChange) onChange(); }); } } }),
+            el('button', { text: T('delete'), on: { click: function () { if (!confirm(T('confirm_delete'))) return; notes.remove(r.id).then(function () { notesList(target, bookId, onOpen, onChange); if (onChange) onChange(); }); } } })
+          ])
+        ]);
+        target.appendChild(box);
+      });
+    }).catch(function () { errorView(target, function () { notesList(target, bookId, onOpen, onChange); }); });
+  }
+  function viewNotes(bookId) {
+    $app.appendChild(topBar(T('my_notes'), '#/', []));
+    var body = el('div', { class: 'wrap' });
+    $app.appendChild(el('main', { class: 'scroll' }, [body]));
+    if (bookId) {
+      body.appendChild(el('div', { class: 'seg', style: 'margin-bottom:8px' }, [
+        el('button', { text: T('all_books'), on: { click: function () { go('#/notes'); } } }),
+        el('button', { 'aria-pressed': 'true', text: T('this_book') })
+      ]));
+    }
+    var list = el('div');
+    body.appendChild(list);
+    notesList(list, bookId, null, null);
+    return {};
+  }
+
+  // ---------------- Ezik (ORDER-108C) ----------------
+  // Back to Ezik lands on its sections (the same resume key quest.html's home link writes) --
+  // unless the reader came from a conversation (ORDER-108D D2): then Ezik reopens that one.
+  function backToEzik() {
+    try {
+      if (!sessionStorage.getItem('ezik_resume_thread_v1')) sessionStorage.setItem('ezik_resume_section_v1', 'home');
+    } catch (e) {}
+    location.href = '/';
+  }
+  // B5: "ask Ezik" opens Ezik's chat with the question in the composer, NOT sent. The question
+  // travels in this tab's sessionStorage, never in a URL, so no server log ever carries it.
+  window.EzikLibrary.askEzik = function (query) {
+    var q = String(query == null ? '' : query).trim().slice(0, 1000);
+    try {
+      if (q) sessionStorage.setItem('ezik_ask_prefill_v1', q);
+      sessionStorage.removeItem('ezik_resume_section_v1');
+    } catch (e) {}
+    location.href = '/';
+  };
+  // B1: deep links. The query is removed from the address once read, so a reload keeps the
+  // reader where they went next instead of snapping back to the cited page.
+  var link = C.parseDeepLink(location.search);
+  if (link) {
+    var rest = location.search.replace(/^\?/, '').split('&').filter(function (kv) {
+      return kv && !/^(book|vol|page|seq)(=|$)/.test(kv);
+    }).join('&');
+    var clean = location.pathname + (rest ? '?' + rest : '');
+    var enc = encodeURIComponent(link.book);
+    var first = link.seq ? '#/read/' + enc + '/' + link.seq : '#/book/' + enc;
+    try { history.replaceState(null, '', clean + first); } catch (e) { location.hash = first; }
+    if (link.page) {
+      api('books/' + enc + '/locate?page=' + link.page + (link.vol ? '&vol=' + link.vol : ''), true).then(function (j) {
+        if (!j || !j.seq || location.hash !== first) return;
+        if (!j.exact) toast(T('jump_near'));
+        var to = '#/read/' + enc + '/' + j.seq;
+        try { history.replaceState(null, '', clean + to); route(); } catch (e) { location.replace(to); }
+      }).catch(function () {});
+    }
+  }
+
+  document.title = T('app_title');
+  route();
+})();
+</script>
+</body>
+</html>

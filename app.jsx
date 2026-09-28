@@ -102,6 +102,7 @@ function ezLangRelabel() {
     EZH_TREASURE = ezT("module.treasure");
     EZH_FATWA = ezT("module.fatwa");
     EZH_LESSONS = ezT("module.lessons");
+    EZH_LIBRARY = ezT("module.library");
     EZH_ARTICLES = ezT("module.articles");
     EZH_WOMEN = ezT("module.women");
     EZH_ASMAA = ezT("asmaa.title");
@@ -115,11 +116,11 @@ function ezLangRelabel() {
     EZIST_SUB_TREASURE = ezT("module.treasure.sub");
     EZIST_SUB_FATWA = ezT("module.fatwa.sub");
     EZIST_SUB_LESSONS = ezT("module.lessons.sub");
-    // The three entries below are NOT relabelled -- EZIST_SUB_ASMAA, EZIST_SUB_PRAYER and
-    // EZIST_SUB_LIBRARY are plain strings, not ezT lookups -- but they must still be CARRIED. This is a whole-table
+    // The two entries below are NOT relabelled -- EZIST_SUB_ASMAA and EZIST_SUB_PRAYER are
+    // plain strings, not ezT lookups -- but they must still be CARRIED. This is a whole-table
     // replacement, so an id left out of it is not left at its old wording: it is deleted, and
     // the prayer card lost its second line on the first language switch of every session.
-    EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, arbaeen: EZIST_SUB_ARBAEEN, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
+    EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, arbaeen: EZIST_SUB_ARBAEEN, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER };
     A2_BACK = ezT("common.back");
     EZIK_FAV_TITLE = ezT("favorites.title");
     EZIK_FAV_HEADING = ezT("favorites.heading");
@@ -253,6 +254,8 @@ const EZ_I18N = {
     // and the screen it opens cannot drift apart -- they read the same key.
     'module.lessons': 'الدروس',
     'module.lessons.sub': 'بحثٌ في دروسِ العلماء',
+    // ITEM 108 (ORDER-108C): the library section's name, exactly this word and no longer one.
+    'module.library': 'المكتبة',
     'lessons.searchPlaceholder': 'ابحثْ في الدروس…',
     'lessons.searchAria': 'البحثُ في الدروس',
     'lessons.searchButton': 'ابحثْ',
@@ -985,6 +988,7 @@ const EZ_I18N = {
     'chat.lessons': 'Related lessons',
     'module.lessons': 'Lessons',
     'module.lessons.sub': 'Search the scholars’ lessons',
+    'module.library': 'Library',
     'lessons.searchPlaceholder': 'Search the lessons…',
     'lessons.searchAria': 'Search the lessons',
     'lessons.searchButton': 'Search',
@@ -3664,6 +3668,8 @@ function ezikDecodeMatn(encoded) {
 const BOOK_MATN_CUT_NOTE = '… بقيّةُ النصِّ لم تصلْ';
 // الكلمةُ التي يلمسُها القارئُ ليرى النصّ.
 const BOOK_MATN_LABEL = 'النصّ';
+// ITEM 108 (ORDER-108C B3): the link from a library source to the book in the library page.
+const BOOK_LIBRARY_LINK_LABEL = 'افتح في المكتبة';
 
 // ============================================================
 // §٢ (C) — «هذا الجوابُ لم يكتملْ»: العلامةُ التي يرسلُها الخادم، والقراءةُ التي يقرؤها العميل
@@ -6393,6 +6399,13 @@ const parseRichMessage = (text, viewerAge) => {
       // passage on purpose: a mark appended to the text would make the text no longer the text.
       const matnMatch = attrsStr.match(/matn=["']([^"']+)["']/);
       const cutMatch = attrsStr.match(/cut=["']([^"']+)["']/);
+      // ITEM 108 (ORDER-108C B3): where the book is -- its library id and, when the server called
+      // the page citable, the volume and page. Read with the matn attribute removed first, so no
+      // run of base64 can ever be read as one of them.
+      const placeStr = attrsStr.replace(/matn=["'][^"']*["']/, '');
+      const bookIdMatch = placeStr.match(/\bbook=["'](FC-[0-9]{6})["']/);
+      const volMatch = placeStr.match(/\bvol=["']([0-9]{1,4})["']/);
+      const pageMatch = placeStr.match(/\bpage=["']([0-9]{1,6})["']/);
       segments.push({
         type: 'book',
         title: content,
@@ -6400,6 +6413,9 @@ const parseRichMessage = (text, viewerAge) => {
         where: refMatch ? refMatch[1] : '',
         text: matnMatch ? ezikDecodeMatn(matnMatch[1]) : '',
         cut: !!cutMatch,
+        bookId: bookIdMatch ? bookIdMatch[1] : '',
+        vol: volMatch ? volMatch[1] : '',
+        page: pageMatch ? pageMatch[1] : '',
       });
     } else if (tagName === 'steps') {
       const items = content.split('\n')
@@ -6440,6 +6456,16 @@ const parseRichMessage = (text, viewerAge) => {
   // a mark that landed inside a hadith or a source body is not lifted out of a card it belongs to.
   return { segments: ezikLiftNotices(segments), suggestions };
 };
+
+// Q1 (owner, option A): a line that STARTS with the source label -- al-masdar / al-masadir
+// followed by a colon -- is attribution for the eye, never a sentence for the ear. Diacritics
+// and a tatweel may sit between the letters; bullets, quote marks or bold/heading marks may wrap it.
+// Speech only: the written reply keeps every byte. The call pump reads the same pattern so a
+// streamed cut never lands inside such a line (it would speak the half after the cut).
+const EZ_TTS_SOURCE_LINE_SRC = '^[ \\t\u200e\u200f]*(?:[-\u2022*>_#][ \\t]*)*'
+  + ['\u0627', '\u0644', '\u0645', '\u0635', '(?:\u0627[\u064B-\u0652\u0670\u0640]*)?', '\u062F', '\u0631']
+    .map((c) => c + (c.length === 1 ? '[\u064B-\u0652\u0670\u0640]*' : '')).join('')
+  + '[ \\t*_]*[:\uFF1A]';
 
 // ============================================================
 // تحضير النص للصوت (إزالة الوسوم، إنشاء سياق طبيعي)
@@ -6509,14 +6535,15 @@ const formatForTTS = (text) => {
   // precedes it to the one that follows and ElevenLabs would read the two as a single word.
   t = t.replace(EZIK_NOTICE_ALL, ' ');
   t = t.replace(/^#{1,6}\s+/gm, '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/[﴿﴾«»""“”‹›\[\]<>]/g, ' ').replace(/[ \t]{2,}/g, ' ');
-  // Keep links opaque while pronunciation-only math substitutions run. In particular, neither a
-  // trig name in a path nor any slash/query operator in a URL is spoken as mathematics.
-  const protectedUrls = [];
-  t = t.replace(/\b(?:https?:\/\/|www\.)[^\s<>"'﴿﴾]+/gi, (url) => {
-    const token = '\uE000' + String.fromCharCode(0xE100 + protectedUrls.length) + '\uE001';
-    protectedUrls.push({ token, url });
-    return token;
-  });
+  // Q1 (owner, option A) -- IN SPEECH ONLY, three kinds of attribution are silenced: a line that
+  // starts with the source label, every URL, and every site or domain name (binothaimeen.net,
+  // an e-mail address too). The hadith's collector and its grading are NOT touched: they are
+  // prose, and they are kept. Silencing the links here, before the math pass, is also what keeps
+  // a trig name in a path or a slash in a query from ever being spoken as mathematics.
+  t = t.replace(new RegExp(EZ_TTS_SOURCE_LINE_SRC + '[^\\n]*$', 'gm'), '');
+  t = t.replace(/\b(?:https?:\/\/|www\.)[^\s<>"'﴿﴾]+/gi, ' ');
+  t = t.replace(/(?<![A-Za-z0-9_.@-])(?:[A-Za-z0-9_.+-]+@)?(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z]{2,24}(?![A-Za-z0-9_-])(?:\/[^\s]*)?/g, ' ');
+  t = t.replace(/\([\s\u060C,.:;\u061B-]*\)/g, ' ');   // a bracket the link lived in, now empty
   // رموزٌ ودوالُّ رياضيّةٌ خارج <board> → أسماؤها المتعارَف عليها (شبكة أمان للنطق)
   const trigNames = { cos: ' كوساين ', sin: ' ساين ', tan: ' تانجنت ' };
   t = t
@@ -6574,7 +6601,6 @@ const formatForTTS = (text) => {
   t = t.replace(/\b(steps|hadith|narrator|ruling|suggestions|source|verse|surah|board|document|book)\b/gi, ' ');
   // تنظيف الفراغات
   t = t.replace(/\s+/g, ' ').trim();
-  for (const { token, url } of protectedUrls) t = t.split(token).join(url);
   return t;
 };
 
@@ -7032,6 +7058,13 @@ const EZH_ICON_FATWA = (
 const EZH_ICON_LESSONS = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M7 9h10" /><path d="M7 12h6" /><path d="M12 16v4" /><path d="M8 20h8" /></svg>
 );
+// ITEM 108 (ORDER-108C): the library. Its name reads through ezT like the lessons beside it, and
+// is rebound by ezLangRelabel(). The mark is three books standing on a shelf, in the same 24x24
+// box and 1.8 stroke, so it reads as neither the mushaf nor the lessons.
+let EZH_LIBRARY = ezT("module.library");
+const EZH_ICON_LIBRARY = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="4" height="15" rx="1" /><rect x="10" y="6" width="4" height="13" rx="1" /><path d="M16.5 7.5l3.5-1 3 12.5-3.5 1z" /><path d="M2 21h20" /></svg>
+);
 // ITEM 20. THE TWO SECTIONS THE OWNER AND HIS WIFE WRITE INTO. Both labels come through ezT
 // like the six above them, and both are rebound by ezLangRelabel() -- see the note there about
 // what happens to an id that is left out of the replacement table.
@@ -7174,7 +7207,7 @@ function ezHomeModules(v) {
     // landed since this sentence was first written -- item 89 put the Forty after the adhkar,
     // and order 87D put the day from waking to sleeping between them -- so it is re-cut rather
     // than patched: asmaa, articles, memorize, adhkar, sunan-day, arbaeen, mushaf, treasure,
-    // fatwa, lessons, prayer, women. Twelve.
+    // fatwa, lessons, prayer, women. Twelve. (ITEM 108 then put the library after lessons: thirteen.)
     //
     // ITEM 20 / SHELF §2 (8 September) -- THE WOMEN'S CORNER IS STILL LAST, and that half of §2
     // was NOT overturned. D-9 put articles and the women's corner together at the head; the
@@ -7225,6 +7258,10 @@ function ezHomeModules(v) {
     { id: 'treasure', label: EZH_TREASURE, icon: EZH_ICON_TREASURE, onClick: v.onOpenTreasure, meta: null },
     { id: 'fatwa',    label: EZH_FATWA,    icon: EZH_ICON_FATWA,    onClick: v.onOpenFatwa,    meta: null },
     { id: 'lessons',  label: EZH_LESSONS,  icon: EZH_ICON_LESSONS,  onClick: v.onOpenLessons,  meta: null },
+    // ITEM 108 (ORDER-108C): the library, beside the other two sections of reading and knowledge.
+    // It is a separate page (/library.html), opened in the same window exactly as the treasure
+    // journey opens /quest.html, so the id is deliberately absent from the resume tables.
+    { id: 'library',  label: EZH_LIBRARY,  icon: EZH_ICON_LIBRARY,  onClick: v.onOpenLibrary,  meta: null },
     { id: 'prayer',   label: EZH_PRAYER,   icon: EZH_ICON_PRAYER,   onClick: v.onOpenPrayer,   meta: null },
     { id: 'women',    label: EZH_WOMEN,    icon: EZH_ICON_WOMEN,    onClick: v.onOpenWomen,    meta: null, fresh: !!(v.artFresh && v.artFresh.women) },
   ].filter((m) => !(m.id === 'women' && ezWomenSectionHidden(v.gender)));
@@ -7263,8 +7300,7 @@ let EZIST_SUB_ARTICLES = ezT("module.articles.sub");
 let EZIST_SUB_WOMEN = ezT("module.women.sub");
 let EZIST_SUB_ASMAA = 'تسعةٌ وتسعون اسمًا، بمعانيها ومصادرها';
 let EZIST_SUB_PRAYER = 'المواقيت والقبلة، محسوبةً على هذا الجهاز';
-let EZIST_SUB_LIBRARY = 'بحثٌ في نصوص المكتبة، بمصادرها';
-let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, arbaeen: EZIST_SUB_ARBAEEN, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER, library: EZIST_SUB_LIBRARY };
+let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, arbaeen: EZIST_SUB_ARBAEEN, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER };
 
 // THE TOP NAVIGATION. TWO ELEMENTS AND NO THIRD -- the daily verse, and the menu button.
 //
@@ -9497,7 +9533,7 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // ezikGoBack below. It is NOT a route and adds no `screen` value, for the reason written over
   // PrayerSheet: the screen inventory is a cross-file contract. So the device back button closes
   // the compass and leaves the reader on the home, rather than leaving the home screen.
-  const [compassOpen, setCompassOpen] = useState(false);
+  const [compassOpen, setCompassOpen] = useState(() => ezikReadResume() === 'compass');
   useEzikBackLayer(compassOpen, () => setCompassOpen(false));
   // ITEM 20: which articles section is open over the home, or null. It is not a route either --
   // the screen inventory is a cross-file contract, see the note above PrayerSheet -- and LIKE
@@ -9555,19 +9591,20 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // state, useEzikBackLayer(open, close) and the ezikHistBack() toggle in its handler below. It
   // is a layer for the same reason the picker is, and it owns one real history entry while it is
   // open, so back walks picker unit -> picker section -> wird section -> home.
-  const [wirdOpen, setWirdOpen] = useState(false);
+  // ITEM 45: restored from the ledger in the lazy initialiser, exactly as prayerOpen above is.
+  const [wirdOpen, setWirdOpen] = useState(() => ezikReadResume() === 'wirdi');
   useEzikBackLayer(wirdOpen, () => setWirdOpen(false));
   // ITEM 93: the tasbih section and its log, in the identical three shapes -- the state,
   // useEzikBackLayer(open, close) and the ezikHistBack() toggle in each handler below. Each owns
   // one real history entry while it is open, so the device back button closes IT.
-  const [tasbihOpen, setTasbihOpen] = useState(false);
+  const [tasbihOpen, setTasbihOpen] = useState(() => ezikReadResume() === 'tasbih');
   useEzikBackLayer(tasbihOpen, () => setTasbihOpen(false));
   const [tasbihLogOpen, setTasbihLogOpen] = useState(false);
   useEzikBackLayer(tasbihLogOpen, () => setTasbihLogOpen(false));
   // ITEM 95: the calculator section, in those identical three shapes -- the state,
   // useEzikBackLayer(open, close) and the ezikHistBack() toggle in its handler below. It owns
   // one real history entry while it is open, so the device back button closes IT.
-  const [calcOpen, setCalcOpen] = useState(false);
+  const [calcOpen, setCalcOpen] = useState(() => ezikReadResume() === 'calc');
   useEzikBackLayer(calcOpen, () => setCalcOpen(false));
   // DEFECT 14 (item 88) -- WHERE THE RECORD DIES, and it is one place.
   // The reader is standing nowhere in particular exactly when this component has no layer of
@@ -9577,9 +9614,9 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // restore the layer is ALREADY open -- it was set in a lazy initialiser, not an effect --
   // so this cannot clear the record out from under the very restore that just happened.
   useEffect(() => {
-    if (artSection || prayerOpen || compassOpen || tasbihOpen || tasbihLogOpen || calcOpen || wirdPickOpen) return;
+    if (artSection || prayerOpen || compassOpen || tasbihOpen || tasbihLogOpen || calcOpen || wirdPickOpen || wirdOpen) return;
     ezikClearResume();
-  }, [artSection, prayerOpen, compassOpen, tasbihOpen, tasbihLogOpen, calcOpen, wirdPickOpen]);
+  }, [artSection, prayerOpen, compassOpen, tasbihOpen, tasbihLogOpen, calcOpen, wirdPickOpen, wirdOpen]);
   // ITEM 96: the day's gold price, fetched HERE rather than inside the calculator, on the same
   // discipline the wird and the hijri date below are read on -- the owner reads, the layer is
   // handed the result. It fires on the open, at most once per calendar day of the device, and
@@ -9660,6 +9697,7 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
     gender: genderNow,
     onOpenSettings: onOpenSettings,
     onOpenTreasure: () => { window.location.href = '/quest.html'; },
+    onOpenLibrary: () => { window.location.href = '/library.html'; },
     onOpenPrayer: () => setPrayerOpen(true),
     widgets: widgets,
   };
@@ -10367,9 +10405,11 @@ const EZIK_RESUME_KEY = 'ezik_resume_section_v1';
 const EZIK_RESUME_SCREENS = {
   memorize: 'memorize', adhkar: 'adhkar', arbaeen: 'arbaeen',
   mushaf: 'mushaf', fatwa: 'fatwa', lessons: 'lessons', home: 'home',
+  'ayah-tafsir': 'ayah-tafsir',
 };
 const EZIK_RESUME_APP_LAYERS = { asmaa: 1, 'sunan-day': 1 };
-const EZIK_RESUME_HOME_LAYERS = { articles: 1, women: 1, prayer: 1 };
+// Resume records name home layers. `wirdi` is restorable and, since trip 2, an accepted route.
+const EZIK_RESUME_HOME_LAYERS = { articles: 1, women: 1, prayer: 1, wirdi: 1, tasbih: 1, calc: 1, compass: 1 };
 function ezikResumeKnown(id) {
   return !!(EZIK_RESUME_SCREENS[id] || EZIK_RESUME_APP_LAYERS[id] || EZIK_RESUME_HOME_LAYERS[id]);
 }
@@ -10385,6 +10425,104 @@ function ezikReadResume() {
 }
 function ezikClearResume() {
   try { window.sessionStorage.removeItem(EZIK_RESUME_KEY); } catch (e) {}
+}
+
+// ============================================================
+// ITEM 108 (ORDER-108C) -- THE LIBRARY PAGE'S THREE SEAMS WITH THIS FILE.
+// /library.html is its own page (the catalogue lives on its own host, which this file never
+// names). What passes between the two is small and all of it is here:
+//   1. the question «ask Ezik» leaves in this tab's sessionStorage, taken once by the chat;
+//   2. «delete all my data» also erases what the library keeps on this device -- its notes
+//      database and every localStorage key under its prefix;
+//   3. a library source in an answer links to the book at its page.
+const EZIK_ASK_PREFILL_SLOT = 'ezik_ask_prefill_v1';
+const EZLIB_STORE_PREFIX = 'ezlib_';
+const EZLIB_NOTES_DB = 'ezik-library-v1';
+function ezikTakeAskPrefill() {
+  let q = '';
+  try {
+    q = window.sessionStorage.getItem(EZIK_ASK_PREFILL_SLOT) || '';
+    if (q) window.sessionStorage.removeItem(EZIK_ASK_PREFILL_SLOT);
+  } catch (e) { q = ''; }
+  return String(q).trim().slice(0, 1000);
+}
+// ORDER-108D D2 -- BACK FROM THE LIBRARY REOPENS THE SAME CONVERSATION. A tap on a book-source
+// link leaves the open conversation's id in this tab's sessionStorage; the boot takes it once.
+// The reader is standing in the chat when he taps, so no section is being stood in: the
+// section record is cleared in the same step, and a stale one can never outrank the thread.
+const EZIK_RESUME_THREAD_SLOT = 'ezik_resume_thread_v1';
+function ezikNoteResumeThread(id) {
+  if (typeof id !== 'string' || !id) return;
+  try {
+    window.sessionStorage.setItem(EZIK_RESUME_THREAD_SLOT, id);
+    window.sessionStorage.removeItem(EZIK_RESUME_KEY);
+  } catch (e) {}
+}
+function ezikClearResumeThread() {
+  try { window.sessionStorage.removeItem(EZIK_RESUME_THREAD_SLOT); } catch (e) {}
+}
+// The capture-phase click listener's whole body: only a book-source link notes the thread.
+function ezikLibraryLinkClick(target, chatId) {
+  const a = target && typeof target.closest === 'function' ? target.closest('a[data-ezik-library-link]') : null;
+  if (a) ezikNoteResumeThread(chatId);
+}
+// A page restored from the back-forward cache already shows the conversation; the note must
+// not outlive that and hijack a later reload.
+function ezikOnPageShow(e) {
+  if (e && e.persisted) ezikClearResumeThread();
+}
+// THE BOOT'S THREE ONE-SHOT INTENTS, in the order's priority: the «ask Ezik» question, then the
+// sections (resume = 'home'), then the conversation -- and that one only if it still exists.
+function ezikBootIntentPick(prefill, section, thread, threadExists) {
+  if (prefill) return 'prefill';
+  if (section === 'home') return 'home';
+  if (thread && threadExists(thread)) return 'thread';
+  return '';
+}
+// Read once, and whichever wins, the others are cleared. The question itself is left for the
+// chat's own effect (ezikTakeAskPrefill) to take; the section record, when it wins, is left to
+// the resume machinery that owns it (the shelf clears it on its first bare render).
+function ezikTakeBootIntent(threadExists) {
+  let prefill = '', section = '', thread = '';
+  try {
+    const ss = window.sessionStorage;
+    prefill = String(ss.getItem(EZIK_ASK_PREFILL_SLOT) || '').trim();
+    section = ss.getItem(EZIK_RESUME_KEY) || '';
+    thread = ss.getItem(EZIK_RESUME_THREAD_SLOT) || '';
+  } catch (e) { return { kind: '', thread: '' }; }
+  const kind = ezikBootIntentPick(prefill, section, thread, threadExists);
+  try {
+    const ss = window.sessionStorage;
+    ss.removeItem(EZIK_RESUME_THREAD_SLOT);
+    if (kind !== 'prefill') ss.removeItem(EZIK_ASK_PREFILL_SLOT);
+    if (kind === 'prefill' || kind === 'thread') ss.removeItem(EZIK_RESUME_KEY);
+  } catch (e) {}
+  return { kind, thread: kind === 'thread' ? thread : '' };
+}
+function ezikClearLibrary() {
+  try {
+    const mine = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (typeof k === 'string' && k.indexOf(EZLIB_STORE_PREFIX) === 0) mine.push(k);
+    }
+    mine.forEach((k) => { try { localStorage.removeItem(k); } catch (e) {} });
+  } catch (e) {}
+  try { window.sessionStorage.removeItem(EZIK_ASK_PREFILL_SLOT); } catch (e) {}
+  ezikClearResumeThread();
+  try {
+    const idb = typeof window !== 'undefined' ? window.indexedDB : null;
+    if (idb && typeof idb.deleteDatabase === 'function') idb.deleteDatabase(EZLIB_NOTES_DB);
+  } catch (e) {}
+}
+// The book's id is the library's own (FC- and six digits), carried by the server on the card and
+// never derived here; volume and page arrive only when the server already called the page citable.
+function ezikLibraryHref(bookId, vol, page) {
+  const id = String(bookId || '');
+  if (!/^FC-[0-9]{6}$/.test(id)) return '';
+  const p = /^[0-9]{1,6}$/.test(String(page || '')) ? String(page) : '';
+  const v = p && /^[0-9]{1,4}$/.test(String(vol || '')) ? String(vol) : '';
+  return '/library.html?book=' + id + (v ? '&vol=' + v : '') + (p ? '&page=' + p : '');
 }
 // WHERE THE BOOT SHOULD LAND. '' means nothing was recorded, and the answer is the chat --
 // byte for byte the destination that shipped.
@@ -12565,7 +12703,10 @@ function toggleAdhkarFavorite(key) {
   if (!A2_ID_RE.test(key)) return cur;
   const at = cur.indexOf(key);
   const next = at === -1 ? cur.concat([key]) : cur.slice(0, at).concat(cur.slice(at + 1));
-  try { localStorage.setItem(ADHKAR_FAVORITES_KEY, JSON.stringify(next)); } catch (e) {}
+  try {
+    localStorage.setItem(ADHKAR_FAVORITES_KEY, JSON.stringify(next));
+    ezikWidgetDataChanged();
+  } catch (e) {}
   return next;
 }
 
@@ -14959,6 +15100,7 @@ function App() {
   useEzikNativeAuthRoot();
   useEzikVisualTheme();
   const [screen, setScreen] = useState('loading');
+  useEzikWidgetDataRoot(screen !== 'loading');
   const [selectedSurah, setSelectedSurah] = useState(null); // خطأ ٤٦: سورة المصحف المفتوحة، مرفوعة إلى App كي يقشرها زر الرجوع طبقةً طبقة
   const [profile, setProfile] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -15392,6 +15534,9 @@ function App() {
   const [callState, setCallState] = useState('idle'); // 'idle' | 'listening' | 'thinking' | 'speaking'
   const [isCallMuted, setIsCallMuted] = useState(false);
   const [callHeard, setCallHeard] = useState(''); // light "what I'm hearing" feedback (interim transcript)
+  // H1 (T4 fix 4): the words of the turn being answered, shown under the call's state line from the
+  // moment its transcript arrives until the next listening turn starts or the call ends. Display only.
+  const [callHeardWords, setCallHeardWords] = useState('');
   const CALL_SILENCE_MS = 1500; // silence after which a non-empty turn auto-ends (tunable)
   // Item 84: `unlockAsk` stood here. It remembered which LOCKED depth tier had been tapped so
   // a successful PIN could apply it, and it existed only for the lock this item lifted --
@@ -15424,15 +15569,27 @@ function App() {
     callErrorTimerRef.current = setTimeout(() => setVoiceError(''), CALL_ERROR_MS);
   };
   // getUserMedia rejection -> a sentence naming what the user must actually DO about it.
+  // G3 (T4 fix 3): each sentence ends with the error's own name, so a screenshot tells which
+  // row fired. In a browser the permission lives in the browser's site settings (and Chrome on
+  // Android reports NotAllowedError also when Chrome itself lacks the phone's microphone
+  // permission), so a browser is told both places; the app shell keeps its app-settings text.
+  // `e.afterOpen`: getUserMedia had already succeeded, so the failure is the recorder or the
+  // AudioContext -- it is never read as a permission or device answer, and keeps its own name.
   const micErrorMessage = (e) => {
-    const name = String((e && (e.name || e.code)) || '');
+    const afterOpen = !!(e && e.afterOpen);
+    const name = String((e && (e.name || e.code)) || '') || 'Error';
+    const tag = ' (رمز: ' + name + ')';
+    const inShell = !!(typeof window !== 'undefined' && window.ReactNativeWebView);
+    if (afterOpen) return '🎤 تعذّر فتح الميكروفون. تحقّق من الإذن ثم أعد المحاولة.' + tag;
     if (name === 'NotAllowedError' || name === 'PermissionDeniedError' || name === 'SecurityError')
-      return '🚫 لم يُسمح باستخدام الميكروفون. افتح إعدادات التطبيق واسمح بالميكروفون ثم أعد الدخول للمكالمة.';
+      return (inShell
+        ? '🚫 لم يُسمح باستخدام الميكروفون. افتح إعدادات التطبيق واسمح بالميكروفون ثم أعد الدخول للمكالمة.'
+        : '🚫 لم يُسمح باستخدام الميكروفون. اسمح به لهذا الموقع من إعدادات المتصفّح — رمز القفل بجانب العنوان — وتأكّد أنّ المتصفّح نفسه مسموحٌ له بالميكروفون في إعدادات الهاتف، ثم أعد الدخول للمكالمة.') + tag;
     if (name === 'NotFoundError' || name === 'DevicesNotFoundError')
-      return '🎤 لا يوجد ميكروفون متاح على هذا الجهاز.';
+      return '🎤 لا يوجد ميكروفون متاح على هذا الجهاز.' + tag;
     if (name === 'NotReadableError' || name === 'TrackStartError')
-      return '🎤 الميكروفون مشغول بتطبيق آخر. أغلقه ثم أعد المحاولة.';
-    return '🎤 تعذّر فتح الميكروفون. تحقّق من الإذن ثم أعد المحاولة.';
+      return '🎤 الميكروفون مشغول بتطبيق آخر. أغلقه ثم أعد المحاولة.' + tag;
+    return '🎤 تعذّر فتح الميكروفون. تحقّق من الإذن ثم أعد المحاولة.' + tag;
   };
   // A NON-OK /api/stt. Distinct from "heard nothing": the audio WAS recorded and sent.
   const sttErrorMessage = (status) => {
@@ -15446,6 +15603,25 @@ function App() {
   const cloudChunksRef = useRef([]);
   const mediaRecRef = useRef(null);
   const vadAnalyserRef = useRef(null);
+  // ---- H2 (T4 fix 4, the owner's option A): a level gate between turns. ----
+  // A voice far quieter than the reader's own -- a television across the room -- opened a turn and
+  // was answered. The call keeps the peak level (the VAD's own RMS) of every turn it accepted; from
+  // the second turn on, a turn whose peak is under FAINT_TURN_RATIO x their median is dropped before
+  // /api/stt, says so in the error panel, and the mic re-opens. The first turn always passes, and so
+  // does the turn a barge-in tap opens. The trade-off is the owner's: a reader who drops to a
+  // whisper, or walks away from the phone, is asked to repeat.
+  const FAINT_TURN_RATIO = 0.25;   // -12 dB
+  const FAINT_TURN_LINE = 'لم ألتقطْ كلامَك — أعِدْ من فضلك.';
+  const turnPeakRef = useRef(0);             // this turn's peak RMS
+  const callPeaksRef = useRef([]);           // the peaks of the turns this call accepted
+  const callTurnExemptRef = useRef(false);   // the next turn was opened by a barge-in tap
+  const faintTurn = (peak) => {
+    const acc = callPeaksRef.current.slice().sort((x, y) => x - y);
+    if (!acc.length) return false;           // the first turn has no baseline, and passes
+    const mid = acc.length >> 1;
+    const median = acc.length % 2 ? acc[mid] : (acc[mid - 1] + acc[mid]) / 2;
+    return peak < FAINT_TURN_RATIO * median;
+  };
   const pickRecMime = () => {
     const cands = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
     for (let i = 0; i < cands.length; i++) {
@@ -15459,6 +15635,46 @@ function App() {
     fr.onerror = () => resolve('');
     fr.readAsDataURL(blob);
   });
+  // ---- G1 (T4 fix 3): the capture context must RUN, or the VAD hears nothing. ----
+  // startCloudListening creates it after an `await getUserMedia` inside the call's entry effect,
+  // not inside a tap, so Chrome may create it 'suspended' (no user activation -- on a phone a
+  // touch pointerdown is not one). A suspended context feeds the analyser flat samples: `heard`
+  // never becomes true, the call sits in listening and ends itself after 45 s with no text, and
+  // waitForSpeakerTail reads outputLatency 0 from it. So it is resumed at once; if it still does
+  // not run, one line asks for a tap, and the next tap ANYWHERE resumes it (pointerup is the touch
+  // activation, click and keydown the rest). The line leaves the moment the context runs.
+  const CAPTURE_TAP_LINE = '🎤 المسِ الشاشةَ مرّةً ليبدأَ الاستماع.';
+  const CAPTURE_RESUME_WAIT_MS = 250;   // how long resume() may take before the tap line shows (the VAD is not held back)
+  const captureTapOffRef = useRef(null);
+  const clearCaptureTap = () => {
+    if (captureTapOffRef.current) { captureTapOffRef.current(); captureTapOffRef.current = null; }
+    setVoiceError((v) => (v === CAPTURE_TAP_LINE ? '' : v));
+  };
+  const resumeCapture = (ctx) => {
+    if (!ctx || ctx.state === 'running') return Promise.resolve(true);
+    let p = null;
+    try { p = ctx.resume(); } catch (e) { p = null; }
+    return Promise.race([Promise.resolve(p).catch(() => {}), new Promise((r) => setTimeout(r, CAPTURE_RESUME_WAIT_MS))])
+      .then(() => ctx.state === 'running');
+  };
+  const askTapForCapture = (ctx) => {
+    if (captureTapOffRef.current) return;   // already asking
+    const onTap = () => { resumeCapture(ctx).then((running) => { if (running && vadCtxRef.current === ctx) clearCaptureTap(); }); };
+    const evs = ['pointerup', 'click', 'keydown'];
+    evs.forEach((ev) => window.addEventListener(ev, onTap, true));
+    captureTapOffRef.current = () => evs.forEach((ev) => window.removeEventListener(ev, onTap, true));
+    setVoiceError(CAPTURE_TAP_LINE);
+  };
+  const ensureCaptureRunning = (ctx, myGen) => {
+    if (!ctx) return Promise.resolve(true);
+    ctx.onstatechange = () => { if (ctx.state === 'running' && vadCtxRef.current === ctx) clearCaptureTap(); };
+    if (ctx.state === 'running') return Promise.resolve(true);   // the usual case: nothing new is shown
+    return resumeCapture(ctx).then((running) => {
+      if (callGenRef.current !== myGen || vadCtxRef.current !== ctx) return running;
+      if (running) clearCaptureTap(); else askTapForCapture(ctx);
+      return running;
+    });
+  };
   const stopCloudAll = () => {
     try { if (mediaRecRef.current && mediaRecRef.current.state !== 'inactive') mediaRecRef.current.stop(); } catch (e) {}
     mediaRecRef.current = null;
@@ -15467,14 +15683,17 @@ function App() {
     try { vadCtxRef.current?.close(); } catch (e) {}
     vadCtxRef.current = null;
     vadAnalyserRef.current = null;
+    clearCaptureTap();                // a closed context needs no tap
   };
   const startCloudListening = async () => {
     // آخرُ حاجزٍ قبل getUserMedia نفسِه: بلا موافقةٍ سارية لا يُفتح الميكروفون. سحبُ الموافقةِ
     // أثناءَ مكالمةٍ جاريةٍ يمنع الدَّورَ التالي حتى لو نجا مؤقّتٌ من دورةِ الإنهاء.
     if (!hasValidAIConsent()) { stopCloudAll(); setCallState('idle'); return; }
     const myGen = callGenRef.current;
+    let micOpen = false;
     try {
       if (!cloudStreamRef.current) cloudStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micOpen = true;                 // G3: from here on a failure is the recorder's or the context's
       if (callGenRef.current !== myGen) { stopCloudAll(); return; }
       try { if (mediaRecRef.current && mediaRecRef.current.state !== 'inactive') mediaRecRef.current.stop(); } catch (e) {}
       cloudChunksRef.current = [];
@@ -15491,11 +15710,13 @@ function App() {
         vadAnalyserRef.current.fftSize = 1024;
         vadCtxRef.current.createMediaStreamSource(cloudStreamRef.current).connect(vadAnalyserRef.current);
       }
+      ensureCaptureRunning(vadCtxRef.current, myGen);   // G1: not awaited -- the VAD starts now either way
       const an = vadAnalyserRef.current;
       const buf = new Uint8Array(an.fftSize);
       const startedAt = Date.now();
       vadLastVoiceRef.current = startedAt;
       let heard = false;
+      turnPeakRef.current = 0;          // H2: a new turn, a new peak
       const tick = () => {
         if (callGenRef.current !== myGen) { stopCloudAll(); return; }
         if (!callActiveRef.current) { setTimeout(tick, 200); return; } // keep watching for the exit so the mic is always released
@@ -15504,7 +15725,9 @@ function App() {
         let sum = 0;
         for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
         const now = Date.now();
-        if (Math.sqrt(sum / buf.length) > VAD_RMS_ON) { vadLastVoiceRef.current = now; heard = true; armInactivityTimer(); }
+        const rms = Math.sqrt(sum / buf.length);
+        if (rms > turnPeakRef.current) turnPeakRef.current = rms;   // H2
+        if (rms > VAD_RMS_ON) { vadLastVoiceRef.current = now; heard = true; armInactivityTimer(); }
         else if (heard && (now - vadLastVoiceRef.current) > VAD_SILENCE_MS) { stopCloudTurn(); return; }
         if (heard && (now - startedAt) > CLOUD_MAX_TURN_MS) { stopCloudTurn(); return; }
         setTimeout(tick, 100);
@@ -15518,6 +15741,8 @@ function App() {
       stopCloudAll();                 // release whatever half-opened, so a retry starts clean
       setCallHeard('');
       setCallState('idle');
+      // G3: a failure after the microphone opened is the recorder's or the context's; it keeps its name
+      if (micOpen) e = { name: String((e && (e.name || e.code)) || '') || 'Error', afterOpen: true };
       showCallError(micErrorMessage(e));
     }
   };
@@ -15525,6 +15750,7 @@ function App() {
     if (!callActiveRef.current) return;
     callActiveRef.current = false;
     const myGen = callGenRef.current;
+    const peak = turnPeakRef.current;   // H2: read now; the next turn resets it
     setCallState('thinking');
     let blob = null;
     const mr = mediaRecRef.current;
@@ -15537,6 +15763,10 @@ function App() {
     mediaRecRef.current = null;
     if (callGenRef.current !== myGen) { stopCloudAll(); return; }
     if (!blob || blob.size < 1500) { startCloudListening(); return; }
+    // H2: far quieter than this call's accepted turns -> not sent to /api/stt; say so, listen again
+    const exempt = callTurnExemptRef.current;
+    callTurnExemptRef.current = false;
+    if (!exempt && faintTurn(peak)) { showCallError(FAINT_TURN_LINE); startCloudListening(); return; }
     const b64 = await blobToBase64(blob);
     if (callGenRef.current !== myGen) { stopCloudAll(); return; }
     let text = '';
@@ -15567,6 +15797,7 @@ function App() {
     }
     // Transcribed OK but empty => genuine silence. THAT is the one case that keeps listening.
     if (!text) { startCloudListening(); return; }
+    callPeaksRef.current.push(peak);   // H2: an accepted turn joins the baseline
     setCallHeard('');
     if (callTurnRef.current) callTurnRef.current(text);
   };
@@ -15679,6 +15910,10 @@ function App() {
           setA11yState(prefs);
           ezikApplyA11y(prefs);
         }
+        // ORDER-108D D2: the one-shot intents are taken BEFORE the resume record is read, so a
+        // conversation that wins has already cleared that record and the resume path below
+        // answers 'chat'. It is reopened only when this profile still has it.
+        const bootIntent = ezikTakeBootIntent((id) => ezikListChats(ezikProfileKey(p)).some((r) => r.id === id));
         chatIdRef.current = null;
         setChatId(null);
         setMessages([]);
@@ -15690,6 +15925,7 @@ function App() {
         // and only it -- can tell a reload apart from an ordinary walk-in.
         ezikResumeMarkEntered(ezikReadResume());
         setScreen(ezikResumeScreen());   // D85: a returning profile also lands on the chat
+        if (bootIntent.kind === 'thread') openSavedChat(bootIntent.thread);   // ORDER-108D D2: the one conversation the library's note names
       } else {
         setScreen('onboarding');
       }
@@ -15940,6 +16176,82 @@ function App() {
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
+
+  // ===== ITEM 45 -- THE WIDGET'S PRESS, APPLIED =====
+  // The slot is filled by the file-level listener beside SHELL_SCHED_CHANNEL; this is its one
+  // consumer. It is re-run by a press (the subscription bumps widgetSeq) and by every screen
+  // change, which is how a press that arrived during the boot is picked up the moment the boot
+  // has decided where to land -- and not a moment before: nothing is applied over 'loading'.
+  //
+  // Sections use the resume ledger and the boot tools. Home layers initialize from that record;
+  // homeEpoch remounts Home even when it was already underneath, and resets the two list screens.
+  // App layers open explicitly. Chat starts a new thread; treasure and library navigate to their
+  // own pages, each by the same assignment its home module makes.
+  //
+  // A NEW READER IS NEVER INTERRUPTED. On the onboarding screen the press is taken and dropped:
+  // nothing is written, and the introduction stays where it was.
+  //
+  // WHAT STANDS IN FRONT IS PUT AWAY. App's own layers (الأسماء, the menu's panels, السنن) and
+  // the side menu all draw before the screen, so a press that only moved `screen` would land
+  // behind them. They are closed as state; the history entry each one held is not popped here,
+  // because a pop is asynchronous and would race the screen change -- it is left as one extra,
+  // harmless step on the device back, which then resolves through the table as usual.
+  const [widgetSeq, setWidgetSeq] = useState(0);
+  const [homeEpoch, setHomeEpoch] = useState(0);
+  const widgetChatFocusRef = useRef(false);
+  useEffect(() => {
+    const bump = () => setWidgetSeq((n) => n + 1);
+    EZIK_WIDGET_SUBS.add(bump);
+    return () => { EZIK_WIDGET_SUBS.delete(bump); };
+  }, []);
+  useEffect(() => {
+    // Read into `cur` because chat-history-guard takes the first `if (screen === ...` in App to
+    // be the first RENDER return; these two are an effect's early exits, not screens.
+    const cur = screen;
+    if (cur === 'loading') return;
+    const requested = ezikWidgetTake();
+    if (!requested) return;
+    if (cur === 'onboarding') return;
+    // Notification aliases open the index, preserving the cancellation of group deep links.
+    const route = requested === 'adhkar_sabah' || requested === 'adhkar_masaa' ? 'adhkar' : requested;
+    widgetChatFocusRef.current = false;
+    setAsmaaOpen(route === 'asmaa');
+    setAboutOpen(false);
+    setSourcesOpen(false);
+    setSunanOpen(route === 'sunan-day');
+    setFeedbackOpen(false);
+    setInboxOpen(false);
+    setShareOpen(false);
+    setDrawerOpen(false);
+    drawerNavRef.current = null;
+    feedbackNavRef.current = null;
+    sheetOriginRef.current = [];
+    setHomeEpoch((n) => n + 1);
+    if (route === 'treasure') {
+      ezikClearResume();
+      window.location.href = '/quest.html';
+      return;
+    }
+    if (route === 'library') {
+      ezikClearResume();
+      window.location.href = '/library.html';
+      return;
+    }
+    if (route === 'chat') {
+      ezikClearResume();
+      newChat();
+      setScreen('chat');
+      widgetChatFocusRef.current = true;
+      return;
+    }
+    ezikWriteResume(route);
+    ezikResumeMarkEntered(ezikReadResume());
+    const next = ezikResumeScreen();
+    // Already standing on that screen: no mount will spend the mark, so spend it here, or the
+    // reader's next ordinary walk into المصحف would be taken for a reload.
+    if (next === screenRef.current) ezikResumeTakeEntered(route);
+    setScreen(next);
+  }, [screen, widgetSeq]);
   // ONE ENTRY PER OPENED SCREEN, and never one for a back. Opening a section pushes; a back
   // relabels the entry it is standing on (replaceState) instead of stacking a second copy of the
   // parent; a pop-driven change pushes nothing at all, because the pop already spent the entry.
@@ -16016,6 +16328,12 @@ function App() {
     };
   }, []);
 
+  // G2 (T4 fix 3): is a dictation recognizer session open right now -- start() succeeded and its
+  // onend has not fired yet? On Android the recognizer can still hold the microphone after stop()
+  // until its own onend, and a getUserMedia inside that window fails with NotReadableError. The
+  // call's entry effect waits for that onend (bounded) before it opens its own capture.
+  const dictationOpenRef = useRef(false);
+  const dictationEndWaiterRef = useRef(null);   // set by the call's entry effect, called once by onend
   // إعداد التعرف على الصوت
   // The dependency is `aiConsent`, not []. Without consent ezNewRecognition() returns null and
   // NO engine is built at all -- so no microphone permission is ever requested for dictation.
@@ -16028,6 +16346,7 @@ function App() {
     recognition.lang = 'ar-SA';
     recognition.continuous = true;       // keep listening across pauses until the user taps the mic off
     recognition.interimResults = true;
+    let heardThisSession = false;        // F3: set by any non-empty result, read and reset by onend
     recognition.onresult = (event) => {
       // This ar-SA engine emits CUMULATIVE isFinal results (each later final RE-INCLUDES the
       // earlier text), so appending stacks/duplicates. Mirror the proven call-mode handler:
@@ -16047,9 +16366,14 @@ function App() {
         }
       }
       transcriptRef.current = finalText;                              // REPLACE (not append) — dedupes cumulative finals
+      if ((finalText + interim).trim()) heardThisSession = true;
       setInput(joinSpeech(joinSpeech(baseTextRef.current, transcriptRef.current), interim));
     };
     recognition.onend = () => {
+      dictationOpenRef.current = false;                               // G2: the session is over
+      if (dictationEndWaiterRef.current) { const w = dictationEndWaiterRef.current; dictationEndWaiterRef.current = null; w(); }
+      const heard = heardThisSession;                                 // F3: did THIS session hear words?
+      heardThisSession = false;
       if (childVoiceBlocked()) {                                 // غ‑٣: لا إعادةَ فتحٍ بعد الحجب — أوقفِ الحلقة
         shouldListenRef.current = false;
         setIsListening(false);
@@ -16070,7 +16394,12 @@ function App() {
       if (shouldListenRef.current) {
         baseTextRef.current = joinSpeech(baseTextRef.current, transcriptRef.current);
         transcriptRef.current = '';
-        if (ezStartRecognition(recognition)) return;
+        // F3: a session that heard nothing is NOT restarted. On Android every start() plays the
+        // recognizer's own chime, and the engine ends an empty session on its own schedule, so the
+        // unconditional restart chimed again and again for as long as the reader stayed silent.
+        // Dictation ends instead; the text stays in the box. A session that heard words restarts.
+        if (!heard) { shouldListenRef.current = false; setIsListening(false); return; }
+        if (ezStartRecognition(recognition)) { dictationOpenRef.current = true; return; }
         // Restart failed (mic dropped, rapid toggling, or consent gone) — stop cleanly, no loop.
         shouldListenRef.current = false;
         setIsListening(false);
@@ -16104,6 +16433,8 @@ function App() {
       shouldListenRef.current = false;
       recognitionRef.current = null;
       ezKillRecognizer(recognition);
+      dictationOpenRef.current = false;                               // G2: killed handlers fire no onend
+      if (dictationEndWaiterRef.current) { const w = dictationEndWaiterRef.current; dictationEndWaiterRef.current = null; w(); }
     };
   }, [aiConsent]);
 
@@ -16452,6 +16783,31 @@ function App() {
   // So it resets AND lands on the chat. From the chat, setScreen('chat') is the screen already
   // showing, so that path is byte-for-byte the behaviour it had.
   const startChatFromMenu = () => { newChat(); setScreen('chat'); };
+  // ITEM 108 (ORDER-108C B5): «ask Ezik» from the library page. library.html leaves the question
+  // in this tab's sessionStorage (never in a URL) and navigates here; the first time the chat is
+  // on screen it is taken ONCE, a fresh thread is opened and the question waits in the composer,
+  // NOT sent. The screen is read into a local first: chat-history-guard takes the first
+  // `if (screen === ` in the file as the first screen return, and this is an effect, not a return.
+  const prefillScreen = screen;
+  useEffect(() => {
+    if (prefillScreen !== 'chat') return;
+    const q = ezikTakeAskPrefill();
+    if (!q) return;
+    newChat();
+    setInput(q);
+  }, [prefillScreen]);
+  // ORDER-108D D2: a tap on a book-source link notes the open conversation before the page
+  // leaves (capture phase, so it runs before the navigation), and a back-forward-cache restore
+  // spends the note, since the conversation is already on screen.
+  useEffect(() => {
+    const onLibraryLink = (e) => ezikLibraryLinkClick(e && e.target, chatIdRef.current);
+    document.addEventListener('click', onLibraryLink, true);
+    window.addEventListener('pageshow', ezikOnPageShow);
+    return () => {
+      document.removeEventListener('click', onLibraryLink, true);
+      window.removeEventListener('pageshow', ezikOnPageShow);
+    };
+  }, []);
 
   // Open a saved conversation: the same stop-everything as a new chat, then the stored messages
   // become the thread and the chat adopts that conversation's id, so the next turn rewrites it
@@ -16709,7 +17065,7 @@ function App() {
   // ودون سحبِ التركيز — فيمكن استدعاؤه مُسبقاً أثناء تشغيل مقطعٍ آخر، فيزول صمتُ الانتظار.
   // يُرجع {kind:'blob',url} (صوت ElevenLabs) أو null (فارغ/مُلغى/فشل — فشل آمن بلا صوت).
   const SPEAK_EMOJI_RE = /[\u{1F600}-\u{1F6FF}\u{2700}-\u{27BF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2300}-\u{23FF}\u{2B50}\u{1F900}-\u{1F9FF}]/gu;
-  const fetchSpeechAudio = async (rawText, myId) => {
+  const fetchSpeechAudio = async (rawText, myId, signal) => {   // signal: the call pump aborts its prefetch on hang-up
     if (!spendGateRef.current) return null;                      // قفل الإنفاق مغلق ⇐ لا نداءَ tashkeel/tts
     if (!hasValidAIConsent()) return null;                       // لا موافقة ⇐ لا نصَّ يُرسَل لـ Anthropic ولا لـ ElevenLabs
     if (childVoiceBlocked()) {                                   // غ‑٣: لا إرسالَ نصٍّ لأيّ خدمةِ نطقٍ من ملفّ طفل
@@ -16739,6 +17095,7 @@ function App() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: cleanText, gender: profileRef.current?.gender, band: bandForVoice }),
+          ...(signal ? { signal } : {}),
         });
         if (tashkeelResponse.ok) {
           const tashkeelData = await tashkeelResponse.json();
@@ -16762,6 +17119,7 @@ function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: spokenText, gender: profileRef.current?.gender, band: bandForVoice }),
+        ...(signal ? { signal } : {}),
       });
       if (!isCurrent()) return null; // أُلغِيَ أثناء جلب الصوت
       if (response.ok) {
@@ -16787,6 +17145,15 @@ function App() {
 
   // playPreparedSpeech يستقبل وعدَ تحضيرٍ (قد يكون اكتمل مسبقاً) ويُشغّله. هنا فقط نسحب
   // التركيز ونشغّل — awaitable حتى الانتهاء/الخطأ/الإيقاف. يحترم الإلغاء قبل التشغيل.
+  // H4 (T4 fix 4): a `pause` the app did not ask for -- a media key, the phone taking audio focus --
+  // is not a finished segment. It ends the rest of the answer, and on the call screen the call goes
+  // on exactly as after a barge-in (onCallTalk). The app's own stops (hang-up, barge-in, a new
+  // sequence) never come here: takeAudioFocus detaches the element's handlers before it pauses.
+  const callTalkRef = useRef(null);   // the live onCallTalk while the call screen is up, else null
+  const onExternalPause = () => {
+    cancelAudio();
+    if (callTalkRef.current) callTalkRef.current();
+  };
   const playPreparedSpeech = async (prepPromise, myId) => {
     const isCurrent = () => myId === undefined || myId === sequenceIdRef.current;
     if (!prepPromise) return;
@@ -16818,7 +17185,11 @@ function App() {
         const guard = () => { if (myPlay === audioPlayTokenRef.current) finish(); };  // ignore stale events
         audio.onended = guard;
         audio.onerror = guard;
-        audio.onpause = guard;
+        audio.onpause = () => {                           // H4
+          if (myPlay !== audioPlayTokenRef.current) return;   // a stale event
+          finish();
+          if (!audio.ended) onExternalPause();                 // at the end of the media `pause` comes just before `ended`
+        };
         audio.src = r.url;
         const p = audio.play();
         if (p && p.catch) p.catch(guard);
@@ -17091,7 +17462,26 @@ function App() {
     let resolveDone;
     const donePromise = new Promise((r) => { resolveDone = r; });
     const isCurrent = () => myId === sequenceIdRef.current;
-    const finishUp = () => { if (isCurrent()) setIsSpeaking(false); resolveDone(); };
+    // Prefetch, one ahead, the way speakReply does: the next sentence's audio is fetched while the
+    // current one plays, so no TTS wait sits between two sentences. A hang-up or barge-in aborts
+    // whatever is still in flight and frees any audio that was fetched but never played.
+    const fetchCtl = new AbortController();
+    const prepared = new Map();                           // speak segment -> Promise<audio|null>
+    let playing = false;
+    const prepare = (seg) => {
+      if (!seg || seg.kind !== 'speak' || !isCurrent()) return null;
+      if (!prepared.has(seg)) prepared.set(seg, fetchSpeechAudio(seg.text, myId, fetchCtl.signal));
+      return prepared.get(seg);
+    };
+    const prefetchNext = () => { if (playing) prepare(queue[0]); };
+    const release = () => {
+      try { fetchCtl.abort(); } catch (e) {}
+      for (const pr of prepared.values()) {
+        Promise.resolve(pr).then((r) => { if (r && r.kind === 'blob' && r.url && !r.consumed) URL.revokeObjectURL(r.url); }).catch(() => {});
+      }
+      prepared.clear();
+    };
+    const finishUp = () => { release(); if (isCurrent()) setIsSpeaking(false); resolveDone(); };
     const pump = async () => {
       if (consuming) return;
       consuming = true;
@@ -17103,18 +17493,32 @@ function App() {
         }
         const seg = queue.shift();
         try {
-          if (seg.kind === 'speak') await playPreparedSpeech(fetchSpeechAudio(seg.text, myId), myId);
-          else if (seg.kind === 'reciteSurah') await playSurahRecitation(seg.sNum, seg.from || 1, seg.to, myId);
-          else if (seg.kind === 'reciteDhikr') await playDhikrRecitation(seg.catId, myId);
-          else await playRecitation(seg.sNum, seg.aNum, myId);
+          if (seg.kind === 'speak') {
+            const pr = prepare(seg);
+            prepared.delete(seg);                                             // playPreparedSpeech owns it now
+            if (pr) pr.then(() => { playing = true; prefetchNext(); }, () => {}); // N ready to play -> fetch N+1
+            await playPreparedSpeech(pr, myId);
+          } else {
+            playing = true; prefetchNext();
+            if (seg.kind === 'reciteSurah') await playSurahRecitation(seg.sNum, seg.from || 1, seg.to, myId);
+            else if (seg.kind === 'reciteDhikr') await playDhikrRecitation(seg.catId, myId);
+            else await playRecitation(seg.sNum, seg.aNum, myId);
+          }
         } catch (e) {}
+        playing = false;
       }
     };
-    const enqueue = (segs) => { for (const s of segs) queue.push(s); pump(); };
+    const enqueue = (segs) => { for (const s of segs) queue.push(s); prefetchNext(); pump(); };
     // last safe cut inside tag-free prose: end of the last COMPLETE sentence
     const lastSentenceCut = (s) => {
       let cut = 0, re = /[.!\u061F?\u061B]\s|\n/g, m;
       while ((m = re.exec(s)) !== null) cut = m.index + m[0].length;
+      // A stop at the very END of the received text ends a sentence too: an early-released lead
+      // arrives ending on its full stop with nothing after it, and waiting for the next delta
+      // held it silent for ~10 s. Not after a digit -- "3." may still become "3.5".
+      // H3 (T4 fix 4): and not a `.` after an ASCII letter -- a delta can stop inside a domain name
+      // (`binothaimeen.`), and the filter that silences domains must see the whole of it.
+      if (!/[A-Za-z]\.$/.test(s) && /(?:^|[^0-9\u0660-\u0669\u06F0-\u06F9])[.!?\u061F\u2026]$/.test(s)) cut = s.length;
       return cut;
     };
     const feed = (full) => {
@@ -17123,7 +17527,11 @@ function App() {
       const tm = /<(verse|surah|hadith|steps|suggestions|source|dhikr|worship|book)[\s>\/]/.exec(safe);
       const firstTag = tm ? tm.index : safe.length;           // prose is streamable only BEFORE the first tag
       const region = safe.slice(consumedLen, firstTag);       // tag-free prose not yet spoken
-      const cut = tm ? region.length : lastSentenceCut(region); // tag present -> flush prose up to it; else complete sentences only
+      let cut = tm ? region.length : lastSentenceCut(region); // tag present -> flush prose up to it; else complete sentences only
+      // Q1: an unfinished source line waits for its end (or for finish()), so formatForTTS sees
+      // it whole and silences all of it -- a cut at a stop inside it would speak the rest.
+      const lastLine = region.lastIndexOf('\n') + 1;   // only the LAST line can still be open
+      if (lastLine < cut && new RegExp(EZ_TTS_SOURCE_LINE_SRC).test(region.slice(lastLine))) cut = lastLine;
       if (cut > 0) {
         const segs = [];
         for (const c of splitSpeechIntoSentences(region.slice(0, cut))) segs.push({ kind: 'speak', text: c });
@@ -17149,6 +17557,16 @@ function App() {
   // restores the Web Speech path untouched.
   const DICTATE_CLOUD = false; // OFF until the silent failure after the second tap is measured (call mode is unaffected)
   const inputElRef = useRef(null);
+  // A widget starts an empty thread; focus waits until both gates allow the composer to mount.
+  // This is ordinary DOM focus. Whether a shell WebView opens its keyboard is a device measure.
+  useEffect(() => {
+    if (!widgetChatFocusRef.current || screen !== 'chat' || !spendGateOpenState
+      || aiConsent !== EZ_AI_CONSENT_GRANTED || aiConsentReview) return;
+    const el = inputElRef.current;
+    if (!el) return;
+    el.focus();
+    widgetChatFocusRef.current = false;
+  }, [screen, homeEpoch, spendGateOpenState, aiConsent, aiConsentReview]);
   // The composer grows from STATE, not from the keystroke: dictation fills it programmatically
   // and an onChange-only resize would leave a one-line box holding six lines of speech.
   useEffect(() => { const el = inputElRef.current; if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 200) + 'px'; }, [input]);
@@ -17249,6 +17667,7 @@ function App() {
     // for as long as the reader likes, and consent may have been withdrawn in another tab while
     // it did. ezStartRecognition refuses and tears the engine down if so.
     if (!ezStartRecognition(recognitionRef.current)) { shouldListenRef.current = false; setIsListening(false); }
+    else dictationOpenRef.current = true;                             // G2: a session is open until its onend
   };
 
   const stopListening = () => {
@@ -18068,6 +18487,7 @@ function App() {
       callTranscriptRef.current = '';
       callBaseTextRef.current = '';
       setCallHeard('');
+      setCallHeardWords('');   // H1: a new listening turn -- the last turn's words go
       callActiveRef.current = true;
       setCallState('listening');
       startCloudListening();
@@ -18079,6 +18499,7 @@ function App() {
     callTranscriptRef.current = '';
     callBaseTextRef.current = '';
     setCallHeard('');
+    setCallHeardWords('');
     callActiveRef.current = true;
     setCallState('listening');
     // Re-read here too: startCallListening is re-entered on every turn of a call that may have
@@ -18104,9 +18525,22 @@ function App() {
   // One full call turn — mirrors sendMessage exactly: pushes the same user+assistant messages to
   // the SHARED messages array (so the Q&A shows in chat history and guardrails are identical), then
   // speaks the reply via the existing speakReply(). No setInput, no streamingText bubble.
+  // T4 fix 2, F2: the mic re-opens only after our own voice has really stopped. The <audio>
+  // element fires `ended` when ITS clock reaches the end (measured in Chrome 152: 44-75 ms after
+  // the duration), but the output device still plays what it holds in its buffer, and a mic opened
+  // at `ended` recorded that tail. Wait the latency the device reports (AudioContext.outputLatency
+  // on the call's own capture context); a device that reports none adds no wait at all.
+  const SPEAKER_TAIL_MAX_MS = 1000;
+  const waitForSpeakerTail = () => {
+    let s = 0;
+    try { s = Number(vadCtxRef.current && vadCtxRef.current.outputLatency) || 0; } catch (e) { s = 0; }
+    const ms = Math.min(SPEAKER_TAIL_MAX_MS, Math.max(0, Math.round(s * 1000)));
+    return ms ? new Promise((resolve) => setTimeout(resolve, ms)) : Promise.resolve();
+  };
   const runCallTurn = async (text) => {
     const myGen = callGenRef.current; // capture the call session; re-arm after playback only if still valid
     setCallHeard('');
+    setCallHeardWords(text);   // H1: on the screen before the answer is requested; never passed to speech
     setCallState('thinking');
     clearInactivityTimer(); // child is engaged (thinking/speaking) — pause the idle clock
     cancelAudio();
@@ -18139,6 +18573,7 @@ function App() {
     setCallState('speaking');
     if (CALL_STREAM_SPEECH && callStream) await callStream.finish(reply); // stream: flush remainder + await playback drain (same completion contract)
     else await speakReply(reply); // completion hook -- resolves when playback fully finishes
+    await waitForSpeakerTail();   // F2: `ended` is the element's clock; the speaker may still be sounding
     // Layer 3 guarded auto-rearm. speakReply cannot reject and resolves only after playback ends.
     if (callGenRef.current !== myGen) return;                   // End/exit or session change during playback → do NOT re-arm
     if (callActiveRef.current) return;                          // a manual interrupt already re-opened the mic → don't double-arm
@@ -18176,12 +18611,14 @@ function App() {
       // Manual interrupt: cancel the in-flight turn + tutor audio, then open the mic for the child.
       if (abortRef.current) abortRef.current.abort(); // thinking: aborts callAI -> runCallTurn bails at the AbortError guard (before re-arm)
       cancelAudio();                                  // speaking: stops playback (speakReply resolves; EDIT-A re-arm suppressed by its callActiveRef guard)
+      callTurnExemptRef.current = true;             // H2: the turn a barge-in opens is never dropped as faint
       startCallListening();
       return;
     }
     if (callState === 'idle') startCallListening();
     // 'listening' → no-op (unchanged from Layer 2)
   };
+  useEffect(() => { callTalkRef.current = screen === 'call' ? onCallTalk : null; });   // H4: the external-pause exit
 
   // Call-screen lifecycle: create/tear down the dedicated recognition with the call screen.
   // On entry: force the dictation mic OFF and stop any audio so the two can never fight.
@@ -18213,7 +18650,10 @@ function App() {
     cancelAudio();
     callActiveRef.current = false;
     callTranscriptRef.current = '';
+    callPeaksRef.current = [];        // H2: each call learns its reader's level afresh
+    callTurnExemptRef.current = false;
     setCallHeard('');
+    setCallHeardWords('');
     setCallState('idle');
 
     // `rec` is NULL when the engine has no Web Speech and the cloud path is carrying the call.
@@ -18308,7 +18748,23 @@ function App() {
     };
     if (rec) { rec.onresult = onRecResult; rec.onend = onRecEnd; rec.onerror = onRecError; }
     callRecognitionRef.current = rec;
-    startCallListening();    // child just enters and talks - no button
+    // G2: the stop() above does not free the microphone at once. On Android the dictation
+    // recognizer holds it until its own onend, and a getUserMedia before that fails with
+    // NotReadableError («busy»). So when a dictation session is still open, the first turn waits
+    // for that onend, bounded by CALL_RESTART_GRACE_MS (the recognizer's own hand-over window on
+    // this screen), and goes on after the bound if onend never comes. No session open: no wait.
+    if (dictationOpenRef.current) {
+      const genAtEntry = callGenRef.current;
+      let handedOver = false;
+      const afterDictation = () => {
+        if (handedOver) return;
+        handedOver = true;
+        dictationEndWaiterRef.current = null;
+        if (callGenRef.current === genAtEntry) startCallListening();
+      };
+      dictationEndWaiterRef.current = afterDictation;
+      setTimeout(afterDictation, CALL_RESTART_GRACE_MS);
+    } else startCallListening();    // child just enters and talks - no button
 
     return () => {
       callGenRef.current++; // EXIT: invalidate every in-flight continuation (re-arm / backoff / inactivity)
@@ -18327,6 +18783,7 @@ function App() {
       callMutedRef.current = false;
       setIsCallMuted(false);
       setCallHeard('');
+      setCallHeardWords('');   // H1: hang-up clears the heard words
       setCallState('idle');
     };
   }, [screen]);
@@ -18369,6 +18826,9 @@ function App() {
       // favourites, recent pages, last page and settings -- every key under MUSHAF_LAB_STORE_PREFIX.
       // Entered in tools/delete-truth-measure.cjs in the same commit, which seeds and checks them.
       ezikClearMushafLab();
+      // ITEM 108 (ORDER-108C B4) -- AND THE LIBRARY'S OWN STORE: its notes database
+      // (IndexedDB ezik-library-v1) and every localStorage key under its ezlib_ prefix.
+      ezikClearLibrary();
       localStorage.removeItem(WIRD_TARGET_KEY);
       localStorage.removeItem(WIRD_DAY_KEY);
       // ITEM 75 RIDER 1 (owner ruling, 2026-09-10) -- THE OTHER HALF OF THE TWO FEATURES THE
@@ -18518,6 +18978,7 @@ function App() {
       setChatId(null);
       setChatList([]);
       setScreen('onboarding');
+      try { ezikWidgetDataChanged(); } catch (e) {}
     }
   };
 
@@ -18929,7 +19390,7 @@ function App() {
   // an onOpenChat: the chat is entered from that menu's «محادثة جديدة» row.
   if (screen === 'home') return (
     <>
-      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenSunan={() => setSunanOpen(true)} onOpenArbaeen={() => setScreen('arbaeen')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} onOpenTafsir={() => setScreen('ayah-tafsir')} />
+      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenSunan={() => setSunanOpen(true)} onOpenArbaeen={() => setScreen('arbaeen')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} onOpenTafsir={() => setScreen('ayah-tafsir')} key={homeEpoch} />
       {ezikDrawer()}
     </>
   );
@@ -18963,7 +19424,7 @@ function App() {
   if (screen === 'call' && !hasFounderToken()) return <UnlockSheet onUnlocked={() => setFounderUnlocked(true)} onBack={goEzikBack} />;
   // `error` is what makes a failed call SAY something: voiceError was rendered on the chat screen
   // ONLY, so every banner a call raised was written to a view the user was not looking at.
-  if (screen === 'call') return <CallScreen profileName={profile?.name} gender={profile?.gender} callState={callState} heard={callHeard} isMuted={isCallMuted} error={voiceError} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={goEzikBack} />;
+  if (screen === 'call') return <CallScreen profileName={profile?.name} gender={profile?.gender} callState={callState} heard={callHeard} heardWords={callHeardWords} isMuted={isCallMuted} error={voiceError} onToggleMute={toggleCallMute} onTalk={onCallTalk} onExit={goEzikBack} />;
   // المحفّظ — full screen (mirrors CallScreen). Quran playback reuses the App-scoped manual
   // entry points (playVerseManual/playSurahManual) passed down as props; no new audio code.
   // S87 -- THE FEATURE SECTIONS. Each hands goEzikBack to its OWN section-level back
@@ -18972,10 +19433,10 @@ function App() {
   // retained, and only a back taken from the section's own top level goes home.
   if (screen === 'memorize') return <MemorizeScreen profile={profile} onExit={goEzikBack} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
   if (screen === 'mushaf') return <MushafScreen selected={selectedSurah} setSelected={setSelectedSurah} onBack={goEzikBack} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
-  if (screen === 'adhkar') return <AdhkarScreen onBack={goEzikBack} />;
+  if (screen === 'adhkar') return <AdhkarScreen onBack={goEzikBack} key={homeEpoch} />;
   // ITEM 89: a feature section, in NEITHER screen register -- exactly like the adhkar line
   // above it. ezikBackTarget's fall-through gives it its back destination.
-  if (screen === 'arbaeen') return <ArbaeenScreen onBack={goEzikBack} />;
+  if (screen === 'arbaeen') return <ArbaeenScreen onBack={goEzikBack} key={homeEpoch} />;
   // ITEM 27: the daily verse's tafsir. A feature section like the two above it, so it is in
   // NEITHER screen register and takes its back destination from ezikBackTarget's fall-through.
   if (screen === 'ayah-tafsir') return <AyahTafsirScreen onBack={goEzikBack} />;
@@ -20193,7 +20654,7 @@ function ezikRenderSegments(segments, ctx) {
       return <SourceCard key={i} site={seg.site} url={seg.url} content={seg.content} />;
     }
     if (seg.type === 'book') {
-      return <BookCard key={i} title={seg.title} author={seg.author} where={seg.where} text={seg.text} cut={seg.cut} />;
+      return <BookCard key={i} title={seg.title} author={seg.author} where={seg.where} text={seg.text} cut={seg.cut} bookId={seg.bookId} vol={seg.vol} page={seg.page} />;
     }
     if (seg.type === 'dhikr') {
       return <DhikrCard key={i} catId={seg.catId} />;
@@ -21177,19 +21638,42 @@ function SourceCard({ site, url, content }) {
 // lib/free-brain/tools.js drops it again when the numbering is automatic). When the chip shows
 // no place, the panel shows no place: a passage under a page number the card itself refused to
 // print would be a citation this app invented.
-function BookCard({ title, author, where, text, cut }) {
+// ITEM 108 (ORDER-108C B3) -- AND A WAY TO THE BOOK ITSELF. When the server carried the book's
+// library id, a second, separate control under the chip opens /library.html at that book -- at
+// the cited volume and page when the page was citable, at the book's card otherwise. It is a
+// same-origin page of this app, not a host: the chip above it stays exactly the attribution it
+// was, and a card that arrived without an id (every answer saved before this item) draws none.
+function BookLibraryLink({ bookId, vol, page }) {
+  const href = ezikLibraryHref(bookId, vol, page);
+  if (!href) return null;
+  return (
+    <a href={href} style={s.sourceChip} data-ezik-library-link="1">
+      <span style={s.bookMatnToggle}>{BOOK_LIBRARY_LINK_LABEL}</span>
+      <span style={s.sourceChipArrow} aria-hidden="true">{'←'}</span>
+    </a>
+  );
+}
+function BookCard({ title, author, where, text, cut, bookId, vol, page }) {
   const [matnOpen, setMatnOpen] = useState(false);
   const name = String(title || '').trim();
   if (!name) return null;
   const by = String(author || '').trim();
   const at = String(where || '').trim();
   const matn = typeof text === 'string' ? text : '';
+  const libHref = ezikLibraryHref(bookId, vol, page);
   if (!matn) {
-    return (
+    const chip = (
       <div style={s.sourceChip}>
         <span style={s.sourceChipSite}>{name}</span>
         {by ? <span style={s.sourceChipText}>{by}</span> : null}
         {at ? <span style={s.sourceChipText}>{at}</span> : null}
+      </div>
+    );
+    if (!libHref) return chip;
+    return (
+      <div style={s.bookCardWrap}>
+        {chip}
+        <BookLibraryLink bookId={bookId} vol={vol} page={page} />
       </div>
     );
   }
@@ -21217,6 +21701,7 @@ function BookCard({ title, author, where, text, cut }) {
           {cut ? <div style={s.bookMatnCut}>{BOOK_MATN_CUT_NOTE}</div> : null}
         </div>
       ) : null}
+      {libHref ? <BookLibraryLink bookId={bookId} vol={vol} page={page} /> : null}
     </div>
   );
 }
@@ -23157,12 +23642,12 @@ function EzShell({ title, onBack, backLabel, lead, actions, children }) {
 // because it was compared against anything. The batch report prints thirty days at Kuwait City
 // coordinates for every method offered, so the owner can make that comparison and then choose.
 //
-// 🔴 ZERO ADHAN, ZERO NOTIFICATION, ZERO SOUND. A call at the right moment needs a scheduled
-// notification in a native shell; that rides with the store release (item 67). Nothing here
-// plays, schedules, or hints in the interface that it might.
+// The calculator supplies the native scheduler and widgets below. The native shell schedules
+// notifications and owns sound playback; browser tabs calculate and display these times locally.
 const PRAYER_PREFS_KEY = 'ezik_prayer_prefs_v1';
 const PRAYER_METHOD_DEFAULT = 'kuwait';
 const PRAYER_ASR_DEFAULT = 'standard';
+const PRAYER_ADHAN_SOUND_LABEL = '\u0635\u0648\u062A \u0627\u0644\u0623\u0630\u0627\u0646';
 const PRAYER_OFFSET_MIN = -15;
 const PRAYER_OFFSET_MAX = 15;
 const PRAYER_KEYS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
@@ -23289,7 +23774,7 @@ function prayerClock(mins) {
 // THE PREFERENCES. One record, every field checked, and a broken store reads as the shipped
 // defaults rather than as an exception on a screen.
 function readPrayerPrefs() {
-  const out = { method: PRAYER_METHOD_DEFAULT, asr: PRAYER_ASR_DEFAULT, off: {} };
+  const out = { method: PRAYER_METHOD_DEFAULT, asr: PRAYER_ASR_DEFAULT, off: {}, adhanSound: true };
   for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) out.off[PRAYER_OFFSETTABLE[i]] = 0;
   let raw = null;
   try { raw = localStorage.getItem(PRAYER_PREFS_KEY); } catch (e) { return out; }
@@ -23299,6 +23784,7 @@ function readPrayerPrefs() {
   if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return out;
   if (typeof rec.method === 'string' && prayerMethodIds().indexOf(rec.method) !== -1) out.method = rec.method;
   if (rec.asr === 'hanafi' || rec.asr === 'standard') out.asr = rec.asr;
+  if (typeof rec.adhanSound === 'boolean') out.adhanSound = rec.adhanSound;
   const o = rec.off;
   if (o && typeof o === 'object' && !Array.isArray(o)) {
     for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) {
@@ -23313,9 +23799,10 @@ function readPrayerPrefs() {
 function writePrayerPrefs(next) {
   const cur = readPrayerPrefs();
   if (!next || typeof next !== 'object') return cur;
-  const rec = { method: cur.method, asr: cur.asr, off: cur.off };
+  const rec = { method: cur.method, asr: cur.asr, off: cur.off, adhanSound: cur.adhanSound };
   if (typeof next.method === 'string' && prayerMethodIds().indexOf(next.method) !== -1) rec.method = next.method;
   if (next.asr === 'hanafi' || next.asr === 'standard') rec.asr = next.asr;
+  if (typeof next.adhanSound === 'boolean') rec.adhanSound = next.adhanSound;
   if (next.off && typeof next.off === 'object') {
     for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) {
       const k = PRAYER_OFFSETTABLE[i];
@@ -23325,6 +23812,7 @@ function writePrayerPrefs(next) {
     }
   }
   try { localStorage.setItem(PRAYER_PREFS_KEY, JSON.stringify(rec)); } catch (e) { return readPrayerPrefs(); }
+  try { ezikWidgetDataChanged(); } catch (e) {}
   return rec;
 }
 // One prayer's offset moved by one step, clamped. It returns the WHOLE record, so the control
@@ -23618,8 +24106,27 @@ function PrayerTimesPanel({ loc }) {
 // handlers above are unchanged; only this owner moved from the reading sheet to Settings.
 function PrayerSettingsControl() {
   const [prefs, setPrefs] = useState(readPrayerPrefs);
+  const [widgetDataSupported, setWidgetDataSupported] = useState(() => ezikWidgetDataCapability === 'supported');
+  useEffect(() => {
+    // The page-level reply handler runs first; read its capability without consuming a reply.
+    const sync = () => setWidgetDataSupported(ezikWidgetDataCapability === 'supported');
+    window.addEventListener(SHELL_SCHED_CHANNEL, sync);
+    sync();
+    return () => window.removeEventListener(SHELL_SCHED_CHANNEL, sync);
+  }, []);
   return (
     <>
+      {widgetDataSupported && ezikSchedBridge() ? <>
+      <div style={s.a11yGroupLabel}>{PRAYER_ADHAN_SOUND_LABEL}</div>
+      <div className="ez-hit" style={s.prayerOptRow}>
+        <button type="button" role="switch" aria-checked={prefs.adhanSound ? 'true' : 'false'}
+          aria-label={PRAYER_ADHAN_SOUND_LABEL} data-ezik-prayer-setting="adhan-sound"
+          onClick={() => { setPrefs(writePrayerPrefs({ adhanSound: !prefs.adhanSound })); ezikSchedArm(); }}
+          className="ezik-focus" style={prefs.adhanSound ? { ...s.prayerOpt, ...s.themeOptActive } : s.prayerOpt}>
+          {prefs.adhanSound ? ezT('prayer.notify.on') : ezT('prayer.notify.off')}
+        </button>
+      </div>
+      </> : null}
       <div style={s.a11yGroupLabel}>{PRAYER_METHOD_LABEL}</div>
       <div className="ez-hit" style={s.prayerOptRow} role="radiogroup" aria-label={PRAYER_METHOD_LABEL}>
         {prayerMethodIds().map((id) => (
@@ -23770,10 +24277,11 @@ function writeQiblaLoc(lat, lng) {
   if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return readQiblaLoc();
   try { localStorage.setItem(QIBLA_LOC_KEY, JSON.stringify({ lat: lat, lng: lng })); }
   catch (e) { return readQiblaLoc(); }
+  try { ezikWidgetDataChanged(); } catch (e) {}
   return { lat: lat, lng: lng, by: 'device' };
 }
 function clearQiblaLoc() {
-  try { localStorage.removeItem(QIBLA_LOC_KEY); } catch (e) {}
+  try { localStorage.removeItem(QIBLA_LOC_KEY); ezikWidgetDataChanged(); } catch (e) {}
   return readQiblaLoc();
 }
 
@@ -23918,6 +24426,57 @@ const SHELL_SCHED_ENABLE_OP = 'enable';
 const SHELL_SCHED_CANCEL_OP = 'cancel';
 const SHELL_SCHED_RESULT_OP = 'result';
 
+// ============================================================
+// ITEM 45 -- THE WIDGET'S PRESS, CAUGHT AT THE DOOR AND HANDED TO THE ONE ROUTER
+// ============================================================
+// Notifications and widget Linking both reach SiteScreen's deliverOpen on this channel:
+// { channel, v, op: 'open', route, type, id }. The web enforces the complete C1 whitelist
+// below before any store or screen changes. Mushaf belongs to notifications, not widget sections.
+// TRIP 2 (28 September): every section the app offers now opens here, so the last two join it
+// under the app's own keys -- `wirdi`, the key the resume ledger already writes for the daily
+// wird section, and `library`, the id of the home module that opens /library.html.
+//
+// WHY THE LISTENER HANGS HERE AND NOT IN A HOOK. On a cold start the shell holds the press
+// until the page reports loaded and then injects it at once -- which can be before React has
+// committed its first tree, so a listener attached inside a useEffect may not exist yet and
+// the press would be lost without trace. This one is attached while this file executes. It
+// decides nothing: it keeps the LAST valid press in one slot and tells whoever subscribed.
+// App consumes the slot through the resume ledger and boot tools for sections, with the explicit
+// new-chat and page-navigation paths described by C1.
+//
+// `rearm-request`, `result` and `status` are not touched: this listener returns on every op but
+// `open`, and useEzikSchedRoot keeps its own listener exactly as it was.
+const SHELL_SCHED_OPEN_OP = 'open';
+const EZIK_WIDGET_ROUTES = [
+  'mushaf', 'adhkar_sabah', 'adhkar_masaa', 'home',
+  'adhkar', 'arbaeen', 'prayer', 'chat',
+  'memorize', 'fatwa', 'lessons', 'articles', 'women', 'tasbih', 'calc', 'compass',
+  'ayah-tafsir', 'asmaa', 'sunan-day', 'wirdi', 'treasure', 'library',
+];
+let EZIK_WIDGET_PENDING = '';
+const EZIK_WIDGET_SUBS = new Set();
+function ezikWidgetTake() {
+  const r = EZIK_WIDGET_PENDING;
+  EZIK_WIDGET_PENDING = '';
+  return r;
+}
+(function ezikWidgetListen() {
+  // The same two guards the schedule hook carries: no window under a node harness that loads
+  // this file without a DOM, and a throwing addEventListener degrades to «the widget opens the
+  // app as it is» rather than to a broken page.
+  if (typeof window === 'undefined') return;
+  try {
+    window.addEventListener(SHELL_SCHED_CHANNEL, (ev) => {
+      const d = ev && ev.detail;
+      if (!d || typeof d !== 'object') return;
+      if (d.channel !== SHELL_SCHED_CHANNEL || d.v !== SHELL_SCHED_VERSION || d.op !== SHELL_SCHED_OPEN_OP) return;
+      if (typeof d.route !== 'string' || EZIK_WIDGET_ROUTES.indexOf(d.route) === -1) return;
+      EZIK_WIDGET_PENDING = d.route;
+      EZIK_WIDGET_SUBS.forEach((f) => { try { f(); } catch (e) {} });
+    });
+  } catch (e) {}
+})();
+
 // The bridge, or null. The injected object is the whole test; navigator.userAgent is deliberately
 // not consulted here either, for the reason written out at ezikShellBridge above.
 function ezikSchedBridge() {
@@ -23952,7 +24511,7 @@ function ezikSchedRoute(raw) {
 // not treated as "no lower bound"; it is treated as a bound nothing can clear. An unusable clock
 // must send no notification, never an unchecked one.
 function ezikSchedPayload(items, nowMs) {
-  const dropped = { notAnObject: 0, badTime: 0, past: 0, missingType: 0, missingText: 0, duplicateId: 0 };
+  const dropped = { notAnObject: 0, badTime: 0, past: 0, missingType: 0, missingText: 0, duplicateId: 0, badAdhanSound: 0 };
   const now = (typeof nowMs === 'number' && isFinite(nowMs)) ? nowMs : Infinity;
   const list = Array.isArray(items) ? items : [];
   const seen = new Set();
@@ -23970,11 +24529,16 @@ function ezikSchedPayload(items, nowMs) {
     if (typeof it.title !== 'string' || !it.title.trim()) { dropped.missingText++; continue; }
     if (typeof it.body !== 'string' || !it.body.trim()) { dropped.missingText++; continue; }
     const type = it.type.trim();
+    if (type === ADHAN_TYPE && ['fajr', 'other', 'none'].indexOf(it.adhanSound) === -1) {
+      dropped.badAdhanSound++;
+      continue;
+    }
     // A stable key, derived when it is not given. Deriving a key is not composing text.
     const id = (typeof it.id === 'string' && it.id.trim()) ? it.id.trim() : (type + ':' + at);
     if (seen.has(id)) { dropped.duplicateId++; continue; }
     seen.add(id);
     const rec = { id: id, type: type, at: at, title: it.title.trim(), body: it.body.trim() };
+    if (type === ADHAN_TYPE) rec.adhanSound = it.adhanSound;
     const route = ezikSchedRoute(it.route);
     if (route !== null) rec.route = route;
     out.push(rec);
@@ -24783,15 +25347,13 @@ function ezikNotifyAnswer(detail) {
 // TEXT ARRIVES READY OR IT DOES NOT ARRIVE. The shell composes nothing and translates nothing; a
 // title or body that came back empty is dropped by the pipe and counted, never invented.
 //
-// AND NO DESTINATION IS SENT. `route` is optional in the contract and a notification without one
-// is explicitly correct there: the press opens the application as it is. Sending a destination
-// this client has no listener for would be a promise about a screen, and the round that teaches
-// this app to answer `op:'open'` is not this one.
+// Prayer notifications retain their optional, absent destination: a press opens the application
+// as it is. The file-level open listener handles C1 destinations on notifications that carry one.
 
 /**
  * The shell's frozen notification type -- `TYPES` in murabbi-shell src/scheduler/core. An item typed
- * anything else is refused there and counted `unknownType`. This is the ONE place the word is
- * written in this client, and tools/wird-guard.cjs holds it to exactly that.
+ * anything else is refused there and counted `unknownType`. The type literal is declared once;
+ * C2 separately carries the sound selection for the native shell.
  */
 const ADHAN_TYPE = 'adhan';
 const ADHAN_WINDOW_DAYS = 7;
@@ -24833,6 +25395,7 @@ function ezikAdhanItems(now) {
       items.push({
         id: ADHAN_TYPE + ':' + k + ':' + prayerDayKey(dt),
         type: ADHAN_TYPE,
+        adhanSound: prefs.adhanSound ? (k === 'fajr' ? 'fajr' : 'other') : 'none',
         at: at,
         title: title,
         body: ezT(ADHAN_BODY_KEY, { name: title }),
@@ -24868,13 +25431,9 @@ function ezikAdhanItems(now) {
 // are both 'daily', which is the only word left that describes either of them. They are told
 // apart by their ids and by their destinations, never by a fourth word the far side would drop.
 //
-// AND THE DESTINATIONS ARE CARRIED, NOT ACTED ON -- yet. `route` is an opaque string the shell
-// stores in the notification and hands back verbatim on a press (buildOpenPayload, op:'open').
-// This client still registers no listener for that message: item 97 revoked the adhkar deep
-// link with the navigation that fed it, and re-cutting one is not this round's work. So the
-// morning reminder POINTS AT adhkar_sabah and the evening one at adhkar_masaa, which is what
-// the order asks of them, and the round that teaches this app to answer op:'open' is still
-// ahead. Nothing here promises the reader a screen.
+// The shell stores each destination and returns it on a press. The open listener accepts
+// adhkar_sabah and adhkar_masaa as aliases for the adhkar index. Item 97 remains revoked:
+// neither alias deep-links into a group. Other notification routes use the C1 whitelist.
 const REMINDERS_KEY = 'ezik_reminders_v1';
 // The ceiling on "how many times a day", and it is a SMALL number on purpose. The shell caps
 // the whole application at sixty pending notifications and cuts the FARTHEST when it is
@@ -25487,6 +26046,193 @@ function useEzikSchedRoot() {
 // copy of the list of things a payload is computed from.
 function useEzikSchedWatch() {
   useEffect(() => { ezikSchedArm(); });
+}
+
+// ITEM 45 / C3. The web supplies the native widgets with its own data and calculations.
+// Writers announce a local change only; this event has no loader or scheduling dependency.
+const EZIK_WIDGET_DATA_EVENT = 'ezik-widget-data-change';
+const EZIK_WIDGET_DATA_DEBOUNCE_MS = 200;
+const EZIK_WIDGET_DATA_DAYS = 30;
+// Capability belongs to this page, not to a hook or a persistent store. Reserve the first
+// send before crossing the bridge so delayed replies and competing roots cannot probe twice.
+let ezikWidgetDataCapability = 'unknown';
+const EZIK_WIDGET_DATA_WAITERS = new Set();
+(function ezikWidgetDataListen() {
+  if (typeof window === 'undefined') return;
+  try {
+    window.addEventListener(SHELL_SCHED_CHANNEL, (ev) => {
+      const d = ev && ev.detail;
+      if (!d || typeof d !== 'object' || Array.isArray(d)) return;
+      if (d.channel !== SHELL_SCHED_CHANNEL || d.v !== SHELL_SCHED_VERSION) return;
+      if (d.op === 'error' && d.reason === 'unknown-op' && d.received === 'widget-data') {
+        ezikWidgetDataCapability = 'disabled';
+        EZIK_WIDGET_DATA_WAITERS.clear();
+        return;
+      }
+      if (ezikWidgetDataCapability !== 'pending' || d.op !== SHELL_SCHED_RESULT_OP
+        || d.inReplyTo !== 'widget-data') return;
+      // Even a validation failure proves the operation is understood. Only deferred changes
+      // need another send; ordinary or repeated acknowledgements do not cause a reply loop.
+      ezikWidgetDataCapability = 'supported';
+      const waiting = Array.from(EZIK_WIDGET_DATA_WAITERS);
+      EZIK_WIDGET_DATA_WAITERS.clear();
+      waiting.forEach((wake) => { try { wake(); } catch (e) {} });
+    });
+  } catch (e) {}
+})();
+function ezikWidgetDataChanged() {
+  if (typeof window === 'undefined') return;
+  try { window.dispatchEvent(new CustomEvent(EZIK_WIDGET_DATA_EVENT)); } catch (e) {}
+}
+
+function ezikWidgetClock(mins) {
+  if (typeof mins !== 'number' || !isFinite(mins)) return null;
+  const t = ((Math.round(mins) % 1440) + 1440) % 1440;
+  return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0');
+}
+
+function ezikWidgetPrayerDays(now) {
+  const loc = readQiblaLoc();
+  const prefs = readPrayerPrefs();
+  const offset = readHijriOffset();
+  const days = [];
+  for (let i = 0; i < EZIK_WIDGET_DATA_DAYS; i++) {
+    // Local noon selects the offset used during this day's prayers, including a DST change.
+    const dt = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i, 12);
+    const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
+    const computed = prayerTimesFor(y, m, d, loc.lat, loc.lng, -dt.getTimezoneOffset(),
+      prefs.method, prefs.asr, prefs.off);
+    const times = {};
+    for (const key of PRAYER_KEYS) times[key] = ezikWidgetClock(computed[key]);
+    days.push({
+      date: prayerDayKey(dt),
+      // Home shows only Hijri; the Gregorian label reuses the app's saved-date formatter.
+      gregorianLabel: ezikFavDate(dt.getTime()) || null,
+      hijriLabel: hijriLabel(hijriForCivilDay(y, m, d, offset)) || null,
+      times: times,
+    });
+  }
+  return days;
+}
+
+function ezikWidgetSections() {
+  return [
+    { route: 'memorize', label: EZH_MEMORIZE },
+    { route: 'fatwa', label: EZH_FATWA },
+    { route: 'lessons', label: EZH_LESSONS },
+    { route: 'adhkar', label: EZH_ADHKAR },
+    { route: 'arbaeen', label: EZH_ARBAEEN },
+    { route: 'articles', label: EZH_ARTICLES },
+    { route: 'women', label: EZH_WOMEN },
+    { route: 'prayer', label: EZH_PRAYER },
+    { route: 'tasbih', label: ezT('tasbih.card.title') },
+    { route: 'calc', label: ezT('calc.card.title') },
+    { route: 'compass', label: EZH_NAV_COMPASS },
+    { route: 'ayah-tafsir', label: ezT('home.verseOfDay2') },
+    { route: 'asmaa', label: EZH_ASMAA },
+    { route: 'sunan-day', label: EZH_SUNAN },
+    { route: 'treasure', label: EZH_TREASURE },
+  ];
+}
+
+function ezikWidgetDhikr(id, item) {
+  return { id: id, text: item && typeof item.text === 'string' ? item.text : null,
+    count: item ? adhkarTarget(item) : null };
+}
+
+async function ezikWidgetData(now) {
+  // The root checks the shell before reaching this builder. Every text comes from these
+  // existing loaders, including the morning/evening wording overrides, never a second copy.
+  const [raw, split, book] = await Promise.all([
+    loadAdhkar().catch(() => null),
+    loadAdhkarSplit().catch(() => null),
+    loadArbaeen().catch(() => null),
+  ]);
+  const db = raw && split ? applyAdhkarSplit(raw, split) : raw;
+  const favorites = raw ? readAdhkarFavorites().map((id) => {
+    const parts = id.split(':');
+    return ezikWidgetDhikr(id, adhkarItemsFor(db && db.byCat, parts[0])[Number(parts[1])]);
+  }) : null;
+  const door = (key) => {
+    if (!raw || !split || !db || !db.byCat || !Array.isArray(db.byCat[key])) return null;
+    return db.byCat[key].map((item, i) => ezikWidgetDhikr(adhkarItemKey(key, i), item));
+  };
+  const at = now || new Date();
+  return {
+    version: 1,
+    generatedAt: at.toISOString(),
+    prayer: { days: ezikWidgetPrayerDays(at) },
+    adhkar: { favorites: favorites, sabah: door('adhkar_sabah'), masaa: door('adhkar_masaa') },
+    arbaeen: book && Array.isArray(book.hadith)
+      ? book.hadith.map((h) => ({ n: h.n, title: h.title, text: h.text })) : null,
+    sections: ezikWidgetSections(),
+  };
+}
+
+function useEzikWidgetDataRoot(ready) {
+  useEffect(() => {
+    if (!ready || ezikWidgetDataCapability === 'disabled' || !ezikSchedBridge()) return undefined;
+    let timer = null, midnight = null, generation = 0, stopped = false;
+    const canSend = () => {
+      if (stopped || ezikWidgetDataCapability === 'disabled' || !ezikSchedBridge()) return false;
+      if (ezikWidgetDataCapability === 'pending') {
+        EZIK_WIDGET_DATA_WAITERS.add(wake);
+        return false;
+      }
+      return true;
+    };
+    const wake = () => {
+      const mine = ++generation;
+      if (timer) { clearTimeout(timer); timer = null; }
+      if (!canSend()) return;
+      timer = setTimeout(async () => {
+        timer = null;
+        if (mine !== generation || !canSend()) return;
+        try {
+          const data = await ezikWidgetData();
+          // A setting change, unmount, or disappearing bridge invalidates an in-flight load.
+          if (stopped || mine !== generation || !canSend()) return;
+          const bridge = ezikSchedBridge();
+          if (!bridge) return;
+          if (ezikWidgetDataCapability === 'unknown') ezikWidgetDataCapability = 'pending';
+          bridge.postMessage(JSON.stringify({ channel: SHELL_SCHED_CHANNEL,
+            v: SHELL_SCHED_VERSION, op: 'widget-data', data: data }));
+        } catch (e) {}
+      }, EZIK_WIDGET_DATA_DEBOUNCE_MS);
+      if (timer && typeof timer.unref === 'function') timer.unref();
+    };
+    const onStorage = (ev) => {
+      if (!ev || ev.key === null || [PRAYER_PREFS_KEY, QIBLA_LOC_KEY,
+        HIJRI_OFFSET_KEY, ADHKAR_FAVORITES_KEY].indexOf(ev.key) !== -1) wake();
+    };
+    const atMidnight = () => {
+      const n = new Date();
+      const next = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1, 0, 0, 5);
+      midnight = setTimeout(() => { wake(); atMidnight(); }, Math.max(1000, next.getTime() - n.getTime()));
+      if (midnight && typeof midnight.unref === 'function') midnight.unref();
+    };
+    window.addEventListener(EZIK_WIDGET_DATA_EVENT, wake);
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('pageshow', wake);
+    window.addEventListener('focus', wake);
+    document.addEventListener('visibilitychange', wake);
+    EZ_LANG_SUBS.add(wake);
+    wake();
+    atMidnight();
+    return () => {
+      stopped = true;
+      EZIK_WIDGET_DATA_WAITERS.delete(wake);
+      generation++;
+      if (timer) clearTimeout(timer);
+      if (midnight) clearTimeout(midnight);
+      EZ_LANG_SUBS.delete(wake);
+      window.removeEventListener(EZIK_WIDGET_DATA_EVENT, wake);
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('pageshow', wake);
+      window.removeEventListener('focus', wake);
+      document.removeEventListener('visibilitychange', wake);
+    };
+  }, [ready]);
 }
 
 const QIBLA_TITLE = 'القبلة';
@@ -26127,6 +26873,7 @@ function writeHijriOffset(n) {
   if (typeof n !== 'number' || !isFinite(n) || Math.trunc(n) !== n
     || n < HIJRI_OFFSET_MIN || n > HIJRI_OFFSET_MAX) return readHijriOffset();
   try { localStorage.setItem(HIJRI_OFFSET_KEY, String(n)); } catch (e) { return readHijriOffset(); }
+  try { ezikWidgetDataChanged(); } catch (e) {}
   return n;
 }
 function hijriLabel(h) {
@@ -27520,6 +28267,7 @@ function ParentDashboard({ profile, messages, onBack, onReset, directConvoLocked
 // S113 -- THE WORDS THIS SCREEN SAYS, gathered in one place so a redesign cannot quietly invent
 // one. Every string below is byte-for-byte a string this screen already shipped; not a word was
 // added, removed or reworded, and nothing devotional appears here at all.
+// H1 (T4 fix 4) added ONE, by the owner's order: HEARD, the prefix of the heard-words line.
 const CALL_TXT = {
   TITLE:      'مكالمة مع عزك',
   DISCLAIMER: 'تتحدّث إلى ذكاءٍ اصطناعيّ — لا إلى إنسان.',
@@ -27527,8 +28275,9 @@ const CALL_TXT = {
   MUTE_ON:    'مكتوم',
   MUTE_OFF:   'كتم',
   END:        'إنهاء',
+  HEARD:      'سمعتُ: ',
 };
-function CallScreen({ profileName, gender, callState, heard, isMuted, error, onToggleMute, onTalk, onExit }) {
+function CallScreen({ profileName, gender, callState, heard, heardWords, isMuted, error, onToggleMute, onTalk, onExit }) {
   // Accessibility: respect reduced-motion — fall back to a static (non-pulsing) ring.
   const reduceMotion = (typeof window !== 'undefined' && window.matchMedia)
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
@@ -27584,6 +28333,9 @@ function CallScreen({ profileName, gender, callState, heard, isMuted, error, onT
           {/* THE REAL STATE, said out loud: جاهز / يستمع / يفكر / يتحدّث, straight off callState. */}
           <div style={s.callStatusLabel}>{cs.label}</div>
           <span className={'ezcall-mark is-' + callState} aria-hidden="true" />
+          {/* H1 (T4 fix 4): the words the call took from the reader for the turn it is answering, so a
+              misheard question can be seen. Right-to-left, at most two lines, never spoken. */}
+          {heardWords ? <div style={s.callHeardWords} dir="rtl">{CALL_TXT.HEARD + heardWords}</div> : null}
           {profileName && <div style={s.callSubLabel}>{profileName}</div>}
           {/* Live feedback: what the mic is hearing (interim). Absent when there is none. */}
           {hint ? <div style={s.callHint}>{hint}</div> : null}
@@ -31987,6 +32739,7 @@ const s = {
   callStatusLabel: { color: 'var(--a3-ink)', fontSize: 22, fontWeight: 700, fontFamily: "'Amiri', 'Tajawal', serif", marginTop: 6 },
   callSubLabel: { color: 'var(--a3-muted)', fontSize: 14 },
   callHint: { color: 'var(--a3-muted)', fontSize: 12.5, lineHeight: 1.7, maxWidth: '100%', overflowWrap: 'anywhere' },
+  callHeardWords: { color: 'var(--a3-ink)', fontSize: 14, lineHeight: 1.6, maxWidth: '100%', direction: 'rtl', textAlign: 'center', overflowWrap: 'anywhere', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
   // Call-screen failure banner. It reads the SAME warning tokens the chat banner does now that
   // the room is no longer a dark slab -- one warning surface, theme-aware, in both screens.
   callErrorBanner: { width: '100%', maxWidth: 420, margin: '6px 0 0', padding: '10px 14px', background: 'var(--warn-bg)', border: '1px solid var(--warn-line)', borderRadius: 12, color: 'var(--warn-ink)', fontSize: 13, lineHeight: 1.6, fontWeight: 500, textAlign: 'center' },

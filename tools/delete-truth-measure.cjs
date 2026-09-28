@@ -861,8 +861,10 @@ run('answering yes still does the rest of what it did: state, screen, repaint', 
   const istana = keyOf('EZIK_VISUAL_THEME_ISTANA');
   const evt = keyOf('EZIK_VISUAL_THEME_EVENT');
   eq(r.s.painted, [[attr, istana]], 'the visual theme repaint');
-  eq(r.s.events.map((e) => [e.type, e.detail]), [[evt, istana]], 'the events dispatched');
-  return '1 dialog, 6 state changes in order, repainted to ' + istana + ', 1 event';
+  // C3 refreshes native widget data after the existing removals; the deletion roster is unchanged.
+  const widgetEvent = keyOf('EZIK_WIDGET_DATA_EVENT');
+  eq(r.s.events.map((e) => [e.type, e.detail]), [[evt, istana], [widgetEvent, null]], 'the events dispatched');
+  return '1 dialog, 6 state changes in order, repainted to ' + istana + ', theme + widget refresh events';
 });
 
 // ---- The lines themselves: named constants, not a second literal. ---------------------------
@@ -920,7 +922,13 @@ run('delete.html still carries both promises this tool measures against', () => 
   // measuring would agree with any page, including a page that promised nothing.
   const arabicEntry = 'جوابُك على شاشةِ الدخول';
   const englishEntry = 'your answer on the entry screen';
-  for (const s of [arabic, english, arabicLoc, englishLoc, arabicEntry, englishEntry]) {
+  // ORDER-108D D3 -- AND THE LIBRARY'S NOTES. «delete all my data» erases what /library.html keeps
+  // on the device (ezikClearLibrary: the ezlib_ keys and the database ezik-library-v1), and the page
+  // now says so in both languages, in the same ' · ' sentence as the lines above. The Arabic is the
+  // owner's own sentence, copied by its bytes; both are written out here for the reason given above.
+  const arabicLibrary = 'ملاحظاتك في المكتبة: التظليل والتعليقات والعلامات وموضع القراءة';
+  const englishLibrary = 'your library notes: highlights, comments, bookmarks and reading position';
+  for (const s of [arabic, english, arabicLoc, englishLoc, arabicEntry, englishEntry, arabicLibrary, englishLibrary]) {
     is(page.indexOf(s) !== -1,
       'delete.html no longer says "' + s + '" -- either the page was weakened to fit the code, '
       + 'which is the wrong repair, or this tool measures against a sentence nobody makes.');

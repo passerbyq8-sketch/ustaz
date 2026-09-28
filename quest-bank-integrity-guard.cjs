@@ -1520,20 +1520,229 @@ const SEALED = {
 //                    branch is not merged, so the one bump of 2026-09-27 carries both commits. B17 below
 //                    executes all of it. sw.js is 49632 -> 55702 bytes, measured at CR = 0.
 //                    THIS digest is re-cut LAST, after every other sw.js edit was final.
-  //   2026-09-27   -- SPEED item 17 client branch: status frames, atomic cards and live offers.
+  //   2026-09-27-c -- VOICE + CALL T4 FIX 1, P1: THE CALL SPEAKS AN EARLY-RELEASED LEAD AT ONCE.
+//                    lastSentenceCut in createCallSpeechStream now also counts a stop at the very end
+//                    of the received text (. ! ? U+061F U+2026, never after a digit) as a sentence
+//                    end. app.js was rebuilt by node tools/build-app.cjs, 1785502 -> 1785844, and
+//                    CORE_BYTES was re-cut by node tools/core-bytes.cjs --write; the byte table in
+//                    sw.js and the SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the
+//                    store name does not move here (commit 3 of the fix moves it). sw.js is 55702
+//                    bytes, measured at CR = 0. THIS digest is re-cut LAST, after every other sw.js
+//                    edit was final.
+  //   2026-09-27-d -- VOICE + CALL T4 FIX 1, P2: THE CALL PREFETCHES THE NEXT SENTENCE WHILE ONE PLAYS.
+//                    createCallSpeechStream's pump fetched segment N+1 only after N had finished
+//                    playing; it now starts that fetch when N is ready to play, one ahead as speakReply
+//                    does, and a hang-up aborts it (fetchSpeechAudio takes an optional signal). app.js
+//                    was rebuilt by node tools/build-app.cjs, 1785844 -> 1787023, and CORE_BYTES was
+//                    re-cut by node tools/core-bytes.cjs --write; the byte table in sw.js and the
+//                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name does
+//                    not move here (commit 3 of the fix moves it). sw.js is 55702 bytes, measured at
+//                    CR = 0. THIS digest is re-cut LAST, after every other sw.js edit was final.
+  //   2026-09-27-e -- VOICE + CALL T4 FIX 1, THE STORE NAME MOVES ONE STEP, ezik-v39 -> ezik-v40, so the
+//                    call's two speech fixes (P1, P2 above) reach readers through a fresh install. CACHE
+//                    in sw.js and app_version in config/app-version.json moved together (SW_CACHE is read
+//                    from that file), and app.js was rebuilt by npm run build:app: only its
+//                    EZIK_APP_VERSION line moved, and it is 1787023 bytes before and after. NO FILE
+//                    JOINED OR LEFT CORE: CORE_BYTES, the byte table and SW_PROSE stand. sw.js is 55702
+//                    bytes, measured at CR = 0. THIS digest is re-cut LAST, after every other sw.js edit
+//                    was final.
+  //   2026-09-27-f -- VOICE + CALL T4 FIX 2, F1: ATTRIBUTION IS SILENT IN SPEECH (the owner's option A).
+//                    formatForTTS now silences a line starting with the source label, every URL and
+//                    every site or domain name; the hadith's collector and grading are still spoken,
+//                    and the written reply is untouched. The call pump holds an unfinished source line
+//                    for finish(). app.js was rebuilt by node tools/build-app.cjs, and CORE_BYTES was
+//                    re-cut by node tools/core-bytes.cjs --write; the byte table in sw.js and the
+//                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
+//                    stays ezik-v40 (already one step past live on this branch). sw.js is 55702 bytes,
+//                    measured at CR = 0. THIS digest is re-cut LAST, after every other sw.js edit was
+//                    final.
+  //   2026-09-27-g -- VOICE + CALL T4 FIX 2, F2: THE MIC RE-OPENS ONLY AFTER OUR OWN VOICE HAS STOPPED.
+//                    runCallTurn now waits the output latency the device reports
+//                    (AudioContext.outputLatency, capped at 1000 ms, 0 when none is reported) between
+//                    the last segment's `ended` and startCallListening. app.js was rebuilt by node
+//                    tools/build-app.cjs, and CORE_BYTES was re-cut by node tools/core-bytes.cjs
+//                    --write; the byte table in sw.js and the SW_PROSE mirror in B14 follow. NO FILE
+//                    JOINED OR LEFT CORE and the store name stays ezik-v40. sw.js is 55702 bytes,
+//                    measured at CR = 0. THIS digest is re-cut LAST, after every other sw.js edit was
+//                    final.
+  //   2026-09-27-h -- VOICE + CALL T4 FIX 2, F3: A SILENT DICTATION SESSION IS NOT RESTARTED.
+//                    The composer's Web Speech onend restarted the engine unconditionally, and on
+//                    Android every start plays the recognizer's own chime; a session that heard no
+//                    words now ends dictation instead (a session that heard words still restarts).
+//                    app.js was rebuilt by node tools/build-app.cjs, and CORE_BYTES was re-cut by
+//                    node tools/core-bytes.cjs --write; the byte table in sw.js and the SW_PROSE
+//                    mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name stays
+//                    ezik-v40. sw.js is 55702 bytes, measured at CR = 0. THIS digest is re-cut LAST,
+//                    after every other sw.js edit was final.
+  //   2026-09-27-i -- VOICE + CALL T4 FIX 3, G1: THE CAPTURE CONTEXT IS RESUMED.
+//                    startCloudListening's AudioContext is created after an await getUserMedia inside
+//                    an effect and was never resumed; a suspended context fed the VAD flat samples.
+//                    It is resumed at once, and when it stays suspended one line asks for a tap that
+//                    resumes it. app.js was rebuilt by node tools/build-app.cjs, and CORE_BYTES was
+//                    re-cut by node tools/core-bytes.cjs --write; the byte table in sw.js and the
+//                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
+//                    stays ezik-v40. sw.js is 55702 bytes, measured at CR = 0. THIS digest is
+//                    re-cut LAST, after every other sw.js edit was final.
+  //   2026-09-27-j -- VOICE + CALL T4 FIX 3, G2: THE CALL WAITS FOR THE DICTATION ONEND.
+//                    The call entry effect stopped the dictation recognizer and called getUserMedia at
+//                    once; on Android the recognizer holds the mic until its onend. An open session is
+//                    now waited for (bound CALL_RESTART_GRACE_MS); with none, no wait is added.
+//                    app.js was rebuilt by node tools/build-app.cjs, and CORE_BYTES was
+//                    re-cut by node tools/core-bytes.cjs --write; the byte table in sw.js and the
+//                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
+//                    stays ezik-v40. sw.js is 55702 bytes, measured at CR = 0. THIS digest is
+//                    re-cut LAST, after every other sw.js edit was final.
+  //   2026-09-27-k -- VOICE + CALL T4 FIX 3, G3: THE MICROPHONE MESSAGES NAME THEIR ERROR.
+//                    Rows 9-12 end with the error name; in a browser row 9 points at the browser site
+//                    settings and the phone settings, the shell keeps its text; a recorder/context
+//                    failure after getUserMedia keeps its own name. app.js was rebuilt by node
+//                    tools/build-app.cjs, and CORE_BYTES was
+//                    re-cut by node tools/core-bytes.cjs --write; the byte table in sw.js and the
+//                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
+//                    stays ezik-v40. sw.js is 55702 bytes, measured at CR = 0. THIS digest is
+//                    re-cut LAST, after every other sw.js edit was final.
+  //   2026-09-27-l -- THE READER'S V6 FIXES, REBASED ONTO ITEM 4. mushaf-lab/ took the owner's three fixes
+//                    (Android inset bars, the page that follows the finger, no word marked by a touch) on
+//                    top of the offline code, and its index.html now requests app.js?v=7 and style.css?v=7.
+//                    The two IDLE entries follow those URLs exactly, as B17 requires, and the comment above
+//                    them says why. NO FILE JOINED OR LEFT CORE (tools/core-bytes.cjs: MATCH), SW_PROSE states
+//                    no number here, and CACHE stays ezik-v40: index.html is a network-first navigation, so
+//                    the new pair is requested and stored under its new URLs. sw.js is 55702 -> 55908 bytes,
+//                    measured at CR = 0. THIS digest is re-cut LAST, after every other sw.js edit was final.
+  //   2026-09-27-m -- VOICE + CALL T4 FIX 4, H1: THE CALL SHOWS THE WORDS IT HEARD.
+//                    A turn's transcript is shown under the call's state line, after a fixed prefix,
+//                    before the answer is requested; it is cleared when the next turn listens and on
+//                    hang-up, and it is never spoken. CallScreen takes one new prop, heardWords.
+//                    app.js was rebuilt by node tools/build-app.cjs, and CORE_BYTES was
+//                    re-cut by node tools/core-bytes.cjs --write; the byte table in sw.js and the
+//                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
+//                    stays ezik-v40. sw.js is 55908 bytes, measured at CR = 0. THIS digest is
+//                    re-cut LAST, after every other sw.js edit was final.
+  //   2026-09-27-n -- VOICE + CALL T4 FIX 4, H2: A LEVEL GATE BETWEEN TURNS (OPTION A).
+//                    The call keeps the peak RMS of every accepted turn; from the second turn on, a
+//                    turn under 0.25 x their median (-12 dB) is dropped before /api/stt, one line
+//                    shows in the error panel, and the mic re-opens. The first turn and the turn a
+//                    barge-in opens always pass.
+//                    app.js was rebuilt by node tools/build-app.cjs, and CORE_BYTES was
+//                    re-cut by node tools/core-bytes.cjs --write; the byte table in sw.js and the
+//                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
+//                    stays ezik-v40. sw.js is 55908 bytes, measured at CR = 0. THIS digest is
+//                    re-cut LAST, after every other sw.js edit was final.
+  //   2026-09-27-o -- VOICE + CALL T4 FIX 4, H3: NO SENTENCE END ON A DOMAIN'S DOT.
+//                    lastSentenceCut's end-of-text rule no longer ends a sentence on a `.` after an
+//                    ASCII letter, so a delta that stops at `binothaimeen.` waits for the rest of the
+//                    domain; an Arabic sentence ending in `.` is still cut at once.
+//                    app.js was rebuilt by node tools/build-app.cjs, and CORE_BYTES was
+//                    re-cut by node tools/core-bytes.cjs --write; the byte table in sw.js and the
+//                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
+//                    stays ezik-v40. sw.js is 55908 bytes, measured at CR = 0. THIS digest is
+//                    re-cut LAST, after every other sw.js edit was final.
+  //   2026-09-27-p -- VOICE + CALL T4 FIX 4, H4: AN EXTERNAL PAUSE IS NOT A FINISHED SEGMENT.
+//                    playPreparedSpeech still ends a segment on the pause that comes with the end of
+//                    the media; any other pause the app did not ask for cancels the rest of the
+//                    answer, and on the call screen runs onCallTalk (the barge-in path).
+//                    app.js was rebuilt by node tools/build-app.cjs, and CORE_BYTES was
+//                    re-cut by node tools/core-bytes.cjs --write; the byte table in sw.js and the
+//                    SW_PROSE mirror in B14 follow. NO FILE JOINED OR LEFT CORE and the store name
+//                    stays ezik-v40. sw.js is 55908 bytes, measured at CR = 0. THIS digest is
+//                    re-cut LAST, after every other sw.js edit was final.
+  //   2026-09-27-q -- VOICE + CALL SHIP FIX 4, THE STORE NAME MOVES ONE STEP, ezik-v40 -> ezik-v41, so
+//                    FIX 4 (H1-H4 above) reaches readers through a fresh install. CACHE in sw.js and
+//                    app_version in config/app-version.json moved together (SW_CACHE is read from that
+//                    file), and app.js was rebuilt by node tools/build-app.cjs: only its
+//                    EZIK_APP_VERSION line moved, and it is 1799739 bytes before and after. NO FILE
+//                    JOINED OR LEFT CORE: CORE_BYTES, the byte table and SW_PROSE stand. sw.js is 55702
+//                    bytes, measured at CR = 0. THIS digest is re-cut LAST, after every other sw.js edit
+//                    was final.
+  //   2026-09-28-a -- WIDGET45 WEB2, THE COMPLETE OPEN/SOUND/DATA CONTRACT.
+//                    The generated app.js changed 1799739 -> 1811970 bytes. CORE_BYTES was
+//                    derived by tools/core-bytes.cjs --write, 2972829 -> 2985060; the worker's
+//                    app.js prose row and the SW_PROSE mirror below followed. No asset joined
+//                    or left CORE. CACHE and config/app-version.json move ezik-v41 -> ezik-v42
+//                    because the stored bundle changed; app.js was regenerated and verified
+//                    with that version stamp. sw.js is 55908 bytes at CR = 0. THIS digest was
+//                    re-cut LAST, after the count, prose, mirror and cache edits were final.
+  //   2026-09-28-b -- WIDGET REPLY COMPATIBILITY, B1/B2 FOLLOW-UP.
+//                    The generated app.js changed 1811970 -> 1813455 bytes: page-scoped
+//                    capability reserves one initial widget-data send and stops for the page
+//                    after the legacy unknown-op reply. Supported replies release only queued
+//                    changes. CORE_BYTES was derived by tools/core-bytes.cjs --write,
+//                    2985060 -> 2986545; the worker's prose row and SW_PROSE mirror followed.
+//                    No asset joined or left CORE. CACHE remains ezik-v42 by the owner's ruling.
+//                    sw.js is 55908 bytes at CR = 0. THIS digest was re-cut LAST, after every
+//                    count, prose and mirror edit was final.
+  //   2026-09-28-c -- SOUND CONTROL VISIBILITY, FOLLOW-UP D.
+//                    The generated app.js changed 1813455 -> 1813966 bytes. The sound control
+//                    is shown only after this page establishes widget-data support; saved
+//                    preferences and scheduled sound fields are unchanged. CORE_BYTES was
+//                    derived by tools/core-bytes.cjs --write, 2986545 -> 2987056; the worker's
+//                    app.js prose row and SW_PROSE mirror followed. No asset joined or left
+//                    CORE. CACHE remains ezik-v42 by the owner's ruling. sw.js is 55908 bytes
+//                    at CR = 0. THIS digest was re-cut LAST, after the count, prose and mirror.
+  //   2026-09-28-a -- ITEM 108 (ORDER-108C): THE LIBRARY PAGE JOINS EZIK. app.jsx gained the
+//                    library tile, the «ask Ezik» composer hand-off, the library erase in «delete all
+//                    my data» and the book-card link; app.js was rebuilt by node tools/build-app.cjs,
+//                    and CORE_BYTES was re-cut by node tools/core-bytes.cjs --write; the byte table in
+//                    sw.js and the SW_PROSE mirror in B14 follow. /library.html is NOT in CORE (the
+//                    navigation arm caches it network-first), NO FILE JOINED OR LEFT CORE and the store
+//                    name stays ezik-v41. sw.js is 55908 bytes, measured at CR = 0. THIS digest is
+//                    re-cut LAST, after every other sw.js edit was final.
+  //   2026-09-28-d -- ORDER-108D MERGE OF origin/main (153ac5c) INTO lib108-integration. app.jsx merged
+//                    with no conflict; app.js was REBUILT from it by node tools/build-app.cjs (never
+//                    hand-merged), 1813966 -> 1820050 bytes (main plus item 108's +6084). CORE_BYTES was
+//                    re-cut by node tools/core-bytes.cjs --write, 2987056 -> 2993140; the worker's app.js
+//                    prose row and the SW_PROSE mirror followed. NO FILE JOINED OR LEFT CORE and the store
+//                    name stays main's ezik-v42. sw.js is 55908 bytes, measured at CR = 0.
+//                    THIS digest is re-cut LAST, after every other sw.js edit.
+  //   2026-09-28-e -- ORDER-108D D2: BACK FROM THE LIBRARY REOPENS THE SAME CONVERSATION. app.jsx gained
+//                    the thread note on a book-source tap, the boot's one-shot intents and the
+//                    back-forward-cache clear; app.js was rebuilt by node tools/build-app.cjs,
+//                    1820050 -> 1823469 bytes, and CORE_BYTES was re-cut by node tools/core-bytes.cjs
+//                    --write, 2993140 -> 2996559; the worker's app.js prose row and the SW_PROSE mirror
+//                    followed. NO FILE JOINED OR LEFT CORE and the store name stays ezik-v42. sw.js is
+//                    55908 bytes, measured at CR = 0. THIS digest is re-cut LAST, after every other sw.js edit.
+  //   2026-09-28-f -- ORDER-108D D2, THE BOOT RE-SHAPED SO THE RESUME PATH STAYS BYTE FOR BYTE: the intents
+//                    are taken before the thread is emptied and the one reopen follows the destination.
+//                    app.js was rebuilt by node tools/build-app.cjs, 1823469 -> 1823594 bytes; CORE_BYTES
+//                    was re-cut by node tools/core-bytes.cjs --write, 2996559 -> 2996684; the prose row and
+//                    the SW_PROSE mirror followed. NO FILE JOINED OR LEFT CORE; the store stays ezik-v42.
+//                    sw.js is 55908 bytes, measured at CR = 0. THIS digest is re-cut LAST.
+  //   2026-09-28-g -- TRIP 2 WIDGET SECTIONS: the widget whitelist opens the daily wird (wirdi) and the
+//                    library. app.js was rebuilt by npm run build:app, 1823594 -> 1824038 bytes; CORE_BYTES
+//                    was re-cut by node tools/core-bytes.cjs --write, 2996684 -> 2997128; the prose row and
+//                    the SW_PROSE mirror followed. NO FILE JOINED OR LEFT CORE; the store stays ezik-v42.
+//                    sw.js is 55908 bytes, measured at CR = 0. THIS digest is re-cut LAST.
+  //   2026-09-28-h -- MUSHAF TOPBAR SHIP: CACHE and config/app-version.json move ezik-v42 -> ezik-v43.
+  //                    npm run build:app regenerated app.js at the same 1824038 bytes. core-bytes.cjs
+  //                    --write confirmed CORE_BYTES stays 2997128. sw.js stays 55908 bytes, CR = 0;
+  //                    this seal was re-cut after the cache bump so returning readers refresh the lab.
+  //   2026-09-27-r -- SPEED item 17 client branch (tagged 2026-09-27 on side/speed-20260927; re-tagged at the WASL merge, main holds that name): status frames, atomic cards and live offers.
   //                    app.js rebuilt by tools/build-app.cjs: 1785502 -> 1789622 (+4120).
   //                    CORE_BYTES re-derived by tools/core-bytes.cjs --write: 2958592 -> 2962712.
   //                    The worker byte table and SW_PROSE mirror follow the measured bundle.
   //                    sw.js remains 48468 bytes, CR = 0; this digest is cut LAST.
   //                    CACHE stays ezik-v38: this branch is not a ship; the merge round owns it.
-  //   2026-09-27-c -- MERGE of origin/main dcc4e6f (item 4 offline) INTO side/speed-20260927 (speed item 17).
+  //   2026-09-27-s -- MERGE of origin/main dcc4e6f (item 4 offline) INTO side/speed-20260927 (speed item 17).
+//                    (tagged 2026-09-27-c on side/speed-20260927; re-tagged at the WASL merge, main holds that name.)
 //                    Both entries above stand. Main's worker (55702 bytes, CACHE ezik-v39, the mushaf-lab IDLE
 //                    and DOWNLOADS_CACHE) takes this branch's CORE_BYTES 2962712 and its app.js byte-table row
 //                    1789622; git merged the two sw.js sides with no conflict. app.js rebuilt from the merged
 //                    app.jsx by tools/build-app.cjs: 1789622 bytes, --check OK (only EZIK_APP_VERSION moved to
 //                    ezik-v39). tools/core-bytes.cjs: MATCH at 2962712, no re-cut. CACHE is not bumped here: the
 //                    ship round owns it. sw.js is 55702 bytes, measured at CR = 0. THIS digest is re-cut LAST.
-  'sw.js': '734d578b5f5ec35b6d59e005b8e5f68b4bade8ca70eec79015400f3b583e3357',
+  //   2026-09-28-i -- SPEED WASL W0: MERGE OF origin/main e136e93 INTO side/speed-20260927 (speed item 17).
+//                    Main's notes above stand as main wrote them; this branch's two notes follow them,
+//                    re-tagged 2026-09-27-r and -s because main holds 2026-09-27 and 2026-09-27-c; their sizes
+//                    were re-measured at their own commits (742ba33: app.js 1789622, sw.js 48468; c161286:
+//                    sw.js 55702, app.js 1789622; CR = 0) and stand. sw.js was TAKEN FROM MAIN, not merged by
+//                    hand (the ?v=7 and IDLE lines and CACHE ezik-v43 are main's). app.js was taken from main and
+//                    REBUILT from the merged app.jsx by node tools/build-app.cjs: 1824038 -> 1828158 (+4120,
+//                    this branch's client half), --check OK. CORE_BYTES re-cut by node tools/core-bytes.cjs
+//                    --write, 2997128 -> 3001248; the worker's app.js prose row and the SW_PROSE mirror below
+//                    followed. NO FILE JOINED OR LEFT CORE; the store name stays main's ezik-v43 (the release
+//                    takes the next number, not this merge). sw.js is 55908 bytes, measured at CR = 0.
+//                    THIS digest is re-cut LAST, after every other sw.js edit.
+  'sw.js': 'db4dde6e357a353425d0b2c230bd88b96908d3fb40bbb154761f9585fb1a56fe',
 };
 
 // ---------------------------------------------------------------------------
@@ -1851,6 +2060,146 @@ function loadKunuzBank(p) {
   return ctx.DATA;
 }
 const countOf = (hay, needle) => hay.split(needle).length - 1;
+
+
+// The lab header is shared by every mode. Execute its shipped script with a local
+// DOM and stored boot data; no browser, network, new store or copied action code.
+async function assertMushafTopbar(html, source, css) {
+  const { parseHTML } = require('linkedom');
+  const assert = require('assert/strict');
+  let checks = 0;
+  const check = (condition, label) => { assert.ok(condition, label); checks++; };
+  const removed = ['prevBtn', 'nextBtn', 'surahTitle', 'subTitle', 'notice'];
+  function header(document) {
+    const bars = document.querySelectorAll('header.top');
+    check(bars.length === 1, 'one shared lab header');
+    const top = bars[0], buttons = [...top.querySelectorAll('button')];
+    check(top.textContent.trim() === '', 'no visible text among the six removed header elements');
+    check(buttons.map(b => b.id).join(',') === 'exitBtn,pageBookmarkBtn', 'one bookmark toggle and KEEP_BACK_ARROW=yes');
+    check(removed.every(id => !document.getElementById(id)), 'removed nodes absent in every mode');
+    check(buttons.every(b => b.getAttribute('aria-label') && b.querySelector('svg[aria-hidden="true"]')), 'icons have accessible names');
+    check(buttons.every(b => b.querySelector('svg').getAttribute('width') === '24'
+      && b.querySelector('svg').getAttribute('height') === '24'), '24px icons');
+    check(buttons[0].querySelector('path').getAttribute('d') === 'M9 18l6-6-6-6', 'back points right in RTL');
+    check(top.querySelectorAll('[aria-pressed]').length === 1, 'only bookmark is a toggle');
+    return buttons[1];
+  }
+  header(parseHTML(html).document);
+  check(removed.every(id => !new RegExp("\\$\\(['\"]" + id + "['\"]\\)").test(source)), 'no script writes into removed nodes');
+  check(!/<header\b|createElement\(['"]header['"]\)/.test(source), 'script does not create an alternative header');
+  check(/height:\s*calc\(44px \+ var\(--sat\)\)/.test(css), '44px header plus top safe area');
+  check(/\.top \.ib \{[^}]*width:\s*44px;[^}]*height:\s*44px/.test(css), '44px touch targets');
+  check(/#pageBookmarkBtn \{ margin-inline-start: auto; \}/.test(css), 'bookmark is at inline end');
+  check(/#pageBookmarkBtn\[aria-pressed="true"\] svg \{ fill: currentColor; \}/.test(css), 'saved bookmark is filled');
+  const wire = source.match(/function wire\(\) \{[\s\S]*?\n  \}/);
+  const action = source.match(/function savedAction\(b\) \{[\s\S]*?\n  \}/);
+  check(wire && action && /togglePageBookmark\(\)/.test(wire[0])
+    && /act === 'bmPage'[^\n]*togglePageBookmark\(\)/.test(action[0]), 'bar and saved tab call the same page action');
+  check(/function togglePageBookmark\(\) \{[\s\S]*?toggleBookmark\('p', cur\)/.test(source), 'shared action calls the existing page bookmark store');
+
+  const bootFiles = {};
+  for (const f of ['mushaf-lab/data/tables.json', 'mushaf-lab/data/meta.json', 'mushaf-layout.json', 'quran-uthmani.json']) {
+    bootFiles['/' + f] = JSON.parse(fs.readFileSync(path.join(__dirname, f), 'utf8'));
+  }
+  async function load(options = {}) {
+    const dom = parseHTML(html), document = dom.document;
+    const storage = new Map([
+      ['lab.settings', JSON.stringify({ theme: options.theme || 'light', mode: options.mode || 'print', spread: true })],
+      ['lab.bm', JSON.stringify(options.saved || [])], ['lab.hintSeen', 'true']
+    ]);
+    const messages = [], events = {}, timers = new Map(), errors = [];
+    let nextTimer = 0, fetches = 0;
+    const location = { origin: 'https://lab.invalid', pathname: '/mushaf-lab/index.html', hash: options.hash || '#p=3', href: 'https://lab.invalid/mushaf-lab/index.html' };
+    const window = {
+      document, location, innerWidth: options.width || 390, innerHeight: 844,
+      matchMedia: () => ({ matches: (options.width || 390) <= 700 }),
+      getComputedStyle: () => ({ paddingTop: '0', paddingBottom: '0' }),
+      addEventListener: (type, fn) => { events[type] = fn; }
+    };
+    window.self = window;
+    window.parent = options.standalone ? window : { document, getComputedStyle: window.getComputedStyle,
+      postMessage: (message, origin) => messages.push({ message, origin }) };
+    window.top = window.parent;
+    const context = {
+      window, document, location, navigator: { onLine: !options.offline }, URL, URLSearchParams,
+      console: { log() {}, warn() {}, error: e => errors.push(String(e)) },
+      Audio: class { addEventListener() {} pause() {} play() { return Promise.resolve(); } },
+      localStorage: { getItem: key => storage.has(key) ? storage.get(key) : null, setItem: (key, value) => storage.set(key, value) },
+      setTimeout: (fn, ms) => { timers.set(++nextTimer, { fn, ms }); return nextTimer; },
+      clearTimeout: id => timers.delete(id),
+      fetch: async url => {
+        fetches++;
+        if (options.error) throw new Error('offline with no boot data');
+        const key = new URL(url, location.href).pathname, data = bootFiles[key];
+        return { ok: !!data, json: async () => data };
+      }
+    };
+    vm.runInNewContext(source, context, { timeout: 3000 });
+    header(document); // Includes the loading state before the boot promises settle.
+    await new Promise(resolve => setImmediate(resolve));
+    const button = header(document), lab = window.__lab;
+    const click = node => node.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
+    const event = (type, props = {}) => Object.assign(new dom.window.Event(type, { bubbles: true }), props);
+    return { document, window, storage, messages, events, timers, button, lab, click, event, errors, fetches: () => fetches };
+  }
+
+  const h = await load({ offline: true });
+  const saved = () => JSON.parse(h.storage.get('lab.bm'));
+  const pressed = () => h.button.getAttribute('aria-pressed');
+  check(h.document.getElementById('loading').hidden && !h.button.disabled, 'cached offline boot enables toggle');
+  check(pressed() === 'false' && h.button.querySelector('svg').getAttribute('fill') === 'none', 'unsaved page opens with outline');
+  h.lab.savedSheet('bm');
+  let bubbled = 0;
+  h.document.addEventListener('click', () => { bubbled++; });
+  const beforeFetch = h.fetches();
+  h.click(h.button);
+  check(saved().length === 1 && saved()[0].t === 'p' && saved()[0].k === 3, 'top toggle saves the current page');
+  check(Object.keys(saved()[0]).sort().join(',') === 'at,id,k,t,tags', 'existing bookmark record shape');
+  check(pressed() === 'true' && h.document.querySelector('[data-bmdel]'), 'saved list and pressed state update immediately');
+  check(h.messages.some(x => x.message.type === 'mushaf-lab:bookmark' && x.message.page === 3
+    && x.origin === 'https://lab.invalid'), 'existing bookmark bridge is called');
+  check(bubbled === 0 && !h.document.body.classList.contains('immersive') && h.lab.state.cur === 3, 'icon tap neither bubbles nor hides bars nor turns page');
+  check(h.fetches() === beforeFetch, 'bookmark tap makes zero network requests');
+  h.click(h.document.querySelector('[data-bmdel]'));
+  check(saved().length === 0 && pressed() === 'false', 'list removal updates the top icon');
+  h.click(h.document.getElementById('toastAct'));
+  check(saved().length === 1 && pressed() === 'true', 'undo updates the top icon');
+  h.click(h.button);
+  check(saved().length === 0 && !h.document.querySelector('[data-bmdel]') && pressed() === 'false', 'top toggle removes and refreshes list');
+  h.click(h.document.querySelector('[data-act="bmPage"]'));
+  check(saved().length === 1 && pressed() === 'true', 'existing saved-tab page action updates icon');
+  check(h.button.getAttribute('aria-label') === h.document.querySelector('[data-act="bmPage"]').textContent, 'existing Arabic page label is reused');
+
+  h.lab.goPage(4); check(pressed() === 'false', 'go-to changes bookmark state');
+  h.lab.goPage(3); check(pressed() === 'true', 'return restores bookmark state');
+  h.lab.turn(1, true); h.document.getElementById('spread').dispatchEvent(h.event('transitionend'));
+  check(h.lab.state.cur === 4 && pressed() === 'false', 'swipe commit changes state');
+  h.document.dispatchEvent(h.event('keydown', { key: 'ArrowRight' }));
+  h.document.getElementById('spread').dispatchEvent(h.event('transitionend'));
+  check(h.lab.state.cur === 3 && pressed() === 'true', 'keyboard previous still works without buttons');
+  h.window.location.hash = '#p=5'; h.events.hashchange();
+  check(h.lab.state.cur === 5 && pressed() === 'false', 'hash route changes state');
+  h.window.innerWidth = 1200; h.lab.goPage(4); h.click(h.button);
+  check(h.lab.visiblePages(4).join(',') === '3,4' && saved().some(b => b.t === 'p' && b.k === 4)
+    && h.document.getElementById('navPage').textContent === '\u0664', 'spread bookmark uses the bottom-bar anchor');
+  h.click(h.document.getElementById('exitBtn'));
+  check(h.messages.some(x => x.message.type === 'mushaf-lab:exit'), 'back retains the parent exit message');
+  check([...h.storage.keys()].every(k => ['lab.settings', 'lab.bm', 'lab.hintSeen', 'lab.last', 'lab.recent'].includes(k)), 'no new storage key');
+  check(h.errors.length === 0, 'no console errors');
+
+  for (const options of [
+    { saved: [{ id: 'existing', t: 'p', k: 3, tags: [], at: 1 }] },
+    { theme: 'dark', width: 412 }, { mode: 'vector' }, { standalone: true },
+    { hash: '#s=2' }, { hash: '#a=2:1' }, { hash: '#saved' }, { hash: '#last' }, { error: true }
+  ]) {
+    const variant = await load(options);
+    check(variant.errors.length === 0, 'variant has no console errors');
+    if (options.saved) check(variant.button.getAttribute('aria-pressed') === 'true', 'saved page is pressed on opening');
+    if (options.error) check(variant.button.disabled && !variant.document.getElementById('loading').hidden, 'error path keeps the one inert bookmark control');
+    else check(variant.document.getElementById('exitBtn').hidden === !!options.standalone, 'existing embedded-only back visibility');
+  }
+  return checks;
+}
 
 async function compare(bankPath) {
   let pass = 0, fail = 0;
@@ -2489,7 +2838,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1789622, of: 'app.js' },
+      { n: 1828158, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
@@ -3152,6 +3501,35 @@ async function compare(bankPath) {
     if (!swSrc17 || !labSrc || !labHtml) {
       no('B17', 'sw.js, mushaf-lab/app.js or mushaf-lab/index.html is ABSENT -- nothing to execute');
     } else {
+      // (8) Compact top bar, bookmark wiring, and the existing exit decision.
+      try {
+        const labCss = fs.readFileSync(labPath('style.css'), 'utf8');
+        const checks = await assertMushafTopbar(labHtml, labSrc, labCss);
+        ok('lab top bar: ' + checks + ' DOM/store/navigation checks, KEEP_BACK_ARROW=yes');
+        if (process.argv.includes('--mutants')) {
+          const mutants = [
+            ['old title', labHtml.replace('</header>', '<h1 id="surahTitle">title</h1></header>'), labSrc, labCss],
+            ['old previous button', labHtml.replace('</header>', '<button id="prevBtn">previous</button></header>'), labSrc, labCss],
+            ['duplicate toggle', labHtml.replace('</header>', '<button id="pageBookmarkBtn"></button></header>'), labSrc, labCss],
+            ['missing back', labHtml.replace(/<button[^>]*id="exitBtn"[\s\S]*?<\/button>/, ''), labSrc, labCss],
+            ['wrong store action', labHtml, labSrc.replace("toggleBookmark('p', cur)", "toggleBookmark('a', '2:1')"), labCss],
+            ['stale store state', labHtml, labSrc.replace("if (k === 'bm') refreshBookmarks();", ''), labCss],
+            ['stale page state', labHtml, labSrc.replace("    updatePageBookmark();", ''), labCss],
+            ['no parent bridge', labHtml, labSrc.replace("toEzik({ type: 'mushaf-lab:bookmark'", "(() => {})({ type: 'mushaf-lab:bookmark'"), labCss],
+            ['unfilled saved icon', labHtml, labSrc, labCss.replace('fill: currentColor;', 'fill: none;')],
+            ['propagating icon tap', labHtml, labSrc.replace('e.stopPropagation(); togglePageBookmark();', 'togglePageBookmark();'), labCss]
+          ];
+          let killed = 0;
+          for (const [name, html, src, css] of mutants) {
+            if (html === labHtml && src === labSrc && css === labCss) throw new Error('mutant did not change input: ' + name);
+            try { await assertMushafTopbar(html, src, css); }
+            catch (e) { killed++; continue; }
+            throw new Error('surviving top-bar mutant: ' + name);
+          }
+          ok('lab top bar mutants killed ' + killed + '/' + mutants.length);
+        }
+      } catch (e) { no('B17', 'lab top bar: ' + e.message); }
+
       // (1) ACTIVATE KEEPS THE DOWNLOADS STORE. A stale shipment store beside it is the control:
       // an activate that swept nothing at all would otherwise pass this.
       {

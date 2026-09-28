@@ -80,11 +80,6 @@
     "args": "index.html"
   },
   {
-    "name": "speedclient",
-    "script": "guards/speed-client-guard.cjs",
-    "args": "index.html"
-  },
-  {
     "name": "a11y",
     "script": "a11y-guard.cjs",
     "args": "index.html"
@@ -610,6 +605,21 @@
     "name": "encycbrain",
     "script": "guards/encyc-brain-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "widgetopen",
+    "script": "guards/widget-open-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "lib108",
+    "script": "guards/lib108-integration-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "speedclient",
+    "script": "guards/speed-client-guard.cjs",
+    "args": "index.html"
   },
   {
     "name": "speedbw2",

@@ -802,6 +802,7 @@ lib/lib-quote.js text eol=lf
 lib/data/lib-catalog.js text eol=lf
 tools/gen-lib-catalog.mjs text eol=lf
 guards/encyc-brain-guard.cjs text eol=lf
+guards/widget-open-guard.cjs text eol=lf
 lib/live-world-v2.js text eol=lf
 lib/today-line.js text eol=lf
 lib/live-number-source.js text eol=lf
@@ -813,6 +814,13 @@ lib/live-number-source.js text eol=lf
 # a file whose content nobody had touched. guards/live-world-v2-killswitch-guard.cjs reads it and
 # drives it, so it must read the same on every machine.
 lib/live-news-order.js text eol=lf
+
+# ITEM 108 (ORDER-108C): the library page and its integration test. library.html is served
+# as it is written and guards/lib108-integration-guard.cjs cuts its scripts out by regex, so
+# both read the same bytes on every machine.
+library.html                        text eol=lf
+guards/lib108-integration-guard.cjs text eol=lf
+
 # SPEED ITEM 17 (2026-09-27) -- the before-writing path. The gate script and the two new modules
 # it drives are pinned LF for the reason every gate script is: a CRLF checkout must not move the
 # bytes a guard reads or mutates.

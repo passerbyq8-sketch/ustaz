@@ -610,8 +610,12 @@ function partA() {
   eq('trig letter sequences inside Latin words and names stay unchanged',
     formatForTTS(LATIN_WORDS), LATIN_WORDS);
   const URL = 'https://example.com/cos/sin?x=tan&ratio=3/4';
-  eq('a URL keeps its trig names, operators and every slash unchanged',
-    formatForTTS(URL), URL);
+  // Q1 (owner, option A, 2026-09-27): a URL is never spoken at all -- so no trig name in its path
+  // and no operator in its query can be read out as mathematics either.
+  eq('a URL is silent in speech: none of its trig names, operators or slashes is spoken',
+    formatForTTS(URL), '');
+  eq('...and the prose around a URL is spoken unchanged',
+    formatForTTS('before ' + URL + ' after'), 'before after');
   eq('standalone trig tokens are pronounced as mathematics',
     formatForTTS('cos + sin + tan'), 'كوساين زائد ساين زائد تانجنت');
   eq('a numeric fraction still pronounces its slash as division',
@@ -1735,8 +1739,13 @@ function partE() {
     'openSavedChat call sites in the drawer: ' + (decoded.match(/closeDrawerWith\(\(\) => openSavedChat\(/g) || []).length);
   // Exactly three CALLS: the ordinary menu row, the search result row, and the favourites
   // screen's "open the original". Every one of them is the S97 path; there is no fourth.
+  // ORDER-108D D2 (owner's order, 28 September): a FOURTH call, and it is named -- the boot
+  // reopening the one conversation the library's note names. It is the same S97 path, so the
+  // claim below is unchanged: every open still goes through openSavedChat, and the count is still
+  // exact. The fourth call is pinned by its whole text so it cannot become any other door.
   ok('...so nothing new scrolls, and no second navigation path exists',
-    (decoded.match(/openSavedChat\(/g) || []).length === 3,
+    (decoded.match(/openSavedChat\(/g) || []).length === 4
+      && (decoded.match(/if \(bootIntent\.kind === 'thread'\) openSavedChat\(bootIntent\.thread\);/g) || []).length === 1,
     'openSavedChat call sites: ' + (decoded.match(/openSavedChat\(/g) || []).length);
   ok('the search matcher is called with the corpus, never with a fetch',
     !/ezikSearchChats[\s\S]{0,400}?fetch\(/.test(decoded));

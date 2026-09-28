@@ -51,7 +51,7 @@
 // stranded on a dead build. The HTML shell is network-first (6b) so it is always fresh online
 // regardless of the version; the bump refreshes the CACHE-FIRST assets (icons/fonts). The JSON
 // data files no longer NEED the bump -- they revalidate themselves -- but they still honour it.
-const CACHE = 'ezik-v39';
+const CACHE = 'ezik-v43';
 // '/index.html' is NOT here. Vercel serves this document byte-identically for '/' and for
 // '/index.html', so precaching both downloaded the whole shell TWICE on every cold visit --
 // a second copy of the 153974 bytes '/' already holds. The network-first branch below still
@@ -139,7 +139,7 @@ const CORE = [
 // ---------------------------------------------------------------------------
 
 // The measured cost of CORE, byte for byte, at the commit that cut this constant:
-//   /  (index.html) 153974 + app.js 1789622 + icon-watermark.png 368386
+//   /  (index.html) 153974 + app.js 1828158 + icon-watermark.png 368386
 //   + adhkar.json 177392 + vendor/react-dom.umd.js 131835 + sunan-day.json 84759
 //   + arbaeen.json 67360 + daily-tafsir.json 23984 + icon-512.png 12893
 //   + vendor/react.umd.js 10751 + arbaeen-footnotes.json 9322 + adhkar-split-27.json 7182
@@ -162,7 +162,7 @@ const CORE = [
 // constant, that table, and the sw.js digest in quest-bank-integrity-guard.cjs in the SAME
 // commit -- item 89-b is the worked example. CACHE is untouched by all of it: the store name is
 // a ship decision and the merge round owns the bump.
-const CORE_BYTES = 2962712;
+const CORE_BYTES = 3001248;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
 // re-cut by hand always trails the files it describes by some amount.
@@ -304,12 +304,14 @@ const IDLE = [
   // written EXACTLY as it requests them -- the ?v= query included, because the cache-first arm
   // matches the whole URL. The reader's script moved to ?v=5 in this same change: a store of this
   // name may already hold the previous script under ?v=4, and cache-first would keep serving it.
+  // The three fixes of the reader, rebased onto this item, moved script and sheet both to ?v=7, for
+  // the same reason; index.html itself is a navigation, network-first, so it names the new pair online.
   // The two mushaf files above are the rest of its boot. The per-page geometry is deliberately
   // NOT here: it arrives with the page downloads the reader chooses (see DOWNLOADS_CACHE below). quest-bank-integrity-guard.cjs B17 parses index.html and app.js in
   // mushaf-lab/ and fails when this list stops covering them.
   '/mushaf-lab/index.html',
-  '/mushaf-lab/app.js?v=5',
-  '/mushaf-lab/style.css?v=4',
+  '/mushaf-lab/app.js?v=7',
+  '/mushaf-lab/style.css?v=7',
   '/mushaf-lab/manifest.webmanifest',
   '/mushaf-lab/icon-192.png',
   '/mushaf-lab/icon-512.png',
