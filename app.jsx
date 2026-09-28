@@ -15841,6 +15841,10 @@ function App() {
           setA11yState(prefs);
           ezikApplyA11y(prefs);
         }
+        // ORDER-108D D2: the one-shot intents are taken BEFORE the resume record is read, so a
+        // conversation that wins has already cleared that record and the resume path below
+        // answers 'chat'. It is reopened only when this profile still has it.
+        const bootIntent = ezikTakeBootIntent((id) => ezikListChats(ezikProfileKey(p)).some((r) => r.id === id));
         chatIdRef.current = null;
         setChatId(null);
         setMessages([]);
@@ -15850,12 +15854,9 @@ function App() {
         // the chat exactly as D85 wrote it; ezikResumeScreen() answers 'chat' for it.
         // BATCH B, ITEM 1: the boot names the section it is restoring, so that section --
         // and only it -- can tell a reload apart from an ordinary walk-in.
-        // ORDER-108D D2: the one-shot intents are taken first; a conversation left for the
-        // library is reopened only when this profile still has it, else the boot is the normal one.
-        const bootIntent = ezikTakeBootIntent((id) => ezikListChats(ezikProfileKey(p)).some((r) => r.id === id));
         ezikResumeMarkEntered(ezikReadResume());
-        if (bootIntent.kind === 'thread') openSavedChat(bootIntent.thread);
-        else setScreen(ezikResumeScreen());   // D85: a returning profile also lands on the chat
+        setScreen(ezikResumeScreen());   // D85: a returning profile also lands on the chat
+        if (bootIntent.kind === 'thread') openSavedChat(bootIntent.thread);   // ORDER-108D D2: the one conversation the library's note names
       } else {
         setScreen('onboarding');
       }

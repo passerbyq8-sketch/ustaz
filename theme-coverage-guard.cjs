@@ -2719,8 +2719,17 @@ ok('N10: the explicit entry from home still starts a new one',
 // ezikResumeScreen() and nothing else -- rather than accepting any expression at all. The two
 // halves of that ruling are held by the case below, which is what keeps this one honest: a first
 // opening still lands on the chat, and ezikResumeScreen is the only thing that decides.
-ok('N10: the boot lands on an EMPTY thread and opens no saved conversation',
-  /chatIdRef\.current = null;\s*\r?\n\s*setChatId\(null\);\s*\r?\n\s*setMessages\(\[\]\);\s*\r?\n\s*setChatList\(ezikListChats\(ezikProfileKey\(p\)\)\);(?:\s*\r?\n\s*(?:\/\/[^\n]*|ezikResumeMarkEntered\(ezikReadResume\(\)\);))*\s*\r?\n\s*setScreen\(ezikResumeScreen\(\)\);/.test(html));
+// ORDER-108D D2 (owner's order, 28 September) -- ONE NAMED EXCEPTION, AND ONLY ONE. Coming back
+// from the library must reopen the conversation the reader left, so the boot may now open exactly
+// ONE saved conversation: the one ezikTakeBootIntent returned as kind 'thread', through
+// openSavedChat, on the line directly after the destination. The four statements and the
+// destination are asserted exactly as before; the added tail admits that one line by name and
+// nothing else, and the case after this one pins where bootIntent comes from.
+ok('N10: the boot lands on an EMPTY thread and opens no saved conversation but the library\'s named one',
+  /chatIdRef\.current = null;\s*\r?\n\s*setChatId\(null\);\s*\r?\n\s*setMessages\(\[\]\);\s*\r?\n\s*setChatList\(ezikListChats\(ezikProfileKey\(p\)\)\);(?:\s*\r?\n\s*(?:\/\/[^\n]*|ezikResumeMarkEntered\(ezikReadResume\(\)\);))*\s*\r?\n\s*setScreen\(ezikResumeScreen\(\)\);[^\n]*\r?\n\s*if \(bootIntent\.kind === 'thread'\) openSavedChat\(bootIntent\.thread\);[^\n]*\r?\n\s*\} else \{/.test(html));
+ok('N10: ...and that one is the boot intent taken from the tab, for a conversation this profile still has',
+  html.indexOf("const bootIntent = ezikTakeBootIntent((id) => ezikListChats(ezikProfileKey(p)).some((r) => r.id === id));") !== -1
+  && (html.match(/openSavedChat\(bootIntent\.thread\)/g) || []).length === 1);
 // ITEM 88 BATCH B, ITEM 1 -- AND THE MARK THE BOOT LEAVES, PINNED BY NAME. The line above
 // admits exactly one statement between the emptied thread and the destination, and this is
 // what that statement must be: the boot naming the section it is restoring, so that section

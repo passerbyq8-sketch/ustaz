@@ -1735,8 +1735,13 @@ function partE() {
     'openSavedChat call sites in the drawer: ' + (decoded.match(/closeDrawerWith\(\(\) => openSavedChat\(/g) || []).length);
   // Exactly three CALLS: the ordinary menu row, the search result row, and the favourites
   // screen's "open the original". Every one of them is the S97 path; there is no fourth.
+  // ORDER-108D D2 (owner's order, 28 September): a FOURTH call, and it is named -- the boot
+  // reopening the one conversation the library's note names. It is the same S97 path, so the
+  // claim below is unchanged: every open still goes through openSavedChat, and the count is still
+  // exact. The fourth call is pinned by its whole text so it cannot become any other door.
   ok('...so nothing new scrolls, and no second navigation path exists',
-    (decoded.match(/openSavedChat\(/g) || []).length === 3,
+    (decoded.match(/openSavedChat\(/g) || []).length === 4
+      && (decoded.match(/if \(bootIntent\.kind === 'thread'\) openSavedChat\(bootIntent\.thread\);/g) || []).length === 1,
     'openSavedChat call sites: ' + (decoded.match(/openSavedChat\(/g) || []).length);
   ok('the search matcher is called with the corpus, never with a fetch',
     !/ezikSearchChats[\s\S]{0,400}?fetch\(/.test(decoded));

@@ -352,7 +352,7 @@ const plain = (x) => JSON.parse(JSON.stringify(x));
 
   // The wiring in App, where a unit test cannot reach.
   ok('F20 the boot takes the intents and reopens the conversation that won',
-    /const bootIntent = ezikTakeBootIntent\(\(id\) => ezikListChats\(ezikProfileKey\(p\)\)\.some\(\(r\) => r\.id === id\)\);\s*ezikResumeMarkEntered\(ezikReadResume\(\)\);\s*if \(bootIntent\.kind === 'thread'\) openSavedChat\(bootIntent\.thread\);\s*else setScreen\(ezikResumeScreen\(\)\);/.test(app));
+    /const bootIntent = ezikTakeBootIntent\(\(id\) => ezikListChats\(ezikProfileKey\(p\)\)\.some\(\(r\) => r\.id === id\)\);\s*chatIdRef\.current = null;[\s\S]{0,800}?ezikResumeMarkEntered\(ezikReadResume\(\)\);\s*setScreen\(ezikResumeScreen\(\)\);[^\n]*\n\s*if \(bootIntent\.kind === 'thread'\) openSavedChat\(bootIntent\.thread\);/.test(app));
   ok('F21 App listens for the tap in the capture phase and for the page show',
     app.indexOf("const onLibraryLink = (e) => ezikLibraryLinkClick(e && e.target, chatIdRef.current);") !== -1
     && app.indexOf("document.addEventListener('click', onLibraryLink, true);") !== -1

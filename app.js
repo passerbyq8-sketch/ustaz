@@ -5254,14 +5254,16 @@ setProfile(p);// S92: the app ALWAYS opens on a NEW, EMPTY thread. What the chil
 ezikMigrateLegacyThread(ezikProfileKey(p));// S99: this profile's reading preferences, read once here — the same single read the boot
 // script already performed, so the value React holds agrees with what is on <html> and no
 // repaint follows. A second child on the device gets THEIR settings, not the first one's.
-{const prefs=ezikReadA11y(ezikProfileKey(p));a11yRef.current=prefs;setA11yState(prefs);ezikApplyA11y(prefs);}chatIdRef.current=null;setChatId(null);setMessages([]);setChatList(ezikListChats(ezikProfileKey(p)));// DEFECT 14 (item 88): 'chat' unless THIS TAB was standing somewhere when it
+{const prefs=ezikReadA11y(ezikProfileKey(p));a11yRef.current=prefs;setA11yState(prefs);ezikApplyA11y(prefs);}// ORDER-108D D2: the one-shot intents are taken BEFORE the resume record is read, so a
+// conversation that wins has already cleared that record and the resume path below
+// answers 'chat'. It is reopened only when this profile still has it.
+const bootIntent=ezikTakeBootIntent(id=>ezikListChats(ezikProfileKey(p)).some(r=>r.id===id));chatIdRef.current=null;setChatId(null);setMessages([]);setChatList(ezikListChats(ezikProfileKey(p)));// DEFECT 14 (item 88): 'chat' unless THIS TAB was standing somewhere when it
 // reloaded. A new tab has no session record, so the first opening of the app is
 // the chat exactly as D85 wrote it; ezikResumeScreen() answers 'chat' for it.
 // BATCH B, ITEM 1: the boot names the section it is restoring, so that section --
 // and only it -- can tell a reload apart from an ordinary walk-in.
-// ORDER-108D D2: the one-shot intents are taken first; a conversation left for the
-// library is reopened only when this profile still has it, else the boot is the normal one.
-const bootIntent=ezikTakeBootIntent(id=>ezikListChats(ezikProfileKey(p)).some(r=>r.id===id));ezikResumeMarkEntered(ezikReadResume());if(bootIntent.kind==='thread')openSavedChat(bootIntent.thread);else setScreen(ezikResumeScreen());// D85: a returning profile also lands on the chat
+ezikResumeMarkEntered(ezikReadResume());setScreen(ezikResumeScreen());// D85: a returning profile also lands on the chat
+if(bootIntent.kind==='thread')openSavedChat(bootIntent.thread);// ORDER-108D D2: the one conversation the library's note names
 }else{setScreen('onboarding');}}catch{setScreen('onboarding');}},[]);// تحميل المصحف الكنسي مسبقاً بعد الإقلاع كي تظهر أول آية فوراً (يُتجاهَل الفشل بهدوء)
 useEffect(()=>{// S117 PERF. The prefetch stays; it no longer races the first paint. Measured cold against
 // live ezik.app, THIS effect issued /quran-uthmani.json (338KB transferred, 1.41MB parsed)
