@@ -71,8 +71,9 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
     const WQ = require('./fixtures-speed-wasl.json');
     const OWNER = WQ.w1.question;
     const q = FT.fatwaTitleQueries(OWNER);
-    ok('W3a1 the owner\'s question: the store is asked «إخراج الزكاة عروضا» and «إخراج القيمة في الزكاة» (both measured to reach the direct matches)',
-      q.includes('إخراج الزكاة عروضا') && q.includes('إخراج القيمة في الزكاة'), ascii(JSON.stringify(q)));
+    // WASL W3a fix: exactly these two; «زكاة المال» names no kind, so no bare «إخراج زكاة …» is asked.
+    ok('W3a1 the owner question: the store is asked exactly «إخراج الزكاة عروضا» and «إخراج القيمة في الزكاة» (both measured to reach the direct matches)',
+      JSON.stringify(q) === JSON.stringify(['إخراج الزكاة عروضا', 'إخراج القيمة في الزكاة']), ascii(JSON.stringify(q)));
     const fitr = FT.fatwaTitleQueries('هل يجوز دفع زكاة الفطر نقودا بدل الطعام؟');
     const ghanam = FT.fatwaTitleQueries('هل تجزئ زكاة الغنم نقدا؟');
     ok('W3a2 two siblings worded otherwise: «إخراج زكاة الفطر نقودا» (binbaz 5348, 13962, 5967, 5705) and «إخراج القيمة في زكاة الغنم» (binbaz 14611)',
