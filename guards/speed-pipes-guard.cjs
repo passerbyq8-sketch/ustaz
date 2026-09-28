@@ -238,6 +238,26 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
     ok('P18b a word whose own first letter is fa ("fard") is not touched', b.startsWith('\u0641\u0631\u0636 \u0627\u0644\u0635\u0648\u0645'), ascii(b));
   }
 
+  // ---------------------------------------------------------------- P19 (PIPES2 fix 11) round 7, 1 and 8: ordinals in sequence
+  {
+    const UNITS = await esm('lib/bw2-units.js');
+    const rows = [{ ref: 1, kind: 'encyclopedia', title: 'a', fullText: '\u0635\u0644\u0627\u0629 \u0627\u0644\u062e\u0648\u0641 \u062b\u0627\u0628\u062a\u0629 \u0628\u0627\u0644\u0633\u0646\u0629. \u0648\u0647\u064a \u0631\u0643\u0639\u062a\u0627\u0646 \u0641\u064a \u0627\u0644\u0633\u0641\u0631. \u0648\u062a\u0635\u0644\u0649 \u0639\u0644\u0649 \u0635\u0641\u0627\u062a. \u0648\u0627\u0644\u062c\u0645\u0627\u0639\u0629 \u0641\u064a\u0647\u0627 \u0645\u0634\u0631\u0648\u0639\u0629.' }];
+    const rel = async (writer) => {
+      const out = [];
+      const r = UNITS.createBw2Releaser({ rows, emit: (p) => { out.push(p); return true; } });
+      r.push(writer + '\n');
+      await r.end();
+      return out.join('');
+    };
+    const heads = (t) => t.split('\n').filter((l) => /^(?:\u0623\u0648\u0644\u0627|\u062b\u0627\u0646\u064a\u0627|\u062b\u0627\u0644\u062b\u0627|\u0631\u0627\u0628\u0639\u0627|\u062e\u0627\u0645\u0633\u0627|\u0633\u0627\u062f\u0633\u0627)/u.test(l)).map((l) => l.split(':')[0]);
+    const q1 = await rel('\u062b\u0627\u0646\u064a\u0627: \u062a\u0639\u062f\u062f \u0627\u0644\u0635\u0641\u0627\u062a\n\u0635\u0644\u0627\u0629 \u0627\u0644\u062e\u0648\u0641 \u062b\u0627\u0628\u062a\u0629 \u0628\u0627\u0644\u0633\u0646\u0629 [[1]].\n\u062b\u0627\u0644\u062b\u0627: \u0645\u0627 \u0644\u0645 \u064a\u0623\u062a\n\u0648\u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632 \u0625\u0646\u0647\u0627 \u0648\u0627\u062c\u0628\u0629.\n\u0631\u0627\u0628\u0639\u0627: \u0635\u0641\u0629 \u0630\u0627\u062a \u0627\u0644\u0631\u0642\u0627\u0639\n\u0648\u0647\u064a \u0631\u0643\u0639\u062a\u0627\u0646 \u0641\u064a \u0627\u0644\u0633\u0641\u0631 [[1]].\n\u0633\u0627\u062f\u0633\u0627: \u0645\u0633\u0627\u0626\u0644 \u0645\u0644\u062d\u0642\u0629\n\u0648\u062a\u0635\u0644\u0649 \u0639\u0644\u0649 \u0635\u0641\u0627\u062a [[1]].');
+    ok('P19a question 1\'s shape: "second, fourth, sixth" go out as "first, second, third"; the empty "third" does not',
+      JSON.stringify(heads(q1)) === JSON.stringify(['\u0623\u0648\u0644\u0627', '\u062b\u0627\u0646\u064a\u0627', '\u062b\u0627\u0644\u062b\u0627']) && q1.includes('\u062b\u0627\u0644\u062b\u0627: \u0645\u0633\u0627\u0626\u0644 \u0645\u0644\u062d\u0642\u0629'), ascii(JSON.stringify(heads(q1))));
+    const q8 = await rel('\u0635\u0644\u0627\u0629 \u0627\u0644\u062e\u0648\u0641 \u062b\u0627\u0628\u062a\u0629 \u0628\u0627\u0644\u0633\u0646\u0629\u060c \u0648\u062a\u0641\u0635\u064a\u0644 \u0630\u0644\u0643 [[1]]:\n\u0623\u0648\u0644\u0627: \u0627\u0644\u0641\u0631\u0642 \u0628\u064a\u0646 \u0627\u0644\u0631\u0643\u0646 \u0648\u0627\u0644\u0634\u0631\u0637\n\u0635\u0644\u0627\u0629 \u0627\u0644\u062e\u0648\u0641 \u062b\u0627\u0628\u062a\u0629 \u0628\u0627\u0644\u0633\u0646\u0629 [[1]].\n\u062b\u0627\u0646\u064a\u0627: \u0627\u0644\u0623\u0642\u0648\u0627\u0644\n\u0648\u0647\u064a \u0631\u0643\u0639\u062a\u0627\u0646 \u0641\u064a \u0627\u0644\u0633\u0641\u0631 [[1]].\n\u0631\u0627\u0628\u0639\u0627: \u0645\u0646 \u0627\u0644\u0633\u0646\u0646\n\u0648\u0627\u0644\u062c\u0645\u0627\u0639\u0629 \u0641\u064a\u0647\u0627 \u0645\u0634\u0631\u0648\u0639\u0629 [[1]].');
+    ok('P19b question 8\'s shape: the first heading inside a lead-in counts, and "fourth" after "second" goes out as "third"',
+      JSON.stringify(heads(q8)) === JSON.stringify(['\u0623\u0648\u0644\u0627', '\u062b\u0627\u0646\u064a\u0627', '\u062b\u0627\u0644\u062b\u0627']), ascii(JSON.stringify(heads(q8))));
+  }
+
   // ---------------------------------------------------------------- P2 the fatwa store in the reader's letters
   {
     const Q5 = '\u0645\u0627 \u062d\u0643\u0645 \u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u0641\u0627\u062a\u062d\u0629 \u0644\u0644\u0645\u0623\u0645\u0648\u0645 \u0639\u0646\u062f \u0627\u0644\u0645\u0630\u0627\u0647\u0628 \u0627\u0644\u0623\u0631\u0628\u0639\u0629';
@@ -455,9 +475,9 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
         },
       });
       const t = framesOf(target.writes).filter((f) => f.type === 'content_block_delta').map((f) => f.delta.text).join('');
-      ok('P7a "first" and "third" go out with the units under them; "second" (all held under it) and "fourth" (nothing after it) do not',
-        t.includes('\u0623\u0648\u0644\u0627') && t.includes('\u062b\u0627\u0644\u062b\u0627') && !t.includes('\u062b\u0627\u0646\u064a\u0627') && !t.includes('\u0631\u0627\u0628\u0639\u0627')
-        && t.indexOf('\u0623\u0648\u0644\u0627') < t.indexOf('\u0645\u0646 \u062a\u0631\u0643 \u0631\u0643\u0646\u0627') && t.indexOf('\u062b\u0627\u0644\u062b\u0627') < t.indexOf('\u0648\u0648\u0642\u062a \u0627\u0644\u062d\u062c')
+      ok('P7a "first" and "third" go out with the units under them, "third" renumbered "second" (PIPES2 fix 11); the empty "second" and "fourth" do not',
+        t.includes('\u0623\u0648\u0644\u0627') && t.includes('\u062b\u0627\u0646\u064a\u0627: \u0645\u0633\u0627\u0626\u0644 \u0645\u062a\u0635\u0644\u0629') && !t.includes('\u062b\u0627\u0644\u062b\u0627') && !t.includes('\u0631\u0627\u0628\u0639\u0627') && !t.includes('\u0645\u0627 \u0646\u0635\u062a \u0639\u0644\u064a\u0647')
+        && t.indexOf('\u0623\u0648\u0644\u0627') < t.indexOf('\u0645\u0646 \u062a\u0631\u0643 \u0631\u0643\u0646\u0627') && t.indexOf('\u062b\u0627\u0646\u064a\u0627') < t.indexOf('\u0648\u0648\u0642\u062a \u0627\u0644\u062d\u062c')
         && out.telemetry.heldEmptyHeading === 2, ascii(JSON.stringify({ t: t.slice(0, 120), h: out.telemetry.heldEmptyHeading })));
       ok('P7b the heading test: an ordinal or markdown line with no sentence end is a heading; a sentence opening on an ordinal is not',
         UNITS.isHeadingUnit('\u062b\u0627\u0646\u064a\u0627: \u0623\u062f\u0644\u0629 \u0627\u0644\u0633\u0646\u0629 \u0627\u0644\u0646\u0628\u0648\u064a\u0629') && UNITS.isHeadingUnit('## \u0623\u062f\u0644\u0629 \u0627\u0644\u0633\u0646\u0629') && UNITS.isHeadingUnit('**\u062e\u0644\u0627\u0635\u0629**')
