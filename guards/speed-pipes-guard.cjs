@@ -488,12 +488,64 @@ function replayOwner4(opts = {}) {
       ascii(JSON.stringify([f.report.encyclopedia, f.report.lessons, f.report.fatwa])));
     // The owner's question 4 itself, replayed in a fresh process (a cold instance: the store check is not yet cached) through
     // the real runTool and searchFatwas over the store's recorded replies (fixtures-speed-wasl-fatwas.json), with W4GAP's
-    // timings: each caller's store check ends when the store's log shows its search starting (+0.98, +3.06, +1.98, +2.00 s,
-    // in the order the queries are asked), and each search takes what GET 1-4 took (744, 1070, 2086, 1999 ms). The budget is
-    // the real 3500 ms.
-    const q4 = replayOwner4();
+    // timings as W4GAP's own replay of K1 set them (k1/replay2): every store check 1.0 s, «إخراج القيمة في الزكاة» answered at
+    // +4.0 s, the other searches taking what GET 1-4 took. The budget is the real 3500 ms. (With the store's log's per-caller
+    // times, B2's one shared check leaves no query late: W6B2d.)
+    const q4 = replayOwner4({ verifyMs: [1000], searchMs: { ...W4GAP_SEARCH_MS, 'إخراج القيمة في الزكاة': 3000 } });
     ok('W6B1g the owner\'s question 4 replayed with the store\'s recorded replies and W4GAP\'s timings keeps binbaz 6518',
       q4 && q4.report.timedOut === true && q4.ids.includes('binbaz:6518'), ascii(JSON.stringify(q4)));
+  }
+
+  // ---------------------------------------------------------------- W6B B2 one store check per instance (W4GAP K1b)
+  // verifyFatwaService shares a check that is in flight, so concurrent callers on a cold instance make one /health and one
+  // /scholars call. Each case imports its own instance of lib/fatwa-service.js (a query string gives a fresh module, so its
+  // cache starts cold); the store answers from its recorded replies (fixtures-speed-wasl-fatwas.json).
+  {
+    const STORE = require('./fixtures-speed-wasl-fatwas.json');
+    const fresh = (tag) => import(pathToFileURL(path.join(REPO, 'lib/fatwa-service.js')).href + '?w6b2=' + tag);
+    const storeFetch = (count, failFirst = 0) => {
+      let failing = failFirst;
+      return async (u) => {
+        const url = new URL(String(u));
+        const check = /\/api\/v1\/(health|scholars)$/.exec(url.pathname);
+        if (check) count[check[1]] = (count[check[1]] || 0) + 1;
+        await new Promise((resolve) => setTimeout(resolve, 40));
+        if (check && failing > 0 && check[1] === 'health') { failing -= 1; return { ok: false, status: 503, url: String(u), headers: { get: () => 'application/json' }, text: async () => '{}' }; }
+        const e = STORE[String(u)];
+        if (!e) return { ok: false, status: 404, url: String(u), headers: { get: () => 'application/json' }, text: async () => '{}' };
+        return { ok: true, status: e.status, url: String(u), redirected: false, headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? e.ct : null) }, text: async () => e.body };
+      };
+    };
+    const QS = ['إخراج الزكاة عروضا', 'إخراج القيمة في الزكاة', 'إخراج زكاة المال', 'عروضا بدل النقود'];
+    const FSa = await fresh('a');
+    const na = {};
+    const fa = storeFetch(na);
+    const four = await Promise.all(QS.map((q) => FSa.searchFatwas({ currentQuestion: q }, { fetchImpl: fa }).then((r) => r.records.length, (e) => 'err:' + e.message)));
+    ok('W6B2a four concurrent searches on a cold cache make one /health and one /scholars call, and each search is answered',
+      na.health === 1 && na.scholars === 1 && four.every((n) => typeof n === 'number'), ascii(JSON.stringify({ calls: na, four })));
+    const FSb = await fresh('b');
+    const nb = {};
+    const fb = storeFetch(nb, 1);
+    const failed = await Promise.all([0, 1].map(() => FSb.searchFatwas({ currentQuestion: QS[0] }, { fetchImpl: fb }).then(() => 'ok', (e) => 'err:' + e.message)));
+    const again = await FSb.searchFatwas({ currentQuestion: QS[0] }, { fetchImpl: fb }).then((r) => 'ok:' + r.records.length, (e) => 'err:' + e.message);
+    ok('W6B2b a failed check is not cached as a success: both callers of the failed check fail, and the next caller checks again and is answered',
+      failed.every((x) => x === 'err:fatwa_http_503') && /^ok:[1-9]/.test(again) && nb.health === 2, ascii(JSON.stringify({ failed, again, calls: nb })));
+    const FSc = await fresh('c');
+    const nc = {};
+    const fc = storeFetch(nc);
+    const gone = new AbortController();
+    const first = FSc.searchFatwas({ currentQuestion: QS[0] }, { fetchImpl: fc, signal: gone.signal }).then(() => 'ok', (e) => 'err:' + (e && e.name || e));
+    const second = FSc.searchFatwas({ currentQuestion: QS[1] }, { fetchImpl: fc }).then((r) => 'ok:' + r.records.length, (e) => 'err:' + e.message);
+    gone.abort();
+    const [x1, x2] = await Promise.all([first, second]);
+    ok('W6B2c the caller that started the shared check abandons it: it stops waiting under its own signal, and the other caller\'s search is still answered on that one check',
+      x1.startsWith('err:') && /^ok:[1-9]/.test(x2) && nc.health === 1, ascii(JSON.stringify({ x1, x2, calls: nc })));
+    // The first fatwa turn of a cold instance, W4GAP's timings (the replay of W6B1g): with one check, its time is the first
+    // caller's (+0.98 s), and every query starts then.
+    const q4 = replayOwner4();
+    ok('W6B2d the owner\'s question 4 on a cold instance with W4GAP\'s timings: one /health and one /scholars call, every query starts after the one check, and the member answers inside its budget with binbaz 6518',
+      q4 && q4.health === 1 && q4.scholars === 1 && q4.searches.every((s) => s.start < 1500) && q4.report.timedOut === false && q4.ids.includes('binbaz:6518'),
+      ascii(JSON.stringify(q4)));
   }
 
   // ---------------------------------------------------------------- W7 (WASL) the letter test, a standing case
