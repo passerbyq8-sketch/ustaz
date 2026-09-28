@@ -15,7 +15,7 @@ const ascii = (s) => String(s).replace(/[^\x00-\x7f]/g, (c) => '\\u' + c.charCod
 const say = (s) => process.stdout.write(ascii(s) + '\n');
 const ROUTES = ['mushaf', 'adhkar_sabah', 'adhkar_masaa', 'home', 'adhkar', 'arbaeen', 'prayer', 'chat',
   'memorize', 'fatwa', 'lessons', 'articles', 'women', 'tasbih', 'calc', 'compass',
-  'ayah-tafsir', 'asmaa', 'sunan-day', 'treasure'];
+  'ayah-tafsir', 'asmaa', 'sunan-day', 'wirdi', 'treasure', 'library'];
 const SECTIONS = ['memorize', 'fatwa', 'lessons', 'adhkar', 'arbaeen', 'articles', 'women', 'prayer',
   'tasbih', 'calc', 'compass', 'ayah-tafsir', 'asmaa', 'sunan-day', 'treasure'];
 const PROFILE_PID = 'W45-GUARD';
@@ -103,11 +103,12 @@ function boot(opts) {
   const root = window.document.getElementById('root');
   const titleExpr = { prayer: 'PRAYER_SHEET_TITLE', memorize: 'MEM.TITLE', lessons: "ezT('module.lessons')",
     articles: 'EZH_ARTICLES', women: 'EZH_WOMEN', tasbih: "ezT('tasbih.title')", calc: "ezT('calc.title')",
-    'ayah-tafsir': "ezT('home.verseOfDay2')", asmaa: "ezT('asmaa.title')", 'sunan-day': "ezT('sunan.title')" };
+    'ayah-tafsir': "ezT('home.verseOfDay2')", asmaa: "ezT('asmaa.title')", 'sunan-day': "ezT('sunan.title')", wirdi: 'DW_CARD_TITLE' };
   const titles = Object.fromEntries(Object.entries(titleExpr).map(([key, expr]) => [key, read(expr)]));
   titles.mushaf = '\u0627\u0644\u0645\u0635\u062d\u0641';
   const where = () => {
     if (window.location.href === '/quest.html') return 'treasure';
+    if (window.location.href === '/library.html') return 'library';
     const top = root.firstElementChild;
     const cls = top ? String(top.getAttribute('class') || '') : '';
     if (/\bezonb\b/.test(cls)) return 'onboarding';
@@ -164,11 +165,17 @@ SCENES['warm-all'] = async (c, t) => {
 };
 SCENES['warm-home'] = async (c, t) => {
   await c.until('chat'); c.open('home'); await c.until('home');
-  for (const route of ['prayer', 'tasbih', 'calc', 'compass', 'articles', 'women']) {
+  for (const route of ['prayer', 'tasbih', 'calc', 'compass', 'articles', 'women', 'wirdi']) {
     c.open(route); t('mounted home opens ' + route, await c.until(route), route);
     await c.back(); t('back from ' + route + ' returns home', await c.until('home'), 'home');
     t('home clears resume record', c.ledger(), null);
   }
+};
+SCENES['pages'] = async (c, t) => {
+  c.open('wirdi'); t('wirdi records its layer', await c.until('wirdi'), 'wirdi');
+  t('wirdi resume record', c.ledger(), 'wirdi');
+  c.open('library'); t('library leaves for its page', await c.until('library'), 'library');
+  t('library clears resume record', c.ledger(), null);
 };
 SCENES['top-layer'] = async (c, t) => {
   for (const layer of ['asmaa', 'sunan-day']) {
@@ -192,7 +199,7 @@ SCENES['twice'] = async (c, t) => {
 SCENES['foreign'] = async (c, t) => {
   await c.until('chat');
   const base = { channel: 'ezik-scheduler', v: 1, op: 'open', route: 'mushaf', type: null, id: null };
-  const invalid = ['unknown', 'wirdi', 'constructor', '__proto__', 'Mushaf', ' prayer', '', 1, null];
+  const invalid = ['unknown', 'wird', 'Library', 'constructor', '__proto__', 'Mushaf', ' prayer', '', 1, null];
   const messages = invalid.map((route) => ({ ...base, route })).concat(
     ['schedule', 'result', 'status', 'enable', 'widget-data'].map((op) => ({ ...base, op })),
     [{ ...base, v: 2 }, { ...base, channel: 'other' }]);
@@ -568,6 +575,9 @@ const MUTANTS = [
   { name: 'sunan-not-opened', scene: 'cold-sunan-day', edits: [["    setSunanOpen(route === 'sunan-day');", '    setSunanOpen(false);']] },
   { name: 'top-layer-left-open', scene: 'top-layer', edits: [["    setAsmaaOpen(route === 'asmaa');", "    if (route === 'asmaa') setAsmaaOpen(true);"]] },
   { name: 'treasure-wrong-page', scene: 'cold-treasure', edits: [["      window.location.href = '/quest.html';", "      window.location.href = '/wrong.html';"]] },
+  { name: 'library-wrong-page', scene: 'cold-library', edits: [["      window.location.href = '/library.html';\n      return;", "      window.location.href = '/wrong.html';\n      return;"]] },
+  { name: 'library-keeps-resume', scene: 'pages', edits: [["    if (route === 'library') {\n      ezikClearResume();\n", "    if (route === 'library') {\n"]] },
+  { name: 'wirdi-not-a-home-layer', scene: 'cold-wirdi', edits: [["wirdi: 1, tasbih: 1, calc: 1, compass: 1 };", "tasbih: 1, calc: 1, compass: 1 };"]] },
   { name: 'adhkar-index-not-reset', scene: 'list-reset', edits: [['<AdhkarScreen onBack={goEzikBack} key={homeEpoch} />', '<AdhkarScreen onBack={goEzikBack} />']] },
   { name: 'arbaeen-list-not-reset', scene: 'list-reset', edits: [['<ArbaeenScreen onBack={goEzikBack} key={homeEpoch} />', '<ArbaeenScreen onBack={goEzikBack} />']] },
   { name: 'chat-thread-not-new', scene: 'chat-reset', edits: [["      newChat();\n      setScreen('chat');", "      setScreen('chat');"]] },
@@ -684,7 +694,7 @@ function staticChecks() {
   for (const n of ast.program.body) if (n.type === 'VariableDeclaration') for (const d of n.declarations) if (d.id.name === 'EZIK_WIDGET_ROUTES') routes = d.init.elements.map((x) => x.value);
   const a = src.indexOf('// ===== ITEM 45 -- THE WIDGET'), b = src.indexOf('}, [screen, widgetSeq]);', a); const consumer = src.slice(a,b);
   return [
-    ['C1 exact independent 20-route whitelist', JSON.stringify(routes) === JSON.stringify(ROUTES)],
+    ['C1 exact independent 22-route whitelist', JSON.stringify(routes) === JSON.stringify(ROUTES)],
     ['normal routes use resume writer and both boot tools', ['ezikWriteResume(route);','ezikResumeMarkEntered(ezikReadResume());','const next = ezikResumeScreen();','setScreen(next);'].every((s) => consumer.includes(s))],
     ['chat focus waits for SpendGate and consent', src.includes("if (!widgetChatFocusRef.current || screen !== 'chat' || !spendGateOpenState\n      || aiConsent !== EZ_AI_CONSENT_GRANTED || aiConsentReview) return;")],
     ['boot keeps the resume path', src.includes('        ezikResumeMarkEntered(ezikReadResume());\n        setScreen(ezikResumeScreen());')],

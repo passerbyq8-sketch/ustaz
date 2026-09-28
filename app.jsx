@@ -10344,7 +10344,7 @@ const EZIK_RESUME_SCREENS = {
   'ayah-tafsir': 'ayah-tafsir',
 };
 const EZIK_RESUME_APP_LAYERS = { asmaa: 1, 'sunan-day': 1 };
-// Resume records name home layers. `wirdi` remains restorable, but is not an accepted C1 route.
+// Resume records name home layers. `wirdi` is restorable and, since trip 2, an accepted route.
 const EZIK_RESUME_HOME_LAYERS = { articles: 1, women: 1, prayer: 1, wirdi: 1, tasbih: 1, calc: 1, compass: 1 };
 function ezikResumeKnown(id) {
   return !!(EZIK_RESUME_SCREENS[id] || EZIK_RESUME_APP_LAYERS[id] || EZIK_RESUME_HOME_LAYERS[id]);
@@ -16116,7 +16116,8 @@ function App() {
   //
   // Sections use the resume ledger and the boot tools. Home layers initialize from that record;
   // homeEpoch remounts Home even when it was already underneath, and resets the two list screens.
-  // App layers open explicitly. Chat starts a new thread; treasure navigates to its own page.
+  // App layers open explicitly. Chat starts a new thread; treasure and library navigate to their
+  // own pages, each by the same assignment its home module makes.
   //
   // A NEW READER IS NEVER INTERRUPTED. On the onboarding screen the press is taken and dropped:
   // nothing is written, and the introduction stays where it was.
@@ -16160,6 +16161,11 @@ function App() {
     if (route === 'treasure') {
       ezikClearResume();
       window.location.href = '/quest.html';
+      return;
+    }
+    if (route === 'library') {
+      ezikClearResume();
+      window.location.href = '/library.html';
       return;
     }
     if (route === 'chat') {
@@ -24337,6 +24343,9 @@ const SHELL_SCHED_RESULT_OP = 'result';
 // Notifications and widget Linking both reach SiteScreen's deliverOpen on this channel:
 // { channel, v, op: 'open', route, type, id }. The web enforces the complete C1 whitelist
 // below before any store or screen changes. Mushaf belongs to notifications, not widget sections.
+// TRIP 2 (28 September): every section the app offers now opens here, so the last two join it
+// under the app's own keys -- `wirdi`, the key the resume ledger already writes for the daily
+// wird section, and `library`, the id of the home module that opens /library.html.
 //
 // WHY THE LISTENER HANGS HERE AND NOT IN A HOOK. On a cold start the shell holds the press
 // until the page reports loaded and then injects it at once -- which can be before React has
@@ -24353,7 +24362,7 @@ const EZIK_WIDGET_ROUTES = [
   'mushaf', 'adhkar_sabah', 'adhkar_masaa', 'home',
   'adhkar', 'arbaeen', 'prayer', 'chat',
   'memorize', 'fatwa', 'lessons', 'articles', 'women', 'tasbih', 'calc', 'compass',
-  'ayah-tafsir', 'asmaa', 'sunan-day', 'treasure',
+  'ayah-tafsir', 'asmaa', 'sunan-day', 'wirdi', 'treasure', 'library',
 ];
 let EZIK_WIDGET_PENDING = '';
 const EZIK_WIDGET_SUBS = new Set();
