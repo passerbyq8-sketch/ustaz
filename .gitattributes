@@ -850,3 +850,4 @@ guards/fixtures-speed-wasl-fatwas.json text eol=lf
 lib/fatwa-title.js text eol=lf
 guards/fixtures-speed-wasl-pages.json text eol=lf
 guards/fixtures-speed-wasl-madhhab.json text eol=lf
+guards/fixtures-speed-wasl-atoms.json text eol=lf

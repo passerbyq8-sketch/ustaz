@@ -246,6 +246,42 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       BW2.madhhabTermQueries(Q1).length === 0 && BW2.madhhabTermQueries(WQ.w1.question).length === 1);
   }
 
+  // ---------------------------------------------------------------- W7 (WASL) the letter test, a standing case
+  // Bada'i al-Sana'i 2:73 through every door that brings text equals the library's page letter for letter: (1) the /search
+  // door (lib/lib-service.js searchLibrary through the gated runner) over the six atoms that cover it -- the service's own
+  // reply, cut in process from the local index copy (FC-003532:0150:006..011, fixtures-speed-wasl-atoms.json); atoms
+  // overlap at their seams, so they are joined on their overlaps and compared without whitespace (the atoms break lines
+  // where the page has spaces); (2) the page reader (readLibraryPage), byte for byte. The original is the live page
+  // (fixtures-speed-wasl-pages.json, 5,989 characters).
+  {
+    const ATOMS = require('./fixtures-speed-wasl-atoms.json');
+    const PAGES = require('./fixtures-speed-wasl-pages.json');
+    const TOOLS = await esm('lib/free-brain/tools.js');
+    const LS = await esm('lib/lib-service.js');
+    const pageUrl = 'https://lib.ezik.app/lib/v1/books/FC-003532/pages?from=396&count=1';
+    const original = JSON.parse(PAGES[pageUrl].body).pages[0].body;
+    const jsonReply = (u, body) => ({ ok: true, status: 200, url: String(u), redirected: false, headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? 'application/json' : null) }, text: async () => body, json: async () => JSON.parse(body) });
+    const door = await TOOLS.runTool('search_library', { query: 'القيمه صدقه الفطر' }, {
+      table: TOOLS.createEvidenceTable(), spend: [], degraded: [], libFlagValue: 'on', libToken: 'tk-wasl-1', resultCap: 10, maxCharsPerHit: 2000, keepFullText: true,
+      fetchImpl: async (u) => jsonReply(u, JSON.stringify(ATOMS)),
+    });
+    const letters = (x) => String(x || '').replace(/\s+/gu, '');
+    let merged = '';
+    for (const row of door.added) {
+      const a = letters(row.fullText || row.text);
+      let k = Math.min(a.length, merged.length);
+      while (k > 0 && !merged.endsWith(a.slice(0, k))) k -= 1;
+      merged += a.slice(k);
+    }
+    const P = letters(original);
+    const at = merged.indexOf(P.slice(0, 200));
+    ok('W7a Bada\'i 2:73 through the /search door: the six atoms, joined on their overlaps, carry the page letter for letter from its first letter to its last',
+      door.added.length === 6 && original.length === 5989 && at > 0 && merged.slice(at) === P, ascii(JSON.stringify({ rows: door.added.length, at, merged: merged.length, page: P.length })));
+    const read = await LS.readLibraryPage({ bookId: 'FC-003532', page: 73, vol: 2 }, { flagValue: 'on',
+      fetchImpl: async (u) => { const e = PAGES[String(u)]; return e ? jsonReply(u, e.body) : { ok: false, status: 404, url: String(u), headers: { get: () => null }, text: async () => '' }; } });
+    ok('W7b ...and through the page reader, byte for byte', read.ok && read.page.body === original && read.page.vol === 2 && read.page.page === 73);
+  }
+
   // ---------------------------------------------------------------- P10 (PIPES2 fix 2) round 7, question 5
   {
     const Q7_5 = '\u0645\u0627 \u062d\u0643\u0645 \u062a\u062f\u0627\u0648\u0644 \u0627\u0644\u0639\u0645\u0644\u0627\u062a \u0627\u0644\u0645\u0634\u0641\u0631\u0629 \u0645\u062b\u0644 \u0627\u0644\u0628\u062a\u0643\u0648\u064a\u0646\u061f';
