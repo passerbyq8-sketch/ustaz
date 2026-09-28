@@ -1325,6 +1325,33 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       const w3c = await drive('ما حكم تغطية المرآة في غرفة النوم؟', { env: LIBENV, respond: storeRespond });
       ok('W3a6 control: a question the rule does not read is asked in its own words only, as before', !w3c.crashed && fatwaAsked.length === 1, ascii(JSON.stringify(fatwaAsked)));
 
+      // W6A A2: a hand-over does not ask twice. WASL measured that a before-writing turn handed on to the free-brain path
+      // (PIPES fix 3) asked the brief library call and the lessons a second time there. Now the free-brain path takes the
+      // library, lesson and fatwa rows the before-writing path gathered for the turn instead of asking again. Here the
+      // before-writing path is on (the default), the fake judge keeps nothing, so the turn is handed on (judge_none); the
+      // free-brain path's own asks are the ones in the reader's words (q = the question), the before-writing path's are not.
+      const HENV = { SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: 'tk-wasl-1' };
+      for (const depth of ['', 'deep']) {
+        libAsked.length = 0; lessonsAsked.length = 0; fatwaAsked.length = 0;
+        const h = await drive(depth ? [{ role: 'user', content: WASL.w1.question }] : WASL.w1.question, { env: HENV, respond: storeRespond, depth });
+        const bw2log = h.logOf('[bw2]');
+        const first = h.model.find((b) => b.system !== BW2.BW2_JUDGE_SYSTEM);
+        const again = { library: libAsked.filter((b) => b.q === WASL.w1.question).length, lessons: lessonsAsked.filter((b) => b.q === WASL.w1.question).length,
+          fatwa: fatwaAsked.filter((q) => q === WASL.w1.question).length, fatwaTitle: fatwaAsked.filter((q) => q === 'إخراج الزكاة عروضا').length };
+        // At the deep depths the free-brain path prefetches no library row (the model is offered the tool), before or after.
+        ok('W6A2' + (depth ? 'd' : 'b') + ' a handed-over turn at ' + (depth || 'the brief depth') + ' makes no second library, lessons or fatwa call, and its writer still receives the rows it received before as candidate evidence (' + (depth ? 'lessons, fatwa' : 'library, lessons, fatwa') + ')',
+          !h.crashed && !!bw2log && bw2log.continued === 'judge_none' && again.library === 0 && again.lessons === 0 && again.fatwa === 0 && again.fatwaTitle === 1
+          && !!first && (depth || lastUser(first).includes(WASL.w1.bookTitle)) && lastUser(first).includes(WASL.w2.lessons.hits[0].title) && lastUser(first).includes(DIRECT[0]),
+          ascii(JSON.stringify({ continued: bw2log && bw2log.continued, again, libTotal: libAsked.length, crashed: h.crashed && String(h.crashed.stack) })));
+      }
+      libAsked.length = 0; lessonsAsked.length = 0; fatwaAsked.length = 0;
+      const hc = await drive(WASL.w1.question, { env: { ...HENV, BEFORE_WRITING_V2: 'off' }, respond: storeRespond });
+      const hcFirst = hc.model.find((b) => b.system !== BW2.BW2_JUDGE_SYSTEM);
+      ok('W6A2c control: a turn that did not come from the before-writing path is unchanged -- it asks the library, the lessons and the store itself, once each in the reader\'s words',
+        !hc.crashed && libAsked.length === 1 && libAsked[0].q === WASL.w1.question && lessonsAsked.filter((b) => b.q === WASL.w1.question).length === 1
+        && fatwaAsked.filter((q) => q === WASL.w1.question).length === 1 && !!hcFirst && lastUser(hcFirst).includes(WASL.w1.bookTitle),
+        ascii(JSON.stringify({ lib: libAsked.length, les: lessonsAsked.length, fat: fatwaAsked.length })));
+
       // W4 (WASL): a page of a book on request, «كمّل» and «اشرح», through the real handler at the brief depth, LIB_QUOTE_V1
       // unset (on by default now). The live library's page replies were recorded read only on 2026-09-28 (public GETs, no
       // key: fixtures-speed-wasl-pages.json) and are answered from there.

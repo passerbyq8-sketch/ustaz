@@ -1835,6 +1835,8 @@ export default async function handler(req, res) {
     // PIPES fix 3: set when the before-writing path found no text in our own sources and handed the turn on
     // unfinished; today's path below then runs as the live offer would have run it, with no button.
     let bw2Continued = false;
+    // SPEED W6A A2: what the before-writing path gathered for this turn, handed on with it (null when it was not).
+    let bw2HandOver = null;
     if (bw2Taken) {
       const { runBw2Turn, createBw2Wire } = await import('../lib/before-writing-v2.js');
       const beforeBw2 = {
@@ -1928,6 +1930,7 @@ export default async function handler(req, res) {
       Object.assign(finalizerContext, beforeBw2);
       bw2Delivery = false;
       bw2Continued = true;
+      bw2HandOver = bw2Out.handOver || null;
       try { res.write(`data: ${JSON.stringify({ type: 'ezik_status', stage: 'retrieve' })}\n\n`); } catch { /* a status line never fails a turn */ }
     }
     if (freeBrain.enabled && !childBenignReserved) {
@@ -2010,6 +2013,8 @@ export default async function handler(req, res) {
           // SPEED ITEM 17 (order 3.7): the reader pressed the live offer, so the first round searches -- and, since
           // PIPES fix 3, the same when the before-writing path handed the turn on (bw2Continued).
           forceFirstTool: (liveSearch || bw2Continued) ? 'search_sources' : null,
+          // SPEED W6A A2: the rows the before-writing path gathered, taken in place of asking again.
+          handOver: bw2HandOver,
         });
       } finally {
         freeUpstream.cleanup();

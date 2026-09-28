@@ -232,8 +232,9 @@ async function mutantModule(temp, rel, name, mutate, probe) {
     ok('D1  MUTANT KILLED: dropping the never-both rule prefetches on an offered turn', m1deep.libCalls.length !== 0);
 
     const m2 = await mutantModule(temp, 'lib/free-brain/loop.js', 'library-waits-for-fatwa',
-      (s) => s.replace("        runTool('search_fatawa', { query }, ctx),\n        libMujaz\n", "        await runTool('search_fatawa', { query }, ctx),\n        libMujaz\n"),
-      "        await runTool('search_fatawa', { query }, ctx),\n        libMujaz\n");
+      // SPEED W6A A2: the fatwa member now reads `handedFatwa ? <handed rows> : runTool(...)`; the mutant awaits that runTool.
+      (s) => s.replace(" : runTool('search_fatawa', { query }, ctx),\n        libMujaz\n", " : await runTool('search_fatawa', { query }, ctx),\n        libMujaz\n"),
+      " : await runTool('search_fatawa', { query }, ctx),\n        libMujaz\n");
     const m2on = await drive(m2, { libPrefetch: PREFETCH });
     ok('D2  MUTANT KILLED: a library call that waits for the fatwa call is serial, and C5 sees it',
       m2on.libCalls.length === 1 && m2on.fatwaResolvedAt !== null && !(m2on.libCalls[0].at < m2on.fatwaResolvedAt),
