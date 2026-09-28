@@ -388,6 +388,24 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       seq[1].startsWith('\u0627\u0644\u062b\u0627\u0646\u064a \u2014 ') && seq[2].startsWith('\u0627\u0644\u062d\u0627\u0644\u0629 \u0627\u0644\u0623\u0648\u0644\u0649: ') && seq[3] === '\u0648\u0627\u0644\u0642\u0648\u0644 \u0627\u0644\u0623\u0648\u0644 \u0623\u0631\u062c\u062d' && seq[4] === '\u0627\u0644\u0642\u0648\u0644 \u0627\u0644\u0623\u0648\u0644 \u0623\u0631\u062c\u062d \u0639\u0646\u062f\u064a', ascii(JSON.stringify(seq)));
   }
 
+  // ---------------------------------------------------------------- P26 (PIPES3, C) round 8, 5: lines that are only "."
+  {
+    const UNITS = await esm('lib/bw2-units.js');
+    const rows = [{ ref: 1, kind: 'encyclopedia', title: 'a', fullText: '\u062a\u0627\u0631\u0643 \u0627\u0644\u0635\u0644\u0627\u0629 \u064a\u0642\u062a\u0644 \u062d\u062f\u0627 \u0644\u0627 \u0643\u0641\u0631\u0627 \u0639\u0646\u062f \u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629 \u0648\u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629. \u0648\u0647\u0648 \u0641\u0627\u0633\u0642 \u0644\u0627 \u064a\u0642\u062a\u0644 \u0639\u0646\u062f \u0627\u0644\u062d\u0646\u0641\u064a\u0629.' }];
+    const out = [];
+    const r = UNITS.createBw2Releaser({ rows, emit: (p) => { out.push(p); return true; } });
+    r.push('\u0627\u0644\u0642\u0648\u0644 \u0627\u0644\u062b\u0627\u0644\u062b: \u064a\u0642\u062a\u0644 \u062d\u062f\u0627 \u0644\u0627 \u0643\u0641\u0631\u0627 \u0639\u0646\u062f \u0627\u0644\u0645\u0627\u0644\u0643\u064a\u0629 \u0648\u0627\u0644\u0634\u0627\u0641\u0639\u064a\u0629 [[1]].\n. [[1]]\n\u0648\u0644\u0623\u0646\u0647 \u062a\u0639\u0627\u0644\u0649 \u0623\u0645\u0631 \u0628\u0642\u062a\u0644 \u0627\u0644\u0645\u0634\u0631\u0643\u064a\u0646 \u062b\u0645 \u0642\u0627\u0644:\n<verse surah_num="9" ayah="5"></verse>.\n\u0627\u0644\u0642\u0648\u0644 \u0627\u0644\u0631\u0627\u0628\u0639: \u0647\u0648 \u0641\u0627\u0633\u0642 \u0644\u0627 \u064a\u0642\u062a\u0644 \u0639\u0646\u062f \u0627\u0644\u062d\u0646\u0641\u064a\u0629 [[1]].\n');
+    const s = await r.end();
+    const text = out.join('');
+    ok('P26a question 5: no line of the answer is "." alone -- a unit of punctuation is empty, and the stop after a verse card is taken off, the card kept',
+      !/(?:^|\n)\s*[.\u060c]\s*(?:\n|$)/u.test(text) && text.includes('<verse surah_num="9" ayah="5"></verse>\n') && !text.includes('</verse>.') && text.includes('\u0647\u0648 \u0641\u0627\u0633\u0642 \u0644\u0627 \u064a\u0642\u062a\u0644') && s.holds.empty === 1,
+      ascii(JSON.stringify({ text, holds: s.holds })));
+    ok('P26b the tests: "." and ". [[1]]" are empty, "wa-ma." still is; a stop after a closing card tag at the end goes, a card mid-unit keeps what follows it',
+      UNITS.onlyFunctionWords('.') && UNITS.onlyFunctionWords('. [[1]]') && UNITS.onlyFunctionWords('\u0648\u0645\u0627.') && !UNITS.onlyFunctionWords('\u064a\u062c\u0648\u0632.')
+      && typeof UNITS.withoutCardTail === 'function' && UNITS.withoutCardTail('\u0642\u0627\u0644: <verse surah_num="9" ayah="5"></verse>.') === '\u0642\u0627\u0644: <verse surah_num="9" ayah="5"></verse>'
+      && UNITS.withoutCardTail('<verse surah_num="9" ayah="5"></verse> \u062b\u0645 \u0643\u0644\u0627\u0645.') === '<verse surah_num="9" ayah="5"></verse> \u062b\u0645 \u0643\u0644\u0627\u0645.');
+  }
+
   // ---------------------------------------------------------------- P2 the fatwa store in the reader's letters
   {
     const Q5 = '\u0645\u0627 \u062d\u0643\u0645 \u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u0641\u0627\u062a\u062d\u0629 \u0644\u0644\u0645\u0623\u0645\u0648\u0645 \u0639\u0646\u062f \u0627\u0644\u0645\u0630\u0627\u0647\u0628 \u0627\u0644\u0623\u0631\u0628\u0639\u0629';
