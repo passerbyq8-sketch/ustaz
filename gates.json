@@ -620,5 +620,10 @@
     "name": "speedintegration",
     "script": "guards/speed-integration-guard.cjs",
     "args": "index.html"
+  },
+  {
+    "name": "speedpipes",
+    "script": "guards/speed-pipes-guard.cjs",
+    "args": ""
   }
 ]
