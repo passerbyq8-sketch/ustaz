@@ -88,6 +88,47 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       some.asked.length === 2 && BW2.narrowFatwaQuery('\u0635\u0644\u0627\u0629 \u0627\u0644\u062e\u0648\u0641') === '', ascii(JSON.stringify(some.asked)));
   }
 
+  // ---------------------------------------------------------------- P13 (PIPES2 fix 5) round 7, question 6
+  {
+    let SCH = null;
+    try { SCH = await esm('lib/bw2-scholar.js'); } catch { SCH = null; }
+    const Q6 = '\u0645\u0627 \u0631\u0623\u064a \u0627\u0644\u0625\u0645\u0627\u0645 \u0627\u0628\u0646 \u0642\u062f\u0627\u0645\u0629 \u0641\u064a \u062d\u0643\u0645 \u0635\u0644\u0627\u0629 \u0627\u0644\u062c\u0645\u0627\u0639\u0629\u061f';
+    const name = (q) => (SCH ? SCH.scholarNameOf(q) : null);
+    ok('P13a the scholar named: question 6, round 6\'s question 21 and its siblings name him; "the Hanbalis", "the scholars" and a ruling question name nobody',
+      name(Q6) === '\u0627\u0628\u0646 \u0642\u062f\u0627\u0645\u0647' && name('\u0645\u0627 \u0631\u0623\u064a \u0627\u0644\u0625\u0645\u0627\u0645 \u0627\u0628\u0646 \u062a\u064a\u0645\u064a\u0629 \u0641\u064a \u0637\u0644\u0627\u0642 \u0627\u0644\u062b\u0644\u0627\u062b \u0628\u0644\u0641\u0638 \u0648\u0627\u062d\u062f\u061f') === '\u0627\u0628\u0646 \u062a\u064a\u0645\u064a\u0647'
+      && name('\u0645\u0627 \u0642\u0648\u0644 \u0634\u064a\u062e \u0627\u0644\u0625\u0633\u0644\u0627\u0645 \u0627\u0628\u0646 \u062a\u064a\u0645\u064a\u0629 \u0641\u064a \u0627\u0644\u0637\u0644\u0627\u0642 \u0627\u0644\u062b\u0644\u0627\u062b \u0641\u064a \u0645\u062c\u0644\u0633 \u0648\u0627\u062d\u062f\u061f') === '\u0627\u0628\u0646 \u062a\u064a\u0645\u064a\u0647' && name('\u0645\u0627 \u0631\u0623\u064a \u0627\u0628\u0646 \u0627\u0644\u0642\u064a\u0645 \u0641\u064a \u0627\u0644\u0637\u0644\u0627\u0642 \u0628\u0627\u0644\u062b\u0644\u0627\u062b \u0628\u0643\u0644\u0645\u0629 \u0648\u0627\u062d\u062f\u0629\u061f') === '\u0627\u0628\u0646 \u0627\u0644\u0642\u064a\u0645'
+      && name('\u0645\u0627 \u062d\u0643\u0645 \u0635\u0644\u0627\u0629 \u0627\u0644\u062c\u0645\u0627\u0639\u0629 \u0639\u0646\u062f \u0627\u0644\u062d\u0646\u0627\u0628\u0644\u0629\u061f') === '' && name('\u0645\u0627 \u0631\u0623\u064a \u0627\u0644\u0639\u0644\u0645\u0627\u0621 \u0641\u064a \u0627\u0644\u062a\u0635\u0648\u064a\u0631\u061f') === '' && name('\u0645\u0627 \u062d\u0643\u0645 \u0627\u0644\u062a\u0635\u0648\u064a\u0631 \u0627\u0644\u0641\u0648\u062a\u0648\u063a\u0631\u0627\u0641\u064a\u061f') === '',
+      ascii(JSON.stringify([name(Q6)])));
+    const CAT = [['FC-B', '\u0643\u062a\u0627\u0628 \u0641\u064a \u0627\u0644\u0631\u062f', '\u0627\u0628\u0646 \u0642\u062f\u0627\u0645\u0629', 'turath', 0, 1], ['FC-C', '\u0643\u062a\u0627\u0628 \u062d\u062f\u064a\u062b', '\u0627\u0628\u0646 \u0628\u0627\u0632', 'turath', 0, 0],
+      ['FC-003727', '\u0627\u0644\u0645\u063a\u0646\u064a \u0644\u0627\u0628\u0646 \u0642\u062f\u0627\u0645\u0629', '\u0627\u0644\u0645\u0642\u062f\u0633\u064a\u060c \u0645\u0648\u0641\u0642 \u0627\u0644\u062f\u064a\u0646', 'turath', 0, 0], ['FC-003728', '\u0627\u0644\u0645\u0642\u0646\u0639 \u0641\u064a \u0641\u0642\u0647 \u0627\u0644\u0625\u0645\u0627\u0645 \u0623\u062d\u0645\u062f', '\u0645\u0648\u0641\u0642 \u0627\u0644\u062f\u064a\u0646 \u0627\u0628\u0646 \u0642\u062f\u0627\u0645\u0629', 'turath', 0, 0]];
+    const ids = SCH ? SCH.scholarBookIds('\u0627\u0628\u0646 \u0642\u062f\u0627\u0645\u0647', CAT) : [];
+    ok('P13b his books: by the author field first, then a title that carries him (al-Mughni); another author and a blocked book are not his',
+      JSON.stringify(ids) === JSON.stringify(['FC-003728', 'FC-003727']), ascii(JSON.stringify(ids)));
+    const libCalls = async (question, found) => {
+      const calls = [];
+      const runTool = async (tool, input, ctx) => {
+        if (tool === 'search_library') {
+          calls.push({ query: input.query, books: Array.isArray(ctx.bookIds) ? ctx.bookIds.join(',') : '' });
+          if (Array.isArray(ctx.bookIds) && ctx.bookIds.includes('FC-003727')) ctx.table.add({ kind: 'lib_book', title: '\u0627\u0644\u0645\u063a\u0646\u064a', bookTitle: '\u0627\u0644\u0645\u063a\u0646\u064a \u0644\u0627\u0628\u0646 \u0642\u062f\u0627\u0645\u0629', text: '\u0627\u0644\u062c\u0645\u0627\u0639\u0629 \u0648\u0627\u062c\u0628\u0629 \u0644\u0644\u0635\u0644\u0648\u0627\u062a \u0627\u0644\u062e\u0645\u0633' });
+        }
+        return { text: '', added: [], calls: 1 };
+      };
+      const g = await BW2.gatherBw2({ question, libFlagValue: 'on', libToken: 't', budgetMs: 800,
+        deps: { runTool, searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true, scholarBooksOf: async () => found } });
+      return { calls, rows: g.results.library };
+    };
+    const c = await libCalls(Q6, { name: '\u0627\u0628\u0646 \u0642\u062f\u0627\u0645\u0647', bookIds: ['FC-003727'] });
+    ok('P13c question 6: his books are asked the issue without his name ("salat al-jama\'a"), and al-Mughni\'s row reaches the judge',
+      c.calls.some((x) => x.books === 'FC-003727' && x.query === '\u0635\u0644\u0627\u0647 \u0627\u0644\u062c\u0645\u0627\u0639\u0647') && c.rows.some((r) => r.bookTitle === '\u0627\u0644\u0645\u063a\u0646\u064a \u0644\u0627\u0628\u0646 \u0642\u062f\u0627\u0645\u0629'),
+      ascii(JSON.stringify(c.calls)));
+    const d = await libCalls('\u0645\u0627 \u062d\u0643\u0645 \u0635\u0644\u0627\u0629 \u0627\u0644\u062c\u0645\u0627\u0639\u0629\u061f', null);
+    ok('P13d a question naming nobody asks the same library members as before', d.calls.length === 2 && d.calls.every((x) => x.books !== 'FC-003727'), ascii(JSON.stringify(d.calls)));
+    const real = SCH ? await SCH.scholarBooksOf(Q6) : null;
+    const tay = SCH ? await SCH.scholarBooksOf('\u0645\u0627 \u0642\u0648\u0644 \u0627\u0628\u0646 \u062a\u064a\u0645\u064a\u0629 \u0641\u064a \u0627\u0644\u0637\u0644\u0627\u0642\u061f') : null;
+    ok('P13e the repo\'s catalogue: question 6 reaches al-Mughni; Ibn Taymiyya\'s own Majmu\' al-Fatawa is inside the 100 ids the service takes',
+      real && real.bookIds.includes('FC-003727') && tay && tay.bookIds.length <= 100 && tay.bookIds.includes('FC-004491'), ascii(JSON.stringify(real)));
+  }
+
   // ---------------------------------------------------------------- P2 the fatwa store in the reader's letters
   {
     const Q5 = '\u0645\u0627 \u062d\u0643\u0645 \u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u0641\u0627\u062a\u062d\u0629 \u0644\u0644\u0645\u0623\u0645\u0648\u0645 \u0639\u0646\u062f \u0627\u0644\u0645\u0630\u0627\u0647\u0628 \u0627\u0644\u0623\u0631\u0628\u0639\u0629';
