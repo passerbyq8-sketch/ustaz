@@ -23,7 +23,11 @@
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   const store = {
     get(k, d) { try { const v = localStorage.getItem('lab.' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
-    set(k, v) { try { localStorage.setItem('lab.' + k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+    set(k, v) {
+      try { localStorage.setItem('lab.' + k, JSON.stringify(v)); } catch (e) { return false; }
+      if (k === 'bm') refreshBookmarks();
+      return true;
+    }
   };
 
   // ------------------------------------------------------------------ state
@@ -208,14 +212,8 @@
     setTrack(0, false); sizeStages(); updateHeader();
   }
   function updateHeader() {
-    const heads = visiblePages(cur);
-    const ss = []; heads.forEach((p) => pageAyat[p].forEach((k) => { const s = +k.split(':')[0]; if (ss.indexOf(s) < 0) ss.push(s); }));
-    $('surahTitle').textContent = ss.map((s) => 'سورة ' + surahName(s)).join('، ');
-    $('subTitle').textContent = 'الجزء ' + ar(juzOf(heads[0])) + '، صفحة ' + heads.map(ar).join(' و');
     $('navPage').textContent = ar(cur);
-    const qs = []; heads.forEach((p) => (quarterByPage[p] || []).forEach((i) => qs.push(quarterLabel(i))));
-    $('notice').textContent = qs.length ? 'في هذه الصفحة بدايةُ ' + qs.join('، و') : '';
-    $('prevBtn').disabled = heads[0] <= 1; $('nextBtn').disabled = heads[heads.length - 1] >= 604;
+    updatePageBookmark();
   }
   let settling = false;
   function turn(dir, byHand) {
@@ -486,6 +484,22 @@
   const tags = () => store.get('tags', []);
   const reflections = () => store.get('refl', []);
   const findBookmark = (t, k) => bookmarks().find((b) => b.t === t && String(b.k) === String(k));
+  // Both page controls use the existing bookmark action, store and parent bridge.
+  function pageBookmarkLabel() {
+    return (findBookmark('p', cur) ? 'إزالة علامة الصفحة ' : 'علامة على الصفحة ') + ar(cur);
+  }
+  function updatePageBookmark() {
+    const button = $('pageBookmarkBtn');
+    button.setAttribute('aria-pressed', String(!!findBookmark('p', cur)));
+    button.setAttribute('aria-label', pageBookmarkLabel());
+  }
+  function refreshBookmarks() {
+    updatePageBookmark();
+    if ($('svBody') && $('svBody').dataset.tab === 'bm') renderSaved('bm');
+  }
+  function togglePageBookmark() {
+    const on = toggleBookmark('p', cur); toast(on ? 'حُفظت علامة الصفحة' : 'أُزيلت علامة الصفحة');
+  }
   function toggleBookmark(t, k) {
     const list = bookmarks(); const i = list.findIndex((b) => b.t === t && String(b.k) === String(k));
     if (i >= 0) { list.splice(i, 1); store.set('bm', list); return false; }
@@ -520,7 +534,7 @@
         const groups = [[null, 'بلا وسم']].concat(tg.map((t) => [t.id, t.n]));
         items = groups.map(([id, n]) => { const g = list.filter((b) => (id ? b.tags.indexOf(id) >= 0 : !b.tags.length)); return g.length ? '<h3>' + esc(n) + '</h3><ul class="list">' + g.map(row).join('') + '</ul>' : ''; }).join('');
       } else items = list.length ? '<ul class="list">' + list.map(row).join('') + '</ul>' : '';
-      body.innerHTML = '<div class="row"><button type="button" class="chip" data-act="bmPage">' + (findBookmark('p', cur) ? 'إزالة علامة الصفحة ' : 'علامة على الصفحة ') + ar(cur) + '</button></div>' +
+      body.innerHTML = '<div class="row"><button type="button" class="chip" data-act="bmPage">' + pageBookmarkLabel() + '</button></div>' +
         '<div class="row" style="margin-top:8px"><button type="button" class="chip" data-act="sort" aria-pressed="' + (bmSort === 'pos') + '">' + (bmSort === 'date' ? 'الترتيب: الأحدث' : 'الترتيب: حسب المصحف') + '</button><button type="button" class="chip" data-act="group" aria-pressed="' + bmGroup + '">التجميع بالوسوم</button><button type="button" class="chip" data-act="tagsMng">إدارة الوسوم</button></div>' +
         (tg.length ? '<div class="chips" style="margin-top:8px"><button type="button" data-filter="" aria-pressed="' + !bmFilter + '">الكل</button>' + tg.map((t) => '<button type="button" data-filter="' + t.id + '" aria-pressed="' + (bmFilter === t.id) + '">' + esc(t.n) + '</button>').join('') + '</div>' : '') +
         (items || '<p class="empty">لا علامات بعد. اضغطْ على آيةٍ ثمّ «علامة»، أو ضعْ علامةً على هذه الصفحة.</p>');
@@ -564,7 +578,7 @@
     }
     if (d.bmtags) { tagEditor(d.bmtags); return; }
     const act = d.act;
-    if (act === 'bmPage') { const on = toggleBookmark('p', cur); toast(on ? 'حُفظت علامة الصفحة' : 'أُزيلت علامة الصفحة'); renderSaved('bm'); }
+    if (act === 'bmPage') { togglePageBookmark(); }
     else if (act === 'sort') { bmSort = bmSort === 'date' ? 'pos' : 'date'; renderSaved('bm'); }
     else if (act === 'group') { bmGroup = !bmGroup; renderSaved('bm'); }
     else if (act === 'tagsMng') tagManager();
@@ -1068,10 +1082,11 @@
 
   // ------------------------------------------------------------------ input wiring
   function wire() {
-    $('prevBtn').onclick = () => step(-1); $('nextBtn').onclick = () => step(1);
+    $('pageBookmarkBtn').onclick = (e) => { e.stopPropagation(); togglePageBookmark(); };
+    $('pageBookmarkBtn').disabled = false;
     $('navIndex').onclick = () => indexSheet(); $('navSearch').onclick = () => searchSheet(); $('navGo').onclick = goSheet; $('navSaved').onclick = () => savedSheet(); $('navMore').onclick = settingsSheet;
     $('plPrev').onclick = () => playIndex(P.i - 1); $('plNext').onclick = () => playIndex(P.i + 1); $('plToggle').onclick = togglePlay; $('plStop').onclick = stopPlay; $('plSet').onclick = audioSheet;
-    if (EMBED) { $('exitBtn').hidden = false; document.querySelector('.top').classList.add('embedded'); $('exitBtn').onclick = () => { try { window.parent.postMessage({ type: 'mushaf-lab:exit' }, location.origin); } catch (e) {} }; }
+    if (EMBED) { $('exitBtn').hidden = false; $('exitBtn').onclick = (e) => { e.stopPropagation(); try { window.parent.postMessage({ type: 'mushaf-lab:exit' }, location.origin); } catch (e) {} }; }
     $('scrim').onclick = closeSheet; $('hintOk').onclick = () => { $('hint').hidden = true; store.set('hintSeen', true); };
     document.addEventListener('keydown', (e) => {
       if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;

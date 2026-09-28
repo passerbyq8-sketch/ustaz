@@ -2031,6 +2031,146 @@ function loadKunuzBank(p) {
 }
 const countOf = (hay, needle) => hay.split(needle).length - 1;
 
+
+// The lab header is shared by every mode. Execute its shipped script with a local
+// DOM and stored boot data; no browser, network, new store or copied action code.
+async function assertMushafTopbar(html, source, css) {
+  const { parseHTML } = require('linkedom');
+  const assert = require('assert/strict');
+  let checks = 0;
+  const check = (condition, label) => { assert.ok(condition, label); checks++; };
+  const removed = ['prevBtn', 'nextBtn', 'surahTitle', 'subTitle', 'notice'];
+  function header(document) {
+    const bars = document.querySelectorAll('header.top');
+    check(bars.length === 1, 'one shared lab header');
+    const top = bars[0], buttons = [...top.querySelectorAll('button')];
+    check(top.textContent.trim() === '', 'no visible text among the six removed header elements');
+    check(buttons.map(b => b.id).join(',') === 'exitBtn,pageBookmarkBtn', 'one bookmark toggle and KEEP_BACK_ARROW=yes');
+    check(removed.every(id => !document.getElementById(id)), 'removed nodes absent in every mode');
+    check(buttons.every(b => b.getAttribute('aria-label') && b.querySelector('svg[aria-hidden="true"]')), 'icons have accessible names');
+    check(buttons.every(b => b.querySelector('svg').getAttribute('width') === '24'
+      && b.querySelector('svg').getAttribute('height') === '24'), '24px icons');
+    check(buttons[0].querySelector('path').getAttribute('d') === 'M9 18l6-6-6-6', 'back points right in RTL');
+    check(top.querySelectorAll('[aria-pressed]').length === 1, 'only bookmark is a toggle');
+    return buttons[1];
+  }
+  header(parseHTML(html).document);
+  check(removed.every(id => !new RegExp("\\$\\(['\"]" + id + "['\"]\\)").test(source)), 'no script writes into removed nodes');
+  check(!/<header\b|createElement\(['"]header['"]\)/.test(source), 'script does not create an alternative header');
+  check(/height:\s*calc\(44px \+ var\(--sat\)\)/.test(css), '44px header plus top safe area');
+  check(/\.top \.ib \{[^}]*width:\s*44px;[^}]*height:\s*44px/.test(css), '44px touch targets');
+  check(/#pageBookmarkBtn \{ margin-inline-start: auto; \}/.test(css), 'bookmark is at inline end');
+  check(/#pageBookmarkBtn\[aria-pressed="true"\] svg \{ fill: currentColor; \}/.test(css), 'saved bookmark is filled');
+  const wire = source.match(/function wire\(\) \{[\s\S]*?\n  \}/);
+  const action = source.match(/function savedAction\(b\) \{[\s\S]*?\n  \}/);
+  check(wire && action && /togglePageBookmark\(\)/.test(wire[0])
+    && /act === 'bmPage'[^\n]*togglePageBookmark\(\)/.test(action[0]), 'bar and saved tab call the same page action');
+  check(/function togglePageBookmark\(\) \{[\s\S]*?toggleBookmark\('p', cur\)/.test(source), 'shared action calls the existing page bookmark store');
+
+  const bootFiles = {};
+  for (const f of ['mushaf-lab/data/tables.json', 'mushaf-lab/data/meta.json', 'mushaf-layout.json', 'quran-uthmani.json']) {
+    bootFiles['/' + f] = JSON.parse(fs.readFileSync(path.join(__dirname, f), 'utf8'));
+  }
+  async function load(options = {}) {
+    const dom = parseHTML(html), document = dom.document;
+    const storage = new Map([
+      ['lab.settings', JSON.stringify({ theme: options.theme || 'light', mode: options.mode || 'print', spread: true })],
+      ['lab.bm', JSON.stringify(options.saved || [])], ['lab.hintSeen', 'true']
+    ]);
+    const messages = [], events = {}, timers = new Map(), errors = [];
+    let nextTimer = 0, fetches = 0;
+    const location = { origin: 'https://lab.invalid', pathname: '/mushaf-lab/index.html', hash: options.hash || '#p=3', href: 'https://lab.invalid/mushaf-lab/index.html' };
+    const window = {
+      document, location, innerWidth: options.width || 390, innerHeight: 844,
+      matchMedia: () => ({ matches: (options.width || 390) <= 700 }),
+      getComputedStyle: () => ({ paddingTop: '0', paddingBottom: '0' }),
+      addEventListener: (type, fn) => { events[type] = fn; }
+    };
+    window.self = window;
+    window.parent = options.standalone ? window : { document, getComputedStyle: window.getComputedStyle,
+      postMessage: (message, origin) => messages.push({ message, origin }) };
+    window.top = window.parent;
+    const context = {
+      window, document, location, navigator: { onLine: !options.offline }, URL, URLSearchParams,
+      console: { log() {}, warn() {}, error: e => errors.push(String(e)) },
+      Audio: class { addEventListener() {} pause() {} play() { return Promise.resolve(); } },
+      localStorage: { getItem: key => storage.has(key) ? storage.get(key) : null, setItem: (key, value) => storage.set(key, value) },
+      setTimeout: (fn, ms) => { timers.set(++nextTimer, { fn, ms }); return nextTimer; },
+      clearTimeout: id => timers.delete(id),
+      fetch: async url => {
+        fetches++;
+        if (options.error) throw new Error('offline with no boot data');
+        const key = new URL(url, location.href).pathname, data = bootFiles[key];
+        return { ok: !!data, json: async () => data };
+      }
+    };
+    vm.runInNewContext(source, context, { timeout: 3000 });
+    header(document); // Includes the loading state before the boot promises settle.
+    await new Promise(resolve => setImmediate(resolve));
+    const button = header(document), lab = window.__lab;
+    const click = node => node.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
+    const event = (type, props = {}) => Object.assign(new dom.window.Event(type, { bubbles: true }), props);
+    return { document, window, storage, messages, events, timers, button, lab, click, event, errors, fetches: () => fetches };
+  }
+
+  const h = await load({ offline: true });
+  const saved = () => JSON.parse(h.storage.get('lab.bm'));
+  const pressed = () => h.button.getAttribute('aria-pressed');
+  check(h.document.getElementById('loading').hidden && !h.button.disabled, 'cached offline boot enables toggle');
+  check(pressed() === 'false' && h.button.querySelector('svg').getAttribute('fill') === 'none', 'unsaved page opens with outline');
+  h.lab.savedSheet('bm');
+  let bubbled = 0;
+  h.document.addEventListener('click', () => { bubbled++; });
+  const beforeFetch = h.fetches();
+  h.click(h.button);
+  check(saved().length === 1 && saved()[0].t === 'p' && saved()[0].k === 3, 'top toggle saves the current page');
+  check(Object.keys(saved()[0]).sort().join(',') === 'at,id,k,t,tags', 'existing bookmark record shape');
+  check(pressed() === 'true' && h.document.querySelector('[data-bmdel]'), 'saved list and pressed state update immediately');
+  check(h.messages.some(x => x.message.type === 'mushaf-lab:bookmark' && x.message.page === 3
+    && x.origin === 'https://lab.invalid'), 'existing bookmark bridge is called');
+  check(bubbled === 0 && !h.document.body.classList.contains('immersive') && h.lab.state.cur === 3, 'icon tap neither bubbles nor hides bars nor turns page');
+  check(h.fetches() === beforeFetch, 'bookmark tap makes zero network requests');
+  h.click(h.document.querySelector('[data-bmdel]'));
+  check(saved().length === 0 && pressed() === 'false', 'list removal updates the top icon');
+  h.click(h.document.getElementById('toastAct'));
+  check(saved().length === 1 && pressed() === 'true', 'undo updates the top icon');
+  h.click(h.button);
+  check(saved().length === 0 && !h.document.querySelector('[data-bmdel]') && pressed() === 'false', 'top toggle removes and refreshes list');
+  h.click(h.document.querySelector('[data-act="bmPage"]'));
+  check(saved().length === 1 && pressed() === 'true', 'existing saved-tab page action updates icon');
+  check(h.button.getAttribute('aria-label') === h.document.querySelector('[data-act="bmPage"]').textContent, 'existing Arabic page label is reused');
+
+  h.lab.goPage(4); check(pressed() === 'false', 'go-to changes bookmark state');
+  h.lab.goPage(3); check(pressed() === 'true', 'return restores bookmark state');
+  h.lab.turn(1, true); h.document.getElementById('spread').dispatchEvent(h.event('transitionend'));
+  check(h.lab.state.cur === 4 && pressed() === 'false', 'swipe commit changes state');
+  h.document.dispatchEvent(h.event('keydown', { key: 'ArrowRight' }));
+  h.document.getElementById('spread').dispatchEvent(h.event('transitionend'));
+  check(h.lab.state.cur === 3 && pressed() === 'true', 'keyboard previous still works without buttons');
+  h.window.location.hash = '#p=5'; h.events.hashchange();
+  check(h.lab.state.cur === 5 && pressed() === 'false', 'hash route changes state');
+  h.window.innerWidth = 1200; h.lab.goPage(4); h.click(h.button);
+  check(h.lab.visiblePages(4).join(',') === '3,4' && saved().some(b => b.t === 'p' && b.k === 4)
+    && h.document.getElementById('navPage').textContent === '\u0664', 'spread bookmark uses the bottom-bar anchor');
+  h.click(h.document.getElementById('exitBtn'));
+  check(h.messages.some(x => x.message.type === 'mushaf-lab:exit'), 'back retains the parent exit message');
+  check([...h.storage.keys()].every(k => ['lab.settings', 'lab.bm', 'lab.hintSeen', 'lab.last', 'lab.recent'].includes(k)), 'no new storage key');
+  check(h.errors.length === 0, 'no console errors');
+
+  for (const options of [
+    { saved: [{ id: 'existing', t: 'p', k: 3, tags: [], at: 1 }] },
+    { theme: 'dark', width: 412 }, { mode: 'vector' }, { standalone: true },
+    { hash: '#s=2' }, { hash: '#a=2:1' }, { hash: '#saved' }, { hash: '#last' }, { error: true }
+  ]) {
+    const variant = await load(options);
+    check(variant.errors.length === 0, 'variant has no console errors');
+    if (options.saved) check(variant.button.getAttribute('aria-pressed') === 'true', 'saved page is pressed on opening');
+    if (options.error) check(variant.button.disabled && !variant.document.getElementById('loading').hidden, 'error path keeps the one inert bookmark control');
+    else check(variant.document.getElementById('exitBtn').hidden === !!options.standalone, 'existing embedded-only back visibility');
+  }
+  return checks;
+}
+
 async function compare(bankPath) {
   let pass = 0, fail = 0;
   const ok = m => { pass++; console.log('  PASS ' + m); };
@@ -3331,6 +3471,35 @@ async function compare(bankPath) {
     if (!swSrc17 || !labSrc || !labHtml) {
       no('B17', 'sw.js, mushaf-lab/app.js or mushaf-lab/index.html is ABSENT -- nothing to execute');
     } else {
+      // (8) Compact top bar, bookmark wiring, and the existing exit decision.
+      try {
+        const labCss = fs.readFileSync(labPath('style.css'), 'utf8');
+        const checks = await assertMushafTopbar(labHtml, labSrc, labCss);
+        ok('lab top bar: ' + checks + ' DOM/store/navigation checks, KEEP_BACK_ARROW=yes');
+        if (process.argv.includes('--mutants')) {
+          const mutants = [
+            ['old title', labHtml.replace('</header>', '<h1 id="surahTitle">title</h1></header>'), labSrc, labCss],
+            ['old previous button', labHtml.replace('</header>', '<button id="prevBtn">previous</button></header>'), labSrc, labCss],
+            ['duplicate toggle', labHtml.replace('</header>', '<button id="pageBookmarkBtn"></button></header>'), labSrc, labCss],
+            ['missing back', labHtml.replace(/<button[^>]*id="exitBtn"[\s\S]*?<\/button>/, ''), labSrc, labCss],
+            ['wrong store action', labHtml, labSrc.replace("toggleBookmark('p', cur)", "toggleBookmark('a', '2:1')"), labCss],
+            ['stale store state', labHtml, labSrc.replace("if (k === 'bm') refreshBookmarks();", ''), labCss],
+            ['stale page state', labHtml, labSrc.replace("    updatePageBookmark();", ''), labCss],
+            ['no parent bridge', labHtml, labSrc.replace("toEzik({ type: 'mushaf-lab:bookmark'", "(() => {})({ type: 'mushaf-lab:bookmark'"), labCss],
+            ['unfilled saved icon', labHtml, labSrc, labCss.replace('fill: currentColor;', 'fill: none;')],
+            ['propagating icon tap', labHtml, labSrc.replace('e.stopPropagation(); togglePageBookmark();', 'togglePageBookmark();'), labCss]
+          ];
+          let killed = 0;
+          for (const [name, html, src, css] of mutants) {
+            if (html === labHtml && src === labSrc && css === labCss) throw new Error('mutant did not change input: ' + name);
+            try { await assertMushafTopbar(html, src, css); }
+            catch (e) { killed++; continue; }
+            throw new Error('surviving top-bar mutant: ' + name);
+          }
+          ok('lab top bar mutants killed ' + killed + '/' + mutants.length);
+        }
+      } catch (e) { no('B17', 'lab top bar: ' + e.message); }
+
       // (1) ACTIVATE KEEPS THE DOWNLOADS STORE. A stale shipment store beside it is the control:
       // an activate that swept nothing at all would otherwise pass this.
       {

@@ -18,10 +18,12 @@
 <body>
 <div class="loading" id="loading">يُحمَّل المصحف…</div>
 <header class="top">
-  <button type="button" class="ib" id="exitBtn" hidden aria-label="الرجوع إلى عزك">رجوع</button>
-  <button type="button" class="ib" id="prevBtn" aria-label="الصفحة السابقة">السابقة</button>
-  <div class="ttl"><h1 id="surahTitle">…</h1><div class="sub" id="subTitle"></div><div class="notice" id="notice"></div></div>
-  <button type="button" class="ib" id="nextBtn" aria-label="الصفحة التالية">التالية</button>
+  <button type="button" class="ib" id="exitBtn" hidden aria-label="الرجوع إلى عزك">
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
+  <button type="button" class="ib" id="pageBookmarkBtn" aria-label="علامة على الصفحة" aria-pressed="false" disabled>
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10a1 1 0 0 1 1 1v17l-6-4-6 4V4a1 1 0 0 1 1-1z"/></svg>
+  </button>
 </header>
 <main id="main">
   <div class="spread" id="spread"></div>
