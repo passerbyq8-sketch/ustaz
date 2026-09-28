@@ -350,6 +350,41 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
         d.text.includes(NOT_COVERED) && d.out.telemetry.liveOffer === true && !d.text.includes('\u064a\u062f\u0627 \u0628\u064a\u062f'), ascii(d.text.slice(0, 80)));
     }
 
+    // P12 (PIPES2 fix 4): round 7, question 9 -- "what did X narrate?" is answered with X's narration first, or not at all.
+    {
+      const UNITS = await esm('lib/bw2-units.js');
+      const Q9 = '\u0645\u0627 \u0627\u0644\u0630\u064a \u0631\u0648\u0627\u0647 \u0623\u0628\u0648 \u0647\u0631\u064a\u0631\u0629 \u0631\u0636\u064a \u0627\u0644\u0644\u0647 \u0639\u0646\u0647 \u0639\u0646 \u0645\u0644\u0627\u0632\u0645\u062a\u0647 \u0644\u0644\u0646\u0628\u064a \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645\u061f';
+      const Q22 = '\u0645\u0627 \u0627\u0644\u0630\u064a \u0631\u0648\u0627\u0647 \u0623\u0646\u0633 \u0628\u0646 \u0645\u0627\u0644\u0643 \u0631\u0636\u064a \u0627\u0644\u0644\u0647 \u0639\u0646\u0647 \u0639\u0646 \u062e\u062f\u0645\u062a\u0647 \u0644\u0644\u0646\u0628\u064a \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645\u061f';
+      const nar = (q) => (typeof UNITS.askedNarratorOf === 'function' ? UNITS.askedNarratorOf(q) : null);
+      ok('P12a the narrator asked about: question 9 and round 6\'s question 22 name him; "who narrated hadith ...", "the hadith al-Bukhari narrated" and a ruling question do not',
+        nar(Q9) === '\u0627\u0628\u0648 \u0647\u0631\u064a\u0631\u0647' && nar(Q22) === '\u0627\u0646\u0633 \u0628\u0646 \u0645\u0627\u0644\u0643' && nar('\u0645\u0646 \u0631\u0648\u0649 \u062d\u062f\u064a\u062b: \u0627\u0644\u0637\u0647\u0648\u0631 \u0634\u0637\u0631 \u0627\u0644\u0625\u064a\u0645\u0627\u0646\u061f') === ''
+        && nar('\u0645\u0627 \u0627\u0644\u062d\u062f\u064a\u062b \u0627\u0644\u0630\u064a \u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a \u0641\u064a \u0641\u0636\u0644 \u0627\u0644\u0639\u0644\u0645\u061f') === '' && nar('\u0645\u0627 \u062d\u0643\u0645 \u0635\u064a\u0627\u0645 \u064a\u0648\u0645 \u0627\u0644\u062c\u0645\u0639\u0629 \u0648\u062d\u062f\u0647\u061f') === '', ascii(JSON.stringify([nar(Q9), nar(Q22)])));
+      const ROW = '\u0639\u0646 \u0623\u0628\u064a \u0647\u0631\u064a\u0631\u0629 \u0642\u0627\u0644: \u0625\u0646 \u0627\u0644\u0646\u0627\u0633 \u064a\u0642\u0648\u0644\u0648\u0646 \u0623\u0643\u062b\u0631 \u0623\u0628\u0648 \u0647\u0631\u064a\u0631\u0629\u060c \u0648\u0625\u0646 \u0623\u0628\u0627 \u0647\u0631\u064a\u0631\u0629 \u0643\u0627\u0646 \u064a\u0644\u0632\u0645 \u0631\u0633\u0648\u0644 \u0627\u0644\u0644\u0647 \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645 \u0628\u0634\u0628\u0639 \u0628\u0637\u0646\u0647. \u0648\u0637\u0648\u0644 \u0627\u0644\u0635\u062d\u0628\u0629 \u0643\u0627\u0646 \u0633\u0628\u0628\u0627 \u0641\u064a \u0643\u062b\u0631\u0629 \u0631\u0648\u0627\u064a\u062a\u0647.';
+      const rec = { id: 'F9', term: '\u0645\u0644\u0627\u0632\u0645\u0629', part: 38, snippet: ROW, text: ROW };
+      const REASON = '\u0648\u0637\u0648\u0644 \u0627\u0644\u0635\u062d\u0628\u0629 \u0643\u0627\u0646 \u0633\u0628\u0628\u0627 \u0641\u064a \u0643\u062b\u0631\u0629 \u0631\u0648\u0627\u064a\u062a\u0647 [[1]].';
+      const NARRATION = '\u0631\u0648\u0649 \u0623\u0628\u0648 \u0647\u0631\u064a\u0631\u0629 \u0631\u0636\u064a \u0627\u0644\u0644\u0647 \u0639\u0646\u0647: \u00ab\u0625\u0646 \u0627\u0644\u0646\u0627\u0633 \u064a\u0642\u0648\u0644\u0648\u0646 \u0623\u0643\u062b\u0631 \u0623\u0628\u0648 \u0647\u0631\u064a\u0631\u0629\u060c \u0648\u0625\u0646 \u0623\u0628\u0627 \u0647\u0631\u064a\u0631\u0629 \u0643\u0627\u0646 \u064a\u0644\u0632\u0645 \u0631\u0633\u0648\u0644 \u0627\u0644\u0644\u0647 \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645 \u0628\u0634\u0628\u0639 \u0628\u0637\u0646\u0647\u00bb [[1]].';
+      const run12 = async (writer) => {
+        const target = makeTarget();
+        const facade = SSE.createFinalizedSseResponse(target, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [] }) });
+        const out = await BW2.runBw2Turn({
+          question: Q9, messages: [{ role: 'user', content: 'x' }], wire: BW2.createBw2Wire(facade), continueWhenNotCovered: true,
+          deps: {
+            runTool: async () => ({ text: '', added: [], calls: 0 }), searchStoredCorpus: async () => ({ records: [rec] }),
+            encyclopediaReady: () => true, warmEncyclopedia: () => true, ask: async () => '{"d":{"1":1}}',
+            callWriter: async ({ onText }) => { onText(writer); return { stop_reason: 'end_turn', usage: {} }; },
+          },
+        });
+        return { out, text: framesOf(target.writes).filter((f) => f.type === 'content_block_delta').map((f) => f.delta.text).join('') };
+      };
+      const r = await run12(REASON);
+      ok('P12b question 9\'s shape: the reasons without his narration are not sent, and the turn goes on by itself',
+        r.out.continued === true && r.text === '', ascii(JSON.stringify({ c: r.out.continued, text: r.text.slice(0, 60), held: r.out.telemetry.unitsHeld })));
+      const n = await run12([NARRATION, REASON].join('\n'));
+      ok('P12c his narration, carried by the row, goes out first; the reasons after it go out as today',
+        !n.out.continued && n.text.includes('\u0628\u0634\u0628\u0639 \u0628\u0637\u0646\u0647') && n.text.includes('\u0643\u062b\u0631\u0629 \u0631\u0648\u0627\u064a\u062a\u0647') && n.text.indexOf('\u0628\u0634\u0628\u0639 \u0628\u0637\u0646\u0647') < n.text.indexOf('\u0643\u062b\u0631\u0629 \u0631\u0648\u0627\u064a\u062a\u0647'),
+        ascii(JSON.stringify({ c: n.out.continued, text: n.text.slice(0, 80), holds: n.out.telemetry })));
+    }
+
     // P3c/P3d: the real handler. Every source is empty or refused and the judge keeps nothing, so the
     // before-writing path finds no text; today's path must then run by itself, first round forced to search.
     const LEDGER_REDIS = await esm('lib/ledger/redis.js');
