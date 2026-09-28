@@ -297,6 +297,26 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       ascii(JSON.stringify({ cards: s.cardsSent, released: s.released })));
   }
 
+  // ---------------------------------------------------------------- P22 (PIPES2 fix 14) round 7, 7: "wa-ma."
+  {
+    const UNITS = await esm('lib/bw2-units.js');
+    const rows = [{ ref: 1, kind: 'encyclopedia', title: 'a', fullText: '\u0645\u0646 \u0633\u0631\u0647 \u0623\u0646 \u064a\u0628\u0633\u0637 \u0644\u0647 \u0631\u0632\u0642\u0647 \u0641\u0644\u064a\u0635\u0644 \u0631\u062d\u0645\u0647. \u0644\u0627 \u062a\u0646\u0643\u062d \u0627\u0644\u0645\u0631\u0623\u0629 \u0639\u0644\u0649 \u0639\u0645\u062a\u0647\u0627 \u0648\u0644\u0627 \u0639\u0644\u0649 \u062e\u0627\u0644\u062a\u0647\u0627.' }];
+    const rel = async (writer) => {
+      const out = [];
+      const r = UNITS.createBw2Releaser({ rows, emit: (p) => { out.push(p); return true; } });
+      r.push(writer + '\n');
+      const s = await r.end();
+      return { text: out.join(''), s };
+    };
+    const a = await rel('\u0648\u0645\u0646 \u0627\u0644\u0633\u0646\u0629 \u0642\u0648\u0644\u0647: \u0645\u0646 \u0633\u0631\u0647 \u0623\u0646 \u064a\u0628\u0633\u0637 \u0644\u0647 \u0631\u0632\u0642\u0647 \u0641\u0644\u064a\u0635\u0644 \u0631\u062d\u0645\u0647 [[1]].\n\u0648\u0645\u0627 <source url="https://binbaz.org.sa/fatwas/1">\u0635\u0644\u0629 \u0627\u0644\u0631\u062d\u0645</source> [[1]].\n\u0648\u0642\u0648\u0644\u0647: \u0644\u0627 \u062a\u0646\u0643\u062d \u0627\u0644\u0645\u0631\u0623\u0629 \u0639\u0644\u0649 \u0639\u0645\u062a\u0647\u0627 [[1]].');
+    const b = await rel('\u0648\u0645\u0646 \u0627\u0644\u0633\u0646\u0629 \u0642\u0648\u0644\u0647: \u0645\u0646 \u0633\u0631\u0647 \u0623\u0646 \u064a\u0628\u0633\u0637 \u0644\u0647 \u0631\u0632\u0642\u0647 \u0641\u0644\u064a\u0635\u0644 \u0631\u062d\u0645\u0647 [[1]].\n\u0648\u0645\u0627 [[1]].\n\u0648\u0642\u0648\u0644\u0647: \u0644\u0627 \u062a\u0646\u0643\u062d \u0627\u0644\u0645\u0631\u0623\u0629 \u0639\u0644\u0649 \u0639\u0645\u062a\u0647\u0627 [[1]].');
+    ok('P22a question 7: a unit left with "wa-ma" alone (its card markup or its bare citation removed) is not sent; the saying after it is',
+      !/(?:^|\n)\u0648\u0645\u0627 ?\./u.test(a.text) && !/(?:^|\n)\u0648\u0645\u0627 ?\./u.test(b.text) && a.text.includes('\u0644\u0627 \u062a\u0646\u0643\u062d') && b.text.includes('\u0644\u0627 \u062a\u0646\u0643\u062d')
+      && a.s.holds.empty === 1, ascii(JSON.stringify([a.text, b.text])));
+    ok('P22b the test: function words only; a short unit with a word of its own is not empty',
+      UNITS.onlyFunctionWords('\u0648\u0645\u0627.') && UNITS.onlyFunctionWords('\u0648\u0647\u0630\u0627 [[2]].') && !UNITS.onlyFunctionWords('\u0648\u0645\u0627 \u0635\u062d \u0639\u0646\u0647.') && !UNITS.onlyFunctionWords('\u064a\u062c\u0648\u0632.'));
+  }
+
   // ---------------------------------------------------------------- P2 the fatwa store in the reader's letters
   {
     const Q5 = '\u0645\u0627 \u062d\u0643\u0645 \u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u0641\u0627\u062a\u062d\u0629 \u0644\u0644\u0645\u0623\u0645\u0648\u0645 \u0639\u0646\u062f \u0627\u0644\u0645\u0630\u0627\u0647\u0628 \u0627\u0644\u0623\u0631\u0628\u0639\u0629';
