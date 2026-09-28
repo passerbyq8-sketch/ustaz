@@ -100,23 +100,25 @@ const hit0 = (key) => FIX.atoms[key].response.hits[0];
       flagReads === 1 && !ENV_READ.test(quoteSrc)
       && !ENV_READ.test(read('lib/free-brain/tools.js')) && !ENV_READ.test(read('lib/lib-service.js')),
       'reads=' + flagReads);
-    const gateExpr = (/\n  if \((libQuoteValue === 'on' && [^\n]+)\) \{\n    const libQuote = await import\('\.\.\/lib\/lib-quote\.js'\);/.exec(askSrc) || [])[1] || '';
+    // SPEED WASL W4: ON by default -- the gate reads libQuoteOn, which is cut out of api/ask.js too and evaluated with it.
+    const gateExpr = (/\n  if \((libQuoteOn && [^\n]+)\) \{\n    const libQuote = await import\('\.\.\/lib\/lib-quote\.js'\);/.exec(askSrc) || [])[1] || '';
+    const onExpr = (/\n  const libQuoteOn = ([^\n]+);\n/.exec(askSrc) || [])[1] || 'false';
     ok('A2  the gate expression was found whole in api/ask.js', gateExpr !== '', gateExpr);
     const decide = (expr) => (v, band, flag, token) => {
-      try { return new Function('libQuoteValue', 'band', 'libFlagValue', 'libToken', 'return (' + expr + ');')(v, band, flag, token); }
+      try { return new Function('libQuoteValue', 'band', 'libFlagValue', 'libToken', 'const libQuoteOn = (' + onExpr + '); return (' + expr + ');')(v, band, flag, token); }
       catch { return 'threw'; }
     };
     const table = (fn) => [
       fn('on', 'adult', 'on', 'tk') === true,
-      fn('', 'adult', 'on', 'tk') === false,
+      fn('', 'adult', 'on', 'tk') === true,
       fn('off', 'adult', 'on', 'tk') === false,
-      fn('true', 'adult', 'on', 'tk') === false,
+      fn('0', 'adult', 'on', 'tk') === false,
       fn('on', 'teen', 'on', 'tk') === false,
       fn('on', 'young', 'on', 'tk') === false,
       fn('on', 'adult', 'off', 'tk') === false,
       fn('on', 'adult', 'on', '') === false,
     ];
-    ok('A3  taken only for: LIB_QUOTE_V1 on + adult + SHAMELA_BRAIN on + a token (8 rows)',
+    ok('A3  taken only for: LIB_QUOTE_V1 not switched off (unset is on) + adult + SHAMELA_BRAIN on + a token (8 rows)',
       table(decide(gateExpr)).every(Boolean), JSON.stringify(table(decide(gateExpr))));
     ok('A3b ...and the value is read trimmed and lower-cased, like SHAMELA_BRAIN',
       /const libQuoteValue = String\(process\.env\.LIB_QUOTE_V1 \|\| ''\)\.trim\(\)\.toLowerCase\(\);/.test(askSrc));
@@ -127,7 +129,7 @@ const hit0 = (key) => FIX.atoms[key].response.hits[0];
       && seat < askSrc.indexOf('res = createFinalizedSseResponse(res, {', at('export default async function handler('))
       && seat > at('const cap = await guardDayCap(req, res);'),
       JSON.stringify({ seat, route: at('const effectiveRoute'), commit: at('let keepAlive = setInterval(') }));
-    const block = askSrc.slice(at("if (libQuoteValue === 'on'"), seat);
+    const block = askSrc.slice(at("if (libQuoteOn && "), seat);
     ok('A5  ...and it asks the two protections that run later on every path (hazard, health referral)',
       block.includes('!graveHazard(currentQuestionText)') && block.includes(".outcome !== 'REFER_ADULT'"));
     ok('A6  the library call goes through runTool, and the quote writer is not sendSynthesizedText',
@@ -409,10 +411,12 @@ const hit0 = (key) => FIX.atoms[key].response.hits[0];
       ['Db2', 'انسخ لي ما في الصفحة 120 من المجلد الخامس من مجموع فتاوى ابن باز', 'مجموع فتاوى ابن باز'],
       ['Db3', 'اكتب لي نص الصفحة ٢٥٠ من الجزء الثاني من لمعة الاعتقاد لابن قدامة', 'لمعة الاعتقاد'],
     ]) {
+      // SPEED WASL W4: a page by number is READ from the library's pages (lib/lib-service.js readLibraryPage); these three
+      // drives serve no page, so the reply says the page was not found, names the book, and makes no search call. The page
+      // itself, «كمّل» and «اشرح» are guarded by speedpipes W4 on the owner's Bada'i 2/73.
       const r = await drive(q, { env: ON, lib: serve('fatwa_print') });
-      ok(id + ' (b) a page by number: honest, names the book, offers the topic road; no digit, no machinery, no call',
-        quotePath(r) && r.libCalls.length === 0 && r.outcome === 'page_request' && r.text.includes('«' + title + '»')
-        && r.text.includes('لا أستطيع أن أنقل لك صفحة بعينها برقمها') && r.text.includes('ما جاء في')
+      ok(id + ' (b) a page by number: read, not refused; a page the library does not serve is said so, the book named; no search call, no machinery',
+        quotePath(r) && r.libCalls.length === 0 && r.outcome === 'page_not_found' && r.text.includes('«') && r.text.includes('لم أجد هذه الصفحة')
         && !DIGIT.test(r.text) && namesMachinery(r.text).length === 0, ascii(r.text) + ' ' + pathDetail(r));
     }
     // (c) no such book
@@ -420,7 +424,8 @@ const hit0 = (key) => FIX.atoms[key].response.hits[0];
       const r = await drive('انقل لي من كتاب الغواصين في البحار ما جاء في الصلاة', { env: ON, lib: serve('fatwa_print') });
       ok('Dc1 (c) no such book: says so plainly, byte-exact, no call',
         quotePath(r) && r.libCalls.length === 0 && r.outcome === 'no_book'
-        && r.text === 'ليس عندي كتاب باسم «الغواصين في البحار». إن كان للكتاب اسم آخر يعرف به، أو كان عندك اسم مؤلفه، فاذكره لي.',
+        // SPEED WASL W4, the owner's rule: the "not found" reply never asks for the author's name.
+        && r.text === 'ليس عندي كتاب باسم «الغواصين في البحار». إن كان للكتاب اسم آخر يعرف به فاذكره لي.',
         ascii(r.text));
       const r2 = await drive('اكتب لي نص كلام القرضاوي في كتابه فقه الزكاة عن زكاة الأسهم', { env: ON, lib: serve('fatwa_print') });
       ok('Dc2 (c) a title under an author who wrote no such book is no book either (owner Q10)',
@@ -489,9 +494,9 @@ const hit0 = (key) => FIX.atoms[key].response.hits[0];
       // SPEED WASL W1: and the brief turn's one library call (LIB_MUJAZ_V1) is ON by default now, so these rows state it
       // off too: they are about the quote door; guards/lib-mujaz-guard.cjs and speedpipes W1 own the brief call.
       const off = await drive(q, { env: { SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: TOKEN, FREE_BRAIN_V1: 'on', BEFORE_WRITING_V2: 'off', LIB_MUJAZ_V1: 'off' }, lib: serve('turath_print') });
-      ok('Dj1 OFF BY DEFAULT: flag unset -> the model IS called, the library is not called before it, no quote card',
-        !off.crashed && off.modelCalls >= 1 && !off.libBeforeModel && off.libCalls.length === 0 && !off.text.startsWith(BOOK)
-        && off.outcome === null && off.res.ended === 1, pathDetail(off) + ' lib=' + off.libCalls.length);
+      // SPEED WASL W4: ON BY DEFAULT now -- flag unset, the quotation is taken (the name is only an off switch; Dj2).
+      ok('Dj1 ON BY DEFAULT: flag unset -> the quotation path is taken, not the model',
+        !off.crashed && quotePath(off) && off.outcome !== null && off.res.ended === 1, pathDetail(off) + ' lib=' + off.libCalls.length);
       const offExplicit = await drive(q, { env: { LIB_QUOTE_V1: 'off', SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: TOKEN, FREE_BRAIN_V1: 'on', BEFORE_WRITING_V2: 'off', LIB_MUJAZ_V1: 'off' }, lib: serve('turath_print') });
       ok('Dj2 LIB_QUOTE_V1=off: the same', !offExplicit.crashed && offExplicit.modelCalls >= 1 && offExplicit.libCalls.length === 0 && offExplicit.outcome === null,
         pathDetail(offExplicit));

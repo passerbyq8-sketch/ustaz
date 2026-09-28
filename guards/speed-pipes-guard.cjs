@@ -1149,6 +1149,64 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       fatwaAsked.length = 0;
       const w3c = await drive('ما حكم تغطية المرآة في غرفة النوم؟', { env: LIBENV, respond: storeRespond });
       ok('W3a6 control: a question the rule does not read is asked in its own words only, as before', !w3c.crashed && fatwaAsked.length === 1, ascii(JSON.stringify(fatwaAsked)));
+
+      // W4 (WASL): a page of a book on request, «كمّل» and «اشرح», through the real handler at the brief depth, LIB_QUOTE_V1
+      // unset (on by default now). The live library's page replies were recorded read only on 2026-09-28 (public GETs, no
+      // key: fixtures-speed-wasl-pages.json) and are answered from there.
+      const PAGES = require('./fixtures-speed-wasl-pages.json');
+      const pageGets = [];
+      const pageRespond = (u, init) => {
+        if (u.startsWith('https://lib.ezik.app/lib/v1/')) {
+          pageGets.push(u);
+          const e = PAGES[u];
+          if (!e) return { ok: false, status: 404, url: u, headers: { get: () => 'application/json' }, text: async () => '{}', json: async () => ({}) };
+          return { ok: e.status === 200, status: e.status, url: u, redirected: false, headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? e.ct : null) },
+            text: async () => e.body, json: async () => JSON.parse(e.body) };
+        }
+        return storeRespond(u, init);
+      };
+      const bodyOf = (u) => JSON.parse(PAGES[u].body).pages[0].body;
+      const P73 = bodyOf('https://lib.ezik.app/lib/v1/books/FC-003532/pages?from=396&count=1');
+      const P74 = bodyOf('https://lib.ezik.app/lib/v1/books/FC-003532/pages?from=397&count=1');
+      const quotedOf = (t) => t.split('\n').filter((l) => l.startsWith('>')).map((l) => l.replace(/^> ?/, '')).join('\n');
+      const PENV = { SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: 'tk-wasl-1' };
+      const ASK73 = 'انقل لي نص صفحة 73 من الجزء 2 من كتاب بدائع الصنائع';
+      const w4 = await drive(ASK73, { env: PENV, respond: pageRespond });
+      ok('W4a Bada\'i vol 2 p 73 asked by name: the page is stated above the text, the 5,989-character page letter for letter, the card with book, author, volume and page -- no model call',
+        !w4.crashed && w4.model.length === 0 && P73.length === 5989 && quotedOf(w4.text) === P73.trim()
+        && w4.text.split('\n')[0].endsWith('ج2 · ص73') && /<book [^>]*author="الكاساني"[^>]* book="FC-003532" vol="2" page="73"/.test(w4.text),
+        ascii(JSON.stringify({ model: w4.model.length, len: quotedOf(w4.text).length, head: w4.text.split('\n')[0], crashed: w4.crashed && String(w4.crashed.stack) })));
+      const w4n = await drive([{ role: 'user', content: ASK73 }, { role: 'assistant', content: w4.text }, { role: 'user', content: 'كمّل' }], { env: PENV, respond: pageRespond });
+      ok('W4b "kammil" right after it: vol 2 p 74, whole, stated above the text',
+        !w4n.crashed && w4n.model.length === 0 && quotedOf(w4n.text) === P74.trim() && w4n.text.split('\n')[0].endsWith('ج2 · ص74'), ascii(w4n.text.split('\n')[0]));
+      const w4chip = await drive([{ role: 'user', content: ASK73 }, { role: 'assistant', content: w4.text }, { role: 'user', content: 'كمّل الشرح من آخر نقطة، من دون إعادة ما سبق.' }], { env: PENV, respond: pageRespond });
+      ok('W4b2 ...and the "kammil" chip under a quoted page does the same', !w4chip.crashed && quotedOf(w4chip.text) === P74.trim());
+      const MODERN = 'انقل لي نص صفحة 50 من الجزء 6 من كتاب الشرح الممتع على زاد المستقنع';
+      const w4m = await drive(MODERN, { env: PENV, respond: pageRespond });
+      const MB = bodyOf('https://lib.ezik.app/lib/v1/books/FC-003794/pages?from=2088&count=1');
+      const w4mn = await drive([{ role: 'user', content: MODERN }, { role: 'assistant', content: w4m.text }, { role: 'user', content: 'كمّل' }], { env: PENV, respond: pageRespond });
+      ok('W4c a modern book: one paragraph of the page with its attribution (card), not the page; and no "kammil" after it',
+        !w4m.crashed && quotedOf(w4m.text).length > 0 && quotedOf(w4m.text).length < MB.trim().length && MB.includes(quotedOf(w4m.text).replace(/ …$/, '').split('\n')[0])
+        && /<book [^>]* book="FC-003794"/.test(w4m.text) && !quotedOf(w4mn.text) && w4mn.text.includes('معاصر'),
+        ascii(JSON.stringify({ q: quotedOf(w4m.text).length, page: MB.length, next: w4mn.text.slice(0, 80) })));
+      pageGets.length = 0;
+      const w4a = await drive('انقل لي نص صفحة 10 من كتاب فتاوى نور على الدرب للعثيمين', { env: PENV, respond: pageRespond });
+      ok('W4d an auto-numbered book is not given a page number: no page read, no page number in the reply',
+        !w4a.crashed && pageGets.length === 0 && w4a.text.includes('آلي') && !/ص\s?\d/.test(w4a.text) && !/10/.test(w4a.text), ascii(w4a.text.slice(0, 120)));
+      const PREV_CARD = 'قال الكاساني في القيمة.\n<book author="الكاساني" ref="ج2 · ص73" book="FC-003532" vol="2" page="73">بدائع الصنائع في ترتيب الشرائع</book>';
+      const w4card = await drive([{ role: 'user', content: 'ما حكم إخراج القيمة؟' }, { role: 'assistant', content: PREV_CARD }, { role: 'user', content: 'انقل لي نص هذه الصفحة' }], { env: PENV, respond: pageRespond });
+      ok('W4e the page of a card of the previous answer is found and quoted whole', !w4card.crashed && w4card.model.length === 0 && quotedOf(w4card.text) === P73.trim(), ascii(w4card.text.slice(0, 100)));
+      const w4x = await drive([{ role: 'user', content: ASK73 }, { role: 'assistant', content: w4.text }, { role: 'user', content: 'اشرح' }], { env: PENV, respond: pageRespond });
+      const w4xFirst = w4x.model.find((b) => b.system !== BW2.BW2_JUDGE_SYSTEM);
+      ok('W4f "ishrah" after a quoted page goes to the writer with that page\'s text before it',
+        !w4x.crashed && !!w4xFirst && lastUser(w4xFirst).includes(JSON.stringify(P73.trim().slice(0, 200)).slice(1, -1)), ascii(JSON.stringify({ model: w4x.model.length })));
+      pageGets.length = 0;
+      const w4k = await drive(ASK73, { env: PENV, respond: pageRespond, band: 'young', age: 12 });
+      ok('W4g a child gets none: no page read, the ordinary path answers', !w4k.crashed && pageGets.length === 0 && w4k.model.length > 0 && !quotedOf(w4k.text));
+      const w4o = await drive(ASK73, { env: { ...PENV, LIB_QUOTE_V1: 'off' }, respond: pageRespond });
+      ok('W4h LIB_QUOTE_V1=off still takes the door down', !w4o.crashed && w4o.model.length > 0 && !quotedOf(w4o.text));
+      const LQ = await esm('lib/lib-quote.js');
+      ok('W4i the "not found" reply never asks for the author\'s name', !/مؤلف/.test(LQ.noBookReply('كتاب مجهول')));
     } finally {
       globalThis.fetch = realFetch;
       for (const k of ENV_KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }

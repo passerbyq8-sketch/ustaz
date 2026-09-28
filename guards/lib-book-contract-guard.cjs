@@ -359,6 +359,32 @@ async function main() {
   ok('A7  searchLibrary has exactly ONE call site in the tree, and it is the gated runner',
     callSites.length === 1 && callSites[0] === 'lib/free-brain/tools.js', JSON.stringify(callSites));
 
+  // SPEED WASL W4 (2026-09-28) -- A7 WIDENED TO THE LIBRARY'S TWO PAGE GETS, AND NO OTHERS. A page of a book is read from
+  // the live library's own pages (public GET, no key): /lib/v1/books/{id}/locate and /lib/v1/books/{id}/pages. The reader
+  // lives in lib/lib-service.js beside searchLibrary (one library module); no other server file names a /lib/v1 path, the
+  // module builds exactly those two, and the reader has one call site (the quote door in api/ask.js).
+  const pageSites = [];
+  const v1Files = [];
+  const walkServer = (dir) => {
+    for (const entry of fs.readdirSync(path.join(REPO, dir), { withFileTypes: true })) {
+      const rel = dir + '/' + entry.name;
+      if (entry.isDirectory()) { walkServer(rel); continue; }
+      if (!/\.(js|cjs|mjs)$/.test(entry.name)) continue;
+      const body = fs.readFileSync(path.join(REPO, rel), 'utf8');
+      if (/\breadLibraryPage\s*\(/.test(body) && !/export async function readLibraryPage/.test(body)) pageSites.push(rel);
+      if (body.includes('/lib/v1/')) v1Files.push(rel);
+    }
+  };
+  walkServer('api');
+  walkServer('lib');
+  const serviceSrc = fs.readFileSync(path.join(REPO, 'lib/lib-service.js'), 'utf8');
+  const built = [...serviceSrc.matchAll(/\$\{LIB_PAGES_PREFIX\}\$\{id\}\/([a-z]+)\?/g)].map((m) => m[1]).sort();
+  ok('A7b the library page GETs: only lib/lib-service.js names /lib/v1, it builds /locate and /pages and nothing else, by GET, and the reader has one call site',
+    JSON.stringify(v1Files) === JSON.stringify(['lib/lib-service.js']) && JSON.stringify(built) === JSON.stringify(['locate', 'pages'])
+      && /method: 'GET'/.test(serviceSrc) && /url\.pathname\.startsWith\(LIB_PAGES_PREFIX\)/.test(serviceSrc)
+      && JSON.stringify(pageSites) === JSON.stringify(['api/ask.js']),
+    JSON.stringify({ v1Files, built, pageSites }));
+
   // The band half lives in api/ask.js and nowhere else, so it is read where it is written.
   ok('A8  depth eligibility is deep|scholar and is built on the REQUESTED depth',
     /const libDepthEligible = libRequestedDepth === 'deep' \|\| libRequestedDepth === 'scholar';/

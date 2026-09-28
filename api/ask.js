@@ -916,9 +916,12 @@ export default async function handler(req, res) {
   const libMujazValue = String(process.env.LIB_MUJAZ_V1 || '').trim().toLowerCase();
   // SOURCES ORDER 2026-09-24 -- LIB_QUOTE_V1. A reader who asks for the TEXT of a named book is
   // answered with the book's own words, composed by the server (lib/lib-quote.js), below the route
-  // classification. OFF unless exactly 'on'; it rides the library's own two switches as well, so
-  // a deployment without them never takes the quote path. Read here, beside them, and nowhere else.
+  // classification. It rides the library's own two switches as well, so a deployment without them
+  // never takes the quote path. Read here, beside them, and nowhere else. SPEED WASL W4 (2026-09-28):
+  // ON by default for adults (it was OFF unless exactly 'on'); the name stays only as an off switch --
+  // 'off', 'false' or '0' take it down.
   const libQuoteValue = String(process.env.LIB_QUOTE_V1 || '').trim().toLowerCase();
+  const libQuoteOn = !['off', 'false', '0'].includes(libQuoteValue);
   // SOURCES ORDER 2026-09-24, item 4 (ENCYC_V1). The Kuwaiti encyclopedia already reaches the
   // model when the model calls search_sources; with this switch on, the loop also searches it
   // itself for the religious question, beside the fatwa-store prefetch, and a cited row earns a
@@ -1072,13 +1075,34 @@ export default async function handler(req, res) {
   // protections that run later on every path are asked here too: a grave hazard or a health
   // referral is never answered by a quotation, so those requests go on down the ordinary path.
   // Anything the detector does not claim goes on unchanged; with the flag off nothing is loaded.
-  if (libQuoteValue === 'on' && band === 'adult' && libFlagValue === 'on' && libToken !== '') {
+  if (libQuoteOn && band === 'adult' && libFlagValue === 'on' && libToken !== '') {
     const libQuote = await import('../lib/lib-quote.js');
+    // SPEED WASL W4: a page is read from the live library's pages (lib/lib-service.js readLibraryPage, public GET), and
+    // its card is this file's own buildBookTag (book, author, volume, page -> «افتح في المكتبة» to that page).
+    const { readLibraryPage } = await import('../lib/lib-service.js');
+    const pageDeps = {
+      readPage: (at) => readLibraryPage(at, { flagValue: libFlagValue }),
+      buildBookTag,
+    };
+    // SPEED WASL W4: the follow-ups of a page -- «كمّل» (the next page), «اشرح» (the page goes to the writer before the
+    // request) and "the page of that card" (a page card of the previous answer). None of them: nothing changes.
+    if (!graveHazard(currentQuestionText)) {
+      const { previousAnswerOf } = await import('../lib/source-followup.js');
+      const follow = await libQuote.answerPageFollowUp(currentQuestionText, { ...pageDeps, previousAnswer: previousAnswerOf(body.messages) });
+      if (follow && follow.outcome === 'explain') {
+        const lastUser = Array.isArray(body.messages) ? [...body.messages].reverse().find((m) => m && m.role === 'user') : null;
+        if (lastUser && typeof lastUser.content === 'string') lastUser.content = follow.question;
+        console.log('[lib-quote]', { outcome: 'explain' });
+      } else if (follow) {
+        console.log('[lib-quote]', { outcome: follow.outcome });
+        return libQuote.writeQuoteReply(res, follow.text);
+      }
+    }
     const quoteAsk = libQuote.detectQuoteRequest(currentQuestionText);
     if (quoteAsk && !graveHazard(currentQuestionText)
       && access({ topicClass: classifyTopic(currentQuestionText, currentPlan, effectiveRoute), audienceBand }).outcome !== 'REFER_ADULT') {
       const { runTool, createEvidenceTable } = await import('../lib/free-brain/tools.js');
-      const quoted = await libQuote.answerQuoteRequest(quoteAsk, { runTool, createEvidenceTable, libFlagValue, libToken });
+      const quoted = await libQuote.answerQuoteRequest(quoteAsk, { runTool, createEvidenceTable, libFlagValue, libToken, ...pageDeps });
       if (quoted) {
         console.log('[lib-quote]', { outcome: quoted.outcome });
         return libQuote.writeQuoteReply(res, quoted.text);

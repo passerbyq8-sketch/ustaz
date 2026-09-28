@@ -62,14 +62,15 @@
     },
     {
       "q": "أريد نص الصفحة ١٢٣ من المجلد الثاني من المغني",
+      "note": "SPEED WASL W4: a page is now read, so a title five works share is asked about (it was refused with no book).",
       "detect": {
         "kind": "page",
         "shape": "page",
         "explicitBook": true
       },
       "plan": {
-        "outcome": "page",
-        "ids": []
+        "outcome": "ask_which",
+        "ids": ["FC-002005", "FC-002151", "FC-003727", "FC-005436", "FC-006495"]
       }
     },
     {
