@@ -207,6 +207,45 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       ascii(JSON.stringify(tags.map((x) => x.attrs))));
   }
 
+  // ---------------------------------------------------------------- W6 (WASL) the madhhab books asked in their own words
+  // Each madhhab member also asks its book with the issue's fiqh term as W3 a) derives it (the value forms, «إخراج القيمة
+  // في …»), beside the issue query it asks today, at most two more rows per book. MEASURED in process on the local index
+  // (fixture: the service's own /search answers for the owner's question): the issue query brought no row stating the
+  // Maliki or Shafi'i view; «اخراج القيمه في الزكاه» brings al-Dasuqi 1:499 and al-Majmu' 5:428-429 («اتفقت نصوص الشافعي
+  // … أنه لا يجوز إخراج القيمة في الزكاة»). The holder's school test is not touched (item E(14)).
+  {
+    const MX = require('./fixtures-speed-wasl-madhhab.json');
+    const WQ = require('./fixtures-speed-wasl.json');
+    const TOOLS = await esm('lib/free-brain/tools.js');
+    const asked = [];
+    const empty = { hits: [], refused: false };
+    const fetchImpl = async (u, init) => {
+      const b = JSON.parse(init.body);
+      const key = ((b.filters && b.filters.book_ids) || [''])[0] + '|' + b.q;
+      asked.push(key);
+      const body = MX[key] || empty;
+      return { ok: true, status: 200, url: String(u), redirected: false, headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? 'application/json' : null) },
+        text: async () => JSON.stringify(body), json: async () => body };
+    };
+    const g = await BW2.gatherBw2({
+      question: WQ.w1.question, libFlagValue: 'on', libToken: 'tk-wasl-1', budgetMs: 5000,
+      deps: { runTool: (n, i, c) => (n === 'search_library' ? TOOLS.runTool(n, i, { ...c, fetchImpl }) : Promise.resolve({ text: '', added: [], calls: 0 })),
+        searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true, scholarBooksOf: () => null },
+    });
+    const TERM = 'اخراج القيمه في الزكاه';
+    const lq = BW2.libraryQuery(WQ.w1.question);
+    const books = BW2.MADHHAB_BOOKS_PRIMARY.map((m) => m.bookId);
+    const rowsOf = (key) => g.results.library.filter((r) => r.madhhab === key);
+    ok('W6a the owner\'s question: each of the four madhhab books is asked the issue query AND «اخراج القيمه في الزكاه»',
+      books.every((id) => asked.includes(id + '|' + lq) && asked.includes(id + '|' + TERM)), ascii(JSON.stringify(asked)));
+    ok('W6b ...and the rows stating the Shafi\'i and Maliki views (al-Majmu\' 5:428-429, al-Dasuqi 1:499) now reach the judge, tagged with their school',
+      rowsOf('shafii').some((r) => r.recordId === 'lib:FC-003660:0106:044') && rowsOf('maliki').some((r) => r.recordId === 'lib:FC-003623:0094:048'),
+      ascii(JSON.stringify(g.results.library.map((r) => (r.madhhab || '-') + ':' + r.recordId))));
+    ok('W6c at most two more rows per book than today (the issue query\'s two)', BW2.MADHHAB_BOOKS_PRIMARY.every((m) => rowsOf(m.key).length <= 4));
+    ok('W6d control: a madhhab question with no due paid in another kind asks each book the issue query only (no fiqh term to add)',
+      BW2.madhhabTermQueries(Q1).length === 0 && BW2.madhhabTermQueries(WQ.w1.question).length === 1);
+  }
+
   // ---------------------------------------------------------------- P10 (PIPES2 fix 2) round 7, question 5
   {
     const Q7_5 = '\u0645\u0627 \u062d\u0643\u0645 \u062a\u062f\u0627\u0648\u0644 \u0627\u0644\u0639\u0645\u0644\u0627\u062a \u0627\u0644\u0645\u0634\u0641\u0631\u0629 \u0645\u062b\u0644 \u0627\u0644\u0628\u062a\u0643\u0648\u064a\u0646\u061f';
