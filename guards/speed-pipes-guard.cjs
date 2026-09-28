@@ -279,6 +279,24 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       && !UNITS.isPlainTitleUnit('\u0648\u0627\u0644\u0644\u0647 \u0623\u0639\u0644\u0645') && !UNITS.isPlainTitleUnit('\u0635\u0644\u0627\u0629 \u0627\u0644\u0627\u0633\u062a\u0633\u0642\u0627\u0621 \u0631\u0643\u0639\u062a\u0627\u0646 [[1]]'));
   }
 
+  // ---------------------------------------------------------------- P21 (PIPES2 fix 13) round 7, 7: one card per work
+  {
+    const UNITS = await esm('lib/bw2-units.js');
+    const ASKM = await esm('api/ask.js');
+    const TEXT = '\u0630\u0643\u0631 \u062d\u062b \u0627\u0644\u0645\u0635\u0637\u0641\u0649 \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645 \u0641\u064a \u0645\u0631\u0636\u0647 \u0627\u0644\u0630\u064a \u0642\u0628\u0636 \u0641\u064a\u0647 \u0623\u0645\u062a\u0647 \u0639\u0644\u0649 \u0635\u0644\u0629 \u0627\u0644\u0631\u062d\u0645.';
+    const ed = (id, suffix) => ({ ref: id, kind: 'lib_book', title: '\u0635\u062d\u064a\u062d \u0627\u0628\u0646 \u062d\u0628\u0627\u0646 - ' + suffix, bookTitle: '\u0635\u062d\u064a\u062d \u0627\u0628\u0646 \u062d\u0628\u0627\u0646 - ' + suffix,
+      author: '\u0627\u0628\u0646 \u062d\u0628\u0627\u0646', locator: '\u062c2 \u00b7 \u0635179', recordId: 'lib:FC-00070' + (id + 2) + ':0424:001', fullText: TEXT, text: TEXT });
+    const rows = [ed(1, '\u0645\u062d\u0642\u0642\u0627'), ed(2, '\u0645\u062e\u0631\u062c\u0627')];
+    const out = [];
+    const r = UNITS.createBw2Releaser({ rows, emit: (p) => { out.push(p); return true; },
+      cards: { buildSourceTag: ASKM.buildSourceTag, buildBookTag: ASKM.buildBookTag, encyclopediaCards: false, max: 3 } });
+    r.push('\u0648\u0642\u062f \u0628\u0648\u0628 \u0639\u0644\u064a\u0647 \u0627\u0628\u0646 \u062d\u0628\u0627\u0646 \u0628\u0642\u0648\u0644\u0647: \u0630\u0643\u0631 \u062d\u062b \u0627\u0644\u0645\u0635\u0637\u0641\u0649 \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645 \u0641\u064a \u0645\u0631\u0636\u0647 \u0627\u0644\u0630\u064a \u0642\u0628\u0636 \u0641\u064a\u0647 \u0623\u0645\u062a\u0647 \u0639\u0644\u0649 \u0635\u0644\u0629 \u0627\u0644\u0631\u062d\u0645 [[1]][[2]].\n');
+    const s = await r.end();
+    ok('P21a question 7: the two editions of Sahih Ibn Hibban at the same page give one card, not two',
+      s.cardsSent === 1 && (out.join('').match(/<book /g) || []).length === 1 && UNITS.workOf('\u0635\u062d\u064a\u062d \u0627\u0628\u0646 \u062d\u0628\u0627\u0646 - \u0645\u062e\u0631\u062c\u0627') === '\u0635\u062d\u064a\u062d \u0627\u0628\u0646 \u062d\u0628\u0627\u0646',
+      ascii(JSON.stringify({ cards: s.cardsSent, released: s.released })));
+  }
+
   // ---------------------------------------------------------------- P2 the fatwa store in the reader's letters
   {
     const Q5 = '\u0645\u0627 \u062d\u0643\u0645 \u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u0641\u0627\u062a\u062d\u0629 \u0644\u0644\u0645\u0623\u0645\u0648\u0645 \u0639\u0646\u062f \u0627\u0644\u0645\u0630\u0627\u0647\u0628 \u0627\u0644\u0623\u0631\u0628\u0639\u0629';
