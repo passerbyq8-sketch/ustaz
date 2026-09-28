@@ -200,6 +200,26 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
         b.text.includes(S1) && !b.text.includes(NOT_COVERED) && !b.frames.some((f) => f.type === 'ezik_live_offer'), ascii(b.text.slice(-80)));
     }
 
+    // P5: question 21 -- the requested man, named in the answer, is the requested man.
+    {
+      const PLAN = await esm('lib/ask-plan.js');
+      const ORV = await esm('lib/output-reviewer.js');
+      const Q21 = '\u0645\u0627 \u0631\u0623\u064a \u0627\u0644\u0625\u0645\u0627\u0645 \u0627\u0628\u0646 \u062a\u064a\u0645\u064a\u0629 \u0641\u064a \u0637\u0644\u0627\u0642 \u0627\u0644\u062b\u0644\u0627\u062b \u0628\u0644\u0641\u0638 \u0648\u0627\u062d\u062f\u061f';
+      const p = PLAN.planAsk([{ role: 'user', content: Q21 }], { policyEnabled: true });
+      const identity = { id: String(p.requestedAuthorityId || ''), name: String(p.namedEntity || ''),
+        status: p.requestedAuthorityId ? 'resolved' : (p.scholarCandidates.length > 1 ? 'ambiguous' : 'unresolved'), candidates: [] };
+      const view = ORV.identityView(identity);
+      const HIS = '\u0648\u0630\u0647\u0628 \u0634\u064a\u062e \u0627\u0644\u0625\u0633\u0644\u0627\u0645 \u0627\u0628\u0646 \u062a\u064a\u0645\u064a\u0629 \u0625\u0644\u0649 \u0623\u0646 \u0637\u0644\u0627\u0642 \u0627\u0644\u062b\u0644\u0627\u062b \u0628\u0644\u0641\u0638 \u0648\u0627\u062d\u062f \u064a\u0642\u0639 \u0637\u0644\u0642\u0629 \u0648\u0627\u062d\u062f\u0629\u060c \u0648\u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632 \u0628\u0645\u062b\u0644 \u0642\u0648\u0644 \u0627\u0628\u0646 \u062a\u064a\u0645\u064a\u0629.';
+      const OTHER = '\u0648\u0642\u0627\u0644 \u0627\u0628\u0646 \u0628\u0627\u0632 \u0625\u0646 \u0637\u0644\u0627\u0642 \u0627\u0644\u062b\u0644\u0627\u062b \u0628\u0644\u0641\u0638 \u0648\u0627\u062d\u062f \u064a\u0642\u0639 \u0637\u0644\u0642\u0629 \u0648\u0627\u062d\u062f\u0629.';
+      const r1 = ORV.requestedIdentityRespected(HIS, view);
+      const r2 = ORV.requestedIdentityRespected(OTHER, view);
+      ok('P5a question 21: the plan asks for Ibn Taymiyya, folded; an answer naming him (and another scholar) is respected -- no notice',
+        p.attributionMode === 'namedScholarOpinion' && identity.status === 'resolved' && r1.respected === true && !r1.notice,
+        ascii(JSON.stringify({ mode: p.attributionMode, status: identity.status, r1 })));
+      ok('P5b ...an answer about another man only is still caught, with its notice',
+        r2.respected === false && r2.reason === 'mismatch-another-authority' && !!r2.notice, ascii(JSON.stringify(r2)));
+    }
+
     // P3c/P3d: the real handler. Every source is empty or refused and the judge keeps nothing, so the
     // before-writing path finds no text; today's path must then run by itself, first round forced to search.
     const LEDGER_REDIS = await esm('lib/ledger/redis.js');
