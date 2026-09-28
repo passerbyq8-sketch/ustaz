@@ -28,6 +28,69 @@ const KHAWF = '\u0635\u0644\u0627\u0647 \u0627\u0644\u062e\u0648\u0641';
 // The fatwa store is asked the same words as written (P2): the store does not fold.
 const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648\u0641';
 
+// SPEED W6B B1/B2: the owner's question 4 (W4-LIVE) on a cold instance -- a fresh process, so the fatwa store's check is not
+// yet cached -- through the real gatherBw2, runTool and searchFatwas over the store's recorded replies, with W4GAP's timings.
+// `owner4Child` is serialised and run by a child `node`; it prints one JSON line.
+const OWNER4 = 'ما حكم إخراج زكاة المال عروضا بدل النقود؟ انقل قول كل مذهب من المذاهب الأربعة من كتبه';
+// W4GAP K1, the store's own log: the four callers' checks ended when their searches started (+0.98 s «إخراج الزكاة عروضا»,
+// +3.06 s «إخراج القيمة في الزكاة», +1.98 s «إخراج زكاة المال», +2.00 s «انقل مذهب كتبه», the order the queries are asked);
+// the searches took what W4GAP's GET 1-4 took. «انقل مذهب كتبه» has no recorded reply here: it answers 404 (live, 0 rows).
+const W4GAP_VERIFY_MS = [980, 3060, 1980, 2000];
+const W4GAP_SEARCH_MS = { 'إخراج الزكاة عروضا': 744, 'إخراج القيمة في الزكاة': 1070, 'إخراج زكاة المال': 2086, 'انقل مذهب كتبه': 1999 };
+function owner4Child() {
+  return (async () => {
+    const { pathToFileURL } = await import('node:url');
+    const fs = await import('node:fs');
+    const A = JSON.parse(process.argv[process.argv.length - 1]);
+    const L = (rel) => import(pathToFileURL(A.repo + '/' + rel).href);
+    const BW2 = await L('lib/before-writing-v2.js');
+    const TOOLS = await L('lib/free-brain/tools.js');
+    const STORE = JSON.parse(fs.readFileSync(A.fixture, 'utf8'));
+    const t0 = Date.now();
+    const calls = { health: 0, scholars: 0, searches: [] };
+    const at = (ms, signal) => new Promise((resolve, reject) => {
+      const t = setTimeout(resolve, Math.max(0, t0 + ms - Date.now()));
+      if (signal) signal.addEventListener('abort', () => { clearTimeout(t); reject(new Error('aborted')); }, { once: true });
+    });
+    const reply = (u) => {
+      const e = STORE[String(u)];
+      if (!e) return { ok: false, status: 404, url: String(u), headers: { get: () => 'application/json' }, text: async () => '{}' };
+      return { ok: true, status: e.status, url: String(u), redirected: false, headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? e.ct : null) }, text: async () => e.body };
+    };
+    const fetchImpl = async (u, init) => {
+      const url = new URL(String(u));
+      const signal = init && init.signal;
+      const check = /\/api\/v1\/(health|scholars)$/.exec(url.pathname);
+      if (check) {
+        const i = calls[check[1]]++;
+        await at(A.verifyMs[Math.min(i, A.verifyMs.length - 1)], signal);
+      } else {
+        const q = url.searchParams.get('q') || '';
+        const start = Date.now() - t0;
+        calls.searches.push({ q, start });
+        await at(start + (A.searchMs[q] || 1000), signal);
+      }
+      return reply(u);
+    };
+    const g = await BW2.gatherBw2({ question: A.question, budgetMs: A.budgetMs, deps: {
+      runTool: (name, input, ctx) => (name === 'search_fatawa' ? TOOLS.runTool(name, input, { ...ctx, fetchImpl }) : Promise.resolve({ text: '', added: [], calls: 0 })),
+      searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true, scholarBooksOf: async () => null,
+    } });
+    const ids = g.results.fatwa.map((r) => String(r.recordId || r.id || r.url || '').replace(/^fatwa:/, ''));
+    process.stdout.write(JSON.stringify({ report: g.report.fatwa, ids, health: calls.health, scholars: calls.scholars, searches: calls.searches }) + '\n');
+    process.exit(0);
+  })();
+}
+function replayOwner4(opts = {}) {
+  const { execFileSync } = require('child_process');
+  const args = JSON.stringify({ repo: REPO, fixture: path.join(__dirname, 'fixtures-speed-wasl-fatwas.json'), question: OWNER4, budgetMs: 3500,
+    verifyMs: W4GAP_VERIFY_MS, searchMs: W4GAP_SEARCH_MS, ...opts });
+  try {
+    const out = execFileSync(process.execPath, ['--input-type=module', '-e', '(' + owner4Child.toString() + ')()', args], { encoding: 'utf8', timeout: 30000, cwd: REPO });
+    return JSON.parse(out.trim().split('\n').pop());
+  } catch (error) { return { error: String(error && error.message || error).slice(0, 300) }; }
+}
+
 (async () => {
   const BW2 = await esm('lib/before-writing-v2.js');
 
@@ -370,6 +433,67 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       'وعند المالكية إن وجد الصنفان سليمين واختار الساعي أحدهما أجزأه ما أخذ');
     ok('W6B0w control: «واختار الساعي» (al-Dasuqi 1:434\'s words, the third person, which folds like «وأختار») is no personal view: released',
       RC.normalizeArabic(XB.dasuqi_1_434.text).includes('واختار الساعي احدهما') && third.released, ascii(JSON.stringify(third)));
+  }
+
+  // ---------------------------------------------------------------- W6B B1 rows that arrive are kept (W4GAP K1a)
+  // At gatherBw2's deadline each source settles with the rows its queries already returned, not with []; `timedOut` still
+  // records the lateness. MEASURED (W4GAP K1): on the owner's question 4 the last fatwa query missed the 3500 ms deadline and
+  // the whole member settled [] -- binbaz 6518 had arrived and was thrown away. A late member here waits for the turn's
+  // abort (gatherBw2 aborts its members when it returns), so nothing outlives the case.
+  {
+    const WQ = require('./fixtures-speed-wasl.json');
+    const OWNER = WQ.w1.question;
+    const lateUntilAbort = (ctx) => new Promise((resolve) => {
+      const done = () => resolve({ text: '', added: [], calls: 1 });
+      if (ctx.signal && ctx.signal.aborted) return done();
+      if (ctx.signal) ctx.signal.addEventListener('abort', done, { once: true }); else setTimeout(done, 1500);
+    });
+    const gather = (question, late, extra = {}) => BW2.gatherBw2({
+      question, libFlagValue: 'on', libToken: 't', lessonsToken: 'l', budgetMs: 300,
+      deps: {
+        runTool: async (name, input, ctx) => {
+          if (late(name, input, ctx)) return lateUntilAbort(ctx);
+          const kind = name === 'search_fatawa' ? 'fatwa' : name === 'search_lessons' ? 'lesson' : 'lib_book';
+          ctx.table.add({ kind, title: name + ' ' + input.query + ' ' + ((ctx.bookIds || []).join(',')), url: 'https://binbaz.org.sa/fatwas/' + encodeURIComponent(input.query + (ctx.bookIds || []).join('')), passage: input.query, text: input.query });
+          return { text: '', added: [], calls: 1 };
+        },
+        searchStoredCorpus: extra.searchStoredCorpus || (async () => ({ records: [] })), encyclopediaReady: () => true, scholarBooksOf: async () => null,
+      },
+    });
+    const fq = [...BW2.fatwaQueries(OWNER)];
+    const slowFatwa = fq[fq.length - 1];
+    const a = await gather(OWNER, (name, input) => name === 'search_fatawa' && input.query === slowFatwa);
+    ok('W6B1a one late fatwa query («' + slowFatwa + '») keeps the other queries\' rows, and the member is marked late',
+      a.results.fatwa.length >= 2 && a.results.fatwa.every((r) => r.passage !== slowFatwa) && a.report.fatwa.timedOut === true && a.report.fatwa.hits === a.results.fatwa.length,
+      ascii(JSON.stringify({ report: a.report.fatwa, rows: a.results.fatwa.map((r) => r.passage) })));
+    const b = await gather(OWNER, (name) => name === 'search_fatawa');
+    ok('W6B1b control: every fatwa query late gives [] and timedOut', b.results.fatwa.length === 0 && b.report.fatwa.timedOut === true, ascii(JSON.stringify(b.report.fatwa)));
+    const slowBook = BW2.MADHHAB_BOOKS_PRIMARY[3].bookId;
+    const c = await gather(OWNER, (name, input, ctx) => name === 'search_library' && (ctx.bookIds || []).includes(slowBook));
+    ok('W6B1c the library: one late member (al-Mughni) keeps the other members\' rows (the general library, the comparative books, three madhhab books), marked late',
+      c.results.library.length >= 5 && c.results.library.every((r) => !r.title.includes(slowBook)) && c.report.library.timedOut === true,
+      ascii(JSON.stringify({ report: c.report.library, rows: c.results.library.length })));
+    const d = await gather(OWNER, (name) => name === 'search_library');
+    ok('W6B1d control: every library member late gives [] and timedOut', d.results.library.length === 0 && d.report.library.timedOut === true, ascii(JSON.stringify(d.report.library)));
+    // The encyclopedia and the lessons are asked one query each: late is all late. Controls: late gives [] and timedOut; in
+    // time, their rows stay while another source is late.
+    const lateCorpus = () => new Promise((resolve) => setTimeout(() => resolve({ records: [] }), 700));
+    const e = await gather(OWNER, (name) => name === 'search_lessons', { searchStoredCorpus: lateCorpus });
+    ok('W6B1e control: the encyclopedia and the lessons, each late, give [] and timedOut',
+      e.results.encyclopedia.length === 0 && e.report.encyclopedia.timedOut === true && e.results.lessons.length === 0 && e.report.lessons.timedOut === true,
+      ascii(JSON.stringify([e.report.encyclopedia, e.report.lessons])));
+    const f = await gather(OWNER, (name) => name === 'search_fatawa', { searchStoredCorpus: async () => ({ records: [{ id: 'enc:1', title: 'enc', snippet: 'x', text: 'x' }] }) });
+    ok('W6B1f control: in time, the encyclopedia\'s and the lessons\' rows stay while the fatwa store is late',
+      f.results.encyclopedia.length === 1 && f.report.encyclopedia.timedOut === false && f.results.lessons.length === 1 && f.report.lessons.timedOut === false && f.report.fatwa.timedOut === true,
+      ascii(JSON.stringify([f.report.encyclopedia, f.report.lessons, f.report.fatwa])));
+    // The owner's question 4 itself, replayed in a fresh process (a cold instance: the store check is not yet cached) through
+    // the real runTool and searchFatwas over the store's recorded replies (fixtures-speed-wasl-fatwas.json), with W4GAP's
+    // timings: each caller's store check ends when the store's log shows its search starting (+0.98, +3.06, +1.98, +2.00 s,
+    // in the order the queries are asked), and each search takes what GET 1-4 took (744, 1070, 2086, 1999 ms). The budget is
+    // the real 3500 ms.
+    const q4 = replayOwner4();
+    ok('W6B1g the owner\'s question 4 replayed with the store\'s recorded replies and W4GAP\'s timings keeps binbaz 6518',
+      q4 && q4.report.timedOut === true && q4.ids.includes('binbaz:6518'), ascii(JSON.stringify(q4)));
   }
 
   // ---------------------------------------------------------------- W7 (WASL) the letter test, a standing case
