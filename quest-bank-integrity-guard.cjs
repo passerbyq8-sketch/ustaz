@@ -1712,7 +1712,11 @@ const SEALED = {
 //                    was re-cut by node tools/core-bytes.cjs --write, 2996684 -> 2997128; the prose row and
 //                    the SW_PROSE mirror followed. NO FILE JOINED OR LEFT CORE; the store stays ezik-v42.
 //                    sw.js is 55908 bytes, measured at CR = 0. THIS digest is re-cut LAST.
-  'sw.js': 'c998e67e4077d6669b7d5d451ae537d6939d775fccac43bb5131eb04bfca49ae',
+  //   2026-09-28-h -- MUSHAF TOPBAR SHIP: CACHE and config/app-version.json move ezik-v42 -> ezik-v43.
+  //                    npm run build:app regenerated app.js at the same 1824038 bytes. core-bytes.cjs
+  //                    --write confirmed CORE_BYTES stays 2997128. sw.js stays 55908 bytes, CR = 0;
+  //                    this seal was re-cut after the cache bump so returning readers refresh the lab.
+  'sw.js': '3c9902c2293bfb90c3020fbfcdab1b118c2fef19578d4adc1a205f3ca98003ff',
 };
 
 // ---------------------------------------------------------------------------
