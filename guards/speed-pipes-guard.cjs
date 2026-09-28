@@ -220,6 +220,39 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
         r2.respected === false && r2.reason === 'mismatch-another-authority' && !!r2.notice, ascii(JSON.stringify(r2)));
     }
 
+    // P6: question 15's shape -- a hadith no row carries is held; the line crediting it goes with it.
+    {
+      const ROWTEXT = '\u0628\u0631 \u0627\u0644\u0648\u0627\u0644\u062f\u064a\u0646 \u0641\u0631\u0636 \u0639\u064a\u0646\u060c \u0648\u062e\u0644\u0627\u0641\u0647 \u062d\u0631\u0627\u0645\u060c \u0645\u0627 \u0644\u0645 \u064a\u0623\u0645\u0631\u0627 \u0628\u0634\u0631\u0643 \u0623\u0648 \u0645\u0639\u0635\u064a\u0629.';
+      const rec = { id: 'F15', term: '\u0628\u0631 \u0627\u0644\u0648\u0627\u0644\u062f\u064a\u0646', part: 8, snippet: ROWTEXT, text: ROWTEXT };
+      const U0 = '\u0628\u0631 \u0627\u0644\u0648\u0627\u0644\u062f\u064a\u0646 \u0641\u0631\u0636 \u0639\u064a\u0646\u060c \u0648\u062e\u0644\u0627\u0641\u0647 \u062d\u0631\u0627\u0645 [[1]].';
+      const UH = '\u0648\u0642\u0627\u0644 \u0627\u0644\u0646\u0628\u064a \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064a\u0647 \u0648\u0633\u0644\u0645: \u00ab\u0631\u0636\u0627 \u0627\u0644\u0631\u0628 \u0641\u064a \u0631\u0636\u0627 \u0627\u0644\u0648\u0627\u0644\u062f\u060c \u0648\u0633\u062e\u0637 \u0627\u0644\u0631\u0628 \u0641\u064a \u0633\u062e\u0637 \u0627\u0644\u0648\u0627\u0644\u062f\u00bb.';
+      const UC = '\u0645\u0646 \u062d\u062f\u064a\u062b \u0639\u0628\u062f \u0627\u0644\u0644\u0647 \u0628\u0646 \u0639\u0645\u0631\u0648 \u0631\u0636\u064a \u0627\u0644\u0644\u0647 \u0639\u0646\u0647\u0645\u0627.';
+      const UW = '\u0648\u0648\u062c\u0647 \u0627\u0644\u062f\u0644\u0627\u0644\u0629 \u0623\u0646\u0647 \u062c\u0639\u0644 \u0631\u0636\u0627 \u0627\u0644\u0644\u0647 \u0641\u064a \u0631\u0636\u0627 \u0627\u0644\u0648\u0627\u0644\u062f.';
+      const p6 = async (writer) => {
+        const target = makeTarget();
+        const facade = SSE.createFinalizedSseResponse(target, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [] }) });
+        const out = await BW2.runBw2Turn({
+          question: '\u0645\u0627 \u0627\u0644\u0623\u062f\u0644\u0629 \u0645\u0646 \u0627\u0644\u0642\u0631\u0622\u0646 \u0648\u0627\u0644\u0633\u0646\u0629 \u0639\u0644\u0649 \u0628\u0631 \u0627\u0644\u0648\u0627\u0644\u062f\u064a\u0646\u061f', messages: [{ role: 'user', content: 'x' }], wire: BW2.createBw2Wire(facade),
+          deps: {
+            runTool: async () => ({ text: '', added: [], calls: 0 }), searchStoredCorpus: async () => ({ records: [rec] }),
+            encyclopediaReady: () => true, warmEncyclopedia: () => true, ask: async () => '{"d":{"1":1}}',
+            callWriter: async ({ onText }) => { onText(writer); return { stop_reason: 'end_turn', usage: {} }; },
+          },
+        });
+        return { out, text: framesOf(target.writes).filter((f) => f.type === 'content_block_delta').map((f) => f.delta.text).join('') };
+      };
+      const a = await p6([U0, UH, UC, UW].join('\n'));
+      ok('P6a a held hadith takes its credit line ("from the hadith of ...") and "the point of evidence" with it; the released unit stays',
+        a.text.includes('\u0641\u0631\u0636 \u0639\u064a\u0646') && !a.text.includes('\u0645\u0646 \u062d\u062f\u064a\u062b') && !a.text.includes('\u0648\u062c\u0647 \u0627\u0644\u062f\u0644\u0627\u0644\u0629') && !a.text.includes('\u0631\u0636\u0627 \u0627\u0644\u0631\u0628'),
+        ascii(JSON.stringify({ held: a.out.telemetry.unitsHeld, dep: a.out.telemetry.heldDependentOnHeld, text: a.text.slice(-60) })));
+      const b = await p6([U0, UC].join('\n'));
+      ok('P6b a credit line after a released unit is checked as today (not held for leaning)',
+        b.out.telemetry.heldDependentOnHeld === 0 && b.out.telemetry.heldDependentOpening === 0, JSON.stringify(b.out.telemetry));
+      ok('P6c "rawahu X" is not a credit line: it may open a source answer by itself (FIX5, C7)',
+        (await esm('lib/bw2-units.js')).dependentKind('\u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a \u0648\u0645\u0633\u0644\u0645 \u0639\u0646 \u0623\u0646\u0633 \u0631\u0636\u064a \u0627\u0644\u0644\u0647 \u0639\u0646\u0647.') === ''
+        && (await esm('lib/bw2-units.js')).dependentKind('\u0648\u0645\u0646 \u062d\u062f\u064a\u062b \u0623\u0628\u064a \u0647\u0631\u064a\u0631\u0629 \u0631\u0636\u064a \u0627\u0644\u0644\u0647 \u0639\u0646\u0647.') === 'credit');
+    }
+
     // P3c/P3d: the real handler. Every source is empty or refused and the judge keeps nothing, so the
     // before-writing path finds no text; today's path must then run by itself, first round forced to search.
     const LEDGER_REDIS = await esm('lib/ledger/redis.js');
