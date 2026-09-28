@@ -368,6 +368,26 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       HEADS.every(([, unit, kind]) => UNITS.dependentKind(unit) === kind) && NEAR.every((t) => UNITS.dependentKind(t) === ''), ascii(JSON.stringify(NEAR.map((t) => UNITS.dependentKind(t)))));
   }
 
+  // ---------------------------------------------------------------- P25 (PIPES3, B) round 8, 3 and 18: "al-qawl al-thani" with no first
+  {
+    const UNITS = await esm('lib/bw2-units.js');
+    const rows = [{ ref: 1, kind: 'encyclopedia', title: 'a', fullText: '\u0625\u062e\u0631\u0627\u062c \u0627\u0644\u0642\u064a\u0645\u0629 \u0641\u064a \u0632\u0643\u0627\u0629 \u0627\u0644\u0641\u0637\u0631 \u064a\u062c\u0648\u0632 \u0639\u0646\u062f \u0627\u0644\u062d\u0646\u0641\u064a\u0629. \u0648\u0627\u0644\u0648\u0627\u062c\u0628 \u0625\u062e\u0631\u0627\u062c\u0647\u0627 \u0637\u0639\u0627\u0645\u0627 \u0639\u0646\u062f \u0627\u0644\u062c\u0645\u0647\u0648\u0631.' }];
+    const rel = async (writer) => {
+      const out = [];
+      const r = UNITS.createBw2Releaser({ rows, emit: (p) => { out.push(p); return true; } });
+      r.push(writer + '\n');
+      const s = await r.end();
+      return { text: out.join(''), s };
+    };
+    const a = await rel('\u0627\u0644\u0642\u0648\u0644 \u0627\u0644\u0623\u0648\u0644: \u0642\u0627\u0644 \u0627\u0628\u0646 \u062d\u0632\u0645: \u00ab\u0644\u0627 \u064a\u062c\u0632\u0626 \u0625\u0644\u0627 \u0627\u0644\u0637\u0639\u0627\u0645\u00bb.\n\u0627\u0644\u0642\u0648\u0644 \u0627\u0644\u062b\u0627\u0646\u064a: \u064a\u062c\u0648\u0632 \u0625\u062e\u0631\u0627\u062c \u0627\u0644\u0642\u064a\u0645\u0629 \u0639\u0646\u062f \u0627\u0644\u062d\u0646\u0641\u064a\u0629 [[1]].\n\u0627\u0644\u0642\u0648\u0644 \u0627\u0644\u062b\u0627\u0644\u062b: \u0627\u0644\u0648\u0627\u062c\u0628 \u0625\u062e\u0631\u0627\u062c\u0647\u0627 \u0637\u0639\u0627\u0645\u0627 \u0639\u0646\u062f \u0627\u0644\u062c\u0645\u0647\u0648\u0631 [[1]].');
+    ok('P25a questions 3 and 18: the first view held, the second goes out as "al-qawl al-awwal:" and the third as "al-qawl al-thani:"',
+      a.text.startsWith('\u0627\u0644\u0642\u0648\u0644 \u0627\u0644\u0623\u0648\u0644: \u064a\u062c\u0648\u0632 \u0625\u062e\u0631\u0627\u062c \u0627\u0644\u0642\u064a\u0645\u0629') && a.text.includes('\n\u0627\u0644\u0642\u0648\u0644 \u0627\u0644\u062b\u0627\u0646\u064a: \u0627\u0644\u0648\u0627\u062c\u0628 \u0625\u062e\u0631\u0627\u062c\u0647\u0627') && a.s.holds.unsupported_attribution === 1, ascii(a.text));
+    const c = {};
+    const seq = ['\u0627\u0644\u0623\u0648\u0644 \u2014 \u062d\u062f\u064a\u062b \u0627\u0644\u063a\u0631 \u0627\u0644\u0645\u062d\u062c\u0644\u064a\u0646', '\u0627\u0644\u062b\u0627\u0644\u062b \u2014 \u0625\u062d\u0633\u0627\u0646 \u0627\u0644\u0648\u0636\u0648\u0621', '\u0627\u0644\u062d\u0627\u0644\u0629 \u0627\u0644\u062b\u0627\u0646\u064a\u0629: \u0627\u0644\u063a\u0636\u0628 \u0627\u0644\u0634\u062f\u064a\u062f', '\u0648\u0627\u0644\u0642\u0648\u0644 \u0627\u0644\u0623\u0648\u0644 \u0623\u0631\u062c\u062d', '\u0627\u0644\u0642\u0648\u0644 \u0627\u0644\u0623\u0648\u0644 \u0623\u0631\u062c\u062d \u0639\u0646\u062f\u064a'].map((t) => (UNITS.renumberKindOrdinal ? UNITS.renumberKindOrdinal(t, c).value : t));
+    ok('P25b the list form only: a bare "al-thalith --" after "al-awwal --" is "al-thani --", a feminine keeps its gender, and prose ("al-qawl al-awwal arjah") is not touched',
+      seq[1].startsWith('\u0627\u0644\u062b\u0627\u0646\u064a \u2014 ') && seq[2].startsWith('\u0627\u0644\u062d\u0627\u0644\u0629 \u0627\u0644\u0623\u0648\u0644\u0649: ') && seq[3] === '\u0648\u0627\u0644\u0642\u0648\u0644 \u0627\u0644\u0623\u0648\u0644 \u0623\u0631\u062c\u062d' && seq[4] === '\u0627\u0644\u0642\u0648\u0644 \u0627\u0644\u0623\u0648\u0644 \u0623\u0631\u062c\u062d \u0639\u0646\u062f\u064a', ascii(JSON.stringify(seq)));
+  }
+
   // ---------------------------------------------------------------- P2 the fatwa store in the reader's letters
   {
     const Q5 = '\u0645\u0627 \u062d\u0643\u0645 \u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u0641\u0627\u062a\u062d\u0629 \u0644\u0644\u0645\u0623\u0645\u0648\u0645 \u0639\u0646\u062f \u0627\u0644\u0645\u0630\u0627\u0647\u0628 \u0627\u0644\u0623\u0631\u0628\u0639\u0629';
