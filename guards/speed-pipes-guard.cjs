@@ -253,6 +253,40 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
         && (await esm('lib/bw2-units.js')).dependentKind('\u0648\u0645\u0646 \u062d\u062f\u064a\u062b \u0623\u0628\u064a \u0647\u0631\u064a\u0631\u0629 \u0631\u0636\u064a \u0627\u0644\u0644\u0647 \u0639\u0646\u0647.') === 'credit');
     }
 
+    // P7: question 27's shape -- a heading nothing released came under is not sent.
+    {
+      const UNITS = await esm('lib/bw2-units.js');
+      const ROWTEXT = '\u0645\u0646 \u062a\u0631\u0643 \u0631\u0643\u0646\u0627 \u0645\u0646 \u0623\u0631\u0643\u0627\u0646 \u0627\u0644\u062d\u062c \u0644\u0645 \u064a\u062a\u0645 \u062d\u062c\u0647 \u0625\u0644\u0627 \u0628\u0647\u060c \u0648\u0645\u0646 \u062a\u0631\u0643 \u0648\u0627\u062c\u0628\u0627 \u0641\u0639\u0644\u064a\u0647 \u062f\u0645. \u0648\u0648\u0642\u062a \u0627\u0644\u062d\u062c \u0634\u0648\u0627\u0644 \u0648\u0630\u0648 \u0627\u0644\u0642\u0639\u062f\u0629 \u0648\u0639\u0634\u0631 \u0630\u064a \u0627\u0644\u062d\u062c\u0629.';
+      const rec = { id: 'F27', term: '\u062d\u062c', part: 17, snippet: ROWTEXT, text: ROWTEXT };
+      const writer = [
+        '\u0623\u0648\u0644\u0627: \u0627\u0644\u062a\u0641\u0631\u064a\u0642 \u0628\u064a\u0646 \u0627\u0644\u0631\u0643\u0646 \u0648\u0627\u0644\u0648\u0627\u062c\u0628 \u0641\u064a \u0627\u0644\u062d\u062c',
+        '\u0645\u0646 \u062a\u0631\u0643 \u0631\u0643\u0646\u0627 \u0645\u0646 \u0623\u0631\u0643\u0627\u0646 \u0627\u0644\u062d\u062c \u0644\u0645 \u064a\u062a\u0645 \u062d\u062c\u0647 \u0625\u0644\u0627 \u0628\u0647 [[1]].',
+        '\u062b\u0627\u0646\u064a\u0627: \u0645\u0627 \u0646\u0635\u062a \u0639\u0644\u064a\u0647 \u0627\u0644\u0646\u0635\u0648\u0635 \u0645\u0646 \u0634\u0631\u0648\u0637 \u0627\u0644\u062d\u062c \u0648\u0623\u0631\u0643\u0627\u0646\u0647 \u0648\u0648\u0627\u062c\u0628\u0627\u062a\u0647 \u0648\u0633\u0646\u0646\u0647',
+        '\u0648\u0642\u0627\u0644 \u0627\u0628\u0646 \u062a\u064a\u0645\u064a\u0629 \u0625\u0646 \u0627\u0644\u062d\u062c \u064a\u062c\u0628 \u0639\u0644\u0649 \u0627\u0644\u0641\u0648\u0631.',
+        '\u062b\u0627\u0644\u062b\u0627: \u0645\u0633\u0627\u0626\u0644 \u0645\u062a\u0635\u0644\u0629 \u0648\u0631\u062f\u062a \u0641\u064a \u0627\u0644\u0646\u0635\u0648\u0635',
+        '\u0648\u0648\u0642\u062a \u0627\u0644\u062d\u062c \u0634\u0648\u0627\u0644 \u0648\u0630\u0648 \u0627\u0644\u0642\u0639\u062f\u0629 \u0648\u0639\u0634\u0631 \u0630\u064a \u0627\u0644\u062d\u062c\u0629 [[1]].',
+        '\u0631\u0627\u0628\u0639\u0627: \u0645\u0627 \u0644\u0645 \u0623\u0642\u0641 \u0639\u0644\u064a\u0647',
+      ].join('\n');
+      const target = makeTarget();
+      const facade = SSE.createFinalizedSseResponse(target, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [] }) });
+      const out = await BW2.runBw2Turn({
+        question: '\u0645\u0627 \u0634\u0631\u0648\u0637 \u0627\u0644\u062d\u062c \u0648\u0623\u0631\u0643\u0627\u0646\u0647 \u0648\u0648\u0627\u062c\u0628\u0627\u062a\u0647 \u0648\u0633\u0646\u0646\u0647\u061f', messages: [{ role: 'user', content: 'x' }], wire: BW2.createBw2Wire(facade),
+        deps: {
+          runTool: async () => ({ text: '', added: [], calls: 0 }), searchStoredCorpus: async () => ({ records: [rec] }),
+          encyclopediaReady: () => true, warmEncyclopedia: () => true, ask: async () => '{"d":{"1":1}}',
+          callWriter: async ({ onText }) => { onText(writer); return { stop_reason: 'end_turn', usage: {} }; },
+        },
+      });
+      const t = framesOf(target.writes).filter((f) => f.type === 'content_block_delta').map((f) => f.delta.text).join('');
+      ok('P7a "first" and "third" go out with the units under them; "second" (all held under it) and "fourth" (nothing after it) do not',
+        t.includes('\u0623\u0648\u0644\u0627') && t.includes('\u062b\u0627\u0644\u062b\u0627') && !t.includes('\u062b\u0627\u0646\u064a\u0627') && !t.includes('\u0631\u0627\u0628\u0639\u0627')
+        && t.indexOf('\u0623\u0648\u0644\u0627') < t.indexOf('\u0645\u0646 \u062a\u0631\u0643 \u0631\u0643\u0646\u0627') && t.indexOf('\u062b\u0627\u0644\u062b\u0627') < t.indexOf('\u0648\u0648\u0642\u062a \u0627\u0644\u062d\u062c')
+        && out.telemetry.heldEmptyHeading === 2, ascii(JSON.stringify({ t: t.slice(0, 120), h: out.telemetry.heldEmptyHeading })));
+      ok('P7b the heading test: an ordinal or markdown line with no sentence end is a heading; a sentence opening on an ordinal is not',
+        UNITS.isHeadingUnit('\u062b\u0627\u0646\u064a\u0627: \u0623\u062f\u0644\u0629 \u0627\u0644\u0633\u0646\u0629 \u0627\u0644\u0646\u0628\u0648\u064a\u0629') && UNITS.isHeadingUnit('## \u0623\u062f\u0644\u0629 \u0627\u0644\u0633\u0646\u0629') && UNITS.isHeadingUnit('**\u062e\u0644\u0627\u0635\u0629**')
+        && !UNITS.isHeadingUnit('\u0623\u0648\u0644\u0627 \u064a\u062c\u0628 \u0639\u0644\u064a\u0647 \u0623\u0646 \u064a\u062a\u0648\u0636\u0623.') && !UNITS.isHeadingUnit('\u0628\u0631 \u0627\u0644\u0648\u0627\u0644\u062f\u064a\u0646 \u0641\u0631\u0636 \u0639\u064a\u0646'));
+    }
+
     // P3c/P3d: the real handler. Every source is empty or refused and the judge keeps nothing, so the
     // before-writing path finds no text; today's path must then run by itself, first round forced to search.
     const LEDGER_REDIS = await esm('lib/ledger/redis.js');

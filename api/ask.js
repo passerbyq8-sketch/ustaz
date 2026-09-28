@@ -1855,6 +1855,7 @@ export default async function handler(req, res) {
           heldUnsupportedSchool: t.heldUnsupportedSchool, heldUnsupportedMatn: t.heldUnsupportedMatn, heldTakhrijRefused: t.heldTakhrijRefused, heldTakhrijEmptied: t.heldTakhrijEmptied,
           heldGradeRuleFailed: t.heldGradeRuleFailed, heldGradeEmptied: t.heldGradeEmptied, heldRepeat: t.heldRepeat, heldDependentOnHeld: t.heldDependentOnHeld,
           heldDependentOpening: t.heldDependentOpening, heldDanglingLeadIn: t.heldDanglingLeadIn, heldNotCovered: t.heldNotCovered, heldNotCoveredSentence: t.heldNotCoveredSentence,
+          heldEmptyHeading: t.heldEmptyHeading,
           // PIPES fix 3: why the turn went on to today's path ('' when it did not).
           continued: t.continued,
         });

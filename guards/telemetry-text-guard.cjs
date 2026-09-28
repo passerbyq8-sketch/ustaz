@@ -261,6 +261,8 @@ const BW2_FIELDS = [
   'heldUnsupportedSchool', 'heldUnsupportedMatn', 'heldTakhrijRefused', 'heldTakhrijEmptied',
   'heldGradeRuleFailed', 'heldGradeEmptied', 'heldRepeat', 'heldDependentOnHeld',
   'heldDependentOpening', 'heldDanglingLeadIn', 'heldNotCovered', 'heldNotCoveredSentence',
+  // SPEED PIPES fix 7: a heading nothing released came under (BW2_HOLD_REASONS 'empty_heading').
+  'heldEmptyHeading',
   // SPEED FIX 3, C4 (order EZIK-SPEED-FIX3-ORDER-2026-09-27): units released by a hadith proof (a kept
   // row carrying the text and every name, or the takhrij). A number.
   'unitsProvedHadith',
