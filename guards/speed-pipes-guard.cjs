@@ -61,6 +61,33 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       && fat.length === 1 && fat[0].query === KHAWF_AS_WRITTEN, ascii(JSON.stringify(seen)));
   }
 
+  // ---------------------------------------------------------------- P10 (PIPES2 fix 2) round 7, question 5
+  {
+    const Q7_5 = 'ما حكم تداول العملات المشفرة مثل البتكوين؟';
+    const HEAD2 = 'تداول العملات';
+    const t5 = BW2.issueTerms(Q7_5);
+    ok('P10a "mithl" (such as) is not an issue word: no fatwa query and no library query carries it',
+      !t5.includes('مثل') && BW2.fatwaQueries(Q7_5).every((q) => !q.split(' ').includes('مثل')) && !BW2.libraryQuery(Q7_5).split(' ').includes('مثل'),
+      ascii(JSON.stringify(BW2.fatwaQueries(Q7_5))));
+    const fatwaRun = async (answering) => {
+      const asked = [];
+      const runTool = async (name, input, ctx) => {
+        if (name !== 'search_fatawa') return { text: '', added: [], calls: 0 };
+        asked.push(input.query);
+        if (answering(input.query)) ctx.table.add({ kind: 'fatwa', title: 'fatwa ' + input.query, url: 'https://binbaz.org.sa/fatwas/' + asked.length, passage: input.query });
+        return { text: '', added: [], calls: 1 };
+      };
+      const g = await BW2.gatherBw2({ question: Q7_5, budgetMs: 800, deps: { runTool, searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true } });
+      return { asked, rows: g.results.fatwa };
+    };
+    const none = await fatwaRun((q) => q === HEAD2);
+    ok('P10b question 5: both fatwa queries return nothing, so the issue\'s first two words are asked once, and their fatwa reaches the judge',
+      none.asked.length === 3 && none.asked[2] === HEAD2 && none.rows.length === 1 && BW2.narrowFatwaQuery(Q7_5) === HEAD2, ascii(JSON.stringify(none)));
+    const some = await fatwaRun(() => true);
+    ok('P10c a fatwa from the first queries: no retry; a two-word issue has no narrower query',
+      some.asked.length === 2 && BW2.narrowFatwaQuery('صلاة الخوف') === '', ascii(JSON.stringify(some.asked)));
+  }
+
   // ---------------------------------------------------------------- P2 the fatwa store in the reader's letters
   {
     const Q5 = '\u0645\u0627 \u062d\u0643\u0645 \u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u0641\u0627\u062a\u062d\u0629 \u0644\u0644\u0645\u0623\u0645\u0648\u0645 \u0639\u0646\u062f \u0627\u0644\u0645\u0630\u0627\u0647\u0628 \u0627\u0644\u0623\u0631\u0628\u0639\u0629';
