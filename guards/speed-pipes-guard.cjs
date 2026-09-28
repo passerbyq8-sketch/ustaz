@@ -519,6 +519,21 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       b.text.includes('\u0641\u064a \u0645\u0648\u0636\u0639 \u0627\u062e\u0631: \u0637\u0631\u0642\u0647') && b.text.includes('\u0645\u0646 \u0639\u0631\u0641 \u0646\u0641\u0633\u0647') && UNITS.dependentKind('\u0648\u0642\u0627\u0644 \u0641\u064a \u0645\u0648\u0636\u0639 \u0622\u062e\u0631: \u0627\u0644\u062f\u0639\u0627\u0621 \u0641\u0642\u0637') === 'speech' && UNITS.dependentKind('\u0648\u0642\u0627\u0644 \u0627\u0644\u0646\u0648\u0648\u064a: \u0647\u0630\u0627 \u062d\u062f\u064a\u062b \u0636\u0639\u064a\u0641') === '', ascii(b.text));
   }
 
+  // ---------------------------------------------------------------- P33 (PIPES4, F) round 9, 15: the named scholar asks his own store
+  {
+    const BW = await esm('lib/before-writing-v2.js');
+    const Q15 = '\u0645\u0627\u0630\u0627 \u0642\u0627\u0644 \u0627\u0644\u0634\u064a\u062e \u0627\u0628\u0646 \u0639\u062b\u064a\u0645\u064a\u0646 \u062d\u064a\u0646 \u0633\u0626\u0644 \u0639\u0646 \u062d\u0643\u0645 \u0628\u064a\u0639 \u0627\u0644\u0639\u064a\u0646\u0629\u061f';
+    const n = BW.namedFatwaAsk ? BW.namedFatwaAsk(Q15) : null;
+    ok('P33a question 15: the store is asked bay al-ina with Ibn Uthaymin as its scholar -- no name and no qala / suila in the words; a question naming nobody is unchanged',
+      !!n && n.scholar === '\u0627\u0628\u0646 \u0639\u062b\u064a\u0645\u064a\u0646' && JSON.stringify(n.queries) === JSON.stringify(['\u0628\u064a\u0639 \u0627\u0644\u0639\u064a\u0646\u0629']) && BW.namedFatwaAsk('\u0645\u0627 \u062d\u0643\u0645 \u0634\u0631\u0627\u0621 \u0627\u0644\u0623\u0633\u0647\u0645 \u0645\u062b\u0644 \u0623\u0633\u0647\u0645 \u0627\u0644\u0628\u0646\u0648\u0643 \u0627\u0644\u0631\u0628\u0648\u064a\u0629\u061f') === null, ascii(JSON.stringify(n)));
+    const calls = [];
+    const runTool = async (name, input) => { calls.push({ name, ...input }); return { text: '', added: [], calls: 0 }; };
+    await BW.gatherBw2({ question: Q15, band: 'adult', libFlagValue: '', libToken: '', lessonsToken: '', budgetMs: 800, deps: { runTool, fetchImpl: async () => { throw new Error('offline'); } } });
+    const fat = calls.filter((c) => c.name === 'search_fatawa');
+    ok('P33b question 15 through gatherBw2: every fatwa call carries the scholar, and none sends his name or the frame as its words (the narrow retry included)',
+      fat.length >= 1 && fat.every((c) => c.scholar === '\u0627\u0628\u0646 \u0639\u062b\u064a\u0645\u064a\u0646' && !/\u0639\u062b\u064a\u0645\u064a\u0646|\u0642\u0627\u0644|\u0633\u0626\u0644/u.test(c.query)), ascii(JSON.stringify(fat)));
+  }
+
   // ---------------------------------------------------------------- P24d (PIPES3, A, from the rounds 2-8 list) a passive has no subject
   {
     const UNITS = await esm('lib/bw2-units.js');
