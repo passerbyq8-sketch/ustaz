@@ -835,3 +835,4 @@ guards/fixtures-speed-fix1.json text eol=lf
 
 # SPEED item 17 pipes round: the guard of every source reached from the question to the answer.
 guards/speed-pipes-guard.cjs text eol=lf
+lib/source-followup.js text eol=lf

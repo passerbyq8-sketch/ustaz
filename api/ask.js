@@ -1068,6 +1068,24 @@ export default async function handler(req, res) {
     }
   }
 
+  // ── SPEED PIPES FIX 8 · «ما مصدرك في هذا الجواب؟» ANSWERED WITH THAT ANSWER'S OWN CARDS ─────────────
+  // A question that asks only for the source of the previous answer is answered here, by the server, from
+  // the card tags that answer carries (lib/source-followup.js): each card rebuilt by this file's own
+  // builders, under the name the answer gave its speaker. MEASURED (round 6, 29-b): on the model path the
+  // same question waited 113 s (a reject-retry round of 106 s), restated the answer, turned its named
+  // scholars into «بعض أهل العلم» and ended cut. A previous answer with no card goes on as before.
+  {
+    const sourceFollowUp = await import('../lib/source-followup.js');
+    if (sourceFollowUp.asksPreviousSource(currentQuestionText) && !graveHazard(currentQuestionText)) {
+      const cards = sourceFollowUp.previousCards(sourceFollowUp.previousAnswerOf(body.messages), { buildSourceTag, buildBookTag });
+      if (cards.length) {
+        console.log('[source-followup]', { outcome: 'answered', cards: cards.length });
+        const { writeQuoteReply } = await import('../lib/lib-quote.js');
+        return writeQuoteReply(res, sourceFollowUp.composeSourceReply(cards));
+      }
+    }
+  }
+
   const headers = {
     'Content-Type': 'application/json',
     'x-api-key': apiKey,
