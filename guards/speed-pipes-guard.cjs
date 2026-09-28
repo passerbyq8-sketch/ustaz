@@ -406,6 +406,26 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       && UNITS.withoutCardTail('<verse surah_num="9" ayah="5"></verse> \u062b\u0645 \u0643\u0644\u0627\u0645.') === '<verse surah_num="9" ayah="5"></verse> \u062b\u0645 \u0643\u0644\u0627\u0645.');
   }
 
+  // ---------------------------------------------------------------- P27 (PIPES3, F) round 8, 11: "al-hadith al-warid fi ..." names no hadith
+  {
+    const UNITS = await esm('lib/bw2-units.js');
+    const Q11 = '\u0645\u0627 \u0627\u0644\u062d\u062f\u064a\u062b \u0627\u0644\u0648\u0627\u0631\u062f \u0641\u064a \u0641\u0636\u0644 \u0627\u0644\u0633\u0648\u0627\u0643\u061f \u0648\u0645\u0646 \u0631\u0648\u0627\u0647\u061f';
+    const Q14 = '\u0645\u0627 \u0627\u0644\u062d\u062f\u064a\u062b \u0627\u0644\u0630\u064a \u0631\u0648\u0627\u0647 \u0645\u0633\u0644\u0645 \u0641\u064a \u0641\u0636\u0644 \u0627\u0644\u0648\u0636\u0648\u0621\u061f';
+    ok('P27a questions 11 and 14: "al-hadith" + a description is not an asked matn (so no source question waits on one); "hadith: X", "al-hadith: X" and "hadith X" still are',
+      UNITS.askedHadithOf(Q11) === '' && !UNITS.asksHadithSource(Q11) && UNITS.askedHadithOf(Q14) === ''
+      && UNITS.askedHadithOf('\u0645\u0627 \u0635\u062d\u0629 \u0627\u0644\u062d\u062f\u064a\u062b: \u0645\u0646 \u063a\u0634\u0646\u0627 \u0641\u0644\u064a\u0633 \u0645\u0646\u0627\u061f') === '\u0645\u0646 \u063a\u0634\u0646\u0627 \u0641\u0644\u064a\u0633 \u0645\u0646\u0627'
+      && UNITS.askedHadithOf('\u0645\u0627 \u0635\u062d\u0629 \u062d\u062f\u064a\u062b: \u0625\u0646\u0645\u0627 \u0627\u0644\u0623\u0639\u0645\u0627\u0644 \u0628\u0627\u0644\u0646\u064a\u0627\u062a\u061f \u0648\u0645\u0646 \u0623\u062e\u0631\u062c\u0647\u061f') === '\u0625\u0646\u0645\u0627 \u0627\u0644\u0623\u0639\u0645\u0627\u0644 \u0628\u0627\u0644\u0646\u064a\u0627\u062a'
+      && UNITS.askedHadithOf('\u0645\u0627 \u0635\u062d\u0629 \u062d\u062f\u064a\u062b \u0627\u0644\u0646\u0638\u0627\u0641\u0629 \u0645\u0646 \u0627\u0644\u0625\u064a\u0645\u0627\u0646\u061f') === '\u0627\u0644\u0646\u0638\u0627\u0641\u0629 \u0645\u0646 \u0627\u0644\u0625\u064a\u0645\u0627\u0646',
+      ascii(JSON.stringify([UNITS.askedHadithOf(Q11), UNITS.askedHadithOf(Q14)])));
+    const rows = [{ ref: 1, kind: 'encyclopedia', title: 'a', fullText: '\u0627\u0644\u0633\u0648\u0627\u0643 \u0645\u0637\u0647\u0631\u0629 \u0644\u0644\u0641\u0645 \u0645\u0631\u0636\u0627\u0629 \u0644\u0644\u0631\u0628. \u0648\u0647\u0648 \u0633\u0646\u0629 \u0645\u0624\u0643\u062f\u0629 \u0639\u0646\u062f \u0643\u0644 \u0635\u0644\u0627\u0629.' }];
+    const out = [];
+    const r = UNITS.createBw2Releaser({ rows, emit: (p) => { out.push(p); return true; }, askedMatn: UNITS.askedHadithOf(Q11), sourceQuestion: UNITS.asksHadithSource(Q11) });
+    r.push('\u0627\u0644\u0633\u0648\u0627\u0643 \u0633\u0646\u0629 \u0645\u0624\u0643\u062f\u0629 \u0639\u0646\u062f \u0643\u0644 \u0635\u0644\u0627\u0629 [[1]].\n');
+    const s = await r.end();
+    ok('P27b question 11 through the releaser: its first unit goes out, instead of waiting for a proof of "al-warid fi fadl al-siwak" that no unit can give',
+      out.join('').startsWith('\u0627\u0644\u0633\u0648\u0627\u0643 \u0633\u0646\u0629 \u0645\u0624\u0643\u062f\u0629') && s.released === 1, ascii(JSON.stringify({ text: out.join(''), holds: s.holds })));
+  }
+
   // ---------------------------------------------------------------- P2 the fatwa store in the reader's letters
   {
     const Q5 = '\u0645\u0627 \u062d\u0643\u0645 \u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u0641\u0627\u062a\u062d\u0629 \u0644\u0644\u0645\u0623\u0645\u0648\u0645 \u0639\u0646\u062f \u0627\u0644\u0645\u0630\u0627\u0647\u0628 \u0627\u0644\u0623\u0631\u0628\u0639\u0629';
