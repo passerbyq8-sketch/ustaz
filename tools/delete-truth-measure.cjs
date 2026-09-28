@@ -922,7 +922,13 @@ run('delete.html still carries both promises this tool measures against', () => 
   // measuring would agree with any page, including a page that promised nothing.
   const arabicEntry = 'جوابُك على شاشةِ الدخول';
   const englishEntry = 'your answer on the entry screen';
-  for (const s of [arabic, english, arabicLoc, englishLoc, arabicEntry, englishEntry]) {
+  // ORDER-108D D3 -- AND THE LIBRARY'S NOTES. «delete all my data» erases what /library.html keeps
+  // on the device (ezikClearLibrary: the ezlib_ keys and the database ezik-library-v1), and the page
+  // now says so in both languages, in the same ' · ' sentence as the lines above. The Arabic is the
+  // owner's own sentence, copied by its bytes; both are written out here for the reason given above.
+  const arabicLibrary = 'ملاحظاتك في المكتبة: التظليل والتعليقات والعلامات وموضع القراءة';
+  const englishLibrary = 'your library notes: highlights, comments, bookmarks and reading position';
+  for (const s of [arabic, english, arabicLoc, englishLoc, arabicEntry, englishEntry, arabicLibrary, englishLibrary]) {
     is(page.indexOf(s) !== -1,
       'delete.html no longer says "' + s + '" -- either the page was weakened to fit the code, '
       + 'which is the wrong repair, or this tool measures against a sentence nobody makes.');
