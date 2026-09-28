@@ -107,7 +107,7 @@ const plain = (x) => JSON.parse(JSON.stringify(x));
   section('B. DELETE ALL MY DATA ALSO ERASES THE LIBRARY');
   // ==========================================================================================
   const clearSrc = [topConst('EZIK_ASK_PREFILL_SLOT'), topConst('EZLIB_STORE_PREFIX'), topConst('EZLIB_NOTES_DB'),
-    topFunction('ezikClearLibrary')].join('\n');
+    topConst('EZIK_RESUME_THREAD_SLOT'), topFunction('ezikClearResumeThread'), topFunction('ezikClearLibrary')].join('\n');
   function fakeStore(seed) {
     const m = new Map(Object.entries(seed));
     return {
@@ -229,10 +229,136 @@ const plain = (x) => JSON.parse(JSON.stringify(x));
     /\{ id: 'lessons', [^\n]*\n(?:\s*\/\/[^\n]*\n)*\s*\{ id: 'library',  label: EZH_LIBRARY,  icon: EZH_ICON_LIBRARY,  onClick: v\.onOpenLibrary,/.test(app)
     && app.indexOf("onOpenLibrary: () => { window.location.href = '/library.html'; },") !== -1);
   ok('E3  the library’s home has a way back to Ezik', html.indexOf("bar.insertBefore(el('button', { class: 'ibtn', 'aria-label': T('back'), text: '→', on: { click: backToEzik } })") !== -1
-    && /function backToEzik\(\) \{\s*try \{ sessionStorage\.setItem\('ezik_resume_section_v1', 'home'\); \} catch \(e\) \{\}\s*location\.href = '\/';/.test(html));
+    && /function backToEzik\(\) \{\s*try \{\s*if \(!sessionStorage\.getItem\('ezik_resume_thread_v1'\)\) sessionStorage\.setItem\('ezik_resume_section_v1', 'home'\);\s*\} catch \(e\) \{\}\s*location\.href = '\/';/.test(html));
   ok('E4  the old library sub-line is gone for good', app.indexOf('EZIST_SUB_LIBRARY') === -1 && app.indexOf('EZIST_SUB_ASMAA') !== -1);
   ok('E5  the catalogue host is named in library.html and never in app.jsx',
     html.indexOf('https://lib.ezik.app') !== -1 && app.indexOf('lib.ezik.app') === -1);
+
+  // ==========================================================================================
+  section('F. BACK FROM THE LIBRARY REOPENS THE SAME CONVERSATION (ORDER-108D D2)');
+  // ==========================================================================================
+  // Every behaviour below is a function of its SOURCE, so each mutant runs through the very
+  // same function as the real code and must come out different.
+  const bootSrc = [topConst('EZIK_RESUME_KEY'), topConst('EZIK_ASK_PREFILL_SLOT'), topConst('EZIK_RESUME_THREAD_SLOT'),
+    topFunction('ezikNoteResumeThread'), topFunction('ezikClearResumeThread'), topFunction('ezikLibraryLinkClick'),
+    topFunction('ezikOnPageShow'), topFunction('ezikBootIntentPick'), topFunction('ezikTakeBootIntent')].join('\n');
+  const SLOT_P = 'ezik_ask_prefill_v1', SLOT_S = 'ezik_resume_section_v1', SLOT_T = 'ezik_resume_thread_v1';
+  // One boot: the seeded session, the conversations that still exist -> what won, what is left.
+  function boot(src, seed, existing) {
+    const session = fakeStore(seed);
+    const out = vm.runInNewContext(src + '\nezikTakeBootIntent((id) => ex.indexOf(id) !== -1)',
+      { window: { sessionStorage: session }, ex: existing || [] });
+    return { kind: out.kind, thread: out.thread, left: session.keys() };
+  }
+  function priorityTable(src) {
+    return [
+      boot(src, { [SLOT_P]: 'q', [SLOT_S]: 'home', [SLOT_T]: 'c1' }, ['c1']),
+      boot(src, { [SLOT_S]: 'home', [SLOT_T]: 'c1' }, ['c1']),
+      boot(src, { [SLOT_T]: 'c1' }, ['c1']),
+      boot(src, { [SLOT_T]: 'gone' }, ['c1']),
+      boot(src, { [SLOT_S]: 'memorize', [SLOT_T]: 'c1' }, ['c1']),
+      boot(src, {}, ['c1']),
+    ].map((b) => b.kind + ':' + b.thread);
+  }
+  const PRIORITY = ['prefill:', 'home:', 'thread:c1', ':', 'thread:c1', ':'];
+  eq('F1  priority: the question, then the sections, then the conversation that still exists',
+    priorityTable(bootSrc), PRIORITY);
+  const mPrio = bootSrc.replace("  if (prefill) return 'prefill';\n  if (section === 'home') return 'home';",
+    "  if (section === 'home') return 'home';\n  if (prefill) return 'prefill';");
+  ok('F2  MUTANT KILLED: the sections put before the question', mPrio !== bootSrc
+    && JSON.stringify(priorityTable(mPrio)) !== JSON.stringify(PRIORITY));
+  const mExists = bootSrc.replace('if (thread && threadExists(thread))', 'if (thread)');
+  ok('F3  MUTANT KILLED: a deleted conversation reopened', mExists !== bootSrc
+    && JSON.stringify(priorityTable(mExists)) !== JSON.stringify(PRIORITY));
+
+  function clearingTable(src) {
+    return [
+      boot(src, { [SLOT_P]: 'q', [SLOT_S]: 'home', [SLOT_T]: 'c1' }, ['c1']).left,
+      boot(src, { [SLOT_S]: 'home', [SLOT_T]: 'c1', [SLOT_P]: '  ' }, ['c1']).left,
+      boot(src, { [SLOT_S]: 'memorize', [SLOT_T]: 'c1' }, ['c1']).left,
+      boot(src, { [SLOT_S]: 'memorize', [SLOT_T]: 'gone' }, ['c1']).left,
+    ];
+  }
+  const CLEARING = [[SLOT_P], [SLOT_S], [], [SLOT_S]];
+  eq('F4  clearing: the winner stays for its owner, every other key goes, the thread note always',
+    clearingTable(bootSrc), CLEARING);
+  const mClear = bootSrc.replace('    ss.removeItem(EZIK_RESUME_THREAD_SLOT);\n    if (kind', '    if (kind');
+  ok('F5  MUTANT KILLED: the thread note survives the boot', mClear !== bootSrc
+    && JSON.stringify(clearingTable(mClear)) !== JSON.stringify(CLEARING));
+  const mClear2 = bootSrc.replace("if (kind === 'prefill' || kind === 'thread') ss.removeItem(EZIK_RESUME_KEY);", '');
+  ok('F6  MUTANT KILLED: the losing section record left behind', mClear2 !== bootSrc
+    && JSON.stringify(clearingTable(mClear2)) !== JSON.stringify(CLEARING));
+
+  // The tap: only a book-source link notes the thread, and it spends a stale section record.
+  function tap(src, isLink, chatId) {
+    const session = fakeStore({ [SLOT_S]: 'memorize' });
+    const target = { closest: (sel) => (isLink && sel === 'a[data-ezik-library-link]' ? {} : null) };
+    vm.runInNewContext(src + '\nezikLibraryLinkClick(target, chatId)', { window: { sessionStorage: session }, target, chatId });
+    return session.keys().map((k) => k + '=' + session.getItem(k));
+  }
+  eq('F7  a tap on a book-source link notes the open conversation', tap(bootSrc, true, 'c7'), [SLOT_T + '=c7']);
+  eq('F8  ...any other tap notes nothing', tap(bootSrc, false, 'c7'), [SLOT_S + '=memorize']);
+  eq('F9  ...and a chat with no id yet notes nothing', tap(bootSrc, true, null), [SLOT_S + '=memorize']);
+  // A plain link (closest('a') finds it, the source-link selector does not) must note nothing.
+  function tapPlainLink(src) {
+    const session = fakeStore({});
+    const target = { closest: (sel) => (sel === 'a' ? {} : null) };
+    vm.runInNewContext(src + '\nezikLibraryLinkClick(target, "c7")', { window: { sessionStorage: session }, target });
+    return session.keys();
+  }
+  eq('F10 a tap on any other link notes nothing', tapPlainLink(bootSrc), []);
+  const mTap = bootSrc.replace("closest('a[data-ezik-library-link]')", "closest('a')");
+  ok('F10b MUTANT KILLED: every link notes the thread', mTap !== bootSrc && tapPlainLink(mTap).length === 1);
+  ok('F11 the source link carries the attribute the tap looks for',
+    app.indexOf('<a href={href} style={s.sourceChip} data-ezik-library-link="1">') !== -1);
+
+  // The back-forward cache.
+  function show(src, persisted) {
+    const session = fakeStore({ [SLOT_T]: 'c1' });
+    vm.runInNewContext(src + '\nezikOnPageShow({ persisted: p })', { window: { sessionStorage: session }, p: persisted });
+    return session.keys();
+  }
+  eq('F12 a back-forward-cache restore spends the note', show(bootSrc, true), []);
+  eq('F13 ...an ordinary page show does not', show(bootSrc, false), [SLOT_T]);
+  const mShow = bootSrc.replace('if (e && e.persisted) ezikClearResumeThread();', 'if (e) ezikClearResumeThread();');
+  ok('F14 MUTANT KILLED: every page show spends the note', mShow !== bootSrc && show(mShow, false).length === 0);
+
+  // The library home's back button.
+  const backSrc = (html.match(/  function backToEzik\(\) \{[\s\S]*?\n  \}\n/) || [])[0] || '';
+  function back(src, seed) {
+    const session = fakeStore(seed);
+    const loc = { href: '/library.html' };
+    vm.runInNewContext(src + '\nbackToEzik();', { sessionStorage: session, location: loc });
+    return { href: loc.href, left: session.keys().map((k) => k + '=' + session.getItem(k)) };
+  }
+  eq('F15 back with no conversation noted: the sections, as before', back(backSrc, {}),
+    { href: '/', left: [SLOT_S + '=home'] });
+  eq('F16 back with a conversation noted: "/" and no resume = home, so the conversation reopens',
+    back(backSrc, { [SLOT_T]: 'c1' }), { href: '/', left: [SLOT_T + '=c1'] });
+  const mBack = backSrc.replace("if (!sessionStorage.getItem('ezik_resume_thread_v1')) ", '');
+  ok('F17 MUTANT KILLED: the back button always writes home', mBack !== backSrc
+    && JSON.stringify(back(mBack, { [SLOT_T]: 'c1' }).left) !== JSON.stringify([SLOT_T + '=c1']));
+
+  // «Delete all my data».
+  const clearAllSrc = clearSrc;   // section B's cut already carries the thread slot and its eraser
+  function eraseAll(src) {
+    const session = fakeStore({ [SLOT_T]: 'c1', [SLOT_S]: 'home' });
+    vm.runInNewContext(src + '\nezikClearLibrary();', { window: { sessionStorage: session, indexedDB: { deleteDatabase: () => ({}) } }, localStorage: fakeStore({}) });
+    return session.keys();
+  }
+  eq('F18 delete-all erases the thread note', eraseAll(clearAllSrc), [SLOT_S]);
+  const mErase = clearAllSrc.replace('  ezikClearResumeThread();\n  try {\n    const idb', '  try {\n    const idb');
+  ok('F19 MUTANT KILLED: delete-all leaves the thread note', mErase !== clearAllSrc && eraseAll(mErase).indexOf(SLOT_T) !== -1);
+
+  // The wiring in App, where a unit test cannot reach.
+  ok('F20 the boot takes the intents and reopens the conversation that won',
+    /const bootIntent = ezikTakeBootIntent\(\(id\) => ezikListChats\(ezikProfileKey\(p\)\)\.some\(\(r\) => r\.id === id\)\);\s*ezikResumeMarkEntered\(ezikReadResume\(\)\);\s*if \(bootIntent\.kind === 'thread'\) openSavedChat\(bootIntent\.thread\);\s*else setScreen\(ezikResumeScreen\(\)\);/.test(app));
+  ok('F21 App listens for the tap in the capture phase and for the page show',
+    app.indexOf("const onLibraryLink = (e) => ezikLibraryLinkClick(e && e.target, chatIdRef.current);") !== -1
+    && app.indexOf("document.addEventListener('click', onLibraryLink, true);") !== -1
+    && app.indexOf("window.addEventListener('pageshow', ezikOnPageShow);") !== -1);
+  ok('F22 library.html and app.jsx name the same thread slot',
+    (topConst('EZIK_RESUME_THREAD_SLOT').match(/'([^']+)'/) || [])[1] === SLOT_T && html.indexOf("'" + SLOT_T + "'") !== -1);
 
   console.log('\n=== lib108-integration: ' + (checks - failures) + '/' + checks + ' checks, ' + failures + ' failure(s) ===');
   process.exit(failures ? 1 : 0);

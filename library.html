@@ -1764,9 +1764,12 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
   }
 
   // ---------------- Ezik (ORDER-108C) ----------------
-  // Back to Ezik lands on its sections (the same resume key quest.html's home link writes).
+  // Back to Ezik lands on its sections (the same resume key quest.html's home link writes) --
+  // unless the reader came from a conversation (ORDER-108D D2): then Ezik reopens that one.
   function backToEzik() {
-    try { sessionStorage.setItem('ezik_resume_section_v1', 'home'); } catch (e) {}
+    try {
+      if (!sessionStorage.getItem('ezik_resume_thread_v1')) sessionStorage.setItem('ezik_resume_section_v1', 'home');
+    } catch (e) {}
     location.href = '/';
   }
   // B5: "ask Ezik" opens Ezik's chat with the question in the composer, NOT sent. The question

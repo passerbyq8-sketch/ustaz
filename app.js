@@ -3473,7 +3473,19 @@ const EZIK_RESUME_HOME_LAYERS={articles:1,women:1,prayer:1,wirdi:1,tasbih:1,calc
 //   2. «delete all my data» also erases what the library keeps on this device -- its notes
 //      database and every localStorage key under its prefix;
 //   3. a library source in an answer links to the book at its page.
-const EZIK_ASK_PREFILL_SLOT='ezik_ask_prefill_v1';const EZLIB_STORE_PREFIX='ezlib_';const EZLIB_NOTES_DB='ezik-library-v1';function ezikTakeAskPrefill(){let q='';try{q=window.sessionStorage.getItem(EZIK_ASK_PREFILL_SLOT)||'';if(q)window.sessionStorage.removeItem(EZIK_ASK_PREFILL_SLOT);}catch(e){q='';}return String(q).trim().slice(0,1000);}function ezikClearLibrary(){try{const mine=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(typeof k==='string'&&k.indexOf(EZLIB_STORE_PREFIX)===0)mine.push(k);}mine.forEach(k=>{try{localStorage.removeItem(k);}catch(e){}});}catch(e){}try{window.sessionStorage.removeItem(EZIK_ASK_PREFILL_SLOT);}catch(e){}try{const idb=typeof window!=='undefined'?window.indexedDB:null;if(idb&&typeof idb.deleteDatabase==='function')idb.deleteDatabase(EZLIB_NOTES_DB);}catch(e){}}// The book's id is the library's own (FC- and six digits), carried by the server on the card and
+const EZIK_ASK_PREFILL_SLOT='ezik_ask_prefill_v1';const EZLIB_STORE_PREFIX='ezlib_';const EZLIB_NOTES_DB='ezik-library-v1';function ezikTakeAskPrefill(){let q='';try{q=window.sessionStorage.getItem(EZIK_ASK_PREFILL_SLOT)||'';if(q)window.sessionStorage.removeItem(EZIK_ASK_PREFILL_SLOT);}catch(e){q='';}return String(q).trim().slice(0,1000);}// ORDER-108D D2 -- BACK FROM THE LIBRARY REOPENS THE SAME CONVERSATION. A tap on a book-source
+// link leaves the open conversation's id in this tab's sessionStorage; the boot takes it once.
+// The reader is standing in the chat when he taps, so no section is being stood in: the
+// section record is cleared in the same step, and a stale one can never outrank the thread.
+const EZIK_RESUME_THREAD_SLOT='ezik_resume_thread_v1';function ezikNoteResumeThread(id){if(typeof id!=='string'||!id)return;try{window.sessionStorage.setItem(EZIK_RESUME_THREAD_SLOT,id);window.sessionStorage.removeItem(EZIK_RESUME_KEY);}catch(e){}}function ezikClearResumeThread(){try{window.sessionStorage.removeItem(EZIK_RESUME_THREAD_SLOT);}catch(e){}}// The capture-phase click listener's whole body: only a book-source link notes the thread.
+function ezikLibraryLinkClick(target,chatId){const a=target&&typeof target.closest==='function'?target.closest('a[data-ezik-library-link]'):null;if(a)ezikNoteResumeThread(chatId);}// A page restored from the back-forward cache already shows the conversation; the note must
+// not outlive that and hijack a later reload.
+function ezikOnPageShow(e){if(e&&e.persisted)ezikClearResumeThread();}// THE BOOT'S THREE ONE-SHOT INTENTS, in the order's priority: the «ask Ezik» question, then the
+// sections (resume = 'home'), then the conversation -- and that one only if it still exists.
+function ezikBootIntentPick(prefill,section,thread,threadExists){if(prefill)return'prefill';if(section==='home')return'home';if(thread&&threadExists(thread))return'thread';return'';}// Read once, and whichever wins, the others are cleared. The question itself is left for the
+// chat's own effect (ezikTakeAskPrefill) to take; the section record, when it wins, is left to
+// the resume machinery that owns it (the shelf clears it on its first bare render).
+function ezikTakeBootIntent(threadExists){let prefill='',section='',thread='';try{const ss=window.sessionStorage;prefill=String(ss.getItem(EZIK_ASK_PREFILL_SLOT)||'').trim();section=ss.getItem(EZIK_RESUME_KEY)||'';thread=ss.getItem(EZIK_RESUME_THREAD_SLOT)||'';}catch(e){return{kind:'',thread:''};}const kind=ezikBootIntentPick(prefill,section,thread,threadExists);try{const ss=window.sessionStorage;ss.removeItem(EZIK_RESUME_THREAD_SLOT);if(kind!=='prefill')ss.removeItem(EZIK_ASK_PREFILL_SLOT);if(kind==='prefill'||kind==='thread')ss.removeItem(EZIK_RESUME_KEY);}catch(e){}return{kind,thread:kind==='thread'?thread:''};}function ezikClearLibrary(){try{const mine=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(typeof k==='string'&&k.indexOf(EZLIB_STORE_PREFIX)===0)mine.push(k);}mine.forEach(k=>{try{localStorage.removeItem(k);}catch(e){}});}catch(e){}try{window.sessionStorage.removeItem(EZIK_ASK_PREFILL_SLOT);}catch(e){}ezikClearResumeThread();try{const idb=typeof window!=='undefined'?window.indexedDB:null;if(idb&&typeof idb.deleteDatabase==='function')idb.deleteDatabase(EZLIB_NOTES_DB);}catch(e){}}// The book's id is the library's own (FC- and six digits), carried by the server on the card and
 // never derived here; volume and page arrive only when the server already called the page citable.
 function ezikLibraryHref(bookId,vol,page){const id=String(bookId||'');if(!/^FC-[0-9]{6}$/.test(id))return'';const p=/^[0-9]{1,6}$/.test(String(page||''))?String(page):'';const v=p&&/^[0-9]{1,4}$/.test(String(vol||''))?String(vol):'';return'/library.html?book='+id+(v?'&vol='+v:'')+(p?'&page='+p:'');}// WHERE THE BOOT SHOULD LAND. '' means nothing was recorded, and the answer is the chat --
 // byte for byte the destination that shipped.
@@ -5247,7 +5259,9 @@ ezikMigrateLegacyThread(ezikProfileKey(p));// S99: this profile's reading prefer
 // the chat exactly as D85 wrote it; ezikResumeScreen() answers 'chat' for it.
 // BATCH B, ITEM 1: the boot names the section it is restoring, so that section --
 // and only it -- can tell a reload apart from an ordinary walk-in.
-ezikResumeMarkEntered(ezikReadResume());setScreen(ezikResumeScreen());// D85: a returning profile also lands on the chat
+// ORDER-108D D2: the one-shot intents are taken first; a conversation left for the
+// library is reopened only when this profile still has it, else the boot is the normal one.
+const bootIntent=ezikTakeBootIntent(id=>ezikListChats(ezikProfileKey(p)).some(r=>r.id===id));ezikResumeMarkEntered(ezikReadResume());if(bootIntent.kind==='thread')openSavedChat(bootIntent.thread);else setScreen(ezikResumeScreen());// D85: a returning profile also lands on the chat
 }else{setScreen('onboarding');}}catch{setScreen('onboarding');}},[]);// تحميل المصحف الكنسي مسبقاً بعد الإقلاع كي تظهر أول آية فوراً (يُتجاهَل الفشل بهدوء)
 useEffect(()=>{// S117 PERF. The prefetch stays; it no longer races the first paint. Measured cold against
 // live ezik.app, THIS effect issued /quran-uthmani.json (338KB transferred, 1.41MB parsed)
@@ -5681,7 +5695,10 @@ const startChatFromMenu=()=>{newChat();setScreen('chat');};// ITEM 108 (ORDER-10
 // on screen it is taken ONCE, a fresh thread is opened and the question waits in the composer,
 // NOT sent. The screen is read into a local first: chat-history-guard takes the first
 // `if (screen === ` in the file as the first screen return, and this is an effect, not a return.
-const prefillScreen=screen;useEffect(()=>{if(prefillScreen!=='chat')return;const q=ezikTakeAskPrefill();if(!q)return;newChat();setInput(q);},[prefillScreen]);// Open a saved conversation: the same stop-everything as a new chat, then the stored messages
+const prefillScreen=screen;useEffect(()=>{if(prefillScreen!=='chat')return;const q=ezikTakeAskPrefill();if(!q)return;newChat();setInput(q);},[prefillScreen]);// ORDER-108D D2: a tap on a book-source link notes the open conversation before the page
+// leaves (capture phase, so it runs before the navigation), and a back-forward-cache restore
+// spends the note, since the conversation is already on screen.
+useEffect(()=>{const onLibraryLink=e=>ezikLibraryLinkClick(e&&e.target,chatIdRef.current);document.addEventListener('click',onLibraryLink,true);window.addEventListener('pageshow',ezikOnPageShow);return()=>{document.removeEventListener('click',onLibraryLink,true);window.removeEventListener('pageshow',ezikOnPageShow);};},[]);// Open a saved conversation: the same stop-everything as a new chat, then the stored messages
 // become the thread and the chat adopts that conversation's id, so the next turn rewrites it
 // rather than filing a second copy. The messages are restored VERBATIM, which is what brings
 // the source cards back -- they are rendered from the reply text that was saved.

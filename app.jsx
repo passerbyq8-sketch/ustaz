@@ -10382,6 +10382,59 @@ function ezikTakeAskPrefill() {
   } catch (e) { q = ''; }
   return String(q).trim().slice(0, 1000);
 }
+// ORDER-108D D2 -- BACK FROM THE LIBRARY REOPENS THE SAME CONVERSATION. A tap on a book-source
+// link leaves the open conversation's id in this tab's sessionStorage; the boot takes it once.
+// The reader is standing in the chat when he taps, so no section is being stood in: the
+// section record is cleared in the same step, and a stale one can never outrank the thread.
+const EZIK_RESUME_THREAD_SLOT = 'ezik_resume_thread_v1';
+function ezikNoteResumeThread(id) {
+  if (typeof id !== 'string' || !id) return;
+  try {
+    window.sessionStorage.setItem(EZIK_RESUME_THREAD_SLOT, id);
+    window.sessionStorage.removeItem(EZIK_RESUME_KEY);
+  } catch (e) {}
+}
+function ezikClearResumeThread() {
+  try { window.sessionStorage.removeItem(EZIK_RESUME_THREAD_SLOT); } catch (e) {}
+}
+// The capture-phase click listener's whole body: only a book-source link notes the thread.
+function ezikLibraryLinkClick(target, chatId) {
+  const a = target && typeof target.closest === 'function' ? target.closest('a[data-ezik-library-link]') : null;
+  if (a) ezikNoteResumeThread(chatId);
+}
+// A page restored from the back-forward cache already shows the conversation; the note must
+// not outlive that and hijack a later reload.
+function ezikOnPageShow(e) {
+  if (e && e.persisted) ezikClearResumeThread();
+}
+// THE BOOT'S THREE ONE-SHOT INTENTS, in the order's priority: the «ask Ezik» question, then the
+// sections (resume = 'home'), then the conversation -- and that one only if it still exists.
+function ezikBootIntentPick(prefill, section, thread, threadExists) {
+  if (prefill) return 'prefill';
+  if (section === 'home') return 'home';
+  if (thread && threadExists(thread)) return 'thread';
+  return '';
+}
+// Read once, and whichever wins, the others are cleared. The question itself is left for the
+// chat's own effect (ezikTakeAskPrefill) to take; the section record, when it wins, is left to
+// the resume machinery that owns it (the shelf clears it on its first bare render).
+function ezikTakeBootIntent(threadExists) {
+  let prefill = '', section = '', thread = '';
+  try {
+    const ss = window.sessionStorage;
+    prefill = String(ss.getItem(EZIK_ASK_PREFILL_SLOT) || '').trim();
+    section = ss.getItem(EZIK_RESUME_KEY) || '';
+    thread = ss.getItem(EZIK_RESUME_THREAD_SLOT) || '';
+  } catch (e) { return { kind: '', thread: '' }; }
+  const kind = ezikBootIntentPick(prefill, section, thread, threadExists);
+  try {
+    const ss = window.sessionStorage;
+    ss.removeItem(EZIK_RESUME_THREAD_SLOT);
+    if (kind !== 'prefill') ss.removeItem(EZIK_ASK_PREFILL_SLOT);
+    if (kind === 'prefill' || kind === 'thread') ss.removeItem(EZIK_RESUME_KEY);
+  } catch (e) {}
+  return { kind, thread: kind === 'thread' ? thread : '' };
+}
 function ezikClearLibrary() {
   try {
     const mine = [];
@@ -10392,6 +10445,7 @@ function ezikClearLibrary() {
     mine.forEach((k) => { try { localStorage.removeItem(k); } catch (e) {} });
   } catch (e) {}
   try { window.sessionStorage.removeItem(EZIK_ASK_PREFILL_SLOT); } catch (e) {}
+  ezikClearResumeThread();
   try {
     const idb = typeof window !== 'undefined' ? window.indexedDB : null;
     if (idb && typeof idb.deleteDatabase === 'function') idb.deleteDatabase(EZLIB_NOTES_DB);
@@ -15796,8 +15850,12 @@ function App() {
         // the chat exactly as D85 wrote it; ezikResumeScreen() answers 'chat' for it.
         // BATCH B, ITEM 1: the boot names the section it is restoring, so that section --
         // and only it -- can tell a reload apart from an ordinary walk-in.
+        // ORDER-108D D2: the one-shot intents are taken first; a conversation left for the
+        // library is reopened only when this profile still has it, else the boot is the normal one.
+        const bootIntent = ezikTakeBootIntent((id) => ezikListChats(ezikProfileKey(p)).some((r) => r.id === id));
         ezikResumeMarkEntered(ezikReadResume());
-        setScreen(ezikResumeScreen());   // D85: a returning profile also lands on the chat
+        if (bootIntent.kind === 'thread') openSavedChat(bootIntent.thread);
+        else setScreen(ezikResumeScreen());   // D85: a returning profile also lands on the chat
       } else {
         setScreen('onboarding');
       }
@@ -16662,6 +16720,18 @@ function App() {
     newChat();
     setInput(q);
   }, [prefillScreen]);
+  // ORDER-108D D2: a tap on a book-source link notes the open conversation before the page
+  // leaves (capture phase, so it runs before the navigation), and a back-forward-cache restore
+  // spends the note, since the conversation is already on screen.
+  useEffect(() => {
+    const onLibraryLink = (e) => ezikLibraryLinkClick(e && e.target, chatIdRef.current);
+    document.addEventListener('click', onLibraryLink, true);
+    window.addEventListener('pageshow', ezikOnPageShow);
+    return () => {
+      document.removeEventListener('click', onLibraryLink, true);
+      window.removeEventListener('pageshow', ezikOnPageShow);
+    };
+  }, []);
 
   // Open a saved conversation: the same stop-everything as a new chat, then the stored messages
   // become the thread and the chat adopts that conversation's id, so the next turn rewrites it

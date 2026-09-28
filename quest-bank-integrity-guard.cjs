@@ -1694,7 +1694,14 @@ const SEALED = {
 //                    prose row and the SW_PROSE mirror followed. NO FILE JOINED OR LEFT CORE and the store
 //                    name stays main's ezik-v42. sw.js is 55908 bytes, measured at CR = 0.
 //                    THIS digest is re-cut LAST, after every other sw.js edit.
-  'sw.js': '35653f50baa7074d8979c68a96c4971bedd8a48497de8966bf7eaa51799c4288',
+  //   2026-09-28-e -- ORDER-108D D2: BACK FROM THE LIBRARY REOPENS THE SAME CONVERSATION. app.jsx gained
+//                    the thread note on a book-source tap, the boot's one-shot intents and the
+//                    back-forward-cache clear; app.js was rebuilt by node tools/build-app.cjs,
+//                    1820050 -> 1823469 bytes, and CORE_BYTES was re-cut by node tools/core-bytes.cjs
+//                    --write, 2993140 -> 2996559; the worker's app.js prose row and the SW_PROSE mirror
+//                    followed. NO FILE JOINED OR LEFT CORE and the store name stays ezik-v42. sw.js is
+//                    55908 bytes, measured at CR = 0. THIS digest is re-cut LAST, after every other sw.js edit.
+  'sw.js': 'cad801a9af32748737c19466afeac4a0a0e3fa4835da04702b57e113c266123f',
 };
 
 // ---------------------------------------------------------------------------
@@ -2650,7 +2657,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1820050, of: 'app.js' },
+      { n: 1823469, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
