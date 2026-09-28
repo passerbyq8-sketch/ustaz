@@ -610,5 +610,10 @@
     "name": "widgetopen",
     "script": "guards/widget-open-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "lib108",
+    "script": "guards/lib108-integration-guard.cjs",
+    "args": ""
   }
 ]
