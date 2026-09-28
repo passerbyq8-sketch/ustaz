@@ -302,6 +302,76 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       f.text.includes('ذهب الحنفية'), ascii(JSON.stringify(f)));
   }
 
+  // ---------------------------------------------------------------- W6B B0 the boundary of A1
+  // Owner, 28 Sep: «يُنسَبُ إلى المذهبِ بـ«عندنا» و«أصحابنا» و«مذهبنا» و«في المذهب»، وباسمِ الإمامِ ما لم يخالفْه أصحابُه في الموضعِ
+  // نفسِه. ولا يُنسَبُ بـ«من أصحابنا من» ولا «بعض أصحابنا» ولا برأيِ المصنّفِ لنفسِه.» One case per kept and per dropped form.
+  // Rows: real rows of the four madhhab books as gatherBw2 returned them for the 134 questions (fixtures-speed-w6b.json) where
+  // one carries the form; where none does, a stated sentence on a row of that school's tagged book (SYN below, the words
+  // reworded from the named real row, never a book's own text). The writer is a fake; each unit is what a writer quoting the
+  // row would write.
+  {
+    const UNITS = await esm('lib/bw2-units.js');
+    const RC = await esm('lib/route-classify.js');
+    const XB = require('./fixtures-speed-w6b.json');
+    const real = (k) => ({ ref: 1, kind: 'lib_book', recordId: XB[k].recordId, bookTitle: XB[k].book, title: XB[k].book, author: XB[k].author,
+      locator: XB[k].locator, fullText: XB[k].text, text: XB[k].text });
+    const SYN = (bookId, text) => ({ ref: 1, kind: 'lib_book', recordId: 'lib:' + bookId + ':9999:001', bookTitle: 'syn', title: 'syn', locator: 'ج1 · ص1', fullText: text, text });
+    const rel = async (row, unit) => {
+      const out = [];
+      const r = UNITS.createBw2Releaser({ rows: [row], emit: (p) => { out.push(p); return true; },
+        cards: { buildSourceTag: () => null, buildBookTag: (x) => ({ tag: '<book id="' + x.recordId + '"></book>' }), max: 5 } });
+      r.push(unit + ' [[1]].\n');
+      const s = await r.end();
+      return { released: out.join('').includes(unit.slice(0, 24)), holds: s.holds || {} };
+    };
+    const HANAFI = 'FC-003532';
+    const SHAFII = 'FC-003660';
+    const HANBALI = 'FC-003727';
+    // [case, row, unit]
+    const KEPT = [
+      ['W6B0a kept «عندنا» (Bada\'i 1:245 «لو صلوا صلاة الخوف ولم يعاينوا العدو جاز للإمام ولم يجز للقوم … لا يجوز عندنا»)', real('badai_1_245'), 'وعند الحنفية لا تجوز صلاة الخوف للقوم إذا لم يعاينوا العدو'],
+      ['W6B0b kept «قال أصحابنا» (al-Mughni 2:320 «قال أصحابنا: وينادى لها الصلاة جامعة»)', real('mughni_2_320'), 'وعند الحنابلة ينادى لصلاة الاستسقاء الصلاة جامعة'],
+      ['W6B0c kept «مذهبنا» (al-Majmu\' 4:433 «ولا يجوز تأخيرها عن الوقت هذا مذهبنا»)', real('majmu_4_433'), 'ومذهب الشافعية أنه لا يجوز تأخير صلاة شدة الخوف عن الوقت'],
+      ['W6B0d kept «في المذهب» (al-Mughni 2:449 «فالصحيح في المذهب جواز إخراج الفرض منه»)', real('mughni_2_449'), 'والصحيح عند الحنابلة جواز إخراج الفرض من النصاب المريض كله'],
+      ['W6B0e kept «عند أصحابنا» (stated sentence on al-Majmu\': no row of the 134 questions carries it)', SYN(SHAFII, 'وعند أصحابنا يجوز تقديم الخطبة على الصلاة في الاستسقاء.'), 'وعند الشافعية يجوز تقديم الخطبة على صلاة الاستسقاء'],
+      ['W6B0f kept the imam as the subject of «قال», no companion against him (al-Majmu\' 5:64 «قال الشافعي في الأم ينبغي للإمام أن يستسقي بالناس»)', real('majmu_5_64'), 'وعند الشافعية ينبغي للإمام أن يستسقي بالناس عند الحاجة'],
+      ['W6B0g kept «مذهب» + the imam (al-Mughni 2:316 «مذهب أحمد أنه يجوز أن يصلي صلاة الكسوف على كل صفة رويت»)', real('mughni_2_316'), 'ومذهب الحنابلة أنه يجوز أن تصلى صلاة الكسوف على كل صفة رويت'],
+      ['W6B0h kept the imam alone, the control of i-k (stated: Bada\'i 1:281\'s matter with no companion in the row)', SYN(HANAFI, 'وقال أبو حنيفة: لا يجهر بالقراءة في صلاة الكسوف.'), 'وعند الحنفية لا يجهر بالقراءة في صلاة الكسوف'],
+    ];
+    const DROPPED = [
+      ['W6B0i dropped the imam when the row says «وقال أبو يوسف ومحمد» (stated, Bada\'i 1:281\'s matter)', SYN(HANAFI, 'وقال أبو حنيفة: لا يجهر بالقراءة في صلاة الكسوف، وقال أبو يوسف ومحمد: يجهر بها.'), 'وعند الحنفية لا يجهر بالقراءة في صلاة الكسوف'],
+      ['W6B0j dropped the imam when the row says «خلافا لصاحبيه» (stated, the same matter)', SYN(HANAFI, 'وقال أبو حنيفة: لا يجهر بالقراءة في صلاة الكسوف، خلافا لصاحبيه.'), 'وعند الحنفية لا يجهر بالقراءة في صلاة الكسوف'],
+      ['W6B0k dropped the imam when the row says «وعند محمد» (stated, the same matter)', SYN(HANAFI, 'وقال أبو حنيفة: لا يجهر بالقراءة في صلاة الكسوف، وعند محمد يجهر بها.'), 'وعند الحنفية لا يجهر بالقراءة في صلاة الكسوف'],
+      ['W6B0l dropped the imam on Bada\'i 1:204 «عند أبي حنيفة وأبي يوسف»: the same row says «وقال محمد يأتي بها»', real('badai_1_204'), 'وعند الحنفية لا يأتي بالتسمية عند رأس كل سورة عند أبي حنيفة وأبي يوسف'],
+      ['W6B0m dropped the imam on al-Mughni 2:131 «فقال أحمد: لا تنعقد به الجماعة»: the same row says «وقال أبو الحسن الآمدي: فيه رواية أخرى»', real('mughni_2_131'), 'وعند الحنابلة أن الصبي إذا أم في الفرض لا تنعقد به الجماعة'],
+      ['W6B0n dropped the imam when the row says «وعنه رواية أخرى» (stated, al-Mughni 2:131\'s matter)', SYN(HANBALI, 'فقال أحمد: لا تنعقد به الجماعة. وعنه رواية أخرى: أنه يصح أن يكون إماما.'), 'وعند الحنابلة أن الصبي إذا أم في الفرض لا تنعقد به الجماعة'],
+      ['W6B0o dropped «ومن أصحابنا من» (al-Majmu\' 4:160-161 «والنفل والفرض في سجود السهو واحد ومن أصحابنا من حكى»)', real('majmu_4_160'), 'وعند الشافعية أن النفل والفرض واحد'],
+      ['W6B0p dropped «بعض أصحابنا» (stated, al-Majmu\' 4:160\'s matter)', SYN(SHAFII, 'والمنقول عن بعض أصحابنا أنه لا يسجد للسهو في النفل.'), 'وعند الشافعية أنه لا يسجد للسهو في النفل'],
+      ['W6B0q dropped «قال بعض الأصحاب» (stated, the same matter)', SYN(SHAFII, 'قال بعض الأصحاب: لا يسجد للسهو في النفل.'), 'وعند الشافعية أنه لا يسجد للسهو في النفل'],
+      ['W6B0r dropped «وجه لبعض الأصحاب» (stated, the same matter)', SYN(SHAFII, 'وفيه وجه لبعض الأصحاب أنه لا يسجد للسهو في النفل.'), 'وعند الشافعية أنه لا يسجد للسهو في النفل'],
+      ['W6B0s dropped «قال المصنف» as a lead of its own (stated: al-Majmu\' 4:160\'s matn in one sentence)', SYN(SHAFII, 'قال المصنف: والنفل والفرض في سجود السهو واحد.'), 'وعند الشافعية أن النفل والفرض في سجود السهو واحد'],
+      ['W6B0t dropped «قول المصنف» as a lead of its own (al-Dasuqi 1:501 «قول المصنف: أو قدمت بكشهر في عين وماشية، قوله لم يجزه»)', real('dasuqi_1_501'), 'وعند المالكية أن الزكاة إن قدمت بكشهر في عين وماشية لم تجزه'],
+      ['W6B0u dropped «ولا أرى» (al-Mughni 2:190 «قال المصنف: ولا أرى لما صار إليه الأئمة حجة»)', real('mughni_2_190'), 'وعند الحنابلة لا حجة لما صار إليه الأئمة لأن أقوال الصحابة متعارضة'],
+    ];
+    for (const [p, words] of [['عندي', 'والصحيح عندي'], ['والذي أراه', 'والذي أراه'], ['والذي يظهر لي', 'والذي يظهر لي'], ['والمختار عندي', 'والمختار عندي'], ['وأختار', 'وأختار']]) {
+      DROPPED.push(['W6B0v dropped «' + p + '»: «قال أصحابنا» licenses its own words, not the author\'s own view after them (stated)',
+        SYN(SHAFII, 'قال أصحابنا: تجوز صلاة الخوف في الحضر، ' + words + ' أنها لا تجوز إلا في السفر.'), 'وعند الشافعية لا تجوز صلاة الخوف في الحضر']);
+    }
+    for (const [name, row, unit] of KEPT) {
+      const r = await rel(row, unit);
+      ok(name + ': released', r.released, ascii(JSON.stringify(r)));
+    }
+    for (const [name, row, unit] of DROPPED) {
+      const r = await rel(row, unit);
+      ok(name + ': held (unsupported_school)', !r.released && r.holds.unsupported_school === 1, ascii(JSON.stringify(r)));
+    }
+    // al-Dasuqi 1:434 writes «واختار الساعي أحدهما» (the third person) and says no «عندنا»; the stated row adds it.
+    const third = await rel(SYN('FC-003623', 'فإن وجد الصنفان سليمين واختار الساعي أحدهما أجزأه ما أخذ الساعي عندنا.'),
+      'وعند المالكية إن وجد الصنفان سليمين واختار الساعي أحدهما أجزأه ما أخذ');
+    ok('W6B0w control: «واختار الساعي» (al-Dasuqi 1:434\'s words, the third person, which folds like «وأختار») is no personal view: released',
+      RC.normalizeArabic(XB.dasuqi_1_434.text).includes('واختار الساعي احدهما') && third.released, ascii(JSON.stringify(third)));
+  }
+
   // ---------------------------------------------------------------- W7 (WASL) the letter test, a standing case
   // Bada'i al-Sana'i 2:73 through every door that brings text equals the library's page letter for letter: (1) the /search
   // door (lib/lib-service.js searchLibrary through the gated runner) over the six atoms that cover it -- the service's own
