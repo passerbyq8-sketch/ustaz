@@ -426,6 +426,30 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       out.join('').startsWith('\u0627\u0644\u0633\u0648\u0627\u0643 \u0633\u0646\u0629 \u0645\u0624\u0643\u062f\u0629') && s.released === 1, ascii(JSON.stringify({ text: out.join(''), holds: s.holds })));
   }
 
+  // ---------------------------------------------------------------- P28 (PIPES3, F) round 8, 9: the named hadith asked in its own words
+  {
+    const Q9 = '\u0645\u0627 \u062f\u0631\u062c\u0629 \u062d\u062f\u064a\u062b: \u0623\u0646\u0627 \u0645\u062f\u064a\u0646\u0629 \u0627\u0644\u0639\u0644\u0645 \u0648\u0639\u0644\u064a \u0628\u0627\u0628\u0647\u0627\u061f';
+    const MATN = '\u0627\u0646\u0627 \u0645\u062f\u064a\u0646\u0647 \u0627\u0644\u0639\u0644\u0645 \u0648\u0639\u0644\u064a \u0628\u0627\u0628\u0647\u0627';
+    ok('P28a question 9: the issue query lost the hadith\'s words (frame words); the hadith query is the matn itself, a trailing grade word taken off, and none for a question that names no hadith',
+      BW2.libraryQuery(Q9) !== MATN && typeof BW2.hadithLibraryQuery === 'function' && BW2.hadithLibraryQuery(Q9) === MATN
+      && BW2.hadithLibraryQuery('\u0647\u0644 \u062d\u062f\u064a\u062b: \u0627\u0644\u0643\u0644\u0645\u0629 \u0627\u0644\u0637\u064a\u0628\u0629 \u0635\u062f\u0642\u0629 \u062b\u0627\u0628\u062a\u061f') === '\u0627\u0644\u0643\u0644\u0645\u0647 \u0627\u0644\u0637\u064a\u0628\u0647 \u0635\u062f\u0642\u0647'
+      && BW2.hadithLibraryQuery('\u0645\u0627 \u062d\u0643\u0645 \u0635\u0644\u0627\u0629 \u0627\u0644\u062c\u0645\u0627\u0639\u0629\u061f') === '' && BW2.hadithLibraryQuery('\u0645\u0627 \u0627\u0644\u062d\u062f\u064a\u062b \u0627\u0644\u0648\u0627\u0631\u062f \u0641\u064a \u0641\u0636\u0644 \u0627\u0644\u0633\u0648\u0627\u0643\u061f \u0648\u0645\u0646 \u0631\u0648\u0627\u0647\u061f') === '',
+      ascii(BW2.libraryQuery(Q9)));
+    const seen = [];
+    const runTool = async (name, input, ctx) => {
+      if (name !== 'search_library') return { text: '', added: [], calls: 0 };
+      seen.push(input.query);
+      for (let i = 0; i < 4; i += 1) ctx.table.add({ kind: 'lib_book', title: 'b ' + input.query + ' ' + i, recordId: 'lib:' + input.query + ':' + i, text: input.query + ' ' + i });
+      return { text: '', added: [], calls: 1 };
+    };
+    const g = await BW2.gatherBw2({ question: Q9, libFlagValue: 'on', libToken: 't', budgetMs: 800,
+      deps: { runTool, searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true, scholarBooksOf: () => null } });
+    const lib = g.results.library;
+    const mine = lib.filter((row) => String(row.recordId).startsWith('lib:' + MATN + ':'));
+    ok('P28b question 9 end to end: the library is also asked the matn, its three rows come after every other member\'s',
+      seen.includes(MATN) && mine.length === 3 && lib.indexOf(mine[0]) === lib.length - 3, ascii(JSON.stringify(seen)));
+  }
+
   // ---------------------------------------------------------------- P2 the fatwa store in the reader's letters
   {
     const Q5 = '\u0645\u0627 \u062d\u0643\u0645 \u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u0641\u0627\u062a\u062d\u0629 \u0644\u0644\u0645\u0623\u0645\u0648\u0645 \u0639\u0646\u062f \u0627\u0644\u0645\u0630\u0627\u0647\u0628 \u0627\u0644\u0623\u0631\u0628\u0639\u0629';
