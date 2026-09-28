@@ -65,10 +65,10 @@ function owner4Child() {
         const i = calls[check[1]]++;
         await at(A.verifyMs[Math.min(i, A.verifyMs.length - 1)], signal);
       } else {
-        const q = url.searchParams.get('q') || '';
+        const searched = url.searchParams.get('q') || '';
         const start = Date.now() - t0;
-        calls.searches.push({ q, start });
-        await at(start + (A.searchMs[q] || 1000), signal);
+        calls.searches.push({ q: searched, start });
+        await at(start + (A.searchMs[searched] || 1000), signal);
       }
       return reply(u);
     };
