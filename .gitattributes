@@ -846,3 +846,5 @@ guards/speed-pipes-guard.cjs text eol=lf
 lib/source-followup.js text eol=lf
 lib/bw2-scholar.js text eol=lf
 guards/fixtures-speed-wasl.json text eol=lf
+guards/fixtures-speed-wasl-fatwas.json text eol=lf
+lib/fatwa-title.js text eol=lf

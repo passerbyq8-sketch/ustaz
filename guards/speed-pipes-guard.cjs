@@ -61,6 +61,32 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       && fat.length === 1 && fat[0].query === KHAWF_AS_WRITTEN, ascii(JSON.stringify(seen)));
   }
 
+  // ---------------------------------------------------------------- W3a (WASL) the fatwa's own words
+  // The store ANDs every word, so an issue asked in the reader's words misses the fatwas titled in the fiqh's. MEASURED on
+  // the live store (read only, CONNECT F1 and this round): for the owner's question fatwaQueries sent «إخراج زكاة المال» and
+  // «عروضا بدل النقود» (5 fatwas, none on the question); «إخراج الزكاة عروضا» and «إخراج القيمة في الزكاة» reach binbaz 6518,
+  // binbaz 14611 and binothaimeen 6991. The rule derives them from the question (lib/fatwa-title.js), never from a list.
+  {
+    const FT = await esm('lib/fatwa-title.js');
+    const WQ = require('./fixtures-speed-wasl.json');
+    const OWNER = WQ.w1.question;
+    const q = FT.fatwaTitleQueries(OWNER);
+    ok('W3a1 the owner\'s question: the store is asked «إخراج الزكاة عروضا» and «إخراج القيمة في الزكاة» (both measured to reach the direct matches)',
+      q.includes('إخراج الزكاة عروضا') && q.includes('إخراج القيمة في الزكاة'), ascii(JSON.stringify(q)));
+    const fitr = FT.fatwaTitleQueries('هل يجوز دفع زكاة الفطر نقودا بدل الطعام؟');
+    const ghanam = FT.fatwaTitleQueries('هل تجزئ زكاة الغنم نقدا؟');
+    ok('W3a2 two siblings worded otherwise: «إخراج زكاة الفطر نقودا» (binbaz 5348, 13962, 5967, 5705) and «إخراج القيمة في زكاة الغنم» (binbaz 14611)',
+      fitr.includes('إخراج زكاة الفطر نقودا') && ghanam.includes('إخراج القيمة في زكاة الغنم'),
+      ascii(JSON.stringify([fitr, ghanam])));
+    const none = ['ما حكم صلاة الجماعة؟', 'ما هي شروط وجوب الزكاة؟', Q1, Q22];
+    ok('W3a3 control: a question with no due paid in another kind gets no title query (the rule adds nothing to it)',
+      none.every((x) => FT.fatwaTitleQueries(x).length === 0), ascii(JSON.stringify(none.map((x) => FT.fatwaTitleQueries(x)))));
+    const asked = [];
+    const runTool = async (name, input) => { if (name === 'search_fatawa') asked.push(input.query); return { text: '', added: [], calls: 1 }; };
+    await BW2.gatherBw2({ question: OWNER, budgetMs: 800, deps: { runTool, searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true } });
+    ok('W3a4 the before-writing path asks them beside fatwaQueries', q.every((x) => asked.includes(x)) && BW2.fatwaQueries(OWNER).every((x) => asked.includes(x)), ascii(JSON.stringify(asked)));
+  }
+
   // ---------------------------------------------------------------- P10 (PIPES2 fix 2) round 7, question 5
   {
     const Q7_5 = '\u0645\u0627 \u062d\u0643\u0645 \u062a\u062f\u0627\u0648\u0644 \u0627\u0644\u0639\u0645\u0644\u0627\u062a \u0627\u0644\u0645\u0634\u0641\u0631\u0629 \u0645\u062b\u0644 \u0627\u0644\u0628\u062a\u0643\u0648\u064a\u0646\u061f';
@@ -1024,6 +1050,29 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       lessonsAsked.length = 0;
       const w2plain = await drive('ما هي عاصمة اليابان؟', { env: LIBENV, respond: w2Respond });
       ok('W2e a worldly question asks no lessons before the writer (the prefetch rides the fatwa prefetch\'s religious key)', !w2plain.crashed && lessonsAsked.length === 0 && w2plain.model.length > 0);
+
+      // W3a on the free-brain path: the fatwa prefetch asks the store the issue as a fatwa's title states it, beside the
+      // reader's own words. The store answers from its own replies, recorded read only on 2026-09-28 and trimmed to the
+      // records Ezik keeps (fixtures-speed-wasl-fatwas.json; the trimmed replay keeps the same rows on all 26 queries).
+      const STORE = require('./fixtures-speed-wasl-fatwas.json');
+      const fatwaAsked = [];
+      const storeRespond = (u, init) => {
+        if (!u.startsWith('https://ezik-fatwas.vercel.app/')) return w2Respond(u, init);
+        const e = STORE[u];
+        if (u.includes('/fatwas/search')) fatwaAsked.push(new URL(u).searchParams.get('q'));
+        if (!e) return { ok: false, status: 404, url: u, headers: { get: () => 'application/json' }, text: async () => '{}', json: async () => ({}) };
+        return { ok: e.status === 200, status: e.status, url: u, redirected: false, headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? e.ct : null) },
+          text: async () => e.body, json: async () => JSON.parse(e.body) };
+      };
+      const w3 = await drive(WASL.w1.question, { env: LIBENV, respond: storeRespond });
+      const w3First = w3.model.find((b) => b.system !== BW2.BW2_JUDGE_SYSTEM);
+      const DIRECT = ['حكم إخراج الزكاة من الأقمشة', 'جواز إخراج النقود في زكاة الماشية'];
+      ok('W3a5 free-brain path: the owner\'s question asks the store in the fatwa\'s own words, and binbaz 6518 and binothaimeen 6991 reach the writer',
+        !w3.crashed && fatwaAsked.includes('إخراج الزكاة عروضا') && !!w3First && DIRECT.every((t) => lastUser(w3First).includes(t)),
+        ascii(JSON.stringify({ asked: fatwaAsked.length, crashed: w3.crashed && String(w3.crashed.stack) })));
+      fatwaAsked.length = 0;
+      const w3c = await drive('ما حكم تغطية المرآة في غرفة النوم؟', { env: LIBENV, respond: storeRespond });
+      ok('W3a6 control: a question the rule does not read is asked in its own words only, as before', !w3c.crashed && fatwaAsked.length === 1, ascii(JSON.stringify(fatwaAsked)));
     } finally {
       globalThis.fetch = realFetch;
       for (const k of ENV_KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }
