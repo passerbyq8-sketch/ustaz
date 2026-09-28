@@ -129,6 +129,42 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       real && real.bookIds.includes('FC-003727') && tay && tay.bookIds.length <= 100 && tay.bookIds.includes('FC-004491'), ascii(JSON.stringify(real)));
   }
 
+  // ---------------------------------------------------------------- P14 (PIPES2 fix 6) round 7, question 8
+  {
+    const Q8 = '\u0645\u0627 \u0634\u0631\u0648\u0637 \u0627\u0644\u0635\u0644\u0627\u0629 \u0648\u0623\u0631\u0643\u0627\u0646\u0647\u0627 \u0648\u0648\u0627\u062c\u0628\u0627\u062a\u0647\u0627 \u0648\u0633\u0646\u0646\u0647\u0627\u061f';
+    const Q28 = '\u0645\u0627 \u0623\u062d\u0643\u0627\u0645 \u0627\u0644\u0623\u0636\u062d\u064a\u0629: \u0648\u0642\u062a\u0647\u0627 \u0648\u0634\u0631\u0648\u0637\u0647\u0627 \u0648\u0645\u0627 \u064a\u062c\u0632\u0626 \u0645\u0646\u0647\u0627 \u0648\u062a\u0648\u0632\u064a\u0639 \u0644\u062d\u0645\u0647\u0627\u061f';
+    const partsOf = (q) => (typeof BW2.issueParts === 'function' ? BW2.issueParts(q).map((p) => p.surface) : null);
+    ok('P14a the parts: question 8 has four, round 6\'s 27 four and 28 two ("its time", "its conditions"); a ruling question, question 7 and question 1 have none',
+      JSON.stringify(partsOf(Q8)) === JSON.stringify(['\u0634\u0631\u0648\u0637 \u0627\u0644\u0635\u0644\u0627\u0629', '\u0623\u0631\u0643\u0627\u0646 \u0627\u0644\u0635\u0644\u0627\u0629', '\u0648\u0627\u062c\u0628\u0627\u062a \u0627\u0644\u0635\u0644\u0627\u0629', '\u0633\u0646\u0646 \u0627\u0644\u0635\u0644\u0627\u0629'])
+      && JSON.stringify(partsOf('\u0645\u0627 \u0634\u0631\u0648\u0637 \u0627\u0644\u062d\u062c \u0648\u0623\u0631\u0643\u0627\u0646\u0647 \u0648\u0648\u0627\u062c\u0628\u0627\u062a\u0647 \u0648\u0633\u0646\u0646\u0647\u061f')) === JSON.stringify(['\u0634\u0631\u0648\u0637 \u0627\u0644\u062d\u062c', '\u0623\u0631\u0643\u0627\u0646 \u0627\u0644\u062d\u062c', '\u0648\u0627\u062c\u0628\u0627\u062a \u0627\u0644\u062d\u062c', '\u0633\u0646\u0646 \u0627\u0644\u062d\u062c'])
+      && JSON.stringify(partsOf(Q28)) === JSON.stringify(['\u0648\u0642\u062a \u0627\u0644\u0623\u0636\u062d\u064a\u0629', '\u0634\u0631\u0648\u0637 \u0627\u0644\u0623\u0636\u062d\u064a\u0629'])
+      && [ '\u0645\u0627 \u062d\u0643\u0645 \u0635\u0644\u0627\u0629 \u0627\u0644\u062c\u0645\u0627\u0639\u0629\u061f', '\u0645\u0627 \u0627\u0644\u0623\u062f\u0644\u0629 \u0645\u0646 \u0627\u0644\u0642\u0631\u0622\u0646 \u0648\u0627\u0644\u0633\u0646\u0629 \u0639\u0644\u0649 \u0648\u062c\u0648\u0628 \u0635\u0644\u0629 \u0627\u0644\u0631\u062d\u0645\u061f', '\u0645\u0627\u0647\u064a \u0635\u0641\u0627\u062a \u0635\u0644\u0627\u0629 \u0627\u0644\u062e\u0648\u0641 \u0639\u0646\u062f \u0627\u0644\u0645\u0630\u0627\u0647\u0628 \u0627\u0644\u0627\u0631\u0628\u0639\u0647'].every((q) => JSON.stringify(partsOf(q)) === '[]'),
+      ascii(JSON.stringify(partsOf(Q8))));
+    const run = async (question, answering) => {
+      const lib = [];
+      const fat = [];
+      const runTool = async (tool, input, ctx) => {
+        if (tool === 'search_library') lib.push({ query: input.query, books: Array.isArray(ctx.bookIds) ? ctx.bookIds.join(',') : '' });
+        if (tool === 'search_fatawa') {
+          fat.push(input.query);
+          if (answering(input.query)) ctx.table.add({ kind: 'fatwa', title: 'fatwa ' + input.query, url: 'https://binbaz.org.sa/fatwas/' + fat.length, passage: input.query });
+        }
+        return { text: '', added: [], calls: 1 };
+      };
+      const g = await BW2.gatherBw2({ question, libFlagValue: 'on', libToken: 't', budgetMs: 800,
+        deps: { runTool, searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true, scholarBooksOf: async () => null } });
+      return { lib, fat, rows: g.results.fatwa.map((r) => r.passage) };
+    };
+    const a = await run(Q8, () => false);
+    const parts8 = ['\u0634\u0631\u0648\u0637 \u0627\u0644\u0635\u0644\u0627\u0647', '\u0627\u0631\u0643\u0627\u0646 \u0627\u0644\u0635\u0644\u0627\u0647', '\u0648\u0627\u062c\u0628\u0627\u062a \u0627\u0644\u0635\u0644\u0627\u0647', '\u0633\u0646\u0646 \u0627\u0644\u0635\u0644\u0627\u0647'];
+    ok('P14b question 8: each part goes to the comparative books (folded) and to the fatwa store (as written)',
+      parts8.every((p) => a.lib.some((c) => c.query === p && c.books === 'FC-003910,FC-003592'))
+      && ['\u0634\u0631\u0648\u0637 \u0627\u0644\u0635\u0644\u0627\u0629', '\u0623\u0631\u0643\u0627\u0646 \u0627\u0644\u0635\u0644\u0627\u0629', '\u0648\u0627\u062c\u0628\u0627\u062a \u0627\u0644\u0635\u0644\u0627\u0629', '\u0633\u0646\u0646 \u0627\u0644\u0635\u0644\u0627\u0629'].every((p) => a.fat.includes(p)), ascii(JSON.stringify({ lib: a.lib, fat: a.fat })));
+    const b = await run(Q28, (q) => q === '\u0627\u0644\u0623\u0636\u062d\u064a\u0629 \u0648\u0642\u062a\u0647\u0627' || q === '\u0648\u0642\u062a \u0627\u0644\u0623\u0636\u062d\u064a\u0629');
+    ok('P14c round 6 question 28: the issue\'s own queries find nothing, so its first two words are still asked although a part answered, and their fatwa comes first',
+      b.fat.includes('\u0627\u0644\u0623\u0636\u062d\u064a\u0629 \u0648\u0642\u062a\u0647\u0627') && b.rows[0] === '\u0627\u0644\u0623\u0636\u062d\u064a\u0629 \u0648\u0642\u062a\u0647\u0627' && b.rows.includes('\u0648\u0642\u062a \u0627\u0644\u0623\u0636\u062d\u064a\u0629'), ascii(JSON.stringify(b)));
+  }
+
   // ---------------------------------------------------------------- P2 the fatwa store in the reader's letters
   {
     const Q5 = '\u0645\u0627 \u062d\u0643\u0645 \u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u0641\u0627\u062a\u062d\u0629 \u0644\u0644\u0645\u0623\u0645\u0648\u0645 \u0639\u0646\u062f \u0627\u0644\u0645\u0630\u0627\u0647\u0628 \u0627\u0644\u0623\u0631\u0628\u0639\u0629';
