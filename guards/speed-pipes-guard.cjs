@@ -317,6 +317,18 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       UNITS.onlyFunctionWords('\u0648\u0645\u0627.') && UNITS.onlyFunctionWords('\u0648\u0647\u0630\u0627 [[2]].') && !UNITS.onlyFunctionWords('\u0648\u0645\u0627 \u0635\u062d \u0639\u0646\u0647.') && !UNITS.onlyFunctionWords('\u064a\u062c\u0648\u0632.'));
   }
 
+  // ---------------------------------------------------------------- P23 (PIPES2 fix 15) round 7, 2 (first try): the judge's budget
+  {
+    ok('P23a the judge waits 4500 ms by default (2 of 78 judged turns were cut at 3000); BW2_JUDGE_MS still overrides it',
+      BW2.judgeBudgetMs({}) === 4500 && BW2.BW2_JUDGE_MS_DEFAULT === 4500 && BW2.judgeBudgetMs({ BW2_JUDGE_MS: '3000' }) === 3000,
+      String(BW2.judgeBudgetMs({})));
+    let asked = 0;
+    const slow = await BW2.judgeBw2({ question: 'x', rows: [{ kind: 'fatwa', title: 't', passage: 'p' }], budgetMs: 200,
+      ask: () => { asked += 1; return new Promise((resolve) => setTimeout(() => resolve('{"d":{"1":1}}'), 50)); } });
+    ok('P23b a judge that answers inside the budget is kept whole (the budget cuts only a slower one)', asked === 1 && slow.outcome === 'complete' && slow.kept.length === 1,
+      JSON.stringify(slow));
+  }
+
   // ---------------------------------------------------------------- P2 the fatwa store in the reader's letters
   {
     const Q5 = '\u0645\u0627 \u062d\u0643\u0645 \u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u0641\u0627\u062a\u062d\u0629 \u0644\u0644\u0645\u0623\u0645\u0648\u0645 \u0639\u0646\u062f \u0627\u0644\u0645\u0630\u0627\u0647\u0628 \u0627\u0644\u0623\u0631\u0628\u0639\u0629';
