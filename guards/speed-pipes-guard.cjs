@@ -548,6 +548,79 @@ function replayOwner4(opts = {}) {
       ascii(JSON.stringify(q4)));
   }
 
+  // ---------------------------------------------------------------- W6B B3 a bare suggestions block does not stop the hand-over (K1c)
+  // MEASURED (W4GAP K1, the owner's question 4): every prose unit was held, the writer's <suggestions> block was released,
+  // and a turn that has sent anything is not handed on, so it ended on the not-covered sentence under the chips. The block
+  // now waits until a substantive unit is out. The real runBw2Turn over the real facade and wire; one kept encyclopedia row
+  // that names the Hanafis; the judge keeps it; the writer is a fake.
+  {
+    const SSE = await esm('lib/finalized-sse-writer.js');
+    const target = () => ({ writes: [], ended: 0, headers: {}, statusCode: 200, headersSent: false,
+      write(c) { this.headersSent = true; this.writes.push(String(c)); return true; }, end() { this.ended += 1; return this; },
+      status(c) { this.statusCode = c; return this; }, setHeader(k, v) { this.headers[String(k).toLowerCase()] = v; return this; },
+      getHeader(k) { return this.headers[String(k).toLowerCase()]; }, flushHeaders() { this.headersSent = true; },
+      once() { return this; }, on() { return this; }, removeListener() { return this; } });
+    const framesOf = (writes) => writes.join('').split('\n\n').filter((f) => f.startsWith('data: '))
+      .map((f) => { try { return JSON.parse(f.slice(6)); } catch { return null; } }).filter(Boolean);
+    const textOf = (t) => framesOf(t.writes).filter((f) => f.type === 'content_block_delta').map((f) => f.delta.text).join('');
+    const Q = 'ما حكم إخراج زكاة المال عروضا بدل النقود؟ وما أقوال المذاهب فيها؟';
+    const rec = { id: 'E1', term: 'القيمة', part: 23, snippet: 'ذهب الحنفية إلى جواز إخراج القيمة في الزكاة.', text: 'ذهب الحنفية إلى جواز إخراج القيمة في الزكاة.' };
+    const SUGG = '<suggestions>\n- ما وجه استدلال كل مذهب؟\n- رأي ابن تيمية في المسألة\n</suggestions>';
+    const turn = async (writer) => {
+      const t = target();
+      const facade = SSE.createFinalizedSseResponse(t, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [] }) });
+      const out = await BW2.runBw2Turn({
+        question: Q, messages: [{ role: 'user', content: Q }], wire: BW2.createBw2Wire(facade), continueWhenNotCovered: true,
+        deps: {
+          runTool: async () => ({ text: '', added: [], calls: 0 }), searchStoredCorpus: async () => ({ records: [rec] }),
+          encyclopediaReady: () => true, warmEncyclopedia: () => true, ask: async () => '{"d":{"1":1}}',
+          callWriter: async ({ onText }) => { onText(writer); return { stop_reason: 'end_turn', usage: {} }; },
+        },
+      });
+      return { out, t, text: textOf(t) };
+    };
+    const MALIKI = 'وذهب المالكية إلى منع إخراج القيمة في الزكاة [[1]].';
+    const HANAFI = 'ذهب الحنفية إلى جواز إخراج القيمة في الزكاة [[1]].';
+    const a = await turn(MALIKI + '\n' + SUGG);
+    ok('W6B3a every prose unit held and the suggestions ready: the turn is handed over (none_released), nothing is written, no not-covered sentence',
+      a.out.continued === true && a.out.telemetry.continued === 'none_released' && a.t.ended === 0 && a.text === ''
+      && framesOf(a.t.writes).every((f) => f.type === 'ezik_status'), ascii(JSON.stringify({ continued: a.out.continued, why: a.out.telemetry.continued, text: a.text.slice(0, 80) })));
+    const b = await turn(HANAFI + '\n' + SUGG);
+    ok('W6B3b control: a substantive unit released, and the suggestions follow it as today; no not-covered sentence',
+      !b.out.continued && b.text.includes('ذهب الحنفية') && b.text.indexOf('<suggestions>') > b.text.indexOf('ذهب الحنفية') && !b.text.includes(BW2.BW2_NOT_COVERED),
+      ascii(b.text.slice(0, 160)));
+    const c = await turn(SUGG + '\n' + HANAFI);
+    ok('W6B3c the block written before the first substantive unit waits for it, then follows it',
+      !c.out.continued && c.text.includes('ذهب الحنفية') && c.text.indexOf('<suggestions>') > c.text.indexOf('ذهب الحنفية') && (c.text.match(/<suggestions>/gu) || []).length === 1,
+      ascii(c.text.slice(0, 160)));
+    // The stored fatwa opened the answer (WASL W3b): something substantive is out above the writer, so a bare block goes
+    // out under it as today. The store answers from its recorded replies; the judge marks binbaz 6518 with 2.
+    const STORE = require('./fixtures-speed-wasl-fatwas.json');
+    const TOOLS = await esm('lib/free-brain/tools.js');
+    const ASKM = await esm('api/ask.js');
+    const replay = async (u) => {
+      const e = STORE[String(u)];
+      if (!e) return { ok: false, status: 404, url: String(u), headers: { get: () => 'application/json' }, text: async () => '{}', json: async () => ({}) };
+      return { ok: true, status: e.status, url: String(u), redirected: false, headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? e.ct : null) }, text: async () => e.body, json: async () => JSON.parse(e.body) };
+    };
+    const t = target();
+    const facade = SSE.createFinalizedSseResponse(t, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [] }) });
+    const WQ = require('./fixtures-speed-wasl.json');
+    await BW2.runBw2Turn({
+      question: WQ.w1.question, messages: [{ role: 'user', content: WQ.w1.question }], wire: BW2.createBw2Wire(facade), band: 'adult', continueWhenNotCovered: true,
+      cards: { buildSourceTag: ASKM.buildSourceTag, buildBookTag: ASKM.buildBookTag, encyclopediaCards: false, max: 3 },
+      deps: {
+        runTool: (name, input, ctx) => (name === 'search_fatawa' ? TOOLS.runTool(name, input, { ...ctx, fetchImpl: replay }) : Promise.resolve({ text: '', added: [], calls: 0 })),
+        searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true, warmEncyclopedia: () => true,
+        ask: async ({ user }) => { const d = {}; for (const m of user.matchAll(/^\[(\d+)\] fatwa: (.*)$/gmu)) d[m[1]] = m[2].trim() === 'حكم إخراج الزكاة من الأقمشة' ? 2 : 1; return JSON.stringify({ d }); },
+        callWriter: async ({ onText }) => { onText(SUGG); return { stop_reason: 'end_turn', usage: {} }; },
+      },
+    });
+    const d = textOf(t);
+    ok('W6B3d control: under the stored fatwa shown first, a bare suggestions block goes out as today',
+      d.startsWith('## نص الفتوى') && d.includes('<suggestions>') && !d.includes(BW2.BW2_NOT_COVERED), ascii(d.slice(-120)));
+  }
+
   // ---------------------------------------------------------------- W7 (WASL) the letter test, a standing case
   // Bada'i al-Sana'i 2:73 through every door that brings text equals the library's page letter for letter: (1) the /search
   // door (lib/lib-service.js searchLibrary through the gated runner) over the six atoms that cover it -- the service's own
