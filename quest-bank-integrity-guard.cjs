@@ -1654,6 +1654,31 @@ const SEALED = {
 //                    JOINED OR LEFT CORE: CORE_BYTES, the byte table and SW_PROSE stand. sw.js is 55702
 //                    bytes, measured at CR = 0. THIS digest is re-cut LAST, after every other sw.js edit
 //                    was final.
+  //   2026-09-28-a -- WIDGET45 WEB2, THE COMPLETE OPEN/SOUND/DATA CONTRACT.
+//                    The generated app.js changed 1799739 -> 1811970 bytes. CORE_BYTES was
+//                    derived by tools/core-bytes.cjs --write, 2972829 -> 2985060; the worker's
+//                    app.js prose row and the SW_PROSE mirror below followed. No asset joined
+//                    or left CORE. CACHE and config/app-version.json move ezik-v41 -> ezik-v42
+//                    because the stored bundle changed; app.js was regenerated and verified
+//                    with that version stamp. sw.js is 55908 bytes at CR = 0. THIS digest was
+//                    re-cut LAST, after the count, prose, mirror and cache edits were final.
+  //   2026-09-28-b -- WIDGET REPLY COMPATIBILITY, B1/B2 FOLLOW-UP.
+//                    The generated app.js changed 1811970 -> 1813455 bytes: page-scoped
+//                    capability reserves one initial widget-data send and stops for the page
+//                    after the legacy unknown-op reply. Supported replies release only queued
+//                    changes. CORE_BYTES was derived by tools/core-bytes.cjs --write,
+//                    2985060 -> 2986545; the worker's prose row and SW_PROSE mirror followed.
+//                    No asset joined or left CORE. CACHE remains ezik-v42 by the owner's ruling.
+//                    sw.js is 55908 bytes at CR = 0. THIS digest was re-cut LAST, after every
+//                    count, prose and mirror edit was final.
+  //   2026-09-28-c -- SOUND CONTROL VISIBILITY, FOLLOW-UP D.
+//                    The generated app.js changed 1813455 -> 1813966 bytes. The sound control
+//                    is shown only after this page establishes widget-data support; saved
+//                    preferences and scheduled sound fields are unchanged. CORE_BYTES was
+//                    derived by tools/core-bytes.cjs --write, 2986545 -> 2987056; the worker's
+//                    app.js prose row and SW_PROSE mirror followed. No asset joined or left
+//                    CORE. CACHE remains ezik-v42 by the owner's ruling. sw.js is 55908 bytes
+//                    at CR = 0. THIS digest was re-cut LAST, after the count, prose and mirror.
   //   2026-09-28-a -- ITEM 108 (ORDER-108C): THE LIBRARY PAGE JOINS EZIK. app.jsx gained the
 //                    library tile, the «ask Ezik» composer hand-off, the library erase in «delete all
 //                    my data» and the book-card link; app.js was rebuilt by node tools/build-app.cjs,
@@ -1662,7 +1687,14 @@ const SEALED = {
 //                    navigation arm caches it network-first), NO FILE JOINED OR LEFT CORE and the store
 //                    name stays ezik-v41. sw.js is 55908 bytes, measured at CR = 0. THIS digest is
 //                    re-cut LAST, after every other sw.js edit was final.
-  'sw.js': '88e372371391b68cee391ad04e2f81969ce059bb1268ea5ff7ad6b8317e14fa3',
+  //   2026-09-28-d -- ORDER-108D MERGE OF origin/main (153ac5c) INTO lib108-integration. app.jsx merged
+//                    with no conflict; app.js was REBUILT from it by node tools/build-app.cjs (never
+//                    hand-merged), 1813966 -> 1820050 bytes (main plus item 108's +6084). CORE_BYTES was
+//                    re-cut by node tools/core-bytes.cjs --write, 2987056 -> 2993140; the worker's app.js
+//                    prose row and the SW_PROSE mirror followed. NO FILE JOINED OR LEFT CORE and the store
+//                    name stays main's ezik-v42. sw.js is 55908 bytes, measured at CR = 0.
+//                    THIS digest is re-cut LAST, after every other sw.js edit.
+  'sw.js': '35653f50baa7074d8979c68a96c4971bedd8a48497de8966bf7eaa51799c4288',
 };
 
 // ---------------------------------------------------------------------------
@@ -2618,7 +2650,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1805823, of: 'app.js' },
+      { n: 1820050, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

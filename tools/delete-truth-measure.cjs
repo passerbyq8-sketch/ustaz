@@ -861,8 +861,10 @@ run('answering yes still does the rest of what it did: state, screen, repaint', 
   const istana = keyOf('EZIK_VISUAL_THEME_ISTANA');
   const evt = keyOf('EZIK_VISUAL_THEME_EVENT');
   eq(r.s.painted, [[attr, istana]], 'the visual theme repaint');
-  eq(r.s.events.map((e) => [e.type, e.detail]), [[evt, istana]], 'the events dispatched');
-  return '1 dialog, 6 state changes in order, repainted to ' + istana + ', 1 event';
+  // C3 refreshes native widget data after the existing removals; the deletion roster is unchanged.
+  const widgetEvent = keyOf('EZIK_WIDGET_DATA_EVENT');
+  eq(r.s.events.map((e) => [e.type, e.detail]), [[evt, istana], [widgetEvent, null]], 'the events dispatched');
+  return '1 dialog, 6 state changes in order, repainted to ' + istana + ', theme + widget refresh events';
 });
 
 // ---- The lines themselves: named constants, not a second literal. ---------------------------

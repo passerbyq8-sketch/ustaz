@@ -9469,7 +9469,7 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // ezikGoBack below. It is NOT a route and adds no `screen` value, for the reason written over
   // PrayerSheet: the screen inventory is a cross-file contract. So the device back button closes
   // the compass and leaves the reader on the home, rather than leaving the home screen.
-  const [compassOpen, setCompassOpen] = useState(false);
+  const [compassOpen, setCompassOpen] = useState(() => ezikReadResume() === 'compass');
   useEzikBackLayer(compassOpen, () => setCompassOpen(false));
   // ITEM 20: which articles section is open over the home, or null. It is not a route either --
   // the screen inventory is a cross-file contract, see the note above PrayerSheet -- and LIKE
@@ -9527,19 +9527,20 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // state, useEzikBackLayer(open, close) and the ezikHistBack() toggle in its handler below. It
   // is a layer for the same reason the picker is, and it owns one real history entry while it is
   // open, so back walks picker unit -> picker section -> wird section -> home.
-  const [wirdOpen, setWirdOpen] = useState(false);
+  // ITEM 45: restored from the ledger in the lazy initialiser, exactly as prayerOpen above is.
+  const [wirdOpen, setWirdOpen] = useState(() => ezikReadResume() === 'wirdi');
   useEzikBackLayer(wirdOpen, () => setWirdOpen(false));
   // ITEM 93: the tasbih section and its log, in the identical three shapes -- the state,
   // useEzikBackLayer(open, close) and the ezikHistBack() toggle in each handler below. Each owns
   // one real history entry while it is open, so the device back button closes IT.
-  const [tasbihOpen, setTasbihOpen] = useState(false);
+  const [tasbihOpen, setTasbihOpen] = useState(() => ezikReadResume() === 'tasbih');
   useEzikBackLayer(tasbihOpen, () => setTasbihOpen(false));
   const [tasbihLogOpen, setTasbihLogOpen] = useState(false);
   useEzikBackLayer(tasbihLogOpen, () => setTasbihLogOpen(false));
   // ITEM 95: the calculator section, in those identical three shapes -- the state,
   // useEzikBackLayer(open, close) and the ezikHistBack() toggle in its handler below. It owns
   // one real history entry while it is open, so the device back button closes IT.
-  const [calcOpen, setCalcOpen] = useState(false);
+  const [calcOpen, setCalcOpen] = useState(() => ezikReadResume() === 'calc');
   useEzikBackLayer(calcOpen, () => setCalcOpen(false));
   // DEFECT 14 (item 88) -- WHERE THE RECORD DIES, and it is one place.
   // The reader is standing nowhere in particular exactly when this component has no layer of
@@ -9549,9 +9550,9 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // restore the layer is ALREADY open -- it was set in a lazy initialiser, not an effect --
   // so this cannot clear the record out from under the very restore that just happened.
   useEffect(() => {
-    if (artSection || prayerOpen || compassOpen || tasbihOpen || tasbihLogOpen || calcOpen || wirdPickOpen) return;
+    if (artSection || prayerOpen || compassOpen || tasbihOpen || tasbihLogOpen || calcOpen || wirdPickOpen || wirdOpen) return;
     ezikClearResume();
-  }, [artSection, prayerOpen, compassOpen, tasbihOpen, tasbihLogOpen, calcOpen, wirdPickOpen]);
+  }, [artSection, prayerOpen, compassOpen, tasbihOpen, tasbihLogOpen, calcOpen, wirdPickOpen, wirdOpen]);
   // ITEM 96: the day's gold price, fetched HERE rather than inside the calculator, on the same
   // discipline the wird and the hijri date below are read on -- the owner reads, the layer is
   // handed the result. It fires on the open, at most once per calendar day of the device, and
@@ -10340,9 +10341,11 @@ const EZIK_RESUME_KEY = 'ezik_resume_section_v1';
 const EZIK_RESUME_SCREENS = {
   memorize: 'memorize', adhkar: 'adhkar', arbaeen: 'arbaeen',
   mushaf: 'mushaf', fatwa: 'fatwa', lessons: 'lessons', home: 'home',
+  'ayah-tafsir': 'ayah-tafsir',
 };
 const EZIK_RESUME_APP_LAYERS = { asmaa: 1, 'sunan-day': 1 };
-const EZIK_RESUME_HOME_LAYERS = { articles: 1, women: 1, prayer: 1 };
+// Resume records name home layers. `wirdi` remains restorable, but is not an accepted C1 route.
+const EZIK_RESUME_HOME_LAYERS = { articles: 1, women: 1, prayer: 1, wirdi: 1, tasbih: 1, calc: 1, compass: 1 };
 function ezikResumeKnown(id) {
   return !!(EZIK_RESUME_SCREENS[id] || EZIK_RESUME_APP_LAYERS[id] || EZIK_RESUME_HOME_LAYERS[id]);
 }
@@ -12582,7 +12585,10 @@ function toggleAdhkarFavorite(key) {
   if (!A2_ID_RE.test(key)) return cur;
   const at = cur.indexOf(key);
   const next = at === -1 ? cur.concat([key]) : cur.slice(0, at).concat(cur.slice(at + 1));
-  try { localStorage.setItem(ADHKAR_FAVORITES_KEY, JSON.stringify(next)); } catch (e) {}
+  try {
+    localStorage.setItem(ADHKAR_FAVORITES_KEY, JSON.stringify(next));
+    ezikWidgetDataChanged();
+  } catch (e) {}
   return next;
 }
 
@@ -14976,6 +14982,7 @@ function App() {
   useEzikNativeAuthRoot();
   useEzikVisualTheme();
   const [screen, setScreen] = useState('loading');
+  useEzikWidgetDataRoot(screen !== 'loading');
   const [selectedSurah, setSelectedSurah] = useState(null); // خطأ ٤٦: سورة المصحف المفتوحة، مرفوعة إلى App كي يقشرها زر الرجوع طبقةً طبقة
   const [profile, setProfile] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -16041,6 +16048,76 @@ function App() {
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
+
+  // ===== ITEM 45 -- THE WIDGET'S PRESS, APPLIED =====
+  // The slot is filled by the file-level listener beside SHELL_SCHED_CHANNEL; this is its one
+  // consumer. It is re-run by a press (the subscription bumps widgetSeq) and by every screen
+  // change, which is how a press that arrived during the boot is picked up the moment the boot
+  // has decided where to land -- and not a moment before: nothing is applied over 'loading'.
+  //
+  // Sections use the resume ledger and the boot tools. Home layers initialize from that record;
+  // homeEpoch remounts Home even when it was already underneath, and resets the two list screens.
+  // App layers open explicitly. Chat starts a new thread; treasure navigates to its own page.
+  //
+  // A NEW READER IS NEVER INTERRUPTED. On the onboarding screen the press is taken and dropped:
+  // nothing is written, and the introduction stays where it was.
+  //
+  // WHAT STANDS IN FRONT IS PUT AWAY. App's own layers (الأسماء, the menu's panels, السنن) and
+  // the side menu all draw before the screen, so a press that only moved `screen` would land
+  // behind them. They are closed as state; the history entry each one held is not popped here,
+  // because a pop is asynchronous and would race the screen change -- it is left as one extra,
+  // harmless step on the device back, which then resolves through the table as usual.
+  const [widgetSeq, setWidgetSeq] = useState(0);
+  const [homeEpoch, setHomeEpoch] = useState(0);
+  const widgetChatFocusRef = useRef(false);
+  useEffect(() => {
+    const bump = () => setWidgetSeq((n) => n + 1);
+    EZIK_WIDGET_SUBS.add(bump);
+    return () => { EZIK_WIDGET_SUBS.delete(bump); };
+  }, []);
+  useEffect(() => {
+    // Read into `cur` because chat-history-guard takes the first `if (screen === ...` in App to
+    // be the first RENDER return; these two are an effect's early exits, not screens.
+    const cur = screen;
+    if (cur === 'loading') return;
+    const requested = ezikWidgetTake();
+    if (!requested) return;
+    if (cur === 'onboarding') return;
+    // Notification aliases open the index, preserving the cancellation of group deep links.
+    const route = requested === 'adhkar_sabah' || requested === 'adhkar_masaa' ? 'adhkar' : requested;
+    widgetChatFocusRef.current = false;
+    setAsmaaOpen(route === 'asmaa');
+    setAboutOpen(false);
+    setSourcesOpen(false);
+    setSunanOpen(route === 'sunan-day');
+    setFeedbackOpen(false);
+    setInboxOpen(false);
+    setShareOpen(false);
+    setDrawerOpen(false);
+    drawerNavRef.current = null;
+    feedbackNavRef.current = null;
+    sheetOriginRef.current = [];
+    setHomeEpoch((n) => n + 1);
+    if (route === 'treasure') {
+      ezikClearResume();
+      window.location.href = '/quest.html';
+      return;
+    }
+    if (route === 'chat') {
+      ezikClearResume();
+      newChat();
+      setScreen('chat');
+      widgetChatFocusRef.current = true;
+      return;
+    }
+    ezikWriteResume(route);
+    ezikResumeMarkEntered(ezikReadResume());
+    const next = ezikResumeScreen();
+    // Already standing on that screen: no mount will spend the mark, so spend it here, or the
+    // reader's next ordinary walk into المصحف would be taken for a reload.
+    if (next === screenRef.current) ezikResumeTakeEntered(route);
+    setScreen(next);
+  }, [screen, widgetSeq]);
   // ONE ENTRY PER OPENED SCREEN, and never one for a back. Opening a section pushes; a back
   // relabels the entry it is standing on (replaceState) instead of stacking a second copy of the
   // parent; a pop-driven change pushes nothing at all, because the pop already spent the entry.
@@ -17334,6 +17411,16 @@ function App() {
   // restores the Web Speech path untouched.
   const DICTATE_CLOUD = false; // OFF until the silent failure after the second tap is measured (call mode is unaffected)
   const inputElRef = useRef(null);
+  // A widget starts an empty thread; focus waits until both gates allow the composer to mount.
+  // This is ordinary DOM focus. Whether a shell WebView opens its keyboard is a device measure.
+  useEffect(() => {
+    if (!widgetChatFocusRef.current || screen !== 'chat' || !spendGateOpenState
+      || aiConsent !== EZ_AI_CONSENT_GRANTED || aiConsentReview) return;
+    const el = inputElRef.current;
+    if (!el) return;
+    el.focus();
+    widgetChatFocusRef.current = false;
+  }, [screen, homeEpoch, spendGateOpenState, aiConsent, aiConsentReview]);
   // The composer grows from STATE, not from the keystroke: dictation fills it programmatically
   // and an onChange-only resize would leave a one-line box holding six lines of speech.
   useEffect(() => { const el = inputElRef.current; if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 200) + 'px'; }, [input]);
@@ -18717,6 +18804,7 @@ function App() {
       setChatId(null);
       setChatList([]);
       setScreen('onboarding');
+      try { ezikWidgetDataChanged(); } catch (e) {}
     }
   };
 
@@ -19128,7 +19216,7 @@ function App() {
   // an onOpenChat: the chat is entered from that menu's «محادثة جديدة» row.
   if (screen === 'home') return (
     <>
-      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenSunan={() => setSunanOpen(true)} onOpenArbaeen={() => setScreen('arbaeen')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} onOpenTafsir={() => setScreen('ayah-tafsir')} />
+      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenSunan={() => setSunanOpen(true)} onOpenArbaeen={() => setScreen('arbaeen')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} onOpenTafsir={() => setScreen('ayah-tafsir')} key={homeEpoch} />
       {ezikDrawer()}
     </>
   );
@@ -19171,10 +19259,10 @@ function App() {
   // retained, and only a back taken from the section's own top level goes home.
   if (screen === 'memorize') return <MemorizeScreen profile={profile} onExit={goEzikBack} onPlayVerse={playVerseManual} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
   if (screen === 'mushaf') return <MushafScreen selected={selectedSurah} setSelected={setSelectedSurah} onBack={goEzikBack} onPlaySurah={playSurahManual} onStopAudio={cancelAudio} />;
-  if (screen === 'adhkar') return <AdhkarScreen onBack={goEzikBack} />;
+  if (screen === 'adhkar') return <AdhkarScreen onBack={goEzikBack} key={homeEpoch} />;
   // ITEM 89: a feature section, in NEITHER screen register -- exactly like the adhkar line
   // above it. ezikBackTarget's fall-through gives it its back destination.
-  if (screen === 'arbaeen') return <ArbaeenScreen onBack={goEzikBack} />;
+  if (screen === 'arbaeen') return <ArbaeenScreen onBack={goEzikBack} key={homeEpoch} />;
   // ITEM 27: the daily verse's tafsir. A feature section like the two above it, so it is in
   // NEITHER screen register and takes its back destination from ezikBackTarget's fall-through.
   if (screen === 'ayah-tafsir') return <AyahTafsirScreen onBack={goEzikBack} />;
@@ -23388,12 +23476,12 @@ function EzShell({ title, onBack, backLabel, lead, actions, children }) {
 // because it was compared against anything. The batch report prints thirty days at Kuwait City
 // coordinates for every method offered, so the owner can make that comparison and then choose.
 //
-// 🔴 ZERO ADHAN, ZERO NOTIFICATION, ZERO SOUND. A call at the right moment needs a scheduled
-// notification in a native shell; that rides with the store release (item 67). Nothing here
-// plays, schedules, or hints in the interface that it might.
+// The calculator supplies the native scheduler and widgets below. The native shell schedules
+// notifications and owns sound playback; browser tabs calculate and display these times locally.
 const PRAYER_PREFS_KEY = 'ezik_prayer_prefs_v1';
 const PRAYER_METHOD_DEFAULT = 'kuwait';
 const PRAYER_ASR_DEFAULT = 'standard';
+const PRAYER_ADHAN_SOUND_LABEL = '\u0635\u0648\u062A \u0627\u0644\u0623\u0630\u0627\u0646';
 const PRAYER_OFFSET_MIN = -15;
 const PRAYER_OFFSET_MAX = 15;
 const PRAYER_KEYS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
@@ -23520,7 +23608,7 @@ function prayerClock(mins) {
 // THE PREFERENCES. One record, every field checked, and a broken store reads as the shipped
 // defaults rather than as an exception on a screen.
 function readPrayerPrefs() {
-  const out = { method: PRAYER_METHOD_DEFAULT, asr: PRAYER_ASR_DEFAULT, off: {} };
+  const out = { method: PRAYER_METHOD_DEFAULT, asr: PRAYER_ASR_DEFAULT, off: {}, adhanSound: true };
   for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) out.off[PRAYER_OFFSETTABLE[i]] = 0;
   let raw = null;
   try { raw = localStorage.getItem(PRAYER_PREFS_KEY); } catch (e) { return out; }
@@ -23530,6 +23618,7 @@ function readPrayerPrefs() {
   if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return out;
   if (typeof rec.method === 'string' && prayerMethodIds().indexOf(rec.method) !== -1) out.method = rec.method;
   if (rec.asr === 'hanafi' || rec.asr === 'standard') out.asr = rec.asr;
+  if (typeof rec.adhanSound === 'boolean') out.adhanSound = rec.adhanSound;
   const o = rec.off;
   if (o && typeof o === 'object' && !Array.isArray(o)) {
     for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) {
@@ -23544,9 +23633,10 @@ function readPrayerPrefs() {
 function writePrayerPrefs(next) {
   const cur = readPrayerPrefs();
   if (!next || typeof next !== 'object') return cur;
-  const rec = { method: cur.method, asr: cur.asr, off: cur.off };
+  const rec = { method: cur.method, asr: cur.asr, off: cur.off, adhanSound: cur.adhanSound };
   if (typeof next.method === 'string' && prayerMethodIds().indexOf(next.method) !== -1) rec.method = next.method;
   if (next.asr === 'hanafi' || next.asr === 'standard') rec.asr = next.asr;
+  if (typeof next.adhanSound === 'boolean') rec.adhanSound = next.adhanSound;
   if (next.off && typeof next.off === 'object') {
     for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) {
       const k = PRAYER_OFFSETTABLE[i];
@@ -23556,6 +23646,7 @@ function writePrayerPrefs(next) {
     }
   }
   try { localStorage.setItem(PRAYER_PREFS_KEY, JSON.stringify(rec)); } catch (e) { return readPrayerPrefs(); }
+  try { ezikWidgetDataChanged(); } catch (e) {}
   return rec;
 }
 // One prayer's offset moved by one step, clamped. It returns the WHOLE record, so the control
@@ -23849,8 +23940,27 @@ function PrayerTimesPanel({ loc }) {
 // handlers above are unchanged; only this owner moved from the reading sheet to Settings.
 function PrayerSettingsControl() {
   const [prefs, setPrefs] = useState(readPrayerPrefs);
+  const [widgetDataSupported, setWidgetDataSupported] = useState(() => ezikWidgetDataCapability === 'supported');
+  useEffect(() => {
+    // The page-level reply handler runs first; read its capability without consuming a reply.
+    const sync = () => setWidgetDataSupported(ezikWidgetDataCapability === 'supported');
+    window.addEventListener(SHELL_SCHED_CHANNEL, sync);
+    sync();
+    return () => window.removeEventListener(SHELL_SCHED_CHANNEL, sync);
+  }, []);
   return (
     <>
+      {widgetDataSupported && ezikSchedBridge() ? <>
+      <div style={s.a11yGroupLabel}>{PRAYER_ADHAN_SOUND_LABEL}</div>
+      <div className="ez-hit" style={s.prayerOptRow}>
+        <button type="button" role="switch" aria-checked={prefs.adhanSound ? 'true' : 'false'}
+          aria-label={PRAYER_ADHAN_SOUND_LABEL} data-ezik-prayer-setting="adhan-sound"
+          onClick={() => { setPrefs(writePrayerPrefs({ adhanSound: !prefs.adhanSound })); ezikSchedArm(); }}
+          className="ezik-focus" style={prefs.adhanSound ? { ...s.prayerOpt, ...s.themeOptActive } : s.prayerOpt}>
+          {prefs.adhanSound ? ezT('prayer.notify.on') : ezT('prayer.notify.off')}
+        </button>
+      </div>
+      </> : null}
       <div style={s.a11yGroupLabel}>{PRAYER_METHOD_LABEL}</div>
       <div className="ez-hit" style={s.prayerOptRow} role="radiogroup" aria-label={PRAYER_METHOD_LABEL}>
         {prayerMethodIds().map((id) => (
@@ -24001,10 +24111,11 @@ function writeQiblaLoc(lat, lng) {
   if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return readQiblaLoc();
   try { localStorage.setItem(QIBLA_LOC_KEY, JSON.stringify({ lat: lat, lng: lng })); }
   catch (e) { return readQiblaLoc(); }
+  try { ezikWidgetDataChanged(); } catch (e) {}
   return { lat: lat, lng: lng, by: 'device' };
 }
 function clearQiblaLoc() {
-  try { localStorage.removeItem(QIBLA_LOC_KEY); } catch (e) {}
+  try { localStorage.removeItem(QIBLA_LOC_KEY); ezikWidgetDataChanged(); } catch (e) {}
   return readQiblaLoc();
 }
 
@@ -24149,6 +24260,54 @@ const SHELL_SCHED_ENABLE_OP = 'enable';
 const SHELL_SCHED_CANCEL_OP = 'cancel';
 const SHELL_SCHED_RESULT_OP = 'result';
 
+// ============================================================
+// ITEM 45 -- THE WIDGET'S PRESS, CAUGHT AT THE DOOR AND HANDED TO THE ONE ROUTER
+// ============================================================
+// Notifications and widget Linking both reach SiteScreen's deliverOpen on this channel:
+// { channel, v, op: 'open', route, type, id }. The web enforces the complete C1 whitelist
+// below before any store or screen changes. Mushaf belongs to notifications, not widget sections.
+//
+// WHY THE LISTENER HANGS HERE AND NOT IN A HOOK. On a cold start the shell holds the press
+// until the page reports loaded and then injects it at once -- which can be before React has
+// committed its first tree, so a listener attached inside a useEffect may not exist yet and
+// the press would be lost without trace. This one is attached while this file executes. It
+// decides nothing: it keeps the LAST valid press in one slot and tells whoever subscribed.
+// App consumes the slot through the resume ledger and boot tools for sections, with the explicit
+// new-chat and page-navigation paths described by C1.
+//
+// `rearm-request`, `result` and `status` are not touched: this listener returns on every op but
+// `open`, and useEzikSchedRoot keeps its own listener exactly as it was.
+const SHELL_SCHED_OPEN_OP = 'open';
+const EZIK_WIDGET_ROUTES = [
+  'mushaf', 'adhkar_sabah', 'adhkar_masaa', 'home',
+  'adhkar', 'arbaeen', 'prayer', 'chat',
+  'memorize', 'fatwa', 'lessons', 'articles', 'women', 'tasbih', 'calc', 'compass',
+  'ayah-tafsir', 'asmaa', 'sunan-day', 'treasure',
+];
+let EZIK_WIDGET_PENDING = '';
+const EZIK_WIDGET_SUBS = new Set();
+function ezikWidgetTake() {
+  const r = EZIK_WIDGET_PENDING;
+  EZIK_WIDGET_PENDING = '';
+  return r;
+}
+(function ezikWidgetListen() {
+  // The same two guards the schedule hook carries: no window under a node harness that loads
+  // this file without a DOM, and a throwing addEventListener degrades to «the widget opens the
+  // app as it is» rather than to a broken page.
+  if (typeof window === 'undefined') return;
+  try {
+    window.addEventListener(SHELL_SCHED_CHANNEL, (ev) => {
+      const d = ev && ev.detail;
+      if (!d || typeof d !== 'object') return;
+      if (d.channel !== SHELL_SCHED_CHANNEL || d.v !== SHELL_SCHED_VERSION || d.op !== SHELL_SCHED_OPEN_OP) return;
+      if (typeof d.route !== 'string' || EZIK_WIDGET_ROUTES.indexOf(d.route) === -1) return;
+      EZIK_WIDGET_PENDING = d.route;
+      EZIK_WIDGET_SUBS.forEach((f) => { try { f(); } catch (e) {} });
+    });
+  } catch (e) {}
+})();
+
 // The bridge, or null. The injected object is the whole test; navigator.userAgent is deliberately
 // not consulted here either, for the reason written out at ezikShellBridge above.
 function ezikSchedBridge() {
@@ -24183,7 +24342,7 @@ function ezikSchedRoute(raw) {
 // not treated as "no lower bound"; it is treated as a bound nothing can clear. An unusable clock
 // must send no notification, never an unchecked one.
 function ezikSchedPayload(items, nowMs) {
-  const dropped = { notAnObject: 0, badTime: 0, past: 0, missingType: 0, missingText: 0, duplicateId: 0 };
+  const dropped = { notAnObject: 0, badTime: 0, past: 0, missingType: 0, missingText: 0, duplicateId: 0, badAdhanSound: 0 };
   const now = (typeof nowMs === 'number' && isFinite(nowMs)) ? nowMs : Infinity;
   const list = Array.isArray(items) ? items : [];
   const seen = new Set();
@@ -24201,11 +24360,16 @@ function ezikSchedPayload(items, nowMs) {
     if (typeof it.title !== 'string' || !it.title.trim()) { dropped.missingText++; continue; }
     if (typeof it.body !== 'string' || !it.body.trim()) { dropped.missingText++; continue; }
     const type = it.type.trim();
+    if (type === ADHAN_TYPE && ['fajr', 'other', 'none'].indexOf(it.adhanSound) === -1) {
+      dropped.badAdhanSound++;
+      continue;
+    }
     // A stable key, derived when it is not given. Deriving a key is not composing text.
     const id = (typeof it.id === 'string' && it.id.trim()) ? it.id.trim() : (type + ':' + at);
     if (seen.has(id)) { dropped.duplicateId++; continue; }
     seen.add(id);
     const rec = { id: id, type: type, at: at, title: it.title.trim(), body: it.body.trim() };
+    if (type === ADHAN_TYPE) rec.adhanSound = it.adhanSound;
     const route = ezikSchedRoute(it.route);
     if (route !== null) rec.route = route;
     out.push(rec);
@@ -25014,15 +25178,13 @@ function ezikNotifyAnswer(detail) {
 // TEXT ARRIVES READY OR IT DOES NOT ARRIVE. The shell composes nothing and translates nothing; a
 // title or body that came back empty is dropped by the pipe and counted, never invented.
 //
-// AND NO DESTINATION IS SENT. `route` is optional in the contract and a notification without one
-// is explicitly correct there: the press opens the application as it is. Sending a destination
-// this client has no listener for would be a promise about a screen, and the round that teaches
-// this app to answer `op:'open'` is not this one.
+// Prayer notifications retain their optional, absent destination: a press opens the application
+// as it is. The file-level open listener handles C1 destinations on notifications that carry one.
 
 /**
  * The shell's frozen notification type -- `TYPES` in murabbi-shell src/scheduler/core. An item typed
- * anything else is refused there and counted `unknownType`. This is the ONE place the word is
- * written in this client, and tools/wird-guard.cjs holds it to exactly that.
+ * anything else is refused there and counted `unknownType`. The type literal is declared once;
+ * C2 separately carries the sound selection for the native shell.
  */
 const ADHAN_TYPE = 'adhan';
 const ADHAN_WINDOW_DAYS = 7;
@@ -25064,6 +25226,7 @@ function ezikAdhanItems(now) {
       items.push({
         id: ADHAN_TYPE + ':' + k + ':' + prayerDayKey(dt),
         type: ADHAN_TYPE,
+        adhanSound: prefs.adhanSound ? (k === 'fajr' ? 'fajr' : 'other') : 'none',
         at: at,
         title: title,
         body: ezT(ADHAN_BODY_KEY, { name: title }),
@@ -25099,13 +25262,9 @@ function ezikAdhanItems(now) {
 // are both 'daily', which is the only word left that describes either of them. They are told
 // apart by their ids and by their destinations, never by a fourth word the far side would drop.
 //
-// AND THE DESTINATIONS ARE CARRIED, NOT ACTED ON -- yet. `route` is an opaque string the shell
-// stores in the notification and hands back verbatim on a press (buildOpenPayload, op:'open').
-// This client still registers no listener for that message: item 97 revoked the adhkar deep
-// link with the navigation that fed it, and re-cutting one is not this round's work. So the
-// morning reminder POINTS AT adhkar_sabah and the evening one at adhkar_masaa, which is what
-// the order asks of them, and the round that teaches this app to answer op:'open' is still
-// ahead. Nothing here promises the reader a screen.
+// The shell stores each destination and returns it on a press. The open listener accepts
+// adhkar_sabah and adhkar_masaa as aliases for the adhkar index. Item 97 remains revoked:
+// neither alias deep-links into a group. Other notification routes use the C1 whitelist.
 const REMINDERS_KEY = 'ezik_reminders_v1';
 // The ceiling on "how many times a day", and it is a SMALL number on purpose. The shell caps
 // the whole application at sixty pending notifications and cuts the FARTHEST when it is
@@ -25718,6 +25877,193 @@ function useEzikSchedRoot() {
 // copy of the list of things a payload is computed from.
 function useEzikSchedWatch() {
   useEffect(() => { ezikSchedArm(); });
+}
+
+// ITEM 45 / C3. The web supplies the native widgets with its own data and calculations.
+// Writers announce a local change only; this event has no loader or scheduling dependency.
+const EZIK_WIDGET_DATA_EVENT = 'ezik-widget-data-change';
+const EZIK_WIDGET_DATA_DEBOUNCE_MS = 200;
+const EZIK_WIDGET_DATA_DAYS = 30;
+// Capability belongs to this page, not to a hook or a persistent store. Reserve the first
+// send before crossing the bridge so delayed replies and competing roots cannot probe twice.
+let ezikWidgetDataCapability = 'unknown';
+const EZIK_WIDGET_DATA_WAITERS = new Set();
+(function ezikWidgetDataListen() {
+  if (typeof window === 'undefined') return;
+  try {
+    window.addEventListener(SHELL_SCHED_CHANNEL, (ev) => {
+      const d = ev && ev.detail;
+      if (!d || typeof d !== 'object' || Array.isArray(d)) return;
+      if (d.channel !== SHELL_SCHED_CHANNEL || d.v !== SHELL_SCHED_VERSION) return;
+      if (d.op === 'error' && d.reason === 'unknown-op' && d.received === 'widget-data') {
+        ezikWidgetDataCapability = 'disabled';
+        EZIK_WIDGET_DATA_WAITERS.clear();
+        return;
+      }
+      if (ezikWidgetDataCapability !== 'pending' || d.op !== SHELL_SCHED_RESULT_OP
+        || d.inReplyTo !== 'widget-data') return;
+      // Even a validation failure proves the operation is understood. Only deferred changes
+      // need another send; ordinary or repeated acknowledgements do not cause a reply loop.
+      ezikWidgetDataCapability = 'supported';
+      const waiting = Array.from(EZIK_WIDGET_DATA_WAITERS);
+      EZIK_WIDGET_DATA_WAITERS.clear();
+      waiting.forEach((wake) => { try { wake(); } catch (e) {} });
+    });
+  } catch (e) {}
+})();
+function ezikWidgetDataChanged() {
+  if (typeof window === 'undefined') return;
+  try { window.dispatchEvent(new CustomEvent(EZIK_WIDGET_DATA_EVENT)); } catch (e) {}
+}
+
+function ezikWidgetClock(mins) {
+  if (typeof mins !== 'number' || !isFinite(mins)) return null;
+  const t = ((Math.round(mins) % 1440) + 1440) % 1440;
+  return String(Math.floor(t / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0');
+}
+
+function ezikWidgetPrayerDays(now) {
+  const loc = readQiblaLoc();
+  const prefs = readPrayerPrefs();
+  const offset = readHijriOffset();
+  const days = [];
+  for (let i = 0; i < EZIK_WIDGET_DATA_DAYS; i++) {
+    // Local noon selects the offset used during this day's prayers, including a DST change.
+    const dt = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i, 12);
+    const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
+    const computed = prayerTimesFor(y, m, d, loc.lat, loc.lng, -dt.getTimezoneOffset(),
+      prefs.method, prefs.asr, prefs.off);
+    const times = {};
+    for (const key of PRAYER_KEYS) times[key] = ezikWidgetClock(computed[key]);
+    days.push({
+      date: prayerDayKey(dt),
+      // Home shows only Hijri; the Gregorian label reuses the app's saved-date formatter.
+      gregorianLabel: ezikFavDate(dt.getTime()) || null,
+      hijriLabel: hijriLabel(hijriForCivilDay(y, m, d, offset)) || null,
+      times: times,
+    });
+  }
+  return days;
+}
+
+function ezikWidgetSections() {
+  return [
+    { route: 'memorize', label: EZH_MEMORIZE },
+    { route: 'fatwa', label: EZH_FATWA },
+    { route: 'lessons', label: EZH_LESSONS },
+    { route: 'adhkar', label: EZH_ADHKAR },
+    { route: 'arbaeen', label: EZH_ARBAEEN },
+    { route: 'articles', label: EZH_ARTICLES },
+    { route: 'women', label: EZH_WOMEN },
+    { route: 'prayer', label: EZH_PRAYER },
+    { route: 'tasbih', label: ezT('tasbih.card.title') },
+    { route: 'calc', label: ezT('calc.card.title') },
+    { route: 'compass', label: EZH_NAV_COMPASS },
+    { route: 'ayah-tafsir', label: ezT('home.verseOfDay2') },
+    { route: 'asmaa', label: EZH_ASMAA },
+    { route: 'sunan-day', label: EZH_SUNAN },
+    { route: 'treasure', label: EZH_TREASURE },
+  ];
+}
+
+function ezikWidgetDhikr(id, item) {
+  return { id: id, text: item && typeof item.text === 'string' ? item.text : null,
+    count: item ? adhkarTarget(item) : null };
+}
+
+async function ezikWidgetData(now) {
+  // The root checks the shell before reaching this builder. Every text comes from these
+  // existing loaders, including the morning/evening wording overrides, never a second copy.
+  const [raw, split, book] = await Promise.all([
+    loadAdhkar().catch(() => null),
+    loadAdhkarSplit().catch(() => null),
+    loadArbaeen().catch(() => null),
+  ]);
+  const db = raw && split ? applyAdhkarSplit(raw, split) : raw;
+  const favorites = raw ? readAdhkarFavorites().map((id) => {
+    const parts = id.split(':');
+    return ezikWidgetDhikr(id, adhkarItemsFor(db && db.byCat, parts[0])[Number(parts[1])]);
+  }) : null;
+  const door = (key) => {
+    if (!raw || !split || !db || !db.byCat || !Array.isArray(db.byCat[key])) return null;
+    return db.byCat[key].map((item, i) => ezikWidgetDhikr(adhkarItemKey(key, i), item));
+  };
+  const at = now || new Date();
+  return {
+    version: 1,
+    generatedAt: at.toISOString(),
+    prayer: { days: ezikWidgetPrayerDays(at) },
+    adhkar: { favorites: favorites, sabah: door('adhkar_sabah'), masaa: door('adhkar_masaa') },
+    arbaeen: book && Array.isArray(book.hadith)
+      ? book.hadith.map((h) => ({ n: h.n, title: h.title, text: h.text })) : null,
+    sections: ezikWidgetSections(),
+  };
+}
+
+function useEzikWidgetDataRoot(ready) {
+  useEffect(() => {
+    if (!ready || ezikWidgetDataCapability === 'disabled' || !ezikSchedBridge()) return undefined;
+    let timer = null, midnight = null, generation = 0, stopped = false;
+    const canSend = () => {
+      if (stopped || ezikWidgetDataCapability === 'disabled' || !ezikSchedBridge()) return false;
+      if (ezikWidgetDataCapability === 'pending') {
+        EZIK_WIDGET_DATA_WAITERS.add(wake);
+        return false;
+      }
+      return true;
+    };
+    const wake = () => {
+      const mine = ++generation;
+      if (timer) { clearTimeout(timer); timer = null; }
+      if (!canSend()) return;
+      timer = setTimeout(async () => {
+        timer = null;
+        if (mine !== generation || !canSend()) return;
+        try {
+          const data = await ezikWidgetData();
+          // A setting change, unmount, or disappearing bridge invalidates an in-flight load.
+          if (stopped || mine !== generation || !canSend()) return;
+          const bridge = ezikSchedBridge();
+          if (!bridge) return;
+          if (ezikWidgetDataCapability === 'unknown') ezikWidgetDataCapability = 'pending';
+          bridge.postMessage(JSON.stringify({ channel: SHELL_SCHED_CHANNEL,
+            v: SHELL_SCHED_VERSION, op: 'widget-data', data: data }));
+        } catch (e) {}
+      }, EZIK_WIDGET_DATA_DEBOUNCE_MS);
+      if (timer && typeof timer.unref === 'function') timer.unref();
+    };
+    const onStorage = (ev) => {
+      if (!ev || ev.key === null || [PRAYER_PREFS_KEY, QIBLA_LOC_KEY,
+        HIJRI_OFFSET_KEY, ADHKAR_FAVORITES_KEY].indexOf(ev.key) !== -1) wake();
+    };
+    const atMidnight = () => {
+      const n = new Date();
+      const next = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1, 0, 0, 5);
+      midnight = setTimeout(() => { wake(); atMidnight(); }, Math.max(1000, next.getTime() - n.getTime()));
+      if (midnight && typeof midnight.unref === 'function') midnight.unref();
+    };
+    window.addEventListener(EZIK_WIDGET_DATA_EVENT, wake);
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('pageshow', wake);
+    window.addEventListener('focus', wake);
+    document.addEventListener('visibilitychange', wake);
+    EZ_LANG_SUBS.add(wake);
+    wake();
+    atMidnight();
+    return () => {
+      stopped = true;
+      EZIK_WIDGET_DATA_WAITERS.delete(wake);
+      generation++;
+      if (timer) clearTimeout(timer);
+      if (midnight) clearTimeout(midnight);
+      EZ_LANG_SUBS.delete(wake);
+      window.removeEventListener(EZIK_WIDGET_DATA_EVENT, wake);
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('pageshow', wake);
+      window.removeEventListener('focus', wake);
+      document.removeEventListener('visibilitychange', wake);
+    };
+  }, [ready]);
 }
 
 const QIBLA_TITLE = 'القبلة';
@@ -26358,6 +26704,7 @@ function writeHijriOffset(n) {
   if (typeof n !== 'number' || !isFinite(n) || Math.trunc(n) !== n
     || n < HIJRI_OFFSET_MIN || n > HIJRI_OFFSET_MAX) return readHijriOffset();
   try { localStorage.setItem(HIJRI_OFFSET_KEY, String(n)); } catch (e) { return readHijriOffset(); }
+  try { ezikWidgetDataChanged(); } catch (e) {}
   return n;
 }
 function hijriLabel(h) {
