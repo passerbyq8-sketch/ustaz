@@ -63,11 +63,11 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
 
   // ---------------------------------------------------------------- P10 (PIPES2 fix 2) round 7, question 5
   {
-    const Q7_5 = 'ما حكم تداول العملات المشفرة مثل البتكوين؟';
-    const HEAD2 = 'تداول العملات';
+    const Q7_5 = '\u0645\u0627 \u062d\u0643\u0645 \u062a\u062f\u0627\u0648\u0644 \u0627\u0644\u0639\u0645\u0644\u0627\u062a \u0627\u0644\u0645\u0634\u0641\u0631\u0629 \u0645\u062b\u0644 \u0627\u0644\u0628\u062a\u0643\u0648\u064a\u0646\u061f';
+    const HEAD2 = '\u062a\u062f\u0627\u0648\u0644 \u0627\u0644\u0639\u0645\u0644\u0627\u062a';
     const t5 = BW2.issueTerms(Q7_5);
     ok('P10a "mithl" (such as) is not an issue word: no fatwa query and no library query carries it',
-      !t5.includes('مثل') && BW2.fatwaQueries(Q7_5).every((q) => !q.split(' ').includes('مثل')) && !BW2.libraryQuery(Q7_5).split(' ').includes('مثل'),
+      !t5.includes('\u0645\u062b\u0644') && BW2.fatwaQueries(Q7_5).every((q) => !q.split(' ').includes('\u0645\u062b\u0644')) && !BW2.libraryQuery(Q7_5).split(' ').includes('\u0645\u062b\u0644'),
       ascii(JSON.stringify(BW2.fatwaQueries(Q7_5))));
     const fatwaRun = async (answering) => {
       const asked = [];
@@ -85,7 +85,7 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       none.asked.length === 3 && none.asked[2] === HEAD2 && none.rows.length === 1 && BW2.narrowFatwaQuery(Q7_5) === HEAD2, ascii(JSON.stringify(none)));
     const some = await fatwaRun(() => true);
     ok('P10c a fatwa from the first queries: no retry; a two-word issue has no narrower query',
-      some.asked.length === 2 && BW2.narrowFatwaQuery('صلاة الخوف') === '', ascii(JSON.stringify(some.asked)));
+      some.asked.length === 2 && BW2.narrowFatwaQuery('\u0635\u0644\u0627\u0629 \u0627\u0644\u062e\u0648\u0641') === '', ascii(JSON.stringify(some.asked)));
   }
 
   // ---------------------------------------------------------------- P2 the fatwa store in the reader's letters
@@ -421,25 +421,25 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
         !n.crashed && n.model.length > 0 && !n.text.startsWith(SF.SOURCE_FOLLOWUP_LEAD));
 
       // P9 (PIPES2 fix 1): round 7, question 11-b -- the source follow-up in any wording, not a list of wordings.
-      const Q11B = 'ما المراجع التي اعتمدت عليها في هذا الجواب؟';
-      const SIBS = ['ما هي المصادر التي استندت إليها؟', 'اذكر لي مصادرك',
-        'على ماذا اعتمدت في هذا الجواب؟', 'وش المراجع اللي رجعت لها؟', 'ممكن تعطيني المراجع؟'];
-      const NOT = ['ما مصدر هذا الحديث؟', 'ما المراجع في الفقه الحنبلي؟',
-        'ما مصدر الحكم بتحريم الموسيقى؟', 'هل رجعت؟'];
+      const Q11B = '\u0645\u0627 \u0627\u0644\u0645\u0631\u0627\u062c\u0639 \u0627\u0644\u062a\u064a \u0627\u0639\u062a\u0645\u062f\u062a \u0639\u0644\u064a\u0647\u0627 \u0641\u064a \u0647\u0630\u0627 \u0627\u0644\u062c\u0648\u0627\u0628\u061f';
+      const SIBS = ['\u0645\u0627 \u0647\u064a \u0627\u0644\u0645\u0635\u0627\u062f\u0631 \u0627\u0644\u062a\u064a \u0627\u0633\u062a\u0646\u062f\u062a \u0625\u0644\u064a\u0647\u0627\u061f', '\u0627\u0630\u0643\u0631 \u0644\u064a \u0645\u0635\u0627\u062f\u0631\u0643',
+        '\u0639\u0644\u0649 \u0645\u0627\u0630\u0627 \u0627\u0639\u062a\u0645\u062f\u062a \u0641\u064a \u0647\u0630\u0627 \u0627\u0644\u062c\u0648\u0627\u0628\u061f', '\u0648\u0634 \u0627\u0644\u0645\u0631\u0627\u062c\u0639 \u0627\u0644\u0644\u064a \u0631\u062c\u0639\u062a \u0644\u0647\u0627\u061f', '\u0645\u0645\u0643\u0646 \u062a\u0639\u0637\u064a\u0646\u064a \u0627\u0644\u0645\u0631\u0627\u062c\u0639\u061f'];
+      const NOT = ['\u0645\u0627 \u0645\u0635\u062f\u0631 \u0647\u0630\u0627 \u0627\u0644\u062d\u062f\u064a\u062b\u061f', '\u0645\u0627 \u0627\u0644\u0645\u0631\u0627\u062c\u0639 \u0641\u064a \u0627\u0644\u0641\u0642\u0647 \u0627\u0644\u062d\u0646\u0628\u0644\u064a\u061f',
+        '\u0645\u0627 \u0645\u0635\u062f\u0631 \u0627\u0644\u062d\u0643\u0645 \u0628\u062a\u062d\u0631\u064a\u0645 \u0627\u0644\u0645\u0648\u0633\u064a\u0642\u0649\u061f', '\u0647\u0644 \u0631\u062c\u0639\u062a\u061f'];
       ok('P9a 11-b and its siblings are follow-ups about the answer; a hadith\'s source, a subject\'s references and "did you return?" are not',
         SF.asksPreviousSource(Q11B) && SIBS.every((q) => SF.asksPreviousSource(q)) && NOT.every((q) => !SF.asksPreviousSource(q)),
         ascii(JSON.stringify([Q11B, ...SIBS, ...NOT].map((q) => SF.asksPreviousSource(q)))));
-      const Q11A = 'ما حكم صيام يوم الجمعة وحده؟';
-      const PREV11 = 'لا يجوز تخصيص يوم الجمعة بالصوم تطوعا وحده.\n'
-        + '<source site="binbaz.org.sa" url="https://binbaz.org.sa/fatwas/5710">حكم تخصيص يوم الجمعة بالصوم</source>\n'
-        + 'أما إذا صام معه يوما قبله فلا حرج.\n'
-        + '<source site="sh-albarrak.com" url="https://sh-albarrak.com/article/1">حكم صيام يوم الجمعة</source>\n'
-        + '<source site="salmajed.com" url="https://salmajed.com/fatwa/2">صيام يوم الجمعة وحده إذا وافق يوم عرفة</source>\n'
-        + '<book author="ناصر الدين الألباني" ref="">جامع تراث العلامة الألباني في الفقه</book>';
+      const Q11A = '\u0645\u0627 \u062d\u0643\u0645 \u0635\u064a\u0627\u0645 \u064a\u0648\u0645 \u0627\u0644\u062c\u0645\u0639\u0629 \u0648\u062d\u062f\u0647\u061f';
+      const PREV11 = '\u0644\u0627 \u064a\u062c\u0648\u0632 \u062a\u062e\u0635\u064a\u0635 \u064a\u0648\u0645 \u0627\u0644\u062c\u0645\u0639\u0629 \u0628\u0627\u0644\u0635\u0648\u0645 \u062a\u0637\u0648\u0639\u0627 \u0648\u062d\u062f\u0647.\n'
+        + '<source site="binbaz.org.sa" url="https://binbaz.org.sa/fatwas/5710">\u062d\u0643\u0645 \u062a\u062e\u0635\u064a\u0635 \u064a\u0648\u0645 \u0627\u0644\u062c\u0645\u0639\u0629 \u0628\u0627\u0644\u0635\u0648\u0645</source>\n'
+        + '\u0623\u0645\u0627 \u0625\u0630\u0627 \u0635\u0627\u0645 \u0645\u0639\u0647 \u064a\u0648\u0645\u0627 \u0642\u0628\u0644\u0647 \u0641\u0644\u0627 \u062d\u0631\u062c.\n'
+        + '<source site="sh-albarrak.com" url="https://sh-albarrak.com/article/1">\u062d\u0643\u0645 \u0635\u064a\u0627\u0645 \u064a\u0648\u0645 \u0627\u0644\u062c\u0645\u0639\u0629</source>\n'
+        + '<source site="salmajed.com" url="https://salmajed.com/fatwa/2">\u0635\u064a\u0627\u0645 \u064a\u0648\u0645 \u0627\u0644\u062c\u0645\u0639\u0629 \u0648\u062d\u062f\u0647 \u0625\u0630\u0627 \u0648\u0627\u0641\u0642 \u064a\u0648\u0645 \u0639\u0631\u0641\u0629</source>\n'
+        + '<book author="\u0646\u0627\u0635\u0631 \u0627\u0644\u062f\u064a\u0646 \u0627\u0644\u0623\u0644\u0628\u0627\u0646\u064a" ref="">\u062c\u0627\u0645\u0639 \u062a\u0631\u0627\u062b \u0627\u0644\u0639\u0644\u0627\u0645\u0629 \u0627\u0644\u0623\u0644\u0628\u0627\u0646\u064a \u0641\u064a \u0627\u0644\u0641\u0642\u0647</book>';
       const e = await drive([{ role: 'user', content: Q11A }, { role: 'assistant', content: PREV11 }, { role: 'user', content: Q11B }]);
       ok('P9b 11-b through the real handler: no model call; every card of the previous answer, binbaz.org.sa first, and no name the answer did not give',
         !e.crashed && e.model.length === 0 && e.text.startsWith(SF.SOURCE_FOLLOWUP_LEAD) && (e.text.match(/<source |<book /g) || []).length === 4
-        && e.text.indexOf('binbaz.org.sa') > 0 && e.text.indexOf('binbaz.org.sa') < e.text.indexOf('salmajed.com') && !e.text.includes('سعد')
+        && e.text.indexOf('binbaz.org.sa') > 0 && e.text.indexOf('binbaz.org.sa') < e.text.indexOf('salmajed.com') && !e.text.includes('\u0633\u0639\u062f')
         && e.res.ended === 1, ascii(JSON.stringify({ model: e.model.length, text: e.text.slice(0, 160), crashed: e.crashed && String(e.crashed.stack) })));
     } finally {
       globalThis.fetch = realFetch;
