@@ -392,6 +392,28 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       const n = await drive([{ role: 'user', content: Q29A }, { role: 'assistant', content: '\u062c\u0648\u0627\u0628 \u0628\u0644\u0627 \u0628\u0637\u0627\u0642\u0629.' }, { role: 'user', content: Q29B }]);
       ok('P8c a previous answer with no card leaves the question on the ordinary path (the model is called)',
         !n.crashed && n.model.length > 0 && !n.text.startsWith(SF.SOURCE_FOLLOWUP_LEAD));
+
+      // P9 (PIPES2 fix 1): round 7, question 11-b -- the source follow-up in any wording, not a list of wordings.
+      const Q11B = 'ما المراجع التي اعتمدت عليها في هذا الجواب؟';
+      const SIBS = ['ما هي المصادر التي استندت إليها؟', 'اذكر لي مصادرك',
+        'على ماذا اعتمدت في هذا الجواب؟', 'وش المراجع اللي رجعت لها؟', 'ممكن تعطيني المراجع؟'];
+      const NOT = ['ما مصدر هذا الحديث؟', 'ما المراجع في الفقه الحنبلي؟',
+        'ما مصدر الحكم بتحريم الموسيقى؟', 'هل رجعت؟'];
+      ok('P9a 11-b and its siblings are follow-ups about the answer; a hadith\'s source, a subject\'s references and "did you return?" are not',
+        SF.asksPreviousSource(Q11B) && SIBS.every((q) => SF.asksPreviousSource(q)) && NOT.every((q) => !SF.asksPreviousSource(q)),
+        ascii(JSON.stringify([Q11B, ...SIBS, ...NOT].map((q) => SF.asksPreviousSource(q)))));
+      const Q11A = 'ما حكم صيام يوم الجمعة وحده؟';
+      const PREV11 = 'لا يجوز تخصيص يوم الجمعة بالصوم تطوعا وحده.\n'
+        + '<source site="binbaz.org.sa" url="https://binbaz.org.sa/fatwas/5710">حكم تخصيص يوم الجمعة بالصوم</source>\n'
+        + 'أما إذا صام معه يوما قبله فلا حرج.\n'
+        + '<source site="sh-albarrak.com" url="https://sh-albarrak.com/article/1">حكم صيام يوم الجمعة</source>\n'
+        + '<source site="salmajed.com" url="https://salmajed.com/fatwa/2">صيام يوم الجمعة وحده إذا وافق يوم عرفة</source>\n'
+        + '<book author="ناصر الدين الألباني" ref="">جامع تراث العلامة الألباني في الفقه</book>';
+      const e = await drive([{ role: 'user', content: Q11A }, { role: 'assistant', content: PREV11 }, { role: 'user', content: Q11B }]);
+      ok('P9b 11-b through the real handler: no model call; every card of the previous answer, binbaz.org.sa first, and no name the answer did not give',
+        !e.crashed && e.model.length === 0 && e.text.startsWith(SF.SOURCE_FOLLOWUP_LEAD) && (e.text.match(/<source |<book /g) || []).length === 4
+        && e.text.indexOf('binbaz.org.sa') > 0 && e.text.indexOf('binbaz.org.sa') < e.text.indexOf('salmajed.com') && !e.text.includes('سعد')
+        && e.res.ended === 1, ascii(JSON.stringify({ model: e.model.length, text: e.text.slice(0, 160), crashed: e.crashed && String(e.crashed.stack) })));
     } finally {
       globalThis.fetch = realFetch;
       for (const k of ENV_KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }
