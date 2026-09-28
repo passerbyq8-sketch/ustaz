@@ -898,7 +898,7 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       const req = { method: 'POST',
         headers: { 'x-murabbi-device': 'speed-pipes-guard-' + String(ip).padStart(4, '0'), 'x-real-ip': '10.18.0.' + ip,
           [CONSENT.AI_CONSENT_HEADER]: CONSENT.AI_CONSENT_VERSION },
-        body: { messages: Array.isArray(question) ? question : [{ role: 'user', content: question }], band: opts.band || 'adult', age: opts.age || 35 } };
+        body: { messages: Array.isArray(question) ? question : [{ role: 'user', content: question }], band: opts.band || 'adult', age: opts.age || 35, ...(opts.depth ? { depth: opts.depth } : {}) } };
       const logs = [];
       const keep = { log: console.log, warn: console.warn, error: console.error, info: console.info };
       console.log = (...a) => { logs.push(a); };
@@ -982,7 +982,7 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
         return { ok: true, status: 200, url: u, redirected: false, headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? 'application/json' : null) },
           text: async () => JSON.stringify(WASL.w1.search), json: async () => WASL.w1.search };
       };
-      const LIBENV = { BEFORE_WRITING_V2: 'off', SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: 'guard-not-a-real-token' };
+      const LIBENV = { BEFORE_WRITING_V2: 'off', SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: 'tk-wasl-1' };
       const lastUser = (b) => { const m = (b.messages || []).filter((x) => x.role === 'user').pop(); return m ? JSON.stringify(m.content) : ''; };
       const w1 = await drive(WASL.w1.question, { env: LIBENV, respond: libRespond });
       const w1First = w1.model.find((b) => b.system !== BW2.BW2_JUDGE_SYSTEM);
@@ -996,6 +996,34 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       const w1child = await drive(WASL.w1.question, { env: LIBENV, respond: libRespond, band: 'young', age: 12 });
       ok('W1c a child turn gathers none: no library call, and the turn is still answered', !w1child.crashed && libAsked.length === 0 && w1child.model.length > 0,
         ascii(JSON.stringify({ asked: libAsked.length, model: w1child.model.length, crashed: w1child.crashed && String(w1child.crashed.stack) })));
+
+      // W2 (WASL): the lessons at every depth. On the free-brain path, a lessons call beside the fatwa prefetch for an adult
+      // religious turn at every depth (cap 3, abandoned at the brief call's 2500 ms), its rows handed to the writer as
+      // candidate evidence. The lessons service needs a key, so its hit here is a stated synthetic one (fixture w2).
+      const lessonsAsked = [];
+      const w2Respond = (u, init) => {
+        if (u === 'https://lib.ezik.app/lessons/search') {
+          lessonsAsked.push(JSON.parse(init.body));
+          return { ok: true, status: 200, url: u, headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? 'application/json' : null) },
+            json: async () => WASL.w2.lessons, text: async () => JSON.stringify(WASL.w2.lessons) };
+        }
+        return libRespond(u, init);
+      };
+      for (const depth of ['', 'deep']) {
+        lessonsAsked.length = 0;
+        const w2 = await drive(depth ? [{ role: 'user', content: WASL.w1.question }] : WASL.w1.question, { env: LIBENV, respond: w2Respond, depth });
+        const first = w2.model.find((b) => b.system !== BW2.BW2_JUDGE_SYSTEM);
+        const pre = lessonsAsked.filter((b) => b.q === WASL.w1.question);
+        ok('W2a' + (depth ? 'd' : 'b') + ' an adult religious question at ' + (depth || 'the brief depth') + ', free-brain path: the lessons are asked beside the fatwa prefetch and their row reaches the writer before any tool round',
+          !w2.crashed && pre.length === 1 && !!first && lastUser(first).includes(WASL.w2.lessons.hits[0].title),
+          ascii(JSON.stringify({ asked: lessonsAsked.length, crashed: w2.crashed && String(w2.crashed.stack) })));
+      }
+      lessonsAsked.length = 0;
+      const w2child = await drive(WASL.w1.question, { env: LIBENV, respond: w2Respond, band: 'young', age: 12 });
+      ok('W2c a child turn asks no lessons', !w2child.crashed && lessonsAsked.length === 0 && w2child.model.length > 0);
+      lessonsAsked.length = 0;
+      const w2plain = await drive('ما هي عاصمة اليابان؟', { env: LIBENV, respond: w2Respond });
+      ok('W2e a worldly question asks no lessons before the writer (the prefetch rides the fatwa prefetch\'s religious key)', !w2plain.crashed && lessonsAsked.length === 0 && w2plain.model.length > 0);
     } finally {
       globalThis.fetch = realFetch;
       for (const k of ENV_KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }

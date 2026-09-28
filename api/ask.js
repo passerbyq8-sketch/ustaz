@@ -1973,6 +1973,9 @@ export default async function handler(req, res) {
           // lessons service is gated on that same variable — so this adds no new secret.
           lessonsEligible: libDepthEligible && band === 'adult',
           lessonsToken: (libDepthEligible && band === 'adult') ? libToken : '',
+          // SPEED WASL W2 -- the lessons asked beside the fatwa prefetch at EVERY depth, adults only (the loop adds the
+          // religious key). The offer above is untouched; this is the prefetch, not the tool.
+          lessonsPrefetch: band === 'adult' && libToken !== '' ? { token: libToken } : null,
           onWriteUnit: (detail) => liveFreeBrainUnits.push(detail),
           // BATCH 4 [b18] — the takhrij pass below runs on a streamed turn too, so the stream holds
           // the units it could change. The same three conditions the pass itself is gated on.

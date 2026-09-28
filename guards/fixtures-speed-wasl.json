@@ -90,5 +90,20 @@
     }
    ]
   }
+ },
+ "w2": {
+  "note": "SYNTHETIC: the lessons service needs SEARCH_API_TOKEN, which is not read here; one hit in the service shape (api/lessons-search.js HIT_FIELDS).",
+  "lessons": {
+   "hits": [
+    {
+     "title": "شرح كتاب الزكاة - إخراج القيمة في الزكاة",
+     "url": "https://example.test/lesson/1",
+     "scholar_id": "شيخ اختبار",
+     "snippet": "",
+     "unit_id": "u-test-1",
+     "score": 7.5
+    }
+   ]
+  }
  }
 }
