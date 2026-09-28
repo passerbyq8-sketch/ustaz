@@ -467,6 +467,14 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       !s.notCovered && out.join('').includes('\u0627\u0644\u0627\u062d\u062a\u0641\u0627\u0644 \u0628\u0627\u0644\u0645\u0648\u0644\u062f \u0627\u0644\u0646\u0628\u0648\u064a \u0628\u062f\u0639\u0629'), ascii(JSON.stringify({ text: out.join(''), holds: s.holds })));
   }
 
+  // ---------------------------------------------------------------- P24d (PIPES3, A, from the rounds 2-8 list) a passive has no subject
+  {
+    const UNITS = await esm('lib/bw2-units.js');
+    ok('P24d round 6, 21: "wa-dhukira anna" written with its damma is the passive and points at nobody; "wa-dhakara anna" (16) still points back',
+      UNITS.dependentKind('\u0648\u0630\u064f\u0643\u0631 \u0623\u0646 \u062c\u0645\u0647\u0648\u0631 \u0641\u0642\u0647\u0627\u0621 \u0627\u0644\u0623\u0645\u0635\u0627\u0631 \u0639\u0644\u0649 \u0623\u0646 \u0627\u0644\u0637\u0644\u0627\u0642 \u0628\u0644\u0641\u0638 \u0627\u0644\u062b\u0644\u0627\u062b \u062d\u0643\u0645\u0647 \u062d\u0643\u0645 \u0627\u0644\u0637\u0644\u0642\u0629 \u0627\u0644\u062b\u0627\u0644\u062b\u0629') === ''
+      && UNITS.dependentKind('\u0648\u0630\u0643\u0631 \u0623\u0646 \u0627\u0644\u0641\u0642\u0647\u0627\u0621 \u0625\u0630\u0627 \u062c\u0648\u0632\u0648\u0627 \u0628\u064a\u0639 \u0627\u0644\u062a\u0645\u0631') === 'backref' && UNITS.dependentKind('\u0648\u0630\u064e\u0643\u064e\u0631\u064e \u0623\u0646 \u0627\u0644\u0641\u0642\u0647\u0627\u0621') === 'backref');
+  }
+
   // ---------------------------------------------------------------- P2 the fatwa store in the reader's letters
   {
     const Q5 = '\u0645\u0627 \u062d\u0643\u0645 \u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u0641\u0627\u062a\u062d\u0629 \u0644\u0644\u0645\u0623\u0645\u0648\u0645 \u0639\u0646\u062f \u0627\u0644\u0645\u0630\u0627\u0647\u0628 \u0627\u0644\u0623\u0631\u0628\u0639\u0629';
