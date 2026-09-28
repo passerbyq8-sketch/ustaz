@@ -163,6 +163,49 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
     ok('W3b judge: the system asks for 2 only for a fatwa whose own question or title asks the reader\'s question', /\b2\b/.test(BW2.BW2_JUDGE_SYSTEM) && /own question or title/i.test(BW2.BW2_JUDGE_SYSTEM));
   }
 
+  // ---------------------------------------------------------------- W5 (WASL) «افتح في المكتبة» under every book card
+  // A before-writing turn at the brief depth (BW2 asks the library at every depth): its book cards go through api/ask.js
+  // buildBookTag, so a page-citable FC-###### row's tag carries book, vol and page and the client's own ezikLibraryHref
+  // (cut out of app.jsx, evaluated as it is written) opens that page; a row that is not page-citable opens the book.
+  {
+    const fsx = require('fs');
+    const WQ = require('./fixtures-speed-wasl.json');
+    const TOOLS = await esm('lib/free-brain/tools.js');
+    const SSE = await esm('lib/finalized-sse-writer.js');
+    const ASKM = await esm('api/ask.js');
+    const hrefSrc = (/\nfunction ezikLibraryHref\(bookId, vol, page\) \{[\s\S]*?\n\}\n/.exec(fsx.readFileSync(path.join(REPO, 'app.jsx'), 'utf8')) || [''])[0];
+    const ezikLibraryHref = !hrefSrc ? () => '' : new Function(hrefSrc + '\nreturn ezikLibraryHref;')();
+    const libFetch = async (u, init) => ({ ok: true, status: 200, url: String(u), redirected: false, headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? 'application/json' : null) },
+      text: async () => JSON.stringify(WQ.w1.search), json: async () => WQ.w1.search });
+    const t = { writes: [], ended: 0, headers: {}, statusCode: 200, status(c) { this.statusCode = c; return this; }, setHeader(k, v) { this.headers[k] = v; }, write(c) { this.writes.push(String(c)); return true; }, end() { this.ended += 1; }, flushHeaders() {} };
+    const facade = SSE.createFinalizedSseResponse(t, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [] }) });
+    let listing = '';
+    await BW2.runBw2Turn({
+      question: WQ.w1.question, messages: [{ role: 'user', content: WQ.w1.question }], wire: BW2.createBw2Wire(facade), band: 'adult',
+      libFlagValue: 'on', libToken: 'tk-wasl-1',
+      cards: { buildSourceTag: ASKM.buildSourceTag, buildBookTag: ASKM.buildBookTag, encyclopediaCards: false, max: 3 },
+      deps: {
+        runTool: (name, input, ctx) => (name === 'search_library' && !(ctx.bookIds && ctx.bookIds.length) ? TOOLS.runTool(name, input, { ...ctx, fetchImpl: libFetch }) : Promise.resolve({ text: '', added: [], calls: 0 })),
+        searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true, warmEncyclopedia: () => true,
+        ask: async ({ user }) => { listing = user; const d = {}; for (const m of user.matchAll(/^\[(\d+)\] /gmu)) d[m[1]] = 1; return JSON.stringify({ d }); },
+        callWriter: async ({ onText }) => { onText('تجوز القيمة في الزكاة للحاجة [[1]].\nوفي الفقه الميسر بيانها [[2]].'); return { stop_reason: 'end_turn', usage: {} }; },
+      },
+    });
+    const text = t.writes.join('').split('\n\n').filter((l) => l.startsWith('data: ')).map((l) => { try { return JSON.parse(l.slice(6)); } catch { return null; } })
+      .filter((f) => f && f.type === 'content_block_delta').map((f) => f.delta.text).join('');
+    const tags = [...text.matchAll(/<book\b([^>]*)>([^<]*)<\/book>/g)].map((m) => ({ attrs: m[1].replace(/matn="[^"]*"/, ''), title: m[2] }));
+    const attr = (a, n) => ((new RegExp('\\b' + n + '="([^"]*)"')).exec(a) || [])[1] || '';
+    const cited = tags.find((x) => attr(x.attrs, 'book') === 'FC-004528');
+    const plain = tags.find((x) => attr(x.attrs, 'book') === 'FC-003906');
+    ok('W5a a BW2 book card at the brief depth for a page-citable FC row: book, vol and page in its tag, and the client href opens that page',
+      !!cited && attr(cited.attrs, 'vol') === '14' && attr(cited.attrs, 'page') === '253'
+      && ezikLibraryHref(attr(cited.attrs, 'book'), attr(cited.attrs, 'vol'), attr(cited.attrs, 'page')) === '/library.html?book=FC-004528&vol=14&page=253',
+      ascii(JSON.stringify({ tags: tags.map((x) => x.attrs), listing: listing.slice(0, 80) })));
+    ok('W5b ...and a row that is not page-citable: its card carries the book only, and the href opens the book',
+      !!plain && !attr(plain.attrs, 'page') && !attr(plain.attrs, 'vol') && ezikLibraryHref(attr(plain.attrs, 'book'), '', '') === '/library.html?book=FC-003906',
+      ascii(JSON.stringify(tags.map((x) => x.attrs))));
+  }
+
   // ---------------------------------------------------------------- P10 (PIPES2 fix 2) round 7, question 5
   {
     const Q7_5 = '\u0645\u0627 \u062d\u0643\u0645 \u062a\u062f\u0627\u0648\u0644 \u0627\u0644\u0639\u0645\u0644\u0627\u062a \u0627\u0644\u0645\u0634\u0641\u0631\u0629 \u0645\u062b\u0644 \u0627\u0644\u0628\u062a\u0643\u0648\u064a\u0646\u061f';
