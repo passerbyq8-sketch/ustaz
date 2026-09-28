@@ -3464,7 +3464,7 @@ const EZIK_RESUME_KEY='ezik_resume_section_v1';// THE THREE TABLES ARE THE WHOLE
 // there is the browser reloading quest.html -- there is nothing for this file to restore, and
 // recording it would send a reader who had merely walked back to the shelf somewhere he was
 // not standing.
-const EZIK_RESUME_SCREENS={memorize:'memorize',adhkar:'adhkar',arbaeen:'arbaeen',mushaf:'mushaf',fatwa:'fatwa',lessons:'lessons',home:'home','ayah-tafsir':'ayah-tafsir'};const EZIK_RESUME_APP_LAYERS={asmaa:1,'sunan-day':1};// Resume records name home layers. `wirdi` remains restorable, but is not an accepted C1 route.
+const EZIK_RESUME_SCREENS={memorize:'memorize',adhkar:'adhkar',arbaeen:'arbaeen',mushaf:'mushaf',fatwa:'fatwa',lessons:'lessons',home:'home','ayah-tafsir':'ayah-tafsir'};const EZIK_RESUME_APP_LAYERS={asmaa:1,'sunan-day':1};// Resume records name home layers. `wirdi` is restorable and, since trip 2, an accepted route.
 const EZIK_RESUME_HOME_LAYERS={articles:1,women:1,prayer:1,wirdi:1,tasbih:1,calc:1,compass:1};function ezikResumeKnown(id){return!!(EZIK_RESUME_SCREENS[id]||EZIK_RESUME_APP_LAYERS[id]||EZIK_RESUME_HOME_LAYERS[id]);}function ezikWriteResume(id){if(!ezikResumeKnown(id))return;try{window.sessionStorage.setItem(EZIK_RESUME_KEY,String(id));}catch(e){}}function ezikReadResume(){try{const v=window.sessionStorage.getItem(EZIK_RESUME_KEY);return typeof v==='string'&&ezikResumeKnown(v)?v:'';}catch(e){return'';}}function ezikClearResume(){try{window.sessionStorage.removeItem(EZIK_RESUME_KEY);}catch(e){}}// ============================================================
 // ITEM 108 (ORDER-108C) -- THE LIBRARY PAGE'S THREE SEAMS WITH THIS FILE.
 // /library.html is its own page (the catalogue lives on its own host, which this file never
@@ -5398,7 +5398,8 @@ const openDrawer=()=>{refreshChatList();setChatPendingDelete(null);setChatQuery(
 //
 // Sections use the resume ledger and the boot tools. Home layers initialize from that record;
 // homeEpoch remounts Home even when it was already underneath, and resets the two list screens.
-// App layers open explicitly. Chat starts a new thread; treasure navigates to its own page.
+// App layers open explicitly. Chat starts a new thread; treasure and library navigate to their
+// own pages, each by the same assignment its home module makes.
 //
 // A NEW READER IS NEVER INTERRUPTED. On the onboarding screen the press is taken and dropped:
 // nothing is written, and the introduction stays where it was.
@@ -5411,7 +5412,7 @@ const openDrawer=()=>{refreshChatList();setChatPendingDelete(null);setChatQuery(
 const[widgetSeq,setWidgetSeq]=useState(0);const[homeEpoch,setHomeEpoch]=useState(0);const widgetChatFocusRef=useRef(false);useEffect(()=>{const bump=()=>setWidgetSeq(n=>n+1);EZIK_WIDGET_SUBS.add(bump);return()=>{EZIK_WIDGET_SUBS.delete(bump);};},[]);useEffect(()=>{// Read into `cur` because chat-history-guard takes the first `if (screen === ...` in App to
 // be the first RENDER return; these two are an effect's early exits, not screens.
 const cur=screen;if(cur==='loading')return;const requested=ezikWidgetTake();if(!requested)return;if(cur==='onboarding')return;// Notification aliases open the index, preserving the cancellation of group deep links.
-const route=requested==='adhkar_sabah'||requested==='adhkar_masaa'?'adhkar':requested;widgetChatFocusRef.current=false;setAsmaaOpen(route==='asmaa');setAboutOpen(false);setSourcesOpen(false);setSunanOpen(route==='sunan-day');setFeedbackOpen(false);setInboxOpen(false);setShareOpen(false);setDrawerOpen(false);drawerNavRef.current=null;feedbackNavRef.current=null;sheetOriginRef.current=[];setHomeEpoch(n=>n+1);if(route==='treasure'){ezikClearResume();window.location.href='/quest.html';return;}if(route==='chat'){ezikClearResume();newChat();setScreen('chat');widgetChatFocusRef.current=true;return;}ezikWriteResume(route);ezikResumeMarkEntered(ezikReadResume());const next=ezikResumeScreen();// Already standing on that screen: no mount will spend the mark, so spend it here, or the
+const route=requested==='adhkar_sabah'||requested==='adhkar_masaa'?'adhkar':requested;widgetChatFocusRef.current=false;setAsmaaOpen(route==='asmaa');setAboutOpen(false);setSourcesOpen(false);setSunanOpen(route==='sunan-day');setFeedbackOpen(false);setInboxOpen(false);setShareOpen(false);setDrawerOpen(false);drawerNavRef.current=null;feedbackNavRef.current=null;sheetOriginRef.current=[];setHomeEpoch(n=>n+1);if(route==='treasure'){ezikClearResume();window.location.href='/quest.html';return;}if(route==='library'){ezikClearResume();window.location.href='/library.html';return;}if(route==='chat'){ezikClearResume();newChat();setScreen('chat');widgetChatFocusRef.current=true;return;}ezikWriteResume(route);ezikResumeMarkEntered(ezikReadResume());const next=ezikResumeScreen();// Already standing on that screen: no mount will spend the mark, so spend it here, or the
 // reader's next ordinary walk into المصحف would be taken for a reload.
 if(next===screenRef.current)ezikResumeTakeEntered(route);setScreen(next);},[screen,widgetSeq]);// ONE ENTRY PER OPENED SCREEN, and never one for a back. Opening a section pushes; a back
 // relabels the entry it is standing on (replaceState) instead of stacking a second copy of the
@@ -8015,6 +8016,9 @@ const SHELL_SCHED_ENABLE_OP='enable';const SHELL_SCHED_CANCEL_OP='cancel';const 
 // Notifications and widget Linking both reach SiteScreen's deliverOpen on this channel:
 // { channel, v, op: 'open', route, type, id }. The web enforces the complete C1 whitelist
 // below before any store or screen changes. Mushaf belongs to notifications, not widget sections.
+// TRIP 2 (28 September): every section the app offers now opens here, so the last two join it
+// under the app's own keys -- `wirdi`, the key the resume ledger already writes for the daily
+// wird section, and `library`, the id of the home module that opens /library.html.
 //
 // WHY THE LISTENER HANGS HERE AND NOT IN A HOOK. On a cold start the shell holds the press
 // until the page reports loaded and then injects it at once -- which can be before React has
@@ -8026,7 +8030,7 @@ const SHELL_SCHED_ENABLE_OP='enable';const SHELL_SCHED_CANCEL_OP='cancel';const 
 //
 // `rearm-request`, `result` and `status` are not touched: this listener returns on every op but
 // `open`, and useEzikSchedRoot keeps its own listener exactly as it was.
-const SHELL_SCHED_OPEN_OP='open';const EZIK_WIDGET_ROUTES=['mushaf','adhkar_sabah','adhkar_masaa','home','adhkar','arbaeen','prayer','chat','memorize','fatwa','lessons','articles','women','tasbih','calc','compass','ayah-tafsir','asmaa','sunan-day','treasure'];let EZIK_WIDGET_PENDING='';const EZIK_WIDGET_SUBS=new Set();function ezikWidgetTake(){const r=EZIK_WIDGET_PENDING;EZIK_WIDGET_PENDING='';return r;}(function ezikWidgetListen(){// The same two guards the schedule hook carries: no window under a node harness that loads
+const SHELL_SCHED_OPEN_OP='open';const EZIK_WIDGET_ROUTES=['mushaf','adhkar_sabah','adhkar_masaa','home','adhkar','arbaeen','prayer','chat','memorize','fatwa','lessons','articles','women','tasbih','calc','compass','ayah-tafsir','asmaa','sunan-day','wirdi','treasure','library'];let EZIK_WIDGET_PENDING='';const EZIK_WIDGET_SUBS=new Set();function ezikWidgetTake(){const r=EZIK_WIDGET_PENDING;EZIK_WIDGET_PENDING='';return r;}(function ezikWidgetListen(){// The same two guards the schedule hook carries: no window under a node harness that loads
 // this file without a DOM, and a throwing addEventListener degrades to «the widget opens the
 // app as it is» rather than to a broken page.
 if(typeof window==='undefined')return;try{window.addEventListener(SHELL_SCHED_CHANNEL,ev=>{const d=ev&&ev.detail;if(!d||typeof d!=='object')return;if(d.channel!==SHELL_SCHED_CHANNEL||d.v!==SHELL_SCHED_VERSION||d.op!==SHELL_SCHED_OPEN_OP)return;if(typeof d.route!=='string'||EZIK_WIDGET_ROUTES.indexOf(d.route)===-1)return;EZIK_WIDGET_PENDING=d.route;EZIK_WIDGET_SUBS.forEach(f=>{try{f();}catch(e){}});});}catch(e){}})();// The bridge, or null. The injected object is the whole test; navigator.userAgent is deliberately
