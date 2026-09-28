@@ -264,6 +264,9 @@ const BW2_FIELDS = [
   // SPEED FIX 3, C4 (order EZIK-SPEED-FIX3-ORDER-2026-09-27): units released by a hadith proof (a kept
   // row carrying the text and every name, or the takhrij). A number.
   'unitsProvedHadith',
+  // SPEED PIPES fix 3 (order EZIK-SPEED-PIPES-ORDER-2026-09-28): why the turn went on to today's path
+  // instead of the not-covered sentence -- a closed enum: '', no_rows, judge_none, marker, none_released.
+  'continued',
 ];
 
 const ALLOWED = new Set([...ALLOWED_FIELDS, ...STREAM_FIELDS, ...LIVE_WORLD_V2_FIELDS,

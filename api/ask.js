@@ -135,7 +135,7 @@ import { runClosedDeenTurn } from '../lib/closed-deen.js';
 // row at the same 1200 under the name SNIPPET_CHARS. That number is the one that actually binds
 // what arrives; LIB_MAX_CHARS_PER_HIT_CEILING caps a request parameter this tree never sends.
 import { LIB_MAX_CHARS_PER_HIT_DEFAULT } from '../lib/lib-contract.js';
-import { freeBrainDecision, beforeWritingV2Decision, beforeWritingV2Takes, readLiveSearch } from '../lib/free-brain/flag.js';
+import { freeBrainDecision, beforeWritingV2Decision, beforeWritingV2Takes, readLiveSearch, bw2ContinueDecision } from '../lib/free-brain/flag.js';
 import { bw2ScopeExclusion } from '../lib/bw2-scope.js';
 import { takhrijDecision, TAKHRIJ_SKIPPED_STREAMED } from '../lib/takhrij.js';
 // BATCH 4 [b18] — on its own line: guards/takhrij-contract-guard.cjs row 19 pins the line above.
@@ -1772,8 +1772,19 @@ export default async function handler(req, res) {
       enabled: freeBrain.enabled, reason: freeBrain.reason, childBenignReserved,
       lexicalRoute: effectiveRoute, band, audienceBand, bw2: bw2Taken, liveSearch,
     });
+    // PIPES fix 3: set when the before-writing path found no text in our own sources and handed the turn on
+    // unfinished; today's path below then runs as the live offer would have run it, with no button.
+    let bw2Continued = false;
     if (bw2Taken) {
       const { runBw2Turn, createBw2Wire } = await import('../lib/before-writing-v2.js');
+      const beforeBw2 = {
+        allowWireOwnedCards: finalizerContext.allowWireOwnedCards,
+        consistencyContext: finalizerContext.consistencyContext,
+        sourceCards: finalizerContext.sourceCards,
+        readerCards: finalizerContext.readerCards,
+        readerCardPrefix: finalizerContext.readerCardPrefix,
+        readerSuffix: finalizerContext.readerSuffix,
+      };
       // The wire carries server-built card tags inline (protocol 4.2), so no owned-card suffix is
       // separated and nothing is stripped: the facade replays the released text as it went out.
       finalizerContext.allowWireOwnedCards = true;
@@ -1810,6 +1821,7 @@ export default async function handler(req, res) {
           takhrijNote,
           truncatedMark: TRUNCATED_MARK,
           runtime: currentRuntime,
+          continueWhenNotCovered: bw2ContinueDecision().enabled,
         });
       } finally {
         bw2Upstream.cleanup();
@@ -1843,9 +1855,19 @@ export default async function handler(req, res) {
           heldUnsupportedSchool: t.heldUnsupportedSchool, heldUnsupportedMatn: t.heldUnsupportedMatn, heldTakhrijRefused: t.heldTakhrijRefused, heldTakhrijEmptied: t.heldTakhrijEmptied,
           heldGradeRuleFailed: t.heldGradeRuleFailed, heldGradeEmptied: t.heldGradeEmptied, heldRepeat: t.heldRepeat, heldDependentOnHeld: t.heldDependentOnHeld,
           heldDependentOpening: t.heldDependentOpening, heldDanglingLeadIn: t.heldDanglingLeadIn, heldNotCovered: t.heldNotCovered, heldNotCoveredSentence: t.heldNotCoveredSentence,
+          // PIPES fix 3: why the turn went on to today's path ('' when it did not).
+          continued: t.continued,
         });
       }
-      return;
+      if (!(bw2Out && bw2Out.continued === true) || readerGone.aborted) return;
+      // PIPES fix 3: nothing went out but status frames, which the facade passes through without opening
+      // the message, so the response is still whole. Today's path takes it as the live offer would have:
+      // the finalizer and its context as they were, the first round forced to search, and the reader's
+      // status line back on «searching Ezik's sources» while it does.
+      Object.assign(finalizerContext, beforeBw2);
+      bw2Delivery = false;
+      bw2Continued = true;
+      try { res.write(`data: ${JSON.stringify({ type: 'ezik_status', stage: 'retrieve' })}\n\n`); } catch { /* a status line never fails a turn */ }
     }
     if (freeBrain.enabled && !childBenignReserved) {
       // Lazy for the reason the head of this file gives about retrieve(): the loop reaches
@@ -1921,8 +1943,9 @@ export default async function handler(req, res) {
             ? { matn: true, fromStart: asksGradeOrSource(questionText) } : null,
           // E75 — carried, not read. The loop hands it to the reviewer and nothing else.
           requestedIdentity,
-          // SPEED ITEM 17 (order 3.7): the reader pressed the live offer, so the first round searches.
-          forceFirstTool: liveSearch ? 'search_sources' : null,
+          // SPEED ITEM 17 (order 3.7): the reader pressed the live offer, so the first round searches -- and, since
+          // PIPES fix 3, the same when the before-writing path handed the turn on (bw2Continued).
+          forceFirstTool: (liveSearch || bw2Continued) ? 'search_sources' : null,
         });
       } finally {
         freeUpstream.cleanup();

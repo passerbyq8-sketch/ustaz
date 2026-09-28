@@ -15,9 +15,10 @@
 //      frames, the first answer text removes the bar, and no status frame arrives after it
 //   I2 the same answer: every card appears in place while streaming, and after completion the text and
 //      letters on screen are the accumulated deltas, cards in the same positions (DOM unchanged)
-//   I3 an empty table (the judge keeps no row): the not-covered sentence and one live-offer button;
-//      pressing it sends the same question with liveSearch: true, and the handler routes that request to
-//      the free-brain path with its first round forced to search_sources
+//   I3 an empty table (the judge keeps no row), with BW2_CONTINUE=off: the not-covered sentence and one
+//      live-offer button; pressing it sends the same question with liveSearch: true, and the handler routes
+//      that request to the free-brain path with its first round forced to search_sources. By default (I3f,
+//      SPEED PIPES fix 3) the same empty table goes there by itself: no sentence, no offer, no button
 //   I4 a question outside BW2's scope (general): today's wire and today's rendering. The wire equals the
 //      one BEFORE_WRITING_V2=off produces AND the one production's tree (af3e995) produced for the same
 //      request body; the completed DOM equals production's client on those bytes. Both baselines were
@@ -103,7 +104,7 @@ async function makeServer(root) {
     'LIB_QUOTE_V1', 'LIB_MUJAZ_V1', 'ENCYC_V1', 'DEPTH_FREE_TRIAL', 'RFC_V05_MODE', 'RFC_V05_LEGACY_POLICY', 'LEDGER_RAG',
     'VERCEL_ENV', 'VERCEL_URL', 'FOUNDER_SECRET', 'KV_REST_API_URL', 'KV_REST_API_TOKEN', 'UPSTASH_REDIS_REST_URL',
     'UPSTASH_REDIS_REST_TOKEN', 'ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'LIVE_WORLD_V2', 'BW2_RETRIEVAL_MS', 'BW2_JUDGE_MS',
-    'BW_FAST_MODEL', 'PROPHET_ASCRIPTION_BLOCK'];
+    'BW_FAST_MODEL', 'PROPHET_ASCRIPTION_BLOCK', 'BW2_CONTINUE'];
   const saved = {};
   for (const k of ENV_KEYS) saved[k] = process.env[k];
   const realFetch = globalThis.fetch;
@@ -300,7 +301,10 @@ function runClient(html, only, server, scenarios) {
 
 const SCENARIOS = () => ({
   sourced: { server: { records: [REC_1, REC_2], writer: WRITER_SOURCED } },
-  empty: { server: { records: [], judgeKeep: false, writer: WRITER_SOURCED } },
+  // The offer's chain (I3a-I3e) is what a reader gets with BW2_CONTINUE=off; by default (I3f) the same empty
+  // table goes on to today's path by itself and no offer is made (SPEED PIPES fix 3).
+  empty: { server: { records: [], judgeKeep: false, writer: WRITER_SOURCED, env: { BW2_CONTINUE: 'off' } } },
+  continued: { server: { records: [], judgeKeep: false, writer: WRITER_SOURCED } },
   live: { server: { records: [], writer: WRITER_SOURCED } },
   general: { server: { records: [] } },
 });
@@ -413,6 +417,18 @@ async function main(args) {
       ok('I3e ...with its first provider round forced to search_sources',
         !!m0 && m0.tool_choice && m0.tool_choice.type === 'tool' && m0.tool_choice.name === 'search_sources',
         ascii(JSON.stringify(m0 && m0.tool_choice)));
+      // I3f: the default. The same first request, the same empty table, the switch unset.
+      const firstSeen = (scenarios.empty.seen || [])[0];
+      const cont = firstSeen ? await server.drive(firstSeen.body, firstSeen.headers, scenarios.continued.server) : null;
+      const cf = cont ? framesOf(cont.writes) : [];
+      const ct = cont ? cf.map(deltaText).filter((t) => t !== null).join('') : '';
+      const cb = cont && cont.logOf('[bw2]');
+      const st = cf.filter((f) => f.type === 'ezik_status').map((f) => f.stage);
+      const c0 = cont && cont.model.find((b) => b.tools);
+      ok('I3f by default the empty table goes on to the old path by itself: no not-covered sentence, no offer, its first round forced to search_sources, the reading line back on "searching"',
+        !!cont && !cont.crashed && cb && cb.continued === 'judge_none' && !cf.some((f) => f.type === 'ezik_live_offer')
+        && !ct.includes(NC) && ct.length > 0 && st.at(-1) === 'retrieve' && !!c0 && c0.tool_choice && c0.tool_choice.name === 'search_sources',
+        ascii(JSON.stringify({ cont: cb && cb.continued, st, frames: cf.map((f) => f.type) })));
     }
 
     // ---------------------------------------------------------------- I4

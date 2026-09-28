@@ -1114,7 +1114,9 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const q = Q_MASAH + ' ' + DIGITS + ' \u0645\u0631\u0629';
       const r = await run({ question: q, writerText: [U.s1, U.bad, U.book].join(' '), libOn: true, library: [ROW_L1] });
       const t = r.out.telemetry;
-      const ENUMS = { judgeOutcome: ['none', 'complete', 'incomplete', 'failed'], writerOutcome: ['none', 'ok', 'failed'] };
+      const ENUMS = { judgeOutcome: ['none', 'complete', 'incomplete', 'failed'], writerOutcome: ['none', 'ok', 'failed'],
+        // SPEED PIPES fix 3: why the turn went on to today's path ('' when it did not).
+        continued: ['', 'no_rows', 'judge_none', 'marker', 'none_released'] };
       const bad = Object.entries(t).filter(([k, v]) => {
         if (typeof v === 'number') return !Number.isFinite(v);
         if (typeof v === 'boolean' || v === null) return false;
@@ -1148,7 +1150,7 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         'LIB_QUOTE_V1', 'LIB_MUJAZ_V1', 'ENCYC_V1', 'DEPTH_FREE_TRIAL', 'RFC_V05_MODE', 'RFC_V05_LEGACY_POLICY', 'LEDGER_RAG',
         'VERCEL_ENV', 'VERCEL_URL', 'FOUNDER_SECRET', 'KV_REST_API_URL', 'KV_REST_API_TOKEN', 'UPSTASH_REDIS_REST_URL',
         'UPSTASH_REDIS_REST_TOKEN', 'ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'LIVE_WORLD_V2', 'BW2_RETRIEVAL_MS', 'BW2_JUDGE_MS',
-        'BW_FAST_MODEL', 'PROPHET_ASCRIPTION_BLOCK'];
+        'BW_FAST_MODEL', 'PROPHET_ASCRIPTION_BLOCK', 'BW2_CONTINUE'];
       const saved = {};
       for (const k of ENV_KEYS) saved[k] = process.env[k];
       const realFetch = globalThis.fetch;

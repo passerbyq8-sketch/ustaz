@@ -91,6 +91,164 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
     ok('P2d two answering queries take turns in the six places (question 10 kept its three carrying rows)',
       Object.keys(byQuery).length === 2 && order === '00,10,01,11,02,12', order);
   }
+
+  // ---------------------------------------------------------------- P3 no coverage goes on by itself
+  {
+    const SSE = await esm('lib/finalized-sse-writer.js');
+    const ASK = await esm('api/ask.js');
+    const makeTarget = () => ({
+      writes: [], ended: 0, statusCode: 0, headers: {}, headersSent: false,
+      write(s) { this.headersSent = true; this.writes.push(String(s)); return true; },
+      end() { this.ended += 1; return this; },
+      status(c) { this.statusCode = c; return this; },
+      setHeader(k, v) { this.headers[String(k).toLowerCase()] = v; return this; },
+      getHeader(k) { return this.headers[String(k).toLowerCase()]; },
+      flushHeaders() { this.headersSent = true; },
+      json(o) { this.jsonBody = o; this.ended += 1; return this; },
+      once() { return this; }, on() { return this; }, removeListener() { return this; },
+    });
+    const framesOf = (writes) => writes.join('').split('\n\n').filter((f) => f.startsWith('data: '))
+      .map((f) => { try { return JSON.parse(f.slice(6)); } catch { return null; } }).filter(Boolean);
+    const NOT_COVERED = BW2.BW2_NOT_COVERED;
+
+    // P3a/P3b: the unit, over the real facade and the real wire.
+    const unit = async (continueWhenNotCovered) => {
+      const target = makeTarget();
+      const facade = SSE.createFinalizedSseResponse(target, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [] }) });
+      const out = await BW2.runBw2Turn({
+        question: Q1, messages: [{ role: 'user', content: Q1 }], wire: BW2.createBw2Wire(facade),
+        libFlagValue: 'on', libToken: 't', continueWhenNotCovered,
+        deps: {
+          runTool: async () => ({ text: '', added: [], calls: 0 }), searchStoredCorpus: async () => ({ records: [] }),
+          encyclopediaReady: () => true, warmEncyclopedia: () => true,
+          callWriter: async () => { throw new Error('the writer must not be called'); },
+        },
+      });
+      return { out, target, frames: framesOf(target.writes) };
+    };
+    const on = await unit(true);
+    ok('P3a no row in any of our sources, continuation on: handed back unfinished -- status frames only, no text, no offer, the response still open',
+      on.out.continued === true && on.out.telemetry.continued === 'no_rows' && on.target.ended === 0
+      && on.frames.length > 0 && on.frames.every((f) => f.type === 'ezik_status'), ascii(JSON.stringify(on.frames.map((f) => f.type))));
+    const off = await unit(false);
+    ok('P3b ...and with it off (the default) the turn ends as before: the not-covered sentence and the offer',
+      !off.out.continued && off.target.ended === 1 && framesOf(off.target.writes).some((f) => f.type === 'ezik_live_offer')
+      && off.frames.filter((f) => f.type === 'content_block_delta').map((f) => f.delta.text).join('') === NOT_COVERED);
+
+    // P3e: a kept row, and the writer answers with its not-covered marker alone -- handed back as 'marker'.
+    {
+      const target = makeTarget();
+      const facade = SSE.createFinalizedSseResponse(target, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [] }) });
+      const UNITS = await esm('lib/bw2-units.js');
+      const rec = { id: 'F9', term: 'x', part: 1, snippet: 'text about the issue', text: 'text about the issue' };
+      const out = await BW2.runBw2Turn({
+        question: Q1, messages: [{ role: 'user', content: Q1 }], wire: BW2.createBw2Wire(facade), continueWhenNotCovered: true,
+        deps: {
+          runTool: async () => ({ text: '', added: [], calls: 0 }), searchStoredCorpus: async () => ({ records: [rec] }),
+          encyclopediaReady: () => true, warmEncyclopedia: () => true,
+          ask: async () => '{"d":{"1":1}}',
+          callWriter: async ({ onText }) => { onText(UNITS.BW2_NOT_COVERED_MARKER); return { stop_reason: 'end_turn', usage: {} }; },
+        },
+      });
+      ok('P3e a kept row and the writer\'s marker alone: handed back as "marker", nothing written',
+        out.continued === true && out.telemetry.continued === 'marker' && target.ended === 0
+        && framesOf(target.writes).every((f) => f.type === 'ezik_status'), JSON.stringify(out.telemetry.continued));
+    }
+
+    // P3f: the switch. On in code; only the words that plainly mean off take it down.
+    {
+      const FLAGS = await esm('lib/free-brain/flag.js');
+      const d = (v) => FLAGS.bw2ContinueDecision(v === undefined ? {} : { BW2_CONTINUE: v }).enabled;
+      ok('P3f BW2_CONTINUE: default on; off/false/0 (any case) turn it off; anything else stays on',
+        d() && d('on') && d('typo') && !d('off') && !d('FALSE') && !d('0') && FLAGS.BW2_CONTINUE_DEFAULT === true);
+    }
+
+    // P3c/P3d: the real handler. Every source is empty or refused and the judge keeps nothing, so the
+    // before-writing path finds no text; today's path must then run by itself, first round forced to search.
+    const LEDGER_REDIS = await esm('lib/ledger/redis.js');
+    const DAYCAP = await esm('lib/daycap.js');
+    const FLAG = await esm('lib/ledger/flag.js');
+    const LEGACY = await esm('lib/legacy-policy-flag.js');
+    const CONSENT = await esm('lib/ai-consent.js');
+    const ENV_KEYS = ['BEFORE_WRITING_V2', 'FREE_BRAIN_V1', 'STREAM_V1', 'TAKHRIJ_V1', 'SHAMELA_BRAIN', 'SEARCH_API_TOKEN',
+      'LIB_QUOTE_V1', 'LIB_MUJAZ_V1', 'ENCYC_V1', 'DEPTH_FREE_TRIAL', 'RFC_V05_MODE', 'RFC_V05_LEGACY_POLICY', 'LEDGER_RAG',
+      'VERCEL_ENV', 'VERCEL_URL', 'FOUNDER_SECRET', 'KV_REST_API_URL', 'KV_REST_API_TOKEN', 'UPSTASH_REDIS_REST_URL',
+      'UPSTASH_REDIS_REST_TOKEN', 'ANTHROPIC_API_KEY', 'BRAVE_API_KEY', 'LIVE_WORLD_V2', 'BW2_RETRIEVAL_MS', 'BW2_JUDGE_MS',
+      'BW_FAST_MODEL', 'PROPHET_ASCRIPTION_BLOCK', 'BW2_CONTINUE'];
+    const saved = {};
+    for (const k of ENV_KEYS) saved[k] = process.env[k];
+    const realFetch = globalThis.fetch;
+    const capCounts = new Map();
+    const ANSWER = '\u062a\u0635\u0644\u0649 \u0635\u0644\u0627\u0629 \u0627\u0644\u062e\u0648\u0641 \u0639\u0644\u0649 \u0635\u0641\u0627\u062a \u0648\u0631\u062f\u062a \u0628\u0647\u0627 \u0627\u0644\u0633\u0646\u0629.';
+    const jsonResponse = (url, o, status = 200) => ({
+      ok: status >= 200 && status < 300, status, url: String(url),
+      headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? 'application/json' : null) },
+      json: async () => o, text: async () => JSON.stringify(o),
+    });
+    let ip = 0;
+    const drive = async (question) => {
+      for (const k of ENV_KEYS) delete process.env[k];
+      Object.assign(process.env, { ANTHROPIC_API_KEY: 'guard-not-a-real-key', BRAVE_API_KEY: 'guard-not-a-real-key', LEDGER_RAG: 'off', FREE_BRAIN_V1: 'on' });
+      LEDGER_REDIS.__setRedisForTest(null);
+      FLAG.__resetFlagCacheForTest();
+      LEGACY.__resetLegacyFlagCacheForTest();
+      capCounts.clear();
+      DAYCAP.__setRedisForTest({
+        async mget(...keys) { return keys.map((k) => (capCounts.has(k) ? capCounts.get(k) : null)); },
+        async sismember() { return 0; },
+        pipeline() {
+          const ops = [];
+          return { incr(k) { ops.push(() => { const n = (Number(capCounts.get(k)) || 0) + 1; capCounts.set(k, n); return n; }); },
+            expire() { ops.push(() => 1); }, async exec() { return ops.map((f) => f()); } };
+        },
+      });
+      const model = [];
+      globalThis.fetch = async (url, init) => {
+        const u = String(url);
+        if (u.includes('api.anthropic.com')) {
+          const b = JSON.parse(init.body);
+          model.push(b);
+          if (b.system === BW2.BW2_JUDGE_SYSTEM) return jsonResponse(u, { content: [{ type: 'text', text: '{"d":{}}' }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
+          return jsonResponse(u, { content: [{ type: 'text', text: ANSWER }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
+        }
+        if (u.includes('api.search.brave.com')) return jsonResponse(u, { web: { results: [] } });
+        return { ok: false, status: 404, url: u, headers: { get: () => 'text/html' }, text: async () => '', json: async () => ({}) };
+      };
+      const res = makeTarget();
+      ip += 1;
+      const req = { method: 'POST',
+        headers: { 'x-murabbi-device': 'speed-pipes-guard-' + String(ip).padStart(4, '0'), 'x-real-ip': '10.18.0.' + ip,
+          [CONSENT.AI_CONSENT_HEADER]: CONSENT.AI_CONSENT_VERSION },
+        body: { messages: [{ role: 'user', content: question }], band: 'adult', age: 35 } };
+      const logs = [];
+      const keep = { log: console.log, warn: console.warn, error: console.error, info: console.info };
+      console.log = (...a) => { logs.push(a); };
+      console.warn = () => {}; console.error = () => {}; console.info = () => {};
+      let crashed = null;
+      try { await ASK.default(req, res); } catch (e) { crashed = e; } finally { Object.assign(console, keep); }
+      globalThis.fetch = realFetch;
+      const frames = framesOf(res.writes);
+      const logOf = (tag) => (logs.find((a) => a[0] === tag) || [])[1] || null;
+      return { res, frames, model, logOf, crashed, text: frames.filter((f) => f.type === 'content_block_delta').map((f) => f.delta.text).join('') };
+    };
+    try {
+      const d = await drive(Q2);
+      const t = d.logOf('[bw2]');
+      const worked = d.model.filter((b) => b.system !== BW2.BW2_JUDGE_SYSTEM);
+      ok('P3c question 2 through the real handler: no source row (or the judge keeps none), the turn goes on by itself -- no not-covered sentence, no offer',
+        !d.crashed && t && ['no_rows', 'judge_none'].includes(t.continued) && !d.frames.some((f) => f.type === 'ezik_live_offer')
+        && !d.text.includes(NOT_COVERED) && d.res.ended === 1,
+        ascii(JSON.stringify({ t: t && t.continued, frames: d.frames.map((f) => f.type + (f.stage ? ':' + f.stage : '')), crashed: d.crashed && String(d.crashed.stack) })));
+      const stages = d.frames.filter((f) => f.type === 'ezik_status').map((f) => f.stage);
+      ok('P3d ...today\'s path answers it, its first round forced to search_sources, and the reader\'s line reads "searching" again before its text',
+        worked[0] && worked[0].tool_choice && worked[0].tool_choice.name === 'search_sources' && stages[stages.length - 1] === 'retrieve'
+        && stages.lastIndexOf('retrieve') > stages.indexOf('fatwa') && stages.indexOf('fatwa') > 0 && d.text.includes(ANSWER),
+        ascii(JSON.stringify({ stages, first: worked[0] && worked[0].tool_choice, text: d.text.slice(0, 80) })));
+    } finally {
+      globalThis.fetch = realFetch;
+      for (const k of ENV_KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }
+    }
+  }
   process.exit(finish());
 })().catch((error) => {
   ok('guard completed without exception', false, error && error.stack ? error.stack : String(error));
