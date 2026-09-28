@@ -906,9 +906,11 @@ export default async function handler(req, res) {
   const libFlagValue = String(process.env.SHAMELA_BRAIN || '').trim().toLowerCase();
   const libToken = String(process.env.SEARCH_API_TOKEN || '').trim();
   // SOURCES ORDER 2026-09-24 — «الكتبُ في موجز» (LIB_MUJAZ_V1). A brief turn is never OFFERED the
-  // library tool (the depth rule above is untouched), but when this switch is on, the loop makes
-  // ONE library call itself for the religious question, in parallel with the fatwa-store
-  // prefetch, and hands the rows to the model as candidate evidence. OFF unless exactly 'on';
+  // library tool (the depth rule above is untouched), but the loop makes ONE library call itself
+  // for the religious question, in parallel with the fatwa-store prefetch, and hands the rows to
+  // the model as candidate evidence. SPEED WASL W1 (2026-09-28): ON by default for the adult brief
+  // turn (the owner: «المفترض ان وضع المكتبه اصلا يشتغل على الموجز ايضا»); the name stays only as
+  // an off switch -- 'off', 'false' or '0' takes it down, as BEFORE_WRITING_V2's words do. Formerly OFF unless exactly 'on';
   // the flag and token ride the same two switches the tool rides (SHAMELA_BRAIN, SEARCH_API_TOKEN),
   // so a preview without them makes no call. Read here, beside the other two, and nowhere else.
   const libMujazValue = String(process.env.LIB_MUJAZ_V1 || '').trim().toLowerCase();
@@ -1956,7 +1958,7 @@ export default async function handler(req, res) {
           libToken: (libDepthEligible && band === 'adult') ? libToken : '',
           // LIB_MUJAZ_V1 — the brief turn's single library call (adult, brief depth only; the
           // deep depths already hold the tool). Null means "as before": no call, no rows.
-          libPrefetch: (libMujazValue === 'on' && !libDepthEligible && band === 'adult' && libFlagValue === 'on' && libToken !== '')
+          libPrefetch: (!['off', 'false', '0'].includes(libMujazValue) && !libDepthEligible && band === 'adult' && libFlagValue === 'on' && libToken !== '')
             ? { flagValue: libFlagValue, token: libToken } : null,
           // ENCYC_V1 -- the encyclopedia's first-second offer: the switch and an adult band, every
           // depth; the loop adds the religious key. False means "as before": no search, no rows.

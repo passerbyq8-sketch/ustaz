@@ -862,9 +862,10 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       json: async () => o, text: async () => JSON.stringify(o),
     });
     let ip = 0;
-    const drive = async (question) => {
+    // WASL: `opts` states the extra environment, a responder for other hosts (the library, answered from a fixture), and the band.
+    const drive = async (question, opts = {}) => {
       for (const k of ENV_KEYS) delete process.env[k];
-      Object.assign(process.env, { ANTHROPIC_API_KEY: 'guard-not-a-real-key', BRAVE_API_KEY: 'guard-not-a-real-key', LEDGER_RAG: 'off', FREE_BRAIN_V1: 'on' });
+      Object.assign(process.env, { ANTHROPIC_API_KEY: 'guard-not-a-real-key', BRAVE_API_KEY: 'guard-not-a-real-key', LEDGER_RAG: 'off', FREE_BRAIN_V1: 'on' }, opts.env || {});
       LEDGER_REDIS.__setRedisForTest(null);
       FLAG.__resetFlagCacheForTest();
       LEGACY.__resetLegacyFlagCacheForTest();
@@ -888,6 +889,8 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
           return jsonResponse(u, { content: [{ type: 'text', text: ANSWER }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
         }
         if (u.includes('api.search.brave.com')) return jsonResponse(u, { web: { results: [] } });
+        const other = opts.respond ? await opts.respond(u, init) : null;
+        if (other) return other;
         return { ok: false, status: 404, url: u, headers: { get: () => 'text/html' }, text: async () => '', json: async () => ({}) };
       };
       const res = makeTarget();
@@ -895,7 +898,7 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       const req = { method: 'POST',
         headers: { 'x-murabbi-device': 'speed-pipes-guard-' + String(ip).padStart(4, '0'), 'x-real-ip': '10.18.0.' + ip,
           [CONSENT.AI_CONSENT_HEADER]: CONSENT.AI_CONSENT_VERSION },
-        body: { messages: Array.isArray(question) ? question : [{ role: 'user', content: question }], band: 'adult', age: 35 } };
+        body: { messages: Array.isArray(question) ? question : [{ role: 'user', content: question }], band: opts.band || 'adult', age: opts.age || 35 } };
       const logs = [];
       const keep = { log: console.log, warn: console.warn, error: console.error, info: console.info };
       console.log = (...a) => { logs.push(a); };
@@ -966,6 +969,33 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
         !e.crashed && e.model.length === 0 && e.text.startsWith(SF.SOURCE_FOLLOWUP_LEAD) && (e.text.match(/<source |<book /g) || []).length === 4
         && e.text.indexOf('binbaz.org.sa') > 0 && e.text.indexOf('binbaz.org.sa') < e.text.indexOf('salmajed.com') && !e.text.includes('\u0633\u0639\u062f')
         && e.res.ended === 1, ascii(JSON.stringify({ model: e.model.length, text: e.text.slice(0, 160), crashed: e.crashed && String(e.crashed.stack) })));
+
+      // W1 (WASL): the library at every depth. On the free-brain path (the turns the before-writing path does not take,
+      // forced here with BEFORE_WRITING_V2=off), an adult religious question at the brief depth (no depth sent) gathers
+      // library rows beside the fatwa prefetch with LIB_MUJAZ_V1 unset: the switch is only an off switch now. The library
+      // answers from a fixture cut in process from the local index copy (the owner's question; no socket, no key).
+      const WASL = require('./fixtures-speed-wasl.json');
+      const libAsked = [];
+      const libRespond = (u, init) => {
+        if (!u.startsWith('https://lib.ezik.app/search')) return null;
+        libAsked.push(JSON.parse(init.body));
+        return { ok: true, status: 200, url: u, redirected: false, headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? 'application/json' : null) },
+          text: async () => JSON.stringify(WASL.w1.search), json: async () => WASL.w1.search };
+      };
+      const LIBENV = { BEFORE_WRITING_V2: 'off', SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: 'guard-not-a-real-token' };
+      const lastUser = (b) => { const m = (b.messages || []).filter((x) => x.role === 'user').pop(); return m ? JSON.stringify(m.content) : ''; };
+      const w1 = await drive(WASL.w1.question, { env: LIBENV, respond: libRespond });
+      const w1First = w1.model.find((b) => b.system !== BW2.BW2_JUDGE_SYSTEM);
+      ok('W1a an adult religious question at the brief depth, free-brain path, LIB_MUJAZ_V1 unset: one library call (cap 3) and its rows reach the writer as candidate evidence',
+        !w1.crashed && libAsked.length === 1 && libAsked[0].limit === 3 && !!w1First && lastUser(w1First).includes(WASL.w1.bookTitle),
+        ascii(JSON.stringify({ asked: libAsked.length, limit: libAsked[0] && libAsked[0].limit, crashed: w1.crashed && String(w1.crashed.stack) })));
+      libAsked.length = 0;
+      const w1off = await drive(WASL.w1.question, { env: { ...LIBENV, LIB_MUJAZ_V1: 'off' }, respond: libRespond });
+      ok('W1b ...and LIB_MUJAZ_V1=off still takes it down: no library call', !w1off.crashed && libAsked.length === 0 && w1off.model.length > 0);
+      libAsked.length = 0;
+      const w1child = await drive(WASL.w1.question, { env: LIBENV, respond: libRespond, band: 'young', age: 12 });
+      ok('W1c a child turn gathers none: no library call, and the turn is still answered', !w1child.crashed && libAsked.length === 0 && w1child.model.length > 0,
+        ascii(JSON.stringify({ asked: libAsked.length, model: w1child.model.length, crashed: w1child.crashed && String(w1child.crashed.stack) })));
     } finally {
       globalThis.fetch = realFetch;
       for (const k of ENV_KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }

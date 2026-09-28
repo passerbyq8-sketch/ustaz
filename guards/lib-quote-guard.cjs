@@ -486,11 +486,13 @@ const hit0 = (key) => FIX.atoms[key].response.hits[0];
       // SPEED ITEM 17: Dj1/Dj2/Dj3/Dk3 describe TODAY'S free-brain path answering when the quote shortcut is
       // not taken, so they state it: BEFORE_WRITING_V2=off. With the before-writing path on (its default)
       // the library is searched before the one writer round BY DESIGN -- guards/speed-bw2-guard.cjs owns that.
-      const off = await drive(q, { env: { SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: TOKEN, FREE_BRAIN_V1: 'on', BEFORE_WRITING_V2: 'off' }, lib: serve('turath_print') });
+      // SPEED WASL W1: and the brief turn's one library call (LIB_MUJAZ_V1) is ON by default now, so these rows state it
+      // off too: they are about the quote door; guards/lib-mujaz-guard.cjs and speedpipes W1 own the brief call.
+      const off = await drive(q, { env: { SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: TOKEN, FREE_BRAIN_V1: 'on', BEFORE_WRITING_V2: 'off', LIB_MUJAZ_V1: 'off' }, lib: serve('turath_print') });
       ok('Dj1 OFF BY DEFAULT: flag unset -> the model IS called, the library is not called before it, no quote card',
         !off.crashed && off.modelCalls >= 1 && !off.libBeforeModel && off.libCalls.length === 0 && !off.text.startsWith(BOOK)
         && off.outcome === null && off.res.ended === 1, pathDetail(off) + ' lib=' + off.libCalls.length);
-      const offExplicit = await drive(q, { env: { LIB_QUOTE_V1: 'off', SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: TOKEN, FREE_BRAIN_V1: 'on', BEFORE_WRITING_V2: 'off' }, lib: serve('turath_print') });
+      const offExplicit = await drive(q, { env: { LIB_QUOTE_V1: 'off', SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: TOKEN, FREE_BRAIN_V1: 'on', BEFORE_WRITING_V2: 'off', LIB_MUJAZ_V1: 'off' }, lib: serve('turath_print') });
       ok('Dj2 LIB_QUOTE_V1=off: the same', !offExplicit.crashed && offExplicit.modelCalls >= 1 && offExplicit.libCalls.length === 0 && offExplicit.outcome === null,
         pathDetail(offExplicit));
       const noToken = await drive(q, { env: { LIB_QUOTE_V1: 'on', SHAMELA_BRAIN: 'on', FREE_BRAIN_V1: 'on', BEFORE_WRITING_V2: 'off' }, lib: serve('turath_print') });
@@ -503,7 +505,7 @@ const hit0 = (key) => FIX.atoms[key].response.hits[0];
       ok('Dk2 ON but a grave hazard: the safety redirect, not a quotation, and no call',
         !hazard.crashed && hazard.outcome === null && hazard.libCalls.length === 0 && /خلط بعض المواد يطلع منه غاز/.test(hazard.text),
         ascii(hazard.text.slice(0, 80)));
-      const plain = await drive('ما حكم صلاة الجماعة؟', { env: { ...ON, FREE_BRAIN_V1: 'on', BEFORE_WRITING_V2: 'off' }, lib: serve('fatwa_print') });
+      const plain = await drive('ما حكم صلاة الجماعة؟', { env: { ...ON, FREE_BRAIN_V1: 'on', BEFORE_WRITING_V2: 'off', LIB_MUJAZ_V1: 'off' }, lib: serve('fatwa_print') });
       ok('Dk3 ON and an ordinary question: not taken, the model answers, the library is not called before it',
         !plain.crashed && plain.outcome === null && plain.modelCalls >= 1 && !plain.libBeforeModel, pathDetail(plain));
     }

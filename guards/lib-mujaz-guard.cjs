@@ -161,10 +161,15 @@ async function mutantModule(temp, rel, name, mutate, probe) {
     ok('A2  the hand-down expression was found whole', prefetchExpr !== '', prefetchExpr);
     const decide = (expr) => new Function('libMujazValue', 'libDepthEligible', 'band', 'libFlagValue', 'libToken', 'return (' + expr + ');');
     const handsDown = (v, deep, band, flag, token) => { try { return decide(prefetchExpr)(v, deep, band, flag, token); } catch { return 'threw'; } };
-    ok('A3  handed down only for: on + brief + adult + SHAMELA_BRAIN on + token',
+    // SPEED WASL W1 (2026-09-28): ON by default -- unset (and 'on') hands it down; only 'off', 'false', '0' take it away.
+    ok('A3  handed down only for: not switched off + brief + adult + SHAMELA_BRAIN on + token',
       handsDown('on', false, 'adult', 'on', 'tk') === true
-      && handsDown('', false, 'adult', 'on', 'tk') === false
+      && handsDown('', false, 'adult', 'on', 'tk') === true
       && handsDown('off', false, 'adult', 'on', 'tk') === false
+      && handsDown('false', false, 'adult', 'on', 'tk') === false
+      && handsDown('0', false, 'adult', 'on', 'tk') === false
+      && handsDown('', false, 'child', 'on', 'tk') === false
+      && handsDown('', true, 'adult', 'on', 'tk') === false
       && handsDown('on', true, 'adult', 'on', 'tk') === false
       && handsDown('on', false, 'child', 'on', 'tk') === false
       && handsDown('on', false, 'adult', 'off', 'tk') === false
