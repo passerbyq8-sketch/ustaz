@@ -91,6 +91,59 @@ function replayOwner4(opts = {}) {
   } catch (error) { return { error: String(error && error.message || error).slice(0, 300) }; }
 }
 
+// SPEED W6B B4: the library's page routes answered from recorded records, for any from/count (the page reader now reads a
+// printed page's records eight at a time, and «كمّل» the next printed page). Sources: fixtures-speed-wasl-pages.json (WASL,
+// keyed by URL) and fixtures-speed-w6b-pages.json (this round's reads, records by book). `gets` collects the URLs asked.
+function pageServer(gets = []) {
+  const books = {};
+  const bookOf = (id) => books[id] || (books[id] = { locate: {}, records: [], total: null, numbering: 'print' });
+  for (const [u, e] of Object.entries(require('./fixtures-speed-wasl-pages.json'))) {
+    const url = new URL(u);
+    const b = bookOf(url.pathname.split('/')[4]);
+    if (url.pathname.endsWith('/locate')) { b.locate[url.searchParams.get('page') + '|' + (url.searchParams.get('vol') || '')] = { status: e.status, body: e.body }; continue; }
+    const j = JSON.parse(e.body);
+    b.total = j.total; b.numbering = j.numbering || b.numbering;
+    for (const p of j.pages || []) if (!b.records.some((r) => r.seq === p.seq)) b.records.push(p);
+  }
+  for (const [id, x] of Object.entries(require('./fixtures-speed-w6b-pages.json').books)) {
+    const b = bookOf(id);
+    b.total = x.total; b.numbering = x.numbering;
+    for (const [k, v] of Object.entries(x.locate)) b.locate[k] = { status: 200, body: JSON.stringify(v) };
+    for (const p of x.records) if (!b.records.some((r) => r.seq === p.seq)) b.records.push(p);
+  }
+  const reply = (u, status, body) => ({ ok: status === 200, status, url: u, redirected: false,
+    headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? 'application/json' : null) }, text: async () => body, json: async () => JSON.parse(body) });
+  return async (input) => {
+    const u = String(input);
+    gets.push(u);
+    const url = new URL(u);
+    const id = url.pathname.split('/')[4];
+    const b = books[id];
+    const none = reply(u, 404, '{"error":"not_found","message":"No page with that volume and number."}');
+    if (!b) return none;
+    if (url.pathname.endsWith('/locate')) {
+      const e = b.locate[url.searchParams.get('page') + '|' + (url.searchParams.get('vol') || '')];
+      return e ? reply(u, e.status, e.body) : none;
+    }
+    const from = Number(url.searchParams.get('from'));
+    const count = Number(url.searchParams.get('count'));
+    const pages = b.records.filter((r) => r.seq >= from && r.seq < from + count).sort((p, q) => p.seq - q.seq);
+    return reply(u, 200, JSON.stringify({ book_id: id, numbering: b.numbering, total: b.total, from, count, pages }));
+  };
+}
+
+// SPEED W6B B4: the library's own parser (library.html parseMarkup, cut out and evaluated as it is written) -- the letters
+// the library shows for a page body, the reference of the letter test.
+function libraryPlain(markup) {
+  if (!libraryPlain.parse) {
+    const html = require('fs').readFileSync(path.join(REPO, 'library.html'), 'utf8');
+    const keep = (/\n\s*var KEEP = \{[^\n]*\};\n/.exec(html) || [''])[0];
+    const fn = (/\n\s*function parseMarkup\(markup\) \{[\s\S]*?\n  \}\n/.exec(html) || [''])[0];
+    libraryPlain.parse = keep && fn ? new Function(keep + fn + '\nreturn parseMarkup;')() : () => ({ plain: '\u0000unparsed' });
+  }
+  return libraryPlain.parse(markup).plain;
+}
+
 (async () => {
   const BW2 = await esm('lib/before-writing-v2.js');
 
@@ -621,6 +674,60 @@ function replayOwner4(opts = {}) {
       d.startsWith('## نص الفتوى') && d.includes('<suggestions>') && !d.includes(BW2.BW2_NOT_COVERED), ascii(d.slice(-120)));
   }
 
+  // ---------------------------------------------------------------- W6B B4 a page shown as the library shows it (K3)
+  // MEASURED (W4GAP K3): the page body went from the library to the screen untouched -- «<span class="title">[فصل …]</span>»
+  // letter for letter -- and the footnotes (`foot`) were dropped; a printed page that holds several records was shown one
+  // record, and «كمّل» went to seq + 1. The page reader (lib/lib-service.js readLibraryPage) over the library's recorded
+  // page replies (pageServer), and the page reply (lib/lib-quote.js composePageReply) with api/ask.js's own book card.
+  {
+    const LS = await esm('lib/lib-service.js');
+    const LQ = await esm('lib/lib-quote.js');
+    const ASKM = await esm('api/ask.js');
+    const WP = require('./fixtures-speed-wasl-pages.json');
+    const XP = require('./fixtures-speed-w6b-pages.json').books;
+    const readPage = (at) => LS.readLibraryPage(at, { flagValue: 'on', fetchImpl: pageServer() });
+    const deps = { readPage, buildBookTag: ASKM.buildBookTag };
+    const letters = (s) => String(s || '').replace(/\s+/gu, '');
+    const quoteLines = (t) => t.split('\n').filter((l) => l.startsWith('>')).map((l) => l.replace(/^> ?/, ''));
+    const shownOf = (t) => letters(quoteLines(t).join('\n').replace(/\*\*/gu, ''));
+    const parts = (t) => { const [body, foot = ''] = t.split('\n\n---\n\n'); return { body, foot }; };
+    const pagePlainOf = (records, field) => records.map((r) => libraryPlain(r[field] || '')).join('');
+    const reply = async (id, page, vol, seq = null) => {
+      const got = await readPage(seq ? { bookId: id, seq } : { bookId: id, page, vol });
+      return { got, text: got.ok ? LQ.composePageReply(LQ.catalogBook(id), got.page, ASKM.buildBookTag) : '' };
+    };
+    const P74 = JSON.parse(WP['https://lib.ezik.app/lib/v1/books/FC-003532/pages?from=397&count=1'].body).pages[0];
+    const b74 = await reply('FC-003532', 74, 2, 397);
+    const titles = quoteLines(b74.text).filter((l) => /^\*\*\[[^\n]*\]\*\*$/u.test(l.trim()));
+    ok('W6B4a Bada\'i 2:74 shows no tag and its three titles as their own bold lines; its letters, the markup removed, are the library\'s',
+      b74.got.ok && !/<span|<\/span>|&amp;|&lt;|&gt;/u.test(b74.text) && titles.length === 3 && (P74.body.match(/<span class="title">/gu) || []).length === 3
+      && shownOf(b74.text) === letters(libraryPlain(P74.body)), ascii(JSON.stringify({ titles: titles.length, tag: /<span/.test(b74.text) })));
+    const ik = await reply('FC-000063', 201, 1);
+    const IK = XP['FC-000063'].records.filter((r) => r.page === 201);
+    const b73 = await reply('FC-003532', 73, 2);
+    ok('W6B4b a page with `foot` (Ibn Kathir 1:201) shows its footnotes under a separator line, their letters the library\'s; control: Bada\'i 2:73 has none and shows no separator',
+      ik.got.ok && IK.length === 1 && IK[0].foot.trim() !== '' && ik.got.page.foot === IK[0].foot && parts(ik.text).foot !== ''
+      && shownOf(parts(ik.text).foot) === letters(pagePlainOf(IK, 'foot')) && shownOf(parts(ik.text).body) === letters(pagePlainOf(IK, 'body'))
+      && b73.got.ok && !b73.text.includes('\n---\n'), ascii(JSON.stringify({ foot: String((ik.got.ok && ik.got.page.foot) || '').length, sep: ik.text.includes('\n---\n') })));
+    const bk = await reply('FC-000645', 6, 1);
+    const P6 = XP['FC-000645'].records.filter((r) => r.page === 6);
+    const next = await LQ.answerPageFollowUp('كمّل', { ...deps, previousAnswer: bk.text });
+    const P7 = XP['FC-000645'].records.filter((r) => r.page === 7);
+    ok('W6B4c al-Bukhari 1:6, a printed page of six records (seq 5-10), is shown whole, every record in order; «كمّل» after it gives page 7 (seq 11-12), not seq 6',
+      bk.got.ok && P6.length === 6 && JSON.stringify(bk.got.page.seqs) === JSON.stringify(P6.map((r) => r.seq)) && shownOf(parts(bk.text).body) === letters(pagePlainOf(P6, 'body'))
+      && shownOf(parts(bk.text).foot) === letters(P6.map((r) => libraryPlain(r.foot || '')).join(''))
+      && !!next && next.outcome === 'page' && next.text.split('\n')[0].endsWith('ج1 · ص7') && JSON.stringify(next.page.seqs) === JSON.stringify(P7.map((r) => r.seq))
+      && shownOf(parts(next.text).body) === letters(pagePlainOf(P7, 'body')),
+      ascii(JSON.stringify({ seqs: bk.got.ok && bk.got.page.seqs, next: next && next.text.split('\n')[0], nextSeqs: next && next.page && next.page.seqs })));
+    const quoteDoor = LQ.composeQuoteReply({ text: P74.body, book_title: 'بدائع الصنائع', author: 'الكاساني' }, 'turath');
+    ok('W6B4d the letter test through the quote door too: an atom that carries the markup is shown without it, its letters the library\'s',
+      !/<span|&amp;/u.test(quoteDoor) && shownOf(quoteDoor) === letters(libraryPlain(P74.body)), ascii(quoteDoor.slice(0, 80)));
+    const ex = await LQ.answerPageFollowUp('اشرح', { ...deps, previousAnswer: b74.text });
+    ok('W6B4e «اشرح» receives the same cleaned text: no tag, no bold marks, the page\'s letters',
+      !!ex && ex.outcome === 'explain' && !/<span|\*\*/u.test(ex.question) && letters(ex.question).includes(letters(libraryPlain(P74.body))),
+      ascii(JSON.stringify({ outcome: ex && ex.outcome })));
+  }
+
   // ---------------------------------------------------------------- W7 (WASL) the letter test, a standing case
   // Bada'i al-Sana'i 2:73 through every door that brings text equals the library's page letter for letter: (1) the /search
   // door (lib/lib-service.js searchLibrary through the gated runner) over the six atoms that cover it -- the service's own
@@ -652,8 +759,8 @@ function replayOwner4(opts = {}) {
     const at = merged.indexOf(P.slice(0, 200));
     ok('W7a Bada\'i 2:73 through the /search door: the six atoms, joined on their overlaps, carry the page letter for letter from its first letter to its last',
       door.added.length === 6 && original.length === 5989 && at > 0 && merged.slice(at) === P, ascii(JSON.stringify({ rows: door.added.length, at, merged: merged.length, page: P.length })));
-    const read = await LS.readLibraryPage({ bookId: 'FC-003532', page: 73, vol: 2 }, { flagValue: 'on',
-      fetchImpl: async (u) => { const e = PAGES[String(u)]; return e ? jsonReply(u, e.body) : { ok: false, status: 404, url: String(u), headers: { get: () => null }, text: async () => '' }; } });
+    // SPEED W6B B4: the reader asks for a printed page's records eight at a time; the recorded records answer any range.
+    const read = await LS.readLibraryPage({ bookId: 'FC-003532', page: 73, vol: 2 }, { flagValue: 'on', fetchImpl: pageServer() });
     ok('W7b ...and through the page reader, byte for byte', read.ok && read.page.body === original && read.page.vol === 2 && read.page.page === 73);
   }
 
@@ -1676,16 +1783,9 @@ function replayOwner4(opts = {}) {
       // key: fixtures-speed-wasl-pages.json) and are answered from there.
       const PAGES = require('./fixtures-speed-wasl-pages.json');
       const pageGets = [];
-      const pageRespond = (u, init) => {
-        if (u.startsWith('https://lib.ezik.app/lib/v1/')) {
-          pageGets.push(u);
-          const e = PAGES[u];
-          if (!e) return { ok: false, status: 404, url: u, headers: { get: () => 'application/json' }, text: async () => '{}', json: async () => ({}) };
-          return { ok: e.status === 200, status: e.status, url: u, redirected: false, headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? e.ct : null) },
-            text: async () => e.body, json: async () => JSON.parse(e.body) };
-        }
-        return storeRespond(u, init);
-      };
+      // SPEED W6B B4: the reader asks for a printed page's records eight at a time; the recorded records answer any range.
+      const servePage = pageServer(pageGets);
+      const pageRespond = (u, init) => (u.startsWith('https://lib.ezik.app/lib/v1/') ? servePage(u) : storeRespond(u, init));
       const bodyOf = (u) => JSON.parse(PAGES[u].body).pages[0].body;
       const P73 = bodyOf('https://lib.ezik.app/lib/v1/books/FC-003532/pages?from=396&count=1');
       const P74 = bodyOf('https://lib.ezik.app/lib/v1/books/FC-003532/pages?from=397&count=1');
@@ -1698,10 +1798,14 @@ function replayOwner4(opts = {}) {
         && w4.text.split('\n')[0].endsWith('ج2 · ص73') && /<book [^>]*author="الكاساني"[^>]* book="FC-003532" vol="2" page="73"/.test(w4.text),
         ascii(JSON.stringify({ model: w4.model.length, len: quotedOf(w4.text).length, head: w4.text.split('\n')[0], crashed: w4.crashed && String(w4.crashed.stack) })));
       const w4n = await drive([{ role: 'user', content: ASK73 }, { role: 'assistant', content: w4.text }, { role: 'user', content: 'كمّل' }], { env: PENV, respond: pageRespond });
-      ok('W4b "kammil" right after it: vol 2 p 74, whole, stated above the text',
-        !w4n.crashed && w4n.model.length === 0 && quotedOf(w4n.text) === P74.trim() && w4n.text.split('\n')[0].endsWith('ج2 · ص74'), ascii(w4n.text.split('\n')[0]));
+      // SPEED W6B B4, the letter test restated: the page's letters, the markup removed, equal the library's body letters
+      // (2:74 carries three <span class="title">, now shown as bold lines).
+      const shownLetters = (t) => quotedOf(t).replace(/\*\*/gu, '').replace(/\s+/gu, '');
+      const pageLetters = (body) => libraryPlain(body).replace(/\s+/gu, '');
+      ok('W4b "kammil" right after it: vol 2 p 74, whole, stated above the text (its letters, the markup removed, the library\'s)',
+        !w4n.crashed && w4n.model.length === 0 && shownLetters(w4n.text) === pageLetters(P74) && !/<span|&amp;|&lt;|&gt;/u.test(w4n.text) && w4n.text.split('\n')[0].endsWith('ج2 · ص74'), ascii(w4n.text.split('\n')[0]));
       const w4chip = await drive([{ role: 'user', content: ASK73 }, { role: 'assistant', content: w4.text }, { role: 'user', content: 'كمّل الشرح من آخر نقطة، من دون إعادة ما سبق.' }], { env: PENV, respond: pageRespond });
-      ok('W4b2 ...and the "kammil" chip under a quoted page does the same', !w4chip.crashed && quotedOf(w4chip.text) === P74.trim());
+      ok('W4b2 ...and the "kammil" chip under a quoted page does the same', !w4chip.crashed && shownLetters(w4chip.text) === pageLetters(P74));
       const MODERN = 'انقل لي نص صفحة 50 من الجزء 6 من كتاب الشرح الممتع على زاد المستقنع';
       const w4m = await drive(MODERN, { env: PENV, respond: pageRespond });
       const MB = bodyOf('https://lib.ezik.app/lib/v1/books/FC-003794/pages?from=2088&count=1');
