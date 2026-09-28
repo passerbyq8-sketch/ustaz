@@ -1742,7 +1742,14 @@ const SEALED = {
 //                    followed. NO FILE JOINED OR LEFT CORE; the store name stays main's ezik-v43 (the release
 //                    takes the next number, not this merge). sw.js is 55908 bytes, measured at CR = 0.
 //                    THIS digest is re-cut LAST, after every other sw.js edit.
-  'sw.js': 'db4dde6e357a353425d0b2c230bd88b96908d3fb40bbb154761f9585fb1a56fe',
+  //   2026-09-28-j -- SPEED W6B B5 (side/speed-20260927): the lessons block under an answer is drawn from the rows
+//                    the server sends with it (the ezik_lessons frame); the client's answer-path search on the
+//                    answer's words is removed. app.js REBUILT from app.jsx by node tools/build-app.cjs:
+//                    1828158 -> 1821813 (-6345). CORE_BYTES re-cut by node tools/core-bytes.cjs --write,
+//                    3001248 -> 2994903; the worker's app.js prose row and the SW_PROSE mirror below followed.
+//                    NO FILE JOINED OR LEFT CORE; the store name stays ezik-v43 (the release takes the next
+//                    number). sw.js is 55908 bytes, measured at CR = 0. THIS digest is re-cut LAST.
+  'sw.js': 'e702a809e69d61ae1ccaa2db2f528c8a6d7f466d2ec2e5c428badd3aebd811d3',
 };
 
 // ---------------------------------------------------------------------------
@@ -2838,7 +2845,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1828158, of: 'app.js' },
+      { n: 1821813, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

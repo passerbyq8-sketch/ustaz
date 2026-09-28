@@ -728,6 +728,68 @@ function libraryPlain(markup) {
       ascii(JSON.stringify({ outcome: ex && ex.outcome })));
   }
 
+  // ---------------------------------------------------------------- W6B B5 the lessons under the answer are the lessons it rests on (K4)
+  // MEASURED (W4GAP K4): the «دروسٌ ذاتُ صلة» block was a second search of its own on the answer's first 400 characters, and
+  // never the lessons the answer cited (question 7: block binbaz 31529, 2804, 9092; cited salmajed 3554, 4049, 2026). The
+  // server now sends with the answer the lesson rows the writer cited, then those the judge kept, at most three, as one
+  // `ezik_lessons` frame (lib/finalized-sse-writer.js); the client draws the block from them (its whitelist ezikLessonRows,
+  // cut out of app.jsx and run). The real runBw2Turn over the real facade, whose context carries what the turn reports.
+  {
+    const fsx = require('fs');
+    const SSE = await esm('lib/finalized-sse-writer.js');
+    const appSrc = fsx.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
+    const rowsFrom = appSrc.indexOf('function ezikLessonRows(hits) {');
+    const rowsSrc = rowsFrom < 0 ? '' : appSrc.slice(rowsFrom, appSrc.indexOf('\n}\n', rowsFrom) + 3);
+    const ezikLessonRows = rowsSrc ? new Function('const EZIK_LESSONS_MAX = 3;\n' + rowsSrc + '\nreturn ezikLessonRows;')() : () => [];
+    const target = () => ({ writes: [], ended: 0, headers: {}, statusCode: 200, headersSent: false,
+      write(c) { this.headersSent = true; this.writes.push(String(c)); return true; }, end() { this.ended += 1; return this; },
+      status(c) { this.statusCode = c; return this; }, setHeader(k, v) { this.headers[String(k).toLowerCase()] = v; return this; },
+      getHeader(k) { return this.headers[String(k).toLowerCase()]; }, flushHeaders() { this.headersSent = true; },
+      once() { return this; }, on() { return this; }, removeListener() { return this; } });
+    const framesOf = (writes) => writes.join('').split('\n\n').filter((f) => f.startsWith('data: '))
+      .map((f) => { try { return JSON.parse(f.slice(6)); } catch { return null; } }).filter(Boolean);
+    const Q = 'ما حكم إخراج زكاة المال عروضا بدل النقود؟ وما أقوال المذاهب فيها؟';
+    const rec = { id: 'E1', term: 'القيمة', part: 23, snippet: 'ذهب الحنفية إلى جواز إخراج القيمة في الزكاة.', text: 'ذهب الحنفية إلى جواز إخراج القيمة في الزكاة.' };
+    const L1 = { title: 'زكاة العروض - الدرس الأول', url: 'https://lessons.example/l1', publisher: 'خالد المصلح' };
+    const L2 = { title: 'إخراج القيمة في الزكاة', url: 'https://lessons.example/l2', publisher: 'سعد الخثلان' };
+    const turn = async (writer, lessons, extra = {}) => {
+      const t = target();
+      const ctx = {};
+      const facade = SSE.createFinalizedSseResponse(t, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [] }), context: () => ctx });
+      const out = await BW2.runBw2Turn({
+        question: Q, messages: [{ role: 'user', content: Q }], wire: BW2.createBw2Wire(facade), lessonsToken: lessons.length ? 'tk-les' : '',
+        continueWhenNotCovered: false, onLessonRows: (rows) => { ctx.lessonRows = rows; }, ...extra,
+        deps: {
+          runTool: async (name, input, c) => {
+            if (name === 'search_lessons') for (const l of lessons) c.table.add({ kind: 'lesson', title: l.title, url: l.url, publisher: l.publisher, text: l.title });
+            return { text: '', added: [], calls: 1 };
+          },
+          searchStoredCorpus: async () => ({ records: [rec] }), encyclopediaReady: () => true, warmEncyclopedia: () => true,
+          ask: async ({ user }) => { const d = {}; for (const m of user.matchAll(/^\[(\d+)\] /gmu)) d[m[1]] = 1; return JSON.stringify({ d }); },
+          callWriter: async ({ onText }) => { onText(writer); return { stop_reason: 'end_turn', usage: {} }; },
+        },
+      });
+      const frames = framesOf(t.writes);
+      return { out, frames, lessons: frames.filter((f) => f.type === 'ezik_lessons'), text: frames.filter((f) => f.type === 'content_block_delta').map((f) => f.delta.text).join('') };
+    };
+    // Refs are pinned in candidate order: the encyclopedia row [[1]], then the two lessons [[2]] and [[3]]; the writer cites L2.
+    const a = await turn('ذهب الحنفية إلى جواز إخراج القيمة في الزكاة [[1]].\nوبسط ذلك الشيخ في درس إخراج القيمة في الزكاة [[3]].', [L1, L2]);
+    const drawn = a.lessons.length === 1 ? ezikLessonRows(a.lessons[0].rows) : [];
+    ok('W6B5a an answer citing a lesson shows it in the block: the cited lesson first, then the one the judge kept, and the client\'s whitelist draws both',
+      a.text.includes('ذهب الحنفية') && a.lessons.length === 1 && drawn.length === 2 && drawn[0].url === L2.url && drawn[1].url === L1.url
+      && drawn[0].title === L2.title && drawn[0].scholar === L2.publisher && !!rowsSrc,
+      ascii(JSON.stringify({ frames: a.frames.map((f) => f.type), rows: a.lessons.map((f) => f.rows) })));
+    const b = await turn('ذهب الحنفية إلى جواز إخراج القيمة في الزكاة [[1]].', []);
+    ok('W6B5b an answer with no lesson shows no block: no lessons frame', b.text.includes('ذهب الحنفية') && b.lessons.length === 0,
+      ascii(JSON.stringify(b.frames.map((f) => f.type))));
+    const d = await turn((await esm('lib/bw2-units.js')).BW2_NOT_COVERED_MARKER, [L1, L2]);
+    ok('W6B5d a not-covered reply shows none, though the judge kept two lessons', d.text.includes(BW2.BW2_NOT_COVERED) && d.lessons.length === 0,
+      ascii(JSON.stringify(d.frames.map((f) => f.type))));
+    ok('W6B5e the frame carries three fields a row, at most three rows, and nothing of a lesson but its title, link and scholar',
+      typeof SSE.lessonFrameRows === 'function' && JSON.stringify(SSE.lessonFrameRows([...[1, 2, 3, 4].map((i) => ({ kind: 'lesson', title: 't' + i, url: 'https://x/' + i, publisher: 'p', text: 'SECRET', score: 9 })), { kind: 'fatwa', title: 'f', url: 'https://f' }]))
+        === JSON.stringify([1, 2, 3].map((i) => ({ title: 't' + i, url: 'https://x/' + i, scholar_id: 'p' }))));
+  }
+
   // ---------------------------------------------------------------- W7 (WASL) the letter test, a standing case
   // Bada'i al-Sana'i 2:73 through every door that brings text equals the library's page letter for letter: (1) the /search
   // door (lib/lib-service.js searchLibrary through the gated runner) over the six atoms that cover it -- the service's own
@@ -1589,7 +1651,8 @@ function libraryPlain(markup) {
           const b = JSON.parse(init.body);
           model.push(b);
           if (b.system === BW2.BW2_JUDGE_SYSTEM) return jsonResponse(u, { content: [{ type: 'text', text: '{"d":{}}' }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
-          return jsonResponse(u, { content: [{ type: 'text', text: ANSWER }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
+          // SPEED W6B B5: `opts.answer(body)` states the fake writer's text when a case needs it to cite a row.
+          return jsonResponse(u, { content: [{ type: 'text', text: typeof opts.answer === 'function' ? opts.answer(b) : ANSWER }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
         }
         if (u.includes('api.search.brave.com')) return jsonResponse(u, { web: { results: [] } });
         const other = opts.respond ? await opts.respond(u, init) : null;
@@ -1832,6 +1895,27 @@ function libraryPlain(markup) {
       ok('W4h LIB_QUOTE_V1=off still takes the door down', !w4o.crashed && w4o.model.length > 0 && !quotedOf(w4o.text));
       const LQ = await esm('lib/lib-quote.js');
       ok('W4i the "not found" reply never asks for the author\'s name', !/مؤلف/.test(LQ.noBookReply('كتاب مجهول')));
+      // W6B B5 through the real handler: a page quote carries no lessons frame; a free-brain answer that cites a lesson
+      // carries it (the fake writer cites the lesson row by the number the evidence list gave it).
+      const b5page = await drive(ASK73, { env: PENV, respond: pageRespond });
+      ok('W6B5c a page quote shows no lessons block: no lessons frame under the quoted page',
+        !b5page.crashed && !!quotedOf(b5page.text) && b5page.frames.every((f) => f.type !== 'ezik_lessons'), ascii(JSON.stringify(b5page.frames.map((f) => f.type))));
+      const LESSON = WASL.w2.lessons.hits[0];
+      const citeLesson = (b) => {
+        const u = lastUser(b);
+        const at = u.indexOf(JSON.stringify(LESSON.title).slice(1, -1));
+        const refs = at < 0 ? [] : [...u.slice(0, at).matchAll(/\[(\d+)\]/g)];
+        const n = refs.length ? refs[refs.length - 1][1] : '0';
+        return 'تجوز القيمة في الزكاة للحاجة، وفي الدرس بيان ذلك [[' + n + ']].';
+      };
+      const b5free = await drive(WASL.w1.question, { env: LIBENV, respond: w2Respond, answer: citeLesson });
+      const b5rows = b5free.frames.filter((f) => f.type === 'ezik_lessons').map((f) => f.rows);
+      ok('W6B5f the free-brain path: an answer citing a lesson carries it as the block\'s row (title, link, scholar)',
+        !b5free.crashed && b5rows.length === 1 && b5rows[0].length === 1 && b5rows[0][0].url === LESSON.url && b5rows[0][0].title === LESSON.title,
+        ascii(JSON.stringify({ frames: b5free.frames.map((f) => f.type), rows: b5rows, crashed: b5free.crashed && String(b5free.crashed.stack) })));
+      const b5none = await drive(WASL.w1.question, { env: LIBENV, respond: w2Respond });
+      ok('W6B5g ...and a free-brain answer citing no lesson carries none', !b5none.crashed && b5none.frames.every((f) => f.type !== 'ezik_lessons'),
+        ascii(JSON.stringify(b5none.frames.map((f) => f.type))));
     } finally {
       globalThis.fetch = realFetch;
       for (const k of ENV_KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }

@@ -1884,6 +1884,8 @@ export default async function handler(req, res) {
           truncatedMark: TRUNCATED_MARK,
           runtime: currentRuntime,
           continueWhenNotCovered: bw2ContinueDecision().enabled,
+          // SPEED W6B B5: the lessons block under the answer is the lessons it rests on (lib/finalized-sse-writer.js).
+          onLessonRows: (rows) => { finalizerContext.lessonRows = rows; },
         });
       } finally {
         bw2Upstream.cleanup();
@@ -2071,6 +2073,8 @@ export default async function handler(req, res) {
         ? registerOwnedCards(pickEncyclopediaCards(out.cited, MAX_SOURCES, buildBookTag)) : [];
       finalizerContext.readerCards = [...cards, ...bookCards, ...encycCards];
       finalizerContext.readerCardPrefix = finalizerContext.readerCards.length ? '\n\n' : '';
+      // SPEED W6B B5: and the lessons block under it is the lessons it cited (lib/finalized-sse-writer.js lessonFrameRows).
+      finalizerContext.lessonRows = out.cited;
       // ── §٣ (C): THE ENCYCLOPEDIA IS ATTRIBUTED IN A LINE, NOT IN A CARD ────
       //
       // The owner's decision: a row taken from the Kuwaiti fiqh encyclopedia earns a footer saying

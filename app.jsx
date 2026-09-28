@@ -15478,50 +15478,12 @@ function App() {
   const [searchingSources, setSearchingSources] = useState(false);
   const abortRef = useRef(null);          // aborts the in-flight stream when a new message starts
   const searchTimerRef = useRef(null);    // delayed trigger for the "searching sources…" hint (client-side, time-based)
-  // ITEM 24-A: the related-lessons card under the newest reply. `lessonRows` is what is DRAWN
-  // -- already reduced to three whitelisted fields -- and it is null whenever there is nothing.
-  // `lessonsAbortRef` holds the in-flight call so a new question can cut it, and `lessonsSeqRef`
-  // is the generation a landing result must still match: a reply that arrives after the reader
-  // has asked something else is dropped rather than drawn over the new answer.
-  const [lessonRows, setLessonRows] = useState(null);
-  const lessonsAbortRef = useRef(null);
-  const lessonsSeqRef = useRef(0);
-  // ITEM 7/P1: the assistant turn a lessons call belongs to, captured when that turn is built.
-  // The rows are attached to THAT message object by identity, so an answer keeps its own list
-  // for the rest of the conversation and a late landing can never be drawn under a different
-  // one. `cid` is the conversation it was asked in: `saveMessages` files under the CURRENT chat
-  // id, so a reader who has since opened another conversation must not have this turn's array
-  // written over theirs.
-  const lessonsTurnRef = useRef(null);
-  // Called at the START of every question: the card goes at once, the pending call is aborted,
-  // and the generation moves on so a late landing can recognise itself as stale.
-  const resetLessons = () => {
-    lessonsSeqRef.current += 1;
-    if (lessonsAbortRef.current) { try { lessonsAbortRef.current.abort(); } catch (e) {} lessonsAbortRef.current = null; }
-    setLessonRows(null);
-  };
-  // Called AFTER the answer is on the screen, and never awaited by the send path -- it cannot
-  // delay a single character of the reply, the stream, or the paint that follows it.
-  const startLessonsSearch = (q, seq) => {
-    const query = typeof q === 'string' ? q.trim() : '';
-    if (query.length < EZIK_LESSONS_MIN_Q) return;
-    // Read ONCE, here, not at the landing: the turn this call belongs to is the one that was on
-    // the screen when it was fired, whatever has happened by the time it comes back.
-    const turn = lessonsTurnRef.current;
-    const aiMsg = turn ? turn.msg : null;
-    const controller = new AbortController();
-    lessonsAbortRef.current = controller;
-    const timer = setTimeout(() => { try { controller.abort(); } catch (e) {} }, EZIK_LESSONS_TIMEOUT_MS);
-    ezikFetchLessonRows(query, controller.signal).then((rows) => {
-      clearTimeout(timer);
-      if (lessonsSeqRef.current !== seq) return; // a newer question owns the screen
-      lessonsAbortRef.current = null;
-      if (rows && rows.length) setMessages((prev) => prev.map((mm) => (mm === aiMsg ? { ...mm, lessonRows: rows } : mm)));
-      // What is stored must match what is on screen. Same identity test, and only while the
-      // reader is still inside the conversation that asked -- see the ref's note above.
-      if (rows && rows.length && turn && chatIdRef.current === turn.cid) saveMessages(turn.msgs.map((mm) => (mm === aiMsg ? { ...mm, lessonRows: rows } : mm)));
-    });
-  };
+  // SPEED W6B B5 (W4GAP K4): THE LESSONS UNDER AN ANSWER ARE THE LESSONS IT RESTS ON. MEASURED: the block here was a
+  // second search of its own (POST /api/lessons-search) on the answer's first 400 characters, fired after the reply
+  // settled -- for a page quote the vocalised page opening, for a not-covered reply that sentence -- and it never used the
+  // lessons the answer cited. The server now sends those rows with the answer (the `ezik_lessons` frame,
+  // lib/finalized-sse-writer.js): the ones the writer cited, then the ones the judge kept, at most three; none under a
+  // page quote or a not-covered reply. sendMessage puts them on the assistant message it builds; nothing is fetched here.
 
   // ===== Live voice-call mode (Layer 2) — dedicated recognition + one-turn loop, isolated from the dictation mic =====
   const callRecognitionRef = useRef(null); // dedicated SpeechRecognition for call mode (NOT the dictation instance)
@@ -17735,7 +17697,7 @@ function App() {
     return true;
   };
 
-  const callAI = async (history, p, { onDelta, onStatus, onLiveOffer, liveSearch = false, signal, mode = 'chat', endpoint = '/api/ask' } = {}) => {
+  const callAI = async (history, p, { onDelta, onStatus, onLiveOffer, onLessons, liveSearch = false, signal, mode = 'chat', endpoint = '/api/ask' } = {}) => {
     if (!spendGateRef.current) return '';                        // قفل الإنفاق مغلق ⇐ لا يُنفَق رصيد (يشمل تحيّة الإقلاع 0d)
     // بلا موافقةٍ صريحةٍ سارية: لا سؤال، ولا تصنيف، ولا تحيّةَ إقلاع. يُقرأ المخزنُ هنا لا رايةٌ
     // محفوظةٌ سلفاً، فسحبُ الموافقةِ أثناءَ فتحِ الشاشةِ يُطاع فوراً.
@@ -17911,6 +17873,9 @@ function App() {
           if (!full && onStatus) onStatus(evt);
         } else if (evt.type === 'ezik_live_offer') {
           if (onLiveOffer) onLiveOffer();
+        } else if (evt.type === 'ezik_lessons') {
+          // SPEED W6B B5: the lesson rows this answer rests on, sent with it.
+          if (onLessons) onLessons(evt.rows);
         } else if (evt.type === 'error') {
           streamError = evt.error || { message: 'stream error' };
         }
@@ -18076,11 +18041,8 @@ function App() {
     cancelAudio();
     // Abort any in-flight stream cleanly (ties into the cancellation discipline).
     if (abortRef.current) abortRef.current.abort();
-    // ITEM 24-A: the lessons card belongs to the question that produced it. A new question
-    // wipes it in the same breath as the stream it aborts, so no card outlives the answer it
-    // was drawn under and no late arrival lands on top of a different one.
-    resetLessons();
-    const lessonsSeq = lessonsSeqRef.current;
+    // SPEED W6B B5: the lessons block of this answer: the rows the server sends with it, through the whitelist.
+    let lessonRows = [];
     let attachBlock = null;
     if (pendingImage && !repeat) {
       if (pendingImage.kind === 'pdf') {
@@ -18153,6 +18115,10 @@ function App() {
           liveOffer = true;
           setStreamingLiveOffer(true);
         },
+        onLessons: (rows) => {
+          if (abortRef.current !== controller) return;
+          lessonRows = ezikLessonRows(rows);
+        },
         // First delta = streaming has begun -> retire the searching hint and show real text.
         onDelta: (partial) => { if (partial && abortRef.current === controller) { clearSearchingHint(); setReadingStatus(null); setStreamingText(partial); } },
       });
@@ -18179,7 +18145,8 @@ function App() {
     if (abortRef.current !== controller) return;
     abortRef.current = null;
     setStreamingText(null);
-    const aiMsg = { role: 'assistant', content: reply, timestamp: new Date().toISOString(), ...(liveOffer ? { liveOffer: true } : {}) };
+    const aiMsg = { role: 'assistant', content: reply, timestamp: new Date().toISOString(), ...(liveOffer ? { liveOffer: true } : {}),
+      ...(lessonRows.length ? { lessonRows } : {}) };
     const final = [...updated, aiMsg];
     setMessages(final);
     // S98: keep the same mounted bubble expanded after its stream settles.
@@ -18188,19 +18155,6 @@ function App() {
     saveMessages(final);
     setIsLoading(false);
     if (voiceMode) speakReply(reply); // audio runs on the final full text — not during the stream
-    // ITEM 24-A: LAST, AND UNAWAITED. The answer is committed, painted and (in voice mode)
-    // already speaking before this line runs, and nothing below waits on it.
-    //
-    // ITEM 37/2: AND THE ARGUMENT IS `reply`, NOT `text`. The search is built on the words the
-    // brain wrote, after it had finished writing them -- which is only possible HERE, because
-    // `reply` does not exist until the line above. `text` rides along as the fallback and is
-    // used only when the answer strips to nothing searchable.
-    //
-    // ONCE, AND ONLY ONCE. There is no second call on this path: `resetLessons()` at the start
-    // of the send clears the previous card and nothing draws one again until this landing, so a
-    // reader is never shown a list built from the question and then handed a different one.
-    lessonsTurnRef.current = { msg: aiMsg, msgs: final, cid: chatIdRef.current };
-    startLessonsSearch(ezikLessonsQuery(reply, text), lessonsSeq);
   };
 
   // ============================================================
@@ -20704,15 +20658,9 @@ function ezikRenderSegments(segments, ctx) {
 // `citation_allowed = 0` and `usage = search_only` on the measured sample: the LINK IS THE
 // END OF IT. No quote, no excerpt, no copy button, no "original text" button -- and score,
 // unit_id and tier are read by nobody and shown to nobody.
-const EZIK_LESSONS_ENDPOINT = '/api/lessons-search';
-// Three of the ten the service will return. The other seven are fetched and dropped here.
+// SPEED W6B B5: the rows are the lesson rows the answer rests on, sent by the server with it (the `ezik_lessons` frame):
+// the ones the writer cited, then the ones the judge kept -- no second search. The same three fields, read by this whitelist.
 const EZIK_LESSONS_MAX = 3;
-// Below three characters after trimming there is no call at all.
-const EZIK_LESSONS_MIN_Q = 3;
-// Eight seconds, and then the AbortController below cuts the call and nothing is drawn. The
-// server's own ceiling on the upstream is 12s, so this client gives up FIRST and on purpose:
-// a card that lands long after the answer was read is worse than no card.
-const EZIK_LESSONS_TIMEOUT_MS = 8000;
 
 // THE WHITELIST, as a function. Takes whatever came back and returns at most three plain rows
 // of three strings. A hit with no title or no http(s) url is dropped rather than drawn empty.
@@ -20729,68 +20677,6 @@ function ezikLessonRows(hits) {
     rows.push({ title, url, scholar });
   }
   return rows;
-}
-
-// ITEM 37/2 -- THE QUERY IS THE ANSWER'S WORDS, AND NOT THE READER'S QUESTION.
-//
-// WHAT WAS WRONG WITH THE QUESTION. Until this item the call was fired with `text` -- the
-// reader's sentence exactly as typed -- so the lessons offered under a reply were related to what
-// was ASKED and not to what was ANSWERED. The owner's words for the fix: «الدروسُ اللي هو كتبها
-// إسنادًا للردّ».
-//
-// MEASURED ON PRODUCTION THE SAME DAY (ezik.app, 2026-09-09), and it is the whole case for this
-// function. «ما حكم الفوركس؟» sent as the QUESTION returned «نواقض الإسلام», «الحكم بغير ما أنزل
-// الله» and «حكم الصور في الثياب» -- lessons the answer never touches. The same reply's own words
-// returned «ربا الديون», «بطاقات الائتمان» and «فقه المعاملات المالية المعاصرة».
-//
-// WHAT IS STRIPPED, AND EVERY ONE OF THEM WAS SEEN ON A REAL REPLY, NOT IMAGINED:
-//   <suggestions>...</suggestions>  the follow-up questions. They are things the reader has NOT
-//                                   asked, so searching on them searches a road not taken.
-//   <source ...>...</source>        the citation tags. They carry percent-encoded urls, and a url
-//                                   inside a search phrase is a hundred characters of noise.
-//   every other tag                 <dhikr id="27"> and its kind: markup, never prose.
-//   the bracketed seal              the server-composed tail (lib/output-reviewer.js), e.g.
-//                                   «فهمٌ لا فتوى» -- it is on nearly every reply and so
-//                                   distinguishes none of them.
-//
-// PURE, and it neither knows nor asks when it is called. WHEN is the seam below: this is called
-// once, on the settled reply, so a card appears once and is never swapped in front of a reader.
-const EZIK_LESSONS_Q_MAX = 400;   // api/lessons-search.js MAX_Q_CHARS -- cut here so the two agree
-function ezikLessonsQuery(reply, question) {
-  const body = String(reply == null ? '' : reply)
-    .replace(/<suggestions>[\s\S]*?<\/suggestions>/gi, ' ')
-    .replace(/<source\b[\s\S]*?<\/source>/gi, ' ')
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/\u3010[^\u3011]*\u3011/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, EZIK_LESSONS_Q_MAX)
-    .trim();
-  if (body.length >= EZIK_LESSONS_MIN_Q) return body;
-  return typeof question === 'string' ? question.trim() : '';
-}
-
-// THE CALL. Silent on every failure -- a non-200, an unreadable body, an empty or missing
-// `hits`, a cut connection, or the eight-second abort all return an empty list, and an empty
-// list draws nothing. There is no error line, no empty frame and no spinner left behind,
-// because this runs AFTER the answer is already on the screen and has nothing to say to a
-// reader who is already reading.
-async function ezikFetchLessonRows(q, signal) {
-  const query = typeof q === 'string' ? q.trim() : '';
-  if (query.length < EZIK_LESSONS_MIN_Q) return [];
-  try {
-    const r = await fetch(EZIK_LESSONS_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q: query }),
-      signal,
-    });
-    if (r.status !== 200) return [];
-    const payload = await r.json();
-    return ezikLessonRows(payload && payload.hits);
-  } catch (e) {
-    return [];
-  }
 }
 
 // THE CARD. Three fields, one link each, and null when there is nothing -- never a heading

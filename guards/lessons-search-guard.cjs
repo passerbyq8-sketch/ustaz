@@ -37,8 +37,12 @@
 //      nothing of this round, and app.jsx draws exactly three fields through one cancellable
 //      POST (this assertion PROVED AN ABSENCE until item 24-A -- see the note at section 5).
 //      ITEM 37/2 changed WHICH WORDS that POST carries: the query is now built from the
-//      answer the brain wrote and no longer from the reader's question, so section 5d pins
-//      the new call, drives the builder, and proves the question survives as the fallback
+//      answer the brain wrote and no longer from the reader's question, so section 5d pinned
+//      the new call, drove the builder, and proved the question survived as the fallback.
+//      SPEED W6B B5 (owner, 28 Sep) took the POST away: the card's rows are the lesson rows the
+//      answer rests on, sent by the server with it (the `ezik_lessons` frame); section 5 now pins
+//      the frame's handler, the whitelist it goes through, the one seat on the message, and the
+//      absence of any answer-path search
 //   5B. THE LESSONS SECTION (item 24-B): one screen key, one navigation entry, the same
 //      three-field whitelist proved by set equality, a cancellable call, and the three
 //      states a screen owes a reader that a tail card does not
@@ -410,29 +414,40 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   check('the draw block is a real block of code, not a comment', drawCode.length > 600,
     String(drawCode.length));
 
-  const CALL_START = '  const [lessonRows, setLessonRows] = useState(null);';
-  const CALL_MID = '  const startLessonsSearch = (q, seq) => {';
+  // SPEED W6B B5 (owner, 28 Sep; W4GAP K4) RE-CUT THIS SECTION. The block under an answer is no longer a search of its
+  // own: the server sends with the answer the lesson rows the answer rests on -- the ones the writer cited, then the ones
+  // the judge kept, at most three -- as one `ezik_lessons` frame (lib/finalized-sse-writer.js), none under a page quote or
+  // a not-covered reply. The owner's words item 37/2 quoted, «الدروسُ اللي هو كتبها إسنادًا للردّ», are now what is drawn,
+  // not approximated by searching the answer's first 400 characters. So the call block is the frame's handler in
+  // sendMessage, the draw block has no route and no call, and the query builder is gone (the checks that ran it went
+  // with it). The whitelist, the ceiling of three, the three fields and the card are pinned as before.
+  const CALL_START = '    let lessonRows = [];';
+  const CALL_END = '      ...(lessonRows.length ? { lessonRows } : {}) };';
   const callFrom = appJsx.indexOf(CALL_START);
-  const callMid = appJsx.indexOf(CALL_MID);
-  const callTo = callMid === -1 ? -1 : appJsx.indexOf('\n  };\n', callMid);
-  check('the call block is present and bounded, inside the chat screen',
-    callFrom !== -1 && callMid > callFrom && callTo > callMid,
-    'from=' + callFrom + ' mid=' + callMid + ' to=' + callTo);
+  const callEndAt = callFrom === -1 ? -1 : appJsx.indexOf(CALL_END, callFrom);
+  const callTo = callEndAt === -1 ? -1 : callEndAt + CALL_END.length;
+  check('the call block is present and bounded, inside sendMessage: the frame\'s handler and the message it fills',
+    callFrom !== -1 && callTo > callFrom, 'from=' + callFrom + ' to=' + callTo);
   const callCode = stripComments(appJsx.slice(callFrom, callTo));
   check('the call block is a real block of code, not a comment', callCode.length > 400,
     String(callCode.length));
 
-  // -- 5c-1. THE ORDER'S FIRST DEMAND: the route is called, and it is called with POST --------
-  check('the draw block names the function route',
-    drawCode.indexOf('/api/lessons-search') !== -1);
-  check('...and calls it with POST', /method:\s*'POST'/.test(drawCode));
-  check('...sending the question as `q` in a JSON body',
-    /JSON\.stringify\(\{\s*q:/.test(drawCode));
-  check('...and there is exactly one call site in the whole of app.jsx',
-    (appJsx.match(/fetch\(EZIK_LESSONS_ENDPOINT/g) || []).length === 1,
-    String((appJsx.match(/fetch\(EZIK_LESSONS_ENDPOINT/g) || []).length));
+  // -- 5c-1. THE ROWS COME WITH THE ANSWER: no route, no call, one frame -----------------------
+  check('the draw block names no route and makes no call: the rows come with the answer',
+    drawCode.indexOf('/api/lessons-search') === -1 && drawCode.indexOf('fetch(') === -1);
+  check('callAI reads the `ezik_lessons` frame and hands its rows on',
+    /evt\.type === 'ezik_lessons'\) \{[\s\S]{0,160}?if \(onLessons\) onLessons\(evt\.rows\);/.test(appJsx));
+  const lessonsRoutes = (appJsx.match(/'\/api\/lessons-search'/g) || []).length;
+  check('app.jsx names the route once, for the lessons section screen; no answer-path call is left',
+    lessonsRoutes === 1 && /const EZIK_LESSONS_SCREEN_ENDPOINT = '\/api\/lessons-search';/.test(appJsx)
+      && (appJsx.match(/fetch\(EZIK_LESSONS_ENDPOINT/g) || []).length === 0,
+    String(lessonsRoutes));
+  const GONE = ['startLessonsSearch', 'ezikFetchLessonRows', 'ezikLessonsQuery', 'resetLessons', 'lessonsSeqRef', 'lessonsTurnRef'];
+  const appCode = stripComments(appJsx);
+  check('the answer-path search is gone: none of its six names is left in the code', GONE.every((name) => appCode.indexOf(name) === -1),
+    GONE.filter((name) => appCode.indexOf(name) !== -1).join(','));
 
-  // -- 5c-2. THE ORDER'S SECOND DEMAND: three fields, no fourth, and no text field ------------
+  // -- 5c-2. three fields, no fourth, and no text field ---------------------------------------
   // Set equality over the properties actually read off a hit -- not a search for three names.
   // A fourth field added to the reader fails here even if the three are still present, and a
   // text field added to the SERVICE cannot reach a screen through a reader that enumerates
@@ -478,126 +493,27 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   check('...and the real block, re-read after the mutation, is unchanged',
     stripComments(readRepo('app.jsx').slice(drawFrom, drawTo)) === drawCode);
 
-  // -- 5c-3. the ceiling of three, the floor of three characters, the eight-second cut --------
-  check('the display ceiling is three cards of the ten the service returns',
+  // -- 5c-3. the ceiling of three, and nothing drawn from nothing ------------------------------
+  check('the display ceiling is three cards',
     /const EZIK_LESSONS_MAX = 3;/.test(appJsx) && /rows\.length >= EZIK_LESSONS_MAX/.test(drawCode));
-  check('a question shorter than three characters after trimming makes no call at all',
-    /const EZIK_LESSONS_MIN_Q = 3;/.test(appJsx)
-    && /query\.length < EZIK_LESSONS_MIN_Q\) return \[\];/.test(drawCode)
-    && /query\.length < EZIK_LESSONS_MIN_Q\) return;/.test(callCode));
-  check('the client gives up at eight seconds',
-    /const EZIK_LESSONS_TIMEOUT_MS = 8000;/.test(appJsx)
-    && callCode.indexOf('EZIK_LESSONS_TIMEOUT_MS') !== -1);
-  // SILENT FAILURE. Every path that is not a 200 with a usable list returns an empty list, and
-  // an empty list draws null -- no message, no empty frame, no spinner left standing.
-  check('a status other than 200 returns nothing to draw',
-    /r\.status !== 200\) return \[\];/.test(drawCode));
-  check('a throw on any part of the call returns nothing to draw',
-    /catch \(e\) \{\s*return \[\];/.test(drawCode));
   check('an empty list draws null rather than a heading over nothing',
     /rows\.length === 0\) return null;/.test(drawCode));
-  check('nothing is drawn unless a row survived the whitelist',
-    /if \(rows && rows\.length\)/.test(callCode));
+  check('the frame\'s rows go through the whitelist, and nothing is put on the message unless a row survived it',
+    /lessonRows = ezikLessonRows\(rows\);/.test(callCode)
+    && /\.\.\.\(lessonRows\.length \? \{ lessonRows \} : \{\}\)/.test(callCode));
 
-  // -- 5c-4. THE ORDER'S THIRD DEMAND: AbortController on the call path ----------------------
-  check('an AbortController is created for the call and its signal is passed to fetch',
-    callCode.indexOf('new AbortController()') !== -1
-    && callCode.indexOf('controller.signal') !== -1
-    && /signal,/.test(drawCode));
-  check('a new question aborts the pending call and wipes the card in the same breath',
-    /lessonsAbortRef\.current\.abort\(\)/.test(callCode)
-    && /setLessonRows\(null\);/.test(callCode));
-  check('...and the reset runs at the START of every send, beside the stream abort',
-    /if \(abortRef\.current\) abortRef\.current\.abort\(\);[\s\S]{0,400}?resetLessons\(\);/.test(appJsx));
-  // A LATE LANDING IS DROPPED, NOT DRAWN. The abort covers the call that is still open; the
-  // generation covers the one whose promise already resolved and is a microtask from setState.
-  check('a result that lands after a newer question is dropped by generation',
-    /lessonsSeqRef\.current \+= 1;/.test(callCode)
-    && /lessonsSeqRef\.current !== seq\) return;/.test(callCode));
+  // -- 5c-4. a frame of a superseded stream is dropped -----------------------------------------
+  check('a frame that lands after a newer question took the screen is dropped, by the stream\'s own controller',
+    /onLessons: \(rows\) => \{\s*if \(abortRef\.current !== controller\) return;\s*lessonRows = ezikLessonRows\(rows\);/.test(callCode));
 
-  // -- 5d. the seam: after the answer, never awaited, and only under the newest reply ---------
-  // ITEM 37/2 REPOINTED THIS PIN, AND WIDENED IT. It used to name the call by its argument,
-  // `text`, which is the reader's question -- and that argument is exactly what the item
-  // changed. So the pin now names the call the item installed, and three checks stand beside
-  // it that the old one did not make: that the question is no longer the query anywhere in the
-  // file, that there is exactly ONE firing (a card shown twice is the defect the order names
-  // by name), and that the builder it fires through actually strips what it claims to.
-  const FIRE = 'startLessonsSearch(ezikLessonsQuery(reply, text), lessonsSeq);';
-  const fireIdx = appJsx.indexOf(FIRE);
-  const commitIdx = appJsx.indexOf('    markStreamedOpen(final.length - 1);');
-  check('the search is fired only after the reply has been committed to the thread',
-    fireIdx !== -1 && commitIdx !== -1 && fireIdx > commitIdx, 'fire=' + fireIdx + ' commit=' + commitIdx);
-  check('the query is built from the ANSWER, and the question is no longer passed as one',
-    appJsx.indexOf('startLessonsSearch(text, lessonsSeq)') === -1
-      && /startLessonsSearch\(ezikLessonsQuery\(reply,/.test(appJsx));
-  check('...and it is fired exactly once, so no card is drawn and then replaced',
-    (appJsx.match(/startLessonsSearch\(/g) || []).length === 1,
-    'call sites -- the declaration reads `= (q, seq) =>` and so is not one of them: '
-      + String((appJsx.match(/startLessonsSearch\(/g) || []).length));
-  // The builder, driven for real rather than read: it is cut out of the source, evaluated with
-  // the one constant it closes over, and asked the four questions the item's comment answers.
-  const qFrom = appJsx.indexOf('const EZIK_LESSONS_Q_MAX = 400;');
-  const qTo = appJsx.indexOf('\n}\n', appJsx.indexOf('function ezikLessonsQuery'));
-  check('the query builder is present and bounded', qFrom !== -1 && qTo > qFrom,
-    'from=' + qFrom + ' to=' + qTo);
-  let buildQuery = null;
-  try {
-    const mod = { exports: {} };
-    new Function('module', 'const EZIK_LESSONS_MIN_Q = 3;\n'
-      + appJsx.slice(qFrom, qTo + 3) + '\nmodule.exports = ezikLessonsQuery;')(mod);
-    buildQuery = mod.exports;
-  } catch (e) { buildQuery = null; }
-  check('...and it evaluates to a function', typeof buildQuery === 'function');
-  const REPLY = 'AAA BBB <suggestions>\n- CCC\n</suggestions> <source site="s" url="u">DDD</source>'
-    + ' <dhikr id="27"></dhikr> \u3010EEE\u3011 FFF';
-  const built = typeof buildQuery === 'function' ? buildQuery(REPLY, 'QQQ') : '';
-  check('the builder keeps the answer\'s own prose', built.indexOf('AAA') !== -1
-    && built.indexOf('FFF') !== -1, built);
-  // `built.length > 0` is on the assertion itself, not on a neighbour: `built` is '' whenever
-  // the cut-out above misses its anchor, and an empty string contains none of the seven words.
-  check('...and strips the suggestions, the source tags, every other tag and the seal',
-    built.length > 0
-      && ['CCC', 'DDD', 'EEE', 'suggestions', 'source', 'dhikr', 'url='].every((w) => built.indexOf(w) === -1),
-    built);
-  check('...and collapses to single spaces, with nothing left ragged',
-    built.length > 0 && built === built.trim() && built.indexOf('  ') === -1,
-    JSON.stringify(built));
-  check('...and cuts at the door\'s own 400-character ceiling',
-    typeof buildQuery === 'function'
-      && buildQuery('x'.repeat(900), 'QQQ').length === 400
-      && /const MAX_Q_CHARS = 400;/.test(apiSrc));
-  check('THE QUESTION IS THE FALLBACK AND IS NOT DELETED: an answer that strips to nothing'
-    + ' searches on the question instead',
-    typeof buildQuery === 'function'
-      && buildQuery('<dhikr id="27"></dhikr>', 'QQQ') === 'QQQ'
-      && buildQuery(null, ' QQQ ') === 'QQQ');
-  // THE PREDICATE BITES. A builder that forgot to strip the suggestions passes none of it.
-  const leakySrc = appJsx.slice(qFrom, qTo + 3)
-    .replace(".replace(/<suggestions>[\\s\\S]*?<\\/suggestions>/gi, ' ')", '');
-  check('the strip mutant is a real mutation, not a no-op',
-    leakySrc !== appJsx.slice(qFrom, qTo + 3));
-  let leakyBuilt = '';
-  try {
-    const mod = { exports: {} };
-    new Function('module', 'const EZIK_LESSONS_MIN_Q = 3;\n' + leakySrc
-      + '\nmodule.exports = ezikLessonsQuery;')(mod);
-    leakyBuilt = mod.exports(REPLY, 'QQQ');
-  } catch (e) { leakyBuilt = 'THREW'; }
-  check('THE GUARD BITES: a builder that keeps the follow-up questions fails the strip check',
-    leakyBuilt.indexOf('CCC') !== -1, leakyBuilt);
-  check('...and it is never awaited, so it cannot delay a character of the answer',
-    appJsx.indexOf('await startLessonsSearch') === -1);
-  check('the card is handed to the turn that fetched it, and to no other',
+  // -- 5d. the seam: on the message as it is built, once, and only under its own reply ---------
+  check('the rows are put on the assistant message as it is built, and in no other place',
+    /const aiMsg = \{ role: 'assistant', content: reply,[^\n]*\n\s*\.\.\.\(lessonRows\.length \? \{ lessonRows \} : \{\}\) \};/.test(appJsx)
+      && (appCode.match(/lessonRows = ezikLessonRows\(/g) || []).length === 1);
+  check('...so no card is drawn and then replaced: nothing sets a turn\'s lessonRows after it is built',
+    (appCode.match(/lessonRows: rows/g) || []).length === 0);
+  check('the card is handed to the turn that owns it, and to no other',
     /lessonRows=\{m && m\.lessonRows \? m\.lessonRows : null\}/.test(appJsx));
-  // ITEM 7/P1. The rows are attached to the assistant message OBJECT the call was fired for,
-  // matched by identity inside a functional updater -- never by array position, which is what
-  // made a second question take the first answer's list away. The generation guard is pinned
-  // here with it: identity says WHICH turn, the sequence says whether that turn is still the
-  // one being answered, and an edit that keeps one while dropping the other is a regression
-  // this check refuses.
-  check('the rows land on the turn that owns them, matched by identity and not by position',
-    /setMessages\(\(prev\) => prev\.map\(\(mm\) => \(mm === aiMsg \? \{ \.\.\.mm, lessonRows: rows \} : mm\)\)\)/.test(callCode)
-    && /lessonsSeqRef\.current !== seq\) return;/.test(callCode));
   check('the bubble renders the card at its tail and fetches nothing itself',
     /<EzikLessonCards rows=\{lessonRows\} \/>/.test(appJsx));
 
@@ -607,7 +523,7 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
   // interface: a reader is served app.js, not app.jsx.
   const appJs = readRepo('app.js');
   check('app.js was actually read', appJs.length > 100000, String(appJs.length));
-  for (const marker of ['/api/lessons-search', 'ezikLessonRows', 'EzikLessonCards', 'noopener noreferrer']) {
+  for (const marker of ['/api/lessons-search', 'ezikLessonRows', 'EzikLessonCards', 'noopener noreferrer', 'ezik_lessons']) {
     check('the built bundle carries ' + marker, appJs.indexOf(marker) !== -1);
   }
 
@@ -851,19 +767,19 @@ const mentionsToken = (value) => serialize(value).includes(FIXTURE_TOKEN);
     invented.length === 0, invented.join(','));
 
   // -- 5B-6. THE TWO CALLERS OF THE ROUTE, COUNTED TOGETHER ---------------------------------
-  // Section 5 counts the CARD's call site through the card's own constant. Since item 24-B
-  // there are two callers of the route in the interface, and this is where that whole number
-  // is stated -- so a third one cannot appear without a check going red somewhere.
+  // Since item 24-B there were two callers of the route in the interface, the card and the screen. SPEED W6B B5 took the
+  // card's away (its rows come with the answer), so the screen is the one caller, and this is where that whole number is
+  // stated -- so a second one cannot appear without a check going red somewhere.
   const routeCallers = (appJsx.match(/fetch\(EZIK_LESSONS_(?:SCREEN_)?ENDPOINT/g) || []);
-  check('the interface calls the lessons route from exactly two places: the card and the screen',
-    routeCallers.length === 2, routeCallers.join(' '));
+  check('the interface calls the lessons route from exactly one place: the screen (the card\'s rows come with the answer)',
+    routeCallers.length === 1 && routeCallers[0] === 'fetch(EZIK_LESSONS_SCREEN_ENDPOINT', routeCallers.join(' '));
   check('...and neither of them names the upstream service directly',
     appJsx.indexOf('lib.ezik.app/lessons') === -1);
   check('the two blocks keep their own ceilings: three for the card, ten for the screen',
     /const EZIK_LESSONS_MAX = 3;/.test(appJsx)
     && /const EZIK_LESSONS_SCREEN_LIMIT = 10;/.test(appJsx));
-  check('...and their own patience: eight seconds for the card, twelve for the screen',
-    /const EZIK_LESSONS_TIMEOUT_MS = 8000;/.test(appJsx)
+  check('...and the screen its own patience: twelve seconds (the card waits on no call of its own)',
+    !/const EZIK_LESSONS_TIMEOUT_MS = /.test(appJsx)
     && /const EZIK_LESSONS_SCREEN_TIMEOUT_MS = 12000;/.test(appJsx));
   // The bundle is COMPACTED, so the source's spacing is not in it: the comparison ships as
   // screen==='lessons'. Matched on a pattern rather than on the source line, or this would be

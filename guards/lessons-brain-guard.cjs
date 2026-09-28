@@ -11,9 +11,10 @@
 // == WHAT THIS GUARD DOES **NOT** ASSERT, AND WHY ============================================
 // Item 37/② is already guarded, and a second copy of a proof is not a second proof -- it is two
 // things to keep in step. `guards/lessons-search-guard.cjs` section 5d (gate `lessonssearch`)
-// already CUTS `ezikLessonsQuery` out of app.jsx, RUNS it, and proves the strip, the 400-character
-// cut, the collapse, and the question surviving as the fallback -- with a biting mutant. It also
-// counts `startLessonsSearch(` and pins it at one call site. None of that is repeated here.
+// proves how the card's rows reach the screen. SPEED W6B B5 (owner, 28 Sep) replaced item 37/2's search on the answer's
+// words with the rows the answer itself rests on, sent by the server with it (the `ezik_lessons` frame), so that section
+// now proves the frame is read, the answer-path search is gone, and the rows are put on the message once, as it is built.
+// None of that is repeated here.
 // Section D below records that custody instead: it fails if those checks leave that guard, so
 // "it is proved over there" cannot quietly stop being true.
 //
@@ -21,8 +22,8 @@
 //   A. the fifth tool is OFFERED on «مفصّل» and «طالب علم» and WITHHELD on «موجز» -- measured by
 //      running the real decision out of api/ask.js and then driving the real loop and reading the
 //      tool list off the wire, never by matching a string in a source file
-//   B. the card is drawn ONCE: `resetLessons()` has exactly one call site (the half of item 37's
-//      "once" that `lessonssearch` does not count -- it counts `startLessonsSearch`)
+//   B. the card is drawn ONCE: the frame's rows are taken in one place and put on the message in one place
+//      (SPEED W6B B5; before it, `resetLessons()` had one call site)
 //   C. 🔑 THE ROW IS SHOWN WITH NO RELEVANCE FLOOR -- the owner's ruling, guarded as a ruling
 //
 // Output is ASCII only, by order: Arabic values are transliterated to '?' before printing.
@@ -267,23 +268,21 @@ async function run() {
     section('B. THE CARD IS DRAWN ONCE');
     // ================================================================================
     //
-    // `lessonssearch` counts `startLessonsSearch(` and pins it at one. It does NOT count
-    // `resetLessons()`, and that is the other half of "drawn once": a second reset would clear a
-    // card that is already on the reader's screen and let the next fetch draw a different one in
-    // its place. The declaration is not a call site, so it is excluded by shape, not by subtracting
-    // a number from a count.
-    const resetDecl = (appJsx.match(/const resetLessons = \(\) =>/g) || []).length;
-    const resetAll = (appJsx.match(/resetLessons\(\)/g) || []).length;
-    const resetCalls = (appJsx.match(/(?<!const )resetLessons\(\);/g) || []).length;
-    ok('B1  resetLessons is declared exactly once', resetDecl === 1, 'declarations=' + resetDecl);
-    ok('B2  ...and called from exactly ONE place, so no card is cleared and redrawn under a reader',
-      resetCalls === 1, 'call sites=' + resetCalls + ' (all occurrences=' + resetAll + ')');
+    // SPEED W6B B5 RE-CUT THIS SECTION. The card no longer comes from a search the client fires after the reply (with a
+    // reset at every send that `resetLessons()` counted); its rows come with the answer, in the `ezik_lessons` frame, and
+    // are put on the assistant message once, as it is built. "Drawn once" is now that single seat: one assignment of the
+    // frame's rows through the whitelist, and one place that puts them on the message.
+    const takeSites = (appJsx.match(/lessonRows = ezikLessonRows\(rows\);/g) || []).length;
+    const putSites = (appJsx.match(/\.\.\.\(lessonRows\.length \? \{ lessonRows \} : \{\}\)/g) || []).length;
+    ok('B1  the frame\'s rows are taken through the whitelist in exactly one place', takeSites === 1, 'sites=' + takeSites);
+    ok('B2  ...and put on the assistant message in exactly ONE place, so no card is drawn and then replaced',
+      putSites === 1, 'sites=' + putSites);
 
-    const withSecondReset = appJsx.replace('    resetLessons();\n',
-      '    resetLessons();\n    resetLessons();\n');
-    ok('B3  the second-call mutant is a real mutation, not a no-op', withSecondReset !== appJsx);
-    ok('B4  THE GUARD BITES: a file with a second resetLessons() call fails B2',
-      (withSecondReset.match(/(?<!const )resetLessons\(\);/g) || []).length === 2);
+    const withSecondPut = appJsx.replace('    setMessages(final);\n',
+      '    setMessages(final.map((mm) => (mm === aiMsg ? { ...mm, ...(lessonRows.length ? { lessonRows } : {}) } : mm)));\n');
+    ok('B3  the second-seat mutant is a real mutation, not a no-op', withSecondPut !== appJsx);
+    ok('B4  THE GUARD BITES: a file that puts the rows on the message a second time fails B2',
+      (withSecondPut.match(/\.\.\.\(lessonRows\.length \? \{ lessonRows \} : \{\}\)/g) || []).length === 2);
 
     // ================================================================================
     section('C. THE ROW IS SHOWN WITH NO RELEVANCE FLOOR -- the owner\'s ruling');
@@ -390,14 +389,15 @@ async function run() {
     // left and not checking either.
     const lessonsGuard = read('guards/lessons-search-guard.cjs');
     const CUSTODY = [
-      ['the query is built from the ANSWER, and the question is no longer passed as one', '5d'],
-      ['...and it is fired exactly once, so no card is drawn and then replaced', '5d'],
-      ['THE QUESTION IS THE FALLBACK AND IS NOT DELETED', '5d'],
+      // SPEED W6B B5: the claims section 5 carries since the card's rows come with the answer.
+      ['callAI reads the `ezik_lessons` frame and hands its rows on', '5c-1'],
+      ['the answer-path search is gone: none of its six names is left in the code', '5c-1'],
+      ['the rows are put on the assistant message as it is built, and in no other place', '5d'],
       // The anchor stops short of the apostrophe on purpose: that claim is written in the other
       // guard as a single-quoted JS string, so its source spells the apostrophe `\'` and a search
       // for the rendered text would miss a claim that is present.
-      ['own 400-character ceiling', '5d'],
-      ['THE GUARD BITES: a builder that keeps the follow-up questions fails the strip check', '5d'],
+      ['...so no card is drawn and then replaced: nothing sets a turn', '5d'],
+      ['THE GUARD BITES: a reader that took the snippet fails both the set and the word list', '5c-2'],
     ];
     for (const [claim, where] of CUSTODY) {
       ok('D  guards/lessons-search-guard.cjs (' + where + ') still owns: ' + claim,
