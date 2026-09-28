@@ -485,6 +485,21 @@ const KHAWF_AS_WRITTEN = '\u0635\u0644\u0627\u0629\u0020\u0627\u0644\u062e\u0648
       b.text.startsWith('\u0642\u064a\u0644 \u0625\u0646 \u0627\u0644\u0645\u0646\u0641\u0631\u062f') && b.text.includes('\n\u0627\u0644\u0642\u0648\u0644 \u0627\u0644\u062b\u0627\u0646\u064a: \u0628\u0637\u0644\u0627\u0646 \u0635\u0644\u0627\u062a\u0647') && !b.text.includes('\u0627\u0644\u0642\u0648\u0644 \u0627\u0644\u0623\u0648\u0644') && b.s.holds.uncited_attribution === 1, ascii(JSON.stringify({ text: b.text, holds: b.s.holds })));
   }
 
+  // ---------------------------------------------------------------- P31 (PIPES4, D) round 9, 16: a question-form title with nothing under it
+  {
+    const UNITS = await esm('lib/bw2-units.js');
+    const out = [];
+    const r = UNITS.createBw2Releaser({ rows: [{ ref: 1, kind: 'fatwa', title: 'a', fullText: '\u062d\u062f\u064a\u062b \u0648\u0627\u0628\u0635\u0629 \u0646\u0635 \u0641\u064a \u0627\u0644\u0645\u0633\u0623\u0644\u0629. \u0641\u0627\u0630\u0627 \u062a\u064a\u0633\u0631 \u0644\u0647 \u0645\u0646 \u064a\u0635\u0627\u0641\u0647 \u0641\u0644\u0627 \u0628\u0627\u0633 \u0627\u0646 \u0634\u0627\u0621 \u0627\u0644\u0644\u0647. \u0648\u0644\u064a\u0633 \u0644\u0647 \u0627\u0644\u062d\u0642 \u0641\u064a \u0627\u0646 \u064a\u062c\u0630\u0628 \u0627\u062d\u062f\u0627 \u0645\u0646 \u0627\u0644\u0635\u0641.' }], emit: (p) => { out.push(p); return true; } });
+    r.push('\u062d\u062f\u064a\u062b \u0648\u0627\u0628\u0635\u0629 \u0646\u0635 \u0641\u064a \u0627\u0644\u0645\u0633\u0623\u0644\u0629 [[1]].\n\u0645\u0633\u0627\u0644\u0629: \u0647\u0644 \u064a\u062a\u0642\u062f\u0645 \u0639\u0646 \u064a\u0645\u064a\u0646 \u0627\u0644\u0627\u0645\u0627\u0645\u061f\n\u0645\u0633\u0627\u0644\u0629: \u0647\u0644 \u064a\u062c\u0630\u0628 \u0627\u062d\u062f\u0627 \u0645\u0646 \u0627\u0644\u0635\u0641\u061f\n\u0641\u0627\u0630\u0627 \u062a\u064a\u0633\u0631 \u0644\u0647 \u0645\u0646 \u064a\u0635\u0627\u0641\u0647 \u0641\u0644\u0627 \u0628\u0627\u0633 \u0627\u0646 \u0634\u0627\u0621 \u0627\u0644\u0644\u0647 [[1]].\n');
+    const s = await r.end();
+    const text = out.join('');
+    ok('P31a question 16: "mas-ala: hal ...?" waits for a unit under it like any title -- the first, with none, is dropped, the second goes out with its unit',
+      !text.includes('\u064a\u062a\u0642\u062f\u0645 \u0639\u0646 \u064a\u0645\u064a\u0646') && text.includes('\n\u0645\u0633\u0627\u0644\u0629: \u0647\u0644 \u064a\u062c\u0630\u0628 \u0627\u062d\u062f\u0627 \u0645\u0646 \u0627\u0644\u0635\u0641\u061f\n\u0641\u0627\u0630\u0627 \u062a\u064a\u0633\u0631') && s.holds.empty_heading === 1, ascii(JSON.stringify({ text, holds: s.holds })));
+    ok('P31b the title reads the label form only: a speech verb before the colon quotes a question, an unlabelled question is a unit, and a mark on the title does not make it one',
+      UNITS.isPlainTitleUnit('\u0645\u0633\u0623\u0644\u0629: \u0647\u0644 \u064a\u062a\u0642\u062f\u0645 \u0639\u0646 \u064a\u0645\u064a\u0646 \u0627\u0644\u0625\u0645\u0627\u0645\u061f') && !UNITS.isPlainTitleUnit('\u0642\u0627\u0644: \u0647\u0644 \u064a\u062a\u0642\u062f\u0645 \u0639\u0646 \u064a\u0645\u064a\u0646 \u0627\u0644\u0625\u0645\u0627\u0645\u061f') && !UNITS.isPlainTitleUnit('\u0641\u0642\u0627\u0644: \u0647\u0644 \u064a\u062a\u0642\u062f\u0645 \u0639\u0646 \u064a\u0645\u064a\u0646 \u0627\u0644\u0625\u0645\u0627\u0645\u061f')
+      && UNITS.isPlainTitleUnit('\u0645\u0633\u0623\u0644\u0629: \u0647\u0644 \u064a\u062a\u0642\u062f\u0645 \u0639\u0646 \u064a\u0645\u064a\u0646 \u0627\u0644\u0625\u0645\u0627\u0645\u061f [[1]]') && !UNITS.isPlainTitleUnit('\u0641\u0647\u0644 \u064a\u062c\u0648\u0632 \u0630\u0644\u0643\u061f'));
+  }
+
   // ---------------------------------------------------------------- P24d (PIPES3, A, from the rounds 2-8 list) a passive has no subject
   {
     const UNITS = await esm('lib/bw2-units.js');
