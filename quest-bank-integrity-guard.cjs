@@ -1707,7 +1707,12 @@ const SEALED = {
 //                    was re-cut by node tools/core-bytes.cjs --write, 2996559 -> 2996684; the prose row and
 //                    the SW_PROSE mirror followed. NO FILE JOINED OR LEFT CORE; the store stays ezik-v42.
 //                    sw.js is 55908 bytes, measured at CR = 0. THIS digest is re-cut LAST.
-  'sw.js': 'e786ce1d28f0f415180cc19e9568e04000ebf2cdbec0d72e1228dfd99d7f89a1',
+  //   2026-09-28-g -- TRIP 2 WIDGET SECTIONS: the widget whitelist opens the daily wird (wirdi) and the
+//                    library. app.js was rebuilt by npm run build:app, 1823594 -> 1824038 bytes; CORE_BYTES
+//                    was re-cut by node tools/core-bytes.cjs --write, 2996684 -> 2997128; the prose row and
+//                    the SW_PROSE mirror followed. NO FILE JOINED OR LEFT CORE; the store stays ezik-v42.
+//                    sw.js is 55908 bytes, measured at CR = 0. THIS digest is re-cut LAST.
+  'sw.js': 'c998e67e4077d6669b7d5d451ae537d6939d775fccac43bb5131eb04bfca49ae',
 };
 
 // ---------------------------------------------------------------------------
@@ -2663,7 +2668,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1823594, of: 'app.js' },
+      { n: 1824038, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
