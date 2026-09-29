@@ -1749,7 +1749,14 @@ const SEALED = {
 //                    3001248 -> 2994903; the worker's app.js prose row and the SW_PROSE mirror below followed.
 //                    NO FILE JOINED OR LEFT CORE; the store name stays ezik-v43 (the release takes the next
 //                    number). sw.js is 55908 bytes, measured at CR = 0. THIS digest is re-cut LAST.
-  'sw.js': 'e702a809e69d61ae1ccaa2db2f528c8a6d7f466d2ec2e5c428badd3aebd811d3',
+  //   2026-09-29-a -- SPEED SHIP (item 122, side/speed-20260927 daeae12 -> main): CACHE and config/app-version.json
+//                    move ezik-v43 -> ezik-v44, the next number after the live one (origin/main e136e93 reads
+//                    ezik-v43 in both). app.js REBUILT from app.jsx by npm run build:app: 1821813 bytes, unchanged
+//                    in size (only EZIK_APP_VERSION moved), --check OK. node tools/core-bytes.cjs --write: MATCH,
+//                    CORE_BYTES stays 2994903; the worker's app.js prose row and the SW_PROSE mirror stand.
+//                    NO FILE JOINED OR LEFT CORE. The ?v=7 and IDLE lines are main's, untouched. sw.js is
+//                    55908 bytes, measured at CR = 0. THIS digest is re-cut LAST, after every other sw.js edit.
+  'sw.js': 'aeb4cfe44bc3c07d79020af20d78f5cbebf97d43d1acec5213b2de71db6e79b2',
 };
 
 // ---------------------------------------------------------------------------
