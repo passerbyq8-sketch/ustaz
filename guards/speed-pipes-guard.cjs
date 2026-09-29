@@ -105,7 +105,8 @@ function pageServer(gets = []) {
     b.total = j.total; b.numbering = j.numbering || b.numbering;
     for (const p of j.pages || []) if (!b.records.some((r) => r.seq === p.seq)) b.records.push(p);
   }
-  for (const [id, x] of Object.entries(require('./fixtures-speed-w6b-pages.json').books)) {
+  // SPEED JUZFIX: FC-004528's page 254 of the volumes the fix names (fixtures-speed-juzfix-pages.json, read 2026-09-29).
+  for (const [id, x] of Object.entries({ ...require('./fixtures-speed-w6b-pages.json').books, ...require('./fixtures-speed-juzfix-pages.json').books })) {
     const b = bookOf(id);
     b.total = x.total; b.numbering = x.numbering;
     for (const [k, v] of Object.entries(x.locate)) b.locate[k] = { status: 200, body: JSON.stringify(v) };
@@ -726,6 +727,78 @@ function libraryPlain(markup) {
     ok('W6B4e «اشرح» receives the same cleaned text: no tag, no bold marks, the page\'s letters',
       !!ex && ex.outcome === 'explain' && !/<span|\*\*/u.test(ex.question) && letters(ex.question).includes(letters(libraryPlain(P74.body))),
       ascii(JSON.stringify({ outcome: ex && ex.outcome })));
+  }
+
+  // ---------------------------------------------------------------- JUZFIX the volume named in words (EZIK-SPEED-JUZFIX-ORDER)
+  // MEASURED (EZIK-SPEED-JUZPARSE-REPORT-2026-09-28): only the ten single ordinals were volume numbers, and detectPage stepped
+  // over the volume word and ONE word after it. So the owner's question 3 ("page 254 of volume fourteen of Majmu' Fatawa Ibn
+  // Baz") read volume 4 of a book named "ashar min Majmu' ..." (no_book), and "the twentieth" no volume at all: page 254 of
+  // volume 1, shown without a word. Majmu' Fatawa Ibn Baz (FC-004528, 30 volumes) over its recorded pages (pageServer).
+  {
+    const LS = await esm('lib/lib-service.js');
+    const LQ = await esm('lib/lib-quote.js');
+    const ASKM = await esm('api/ask.js');
+    const gets = [];
+    const deps = { readPage: (at) => LS.readLibraryPage(at, { flagValue: 'on', fetchImpl: pageServer(gets) }), buildBookTag: ASKM.buildBookTag };
+    const BAZ = '\u0645\u062c\u0645\u0648\u0639 \u0641\u062a\u0627\u0648\u0649 \u0627\u0628\u0646 \u0628\u0627\u0632';
+    const askOf = (x) => '\u0627\u0646\u0642\u0644 \u0644\u064a \u0646\u0635 \u0635\u0641\u062d\u0629 254 \u0645\u0646 \u0627\u0644\u062c\u0632\u0621 ' + x + ' \u0645\u0646 ' + BAZ;
+    const JIM = '\u062c';
+    const SAD = '\u0635';
+    const run = async (x) => {
+      const d = LQ.detectQuoteRequest(askOf(x));
+      gets.length = 0;
+      const a = d ? await LQ.answerQuoteRequest(d, deps) : null;
+      const head = a && a.text ? a.text.split('\n')[0] : '';
+      return { vol: d && d.vol, title: d && d.candidates[0] && d.candidates[0].titleText, outcome: a && a.outcome, book: a && a.book && a.book.id,
+        at: a && a.page ? a.page.vol + '/' + a.page.page : null, head, gets: gets.map((u) => u.replace('https://lib.ezik.app/lib/v1/books/FC-004528', '')) };
+    };
+    const reads = (r, n) => r.vol === n && r.title === BAZ && r.outcome === 'page' && r.book === 'FC-004528' && r.at === n + '/254'
+      && r.head.endsWith(JIM + n + ' \u00b7 ' + SAD + '254') && r.gets[0] === '/locate?page=254&vol=' + n;
+    const show = (r) => ascii(JSON.stringify({ vol: r.vol, title: r.title, outcome: r.outcome, at: r.at, gets: r.gets.slice(0, 2) }));
+    // the parts, folded (as the order's annex gives them)
+    const UNITS = ['\u0627\u0644\u0627\u0648\u0644', '\u0627\u0644\u062b\u0627\u0646\u064a', '\u0627\u0644\u062b\u0627\u0644\u062b', '\u0627\u0644\u0631\u0627\u0628\u0639', '\u0627\u0644\u062e\u0627\u0645\u0633', '\u0627\u0644\u0633\u0627\u062f\u0633', '\u0627\u0644\u0633\u0627\u0628\u0639', '\u0627\u0644\u062b\u0627\u0645\u0646', '\u0627\u0644\u062a\u0627\u0633\u0639'];
+    const TEN = '\u0627\u0644\u0639\u0627\u0634\u0631';
+    const ONE = '\u0627\u0644\u062d\u0627\u062f\u064a';
+    const TEEN = '\u0639\u0634\u0631';
+    const TENS = ['\u0627\u0644\u0639\u0634\u0631\u0648\u0646', '\u0627\u0644\u062b\u0644\u0627\u062b\u0648\u0646', '\u0627\u0644\u0627\u0631\u0628\u0639\u0648\u0646', '\u0627\u0644\u062e\u0645\u0633\u0648\u0646', '\u0627\u0644\u0633\u062a\u0648\u0646', '\u0627\u0644\u0633\u0628\u0639\u0648\u0646', '\u0627\u0644\u062b\u0645\u0627\u0646\u0648\u0646', '\u0627\u0644\u062a\u0633\u0639\u0648\u0646'];
+    const WAW = '\u0648';
+    const COMPOUND = [ONE, ...UNITS.slice(1)];
+    const r11 = await run(ONE + ' ' + TEEN);
+    const r14 = await run(UNITS[3] + ' ' + TEEN);
+    const r19 = await run(UNITS[8] + ' ' + TEEN);
+    ok('JZa 11-19: "al-hadi ashar", "al-rabi ashar", "al-tasi ashar" are volumes 11, 14, 19; the title stays "Majmu\' Fatawa Ibn Baz"; the page read is that volume\'s page 254',
+      reads(r11, 11) && reads(r14, 14) && reads(r19, 19), show(r14));
+    const r20 = await run(TENS[0]);
+    ok('JZb "al-ishrun" is volume 20: page 254 of volume 20 is read, not page 254 of volume 1 without a word (no locate without a volume)',
+      reads(r20, 20) && !r20.gets.includes('/locate?page=254'), show(r20));
+    const r24 = await run(UNITS[3] + ' ' + WAW + TENS[0]);
+    const d21 = LQ.detectQuoteRequest(askOf(ONE + ' ' + WAW + TENS[0]));
+    const r31 = await run(ONE + ' ' + WAW + TENS[1]);
+    ok('JZc unit and tens: "al-rabi wal-ishrun" is volume 24 and its page is read; "al-hadi wal-ishrun" is 21 with the title clean; "al-hadi wal-thalathun" (31, past the book\'s 30) is "page not found": no page shown, and volume 1 is never asked',
+      reads(r24, 24) && !!d21 && d21.vol === 21 && d21.candidates[0].titleText === BAZ
+      && r31.vol === 31 && r31.title === BAZ && r31.outcome === 'page_not_found' && r31.at === null && JSON.stringify(r31.gets) === JSON.stringify(['/locate?page=254&vol=31']),
+      ascii(JSON.stringify({ r24: show(r24), d21: d21 && d21.vol, r31: show(r31) })));
+    // every form 1-99, composed here from the parts: its value, and the title after it untouched
+    const FORMS = [];
+    UNITS.forEach((w, i) => FORMS.push([w, i + 1]));
+    FORMS.push([TEN, 10]);
+    COMPOUND.forEach((u, i) => FORMS.push([u + ' ' + TEEN, 11 + i]));
+    TENS.forEach((t, j) => { FORMS.push([t, 20 + 10 * j]); COMPOUND.forEach((u, i) => FORMS.push([u + ' ' + WAW + t, 21 + 10 * j + i])); });
+    const wrong = FORMS.filter(([w, n]) => { const d = LQ.detectQuoteRequest(askOf(w)); return !d || d.vol !== n || d.candidates[0].titleText !== BAZ || LQ.volumeOf(LQ.foldArabic(askOf(w))) !== n; });
+    ok('JZd every volume 1-99 in words (' + FORMS.length + ' forms: units, ten, 11-19, tens, unit and tens) gives its number, and the title after it is the book\'s',
+      FORMS.length === 99 && new Set(FORMS.map(([, n]) => n)).size === 99 && wrong.length === 0, ascii(JSON.stringify(wrong.slice(0, 3).map(([, n]) => n))));
+    // controls: the single ordinals as the reader writes them (with the hamza), the digits, and a word after the volume word that is no number
+    const rAwwal = await run('\u0627\u0644\u0623\u0648\u0644');
+    const r2 = await run(UNITS[1]);
+    const r4 = await run(UNITS[3]);
+    const r10 = await run(TEN);
+    const rIndic = await run('\u0661\u0664');
+    const rDigits = await run('14');
+    const dNot = LQ.detectQuoteRequest('\u0627\u0646\u0642\u0644 \u0644\u064a \u0646\u0635 \u0635\u0641\u062d\u0629 254 \u0645\u0646 \u0627\u0644\u062c\u0632\u0621 \u0627\u0644\u0645\u0646\u062a\u0642\u0649' + ' \u0645\u0646 ' + BAZ);
+    ok('JZe controls: "al-awwal" (with its hamza), "al-thani", "al-rabi", "al-ashir", Arabic-Indic 14 and 14 read as before; a word after the volume word that is no number is still stepped over as one word',
+      reads(rAwwal, 1) && reads(r2, 2) && reads(r4, 4) && reads(r10, 10) && reads(rIndic, 14) && reads(rDigits, 14)
+      && !!dNot && dNot.vol === null && dNot.candidates[0].titleText === BAZ,
+      ascii(JSON.stringify({ a: show(rAwwal), not: dNot && [dNot.vol, dNot.candidates[0].titleText] })));
   }
 
   // ---------------------------------------------------------------- W6B B5 the lessons under the answer are the lessons it rests on (K4)
@@ -1894,6 +1967,19 @@ function libraryPlain(markup) {
       const w4o = await drive(ASK73, { env: { ...PENV, LIB_QUOTE_V1: 'off' }, respond: pageRespond });
       ok('W4h LIB_QUOTE_V1=off still takes the door down', !w4o.crashed && w4o.model.length > 0 && !quotedOf(w4o.text));
       const LQ = await esm('lib/lib-quote.js');
+      // JUZFIX: the owner's question 3 (W4 live round), verbatim, through the real handler: volume 14 of Majmu' Fatawa Ibn Baz,
+      // page 254 -- the page read and shown whole, its letters the library's (the letter test on this page too).
+      const Q3 = '\u0627\u0646\u0642\u0644 \u0644\u064a \u0646\u0635 \u0635\u0641\u062d\u0629 254 \u0645\u0646 \u0627\u0644\u062c\u0632\u0621 \u0627\u0644\u0631\u0627\u0628\u0639 \u0639\u0634\u0631 \u0645\u0646 \u0645\u062c\u0645\u0648\u0639 \u0641\u062a\u0627\u0648\u0649 \u0627\u0628\u0646 \u0628\u0627\u0632';
+      pageGets.length = 0;
+      const jz = await drive(Q3, { env: PENV, respond: pageRespond });
+      const JZ = require('./fixtures-speed-juzfix-pages.json').books['FC-004528'].records.filter((r) => r.vol === 14 && r.page === 254);
+      const [jzBody, jzFoot = ''] = jz.text.split('\n\n---\n\n');
+      ok('JZf the owner\'s question 3 verbatim: vol 14, FC-004528, the page -- stated above the text as vol 14 p 254, its letters and footnotes the library\'s, the card with the book, volume and page, no model call, no "no such book"',
+        !jz.crashed && jz.model.length === 0 && JZ.length === 2 && jz.text.split('\n')[0].endsWith('\u062c' + '14 \u00b7 ' + '\u0635' + '254')
+        && shownLetters(jzBody) === JZ.map((r) => pageLetters(r.body)).join('') && shownLetters(jzFoot) === JZ.map((r) => pageLetters(r.foot || '')).join('')
+        && /<book [^>]* book="FC-004528" vol="14" page="254"/.test(jz.text) && !jz.text.includes('\u0644\u064a\u0633 \u0639\u0646\u062f\u064a')
+        && pageGets.some((u) => u.endsWith('/FC-004528/locate?page=254&vol=14')),
+        ascii(JSON.stringify({ model: jz.model.length, head: jz.text.split('\n')[0], gets: pageGets.length, crashed: jz.crashed && String(jz.crashed.stack).slice(0, 200) })));
       ok('W4i the "not found" reply never asks for the author\'s name', !/مؤلف/.test(LQ.noBookReply('كتاب مجهول')));
       // W6B B5 through the real handler: a page quote carries no lessons frame; a free-brain answer that cites a lesson
       // carries it (the fake writer cites the lesson row by the number the evidence list gave it).
