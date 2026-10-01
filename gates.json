@@ -640,5 +640,10 @@
     "name": "frontsorter",
     "script": "guards/front-sorter-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "impermissibleearly",
+    "script": "guards/impermissible-early-guard.cjs",
+    "args": ""
   }
 ]

@@ -289,8 +289,13 @@ const SORTER_FIELDS = [
   // closed enum -- sharia | general: which system frame the free-brain seat was handed.
   'frame',
 ];
+// -- RULE B, CONTINUED: THE EARLY PORNOGRAPHY RULE (order EZIK-IMPERMISSIBLE-ORDER-2026-10-01) --
+//
+// One closed word on the [route] line: none | porn_blocked (lib/policy/porn-request.js IMPERMISSIBLE_STATES).
+// Never the question, never a fingerprint, never the matched word.
+const IMPERMISSIBLE_FIELDS = ['impermissible'];
 const ALLOWED = new Set([...ALLOWED_FIELDS, ...STREAM_FIELDS, ...LIVE_WORLD_V2_FIELDS,
-  ...COLLAPSE_FIELDS, ...CALL_FAIL_FIELDS, ...BW2_FIELDS, ...SORTER_FIELDS]);
+  ...COLLAPSE_FIELDS, ...CALL_FAIL_FIELDS, ...BW2_FIELDS, ...SORTER_FIELDS, ...IMPERMISSIBLE_FIELDS]);
 const NEWLINE = String.fromCharCode(10);
 
 // ── THE BOUNDARY, WRITTEN DOWN RATHER THAN LEFT TO BE REDISCOVERED ────────────

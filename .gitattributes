@@ -857,3 +857,8 @@ lib/front-sorter.js text eol=lf
 lib/general-frame.js text eol=lf
 guards/front-sorter-guard.cjs text eol=lf
 guards/fixtures-front-sorter.json text eol=lf
+
+# IMPERMISSIBLE (order EZIK-IMPERMISSIBLE-ORDER-2026-10-01): the hard rule for pornography, and the guard that drives it.
+lib/policy/porn-request.js text eol=lf
+guards/impermissible-early-guard.cjs text eol=lf
+guards/fixtures-impermissible-early.json text eol=lf

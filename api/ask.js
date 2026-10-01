@@ -141,6 +141,9 @@ import { bw2ScopeExclusion } from '../lib/bw2-scope.js';
 // separates a worldly request that carries a religious-looking word from a religious one BEFORE it is
 // framed; a turn that ends GENERAL is then answered in the general frame. Both modules are pure.
 import { frontSorterDecision, sorterEligibility, startSorter, runtimeAfterSorter } from '../lib/front-sorter.js';
+// The hard rule for pornography (order EZIK-IMPERMISSIBLE-ORDER-2026-10-01): a request for the content is answered with a fixed text,
+// for every reader, with no model call; a QUESTION about it (its ruling, its harm, quitting it) goes on to its own path.
+import { impermissibleEarlyDecision, classifyPornographyRequest, PORN_REFUSAL_TEXT } from '../lib/policy/porn-request.js';
 import { generalizeSystemBlocks } from '../lib/general-frame.js';
 import { takhrijDecision, TAKHRIJ_SKIPPED_STREAMED } from '../lib/takhrij.js';
 // BATCH 4 [b18] — on its own line: guards/takhrij-contract-guard.cjs row 19 pins the line above.
@@ -1075,10 +1078,12 @@ export default async function handler(req, res) {
   // a model about it would add a call to a turn that makes none.
   const closedDeenAnswers = currentRuntime === 'HADITH'
     && !!runClosedDeenTurn(resolveStoredContext(body.messages, { currentPlan, lexicalRoute: effectiveRoute }));
+  // Decided once, here, from the same text the grave-hazard check reads; answered at the hazard's seat inside the try block.
+  const pornBlocked = impermissibleEarlyDecision().enabled && classifyPornographyRequest(currentQuestionText).blocked;
   const sorterPlan = sorterEligibility({
     enabled: frontSorter.enabled, band, freeBrainEnabled: freeBrainOnAtSorter, runtime: currentRuntime,
     liveSearch: readLiveSearch(body), excluded: bw2ScopeExclusion(currentQuestionText), text: currentQuestionText,
-    closedDeen: closedDeenAnswers, hazard: graveHazard(currentQuestionText),
+    closedDeen: closedDeenAnswers, hazard: graveHazard(currentQuestionText), porn: pornBlocked,
   });
   // The frame the free-brain seat answers in: the general one for an adult whose FINAL runtime is GENERAL,
   // whether the sorter made it so or the lexicon always had (and never with the switch off).
@@ -1088,6 +1093,7 @@ export default async function handler(req, res) {
     purpose: currentPlan.purpose, mode: currentPlan.attributionMode,
     entity: currentPlan.namedEntity || null, officialDomain: currentPlan.officialDomain || null,
     lexicalRuntime: currentRuntime, runtime: currentRuntime, sorter: sorterPlan.sorter, sorterMs: 0, frame: frameFor(currentRuntime),
+    impermissible: 'none',
     ...final,
   });
 
@@ -1650,6 +1656,18 @@ export default async function handler(req, res) {
         topic: hazard, band: audienceBand, path: ledgerPath.path, policyVersion: POLICY_VERSION,
       });
       return emitOnce(WARM_TEMPLATES.SAFETY_REDIRECT);
+    }
+
+    // ── A REQUEST FOR PORNOGRAPHIC CONTENT: A FIXED TEXT, NO MODEL, EVERY READER ─────────────
+    // Beside the hazard redirect and for the same reason: nothing of the model stands between the request and the
+    // answer, and the sorter was never started for it (sorterEligibility `porn`). A question ABOUT the subject is not
+    // here: classifyPornographyRequest() declines it and the turn goes on. Off with IMPERMISSIBLE_EARLY_V1=off.
+    if (pornBlocked) {
+      logRoute({ impermissible: 'porn_blocked' });
+      console.warn('[policy] IMPERMISSIBLE_EARLY', {
+        kind: 'pornography', band: audienceBand, path: ledgerPath.path, policyVersion: POLICY_VERSION,
+      });
+      return emitOnce(PORN_REFUSAL_TEXT);
     }
 
     // ── AGE_ACCESS_POLICY, AFTER IR_BUILD AND BEFORE THE ROUTE ─────────────
