@@ -1761,7 +1761,12 @@ const SEALED = {
 //                    app.js REBUILT from app.jsx by npm run build:app: 1821813 bytes, only EZIK_APP_VERSION moved.
 //                    node tools/core-bytes.cjs --write: MATCH, CORE_BYTES stays 2994903. NO FILE JOINED OR LEFT CORE.
 //                    sw.js is 55908 bytes, measured at CR = 0. THIS digest is re-cut LAST.
-  'sw.js': 'cfa2cb784eeb9774de9a9671e88a9eb8c6d7a39fde5267d5704a4e18f7c3d4a0',
+  //   2026-10-01-b -- IMPERMISSIBLE SHIP (order EZIK-IMPERMISSIBLE-ORDER-2026-10-01, side/impermissible-20261001): CACHE and config/app-version.json
+//                    move ezik-v45 -> ezik-v46, the next number after the sorter's (the live main a038bd7 still reads ezik-v44).
+//                    app.js REBUILT from app.jsx by npm run build:app: 1821813 bytes, only EZIK_APP_VERSION moved.
+//                    node tools/core-bytes.cjs --write: MATCH, CORE_BYTES stays 2994903. NO FILE JOINED OR LEFT CORE.
+//                    sw.js is 55908 bytes, measured at CR = 0. THIS digest is re-cut LAST.
+  'sw.js': '5bdf64c44efeb836e5b7968a44ae82011c5876b9554e3dc13c19e6be9b2cc963',
 };
 
 // ---------------------------------------------------------------------------
