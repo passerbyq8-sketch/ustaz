@@ -635,5 +635,10 @@
     "name": "speedpipes",
     "script": "guards/speed-pipes-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "frontsorter",
+    "script": "guards/front-sorter-guard.cjs",
+    "args": ""
   }
 ]

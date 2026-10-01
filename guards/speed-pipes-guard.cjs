@@ -1693,6 +1693,9 @@ function libraryPlain(markup) {
     for (const k of ENV_KEYS) saved[k] = process.env[k];
     const realFetch = globalThis.fetch;
     const capCounts = new Map();
+    // FRONT SORTER (order EZIK-SORTER-ORDER-2026-10-01): its one fast-model call is answered RELIGIOUS here (the lexical runtime
+    // stands, as before it existed) and is not one of the answering calls `model` lists, as the judge's is not.
+    const FSORT = await esm('lib/front-sorter.js');
     const ANSWER = '\u062a\u0635\u0644\u0649 \u0635\u0644\u0627\u0629 \u0627\u0644\u062e\u0648\u0641 \u0639\u0644\u0649 \u0635\u0641\u0627\u062a \u0648\u0631\u062f\u062a \u0628\u0647\u0627 \u0627\u0644\u0633\u0646\u0629.';
     const jsonResponse = (url, o, status = 200) => ({
       ok: status >= 200 && status < 300, status, url: String(url),
@@ -1722,6 +1725,7 @@ function libraryPlain(markup) {
         const u = String(url);
         if (u.includes('api.anthropic.com')) {
           const b = JSON.parse(init.body);
+          if (b.system === FSORT.FRONT_SORTER_SYSTEM) return jsonResponse(u, { content: [{ type: 'text', text: 'RELIGIOUS' }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
           model.push(b);
           if (b.system === BW2.BW2_JUDGE_SYSTEM) return jsonResponse(u, { content: [{ type: 'text', text: '{"d":{}}' }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
           // SPEED W6B B5: `opts.answer(body)` states the fake writer's text when a case needs it to cite a row.

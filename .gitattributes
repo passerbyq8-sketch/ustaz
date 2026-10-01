@@ -851,3 +851,9 @@ lib/fatwa-title.js text eol=lf
 guards/fixtures-speed-wasl-pages.json text eol=lf
 guards/fixtures-speed-wasl-madhhab.json text eol=lf
 guards/fixtures-speed-wasl-atoms.json text eol=lf
+
+# SORTER (order EZIK-SORTER-ORDER-2026-10-01): the front sorter, the general frame, and the guard that drives both.
+lib/front-sorter.js text eol=lf
+lib/general-frame.js text eol=lf
+guards/front-sorter-guard.cjs text eol=lf
+guards/fixtures-front-sorter.json text eol=lf

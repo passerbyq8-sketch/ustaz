@@ -735,10 +735,12 @@ async function runSuite() {
     // SPEED WASL W0 (2026-09-28): the merge of origin/main e136e93 into side/speed-20260927 -- main's
     // 122 (widgetopen, lib108 its 121st and 122nd) and this branch's four (speedclient, speedbw2,
     // speedintegration, speedpipes) -> 126, same rule.
-function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 126; }
+    // SORTER (order EZIK-SORTER-ORDER-2026-10-01): 126 -> 127, same rule -- the gate `frontsorter`,
+    // guards/front-sorter-guard.cjs, the front sorter and the general frame.
+function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 127; }
     ok('ORIGINAL_GATE_SET_MATCH', exactGateSet(EXPECTED_GATES));
-    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 126-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
-    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 126-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
+    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 127-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
+    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 127-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
 
     const m13 = await storedMutant(temp, 'fiqh-before-special', (source) => source.replace(
       "if (QURAN_REQUEST.test(folded)) return 'LOCAL_QURAN';",

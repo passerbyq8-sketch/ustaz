@@ -137,6 +137,11 @@ import { runClosedDeenTurn } from '../lib/closed-deen.js';
 import { LIB_MAX_CHARS_PER_HIT_DEFAULT } from '../lib/lib-contract.js';
 import { freeBrainDecision, beforeWritingV2Decision, beforeWritingV2Takes, readLiveSearch, bw2ContinueDecision } from '../lib/free-brain/flag.js';
 import { bw2ScopeExclusion } from '../lib/bw2-scope.js';
+// THE FRONT SORTER AND THE GENERAL FRAME (order EZIK-SORTER-ORDER-2026-10-01). One fast-model call
+// separates a worldly request that carries a religious-looking word from a religious one BEFORE it is
+// framed; a turn that ends GENERAL is then answered in the general frame. Both modules are pure.
+import { frontSorterDecision, sorterEligibility, startSorter, runtimeAfterSorter } from '../lib/front-sorter.js';
+import { generalizeSystemBlocks } from '../lib/general-frame.js';
 import { takhrijDecision, TAKHRIJ_SKIPPED_STREAMED } from '../lib/takhrij.js';
 // BATCH 4 [b18] — on its own line: guards/takhrij-contract-guard.cjs row 19 pins the line above.
 import { asksGradeOrSource } from '../lib/takhrij.js';
@@ -1055,10 +1060,35 @@ export default async function handler(req, res) {
   // continuation, enters DEEN.
   const currentRuntime = classifyReligiousRuntime(currentQuestionText, currentPlan, route);
   const effectiveRoute = currentRuntime === 'GENERAL' ? 'GEN' : 'DEEN';
-  console.log('[route]', {
+  const lexicalRuntimeOfRequest = currentRuntime;
+  // ── THE FRONT SORTER (order EZIK-SORTER-ORDER-2026-10-01) ──────────────────
+  // The two lines above are the LEXICAL decision: one religious-looking word («محمد», «الشركة», «حساب», «عيد»)
+  // is enough for them to say STORED_FIQH. For an adult whose runtime they call STORED_FIQH or HADITH, a fast
+  // model is asked once whether the request is religious or worldly, and WORLDLY makes the runtime GENERAL.
+  // The values the rest of the handler reads under these two names are re-declared once, at the top of the
+  // try block below, after the verdict (so no consumer is touched); the two early exits that follow here
+  // (LIB_QUOTE and "what is your source") run on the lexical value, exactly as before, and make no model call.
+  // A doubt, a timeout, an error or an unreadable answer leaves the lexical value standing.
+  const frontSorter = frontSorterDecision();
+  const freeBrainOnAtSorter = freeBrainDecision().enabled;
+  // A registered hadith is answered by the closed dispatcher with no model at all (runClosedDeenTurn): asking
+  // a model about it would add a call to a turn that makes none.
+  const closedDeenAnswers = currentRuntime === 'HADITH'
+    && !!runClosedDeenTurn(resolveStoredContext(body.messages, { currentPlan, lexicalRoute: effectiveRoute }));
+  const sorterPlan = sorterEligibility({
+    enabled: frontSorter.enabled, band, freeBrainEnabled: freeBrainOnAtSorter, runtime: currentRuntime,
+    liveSearch: readLiveSearch(body), excluded: bw2ScopeExclusion(currentQuestionText), text: currentQuestionText,
+    closedDeen: closedDeenAnswers,
+  });
+  // The frame the free-brain seat answers in: the general one for an adult whose FINAL runtime is GENERAL,
+  // whether the sorter made it so or the lexicon always had (and never with the switch off).
+  const frameFor = (runtime) => (frontSorter.enabled && band === 'adult' && freeBrainOnAtSorter && runtime === 'GENERAL' ? 'general' : 'sharia');
+  const logRoute = (final = {}) => console.log('[route]', {
     route: effectiveRoute, lexicalRoute: route, band,
     purpose: currentPlan.purpose, mode: currentPlan.attributionMode,
     entity: currentPlan.namedEntity || null, officialDomain: currentPlan.officialDomain || null,
+    lexicalRuntime: currentRuntime, runtime: currentRuntime, sorter: sorterPlan.sorter, sorterMs: 0, frame: frameFor(currentRuntime),
+    ...final,
   });
 
   // ── LIB_QUOTE_V1 · «انقل لي من كتاب …» ANSWERED WITH THE BOOK'S OWN WORDS ──────────────
@@ -1095,6 +1125,7 @@ export default async function handler(req, res) {
         console.log('[lib-quote]', { outcome: 'explain' });
       } else if (follow) {
         console.log('[lib-quote]', { outcome: follow.outcome });
+        logRoute();
         return libQuote.writeQuoteReply(res, follow.text);
       }
     }
@@ -1105,6 +1136,7 @@ export default async function handler(req, res) {
       const quoted = await libQuote.answerQuoteRequest(quoteAsk, { runTool, createEvidenceTable, libFlagValue, libToken, ...pageDeps });
       if (quoted) {
         console.log('[lib-quote]', { outcome: quoted.outcome });
+        logRoute();
         return libQuote.writeQuoteReply(res, quoted.text);
       }
     }
@@ -1123,6 +1155,7 @@ export default async function handler(req, res) {
       if (cards.length) {
         console.log('[source-followup]', { outcome: 'answered', cards: cards.length });
         const { writeQuoteReply } = await import('../lib/lib-quote.js');
+        logRoute();
         return writeQuoteReply(res, sourceFollowUp.composeSourceReply(cards));
       }
     }
@@ -1133,6 +1166,11 @@ export default async function handler(req, res) {
     'x-api-key': apiKey,
     'anthropic-version': '2023-06-01',
   };
+  // THE SORTER'S CALL STARTS HERE, the earliest seat past the two early exits above (which make no model call
+  // and must not start one), and is awaited at the top of the try block below, right before the first consumer
+  // of the runtime. Nothing is cancelled: the only exits between are failures, and the call carries its own
+  // fixed budget.
+  const sorterRun = sorterPlan.ask ? startSorter({ messages: body.messages, providerUrl: ANTHROPIC_URL, headers }) : null;
 
   // -- Commit to SSE now, then keep the socket warm during the byte-silent phase --
   // Round 1 is non-streamed, so a long fully-vocalized answer (e.g. the salah card)
@@ -1640,6 +1678,15 @@ export default async function handler(req, res) {
       console.log('[entity] current-turn unregistered name — it will not travel in the query');
     }
 
+    // THE SORTER'S VERDICT, NEEDED NOW. Everything below this line reads `currentRuntime` and `effectiveRoute` and
+    // finds the values AFTER the sorter: the two names are declared again here, in this block, so the lexical
+    // pair at the top of the handler (read by the two early exits above) is untouched and no consumer below is.
+    const sorted = sorterRun ? await sorterRun.promise : null;
+    const sorterState = sorted ? sorted.sorter : sorterPlan.sorter;
+    const currentRuntime = runtimeAfterSorter(lexicalRuntimeOfRequest, sorterState);
+    const effectiveRoute = currentRuntime === 'GENERAL' ? 'GEN' : 'DEEN';
+    logRoute({ route: effectiveRoute, runtime: currentRuntime, sorter: sorterState, sorterMs: sorted ? sorted.ms : 0, frame: frameFor(currentRuntime) });
+
     const topicClass = classifyTopic(questionText, currentPlan, effectiveRoute);
     const ageAccess = access({ topicClass, audienceBand });
     console.log('[policy]', {
@@ -1703,10 +1750,15 @@ export default async function handler(req, res) {
     // runtime. Ordinary fiqh/theology uses the rollout decision already made above: the open
     // path coordinates all three evidence stores, while the brake retains the proven local
     // answer. There is no local early-return in the public path any more.
-    const storedContext = resolveStoredContext(body.messages, {
+    // The stored context recomputes the lexical runtime itself (lib/stored-deen.js) and feeds the closed
+    // dispatcher and the free brain's prefetch key. A WORLDLY verdict is applied here, at its producer.
+    const storedContextLexical = resolveStoredContext(body.messages, {
       currentPlan,
       lexicalRoute: effectiveRoute,
     });
+    const storedContext = sorterState === 'worldly'
+      ? { ...storedContextLexical, runtime: 'GENERAL', resolvedDomain: 'GENERAL' }
+      : storedContextLexical;
     const closedOut = runClosedDeenTurn(storedContext);
     if (closedOut) {
       // The browser expands these server-owned tags from frozen local data.  No
@@ -1828,9 +1880,17 @@ export default async function handler(req, res) {
       excluded: bw2ScopeExclusion(currentQuestionText),
     });
     const bw2Taken = freeBrain.enabled && !childBenignReserved && bw2Route.takes;
+    // THE GENERAL FRAME (order EZIK-SORTER-ORDER-2026-10-01, part 2): the system of an adult whose final runtime
+    // is GENERAL, derived from the very system built above (so the date block is not built twice) and chosen
+    // where the free brain is called. Null means the shari'a frame, exactly as before.
+    const generalFrame = (!bw2Taken && !childBenignReserved && frameFor(currentRuntime) === 'general')
+      ? generalizeSystemBlocks(system, depthInstruction, effectiveDepth) : null;
+    const generalSystem = generalFrame && generalFrame.replaced ? generalFrame.blocks : null;
+    const answerFrame = generalSystem ? 'general' : 'sharia';
     console.log('[free-brain]', {
       enabled: freeBrain.enabled, reason: freeBrain.reason, childBenignReserved,
       lexicalRoute: effectiveRoute, band, audienceBand, bw2: bw2Taken, liveSearch,
+      runtime: currentRuntime, frame: answerFrame,
     });
     // PIPES fix 3: set when the before-writing path found no text in our own sources and handed the turn on
     // unfinished; today's path below then runs as the live offer would have run it, with no button.
@@ -1894,7 +1954,7 @@ export default async function handler(req, res) {
       const t = bw2Out ? bw2Out.telemetry : null;
       if (t) {
         console.log('[bw2]', {
-          bw2: t.bw2,
+          bw2: t.bw2, runtime: currentRuntime, frame: answerFrame,
           fatwaMs: t.fatwaMs, fatwaHits: t.fatwaHits, fatwaTimedOut: t.fatwaTimedOut,
           libraryMs: t.libraryMs, libraryHits: t.libraryHits, libraryTimedOut: t.libraryTimedOut,
           encyclopediaMs: t.encyclopediaMs, encyclopediaHits: t.encyclopediaHits, encyclopediaTimedOut: t.encyclopediaTimedOut,
@@ -1963,7 +2023,7 @@ export default async function handler(req, res) {
       try {
         out = await runFreeBrainTurn({
           messages: body.messages,
-          system: appendDepthBlock(system, buildFreeBrainInstruction({ band })),
+          system: appendDepthBlock(generalSystem || system, buildFreeBrainInstruction({ band })),
           model,
           maxTokens,
           usePremium,

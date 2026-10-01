@@ -271,8 +271,26 @@ const BW2_FIELDS = [
   'continued',
 ];
 
+// -- RULE B, CONTINUED: THE FRONT SORTER AND THE FRAME (order EZIK-SORTER-ORDER-2026-10-01, part 3) --
+//
+// The live measurement that stands in for a shadow mode: both decisions, the lexical and the final, for
+// every question, and nothing of the question. Every one is a closed word or a number built in
+// api/ask.js from the request's own control state (lib/front-sorter.js, lib/general-frame.js).
+// guards/front-sorter-guard.cjs holds the vocabularies closed. NEVER the question text, never a
+// fingerprint of it.
+const SORTER_FIELDS = [
+  // closed enum -- the runtime the lexicon decided (STORED_FIQH, HADITH, GENERAL, LOCAL_QURAN, LOCAL_ADHKAR,
+  // LOCAL_WORSHIP), and the final one after the sorter. Both come out of classifyReligiousRuntime's own return.
+  'lexicalRuntime', 'runtime',
+  // closed enum -- not_asked | ruling_cue | worldly | religious | timeout | error | disabled.
+  'sorter',
+  // number of milliseconds the sorter's call took (0 when none was made).
+  'sorterMs',
+  // closed enum -- sharia | general: which system frame the free-brain seat was handed.
+  'frame',
+];
 const ALLOWED = new Set([...ALLOWED_FIELDS, ...STREAM_FIELDS, ...LIVE_WORLD_V2_FIELDS,
-  ...COLLAPSE_FIELDS, ...CALL_FAIL_FIELDS, ...BW2_FIELDS]);
+  ...COLLAPSE_FIELDS, ...CALL_FAIL_FIELDS, ...BW2_FIELDS, ...SORTER_FIELDS]);
 const NEWLINE = String.fromCharCode(10);
 
 // ── THE BOUNDARY, WRITTEN DOWN RATHER THAN LEFT TO BE REDISCOVERED ────────────
