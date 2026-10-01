@@ -83,6 +83,7 @@ async function main() {
   for (const excluded of ['canonical_store', 'estate_division']) ok('B8 scope ' + excluded + ': not asked', el({ excluded }).ask === false);
   ok('B8b another scope word does not stop it', el({ excluded: 'other' }).ask === true);
   ok('B8c a registered hadith the closed dispatcher answers: not asked (it makes no model call today)', el({ runtime: 'HADITH', closedDeen: true }).ask === false && el({ runtime: 'HADITH', closedDeen: false }).ask === true);
+  ok('B8d a grave hazard is answered by the fixed redirect: not asked', el({ hazard: true }).ask === false && el({ hazard: false }).ask === true);
   ok('B9 a ruling cue: not asked, state ruling_cue', el({ text: FIX.cuePositive[0] }).ask === false && el({ text: FIX.cuePositive[0] }).sorter === 'ruling_cue');
   ok('B10 the switch off wins over a cue (state disabled)', el({ enabled: false, text: FIX.cuePositive[0] }).sorter === 'disabled');
   ok('B11 the verdict: worldly -> GENERAL; every other state leaves the runtime',

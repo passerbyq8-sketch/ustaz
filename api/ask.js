@@ -1078,7 +1078,7 @@ export default async function handler(req, res) {
   const sorterPlan = sorterEligibility({
     enabled: frontSorter.enabled, band, freeBrainEnabled: freeBrainOnAtSorter, runtime: currentRuntime,
     liveSearch: readLiveSearch(body), excluded: bw2ScopeExclusion(currentQuestionText), text: currentQuestionText,
-    closedDeen: closedDeenAnswers,
+    closedDeen: closedDeenAnswers, hazard: graveHazard(currentQuestionText),
   });
   // The frame the free-brain seat answers in: the general one for an adult whose FINAL runtime is GENERAL,
   // whether the sorter made it so or the lexicon always had (and never with the switch off).
