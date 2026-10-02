@@ -148,7 +148,67 @@ async function main() {
       && /const impermissible = effectiveRoute === 'GEN'\s*\?\s*classifyImpermissibleRequest\(questionText\)/.test(askSource) && /return emitOnce\(impermissibleCounsel\(audienceBand\)\);/.test(askSource));
     ok('F5 the route line carries the field: `none` by default, `porn_blocked` at the block',
       /frame: frameFor\(currentRuntime\),\n\s+impermissible: 'none',/.test(askSource) && /logRoute\(\{ impermissible: 'porn_blocked' \}\);/.test(askSource));
-    ok('F6 no reader\'s age is read by the rule', !/(band|age|audience)/i.test(prSource.replace(/\/\/.*$/gm, '').replace(/impermissible-request/g, '')));
+    // FOLLOWUP 49 item 3 (the owner's decision 2). THE OLD ROW WAS EMPTY: its pattern was written with the BACKSPACE character (U+0008) where the word boundary «\b» belongs, so it matched nothing and a
+    // module reading `band` passed (the order's 'seen on the way' 1; at the head the row stood at line 151, not 123). It is a real guard now: the module's CODE — no comment, no string, no regular
+    // expression, so «age» in a comment and «images» in a list are not reads — must hold no word `band`, `age` or `audience` at word boundaries. The reading of the age is in api/ask.js alone.
+    function codeOf(src) {
+      const s = String(src);
+      let out = '';
+      let i = 0;
+      let prev = ''; // last significant char kept in `out`
+      const n = s.length;
+      const regexAllowedAfter = (c, tail) => !c || '(,=:[!&|?{};+-*%<>~^'.includes(c) || /(?:^|[^\w$.])(?:return|typeof|case|in|of|delete|void|throw|new|else|do)$/.test(tail);
+      while (i < n) {
+        const c = s[i];
+        const d = s[i + 1];
+        if (c === '/' && d === '/') { while (i < n && s[i] !== '\n') i += 1; continue; }
+        if (c === '/' && d === '*') { const e = s.indexOf('*/', i + 2); i = e < 0 ? n : e + 2; out += ' '; continue; }
+        if (c === '\'' || c === '"') {
+          i += 1;
+          while (i < n && s[i] !== c) { if (s[i] === '\\') i += 1; i += 1; }
+          i += 1; out += c + c; prev = c; continue;
+        }
+        if (c === '`') {
+          i += 1;
+          let depth = 0;
+          while (i < n && !(s[i] === '`' && depth === 0)) {
+            if (s[i] === '\\') { i += 2; continue; }
+            if (s[i] === '$' && s[i + 1] === '{') { depth += 1; i += 2; continue; }
+            if (s[i] === '}' && depth > 0) { depth -= 1; i += 1; continue; }
+            i += 1;
+          }
+          i += 1; out += '``'; prev = '`'; continue;
+        }
+        if (c === '/' && regexAllowedAfter(prev, out.slice(-12))) {
+          i += 1;
+          let inClass = false;
+          while (i < n && (inClass || s[i] !== '/')) {
+            if (s[i] === '\\') { i += 2; continue; }
+            if (s[i] === '[') inClass = true; else if (s[i] === ']') inClass = false;
+            if (s[i] === '\n') break;
+            i += 1;
+          }
+          i += 1;
+          while (i < n && /[a-z]/.test(s[i])) i += 1; // flags
+          out += '//'; prev = '/'; continue;
+        }
+        out += c;
+        if (!/\s/.test(c)) prev = c;
+        i += 1;
+      }
+      return out;
+    }
+    const AGE_READ_RE = /\b(?:band|age|audience)\b/i;
+    const readsAge = (src) => AGE_READ_RE.test(codeOf(src));
+    ok('F6 no reader\'s age is read by the rule (the module\'s code, with word boundaries)', !readsAge(prSource));
+    // the decoys are not reads: the same words in a comment, a block comment, a string, a list, a regular expression and as part of another word
+    const DECOYS = ['// the age of the reader\nconst a = 1;', '/** of every age and band */\nconst a = 1;', "const m = 'audience band age';", "const L = ['images', 'usage', 'page'];", 'const r = /age|band/u;', 'const stage = 1; const bandwidth = 2; const audienceBand = 3;'];
+    ok('F6 decoys: a word in a comment, a string, a list, a regular expression or inside another word is no read', DECOYS.every((d) => !readsAge(prSource + '\n' + d)), JSON.stringify(DECOYS.filter((d) => readsAge(prSource + '\n' + d))));
+    // the mutants: the unit starts to read the age, three ways and in three places
+    const READS = [['band', 'const b = input.band;'], ['age', 'function g(age) { return age; }'], ['audience', 'const a = ctx.audience;'], ['band after a regex and a string', "const q = /x/u.test('y'); const z = band;"]];
+    READS.forEach(([name, code]) => ok('F6 MUTANT KILLED: a read of `' + name + '` in the module goes red', readsAge(prSource + '\n' + code) && readsAge(code + '\n' + prSource)));
+    // and the old row, as it was written, would not have caught any of them (the backspace pattern matches nothing)
+    ok('F6 the old backspace pattern missed every one of them', READS.every(([, code]) => !new RegExp('\b(band|age|audience)\b', 'i').test(prSource + '\n' + code)));
     const iQuoteGate = at("if (libQuoteOn && band === 'adult'");
     ok('F8 (3.1c) the pornography decision is made before the library-quote exit and the exit stands down for it',
       iDecide > 0 && iQuoteGate > iDecide && /if \(libQuoteOn && band === 'adult' && libFlagValue === 'on' && libToken !== '' && !pornBlocked\) \{/.test(askSource));
