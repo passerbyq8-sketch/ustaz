@@ -378,10 +378,47 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       ok('T5d a row cited twice gets one card', twice.deltas.filter((d) => d.includes('<source')).length === 1
         && twice.out.telemetry.cardsSent === 1);
       const cap = BW2.BW2_CAPS.fatwa;
+      const UNITS_E = await esm('lib/bw2-units.js');
       const many = Array.from({ length: 5 }, (_, i) => ({ ...ROW_F1, url: 'https://binbaz.org.sa/fatwas/9' + i, recordId: '9' + i }));
       const m = await run({ fatwa: many, writerText: MASAH_RULING + ' [[1, 2, 3, 4, 5]].' });
-      ok('T5e within today\'s MAX_SOURCES rule: at most 3 page cards', m.deltas.filter((d) => d.includes('<source')).length === 3 && cap >= 5,
+      // COMPREHENSIVE 3.4e: it read «at most 3 page cards» (MAX_SOURCES) for one sentence citing five rows; a sentence is now followed by at most
+      // BW2_CARDS_PER_UNIT cards (the owner's note 8: every card follows a sentence that relies on it, or it is not shown), so one.
+      ok('T5e within the owner\'s rule of 2 Oct: one sentence citing five rows is followed by ONE card (the first row it cites), and cap >= 5 rows are still pinned',
+        m.deltas.filter((d) => d.includes('<source')).length === UNITS_E.BW2_CARDS_PER_UNIT && UNITS_E.BW2_CARDS_PER_UNIT === 1 && cap >= 5,
         String(m.deltas.filter((d) => d.includes('<source')).length));
+      // ---- 3.4e the cards of a sentence that cites several rows: no card follows a card
+      const two = await run({ fatwa: [ROW_F1, ROW_F2], writerText: MASAH_RULING + ' [[1, 2]].' });
+      const twoCards = two.deltas.filter((d) => d.includes('<source'));
+      ok('3.4e-1 a sentence citing two rows is followed by one card, the first row\'s, right after it; the second card does not follow the first',
+        twoCards.length === 1 && twoCards[0].includes('/fatwas/1234') && !two.deltas.join('').includes('/fatwas/5678') && two.out.telemetry.cardsSent === 1,
+        ascii(JSON.stringify(two.deltas)));
+      const later = await run({ fatwa: [ROW_F1, ROW_F2], writerText: MASAH_RULING + ' [[1, 2]]. ' + MASAH_TERM + ' [[2]].' });
+      const iA = later.deltas.findIndex((d) => d.includes('/fatwas/1234'));
+      const iB = later.deltas.findIndex((d) => d.includes('/fatwas/5678'));
+      ok('3.4e-2 the held card goes out after a LATER sentence that cites that row again, and right after it: unit, card, unit, card',
+        iA > 0 && iB > iA + 1 && later.deltas[iA - 1].includes(MASAH_RULING) && later.deltas[iB - 1].includes(MASAH_TERM) && !later.deltas[iB - 1].includes('<source')
+        && later.out.telemetry.cardsSent === 2, ascii(JSON.stringify(later.deltas)));
+      const mixed = await run({ fatwa: [ROW_F1], libOn: true, library: [ROW_L1], writerText: MASAH_RULING + ' [[1, 3]].' });
+      ok('3.4e-3 a sentence citing a page and a book: one card after it, the first cited (the page); the book\'s card is not put behind it',
+        mixed.deltas.filter((d) => d.includes('<source')).length === 1 && mixed.deltas.filter((d) => d.includes('<book')).length === 0, ascii(JSON.stringify(mixed.deltas)));
+      // mutant: the number of cards per sentence raised again (a temp copy beside the module)
+      {
+        const fsx = require('fs');
+        const srcU = fsx.readFileSync(path.join(REPO, 'lib/bw2-units.js'), 'utf8');
+        const seam = 'export const BW2_CARDS_PER_UNIT = 1;';
+        const tmpMod = path.join(REPO, 'lib', '.mut-bw2-units-34e.mjs');
+        try {
+          ok('3.4e MUTANT applied (seam found once)', srcU.split(seam).length === 2);
+          fsx.writeFileSync(tmpMod, srcU.split(seam).join('export const BW2_CARDS_PER_UNIT = 3;'));
+          const MU = await import(require('url').pathToFileURL(tmpMod).href + '?m=34e');
+          const out = [];
+          const rel = MU.createBw2Releaser({ rows: [{ ...ROW_F1, ref: 1 }, { ...ROW_F2, ref: 2 }], emit: (p) => { out.push(p); return true; },
+            cards: { buildSourceTag: (row) => ({ tag: '<source url="' + row.url + '">x</source>', url: row.url }), buildBookTag: () => null, max: 5 } });
+          rel.push(MASAH_RULING + ' [[1, 2]].\n');
+          await rel.end();
+          ok('3.4e MUTANT KILLED: with three cards per sentence the second card follows the first again', out.filter((p) => p.includes('<source')).length === 2);
+        } finally { try { fsx.rmSync(tmpMod, { force: true }); } catch { /* nothing to clean */ } }
+      }
     }
 
     // ---------------------------------------------------------------- T6
