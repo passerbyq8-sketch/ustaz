@@ -2928,12 +2928,13 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     {
       const fsx = require('fs');
       const srcT = fsx.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
-      const seam = "    if (asked && asksGradeOrSource(input.question) && typeof input.lookup === 'function') {";
+      // MOVED BY FIX 48 item 6: the row-58 branch is the function gradingHeadForQuestion now (applyTakhrij calls it at its no_matn exit); the mutant switches it off there.
+      const seam = "  if (!(asked && asksGradeOrSource(input.question) && typeof input.lookup === 'function')) return null;";
       ok('R58 MUTANT applied (seam found once)', srcT.split(seam).length === 2);
       const tmpDir = fsx.mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-r58-mut-'));
       try {
         const file = path.join(tmpDir, 'mut.mjs');
-        fsx.writeFileSync(file, srcT.split(seam).join("    if (false && asked && asksGradeOrSource(input.question) && typeof input.lookup === 'function') {").replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        fsx.writeFileSync(file, srcT.split(seam).join("  if (true) return null;").replace(/from\s+(['"])(\.[^'"]*)\1/gu,
           (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
         const cwd = process.cwd();
         process.chdir(REPO);
@@ -2949,6 +2950,31 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
   // holds the words as a commentator's sentence («قال المصنف رحمه الله: ومعنى …») wrote «(البخاري)». A commentator's voice and a gloss are no narration; a Companion's or
   // a narrator's frame is NOT refused (measured on 108 real matns: refusing it lost true brackets), and that limit is pinned below.
   // ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  console.log('\n--- FIX48-6. THE HEAD OF A GRADE QUESTION IS A FUNCTION OF ITS OWN ---');
+  {
+    const T6 = await esm('lib/takhrij.js');
+    const WATAN6 = 'حب الوطن من الإيمان';
+    const TUHUR6 = 'الطهور شطر الإيمان';
+    const lib6 = lookupOf({
+      [WATAN6]: { matn: WATAN6, subjectIds: ['FC-002061'], atoms: ['36 - " ' + WATAN6 + ' ". موضوع.'] },
+      [TUHUR6]: { matn: TUHUR6, subjectIds: ['FC-000648'], atoms: [atomFor(TUHUR6, 'أبي مالك الأشعري')] },
+    });
+    const head6 = (question, lookup = lib6, env = ON) => T6.gradingHeadForQuestion({ env, question, lookup });
+    const Q6a = 'ما صحة حديث «' + WATAN6 + '»؟';
+    const h1 = await head6(Q6a);
+    const viaPass = await T6.applyTakhrij('هذا الحديث ضعيف عند كثير من أهل العلم.', { env: ON, question: Q6a, lookup: lib6 });
+    ok('FIX48-6 the function gives the head the no_matn exit wrote (row 58), byte for byte: the same string, and the exit is built on it',
+      !!h1 && h1.head === 'الحديث لا يثبت مرفوعا إلى النبي صلى الله عليه وسلم، والحكم عليه في السلسلة الضعيفة: موضوع.' && viaPass.gradingHead === h1.head
+      && viaPass.text === h1.head + '\n\nهذا الحديث ضعيف عند كثير من أهل العلم.', JSON.stringify(h1));
+    ok('FIX48-6 a text no ladder book carries: «لم تُثبت المكتبة هذا اللفظ…» and never a denial', (await head6('ما درجة حديث «النظافة من الإيمان»؟')).head === T6.GRADING_HEAD_LAFZ_NOT_PROVED);
+    ok('FIX48-6 a ladder source: «تخريج الحديث: مسلم.»', (await head6('من رواه «' + TUHUR6 + '»؟')).head === 'تخريج الحديث: مسلم.');
+    ok('FIX48-6 no head, and no cost, where none applies: a question asking no grade, one quoting nothing, no lookup, the pass off',
+      (await head6('اشرح لي حديث «' + TUHUR6 + '»')) === null && (await head6('ما درجة حديث النظافة من الإيمان؟')) === null
+      && (await T6.gradingHeadForQuestion({ env: ON, question: Q6a })) === null && (await head6(Q6a, lib6, { TAKHRIJ_V1: 'off' })) === null
+      && T6.asksGradeOfQuotedText(Q6a) === true && T6.asksGradeOfQuotedText('اشرح لي حديث «' + TUHUR6 + '»') === false && T6.asksGradeOfQuotedText('ما درجة حديث النظافة من الإيمان؟') === false);
+    ok('FIX48-6 a library call that FAILED is not a search that found nothing: no head',
+      (await head6(Q6a, lookupOf({ [WATAN6]: { matn: WATAN6, subjectIds: [], atoms: [], failure: { status: '503', error: 'lib_http_503' } } }))) === null);
+  }
   console.log('\n--- 8-د row 69. A COMMENTATOR\'S SENTENCE AND A GLOSS ARE NO NARRATION ---');
   {
     const T69 = await esm('lib/takhrij.js');

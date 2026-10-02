@@ -236,14 +236,15 @@ function libraryPlain(markup) {
     };
     const textOf = (t) => t.writes.join('').split('\n\n').filter((l) => l.startsWith('data: ')).map((l) => { try { return JSON.parse(l.slice(6)); } catch { return null; } })
       .filter((f) => f && f.type === 'content_block_delta').map((f) => f.delta.text).join('');
-    const turn = async (question, markTitle) => {
+    const turn = async (question, markTitle, gradingHead = null) => {
       const t = target();
       const facade = SSE.createFinalizedSseResponse(t, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [] }) });
       let listing = '';
       const out = await BW2.runBw2Turn({
-        question, messages: [{ role: 'user', content: question }], wire: BW2.createBw2Wire(facade), band: 'adult',
+        question, messages: [{ role: 'user', content: question }], wire: BW2.createBw2Wire(facade), band: 'adult', ...(gradingHead ? { takhrijWired: true } : {}),
         cards: { buildSourceTag: ASKM.buildSourceTag, buildBookTag: ASKM.buildBookTag, encyclopediaCards: false, max: 3 },
         deps: {
+          ...(gradingHead ? { gradingHeadForQuestion: gradingHead } : {}),
           runTool: (name, input, ctx) => (name === 'search_fatawa' ? TOOLS.runTool(name, input, { ...ctx, fetchImpl: replay }) : Promise.resolve({ text: '', added: [], calls: 0 })),
           searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true, warmEncyclopedia: () => true,
           ask: async ({ user }) => {
@@ -276,6 +277,14 @@ function libraryPlain(markup) {
     const ctl = await turn('ما حكم تغطية المرآة في غرفة النوم؟', 'الحمام المغربي للمرأة في الأماكن المخصصة للنساء');
     ok('W3b control: a question with no stored answer shows no block even when the judge marks a fatwa 2 (the floor refuses an off-question title)',
       !ctl.text.includes('نص الفتوى') && ctl.out.telemetry.directFatwa !== true, ascii(ctl.text.slice(0, 80)));
+    // FIX 48 item 6: a grade question that quotes a text and is ALSO answered by a stored fatwa: the head is the first line, the stored fatwa opens right under it, once each.
+    {
+      const HEADW = 'THE-HEAD-OF-THE-ASKED-TEXT.';
+      const Qg = WQ.w1.question + ' وهل يصح حديث «زكاة الأقمشة واجبة»؟';
+      const rg = await turn(Qg, 'حكم إخراج الزكاة من الأقمشة', async () => ({ head: HEADW, callFailures: [] }));
+      ok('FIX48-6i a stored fatwa opens the answer under the head of a grade question: the head first, once, then «نص الفتوى» letter for letter',
+        rg.out.telemetry.directFatwa === true && rg.text.startsWith(HEADW + '\n\n## نص الفتوى') && rg.text.split(HEADW).length === 2 && (rg.text.match(/نص الفتوى/gu) || []).length === 1, ascii(rg.text.slice(0, 90)));
+    }
     const one = await turn(WQ.w1.question, null);
     ok('W3b control 2: the judge marks no direct match -> no block, the answer is the writer\'s as before', !one.text.includes('نص الفتوى') && one.text.includes('تبيّن الفتوى'));
     ok('W3b judge: the system asks for 2 only for a fatwa whose own question or title asks the reader\'s question', /\b2\b/.test(BW2.BW2_JUDGE_SYSTEM) && /own question or title/i.test(BW2.BW2_JUDGE_SYSTEM));

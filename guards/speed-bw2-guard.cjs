@@ -174,7 +174,7 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
 
   function makeDeps({ fatwa = [ROW_F1, ROW_F2], library = [], encyclopedia = [], lessons = [], hang = {},
     judge = 'all', writerText = '', seed = 1, takhrij = false, writerThrows = false,
-    takhrijImpl = null, encyclopediaReady = () => true, warm = null } = {}) {
+    takhrijImpl = null, encyclopediaReady = () => true, warm = null, gradingHead = undefined } = {}) {
     const calls = { writer: 0, ask: 0, askUser: '', writerBody: null, writerAt: null, tools: [], search: 0, warm: 0 };
     const started = Date.now();
     const deps = {
@@ -220,6 +220,8 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         };
       } : undefined),
       runnerLookup: () => async () => [],
+      // FIX 48 item 6: the head of a grade question, computed beside the retrieval; absent = the real function (never reached by these rows)
+      ...(gradingHead ? { gradingHeadForQuestion: gradingHead } : {}),
     };
     return { deps, calls };
   }
@@ -735,6 +737,78 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
           const m5 = await drive5(MU5, matched5);
           ok('FIX48-5 MUTANT KILLED: without the unquoted read the unit check never asks the lookup for the saying', m5.st.takhrijLookups === 0 && !m5.text.includes('«'), JSON.stringify(m5.st));
         } finally { try { fsx.rmSync(tmp5, { force: true }); } catch { /* nothing to clean */ } }
+      }
+      // FIX 48 item 6 (the owner's decision 7): a grade question that quotes a text has its HEAD written first on the adult path, before the first unit, once.
+      // MEASURED (the 2 Oct preview, answer 2, and the measure report): the whole-answer pass that writes the head never runs on this path, so the head did not reach the adult.
+      // The head is computed beside the retrieval (deps.gradingHeadForQuestion here; lib/takhrij.js gradingHeadForQuestion in production); it goes out with the first unit and
+      // only with a unit; a failure writes nothing; and the units' own closing lookups are made WITHOUT the question, so no second head can be written beside it.
+      {
+        const HEAD6 = 'THE-HEAD-OF-THE-ASKED-TEXT.';
+        const Q_GRADE = 'هل يصح حديث «' + FASTING_MATN + '»؟';
+        const Q_GRADE_NOQUOTE = 'هل يصح هذا الحديث؟';
+        const seenQuestions = [];
+        const closing = async (text, opts) => {
+          seenQuestions.push(opts && opts.question);
+          return { text: opts && opts.question ? 'CLOSING-HEAD\n\n' + text : text, entries: [] };
+        };
+        const headCalls = [];
+        const headOf = (head) => async (input) => { headCalls.push(input.question); return head === null ? null : { head, callFailures: [] }; };
+        const g1 = await run({ question: Q_GRADE, writerText: U.matn, takhrijImpl: closing, gradingHead: headOf(HEAD6) });
+        const t1 = g1.deltas.join('');
+        ok('FIX48-6a a grade question that quotes a text: the head is the first line, once, before the first unit, then a blank line',
+          t1.startsWith(HEAD6 + '\n\n') && t1.split(HEAD6).length === 2 && t1.includes(FASTING_MATN) && headCalls[0] === Q_GRADE, ascii(t1));
+        ok('FIX48-6b ...and no second head: the units\' closing lookups were made without the question, so none was written beside it',
+          seenQuestions.length >= 1 && seenQuestions.every((q) => q === '') && !t1.includes('CLOSING-HEAD'), JSON.stringify(seenQuestions) + ascii(t1));
+        seenQuestions.length = 0; headCalls.length = 0;
+        const g2 = await run({ question: Q_MASAH, writerText: U.matn, takhrijImpl: closing, gradingHead: headOf(HEAD6) });
+        ok('FIX48-6c a question that asks no grade: no head, the head function is never asked, and the closings keep the question as they had it',
+          !g2.deltas.join('').includes(HEAD6) && headCalls.length === 0 && seenQuestions.length >= 1 && seenQuestions.every((q) => q === Q_MASAH), JSON.stringify(seenQuestions));
+        seenQuestions.length = 0; headCalls.length = 0;
+        const g3 = await run({ question: Q_GRADE_NOQUOTE, writerText: U.matn, takhrijImpl: closing, gradingHead: headOf(HEAD6) });
+        ok('FIX48-6d a grade question that quotes nothing has no text to head: no head, and the closings keep the question', !g3.deltas.join('').includes(HEAD6) && headCalls.length === 0 && seenQuestions.every((q) => q === Q_GRADE_NOQUOTE));
+        seenQuestions.length = 0; headCalls.length = 0;
+        const g4 = await run({ question: Q_GRADE, writerText: U.matn, takhrijImpl: closing, gradingHead: headOf(null) });
+        const g4t = g4.deltas.join('');
+        ok('FIX48-6e the search failed (no head): nothing is written in its place, and the closings write none either', g4t.includes(FASTING_MATN) && !g4t.includes('CLOSING-HEAD') && !g4t.includes(HEAD6), ascii(g4t));
+        const g5 = await run({ question: Q_GRADE, writerText: '', takhrijImpl: closing, gradingHead: headOf(HEAD6) });
+        ok('FIX48-6f a turn that releases nothing sends nothing of the head: the not-covered sentence stands alone', g5.deltas.join('') === NOT_COVERED && !g5.deltas.join('').includes(HEAD6), ascii(g5.deltas.join('|')));
+        const gm = await run({ question: Q_GRADE, writerText: U.matn, takhrijImpl: closing, gradingHead: async () => { throw new Error('upstream down'); } });
+        ok('FIX48-6g a head function that throws changes nothing about the answer', gm.deltas.join('').includes(FASTING_MATN) && !gm.deltas.join('').includes(HEAD6));
+        // mutants of lib/before-writing-v2.js and lib/bw2-units.js (temp copies beside the modules)
+        const fsx = require('fs');
+        const mutateModule = async (rel, seam, to, tag) => {
+          const src = fsx.readFileSync(path.join(REPO, rel), 'utf8');
+          ok('FIX48-6 MUTANT ' + tag + ' applied (seam found once)', src.split(seam).length === 2);
+          const tmp = path.join(REPO, path.dirname(rel), '.mut-fix48-6-' + tag + '.mjs');
+          fsx.writeFileSync(tmp, src.split(seam).join(to));
+          try { return await import(require('url').pathToFileURL(tmp).href + '?m=' + tag); } finally { try { fsx.rmSync(tmp, { force: true }); } catch { /* nothing to clean */ } }
+        };
+        const runWith = async (mod, opts) => {
+          const { deps } = makeDeps(opts);
+          const { target, wire } = makeWire();
+          await mod.runBw2Turn({
+            question: opts.question, messages: [{ role: 'user', content: opts.question }], mode: 'brief', band: 'adult', system: 'SYSTEM', model: 'writer-model', maxTokens: 4096,
+            providerUrl: 'https://api.anthropic.invalid/v1/messages', headers: {}, libFlagValue: '', libToken: '', lessonsToken: '', takhrijWired: true, cards, wire, requestStartedAt: Date.now(),
+            env: { BW2_RETRIEVAL_MS: '400', BW2_JUDGE_MS: '400' }, runtime: '', deps,
+          });
+          return deltasOf(framesOf(target)).join('');
+        };
+        seenQuestions.length = 0;
+        const mA = await mutateModule('lib/before-writing-v2.js', "question: gradeHeadWanted ? '' : question, env,", 'question, env,', 'closings-keep-question');
+        const tA = await runWith(mA, { question: Q_GRADE, writerText: U.matn, takhrijImpl: closing, gradingHead: headOf(HEAD6) });
+        ok('FIX48-6 MUTANT KILLED: if the closings keep the question a second head is written beside the first', tA.split('CLOSING-HEAD').length > 1 && tA.includes(HEAD6));
+        const mB = await mutateModule('lib/bw2-units.js', "const lead = leadPending;\n    leadPending = '';\n    if (!emit(lead ? lead + '\\n\\n' + piece : piece))", "const lead = '';\n    leadPending = '';\n    if (!emit(lead ? lead + '\\n\\n' + piece : piece))", 'lead-never-sent');
+        const outB = [];
+        const relB = mB.createBw2Releaser({ rows: [{ ...ROW_F1, ref: 1 }, { ...ROW_F2, ref: 2 }], emit: (p) => { outB.push(p); return true; }, leadLine: HEAD6 });
+        relB.push(U.s1 + '\n');
+        await relB.end();
+        ok('FIX48-6 MUTANT KILLED: a releaser that never sends its lead line shows no head', !outB.join('').includes(HEAD6));
+        const relOk = [];
+        const relGood = UNITS.createBw2Releaser({ rows: [{ ...ROW_F1, ref: 1 }, { ...ROW_F2, ref: 2 }], emit: (p) => { relOk.push(p); return true; }, leadLine: HEAD6 });
+        relGood.push(U.s1 + '\n' + U.s3 + '\n');
+        const sumGood = await relGood.end();
+        ok('FIX48-6h the releaser sends its lead line once, in front of the first unit, and the first unit is still the opening unit (the lead line is no part of the units\' text)',
+          relOk.join('').startsWith(HEAD6 + '\n\n') && relOk.join('').split(HEAD6).length === 2 && !sumGood.text.includes(HEAD6) && sumGood.released === 2, ascii(relOk.join('|')));
       }
       // SPEED FIX 5, C7: the source questions themselves. Their answers here name no source (a matn, its meaning, a
       // masah ruling), so nothing is proved on the asked hadith and nothing goes out but the not-covered sentence; with
