@@ -3112,11 +3112,13 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       JSON.stringify(matnsOf('وقال النبي صلى الله عليه وسلم: لا ضرر ولا ضرار وقال ﷺ: إنما الأعمال بالنيات.')) === JSON.stringify(['لا ضرر ولا ضرار', 'إنما الأعمال بالنيات'])
       && JSON.stringify(matnsOf('قال النبي صلى الله عليه وسلم: إنما الأعمال بالنيات؛ وهذا أصل في الباب.')) === JSON.stringify(['إنما الأعمال بالنيات'])
       && JSON.stringify(matnsOf('قال النبي صلى الله عليه وسلم: الدين النصيحة')) === JSON.stringify(['الدين النصيحة']));
-    ok('FIX48-5 not a saying · a Companion\'s or a scholar\'s «قال X:», a one-word reply, the Qur\'an, and a frame with three words between it and the colon read nothing',
+    // FOLLOWUP 49 item 5 (the owner's decision 4): MOVED, with its reason. This row held «a frame with three words between it and the colon reads nothing»; the owner widened exactly that (a Prophetic
+    // frame, then up to seven words, then the colon), so the same sentence is now read — its last line says so — and the rest of the row (a Companion's or a scholar's «قال X:», a one-word reply, the Qur'an) stands.
+    ok('FIX48-5 not a saying · a Companion\'s or a scholar\'s «قال X:», a one-word reply, the Qur\'an read nothing; and (FOLLOWUP 49) a frame with three words between it and the colon NOW reads its saying',
       matnsOf('وقال ابن عمر رضي الله عنهما: لا تتبع النظرة النظرة، وقال ابن باز رحمه الله: لا حرج في ذلك').length === 0
       && matnsOf('قال النبي صلى الله عليه وسلم: نعم.').length === 0
       && matnsOf('قال النبي صلى الله عليه وسلم: وأقيموا الصلاة وآتوا الزكاة.').length === 0
-      && matnsOf('قال النبي صلى الله عليه وسلم لأصحابه لما سمع ذلك منهم: ' + NZ + '.').length === 0);
+      && JSON.stringify(matnsOf('قال النبي صلى الله عليه وسلم لأصحابه لما سمع ذلك منهم: ' + NZ + '.')) === JSON.stringify([NZ]));
     ok('FIX48-5 a quoted saying is read as before and not twice: the colon before a quotation mark leaves it to the quoted path',
       JSON.stringify(matnsOf('وقال النبي صلى الله عليه وسلم: «' + NZ + '».')) === JSON.stringify([NZ]) && un('وقال النبي صلى الله عليه وسلم: «' + NZ + '».').length === 1);
     // the stored fatwa's own text: never read, whatever it holds; the writer's sentence after it still is
@@ -3163,6 +3165,96 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
         const m4 = await mutate5('quran-allowed', "if (frozenWhole && frozenWhole.kind === 'quran') continue;\n    const lead = raw.length", "const lead = raw.length");
         ok('FIX48-5 MUTANT KILLED: without the Qur\'an exclusion a verse after a Prophetic frame is a target', m4.findMatns('قال النبي صلى الله عليه وسلم: وأقيموا الصلاة وآتوا الزكاة.', { unquoted: true }).length === 1);
       } finally { try { fsx.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* temp only */ } }
+    }
+  }
+  // ── FOLLOWUP 49 item 5 · THE PROPHETIC SAYING WITH A LONGER FRAME, OR A FRAME WITH NO PROPHETIC WORD (the owner's decision 4) ───────────────────────────────────────────
+  // MEASURED at 8864c48 through the real reader and the real pass (the library twin on 127.0.0.1:8811): «قال النبي صلى الله عليه وسلم حين سئل عن أفضل الصيام بعد رمضان: شهر الله المحرم.» (seven words
+  // between the salutation and the colon), «…كما في الصحيح من حديث أبي قتادة: صيام يوم عاشوراء، …» and «لحديث: من صام رمضان ثم أتبعه ستا من شوال كان كصيام الدهر.» gave NO target. Widening (a) alone adds
+  // the first; widening (b) alone adds the other two; each is read only through the gates of 48 (the library must carry the very words, the cut at «،» «؛» the sentence end, never inside a stored fatwa).
+  // The false targets the widening opens are shut by word, not by count: a verb of speech or of report, a connector, a bracket or a digit in a filler longer than 48 allowed.
+  console.log('\n--- FOLLOWUP49-5. A LONGER PROPHETIC FRAME, AND A FRAME WITH NO PROPHETIC WORD ---');
+  {
+    const NZ5 = 'لا تتبع النظرة النظرة';
+    const un5 = (text) => T.findMatns(text, { unquoted: true });
+    const m5 = (text) => un5(text).map((m) => m.matn);
+    const W1 = 'قال النبي صلى الله عليه وسلم حين سئل عن أفضل الصيام بعد رمضان: شهر الله المحرم.';
+    const W2 = 'فقد قال النبي صلى الله عليه وسلم إنه يكفر ذنوب السنة التي قبله، كما في الصحيح من حديث أبي قتادة: صيام يوم عاشوراء، أحتسب على الله أن يكفر السنة التي قبله.';
+    const W3 = 'يستحب صيام ست من شوال لمن صام رمضان، لحديث: من صام رمضان ثم أتبعه ستا من شوال كان كصيام الدهر.';
+    ok('FOLLOWUP49-5 (a) the longer Prophetic frame: seven words between the salutation and the colon read the saying',
+      JSON.stringify(m5(W1)) === JSON.stringify(['شهر الله المحرم']) && un5(W1).every((m) => W1.slice(m.start, m.end) === m.matn));
+    ok('FOLLOWUP49-5 (b) «كما في الصحيح من حديث <صحابي>:» reads the saying (cut at the first «،» as 48 cuts it), and its lead-in is never replaced',
+      JSON.stringify(m5(W2)) === JSON.stringify(['صيام يوم عاشوراء']) && un5(W2)[0].leadStart === un5(W2)[0].start);
+    ok('FOLLOWUP49-5 (b) «لحديث:» reads the saying to the sentence end, and its lead-in is never replaced',
+      JSON.stringify(m5(W3)) === JSON.stringify(['من صام رمضان ثم أتبعه ستا من شوال كان كصيام الدهر']) && un5(W3)[0].leadStart === un5(W3)[0].start);
+    const SIB = [
+      ['«من حديث <صحابي> رضي الله عنه:»', 'ورواه مسلم من حديث أبي هريرة رضي الله عنه: من كان يؤمن بالله واليوم الآخر فليقل خيرا أو ليصمت.', ['من كان يؤمن بالله واليوم الآخر فليقل خيرا أو ليصمت']],
+      ['«من حديث <صحابي بثلاث كلمات>:»', 'كما في الصحيح من حديث أنس بن مالك: لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه.', ['لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه']],
+      ['«ولحديث:» with the conjunction', 'وهذا القول أرجح، ولحديث: لا ضرر ولا ضرار.', ['لا ضرر ولا ضرار']],
+      ['«لقوله ﷺ:» (read since 48)', 'وهذا القول أرجح، لقوله ﷺ: لا ضرر ولا ضرار.', ['لا ضرر ولا ضرار']],
+    ];
+    SIB.forEach(([id, text, want]) => ok('FOLLOWUP49-5 sibling · ' + id, JSON.stringify(m5(text)) === JSON.stringify(want), JSON.stringify(m5(text))));
+    // what is NOT a saying: somebody else speaks in the filler, a bracket, a digit, a connector, an eighth word, no colon, no Prophetic frame
+    const NOT = [
+      ['a verb of speech in the filler (the measured false target of the preview: the Companions speak)', 'والسنة أن يضاف إليه التاسع، لما ثبت أن النبي صلى الله عليه وسلم لما صام عاشوراء وأمر بصيامه قال الصحابة: يا رسول الله، إنه يوم تعظمه اليهود.'],
+      ['a scholar speaks in the filler', 'ذكر النبي صلى الله عليه وسلم ذلك في أول الأمر وقال ابن عباس: لا يجوز ذلك أبدا.'],
+      ['a bracket in the filler (a verse reference; the measured false target of the preview)', 'وقال النبي ﷺ أطلقها والقرآن أطلقها وعاشروهن بالمعروف [النساء: 19] ولهن مثل الذي عليهن.'],
+      ['a digit in the filler', 'وقال النبي ﷺ في الحديث رقم 1234 عند أبي داود: لا ضرر ولا ضرار.'],
+      ['an eighth word between the salutation and the colon', 'وقد بين النبي صلى الله عليه وسلم ذلك لأصحابه في مجلس طويل في المسجد الحرام: لا ضرر ولا ضرار.'],
+      ['a connector and a verb of speech in the name of «من حديث»', 'ورواه مسلم من حديث ابن عمر أنه قال: من كان يؤمن بالله واليوم الآخر فليقل خيرا.'],
+      ['«لحديث» that is not straight before the colon', 'وهذا القول أرجح لحديث أبي هريرة الذي رواه: لا ضرر ولا ضرار.'],
+    ];
+    NOT.forEach(([id, text]) => ok('FOLLOWUP49-5 not a saying · ' + id, m5(text).length === 0, JSON.stringify(m5(text))));
+    ok('FOLLOWUP49-5 a quoted saying after «لحديث:» is read once, by the quoted path', JSON.stringify(m5('وهذا القول أرجح، لحديث: «' + NZ5 + '».')) === JSON.stringify([NZ5]) && un5('وهذا القول أرجح، لحديث: «' + NZ5 + '».').length === 1);
+    const STORED5 = '## نص الفتوى\n\nالسؤال: كيف أصلي خلف الإمام؟\n\nالجواب: يجب عليك أن تقرأ الفاتحة؛ لحديث: لعلكم تقرؤون خلف إمامكم قلنا نعم قال لا تفعلوا إلا بفاتحة الكتاب، كما في الصحيح من حديث عبادة: لا صلاة لمن لم يقرأ بفاتحة الكتاب.\nالمفتي: ابن باز\n';
+    ok('FOLLOWUP49-5 stored · neither widening reads inside a stored fatwa; the writer\'s own sentence after it is read', m5(STORED5).length === 0 && JSON.stringify(m5(STORED5 + W3)) === JSON.stringify(['من صام رمضان ثم أتبعه ستا من شوال كان كصيام الدهر']));
+    ok('FOLLOWUP49-5 default · without the option nothing unquoted is read, and the question\'s asked text is read as before', [W1, W2, W3].every((t) => T.findMatns(t).length === 0 && T.findTargets(t).targets.length === 0));
+    // delivered through the real pass, with a library that carries the saying and one that does not
+    const lookup5 = lookupOf({ [NZ5]: { matn: NZ5, subjectIds: ['FC-000774'], atoms: [atomFor(NZ5, 'علي')] } });
+    const spoken5 = 'وهذا القول أرجح، لحديث: ' + NZ5 + '، وهو واضح.';
+    const r5 = await T.applyTakhrij(spoken5, { env: ON, lookup: lookup5 });
+    ok('FOLLOWUP49-5 delivered · «لحديث: …» the library carries leaves in guillemets with what it proved; the words before and after are byte for byte',
+      r5.applied === true && r5.text.startsWith('وهذا القول أرجح، لحديث: «' + NZ5 + '» (الضياء في المختارة') && r5.text.endsWith('، وهو واضح.'), JSON.stringify(r5.text));
+    const r5b = await T.applyTakhrij('فقد روى ذلك الحاكم في كتابه، كما في الصحيح من حديث علي: ' + NZ5 + '، وهو واضح.', { env: ON, lookup: lookup5 });
+    ok('FOLLOWUP49-5 delivered · «من حديث X:» the same', r5b.applied === true && r5b.text.includes('«' + NZ5 + '» (الضياء في المختارة') && r5b.text.startsWith('فقد روى ذلك الحاكم في كتابه، كما في الصحيح من حديث علي: '), JSON.stringify(r5b.text));
+    const none5 = 'قال النبي صلى الله عليه وسلم حين سئل عن أفضل الصيام بعد رمضان: ' + MATN + '.';
+    const r5n = await T.applyTakhrij(none5, { env: ON, lookup: lookup5 });
+    ok('FOLLOWUP49-5 delivered · a saying the library does not carry: nothing is written, not one character moves', r5n.text === none5 && r5n.applied === false, JSON.stringify(r5n.text));
+    // the cap: an unquoted saying never takes the slot of a quoted matn
+    const QS = ['أول', 'ثان', 'ثالث', 'رابع', 'خامس', 'سادس'].map((n) => 'وقال النبي ﷺ: «حديث رقم ' + n + ' في الباب».');
+    const crowded = 'قال النبي ﷺ: ' + NZ5 + '، وهذا واضح.\n' + 'وقال النبي ﷺ: لا ضرر ولا ضرار.\n' + QS.join('\n');
+    const rows5 = (await T.applyTakhrij(crowded, { env: ON, lookup: async (ms) => ms.map((matn) => ({ matn, subjectIds: [], atoms: [] })) })).entries;
+    ok('FOLLOWUP49-5 cap · the six quoted matns keep their slots; the unquoted ones that stood before them are the ones over the cap',
+      rows5.filter((e) => e.from === 'prose' && e.declined === 'over_matn_cap').every((e) => [NZ5, 'لا ضرر ولا ضرار'].includes(e.matn))
+      && rows5.filter((e) => e.declined === 'over_matn_cap').length === 2 && !rows5.some((e) => /حديث رقم/u.test(e.matn) && e.declined === 'over_matn_cap'), JSON.stringify(rows5.map((e) => [e.matn.slice(0, 18), e.declined || ''])));
+    // the mutants
+    {
+      const fsx = require('fs');
+      const srcT5 = fsx.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+      const tmpDir5 = fsx.mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-fu49-5-mut-'));
+      const mutate55 = async (name, seam, to) => {
+        ok('FOLLOWUP49-5 MUTANT ' + name + ' applied (seam found once)', srcT5.split(seam).length === 2);
+        const file = path.join(tmpDir5, name + '.mjs');
+        fsx.writeFileSync(file, srcT5.split(seam).join(to).replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+        const cwd = process.cwd();
+        process.chdir(REPO);
+        try { return await import('file:///' + file.replace(/\\/g, '/') + '?m=' + name); } finally { process.chdir(cwd); }
+      };
+      try {
+        const a = await mutate55('filler-back-to-two', 'const UNQUOTED_FILLER_MAX = 7;', 'const UNQUOTED_FILLER_MAX = 2;');
+        ok('FOLLOWUP49-5 MUTANT KILLED: with the filler at two words the seven-word frame is no target again', a.findMatns(W1, { unquoted: true }).length === 0 && m5(W1).length === 1);
+        const b = await mutate55('attr-frames-off', 'const UNQUOTED_ATTR_FRAMES = true;', 'const UNQUOTED_ATTR_FRAMES = false;');
+        ok('FOLLOWUP49-5 MUTANT KILLED: without the frames of no Prophetic word «لحديث:» and «من حديث X:» are no target again', b.findMatns(W3, { unquoted: true }).length === 0 && b.findMatns(W2, { unquoted: true }).length === 0 && m5(W3).length === 1 && m5(W2).length === 1);
+        const c = await mutate55('speech-not-excluded', '  return !FILLER_UNSAFE_RE.test(fill) && !firstMatchOfPattern(fill, HUMAN_CREDIT_RE);', '  return true;');
+        ok('FOLLOWUP49-5 MUTANT KILLED: if a long filler may hold anybody\'s speech, a scholar\'s «وقال ابن عباس: …» and a verse reference become a Prophetic saying', c.findMatns(NOT[1][1], { unquoted: true }).length > 0 && c.findMatns(NOT[2][1], { unquoted: true }).length > 0 && m5(NOT[1][1]).length === 0 && m5(NOT[2][1]).length === 0);
+        const d = await mutate55('name-not-checked', "    if (isAttr ? FILLER_UNSAFE_RE.test(frame.groups.nm || '') : !fillerIsSafe(frame.groups.fill)) continue;", '    if (false) continue;');
+        ok('FOLLOWUP49-5 MUTANT KILLED: if the name of «من حديث» may hold a connector, «من حديث X أنه قال:» becomes a frame', d.findMatns(NOT[5][1], { unquoted: true }).length > 0 && m5(NOT[5][1]).length === 0);
+        const e = await mutate55('lead-replaced', '    if (isAttr) leadStart = start;', '');
+        ok('FOLLOWUP49-5 MUTANT KILLED: if the lead-in of «لحديث:» may be replaced it no longer ends at the saying\'s own start', e.findMatns(W3, { unquoted: true })[0].leadStart !== e.findMatns(W3, { unquoted: true })[0].start && un5(W3)[0].leadStart === un5(W3)[0].start);
+        const f = await mutate55('cap-by-position-again', 'const cappedIn = new Set([...found.targets].sort((a, b) => (a.unquoted ? 1 : 0) - (b.unquoted ? 1 : 0) || a.start - b.start).slice(0, TAKHRIJ_MAX_MATNS));', 'const cappedIn = new Set(found.targets.slice(0, TAKHRIJ_MAX_MATNS));');
+        const rowsF = (await f.applyTakhrij(crowded, { env: ON, lookup: async (ms) => ms.map((matn) => ({ matn, subjectIds: [], atoms: [] })) })).entries;
+        ok('FOLLOWUP49-5 MUTANT KILLED: if the cap is spent by position again, an unquoted saying in front takes the slot of a quoted matn', rowsF.some((x) => /حديث رقم/u.test(x.matn) && x.declined === 'over_matn_cap'));
+      } finally { try { fsx.rmSync(tmpDir5, { recursive: true, force: true }); } catch { /* temp only */ } }
     }
   }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
