@@ -2763,6 +2763,74 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       } finally { try { fsx.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* temp only */ } }
     }
   }
+  // ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  // COMPREHENSIVE 3.4g — the verse card is as wide as the verses the answer quotes (the owner's note 9: «Al-'Asr shown by its first verse only for quoting three»).
+  // MEASURED: the card is the model's <verse surah_num ayah> and nothing on the server compared it with the prose; lib/verse-range.js now widens it (never removes
+  // one, writes numbers alone), at the finalizer's last step.
+  // ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  console.log('\n--- 3.4g. THE VERSE CARD SHOWS THE VERSES THE ANSWER QUOTES ---');
+  {
+    const VR = await esm('lib/verse-range.js');
+    const FR = await esm('lib/finalize-reader-text.js');
+    const tag = (sn, an) => '<verse surah_num="' + sn + '" ayah="' + an + '"></verse>';
+    const ASR = 'والعصر إن الإنسان لفي خسر إلا الذين آمنوا وعملوا الصالحات وتواصوا بالحق وتواصوا بالصبر';
+    const tagsOf = (t) => [...t.matchAll(/<verse surah_num="(\d+)" ayah="(\d+)"><\/verse>/g)].map((m) => m[1] + ':' + m[2]).join(',');
+    const prose = (t) => t.replace(/<verse[^>]*><\/verse>\n?/g, '');
+    const a1 = 'قال تعالى: «' + ASR + '».\n' + tag(103, 1) + '\nوهذه السورة تبين خسارة الإنسان.';
+    const r1 = VR.widenVerseCards(a1);
+    ok('3.4g-1 the owner\'s case: an answer quoting the three verses of Al-Asr with a card for verse 1 gets one card per verse, 1 to 3, the prose untouched',
+      tagsOf(r1.text) === '103:1,103:2,103:3' && prose(r1.text) === prose(a1) && JSON.stringify(r1.widened) === JSON.stringify([{ surah: 103, from: 1, to: 3 }]), tagsOf(r1.text));
+    ok('3.4g-2 a card for verse 2 is widened to the verses quoted from it on (2-3); the one-word verse 1 is below the matcher\'s floor and is anchored by the model\'s own card only',
+      tagsOf(VR.widenVerseCards('قال تعالى: «' + ASR + '».\n' + tag(103, 2)).text) === '103:2,103:3');
+    ok('3.4g-3 nothing to do: one card per verse already; a range in ONE tag is split (the client reads the first number only); idempotent',
+      VR.widenVerseCards('قال تعالى: «' + ASR + '».\n' + tag(103, 1) + '\n' + tag(103, 2) + '\n' + tag(103, 3)).widened.length === 0
+      && tagsOf(VR.widenVerseCards('قال تعالى: «' + ASR + '».\n<verse surah_num="103" ayah="1-3"></verse>').text) === '103:1,103:2,103:3'
+      && VR.widenVerseCards(r1.text).text === r1.text);
+    ok('3.4g-4 a card is a whole verse: a sentence of a long verse (5:2) or part of 24:30 leaves its single card as it was',
+      VR.widenVerseCards('قال تعالى: «وتعاونوا على البر والتقوى ولا تعاونوا على الإثم والعدوان».\n' + tag(5, 2)).widened.length === 0
+      && tagsOf(VR.widenVerseCards('قال تعالى: «قل للمؤمنين يغضوا من أبصارهم».\n' + tag(24, 30)).text) === '24:30');
+    ok('3.4g-5 no prose quotation, a quotation of ANOTHER surah, a surah named instead of numbered, or no card: the text is returned as it came',
+      VR.widenVerseCards('وقد ورد في ذلك آية.\n' + tag(103, 1)).widened.length === 0
+      && tagsOf(VR.widenVerseCards('قال تعالى: «' + ASR + '».\n' + tag(24, 30)).text) === '24:30'
+      && VR.widenVerseCards('قال تعالى: «' + ASR + '».\n<verse surah="العصر" ayah="1"></verse>').widened.length === 0
+      && VR.widenVerseCards('قال تعالى: «' + ASR + '».').text === 'قال تعالى: «' + ASR + '».');
+    ok('3.4g-6 what is written is numbers alone: every tag it makes is exactly <verse surah_num="N" ayah="N"></verse>, with no Arabic in it',
+      [...r1.text.matchAll(/<verse[^>]*>[\s\S]*?<\/verse>/g)].every((m) => /^<verse surah_num="\d+" ayah="\d+"><\/verse>$/.test(m[0])));
+    ok('3.4g-7 a range wider than ' + VR.MAX_VERSES + ' verses is left as the model wrote it',
+      VR.widenVerseCards('قال تعالى: «' + ASR + '».\n' + tag(103, 1) + '\n' + tag(103, 40)).widened.length === 0);
+    // through the real finalizer, the last step of the seat
+    const fin = FR.finalizeReaderText({ text: a1, kind: 'answer', sources: [] });
+    const finPlain = FR.finalizeReaderText({ text: 'الصلاة خمس مرات في اليوم والليلة، وهذا مما أجمع عليه المسلمون في كل زمان.', kind: 'answer', sources: [] });
+    ok('3.4g-8 the finalizer delivers the three cards and marks the text replaced; an answer with no verse card leaves byte for byte as before',
+      fin.ok === true && tagsOf(fin.text) === '103:1,103:2,103:3' && fin.replaced === true && prose(fin.text) === prose(a1)
+      && finPlain.ok === true && finPlain.replaced === false && finPlain.text === 'الصلاة خمس مرات في اليوم والليلة، وهذا مما أجمع عليه المسلمون في كل زمان.', tagsOf(fin.text));
+    ok('3.4g-9 letter integrity: the Qur\'an text and every Arabic letter of the prose are byte-identical before and after (only card tags differ)', prose(fin.text) === prose(a1) && fin.text.includes(ASR));
+    // mutants of lib/verse-range.js (a temp copy beside it)
+    {
+      const fsx = require('fs');
+      const srcV = fsx.readFileSync(path.join(REPO, 'lib/verse-range.js'), 'utf8');
+      const mutV = async (name, from, to) => {
+        ok('3.4g MUTANT ' + name + ' applied (seam found once)', srcV.split(from).length === 2);
+        const tmp = path.join(REPO, 'lib', '.mut-verse-range-' + name + '.mjs');
+        fsx.writeFileSync(tmp, srcV.split(from).join(to));
+        try { return await import(require('url').pathToFileURL(tmp).href + '?m=' + name); } finally { /* removed below */ }
+      };
+      const tmps = [];
+      try {
+        const m1 = await mutV('anchors-only', 'const hi = Math.max(...quoted, ...own.map((t) => t.to));', 'const hi = Math.max(...own.map((t) => t.to));');
+        tmps.push('anchors-only');
+        ok('3.4g MUTANT KILLED: a normaliser that does not read the quoted verses leaves the card at verse 1', tagsOf(m1.widenVerseCards(a1).text) === '103:1');
+        const m2 = await mutV('any-surah', 'if (s === surah) quoted.push(a);', 'quoted.push(a);');
+        tmps.push('any-surah');
+        const OTHER_SURAH = 'قال تعالى: «لم يلد ولم يولد».\n' + tag(103, 1);
+        ok('3.4g MUTANT KILLED: without the surah filter a quotation of Al-Ikhlas (112:3) widens a card of Al-Asr (103:1) to 103:1-3, and the real code does not',
+          tagsOf(m2.widenVerseCards(OTHER_SURAH).text) === '103:1,103:2,103:3' && tagsOf(VR.widenVerseCards(OTHER_SURAH).text) === '103:1');
+        const m3 = await mutV('no-cap', 'if (hi - lo + 1 > MAX_VERSES) continue;', '');
+        tmps.push('no-cap');
+        ok('3.4g MUTANT KILLED: without the cap a verse-1 and verse-40 pair is stretched over forty cards', m3.widenVerseCards('قال تعالى: «' + ASR + '».\n' + tag(103, 1) + '\n' + tag(103, 40)).widened.length === 1);
+      } finally { for (const n of tmps) { try { fsx.rmSync(path.join(REPO, 'lib', '.mut-verse-range-' + n + '.mjs'), { force: true }); } catch { /* nothing to clean */ } } }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
