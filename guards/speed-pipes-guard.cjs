@@ -782,10 +782,11 @@ function libraryPlain(markup) {
         id: R1567.fatwa_id, recordHash: R1567.record_sha256, scholar: { id: 'salmajed', name: 'الشيخ سليمان الماجد', shortName: 'سليمان الماجد' },
         source: { canonicalUrl: R1567.canonical_url, retrievedAtUtc: R1567.retrieved_at_utc, url: R1567.source_url }, title: R1567.title, uid: 'salmajed:' + R1567.fatwa_id };
       const searchBody = { ...SHAPE, results: [rec], pagination: { ...SHAPE.pagination, total: 1, totalPages: 1, hasNext: false }, totalsByScholar: { ...SHAPE.totalsByScholar } };
+      let curBody = searchBody;
       const replayD = async (u) => {
         const url = String(u);
         const S0 = require('./fixtures-speed-wasl-fatwas.json');
-        const e = url.includes('/fatwas/search') ? { status: 200, ct: 'application/json', body: JSON.stringify(searchBody) } : (S0[url] || null);
+        const e = url.includes('/fatwas/search') ? { status: 200, ct: 'application/json', body: JSON.stringify(curBody) } : (S0[url] || null);
         if (!e) return { ok: false, status: 404, url, headers: { get: () => 'application/json' }, text: async () => '{}', json: async () => ({}) };
         return { ok: true, status: e.status, url, redirected: false, headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? e.ct : null) }, text: async () => e.body, json: async () => JSON.parse(e.body) };
       };
@@ -794,7 +795,8 @@ function libraryPlain(markup) {
       const textD = (t) => t.writes.join('').split('\n\n').filter((l) => l.startsWith('data: ')).map((l) => { try { return JSON.parse(l.slice(6)); } catch { return null; } })
         .filter((x) => x && x.type === 'content_block_delta').map((x) => x.delta.text).join('');
       const BW2D = await esm('lib/before-writing-v2.js');
-      const turnD = async (question, markTitle) => {
+      const turnD = async (question, markTitle, body = searchBody) => {
+        curBody = body;
         const t = targetD();
         const facade = SSED.createFinalizedSseResponse(t, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [] }) });
         const out = await BW2D.runBw2Turn({
@@ -816,18 +818,78 @@ function libraryPlain(markup) {
       ok('3.4d-6 control: the reader who asks it with the day gets the stored fatwa letter for letter (its question and answer) opening the answer, then the explanation',
         same.text.startsWith('## نص الفتوى') && same.text.replace(/\s+/gu, '').includes(R1567.question.replace(/\s+/gu, '')) && same.text.replace(/\s+/gu, '').includes(R1567.answer.replace(/\s+/gu, ''))
         && same.out.telemetry.directFatwa === true, ascii(same.text.slice(0, 80)));
+      // FIX 48 item 7 (the owner's decision 8): the real record of the 2 Oct preview's answer 1, binbaz 14896, read from the local fatwa index (read only)
+      const R14896 = {
+        id: '2a1c8e24c6c20d3d38378d19', title: 'الأيام التي يستحب فيها الصيام',
+        question: 'يقول: أرجو ذكر الأيام التي يستحب فيها الصيام، صيام التطوع، جزاكم الله خيرا.',
+        answer: 'يستحب للمسلم والمسلمة صيام الإثنين والخميس إذا تيسر ذلك، وستة أيام من شوال في الفطر الأول، ويستحب أيضا صيام عشر ذي الحجة إذا تيسر ذلك من أولها إلى التاسع لغير الحاج، أما الحاج فلا يصوم التاسع، وهو يوم عرفة. وإن صام يوما، وأفطر يوما فهذا أفضل الصيام، ويستحب صيام ثلاثة أيام من كل شهر، وإذا كانت أيام البيض؛ كان أفضل.',
+      };
+      const QA = 'هل يستحب صيام يوم عرفة؟ وما فضله؟';
+      // the record keeps 1567's scholar, host and ids (the host must agree with the scholar for the record to be usable); the TITLE, QUESTION and ANSWER are 14896's own
+      const recA = { ...rec, title: R14896.title,
+        content: { answer: R14896.answer, answerExcerpt: R14896.answer, question: R14896.question, questionExcerpt: R14896.question, type: 'question_answer' } };
+      const bodyA = { ...searchBody, results: [recA] };
+      ok('3.4d-7 (item 7) the owner\'s answer 1: the real title and question of binbaz 14896 do not open the answer for «عرفة» (2 of 3 words passed before); the occasion it lacks is named',
+        floor(QA, R14896.title).ok === false && FTD.directMatchFloor(QA, R14896.title, R14896.question).ok === false && FTD.directMatchFloor(QA, R14896.title, R14896.question).occasions.join() === 'عرفه'
+        && FTD.directMatchFloor(QA, R14896.title).shared === 2 && FTD.directMatchFloor(QA, R14896.title).of === 3, ascii(JSON.stringify(FTD.directMatchFloor(QA, R14896.title, R14896.question))));
+      ok('3.4d-8 ...it still opens the answer for the question that names no occasion («ما الأيام التي يستحب فيها الصيام؟»), and when the STORED QUESTION names the occasion',
+        FTD.directMatchFloor('ما الأيام التي يستحب فيها الصيام؟', R14896.title, R14896.question).ok === true
+        && FTD.directMatchFloor(QA, R14896.title, 'ما فضل صيام يوم عرفة؟ وهل يستحب؟').occasions.length === 0 && FTD.directMatchFloor(QA, R14896.title, 'ما فضل صيام يوم عرفة؟ وهل يستحب؟').ok === true);
+      const SIB2 = [
+        ['ما حكم صيام يوم عاشوراء؟', 'الأيام التي يستحب فيها الصيام', 'حكم صيام يوم عاشوراء', 'عاشوراء'],
+        ['ما فضل صيام شهر شعبان؟', 'فضل صيام التطوع', 'فضل صيام شهر شعبان', 'شعبان'],
+        ['هل يجوز صيام يوم الجمعة منفردا؟', 'حكم صيام التطوع منفردا', 'حكم صيام يوم الجمعة منفردا', 'جمعه'],
+        ['ما حكم صلاة التراويح في البيت؟', 'حكم صلاة النافلة في البيت', 'حكم صلاة التراويح في البيت', 'تراويح'],
+        ['ما حكم قيام ليلة القدر؟', 'فضل قيام الليل', 'فضل قيام ليلة القدر', 'قدر'],
+      ];
+      for (const [q, general, specific, name] of SIB2) {
+        const g = FTD.directMatchFloor(q, general, ''), sp = FTD.directMatchFloor(q, specific, '');
+        ok('3.4d-9 sibling «' + ascii(name) + '»: the general fatwa is vetoed for the occasion the reader names, the fatwa that carries it passes',
+          g.ok === false && g.occasions.length === 1 && sp.ok === true && sp.occasions.length === 0, ascii(JSON.stringify([g, sp])));
+      }
+      ok('3.4d-10 «عرفة» and «الوقوف» are one thing: either covers the other, in the title or in the stored question',
+        FTD.directMatchFloor('هل يستحب صيام يوم عرفة؟', 'استحباب صيام الوقوف بالحج', '').occasions.length === 0
+        && FTD.directMatchFloor('هل يستحب صيام يوم الوقوف؟', 'استحباب صيام عرفة', '').occasions.length === 0
+        && FTD.directMatchFloor('هل يستحب صيام يوم عرفة؟', 'استحباب الصيام', 'ما حكم صيام يوم الوقوف').occasions.length === 0);
+      ok('3.4d-11 controls: the W3b zakat questions carry no occasion except the Fitr one, whose title carries it; «قدر» as an amount is no occasion; a general question names none',
+        floor('ما حكم إخراج زكاة المال عروضا بدل النقود؟', 'حكم إخراج الزكاة من الأقمشة').ok === true && FTD.directMatchFloor('ما حكم إخراج زكاة المال عروضا بدل النقود؟', 'حكم إخراج الزكاة من الأقمشة', '').occasions.length === 0
+        && FTD.directMatchFloor('هل يجوز دفع زكاة الفطر نقودا بدل الطعام؟', 'حكم إخراج زكاة الفطر نقوداً', '').ok === true
+        && FTD.directMatchFloor('هل تجزئ زكاة الغنم نقدا؟', 'حكم إخراج القيمة في زكاة الغنم', '').ok === true
+        && FTD.directMatchFloor('ما قدر نصاب الذهب؟', 'نصاب الذهب', '').occasions.length === 0 && FTD.directMatchFloor('ما حكم قصر الصلاة للمسافر؟', 'حكم قصر الصلاة للمسافر', '').occasions.length === 0);
+      const refusedA = await turnD(QA, R14896.title, bodyA);
+      ok('3.4d-12 the real BW2 turn: the question about «عرفة», the judge marks 14896 a direct match, the floor refuses: no «نص الفتوى», no direct fatwa; the writer answers as before',
+        !refusedA.text.includes('نص الفتوى') && refusedA.out.telemetry.directFatwa !== true && refusedA.text.includes('تبيّن الفتوى'), ascii(refusedA.text.slice(0, 80)));
+      const generalA = await turnD('ما الأيام التي يستحب فيها الصيام؟', R14896.title, bodyA);
+      ok('3.4d-13 control: the question that names no occasion gets that fatwa letter for letter opening the answer', generalA.text.startsWith('## نص الفتوى') && generalA.out.telemetry.directFatwa === true, ascii(generalA.text.slice(0, 80)));
     }
     // mutant: the veto taken out of the floor (a temp copy beside the module)
     {
       const srcD = fs.readFileSync(path.join(REPO, 'lib/fatwa-title.js'), 'utf8');
-      const seam = ' && restricted.length === 0, shared,';
+      // MOVED BY FIX 48 item 7: the return statement gained the occasion veto; this mutant takes out the CONDITION veto only (` && restricted.length === 0`), as before.
+      const seam = ' && restricted.length === 0 && occasions.length === 0,';
       const tmpMod = path.join(REPO, 'lib', '.mut-fatwa-title-34d.mjs');
       try {
         ok('3.4d MUTANT applied (seam found once)', srcD.split(seam).length === 2);
-        fs.writeFileSync(tmpMod, srcD.split(seam).join(', shared,'));
+        fs.writeFileSync(tmpMod, srcD.split(seam).join(' && occasions.length === 0,'));
         const M = await import(require('url').pathToFileURL(tmpMod).href + '?m=34d');
         ok('3.4d MUTANT KILLED: without the veto the owner\'s case passes the floor again', M.directMatchFloor(QJ, R1567.title).ok === true && floor(QJ, R1567.title).ok === false);
       } finally { try { fs.rmSync(tmpMod, { force: true }); } catch { /* nothing to clean */ } }
+      // item 7's mutants: the occasion veto out; «عرفة» out of the list; «الوقوف» no longer the same thing
+      const mutOcc = async (tag, from, to) => {
+        const tmp = path.join(REPO, 'lib', '.mut-fatwa-title-item7-' + tag + '.mjs');
+        ok('3.4d item 7 MUTANT ' + tag + ' applied (seam found once)', srcD.split(from).length === 2);
+        fs.writeFileSync(tmp, srcD.split(from).join(to));
+        try { return await import(require('url').pathToFileURL(tmp).href + '?m=' + tag); } finally { try { fs.rmSync(tmp, { force: true }); } catch { /* nothing to clean */ } }
+      };
+      const QA7 = 'هل يستحب صيام يوم عرفة؟ وما فضله؟';
+      const T7 = 'الأيام التي يستحب فيها الصيام';
+      const mo1 = await mutOcc('veto-out', ' && restricted.length === 0 && occasions.length === 0,', ' && restricted.length === 0,');
+      ok('3.4d item 7 MUTANT KILLED: without the occasion veto the real fatwa of answer 1 opens the answer for «عرفة» again', mo1.directMatchFloor(QA7, T7, '').ok === true && FTD.directMatchFloor(QA7, T7, '').ok === false);
+      const mo2 = await mutOcc('arafa-out', "const OCCASION_NAMES = ['عرفة', ", 'const OCCASION_NAMES = [');
+      ok('3.4d item 7 MUTANT KILLED: with «عرفة» out of the closed list the answer-1 case passes again', mo2.directMatchFloor(QA7, T7, '').ok === true);
+      const mo3 = await mutOcc('same-out', "const OCCASION_SAME = [[stem(normalizeArabic('عرفة')), stem(normalizeArabic('الوقوف'))]];", 'const OCCASION_SAME = [];');
+      ok('3.4d item 7 MUTANT KILLED: if «الوقوف» no longer stands for «عرفة» a fatwa on the day of standing is vetoed for the question on «عرفة»',
+        mo3.directMatchFloor('هل يستحب صيام يوم عرفة؟', 'استحباب صيام الوقوف بالحج', '').occasions.length === 1 && FTD.directMatchFloor('هل يستحب صيام يوم عرفة؟', 'استحباب صيام الوقوف بالحج', '').occasions.length === 0);
     }
   }
 
