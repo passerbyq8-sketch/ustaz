@@ -799,6 +799,51 @@ function libraryPlain(markup) {
       reads(rAwwal, 1) && reads(r2, 2) && reads(r4, 4) && reads(r10, 10) && reads(rIndic, 14) && reads(rDigits, 14)
       && !!dNot && dNot.vol === null && dNot.candidates[0].titleText === BAZ,
       ascii(JSON.stringify({ a: show(rAwwal), not: dNot && [dNot.vol, dNot.candidates[0].titleText] })));
+
+    // COMPREHENSIVE 3.2 -- the genitive and accusative forms ("min al-juz' al-'ishrin"). MEASURED at bea348b: 0 of the 80 forms whose genitive
+    // differs from the nominative (the 8 tens and the 72 unit-and-tens) resolved, and 64 of them read as the FIRST word's number
+    // ("al-thani wal-'ishrin" was volume 2, not 22). The 8 tens and the 8 "al-hadi wal-..." were no volume at all.
+    const GEN = (t) => t.replace(new RegExp(String.fromCharCode(0x648, 0x646) + '$'), String.fromCharCode(0x64a, 0x646));
+    const GEN_FORMS = [];
+    TENS.forEach((t, j) => { GEN_FORMS.push([GEN(t), 20 + 10 * j]); COMPOUND.forEach((u, i) => GEN_FORMS.push([u + ' ' + WAW + GEN(t), 21 + 10 * j + i])); });
+    const genWrong = GEN_FORMS.filter(([w, n]) => { const d = LQ.detectQuoteRequest(askOf(w)); return !d || d.vol !== n || d.candidates[0].titleText !== BAZ || LQ.volumeOf(LQ.foldArabic(askOf(w))) !== n; });
+    ok('JZg every genitive form (' + GEN_FORMS.length + ': the 8 tens and the 72 unit-and-tens) gives its number and leaves the title clean; none reads as its first word',
+      GEN_FORMS.length === 80 && new Set(GEN_FORMS.map(([w]) => w)).size === 80 && genWrong.length === 0 && GEN_FORMS.every(([w]) => !FORMS.some(([x]) => x === w)),
+      ascii(JSON.stringify(genWrong.slice(0, 3).map(([, n]) => n))));
+    const g20 = await run(GEN(TENS[0]));
+    const g24 = await run(UNITS[3] + ' ' + WAW + GEN(TENS[0]));
+    const g22 = LQ.detectQuoteRequest(askOf(UNITS[1] + ' ' + WAW + GEN(TENS[0])));
+    const g40 = await run(GEN(TENS[2]));
+    ok('JZh the page path (the volume word, then its number\'s own words): "al-ishrin" reads page 254 of volume 20, "al-rabi wal-ishrin" volume 24, "al-thani wal-ishrin" is 22 (not 2) with the title clean; "al-arba\'in" (40, past the book\'s 30) is page_not_found, never volume 1',
+      reads(g20, 20) && reads(g24, 24) && !!g22 && g22.vol === 22 && g22.candidates[0].titleText === BAZ
+      && g40.vol === 40 && g40.outcome === 'page_not_found' && g40.at === null && JSON.stringify(g40.gets) === JSON.stringify(['/locate?page=254&vol=40']),
+      ascii(JSON.stringify({ g20: show(g20), g24: show(g24), g22: g22 && g22.vol, g40: show(g40) })));
+    // books of more than twenty volumes that the library holds (MEASURED 2026-10-02, read-only, on the index ezik-shamela-20260820.db: 36
+    // page-numbered or auto books carry 21 or more distinct volumes; 35 of them resolve to themselves behind a genitive volume). Four, by id.
+    const BIG = ['FC-006932', 'FC-006440', 'FC-003910', 'FC-000631'];
+    const bigBad = [];
+    for (const id of BIG) {
+      const book = LQ.catalogBook(id);
+      for (const [w, n] of [[GEN_FORMS[1][0], 21], [GEN_FORMS[2][0], 22], [GEN(TENS[1]), 30], [GEN_FORMS.find(([, v]) => v === 34)[0], 34]]) {
+        const d = book ? LQ.detectQuoteRequest(askOf(w).replace(BAZ, book.title)) : null;
+        if (!d || d.vol !== n || d.candidates[0].titleText !== book.title) bigBad.push(id + '/' + n);
+      }
+    }
+    ok('JZi four books of more than twenty volumes that the library holds, asked in the genitive (21, 22, 30, 34): the number is read and the title is the book\'s',
+      BIG.every((id) => !!LQ.catalogBook(id)) && bigBad.length === 0, ascii(JSON.stringify(bigBad)));
+    // the mutant: the genitive ending taken out of the map again (a temp copy beside the module, so its relative imports resolve)
+    {
+      const quoteSrc2 = require('fs').readFileSync(path.join(REPO, 'lib/lib-quote.js'), 'utf8');
+      const seam = "for (const ten of [t, t.replace(";
+      const tmpMod = path.join(REPO, 'lib', '.mut-lib-quote-genitive.mjs');
+      try {
+        ok('JZj applied: the genitive seam is found once', quoteSrc2.split(seam).length === 2);
+        require('fs').writeFileSync(tmpMod, quoteSrc2.split(seam).join('for (const ten of [t, 0 && t.replace('));
+        const MUT = await import(require('url').pathToFileURL(tmpMod).href + '?m=gen');
+        const mw = GEN_FORMS.filter(([w, n]) => MUT.volumeOf(MUT.foldArabic(askOf(w))) !== n).length;
+        ok('JZj KILLED: without the genitive ending in the map, the genitive forms fail again (' + mw + ' of 80 do not read as their number)', mw >= 64);
+      } finally { try { require('fs').rmSync(tmpMod, { force: true }); } catch { /* nothing to clean */ } }
+    }
   }
 
   // ---------------------------------------------------------------- W6B B5 the lessons under the answer are the lessons it rests on (K4)
