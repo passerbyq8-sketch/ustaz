@@ -1055,6 +1055,59 @@ const unsupportedIsHandledSilently = (module) => {
       await mk1('a prayer that is not the last thing in the span is dropped too (a dua outside the list would be lost with the name)', '(?:\\s+تعالى)?\\s*[،,]?$`, \'u\');', '(?:\\s+تعالى)?\\s*[،,]?`, \'u\');',
         (mod) => mod.reviewAnswer({ text: 'وقال ابن باز رحمه الله ورفع درجته: لا يجوز ذلك.', evidence: [], domain: 'fiqh', mode: 'chat' }).text === 'وقال ابن باز رحمه الله ورفع درجته: لا يجوز ذلك.');
     }
+    // ── FOLLOWUP 49 item 6 · A NAME THAT JOINS THE MAN A TITLE NAMES TO THE ROW'S OWN AUTHOR IS NOBODY'S NAME (the owner's decision 9) ───────────────────────────────────────
+    // MEASURED (the 3 Oct production text at 48): «وفصل ابن قدامة الطيار ذلك: …» under the card «وبل الغمامة في شرح عمدة الفقه لابن قدامة — عبد الله الطيار». The reviewer had NOT licensed the name (none of
+    // the licences reaches it: «فصل» is no credit frame, so the sentence was never examined). Now a run of whole words «<the man the title names> + <the end of the author's name>» is an unsupported
+    // credit whatever the verb; the author who IS the man the title names, the author's own name, and a turn with no such book row are untouched.
+    {
+      const row6 = (over = {}) => ({
+        id: 'lib:6', title: 'وبل الغمامة في شرح عمدة الفقه لابن قدامة · ج1 · ص10', url: '', scholar: 'عبد الله الطيار',
+        snippet: 'ذهب عامة متأخري الحنفية إلى أنه لا بأس بصيام هذه الست بعد الفطر، وهو مذهب الشافعية والحنابلة.',
+        date: '', kind: 'lib_book', bookTitle: 'وبل الغمامة في شرح عمدة الفقه لابن قدامة', author: 'عبد الله الطيار', ...over,
+      });
+      const REST6 = ': ذهب عامة متأخري الحنفية إلى أنه لا بأس بصيام هذه الست بعد الفطر.';
+      const say6 = (t, rows = [row6()]) => module.reviewAnswer({ text: t, evidence: rows, domain: 'fiqh', mode: 'chat' });
+      const W6 = 'وفصل ابن قدامة الطيار ذلك' + REST6;
+      ok('FOLLOWUP49-6 the production sentence: «وفصل ابن قدامة الطيار ذلك:» becomes «وفصل بعض أهل العلم ذلك:», the rest byte for byte',
+        say6(W6).text === 'وفصل بعض أهل العلم ذلك' + REST6, say6(W6).text);
+      ok('FOLLOWUP49-6 it is recorded as an unsupported credit, with the merged name', say6(W6).annotations.some((a) => a.action === 'removed-unsupported-attribution' && a.mergedBookName === true && /ابن قدامه الطيار/u.test(String(a.claimedAuthority).replace(/ة/gu, 'ه'))), JSON.stringify(say6(W6).annotations));
+      const SIB6 = [
+        ['«قال»', 'وقال ابن قدامة الطيار' + REST6, 'وقال بعض أهل العلم' + REST6],
+        ['«ذكر»', 'وذكر ابن قدامة الطيار' + REST6, 'وذكر بعض أهل العلم' + REST6],
+        ['a verb outside every credit frame («بين … ذلك»)', 'وبين ابن قدامة الطيار ذلك' + REST6, 'وبين بعض أهل العلم ذلك' + REST6],
+        ['the author\'s full name after the man the title names', 'وفصل ابن قدامة عبد الله الطيار ذلك' + REST6, 'وفصل بعض أهل العلم ذلك' + REST6],
+        ['a comma straight after the name', 'وابن قدامة الطيار، كما سبق' + REST6, 'وبعض أهل العلم، كما سبق' + REST6],
+        ['a conjunction in front of the name stays', 'ثم ابن قدامة الطيار ذلك' + REST6, 'ثم بعض أهل العلم ذلك' + REST6],
+      ];
+      SIB6.forEach(([id, input, expected]) => ok('FOLLOWUP49-6 sibling · ' + id, say6(input).text === expected, say6(input).text));
+      const owner6 = (name, rows) => say6('وقال ' + name + REST6, rows).text;
+      ok('FOLLOWUP49-6 «للإمام X»: the man the title names and the commentator who wrote the book are not one man',
+        owner6('النووي السبكي', [row6({ title: 'تكملة المجموع للإمام النووي', bookTitle: 'تكملة المجموع للإمام النووي', author: 'تقي الدين السبكي', scholar: 'تقي الدين السبكي' })]) === 'وقال بعض أهل العلم' + REST6);
+      // what is NOT a merged name
+      ok('FOLLOWUP49-6 control · the author alone is a name that is kept (his own page carries it)', owner6('عبد الله الطيار') === 'وقال عبد الله الطيار' + REST6, owner6('عبد الله الطيار'));
+      ok('FOLLOWUP49-6 control · the author who IS the man the title names («المغني لابن قدامة» — ابن قدامة المقدسي) is kept',
+        owner6('ابن قدامة المقدسي', [row6({ title: 'المغني لابن قدامة', bookTitle: 'المغني لابن قدامة', author: 'ابن قدامة المقدسي', scholar: 'ابن قدامة المقدسي' })]) === 'وقال ابن قدامة المقدسي' + REST6,
+        owner6('ابن قدامة المقدسي', [row6({ title: 'المغني لابن قدامة', bookTitle: 'المغني لابن قدامة', author: 'ابن قدامة المقدسي', scholar: 'ابن قدامة المقدسي' })]));
+      ok('FOLLOWUP49-6 control · a turn with no library book row leaves the sentence exactly as the reviewer left it before', say6(W6, []).text === W6, say6(W6, []).text);
+      ok('FOLLOWUP49-6 control · the same words in another order are no merged name', say6('وفصل الطيار ابن قدامة ذلك' + REST6).text === 'وفصل الطيار ابن قدامة ذلك' + REST6, say6('وفصل الطيار ابن قدامة ذلك' + REST6).text);
+      ok('FOLLOWUP49-6 a row that is not a library book never makes a merged name', say6(W6, [row6({ kind: '' })]).annotations.every((a) => a.mergedBookName !== true));
+      const streamed6 = (t) => { const st = module.createReviewStream({ domain: 'fiqh', evidence: [row6()] }); st.push(t); const r = st.end(); return typeof r === 'string' ? r : r.text; };
+      ok('FOLLOWUP49-6 the streamed path generalises it the same way', streamed6(W6) === say6(W6).text, streamed6(W6));
+      const mk6 = async (name, from, to, survives) => {
+        const m = await runMutant({ sourceFile: REVIEWER, name, transform: (source) => source.replace(from, to), survives });
+        ok('FOLLOWUP49-6 mutant seam applied: ' + name, m.changed, m.error);
+        ok('FOLLOWUP49-6 MUTANT KILLED: ' + name, m.loaded && m.survived === false, JSON.stringify(m));
+      };
+      const gen6 = (mod, t) => mod.reviewAnswer({ text: t, evidence: [row6()], domain: 'fiqh', mode: 'chat' }).text;
+      await mk6('the merged name is not generalised (the step is out)', '        const mergedName = generaliseMergedBookName(part, sources);\n        if (mergedName) {', '        const mergedName = null;\n        if (mergedName) {',
+        (mod) => gen6(mod, W6) === 'وفصل بعض أهل العلم ذلك' + REST6);
+      await mk6('the author who is the man the title names is generalised too', "      if (containsWholeWords(author, owner.join(' '))) continue; // the author IS the man the title names\n", '',
+        (mod) => mod.reviewAnswer({ text: 'وقال ابن قدامة المقدسي' + REST6, evidence: [row6({ title: 'المغني لابن قدامة', bookTitle: 'المغني لابن قدامة', author: 'ابن قدامة المقدسي', scholar: 'ابن قدامة المقدسي' })], domain: 'fiqh', mode: 'chat' }).text === 'وقال ابن قدامة المقدسي' + REST6);
+      await mk6('only the whole author name merges (the end of it does not)', 'for (let k = 1; k <= authorWords.length; k += 1) runs.push(', 'for (let k = authorWords.length; k <= authorWords.length; k += 1) runs.push(',
+        (mod) => gen6(mod, W6) === 'وفصل بعض أهل العلم ذلك' + REST6);
+      await mk6('the streamed path does not generalise it', '      const mergedName = generaliseMergedBookName(part, sources);\n      if (mergedName) {\n        mark();', '      const mergedName = null;\n      if (mergedName) {\n        mark();',
+        (mod) => { const st = mod.createReviewStream({ domain: 'fiqh', evidence: [row6()] }); st.push(W6); const r = st.end(); return (typeof r === 'string' ? r : r.text) === 'وفصل بعض أهل العلم ذلك' + REST6; });
+    }
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }

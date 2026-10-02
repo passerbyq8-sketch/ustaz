@@ -601,6 +601,27 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         ok('FIX48-8 MUTANT 2 KILLED: with the old sentence back the phrase the writer repeated is in what it receives, and the pin fails', OLD_PHRASE.test(strip8(M8b.bw2DirectRule(7))) && sha8(M8b.bw2DirectRule(7)) !== DIRECT7_SHA);
       } finally { try { fs.rmSync(tmpM, { force: true }); } catch { /* nothing to clean */ } }
     }
+    // FOLLOWUP 49 item 6 (the owner's decision 9) — THE BOOK AND ITS AUTHOR REACH THE WRITER UNDER TWO LABELS. MEASURED at 48: the label of a library row was one run of dashes,
+    // «كتاب — وبل الغمامة في شرح عمدة الفقه لابن قدامة — عبد الله الطيار — …», and the writer welded «لابن قدامة» (in the title) to the author: «وفصل ابن قدامة الطيار ذلك». Now: «الكتاب: …» then «المؤلّف: …».
+    {
+      const LAB = (over = {}) => ({ ref: 1, kind: 'lib_book', bookTitle: 'وبل الغمامة في شرح عمدة الفقه لابن قدامة', title: 'وبل الغمامة في شرح عمدة الفقه لابن قدامة', author: 'عبد الله الطيار', locator: 'ج1 · ص10', text: 'نص', ...over });
+      const label = BW2.sourceLabel(LAB());
+      ok('FOLLOWUP49-6 the label names the book and the author under two labels, in that order, with the locator after them',
+        label === 'الكتاب: وبل الغمامة في شرح عمدة الفقه لابن قدامة — المؤلّف: عبد الله الطيار — ج1 · ص10', label);
+      ok('FOLLOWUP49-6 a row with no author carries no «المؤلّف» label (nothing is written for an author nobody sent)', !BW2.sourceLabel(LAB({ author: '' })).includes('المؤلّف'), BW2.sourceLabel(LAB({ author: '' })));
+      ok('FOLLOWUP49-6 the pinned block shows the label once, in front of the row\'s text', BW2.renderPinnedEvidence([LAB({ writerText: 'نص الصفّ' })]).startsWith('[[1]] الكتاب: وبل الغمامة'), BW2.renderPinnedEvidence([LAB({ writerText: 'نص الصفّ' })]));
+      ok('FOLLOWUP49-6 the other kinds of row are labelled as they were (a fatwa, the encyclopedia)',
+        BW2.sourceLabel({ kind: 'fatwa', publisher: 'ابن باز', title: 'حكم' }) === 'فتوى — ابن باز — حكم' && BW2.sourceLabel({ kind: 'encyclopedia', part: 3, title: 'الموسوعة الفقهية الكويتية — الصيام' }) === 'الموسوعة الفقهية الكويتية — ج3 — الصيام');
+      const tmpL = path.join(REPO, 'lib', '.mut-fu49-6.mjs');
+      try {
+        const srcL = fs.readFileSync(path.join(REPO, 'lib/before-writing-v2.js'), 'utf8');
+        const seam = "return ['الكتاب: ' + (row.bookTitle || row.title), row.author ? 'المؤلّف: ' + row.author : '', row.locator,";
+        ok('FOLLOWUP49-6 MUTANT applied (the label line found once)', srcL.split(seam).length === 2);
+        fs.writeFileSync(tmpL, srcL.split(seam).join("return ['كتاب', row.bookTitle || row.title, row.author, row.locator,"));
+        const ML = await import(require('url').pathToFileURL(tmpL).href + '?m=fu49-6');
+        ok('FOLLOWUP49-6 MUTANT KILLED: with the one run of dashes back the title and the author are not under two labels', ML.sourceLabel(LAB()) !== label && !ML.sourceLabel(LAB()).includes('المؤلّف') && label.includes('المؤلّف'));
+      } finally { try { fs.rmSync(tmpL, { force: true }); } catch { /* nothing to clean */ } }
+    }
     {
       // R4a: q4's released first unit, uncited: its group claim now holds it.
       const q4 = await run({ question: F.q4, writerText: F.a4[0] + ' ' + U.s1 });
