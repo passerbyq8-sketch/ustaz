@@ -143,7 +143,7 @@ import { bw2ScopeExclusion } from '../lib/bw2-scope.js';
 import { frontSorterDecision, sorterEligibility, startSorter, runtimeAfterSorter } from '../lib/front-sorter.js';
 // The hard rule for pornography (order EZIK-IMPERMISSIBLE-ORDER-2026-10-01): a request for the content is answered with a fixed text,
 // for every reader, with no model call; a QUESTION about it (its ruling, its harm, quitting it) goes on to its own path.
-import { impermissibleEarlyDecision, classifyPornographyRequest, PORN_REFUSAL_TEXT } from '../lib/policy/porn-request.js';
+import { impermissibleEarlyDecision, classifyPornographyRequest, classifyYoungPornographyDoubt, PORN_REFUSAL_TEXT } from '../lib/policy/porn-request.js';
 import { generalizeSystemBlocks } from '../lib/general-frame.js';
 import { takhrijDecision, TAKHRIJ_SKIPPED_STREAMED } from '../lib/takhrij.js';
 // BATCH 4 [b18] — on its own line: guards/takhrij-contract-guard.cjs row 19 pins the line above.
@@ -1079,7 +1079,11 @@ export default async function handler(req, res) {
   const closedDeenAnswers = currentRuntime === 'HADITH'
     && !!runClosedDeenTurn(resolveStoredContext(body.messages, { currentPlan, lexicalRoute: effectiveRoute }));
   // Decided once, here, from the same text the grave-hazard check reads; answered at the hazard's seat inside the try block.
-  const pornBlocked = impermissibleEarlyDecision().enabled && classifyPornographyRequest(currentQuestionText).blocked;
+  // FIX 48 item 1(b): for the young and the teen reader (the narrower of the two claims, audienceBand above) a sentence the rule
+  // did not catch is still the fixed text when it is no question, names a thing, seeks no help and carries a pornography word.
+  // The rule itself (lib/policy/porn-request.js classifyPornographyRequest) never reads who is asking; this line is the one place that does.
+  const pornBlocked = impermissibleEarlyDecision().enabled && (classifyPornographyRequest(currentQuestionText).blocked
+    || ((audienceBand === 'young' || audienceBand === 'teen') && classifyYoungPornographyDoubt(currentQuestionText)));
   const sorterPlan = sorterEligibility({
     enabled: frontSorter.enabled, band, freeBrainEnabled: freeBrainOnAtSorter, runtime: currentRuntime,
     liveSearch: readLiveSearch(body), excluded: bw2ScopeExclusion(currentQuestionText), text: currentQuestionText,
