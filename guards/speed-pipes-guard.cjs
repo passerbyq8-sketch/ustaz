@@ -846,6 +846,113 @@ function libraryPlain(markup) {
     }
   }
 
+  // ---------------------------------------------------------------- ITEM 8-W the open app moves onto a new version by itself
+  // MEASURED (EZIK-COMPREHENSIVE-ORDER-2026-10-02, 3.3): sw.js already skipWaiting()s and clients.claim()s, so a new worker takes control
+  // of an open page at once, and the page had no controllerchange listener: it kept the old bundle until a hand reload. The logic is cut
+  // out of app.jsx (ezikStartAutoUpdate and its two helpers) and DRIVEN here with a fake worker container, fake timers and a fake store.
+  {
+    const fsu = require('fs');
+    const appSrcU = fsu.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
+    const swSrcU = fsu.readFileSync(path.join(REPO, 'sw.js'), 'utf8');
+    const from = appSrcU.indexOf('const EZIK_UPDATE_POLL_MS = ');
+    const to = appSrcU.indexOf('function useEzikAutoUpdateRoot() {');
+    ok('8W0 the update block is found whole in app.jsx, and the root hook calls it', from > 0 && to > from && /\n  useEzikAutoUpdateRoot\(\);\n/.test(appSrcU));
+    const cutSrc = from > 0 && to > from ? appSrcU.slice(from, to) : '';
+    const load = (src) => new Function(src + '\nreturn { ezikStartAutoUpdate, ezikUpdateIsIdle, ezikTrackAttach, EZIK_UPDATE_BUSY, EZIK_UPDATE_POLL_MS, EZIK_UPDATE_MIN_GAP_MS, EZIK_UPDATE_RECHECK_MS };')();
+    const rig = (mod, { controller = {}, busy = {}, stamp = null, visibility = 'visible', t0 = 1000000 } = {}) => {
+      let clock = t0;
+      const listeners = {};
+      const docListeners = {};
+      const timers = new Map();
+      let timerSeq = 0;
+      const updates = [];
+      const sw = {
+        controller,
+        addEventListener(n, fn) { (listeners[n] = listeners[n] || []).push(fn); },
+        removeEventListener(n, fn) { listeners[n] = (listeners[n] || []).filter((x) => x !== fn); },
+        getRegistration() { return Promise.resolve({ update() { updates.push(clock); return Promise.resolve(); } }); },
+      };
+      const doc = { visibilityState: visibility,
+        addEventListener(n, fn) { (docListeners[n] = docListeners[n] || []).push(fn); },
+        removeEventListener(n, fn) { docListeners[n] = (docListeners[n] || []).filter((x) => x !== fn); } };
+      const kv = new Map(stamp === null ? [] : [['ezik-update-reloaded-at', String(stamp)]]);
+      const store = { getItem: (k) => (kv.has(k) ? kv.get(k) : null), setItem: (k, v) => { kv.set(k, String(v)); } };
+      let reloads = 0;
+      const b = { loading: false, draft: false, attaching: 0, ...busy };
+      const stop = mod.ezikStartAutoUpdate({
+        sw, busy: b, store, now: () => clock, doc,
+        setTimer: (fn, ms) => { timerSeq += 1; timers.set(timerSeq, { at: clock + ms, fn }); return timerSeq; },
+        clearTimer: (id) => { timers.delete(id); },
+        reload: () => { reloads += 1; },
+      });
+      const advance = (ms) => {
+        const end = clock + ms;
+        for (;;) {
+          const due = [...timers.entries()].filter(([, v]) => v.at <= end).sort((x, y) => x[1].at - y[1].at)[0];
+          if (!due) break;
+          timers.delete(due[0]); clock = Math.max(clock, due[1].at); due[1].fn();
+        }
+        clock = end;
+      };
+      return { sw, doc, b, kv, stop, advance, fire: (n = 'controllerchange') => (listeners[n] || []).slice().forEach((fn) => fn({})),
+        fireDoc: (n) => (docListeners[n] || []).slice().forEach((fn) => fn({})), reloads: () => reloads, updates, timers, clock: () => clock };
+    };
+    const M = cutSrc ? load(cutSrc) : null;
+    if (M) {
+      // 1 update found, then controllerchange: one reload when idle
+      { const r = rig(M); r.fire(); ok('8Wa an update takes control while the app is idle: ONE reload, at once, and the time is remembered', r.reloads() === 1 && r.kv.has('ezik-update-reloaded-at')); r.fire(); r.advance(60000); ok('8Wb ...and a second controllerchange on the same page never reloads again', r.reloads() === 1); }
+      // 2 first install claiming the page is not an update
+      { const r = rig(M, { controller: null }); r.fire(); ok('8Wc a worker taking control of a page that had none (first install) reloads nothing', r.reloads() === 0 && r.timers.size >= 1);
+        r.fire(); ok('8Wd ...but the next change, a real update, does', r.reloads() === 1); }
+      // 3 busy: deferred, then done at the next idle poll, once
+      for (const [name, busy] of [['an answer being written', { loading: true }], ['unsent text or a file in the composer', { draft: true }], ['a file still being read', { attaching: 1 }]]) {
+        const r = rig(M, { busy });
+        r.fire();
+        r.advance(3 * M.EZIK_UPDATE_POLL_MS);
+        const during = r.reloads();
+        r.b.loading = false; r.b.draft = false; r.b.attaching = 0;
+        r.advance(M.EZIK_UPDATE_POLL_MS);
+        const after = r.reloads();
+        r.advance(10 * M.EZIK_UPDATE_POLL_MS);
+        ok('8We ' + name + ': no reload while it lasts (after 3 polls), ONE reload at the next idle poll, none after', during === 0 && after === 1 && r.reloads() === 1, JSON.stringify({ during, after, end: r.reloads() }));
+      }
+      // 4 once: the loop guard across a reload (the stamp in the session), and a stamp that is old enough
+      { const r = rig(M, { stamp: 1000000 - 5000 }); r.fire(); ok('8Wf a reload 5 s ago (a page that has just come back from one): refused, no loop', r.reloads() === 0); }
+      { const r = rig(M, { stamp: 1000000 - M.EZIK_UPDATE_MIN_GAP_MS - 1 }); r.fire(); ok('8Wg a reload long ago: a new version reloads again (once per version)', r.reloads() === 1); }
+      // 5 dispose
+      { const r = rig(M, { busy: { loading: true } }); r.fire(); r.stop(); r.b.loading = false; r.advance(5 * M.EZIK_UPDATE_POLL_MS); r.fire(); ok('8Wh after the page unmounts nothing reloads and no timer is left', r.reloads() === 0 && r.timers.size === 0); }
+      // 6 the update check
+      { const r = rig(M); r.advance(M.EZIK_UPDATE_RECHECK_MS + 1); r.fireDoc('visibilitychange'); await Promise.resolve(); await Promise.resolve();
+        const n1 = r.updates.length; r.fireDoc('visibilitychange'); await Promise.resolve(); await Promise.resolve();
+        ok('8Wi a visible page asks the registration for an update, at most once per ten minutes', n1 >= 1 && r.updates.length === n1, JSON.stringify({ n1, n2: r.updates.length })); }
+      { const r = rig(M, { visibility: 'hidden' }); r.advance(M.EZIK_UPDATE_RECHECK_MS * 2); r.fireDoc('visibilitychange'); await Promise.resolve(); ok('8Wj a hidden page asks nothing', r.updates.length === 0); }
+      // 7 the pure parts
+      ok('8Wk idle is exactly "no answer, no draft, no file being read"', M.ezikUpdateIsIdle({ loading: false, draft: false, attaching: 0 }) === true
+        && M.ezikUpdateIsIdle({ loading: true, draft: false, attaching: 0 }) === false && M.ezikUpdateIsIdle({ loading: false, draft: true, attaching: 0 }) === false
+        && M.ezikUpdateIsIdle({ loading: false, draft: false, attaching: 1 }) === false && M.ezikUpdateIsIdle(null) === false);
+      { let release; const p = new Promise((res) => { release = res; });
+        const tracked = M.ezikTrackAttach(p);
+        const mid = M.EZIK_UPDATE_BUSY.attaching;
+        release('x'); const v = await tracked;
+        let rejected = false; await M.ezikTrackAttach(Promise.reject(new Error('x'))).catch(() => { rejected = true; });
+        ok('8Wl the attach tracker is busy while a file is read and clear when it settles, by value or by failure', mid === 1 && v === 'x' && rejected && M.EZIK_UPDATE_BUSY.attaching === 0); }
+      // 8 the shape: the picker is tracked, the busy mirror reads the three things, sw.js's own lines are as they were
+      ok('8Wm the picker is wrapped by the tracker and the JSX handler name is unchanged', /const onPickImage = \(e\) => ezikTrackAttach\(pickImageNow\(e\)\);/.test(appSrcU) && /onChange=\{onPickImage\}/.test(appSrcU));
+      ok('8Wn the busy mirror reads the answer in flight, the composer text and the pending file',
+        /EZIK_UPDATE_BUSY\.loading = !!isLoading \|\| streamingText !== null;\n\s+EZIK_UPDATE_BUSY\.draft = input\.trim\(\) !== '' \|\| !!pendingImage;/.test(appSrcU));
+      ok('8Wo sw.js is untouched by this item: its two lines stay (CACHE name, the ?v=7 pair, skipWaiting and claim)', /'\/mushaf-lab\/app\.js\?v=7',\n\s+'\/mushaf-lab\/style\.css\?v=7',/.test(swSrcU)
+        && swSrcU.includes('self.skipWaiting();') && swSrcU.includes('self.clients.claim()') && /^const IDLE = \[/m.test(swSrcU));
+      // mutants of the cut text, each applied once and each killed
+      const mutate = (name, a, b) => { ok('8WM applied ' + name + ' (seam found once)', cutSrc.split(a).length === 2); return load(cutSrc.split(a).join(b)); };
+      { const m = mutate('no busy check', 'if (!ezikUpdateIsIdle(busy)) { pollTimer = setTimer(attempt, EZIK_UPDATE_POLL_MS); return; }', '');
+        const r = rig(m, { busy: { loading: true } }); r.fire(); ok('8WM1 KILLED: without the busy check the page reloads under an answer', r.reloads() === 1); }
+      { const m = mutate('first install counts', 'if (!hadController) { hadController = true; return; }', '');
+        const r = rig(m, { controller: null }); r.fire(); ok('8WM2 KILLED: without the first-install test a first visit reloads', r.reloads() === 1); }
+      { const m = mutate('no loop guard', 'if (last && now() - last >= 0 && now() - last < EZIK_UPDATE_MIN_GAP_MS) { pending = false; return; }', '');
+        const r = rig(m, { stamp: 1000000 - 5000 }); r.fire(); ok('8WM3 KILLED: without the stored time two workers could loop the page', r.reloads() === 1); }
+    }
+  }
+
   // ---------------------------------------------------------------- W6B B5 the lessons under the answer are the lessons it rests on (K4)
   // MEASURED (W4GAP K4): the «دروسٌ ذاتُ صلة» block was a second search of its own on the answer's first 400 characters, and
   // never the lessons the answer cited (question 7: block binbaz 31529, 2804, 9092; cited salmajed 3554, 4049, 2026). The

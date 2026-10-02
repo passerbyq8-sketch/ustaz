@@ -15098,6 +15098,7 @@ function App() {
   // THE FIFTH CHANNEL, LISTENED FOR AT THE ROOT. The shell speaks first on it, so there is no
   // press and no one screen to hang it on; it owns no screen state and renders nothing.
   useEzikNativeAuthRoot();
+  useEzikAutoUpdateRoot();
   useEzikVisualTheme();
   const [screen, setScreen] = useState('loading');
   useEzikWidgetDataRoot(screen !== 'loading');
@@ -15367,6 +15368,11 @@ function App() {
   const [streamingText, setStreamingReveal] = useState(null); // live streaming text (null = no stream in flight)
   const [readingStatus, setReadingStatus] = useState(null);
   const [streamingLiveOffer, setStreamingLiveOffer] = useState(false);
+  // ITEM 8-W: what the update listener may not interrupt (an answer in flight, text or a file the reader has not sent).
+  useEffect(() => {
+    EZIK_UPDATE_BUSY.loading = !!isLoading || streamingText !== null;
+    EZIK_UPDATE_BUSY.draft = input.trim() !== '' || !!pendingImage;
+  });
   const usedLiveOffersRef = useRef(new Set());
   const revealFullRef = useRef('');    // everything that has ARRIVED, append-only, never painted whole
   const revealAtRef = useRef(0);       // how much of it is on screen
@@ -17926,7 +17932,7 @@ function App() {
     }
   };
 
-  const onPickImage = async (e) => {
+  const pickImageNow = async (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     // الصورةُ أو الملفُّ لا يُقرآن أصلاً بلا موافقة — فالقراءةُ هنا هي الخطوةُ الأولى في طريقِ
@@ -18010,6 +18016,7 @@ function App() {
     }
     e.target.value = ''; // allow re-selecting the same file
   };
+  const onPickImage = (e) => ezikTrackAttach(pickImageNow(e));
 
   // "Searching sources…" hint (TEXT path only). On a search question, /api/ask's round 1 is
   // non-streamed + retrieval is silent, so onDelta stays quiet for ~20-35s. This is a purely
@@ -24930,6 +24937,103 @@ function useEzikNativeAuthRoot() {
     return () => {
       try { window.removeEventListener(SHELL_AUTH_SESSION, onSession); } catch (e) {}
     };
+  }, []);
+}
+
+// ============================================================
+// ITEM 8-W -- THE OPEN APP MOVES ONTO A NEW VERSION BY ITSELF
+// ============================================================
+// MEASURED (EZIK-COMPREHENSIVE-ORDER-2026-10-02, 3.3, at bea348b): sw.js already calls skipWaiting() on install and
+// clients.claim() on activate, so a new ezik-vNN worker takes control of every open page at once. Nothing in the page listened:
+// index.html's inline script only registers the worker and warms it, and this file only listened for its precache message. So the
+// worker changed under a page that kept running the bundle it had already parsed, until the reader reloaded by hand. The
+// native shells load https://ezik.app in a WebView (murabbi-shell src/SiteScreen.js) and iOS WKWebView runs no worker without
+// app-bound domains, so there the page is simply fetched fresh at each open; this is for the browser, the installed web app and
+// Android.
+//
+// THE RULE. When a worker that REPLACES one takes control, the page reloads ONCE, and only at a safe moment: never while an
+// answer is being written or streamed, never while the composer holds unsent text or a file, never while a file is still being
+// read. If it is not safe it waits and asks again (every EZIK_UPDATE_POLL_MS). A first-ever install claiming the page is not an
+// update (there was no controller before it) and reloads nothing. A reload is remembered in sessionStorage with its time, and
+// a second one inside EZIK_UPDATE_MIN_GAP_MS is refused, so two workers fighting cannot loop the page. sw.js is untouched.
+const EZIK_UPDATE_POLL_MS = 4000;
+const EZIK_UPDATE_RECHECK_MS = 10 * 60 * 1000;
+const EZIK_UPDATE_MIN_GAP_MS = 60 * 1000;
+const EZIK_UPDATE_STAMP = 'ezik-update-reloaded-at';
+// What "busy" means, mirrored from App each render and by the attach tracker; never stored, never sent.
+const EZIK_UPDATE_BUSY = { loading: false, draft: false, attaching: 0 };
+function ezikUpdateIsIdle(b) {
+  return !!b && !b.loading && !b.draft && !(b.attaching > 0);
+}
+// A file being read or decoded is busy until it settles, however it settles.
+function ezikTrackAttach(promise) {
+  EZIK_UPDATE_BUSY.attaching += 1;
+  const done = () => { EZIK_UPDATE_BUSY.attaching = Math.max(0, EZIK_UPDATE_BUSY.attaching - 1); };
+  return Promise.resolve(promise).then((v) => { done(); return v; }, (err) => { done(); throw err; });
+}
+// The whole decision, with every outside thing handed in so a guard can drive it with a fake worker container.
+function ezikStartAutoUpdate(env) {
+  const { sw, busy, store, now, setTimer, clearTimer, reload, doc } = env;
+  if (!sw || typeof sw.addEventListener !== 'function') return () => {};
+  let hadController = !!sw.controller;
+  let pending = false;
+  let reloaded = false;
+  let disposed = false;
+  let pollTimer = null;
+  let recheckTimer = null;
+  let lastCheck = now();
+  const stamp = () => { try { return Number(store && store.getItem(EZIK_UPDATE_STAMP)) || 0; } catch (e) { return 0; } };
+  const writeStamp = (t) => { try { if (store) store.setItem(EZIK_UPDATE_STAMP, String(t)); } catch (e) {} };
+  const attempt = () => {
+    pollTimer = null;
+    if (disposed || !pending || reloaded) return;
+    if (!ezikUpdateIsIdle(busy)) { pollTimer = setTimer(attempt, EZIK_UPDATE_POLL_MS); return; }
+    const last = stamp();
+    if (last && now() - last >= 0 && now() - last < EZIK_UPDATE_MIN_GAP_MS) { pending = false; return; }
+    reloaded = true;
+    writeStamp(now());
+    reload();
+  };
+  const onChange = () => {
+    if (!hadController) { hadController = true; return; }
+    if (pending || reloaded) return;
+    pending = true;
+    attempt();
+  };
+  // A page left open for days is not told by the browser that a new sw.js exists until it navigates; ask now and then.
+  const check = () => {
+    if (disposed || (doc && doc.visibilityState === 'hidden')) return;
+    const t = now();
+    if (t - lastCheck < EZIK_UPDATE_RECHECK_MS) return;
+    lastCheck = t;
+    try {
+      Promise.resolve(typeof sw.getRegistration === 'function' ? sw.getRegistration() : null)
+        .then((r) => (r && typeof r.update === 'function' ? r.update() : null)).catch(() => {});
+    } catch (e) {}
+  };
+  const tick = () => { recheckTimer = null; check(); if (!disposed) recheckTimer = setTimer(tick, EZIK_UPDATE_RECHECK_MS); };
+  try { sw.addEventListener('controllerchange', onChange); } catch (e) { return () => {}; }
+  if (doc && typeof doc.addEventListener === 'function') doc.addEventListener('visibilitychange', check);
+  recheckTimer = setTimer(tick, EZIK_UPDATE_RECHECK_MS);
+  return () => {
+    disposed = true;
+    if (pollTimer !== null) clearTimer(pollTimer);
+    if (recheckTimer !== null) clearTimer(recheckTimer);
+    try { sw.removeEventListener('controllerchange', onChange); } catch (e) {}
+    if (doc && typeof doc.removeEventListener === 'function') { try { doc.removeEventListener('visibilitychange', check); } catch (e) {} }
+  };
+}
+function useEzikAutoUpdateRoot() {
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !navigator.serviceWorker || typeof window === 'undefined') return undefined;
+    let store = null;
+    try { store = window.sessionStorage; } catch (e) { store = null; }
+    return ezikStartAutoUpdate({
+      sw: navigator.serviceWorker, busy: EZIK_UPDATE_BUSY, store, now: () => Date.now(),
+      setTimer: (fn, ms) => setTimeout(fn, ms), clearTimer: (t) => clearTimeout(t),
+      reload: () => { try { window.location.reload(); } catch (e) {} },
+      doc: typeof document !== 'undefined' ? document : null,
+    });
   }, []);
 }
 
