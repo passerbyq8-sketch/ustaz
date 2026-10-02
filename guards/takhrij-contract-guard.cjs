@@ -2944,6 +2944,59 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       } finally { try { fsx.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* temp only */ } }
     }
   }
+  // ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  // COMPREHENSIVE 8-د, row 69 — «المرساةُ تُثبِتُ قوسًا بذرّةٍ لا تحملُ المتن: ترجمةُ بابٍ · كلامُ مصنّفٍ · قولُ راوٍ». MEASURED through the real runnerLookup: an atom that
+  // holds the words as a commentator's sentence («قال المصنف رحمه الله: ومعنى …») wrote «(البخاري)». A commentator's voice and a gloss are no narration; a Companion's or
+  // a narrator's frame is NOT refused (measured on 108 real matns: refusing it lost true brackets), and that limit is pinned below.
+  // ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  console.log('\n--- 8-د row 69. A COMMENTATOR\'S SENTENCE AND A GLOSS ARE NO NARRATION ---');
+  {
+    const T69 = await esm('lib/takhrij.js');
+    const MATN69 = 'إنما الأعمال بالنيات وإنما لكل امرئ ما نوى';
+    const writes = async (atom, id = 'FC-000645') => {
+      const runTool = async () => ({ added: [{ subjectId: id, text: atom }], text: '' });
+      const lookup = T69.runnerLookup(runTool, { table: {}, degraded: [], spend: [], libFlagValue: 'on', libToken: 'x' });
+      return (await T69.applyTakhrij('قال النبي صلى الله عليه وسلم: «' + MATN69 + '».', { env: ON, lookup })).text.includes('(البخاري)');
+    };
+    const REAL = 'حدثنا سفيان عن عمر رضي الله عنه قال: قال رسول الله صلى الله عليه وسلم: «' + MATN69 + '»';
+    ok('R69-1 a real narration still writes its book', (await writes(REAL)) === true);
+    ok('R69-2 a commentator\'s sentence holding the words writes nothing: «قال المصنف رحمه الله: ومعنى …», «قال الشارح …», «قال الحافظ ابن حجر …», «قال الإمام النووي …»',
+      (await writes('قال المصنف رحمه الله: ومعنى ' + MATN69 + ' أن العمل لا يصح بلا نية')) === false
+      && (await writes('قال الشارح: ' + MATN69 + ' أصل في الباب')) === false
+      && (await writes('قال الحافظ ابن حجر: ' + MATN69 + ' أي لا عمل إلا بنية')) === false
+      && (await writes('قال الإمام النووي: ' + MATN69 + ' هذا الحديث أحد أصول الإسلام')) === false);
+    ok('R69-3 a gloss writes nothing: «ومعنى …», «ويعني …» straight before the words', (await writes('باب النية، ومعنى ' + MATN69 + ' أن الأعمال تتبع المقاصد')) === false
+      && (await writes('هذا الباب، ويعني ' + MATN69 + ' أن النية شرط')) === false);
+    ok('R69-4 a chapter title (already refused) still writes nothing', (await writes('باب قول النبي ﷺ: «' + MATN69 + '»')) === false);
+    ok('R69-5 controls: a dialogue («قال متى الساعة قال …»), a Companion relaying with the Prophet\'s frame, a grader\'s entry and a divine saying are carriers as before',
+      (await writes('قال: متى الساعة؟ قال: «' + MATN69 + '»')) === true
+      && (await writes('قال أبو هريرة: سمعت رسول الله صلى الله عليه وسلم يقول: ' + MATN69)) === true
+      && (await writes('3913 - «' + MATN69 + '» . (صحيح) [حم م] عن عمر.')) === true
+      && (await writes('قال الله تعالى: ' + MATN69)) === true);
+    ok('R69-6 THE LIMIT, stated: a Companion\'s or narrator\'s own «قال X:» is NOT refused (a Companion relays the Prophet\'s words in that frame; refusing it lost true brackets on real matns)',
+      (await writes('قال عمر رضي الله عنه: ' + MATN69)) === true && (await writes('قال يحيى بن سعيد: ' + MATN69 + ' وهذا أصل')) === true);
+    ok('R69-7 one occurrence in a real narration is enough: the same atom quoting the matn in a gloss first and in the narration after still carries it',
+      (await writes('قال الشارح: ومعنى ' + MATN69 + ' واضح. ' + REAL)) === true);
+    {
+      const fsx = require('fs');
+      const srcT = fsx.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+      const seam = 'return COMMENTATOR_BEFORE_RE.test(before) || GLOSS_BEFORE_RE.test(before);';
+      ok('R69 MUTANT applied (seam found once)', srcT.split(seam).length === 2);
+      const tmpDir = fsx.mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-r69-mut-'));
+      try {
+        const file = path.join(tmpDir, 'mut.mjs');
+        fsx.writeFileSync(file, srcT.split(seam).join('return false;').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+        const cwd = process.cwd();
+        process.chdir(REPO);
+        try {
+          const mod = await import('file:///' + file.replace(/\\/g, '/') + '?m=r69');
+          ok('R69 MUTANT KILLED: without the rule a commentator\'s sentence carries the matn again',
+            mod.atomCarriesMatn('قال المصنف رحمه الله: ومعنى ' + MATN69 + ' أن العمل لا يصح بلا نية', MATN69) === true && T69.atomCarriesMatn('قال المصنف رحمه الله: ومعنى ' + MATN69 + ' أن العمل لا يصح بلا نية', MATN69) === false);
+        } finally { process.chdir(cwd); }
+      } finally { try { fsx.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* temp only */ } }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
