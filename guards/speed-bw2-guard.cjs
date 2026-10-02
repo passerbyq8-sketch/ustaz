@@ -622,6 +622,30 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         ok('FOLLOWUP49-6 MUTANT KILLED: with the one run of dashes back the title and the author are not under two labels', ML.sourceLabel(LAB()) !== label && !ML.sourceLabel(LAB()).includes('المؤلّف') && label.includes('المؤلّف'));
       } finally { try { fs.rmSync(tmpL, { force: true }); } catch { /* nothing to clean */ } }
     }
+    // FOLLOWUP 49 item 7 (the owner's decision 8): the schools rule ends with the order's own sentence, pinned by sha256 (taken from the order file by code, never retyped), as FIX48-8 pinned its texts.
+    // MEASURED through the real retrieval (gatherBw2 and the local library twin) for «ما حكم الجهر بالبسملة في الصلاة عند المذاهب الأربعة؟»: thirteen library rows, the Shafi'i school's among them
+    // (al-Majmu' vol.3 pp.353-356, tagged shafii; the encyclopedia's «قال النووي: الجهر بالتسمية قول أكثر العلماء»), so the school was not missing from the retrieval; the writer's rule is what is added.
+    {
+      const sha7 = (x) => require('crypto').createHash('sha256').update(String(x), 'utf8').digest('hex');
+      const SENTENCE7_SHA = '2cce42ec26bc927173928fe43d355858ea0b15718efeb669af4446b7afbe62c7';
+      const rule7 = BW2.BW_MADHHAB_RULE;
+      const tail7 = rule7.slice(rule7.lastIndexOf('فإن لم يكن في الصفوف'));
+      ok('FOLLOWUP49-7a the schools rule ends with the order\'s sentence («فإن لم يكن في الصفوف نصٌّ لمذهبٍ من الأربعة فقلْ ذلك صراحةً باسمِه، ولا تسقطْه سكوتًا.»), pinned by sha256', sha7(tail7) === SENTENCE7_SHA && rule7.endsWith(tail7), sha7(tail7));
+      const asked7 = BW2.bw2RulesFor([], 'ما حكم الجهر بالبسملة في الصلاة عند المذاهب الأربعة؟', []);
+      ok('FOLLOWUP49-7b a question about the four schools gets the sentence, last of the schools rule (and with the schools that came and the one that did not named under it)', asked7.includes(tail7)
+        && BW2.madhhabRuleFor({ madhhab: { hanafi: 1, maliki: 1, shafii: 0, hanbali: 1 } }).startsWith(rule7) && BW2.madhhabRuleFor({ madhhab: { hanafi: 1, maliki: 1, shafii: 0, hanbali: 1 } }).includes('الشافعية'));
+      ok('FOLLOWUP49-7c a question that is not about the schools does not carry it', !BW2.bw2RulesFor([], 'هل يجوز المسح على الجوربين؟', []).includes(tail7));
+      const tmp7 = path.join(REPO, 'lib', '.mut-fu49-7.mjs');
+      try {
+        const src7 = fs.readFileSync(path.join(REPO, 'lib/before-writing-v2.js'), 'utf8');
+        const cut7 = src7.indexOf("  + 'فإن لم يكن في الصفوف");
+        ok('FOLLOWUP49-7 MUTANT applied (the sentence\'s line found once)', cut7 > 0 && src7.indexOf("  + 'فإن لم يكن في الصفوف", cut7 + 1) < 0);
+        const end7 = src7.indexOf('\n', cut7);
+        fs.writeFileSync(tmp7, src7.slice(0, cut7) + "  + '';" + src7.slice(end7));
+        const M7 = await import(require('url').pathToFileURL(tmp7).href + '?m=fu49-7');
+        ok('FOLLOWUP49-7 MUTANT KILLED: without the sentence the writer is not told to name a school that has no text, and the pin fails', !M7.BW_MADHHAB_RULE.endsWith(tail7) && sha7(M7.BW_MADHHAB_RULE.slice(-tail7.length)) !== SENTENCE7_SHA);
+      } finally { try { fs.rmSync(tmp7, { force: true }); } catch { /* nothing to clean */ } }
+    }
     {
       // R4a: q4's released first unit, uncited: its group claim now holds it.
       const q4 = await run({ question: F.q4, writerText: F.a4[0] + ' ' + U.s1 });
