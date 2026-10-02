@@ -557,6 +557,50 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       ok('R3h the writer is told to write the marker, and is no longer given the sentence to write',
         BW2.BW2_WRITE_RULES.includes(MARKER) && !BW2.BW2_WRITE_RULES.includes(NOT_COVERED) && ![...MARKER].some((c) => c.charCodeAt(0) > 0x7e));
     }
+    // FIX 48 item 8 (the owner's decision 9, and a technical one): the writer's instructions. MEASURED (the 2 Oct preview, answer 6): the scholars' views were in a pinned row and the writer did
+    // not carry them, since no rule asked for them; and it repeated, to the reader, the sentence of bw2DirectRule that told it where the stored fatwa stood.
+    // (a) a ninth rule asks for the views, each with its own speaker, before the explanation of the fatwa shown above; (b) bw2DirectRule is worded so that the writer has nothing of it to say back.
+    // The two texts are the order's own, pinned by sha256 (taken from the order file, never retyped) and by the shape the writer receives them in.
+    {
+      const sha8 = (x) => require('crypto').createHash('sha256').update(String(x), 'utf8').digest('hex');
+      const RULE9_SHA = '87234515e9481a28c033aa9f0b734cbb2a4d5a3f1c00d3b31f18da827ebf1415';
+      const DIRECT7_SHA = 'af9538bcbdac8b0b84495be80bc372483e82d245f8e4c1053e3eb4de06bcd2d7';
+      const lines8 = BW2.BW2_WRITE_RULES.split(String.fromCharCode(10));
+      const rule9 = lines8[lines8.length - 1];
+      ok('FIX48-8a the writer\'s rules end with a ninth: the views of the scholars, from the rows, each with its own speaker, before the explanation (pinned by sha256)',
+        lines8.length === 5 && rule9.startsWith('\u0669. ') && sha8(rule9) === RULE9_SHA, sha8(rule9));
+      const direct7 = BW2.bw2DirectRule(7);
+      ok('FIX48-8b the direct-fatwa rule is the order\'s sentence (pinned by sha256), names the fatwa [7] and cites it [[7]], and carries no phrase for the writer to repeat',
+        sha8(direct7) === DIRECT7_SHA && direct7.includes('[7]') && direct7.includes('[[7]]') && !direct7.includes('[[1]]'), sha8(direct7));
+      // not one trace of the old phrase in the module, in the rules, or in the direct rule the writer receives: the comparison is on the letters (marks removed)
+      const strip8 = (t) => String(t).replace(/[\u064b-\u0652\u0670\u0640]/g, '');
+      const OLD_PHRASE = /\u0641\u0648\u0642\s*\u062c\u0648\u0627\u0628/u;
+      const srcM = fs.readFileSync(path.join(REPO, 'lib/before-writing-v2.js'), 'utf8');
+      ok('FIX48-8c no trace of the old phrase ("above my answer") in the module, in the rules, or in the direct rule the writer receives',
+        !OLD_PHRASE.test(strip8(srcM)) && !OLD_PHRASE.test(strip8(BW2.BW2_WRITE_RULES + direct7)));
+      const rulesFor = BW2.bw2RulesFor([], 'x', []);
+      ok('FIX48-8d the writer\'s message carries the ninth rule last, after the eighth', rulesFor.endsWith(rule9) && rulesFor.indexOf('\u0668. ') < rulesFor.indexOf(rule9));
+      // mutants of the module (temp copies beside it): the ninth rule taken out; the direct rule's old sentence put back
+      const tmpM = path.join(REPO, 'lib', '.mut-fix48-8.mjs');
+      const NL = String.fromCharCode(10), BT = String.fromCharCode(96);
+      try {
+        const mark9 = "  '\\u0669. ";
+        const cut = srcM.indexOf(mark9);
+        ok('FIX48-8 MUTANT applied (the ninth rule\'s line found once)', cut > 0 && srcM.indexOf(mark9, cut + 1) < 0);
+        const cutEnd = srcM.indexOf(NL, cut);
+        fs.writeFileSync(tmpM, srcM.slice(0, cut) + srcM.slice(cutEnd + 1));
+        const M8 = await import(require('url').pathToFileURL(tmpM).href + '?m=fix48-8a');
+        ok('FIX48-8 MUTANT KILLED: without the ninth rule the writer is not asked for the views and the pin fails', M8.BW2_WRITE_RULES.split(NL).length === 4 && sha8(M8.BW2_WRITE_RULES.split(NL).pop()) !== RULE9_SHA);
+        const oldSentence = '\u0646\u064f\u0642\u0650\u0644\u064e\u062a\u0652 \u0644\u0644\u0642\u0627\u0631\u0626 \u0641\u0648\u0642\u064e \u062c\u0648\u0627\u0628\u0650\u0643 \u0627\u0644\u0641\u062a\u0648\u0649 [' + '$' + '{ref}] \u0628\u0646\u0635\u0651\u0650\u0647\u0627 \u0643\u0627\u0645\u0644\u0627\u064b.';
+        const dFn = srcM.indexOf('export function bw2DirectRule');
+        const dStart = srcM.indexOf('  return ' + BT, dFn);
+        const dEnd = srcM.indexOf(NL, dStart);
+        ok('FIX48-8 MUTANT 2 applied (the direct rule\'s return line found)', dFn > 0 && dStart > dFn && dEnd > dStart);
+        fs.writeFileSync(tmpM, srcM.slice(0, dStart) + '  return ' + BT + oldSentence + BT + ';' + srcM.slice(dEnd));
+        const M8b = await import(require('url').pathToFileURL(tmpM).href + '?m=fix48-8b');
+        ok('FIX48-8 MUTANT 2 KILLED: with the old sentence back the phrase the writer repeated is in what it receives, and the pin fails', OLD_PHRASE.test(strip8(M8b.bw2DirectRule(7))) && sha8(M8b.bw2DirectRule(7)) !== DIRECT7_SHA);
+      } finally { try { fs.rmSync(tmpM, { force: true }); } catch { /* nothing to clean */ } }
+    }
     {
       // R4a: q4's released first unit, uncited: its group claim now holds it.
       const q4 = await run({ question: F.q4, writerText: F.a4[0] + ' ' + U.s1 });
