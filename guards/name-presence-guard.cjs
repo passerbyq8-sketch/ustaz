@@ -1819,7 +1819,9 @@ const HUMAN_DIVINE_NAME_CASES = [
     // a «قال X» credit is generalised to «وقال بعض أهل العلم:» and is no longer a cut, so the reject
     // door H3 describes does not open on it. «ذكر» is outside the five and still cut: every row below
     // asserts exactly what it asserted, on a witness the door still sees.
-    const NAMED = 'ذكر ابن باز أن ' + NAMED_CLAIM;
+    // MOVED BY FIX 48 item 9 (the owner's decision 11): «ذكر X أنّ …» is no longer a cut -- it keeps its verb and takes the general speaker, like «قال X» -- so it is no longer a witness the
+    // reject door sees. The witness is a frame that is STILL cut: «قول X أنّ …» (the fifth pattern), which the reviewer removes and whose claim it keeps, exactly as «ذكر» did.
+    const NAMED = 'قول ابن باز أن ' + NAMED_CLAIM;
     const REVIEWED_CLAIM = NAMED_CLAIM + ' ' + RV.REVIEW_TAGS.ATTRIBUTION_REMOVED;
 
     const free = await LAW.driveFreeTurn({ module: loop, answer: NAMED });

@@ -381,7 +381,8 @@ const knownKey = (row) => [row.domain, row.alias, row.shape, row.flavour].join('
       'expected the tail to open on ' + JSON.stringify(CONJ_GROUP));
     eq('...and every one of those verbs carries the haraka allowance',
       tailRaw.split('|').filter((v) => !v.endsWith(MARKS)), []);
-    eq('the cue-first list is seven verbs long', leadVerbs.split('|').length, 7);
+    // MOVED BY FIX 48 item 9 (the owner's decision 11): «قرر» joined the cue-first verbs, so the list is eight verbs long (it was seven); the seventh pattern's own list grew with it.
+    eq('the cue-first list is eight verbs long', leadVerbs.split('|').length, 8);
     eq('...and the name-first list is the same list, verbatim once both allowances are normalised',
       tailVerbs, leadVerbs);
   }
