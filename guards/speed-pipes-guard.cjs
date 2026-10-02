@@ -729,6 +729,68 @@ function libraryPlain(markup) {
       ascii(JSON.stringify({ outcome: ex && ex.outcome })));
   }
 
+  // ---------------------------------------------------------------- COMPREHENSIVE 3.4b a scholar's choice after a list of schools stands in the view the row puts him in
+  // MEASURED on the real atom FC-003903:0125:001 (fixtures-comprehensive-2026-10-02.json, the library's own text): the schools are under «القول الأول», Ibn
+  // Rushd al-Jadd under «القول الثاني»; the owner's paragraph «ذهب الحنفية … واختاره ابن رشد الجد» was released and read as if he chose the first view.
+  {
+    const fs = require('fs');
+    const UNITS_B = await esm('lib/bw2-units.js');
+    const FXB = require('./fixtures-comprehensive-2026-10-02.json');
+    const hB = FXB.arafa_mubarakfuri;
+    const mkRow = (text, id) => ({ ref: 1, kind: 'lib_book', recordId: 'lib:' + id, bookTitle: 'كتاب', title: 'كتاب', author: 'مؤلف', locator: 'ج1 · ص1', fullText: text, text });
+    const REAL = mkRow(hB.text, hB.atom_id);
+    const relB = async (U, rows, writer) => {
+      const out = [];
+      const r = U.createBw2Releaser({ rows, emit: (p) => { out.push(p); return true; },
+        cards: { buildSourceTag: () => null, buildBookTag: (row) => ({ tag: '<book id="' + row.recordId + '"></book>' }), max: 5 } });
+      r.push(writer + '\n');
+      const st = await r.end();
+      return { text: out.join('').replace(/<book[^>]*><\/book>/g, '').trim(), holds: st.holds || {} };
+    };
+    const FOUR = 'ذهب الحنفية والمالكية والشافعية والحنابلة إلى أن صيام يوم عرفة أفضل من صيام يوم عاشوراء';
+    const held = (r) => r.text === '' && r.holds.unsupported_attribution === 1;
+    const kept = (r) => r.text.length > 0;
+    const b1 = await relB(UNITS_B, [REAL], FOUR + '، واختاره ابن رشد الجد [[1]].');
+    const b1b = await relB(UNITS_B, [REAL], FOUR + '، واختاره ابن رشد الجد من المالكية [[1]].');
+    const b1c = await relB(UNITS_B, [REAL], 'ذهب الحنفية والمالكية والشافعية إلى أن صيام يوم عرفة أفضل، ورجحه ابن رشد الجد [[1]].');
+    ok('3.4b-1 the owner\'s paragraph (the four schools, then «واختاره ابن رشد الجد») is held WHOLE: nothing of it is released, one unsupported_attribution',
+      held(b1) && !b1.text.includes('الحنفية'), ascii(JSON.stringify(b1)));
+    ok('3.4b-2 ...also with «من المالكية» after his name, with three schools, and with «رجحه» for the verb (siblings)', held(b1b) && held(b1c), ascii(JSON.stringify([b1b, b1c])));
+    const b3 = await relB(UNITS_B, [REAL], FOUR + ' [[1]].');
+    const b4 = await relB(UNITS_B, [REAL], FOUR + '، وهو اختيار الشيخ المباركفوري [[1]].');
+    ok('3.4b-3 controls: the list of schools alone, and the author\'s own choice («وهو اختيار الشيخ») after it, are released as before', kept(b3) && kept(b4), ascii(JSON.stringify([b3, b4])));
+    // synthetic rows of the same shape, in other words
+    const SAME = mkRow('القول الأول: صيام يوم عرفة أفضل. وقال به: الحنفية (1) , والمالكية (2) , والشافعية (3) , والحنابلة (4)، واختاره الطحاوي (5). القول الثاني: صيام يوم عاشوراء أفضل. وبه قال: ابن عباس (6).', 'FC-TEST:0001:001');
+    const NOMARK = mkRow('ذهب الحنفية والمالكية إلى أن صيام يوم عرفة أفضل، واختاره ابن تيمية (1).', 'FC-TEST:0002:001');
+    const OTHER = mkRow('الرأي الأول: يجب على الحنفية والشافعية والحنابلة. الرأي الثاني: لا يجب، قال به المالكية، واختاره ابن عبد البر (3).', 'FC-TEST:0003:001');
+    const s1 = await relB(UNITS_B, [SAME], 'ذهب الحنفية والمالكية والشافعية والحنابلة إلى أن صيام يوم عرفة أفضل، واختاره الطحاوي [[1]].');
+    const s2 = await relB(UNITS_B, [NOMARK], 'ذهب الحنفية والمالكية إلى أن صيام يوم عرفة أفضل، واختاره ابن تيمية [[1]].');
+    const s3 = await relB(UNITS_B, [OTHER], 'ذهب الحنفية والشافعية والحنابلة إلى وجوبه، واختاره ابن عبد البر [[1]].');
+    const s4 = await relB(UNITS_B, [OTHER], 'ذهب المالكية والحنفية إلى وجوبه، واختاره ابن عبد البر [[1]].');
+    ok('3.4b-4 a row that puts the scholar in the SAME view as the listed schools releases the unit', kept(s1), ascii(JSON.stringify(s1)));
+    ok('3.4b-5 a row that does not divide into views cannot place him elsewhere: released as before', kept(s2), ascii(JSON.stringify(s2)));
+    ok('3.4b-6 sibling of the owner\'s case in other words («الرأي الأول/الثاني», Ibn Abd al-Barr under the second view): held whole', held(s3) && held(s4), ascii(JSON.stringify([s3, s4])));
+    // mutants of a temp copy of the module (beside it, so its relative imports resolve)
+    {
+      const srcB = fs.readFileSync(path.join(REPO, 'lib/bw2-units.js'), 'utf8');
+      const tmpMod = path.join(REPO, 'lib', '.mut-bw2-units-34b.mjs');
+      const mutB = async (name, from, to) => {
+        ok('3.4b MUTANT ' + name + ' applied (seam found once)', srcB.split(from).length === 2);
+        fs.writeFileSync(tmpMod, srcB.split(from).join(to));
+        return import(require('url').pathToFileURL(tmpMod).href + '?m=' + name);
+      };
+      try {
+        const m1 = await mutB('no-check', 'if (schools.length >= 2 && choiceMisplaced(', 'if (false && choiceMisplaced(');
+        ok('3.4b MUTANT KILLED: without the check the owner\'s paragraph is released again', kept(await relB(m1, [REAL], FOUR + '، واختاره ابن رشد الجد [[1]].')));
+        const m2 = await mutB('anywhere', "if (segments.length < 2) { placed = true; break; }", 'placed = true; break;');
+        ok('3.4b MUTANT KILLED: a check that ignores the views (the name anywhere in the row) releases it again', kept(await relB(m2, [REAL], FOUR + '، واختاره ابن رشد الجد [[1]].')));
+        const m3 = await mutB('schools-one', 'if (schools.length >= 2 && choiceMisplaced(', 'if (schools.length >= 0 && choiceMisplaced(');
+        ok('3.4b MUTANT (the threshold of two schools) keeps the owner\'s paragraph held and a one-school unit is the only difference: it holds a one-school choice clause too',
+          held(await relB(m3, [REAL], 'ذهب الحنفية إلى أن صيام يوم عرفة أفضل، واختاره ابن رشد الجد [[1]].')) && !held(await relB(UNITS_B, [REAL], 'ذهب الحنفية إلى أن صيام يوم عرفة أفضل، واختاره ابن رشد الجد [[1]].')));
+      } finally { try { fs.rmSync(tmpMod, { force: true }); } catch { /* nothing to clean */ } }
+    }
+  }
+
   // ---------------------------------------------------------------- JUZFIX the volume named in words (EZIK-SPEED-JUZFIX-ORDER)
   // MEASURED (EZIK-SPEED-JUZPARSE-REPORT-2026-09-28): only the ten single ordinals were volume numbers, and detectPage stepped
   // over the volume word and ONE word after it. So the owner's question 3 ("page 254 of volume fourteen of Majmu' Fatawa Ibn
