@@ -4594,6 +4594,52 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp4, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── [111-b4b-47] · THE CREDITS THE SEAL DID NOT READ ──────────────────────────────────────
+  // MEASURED at eca359e: «فالحديث في أعلى درجات الصحة لاتفاق الشيخين عليه» (S-W6a) and «وفي رواية أخرى عند مسلم
+  // أيضا: «…»» (S-W7a) opened no span at all. Each is read now: what a page or the library proves stays, the rest is judged.
+  console.log('\n--- B4B-47. THE CREDITS WITH NO VERB ---');
+  {
+    const L47 = await esm('lib/takhrij-lock.js');
+    const proof = (book, matn) => ({ title: '', passage: '', proseProof: { book, matn } });
+    const page = (passage) => ({ title: 'x', passage });
+    const MATN47 = 'المسلم من سلم المسلمون من لسانه ويده';
+    const HEAD47 = 'قال رسول الله صلى الله عليه وسلم: «' + MATN47 + '».\n';
+    const ITTIFAQ = HEAD47 + 'فالحديث في أعلى درجات الصحة لاتفاق الشيخين عليه، ولا خلاف بين أهل العلم في ثبوته.';
+    ok('B4B-47 W · «لاتفاق الشيخين عليه» is read as a span, and it is the two Shaykhs\' claim',
+      L47.takhrijSpans('فالحديث في أعلى درجات الصحة لاتفاق الشيخين عليه.').some((sp) => sp.kind === 'attribution'),
+      JSON.stringify(L47.takhrijSpans('فالحديث في أعلى درجات الصحة لاتفاق الشيخين عليه.')));
+    ok('B4B-47 W · ...with nothing proving it, it does not reach the reader',
+      !L47.lockTakhrij(ITTIFAQ, []).text.includes('لاتفاق الشيخين'), JSON.stringify(L47.lockTakhrij(ITTIFAQ, []).text));
+    ok('B4B-47 W · ...and where the library proved BOTH Ṣaḥīḥs for this matn, it stays byte for byte',
+      L47.lockTakhrij(ITTIFAQ, [proof('البخاري', MATN47), proof('مسلم', MATN47)]).text === ITTIFAQ);
+    ok('B4B-47 control · one Shaykh proved is not their agreement',
+      !L47.lockTakhrij(ITTIFAQ, [proof('البخاري', MATN47)]).text.includes('لاتفاق الشيخين'));
+    // FOLLOWUP 49 item 10, row 47 — what is NOT carried from the night, with its reason (the rows for «عند مسلم» are therefore not here): read as a credit, «عند الترمذي» is judged by the literal phrase, which a page that
+    // says «روى الترمذي» never holds, so a TRUE prose credit would be cut (the sentence of the FIX48-3 draft B was cut that way); and the wider span cut a real line of the 40 answers («… صلاة في الجماعة»).
+    ok('FOLLOWUP49-47 the nouns that are not the two Shaykhs are read as before: «عند الجماعة» and «في الجماعة» and «عند الأربعة» are no credit and cut nothing',
+      (() => { const t = 'قال رسول الله صلى الله عليه وسلم: «من غش فليس مني».\nوالصلاة عند الجماعة أفضل، وفي الجماعة خير، وهو عند الأربعة كذلك.'; return L47.takhrijSpans(t).length === 0 && L47.lockTakhrij(t, []).text === t; })());
+    // (the unverbed ladder BRACKET half of item 47 is parked — see the report: the seal cannot tell the pass's own
+    // bracket from the model's without being handed it, and judging every ladder-shaped bracket removed true ones.)
+    const src47 = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seams47 = [
+      ['shaykhayn-noun', "      spans.push({ start: toks[i].start, end: toks[i + 1].end, kind: 'attribution', phrase: norm('متفق عليه') });\n", '',
+        (mod) => mod.lockTakhrij(ITTIFAQ, []).text.includes('لاتفاق الشيخين')],
+    ];
+    for (const [tag, from, to, back] of seams47) {
+      const mutated = src47.split(from).join(to);
+      ok('MUTANT B4B-47 ' + tag + ' seam applied', mutated !== src47);
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-b4b47-mut-'));
+      try {
+        const f = path.join(tmp, 'takhrij-lock.mjs');
+        fs.writeFileSync(f, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + f.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: without [b4b-47] ' + tag + ' the credit reaches the reader again', back(mod));
+      } finally {
+        try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
