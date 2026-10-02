@@ -2997,6 +2997,70 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       } finally { try { fsx.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* temp only */ } }
     }
   }
+  // ─────────────────────────────────────────────────────────────────────────────────────
+  // FIX 48 item 4 — «عن الصحابي مرفوعا: «…»» IS A PROPHETIC FRAME (the owner's decision 5). MEASURED (the 2 Oct preview, answer 2, and the measure report م٢): the two
+  // matns of that answer were no target (reason no_matn, takhrijLookups 0). «مرفوعا» is a frame only in the shape «عن <name> [رضي الله عنه/عنها/عنهما] مرفوعا» straight
+  // before a colon (or «بلفظ:») and the quotation; «مرفوعا» without the colon, «موقوفا», «عن ابن عمر قوله:» and a «مرفوعا» that stands anywhere else are not frames.
+  // ─────────────────────────────────────────────────────────────────────────────────────
+  console.log('\n--- FIX48-4. «عن X مرفوعا:» IS A PROPHETIC FRAME ---');
+  {
+    const M4 = 'من حفظ على أمتي أربعين حديثا بعثه الله يوم القيامة فقيها عالما';
+    const M4b = 'من حفظ على أمتي أربعين حديثا فيما ينفعهم من أمر دينهم بعث يوم القيامة من العلماء';
+    const seen4 = (text) => T.findMatns(text).map((m) => m.matn);
+    const frames = [
+      ['the owner\'s first frame', 'الأول: عن أبي هريرة رضي الله عنه مرفوعا: «' + M4b + '».'],
+      ['the owner\'s second frame (بلفظ)', 'والثاني: عن أنس بن مالك رضي الله عنه مرفوعا بلفظ: «' + M4 + '».'],
+      ['with the conjunction and the dual blessing', 'وعن ابن عمر رضي الله عنهما مرفوعا: «' + M4 + '».'],
+      ['the feminine blessing and vocalised', 'عن عائشة رضي الله عنها مَرْفُوعًا: «' + M4 + '».'],
+      ['a four-word name, no blessing', 'عن عبد الله بن عمرو بن العاص مرفوعا: «' + M4 + '».'],
+      ['a credit before the «عن»', 'رواه البزار عن ابن عباس مرفوعا: «' + M4 + '».'],
+    ];
+    for (const [name, text] of frames) {
+      ok('FIX48-4 frame · ' + name + ': the quoted matn is a target, its letters exactly', JSON.stringify(seen4(text)) === JSON.stringify([text.match(/«([^»]+)»/u)[1]]), JSON.stringify(seen4(text)));
+    }
+    const notFrames = [
+      ['no colon after «مرفوعا»', 'عن أبي هريرة رضي الله عنه مرفوعا «' + M4 + '».'],
+      ['«موقوفا:»', 'عن أبي هريرة رضي الله عنه موقوفا: «' + M4 + '».'],
+      ['«قوله:» (a Companion\'s own words)', 'عن ابن عمر رضي الله عنهما قوله: «' + M4 + '».'],
+      ['«مرفوعا:» with no «عن <name>» before it', 'وجاء مرفوعا: «' + M4 + '».'],
+      ['a Qur\'an verse after the frame', 'عن أبي هريرة رضي الله عنه مرفوعا: «وأقيموا الصلاة وآتوا الزكاة».'],
+      ['a scholar speaking after «مرفوعا»', 'عن أبي هريرة مرفوعا، وقال الشيخ ابن باز: «' + M4 + '».'],
+    ];
+    for (const [name, text] of notFrames) ok('FIX48-4 not a frame · ' + name + ': no target', seen4(text).length === 0, JSON.stringify(seen4(text)));
+    ok('FIX48-4 a later sentence of another speaker is no target: only the first quotation is one',
+      JSON.stringify(seen4('عن أبي هريرة رضي الله عنه مرفوعا: «' + M4b + '». وقال ابن باز: «' + M4 + '».')) === JSON.stringify([M4b]));
+    ok('FIX48-4 the older frames are as they were (the Prophet named, «حديث» beside the quotation)',
+      seen4('قال النبي صلى الله عليه وسلم: «' + M4 + '».').length === 1 && seen4('واستدلوا بحديث «' + M4 + '».').length === 1);
+    const lookup4 = lookupOf({ [M4]: { matn: M4, subjectIds: ['FC-000774'], atoms: [atomFor(M4, 'علي')] } });
+    const text4 = 'والثاني: عن أنس بن مالك رضي الله عنه مرفوعا بلفظ: «' + M4 + '».';
+    const r4 = await T.applyTakhrij(text4, { env: ON, lookup: lookup4 });
+    ok('FIX48-4 delivered: the framed matn is looked up and leaves with what the library proved, the matn\'s letters untouched',
+      r4.applied === true && r4.text.includes(M4 + '»') && /\(الضياء في المختارة/u.test(r4.text), JSON.stringify(r4.text));
+    const r4n = await T.applyTakhrij('عن أنس بن مالك رضي الله عنه موقوفا: «' + M4 + '».', { env: ON, lookup: lookup4 });
+    ok('FIX48-4 delivered: a «موقوفا» matn is left exactly as written (no lookup, no parentheses)', r4n.applied === false && r4n.text === 'عن أنس بن مالك رضي الله عنه موقوفا: «' + M4 + '».', JSON.stringify(r4n.text));
+    {
+      const fsx = require('fs');
+      const srcT = fsx.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+      const tmpDir = fsx.mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-fix48-4-mut-'));
+      const mutate4 = async (name, seam, to) => {
+        ok('FIX48-4 MUTANT ' + name + ' applied (seam found once)', srcT.split(seam).length === 2);
+        const file = path.join(tmpDir, name + '.mjs');
+        fsx.writeFileSync(file, srcT.split(seam).join(to).replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+        const cwd = process.cwd();
+        process.chdir(REPO);
+        try { return await import('file:///' + file.replace(/\\/g, '/') + '?m=' + name); } finally { process.chdir(cwd); }
+      };
+      try {
+        const m1 = await mutate4('frame-off', 'if (marfuFrame) lastFrame = Math.max(', 'if (false) lastFrame = Math.max(');
+        ok('FIX48-4 MUTANT KILLED: without the frame the owner\'s two matns are no target again', frames.slice(0, 2).every(([, text]) => m1.findMatns(text).length === 0));
+        const m2 = await mutate4('colon-optional', ")?[:\\uFF1A]\\\\s*$', 'u');", ")?[:\\uFF1A]?\\\\s*$', 'u');");
+        ok('FIX48-4 MUTANT KILLED: with the colon optional «مرفوعا «…»» becomes a target', m2.findMatns(notFrames[0][1]).length === 1 && seen4(notFrames[0][1]).length === 0);
+        const m3 = await mutate4('any-word', "'(' + tolerant('مرفوعا') + ')", "'(' + '[\\u0621-\\u064A]+' + ')");
+        ok('FIX48-4 MUTANT KILLED: if any word may stand for «مرفوعا», «موقوفا:» and «قوله:» become targets', m3.findMatns(notFrames[1][1]).length === 1 && m3.findMatns(notFrames[2][1]).length === 1 && seen4(notFrames[1][1]).length === 0);
+      } finally { try { fsx.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* temp only */ } }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
