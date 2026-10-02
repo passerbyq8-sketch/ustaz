@@ -888,6 +888,50 @@ const unsupportedIsHandledSilently = (module) => {
         '  const companion = isCompanionName(attribution.claimed) // [h53]\n    || (', '  const companion = (',
         (mod) => !/بعض أهل العلم/u.test(mod.reviewAnswer({ text: W53('C53-qala-umar-bare'), evidence: [], domain: 'fiqh', mode: 'chat' }).text));
     }
+    // ── COMPREHENSIVE 8-د, row 66 · A FRAME WITH NO NAME GETS NO CLASS AFTER «أنه قال» ─────────────────────────────────────────────────
+    // The owner's own words (B4B §٦٦): «إطارٌ بلا اسمٍ لا يُحشى فيه صنفٌ بعدَ «أنه قال»؛ الاسمُ بعدَ «عن» ليس فاعلًا». MEASURED at bea348b, live in the
+    // preview: «ونقل الخطيب البغدادي عن يحيى بن معين أنه قال: إنه كذب لا أصل له.» → «…أنه قال بعض أهل العلم: إنه كذب…». «حكى … عن … أنه قال» and
+    // «ذكر … عن … أنه قال» too. The hearsay frame stays as written; the plain «قال X:» is generalised exactly as before.
+    {
+      const say66 = (t) => module.reviewAnswer({ text: t, evidence: [], domain: 'fiqh', mode: 'chat' }).text;
+      const HEARSAY = [
+        'ونقل الخطيب البغدادي عن يحيى بن معين أنه قال: إنه كذب لا أصل له.',
+        'وحكى ابن عبد البر عن مالك أنه قال: لا بأس بذلك.',
+        'وذكر الخطيب البغدادي عن يحيى بن معين أنه قال: إنه كذب.',
+        'وأورد الذهبي عن أبي حاتم أنه قال: منكر الحديث.',
+      ];
+      HEARSAY.forEach((t, i) => ok('c66 hearsay frame #' + i + ': exactly as the model wrote it (no «بعض أهل العلم» behind «أنه قال»)', say66(t) === t, say66(t)));
+      ok('c66 control: «وقال ابن باز: …» and «ثم قال ابن عثيمين: …» are generalised exactly as before',
+        say66('وقال ابن باز: لا يجوز ذلك.') === 'وقال بعض أهل العلم: لا يجوز ذلك.' && say66('ثم قال ابن عثيمين: إنه مكروه.') === 'وقال بعض أهل العلم: إنه مكروه.');
+      const m66 = await runMutant({ sourceFile: REVIEWER, name: 'without row 66 hearsay frames are stuffed again',
+        transform: (source) => source.replace("    if (/(?:^|\\s)أن(?:ه|ها)\\s*$/u.test(view(text.slice(0, m.index)))) continue;", ''),
+        survives: (mod) => mod.reviewAnswer({ text: HEARSAY[0], evidence: [], domain: 'fiqh', mode: 'chat' }).text === HEARSAY[0] });
+      ok('c66 mutant seam applied', m66.changed, m66.error);
+      ok('MUTANT KILLED: without the hearsay rule «…أنه قال بعض أهل العلم:» comes back', m66.loaded && m66.survived === false, JSON.stringify(m66));
+    }
+    // ── COMPREHENSIVE 8-د, row 67 · A SAYING VERB LEFT WITH NOBODY TO SAY IT TAKES THE GENERAL SPEAKER ─────────────────────────────────
+    // The owner's: «وذكر ابن حجر عن الدارقطني أنه قال:» ⟸ «قال:». MEASURED at bea348b through the real reviewer: a credit whose verb is outside the five frames
+    // («ذكر») went whole and left a bare «قال: تفرد به فلان.» with no speaker. It now reads «وقال بعض أهل العلم: …», the formula «وقال X:» already takes; the words
+    // after the colon are byte for byte.
+    {
+      const say67 = (t) => module.reviewAnswer({ text: t, evidence: [], domain: 'fiqh', mode: 'chat' }).text;
+      const W67 = [
+        ['وذكر ابن حجر عن الدارقطني أنه قال: تفرد به فلان.', 'وقال بعض أهل العلم: تفرد به فلان.'],
+        ['وقد ذكر ابن حجر عن الدارقطني أنه قال: تفرد به فلان.', 'وقال بعض أهل العلم: تفرد به فلان.'],
+        ['وذكر ابن حجر عن الدارقطني قال: تفرد به فلان.', 'وقال بعض أهل العلم: تفرد به فلان.'],
+      ];
+      W67.forEach(([input, expected], i) => ok('c67 witness #' + i + ': no bare «قال:» is left; the general speaker stands in the frame', say67(input) === expected, say67(input)));
+      ok('c67 controls: a frame that names its book, a reporter that is a hearsay frame, and a plain «قال X:» are exactly as before',
+        say67('وذكر ابن حجر في الفتح عن الدارقطني أنه قال: تفرد به فلان.') === 'وذكر ابن حجر في الفتح عن الدارقطني أنه قال: تفرد به فلان.'
+        && say67('ونقل الخطيب عن ابن معين أنه قال: ثقة.') === 'ونقل الخطيب عن ابن معين أنه قال: ثقة.'
+        && say67('وقال ابن باز: لا يجوز ذلك.') === 'وقال بعض أهل العلم: لا يجوز ذلك.');
+      ok('c67 the words after the colon are letter for letter what the model wrote', say67(W67[0][0]).endsWith(': تفرد به فلان.'));
+      const m67 = await runMutant({ sourceFile: REVIEWER, name: 'without row 67 a bare «قال:» is left behind',
+        transform: (source) => source.replace('if (!head) return givesBareSayingASpeaker(detachWeldedSubject(claim));', 'if (!head) return detachWeldedSubject(claim);'),
+        survives: (mod) => mod.reviewAnswer({ text: W67[0][0], evidence: [], domain: 'fiqh', mode: 'chat' }).text === W67[0][1] });
+      ok('c67 mutant seam applied', m67.changed, m67.error);
+      ok('MUTANT KILLED: without the rule «قال: تفرد به فلان.» comes back', m67.loaded && m67.survived === false, JSON.stringify(m67));
+    }
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
