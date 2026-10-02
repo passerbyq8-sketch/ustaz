@@ -2710,6 +2710,59 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     const mTk = await mutateModule('lib/takhrij.js', "const needle = core !== full && core.split(' ').filter(Boolean).length >= MIN_ANCHOR_WORDS ? core : full;", 'const needle = full;', 'verb');
     ok('3.4a MUTANT KILLED: without reading the leading verb off, «كان يقول: X» is carried by no atom', mTk.atomCarriesMatn(BOOK_WORDING, SAYING) === false && T.atomCarriesMatn(BOOK_WORDING, SAYING) === true);
   }
+  // ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  // COMPREHENSIVE 3.4c — «لا تتبع النظرة النظرة» shown with no grade (the owner's answer 3). MEASURED through the real handler with the real library: the
+  // sentence in « » or “ ” is graded (الضياء في المختارة · حسن); in STRAIGHT double quotes, which is how the answer stood on his screen, it was no_matn:
+  // QUOTE_RE knew only the other two. Unquoted sayings are NOT made targets (see the report: the file's §٢-ج scopes the contract to a text quoted verbatim).
+  // ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  console.log('\n--- 3.4c. A SAYING IN STRAIGHT QUOTES IS A MATN ---');
+  {
+    const NAZRA = 'لا تتبع النظرة النظرة';
+    const FRAME = 'وقال النبي صلى الله عليه وسلم: ';
+    const seen = (text) => T.findMatns(text).map((m) => m.matn);
+    ok('3.4c-1 a Prophetic saying in straight quotes is found, its letters exactly', JSON.stringify(seen(FRAME + '"' + NAZRA + '".')) === JSON.stringify([NAZRA]));
+    ok('3.4c-2 the guillemets and the curly quotes are found as before',
+      seen(FRAME + '«' + NAZRA + '».').length === 1 && seen(FRAME + '“' + NAZRA + '”.').length === 1);
+    ok('3.4c-3 the Qur\'an after the Prophetic frame stays no hadith, in straight quotes too', seen(FRAME + '"وأقيموا الصلاة وآتوا الزكاة".').length === 0);
+    ok('3.4c-4 no Prophetic frame, no target: «قال الله: "…"» and a scholar\'s quotation in straight quotes are not matns',
+      seen('قال الله تعالى: "' + NAZRA + '".').length === 0 && seen('وقال ابن باز رحمه الله: "' + NAZRA + '".').length === 0);
+    ok('3.4c-5 an ODD number of straight quotes in the chunk is not guessed at: read as before (no target for the straight ones)',
+      seen(FRAME + '"' + NAZRA + '" وهذا "قول.').length === 0 && seen(FRAME + '"' + NAZRA + '" وهذا قول.').length === 1);
+    ok('3.4c-6 the answer\'s own two sayings in straight quotes are both found, in order',
+      JSON.stringify(seen(FRAME + '"' + NAZRA + '"، وقال ﷺ: "' + MATN + '".')) === JSON.stringify([NAZRA, MATN]));
+    ok('3.4c-7 a verse quoted in straight quotes beside the saying does not disturb it (the answer 3 shape)',
+      JSON.stringify(seen('قال الله تعالى: "قل للمؤمنين يغضوا من أبصارهم"، ' + FRAME + '"' + NAZRA + '".')) === JSON.stringify([NAZRA]));
+    const straight = 'قال الله تعالى: "قل للمؤمنين يغضوا من أبصارهم"، ' + FRAME + '"' + NAZRA + '".';
+    const lookupN = lookupOf({ [NAZRA]: { matn: NAZRA, subjectIds: ['FC-000774'], atoms: [atomFor(NAZRA, 'علي')] } });
+    const r = await T.applyTakhrij(straight, { env: ON, lookup: lookupN });
+    ok('3.4c-8 delivered: the saying in straight quotes leaves with its parentheses, the letters of the matn untouched, the verse left as written',
+      r.text.includes(NAZRA + '»') && r.text.includes('(الضياء في المختارة') && r.text.includes('"قل للمؤمنين يغضوا من أبصارهم"') && r.applied === true, JSON.stringify(r.text));
+    const rs = await T.applyTakhrij(FRAME + '"' + NAZRA + '" وهذا "قول.', { env: ON, lookup: lookupN });
+    ok('3.4c-9 delivered: an odd count of straight quotes leaves the answer exactly as it was', rs.text === FRAME + '"' + NAZRA + '" وهذا "قول.' && rs.applied === false, JSON.stringify(rs.text));
+    // the question\'s quotation is not widened: only the answer's matns read straight quotes
+    const srcQ = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8');
+    ok('3.4c-10 the asked text (askedText) still reads QUOTE_RE, and only findMatns reads the widened expression',
+      srcQ.includes("new RegExp(QUOTE_RE.source, 'u')") && srcQ.split('MATN_QUOTE_RE').length === 3);
+    // mutant: the straight alternative taken out of the matn expression
+    {
+      const fsx = require('fs');
+      const srcT = fsx.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+      const seam = '|"([^"\\n]{2,900})"/gu;';
+      ok('3.4c MUTANT applied (seam found once)', srcT.split(seam).length === 2);
+      const tmpDir = fsx.mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-34c-mut-'));
+      try {
+        const file = path.join(tmpDir, 'mut.mjs');
+        fsx.writeFileSync(file, srcT.split(seam).join('/gu;').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+        const cwd = process.cwd();
+        process.chdir(REPO);
+        try {
+          const mod = await import('file:///' + file.replace(/\\/g, '/') + '?m=34c');
+          ok('3.4c MUTANT KILLED: without the straight alternative the saying in straight quotes is no matn again', mod.findMatns(FRAME + '"' + NAZRA + '".').length === 0);
+        } finally { process.chdir(cwd); }
+      } finally { try { fsx.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* temp only */ } }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
