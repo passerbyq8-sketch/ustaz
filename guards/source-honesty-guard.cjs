@@ -548,6 +548,37 @@ const stripComments = (s) => String(s)
       codeLines.filter((l) => l.includes('TAKHRIJ_LADDER_HEAD +')).length >= 4
         && !codeLines.some((l) => l.includes("'تخريج الحديث: '")),
       'with=' + codeLines.filter((l) => l.includes('TAKHRIJ_LADDER_HEAD +')).length);
+    // ── FOLLOWUP 49 item 10, row 49 (ported, narrowed, from night-111 0d320a3) · THE DISCLOSURE NEVER CONTRADICTS THE SOURCE OF THE GRADE BESIDE IT ─────────────────────────────────────────
+    // MEASURED at 8864c48 (preview 48, answer 2): the head «…والحكم عليه في السلسلة الضعيفة: باطل.» and, at the end, «لا من كتب التخريج نفسها». The grade the library wrote names its own takhrij book.
+    // The night also stood down for a ladder bracket with a grade; R5's control above pins that a graded body under no head still receives the sentence, so only the head and «(لا يثبت مرفوعا)» are carried.
+    {
+      const P49 = 'الحديث لا يثبت مرفوعا إلى النبي صلى الله عليه وسلم، والحكم عليه في السلسلة الضعيفة: باطل.\nابن عدي: صرح أنه منكر.\nالسخاوي: ضعفه في «المقاصد الحسنة».';
+      const W1 = 'الحديث لا يثبت مرفوعا إلى النبي صلى الله عليه وسلم، والحكم عليه في السلسلة الضعيفة: لا أصل له.\n\nحديث «من عرف نفسه فقد عرف ربه» ذكره الألباني في السلسلة الضعيفة وقال: لا أصل له (لا يثبت مرفوعا).';
+      const W2 = 'الحديث لا يثبت مرفوعا إلى النبي صلى الله عليه وسلم، والحكم عليه في السلسلة الضعيفة: موضوع.\nحديث «حب الوطن من الإيمان» ليس بحديث ثابت، بل هو حديث موضوع لا أصل له (لا يثبت مرفوعا).';
+      ok('FOLLOWUP49-49 P · the head of the production answer (the Silsila grade): no «…لا من كتب التخريج»', once(P49) === '', JSON.stringify(once(P49)));
+      ok('FOLLOWUP49-49 W1 · the Silsila head and «(لا يثبت مرفوعا)»: none', once(W1) === '');
+      ok('FOLLOWUP49-49 W2 · the head with «موضوع» and the model\'s own «حديث موضوع» beside it: none either', once(W2) === '');
+      ok('FOLLOWUP49-49 sibling · another grading book in the head («والحكم عليه في ضعيف الجامع: ضعيف») with no ladder prefix: none', once('حديث «من حج ولم يزرني فقد جفاني» حديث موضوع، والحكم عليه في ضعيف الجامع: ضعيف.') === '');
+      ok('FOLLOWUP49-49 sibling · «(لا يثبت مرفوعا)» alone beside the model\'s «موضوع»: none', once('حديث «من حج ولم يزرني فقد جفاني» موضوع (لا يثبت مرفوعا).') === '');
+      ok('FOLLOWUP49-49 control · the model\'s own grade with no library grade beside it still receives it', once('حديث «من حج ولم يزرني فقد جفاني» حديث موضوع.') === TD.TAKHRIJ_DISCLOSURE);
+      ok('FOLLOWUP49-49 control · «(البخاري · لم يوقف على حكم)» is no grade of the library\'s: the model\'s grade still receives it', once('«اطلبوا العلم ولو بالصين» (البخاري · لم يوقف على حكم) وهو حديث موضوع.') === TD.TAKHRIJ_DISCLOSURE);
+      ok('FOLLOWUP49-49 control · «والحكم عليه في» inside a sentence that has no colon after the book is no head', once('وأما والحكم عليه في هذا الباب فكلام كثير، وهو حديث موضوع.') === TD.TAKHRIJ_DISCLOSURE);
+      const src49 = fs.readFileSync(path.join(REPO, 'lib/policy/takhrij-disclosure.js'), 'utf8').replace(/\r\n/g, '\n');
+      const seam49 = "  if (LIBRARY_GRADE_RE.test(d)) return ''; // FOLLOWUP 49 row 49 [111-b4b-49]\n";
+      const mut49 = src49.split(seam49).join('');
+      ok('MUTANT FOLLOWUP49-49 seam applied', mut49 !== src49);
+      const tmp49 = fs.mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-fu49-49-mut-'));
+      try {
+        const f49 = path.join(tmp49, 'takhrij-disclosure.mjs');
+        fs.writeFileSync(f49, mut49.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', 'policy', spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + f49.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: without the stand-down the Silsila head takes «…لا من كتب التخريج» again',
+          mod.takhrijDisclosureOnce(P49, mod.TAKHRIJ_DISCLOSURE) === mod.TAKHRIJ_DISCLOSURE && mod.takhrijDisclosureOnce(W1, mod.TAKHRIJ_DISCLOSURE) === mod.TAKHRIJ_DISCLOSURE);
+      } finally {
+        try { fs.rmSync(tmp49, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
   }
   {
     // ── THIRD ORDER, STEP 5 · NO LIMIT SENTENCE IN AN ANSWER THAT HOLDS NO GRADE ──────────
