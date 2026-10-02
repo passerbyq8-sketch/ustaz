@@ -2573,7 +2573,8 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       const dir6 = path.dirname(path.join(REPO, 'lib', 'takhrij-lock.js'));
       const tmp6 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-111-6-mut-'));
       const load6 = async (tag, from, to) => {
-        const changed = src6.split(from).join(to);
+        // a seam may be a list of [from, to] pairs (FIX 48 item 3: see the «dangling-head-allowed» mutant)
+        const changed = Array.isArray(from) ? from.reduce((acc, [a, b]) => acc.split(a).join(b), src6) : src6.split(from).join(to);
         ok('MUTANT 111-6 ' + tag + ' seam applied', changed !== src6);
         const file = path.join(tmp6, tag + '.mjs');
         fs.writeFileSync(file, changed.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
@@ -2586,8 +2587,10 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         ok('MUTANT KILLED: without the tail rule the mahram ruling is lost again',
           !off.lockTakhrij('ويجب على المرأة أن لا تسافر بلا محرم، لما ثبت في الصحيحين من نهي النبي صلى الله عليه وسلم عن ذلك.', [])
             .text.includes('بلا محرم'));
-        const loose = await load6('dangling-head-allowed', '    if (DANGLING_HEAD_END.has(head[head.length - 1].bare)) return null;',
-          '    // mutant: a head ending on a preposition is accepted');
+        // MOVED BY FIX 48 item 3, WITH ITS REASON: the splinter step (SPLINTER_WORDS holds «على») is now a second line behind the dangling-head test and
+        // drops a sentence this mutant lets end on «على». The mutant therefore lifts BOTH, and the row still proves the dangling-head test is what holds.
+        const loose = await load6('dangling-head-allowed', [['    if (DANGLING_HEAD_END.has(head[head.length - 1].bare)) return null;',
+          '    // mutant: a head ending on a preposition is accepted'], ['for (const sen of splinterSentences(s, cuts, all)) {', 'for (const sen of []) {']]);
         ok('MUTANT KILLED: without the dangling-end test a ruling is left ending on «على»',
           /على\.?$/u.test(loose.lockTakhrij('ويجب أن يحافظ على، لحديث رواه مسلم.', []).text.trim()));
       } finally {
@@ -4475,6 +4478,71 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
         mod.lockTakhrij(W, [OTHER_T]).text === W);
     } finally {
       try { fs.rmSync(tmp64, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
+  // ── FIX 48 item 3 · A SPLINTER LEFT BY A CUT IS NOT A SENTENCE ──────────────────────────────────────────
+  // MEASURED (the 2 Oct preview, answer 4, and the measure report م١ ب): the lock took «رواه أبو داود والنسائي» out of the middle
+  // of «وما رواه أبو داود والنسائي عن ابن عمر أنه كان يقبض على لحيته، ويقص ما تحت القبضة» and the reader got «وما، ويقص ما تحت القبضة.».
+  // The rule: when a cut leaves a bare conjunction, relative or particle against a mark (or the end), the whole sentence goes and
+  // nothing is written in its place. The words are a closed list in lib/takhrij-lock.js (SPLINTER_WORDS), never a list of sentences.
+  console.log('\n--- FIX48-3. NO SPLINTER LEFT BY A CUT ---');
+  {
+    const page = (passage) => ({ title: 'مجموع فتاوى ابن باز', passage });
+    const PG = page('ثم ما تقدم من الأحاديث ليس على إطلاقه؛ فقد روى الترمذي عن عبد الله بن عمرو بن العاص قال: «كان رسول الله صلى الله عليه وسلم يأخذ من لحيته من عرضها وطولها» وكان ابن عمر يقبض على لحيته فيقطع ما زاد على الكف، وفي لفظ: ثم يقص ما تحت القبضة.');
+    const GOOD = 'وهذه جملة سليمة أخرى لا نسبة فيها.';
+    const lead = 'ويرى أن الأخذ جائز، ';
+    const tailText = ' عن ابن عمر أنه كان يقبض على لحيته، ويقص ما تحت القبضة.';
+    const SPLINT = /(?:وما|ومن|والذي|وفيما|وفي ما)\s*[،؛,:.]/u;
+    const shapes = [
+      ['وما', lead + 'وما رواه أبو داود والنسائي' + tailText],
+      ['ومن', lead + 'ومن رواه أبو داود والنسائي' + tailText],
+      ['والذي', lead + 'والذي رواه أبو داود والنسائي' + tailText],
+      ['الترمذي', lead + 'وما رواه الترمذي' + tailText],
+      ['أخرجه', lead + 'وما أخرجه البخاري' + tailText],
+      ['وفي ما', lead + 'وفي ما رواه أبو داود والنسائي عن ابن عمر، دليل على ذلك.'],
+      ['وفيما', lead + 'وفيما رواه أبو داود والنسائي عن ابن عمر أنه كان يقبض على لحيته، دليل على ذلك.'],
+    ];
+    for (const [name, sentence] of shapes) {
+      const r = TL.lockTakhrij(sentence + '\n' + GOOD, [PG]);
+      ok('FIX48-3 shape «' + name + '» · the sentence the cut left on a bare word goes whole, the other sentence stays, nothing is written in its place',
+        r.text === GOOD && !SPLINT.test(r.text) && r.droppedSentences.some((d) => d.cut === 'splinter') && r.outcome === 'REBUILT', JSON.stringify(r.text));
+      const only = TL.lockTakhrij(sentence, [PG]);
+      ok('FIX48-3 shape «' + name + '» · alone, the lock refuses the text and writes nothing (no «وما،» reaches the reader)', only.text === '' && only.outcome === 'REFUSED', JSON.stringify(only.text));
+    }
+    // the order's draft B, word for word
+    const B = 'ابن باز يرى أن أحاديث الأمر بإعفاء اللحية وتوفيرها ليست على إطلاقها؛ فقد ثبت عنده من حديث عبد الله بن عمرو بن العاص عند الترمذي: «كان رسول الله صلى الله عليه وسلم يأخذ من لحيته من عرضها وطولها»، وما رواه أبو داود والنسائي عن ابن عمر أنه كان يقبض على لحيته، ويقص ما تحت القبضة.';
+    const rb = TL.lockTakhrij(B, [PG]);
+    ok('FIX48-3 B · the measured draft: the sentence is dropped whole (it was «…وما، ويقص ما تحت القبضة.»)', rb.text === '' && rb.droppedSentences.length === 1 && rb.droppedSentences[0].cut === 'splinter' && rb.removed.some((x) => x.kind === 'attribution'), JSON.stringify(rb));
+    // A: the same sentence with the credit CARRIED by a page passes as written
+    const A = 'وروى أبو داود والنسائي أن ابن عمر كان يقبض على لحيته، ويقص ما تحت القبضة.';
+    const withCredit = page('وروى أبو داود والنسائي أن ابن عمر كان يقبض على لحيته فيقطع ما زاد على الكف، وفي لفظ: ثم يقص ما تحت القبضة.');
+    const ra = TL.lockTakhrij(A, [withCredit]);
+    ok('FIX48-3 A · a credit the page carries is no cut: the sentence stands as written', ra.text === A && ra.outcome === 'CLEAN', JSON.stringify(ra.text));
+    // controls: a cut that leaves no splinter is judged as before (the cut sentences below are the old rows, byte for byte)
+    const c1 = lead + 'ويقص ما تحت القبضة، كما رواه أبو داود والنسائي، وهو ثابت عن ابن عمر.';
+    ok('FIX48-3 control · a credit cut off the tail leaves the sentence as the evidence-tail rule left it', TL.lockTakhrij(c1, [PG]).text === lead + 'ويقص ما تحت القبضة.' && TL.lockTakhrij(c1, [PG]).droppedSentences.every((d) => d.cut !== 'splinter'));
+    const c2 = 'ويرى أن الأخذ جائز لأن ابن عمر كان يفعله، رواه أبو داود والنسائي، ويقص ما تحت القبضة.';
+    ok('FIX48-3 control · a credit standing between two commas is cut alone, the rest stays', TL.lockTakhrij(c2, [PG]).text === 'ويرى أن الأخذ جائز لأن ابن عمر كان يفعله، ويقص ما تحت القبضة.' && TL.lockTakhrij(c2, [PG]).droppedSentences.every((d) => d.cut !== 'splinter'));
+    // a text with nothing to cut is untouched
+    ok('FIX48-3 control · a clean text is untouched', TL.lockTakhrij(GOOD, [PG]).text === GOOD && TL.lockTakhrij(GOOD, [PG]).outcome === 'CLEAN');
+    // the mutants: the step taken out; the mark test taken out
+    const srcLock = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const tmp3 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-fix48-3-mut-'));
+    const mutate3 = async (name, from, to) => {
+      const n = srcLock.split(from).length - 1;
+      ok('MUTANT FIX48-3 ' + name + ' seam applied once', n === 1, String(n));
+      const mfile = path.join(tmp3, name + '.mjs');
+      fs.writeFileSync(mfile, srcLock.split(from).join(to).replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      return import('file:///' + mfile.replace(/\\/g, '/'));
+    };
+    try {
+      const m1 = await mutate3('step-out', 'for (const sen of splinterSentences(s, cuts, all)) {', 'for (const sen of []) {');
+      ok('MUTANT KILLED: without the splinter step «وما، ويقص ما تحت القبضة.» reaches the reader again', /وما،/u.test(m1.lockTakhrij(B, [PG]).text) && m1.lockTakhrij(B, [PG]).text !== '');
+      const m3 = await mutate3('words-out', "const SPLINTER_WORDS = new Set(['و', 'ف', 'ثم', 'او', 'ام', 'بل', 'لكن', 'ما', 'من',", "const SPLINTER_WORDS = new Set(['و', 'ف', 'ثم', 'او', 'ام', 'بل', 'لكن', 'xx', 'xx',");
+      ok('MUTANT KILLED: without «ما» and «من» in the list the shapes «وما،» and «ومن،» survive', /وما،/u.test(m3.lockTakhrij(shapes[0][1], [PG]).text) && /ومن،/u.test(m3.lockTakhrij(shapes[1][1], [PG]).text));
+    } finally {
+      try { fs.rmSync(tmp3, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
