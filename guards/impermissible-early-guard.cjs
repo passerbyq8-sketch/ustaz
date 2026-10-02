@@ -18,6 +18,7 @@
 //   G  (order EZIK-COMPREHENSIVE-ORDER-2026-10-02, 3.1) the dialect request verbs, the minors' questions, the rule before the
 //      library-quote exit, and the two measure-only sentences; with mutants of api/ask.js run through a temp copy of the handler
 //
+//   I  (order EZIK-FIX-48, item 2) a sentence asking for help passes in every age; help to get or to watch stays turned away
 //   H  (order EZIK-FIX-48, item 1) the take-me-to verb in every age, and the four-condition rule for the young and the teen reader:
 //      each condition alone, the siblings, the real handler in the three bands, and the mutants
 //
@@ -98,6 +99,10 @@ async function main() {
   ok('A18 the rows that must be blocked stay blocked (block 20 and dialect.block 12), by the request rule alone',
     FIX.block.every((x) => PR.classifyPornographyRequest(x.q).blocked === true) && FIX.dialect.block.every((x) => PR.classifyPornographyRequest(x.q).blocked === true)
     && FIX.block.length === 20 && FIX.dialect.block.length === 12);
+  // item 2: help words
+  const I2 = FIX.item2;
+  I2.help.forEach((x, i) => ok('A20 help sentence #' + i + (x.owner ? ' (owner)' : ' (sibling)') + ' passes: ' + ascii(JSON.stringify(x.q)), PR.classifyPornographyRequest(x.q).blocked === false));
+  I2.get.forEach((x, i) => ok('A21 help to get or to watch #' + i + (x.owner ? ' (owner)' : ' (sibling)') + ' stays a request: ' + ascii(JSON.stringify(x.q)), PR.classifyPornographyRequest(x.q).blocked === true));
   ok('A19 the empty and the absent are no doubt', YD('') === false && YD(undefined) === false && YD(null) === false);
   // ------------------------------------------------------------------------------------------------ B
   ok('B1 the fixed text is the order\'s sentence, letter for letter', PR.PORN_REFUSAL_TEXT === FIX.textFromOrder);
@@ -375,8 +380,10 @@ async function main() {
     {
       const d1 = await drive(FIX.measureOnly.d1, {});
       const d2 = await drive(FIX.measureOnly.d2, {});
-      ok('G7 (measure only) «ساعدني أبطل الإباحية» passes to the model; «أبغى مساعدة في الإباحية» is the fixed text today (owner decision pending)',
-        d1.text !== PR.PORN_REFUSAL_TEXT && outbound(d1.calls).length > 0 && d2.text === PR.PORN_REFUSAL_TEXT);
+      // MOVED BY THE OWNER'S DECISION (EZIK-FIX-48 item 2, 10 of the 2 Oct list): «أبغى مساعدة في الإباحية» passes now (it was the fixed text, pending his word);
+      // the other half of the row, «ساعدني أبطل الإباحية», is unchanged.
+      ok('G7 «ساعدني أبطل الإباحية» passes to the model; «أبغى مساعدة في الإباحية» passes to the model too (the owner decided, item 2)',
+        d1.text !== PR.PORN_REFUSAL_TEXT && outbound(d1.calls).length > 0 && d2.text !== PR.PORN_REFUSAL_TEXT && outbound(d2.calls).length > 0);
     }
     // item 1 through the real handler: the take-me-to verb in all three bands; the doubt rule for the young and the teen only
     for (const q of I1.ask) {
@@ -408,6 +415,19 @@ async function main() {
     for (const q of ['خل اشوف مقاطع سكس', 'ودني لموقع سكس']) {
       const off = await drive(q, { band: 'young', age: 8, env: { IMPERMISSIBLE_EARLY_V1: 'off' } });
       ok('H5 ' + ascii(JSON.stringify(q)) + " with the switch off is today's behaviour: not the fixed text, no new block", !off.crashed && off.text !== PR.PORN_REFUSAL_TEXT && off.routes.every((r) => r[1].impermissible === 'none'));
+    }
+    // item 2 through the real handler
+    for (const x of I2.help) {
+      for (const [band, age] of BANDS) {
+        const d = await drive(x.q, { band, age });
+        ok('I1 ' + band + ' help sentence ' + ascii(JSON.stringify(x.q)) + ': not the fixed text, the model is reached', !d.crashed && d.text !== PR.PORN_REFUSAL_TEXT && outbound(d.calls).length > 0);
+      }
+    }
+    for (const x of I2.get) {
+      for (const [band, age] of BANDS) {
+        const d = await drive(x.q, { band, age });
+        ok('I2 ' + band + ' help to get ' + ascii(JSON.stringify(x.q)) + ': the fixed text, zero outbound calls', !d.crashed && d.text === PR.PORN_REFUSAL_TEXT && outbound(d.calls).length === 0);
+      }
     }
     // E6 telemetry: a closed word; the question is in no log line
     {
@@ -441,7 +461,8 @@ async function main() {
     const m1 = await mutate('about', 'if (indicesOf(toks, ABOUT_WORDS, matchesAbout).length ||', 'if (false &&');
     ok('M1 KILLED: without the "asking about it" test a ruling question is blocked', m1.classifyPornographyRequest(FIX.pass[6].q).blocked === true && PR.classifyPornographyRequest(FIX.pass[6].q).blocked === false);
     // M2: the "asked for" test dropped -> any mention of the subject is blocked
-    const m2 = await mutate('ask', "if (indicesOf(toks, ASK_WORDS).length || hasPhrase(padded, ASK_PHRASES)) return { blocked: true };", "return { blocked: true };");
+    // seam moved by EZIK-FIX-48 item 2: the asked-for line now also carries the help-to-get clause
+    const m2 = await mutate('ask', "if (helpToGet || indicesOf(toks, ASK_WORDS).length || hasPhrase(padded, ASK_PHRASES)) return { blocked: true };", "return { blocked: true };");
     ok('M2 KILLED: without the "asked for" test a bare mention is blocked', m2.classifyPornographyRequest('الاباحية منتشرة في هذه الأيام').blocked === true && PR.classifyPornographyRequest('الاباحية منتشرة في هذه الأيام').blocked === false);
     // M3: the sexual adjective counts anywhere -> a nationality request is blocked
     const m3 = await mutate('adjacency', 'adjs.includes(i + 1)', 'adjs.length > 0');
@@ -470,6 +491,13 @@ async function main() {
     ok('M15 KILLED: without the thing test a bare word is a doubt block', m15.classifyYoungPornographyDoubt(SIB.noThing[0]) === true && YD(SIB.noThing[0]) === false);
     const m16 = await mutate('doubt-help', 'if (indicesOf(toks, HELP_OR_ABOUT, matchesAbout).length) return false;', '');
     ok('M16 KILLED: without the help test a boy asking for help to quit is a doubt block', SIB.helpOrAbout.every((q) => m16.classifyYoungPornographyDoubt(q) === true) && SIB.helpOrAbout.every((q) => YD(q) === false));
+    // item 2 mutants: the help words taken out; the exception for a verb of getting taken out (a help sentence then always passes)
+    const m20 = await mutate('help-words-out', "const HELP_WORDS = ['مساعده', 'ساعدني', 'ساعدوني', 'تساعدني', 'اساعد'];", 'const HELP_WORDS = [];');
+    ok('M20 KILLED: without the help words the owner\'s sentence is turned away again', m20.classifyPornographyRequest(I2.help[0].q).blocked === true && PR.classifyPornographyRequest(I2.help[0].q).blocked === false);
+    const m21 = await mutate('help-get-exception-out', 'if (help.length && !helpToGet) return { blocked: false };', 'if (help.length) return { blocked: false };');
+    ok('M21 KILLED: a help word with no exception lets help to GET pass', I2.get.some((x) => m21.classifyPornographyRequest(x.q).blocked === false) && I2.get.every((x) => PR.classifyPornographyRequest(x.q).blocked === true));
+    const m22 = await mutate('help-get-not-a-request', 'if (helpToGet || indicesOf(toks, ASK_WORDS).length', 'if (indicesOf(toks, ASK_WORDS).length');
+    ok('M22 KILLED: if help to get is not itself a request, «ساعدني أحصل على مقاطع إباحية» reaches the model', m22.classifyPornographyRequest(I2.get[0].q).blocked === false && PR.classifyPornographyRequest(I2.get[0].q).blocked === true);
     const m17 = await mutate('ask-verb-taken-out', "'وديني', 'ودني',", '');
     ok('M17 KILLED: without the take-me-to verb the sentence is no request again', m17.classifyPornographyRequest(I1.ask[0]).blocked === false && PR.classifyPornographyRequest(I1.ask[0]).blocked === true);
     // M8: a dropped dialect verb
