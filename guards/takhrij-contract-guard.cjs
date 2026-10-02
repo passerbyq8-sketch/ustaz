@@ -3061,6 +3061,84 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       } finally { try { fsx.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* temp only */ } }
     }
   }
+  // ─────────────────────────────────────────────────────────────────────────────────────
+  // FIX 48 item 5 — A PROPHETIC SAYING WRITTEN WITH NO QUOTATION MARKS (the owner's decision 6). MEASURED (the 2 Oct preview, answers 3 and 5; the measure report م٣): the Kuwaiti
+  // Encyclopedia writes «لقول النبي ﷺ: لا صلاة لمن لم يقرأ بفاتحة الكتاب» with no marks and the writer copies it, so the saying left with no parentheses. Read on request
+  // (options.unquoted: the pass, the unit check, the stream's hold; never the question's own text): a Prophetic frame, a colon, then the saying cut at the NEAREST of the
+  // next Prophetic frame, the first «،» or «؛», the end of the sentence; a target only if the library carries its very words; never inside a stored fatwa's own text.
+  // ─────────────────────────────────────────────────────────────────────────────────────
+  console.log('\n--- FIX48-5. A PROPHETIC SAYING WITH NO QUOTATION MARKS ---');
+  {
+    const NZ = 'لا تتبع النظرة النظرة';
+    const S1 = 'ولهذه السورة فضل عظيم، فقد قال النبي صلى الله عليه وسلم فيها: إنها تعدل ثلث القرآن، وذلك لأن القرآن في مقاصده يرجع إلى عقيدة وشريعة وقصص.';
+    const S5a = 'ذهب الشافعية إلى وجوب قراءة الفاتحة، لقول النبي صلى الله عليه وسلم: لا صلاة لمن لم يقرأ بفاتحة الكتاب، وقوله صلى الله عليه وسلم: لا تجزئ صلاة لا يقرأ الرجل فيها بفاتحة الكتاب. وقد نص الشافعية على كراهة ذلك.';
+    const S5b = 'ذهب الحنابلة إلى أنه لا تجب القراءة، لقول النبي صلى الله عليه وسلم: من كان له إمام فقراءة الإمام له قراءة. ونص الحنابلة على أنه يستحب في السرية.';
+    const un = (text) => T.findMatns(text, { unquoted: true });
+    const matnsOf = (text) => un(text).map((m) => m.matn);
+    ok('FIX48-5 default · without the option nothing unquoted is read: findMatns and findTargets give no target for the four sentences',
+      [S1, S5a, S5b].every((t) => T.findMatns(t).length === 0 && T.findTargets(t).targets.length === 0));
+    ok('FIX48-5 the answer 3 sentence: «إنها تعدل ثلث القرآن» (the writer\'s reason after the comma is not part of it), and its offsets are the saying\'s own',
+      JSON.stringify(matnsOf(S1)) === JSON.stringify(['إنها تعدل ثلث القرآن']) && un(S1).every((m) => S1.slice(m.start, m.end) === m.matn));
+    ok('FIX48-5 the answer 5 sentences: the Shafi\'i pair (cut at the first «،», then at the sentence end) and the Hanbali one',
+      JSON.stringify(matnsOf(S5a)) === JSON.stringify(['لا صلاة لمن لم يقرأ بفاتحة الكتاب', 'لا تجزئ صلاة لا يقرأ الرجل فيها بفاتحة الكتاب'])
+      && JSON.stringify(matnsOf(S5b)) === JSON.stringify(['من كان له إمام فقراءة الإمام له قراءة']));
+    ok('FIX48-5 cut · the nearest of: the next Prophetic frame (the verb hanging before it goes with it), a «؛», the end of the sentence',
+      JSON.stringify(matnsOf('وقال النبي صلى الله عليه وسلم: لا ضرر ولا ضرار وقال ﷺ: إنما الأعمال بالنيات.')) === JSON.stringify(['لا ضرر ولا ضرار', 'إنما الأعمال بالنيات'])
+      && JSON.stringify(matnsOf('قال النبي صلى الله عليه وسلم: إنما الأعمال بالنيات؛ وهذا أصل في الباب.')) === JSON.stringify(['إنما الأعمال بالنيات'])
+      && JSON.stringify(matnsOf('قال النبي صلى الله عليه وسلم: الدين النصيحة')) === JSON.stringify(['الدين النصيحة']));
+    ok('FIX48-5 not a saying · a Companion\'s or a scholar\'s «قال X:», a one-word reply, the Qur\'an, and a frame with three words between it and the colon read nothing',
+      matnsOf('وقال ابن عمر رضي الله عنهما: لا تتبع النظرة النظرة، وقال ابن باز رحمه الله: لا حرج في ذلك').length === 0
+      && matnsOf('قال النبي صلى الله عليه وسلم: نعم.').length === 0
+      && matnsOf('قال النبي صلى الله عليه وسلم: وأقيموا الصلاة وآتوا الزكاة.').length === 0
+      && matnsOf('قال النبي صلى الله عليه وسلم لأصحابه لما سمع ذلك منهم: ' + NZ + '.').length === 0);
+    ok('FIX48-5 a quoted saying is read as before and not twice: the colon before a quotation mark leaves it to the quoted path',
+      JSON.stringify(matnsOf('وقال النبي صلى الله عليه وسلم: «' + NZ + '».')) === JSON.stringify([NZ]) && un('وقال النبي صلى الله عليه وسلم: «' + NZ + '».').length === 1);
+    // the stored fatwa's own text: never read, whatever it holds; the writer's sentence after it still is
+    const STORED = '## نص الفتوى\n\nالسؤال: كيف أصلي خلف الإمام؟\n\nالجواب: يجب عليك أن تقرأ الفاتحة؛ لقول النبي ﷺ: لعلكم تقرؤون خلف إمامكم قلنا نعم قال لا تفعلوا إلا بفاتحة الكتاب\nالمفتي: ابن باز — binbaz.org.sa\n\n';
+    ok('FIX48-5 stored · the saying inside a stored fatwa («## نص الفتوى» to the mufti\'s line) is not read; the writer\'s own sentence after it is',
+      matnsOf(STORED).length === 0 && JSON.stringify(matnsOf(STORED + S5b)) === JSON.stringify(['من كان له إمام فقراءة الإمام له قراءة'])
+      && T.storedFatwaRanges(STORED + S5b).length === 1);
+    ok('FIX48-5 stored · a heading with the publisher and the card mark («[بطاقة] نص الفتوى — …») ends at the next card line',
+      matnsOf('[بطاقة] نص الفتوى — المفتي: ابن عثيمين — «تفسير»:\n\nوقال النبي صلى الله عليه وسلم: ' + NZ + '، وهذا نص.\n\n[بطاقة آية] قال الله تعالى\n\n' + S5b).length === 1);
+    // delivered through the real pass
+    const lookupU = lookupOf({ [NZ]: { matn: NZ, subjectIds: ['FC-000774'], atoms: [atomFor(NZ, 'علي')] } });
+    const spoken = 'فقد قال النبي صلى الله عليه وسلم: ' + NZ + '، فإن لك الأولى وليست لك الآخرة.';
+    const rU = await T.applyTakhrij(spoken, { env: ON, lookup: lookupU });
+    ok('FIX48-5 delivered · the saying the library carries leaves in guillemets with what it proved; the words before and after it are byte for byte',
+      rU.applied === true && rU.text.startsWith('فقد قال النبي صلى الله عليه وسلم: «' + NZ + '» (الضياء في المختارة') && rU.text.endsWith('، فإن لك الأولى وليست لك الآخرة.'), JSON.stringify(rU.text));
+    const notCarried = 'فقد قال النبي صلى الله عليه وسلم: ' + MATN + '، وهذا معناه ظاهر.';
+    const rN = await T.applyTakhrij(notCarried, { env: ON, lookup: lookupU });
+    ok('FIX48-5 delivered · a saying the library does not carry: nothing is written, not one character of the answer moves (no guillemets either)', rN.text === notCarried && rN.applied === false, JSON.stringify(rN.text));
+    const rS = await T.applyTakhrij(STORED + spoken, { env: ON, lookup: lookupU });
+    ok('FIX48-5 delivered · a stored fatwa\'s own text is carried letter for letter even beside a saying the pass does write', rS.text.startsWith(STORED) && rS.text.includes('«' + NZ + '»'), JSON.stringify(rS.text));
+    const SS = await esm('lib/sentence-stream.js');
+    ok('FIX48-5 stream · a unit holding an unquoted saying is held for the pass (carriesTakhrijTarget), and the question\'s asked text is read as before',
+      SS.carriesTakhrijTarget(S5b) === true && SS.carriesTakhrijTarget('هذا كلام لا حديث فيه.') === false && T.findTargets(S5b).targets.length === 0);
+    {
+      const fsx = require('fs');
+      const srcT = fsx.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+      const tmpDir = fsx.mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-fix48-5-mut-'));
+      const mutate5 = async (name, seam, to) => {
+        ok('FIX48-5 MUTANT ' + name + ' applied (seam found once)', srcT.split(seam).length === 2);
+        const file = path.join(tmpDir, name + '.mjs');
+        fsx.writeFileSync(file, srcT.split(seam).join(to).replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+        const cwd = process.cwd();
+        process.chdir(REPO);
+        try { return await import('file:///' + file.replace(/\\/g, '/') + '?m=' + name); } finally { process.chdir(cwd); }
+      };
+      try {
+        const m1 = await mutate5('unquoted-off', 'if (options.unquoted === true) out.push(...unquotedMatns(value, span, chunk, quotedRanges));', 'if (false) out.push(...unquotedMatns(value, span, chunk, quotedRanges));');
+        ok('FIX48-5 MUTANT KILLED: without the unquoted read the four sentences are no target again', [S1, S5a, S5b].every((t) => m1.findMatns(t, { unquoted: true }).length === 0));
+        const m2 = await mutate5('stored-unprotected', 'if (stored.some((r) => frame.index >= r.start && frame.index < r.end)) continue;', '');
+        ok('FIX48-5 MUTANT KILLED: without the stored-fatwa fence the fatwa\'s own saying becomes a target', m2.findMatns(STORED, { unquoted: true }).length > 0 && matnsOf(STORED).length === 0);
+        const m3 = await mutate5('no-comma-cut', 'const mark = rest.search(SAYING_CUT_RE);', 'const mark = -1;');
+        ok('FIX48-5 MUTANT KILLED: if the saying is read to the end of the sentence the writer\'s reason is swallowed with it', m3.findMatns(S1, { unquoted: true })[0].matn !== 'إنها تعدل ثلث القرآن' && matnsOf(S1)[0] === 'إنها تعدل ثلث القرآن');
+        const m4 = await mutate5('quran-allowed', "if (frozenWhole && frozenWhole.kind === 'quran') continue;\n    const lead = raw.length", "const lead = raw.length");
+        ok('FIX48-5 MUTANT KILLED: without the Qur\'an exclusion a verse after a Prophetic frame is a target', m4.findMatns('قال النبي صلى الله عليه وسلم: وأقيموا الصلاة وآتوا الزكاة.', { unquoted: true }).length === 1);
+      } finally { try { fsx.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* temp only */ } }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {

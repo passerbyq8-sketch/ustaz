@@ -698,6 +698,44 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       ok('C1i the fold removes diacritics, tatweel, punctuation, quote marks and spacing, and nothing else',
         UNITS.foldCarried('\u00ab\u0627\u0644\u062f\u0650\u0651\u064a\u0646\u064f \u0640 \u0627\u0644\u0646\u064e\u0651\u0635\u0650\u064a\u062d\u064e\u0629\u064f\u00bb\u2026 \u061b') === UNITS.foldCarried('\u0627\u0644\u062f\u064a\u0646 \u0627\u0644\u0646\u0635\u064a\u062d\u0629')
         && UNITS.foldCarried('\u0627\u0644\u062f\u064a\u0646 \u0627\u0644\u0646\u0635\u064a\u062d\u0629') !== UNITS.foldCarried('\u0627\u0644\u062f\u064a\u0646 \u0646\u0635\u064a\u062d\u0629'));
+      // FIX 48 item 5: a Prophetic saying written with NO quotation marks. The unit's closing lookup is asked for it as for a quoted matn; a saying the
+      // library does not carry is released exactly as written (nothing is written, nothing is held: unsupported_matn is for QUOTED matns); one it carries
+      // leaves with what the library proved. The mutant takes the unquoted read out of the unit check: the lookup is never asked.
+      {
+        const SAY = 'لا ضرر ولا ضرار في الإسلام';
+        const UNIT = 'وقال النبي صلى الله عليه وسلم: ' + SAY + ' [[1]].';
+        const PAREN5 = ' (لم يوقف على حكم)';
+        const rows5 = [{ ...ROW_F1, ref: 1 }];
+        const drive5 = async (mod, takhrijFn) => {
+          const out = [];
+          const rel = mod.createBw2Releaser({ rows: rows5, emit: (p) => { out.push(p); return true; }, takhrij: takhrijFn });
+          rel.push(UNIT + '\n');
+          const st = await rel.end();
+          return { text: out.join(''), st };
+        };
+        const silent5 = async (text) => ({ text, proofs: [], sourced: [], entries: [] });
+        const matched5 = async (text) => {
+          const at = text.indexOf(SAY);
+          if (at < 0) return { text, proofs: [], sourced: [], entries: [] };
+          return { text: text.slice(0, at) + '«' + SAY + '»' + PAREN5 + text.slice(at + SAY.length), proofs: [], sourced: [SAY], entries: [{ matn: SAY, books: [], companion: '' }] };
+        };
+        const a5 = await drive5(UNITS, silent5);
+        ok('FIX48-5a an unquoted saying the library does not carry: released as written, the lookup was asked once, nothing held',
+          a5.text.includes(SAY) && !a5.text.includes('«') && a5.st.takhrijLookups === 1 && Object.keys(a5.st.holds).length === 0 && a5.st.released === 1, ascii(a5.text) + ' ' + JSON.stringify(a5.st));
+        const b5 = await drive5(UNITS, matched5);
+        ok('FIX48-5b an unquoted saying the library carries: the unit leaves with its parentheses, inside it', b5.text.includes('«' + SAY + '»' + PAREN5) && b5.st.released === 1 && Object.keys(b5.st.holds).length === 0, ascii(b5.text) + ' ' + JSON.stringify(b5.st));
+        const seam5 = 'findTargets(value, { unquoted: true }).targets.some((target) => target.unquoted === true);';
+        const fsx = require('fs');
+        const srcU5 = fsx.readFileSync(path.join(REPO, 'lib/bw2-units.js'), 'utf8');
+        const tmp5 = path.join(REPO, 'lib', '.mut-bw2-units-fix48-5.mjs');
+        try {
+          ok('FIX48-5 MUTANT applied (seam found once)', srcU5.split(seam5).length === 2);
+          fsx.writeFileSync(tmp5, srcU5.split(seam5).join('false;'));
+          const MU5 = await import(require('url').pathToFileURL(tmp5).href + '?m=fix48-5');
+          const m5 = await drive5(MU5, matched5);
+          ok('FIX48-5 MUTANT KILLED: without the unquoted read the unit check never asks the lookup for the saying', m5.st.takhrijLookups === 0 && !m5.text.includes('«'), JSON.stringify(m5.st));
+        } finally { try { fsx.rmSync(tmp5, { force: true }); } catch { /* nothing to clean */ } }
+      }
       // SPEED FIX 5, C7: the source questions themselves. Their answers here name no source (a matn, its meaning, a
       // masah ruling), so nothing is proved on the asked hadith and nothing goes out but the not-covered sentence; with
       // a unit the row proves ("rawahu Muslim fi sahihihi min hadith Tamim al-Dari"), that unit goes out first and today's checks follow.
