@@ -2831,6 +2831,67 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       } finally { for (const n of tmps) { try { fsx.rmSync(path.join(REPO, 'lib', '.mut-verse-range-' + n + '.mjs'), { force: true }); } catch { /* nothing to clean */ } } }
     }
   }
+  // ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  // COMPREHENSIVE 3.4h — an answer that opens on a dangling «و» (the owner's answer 9 began «والجمهور يرون…» as if its beginning had fallen).
+  // MEASURED on the real handler: a first unit held by the before-writing holder, or a first sentence lifted by the finalizer's takhrij lock, and the next sentence
+  // stands as the opening with the conjunction of the one the reader never saw. lib/opening-conjunction.js takes that one letter off; no line is written instead.
+  // ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  console.log('\n--- 3.4h. NO ANSWER OPENS ON A «و» LEFT BY A REMOVED UNIT ---');
+  {
+    const OC = await esm('lib/opening-conjunction.js');
+    const FR = await esm('lib/finalize-reader-text.js');
+    const st = (t, o) => OC.stripOpeningConjunction(t, o);
+    const head = (t, o) => st(t, o).text;
+    const REMOVED = { afterRemoval: true };
+    ok('3.4h-1 «و» + the article goes: the owner\'s «والجمهور يرون…», «والمالكية», «واليوم», with a vowel mark too («وَالْجُمْهُورُ»)',
+      head('والجمهور يرون أن الحديث على ظاهره وعمومه.', REMOVED) === 'الجمهور يرون أن الحديث على ظاهره وعمومه.' && head('والمالكية يقولون ذلك.', REMOVED).startsWith('المالكية')
+      && head('واليوم نتكلم عن الصلاة.', REMOVED).startsWith('اليوم') && head('وَالْجُمْهُورُ يَرَوْنَ ذلك.', REMOVED) === 'الْجُمْهُورُ يَرَوْنَ ذلك.');
+    ok('3.4h-2 «و» + a function word or demonstrative goes: «وقد», «وهذا», «وكذلك», «ولهذا», «ومعناه», «ومن», «وإن»',
+      ['وقد روى', 'وهذا الحديث', 'وكذلك قال', 'ولهذا قال', 'ومعناه أن', 'ومن فعل', 'وإن كان'].every((t) => st(t, REMOVED).stripped === true && st(t, REMOVED).text === t.slice(1)));
+    ok('3.4h-3 any other word goes too once the head was removed («وصيام يوم عرفة…»); with nothing removed NOTHING is touched, not «والجمهور…», not «وهذا…»: clean text leaves byte for byte',
+      head('وصيام يوم عرفة يكفر السنة التي قبله.', REMOVED).startsWith('صيام')
+      && ['وصيام يوم عرفة يكفر السنة التي قبله.', 'والجمهور يرون ذلك.', 'وهذا الحديث متفق عليه.', 'وقد روى البخاري.'].every((t) => head(t) === t && head(t, { afterRemoval: false }) === t));
+    ok('3.4h-4 a root that begins with «و» is never broken, even after a removal: «وقت صلاة الظهر», «وجب على المسلم», «وضوء», «وعد الله»',
+      ['وقت صلاة الظهر إذا زالت.', 'وجب على المسلم أن يصلي.', 'وضوء المرأة كوضوء الرجل.', 'وعد الله المؤمنين خيرا.'].every((t) => head(t, REMOVED) === t));
+    ok('3.4h-5 «والد» (a father), «والدة», «والدين» (parents, or «and the religion»: doubt is not a strip), «والي» are words, not a conjunction + article',
+      ['والد الإنسان له حق.', 'والدة المرء أحق بصحبته.', 'والدين فرض على كل مسلم.', 'والي المدينة أمر بذلك.'].every((t) => head(t, REMOVED) === t));
+    ok('3.4h-6 only the first plain word is read: a heading, a card tag, a verse or an ordinary opening is left alone, and the letters after the «و» are never touched',
+      head('## نص الفتوى\nوالجمهور', REMOVED) === '## نص الفتوى\nوالجمهور' && head('<verse surah_num="1" ayah="1"></verse> والجمهور', REMOVED) === '<verse surah_num="1" ayah="1"></verse> والجمهور'
+      && head('الصلاة خمس مرات.', REMOVED) === 'الصلاة خمس مرات.' && head('', REMOVED) === '' && head(null, REMOVED) === ''
+      && st('  والجمهور يرون ذلك.', REMOVED).text === '  الجمهور يرون ذلك.');
+    // the finalizer's seat: the first sentence is lifted by the takhrij lock, the next opens the answer
+    const lifted = 'روى البخاري أن النبي ﷺ قال: «إنما الأعمال بالنيات». ومعناه أن صحة العمل مرتبطة بالنية.';
+    const f1 = FR.finalizeReaderText({ text: lifted, kind: 'answer', sources: [] });
+    ok('3.4h-7 the finalizer: when the lock lifts the first sentence the answer opens on the next one WITHOUT its «و», and no line takes the lifted sentence\'s place',
+      f1.ok === true && f1.text === 'معناه أن صحة العمل مرتبطة بالنية.' && f1.problems.includes('UNSUPPORTED_TAKHRIJ'), JSON.stringify(f1.text));
+    const f2 = FR.finalizeReaderText({ text: 'والجمهور يرون أن الحديث على ظاهره وعمومه.', kind: 'answer', sources: [] });
+    const f3 = FR.finalizeReaderText({ text: 'الجمهور يرون أن الحديث على ظاهره وعمومه، وهذا هو المشهور.', kind: 'answer', sources: [] });
+    ok('3.4h-8 nothing lifted, nothing touched: an answer that opens «والجمهور…» with nothing taken out of it, and one with a «و» only in its middle, are returned byte for byte',
+      f2.text === 'والجمهور يرون أن الحديث على ظاهره وعمومه.' && f2.replaced === false && f3.text === 'الجمهور يرون أن الحديث على ظاهره وعمومه، وهذا هو المشهور.' && f3.replaced === false);
+    // mutants of lib/opening-conjunction.js (a temp copy beside it)
+    {
+      const fsx = require('fs');
+      const srcO = fsx.readFileSync(path.join(REPO, 'lib/opening-conjunction.js'), 'utf8');
+      const tmps = [];
+      const mutO = async (name, from, to) => {
+        ok('3.4h MUTANT ' + name + ' applied (seam found once)', srcO.split(from).length === 2);
+        const tmp = path.join(REPO, 'lib', '.mut-opening-conjunction-' + name + '.mjs');
+        fsx.writeFileSync(tmp, srcO.split(from).join(to));
+        tmps.push(tmp);
+        return import(require('url').pathToFileURL(tmp).href + '?m=' + name);
+      };
+      try {
+        const m1 = await mutO('never', "  if (!strip) return { text: value, stripped: false };", "  if (true) return { text: value, stripped: false };");
+        ok('3.4h MUTANT KILLED: a helper that never strips leaves «والجمهور» at the head', m1.stripOpeningConjunction('والجمهور يرون ذلك.').text.startsWith('وال'));
+        const m2 = await mutO('roots', "!WAW_ROOTS.has(whole) && ", "");
+        ok('3.4h MUTANT KILLED: without the roots list «وضوء المرأة» loses its first letter after a removal', m2.stripOpeningConjunction('وضوء المرأة كوضوء الرجل.', { afterRemoval: true }).text.startsWith('ضوء'));
+        const m3 = await mutO('ambiguous', "strip = bare.length >= 4 && !WORDS_WITH_WAW_AL.test(bare);", "strip = bare.length >= 4;");
+        ok('3.4h MUTANT KILLED: without the exception «والدين» (the parents) is cut to «الدين» after a removal', m3.stripOpeningConjunction('والدين فرض على كل مسلم.', REMOVED).text.startsWith('الدين'));
+        const m4 = await mutO('unconditional', "  if (opts.afterRemoval !== true) return { text: value, stripped: false };\n", "");
+        ok('3.4h MUTANT KILLED: without the removal condition clean text («والجمهور…») is cut where nothing was lifted, and the finalizer would no longer return it byte for byte', m4.stripOpeningConjunction('والجمهور يرون ذلك.').text.startsWith('الجمهور'));
+      } finally { for (const t of tmps) { try { fsx.rmSync(t, { force: true }); } catch { /* nothing to clean */ } } }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {

@@ -119,6 +119,9 @@ const U = {
   list: '1. \u0623\u0646 \u064a\u0644\u0628\u0633\u0647\u0645\u0627 \u0639\u0644\u0649 \u0637\u0647\u0627\u0631\u0629 [[1]].\n2. \u0648\u0642\u0627\u0644 \u0627\u0628\u0646 \u062a\u064a\u0645\u064a\u0629 \u0625\u0646 \u0630\u0644\u0643 \u0644\u0627 \u064a\u0635\u062d.\n3. ' + MASAH_TERM + ' [[1]].',
 };
 
+// COMPREHENSIVE 3.4h: the unit that OPENS the answer after a held one has lost the «\u0648» it carried (lib/opening-conjunction.js); these rows compare without it.
+const noWaw = (t) => String(t).replace(/^\u0648/u, '');
+
 const TAKHRIJ_PAREN = ' (\u0631\u0648\u0627\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a \u0648\u0645\u0633\u0644\u0645)';
 
 // -- the fake socket, and the real facade + BW2 wire over it -------------------------------------
@@ -361,7 +364,7 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         && tkText.indexOf(MASAH_TERM) > tkText.indexOf(TAKHRIJ_PAREN.trim()), ascii(tk.deltas.join('|')));
       const bm = await run({ writerText: [U.badMatn, U.s3].join(' ') });
       ok('T4g a matn no cited row carries (and no takhrij proof) is held', !bm.deltas.join('').includes('\u063a\u0641\u0631 \u0644\u0647')
-        && bm.deltas.join('').includes(MASAH_TERM), ascii(bm.deltas.join('|')));
+        && bm.deltas.join('').includes(noWaw(MASAH_TERM)), ascii(bm.deltas.join('|')));
     }
 
     // ---------------------------------------------------------------- T5
@@ -386,6 +389,12 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       ok('T5e within the owner\'s rule of 2 Oct: one sentence citing five rows is followed by ONE card (the first row it cites), and cap >= 5 rows are still pinned',
         m.deltas.filter((d) => d.includes('<source')).length === UNITS_E.BW2_CARDS_PER_UNIT && UNITS_E.BW2_CARDS_PER_UNIT === 1 && cap >= 5,
         String(m.deltas.filter((d) => d.includes('<source')).length));
+      // ---- 3.4h the answer does not open on the «و» of a unit that was held before it
+      const afterHeld = await run({ writerText: [U.bad, U.s3].join(' ') });
+      const afterHeldHead = afterHeld.deltas.length ? afterHeld.deltas[0] : '';
+      ok('3.4h-9 (holder) a unit held first and the next released as the opening: the opening has lost the «و» it carried, the rest of the unit exactly as written',
+        afterHeld.out.telemetry.unitsHeld >= 1 && afterHeldHead.startsWith(noWaw(U.s3).slice(0, 12)) && !afterHeldHead.startsWith('\u0648') && afterHeldHead.includes(noWaw(U.s3).slice(0, 30)),
+        ascii(JSON.stringify(afterHeld.deltas)));
       // ---- 3.4e the cards of a sentence that cites several rows: no card follows a card
       const two = await run({ fatwa: [ROW_F1, ROW_F2], writerText: MASAH_RULING + ' [[1, 2]].' });
       const twoCards = two.deltas.filter((d) => d.includes('<source'));
@@ -663,7 +672,7 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       ok('C1c2 a lead-in goes out with the carried matn it introduces, in one delta; and is held with it when no row carries it',
         (ld.deltas[0] || '').startsWith(Q6_LEADIN + '\n') && (ld.deltas[0] || '').includes(Q6_MATN) && ld.out.telemetry.heldUnsupportedMatn === 0
         && !ldn.deltas.join('').includes(Q6_LEADIN) && !ldn.deltas.join('').includes(Q6_MATN.slice(0, 12)) && ldn.out.telemetry.heldUnsupportedMatn === 1
-        && ldn.deltas.join('').includes('\u0648\u0645\u0639\u0646\u0649 \u0647\u0630\u0627'), ascii(ld.deltas.join('|') + ' || ' + ldn.deltas.join('|')));
+        && ldn.deltas.join('').includes('\u0645\u0639\u0646\u0649 \u0647\u0630\u0627'), ascii(ld.deltas.join('|') + ' || ' + ldn.deltas.join('|')));
 
       const c1n = await run({ question: Q6, fatwa: [ROW_OTHER], writerText: w, takhrijImpl: silent });
       const t1n = c1n.deltas.join('');
@@ -671,11 +680,11 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       ok('C1d a matn no cited row carries, with no takhrij proof, stays held -- its frame with it',
         !t1n.includes(Q6_MATN.slice(0, 12)) && !t1n.includes(Q6_LEAD.slice(0, 8)) && teln.heldUnsupportedMatn === 1, ascii(t1n) + ' ' + JSON.stringify(teln));
       ok('C1e ...and R5 still holds the connector that leans on it; the independent unit after goes out',
-        !t1n.includes(Q6_AFTER) && teln.heldDependentOnHeld === 1 && t1n.includes('\u0648\u0645\u0639\u0646\u0649 \u0647\u0630\u0627 \u0627\u0644\u062d\u062f\u064a\u062b') && teln.heldBeforeFirst === 2,
+        !t1n.includes(Q6_AFTER) && teln.heldDependentOnHeld === 1 && t1n.includes('\u0645\u0639\u0646\u0649 \u0647\u0630\u0627 \u0627\u0644\u062d\u062f\u064a\u062b') && teln.heldBeforeFirst === 2,
         ascii(t1n));
       const op = await run({ question: Q6, fatwa: [ROW_Q6], writerText: [Q6_AFTER, Q6_QUOTE].join('\n'), takhrijImpl: silent });
       ok('C1f ...and no answer opens on a connector: held (dependent_opening), the carried matn after it released',
-        op.deltas.join('').startsWith(Q6_LEAD) && !op.deltas.join('').includes(Q6_AFTER) && op.out.telemetry.heldDependentOpening === 1,
+        op.deltas.join('').startsWith(noWaw(Q6_LEAD)) && !op.deltas.join('').includes(Q6_AFTER) && op.out.telemetry.heldDependentOpening === 1,
         ascii(op.deltas.join('|')));
       const cm = await run({ question: Q6, fatwa: [ROW_Q6], writerText: w, takhrijImpl: matched });
       ok('C1g the lookup still runs first and adds its parenthetical when it matches, inside the unit',
@@ -868,8 +877,8 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const op = await run({ question: Q1, fatwa: [R_ALL], writerText: [OPEN, W3].join('\n'), takhrijImpl: silent });
       const dh = await run({ question: Q1, fatwa: [R_ALL, R_NONE], writerText: [W5(2), OPEN, W3].join('\n'), takhrijImpl: silent });
       ok('C4i no answer opens on a connector, proved or not; and a proved unit that leans on a held one is held with it',
-        !op.deltas.join('').includes(OPEN) && op.out.telemetry.heldDependentOpening === 1 && op.deltas.join('').startsWith(W3)
-        && !dh.deltas.join('').includes(OPEN) && dh.out.telemetry.heldDependentOnHeld === 1 && dh.deltas.join('').includes(W3),
+        !op.deltas.join('').includes(OPEN) && op.out.telemetry.heldDependentOpening === 1 && op.deltas.join('').startsWith(noWaw(W3))
+        && !dh.deltas.join('').includes(OPEN) && dh.out.telemetry.heldDependentOnHeld === 1 && dh.deltas.join('').includes(noWaw(W3)),
         ascii(op.deltas.join('|') + ' || ' + dh.deltas.join('|')));
       const WRONG = '\u0648\u062d\u062f\u064a\u062b \u00ab\u0627\u0644\u062f\u064a\u0646 \u0627\u0644\u0646\u0635\u064a\u062d\u0629\u00bb \u0623\u062e\u0631\u062c\u0647 \u0627\u0644\u0628\u062e\u0627\u0631\u064a \u0641\u064a \u0635\u062d\u064a\u062d\u0647.';
       const SCHOLAR = '\u0648\u0642\u0627\u0644 \u0627\u0644\u0646\u0648\u0648\u064a: \u0647\u0630\u0627 \u0627\u0644\u062d\u062f\u064a\u062b \u0639\u0644\u064a\u0647 \u0645\u062f\u0627\u0631 \u0627\u0644\u0625\u0633\u0644\u0627\u0645.';
@@ -1122,7 +1131,7 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const rw = await q4([SIDE_C, RAWA_THIS].join('\n'));
       const hw = await q4([SIDE_C, HUWA].join('\n'));
       ok('C8c "rawa hadha al-hadith X" and "rawahu huwa X" name X: read, carried by the row, and out first',
-        rw.deltas.join('').startsWith(RAWA_THIS) && rw.out.telemetry.unitsProvedHadith === 1 && hw.deltas.join('').startsWith(HUWA)
+        rw.deltas.join('').startsWith(RAWA_THIS) && rw.out.telemetry.unitsProvedHadith === 1 && hw.deltas.join('').startsWith(noWaw(HUWA))
         && hw.out.telemetry.unitsProvedHadith === 1 && JSON.stringify(UNITS.narratorsNamed(RAWA_THIS)) === JSON.stringify(['\u0627\u0628\u0648 \u0645\u0627\u0644\u0643 \u0627\u0644\u0627\u0634\u0639\u0631\u064a'])
         && JSON.stringify(UNITS.narratorsNamed(HUWA)) === JSON.stringify(['\u0627\u0628\u0648 \u0645\u0627\u0644\u0643 \u0627\u0644\u0627\u0634\u0639\u0631\u064a']),
         ascii(rw.deltas.join('|') + ' || ' + hw.deltas.join('|')));
