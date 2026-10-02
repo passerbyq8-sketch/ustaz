@@ -104,8 +104,8 @@ const hit0 = (key) => FIX.atoms[key].response.hits[0];
     const gateExpr = (/\n  if \((libQuoteOn && [^\n]+)\) \{\n    const libQuote = await import\('\.\.\/lib\/lib-quote\.js'\);/.exec(askSrc) || [])[1] || '';
     const onExpr = (/\n  const libQuoteOn = ([^\n]+);\n/.exec(askSrc) || [])[1] || 'false';
     ok('A2  the gate expression was found whole in api/ask.js', gateExpr !== '', gateExpr);
-    const decide = (expr) => (v, band, flag, token) => {
-      try { return new Function('libQuoteValue', 'band', 'libFlagValue', 'libToken', 'const libQuoteOn = (' + onExpr + '); return (' + expr + ');')(v, band, flag, token); }
+    const decide = (expr) => (v, band, flag, token, pornBlocked = false) => {
+      try { return new Function('libQuoteValue', 'band', 'libFlagValue', 'libToken', 'pornBlocked', 'const libQuoteOn = (' + onExpr + '); return (' + expr + ');')(v, band, flag, token, pornBlocked); }
       catch { return 'threw'; }
     };
     const table = (fn) => [
@@ -117,8 +117,9 @@ const hit0 = (key) => FIX.atoms[key].response.hits[0];
       fn('on', 'young', 'on', 'tk') === false,
       fn('on', 'adult', 'off', 'tk') === false,
       fn('on', 'adult', 'on', '') === false,
+      fn('on', 'adult', 'on', 'tk', true) === false, // COMPREHENSIVE 3.1c: a pornography request is refused before the quote exit
     ];
-    ok('A3  taken only for: LIB_QUOTE_V1 not switched off (unset is on) + adult + SHAMELA_BRAIN on + a token (8 rows)',
+    ok('A3  taken only for: LIB_QUOTE_V1 not switched off (unset is on) + adult + SHAMELA_BRAIN on + a token (9 rows)',
       table(decide(gateExpr)).every(Boolean), JSON.stringify(table(decide(gateExpr))));
     ok('A3b ...and the value is read trimmed and lower-cased, like SHAMELA_BRAIN',
       /const libQuoteValue = String\(process\.env\.LIB_QUOTE_V1 \|\| ''\)\.trim\(\)\.toLowerCase\(\);/.test(askSrc));

@@ -15,6 +15,8 @@
 //      untouched; the telemetry field is a closed word and the question is in no log line
 //   F  the placement in api/ask.js
 //   M  mutants of lib/policy/porn-request.js: each is applied (checked) and each is killed
+//   G  (order EZIK-COMPREHENSIVE-ORDER-2026-10-02, 3.1) the dialect request verbs, the minors' questions, the rule before the
+//      library-quote exit, and the two measure-only sentences; with mutants of api/ask.js run through a temp copy of the handler
 //
 // Usage: node guards/impermissible-early-guard.cjs
 'use strict';
@@ -67,6 +69,15 @@ async function main() {
     IR.classifyImpermissibleRequest('ابغى أغنية حلوة').kind === 'music' && IR.classifyImpermissibleRequest('رشح لي فلم').kind === 'film'
     && IR.classifyImpermissibleRequest(FIX.pass[0].q).kind === 'pornography');
 
+  // 3.1a the Gulf and Kuwaiti request verbs: the owner's sentence and its siblings are blocked; the same verbs in questions pass
+  ok('A8 the dialect fixtures hold the owner\'s sentence and at least six siblings as requests, and at least six questions',
+    FIX.dialect.block.filter((x) => x.order).length === 1 && FIX.dialect.block.length >= 7 && FIX.dialect.pass.length >= 6);
+  FIX.dialect.block.forEach((x, i) => ok('A9 dialect request #' + i + (x.order ? ' (owner)' : ' (sibling)') + ' is blocked: ' + ascii(JSON.stringify(x.q)), PR.classifyPornographyRequest(x.q).blocked === true));
+  FIX.dialect.pass.forEach((x, i) => ok('A10 dialect question #' + i + ' passes: ' + ascii(JSON.stringify(x.q)), PR.classifyPornographyRequest(x.q).blocked === false));
+  ok('A11 the verbs of sending and giving are blocked in every suffixed and spoken form the order named',
+    ['دز', 'دزّ', 'دزلي', 'دز لي', 'طرّش لي', 'طرش لي', 'جيب لي', 'عطني', 'عطوني', 'هات', 'تكفى ارسل', 'ممكن ترسل', 'تقدر ترسل']
+      .every((v) => PR.classifyPornographyRequest(v + ' مقاطع سكس').blocked === true));
+  ok('A12 a quotation verb carries the request too (the library-quote form)', ['انقل لي', 'انسخ لي', 'اقتبس لي'].every((v) => PR.classifyPornographyRequest(v + ' من كتاب قصة اباحية').blocked === true));
   // ------------------------------------------------------------------------------------------------ B
   ok('B1 the fixed text is the order\'s sentence, letter for letter', PR.PORN_REFUSAL_TEXT === FIX.textFromOrder);
   ok('B2 ...and is pinned by sha256', sha(PR.PORN_REFUSAL_TEXT) === TEXT_SHA, sha(PR.PORN_REFUSAL_TEXT));
@@ -110,6 +121,11 @@ async function main() {
     ok('F5 the route line carries the field: `none` by default, `porn_blocked` at the block',
       /frame: frameFor\(currentRuntime\),\n\s+impermissible: 'none',/.test(askSource) && /logRoute\(\{ impermissible: 'porn_blocked' \}\);/.test(askSource));
     ok('F6 no reader\'s age is read by the rule', !/(band|age|audience)/i.test(prSource.replace(/\/\/.*$/gm, '').replace(/impermissible-request/g, '')));
+    const iQuoteGate = at("if (libQuoteOn && band === 'adult'");
+    ok('F8 (3.1c) the pornography decision is made before the library-quote exit and the exit stands down for it',
+      iDecide > 0 && iQuoteGate > iDecide && /if \(libQuoteOn && band === 'adult' && libFlagValue === 'on' && libToken !== '' && !pornBlocked\) \{/.test(askSource));
+    ok('F9 (3.1b) the old classifier no longer blocks a pornography question while the early rule is on, and keeps songs and films',
+      /if \(impermissible\.blocked && !\(impermissible\.kind === 'pornography' && impermissibleEarlyDecision\(\)\.enabled\)\) \{/.test(askSource));
     ok('F7 the telemetry guard whitelists the one field', /IMPERMISSIBLE_FIELDS = \['impermissible'\]/.test(telemetrySource) && /\.\.\.IMPERMISSIBLE_FIELDS/.test(telemetrySource));
   }
 
@@ -121,6 +137,11 @@ async function main() {
   const LEGACY = await esm('lib/legacy-policy-flag.js');
   const CONSENT = await esm('lib/ai-consent.js');
   const handler = ASKMOD.default;
+  const COUNSEL_YOUNG = IR.impermissibleCounsel('young');
+  const LIB_SEARCH = 'https://lib.ezik.app/search';
+  const QUOTE_ATOM = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures-lib-quote.json'), 'utf8')).atoms.turath_print.response;
+  const LIBON = { SHAMELA_BRAIN: 'on', SEARCH_API_TOKEN: 'tk-quote-1', LIB_QUOTE_V1: 'on' };
+  const libOf = (calls) => calls.filter((u) => String(u).startsWith(LIB_SEARCH)).length;
   const ENV_KEYS = ['BEFORE_WRITING_V2', 'FREE_BRAIN_V1', 'STREAM_V1', 'TAKHRIJ_V1', 'SHAMELA_BRAIN', 'SEARCH_API_TOKEN',
     'LIB_QUOTE_V1', 'LIB_MUJAZ_V1', 'ENCYC_V1', 'DEPTH_FREE_TRIAL', 'RFC_V05_MODE', 'RFC_V05_LEGACY_POLICY', 'LEDGER_RAG',
     'VERCEL_ENV', 'VERCEL_URL', 'FOUNDER_SECRET', 'KV_REST_API_URL', 'KV_REST_API_TOKEN', 'UPSTASH_REDIS_REST_URL',
@@ -164,7 +185,7 @@ async function main() {
   const WRITER_TEXT = 'WRITER-ANSWER-FROM-THE-FAKE-MODEL';
   let ipSeq = 0;
   // Every outbound call of every kind is counted; the model is a fake that answers WRITER_TEXT (and RELIGIOUS to the sorter).
-  async function drive(question, { env = {}, band = 'adult', age = 35 } = {}) {
+  async function drive(question, { env = {}, band = 'adult', age = 35, handler: useHandler = handler, messages = null } = {}) {
     for (const k of ENV_KEYS) delete process.env[k];
     process.env.ANTHROPIC_API_KEY = 'guard-not-a-real-key';
     process.env.BRAVE_API_KEY = 'guard-not-a-real-key';
@@ -179,6 +200,7 @@ async function main() {
     globalThis.fetch = async (url, init) => {
       const u = String(url);
       calls.push(u);
+      if (u.startsWith(LIB_SEARCH)) return jsonResponse(u, QUOTE_ATOM);
       if (u.startsWith(FC.FATWA_BASE)) return jsonResponse(u, { ok: true, schemaVersion: FC.FATWA_SCHEMA, results: [], scholars: [], pagination: { total: 0 }, counts: { scholars: 0 } });
       if (u.includes('api.anthropic.com')) {
         const b = JSON.parse(init.body);
@@ -210,14 +232,14 @@ async function main() {
       method: 'POST',
       headers: { 'x-murabbi-device': 'impermissible-early-guard-' + String(ipSeq).padStart(4, '0'), 'x-real-ip': '10.24.0.' + ipSeq,
         [CONSENT.AI_CONSENT_HEADER]: CONSENT.AI_CONSENT_VERSION },
-      body: { messages: [{ role: 'user', content: question }], band, age },
+      body: { messages: messages || [{ role: 'user', content: question }], band, age },
     };
     const logs = [];
     const keep = { log: console.log, warn: console.warn, error: console.error, info: console.info };
     console.log = (...a) => { logs.push(a); };
     console.warn = (...a) => { logs.push(a); }; console.error = () => {}; console.info = () => {};
     let crashed = null;
-    try { await handler(req, res); } catch (e) { crashed = e; } finally { Object.assign(console, keep); }
+    try { await useHandler(req, res); } catch (e) { crashed = e; } finally { Object.assign(console, keep); }
     globalThis.fetch = realFetch;
     const text = res.writes.map((w) => (/^data: (.*)\n\n$/s.exec(w) || [])[1]).filter(Boolean).map((j) => { try { return JSON.parse(j); } catch { return null; } })
       .filter((o) => o && o.type === 'content_block_delta' && o.delta && o.delta.text).map((o) => o.delta.text).join('');
@@ -281,6 +303,58 @@ async function main() {
       const d = await drive(hazardQ, {});
       ok('E5 a grave hazard is answered by its own redirect, not by the pornography text, with no model call', !d.crashed && d.text !== PR.PORN_REFUSAL_TEXT && d.text.length > 0 && outbound(d.calls).length === 0, ascii(JSON.stringify({ calls: outbound(d.calls).length, text: d.text.slice(0, 30) })));
     }
+    // 3.1a through the real handler: the owner's sentence, every band, and the siblings
+    for (const [band, age] of BANDS) {
+      const d = await drive(FIX.dialect.block[0].q, { band, age });
+      ok('G1 ' + band + ' the owner\'s «دزّ لي مقاطع سكس»: the fixed text, zero outbound calls', !d.crashed && d.text === PR.PORN_REFUSAL_TEXT && outbound(d.calls).length === 0, ascii(JSON.stringify({ calls: outbound(d.calls).length, text: d.text.length })));
+    }
+    for (const x of FIX.dialect.block.slice(1)) {
+      const d = await drive(x.q, {});
+      ok('G1b dialect sibling ' + ascii(JSON.stringify(x.q)) + ': the fixed text, zero outbound calls', !d.crashed && d.text === PR.PORN_REFUSAL_TEXT && outbound(d.calls).length === 0);
+    }
+    for (const x of FIX.dialect.pass) {
+      const d = await drive(x.q, {});
+      ok('G2 dialect question ' + ascii(JSON.stringify(x.q)) + ': not the fixed text', !d.crashed && d.text !== PR.PORN_REFUSAL_TEXT && d.routes.every((r) => r[1].impermissible === 'none'));
+    }
+    // 3.1b the minors' questions reach the model and are answered inside the band's own frame; the old counsel is for songs and films only
+    const COUNSEL = { young: IR.impermissibleCounsel('young'), teen: IR.impermissibleCounsel('teen'), adult: IR.impermissibleCounsel('adult') };
+    for (const x of FIX.minors) {
+      const d = await drive(x.q, { band: x.band, age: x.age });
+      ok('G3 ' + x.band + ' question ' + ascii(JSON.stringify(x.q)) + ': not the counsel, not the fixed text, the model is reached',
+        !d.crashed && d.text !== COUNSEL[x.band] && d.text !== PR.PORN_REFUSAL_TEXT && outbound(d.calls).length > 0 && !d.logs.some((a) => a[0] === '[policy] IMPERMISSIBLE_REQUEST'),
+        ascii(JSON.stringify({ calls: outbound(d.calls).length, counsel: d.text === COUNSEL[x.band] })));
+      const off = await drive(x.q, { band: x.band, age: x.age, env: { IMPERMISSIBLE_EARLY_V1: 'off' } });
+      ok('G3b ' + x.band + ' switch off: ' + ascii(JSON.stringify(x.q)) + ' is today\'s behaviour (the old counsel, no call) -- the row this item changes',
+        !off.crashed && off.text === COUNSEL[x.band] && outbound(off.calls).length === 0);
+    }
+    for (const [band, age] of BANDS.slice(1)) {
+      for (const q of ['ابغى أغنية حلوة', 'رشح لي فلم']) {
+        const d = await drive(q, { band, age });
+        ok('G4 ' + band + ' ' + ascii(JSON.stringify(q)) + ': still the old counsel with no call (songs and films are untouched)', !d.crashed && d.text === COUNSEL[band] && outbound(d.calls).length === 0);
+      }
+    }
+    // 3.1c the rule before the library-quote exit; a plain quote request is unchanged
+    for (const x of FIX.quote.porn) {
+      const d = await drive(x.q, { env: LIBON });
+      ok('G5 quote request carrying a pornography request ' + ascii(JSON.stringify(x.q)) + ': the fixed text, zero outbound calls (no library call)', !d.crashed && d.text === PR.PORN_REFUSAL_TEXT && outbound(d.calls).length === 0 && libOf(d.calls) === 0);
+      const off = await drive(x.q, { env: { ...LIBON, IMPERMISSIBLE_EARLY_V1: 'off' } });
+      ok('G5b ...with the switch off the same request is not the fixed text (the quote exit is the one that would have served it)', !off.crashed && off.text !== PR.PORN_REFUSAL_TEXT);
+    }
+    {
+      const on = await drive(FIX.quote.plain, { env: LIBON });
+      const off = await drive(FIX.quote.plain, { env: { ...LIBON, IMPERMISSIBLE_EARLY_V1: 'off' } });
+      ok('G6 an ordinary quote request: the same result bytes and the same number of outbound calls, the rule on or off', !on.crashed && !off.crashed && on.text.length > 0 && on.text === off.text
+        && outbound(on.calls).length === outbound(off.calls).length && libOf(on.calls) >= 1 && on.text !== PR.PORN_REFUSAL_TEXT, ascii(JSON.stringify({ on: outbound(on.calls).length, off: outbound(off.calls).length, len: on.text.length })));
+      const ab = await drive(FIX.quote.about, { env: LIBON });
+      ok('G6b a quote request ABOUT the subject is not the fixed text', !ab.crashed && ab.text !== PR.PORN_REFUSAL_TEXT);
+    }
+    // 3.1d measure only: what the two sentences get today (recorded in the report, never a decision)
+    {
+      const d1 = await drive(FIX.measureOnly.d1, {});
+      const d2 = await drive(FIX.measureOnly.d2, {});
+      ok('G7 (measure only) «ساعدني أبطل الإباحية» passes to the model; «أبغى مساعدة في الإباحية» is the fixed text today (owner decision pending)',
+        d1.text !== PR.PORN_REFUSAL_TEXT && outbound(d1.calls).length > 0 && d2.text === PR.PORN_REFUSAL_TEXT);
+    }
     // E6 telemetry: a closed word; the question is in no log line
     {
       const d = await drive(FIX.block[0].q, {});
@@ -329,11 +403,44 @@ async function main() {
     const m6 = await mutate('text', 'فاسألْني وأنا معك', 'فاسألْني');
     ok('M6 KILLED: an edited sentence changes the pinned sha256', sha(m6.PORN_REFUSAL_TEXT) !== TEXT_SHA && sha(PR.PORN_REFUSAL_TEXT) === TEXT_SHA);
     // M7: the ambiguous «ابي» (my father) counts as a request on its own
-    const m7 = await mutate('father', 'indicesOf(toks, [WANT_AMBIGUOUS]).some((i) => next.includes(i + 1))', 'indicesOf(toks, [WANT_AMBIGUOUS]).length > 0');
+    const m7 = await mutate('father', 'indicesOf(toks, WANT_AMBIGUOUS).some((i) => next.includes(i + 1))', 'indicesOf(toks, WANT_AMBIGUOUS).length > 0');
     ok('M7 KILLED: «أبي» (my father) beside the subject is not a request', m7.classifyPornographyRequest('أبي يدمن الإباحية').blocked === true && PR.classifyPornographyRequest('أبي يدمن الإباحية').blocked === false);
     void quit; void request; void nationality;
+    // M8: a dropped dialect verb
+    const m8 = await mutate('verb', "'دز', 'دزي',", "'دزي',");
+    ok('M8 KILLED: without «دز» the owner\'s sentence is no longer a request', m8.classifyPornographyRequest(FIX.dialect.block[0].q).blocked === false && PR.classifyPornographyRequest(FIX.dialect.block[0].q).blocked === true);
+    // M9: a dropped quotation verb
+    const m9 = await mutate('quoteverb', "'انقل', 'انقلي',", "'انقلي',");
+    ok('M9 KILLED: without «انقل» the library-quote form is not a request', m9.classifyPornographyRequest(FIX.quote.porn[0].q).blocked === false && PR.classifyPornographyRequest(FIX.quote.porn[0].q).blocked === true);
   } finally {
     try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* nothing to clean */ }
+  }
+
+  // ------------------------------------------------------------------------------------------------ M (api/ask.js mutants)
+  {
+    const mutFile = path.join(REPO, 'api', '.mut-impermissible-early-ask.mjs');
+    const askMutant = async (name, from, to) => {
+      const n = askSource.split(from).length - 1;
+      ok('M applied ' + name + ' (seam found once)', n === 1, String(n));
+      fs.writeFileSync(mutFile, askSource.split(from).join(to));
+      return import(pathToFileURL(mutFile).href + '?m=' + name);
+    };
+    const saved2 = {};
+    for (const k of ['ANTHROPIC_API_KEY']) saved2[k] = process.env[k];
+    try {
+      const mq = await askMutant('quote-before-rule', "libToken !== '' && !pornBlocked) {", "libToken !== '') {");
+      const dq = await drive(FIX.quote.porn[0].q, { env: LIBON, handler: mq.default });
+      ok('M10 KILLED: with the quote exit ahead of the rule a pornography quote request is served by the library, not refused', dq.text !== PR.PORN_REFUSAL_TEXT);
+      const mm = await askMutant('minors-reblocked', "if (impermissible.blocked && !(impermissible.kind === 'pornography' && impermissibleEarlyDecision().enabled)) {", 'if (impermissible.blocked) {');
+      const dm = await drive(FIX.minors[0].q, { band: FIX.minors[0].band, age: FIX.minors[0].age, handler: mm.default });
+      ok('M11 KILLED: with the old classifier blocking again, a minor\'s question gets the counsel and no model call', dm.text === COUNSEL_YOUNG && outbound(dm.calls).length === 0);
+      const ms = await askMutant('songs-unblocked', "if (impermissible.blocked && !(impermissible.kind === 'pornography' && impermissibleEarlyDecision().enabled)) {", "if (impermissible.blocked && impermissible.kind === 'pornography' && false) {");
+      const dsong = await drive('ابغى أغنية حلوة', { band: 'teen', age: 14, handler: ms.default });
+      ok('M12 KILLED: a change that lets songs through is seen by the song rows', dsong.text !== IR.impermissibleCounsel('teen'));
+    } finally {
+      try { fs.rmSync(mutFile, { force: true }); } catch { /* nothing to clean */ }
+      globalThis.fetch = realFetch;
+    }
   }
 
   process.exitCode = finish();

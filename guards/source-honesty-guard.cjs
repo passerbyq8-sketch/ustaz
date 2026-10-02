@@ -891,7 +891,7 @@ const stripComments = (s) => String(s)
     ok('E11: the live path consults the filter on the GEN route',
       /const impermissible = effectiveRoute === 'GEN'\s*\?\s*classifyImpermissibleRequest\(questionText\)/.test(ASK));
     ok('E11: ...and answers with the counsel rather than the model',
-      /if \(impermissible\.blocked\) \{[\s\S]{0,400}return emitOnce\(impermissibleCounsel\(audienceBand\)\);/.test(ASK));
+      /if \(impermissible\.blocked && !\(impermissible\.kind === 'pornography' && impermissibleEarlyDecision\(\)\.enabled\)\) \{[\s\S]{0,400}return emitOnce\(impermissibleCounsel\(audienceBand\)\);/.test(ASK));
     // ── THE ORDERING, AND EVERY BRANCH THAT RETURNS BEFORE IT WOULD BE FATAL ──
     //
     // Three branches below RETURN, and a check that sits under any of them is a check that never

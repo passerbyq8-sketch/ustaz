@@ -1111,7 +1111,7 @@ export default async function handler(req, res) {
   // protections that run later on every path are asked here too: a grave hazard or a health
   // referral is never answered by a quotation, so those requests go on down the ordinary path.
   // Anything the detector does not claim goes on unchanged; with the flag off nothing is loaded.
-  if (libQuoteOn && band === 'adult' && libFlagValue === 'on' && libToken !== '') {
+  if (libQuoteOn && band === 'adult' && libFlagValue === 'on' && libToken !== '' && !pornBlocked) {
     const libQuote = await import('../lib/lib-quote.js');
     // SPEED WASL W4: a page is read from the live library's pages (lib/lib-service.js readLibraryPage, public GET), and
     // its card is this file's own buildBookTag (book, author, volume, page -> «افتح في المكتبة» to that page).
@@ -2731,7 +2731,11 @@ export default async function handler(req, res) {
     const impermissible = effectiveRoute === 'GEN'
       ? classifyImpermissibleRequest(questionText)
       : { blocked: false, kind: '', matched: '' };
-    if (impermissible.blocked) {
+    // PORNOGRAPHY IS DECIDED ONCE, BY THE EARLY RULE (3.1b of EZIK-COMPREHENSIVE-ORDER-2026-10-02): with it on, a request was
+    // already answered with the fixed text above, for every band, and what reaches this line carrying that vocabulary is a QUESTION
+    // (or a doubt) -- which always passes. The old classifier keeps songs and films exactly as they were; with the switch off it is
+    // the whole decision again, as at 9cb6f64.
+    if (impermissible.blocked && !(impermissible.kind === 'pornography' && impermissibleEarlyDecision().enabled)) {
       // The KIND and the band, and nothing else. Never the question.
       console.warn('[policy] IMPERMISSIBLE_REQUEST', {
         kind: impermissible.kind, band: audienceBand, path: ledgerPath.path,
