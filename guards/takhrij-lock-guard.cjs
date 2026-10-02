@@ -4545,6 +4545,55 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       try { fs.rmSync(tmp3, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── FOLLOWUP 49 item 2 · A SPEAKER WITH NOTHING AFTER HIS COLON IS NOT A LINE (the owner's decision 3) ─────────────────────────────────────────────
+  // MEASURED at the head and at 9588e8a (BEFORE order 48 — so the splinter rule of 48 did not cause it, and 28 of 288 shapes below left it identically at both): the lock cut the credit from
+  // a LIST line «- ابن الجوزي: أخرجه في الموضوعات.» and left «- ابن الجوزي:.» (the production line «ابن الجوزي:.» of the 2 Oct preview, answer 2). The cut was the lock's; the reviewer does not
+  // produce the shape. The rule: where a cut leaves a speaker whose colon is followed by nothing but marks, the line goes whole and NOTHING is written in its place.
+  {
+    const EMPTY = /(?:^|\n)[^\n:]{2,40}:\s*[.،؛!؟]*\s*(?=\n|$)/u;
+    const lines = (t) => t.split('\n');
+    const NEIGHBOUR = 'ابن عدي: صرح أنه منكر.';
+    const shapes2 = [
+      ['a dash list line', '- ابن الجوزي: أخرجه في الموضوعات.'],
+      ['a numbered list line', '1. ابن الجوزي: رواه ابن ماجه.'],
+      ['an Arabic-digit list line', '٢. ابن الجوزي: أورده في «الموضوعات».'],
+      ['a speaker whose colon is followed by a second colon («وقال:»)', '- ابن الجوزي: وقال: رواه البزار.'],
+    ];
+    for (const [name, line] of shapes2) {
+      const r = TL.lockTakhrij(NEIGHBOUR + '\n' + line, []);
+      ok('FOLLOWUP49-2 ' + name + ' · the line goes whole, the neighbour stays, no «name:.» is left',
+        r.text === NEIGHBOUR && !EMPTY.test(r.text) && r.droppedSentences.some((d) => d.cut === 'empty-speaker') && r.outcome === 'REBUILT', JSON.stringify(r.text));
+      const alone = TL.lockTakhrij(line, []);
+      ok('FOLLOWUP49-2 ' + name + ' · alone, the lock refuses the text and writes nothing', alone.text === '' && alone.outcome === 'REFUSED', JSON.stringify(alone.text));
+    }
+    // the order's own text, with the line after it: only the credit's own line goes
+    const FULL = NEIGHBOUR + '\n- ابن الجوزي: أخرجه في الموضوعات.\n- الألباني: قال إنه منكر.';
+    ok('FOLLOWUP49-2 the line after it is not touched', lines(TL.lockTakhrij(FULL, []).text).some((l) => /الألباني: قال إنه منكر/u.test(l)) && !/ابن الجوزي/u.test(TL.lockTakhrij(FULL, []).text), JSON.stringify(TL.lockTakhrij(FULL, []).text));
+    // controls: what the cut leaves a claim after the colon is judged as before; a line that was only «name:» to begin with is not the lock's to touch; a clean text is untouched
+    const keep = TL.lockTakhrij('ابن عدي: صرح أنه منكر.\nابن الجوزي: أخرجه في الموضوعات وقال: لا أصل له.\nوهذا كلام لا نسبة فيه.', []);
+    ok('FOLLOWUP49-2 control · a credit cut from the middle of a claim is judged as it was (no empty-speaker cut)', keep.droppedSentences.every((d) => d.cut !== 'empty-speaker') && /وهذا كلام لا نسبة فيه/u.test(keep.text), JSON.stringify(keep));
+    ok('FOLLOWUP49-2 control · a bare «name:» that no cut made is left as it was', TL.lockTakhrij('ابن الجوزي:', []).text === 'ابن الجوزي:' && TL.lockTakhrij('ابن الجوزي:', []).outcome === 'CLEAN');
+    ok('FOLLOWUP49-2 control · a clean list is untouched', TL.lockTakhrij('- ابن عدي: صرح أنه منكر.\n- الألباني: قال إنه منكر.', []).outcome === 'CLEAN');
+    // the mutants
+    const srcLock2 = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const tmp4 = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-fu49-2-mut-'));
+    const mutate4 = async (name, from, to) => {
+      const n = srcLock2.split(from).length - 1;
+      ok('MUTANT FOLLOWUP49-2 ' + name + ' seam applied once', n === 1, String(n));
+      const mfile = path.join(tmp4, name + '.mjs');
+      fs.writeFileSync(mfile, srcLock2.split(from).join(to).replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+        (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+      return import('file:///' + mfile.replace(/\\/g, '/'));
+    };
+    try {
+      const mA = await mutate4('step-out', 'for (const sen of emptiedSpeakerSentences(s, cuts, all)) {', 'for (const sen of []) {');
+      ok('MUTANT KILLED: without the step «- ابن الجوزي:.» reaches the reader again', EMPTY.test(mA.lockTakhrij(NEIGHBOUR + '\n' + shapes2[0][1], []).text));
+      const mB = await mutate4('one-colon-only', '(?:[^:：]{1,60}[:：]\\s*)+[،؛,.؟!\\s]*$/u;', '(?:[^:：]{1,60}[:：]\\s*)[،؛,.؟!\\s]*$/u;');
+      ok('MUTANT KILLED: a speaker with a second colon («وقال:.») is no longer dropped', /وقال:/u.test(mB.lockTakhrij(NEIGHBOUR + '\n' + shapes2[3][1], []).text));
+    } finally {
+      try { fs.rmSync(tmp4, { recursive: true, force: true }); } catch { /* temp only */ }
+    }
+  }
   console.log('\n=== ' + (checks - failures) + '/' + checks + (failures ? ' — FAIL' : ' — PASS') + ' ===');
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
