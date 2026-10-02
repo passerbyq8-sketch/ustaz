@@ -1367,6 +1367,83 @@ async function main() {
       && cleanPassage(WRAP, 1200).indexOf('\n') === -1,
     hM2.error ? hM2.error.message : 'the wrap rule did not flip');
 
+  // ==========================================================================
+  section('I. FOLLOWUP 49 ITEM 9: AN ATOM INSIDE A QUOTATION IS NO LICENCE OF THE BOOK\'S AUTHOR (the owner\'s decision 1)');
+  // ==========================================================================
+  // The library cuts a fatwa collection into atoms of about twelve hundred characters; an atom in the MIDDLE of «ما نصه … انتهى المقصود» holds another man's words. The app sees one atom at a
+  // time, so tools/inner-quote-atoms.mjs reads the neighbours in the index (read only) and writes lib/data/inner-quote-atoms.js; the row carries the flag and the reviewer withholds the licence.
+  {
+    const INNER = await import(pathToFileURL(path.join(REPO, 'lib/data/inner-quote-atoms.js')).href);
+    const SCAN = await import(pathToFileURL(path.join(REPO, 'tools/inner-quote-atoms.mjs')).href);
+    const ID_RE = /^FC-\d{6}:\d{4}:\d{3}$/;
+    ok('I1  the data file is a set of atom ids, each of the shape of the index, as many as the books it names add up to, and it names the four collections the tool names',
+      INNER.INNER_QUOTE_ATOMS instanceof Set && INNER.INNER_QUOTE_ATOMS.size > 0 && [...INNER.INNER_QUOTE_ATOMS].every((id) => ID_RE.test(id))
+        && INNER.INNER_QUOTE_ATOMS.size === INNER.INNER_QUOTE_BOOKS.reduce((n, b) => n + b.inner, 0)
+        && JSON.stringify(INNER.INNER_QUOTE_BOOKS.map((b) => b.title)) === JSON.stringify(SCAN.INNER_QUOTE_BOOK_TITLES) && INNER.INNER_QUOTE_INDEX_VERSION.length > 0,
+      'size=' + INNER.INNER_QUOTE_ATOMS.size);
+    ok('I2  the measured case: in the section of the owner\'s example, :045 and :046 are inside the quotation (044 opens it, 047 closes it), and :042 and :044 are not',
+      INNER.INNER_QUOTE_ATOMS.has('FC-004528:4349:045') && INNER.INNER_QUOTE_ATOMS.has('FC-004528:4349:046')
+        && !INNER.INNER_QUOTE_ATOMS.has('FC-004528:4349:042') && !INNER.INNER_QUOTE_ATOMS.has('FC-004528:4349:044') && !INNER.INNER_QUOTE_ATOMS.has('FC-004528:4349:047'));
+    ok('I3  the collections of Ibn Uthaymeen and the Permanent Committee hold no inner atom (as measured: no range, and three ranges with no atom between)',
+      INNER.INNER_QUOTE_BOOKS.filter((b) => b.title !== SCAN.INNER_QUOTE_BOOK_TITLES[0]).every((b) => b.inner === 0));
+    // the scan itself, on synthetic atoms (the index is not needed to read the rule)
+    const A = (id, text) => ({ id, text });
+    const S = (ids, texts) => SCAN.findInnerQuoteAtoms(ids.map((id, i) => A(id, texts[i])));
+    const OPEN = 'وقال في كتابه ما نصه: ';
+    const found = S(['B:0001:001', 'B:0001:002', 'B:0001:003', 'B:0001:004', 'B:0001:005'], ['كلام المؤلف. ' + OPEN + 'بدأ النقل', 'وسط النقل أ', 'وسط النقل ب', 'ثم انتهى المقصود من كلام فلان وهذا ردي', 'كلام آخر']);
+    ok('I4  the scan: the atoms strictly between the opening atom and the closing atom are inner; the two ends are not', JSON.stringify(found.inner) === JSON.stringify(['B:0001:002', 'B:0001:003']) && found.ranges.length === 1, JSON.stringify(found));
+    ok('I5  the scan: opened and closed in one atom, no atom between; a quotation that never closes; a closing mark with no opening; the section\'s end — none makes an inner atom',
+      S(['B:0001:001', 'B:0001:002'], [OPEN + 'نقل اه كلامه', 'بعده']).inner.length === 0
+        && S(['B:0001:001', 'B:0001:002', 'B:0001:003'], [OPEN + 'نقل', 'وسط', 'وسط']).inner.length === 0
+        && S(['B:0001:001', 'B:0001:002', 'B:0001:003'], ['كلام', 'انتهى كلامه', 'بعده']).inner.length === 0
+        && S(['B:0001:001', 'B:0001:002', 'B:0002:001', 'B:0002:002'], [OPEN + 'نقل', 'وسط', 'وسط', 'انتهى المقصود']).inner.length === 0);
+    ok('I6  the scan reads the marks as the owner worded them and no wider: vocalised «مَا نَصُّهُ» opens, «اه كلامه» and «انتهى كلامه» close, a bare «اه» and a bare «انتهى» do not, «ما نصها» is not «ما نصه»',
+      S(['B:0001:001', 'B:0001:002', 'B:0001:003'], ['مَا نَصُّهُ: نقل', 'وسط', 'اه كلامه']).inner.length === 1
+        && S(['B:0001:001', 'B:0001:002', 'B:0001:003'], [OPEN + 'نقل', 'وسط', 'انتهى كلامه']).inner.length === 1
+        && S(['B:0001:001', 'B:0001:002', 'B:0001:003'], [OPEN + 'نقل', 'وسط', 'اه والله أعلم']).inner.length === 0
+        && S(['B:0001:001', 'B:0001:002', 'B:0001:003'], [OPEN + 'نقل', 'وسط', 'انتهى']).inner.length === 0
+        && S(['B:0001:001', 'B:0001:002', 'B:0001:003'], ['وقال ما نصها: نقل', 'وسط', 'انتهى المقصود']).inner.length === 0);
+    ok('I6b the scan: a closing mark closes the NEAREST opening before it — with two openings before one closing, only the atoms after the second are inner, and one atom may close a quotation and open the next',
+      JSON.stringify(S(['B:0001:001', 'B:0001:002', 'B:0001:003', 'B:0001:004', 'B:0001:005'], [OPEN + 'أ', 'وسط', OPEN + 'ب', 'وسط', 'انتهى المقصود']).inner) === JSON.stringify(['B:0001:004'])
+        && JSON.stringify(S(['B:0001:001', 'B:0001:002', 'B:0001:003', 'B:0001:004'], [OPEN + 'أ', 'وسط', 'انتهى كلامه ثم ' + OPEN + 'ب', 'انتهى المقصود']).inner) === JSON.stringify(['B:0001:002']));
+    // the row: the real runner, with the library seam returning atoms by the ids of the index
+    const mkHit = (atomId, extra) => Object.assign({}, HIT, { atom_id: atomId, author: 'ابن باز', book_title: 'مجموع فتاوى ابن باز', subject_id: 'FC-004528' }, extra || {});
+    const hitsI = [mkHit('FC-004528:4349:046'), mkHit('FC-004528:4349:044'), mkHit('FC-004528:4349:042'), mkHit('FC-004534:0001:001', { author: 'ابن عثيمين', book_title: 'مجموع فتاوى ورسائل العثيمين', subject_id: 'FC-004534' })];
+    const rowsI = await rowsFor(hitsI);
+    const flags = Object.fromEntries(rowsI.map((r) => [String(r.recordId).replace(/^lib:/, ''), r.innerQuote]));
+    ok('I7  the runner stamps the row: the inner atom carries the flag true; the opening atom, the earlier atom and another collection carry it false',
+      flags['FC-004528:4349:046'] === true && flags['FC-004528:4349:044'] === false && flags['FC-004528:4349:042'] === false && flags['FC-004534:0001:001'] === false, JSON.stringify(flags));
+    const ev = (row) => loop.reviewerEvidence(row);
+    ok('I8  the reviewer\'s evidence carries it (and only for a library book)',
+      ev(rowsI.find((r) => /4349:046$/.test(r.recordId))).innerQuote === true && ev(rowsI.find((r) => /4349:044$/.test(r.recordId))).innerQuote === false
+        && loop.reviewerEvidence({ kind: 'fatwa', innerQuote: true, publisher: 'x' }).innerQuote === false);
+    // the reviewer, end to end: the same sentence under the inner atom and under the opening atom (the text of the sentence is what the atom holds)
+    const REVIEWER_MOD = await import(pathToFileURL(path.join(REPO, 'lib/output-reviewer.js')).href);
+    const CLAIM = 'وقال ابن باز: ' + String(HIT.text).replace(/[.]$/, '') + '.';
+    const reviewWith = (mod, row) => mod.reviewAnswer({ text: CLAIM, evidence: [Object.assign({}, loop.reviewerEvidence(row), { snippet: HIT.text })], domain: 'fiqh', mode: 'chat' });
+    const rInner = rowsI.find((r) => /4349:046$/.test(r.recordId));
+    const rOpen = rowsI.find((r) => /4349:044$/.test(r.recordId));
+    const kept = (res) => /ابن باز/.test(res.text);
+    ok('I9  the book\'s author is credited by his own atom (the opening atom) and not by an atom inside a quotation',
+      kept(reviewWith(REVIEWER_MOD, rOpen)) && !kept(reviewWith(REVIEWER_MOD, rInner)), reviewWith(REVIEWER_MOD, rInner).text);
+    const mI1 = await mutantModule(temp, 'lib/free-brain/tools.js', 'inner-flag-never-set',
+      (src) => src.replace("innerQuote: INNER_QUOTE_ATOMS.has(String(record.id || '').replace(/^lib:/u, '')),", 'innerQuote: false, /* mutant-no-flag */'),
+      'mutant-no-flag').then((mod) => ({ mod }), (error) => ({ error }));
+    ok('I-M1 MUTANT KILLED: if the runner never stamps the flag, the inner atom is a plain row again and the owner\'s example loses its check',
+      !mI1.error, mI1.error ? mI1.error.message : '');
+    if (!mI1.error) {
+      const local = ctx({ libFlagValue: 'on', libToken: FIXTURE_TOKEN, fetchImpl: libServingMany(hitsI) });
+      await quiet(() => mI1.mod.runTool('search_library', { query: 'q' }, local));
+      const row = local.table.rows.find((r) => /4349:046$/.test(r.recordId));
+      ok('I-M1b MUTANT KILLED: ...and the inner atom\'s row then carries no flag, so check I7 fails', !!row && row.innerQuote === false);
+    }
+    const mI2 = await mutantModule(temp, 'lib/free-brain/loop.js', 'evidence-drops-flag',
+      (src) => src.replace('innerQuote: row.kind === LIB_BOOK_KIND && row.innerQuote === true,', 'innerQuote: false, /* mutant-evidence-drops-flag */'),
+      'mutant-evidence-drops-flag').then((mod) => ({ mod }), (error) => ({ error }));
+    ok('I-M2 MUTANT KILLED: if the reviewer\'s evidence drops the flag, the licence is given to the inner atom again and check I9 fails',
+      !mI2.error && mI2.mod.reviewerEvidence(rInner).innerQuote === false && loop.reviewerEvidence(rInner).innerQuote === true, mI2.error ? mI2.error.message : '');
+  }
+
   ok('H9  every row in section H came from the injected library seam, none from the network',
     poisoned.calls === 0, 'poisoned fetch invoked ' + poisoned.calls + ' time(s)');
 

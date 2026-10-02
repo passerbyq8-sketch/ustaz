@@ -1108,6 +1108,38 @@ const unsupportedIsHandledSilently = (module) => {
       await mk6('the streamed path does not generalise it', '      const mergedName = generaliseMergedBookName(part, sources);\n      if (mergedName) {\n        mark();', '      const mergedName = null;\n      if (mergedName) {\n        mark();',
         (mod) => { const st = mod.createReviewStream({ domain: 'fiqh', evidence: [row6()] }); st.push(W6); const r = st.end(); return (typeof r === 'string' ? r : r.text) === 'وفصل بعض أهل العلم ذلك' + REST6; });
     }
+    // ── FOLLOWUP 49 item 9 · AN ATOM INSIDE A QUOTATION IS NO LICENCE OF THE BOOK'S AUTHOR (the owner's decision 1) ────────────────────────────────────────────────────────────────
+    // MEASURED (the 48 report, item 10): in a collection of fatwas the author quotes another man at length, and an atom in the MIDDLE of the quotation read as «ابن باز يرى …» credited him with the quoted
+    // man's words. The row now carries `innerQuote` (the atoms found by tools/inner-quote-atoms.mjs, lib/data/inner-quote-atoms.js); the reviewer gives neither licence of the book's author to such a row.
+    // The licence of a fatwa from the man's own site, and the licence of an atom that is not inside a quotation, are untouched.
+    {
+      const SNIP9 = 'يجب إعفاء اللحية وتوفيرها ولا يجوز حلقها ولا تقصيرها ولا الأخذ منها.';
+      const row9 = (over = {}) => ({ id: 'lib:FC-004528:4349:046', title: 'مجموع فتاوى ابن باز · ج1 · ص350', url: '', scholar: 'ابن باز', snippet: SNIP9, date: '', kind: 'lib_book', bookTitle: 'مجموع فتاوى ابن باز', author: 'ابن باز', ...over });
+      const CL9 = 'وقال ابن باز: يجب إعفاء اللحية وتوفيرها ولا يجوز حلقها ولا تقصيرها.';
+      const CB9 = 'قال ابن قدامة في المغني: يجب إعفاء اللحية وتوفيرها ولا يجوز حلقها ولا تقصيرها.'; // the man's short name and his book: only the licence that names the book reaches it
+      const rowB9 = (over = {}) => row9({ id: 'lib:FC-003727:0275:001', title: 'المغني لابن قدامة · ج1 · ص345', bookTitle: 'المغني', author: 'ابن قدامة المقدسي', scholar: 'ابن قدامة المقدسي', ...over });
+      const rev9 = (mod, text, row) => mod.reviewAnswer({ text, evidence: [row], domain: 'fiqh', mode: 'chat' }).text;
+      ok('FOLLOWUP49-9 the author\'s licence is given to an atom that is not inside a quotation (the name stays)', rev9(module, CL9, row9({ innerQuote: false })) === CL9, rev9(module, CL9, row9({ innerQuote: false })));
+      ok('FOLLOWUP49-9 ...and withheld from an atom inside a quotation: the name is generalised, the rest byte for byte', rev9(module, CL9, row9({ innerQuote: true })) === 'وقال بعض أهل العلم: يجب إعفاء اللحية وتوفيرها ولا يجوز حلقها ولا تقصيرها.', rev9(module, CL9, row9({ innerQuote: true })));
+      ok('FOLLOWUP49-9 the licence of a credit that names the book as well as the man is withheld in the same way (and given to the atom that is not inside)',
+        rev9(module, CB9, rowB9({ innerQuote: false })) === CB9 && /^وقال بعض أهل العلم: يجب/u.test(rev9(module, CB9, rowB9({ innerQuote: true }))), rev9(module, CB9, rowB9({ innerQuote: true })));
+      ok('FOLLOWUP49-9 the licence of a fatwa from the man\'s own site is not the book\'s: the flag changes nothing for it',
+        rev9(module, CL9, { id: 'binbaz:1', title: 'حكم اللحية', url: 'https://binbaz.org.sa/fatwas/1', scholar: 'ابن باز', snippet: SNIP9, date: '', kind: '', innerQuote: true }) === CL9);
+      ok('FOLLOWUP49-9 a row with no flag at all (every row before this order) is treated as before', rev9(module, CL9, row9()) === CL9);
+      const mk9 = async (name, from, to, expected, row) => {
+        const m = await runMutant({ sourceFile: REVIEWER, name, transform: (source) => source.replace(from, to),
+          survives: (mod) => rev9(mod, expected.text, row) === expected.out });
+        ok('FOLLOWUP49-9 mutant seam applied: ' + name, m.changed, m.error);
+        ok('FOLLOWUP49-9 MUTANT KILLED: ' + name, m.loaded && m.survived === false, JSON.stringify(m));
+      };
+      const GEN9 = 'وقال بعض أهل العلم: يجب إعفاء اللحية وتوفيرها ولا يجوز حلقها ولا تقصيرها.';
+      await mk9('the block of the first licence is lifted (the author\'s licence is given to the inner atom again)', "    if (item.innerQuote) return false; // FOLLOWUP 49 item 9: an atom inside a quotation holds another man's words\n", '',
+        { text: CL9, out: GEN9 }, row9({ innerQuote: true }));
+      await mk9('the block of the second licence is lifted', '    if (item.innerQuote) return false; // FOLLOWUP 49 item 9\n', '',
+        { text: CB9, out: 'وقال بعض أهل العلم: يجب إعفاء اللحية وتوفيرها ولا يجوز حلقها ولا تقصيرها.' }, rowB9({ innerQuote: true }));
+      await mk9('the reviewer ignores the flag (the licence is given to every atom)', '    innerQuote: Boolean(item && item.innerQuote === true),\n', '    innerQuote: false,\n',
+        { text: CL9, out: GEN9 }, row9({ innerQuote: true }));
+    }
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
