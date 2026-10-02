@@ -1013,7 +1013,7 @@ function libraryPlain(markup) {
     const to = appSrcU.indexOf('function useEzikAutoUpdateRoot() {');
     ok('8W0 the update block is found whole in app.jsx, and the root hook calls it', from > 0 && to > from && /\n  useEzikAutoUpdateRoot\(\);\n/.test(appSrcU));
     const cutSrc = from > 0 && to > from ? appSrcU.slice(from, to) : '';
-    const load = (src) => new Function(src + '\nreturn { ezikStartAutoUpdate, ezikUpdateIsIdle, ezikTrackAttach, EZIK_UPDATE_BUSY, EZIK_UPDATE_POLL_MS, EZIK_UPDATE_MIN_GAP_MS, EZIK_UPDATE_RECHECK_MS };')();
+    const load = (src) => new Function(src + '\nreturn { ezikStartAutoUpdate, ezikUpdateIsIdle, ezikTrackAttach, ezikAttachSettled, EZIK_ATTACH_WAITERS, EZIK_UPDATE_BUSY, EZIK_UPDATE_POLL_MS, EZIK_UPDATE_MIN_GAP_MS, EZIK_UPDATE_RECHECK_MS };')();
     const rig = (mod, { controller = {}, busy = {}, stamp = null, visibility = 'visible', t0 = 1000000 } = {}) => {
       let clock = t0;
       const listeners = {};
@@ -1097,12 +1097,70 @@ function libraryPlain(markup) {
         /EZIK_UPDATE_BUSY\.loading = !!isLoading \|\| streamingText !== null;\n\s+EZIK_UPDATE_BUSY\.draft = input\.trim\(\) !== '' \|\| !!pendingImage;/.test(appSrcU));
       ok('8Wo sw.js is untouched by this item: its two lines stay (CACHE name, the ?v=7 pair, skipWaiting and claim)', /'\/mushaf-lab\/app\.js\?v=7',\n\s+'\/mushaf-lab\/style\.css\?v=7',/.test(swSrcU)
         && swSrcU.includes('self.skipWaiting();') && swSrcU.includes('self.clients.claim()') && /^const IDLE = \[/m.test(swSrcU));
+      // ---- 3.4i a message sent while its file is still being read goes WITH the file (the owner's answer 10)
+      // MEASURED by reading sendMessage and by the owner's own sequence: it read pendingImage from its render closure and cleared it at the press; the file's
+      // chip appeared a moment later, so the NEXT message («اقصد هذا») carried it. The wait and the ref are cut out and driven here; the wiring is pinned in source.
+      {
+        const log = [];
+        const idle = M.ezikAttachSettled();
+        let idleDone = false;
+        idle.then(() => { idleDone = true; });
+        await Promise.resolve();
+        ok('3.4i-1 nothing being read: a send does not wait at all (resolved at once, no waiter left)', idleDone === true && M.EZIK_ATTACH_WAITERS.length === 0);
+        let release;
+        const reading = M.ezikTrackAttach(new Promise((res) => { release = res; }).then(() => { log.push('file-ready'); }));
+        const waiting = M.ezikAttachSettled(5000).then(() => { log.push('send-goes'); });
+        log.push('send-pressed');
+        await Promise.resolve();
+        const midLog = log.join(',');
+        release();
+        await reading;
+        await waiting;
+        ok('3.4i-2 a file being read: the press waits, and the send goes only AFTER the file is ready (press, ready, send), with the waiter released',
+          midLog === 'send-pressed' && log.join(',') === 'send-pressed,file-ready,send-goes' && M.EZIK_ATTACH_WAITERS.length === 0 && M.EZIK_UPDATE_BUSY.attaching === 0, log.join(','));
+        let rej;
+        const failing = M.ezikTrackAttach(new Promise((_, no) => { rej = no; }));
+        const waitingF = M.ezikAttachSettled(5000);
+        rej(new Error('unreadable'));
+        let failedSeen = false;
+        await failing.catch(() => { failedSeen = true; });
+        await waitingF;
+        ok('3.4i-3 a file that cannot be read still releases the press (the reader was told by the picker; the message goes without it)', failedSeen && M.EZIK_UPDATE_BUSY.attaching === 0 && M.EZIK_ATTACH_WAITERS.length === 0);
+        let r1, r2;
+        const a1 = M.ezikTrackAttach(new Promise((res) => { r1 = res; }));
+        const a2 = M.ezikTrackAttach(new Promise((res) => { r2 = res; }));
+        let two = false;
+        const w2 = M.ezikAttachSettled(5000).then(() => { two = true; });
+        r1(); await a1; await Promise.resolve();
+        const afterFirst = two;
+        r2(); await a2; await w2;
+        ok('3.4i-4 two files being read: the press waits for the LAST one', afterFirst === false && two === true);
+        const stuck = M.ezikTrackAttach(new Promise(() => {}));
+        const t0 = Date.now();
+        await M.ezikAttachSettled(30);
+        ok('3.4i-5 a file that never finishes does not hold the press for ever: it goes after the bound, and the waiter list is clean', Date.now() - t0 >= 25 && M.EZIK_ATTACH_WAITERS.length === 0);
+        void stuck;
+        M.EZIK_UPDATE_BUSY.attaching = 0;
+        // the wiring in source
+        const sendAt = appSrcU.indexOf('const sendMessage = async (');
+        const sendBody = sendAt > 0 ? appSrcU.slice(sendAt, sendAt + 6000) : '';
+        ok('3.4i-6 sendMessage waits for a file being read, once (a second press while waiting is the same turn), then reads the attachment from the ref',
+          /if \(!repeat && EZIK_UPDATE_BUSY\.attaching > 0\) \{\s+if \(attachWaitRef\.current\) return;\s+attachWaitRef\.current = true;\s+try \{ await ezikAttachSettled\(\); \} finally \{ attachWaitRef\.current = false; \}\s+\}\s+const attached = repeat \? null : \(pendingImageRef\.current \|\| pendingImage\);/.test(sendBody)
+          && /if \(attached && !repeat\) \{/.test(sendBody) && !/pendingImage\.(?:kind|data|name|media_type)/.test(sendBody));
+        ok('3.4i-7 every writer of the attachment goes through one setter that sets the ref and the state together; the only raw setState is that setter',
+          /const setPendingFile = \(value\) => \{ pendingImageRef\.current = value; setPendingImage\(value\); \};/.test(appSrcU)
+          && (appSrcU.match(/setPendingImage\(/g) || []).length === 1 && (appSrcU.match(/setPendingFile\(/g) || []).length >= 7);
+      }
       // mutants of the cut text, each applied once and each killed
       const mutate = (name, a, b) => { ok('8WM applied ' + name + ' (seam found once)', cutSrc.split(a).length === 2); return load(cutSrc.split(a).join(b)); };
       { const m = mutate('no busy check', 'if (!ezikUpdateIsIdle(busy)) { pollTimer = setTimer(attempt, EZIK_UPDATE_POLL_MS); return; }', '');
         const r = rig(m, { busy: { loading: true } }); r.fire(); ok('8WM1 KILLED: without the busy check the page reloads under an answer', r.reloads() === 1); }
       { const m = mutate('first install counts', 'if (!hadController) { hadController = true; return; }', '');
         const r = rig(m, { controller: null }); r.fire(); ok('8WM2 KILLED: without the first-install test a first visit reloads', r.reloads() === 1); }
+      { const m = mutate('send never waits', "if (!(EZIK_UPDATE_BUSY.attaching > 0)) return Promise.resolve();", 'return Promise.resolve();');
+        let rel; const rd = m.ezikTrackAttach(new Promise((res) => { rel = res; })); let went = false;
+        m.ezikAttachSettled(5000).then(() => { went = true; }); await Promise.resolve();
+        ok('8WM4 KILLED: a send that never waits goes while the file is still being read (the owner\'s answer 10)', went === true); rel(); await rd; }
       { const m = mutate('no loop guard', 'if (last && now() - last >= 0 && now() - last < EZIK_UPDATE_MIN_GAP_MS) { pending = false; return; }', '');
         const r = rig(m, { stamp: 1000000 - 5000 }); r.fire(); ok('8WM3 KILLED: without the stored time two workers could loop the page', r.reloads() === 1); }
     }

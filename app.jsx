@@ -15113,6 +15113,10 @@ function App() {
   const [depthMode, setDepthMode] = useState('brief'); // 'brief' | 'detailed' | 'scholar' — adult-only 3-state cycle
   const SCHOLAR_ENABLED = true; // scholar (طالب العلم) = adult-only 3rd depth state; ENABLED. Set false to hide it (cycle -> brief/detailed only). Server accepts scholar regardless of this flag.
   const [pendingImage, setPendingImage] = useState(null); // { media_type, data } or null
+  // ITEM 3.4i: the same value in a ref, set at the same moment, so a send that waited for its file reads it (the closure's copy is the one from before the file arrived)
+  const pendingImageRef = useRef(null);
+  const attachWaitRef = useRef(false);
+  const setPendingFile = (value) => { pendingImageRef.current = value; setPendingImage(value); };
   const [attachMenuOpen, setAttachMenuOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);   // D85: the chat drawer (menu button)
   // ITEM 26: أسماء الله الحسنى, open over whatever screen the reader was on. It is NOT a route --
@@ -16720,7 +16724,7 @@ function App() {
     setStreamingText(null);
     setIsLoading(false);
     setInput('');
-    setPendingImage(null);
+    setPendingFile(null);
     // ITEM 102-ب: and the ask pin, said out loud. It used to come down as a side effect of the
     // turn going quiet -- a thread reset makes it quiet -- and the pin now outlives the turn on
     // purpose, so the one thing that must still end it says so where it happens. It is written
@@ -16838,7 +16842,7 @@ function App() {
     setStreamingText(null);
     setIsLoading(false);
     setInput('');
-    setPendingImage(null);
+    setPendingFile(null);
   };
 
   const pinSavedChat = (id) => { ezikToggleChatPin(id); refreshChatList(); };
@@ -17953,14 +17957,14 @@ function App() {
         const block = await fileToImageBlock(file); // { media_type, data }
         const over = attachOverBudget({ type: 'image', source: { type: 'base64', media_type: block.media_type, data: block.data } }, messages, profileRef.current);
         if (over) return fail(over);
-        setPendingImage({ kind: 'image', name: file.name, media_type: block.media_type, data: block.data });
+        setPendingFile({ kind: 'image', name: file.name, media_type: block.media_type, data: block.data });
       } else if (isPdf) {
         const pdfCeil = deriveTypeCeiling('pdf', 2 * 1024 * 1024, profileRef.current); // policy 2MB kept as upper bound; announce the smaller derived ceiling
         if (file.size > pdfCeil.ceilingBytes) return fail(fileTooBigMsg('ملف PDF', file.size, pdfCeil.ceilingBytes, pdfCeil.bound));
         const data = await fileToBase64(file); // base64, no data-URI prefix
         const over = attachOverBudget({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data } }, messages, profileRef.current);
         if (over) return fail(over);
-        setPendingImage({ kind: 'pdf', name: file.name, media_type: 'application/pdf', data });
+        setPendingFile({ kind: 'pdf', name: file.name, media_type: 'application/pdf', data });
       } else if (isTxt) {
         const txtCeil = deriveTypeCeiling('txt', 1 * 1024 * 1024, profileRef.current); // clipped text: policy is the true ceiling
         if (file.size > txtCeil.ceilingBytes) return fail(fileTooBigMsg('ملف النصّ', file.size, txtCeil.ceilingBytes, txtCeil.bound));
@@ -17983,7 +17987,7 @@ function App() {
         const clipped = text0.length > MAX ? text0.slice(0, MAX) + '\n\n[تم اختصار بقيّة الملف]' : text0;
         const over = attachOverBudget({ type: 'text', text: 'المستند المرفق «' + (file.name || 'ملف نصّي') + '»:\n\n' + clipped }, messages, profileRef.current);
         if (over) return fail(over);
-        setPendingImage({ kind: 'txt', name: file.name, media_type: 'text/plain', data: clipped });
+        setPendingFile({ kind: 'txt', name: file.name, media_type: 'text/plain', data: clipped });
       } else if (isDocx) {
         const docxCeil = deriveTypeCeiling('docx', 5 * 1024 * 1024, profileRef.current); // clipped text: policy is the true ceiling
         if (file.size > docxCeil.ceilingBytes) return fail(fileTooBigMsg('ملف Word', file.size, docxCeil.ceilingBytes, docxCeil.bound));
@@ -18005,7 +18009,7 @@ function App() {
         const clippedDoc = extracted.length > MAXD ? extracted.slice(0, MAXD) + '\n\n[تم اختصار بقيّة الملف]' : extracted;
         const over = attachOverBudget({ type: 'text', text: 'المستند المرفق «' + (file.name || 'ملف نصّي') + '»:\n\n' + clippedDoc }, messages, profileRef.current);
         if (over) return fail(over);
-        setPendingImage({ kind: 'txt', name: file.name, media_type: 'text/plain', data: clippedDoc });
+        setPendingFile({ kind: 'txt', name: file.name, media_type: 'text/plain', data: clippedDoc });
       } else if (isLegacyDoc) {
         return fail('صيغة ‎.doc القديمة غير مدعومة. الرجاء حفظه بصيغة ‎.docx ثمّ رفعه.');
       } else {
@@ -18038,6 +18042,13 @@ function App() {
     // بلا موافقةٍ سارية لا تُكتب الرسالةُ في السجلّ ولا تُرسَل: الشاشةُ نفسُها مستبدَلةٌ بوضعِ
     // «بلا ذكاء اصطناعيّ»، وهذا حاجزٌ ثانٍ كي لا يفتح مسارٌ آخرُ هذا البابَ لاحقاً.
     if (!hasValidAIConsent()) { setAiConsent(aiConsentStatus()); return; }
+    // ITEM 3.4i: a file still being read is waited for (a second press while waiting is the same turn), and read from the ref once it has arrived.
+    if (!repeat && EZIK_UPDATE_BUSY.attaching > 0) {
+      if (attachWaitRef.current) return;
+      attachWaitRef.current = true;
+      try { await ezikAttachSettled(); } finally { attachWaitRef.current = false; }
+    }
+    const attached = repeat ? null : (pendingImageRef.current || pendingImage);
     if (repeat) {
       // Latch before any await or React commit, so a double press is one turn.
       usedLiveOffersRef.current.add(offerKey);
@@ -18051,13 +18062,13 @@ function App() {
     // SPEED W6B B5: the lessons block of this answer: the rows the server sends with it, through the whitelist.
     let lessonRows = [];
     let attachBlock = null;
-    if (pendingImage && !repeat) {
-      if (pendingImage.kind === 'pdf') {
-        attachBlock = { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: pendingImage.data } };
-      } else if (pendingImage.kind === 'txt') {
-        attachBlock = { type: 'text', text: 'المستند المرفق «' + (pendingImage.name || 'ملف نصّي') + '»:\n\n' + pendingImage.data };
+    if (attached && !repeat) {
+      if (attached.kind === 'pdf') {
+        attachBlock = { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: attached.data } };
+      } else if (attached.kind === 'txt') {
+        attachBlock = { type: 'text', text: 'المستند المرفق «' + (attached.name || 'ملف نصّي') + '»:\n\n' + attached.data };
       } else {
-        attachBlock = { type: 'image', source: { type: 'base64', media_type: pendingImage.media_type, data: pendingImage.data } };
+        attachBlock = { type: 'image', source: { type: 'base64', media_type: attached.media_type, data: attached.data } };
       }
     }
     const content = repeat ? repeat.content : attachBlock
@@ -18091,7 +18102,7 @@ function App() {
     // and the title; the save after the reply then rewrites the SAME conversation, because
     // chatIdRef already carries the id this call set.
     saveMessages(updated);
-    if (!repeat) { setInput(''); setPendingImage(null); }
+    if (!repeat) { setInput(''); setPendingFile(null); }
     setIsLoading(true);
     setStreamingText('');
     // Sliding window: send only the last 12 messages to the API (avoids 429, fewer tokens).
@@ -19652,7 +19663,7 @@ function App() {
               <span style={{ color: 'var(--muted)', fontSize: 12 }}>{pendingImage.kind === 'pdf' ? 'PDF' : 'نصّ'}</span>
             </span>
           )}
-          <button onClick={() => setPendingImage(null)} style={{ background: 'none', border: 'none', color: 'var(--red-lift)', fontSize: 18, cursor: 'pointer' }} aria-label={ezT("chat.removeImage")}>×</button>
+          <button onClick={() => setPendingFile(null)} style={{ background: 'none', border: 'none', color: 'var(--red-lift)', fontSize: 18, cursor: 'pointer' }} aria-label={ezT("chat.removeImage")}>×</button>
         </div>
       )}
       {/* ITEM 75 (2026-09-10) -- THE ASK-ABOUT-THE-SELECTION BAR. One row, inside the composer
@@ -24968,8 +24979,25 @@ function ezikUpdateIsIdle(b) {
 // A file being read or decoded is busy until it settles, however it settles.
 function ezikTrackAttach(promise) {
   EZIK_UPDATE_BUSY.attaching += 1;
-  const done = () => { EZIK_UPDATE_BUSY.attaching = Math.max(0, EZIK_UPDATE_BUSY.attaching - 1); };
+  const done = () => {
+    EZIK_UPDATE_BUSY.attaching = Math.max(0, EZIK_UPDATE_BUSY.attaching - 1);
+    if (EZIK_UPDATE_BUSY.attaching === 0) { const waiting = EZIK_ATTACH_WAITERS.splice(0); for (const resolve of waiting) resolve(); }
+  };
   return Promise.resolve(promise).then((v) => { done(); return v; }, (err) => { done(); throw err; });
+}
+// ITEM 3.4i (the owner's answer 10): a message sent while its file was still being read left WITHOUT it -- sendMessage reads pendingImage from the render it
+// was made in and clears it at the press -- and the file's chip appeared a moment later, so the NEXT message («اقصد هذا») carried it. A send now waits (at most
+// EZIK_ATTACH_WAIT_MS) for a file that is being read, then goes with it. Resolves at once when nothing is being read.
+const EZIK_ATTACH_WAITERS = [];
+const EZIK_ATTACH_WAIT_MS = 15000;
+function ezikAttachSettled(timeoutMs = EZIK_ATTACH_WAIT_MS) {
+  if (!(EZIK_UPDATE_BUSY.attaching > 0)) return Promise.resolve();
+  return new Promise((resolve) => {
+    let timer = null;
+    const done = () => { if (timer !== null) clearTimeout(timer); resolve(); };
+    timer = setTimeout(() => { const at = EZIK_ATTACH_WAITERS.indexOf(done); if (at >= 0) EZIK_ATTACH_WAITERS.splice(at, 1); resolve(); }, timeoutMs);
+    EZIK_ATTACH_WAITERS.push(done);
+  });
 }
 // The whole decision, with every outside thing handed in so a guard can drive it with a fake worker container.
 function ezikStartAutoUpdate(env) {
