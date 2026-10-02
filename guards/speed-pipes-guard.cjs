@@ -729,6 +729,99 @@ function libraryPlain(markup) {
       ascii(JSON.stringify({ outcome: ex && ex.outcome })));
   }
 
+  // ---------------------------------------------------------------- COMPREHENSIVE 3.4d a stored fatwa narrower than the question is not «نص الفتوى» for it
+  // MEASURED on the real store (salmajed 1567, kept in fixtures-comprehensive-2026-10-02.json from the local fatwa database, read-only): «ما حكم الجمع بين
+  // الظهر والعصر للمسافر؟» opened with «نص الفتوى» of «جمع الظهر والعصر للمسافر يوم الجمعة»: 4 of the title's 6 content words (0.67 >= 0.6); the two it lacks are the
+  // condition, a day. The same floor admitted «صيام يوم عرفة للحاج» (a person), «الصيام في السفر مع المشقة» (a state), «صلاة المسافر الظهر مع من يصلي العصر».
+  {
+    const fs = require('fs');
+    const FTD = await esm('lib/fatwa-title.js');
+    const FXD = require('./fixtures-comprehensive-2026-10-02.json');
+    const R1567 = FXD.salmajed_1567;
+    const QJ = 'ما حكم الجمع بين الظهر والعصر للمسافر؟';
+    const floor = (q, t) => FTD.directMatchFloor(q, t);
+    ok('3.4d-1 the owner\'s case: the real title of salmajed 1567 does not pass the floor for the question that lacks its day (it did, 4 of 6 words)',
+      R1567.title === 'جمع الظهر والعصر للمسافر يوم الجمعة' && floor(QJ, R1567.title).ok === false && floor(QJ, R1567.title).shared === 4 && floor(QJ, R1567.title).restricted.length >= 1,
+      ascii(JSON.stringify(floor(QJ, R1567.title))));
+    ok('3.4d-2 ...and passes it for the reader who asks the same with its day; a general title still passes for the general question',
+      floor('ما حكم الجمع بين الظهر والعصر للمسافر يوم الجمعة؟', R1567.title).ok === true && floor(QJ, 'جمع الظهر والعصر للمسافر').ok === true);
+    // siblings, in other words: a day, a person, a state, a circumstance (real titles of the store, measured 2026-10-02 as passing the old floor)
+    const SIB = [
+      ['ما حكم صيام يوم عرفة؟', 'حكم صيام يوم عرفة للحاج', 'ما حكم صيام يوم عرفة للحاج؟'],
+      ['ما حكم الصيام في السفر؟', 'حكم الصيام في السفر مع المشقة', 'ما حكم الصيام في السفر مع المشقة؟'],
+      ['ما حكم الجمع بين الظهر والعصر للمسافر؟', 'حكم صلاة المسافر الظهر مع من يصلي العصر', 'ما حكم صلاة المسافر الظهر مع من يصلي العصر؟'],
+      ['ما حكم صيام يوم عرفة؟', 'هل صيام عرفة مرتبط بيوم الوقوف بعرفة', 'هل صيام عرفة مرتبط بيوم الوقوف بعرفة؟'],
+    ];
+    for (const [qGeneral, title, qSame] of SIB) {
+      ok('3.4d-3 sibling «' + ascii(title).slice(0, 20) + '»: refused for the general question, allowed for the reader who carries its condition',
+        floor(qGeneral, title).ok === false && floor(qSame, title).ok === true, ascii(JSON.stringify([floor(qGeneral, title), floor(qSame, title)])));
+    }
+    ok('3.4d-4 controls: the three W3b titles of the owner\'s zakat question and its siblings still pass; a person beside «أو» restricts nothing; a general fatwa passes',
+      floor('ما حكم إخراج زكاة المال عروضا بدل النقود؟', 'حكم إخراج الزكاة من الأقمشة').ok === true
+      && floor('هل يجوز دفع زكاة الفطر نقودا بدل الطعام؟', 'حكم إخراج زكاة الفطر نقوداً').ok === true
+      && floor('هل تجزئ زكاة الغنم نقدا؟', 'حكم إخراج القيمة في زكاة الغنم').ok === true
+      && floor('ما حكم قصر الصلاة للمسافر؟', 'حكم قصر الصلاة للمسافر رجلا أو امرأة').ok === true
+      && floor('ما حكم زكاة الحلي؟', 'زكاة الحلي').ok === true && floor('ما حكم تختم الرجال بالذهب؟', 'حكم تختم الرجال بالذهب').ok === true);
+    // the real BW2 turn: the judge marks salmajed 1567 as the direct match (a 2); the floor decides
+    {
+      const TOOLSD = await esm('lib/free-brain/tools.js');
+      const SSED = await esm('lib/finalized-sse-writer.js');
+      const ASKD = await esm('api/ask.js');
+      const SHAPE = (() => { const S0 = require('./fixtures-speed-wasl-fatwas.json'); for (const k of Object.keys(S0)) { if (!k.includes('/fatwas/search')) continue; const j = JSON.parse(S0[k].body); if (j.results && j.results.length) return j; } return null; })();
+      const rec = { audio: { available: false, url: null }, categories: [], collection: { id: 'salmajed:1', kind: 1, name: 'فتاوى' },
+        content: { answer: R1567.answer, answerExcerpt: R1567.answer, question: R1567.question, questionExcerpt: R1567.question, type: 'question_answer' },
+        id: R1567.fatwa_id, recordHash: R1567.record_sha256, scholar: { id: 'salmajed', name: 'الشيخ سليمان الماجد', shortName: 'سليمان الماجد' },
+        source: { canonicalUrl: R1567.canonical_url, retrievedAtUtc: R1567.retrieved_at_utc, url: R1567.source_url }, title: R1567.title, uid: 'salmajed:' + R1567.fatwa_id };
+      const searchBody = { ...SHAPE, results: [rec], pagination: { ...SHAPE.pagination, total: 1, totalPages: 1, hasNext: false }, totalsByScholar: { ...SHAPE.totalsByScholar } };
+      const replayD = async (u) => {
+        const url = String(u);
+        const S0 = require('./fixtures-speed-wasl-fatwas.json');
+        const e = url.includes('/fatwas/search') ? { status: 200, ct: 'application/json', body: JSON.stringify(searchBody) } : (S0[url] || null);
+        if (!e) return { ok: false, status: 404, url, headers: { get: () => 'application/json' }, text: async () => '{}', json: async () => ({}) };
+        return { ok: true, status: e.status, url, redirected: false, headers: { get: (h) => (String(h).toLowerCase() === 'content-type' ? e.ct : null) }, text: async () => e.body, json: async () => JSON.parse(e.body) };
+      };
+      const targetD = () => ({ writes: [], ended: 0, headers: {}, statusCode: 200, status(c) { this.statusCode = c; return this; }, setHeader(k, v) { this.headers[k] = v; },
+        write(c) { this.writes.push(String(c)); return true; }, end() { this.ended += 1; }, flushHeaders() {} });
+      const textD = (t) => t.writes.join('').split('\n\n').filter((l) => l.startsWith('data: ')).map((l) => { try { return JSON.parse(l.slice(6)); } catch { return null; } })
+        .filter((x) => x && x.type === 'content_block_delta').map((x) => x.delta.text).join('');
+      const BW2D = await esm('lib/before-writing-v2.js');
+      const turnD = async (question, markTitle) => {
+        const t = targetD();
+        const facade = SSED.createFinalizedSseResponse(t, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [] }) });
+        const out = await BW2D.runBw2Turn({
+          question, messages: [{ role: 'user', content: question }], wire: BW2D.createBw2Wire(facade), band: 'adult',
+          cards: { buildSourceTag: ASKD.buildSourceTag, buildBookTag: ASKD.buildBookTag, encyclopediaCards: false, max: 3 },
+          deps: {
+            runTool: (name, input, ctx) => (name === 'search_fatawa' ? TOOLSD.runTool(name, input, { ...ctx, fetchImpl: replayD }) : Promise.resolve({ text: '', added: [], calls: 0 })),
+            searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true, warmEncyclopedia: () => true,
+            ask: async ({ user }) => { const d = {}; for (const m of user.matchAll(/^\[(\d+)\] fatwa: (.*)$/gmu)) d[m[1]] = markTitle && m[2].trim() === markTitle ? 2 : 1; return JSON.stringify({ d }); },
+            callWriter: async ({ onText, body }) => { onText('تبيّن الفتوى الحكم [[1]].'); return { stop_reason: 'end_turn', usage: {}, body }; },
+          },
+        });
+        return { out, text: textD(t) };
+      };
+      const general = await turnD(QJ, R1567.title);
+      ok('3.4d-5 the real BW2 turn: the question without its day, the judge marks 1567 a direct match, the floor refuses: no «نص الفتوى», no direct fatwa; the writer answers as before',
+        !general.text.includes('نص الفتوى') && general.out.telemetry.directFatwa !== true && general.text.includes('تبيّن الفتوى'), ascii(general.text.slice(0, 80)));
+      const same = await turnD('ما حكم الجمع بين الظهر والعصر للمسافر يوم الجمعة؟', R1567.title);
+      ok('3.4d-6 control: the reader who asks it with the day gets the stored fatwa letter for letter (its question and answer) opening the answer, then the explanation',
+        same.text.startsWith('## نص الفتوى') && same.text.replace(/\s+/gu, '').includes(R1567.question.replace(/\s+/gu, '')) && same.text.replace(/\s+/gu, '').includes(R1567.answer.replace(/\s+/gu, ''))
+        && same.out.telemetry.directFatwa === true, ascii(same.text.slice(0, 80)));
+    }
+    // mutant: the veto taken out of the floor (a temp copy beside the module)
+    {
+      const srcD = fs.readFileSync(path.join(REPO, 'lib/fatwa-title.js'), 'utf8');
+      const seam = ' && restricted.length === 0, shared,';
+      const tmpMod = path.join(REPO, 'lib', '.mut-fatwa-title-34d.mjs');
+      try {
+        ok('3.4d MUTANT applied (seam found once)', srcD.split(seam).length === 2);
+        fs.writeFileSync(tmpMod, srcD.split(seam).join(', shared,'));
+        const M = await import(require('url').pathToFileURL(tmpMod).href + '?m=34d');
+        ok('3.4d MUTANT KILLED: without the veto the owner\'s case passes the floor again', M.directMatchFloor(QJ, R1567.title).ok === true && floor(QJ, R1567.title).ok === false);
+      } finally { try { fs.rmSync(tmpMod, { force: true }); } catch { /* nothing to clean */ } }
+    }
+  }
+
   // ---------------------------------------------------------------- COMPREHENSIVE 3.4b a scholar's choice after a list of schools stands in the view the row puts him in
   // MEASURED on the real atom FC-003903:0125:001 (fixtures-comprehensive-2026-10-02.json, the library's own text): the schools are under «القول الأول», Ibn
   // Rushd al-Jadd under «القول الثاني»; the owner's paragraph «ذهب الحنفية … واختاره ابن رشد الجد» was released and read as if he chose the first view.
