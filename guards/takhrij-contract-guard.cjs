@@ -2892,6 +2892,58 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       } finally { for (const t of tmps) { try { fsx.rmSync(t, { force: true }); } catch { /* nothing to clean */ } } }
     }
   }
+  // ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  // COMPREHENSIVE 8-د, row 58 — «سؤالُ درجةٍ يقتبسُ المتنَ والجوابُ لا يقتبسُه ⟸ لا رأس». MEASURED through the real handler: the answer quoted no matn, the pass
+  // returned no_matn and wrote no head, though the question quoted the hadith and asked its grade; the same answer quoting it got b27's head.
+  // ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  console.log('\n--- 8-د row 58. THE HEAD IS TAKEN FROM THE QUESTION WHEN THE ANSWER QUOTES NOTHING ---');
+  {
+    const T58 = await esm('lib/takhrij.js');
+    const WATAN = 'حب الوطن من الإيمان';
+    const TUHUR = 'الطهور شطر الإيمان';
+    const NAZAFA = 'النظافة من الإيمان';
+    const table = {
+      [WATAN]: { matn: WATAN, subjectIds: ['FC-002061'], atoms: ['36 - " ' + WATAN + ' ". موضوع.'] },
+      [TUHUR]: { matn: TUHUR, subjectIds: ['FC-000648'], atoms: [atomFor(TUHUR, 'أبي مالك الأشعري')] },
+    };
+    const lib = lookupOf(table);
+    const run = async (answer, question, lookup = lib) => T58.applyTakhrij(answer, { env: ON, question, lookup });
+    const PLAIN = 'هذا الحديث ضعيف عند كثير من أهل العلم، ومعناه صحيح.';
+    const w1 = await run(PLAIN, 'ما صحة حديث «' + WATAN + '»؟');
+    ok('R58-1 the question quotes a hadith the library rules weak, the answer quotes nothing: the answer opens with the grader\'s head for the asked text, the answer itself untouched',
+      w1.text === 'الحديث لا يثبت مرفوعا إلى النبي صلى الله عليه وسلم، والحكم عليه في السلسلة الضعيفة: موضوع.\n\n' + PLAIN && w1.applied === true && w1.reason === 'no_matn', JSON.stringify(w1.text));
+    const w2 = await run(PLAIN, 'من رواه «' + TUHUR + '»؟');
+    ok('R58-2 a text a ladder book carries: its source', w2.text.startsWith('تخريج الحديث: مسلم.\n\n') && w2.text.endsWith(PLAIN), JSON.stringify(w2.text));
+    const w3 = await run(PLAIN, 'ما درجة حديث «' + NAZAFA + '»؟');
+    ok('R58-3 a text no ladder book carries: «not this wording» and never a denial', w3.text === T58.GRADING_HEAD_LAFZ_NOT_PROVED + '\n\n' + PLAIN
+      && !/لا أصل له|موضوع|لا يثبت/u.test(T58.GRADING_HEAD_LAFZ_NOT_PROVED), JSON.stringify(w3.text));
+    // controls: nothing to say, nothing written
+    ok('R58-4 controls: a question that quotes but asks no grade or source; one that asks the grade and quotes nothing; no lookup at all: the answer returns byte for byte',
+      (await run(PLAIN, 'اشرح لي حديث «' + TUHUR + '»')).text === PLAIN && (await run(PLAIN, 'ما درجة حديث النظافة من الإيمان؟')).text === PLAIN
+      && (await T58.applyTakhrij(PLAIN, { env: ON, question: 'ما صحة حديث «' + WATAN + '»؟' })).text === PLAIN);
+    const failing = lookupOf({ [WATAN]: { matn: WATAN, subjectIds: [], atoms: [], failure: { status: '503', error: 'lib_http_503' } } });
+    ok('R58-5 a library call that FAILED is not a search that found nothing: no head, the answer as it came', (await run(PLAIN, 'ما صحة حديث «' + WATAN + '»؟', failing)).text === PLAIN);
+    ok('R58-6 an answer that DOES quote a matn keeps b27\'s path (the head from its entries), unchanged by this branch',
+      (await run('قال رسول الله صلى الله عليه وسلم: «' + TUHUR + '».', 'حديث «' + TUHUR + '» من رواه؟')).text.startsWith('تخريج الحديث: مسلم.\n\n'));
+    {
+      const fsx = require('fs');
+      const srcT = fsx.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+      const seam = "    if (asked && asksGradeOrSource(input.question) && typeof input.lookup === 'function') {";
+      ok('R58 MUTANT applied (seam found once)', srcT.split(seam).length === 2);
+      const tmpDir = fsx.mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-r58-mut-'));
+      try {
+        const file = path.join(tmpDir, 'mut.mjs');
+        fsx.writeFileSync(file, srcT.split(seam).join("    if (false && asked && asksGradeOrSource(input.question) && typeof input.lookup === 'function') {").replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+        const cwd = process.cwd();
+        process.chdir(REPO);
+        try {
+          const mod = await import('file:///' + file.replace(/\\/g, '/') + '?m=r58');
+          ok('R58 MUTANT KILLED: without the branch the answer that quotes nothing is left with no head again', (await mod.applyTakhrij(PLAIN, { env: ON, question: 'ما صحة حديث «' + WATAN + '»؟', lookup: lib })).text === PLAIN);
+        } finally { process.chdir(cwd); }
+      } finally { try { fsx.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* temp only */ } }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
