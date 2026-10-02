@@ -943,7 +943,9 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const tel2 = q2.out.telemetry;
       ok('C6a q2: the answering units go out on the carrying row (1:301) -- "\x27an Anas ibn Malik", "agreed upon", a nisba the row does not write, Anas as the subject -- and answer 2 follows them',
         t2.startsWith(W_ANAS) && t2.includes(W_AGREED.replace(/\s*\[\[1\]\]/u, '')) && t2.includes(W_NISBA) && t2.includes(W_SUBJECT) && t2.includes(A2)
-        && tel2.unitsProvedHadith === 4 && tel2.unitsHeld === 0 && tel2.takhrijLookups === 1, ascii(q2.deltas.join('|')) + ' ' + JSON.stringify(tel2));
+        // COMPREHENSIVE 3.4c: answer 2's saying stands in STRAIGHT quotes, which findMatns now reads; the cited row (Jami' al-'Ulum, 1:301) carries it, so
+        // the unit is now proved on the row too: 5 proved where it was 4 (the bytes released are the same; C7h pins them by sha256).
+        && tel2.unitsProvedHadith === 5 && tel2.unitsHeld === 0 && tel2.takhrijLookups === 1, ascii(q2.deltas.join('|')) + ' ' + JSON.stringify(tel2));
       ok('C6b ...no not-covered sentence and no offer; the book\x27s card goes out once for its two rows; answer 2 alone took a lookup, which did not prove it',
         !t2.includes(NOT_COVERED) && !hasOffer(q2) && tel2.cardsSent === 1, JSON.stringify(tel2));
       const wrong = await lib([W_ANAS, W_HURAYRA, W_SIRIN, W_DAWUD].join('\n'));
@@ -962,9 +964,9 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         && !UNITS.textNamesNarrator(F_ROW_ANAS, F_SIRIN) && !UNITS.textNamesNarrator(F_ROW_BAKR, F_HURAYRA),
         JSON.stringify([UNITS.narratorsNamed(W_ANAS), UNITS.narratorsNamed(W_SUBJECT)]));
       // SPEED FIX 5: the Q2 fixture's released text, byte for byte, as 4d353de released it (SHA-256 measured there).
-      ok('C7h FIX4\x27s Q2 fixture releases as before under C7 and C8 (a source question whose first unit is proved): the same bytes, 5 released, 4 proved',
+      ok('C7h FIX4\x27s Q2 fixture releases as before under C7 and C8 (a source question whose first unit is proved): the same bytes, 5 released, 5 proved (answer 2 now proved on its row: 3.4c)',
         require('crypto').createHash('sha256').update(t2).digest('hex') === '949ade0807e77a9a1b7fd04834dc8160f4b6575b931e0676fb29b4c87043f008'
-        && tel2.unitsReleased === 5 && tel2.unitsHeld === 0 && tel2.unitsProvedHadith === 4 && UNITS.asksHadithSource(Q2), JSON.stringify(tel2));
+        && tel2.unitsReleased === 5 && tel2.unitsHeld === 0 && tel2.unitsProvedHadith === 5 && UNITS.asksHadithSource(Q2), JSON.stringify(tel2));
     }
 
     // ---------------------------------------------------------------- SPEED FIX 5: C7, C8
