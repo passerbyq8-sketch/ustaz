@@ -676,6 +676,9 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       // content of the parentheses when a grader of weakness is the only ladder book that
       // answered; the ruler travels in the record (`ruledBy`), which row 11 below reads.
       if (built.text === L.NOT_RAISED) continue;
+      // COMPREHENSIVE 3.4a: a grader book that holds the matn and writes no ruling word is the sentence this file owns, alone between
+      // the parentheses: it names no collection, so it is no bare name.
+      if (built.text === L.NO_RULING) continue;
       if (!built.text.includes(' · ')) bare.push(row.display + ' -> ' + built.text);
     }
     ok('10b no ladder row below the Shaykhayn can produce a bare collection name',
@@ -871,8 +874,11 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       offenders.length === 0, JSON.stringify(offenders.slice(0, 3)));
     ok('11  ...and the empty library produces no denial at all, but silence',
       L.composeParenthetical([]).silent === true && L.composeParenthetical([]).text === '');
-    ok('11  ...and a book that merely HOLDS the matn with no stated ruling is silence too',
-      L.composeParenthetical(['FC-002040']).silent === true, JSON.stringify(L.composeParenthetical(['FC-002040'])));
+    // CHANGED BY THE OWNER'S WORD OF 2 OCTOBER (COMPREHENSIVE 3.4a; it read «silence too» since 19 September). A grader book that HOLDS the
+    // matn and writes no ruling word beside it no longer leaves the matn bare: it says what is true, in the file's own sentence.
+    ok('11  ...and a book that merely HOLDS the matn with no stated ruling says «no ruling was found», never a denial and never silence',
+      L.composeParenthetical(['FC-002040']).silent === false && L.composeParenthetical(['FC-002040']).text === L.NO_RULING
+      && L.composeParenthetical(['FC-002040']).ruled === false, JSON.stringify(L.composeParenthetical(['FC-002040'])));
 
     // (ب) CAUSAL — the denial still leaves when a grader of weakness really is the only answer.
     // «حب الوطن من الإيمان» is the owner's own example, and السلسلة الضعيفة is the book that
@@ -2617,6 +2623,92 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     } finally {
       try { require('fs').rmSync(tmpF, { recursive: true, force: true }); } catch { /* temp only */ }
     }
+  }
+  // ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  // COMPREHENSIVE 3.4a — «صيام يوم عرفة كصيام ألف يوم» (the owner's note, impermissible report §C1-C3). MEASURED offline on the real
+  // library through the real handler: the matn is carried by two ladder GRADER books (ضعيف الجامع 3523, السلسلة الضعيفة 5191) that write
+  // no ruling word for this wording, so composeParenthetical returned silence and a Prophetic matn reached the reader bare; and when the
+  // quotation opened with «كان يقول:» inside the guillemets no atom carried it at all («كان رسول الله ﷺ يقول:» in the books).
+  // ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  console.log('\n--- 3.4a. A MATN THE LADDER\'S GRADER BOOKS HOLD WITH NO RULING WORD IS NOT LEFT BARE ---');
+  {
+    const ARAFA = 'صيام يوم عرفة كصيام ألف يوم';
+    const graders = L.TAKHRIJ_LADDER.filter((row) => row.grader);
+    const gBad = graders.filter((row) => {
+      const b = L.composeParenthetical([row.ids[0]]);
+      return !(b.text === L.NO_RULING && b.sourced === true && b.ruled === false && b.silent === false && b.grade === null);
+    });
+    ok('3.4a-1 every grader row alone, with no ruling written (' + graders.length + ' rows): «' + 'لم يوقف على حكم' + '», sourced, not ruled, not silent', graders.length >= 4 && gBad.length === 0, JSON.stringify(gBad.map((r) => r.display)));
+    ok('3.4a-2 two grader rows together, still no ruling written: the same sentence',
+      L.composeParenthetical(['FC-000791', 'FC-002061']).text === L.NO_RULING && L.composeParenthetical(['FC-000791', 'FC-002061'], {}).silent === false);
+    // SIBLINGS that must NOT change
+    ok('3.4a-3 a SPLIT verdict (written rulings that disagree) is still silence (8c)',
+      L.composeParenthetical(['FC-002060', 'FC-000791'], { 'FC-002060': ['صحيح'], 'FC-000791': ['ضعيف'] }).silent === true);
+    ok('3.4a-4 a grader that DOES write a ruling still states it', L.composeParenthetical(['FC-000791'], { 'FC-000791': ['ضعيف'] }).grade === 'ضعيف'
+      && L.composeParenthetical(['FC-000791'], { 'FC-000791': ['ضعيف'] }).text === L.NOT_RAISED);
+    ok('3.4a-5 a book that voices the opposite polarity beside the matn makes it a split: silence',
+      L.composeParenthetical(['FC-000791'], { '#voices': ['sound'] }).silent === true);
+    ok('3.4a-6 an outlet below the Shaykhayn keeps its name and its suffix; the Shaykhayn stand alone; the empty library is silence',
+      L.composeParenthetical(['FC-000760', 'FC-000791']).text === 'البيهقي · ' + L.NO_RULING && L.composeParenthetical(['FC-000645']).text === 'البخاري'
+      && L.composeParenthetical([]).silent === true && L.composeParenthetical(['FC-999999']).silent === true);
+    // DELIVERED TEXT through the pass: the three forms of the sentence (the saying, the frame before the quote, the verb inside it)
+    const atomNoRuling = '36 - " ' + ARAFA + ' ". رواه ابن عدي.';
+    const lookupHeld = lookupOf({ [ARAFA]: { matn: ARAFA, subjectIds: ['FC-002061'], atoms: [atomNoRuling] } });
+    const forms = [
+      'وروت عائشة رضي الله عنها أن النبي ﷺ كان يقول: «' + ARAFA + '».',
+      'قال النبي صلى الله عليه وسلم: «' + ARAFA + '» وهذا أصل.',
+      'وقد روي أن النبي ﷺ قال: «' + ARAFA + '».',
+    ];
+    for (const form of forms) {
+      const r = await T.applyTakhrij(form, { env: ON, lookup: lookupHeld });
+      ok('3.4a-7 delivered: the matn leaves with «(' + L.NO_RULING + ')», its letters untouched: ' + form.slice(0, 24).replace(/[^\x20-\x7e]/g, '?'),
+        r.text.includes('«' + ARAFA + '» (' + L.NO_RULING + ')') && !r.problems.includes('TAKHRIJ_SILENT'), JSON.stringify(r.text));
+    }
+    const silentLookup = lookupOf({ [ARAFA]: { matn: ARAFA, subjectIds: [], atoms: [] } });
+    const rs = await T.applyTakhrij(forms[0], { env: ON, lookup: silentLookup });
+    ok('3.4a-8 a matn NO ladder book carried at all stays bare and silent (the owner\'s rule of 19 September for a search that found nothing)',
+      rs.text === forms[0] && rs.problems.includes('TAKHRIJ_SILENT'), JSON.stringify(rs.text));
+    const rsplit = await T.applyTakhrij(forms[0], { env: ON, lookup: lookupOf({ [ARAFA]: { matn: ARAFA, subjectIds: ['FC-002060', 'FC-000791'],
+      atoms: ['36 - " ' + ARAFA + ' ". صحيح. رواه ابن عدي.', '3913 - «' + ARAFA + '» . (ضعيف) [حم] عن أنس.'] } }) });
+    ok('3.4a-9 a split verdict through the pass stays bare and silent', rsplit.text === forms[0] && rsplit.problems.includes('TAKHRIJ_SILENT'), JSON.stringify(rsplit.text));
+
+    // atomCarriesMatn: a quotation that opens with «كان يقول:» is the saying that follows it
+    const SAYING = 'كان يقول: ' + ARAFA;
+    const BOOK_WORDING = 'عن عائشة رضي الله عنها قالت: كان رسول الله صلى الله عليه وسلم يقول: ' + ARAFA + ' (1).';
+    ok('3.4a-10 «كان يقول: X» is carried by an atom that words the speaker «كان رسول الله ﷺ يقول: X»', T.atomCarriesMatn(BOOK_WORDING, SAYING) === true);
+    ok('3.4a-11 ...«يقول: X» alone too', T.atomCarriesMatn(BOOK_WORDING, 'يقول: ' + ARAFA) === true);
+    ok('3.4a-12 ...but a DIFFERENT saying is not carried (sibling: Ashura for Arafa)',
+      T.atomCarriesMatn('كان رسول الله صلى الله عليه وسلم يقول: صيام يوم عاشوراء كصيام سنة', SAYING) === false);
+    ok('3.4a-13 ...nor is a saying too short to anchor once the verb is read off (the full needle is used, as before)',
+      T.atomCarriesMatn('كان رسول الله صلى الله عليه وسلم يقول: الحج عرفة', 'كان يقول: الحج عرفة') === false);
+    ok('3.4a-14 ...nor a verb in the middle of the quotation (only a LEADING verb is read off)',
+      T.atomCarriesMatn('وكان رسول الله صلى الله عليه وسلم يقول: ' + ARAFA, 'ثم كان يقول: ' + ARAFA) === false);
+    ok('3.4a-15 ...and a Companion\'s voice in the remainder still refuses the atom (b21)',
+      T.atomCarriesMatn(BOOK_WORDING, SAYING + ' ، قال ابن عمر رضي الله عنهما كذا وكذا في هذا الباب') === false);
+    ok('3.4a-16 ...and a matn that never opened with the verb is carried exactly as before', T.atomCarriesMatn(BOOK_WORDING, ARAFA) === true);
+
+    // mutants, each applied (checked) and each killed
+    const fs = require('fs');
+    const crlfFree = (x) => x.replace(/\r\n/g, '\n');
+    const mutateModule = async (rel, seam, to, name) => {
+      const src = crlfFree(fs.readFileSync(path.join(REPO, rel), 'utf8'));
+      ok('3.4a MUTANT ' + name + ' applied (seam found once)', src.split(seam).length === 2);
+      const tmpDir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-34a-mut-'));
+      try {
+        const file = path.join(tmpDir, 'mut.mjs');
+        fs.writeFileSync(file, src.split(seam).join(to).replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(path.dirname(path.join(REPO, rel)), spec).replace(/\\/g, '/') + q), 'utf8');
+        const cwd = process.cwd();
+        process.chdir(REPO);
+        try { return await import('file:///' + file.replace(/\\/g, '/') + '?m=' + name); } finally { process.chdir(cwd); }
+      } finally { try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* temp only */ } }
+    };
+    const mLadder = await mutateModule('lib/takhrij-ladder.js', 'if (!written.length && !voices.length) {', 'if (false) {', 'floor');
+    ok('3.4a MUTANT KILLED: without the floor a grader-held matn with no ruling is silence again', mLadder.composeParenthetical(['FC-002061']).silent === true && L.composeParenthetical(['FC-002061']).silent === false);
+    const mLoose = await mutateModule('lib/takhrij-ladder.js', 'if (!written.length && !voices.length) {', 'if (true) {', 'floor-wide');
+    ok('3.4a MUTANT KILLED: a floor that ignores the opposite voices would write «no ruling» over a split verdict', mLoose.composeParenthetical(['FC-000791'], { '#voices': ['sound'] }).silent === false);
+    const mTk = await mutateModule('lib/takhrij.js', "const needle = core !== full && core.split(' ').filter(Boolean).length >= MIN_ANCHOR_WORDS ? core : full;", 'const needle = full;', 'verb');
+    ok('3.4a MUTANT KILLED: without reading the leading verb off, «كان يقول: X» is carried by no atom', mTk.atomCarriesMatn(BOOK_WORDING, SAYING) === false && T.atomCarriesMatn(BOOK_WORDING, SAYING) === true);
   }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
