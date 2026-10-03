@@ -2273,7 +2273,29 @@ function libraryPlain(markup) {
       ok('P9a 11-b and its siblings are follow-ups about the answer; a hadith\'s source, a subject\'s references and "did you return?" are not',
         SF.asksPreviousSource(Q11B) && SIBS.every((q) => SF.asksPreviousSource(q)) && NOT.every((q) => !SF.asksPreviousSource(q)),
         ascii(JSON.stringify([Q11B, ...SIBS, ...NOT].map((q) => SF.asksPreviousSource(q)))));
-      const Q11A = '\u0645\u0627 \u062d\u0643\u0645 \u0635\u064a\u0627\u0645 \u064a\u0648\u0645 \u0627\u0644\u062c\u0645\u0639\u0629 \u0648\u062d\u062f\u0647\u061f';
+      // ORDER 52 item 12 — «من أي كتاب أو موقع أخذت …؟» AND «هل أنت متأكد أنك أخذته من هذا المصدر نفسه؟» ARE SOURCE QUESTIONS (the owner's decision). MEASURED (the 3 Oct production run, answer 18): both read `false`, went to the model, which
+      // counted «ثلاثة مصادر» and then four and named «سعد الماجد». A book or a site is a source noun only beside the reader's verb of taking; the frame «هل أنت متأكد أنك … نفسه» is function words and needs a real source noun.
+      {
+        const SRC52 = ['من أي كتاب أو موقع أخذت هذا الجواب بالتحديد؟', 'هل أنت متأكد أنك أخذته من هذا المصدر نفسه؟'];
+        const SIB52 = ['من أي كتاب أخذت هذا الجواب؟', 'من أي موقع جبت هذا الكلام؟', 'من أي كتاب نقلت هذا الكلام؟', 'هل أنت متأكد أنك أخذته من هذا المصدر؟'];
+        const NOT52 = ['ما هذا الكتاب؟', 'هل أنت متأكد؟', 'أي كتاب تنصحني به؟', 'هل أنت متأكد من الحكم؟', 'ما حكم بيع الكتاب؟', 'هل هذا الموقع موثوق؟', 'من أي كتاب أبدأ في الفقه؟'];
+        ok('ORDER52-12 the two measured questions are source questions', SRC52.every((q) => SF.asksPreviousSource(q)), JSON.stringify(SRC52.map((q) => SF.asksPreviousSource(q))));
+        ok('ORDER52-12 their siblings (a book or a site beside the verb of taking; the same frame with «المصدر») are too', SIB52.every((q) => SF.asksPreviousSource(q)), JSON.stringify(SIB52.map((q) => SF.asksPreviousSource(q))));
+        ok('ORDER52-12 what is NOT a source question stays on the ordinary path', NOT52.every((q) => !SF.asksPreviousSource(q)), JSON.stringify(NOT52.map((q) => SF.asksPreviousSource(q))));
+        const fs52 = require('fs');
+        const src52 = fs52.readFileSync(path.join(REPO, 'lib/source-followup.js'), 'utf8').split(String.fromCharCode(13, 10)).join(String.fromCharCode(10));
+        const seam52 = 'else if (BOOKSITE_RE.test(w)) bookSite = true;';
+        ok('ORDER52-12 MUTANT applied (the seam found once)', src52.split(seam52).length === 2);
+        const dir52 = fs52.mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-o52-12-'));
+        try {
+          fs52.writeFileSync(path.join(dir52, 'route-classify.js'), fs52.readFileSync(path.join(REPO, 'lib/route-classify.js'), 'utf8'));
+          fs52.writeFileSync(path.join(dir52, 'package.json'), '{"type":"module"}');
+          fs52.writeFileSync(path.join(dir52, 'sf.js'), src52.split(seam52).join(''));
+          const mod52 = await import(pathToFileURL(path.join(dir52, 'sf.js')).href);
+          ok('ORDER52-12 MUTANT KILLED: without the book/site rule «من أي كتاب أو موقع أخذت …» is not a source question again', mod52.asksPreviousSource(SRC52[0]) === false);
+        } finally { try { fs52.rmSync(dir52, { recursive: true, force: true }); } catch { /* temp only */ } }
+      }
+      const Q11A ='\u0645\u0627 \u062d\u0643\u0645 \u0635\u064a\u0627\u0645 \u064a\u0648\u0645 \u0627\u0644\u062c\u0645\u0639\u0629 \u0648\u062d\u062f\u0647\u061f';
       const PREV11 = '\u0644\u0627 \u064a\u062c\u0648\u0632 \u062a\u062e\u0635\u064a\u0635 \u064a\u0648\u0645 \u0627\u0644\u062c\u0645\u0639\u0629 \u0628\u0627\u0644\u0635\u0648\u0645 \u062a\u0637\u0648\u0639\u0627 \u0648\u062d\u062f\u0647.\n'
         + '<source site="binbaz.org.sa" url="https://binbaz.org.sa/fatwas/5710">\u062d\u0643\u0645 \u062a\u062e\u0635\u064a\u0635 \u064a\u0648\u0645 \u0627\u0644\u062c\u0645\u0639\u0629 \u0628\u0627\u0644\u0635\u0648\u0645</source>\n'
         + '\u0623\u0645\u0627 \u0625\u0630\u0627 \u0635\u0627\u0645 \u0645\u0639\u0647 \u064a\u0648\u0645\u0627 \u0642\u0628\u0644\u0647 \u0641\u0644\u0627 \u062d\u0631\u062c.\n'
