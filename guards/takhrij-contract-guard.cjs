@@ -3251,6 +3251,53 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     }
   }
   // ─────────────────────────────────────────────────────────────────────────────────────
+  // ORDER 52 item 1 — THE OPENER IS NOT WRITTEN WHEN THE LINE ABOVE THE MATN IS A FRAME THAT NAMES THE COMPANION AND ENDS IN «قال:» (the owner's decision; the row-48 witness reopened). MEASURED (the 3 Oct preview, answer 9,
+  // «ما حكم صلاة الجماعة في المسجد للرجال؟»): «وعن أبي هريرة رضي الله عنه أن رسول الله صلى الله عليه وسلم قال:» then, on the next line, «عن أبي هريرة رضي الله عنه: «لو يعلم الناس …»» — item 8 of order 51 reads the sentence up to the
+  // last line break only, so the line above was a sentence before and the opener was written over the second line's own lead-in.
+  // ─────────────────────────────────────────────────────────────────────────────────────
+  console.log('\n--- ORDER 52 item 1. THE OPENER AND THE FRAME ON THE LINE ABOVE ---');
+  {
+    const T1 = await esm('lib/takhrij.js');
+    const NL1 = String.fromCharCode(10);
+    const M1 = 'لو يعلم الناس ما في النداء والصف الأول، ثم لم يجدوا إلا أن يستهموا عليه لاستهموا';
+    const rows1 = async () => ({ text: '', calls: 1, added: [{ subjectId: 'FC-000645', text: atomFor(M1, 'أبي هريرة') }, { subjectId: 'FC-000648', text: atomFor(M1, 'أبي هريرة') }] });
+    const ctx1 = { libFlagValue: 'on', libToken: 'fixture', table: null };
+    const run1 = async (T, text) => (await T.applyTakhrij(text, { env: ON, lookup: T.runnerLookup(rows1, ctx1) })).text;
+    const opener1 = 'عن أبي هريرة رضي الله عنه: «';
+    const count1 = (s, w) => s.split(w).length - 1;
+    const above1 = 'وعن أبي هريرة رضي الله عنه أن رسول الله صلى الله عليه وسلم قال:';
+    const w1 = await run1(T1, above1 + NL1 + 'قال رسول الله صلى الله عليه وسلم: «' + M1 + '»');
+    ok('ORDER52-1 the frame above names أبي هريرة and ends in «قال:» -> NO second opener «عن أبي هريرة رضي الله عنه:» (the parentheses are still written)', count1(w1, opener1) === 0 && w1.includes('(متفق عليه)') && w1.startsWith(above1 + NL1), JSON.stringify(w1));
+    const w1b = await run1(T1, above1 + NL1 + NL1 + 'وقال النبي صلى الله عليه وسلم: «' + M1 + '»');
+    ok('ORDER52-1 ...a blank line between the two lines does not change it', count1(w1b, opener1) === 0 && w1b.includes('(متفق عليه)'), JSON.stringify(w1b));
+    const o1 = await run1(T1, 'وعن ابن عمر رضي الله عنه أن رسول الله صلى الله عليه وسلم قال:' + NL1 + 'قال رسول الله صلى الله عليه وسلم: «' + M1 + '»');
+    ok('ORDER52-1 control: the line above names ANOTHER man -> the opener of the Companion the books agree on is written', count1(o1, opener1) === 1, JSON.stringify(o1));
+    const n1 = await run1(T1, 'وهذا في الصلاة والجماعة فيها فضل عظيم.' + NL1 + 'قال رسول الله صلى الله عليه وسلم: «' + M1 + '»');
+    ok('ORDER52-1 control: the line above names nobody -> the opener is written as before', count1(n1, opener1) === 1, JSON.stringify(n1));
+    const e1 = await run1(T1, 'وعن أبي هريرة رضي الله عنه حديث في الجماعة:' + NL1 + 'قال رسول الله صلى الله عليه وسلم: «' + M1 + '»');
+    ok('ORDER52-1 control: a line above that names him but does NOT end in «قال:» is not that frame -> the opener is written', count1(e1, opener1) === 1, JSON.stringify(e1));
+    const p1 = await run1(T1, above1 + ' وهو في الجماعة، قال رسول الله صلى الله عليه وسلم: «' + M1 + '»');
+    ok('ORDER52-1 control: the same sentence on ONE line is still item 51-8\'s rule (the name stands in the sentence) -> no second opener', count1(p1, opener1) === 0, JSON.stringify(p1));
+    const h1 = await run1(T1, 'وعن أبي هريرة رضي الله عنه أن رسول الله صلى الله عليه وسلم قال:' + NL1 + 'ثم بعد ذلك قال رسول الله صلى الله عليه وسلم: «' + M1 + '»');
+    ok('ORDER52-1 control: a second line that carries its own words before the lead-in is not the bare second line -> the opener is written as before', count1(h1, opener1) === 1, JSON.stringify(h1));
+    {
+      const fsx = require('fs');
+      const srcT = fsx.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').split(String.fromCharCode(13, 10)).join(String.fromCharCode(10));
+      const seam = 'const namedBefore = framedAbove || (';
+      ok('ORDER52-1 MUTANT applied (the seam found once)', srcT.split(seam).length === 2);
+      const tmpDir = fsx.mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-o52-1-'));
+      try {
+        const file = path.join(tmpDir, 'o52-1.mjs');
+        fsx.writeFileSync(file, srcT.split(seam).join('const namedBefore = false || (').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/[\\]/g, '/') + q), 'utf8');
+        const cwd = process.cwd(); process.chdir(REPO);
+        let mod; try { mod = await import('file:///' + file.replace(/[\\]/g, '/') + '?m=o52-1'); } finally { process.chdir(cwd); }
+        const mu = await run1(mod, above1 + NL1 + 'قال رسول الله صلى الله عليه وسلم: «' + M1 + '»');
+        ok('ORDER52-1 MUTANT KILLED: without the rule the second opener is written over the second line again', count1(mu, opener1) === 1, JSON.stringify(mu));
+      } finally { try { fsx.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* temp only */ } }
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────────────────
   // FIX 48 item 4 — «عن الصحابي مرفوعا: «…»» IS A PROPHETIC FRAME (the owner's decision 5). MEASURED (the 2 Oct preview, answer 2, and the measure report م٢): the two
   // matns of that answer were no target (reason no_matn, takhrijLookups 0). «مرفوعا» is a frame only in the shape «عن <name> [رضي الله عنه/عنها/عنهما] مرفوعا» straight
   // before a colon (or «بلفظ:») and the quotation; «مرفوعا» without the colon, «موقوفا», «عن ابن عمر قوله:» and a «مرفوعا» that stands anywhere else are not frames.
