@@ -242,7 +242,7 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       messages: [{ role: 'user', content: opts.question || Q_MASAH }],
       mode: 'brief', band: 'adult', system: 'SYSTEM', model: 'writer-model', maxTokens: 4096,
       providerUrl: 'https://api.anthropic.invalid/v1/messages', headers: {},
-      libFlagValue: opts.libOn ? 'on' : '', libToken: opts.libOn ? 'guard-token' : '', lessonsToken: '',
+      libFlagValue: opts.libOn ? 'on' : '', libToken: opts.libOn ? 'guard-token' : '', lessonsToken: opts.lessonsOn ? 'guard-token' : '', onLessonRows: opts.onLessonRows || null,
       takhrijWired: !!opts.takhrij || !!opts.takhrijImpl, cards, wire, requestStartedAt: Date.now(),
       env: { BW2_RETRIEVAL_MS: String(opts.budget || 400), BW2_JUDGE_MS: '400', ...(opts.env || {}) },
       runtime: opts.runtime || '',
@@ -758,6 +758,42 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         const m3 = await play51(FIRST + '\n' + MALIKI_HELD + '\n' + ENDHUM, M3);
         ok('ORDER51-2 MUTANT KILLED: without «عندهم» among the pronoun-carrying prepositions it goes out after the held view again', m3.text.includes('ويجوز عندهم'), JSON.stringify(m3));
       } finally { try { fs.rmSync(tmp51, { force: true }); } catch { /* nothing to clean */ } }
+    }
+    // ORDER 51 item 5 (the owner's decision 5): A LESSONS ROW WITH NO TEXT DOES NOT REACH THE WRITER. MEASURED (order 50 item 2, then over the 134 battery with the local lessons service on :8812, the production index
+    // ezik-lessons-full-2026-08-22): the service sends the snippet empty in 97.6% of hits, so the writer was handed `[[n]] <title> — <lecturer>` and an empty «النص:», and wrote «ولم أقف على نص هنا في كلام الشيخ عثمان الخميس»
+    // for a man the reader never named. The row stays pinned (the judge kept it and «دروس ذات صلة» under the answer is drawn from it); only what the writer is shown, and what it may cite, leaves it out.
+    {
+      const LESSON_EMPTY = { kind: 'lesson', title: 'LESSON-EMPTY-TITLE', publisher: 'LECTURER-EMPTY', url: 'https://lessons.invalid/1', recordId: 'lesson-1', text: '', passage: '', matchScore: '9.0' };
+      const LESSON_FULL = { kind: 'lesson', title: 'LESSON-FULL-TITLE', publisher: 'LECTURER-FULL', url: 'https://lessons.invalid/2', recordId: 'lesson-2', text: 'نص الدرس الحاضر يتكلم عن المسألة نفسها وفيه حكمها', passage: 'نص الدرس الحاضر يتكلم عن المسألة نفسها وفيه حكمها', matchScore: '8.0' };
+      let block51 = [];
+      const r51 = await run({ writerText: U.s1, lessons: [LESSON_EMPTY, LESSON_FULL], lessonsOn: true, onLessonRows: (rows) => { block51 = rows; } });
+      const sent51 = JSON.stringify(r51.calls.writerBody.messages);
+      ok('ORDER51-5 the writer is shown the lesson row that has a text', sent51.includes('LESSON-FULL-TITLE') && sent51.includes('LECTURER-FULL'), ascii(sent51.slice(0, 120)));
+      ok('ORDER51-5 ...and not the one that has none (neither its title nor its lecturer)', !sent51.includes('LESSON-EMPTY-TITLE') && !sent51.includes('LECTURER-EMPTY'), ascii(sent51.slice(0, 120)));
+      ok('ORDER51-5 the judge still saw both (the row is not dropped before the judge) and the lessons block under the answer is still drawn from both',
+        /LESSON-EMPTY-TITLE/.test(r51.calls.askUser) && /LESSON-FULL-TITLE/.test(r51.calls.askUser)
+        && block51.some((row) => row.title === 'LESSON-EMPTY-TITLE') && block51.some((row) => row.title === 'LESSON-FULL-TITLE'), JSON.stringify(block51.map((row) => row.title)));
+      const none51 = await run({ writerText: U.s1, lessons: [LESSON_EMPTY], fatwa: [], lessonsOn: true });
+      ok('ORDER51-5 a turn whose only rows are text-less lessons shows the writer no text at all (the no-text rule), and the lesson is still not made a source',
+        !JSON.stringify(none51.calls.writerBody.messages).includes('LESSON-EMPTY-TITLE'), ascii(JSON.stringify(none51.calls.writerBody.messages).slice(0, 120)));
+      const fatwaOnly51 = await run({ writerText: U.s1, lessons: [], lessonsOn: true });
+      ok('ORDER51-5 control: with no lesson rows the writer is shown the fatwa rows exactly as before', JSON.stringify(fatwaOnly51.calls.writerBody.messages).includes(ROW_F1.title), ascii(JSON.stringify(fatwaOnly51.calls.writerBody.messages).slice(0, 100)));
+      const tmp51b = path.join(REPO, 'lib', '.mut-order51-5.mjs');
+      try {
+        const src51b = fs.readFileSync(path.join(REPO, 'lib/before-writing-v2.js'), 'utf8').split('\r\n').join('\n');
+        const seam51b = "pinned.filter((row) => !(row && row.kind === 'lesson' && !String(row.fullText || row.text || '').trim()))";
+        ok('ORDER51-5 MUTANT applied (the seam found once)', src51b.split(seam51b).length === 2);
+        fs.writeFileSync(tmp51b, src51b.split(seam51b).join('pinned'));
+        const M51b = await import(pathToFileURL(tmp51b).href + '?m=order51-5');
+        const { deps: deps51, calls: calls51 } = makeDeps({ writerText: U.s1, lessons: [LESSON_EMPTY, LESSON_FULL] });
+        const w51 = makeWire();
+        await M51b.runBw2Turn({
+          question: Q_MASAH, messages: [{ role: 'user', content: Q_MASAH }], mode: 'brief', band: 'adult', system: 'SYSTEM', model: 'writer-model', maxTokens: 4096,
+          providerUrl: 'https://api.anthropic.invalid/v1/messages', headers: {}, libFlagValue: '', libToken: '', lessonsToken: 'guard-token', takhrijWired: false, cards, wire: w51.wire,
+          requestStartedAt: Date.now(), env: { BW2_RETRIEVAL_MS: '400', BW2_JUDGE_MS: '400' }, deps: deps51,
+        });
+        ok('ORDER51-5 MUTANT KILLED: without the filter the text-less lesson reaches the writer again', JSON.stringify(calls51.writerBody.messages).includes('LESSON-EMPTY-TITLE'), ascii(JSON.stringify(calls51.writerBody.messages).slice(0, 100)));
+      } finally { try { fs.rmSync(tmp51b, { force: true }); } catch { /* nothing to clean */ } }
     }
     // ORDER 50 item 2 (the owner's decision 15): the writer is told not to report the absence of a scholar's words nobody asked about. The sentence is the order's own, taken from the order file by code
     // (never retyped) and pinned by sha256, as FIX48-8 and FOLLOWUP49-7 pinned theirs. MEASURED: a lessons row reaches the writer labelled with the lecturer's name and a text that is empty on 97.6% of hits
