@@ -1444,6 +1444,22 @@ async function main() {
       !mI2.error && mI2.mod.reviewerEvidence(rInner).innerQuote === false && loop.reviewerEvidence(rInner).innerQuote === true, mI2.error ? mI2.error.message : '');
   }
 
+  // ORDER 52 item 11 — A HANDED-OVER ROW KEEPS ITS FULL TEXT, AND THE SUPPORT CHECK READS IT. MEASURED (order 51 §6, A5/A2): `adopt` (loop.js, the hand-over from BW2) dropped `fullText` and `writerText`, so a row went back to 1200 characters, and the
+  // reviewer's evidence took `row.text` only, so a sentence the writer took from the tail of a page was counted unsupported.
+  {
+    const TAIL = 'ذيل الصفحة بعد الألف ومئتين';
+    const bookRow = { kind: 'lib_book', recordId: 'lib:FC-1:1:1', text: 'مقدمة الصفحة', fullText: 'مقدمة الصفحة ' + TAIL, ref: 1 };
+    ok('ORDER52-11 the reviewer\'s evidence for a BOOK row that carries fullText is the full text (the tail is in the snippet)', loop.reviewerEvidence(bookRow).snippet.includes(TAIL));
+    ok('ORDER52-11 control: a book row without fullText keeps `text`; a row that is not a book keeps `text` even if it carries fullText',
+      loop.reviewerEvidence({ ...bookRow, fullText: undefined }).snippet === 'مقدمة الصفحة' && loop.reviewerEvidence({ ...bookRow, kind: 'fatwa' }).snippet === 'مقدمة الصفحة');
+    const loopSrc = fs.readFileSync(path.join(REPO, 'lib/free-brain/loop.js'), 'utf8').split(String.fromCharCode(13, 10)).join(String.fromCharCode(10));
+    const dropLine = 'const { ref, retrievedAt, fullText, writerText, madhhab, ...own } = row || {};';
+    ok('ORDER52-11 `adopt` no longer drops fullText or writerText (the destructuring names neither)', !loopSrc.includes(dropLine) && loopSrc.includes('const { ref, retrievedAt, madhhab, ...own } = row || {};'));
+    const mS = await mutantModule(temp, 'lib/free-brain/loop.js', 'support-reads-cut', (src) => src.replace("snippet: (row.kind === LIB_BOOK_KIND && row.fullText) || row.text || '',", "snippet: row.text || '', /* mutant-support-reads-cut */"),
+      'mutant-support-reads-cut').then((mod) => ({ mod }), (error) => ({ error }));
+    ok('ORDER52-11 MUTANT KILLED: if the evidence reads `text` only the tail is not in the snippet again', !mS.error && !mS.mod.reviewerEvidence(bookRow).snippet.includes(TAIL), mS.error ? mS.error.message : '');
+  }
+
   ok('H9  every row in section H came from the injected library seam, none from the network',
     poisoned.calls === 0, 'poisoned fetch invoked ' + poisoned.calls + ' time(s)');
 
