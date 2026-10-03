@@ -566,9 +566,9 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const RULE9_SHA = '87234515e9481a28c033aa9f0b734cbb2a4d5a3f1c00d3b31f18da827ebf1415';
       const DIRECT7_SHA = 'af9538bcbdac8b0b84495be80bc372483e82d245f8e4c1053e3eb4de06bcd2d7';
       const lines8 = BW2.BW2_WRITE_RULES.split(String.fromCharCode(10));
-      const rule9 = lines8[lines8.length - 1];
+      const rule9 = lines8[4]; // ORDER 50 item 2: a tenth rule follows the ninth
       ok('FIX48-8a the writer\'s rules end with a ninth: the views of the scholars, from the rows, each with its own speaker, before the explanation (pinned by sha256)',
-        lines8.length === 5 && rule9.startsWith('\u0669. ') && sha8(rule9) === RULE9_SHA, sha8(rule9));
+        lines8.length === 6 && rule9.startsWith('\u0669. ') && sha8(rule9) === RULE9_SHA, sha8(rule9));
       const direct7 = BW2.bw2DirectRule(7);
       ok('FIX48-8b the direct-fatwa rule is the order\'s sentence (pinned by sha256), names the fatwa [7] and cites it [[7]], and carries no phrase for the writer to repeat',
         sha8(direct7) === DIRECT7_SHA && direct7.includes('[7]') && direct7.includes('[[7]]') && !direct7.includes('[[1]]'), sha8(direct7));
@@ -579,7 +579,7 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       ok('FIX48-8c no trace of the old phrase ("above my answer") in the module, in the rules, or in the direct rule the writer receives',
         !OLD_PHRASE.test(strip8(srcM)) && !OLD_PHRASE.test(strip8(BW2.BW2_WRITE_RULES + direct7)));
       const rulesFor = BW2.bw2RulesFor([], 'x', []);
-      ok('FIX48-8d the writer\'s message carries the ninth rule last, after the eighth', rulesFor.endsWith(rule9) && rulesFor.indexOf('\u0668. ') < rulesFor.indexOf(rule9));
+      ok('FIX48-8d the writer\'s message carries the ninth rule after the eighth (and, since ORDER 50 item 2, the tenth after it)', rulesFor.includes(rule9) && rulesFor.indexOf('\u0668. ') < rulesFor.indexOf(rule9) && rulesFor.indexOf(rule9) < rulesFor.indexOf(lines8[5]));
       // mutants of the module (temp copies beside it): the ninth rule taken out; the direct rule's old sentence put back
       const tmpM = path.join(REPO, 'lib', '.mut-fix48-8.mjs');
       const NL = String.fromCharCode(10), BT = String.fromCharCode(96);
@@ -590,7 +590,7 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         const cutEnd = srcM.indexOf(NL, cut);
         fs.writeFileSync(tmpM, srcM.slice(0, cut) + srcM.slice(cutEnd + 1));
         const M8 = await import(require('url').pathToFileURL(tmpM).href + '?m=fix48-8a');
-        ok('FIX48-8 MUTANT KILLED: without the ninth rule the writer is not asked for the views and the pin fails', M8.BW2_WRITE_RULES.split(NL).length === 4 && sha8(M8.BW2_WRITE_RULES.split(NL).pop()) !== RULE9_SHA);
+        ok('FIX48-8 MUTANT KILLED: without the ninth rule the writer is not asked for the views and the pin fails', M8.BW2_WRITE_RULES.split(NL).length === 5 && !M8.BW2_WRITE_RULES.split(NL).some((l) => sha8(l) === RULE9_SHA));
         const oldSentence = '\u0646\u064f\u0642\u0650\u0644\u064e\u062a\u0652 \u0644\u0644\u0642\u0627\u0631\u0626 \u0641\u0648\u0642\u064e \u062c\u0648\u0627\u0628\u0650\u0643 \u0627\u0644\u0641\u062a\u0648\u0649 [' + '$' + '{ref}] \u0628\u0646\u0635\u0651\u0650\u0647\u0627 \u0643\u0627\u0645\u0644\u0627\u064b.';
         const dFn = srcM.indexOf('export function bw2DirectRule');
         const dStart = srcM.indexOf('  return ' + BT, dFn);
@@ -600,6 +600,31 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         const M8b = await import(require('url').pathToFileURL(tmpM).href + '?m=fix48-8b');
         ok('FIX48-8 MUTANT 2 KILLED: with the old sentence back the phrase the writer repeated is in what it receives, and the pin fails', OLD_PHRASE.test(strip8(M8b.bw2DirectRule(7))) && sha8(M8b.bw2DirectRule(7)) !== DIRECT7_SHA);
       } finally { try { fs.rmSync(tmpM, { force: true }); } catch { /* nothing to clean */ } }
+    }
+    // ORDER 50 item 2 (the owner's decision 15): the writer is told not to report the absence of a scholar's words nobody asked about. The sentence is the order's own, taken from the order file by code
+    // (never retyped) and pinned by sha256, as FIX48-8 and FOLLOWUP49-7 pinned theirs. MEASURED: a lessons row reaches the writer labelled with the lecturer's name and a text that is empty on 97.6% of hits
+    // («[[1]] 634- … — عثمان الخميس / النص: »), and that is where «ولم أقف على نص هنا في كلام الشيخ عثمان الخميس» came from for a question that named nobody.
+    {
+      const sha10 = (x) => require('crypto').createHash('sha256').update(String(x), 'utf8').digest('hex');
+      const SENTENCE10_SHA = 'e992472377e5d52e749620b2b3da7b44c65bef6ef933636a789954446b7059ea';
+      const lines10 = BW2.BW2_WRITE_RULES.split(String.fromCharCode(10));
+      const rule10 = lines10[lines10.length - 1];
+      const body10 = rule10.replace(/^\S+\s+/u, '');
+      ok('ORDER50-2a the writer\'s rules end with a tenth: the order\'s sentence («لا تذكرْ غيابَ قولِ عالمٍ لم يسألْ عنه السائل.»), pinned by sha256', lines10.length === 6 && rule10.startsWith('١٠. ') && sha10(body10) === SENTENCE10_SHA, sha10(body10));
+      const ORDER10 = 'C:/Users/passe/projects/ustaz-archive/sessions/comprehensive-2026-10-02/EZIK-ORDER-50-2026-10-03.md';
+      ok('ORDER50-2b the sentence is the order file\'s own wherever the order file is present (it lives outside the repository, so a clone without it passes this one row)',
+        !fs.existsSync(ORDER10) || fs.readFileSync(ORDER10, 'utf8').includes('«' + body10 + '»'));
+      ok('ORDER50-2c every turn\'s rules carry it, last (a turn about the schools carries it too)', BW2.bw2RulesFor([], 'ما درجة حديث «اختلاف أمتي رحمة»؟', []).includes(rule10)
+        && BW2.bw2RulesFor([], 'x', []).endsWith(rule10) && BW2.bw2RulesFor([], 'ما حكم الجهر بالبسملة عند المذاهب الأربعة؟', []).includes(rule10));
+      const tmp10 = path.join(REPO, 'lib', '.mut-order50-2.mjs');
+      try {
+        const src10 = fs.readFileSync(path.join(REPO, 'lib/before-writing-v2.js'), 'utf8');
+        const cut10 = src10.indexOf("  '١٠. ");
+        ok('ORDER50-2 MUTANT applied (the tenth rule\'s line found once)', cut10 > 0 && src10.indexOf("  '١٠. ", cut10 + 1) < 0);
+        fs.writeFileSync(tmp10, src10.slice(0, cut10) + src10.slice(src10.indexOf(String.fromCharCode(10), cut10) + 1));
+        const M10 = await import(require('url').pathToFileURL(tmp10).href + '?m=order50-2');
+        ok('ORDER50-2 MUTANT KILLED: without the tenth rule the writer is not told, and the pin fails', M10.BW2_WRITE_RULES.split(String.fromCharCode(10)).length === 5 && !M10.bw2RulesFor([], 'x', []).includes(body10));
+      } finally { try { fs.rmSync(tmp10, { force: true }); } catch { /* nothing to clean */ } }
     }
     // FOLLOWUP 49 item 6 (the owner's decision 9) — THE BOOK AND ITS AUTHOR REACH THE WRITER UNDER TWO LABELS. MEASURED at 48: the label of a library row was one run of dashes,
     // «كتاب — وبل الغمامة في شرح عمدة الفقه لابن قدامة — عبد الله الطيار — …», and the writer welded «لابن قدامة» (in the title) to the author: «وفصل ابن قدامة الطيار ذلك». Now: «الكتاب: …» then «المؤلّف: …».
