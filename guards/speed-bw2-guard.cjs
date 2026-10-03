@@ -686,6 +686,79 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         ok('ORDER50-3 MUTANT KILLED: a phrase matched on its first word alone would hold a unit that points at nothing', base3.text.includes('يظهر في هذا الباب') && !m3b.text.includes('يظهر في هذا الباب'), JSON.stringify([base3, m3b]));
       } finally { try { fs.rmSync(tmp3, { force: true }); } catch { /* nothing to clean */ } }
     }
+    // ORDER 51 item 2 (the owner's decision 2): A UNIT THAT POINTS BACK AT A HELD UNIT IS HELD WITH IT. MEASURED (the 3 Oct preview, answer 3, «ما حكم القنوت في صلاة الفجر عند المذاهب الأربعة؟», replayed through the real
+    // releaser with the real rows of that question, the local library twin): the Maliki view («القول الثاني: المالكية …») is held ('unsupported_school': the row it cites does not carry the school), and then
+    // «ويجوز عندهم قبل الركوع وبعده، والأفضل قبله.» goes out (nothing in it read as pointing back: «عندهم» was not among the prepositions that carry a pronoun) and «أما مذهب المالكية فلم أقف على نص من كتبهم …
+    // كما تقدم» goes out (a word in it, «المالكية», is carried only by the held unit). Production, answer 10, shows the second shape alone («بغير ما تقدم من الشك في لفظ «أو ثلاث»»). THE OTHER TWO SHAPES
+    // THE ORDER NAMES WERE MEASURED AND NOT BUILT: the announced count («على أربعة أقوال:», two of four views out) is written before the views are known, and the ordinal («والرابع أن الاستنشاق …») follows a unit that WENT OUT in
+    // the only real answer that has it, so no held unit is proven as what it points at.
+    {
+      const UNITS51 = await esm('lib/bw2-units.js');
+      const rows51 = [
+        { ref: 1, kind: 'lib_book', madhhab: 'hanafi', title: 'الموسوعة الفقهية', bookTitle: 'الموسوعة الفقهية', author: 'مجموعة من المؤلفين', locator: 'ج34 · ص58',
+          fullText: 'اختلف الفقهاء في القنوت في صلاة الصبح. ذهب الحنفية والحنابلة إلى أن القنوت في الصبح غير مشروع. وقال الشافعية يسن القنوت في اعتدال الركعة الثانية من الصبح.' },
+        { ref: 2, kind: 'lib_book', title: 'الموسوعة الفقهية', bookTitle: 'الموسوعة الفقهية', author: 'مجموعة من المؤلفين', locator: 'ج27 · ص322',
+          fullText: 'ذهب المالكية والشافعية إلى مشروعية القنوت في الصبح. وقال المالكية: ندب قنوت سرا بصبح فقط دون سائر الصلوات قبل الركوع.' },
+      ];
+      const play51 = async (writer, UN = UNITS51) => {
+        const out = [];
+        const r = UN.createBw2Releaser({ rows: rows51, emit: (p) => { out.push(p); return true; } });
+        r.push(writer + '\n');
+        const s = await r.end();
+        return { text: out.join(''), holds: s.holds };
+      };
+      const FIRST = 'القول الأول: الحنفية والحنابلة، وهو أن القنوت في الصبح غير مشروع [[1]].';
+      const MALIKI_HELD = 'القول الثاني: المالكية، وهو أن القنوت في الصبح مستحب وفضيلة [[1]].'; // row 1 does not carry the school: 'unsupported_school'
+      const POINTER = 'أما مذهب المالكية فلم أقف على نص من كتبهم مباشرة في هذه الصفوف، وإنما ورد قولهم منقولا كما تقدم [[2]].';
+      const ENDHUM = 'ويجوز عندهم قبل الركوع وبعده، والأفضل قبله [[1]].';
+      const heldOnly = await play51(FIRST + '\n' + MALIKI_HELD);
+      ok('ORDER51-2 the fixture: the Maliki view is held for want of the school in its row, and the first view goes out', heldOnly.holds.unsupported_school === 1 && heldOnly.text.includes('القول الأول'), JSON.stringify(heldOnly));
+      const pointer = await play51(FIRST + '\n' + MALIKI_HELD + '\n' + POINTER);
+      ok('ORDER51-2 «… كما تقدم» after a held unit that carries a word of it (المالكية) that nothing released carries is held with it', !pointer.text.includes('أما مذهب المالكية') && pointer.holds.dependent_on_held === 1, JSON.stringify(pointer));
+      const noHold = await play51(FIRST + '\n' + POINTER);
+      ok('ORDER51-2 sibling: the same sentence with no held unit before it goes out (the row it cites carries the school)', noHold.text.includes('أما مذهب المالكية') && !noHold.holds.dependent_on_held, JSON.stringify(noHold));
+      const conclusion = await play51(FIRST + '\n' + MALIKI_HELD + '\nوفحاصل ما تقدم أن القنوت في الصبح مختلف فيه بين الحنفية والشافعية [[1]].');
+      ok('ORDER51-2 not a pointer at the held unit: a conclusion drawn from what went out («فحاصل ما تقدم …») carries nothing only the held unit carries, and goes out', conclusion.text.includes('فحاصل ما تقدم') && !conclusion.holds.dependent_on_held, JSON.stringify(conclusion));
+      const plainWord = await play51(FIRST + '\n' + MALIKI_HELD + '\nوالقنوت في الصبح للنوازل وقت الحرب [[1]].');
+      ok('ORDER51-2 not a pointer: a unit with no «ما تقدم» / «ما سبق» / «أعلاه» is never read by this rule, whatever it shares with the held unit', plainWord.text.includes('والقنوت في الصبح للنوازل') && !plainWord.holds.dependent_on_held, JSON.stringify(plainWord));
+      const endHeld = await play51(FIRST + '\n' + MALIKI_HELD + '\n' + ENDHUM);
+      ok('ORDER51-2 «ويجوز عندهم …» after a held unit is held with it', !endHeld.text.includes('ويجوز عندهم') && endHeld.holds.dependent_on_held === 1, JSON.stringify(endHeld));
+      const endOk = await play51(FIRST + '\n' + ENDHUM);
+      ok('ORDER51-2 sibling: «ويجوز عندهم …» after a unit that went out goes out', endOk.text.includes('ويجوز عندهم') && !endOk.holds.dependent_on_held, JSON.stringify(endOk));
+      const endHead = await play51(ENDHUM);
+      ok('ORDER51-2 «ويجوز عندهم …» as the answer\'s very first unit has no school to point at: held as an opening, as every pronoun-carrying opening is', !endHead.text.includes('ويجوز عندهم') && endHead.holds.dependent_opening === 1, JSON.stringify(endHead));
+      const K51 = (t) => UNITS51.dependentKind(t);
+      ok('ORDER51-2 the kind of «ويجوز عندهم …» is \'backref\'; «عند الحنفية» (a named school), and an article-led noun before «عنده» (a person already named) are none of it',
+        K51('ويجوز عندهم قبل الركوع وبعده.') === 'backref' && K51('ويجوز عند الحنفية قبل الركوع وبعده.') === '' && K51('فالمعنى عنده مقصور على خلاف الفروع الاجتهادية.') === 'fa_noun',
+        [K51('ويجوز عندهم قبل الركوع وبعده.'), K51('ويجوز عند الحنفية قبل الركوع وبعده.'), K51('فالمعنى عنده مقصور على خلاف الفروع الاجتهادية.')].join('|'));
+      ok('ORDER51-2 pointsBackAtWords: the closed list (ما / كما / مما / بما تقدم · سبق · مر, أعلاه) and nothing else',
+        ['كما تقدم', 'وما سبق ذكره', 'مما تقدم', 'كما في الفتوى المذكورة أعلاه', 'بما مر'].every((t) => UNITS51.pointsBackAtWords(t))
+        && ['تقدم الرجل إلى الصف', 'سبق السيف العذل', 'وهو مذهب الحنفية', 'مر به المؤمنون'].every((t) => !UNITS51.pointsBackAtWords(t)));
+      ok('ORDER51-2 orphanWords: only a word (4 letters or more, bare of wa / fa / the article) that a held unit carries and no released unit does',
+        JSON.stringify(UNITS51.orphanWords('أما مذهب المالكية فلم أقف', [new Set(['مالكيه', 'قنوت'])], 'القول الاول الحنفيه والحنابله')) === JSON.stringify(['مالكيه'])
+        && UNITS51.orphanWords('أما مذهب المالكية فلم أقف', [new Set(['مالكيه'])], 'والمالكيه قالوا').length === 0
+        && UNITS51.orphanWords('أما مذهب المالكية فلم أقف', [], '').length === 0);
+      const tmp51 = path.join(REPO, 'lib', '.mut-order51-2.mjs');
+      try {
+        const src51 = fs.readFileSync(path.join(REPO, 'lib/bw2-units.js'), 'utf8').split('\r\n').join('\n');
+        const seamP = "    if (!leans && heldWordSets.length && pointsBackAtWords(current.body) && orphanWords(current.body, heldWordSets, foldedReleased).length) { hold('dependent_on_held', current); return; }\n";
+        const seamO = 'orphanWords(current.body, heldWordSets, foldedReleased).length) {';
+        const seamE = "'\\u0639\\u0646\\u062f\\u0647\\u0645', '\\u0639\\u0646\\u062f\\u0647', '\\u0639\\u0646\\u062f\\u0647\\u0627', '\\u0639\\u0646\\u062f\\u0647\\u0645\\u0627']);";
+        ok('ORDER51-2 MUTANTS applied (the three seams found once)', src51.split(seamP).length === 2 && src51.split(seamO).length === 2 && src51.split(seamE).length === 2);
+        fs.writeFileSync(tmp51, src51.split(seamP).join(''));
+        const M1 = await import(pathToFileURL(tmp51).href + '?m=order51-2a');
+        const m1 = await play51(FIRST + '\n' + MALIKI_HELD + '\n' + POINTER, M1);
+        ok('ORDER51-2 MUTANT KILLED: without the rule the pointing sentence goes out after the held view again', m1.text.includes('أما مذهب المالكية'), JSON.stringify(m1));
+        fs.writeFileSync(tmp51, src51.split(seamO).join('true) {'));
+        const M2 = await import(pathToFileURL(tmp51).href + '?m=order51-2b');
+        const m2 = await play51(FIRST + '\n' + MALIKI_HELD + '\nوفحاصل ما تقدم أن القنوت في الصبح مختلف فيه بين الحنفية والشافعية [[1]].', M2);
+        ok('ORDER51-2 MUTANT KILLED: if any held unit at all counted, a conclusion drawn from what went out would be held', !m2.text.includes('فحاصل ما تقدم'), JSON.stringify(m2));
+        fs.writeFileSync(tmp51, src51.split(seamE).join(']);'));
+        const M3 = await import(pathToFileURL(tmp51).href + '?m=order51-2c');
+        const m3 = await play51(FIRST + '\n' + MALIKI_HELD + '\n' + ENDHUM, M3);
+        ok('ORDER51-2 MUTANT KILLED: without «عندهم» among the pronoun-carrying prepositions it goes out after the held view again', m3.text.includes('ويجوز عندهم'), JSON.stringify(m3));
+      } finally { try { fs.rmSync(tmp51, { force: true }); } catch { /* nothing to clean */ } }
+    }
     // ORDER 50 item 2 (the owner's decision 15): the writer is told not to report the absence of a scholar's words nobody asked about. The sentence is the order's own, taken from the order file by code
     // (never retyped) and pinned by sha256, as FIX48-8 and FOLLOWUP49-7 pinned theirs. MEASURED: a lessons row reaches the writer labelled with the lecturer's name and a text that is empty on 97.6% of hits
     // («[[1]] 634- … — عثمان الخميس / النص: »), and that is where «ولم أقف على نص هنا في كلام الشيخ عثمان الخميس» came from for a question that named nobody.
