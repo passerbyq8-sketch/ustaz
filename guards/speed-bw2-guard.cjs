@@ -601,6 +601,65 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         ok('FIX48-8 MUTANT 2 KILLED: with the old sentence back the phrase the writer repeated is in what it receives, and the pin fails', OLD_PHRASE.test(strip8(M8b.bw2DirectRule(7))) && sha8(M8b.bw2DirectRule(7)) !== DIRECT7_SHA);
       } finally { try { fs.rmSync(tmpM, { force: true }); } catch { /* nothing to clean */ } }
     }
+    // ORDER 50 item 3 (the owner's decision 14): A UNIT THAT OPENS BY POINTING AT A SENTENCE THAT IS NOT IN THE ANSWER GOES WITH THE UNIT IT POINTS AT. MEASURED (the 3 Oct preview, answer 3, then replayed through
+    // the real releaser with the real rows of «ما حكم رفع اليدين عند الركوع والرفع منه عند المذاهب الأربعة؟», the local library twin): the Hanafi unit was held ('unsupported_school') and «قد استدل الكاساني لهذا
+    // المذهب بما روي …» went out as the first sentence, with nobody to say which school; so did «وعلل الكاساني ذلك …» and «ودليلهم …» (only «واستدلوا» was already held, as 'implicit'). The reading is
+    // pointsAtEarlierSentence (lib/bw2-units.js): a closed list, the order's own; the kind is 'referral' and it is held after a held unit only.
+    {
+      const UNITS3 = await esm('lib/bw2-units.js');
+      const T1 = 'ذهب الحنفية إلى ترك رفع اليدين عند الركوع.'; // uncited: held as 'uncited_attribution'
+      const BODY = 'روي أن النبي صلى الله عليه وسلم رأى بعض أصحابه يرفعون أيديهم عند الركوع فقال اسكنوا في الصلاة';
+      const rows3 = [{ ref: 1, kind: 'lib_book', madhhab: 'hanafi', title: 'بدائع الصنائع', bookTitle: 'بدائع الصنائع', author: 'الكاساني', locator: 'ج1 · ص207',
+        fullText: 'قد استدل الكاساني لهذا المذهب بما ' + BODY + '. وعلل الكاساني ذلك بأن المقصود من رفع اليدين إعلام الأصم. ودليلهم حديث ابن مسعود في ترك الرفع. ويرجح هذا القول قوة دليله. واستدل أصحاب هذا القول بحديث جابر بن سمرة. ويظهر في هذا الباب لهذا الأمر أن الرفع سنة.' }];
+      const play3 = async (writer, UN = UNITS3) => {
+        const out = [];
+        const r = UN.createBw2Releaser({ rows: rows3, emit: (p) => { out.push(p); return true; } });
+        r.push(writer + '\n');
+        const s = await r.end();
+        return { text: out.join(''), holds: s.holds };
+      };
+      const SHAPES3 = [
+        ['قد استدل الكاساني لهذا المذهب بما ' + BODY + ' [[1]].', 'لهذا المذهب'],
+        ['وعلل الكاساني ذلك بأن المقصود من رفع اليدين إعلام الأصم [[1]].', 'علل ذلك'],
+        ['ودليلهم حديث ابن مسعود في ترك الرفع [[1]].', 'ودليلهم'],
+        ['ويرجح هذا القول قوة دليله [[1]].', 'هذا القول'],
+        ['واستدل أصحاب هذا القول بحديث جابر بن سمرة [[1]].', 'أصحاب هذا القول'],
+      ];
+      for (const [u2, name] of SHAPES3) {
+        const held = await play3(T1 + '\n' + u2);
+        ok('ORDER50-3 «' + name + '» after a held unit is held with it (the held unit and its referral both stay off the screen)', held.text === '' && held.holds.dependent_on_held === 1 && held.holds.uncited_attribution === 1, JSON.stringify(held));
+        const after = await play3('الأصل أن المقصود من رفع اليدين إعلام الأصم [[1]].\n' + u2);
+        ok('ORDER50-3 sibling: «' + name + '» after a unit that went out goes out too', after.text.includes(u2.replace(/ \[\[1\]\]\.$/u, '.')) && !after.holds.dependent_on_held, JSON.stringify(after));
+      }
+      const loose = await play3(T1 + '\nقد استدل الكاساني بحديث ابن مسعود في ترك الرفع [[1]].');
+      ok('ORDER50-3 not a referral: «قد استدل الكاساني بحديث …» (no reference) after a held unit is as before (released)', loose.text.startsWith('قد استدل الكاساني بحديث') && !loose.holds.dependent_on_held, JSON.stringify(loose));
+      const reason = await play3(T1 + '\nوعلل الكاساني حكمه بأن المقصود من رفع اليدين إعلام الأصم [[1]].');
+      ok('ORDER50-3 not a referral: «علل» with no «ذلك» in its opening is as before', reason.text.includes('علل الكاساني حكمه') && !reason.holds.dependent_on_held, JSON.stringify(reason));
+      const far = await play3(T1 + '\nقد استدل الكاساني في كتابه بدائع الصنائع وغيره بحديث ابن مسعود لهذا المذهب [[1]].');
+      ok('ORDER50-3 not a referral: the phrase beyond the unit\'s first eight words is not read', far.text.startsWith('قد استدل الكاساني في كتابه') && !far.holds.dependent_on_held, JSON.stringify(far));
+      const K3 = (t) => UNITS3.dependentKind(t);
+      ok('ORDER50-3 the kind is \'referral\' for the five shapes, and a demonstrative that is the unit\'s FIRST word is still the \'pronoun\' reading it had',
+        K3('قد استدل الكاساني لهذا المذهب بما روي.') === 'referral' && K3('وعلل الكاساني ذلك بأن المقصود.') === 'referral' && K3('ودليلهم حديث ابن مسعود.') === 'referral' && K3('ويرجح هذا القول قوة دليله.') === 'referral'
+        && K3('هذا القول مروي عن مالك.') === 'pronoun' && K3('الأصل في الرفع أنه سنة.') === '', [K3('هذا القول مروي عن مالك.'), K3('الأصل في الرفع أنه سنة.')].join('|'));
+      const head3 = await play3('قد استدل الكاساني لهذا المذهب بما ' + BODY + ' [[1]].');
+      ok('ORDER50-3 a referral that is the answer\'s very first unit (nothing held before it) is not held for want of a unit before it', head3.text.startsWith('قد استدل الكاساني لهذا المذهب') && !head3.holds.dependent_opening, JSON.stringify(head3));
+      const tmp3 = path.join(REPO, 'lib', '.mut-order50-3.mjs');
+      try {
+        const src3 = fs.readFileSync(path.join(REPO, 'lib/bw2-units.js'), 'utf8').split('\r\n').join('\n');
+        const seam3 = "  if (pointsAtEarlierSentence(words, bare)) return 'referral';";
+        ok('ORDER50-3 MUTANT applied (the reading\'s line found once)', src3.split(seam3).length === 2);
+        // the module imports './x.js' siblings, so the copy sits beside it
+        fs.writeFileSync(tmp3, src3.split(seam3).join("  if (false) return 'referral';"));
+        const M3 = await import(pathToFileURL(tmp3).href + '?m=order50-3a');
+        const m3 = await play3(T1 + '\n' + SHAPES3[0][0], M3);
+        ok('ORDER50-3 MUTANT KILLED: without the reading the referral goes out first again', m3.text.startsWith('قد استدل الكاساني لهذا المذهب'), JSON.stringify(m3));
+        fs.writeFileSync(tmp3, src3.split("lead && p.slice(1).every((w, j) => window[i + 1 + j] === w)").join("lead && p.slice(1).every((w, j) => true)"));
+        const M3b = await import(pathToFileURL(tmp3).href + '?m=order50-3b');
+        const m3b = await play3(T1 + '\nويظهر في هذا الباب لهذا الأمر أن الرفع سنة [[1]].', M3b);
+        const base3 = await play3(T1 + '\nويظهر في هذا الباب لهذا الأمر أن الرفع سنة [[1]].');
+        ok('ORDER50-3 MUTANT KILLED: a phrase matched on its first word alone would hold a unit that points at nothing', base3.text.includes('يظهر في هذا الباب') && !m3b.text.includes('يظهر في هذا الباب'), JSON.stringify([base3, m3b]));
+      } finally { try { fs.rmSync(tmp3, { force: true }); } catch { /* nothing to clean */ } }
+    }
     // ORDER 50 item 2 (the owner's decision 15): the writer is told not to report the absence of a scholar's words nobody asked about. The sentence is the order's own, taken from the order file by code
     // (never retyped) and pinned by sha256, as FIX48-8 and FOLLOWUP49-7 pinned theirs. MEASURED: a lessons row reaches the writer labelled with the lecturer's name and a text that is empty on 97.6% of hits
     // («[[1]] 634- … — عثمان الخميس / النص: »), and that is where «ولم أقف على نص هنا في كلام الشيخ عثمان الخميس» came from for a question that named nobody.
