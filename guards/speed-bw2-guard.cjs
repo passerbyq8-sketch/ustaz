@@ -601,6 +601,32 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         ok('FIX48-8 MUTANT 2 KILLED: with the old sentence back the phrase the writer repeated is in what it receives, and the pin fails', OLD_PHRASE.test(strip8(M8b.bw2DirectRule(7))) && sha8(M8b.bw2DirectRule(7)) !== DIRECT7_SHA);
       } finally { try { fs.rmSync(tmpM, { force: true }); } catch { /* nothing to clean */ } }
     }
+    // ORDER 50 item 6 (the owner's decision 11): A TEXT REACHES THE READER ONLY IN ITS OWN LETTERS. MEASURED (the 3 Oct preview, answer 9, then through the real encyclopedia store and the local library twin): the
+    // quotation «يا اهل مكه لا تقصروا في اقل من اربعه برد، من مكه الي عسفان» came from the encyclopedia store's SEARCH field (harakat off, أ إ آ -> ا, ة -> ه, ى -> ي, up to 6000 characters), which BW2 handed the
+    // writer as the row's `fullText` (record F01656, «سَفَر», part 25); the library's own atoms of the same book are in standard spelling («يا أهل مكة … إلى عسفان»). Over the 134-question battery, 536
+    // encyclopedia rows reached the writer in that spelling (avg 5440 characters, every question). The writer's text of such a row is now its stored passage in its own spelling (`text`).
+    {
+      const BW5 = await esm('lib/before-writing-v2.js');
+      const NORM6 = 'يا اهل مكه لا تقصروا في اقل من اربعه برد، من مكه الي عسفان';
+      const ORIG6 = 'يَا أَهْلَ مَكَّةَ لاَ تَقْصُرُوا فِي أَقَلَّ مِنْ أَرْبَعَةِ بُرُدٍ';
+      const enc6 = (over = {}) => ({ ref: 1, kind: 'encyclopedia', title: 'الموسوعة الفقهية الكويتية — سَفَر', publisher: 'الموسوعة الفقهية الكويتية', text: 'سَفَر التَّعْرِيفُ: ' + ORIG6, fullText: 'سفر التعريف: ' + NORM6, ...over });
+      ok('ORDER50-6 the writer\'s text of an encyclopedia row is its stored passage in its own letters, not the search field',
+        BW5.selectPinnedText(enc6(), 'ما حكم قصر الصلاة؟') === enc6().text && !BW5.selectPinnedText(enc6(), 'ما حكم قصر الصلاة؟').includes('اهل مكه'));
+      const block6 = BW5.renderPinnedEvidence((() => { const rows = [enc6()]; BW5.withPinnedEvidence({ role: 'user', content: 'ما حكم قصر الصلاة؟' }, rows, ''); return rows; })());
+      ok('ORDER50-6 the pinned block the writer receives carries the harakat of the stored passage and none of the folded spelling', block6.includes(ORIG6) && !block6.includes('اهل مكه') && !block6.includes('الي عسفان'), block6.slice(0, 200));
+      const lib6 = { ref: 2, kind: 'lib_book', title: 'كتاب', text: 'نص الكتاب', fullText: 'نص الكتاب كاملا ' + 'x'.repeat(10) };
+      ok('ORDER50-6 control: a library row and a fatwa row are selected as they were (the whole text)', BW5.selectPinnedText(lib6, '') === lib6.fullText.slice(0, BW5.BW_ROW_CHARS) && BW5.selectPinnedText(lib6, 'سؤال عن شيء') === lib6.fullText);
+      ok('ORDER50-6 control: an encyclopedia row with no passage of its own falls back to what it has (nothing is lost for want of a field)', BW5.selectPinnedText(enc6({ text: '' }), '') === enc6().fullText);
+      const tmp6 = path.join(REPO, 'lib', '.mut-order50-6.mjs');
+      try {
+        const src6 = fs.readFileSync(path.join(REPO, 'lib/before-writing-v2.js'), 'utf8').split(String.fromCharCode(13, 10)).join(String.fromCharCode(10));
+        const seam6 = "  if (row && row.kind === 'encyclopedia' && String(row.text || '').trim()) return String(row.text).slice(0, BW_ROW_CHARS);\n";
+        ok('ORDER50-6 MUTANT applied (the branch found once)', src6.split(seam6).length === 2);
+        fs.writeFileSync(tmp6, src6.split(seam6).join(''));
+        const M6 = await import(pathToFileURL(tmp6).href + '?m=order50-6');
+        ok('ORDER50-6 MUTANT KILLED: without the branch the writer reads the folded search text again', M6.selectPinnedText(enc6(), 'ما حكم قصر الصلاة؟').includes('اهل مكه'));
+      } finally { try { fs.rmSync(tmp6, { force: true }); } catch { /* nothing to clean */ } }
+    }
     // ORDER 50 item 3 (the owner's decision 14): A UNIT THAT OPENS BY POINTING AT A SENTENCE THAT IS NOT IN THE ANSWER GOES WITH THE UNIT IT POINTS AT. MEASURED (the 3 Oct preview, answer 3, then replayed through
     // the real releaser with the real rows of «ما حكم رفع اليدين عند الركوع والرفع منه عند المذاهب الأربعة؟», the local library twin): the Hanafi unit was held ('unsupported_school') and «قد استدل الكاساني لهذا
     // المذهب بما روي …» went out as the first sentence, with nobody to say which school; so did «وعلل الكاساني ذلك …» and «ودليلهم …» (only «واستدلوا» was already held, as 'implicit'). The reading is
@@ -1682,6 +1708,17 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         FLAGS.beforeWritingV2Takes({ enabled: true, band: 'adult', runtime: 'STORED_FIQH', excluded: 'canonical_store' }).reason === 'canonical_store'
         && FLAGS.beforeWritingV2Takes({ enabled: true, band: 'adult', runtime: 'HADITH', excluded: 'estate_division' }).reason === 'estate_division'
         && take({ excluded: 'typo' }) && take({ excluded: '' }));
+    }
+    // ORDER 50 item 6, the real store: written LAST in this file, because loading the encyclopedia index here would end the C2g row (readiness before any build in this process) if it came earlier.
+    {
+      const BW5 = await esm('lib/before-writing-v2.js');
+      const ENC = await esm('lib/encyclopedia.js');
+      const TOOLS6 = await esm('lib/free-brain/tools.js');
+      const found6 = await ENC.searchStoredCorpus('مسافة السفر الذي تقصر فيه الصلاة أربعة برد', { limit: 6 });
+      const rows6 = (found6.records || []).map((rec) => ({ ...TOOLS6.encyclopediaRow(rec), fullText: String(rec.text || rec.snippet || '') }));
+      rows6.forEach((row, i) => { row.ref = i + 1; });
+      ok('ORDER50-6 the real store: its rows reach the writer as stored passages (the letters of the stored snippet), and the long folded text is not what the writer reads',
+        rows6.length > 0 && rows6.every((row) => BW5.selectPinnedText(row, 'مسافة السفر') === row.text.slice(0, BW5.BW_ROW_CHARS) && /[ً-ْ]/u.test(row.text)), JSON.stringify(rows6.map((r) => [r.fullText.length, r.text.length])));
     }
   } catch (error) {
     ok('guard completed without exception', false, error && error.stack ? error.stack : String(error));
