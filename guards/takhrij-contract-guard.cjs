@@ -3214,6 +3214,43 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     }
   }
   // ─────────────────────────────────────────────────────────────────────────────────────
+  // ORDER 51 item 8 — THE COMPANION'S OPENER IS NOT WRITTEN IN FRONT OF A MATN WHEN THE SENTENCE HAS JUST NAMED HIM (the owner's decision 8). MEASURED (the 3 Oct production run, answer 16, «ما حكم صيام يوم الشك؟»): «والثاني أن ابن عمر هو
+  // راوي حديث «فإن غم عليكم فاقدروا له»» went out as «… هو راوي حديث عن ابن عمر رضي الله عنهما: «…»» — the takhrij pass writes its opener «عن X رضي الله عنه:» in front of the matn whoever the sentence already names, and where the model wrote
+  // «عن النبي ﷺ» the opener took that frame's place. The same at the head of order 49 (`9e8bd12`): the cause is this pass, not an order. The remedy: a Companion named in the sentence before the lead-in is not named again.
+  // ─────────────────────────────────────────────────────────────────────────────────────
+  console.log('\n--- ORDER 51 item 8. THE OPENER NAMES A COMPANION THE SENTENCE HAS ALREADY NAMED ---');
+  {
+    const T8 = await esm('lib/takhrij.js');
+    const M8 = 'فإن غم عليكم فاقدروا له';
+    const rows8 = async () => ({ text: '', calls: 1, added: [{ subjectId: 'FC-000645', text: atomFor(M8, 'ابن عمر') }, { subjectId: 'FC-000648', text: atomFor(M8, 'ابن عمر') }] });
+    const ctx8 = { libFlagValue: 'on', libToken: 'fixture', table: null };
+    const run8 = async (T, text) => (await T.applyTakhrij(text, { env: ON, lookup: T.runnerLookup(rows8, ctx8) })).text;
+    const named8 = await run8(T8, 'والثاني أن ابن عمر هو راوي حديث «' + M8 + '»، والراوي أعلم بما روى.');
+    ok('ORDER51-8 a sentence that names ابن عمر before the matn gets the parentheses and NO second «عن ابن عمر رضي الله عنه:»', named8.includes('راوي حديث «' + M8 + '» (متفق عليه)') && !named8.includes('عن ابن عمر'), JSON.stringify(named8));
+    const frame8 = await run8(T8, 'والثاني أن ابن عمر هو راوي حديث عن النبي صلى الله عليه وسلم «' + M8 + '»، والراوي أعلم بما روى.');
+    ok('ORDER51-8 ...and the model\'s own frame «عن النبي ﷺ» stays in front of the matn (the opener no longer takes its place)', frame8.includes('عن النبي صلى الله عليه وسلم «' + M8 + '» (متفق عليه)'), JSON.stringify(frame8));
+    const ctl8 = await run8(T8, 'وقال النبي صلى الله عليه وسلم: «' + M8 + '».');
+    ok('ORDER51-8 control: a sentence that names nobody still gets the opener as before', ctl8.includes('عن ابن عمر رضي الله عنه: «' + M8 + '» (متفق عليه)'), JSON.stringify(ctl8));
+    const other8 = await run8(T8, 'واحتج أبو حنيفة بحديث «' + M8 + '».');
+    ok('ORDER51-8 control: a sentence that names ANOTHER man still gets the opener of the Companion the books agree on', other8.includes('عن ابن عمر رضي الله عنه: «' + M8 + '»'), JSON.stringify(other8));
+    {
+      const fsx = require('fs');
+      const srcT = fsx.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').split(String.fromCharCode(13, 10)).join(String.fromCharCode(10));
+      const seam = 'const named = denied || namedBefore ? ';
+      ok('ORDER51-8 MUTANT applied (the seam found once)', srcT.split(seam).length === 2);
+      const tmpDir = fsx.mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-o51-8-'));
+      try {
+        const file = path.join(tmpDir, 'o51-8.mjs');
+        fsx.writeFileSync(file, srcT.split(seam).join('const named = denied ? ').replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/[\\]/g, '/') + q), 'utf8');
+        const cwd = process.cwd(); process.chdir(REPO);
+        let mod; try { mod = await import('file:///' + file.replace(/[\\]/g, '/') + '?m=o51-8'); } finally { process.chdir(cwd); }
+        const mu = await run8(mod, 'والثاني أن ابن عمر هو راوي حديث «' + M8 + '»، والراوي أعلم بما روى.');
+        ok('ORDER51-8 MUTANT KILLED: without the rule the second «عن ابن عمر رضي الله عنهما:» is written again', mu.includes('عن ابن عمر'), JSON.stringify(mu));
+      } finally { try { fsx.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* temp only */ } }
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────────────────
   // FIX 48 item 4 — «عن الصحابي مرفوعا: «…»» IS A PROPHETIC FRAME (the owner's decision 5). MEASURED (the 2 Oct preview, answer 2, and the measure report م٢): the two
   // matns of that answer were no target (reason no_matn, takhrijLookups 0). «مرفوعا» is a frame only in the shape «عن <name> [رضي الله عنه/عنها/عنهما] مرفوعا» straight
   // before a colon (or «بلفظ:») and the quotation; «مرفوعا» without the colon, «موقوفا», «عن ابن عمر قوله:» and a «مرفوعا» that stands anywhere else are not frames.
