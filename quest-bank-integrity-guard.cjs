@@ -1776,7 +1776,10 @@ const SEALED = {
   //   2026-10-03 -- FOLLOW-UP 49 SHIP (order EZIK-FOLLOWUP-49-ORDER-2026-10-03, side/comprehensive-20261002): CACHE and config/app-version.json move ezik-v48 -> ezik-v49.
 //                    app.js REBUILT from app.jsx by npm run build:app: 1828735 bytes (unchanged: only EZIK_APP_VERSION moved, same length), sha256 0e2e58c9..3a1808.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES stays 3001825, --check MATCH. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 55908 bytes).
-  'sw.js': 'af9ab77fd2a747b7e693cfe72ea17155c773f07af417d59592134c8c60e74b68',
+  //   2026-10-03 -- ORDER 50 SHIP (order EZIK-ORDER-50-2026-10-03, side/comprehensive-20261002): CACHE and config/app-version.json move ezik-v49 -> ezik-v50.
+//                    app.js REBUILT from app.jsx by npm run build:app: 1828735 bytes (unchanged: only EZIK_APP_VERSION moved, same length), sha256 7cb05b9b..c440.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES stays 3001825, --check MATCH. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 55908 bytes).
+  'sw.js': 'd36f2604ec15f1d8bdee392c8dc05a054bfd5439b47047e24b0bcae3a6248b54',
 };
 
 // ---------------------------------------------------------------------------
