@@ -3024,6 +3024,72 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
     }
   }
   // ─────────────────────────────────────────────────────────────────────────────────────
+  // ORDER 50 item 4 — «(لم يوقف على حكم)» ON A HADITH THAT IS IN صحيح مسلم (the owner's decision 12). MEASURED through the real pass and the local library twin on the 3 Oct preview's answer 10:
+  //   * why it was a target: it is a `<hadith narrator="عائشة">` card the writer wrote (kind 'card'), and every card is read — a Companion's «كان يصيبنا ذلك فنؤمر…» is in the Prophet's time and is his hukm;
+  //   * what the ladder found: نصب الراية (FC-001994), a grader, only — so «(لم يوقف على حكم)» and no book;
+  //   * why not Muslim: the library cuts every hit at 1200 characters unless asked for more, the row was clipped again at the passage size, and Muslim's atom for hadith 335 (1369 characters) holds the sentence
+  //     after them. With the whole atom asked for and read, the same pass writes «(مسلم)».
+  // The decision: no «(لم يوقف على حكم)» while a narrating book carries the text; the book is written as for any matn that was found.
+  // ─────────────────────────────────────────────────────────────────────────────────────
+  console.log('\n--- ORDER 50 item 4. THE TAKHRIJ LOOKUP ASKS FOR, AND READS, THE WHOLE ATOM ---');
+  {
+    const T4 = await esm('lib/takhrij.js');
+    const CONTRACT4 = await esm('lib/lib-contract.js');
+    const MATN4 = 'كان يصيبنا ذلك فنؤمر بقضاء الصوم ولا نؤمر بقضاء الصلاة';
+    const PAD4 = 'حدثنا فلان عن فلان عن معاذة قالت سألت عائشة فقلت ما بال الحائض تقضي الصوم ولا تقضي الصلاة فقالت '.repeat(14); // > 1200 characters before the sentence
+    const FULL4 = PAD4 + 'أحرورية أنت؟ قلت: لست بحرورية ولكني أسأل. قالت: ' + MATN4 + '، قال: فنؤمر بقضاء الصوم.';
+    const CLIPPED4 = FULL4.slice(0, 1200);
+    const GRADER4 = 'حديث عائشة: ' + MATN4 + ' رواه مسلم وأبو داود والترمذي.';
+    ok('ORDER50-4 the fixture is what it says: the sentence stands beyond the first 1200 characters of the atom, and the clipped copy does not carry it',
+      FULL4.length > 1300 && FULL4.indexOf(MATN4) > 1200 && !T4.atomCarriesMatn(CLIPPED4, MATN4) && T4.atomCarriesMatn(FULL4, MATN4));
+    const seenCtx4 = [];
+    const runTool4 = (rowsOf) => async (name, input, ctx) => { seenCtx4.push(ctx); return { text: '', calls: 1, added: rowsOf(ctx) }; };
+    // a runner that behaves like the real one: the row's text is the clipped passage; the whole atom is beside it only when asked for
+    const realLike4 = (ctx) => [
+      { subjectId: 'FC-001994', text: GRADER4 },
+      { subjectId: 'FC-000648', text: CLIPPED4, ...(ctx.keepFullText === true ? { fullText: FULL4 } : {}) },
+    ];
+    const card4 = 'وقد دل عليه ما ثبت عن عائشة رضي الله عنها فقالت:\n<hadith narrator="عائشة">' + MATN4 + '</hadith>';
+    const ctx4 = { libFlagValue: 'on', libToken: 'fixture', table: null };
+    const out4 = await T4.applyTakhrij(card4, { env: ON, lookup: T4.runnerLookup(runTool4(realLike4), ctx4) });
+    ok('ORDER50-4 the card is written «(مسلم)» (the whole atom carries it), never «(لم يوقف على حكم)»', out4.text.includes('«' + MATN4 + '» (مسلم)') && !out4.text.includes('لم يوقف على حكم'), JSON.stringify(out4.text));
+    ok('ORDER50-4 the lookup asks for the whole atom: the ceiling the service allows, and the row\'s whole text beside the clipped one',
+      seenCtx4.length > 0 && seenCtx4.every((c) => c.maxCharsPerHit === CONTRACT4.LIB_MAX_CHARS_PER_HIT_CEILING && c.keepFullText === true), JSON.stringify(seenCtx4.map((c) => [c.maxCharsPerHit, c.keepFullText])));
+    ok('ORDER50-4 the atoms handed to the pass are the whole text where a row has one',
+      (await T4.runnerLookup(runTool4(realLike4), ctx4)([MATN4]))[0].atoms.some((a) => a === FULL4));
+    const graderOnly4 = await T4.applyTakhrij(card4, { env: ON, lookup: T4.runnerLookup(runTool4(() => [{ subjectId: 'FC-001994', text: GRADER4 }]), ctx4) });
+    ok('ORDER50-4 control: where only a grader carries the text the sentence is written as it was («(لم يوقف على حكم)»)', graderOnly4.text.includes('«' + MATN4 + '» (لم يوقف على حكم)'), JSON.stringify(graderOnly4.text));
+    const plain4 = await T4.runnerLookup(runTool4(() => [{ subjectId: 'FC-000645', text: atomFor(MATN, 'عمر بن الخطاب') }]), ctx4)([MATN]);
+    ok('ORDER50-4 control: a row with no whole-text field (every row before this order) is read from its text, as before', plain4[0].atoms[0].includes(MATN));
+    const both4 = await T4.applyTakhrij('قال النبي صلى الله عليه وسلم: «' + MATN + '» وهذا أصل.', { env: ON,
+      lookup: T4.runnerLookup(runTool4(() => [{ subjectId: 'FC-000645', text: atomFor(MATN, 'عمر بن الخطاب') }, { subjectId: 'FC-000648', text: atomFor(MATN, 'عمر بن الخطاب') }]), ctx4) });
+    ok('ORDER50-4 control: two narrating books on short atoms still write «(متفق عليه)»', both4.text.includes('(متفق عليه)'), JSON.stringify(both4.text));
+    {
+      const fsx = require('fs');
+      const srcT = fsx.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').split(String.fromCharCode(13, 10)).join(String.fromCharCode(10));
+      const seamA = "atoms: rows.map((row) => String((row && (row.fullText || row.text)) || '')),";
+      const seamB = 'maxCharsPerHit: LIB_MAX_CHARS_PER_HIT_CEILING, keepFullText: true,';
+      ok('ORDER50-4 MUTANT applied (both seams found once)', srcT.split(seamA).length === 2 && srcT.split(seamB).length === 2);
+      const tmpDir = fsx.mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-o50-4-'));
+      const mutate = async (name, from, to) => {
+        const file = path.join(tmpDir, name + '.mjs');
+        fsx.writeFileSync(file, srcT.split(from).join(to).replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/[\\]/g, '/') + q), 'utf8');
+        const cwd = process.cwd();
+        process.chdir(REPO);
+        try { return await import('file:///' + file.replace(/[\\]/g, '/') + '?m=' + name); } finally { process.chdir(cwd); }
+      };
+      try {
+        const mA = await mutate('o50-4a', seamA, "atoms: rows.map((row) => String((row && row.text) || '')),");
+        const outA = await mA.applyTakhrij(card4, { env: ON, lookup: mA.runnerLookup(runTool4(realLike4), ctx4) });
+        ok('ORDER50-4 MUTANT KILLED: reading only the clipped text, the card is «(لم يوقف على حكم)» again', outA.text.includes('لم يوقف على حكم') && !outA.text.includes('(مسلم)'), JSON.stringify(outA.text));
+        const mB = await mutate('o50-4b', seamB, '');
+        const outB = await mB.applyTakhrij(card4, { env: ON, lookup: mB.runnerLookup(runTool4(realLike4), ctx4) });
+        ok('ORDER50-4 MUTANT KILLED: not asking for the whole atom, the card is «(لم يوقف على حكم)» again', outB.text.includes('لم يوقف على حكم') && !outB.text.includes('(مسلم)'), JSON.stringify(outB.text));
+      } finally { try { fsx.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* temp only */ } }
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────────────────
   // FIX 48 item 4 — «عن الصحابي مرفوعا: «…»» IS A PROPHETIC FRAME (the owner's decision 5). MEASURED (the 2 Oct preview, answer 2, and the measure report م٢): the two
   // matns of that answer were no target (reason no_matn, takhrijLookups 0). «مرفوعا» is a frame only in the shape «عن <name> [رضي الله عنه/عنها/عنهما] مرفوعا» straight
   // before a colon (or «بلفظ:») and the quotation; «مرفوعا» without the colon, «موقوفا», «عن ابن عمر قوله:» and a «مرفوعا» that stands anywhere else are not frames.
