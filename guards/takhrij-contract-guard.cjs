@@ -2544,7 +2544,8 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
         !T61.atomMatnIs('قال رسول الله صلى الله عليه وسلم ' + 'كلمة '.repeat(17) + ': «' + ASUMT + '»', ASUMT));
     }
     const src61 = require('fs').readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
-    const seam = '    if (isShortQuote(matn) && !atomMatnIs(atom, matn)) continue;\n';
+    // ORDER 50 item 5: the seam's line now passes the third argument (the first-clause reading, for a text quoted whole); the row's reason is unchanged — the line is still the whole-matn seam.
+    const seam = '    if (isShortQuote(matn) && !atomMatnIs(atom, matn, state.quotedWhole === true)) continue;\n';
     const mutated = src61.split(seam).join('');
     ok('MUTANT B4B-61 whole-matn seam applied', mutated !== src61);
     const tmp = require('fs').mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-b4b61-mut-'));
@@ -3086,6 +3087,73 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
         const mB = await mutate('o50-4b', seamB, '');
         const outB = await mB.applyTakhrij(card4, { env: ON, lookup: mB.runnerLookup(runTool4(realLike4), ctx4) });
         ok('ORDER50-4 MUTANT KILLED: not asking for the whole atom, the card is «(لم يوقف على حكم)» again', outB.text.includes('لم يوقف على حكم') && !outB.text.includes('(مسلم)'), JSON.stringify(outB.text));
+      } finally { try { fsx.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* temp only */ } }
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────────────────
+  // ORDER 50 item 5 — THE HEAD «تخريج الحديث: مسلم.» OVER A HADITH WHOSE WORDING IS AL-BUKHARI'S (the owner's decision 13). MEASURED through the real pass and the local library twin on «من أخرج حديث
+  // «إنما الأعمال بالنيات»؟ وهل هو متفق عليه؟» (the 3 Oct preview, answer 6): the asked text is three words, so a book proves it only by a quotation that IS it ([111-b4b-61]); صحيح البخاري quotes
+  // «إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى» whole — the asked text is its first CLAUSE — and it did not count, while مسلم came in through the variant «بالنية» whose quotation is exactly that.
+  // The cause is the matching, not the index, the order or the cap: the narrowed call returned Bukhari's atoms and the rule refused them. The remedy is the narrowest: a quotation whose FIRST CLAUSE (up to
+  // a comma or a semicolon) is the asked text counts, for a text the writer quoted whole; never for a clause the pass itself cut out of unquoted prose.
+  // ─────────────────────────────────────────────────────────────────────────────────────
+  console.log('\n--- ORDER 50 item 5. A QUOTATION WHOSE FIRST CLAUSE IS THE SHORT ASKED TEXT PROVES IT ---');
+  {
+    const T5 = await esm('lib/takhrij.js');
+    const Q5 = 'إنما الأعمال بالنيات';
+    const VARIANT5 = 'إنما الأعمال بالنية';
+    const FRAME5 = 'حدثنا الحميدي قال سمعت عمر بن الخطاب على المنبر قال سمعت رسول الله صلى الله عليه وسلم يقول: ';
+    const BUKHARI5 = FRAME5 + '«إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى، فمن كانت هجرته إلى دنيا يصيبها»';
+    const MUSLIM5 = FRAME5 + '«إنما الأعمال بالنية»';
+    const BAYHAQI5 = 'أخبرنا أبو عبد الله قال حدثنا علي عن عمر قال: قال رسول الله صلى الله عليه وسلم: «' + Q5 + '»';
+    ok('ORDER50-5 atomMatnIs: the first clause of a framed quotation is the asked text only where the caller says the text was quoted whole',
+      T5.atomMatnIs(BUKHARI5, Q5, true) === true && T5.atomMatnIs(BUKHARI5, Q5) === false && T5.atomMatnIs(BUKHARI5, Q5, false) === false);
+    ok('ORDER50-5 ...a clause that is not the FIRST, a run of words with no comma after it, and a quotation with no frame of the Prophet are none of it',
+      T5.atomMatnIs(FRAME5 + '«وإنما لكل امرئ ما نوى، إنما الأعمال بالنيات»', Q5, true) === false
+      && T5.atomMatnIs(FRAME5 + '«إنما الأعمال بالنيات وإنما لكل امرئ ما نوى»', Q5, true) === false
+      && T5.atomMatnIs('قال المصنف: «إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى»', Q5, true) === false
+      && T5.atomMatnIs(FRAME5 + '«إن الله يحب العبد التقي الغني الخفي»', 'إن الله يحب', true) === false);
+    const rows5 = (query, ctx) => {
+      const ids = ctx.bookIds || [];
+      if (ids.length > 2) return [{ subjectId: 'FC-000760', text: BAYHAQI5 }];
+      if (ids.length === 1 && ids[0] === 'FC-000645') return [{ subjectId: 'FC-000645', text: BUKHARI5 }];
+      if (ids.length === 1 && ids[0] === 'FC-000648') return query === VARIANT5 ? [{ subjectId: 'FC-000648', text: MUSLIM5 }] : [];
+      return [];
+    };
+    const runTool5 = async (name, input, ctx) => ({ text: '', calls: 1, added: rows5(input.query, ctx) });
+    const ctx5 = { libFlagValue: 'on', libToken: 'fixture', table: null };
+    const QUESTION5 = 'من أخرج حديث «' + Q5 + '»؟ وهل هو متفق عليه؟';
+    const head5 = async (T) => (await T.gradingHeadForQuestion({ env: ON, question: QUESTION5, lookup: T.runnerLookup(runTool5, ctx5) })) || {};
+    const got5 = await head5(T5);
+    ok('ORDER50-5 the head of the owner\'s question is «تخريج الحديث: البخاري ومسلم.», not مسلم alone', got5.head === 'تخريج الحديث: البخاري ومسلم.', JSON.stringify(got5));
+    const prose5 = await T5.applyTakhrij('قال رسول الله صلى الله عليه وسلم: «' + Q5 + '».', { env: ON, lookup: T5.runnerLookup(runTool5, ctx5) });
+    ok('ORDER50-5 the same text quoted in the answer is bracketed «(متفق عليه)»', prose5.text.includes('«' + Q5 + '» (متفق عليه)'), JSON.stringify(prose5.text));
+    const UNQ5 = 'لقول النبي صلى الله عليه وسلم: قصوا الشوارب، ووفروا اللحى، خالفوا المشركين.';
+    const rowsUnq5 = async (name, input, ctx) => ({ text: '', calls: 1, added: [{ subjectId: 'FC-000630', text: FRAME5 + '«قصوا الشوارب، ووفروا اللحى، خالفوا المشركين»' }] });
+    const unq5 = await T5.applyTakhrij(UNQ5, { env: ON, lookup: T5.runnerLookup(rowsUnq5, ctx5) });
+    ok('ORDER50-5 control: a clause the pass cut out of UNQUOTED prose gets no bracket from the first clause of a book\'s quotation (it would bracket half a matn)', !/\(أحمد|\(مسلم|\(البخاري|\(متفق/u.test(unq5.text), JSON.stringify(unq5.text));
+    {
+      const fsx = require('fs');
+      const srcT = fsx.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').split(String.fromCharCode(13, 10)).join(String.fromCharCode(10));
+      const seamA = '!(firstClauseCounts && foldArabic(String(span).split(ATOM_CLAUSE_END_RE)[0]) === needle)';
+      const seamB = 'atomMatnIs(atom, matn, state.quotedWhole === true)';
+      ok('ORDER50-5 MUTANT applied (both seams found once)', srcT.split(seamA).length === 2 && srcT.split(seamB).length === 2);
+      const tmpDir = fsx.mkdtempSync(path.join(require('os').tmpdir(), 'ustaz-o50-5-'));
+      const mutate = async (name, from, to) => {
+        const file = path.join(tmpDir, name + '.mjs');
+        fsx.writeFileSync(file, srcT.split(from).join(to).replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/[\\]/g, '/') + q), 'utf8');
+        const cwd = process.cwd();
+        process.chdir(REPO);
+        try { return await import('file:///' + file.replace(/[\\]/g, '/') + '?m=' + name); } finally { process.chdir(cwd); }
+      };
+      try {
+        const mA = await mutate('o50-5a', seamA, 'true');
+        const gA = await head5(mA);
+        ok('ORDER50-5 MUTANT KILLED: without the first-clause reading the head is «تخريج الحديث: مسلم.» again', gA.head === 'تخريج الحديث: مسلم.', JSON.stringify(gA));
+        const mB = await mutate('o50-5b', seamB, 'atomMatnIs(atom, matn, true)');
+        const uB = await mB.applyTakhrij(UNQ5, { env: ON, lookup: mB.runnerLookup(rowsUnq5, ctx5) });
+        ok('ORDER50-5 MUTANT KILLED: if the reading is given to unquoted clauses too, half a matn is bracketed', /\(أحمد/u.test(uB.text), JSON.stringify(uB.text));
       } finally { try { fsx.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* temp only */ } }
     }
   }
