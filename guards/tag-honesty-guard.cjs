@@ -1005,6 +1005,37 @@ const unsupportedIsHandledSilently = (module) => {
       await mk9('«قرر» is not read as a credit', '(?:قال|ذكر|أفتى|أجاب|يرى|تقول|قالت|قرر)', '(?:قال|ذكر|أفتى|أجاب|يرى|تقول|قالت)',
         (mod) => mod.reviewAnswer({ text: SHAPES[7][1], evidence: [], domain: 'fiqh', mode: 'chat' }).text === SHAPES[7][2]);
     }
+    // ── ORDER 52 item 2 · THE FRAME IS GENERALISED WHOLE WHEN A QUOTATION STANDS INSIDE IT (the owner's decision; row 68's remaining shape) ──────────────────────────────────────────────────
+    // MEASURED at the head (085dac0) through the real reviewer: «وسئل الإمام أحمد عن معناه مع حديث «…» فقال: لا بأس به.» came out «… الإمام أحمد … فقال بعض أهل العلم: …» — the name-first pattern cannot reach across the
+    // guillemets, so the sentence arrived at the implied-speaker route, which put the class behind «فقال» and left the man named. Without a quotation inside, the same sentence gives «وسئل بعض أهل العلم عن معناه فقال: …».
+    {
+      const say52 = (t) => module.reviewAnswer({ text: t, evidence: [], domain: 'fiqh', mode: 'chat' }).text;
+      const Q52 = '«من أدرك ركعة من الصلاة فقد أدرك الصلاة»';
+      const mid52 = 'وسئل الإمام أحمد عن معناه مع حديث ' + Q52 + ' فقال: لا بأس به.';
+      const SHAPES52 = [
+        ['a quotation in the MIDDLE of the frame', mid52, 'وسئل بعض أهل العلم عن معناه مع حديث ' + Q52 + ' فقال: لا بأس به.'],
+        ['a quotation at the START of the frame', 'وروي حديث ' + Q52 + ' وسئل الإمام أحمد عنه فقال: لا بأس به.', 'وروي حديث ' + Q52 + ' وسئل بعض أهل العلم عنه فقال: لا بأس به.'],
+        ['a quotation at the END of the frame', 'وسئل الإمام أحمد عن معناه فقال: ' + Q52 + '.', 'وسئل بعض أهل العلم عن معناه فقال: ' + Q52 + '.'],
+        ['no quotation (the shape that was always right)', 'وسئل الإمام أحمد عن معناه فقال: لا بأس به.', 'وسئل بعض أهل العلم عن معناه فقال: لا بأس به.'],
+        ['a prayer after the name goes with it', 'وسئل الإمام أحمد رحمه الله عن معناه مع حديث ' + Q52 + ' فقال: لا بأس به.', 'وسئل بعض أهل العلم عن معناه مع حديث ' + Q52 + ' فقال: لا بأس به.'],
+        ['«الشيخ ابن باز» in the same shape', 'وسئل الشيخ ابن باز عن معناه مع حديث ' + Q52 + ' فقال: لا بأس به.', 'وسئل بعض أهل العلم عن معناه مع حديث ' + Q52 + ' فقال: لا بأس به.'],
+      ];
+      SHAPES52.forEach(([id, input, expected]) => { const out = say52(input); ok('ORDER52-2 ' + id, out === expected, out); });
+      ok('ORDER52-2 the quotation itself and the words after «فقال:» are letter for letter what the model wrote',
+        say52(mid52).includes(Q52) && say52(mid52).endsWith(' فقال: لا بأس به.'));
+      // controls: what is NOT this shape keeps the rules it had
+      const comp52 = 'وسئل ابن عمر رضي الله عنه عن معناه مع حديث ' + Q52 + ' فقال: لا بأس به.';
+      ok('ORDER52-2 control: a Companion is never generalised (he keeps the rule he had: his name stays and no class is put in his place)', say52(comp52).includes('ابن عمر') && !/وسئل بعض أهل العلم/u.test(say52(comp52)), say52(comp52));
+      const two52 = 'وسئل الإمام أحمد وابن باز عن معناه مع حديث ' + Q52 + ' فقال: لا بأس به.';
+      ok('ORDER52-2 control: two men named in the sentence — the frame stays as written', say52(two52) === two52, say52(two52));
+      const prev52 = 'وذكر ابن باز المسألة.\nوروي حديث ' + Q52 + ' فقال: لا بأس به.';
+      ok('ORDER52-2 control: a man named in the sentence BEFORE is not renamed (the class goes behind the verb as before)', say52(prev52) === 'وذكر بعض أهل العلم المسألة.\nوروي حديث ' + Q52 + ' فقال بعض أهل العلم: لا بأس به.' || say52(prev52).endsWith('فقال بعض أهل العلم: لا بأس به.'), say52(prev52));
+      const m52 = await runMutant({ sourceFile: REVIEWER, name: 'without ORDER 52 item 2 the class is put behind the verb and the name stays',
+        transform: (source) => source.replace('if (fromThisSentence && last && ', 'if (false && last && '),
+        survives: (mod) => mod.reviewAnswer({ text: mid52, evidence: [], domain: 'fiqh', mode: 'chat' }).text === SHAPES52[0][2] });
+      ok('ORDER52-2 mutant seam applied', m52.changed, m52.error);
+      ok('ORDER52-2 MUTANT KILLED: without the rule «الإمام أحمد» stays and «فقال بعض أهل العلم:» is written again', m52.loaded && m52.survived === false, JSON.stringify(m52));
+    }
     // ── FOLLOWUP 49 item 1 · THE PRAYER GOES WITH THE NAME THAT IS GENERALISED (the owner's decision 5) ───────────────────────────────────────
     // MEASURED at the head (8864c48) through the real reviewer: «كما قال ابن القيم رحمه الله، ومن أطلق…» became «كما قال بعض أهل العلم رحمه الله، …» (the production text at 48, preview question 7):
     // a dua for nobody. The owner's closed list — رحمه/رحمها/رحمهما/رحمهم الله, رضي الله عنه/عنها/عنهما/عنهم, حفظه الله, عفا الله عنه, غفر الله له, نفع الله به, each with «تعالى» if it follows —
