@@ -236,16 +236,16 @@ function libraryPlain(markup) {
     };
     const textOf = (t) => t.writes.join('').split('\n\n').filter((l) => l.startsWith('data: ')).map((l) => { try { return JSON.parse(l.slice(6)); } catch { return null; } })
       .filter((f) => f && f.type === 'content_block_delta').map((f) => f.delta.text).join('');
-    const turn = async (question, markTitle, gradingHead = null) => {
+    const turn = async (question, markTitle, gradingHead = null, mod = BW2, fetchStore = replay) => {
       const t = target();
       const facade = SSE.createFinalizedSseResponse(t, { finalize: (input) => ({ ok: true, text: String(input.text || ''), problems: [] }) });
       let listing = '';
-      const out = await BW2.runBw2Turn({
-        question, messages: [{ role: 'user', content: question }], wire: BW2.createBw2Wire(facade), band: 'adult', ...(gradingHead ? { takhrijWired: true } : {}),
+      const out = await mod.runBw2Turn({
+        question, messages: [{ role: 'user', content: question }], wire: mod.createBw2Wire(facade), band: 'adult', ...(gradingHead ? { takhrijWired: true } : {}),
         cards: { buildSourceTag: ASKM.buildSourceTag, buildBookTag: ASKM.buildBookTag, encyclopediaCards: false, max: 3 },
         deps: {
           ...(gradingHead ? { gradingHeadForQuestion: gradingHead } : {}),
-          runTool: (name, input, ctx) => (name === 'search_fatawa' ? TOOLS.runTool(name, input, { ...ctx, fetchImpl: replay }) : Promise.resolve({ text: '', added: [], calls: 0 })),
+          runTool: (name, input, ctx) => (name === 'search_fatawa' ? TOOLS.runTool(name, input, { ...ctx, fetchImpl: fetchStore }) : Promise.resolve({ text: '', added: [], calls: 0 })),
           searchStoredCorpus: async () => ({ records: [] }), encyclopediaReady: () => true, warmEncyclopedia: () => true,
           ask: async ({ user }) => {
             listing = user;
@@ -287,6 +287,43 @@ function libraryPlain(markup) {
     }
     const one = await turn(WQ.w1.question, null);
     ok('W3b control 2: the judge marks no direct match -> no block, the answer is the writer\'s as before', !one.text.includes('نص الفتوى') && one.text.includes('تبيّن الفتوى'));
+    // ORDER 51 item 3 (the owner's decision 3): A READER WHO NAMES AN ISSUER IS NOT ANSWERED WITH ANOTHER'S STORED FATWA. MEASURED (the 3 Oct preview, answer 10, «ما فتوى اللجنة الدائمة في الاحتفال بالمولد النبوي؟»): the
+    // answer opened with the stored fatwa «المفتي: سليمان الماجد»; none of the 19 stores (74,769 fatwas) is the committee's (17 mention it, none on the mawlid). The stored fatwa that opens the answer is the named issuer's, or
+    // none opens it and the writer answers from the rows. The issuer is named when lib/bw2-scholar.js resolves the name to books or a fatwa publisher this turn gathered is named; the publisher is named by his last name-word.
+    {
+      const BASE51 = WQ.w1.question.replace(/[؟?]\s*$/u, '');
+      const TITLE51 = 'حكم إخراج الزكاة من الأقمشة';
+      const shown = (r) => r.text.includes('نص الفتوى') && r.out.telemetry.directFatwa === true;
+      const reached51 = [];
+      const recorder51 = async (u) => { const r = await replay(u); if (r.ok) reached51.push(String(u)); return r; };
+      const sameStore51 = async (u) => { const r = await replay(u); return r.ok || !reached51.length ? r : replay(reached51[0]); };
+      const plain51 = await turn(BASE51 + '؟', TITLE51, null, BW2, recorder51);
+      ok('ORDER51-3 control: the question that names nobody opens with the stored fatwa, as before', shown(plain51), ascii(plain51.text.slice(0, 80)));
+      const baz51 = await turn(BASE51 + ' عند ابن باز؟', TITLE51, null, BW2, sameStore51);
+      ok('ORDER51-3 control: the question that names the stored fatwa\'s own mufti (ابن باز) still opens with it', shown(baz51) && baz51.text.includes('ابن باز'), ascii(baz51.text.slice(0, 80)));
+      const committee51 = await turn(BASE51 + ' عند اللجنة الدائمة؟', TITLE51, null, BW2, sameStore51);
+      ok('ORDER51-3 a question that names the committee is NOT opened with another mufti\'s fatwa: no «نص الفتوى», no «المفتي:», the writer\'s explanation only',
+        !committee51.text.includes('نص الفتوى') && !committee51.text.includes('المفتي') && committee51.out.telemetry.directFatwa !== true && committee51.text.includes('تبيّن الفتوى'), ascii(committee51.text.slice(0, 80)));
+      const othaymin51 = await turn(BASE51 + ' عند ابن عثيمين؟', TITLE51, null, BW2, sameStore51);
+      ok('ORDER51-3 ...nor a question that names another scholar (ابن عثيمين) with a fatwa of ابن باز', !othaymin51.text.includes('نص الفتوى') && othaymin51.out.telemetry.directFatwa !== true, ascii(othaymin51.text.slice(0, 80)));
+      const SCH51 = await esm('lib/bw2-scholar.js');
+      ok('ORDER51-3 namesPublisher: the publisher\'s last name-word among the question\'s words, bare of «ال», after «ابن / بن» and the titles',
+        SCH51.namesPublisher('ما رأي الشيخ ابن باز في كذا؟', 'ابن باز') === true && SCH51.namesPublisher('هل يرى ابن عثيمين جواز كذا؟', 'محمد بن صالح العثيمين') === true
+        && SCH51.namesPublisher('ما رأي الماجد؟', 'سليمان الماجد') === true && SCH51.namesPublisher('ما فتوى اللجنة الدائمة في المولد؟', 'سليمان الماجد') === false
+        && SCH51.namesPublisher('ما رأي الشيخ عبد الرحمن بن ناصر السعدي في كذا؟', 'عبدالرحمن البراك') === false && SCH51.namesPublisher('ما رأي ابن باز؟', '') === false);
+      const gen51 = await SCH51.scholarBooksOf('ما القول الراجح في إخراج الزكاة من الأقمشة؟');
+      ok('ORDER51-3 a generic «ما القول الراجح» names no issuer (no catalogue books resolve), so it never withholds a stored fatwa', gen51 === null, JSON.stringify(gen51));
+      const tmp51 = path.join(REPO, 'lib', '.mut-order51-3.mjs');
+      try {
+        const src51 = require('fs').readFileSync(path.join(REPO, 'lib/before-writing-v2.js'), 'utf8').split('\r\n').join('\n');
+        const seam51 = "      if (issuerNamed && !namesPublisher(question, row && row.publisher)) continue;\n";
+        ok('ORDER51-3 MUTANT applied (the seam found once)', src51.split(seam51).length === 2);
+        require('fs').writeFileSync(tmp51, src51.split(seam51).join(''));
+        const M51 = await import(pathToFileURL(tmp51).href + '?m=order51-3');
+        const mu51 = await turn(BASE51 + ' عند اللجنة الدائمة؟', TITLE51, null, M51, sameStore51);
+        ok('ORDER51-3 MUTANT KILLED: without the seam the committee question opens with the other mufti\'s fatwa again', mu51.text.includes('نص الفتوى'), ascii(mu51.text.slice(0, 80)));
+      } finally { try { require('fs').rmSync(tmp51, { force: true }); } catch { /* nothing to clean */ } }
+    }
     ok('W3b judge: the system asks for 2 only for a fatwa whose own question or title asks the reader\'s question', /\b2\b/.test(BW2.BW2_JUDGE_SYSTEM) && /own question or title/i.test(BW2.BW2_JUDGE_SYSTEM));
   }
 
