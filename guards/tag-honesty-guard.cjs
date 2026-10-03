@@ -1140,6 +1140,31 @@ const unsupportedIsHandledSilently = (module) => {
       await mk9('the reviewer ignores the flag (the licence is given to every atom)', '    innerQuote: Boolean(item && item.innerQuote === true),\n', '    innerQuote: false,\n',
         { text: CL9, out: GEN9 }, row9({ innerQuote: true }));
     }
+    // ── ORDER 50 item 1 · THE GENERALISED SPEAKER DOES NOT REPEAT THE SENTENCE'S OWN WAW (the owner's decision 8) ────────────────────────────────────────────────────────────────
+    // MEASURED (the 49 report, «رُئيَ في الطريق» 1): «وقال ابن باز في مجموع فتاوى ابن باز: …» for a credit nothing supports came out «و وقال بعض أهل العلم في مجموع…» — the detector stops the frame
+    // after the lone conjunction and the formula brought its own. The waw is written once, and a «ف» is kept as a «ف».
+    {
+      const REST1 = ' في مجموع فتاوى ابن باز: يجب إعفاء اللحية.';
+      const rev1 = (mod, text, streamed) => {
+        if (!streamed) return mod.reviewAnswer({ text, evidence: [], domain: 'fiqh', mode: 'chat' }).text;
+        const st = mod.createReviewStream({ domain: 'fiqh', evidence: [] }); st.push(text); const r = st.end(); return typeof r === 'string' ? r : r.text;
+      };
+      const want1 = (lead) => lead + ' بعض أهل العلم' + REST1;
+      ok('ORDER50-1 «وقال ابن باز في مجموع …» → «وقال بعض أهل العلم في مجموع …» (one waw), whole sentence byte for byte',
+        rev1(module, 'وقال ابن باز' + REST1) === want1('وقال'), rev1(module, 'وقال ابن باز' + REST1));
+      ok('ORDER50-1 the same sentence after an earlier sentence', rev1(module, 'مقدمة. وقال ابن باز' + REST1) === 'مقدمة.\n' + want1('وقال'), rev1(module, 'مقدمة. وقال ابن باز' + REST1));
+      ok('ORDER50-1 sibling «فقال» keeps its «ف» (not turned into «و», not doubled)', rev1(module, 'فقال ابن باز' + REST1) === want1('فقال'), rev1(module, 'فقال ابن باز' + REST1));
+      ok('ORDER50-1 sibling with no waw («قال ابن باز في مجموع …») still takes «وقال»', rev1(module, 'قال ابن باز' + REST1) === want1('وقال'), rev1(module, 'قال ابن باز' + REST1));
+      ok('ORDER50-1 sibling «وقال ابن باز: …» (no book) is as before', rev1(module, 'وقال ابن باز: يجب إعفاء اللحية.') === 'وقال بعض أهل العلم: يجب إعفاء اللحية.', rev1(module, 'وقال ابن باز: يجب إعفاء اللحية.'));
+      ok('ORDER50-1 sibling «وذكر ابن باز … أن …» is as before (a frame outside the five is not touched)', rev1(module, 'وذكر ابن باز في مجموع فتاوى ابن باز أن اللحية تعفى.') === 'وذكر ابن باز في مجموع فتاوى ابن باز أن اللحية تعفى.');
+      ok('ORDER50-1 the streamed path writes it the same way', rev1(module, 'وقال ابن باز' + REST1, true) === rev1(module, 'وقال ابن باز' + REST1), rev1(module, 'وقال ابن باز' + REST1, true));
+      ok('ORDER50-1 no output of any of these holds «و وقال»', !/(?:^|\s)و\s+وقال/u.test(rev1(module, 'وقال ابن باز' + REST1)));
+      const m1 = await runMutant({ sourceFile: REVIEWER, name: 'the formula brings its own waw again',
+        transform: (source) => source.replace("if (head && /(?:^|\\s)[وف]$/u.test(head) && /^و/u.test(line)) return head + line.slice(1);\n", ''),
+        survives: (mod) => rev1(mod, 'وقال ابن باز' + REST1) === want1('وقال') });
+      ok('ORDER50-1 mutant seam applied', m1.changed, m1.error);
+      ok('ORDER50-1 MUTANT KILLED: the formula brings its own waw again', m1.loaded && m1.survived === false, JSON.stringify(m1));
+    }
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }
