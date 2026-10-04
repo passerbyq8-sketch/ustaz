@@ -958,7 +958,11 @@ function libraryPlain(markup) {
       held(b1) && !b1.text.includes('الحنفية'), ascii(JSON.stringify(b1)));
     ok('3.4b-2 ...also with «من المالكية» after his name, with three schools, and with «رجحه» for the verb (siblings)', held(b1b) && held(b1c), ascii(JSON.stringify([b1b, b1c])));
     const b3 = await relB(UNITS_B, [REAL], FOUR + ' [[1]].');
-    const b4 = await relB(UNITS_B, [REAL], FOUR + '، وهو اختيار الشيخ المباركفوري [[1]].');
+    // ORDER 53 item 2 (row 14): «وهو اختيار X» is read as a credit now, so it is released where the cited row's AUTHOR is the man named (the real row carries its real author; this fixture's placeholder did not) and held where he is not.
+    const REAL_AUTHOR = { ...REAL, author: 'المباركفوري' };
+    const b4 = await relB(UNITS_B, [REAL_AUTHOR], FOUR + '، وهو اختيار الشيخ المباركفوري [[1]].');
+    const b4x = await relB(UNITS_B, [REAL], FOUR + '، وهو اختيار الشيخ المباركفوري [[1]].');
+    ok('3.4b-3 ORDER53-2 · ...and held where the cited row author is not the man named (nothing stands behind his name)', held(b4x), ascii(JSON.stringify(b4x)));
     ok('3.4b-3 controls: the list of schools alone, and the author\'s own choice («وهو اختيار الشيخ») after it, are released as before', kept(b3) && kept(b4), ascii(JSON.stringify([b3, b4])));
     // synthetic rows of the same shape, in other words
     const SAME = mkRow('القول الأول: صيام يوم عرفة أفضل. وقال به: الحنفية (1) , والمالكية (2) , والشافعية (3) , والحنابلة (4)، واختاره الطحاوي (5). القول الثاني: صيام يوم عاشوراء أفضل. وبه قال: ابن عباس (6).', 'FC-TEST:0001:001');

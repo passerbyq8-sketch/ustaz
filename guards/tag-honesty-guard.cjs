@@ -975,7 +975,7 @@ const unsupportedIsHandledSilently = (module) => {
         ['row 67 (a relayed saying)', 'وذكر ابن حجر عن الدارقطني أنه قال: تفرد به فلان.', 'وقال بعض أهل العلم: تفرد به فلان.'],
         ['row 67 with its book named', 'وذكر ابن حجر في الفتح عن الدارقطني أنه قال: تفرد به فلان.', 'وذكر ابن حجر في الفتح عن الدارقطني أنه قال: تفرد به فلان.'],
         ['hearsay «نقل … عن … أنه قال»', 'ونقل الخطيب البغدادي عن يحيى بن معين أنه قال: إنه كذب لا أصل له.', 'ونقل الخطيب البغدادي عن يحيى بن معين أنه قال: إنه كذب لا أصل له.'],
-        ['«أفتى X بجواز …» (no connector): kept as written', 'وأفتى ابن عثيمين بجواز المسح على الجوربين.', 'وأفتى ابن عثيمين بجواز المسح على الجوربين.'],
+        ['«أفتى X بجواز …» (no connector): MOVED BY ORDER 53 item 2 — the verb stays, the name goes', 'وأفتى ابن عثيمين بجواز المسح على الجوربين.', 'وأفتى بعض أهل العلم بجواز المسح على الجوربين.'],
         ['«وقال X:» (the five): as before', 'وقال ابن باز: لا يجوز ذلك.', 'وقال بعض أهل العلم: لا يجوز ذلك.'],
         ['«ذهب X إلى أن» (the five): as before', 'وذهب الشافعي إلى أن مس الذكر ينقض الوضوء.', 'وذهب الشافعي إلى أن مس الذكر ينقض الوضوء.'],
       ];
@@ -1004,6 +1004,72 @@ const unsupportedIsHandledSilently = (module) => {
         (mod) => mod.reviewAnswer({ text: CONTROLS[0][1], evidence: [], domain: 'fiqh', mode: 'chat' }).text === CONTROLS[0][2]);
       await mk9('«قرر» is not read as a credit', '(?:قال|ذكر|أفتى|أجاب|يرى|تقول|قالت|قرر)', '(?:قال|ذكر|أفتى|أجاب|يرى|تقول|قالت)',
         (mod) => mod.reviewAnswer({ text: SHAPES[7][1], evidence: [], domain: 'fiqh', mode: 'chat' }).text === SHAPES[7][2]);
+    }
+    // ── ORDER 53 item 2 · ROW 14: THE VERBS NO PATTERN READS (the owner's per-verb decision) ───────────────────────────────────────────────────────────────────────────────────────────────────
+    // MEASURED at d4872e8 through the real reviewer: «ونص X على»، «ورجح X جواز …»، «وهو اختيار X»، «وأفتى بذلك X»، «وأفتى X بجواز …» (a registered name was only "marked", the text unchanged) and
+    // «كما جاء في فتوى لابن باز أن …» reached the reader with the name in the answer's own voice. The verb stays and the name (with its title and prayer) becomes «بعض أهل العلم»; the vague
+    // «جاء في فتوى X أن» takes the owner's formula «ومن أهل العلم من يرى أن». A name a card stands behind keeps its name; a Companion, the Prophet ﷺ, a book, a school and the Qur'an are not names here.
+    {
+      const say53 = (t, evidence = []) => module.reviewAnswer({ text: t, evidence, domain: 'fiqh', mode: 'chat' }).text;
+      const SHAPES53 = [
+        ['نص على', 'ونص ابن قدامة على جواز المسح على الخفين.', 'ونص بعض أهل العلم على جواز المسح على الخفين.'],
+        ['نص على أن + لقب', 'ونص الإمام أحمد على أن ذلك مكروه.', 'ونص بعض أهل العلم على أن ذلك مكروه.'],
+        ['رجح + حكم', 'ورجح ابن تيمية جواز الجمع للمسافر.', 'ورجح بعض أهل العلم جواز الجمع للمسافر.'],
+        ['رجح + لقب + القول', 'ورجح الشيخ ابن باز القول بجواز ذلك.', 'ورجح بعض أهل العلم القول بجواز ذلك.'],
+        ['رجح أن', 'ورجح ابن القيم أن ذلك واجب.', 'ورجح بعض أهل العلم أن ذلك واجب.'],
+        ['وهو اختيار', 'وهو اختيار ابن تيمية.', 'وهو اختيار بعض أهل العلم.'],
+        ['وهذا اختيار + لقب ودعاء', 'وهذا اختيار الشيخ ابن باز رحمه الله.', 'وهذا اختيار بعض أهل العلم.'],
+        ['أفتى بذلك', 'وأفتى بذلك ابن باز.', 'وأفتى بذلك بعض أهل العلم.'],
+        ['أفتى بجواز (اسم مسجّل)', 'وأفتى ابن باز بجواز ذلك.', 'وأفتى بعض أهل العلم بجواز ذلك.'],
+        ['أفتى بجواز (اسم غير مسجّل)', 'وأفتى الشيخ محمد الفلاني بجواز ذلك.', 'وأفتى بعض أهل العلم بجواز ذلك.'],
+        ['جاء في فتوى', 'كما جاء في فتوى لابن باز أن ذلك جائز.', 'ومن أهل العلم من يرى أن ذلك جائز.'],
+        ['جاء في فتوى + لقب + أنه', 'وجاء في فتوى الشيخ ابن عثيمين أنه لا يجوز.', 'ومن أهل العلم من يرى أنه لا يجوز.'],
+      ];
+      SHAPES53.forEach(([id, input, expected]) => ok('ORDER53-2 ' + id + ': the verb stays, the name goes, what followed is byte for byte', say53(input) === expected, say53(input)));
+      const CONTROLS53 = [
+        ['a Companion with his prayer', 'ورجح ابن عباس رضي الله عنهما جواز ذلك.'],
+        ['a Companion', 'وأفتى عمر رضي الله عنه بجواز ذلك.'],
+        ['the Prophet ﷺ', 'ونص النبي صلى الله عليه وسلم على جواز ذلك.'],
+        ['the Qur\'an', 'ونص القرآن على جواز ذلك.'],
+        ['the hadith', 'ونص الحديث على وجوب ذلك.'],
+        ['a school', 'وهو اختيار الحنابلة.'],
+        ['a book named after the name', 'ونص الشافعي في الأم على جواز ذلك.'],
+        ['a fatwa that names nobody', 'جاء في فتوى منشورة أن النبي صلى الله عليه وسلم حث على إفشاء السلام.'],
+        ['a committee, not a man', 'كما جاء في فتوى للجنة الدائمة أن ذلك جائز.'],
+      ];
+      CONTROLS53.forEach(([id, input]) => ok('ORDER53-2 control · ' + id + ' is left as written', say53(input) === input, say53(input)));
+      ok('ORDER53-2 a VERIFIED credit keeps its name (the formula is for what nothing stands behind)',
+        (() => {
+          const out = say53('ونص ابن باز على أن المسح على الخفين جائز.', [{ id: 'binbaz:1', identifier: 'binbaz:1', title: 'فتوى', url: 'https://binbaz.org.sa/x', scholar: 'ابن باز', snippet: 'المسح على الخفين جائز يوما وليلة للمقيم.' }]);
+          return out.includes('ابن باز') && !/بعض أهل العلم/u.test(out);
+        })());
+      ok('ORDER53-2 the shape of row 67 and the five frames are as they were',
+        say53('وذكر ابن حجر عن الدارقطني أنه قال: تفرد به فلان.') === 'وقال بعض أهل العلم: تفرد به فلان.' && say53('وقال ابن باز: لا يجوز ذلك.') === 'وقال بعض أهل العلم: لا يجوز ذلك.');
+      {
+        // the cited book IS the man's own: «وهو اختيار الشيخ المباركفوري» in a unit citing his book is his own word, and a one-word name must be the author's LAST word
+        const row = (author) => [{ id: 'lib:1', identifier: 'lib:1', kind: 'lib_book', title: 'تحفة الأحوذي', author, snippet: 'هذا القول أفضل.' }];
+        const own = say53('وهو اختيار الشيخ المباركفوري.', row('محمد عبد الرحمن المباركفوري'));
+        ok('ORDER53-2 the author\'s own choice keeps his name where the cited book is his', own.includes('المباركفوري') && !/بعض أهل العلم/u.test(own), own);
+        const other = say53('وهو اختيار الشيخ المباركفوري.', row('مؤلف'));
+        ok('ORDER53-2 ...and loses it where the cited book is another man\'s', !other.includes('المباركفوري') && other.includes('بعض أهل العلم'), other);
+        const first = say53('وهو اختيار الشيخ محمد.', row('محمد عبد الرحمن المباركفوري'));
+        ok('ORDER53-2 ...a first name alone is not the author (only his last word is a one-word licence)', !first.includes('محمد') && first.includes('بعض أهل العلم'), first);
+      }
+      const mk53 = async (name, from, to, survives) => {
+        const m = await runMutant({ sourceFile: REVIEWER, name, transform: (source) => source.replace(from, to), survives });
+        ok('ORDER53-2 mutant seam applied: ' + name, m.changed, m.error);
+        ok('ORDER53-2 MUTANT KILLED: ' + name, m.loaded && m.survived === false, JSON.stringify(m));
+      };
+      const reads = (i) => (mod) => mod.reviewAnswer({ text: SHAPES53[i][1], evidence: [], domain: 'fiqh', mode: 'chat' }).text === SHAPES53[i][2];
+      await mk53('the verb route is not consulted', '  if (verbCredit) return verbCredit;\n', '', reads(0));
+      await mk53('the vague fatwa frame is left to pattern 5', '  if (vagueFatwa) return vagueFatwa;\n', '', reads(10));
+      await mk53('a Companion\'s prayer in the name is not refused', "|| /رضي\\s+الله\\s+عن/u.test(claimed.replace(ARABIC_DIACRITICS, ''))", '',
+        (mod) => mod.reviewAnswer({ text: CONTROLS53[0][1], evidence: [], domain: 'fiqh', mode: 'chat' }).text === CONTROLS53[0][1]);
+      await mk53('the author\'s own book is no licence', '    || ownBookChoiceEvidenceFor(attribution, evidence)\n', '',
+        (mod) => /المباركفوري/u.test(mod.reviewAnswer({ text: 'وهو اختيار الشيخ المباركفوري.', evidence: [{ id: 'lib:1', identifier: 'lib:1', kind: 'lib_book', title: 'تحفة الأحوذي', author: 'محمد عبد الرحمن المباركفوري', snippet: 'هذا القول أفضل.' }], domain: 'fiqh', mode: 'chat' }).text));
+      await mk53('the title is left behind the name', "(match.groups.title || '') + match.groups.name", 'match.groups.name', reads(3));
+      await mk53('the name need not read as a man', '    if (!relativeCreditNamesAPerson(claimed) && !PERSON_TITLE_RE.test(match.groups.frame + \' \')) continue;\n', '',
+        (mod) => mod.reviewAnswer({ text: CONTROLS53[5][1], evidence: [], domain: 'fiqh', mode: 'chat' }).text === CONTROLS53[5][1]);
     }
     // ── ORDER 52 item 2 · THE FRAME IS GENERALISED WHOLE WHEN A QUOTATION STANDS INSIDE IT (the owner's decision; row 68's remaining shape) ──────────────────────────────────────────────────
     // MEASURED at the head (085dac0) through the real reviewer: «وسئل الإمام أحمد عن معناه مع حديث «…» فقال: لا بأس به.» came out «… الإمام أحمد … فقال بعض أهل العلم: …» — the name-first pattern cannot reach across the
