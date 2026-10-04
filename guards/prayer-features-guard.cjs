@@ -314,6 +314,48 @@ SCENES.iqama = async () => {
   t('with the prayer reminders off no iqama is scheduled', c.read('ezikSchedItems()').filter((x) => x.id.indexOf('iqama') >= 0).length, 0);
   t('nothing threw', c.caught(), null);
 };
+SCENES.pre = async () => {
+  say('S6  the alert before each prayer: minutes the reader sets, before the time');
+  const asr = blank5(); asr.asr = { on: true, min: 15 };
+  let c = boot({ shell: true, seed: { ezik_prayer_notify_v1: 'on', ezik_prayer_prefs_v1: prefsWith({ pre: asr }) } });
+  await openPrayer(c);
+  const items = c.read('ezikSchedItems()');
+  const pre = items.filter((x) => x.id.indexOf('adhan:pre:asr:') === 0);
+  t('seven alerts for the one prayer that is on', pre.length, 7);
+  t('...and none for the others', items.filter((x) => /^adhan:pre:(fajr|dhuhr|maghrib|isha):/.test(x.id)).length, 0);
+  t('an alert rides the shell\'s adhan type with the device tone', [pre[0].type, pre[0].adhanSound], ['adhan', 'none']);
+  const day = pre[0].id.split(':')[3];
+  const adhan = items.find((x) => x.id === 'adhan:asr:' + day);
+  t('the alert is exactly the reader\'s minutes BEFORE the time', adhan.at - pre[0].at, 15 * 60000);
+  ok('the body names the minutes', pre[0].body.indexOf(c.read('ezikBrowseNum(15)')) >= 0, pre[0].body);
+  ok('the control for it is drawn', c.qa('[data-ezik-alert-row^="pre:"]').length === 5);
+  // an alert that crosses midnight rolls to the day before, in the right order
+  const fajr = blank5(); fajr.fajr = { on: true, min: 120 };
+  c = boot({ shell: true, seed: { ezik_prayer_notify_v1: 'on', ezik_prayer_prefs_v1: prefsWith({ pre: fajr }) } });
+  await openPrayer(c);
+  const it2 = c.read('ezikSchedItems()');
+  const f = it2.find((x) => x.id.indexOf('adhan:pre:fajr:') === 0);
+  const fa = it2.find((x) => x.id === 'adhan:fajr:' + f.id.split(':')[3]);
+  t('two hours before fajr is two hours before fajr', fa.at - f.at, 120 * 60000);
+  // iqama and alert together: one window, under the ceiling, nothing cut in silence
+  const all = blank5(); for (const k of Object.keys(all)) all[k] = { on: true, min: 5 };
+  c = boot({ shell: true, seed: { ezik_prayer_notify_v1: 'on', ezik_prayer_prefs_v1: prefsWith({ iq: all, pre: all }) } });
+  await openPrayer(c);
+  const days = c.read('ezikSchedWindow(ezikSchedTiers(new Date()), new Date()).days');
+  const both = c.read('ezikSchedItems()');
+  ok('both feeds on: the window is narrower still', days >= 1 && days < 7, 'days ' + days);
+  ok('...and everything fits the ceiling', both.length <= 60, 'n ' + both.length);
+  t('...and the clip counter records no silent cut', c.read('ezikSchedClipRead().cut'), 0);
+  ok('...both kinds are present', both.some((x) => x.id.indexOf(':iqama:') >= 0) && both.some((x) => x.id.indexOf(':pre:') >= 0));
+  // the control, typed through
+  c = boot({ shell: true, seed: { ezik_prayer_notify_v1: 'on' } });
+  await openPrayer(c);
+  await c.type(c.q('[data-ezik-alert="pre:maghrib:min"]'), '10');
+  await c.click(c.q('[data-ezik-alert="pre:maghrib:on"]'));
+  t('the switch and minutes are stored in the prayer preferences', JSON.parse(c.store.getItem('ezik_prayer_prefs_v1')).pre.maghrib, { on: true, min: 10 });
+  ok('the shell was handed the alerts', c.posts.some((w) => { try { return JSON.parse(w).items.some((x) => x.id.indexOf('adhan:pre:maghrib:') === 0); } catch (e) { return false; } }));
+  t('nothing threw', c.caught(), null);
+};
 SCENES['iqama-noshell'] = async () => {
   say('S5  in a browser tab the alert controls are not drawn');
   const one = blank5(); one.dhuhr = { on: true, min: 10 };

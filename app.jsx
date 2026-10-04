@@ -463,6 +463,10 @@ const EZ_I18N = {
     'prayer.notify.denied': 'التذكيرُ ممنوعٌ من إعداداتِ النِّظام.',
     'prayer.notify.silent': 'لم يصلْ جوابٌ، والتذكيرُ باقٍ مطفأً.',
     'prayer.notify.note': 'تُجدوَلُ على هذا الجهازِ حتّى {n} من الأيّامِ القادمة — وتقِلُّ إن كثُرَتِ التذكيراتُ — وتُجدَّدُ كلّما فُتِحَ التطبيق.',
+    'pre.group': 'التنبيه قبل الصلاة',
+    'pre.hint': 'قبل دخول الوقت بعدد الدقائق الذي تضعه أنت لكل صلاة. لا توجد قيمة افتراضية.',
+    'pre.title': 'قبل صلاة {name}',
+    'pre.body': 'بقي {n} دقيقة على صلاة {name}.',
     'iqama.group': 'تذكير الإقامة',
     'iqama.hint': 'بعد دخول وقت الصلاة بعدد الدقائق الذي تضعه أنت لكل صلاة. لا توجد قيمة افتراضية.',
     'iqama.title': 'إقامة صلاة {name}',
@@ -1206,6 +1210,10 @@ const EZ_I18N = {
     'prayer.notify.denied': 'Reminders are blocked in your system settings.',
     'prayer.notify.silent': 'No answer came back, and the reminder is still off.',
     'prayer.notify.note': 'Scheduled on this device for up to {n} days ahead — fewer when you add more reminders — and refreshed each time you open the app.',
+    'pre.group': 'Alert before the prayer',
+    'pre.hint': 'Minutes before the time, set by you for each prayer. There is no default.',
+    'pre.title': 'Before {name}',
+    'pre.body': '{n} minutes until {name}.',
     'iqama.group': 'Iqama reminder',
     'iqama.hint': 'Minutes after the call to prayer, set by you for each prayer. There is no default.',
     'iqama.title': 'Iqama: {name}',
@@ -24116,7 +24124,7 @@ function PrayerAlertsControl() {
   return (
     <>
       {block('iq', 'iqama.group', 'iqama.hint')}
-      {/* PRE_ALERT_BLOCK_PLACEHOLDER */}
+      {block('pre', 'pre.group', 'pre.hint')}
       {prayerAlertsOn(prefs) && win < ADHAN_WINDOW_DAYS
         ? <div style={s.qiblaNote} data-ezik-alert="window">{ezT('alerts.window', { n: ezikBrowseNum(win), max: ezikBrowseNum(ADHAN_WINDOW_DAYS) })}</div>
         : null}
@@ -25808,7 +25816,11 @@ function ezikPrayerAlertItems(now) {
         if (isFinite(at)) items.push({ id: ADHAN_TYPE + ':iqama:' + k + ':' + day, type: ADHAN_TYPE, adhanSound: 'none',
           at: at, title: ezT('iqama.title', { name: name }), body: ezT('iqama.body', { name: name }) });
       }
-      // PRE_ALERT_FEED_PLACEHOLDER
+      if (prefs.pre[k].on) {
+        const at = prayerInstant(y, m, d, mins - prefs.pre[k].min, place, tz);
+        if (isFinite(at)) items.push({ id: ADHAN_TYPE + ':pre:' + k + ':' + day, type: ADHAN_TYPE, adhanSound: 'none',
+          at: at, title: ezT('pre.title', { name: name }), body: ezT('pre.body', { name: name, n: ezikBrowseNum(prefs.pre[k].min) }) });
+      }
     }
   }
   return items;
