@@ -862,3 +862,8 @@ guards/fixtures-front-sorter.json text eol=lf
 lib/policy/porn-request.js text eol=lf
 guards/impermissible-early-guard.cjs text eol=lf
 guards/fixtures-impermissible-early.json text eol=lf
+
+# ITEM 124 phase 2: the prayer calculator against the Ojeiri calendar, and the two months of data it reads.
+guards/prayer-ojeiri-guard.cjs text eol=lf
+data/prayer-ojeiri-kw-2026-10.csv text eol=lf
+data/prayer-ojeiri-kw-2026-11.csv text eol=lf

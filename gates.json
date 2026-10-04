@@ -645,5 +645,10 @@
     "name": "impermissibleearly",
     "script": "guards/impermissible-early-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "prayerojeiri",
+    "script": "guards/prayer-ojeiri-guard.cjs",
+    "args": ""
   }
 ]
