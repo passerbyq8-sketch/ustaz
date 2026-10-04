@@ -4648,6 +4648,81 @@ const PAGE_WITH = PAGE_WITHOUT + ' رواه البخاري ومسلم في صح�
       }
     }
   }
+  // ── ORDER 53 item 1 · «عند مسلم» WITH NO VERB IS A CREDIT, AS «رواه مسلم» IS ───────────────────
+  // MEASURED at d4872e8 (the production tool report, answer 12): «لحديث معاوية بن الحكم السلمي رضي الله عنه عند مسلم أن هذه
+  // الصلاة لا يصلح فيها شيء من كلام الناس» opened no span and reached the reader with no page behind it. FOLLOWUP 49 had left the
+  // shape out because the literal phrase «عند الترمذي» is never on a page that says «روى الترمذي», and because the wider form cut a
+  // real line («… صلاة في الجماعة»). Both are answered here: the page may carry the book with any credit verb, and only a name
+  // that is a book and nothing else opens the span.
+  console.log('\n--- ORDER53-1. «عند <كتاب>» WITH NO VERB ---');
+  {
+    const L53 = await esm('lib/takhrij-lock.js');
+    const WIT = 'وأما الدعاء بأمر من أمور الدنيا فسبب عده مبطلا أنه منهي عنه، لحديث معاوية بن الحكم السلمي رضي الله عنه عند مسلم أن هذه الصلاة لا يصلح فيها شيء من كلام الناس.';
+    const WIT_VERB = WIT.replace('عند مسلم', 'رواه مسلم');
+    const page = (passage) => [{ title: 'x', passage }];
+    const phrases = (t) => L53.takhrijSpans(t).map((sp) => sp.kind + ':' + sp.phrase);
+    ok('ORDER53-1 W · the witness opens one span: the credit «عند مسلم»', phrases(WIT).join('|') === 'attribution:عند مسلم', JSON.stringify(phrases(WIT)));
+    ok('ORDER53-1 W · with no page behind it the credit does not reach the reader, and the ruling before it stays',
+      !L53.lockTakhrij(WIT, []).text.includes('عند مسلم') && L53.lockTakhrij(WIT, []).text.startsWith('وأما الدعاء بأمر من أمور الدنيا فسبب عده مبطلا'),
+      JSON.stringify(L53.lockTakhrij(WIT, []).text));
+    ok('ORDER53-1 W · it is cut exactly as its sister «رواه مسلم» is cut',
+      L53.lockTakhrij(WIT, []).text === L53.lockTakhrij(WIT_VERB, []).text, JSON.stringify([L53.lockTakhrij(WIT, []).text, L53.lockTakhrij(WIT_VERB, []).text]));
+    for (const [label, passage] of [['the page says «عند مسلم»', 'قال النووي: ورد ذلك عند مسلم في صحيحه.'], ['the page says «رواه مسلم»', 'حديث معاوية بن الحكم رواه مسلم.'],
+      ['the page says «أخرجه مسلم»', 'أخرجه مسلم في صحيحه.'], ['the page says «روى مسلم»', 'روى مسلم هذا الحديث.']]) {
+      ok('ORDER53-1 W · ' + label + ': the sentence is byte for byte', L53.lockTakhrij(WIT, page(passage)).text === WIT, JSON.stringify(L53.lockTakhrij(WIT, page(passage)).text));
+    }
+    ok('ORDER53-1 control · a page crediting ANOTHER book does not carry it',
+      !L53.lockTakhrij(WIT, page('رواه البخاري في صحيحه.')).text.includes('عند مسلم'));
+    ok('ORDER53-1 control · a page that names the book with no credit word does not carry it',
+      !L53.lockTakhrij(WIT, page('وقال مسلم بن الحجاج في مقدمته إن الأخبار ثلاثة أقسام.')).text.includes('عند مسلم'));
+    ok('ORDER53-1 control · the reverse is not read: «عند مسلم» on the page does not carry a credit by another book',
+      !L53.lockTakhrij(WIT.replace('عند مسلم', 'رواه البخاري'), page('ورد ذلك عند مسلم في صحيحه.')).text.includes('رواه البخاري'));
+    const sib = [['عند البخاري', 'وهو عند البخاري.'], ['وعند أبي داود', 'وعند أبي داود ما يدل عليه.'], ['عند مسلم وغيره', 'ذلك ثابت عند مسلم وغيره.'],
+      ['عند الترمذي', 'وهذا مروي عند الترمذي بلفظ آخر.'], ['عند ابن ماجه', 'وعند ابن ماجه بإسناد ضعيف.']];
+    for (const [label, t] of sib) {
+      ok('ORDER53-1 sibling · «' + label + '» is a credit and goes with no page', phrases(t).length === 1 && L53.lockTakhrij(t, []).text !== t, JSON.stringify(phrases(t)));
+      ok('ORDER53-1 sibling · «' + label + '» stays where the page credits that book', L53.lockTakhrij(t, page(t.includes('ماجه') ? 'رواه ابن ماجه' : t.includes('داود') ? 'أخرجه أبو داود' : t.includes('البخاري') ? 'رواه البخاري' : t.includes('الترمذي') ? 'رواه الترمذي' : 'رواه مسلم')).text === t,
+        JSON.stringify(L53.lockTakhrij(t, []).text));
+    }
+    ok('ORDER53-1 sibling · «عند مسلم وغيره» reads the book alone: the span is «عند مسلم»', phrases('ذلك ثابت عند مسلم وغيره.').join('|') === 'attribution:عند مسلم');
+    ok('ORDER53-1 sibling · the joined «وعند» starts the span after the «و»', L53.takhrijSpans('وعند البخاري ما يدل عليه.')[0].start === 1);
+    for (const t of ['وهذا الحكم عند الحنفية والمالكية.', 'والراجح عند الجمهور الوجوب.', 'وهذا عند أهل العلم معروف.', 'وهو قول عند أحمد وعند مالك.',
+      'ولا يرفع الأمر إلا عند الحاكم.', 'والصلاة عند الجماعة أفضل.', 'وهو عند الأربعة سواء.', 'وعند الإمام أحمد روايتان.', 'وعند الشافعية والحنابلة.', 'ولا يعمل بذلك عند الفقهاء.', 'وهذا عند ابن أبي حاتم أيضا.']) {
+      ok('ORDER53-1 control · «' + t + '» is no credit and nothing is cut', L53.takhrijSpans(t).length === 0 && L53.lockTakhrij(t, []).text === t, JSON.stringify(phrases(t)));
+    }
+    const MATN53 = 'إنما الأعمال بالنيات وإنما لكل امرئ ما نوى';
+    const TIED = 'قال رسول الله صلى الله عليه وسلم: «' + MATN53 + '».\nوهذا الحديث عند مسلم.';
+    ok('ORDER53-1 tie · the credit beside a matn stays where the page credits the book beside THAT matn',
+      L53.lockTakhrij(TIED, page('إنما الأعمال بالنيات وإنما لكل امرئ ما نوى. رواه مسلم.')).text === TIED, JSON.stringify(L53.lockTakhrij(TIED, page('إنما الأعمال بالنيات وإنما لكل امرئ ما نوى. رواه مسلم.')).text));
+    ok('ORDER53-1 tie · ...and goes where the page credits the book only beside another matn',
+      !L53.lockTakhrij(TIED, page('إنما الأعمال بالنيات وإنما لكل امرئ ما نوى. رواه البخاري.' + ' x'.repeat(400) + ' الحلال بين والحرام بين. رواه مسلم.')).text.includes('عند مسلم'),
+      JSON.stringify(L53.lockTakhrij(TIED, page('إنما الأعمال بالنيات وإنما لكل امرئ ما نوى. رواه البخاري.' + ' x'.repeat(400) + ' الحلال بين والحرام بين. رواه مسلم.')).text));
+    const src53 = fs.readFileSync(path.join(REPO, 'lib/takhrij-lock.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seams53 = [
+      ['span', "        spans.push({ start: toks[i].start + (atJoined ? 1 : 0), end: toks[i + k].end, kind: 'attribution', phrase: words.join(' ') });\n", '',
+        (mod) => mod.lockTakhrij(WIT, []).text.includes('عند مسلم')],
+      ['verb-forms', '  if (atForms && atForms.some((form) => containsAsWord(hay, form))) return true;\n', '',
+        (mod) => !mod.lockTakhrij(WIT, page('حديث معاوية بن الحكم رواه مسلم.')).text.includes('عند مسلم')],
+      ['not-a-book', "const AT_NOT_A_BOOK = new Set(['احمد', 'مالك', 'الحاكم', 'الجماعة', 'الخمسة', 'الاربعة', 'الشيخان'].map((w) => norm(w)));", "const AT_NOT_A_BOOK = new Set([]);",
+        (mod) => mod.takhrijSpans('وهو قول عند أحمد وعند مالك.').length > 0],
+      ['tie', '  for (const at of forms.flatMap((form) => occurrences(hay, form))) {', '  for (const at of occurrences(hay, "\u0000never")) {',
+        (mod) => !mod.lockTakhrij(TIED, page('إنما الأعمال بالنيات وإنما لكل امرئ ما نوى. رواه مسلم.')).text.includes('عند مسلم')],
+    ];
+    for (const [tag, from, to, back] of seams53) {
+      const mutated = src53.split(from).join(to);
+      ok('MUTANT ORDER53-1 ' + tag + ' seam applied', mutated !== src53);
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ustaz-o531-mut-'));
+      try {
+        const f = path.join(tmp, 'takhrij-lock.mjs');
+        fs.writeFileSync(f, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + f.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: without ORDER53-1 ' + tag + ' the shape is read as before', back(mod));
+      } finally {
+        try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
   // ── [111-b4b-51] · S6'S TAIL READS «؛ فقد ثبت…», AND A TAIL THAT ASKED TAKES ITS ANSWER ───────
   // MEASURED at eca359e (RAW-F16 of the forty real answers): «فيما يخص الحجامة، فالراجح أنها لا تفطر الصائم …،
   // لكن الأقوى دليلًا أن الحكم بكونها مفطرة منسوخ؛ فقد ثبت أن النبي ﷺ احتجم وهو صائم كما رواه البخاري، وسئل أنس
