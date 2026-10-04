@@ -128,6 +128,41 @@ function sectionDay() {
   t('a non-string is refused', A.prayerDayFromIso(null), null);
 }
 
+// ---------------------------------------------------------------------------------------------- F: the converter (124-5)
+function sectionConv() {
+  say('F3  the Hijri/Gregorian converter');
+  const A = lifted(['hijriToCivil', 'hijriFromJdn', 'hijriUmalquraFromJdn', 'hijriTabularFromJdn', 'hijriJdnFromCivil',
+    'hijriCivilFromJdn', 'hijriForCivilDay'],
+  ['HIJRI_CONV_MIN_YEAR', 'HIJRI_CONV_MAX_YEAR', 'HIJRI_CALENDAR', 'HIJRI_FALLBACK_CALENDAR', 'HIJRI_OFFSET_MIN', 'HIJRI_OFFSET_MAX'], {});
+  // Every civil day of two years, at every offset: forward then back lands on the same day.
+  let bad = 0, total = 0, firstBad = null;
+  for (let off = -2; off <= 2; off++) {
+    for (let i = 0; i < 730; i++) {
+      const dt = new Date(Date.UTC(2026, 0, 1 + i));
+      const y = dt.getUTCFullYear(), m = dt.getUTCMonth() + 1, d = dt.getUTCDate();
+      const h = A.hijriForCivilDay(y, m, d, off);
+      const back = A.hijriToCivil(h.y, h.m, h.d, off);
+      total++;
+      if (!back || back.y !== y || back.m !== m || back.d !== d) { bad++; if (!firstBad) firstBad = [y, m, d, off, h, back]; }
+    }
+  }
+  t('every civil day round-trips through the Hijri date and back (' + total + ' cases)', bad, 0);
+  if (bad) say('  first miss ' + JSON.stringify(firstBad));
+  // A day that does not exist: find a 29-day month and ask for its 30th.
+  let found = null;
+  for (let m = 1; m <= 12 && !found; m++) if (!A.hijriToCivil(1448, m, 30, 0)) found = m;
+  ok('some month of 1448 has no 30th day, and asking for it answers null', found !== null);
+  t('a year below the range is refused', A.hijriToCivil(1299, 1, 1, 0), null);
+  t('a year above the range is refused', A.hijriToCivil(1601, 1, 1, 0), null);
+  t('a month outside 1..12 is refused', A.hijriToCivil(1448, 13, 1, 0), null);
+  t('a day of 0 is refused', A.hijriToCivil(1448, 1, 0, 0), null);
+  t('a fraction is refused', A.hijriToCivil(1448.5, 1, 1, 0), null);
+  t('junk is refused', A.hijriToCivil('x', 1, 1, 0), null);
+  const one = A.hijriToCivil(1448, 1, 1, 0), plus = A.hijriToCivil(1448, 1, 1, 1);
+  const dayNo = (c) => Date.UTC(c.y, c.m - 1, c.d) / 86400000;
+  t('the reader\'s offset of +1 moves the civil day back by one', dayNo(one) - dayNo(plus), 1);
+}
+
 // ---------------------------------------------------------------------------------------------- S: mounted scenes
 function boot(opts) {
   const { parseHTML } = require(path.join(REPO, 'node_modules', 'linkedom'));
@@ -356,6 +391,32 @@ SCENES.pre = async () => {
   ok('the shell was handed the alerts', c.posts.some((w) => { try { return JSON.parse(w).items.some((x) => x.id.indexOf('adhan:pre:maghrib:') === 0); } catch (e) { return false; } }));
   t('nothing threw', c.caught(), null);
 };
+SCENES.conv = async () => {
+  say('S7  the converter on the sheet: both directions, an impossible date, and "show the times of that day"');
+  const c = boot({});
+  await openPrayer(c);
+  await c.type(c.q('[data-ezik-conv="greg"]'), '2026-10-04');
+  const wantH = c.read('hijriLabel(hijriForCivilDay(2026, 10, 4, readHijriOffset()))');
+  t('a Gregorian date reads as its Hijri date', c.q('[data-ezik-conv="hijri-out"]').textContent, wantH);
+  await c.type(c.q('[data-ezik-conv="greg"]'), '2026-02-30');
+  t('an impossible Gregorian date says so', c.q('[data-ezik-conv="hijri-out"]').textContent, c.read("ezT('conv.invalidGreg')"));
+  const h = c.read('hijriForCivilDay(2026, 10, 4, 0)');
+  await c.type(c.q('[data-ezik-conv="hy"]'), String(h.y));
+  await c.type(c.q('[data-ezik-conv="hm"]'), String(h.m));
+  await c.type(c.q('[data-ezik-conv="hd"]'), String(h.d));
+  t('a Hijri date reads as its Gregorian date', c.q('[data-ezik-conv="greg-out"]').textContent, c.read('prayerDayLabel({y:2026,m:10,d:4})'));
+  await c.click(c.q('[data-ezik-conv="show-hijri"]'));
+  t('"show the times" sends the sheet to that day', c.q('[data-ezik-day="head"]').textContent, c.read('prayerDayLabel({y:2026,m:10,d:4})'));
+  const KEYS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
+  const shown = KEYS.map((k) => c.q('[data-ezik-prayer="' + k + '"]').textContent);
+  const expect = KEYS.map((k) => c.read("ezT('widget.prayer.' + '" + k + "')") + c.read('prayerClock(prayerTimesFor(2026,10,4, QIBLA_DEFAULT_LAT, QIBLA_DEFAULT_LNG, prayerTzOn(2026,10,4,null), "kuwait", "standard", null)["' + k + '"])'));
+  t('...and the times on show are that day\'s', shown, expect);
+  await c.type(c.q('[data-ezik-conv="hd"]'), '31');
+  t('a day of 31 says the date does not exist', c.q('[data-ezik-conv="greg-out"]').textContent, c.read("ezT('conv.invalidHijri')"));
+  t('...and offers no "show" button', c.q('[data-ezik-conv="show-hijri"]'), null);
+  ok('the card warns the date can differ by a day or two', c.root.textContent.indexOf(c.read("ezT('conv.hint')")) >= 0);
+  t('nothing threw', c.caught(), null);
+};
 SCENES['iqama-noshell'] = async () => {
   say('S5  in a browser tab the alert controls are not drawn');
   const one = blank5(); one.dhuhr = { on: true, min: 10 };
@@ -387,6 +448,7 @@ async function main() {
   say('prayer-features-guard: the prayer features of item 124');
   sectionPlace();
   sectionDay();
+  sectionConv();
   let sceneFail = 0;
   for (const name of Object.keys(SCENES)) {
     const code = await new Promise((resolve) => {

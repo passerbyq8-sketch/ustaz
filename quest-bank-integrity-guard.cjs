@@ -1791,7 +1791,7 @@ const SEALED = {
   //   2026-10-04 -- ORDER 54 SHIP (order EZIK-ORDER-54-2026-10-04, side/comprehensive-20261002): CACHE and config/app-version.json move ezik-v53 -> ezik-v54.
 //                    app.js REBUILT from app.jsx by npm run build:app: 1828735 bytes (unchanged: only EZIK_APP_VERSION moved, same length), sha256 d234b0e5..36dd.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES stays 3001825, --check MATCH. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 55908 bytes).
-  'sw.js': '89e2b7da0f177a6b858e0b8b03984791f96921ee6f33121907667ac7cc801047',
+  'sw.js': '1b51af9e6b7ced2d3d01d189de9d2f4ae619d408a64e24fb5e53a0f0537ab2c3',
 };
 
 // ---------------------------------------------------------------------------
@@ -2887,7 +2887,7 @@ async function compare(bankPath) {
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1856393, of: 'app.js' },
+      { n: 1863052, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

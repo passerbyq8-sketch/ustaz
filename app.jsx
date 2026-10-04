@@ -463,6 +463,18 @@ const EZ_I18N = {
     'prayer.notify.denied': 'التذكيرُ ممنوعٌ من إعداداتِ النِّظام.',
     'prayer.notify.silent': 'لم يصلْ جوابٌ، والتذكيرُ باقٍ مطفأً.',
     'prayer.notify.note': 'تُجدوَلُ على هذا الجهازِ حتّى {n} من الأيّامِ القادمة — وتقِلُّ إن كثُرَتِ التذكيراتُ — وتُجدَّدُ كلّما فُتِحَ التطبيق.',
+    'conv.title': 'محوّل التاريخ',
+    'conv.greg': 'من الميلادي',
+    'conv.hijri': 'من الهجري',
+    'conv.toHijri': 'الهجري المقابل:',
+    'conv.toGreg': 'الميلادي المقابل:',
+    'conv.invalidGreg': 'اختر تاريخًا صحيحًا',
+    'conv.invalidHijri': 'هذا التاريخ الهجري غير موجود',
+    'conv.year': 'السنة الهجرية',
+    'conv.month': 'الشهر الهجري',
+    'conv.day': 'اليوم',
+    'conv.show': 'اعرض مواقيت هذا اليوم',
+    'conv.hint': 'الحساب على تقويم أم القرى وبإزاحتك من الإعدادات؛ وقد يخالف التقويم المعمول به عندك بيوم أو يومين.',
     'pre.group': 'التنبيه قبل الصلاة',
     'pre.hint': 'قبل دخول الوقت بعدد الدقائق الذي تضعه أنت لكل صلاة. لا توجد قيمة افتراضية.',
     'pre.title': 'قبل صلاة {name}',
@@ -1210,6 +1222,18 @@ const EZ_I18N = {
     'prayer.notify.denied': 'Reminders are blocked in your system settings.',
     'prayer.notify.silent': 'No answer came back, and the reminder is still off.',
     'prayer.notify.note': 'Scheduled on this device for up to {n} days ahead — fewer when you add more reminders — and refreshed each time you open the app.',
+    'conv.title': 'Date converter',
+    'conv.greg': 'From Gregorian',
+    'conv.hijri': 'From Hijri',
+    'conv.toHijri': 'Hijri date:',
+    'conv.toGreg': 'Gregorian date:',
+    'conv.invalidGreg': 'Pick a valid date',
+    'conv.invalidHijri': 'This Hijri date does not exist',
+    'conv.year': 'Hijri year',
+    'conv.month': 'Hijri month',
+    'conv.day': 'Day',
+    'conv.show': 'Show the prayer times of this day',
+    'conv.hint': 'Computed on the Umm al-Qura calendar with your offset from Settings; it can differ by a day or two from the calendar you follow.',
     'pre.group': 'Alert before the prayer',
     'pre.hint': 'Minutes before the time, set by you for each prayer. There is no default.',
     'pre.title': 'Before {name}',
@@ -27114,6 +27138,7 @@ function PrayerSheet({ onClose, onOpenCompass }) {
           aria-label={EZH_NAV_COMPASS}>{EZH_ICON_PRAYER}</button>
       ) : null}>
       <PrayerTimesPanel loc={loc} day={day} onDay={setDay} />
+      <PrayerDateConverter onShowDay={setDay} />
       <PrayerPlaceSearch loc={loc} onLoc={setLoc} />
       <QiblaPanel loc={loc} onLoc={setLoc} />
     </EzShell>
@@ -27286,6 +27311,75 @@ function PrayerPlaceSearch({ loc, onLoc }) {
           <div style={s.qiblaNote}>{ezT('place.search.credit')}</div>
         </>
       ) : null}
+    </EzShellGroup>
+  );
+}
+
+// ============================================================
+// ITEM 124-5 -- THE DATE CONVERTER
+// ============================================================
+// Two directions on one card: a Gregorian date to its Hijri date, and a Hijri date to its Gregorian one, both through
+// the calendar the rest of the app reads (Umm al-Qura by Intl, the arithmetical one as the named fallback) and the
+// reader's own offset from Settings. The answer can differ by a day or two from the calendar people actually use,
+// and the card says so. "Show the times of that day" hands the civil date to the prayer panel above.
+function PrayerDateConverter({ onShowDay }) {
+  useEzLang();
+  const nowP = prayerTodayParts(new Date(), null);
+  const [greg, setGreg] = useState(prayerDayIso(nowP));
+  const hNow = hijriForCivilDay(nowP.y, nowP.m, nowP.d, readHijriOffset());
+  const [hy, setHy] = useState(String(hNow.y));
+  const [hm, setHm] = useState(String(hNow.m));
+  const [hd, setHd] = useState(String(hNow.d));
+  const off = readHijriOffset();
+  const gDay = prayerDayFromIso(greg);
+  const toHijri = gDay ? hijriLabel(hijriForCivilDay(gDay.y, gDay.m, gDay.d, off)) : '';
+  const cDay = hijriToCivil(Number(hy), Number(hm), Number(hd), off);
+  const toGreg = cDay ? prayerDayLabel(cDay) : '';
+  const months = [];
+  for (let i = 1; i <= 12; i++) months.push(i);
+  return (
+    <EzShellGroup title={ezT('conv.title')}>
+      <div style={s.a11yGroupLabel}>{ezT('conv.greg')}</div>
+      <div className="ez-hit" style={s.prayerOptRow}>
+        <input type="date" value={greg} min={PRAYER_DAY_MIN_YEAR + '-01-01'} max={PRAYER_DAY_MAX_YEAR + '-12-31'}
+          onChange={(e) => setGreg(e && e.target ? e.target.value : '')} data-ezik-conv="greg" aria-label={ezT('conv.greg')}
+          className="ezik-focus" style={{ ...s.drawerSearch, width: 'auto', minHeight: 34, padding: '4px 8px' }} />
+      </div>
+      <div style={s.prayerRow}>
+        <span style={s.prayerName}>{ezT('conv.toHijri')}</span>
+        <span style={s.prayerTime} data-ezik-conv="hijri-out">{toHijri || ezT('conv.invalidGreg')}</span>
+      </div>
+      {gDay ? (
+        <div className="ez-hit" style={s.prayerOptRow}>
+          <button type="button" onClick={() => { if (onShowDay) onShowDay(gDay); }} data-ezik-conv="show-greg"
+            className="ezik-focus" style={s.prayerOpt}>{ezT('conv.show')}</button>
+        </div>
+      ) : null}
+      <div style={s.a11yGroupLabel}>{ezT('conv.hijri')}</div>
+      <div className="ez-hit" style={s.prayerOptRow}>
+        <input type="number" value={hy} min={HIJRI_CONV_MIN_YEAR} max={HIJRI_CONV_MAX_YEAR}
+          onChange={(e) => setHy(e && e.target ? e.target.value : '')} data-ezik-conv="hy" aria-label={ezT('conv.year')}
+          className="ezik-focus" style={{ ...s.drawerSearch, width: 90, minHeight: 34, padding: '4px 8px' }} />
+        <select value={hm} onChange={(e) => setHm(e && e.target ? e.target.value : '1')} data-ezik-conv="hm"
+          aria-label={ezT('conv.month')} className="ezik-focus"
+          style={{ ...s.drawerSearch, width: 'auto', minHeight: 34, padding: '4px 8px' }}>
+          {months.map((n) => <option key={n} value={String(n)}>{HIJRI_MONTHS[n - 1]}</option>)}
+        </select>
+        <input type="number" value={hd} min="1" max="30"
+          onChange={(e) => setHd(e && e.target ? e.target.value : '')} data-ezik-conv="hd" aria-label={ezT('conv.day')}
+          className="ezik-focus" style={{ ...s.drawerSearch, width: 70, minHeight: 34, padding: '4px 8px' }} />
+      </div>
+      <div style={s.prayerRow}>
+        <span style={s.prayerName}>{ezT('conv.toGreg')}</span>
+        <span style={s.prayerTime} data-ezik-conv="greg-out">{toGreg || ezT('conv.invalidHijri')}</span>
+      </div>
+      {cDay ? (
+        <div className="ez-hit" style={s.prayerOptRow}>
+          <button type="button" onClick={() => { if (onShowDay) onShowDay(cDay); }} data-ezik-conv="show-hijri"
+            className="ezik-focus" style={s.prayerOpt}>{ezT('conv.show')}</button>
+        </div>
+      ) : null}
+      <div style={s.qiblaNote}>{ezT('conv.hint')}</div>
     </EzShellGroup>
   );
 }
@@ -27473,6 +27567,32 @@ function writeHijriOffset(n) {
   try { localStorage.setItem(HIJRI_OFFSET_KEY, String(n)); } catch (e) { return readHijriOffset(); }
   try { ezikWidgetDataChanged(); } catch (e) {}
   return n;
+}
+// ITEM 124-5 -- THE INVERSE. hijriForCivilDay(y, m, d, offset) reads the civil day shifted by the offset through
+// hijriFromJdn; so the civil day for a Hijri date is the day whose SHIFTED number reads as that date. The
+// arithmetical calendar gives a guess within a day or two, the real tables are scanned around it, and nothing is
+// returned unless the very same forward function reads the answer back as the date asked for -- so the two
+// directions cannot disagree, and a day that does not exist in that month (a 30th of a 29-day month) is null.
+const HIJRI_CONV_MIN_YEAR = 1300;
+const HIJRI_CONV_MAX_YEAR = 1600;
+function hijriToCivil(hy, hm, hd, offset) {
+  if (![hy, hm, hd].every((n) => typeof n === 'number' && isFinite(n) && Math.trunc(n) === n)) return null;
+  if (hy < HIJRI_CONV_MIN_YEAR || hy > HIJRI_CONV_MAX_YEAR || hm < 1 || hm > 12 || hd < 1 || hd > 30) return null;
+  let k = Math.trunc(Number(offset));
+  if (!isFinite(k)) k = 0;
+  if (k < HIJRI_OFFSET_MIN) k = HIJRI_OFFSET_MIN;
+  if (k > HIJRI_OFFSET_MAX) k = HIJRI_OFFSET_MAX;
+  const guess = hd + Math.ceil(29.5 * (hm - 1)) + (hy - 1) * 354 + Math.floor((3 + 11 * hy) / 30) + 1948439;
+  for (let j = guess - 45; j <= guess + 45; j++) {
+    const h = hijriFromJdn(j);
+    if (h.y === hy && h.m === hm && h.d === hd) {
+      const c = hijriCivilFromJdn(j - k);
+      const back = hijriForCivilDay(c.y, c.m, c.d, k);
+      if (back.y === hy && back.m === hm && back.d === hd) return { y: c.y, m: c.m, d: c.d };
+      return null;
+    }
+  }
+  return null;
 }
 function hijriLabel(h) {
   if (!h || !(h.m >= 1) || !(h.m <= 12)) return '';
