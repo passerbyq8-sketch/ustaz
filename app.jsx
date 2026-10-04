@@ -463,6 +463,18 @@ const EZ_I18N = {
     'prayer.notify.denied': 'التذكيرُ ممنوعٌ من إعداداتِ النِّظام.',
     'prayer.notify.silent': 'لم يصلْ جوابٌ، والتذكيرُ باقٍ مطفأً.',
     'prayer.notify.note': 'تُجدوَلُ على هذا الجهازِ حتّى {n} من الأيّامِ القادمة — وتقِلُّ إن كثُرَتِ التذكيراتُ — وتُجدَّدُ كلّما فُتِحَ التطبيق.',
+    'place.title': 'المكان',
+    'place.current': 'المكان المختار:',
+    'place.tz': 'المنطقة الزمنية: {tz}',
+    'place.search.open': 'ابحث عن مدينة',
+    'place.search.close': 'أغلق البحث',
+    'place.search.label': 'ابحث عن مدينة',
+    'place.search.placeholder': 'اسم المدينة بالعربية أو الإنجليزية',
+    'place.search.loading': 'يُحمَّل دليل الأماكن…',
+    'place.search.failed': 'تعذّر تحميل دليل الأماكن. تحقّق من الاتصال ثم أعد المحاولة.',
+    'place.search.none': 'لا نتيجة لهذا الاسم.',
+    'place.search.credit': 'بيانات الأماكن من GeoNames برخصة CC BY 4.0، وأسماؤها العربية متاحة لبعضها فقط.',
+    'place.auto': 'الموقع التلقائي',
     // ITEMS 43-ب / 47-ب -- تذكيراتُ العبادة. Four independent reminders, each off until the reader
     // says otherwise. Every one of these lines is chrome; none of it is devotional text.
     'reminders.title': 'تذكيراتُ العبادة',
@@ -1183,6 +1195,18 @@ const EZ_I18N = {
     'prayer.notify.denied': 'Reminders are blocked in your system settings.',
     'prayer.notify.silent': 'No answer came back, and the reminder is still off.',
     'prayer.notify.note': 'Scheduled on this device for up to {n} days ahead — fewer when you add more reminders — and refreshed each time you open the app.',
+    'place.title': 'Place',
+    'place.current': 'Chosen place:',
+    'place.tz': 'Time zone: {tz}',
+    'place.search.open': 'Search for a city',
+    'place.search.close': 'Close search',
+    'place.search.label': 'Search for a city',
+    'place.search.placeholder': 'City name in Arabic or English',
+    'place.search.loading': 'Loading the places list…',
+    'place.search.failed': 'The places list could not be loaded. Check the connection and try again.',
+    'place.search.none': 'No match for this name.',
+    'place.search.credit': 'Place data: GeoNames, CC BY 4.0. Arabic names exist for some places only.',
+    'place.auto': 'Automatic location',
     // ITEMS 43-b / 47-b -- the four reminders, in the second language the dictionary carries.
     'reminders.title': 'Worship reminders',
     'reminders.hint': 'Kept on this device alone, and every reminder is off until you turn it on.',
@@ -9206,8 +9230,9 @@ function EzWidgetPrayer({ nav }) {
   const loc = readQiblaLoc();
   const prefs = readPrayerPrefs();
   const now = new Date();
-  const t = prayerTimesFor(now.getFullYear(), now.getMonth() + 1, now.getDate(),
-    loc.lat, loc.lng, -now.getTimezoneOffset(), prefs.method, prefs.asr, prefs.off);
+  const today = prayerTodayParts(now, loc.by === 'place' ? loc.place : null);
+  const t = prayerTimesFor(today.y, today.m, today.d,
+    loc.lat, loc.lng, prayerTzNow(now, loc), prefs.method, prefs.asr, prefs.off);
   // A time that could not be computed at this latitude draws an em dash through prayerClock and
   // is SAID rather than left as a dash the reader has to interpret.
   const missing = PRAYER_KEYS.some((k) => t[k] === null);
@@ -18897,6 +18922,8 @@ function App() {
       try { localStorage.removeItem(QIBLA_LOC_KEY); } catch (e) {}
       try { localStorage.removeItem(PRAYER_PREFS_KEY); } catch (e) {}
       try { localStorage.removeItem(PRAYER_SCHEDULE_KEY); } catch (e) {}
+      // ITEM 124-1: the name and zone of a place chosen from the list are part of the saved position.
+      try { localStorage.removeItem(PRAYER_PLACE_KEY); } catch (e) {}
       // THE SIGN-IN SESSION. delete.html:94 / :138 promise everything is wiped, and :95 / :139
       // name exactly ONE thing that remains afterwards -- the digest of the parental code. A
       // session left standing here would quietly have made it two, so "delete all my data"
@@ -23845,9 +23872,12 @@ function prayerScheduleRemaining(rec, todayKey) {
 // to build one and why -- so the panel reports what actually happened rather than what it asked
 // for, the same discipline writePrayerPrefs() already keeps.
 function ensurePrayerSchedule(loc, prefs, now) {
-  const tz = -now.getTimezoneOffset();
+  const place = loc.by === 'place' ? loc.place : null;
+  const today = prayerTodayParts(now, place);
+  const dayDt = place ? new Date(today.y, today.m - 1, today.d) : now;
+  const tz = prayerTzNow(now, loc);
   const stamp = prayerScheduleStamp(loc, prefs, tz);
-  const todayKey = prayerDayKey(now);
+  const todayKey = prayerDayKey(dayDt);
   const cur = readPrayerSchedule();
   const remaining = prayerScheduleRemaining(cur, todayKey);
   let why = null;
@@ -23856,7 +23886,7 @@ function ensurePrayerSchedule(loc, prefs, now) {
   else if (remaining < PRAYER_SCHEDULE_RENEW_AT) why = 'short';
   if (!why) return { rec: cur, built: false, why: null, remaining: remaining };
   const rec = writePrayerSchedule({ v: 1, stamp: stamp, from: todayKey,
-    days: buildPrayerSchedule(now, loc, prefs, tz) });
+    days: buildPrayerSchedule(dayDt, loc, prefs, tz) });
   return { rec: rec, built: true, why: why, remaining: prayerScheduleRemaining(rec, todayKey) };
 }
 
@@ -23974,8 +24004,9 @@ function PrayerTimesPanel({ loc }) {
   // and ensurePrayerSchedule() is the one place that decides whether that means a rebuild.
   const sched = React.useMemo(() => ensurePrayerSchedule(loc, prefs, new Date()),
     [loc.lat, loc.lng, prefs.method, prefs.asr, JSON.stringify(prefs.off)]);
-  const tz = -now.getTimezoneOffset();
-  const t = prayerTimesFor(now.getFullYear(), now.getMonth() + 1, now.getDate(),
+  const tz = prayerTzNow(now, loc);
+  const today = prayerTodayParts(now, loc.by === 'place' ? loc.place : null);
+  const t = prayerTimesFor(today.y, today.m, today.d,
     loc.lat, loc.lng, tz, prefs.method, prefs.asr, prefs.off);
   const anyMissing = PRAYER_KEYS.some((k) => t[k] === null);
   return (
@@ -24182,6 +24213,8 @@ function readQiblaLoc() {
       && typeof rec.lat === 'number' && typeof rec.lng === 'number'
       && isFinite(rec.lat) && isFinite(rec.lng)
       && rec.lat >= -90 && rec.lat <= 90 && rec.lng >= -180 && rec.lng <= 180) {
+      const pl = readPrayerPlaceFor(rec.lat, rec.lng);
+      if (pl) return { lat: rec.lat, lng: rec.lng, by: 'place', place: pl };
       return { lat: rec.lat, lng: rec.lng, by: 'device' };
     }
   }
@@ -24191,14 +24224,137 @@ function writeQiblaLoc(lat, lng) {
   if (typeof lat !== 'number' || typeof lng !== 'number') return readQiblaLoc();
   if (!isFinite(lat) || !isFinite(lng)) return readQiblaLoc();
   if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return readQiblaLoc();
+  // A device fix replaces any place the reader chose by name.
+  try { localStorage.removeItem(PRAYER_PLACE_KEY); } catch (e) {}
   try { localStorage.setItem(QIBLA_LOC_KEY, JSON.stringify({ lat: lat, lng: lng })); }
   catch (e) { return readQiblaLoc(); }
   try { ezikWidgetDataChanged(); } catch (e) {}
   return { lat: lat, lng: lng, by: 'device' };
 }
 function clearQiblaLoc() {
+  try { localStorage.removeItem(PRAYER_PLACE_KEY); } catch (e) {}
   try { localStorage.removeItem(QIBLA_LOC_KEY); ezikWidgetDataChanged(); } catch (e) {}
   return readQiblaLoc();
+}
+
+// ============================================================
+// ITEM 124-1 -- A PLACE THE READER CHOSE BY NAME, AND THE ZONE IT BELONGS TO
+// ============================================================
+// The chosen place is a second record BESIDE the position, never instead of it: choosing writes the
+// place's coordinates into ezik_qibla_loc_v1 (so the compass, the notifications and the widgets read
+// the same position they always read) and writes the name and the time zone here. The record is only
+// believed while its coordinates equal the stored position, so a device fix, the default button or a
+// hand-edited store can never leave a name standing on the wrong spot.
+//
+// THE ZONE IS THE PLACE'S OWN. Its UTC offset is asked of Intl for THAT day at THAT place's noon, so a
+// reader looking at Jakarta from Kuwait gets Jakarta's clock, and a daylight-saving week is right. With
+// no chosen place every one of these helpers answers exactly what the old line answered.
+const PRAYER_PLACE_KEY = 'ezik_prayer_place_v1';
+const PRAYER_ZONE_FMT = {};
+function prayerZoneFmt(tz) {
+  if (Object.prototype.hasOwnProperty.call(PRAYER_ZONE_FMT, tz)) return PRAYER_ZONE_FMT[tz];
+  let f = null;
+  try {
+    f = new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: 'numeric',
+      day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
+  } catch (e) { f = null; }
+  PRAYER_ZONE_FMT[tz] = f;
+  return f;
+}
+// The wall clock of a zone at an instant: {y, m, d, h, mi, s}, or null when the zone is unknown.
+function prayerZoneWall(tz, ms) {
+  const f = typeof tz === 'string' && tz ? prayerZoneFmt(tz) : null;
+  if (!f) return null;
+  try {
+    const out = { y: 0, m: 0, d: 0, h: 0, mi: 0, s: 0 };
+    const parts = f.formatToParts(ms);
+    for (let i = 0; i < parts.length; i++) {
+      const p = parts[i];
+      const v = parseInt(p.value, 10);
+      if (p.type === 'year') out.y = v;
+      else if (p.type === 'month') out.m = v;
+      else if (p.type === 'day') out.d = v;
+      else if (p.type === 'hour') out.h = v % 24;
+      else if (p.type === 'minute') out.mi = v;
+      else if (p.type === 'second') out.s = v;
+    }
+    return out.y > 0 && out.m > 0 && out.d > 0 ? out : null;
+  } catch (e) { return null; }
+}
+// Minutes east of UTC at the zone's local noon of a civil day, or null. Two passes, so the answer is
+// the offset in force at the noon it names and not at the UTC noon it started from.
+function prayerZoneOffset(tz, y, m, d) {
+  const offAt = (ms) => {
+    const w = prayerZoneWall(tz, ms);
+    return w ? Math.round((Date.UTC(w.y, w.m - 1, w.d, w.h, w.mi, w.s) - ms) / 60000) : null;
+  };
+  const noonUtc = Date.UTC(y, m - 1, d, 12);
+  const o1 = offAt(noonUtc);
+  if (o1 === null) return null;
+  const o2 = offAt(noonUtc - o1 * 60000);
+  return o2 === null ? o1 : o2;
+}
+// The stored place, believed only while it stands on the stored position.
+function readPrayerPlaceFor(lat, lng) {
+  let raw = null;
+  try { raw = localStorage.getItem(PRAYER_PLACE_KEY); } catch (e) { return null; }
+  if (typeof raw !== 'string' || !raw) return null;
+  let rec = null;
+  try { rec = JSON.parse(raw); } catch (e) { return null; }
+  if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return null;
+  if (rec.lat !== lat || rec.lng !== lng) return null;
+  if (typeof rec.n !== 'string' || !rec.n || typeof rec.tz !== 'string' || !rec.tz) return null;
+  if (!prayerZoneFmt(rec.tz)) return null;
+  return { n: rec.n, a: typeof rec.a === 'string' ? rec.a : '', cc: typeof rec.cc === 'string' ? rec.cc : '',
+    tz: rec.tz, lat: lat, lng: lng };
+}
+// A place chosen from the places list: the position and the place are written together, or neither.
+function writePrayerPlace(p) {
+  if (!p || typeof p !== 'object') return readQiblaLoc();
+  if (typeof p.lat !== 'number' || typeof p.lng !== 'number' || !isFinite(p.lat) || !isFinite(p.lng)) return readQiblaLoc();
+  if (p.lat < -90 || p.lat > 90 || p.lng < -180 || p.lng > 180) return readQiblaLoc();
+  if (typeof p.n !== 'string' || !p.n || typeof p.tz !== 'string' || !prayerZoneFmt(p.tz)) return readQiblaLoc();
+  try {
+    localStorage.setItem(QIBLA_LOC_KEY, JSON.stringify({ lat: p.lat, lng: p.lng }));
+    localStorage.setItem(PRAYER_PLACE_KEY, JSON.stringify({ n: p.n, a: typeof p.a === 'string' ? p.a : '',
+      cc: typeof p.cc === 'string' ? p.cc : '', tz: p.tz, lat: p.lat, lng: p.lng }));
+  } catch (e) {
+    try { localStorage.removeItem(PRAYER_PLACE_KEY); } catch (e2) {}
+    return readQiblaLoc();
+  }
+  try { ezikWidgetDataChanged(); } catch (e) {}
+  return readQiblaLoc();
+}
+// The offset the calculator is given for a civil day: the place's own zone when one is chosen, and the
+// device's clock at that day's noon (the line this replaces) when none is.
+function prayerTzOn(y, m, d, place) {
+  if (place) { const o = prayerZoneOffset(place.tz, y, m, d); if (o !== null) return o; }
+  return -(new Date(y, m - 1, d, 12, 0, 0, 0).getTimezoneOffset());
+}
+// Today's civil date where the reader is LOOKING: the chosen place's calendar, else the device's.
+function prayerTodayParts(now, place) {
+  if (place) {
+    const w = prayerZoneWall(place.tz, now.getTime());
+    if (w) return { y: w.y, m: w.m, d: w.d, mins: w.h * 60 + w.mi };
+  }
+  return { y: now.getFullYear(), m: now.getMonth() + 1, d: now.getDate(), mins: now.getHours() * 60 + now.getMinutes() };
+}
+// A time of a civil day, in minutes from that day's midnight, as an absolute instant. With no chosen
+// place it is the old construction (the device's wall clock, so a daylight-saving day lands on the clock
+// the reader will read); with one it is the place's own offset.
+function prayerInstant(y, m, d, total, place, tzMin) {
+  if (place) return Date.UTC(y, m - 1, d) + (total - tzMin) * 60000;
+  const hh = Math.floor(total / 60);
+  return new Date(y, m - 1, d, hh, total - hh * 60, 0, 0).getTime();
+}
+// The offset for "now": the place's zone at its own today, else the device's offset right now (the old line).
+function prayerTzNow(now, loc) {
+  if (loc && loc.by === 'place') {
+    const t = prayerTodayParts(now, loc.place);
+    const o = prayerZoneOffset(loc.place.tz, t.y, t.m, t.d);
+    if (o !== null) return o;
+  }
+  return -now.getTimezoneOffset();
 }
 
 // THE SHELL, AND THE ONLY HONEST TEST FOR IT. The native shell injects window.ReactNativeWebView
@@ -25408,10 +25564,12 @@ function ezikAdhanItems(now) {
   if (!(now instanceof Date) || !isFinite(now.getTime())) return items;
   const loc = readQiblaLoc();
   const prefs = readPrayerPrefs();
+  const place = loc.by === 'place' ? loc.place : null;
+  const today = prayerTodayParts(now, place);
   for (let i = 0; i < ADHAN_WINDOW_DAYS; i++) {
-    const dt = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+    const dt = new Date(today.y, today.m - 1, today.d + i);
     const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
-    const tz = -(new Date(y, m - 1, d, 12, 0, 0, 0).getTimezoneOffset());
+    const tz = prayerTzOn(y, m, d, place);
     const t = prayerTimesFor(y, m, d, loc.lat, loc.lng, tz, prefs.method, prefs.asr, prefs.off);
     for (let j = 0; j < ADHAN_KEYS.length; j++) {
       const k = ADHAN_KEYS[j];
@@ -25419,7 +25577,7 @@ function ezikAdhanItems(now) {
       // A prayer the calculator could not place at this latitude is NOT a notification. `null` is
       // the real answer there and it is carried through as silence rather than as a guess.
       if (typeof mins !== 'number' || !isFinite(mins)) continue;
-      const at = new Date(y, m - 1, d, Math.floor(mins / 60), mins % 60, 0, 0).getTime();
+      const at = prayerInstant(y, m, d, mins, place, tz);
       if (!isFinite(at)) continue;
       const title = ezT('widget.prayer.' + k);
       items.push({
@@ -25728,8 +25886,10 @@ function ezikWirdAlertItems(now) {
   const rec = readWirdAlerts();
   const loc = readQiblaLoc();
   const prefs = readPrayerPrefs();
+  const place = loc.by === 'place' ? loc.place : null;
+  const today = prayerTodayParts(now, place);
   for (let i = 0; i < ADHAN_WINDOW_DAYS; i++) {
-    const dt = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+    const dt = new Date(today.y, today.m - 1, today.d + i);
     const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
     // The day's times are computed ONCE, and only if some alert on this day actually wants them.
     let t = null;
@@ -25739,14 +25899,14 @@ function ezikWirdAlertItems(now) {
       if (!got || got.on !== true) continue;
       if (al.day !== null && dt.getDay() !== al.day) continue;
       if (t === null) {
-        const tz = -(new Date(y, m - 1, d, 12, 0, 0, 0).getTimezoneOffset());
+        const tz = prayerTzOn(y, m, d, place);
         t = prayerTimesFor(y, m, d, loc.lat, loc.lng, tz, prefs.method, prefs.asr, prefs.off);
       }
       const mins = t[al.anchor];
       if (typeof mins !== 'number' || !isFinite(mins)) continue;
       const total = Math.round(mins) + got.offset;
       const hh = Math.floor(total / 60);
-      const at = new Date(y, m - 1, d, hh, total - hh * 60, 0, 0).getTime();
+      const at = prayerInstant(y, m, d, total, place, prayerTzOn(y, m, d, place));
       if (!isFinite(at)) continue;
       items.push({
         id: al.type + ':alert:' + al.id + ':' + prayerDayKey(dt),
@@ -26126,11 +26286,13 @@ function ezikWidgetPrayerDays(now) {
   const prefs = readPrayerPrefs();
   const offset = readHijriOffset();
   const days = [];
+  const place = loc.by === 'place' ? loc.place : null;
+  const today = prayerTodayParts(now, place);
   for (let i = 0; i < EZIK_WIDGET_DATA_DAYS; i++) {
     // Local noon selects the offset used during this day's prayers, including a DST change.
-    const dt = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i, 12);
+    const dt = new Date(today.y, today.m - 1, today.d + i, 12);
     const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
-    const computed = prayerTimesFor(y, m, d, loc.lat, loc.lng, -dt.getTimezoneOffset(),
+    const computed = prayerTimesFor(y, m, d, loc.lat, loc.lng, place ? prayerTzOn(y, m, d, place) : -dt.getTimezoneOffset(),
       prefs.method, prefs.asr, prefs.off);
     const times = {};
     for (const key of PRAYER_KEYS) times[key] = ezikWidgetClock(computed[key]);
@@ -26545,7 +26707,7 @@ function QiblaPanel({ loc, onLoc, full }) {
 
   const needle = qiblaNeedleAngle(bearing, heading);
   const needleVisual = qiblaNeedleVisual(compass);
-  const placeName = loc.by === 'device' ? QIBLA_DEVICE_PLACE : QIBLA_DEFAULT_PLACE;
+  const placeName = loc.by === 'place' ? placeLabel(loc.place) : (loc.by === 'device' ? QIBLA_DEVICE_PLACE : QIBLA_DEFAULT_PLACE);
   // ITEM 66 (side round) -- THE TWO FACTS THE COMPASS SCREEN ADDS, AND THEY ARE BOTH DERIVED.
   //
   // `bare` is the compass SCREEN and nothing else. It is `full` read once, strictly, so a panel
@@ -26650,14 +26812,155 @@ function QiblaPanel({ loc, onLoc, full }) {
       ) : null}
       {bare ? null : (
       <div style={s.qiblaPlace}>
-        {QIBLA_PLACE_LABEL} {placeName}{loc.by === 'device' ? '' : ' (' + QIBLA_PLACE_DEFAULT_NOTE + ')'}
+        {QIBLA_PLACE_LABEL} {placeName}{loc.by !== 'default' ? '' : ' (' + QIBLA_PLACE_DEFAULT_NOTE + ')'}
       </div>
       )}
       {!bare && locState === 'asking' ? <div style={s.qiblaNote}>{QIBLA_LOC_ASKING}</div> : null}
       {!bare && locState === 'denied' ? <div style={s.qiblaNote}>{QIBLA_LOC_DENIED}</div> : null}
-      {bare ? null : (loc.by === 'device'
+      {bare ? null : (loc.by !== 'default'
         ? <button type="button" onClick={useDefault} className="ezik-focus" style={s.qiblaBtn}>{QIBLA_USE_DEFAULT}</button>
         : <button type="button" onClick={askLocation} className="ezik-focus" style={s.qiblaBtn}>{QIBLA_USE_DEVICE}</button>)}
+      {!bare && loc.by === 'place'
+        ? <button type="button" onClick={askLocation} data-ezik-place="auto" className="ezik-focus" style={s.qiblaBtn}>{ezT('place.auto')}</button>
+        : null}
+    </EzShellGroup>
+  );
+}
+
+// ============================================================
+// ITEM 124-1 -- THE PLACES LIST AND THE SEARCH OVER IT
+// ============================================================
+// places.json is built from GeoNames' cities15000 (Creative Commons Attribution 4.0; the file carries
+// its own source, hash, licence and attribution). It is NOT in the worker's core and NOT loaded with
+// the page: it is fetched once, when the reader opens the search, and kept for the session. Every name,
+// coordinate and time zone in it is a column of that download; nothing is typed in this file.
+let ezikPlacesData = null;
+let ezikPlacesPromise = null;
+// One shape for a name typed by a person and a name stored in the list: lower case, no accents, no
+// vowel marks or tatweel, the alef family as one alef, alef-maksura as yeh, teh-marbuta as heh, and
+// hyphens and apostrophes as spaces. Built from code points so no mark is hidden in the source.
+function placeNorm(s) {
+  const ch = String.fromCharCode;
+  let t = String(s == null ? '' : s).toLowerCase();
+  try { t = t.normalize('NFD'); } catch (e) {}
+  t = t.replace(new RegExp('[' + ch(0x0300) + '-' + ch(0x036F) + ch(0x064B) + '-' + ch(0x0652) + ch(0x0640) + ']', 'g'), '');
+  t = t.replace(new RegExp('[' + ch(0x0623) + ch(0x0625) + ch(0x0622) + ch(0x0671) + ']', 'g'), ch(0x0627));
+  t = t.replace(new RegExp(ch(0x0649), 'g'), ch(0x064A));
+  t = t.replace(new RegExp(ch(0x0629), 'g'), ch(0x0647));
+  t = t.replace(new RegExp('[-.\'' + ch(0x2019) + ch(0x02BB) + ch(0x02BC) + ']', 'g'), ' ');
+  return t.replace(/\s+/g, ' ').trim();
+}
+function loadEzikPlaces() {
+  if (ezikPlacesData) return Promise.resolve(ezikPlacesData);
+  if (!ezikPlacesPromise) {
+    ezikPlacesPromise = Promise.resolve()
+      .then(() => fetch('/places.json'))
+      .then((r) => { if (!r.ok) throw new Error('places fetch ' + r.status); return r.json(); })
+      .then((raw) => {
+        if (!raw || raw.v !== 1 || !Array.isArray(raw.p) || !Array.isArray(raw.tz)) throw new Error('places shape');
+        const idx = raw.p.map((r) => {
+          const keys = [placeNorm(r[1]), placeNorm(r[2])];
+          const al = typeof r[3] === 'string' && r[3] ? r[3].split('|') : [];
+          for (let i = 0; i < al.length; i++) keys.push(placeNorm(al[i]));
+          return keys.filter((k) => k);
+        });
+        ezikPlacesData = { raw: raw, idx: idx };
+        return ezikPlacesData;
+      })
+      .catch((e) => { ezikPlacesPromise = null; throw e; });
+  }
+  return ezikPlacesPromise;
+}
+// Rows whose name or alias starts with the query come first, then a word that starts with it, then any
+// containment; inside a rank the list's own order (most populous first) stands.
+function placeSearch(data, q, limit) {
+  const nq = placeNorm(q);
+  if (nq.length < 2) return [];
+  const P = data.raw.p;
+  const hits = [];
+  for (let i = 0; i < P.length; i++) {
+    const keys = data.idx[i];
+    let rank = 9;
+    for (let k = 0; k < keys.length && rank > 0; k++) {
+      const key = keys[k];
+      if (key.indexOf(nq) === 0) rank = 0;
+      else if (key.indexOf(' ' + nq) !== -1) { if (rank > 1) rank = 1; }
+      else if (key.indexOf(nq) !== -1) { if (rank > 2) rank = 2; }
+    }
+    if (rank < 9) hits.push([rank, i]);
+  }
+  hits.sort((a, b) => (a[0] - b[0]) || (a[1] - b[1]));
+  return hits.slice(0, limit || 20).map((h) => P[h[1]]);
+}
+function placeCountryName(cc) {
+  try {
+    const dn = new Intl.DisplayNames([EZ_LANG], { type: 'region' });
+    return dn.of(cc) || cc;
+  } catch (e) { return cc; }
+}
+// The name a place is shown by in the reader's language: the Arabic form when the interface is Arabic
+// and the list has one, else the list's Latin name.
+function placeLabel(p) {
+  return (EZ_LANG === 'ar' && p && p.a) ? p.a : (p ? p.n : '');
+}
+
+function PrayerPlaceSearch({ loc, onLoc }) {
+  useEzLang();
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState('');
+  const [state, setState] = useState('idle');
+  const [data, setData] = useState(ezikPlacesData);
+  const toggle = () => {
+    const next = !open;
+    setOpen(next);
+    if (next && !data) {
+      setState('loading');
+      loadEzikPlaces().then((d) => { setData(d); setState('ready'); }).catch(() => setState('failed'));
+    }
+  };
+  const results = data && open ? placeSearch(data, q, 20) : [];
+  const pick = (row) => {
+    const place = { n: row[1], a: row[2], cc: row[4], tz: data.raw.tz[row[7]], lat: row[5], lng: row[6] };
+    onLoc(writePrayerPlace(place));
+    setOpen(false);
+    setQ('');
+  };
+  const cur = loc && loc.by === 'place' ? loc.place : null;
+  return (
+    <EzShellGroup title={ezT('place.title')}>
+      {cur ? (
+        <div style={s.prayerRow} data-ezik-place="current">
+          <span style={s.prayerName}>{ezT('place.current')}</span>
+          <span style={s.prayerTime}>{placeLabel(cur)}</span>
+        </div>
+      ) : null}
+      {cur ? <div style={s.qiblaNote}>{ezT('place.tz', { tz: cur.tz })}</div> : null}
+      <div className="ez-hit" style={s.prayerOptRow}>
+        <button type="button" onClick={toggle} aria-expanded={open ? 'true' : 'false'}
+          data-ezik-place="toggle" className="ezik-focus" style={s.prayerOpt}>
+          {open ? ezT('place.search.close') : ezT('place.search.open')}
+        </button>
+      </div>
+      {open ? (
+        <>
+          <input type="text" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off"
+            data-ezik-place="input" aria-label={ezT('place.search.label')}
+            placeholder={ezT('place.search.placeholder')} style={{ ...s.drawerSearch, textAlign: 'start' }} />
+          {state === 'loading' ? <div style={s.qiblaNote}>{ezT('place.search.loading')}</div> : null}
+          {state === 'failed' ? <div style={s.qiblaNote}>{ezT('place.search.failed')}</div> : null}
+          {data && placeNorm(q).length >= 2 && results.length === 0 ? <div style={s.qiblaNote}>{ezT('place.search.none')}</div> : null}
+          {results.map((row) => (
+            <div key={row[0]} style={s.prayerRow}>
+              <button type="button" onClick={() => pick(row)} data-ezik-place="result" className="ezik-focus"
+                style={{ ...s.prayerOpt, flex: 1, textAlign: 'start' }}>
+                {placeLabel({ n: row[1], a: row[2] })}
+                <span style={s.qiblaNote}>{' · '}{placeCountryName(row[4])}{' · '}{data.raw.tz[row[7]]}</span>
+              </button>
+            </div>
+          ))}
+          <div style={s.qiblaNote}>{ezT('place.search.credit')}</div>
+        </>
+      ) : null}
     </EzShellGroup>
   );
 }
@@ -26685,6 +26988,7 @@ function PrayerSheet({ onClose, onOpenCompass }) {
           aria-label={EZH_NAV_COMPASS}>{EZH_ICON_PRAYER}</button>
       ) : null}>
       <PrayerTimesPanel loc={loc} />
+      <PrayerPlaceSearch loc={loc} onLoc={setLoc} />
       <QiblaPanel loc={loc} onLoc={setLoc} />
     </EzShell>
   );

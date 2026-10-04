@@ -481,6 +481,9 @@ const MUST_GO_NEW = [
     clause: 'the position saved for the qibla and the prayer times -- the prayer settings' },
   { c: 'PRAYER_SCHEDULE_KEY',
     clause: 'the position saved for the qibla and the prayer times -- the table derived from both' },
+  // ITEM 124-1: the place the reader chose by name (its name and time zone) is the saved position's own label.
+  { c: 'PRAYER_PLACE_KEY',
+    clause: 'the position saved for the qibla and the prayer times -- the place chosen by name' },
   // THE SIGN-IN SESSION, ADDED WITH THE SEAM THAT WRITES IT. delete.html:94 / :138 say everything
   // is wiped immediately -- and then :95 / :139 name exactly ONE thing that remains afterwards,
   // the digest of the parental lock code. A session key left standing would quietly have made

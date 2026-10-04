@@ -867,3 +867,5 @@ guards/fixtures-impermissible-early.json text eol=lf
 guards/prayer-ojeiri-guard.cjs text eol=lf
 data/prayer-ojeiri-kw-2026-10.csv text eol=lf
 data/prayer-ojeiri-kw-2026-11.csv text eol=lf
+guards/prayer-features-guard.cjs text eol=lf
+places.json text eol=lf

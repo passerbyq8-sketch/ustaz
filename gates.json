@@ -650,5 +650,10 @@
     "name": "prayerojeiri",
     "script": "guards/prayer-ojeiri-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "prayerfeatures",
+    "script": "guards/prayer-features-guard.cjs",
+    "args": ""
   }
 ]

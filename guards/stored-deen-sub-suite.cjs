@@ -737,12 +737,13 @@ async function runSuite() {
     // speedintegration, speedpipes) -> 126, same rule.
     // IMPERMISSIBLE (order EZIK-IMPERMISSIBLE-ORDER-2026-10-01): 127 -> 128, same rule -- the gate `impermissibleearly`.
     // ITEM 124 (2026-10-04): 128 -> 129, same rule -- the gate `prayerojeiri`.
+    // ITEM 124 (2026-10-04): 129 -> 130, same rule -- the gate `prayerfeatures`.
     // SORTER (order EZIK-SORTER-ORDER-2026-10-01): 126 -> 127, same rule -- the gate `frontsorter`,
     // guards/front-sorter-guard.cjs, the front sorter and the general frame.
-function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 129; }
+function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 130; }
     ok('ORIGINAL_GATE_SET_MATCH', exactGateSet(EXPECTED_GATES));
-    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 129-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
-    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 129-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
+    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 130-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
+    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 130-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
 
     const m13 = await storedMutant(temp, 'fiqh-before-special', (source) => source.replace(
       "if (QURAN_REQUEST.test(folded)) return 'LOCAL_QURAN';",

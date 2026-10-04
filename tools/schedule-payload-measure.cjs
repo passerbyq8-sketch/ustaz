@@ -137,7 +137,7 @@ function freeNames(root) {
 
 const LANGUAGE = new Set(['Array', 'Object', 'JSON', 'String', 'Number', 'Boolean', 'Math', 'Date',
   'RegExp', 'Error', 'Map', 'Set', 'Promise', 'parseInt', 'parseFloat', 'isNaN', 'isFinite',
-  'undefined', 'NaN', 'Infinity', 'encodeURIComponent', 'decodeURIComponent']);
+  'undefined', 'NaN', 'Infinity', 'encodeURIComponent', 'decodeURIComponent', 'Intl']);
 
 // What the harness stands in for. Asserted in BOTH directions below: a name the pipe starts using
 // that nothing here supplies is a tool measuring code that cannot run, and a name faked here that
@@ -962,14 +962,19 @@ run('the instant is REBUILT from the local wall clock, never added to a midnight
   // one (Asia/Kuwait, UTC+3, no transition). A runtime case here therefore cannot tell them
   // apart, and a case that cannot fail proves nothing. The distinction is real only across a
   // transition, so it is asserted where it is always visible: in the source.
+  // ITEM 124-1: the construction moved into prayerInstant() (the local branch, unchanged) and the per-day
+  // noon offset into prayerTzOn(), because a chosen place needs its own zone. The feed must still be built
+  // THROUGH them, and each must still hold the exact construction this check has always demanded.
   const body = text(topFunction('ezikAdhanItems'));
-  is(/new Date\(y, m - 1, d, Math\.floor\(mins \/ 60\), mins % 60, 0, 0\)\.getTime\(\)/.test(body),
+  const inst = text(topFunction('prayerInstant'));
+  const tzOn = text(topFunction('prayerTzOn'));
+  is(/prayerInstant\(y, m, d, mins, place, tz\)/.test(body) && /prayerTzOn\(y, m, d, place\)/.test(body),
+    'the adhan feed is no longer built through prayerInstant() and prayerTzOn()');
+  is(/new Date\(y, m - 1, d, hh, total - hh \* 60, 0, 0\)\.getTime\(\)/.test(inst) && /Math\.floor\(total \/ 60\)/.test(inst),
     'the instant is no longer built from the local wall clock of its own day');
   is(!/getTime\(\)\s*\+\s*(mins|[a-z]*\s*\*\s*60000)/.test(body),
     'an offset is being ADDED to a timestamp -- that slides by an hour across a daylight change');
-  // The zone offset is taken for each day, from noon, so the reading cannot land in the
-  // changeover hour itself.
-  is(/getTimezoneOffset\(\)/.test(body) && /12, 0, 0, 0/.test(body),
+  is(/getTimezoneOffset\(\)/.test(tzOn) && /12, 0, 0, 0/.test(tzOn),
     'the zone offset is no longer read per day at noon');
   // And the invariant that DOES hold in every zone: each moment reads back as exactly the hour
   // and minute its own day's calculation named.

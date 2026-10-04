@@ -94,6 +94,12 @@ const FN_COORDS = topFunction('shellLocResultCoords');
 const FN_READ = topFunction('readQiblaLoc');
 const FN_WRITE = topFunction('writeQiblaLoc');
 const C_KEY = topConst('QIBLA_LOC_KEY');
+// ITEM 124-1: readQiblaLoc/writeQiblaLoc also read and clear the chosen-place record, so its key, its reader
+// and the zone formatter that reader asks are lifted with them -- the real bodies, never a stub.
+const C_PLACE_KEY = topConst('PRAYER_PLACE_KEY');
+const C_ZONE_FMT = topConst('PRAYER_ZONE_FMT');
+const FN_PLACE_READ = topFunction('readPrayerPlaceFor');
+const FN_ZONE_FMT = topFunction('prayerZoneFmt');
 const C_DEF_LAT = topConst('QIBLA_DEFAULT_LAT');
 const C_DEF_LNG = topConst('QIBLA_DEFAULT_LNG');
 const C_REQ = topConst('SHELL_LOC_REQUEST');
@@ -137,6 +143,10 @@ const HARNESS = [
   'const setLoc = env.setLoc;',
   'const setLocState = env.setLocState;',
   text(C_KEY),
+  text(C_PLACE_KEY),
+  text(C_ZONE_FMT),
+  text(FN_ZONE_FMT),
+  text(FN_PLACE_READ),
   text(C_DEF_LAT),
   text(C_DEF_LNG),
   text(FN_READ),
