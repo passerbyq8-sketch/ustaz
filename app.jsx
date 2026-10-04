@@ -24683,7 +24683,7 @@ function prayerDayFromIso(s) {
 function prayerDayLabel(v) {
   let g = '';
   try {
-    g = new Intl.DateTimeFormat(EZ_LANG === 'ar' ? 'ar-u-ca-gregory' : 'en-u-ca-gregory',
+    g = new Intl.DateTimeFormat(EZ_LANG === 'ar' ? 'ar-u-ca-gregory-nu-arab' : 'en-u-ca-gregory',
       { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(Date.UTC(v.y, v.m - 1, v.d));
   } catch (e) { g = prayerDayIso(v); }
   const h = hijriLabel(hijriForCivilDay(v.y, v.m, v.d, readHijriOffset()));
