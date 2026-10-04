@@ -2042,6 +2042,16 @@ if (tLifted) {
         [["TPANEL", TPANEL], ["PSET", PSET]],
         TPANEL.indexOf(t) === -1 && PSET.indexOf(t) === -1);
     }
+    // ITEM 124-7 -- THE ONE EXACT ALLOWANCE FOR A TIMER. The next-prayer countdown needs one tick a second, so
+    // the panel calls ONE hook, defined outside it, that starts the interval only while the sheet shows today and
+    // clears it when the sheet goes. The panel's own text still holds no timer call (the loop above), the hook is
+    // asserted here, and nothing else in the panel's span may start one.
+    const TICK_AT = SRC.indexOf('function useEzikTick(enabled) {');
+    const TICK = TICK_AT === -1 ? '' : SRC.slice(TICK_AT, SRC.indexOf('\n}\n', TICK_AT) + 3);
+    ok('107: the countdown tick is one hook that starts only when enabled and clears itself on unmount',
+      TICK.length > 100 && /if \(!enabled\) return undefined;/.test(TICK) && /setInterval\(/.test(TICK)
+      && /return \(\) => clearInterval\(id\);/.test(TICK) && (TPANEL.match(/useEzikTick\(/g) || []).length === 1
+      && (SRC.match(/setInterval\(\(\) => setN/g) || []).length === 1);
   }
   // C2 exposes a sound preference; the native shell owns playback. The escaped source
   // spelling is checked here, and widgetopen checks the rendered label and sound values.

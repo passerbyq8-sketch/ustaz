@@ -163,6 +163,43 @@ function sectionConv() {
   t('the reader\'s offset of +1 moves the civil day back by one', dayNo(one) - dayNo(plus), 1);
 }
 
+// ---------------------------------------------------------------------------------------------- F: the screen (124-7)
+function sectionScreen() {
+  say('F4  where the reader is in the day: current, next, countdown, clock');
+  const names = ['prayerStatus', 'prayerTodayParts', 'prayerTzOn', 'prayerInstant', 'prayerTimesFor', 'prayerMethodTable',
+    'prayerMethodIds', 'prayerMethodOf', 'prayerSunPosition', 'prayerSunAngleTime', 'prayerAsrAngle', 'hijriJdnFromCivil',
+    'prayerZoneFmt', 'prayerZoneWall', 'prayerZoneOffset', 'prayerCountdownText', 'prayerClockL', 'prayerClock'];
+  const consts = ['PRAYER_METHOD_DEFAULT', 'PRAYER_ASR_DEFAULT', 'PRAYER_OFFSET_MIN', 'PRAYER_OFFSET_MAX', 'PRAYER_KEYS',
+    'PRAYER_OFFSETTABLE', 'PRAYER_HORIZON', 'PRAYER_ROUND_UP', 'PRAYER_ZONE_FMT', 'ADHAN_KEYS', 'toArabicDigits'];
+  const A = lifted(names, consts, { EZ_LANG: 'ar', ezikBrowseNum: (v) => String(v) });
+  const place = { tz: 'Asia/Kuwait' };
+  const loc = { lat: 29.3759, lng: 47.9774, by: 'place', place };
+  const prefs = { method: 'kuwait', asr: 'standard', off: { fajr: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 } };
+  const day = (y, m, d) => A.prayerTimesFor(y, m, d, loc.lat, loc.lng, 180, 'kuwait', 'standard', null);
+  const at = (y, m, d, mins) => Date.UTC(y, m - 1, d) + (mins - 180) * 60000;
+  const T = day(2026, 10, 4), T2 = day(2026, 10, 5);
+  let s = A.prayerStatus(new Date(at(2026, 10, 4, T.fajr) + 60000), loc, prefs);
+  t('just after fajr: fajr is current, dhuhr is next', [s.current, s.next.key, s.remainingMs], ['fajr', 'dhuhr', at(2026, 10, 4, T.dhuhr) - (at(2026, 10, 4, T.fajr) + 60000)]);
+  s = A.prayerStatus(new Date(at(2026, 10, 4, T.isha) + 600000), loc, prefs);
+  t('after isha: isha is current and the next is tomorrow\'s fajr', [s.current, s.next.key, s.remainingMs], ['isha', 'fajr', at(2026, 10, 5, T2.fajr) - (at(2026, 10, 4, T.isha) + 600000)]);
+  s = A.prayerStatus(new Date(at(2026, 10, 4, T.fajr) - 600000), loc, prefs);
+  t('before fajr: yesterday\'s isha is still current, fajr is ten minutes away', [s.current, s.next.key, s.remainingMs], ['isha', 'fajr', 600000]);
+  s = A.prayerStatus(new Date(at(2026, 10, 4, T.dhuhr)), loc, prefs);
+  t('at the very minute of a prayer it is the current one', [s.current, s.next.key], ['dhuhr', 'asr']);
+  t('the sunrise is never a prayer: between sunrise and dhuhr fajr is still current', A.prayerStatus(new Date(at(2026, 10, 4, T.sunrise) + 60000), loc, prefs).current, 'fajr');
+  const withOff = A.prayerStatus(new Date(at(2026, 10, 4, T.dhuhr) + 60000), loc, Object.assign({}, prefs, { off: { fajr: 0, dhuhr: 5, asr: 0, maghrib: 0, isha: 0 } }));
+  t('the reader\'s offset moves the prayer: with +5 dhuhr has not come yet', withOff.current, 'fajr');
+  t('a countdown reads hh:mm:ss', A.prayerCountdownText(3725000), '01:02:05');
+  t('a countdown never goes below zero', A.prayerCountdownText(-5), '00:00:00');
+  t('a countdown of junk is zero', A.prayerCountdownText('x'), '00:00:00');
+  const E = lifted(['prayerClockL', 'prayerClock'], ['toArabicDigits'], { EZ_LANG: 'en' });
+  t('English clock: midnight', E.prayerClockL(0), '12:00 AM');
+  t('English clock: noon and five', E.prayerClockL(725), '12:05 PM');
+  t('English clock: afternoon', E.prayerClockL(805), '1:25 PM');
+  t('English clock: a missing time is a dash', E.prayerClockL(null), String.fromCharCode(0x2014));
+  t('Arabic clock is the old one', A.prayerClockL(805), A.prayerClock(805));
+}
+
 // ---------------------------------------------------------------------------------------------- S: mounted scenes
 function boot(opts) {
   const { parseHTML } = require(path.join(REPO, 'node_modules', 'linkedom'));
@@ -264,8 +301,8 @@ SCENES.day = async () => {
   const c = boot({});
   await openPrayer(c);
   const KEYS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
-  const shown = () => KEYS.map((k) => c.q('[data-ezik-prayer="' + k + '"]').textContent);
-  const expect = (y, m, d) => KEYS.map((k) => c.read("ezT('widget.prayer.' + '" + k + "')") + c.read('prayerClock(prayerTimesFor(' + [y, m, d].join(',') + ', QIBLA_DEFAULT_LAT, QIBLA_DEFAULT_LNG, prayerTzOn(' + [y, m, d].join(',') + ', null), "kuwait", "standard", null)["' + k + '"])'));
+  const shown = () => KEYS.map((k) => c.q('[data-ezik-prayer="' + k + '"]').querySelectorAll('span')[1].textContent);
+  const expect = (y, m, d) => KEYS.map((k) => c.read('prayerClockL(prayerTimesFor(' + [y, m, d].join(',') + ', QIBLA_DEFAULT_LAT, QIBLA_DEFAULT_LNG, prayerTzOn(' + [y, m, d].join(',') + ', null), "kuwait", "standard", null)["' + k + '"])'));
   const today = c.read('prayerTodayParts(new Date(), null)');
   t('the sheet opens on today\'s times', shown(), expect(today.y, today.m, today.d));
   t('there is no "back to today" button on today', c.q('[data-ezik-day="today"]'), null);
@@ -408,8 +445,8 @@ SCENES.conv = async () => {
   await c.click(c.q('[data-ezik-conv="show-hijri"]'));
   t('"show the times" sends the sheet to that day', c.q('[data-ezik-day="head"]').textContent, c.read('prayerDayLabel({y:2026,m:10,d:4})'));
   const KEYS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
-  const shown = KEYS.map((k) => c.q('[data-ezik-prayer="' + k + '"]').textContent);
-  const expect = KEYS.map((k) => c.read("ezT('widget.prayer.' + '" + k + "')") + c.read('prayerClock(prayerTimesFor(2026,10,4, QIBLA_DEFAULT_LAT, QIBLA_DEFAULT_LNG, prayerTzOn(2026,10,4,null), "kuwait", "standard", null)["' + k + '"])'));
+  const shown = KEYS.map((k) => c.q('[data-ezik-prayer="' + k + '"]').querySelectorAll('span')[1].textContent);
+  const expect = KEYS.map((k) => c.read('prayerClockL(prayerTimesFor(2026,10,4, QIBLA_DEFAULT_LAT, QIBLA_DEFAULT_LNG, prayerTzOn(2026,10,4,null), "kuwait", "standard", null)["' + k + '"])'));
   t('...and the times on show are that day\'s', shown, expect);
   await c.type(c.q('[data-ezik-conv="hd"]'), '31');
   t('a day of 31 says the date does not exist', c.q('[data-ezik-conv="greg-out"]').textContent, c.read("ezT('conv.invalidHijri')"));
@@ -502,6 +539,51 @@ SCENES['backup-restore'] = async () => {
   ok('the shell was handed a schedule that carries the iqama', c.posts.some((w) => { try { return JSON.parse(w).items.some((x) => x.id.indexOf('adhan:iqama:asr:') === 0); } catch (e) { return false; } }));
   t('nothing threw', c.caught(), null);
 };
+const countdownSecs = (txt) => {
+  const latin = String(txt).replace(/[\u0660-\u0669]/g, (d) => String(d.charCodeAt(0) - 0x0660));
+  const m = /^(\d\d):(\d\d):(\d\d)$/.exec(latin);
+  return m ? Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3]) : null;
+};
+SCENES.next = async () => {
+  say('S11 the screen in Arabic: city, next prayer, a live countdown, the current prayer marked');
+  const c = boot({});
+  await openPrayer(c);
+  const st = c.read('prayerStatus(new Date(), readQiblaLoc(), readPrayerPrefs())');
+  t('the city line names the default city', c.q('[data-ezik-city="name"]').textContent.indexOf(c.read("ezT('place.default')")) >= 0, true);
+  t('the next prayer is named', c.q('[data-ezik-next="name"]').textContent, c.read("ezT('widget.prayer.' + '" + st.next.key + "')"));
+  const first = countdownSecs(c.q('[data-ezik-next="count"]').textContent);
+  ok('the countdown is hh:mm:ss in Arabic-Indic digits', first !== null && /[\u0660-\u0669]/.test(c.q('[data-ezik-next="count"]').textContent));
+  const marked = c.qa('[data-ezik-current="1"]');
+  t('exactly the current prayer is marked', marked.map((e) => e.getAttribute('data-ezik-prayer')), st.current ? [st.current] : []);
+  ok('...and it says so in words and for assistive tech', marked.length === 0 || (marked[0].getAttribute('aria-current') === 'true' && marked[0].textContent.indexOf(c.read("ezT('panel.current')")) >= 0));
+  await tick(2300);
+  const later = countdownSecs(c.q('[data-ezik-next="count"]').textContent);
+  ok('the countdown runs by itself (it fell by one to three seconds)', first !== null && later !== null && first - later >= 1 && first - later <= 3, first + ' -> ' + later);
+  await c.click(c.q('[data-ezik-day="next"]'));
+  t('on another day there is no countdown strip', c.q('[data-ezik-next="head"]'), null);
+  t('...and no prayer is marked', c.qa('[data-ezik-current="1"]').length, 0);
+  await c.click(c.q('[data-ezik-day="today"]'));
+  ok('back on today the strip returns', !!c.q('[data-ezik-next="head"]'));
+  t('nothing threw', c.caught(), null);
+};
+SCENES['next-en'] = async () => {
+  say('S12 the same screen in English, for a place chosen by name');
+  const c = boot({ seed: { ezik_ui_lang_v1: 'en', ezik_qibla_loc_v1: JSON.stringify({ lat: JAK.lat, lng: JAK.lng }), ezik_prayer_place_v1: JSON.stringify(JAK) } });
+  await openPrayer(c);
+  const text = c.root.textContent;
+  ok('the panel title is English', text.indexOf('Prayer times') >= 0);
+  ok('the city is the place', c.q('[data-ezik-city="name"]').textContent.indexOf('Jakarta') >= 0 || c.q('[data-ezik-city="name"]').textContent.indexOf('x') >= 0);
+  for (const w of ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']) ok('the row is labelled ' + w, text.indexOf(w) >= 0);
+  ok('the clock is AM/PM with Latin digits', /\d{1,2}:\d\d (AM|PM)/.test(c.q('[data-ezik-prayer="fajr"]').textContent));
+  const cnt = c.q('[data-ezik-next="count"]').textContent;
+  ok('the countdown is Latin digits', /^\d\d:\d\d:\d\d$/.test(cnt), cnt);
+  ok('the next-prayer words are English', text.indexOf('Next prayer') >= 0 && text.indexOf(' in ') >= 0);
+  ok('the offsets heading is English', text.indexOf('Manual offset in minutes') >= 0);
+  ok('the sunrise note is English', text.indexOf('Sunrise is calculated') >= 0);
+  const arabicInPanel = Array.from(c.root.querySelectorAll('[data-ezik-prayer],[data-ezik-next],[data-ezik-city]')).filter((e) => /[\u0600-\u06FF]/.test(e.textContent));
+  t('no Arabic letter inside the rows, the next-prayer strip or the city line', arabicInPanel.length, 0);
+  t('nothing threw', c.caught(), null);
+};
 SCENES['iqama-noshell'] = async () => {
   say('S5  in a browser tab the alert controls are not drawn');
   const one = blank5(); one.dhuhr = { on: true, min: 10 };
@@ -534,6 +616,7 @@ async function main() {
   sectionPlace();
   sectionDay();
   sectionConv();
+  sectionScreen();
   let sceneFail = 0;
   for (const name of Object.keys(SCENES)) {
     const code = await new Promise((resolve) => {

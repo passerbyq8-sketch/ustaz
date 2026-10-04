@@ -463,6 +463,20 @@ const EZ_I18N = {
     'prayer.notify.denied': 'التذكيرُ ممنوعٌ من إعداداتِ النِّظام.',
     'prayer.notify.silent': 'لم يصلْ جوابٌ، والتذكيرُ باقٍ مطفأً.',
     'prayer.notify.note': 'تُجدوَلُ على هذا الجهازِ حتّى {n} من الأيّامِ القادمة — وتقِلُّ إن كثُرَتِ التذكيراتُ — وتُجدَّدُ كلّما فُتِحَ التطبيق.',
+    'panel.title': 'مواقيت الصلاة',
+    'panel.offsets': 'إزاحة يدويّة بالدقائق',
+    'panel.none': 'لا يبلغُ الشفقُ هذه الزاويةَ في هذا الموضع اليوم.',
+    'panel.sunriseNote': 'الشروق محسوبٌ لا مُعايَر؛ لا تُطبَّق عليه إزاحة.',
+    'panel.schedTitle': 'جدول ثلاثين يومًا',
+    'panel.schedShow': 'اعرض جدول ثلاثين يومًا',
+    'panel.schedHide': 'اطوِ الجدول',
+    'panel.schedNote': 'يُحسَب على هذا الجهاز لثلاثين يومًا قادمة، بلا إنترنت، ويُعاد توليده تلقائيًّا متى بقي أقلّ من سبعة أيّام، أو متى غيّرتَ المنهج أو الإزاحة أو الموضع.',
+    'panel.next': 'الصلاة القادمة',
+    'panel.current': 'الصلاة الحالية',
+    'panel.city': 'المدينة',
+    'panel.in': 'بعد',
+    'place.device': 'موقع هذا الجهاز',
+    'place.default': 'مدينة الكويت (افتراضي)',
     'backup.title': 'نسخ الإعدادات واستعادتها',
     'backup.make': 'أنشئ نسخة',
     'backup.copied': 'نُسخ النص إلى الحافظة.',
@@ -1230,6 +1244,20 @@ const EZ_I18N = {
     'prayer.notify.denied': 'Reminders are blocked in your system settings.',
     'prayer.notify.silent': 'No answer came back, and the reminder is still off.',
     'prayer.notify.note': 'Scheduled on this device for up to {n} days ahead — fewer when you add more reminders — and refreshed each time you open the app.',
+    'panel.title': 'Prayer times',
+    'panel.offsets': 'Manual offset in minutes',
+    'panel.none': 'At this position the twilight does not reach this angle today.',
+    'panel.sunriseNote': 'Sunrise is calculated, not calibrated; no offset applies to it.',
+    'panel.schedTitle': 'Thirty-day table',
+    'panel.schedShow': 'Show the thirty-day table',
+    'panel.schedHide': 'Collapse the table',
+    'panel.schedNote': 'Calculated on this device for the next thirty days, with no internet, and rebuilt automatically when fewer than seven days remain or when you change the method, the offset or the place.',
+    'panel.next': 'Next prayer',
+    'panel.current': 'Current prayer',
+    'panel.city': 'City',
+    'panel.in': 'in',
+    'place.device': 'This device',
+    'place.default': 'Kuwait City (default)',
     'backup.title': 'Back up and restore settings',
     'backup.make': 'Make a copy',
     'backup.copied': 'The text was copied to the clipboard.',
@@ -24175,6 +24203,7 @@ function PrayerAlertsControl() {
 function PrayerTimesPanel({ loc, day, onDay }) {
   // The position and the preferences both move HERE, so the pipe is re-armed from here.
   useEzikSchedWatch();
+  useEzLang();
   const [prefs, setPrefs] = useState(readPrayerPrefs);
   const [open, setOpen] = useState(false);
   const now = new Date();
@@ -24187,13 +24216,27 @@ function PrayerTimesPanel({ loc, day, onDay }) {
   // The day on show: the one the reader stepped or picked to, else today in the place's own calendar.
   const view = day && day.y ? day : today;
   const isToday = view.y === today.y && view.m === today.m && view.d === today.d;
+  useEzikTick(isToday);
   const tz = isToday ? prayerTzNow(now, loc) : prayerTzOn(view.y, view.m, view.d, place);
   const t = prayerTimesFor(view.y, view.m, view.d,
     loc.lat, loc.lng, tz, prefs.method, prefs.asr, prefs.off);
   const goDay = (v) => { if (onDay) onDay(v && v.y === today.y && v.m === today.m && v.d === today.d ? null : v); };
   const anyMissing = PRAYER_KEYS.some((k) => t[k] === null);
+  // Where the reader is in the day: only meaningful for today.
+  const status = isToday ? prayerStatus(now, loc, prefs) : null;
+  const label = (k) => ezT('widget.prayer.' + k);
   return (
-    <EzShellGroup title={PRAYER_TITLE}>
+    <EzShellGroup title={ezT('panel.title')}>
+      <div style={s.prayerRow} data-ezik-city="name">
+        <span style={s.prayerName}>{ezT('panel.city')}</span>
+        <span style={s.prayerTime}>{prayerCityName(loc)}</span>
+      </div>
+      {status && status.next ? (
+        <div style={s.prayerRow} data-ezik-next="head">
+          <span style={s.prayerName}>{ezT('panel.next')}: <span data-ezik-next="name">{label(status.next.key)}</span></span>
+          <span style={s.prayerTime}>{ezT('panel.in')} <span data-ezik-next="count">{prayerCountdownText(status.remainingMs)}</span></span>
+        </div>
+      ) : null}
       <div style={s.prayerRow} data-ezik-day="head">
         <span style={s.prayerName}>{prayerDayLabel(view)}</span>
       </div>
@@ -24211,41 +24254,45 @@ function PrayerTimesPanel({ loc, day, onDay }) {
             className="ezik-focus" style={s.prayerOpt}>{ezT('day.today')}</button>
         )}
       </div>
-      {PRAYER_KEYS.map((k) => (
-        <div key={k} style={s.prayerRow} data-ezik-prayer={k}>
-          <span style={s.prayerName}>{PRAYER_LABELS[k]}</span>
-          <span style={s.prayerTime}>{prayerClock(t[k])}</span>
-        </div>
-      ))}
-      {anyMissing ? <div style={s.qiblaNote}>{PRAYER_NONE}</div> : null}
-      <div style={s.a11yGroupLabel}>{PRAYER_OFFSET_LABEL}</div>
+      {PRAYER_KEYS.map((k) => {
+        const isCur = !!status && status.current === k;
+        return (
+          <div key={k} style={isCur ? { ...s.prayerRow, background: 'var(--a3-ice)', fontWeight: 700 } : s.prayerRow}
+            data-ezik-prayer={k} data-ezik-current={isCur ? '1' : '0'} aria-current={isCur ? 'true' : undefined}>
+            <span style={s.prayerName}>{label(k)}{isCur ? ' \u00b7 ' + ezT('panel.current') : ''}</span>
+            <span style={s.prayerTime}>{prayerClockL(t[k])}</span>
+          </div>
+        );
+      })}
+      {anyMissing ? <div style={s.qiblaNote}>{ezT('panel.none')}</div> : null}
+      <div style={s.a11yGroupLabel}>{ezT('panel.offsets')}</div>
       {PRAYER_OFFSETTABLE.map((k) => (
         <div key={k} style={s.prayerRow}>
-          <span style={s.prayerName}>{PRAYER_LABELS[k]}</span>
+          <span style={s.prayerName}>{label(k)}</span>
           <span className="ez-hit" style={s.prayerStep}>
             <button type="button" onClick={() => setPrefs(prayerNudgeOffset(prefs, k, -1))}
-              aria-label={PRAYER_LABELS[k] + ' ' + PRAYER_MINUS} className="ezik-focus" style={s.prayerStepBtn}>{PRAYER_MINUS}</button>
-            <span style={s.prayerOffVal}>{(prefs.off[k] > 0 ? PRAYER_PLUS : prefs.off[k] < 0 ? PRAYER_MINUS : '') + toArabicDigits(Math.abs(prefs.off[k]))}</span>
+              aria-label={label(k) + ' ' + PRAYER_MINUS} className="ezik-focus" style={s.prayerStepBtn}>{PRAYER_MINUS}</button>
+            <span style={s.prayerOffVal}>{(prefs.off[k] > 0 ? PRAYER_PLUS : prefs.off[k] < 0 ? PRAYER_MINUS : '') + ezikBrowseNum(Math.abs(prefs.off[k]))}</span>
             <button type="button" onClick={() => setPrefs(prayerNudgeOffset(prefs, k, 1))}
-              aria-label={PRAYER_LABELS[k] + ' ' + PRAYER_PLUS} className="ezik-focus" style={s.prayerStepBtn}>{PRAYER_PLUS}</button>
+              aria-label={label(k) + ' ' + PRAYER_PLUS} className="ezik-focus" style={s.prayerStepBtn}>{PRAYER_PLUS}</button>
           </span>
         </div>
       ))}
-      <div style={s.qiblaNote}>{PRAYER_SUNRISE_NOTE}</div>
+      <div style={s.qiblaNote}>{ezT('panel.sunriseNote')}</div>
       <PrayerNotifyToggle />
       <PrayerAlertsControl />
-      <div style={s.a11yGroupLabel}>{PRAYER_SCHEDULE_TITLE}</div>
+      <div style={s.a11yGroupLabel}>{ezT('panel.schedTitle')}</div>
       <div className="ez-hit" style={s.prayerOptRow}>
         <button type="button" onClick={() => setOpen(!open)} aria-expanded={open ? 'true' : 'false'}
-          className="ezik-focus" style={s.prayerOpt}>{open ? PRAYER_SCHEDULE_HIDE : PRAYER_SCHEDULE_SHOW}</button>
+          className="ezik-focus" style={s.prayerOpt}>{open ? ezT('panel.schedHide') : ezT('panel.schedShow')}</button>
       </div>
       {open ? sched.rec.days.map((r) => (
         <div key={r.day} style={s.prayerRow}>
           <span style={s.prayerName}>{r.hijri}</span>
-          <span style={s.prayerTime}>{PRAYER_KEYS.map((k) => prayerClock(r[k])).join('  ·  ')}</span>
+          <span style={s.prayerTime}>{PRAYER_KEYS.map((k) => prayerClockL(r[k])).join('  \u00b7  ')}</span>
         </div>
       )) : null}
-      <div style={s.qiblaNote}>{PRAYER_SCHEDULE_NOTE}</div>
+      <div style={s.qiblaNote}>{ezT('panel.schedNote')}</div>
     </EzShellGroup>
   );
 }
@@ -24547,6 +24594,65 @@ function prayerInstant(y, m, d, total, place, tzMin) {
   if (place) return Date.UTC(y, m - 1, d) + (total - tzMin) * 60000;
   const hh = Math.floor(total / 60);
   return new Date(y, m - 1, d, hh, total - hh * 60, 0, 0).getTime();
+}
+// ITEM 124-7 -- WHERE THE READER IS IN THE DAY. The prayers of yesterday, today and tomorrow as instants (so the
+// stretch between isha and the next fajr belongs to somebody), the last one already past, the first one still
+// ahead, and how long until it. Same calculator, same place/zone arithmetic: not a second calculation.
+function prayerStatus(now, loc, prefs) {
+  const place = loc.by === 'place' ? loc.place : null;
+  const today = prayerTodayParts(now, place);
+  const list = [];
+  for (let n = -1; n <= 1; n++) {
+    const dt = new Date(today.y, today.m - 1, today.d + n);
+    const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
+    const tz = prayerTzOn(y, m, d, place);
+    const times = prayerTimesFor(y, m, d, loc.lat, loc.lng, tz, prefs.method, prefs.asr, prefs.off);
+    for (let j = 0; j < ADHAN_KEYS.length; j++) {
+      const k = ADHAN_KEYS[j];
+      const mins = times[k];
+      if (typeof mins !== 'number' || !isFinite(mins)) continue;
+      list.push({ key: k, at: prayerInstant(y, m, d, mins, place, tz) });
+    }
+  }
+  list.sort((a, b) => a.at - b.at);
+  const ms = now.getTime();
+  let cur = null, nxt = null;
+  for (let i = 0; i < list.length; i++) {
+    if (list[i].at <= ms) cur = list[i];
+    else { nxt = list[i]; break; }
+  }
+  return { current: cur ? cur.key : null, next: nxt ? { key: nxt.key, at: nxt.at } : null,
+    remainingMs: nxt ? nxt.at - ms : null };
+}
+// hh:mm:ss in the reader's digits.
+function prayerCountdownText(ms) {
+  const sec = Math.max(0, Math.floor((typeof ms === 'number' && isFinite(ms) ? ms : 0) / 1000));
+  const p2 = (n) => (n < 10 ? '0' : '') + n;
+  return ezikBrowseNum(p2(Math.floor(sec / 3600)) + ':' + p2(Math.floor((sec % 3600) / 60)) + ':' + p2(sec % 60));
+}
+// A time of day in the interface language: Arabic digits and the Arabic marks, or Latin digits with AM/PM.
+function prayerClockL(mins) {
+  if (EZ_LANG === 'ar') return prayerClock(mins);
+  if (typeof mins !== 'number' || !isFinite(mins)) return String.fromCharCode(0x2014);
+  const m = ((Math.round(mins) % 1440) + 1440) % 1440;
+  const h24 = Math.floor(m / 60);
+  const mm = m % 60;
+  return (h24 % 12 === 0 ? 12 : h24 % 12) + ':' + (mm < 10 ? '0' : '') + mm + ' ' + (h24 < 12 ? 'AM' : 'PM');
+}
+// The city's name as the sheet says it.
+function prayerCityName(loc) {
+  if (loc && loc.by === 'place') return placeLabel(loc.place);
+  if (loc && loc.by === 'device') return ezT('place.device');
+  return ezT('place.default');
+}
+// One second per tick, only while the sheet shows today, and gone with the sheet.
+function useEzikTick(enabled) {
+  const [, setN] = useState(0);
+  useEffect(() => {
+    if (!enabled) return undefined;
+    const id = setInterval(() => setN((n) => n + 1), 1000);
+    return () => clearInterval(id);
+  }, [enabled]);
 }
 // ITEM 124-2 -- ANOTHER DAY. A civil date {y, m, d}; stepping is calendar arithmetic (the Date constructor
 // rolls the month and the year), and the picker's value is the ISO day the browser's date input speaks.
