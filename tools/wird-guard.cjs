@@ -1759,7 +1759,7 @@ if (qLifted) {
 
 const T_CONSTS = ['PRAYER_PREFS_KEY', 'PRAYER_METHOD_DEFAULT', 'PRAYER_ASR_DEFAULT',
   'PRAYER_OFFSET_MIN', 'PRAYER_OFFSET_MAX', 'PRAYER_KEYS', 'PRAYER_OFFSETTABLE',
-  'PRAYER_LABELS', 'PRAYER_ASR_LABELS', 'PRAYER_HORIZON', 'toArabicDigits'];
+  'PRAYER_LABELS', 'PRAYER_ASR_LABELS', 'PRAYER_HORIZON', 'PRAYER_ROUND_UP', 'toArabicDigits'];
 const T_FNS = ['hijriJdnFromCivil', 'prayerMethodTable', 'prayerMethodIds', 'prayerMethodOf',
   'prayerSunPosition', 'prayerSunAngleTime', 'prayerAsrAngle', 'prayerTimesFor', 'prayerClock',
   'readPrayerPrefs', 'writePrayerPrefs', 'prayerNudgeOffset'];
@@ -1875,7 +1875,7 @@ if (tLifted) {
       if (gap > worst) { worst = gap; worstAt = c.y + '-' + c.m + '-' + c.d + ' ' + show(x); }
     }
     ok('107: solar noon sits at the midpoint of sunrise and sunset, every day of the year',
-      worst <= 1, 'worst deviation ' + worst.toFixed(2) + ' minutes at ' + worstAt);
+      worst <= 1.7, /* ITEM 124: dhuhr and maghrib round up, sunrise down (and Kuwait's sunrise carries -20 s), so the three roundings no longer cancel: the bound is 1.5 + 20/60 minutes, still far under the sixteen-minute swing this check exists to catch */ 'worst deviation ' + worst.toFixed(2) + ' minutes at ' + worstAt);
     ok('107: ...and that really was measured across a year, not asserted on one day', worst >= 0);
   })();
 
@@ -2161,7 +2161,7 @@ if (tLifted) {
 // IT IS RUN, NOT READ. Every claim below drives the lifted functions against a fake store and
 // a fake clock. A claim about a table is worth what the table it produced is worth.
 
-const N_CONSTS = ['PRAYER_SCHEDULE_KEY', 'PRAYER_SCHEDULE_DAYS', 'PRAYER_SCHEDULE_RENEW_AT'];
+const N_CONSTS = ['PRAYER_SCHEDULE_KEY', 'PRAYER_SCHEDULE_DAYS', 'PRAYER_SCHEDULE_RENEW_AT', 'PRAYER_CALC_VERSION'];
 const N_FNS = ['prayerDayKey', 'prayerScheduleStamp', 'buildPrayerSchedule',
   'readPrayerSchedule', 'writePrayerSchedule', 'prayerScheduleRemaining', 'ensurePrayerSchedule'];
 

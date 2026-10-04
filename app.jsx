@@ -23559,13 +23559,21 @@ const PRAYER_OFFSETTABLE = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 const PRAYER_LABELS = { fajr: 'الفجر', sunrise: 'الشروق', dhuhr: 'الظهر', asr: 'العصر', maghrib: 'المغرب', isha: 'العشاء' };
 const PRAYER_ASR_LABELS = { standard: 'الجمهور (ظلُّ المثل)', hanafi: 'الحنفيّ (ظلُّ المثلين)' };
 const PRAYER_HORIZON = 0.833;
+// ITEM 124 -- THE SAFE SIDE OF THE MINUTE, AND THE VERSION OF THIS CALCULATION.
+// A prayer is never announced before its time, a fast is never broken before maghrib and nothing is
+// eaten after fajr. So the exact minute is rounded UP for dhuhr, asr, maghrib and isha and DOWN for
+// fajr and sunrise, in every method; the reader's own offset is added after, as it always was.
+// PRAYER_CALC_VERSION enters the stamp of the stored thirty-day table, so a change here rebuilds
+// every table stored under the old arithmetic instead of leaving it to expire.
+const PRAYER_CALC_VERSION = 2;
+const PRAYER_ROUND_UP = { dhuhr: true, asr: true, maghrib: true, isha: true };
 
 // THE METHODS, each with the angles it is defined by. «ishaMin» above zero means that method
 // fixes isha as a fixed interval after maghrib instead of by an angle, which is what Umm al-Qura
 // and Qatar do; the angle is then unused and written as 0 rather than as a number that lies.
 function prayerMethodTable() {
   return {
-    kuwait: { name: 'الكويت', fajr: 18, isha: 17.5, ishaMin: 0 },
+    kuwait: { name: 'الكويت', fajr: 18, isha: 17.5, ishaMin: 0, secs: { sunrise: -20 } },
     mwl: { name: 'رابطة العالم الإسلاميّ', fajr: 18, isha: 17, ishaMin: 0 },
     egypt: { name: 'الهيئة المصريّة العامّة للمساحة', fajr: 19.5, isha: 17.5, ishaMin: 0 },
     makkah: { name: 'أمّ القرى', fajr: 18.5, isha: 0, ishaMin: 90 },
@@ -23660,7 +23668,11 @@ function prayerTimesFor(y, m, d, lat, lng, tzMinutes, methodId, asrMode, offsets
         off = v < PRAYER_OFFSET_MIN ? PRAYER_OFFSET_MIN : (v > PRAYER_OFFSET_MAX ? PRAYER_OFFSET_MAX : v);
       }
     }
-    const mins = Math.round((((raw[k] + shift) % 24) + 24) % 24 * 60) + off;
+    // The fixed seconds a method carries (Kuwait: sunrise only) are added to the exact minute, then
+    // the minute is cut to the safe side; the reader's offset comes after, whole minutes as before.
+    const sec = (M.secs && typeof M.secs[k] === 'number') ? M.secs[k] : 0;
+    const exact = (((raw[k] + shift) % 24) + 24) % 24 * 60 + sec / 60;
+    const mins = (PRAYER_ROUND_UP[k] === true ? Math.ceil(exact) : Math.floor(exact)) + off;
     out[k] = ((mins % 1440) + 1440) % 1440;
   }
   return out;
@@ -23778,7 +23790,7 @@ function prayerScheduleStamp(loc, prefs, tz) {
     off.push(k + ':' + (typeof prefs.off[k] === 'number' ? Math.trunc(prefs.off[k]) : 0));
   }
   return [Math.round(loc.lat * 1000) / 1000, Math.round(loc.lng * 1000) / 1000,
-    tz, prefs.method, prefs.asr, off.join(','), readHijriOffset()].join('|');
+    tz, prefs.method, prefs.asr, off.join(','), readHijriOffset(), 'calc' + PRAYER_CALC_VERSION].join('|');
 }
 // Thirty rows from `startDt` forward. new Date(y, monthIndex, d + i) is what rolls the month and
 // the year over, so the last day of a 31-day month needs no special case here.
