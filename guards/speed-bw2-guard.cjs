@@ -627,6 +627,30 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         ok('ORDER50-6 MUTANT KILLED: without the branch the writer reads the folded search text again', M6.selectPinnedText(enc6(), 'ما حكم قصر الصلاة؟').includes('اهل مكه'));
       } finally { try { fs.rmSync(tmp6, { force: true }); } catch { /* nothing to clean */ } }
     }
+    // ORDER 52B item 1: A ROW THAT FITS THE ROW CEILING REACHES THE WRITER WHOLE. MEASURED (the 4 Oct preview, answer 7, «ما سنن الصلاة القولية والفعلية؟»): the row the writer itself cited (1241 characters, nine
+    // sunnahs in a numbered list) reached it as 332 characters with none of the nine: the sections that share no word with the question score zero and selectPinnedText dropped them, and the writer said no text listed them.
+    {
+      const BW7 = await esm('lib/before-writing-v2.js');
+      const item7 = n => n + ' - ' + (n === 1 ? 'سنن ' : 'سنة ') + 'رقم ' + n + ' ' + 'ي'.repeat(90) + ' ';
+      const list7 = Array.from({ length: 9 }, (_, i) => item7(i + 1)).join('');
+      const q7 = 'ما سنن الصلاة القولية والفعلية؟';
+      const short7 = { ref: 1, kind: 'lib_book', title: 'الخشوع في الصلاة', text: list7.slice(0, 1200), fullText: list7 };
+      ok('ORDER52B-1 a short list row (fits BW_ROW_CHARS) reaches the writer whole, every item of it', list7.length < BW7.BW_ROW_CHARS && BW7.selectPinnedText(short7, q7) === list7);
+      const long7 = { ref: 2, kind: 'lib_book', title: 'كتاب', text: '', fullText: Array.from({ length: 60 }, (_, i) => (i + 1) + ' - ' + (i === 40 ? 'سنن القولية والفعلية ' : 'بند آخر ') + 'ي'.repeat(90) + ' ').join('') };
+      const out7 = BW7.selectPinnedText(long7, q7);
+      ok('ORDER52B-1 sibling: a row longer than the ceiling stays on selection (the matching section, not the whole row)', long7.fullText.length > BW7.BW_ROW_CHARS && out7.includes('سنن القولية') && out7.length < long7.fullText.length && !out7.includes('41 - بند آخر') && out7.length <= BW7.BW_SELECTED_CHARS, out7.length);
+      const plain7 = { ref: 3, kind: 'fatwa', title: 'فتوى', text: 'جواب قصير بلا قائمة', fullText: 'جواب قصير بلا قائمة' };
+      ok('ORDER52B-1 sibling: a short row with no list is the text unchanged', BW7.selectPinnedText(plain7, q7) === plain7.fullText);
+      const tmp7 = path.join(REPO, 'lib', '.mut-order52b-1.mjs');
+      try {
+        const src7 = fs.readFileSync(path.join(REPO, 'lib/before-writing-v2.js'), 'utf8').split(String.fromCharCode(13, 10)).join(String.fromCharCode(10));
+        const seam7 = "  if (text.length <= BW_ROW_CHARS) return text;\n";
+        ok('ORDER52B-1 MUTANT applied (the early return found once)', src7.split(seam7).length === 2);
+        fs.writeFileSync(tmp7, src7.split(seam7).join(''));
+        const M7 = await import(pathToFileURL(tmp7).href + '?m=order52b-1');
+        ok('ORDER52B-1 MUTANT KILLED: without the early return the zero-score items of a short row are dropped again', M7.selectPinnedText(short7, q7) !== list7);
+      } finally { try { fs.rmSync(tmp7, { force: true }); } catch { /* nothing to clean */ } }
+    }
     // ORDER 50 item 3 (the owner's decision 14): A UNIT THAT OPENS BY POINTING AT A SENTENCE THAT IS NOT IN THE ANSWER GOES WITH THE UNIT IT POINTS AT. MEASURED (the 3 Oct preview, answer 3, then replayed through
     // the real releaser with the real rows of «ما حكم رفع اليدين عند الركوع والرفع منه عند المذاهب الأربعة؟», the local library twin): the Hanafi unit was held ('unsupported_school') and «قد استدل الكاساني لهذا
     // المذهب بما روي …» went out as the first sentence, with nobody to say which school; so did «وعلل الكاساني ذلك …» and «ودليلهم …» (only «واستدلوا» was already held, as 'implicit'). The reading is
