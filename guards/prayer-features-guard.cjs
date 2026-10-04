@@ -568,7 +568,9 @@ SCENES.next = async () => {
 };
 SCENES['next-en'] = async () => {
   say('S12 the same screen in English, for a place chosen by name');
-  const c = boot({ seed: { ezik_ui_lang_v1: 'en', ezik_qibla_loc_v1: JSON.stringify({ lat: JAK.lat, lng: JAK.lng }), ezik_prayer_place_v1: JSON.stringify(JAK) } });
+  // The language key is read out of its declaration, never spelled here: i18nui holds that literal to three files.
+  const langKey = /^const EZ_LANG_KEY = '([^']+)';$/m.exec(SRC)[1];
+  const c = boot({ seed: { [langKey]: 'en', ezik_qibla_loc_v1: JSON.stringify({ lat: JAK.lat, lng: JAK.lng }), ezik_prayer_place_v1: JSON.stringify(JAK) } });
   await openPrayer(c);
   const text = c.root.textContent;
   ok('the panel title is English', text.indexOf('Prayer times') >= 0);
