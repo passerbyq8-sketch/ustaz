@@ -3681,6 +3681,56 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try { require('fs').rmSync(tmp60, { recursive: true, force: true }); } catch { /* temp only */ }
     }
   }
+  // ── ORDER 53 item 3 (row 20) · THE FOURTH DOOR: ONE WELDED LETTER ────────────────────────────────────
+  // MEASURED at d4872e8: a quotation and an atom that differ in one word by one of the five letters Arabic welds to the front of a word (ب · و · ف · ل · ك — «بصيام» ⇆ «صيام») did not carry each other.
+  // The owner's decision (22 Sep): a narrow fourth door — ONE letter on ONE word, every other word letter for letter. Measured over 449 real sayings of the two Sahihs and Abu Dawud against 777 atoms
+  // of the three books (348,424 pairs): 0 false brackets, 1 true one gained (the Abu Dawud wording of the pre-emption hadith carried by Bukhari's); 145 quotations of the real answers × their evidence: 0 changed.
+  console.log('\n--- ORDER53-3. ONE WELDED LETTER ---');
+  {
+    const T53 = await esm('lib/takhrij.js');
+    const fs53 = require('fs');
+    const os53 = require('os');
+    const MODEL = 'إن الله يحب رفق في الأمر كله';
+    for (const letter of ['ب', 'و', 'ف', 'ل', 'ك']) {
+      ok('ORDER53-3 the atom welds «' + letter + '» to one word: it carries the quotation without it', T53.atomCarriesMatn('عن عائشة قال إن الله يحب ' + letter + 'رفق في الأمر كله', MODEL) === true);
+      ok('ORDER53-3 ...and the quotation welds «' + letter + '» where the atom does not: the reverse is the same door', T53.atomCarriesMatn('عن عائشة قال إن الله يحب رفق في الأمر كله', 'إن الله يحب ' + letter + 'رفق في الأمر كله') === true);
+    }
+    ok('ORDER53-3 the order\'s own word: «بصيام» ⇆ «صيام» in the middle of the matn', T53.atomCarriesMatn('عن أبي هريرة قال أوصاني خليلي بصيام ثلاثة أيام من كل شهر وركعتي الضحى', 'أوصاني خليلي صيام ثلاثة أيام من كل شهر') === true);
+    // what is NOT the door
+    ok('ORDER53-3 control · a letter outside the five is another word', T53.atomCarriesMatn('عن عائشة قال إن الله يحب مرفق في الأمر كله', MODEL) === false);
+    ok('ORDER53-3 control · two welded letters are two letters', T53.atomCarriesMatn('عن عائشة قال إن الله يحب وبرفق في الأمر كله', MODEL) === false);
+    ok('ORDER53-3 control · two words each short of a letter are two words', T53.atomCarriesMatn('عن عائشة قال إن الله ويحب برفق في الأمر كله', MODEL) === false);
+    ok('ORDER53-3 control · a letter inside the word is not a welded letter', T53.atomCarriesMatn('عن عائشة قال إن الله يحب رفقب في الأمر كله', MODEL) === false);
+    ok('ORDER53-3 control · the word left without the letter must keep three letters', T53.atomCarriesMatn('عن عائشة قال إن الله يحب بيت في الأمر كله', 'إن الله يحب يت في الأمر كله') === false);
+    ok('ORDER53-3 control · a missing word is a different text', T53.atomCarriesMatn('عن عائشة قال إن الله يحب برفق الأمر كله', MODEL) === false);
+    ok('ORDER53-3 control · an extra word is a different text', T53.atomCarriesMatn('عن عائشة قال إن الله يحب برفق دائما في الأمر كله', MODEL) === false);
+    ok('ORDER53-3 control · a commentator\'s sentence is not a narration, with the letter or without', T53.atomCarriesMatn('قال المصنف رحمه الله إن الله يحب برفق في الأمر كله', MODEL) === false);
+    ok('ORDER53-3 control · a Companion\'s voice in the uncarried rest still refuses the anchor',
+      T53.atomCarriesMatn('إن الله يحب برفق في الأمر كله', 'إن الله يحب رفق في الأمر قال عمر رضي الله عنه') === false);
+    ok('ORDER53-3 the anchor path reads the letter too (a quotation longer than the atom\'s words)', T53.atomCarriesMatn('عن عائشة قال إن الله يحب برفق في الأمر كله', 'إن الله يحب رفق في الأمر كله وليس هذا في الكتاب') === true);
+    ok('ORDER53-3 the exact reading did not move', T53.atomCarriesMatn('عن عائشة قال إن الله يحب رفق في الأمر كله', MODEL) === true);
+    const src53 = fs53.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8');
+    const seams53 = [
+      ['the five letters are six', "const WELDED_LETTERS = 'بوفلك';", "const WELDED_LETTERS = 'بوفلكم';", (mod) => mod.atomCarriesMatn('عن عائشة قال إن الله يحب مرفق في الأمر كله', MODEL) === false],
+      ['the remainder may be short', 'short.length >= 3 &&', 'short.length >= 1 &&', (mod) => mod.atomCarriesMatn('عن عائشة قال إن الله يحب بيت في الأمر كله', 'إن الله يحب يت في الأمر كله') === false],
+      ['two words may differ', 'if (diff === 1) return hw.slice', 'if (diff >= 1) return hw.slice', (mod) => mod.atomCarriesMatn('عن عائشة قال إن الله ويحب برفق في الأمر كله', MODEL) === false],
+      ['the anchor is exact only', 'haystack.includes(anchor) ? anchor : weldedLetterWindow(haystack, anchor)', "haystack.includes(anchor) ? anchor : ''", (mod) => mod.atomCarriesMatn('عن عائشة قال إن الله يحب برفق في الأمر كله', 'إن الله يحب رفق في الأمر كله وليس هذا في الكتاب') === true],
+    ];
+    for (const [tag, from, to, killed] of seams53) {
+      const mutated = src53.split(from).join(to);
+      ok('MUTANT ORDER53-3 ' + tag + ' seam applied', mutated !== src53);
+      const tmp = fs53.mkdtempSync(path.join(os53.tmpdir(), 'ustaz-o533-mut-'));
+      try {
+        const f = path.join(tmp, 'takhrij.mjs');
+        fs53.writeFileSync(f, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + f.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: without ORDER53-3 ' + tag + ' the door is as it was or as it must not be', killed(mod) === false);
+      } finally {
+        try { fs53.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
