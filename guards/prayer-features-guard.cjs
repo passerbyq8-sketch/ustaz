@@ -256,6 +256,72 @@ SCENES.day = async () => {
   t('picking today\'s own date is the same as being on today', c.q('[data-ezik-day="today"]'), null);
   t('nothing threw', c.caught(), null);
 };
+const prefsWith = (extra) => JSON.stringify(Object.assign({ method: 'kuwait', asr: 'standard', off: { fajr: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 }, adhanSound: true }, extra));
+const blank5 = () => ({ fajr: { on: false, min: 0 }, dhuhr: { on: false, min: 0 }, asr: { on: false, min: 0 }, maghrib: { on: false, min: 0 }, isha: { on: false, min: 0 } });
+SCENES.iqama = async () => {
+  say('S4  the iqama reminder: the reader\'s minutes, per prayer, through the shell\'s own pipe');
+  // --- one prayer on
+  const one = blank5(); one.dhuhr = { on: true, min: 10 };
+  let c = boot({ shell: true, seed: { ezik_prayer_notify_v1: 'on', ezik_prayer_prefs_v1: prefsWith({ iq: one }) } });
+  await openPrayer(c);
+  const items = c.read('ezikSchedItems()');
+  const iq = items.filter((x) => x.id.indexOf('adhan:iqama:dhuhr:') === 0);
+  t('seven iqama items for the one prayer that is on', iq.length, 7);
+  t('...and none for the others', items.filter((x) => /^adhan:iqama:(fajr|asr|maghrib|isha):/.test(x.id)).length, 0);
+  t('an iqama rides the shell\'s adhan type with the device tone', [iq[0].type, iq[0].adhanSound], ['adhan', 'none']);
+  const day = iq[0].id.split(':')[3];
+  const adhan = items.find((x) => x.id === 'adhan:dhuhr:' + day);
+  t('the iqama is exactly the reader\'s minutes after the adhan', iq[0].at - adhan.at, 10 * 60000);
+  t('with one prayer on the window stays seven days', c.read('ezikSchedWindow(ezikSchedTiers(new Date()), new Date()).days'), 7);
+  // --- the control
+  ok('the control is drawn in the shell', c.qa('[data-ezik-alert-row^="iq:"]').length === 5);
+  // --- every prayer on: the window narrows, to the longest that fits
+  const all = blank5(); for (const k of Object.keys(all)) all[k] = { on: true, min: 5 };
+  c = boot({ shell: true, seed: { ezik_prayer_notify_v1: 'on', ezik_prayer_prefs_v1: prefsWith({ iq: all }) } });
+  await openPrayer(c);
+  const days = c.read('ezikSchedWindow(ezikSchedTiers(new Date()), new Date()).days');
+  ok('five iqama a day narrow the window below seven days', days < 7 && days >= 1, 'days ' + days);
+  const sched = c.read('ezikSchedItems()');
+  ok('the schedule fits the ceiling', sched.length <= 60, 'n ' + sched.length);
+  const cutAt = (n) => c.read('(function(){const nw=new Date();const p=prayerTodayParts(nw,null);return prayerInstant(p.y,p.m,p.d+' + n + ',0,null,0);})()');
+  ok('nothing lies beyond the chosen window', sched.every((x) => x.at < cutAt(days)));
+  const allTiers = c.read('ezikSchedTiers(new Date())').flat();
+  ok('one more day would not have fitted', allTiers.filter((x) => x.at < cutAt(days + 1)).length > 60);
+  ok('the sheet tells the reader about the narrowing', !!c.q('[data-ezik-alert="window"]'));
+  // --- both off again: seven days, nothing narrowed
+  c = boot({ shell: true, seed: { ezik_prayer_notify_v1: 'on' } });
+  await openPrayer(c);
+  t('with nothing on the window is seven days', c.read('ezikSchedWindow(ezikSchedTiers(new Date()), new Date()).days'), 7);
+  t('...and no iqama item exists', c.read('ezikSchedItems()').filter((x) => x.id.indexOf('iqama') >= 0).length, 0);
+  t('...and the narrowing sentence is absent', c.q('[data-ezik-alert="window"]'), null);
+  // --- the switch needs minutes; typing minutes; turning on; the pipe carries it
+  const min = () => c.q('[data-ezik-alert="iq:asr:min"]');
+  const sw = () => c.q('[data-ezik-alert="iq:asr:on"]');
+  await c.click(sw());
+  t('a switch cannot be turned on while its minutes are empty', JSON.parse(c.store.getItem('ezik_prayer_prefs_v1') || '{}').iq, undefined);
+  await c.type(min(), '15');
+  t('minutes are stored', JSON.parse(c.store.getItem('ezik_prayer_prefs_v1')).iq.asr, { on: false, min: 15 });
+  await c.click(sw());
+  t('the switch turns on', JSON.parse(c.store.getItem('ezik_prayer_prefs_v1')).iq.asr, { on: true, min: 15 });
+  ok('the shell was handed the iqama items', c.posts.some((w) => { try { return JSON.parse(w).items.some((x) => x.id.indexOf('adhan:iqama:asr:') === 0); } catch (e) { return false; } }));
+  await c.type(min(), '500');
+  t('minutes are bounded at the ceiling', JSON.parse(c.store.getItem('ezik_prayer_prefs_v1')).iq.asr.min, 120);
+  await c.type(min(), '0');
+  t('emptying the minutes turns the switch off', JSON.parse(c.store.getItem('ezik_prayer_prefs_v1')).iq.asr, { on: false, min: 0 });
+  // --- notify off: nothing rings
+  c = boot({ shell: true, seed: { ezik_prayer_prefs_v1: prefsWith({ iq: one }) } });
+  await openPrayer(c);
+  t('with the prayer reminders off no iqama is scheduled', c.read('ezikSchedItems()').filter((x) => x.id.indexOf('iqama') >= 0).length, 0);
+  t('nothing threw', c.caught(), null);
+};
+SCENES['iqama-noshell'] = async () => {
+  say('S5  in a browser tab the alert controls are not drawn');
+  const one = blank5(); one.dhuhr = { on: true, min: 10 };
+  const c = boot({ seed: { ezik_prayer_prefs_v1: prefsWith({ iq: one }) } });
+  await openPrayer(c);
+  t('in a browser tab the control is not drawn', c.qa('[data-ezik-alert-row]').length, 0);
+  t('nothing threw', c.caught(), null);
+};
 SCENES['places-offline'] = async () => {
   say('S2  a failed download of the places list says so and breaks nothing');
   const c = boot({ placesOffline: true });

@@ -463,6 +463,13 @@ const EZ_I18N = {
     'prayer.notify.denied': 'التذكيرُ ممنوعٌ من إعداداتِ النِّظام.',
     'prayer.notify.silent': 'لم يصلْ جوابٌ، والتذكيرُ باقٍ مطفأً.',
     'prayer.notify.note': 'تُجدوَلُ على هذا الجهازِ حتّى {n} من الأيّامِ القادمة — وتقِلُّ إن كثُرَتِ التذكيراتُ — وتُجدَّدُ كلّما فُتِحَ التطبيق.',
+    'iqama.group': 'تذكير الإقامة',
+    'iqama.hint': 'بعد دخول وقت الصلاة بعدد الدقائق الذي تضعه أنت لكل صلاة. لا توجد قيمة افتراضية.',
+    'iqama.title': 'إقامة صلاة {name}',
+    'iqama.body': 'حانت إقامة صلاة {name}.',
+    'alerts.min': 'دقيقة',
+    'alerts.set': 'حدّد الدقائق أولًا',
+    'alerts.window': 'ما دام أحد هذه التنبيهات مفعّلًا تُجدوَل {n} من الأيام القادمة بدل {max}، لأن الغلاف يقبل ستين تنبيهًا كحد أقصى.',
     'day.prev': 'اليوم السابق',
     'day.next': 'اليوم التالي',
     'day.today': 'العودة إلى اليوم',
@@ -1199,6 +1206,13 @@ const EZ_I18N = {
     'prayer.notify.denied': 'Reminders are blocked in your system settings.',
     'prayer.notify.silent': 'No answer came back, and the reminder is still off.',
     'prayer.notify.note': 'Scheduled on this device for up to {n} days ahead — fewer when you add more reminders — and refreshed each time you open the app.',
+    'iqama.group': 'Iqama reminder',
+    'iqama.hint': 'Minutes after the call to prayer, set by you for each prayer. There is no default.',
+    'iqama.title': 'Iqama: {name}',
+    'iqama.body': 'The iqama of {name} is now.',
+    'alerts.min': 'min',
+    'alerts.set': 'Set the minutes first',
+    'alerts.window': 'While one of these alerts is on, {n} upcoming days are scheduled instead of {max}, because the shell holds at most sixty.',
     'day.prev': 'Previous day',
     'day.next': 'Next day',
     'day.today': 'Back to today',
@@ -23724,8 +23738,50 @@ function prayerClock(mins) {
 }
 // THE PREFERENCES. One record, every field checked, and a broken store reads as the shipped
 // defaults rather than as an exception on a screen.
+// ITEM 124-3/4 -- the iqama reminder and the alert before the prayer live INSIDE this record, one block
+// each, one {on, min} per prayer. No new key, so the backup, the delete-all and the stamp keep one owner.
+const PRAYER_ALERT_MIN_MAX = 120;
+function prayerAlertBlank() {
+  const out = {};
+  for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) out[PRAYER_OFFSETTABLE[i]] = { on: false, min: 0 };
+  return out;
+}
+// A stored block, every field checked. A switch is on only while its minutes are a real number of
+// minutes: there is no default minute count anywhere, the reader puts it.
+function prayerAlertRead(raw) {
+  const out = prayerAlertBlank();
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+  for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) {
+    const k = PRAYER_OFFSETTABLE[i];
+    const v = raw[k];
+    if (!v || typeof v !== 'object' || Array.isArray(v)) continue;
+    const min = (typeof v.min === 'number' && isFinite(v.min) && Math.trunc(v.min) === v.min
+      && v.min >= 0 && v.min <= PRAYER_ALERT_MIN_MAX) ? v.min : 0;
+    out[k] = { on: v.on === true && min >= 1, min: min };
+  }
+  return out;
+}
+function prayerAlertMerge(cur, next) {
+  const raw = {};
+  for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) {
+    const k = PRAYER_OFFSETTABLE[i];
+    const c = cur[k];
+    const n = next && next[k] && typeof next[k] === 'object' ? next[k] : {};
+    raw[k] = { on: typeof n.on === 'boolean' ? n.on : c.on,
+      min: Object.prototype.hasOwnProperty.call(n, 'min') ? n.min : c.min };
+  }
+  return prayerAlertRead(raw);
+}
+function prayerAlertsOn(prefs) {
+  for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) {
+    const k = PRAYER_OFFSETTABLE[i];
+    if ((prefs.iq && prefs.iq[k] && prefs.iq[k].on) || (prefs.pre && prefs.pre[k] && prefs.pre[k].on)) return true;
+  }
+  return false;
+}
 function readPrayerPrefs() {
-  const out = { method: PRAYER_METHOD_DEFAULT, asr: PRAYER_ASR_DEFAULT, off: {}, adhanSound: true };
+  const out = { method: PRAYER_METHOD_DEFAULT, asr: PRAYER_ASR_DEFAULT, off: {}, adhanSound: true,
+    iq: prayerAlertBlank(), pre: prayerAlertBlank() };
   for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) out.off[PRAYER_OFFSETTABLE[i]] = 0;
   let raw = null;
   try { raw = localStorage.getItem(PRAYER_PREFS_KEY); } catch (e) { return out; }
@@ -23736,6 +23792,8 @@ function readPrayerPrefs() {
   if (typeof rec.method === 'string' && prayerMethodIds().indexOf(rec.method) !== -1) out.method = rec.method;
   if (rec.asr === 'hanafi' || rec.asr === 'standard') out.asr = rec.asr;
   if (typeof rec.adhanSound === 'boolean') out.adhanSound = rec.adhanSound;
+  out.iq = prayerAlertRead(rec.iq);
+  out.pre = prayerAlertRead(rec.pre);
   const o = rec.off;
   if (o && typeof o === 'object' && !Array.isArray(o)) {
     for (let i = 0; i < PRAYER_OFFSETTABLE.length; i++) {
@@ -23750,7 +23808,9 @@ function readPrayerPrefs() {
 function writePrayerPrefs(next) {
   const cur = readPrayerPrefs();
   if (!next || typeof next !== 'object') return cur;
-  const rec = { method: cur.method, asr: cur.asr, off: cur.off, adhanSound: cur.adhanSound };
+  const rec = { method: cur.method, asr: cur.asr, off: cur.off, adhanSound: cur.adhanSound, iq: cur.iq, pre: cur.pre };
+  if (next.iq && typeof next.iq === 'object') rec.iq = prayerAlertMerge(cur.iq, next.iq);
+  if (next.pre && typeof next.pre === 'object') rec.pre = prayerAlertMerge(cur.pre, next.pre);
   if (typeof next.method === 'string' && prayerMethodIds().indexOf(next.method) !== -1) rec.method = next.method;
   if (next.asr === 'hanafi' || next.asr === 'standard') rec.asr = next.asr;
   if (typeof next.adhanSound === 'boolean') rec.adhanSound = next.adhanSound;
@@ -24002,6 +24062,68 @@ function PrayerNotifyToggle() {
   );
 }
 
+// ITEM 124-3/4 -- THE IQAMA REMINDER AND THE ALERT BEFORE THE PRAYER: the reader's own minutes, per prayer.
+// Drawn only where a shell can carry them, for the reason PrayerNotifyToggle is (no shell, no control): in a
+// browser tab nothing would ever ring. Each prayer has its minutes and its switch; a switch cannot be turned on
+// while its minutes are empty -- there is no default minute count, because none has a source.
+function prayerAlertMinutes(v) {
+  const n = Math.trunc(Number(v));
+  if (!isFinite(n) || n < 0) return 0;
+  return n > PRAYER_ALERT_MIN_MAX ? PRAYER_ALERT_MIN_MAX : n;
+}
+function PrayerAlertsControl() {
+  useEzLang();
+  const [prefs, setPrefs] = useState(readPrayerPrefs);
+  if (!ezikSchedBridge()) return null;
+  const set = (kind, k, patch) => {
+    const part = {};
+    part[k] = patch;
+    const body = {};
+    body[kind] = part;
+    setPrefs(writePrayerPrefs(body));
+    ezikSchedArm();
+  };
+  const block = (kind, titleKey, hintKey) => (
+    <>
+      <div style={s.a11yGroupLabel}>{ezT(titleKey)}</div>
+      {PRAYER_OFFSETTABLE.map((k) => {
+        const v = prefs[kind][k];
+        const id = kind + ':' + k;
+        return (
+          <div key={id} style={s.prayerRow} data-ezik-alert-row={id}>
+            <span style={s.prayerName}>{ezT('widget.prayer.' + k)}</span>
+            <span className="ez-hit" style={s.prayerStep}>
+              <input type="number" min="0" max={PRAYER_ALERT_MIN_MAX} value={v.min > 0 ? v.min : ''} placeholder="0"
+                onChange={(e) => set(kind, k, { min: prayerAlertMinutes(e && e.target ? e.target.value : 0) })}
+                data-ezik-alert={id + ':min'} aria-label={ezT(titleKey) + ' ' + ezT('widget.prayer.' + k)}
+                className="ezik-focus" style={{ ...s.drawerSearch, width: 64, minHeight: 32, padding: '2px 6px', textAlign: 'center' }} />
+              <span style={s.prayerOffVal}>{ezT('alerts.min')}</span>
+              <button type="button" role="switch" aria-checked={v.on ? 'true' : 'false'}
+                aria-disabled={v.min >= 1 ? 'false' : 'true'} title={v.min >= 1 ? '' : ezT('alerts.set')}
+                onClick={() => { if (v.min >= 1) set(kind, k, { on: !v.on }); }}
+                data-ezik-alert={id + ':on'} className="ezik-focus"
+                style={v.on ? { ...s.prayerOpt, ...s.themeOptActive } : { ...s.prayerOpt, opacity: v.min >= 1 ? 1 : 0.5 }}>
+                {v.on ? ezT('prayer.notify.on') : ezT('prayer.notify.off')}
+              </button>
+            </span>
+          </div>
+        );
+      })}
+      <div style={s.qiblaNote}>{ezT(hintKey)}</div>
+    </>
+  );
+  const win = ezikSchedWindow(ezikSchedTiers(new Date()), new Date()).days;
+  return (
+    <>
+      {block('iq', 'iqama.group', 'iqama.hint')}
+      {/* PRE_ALERT_BLOCK_PLACEHOLDER */}
+      {prayerAlertsOn(prefs) && win < ADHAN_WINDOW_DAYS
+        ? <div style={s.qiblaNote} data-ezik-alert="window">{ezT('alerts.window', { n: ezikBrowseNum(win), max: ezikBrowseNum(ADHAN_WINDOW_DAYS) })}</div>
+        : null}
+    </>
+  );
+}
+
 function PrayerTimesPanel({ loc, day, onDay }) {
   // The position and the preferences both move HERE, so the pipe is re-armed from here.
   useEzikSchedWatch();
@@ -24063,6 +24185,7 @@ function PrayerTimesPanel({ loc, day, onDay }) {
       ))}
       <div style={s.qiblaNote}>{PRAYER_SUNRISE_NOTE}</div>
       <PrayerNotifyToggle />
+      <PrayerAlertsControl />
       <div style={s.a11yGroupLabel}>{PRAYER_SCHEDULE_TITLE}</div>
       <div className="ez-hit" style={s.prayerOptRow}>
         <button type="button" onClick={() => setOpen(!open)} aria-expanded={open ? 'true' : 'false'}
@@ -25656,6 +25779,42 @@ function ezikAdhanItems(now) {
   return items;
 }
 
+// ITEM 124-3/4 -- THE IQAMA REMINDER AND THE ALERT BEFORE EACH PRAYER. Both ride the shell's one frozen
+// type for a prayer (ADHAN_TYPE) with the sound set to 'none', which the shell answers with the device's own
+// notification tone: no sound file, no new channel, no new operation. Each is a number of minutes the
+// READER sets, per prayer, after the call (iqama) or before it (alert). The times come from the same
+// calculator and the same place/zone arithmetic as the prayer feed -- not a second calculation.
+function ezikPrayerAlertItems(now) {
+  const items = [];
+  if (!(now instanceof Date) || !isFinite(now.getTime())) return items;
+  const prefs = readPrayerPrefs();
+  if (!prayerAlertsOn(prefs)) return items;
+  const loc = readQiblaLoc();
+  const place = loc.by === 'place' ? loc.place : null;
+  const today = prayerTodayParts(now, place);
+  for (let i = 0; i < ADHAN_WINDOW_DAYS; i++) {
+    const dt = new Date(today.y, today.m - 1, today.d + i);
+    const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
+    const tz = prayerTzOn(y, m, d, place);
+    const times = prayerTimesFor(y, m, d, loc.lat, loc.lng, tz, prefs.method, prefs.asr, prefs.off);
+    for (let j = 0; j < ADHAN_KEYS.length; j++) {
+      const k = ADHAN_KEYS[j];
+      const mins = times[k];
+      if (typeof mins !== 'number' || !isFinite(mins)) continue;
+      const name = ezT('widget.prayer.' + k);
+      const day = prayerDayKey(dt);
+      if (prefs.iq[k].on) {
+        const at = prayerInstant(y, m, d, mins + prefs.iq[k].min, place, tz);
+        if (isFinite(at)) items.push({ id: ADHAN_TYPE + ':iqama:' + k + ':' + day, type: ADHAN_TYPE, adhanSound: 'none',
+          at: at, title: ezT('iqama.title', { name: name }), body: ezT('iqama.body', { name: name }) });
+      }
+      // PRE_ALERT_FEED_PLACEHOLDER
+    }
+  }
+  return items;
+}
+
+
 // ============================================================
 // ITEMS 43-ب / 47-ب — THE READER'S OWN TIMES: أوقاتُ التذكيرِ التي يضبطُها القارئ
 // ============================================================
@@ -26066,13 +26225,42 @@ function ezikSchedClipSet(cut, names) {
 // cut below is the only thing that ever shortens one, and it shortens from the end of the list
 // rather than from the middle of a feed.
 function ezikSchedTiers(now) {
-  return [ezikAdhanFeed(), ezikWirdAlertItems(now), ezikReminderItems(now), ezikWirdOwnItems(now)];
+  return [ezikAdhanFeed(), ezikPrayerAlertFeed(), ezikWirdAlertItems(now), ezikReminderItems(now), ezikWirdOwnItems(now)];
 }
 
 // THE PRAYERS, BEHIND THE SWITCH THAT HAS ALWAYS GATED THEM. This is the function ezikSchedItems
 // used to BE, moved down one level and not changed by a character: the same guard, the same
 // return, the same builder. It is its own function now only because the reminders below it are
 // gated by their OWN switches and must not be silenced by this one.
+// The iqama and pre-prayer alerts stand behind the SAME switch as the prayer call itself: no reminder about
+// a prayer the reader asked not to be told about.
+function ezikPrayerAlertFeed() {
+  if (!readPrayerNotify()) return [];
+  return ezikPrayerAlertItems(new Date());
+}
+// ITEM 124-3/4 -- THE WINDOW NARROWS ONLY WHILE ONE OF THE TWO IS ON. Five prayers a day for seven days is
+// thirty-five of the shell's sixty; add ten more a day and the far end would be cut in silence. So, while any
+// iqama or alert switch is on, the schedule covers the LONGEST number of days (seven down to one) whose items,
+// under every tier, still fit the ceiling -- and every tier is cut at the same midnight. With both off nothing
+// is touched and the window is the seven days it always was.
+function ezikSchedWindow(tiers, now) {
+  if (!prayerAlertsOn(readPrayerPrefs())) return { days: ADHAN_WINDOW_DAYS, tiers: tiers };
+  const loc = readQiblaLoc();
+  const place = loc.by === 'place' ? loc.place : null;
+  const today = prayerTodayParts(now, place);
+  const tz0 = prayerTzOn(today.y, today.m, today.d, place);
+  const cutoffOf = (n) => prayerInstant(today.y, today.m, today.d + n, 0, place, tz0);
+  const ats = [];
+  for (let i = 0; i < tiers.length; i++) for (let j = 0; j < tiers[i].length; j++) ats.push(tiers[i][j].at);
+  let days = 1;
+  for (let n = ADHAN_WINDOW_DAYS; n >= 1; n--) {
+    const cut = cutoffOf(n);
+    if (ats.filter((at) => at < cut).length <= SHELL_SCHED_CEILING) { days = n; break; }
+  }
+  if (days >= ADHAN_WINDOW_DAYS) return { days: ADHAN_WINDOW_DAYS, tiers: tiers };
+  const cut = cutoffOf(days);
+  return { days: days, tiers: tiers.map((tier) => tier.filter((it) => it.at < cut)) };
+}
 function ezikAdhanFeed() {
   if (!readPrayerNotify()) return [];
   return ezikAdhanItems(new Date());
@@ -26098,7 +26286,7 @@ function ezikSchedItems() {
   // owner's priority order, filled until the ceiling is reached, and what does not fit is RECORDED
   // rather than dropped into silence. `ezikSchedClipSet` is module state and touches no store.
   const now = new Date();
-  const tiers = ezikSchedTiers(now);
+  const tiers = ezikSchedWindow(ezikSchedTiers(now), now).tiers;
   const out = [];
   const names = [];
   let cut = 0;

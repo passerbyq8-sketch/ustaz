@@ -1759,10 +1759,10 @@ if (qLifted) {
 
 const T_CONSTS = ['PRAYER_PREFS_KEY', 'PRAYER_METHOD_DEFAULT', 'PRAYER_ASR_DEFAULT',
   'PRAYER_OFFSET_MIN', 'PRAYER_OFFSET_MAX', 'PRAYER_KEYS', 'PRAYER_OFFSETTABLE',
-  'PRAYER_LABELS', 'PRAYER_ASR_LABELS', 'PRAYER_HORIZON', 'PRAYER_ROUND_UP', 'toArabicDigits'];
+  'PRAYER_LABELS', 'PRAYER_ASR_LABELS', 'PRAYER_HORIZON', 'PRAYER_ROUND_UP', 'PRAYER_ALERT_MIN_MAX', 'toArabicDigits'];
 const T_FNS = ['hijriJdnFromCivil', 'prayerMethodTable', 'prayerMethodIds', 'prayerMethodOf',
   'prayerSunPosition', 'prayerSunAngleTime', 'prayerAsrAngle', 'prayerTimesFor', 'prayerClock',
-  'readPrayerPrefs', 'writePrayerPrefs', 'prayerNudgeOffset'];
+  'prayerAlertBlank', 'prayerAlertRead', 'prayerAlertMerge', 'readPrayerPrefs', 'writePrayerPrefs', 'prayerNudgeOffset'];
 
 const tConsts = {};
 const tFns = {};
@@ -2578,12 +2578,28 @@ if (oLifted) {
     let m;
     while ((m = re.exec(SRC)) !== null) NOTIFY_LINES.add(m[2]);
   }
+  // ITEM 124-3/4 -- A THIRD EXACT ALLOWANCE, BY THE SAME REASONING. The iqama reminder and the alert before
+  // the prayer are named by the words this ban was written about, and they NAME controls that exist: drawn only
+  // behind the shell bridge, every switch off until the reader gives it minutes, no default minute count, the
+  // feed gated by the prayer switch. Both words are allowed ONLY inside the values of the dictionary keys under
+  // `iqama.`, `pre.` and `alerts.`, read out of the dictionary as it stands; the count outside them stays zero.
+  const ALERT_LINES = new Set();
+  {
+    const re = /'((?:iqama|pre|alerts)\.[a-zA-Z.]+)': '((?:[^'\\]|\\.)*)'/g;
+    let m;
+    while ((m = re.exec(SRC)) !== null) ALERT_LINES.add(m[2]);
+  }
   ok('A-3: the switches\' own lines were found to scan (' + NOTIFY_LINES.size + ')', NOTIFY_LINES.size >= 30);
+  ok('A-3: the alert controls\' own lines were found to scan (' + ALERT_LINES.size + ')', ALERT_LINES.size >= 7);
+  ok('A-3: the alert strings name controls that exist and are drawn only behind the shell bridge',
+    /function PrayerAlertsControl\(\) \{[\s\S]{0,500}?if \(!ezikSchedBridge\(\)\) return null;/.test(SRC)
+    && (SRC.match(/<PrayerAlertsControl \/>/g) || []).length === 1);
   const ALLOWED_IN = 'tadhkir';
   let promiseHits = 0;
   for (const w of PROMISE_WORDS) {
     const hits = visible.filter((t) => stripH(t).indexOf(stripH(w[1])) !== -1);
-    const stray = w[0] === ALLOWED_IN ? hits.filter((t) => !NOTIFY_LINES.has(t)) : hits;
+    const stray = w[0] === ALLOWED_IN ? hits.filter((t) => !NOTIFY_LINES.has(t) && !ALERT_LINES.has(t))
+      : (w[0] === 'tanbih' ? hits.filter((t) => !ALERT_LINES.has(t)) : hits);
     promiseHits += stray.length;
     ok('A-3: no visible string says ' + w[0] + ' outside the switch it names (matches=' + hits.length
       + ', outside=' + stray.length + ')', visible.length > 200 && stray.length === 0);
@@ -2662,7 +2678,7 @@ if (oLifted) {
     // name, and that the ceiling is applied rather than assumed.
     ok('A-3: ...and nothing is scheduled for a row the reader has not lit',
       SRC.indexOf('if (!got || got.on !== true) continue;') !== -1
-      && SRC.indexOf('return [ezikAdhanFeed(), ezikWirdAlertItems(now), ezikReminderItems(now), ezikWirdOwnItems(now)];') !== -1
+      && SRC.indexOf('return [ezikAdhanFeed(), ezikPrayerAlertFeed(), ezikWirdAlertItems(now), ezikReminderItems(now), ezikWirdOwnItems(now)];') !== -1
       && SRC.indexOf('if (out.length < SHELL_SCHED_CEILING) { out.push(tier[j]); continue; }') !== -1);
     ok('A-3: ...and it asks the system through the one sender both switches share',
       REM.indexOf('ezikNotifyRequest(') !== -1 && REM.indexOf('SHELL_SCHED_ENABLE_OP') === -1);
