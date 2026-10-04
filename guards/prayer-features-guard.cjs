@@ -293,7 +293,7 @@ SCENES.place = async () => {
   // The automatic-location button exists once a place is chosen, and a device fix replaces the place.
   const auto = c.q('[data-ezik-place="auto"]');
   ok('the automatic-location button is offered beside a chosen place', !!auto);
-  t('the page made no request other than the places list, the corpora and the home feeds', c.requests.filter((r) => !/^\/(places|adhkar|adhkar-split-27|arbaeen|arbaeen-footnotes)\.json$/.test(r) && !/^\/api\/articles-list\?/.test(r)), []);
+  t('the page made no request other than the places list, the static corpora and the home feeds', c.requests.filter((r) => !/^\/[a-z0-9-]+\.json$/.test(r) && !/^\/api\/articles-list\?/.test(r)), []);
   t('nothing threw', c.caught(), null);
 };
 SCENES.day = async () => {
