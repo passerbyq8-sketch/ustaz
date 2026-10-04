@@ -2083,7 +2083,7 @@ if (tLifted) {
 
   // ---- WHERE IT LIVES -----------------------------------------------------
   ok('107: readings and minute offsets stay on the tile; method, madhhab and prose live in Settings',
-    /<PrayerTimesPanel loc=\{loc\} \/>/.test(SRC)
+    /<PrayerTimesPanel loc=\{loc\} day=\{day\} onDay=\{setDay\} \/>/.test(SRC)
     && /<QiblaPanel loc=\{loc\} onLoc=\{setLoc\} \/>/.test(SRC)
     // ITEM 66 (b) -- RE-POINTED, NOT RELAXED. This counted ONE useState(readQiblaLoc) in the
     // whole file, and what it was written to forbid is TWO POSITIONS INSIDE ONE SCREEN: the

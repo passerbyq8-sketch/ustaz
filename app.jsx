@@ -463,6 +463,10 @@ const EZ_I18N = {
     'prayer.notify.denied': 'التذكيرُ ممنوعٌ من إعداداتِ النِّظام.',
     'prayer.notify.silent': 'لم يصلْ جوابٌ، والتذكيرُ باقٍ مطفأً.',
     'prayer.notify.note': 'تُجدوَلُ على هذا الجهازِ حتّى {n} من الأيّامِ القادمة — وتقِلُّ إن كثُرَتِ التذكيراتُ — وتُجدَّدُ كلّما فُتِحَ التطبيق.',
+    'day.prev': 'اليوم السابق',
+    'day.next': 'اليوم التالي',
+    'day.today': 'العودة إلى اليوم',
+    'day.pick': 'اختر تاريخًا',
     'place.title': 'المكان',
     'place.current': 'المكان المختار:',
     'place.tz': 'المنطقة الزمنية: {tz}',
@@ -1195,6 +1199,10 @@ const EZ_I18N = {
     'prayer.notify.denied': 'Reminders are blocked in your system settings.',
     'prayer.notify.silent': 'No answer came back, and the reminder is still off.',
     'prayer.notify.note': 'Scheduled on this device for up to {n} days ahead — fewer when you add more reminders — and refreshed each time you open the app.',
+    'day.prev': 'Previous day',
+    'day.next': 'Next day',
+    'day.today': 'Back to today',
+    'day.pick': 'Pick a date',
     'place.title': 'Place',
     'place.current': 'Chosen place:',
     'place.tz': 'Time zone: {tz}',
@@ -23994,7 +24002,7 @@ function PrayerNotifyToggle() {
   );
 }
 
-function PrayerTimesPanel({ loc }) {
+function PrayerTimesPanel({ loc, day, onDay }) {
   // The position and the preferences both move HERE, so the pipe is re-armed from here.
   useEzikSchedWatch();
   const [prefs, setPrefs] = useState(readPrayerPrefs);
@@ -24004,15 +24012,37 @@ function PrayerTimesPanel({ loc }) {
   // and ensurePrayerSchedule() is the one place that decides whether that means a rebuild.
   const sched = React.useMemo(() => ensurePrayerSchedule(loc, prefs, new Date()),
     [loc.lat, loc.lng, prefs.method, prefs.asr, JSON.stringify(prefs.off)]);
-  const tz = prayerTzNow(now, loc);
-  const today = prayerTodayParts(now, loc.by === 'place' ? loc.place : null);
-  const t = prayerTimesFor(today.y, today.m, today.d,
+  const place = loc.by === 'place' ? loc.place : null;
+  const today = prayerTodayParts(now, place);
+  // The day on show: the one the reader stepped or picked to, else today in the place's own calendar.
+  const view = day && day.y ? day : today;
+  const isToday = view.y === today.y && view.m === today.m && view.d === today.d;
+  const tz = isToday ? prayerTzNow(now, loc) : prayerTzOn(view.y, view.m, view.d, place);
+  const t = prayerTimesFor(view.y, view.m, view.d,
     loc.lat, loc.lng, tz, prefs.method, prefs.asr, prefs.off);
+  const goDay = (v) => { if (onDay) onDay(v && v.y === today.y && v.m === today.m && v.d === today.d ? null : v); };
   const anyMissing = PRAYER_KEYS.some((k) => t[k] === null);
   return (
     <EzShellGroup title={PRAYER_TITLE}>
+      <div style={s.prayerRow} data-ezik-day="head">
+        <span style={s.prayerName}>{prayerDayLabel(view)}</span>
+      </div>
+      <div className="ez-hit" style={s.prayerOptRow}>
+        <button type="button" onClick={() => goDay(prayerShiftDay(view, -1))} data-ezik-day="prev"
+          className="ezik-focus" style={s.prayerOpt}>{ezT('day.prev')}</button>
+        <button type="button" onClick={() => goDay(prayerShiftDay(view, 1))} data-ezik-day="next"
+          className="ezik-focus" style={s.prayerOpt}>{ezT('day.next')}</button>
+        <input type="date" value={prayerDayIso(view)} min={PRAYER_DAY_MIN_YEAR + '-01-01'} max={PRAYER_DAY_MAX_YEAR + '-12-31'}
+          onChange={(e) => { const v = prayerDayFromIso(e && e.target ? e.target.value : ''); if (v) goDay(v); }}
+          data-ezik-day="pick" aria-label={ezT('day.pick')} className="ezik-focus"
+          style={{ ...s.drawerSearch, width: 'auto', minHeight: 34, padding: '4px 8px' }} />
+        {isToday ? null : (
+          <button type="button" onClick={() => goDay(null)} data-ezik-day="today"
+            className="ezik-focus" style={s.prayerOpt}>{ezT('day.today')}</button>
+        )}
+      </div>
       {PRAYER_KEYS.map((k) => (
-        <div key={k} style={s.prayerRow}>
+        <div key={k} style={s.prayerRow} data-ezik-prayer={k}>
           <span style={s.prayerName}>{PRAYER_LABELS[k]}</span>
           <span style={s.prayerTime}>{prayerClock(t[k])}</span>
         </div>
@@ -24346,6 +24376,39 @@ function prayerInstant(y, m, d, total, place, tzMin) {
   if (place) return Date.UTC(y, m - 1, d) + (total - tzMin) * 60000;
   const hh = Math.floor(total / 60);
   return new Date(y, m - 1, d, hh, total - hh * 60, 0, 0).getTime();
+}
+// ITEM 124-2 -- ANOTHER DAY. A civil date {y, m, d}; stepping is calendar arithmetic (the Date constructor
+// rolls the month and the year), and the picker's value is the ISO day the browser's date input speaks.
+const PRAYER_DAY_MIN_YEAR = 1900;
+const PRAYER_DAY_MAX_YEAR = 2200;
+function prayerShiftDay(v, n) {
+  const dt = new Date(v.y, v.m - 1, v.d + n);
+  return { y: dt.getFullYear(), m: dt.getMonth() + 1, d: dt.getDate() };
+}
+function prayerDayIso(v) {
+  const p2 = (n) => (n < 10 ? '0' : '') + n;
+  return String(v.y) + '-' + p2(v.m) + '-' + p2(v.d);
+}
+// The date input's value back to a civil day, or null for anything that is not a real day in range.
+function prayerDayFromIso(s) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(typeof s === 'string' ? s : '');
+  if (!m) return null;
+  const y = Number(m[1]), mo = Number(m[2]), d = Number(m[3]);
+  if (y < PRAYER_DAY_MIN_YEAR || y > PRAYER_DAY_MAX_YEAR) return null;
+  const dt = new Date(y, mo - 1, d);
+  if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== d) return null;
+  return { y: y, m: mo, d: d };
+}
+// "Sunday 4 October 2026 · 23 Rabi' al-Thani 1448 AH": the Gregorian line in the interface language, the
+// Hijri one from the calendar the app already uses (and the reader's own offset).
+function prayerDayLabel(v) {
+  let g = '';
+  try {
+    g = new Intl.DateTimeFormat(EZ_LANG === 'ar' ? 'ar-u-ca-gregory' : 'en-u-ca-gregory',
+      { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(Date.UTC(v.y, v.m - 1, v.d));
+  } catch (e) { g = prayerDayIso(v); }
+  const h = hijriLabel(hijriForCivilDay(v.y, v.m, v.d, readHijriOffset()));
+  return h ? g + ' \u00b7 ' + h : g;
 }
 // The offset for "now": the place's zone at its own today, else the device's offset right now (the old line).
 function prayerTzNow(now, loc) {
@@ -26837,6 +26900,7 @@ function PrayerSheet({ onClose, onOpenCompass }) {
   // ONE POSITION FOR BOTH PANELS. The times and the qibla are two readings of the same place,
   // so the place is state here and the controls that change it stay where item 108-أ put them.
   const [loc, setLoc] = useState(readQiblaLoc);
+  const [day, setDay] = useState(null);
   return (
     <EzShell title={PRAYER_SHEET_TITLE} onBack={onClose} backLabel={QIBLA_BACK}
       /* ITEM 66 (side round) -- THE COMPASS'S ONE ENTRY, IN THE PRAYER SECTION WHERE IT BELONGS.
@@ -26849,7 +26913,7 @@ function PrayerSheet({ onClose, onOpenCompass }) {
         <button type="button" className="ezhome-focus" onClick={onOpenCompass} style={s.ezshNavBtn}
           aria-label={EZH_NAV_COMPASS}>{EZH_ICON_PRAYER}</button>
       ) : null}>
-      <PrayerTimesPanel loc={loc} />
+      <PrayerTimesPanel loc={loc} day={day} onDay={setDay} />
       <PrayerPlaceSearch loc={loc} onLoc={setLoc} />
       <QiblaPanel loc={loc} onLoc={setLoc} />
     </EzShell>

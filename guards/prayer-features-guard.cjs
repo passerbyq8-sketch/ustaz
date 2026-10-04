@@ -112,6 +112,22 @@ function sectionPlace() {
   t('every zone in the list is known to the engine', unknownZones, []);
 }
 
+// ---------------------------------------------------------------------------------------------- F: another day (124-2)
+function sectionDay() {
+  say('F2  the times of another day');
+  const A = lifted(['prayerShiftDay', 'prayerDayIso', 'prayerDayFromIso'], ['PRAYER_DAY_MIN_YEAR', 'PRAYER_DAY_MAX_YEAR'], {});
+  t('a step crosses a month end', A.prayerShiftDay({ y: 2026, m: 10, d: 31 }, 1), { y: 2026, m: 11, d: 1 });
+  t('a step crosses a year end backwards', A.prayerShiftDay({ y: 2026, m: 1, d: 1 }, -1), { y: 2025, m: 12, d: 31 });
+  t('a step knows the leap day', A.prayerShiftDay({ y: 2028, m: 2, d: 28 }, 1), { y: 2028, m: 2, d: 29 });
+  t('the ISO form is zero padded', A.prayerDayIso({ y: 2026, m: 3, d: 5 }), '2026-03-05');
+  t('an ISO day reads back', A.prayerDayFromIso('2027-03-01'), { y: 2027, m: 3, d: 1 });
+  t('a day that does not exist is refused', A.prayerDayFromIso('2026-02-30'), null);
+  t('a year before the range is refused', A.prayerDayFromIso('1899-12-31'), null);
+  t('a year after the range is refused', A.prayerDayFromIso('2201-01-01'), null);
+  t('an empty value is refused', A.prayerDayFromIso(''), null);
+  t('a non-string is refused', A.prayerDayFromIso(null), null);
+}
+
 // ---------------------------------------------------------------------------------------------- S: mounted scenes
 function boot(opts) {
   const { parseHTML } = require(path.join(REPO, 'node_modules', 'linkedom'));
@@ -208,6 +224,38 @@ SCENES.place = async () => {
   t('the page made no request other than the places list, the corpora and the home feeds', c.requests.filter((r) => !/^\/(places|adhkar|adhkar-split-27|arbaeen|arbaeen-footnotes)\.json$/.test(r) && !/^\/api\/articles-list\?/.test(r)), []);
   t('nothing threw', c.caught(), null);
 };
+SCENES.day = async () => {
+  say('S3  stepping to another day, picking a date, coming back');
+  const c = boot({});
+  await openPrayer(c);
+  const KEYS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
+  const shown = () => KEYS.map((k) => c.q('[data-ezik-prayer="' + k + '"]').textContent);
+  const expect = (y, m, d) => KEYS.map((k) => c.read("ezT('widget.prayer.' + '" + k + "')") + c.read('prayerClock(prayerTimesFor(' + [y, m, d].join(',') + ', QIBLA_DEFAULT_LAT, QIBLA_DEFAULT_LNG, prayerTzOn(' + [y, m, d].join(',') + ', null), "kuwait", "standard", null)["' + k + '"])'));
+  const today = c.read('prayerTodayParts(new Date(), null)');
+  t('the sheet opens on today\'s times', shown(), expect(today.y, today.m, today.d));
+  t('there is no "back to today" button on today', c.q('[data-ezik-day="today"]'), null);
+  const headToday = c.q('[data-ezik-day="head"]').textContent;
+  await c.click(c.q('[data-ezik-day="next"]'));
+  const tom = c.read('prayerShiftDay(prayerTodayParts(new Date(), null), 1)');
+  t('"next day" shows tomorrow\'s times', shown(), expect(tom.y, tom.m, tom.d));
+  ok('the date line changes', c.q('[data-ezik-day="head"]').textContent !== headToday);
+  ok('"back to today" appears', !!c.q('[data-ezik-day="today"]'));
+  await c.click(c.q('[data-ezik-day="prev"]'));
+  await c.click(c.q('[data-ezik-day="prev"]'));
+  const yest = c.read('prayerShiftDay(prayerTodayParts(new Date(), null), -1)');
+  t('"previous day" twice from tomorrow shows yesterday', shown(), expect(yest.y, yest.m, yest.d));
+  await c.type(c.q('[data-ezik-day="pick"]'), '2027-03-01');
+  t('picking a date shows that day', shown(), expect(2027, 3, 1));
+  t('the picker holds the picked date', c.props(c.q('[data-ezik-day="pick"]')).value, '2027-03-01');
+  await c.type(c.q('[data-ezik-day="pick"]'), '2026-02-30');
+  t('an impossible date changes nothing', shown(), expect(2027, 3, 1));
+  await c.click(c.q('[data-ezik-day="today"]'));
+  t('"back to today" restores today', shown(), expect(today.y, today.m, today.d));
+  t('...and the button is gone again', c.q('[data-ezik-day="today"]'), null);
+  await c.type(c.q('[data-ezik-day="pick"]'), c.read('prayerDayIso(prayerTodayParts(new Date(), null))'));
+  t('picking today\'s own date is the same as being on today', c.q('[data-ezik-day="today"]'), null);
+  t('nothing threw', c.caught(), null);
+};
 SCENES['places-offline'] = async () => {
   say('S2  a failed download of the places list says so and breaks nothing');
   const c = boot({ placesOffline: true });
@@ -230,6 +278,7 @@ async function main() {
   }
   say('prayer-features-guard: the prayer features of item 124');
   sectionPlace();
+  sectionDay();
   let sceneFail = 0;
   for (const name of Object.keys(SCENES)) {
     const code = await new Promise((resolve) => {
