@@ -574,6 +574,7 @@ SCENES['next-en'] = async () => {
   await openPrayer(c);
   const text = c.root.textContent;
   ok('the panel title is English', text.indexOf('Prayer times') >= 0);
+  ok('the sheet title is English', text.indexOf('Prayer and qibla') >= 0);
   ok('the city is the place', c.q('[data-ezik-city="name"]').textContent.indexOf('Jakarta') >= 0 || c.q('[data-ezik-city="name"]').textContent.indexOf('x') >= 0);
   for (const w of ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']) ok('the row is labelled ' + w, text.indexOf(w) >= 0);
   ok('the clock is AM/PM with Latin digits', /\d{1,2}:\d\d (AM|PM)/.test(c.q('[data-ezik-prayer="fajr"]').textContent));

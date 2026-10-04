@@ -463,6 +463,7 @@ const EZ_I18N = {
     'prayer.notify.denied': 'التذكيرُ ممنوعٌ من إعداداتِ النِّظام.',
     'prayer.notify.silent': 'لم يصلْ جوابٌ، والتذكيرُ باقٍ مطفأً.',
     'prayer.notify.note': 'تُجدوَلُ على هذا الجهازِ حتّى {n} من الأيّامِ القادمة — وتقِلُّ إن كثُرَتِ التذكيراتُ — وتُجدَّدُ كلّما فُتِحَ التطبيق.',
+    'prayer.sheetTitle': 'الصلاة والقبلة',
     'panel.title': 'مواقيت الصلاة',
     'panel.offsets': 'إزاحة يدويّة بالدقائق',
     'panel.none': 'لا يبلغُ الشفقُ هذه الزاويةَ في هذا الموضع اليوم.',
@@ -1244,6 +1245,7 @@ const EZ_I18N = {
     'prayer.notify.denied': 'Reminders are blocked in your system settings.',
     'prayer.notify.silent': 'No answer came back, and the reminder is still off.',
     'prayer.notify.note': 'Scheduled on this device for up to {n} days ahead — fewer when you add more reminders — and refreshed each time you open the app.',
+    'prayer.sheetTitle': 'Prayer and qibla',
     'panel.title': 'Prayer times',
     'panel.offsets': 'Manual offset in minutes',
     'panel.none': 'At this position the twilight does not reach this angle today.',
@@ -27243,13 +27245,14 @@ function QiblaPanel({ loc, onLoc, full }) {
 // route would have broken a gate for a reason that has nothing to do with the qibla. It opens
 // from the home, over the home, on the home's own screen key, and its back button returns there.
 function PrayerSheet({ onClose, onOpenCompass }) {
+  useEzLang();
   // ONE POSITION FOR BOTH PANELS. The times and the qibla are two readings of the same place,
   // so the place is state here and the controls that change it stay where item 108-أ put them.
   const [loc, setLoc] = useState(readQiblaLoc);
   const [day, setDay] = useState(null);
   const [rev, setRev] = useState(0);
   return (
-    <EzShell title={PRAYER_SHEET_TITLE} onBack={onClose} backLabel={QIBLA_BACK}
+    <EzShell title={EZ_LANG === 'ar' ? PRAYER_SHEET_TITLE : ezT('prayer.sheetTitle')} onBack={onClose} backLabel={QIBLA_BACK}
       /* ITEM 66 (side round) -- THE COMPASS'S ONE ENTRY, IN THE PRAYER SECTION WHERE IT BELONGS.
          A mark and no word, beside the back control and not in its place, and one press lands on
          the compass screen itself rather than scrolling this sheet to its lower half. The mark is
