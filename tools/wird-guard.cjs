@@ -1446,10 +1446,10 @@ if (hLifted) {
 // what it is: an event that arrives, is not absolute, and carries alpha === null.
 
 const Q_CONSTS = ['KAABA_LAT', 'KAABA_LNG', 'QIBLA_DEFAULT_LAT', 'QIBLA_DEFAULT_LNG',
-  'QIBLA_DEFAULT_PLACE', 'QIBLA_LOC_KEY', 'QIBLA_DIRS', 'toArabicDigits',
+  'QIBLA_DEFAULT_PLACE', 'QIBLA_LOC_KEY', 'PRAYER_PLACE_KEY', 'PRAYER_ZONE_FMT', 'QIBLA_DIRS', 'toArabicDigits',
   'SHELL_HEADING_START', 'SHELL_HEADING_STOP', 'SHELL_HEADING_RESULT', 'SHELL_HEADING_STATUSES'];
 const Q_FNS = ['qiblaBearing', 'qiblaDirName', 'qiblaDegreeText', 'qiblaHeadingOf',
-  'qiblaNeedleAngle', 'readQiblaLoc', 'writeQiblaLoc', 'clearQiblaLoc',
+  'qiblaNeedleAngle', 'prayerZoneFmt', 'readPrayerPlaceFor', 'readQiblaLoc', 'writeQiblaLoc', 'clearQiblaLoc',
   'shellHeadingOf', 'qiblaNeedleVisual', 'sendShellHeadingCommand'];
 
 const qConsts = {};
@@ -2161,9 +2161,10 @@ if (tLifted) {
 // IT IS RUN, NOT READ. Every claim below drives the lifted functions against a fake store and
 // a fake clock. A claim about a table is worth what the table it produced is worth.
 
-const N_CONSTS = ['PRAYER_SCHEDULE_KEY', 'PRAYER_SCHEDULE_DAYS', 'PRAYER_SCHEDULE_RENEW_AT', 'PRAYER_CALC_VERSION'];
+const N_CONSTS = ['PRAYER_SCHEDULE_KEY', 'PRAYER_SCHEDULE_DAYS', 'PRAYER_SCHEDULE_RENEW_AT', 'PRAYER_CALC_VERSION', 'PRAYER_ZONE_FMT'];
 const N_FNS = ['prayerDayKey', 'prayerScheduleStamp', 'buildPrayerSchedule',
-  'readPrayerSchedule', 'writePrayerSchedule', 'prayerScheduleRemaining', 'ensurePrayerSchedule'];
+  'readPrayerSchedule', 'writePrayerSchedule', 'prayerScheduleRemaining', 'ensurePrayerSchedule',
+  'prayerZoneFmt', 'prayerZoneWall', 'prayerZoneOffset', 'prayerTodayParts', 'prayerTzNow'];
 
 const nConsts = {};
 const nFns = {};

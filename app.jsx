@@ -24337,7 +24337,7 @@ function prayerTodayParts(now, place) {
     const w = prayerZoneWall(place.tz, now.getTime());
     if (w) return { y: w.y, m: w.m, d: w.d, mins: w.h * 60 + w.mi };
   }
-  return { y: now.getFullYear(), m: now.getMonth() + 1, d: now.getDate(), mins: now.getHours() * 60 + now.getMinutes() };
+  return { y: now.getFullYear(), m: now.getMonth() + 1, d: now.getDate(), mins: typeof now.getHours === 'function' ? now.getHours() * 60 + now.getMinutes() : 0 };
 }
 // A time of a civil day, in minutes from that day's midnight, as an absolute instant. With no chosen
 // place it is the old construction (the device's wall clock, so a daylight-saving day lands on the clock
@@ -26827,6 +26827,67 @@ function QiblaPanel({ loc, onLoc, full }) {
   );
 }
 
+// THE SHEET, AND WHY IT IS A SHEET RATHER THAN A SCREEN. index.html's screen inventory is a
+// CROSS-FILE contract: theme-coverage-guard reads EZIK-THEME-33-HANDOFF.md and requires its
+// table and its Arabic screen count to match the set of `screen === '...'` branches in this
+// file. That document belongs to a different owner and is not this batch's to edit, so adding a
+// route would have broken a gate for a reason that has nothing to do with the qibla. It opens
+// from the home, over the home, on the home's own screen key, and its back button returns there.
+function PrayerSheet({ onClose, onOpenCompass }) {
+  // ONE POSITION FOR BOTH PANELS. The times and the qibla are two readings of the same place,
+  // so the place is state here and the controls that change it stay where item 108-أ put them.
+  const [loc, setLoc] = useState(readQiblaLoc);
+  return (
+    <EzShell title={PRAYER_SHEET_TITLE} onBack={onClose} backLabel={QIBLA_BACK}
+      /* ITEM 66 (side round) -- THE COMPASS'S ONE ENTRY, IN THE PRAYER SECTION WHERE IT BELONGS.
+         A mark and no word, beside the back control and not in its place, and one press lands on
+         the compass screen itself rather than scrolling this sheet to its lower half. The mark is
+         EZH_ICON_PRAYER, which this file already declares as a compass rose reduced to a circle, a
+         needle and its pivot -- the same 24x24 box the top bar draws it in -- so nothing new is
+         drawn, imported or fetched for it. */
+      lead={onOpenCompass ? (
+        <button type="button" className="ezhome-focus" onClick={onOpenCompass} style={s.ezshNavBtn}
+          aria-label={EZH_NAV_COMPASS}>{EZH_ICON_PRAYER}</button>
+      ) : null}>
+      <PrayerTimesPanel loc={loc} />
+      <PrayerPlaceSearch loc={loc} onLoc={setLoc} />
+      <QiblaPanel loc={loc} onLoc={setLoc} />
+    </EzShell>
+  );
+}
+
+// ITEM 66 (ب) -- THE COMPASS ON A SCREEN OF ITS OWN, AND IT IS THE SAME PANEL.
+//
+// 🔴 THERE IS NO SECOND COMPASS. This renders <QiblaPanel/> -- the identical component the
+// sheet above renders, at the identical two props plus one presentation flag. Not a copy, not a
+// variant, not a lifted dial: the timeout, the automatic re-send, the «أعد المحاولة» control,
+// the five shell statuses, the browser's own DeviceOrientation path and the default/device pair
+// are all the one body of code, so a defect fixed on one road is fixed on both and neither can
+// drift. `full` reaches exactly one attribute -- the dial's box -- and changes nothing else.
+//
+// IT IS A LAYER, NOT A ROUTE, for the reason written over PrayerSheet: the screen inventory is a
+// cross-file contract that theme-coverage-guard cross-checks against a handoff document owned by
+// someone else. It opens over the home, on the home's own screen key, its owner registers its
+// history entry so the device button closes IT, and the shell's own back control -- the one
+// EzShell already draws for every screen in this file -- returns the reader where he was.
+//
+// AND IT READS THE POSITION THE SAME WAY. readQiblaLoc() is the one reader; a position saved
+// here is the position the prayer sheet shows, because both keep it in the one store.
+//
+// ITEM 66 (side round) -- AND ITS TITLE IS GONE WITH THE REST OF THE WORDS. «البوصلة» was the last
+// letter left standing on this screen once the panel went bare, so it goes too: the shell is handed
+// an empty title and draws an empty brand. The back control keeps its ACCESSIBLE name -- that is
+// not a letter on the screen, it is what a screen reader announces, and taking it would make the
+// one control on the page nameless to anyone who cannot see the arrow.
+function CompassSheet({ onClose }) {
+  const [loc, setLoc] = useState(readQiblaLoc);
+  return (
+    <EzShell title={''} onBack={onClose} backLabel={QIBLA_BACK}>
+      <QiblaPanel loc={loc} onLoc={setLoc} full />
+    </EzShell>
+  );
+}
+
 // ============================================================
 // ITEM 124-1 -- THE PLACES LIST AND THE SEARCH OVER IT
 // ============================================================
@@ -26962,67 +27023,6 @@ function PrayerPlaceSearch({ loc, onLoc }) {
         </>
       ) : null}
     </EzShellGroup>
-  );
-}
-
-// THE SHEET, AND WHY IT IS A SHEET RATHER THAN A SCREEN. index.html's screen inventory is a
-// CROSS-FILE contract: theme-coverage-guard reads EZIK-THEME-33-HANDOFF.md and requires its
-// table and its Arabic screen count to match the set of `screen === '...'` branches in this
-// file. That document belongs to a different owner and is not this batch's to edit, so adding a
-// route would have broken a gate for a reason that has nothing to do with the qibla. It opens
-// from the home, over the home, on the home's own screen key, and its back button returns there.
-function PrayerSheet({ onClose, onOpenCompass }) {
-  // ONE POSITION FOR BOTH PANELS. The times and the qibla are two readings of the same place,
-  // so the place is state here and the controls that change it stay where item 108-أ put them.
-  const [loc, setLoc] = useState(readQiblaLoc);
-  return (
-    <EzShell title={PRAYER_SHEET_TITLE} onBack={onClose} backLabel={QIBLA_BACK}
-      /* ITEM 66 (side round) -- THE COMPASS'S ONE ENTRY, IN THE PRAYER SECTION WHERE IT BELONGS.
-         A mark and no word, beside the back control and not in its place, and one press lands on
-         the compass screen itself rather than scrolling this sheet to its lower half. The mark is
-         EZH_ICON_PRAYER, which this file already declares as a compass rose reduced to a circle, a
-         needle and its pivot -- the same 24x24 box the top bar draws it in -- so nothing new is
-         drawn, imported or fetched for it. */
-      lead={onOpenCompass ? (
-        <button type="button" className="ezhome-focus" onClick={onOpenCompass} style={s.ezshNavBtn}
-          aria-label={EZH_NAV_COMPASS}>{EZH_ICON_PRAYER}</button>
-      ) : null}>
-      <PrayerTimesPanel loc={loc} />
-      <PrayerPlaceSearch loc={loc} onLoc={setLoc} />
-      <QiblaPanel loc={loc} onLoc={setLoc} />
-    </EzShell>
-  );
-}
-
-// ITEM 66 (ب) -- THE COMPASS ON A SCREEN OF ITS OWN, AND IT IS THE SAME PANEL.
-//
-// 🔴 THERE IS NO SECOND COMPASS. This renders <QiblaPanel/> -- the identical component the
-// sheet above renders, at the identical two props plus one presentation flag. Not a copy, not a
-// variant, not a lifted dial: the timeout, the automatic re-send, the «أعد المحاولة» control,
-// the five shell statuses, the browser's own DeviceOrientation path and the default/device pair
-// are all the one body of code, so a defect fixed on one road is fixed on both and neither can
-// drift. `full` reaches exactly one attribute -- the dial's box -- and changes nothing else.
-//
-// IT IS A LAYER, NOT A ROUTE, for the reason written over PrayerSheet: the screen inventory is a
-// cross-file contract that theme-coverage-guard cross-checks against a handoff document owned by
-// someone else. It opens over the home, on the home's own screen key, its owner registers its
-// history entry so the device button closes IT, and the shell's own back control -- the one
-// EzShell already draws for every screen in this file -- returns the reader where he was.
-//
-// AND IT READS THE POSITION THE SAME WAY. readQiblaLoc() is the one reader; a position saved
-// here is the position the prayer sheet shows, because both keep it in the one store.
-//
-// ITEM 66 (side round) -- AND ITS TITLE IS GONE WITH THE REST OF THE WORDS. «البوصلة» was the last
-// letter left standing on this screen once the panel went bare, so it goes too: the shell is handed
-// an empty title and draws an empty brand. The back control keeps its ACCESSIBLE name -- that is
-// not a letter on the screen, it is what a screen reader announces, and taking it would make the
-// one control on the page nameless to anyone who cannot see the arrow.
-function CompassSheet({ onClose }) {
-  const [loc, setLoc] = useState(readQiblaLoc);
-  return (
-    <EzShell title={''} onBack={onClose} backLabel={QIBLA_BACK}>
-      <QiblaPanel loc={loc} onLoc={setLoc} full />
-    </EzShell>
   );
 }
 
