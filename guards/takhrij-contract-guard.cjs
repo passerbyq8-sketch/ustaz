@@ -3731,6 +3731,67 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       }
     }
   }
+  // ── ORDER 54 item 2 (row 52) · A QUOTATION WHOSE STATED SPEAKER IS NOT THE PROPHET ﷺ OPENS NO TARGET ─────────────────────────────────────
+  // MEASURED at 9a7a6d3 (preview 53, question 6): «… دخلوا على النبي ﷺ فقالوا: «السام عليكم» (أحمد · لم يوقف على حكم)»: the Jews' greeting got a bracket because the Prophet ﷺ is named earlier in the sentence.
+  // The rule: «فقالوا» / «فقال رجل» / «فقال أعرابي» standing after the last Prophetic frame, with no later verb of saying before the quotation, means the quotation is that speaker's. 129 real answers and 819 real atoms
+  // of the Sahihayn, the Sunan and the Muwatta (2373 targets): the false bracket and one non-Prophetic quotation of al-Bukhari fall, 0 true brackets. «فقالت» was measured and NOT built (see lib/takhrij.js).
+  console.log('\n--- ORDER54-2. A QUOTATION WHOSE SPEAKER IS NOT THE PROPHET ﷺ ---');
+  {
+    const T54 = await esm('lib/takhrij.js');
+    const fs54 = require('fs');
+    const os54 = require('os');
+    const both54 = (matn) => lookupOf({ [matn]: { matn, subjectIds: ['FC-000645', 'FC-000648'], atoms: [atomFor(matn, 'أبي هريرة'), atomFor(matn, 'أبي هريرة')] } });
+    const say54 = async (mod, text, matn) => (await mod.applyTakhrij(text, { env: ON, lookup: both54(matn) })).text;
+    const BRACKET = '(' + L.AGREED_UPON + ')';
+    const GREET = 'السلام عليك يا محمد وعلى من معك من المؤمنين';
+    const WORDS = 'إن الله يحب الرفق في الأمر كله وهو يعطي عليه ما لا يعطي على العنف';
+    const bare = (matn, lead) => lead + ' «' + matn + '».';
+    for (const [id, lead] of [
+      ['فقالوا', 'دخل رهط من اليهود على النبي صلى الله عليه وسلم فقالوا:'],
+      ['وقالوا', 'وجاء قوم إلى النبي صلى الله عليه وسلم وقالوا:'],
+      ['فقال رجل', 'وجاء رجل إلى النبي صلى الله عليه وسلم فقال رجل:'],
+      ['فقال أعرابي', 'ودخل الأعرابي على النبي صلى الله عليه وسلم فقال أعرابي:'],
+    ]) {
+      const text = bare(GREET, lead);
+      const out = await say54(T54, text, GREET);
+      ok('ORDER54-2 «' + id + '» after the Prophet ﷺ is named: the quotation is theirs, no bracket is written', out === text && !out.includes(BRACKET), out);
+    }
+    // controls: the Prophet's own words keep their target
+    for (const [id, text] of [
+      ['«فقال لها النبي ﷺ: «…»» after «فقالوا»', 'دخل رهط من اليهود على النبي صلى الله عليه وسلم فقالوا: السام عليكم، فقال لها النبي صلى الله عليه وسلم: «' + WORDS + '».'],
+      ['«قال رسول الله ﷺ: «…»»', 'قال رسول الله صلى الله عليه وسلم: «' + WORDS + '».'],
+      ['the dialogue turn «فقالوا: نعم، فقال: «…»»', 'قال النبي صلى الله عليه وسلم لأصحابه كلاما كثيرا فقالوا: نعم يا أبا القاسم، فقال: «' + WORDS + '».'],
+      ['a wife narrating: «عن ميمونة زوج النبي ﷺ قالت: «…»» (why «فقالت» is not in the list)', 'عن ميمونة زوج النبي صلى الله عليه وسلم قالت: «' + WORDS + '».'],
+    ]) {
+      const out = await say54(T54, text, WORDS);
+      ok('ORDER54-2 control · ' + id + ' keeps its bracket', out.includes(BRACKET), out);
+    }
+    ok('ORDER54-2 the target list itself: the greeting after «فقالوا» is no target; the Prophet\'s words after it are one',
+      T54.findTargets(bare(GREET, 'دخل رهط من اليهود على النبي صلى الله عليه وسلم فقالوا:')).targets.length === 0
+      && T54.findTargets('دخل رهط من اليهود على النبي صلى الله عليه وسلم فقالوا: «' + GREET + '» فقال النبي صلى الله عليه وسلم: «' + WORDS + '».').targets.length === 1);
+    const src54 = fs54.readFileSync(path.join(REPO, 'lib/takhrij.js'), 'utf8').replace(/\r\n/g, '\n');
+    const seams54 = [
+      ['the list of other speakers is emptied', "alternation(['قالوا', 'قال رجل', 'قال أعرابي'])", "alternation(['zzz'])",
+        async (mod) => (await say54(mod, bare(GREET, 'دخل رهط من اليهود على النبي صلى الله عليه وسلم فقالوا:'), GREET)).includes(BRACKET)],
+      ['the turn of the dialogue is not read', '  return !SAYING_VERB_AFTER_RE.test(segment.slice(last.index + last[0].length));', '  return true;',
+        async (mod) => !(await say54(mod, 'قال النبي صلى الله عليه وسلم لأصحابه كلاما كثيرا فقالوا: نعم يا أبا القاسم، فقال: «' + WORDS + '».', WORDS)).includes(BRACKET)],
+    ];
+    for (const [tag, from, to, killed] of seams54) {
+      const mutated = src54.split(from).join(to);
+      ok('MUTANT ORDER54-2 ' + tag + ' seam applied', mutated !== src54);
+      const tmp = fs54.mkdtempSync(path.join(os54.tmpdir(), 'ustaz-o542-mut-'));
+      try {
+        const file = path.join(tmp, 'takhrij.mjs');
+        fs54.writeFileSync(file, mutated.replace(/from\s+(['"])(\.[^'"]*)\1/gu,
+          (_a, q, spec) => 'from ' + q + 'file:///' + path.resolve(REPO, 'lib', spec).replace(/\\/g, '/') + q), 'utf8');
+        const mod = await import('file:///' + file.replace(/\\/g, '/'));
+        ok('MUTANT KILLED: without ORDER54-2 ' + tag + ' the row it guards flips', (await killed(mod)) === true);
+      } finally {
+        try { fs54.rmSync(tmp, { recursive: true, force: true }); } catch { /* temp only */ }
+      }
+    }
+  }
+
   console.log(`\n=== ${checks - failures}/${checks} — ${failures ? 'FAIL' : 'PASS'} ===`);
   process.exit(failures ? 1 : 0);
 })().catch((error) => {
