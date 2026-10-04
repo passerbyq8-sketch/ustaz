@@ -417,6 +417,91 @@ SCENES.conv = async () => {
   ok('the card warns the date can differ by a day or two', c.root.textContent.indexOf(c.read("ezT('conv.hint')")) >= 0);
   t('nothing threw', c.caught(), null);
 };
+const JAK = { n: 'Jakarta', a: 'x', cc: 'ID', tz: 'Asia/Jakarta', lat: -6.2146, lng: 106.8451 };
+SCENES['backup-make'] = async () => {
+  say('S8  making a copy of the prayer settings');
+  const iq = blank5(); iq.dhuhr = { on: true, min: 10 };
+  const c = boot({ shell: true, seed: {
+    ezik_prayer_prefs_v1: prefsWith({ method: 'mwl', asr: 'hanafi', off: { fajr: 3, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 }, iq }),
+    ezik_qibla_loc_v1: JSON.stringify({ lat: JAK.lat, lng: JAK.lng }), ezik_prayer_place_v1: JSON.stringify(JAK),
+    ezik_hijri_offset_v1: '1', ezik_prayer_notify_v1: 'on',
+    ezik_prayer_schedule_v1: '{"v":1}', ezik_wird_alerts_v1: JSON.stringify({ sabah: { on: false, offset: 15 } }) } });
+  await openPrayer(c);
+  await c.click(c.q('[data-ezik-backup="make"]'));
+  const text = c.props(c.q('[data-ezik-backup="out"]')).value;
+  const doc = JSON.parse(text);
+  t('the copy carries its tag and version', [doc.ezik, doc.v], ['prayer-settings', 1]);
+  t('the copy lists exactly the prayer parts', Object.keys(doc.keys).sort(), ['hijri', 'loc', 'place', 'prefs', 'wirdAlerts']);
+  t('the prefs are carried whole', [doc.keys.prefs.method, doc.keys.prefs.asr, doc.keys.prefs.off.fajr, doc.keys.prefs.iq.dhuhr], ['mwl', 'hanafi', 3, { on: true, min: 10 }]);
+  t('the position, the place and the Hijri offset are carried', [doc.keys.loc, doc.keys.place.tz, doc.keys.hijri], [{ lat: JAK.lat, lng: JAK.lng }, 'Asia/Jakarta', 1]);
+  t('the prayer-anchored alert choices are carried', [doc.keys.wirdAlerts.sabah, doc.keys.wirdAlerts.masaa], [{ on: false, offset: 15 }, { on: true, offset: 0 }]);
+  ok('the permission-gated switch and the derived table are NOT in the copy', text.indexOf('notify') === -1 && text.indexOf('schedule') === -1 && text.indexOf('ezik_') === -1);
+  t('the copy passes its own check', c.read('prayerBackupCheck(' + JSON.stringify(text) + ').ok'), true);
+  t('nothing threw', c.caught(), null);
+};
+SCENES['backup-bad'] = async () => {
+  say('S9  a text that is not a whole, valid copy changes nothing');
+  const c = boot({ shell: true, seed: { ezik_prayer_prefs_v1: prefsWith({ method: 'egypt' }) } });
+  await openPrayer(c);
+  const wrap = (keys) => JSON.stringify({ ezik: 'prayer-settings', v: 1, keys });
+  const cases = {
+    'not json': 'hello',
+    'wrong tag': JSON.stringify({ ezik: 'other', v: 1, keys: {} }),
+    'wrong version': JSON.stringify({ ezik: 'prayer-settings', v: 2, keys: {} }),
+    'unknown part': wrap({ language: 'ar' }),
+    'the reminders part is not accepted': wrap({ reminders: {} }),
+    'unknown method': wrap({ prefs: { method: 'xyz' } }),
+    'offset out of range': wrap({ prefs: { off: { fajr: 99 } } }),
+    'offset for the sunrise': wrap({ prefs: { off: { sunrise: 1 } } }),
+    'extra prefs field': wrap({ prefs: { method: 'mwl', evil: 1 } }),
+    'iqama on without minutes': wrap({ prefs: { iq: { fajr: { on: true, min: 0 } } } }),
+    'iqama minutes too many': wrap({ prefs: { iq: { fajr: { on: false, min: 121 } } } }),
+    'position out of range': wrap({ loc: { lat: 91, lng: 0 } }),
+    'place without a position': wrap({ place: { n: 'X', tz: 'Asia/Jakarta', lat: 1, lng: 2 } }),
+    'place off its position': wrap({ loc: { lat: 1, lng: 2 }, place: { n: 'X', tz: 'Asia/Jakarta', lat: 3, lng: 4 } }),
+    'place with an unknown zone': wrap({ loc: { lat: 1, lng: 2 }, place: { n: 'X', tz: 'Not/AZone', lat: 1, lng: 2 } }),
+    'hijri offset out of range': wrap({ hijri: 5 }),
+    'unknown alert id': wrap({ wirdAlerts: { evil: { on: true, offset: 0 } } }),
+    'alert offset out of range': wrap({ wirdAlerts: { sabah: { on: true, offset: 999 } } }),
+  };
+  const before = JSON.stringify(c.store.dump());
+  for (const name of Object.keys(cases)) {
+    const r = c.read('prayerBackupCheck(' + JSON.stringify(cases[name]) + ')');
+    t('refused: ' + name, r.ok, false);
+  }
+  t('the empty-keys copy is valid (restores nothing)', c.read('prayerBackupCheck(' + JSON.stringify(wrap({})) + ').ok'), true);
+  // through the control: a bad text says so and the store is untouched
+  await c.type(c.q('[data-ezik-backup="in"]'), cases['unknown method']);
+  await c.click(c.q('[data-ezik-backup="restore"]'));
+  ok('the bad-text sentence is shown', !!c.q('[data-ezik-backup="bad"]'));
+  t('...and not one key changed', JSON.stringify(c.store.dump()), before);
+  t('nothing threw', c.caught(), null);
+};
+SCENES['backup-restore'] = async () => {
+  say('S10  restoring a copy: the writers, the refreshed sheet, and the schedule re-armed');
+  const iq = blank5(); iq.asr = { on: true, min: 7 };
+  const copy = JSON.stringify({ ezik: 'prayer-settings', v: 1, keys: {
+    prefs: { method: 'mwl', asr: 'hanafi', off: { fajr: 2, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 }, adhanSound: false, iq, pre: blank5() },
+    loc: { lat: JAK.lat, lng: JAK.lng }, place: JAK, hijri: -1,
+    wirdAlerts: { sabah: { on: false, offset: 20 } } } });
+  const c = boot({ shell: true, seed: { ezik_prayer_notify_v1: 'on' } });
+  await openPrayer(c);
+  t('before: no place is shown', c.q('[data-ezik-place="current"]'), null);
+  await c.type(c.q('[data-ezik-backup="in"]'), copy);
+  await c.click(c.q('[data-ezik-backup="restore"]'));
+  ok('the success sentence is shown', !!c.q('[data-ezik-backup="ok"]'));
+  const prefs = JSON.parse(c.store.getItem('ezik_prayer_prefs_v1'));
+  t('the prefs landed', [prefs.method, prefs.asr, prefs.off.fajr, prefs.adhanSound, prefs.iq.asr], ['mwl', 'hanafi', 2, false, { on: true, min: 7 }]);
+  t('the position and the place landed', [JSON.parse(c.store.getItem('ezik_qibla_loc_v1')), JSON.parse(c.store.getItem('ezik_prayer_place_v1')).tz], [{ lat: JAK.lat, lng: JAK.lng }, 'Asia/Jakarta']);
+  t('the Hijri offset landed', c.store.getItem('ezik_hijri_offset_v1'), '-1');
+  t('the alert choice landed', JSON.parse(c.store.getItem('ezik_wird_alerts_v1')).sabah, { on: false, offset: 20 });
+  t('the permission-gated switch was left as it was', c.store.getItem('ezik_prayer_notify_v1'), 'on');
+  await c.waitFor(() => c.q('[data-ezik-place="current"]'));
+  ok('the sheet shows the restored place without a reload', !!c.q('[data-ezik-place="current"]'));
+  t('the iqama control shows the restored minutes', c.props(c.q('[data-ezik-alert="iq:asr:min"]')).value, 7);
+  ok('the shell was handed a schedule that carries the iqama', c.posts.some((w) => { try { return JSON.parse(w).items.some((x) => x.id.indexOf('adhan:iqama:asr:') === 0); } catch (e) { return false; } }));
+  t('nothing threw', c.caught(), null);
+};
 SCENES['iqama-noshell'] = async () => {
   say('S5  in a browser tab the alert controls are not drawn');
   const one = blank5(); one.dhuhr = { on: true, min: 10 };

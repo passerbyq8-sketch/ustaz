@@ -463,6 +463,14 @@ const EZ_I18N = {
     'prayer.notify.denied': 'التذكيرُ ممنوعٌ من إعداداتِ النِّظام.',
     'prayer.notify.silent': 'لم يصلْ جوابٌ، والتذكيرُ باقٍ مطفأً.',
     'prayer.notify.note': 'تُجدوَلُ على هذا الجهازِ حتّى {n} من الأيّامِ القادمة — وتقِلُّ إن كثُرَتِ التذكيراتُ — وتُجدَّدُ كلّما فُتِحَ التطبيق.',
+    'backup.title': 'نسخ الإعدادات واستعادتها',
+    'backup.make': 'أنشئ نسخة',
+    'backup.copied': 'نُسخ النص إلى الحافظة.',
+    'backup.paste': 'الصق هنا نسخة الإعدادات',
+    'backup.restore': 'استعد',
+    'backup.ok': 'استُعيدت الإعدادات.',
+    'backup.bad': 'هذا النص ليس نسخة صالحة من إعدادات الصلاة، ولم يتغيّر شيء.',
+    'alerts.backup': 'تشمل النسخة: المنهج ومذهب العصر والإزاحات واختيار الصوت وتذكير الإقامة والتنبيه قبل الصلاة والموقع والمكان المختار وإزاحة الهجري وتنبيهات الأذكار المرتبطة بالصلاة. لا تشمل مفتاح تذكير المواقيت لأنه لا يُفعَّل إلا بإذن من النظام.',
     'conv.title': 'محوّل التاريخ',
     'conv.greg': 'من الميلادي',
     'conv.hijri': 'من الهجري',
@@ -1222,6 +1230,14 @@ const EZ_I18N = {
     'prayer.notify.denied': 'Reminders are blocked in your system settings.',
     'prayer.notify.silent': 'No answer came back, and the reminder is still off.',
     'prayer.notify.note': 'Scheduled on this device for up to {n} days ahead — fewer when you add more reminders — and refreshed each time you open the app.',
+    'backup.title': 'Back up and restore settings',
+    'backup.make': 'Make a copy',
+    'backup.copied': 'The text was copied to the clipboard.',
+    'backup.paste': 'Paste a settings copy here',
+    'backup.restore': 'Restore',
+    'backup.ok': 'The settings were restored.',
+    'backup.bad': 'This text is not a valid copy of the prayer settings; nothing was changed.',
+    'alerts.backup': 'The copy holds: the method, asr school, offsets, sound choice, iqama and pre-prayer alerts, position, chosen place, Hijri offset and the prayer-anchored adhkar alerts. It does not hold the prayer-reminder switch, which is only ever turned on with the system\'s permission.',
     'conv.title': 'Date converter',
     'conv.greg': 'From Gregorian',
     'conv.hijri': 'From Hijri',
@@ -27125,6 +27141,7 @@ function PrayerSheet({ onClose, onOpenCompass }) {
   // so the place is state here and the controls that change it stay where item 108-أ put them.
   const [loc, setLoc] = useState(readQiblaLoc);
   const [day, setDay] = useState(null);
+  const [rev, setRev] = useState(0);
   return (
     <EzShell title={PRAYER_SHEET_TITLE} onBack={onClose} backLabel={QIBLA_BACK}
       /* ITEM 66 (side round) -- THE COMPASS'S ONE ENTRY, IN THE PRAYER SECTION WHERE IT BELONGS.
@@ -27137,10 +27154,13 @@ function PrayerSheet({ onClose, onOpenCompass }) {
         <button type="button" className="ezhome-focus" onClick={onOpenCompass} style={s.ezshNavBtn}
           aria-label={EZH_NAV_COMPASS}>{EZH_ICON_PRAYER}</button>
       ) : null}>
+      <React.Fragment key={rev}>
       <PrayerTimesPanel loc={loc} day={day} onDay={setDay} />
       <PrayerDateConverter onShowDay={setDay} />
       <PrayerPlaceSearch loc={loc} onLoc={setLoc} />
       <QiblaPanel loc={loc} onLoc={setLoc} />
+      </React.Fragment>
+      <PrayerBackup onRestored={(l) => { setLoc(l); setDay(null); setRev(rev + 1); }} />
     </EzShell>
   );
 }
@@ -27380,6 +27400,158 @@ function PrayerDateConverter({ onShowDay }) {
         </div>
       ) : null}
       <div style={s.qiblaNote}>{ezT('conv.hint')}</div>
+    </EzShellGroup>
+  );
+}
+
+// ============================================================
+// ITEM 124-6 -- COPY THE PRAYER SETTINGS OUT AS TEXT, AND RESTORE THEM FROM TEXT
+// ============================================================
+// WHAT IS IN THE COPY: the prayer preferences (method, asr school, offsets, sound choice, and the iqama and
+// pre-prayer blocks that live inside them), the saved position, the place chosen by name, the Hijri offset, and the
+// four prayer-anchored adhkar alerts. WHAT IS NOT, AND WHY: the prayer-reminder switch (it is only ever turned on after
+// the system grants its permission, so a copy must not be able to light it), the stored thirty-day table (it is
+// derived and rebuilds itself), the language and the theme (not prayer settings), and the wird/daily reminder hours.
+//
+// A RESTORE IS ALL OR NOTHING. The text is parsed and every part is checked strictly -- an unknown name, a value out of
+// its range, a place whose zone the engine does not know, a place that does not stand on the saved position -- before a
+// single key is written; one bad part and nothing changes. The writes then go through the same writers the screens use.
+const PRAYER_BACKUP_TAG = 'prayer-settings';
+function prayerBackupText() {
+  const keys = { prefs: readPrayerPrefs() };
+  const loc = readQiblaLoc();
+  if (loc.by !== 'default') keys.loc = { lat: loc.lat, lng: loc.lng };
+  if (loc.by === 'place') keys.place = { n: loc.place.n, a: loc.place.a, cc: loc.place.cc, tz: loc.place.tz, lat: loc.lat, lng: loc.lng };
+  keys.hijri = readHijriOffset();
+  keys.wirdAlerts = readWirdAlerts();
+  return JSON.stringify({ ezik: PRAYER_BACKUP_TAG, v: 1, keys: keys });
+}
+function prayerPlainObject(o) { return !!o && typeof o === 'object' && !Array.isArray(o); }
+function prayerIntIn(n, lo, hi) { return typeof n === 'number' && isFinite(n) && Math.trunc(n) === n && n >= lo && n <= hi; }
+function prayerBackupCheck(text) {
+  let doc = null;
+  try { doc = JSON.parse(String(text == null ? '' : text)); } catch (e) { return { ok: false, why: 'json' }; }
+  if (!prayerPlainObject(doc) || doc.ezik !== PRAYER_BACKUP_TAG || doc.v !== 1 || !prayerPlainObject(doc.keys)) return { ok: false, why: 'header' };
+  const K = doc.keys;
+  const known = ['prefs', 'loc', 'place', 'hijri', 'wirdAlerts'];
+  for (const name of Object.keys(K)) if (known.indexOf(name) === -1) return { ok: false, why: 'unknown:' + name };
+  const plan = {};
+  if (K.prefs !== undefined) {
+    const p = K.prefs;
+    if (!prayerPlainObject(p)) return { ok: false, why: 'prefs' };
+    const fields = ['method', 'asr', 'off', 'adhanSound', 'iq', 'pre'];
+    for (const name of Object.keys(p)) if (fields.indexOf(name) === -1) return { ok: false, why: 'prefs.' + name };
+    if (p.method !== undefined && (typeof p.method !== 'string' || prayerMethodIds().indexOf(p.method) === -1)) return { ok: false, why: 'prefs.method' };
+    if (p.asr !== undefined && p.asr !== 'standard' && p.asr !== 'hanafi') return { ok: false, why: 'prefs.asr' };
+    if (p.adhanSound !== undefined && typeof p.adhanSound !== 'boolean') return { ok: false, why: 'prefs.adhanSound' };
+    if (p.off !== undefined) {
+      if (!prayerPlainObject(p.off)) return { ok: false, why: 'prefs.off' };
+      for (const k of Object.keys(p.off)) {
+        if (PRAYER_OFFSETTABLE.indexOf(k) === -1 || !prayerIntIn(p.off[k], PRAYER_OFFSET_MIN, PRAYER_OFFSET_MAX)) return { ok: false, why: 'prefs.off.' + k };
+      }
+    }
+    for (const kind of ['iq', 'pre']) {
+      if (p[kind] === undefined) continue;
+      if (!prayerPlainObject(p[kind])) return { ok: false, why: 'prefs.' + kind };
+      for (const k of Object.keys(p[kind])) {
+        const v = p[kind][k];
+        if (PRAYER_OFFSETTABLE.indexOf(k) === -1 || !prayerPlainObject(v)) return { ok: false, why: 'prefs.' + kind + '.' + k };
+        for (const f of Object.keys(v)) if (f !== 'on' && f !== 'min') return { ok: false, why: 'prefs.' + kind + '.' + k + '.' + f };
+        if (typeof v.on !== 'boolean' || !prayerIntIn(v.min, 0, PRAYER_ALERT_MIN_MAX) || (v.on && v.min < 1)) return { ok: false, why: 'prefs.' + kind + '.' + k };
+      }
+    }
+    plan.prefs = p;
+  }
+  if (K.loc !== undefined) {
+    const l = K.loc;
+    if (!prayerPlainObject(l) || typeof l.lat !== 'number' || typeof l.lng !== 'number' || !isFinite(l.lat) || !isFinite(l.lng)
+      || l.lat < -90 || l.lat > 90 || l.lng < -180 || l.lng > 180) return { ok: false, why: 'loc' };
+    plan.loc = { lat: l.lat, lng: l.lng };
+  }
+  if (K.place !== undefined) {
+    const p = K.place;
+    if (!plan.loc) return { ok: false, why: 'place.noloc' };
+    if (!prayerPlainObject(p) || typeof p.n !== 'string' || !p.n || typeof p.tz !== 'string' || !prayerZoneFmt(p.tz)
+      || p.lat !== plan.loc.lat || p.lng !== plan.loc.lng
+      || (p.a !== undefined && typeof p.a !== 'string') || (p.cc !== undefined && typeof p.cc !== 'string')) return { ok: false, why: 'place' };
+    plan.place = { n: p.n, a: p.a || '', cc: p.cc || '', tz: p.tz, lat: p.lat, lng: p.lng };
+  }
+  if (K.hijri !== undefined) {
+    if (!prayerIntIn(K.hijri, HIJRI_OFFSET_MIN, HIJRI_OFFSET_MAX)) return { ok: false, why: 'hijri' };
+    plan.hijri = K.hijri;
+  }
+  if (K.wirdAlerts !== undefined) {
+    const w = K.wirdAlerts;
+    if (!prayerPlainObject(w)) return { ok: false, why: 'wirdAlerts' };
+    const out = {};
+    for (const id of Object.keys(w)) {
+      const known2 = WIRD_ALERTS.some((a) => a.id === id);
+      const v = w[id];
+      if (!known2 || !prayerPlainObject(v) || typeof v.on !== 'boolean' || !wirdAlertOffsetOk(v.offset)) return { ok: false, why: 'wirdAlerts.' + id };
+      out[id] = { on: v.on, offset: v.offset };
+    }
+    plan.wirdAlerts = out;
+  }
+  return { ok: true, plan: plan };
+}
+// Writes a checked plan through the screens' own writers. A part the copy does not carry is left as it is, except
+// the position: a copy made on the default position puts the default back.
+function prayerBackupApply(plan) {
+  if (plan.prefs) writePrayerPrefs(plan.prefs);
+  if (plan.place) writePrayerPlace(plan.place);
+  else if (plan.loc) writeQiblaLoc(plan.loc.lat, plan.loc.lng);
+  if (plan.hijri !== undefined) writeHijriOffset(plan.hijri);
+  if (plan.wirdAlerts) {
+    const cur = readWirdAlerts();
+    for (const id of Object.keys(plan.wirdAlerts)) cur[id] = plan.wirdAlerts[id];
+    writeWirdAlerts(cur);
+  }
+  try { ezikWidgetDataChanged(); } catch (e) {}
+  try { ezikSchedArm(); } catch (e) {}
+  return readQiblaLoc();
+}
+function PrayerBackup({ onRestored }) {
+  useEzLang();
+  const [out, setOut] = useState('');
+  const [inp, setInp] = useState('');
+  const [said, setSaid] = useState('');
+  const make = () => {
+    const text = prayerBackupText();
+    setOut(text);
+    setSaid('');
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => setSaid('copied'), () => {});
+      }
+    } catch (e) {}
+  };
+  const restore = () => {
+    const r = prayerBackupCheck(inp);
+    if (!r.ok) { setSaid('bad'); return; }
+    const loc = prayerBackupApply(r.plan);
+    setSaid('ok');
+    if (onRestored) onRestored(loc);
+  };
+  return (
+    <EzShellGroup title={ezT('backup.title')}>
+      <div className="ez-hit" style={s.prayerOptRow}>
+        <button type="button" onClick={make} data-ezik-backup="make" className="ezik-focus" style={s.prayerOpt}>{ezT('backup.make')}</button>
+      </div>
+      {out ? (
+        <textarea readOnly value={out} rows={4} data-ezik-backup="out" aria-label={ezT('backup.make')}
+          onFocus={(e) => { try { e.target.select(); } catch (x) {} }}
+          style={{ ...s.drawerSearch, width: '100%', direction: 'ltr', textAlign: 'left', fontSize: 12 }} />
+      ) : null}
+      {said === 'copied' ? <div style={s.qiblaNote} data-ezik-backup="copied">{ezT('backup.copied')}</div> : null}
+      <textarea value={inp} rows={3} data-ezik-backup="in" aria-label={ezT('backup.paste')} placeholder={ezT('backup.paste')}
+        onChange={(e) => { setInp(e && e.target ? e.target.value : ''); setSaid(''); }}
+        style={{ ...s.drawerSearch, width: '100%', direction: 'ltr', textAlign: 'left', fontSize: 12, marginTop: 8 }} />
+      <div className="ez-hit" style={s.prayerOptRow}>
+        <button type="button" onClick={restore} data-ezik-backup="restore" className="ezik-focus" style={s.prayerOpt}>{ezT('backup.restore')}</button>
+      </div>
+      {said === 'ok' ? <div style={s.qiblaNote} data-ezik-backup="ok">{ezT('backup.ok')}</div> : null}
+      {said === 'bad' ? <div style={s.qiblaNote} data-ezik-backup="bad">{ezT('backup.bad')}</div> : null}
+      <div style={s.qiblaNote}>{ezT('alerts.backup')}</div>
     </EzShellGroup>
   );
 }
