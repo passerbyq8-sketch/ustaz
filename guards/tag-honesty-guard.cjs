@@ -1262,6 +1262,28 @@ const unsupportedIsHandledSilently = (module) => {
       ok('ORDER50-1 mutant seam applied', m1.changed, m1.error);
       ok('ORDER50-1 MUTANT KILLED: the formula brings its own waw again', m1.loaded && m1.survived === false, JSON.stringify(m1));
     }
+    // ── ORDER 54 item 1 (row 68) · THE IMAM'S SHORT NAME OVER HIS OWN BOOK KEEPS THE NAME; ANY OTHER MAN'S DOES NOT ───────────────────────────────────────────────────────────────────────
+    // MEASURED (preview 53, question 8): «وسئل الإمام أحمد … فقال» over «مسائل الإمام أحمد رواية ابنه عبد الله · أحمد بن حنبل» came out «وسئل بعض أهل العلم …», because «الإمام أحمد» is not a run inside «أحمد بن حنبل».
+    {
+      const SNIP54 = 'ولا يقنت في الفجر إلا إذا نزلت بالمسلمين نازلة، فيدعو الإمام ويؤمن المأمومون.';
+      const row54 = (author, bookTitle) => ({ id: 'lib:FC-X:1:001', title: bookTitle + ' · ج1 · ص91', url: '', scholar: author, snippet: SNIP54, date: '', kind: 'lib_book', bookTitle, author });
+      const say54 = (mod, claimed, row) => mod.reviewAnswer({ text: 'قال ' + claimed + ': ' + SNIP54, evidence: [row], domain: 'fiqh', mode: 'chat' }).text;
+      const AH = row54('أحمد بن حنبل', 'مسائل الإمام أحمد رواية ابنه عبد الله');
+      for (const claimed of ['الإمام أحمد', 'أحمد', 'الإمام أحمد بن حنبل', 'أبو عبد الله']) {
+        ok('ORDER54-1 «' + claimed + '» over his own book keeps the name', say54(module, claimed, AH) === 'قال ' + claimed + ': ' + SNIP54, say54(module, claimed, AH));
+      }
+      for (const [claimed, row] of [['أحمد شاكر', AH], ['أحمد بن حجر', AH], ['الإمام أحمد شاكر', AH], ['مالك بن نبي', row54('مالك بن أنس', 'موطأ مالك ت الأعظمي')], ['الإمام أحمد', row54('مالك بن أنس', 'موطأ مالك ت الأعظمي')]]) {
+        ok('ORDER54-1 control · «' + claimed + '» over a page that is not his: the name goes (بعض أهل العلم)', say54(module, claimed, row).startsWith('وقال بعض أهل العلم'), say54(module, claimed, row));
+      }
+      ok('ORDER54-1 sibling · «الإمام مالك» over «الموطأ» and «الإمام الشافعي» over «الأم» keep the name',
+        say54(module, 'الإمام مالك', row54('مالك بن أنس', 'موطأ مالك ت الأعظمي')).startsWith('قال الإمام مالك')
+        && say54(module, 'الإمام الشافعي', row54('الشافعي', 'الأم للشافعي')).startsWith('قال الإمام الشافعي'));
+      const m54 = await runMutant({ sourceFile: REVIEWER, name: 'the imam licence is taken away',
+        transform: (source) => source.replace('    || imamBookEvidenceFor(sentence, attribution, evidence)\n', ''),
+        survives: (mod) => say54(mod, 'الإمام أحمد', AH) === 'قال الإمام أحمد: ' + SNIP54 });
+      ok('ORDER54-1 mutant seam applied', m54.changed, m54.error);
+      ok('ORDER54-1 MUTANT KILLED: without the imam licence «الإمام أحمد» loses the name over his own book', m54.loaded && m54.survived === false, JSON.stringify(m54));
+    }
   } catch (error) {
     ok('guard completed without exception', false, error?.stack || String(error));
   }

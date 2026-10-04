@@ -1842,6 +1842,31 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         && FLAGS.beforeWritingV2Takes({ enabled: true, band: 'adult', runtime: 'HADITH', excluded: 'estate_division' }).reason === 'estate_division'
         && take({ excluded: 'typo' }) && take({ excluded: '' }));
     }
+    // ORDER 54 item 1 (row 68): «الإمام أحمد» is the man whose book the card is. Measured on preview 53 (question 8): every unit that named him was held (unsupported_attribution) because the author is filed «أحمد بن حنبل». The short form of one of the three imams, over HIS OWN book, goes out with the name; any other man's name over the same page is still held.
+    {
+      const UN54 = await esm('lib/bw2-units.js');
+      const MATN54 = 'ولا يقنت في الفجر إلا إذا نزلت بالمسلمين نازلة، فيدعو الإمام ويؤمن المأمومون';
+      const rowOf54 = (author, bookTitle) => [{ ref: 1, kind: 'lib_book', title: bookTitle, bookTitle, author, locator: 'ج1 · ص91', fullText: 'قال أبي: ' + MATN54 + '.' }];
+      const play54 = async (writer, rows) => {
+        const out = [];
+        const r = UN54.createBw2Releaser({ rows, emit: (p) => { out.push(p); return true; } });
+        r.push(writer + '\n');
+        const s54 = await r.end();
+        return { text: out.join(''), holds: s54.holds || {} };
+      };
+      const AHMAD54 = rowOf54('أحمد بن حنبل', 'مسائل الإمام أحمد رواية ابنه عبد الله');
+      for (const name of ['الإمام أحمد', 'أحمد', 'الإمام أحمد بن حنبل', 'أبو عبد الله']) {
+        const got = await play54('قال ' + name + ': «' + MATN54 + '» [[1]].', AHMAD54);
+        ok('ORDER54-1 «' + name + '» over his own book: the unit goes out with the name', got.text.includes(name) && !got.holds.unsupported_attribution, JSON.stringify(got));
+      }
+      for (const [name, rows] of [['أحمد شاكر', AHMAD54], ['أحمد بن حجر', AHMAD54], ['مالك بن نبي', rowOf54('مالك بن أنس', 'موطأ مالك ت الأعظمي')], ['الإمام أحمد', rowOf54('مالك بن أنس', 'موطأ مالك ت الأعظمي')]]) {
+        const got = await play54('قال ' + name + ': «' + MATN54 + '» [[1]].', rows);
+        ok('ORDER54-1 control: «' + name + '» over a page that is not that man\'s is held', got.text === '' && got.holds.unsupported_attribution === 1, JSON.stringify(got));
+      }
+      const MALIK54 = await play54('قال الإمام مالك: «' + MATN54 + '» [[1]].', rowOf54('مالك بن أنس', 'موطأ مالك ت الأعظمي'));
+      const SHAFII54 = await play54('قال الإمام الشافعي: «' + MATN54 + '» [[1]].', rowOf54('الشافعي', 'الأم للشافعي'));
+      ok('ORDER54-1 sibling: «الإمام مالك» over «الموطأ» and «الإمام الشافعي» over «الأم» go out with the name', MALIK54.text.includes('الإمام مالك') && SHAFII54.text.includes('الإمام الشافعي'), JSON.stringify([MALIK54, SHAFII54]));
+    }
     // ORDER 50 item 6, the real store: written LAST in this file, because loading the encyclopedia index here would end the C2g row (readiness before any build in this process) if it came earlier.
     {
       const BW5 = await esm('lib/before-writing-v2.js');

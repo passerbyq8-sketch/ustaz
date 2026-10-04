@@ -359,6 +359,101 @@ async function main() {
     mechanismFrom(read(REVIEWER_REL)).NAME_FORM_ROWS.length === 9,
     'the shipped table changed while this guard was running');
 
+  // ==========================================================================
+  section('F. ORDER 54 item 1 (row 68) -- THE THREE IMAMS, BY THEIR SHORT FORMS, OVER THEIR OWN BOOKS');
+  // ==========================================================================
+  //
+  // Measured on preview 53 (question 8): the card was «مسائل الإمام أحمد رواية ابنه عبد الله · أحمد بن
+  // حنبل» and the unit that named «الإمام أحمد» was held. A short form of an imam's name is the same
+  // man as his full name, and a page of HIS book supports the credit -- and ONLY his book does.
+  const IMAM_MATN = 'ولا يقنت في الفجر إلا إذا نزلت بالمسلمين نازلة، فيدعو الإمام ويؤمن المأمومون.';
+  const imamRow = (author, bookTitle) => ({
+    kind: 'lib_book', title: bookTitle, url: '', publisher: author, text: IMAM_MATN,
+    recordId: 'lib:imam-1', bookTitle, author, locator: '', matnCut: false, ref: 1,
+  });
+  const imamVerdict = (RV, claimed, author, bookTitle) => {
+    const out = RV.reviewAnswer({
+      text: 'قال ' + claimed + ': ' + IMAM_MATN,
+      evidence: [imamRow(author, bookTitle)].map(loop.reviewerEvidence),
+      domain: 'fiqh',
+    });
+    const kept = out.annotations.some((a) => a.action === 'kept-sourced-attribution');
+    const stripped = out.annotations.some((a) => a.action === 'removed-unsupported-attribution');
+    return kept ? 'KEEP' : (stripped ? 'STRIP' : 'NEITHER');
+  };
+  const AHMAD = ['أحمد بن حنبل', 'مسائل الإمام أحمد رواية ابنه عبد الله'];
+  const MALIK = ['مالك بن أنس', 'موطأ مالك ت الأعظمي'];
+  const SHAFII = ['الشافعي', 'الأم للشافعي'];
+  for (const [label, claimed, [author, title]] of [
+    ['F1  Ahmad: «الإمام أحمد»', 'الإمام أحمد', AHMAD],
+    ['F2  Ahmad: «أحمد»', 'أحمد', AHMAD],
+    ['F3  Ahmad: «الإمام أحمد بن حنبل»', 'الإمام أحمد بن حنبل', AHMAD],
+    ['F4  Ahmad: the kunya in his own book', 'أبو عبد الله', AHMAD],
+    ['F5  Ahmad: «الإمام أحمد رحمه الله»', 'الإمام أحمد رحمه الله', AHMAD],
+    ['F6  Ahmad: «الإمام أحمد في رواية ابنه عبد الله» (a run of the row\'s own title)', 'الإمام أحمد في رواية ابنه عبد الله', AHMAD],
+    ['F7  Malik: «الإمام مالك»', 'الإمام مالك', MALIK],
+    ['F8  Malik: «مالك»', 'مالك', MALIK],
+    ['F9  Shafi\'i: «الإمام الشافعي» over «الأم» (the shelf holds the author as «الشافعي»)', 'الإمام الشافعي', SHAFII],
+    ['F10 Shafi\'i: «محمد بن إدريس الشافعي»', 'محمد بن إدريس الشافعي', SHAFII],
+  ]) {
+    const got = imamVerdict(reviewer, claimed, author, title);
+    ok(label + ' -> the name STANDS', got === 'KEEP', 'got ' + got);
+  }
+  for (const [label, claimed, [author, title]] of [
+    ['F11 «أحمد شاكر» over Ahmad\'s own book -> the name COMES OFF', 'أحمد شاكر', AHMAD],
+    ['F12 «أحمد بن حجر» over Ahmad\'s own book -> COMES OFF', 'أحمد بن حجر', AHMAD],
+    ['F13 «الإمام أحمد شاكر» (an honorific does not make him the imam) -> COMES OFF', 'الإمام أحمد شاكر', AHMAD],
+    ['F15 «مالك بن نبي» over Malik\'s own book -> COMES OFF', 'مالك بن نبي', MALIK],
+    ['F16 «الإمام مالك بن نبي» -> COMES OFF', 'الإمام مالك بن نبي', MALIK],
+    ['F17 «الإمام أحمد» over MALIK\'s book (a book of another man) -> COMES OFF', 'الإمام أحمد', MALIK],
+    ['F18 «الإمام مالك» over AHMAD\'s book -> COMES OFF', 'الإمام مالك', AHMAD],
+    ['F19 «الإمام الشافعي» over AHMAD\'s book -> COMES OFF', 'الإمام الشافعي', AHMAD],
+    ['F20 «الإمام أحمد» over a book by أحمد شاكر -> COMES OFF', 'الإمام أحمد', ['أحمد محمد شاكر', 'عمدة التفسير']],
+  ]) {
+    const got = imamVerdict(reviewer, claimed, author, title);
+    ok(label, got === 'STRIP', 'got ' + got);
+  }
+  // F14: «أحمد عبد الله» -- the words after «أحمد» happen to sit in the row's title, and are not a «في…» run. The reviewer keeps such a name MARKED (as before, because cutting it would break the sentence); what it must not be is a sourced KEEP.
+  ok('F14 «أحمد عبد الله» is not the imam: never a sourced KEEP', imamVerdict(reviewer, 'أحمد عبد الله', AHMAD[0], AHMAD[1]) !== 'KEEP');
+  // The notice: a name that is one of the three imams is a KNOWN man, so «لم أتبين من تقصد» is never written for him.
+  const asked = (status, name, answer) => reviewer.requestedIdentityRespected(answer, { status, name, id: '', candidates: [] });
+  for (const status of ['unresolved', 'resolved']) {
+    ok('F21 ' + status + ': «الإمام أحمد» asked, an answer that names him -> no notice',
+      asked(status, 'الإمام أحمد', 'ذكر الإمام أحمد بن حنبل في مسائله أن القنوت بعد الركعة، وقال ابن عثيمين مثله.').respected === true);
+    ok('F22 ' + status + ': «الإمام أحمد» asked, an answer that names another registered man and not him -> the MISMATCH notice, never «لم أتبين من تقصد»',
+      (() => { const r = asked(status, 'الإمام أحمد', 'قال ابن عثيمين إن القنوت في الفجر لا يشرع.'); return r.respected === false && r.reason === 'mismatch-another-authority'; })());
+  }
+  ok('F23 a name that merely BEGINS with an imam\'s («الإمام أحمد شاكر») is not the imam: the unresolved notice stays as it was',
+    (() => { const r = asked('unresolved', 'الإمام أحمد شاكر', 'قال ابن عثيمين إن القنوت في الفجر لا يشرع.'); return r.respected === false && r.reason === 'unresolved-substituted'; })());
+  // The table is pinned: three men, and the shipped licence is the last term, after the three that were there.
+  ok('F24 the licence is WIRED as the last term of attributedEvidenceFor, after ownBookChoiceEvidenceFor',
+    /\|\| ownBookChoiceEvidenceFor\(attribution, evidence\)\n    \|\| imamBookEvidenceFor\(sentence, attribution, evidence\)\n    \|\| null;/.test(source));
+  ok('F25 the table holds exactly three men -- a fourth is a decision, not an edit',
+    (source.match(/Object\.freeze\(\{ man: 'imam-[a-z]+'/g) || []).length === 3);
+
+  const mNoImam = await mutantReviewer(temp, 'imam-no-licence',
+    (s) => s.replace('    || imamBookEvidenceFor(sentence, attribution, evidence)\n', '    // mutant-imam-no-licence\n'),
+    'mutant-imam-no-licence');
+  ok('F26 MUTANT KILLED: take the imam licence away and «الإمام أحمد» loses the credit for his own book',
+    imamVerdict(mNoImam, 'الإمام أحمد', AHMAD[0], AHMAD[1]) === 'STRIP'
+      && imamVerdict(mNoImam, 'الإمام مالك', MALIK[0], MALIK[1]) === 'STRIP');
+  const mAnyAuthor = await mutantReviewer(temp, 'imam-any-author',
+    (s) => s.replace('    if (imamOfAuthor(row.author) !== read.man) return false;\n', '    // mutant-imam-any-author\n'),
+    'mutant-imam-any-author');
+  ok('F27 MUTANT KILLED: do not ask whose book the row is and «الإمام أحمد» is credited over Malik\'s page',
+    imamVerdict(mAnyAuthor, 'الإمام أحمد', MALIK[0], MALIK[1]) === 'KEEP');
+  const mLoose = await mutantReviewer(temp, 'imam-loose-rest',
+    (s) => s.replace("        if (rest.length && rest[0] !== 'في' && rest[0] !== 'رواية' && rest[0] !== 'روايه') continue;\n", '        // mutant-imam-loose-rest\n'),
+    'mutant-imam-loose-rest');
+  ok('F28 MUTANT KILLED: let any words follow the name and «أحمد شاكر» is the imam',
+    imamVerdict(mLoose, 'أحمد شاكر', AHMAD[0], 'مسائل شاكر ' + AHMAD[1]) === 'KEEP'
+      || imamVerdict(mLoose, 'أحمد عبد الله', AHMAD[0], AHMAD[1]) === 'KEEP');
+  const mNotice = await mutantReviewer(temp, 'imam-notice',
+    (s) => s.replace('  if (askedImam) {\n', '  if (false && askedImam) { // mutant-imam-notice\n'),
+    'mutant-imam-notice');
+  ok('F29 MUTANT KILLED: forget that the imam is a known man and the notice «لم أتبين من تقصد» comes out over an answer that names him',
+    mNotice.requestedIdentityRespected('ذكر الإمام أحمد بن حنبل أن القنوت بعد الركعة، وقال ابن عثيمين مثله.', { status: 'unresolved', name: 'الإمام أحمد', id: '', candidates: [] }).respected === false);
+
   try { fs.rmSync(temp, { recursive: true, force: true }); } catch (error) { /* scratch only */ }
 
   console.log('\n=== name-form-match: ' + (checks - failures) + '/' + checks
