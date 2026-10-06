@@ -179,6 +179,15 @@ const V = '﴿', W = '﴾';
     await new Promise((r) => setTimeout(r, 20));
     const outF2 = await A.translateAnswer(P1 + '\n\n' + P2, { lang: 'en', translate: tr, spec: flaky });
     ok('a failed parallel translation costs nothing: the paragraph is translated by the ordinary path and nothing is lost', outF2.stats.specMisses === 2 && outF2.stats.specHits === 0 && /EN</.test(outF2.text) && !/[ء-ي]/.test(outF2.text.replace(/EN<[^>]*>/g, '')), outF2.text.slice(0, 200));
+    // a paragraph the parallel path could not translate gets ONE more ordinary attempt at the end (two calls), not the whole ladder over again: the tail stays bounded
+    {
+      let n = 0; const dead = async () => { n++; return { ok: false, status: 500 }; };
+      const sp5 = A.createSpeculator({ lang: 'en', translate: dead });
+      sp5.feed(P1 + '\n\n'); await new Promise((r) => setTimeout(r, 30));
+      const during = n; n = 0;
+      const o6 = await A.translateAnswer(P1, { lang: 'en', translate: dead, spec: sp5 });
+      ok('a failed parallel translation costs the end of the answer at most two ordinary calls (the ladder was already climbed once, in parallel)', during >= 2 && n <= 2 && o6.stats.specMisses === 1 && o6.stats.batchesKeptArabic === 1, JSON.stringify([during, n, o6.stats.specMisses, o6.stats.batchesKeptArabic]));
+    }
     // what is not prose is never started: a tag, the fatwa block
     const sp2 = A.createSpeculator({ lang: 'en', translate: tr });
     sp2.feed('فقرة عادية طويلة بما يكفي لتبدأ ترجمتها فورا بلا مشكلة هنا.\n\n<verse surah="x" ayah="1">ن</verse> وبعده نص عربي طويل بما يكفي ليتجاوز الحد الأدنى.\n\n## نص الفتوى\n\nالسؤال:\nما حكم هذا الأمر الطويل بما يكفي ليتجاوز الحد؟\n\nالجواب:\nنص الجواب الطويل بما يكفي ليتجاوز الحد الأدنى للبدء.\n\n');
