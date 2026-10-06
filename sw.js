@@ -51,10 +51,10 @@
 // stranded on a dead build. The HTML shell is network-first (6b) so it is always fresh online
 // regardless of the version; the bump refreshes the CACHE-FIRST assets (icons/fonts). The JSON
 // data files no longer NEED the bump -- they revalidate themselves -- but they still honour it.
-const CACHE = 'ezik-v56';
+const CACHE = 'ezik-v57';
 // '/index.html' is NOT here. Vercel serves this document byte-identically for '/' and for
 // '/index.html', so precaching both downloaded the whole shell TWICE on every cold visit --
-// a second copy of the 154049 bytes '/' already holds. The network-first branch below still
+// a second copy of the 155093 bytes '/' already holds. The network-first branch below still
 // cache.put()s the shell on every successful load, so the offline fallback keeps working from
 // the '/' entry.
 //
@@ -119,9 +119,9 @@ const CORE = [
   // first time a screen asks for it.
   '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2',
   '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2',
-  // ITEM 74. The LATIN faces of Tajawal (the interface font), four weights -- 400, 500, 700, 800 -- so that the English interface is
-  // painted in its own face from the cache and a reader who has visited once can read English with no network (the Arabic
-  // faces of the same family stay with the runtime arm below, as before). 40736 bytes together.
+  // ITEM 74. The LATIN faces of Tajawal (the interface font), its four weights, so that the English interface is painted in its own
+  // face from the cache and a reader who has visited once can read English with no network (the Arabic faces of the same family
+  // stay with the runtime arm below, as before).
   '/fonts/Iura6YBj_oCad4k1nzGBCw.woff2',
   '/fonts/Iurf6YBj_oCad4k1l8KiHrFpiQ.woff2',
   '/fonts/Iurf6YBj_oCad4k1l4qkHrFpiQ.woff2',
@@ -146,7 +146,7 @@ const CORE = [
 // ---------------------------------------------------------------------------
 
 // The measured cost of CORE, byte for byte, at the commit that cut this constant:
-//   /  (index.html) 154049 + app.js 1942130 + icon-watermark.png 368386
+//   /  (index.html) 155093 + app.js 1939325 + icon-watermark.png 368386
 //   + adhkar.json 177392 + vendor/react-dom.umd.js 131835 + sunan-day.json 84759
 //   + arbaeen.json 67360 + daily-tafsir.json 23984 + icon-512.png 12893
 //   + vendor/react.umd.js 10751 + arbaeen-footnotes.json 9322 + adhkar-split-27.json 7182
@@ -154,7 +154,7 @@ const CORE = [
 //   + fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2 94032   (Noto Naskh Arabic, arabic)
 //   + fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2 19696      (Noto Naskh Arabic, latin)
 //   + fonts/Iura6YBj_oCad4k1nzGBCw.woff2 10256 + fonts/Iurf6YBj_oCad4k1l8KiHrFpiQ.woff2 9900
-//   + fonts/Iurf6YBj_oCad4k1l4qkHrFpiQ.woff2 9996 + fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2 10584   (Tajawal, latin, 400/500/700/800)
+//   + fonts/Iurf6YBj_oCad4k1l4qkHrFpiQ.woff2 9996 + fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2 10584   (Tajawal, latin, the four weights)
 // quest-bank-integrity-guard.cjs B12 re-derives this sum from the files on disk and FAILS on any
 // deviation, so a shell that grows cannot quietly leave the pre-check reading a number that
 // stopped being true.
@@ -171,7 +171,7 @@ const CORE = [
 // constant, that table, and the sw.js digest in quest-bank-integrity-guard.cjs in the SAME
 // commit -- item 89-b is the worked example. CACHE is untouched by all of it: the store name is
 // a ship decision and the merge round owns the bump.
-const CORE_BYTES = 3115295;
+const CORE_BYTES = 3154270;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
 // re-cut by hand always trails the files it describes by some amount.

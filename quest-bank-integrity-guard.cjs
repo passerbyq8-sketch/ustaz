@@ -1791,7 +1791,7 @@ const SEALED = {
   //   2026-10-04 -- ORDER 54 SHIP (order EZIK-ORDER-54-2026-10-04, side/comprehensive-20261002): CACHE and config/app-version.json move ezik-v53 -> ezik-v54.
 //                    app.js REBUILT from app.jsx by npm run build:app: 1828735 bytes (unchanged: only EZIK_APP_VERSION moved, same length), sha256 d234b0e5..36dd.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES stays 3001825, --check MATCH. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 55908 bytes).
-  'sw.js': '9a0000a3a1aadb2b076ef8b27779449e989cbbcb2b51f7b6e158f1af0749ebce',
+  'sw.js': 'b86986a40879d72914a284185b8e9a717c14dfd46e322a3056f8c42106d856d2',
 };
 
 // ---------------------------------------------------------------------------
@@ -1856,7 +1856,9 @@ const SW_CORE = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png',
   '/arbaeen-footnotes.json', '/sunan-day.json',
   '/app.js', '/vendor/react.umd.js', '/vendor/react-dom.umd.js',
   '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2',
-  '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2'];
+  '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2',
+  '/fonts/Iura6YBj_oCad4k1nzGBCw.woff2', '/fonts/Iurf6YBj_oCad4k1l8KiHrFpiQ.woff2',
+  '/fonts/Iurf6YBj_oCad4k1l4qkHrFpiQ.woff2', '/fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2'];
 // The files CORE names on disk, in the same order. B12 re-derives their byte sum and refuses a
 // CORE_BYTES constant that has fallen below it.
 const SW_CORE_FILES = ['index.html', 'manifest.json', 'icon-192.png', 'icon-512.png',
@@ -1864,7 +1866,10 @@ const SW_CORE_FILES = ['index.html', 'manifest.json', 'icon-192.png', 'icon-512.
   'arbaeen.json', 'daily-tafsir.json', 'arbaeen-footnotes.json', 'sunan-day.json',
   'app.js', 'vendor/react.umd.js', 'vendor/react-dom.umd.js',
   'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2',
-  'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2'];
+  'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2',
+  // ITEM 74. The four Latin faces of Tajawal: the English interface is read offline from the cache.
+  'fonts/Iura6YBj_oCad4k1nzGBCw.woff2', 'fonts/Iurf6YBj_oCad4k1l8KiHrFpiQ.woff2',
+  'fonts/Iurf6YBj_oCad4k1l4qkHrFpiQ.woff2', 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2'];
 const SW_SEALED_DATA = ['/quran-uthmani.json', '/mushaf-layout.json'];
 // ITEM 33. The store the 604 printed page scans live in, and the ceiling on it. Written out
 // here rather than read back out of sw.js for the same reason SW_CORE and SW_REPORT_TAG are:
@@ -2879,15 +2884,20 @@ async function compare(bankPath) {
     //  { n, sum: [a, b] }  n is the byte sum of those files on disk
     //  { n, dir: 'count' | 'sum' | 'mean' }   n is that statistic over the mushaf page scans
     const SW_PROSE = [
-      { n: 154049, of: 'index.html' },
+      { n: 155093, of: 'index.html' },
       // ITEM 85. The two CORE entries the self-hosted faces added, stated in the worker's byte
       // table beside the rest and re-derived here from the files they name. They are the arabic
       // and latin cuts of Noto Naskh Arabic, which is what the first screen is painted in.
       { n: 94032, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2' },
       { n: 19696, of: 'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2' },
+      // ITEM 74. The four Latin faces of Tajawal, stated in the worker's byte table and re-derived here from the files they name.
+      { n: 10256, of: 'fonts/Iura6YBj_oCad4k1nzGBCw.woff2' },
+      { n: 9900, of: 'fonts/Iurf6YBj_oCad4k1l8KiHrFpiQ.woff2' },
+      { n: 9996, of: 'fonts/Iurf6YBj_oCad4k1l4qkHrFpiQ.woff2' },
+      { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1942130, of: 'app.js' },
+      { n: 1939325, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
