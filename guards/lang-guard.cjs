@@ -189,6 +189,24 @@ const V = '﴿', W = '﴾';
     sp3.feed('جملة أولى طويلة بما يكفي ولا شيء بعدها بعد.'); const before3 = sp3.started;
     sp3.feed('\n<book author="x" ref="y" book="FC-000001" vol="1" page="2" matn="eA==">كتاب</book>');
     ok('the first sentence is started the moment a card follows it, not before', before3 === 0 && sp3.started === 1, before3 + ' -> ' + sp3.started);
+    // a scholar's book passage and a published block start the moment their card closes, as ONE string with no marker (the way translateAnswer reads them)
+    {
+      const matnTxt = 'نص الكتاب الطويل بما يكفي لتتم ترجمته كاملا بلا أي علامات في وسطه.';
+      const blockTxt = '## نص الفتوى\n\nالسؤال:\nما حكم هذا الأمر؟\n\nالجواب:\nنص الجواب المنشور هنا كما هو.';
+      const streamedW = 'فقرة أولى طويلة بما يكفي لتبدأ ترجمتها فور اكتمالها.\n<book author="x" ref="y" book="FC-000001" vol="1" page="2" matn="' + Buffer.from(matnTxt, 'utf8').toString('base64') + '">كتاب</book>\n\n' + blockTxt + '\n<source site="binbaz.org.sa" url="https://binbaz.org.sa/a">عنوان</source>';
+      const spW = A.createSpeculator({ lang: 'en', translate: tr });
+      spW.feed(streamedW.slice(0, 70)); const w0 = spW.started; spW.feed(streamedW.slice(70, streamedW.indexOf('</book>') + 7)); const w1 = spW.started; spW.feed(streamedW.slice(streamedW.indexOf('</book>') + 7));
+      await new Promise((r) => setTimeout(r, 40));
+      ok('a book passage starts when its card closes, and the published block when the card after it closes -- each as a whole string', w0 === 0 && w1 >= 2 && !!spW.take(matnTxt, true) && !!spW.take(blockTxt, true) && !spW.take(matnTxt) && spW.started === 3, [w0, w1, spW.started].join('/'));
+      calls.length = 0;
+      const outW = await A.translateAnswer(streamedW, { lang: 'en', translate: tr, spec: spW });
+      const plainW = await A.translateAnswer(streamedW, { lang: 'en', translate: tr });
+      ok('...they are taken from the parallel path when the final text is the same, and the delivered text is exactly what the plain path delivers', outW.stats.specUnits === 3 && outW.stats.specHits === 3 && !calls.some((c) => c.includes('نص الكتاب الطويل') || c.includes('نص الجواب المنشور')) && outW.text === plainW.text, JSON.stringify([outW.stats.specUnits, outW.stats.specHits, calls.length]));
+      const changedW = streamedW.replace('نص الجواب المنشور هنا كما هو.', 'نص جواب آخر بعد أن غيّره مرشّح.');
+      calls.length = 0;
+      const outC = await A.translateAnswer(changedW, { lang: 'en', translate: tr, spec: spW });
+      ok('a published block that a filter changed is translated again from the final text, and the old one is never used', outC.stats.specUnits === 2 && calls.some((c) => c.includes('جواب آخر')), JSON.stringify([outC.stats.specUnits, calls.length]));
+    }
     // ordering is untouched: the output of the parallel path equals the output without it
     const plain = await A.translateAnswer(P1 + '\n\n' + P2x + '\n\n' + P3, { lang: 'en', translate: tr });
     ok('the parallel path changes WHEN the work is done, not WHAT is delivered: same text out, in the same order, as the plain path', plain.text === outS.text, JSON.stringify([plain.text.slice(0, 120), outS.text.slice(0, 120)]));
