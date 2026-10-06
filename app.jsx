@@ -29003,7 +29003,7 @@ function hijriToCivil(hy, hm, hd, offset) {
 }
 function hijriLabel(h) {
   if (!h || !(h.m >= 1) || !(h.m <= 12)) return '';
-  return toArabicDigits(h.d) + ' ' + (typeof ezT === 'function' ? ezT('hijri.m' + h.m) : HIJRI_MONTHS[h.m - 1]) + ' ' + toArabicDigits(h.y) + ' ' + HIJRI_SUFFIX;
+  return toArabicDigits(h.d) + ' ' + (typeof ezT === 'function' ? ezT('hijri.m' + h.m) : HIJRI_MONTHS[h.m - 1]) + ' ' + toArabicDigits(h.y) + ' ' + (typeof ezX === 'function' ? ezX(HIJRI_SUFFIX) : HIJRI_SUFFIX);
 }
 // The one place the clock is read. Three local getters and nothing else — no UTC getter and no
 // toISOString, so a reader east of Greenwich sees their own day and not London's.
