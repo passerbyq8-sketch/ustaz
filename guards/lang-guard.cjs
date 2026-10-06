@@ -488,6 +488,33 @@ const V = '﴿', W = '﴾';
   ok('a row with direction rtl and its own digit system is just another entry: the table helpers need no change to describe it',
     (() => { const t = Object.assign({}, T.LANG_TABLE, { zz: trial }); return t.zz.dir === 'rtl' && t.zz.digits !== t.en.digits && t.zz.digits !== t.ar.digits; })());
 
+  console.log('\n=== AMENDMENT 2 (tool report, 1-1m / 1-1a / 1-10m): the shared layer, so every language inherits it ===');
+  {
+    // a hadith quoted from memory, one word of it dropped, is still that hadith (and one that is not, is not)
+    const ubayy = 'يا أبا المنذر أي آية من كتاب الله معك أعظم';
+    const h1 = P.findHadith('en', ubayy);
+    ok('a quotation of eight words or more that drops one word of a published hadith finds that hadith (the Ubayy hadith, «أتدري» left out)', !!h1 && String(h1.id) === '65059', JSON.stringify(h1 && h1.id));
+    ok('the same words in another order find nothing', P.findHadith('en', 'أعظم معك الله كتاب من آية أي المنذر أبا يا') === null);
+    ok('a short quotation that drops a word still needs the exact run (under eight words: no tolerance)', P.findHadith('en', 'يا أبا المنذر آية') === null);
+    ok('inOrder: a gap of two words passes, a gap of three does not', P.inOrder(['a', 'd'], 'a b c d') && !P.inOrder(['a', 'e'], 'a b c d e'));
+    // a stored definition that is one string on many terms is not passed to the translator (the Tijaniyyah row, 102 of 2370)
+    const gl = P.glossaryFor('en', 'إقامة الصلاة وإيتاء الزكاة');
+    ok('no glossary entry carries the repeated junk definition "Tījāniyyah"; a real definition survives', gl.length >= 2 && !gl.some((g) => /Tījāniyyah/.test(g.definition)) && gl.some((g) => /specific part of certain kinds of property/.test(g.definition)), JSON.stringify(gl.map((g) => g.definition)));
+    // the Arabic term inside the translator's parentheses
+    ok('«(إقامة: meaning)» becomes «(meaning)» in prose and goes altogether in a suggestion line', A.dropArabicGloss('What is Iqamah (إِقامَةٌ: Proclaiming the start of prayer)?') === 'What is Iqamah (Proclaiming the start of prayer)?' && A.dropArabicGloss('What is Iqamah (إِقامَةٌ: x)?', true) === 'What is Iqamah?');
+    ok('a parenthesis with no Arabic in it is left alone', A.dropArabicGloss('Zakah (obligatory alms) is due') === 'Zakah (obligatory alms) is due');
+    // the name that the Arabic does not contain
+    const para = 'الإقامة هي أداء الصلاة بحقوقها في أوقاتها.';
+    ok('addedName: a sect name in the English that the Arabic does not hold is caught, and one the Arabic holds is not', A.addedName(para, 'Iqamah (Tijaniyyah) is performing prayer') === true && A.addedName('الطريقة التيجانية', 'the Tijaniyyah way') === false && A.addedName(para, 'Iqamah is performing prayer with its rights') === false);
+    ok('the translation prompt forbids the added name and the Arabic-lettered term (model.js rules 3 and 6)', /Never add the name of a person, a sect, a group, a school or a book/.test(M.ANSWER_TO_ENGLISH_SYSTEM) && /never copy the Arabic side of a GLOSSARY entry/i.test(M.ANSWER_TO_ENGLISH_NO_MARKERS_SYSTEM));
+    const adder = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map(() => 'Iqamah (Tijaniyyah) is performing the prayer fully at its times.')) }; };
+    const outAdd = await A.translateAnswer(para, { lang: 'en', translate: adder });
+    ok('a translator that adds a sect name never has its text delivered: the unit stays Arabic', !/Tijaniyyah/.test(outAdd.text) && /الإقامة/.test(outAdd.text), outAdd.text.slice(0, 80));
+    const glosser = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map(() => 'What is Iqamah (إِقامَةٌ: Proclaiming the start of prayer)?')) }; };
+    const outG = await A.translateAnswer('<suggestions>\n- ما معنى الإقامة؟\n</suggestions>', { lang: 'en', translate: glosser });
+    ok('a suggestion line comes back with no Arabic letters of a gloss', /What is Iqamah\?/.test(outG.text) && !/[؀-ۿ]/.test(outG.text.replace(/<\/?suggestions>/g, '')), outG.text);
+  }
+
   console.log('\n' + (failures ? 'FAILED: ' + failures + ' of ' + checks + ' checks failed.' : 'OK: ' + checks + ' checks passed.'));
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.log('GUARD CRASHED: ' + (e && e.stack || e)); process.exit(2); });
