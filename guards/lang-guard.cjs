@@ -111,6 +111,15 @@ const V = '﴿', W = '﴾';
   out = await A.translateAnswer(ar1, { lang: 'en', translate: boom });
   ok('a model that is down loses nothing: the whole answer comes back in Arabic', quoted.every((q) => out.text.includes(q)) && out.text.includes('<suggestions>'));
 
+  {
+    const calls = [];
+    const spy = async ({ system, user }) => { calls.push({ system, user }); const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => 'EN ' + (s.match(/\[\[[QAI]\d+\]\]/g) || []).join(' '))) }; };
+    await A.translateAnswer(ar1, { lang: 'en', translate: spy });
+    const withMk = calls.filter((c) => /\[\[[QAI]\d+\]\]/.test(c.user)); const without = calls.filter((c) => !/\[\[[QAI]\d+\]\]/.test(c.user));
+    ok('strings that carry markers and strings that carry none are translated in separate calls', withMk.length >= 1 && without.length >= 1, calls.length + ' calls');
+    ok('the call for strings WITHOUT markers uses a prompt that never mentions a marker (told about them, the model invented them)',
+      without.every((c) => c.system === M.ANSWER_TO_ENGLISH_NO_MARKERS_SYSTEM) && !/\[\[|marker/i.test(M.ANSWER_TO_ENGLISH_NO_MARKERS_SYSTEM) && withMk.every((c) => c.system === M.ANSWER_TO_ENGLISH_SYSTEM));
+  }
   console.log('\n=== the cards ===');
   const matn = Buffer.from('هذا نص الفتوى المنشور للشيخ', 'utf8').toString('base64');
   const ar2 = 'جواب\n\n<book author="x" ref="y" book="FC-000001" vol="1" page="2" matn="' + matn + '">كتاب</book>\n<source site="binbaz.org.sa" url="https://binbaz.org.sa/a">عنوان</source>';
