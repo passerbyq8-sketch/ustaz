@@ -158,6 +158,170 @@ function ezLangRelabel() {
     EZ_VT_TITLE = ezT("visualTheme.title");
     EZ_VT_ACTIVE = ezT("visualTheme.active");
     EZ_VT_SOON = ezT("visualTheme.soon");
+    CHILD_VOICE_NOTICE = ezT('c.CHILD_VOICE_NOTICE');
+    RECITE_NO_SR = ezT('c.RECITE_NO_SR');
+    EZ_SPEECH_NO_CONSENT = ezT('c.EZ_SPEECH_NO_CONSENT');
+    BOOK_MATN_CUT_NOTE = ezT('c.BOOK_MATN_CUT_NOTE');
+    BOOK_MATN_LABEL = ezT('c.BOOK_MATN_LABEL');
+    BOOK_LIBRARY_LINK_LABEL = ezT('c.BOOK_LIBRARY_LINK_LABEL');
+    EZIK_PRINT_FALLBACK_TITLE = ezT('c.EZIK_PRINT_FALLBACK_TITLE');
+    EZIK_PDF_ARIA = ezT('c.EZIK_PDF_ARIA');
+    EZIK_PDF_FAIL = ezT('c.EZIK_PDF_FAIL');
+    EZIK_PDF_TITLE = ezT('c.EZIK_PDF_TITLE');
+    EZIK_CARD_LINKS_LABEL = ezT('c.EZIK_CARD_LINKS_LABEL');
+    EZIK_CARD_CUT_NOTE = ezT('c.EZIK_CARD_CUT_NOTE');
+    EZIK_CARD_MARK = ezT('c.EZIK_CARD_MARK');
+    EZIK_CARD_LABEL = ezT('c.EZIK_CARD_LABEL');
+    EZIK_CARD_ARIA = ezT('c.EZIK_CARD_ARIA');
+    EZIK_CARD_FAIL = ezT('c.EZIK_CARD_FAIL');
+    EZIK_SUM_TAG = ezT('c.EZIK_SUM_TAG');
+    EZH_PRAYER = ezT('c.EZH_PRAYER');
+    EZH_NAV_COMPASS = ezT('c.EZH_NAV_COMPASS');
+    EZIST_SUB_ASMAA = ezT('c.EZIST_SUB_ASMAA');
+    EZIST_SUB_PRAYER = ezT('c.EZIST_SUB_PRAYER');
+    A2_SEARCH = ezT('c.A2_SEARCH');
+    A2_SOURCE = ezT('c.A2_SOURCE');
+    A2_LISTEN = ezT('c.A2_LISTEN');
+    A3G_MORNING = ezT('c.A3G_MORNING');
+    A3G_EVENING = ezT('c.A3G_EVENING');
+    A3G_REMAIN = ezT('c.A3G_REMAIN');
+    A3G_ZERO = ezT('c.A3G_ZERO');
+    A3_CHAIN_TITLE = ezT('c.A3_CHAIN_TITLE');
+    A3_CHAIN_START = ezT('c.A3_CHAIN_START');
+    EZIK_BAR_SUMMARIZE_PROMPT = ezT('c.EZIK_BAR_SUMMARIZE_PROMPT');
+    EZIK_BAR_EXPAND_PROMPT = ezT('c.EZIK_BAR_EXPAND_PROMPT');
+    EZIK_QUOTE_LABEL = ezT('c.EZIK_QUOTE_LABEL');
+    AYAH_CARD_LABEL = ezT('c.AYAH_CARD_LABEL');
+    SUNNAH_CARD_LABEL = ezT('c.SUNNAH_CARD_LABEL');
+    EZ_AIC_TITLE = ezT('c.EZ_AIC_TITLE');
+    EZ_AIC_LEAD = ezT('c.EZ_AIC_LEAD');
+    EZ_AIC_PROVIDERS_TITLE = ezT('c.EZ_AIC_PROVIDERS_TITLE');
+    EZ_AIC_GUARDIAN_LINE = ezT('c.EZ_AIC_GUARDIAN_LINE');
+    EZ_AIC_AGREE = ezT('c.EZ_AIC_AGREE');
+    EZ_AIC_DECLINE = ezT('c.EZ_AIC_DECLINE');
+    EZ_AIC_LINK_PRIVACY = ezT('c.EZ_AIC_LINK_PRIVACY');
+    EZ_AIC_LINK_DELETE = ezT('c.EZ_AIC_LINK_DELETE');
+    EZ_AIC_LINK_SUPPORT = ezT('c.EZ_AIC_LINK_SUPPORT');
+    EZ_AIC_VERSION_LABEL = ezT('c.EZ_AIC_VERSION_LABEL');
+    EZIK_SOURCES_SEAL = ezT('c.EZIK_SOURCES_SEAL');
+    EZ_AILM_TITLE = ezT('c.EZ_AILM_TITLE');
+    EZ_AILM_BODY = ezT('c.EZ_AILM_BODY');
+    EZ_AILM_REVIEW = ezT('c.EZ_AILM_REVIEW');
+    EZ_AILM_MUSHAF = ezT('c.EZ_AILM_MUSHAF');
+    EZ_AILM_ADHKAR = ezT('c.EZ_AILM_ADHKAR');
+    EZ_AILM_TREASURE = ezT('c.EZ_AILM_TREASURE');
+    PRAYER_ADHAN_SOUND_LABEL = ezT('c.PRAYER_ADHAN_SOUND_LABEL');
+    PRAYER_TITLE = ezT('c.PRAYER_TITLE');
+    PRAYER_SETTINGS_TITLE = ezT('c.PRAYER_SETTINGS_TITLE');
+    PRAYER_METHOD_LABEL = ezT('c.PRAYER_METHOD_LABEL');
+    PRAYER_ASR_LABEL = ezT('c.PRAYER_ASR_LABEL');
+    PRAYER_OFFSET_LABEL = ezT('c.PRAYER_OFFSET_LABEL');
+    PRAYER_HINT = ezT('c.PRAYER_HINT');
+    PRAYER_NONE = ezT('c.PRAYER_NONE');
+    PRAYER_SCHEDULE_TITLE = ezT('c.PRAYER_SCHEDULE_TITLE');
+    PRAYER_SCHEDULE_SHOW = ezT('c.PRAYER_SCHEDULE_SHOW');
+    PRAYER_SCHEDULE_HIDE = ezT('c.PRAYER_SCHEDULE_HIDE');
+    PRAYER_SCHEDULE_NOTE = ezT('c.PRAYER_SCHEDULE_NOTE');
+    PRAYER_SUNRISE_NOTE = ezT('c.PRAYER_SUNRISE_NOTE');
+    QIBLA_DEFAULT_PLACE = ezT('c.QIBLA_DEFAULT_PLACE');
+    QIBLA_TITLE = ezT('c.QIBLA_TITLE');
+    QIBLA_SECTION = ezT('c.QIBLA_SECTION');
+    QIBLA_DEG_SUFFIX = ezT('c.QIBLA_DEG_SUFFIX');
+    QIBLA_TOWARD = ezT('c.QIBLA_TOWARD');
+    QIBLA_PLACE_LABEL = ezT('c.QIBLA_PLACE_LABEL');
+    QIBLA_PLACE_DEFAULT_NOTE = ezT('c.QIBLA_PLACE_DEFAULT_NOTE');
+    QIBLA_DEVICE_PLACE = ezT('c.QIBLA_DEVICE_PLACE');
+    QIBLA_USE_DEVICE = ezT('c.QIBLA_USE_DEVICE');
+    QIBLA_USE_DEFAULT = ezT('c.QIBLA_USE_DEFAULT');
+    QIBLA_LOC_ASKING = ezT('c.QIBLA_LOC_ASKING');
+    QIBLA_LOC_DENIED = ezT('c.QIBLA_LOC_DENIED');
+    QIBLA_COMPASS_START = ezT('c.QIBLA_COMPASS_START');
+    QIBLA_COMPASS_WAIT = ezT('c.QIBLA_COMPASS_WAIT');
+    QIBLA_COMPASS_NONE = ezT('c.QIBLA_COMPASS_NONE');
+    QIBLA_COMPASS_LIVE = ezT('c.QIBLA_COMPASS_LIVE');
+    QIBLA_COMPASS_CALIBRATION = ezT('c.QIBLA_COMPASS_CALIBRATION');
+    QIBLA_COMPASS_SENSOR_UNAVAILABLE = ezT('c.QIBLA_COMPASS_SENSOR_UNAVAILABLE');
+    QIBLA_COMPASS_PERMISSION_DENIED = ezT('c.QIBLA_COMPASS_PERMISSION_DENIED');
+    QIBLA_COMPASS_HEADING_ERROR = ezT('c.QIBLA_COMPASS_HEADING_ERROR');
+    QIBLA_COMPASS_RETRY = ezT('c.QIBLA_COMPASS_RETRY');
+    QIBLA_BACK = ezT('c.QIBLA_BACK');
+    QIBLA_FULL_FAIL = ezT('c.QIBLA_FULL_FAIL');
+    PRAYER_SHEET_TITLE = ezT('c.PRAYER_SHEET_TITLE');
+    HIJRI_SUFFIX = ezT('c.HIJRI_SUFFIX');
+    HIJRI_SET_TITLE = ezT('c.HIJRI_SET_TITLE');
+    HIJRI_SET_LABEL = ezT('c.HIJRI_SET_LABEL');
+    HIJRI_SET_HINT = ezT('c.HIJRI_SET_HINT');
+    HIJRI_SET_NOW = ezT('c.HIJRI_SET_NOW');
+    EZIK_SW_MSG_PARTIAL = ezT('c.EZIK_SW_MSG_PARTIAL');
+    EZIK_SW_MSG_NONE = ezT('c.EZIK_SW_MSG_NONE');
+    EZIK_SW_MSG_TAIL = ezT('c.EZIK_SW_MSG_TAIL');
+    EZIK_SW_OK = ezT('c.EZIK_SW_OK');
+    EZIK_SW_ARIA = ezT('c.EZIK_SW_ARIA');
+    EZ_AIS_TITLE = ezT('c.EZ_AIS_TITLE');
+    EZ_AIS_ON = ezT('c.EZ_AIS_ON');
+    EZ_AIS_OFF = ezT('c.EZ_AIS_OFF');
+    EZ_AIS_BY_GUARDIAN = ezT('c.EZ_AIS_BY_GUARDIAN');
+    EZ_AIS_BY_USER = ezT('c.EZ_AIS_BY_USER');
+    EZ_AIS_PROVIDERS_LABEL = ezT('c.EZ_AIS_PROVIDERS_LABEL');
+    EZ_AIS_WITHDRAW = ezT('c.EZ_AIS_WITHDRAW');
+    EZ_AIS_REVIEW = ezT('c.EZ_AIS_REVIEW');
+    EZ_AIS_KEEP = ezT('c.EZ_AIS_KEEP');
+    EZ_PC_TITLE = ezT('c.EZ_PC_TITLE');
+    EZ_PC_SET = ezT('c.EZ_PC_SET');
+    EZ_PC_NONE = ezT('c.EZ_PC_NONE');
+    EZ_PC_DELETE = ezT('c.EZ_PC_DELETE');
+    EZ_PC_ARMED = ezT('c.EZ_PC_ARMED');
+    EZ_PC_CONFIRM = ezT('c.EZ_PC_CONFIRM');
+    EZ_PC_FAILED = ezT('c.EZ_PC_FAILED');
+    EZ_PC_EXPIRED = ezT('c.EZ_PC_EXPIRED');
+    JD_TITLE = ezT('c.JD_TITLE');
+    JD_BTN = ezT('c.JD_BTN');
+    JD_BUSY = ezT('c.JD_BUSY');
+    JD_NO_WORKER = ezT('c.JD_NO_WORKER');
+    JD_UNMEASURED = ezT('c.JD_UNMEASURED');
+    JD_NOSPACE_A = ezT('c.JD_NOSPACE_A');
+    JD_NOSPACE_B = ezT('c.JD_NOSPACE_B');
+    JD_NOSPACE_C = ezT('c.JD_NOSPACE_C');
+    JD_NOSPACE_D = ezT('c.JD_NOSPACE_D');
+    JD_OF = ezT('c.JD_OF');
+    JD_DONE = ezT('c.JD_DONE');
+    JD_FAILED_A = ezT('c.JD_FAILED_A');
+    JD_FAILED_B = ezT('c.JD_FAILED_B');
+    JD_DECLINED_A = ezT('c.JD_DECLINED_A');
+    JD_DECLINED_B = ezT('c.JD_DECLINED_B');
+    JD_RULE_A = ezT('c.JD_RULE_A');
+    JD_RULE_PLAIN = ezT('c.JD_RULE_PLAIN');
+    JD_RULE_B = ezT('c.JD_RULE_B');
+    DW_CARD_TITLE = ezT('c.DW_CARD_TITLE');
+    DW_CARD_EMPTY = ezT('c.DW_CARD_EMPTY');
+    DW_LINE_MUSHAF = ezT('c.DW_LINE_MUSHAF');
+    DW_LINE_ADHKAR = ezT('c.DW_LINE_ADHKAR');
+    DW_LINE_MEMORIZE = ezT('c.DW_LINE_MEMORIZE');
+    DW_SURAH_WORD = ezT('c.DW_SURAH_WORD');
+    DW_PAGES_WORD = ezT('c.DW_PAGES_WORD');
+    DW_NONE = ezT('c.DW_NONE');
+    DW_MUSHAF_LABEL = ezT('c.DW_MUSHAF_LABEL');
+    DW_ADHKAR_LABEL = ezT('c.DW_ADHKAR_LABEL');
+    DW_MEMORIZE_LABEL = ezT('c.DW_MEMORIZE_LABEL');
+    DW_ADD_LABEL = ezT('c.DW_ADD_LABEL');
+    DW_REMOVE_LABEL = ezT('c.DW_REMOVE_LABEL');
+    DW_PICK_TITLE = ezT('c.DW_PICK_TITLE');
+    DW_PICK_SECTION = ezT('c.DW_PICK_SECTION');
+    DW_PICK_BACK = ezT('c.DW_PICK_BACK');
+    DW_SEC_BACK = ezT('c.DW_SEC_BACK');
+    DW_PICK_CLOSE = ezT('c.DW_PICK_CLOSE');
+    DW_PICK_LOADING = ezT('c.DW_PICK_LOADING');
+    DW_PICK_FAILED = ezT('c.DW_PICK_FAILED');
+    DW_PICK_EMPTY = ezT('c.DW_PICK_EMPTY');
+    DW_PICK_ADDED = ezT('c.DW_PICK_ADDED');
+    DW_PICK_FULL = ezT('c.DW_PICK_FULL');
+    DW_SEC_MUSHAF = ezT('c.DW_SEC_MUSHAF');
+    DW_SEC_ADHKAR = ezT('c.DW_SEC_ADHKAR');
+    DW_SEC_ASMAA = ezT('c.DW_SEC_ASMAA');
+    DW_SEC_LESSONS = ezT('c.DW_SEC_LESSONS');
+    DW_LINE_ASMAA = ezT('c.DW_LINE_ASMAA');
+    DW_LINE_LESSONS = ezT('c.DW_LINE_LESSONS');
+    DW_WHOLE_SECTION = ezT('c.DW_WHOLE_SECTION');
   } catch (e) {}
 }
 
@@ -181,6 +345,171 @@ const EZ_I18N = {
   ar: {
     'common.close': 'إغلاق',
     'answer.translation': 'ترجمة',
+    'answer.translationOfText': 'ترجمة النصّ أعلاه',
+    'c.CHILD_VOICE_NOTICE': 'الميزةُ الصوتيةُ للأطفالِ قيدَ التجهيز، وستتوفّرُ بعدَ اكتمالِ اختباراتِ الأمانِ والخصوصيّة.',
+    'c.RECITE_NO_SR': '🚫 متصفحك لا يدعم التعرف على الصوت. استخدم Chrome أو Safari.',
+    'c.EZ_SPEECH_NO_CONSENT': 'التسميع الصوتي غير مفعّل لأن مشاركة الصوت مع خدمات التعرف على الكلام لم تتم الموافقة عليها.',
+    'c.BOOK_MATN_CUT_NOTE': '… بقيّةُ النصِّ لم تصلْ',
+    'c.BOOK_MATN_LABEL': 'النصّ',
+    'c.BOOK_LIBRARY_LINK_LABEL': 'افتح في المكتبة',
+    'c.EZIK_PRINT_FALLBACK_TITLE': 'مستند',
+    'c.EZIK_PDF_ARIA': 'تصدير الردّ ملفَّ PDF',
+    'c.EZIK_PDF_FAIL': 'تعذّرَ التصدير',
+    'c.EZIK_PDF_TITLE': 'ردُّ عزك',
+    'c.EZIK_CARD_LINKS_LABEL': 'روابط',
+    'c.EZIK_CARD_CUT_NOTE': 'تتمّةُ النصِّ في تطبيق عزك',
+    'c.EZIK_CARD_MARK': 'عزك',
+    'c.EZIK_CARD_LABEL': 'صورة',
+    'c.EZIK_CARD_ARIA': 'حفظ الردّ صورة',
+    'c.EZIK_CARD_FAIL': 'تعذَّرَ الحفظ',
+    'c.EZIK_SUM_TAG': 'ملخص من عزك',
+    'c.EZH_PRAYER': 'الصلاة والقبلة',
+    'c.EZH_NAV_COMPASS': 'البوصلة',
+    'c.EZIST_SUB_ASMAA': 'تسعةٌ وتسعون اسمًا، بمعانيها ومصادرها',
+    'c.EZIST_SUB_PRAYER': 'المواقيت والقبلة، محسوبةً على هذا الجهاز',
+    'c.A2_SEARCH': 'ابحث عن ذكر',
+    'c.A2_SOURCE': 'حصن المسلم',
+    'c.A2_LISTEN': 'استماع',
+    'c.A3G_MORNING': 'الصباح',
+    'c.A3G_EVENING': 'المساء',
+    'c.A3G_REMAIN': 'المتبقي',
+    'c.A3G_ZERO': 'أعد العدّ',
+    'c.A3_CHAIN_TITLE': 'سلسلتك',
+    'c.A3_CHAIN_START': 'تبدأ ببلوغ هدف اليوم',
+    'c.EZIK_BAR_SUMMARIZE_PROMPT': 'لخّص هذه المحادثة كلها في نقاط قصيرة، مع إبقاء المصدر الشرعي الموثق إن وُجد.',
+    'c.EZIK_BAR_EXPAND_PROMPT': 'وسّع الإجابة السابقة بتفصيل أوفى وأدلة أكثر، من دون إعادة ما سبق.',
+    'c.EZIK_QUOTE_LABEL': 'اقتباس',
+    'c.AYAH_CARD_LABEL': 'قَالَ اللهُ تَعَالَى',
+    'c.SUNNAH_CARD_LABEL': 'من السنة النبوية',
+    'c.EZ_AIC_TITLE': 'مشاركة البيانات مع خدمات الذكاء الاصطناعي',
+    'c.EZ_AIC_LEAD': 'عند تشغيل المحادثة الذكية أو الصوت أو رفع الملفات، قد تُرسَل البيانات التالية إلى الجهات المذكورة أدناه لتنفيذ طلبك:',
+    'c.EZ_AIC_PROVIDERS_TITLE': 'الجهات التي تستقبل هذه البيانات، ووظيفة كلٍّ منها:',
+    'c.EZ_AIC_GUARDIAN_LINE': 'يجب على ولي الأمر مراجعة هذه المعلومات والموافقة قبل تشغيل ميزات الذكاء الاصطناعي للطفل.',
+    'c.EZ_AIC_AGREE': 'أوافق وأفعّل ميزات الذكاء الاصطناعي',
+    'c.EZ_AIC_DECLINE': 'استخدام عزك دون الذكاء الاصطناعي',
+    'c.EZ_AIC_LINK_PRIVACY': 'سياسة الخصوصية',
+    'c.EZ_AIC_LINK_DELETE': 'حذف البيانات',
+    'c.EZ_AIC_LINK_SUPPORT': 'الدعم',
+    'c.EZ_AIC_VERSION_LABEL': 'نسخة الموافقة:',
+    'c.EZIK_SOURCES_SEAL': 'جزى اللهُ أصحابَ هذه المصادرِ خيرًا، وما نفعَ اللهُ به فمن فضلِه.',
+    'c.EZ_AILM_TITLE': 'الوضع المحلّيّ',
+    'c.EZ_AILM_BODY': 'ميزات الذكاء الاصطناعي غير مفعّلة لأن مشاركة البيانات لم تتم الموافقة عليها.',
+    'c.EZ_AILM_REVIEW': 'مراجعة إعدادات الخصوصية',
+    'c.EZ_AILM_MUSHAF': 'فتح المصحف',
+    'c.EZ_AILM_ADHKAR': 'فتح الأذكار',
+    'c.EZ_AILM_TREASURE': 'فتح كنوز المعرفة',
+    'c.PRAYER_ADHAN_SOUND_LABEL': 'صوت الأذان',
+    'c.PRAYER_TITLE': 'مواقيت الصلاة',
+    'c.PRAYER_SETTINGS_TITLE': 'الصلاة',
+    'c.PRAYER_METHOD_LABEL': 'المنهج',
+    'c.PRAYER_ASR_LABEL': 'مذهب العصر',
+    'c.PRAYER_OFFSET_LABEL': 'إزاحة يدويّة بالدقائق',
+    'c.PRAYER_HINT': 'تُحسَب على هذا الجهاز من المنهج والإحداثيّات، بلا إنترنت. قابِلْها بتقويمك وعدِّلْ بالدقائق إن لزم.',
+    'c.PRAYER_NONE': 'لا يبلغُ الشفقُ هذه الزاويةَ في هذا الموضع اليوم.',
+    'c.PRAYER_SCHEDULE_TITLE': 'جدول ثلاثين يومًا',
+    'c.PRAYER_SCHEDULE_SHOW': 'اعرض جدول ثلاثين يومًا',
+    'c.PRAYER_SCHEDULE_HIDE': 'اطوِ الجدول',
+    'c.PRAYER_SCHEDULE_NOTE': 'يُحسَب على هذا الجهاز لثلاثين يومًا قادمة، بلا إنترنت، ويُعاد توليده تلقائيًّا متى بقي أقلّ من سبعة أيّام، أو متى غيّرتَ المنهج أو الإزاحة أو الموضع.',
+    'c.PRAYER_SUNRISE_NOTE': 'الشروق محسوبٌ لا مُعايَر؛ لا تُطبَّق عليه إزاحة.',
+    'c.QIBLA_DEFAULT_PLACE': 'مدينة الكويت',
+    'c.QIBLA_TITLE': 'القبلة',
+    'c.QIBLA_SECTION': 'اتّجاه القبلة',
+    'c.QIBLA_DEG_SUFFIX': 'درجةً عن الشمال',
+    'c.QIBLA_TOWARD': 'نحوَ',
+    'c.QIBLA_PLACE_LABEL': 'الموضع:',
+    'c.QIBLA_PLACE_DEFAULT_NOTE': 'افتراضيّ',
+    'c.QIBLA_DEVICE_PLACE': 'موقعُ هذا الجهاز',
+    'c.QIBLA_USE_DEVICE': 'استخدمْ موقعَ هذا الجهاز',
+    'c.QIBLA_USE_DEFAULT': 'عُدْ إلى الموضع الافتراضيّ',
+    'c.QIBLA_LOC_ASKING': 'يُطلَبُ الإذنُ بالموقع الآن…',
+    'c.QIBLA_LOC_DENIED': 'لم يُمنَحِ الإذنُ بالموقع، والموضعُ الافتراضيُّ باقٍ كما هو.',
+    'c.QIBLA_COMPASS_START': 'شغِّلِ البوصلة',
+    'c.QIBLA_COMPASS_WAIT': 'بانتظارِ قراءةٍ من حسّاسِ الاتّجاه…',
+    'c.QIBLA_COMPASS_NONE': 'لا تدورُ البوصلةُ على هذا الجهاز: لم تصلْ قراءةٌ صالحةٌ من حسّاسِ الاتّجاه، فالدرجةُ وحدَها هي المعروضة.',
+    'c.QIBLA_COMPASS_LIVE': 'البوصلةُ تدورُ مع الجهاز.',
+    'c.QIBLA_COMPASS_CALIBRATION': 'السهمُ يدورُ، لكنَّ معايرةَ حسّاسِ الاتّجاهِ ناقصة. حرِّكِ الجهازَ ببطءٍ على شكلِ الرقم ٨ حتّى تتحسّنَ المعايرة.',
+    'c.QIBLA_COMPASS_SENSOR_UNAVAILABLE': 'لا يحتوي هذا الجهازُ على حسّاسِ اتّجاهٍ متاح؛ تبقى درجةُ القبلةِ المعروضةُ أعلاه.',
+    'c.QIBLA_COMPASS_PERMISSION_DENIED': 'إذنُ الموقعِ مرفوض. افتحْ إعداداتِ الجهازِ الخاصّةَ بتطبيقِ عزك وامنحْ إذنَ الموقع، ثم عُدْ إلى هذه الشاشة.',
+    'c.QIBLA_COMPASS_HEADING_ERROR': 'تعذّرتْ قراءةُ اتّجاهِ الجهازِ بسببِ عطبٍ طارئ. أعِدِ المحاولة.',
+    'c.QIBLA_COMPASS_RETRY': 'أعِدِ المحاولة',
+    'c.QIBLA_BACK': 'رجوع',
+    'c.QIBLA_FULL_FAIL': 'لا تدورُ البوصلةُ على هذا الجهاز.',
+    'c.PRAYER_SHEET_TITLE': 'الصلاة والقبلة',
+    'c.HIJRI_SUFFIX': 'هـ',
+    'c.HIJRI_SET_TITLE': 'التاريخ الهجريّ',
+    'c.HIJRI_SET_LABEL': 'إزاحة يدويّة بالأيّام',
+    'c.HIJRI_SET_HINT': 'يُحسَب على هذا الجهاز بلا إنترنت، على تقويم أمّ القرى. إن خالفَ التقويمَ المعمولَ به عندك بيومٍ أو يومين فعدِّلْه من هنا.',
+    'c.HIJRI_SET_NOW': 'اليوم عندك:',
+    'c.EZIK_SW_MSG_PARTIAL': 'لم يكتملْ حفظُ بعضِ الملفّاتِ للعملِ بلا إنترنت.',
+    'c.EZIK_SW_MSG_NONE': 'لم يُحفَظْ شيءٌ للعملِ بلا إنترنت: مساحةُ الجهازِ لا تكفي.',
+    'c.EZIK_SW_MSG_TAIL': 'والتطبيقُ يعملُ كما هو ما دامَ الإنترنتُ متّصلًا.',
+    'c.EZIK_SW_OK': 'حسنًا',
+    'c.EZIK_SW_ARIA': 'إشعارُ الحفظِ للعملِ بلا إنترنت',
+    'c.EZ_AIS_TITLE': 'الخصوصية والذكاء الاصطناعي',
+    'c.EZ_AIS_ON': 'الحالة: مُفعَّلة — تمت الموافقة على مشاركة البيانات مع خدمات الذكاء الاصطناعي.',
+    'c.EZ_AIS_OFF': 'الحالة: غير مفعَّلة — لم تتم الموافقة، ولا تُرسَل أيّ بيانات إلى خدمات الذكاء الاصطناعي.',
+    'c.EZ_AIS_BY_GUARDIAN': 'المُوافِق: ولي الأمر.',
+    'c.EZ_AIS_BY_USER': 'المُوافِق: المستخدم.',
+    'c.EZ_AIS_PROVIDERS_LABEL': 'الجهات:',
+    'c.EZ_AIS_WITHDRAW': 'سحب الموافقة وإيقاف ميزات الذكاء الاصطناعي',
+    'c.EZ_AIS_REVIEW': 'مراجعة الموافقة وتشغيل ميزات الذكاء الاصطناعي',
+    'c.EZ_AIS_KEEP': 'سحب الموافقة يوقف الإرسال المستقبليّ فوراً، ولا يحذف محادثاتك المحفوظة على هذا الجهاز.',
+    'c.EZ_PC_TITLE': 'رمز لوحة الأهل',
+    'c.EZ_PC_SET': 'مضبوطٌ لهذا الجهاز، ويُطلَب عند فتح لوحة الأهل.',
+    'c.EZ_PC_NONE': 'لا رمز لهذا الجهاز الآن. سيُطلَب ضبطُ رمزٍ جديدٍ عند فتح لوحة الأهل.',
+    'c.EZ_PC_DELETE': 'حذف رمز لوحة الأهل',
+    'c.EZ_PC_ARMED': 'أدخِلِ الرمزَ نفسَه لتأكيد حذفه.',
+    'c.EZ_PC_CONFIRM': 'تأكيد الحذف',
+    'c.EZ_PC_FAILED': 'تعذّر الحذف الآن. جرّب بعد قليل.',
+    'c.EZ_PC_EXPIRED': 'انتهت مدّة الرمز السابق بعد اثني عشر شهرًا من ضبطه. اختر رمزاً جديدًا.',
+    'c.JD_TITLE': 'العملُ بلا إنترنت',
+    'c.JD_BTN': 'نزِّلْ هذا الجزء',
+    'c.JD_BUSY': 'ينزلُ الآن',
+    'c.JD_NO_WORKER': 'لا يمكن التنزيل الآن: خدمةُ التخزين على هذا الجهاز غير عاملة.',
+    'c.JD_UNMEASURED': 'لم يتيسّر قياسُ المساحة على هذا الجهاز، فلم يبدأِ التنزيل.',
+    'c.JD_NOSPACE_A': 'المساحةُ لا تكفي: يحتاج هذا الجزء نحو ',
+    'c.JD_NOSPACE_B': ' م.ب، والمتاح ',
+    'c.JD_NOSPACE_C': ' م.ب، ولا بدّ من إبقاء ',
+    'c.JD_NOSPACE_D': ' م.ب حرّة. لم يبدأِ التنزيل.',
+    'c.JD_OF': ' من ',
+    'c.JD_DONE': 'تمّ حفظُ الجزء على هذا الجهاز.',
+    'c.JD_FAILED_A': 'أخفق ',
+    'c.JD_FAILED_B': ' من الصفحات ولم تُحفَظ.',
+    'c.JD_DECLINED_A': 'ولم تُحفَظ ',
+    'c.JD_DECLINED_B': ' صفحة لضيق المساحة.',
+    'c.JD_RULE_A': 'يحفظُ الجهازُ ',
+    'c.JD_RULE_PLAIN': 'إذا امتلأ مخزنُ الصفحات حُذِفت الأقدمُ استعمالًا أوّلًا.',
+    'c.JD_RULE_B': ' صفحةً من المصحف؛ فإذا امتلأ حُذِفت الأقدمُ استعمالًا أوّلًا.',
+    'c.DW_CARD_TITLE': 'وِردي اليوم',
+    'c.DW_CARD_EMPTY': 'لم تختر بعد. اختر من المصحف أو الأذكار أو أسماء الله الحسنى أو الدروس.',
+    'c.DW_LINE_MUSHAF': 'المصحف:',
+    'c.DW_LINE_ADHKAR': 'الأذكار:',
+    'c.DW_LINE_MEMORIZE': 'الحفظ:',
+    'c.DW_SURAH_WORD': 'سورة',
+    'c.DW_PAGES_WORD': 'صفحة في اليوم',
+    'c.DW_NONE': 'بلا اختيار',
+    'c.DW_MUSHAF_LABEL': 'اختر وردك من المصحف',
+    'c.DW_ADHKAR_LABEL': 'اختر ذكرك اليوميّ',
+    'c.DW_MEMORIZE_LABEL': 'اختر ما تحفظه',
+    'c.DW_ADD_LABEL': 'أضف وردًا إلى قائمتك',
+    'c.DW_REMOVE_LABEL': 'احذف من قائمتك',
+    'c.DW_PICK_TITLE': 'اختر ما تضيفه',
+    'c.DW_PICK_SECTION': 'اختر القسم أوّلًا',
+    'c.DW_PICK_BACK': 'رجوع إلى الأقسام',
+    'c.DW_SEC_BACK': 'رجوع إلى الرئيسية',
+    'c.DW_PICK_CLOSE': 'إغلاق قائمة الاختيار',
+    'c.DW_PICK_LOADING': 'يُحمَّلُ الآن',
+    'c.DW_PICK_FAILED': 'لم يتيسّر جلبُ هذه القائمة الآن.',
+    'c.DW_PICK_EMPTY': 'لا شيء في هذه القائمة.',
+    'c.DW_PICK_ADDED': 'مضاف',
+    'c.DW_PICK_FULL': 'امتلأت قائمتك.',
+    'c.DW_SEC_MUSHAF': 'المصحف',
+    'c.DW_SEC_ADHKAR': 'الأذكار',
+    'c.DW_SEC_ASMAA': 'أسماء الله الحسنى',
+    'c.DW_SEC_LESSONS': 'الدروس',
+    'c.DW_LINE_ASMAA': 'الأسماء:',
+    'c.DW_LINE_LESSONS': 'الدروس:',
+    'c.DW_WHOLE_SECTION': 'كلُّها',
     'common.cancel': 'إلغاء',
     'common.confirm': 'تأكيد',
     'common.save': 'حفظ',
@@ -992,6 +1321,171 @@ const EZ_I18N = {
   en: {
     'common.close': 'Close',
     'answer.translation': 'Translation',
+    'answer.translationOfText': 'Translation of the text above',
+    'c.CHILD_VOICE_NOTICE': 'The voice feature for children is being prepared and will be available once the safety and privacy tests are complete.',
+    'c.RECITE_NO_SR': '🚫 Your browser does not support speech recognition. Use Chrome or Safari.',
+    'c.EZ_SPEECH_NO_CONSENT': 'Voice recitation is off because sharing audio with speech-recognition services has not been agreed to.',
+    'c.BOOK_MATN_CUT_NOTE': '… the rest of the text did not arrive',
+    'c.BOOK_MATN_LABEL': 'Text',
+    'c.BOOK_LIBRARY_LINK_LABEL': 'Open in the library',
+    'c.EZIK_PRINT_FALLBACK_TITLE': 'Document',
+    'c.EZIK_PDF_ARIA': 'Export the reply as a PDF file',
+    'c.EZIK_PDF_FAIL': 'Export failed',
+    'c.EZIK_PDF_TITLE': 'An Ezik reply',
+    'c.EZIK_CARD_LINKS_LABEL': 'Links',
+    'c.EZIK_CARD_CUT_NOTE': 'The rest of the text is in the Ezik app',
+    'c.EZIK_CARD_MARK': 'Ezik',
+    'c.EZIK_CARD_LABEL': 'Image',
+    'c.EZIK_CARD_ARIA': 'Save the reply as an image',
+    'c.EZIK_CARD_FAIL': 'Saving failed',
+    'c.EZIK_SUM_TAG': 'A summary from Ezik',
+    'c.EZH_PRAYER': 'Prayer and Qibla',
+    'c.EZH_NAV_COMPASS': 'Compass',
+    'c.EZIST_SUB_ASMAA': 'The ninety-nine names, with their meanings and sources',
+    'c.EZIST_SUB_PRAYER': 'Prayer times and the Qibla, calculated on this device',
+    'c.A2_SEARCH': 'Search for a dhikr',
+    'c.A2_SOURCE': 'Hisn al-Muslim',
+    'c.A2_LISTEN': 'Listen',
+    'c.A3G_MORNING': 'Morning',
+    'c.A3G_EVENING': 'Evening',
+    'c.A3G_REMAIN': 'Remaining',
+    'c.A3G_ZERO': 'Count again',
+    'c.A3_CHAIN_TITLE': 'Your streak',
+    'c.A3_CHAIN_START': 'It begins when today\'s goal is reached',
+    'c.EZIK_BAR_SUMMARIZE_PROMPT': 'Summarize this whole conversation in short points, keeping the documented sharia source if there is one.',
+    'c.EZIK_BAR_EXPAND_PROMPT': 'Expand the previous answer with fuller detail and more evidence, without repeating what came before.',
+    'c.EZIK_QUOTE_LABEL': 'Quote',
+    'c.AYAH_CARD_LABEL': 'Allah the Most High says',
+    'c.SUNNAH_CARD_LABEL': 'From the Prophetic Sunnah',
+    'c.EZ_AIC_TITLE': 'Sharing data with AI services',
+    'c.EZ_AIC_LEAD': 'When you turn on the smart chat, voice or file upload, the following data may be sent to the parties named below to carry out your request:',
+    'c.EZ_AIC_PROVIDERS_TITLE': 'The parties that receive this data, and what each one does:',
+    'c.EZ_AIC_GUARDIAN_LINE': 'A parent or guardian must review this information and agree before AI features are turned on for a child.',
+    'c.EZ_AIC_AGREE': 'I agree and turn on the AI features',
+    'c.EZ_AIC_DECLINE': 'Use Ezik without AI',
+    'c.EZ_AIC_LINK_PRIVACY': 'Privacy policy',
+    'c.EZ_AIC_LINK_DELETE': 'Delete data',
+    'c.EZ_AIC_LINK_SUPPORT': 'Support',
+    'c.EZ_AIC_VERSION_LABEL': 'Consent version:',
+    'c.EZIK_SOURCES_SEAL': 'May Allah reward the people behind these sources with good, and whatever benefit Allah gives through them is from His grace.',
+    'c.EZ_AILM_TITLE': 'Local mode',
+    'c.EZ_AILM_BODY': 'AI features are off because sharing data has not been agreed to.',
+    'c.EZ_AILM_REVIEW': 'Review privacy settings',
+    'c.EZ_AILM_MUSHAF': 'Open the Mushaf',
+    'c.EZ_AILM_ADHKAR': 'Open the adhkar',
+    'c.EZ_AILM_TREASURE': 'Open the knowledge treasures',
+    'c.PRAYER_ADHAN_SOUND_LABEL': 'Adhan sound',
+    'c.PRAYER_TITLE': 'Prayer times',
+    'c.PRAYER_SETTINGS_TITLE': 'Prayer',
+    'c.PRAYER_METHOD_LABEL': 'Method',
+    'c.PRAYER_ASR_LABEL': 'Asr school',
+    'c.PRAYER_OFFSET_LABEL': 'Manual offset in minutes',
+    'c.PRAYER_HINT': 'Calculated on this device from the method and the coordinates, with no internet. Compare with your own calendar and adjust by minutes if needed.',
+    'c.PRAYER_NONE': 'Twilight does not reach this angle at this place today.',
+    'c.PRAYER_SCHEDULE_TITLE': 'Thirty-day schedule',
+    'c.PRAYER_SCHEDULE_SHOW': 'Show the thirty-day schedule',
+    'c.PRAYER_SCHEDULE_HIDE': 'Fold the schedule',
+    'c.PRAYER_SCHEDULE_NOTE': 'Calculated on this device for the next thirty days, with no internet, and regenerated automatically when fewer than seven days remain, or when you change the method, the offset or the place.',
+    'c.PRAYER_SUNRISE_NOTE': 'Sunrise is calculated, not calibrated; no offset is applied to it.',
+    'c.QIBLA_DEFAULT_PLACE': 'Kuwait City',
+    'c.QIBLA_TITLE': 'Qibla',
+    'c.QIBLA_SECTION': 'Qibla direction',
+    'c.QIBLA_DEG_SUFFIX': 'degrees from north',
+    'c.QIBLA_TOWARD': 'Toward',
+    'c.QIBLA_PLACE_LABEL': 'Place:',
+    'c.QIBLA_PLACE_DEFAULT_NOTE': 'default',
+    'c.QIBLA_DEVICE_PLACE': 'This device\'s location',
+    'c.QIBLA_USE_DEVICE': 'Use this device\'s location',
+    'c.QIBLA_USE_DEFAULT': 'Go back to the default place',
+    'c.QIBLA_LOC_ASKING': 'Asking for permission to use the location…',
+    'c.QIBLA_LOC_DENIED': 'Location permission was not granted, and the default place stays as it is.',
+    'c.QIBLA_COMPASS_START': 'Turn on the compass',
+    'c.QIBLA_COMPASS_WAIT': 'Waiting for a reading from the direction sensor…',
+    'c.QIBLA_COMPASS_NONE': 'The compass does not turn on this device: no valid reading arrived from the direction sensor, so only the angle is shown.',
+    'c.QIBLA_COMPASS_LIVE': 'The compass turns with the device.',
+    'c.QIBLA_COMPASS_CALIBRATION': 'The arrow turns, but the direction sensor is not fully calibrated. Move the device slowly in a figure-eight until the calibration improves.',
+    'c.QIBLA_COMPASS_SENSOR_UNAVAILABLE': 'This device has no direction sensor available; the Qibla angle shown above remains.',
+    'c.QIBLA_COMPASS_PERMISSION_DENIED': 'Location permission is denied. Open the device settings for the Ezik app, grant the location permission, then come back to this screen.',
+    'c.QIBLA_COMPASS_HEADING_ERROR': 'Reading the device\'s direction failed because of a temporary fault. Try again.',
+    'c.QIBLA_COMPASS_RETRY': 'Try again',
+    'c.QIBLA_BACK': 'Back',
+    'c.QIBLA_FULL_FAIL': 'The compass does not turn on this device.',
+    'c.PRAYER_SHEET_TITLE': 'Prayer and Qibla',
+    'c.HIJRI_SUFFIX': 'AH',
+    'c.HIJRI_SET_TITLE': 'The Hijri date',
+    'c.HIJRI_SET_LABEL': 'Manual offset in days',
+    'c.HIJRI_SET_HINT': 'Calculated on this device with no internet, on the Umm al-Qura calendar. If it differs by a day or two from the calendar followed where you are, adjust it here.',
+    'c.HIJRI_SET_NOW': 'Today, for you:',
+    'c.EZIK_SW_MSG_PARTIAL': 'Saving some files for offline use did not finish.',
+    'c.EZIK_SW_MSG_NONE': 'Nothing was saved for offline use: the device does not have enough space.',
+    'c.EZIK_SW_MSG_TAIL': 'The app works as usual while the internet is connected.',
+    'c.EZIK_SW_OK': 'OK',
+    'c.EZIK_SW_ARIA': 'Notice about saving for offline use',
+    'c.EZ_AIS_TITLE': 'Privacy and AI',
+    'c.EZ_AIS_ON': 'Status: on — sharing data with AI services has been agreed to.',
+    'c.EZ_AIS_OFF': 'Status: off — it has not been agreed to, and no data is sent to AI services.',
+    'c.EZ_AIS_BY_GUARDIAN': 'Agreed by: a parent or guardian.',
+    'c.EZ_AIS_BY_USER': 'Agreed by: the user.',
+    'c.EZ_AIS_PROVIDERS_LABEL': 'Parties:',
+    'c.EZ_AIS_WITHDRAW': 'Withdraw consent and stop the AI features',
+    'c.EZ_AIS_REVIEW': 'Review consent and turn on the AI features',
+    'c.EZ_AIS_KEEP': 'Withdrawing consent stops sending in the future at once, and does not delete your conversations saved on this device.',
+    'c.EZ_PC_TITLE': 'Parents\' panel code',
+    'c.EZ_PC_SET': 'Set for this device, and asked for when the parents\' panel is opened.',
+    'c.EZ_PC_NONE': 'There is no code for this device now. You will be asked to set a new code when the parents\' panel is opened.',
+    'c.EZ_PC_DELETE': 'Delete the parents\' panel code',
+    'c.EZ_PC_ARMED': 'Enter the same code to confirm deleting it.',
+    'c.EZ_PC_CONFIRM': 'Confirm deletion',
+    'c.EZ_PC_FAILED': 'Deleting is not possible now. Try again shortly.',
+    'c.EZ_PC_EXPIRED': 'The previous code expired twelve months after it was set. Choose a new code.',
+    'c.JD_TITLE': 'Working offline',
+    'c.JD_BTN': 'Download this part',
+    'c.JD_BUSY': 'Downloading now',
+    'c.JD_NO_WORKER': 'Downloading is not possible now: the storage service on this device is not running.',
+    'c.JD_UNMEASURED': 'The space on this device could not be measured, so the download did not start.',
+    'c.JD_NOSPACE_A': 'Not enough space: this part needs about ',
+    'c.JD_NOSPACE_B': ' MB, and available is ',
+    'c.JD_NOSPACE_C': ' MB, and ',
+    'c.JD_NOSPACE_D': ' MB must stay free. The download did not start.',
+    'c.JD_OF': ' of ',
+    'c.JD_DONE': 'This part is saved on this device.',
+    'c.JD_FAILED_A': 'Failed to save ',
+    'c.JD_FAILED_B': ' pages.',
+    'c.JD_DECLINED_A': 'And ',
+    'c.JD_DECLINED_B': ' pages were not saved because space ran short.',
+    'c.JD_RULE_A': 'The device keeps ',
+    'c.JD_RULE_PLAIN': 'When the page store is full, the least recently used are deleted first.',
+    'c.JD_RULE_B': ' Mushaf pages; when the store is full, the least recently used are deleted first.',
+    'c.DW_CARD_TITLE': 'My wird today',
+    'c.DW_CARD_EMPTY': 'You have not chosen yet. Choose from the Mushaf, the adhkar, the names of Allah or the lessons.',
+    'c.DW_LINE_MUSHAF': 'Mushaf:',
+    'c.DW_LINE_ADHKAR': 'Adhkar:',
+    'c.DW_LINE_MEMORIZE': 'Memorizing:',
+    'c.DW_SURAH_WORD': 'Surah',
+    'c.DW_PAGES_WORD': 'pages a day',
+    'c.DW_NONE': 'No choice',
+    'c.DW_MUSHAF_LABEL': 'Choose your wird from the Mushaf',
+    'c.DW_ADHKAR_LABEL': 'Choose your daily dhikr',
+    'c.DW_MEMORIZE_LABEL': 'Choose what you memorize',
+    'c.DW_ADD_LABEL': 'Add a wird to your list',
+    'c.DW_REMOVE_LABEL': 'Remove from your list',
+    'c.DW_PICK_TITLE': 'Choose what to add',
+    'c.DW_PICK_SECTION': 'Choose the section first',
+    'c.DW_PICK_BACK': 'Back to the sections',
+    'c.DW_SEC_BACK': 'Back to the home screen',
+    'c.DW_PICK_CLOSE': 'Close the choice list',
+    'c.DW_PICK_LOADING': 'Loading now',
+    'c.DW_PICK_FAILED': 'This list could not be fetched now.',
+    'c.DW_PICK_EMPTY': 'There is nothing in this list.',
+    'c.DW_PICK_ADDED': 'Added',
+    'c.DW_PICK_FULL': 'Your list is full.',
+    'c.DW_SEC_MUSHAF': 'The Mushaf',
+    'c.DW_SEC_ADHKAR': 'The adhkar',
+    'c.DW_SEC_ASMAA': 'The names of Allah',
+    'c.DW_SEC_LESSONS': 'The lessons',
+    'c.DW_LINE_ASMAA': 'Names:',
+    'c.DW_LINE_LESSONS': 'Lessons:',
+    'c.DW_WHOLE_SECTION': 'All of it',
     'common.cancel': 'Cancel',
     'common.confirm': 'Confirm',
     'common.save': 'Save',
@@ -2062,7 +2556,7 @@ const PERSIST_CONVERSATION = true; // الإنتاج: يُحفَظ/يُحمَّ�
 // (band==="young" ⇔ age<13) ما دام العلمُ مطفأً. تعذُّرُ تحديدِ العمر ⇒ مقفول.
 // التلاوةُ الجاهزة (everyayah) خارجَ الحاجز: ملفّاتٌ ثابتةٌ بلا أيّ بياناتِ طفل.
 const CHILD_VOICE_ENABLED = false;   // غ‑٣: يُفتح بتحديثٍ مقيس بعد حسم الامتثال
-const CHILD_VOICE_NOTICE = 'الميزةُ الصوتيةُ للأطفالِ قيدَ التجهيز، وستتوفّرُ بعدَ اكتمالِ اختباراتِ الأمانِ والخصوصيّة.';
+let CHILD_VOICE_NOTICE = ezT('c.CHILD_VOICE_NOTICE');
 // مرآةٌ على مستوى الوحدة لملفّ المستخدم. App يكتبها في اللحظة نفسها التي يكتب فيها
 // profileRef.current (تحميلُ التخزين + إنشاءُ الملفّ)، فيقرؤها الحاجزُ من App ومن
 // MemorizeScreen معاً — وprofileRef داخلُ App فلا تراه المكوّناتُ الأخرى. تبدأ null ⇒ مقفولة.
@@ -2507,7 +3001,7 @@ const alignReciteRed = (pats, heard) => {
 };
 
 // Reused verbatim from the chat/call mic's not-supported message (line ~1526) — not new copy.
-const RECITE_NO_SR = '🚫 متصفحك لا يدعم التعرف على الصوت. استخدم Chrome أو Safari.';
+let RECITE_NO_SR = ezT('c.RECITE_NO_SR');
 
 // خريطة مطبَّعة تُبنى مرة واحدة من SURAH_NUMBERS للبحث المرن بالاسم
 const SURAH_NUMBERS_NORM = {};
@@ -3648,7 +4142,7 @@ const ezStopAllRecognition = () => {
 // The one line the memorizer shows instead of listening, when the voice has not been consented.
 // «سمِّعني» is the only local-looking feature that is not local: it is a microphone feeding a
 // third party, so it stops -- while the memorizing, the manual reveal and the mushaf do not.
-const EZ_SPEECH_NO_CONSENT = 'التسميع الصوتي غير مفعّل لأن مشاركة الصوت مع خدمات التعرف على الكلام لم تتم الموافقة عليها.';
+let EZ_SPEECH_NO_CONSENT = ezT('c.EZ_SPEECH_NO_CONSENT');
 
 const getFriendlyError = (type, gender) => {
   const bucket = FRIENDLY_ERRORS[type] || FRIENDLY_ERRORS.general;
@@ -3757,8 +4251,6 @@ const KNOWN_TAG_NAMES = Object.freeze([
   // the model never writes one. It is listed here so an answer cut mid-chip is cleaned like every
   // other card instead of leaking «<book author=» to the screen and to ElevenLabs.
   'board', 'document', 'source', 'dhikr', 'worship', 'book',
-  // ITEM 74 -- the translation of a scholar's text, printed under the Arabic original the server keeps verbatim.
-  'tltext',
 ]);
 const KNOWN_TAGS = KNOWN_TAG_NAMES.join('|');
 // سجلُّ الإنقاذ: كلُّ مرّةٍ أفرغ فيها التنظيفُ نصًّا خادميًّا غيرَ فارغٍ فأُنقِذ بدلَ أن يُمحى.
@@ -3799,17 +4291,26 @@ function ezikTrAttr(attrsStr, name) {
   const m = new RegExp('\\b' + name + '=["\']([^"\']+)["\']').exec(String(attrsStr || ''));
   return m ? ezikDecodeMatn(m[1]) : '';
 }
+// The translation fields of a card, present ONLY when the server sent them: an answer in Arabic parses to exactly the
+// segments it always did.
+function ezikTrFields(attrsStr) {
+  const o = {};
+  const tr = ezikTrAttr(attrsStr, 'tr'); if (tr) { o.tr = tr; o.trs = ezikTrPlain(attrsStr, 'trs'); }
+  const tl = ezikTrAttr(attrsStr, 'tl'); if (tl) o.tl = tl;
+  const tb = ezikTrAttr(attrsStr, 'tb'); if (tb) o.tb = tb;
+  return o;
+}
 function ezikTrPlain(attrsStr, name) {
   const m = new RegExp('\\b' + name + '=["\']([^"\']+)["\']').exec(String(attrsStr || ''));
   return m ? m[1] : '';
 }
 
 // النصُّ المعروضُ نُقِصَ عمّا في الكتاب — تُقالُ للقارئِ ولا تُلصَقُ بالنصّ.
-const BOOK_MATN_CUT_NOTE = '… بقيّةُ النصِّ لم تصلْ';
+let BOOK_MATN_CUT_NOTE = ezT('c.BOOK_MATN_CUT_NOTE');
 // الكلمةُ التي يلمسُها القارئُ ليرى النصّ.
-const BOOK_MATN_LABEL = 'النصّ';
+let BOOK_MATN_LABEL = ezT('c.BOOK_MATN_LABEL');
 // ITEM 108 (ORDER-108C B3): the link from a library source to the book in the library page.
-const BOOK_LIBRARY_LINK_LABEL = 'افتح في المكتبة';
+let BOOK_LIBRARY_LINK_LABEL = ezT('c.BOOK_LIBRARY_LINK_LABEL');
 
 // ============================================================
 // §٢ (C) — «هذا الجوابُ لم يكتملْ»: العلامةُ التي يرسلُها الخادم، والقراءةُ التي يقرؤها العميل
@@ -4601,7 +5102,7 @@ const inlineFmt = (s) => escapeHtml(s).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</
 // file dropping into Downloads. On desktop that sheet's destination is "Save as PDF"; on iOS it is
 // the share sheet's "Save to Files". document.title is what every browser proposes as the file
 // name, so the file is still named after the reply, and it is restored the moment printing ends.
-const EZIK_PRINT_FALLBACK_TITLE = 'مستند';
+let EZIK_PRINT_FALLBACK_TITLE = ezT('c.EZIK_PRINT_FALLBACK_TITLE');
 // afterprint is not delivered by every engine. A promise that never settled would leave the export
 // button latched and the print area holding the last reply, so a timeout does exactly what
 // afterprint does and the two race. Whichever arrives first wins; the other is a no-op.
@@ -4666,10 +5167,10 @@ const printAsPdf = async (title, bodyHtml) => {
 // 44x44 BY AREA, NOT BY SHAPE (44-ج). It is a .ezc-acts button, and the sheet gives every one of
 // them a 44x44 ::before. It states no width and no height of its own, so nothing moved by a pixel.
 const EZIK_PDF_LABEL = 'PDF';
-const EZIK_PDF_ARIA = 'تصدير الردّ ملفَّ PDF';
+let EZIK_PDF_ARIA = ezT('c.EZIK_PDF_ARIA');
 const EZIK_PDF_WAIT = '...';
-const EZIK_PDF_FAIL = 'تعذّرَ التصدير';
-const EZIK_PDF_TITLE = 'ردُّ عزك';
+let EZIK_PDF_FAIL = ezT('c.EZIK_PDF_FAIL');
+let EZIK_PDF_TITLE = ezT('c.EZIK_PDF_TITLE');
 
 const ExportPdfReplyButton = ({ getText }) => {
   const [flash, setFlash] = useState('');
@@ -4764,7 +5265,7 @@ const EZIK_CARD_ATTR_GAP = 26;      // between the body block and the attributio
 const EZIK_CARD_NOTICE_SIZE = 26;   // the reply's own notice, in the reply's own words
 const EZIK_CARD_NOTICE_LINE = 36;
 const EZIK_CARD_NOTICE_GAP = 22;
-const EZIK_CARD_LINKS_LABEL = 'روابط';
+let EZIK_CARD_LINKS_LABEL = ezT('c.EZIK_CARD_LINKS_LABEL');
 // The card is a fixed size, so the text it can hold is a fixed number of lines -- but that
 // number is ARITHMETIC, not a preference.
 //
@@ -4787,13 +5288,13 @@ const EZIK_CARD_BODY_LINES = Math.max(1, Math.floor(
     - (EZIK_CARD_PAD + EZIK_CARD_LINE))                  // the first baseline
   / EZIK_CARD_LINE) + 1);
 const EZIK_CARD_CUT = '…';
-const EZIK_CARD_CUT_NOTE = 'تتمّةُ النصِّ في تطبيق عزك';
+let EZIK_CARD_CUT_NOTE = ezT('c.EZIK_CARD_CUT_NOTE');
 const EZIK_CARD_SITE = 'ezik.app';
-const EZIK_CARD_MARK = 'عزك';
-const EZIK_CARD_LABEL = 'صورة';
-const EZIK_CARD_ARIA = 'حفظ الردّ صورة';
+let EZIK_CARD_MARK = ezT('c.EZIK_CARD_MARK');
+let EZIK_CARD_LABEL = ezT('c.EZIK_CARD_LABEL');
+let EZIK_CARD_ARIA = ezT('c.EZIK_CARD_ARIA');
 const EZIK_CARD_WAIT = '...';
-const EZIK_CARD_FAIL = 'تعذَّرَ الحفظ';
+let EZIK_CARD_FAIL = ezT('c.EZIK_CARD_FAIL');
 const EZIK_CARD_FILE = 'ezik-reply.png';
 
 // Greedy wrap against the REAL measured width of the REAL font, which is the only wrap that can
@@ -5574,7 +6075,7 @@ const EZIK_SUM_MOTIF_ALPHA = 0.42;
 // THE WEIGHT KEY IS TWO COLUMNS, NOT A MULTIPLIER. `calm` and `bold` are read out of these pairs
 // by name, so a page drawn bold is a page whose every type size was chosen for bold rather than
 // one that was scaled up after the fact.
-const EZIK_SUM_TAG = 'ملخص من عزك';
+let EZIK_SUM_TAG = ezT('c.EZIK_SUM_TAG');
 const EZIK_SUM_TAG_SIZE = 27;
 const EZIK_SUM_TITLE_SIZE = { calm: 52, bold: 58 };
 const EZIK_SUM_TITLE_LINE = { calm: 70, bold: 78 };
@@ -6486,8 +6987,7 @@ const parseRichMessage = (text, viewerAge) => {
         surah: surahMatch ? surahMatch[1] : '',
         surahNum: surahNumMatch ? surahNumMatch[1] : '',
         ayah: ayahMatch ? ayahMatch[1] : '',
-        tr: ezikTrAttr(attrsStr, 'tr'),
-        trs: ezikTrPlain(attrsStr, 'trs'),
+        ...ezikTrFields(attrsStr),
       });
     } else if (tagName === 'surah') {
       // سورة كاملة أو مدًى متّصل — بطاقة واحدة، نصّ متّصل، زرّ تلاوة واحد
@@ -6508,8 +7008,7 @@ const parseRichMessage = (text, viewerAge) => {
         content,
         narrator: narratorMatch ? narratorMatch[1] : '',
         ruling: rulingMatch ? rulingMatch[1] : '',
-        tr: ezikTrAttr(attrsStr, 'tr'),
-        trs: ezikTrPlain(attrsStr, 'trs'),
+        ...ezikTrFields(attrsStr),
       });
     } else if (tagName === 'dhikr') {
       const dhikrIdMatch = attrsStr.match(/id=["']([^"']+)["']/);
@@ -6531,7 +7030,7 @@ const parseRichMessage = (text, viewerAge) => {
         content,
         site: siteMatch ? siteMatch[1] : '',
         url: urlMatch ? urlMatch[1] : '',
-        tl: ezikTrAttr(attrsStr, 'tl'),
+        ...ezikTrFields(attrsStr),
       });
     } else if (tagName === 'book') {
       // ع-٤٩ — الكتابُ والمؤلِّفُ لا غير. لا رابطَ ولا نطاقَ ولا سهمَ فتح: هذه بطاقةُ إسنادٍ لا
@@ -6561,7 +7060,7 @@ const parseRichMessage = (text, viewerAge) => {
         bookId: bookIdMatch ? bookIdMatch[1] : '',
         vol: volMatch ? volMatch[1] : '',
         page: pageMatch ? pageMatch[1] : '',
-        tl: ezikTrAttr(placeStr, 'tl'),
+        ...ezikTrFields(placeStr),
       });
     } else if (tagName === 'steps') {
       const items = content.split('\n')
@@ -6577,8 +7076,6 @@ const parseRichMessage = (text, viewerAge) => {
         .map(l => l.replace(/^[-•*]\s*/, '').trim())
         .filter(l => l);
       suggestions = items;
-    } else if (tagName === 'tltext') {
-      segments.push({ type: 'tltext', content });
     } else if (tagName === 'board') {
       segments.push({ type: 'board', content });
     } else if (tagName === 'document') {
@@ -7280,7 +7777,7 @@ const EZH_ICON_GO = (
 // ITEM 108-أ: the qibla tile's mark. Same 24x24 box, same 1.8 stroke, same round caps as the
 // five marks beside it — a compass rose reduced to a circle, a needle and its pivot. No new
 // artwork file, no image, no data URI.
-const EZH_PRAYER = 'الصلاة والقبلة';
+let EZH_PRAYER = ezT('c.EZH_PRAYER');
 const EZH_ICON_PRAYER = (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M15.5 8.5 L10.5 10.5 L8.5 15.5 L13.5 13.5 Z" /></svg>
 );
@@ -7293,7 +7790,7 @@ const EZH_ICON_MENU = (
 // of the screen it opens, so the mark the reader presses and the heading he lands on can never
 // say two different things. A plain Arabic literal, written the way every string of the
 // QIBLA_* family it belongs to is written.
-const EZH_NAV_COMPASS = '\u0627\u0644\u0628\u0648\u0635\u0644\u0629';
+let EZH_NAV_COMPASS = ezT('c.EZH_NAV_COMPASS');
 
 // ITEM 20 / SHELF §3 (8 September) -- WHO SEES «ركن النساء», IN ONE FUNCTION.
 //
@@ -7446,8 +7943,8 @@ let EZIST_SUB_FATWA = ezT("module.fatwa.sub");
 let EZIST_SUB_LESSONS = ezT("module.lessons.sub");
 let EZIST_SUB_ARTICLES = ezT("module.articles.sub");
 let EZIST_SUB_WOMEN = ezT("module.women.sub");
-let EZIST_SUB_ASMAA = 'تسعةٌ وتسعون اسمًا، بمعانيها ومصادرها';
-let EZIST_SUB_PRAYER = 'المواقيت والقبلة، محسوبةً على هذا الجهاز';
+let EZIST_SUB_ASMAA = ezT('c.EZIST_SUB_ASMAA');
+let EZIST_SUB_PRAYER = ezT('c.EZIST_SUB_PRAYER');
 let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, arbaeen: EZIST_SUB_ARBAEEN, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER };
 
 // THE TOP NAVIGATION. TWO ELEMENTS AND NO THIRD -- the daily verse, and the menu button.
@@ -12530,10 +13027,10 @@ const ADHKAR_UI_V2_ON = true;
 const A2_BRAND  = 'عزك';
 const A2_TITLE  = 'الأدعية';
 let A2_BACK = ezT("common.back");
-const A2_SEARCH = 'ابحث عن ذكر';
+let A2_SEARCH = ezT('c.A2_SEARCH');
 const A2_EMPTY  = 'لا نتائج';
-const A2_SOURCE = 'حصن المسلم';
-const A2_LISTEN = 'استماع';
+let A2_SOURCE = ezT('c.A2_SOURCE');
+let A2_LISTEN = ezT('c.A2_LISTEN');
 const A2_STOP   = 'إيقاف';
 // Byte-for-byte the meta line V1 renders: the same two words around the same Arabic-Indic digits.
 const a2Repeat = (n) => 'تُقال ' + toArabicDigits(n) + ' مرّات';
@@ -13010,8 +13507,8 @@ const adhkarPlaceOf = (rec, catId) => {
 // the clock picks the door that EXISTS; it does not manufacture a second one. Whether that
 // category should become two is a DATA decision and it belongs to the owner, not to this
 // function.
-const A3G_MORNING = 'الصباح';   // "the morning"
-const A3G_EVENING = 'المساء';   // "the evening"
+let A3G_MORNING = ezT('c.A3G_MORNING');   // "the morning"
+let A3G_EVENING = ezT('c.A3G_EVENING');   // "the evening"
 function adhkarTimeDoor(cats, now) {
   if (!Array.isArray(cats) || cats.length === 0) return null;
   let h = -1;
@@ -13025,7 +13522,7 @@ function adhkarTimeDoor(cats, now) {
 // Neither is devotional text: one is the word between two numbers, the other names what a tap
 // has left to spend.
 const A3G_OF     = 'من';                                         // "of"
-const A3G_REMAIN = 'المتبقي'; // "the remaining"
+let A3G_REMAIN = ezT('c.A3G_REMAIN'); // "the remaining"
 // THE END OF THE GROUP, and the label on the control that empties one item.
 // A3G_SEAL_AYAH IS QUR'AN AND WAS NOT TYPED. It is quran-uthmani.json['33:35'] cut at
 // .slice(338, 386) -- the project's own attested mushaf, cut by a tool and never by a hand --
@@ -13039,7 +13536,7 @@ const A3G_REMAIN = 'المتبقي'; // "the remaining"
 const A3G_SEAL_AYAH = '\u{0648}\u{064E}\u{0671}\u{0644}\u{0630}\u{0651}\u{064E}\u{0670}\u{0643}\u{0650}\u{0631}\u{0650}\u{064A}\u{0646}\u{064E}\u{0020}\u{0671}\u{0644}\u{0644}\u{0651}\u{064E}\u{0647}\u{064E}\u{0020}\u{0643}\u{064E}\u{062B}\u{0650}\u{064A}\u{0631}\u{064B}\u{0627}\u{0020}\u{0648}\u{064E}\u{0671}\u{0644}\u{0630}\u{0651}\u{064E}\u{0670}\u{0643}\u{0650}\u{0631}\u{064E}\u{0670}\u{062A}\u{0650}';
 const A3G_SEAL = '\u{FD3F}' + A3G_SEAL_AYAH + '\u{FD3E}';
 const A3G_SEAL_REF = '\u{0633}\u{0648}\u{0631}\u{0629}' + ' ' + (SURAH_NAMES[33] || '') + '\u{060C}' + ' ' + '\u{0622}\u{064A}\u{0629}' + ' ' + toArabicDigits(35);
-const A3G_ZERO = '\u{0623}\u{0639}\u{062F} \u{0627}\u{0644}\u{0639}\u{062F}\u{0651}'; // "count again"
+let A3G_ZERO = ezT('c.A3G_ZERO'); // "count again"
 
 // NEW V2 CHROME STRINGS, and every one is written as \u{...} code-point escapes on purpose:
 // an escape sequence cannot be silently reflowed, reshaped, normalised or truncated by an
@@ -13050,9 +13547,9 @@ const A3G_ZERO = '\u{0623}\u{0639}\u{062F} \u{0627}\u{0644}\u{0639}\u{062F}\u{06
 // ITEM 43-أ. The chain's own words. NEUTRAL BY CONSTRUCTION: there is no sentence here for a
 // chain that lapsed, because none is drawn -- the number simply reads zero and the invitation
 // below is the same invitation a first-time reader sees.
-const A3_CHAIN_TITLE = 'سلسلتك';                    // "your chain"
+let A3_CHAIN_TITLE = ezT('c.A3_CHAIN_TITLE');                    // "your chain"
 const A3_CHAIN_DAYS  = 'يومًا متتاليًا';              // "consecutive days"
-const A3_CHAIN_START = 'تبدأ ببلوغ هدف اليوم';       // "it begins when today's goal is reached"
+let A3_CHAIN_START = ezT('c.A3_CHAIN_START');       // "it begins when today's goal is reached"
 const A3_GOAL_PICK   = 'هدف اليوم';                  // "today's goal"
 const A2_GOAL_TITLE  = '\u{0648}\u{0631}\u{062F}\u{0643} \u{0627}\u{0644}\u{064A}\u{0648}\u{0645}\u{064A}';                                  // "your daily wird"
 const A2_MOST_USED   = '\u{0627}\u{0644}\u{0623}\u{0643}\u{062B}\u{0631} \u{0627}\u{0633}\u{062A}\u{062E}\u{062F}\u{0627}\u{0645}\u{0627}\u{064B}'; // "the most used"
@@ -20208,7 +20705,6 @@ const REPLY_SERIALIZERS = {
   // but a transport marker between the reviewer and this renderer, are not.
   notice: (sg) => [sg.label, sg.content].map((x) => String(x || '').trim()).filter(Boolean).join(' '),
   document: (sg) => REPLY_LINE([sg.title || '\u0645\u0633\u062A\u0646\u062F', toPlainText(sg.content)]),
-  tltext: (sg) => REPLY_LINE([toPlainText(sg.content)]),
 };
 // ITEM 42-C. THE SHARE CARD'S SOURCE FOOTER, and it lives HERE for a reason.
 //
@@ -20435,8 +20931,8 @@ let EZIK_QUICK_ACTIONS = [
 // «Summarize» is about THE CONVERSATION and «expand» is about THE LAST ANSWER, which is the one
 // difference between them and the five: «shorten» shortens the previous answer, this one gathers
 // the whole thread.
-const EZIK_BAR_SUMMARIZE_PROMPT = '\u0644\u062e\u0651\u0635 \u0647\u0630\u0647 \u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0629 \u0643\u0644\u0647\u0627 \u0641\u064a \u0646\u0642\u0627\u0637 \u0642\u0635\u064a\u0631\u0629\u060c \u0645\u0639 \u0625\u0628\u0642\u0627\u0621 \u0627\u0644\u0645\u0635\u062f\u0631 \u0627\u0644\u0634\u0631\u0639\u064a \u0627\u0644\u0645\u0648\u062b\u0642 \u0625\u0646 \u0648\u064f\u062c\u062f.';
-const EZIK_BAR_EXPAND_PROMPT = '\u0648\u0633\u0651\u0639 \u0627\u0644\u0625\u062c\u0627\u0628\u0629 \u0627\u0644\u0633\u0627\u0628\u0642\u0629 \u0628\u062a\u0641\u0635\u064a\u0644 \u0623\u0648\u0641\u0649 \u0648\u0623\u062f\u0644\u0629 \u0623\u0643\u062b\u0631\u060c \u0645\u0646 \u062f\u0648\u0646 \u0625\u0639\u0627\u062f\u0629 \u0645\u0627 \u0633\u0628\u0642.';
+let EZIK_BAR_SUMMARIZE_PROMPT = ezT('c.EZIK_BAR_SUMMARIZE_PROMPT');
+let EZIK_BAR_EXPAND_PROMPT = ezT('c.EZIK_BAR_EXPAND_PROMPT');
 
 // A reply the CLIENT wrote to report its own failure is not something to offer «بسّط» under.
 // FRIENDLY_ERRORS is the closed table those replies come from, so matching against it is exact
@@ -20470,7 +20966,7 @@ function ezikAnswerBodyOf(node) {
   } catch (e) { return null; }
 }
 const EZIK_QUOTE_MAX = 500;
-const EZIK_QUOTE_LABEL = 'اقتباس';
+let EZIK_QUOTE_LABEL = ezT('c.EZIK_QUOTE_LABEL');
 // ITEM 42-أ. The share control speaks through the SAME dictionary the rest of the rail does,
 // so a reader who switches the interface language switches this button with everything else.
 let EZIK_SHARE_LABEL = ezT("chat.share");
@@ -20781,11 +21277,11 @@ function ezikRenderSegments(segments, ctx) {
     }
     if (seg.type === 'source') {
       const sourceCard = <SourceCard key={i} site={seg.site} url={seg.url} content={seg.content} />;
-      return seg.tl ? <React.Fragment key={i}>{sourceCard}<EzikTranslationNote text={seg.tl} label={ezT('answer.translation')} /></React.Fragment> : sourceCard;
+      return (seg.tl || seg.tb) ? <React.Fragment key={i}>{sourceCard}{seg.tl ? <EzikTranslationNote text={seg.tl} label={ezT('answer.translation')} /> : null}{seg.tb ? <EzikTranslationNote text={seg.tb} label={ezT('answer.translationOfText')} /> : null}</React.Fragment> : sourceCard;
     }
     if (seg.type === 'book') {
       const bookCard = <BookCard key={i} title={seg.title} author={seg.author} where={seg.where} text={seg.text} cut={seg.cut} bookId={seg.bookId} vol={seg.vol} page={seg.page} />;
-      return seg.tl ? <React.Fragment key={i}>{bookCard}<EzikTranslationNote text={seg.tl} label={ezT('answer.translation')} /></React.Fragment> : bookCard;
+      return (seg.tl || seg.tb) ? <React.Fragment key={i}>{bookCard}{seg.tl ? <EzikTranslationNote text={seg.tl} label={ezT('answer.translation')} /> : null}{seg.tb ? <EzikTranslationNote text={seg.tb} label={ezT('answer.translationOfText')} /> : null}</React.Fragment> : bookCard;
     }
     if (seg.type === 'dhikr') {
       return <DhikrCard key={i} catId={seg.catId} />;
@@ -20795,9 +21291,6 @@ function ezikRenderSegments(segments, ctx) {
     }
     if (seg.type === 'steps') {
       return <StepsCard key={i} items={seg.items} title={seg.title} />;
-    }
-    if (seg.type === 'tltext') {
-      return <EzikTranslationNote key={i} text={seg.content} label={ezT('answer.translation')} />;
     }
     if (seg.type === 'board') {
       return <BoardCard key={i} content={seg.content} />;
@@ -21576,7 +22069,7 @@ const QURAN_ORNATE_SPAN_RE = /\uFD3F[\s\S]*?\uFD3E/;
 const hasQuranicSpan = (t) => QURAN_ORNATE_SPAN_RE.test(String(t || ''));
 // The label a verse gets, and it is the one the verse card already uses -- not a new string,
 // so the two surfaces cannot drift into calling the same thing two names.
-const AYAH_CARD_LABEL = 'قَالَ اللهُ تَعَالَى';
+let AYAH_CARD_LABEL = ezT('c.AYAH_CARD_LABEL');
 // THE REFERENCE IS READ, NEVER GUESSED. It counts only when the content STATES it as
 // «سورة <name> ... <number>» and <name> is a surah the app already knows (SURAH_NUMBERS, the
 // same map the recitation link is built from). Anything else -- no reference, an unknown name,
@@ -21616,7 +22109,7 @@ const readStatedAyahRef = (t) => {
 // SO THE LABEL IS A CONSTANT AND NOT A DECISION. `att` is still read below, for the GRADE line
 // under the text — what a card knows about its narrator governs what it prints UNDER the matn,
 // and never what it prints over it.
-const SUNNAH_CARD_LABEL = 'من السنة النبوية';
+let SUNNAH_CARD_LABEL = ezT('c.SUNNAH_CARD_LABEL');
 
 function HadithCard({ content, narrator, ruling }) {
   // خانةُ المخرِّجِ قد تصلُ مملوءةً بالدرجة، فتُطبَعُ الدرجةُ مرّتين وأُولاهما «رَوَى متفق عليه».
@@ -22025,8 +22518,8 @@ function AdultGate({ a, b, onPass, onCancel }) {
 //     in local mode with nothing sent.
 // The links are our OWN pages and are NOT parent-gated: a policy Apple requires to be reachable
 // must be reachable.
-const EZ_AIC_TITLE = 'مشاركة البيانات مع خدمات الذكاء الاصطناعي';
-const EZ_AIC_LEAD = 'عند تشغيل المحادثة الذكية أو الصوت أو رفع الملفات، قد تُرسَل البيانات التالية إلى الجهات المذكورة أدناه لتنفيذ طلبك:';
+let EZ_AIC_TITLE = ezT('c.EZ_AIC_TITLE');
+let EZ_AIC_LEAD = ezT('c.EZ_AIC_LEAD');
 const EZ_AIC_DATA = [
   'الاسم والعمر والجنس المسجَّلة في الملف.',
   'نصّ السؤال ورسائل المحادثة السابقة.',
@@ -22034,7 +22527,7 @@ const EZ_AIC_DATA = [
   'التسجيل الصوتيّ والنصّ الناتج منه عند تشغيل الصوت أو التسميع.',
   'عبارات بحث مشتقّة من السؤال للوصول إلى المصادر.',
 ];
-const EZ_AIC_PROVIDERS_TITLE = 'الجهات التي تستقبل هذه البيانات، ووظيفة كلٍّ منها:';
+let EZ_AIC_PROVIDERS_TITLE = ezT('c.EZ_AIC_PROVIDERS_TITLE');
 const EZ_AIC_PROVIDERS = [
   ['Anthropic (Claude)', 'توليد الإجابات ومعالجة النصوص والصور والملفات.'],
   ['ElevenLabs', 'تحويل النصّ إلى صوت، وتحويل التسجيل الصوتيّ إلى نصّ عند استخدام المسار السحابيّ.'],
@@ -22049,18 +22542,18 @@ const EZ_AIC_ASSURANCES = [
   'يمكنك استخدام المصحف والأذكار وكنوز المعرفة والميزات المحلّيّة دون تشغيل الذكاء الاصطناعيّ.',
   'يمكنك سحب الموافقة لاحقاً من: الإعدادات ← الخصوصية والذكاء الاصطناعي.',
 ];
-const EZ_AIC_GUARDIAN_LINE = 'يجب على ولي الأمر مراجعة هذه المعلومات والموافقة قبل تشغيل ميزات الذكاء الاصطناعي للطفل.';
-const EZ_AIC_AGREE = 'أوافق وأفعّل ميزات الذكاء الاصطناعي';
-const EZ_AIC_DECLINE = 'استخدام عزك دون الذكاء الاصطناعي';
-const EZ_AIC_LINK_PRIVACY = 'سياسة الخصوصية';
-const EZ_AIC_LINK_DELETE = 'حذف البيانات';
-const EZ_AIC_LINK_SUPPORT = 'الدعم';
+let EZ_AIC_GUARDIAN_LINE = ezT('c.EZ_AIC_GUARDIAN_LINE');
+let EZ_AIC_AGREE = ezT('c.EZ_AIC_AGREE');
+let EZ_AIC_DECLINE = ezT('c.EZ_AIC_DECLINE');
+let EZ_AIC_LINK_PRIVACY = ezT('c.EZ_AIC_LINK_PRIVACY');
+let EZ_AIC_LINK_DELETE = ezT('c.EZ_AIC_LINK_DELETE');
+let EZ_AIC_LINK_SUPPORT = ezT('c.EZ_AIC_LINK_SUPPORT');
 // MEASURED IN A REAL BROWSER, not assumed: rendered as one plain string inside this RTL card,
 // "2026-08-06-1" came out as "1-06-08-2026". The hyphens are bidi-NEUTRAL, so the digit groups
 // get reordered around them and the reader is shown a version number that is not the version
 // number. It is the identifier the whole consent record is keyed on, so it is isolated LTR --
 // the same treatment EZ_AIC_PROVIDERS already gives the Latin vendor names.
-const EZ_AIC_VERSION_LABEL = 'نسخة الموافقة:';
+let EZ_AIC_VERSION_LABEL = ezT('c.EZ_AIC_VERSION_LABEL');
 const EZ_AIC_VERSION_LINE = EZ_AIC_VERSION_LABEL + ' ' + EZ_AI_CONSENT_VERSION;
 function AIConsentVersion({ style }) {
   return (
@@ -22263,7 +22756,7 @@ const EZIK_SOURCES_SECTIONS = [
 ];
 // The seal the owner wrote, and the last line on the panel. Arabic only and out of the
 // dictionary for the same reason the four paragraphs above are: it is his own sentence.
-const EZIK_SOURCES_SEAL = 'جزى اللهُ أصحابَ هذه المصادرِ خيرًا، وما نفعَ اللهُ به فمن فضلِه.';
+let EZIK_SOURCES_SEAL = ezT('c.EZIK_SOURCES_SEAL');
 
 function EzikAboutSheet({ onBack }) {
   return (
@@ -23142,12 +23635,12 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
 }
 // The two screens that SEND, when consent has not been granted. Never a blank page: it names the
 // reason, offers the way back to the choice, and offers the three modules that need no AI at all.
-const EZ_AILM_TITLE = 'الوضع المحلّيّ';
-const EZ_AILM_BODY = 'ميزات الذكاء الاصطناعي غير مفعّلة لأن مشاركة البيانات لم تتم الموافقة عليها.';
-const EZ_AILM_REVIEW = 'مراجعة إعدادات الخصوصية';
-const EZ_AILM_MUSHAF = 'فتح المصحف';
-const EZ_AILM_ADHKAR = 'فتح الأذكار';
-const EZ_AILM_TREASURE = 'فتح كنوز المعرفة';
+let EZ_AILM_TITLE = ezT('c.EZ_AILM_TITLE');
+let EZ_AILM_BODY = ezT('c.EZ_AILM_BODY');
+let EZ_AILM_REVIEW = ezT('c.EZ_AILM_REVIEW');
+let EZ_AILM_MUSHAF = ezT('c.EZ_AILM_MUSHAF');
+let EZ_AILM_ADHKAR = ezT('c.EZ_AILM_ADHKAR');
+let EZ_AILM_TREASURE = ezT('c.EZ_AILM_TREASURE');
 function AILocalModeNotice({ onReview, onMushaf, onAdhkar, onTreasure, onBack }) {
   return (
     <div className="theme-dark ezhome ezgate" style={s.onboardingContainer}>
@@ -23726,7 +24219,7 @@ function EzShell({ title, onBack, backLabel, lead, actions, children }) {
 const PRAYER_PREFS_KEY = 'ezik_prayer_prefs_v1';
 const PRAYER_METHOD_DEFAULT = 'kuwait';
 const PRAYER_ASR_DEFAULT = 'standard';
-const PRAYER_ADHAN_SOUND_LABEL = '\u0635\u0648\u062A \u0627\u0644\u0623\u0630\u0627\u0646';
+let PRAYER_ADHAN_SOUND_LABEL = ezT('c.PRAYER_ADHAN_SOUND_LABEL');
 const PRAYER_OFFSET_MIN = -15;
 const PRAYER_OFFSET_MAX = 15;
 const PRAYER_KEYS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
@@ -24084,22 +24577,22 @@ function ensurePrayerSchedule(loc, prefs, now) {
   return { rec: rec, built: true, why: why, remaining: prayerScheduleRemaining(rec, todayKey) };
 }
 
-const PRAYER_TITLE = 'مواقيت الصلاة';
-const PRAYER_SETTINGS_TITLE = 'الصلاة';
-const PRAYER_METHOD_LABEL = 'المنهج';
-const PRAYER_ASR_LABEL = 'مذهب العصر';
-const PRAYER_OFFSET_LABEL = 'إزاحة يدويّة بالدقائق';
-const PRAYER_HINT = 'تُحسَب على هذا الجهاز من المنهج والإحداثيّات، بلا إنترنت. قابِلْها بتقويمك وعدِّلْ بالدقائق إن لزم.';
-const PRAYER_NONE = 'لا يبلغُ الشفقُ هذه الزاويةَ في هذا الموضع اليوم.';
-const PRAYER_SCHEDULE_TITLE = 'جدول ثلاثين يومًا';
-const PRAYER_SCHEDULE_SHOW = 'اعرض جدول ثلاثين يومًا';
-const PRAYER_SCHEDULE_HIDE = 'اطوِ الجدول';
+let PRAYER_TITLE = ezT('c.PRAYER_TITLE');
+let PRAYER_SETTINGS_TITLE = ezT('c.PRAYER_SETTINGS_TITLE');
+let PRAYER_METHOD_LABEL = ezT('c.PRAYER_METHOD_LABEL');
+let PRAYER_ASR_LABEL = ezT('c.PRAYER_ASR_LABEL');
+let PRAYER_OFFSET_LABEL = ezT('c.PRAYER_OFFSET_LABEL');
+let PRAYER_HINT = ezT('c.PRAYER_HINT');
+let PRAYER_NONE = ezT('c.PRAYER_NONE');
+let PRAYER_SCHEDULE_TITLE = ezT('c.PRAYER_SCHEDULE_TITLE');
+let PRAYER_SCHEDULE_SHOW = ezT('c.PRAYER_SCHEDULE_SHOW');
+let PRAYER_SCHEDULE_HIDE = ezT('c.PRAYER_SCHEDULE_HIDE');
 // The renewal rule, said in words, because a rule the reader cannot see is not a rule they can
 // rely on. No time field, no alarm, no sound: this sentence describes a table and nothing else.
-const PRAYER_SCHEDULE_NOTE = 'يُحسَب على هذا الجهاز لثلاثين يومًا قادمة، بلا إنترنت، ويُعاد توليده تلقائيًّا متى بقي أقلّ من سبعة أيّام، أو متى غيّرتَ المنهج أو الإزاحة أو الموضع.';
+let PRAYER_SCHEDULE_NOTE = ezT('c.PRAYER_SCHEDULE_NOTE');
 // The sunrise is not a prayer time and takes no offset. Saying so is the difference between a
 // value the reader trusts as calibrated and one they know is the calculator's own.
-const PRAYER_SUNRISE_NOTE = 'الشروق محسوبٌ لا مُعايَر؛ لا تُطبَّق عليه إزاحة.';
+let PRAYER_SUNRISE_NOTE = ezT('c.PRAYER_SUNRISE_NOTE');
 const PRAYER_MINUS = '−';
 const PRAYER_PLUS = '+';
 
@@ -24438,7 +24931,7 @@ const KAABA_LAT = 21.422487;
 const KAABA_LNG = 39.826206;
 const QIBLA_DEFAULT_LAT = 29.3759;
 const QIBLA_DEFAULT_LNG = 47.9774;
-const QIBLA_DEFAULT_PLACE = 'مدينة الكويت';
+let QIBLA_DEFAULT_PLACE = ezT('c.QIBLA_DEFAULT_PLACE');
 const QIBLA_LOC_KEY = 'ezik_qibla_loc_v1';
 const QIBLA_DIRS = ['الشمال', 'الشمال الشرقيّ', 'الشرق', 'الجنوب الشرقيّ', 'الجنوب', 'الجنوب الغربيّ', 'الغرب', 'الشمال الغربيّ'];
 
@@ -26886,27 +27379,27 @@ function useEzikWidgetDataRoot(ready) {
   }, [ready]);
 }
 
-const QIBLA_TITLE = 'القبلة';
-const QIBLA_SECTION = 'اتّجاه القبلة';
-const QIBLA_DEG_SUFFIX = 'درجةً عن الشمال';
-const QIBLA_TOWARD = 'نحوَ';
-const QIBLA_PLACE_LABEL = 'الموضع:';
-const QIBLA_PLACE_DEFAULT_NOTE = 'افتراضيّ';
-const QIBLA_DEVICE_PLACE = 'موقعُ هذا الجهاز';
-const QIBLA_USE_DEVICE = 'استخدمْ موقعَ هذا الجهاز';
-const QIBLA_USE_DEFAULT = 'عُدْ إلى الموضع الافتراضيّ';
-const QIBLA_LOC_ASKING = 'يُطلَبُ الإذنُ بالموقع الآن…';
-const QIBLA_LOC_DENIED = 'لم يُمنَحِ الإذنُ بالموقع، والموضعُ الافتراضيُّ باقٍ كما هو.';
-const QIBLA_COMPASS_START = 'شغِّلِ البوصلة';
-const QIBLA_COMPASS_WAIT = 'بانتظارِ قراءةٍ من حسّاسِ الاتّجاه…';
-const QIBLA_COMPASS_NONE = 'لا تدورُ البوصلةُ على هذا الجهاز: لم تصلْ قراءةٌ صالحةٌ من حسّاسِ الاتّجاه، فالدرجةُ وحدَها هي المعروضة.';
-const QIBLA_COMPASS_LIVE = 'البوصلةُ تدورُ مع الجهاز.';
-const QIBLA_COMPASS_CALIBRATION = 'السهمُ يدورُ، لكنَّ معايرةَ حسّاسِ الاتّجاهِ ناقصة. حرِّكِ الجهازَ ببطءٍ على شكلِ الرقم ٨ حتّى تتحسّنَ المعايرة.';
-const QIBLA_COMPASS_SENSOR_UNAVAILABLE = 'لا يحتوي هذا الجهازُ على حسّاسِ اتّجاهٍ متاح؛ تبقى درجةُ القبلةِ المعروضةُ أعلاه.';
-const QIBLA_COMPASS_PERMISSION_DENIED = 'إذنُ الموقعِ مرفوض. افتحْ إعداداتِ الجهازِ الخاصّةَ بتطبيقِ عزك وامنحْ إذنَ الموقع، ثم عُدْ إلى هذه الشاشة.';
-const QIBLA_COMPASS_HEADING_ERROR = 'تعذّرتْ قراءةُ اتّجاهِ الجهازِ بسببِ عطبٍ طارئ. أعِدِ المحاولة.';
-const QIBLA_COMPASS_RETRY = 'أعِدِ المحاولة';
-const QIBLA_BACK = 'رجوع';
+let QIBLA_TITLE = ezT('c.QIBLA_TITLE');
+let QIBLA_SECTION = ezT('c.QIBLA_SECTION');
+let QIBLA_DEG_SUFFIX = ezT('c.QIBLA_DEG_SUFFIX');
+let QIBLA_TOWARD = ezT('c.QIBLA_TOWARD');
+let QIBLA_PLACE_LABEL = ezT('c.QIBLA_PLACE_LABEL');
+let QIBLA_PLACE_DEFAULT_NOTE = ezT('c.QIBLA_PLACE_DEFAULT_NOTE');
+let QIBLA_DEVICE_PLACE = ezT('c.QIBLA_DEVICE_PLACE');
+let QIBLA_USE_DEVICE = ezT('c.QIBLA_USE_DEVICE');
+let QIBLA_USE_DEFAULT = ezT('c.QIBLA_USE_DEFAULT');
+let QIBLA_LOC_ASKING = ezT('c.QIBLA_LOC_ASKING');
+let QIBLA_LOC_DENIED = ezT('c.QIBLA_LOC_DENIED');
+let QIBLA_COMPASS_START = ezT('c.QIBLA_COMPASS_START');
+let QIBLA_COMPASS_WAIT = ezT('c.QIBLA_COMPASS_WAIT');
+let QIBLA_COMPASS_NONE = ezT('c.QIBLA_COMPASS_NONE');
+let QIBLA_COMPASS_LIVE = ezT('c.QIBLA_COMPASS_LIVE');
+let QIBLA_COMPASS_CALIBRATION = ezT('c.QIBLA_COMPASS_CALIBRATION');
+let QIBLA_COMPASS_SENSOR_UNAVAILABLE = ezT('c.QIBLA_COMPASS_SENSOR_UNAVAILABLE');
+let QIBLA_COMPASS_PERMISSION_DENIED = ezT('c.QIBLA_COMPASS_PERMISSION_DENIED');
+let QIBLA_COMPASS_HEADING_ERROR = ezT('c.QIBLA_COMPASS_HEADING_ERROR');
+let QIBLA_COMPASS_RETRY = ezT('c.QIBLA_COMPASS_RETRY');
+let QIBLA_BACK = ezT('c.QIBLA_BACK');
 // ITEM 66 (side round, 15 September) -- THE ONE SENTENCE THE COMPASS SCREEN MAY SAY.
 //
 // The owner's ruling on that screen is that it holds a circle and a needle and NOT ONE LETTER.
@@ -26918,7 +27411,7 @@ const QIBLA_BACK = 'رجوع';
 // It is deliberately NOT one of the five long status sentences above it. Those belong to the
 // prayer sheet's own qibla section, which keeps every one of them; this is the compass SCREEN's
 // and it is short because the screen it sits on has nothing else on it to read.
-const QIBLA_FULL_FAIL = 'لا تدورُ البوصلةُ على هذا الجهاز.';
+let QIBLA_FULL_FAIL = ezT('c.QIBLA_FULL_FAIL');
 // How long the needle takes to walk from its neutral rest to the first real bearing. It is a
 // TRANSITION and not a timer: the needle is on the screen from the first paint whatever happens,
 // and this only governs how it travels once a reading arrives. The owner allowed a slow SETTLE
@@ -26926,7 +27419,7 @@ const QIBLA_FULL_FAIL = 'لا تدورُ البوصلةُ على هذا الجه
 const QIBLA_SETTLE_MS = 600;
 // ITEM 107: the sheet now holds both readings, so it is named for both. The tile that opens it
 // is renamed with it -- one tile, one sheet, one position.
-const PRAYER_SHEET_TITLE = 'الصلاة والقبلة';
+let PRAYER_SHEET_TITLE = ezT('c.PRAYER_SHEET_TITLE');
 const QIBLA_NEEDLE_MS = 4000;
 
 // ITEM 66 (ب): `full` is the ONE thing the full-screen view asks of this panel, and it is a
@@ -27799,7 +28292,7 @@ const HIJRI_OFFSET_KEY = 'ezik_hijri_offset_v1';
 const HIJRI_OFFSET_MIN = -2;
 const HIJRI_OFFSET_MAX = 2;
 const HIJRI_MONTHS = ['المحرَّم', 'صفر', 'ربيع الأوّل', 'ربيع الآخر', 'جمادى الأولى', 'جمادى الآخرة', 'رجب', 'شعبان', 'رمضان', 'شوّال', 'ذو القعدة', 'ذو الحجّة'];
-const HIJRI_SUFFIX = 'هـ';
+let HIJRI_SUFFIX = ezT('c.HIJRI_SUFFIX');
 
 // Julian Day Number for a proleptic-Gregorian civil date. Integer in, integer out, and it is the
 // ONLY place a calendar date becomes a number — the offset, the conversion and the inverse all
@@ -27939,10 +28432,10 @@ function hijriTodayLabel() {
 // THE OFFSET CONTROL, in Settings. It owns its own value: it is a device-local preference of the
 // same family as the wird target, it is read once when the sheet opens and written on the press,
 // and nothing above it has to carry it. Five buttons, one radiogroup, the shipped a11y row style.
-const HIJRI_SET_TITLE = 'التاريخ الهجريّ';
-const HIJRI_SET_LABEL = 'إزاحة يدويّة بالأيّام';
-const HIJRI_SET_HINT = 'يُحسَب على هذا الجهاز بلا إنترنت، على تقويم أمّ القرى. إن خالفَ التقويمَ المعمولَ به عندك بيومٍ أو يومين فعدِّلْه من هنا.';
-const HIJRI_SET_NOW = 'اليوم عندك:';
+let HIJRI_SET_TITLE = ezT('c.HIJRI_SET_TITLE');
+let HIJRI_SET_LABEL = ezT('c.HIJRI_SET_LABEL');
+let HIJRI_SET_HINT = ezT('c.HIJRI_SET_HINT');
+let HIJRI_SET_NOW = ezT('c.HIJRI_SET_NOW');
 
 function HijriOffsetControl() {
   const [off, setOff] = useState(() => readHijriOffset());
@@ -28010,11 +28503,11 @@ function HijriOffsetControl() {
 // it for the tab and not merely for this mount: a worker that re-announces after an update, or a
 // second listener attached across a remount, cannot bring the same sentence back.
 const EZIK_SW_REPORT_TAG = 'precache-report';
-const EZIK_SW_MSG_PARTIAL = 'لم يكتملْ حفظُ بعضِ الملفّاتِ للعملِ بلا إنترنت.';
-const EZIK_SW_MSG_NONE = 'لم يُحفَظْ شيءٌ للعملِ بلا إنترنت: مساحةُ الجهازِ لا تكفي.';
-const EZIK_SW_MSG_TAIL = 'والتطبيقُ يعملُ كما هو ما دامَ الإنترنتُ متّصلًا.';
-const EZIK_SW_OK = 'حسنًا';
-const EZIK_SW_ARIA = 'إشعارُ الحفظِ للعملِ بلا إنترنت';
+let EZIK_SW_MSG_PARTIAL = ezT('c.EZIK_SW_MSG_PARTIAL');
+let EZIK_SW_MSG_NONE = ezT('c.EZIK_SW_MSG_NONE');
+let EZIK_SW_MSG_TAIL = ezT('c.EZIK_SW_MSG_TAIL');
+let EZIK_SW_OK = ezT('c.EZIK_SW_OK');
+let EZIK_SW_ARIA = ezT('c.EZIK_SW_ARIA');
 
 // PURE. It takes the message and returns the sentence to draw, or null for "draw nothing". No
 // storage, no clock, no DOM and no state — which is what lets the guard drive every branch of it
@@ -28078,21 +28571,21 @@ function EzShellGroup({ title, hint, wide, children }) {
 // ============================================================
 // The permanent home of the consent decision, so a reader who agreed on day one can find, read
 // and undo it on day two. Apple 5.1.1(i) requires the withdrawal to be as reachable as the grant.
-const EZ_AIS_TITLE = 'الخصوصية والذكاء الاصطناعي';
-const EZ_AIS_ON = 'الحالة: مُفعَّلة — تمت الموافقة على مشاركة البيانات مع خدمات الذكاء الاصطناعي.';
-const EZ_AIS_OFF = 'الحالة: غير مفعَّلة — لم تتم الموافقة، ولا تُرسَل أيّ بيانات إلى خدمات الذكاء الاصطناعي.';
-const EZ_AIS_BY_GUARDIAN = 'المُوافِق: ولي الأمر.';
-const EZ_AIS_BY_USER = 'المُوافِق: المستخدم.';
+let EZ_AIS_TITLE = ezT('c.EZ_AIS_TITLE');
+let EZ_AIS_ON = ezT('c.EZ_AIS_ON');
+let EZ_AIS_OFF = ezT('c.EZ_AIS_OFF');
+let EZ_AIS_BY_GUARDIAN = ezT('c.EZ_AIS_BY_GUARDIAN');
+let EZ_AIS_BY_USER = ezT('c.EZ_AIS_BY_USER');
 // Same bidi lesson as the version line, seen in the same screenshot: a long Latin run inside an
 // RTL sentence pushes the Arabic full stop to the paragraph's logical end, so the last line read
 // ".Search". The vendor names are one LTR run and are isolated as one; the sentence keeps its
 // Arabic label and drops the trailing stop, which had nowhere correct to sit.
-const EZ_AIS_PROVIDERS_LABEL = 'الجهات:';
+let EZ_AIS_PROVIDERS_LABEL = ezT('c.EZ_AIS_PROVIDERS_LABEL');
 const EZ_AIS_PROVIDERS_NAMES = 'Anthropic (Claude) — ElevenLabs — Brave Search';
 const EZ_AIS_PROVIDERS = EZ_AIS_PROVIDERS_LABEL + ' ' + EZ_AIS_PROVIDERS_NAMES;
-const EZ_AIS_WITHDRAW = 'سحب الموافقة وإيقاف ميزات الذكاء الاصطناعي';
-const EZ_AIS_REVIEW = 'مراجعة الموافقة وتشغيل ميزات الذكاء الاصطناعي';
-const EZ_AIS_KEEP = 'سحب الموافقة يوقف الإرسال المستقبليّ فوراً، ولا يحذف محادثاتك المحفوظة على هذا الجهاز.';
+let EZ_AIS_WITHDRAW = ezT('c.EZ_AIS_WITHDRAW');
+let EZ_AIS_REVIEW = ezT('c.EZ_AIS_REVIEW');
+let EZ_AIS_KEEP = ezT('c.EZ_AIS_KEEP');
 
 // THE SIGN-IN ROW. IT IS DRAWN IN THE SHELL AND NOWHERE ELSE, and that is the whole of the rule:
 // a browser tab has no window.ReactNativeWebView, so there is nothing on the far side to answer a
@@ -29181,16 +29674,16 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
 // THE SERVER OWNS THE WORDING OF A FAILURE, as it does in ParentGate. A wrong code, a day
 // lockout, an expired record and an unreachable store are four different facts, and only the
 // endpoint knows which of them just happened.
-const EZ_PC_TITLE = 'رمز لوحة الأهل';
-const EZ_PC_SET = 'مضبوطٌ لهذا الجهاز، ويُطلَب عند فتح لوحة الأهل.';
-const EZ_PC_NONE = 'لا رمز لهذا الجهاز الآن. سيُطلَب ضبطُ رمزٍ جديدٍ عند فتح لوحة الأهل.';
-const EZ_PC_DELETE = 'حذف رمز لوحة الأهل';
-const EZ_PC_ARMED = 'أدخِلِ الرمزَ نفسَه لتأكيد حذفه.';
-const EZ_PC_CONFIRM = 'تأكيد الحذف';
-const EZ_PC_FAILED = 'تعذّر الحذف الآن. جرّب بعد قليل.';
+let EZ_PC_TITLE = ezT('c.EZ_PC_TITLE');
+let EZ_PC_SET = ezT('c.EZ_PC_SET');
+let EZ_PC_NONE = ezT('c.EZ_PC_NONE');
+let EZ_PC_DELETE = ezT('c.EZ_PC_DELETE');
+let EZ_PC_ARMED = ezT('c.EZ_PC_ARMED');
+let EZ_PC_CONFIRM = ezT('c.EZ_PC_CONFIRM');
+let EZ_PC_FAILED = ezT('c.EZ_PC_FAILED');
 // Shown by ParentGate, not by this card: by the time it is true there is no code to draw a card
 // about. It lives here beside the rest of the code's own vocabulary.
-const EZ_PC_EXPIRED = 'انتهت مدّة الرمز السابق بعد اثني عشر شهرًا من ضبطه. اختر رمزاً جديدًا.';
+let EZ_PC_EXPIRED = ezT('c.EZ_PC_EXPIRED');
 function ParentCodeCard() {
   const [armed, setArmed] = useState(false);
   const [code, setCode] = useState('');
@@ -30472,35 +30965,35 @@ function dailyWirdLines(dw, pageTarget) {
 
 // THE VISIBLE TEXT OF THIS LAYER, all of it, in one place so the guard can scan one region.
 // Not one of these strings names a time, an alert, or anything that rings.
-const JD_TITLE = 'العملُ بلا إنترنت';
-const JD_BTN = 'نزِّلْ هذا الجزء';
-const JD_BUSY = 'ينزلُ الآن';
-const JD_NO_WORKER = 'لا يمكن التنزيل الآن: خدمةُ التخزين على هذا الجهاز غير عاملة.';
-const JD_UNMEASURED = 'لم يتيسّر قياسُ المساحة على هذا الجهاز، فلم يبدأِ التنزيل.';
-const JD_NOSPACE_A = 'المساحةُ لا تكفي: يحتاج هذا الجزء نحو ';
-const JD_NOSPACE_B = ' م.ب، والمتاح ';
-const JD_NOSPACE_C = ' م.ب، ولا بدّ من إبقاء ';
-const JD_NOSPACE_D = ' م.ب حرّة. لم يبدأِ التنزيل.';
-const JD_OF = ' من ';
-const JD_DONE = 'تمّ حفظُ الجزء على هذا الجهاز.';
-const JD_FAILED_A = 'أخفق ';
-const JD_FAILED_B = ' من الصفحات ولم تُحفَظ.';
-const JD_DECLINED_A = 'ولم تُحفَظ ';
-const JD_DECLINED_B = ' صفحة لضيق المساحة.';
-const JD_RULE_A = 'يحفظُ الجهازُ ';
-const JD_RULE_PLAIN = 'إذا امتلأ مخزنُ الصفحات حُذِفت الأقدمُ استعمالًا أوّلًا.';
-const JD_RULE_B = ' صفحةً من المصحف؛ فإذا امتلأ حُذِفت الأقدمُ استعمالًا أوّلًا.';
-const DW_CARD_TITLE = 'وِردي اليوم';
-const DW_CARD_EMPTY = 'لم تختر بعد. اختر من المصحف أو الأذكار أو أسماء الله الحسنى أو الدروس.';
-const DW_LINE_MUSHAF = 'المصحف:';
-const DW_LINE_ADHKAR = 'الأذكار:';
-const DW_LINE_MEMORIZE = 'الحفظ:';
-const DW_SURAH_WORD = 'سورة';
-const DW_PAGES_WORD = 'صفحة في اليوم';
-const DW_NONE = 'بلا اختيار';
-const DW_MUSHAF_LABEL = 'اختر وردك من المصحف';
-const DW_ADHKAR_LABEL = 'اختر ذكرك اليوميّ';
-const DW_MEMORIZE_LABEL = 'اختر ما تحفظه';
+let JD_TITLE = ezT('c.JD_TITLE');
+let JD_BTN = ezT('c.JD_BTN');
+let JD_BUSY = ezT('c.JD_BUSY');
+let JD_NO_WORKER = ezT('c.JD_NO_WORKER');
+let JD_UNMEASURED = ezT('c.JD_UNMEASURED');
+let JD_NOSPACE_A = ezT('c.JD_NOSPACE_A');
+let JD_NOSPACE_B = ezT('c.JD_NOSPACE_B');
+let JD_NOSPACE_C = ezT('c.JD_NOSPACE_C');
+let JD_NOSPACE_D = ezT('c.JD_NOSPACE_D');
+let JD_OF = ezT('c.JD_OF');
+let JD_DONE = ezT('c.JD_DONE');
+let JD_FAILED_A = ezT('c.JD_FAILED_A');
+let JD_FAILED_B = ezT('c.JD_FAILED_B');
+let JD_DECLINED_A = ezT('c.JD_DECLINED_A');
+let JD_DECLINED_B = ezT('c.JD_DECLINED_B');
+let JD_RULE_A = ezT('c.JD_RULE_A');
+let JD_RULE_PLAIN = ezT('c.JD_RULE_PLAIN');
+let JD_RULE_B = ezT('c.JD_RULE_B');
+let DW_CARD_TITLE = ezT('c.DW_CARD_TITLE');
+let DW_CARD_EMPTY = ezT('c.DW_CARD_EMPTY');
+let DW_LINE_MUSHAF = ezT('c.DW_LINE_MUSHAF');
+let DW_LINE_ADHKAR = ezT('c.DW_LINE_ADHKAR');
+let DW_LINE_MEMORIZE = ezT('c.DW_LINE_MEMORIZE');
+let DW_SURAH_WORD = ezT('c.DW_SURAH_WORD');
+let DW_PAGES_WORD = ezT('c.DW_PAGES_WORD');
+let DW_NONE = ezT('c.DW_NONE');
+let DW_MUSHAF_LABEL = ezT('c.DW_MUSHAF_LABEL');
+let DW_ADHKAR_LABEL = ezT('c.DW_ADHKAR_LABEL');
+let DW_MEMORIZE_LABEL = ezT('c.DW_MEMORIZE_LABEL');
 
 // ITEM 05-C -- THE LIST'S OWN VISIBLE TEXT, in the same one place as the layer's, and under
 // the same ban. Not one of these strings names a time, an alert, or anything that rings: the
@@ -30508,27 +31001,27 @@ const DW_MEMORIZE_LABEL = 'اختر ما تحفظه';
 // what he chose.
 const DW_ADD_GLYPH = '+';
 const DW_REMOVE_GLYPH = '-';
-const DW_ADD_LABEL = 'أضف وردًا إلى قائمتك';
-const DW_REMOVE_LABEL = 'احذف من قائمتك';
-const DW_PICK_TITLE = 'اختر ما تضيفه';
-const DW_PICK_SECTION = 'اختر القسم أوّلًا';
-const DW_PICK_BACK = 'رجوع إلى الأقسام';
+let DW_ADD_LABEL = ezT('c.DW_ADD_LABEL');
+let DW_REMOVE_LABEL = ezT('c.DW_REMOVE_LABEL');
+let DW_PICK_TITLE = ezT('c.DW_PICK_TITLE');
+let DW_PICK_SECTION = ezT('c.DW_PICK_SECTION');
+let DW_PICK_BACK = ezT('c.DW_PICK_BACK');
 // ITEM 05-E2: the section's own back label, in the same one place as the rest of this layer's
 // visible text and under the same ban. It names a direction and nothing else.
-const DW_SEC_BACK = 'رجوع إلى الرئيسية';
-const DW_PICK_CLOSE = 'إغلاق قائمة الاختيار';
-const DW_PICK_LOADING = 'يُحمَّلُ الآن';
-const DW_PICK_FAILED = 'لم يتيسّر جلبُ هذه القائمة الآن.';
-const DW_PICK_EMPTY = 'لا شيء في هذه القائمة.';
-const DW_PICK_ADDED = 'مضاف';
-const DW_PICK_FULL = 'امتلأت قائمتك.';
-const DW_SEC_MUSHAF = 'المصحف';
-const DW_SEC_ADHKAR = 'الأذكار';
-const DW_SEC_ASMAA = 'أسماء الله الحسنى';
-const DW_SEC_LESSONS = 'الدروس';
-const DW_LINE_ASMAA = 'الأسماء:';
-const DW_LINE_LESSONS = 'الدروس:';
-const DW_WHOLE_SECTION = 'كلُّها';
+let DW_SEC_BACK = ezT('c.DW_SEC_BACK');
+let DW_PICK_CLOSE = ezT('c.DW_PICK_CLOSE');
+let DW_PICK_LOADING = ezT('c.DW_PICK_LOADING');
+let DW_PICK_FAILED = ezT('c.DW_PICK_FAILED');
+let DW_PICK_EMPTY = ezT('c.DW_PICK_EMPTY');
+let DW_PICK_ADDED = ezT('c.DW_PICK_ADDED');
+let DW_PICK_FULL = ezT('c.DW_PICK_FULL');
+let DW_SEC_MUSHAF = ezT('c.DW_SEC_MUSHAF');
+let DW_SEC_ADHKAR = ezT('c.DW_SEC_ADHKAR');
+let DW_SEC_ASMAA = ezT('c.DW_SEC_ASMAA');
+let DW_SEC_LESSONS = ezT('c.DW_SEC_LESSONS');
+let DW_LINE_ASMAA = ezT('c.DW_LINE_ASMAA');
+let DW_LINE_LESSONS = ezT('c.DW_LINE_LESSONS');
+let DW_WHOLE_SECTION = ezT('c.DW_WHOLE_SECTION');
 
 // ---- ITEM 05-C: THE READER'S OWN WIRD LIST ------------------------------------------------
 // A SECOND STORE, BESIDE THE CHOICE RECORD ABOVE AND NEVER INSIDE IT. That record is a

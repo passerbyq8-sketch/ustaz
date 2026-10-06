@@ -122,8 +122,8 @@ const V = '﴿', W = '﴾';
   const FATWA = '## نص الفتوى\n\nالسؤال:\nما حكم هذا؟\n\nالجواب:\nهذا جواب الشيخ بنصه المنشور وقال «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى».\n\nالمفتي: الشيخ فلان';
   const arF = FATWA + '\n<source site="binbaz.org.sa" url="https://binbaz.org.sa/a">عنوان</source>';
   const outF = await A.translateAnswer(arF, { lang: 'en', translate: echo });
-  ok('the server-owned fatwa block stays in Arabic byte for byte, and its translation follows it in a <tltext> card before the source card',
-    outF.text.startsWith(FATWA) && outF.text.indexOf('<tltext>') > FATWA.length - 1 && outF.text.indexOf('</tltext>') < outF.text.indexOf('<source'), outF.text.slice(0, 120));
+  ok('the server-owned fatwa block stays in Arabic byte for byte, and its translation rides on the source card that follows it (tb), not in a new tag',
+    outF.text.startsWith(FATWA) && /<source [^>]*tb="[A-Za-z0-9+/=]+"/.test(outF.text) && outF.text.indexOf('<source') >= FATWA.length && !/<tltext/.test(outF.text), outF.text.slice(-260));
   ok('a quotation inside the scholar\'s text is counted once: the translation card is not a second quotation', A.countSacred(arF).total === A.countSacred(outF.text).total && A.countSacred(arF).total === 1, JSON.stringify([A.countSacred(arF), A.countSacred(outF.text)]));
 
   console.log('\n=== h8 PARAGRAPHS LEAVE IN ORDER, THE FIRST DOES NOT WAIT FOR THE LAST ===');
