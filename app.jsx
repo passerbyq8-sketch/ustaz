@@ -558,6 +558,18 @@ const EZ_I18N = {
     'x.655': 'انسخ التفاصيل',
     'x.656': 'آية',
     'x.657': '(افتراضيّ)',
+    'hijri.m1': 'المحرَّم',
+    'hijri.m2': 'صفر',
+    'hijri.m3': 'ربيع الأوّل',
+    'hijri.m4': 'ربيع الآخر',
+    'hijri.m5': 'جمادى الأولى',
+    'hijri.m6': 'جمادى الآخرة',
+    'hijri.m7': 'رجب',
+    'hijri.m8': 'شعبان',
+    'hijri.m9': 'رمضان',
+    'hijri.m10': 'شوّال',
+    'hijri.m11': 'ذو القعدة',
+    'hijri.m12': 'ذو الحجّة',
     'p.11': '{n} آية',
     'p.1': 'سورة {a}، آية {b}',
     'p.2': 'سورة {a}، الآيات {b}–{c}',
@@ -1816,6 +1828,18 @@ const EZ_I18N = {
     'x.655': 'Copy the details',
     'x.656': 'ayahs',
     'x.657': '(default)',
+    'hijri.m1': 'Muharram',
+    'hijri.m2': 'Safar',
+    'hijri.m3': 'Rabi\' al-Awwal',
+    'hijri.m4': 'Rabi\' al-Akhir',
+    'hijri.m5': 'Jumada al-Ula',
+    'hijri.m6': 'Jumada al-Akhirah',
+    'hijri.m7': 'Rajab',
+    'hijri.m8': 'Sha\'ban',
+    'hijri.m9': 'Ramadan',
+    'hijri.m10': 'Shawwal',
+    'hijri.m11': 'Dhu al-Qa\'dah',
+    'hijri.m12': 'Dhu al-Hijjah',
     'p.11': '{n} ayahs',
     'p.1': 'Surah {a}, ayah {b}',
     'p.2': 'Surah {a}, ayahs {b}–{c}',
@@ -28973,7 +28997,7 @@ function hijriToCivil(hy, hm, hd, offset) {
 }
 function hijriLabel(h) {
   if (!h || !(h.m >= 1) || !(h.m <= 12)) return '';
-  return toArabicDigits(h.d) + ' ' + ezX(HIJRI_MONTHS[h.m - 1]) + ' ' + toArabicDigits(h.y) + ' ' + HIJRI_SUFFIX;
+  return toArabicDigits(h.d) + ' ' + ezT('hijri.m' + h.m) + ' ' + toArabicDigits(h.y) + ' ' + HIJRI_SUFFIX;
 }
 // The one place the clock is read. Three local getters and nothing else — no UTC getter and no
 // toISOString, so a reader east of Greenwich sees their own day and not London's.
