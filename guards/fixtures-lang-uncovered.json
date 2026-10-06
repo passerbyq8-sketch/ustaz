@@ -1868,6 +1868,22 @@
   {
    "text": "🛠️ تعذّر تحويل كلامك إلى نصّ (رمز",
    "cat": "other"
+  },
+  {
+   "text": "فارسی",
+   "cat": "language-row-own-name"
+  },
+  {
+   "text": "فا",
+   "cat": "language-row-own-name"
+  },
+  {
+   "text": "ق.ظ",
+   "cat": "language-row-own-name"
+  },
+  {
+   "text": "ب.ظ",
+   "cat": "language-row-own-name"
   }
  ]
 }

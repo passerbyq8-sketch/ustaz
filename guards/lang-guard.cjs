@@ -457,6 +457,32 @@ const V = '﴿', W = '﴾';
     ok('the English row of the table carries the half-day marks, and no scripture site writes its verse numbers with the interface\'s digits', /code: 'en'[^}]*meridiem: \['AM', 'PM'\]/.test(appSrc) && !/۝['`$ ]*[{+ ]*toArabicDigits\(/.test(appSrc) && !/۝\$\{toArabicDigits/.test(appSrc));
   }
 
+  // AMENDMENT A3 (2026-10-07). EVERY LANGUAGE AFTER ENGLISH IS ONE STATIC FILE, NOT PART OF app.js.
+  console.log('\n=== A3 A LANGUAGE IS A FILE ===');
+  {
+    const rows = [...read('app.jsx').matchAll(/\{ code: '([a-z]{2})', nativeName/g)].map((m) => m[1]);
+    const files = rows.filter((c) => c !== 'ar' && c !== 'en');
+    ok('every language row after ar and en has its own file lang/<code>.json, and nothing else sits in lang/',
+      files.every((c) => fs.existsSync(path.join(REPO, 'lang', c + '.json')))
+      && fs.readdirSync(path.join(REPO, 'lang')).filter((f) => /\.json$/.test(f)).every((f) => files.indexOf(f.replace(/\.json$/, '')) !== -1),
+      JSON.stringify(rows));
+    ok('...and no dictionary of such a language is inline in the source: the registry holds only ar and en there',
+      JSON.stringify(Object.keys(DI)) === JSON.stringify(['ar', 'en']));
+    files.forEach((c) => {
+      const d = JSON.parse(read('lang/' + c + '.json'));
+      const bad = Object.keys(DI.en).filter((k) => typeof d[k] !== 'string' || !d[k].trim()
+        || JSON.stringify((DI.ar[k].match(/\{[A-Za-z0-9_]+\}/g) || []).sort()) !== JSON.stringify((d[k].match(/\{[A-Za-z0-9_]+\}/g) || []).sort()));
+      ok('lang/' + c + '.json holds every key of the English half, non-empty, no placeholder lost or invented, and no key the app lacks',
+        bad.length === 0 && Object.keys(d).length === Object.keys(DI.en).length, bad.length + ' bad, e.g. ' + bad.slice(0, 3).join(' '));
+    });
+    // app.js was 1939410 bytes when English shipped (ezik-v57). A language may add to it a row and a few lines, never its words.
+    const appBytes = fs.statSync(path.join(REPO, 'app.js')).size;
+    ok('app.js has grown by at most 20 KB for each language added after English', appBytes <= 1939410 + 20480 * files.length,
+      appBytes + ' bytes against ' + (1939410 + 20480 * files.length));
+    ok('the service worker keeps a fetched language file after the first fetch (the same-origin *.json arm), and does not precache it',
+      /url\.pathname\.endsWith\('\.json'\) && !sealedMushaf/.test(read('sw.js')) && !/'\/lang\//.test(read('sw.js').split('const CORE = [')[1].split('];')[0]));
+  }
+
   console.log('\n=== h1 (again) A TRIAL RIGHT-TO-LEFT LANGUAGE IS ONLY A ROW ===');
   const trial = { code: 'zz', name: 'Trial', dir: 'rtl', script: 'arab', digits: 'arab-ext', answerTranslation: true };
   ok('a row with direction rtl and its own digit system is just another entry: the table helpers need no change to describe it',

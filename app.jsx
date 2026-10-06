@@ -44,16 +44,16 @@ function ezLangStored() {
 
 // THE WHOLE DECISION. A stored choice, or Arabic. The device is not an input: this app is
 // Arabic first, and a reader who wants otherwise says so on the first-run card or in Settings.
-function ezLangResolve() { const v = ezLangStored(); return (v && ezLangReady(v)) ? v : EZ_LANG_FALLBACK; }
+// (A stored file language is not drawn until its dictionary arrived -- ezLangBoot, below the registry.)
+function ezLangResolve() { const v = ezLangStored(); return (v === 'ar' || v === 'en') ? v : EZ_LANG_FALLBACK; }
 
-// A DICTIONARY IS BUILT IN OR IT IS A FILE. Arabic and English ship inside this bundle; every other
+// THE REGISTRY IS EZ_I18N, BELOW. A DICTIONARY IS BUILT IN OR IT IS A FILE. Arabic and English ship inside this bundle; every other
 // language is one static JSON file on the app origin (/lang/<code>.json), fetched only when that
 // language is chosen or already stored, and kept by the service worker's data-file arm after the
 // first fetch. It is NOT inlined here: every reader downloads this bundle, and a dictionary a reader
 // never chooses must not be part of it.
-const EZ_I18N = {};
 function ezLangReady(code) { return code === 'ar' || code === 'en' || !!EZ_I18N[code]; }
-const EZ_LANG_LOADING = {};
+const EZ_LANG_LOADING = {};  // (EZ_I18N is read only inside these functions, after it is declared)
 function ezLangLoad(code) {
   if (ezLangReady(code)) return Promise.resolve(true);
   if (!ezLangValid(code)) return Promise.resolve(false);
@@ -102,7 +102,7 @@ if (!ezLangStored() && ezLangReturning()) { try { localStorage.setItem(EZ_LANG_K
 // The one writer. It persists, repaints <html>, and tells every subscriber -- in that order,
 // so a listener that reads the document sees the new direction and not the old one.
 function ezLangSet(v) {
-  if (!ezLangValid(v) || !ezLangReady(v) || v === EZ_LANG) return;
+  if (!ezLangValid(v) || v === EZ_LANG) return;
   EZ_LANG = v;
   try { localStorage.setItem(EZ_LANG_KEY, v); } catch (e) {}
   ezLangApply(v);
@@ -118,13 +118,6 @@ function ezLangChoose(v, done) {
   if (ezLangReady(v)) { ezLangSet(v); if (done) done(true); return; }
   ezLangLoad(v).then((ok) => { if (ok) ezLangSet(v); if (done) done(ok); });
 }
-
-// A returning reader whose stored language is a file: the app opens in Arabic for the moment the
-// file takes, then switches. A failed fetch changes nothing and the stored choice stays.
-(function ezLangBoot() {
-  const v = ezLangStored();
-  if (v && !ezLangReady(v)) ezLangLoad(v).then((ok) => { if (ok) ezLangSet(v); });
-})();
 
 function ezLangGet() { return EZ_LANG; }
 
@@ -327,7 +320,7 @@ function useEzLang() {
 
 // ---- THE DICTIONARIES. Same keys, same order, in both. Plain text only: no markup lives in
 // here and no translated string is ever handed to innerHTML. ---------------------------
-Object.assign(EZ_I18N, {
+const EZ_I18N = {
   ar: {
     'common.close': 'إغلاق',
     'answer.translation': 'ترجمة',
@@ -2818,7 +2811,13 @@ Object.assign(EZ_I18N, {
     'inbox.selectAria': 'Select this message',
     'inbox.deleteSelected': 'Delete selected',
   },
-});
+};
+
+// The boot of a stored language that is a file. Here, after the registry exists: it reads it.
+(function ezLangBoot() {
+  const v = ezLangStored();
+  if (v && !ezLangReady(v)) ezLangLoad(v).then((ok) => { if (ok) ezLangSet(v); });
+})();
 
 // THE LOOKUP. {name} placeholders are substituted from the vars argument; one with no matching
 // variable is left exactly as authored rather than becoming the string "undefined". A key that

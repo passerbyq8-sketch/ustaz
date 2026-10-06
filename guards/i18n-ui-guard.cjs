@@ -360,7 +360,7 @@ async function partA() {
   console.log('\n=== A. THE DICTIONARIES ===');
   const c = buildContext({ seed: {} });
   const langs = plain(c.grab('EZ_LANGS') || []);
-  eq('exactly two languages are supported, ar and en', langs, ['ar', 'en']);
+  eq('the languages offered are the declared rows: ar, en, and fa (a file, not inline)', langs, ['ar', 'en', 'fa']);
   ok('...and no third language is declared anywhere in the block',
     !/EZ_I18N\s*\.\s*(?!ar\b|en\b)[a-z]{2}\b/.test(rawCode));
 
@@ -456,9 +456,13 @@ async function partA() {
   const i18nBlock = (i18nAt !== -1 && i18nEnd > i18nAt) ? rawCode.slice(i18nAt, i18nEnd) : '';
   ok('the language layer was LOCATED before it was searched', i18nBlock.length > 200,
     'const EZ_LANG_KEY@' + i18nAt + '  function EzLangControl@' + i18nEnd);
-  ok('the language layer makes no network call',
+  // ITEM 74 / AMENDMENT A3. A language that is not Arabic or English is ONE static file on the app
+  // origin, fetched when it is chosen. So the layer makes exactly one network call, and it is that fetch.
+  ok('the language layer makes one network call: the same-origin fetch of /lang/<code>.json, nothing else',
     i18nBlock.length > 0
-    && !/\bfetch\s*\(|XMLHttpRequest|import\s*\(|EventSource|navigator\.sendBeacon/.test(i18nBlock));
+    && (i18nBlock.match(/\bfetch\s*\(/g) || []).length === 1
+    && /fetch\('\/lang\/' \+ code \+ '\.json'\)/.test(i18nBlock)
+    && !/XMLHttpRequest|import\s*\(|EventSource|navigator\.sendBeacon/.test(i18nBlock));
   ok('...and no dictionary is loaded from a URL',
     i18nBlock.length > 0 && !/https?:\/\//.test(i18nBlock));
   // Five devDependencies, not four: @babel/parser was declared (D35) because classifier-guard.cjs
@@ -573,7 +577,7 @@ function partB() {
   eq('...and only the first-run card calls it',
     (rawCode.match(/\bezLangDevice\b/g) || []).length, 2);   // the declaration and the card's useState
   ok('...so the resolver is a stored choice, or Arabic, and nothing else',
-    /function ezLangResolve\(\) \{ return ezLangStored\(\) \|\| EZ_LANG_FALLBACK; \}/.test(rawCode));
+    /function ezLangResolve\(\) \{ const v = ezLangStored\(\); return \(v === 'ar' \|\| v === 'en'\) \? v : EZ_LANG_FALLBACK; \}/.test(rawCode));
   eq('and the journey does not read the device either',
     (fs.readFileSync(path.join(REPO, 'quest.html'), 'utf8')
       .replace(/<!--[\s\S]*?-->/g, ' ').replace(/\/\*[\s\S]*?\*\//g, ' ')
@@ -870,7 +874,7 @@ async function partD0() {
   eq('...each a real button', items.filter((b) => b.tagName !== 'BUTTON').length, 0);
   eq('...none of them a submit', items.filter((b) => b.getAttribute('type') !== 'button').length, 0);
   eq('...each declaring option semantics', items.filter((b) => b.getAttribute('role') !== 'option').length, 0);
-  eq('...with the current one marked selected', items.map((b) => b.getAttribute('aria-selected')), ['true', 'false']);
+  eq('...with the current one marked selected', items.map((b) => b.getAttribute('aria-selected')), ['true', 'false', 'false']);
   eq('...and no profile was created by opening it', c.store.getItem('child_profile'), null);
 
   // ar -> en
@@ -1303,7 +1307,7 @@ async function partD() {
 
   console.log('\n=== D3. THE LIST IS EXTENSIBLE ===');
   const list = plain(c.grab('EZ_LANGUAGES') || []);
-  eq('the offer is a data list', list.map((l) => l.code), ['ar', 'en']);
+  eq('the offer is a data list', list.map((l) => l.code), ['ar', 'en', 'fa']);
   eq('...every entry carries a native name', list.filter((l) => !String(l.nativeName || '').trim()), []);
   eq('...a short label', list.filter((l) => !String(l.shortLabel || '').trim()), []);
   eq('...and a direction', list.filter((l) => ['rtl', 'ltr'].indexOf(l.dir) === -1), []);
