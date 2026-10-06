@@ -142,6 +142,43 @@ const V = '﴿', W = '﴾';
   out = await A.translateAnswer(long, { lang: 'en', translate: slow, concurrency: 4, emit: (s) => { order.push(s); if (firstAt === null) firstAt = Date.now() - t0; } });
   ok('the first piece is emitted before the whole answer is done, and the output keeps the paragraph order', order.length >= 2 && firstAt < (Date.now() - t0) && out.text.split('\n\n').length === 6);
 
+  console.log('\n=== h8 (parallel) A PARAGRAPH IS TRANSLATED WHEN IT COMPLETES, AND SHOWN ONLY IF THE FINAL ARABIC IS THE SAME ===');
+  {
+    const P1 = 'هذه الفقرة الأولى من الجواب وهي طويلة بما يكفي لتبدأ ترجمتها فور اكتمالها.';
+    const P2 = 'وهذه الفقرة الثانية من الجواب وهي كذلك طويلة بما يكفي لتبدأ ترجمتها.';
+    const P3 = 'وهذه الفقرة الثالثة التي لم تكتمل بعد ولا يتبعها سطر فارغ في هذه اللحظة';
+    const calls = []; const tr = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); calls.push(arr[0]); await new Promise((r) => setTimeout(r, 5)); return { ok: true, text: JSON.stringify(arr.map((s) => 'EN<' + s.replace(/[ء-ي]/g, '').trim() + s.length + '>')) }; };
+    const fake = (s) => 'EN<' + s.replace(/[ء-ي]/g, '').trim() + s.length + '>';
+    const sp = A.createSpeculator({ lang: 'en', translate: tr });
+    sp.feed(P1.slice(0, 20)); ok('a paragraph still being written starts nothing', sp.started === 0);
+    sp.feed(P1.slice(20) + '\n\n' + P2.slice(0, 10)); ok('the moment a blank line closes the first paragraph it starts to be translated, the second (unfinished) one does not', sp.started === 1 && !!sp.take(P1) && !sp.take(P2));
+    sp.feed(P2.slice(10) + '\n\n' + P3);
+    ok('...and the last paragraph, with no blank line after it, is never started (only the final Arabic can close it)', sp.started === 2 && !sp.take(P3));
+    await new Promise((r) => setTimeout(r, 40));
+    // the FINAL answer: P1 unchanged, P2 changed by a filter, P3 as it was
+    const P2x = 'وهذه الفقرة الثانية بعد أن غيّرها مرشّح من المرشّحات في الجواب النهائي.';
+    calls.length = 0;
+    const emitted = [];
+    const outS = await A.translateAnswer(P1 + '\n\n' + P2x + '\n\n' + P3, { lang: 'en', translate: tr, spec: sp, emit: (s) => emitted.push(s) });
+    ok('the unchanged paragraph is taken from the parallel translation: no new call is made for it', outS.stats.specHits === 1 && !calls.includes(sp.take(P1).s), JSON.stringify([outS.stats, calls.length]));
+    ok('the paragraph a filter changed is translated again from the FINAL Arabic, and the old translation of the old text is never shown',
+      calls.some((c) => c.includes('غيّرها')) && !outS.text.includes(fake(P2)) && outS.text.includes(fake(P2x)), outS.text.slice(0, 200));
+    ok('a paragraph the final answer no longer has leaves no trace in what the reader gets', !outS.text.includes('الثانية من الجواب وهي كذلك'));
+    // an entry whose translation failed is a miss, not a loss: that paragraph goes through the ordinary path alone
+    const flaky = A.createSpeculator({ lang: 'en', translate: async () => ({ ok: false }) });
+    flaky.feed(P1 + '\n\n' + P2 + '\n\n');
+    await new Promise((r) => setTimeout(r, 20));
+    const outF2 = await A.translateAnswer(P1 + '\n\n' + P2, { lang: 'en', translate: tr, spec: flaky });
+    ok('a failed parallel translation costs nothing: the paragraph is translated by the ordinary path and nothing is lost', outF2.stats.specMisses === 2 && outF2.stats.specHits === 0 && /EN</.test(outF2.text) && !/[ء-ي]/.test(outF2.text.replace(/EN<[^>]*>/g, '')), outF2.text.slice(0, 200));
+    // what is not prose is never started: a tag, the fatwa block
+    const sp2 = A.createSpeculator({ lang: 'en', translate: tr });
+    sp2.feed('فقرة عادية طويلة بما يكفي لتبدأ ترجمتها فورا بلا مشكلة هنا.\n\n<verse surah="x" ayah="1">ن</verse> وبعده نص عربي طويل بما يكفي ليتجاوز الحد الأدنى.\n\n## نص الفتوى\n\nالسؤال:\nما حكم هذا الأمر الطويل بما يكفي ليتجاوز الحد؟\n\nالجواب:\nنص الجواب الطويل بما يكفي ليتجاوز الحد الأدنى للبدء.\n\n');
+    ok('a paragraph that holds a tag is never started, and nothing from the scholar\'s published block on is', sp2.started === 1, 'started=' + sp2.started);
+    // ordering is untouched: the output of the parallel path equals the output without it
+    const plain = await A.translateAnswer(P1 + '\n\n' + P2x + '\n\n' + P3, { lang: 'en', translate: tr });
+    ok('the parallel path changes WHEN the work is done, not WHAT is delivered: same text out, in the same order, as the plain path', plain.text === outS.text, JSON.stringify([plain.text.slice(0, 120), outS.text.slice(0, 120)]));
+  }
+
   console.log('\n=== h4 THE GATE TRANSLATES THE FINAL ANSWER ===');
   const sse = (txt, extra) => 'data: ' + JSON.stringify({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: txt } }) + '\n\n' + (extra || '') + 'data: {"type":"message_stop"}\n\n';
   const fakeInner = (body) => async (req, res) => { res.status(200); res.setHeader('Content-Type', 'text/event-stream; charset=utf-8'); res.setHeader('X-Murabbi-Remaining', '39'); res.flushHeaders && res.flushHeaders(); res.write(body); res.end(); };
@@ -163,6 +200,31 @@ const V = '﴿', W = '﴾';
   await G.languageGate({ method: 'POST', headers: { 'x-ezik-lang': 'en' }, body: { messages: [{ role: 'user', content: 'What is the ruling on prayer?' }] } }, res3, async (req, res) => { const ok2 = await req.__langTranslateQuestion([{ role: 'user', content: 'x' }]); if (!ok2) return; res.status(200); res.write('NEVER'); res.end(); }, { log() {}, translateQuestionImpl: async () => ({ ok: false, ms: 1 }) });
   ok('a question that cannot be translated ends the turn with the fixed sentence in the reader\'s language, and the inner handler does not go on',
     /could not process your question/.test(res3.chunks.join('')) && !/NEVER/.test(res3.chunks.join('')));
+
+  console.log('\n=== h8 (gate) THE PARALLEL TRANSLATION STARTS WHILE THE BRAIN IS STILL WRITING, AND NOTHING IS SHOWN BEFORE THE ANSWER IS FINAL ===');
+  {
+    const PA = 'فقرة طويلة بما يكفي لتبدأ ترجمتها فور اكتمالها وهي الأولى في الجواب.';
+    const PB = 'فقرة أخيرة طويلة بما يكفي وهي الثانية في الجواب كله ولا يتبعها شيء.';
+    const delta = (t) => 'data: ' + JSON.stringify({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: t } }) + '\n\n';
+    const when = []; let innerDone = false; let made = 0; const shownBefore = [];
+    const mk = (o) => { made++; return A.createSpeculator({ ...o, translate: async ({ user }) => { when.push(innerDone ? 'after' : 'during'); const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map(() => 'E')) }; } }); };
+    const writing = async (req, res) => {
+      res.status(200); res.setHeader('Content-Type', 'text/event-stream; charset=utf-8'); res.flushHeaders && res.flushHeaders();
+      res.write(delta(PA + '\n\n')); await new Promise((r) => setTimeout(r, 40)); res.write(delta(PB)); res.write('data: {"type":"message_stop"}\n\n'); innerDone = true; res.end();
+    };
+    const resE = real(); let sawSpec = null;
+    await G.languageGate({ method: 'POST', headers: { 'x-ezik-lang': 'en' }, body: { messages: [{ role: 'user', content: 'What is the ruling on prayer for a traveller?' }] } }, resE, writing, {
+      log() {}, speculate: true, createSpeculatorImpl: mk, translateQuestionImpl: async () => ({ ok: true, ms: 1 }),
+      translateAnswerImpl: async (arabic, { emit, spec }) => { shownBefore.push(resE.chunks.join('').includes('E')); sawSpec = spec; emit('E'); return { text: 'E', stats: {}, degraded: [] }; },
+    });
+    ok('the first Arabic paragraph started to be translated WHILE the brain was still writing', when[0] === 'during', JSON.stringify(when));
+    ok('...and the speculator is handed to the final translation, which runs only after the inner handler has finished', !!sawSpec && sawSpec.started >= 1 && innerDone === true);
+    ok('...and nothing of it reached the reader before the final translation ran', shownBefore[0] === false);
+    made = 0;
+    const resA = real();
+    await G.languageGate({ method: 'POST', headers: { 'x-ezik-lang': 'en' }, body: { messages: [{ role: 'user', content: 'ما حكم صلاة المسافر؟' }] } }, resA, writing, { log() {}, speculate: true, createSpeculatorImpl: mk, translateQuestionImpl: async () => ({ ok: true, ms: 1 }), translateAnswerImpl: async () => { throw new Error('an Arabic question is never translated'); } });
+    ok('an Arabic question builds no speculator at all (h9: Arabic is today\'s road)', made === 0);
+  }
 
   console.log('\n=== THE FIXED TEXTS: a guard that answers without a model is answered back in the reader\'s language without one ===');
   {
