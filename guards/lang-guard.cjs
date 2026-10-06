@@ -102,8 +102,7 @@ const V = '﴿', W = '﴾';
     !!pq && out.text.includes('trs="') && Buffer.from(out.text.match(/<verse[^>]* tr="([^"]+)"/)[1], 'base64').toString('utf8') === pq.text
     && /QuranEnc\.com/.test(out.text) && out.text.includes('v' + pq.meta.version) && /Noor International Center/.test(out.text));
   ok('a quotation matched to a published hadith carries its translation and source; one with no published translation carries NOTHING',
-    /HadeethEnc.com/.test(out.text) && (out.text.split(UNK)[1] || '').startsWith('
-'), JSON.stringify((out.text.split(UNK)[1] || '').slice(0, 40)) + ' ' + /HadeethEnc/.test(out.text));
+    /HadeethEnc.com/.test(out.text) && (out.text.split(UNK)[1] || '').startsWith(String.fromCharCode(10)));
   const dropper = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => s.replace(/\[\[[QAI]\d+\]\]/g, ''))) }; };
   out = await A.translateAnswer(ar1, { lang: 'en', translate: dropper });
   ok('a model that drops the markers is retried once and then its paragraph is delivered ARABIC and untouched; the count still holds',
