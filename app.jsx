@@ -3757,6 +3757,8 @@ const KNOWN_TAG_NAMES = Object.freeze([
   // the model never writes one. It is listed here so an answer cut mid-chip is cleaned like every
   // other card instead of leaking «<book author=» to the screen and to ElevenLabs.
   'board', 'document', 'source', 'dhikr', 'worship', 'book',
+  // ITEM 74 -- the translation of a scholar's text, printed under the Arabic original the server keeps verbatim.
+  'tltext',
 ]);
 const KNOWN_TAGS = KNOWN_TAG_NAMES.join('|');
 // سجلُّ الإنقاذ: كلُّ مرّةٍ أفرغ فيها التنظيفُ نصًّا خادميًّا غيرَ فارغٍ فأُنقِذ بدلَ أن يُمحى.
@@ -6575,6 +6577,8 @@ const parseRichMessage = (text, viewerAge) => {
         .map(l => l.replace(/^[-•*]\s*/, '').trim())
         .filter(l => l);
       suggestions = items;
+    } else if (tagName === 'tltext') {
+      segments.push({ type: 'tltext', content });
     } else if (tagName === 'board') {
       segments.push({ type: 'board', content });
     } else if (tagName === 'document') {
@@ -20204,6 +20208,7 @@ const REPLY_SERIALIZERS = {
   // but a transport marker between the reviewer and this renderer, are not.
   notice: (sg) => [sg.label, sg.content].map((x) => String(x || '').trim()).filter(Boolean).join(' '),
   document: (sg) => REPLY_LINE([sg.title || '\u0645\u0633\u062A\u0646\u062F', toPlainText(sg.content)]),
+  tltext: (sg) => REPLY_LINE([toPlainText(sg.content)]),
 };
 // ITEM 42-C. THE SHARE CARD'S SOURCE FOOTER, and it lives HERE for a reason.
 //
@@ -20790,6 +20795,9 @@ function ezikRenderSegments(segments, ctx) {
     }
     if (seg.type === 'steps') {
       return <StepsCard key={i} items={seg.items} title={seg.title} />;
+    }
+    if (seg.type === 'tltext') {
+      return <EzikTranslationNote key={i} text={seg.content} label={ezT('answer.translation')} />;
     }
     if (seg.type === 'board') {
       return <BoardCard key={i} content={seg.content} />;
