@@ -878,3 +878,5 @@ lib/lang/answer.js text eol=lf
 lib/lang/question.js text eol=lf
 lib/lang/gate.js text eol=lf
 tools/build-translations.mjs text eol=lf
+quest-i18n.js text eol=lf
+quran-trans-en.json text eol=lf

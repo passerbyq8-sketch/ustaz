@@ -22,8 +22,8 @@ const EZ_LANG_KEY = 'ezik_ui_lang_v1';
 // one-character badge the menu shows beside it. No flag anywhere: Arabic is not one country's
 // language and neither is English.
 const EZ_LANGUAGES = [
-  { code: 'ar', nativeName: '\u0627\u0644\u0639\u0631\u0628\u064a\u0629', shortLabel: '\u0639', dir: 'rtl' },
-  { code: 'en', nativeName: 'English', shortLabel: 'EN', dir: 'ltr' },
+  { code: 'ar', nativeName: '\u0627\u0644\u0639\u0631\u0628\u064a\u0629', shortLabel: '\u0639', dir: 'rtl', digits: 'arab-indic', script: 'arab', locale: 'ar' },
+  { code: 'en', nativeName: 'English', shortLabel: 'EN', dir: 'ltr', digits: 'latn', script: 'latn', locale: 'en' },
 ];
 const EZ_LANGS = EZ_LANGUAGES.map((l) => l.code);
 function ezLangEntry(code) { return EZ_LANGUAGES.filter((l) => l.code === code)[0] || EZ_LANGUAGES[0]; }
@@ -53,6 +53,7 @@ function ezLangApply(v) {
     const d = document.documentElement;
     d.setAttribute('lang', v);
     d.setAttribute('dir', EZ_LANG_DIR[v] || 'ltr');
+    d.setAttribute('data-ez-dir', EZ_LANG_DIR[v] || 'ltr');
     d.setAttribute('data-ez-lang', v);
   } catch (e) {}
 }
@@ -158,26 +159,15 @@ function ezLangRelabel() {
     EZ_VT_TITLE = ezT("visualTheme.title");
     EZ_VT_ACTIVE = ezT("visualTheme.active");
     EZ_VT_SOON = ezT("visualTheme.soon");
-    CHILD_VOICE_NOTICE = ezT('c.CHILD_VOICE_NOTICE');
     RECITE_NO_SR = ezT('c.RECITE_NO_SR');
     EZ_SPEECH_NO_CONSENT = ezT('c.EZ_SPEECH_NO_CONSENT');
-    BOOK_MATN_CUT_NOTE = ezT('c.BOOK_MATN_CUT_NOTE');
     BOOK_MATN_LABEL = ezT('c.BOOK_MATN_LABEL');
     BOOK_LIBRARY_LINK_LABEL = ezT('c.BOOK_LIBRARY_LINK_LABEL');
     EZIK_PRINT_FALLBACK_TITLE = ezT('c.EZIK_PRINT_FALLBACK_TITLE');
     EZIK_PDF_ARIA = ezT('c.EZIK_PDF_ARIA');
     EZIK_PDF_FAIL = ezT('c.EZIK_PDF_FAIL');
-    EZIK_PDF_TITLE = ezT('c.EZIK_PDF_TITLE');
     EZIK_CARD_LINKS_LABEL = ezT('c.EZIK_CARD_LINKS_LABEL');
-    EZIK_CARD_CUT_NOTE = ezT('c.EZIK_CARD_CUT_NOTE');
-    EZIK_CARD_MARK = ezT('c.EZIK_CARD_MARK');
-    EZIK_CARD_LABEL = ezT('c.EZIK_CARD_LABEL');
-    EZIK_CARD_ARIA = ezT('c.EZIK_CARD_ARIA');
-    EZIK_CARD_FAIL = ezT('c.EZIK_CARD_FAIL');
     EZIK_SUM_TAG = ezT('c.EZIK_SUM_TAG');
-    EZH_PRAYER = ezT('c.EZH_PRAYER');
-    EZH_NAV_COMPASS = ezT('c.EZH_NAV_COMPASS');
-    EZIST_SUB_ASMAA = ezT('c.EZIST_SUB_ASMAA');
     EZIST_SUB_PRAYER = ezT('c.EZIST_SUB_PRAYER');
     A2_SEARCH = ezT('c.A2_SEARCH');
     A2_SOURCE = ezT('c.A2_SOURCE');
@@ -186,13 +176,7 @@ function ezLangRelabel() {
     A3G_EVENING = ezT('c.A3G_EVENING');
     A3G_REMAIN = ezT('c.A3G_REMAIN');
     A3G_ZERO = ezT('c.A3G_ZERO');
-    A3_CHAIN_TITLE = ezT('c.A3_CHAIN_TITLE');
-    A3_CHAIN_START = ezT('c.A3_CHAIN_START');
-    EZIK_BAR_SUMMARIZE_PROMPT = ezT('c.EZIK_BAR_SUMMARIZE_PROMPT');
-    EZIK_BAR_EXPAND_PROMPT = ezT('c.EZIK_BAR_EXPAND_PROMPT');
     EZIK_QUOTE_LABEL = ezT('c.EZIK_QUOTE_LABEL');
-    AYAH_CARD_LABEL = ezT('c.AYAH_CARD_LABEL');
-    SUNNAH_CARD_LABEL = ezT('c.SUNNAH_CARD_LABEL');
     EZ_AIC_TITLE = ezT('c.EZ_AIC_TITLE');
     EZ_AIC_LEAD = ezT('c.EZ_AIC_LEAD');
     EZ_AIC_PROVIDERS_TITLE = ezT('c.EZ_AIC_PROVIDERS_TITLE');
@@ -210,50 +194,13 @@ function ezLangRelabel() {
     EZ_AILM_MUSHAF = ezT('c.EZ_AILM_MUSHAF');
     EZ_AILM_ADHKAR = ezT('c.EZ_AILM_ADHKAR');
     EZ_AILM_TREASURE = ezT('c.EZ_AILM_TREASURE');
-    PRAYER_ADHAN_SOUND_LABEL = ezT('c.PRAYER_ADHAN_SOUND_LABEL');
     PRAYER_TITLE = ezT('c.PRAYER_TITLE');
-    PRAYER_SETTINGS_TITLE = ezT('c.PRAYER_SETTINGS_TITLE');
-    PRAYER_METHOD_LABEL = ezT('c.PRAYER_METHOD_LABEL');
-    PRAYER_ASR_LABEL = ezT('c.PRAYER_ASR_LABEL');
     PRAYER_OFFSET_LABEL = ezT('c.PRAYER_OFFSET_LABEL');
-    PRAYER_HINT = ezT('c.PRAYER_HINT');
     PRAYER_NONE = ezT('c.PRAYER_NONE');
-    PRAYER_SCHEDULE_TITLE = ezT('c.PRAYER_SCHEDULE_TITLE');
-    PRAYER_SCHEDULE_SHOW = ezT('c.PRAYER_SCHEDULE_SHOW');
-    PRAYER_SCHEDULE_HIDE = ezT('c.PRAYER_SCHEDULE_HIDE');
-    PRAYER_SCHEDULE_NOTE = ezT('c.PRAYER_SCHEDULE_NOTE');
-    PRAYER_SUNRISE_NOTE = ezT('c.PRAYER_SUNRISE_NOTE');
-    QIBLA_DEFAULT_PLACE = ezT('c.QIBLA_DEFAULT_PLACE');
     QIBLA_TITLE = ezT('c.QIBLA_TITLE');
-    QIBLA_SECTION = ezT('c.QIBLA_SECTION');
-    QIBLA_DEG_SUFFIX = ezT('c.QIBLA_DEG_SUFFIX');
-    QIBLA_TOWARD = ezT('c.QIBLA_TOWARD');
-    QIBLA_PLACE_LABEL = ezT('c.QIBLA_PLACE_LABEL');
-    QIBLA_PLACE_DEFAULT_NOTE = ezT('c.QIBLA_PLACE_DEFAULT_NOTE');
-    QIBLA_DEVICE_PLACE = ezT('c.QIBLA_DEVICE_PLACE');
-    QIBLA_USE_DEVICE = ezT('c.QIBLA_USE_DEVICE');
-    QIBLA_USE_DEFAULT = ezT('c.QIBLA_USE_DEFAULT');
-    QIBLA_LOC_ASKING = ezT('c.QIBLA_LOC_ASKING');
-    QIBLA_LOC_DENIED = ezT('c.QIBLA_LOC_DENIED');
-    QIBLA_COMPASS_START = ezT('c.QIBLA_COMPASS_START');
-    QIBLA_COMPASS_WAIT = ezT('c.QIBLA_COMPASS_WAIT');
-    QIBLA_COMPASS_NONE = ezT('c.QIBLA_COMPASS_NONE');
-    QIBLA_COMPASS_LIVE = ezT('c.QIBLA_COMPASS_LIVE');
-    QIBLA_COMPASS_CALIBRATION = ezT('c.QIBLA_COMPASS_CALIBRATION');
-    QIBLA_COMPASS_SENSOR_UNAVAILABLE = ezT('c.QIBLA_COMPASS_SENSOR_UNAVAILABLE');
-    QIBLA_COMPASS_PERMISSION_DENIED = ezT('c.QIBLA_COMPASS_PERMISSION_DENIED');
-    QIBLA_COMPASS_HEADING_ERROR = ezT('c.QIBLA_COMPASS_HEADING_ERROR');
-    QIBLA_COMPASS_RETRY = ezT('c.QIBLA_COMPASS_RETRY');
     QIBLA_BACK = ezT('c.QIBLA_BACK');
     QIBLA_FULL_FAIL = ezT('c.QIBLA_FULL_FAIL');
-    PRAYER_SHEET_TITLE = ezT('c.PRAYER_SHEET_TITLE');
-    HIJRI_SUFFIX = ezT('c.HIJRI_SUFFIX');
-    HIJRI_SET_TITLE = ezT('c.HIJRI_SET_TITLE');
-    HIJRI_SET_LABEL = ezT('c.HIJRI_SET_LABEL');
-    HIJRI_SET_HINT = ezT('c.HIJRI_SET_HINT');
     HIJRI_SET_NOW = ezT('c.HIJRI_SET_NOW');
-    EZIK_SW_MSG_PARTIAL = ezT('c.EZIK_SW_MSG_PARTIAL');
-    EZIK_SW_MSG_NONE = ezT('c.EZIK_SW_MSG_NONE');
     EZIK_SW_MSG_TAIL = ezT('c.EZIK_SW_MSG_TAIL');
     EZIK_SW_OK = ezT('c.EZIK_SW_OK');
     EZIK_SW_ARIA = ezT('c.EZIK_SW_ARIA');
@@ -275,8 +222,6 @@ function ezLangRelabel() {
     EZ_PC_FAILED = ezT('c.EZ_PC_FAILED');
     EZ_PC_EXPIRED = ezT('c.EZ_PC_EXPIRED');
     JD_TITLE = ezT('c.JD_TITLE');
-    JD_BTN = ezT('c.JD_BTN');
-    JD_BUSY = ezT('c.JD_BUSY');
     JD_NO_WORKER = ezT('c.JD_NO_WORKER');
     JD_UNMEASURED = ezT('c.JD_UNMEASURED');
     JD_NOSPACE_A = ezT('c.JD_NOSPACE_A');
@@ -289,20 +234,8 @@ function ezLangRelabel() {
     JD_FAILED_B = ezT('c.JD_FAILED_B');
     JD_DECLINED_A = ezT('c.JD_DECLINED_A');
     JD_DECLINED_B = ezT('c.JD_DECLINED_B');
-    JD_RULE_A = ezT('c.JD_RULE_A');
     JD_RULE_PLAIN = ezT('c.JD_RULE_PLAIN');
-    JD_RULE_B = ezT('c.JD_RULE_B');
-    DW_CARD_TITLE = ezT('c.DW_CARD_TITLE');
-    DW_CARD_EMPTY = ezT('c.DW_CARD_EMPTY');
-    DW_LINE_MUSHAF = ezT('c.DW_LINE_MUSHAF');
-    DW_LINE_ADHKAR = ezT('c.DW_LINE_ADHKAR');
-    DW_LINE_MEMORIZE = ezT('c.DW_LINE_MEMORIZE');
-    DW_SURAH_WORD = ezT('c.DW_SURAH_WORD');
-    DW_PAGES_WORD = ezT('c.DW_PAGES_WORD');
     DW_NONE = ezT('c.DW_NONE');
-    DW_MUSHAF_LABEL = ezT('c.DW_MUSHAF_LABEL');
-    DW_ADHKAR_LABEL = ezT('c.DW_ADHKAR_LABEL');
-    DW_MEMORIZE_LABEL = ezT('c.DW_MEMORIZE_LABEL');
     DW_ADD_LABEL = ezT('c.DW_ADD_LABEL');
     DW_REMOVE_LABEL = ezT('c.DW_REMOVE_LABEL');
     DW_PICK_TITLE = ezT('c.DW_PICK_TITLE');
@@ -346,6 +279,324 @@ const EZ_I18N = {
     'common.close': 'إغلاق',
     'answer.translation': 'ترجمة',
     'answer.translationOfText': 'ترجمة النصّ أعلاه',
+    'x.120': 'مدنية',
+    'x.121': 'مكية',
+    'x.155': 'تم النسخ',
+    'x.156': 'تعذّرَ النسخ',
+    'x.250': 'يبحث في مصادر عزك…',
+    'x.251': 'يقرأ في الفتاوى…',
+    'x.252': 'يقرأ في كتب الشاملة…',
+    'x.253': 'يقرأ في الموسوعة الفقهية…',
+    'x.254': 'يقرأ في الدروس…',
+    'x.255': 'يختار النصوص التي تجيب عن المسألة…',
+    'x.256': 'يكتب الجواب…',
+    'x.257': 'ابحث في المواقع الآن',
+    'x.258': 'أبغى أحكي لك عن يومي',
+    'x.259': 'علمني دعاء جميل',
+    'x.260': 'احكي لي قصة من السيرة',
+    'x.261': 'كيف أصلي صح؟',
+    'x.262': 'ساعدني أحفظ سورة قصيرة',
+    'x.275': 'الأدعية',
+    'x.276': 'لا نتائج',
+    'x.277': 'إيقاف',
+    'x.288': 'سلسلتك',
+    'x.289': 'يومًا متتاليًا',
+    'x.290': 'تبدأ ببلوغ هدف اليوم',
+    'x.291': 'هدف اليوم',
+    'x.292': 'وردك اليومي',
+    'x.293': 'الأكثر استخداماً',
+    'x.294': 'أضف إلى المفضلة',
+    'x.295': 'أزل من المفضلة',
+    'x.296': 'المفضلة',
+    'x.297': 'مشاركة',
+    'x.298': 'تمت المشاركة',
+    'x.299': 'تعذرت المشاركة',
+    'x.300': 'تكرار',
+    'x.301': 'زيادة العدد',
+    'x.302': 'السابق',
+    'x.303': 'التالي',
+    'x.304': 'الأقسام',
+    'x.305': 'قبلة ١٣',
+    'x.306': 'إستانة ٣٣',
+    'x.307': 'رجوع',
+    'x.308': 'الأذكار',
+    'x.309': 'ابحث عن ذكر',
+    'x.310': 'محادثة',
+    'x.313': '🎤 تعذّر فتح الميكروفون. تحقّق من الإذن ثم أعد المحاولة.',
+    'x.314': '🚫 لم يُسمح باستخدام الميكروفون. افتح إعدادات التطبيق واسمح بالميكروفون ثم أعد الدخول للمكالمة.',
+    'x.315': '🚫 لم يُسمح باستخدام الميكروفون. اسمح به لهذا الموقع من إعدادات المتصفّح — رمز القفل بجانب العنوان — وتأكّد أنّ المتصفّح نفسه مسموحٌ له بالميكروفون في إعدادات الهاتف، ثم أعد الدخول للمكالمة.',
+    'x.316': '🎤 لا يوجد ميكروفون متاح على هذا الجهاز.',
+    'x.317': '🎤 الميكروفون مشغول بتطبيق آخر. أغلقه ثم أعد المحاولة.',
+    'x.318': '⏳ تجاوزنا حدّ الاستماع المسموح الآن. انتظر قليلاً ثم أعد المحاولة.',
+    'x.319': '🎤 المقطع طويل جدًّا. تكلّم بمقاطع أقصر.',
+    'x.320': '🚫 خدمة تحويل الكلام غير متاحة لهذا الحساب.',
+    'x.321': '🛠️ خدمة تحويل الكلام متوقّفة مؤقّتًا. حاول بعد قليل.',
+    'x.324': 'لم ألتقطْ كلامَك — أعِدْ من فضلك.',
+    'x.325': '🎤 المسِ الشاشةَ مرّةً ليبدأَ الاستماع.',
+    'x.326': '📡 تعذّر الوصول إلى خدمة تحويل الكلام. تحقّق من الاتصال ثم أعد المحاولة.',
+    'x.327': '🚫 لم يتم السماح بالميكروفون. افتح إعدادات المتصفح واسمح بالميكروفون.',
+    'x.328': '🤫 لم أسمع شيئاً، جرب مرة أخرى.',
+    'x.329': '🎤 الميكروفون غير متصل.',
+    'x.330': '📡 خطأ في الشبكة.',
+    'x.335': '🔇 تعذّر تشغيل الصوت — تحقّق من الاتصال وحاول مرة أخرى.',
+    'x.337': 'لم أتمكّن من فتح المايك.',
+    'x.338': 'لم أسمعك، حاول مرّةً أخرى.',
+    'x.339': '🚫 متصفحك لا يدعم التعرف على الصوت. استخدم Chrome أو Safari.',
+    'x.340': '🚫 لم يُمنح إذن الميكروفون.',
+    'x.343': 'ملف PDF',
+    'x.344': 'ملف النصّ',
+    'x.345': 'تعذّرت قراءة الملف النصّي. حاول حفظه بترميز UTF-8.',
+    'x.346': 'الملف النصّي فارغ أو بترميز غير مدعوم. احفظه بترميز UTF-8 ثمّ أعد رفعه.',
+    'x.350': 'ملف Word',
+    'x.351': 'تعذّر تحميل أداة قراءة ملفات Word. تحقّق من الاتصال وأعد المحاولة.',
+    'x.352': 'تعذّرت قراءة ملف Word. تأكّد أنّه بصيغة ‎.docx حديثة.',
+    'x.353': 'لم يُعثَر على نصٍّ في ملف Word. قد يكون فارغًا أو صورًا فقط.',
+    'x.354': 'صيغة ‎.doc القديمة غير مدعومة. الرجاء حفظه بصيغة ‎.docx ثمّ رفعه.',
+    'x.358': 'تعذّرت قراءة الملف. حاول ملفًّا آخر.',
+    'x.359': '🎤 الميكروفون غير متاح على هذا الجهاز.',
+    'x.360': '🚫 لم يُمنح إذن الميكروفون. افتح إعدادات التطبيق واسمح بالميكروفون ثم أعد الدخول للمكالمة.',
+    'x.361': '📡 انقطع الاتّصال بمحرّك التعرّف على الصوت. تحقّق من الإنترنت ثم أعد المحاولة.',
+    'x.363': 'محادثة جديدة',
+    'x.364': 'القائمة',
+    'x.365': 'المحادثات',
+    'x.366': 'حذف هذه المحادثة؟',
+    'x.367': 'إلغاء',
+    'x.368': 'إلغاء التثبيت',
+    'x.369': 'تثبيت',
+    'x.370': 'عن عزك',
+    'x.371': 'المصادر',
+    'x.372': 'دعوة صديق',
+    'x.373': 'اقتراح أو شكوى',
+    'x.374': 'فتح القائمة الجانبية',
+    'x.375': 'الرئيسية',
+    'x.376': 'إملاء صوتي',
+    'x.377': 'مكالمة صوتية مباشرة',
+    'x.378': 'إرفاق ملف أو صورة',
+    'x.379': 'إيقاف الصوت',
+    'x.380': 'استمع للرد',
+    'x.381': 'استمع',
+    'x.388': 'المصدر',
+    'x.396': 'تشكيل',
+    'x.397': 'بلّغ',
+    'x.398': 'معلومةٌ خاطئة',
+    'x.399': 'حكمٌ شرعيٌّ خاطئ',
+    'x.400': 'محتوًى غيرُ مناسب',
+    'x.401': 'شيءٌ آخر',
+    'x.402': 'وصل بلاغُك. شكرًا لك.',
+    'x.403': 'إغلاق',
+    'x.404': 'بلّغ عن هذا الردّ',
+    'x.405': 'اختر السبب، وأضِف ملاحظةً إن شئت.',
+    'x.406': 'ملاحظة (اختياري)',
+    'x.407': 'أرسلتَ بلاغاتٍ كثيرةً الآن. حاول بعد قليل.',
+    'x.408': 'لم يصل بلاغُك. حاول لاحقًا.',
+    'x.409': 'أرسِل',
+    'x.410': 'إيقاف التلاوة',
+    'x.411': 'تشغيل التلاوة',
+    'x.412': 'استمع للتلاوة',
+    'x.413': 'تعذّر تحميل التلاوة',
+    'x.416': 'تشغيل التلاوة كاملة',
+    'x.417': 'استمع للتلاوة (كاملة)',
+    'x.419': 'استماع',
+    'x.420': 'صدِّر كملف Word',
+    'x.421': 'تأكيد ولي الأمر',
+    'x.422': 'هذا القسم مخصّص للكبار. للتأكيد أنّ وليًّا حاضر، احسب الناتج:',
+    'x.423': 'الجواب',
+    'x.424': 'جواب غير صحيح، حاول مرة أخرى',
+    'x.425': 'تأكيد',
+    'x.426': 'الاسم والعمر والجنس المسجَّلة في الملف.',
+    'x.427': 'نصّ السؤال ورسائل المحادثة السابقة.',
+    'x.428': 'الصور أو الملفات التي تختار رفعها.',
+    'x.429': 'التسجيل الصوتيّ والنصّ الناتج منه عند تشغيل الصوت أو التسميع.',
+    'x.430': 'عبارات بحث مشتقّة من السؤال للوصول إلى المصادر.',
+    'x.431': 'توليد الإجابات ومعالجة النصوص والصور والملفات.',
+    'x.432': 'تحويل النصّ إلى صوت، وتحويل التسجيل الصوتيّ إلى نصّ عند استخدام المسار السحابيّ.',
+    'x.433': 'إرسال عبارات بحث مشتقّة من السؤال للوصول إلى مصادر الويب.',
+    'x.434': 'لا يستخدم عزك هذه البيانات للإعلانات أو لتتبعك، ولا يرسلها إلى مزودي الخدمة إلا لتشغيل الميزات التي تختار استخدامها.',
+    'x.435': 'يمكنك استخدام المصحف والأذكار وكنوز المعرفة والميزات المحلّيّة دون تشغيل الذكاء الاصطناعيّ.',
+    'x.436': 'يمكنك سحب الموافقة لاحقاً من: الإعدادات ← الخصوصية والذكاء الاصطناعي.',
+    'x.437': 'عزّك رفيقٌ إسلاميٌّ عربيّ: تسألُه فيجيبُك، وينفعُك في يومِك. عزّك ليس مجرّدَ تطبيق، بل منصّةٌ لكلِّ مسلم.',
+    'x.438': 'بُنيَ في الكويت، ويُطوَّرُ كلَّ يوم.',
+    'x.439': 'ما فيه من صوابٍ فمن اللهِ وحدَه، وما فيه من خطأٍ فمنّا ونستغفرُ اللهَ منه.',
+    'x.440': 'وإن رأيتَ خطأً أو عندَك اقتراحٌ فراسلْنا من «اقتراح أو شكوى» في هذه القائمة.',
+    'x.441': 'المصحف برواية حفص عن عاصم',
+    'x.442': 'حصن المسلم',
+    'x.443': 'الموسوعة الفقهية الكويتية',
+    'x.444': 'القواعد المثلى لابن عثيمين · وشرح الشيخ عبدالرزاق البدر',
+    'x.445': 'الشيخ عبدالعزيز بن عبدالله بن باز — binbaz.org.sa',
+    'x.446': 'الشيخ محمد بن صالح العثيمين — binothaimeen.net',
+    'x.447': 'الشيخ سليمان بن عبدالله الماجد — salmajed.com',
+    'x.448': 'الشيخ عبدالرحمن البراك — sh-albarrak.com',
+    'x.449': 'الشيخ مشهور بن حسن آل سلمان — meshhoor.com',
+    'x.450': 'الشيخ مطلق الجاسر — youtube.com/@dr-mutlaq',
+    'x.451': 'الشيخ سعد الخثلان — saadalkhathlan.com',
+    'x.452': 'الشيخ محمد علي فركوس — ferkous.app',
+    'x.453': 'الشيخ مصطفى العدوي — mostafaaladwy.com',
+    'x.454': 'الشيخ محمد صالح المنجد — islamqa.info',
+    'x.455': 'الشيخ خالد المصلح — almosleh.com',
+    'x.456': 'الشيخ عثمان الخميس — othmanalkhamees.com',
+    'x.457': 'الشيخ محمد بن حمد الحمود النجدي — al-athary.net',
+    'x.458': 'إدارة الإفتاء — الأوقاف الكويتية — eftaa.awqaf.gov.kw',
+    'x.459': 'الشيخ عبدالعزيز آل الشيخ — المفتي العام — af.org.sa',
+    'x.460': 'الشيخ صالح الفوزان — af.org.sa',
+    'x.461': 'الشيخ عبدالكريم الخضير — af.org.sa',
+    'x.462': 'الشيخ عبدالعزيز الراجحي — shrajhi.com.sa',
+    'x.463': 'الشيخ عبدالله بن جبرين — fatwn.ibn-jebreen.com',
+    'x.464': 'عثمان بن محمد الخميس',
+    'x.465': 'محمد بن محمد المختار الشنقيطي',
+    'x.466': 'خالد بن عبدالله المصلح',
+    'x.467': 'عبدالعزيز بن عبدالله بن باز',
+    'x.468': 'عبدالرحمن بن ناصر البراك',
+    'x.469': 'عبدالعزيز بن عبدالله الراجحي',
+    'x.470': 'سعد بن ناصر الشثري',
+    'x.471': 'محمد صالح المنجد',
+    'x.472': 'محمد بن صالح العثيمين',
+    'x.473': 'خالد بن عثمان السبت',
+    'x.474': 'عبدالمحسن بن حمد العباد',
+    'x.475': 'صالح بن محمد اللحيدان',
+    'x.476': 'سعد بن تركي الخثلان',
+    'x.477': 'مشهور بن حسن آل سلمان',
+    'x.478': 'محمد الحمود النجدي',
+    'x.479': 'مطلق بن جاسر الجاسر',
+    'x.480': 'عبدالسلام بن محمد الشويعر',
+    'x.481': 'محمد ناصر الدين الألباني',
+    'x.482': 'مساعد بن سليمان الطيار',
+    'x.483': 'عبدالعزيز بن مرزوق الطريفي',
+    'x.484': 'وليد بن راشد السعيدان',
+    'x.485': 'يوسف بن محمد الغفيص',
+    'x.486': 'عبدالله بن عبدالرحمن بن جبرين',
+    'x.487': 'عبدالله بن صالح الفوزان',
+    'x.488': 'صالح بن عبدالعزيز آل الشيخ',
+    'x.489': 'سليمان بن عبدالله الماجد',
+    'x.490': 'سليمان بن سليم الله الرحيلي',
+    'x.491': 'عبدالرزاق بن عبدالمحسن البدر',
+    'x.492': 'عبدالكريم بن عبدالله الخضير',
+    'x.493': 'مصطفى بن العدوي',
+    'x.494': 'الصوتُ قيدَ التجهيز',
+    'x.495': 'الرمز مطلوب',
+    'x.496': 'أدخل رمز الفتح للمتابعة.',
+    'x.498': 'رمز خاطئ',
+    'x.499': 'تعذّر التحقّق الآن. جرّب بعد قليل.',
+    'x.500': 'اختر ٤ أرقام على الأقل',
+    'x.501': 'الرمزان غير متطابقان',
+    'x.502': 'تعذّر الحفظ',
+    'x.503': 'لوحة الأهل',
+    'x.504': 'إنشاء رمز لوحة الأهل',
+    'x.505': 'أدخل رمز الدخول',
+    'x.506': 'اختر رمزاً من ٤ أرقام على الأقل — لن يُعرض، فاحفظه في مكان آمن',
+    'x.507': 'أعد الرمز',
+    'x.508': 'دخول',
+    'x.509': 'حفظ الرمز',
+    'x.510': 'رمز الدخول',
+    'x.511': 'أدخل رمز الدخول لتفعيل المحادثة',
+    'x.513': 'الشروق',
+    'x.514': 'الظهر',
+    'x.515': 'المغرب',
+    'x.516': 'العشاء',
+    'x.517': 'الجمهور (ظلُّ المثل)',
+    'x.518': 'الحنفيّ (ظلُّ المثلين)',
+    'x.529': 'الشمال',
+    'x.530': 'الشمال الشرقيّ',
+    'x.531': 'الشرق',
+    'x.532': 'الجنوب الشرقيّ',
+    'x.533': 'الجنوب',
+    'x.534': 'الجنوب الغربيّ',
+    'x.535': 'الغرب',
+    'x.536': 'الشمال الغربيّ',
+    'x.556': 'المحرَّم',
+    'x.557': 'ربيع الأوّل',
+    'x.558': 'ربيع الآخر',
+    'x.559': 'جمادى الأولى',
+    'x.560': 'جمادى الآخرة',
+    'x.561': 'شعبان',
+    'x.562': 'رمضان',
+    'x.563': 'شوّال',
+    'x.564': 'ذو القعدة',
+    'x.565': 'ذو الحجّة',
+    'x.571': '← رجوع',
+    'x.572': 'الطفل',
+    'x.573': 'عدد الرسائل',
+    'x.574': 'رسالة',
+    'x.575': 'المحادثة المباشرة',
+    'x.576': '🔒 مقفلة',
+    'x.577': '🔓 مفتوحة',
+    'x.578': 'فتح المحادثة المباشرة',
+    'x.579': 'قفل المحادثة المباشرة',
+    'x.580': 'سجل المحادثات',
+    'x.581': 'لا توجد محادثات بعد',
+    'x.582': '👩‍🏫 عزك',
+    'x.583': '👨‍🏫 عزك',
+    'x.584': 'حذف كل البيانات',
+    'x.585': 'مكالمة مع عزك',
+    'x.586': 'تتحدّث إلى ذكاءٍ اصطناعيّ — لا إلى إنسان.',
+    'x.587': 'الميكروفون مكتوم',
+    'x.588': 'مكتوم',
+    'x.589': 'إنهاء',
+    'x.590': 'سمعتُ:',
+    'x.591': 'اضغط للتحدّث',
+    'x.592': 'أستمع إليك...',
+    'x.593': 'لحظة...',
+    'x.594': 'عزك تتحدّث...',
+    'x.595': 'عزك يتحدّث...',
+    'x.596': 'المُحفّظ',
+    'x.597': 'اختر سورةً لتبدأ الحفظ',
+    'x.598': 'ابدأ من آية',
+    'x.599': 'ابدأ',
+    'x.600': 'افتح عليّ',
+    'x.601': 'استمع للمقطع',
+    'x.602': 'الكشف',
+    'x.603': 'كلمة',
+    'x.604': 'سورة أخرى',
+    'x.605': 'إخفاء',
+    'x.606': 'لحظة، يُحضَّر المصحف…',
+    'x.607': 'أحسنتَ، تابِع.',
+    'x.608': 'أحسنتِ، تابِعي.',
+    'x.609': 'أتممتَ المقطع، بارك الله فيك.',
+    'x.610': 'أتممتِ المقطع، بارك الله فيكِ.',
+    'x.611': 'تلقين يدوي',
+    'x.612': 'استماع وترديد',
+    'x.613': 'أعد الآية',
+    'x.614': 'سمِّعني',
+    'x.615': 'هذا تمرينٌ يعينك على الحفظ، والتسميع الحقيقيّ يكون عند شيخك أو والديك.',
+    'x.616': 'ابدأ التسميع',
+    'x.617': 'أحسنت، تابِع حفظك.',
+    'x.618': 'الآية التالية',
+    'x.633': 'المصحف',
+    'x.634': 'السور',
+    'x.635': 'تعذّر فتح المصحف',
+    'x.636': 'جارٍ فتح المصحف…',
+    'x.637': 'علامتك هنا',
+    'x.638': 'ضع العلامة',
+    'x.639': '· صفحة',
+    'x.640': 'وردُ اليوم',
+    'x.641': 'وردك',
+    'x.642': 'اليوم',
+    'x.643': '· حدّد وردك',
+    'x.644': 'تابِع القراءة · صفحة',
+    'x.645': 'علامتك · صفحة',
+    'x.646': 'إزالة العلامة',
+    'x.647': 'جارٍ تحميل المصحف…',
+    'x.648': 'الانتقال إلى جزء',
+    'x.649': 'الجزء',
+    'x.650': 'صفحة',
+    'x.651': 'عدد الصفحات',
+    'x.652': 'بلا ورد',
+    'x.653': 'تعذّر عرض المحادثة',
+    'x.654': 'أعد المحاولة',
+    'x.655': 'انسخ التفاصيل',
+    'p.1': 'سورة {a}، آية {b}',
+    'p.2': 'سورة {a}، الآيات {b}–{c}',
+    'p.3': 'سورة {a}',
+    'p.4': '— سُورَةُ {a}',
+    'p.5': 'تُقال {a} مرّات',
+    'p.6': 'خطأ: {a}',
+    'p.7': '🛠️ تعذّر تحويل كلامك إلى نصّ (رمز {a}). حاول مرّة أخرى.',
+    'p.8': 'المحادثة طويلة ولم يبقَ متّسعٌ كافٍ لهذا الملف في هذه الرسالة (المتبقّي نحو {a} ك.ب، والملف يحتاج نحو {b} ك.ب). ابدأ محادثةً جديدة أو أرسل ملفًّا أصغر.',
+    'p.9': '{a} أكبر من المسموح به الآن. الحدّ الحاليّ نحو {b} (السقف من: {c})، وحجم ملفك نحو {d}. الرجاء ملفًّا أصغر.',
+    'p.10': '{a} من {b}',
+    'f.1': 'ميغابايت',
+    'f.2': 'كيلوبايت',
+    'f.3': 'سعة الرسالة',
+    'f.4': 'حدّ النوع',
     'c.CHILD_VOICE_NOTICE': 'الميزةُ الصوتيةُ للأطفالِ قيدَ التجهيز، وستتوفّرُ بعدَ اكتمالِ اختباراتِ الأمانِ والخصوصيّة.',
     'c.RECITE_NO_SR': '🚫 متصفحك لا يدعم التعرف على الصوت. استخدم Chrome أو Safari.',
     'c.EZ_SPEECH_NO_CONSENT': 'التسميع الصوتي غير مفعّل لأن مشاركة الصوت مع خدمات التعرف على الكلام لم تتم الموافقة عليها.',
@@ -398,7 +649,7 @@ const EZ_I18N = {
     'c.EZ_AILM_MUSHAF': 'فتح المصحف',
     'c.EZ_AILM_ADHKAR': 'فتح الأذكار',
     'c.EZ_AILM_TREASURE': 'فتح كنوز المعرفة',
-    'c.PRAYER_ADHAN_SOUND_LABEL': 'صوت الأذان',
+    'c.PRAYER_ADHAN_SOUND_LABEL': '\u0635\u0648\u062a \u0627\u0644\u0623\u0630\u0627\u0646',
     'c.PRAYER_TITLE': 'مواقيت الصلاة',
     'c.PRAYER_SETTINGS_TITLE': 'الصلاة',
     'c.PRAYER_METHOD_LABEL': 'المنهج',
@@ -1322,6 +1573,324 @@ const EZ_I18N = {
     'common.close': 'Close',
     'answer.translation': 'Translation',
     'answer.translationOfText': 'Translation of the text above',
+    'x.120': 'Medinan',
+    'x.121': 'Meccan',
+    'x.155': 'Copied',
+    'x.156': 'Copying failed',
+    'x.250': 'Searching Ezik\'s sources…',
+    'x.251': 'Reading the fatwas…',
+    'x.252': 'Reading the Shamela library books…',
+    'x.253': 'Reading the Kuwaiti Fiqh Encyclopedia…',
+    'x.254': 'Reading the lessons…',
+    'x.255': 'Choosing the texts that answer the question…',
+    'x.256': 'Writing the answer…',
+    'x.257': 'Search the sites now',
+    'x.258': 'I want to tell you about my day',
+    'x.259': 'Teach me a beautiful dua',
+    'x.260': 'Tell me a story from the Seerah',
+    'x.261': 'How do I pray correctly?',
+    'x.262': 'Help me memorize a short surah',
+    'x.275': 'Supplications',
+    'x.276': 'No results',
+    'x.277': 'Stop',
+    'x.288': 'Your streak',
+    'x.289': 'consecutive days',
+    'x.290': 'Starts when you reach today\'s goal',
+    'x.291': 'Today\'s goal',
+    'x.292': 'Your daily wird',
+    'x.293': 'Most used',
+    'x.294': 'Add to favourites',
+    'x.295': 'Remove from favourites',
+    'x.296': 'Favourites',
+    'x.297': 'Share',
+    'x.298': 'Shared',
+    'x.299': 'Sharing failed',
+    'x.300': 'Repetition',
+    'x.301': 'Increase the count',
+    'x.302': 'Previous',
+    'x.303': 'Next',
+    'x.304': 'Sections',
+    'x.305': 'Qibla 13',
+    'x.306': 'Istana 33',
+    'x.307': 'Back',
+    'x.308': 'The adhkar',
+    'x.309': 'Search for a dhikr',
+    'x.310': 'Conversation',
+    'x.313': '🎤 Opening the microphone failed. Check the permission, then try again.',
+    'x.314': '🚫 Microphone use was not allowed. Open the app settings, allow the microphone, then re-enter the call.',
+    'x.315': '🚫 Microphone use was not allowed. Allow it for this site in the browser settings — the lock icon beside the address — then make sure it is on.',
+    'x.316': '🎤 There is no microphone available on this device.',
+    'x.317': '🎤 The microphone is busy with another app. Close it and try again.',
+    'x.318': '⏳ We have passed the allowed listening limit for now. Wait a little, then try again.',
+    'x.319': '🎤 The clip is too long. Speak in shorter clips.',
+    'x.320': '🚫 The speech-to-text service is not available for this account.',
+    'x.321': '🛠️ The speech-to-text service is temporarily down. Try again shortly.',
+    'x.324': 'I did not catch what you said — please say it again.',
+    'x.325': '🎤 Touch the screen once so that listening can begin.',
+    'x.326': '📡 Could not reach the speech-to-text service. Check the connection, then try again.',
+    'x.327': '🚫 The microphone was not allowed. Open the browser settings and allow the microphone.',
+    'x.328': '🤫 I heard nothing, try again.',
+    'x.329': '🎤 The microphone is not connected.',
+    'x.330': '📡 A network error.',
+    'x.335': '🔇 Playing the audio failed — check the connection and try again.',
+    'x.337': 'I could not open the microphone.',
+    'x.338': 'I did not hear you, try once more.',
+    'x.339': '🚫 Your browser does not support speech recognition. Use Chrome or Safari.',
+    'x.340': '🚫 Microphone permission was not granted.',
+    'x.343': 'PDF file',
+    'x.344': 'text file',
+    'x.345': 'Reading the text file failed. Try saving it with UTF-8 encoding.',
+    'x.346': 'The text file is empty or in an unsupported encoding. Save it with UTF-8 encoding and upload it again.',
+    'x.350': 'Word file',
+    'x.351': 'The Word-file reader could not be loaded. Check the connection and try again.',
+    'x.352': 'Reading the Word file failed. Make sure it is in the modern .docx format.',
+    'x.353': 'No text was found in the Word file. It may be empty or only images.',
+    'x.354': 'The old .doc format is not supported. Please save it as .docx and upload it again.',
+    'x.358': 'Reading the file failed. Try another file.',
+    'x.359': '🎤 The microphone is not available on this device.',
+    'x.360': '🚫 Microphone permission was not granted. Open the app settings, allow the microphone, then re-enter the call.',
+    'x.361': '📡 The connection to the speech-recognition engine was lost. Check the internet, then try again.',
+    'x.363': 'New conversation',
+    'x.364': 'Menu',
+    'x.365': 'Conversations',
+    'x.366': 'Delete this conversation?',
+    'x.367': 'Cancel',
+    'x.368': 'Unpin',
+    'x.369': 'Pin',
+    'x.370': 'About Ezik',
+    'x.371': 'Sources',
+    'x.372': 'Invite a friend',
+    'x.373': 'Suggestion or complaint',
+    'x.374': 'Open the side menu',
+    'x.375': 'Home',
+    'x.376': 'Voice dictation',
+    'x.377': 'Live voice call',
+    'x.378': 'Attach a file or image',
+    'x.379': 'Stop the audio',
+    'x.380': 'Listen to the reply',
+    'x.381': 'Listen',
+    'x.388': 'Source',
+    'x.396': 'Diacritics',
+    'x.397': 'Report',
+    'x.398': 'Wrong information',
+    'x.399': 'A wrong sharia ruling',
+    'x.400': 'Inappropriate content',
+    'x.401': 'Something else',
+    'x.402': 'Your report was received. Thank you.',
+    'x.403': 'Close',
+    'x.404': 'Report this reply',
+    'x.405': 'Choose the reason, and add a note if you like.',
+    'x.406': 'Note (optional)',
+    'x.407': 'You have sent many reports just now. Try again shortly.',
+    'x.408': 'Your report did not arrive. Try later.',
+    'x.409': 'Send',
+    'x.410': 'Stop the recitation',
+    'x.411': 'Play the recitation',
+    'x.412': 'Listen to the recitation',
+    'x.413': 'The recitation could not be loaded',
+    'x.416': 'Play the whole recitation',
+    'x.417': 'Listen to the whole recitation',
+    'x.419': 'Listen',
+    'x.420': 'Export as a Word file',
+    'x.421': 'Parent confirmation',
+    'x.422': 'This section is for adults. To confirm that a parent is present, work out the answer:',
+    'x.423': 'Answer',
+    'x.424': 'Wrong answer, try again',
+    'x.425': 'Confirm',
+    'x.426': 'The name, age and gender recorded in the profile.',
+    'x.427': 'The text of the question and the previous messages of the conversation.',
+    'x.428': 'The images or files you choose to upload.',
+    'x.429': 'The voice recording and the text produced from it when voice or recitation is on.',
+    'x.430': 'Search phrases derived from the question to reach the sources.',
+    'x.431': 'Generating answers and processing text, images and files.',
+    'x.432': 'Turning text into speech, and turning the voice recording into text when the cloud path is used.',
+    'x.433': 'Sending search phrases derived from the question to reach web sources.',
+    'x.434': 'Ezik does not use this data for advertising or to track you, and does not send it to service providers except to run the features you choose.',
+    'x.435': 'You can use the Mushaf, the adhkar, the knowledge treasures and the local features without turning on AI.',
+    'x.436': 'You can withdraw consent later from: Settings ← Privacy and AI.',
+    'x.437': 'Ezik is an Arabic Islamic companion: you ask it and it answers, and it benefits you through your day. Ezik is not just an app, but a platform for every Muslim.',
+    'x.438': 'Built in Kuwait, and developed every day.',
+    'x.439': 'Whatever is right in it is from Allah alone, and whatever is wrong in it is from us, and we ask Allah\'s forgiveness for it.',
+    'x.440': 'If you see a mistake or have a suggestion, write to us from «Suggestion or complaint» in this menu.',
+    'x.441': 'The Mushaf in the narration of Hafs from \'Asim',
+    'x.442': 'Hisn al-Muslim',
+    'x.443': 'The Kuwaiti Fiqh Encyclopedia',
+    'x.444': 'Al-Qawa\'id al-Muthla by Ibn \'Uthaymeen · and the explanation by Sheikh Abd al-Razzaq al-Badr',
+    'x.445': 'Sheikh Abd al-Aziz ibn Abdullah ibn Baz — binbaz.org.sa',
+    'x.446': 'Sheikh Muhammad ibn Salih al-\'Uthaymeen — binothaimeen.net',
+    'x.447': 'Sheikh Sulaiman ibn Abdullah al-Majid — salmajed.com',
+    'x.448': 'Sheikh Abd al-Rahman al-Barrak — sh-albarrak.com',
+    'x.449': 'Sheikh Mashhur ibn Hasan Al Salman — meshhoor.com',
+    'x.450': 'Sheikh Mutlaq al-Jasir — youtube.com/@dr-mutlaq',
+    'x.451': 'Sheikh Sa\'d al-Khathlan — saadalkhathlan.com',
+    'x.452': 'Sheikh Muhammad Ali Ferkous — ferkous.app',
+    'x.453': 'Sheikh Mustafa al-\'Adawi — mostafaaladwy.com',
+    'x.454': 'Sheikh Muhammad Salih al-Munajjid — islamqa.info',
+    'x.455': 'Sheikh Khalid al-Musleh — almosleh.com',
+    'x.456': 'Sheikh Uthman al-Khamees — othmanalkhamees.com',
+    'x.457': 'Sheikh Muhammad ibn Hamad al-Hamoud al-Najdi — al-athary.net',
+    'x.458': 'The Fatwa Department — Kuwaiti Awqaf — eftaa.awqaf.gov.kw',
+    'x.459': 'Sheikh Abd al-Aziz Al al-Sheikh — the Grand Mufti — af.org.sa',
+    'x.460': 'Sheikh Salih al-Fawzan — af.org.sa',
+    'x.461': 'Sheikh Abd al-Karim al-Khudair — af.org.sa',
+    'x.462': 'Sheikh Abd al-Aziz al-Rajhi — shrajhi.com.sa',
+    'x.463': 'Sheikh Abdullah ibn Jibreen — fatwn.ibn-jebreen.com',
+    'x.464': 'Uthman ibn Muhammad al-Khamees',
+    'x.465': 'Muhammad ibn Muhammad al-Mukhtar al-Shinqiti',
+    'x.466': 'Khalid ibn Abdullah al-Musleh',
+    'x.467': 'Abd al-Aziz ibn Abdullah ibn Baz',
+    'x.468': 'Abd al-Rahman ibn Nasir al-Barrak',
+    'x.469': 'Abd al-Aziz ibn Abdullah al-Rajhi',
+    'x.470': 'Sa\'d ibn Nasir al-Shathri',
+    'x.471': 'Muhammad Salih al-Munajjid',
+    'x.472': 'Muhammad ibn Salih al-\'Uthaymeen',
+    'x.473': 'Khalid ibn Uthman al-Sabt',
+    'x.474': 'Abd al-Muhsin ibn Hamad al-\'Abbad',
+    'x.475': 'Salih ibn Muhammad al-Luhaidan',
+    'x.476': 'Sa\'d ibn Turki al-Khathlan',
+    'x.477': 'Mashhur ibn Hasan Al Salman',
+    'x.478': 'Muhammad al-Hamoud al-Najdi',
+    'x.479': 'Mutlaq ibn Jasir al-Jasir',
+    'x.480': 'Abd al-Salam ibn Muhammad al-Shuway\'ir',
+    'x.481': 'Muhammad Nasir al-Din al-Albani',
+    'x.482': 'Musa\'id ibn Sulaiman al-Tayyar',
+    'x.483': 'Abd al-Aziz ibn Marzuq al-Turayfi',
+    'x.484': 'Walid ibn Rashid al-Sa\'idan',
+    'x.485': 'Yusuf ibn Muhammad al-Ghafis',
+    'x.486': 'Abdullah ibn Abd al-Rahman ibn Jibreen',
+    'x.487': 'Abdullah ibn Salih al-Fawzan',
+    'x.488': 'Salih ibn Abd al-Aziz Al al-Sheikh',
+    'x.489': 'Sulaiman ibn Abdullah al-Majid',
+    'x.490': 'Sulaiman ibn Salim Allah al-Ruhaili',
+    'x.491': 'Abd al-Razzaq ibn Abd al-Muhsin al-Badr',
+    'x.492': 'Abd al-Karim ibn Abdullah al-Khudair',
+    'x.493': 'Mustafa ibn al-\'Adawi',
+    'x.494': 'Voice is being prepared',
+    'x.495': 'The code is required',
+    'x.496': 'Enter the unlock code to continue.',
+    'x.498': 'Wrong code',
+    'x.499': 'Verification is not possible now. Try again shortly.',
+    'x.500': 'Choose at least 4 digits',
+    'x.501': 'The two codes do not match',
+    'x.502': 'Saving failed',
+    'x.503': 'Parents\' panel',
+    'x.504': 'Create the parents\' panel code',
+    'x.505': 'Enter the access code',
+    'x.506': 'Choose a code of at least 4 digits — it will not be shown, so keep it somewhere safe',
+    'x.507': 'Repeat the code',
+    'x.508': 'Enter',
+    'x.509': 'Save the code',
+    'x.510': 'Access code',
+    'x.511': 'Enter the access code to activate the chat',
+    'x.513': 'Sunrise',
+    'x.514': 'Dhuhr',
+    'x.515': 'Maghrib',
+    'x.516': 'Isha',
+    'x.517': 'Majority (shadow equals the object)',
+    'x.518': 'Hanafi (shadow twice the object)',
+    'x.529': 'North',
+    'x.530': 'Northeast',
+    'x.531': 'East',
+    'x.532': 'Southeast',
+    'x.533': 'South',
+    'x.534': 'Southwest',
+    'x.535': 'West',
+    'x.536': 'Northwest',
+    'x.556': 'Muharram',
+    'x.557': 'Rabi\' al-Awwal',
+    'x.558': 'Rabi\' al-Akhir',
+    'x.559': 'Jumada al-Ula',
+    'x.560': 'Jumada al-Akhirah',
+    'x.561': 'Sha\'ban',
+    'x.562': 'Ramadan',
+    'x.563': 'Shawwal',
+    'x.564': 'Dhu al-Qa\'dah',
+    'x.565': 'Dhu al-Hijjah',
+    'x.571': '← Back',
+    'x.572': 'The child',
+    'x.573': 'Number of messages',
+    'x.574': 'messages',
+    'x.575': 'The live chat',
+    'x.576': '🔒 Locked',
+    'x.577': '🔓 Open',
+    'x.578': 'Open the live chat',
+    'x.579': 'Lock the live chat',
+    'x.580': 'Conversation history',
+    'x.581': 'No conversations yet',
+    'x.582': '👩‍🏫 Ezik',
+    'x.583': '👨‍🏫 Ezik',
+    'x.584': 'Delete all data',
+    'x.585': 'A call with Ezik',
+    'x.586': 'You are talking to an AI — not to a human.',
+    'x.587': 'The microphone is muted',
+    'x.588': 'Muted',
+    'x.589': 'End',
+    'x.590': 'I heard:',
+    'x.591': 'Press to talk',
+    'x.592': 'Listening to you...',
+    'x.593': 'One moment...',
+    'x.594': 'Ezik is speaking...',
+    'x.595': 'Ezik is speaking...',
+    'x.596': 'The Memorizer',
+    'x.597': 'Choose a surah to start memorizing',
+    'x.598': 'Start from ayah',
+    'x.599': 'Start',
+    'x.600': 'Reveal for me',
+    'x.601': 'Listen to the passage',
+    'x.602': 'Reveal',
+    'x.603': 'word',
+    'x.604': 'Another surah',
+    'x.605': 'Hide',
+    'x.606': 'One moment, the Mushaf is being prepared…',
+    'x.607': 'Well done, carry on.',
+    'x.608': 'Well done, carry on.',
+    'x.609': 'You completed the passage, may Allah bless you.',
+    'x.610': 'You completed the passage, may Allah bless you.',
+    'x.611': 'Manual prompting',
+    'x.612': 'Listen and repeat',
+    'x.613': 'Repeat the ayah',
+    'x.614': 'Recite to me',
+    'x.615': 'This is an exercise that helps you memorize; real recitation checking is with your sheikh or your parents.',
+    'x.616': 'Start the recitation',
+    'x.617': 'Well done, carry on memorizing.',
+    'x.618': 'The next ayah',
+    'x.633': 'The Mushaf',
+    'x.634': 'Surahs',
+    'x.635': 'The Mushaf could not be opened',
+    'x.636': 'Opening the Mushaf…',
+    'x.637': 'Your bookmark is here',
+    'x.638': 'Place the bookmark',
+    'x.639': '· page',
+    'x.640': 'Today\'s wird',
+    'x.641': 'Your wird',
+    'x.642': 'Today',
+    'x.643': '· set your wird',
+    'x.644': 'Continue reading · page',
+    'x.645': 'Your bookmark · page',
+    'x.646': 'Remove the bookmark',
+    'x.647': 'Loading the Mushaf…',
+    'x.648': 'Go to a juz',
+    'x.649': 'Juz',
+    'x.650': 'Page',
+    'x.651': 'Number of pages',
+    'x.652': 'No wird',
+    'x.653': 'The conversation could not be displayed',
+    'x.654': 'Try again',
+    'x.655': 'Copy the details',
+    'p.1': 'Surah {a}, ayah {b}',
+    'p.2': 'Surah {a}, ayahs {b}–{c}',
+    'p.3': 'Surah {a}',
+    'p.4': '— Surah {a}',
+    'p.5': 'Said {a} times',
+    'p.6': 'Error: {a}',
+    'p.7': '🛠️ Turning your speech into text failed (code {a}). Try again.',
+    'p.8': 'The conversation is long and there is not enough room for this file in this message (about {a} KB remaining, and the file needs about {b} KB). Start a new conversation or send a smaller file.',
+    'p.9': 'The {a} is larger than allowed now. The current limit is about {b} (the ceiling comes from: {c}), and your file is about {d}. Please use a smaller file.',
+    'p.10': '{a} of {b}',
+    'f.1': 'MB',
+    'f.2': 'KB',
+    'f.3': 'message capacity',
+    'f.4': 'type limit',
     'c.CHILD_VOICE_NOTICE': 'The voice feature for children is being prepared and will be available once the safety and privacy tests are complete.',
     'c.RECITE_NO_SR': '🚫 Your browser does not support speech recognition. Use Chrome or Safari.',
     'c.EZ_SPEECH_NO_CONSENT': 'Voice recitation is off because sharing audio with speech-recognition services has not been agreed to.',
@@ -2556,7 +3125,7 @@ const PERSIST_CONVERSATION = true; // الإنتاج: يُحفَظ/يُحمَّ�
 // (band==="young" ⇔ age<13) ما دام العلمُ مطفأً. تعذُّرُ تحديدِ العمر ⇒ مقفول.
 // التلاوةُ الجاهزة (everyayah) خارجَ الحاجز: ملفّاتٌ ثابتةٌ بلا أيّ بياناتِ طفل.
 const CHILD_VOICE_ENABLED = false;   // غ‑٣: يُفتح بتحديثٍ مقيس بعد حسم الامتثال
-let CHILD_VOICE_NOTICE = ezT('c.CHILD_VOICE_NOTICE');
+const CHILD_VOICE_NOTICE = 'الميزةُ الصوتيةُ للأطفالِ قيدَ التجهيز، وستتوفّرُ بعدَ اكتمالِ اختباراتِ الأمانِ والخصوصيّة.';
 // مرآةٌ على مستوى الوحدة لملفّ المستخدم. App يكتبها في اللحظة نفسها التي يكتب فيها
 // profileRef.current (تحميلُ التخزين + إنشاءُ الملفّ)، فيقرؤها الحاجزُ من App ومن
 // MemorizeScreen معاً — وprofileRef داخلُ App فلا تراه المكوّناتُ الأخرى. تبدأ null ⇒ مقفولة.
@@ -4061,7 +4630,11 @@ class EzAIConsentError extends Error {
 const aiFetch = (url, opts) => {
   if (!hasValidAIConsent()) return Promise.reject(new EzAIConsentError());
   const o = opts || {};
-  return fetch(url, { ...o, headers: { ...(o.headers || {}), ...aiConsentHeaders() } });
+  // ITEM 74: the interface language the reader chose rides to /api/ask as a HEADER -- the request body stays exactly what
+  // it was. The server takes it as the KEY language of the turn: the question's own language wins, and an ambiguous
+  // question falls back to this.
+  const lang = url === '/api/ask' ? { 'x-ezik-lang': EZ_LANG } : {};
+  return fetch(url, { ...o, headers: { ...(o.headers || {}), ...aiConsentHeaders(), ...lang } });
 };
 
 // ============================================================
@@ -4306,7 +4879,7 @@ function ezikTrPlain(attrsStr, name) {
 }
 
 // النصُّ المعروضُ نُقِصَ عمّا في الكتاب — تُقالُ للقارئِ ولا تُلصَقُ بالنصّ.
-let BOOK_MATN_CUT_NOTE = ezT('c.BOOK_MATN_CUT_NOTE');
+const BOOK_MATN_CUT_NOTE = '… بقيّةُ النصِّ لم تصلْ';
 // الكلمةُ التي يلمسُها القارئُ ليرى النصّ.
 let BOOK_MATN_LABEL = ezT('c.BOOK_MATN_LABEL');
 // ITEM 108 (ORDER-108C B3): the link from a library source to the book in the library page.
@@ -5170,7 +5743,7 @@ const EZIK_PDF_LABEL = 'PDF';
 let EZIK_PDF_ARIA = ezT('c.EZIK_PDF_ARIA');
 const EZIK_PDF_WAIT = '...';
 let EZIK_PDF_FAIL = ezT('c.EZIK_PDF_FAIL');
-let EZIK_PDF_TITLE = ezT('c.EZIK_PDF_TITLE');
+const EZIK_PDF_TITLE = 'ردُّ عزك';
 
 const ExportPdfReplyButton = ({ getText }) => {
   const [flash, setFlash] = useState('');
@@ -5288,13 +5861,13 @@ const EZIK_CARD_BODY_LINES = Math.max(1, Math.floor(
     - (EZIK_CARD_PAD + EZIK_CARD_LINE))                  // the first baseline
   / EZIK_CARD_LINE) + 1);
 const EZIK_CARD_CUT = '…';
-let EZIK_CARD_CUT_NOTE = ezT('c.EZIK_CARD_CUT_NOTE');
+const EZIK_CARD_CUT_NOTE = 'تتمّةُ النصِّ في تطبيق عزك';
 const EZIK_CARD_SITE = 'ezik.app';
-let EZIK_CARD_MARK = ezT('c.EZIK_CARD_MARK');
-let EZIK_CARD_LABEL = ezT('c.EZIK_CARD_LABEL');
-let EZIK_CARD_ARIA = ezT('c.EZIK_CARD_ARIA');
+const EZIK_CARD_MARK = 'عزك';
+const EZIK_CARD_LABEL = 'صورة';
+const EZIK_CARD_ARIA = 'حفظ الردّ صورة';
 const EZIK_CARD_WAIT = '...';
-let EZIK_CARD_FAIL = ezT('c.EZIK_CARD_FAIL');
+const EZIK_CARD_FAIL = 'تعذَّرَ الحفظ';
 const EZIK_CARD_FILE = 'ezik-reply.png';
 
 // Greedy wrap against the REAL measured width of the REAL font, which is the only wrap that can
@@ -7777,7 +8350,7 @@ const EZH_ICON_GO = (
 // ITEM 108-أ: the qibla tile's mark. Same 24x24 box, same 1.8 stroke, same round caps as the
 // five marks beside it — a compass rose reduced to a circle, a needle and its pivot. No new
 // artwork file, no image, no data URI.
-let EZH_PRAYER = ezT('c.EZH_PRAYER');
+const EZH_PRAYER = 'الصلاة والقبلة';
 const EZH_ICON_PRAYER = (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M15.5 8.5 L10.5 10.5 L8.5 15.5 L13.5 13.5 Z" /></svg>
 );
@@ -7790,7 +8363,7 @@ const EZH_ICON_MENU = (
 // of the screen it opens, so the mark the reader presses and the heading he lands on can never
 // say two different things. A plain Arabic literal, written the way every string of the
 // QIBLA_* family it belongs to is written.
-let EZH_NAV_COMPASS = ezT('c.EZH_NAV_COMPASS');
+const EZH_NAV_COMPASS = '\u0627\u0644\u0628\u0648\u0635\u0644\u0629';
 
 // ITEM 20 / SHELF §3 (8 September) -- WHO SEES «ركن النساء», IN ONE FUNCTION.
 //
@@ -7943,7 +8516,7 @@ let EZIST_SUB_FATWA = ezT("module.fatwa.sub");
 let EZIST_SUB_LESSONS = ezT("module.lessons.sub");
 let EZIST_SUB_ARTICLES = ezT("module.articles.sub");
 let EZIST_SUB_WOMEN = ezT("module.women.sub");
-let EZIST_SUB_ASMAA = ezT('c.EZIST_SUB_ASMAA');
+let EZIST_SUB_ASMAA = 'تسعةٌ وتسعون اسمًا، بمعانيها ومصادرها';
 let EZIST_SUB_PRAYER = ezT('c.EZIST_SUB_PRAYER');
 let EZIST_SUB = { articles: EZIST_SUB_ARTICLES, women: EZIST_SUB_WOMEN, memorize: EZIST_SUB_MEMORIZE, adhkar: EZIST_SUB_ADHKAR, arbaeen: EZIST_SUB_ARBAEEN, mushaf: EZIST_SUB_MUSHAF, treasure: EZIST_SUB_TREASURE, fatwa: EZIST_SUB_FATWA, lessons: EZIST_SUB_LESSONS, asmaa: EZIST_SUB_ASMAA, prayer: EZIST_SUB_PRAYER };
 
@@ -9111,7 +9684,7 @@ function ezcWeightText(r) {
 // THE READER'S OWN NUMERALS. A QUANTITY is drawn in the numerals of the interface language; a
 // CITATION is not -- a volume and a page are a reference, and each dictionary writes them out in
 // its own digits rather than having them converted here.
-function ezcNum(x) { return ezLangGet() === 'ar' ? toArabicDigits(x) : String(x); }
+function ezcNum(x) { return ezNum(x); }
 function ezcMoney(r) { const t = ezcText(r); return t == null ? null : ezcNum(t); }
 // Book and page, composed the same way every time, from the one book key and one page-range key.
 function ezcSrcText(cite) { return ezT('calc.src.line', { book: ezT('calc.src.book'), ref: ezT(cite) }); }
@@ -10482,7 +11055,7 @@ function ezikBrowsePageNo(value) {
 // Arabic-Indic digits unconditionally because the rest of the app predates the second half of
 // the dictionary; a number drawn beside an English word must not.
 function ezikBrowseNum(value) {
-  return ezLangGet() === 'ar' ? toArabicDigits(value) : String(value);
+  return ezNum(value);
 }
 
 // WHITELIST 1 of 3 -- THE SCHOLARS. Two named properties and no third. A row without a name is
@@ -11573,7 +12146,7 @@ function ezikArticleDate(iso) {
     if (!Number.isFinite(ms)) return '';
     const pad = (n) => (n < 10 ? '0' + n : String(n));
     const plain = d.getFullYear() + '/' + pad(d.getMonth() + 1) + '/' + pad(d.getDate());
-    return ezLangGet() === 'ar' ? toArabicDigits(plain) : plain;
+    return ezNum(plain);
   } catch (e) { return ''; }
 }
 
@@ -12032,7 +12605,7 @@ function EzikArticleWriter({ section, grant, onBack, onChanged }) {
 // the layer the reader is actually looking at and never the screen underneath it.
 
 // The number under the reader's own digits, and the same helper the rest of the file uses.
-const asmaaNum = (v) => (ezLangGet() === 'ar' ? toArabicDigits(String(v)) : String(v));
+const asmaaNum = (v) => ezNum(String(v));
 // A printed page, marked as one. The record's own number, nothing added to it.
 function EzikAsmaaPage({ page }) {
   if (typeof page !== 'number') return null;
@@ -12530,7 +13103,7 @@ const EZIK_FATWA_ACTIONS = [
 ];
 
 function ezikFatwaNumber(value) {
-  try { return Number(value).toLocaleString(ezLangGet() === 'ar' ? 'ar' : 'en'); }
+  try { return Number(value).toLocaleString(ezLangEntry(EZ_LANG).locale); }
   catch (e) { return String(value); }
 }
 
@@ -13547,9 +14120,9 @@ let A3G_ZERO = ezT('c.A3G_ZERO'); // "count again"
 // ITEM 43-أ. The chain's own words. NEUTRAL BY CONSTRUCTION: there is no sentence here for a
 // chain that lapsed, because none is drawn -- the number simply reads zero and the invitation
 // below is the same invitation a first-time reader sees.
-let A3_CHAIN_TITLE = ezT('c.A3_CHAIN_TITLE');                    // "your chain"
+const A3_CHAIN_TITLE = 'سلسلتك';                    // "your chain"
 const A3_CHAIN_DAYS  = 'يومًا متتاليًا';              // "consecutive days"
-let A3_CHAIN_START = ezT('c.A3_CHAIN_START');       // "it begins when today's goal is reached"
+const A3_CHAIN_START = 'تبدأ ببلوغ هدف اليوم';       // "it begins when today's goal is reached"
 const A3_GOAL_PICK   = 'هدف اليوم';                  // "today's goal"
 const A2_GOAL_TITLE  = '\u{0648}\u{0631}\u{062F}\u{0643} \u{0627}\u{0644}\u{064A}\u{0648}\u{0645}\u{064A}';                                  // "your daily wird"
 const A2_MOST_USED   = '\u{0627}\u{0644}\u{0623}\u{0643}\u{062B}\u{0631} \u{0627}\u{0633}\u{062A}\u{062E}\u{062F}\u{0627}\u{0645}\u{0627}\u{064B}'; // "the most used"
@@ -18433,9 +19006,6 @@ function App() {
       // Arabic reply (each diacritic = a token); server effort caps overall spend. depth/band below
       // are TEXT-route (/api/ask) only.
       const __extra = {
-        // ITEM 74: the interface language the reader chose. The server uses it as the KEY language of the turn:
-        // the question's own language wins, and an ambiguous question falls back to this. Chat turns to /api/ask only.
-        ...(mode === 'chat' && endpoint === '/api/ask' ? { uiLang: EZ_LANG } : {}),
         ...(liveSearch === true ? { liveSearch: true } : {}),
         // depth: adult-only, non-'brief' -> server reads body.depth==='deep'/'scholar' for round-2 effort.
         // Item 84: `&& hasFounderToken()` was here and is gone. It meant the client refused to
@@ -18870,9 +19440,10 @@ function App() {
   // released when the turn ends, which is exactly when isLoading goes back to false.
   const quickBusyRef = useRef(false);
   useEffect(() => { if (!isLoading) quickBusyRef.current = false; }, [isLoading]);
-  const runQuickAction = (prompt) => {
+  const runQuickAction = (prompt0) => {
     if (quickBusyRef.current || isLoading || streamingText !== null) return;
     quickBusyRef.current = true;
+    const prompt = ezX(prompt0);   // item 74: the prompt in the reader's language (the language layer answers in it)
     sendMessage(prompt);
   };
 
@@ -19418,7 +19989,7 @@ function App() {
   });
 
   const resetAll = () => {
-    if (confirm('هل أنت متأكد من حذف كل البيانات؟')) {
+    if (confirm(ezX('هل أنت متأكد من حذف كل البيانات؟'))) {
       localStorage.removeItem('child_profile');
       // S92 -- "delete all my data" has to mean the SAVED CONVERSATIONS too: every stored body,
       // the index that lists them, and the single legacy thread the old 'messages' key held.
@@ -20931,8 +21502,8 @@ let EZIK_QUICK_ACTIONS = [
 // «Summarize» is about THE CONVERSATION and «expand» is about THE LAST ANSWER, which is the one
 // difference between them and the five: «shorten» shortens the previous answer, this one gathers
 // the whole thread.
-let EZIK_BAR_SUMMARIZE_PROMPT = ezT('c.EZIK_BAR_SUMMARIZE_PROMPT');
-let EZIK_BAR_EXPAND_PROMPT = ezT('c.EZIK_BAR_EXPAND_PROMPT');
+const EZIK_BAR_SUMMARIZE_PROMPT = '\u0644\u062e\u0651\u0635 \u0647\u0630\u0647 \u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0629 \u0643\u0644\u0647\u0627 \u0641\u064a \u0646\u0642\u0627\u0637 \u0642\u0635\u064a\u0631\u0629\u060c \u0645\u0639 \u0625\u0628\u0642\u0627\u0621 \u0627\u0644\u0645\u0635\u062f\u0631 \u0627\u0644\u0634\u0631\u0639\u064a \u0627\u0644\u0645\u0648\u062b\u0642 \u0625\u0646 \u0648\u064f\u062c\u062f.';
+const EZIK_BAR_EXPAND_PROMPT = '\u0648\u0633\u0651\u0639 \u0627\u0644\u0625\u062c\u0627\u0628\u0629 \u0627\u0644\u0633\u0627\u0628\u0642\u0629 \u0628\u062a\u0641\u0635\u064a\u0644 \u0623\u0648\u0641\u0649 \u0648\u0623\u062f\u0644\u0629 \u0623\u0643\u062b\u0631\u060c \u0645\u0646 \u062f\u0648\u0646 \u0625\u0639\u0627\u062f\u0629 \u0645\u0627 \u0633\u0628\u0642.';
 
 // A reply the CLIENT wrote to report its own failure is not something to offer «بسّط» under.
 // FRIENDLY_ERRORS is the closed table those replies come from, so matching against it is exact
@@ -22069,7 +22640,7 @@ const QURAN_ORNATE_SPAN_RE = /\uFD3F[\s\S]*?\uFD3E/;
 const hasQuranicSpan = (t) => QURAN_ORNATE_SPAN_RE.test(String(t || ''));
 // The label a verse gets, and it is the one the verse card already uses -- not a new string,
 // so the two surfaces cannot drift into calling the same thing two names.
-let AYAH_CARD_LABEL = ezT('c.AYAH_CARD_LABEL');
+const AYAH_CARD_LABEL = 'قَالَ اللهُ تَعَالَى';
 // THE REFERENCE IS READ, NEVER GUESSED. It counts only when the content STATES it as
 // «سورة <name> ... <number>» and <name> is a surah the app already knows (SURAH_NUMBERS, the
 // same map the recitation link is built from). Anything else -- no reference, an unknown name,
@@ -22109,7 +22680,7 @@ const readStatedAyahRef = (t) => {
 // SO THE LABEL IS A CONSTANT AND NOT A DECISION. `att` is still read below, for the GRADE line
 // under the text — what a card knows about its narrator governs what it prints UNDER the matn,
 // and never what it prints over it.
-let SUNNAH_CARD_LABEL = ezT('c.SUNNAH_CARD_LABEL');
+const SUNNAH_CARD_LABEL = 'من السنة النبوية';
 
 function HadithCard({ content, narrator, ruling }) {
   // خانةُ المخرِّجِ قد تصلُ مملوءةً بالدرجة، فتُطبَعُ الدرجةُ مرّتين وأُولاهما «رَوَى متفق عليه».
@@ -23153,7 +23724,7 @@ function ezikInboxWhen(ts) {
   const d = new Date(ts);
   if (Number.isNaN(d.getTime())) return '';
   try {
-    return d.toLocaleDateString(EZ_LANG === 'en' ? 'en' : 'ar', { year: 'numeric', month: 'short', day: 'numeric' });
+    return d.toLocaleDateString(ezLangEntry(EZ_LANG).locale, { year: 'numeric', month: 'short', day: 'numeric' });
   } catch (e) {
     return ts.slice(0, 10);
   }
@@ -24219,7 +24790,7 @@ function EzShell({ title, onBack, backLabel, lead, actions, children }) {
 const PRAYER_PREFS_KEY = 'ezik_prayer_prefs_v1';
 const PRAYER_METHOD_DEFAULT = 'kuwait';
 const PRAYER_ASR_DEFAULT = 'standard';
-let PRAYER_ADHAN_SOUND_LABEL = ezT('c.PRAYER_ADHAN_SOUND_LABEL');
+const PRAYER_ADHAN_SOUND_LABEL = '\u0635\u0648\u062A \u0627\u0644\u0623\u0630\u0627\u0646';
 const PRAYER_OFFSET_MIN = -15;
 const PRAYER_OFFSET_MAX = 15;
 const PRAYER_KEYS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
@@ -24578,21 +25149,21 @@ function ensurePrayerSchedule(loc, prefs, now) {
 }
 
 let PRAYER_TITLE = ezT('c.PRAYER_TITLE');
-let PRAYER_SETTINGS_TITLE = ezT('c.PRAYER_SETTINGS_TITLE');
-let PRAYER_METHOD_LABEL = ezT('c.PRAYER_METHOD_LABEL');
-let PRAYER_ASR_LABEL = ezT('c.PRAYER_ASR_LABEL');
+const PRAYER_SETTINGS_TITLE = 'الصلاة';
+const PRAYER_METHOD_LABEL = 'المنهج';
+const PRAYER_ASR_LABEL = 'مذهب العصر';
 let PRAYER_OFFSET_LABEL = ezT('c.PRAYER_OFFSET_LABEL');
-let PRAYER_HINT = ezT('c.PRAYER_HINT');
+const PRAYER_HINT = 'تُحسَب على هذا الجهاز من المنهج والإحداثيّات، بلا إنترنت. قابِلْها بتقويمك وعدِّلْ بالدقائق إن لزم.';
 let PRAYER_NONE = ezT('c.PRAYER_NONE');
-let PRAYER_SCHEDULE_TITLE = ezT('c.PRAYER_SCHEDULE_TITLE');
-let PRAYER_SCHEDULE_SHOW = ezT('c.PRAYER_SCHEDULE_SHOW');
-let PRAYER_SCHEDULE_HIDE = ezT('c.PRAYER_SCHEDULE_HIDE');
+const PRAYER_SCHEDULE_TITLE = 'جدول ثلاثين يومًا';
+const PRAYER_SCHEDULE_SHOW = 'اعرض جدول ثلاثين يومًا';
+const PRAYER_SCHEDULE_HIDE = 'اطوِ الجدول';
 // The renewal rule, said in words, because a rule the reader cannot see is not a rule they can
 // rely on. No time field, no alarm, no sound: this sentence describes a table and nothing else.
-let PRAYER_SCHEDULE_NOTE = ezT('c.PRAYER_SCHEDULE_NOTE');
+const PRAYER_SCHEDULE_NOTE = 'يُحسَب على هذا الجهاز لثلاثين يومًا قادمة، بلا إنترنت، ويُعاد توليده تلقائيًّا متى بقي أقلّ من سبعة أيّام، أو متى غيّرتَ المنهج أو الإزاحة أو الموضع.';
 // The sunrise is not a prayer time and takes no offset. Saying so is the difference between a
 // value the reader trusts as calibrated and one they know is the calculator's own.
-let PRAYER_SUNRISE_NOTE = ezT('c.PRAYER_SUNRISE_NOTE');
+const PRAYER_SUNRISE_NOTE = 'الشروق محسوبٌ لا مُعايَر؛ لا تُطبَّق عليه إزاحة.';
 const PRAYER_MINUS = '−';
 const PRAYER_PLUS = '+';
 
@@ -24931,7 +25502,7 @@ const KAABA_LAT = 21.422487;
 const KAABA_LNG = 39.826206;
 const QIBLA_DEFAULT_LAT = 29.3759;
 const QIBLA_DEFAULT_LNG = 47.9774;
-let QIBLA_DEFAULT_PLACE = ezT('c.QIBLA_DEFAULT_PLACE');
+const QIBLA_DEFAULT_PLACE = 'مدينة الكويت';
 const QIBLA_LOC_KEY = 'ezik_qibla_loc_v1';
 const QIBLA_DIRS = ['الشمال', 'الشمال الشرقيّ', 'الشرق', 'الجنوب الشرقيّ', 'الجنوب', 'الجنوب الغربيّ', 'الغرب', 'الشمال الغربيّ'];
 
@@ -27380,25 +27951,25 @@ function useEzikWidgetDataRoot(ready) {
 }
 
 let QIBLA_TITLE = ezT('c.QIBLA_TITLE');
-let QIBLA_SECTION = ezT('c.QIBLA_SECTION');
-let QIBLA_DEG_SUFFIX = ezT('c.QIBLA_DEG_SUFFIX');
-let QIBLA_TOWARD = ezT('c.QIBLA_TOWARD');
-let QIBLA_PLACE_LABEL = ezT('c.QIBLA_PLACE_LABEL');
-let QIBLA_PLACE_DEFAULT_NOTE = ezT('c.QIBLA_PLACE_DEFAULT_NOTE');
-let QIBLA_DEVICE_PLACE = ezT('c.QIBLA_DEVICE_PLACE');
-let QIBLA_USE_DEVICE = ezT('c.QIBLA_USE_DEVICE');
-let QIBLA_USE_DEFAULT = ezT('c.QIBLA_USE_DEFAULT');
-let QIBLA_LOC_ASKING = ezT('c.QIBLA_LOC_ASKING');
-let QIBLA_LOC_DENIED = ezT('c.QIBLA_LOC_DENIED');
-let QIBLA_COMPASS_START = ezT('c.QIBLA_COMPASS_START');
-let QIBLA_COMPASS_WAIT = ezT('c.QIBLA_COMPASS_WAIT');
-let QIBLA_COMPASS_NONE = ezT('c.QIBLA_COMPASS_NONE');
-let QIBLA_COMPASS_LIVE = ezT('c.QIBLA_COMPASS_LIVE');
-let QIBLA_COMPASS_CALIBRATION = ezT('c.QIBLA_COMPASS_CALIBRATION');
-let QIBLA_COMPASS_SENSOR_UNAVAILABLE = ezT('c.QIBLA_COMPASS_SENSOR_UNAVAILABLE');
-let QIBLA_COMPASS_PERMISSION_DENIED = ezT('c.QIBLA_COMPASS_PERMISSION_DENIED');
-let QIBLA_COMPASS_HEADING_ERROR = ezT('c.QIBLA_COMPASS_HEADING_ERROR');
-let QIBLA_COMPASS_RETRY = ezT('c.QIBLA_COMPASS_RETRY');
+const QIBLA_SECTION = 'اتّجاه القبلة';
+const QIBLA_DEG_SUFFIX = 'درجةً عن الشمال';
+const QIBLA_TOWARD = 'نحوَ';
+const QIBLA_PLACE_LABEL = 'الموضع:';
+const QIBLA_PLACE_DEFAULT_NOTE = 'افتراضيّ';
+const QIBLA_DEVICE_PLACE = 'موقعُ هذا الجهاز';
+const QIBLA_USE_DEVICE = 'استخدمْ موقعَ هذا الجهاز';
+const QIBLA_USE_DEFAULT = 'عُدْ إلى الموضع الافتراضيّ';
+const QIBLA_LOC_ASKING = 'يُطلَبُ الإذنُ بالموقع الآن…';
+const QIBLA_LOC_DENIED = 'لم يُمنَحِ الإذنُ بالموقع، والموضعُ الافتراضيُّ باقٍ كما هو.';
+const QIBLA_COMPASS_START = 'شغِّلِ البوصلة';
+const QIBLA_COMPASS_WAIT = 'بانتظارِ قراءةٍ من حسّاسِ الاتّجاه…';
+const QIBLA_COMPASS_NONE = 'لا تدورُ البوصلةُ على هذا الجهاز: لم تصلْ قراءةٌ صالحةٌ من حسّاسِ الاتّجاه، فالدرجةُ وحدَها هي المعروضة.';
+const QIBLA_COMPASS_LIVE = 'البوصلةُ تدورُ مع الجهاز.';
+const QIBLA_COMPASS_CALIBRATION = 'السهمُ يدورُ، لكنَّ معايرةَ حسّاسِ الاتّجاهِ ناقصة. حرِّكِ الجهازَ ببطءٍ على شكلِ الرقم ٨ حتّى تتحسّنَ المعايرة.';
+const QIBLA_COMPASS_SENSOR_UNAVAILABLE = 'لا يحتوي هذا الجهازُ على حسّاسِ اتّجاهٍ متاح؛ تبقى درجةُ القبلةِ المعروضةُ أعلاه.';
+const QIBLA_COMPASS_PERMISSION_DENIED = 'إذنُ الموقعِ مرفوض. افتحْ إعداداتِ الجهازِ الخاصّةَ بتطبيقِ عزك وامنحْ إذنَ الموقع، ثم عُدْ إلى هذه الشاشة.';
+const QIBLA_COMPASS_HEADING_ERROR = 'تعذّرتْ قراءةُ اتّجاهِ الجهازِ بسببِ عطبٍ طارئ. أعِدِ المحاولة.';
+const QIBLA_COMPASS_RETRY = 'أعِدِ المحاولة';
 let QIBLA_BACK = ezT('c.QIBLA_BACK');
 // ITEM 66 (side round, 15 September) -- THE ONE SENTENCE THE COMPASS SCREEN MAY SAY.
 //
@@ -27419,7 +27990,7 @@ let QIBLA_FULL_FAIL = ezT('c.QIBLA_FULL_FAIL');
 const QIBLA_SETTLE_MS = 600;
 // ITEM 107: the sheet now holds both readings, so it is named for both. The tile that opens it
 // is renamed with it -- one tile, one sheet, one position.
-let PRAYER_SHEET_TITLE = ezT('c.PRAYER_SHEET_TITLE');
+const PRAYER_SHEET_TITLE = 'الصلاة والقبلة';
 const QIBLA_NEEDLE_MS = 4000;
 
 // ITEM 66 (ب): `full` is the ONE thing the full-screen view asks of this panel, and it is a
@@ -28292,7 +28863,7 @@ const HIJRI_OFFSET_KEY = 'ezik_hijri_offset_v1';
 const HIJRI_OFFSET_MIN = -2;
 const HIJRI_OFFSET_MAX = 2;
 const HIJRI_MONTHS = ['المحرَّم', 'صفر', 'ربيع الأوّل', 'ربيع الآخر', 'جمادى الأولى', 'جمادى الآخرة', 'رجب', 'شعبان', 'رمضان', 'شوّال', 'ذو القعدة', 'ذو الحجّة'];
-let HIJRI_SUFFIX = ezT('c.HIJRI_SUFFIX');
+const HIJRI_SUFFIX = 'هـ';
 
 // Julian Day Number for a proleptic-Gregorian civil date. Integer in, integer out, and it is the
 // ONLY place a calendar date becomes a number — the offset, the conversion and the inverse all
@@ -28432,9 +29003,9 @@ function hijriTodayLabel() {
 // THE OFFSET CONTROL, in Settings. It owns its own value: it is a device-local preference of the
 // same family as the wird target, it is read once when the sheet opens and written on the press,
 // and nothing above it has to carry it. Five buttons, one radiogroup, the shipped a11y row style.
-let HIJRI_SET_TITLE = ezT('c.HIJRI_SET_TITLE');
-let HIJRI_SET_LABEL = ezT('c.HIJRI_SET_LABEL');
-let HIJRI_SET_HINT = ezT('c.HIJRI_SET_HINT');
+const HIJRI_SET_TITLE = 'التاريخ الهجريّ';
+const HIJRI_SET_LABEL = 'إزاحة يدويّة بالأيّام';
+const HIJRI_SET_HINT = 'يُحسَب على هذا الجهاز بلا إنترنت، على تقويم أمّ القرى. إن خالفَ التقويمَ المعمولَ به عندك بيومٍ أو يومين فعدِّلْه من هنا.';
 let HIJRI_SET_NOW = ezT('c.HIJRI_SET_NOW');
 
 function HijriOffsetControl() {
@@ -28503,8 +29074,8 @@ function HijriOffsetControl() {
 // it for the tab and not merely for this mount: a worker that re-announces after an update, or a
 // second listener attached across a remount, cannot bring the same sentence back.
 const EZIK_SW_REPORT_TAG = 'precache-report';
-let EZIK_SW_MSG_PARTIAL = ezT('c.EZIK_SW_MSG_PARTIAL');
-let EZIK_SW_MSG_NONE = ezT('c.EZIK_SW_MSG_NONE');
+const EZIK_SW_MSG_PARTIAL = 'لم يكتملْ حفظُ بعضِ الملفّاتِ للعملِ بلا إنترنت.';
+const EZIK_SW_MSG_NONE = 'لم يُحفَظْ شيءٌ للعملِ بلا إنترنت: مساحةُ الجهازِ لا تكفي.';
 let EZIK_SW_MSG_TAIL = ezT('c.EZIK_SW_MSG_TAIL');
 let EZIK_SW_OK = ezT('c.EZIK_SW_OK');
 let EZIK_SW_ARIA = ezT('c.EZIK_SW_ARIA');
@@ -30966,8 +31537,8 @@ function dailyWirdLines(dw, pageTarget) {
 // THE VISIBLE TEXT OF THIS LAYER, all of it, in one place so the guard can scan one region.
 // Not one of these strings names a time, an alert, or anything that rings.
 let JD_TITLE = ezT('c.JD_TITLE');
-let JD_BTN = ezT('c.JD_BTN');
-let JD_BUSY = ezT('c.JD_BUSY');
+const JD_BTN = 'نزِّلْ هذا الجزء';
+const JD_BUSY = 'ينزلُ الآن';
 let JD_NO_WORKER = ezT('c.JD_NO_WORKER');
 let JD_UNMEASURED = ezT('c.JD_UNMEASURED');
 let JD_NOSPACE_A = ezT('c.JD_NOSPACE_A');
@@ -30980,20 +31551,20 @@ let JD_FAILED_A = ezT('c.JD_FAILED_A');
 let JD_FAILED_B = ezT('c.JD_FAILED_B');
 let JD_DECLINED_A = ezT('c.JD_DECLINED_A');
 let JD_DECLINED_B = ezT('c.JD_DECLINED_B');
-let JD_RULE_A = ezT('c.JD_RULE_A');
+const JD_RULE_A = 'يحفظُ الجهازُ ';
 let JD_RULE_PLAIN = ezT('c.JD_RULE_PLAIN');
-let JD_RULE_B = ezT('c.JD_RULE_B');
-let DW_CARD_TITLE = ezT('c.DW_CARD_TITLE');
-let DW_CARD_EMPTY = ezT('c.DW_CARD_EMPTY');
-let DW_LINE_MUSHAF = ezT('c.DW_LINE_MUSHAF');
-let DW_LINE_ADHKAR = ezT('c.DW_LINE_ADHKAR');
-let DW_LINE_MEMORIZE = ezT('c.DW_LINE_MEMORIZE');
-let DW_SURAH_WORD = ezT('c.DW_SURAH_WORD');
-let DW_PAGES_WORD = ezT('c.DW_PAGES_WORD');
+const JD_RULE_B = ' صفحةً من المصحف؛ فإذا امتلأ حُذِفت الأقدمُ استعمالًا أوّلًا.';
+const DW_CARD_TITLE = 'وِردي اليوم';
+const DW_CARD_EMPTY = 'لم تختر بعد. اختر من المصحف أو الأذكار أو أسماء الله الحسنى أو الدروس.';
+const DW_LINE_MUSHAF = 'المصحف:';
+const DW_LINE_ADHKAR = 'الأذكار:';
+const DW_LINE_MEMORIZE = 'الحفظ:';
+const DW_SURAH_WORD = 'سورة';
+const DW_PAGES_WORD = 'صفحة في اليوم';
 let DW_NONE = ezT('c.DW_NONE');
-let DW_MUSHAF_LABEL = ezT('c.DW_MUSHAF_LABEL');
-let DW_ADHKAR_LABEL = ezT('c.DW_ADHKAR_LABEL');
-let DW_MEMORIZE_LABEL = ezT('c.DW_MEMORIZE_LABEL');
+const DW_MUSHAF_LABEL = 'اختر وردك من المصحف';
+const DW_ADHKAR_LABEL = 'اختر ذكرك اليوميّ';
+const DW_MEMORIZE_LABEL = 'اختر ما تحفظه';
 
 // ITEM 05-C -- THE LIST'S OWN VISIBLE TEXT, in the same one place as the layer's, and under
 // the same ban. Not one of these strings names a time, an alert, or anything that rings: the
@@ -31324,7 +31895,7 @@ function khatmahTotalPages() {
 // Digits follow the interface language: Arabic-Indic in Arabic, Latin in English. The same
 // number either way, and nothing else in the file changes shape.
 function khatmahNum(n) {
-  return ezLangGet() === 'ar' ? toArabicDigits(n) : String(n);
+  return ezNum(n);
 }
 
 // WHOSE RECORD THIS IS. Read from the stored profile rather than taken as a prop, because
@@ -34515,5 +35086,159 @@ ErrorBoundary.prototype.render = function () {
   }, parts.message + '\n\n' + parts.stack)));
 };
 
+// ITEM 74 -- THE DICTIONARY'S REVERSE INDEX, FOR THE STRINGS A GUARD PINS IN SOURCE FORM.
+// A handful of interface strings are declared as `const NAME = '<Arabic>'` and READ BY NAME by guards and measuring tools
+// that lift the declaration out of this file: their source form cannot change. Their English lives in the dictionary
+// under 'c.NAME' (and the inline ones under 'x.N'), and THIS is how the English reaches the screen: for a reader whose
+// interface language is not the first-run language, a text node or an accessible name that is, character for character,
+// the Arabic half of one of those entries is shown as that entry's half in the reader's language. Nothing else is ever
+// rewritten: scripture, hadith, adhkar, a scholar's words and every model answer are not in the index, and an element
+// marked data-ez-keep is skipped whole. Arabic (the first-run language) never starts it, and it hands every node back
+// when the reader returns to Arabic. It reads no network and no store.
+const EZ_DOM_ATTRS = ['aria-label', 'title', 'placeholder', 'alt'];
+const EZ_DOM_TOUCHED = new Map();   // node -> its original text, or element -> { attr: original }
+let EZ_DOM_INDEX = null;
+let EZ_DOM_INDEX_LANG = null;
+let EZ_DOM_PATTERNS = [];
+let EZ_DOM_OBSERVER = null;
+// The surah names, in the reader's language. The Arabic names are SURAH_NAMES; the other halves live in the table the
+// language carries (a transliteration of the name, never a translation of its meaning).
+const EZ_SURAH_EN = ['', 'Al-Fatihah', 'Al-Baqarah', 'Ali \'Imran', 'An-Nisa', 'Al-Ma\'idah', 'Al-An\'am', 'Al-A\'raf', 'Al-Anfal', 'At-Tawbah', 'Yunus', 'Hud', 'Yusuf', 'Ar-Ra\'d', 'Ibrahim', 'Al-Hijr', 'An-Nahl', 'Al-Isra', 'Al-Kahf', 'Maryam', 'Ta-Ha', 'Al-Anbiya', 'Al-Hajj', 'Al-Mu\'minun', 'An-Nur', 'Al-Furqan', 'Ash-Shu\'ara', 'An-Naml', 'Al-Qasas', 'Al-\'Ankabut', 'Ar-Rum', 'Luqman', 'As-Sajdah', 'Al-Ahzab', 'Saba', 'Fatir', 'Ya-Sin', 'As-Saffat', 'Sad', 'Az-Zumar', 'Ghafir', 'Fussilat', 'Ash-Shura', 'Az-Zukhruf', 'Ad-Dukhan', 'Al-Jathiyah', 'Al-Ahqaf', 'Muhammad', 'Al-Fath', 'Al-Hujurat', 'Qaf', 'Adh-Dhariyat', 'At-Tur', 'An-Najm', 'Al-Qamar', 'Ar-Rahman', 'Al-Waqi\'ah', 'Al-Hadid', 'Al-Mujadilah', 'Al-Hashr', 'Al-Mumtahanah', 'As-Saff', 'Al-Jumu\'ah', 'Al-Munafiqun', 'At-Taghabun', 'At-Talaq', 'At-Tahrim', 'Al-Mulk', 'Al-Qalam', 'Al-Haqqah', 'Al-Ma\'arij', 'Nuh', 'Al-Jinn', 'Al-Muzzammil', 'Al-Muddaththir', 'Al-Qiyamah', 'Al-Insan', 'Al-Mursalat', 'An-Naba', 'An-Nazi\'at', '\'Abasa', 'At-Takwir', 'Al-Infitar', 'Al-Mutaffifin', 'Al-Inshiqaq', 'Al-Buruj', 'At-Tariq', 'Al-A\'la', 'Al-Ghashiyah', 'Al-Fajr', 'Al-Balad', 'Ash-Shams', 'Al-Layl', 'Ad-Duha', 'Ash-Sharh', 'At-Tin', 'Al-\'Alaq', 'Al-Qadr', 'Al-Bayyinah', 'Az-Zalzalah', 'Al-\'Adiyat', 'Al-Qari\'ah', 'At-Takathur', 'Al-\'Asr', 'Al-Humazah', 'Al-Fil', 'Quraysh', 'Al-Ma\'un', 'Al-Kawthar', 'Al-Kafirun', 'An-Nasr', 'Al-Masad', 'Al-Ikhlas', 'Al-Falaq', 'An-Nas'];
+const EZ_DIGIT_RE = /[\u0660-\u0669\u06F0-\u06F9]/g;
+// A number in the reader's language: the digit system is a column of the language table, read here and nowhere else.
+const EZ_DIGIT_BASE = { 'arab-indic': 0x660, 'arab-ext': 0x6F0 };   // the zero of each digit system; Latin is the absence of an entry
+function ezNum(n) {
+  const base = EZ_DIGIT_BASE[ezLangEntry(EZ_LANG).digits];
+  const t = String(n);
+  return base === undefined ? t : t.replace(/[0-9]/g, (d) => String.fromCharCode(base + Number(d)));
+}
+function ezDigitsOut(t) {   // the digits of the reader's language (the table row says which system), for text this layer prints
+  const row = ezLangEntry(EZ_LANG);
+  if (row.digits !== 'latn') return t;
+  return String(t).replace(EZ_DIGIT_RE, (d) => String(d.charCodeAt(0) >= 0x6F0 ? d.charCodeAt(0) - 0x6F0 : d.charCodeAt(0) - 0x660)).replace(/\u066B/g, '.').replace(/\u066C/g, ',');
+}
+function ezDomFragment(t) {   // a captured piece: a surah name, a unit, a ceiling, or a number
+  const g = String(t).trim();
+  const idx = ezDomIndex();
+  if (EZ_LANG === 'en') { for (let i = 1; i <= 114; i++) if (typeof SURAH_NAMES !== 'undefined' && SURAH_NAMES[i] === g) return EZ_SURAH_EN[i]; }
+  const hit = idx.frags.get(g);
+  if (hit !== undefined) return hit;
+  return ezDigitsOut(g).replace(/\s+([A-Za-z]{2})\b/, ' $1');
+}
+function ezDomIndex() {
+  if (EZ_DOM_INDEX && EZ_DOM_INDEX_LANG === EZ_LANG) return EZ_DOM_INDEX;
+  const idx = new Map();
+  idx.frags = new Map();
+  const pats = [];
+  const base = EZ_I18N[EZ_LANG_FALLBACK];
+  const cur = EZ_I18N[EZ_LANG];
+  if (base && cur && EZ_LANG !== EZ_LANG_FALLBACK) {
+    Object.keys(base).forEach((k) => {
+      if (typeof cur[k] !== 'string' || typeof base[k] !== 'string') return;
+      const a = base[k].trim();
+      if (!a) return;
+      if (k.indexOf('c.') === 0 || k.indexOf('x.') === 0) { if (!idx.has(a)) idx.set(a, cur[k]); }
+      else if (k.indexOf('f.') === 0) idx.frags.set(a, cur[k]);
+      else if (k.indexOf('p.') === 0) {
+        const names = [];
+        const src = a.replace(/[.*+?^$()|[\]\\]/g, '\\$&').replace(/\{([a-z])\}/g, (m, n) => { names.push(n); return '(.+?)'; });
+        try { pats.push({ re: new RegExp('^' + src + '$', 's'), names, out: cur[k], longest: a.length }); } catch (e) {}
+      }
+    });
+  }
+  pats.sort((x, y) => y.longest - x.longest);
+  EZ_DOM_PATTERNS = pats;
+  EZ_DOM_INDEX = idx;
+  EZ_DOM_INDEX_LANG = EZ_LANG;
+  return idx;
+}
+function ezDomLookup(t) {
+  const idx = ezDomIndex();
+  const hit = idx.get(t);
+  if (hit !== undefined) return hit;
+  for (let i = 0; i < EZ_DOM_PATTERNS.length; i++) {
+    const p = EZ_DOM_PATTERNS[i];
+    const m = p.re.exec(t);
+    if (!m) continue;
+    return p.out.replace(/\{([a-z])\}/g, (x, n) => { const at = p.names.indexOf(n); return at < 0 ? x : ezDomFragment(m[at + 1]); });
+  }
+  return undefined;
+}
+// For a call site that is not a DOM text (a confirm(), a prompt sent as a question): the same lookup, exact text only.
+function ezX(ar) {
+  try { const v = EZ_LANG === EZ_LANG_FALLBACK ? undefined : ezDomIndex().get(String(ar).trim()); return v === undefined ? ar : v; } catch (e) { return ar; }
+}
+function ezDomKept(el) {
+  for (let e = el; e && e.nodeType === 1; e = e.parentNode) {
+    if (e.hasAttribute && e.hasAttribute('data-ez-keep')) return true;
+  }
+  return false;
+}
+function ezDomText(n) {
+  const v = n.nodeValue;
+  if (typeof v !== 'string' || !v) return;
+  const t = v.trim();
+  if (!t) return;
+  const en = ezDomLookup(t);
+  if (en === undefined || ezDomKept(n.parentNode)) return;
+  if (!EZ_DOM_TOUCHED.has(n)) EZ_DOM_TOUCHED.set(n, v);
+  n.nodeValue = v.replace(t, en);
+}
+function ezDomAttrs(el) {
+  for (let i = 0; i < EZ_DOM_ATTRS.length; i++) {
+    const a = EZ_DOM_ATTRS[i];
+    const v = el.getAttribute(a);
+    if (typeof v !== 'string' || !v) continue;
+    const en = ezDomLookup(v.trim());
+    if (en === undefined || ezDomKept(el)) continue;
+    let rec = EZ_DOM_TOUCHED.get(el);
+    if (!rec || rec.nodeType) { rec = {}; EZ_DOM_TOUCHED.set(el, rec); }
+    if (!(a in rec)) rec[a] = v;
+    el.setAttribute(a, en);
+  }
+}
+function ezDomNode(n) {
+  if (!n) return;
+  if (n.nodeType === 3) { ezDomText(n); return; }
+  if (n.nodeType !== 1) return;
+  const tag = n.tagName;
+  if (tag === 'SCRIPT' || tag === 'STYLE') return;
+  ezDomAttrs(n);
+  for (let c = n.firstChild; c; c = c.nextSibling) ezDomNode(c);
+}
+function ezDomRestore() {
+  EZ_DOM_TOUCHED.forEach((orig, n) => {
+    try {
+      if (n.nodeType === 3) { n.nodeValue = orig; return; }
+      Object.keys(orig).forEach((a) => n.setAttribute(a, orig[a]));
+    } catch (e) {}
+  });
+  EZ_DOM_TOUCHED.clear();
+}
+function ezDomApply() {
+  try {
+    if (EZ_LANG === EZ_LANG_FALLBACK) {
+      if (EZ_DOM_OBSERVER) { EZ_DOM_OBSERVER.disconnect(); EZ_DOM_OBSERVER = null; }
+      ezDomRestore();
+      return;
+    }
+    ezDomRestore();
+    ezDomNode(document.body);
+    if (!EZ_DOM_OBSERVER && typeof MutationObserver === 'function') {
+      EZ_DOM_OBSERVER = new MutationObserver((list) => {
+        for (let i = 0; i < list.length; i++) {
+          const m = list[i];
+          if (m.type === 'childList') { for (let j = 0; j < m.addedNodes.length; j++) ezDomNode(m.addedNodes[j]); }
+          else if (m.type === 'characterData') ezDomText(m.target);
+          else if (m.type === 'attributes' && m.target.nodeType === 1) ezDomAttrs(m.target);
+        }
+      });
+      EZ_DOM_OBSERVER.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: EZ_DOM_ATTRS });
+    }
+  } catch (e) {}
+}
+try { EZ_LANG_SUBS.add(() => { setTimeout(ezDomApply, 0); }); } catch (e) {}
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(React.createElement(ErrorBoundary, null, React.createElement(App), React.createElement(EzikPrecacheNotice)));
+try { setTimeout(ezDomApply, 0); } catch (e) {}

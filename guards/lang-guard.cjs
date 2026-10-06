@@ -53,7 +53,7 @@ const V = '﴿', W = '﴾';
   console.log('\n=== h9 THE ARABIC ROAD IS TODAY\'S ROAD ===');
   const origFetch = globalThis.fetch; let fetches = 0; globalThis.fetch = async () => { fetches++; throw new Error('no network in this guard'); };
   try {
-    const mk = (body) => ({ method: 'POST', headers: {}, body });
+    const mk = (body) => ({ method: 'POST', headers: body && body.uiLang ? { 'x-ezik-lang': body.uiLang } : {}, body });
     const seen = []; const inner = async (req, res) => { seen.push([req, res]); };
     for (const [name, body] of [
       ['an Arabic question with key en', { uiLang: 'en', messages: [{ role: 'user', content: 'ما حكم الزكاة؟' }] }],
@@ -139,7 +139,7 @@ const V = '﴿', W = '﴾';
   const real = () => { const r = { headers: {}, chunks: [], code: null, ended: false, setHeader(k, v) { this.headers[k] = v; }, status(c) { this.code = c; return this; }, flushHeaders() {}, write(c) { this.chunks.push(String(c)); return true; }, end(c) { if (c) this.chunks.push(String(c)); this.ended = true; }, on() {} }; return r; };
   let gotArabic = null;
   const res1 = real();
-  await G.languageGate({ method: 'POST', headers: {}, body: { uiLang: 'ar', messages: [{ role: 'user', content: 'What is the ruling on prayer for a traveller?' }] } }, res1, fakeInner(sse('الجواب النهائي')), {
+  await G.languageGate({ method: 'POST', headers: { 'x-ezik-lang': 'ar' }, body: { messages: [{ role: 'user', content: 'What is the ruling on prayer for a traveller?' }] } }, res1, fakeInner(sse('الجواب النهائي')), {
     log() {}, translateQuestionImpl: async (m) => { m[0].content = 'ARABIC'; return { ok: true, ms: 1 }; },
     translateAnswerImpl: async (arabic, { emit }) => { gotArabic = arabic; emit('English answer. '); emit('Second paragraph.'); return { text: 'English answer. Second paragraph.', stats: {}, degraded: [] }; },
   });
@@ -148,10 +148,10 @@ const V = '﴿', W = '﴾';
   ok('the reader receives the English as SSE text frames, the headers of the inner handler, and a message_stop',
     res1.code === 200 && res1.headers['X-Murabbi-Remaining'] === '39' && /English answer\. /.test(body1) && /Second paragraph\./.test(body1) && /message_stop/.test(body1) && res1.ended);
   const res2 = real();
-  await G.languageGate({ method: 'POST', headers: {}, body: { uiLang: 'en', messages: [{ role: 'user', content: 'What is the ruling on prayer?' }] } }, res2, async (req, res) => { res.status(403).json({ error: 'ai-consent-required' }); }, { log() {}, translateAnswerImpl: async () => { throw new Error('must not run'); } });
+  await G.languageGate({ method: 'POST', headers: { 'x-ezik-lang': 'en' }, body: { messages: [{ role: 'user', content: 'What is the ruling on prayer?' }] } }, res2, async (req, res) => { res.status(403).json({ error: 'ai-consent-required' }); }, { log() {}, translateAnswerImpl: async () => { throw new Error('must not run'); } });
   ok('a non-SSE answer (403, 400, 429) is forwarded as it is, not translated', res2.code === 403 && /ai-consent-required/.test(res2.chunks.join('')));
   const res3 = real();
-  await G.languageGate({ method: 'POST', headers: {}, body: { uiLang: 'en', messages: [{ role: 'user', content: 'What is the ruling on prayer?' }] } }, res3, async (req, res) => { const ok2 = await req.__langTranslateQuestion([{ role: 'user', content: 'x' }]); if (!ok2) return; res.status(200); res.write('NEVER'); res.end(); }, { log() {}, translateQuestionImpl: async () => ({ ok: false, ms: 1 }) });
+  await G.languageGate({ method: 'POST', headers: { 'x-ezik-lang': 'en' }, body: { messages: [{ role: 'user', content: 'What is the ruling on prayer?' }] } }, res3, async (req, res) => { const ok2 = await req.__langTranslateQuestion([{ role: 'user', content: 'x' }]); if (!ok2) return; res.status(200); res.write('NEVER'); res.end(); }, { log() {}, translateQuestionImpl: async () => ({ ok: false, ms: 1 }) });
   ok('a question that cannot be translated ends the turn with the fixed sentence in the reader\'s language, and the inner handler does not go on',
     /could not process your question/.test(res3.chunks.join('')) && !/NEVER/.test(res3.chunks.join('')));
 
@@ -164,6 +164,44 @@ const V = '﴿', W = '﴾';
   ok('and the model expression is the brain\'s own: MODEL_STANDARD || MODEL || the same default', /process\.env\.MODEL_STANDARD \|\| process\.env\.MODEL \|\| 'claude-sonnet-5'/.test(read('lib/lang/model.js')) && /process\.env\.MODEL_STANDARD \|\| process\.env\.MODEL \|\| 'claude-sonnet-5'/.test(read('api/ask.js')));
   ok('api/ask.js: the hook sits after the daily cap and before the first read of the question; the exported handler is the gate',
     (() => { const s = read('api/ask.js'); const hook = s.indexOf('req.__langTranslateQuestion'); return s.indexOf('const cap = await guardDayCap') < hook && hook < s.indexOf('const route = classifyRoute(body.messages)') && /export default async function handler\(req, res\) \{\s*return languageGate\(req, res, async function handler\(req, res\) \{/.test(s); })());
+
+  console.log('\n=== THE CLIENT: the table, the localizer, the dictionary (slices of the shipped app.jsx, run as they are) ===');
+  const vm = require('vm');
+  const appSrc = read('app.jsx');
+  const sliceBetween = (a, b) => { const i = appSrc.indexOf(a); const j = appSrc.indexOf(b, i); if (i < 0 || j < 0) throw new Error('slice ' + a); return appSrc.slice(i, j); };
+  const dictSrc = sliceBetween('const EZ_I18N = {', '\n};\n') + '\n};\n';
+  const ctxD = vm.createContext({}); vm.runInContext(dictSrc + '\nthis.EZ_I18N = EZ_I18N;', ctxD);
+  const DI = ctxD.EZ_I18N;
+  const keysOf = (h) => Object.keys(DI[h]);
+  ok('the two halves of the dictionary hold the same keys (item 74 added its own)', JSON.stringify(keysOf('ar').slice().sort()) === JSON.stringify(keysOf('en').slice().sort()) && keysOf('ar').length > 1000, keysOf('ar').length + ' vs ' + keysOf('en').length);
+  ok('every English half is a non-empty string and no placeholder was lost or invented',
+    keysOf('en').every((k) => typeof DI.en[k] === 'string' && DI.en[k].trim() && JSON.stringify((DI.ar[k].match(/\{[A-Za-z0-9_]+\}/g) || []).sort()) === JSON.stringify((DI.en[k].match(/\{[A-Za-z0-9_]+\}/g) || []).sort())));
+  // the table, with a trial right-to-left language that has its own digits: a ROW, and the layer follows it
+  let tableSrc = sliceBetween('const EZ_LANGUAGES = [', 'function ezLangValid(v)');
+  tableSrc = tableSrc.replace("  { code: 'en',", "  { code: 'zz', nativeName: 'Trial', shortLabel: 'ZZ', dir: 'rtl', digits: 'arab-ext', script: 'arab', locale: 'fa' },\n  { code: 'en',");
+  const applySrc = sliceBetween('function ezLangApply(v) {', '\n}\n') + '\n}\n';
+  const numSrc = sliceBetween('const EZ_DIGIT_BASE', '\n}\n') + '\n}\n';
+  const attrs = {};
+  const sandbox = { document: { documentElement: { setAttribute: (k, v) => { attrs[k] = v; } } }, toArabicDigits: (n) => String(n), console };
+  const ctxT = vm.createContext(sandbox);
+  vm.runInContext("let EZ_LANG = 'ar';\n" + tableSrc + '\n' + applySrc + '\n' + numSrc + '\nthis.setLang = (v) => { EZ_LANG = v; ezLangApply(v); };\nthis.num = (n) => ezNum(n);', ctxT);
+  ctxT.setLang('zz');
+  ok('a trial right-to-left language that is only a ROW of the table comes out right-to-left, with its own digits, and nothing else changed',
+    attrs.dir === 'rtl' && attrs['data-ez-dir'] === 'rtl' && attrs.lang === 'zz' && ctxT.num(2026) === '\u06F2\u06F0\u06F2\u06F6', JSON.stringify(attrs));
+  ctxT.setLang('en'); ok('English: left-to-right, Latin digits', attrs.dir === 'ltr' && attrs['data-ez-dir'] === 'ltr' && ctxT.num(2026) === '2026');
+  ctxT.setLang('ar'); ok('Arabic: right-to-left, Arabic-Indic digits', attrs.dir === 'rtl' && ctxT.num(2026) === '\u0662\u0660\u0662\u0666');
+  // the localizer: exact entries, patterns, fragments, scripture untouched, Arabic never touched
+  const locSrc = sliceBetween('let EZ_DOM_INDEX = null;', '\nfunction ezDomKept(el)');
+  const ctxL = vm.createContext({ EZ_I18N: DI, EZ_LANG: 'en', EZ_LANG_FALLBACK: 'ar', SURAH_NAMES: { 1: '\u0627\u0644\u0641\u0627\u062A\u062D\u0629', 2: '\u0627\u0644\u0628\u0642\u0631\u0629' }, ezLangEntry: () => ({ digits: 'latn', locale: 'en' }) });
+  vm.runInContext(locSrc + '\nthis.look = (t) => ezDomLookup(t); this.x = (t) => ezX(t); this.setLang = (v) => { EZ_LANG = v; };', ctxL);
+  const AR2 = (c) => c;   // readability
+  ok('an exact interface string is shown in English', ctxL.look('أرسِل') === 'Send' && ctxL.x('أرسِل') === 'Send');
+  ok('a pattern with a surah name and Arabic-Indic digits becomes English with Latin digits and the transliterated name',
+    ctxL.look('سورة البقرة، آية ٤٣') === 'Surah Al-Baqarah, ayah 43', String(ctxL.look('سورة البقرة، آية ٤٣')));
+  ok('scripture, hadith and anything not in the dictionary are never rewritten',
+    ctxL.look('إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ') === undefined && ctxL.look('وَأَقِيمُوا ٱلصَّلَوٰةَ') === undefined);
+  ctxL.setLang('ar');
+  ok('in Arabic the lookup never answers: Arabic is never rewritten', ctxL.x('أرسِل') === 'أرسِل');
 
   console.log('\n=== h1 (again) A TRIAL RIGHT-TO-LEFT LANGUAGE IS ONLY A ROW ===');
   const trial = { code: 'zz', name: 'Trial', dir: 'rtl', script: 'arab', digits: 'arab-ext', answerTranslation: true };

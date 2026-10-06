@@ -6,6 +6,26 @@
   const SVG = (n) => 'https://mushaf.almurabbi.app/pages/' + pad3(n) + '.svg';
   const AUDIO = (rec, s, a) => 'https://everyayah.com/data/' + rec + '/' + pad3(s) + pad3(a) + '.mp3';
   const TAFSIR_BASES = ['https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/', 'https://raw.githubusercontent.com/spa5k/tafsir_api/main/tafsir/'];
+  // ITEM 74 -- THE PUBLISHED TRANSLATION OF THE READER'S LANGUAGE. A row of a table, keyed by the interface language the
+  // app wrote to this origin (ezik_ui_lang_v1): a language with a row opens the ayah sheet on its translation, taken from
+  // the same-origin snapshot of the publisher's text (name, source and version printed under it, the text unmodified);
+  // a language with no row gets today's sheet, byte for byte.
+  const LANG_ROWS = { ar: {}, en: { published: '/quran-trans-en.json' } };
+  const PUB = (() => { let k = null; try { k = localStorage.getItem('ezik_ui_lang_v1'); } catch (e) {} return (LANG_ROWS[k] || LANG_ROWS.ar).published || null; })();
+  let pubPromise = null;
+  function loadPub() { if (!pubPromise) pubPromise = fetch(PUB).then((r) => (r.ok ? r.json() : null)).catch(() => null); return pubPromise; }
+  async function renderPublished(body, key) {
+    const [sn, an] = key.split(':').map(Number);
+    body.innerHTML = '<div class="tafsir" id="pubBox" dir="ltr"><p class="note">Loading\u2026</p></div>';
+    const db = await loadPub(); const box = $('pubBox'); if (!box) return;
+    const row = db && db.suras && db.suras[sn - 1] && db.suras[sn - 1][an - 1];
+    if (!row) { box.innerHTML = '<p class="note"></p>'; box.firstChild.textContent = 'The translation could not be loaded. Try again later.'; return; }
+    box.innerHTML = '<div class="src"></div><p></p><p class="note"></p><p class="note"></p>';
+    box.children[0].textContent = db.meta.title;
+    box.children[1].textContent = row[0];
+    box.children[2].textContent = row[1] || '';
+    box.children[3].textContent = 'Source: ' + db.meta.source + ' \u00b7 version ' + db.meta.version + ' \u00b7 published without modification.';
+  }
   const TRANS_BASES = ['https://cdn.jsdelivr.net/gh/fawazahmed0/quran-api@1/editions/', 'https://raw.githubusercontent.com/fawazahmed0/quran-api/1/editions/'];
   const SVG_W = 382.68, SVG_H = 547.09, PRINT_H = 1229, Y_A = 2.5009, Y_B = -63.05;   // measured mapping, svg -> print
   const FALLBACK_RECITER = { id: 'Hudhaify_64kbps', name: 'علي الحذيفي' };
@@ -369,7 +389,7 @@
         '<button type="button" data-act="fav" aria-pressed="' + favOn + '">' + (favOn ? 'في المفضّلة' : 'مفضّلة') + '</button>' +
         '<button type="button" data-act="range">تحديد نطاق</button>' +
         '<button type="button" data-act="selmode">تحديد النصّ</button>' +
-      '</div>' + tabsHtml('at', [['tafsir', 'التفسير'], ['trans', 'الترجمة'], ['waqfat', 'وقفات'], ['note', 'ملاحظتي']], tab || 'tafsir');
+      '</div>' + tabsHtml('at', [['tafsir', 'التفسير'], ['trans', 'الترجمة'], ['waqfat', 'وقفات'], ['note', 'ملاحظتي']], tab || (PUB ? 'trans' : 'tafsir'));
     openSheet(html, (e) => {
       const b = e.target.closest('button'); if (!b) return;
       if (b.dataset.tab) { selectTab('at', b.dataset.tab); renderAyahTab(key, b.dataset.tab); return; }
@@ -383,7 +403,7 @@
       else if (act === 'selmode') { closeSheet(); startSelMode(); }
       else handleTabAction(key, b);
     });
-    renderAyahTab(key, tab || 'tafsir');
+    renderAyahTab(key, tab || (PUB ? 'trans' : 'tafsir'));
   }
   function selectTab(id, tab) { document.querySelectorAll('#' + id + ' [data-tab]').forEach((x) => x.setAttribute('aria-selected', x.dataset.tab === tab)); }
   function renderAyahTab(key, tab) {
@@ -393,6 +413,8 @@
       body.innerHTML = '<div class="row sp"><button type="button" class="chip" data-act="pickTafsir">اختيار المفسّرين</button><span class="row"><button type="button" class="chip" data-act="fs-">أصغر</button><button type="button" class="chip" data-act="fs+">أكبر</button></span></div>' +
         '<div class="tafsir" id="tafsirBox">' + (chosen.length ? chosen.map((t) => '<div class="src">' + esc(t.name) + '</div><div id="tf_' + t.id + '"><p class="note">يُحمَّل…</p></div>').join('') : '<p class="empty">لم تخترْ مفسّرًا بعد.</p>') + '</div>';
       chosen.forEach((t) => fillText('tf_' + t.id, TAFSIR_BASES, t.id, key, true));
+    } else if (tab === 'trans' && PUB) {
+      renderPublished(body, key);
     } else if (tab === 'trans') {
       const list = META.translations || [];
       body.innerHTML = '<div class="field"><label for="trSel">اللغة</label><select id="trSel"><option value="">اختر ترجمة</option>' + list.map((t) => '<option value="' + t.id + '"' + (t.id === S.trans ? ' selected' : '') + '>' + esc(t.name) + '</option>').join('') + '</select></div><div class="trans" id="trBox"></div>';

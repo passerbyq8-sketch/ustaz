@@ -175,6 +175,10 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
 .modal .box{background:var(--vt-surface);border-radius:var(--vt-radius);padding:16px;width:min(100%,460px)}
 .modal textarea{width:100%;min-height:120px;border-radius:12px;border:1px solid var(--vt-line);background:var(--vt-page);padding:10px;font-size:16px;line-height:1.7}
 .toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--vt-ink);color:var(--vt-page);padding:10px 16px;border-radius:12px;z-index:60;font-size:14px}
+/* ITEM 74 -- the page chrome in a left-to-right language; the reader stage keeps its own dir=rtl */
+html[dir=ltr] .cat,html[dir=ltr] .item,html[dir=ltr] .toc li button,html[dir=ltr] .toc li span,html[dir=ltr] .hit{text-align:left}
+html[dir=ltr] .toc li[data-d="2"]{padding-right:0;padding-left:14px}html[dir=ltr] .toc li[data-d="3"]{padding-right:0;padding-left:28px}html[dir=ltr] .toc li[data-d="4"]{padding-right:0;padding-left:42px}
+html[dir=ltr] .nrec q{border-right:0;padding-right:0;border-left:4px solid var(--hl1);padding-left:8px}
 </style>
 </head>
 <body>
@@ -298,6 +302,126 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
   "card_only_reader": ["هذا الكتاب متاح كبطاقة فقط", "إذا فُتح القارئ لكتاب بطاقة"],
   "end_of_book": ["نهاية الكتاب", "بعد آخر صفحة"],
   "start_of_book": ["بداية الكتاب", "قبل أول صفحة"]
+}
+</script>
+<script id="ezlib-strings-en" type="application/json">
+{
+  "app_title": ["The Library"],
+  "home_hero": ["The Library"],
+  "home_hero_sub": ["The sections of the Shamela library, and our books in each section"],
+  "search_ph": ["Search by book name"],
+  "search_none": ["No books by this name"],
+  "continue": ["Continue reading"],
+  "sections": ["Sections"],
+  "books_n": ["{n} books"],
+  "my_notes": ["My notes"],
+  "back": ["Back"],
+  "filter_ph": ["Filter the books in this section"],
+  "sort_title": ["Sort: title"],
+  "sort_author": ["Sort: author"],
+  "sort_death": ["Sort: year of death"],
+  "loading": ["Loading…"],
+  "load_error": ["Could not reach the library. Try again."],
+  "retry": ["Try again"],
+  "no_books": ["No books"],
+  "died": ["d. {y} AH"],
+  "f_title": ["Book"],
+  "f_author": ["Author"],
+  "f_death": ["Year of death"],
+  "f_editor": ["Editor"],
+  "f_publisher": ["Publisher"],
+  "f_edition": ["Edition"],
+  "f_pages": ["Pages"],
+  "f_vols": ["Volumes"],
+  "f_numbering": ["Numbering"],
+  "num_print": ["Matches the printed edition"],
+  "num_auto": ["Automatic numbering"],
+  "num_unknown": ["Not stated on the book card"],
+  "num_none": ["No card for this book"],
+  "hijri_suffix": ["{y} AH"],
+  "unknown": ["Unknown"],
+  "read": ["Read"],
+  "continue_btn": ["Continue reading"],
+  "card_only_note": ["This edition shows only the book's card. You can ask Ezik about it in the chat, and it will quote from it with the source."],
+  "toc": ["Contents"],
+  "toc_empty": ["This book has no table of contents"],
+  "page_short": ["p. {p}"],
+  "mark_print": ["Vol. {v} · p. {p}"],
+  "mark_print_nov": ["p. {p}"],
+  "mark_auto": ["Automatic numbering · {p}"],
+  "mark_unknown": ["Page {p} (numbering not documented)"],
+  "mark_seq": ["Position {s}"],
+  "page_of": ["{i} / {n}"],
+  "pages_of": ["{a}–{b} / {n}"],
+  "mark_cont": ["Continues {m}"],
+  "two_pages": ["Two pages"],
+  "search_btn": ["Search"],
+  "search_title": ["Search"],
+  "smode_label": ["Search type"],
+  "smode_text": ["Words in the books"],
+  "smode_title": ["Book title"],
+  "smode_author": ["Author"],
+  "sph_text": ["Search for words inside the books"],
+  "sph_author": ["Search by author name"],
+  "scope_all": ["The whole library"],
+  "scope_section": ["This section"],
+  "scope_book": ["This book"],
+  "none_text": ["No results for these words"],
+  "none_author": ["No author by this name"],
+  "s_refused": ["The search words are too common; add a more specific word."],
+  "s_total": ["{n} results"],
+  "s_window": ["Showing the best {n} results"],
+  "s_more": ["More"],
+  "s_all_authors": ["All authors"],
+  "ask_ezik": ["Ask Ezik"],
+  "ask_note": ["This button works inside the Ezik app."],
+  "hl_clear": ["Hide the search highlight"],
+  "contents": ["Contents"],
+  "settings": ["Display"],
+  "jump": ["Go to"],
+  "notes_tab": ["My notes"],
+  "vol": ["Volume"],
+  "page": ["Page"],
+  "go": ["Go"],
+  "jump_not_found": ["This page was not found"],
+  "jump_near": ["Moved to the nearest page after it"],
+  "jump_auto_note": ["This book's numbers are automatic, not the printed edition's"],
+  "font_size": ["Font size"],
+  "line_spacing": ["Line spacing"],
+  "ls_tight": ["Tight"],
+  "ls_normal": ["Medium"],
+  "ls_wide": ["Wide"],
+  "mode": ["Mode"],
+  "mode_day": ["Day"],
+  "mode_night": ["Night"],
+  "mode_sepia": ["Sepia"],
+  "mode_follow": ["As in Ezik"],
+  "smaller": ["Smaller"],
+  "larger": ["Larger"],
+  "bookmark": ["Bookmark"],
+  "bookmark_added": ["A bookmark was added to this page"],
+  "bookmark_removed": ["The bookmark was removed"],
+  "hl_color": ["Highlight"],
+  "add_note": ["Note"],
+  "cancel": ["Cancel"],
+  "save": ["Save"],
+  "delete": ["Delete"],
+  "edit": ["Edit"],
+  "open": ["Open"],
+  "note_ph": ["Write your note"],
+  "note_title": ["Note"],
+  "notes_empty": ["No notes yet. Select text in the reader to highlight it or comment on it."],
+  "t_highlight": ["Highlight"],
+  "t_note": ["Note"],
+  "t_bookmark": ["Bookmark"],
+  "all_books": ["All books"],
+  "this_book": ["This book"],
+  "confirm_delete": ["Delete this record?"],
+  "saved": ["Saved"],
+  "sel_one_page": ["The selection was saved within one page only"],
+  "card_only_reader": ["This book is available as a card only"],
+  "end_of_book": ["End of the book"],
+  "start_of_book": ["Start of the book"]
 }
 </script>
 
@@ -758,8 +882,16 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
   var C = window.EzLibCore;
   var S = {};
   try { var raw = JSON.parse(document.getElementById('ezlib-strings').textContent); for (var k in raw) S[k] = raw[k][0]; } catch (e) {}
+  // ITEM 74 -- THE PAGE SPEAKS THE LANGUAGE THE APP WROTE TO THIS ORIGIN (ezik_ui_lang_v1). Everything that changes with a
+  // language is a column of this table -- direction, digits, which string table -- and nothing below asks whether the
+  // language is Arabic. A language the table does not know is Arabic. The books themselves stay Arabic and right-to-left.
+  var LANG_ROWS = { ar: { dir: 'rtl', digits: 'arab-indic', strings: null }, en: { dir: 'ltr', digits: 'latn', strings: 'ezlib-strings-en' } };
+  var LANG_CODE = 'ar'; try { var lk = localStorage.getItem('ezik_ui_lang_v1'); if (Object.prototype.hasOwnProperty.call(LANG_ROWS, lk)) LANG_CODE = lk; } catch (e) {}
+  var ROW = LANG_ROWS[LANG_CODE];
+  try { document.documentElement.setAttribute('lang', LANG_CODE); document.documentElement.setAttribute('dir', ROW.dir); } catch (e) {}
+  if (ROW.strings) { try { var rawL = JSON.parse(document.getElementById(ROW.strings).textContent); for (var kl in rawL) S[kl] = rawL[kl][0]; } catch (e) {} }
   function T(k, v) { return C.fmt(S[k] || k, v); }
-  function D(n) { return C.toArabicDigits(n); }
+  function D(n) { return ROW.digits === 'arab-indic' ? C.toArabicDigits(n) : String(n); }
   var $app = document.getElementById('app');
   function el(tag, attrs, kids) {
     var e = document.createElement(tag);
