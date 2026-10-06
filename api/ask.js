@@ -765,15 +765,11 @@ function bindUpstreamToClient(readerGone) {
   };
 }
 
-// ITEM 74 -- the exported handler is the language gate around the handler proper (askCore, below). For an Arabic
-// question the gate calls askCore with the very same req and res and does nothing else (lib/lang/gate.js).
+// ITEM 74 -- the exported handler is the language gate around the handler proper, which is the function expression
+// passed to it. For an Arabic question the gate calls that handler with the very same req and res and does nothing
+// else (lib/lang/gate.js). The handler proper keeps its own name, and its body is exactly what it was.
 export default async function handler(req, res) {
-  return languageGate(req, res, askCore);
-}
-
-// ITEM 74 -- the handler proper, called by the language gate above. Everything below this line is the handler
-// as it was before the language layer; the gate calls it with the very same req and res for an Arabic question.
-async function askCore(req, res) {
+  return languageGate(req, res, async function handler(req, res) {
   // SPEED ITEM 17: the before-writing path reports its first release from here (firstReleaseMs).
   const requestStartedAt = Date.now();
   applyCorsOrigin(req, res);
@@ -4845,4 +4841,5 @@ async function askCore(req, res) {
     try { res.write(`data: ${JSON.stringify({ type: 'error', error: { message: 'server error' } })}\n\n`); } catch {}
     res.end();
   }
+  });
 }

@@ -155,7 +155,7 @@ const V = '﴿', W = '﴾';
   ok('the only environment names it reads are the key and the two model names the brain already reads', JSON.stringify(envs) === JSON.stringify(['process.env.ANTHROPIC_API_KEY', 'process.env.MODEL', 'process.env.MODEL_STANDARD']), JSON.stringify(envs));
   ok('and the model expression is the brain\'s own: MODEL_STANDARD || MODEL || the same default', /process\.env\.MODEL_STANDARD \|\| process\.env\.MODEL \|\| 'claude-sonnet-5'/.test(read('lib/lang/model.js')) && /process\.env\.MODEL_STANDARD \|\| process\.env\.MODEL \|\| 'claude-sonnet-5'/.test(read('api/ask.js')));
   ok('api/ask.js: the hook sits after the daily cap and before the first read of the question; the exported handler is the gate',
-    (() => { const s = read('api/ask.js'); const hook = s.indexOf('req.__langTranslateQuestion'); return s.indexOf('const cap = await guardDayCap') < hook && hook < s.indexOf('const route = classifyRoute(body.messages)') && /export default async function handler\(req, res\) \{\s*return languageGate\(req, res, askCore\);/.test(s); })());
+    (() => { const s = read('api/ask.js'); const hook = s.indexOf('req.__langTranslateQuestion'); return s.indexOf('const cap = await guardDayCap') < hook && hook < s.indexOf('const route = classifyRoute(body.messages)') && /export default async function handler\(req, res\) \{\s*return languageGate\(req, res, async function handler\(req, res\) \{/.test(s); })());
 
   console.log('\n=== h1 (again) A TRIAL RIGHT-TO-LEFT LANGUAGE IS ONLY A ROW ===');
   const trial = { code: 'zz', name: 'Trial', dir: 'rtl', script: 'arab', digits: 'arab-ext', answerTranslation: true };
