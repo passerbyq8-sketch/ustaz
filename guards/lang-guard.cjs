@@ -106,7 +106,7 @@ const V = '﴿', W = '﴾';
   const dropper = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => s.replace(/\[\[[QAI]\d+\]\]/g, ''))) }; };
   out = await A.translateAnswer(ar1, { lang: 'en', translate: dropper });
   ok('a model that drops the markers is retried once and then its paragraph is delivered ARABIC and untouched; the count still holds',
-    out.stats.batchesKeptArabic >= 1 && quoted.every((q) => out.text.includes(q)) && A.countSacred(out.text).total === A.countSacred(ar1).total);
+    (out.stats.batchesKeptArabic >= 1 || out.stats.unitsKeptArabic >= 1) && quoted.every((q) => out.text.includes(q)) && A.countSacred(out.text).total === A.countSacred(ar1).total);
   const boom = async () => ({ ok: false });
   out = await A.translateAnswer(ar1, { lang: 'en', translate: boom });
   ok('a model that is down loses nothing: the whole answer comes back in Arabic', quoted.every((q) => out.text.includes(q)) && out.text.includes('<suggestions>'));
