@@ -200,6 +200,36 @@ const V = '﴿', W = '﴾';
     ctxL.look('سورة البقرة، آية ٤٣') === 'Surah Al-Baqarah, ayah 43', String(ctxL.look('سورة البقرة، آية ٤٣')));
   ok('scripture, hadith and anything not in the dictionary are never rewritten',
     ctxL.look('إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ') === undefined && ctxL.look('وَأَقِيمُوا ٱلصَّلَوٰةَ') === undefined);
+  ok('item 143: the Qibla group title, which was Arabic in the English interface, is the dictionary\'s English now', ctxL.look(DI.ar['c.QIBLA_SECTION']) === 'Qibla direction', String(ctxL.look(DI.ar['c.QIBLA_SECTION'])));
+  ok('the hijri months leave in the Latin letters of their Arabic names', ctxL.look(DI.ar['x.562']) === 'Ramadan' && ctxL.look(DI.ar['x.557']) === "Rabi' al-Awwal");
+  // THE RATCHET: no interface literal of the source may sit outside the dictionary unnamed
+  {
+    const parser = require('@babel/parser');
+    const ARABIC = /[\u0600-\u06FF]/;
+    const ara = DI.ar; const coveredSet = new Set(); const pats = [];
+    Object.keys(ara).forEach((k) => {
+      const a = String(ara[k]).trim();
+      if (/^p\./.test(k)) pats.push(new RegExp('^' + a.replace(/[.*+?^$()|[\]\\]/g, '\\$&').replace(/\{[a-z]\}/g, '(.+?)') + '$', 's'));
+      else coveredSet.add(a);
+    });
+    const di = appSrc.indexOf('const EZ_I18N = {'); const dj = appSrc.indexOf('\n};\n', di);
+    const d0 = appSrc.slice(0, di).split('\n').length; const d1 = appSrc.slice(0, dj).split('\n').length + 1;
+    const found = new Set();
+    const ast = parser.parse(appSrc, { sourceType: 'module', plugins: ['jsx'], errorRecovery: true });
+    (function walk(n) {
+      if (!n || typeof n.type !== 'string') return;
+      let v = null;
+      if (n.type === 'StringLiteral') v = n.value; else if (n.type === 'JSXText') v = n.value; else if (n.type === 'TemplateElement') v = n.value.cooked;
+      if (v != null && ARABIC.test(v) && !(n.loc.start.line >= d0 && n.loc.end.line <= d1)) { const t = v.replace(/\s+/g, ' ').trim(); if (t) found.add(t); }
+      for (const k of Object.keys(n)) { if (k === 'loc' || k === 'leadingComments' || k === 'trailingComments') continue; const c = n[k]; if (Array.isArray(c)) c.forEach(walk); else if (c && typeof c.type === 'string') walk(c); }
+    })(ast.program);
+    const uncovered = [...found].filter((t) => !coveredSet.has(t) && !pats.some((p) => p.test(t)));
+    const fx = new Set(JSON.parse(read('guards/fixtures-lang-uncovered.json')).literals.map((x) => x.text));
+    const fresh = uncovered.filter((t) => !fx.has(t));
+    ok('every Arabic literal of the interface source is in the dictionary or named in guards/fixtures-lang-uncovered.json (data, scripture, normalisers, model prompts, speech, voice lines)', fresh.length === 0, fresh.length + ' new, e.g. ' + JSON.stringify(fresh.slice(0, 4)));
+    const stale = [...fx].filter((t) => !uncovered.includes(t));
+    ok('...and the fixture holds nothing the dictionary now covers or the source no longer has (the ratchet only goes down)', stale.length === 0, stale.length + ' stale, e.g. ' + JSON.stringify(stale.slice(0, 4)));
+  }
   ctxL.setLang('ar');
   ok('in Arabic the lookup never answers: Arabic is never rewritten', ctxL.x('أرسِل') === 'أرسِل');
 

@@ -1,0 +1,1677 @@
+{
+ "note": "Arabic string literals of app.jsx that the English interface does NOT cover through the dictionary (c./x./f./p. entries): data, scripture, normalisers, model prompts, speech formatting, voice lines (voice is deferred) and the rest. The guard lang fails on a literal that is not here and not covered: a new interface string goes into the dictionary, a new data literal goes here with its reason. Generated 2026-10-06 by tools in the session folder.",
+ "literals": [
+  {
+   "text": "(?:ا[ً-ْٰـ]*)?",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "(السقف من:",
+   "cat": "other"
+  },
+  {
+   "text": "(رمز:",
+   "cat": "other"
+  },
+  {
+   "text": "). حاول مرّة أخرى.",
+   "cat": "other"
+  },
+  {
+   "text": ")، وحجم ملفك نحو",
+   "cat": "other"
+  },
+  {
+   "text": ". الرجاء ملفًّا أصغر.",
+   "cat": "other"
+  },
+  {
+   "text": "[الكتاب:",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "[المربّي] Tashkeel failed, using original text:",
+   "cat": "other"
+  },
+  {
+   "text": "[المربّي] تشكيل Opus كافٍ (",
+   "cat": "other"
+  },
+  {
+   "text": "[المربّي] تشكيل ناقص (",
+   "cat": "other"
+  },
+  {
+   "text": "[المربّي] تعذّر تشغيل التلاوة:",
+   "cat": "other"
+  },
+  {
+   "text": "[المصدر:",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "[تلاوة سورة",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "[تم اختصار بقيّة الملف]",
+   "cat": "other"
+  },
+  {
+   "text": "[ً-ْٰـ]*",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "coin-stack مالٌ أو نصاب · scale-cup كيلٌ أو وزن · crescent-month شهرٌ أو موسم",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "disc: on أو off · side: right أو left أو alternate · weight: calm أو bold.",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "frame: band أو rule أو plain · flow: rows أو grid2 أو stack · guide: numbers أو arrows أو none",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "labels وسومٌ قصيرةٌ داخلَ الرسمِ، كلُّ وسمٍ عشرةُ أحرفٍ فأقلّ، وعددُها بحسبِ المفتاح:",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "line2 يجوزُ أن يكونَ نصًّا فارغًا.",
+   "cat": "other"
+  },
+  {
+   "text": "page-check شيءٌ يَصحُّ أو يكفي · page-cross شيءٌ يبطُلُ أو يُمنَع · stack-steps مراتبُ أو خطواتٌ مرتَّبة",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "ratio-bar مقدارٌ أو نسبة · clock-window وقتٌ يبدأُ وينتهي · door-two حالتان متقابلتان",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "shield-check شرطٌ يَصِحُّ به · mark-plain وهو الافتراضيُّ حين لا يناسبُ شيءٌ ممّا قبلَه.",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "title لا يتجاوزُ 40 حرفًا، وhead لا يتجاوزُ 22 حرفًا، وline1 وline2 لا يتجاوزُ كلٌّ منهما 52 حرفًا.",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "| الرسالة الحاليّة:",
+   "cat": "other"
+  },
+  {
+   "text": "،",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "، آية",
+   "cat": "other"
+  },
+  {
+   "text": "، الآيات",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ء",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "آ",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "آل عمران",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "آلاف",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "آية",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "أ",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "أحد عشر",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "أخرجه",
+   "cat": "other"
+  },
+  {
+   "text": "أربع",
+   "cat": "other"
+  },
+  {
+   "text": "أربعة",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "أربعة عشر",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "أربعمئة",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "أربعون",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "أستغفر الله",
+   "cat": "other"
+  },
+  {
+   "text": "أستغفر الله الذى لا إله إلا هو الحي القيوم وأتوب إليه",
+   "cat": "other"
+  },
+  {
+   "text": "أصغر أو يساوي",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "أعطني مثالًا واضحًا ومختصرًا على الإجابة السابقة.",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "أكبر أو يساوي",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ألف",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ألفان",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "أم",
+   "cat": "other"
+  },
+  {
+   "text": "أو",
+   "cat": "other"
+  },
+  {
+   "text": "أَلَا بِذِكْرِ ٱللَّهِ تَطْمَئِنُّ ٱلْقُلُوبُ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "أُس",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ؤ",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "إ",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "إبراهيم",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ",
+   "cat": "other"
+  },
+  {
+   "text": "إِنَّ رَحْمَتَ ٱللَّهِ قَرِيبٌ مِّنَ ٱلْمُحْسِنِينَ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "إِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "إِنَّ مَعِىَ رَبِّى سَيَهْدِينِ",
+   "cat": "other"
+  },
+  {
+   "text": "إِنَّ ٱللَّهَ بِٱلنَّاسِ لَرَءُوفٌ رَّحِيمٌ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "إِنَّ ٱللَّهَ عَلَىٰ كُلِّ شَىْءٍ قَدِيرٌ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "إِنَّ ٱللَّهَ غَفُورٌ رَّحِيمٌ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "إِنَّ ٱللَّهَ لَا يُضِيعُ أَجْرَ ٱلْمُحْسِنِينَ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "إِنَّ ٱللَّهَ مَعَ ٱلصَّـٰبِرِينَ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "إِنَّ ٱللَّهَ يُحِبُّ ٱلْمُحْسِنِينَ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "ئ",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "ا",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "اء",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "اءوي",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "اثنا عشر",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "اثنان",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "اختبرني بسؤال واحد عن الإجابة السابقة، ولا تعرض الحل حتى أجيب.",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "اختصر الإجابة السابقة في نقاط قصيرة، مع إبقاء المصدر الشرعي الموثق إن وُجد.",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "اخرجه الشيخان",
+   "cat": "other"
+  },
+  {
+   "text": "اربع",
+   "cat": "other"
+  },
+  {
+   "text": "استغفر الله",
+   "cat": "other"
+  },
+  {
+   "text": "اسناده حسن",
+   "cat": "other"
+  },
+  {
+   "text": "اسناده صحيح",
+   "cat": "other"
+  },
+  {
+   "text": "اسناده ضعيف",
+   "cat": "other"
+  },
+  {
+   "text": "اشرح لي هذا",
+   "cat": "other"
+  },
+  {
+   "text": "الأحزاب",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الأحقاف",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الأعراف",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الأعلى",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الأنبياء",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الأنعام",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الأنفال",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الإخلاص",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الإسراء",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الإنسان",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الانشراح",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الانشقاق",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الانفطار",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "البخاري",
+   "cat": "other"
+  },
+  {
+   "text": "البروج",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "البقرة",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "البلد",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "البينة",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "التحريم",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "التغابن",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "التكاثر",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "التكوير",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "التوبة",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "التوحيد",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "التين",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الجاثية",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الجذر التربيعيّ لـ",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "الجمعة",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الجن",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الجواب:",
+   "cat": "other"
+  },
+  {
+   "text": "الحاقة",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الحج",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الحجر",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الحجرات",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الحديد",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الحشر",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الحمد لله",
+   "cat": "other"
+  },
+  {
+   "text": "الدخان",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الدهر",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الذاريات",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الرحمن",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الرعد",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الروم",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الزخرف",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الزلزال",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الزلزلة",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الزمر",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "السجدة",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "السياق السابق:",
+   "cat": "other"
+  },
+  {
+   "text": "الشرح",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الشرطُ الأوّل: البطاقةُ ملخَّصٌ بسيطٌ جدًّا بتصرُّف. وإن كان الجوابُ طويلًا فخذْ لُبَّه لا ترتيبَه.",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "الشرطُ الثاني: لا تكتبْ في أيِّ حقلٍ اسمَ مصدرٍ ولا نطاقًا ولا رابطًا ولا عنوانَ موقعٍ ألبتّة.",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "الشعراء",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الشمس",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الشورى",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الصافات",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الصف",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الضحى",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الطارق",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الطلاق",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الطور",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "العاديات",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "العربية",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "العلق",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "العنكبوت",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الغاشية",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الفاتحة",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الفتح",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الفرقان",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الفلق",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الفيل",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "القارعة",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "القتال",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "القدر",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "القصص",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "القلم",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "القمر",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "القيامة",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الكافرون",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الكهف",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الكوثر",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الله أكبر",
+   "cat": "other"
+  },
+  {
+   "text": "اللهب",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "اللهم صل وسلم وبارك على سيدنا محمد",
+   "cat": "other"
+  },
+  {
+   "text": "اللهمّ إنك عفوٌّ تُحبُّ العفوَ فاعفُ عنّي",
+   "cat": "other"
+  },
+  {
+   "text": "الليل",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "المؤمن",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "المؤمنون",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "المائدة",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الماعون",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "المجادلة",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "المحادثة طويلة ولم يبقَ متّسعٌ كافٍ لهذا الملف في هذه الرسالة (المتبقّي نحو",
+   "cat": "other"
+  },
+  {
+   "text": "المدثر",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "المرسلات",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "المزمل",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "المستند المرفق «",
+   "cat": "other"
+  },
+  {
+   "text": "المسد",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "المطففين",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "المعارج",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الملائكة",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الملك",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الممتحنة",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "المنافقون",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "النازعات",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الناس",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "النبأ",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "النجم",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "النحل",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "النساء",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "النصر",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "النمل",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "النور",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الهمزة",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الهيئةُ بالضبط:",
+   "cat": "other"
+  },
+  {
+   "text": "الواقعة",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "بالمئة",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "باي",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "براءة",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "بسّط لي الإجابة السابقة بكلمات أسهل، مع الحفاظ على المعنى والمصدر الشرعي إن وُجد.",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "بل",
+   "cat": "other"
+  },
+  {
+   "text": "بلا نوع",
+   "cat": "other"
+  },
+  {
+   "text": "بني إسرائيل",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "ة",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "ت",
+   "cat": "other"
+  },
+  {
+   "text": "تانجنت",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "تبت",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "تربيع",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "تسع",
+   "cat": "other"
+  },
+  {
+   "text": "تسعة",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "تسعة عشر",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "تسعمئة",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "تسعون",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "تكعيب",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "تُقال",
+   "cat": "other"
+  },
+  {
+   "text": "ثلاث",
+   "cat": "other"
+  },
+  {
+   "text": "ثلاثا",
+   "cat": "other"
+  },
+  {
+   "text": "ثلاثة",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ثلاثة أرباع",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ثلاثة عشر",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ثلاثمئة",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ثلاثون",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ثلث",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ثلثين",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ثم",
+   "cat": "other"
+  },
+  {
+   "text": "ثمان",
+   "cat": "other"
+  },
+  {
+   "text": "ثمانمئة",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ثمانون",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ثمانية",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ثمانية عشر",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ثمّ",
+   "cat": "other"
+  },
+  {
+   "text": "ثُمَّ",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "حديث",
+   "cat": "other"
+  },
+  {
+   "text": "حسن",
+   "cat": "other"
+  },
+  {
+   "text": "حسن صحيح",
+   "cat": "other"
+  },
+  {
+   "text": "حسن لغيره",
+   "cat": "other"
+  },
+  {
+   "text": "حم السجدة",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "حَدَثَ خَلَلٌ تِقْنِيٌّ عِنْدِي، لَا فِي سُؤَالِكَ. حَاوِلْ مَرَّةً ثَانِيَةً بَعْدَ قَلِيل.",
+   "cat": "other"
+  },
+  {
+   "text": "حَدَثَ خَلَلٌ تِقْنِيٌّ عِنْدِي، لَا فِي سُؤَالِكِ. حَاوِلِي مَرَّةً ثَانِيَةً بَعْدَ قَلِيل.",
+   "cat": "other"
+  },
+  {
+   "text": "حَسْبُنَا ٱللَّهُ وَنِعْمَ ٱلْوَكِيلُ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "خرّجه",
+   "cat": "other"
+  },
+  {
+   "text": "خطأ:",
+   "cat": "other"
+  },
+  {
+   "text": "خمس",
+   "cat": "other"
+  },
+  {
+   "text": "خمسة",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "خمسة عشر",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "خمسمئة",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "خمسون",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "د",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "درجة",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ر",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "رب اغفر لى",
+   "cat": "other"
+  },
+  {
+   "text": "ربع",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "رواه",
+   "cat": "other"
+  },
+  {
+   "text": "رواه الشيخان",
+   "cat": "other"
+  },
+  {
+   "text": "رَبَّنَآ ءَاتِنَا فِى ٱلدُّنْيَا حَسَنَةً",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "رَوَى",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "زائد",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ساين",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "سبأ",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "سبحان الله",
+   "cat": "other"
+  },
+  {
+   "text": "سبحان الله والحمد لله ولا إله إلا الله والله أكبر",
+   "cat": "other"
+  },
+  {
+   "text": "سبحان الله وبحمده",
+   "cat": "other"
+  },
+  {
+   "text": "سبحان الله وبحمده سبحان الله العظيم",
+   "cat": "other"
+  },
+  {
+   "text": "سبحان الله وبحمده عدد خلقه ورضا نفسه وزنة عرشه ومداد كلماته",
+   "cat": "other"
+  },
+  {
+   "text": "سبحان ربي العظيم",
+   "cat": "other"
+  },
+  {
+   "text": "سبع",
+   "cat": "other"
+  },
+  {
+   "text": "سبعة",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "سبعة عشر",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "سبعمئة",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "سبعون",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ست",
+   "cat": "other"
+  },
+  {
+   "text": "ستة",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ستة عشر",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ستمئة",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ستون",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "شاذ",
+   "cat": "other"
+  },
+  {
+   "text": "ص",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "صحيح",
+   "cat": "other"
+  },
+  {
+   "text": "صحيح لغيره",
+   "cat": "other"
+  },
+  {
+   "text": "صفر",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ضعيف",
+   "cat": "other"
+  },
+  {
+   "text": "ضعيف جدا",
+   "cat": "other"
+  },
+  {
+   "text": "طه",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "ع",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "عبس",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "عددُ النقاطِ اثنتان أو ثلاثٌ أو أربعٌ، لا أقلَّ ولا أكثر.",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "عشر",
+   "cat": "other"
+  },
+  {
+   "text": "عشرا",
+   "cat": "other"
+  },
+  {
+   "text": "عشرة",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "عشرون",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "على",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "عُذْرًا، انْشَغَلْتُ قَلِيلًا. هَلْ تُعِيدُ مَا قُلْتَ بَعْدَ لَحْظَة؟",
+   "cat": "other"
+  },
+  {
+   "text": "عُذْرًا، انْشَغَلْتُ قَلِيلًا. هَلْ تُعِيدِينَ مَا قُلْتِ بَعْدَ لَحْظَة؟",
+   "cat": "other"
+  },
+  {
+   "text": "عُذْرًا، لَمْ أَفْهَمْ سُؤَالَكَ تَمَامًا. أَعِدْ كَلَامَكَ مِنْ فَضْلِك.",
+   "cat": "other"
+  },
+  {
+   "text": "عُذْرًا، لَمْ أَفْهَمْ سُؤَالَكِ تَمَامًا. أَعِيدِي كَلَامَكِ مِنْ فَضْلِكِ.",
+   "cat": "other"
+  },
+  {
+   "text": "غافر",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "فاصلة",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "فاطر",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "فصلت",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "في",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "فَٱذْكُرُونِىٓ أَذْكُرْكُمْ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "ق",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "قريش",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "قَالَ هَلْ ءَامَنُكُمْ عَلَيْهِ إِلَّا كَمَآ أَمِنتُكُمْ عَلَىٰٓ أَخِيهِ مِن قَبْلُ ۖ فَٱللَّهُ خَيْرٌ حَـٰفِظًا ۖ وَهُوَ أَرْحَمُ ٱلرَّٰحِمِينَ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "ك.ب). ابدأ محادثةً جديدة أو أرسل ملفًّا أصغر.",
+   "cat": "other"
+  },
+  {
+   "text": "ك.ب، والملف يحتاج نحو",
+   "cat": "other"
+  },
+  {
+   "text": "كوساين",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "ل",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "لا إله إلا الله",
+   "cat": "other"
+  },
+  {
+   "text": "لا إله إلا الله وحده لا شريك له، له الملك، وله الحمدُ، وهو على كل شيء قدير",
+   "cat": "other"
+  },
+  {
+   "text": "لا اله الا الله",
+   "cat": "other"
+  },
+  {
+   "text": "لا حول ولا قوة الا بالله",
+   "cat": "other"
+  },
+  {
+   "text": "لا يساوي",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "لخِّصْ الجوابَ التاليَ في بطاقةٍ. أجبْ بـ JSON وحدَه بلا أيِّ كلمةٍ قبلَه أو بعدَه.",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "لقمان",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "م",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "مئة",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "مئتان",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "مائة",
+   "cat": "other"
+  },
+  {
+   "text": "متفق علي صحته",
+   "cat": "other"
+  },
+  {
+   "text": "متفق عليه",
+   "cat": "other"
+  },
+  {
+   "text": "متواتر",
+   "cat": "other"
+  },
+  {
+   "text": "محمد",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "مرتين",
+   "cat": "other"
+  },
+  {
+   "text": "مرسل",
+   "cat": "other"
+  },
+  {
+   "text": "مريم",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "مرّات",
+   "cat": "other"
+  },
+  {
+   "text": "ملف نصّي",
+   "cat": "other"
+  },
+  {
+   "text": "منكر",
+   "cat": "other"
+  },
+  {
+   "text": "موضوع",
+   "cat": "other"
+  },
+  {
+   "text": "ناقص",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "نصف",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "نوح",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "نوع الملف غير مدعوم:",
+   "cat": "other"
+  },
+  {
+   "text": "ه",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "هت",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "هذا مستندٌ مكتوبٌ، يمكن قراءتُه وتصديرُه.",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "هود",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "و",
+   "cat": "other"
+  },
+  {
+   "text": "و page-cross و coin-stack و crescent-month و shield-check، ووسمان إلى أربعةٍ لـ stack-steps،",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "وflow=grid2 لا يصلحُ إلّا مع أربعِ نقاط، وflow=stack لا يصلحُ إلّا مع نقطتين.",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "وإن لم تستطعْ تلخيصًا صادقًا فأجبْ بـ null وحدَها.",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "واء",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "واحد",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "واخترْ هذه المفاتيحَ بما يناسبُ هذا السؤالَ بعينِه، فالبطاقةُ تُبنى منها.",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "وجد",
+   "cat": "other"
+  },
+  {
+   "text": "وسمان لـ balance و two-days و clock-window و door-two، ووسمٌ واحدٌ لـ day-mark و page-check",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "ووسمان لـ ratio-bar و scale-cup، ولا وسمَ لـ mark-plain.",
+   "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "وَأَقِيمُوا۟ ٱلصَّلَوٰةَ وَءَاتُوا۟ ٱلزَّكَوٰةَ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "وَأَن لَّيْسَ لِلْإِنسَـٰنِ إِلَّا مَا سَعَىٰ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "وَإِذَا سَأَلَكَ عِبَادِى عَنِّى فَإِنِّى قَرِيبٌ",
+   "cat": "other"
+  },
+  {
+   "text": "وَبَشِّرِ ٱلصَّـٰبِرِينَ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "وَتَوَكَّلْ عَلَى ٱللَّهِ ۚ وَكَفَىٰ بِٱللَّهِ وَكِيلًا",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "وَقُل رَّبِّ زِدْنِى عِلْمًا",
+   "cat": "other"
+  },
+  {
+   "text": "وَلَا تَتَمَنَّوْا۟ مَا فَضَّلَ ٱللَّهُ بِهِۦ بَعْضَكُمْ عَلَىٰ بَعْضٍ ۚ لِّلرِّجَالِ نَصِيبٌ مِّمَّا ٱكْتَسَبُوا۟ ۖ وَلِلنِّسَآءِ نَصِيبٌ مِّمَّا ٱكْتَسَبْنَ ۚ وَسْـَٔلُوا۟ ٱللَّهَ مِن فَضْلِهِۦٓ ۗ إِنَّ ٱللَّهَ كَانَ بِكُلِّ شَىْءٍ عَلِيمًا",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "وَلَا تَهِنُوا۟ وَلَا تَحْزَنُوا۟ وَأَنتُمُ ٱلْأَعْلَوْنَ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "وَمَا تَوْفِيقِىٓ إِلَّا بِٱللَّهِ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "وَمَن يَتَوَكَّلْ عَلَى ٱللَّهِ فَهُوَ حَسْبُهُۥٓ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "وَمَن يَتَّقِ ٱللَّهَ يَجْعَل لَّهُۥ مَخْرَجًا",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ",
+   "cat": "other"
+  },
+  {
+   "text": "وَٱسْتَعِينُوا۟ بِٱلصَّبْرِ وَٱلصَّلَوٰةِ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "وَٱلذَّٰكِرِينَ ٱللَّهَ كَثِيرًا وَٱلذَّٰكِرَٰتِ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "وَٱللَّهُ يُحِبُّ ٱلصَّـٰبِرِينَ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "ى",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "ي",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "يا",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "ياء",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "يس",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "يساوي",
+   "cat": "speech-formatter"
+  },
+  {
+   "text": "يوسف",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "يونس",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "يَبْدُو أَنَّ الاتِّصَالَ ضَعِيفٌ الآن. تَحَقَّقِي مِنَ الإِنْتَرْنِت وَحَاوِلِي ثَانِيَة.",
+   "cat": "other"
+  },
+  {
+   "text": "يَبْدُو أَنَّ الاتِّصَالَ ضَعِيفٌ الآن. تَحَقَّقْ مِنَ الإِنْتَرْنِت وَحَاوِلْ ثَانِيَة.",
+   "cat": "other"
+  },
+  {
+   "text": "يَبْدُو أَنَّ الخَادِمَ مَشْغُولٌ الآن. حَاوِلِي مَرَّةً ثَانِيَة بَعْدَ قَلِيل.",
+   "cat": "other"
+  },
+  {
+   "text": "يَبْدُو أَنَّ الخَادِمَ مَشْغُولٌ الآن. حَاوِلْ مَرَّةً ثَانِيَة بَعْدَ قَلِيل.",
+   "cat": "other"
+  },
+  {
+   "text": "يَـٰبَنِىَّ ٱذْهَبُوا۟ فَتَحَسَّسُوا۟ مِن يُوسُفَ وَأَخِيهِ وَلَا تَا۟يْـَٔسُوا۟ مِن رَّوْحِ ٱللَّهِ ۖ إِنَّهُۥ لَا يَا۟يْـَٔسُ مِن رَّوْحِ ٱللَّهِ إِلَّا ٱلْقَوْمُ ٱلْكَـٰفِرُونَ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "ً",
+   "cat": "other"
+  },
+  {
+   "text": "ٔ",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "٠",
+   "cat": "other"
+  },
+  {
+   "text": "٠١٢٣٤٥٦٧٨٩",
+   "cat": "other"
+  },
+  {
+   "text": "١١٤",
+   "cat": "other"
+  },
+  {
+   "text": "١٢٠",
+   "cat": "other"
+  },
+  {
+   "text": "١٣٩",
+   "cat": "other"
+  },
+  {
+   "text": "١٤٣",
+   "cat": "other"
+  },
+  {
+   "text": "١٤٦",
+   "cat": "other"
+  },
+  {
+   "text": "١٥٢",
+   "cat": "other"
+  },
+  {
+   "text": "١٥٣",
+   "cat": "other"
+  },
+  {
+   "text": "١٥٥",
+   "cat": "other"
+  },
+  {
+   "text": "١٧٣",
+   "cat": "other"
+  },
+  {
+   "text": "١٨٦",
+   "cat": "other"
+  },
+  {
+   "text": "١٩٥",
+   "cat": "other"
+  },
+  {
+   "text": "٢",
+   "cat": "other"
+  },
+  {
+   "text": "٢٠",
+   "cat": "other"
+  },
+  {
+   "text": "٢٠١",
+   "cat": "other"
+  },
+  {
+   "text": "٢٨",
+   "cat": "other"
+  },
+  {
+   "text": "٣",
+   "cat": "other"
+  },
+  {
+   "text": "٣٢",
+   "cat": "other"
+  },
+  {
+   "text": "٣٩",
+   "cat": "other"
+  },
+  {
+   "text": "٤",
+   "cat": "other"
+  },
+  {
+   "text": "٤٣",
+   "cat": "other"
+  },
+  {
+   "text": "٤٥",
+   "cat": "other"
+  },
+  {
+   "text": "٥٦",
+   "cat": "other"
+  },
+  {
+   "text": "٦",
+   "cat": "other"
+  },
+  {
+   "text": "٦٢",
+   "cat": "other"
+  },
+  {
+   "text": "٦٤",
+   "cat": "other"
+  },
+  {
+   "text": "٨٧",
+   "cat": "other"
+  },
+  {
+   "text": "٨٨",
+   "cat": "other"
+  },
+  {
+   "text": "٪) — تخطّينا Haiku",
+   "cat": "other"
+  },
+  {
+   "text": "٪) — نَستدعي Haiku للضبط",
+   "cat": "other"
+  },
+  {
+   "text": "٫",
+   "cat": "other"
+  },
+  {
+   "text": "ٰ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "ٱ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "۝",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "۟۠",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "ۥ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "ۦ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "ۧ",
+   "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "۰۱۲۳۴۵۶۷۸۹",
+   "cat": "other"
+  },
+  {
+   "text": "🛠️ تعذّر تحويل كلامك إلى نصّ (رمز",
+   "cat": "other"
+  }
+ ]
+}
