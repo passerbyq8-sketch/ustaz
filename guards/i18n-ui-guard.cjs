@@ -360,7 +360,7 @@ async function partA() {
   console.log('\n=== A. THE DICTIONARIES ===');
   const c = buildContext({ seed: {} });
   const langs = plain(c.grab('EZ_LANGS') || []);
-  eq('the languages offered are the declared rows: ar, en, and fa (a file, not inline)', langs, ['ar', 'en', 'fa']);
+  eq('the languages offered are the declared rows: ar, en, fa and fr (files, not inline)', langs, ['ar', 'en', 'fa', 'fr']);
   ok('...and no third language is declared anywhere in the block',
     !/EZ_I18N\s*\.\s*(?!ar\b|en\b)[a-z]{2}\b/.test(rawCode));
 
@@ -641,8 +641,8 @@ async function partB4() {
   const cases = [
     ['an Arabic device', { languages: ['ar-KW'], language: 'ar-KW' }, { ar: 'true', en: 'false' }],
     ['an English device', { languages: ['en-US'], language: 'en-US' }, { ar: 'false', en: 'true' }],
-    ['a device in a language the table does not have', { languages: ['fr-FR'], language: 'fr-FR' }, { ar: 'true', en: 'false' }],
-    ['a French device that also lists English', { languages: ['fr-FR', 'en-GB'], language: 'fr-FR' }, { ar: 'false', en: 'true' }],
+    ['a device in a language the table does not have (Esperanto: it will never be a row)', { languages: ['eo'], language: 'eo' }, { ar: 'true', en: 'false' }],
+    ['an Esperanto device that also lists English', { languages: ['eo', 'en-GB'], language: 'eo' }, { ar: 'false', en: 'true' }],
     ['an environment that reports no language at all', {}, { ar: 'true', en: 'false' }],
   ];
   for (const [name, nav, want] of cases) {
@@ -732,7 +732,7 @@ async function partC() {
   await tick(60);
   eq('and back again', [d.getAttribute('lang'), d.getAttribute('dir')], ['en', 'ltr']);
   eq('...persisted', c.store.getItem(S.LANG_KEY), 'en');
-  c.grab("ezLangSet('fr')");
+  c.grab("ezLangSet('eo')");
   eq('a language that is not offered is refused outright', c.grab('ezLangGet()'), 'en');
   eq('...and nothing was written for it', c.store.getItem(S.LANG_KEY), 'en');
 
@@ -874,7 +874,7 @@ async function partD0() {
   eq('...each a real button', items.filter((b) => b.tagName !== 'BUTTON').length, 0);
   eq('...none of them a submit', items.filter((b) => b.getAttribute('type') !== 'button').length, 0);
   eq('...each declaring option semantics', items.filter((b) => b.getAttribute('role') !== 'option').length, 0);
-  eq('...with the current one marked selected', items.map((b) => b.getAttribute('aria-selected')), ['true', 'false', 'false']);
+  eq('...with the current one marked selected', items.map((b) => b.getAttribute('aria-selected')), ['true', 'false', 'false', 'false']);
   eq('...and no profile was created by opening it', c.store.getItem('child_profile'), null);
 
   // ar -> en
@@ -1307,7 +1307,7 @@ async function partD() {
 
   console.log('\n=== D3. THE LIST IS EXTENSIBLE ===');
   const list = plain(c.grab('EZ_LANGUAGES') || []);
-  eq('the offer is a data list', list.map((l) => l.code), ['ar', 'en', 'fa']);
+  eq('the offer is a data list', list.map((l) => l.code), ['ar', 'en', 'fa', 'fr']);
   eq('...every entry carries a native name', list.filter((l) => !String(l.nativeName || '').trim()), []);
   eq('...a short label', list.filter((l) => !String(l.shortLabel || '').trim()), []);
   eq('...and a direction', list.filter((l) => ['rtl', 'ltr'].indexOf(l.dir) === -1), []);

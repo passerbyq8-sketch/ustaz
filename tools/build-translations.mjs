@@ -1,12 +1,12 @@
 // tools/build-translations.mjs -- refreshes the published translation snapshots the language layer serves.
-//   node tools/build-translations.mjs <lang> [outDir]      (lang: en, fa)
+//   node tools/build-translations.mjs <lang> [outDir]      (lang: en, fa, fr)
 // Sources and their PUBLISHED conditions (kept in each file's `meta`, and shown on every card the reader sees):
 //   quranenc.com  -- no modification/addition/deletion; publisher + source + version number shown; latest version.
 //   hadeethenc.com, terminologyenc.com -- free reference; publisher, source and fetch date are kept in the same way.
 // The files are SNAPSHOTS: re-run this tool to bring them to the latest published release (the version is read from the API).
 import fs from 'node:fs'; import path from 'node:path'; import zlib from 'node:zlib';
 const lang = process.argv[2] || 'en'; const out = process.argv[3] || 'lib/data/translations';
-const QKEY = { en: 'english_saheeh', fa: 'persian_ih' }[lang]; if (!QKEY) throw new Error('no Quran translation chosen for ' + lang);
+const QKEY = { en: 'english_saheeh', fa: 'persian_ih', fr: 'french_rashid' }[lang]; if (!QKEY) throw new Error('no Quran translation chosen for ' + lang);
 const J = async (u) => { for (let i = 0; i < 4; i++) { try { const r = await fetch(u, { headers: { 'user-agent': 'ezik-translation-snapshot/1' } }); if (r.ok) return await r.json(); } catch {} await new Promise(r => setTimeout(r, 500 * (i + 1))); } throw new Error('fetch failed ' + u); };
 const pool = async (items, n, fn) => { const res = new Array(items.length); let i = 0; await Promise.all(Array.from({ length: n }, async () => { while (i < items.length) { const k = i++; res[k] = await fn(items[k], k); } })); return res; };
 const gz = (o) => zlib.gzipSync(JSON.stringify(o), { level: 9 });
