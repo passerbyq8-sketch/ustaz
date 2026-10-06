@@ -194,6 +194,29 @@ const V = '﴿', W = '﴾';
     ok('the parallel path changes WHEN the work is done, not WHAT is delivered: same text out, in the same order, as the plain path', plain.text === outS.text, JSON.stringify([plain.text.slice(0, 120), outS.text.slice(0, 120)]));
   }
 
+  console.log('\n=== A TRANSLATION THAT STILL CARRIES ITS ARABIC IS NOT ONE; A PUBLISHED TRANSLATION IS PRINTED ONCE; A PHRASE IS NOT THE HADITH THAT QUOTES IT ===');
+  {
+    // (1) the model gives a paragraph of three lines back with its markers and its Arabic untouched, only a gloss added
+    const para = ['الأولى: «لا إله إلا الله وحده لا شريك له» معنى هذه الكلمة عظيم جدا في الدين', 'الثانية: «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى» معنى الحديث ظاهر للجميع', 'الثالثة: ما بعد ذلك من الكلام يوضح المقصود من الباب كله بلا حاجة إلى زيادة'].join('\n');
+    const calls = [];
+    const lazy = async ({ user }) => {
+      const arr = JSON.parse(user.split('INPUT:\n')[1]); calls.push(arr.length);
+      if (arr.length === 1) return { ok: true, text: JSON.stringify([arr[0] + ' (gloss)']) };      // the whole-paragraph call: Arabic given back
+      return { ok: true, text: JSON.stringify(arr.map((s) => 'EN ' + (s.match(/\[\[[QAI]\d+\]\]/g) || []).join(' '))) };   // line by line: really translated
+    };
+    const o1 = await A.translateAnswer(para + '\n\n', { lang: 'en', translate: lazy });
+    ok('a unit that comes back with its Arabic still in it is asked again line by line, and the second answer is used', calls.some((n) => n === 3) && !/[ء-ي]/.test(o1.text.replace(/«[^»]*»/g, '')) && o1.stats.unitsKeptArabic === 0, JSON.stringify([calls, o1.stats.unitsKeptArabic, o1.text.slice(0, 160)]));
+    const stubborn = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => s + ' (gloss)')) }; };
+    const o2 = await A.translateAnswer(para + '\n\n', { lang: 'en', translate: stubborn });
+    ok('...and a model that never really translates leaves the paragraph in Arabic as it was, counted, never half-translated', o2.stats.unitsKeptArabic + o2.stats.batchesKeptArabic >= 1 && !/\(gloss\)/.test(o2.text), JSON.stringify(o2.stats));
+    // (2) the same verse quoted in three pieces prints its translation once
+    const verseFrag = ['«لا تأخذه سنة ولا نوم»', '«له ما في السماوات وما في الأرض»', '«من ذا الذي يشفع عنده إلا بإذنه»'];
+    const o3 = await A.translateAnswer('الآية العظيمة: ' + verseFrag.join(' ثم ') + ' كلها من آية الكرسي في سورة البقرة.', { lang: 'en', translate: echo });
+    ok('a verse quoted in pieces carries its published translation ONCE in the answer, not once per piece', (o3.text.match(/QuranEnc\.com/g) || []).length <= 1 && verseFrag.every((q) => o3.text.includes(q)), (o3.text.match(/QuranEnc\.com/g) || []).length + ' x');
+    // (3) four words of the Throne Verse are not the hadith of Ubayy that quotes them
+    ok('a short phrase that merely occurs inside a long hadith is not given that hadith\'s translation', P.findHadith('en', 'الله لا إله إلا هو الحي القيوم') === null);
+  }
+
   console.log('\n=== h4 THE GATE TRANSLATES THE FINAL ANSWER ===');
   const sse = (txt, extra) => 'data: ' + JSON.stringify({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: txt } }) + '\n\n' + (extra || '') + 'data: {"type":"message_stop"}\n\n';
   const fakeInner = (body) => async (req, res) => { res.status(200); res.setHeader('Content-Type', 'text/event-stream; charset=utf-8'); res.setHeader('X-Murabbi-Remaining', '39'); res.flushHeaders && res.flushHeaders(); res.write(body); res.end(); };
