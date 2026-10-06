@@ -287,6 +287,44 @@ const V = '﴿', W = '﴾';
     ok('and a text that is not one of the fixed ones has no rendition (the lookup never guesses)', F.fixedRendition('en', 'any other text') === null && F.fixedRendition('xx', PR.PORN_REFUSAL_TEXT) === null);
   }
 
+  console.log('\n=== THE MUSHAF LAB AND THE GAMES SPEAK THE READER\'S LANGUAGE FOR THEIR FRAME ONLY ===');
+  {
+    const { parseHTML } = require('linkedom'); const vm = require('vm');
+    const labSrc = read('mushaf-lab/lab-i18n.js');
+    const labApp = read('mushaf-lab/app.js') + read('mushaf-lab/index.html');
+    const ENkeys = (() => { const a = labSrc.indexOf('var EN = {'); const b = labSrc.indexOf('\n  };', a); return Object.keys(vm.runInNewContext('(' + labSrc.slice(a + 9, b + 4) + ')')); })();
+    ok('every phrase of the lab\'s dictionary is a phrase the lab really writes (a mistyped key would leave its Arabic on the screen)', ENkeys.length > 150 && ENkeys.every((k) => labApp.includes(k)), ENkeys.filter((k) => !labApp.includes(k)).join(' | '));
+    ok('the lab loads its localizer before its own code, and the worker keeps it offline', /<script src="lab-i18n\.js\?v=\d+"><\/script>\s*<script src="app\.js\?v=\d+">/.test(read('mushaf-lab/index.html')) && /'\/mushaf-lab\/lab-i18n\.js\?v=\d+'/.test(read('sw.js')));
+    const runLab = (code) => {
+      const { window, document } = parseHTML('<!doctype html><html lang="ar" dir="rtl"><head><title>مصحف عزك — المختبر</title></head><body>'
+        + '<nav aria-label="القوائم"><button><b>الفهرس</b></button><button><b id="navPage">٣</b>انتقال</button></nav>'
+        + '<main id="main"><div id="spread"><span>٣</span><span>الفهرس</span></div></main>'
+        + '<div id="sheet"><h2>الإعدادات</h2><p>مكّيّة، ٧ آية</p><p>١. سورة الفاتحة</p><button>حفظ</button><input placeholder="اكتبْ كلمةً أو أكثر"><p>تفسير ابن كثير</p></div></body></html>');
+      const store = code ? { ezik_ui_lang_v1: code } : {};
+      const ctx = vm.createContext({ document, localStorage: { getItem: (k) => (k in store ? store[k] : null) }, console, window });
+      vm.runInContext(labSrc, ctx);
+      const q = (s) => document.querySelector(s);
+      return { nav: q('nav button b').textContent, page: q('#navPage').textContent, go: q('nav button:nth-child(2)').textContent.replace(/\s+/g, ' '), spreadNum: q('#spread span').textContent, spreadWord: q('#spread span:nth-child(2)').textContent,
+        h2: q('#sheet h2').textContent, count: q('#sheet p').textContent, list: q('#sheet p:nth-of-type(2)').textContent, btn: q('#sheet button').textContent, ph: q('#sheet input').getAttribute('placeholder'), book: q('#sheet p:nth-of-type(3)').textContent, lang: document.documentElement.getAttribute('lang'), dir: document.documentElement.getAttribute('dir'), title: document.title, aria: q('nav').getAttribute('aria-label') };
+    };
+    const en = runLab('en'); const ar = runLab('ar'); const none = runLab(null);
+    ok('in English the lab\'s frame is English, numbers are Latin, a surah name inside a phrase stays Arabic, and the title and accessible names follow',
+      en.nav === 'Index' && en.page === '3' && /Go to/.test(en.go) && en.h2 === 'Settings' && en.count === 'Meccan, 7 ayahs' && en.list === '1. Surah الفاتحة' && en.btn === 'Save' && en.ph === 'Type one word or more' && en.title === 'Ezik Mushaf — Lab' && en.aria === 'Menus' && en.lang === 'en', JSON.stringify(en));
+    ok('...and the Mushaf itself, a tafsir book\'s name and the right-to-left direction of the document are not touched', en.spreadNum === '٣' && en.spreadWord === 'الفهرس' && en.book === 'تفسير ابن كثير' && en.dir === 'rtl', JSON.stringify([en.spreadNum, en.spreadWord, en.book, en.dir]));
+    ok('in Arabic (or with nothing stored) the lab is exactly what it was', JSON.stringify(ar) === JSON.stringify(none) && ar.nav === 'الفهرس' && ar.page === '٣' && ar.h2 === 'الإعدادات' && ar.lang === 'ar' && ar.title === 'مصحف عزك — المختبر', JSON.stringify(ar));
+    // the games: numbers with their units
+    const qsrc = read('quest-i18n.js');
+    const runQuest = (code, nodeText) => {
+      const { document } = parseHTML('<!doctype html><html lang="ar" dir="rtl"><head></head><body><span id="a">' + nodeText + '</span></body></html>');
+      const store = code ? { ezik_ui_lang_v1: code } : {};
+      vm.runInContext(qsrc, vm.createContext({ document, localStorage: { getItem: (k) => (k in store ? store[k] : null) }, console }));
+      return document.querySelector('#a').textContent;
+    };
+    const cases = [['١٢ ثانية', '12 seconds'], ['١ ثانية', '1 second'], ['٦ رايات', '6 flags'], ['٣ أسئلة', '3 questions'], ['٦ فئات', '6 categories'], ['المختار: ١٢ راية لكلّ فريق', 'Chosen: 12 flags per team'], ['من ١ إلى ١٠', 'from 1 to 10'], ['لاعب ٢', 'Player 2']];
+    ok('the games write a number with its unit in English with Latin digits', cases.every(([a, b]) => runQuest('en', a) === b), JSON.stringify(cases.map(([a]) => runQuest('en', a))));
+    ok('...and a category name or a question of the bank is left exactly as it is, and in Arabic nothing changes', runQuest('en', 'تاريخ الكويت') === 'تاريخ الكويت' && runQuest('en', 'كم عدد أركان الإسلام؟') === 'كم عدد أركان الإسلام؟' && runQuest('ar', '١٢ ثانية') === '١٢ ثانية');
+  }
+
   console.log('\n=== h7 NO NEW PROVIDER, NO NEW KEY ===');
   const langSrc = fs.readdirSync(path.join(REPO, 'lib', 'lang')).filter((f) => /\.js$/.test(f)).map((f) => read('lib/lang/' + f)).join('\n');
   const urls = [...new Set(langSrc.match(/https?:\/\/[A-Za-z0-9.-]+/g) || [])].filter((u) => !/quranenc|hadeethenc|terminologyenc/.test(u));

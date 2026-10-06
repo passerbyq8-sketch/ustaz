@@ -6,6 +6,10 @@
    "cat": "scripture-or-vocalised-data"
   },
   {
+   "text": "([0-9٠-٩۰-۹.,٫٬]+)",
+   "cat": "surah-map-or-normaliser"
+  },
+  {
    "text": "(السقف من:",
    "cat": "other"
   },
@@ -106,10 +110,6 @@
    "cat": "speech-formatter"
   },
   {
-   "text": "، آية",
-   "cat": "other"
-  },
-  {
    "text": "، الآيات",
    "cat": "speech-formatter"
   },
@@ -127,10 +127,6 @@
   },
   {
    "text": "آلاف",
-   "cat": "speech-formatter"
-  },
-  {
-   "text": "آية",
    "cat": "speech-formatter"
   },
   {
@@ -1716,10 +1712,6 @@
   {
    "text": "ٔ",
    "cat": "surah-map-or-normaliser"
-  },
-  {
-   "text": "٠",
-   "cat": "other"
   },
   {
    "text": "٠١٢٣٤٥٦٧٨٩",

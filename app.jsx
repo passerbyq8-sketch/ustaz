@@ -22,8 +22,8 @@ const EZ_LANG_KEY = 'ezik_ui_lang_v1';
 // one-character badge the menu shows beside it. No flag anywhere: Arabic is not one country's
 // language and neither is English.
 const EZ_LANGUAGES = [
-  { code: 'ar', nativeName: '\u0627\u0644\u0639\u0631\u0628\u064a\u0629', shortLabel: '\u0639', dir: 'rtl', digits: 'arab-indic', script: 'arab', locale: 'ar' },
-  { code: 'en', nativeName: 'English', shortLabel: 'EN', dir: 'ltr', digits: 'latn', script: 'latn', locale: 'en' },
+  { code: 'ar', nativeName: '\u0627\u0644\u0639\u0631\u0628\u064a\u0629', shortLabel: '\u0639', dir: 'rtl', digits: 'arab-indic', script: 'arab', locale: 'ar', meridiem: ['\u0635', '\u0645'] },
+  { code: 'en', nativeName: 'English', shortLabel: 'EN', dir: 'ltr', digits: 'latn', script: 'latn', locale: 'en', meridiem: ['AM', 'PM'] },
 ];
 const EZ_LANGS = EZ_LANGUAGES.map((l) => l.code);
 function ezLangEntry(code) { return EZ_LANGUAGES.filter((l) => l.code === code)[0] || EZ_LANGUAGES[0]; }
@@ -556,6 +556,9 @@ const EZ_I18N = {
     'x.653': 'تعذّر عرض المحادثة',
     'x.654': 'أعد المحاولة',
     'x.655': 'انسخ التفاصيل',
+    'x.656': 'آية',
+    'x.657': '(افتراضيّ)',
+    'p.11': '{n} آية',
     'p.1': 'سورة {a}، آية {b}',
     'p.2': 'سورة {a}، الآيات {b}–{c}',
     'p.3': 'سورة {a}',
@@ -565,7 +568,7 @@ const EZ_I18N = {
     'p.7': '🛠️ تعذّر تحويل كلامك إلى نصّ (رمز {a}). حاول مرّة أخرى.',
     'p.8': 'المحادثة طويلة ولم يبقَ متّسعٌ كافٍ لهذا الملف في هذه الرسالة (المتبقّي نحو {a} ك.ب، والملف يحتاج نحو {b} ك.ب). ابدأ محادثةً جديدة أو أرسل ملفًّا أصغر.',
     'p.9': '{a} أكبر من المسموح به الآن. الحدّ الحاليّ نحو {b} (السقف من: {c})، وحجم ملفك نحو {d}. الرجاء ملفًّا أصغر.',
-    'p.10': '{a} من {b}',
+    'p.10': '{n} من {m}',
     'f.1': 'ميغابايت',
     'f.2': 'كيلوبايت',
     'f.3': 'سعة الرسالة',
@@ -1811,6 +1814,9 @@ const EZ_I18N = {
     'x.653': 'The conversation could not be displayed',
     'x.654': 'Try again',
     'x.655': 'Copy the details',
+    'x.656': 'ayahs',
+    'x.657': '(default)',
+    'p.11': '{n} ayahs',
     'p.1': 'Surah {a}, ayah {b}',
     'p.2': 'Surah {a}, ayahs {b}–{c}',
     'p.3': 'Surah {a}',
@@ -1820,7 +1826,7 @@ const EZ_I18N = {
     'p.7': '🛠️ Turning your speech into text failed (code {a}). Try again.',
     'p.8': 'The conversation is long and there is not enough room for this file in this message (about {a} KB remaining, and the file needs about {b} KB). Start a new conversation or send a smaller file.',
     'p.9': 'The {a} is larger than allowed now. The current limit is about {b} (the ceiling comes from: {c}), and your file is about {d}. Please use a smaller file.',
-    'p.10': '{a} of {b}',
+    'p.10': '{n} of {m}',
     'f.1': 'MB',
     'f.2': 'KB',
     'f.3': 'message capacity',
@@ -4046,7 +4052,12 @@ const getSurahAyahCount = (sNum) => {
   return c;
 };
 // تحويل الأرقام إلى أرقام عربية-هندية (٠١٢…) لفواصل الآيات ۝ واللُّصوقات
-const toArabicDigits = (n) => String(n).replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+// ITEM 74: the digits of the interface language -- a column of the language table, read here and in ezNum, nowhere else. Every counter,
+// page number and clock of the interface goes through it, so the English interface shows Latin digits without a call site knowing.
+// ezScriptureDigits is the other one: the digits that stand INSIDE Arabic scripture or an Arabic sentence meant to be copied or shared
+// (a verse-end number, a reference line) are Arabic-Indic in every interface language.
+const ezScriptureDigits = (n) => String(n).replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+const toArabicDigits = (n) => (ezLangEntry(EZ_LANG).digits === 'latn' ? String(n) : ezScriptureDigits(n));
 
 // يُرجع رقم السورة (1..114) أو null. يفضّل surah_num الرقمي، ثم يبحث بالاسم.
 const resolveSurahNumber = (surahName, surahNum) => {
@@ -10627,7 +10638,7 @@ function EzikHomeArrange({ widgets, onWidgets, onClose }) {
                 aria-label={ezT('home.arrange.up') + ' ' + title}
                 className="ezhome-focus" style={i === 0 ? s.ezwidActOff : s.ezwidAct}>{ezT('home.arrange.up')}</button>
               <button type="button" onClick={() => apply(ezWidgetMove(state, w.id, 1))} disabled={i === rows.length - 1}
-                aria-label={ezT('home.arrange.down') + ' ' + title}
+                aria-label={ezT('home.arrange.down') + ' ' + ezX(title)}
                 className="ezhome-focus" style={i === rows.length - 1 ? s.ezwidActOff : s.ezwidAct}>{ezT('home.arrange.down')}</button>
             </span>
           </div>
@@ -14077,7 +14088,7 @@ let A3G_REMAIN = ezT('c.A3G_REMAIN'); // "the remaining"
 // number are interface text of the same kind as every other string here.
 const A3G_SEAL_AYAH = '\u{0648}\u{064E}\u{0671}\u{0644}\u{0630}\u{0651}\u{064E}\u{0670}\u{0643}\u{0650}\u{0631}\u{0650}\u{064A}\u{0646}\u{064E}\u{0020}\u{0671}\u{0644}\u{0644}\u{0651}\u{064E}\u{0647}\u{064E}\u{0020}\u{0643}\u{064E}\u{062B}\u{0650}\u{064A}\u{0631}\u{064B}\u{0627}\u{0020}\u{0648}\u{064E}\u{0671}\u{0644}\u{0630}\u{0651}\u{064E}\u{0670}\u{0643}\u{0650}\u{0631}\u{064E}\u{0670}\u{062A}\u{0650}';
 const A3G_SEAL = '\u{FD3F}' + A3G_SEAL_AYAH + '\u{FD3E}';
-const A3G_SEAL_REF = '\u{0633}\u{0648}\u{0631}\u{0629}' + ' ' + (SURAH_NAMES[33] || '') + '\u{060C}' + ' ' + '\u{0622}\u{064A}\u{0629}' + ' ' + toArabicDigits(35);
+const A3G_SEAL_REF = '\u{0633}\u{0648}\u{0631}\u{0629}' + ' ' + (SURAH_NAMES[33] || '') + '\u{060C}' + ' ' + '\u{0622}\u{064A}\u{0629}' + ' ' + ezScriptureDigits(35);
 let A3G_ZERO = ezT('c.A3G_ZERO'); // "count again"
 
 // NEW V2 CHROME STRINGS, and every one is written as \u{...} code-point escapes on purpose:
@@ -21191,11 +21202,11 @@ const REPLY_SERIALIZERS = {
         for (let a = f; a <= t; a++) {
           const vt = getVerseText(sNum, a);
           if (!vt) { missing = true; break; }
-          pieces.push(vt + ' \u06DD' + toArabicDigits(a));
+          pieces.push(vt + ' \u06DD' + ezScriptureDigits(a));
         }
         if (!missing) body = pieces.join(' ');
         meta = (f === 1 && t === count) ? '\u0633\u0648\u0631\u0629 ' + surahName
-          : '\u0633\u0648\u0631\u0629 ' + surahName + '\u060C \u0627\u0644\u0622\u064A\u0627\u062A ' + toArabicDigits(f) + '\u2013' + toArabicDigits(t);
+          : '\u0633\u0648\u0631\u0629 ' + surahName + '\u060C \u0627\u0644\u0622\u064A\u0627\u062A ' + ezScriptureDigits(f) + '\u2013' + ezScriptureDigits(t);
       }
     }
     if (!meta && surahName) meta = '\u0633\u0648\u0631\u0629 ' + surahName;
@@ -22531,7 +22542,7 @@ function SurahCard({ num, from, to, onPlaySurah, onStopAudio }) {
         for (let a = f; a <= t; a++) {
           const vt = getVerseText(sNum, a);
           if (!vt) { missing = true; break; }
-          pieces.push(`${vt} ۝${toArabicDigits(a)}`); // آية + رقمها داخل زخرفة نهاية الآية
+          pieces.push(`${vt} ۝${ezScriptureDigits(a)}`); // آية + رقمها داخل زخرفة نهاية الآية
         }
         if (missing) { setState('fail'); return; }
         setBody(pieces.join(' '));
@@ -22543,7 +22554,7 @@ function SurahCard({ num, from, to, onPlaySurah, onStopAudio }) {
 
   const metaLabel = !surahName ? ''
     : range.whole ? `سورة ${surahName}`
-    : (range.from ? `سورة ${surahName}، الآيات ${toArabicDigits(range.from)}–${toArabicDigits(range.to)}` : `سورة ${surahName}`);
+    : (range.from ? `سورة ${surahName}، الآيات ${ezScriptureDigits(range.from)}–${ezScriptureDigits(range.to)}` : `سورة ${surahName}`);
 
   const togglePlay = () => {
     if (!onPlaySurah) return;
@@ -24895,8 +24906,9 @@ function prayerClock(mins) {
   const h24 = Math.floor(t / 60);
   const mm = t % 60;
   const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
-  const two = mm < 10 ? '٠' + toArabicDigits(mm) : toArabicDigits(mm);
-  return toArabicDigits(h12) + ':' + two + ' ' + (h24 < 12 ? 'ص' : 'م');
+  const two = mm < 10 ? toArabicDigits(0) + toArabicDigits(mm) : toArabicDigits(mm);
+  const marks = ezLangEntry(EZ_LANG).meridiem || ['ص', 'م'];   // the half-day marks are a column of the language table
+  return toArabicDigits(h12) + ':' + two + ' ' + (h24 < 12 ? marks[0] : marks[1]);
 }
 // THE PREFERENCES. One record, every field checked, and a broken store reads as the shipped
 // defaults rather than as an exception on a screen.
@@ -28961,7 +28973,7 @@ function hijriToCivil(hy, hm, hd, offset) {
 }
 function hijriLabel(h) {
   if (!h || !(h.m >= 1) || !(h.m <= 12)) return '';
-  return toArabicDigits(h.d) + ' ' + HIJRI_MONTHS[h.m - 1] + ' ' + toArabicDigits(h.y) + ' ' + HIJRI_SUFFIX;
+  return toArabicDigits(h.d) + ' ' + ezX(HIJRI_MONTHS[h.m - 1]) + ' ' + toArabicDigits(h.y) + ' ' + HIJRI_SUFFIX;
 }
 // The one place the clock is read. Three local getters and nothing else — no UTC getter and no
 // toISOString, so a reader east of Greenwich sees their own day and not London's.
@@ -30174,10 +30186,10 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
               <span style={s.ezwidPanelName}>{m.label}</span>
               <span className="ez-hit" style={s.ezwidPanelActs}>
                 <button type="button" onClick={() => moveHomeSection(m.id, -1)} disabled={i === 0}
-                  aria-label={ezT('home.arrange.up') + ' ' + m.label}
+                  aria-label={ezT('home.arrange.up') + ' ' + ezX(m.label)}
                   className="ezhome-focus" style={i === 0 ? s.ezwidActOff : s.ezwidAct}>{ezT('home.arrange.up')}</button>
                 <button type="button" onClick={() => moveHomeSection(m.id, 1)} disabled={i === homeRows.length - 1}
-                  aria-label={ezT('home.arrange.down') + ' ' + m.label}
+                  aria-label={ezT('home.arrange.down') + ' ' + ezX(m.label)}
                   className="ezhome-focus" style={i === homeRows.length - 1 ? s.ezwidActOff : s.ezwidAct}>{ezT('home.arrange.down')}</button>
               </span>
             </div>
@@ -30544,7 +30556,7 @@ const pgLineTokens = (ln) => {
     const w = words[wi - 1];
     if (w === undefined) continue;                 // لا يقع — ٧٧٤٢٩/٧٧٤٢٩ مبرهَنة
     parts.push(w);
-    if (wi === words.length) parts.push('۝' + toArabicDigits(an));  // آخرُ كلمةٍ ← رقمُ الآية
+    if (wi === words.length) parts.push('۝' + ezScriptureDigits(an));  // آخرُ كلمةٍ ← رقمُ الآية
   }
   return parts;
 };
@@ -35110,7 +35122,7 @@ function ezDomIndex() {
       else if (k.indexOf('f.') === 0) idx.frags.set(a, cur[k]);
       else if (k.indexOf('p.') === 0) {
         const names = [];
-        const src = a.replace(/[.*+?^$()|[\]\\]/g, '\\$&').replace(/\{([a-z])\}/g, (m, n) => { names.push(n); return '(.+?)'; });
+        const src = a.replace(/[.*+?^$()|[\]\\]/g, '\\$&').replace(/\{([a-z])\}/g, (m, n) => { names.push(n); return (n === 'n' || n === 'm') ? '([0-9٠-٩۰-۹.,٫٬]+)' : '(.+?)'; });   // {n} and {m} are NUMBERS: "{n} من {m}" must never read an Arabic sentence that merely contains the word
         try { pats.push({ re: new RegExp('^' + src + '$', 's'), names, out: cur[k], longest: a.length }); } catch (e) {}
       }
     });

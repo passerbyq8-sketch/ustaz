@@ -320,6 +320,7 @@ const IDLE = [
   // mushaf-lab/ and fails when this list stops covering them.
   '/mushaf-lab/index.html',
   '/mushaf-lab/app.js?v=7',
+  '/mushaf-lab/lab-i18n.js?v=1',
   '/mushaf-lab/style.css?v=7',
   '/mushaf-lab/manifest.webmanifest',
   '/mushaf-lab/icon-192.png',
