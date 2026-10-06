@@ -1660,7 +1660,7 @@
      first-run control computed direction:rtl with document.dir already "ltr".
      One namespaced override, keyed off the same attribute the boot script sets, so Arabic is
      byte-for-byte what it was and only the English document turns. */
-  :root[data-ez-lang="en"] body{direction:ltr}
+  :root[dir="ltr"] body{direction:ltr}
   .ezlang-wrap{position:relative;display:inline-block}
   /* The first-run placement. It was pinned OUT OF FLOW in the card's top corner first, and
      that was measured and rejected: the crest is centred and starts immediately under the
@@ -1690,7 +1690,7 @@
   /* The composer is the one control that pins its own writing direction inline, because the
      app shipped Arabic-only. In English it has to follow the document instead. Scoped to the
      English document and to that one element; nothing else in the file is reached. */
-  :root[data-ez-lang="en"] .ezc-dock textarea{direction:ltr}
+  :root[dir="ltr"] .ezc-dock textarea{direction:ltr}
   /* S116 -- the rail variant. Geometry only: it borrows every colour from the base rule, and
      the rail is 40px tall, so the pill is tightened to sit inside it rather than stretch it. */
   .ezlang-btn.is-onb{min-height:30px;padding:4px 9px;gap:5px;font-size:12px;white-space:nowrap}

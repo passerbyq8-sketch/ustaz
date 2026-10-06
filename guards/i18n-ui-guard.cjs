@@ -769,8 +769,8 @@ async function partC() {
   // on a real browser (the first-run control computed direction:rtl with document.dir "ltr"), and
   // it is pinned here so it cannot come back.
   ok('body still declares the Arabic direction, so Arabic is unchanged', /body\s*\{[^}]*direction:\s*rtl/.test(css));
-  ok('...and the English document turns the layout with it',
-    /:root\[data-ez-lang="en"\]\s*body\s*\{[^}]*direction:\s*ltr/.test(css));
+  ok('...and every left-to-right document (English, French, ...) turns the layout with it: the rule is keyed on the dir the boot script sets, not on one language',
+    /:root\[dir="ltr"\]\s*body\s*\{[^}]*direction:\s*ltr/.test(css) && !/:root\[data-ez-lang="[a-z]+"\]\s*body\s*\{[^}]*direction:\s*ltr/.test(css));
   ok('...and declares no colour of its own — every value is an existing token',
     langCss.length > 0 && !/#[0-9a-fA-F]{3,8}\b/.test(langCss.replace(/rgba\(0,0,0,[0-9.]+\)/g, '')));
   ok('...and names no bare element or universal selector',
