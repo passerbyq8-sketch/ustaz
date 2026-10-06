@@ -227,6 +227,11 @@ const V = '﴿', W = '﴾';
     const stubborn = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => s + ' (gloss)')) }; };
     const o2 = await A.translateAnswer(para + '\n\n', { lang: 'en', translate: stubborn });
     ok('...and a model that never really translates leaves the paragraph in Arabic as it was, counted, never half-translated', o2.stats.unitsKeptArabic + o2.stats.batchesKeptArabic >= 1 && !/\(gloss\)/.test(o2.text), JSON.stringify(o2.stats));
+    // a scholar's text may keep the verse it quotes in Arabic beside its own translation: that is not a reply that kept most of what it was given
+    const quoting = 'قال الشيخ في هذه المسألة كلاما طويلا مفصلا يشرح فيه الحكم وأدلته ثم ذكر قول الله تعالى وأقيموا الصلاة وآتوا الزكاة وبين وجه الدلالة منها وما قاله أهل العلم في ذلك كله';
+    const keeper = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => 'The Sheikh discussed this at length and then cited: ' + s.slice(-40))) }; };
+    const o4 = await A.translateAnswer(quoting + '\n\n', { lang: 'en', translate: keeper });
+    ok('a translation that keeps a short quotation in Arabic (a third of the source at most) is accepted, not asked again and not delivered in Arabic', o4.stats.unitsKeptArabic === 0 && o4.stats.batchesKeptArabic === 0 && o4.stats.batchRetries === 0 && /The Sheikh discussed/.test(o4.text), JSON.stringify(o4.stats));
     // (2) the same verse quoted in three pieces prints its translation once
     const verseFrag = ['«لا تأخذه سنة ولا نوم»', '«له ما في السماوات وما في الأرض»', '«من ذا الذي يشفع عنده إلا بإذنه»'];
     const o3 = await A.translateAnswer('الآية العظيمة: ' + verseFrag.join(' ثم ') + ' كلها من آية الكرسي في سورة البقرة.', { lang: 'en', translate: echo });
