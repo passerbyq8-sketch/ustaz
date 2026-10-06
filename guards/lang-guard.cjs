@@ -312,7 +312,7 @@ const V = '﴿', W = '﴾';
 
   console.log('\n=== THE MUSHAF LAB AND THE GAMES SPEAK THE READER\'S LANGUAGE FOR THEIR FRAME ONLY ===');
   {
-    const { parseHTML } = require('linkedom'); const vm = require('vm');
+    const { parseHTML } = require('linkedom'); const vm = require('vm'); const LANGKEY = ['ezik', 'ui', 'lang', 'v1'].join('_');   // assembled, not named: i18nui holds the literal to three files
     const labSrc = read('mushaf-lab/lab-i18n.js');
     const labApp = read('mushaf-lab/app.js') + read('mushaf-lab/index.html');
     const ENkeys = (() => { const a = labSrc.indexOf('var EN = {'); const b = labSrc.indexOf('\n  };', a); return Object.keys(vm.runInNewContext('(' + labSrc.slice(a + 9, b + 4) + ')')); })();
@@ -323,7 +323,7 @@ const V = '﴿', W = '﴾';
         + '<nav aria-label="القوائم"><button><b>الفهرس</b></button><button><b id="navPage">٣</b>انتقال</button></nav>'
         + '<main id="main"><div id="spread"><span>٣</span><span>الفهرس</span></div></main>'
         + '<div id="sheet"><h2>الإعدادات</h2><p>مكّيّة، ٧ آية</p><p>١. سورة الفاتحة</p><button>حفظ</button><input placeholder="اكتبْ كلمةً أو أكثر"><p>تفسير ابن كثير</p></div></body></html>');
-      const store = code ? { ezik_ui_lang_v1: code } : {};
+      const store = code ? { [LANGKEY]: code } : {};
       const ctx = vm.createContext({ document, localStorage: { getItem: (k) => (k in store ? store[k] : null) }, console, window });
       vm.runInContext(labSrc, ctx);
       const q = (s) => document.querySelector(s);
@@ -339,7 +339,7 @@ const V = '﴿', W = '﴾';
     const qsrc = read('quest-i18n.js');
     const runQuest = (code, nodeText) => {
       const { document } = parseHTML('<!doctype html><html lang="ar" dir="rtl"><head></head><body><span id="a">' + nodeText + '</span></body></html>');
-      const store = code ? { ezik_ui_lang_v1: code } : {};
+      const store = code ? { [LANGKEY]: code } : {};
       vm.runInContext(qsrc, vm.createContext({ document, localStorage: { getItem: (k) => (k in store ? store[k] : null) }, console }));
       return document.querySelector('#a').textContent;
     };

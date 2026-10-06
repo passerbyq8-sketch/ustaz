@@ -4087,7 +4087,7 @@ const getSurahAyahCount = (sNum) => {
 // ezScriptureDigits is the other one: the digits that stand INSIDE Arabic scripture or an Arabic sentence meant to be copied or shared
 // (a verse-end number, a reference line) are Arabic-Indic in every interface language.
 const ezScriptureDigits = (n) => String(n).replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
-const toArabicDigits = (n) => (ezLangEntry(EZ_LANG).digits === 'latn' ? String(n) : ezScriptureDigits(n));
+const toArabicDigits = (n) => { try { if (ezLangEntry(EZ_LANG).digits === 'latn') return String(n); } catch (e) {} return String(n).replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]); };
 
 // يُرجع رقم السورة (1..114) أو null. يفضّل surah_num الرقمي، ثم يبحث بالاسم.
 const resolveSurahNumber = (surahName, surahNum) => {
@@ -24937,7 +24937,7 @@ function prayerClock(mins) {
   const mm = t % 60;
   const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
   const two = mm < 10 ? toArabicDigits(0) + toArabicDigits(mm) : toArabicDigits(mm);
-  const marks = ezLangEntry(EZ_LANG).meridiem || ['ص', 'م'];   // the half-day marks are a column of the language table
+  const marks = (() => { try { return ezLangEntry(EZ_LANG).meridiem; } catch (e) { return null; } })() || ['ص', 'م'];   // the half-day marks are a column of the language table
   return toArabicDigits(h12) + ':' + two + ' ' + (h24 < 12 ? marks[0] : marks[1]);
 }
 // THE PREFERENCES. One record, every field checked, and a broken store reads as the shipped
@@ -29003,7 +29003,7 @@ function hijriToCivil(hy, hm, hd, offset) {
 }
 function hijriLabel(h) {
   if (!h || !(h.m >= 1) || !(h.m <= 12)) return '';
-  return toArabicDigits(h.d) + ' ' + ezT('hijri.m' + h.m) + ' ' + toArabicDigits(h.y) + ' ' + HIJRI_SUFFIX;
+  return toArabicDigits(h.d) + ' ' + (typeof ezT === 'function' ? ezT('hijri.m' + h.m) : HIJRI_MONTHS[h.m - 1]) + ' ' + toArabicDigits(h.y) + ' ' + HIJRI_SUFFIX;
 }
 // The one place the clock is read. Three local getters and nothing else — no UTC getter and no
 // toISOString, so a reader east of Greenwich sees their own day and not London's.
