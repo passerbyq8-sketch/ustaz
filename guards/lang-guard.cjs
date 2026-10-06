@@ -403,6 +403,15 @@ const V = '﴿', W = '﴾';
   }
   ctxL.setLang('ar');
   ok('in Arabic the lookup never answers: Arabic is never rewritten', ctxL.x('أرسِل') === 'أرسِل');
+  // THE DIGITS AND THE CLOCK ARE COLUMNS OF THE TABLE: the interface's digits follow the language, scripture's never do
+  {
+    const digSrc = sliceBetween('const ezScriptureDigits', '\n') + '\n' + sliceBetween('const toArabicDigits', '\n') + '\n' + sliceBetween('function prayerClock(mins) {', '\n}\n') + '\n}\n';
+    const mk = (lang) => { const c = vm.createContext({ EZ_LANG: lang, ezLangEntry: (code) => ({ digits: code === 'en' ? 'latn' : 'arab-indic', meridiem: code === 'en' ? ['AM', 'PM'] : ['ص', 'م'] }) }); vm.runInContext(digSrc, c); vm.runInContext('this.dig = (n) => toArabicDigits(n); this.sc = (n) => ezScriptureDigits(n); this.clock = (m) => prayerClock(m);', c); return c; };
+    const cEn = mk('en'), cAr = mk('ar');
+    ok('the interface\'s digits follow the language (Latin in English, Arabic-Indic in Arabic), and scripture\'s digits are Arabic-Indic in both', cEn.dig(2026) === '2026' && cAr.dig(2026) === '٢٠٢٦' && cEn.sc(7) === '٧' && cAr.sc(7) === '٧');
+    ok('the prayer clock writes its digits and its half-day marks from the language\'s row', cEn.clock(4 * 60 + 21) === '4:21 AM' && cEn.clock(15 * 60 + 5) === '3:05 PM' && cAr.clock(4 * 60 + 21) === '٤:٢١ ص', cEn.clock(4 * 60 + 21) + ' | ' + cAr.clock(4 * 60 + 21));
+    ok('the English row of the table carries the half-day marks, and no scripture site writes its verse numbers with the interface\'s digits', /code: 'en'[^}]*meridiem: \['AM', 'PM'\]/.test(appSrc) && !/۝['`$ ]*[{+ ]*toArabicDigits\(/.test(appSrc) && !/۝\$\{toArabicDigits/.test(appSrc));
+  }
 
   console.log('\n=== h1 (again) A TRIAL RIGHT-TO-LEFT LANGUAGE IS ONLY A ROW ===');
   const trial = { code: 'zz', name: 'Trial', dir: 'rtl', script: 'arab', digits: 'arab-ext', answerTranslation: true };
