@@ -241,6 +241,15 @@ const V = '﴿', W = '﴾';
     ok('an Arabic question builds no speculator at all (h9: Arabic is today\'s road)', made === 0);
   }
 
+  console.log('\n=== THE REPLY OF THE TRANSLATOR IS READ STRICTLY, BUT A REPLY THAT IS THE RIGHT ARRAY WITH BAD ESCAPING IS NOT LOST ===');
+  {
+    ok('a valid array of the right length is read as it is', JSON.stringify(M.parseStringArray('["a","b"]', 2)) === '["a","b"]');
+    ok('a raw line break inside a string (not valid JSON) is read, with the line break kept', JSON.stringify(M.parseStringArray('["line one\nline two"]', 1)) === JSON.stringify(['line one\nline two']));
+    ok('one string with unescaped quotation marks inside it is read as that one string', JSON.stringify(M.parseStringArray('["He said "peace" to them"]', 1)) === JSON.stringify(['He said "peace" to them']));
+    ok('...and the same text asked as two strings is NOT guessed at (the repair is only for one string asked, one given)', M.parseStringArray('["He said "peace" to them", "and left"]', 2) === null);
+    ok('the wrong count, a non-string member, prose with no array, and an empty reply are all refused', M.parseStringArray('["a"]', 2) === null && M.parseStringArray('[1]', 1) === null && M.parseStringArray('no array here', 1) === null && M.parseStringArray('', 1) === null);
+  }
+
   console.log('\n=== THE FIXED TEXTS: a guard that answers without a model is answered back in the reader\'s language without one ===');
   {
     const PR = await esm('lib/policy/porn-request.js');
