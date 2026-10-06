@@ -232,6 +232,18 @@ const V = '﴿', W = '﴾';
     const keeper = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => 'The Sheikh discussed this at length and then cited: ' + s.slice(-40))) }; };
     const o4 = await A.translateAnswer(quoting + '\n\n', { lang: 'en', translate: keeper });
     ok('a translation that keeps a short quotation in Arabic (a third of the source at most) is accepted, not asked again and not delivered in Arabic', o4.stats.unitsKeptArabic === 0 && o4.stats.batchesKeptArabic === 0 && o4.stats.batchRetries === 0 && /The Sheikh discussed/.test(o4.text), JSON.stringify(o4.stats));
+    // a batch whose reply is never an array of the right length: each unit is asked ALONE before it is given up on (measured: three short paragraphs, all delivered Arabic)
+    {
+      const three = 'الفقرة الأولى القصيرة من الجواب كله بلا زيادة.\n\nالفقرة الثانية القصيرة من الجواب كله بلا زيادة.\n\nالفقرة الثالثة القصيرة من الجواب كله بلا زيادة.\n\n';
+      const sizes = [];
+      const oddBatch = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); sizes.push(arr.length); if (arr.length === 1) return { ok: true, text: JSON.stringify(['EN single']) }; return { ok: true, text: JSON.stringify(['one string only, merged']) }; };
+      const o5 = await A.translateAnswer(three, { lang: 'en', translate: oddBatch });
+      ok('a batch whose reply is not an array of its length is not delivered in Arabic: each of its units is asked alone and comes back translated', o5.stats.batchesKeptArabic === 0 && o5.stats.unitsKeptArabic === 0 && (o5.text.match(/EN single/g) || []).length === 3 && !/[ء-ي]/.test(o5.text), JSON.stringify([o5.stats.batchesKeptArabic, o5.stats.unitsKeptArabic, sizes, o5.text.slice(0, 100)]));
+      const failing = A.createSpeculator({ lang: 'en', translate: async () => ({ ok: false, status: 529 }) });
+      failing.feed('فقرة طويلة بما يكفي لتبدأ ترجمتها فور اكتمالها وهي الأولى.\n\n');
+      await new Promise((r) => setTimeout(r, 30));
+      ok('a parallel translation that fails says why in letters (a status code, an unreadable reply...), never in text', failing.failures().length === 1 && /^P\d+:h529,h529/.test(failing.failures()[0]), JSON.stringify(failing.failures()));
+    }
     // (2) the same verse quoted in three pieces prints its translation once
     const verseFrag = ['«لا تأخذه سنة ولا نوم»', '«له ما في السماوات وما في الأرض»', '«من ذا الذي يشفع عنده إلا بإذنه»'];
     const o3 = await A.translateAnswer('الآية العظيمة: ' + verseFrag.join(' ثم ') + ' كلها من آية الكرسي في سورة البقرة.', { lang: 'en', translate: echo });
