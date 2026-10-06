@@ -180,6 +180,7 @@ function useEzLang() {
 const EZ_I18N = {
   ar: {
     'common.close': 'إغلاق',
+    'answer.translation': 'ترجمة',
     'common.cancel': 'إلغاء',
     'common.confirm': 'تأكيد',
     'common.save': 'حفظ',
@@ -990,6 +991,7 @@ const EZ_I18N = {
   },
   en: {
     'common.close': 'Close',
+    'answer.translation': 'Translation',
     'common.cancel': 'Cancel',
     'common.confirm': 'Confirm',
     'common.save': 'Save',
@@ -3788,6 +3790,18 @@ function ezikDecodeMatn(encoded) {
   }
 }
 
+// ITEM 74 -- the translation the server prints beside a verse, a hadith, a scholar's text or a source card in an
+// answer to a reader who asked in another language: `tr` / `tl` are base64 of UTF-8 (the same carrier as `matn`),
+// `trs` is a plain, quote-free line naming the publisher, the source and the version of the published translation.
+function ezikTrAttr(attrsStr, name) {
+  const m = new RegExp('\\b' + name + '=["\']([^"\']+)["\']').exec(String(attrsStr || ''));
+  return m ? ezikDecodeMatn(m[1]) : '';
+}
+function ezikTrPlain(attrsStr, name) {
+  const m = new RegExp('\\b' + name + '=["\']([^"\']+)["\']').exec(String(attrsStr || ''));
+  return m ? m[1] : '';
+}
+
 // النصُّ المعروضُ نُقِصَ عمّا في الكتاب — تُقالُ للقارئِ ولا تُلصَقُ بالنصّ.
 const BOOK_MATN_CUT_NOTE = '… بقيّةُ النصِّ لم تصلْ';
 // الكلمةُ التي يلمسُها القارئُ ليرى النصّ.
@@ -6470,6 +6484,8 @@ const parseRichMessage = (text, viewerAge) => {
         surah: surahMatch ? surahMatch[1] : '',
         surahNum: surahNumMatch ? surahNumMatch[1] : '',
         ayah: ayahMatch ? ayahMatch[1] : '',
+        tr: ezikTrAttr(attrsStr, 'tr'),
+        trs: ezikTrPlain(attrsStr, 'trs'),
       });
     } else if (tagName === 'surah') {
       // سورة كاملة أو مدًى متّصل — بطاقة واحدة، نصّ متّصل، زرّ تلاوة واحد
@@ -6490,6 +6506,8 @@ const parseRichMessage = (text, viewerAge) => {
         content,
         narrator: narratorMatch ? narratorMatch[1] : '',
         ruling: rulingMatch ? rulingMatch[1] : '',
+        tr: ezikTrAttr(attrsStr, 'tr'),
+        trs: ezikTrPlain(attrsStr, 'trs'),
       });
     } else if (tagName === 'dhikr') {
       const dhikrIdMatch = attrsStr.match(/id=["']([^"']+)["']/);
@@ -6511,6 +6529,7 @@ const parseRichMessage = (text, viewerAge) => {
         content,
         site: siteMatch ? siteMatch[1] : '',
         url: urlMatch ? urlMatch[1] : '',
+        tl: ezikTrAttr(attrsStr, 'tl'),
       });
     } else if (tagName === 'book') {
       // ع-٤٩ — الكتابُ والمؤلِّفُ لا غير. لا رابطَ ولا نطاقَ ولا سهمَ فتح: هذه بطاقةُ إسنادٍ لا
@@ -6540,6 +6559,7 @@ const parseRichMessage = (text, viewerAge) => {
         bookId: bookIdMatch ? bookIdMatch[1] : '',
         vol: volMatch ? volMatch[1] : '',
         page: pageMatch ? pageMatch[1] : '',
+        tl: ezikTrAttr(placeStr, 'tl'),
       });
     } else if (tagName === 'steps') {
       const items = content.split('\n')
@@ -17912,6 +17932,9 @@ function App() {
       // Arabic reply (each diacritic = a token); server effort caps overall spend. depth/band below
       // are TEXT-route (/api/ask) only.
       const __extra = {
+        // ITEM 74: the interface language the reader chose. The server uses it as the KEY language of the turn:
+        // the question's own language wins, and an ambiguous question falls back to this. Chat turns to /api/ask only.
+        ...(mode === 'chat' && endpoint === '/api/ask' ? { uiLang: EZ_LANG } : {}),
         ...(liveSearch === true ? { liveSearch: true } : {}),
         // depth: adult-only, non-'brief' -> server reads body.depth==='deep'/'scholar' for round-2 effort.
         // Item 84: `&& hasFounderToken()` was here and is gone. It meant the client refused to
@@ -20740,20 +20763,24 @@ function ezikRenderSegments(segments, ctx) {
       return <div key={i} className="ez-prose" style={s.bubbleText}><EzikMarkdown text={tashkeel ? seg.content : stripTashkeelOutsideQuran(seg.content)} /></div>;
     }
     if (seg.type === 'verse') {
-      return <VerseCard key={i} surah={seg.surah} surahNum={seg.surahNum} ayah={seg.ayah} onPlayVerse={onPlayVerse} onStopAudio={onStopAudio}
+      const verseCard = <VerseCard key={i} surah={seg.surah} surahNum={seg.surahNum} ayah={seg.ayah} onPlayVerse={onPlayVerse} onStopAudio={onStopAudio}
         onFavorite={onFavoriteAyah} isFavorite={!!(ayahFavIds && onFavoriteAyah && ayahFavIds.has(ezikAyahFavKey(seg.surahNum, seg.surah, seg.ayah)))} />;
+      return seg.tr ? <React.Fragment key={i}>{verseCard}<EzikTranslationNote text={seg.tr} source={seg.trs} /></React.Fragment> : verseCard;
     }
     if (seg.type === 'surah') {
       return <SurahCard key={i} num={seg.num} from={seg.from} to={seg.to} onPlaySurah={onPlaySurah} onStopAudio={onStopAudio} />;
     }
     if (seg.type === 'hadith') {
-      return <HadithCard key={i} content={seg.content} narrator={seg.narrator} ruling={seg.ruling} />;
+      const hadithCard = <HadithCard key={i} content={seg.content} narrator={seg.narrator} ruling={seg.ruling} />;
+      return seg.tr ? <React.Fragment key={i}>{hadithCard}<EzikTranslationNote text={seg.tr} source={seg.trs} /></React.Fragment> : hadithCard;
     }
     if (seg.type === 'source') {
-      return <SourceCard key={i} site={seg.site} url={seg.url} content={seg.content} />;
+      const sourceCard = <SourceCard key={i} site={seg.site} url={seg.url} content={seg.content} />;
+      return seg.tl ? <React.Fragment key={i}>{sourceCard}<EzikTranslationNote text={seg.tl} label={ezT('answer.translation')} /></React.Fragment> : sourceCard;
     }
     if (seg.type === 'book') {
-      return <BookCard key={i} title={seg.title} author={seg.author} where={seg.where} text={seg.text} cut={seg.cut} bookId={seg.bookId} vol={seg.vol} page={seg.page} />;
+      const bookCard = <BookCard key={i} title={seg.title} author={seg.author} where={seg.where} text={seg.text} cut={seg.cut} bookId={seg.bookId} vol={seg.vol} page={seg.page} />;
+      return seg.tl ? <React.Fragment key={i}>{bookCard}<EzikTranslationNote text={seg.tl} label={ezT('answer.translation')} /></React.Fragment> : bookCard;
     }
     if (seg.type === 'dhikr') {
       return <DhikrCard key={i} catId={seg.catId} />;
@@ -21298,6 +21325,19 @@ function ReportModal({ onClose, onSubmit }) {
 // DOWN, exactly as the reply star is -- this component reads no store and scans no list. The
 // controls simply do not render when no handler is given, which is what keeps the card inside
 // المفضلة itself from offering to save what is already saved.
+// ITEM 74 -- the translation under a card. The Arabic stays on the card above it, untouched; this block is always
+// left-to-right and carries its own language tag, whatever the interface direction is.
+function EzikTranslationNote({ text, source, label }) {
+  if (!text) return null;
+  return (
+    <div dir="ltr" lang="en" style={s.ezTranslationNote}>
+      {label ? <div style={s.ezTranslationLabel}>{label}</div> : null}
+      <div style={s.ezTranslationText}>{text}</div>
+      {source ? <div style={s.ezTranslationSource}>{source}</div> : null}
+    </div>
+  );
+}
+
 function VerseCard({ surah, surahNum, ayah, onPlayVerse, onStopAudio, onFavorite, isFavorite }) {
   const [playing, setPlaying] = useState(false);
   const [audioFailed, setAudioFailed] = useState(false);
@@ -33281,6 +33321,10 @@ const s = {
   hadithCardLabel: { display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--red)', fontSize: 12, fontWeight: 600, marginBottom: 6 },
   hadithText: { color: 'var(--ink)', fontSize: 15, lineHeight: 1.9, margin: '4px 0' },
   hadithMeta: { fontSize: 12, color: 'var(--muted)', marginTop: 4, fontWeight: 500 },
+  ezTranslationNote: { alignSelf: 'stretch', textAlign: 'left', margin: '2px 0 6px', padding: '8px 12px', background: 'var(--tint)', border: '1px solid var(--line)', borderRadius: 12 },
+  ezTranslationLabel: { color: 'var(--red)', fontSize: 12, fontWeight: 600, marginBottom: 2 },
+  ezTranslationText: { color: 'var(--ink)', fontSize: 14.5, lineHeight: 1.7, overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' },
+  ezTranslationSource: { color: 'var(--muted)', fontSize: 11.5, lineHeight: 1.5, marginTop: 4 },
 
   // ===== بطاقة المصدر (شريحة عزوٍ قابلة للنقر) =====
   sourceChip: { display: 'inline-flex', alignItems: 'center', gap: 7, alignSelf: 'flex-start', maxWidth: '100%', background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 999, padding: '6px 12px', fontSize: 12.5, fontWeight: 500, color: 'var(--ink)', fontFamily: 'var(--ez-ui-font)', textDecoration: 'none', boxSizing: 'border-box' },
