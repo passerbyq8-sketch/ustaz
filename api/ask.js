@@ -24,6 +24,7 @@ import {
 import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 import { guardDayCap, dayCapMessage, hasUnrevokedFounderToken } from '../lib/daycap.js';
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
+import { languageGate } from '../lib/lang/gate.js';
 import { classifyRoute, createSourceFilter, isReligiousText, normalizeArabic, isRulingFrame } from '../lib/route-classify.js';
 import { verifyAttributedReply } from '../lib/attribution.js';
 import { planAsk, unattributedNote, REASON, ambiguousScholarPrompt, NEEDS_MATERIAL } from '../lib/ask-plan.js';
@@ -764,7 +765,15 @@ function bindUpstreamToClient(readerGone) {
   };
 }
 
+// ITEM 74 -- the exported handler is the language gate around the handler proper (askCore, below). For an Arabic
+// question the gate calls askCore with the very same req and res and does nothing else (lib/lang/gate.js).
 export default async function handler(req, res) {
+  return languageGate(req, res, askCore);
+}
+
+// ITEM 74 -- the handler proper, called by the language gate above. Everything below this line is the handler
+// as it was before the language layer; the gate calls it with the very same req and res for an Arabic question.
+async function askCore(req, res) {
   // SPEED ITEM 17: the before-writing path reports its first release from here (firstReleaseMs).
   const requestStartedAt = Date.now();
   applyCorsOrigin(req, res);
@@ -860,6 +869,12 @@ export default async function handler(req, res) {
     // like one, carrying our own truthful wording rather than a generic line.
     return res.status(429).json({ error: cap.reason, message: dayCapMessage(cap.reason) });
   }
+
+  // ITEM 74 -- the question of a reader who wrote in another language is carried into Arabic HERE: after the
+  // consent, the throttle and the daily cap (so a refused request costs no translation) and before anything reads
+  // the question. lib/lang/gate.js installs the hook for those readers only; an Arabic question has no hook and
+  // this line does nothing for it.
+  if (typeof req.__langTranslateQuestion === 'function' && !(await req.__langTranslateQuestion(body.messages))) return;
 
   // Server-derived charging identities only. The helper returns HMAC digests and never raw
   // account/device/cookie values; every paid-search path below receives the same dimensions.
