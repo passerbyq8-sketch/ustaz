@@ -4857,27 +4857,6 @@ function ezikDecodeMatn(encoded) {
   }
 }
 
-// ITEM 74 -- the translation the server prints beside a verse, a hadith, a scholar's text or a source card in an
-// answer to a reader who asked in another language: `tr` / `tl` are base64 of UTF-8 (the same carrier as `matn`),
-// `trs` is a plain, quote-free line naming the publisher, the source and the version of the published translation.
-function ezikTrAttr(attrsStr, name) {
-  const m = new RegExp('\\b' + name + '=["\']([^"\']+)["\']').exec(String(attrsStr || ''));
-  return m ? ezikDecodeMatn(m[1]) : '';
-}
-// The translation fields of a card, present ONLY when the server sent them: an answer in Arabic parses to exactly the
-// segments it always did.
-function ezikTrFields(attrsStr) {
-  const o = {};
-  const tr = ezikTrAttr(attrsStr, 'tr'); if (tr) { o.tr = tr; o.trs = ezikTrPlain(attrsStr, 'trs'); }
-  const tl = ezikTrAttr(attrsStr, 'tl'); if (tl) o.tl = tl;
-  const tb = ezikTrAttr(attrsStr, 'tb'); if (tb) o.tb = tb;
-  return o;
-}
-function ezikTrPlain(attrsStr, name) {
-  const m = new RegExp('\\b' + name + '=["\']([^"\']+)["\']').exec(String(attrsStr || ''));
-  return m ? m[1] : '';
-}
-
 // النصُّ المعروضُ نُقِصَ عمّا في الكتاب — تُقالُ للقارئِ ولا تُلصَقُ بالنصّ.
 const BOOK_MATN_CUT_NOTE = '… بقيّةُ النصِّ لم تصلْ';
 // الكلمةُ التي يلمسُها القارئُ ليرى النصّ.
@@ -7536,6 +7515,19 @@ const parseRichMessage = (text, viewerAge) => {
   const segments = [];
   let suggestions = [];
   let remaining = text;
+  // ITEM 74 -- the translation the server prints beside a verse, a hadith, a scholar's text or a source card in an answer to a
+  // reader who asked in another language: `tr`, `tl` and `tb` are base64 of UTF-8 (the same carrier as `matn`), `trs` is a
+  // plain, quote-free line naming the publisher, the source and the version. Read here, inside this function, because a
+  // guard lifts it alone; and present on a segment ONLY when the server sent them, so an answer in Arabic parses to exactly
+  // the segments it always did.
+  const __trRead = (attrs, name) => { const m = new RegExp('\\b' + name + '=["\']([^"\']+)["\']').exec(attrs || ''); return m ? m[1] : ''; };
+  const __trFields = (attrs) => {
+    const o = {};
+    const tr = __trRead(attrs, 'tr'); if (tr) { o.tr = ezikDecodeMatn(tr); o.trs = __trRead(attrs, 'trs'); }
+    const tl = __trRead(attrs, 'tl'); if (tl) o.tl = ezikDecodeMatn(tl);
+    const tb = __trRead(attrs, 'tb'); if (tb) o.tb = ezikDecodeMatn(tb);
+    return o;
+  };
 
   // أنماط الوسوم
   const tagPattern = new RegExp(`<(${KNOWN_TAGS})([^>]*)>([\\s\\S]*?)</\\1>`, 'g');
@@ -7560,7 +7552,7 @@ const parseRichMessage = (text, viewerAge) => {
         surah: surahMatch ? surahMatch[1] : '',
         surahNum: surahNumMatch ? surahNumMatch[1] : '',
         ayah: ayahMatch ? ayahMatch[1] : '',
-        ...ezikTrFields(attrsStr),
+        ...__trFields(attrsStr),
       });
     } else if (tagName === 'surah') {
       // سورة كاملة أو مدًى متّصل — بطاقة واحدة، نصّ متّصل، زرّ تلاوة واحد
@@ -7581,7 +7573,7 @@ const parseRichMessage = (text, viewerAge) => {
         content,
         narrator: narratorMatch ? narratorMatch[1] : '',
         ruling: rulingMatch ? rulingMatch[1] : '',
-        ...ezikTrFields(attrsStr),
+        ...__trFields(attrsStr),
       });
     } else if (tagName === 'dhikr') {
       const dhikrIdMatch = attrsStr.match(/id=["']([^"']+)["']/);
@@ -7603,7 +7595,7 @@ const parseRichMessage = (text, viewerAge) => {
         content,
         site: siteMatch ? siteMatch[1] : '',
         url: urlMatch ? urlMatch[1] : '',
-        ...ezikTrFields(attrsStr),
+        ...__trFields(attrsStr),
       });
     } else if (tagName === 'book') {
       // ع-٤٩ — الكتابُ والمؤلِّفُ لا غير. لا رابطَ ولا نطاقَ ولا سهمَ فتح: هذه بطاقةُ إسنادٍ لا
@@ -7633,7 +7625,7 @@ const parseRichMessage = (text, viewerAge) => {
         bookId: bookIdMatch ? bookIdMatch[1] : '',
         vol: volMatch ? volMatch[1] : '',
         page: pageMatch ? pageMatch[1] : '',
-        ...ezikTrFields(placeStr),
+        ...__trFields(placeStr),
       });
     } else if (tagName === 'steps') {
       const items = content.split('\n')

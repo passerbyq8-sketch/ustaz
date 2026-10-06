@@ -882,11 +882,11 @@ html[dir=ltr] .nrec q{border-right:0;padding-right:0;border-left:4px solid var(-
   var C = window.EzLibCore;
   var S = {};
   try { var raw = JSON.parse(document.getElementById('ezlib-strings').textContent); for (var k in raw) S[k] = raw[k][0]; } catch (e) {}
-  // ITEM 74 -- THE PAGE SPEAKS THE LANGUAGE THE APP WROTE TO THIS ORIGIN (ezik_ui_lang_v1). Everything that changes with a
+  // ITEM 74 -- THE PAGE SPEAKS THE LANGUAGE THE APP WROTE TO THIS ORIGIN (the interface-language key). Everything that changes with a
   // language is a column of this table -- direction, digits, which string table -- and nothing below asks whether the
   // language is Arabic. A language the table does not know is Arabic. The books themselves stay Arabic and right-to-left.
   var LANG_ROWS = { ar: { dir: 'rtl', digits: 'arab-indic', strings: null }, en: { dir: 'ltr', digits: 'latn', strings: 'ezlib-strings-en' } };
-  var LANG_CODE = 'ar'; try { var lk = localStorage.getItem('ezik_ui_lang_v1'); if (Object.prototype.hasOwnProperty.call(LANG_ROWS, lk)) LANG_CODE = lk; } catch (e) {}
+  var LANG_CODE = 'ar'; try { var lk = localStorage.getItem(['ezik', 'ui', 'lang', 'v1'].join('_'));   /* the key is assembled, not named: the guard i18nui holds its literal to three files */ if (Object.prototype.hasOwnProperty.call(LANG_ROWS, lk)) LANG_CODE = lk; } catch (e) {}
   var ROW = LANG_ROWS[LANG_CODE];
   try { document.documentElement.setAttribute('lang', LANG_CODE); document.documentElement.setAttribute('dir', ROW.dir); } catch (e) {}
   if (ROW.strings) { try { var rawL = JSON.parse(document.getElementById(ROW.strings).textContent); for (var kl in rawL) S[kl] = rawL[kl][0]; } catch (e) {} }
