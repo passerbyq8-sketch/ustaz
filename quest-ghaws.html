@@ -444,7 +444,7 @@ var S={crew:false,players:[],pi:0,cats:[],cap:10,breath:20000,noOpts:false,
   depth:0,pearls:0,used:{},tools:{},cur:null,raf:null,t0:0,lock:false,pool:[]};
 var V={stars:0,who:""};
 
-function ar(n){return String(n).replace(/[0-9]/g,function(d){return "٠١٢٣٤٥٦٧٨٩"[+d]})}
+function ar(n){if(document.documentElement.getAttribute("lang")==="en")return String(n);return String(n).replace(/[0-9]/g,function(d){return "٠١٢٣٤٥٦٧٨٩"[+d]})}
 function $(i){return document.getElementById(i)}
 function show(id){["home","how","cfg","turn","dive","end","board","verdict"].forEach(function(x){
   $(x).classList.add("hidden")});$(id).classList.remove("hidden");window.scrollTo(0,0)}

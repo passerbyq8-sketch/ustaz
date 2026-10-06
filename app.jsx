@@ -25546,7 +25546,7 @@ function qiblaDegreeText(deg) {
   const one = Math.round((((deg % 360) + 360) % 360) * 10) / 10;
   const whole = Math.floor(one);
   const tenth = Math.round((one - whole) * 10);
-  return toArabicDigits(whole) + '٫' + toArabicDigits(tenth);
+  return toArabicDigits(whole) + (() => { try { return ezLangEntry(EZ_LANG).digits === 'latn' ? '.' : '٫'; } catch (e) { return '٫'; } })() + toArabicDigits(tenth);
 }
 // A HEADING, OR NOTHING. Three refusals, and the middle one is the measured lesson: an event that
 // is not absolute is a relative gyroscope reading, and a relative reading pointed at a compass

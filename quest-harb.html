@@ -527,7 +527,7 @@ var G={players:[],cats:[],fuse:13000,winRule:2,shots:1,noOpts:false,deployMul:2,
 var T={raf:null,t0:0,alive:4,lock:false};
 var V={stars:0,who:"",last:""};
 
-function ar(n){return String(n).replace(/[0-9]/g,function(d){return "٠١٢٣٤٥٦٧٨٩"[+d]})}
+function ar(n){if(document.documentElement.getAttribute("lang")==="en")return String(n);return String(n).replace(/[0-9]/g,function(d){return "٠١٢٣٤٥٦٧٨٩"[+d]})}
 function $(i){return document.getElementById(i)}
 function show(id){["home","how","cfg","war","win","verdict"].forEach(function(x){$(x).classList.add("hidden")});
   $(id).classList.remove("hidden");window.scrollTo(0,0)}
