@@ -528,6 +528,20 @@ const V = '﴿', W = '﴾';
     ok('a reply that is the Arabic untouched is still refused for Persian: the unit stays Arabic and the log says so', outSame.text.includes('الإقامة هي') && (outSame.degraded || []).length > 0);
   }
 
+  console.log('\n=== PERSIAN (item 74, m1): the row, the detector, the lookups, the fixed texts, the prompt ===');
+  {
+    const F = await esm('lib/lang/fixed.js');
+    ok('the Persian row: right to left, Arabic script, its own digits, translated, with its own labels', T.LANG_TABLE.fa.dir === 'rtl' && T.LANG_TABLE.fa.script === 'arab' && T.LANG_TABLE.fa.digits === 'arab-ext' && T.LANG_TABLE.fa.answerTranslation === true && T.LANG_TABLE.fa.labels.translation === 'ترجمه');
+    ok('a question with the Persian yeh or kaf, or پ ژ, is Persian whatever the key', D.detectQuestionLang('نماز چگونه خوانده می‌شود؟', 'ar') === 'fa' && D.detectQuestionLang('حکم روزه چیست', 'en') === 'fa' && D.detectQuestionLang('پاسخ بده', 'ar') === 'fa');
+    ok('the Kuwaiti چ and گ alone are not Persian (ruling h10): the question stays Arabic', D.detectQuestionLang('چذي شلون أصلي وگال لي أخوي', 'en') === 'ar' && D.detectQuestionLang('چم ركعة في الظهر', 'en') === 'ar');
+    ok('plain Arabic (Arabic yeh and kaf) stays Arabic', D.detectQuestionLang('ما حكم صلاة الكسوف', 'fa') === 'ar');
+    const q = P.quranTranslation('fa', 2, 255, 255);
+    ok('the published Persian verse is looked up with its publisher and version (Rowwad via QuranEnc), unmodified', !!q && /پاینده|زنده/.test(q.text) && /Rowwad/.test(q.meta.title + q.meta.source + JSON.stringify(q.meta)), JSON.stringify(q && q.meta).slice(0, 120));
+    const fx = F.fixedRendition('fa', (await esm('lib/policy/porn-request.js')).PORN_REFUSAL_TEXT);
+    ok('the two fixed refusals have a Persian rendition by lookup (no model)', typeof fx === 'string' && /[\u0600-\u06FF]/.test(fx) && fx !== (await esm('lib/policy/porn-request.js')).PORN_REFUSAL_TEXT);
+    ok('the Persian prompt is built from the row: it names Persian, asks for Persian letters for terms, and keeps rules 3 (no Arabic copy) and 6 (no added name)', /into Persian/.test(M.answerSystem('fa', true)) && /Persian letters/.test(M.answerSystem('fa', true)) && /never copy the Arabic side/i.test(M.answerSystem('fa', true)) && /Never add the name of a person/.test(M.answerSystem('fa', false)));
+  }
+
   console.log('\n' + (failures ? 'FAILED: ' + failures + ' of ' + checks + ' checks failed.' : 'OK: ' + checks + ' checks passed.'));
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.log('GUARD CRASHED: ' + (e && e.stack || e)); process.exit(2); });
