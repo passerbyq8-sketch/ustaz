@@ -501,8 +501,15 @@ function runBoot(stored, navLanguages) {
 }
 
 function partB() {
-  console.log('\n=== B. THE FIRST RUN IS ARABIC, WHATEVER THE DEVICE SAYS ===');
-  // Every row here hands the boot script a REAL navigator. None of them may move the answer.
+  console.log('\n=== B. THE FIRST RUN: PRE-SELECTED BY THE DEVICE, DECIDED BY THE READER ===');
+  // ITEM 74 PASS 2 (owner ruling 2026-10-05, contract 2-b): "the first-run card starts with the
+  // device's language when it is one of the table's, and the decision is the reader's". This part
+  // used to pin the older ruling -- "the first run is Arabic whatever the device says" -- and that
+  // is the one thing it no longer says. What did NOT change, and is still pinned below: the
+  // interface itself is a stored choice or Arabic, the <head> script never reads the device, and
+  // nothing moves until the reader presses.
+  // B1. Every row here hands the boot script a REAL navigator. None of them may move the answer:
+  // the device is never an input to the INTERFACE language, only to the card's pre-selection.
   const cases = [
     ['a brand-new device reporting ar-KW', undefined, ['ar-KW'], 'ar'],
     ['a brand-new device reporting en-US', undefined, ['en-US'], 'ar'],
@@ -529,8 +536,9 @@ function partB() {
   const dead = runBoot('__DEAD__', ['en-US']);
   ok('a storage that throws on every read still boots Arabic', !!dead && dead.lang === 'ar', JSON.stringify(dead));
 
-  // The strongest form of the rule: the layer cannot consult the device, because it never names it.
-  console.log('\n=== B2. THE DEVICE IS NOT AN INPUT ===');
+  // The strongest form of the rule: neither the boot script nor the resolver can consult the
+  // device, because neither names it. The device is read in exactly ONE function, below them.
+  console.log('\n=== B2. THE DEVICE IS READ IN ONE PLACE, AND ONLY TO PRE-SELECT ===');
   const bootScript = (/<script>\(function\(\)\{try\{var K='ezik_ui_lang_v1'[\s\S]*?<\/script>/.exec(html) || [''])[0];
   // ITEM 116. Item 106 repaired `layer` twelve lines below for exactly this shape and left these
   // two standing: the regex above falls back to '', an empty string names navigator zero times,
@@ -547,14 +555,23 @@ function partB() {
   // reads like a measurement rather than an absence check -- which is why the first sweep for
   // this defect, written around `=== -1` and `!test`, walked straight past it.
   const layerAt = rawCode.indexOf('const EZ_LANG_KEY');
-  const layerEnd = rawCode.indexOf('function EzLangControl');
+  const layerEnd = rawCode.indexOf('function ezLangDevice');
   const layer = (layerAt !== -1 && layerEnd > layerAt) ? rawCode.slice(layerAt, layerEnd) : '';
   ok('the language module was LOCATED before it was counted', layer.length > 200,
-    'const EZ_LANG_KEY@' + layerAt + '  function EzLangControl@' + layerEnd);
-  eq('the language module names navigator nowhere',
+    'const EZ_LANG_KEY@' + layerAt + '  function ezLangDevice@' + layerEnd);
+  eq('the language module (key, table, resolver, writer) names navigator nowhere',
     layer.length > 0 ? (layer.match(/navigator/g) || []).length : -1, 0);
-  eq('...and the device readers are gone, not dormant',
-    [/function ezLangDevice/, /function ezLangFromTag/].filter((re) => re.test(rawCode)).length, 0);
+  const devAt = rawCode.indexOf('function ezLangDevice');
+  const devEnd = rawCode.indexOf('function EzFirstRunLang');
+  const devFn = devAt !== -1 && devEnd > devAt ? rawCode.slice(devAt, devEnd) : '';
+  ok('the device reader was LOCATED before it was counted', devFn.length > 100, 'len=' + devFn.length);
+  ok('...ONE function reads the device: every mention of navigator.languages in app.jsx is inside it',
+    (devFn.match(/navigator\.languages/g) || []).length > 0
+    && (devFn.match(/navigator\.languages/g) || []).length === (rawCode.match(/navigator\.languages/g) || []).length);
+  eq('...and exactly one function is called ezLangDevice',
+    (rawCode.match(/function ezLangDevice\b/g) || []).length, 1);
+  eq('...and only the first-run card calls it',
+    (rawCode.match(/\bezLangDevice\b/g) || []).length, 2);   // the declaration and the card's useState
   ok('...so the resolver is a stored choice, or Arabic, and nothing else',
     /function ezLangResolve\(\) \{ return ezLangStored\(\) \|\| EZ_LANG_FALLBACK; \}/.test(rawCode));
   eq('and the journey does not read the device either',
@@ -572,20 +589,123 @@ function partB() {
     cc.destroy();
   }
   for (const stored of ['', '   ', 'zz', 'AR', '{"lang":"en"}', 'null', 'undefined', '["ar"]']) {
-    const cc = buildContext({ seed: { [S.LANG_KEY]: stored } });
-    eq('a stored ' + JSON.stringify(stored) + ' is discarded and the slot repaired',
+    // a reader who HAS a profile is a returning reader: the slot is repaired, as it always was
+    const cc = buildContext({ seed: { [S.LANG_KEY]: stored, child_profile: JSON.stringify({ name: 'x', gender: 'male', birthYear: 1990, age: 30, pid: 'B3' }) } });
+    eq('a stored ' + JSON.stringify(stored) + ' on a returning reader is discarded and the slot repaired',
       cc.store.getItem(S.LANG_KEY), 'ar');
     eq('...and the app runs in Arabic', cc.grab('ezLangGet()'), 'ar');
     cc.destroy();
+    // one with NO profile is on a first run: nothing is written until the first-run card goes
+    const cf = buildContext({ seed: { [S.LANG_KEY]: stored } });
+    eq('a stored ' + JSON.stringify(stored) + ' on a first run is not a choice, and is not written over at boot',
+      cf.store.getItem(S.LANG_KEY), stored);
+    eq('...and the app still runs in Arabic', cf.grab('ezLangGet()'), 'ar');
+    cf.destroy();
   }
   const cDead = buildContext({ store: makeDeadStore() });
   eq('a storage that throws is not a stored choice', cDead.grab('ezLangStored()'), null);
   eq('...and the resolver still returns Arabic', cDead.grab('ezLangResolve()'), 'ar');
   cDead.destroy();
   const cFirst = buildContext({ seed: {} });
-  eq('a first run writes ar down, so the journey can agree with the app',
-    cFirst.store.getItem(S.LANG_KEY), 'ar');
+  eq('a first run writes NOTHING at boot: the first-run card is where the answer is taken',
+    cFirst.store.getItem(S.LANG_KEY), null);
+  eq('...and runs in Arabic until the reader presses', cFirst.grab('ezLangGet()'), 'ar');
   cFirst.destroy();
+  const cRet = buildContext({ seed: { child_profile: JSON.stringify({ name: 'x', gender: 'male', birthYear: 1990, age: 30, pid: 'B3' }) } });
+  eq('a returning reader with no language stored gets Arabic written down, so the journey can agree with the app',
+    cRet.store.getItem(S.LANG_KEY), 'ar');
+  cRet.destroy();
+}
+
+// B4. THE FIRST-RUN CARD, DRIVEN FOR REAL -- the states of the owner's ruling, each on the real mounted application with a
+// navigator the guard hands it. The interface is read three ways each time (the app's own answer, <html lang>, <html dir>)
+// and the store is read, because "nothing changes before the press" is a claim about all four.
+async function partB4() {
+  console.log('\n=== B4. THE FIRST-RUN LANGUAGE CARD ===');
+  // linkedom's navigator cannot be replaced (see runBoot), so the ONE thing handed in here is the device reader's input: the word
+  // `navigator` inside ezLangDevice() becomes a literal. Everything the card does with what the reader returns is the shipped code.
+  const withDevice = (nav) => (src) => {
+    const a = src.indexOf('function ezLangDevice'), b = src.indexOf('function EzFirstRunLang');
+    if (a === -1 || b <= a) throw new Error('partB4: the device reader moved; the stub is stale');
+    return src.slice(0, a) + src.slice(a, b).replace(/navigator/g, '(' + JSON.stringify(nav) + ')') + src.slice(b);
+  };
+  const state = (c, w) => ({
+    ui: c.grab('ezLangGet()'), html: w.document.documentElement.getAttribute('lang'),
+    dir: w.document.documentElement.getAttribute('dir'), stored: c.store.getItem(S.LANG_KEY),
+  });
+  const marks = (d) => { const o = {}; d.all('[data-ez-lang-pick]').forEach((b) => { o[b.getAttribute('data-ez-lang-pick')] = b.getAttribute('aria-pressed'); }); return o; };
+  const cases = [
+    ['an Arabic device', { languages: ['ar-KW'], language: 'ar-KW' }, { ar: 'true', en: 'false' }],
+    ['an English device', { languages: ['en-US'], language: 'en-US' }, { ar: 'false', en: 'true' }],
+    ['a device in a language the table does not have', { languages: ['fr-FR'], language: 'fr-FR' }, { ar: 'true', en: 'false' }],
+    ['a French device that also lists English', { languages: ['fr-FR', 'en-GB'], language: 'fr-FR' }, { ar: 'false', en: 'true' }],
+    ['an environment that reports no language at all', {}, { ar: 'true', en: 'false' }],
+  ];
+  for (const [name, nav, want] of cases) {
+    const c = buildContext({ seed: {}, mount: true, mutate: withDevice(nav) });
+    await tick(150);
+    const w = c.window, d = driver(w);
+    eq(name + ': the card offers BOTH languages side by side',
+      d.all('[data-ez-lang-pick]').map((b) => b.getAttribute('data-ez-lang-pick')), ['ar', 'en']);
+    eq('...with the device language pre-selected', marks(d), want);
+    eq('...every choice a real button that submits nothing',
+      d.all('[data-ez-lang-pick]').filter((b) => b.tagName !== 'BUTTON' || b.getAttribute('type') !== 'button').length, 0);
+    eq('...and NOTHING has changed: the interface is Arabic, rtl, and nothing is stored',
+      state(c, w), { ui: 'ar', html: 'ar', dir: 'rtl', stored: null });
+    await c.settle();
+    eq('...and still nothing after the boot has settled', state(c, w), { ui: 'ar', html: 'ar', dir: 'rtl', stored: null });
+    c.destroy();
+  }
+
+  // pressing English
+  {
+    const c = buildContext({ seed: {}, mount: true, mutate: withDevice({ languages: ['en-US'], language: 'en-US' }) });
+    await tick(150);
+    const w = c.window, d = driver(w);
+    await d.click(d.all('[data-ez-lang-pick="en"]')[0]);
+    await tick(90);
+    eq('pressing the pre-selected English applies it at once', state(c, w), { ui: 'en', html: 'en', dir: 'ltr', stored: 'en' });
+    eq('...and the card marks it', marks(d), { ar: 'false', en: 'true' });
+    await d.click(d.all('[data-ez-lang-pick="ar"]')[0]);
+    await tick(90);
+    eq('...and the reader can still go back to Arabic from the same card', state(c, w), { ui: 'ar', html: 'ar', dir: 'rtl', stored: 'ar' });
+    c.destroy();
+  }
+  // pressing the language the interface is already in records it
+  {
+    const c = buildContext({ seed: {}, mount: true, mutate: withDevice({ languages: ['ar-KW'], language: 'ar-KW' }) });
+    await tick(150);
+    const d = driver(c.window);
+    await d.click(d.all('[data-ez-lang-pick="ar"]')[0]);
+    await tick(60);
+    eq('pressing Arabic on an Arabic device records the choice', c.store.getItem(S.LANG_KEY), 'ar');
+    c.destroy();
+  }
+  // the card left without a choice: the guest door is the way out, on an English device
+  {
+    const c = buildContext({ seed: {}, mount: true, mutate: withDevice({ languages: ['en-US'], language: 'en-US' }) });
+    await tick(150);
+    const w = c.window, d = driver(w);
+    const guest = d.all('.ezonb-card button').filter((b) => String(b.textContent || '').trim() === String(c.grab("ezT('entry.guest')")))[0];
+    if (ok('(the guest door is there to leave the card by)', !!guest)) {
+      await d.click(guest);
+      await tick(300);
+      eq('a card left without a choice keeps the app in Arabic, and records it so the next launch does not ask again',
+        state(c, w), { ui: 'ar', html: 'ar', dir: 'rtl', stored: 'ar' });
+      eq('...and the card is gone', d.all('[data-ez-lang-pick]').length, 0);
+    }
+    c.destroy();
+  }
+  // a reader whose language is already stored is not asked
+  for (const [stored, navs] of [['ar', ['en-US']], ['en', ['ar-KW']]]) {
+    const c = buildContext({ seed: { [S.LANG_KEY]: stored }, mount: true, mutate: withDevice({ languages: navs, language: navs[0] }) });
+    await tick(150);
+    const w = c.window, d = driver(w);
+    eq('a stored ' + stored + ' on a device reporting ' + navs[0] + ': no language card', d.all('[data-ez-lang-pick]').length, 0);
+    eq('...the interface is the stored choice, untouched', state(c, w).ui, stored);
+    eq('...and the first-run pill is the control that is there instead', d.all('button[data-ez-lang-toggle]').length, 1);
+    c.destroy();
+  }
 }
 
 
@@ -1641,6 +1761,7 @@ async function partN() {
   console.log('=== i18n-ui-guard (S116) — ' + htmlFile + ' ===');
   await partA();
   partB();
+  await partB4();
   await partC();
   await partD0();
   await partD();

@@ -65,12 +65,13 @@ function ezLangApply(v) {
 // boot script did run, every attribute below is already the value being written.
 ezLangApply(EZ_LANG);
 
-// FIRST RUN IS WRITTEN DOWN, so the slot always holds one of the two languages the app offers.
-// That is what lets the treasure journey agree with the app -- quest.html reads this same key and
-// never decides anything itself -- and it repairs a corrupted value once instead of re-judging it
-// on every launch. A reader's explicit choice is never overwritten: this runs only when nothing
-// valid was stored.
-if (!ezLangStored()) { try { localStorage.setItem(EZ_LANG_KEY, EZ_LANG); } catch (e) {} }
+// THE SLOT IS REPAIRED FOR A READER WHO ALREADY HAS A PROFILE, so for them it always holds one of
+// the two languages the app offers -- quest.html reads this same key and never decides anything
+// itself, and a corrupted value is repaired once instead of being re-judged on every launch. A
+// FIRST RUN (no profile yet) is NOT written here: the first-run card asks, and the answer -- or
+// Arabic, when the card is left without one -- is written when the card goes (ezLangSettle). A
+// reader's explicit choice is never overwritten: this runs only when nothing valid was stored.
+if (!ezLangStored() && ezLangReturning()) { try { localStorage.setItem(EZ_LANG_KEY, EZ_LANG); } catch (e) {} }
 
 // The one writer. It persists, repaints <html>, and tells every subscriber -- in that order,
 // so a listener that reads the document sees the new direction and not the old one.
@@ -84,6 +85,17 @@ function ezLangSet(v) {
 }
 
 function ezLangGet() { return EZ_LANG; }
+
+// Records the language in use when no choice is stored yet -- the first-run card pressed on the
+// language the app is already in, or left without a press. A stored choice is never touched.
+function ezLangSettle() {
+  if (ezLangStored()) return;
+  try { localStorage.setItem(EZ_LANG_KEY, EZ_LANG); } catch (e) {}
+}
+// A reader who has a profile has been through the first run: only a first run asks for a language.
+function ezLangReturning() {
+  try { return localStorage.getItem('child_profile') != null; } catch (e) { return false; }
+}
 
 // S116 -- THE RE-BINDER. A handful of labels are read by the screens as bare identifiers,
 // because guards pin them at their JSX sites in exactly that form. Those identifiers are
@@ -2867,6 +2879,50 @@ const EZ_LANG_GLOBE = (
     <path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z" />
   </svg>
 );
+
+// THE DEVICE'S LANGUAGE, READ IN ONE PLACE AND FOR ONE PURPOSE: which language the first-run card
+// has pre-selected. It decides nothing about the interface -- the resolver above is still a stored
+// choice or Arabic, and the interface does not move until the reader presses. The first language
+// of the device's list that is a row of EZ_LANGUAGES wins; none is Arabic.
+function ezLangDevice() {
+  try {
+    const l = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language];
+    for (let i = 0; i < l.length; i++) {
+      const p = String(l[i] || '').toLowerCase().split(/[-_]/)[0];
+      if (ezLangValid(p)) return p;
+    }
+  } catch (e) {}
+  return EZ_LANG_FALLBACK;
+}
+
+// THE FIRST-RUN LANGUAGE CARD: every language of the table side by side, the device's pre-selected,
+// and NOTHING changes until a press -- a card left alone keeps the app in Arabic. type="button"
+// because it sits beside a card that submits nothing and must never start the app by itself.
+function EzFirstRunLang() {
+  useEzLang();
+  const [pre] = useState(ezLangDevice);
+  const [picked, setPicked] = useState(null);
+  const [asks] = useState(() => !ezLangStored());   // a reader whose language is already stored is not asked again
+  const on = picked || pre;
+  if (!asks) return null;
+  return (
+    <div className="ezlangcard" role="group" aria-label={ezT('language.label')}>
+      {EZ_LANGUAGES.map((l) => (
+        <button
+          key={l.code}
+          type="button"
+          className={on === l.code ? 'ezlangcard-opt is-on' : 'ezlangcard-opt'}
+          aria-pressed={on === l.code ? 'true' : 'false'}
+          data-ez-lang-pick={l.code}
+          onClick={() => { setPicked(l.code); ezLangSet(l.code); ezLangSettle(); }}
+        >
+          <span className="ezlang-code" aria-hidden="true">{l.shortLabel}</span>
+          <span className="ezlang-name">{l.nativeName}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
 
 // THE LANGUAGE CONTROL. It lives in exactly two places, and the guard fails if a third
 // appears: the FIRST-RUN card, where a reader who has not made a profile yet can choose before
@@ -24406,6 +24462,7 @@ function Onboarding({ onStart }) {
   useEffect(() => () => {
     if (stopRef.current) { stopRef.current(); stopRef.current = null; }
     if (nativeRef.current) { nativeRef.current(); nativeRef.current = null; }
+    ezLangSettle();
   }, []);
   // THE ONE PLACE THIS CARD HANDS A PROFILE OVER, and it is still ONE call to onStart -- the
   // property the theme guard pins, kept through the removal rather than in spite of it. It
@@ -24508,6 +24565,7 @@ function Onboarding({ onStart }) {
   return (
     <div className="theme-dark ezhome ezonb" style={s.welcomeContainer}>
       <div style={s.welcomeInner}>
+        <EzFirstRunLang />
         <div className="ezonb-card" style={s.welcomeCard}>
         {/* S13.1b-welcome-single
             S115: the 88px red square became a bounded arch holding the SAME mark. */}

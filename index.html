@@ -40,10 +40,11 @@
      The whole policy, and it is two lines:
        1. a stored choice of exactly 'ar' or 'en' is honoured
        2. anything else -- nothing stored, a corrupted value, a value from a future build -- is ar
-     THE DEVICE IS NOT CONSULTED. This app is Arabic first: a reader on an English handset is
-     shown the Arabic interface until they say otherwise, and they say otherwise on the first-run
-     card or in Settings. navigator.language is read nowhere in the language layer, which the
-     guard asserts rather than assumes. -->
+     THIS SCRIPT DOES NOT CONSULT THE DEVICE, and neither does the resolver in app.jsx: a reader on
+     an English handset is shown the Arabic interface until they say otherwise. The device's
+     language does one thing only -- it is the language the first-run card has PRE-SELECTED, and
+     the interface does not move until the reader presses it. They say otherwise on that card or
+     in Settings. The guard asserts where the device is read, rather than assuming. -->
 <script>(function(){try{var K='ezik_ui_lang_v1';var v=null;try{v=localStorage.getItem(K);}catch(e){}if(v!=='ar'&&v!=='en'){v='ar';}var d=document.documentElement;d.setAttribute('lang',v);d.setAttribute('dir',v==='ar'?'rtl':'ltr');d.setAttribute('data-ez-lang',v);window.__ezUiLang=v;}catch(e){}})();</script>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" href="/icon-192.png">
@@ -1701,6 +1702,16 @@
   .ezlang-code{flex:none;min-width:22px;font-size:11px;font-weight:800;letter-spacing:0.02em;
     text-align:center;opacity:0.72}
   .ezlang-name{flex:1;min-width:0;text-align:start}
+  /* ITEM 74 PASS 2 -- the first-run language card: every language of the table side by side, the
+     device's pre-selected. It stands above the entry card; the pill inside the entry card stays
+     where it was -- the guard measures that control, and nothing may hide it with CSS. */
+  .ezlangcard{display:flex;gap:8px;width:100%;max-width:380px;margin-block-end:12px}
+  .ezlangcard-opt{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;
+    padding:8px 12px;border-radius:14px;border:1px solid var(--line);background:var(--tint);color:var(--ink);
+    font-family:var(--ez-ui-font);font-size:15px;font-weight:700;cursor:pointer}
+  .ezlangcard-opt .ezlang-name{flex:none}
+  .ezlangcard-opt.is-on{border-color:var(--red);background:var(--red-soft);color:var(--red)}
+  .ezlangcard-opt:focus-visible{outline:2px solid var(--ez-focus);outline-offset:2px}
   /* The first-run card is 400px at most and the menu opens inside it; at the narrowest phone the
      menu is pinned to the same corner so it can never reach past the card's edge. */
   @media (max-width:360px){.ezlang-menu{min-width:132px}}

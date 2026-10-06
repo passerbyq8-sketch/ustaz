@@ -204,6 +204,8 @@ const HARNESS_PARTS = [
   'const EzShellGroup = env.EzShellGroup;',
   'const useEzLang = env.useEzLang;',
   'const EzLangControl = env.EzLangControl;',
+  'const EzFirstRunLang = env.EzFirstRunLang;',
+  'const ezLangSettle = env.ezLangSettle;',
   'let EZ_LANG = env.lang;',
   text(C_FALLBACK),
   text(C_I18N),
@@ -540,6 +542,9 @@ function scene(opts) {
     // needs from it is that the card can be drawn, so it is a stub that draws nothing.
     useEzLang: () => (o.lang || 'ar'),
     EzLangControl: function EzLangControl() { return null; },
+    // the first-run language card and the settle on the way out belong to the i18n gate too (item 74, pass 2)
+    EzFirstRunLang: function EzFirstRunLang() { return null; },
+    ezLangSettle: function ezLangSettle() {},
   };
   return { env: env, win: win, sent: sent, clock: clock, storage: storage, fetch: fetchFn };
 }
