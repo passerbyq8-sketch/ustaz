@@ -182,7 +182,13 @@ const V = '﴿', W = '﴾';
     // what is not prose is never started: a tag, the fatwa block
     const sp2 = A.createSpeculator({ lang: 'en', translate: tr });
     sp2.feed('فقرة عادية طويلة بما يكفي لتبدأ ترجمتها فورا بلا مشكلة هنا.\n\n<verse surah="x" ayah="1">ن</verse> وبعده نص عربي طويل بما يكفي ليتجاوز الحد الأدنى.\n\n## نص الفتوى\n\nالسؤال:\nما حكم هذا الأمر الطويل بما يكفي ليتجاوز الحد؟\n\nالجواب:\nنص الجواب الطويل بما يكفي ليتجاوز الحد الأدنى للبدء.\n\n');
-    ok('a paragraph that holds a tag is never started, and nothing from the scholar\'s published block on is', sp2.started === 1, 'started=' + sp2.started);
+    ok('a card closes the prose before it and the prose after it is a paragraph of its own; a tag is never inside a started paragraph, and nothing of the scholar\'s published block is started',
+      sp2.started === 2 && !!sp2.take('فقرة عادية طويلة بما يكفي لتبدأ ترجمتها فورا بلا مشكلة هنا.') && !!sp2.take('وبعده نص عربي طويل بما يكفي ليتجاوز الحد الأدنى.') && !sp2.take('السؤال:\nما حكم هذا الأمر الطويل بما يكفي ليتجاوز الحد؟'), 'started=' + sp2.started);
+    // the card DOES close the paragraph before it: a first sentence followed by a card is started when the card arrives, not when the next blank line does
+    const sp3 = A.createSpeculator({ lang: 'en', translate: tr });
+    sp3.feed('جملة أولى طويلة بما يكفي ولا شيء بعدها بعد.'); const before3 = sp3.started;
+    sp3.feed('\n<book author="x" ref="y" book="FC-000001" vol="1" page="2" matn="eA==">كتاب</book>');
+    ok('the first sentence is started the moment a card follows it, not before', before3 === 0 && sp3.started === 1, before3 + ' -> ' + sp3.started);
     // ordering is untouched: the output of the parallel path equals the output without it
     const plain = await A.translateAnswer(P1 + '\n\n' + P2x + '\n\n' + P3, { lang: 'en', translate: tr });
     ok('the parallel path changes WHEN the work is done, not WHAT is delivered: same text out, in the same order, as the plain path', plain.text === outS.text, JSON.stringify([plain.text.slice(0, 120), outS.text.slice(0, 120)]));

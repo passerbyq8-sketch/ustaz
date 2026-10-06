@@ -115,10 +115,17 @@ const CORE = [
   // --vt-font:'Noto Naskh Arabic' and maps --ez-ui-font onto it -- and a reader who has visited
   // once would otherwise meet the whole conversation in the UA's fallback serif. Measured, not
   // assumed: a cold headless boot on a returning profile requests these two and no other font
-  // file. The other 19 in /fonts are left to the runtime arm below, which caches each one the
+  // file. The rest of /fonts (19 files then; 15 since ITEM 74 added the four Latin ones below) is left to the runtime arm below, which caches each one the
   // first time a screen asks for it.
   '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2',
   '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2',
+  // ITEM 74. The LATIN faces of Tajawal (the interface font), four weights -- 400, 500, 700, 800 -- so that the English interface is
+  // painted in its own face from the cache and a reader who has visited once can read English with no network (the Arabic
+  // faces of the same family stay with the runtime arm below, as before). 40736 bytes together.
+  '/fonts/Iura6YBj_oCad4k1nzGBCw.woff2',
+  '/fonts/Iurf6YBj_oCad4k1l8KiHrFpiQ.woff2',
+  '/fonts/Iurf6YBj_oCad4k1l4qkHrFpiQ.woff2',
+  '/fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2',
 ];
 
 // ---------------------------------------------------------------------------
@@ -146,6 +153,8 @@ const CORE = [
 //   + icon-maskable-512.png 5938 + icon-192.png 5053 + manifest.json 533
 //   + fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2 94032   (Noto Naskh Arabic, arabic)
 //   + fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2 19696      (Noto Naskh Arabic, latin)
+//   + fonts/Iura6YBj_oCad4k1nzGBCw.woff2 10256 + fonts/Iurf6YBj_oCad4k1l8KiHrFpiQ.woff2 9900
+//   + fonts/Iurf6YBj_oCad4k1l4qkHrFpiQ.woff2 9996 + fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2 10584   (Tajawal, latin, 400/500/700/800)
 // quest-bank-integrity-guard.cjs B12 re-derives this sum from the files on disk and FAILS on any
 // deviation, so a shell that grows cannot quietly leave the pre-check reading a number that
 // stopped being true.
