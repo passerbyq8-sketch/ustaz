@@ -1,5 +1,5 @@
 {
- "note": "Arabic string literals of app.jsx that the English interface does NOT cover through the dictionary (c./x./f./p. entries): data, scripture, normalisers, model prompts, speech formatting, voice lines (voice is deferred) and the rest. The guard lang fails on a literal that is not here and not covered: a new interface string goes into the dictionary, a new data literal goes here with its reason. Generated 2026-10-06 by tools in the session folder.",
+ "note": "Arabic string literals of app.jsx that the English interface does NOT cover through the dictionary (c./x./f./p. entries): data, scripture, normalisers, model prompts, speech formatting, voice lines (voice is deferred) and the rest. The guard lang fails on a literal that is not here and not covered: a new interface string goes into the dictionary, a new data literal goes here with its reason. Generated 2026-10-06 by tools in the session folder. 2026-10-06 (finish): the entries of category stored-content-kept-arabic are works, scholars and sources that the owner ruled stay Arabic (stored content is not translated outside an answer); they are named here, so the count that can only fall is the count of the OTHER categories.",
  "literals": [
   {
    "text": "(?:ا[ً-ْٰـ]*)?",
@@ -220,6 +220,10 @@
   {
    "text": "إبراهيم",
    "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "إدارة الإفتاء — الأوقاف الكويتية — eftaa.awqaf.gov.kw",
+   "cat": "stored-content-kept-arabic"
   },
   {
    "text": "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ",
@@ -542,6 +546,78 @@
    "cat": "surah-map-or-normaliser"
   },
   {
+   "text": "الشيخ خالد المصلح — almosleh.com",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "الشيخ سعد الخثلان — saadalkhathlan.com",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "الشيخ سليمان بن عبدالله الماجد — salmajed.com",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "الشيخ صالح الفوزان — af.org.sa",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "الشيخ عبدالرحمن البراك — sh-albarrak.com",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "الشيخ عبدالعزيز آل الشيخ — المفتي العام — af.org.sa",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "الشيخ عبدالعزيز الراجحي — shrajhi.com.sa",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "الشيخ عبدالعزيز بن عبدالله بن باز — binbaz.org.sa",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "الشيخ عبدالكريم الخضير — af.org.sa",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "الشيخ عبدالله بن جبرين — fatwn.ibn-jebreen.com",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "الشيخ عثمان الخميس — othmanalkhamees.com",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "الشيخ محمد بن حمد الحمود النجدي — al-athary.net",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "الشيخ محمد بن صالح العثيمين — binothaimeen.net",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "الشيخ محمد صالح المنجد — islamqa.info",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "الشيخ محمد علي فركوس — ferkous.app",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "الشيخ مشهور بن حسن آل سلمان — meshhoor.com",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "الشيخ مصطفى العدوي — mostafaaladwy.com",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "الشيخ مطلق الجاسر — youtube.com/@dr-mutlaq",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
    "text": "الصافات",
    "cat": "surah-map-or-normaliser"
   },
@@ -630,6 +706,10 @@
    "cat": "surah-map-or-normaliser"
   },
   {
+   "text": "القواعد المثلى لابن عثيمين · وشرح الشيخ عبدالرزاق البدر",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
    "text": "القيامة",
    "cat": "surah-map-or-normaliser"
   },
@@ -708,6 +788,10 @@
   {
    "text": "المسد",
    "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "المصحف برواية حفص عن عاصم",
+   "cat": "stored-content-kept-arabic"
   },
   {
    "text": "المطففين",
@@ -942,6 +1026,10 @@
    "cat": "other"
   },
   {
+   "text": "حصن المسلم",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
    "text": "حم السجدة",
    "cat": "surah-map-or-normaliser"
   },
@@ -956,6 +1044,14 @@
   {
    "text": "حَسْبُنَا ٱللَّهُ وَنِعْمَ ٱلْوَكِيلُ",
    "cat": "scripture-or-vocalised-data"
+  },
+  {
+   "text": "خالد بن عبدالله المصلح",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "خالد بن عثمان السبت",
+   "cat": "stored-content-kept-arabic"
   },
   {
    "text": "خرّجه",
@@ -1098,12 +1194,36 @@
    "cat": "speech-formatter"
   },
   {
+   "text": "سعد بن تركي الخثلان",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "سعد بن ناصر الشثري",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "سليمان بن سليم الله الرحيلي",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "سليمان بن عبدالله الماجد",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
    "text": "شاذ",
    "cat": "other"
   },
   {
    "text": "ص",
    "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "صالح بن عبدالعزيز آل الشيخ",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "صالح بن محمد اللحيدان",
+   "cat": "stored-content-kept-arabic"
   },
   {
    "text": "صحيح",
@@ -1134,8 +1254,52 @@
    "cat": "surah-map-or-normaliser"
   },
   {
+   "text": "عبدالرحمن بن ناصر البراك",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "عبدالرزاق بن عبدالمحسن البدر",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "عبدالسلام بن محمد الشويعر",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "عبدالعزيز بن عبدالله الراجحي",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "عبدالعزيز بن عبدالله بن باز",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "عبدالعزيز بن مرزوق الطريفي",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "عبدالكريم بن عبدالله الخضير",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "عبدالله بن صالح الفوزان",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "عبدالله بن عبدالرحمن بن جبرين",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "عبدالمحسن بن حمد العباد",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
    "text": "عبس",
    "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "عثمان بن محمد الخميس",
+   "cat": "stored-content-kept-arabic"
   },
   {
    "text": "عددُ النقاطِ اثنتان أو ثلاثٌ أو أربعٌ، لا أقلَّ ولا أكثر.",
@@ -1290,6 +1454,26 @@
    "cat": "surah-map-or-normaliser"
   },
   {
+   "text": "محمد الحمود النجدي",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "محمد بن صالح العثيمين",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "محمد بن محمد المختار الشنقيطي",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "محمد صالح المنجد",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "محمد ناصر الدين الألباني",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
    "text": "مرتين",
    "cat": "other"
   },
@@ -1304,6 +1488,22 @@
   {
    "text": "مرّات",
    "cat": "other"
+  },
+  {
+   "text": "مساعد بن سليمان الطيار",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "مشهور بن حسن آل سلمان",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "مصطفى بن العدوي",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "مطلق بن جاسر الجاسر",
+   "cat": "stored-content-kept-arabic"
   },
   {
    "text": "ملف نصّي",
@@ -1384,6 +1584,10 @@
   {
    "text": "وسمان لـ balance و two-days و clock-window و door-two، ووسمٌ واحدٌ لـ day-mark و page-check",
    "cat": "model-prompt-or-attribution-vocabulary"
+  },
+  {
+   "text": "وليد بن راشد السعيدان",
+   "cat": "stored-content-kept-arabic"
   },
   {
    "text": "ووسمان لـ ratio-bar و scale-cup، ولا وسمَ لـ mark-plain.",
@@ -1476,6 +1680,10 @@
   {
    "text": "يوسف",
    "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "يوسف بن محمد الغفيص",
+   "cat": "stored-content-kept-arabic"
   },
   {
    "text": "يونس",
@@ -1668,6 +1876,10 @@
   {
    "text": "۰۱۲۳۴۵۶۷۸۹",
    "cat": "other"
+  },
+  {
+   "text": "— حصن المسلم",
+   "cat": "stored-content-kept-arabic"
   },
   {
    "text": "🛠️ تعذّر تحويل كلامك إلى نصّ (رمز",

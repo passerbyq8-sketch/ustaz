@@ -101,6 +101,15 @@ const V = '﴿', W = '﴾';
   ok('the Quran verse tag gets the PUBLISHED text, unmodified, with its publisher, source and version',
     !!pq && out.text.includes('trs="') && Buffer.from(out.text.match(/<verse[^>]* tr="([^"]+)"/)[1], 'base64').toString('utf8') === pq.text
     && /QuranEnc\.com/.test(out.text) && out.text.includes('v' + pq.meta.version) && /Noor International Center/.test(out.text));
+  {
+    const pn = P.quranTranslation('en', 1, 1, 1);
+    const outN = await A.translateAnswer('<verse surah="الفاتحة" surah_num="1" ayah="1">بسم الله الرحمن الرحيم</verse>', { lang: 'en', translate: echo });
+    const gotTr = (outN.text.match(/ tr="([^"]+)"/) || [])[1]; const gotTrn = (outN.text.match(/ trn="([^"]+)"/) || [])[1];
+    ok('the footnotes of the published translation travel with the verse exactly as published (trn), and the translation text itself is untouched (tr)',
+      !!pn && !!pn.footnotes && !!gotTr && !!gotTrn && Buffer.from(gotTr, 'base64').toString('utf8') === pn.text && Buffer.from(gotTrn, 'base64').toString('utf8') === pn.footnotes, outN.text.slice(0, 200));
+    ok('...and the page shows them as text under the translation (the client reads trn and EzikTranslationNote prints it)',
+      /o\.trn = ezikDecodeMatn\(trn\)/.test(read('app.jsx')) && /\{notes \? <div style=\{s\.ezTranslationNotes\}>\{notes\}<\/div> : null\}/.test(read('app.jsx')) && /notes=\{seg\.trn\}/.test(read('app.jsx')));
+  }
   ok('a quotation matched to a published hadith carries its translation and source; one with no published translation carries NOTHING',
     /HadeethEnc.com/.test(out.text) && (out.text.split(UNK)[1] || '').startsWith(String.fromCharCode(10)));
   const dropper = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => s.replace(/\[\[[QAI]\d+\]\]/g, ''))) }; };
@@ -281,8 +290,9 @@ const V = '﴿', W = '﴾';
   vm.runInContext(locSrc + '\nthis.look = (t) => ezDomLookup(t); this.x = (t) => ezX(t); this.setLang = (v) => { EZ_LANG = v; };', ctxL);
   const AR2 = (c) => c;   // readability
   ok('an exact interface string is shown in English', ctxL.look('أرسِل') === 'Send' && ctxL.x('أرسِل') === 'Send');
-  ok('a pattern with a surah name and Arabic-Indic digits becomes English with Latin digits and the transliterated name',
-    ctxL.look('سورة البقرة، آية ٤٣') === 'Surah Al-Baqarah, ayah 43', String(ctxL.look('سورة البقرة، آية ٤٣')));
+  ok('a pattern with a surah name and Arabic-Indic digits becomes English with Latin digits and the SURAH NAME STAYS ARABIC (owner ruling 6 Oct 2026: the Mushaf and the names of its surahs are stored content and stay as they are)',
+    ctxL.look('سورة البقرة، آية ٤٣') === 'Surah البقرة, ayah 43', String(ctxL.look('سورة البقرة، آية ٤٣')));
+  ok('...and the dictionary holds no Latin rendering of the surah names, and no scholar or book title (they are stored content)', !/Al-Baqarah|Al-Fatihah/.test(appSrc) && !/binbaz.org.sa|binothaimeen.net|Hisn al-Muslim/i.test(dictSrc));
   ok('scripture, hadith and anything not in the dictionary are never rewritten',
     ctxL.look('إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ') === undefined && ctxL.look('وَأَقِيمُوا ٱلصَّلَوٰةَ') === undefined);
   ok('item 143: the Qibla group title, which was Arabic in the English interface, is the dictionary\'s English now', ctxL.look(DI.ar['c.QIBLA_SECTION']) === 'Qibla direction', String(ctxL.look(DI.ar['c.QIBLA_SECTION'])));

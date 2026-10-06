@@ -182,7 +182,6 @@ function ezLangRelabel() {
     EZIK_SUM_TAG = ezT('c.EZIK_SUM_TAG');
     EZIST_SUB_PRAYER = ezT('c.EZIST_SUB_PRAYER');
     A2_SEARCH = ezT('c.A2_SEARCH');
-    A2_SOURCE = ezT('c.A2_SOURCE');
     A2_LISTEN = ezT('c.A2_LISTEN');
     A3G_MORNING = ezT('c.A3G_MORNING');
     A3G_EVENING = ezT('c.A3G_EVENING');
@@ -305,7 +304,6 @@ const EZ_I18N = {
     'x.u90': 'قطر',
     'x.u93': 'كتم',
     'x.u108': 'نصّ',
-    'x.u151': '— حصن المسلم',
     'x.u152': '— سُورَةُ',
     'x.120': 'مدنية',
     'x.121': 'مكية',
@@ -446,59 +444,6 @@ const EZ_I18N = {
     'x.438': 'بُنيَ في الكويت، ويُطوَّرُ كلَّ يوم.',
     'x.439': 'ما فيه من صوابٍ فمن اللهِ وحدَه، وما فيه من خطأٍ فمنّا ونستغفرُ اللهَ منه.',
     'x.440': 'وإن رأيتَ خطأً أو عندَك اقتراحٌ فراسلْنا من «اقتراح أو شكوى» في هذه القائمة.',
-    'x.441': 'المصحف برواية حفص عن عاصم',
-    'x.442': 'حصن المسلم',
-    'x.443': 'الموسوعة الفقهية الكويتية',
-    'x.444': 'القواعد المثلى لابن عثيمين · وشرح الشيخ عبدالرزاق البدر',
-    'x.445': 'الشيخ عبدالعزيز بن عبدالله بن باز — binbaz.org.sa',
-    'x.446': 'الشيخ محمد بن صالح العثيمين — binothaimeen.net',
-    'x.447': 'الشيخ سليمان بن عبدالله الماجد — salmajed.com',
-    'x.448': 'الشيخ عبدالرحمن البراك — sh-albarrak.com',
-    'x.449': 'الشيخ مشهور بن حسن آل سلمان — meshhoor.com',
-    'x.450': 'الشيخ مطلق الجاسر — youtube.com/@dr-mutlaq',
-    'x.451': 'الشيخ سعد الخثلان — saadalkhathlan.com',
-    'x.452': 'الشيخ محمد علي فركوس — ferkous.app',
-    'x.453': 'الشيخ مصطفى العدوي — mostafaaladwy.com',
-    'x.454': 'الشيخ محمد صالح المنجد — islamqa.info',
-    'x.455': 'الشيخ خالد المصلح — almosleh.com',
-    'x.456': 'الشيخ عثمان الخميس — othmanalkhamees.com',
-    'x.457': 'الشيخ محمد بن حمد الحمود النجدي — al-athary.net',
-    'x.458': 'إدارة الإفتاء — الأوقاف الكويتية — eftaa.awqaf.gov.kw',
-    'x.459': 'الشيخ عبدالعزيز آل الشيخ — المفتي العام — af.org.sa',
-    'x.460': 'الشيخ صالح الفوزان — af.org.sa',
-    'x.461': 'الشيخ عبدالكريم الخضير — af.org.sa',
-    'x.462': 'الشيخ عبدالعزيز الراجحي — shrajhi.com.sa',
-    'x.463': 'الشيخ عبدالله بن جبرين — fatwn.ibn-jebreen.com',
-    'x.464': 'عثمان بن محمد الخميس',
-    'x.465': 'محمد بن محمد المختار الشنقيطي',
-    'x.466': 'خالد بن عبدالله المصلح',
-    'x.467': 'عبدالعزيز بن عبدالله بن باز',
-    'x.468': 'عبدالرحمن بن ناصر البراك',
-    'x.469': 'عبدالعزيز بن عبدالله الراجحي',
-    'x.470': 'سعد بن ناصر الشثري',
-    'x.471': 'محمد صالح المنجد',
-    'x.472': 'محمد بن صالح العثيمين',
-    'x.473': 'خالد بن عثمان السبت',
-    'x.474': 'عبدالمحسن بن حمد العباد',
-    'x.475': 'صالح بن محمد اللحيدان',
-    'x.476': 'سعد بن تركي الخثلان',
-    'x.477': 'مشهور بن حسن آل سلمان',
-    'x.478': 'محمد الحمود النجدي',
-    'x.479': 'مطلق بن جاسر الجاسر',
-    'x.480': 'عبدالسلام بن محمد الشويعر',
-    'x.481': 'محمد ناصر الدين الألباني',
-    'x.482': 'مساعد بن سليمان الطيار',
-    'x.483': 'عبدالعزيز بن مرزوق الطريفي',
-    'x.484': 'وليد بن راشد السعيدان',
-    'x.485': 'يوسف بن محمد الغفيص',
-    'x.486': 'عبدالله بن عبدالرحمن بن جبرين',
-    'x.487': 'عبدالله بن صالح الفوزان',
-    'x.488': 'صالح بن عبدالعزيز آل الشيخ',
-    'x.489': 'سليمان بن عبدالله الماجد',
-    'x.490': 'سليمان بن سليم الله الرحيلي',
-    'x.491': 'عبدالرزاق بن عبدالمحسن البدر',
-    'x.492': 'عبدالكريم بن عبدالله الخضير',
-    'x.493': 'مصطفى بن العدوي',
     'x.494': 'الصوتُ قيدَ التجهيز',
     'x.495': 'الرمز مطلوب',
     'x.496': 'أدخل رمز الفتح للمتابعة.',
@@ -647,7 +592,6 @@ const EZ_I18N = {
     'c.EZIST_SUB_ASMAA': 'تسعةٌ وتسعون اسمًا، بمعانيها ومصادرها',
     'c.EZIST_SUB_PRAYER': 'المواقيت والقبلة، محسوبةً على هذا الجهاز',
     'c.A2_SEARCH': 'ابحث عن ذكر',
-    'c.A2_SOURCE': 'حصن المسلم',
     'c.A2_LISTEN': 'استماع',
     'c.A3G_MORNING': 'الصباح',
     'c.A3G_EVENING': 'المساء',
@@ -1615,7 +1559,6 @@ const EZ_I18N = {
     'x.u90': 'Qatar',
     'x.u93': 'Mute',
     'x.u108': 'Text',
-    'x.u151': '— Hisn al-Muslim',
     'x.u152': '— Surah',
     'x.120': 'Medinan',
     'x.121': 'Meccan',
@@ -1756,59 +1699,6 @@ const EZ_I18N = {
     'x.438': 'Built in Kuwait, and developed every day.',
     'x.439': 'Whatever is right in it is from Allah alone, and whatever is wrong in it is from us, and we ask Allah\'s forgiveness for it.',
     'x.440': 'If you see a mistake or have a suggestion, write to us from «Suggestion or complaint» in this menu.',
-    'x.441': 'The Mushaf in the narration of Hafs from \'Asim',
-    'x.442': 'Hisn al-Muslim',
-    'x.443': 'The Kuwaiti Fiqh Encyclopedia',
-    'x.444': 'Al-Qawa\'id al-Muthla by Ibn \'Uthaymeen · and the explanation by Sheikh Abd al-Razzaq al-Badr',
-    'x.445': 'Sheikh Abd al-Aziz ibn Abdullah ibn Baz — binbaz.org.sa',
-    'x.446': 'Sheikh Muhammad ibn Salih al-\'Uthaymeen — binothaimeen.net',
-    'x.447': 'Sheikh Sulaiman ibn Abdullah al-Majid — salmajed.com',
-    'x.448': 'Sheikh Abd al-Rahman al-Barrak — sh-albarrak.com',
-    'x.449': 'Sheikh Mashhur ibn Hasan Al Salman — meshhoor.com',
-    'x.450': 'Sheikh Mutlaq al-Jasir — youtube.com/@dr-mutlaq',
-    'x.451': 'Sheikh Sa\'d al-Khathlan — saadalkhathlan.com',
-    'x.452': 'Sheikh Muhammad Ali Ferkous — ferkous.app',
-    'x.453': 'Sheikh Mustafa al-\'Adawi — mostafaaladwy.com',
-    'x.454': 'Sheikh Muhammad Salih al-Munajjid — islamqa.info',
-    'x.455': 'Sheikh Khalid al-Musleh — almosleh.com',
-    'x.456': 'Sheikh Uthman al-Khamees — othmanalkhamees.com',
-    'x.457': 'Sheikh Muhammad ibn Hamad al-Hamoud al-Najdi — al-athary.net',
-    'x.458': 'The Fatwa Department — Kuwaiti Awqaf — eftaa.awqaf.gov.kw',
-    'x.459': 'Sheikh Abd al-Aziz Al al-Sheikh — the Grand Mufti — af.org.sa',
-    'x.460': 'Sheikh Salih al-Fawzan — af.org.sa',
-    'x.461': 'Sheikh Abd al-Karim al-Khudair — af.org.sa',
-    'x.462': 'Sheikh Abd al-Aziz al-Rajhi — shrajhi.com.sa',
-    'x.463': 'Sheikh Abdullah ibn Jibreen — fatwn.ibn-jebreen.com',
-    'x.464': 'Uthman ibn Muhammad al-Khamees',
-    'x.465': 'Muhammad ibn Muhammad al-Mukhtar al-Shinqiti',
-    'x.466': 'Khalid ibn Abdullah al-Musleh',
-    'x.467': 'Abd al-Aziz ibn Abdullah ibn Baz',
-    'x.468': 'Abd al-Rahman ibn Nasir al-Barrak',
-    'x.469': 'Abd al-Aziz ibn Abdullah al-Rajhi',
-    'x.470': 'Sa\'d ibn Nasir al-Shathri',
-    'x.471': 'Muhammad Salih al-Munajjid',
-    'x.472': 'Muhammad ibn Salih al-\'Uthaymeen',
-    'x.473': 'Khalid ibn Uthman al-Sabt',
-    'x.474': 'Abd al-Muhsin ibn Hamad al-\'Abbad',
-    'x.475': 'Salih ibn Muhammad al-Luhaidan',
-    'x.476': 'Sa\'d ibn Turki al-Khathlan',
-    'x.477': 'Mashhur ibn Hasan Al Salman',
-    'x.478': 'Muhammad al-Hamoud al-Najdi',
-    'x.479': 'Mutlaq ibn Jasir al-Jasir',
-    'x.480': 'Abd al-Salam ibn Muhammad al-Shuway\'ir',
-    'x.481': 'Muhammad Nasir al-Din al-Albani',
-    'x.482': 'Musa\'id ibn Sulaiman al-Tayyar',
-    'x.483': 'Abd al-Aziz ibn Marzuq al-Turayfi',
-    'x.484': 'Walid ibn Rashid al-Sa\'idan',
-    'x.485': 'Yusuf ibn Muhammad al-Ghafis',
-    'x.486': 'Abdullah ibn Abd al-Rahman ibn Jibreen',
-    'x.487': 'Abdullah ibn Salih al-Fawzan',
-    'x.488': 'Salih ibn Abd al-Aziz Al al-Sheikh',
-    'x.489': 'Sulaiman ibn Abdullah al-Majid',
-    'x.490': 'Sulaiman ibn Salim Allah al-Ruhaili',
-    'x.491': 'Abd al-Razzaq ibn Abd al-Muhsin al-Badr',
-    'x.492': 'Abd al-Karim ibn Abdullah al-Khudair',
-    'x.493': 'Mustafa ibn al-\'Adawi',
     'x.494': 'Voice is being prepared',
     'x.495': 'The code is required',
     'x.496': 'Enter the unlock code to continue.',
@@ -1957,7 +1847,6 @@ const EZ_I18N = {
     'c.EZIST_SUB_ASMAA': 'The ninety-nine names, with their meanings and sources',
     'c.EZIST_SUB_PRAYER': 'Prayer times and the Qibla, calculated on this device',
     'c.A2_SEARCH': 'Search for a dhikr',
-    'c.A2_SOURCE': 'Hisn al-Muslim',
     'c.A2_LISTEN': 'Listen',
     'c.A3G_MORNING': 'Morning',
     'c.A3G_EVENING': 'Evening',
@@ -7611,7 +7500,7 @@ const parseRichMessage = (text, viewerAge) => {
   const __trRead = (attrs, name) => { const m = new RegExp('\\b' + name + '=["\']([^"\']+)["\']').exec(attrs || ''); return m ? m[1] : ''; };
   const __trFields = (attrs) => {
     const o = {};
-    const tr = __trRead(attrs, 'tr'); if (tr) { o.tr = ezikDecodeMatn(tr); o.trs = __trRead(attrs, 'trs'); }
+    const tr = __trRead(attrs, 'tr'); if (tr) { o.tr = ezikDecodeMatn(tr); o.trs = __trRead(attrs, 'trs'); const trn = __trRead(attrs, 'trn'); if (trn) o.trn = ezikDecodeMatn(trn); }
     const tl = __trRead(attrs, 'tl'); if (tl) o.tl = ezikDecodeMatn(tl);
     const tb = __trRead(attrs, 'tb'); if (tb) o.tb = ezikDecodeMatn(tb);
     return o;
@@ -13682,7 +13571,7 @@ const A2_TITLE  = 'الأدعية';
 let A2_BACK = ezT("common.back");
 let A2_SEARCH = ezT('c.A2_SEARCH');
 const A2_EMPTY  = 'لا نتائج';
-let A2_SOURCE = ezT('c.A2_SOURCE');
+const A2_SOURCE = 'حصن المسلم';
 let A2_LISTEN = ezT('c.A2_LISTEN');
 const A2_STOP   = 'إيقاف';
 // Byte-for-byte the meta line V1 renders: the same two words around the same Arabic-Indic digits.
@@ -21917,7 +21806,7 @@ function ezikRenderSegments(segments, ctx) {
     if (seg.type === 'verse') {
       const verseCard = <VerseCard key={i} surah={seg.surah} surahNum={seg.surahNum} ayah={seg.ayah} onPlayVerse={onPlayVerse} onStopAudio={onStopAudio}
         onFavorite={onFavoriteAyah} isFavorite={!!(ayahFavIds && onFavoriteAyah && ayahFavIds.has(ezikAyahFavKey(seg.surahNum, seg.surah, seg.ayah)))} />;
-      return seg.tr ? <React.Fragment key={i}>{verseCard}<EzikTranslationNote text={seg.tr} source={seg.trs} /></React.Fragment> : verseCard;
+      return seg.tr ? <React.Fragment key={i}>{verseCard}<EzikTranslationNote text={seg.tr} source={seg.trs} notes={seg.trn} /></React.Fragment> : verseCard;
     }
     if (seg.type === 'surah') {
       return <SurahCard key={i} num={seg.num} from={seg.from} to={seg.to} onPlaySurah={onPlaySurah} onStopAudio={onStopAudio} />;
@@ -22479,12 +22368,13 @@ function ReportModal({ onClose, onSubmit }) {
 // المفضلة itself from offering to save what is already saved.
 // ITEM 74 -- the translation under a card. The Arabic stays on the card above it, untouched; this block is always
 // left-to-right and carries its own language tag, whatever the interface direction is.
-function EzikTranslationNote({ text, source, label }) {
+function EzikTranslationNote({ text, source, label, notes }) {
   if (!text) return null;
   return (
     <div dir="ltr" lang="en" style={s.ezTranslationNote}>
       {label ? <div style={s.ezTranslationLabel}>{label}</div> : null}
       <div style={s.ezTranslationText}>{text}</div>
+      {notes ? <div style={s.ezTranslationNotes}>{notes}</div> : null}
       {source ? <div style={s.ezTranslationSource}>{source}</div> : null}
     </div>
   );
@@ -34478,6 +34368,7 @@ const s = {
   ezTranslationNote: { alignSelf: 'stretch', textAlign: 'left', margin: '2px 0 6px', padding: '8px 12px', background: 'var(--tint)', border: '1px solid var(--line)', borderRadius: 12 },
   ezTranslationLabel: { color: 'var(--red)', fontSize: 12, fontWeight: 600, marginBottom: 2 },
   ezTranslationText: { color: 'var(--ink)', fontSize: 14.5, lineHeight: 1.7, overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' },
+  ezTranslationNotes: { color: 'var(--muted)', fontSize: 12.5, lineHeight: 1.6, marginTop: 6, overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' },
   ezTranslationSource: { color: 'var(--muted)', fontSize: 11.5, lineHeight: 1.5, marginTop: 4 },
 
   // ===== بطاقة المصدر (شريحة عزوٍ قابلة للنقر) =====
@@ -35183,9 +35074,6 @@ let EZ_DOM_INDEX = null;
 let EZ_DOM_INDEX_LANG = null;
 let EZ_DOM_PATTERNS = [];
 let EZ_DOM_OBSERVER = null;
-// The surah names, in the reader's language. The Arabic names are SURAH_NAMES; the other halves live in the table the
-// language carries (a transliteration of the name, never a translation of its meaning).
-const EZ_SURAH_EN = ['', 'Al-Fatihah', 'Al-Baqarah', 'Ali \'Imran', 'An-Nisa', 'Al-Ma\'idah', 'Al-An\'am', 'Al-A\'raf', 'Al-Anfal', 'At-Tawbah', 'Yunus', 'Hud', 'Yusuf', 'Ar-Ra\'d', 'Ibrahim', 'Al-Hijr', 'An-Nahl', 'Al-Isra', 'Al-Kahf', 'Maryam', 'Ta-Ha', 'Al-Anbiya', 'Al-Hajj', 'Al-Mu\'minun', 'An-Nur', 'Al-Furqan', 'Ash-Shu\'ara', 'An-Naml', 'Al-Qasas', 'Al-\'Ankabut', 'Ar-Rum', 'Luqman', 'As-Sajdah', 'Al-Ahzab', 'Saba', 'Fatir', 'Ya-Sin', 'As-Saffat', 'Sad', 'Az-Zumar', 'Ghafir', 'Fussilat', 'Ash-Shura', 'Az-Zukhruf', 'Ad-Dukhan', 'Al-Jathiyah', 'Al-Ahqaf', 'Muhammad', 'Al-Fath', 'Al-Hujurat', 'Qaf', 'Adh-Dhariyat', 'At-Tur', 'An-Najm', 'Al-Qamar', 'Ar-Rahman', 'Al-Waqi\'ah', 'Al-Hadid', 'Al-Mujadilah', 'Al-Hashr', 'Al-Mumtahanah', 'As-Saff', 'Al-Jumu\'ah', 'Al-Munafiqun', 'At-Taghabun', 'At-Talaq', 'At-Tahrim', 'Al-Mulk', 'Al-Qalam', 'Al-Haqqah', 'Al-Ma\'arij', 'Nuh', 'Al-Jinn', 'Al-Muzzammil', 'Al-Muddaththir', 'Al-Qiyamah', 'Al-Insan', 'Al-Mursalat', 'An-Naba', 'An-Nazi\'at', '\'Abasa', 'At-Takwir', 'Al-Infitar', 'Al-Mutaffifin', 'Al-Inshiqaq', 'Al-Buruj', 'At-Tariq', 'Al-A\'la', 'Al-Ghashiyah', 'Al-Fajr', 'Al-Balad', 'Ash-Shams', 'Al-Layl', 'Ad-Duha', 'Ash-Sharh', 'At-Tin', 'Al-\'Alaq', 'Al-Qadr', 'Al-Bayyinah', 'Az-Zalzalah', 'Al-\'Adiyat', 'Al-Qari\'ah', 'At-Takathur', 'Al-\'Asr', 'Al-Humazah', 'Al-Fil', 'Quraysh', 'Al-Ma\'un', 'Al-Kawthar', 'Al-Kafirun', 'An-Nasr', 'Al-Masad', 'Al-Ikhlas', 'Al-Falaq', 'An-Nas'];
 const EZ_DIGIT_RE = /[\u0660-\u0669\u06F0-\u06F9]/g;
 // A number in the reader's language: the digit system is a column of the language table, read here and nowhere else.
 const EZ_DIGIT_BASE = { 'arab-indic': 0x660, 'arab-ext': 0x6F0 };   // the zero of each digit system; Latin is the absence of an entry
@@ -35202,7 +35090,6 @@ function ezDigitsOut(t) {   // the digits of the reader's language (the table ro
 function ezDomFragment(t) {   // a captured piece: a surah name, a unit, a ceiling, or a number
   const g = String(t).trim();
   const idx = ezDomIndex();
-  if (EZ_LANG === 'en') { for (let i = 1; i <= 114; i++) if (typeof SURAH_NAMES !== 'undefined' && SURAH_NAMES[i] === g) return EZ_SURAH_EN[i]; }
   const hit = idx.frags.get(g);
   if (hit !== undefined) return hit;
   return ezDigitsOut(g).replace(/\s+([A-Za-z]{2})\b/, ' $1');
