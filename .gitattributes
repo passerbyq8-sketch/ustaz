@@ -881,3 +881,4 @@ tools/build-translations.mjs text eol=lf
 quest-i18n.js text eol=lf
 quran-trans-en.json text eol=lf
 guards/fixtures-lang-uncovered.json text eol=lf
+lib/lang/fixed.js text eol=lf

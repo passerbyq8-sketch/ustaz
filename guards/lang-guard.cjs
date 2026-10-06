@@ -70,8 +70,8 @@ const V = '﴿', W = '﴾';
     const before = JSON.stringify(mk({ uiLang: 'ar', messages: [{ role: 'user', content: 'مرحبا' }] }));
     const r0 = mk({ uiLang: 'ar', messages: [{ role: 'user', content: 'مرحبا' }] }); await G.languageGate(r0, {}, async () => {});
     ok('and the request body is not modified', JSON.stringify(r0) === before);
-    ok('a question the early guards already read (a porn request in English) goes to the inner handler as it is',
-      (() => { const d = G.decideLanguage(mk({ uiLang: 'ar', messages: [{ role: 'user', content: 'Please send me porn links' }] })); return d.translate === false && d.reason === 'early_guard'; })());
+    ok('a question the early guards already read (a porn request in English) goes to the guards as the reader wrote it: no question translation is installed for it',
+      (() => { const d = G.decideLanguage(mk({ uiLang: 'ar', messages: [{ role: 'user', content: 'Please send me porn links' }] })); return d.translate === true && d.early === true && d.reason === 'early_guard'; })());
   } finally { globalThis.fetch = origFetch; }
 
   console.log('\n=== h6 THE QUESTION IS TEXT, NOT A COMMAND ===');
@@ -154,6 +154,20 @@ const V = '﴿', W = '﴾';
   await G.languageGate({ method: 'POST', headers: { 'x-ezik-lang': 'en' }, body: { messages: [{ role: 'user', content: 'What is the ruling on prayer?' }] } }, res3, async (req, res) => { const ok2 = await req.__langTranslateQuestion([{ role: 'user', content: 'x' }]); if (!ok2) return; res.status(200); res.write('NEVER'); res.end(); }, { log() {}, translateQuestionImpl: async () => ({ ok: false, ms: 1 }) });
   ok('a question that cannot be translated ends the turn with the fixed sentence in the reader\'s language, and the inner handler does not go on',
     /could not process your question/.test(res3.chunks.join('')) && !/NEVER/.test(res3.chunks.join('')));
+
+  console.log('\n=== THE FIXED TEXTS: a guard that answers without a model is answered back in the reader\'s language without one ===');
+  {
+    const PR = await esm('lib/policy/porn-request.js');
+    const F = await esm('lib/lang/fixed.js');
+    let questionCalls = 0, answerCalls = 0;
+    const res = real();
+    const req = { method: 'POST', headers: { 'x-ezik-lang': 'ar' }, body: { messages: [{ role: 'user', content: 'Please send me porn links' }] } };
+    await G.languageGate(req, res, fakeInner(sse(PR.PORN_REFUSAL_TEXT)), { log() {}, translateQuestionImpl: async () => { questionCalls++; return { ok: true, ms: 0 }; }, translateAnswerImpl: async () => { answerCalls++; return null; } });
+    const out2 = res.chunks.join('');
+    ok('the fixed Arabic refusal comes out as its fixed English rendition, with NO model call at all (neither the question nor the answer)',
+      questionCalls === 0 && answerCalls === 0 && req.__langTranslateQuestion === undefined && out2.indexOf(F.fixedRendition('en', PR.PORN_REFUSAL_TEXT).slice(0, 40)) !== -1 && /message_stop/.test(out2), out2.slice(0, 160));
+    ok('and a text that is not one of the fixed ones has no rendition (the lookup never guesses)', F.fixedRendition('en', 'any other text') === null && F.fixedRendition('xx', PR.PORN_REFUSAL_TEXT) === null);
+  }
 
   console.log('\n=== h7 NO NEW PROVIDER, NO NEW KEY ===');
   const langSrc = fs.readdirSync(path.join(REPO, 'lib', 'lang')).filter((f) => /\.js$/.test(f)).map((f) => read('lib/lang/' + f)).join('\n');
