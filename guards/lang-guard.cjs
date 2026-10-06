@@ -515,6 +515,19 @@ const V = '﴿', W = '﴾';
     ok('a suggestion line comes back with no Arabic letters of a gloss', /What is Iqamah\?/.test(outG.text) && !/[؀-ۿ]/.test(outG.text.replace(/<\/?suggestions>/g, '')), outG.text);
   }
 
+  console.log('\n=== A LANGUAGE WRITTEN IN ARABIC SCRIPT: a correct reply is not "Arabic kept" (measured on the first Persian preview: every unit rejected, answer delivered in Arabic) ===');
+  {
+    const src = 'الإقامة هي أداء الصلاة بحقوقها في أوقاتها المعينة لها شرعا، ومعناها إعلام الحاضرين بالقيام إلى الصلاة.';
+    const fa = 'اقامه یعنی ادای نماز با حقوق آن در وقت‌های معین شرعی، و معنای آن آگاه‌کردن حاضران برای برخاستن به نماز است.';
+    ok('keptSource: the source given back is kept, a Persian rendering is not', A.keptSource(src, src) === true && A.keptSource(src, fa) === false);
+    const good = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map(() => fa)) }; };
+    const outFa = await A.translateAnswer(src, { lang: 'fa', translate: good });
+    ok('a Persian reply is delivered as Persian (not retried into Arabic)', outFa.text.includes('اقامه یعنی') && !/batch_try|kept_arabic/.test((outFa.degraded || []).join(' ')), outFa.text.slice(0, 80) + ' | ' + (outFa.degraded || []).join(' ').slice(0, 120));
+    const same = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr) }; };
+    const outSame = await A.translateAnswer(src, { lang: 'fa', translate: same });
+    ok('a reply that is the Arabic untouched is still refused for Persian: the unit stays Arabic and the log says so', outSame.text.includes('الإقامة هي') && (outSame.degraded || []).length > 0);
+  }
+
   console.log('\n' + (failures ? 'FAILED: ' + failures + ' of ' + checks + ' checks failed.' : 'OK: ' + checks + ' checks passed.'));
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.log('GUARD CRASHED: ' + (e && e.stack || e)); process.exit(2); });
