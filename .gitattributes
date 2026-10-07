@@ -870,3 +870,7 @@ data/prayer-ojeiri-kw-2026-10.csv text eol=lf
 data/prayer-ojeiri-kw-2026-11.csv text eol=lf
 guards/prayer-features-guard.cjs text eol=lf
 places.json text eol=lf
+
+# Hanna Laha: the game page hanna-laha/index.html is not Ezik's shell. The rule above (index.html, any folder) would give it CRLF at every checkout,
+# so the bytes deployed would differ from the build. Pinned LF, as the rest of the game folder is.
+hanna-laha/index.html text eol=lf
