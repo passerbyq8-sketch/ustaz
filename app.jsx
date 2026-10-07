@@ -29,6 +29,7 @@ const EZ_LANGUAGES = [
   { code: 'id', nativeName: 'Bahasa Indonesia', shortLabel: 'ID', dir: 'ltr', digits: 'latn', script: 'latn', locale: 'id', meridiem: ['AM','PM'] },
   { code: 'ur', nativeName: 'اردو', shortLabel: 'ار', dir: 'rtl', digits: 'latn', script: 'arab', locale: 'ur', meridiem: ['ص','ش'] },
   { code: 'bn', nativeName: 'বাংলা', shortLabel: 'বা', dir: 'ltr', digits: 'beng', script: 'beng', locale: 'bn', meridiem: ['পূর্বাহ্ণ','অপরাহ্ণ'] },
+  { code: 'tr', nativeName: 'Türkçe', shortLabel: 'TR', dir: 'ltr', digits: 'latn', script: 'latn', locale: 'tr', meridiem: ['ÖÖ','ÖS'] },
 ];
 const EZ_LANGS = EZ_LANGUAGES.map((l) => l.code);
 function ezLangEntry(code) { return EZ_LANGUAGES.filter((l) => l.code === code)[0] || EZ_LANGUAGES[0]; }
