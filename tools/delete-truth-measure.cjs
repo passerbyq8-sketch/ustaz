@@ -146,7 +146,7 @@ const LANGUAGE = new Set(['Array', 'Object', 'JSON', 'String', 'Number', 'Boolea
 // What the harness stands in for -- the browser and the React bindings resetAll closes over.
 const ENV_NAMES = ['window', 'document', 'localStorage', 'confirm', 'CustomEvent',
   'setDirectConvoLocked', 'setProfile', 'setMessages', 'setChatId', 'setChatList', 'setScreen',
-  'chatIdRef'];
+  'chatIdRef', 'EZIK_ENABLED_LANGS', 'location'];
 
 const V_RESET = innerConst('App', 'resetAll');
 
@@ -657,6 +657,9 @@ function scene(opts) {
 
   const env = {
     window: fakeWindow(events),
+    // item 74 E1: the language filter reads a baked list and the host; a preview-shaped host offers every language
+    EZIK_ENABLED_LANGS: ['ar', 'en'],
+    location: { hostname: 'localhost' },
     document: fakeDocument(painted),
     localStorage: storage,
     confirm: (q) => { asked.push(q); return o.answer !== false; },

@@ -142,7 +142,7 @@ const LANGUAGE = new Set(['Array', 'Object', 'JSON', 'String', 'Number', 'Boolea
 // What the harness stands in for. Asserted in BOTH directions below: a name the pipe starts using
 // that nothing here supplies is a tool measuring code that cannot run, and a name faked here that
 // the pipe stopped using is a tool carrying scenery for a scene that has been struck.
-const ENV_NAMES = ['window', 'document', 'setTimeout', 'clearTimeout', 'useEffect', 'localStorage'];
+const ENV_NAMES = ['window', 'document', 'setTimeout', 'clearTimeout', 'useEffect', 'localStorage', 'EZIK_ENABLED_LANGS', 'location'];
 
 // THE PIPE, BY NAME. Every one of these must exist or extraction throws.
 const ROOTS = ['ezikSchedBridge', 'ezikSchedRoute', 'ezikSchedPayload', 'ezikSchedSend',
@@ -440,6 +440,9 @@ function makeEnv(opts) {
   };
   const env = {
     window: win,
+    // item 74 E1: the language filter reads a baked list and the host (a preview-shaped host offers every language)
+    EZIK_ENABLED_LANGS: ['ar', 'en'],
+    location: { hostname: 'localhost' },
     document: doc,
     // A NODE-SHAPED HANDLE, deliberately. Under node -- which is where runtime-gate.cjs mounts
     // this tree -- setTimeout returns an object carrying unref(), and a pending long timer that
