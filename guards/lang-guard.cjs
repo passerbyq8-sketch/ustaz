@@ -438,7 +438,7 @@ const V = '﴿', W = '﴾';
   ok('every English half is a non-empty string and no placeholder was lost or invented',
     keysOf('en').every((k) => typeof DI.en[k] === 'string' && DI.en[k].trim() && JSON.stringify((DI.ar[k].match(/\{[A-Za-z0-9_]+\}/g) || []).sort()) === JSON.stringify((DI.en[k].match(/\{[A-Za-z0-9_]+\}/g) || []).sort())));
   // the table, with a trial right-to-left language that has its own digits: a ROW, and the layer follows it
-  let tableSrc = sliceBetween('const EZ_LANGUAGES = [', 'function ezLangValid(v)');
+  let tableSrc = sliceBetween('const EZ_LANGUAGE_TABLE = [', 'function ezLangValid(v)');
   tableSrc = tableSrc.replace("  { code: 'en',", "  { code: 'zz', nativeName: 'Trial', shortLabel: 'ZZ', dir: 'rtl', digits: 'arab-ext', script: 'arab', locale: 'fa' },\n  { code: 'en',");
   const applySrc = sliceBetween('function ezLangApply(v) {', '\n}\n') + '\n}\n';
   const numSrc = sliceBetween('const EZ_DIGIT_BASE', '\n}\n') + '\n}\n';
@@ -587,6 +587,41 @@ const V = '﴿', W = '﴾';
     const fx = F.fixedRendition('fa', (await esm('lib/policy/porn-request.js')).PORN_REFUSAL_TEXT);
     ok('the two fixed refusals have a Persian rendition by lookup (no model)', typeof fx === 'string' && /[\u0600-\u06FF]/.test(fx) && fx !== (await esm('lib/policy/porn-request.js')).PORN_REFUSAL_TEXT);
     ok('the Persian prompt is built from the row: it names Persian, asks for Persian letters for terms, and keeps rules 3 (no Arabic copy) and 6 (no added name)', /into Persian/.test(M.answerSystem('fa', true)) && /Persian letters/.test(M.answerSystem('fa', true)) && /never copy the Arabic side/i.test(M.answerSystem('fa', true)) && /Never add the name of a person/.test(M.answerSystem('fa', false)));
+  }
+
+  console.log('\n=== E1 (amendment 5): THE ENABLED LANGUAGES - one file, production shows exactly the list, a preview shows all ===');
+  {
+    const EN = await esm('lib/lang/enabled.js'); const vm = require('vm');
+    const file = JSON.parse(read('config/enabled-languages.json')); const listed = ['ar', 'en'].concat(file.enabled.filter((c) => c !== 'ar' && c !== 'en'));
+    const table = Object.keys(T.LANG_TABLE);
+    ok('config/enabled-languages.json lists only codes of the table, and the server reads exactly it (Arabic and English always)', file.enabled.every((c) => table.includes(c)) && JSON.stringify(EN.enabledCodes()) === JSON.stringify(listed), JSON.stringify(EN.enabledCodes()));
+    const prod = { VERCEL_ENV: 'production' }; const prev = { VERCEL_ENV: 'preview' };
+    ok('production answers in exactly the listed languages and no other built language', table.every((c) => EN.languageEnabled(c, prod) === listed.includes(c)), table.filter((c) => EN.languageEnabled(c, prod) !== listed.includes(c)).join(','));
+    ok('a preview deployment and a local run answer in every built language', table.every((c) => EN.languageEnabled(c, prev) && EN.languageEnabled(c, {}) && EN.languageEnabled(c, { VERCEL_ENV: 'development' })));
+    const save = process.env.VERCEL_ENV;
+    const mkq = (key, q) => ({ method: 'POST', headers: { 'x-ezik-lang': key }, body: JSON.stringify({ messages: [{ role: 'user', content: q }] }) });
+    const ES = '¿Cuál es el estado de la oración del viajero en el islam?'; const FRQ = 'Quel est le statut de la prière du voyageur en islam ?';
+    try {
+      process.env.VERCEL_ENV = 'production';
+      const a = G.decideLanguage(mkq('ar', ES)), b = G.decideLanguage(mkq('es', ES)), c = G.decideLanguage(mkq('fr', FRQ)), d = G.decideLanguage(mkq('ar', FRQ)), e = G.decideLanguage(mkq('ar', 'Namaz nasıl kılınır?'));
+      ok('production: a Spanish question (any interface language) is NOT in the language layer - it takes the origin/main road, the inner handler with the very same req and res', a.translate === false && a.reason === 'not_enabled' && b.translate === false && b.reason === 'not_enabled', JSON.stringify([a, b]));
+      ok('production: a Turkish question (a built, not enabled language) takes the same road', e.translate === false && e.reason === 'not_enabled', JSON.stringify(e));
+      ok('production: an enabled language still answers in its own language (French question)', c.translate === true && c.lang === 'fr' && d.translate === true && d.lang === 'fr', JSON.stringify([c, d]));
+      let called = 0; const resP = { headersSent: false, status() { return this; }, setHeader() {}, getHeader() {}, json() {}, end() {}, write() { return true; }, on() {} };
+      const reqP = mkq('ar', ES); let sawSame = null; await G.languageGate(reqP, resP, async (rq, rs) => { called++; sawSame = rq === reqP && rs === resP && typeof rq.__langTranslateQuestion !== 'function'; }, { log() {} });
+      ok('production: the gate hands a not-enabled language to the inner handler untouched (same req, same res, no translation hook)', called === 1 && sawSame === true);
+      process.env.VERCEL_ENV = 'preview';
+      const f = G.decideLanguage(mkq('ar', ES)), g = G.decideLanguage(mkq('es', ES)), h = G.decideLanguage(mkq('ar', 'Namaz nasıl kılınır?'));
+      ok('preview: Spanish and Turkish questions are answered in their own language', f.translate === true && f.lang === 'es' && g.translate === true && h.translate === true && h.lang === 'tr', JSON.stringify([f, g, h]));
+    } finally { if (save === undefined) delete process.env.VERCEL_ENV; else process.env.VERCEL_ENV = save; }
+    // the client: the baked list equals the file, and the offered list is the file on production, the whole table on a preview
+    const BA = require(path.join(REPO, 'tools/build-app.cjs'));
+    ok('the bundle carries the file\'s list as EZIK_ENABLED_LANGS (baked by tools/build-app.cjs)', BA.build().code.includes('var EZIK_ENABLED_LANGS = ' + JSON.stringify(file.enabled) + ';') && read('app.js').includes('var EZIK_ENABLED_LANGS = ' + JSON.stringify(file.enabled) + ';'));
+    const jsx = read('app.jsx'); const i0 = jsx.indexOf('const EZ_LANGUAGE_TABLE = ['); const i1 = jsx.indexOf('const EZ_LANGS = EZ_LANGUAGES');
+    ok('the client list is the table filtered by the baked list (source slice found)', i0 > 0 && i1 > i0);
+    const offered = (host) => { const ctx = { location: { hostname: host }, EZIK_ENABLED_LANGS: file.enabled }; vm.createContext(ctx); vm.runInContext(jsx.slice(i0, i1) + '\nthis.out = EZ_LANGUAGES.map((l) => l.code);', ctx); return ctx.out; };
+    ok('production hosts (ezik.app, www.ezik.app, an unknown host) offer exactly the list', ['ezik.app', 'www.ezik.app', 'example.org'].every((h) => JSON.stringify(offered(h).sort()) === JSON.stringify(listed.slice().sort())), JSON.stringify(offered('ezik.app')));
+    ok('preview hosts (*.vercel.app, localhost, 127.0.0.1, no host) offer every built language', ['ustaz-x-musaed-s-projects1.vercel.app', 'localhost', '127.0.0.1', ''].every((h) => offered(h).length === table.length));
   }
 
   console.log('\n' + (failures ? 'FAILED: ' + failures + ' of ' + checks + ' checks failed.' : 'OK: ' + checks + ' checks passed.'));

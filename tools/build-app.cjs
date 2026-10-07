@@ -70,6 +70,16 @@ function versionLine() {
   return 'var EZIK_APP_VERSION = ' + JSON.stringify(v) + ';\n';
 }
 
+// ITEM 74 E1 -- THE ENABLED LANGUAGES HAVE ONE SOURCE, config/enabled-languages.json, read by the server (lib/lang/enabled.js) and baked here for the
+// client as EZIK_ENABLED_LANGS (same determinism contract: a committed file). Production offers these (plus ar and en); a preview offers every built language.
+function enabledLine() {
+  const f = JSON.parse(fs.readFileSync(path.join(REPO, 'config', 'enabled-languages.json'), 'utf8'));
+  if (!f || !Array.isArray(f.enabled) || !f.enabled.every((c) => typeof c === 'string' && /^[a-z]{2,3}$/.test(c))) {
+    throw new Error('config/enabled-languages.json: enabled must be an array of language codes');
+  }
+  return 'var EZIK_ENABLED_LANGS = ' + JSON.stringify(f.enabled) + ';\n';
+}
+
 /**
  * Build the shipped bundle in memory.
  * @returns {{code:string, block:object, sourceBytes:number, outBytes:number, sha:string,
@@ -91,7 +101,7 @@ function build() {
     raw: normalised, runtime: block.runtime,
   }, { retainLines: false, configFile: false, babelrc: false });
   const ms = Number(process.hrtime.bigint() - started) / 1e6;
-  const out = BANNER + versionLine() + code + '\n';
+  const out = BANNER + versionLine() + enabledLine() + code + '\n';
   return {
     code: out,
     block: block,

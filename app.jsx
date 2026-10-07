@@ -21,7 +21,7 @@ const EZ_LANG_KEY = 'ezik_ui_lang_v1';
 // -- a language's own name is the same sentence in every interface. shortLabel is the two- or
 // one-character badge the menu shows beside it. No flag anywhere: Arabic is not one country's
 // language and neither is English.
-const EZ_LANGUAGES = [
+const EZ_LANGUAGE_TABLE = [
   { code: 'ar', nativeName: '\u0627\u0644\u0639\u0631\u0628\u064a\u0629', shortLabel: '\u0639', dir: 'rtl', digits: 'arab-indic', script: 'arab', locale: 'ar', meridiem: ['\u0635', '\u0645'] },
   { code: 'en', nativeName: 'English', shortLabel: 'EN', dir: 'ltr', digits: 'latn', script: 'latn', locale: 'en', meridiem: ['AM', 'PM'] },
   { code: 'fa', nativeName: '\u0641\u0627\u0631\u0633\u06cc', shortLabel: '\u0641\u0627', dir: 'rtl', digits: 'arab-ext', script: 'arab', locale: 'fa', meridiem: ['\u0642.\u0638', '\u0628.\u0638'] },
@@ -46,6 +46,19 @@ const EZ_LANGUAGES = [
   { code: 'am', nativeName: 'አማርኛ', shortLabel: 'አማ', dir: 'ltr', digits: 'latn', script: 'ethi', locale: 'am', meridiem: ['ጠዋት','ከሰዓት'] },
   { code: 'ta', nativeName: 'தமிழ்', shortLabel: 'த', dir: 'ltr', digits: 'latn', script: 'taml', locale: 'ta', meridiem: ['முற்பகல்','பிற்பகல்'] },
 ];
+// E1 (item 74, amendment 5): WHICH OF THE BUILT LANGUAGES ARE OFFERED. config/enabled-languages.json is the one list; tools/build-app.cjs bakes it
+// into this bundle as EZIK_ENABLED_LANGS (the way it bakes the app version). It applies on PRODUCTION only: a preview deployment, localhost and a
+// document with no host offer every language in the table, so the owner can test the rest. An unknown host is production. Arabic and English are
+// always offered. Everything below that reads EZ_LANGUAGES -- the settings row, the first-run card, the stored choice, the chooser -- reads this
+// filtered list, so a language that is not enabled cannot be stored, chosen, loaded or offered.
+function ezLangIsPreviewHost() {
+  try {
+    const h = String((typeof location !== 'undefined' && location.hostname) || '').toLowerCase();
+    return h === '' || h === 'localhost' || h === '127.0.0.1' || /\.vercel\.app$/.test(h);
+  } catch (e) { return true; }
+}
+const EZ_LANGUAGES = EZ_LANGUAGE_TABLE.filter((l) => l.code === 'ar' || l.code === 'en'
+  || ezLangIsPreviewHost() || (typeof EZIK_ENABLED_LANGS !== 'undefined' && EZIK_ENABLED_LANGS.indexOf(l.code) !== -1));
 const EZ_LANGS = EZ_LANGUAGES.map((l) => l.code);
 function ezLangEntry(code) { return EZ_LANGUAGES.filter((l) => l.code === code)[0] || EZ_LANGUAGES[0]; }
 const EZ_LANG_FALLBACK = 'ar';   // the first-run language, and the dictionary's fallback half
