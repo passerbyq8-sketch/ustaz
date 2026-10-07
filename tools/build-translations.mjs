@@ -7,12 +7,29 @@
 import fs from 'node:fs'; import path from 'node:path'; import zlib from 'node:zlib';
 const lang = process.argv[2] || 'en'; const out = process.argv[3] || 'lib/data/translations';
 // the first translation QuranEnc lists for the language (the encyclopedia's own order); null = QuranEnc publishes none (Bengali, Malay, Russian): the verses stay Arabic and the answer explains them
-const QKEYS = { en: 'english_saheeh', fa: 'persian_ih', fr: 'french_rashid', id: 'indonesian_sabiq', ur: 'urdu_junagarhi', tr: 'turkish_rwwad', ha: 'hausa_gummi', sw: 'swahili_rwwad', zh: 'chinese_suliman', bn: null, ms: null, ru: null, es: 'spanish_garcia', pt: 'portuguese_nasr', de: 'german_rwwad', hi: 'hindi_omari', so: 'somali_yacob', ps: 'pashto_rwwad', ku: 'kurdish_bamoki', uz: 'uzbek_rwwad', am: 'amharic_zain', ta: 'tamil_omar' };
+const QKEYS = { en: 'english_saheeh', fa: 'persian_ih', fr: 'french_rashid', id: 'indonesian_affairs', ur: 'urdu_junagarhi', tr: 'turkish_rwwad', ha: 'hausa_gummi', sw: 'swahili_rwwad', zh: 'chinese_suliman', bn: null, ms: null, ru: null, es: 'spanish_garcia', pt: 'portuguese_nasr', de: 'german_rwwad', hi: 'hindi_omari', so: 'somali_yacob', ps: 'pashto_rwwad', ku: 'kurdish_bamoki', uz: 'uzbek_rwwad', am: 'amharic_zain', ta: 'tamil_omar' };
 if (!(lang in QKEYS)) throw new Error('no Quran decision for ' + lang); const QKEY = QKEYS[lang];
 const J = async (u) => { for (let i = 0; i < 4; i++) { try { const r = await fetch(u, { headers: { 'user-agent': 'ezik-translation-snapshot/1' } }); if (r.ok) return await r.json(); } catch {} await new Promise(r => setTimeout(r, 500 * (i + 1))); } throw new Error('fetch failed ' + u); };
 const pool = async (items, n, fn) => { const res = new Array(items.length); let i = 0; await Promise.all(Array.from({ length: n }, async () => { while (i < items.length) { const k = i++; res[k] = await fn(items[k], k); } })); return res; };
 const gz = (o) => zlib.gzipSync(JSON.stringify(o), { level: 9 });
 fs.mkdirSync(out, { recursive: true });
+// E3 (amendment 5) -- A DEFINITION THAT IS THE SAME STRING ON MANY TERMS IS NOT THE DEFINITION OF ANY OF THEM. Measured: 102 of the 2370 English rows carry the one word
+// "Tījāniyyah" as their meaning, and the translator, handed it as the meaning of «إقامة», wrote it into a suggestion line. The rows whose (non-empty) definition is shared
+// by DEF_REPEAT_MAX rows or more are dropped here, at build time, so no snapshot holds them (lib/lang/published.js keeps its own check as a second line). A row with
+// an EMPTY definition is not a repeated one and stays. --refilter applies the same rule to a snapshot already on disk (same data, no fetch), and says how many rows it dropped.
+const DEF_REPEAT_MAX = 5;
+const dropRepeatedDefinitions = (rows) => {
+  const n = new Map(); for (const r of rows) { const d = String(r[3] || '').trim(); if (d) n.set(d, (n.get(d) || 0) + 1); }
+  const kept = rows.filter((r) => { const d = String(r[3] || '').trim(); return !d || n.get(d) < DEF_REPEAT_MAX; });
+  return { kept, dropped: rows.length - kept.length };
+};
+if (process.argv.includes('--refilter')) {
+  const f = path.join(out, `terms-${lang}.json.gz`);
+  if (!fs.existsSync(f)) { console.log('terms', lang, 'no file'); process.exit(0); }
+  const db = JSON.parse(zlib.gunzipSync(fs.readFileSync(f))); const before = db.rows.length; const r = dropRepeatedDefinitions(db.rows);
+  db.rows = r.kept; db.meta = { ...db.meta, droppedRepeatedDefinitions: (db.meta.droppedRepeatedDefinitions || 0) + r.dropped };
+  if (r.dropped) fs.writeFileSync(f, gz(db)); console.log("terms", lang, "before", before, 'after', r.kept.length, 'dropped', r.dropped); process.exit(0);
+}
 // --- Quran
 if (QKEY) {
 const list = (await J(`https://quranenc.com/api/v1/translations/list/${lang}`)).translations.find(t => t.key === QKEY);
@@ -20,6 +37,7 @@ const suras = await pool(Array.from({ length: 114 }, (_, i) => i + 1), 6, async 
 const quran = { meta: { key: QKEY, title: list.title, version: list.version, lastUpdate: list.last_update, description: list.description, source: 'QuranEnc.com', sourceUrl: 'https://quranenc.com/en/browse/' + QKEY, fetchedAt: new Date().toISOString().slice(0, 10) }, suras: suras.map(rows => rows.map(r => [r.translation, r.footnotes || ''])) };
 fs.writeFileSync(path.join(out, `quran-${lang}.json.gz`), gz(quran)); console.log('quran', suras.reduce((a, s) => a + s.length, 0));
 }
+if (process.argv.includes('--quran-only')) process.exit(0);   // E5: refresh one language's Quran snapshot alone
 // --- Hadith
 const cats = (await J('https://hadeethenc.com/api/v1/categories/list/?language=ar')).filter(c => !c.parent_id);
 const ids = new Map(); for (const c of cats) { let p = 1, last = 1; do { const j = await J(`https://hadeethenc.com/api/v1/hadeeths/list/?language=ar&category_id=${c.id}&page=${p}&per_page=500`); last = +j.meta.last_page; for (const d of j.data) if (d.translations.includes(lang)) ids.set(d.id, 1); p++; } while (p <= last); }
@@ -32,6 +50,7 @@ if (!TERMS_NONE.has(lang)) {
 const tcats = (await J(`https://terminologyenc.com/api/v1/categories/list?language=${lang}`)).filter(c => !c.parent_id);
 const tids = new Map(); for (const c of tcats) { let p = 1, last = 1; do { const j = await J(`https://terminologyenc.com/api/v1/terms/list/?language=${lang}&category_id=${c.id}&page=${p}&per_page=500`); last = +j.meta.last_page; for (const d of j.data) tids.set(d.id, d.term); p++; } while (p <= last); }
 const ts = await pool([...tids.keys()], 8, async (id) => { const e = await J(`https://terminologyenc.com/api/v1/terms/one/?language=${lang}&id=${id}`); const raw = tids.get(id); const k = raw.lastIndexOf(' - '); return [id, k > 0 ? raw.slice(0, k) : raw, k > 0 ? raw.slice(k + 3) : '', e.idio_def && e.idio_def !== '-' ? e.idio_def : (e.brief_ling_def || '')]; });
-fs.writeFileSync(path.join(out, `terms-${lang}.json.gz`), gz({ meta: { title: 'Encyclopedia of Translated Islamic Terms', source: 'TerminologyEnc.com', sourceUrl: 'https://terminologyenc.com', fetchedAt: new Date().toISOString().slice(0, 10), fields: ['id', 'term', 'ar', 'definition'] }, rows: ts })); console.log('terms', ts.length);
+const tsK = dropRepeatedDefinitions(ts);
+fs.writeFileSync(path.join(out, `terms-${lang}.json.gz`), gz({ meta: { title: 'Encyclopedia of Translated Islamic Terms', source: 'TerminologyEnc.com', sourceUrl: 'https://terminologyenc.com', fetchedAt: new Date().toISOString().slice(0, 10), fields: ['id', 'term', 'ar', 'definition'], droppedRepeatedDefinitions: tsK.dropped }, rows: tsK.kept })); console.log('terms', tsK.kept.length, 'dropped', tsK.dropped);
 
 }

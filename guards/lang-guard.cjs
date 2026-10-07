@@ -546,7 +546,19 @@ const V = '﴿', W = '﴾';
     ok('inOrder: a gap of two words passes, a gap of three does not', P.inOrder(['a', 'd'], 'a b c d') && !P.inOrder(['a', 'e'], 'a b c d e'));
     // a stored definition that is one string on many terms is not passed to the translator (the Tijaniyyah row, 102 of 2370)
     const gl = P.glossaryFor('en', 'إقامة الصلاة وإيتاء الزكاة');
-    ok('no glossary entry carries the repeated junk definition "Tījāniyyah"; a real definition survives', gl.length >= 2 && !gl.some((g) => /Tījāniyyah/.test(g.definition)) && gl.some((g) => /specific part of certain kinds of property/.test(g.definition)), JSON.stringify(gl.map((g) => g.definition)));
+    ok('no glossary entry carries the repeated junk definition "Tījāniyyah"; a real definition survives', gl.length >= 1 && !gl.some((g) => /Tījāniyyah/.test(g.definition)) && gl.some((g) => /specific part of certain kinds of property/.test(g.definition)), JSON.stringify(gl.map((g) => g.definition)));
+    {
+      // E3 (amendment 5): the rows are gone from the snapshots themselves (tools/build-translations.mjs drops them at build time), in every terms file
+      const zl = require('zlib'); const dir = path.join(REPO, 'lib/data/translations'); const bad = []; const counts = {};
+      for (const f of fs.readdirSync(dir).filter((x) => /^terms-.*\.json\.gz$/.test(x))) {
+        const db = JSON.parse(zl.gunzipSync(fs.readFileSync(path.join(dir, f)))); const n = new Map();
+        for (const r of db.rows) { const d = String(r[3] || '').trim(); if (d) n.set(d, (n.get(d) || 0) + 1); }
+        const worst = Math.max(0, ...n.values()); counts[f] = db.rows.length; if (worst >= 5) bad.push(f + ':' + worst);
+      }
+      ok('E3: no terms snapshot holds a definition that repeats across five terms or more (the 102 "Tījāniyyah" rows of the English file are dropped at build time)', bad.length === 0 && counts['terms-en.json.gz'] === 2268, bad.join(',') + ' en=' + counts['terms-en.json.gz']);
+      const bt = read('tools/build-translations.mjs');
+      ok('E3: the build tool carries the rule (dropRepeatedDefinitions, DEF_REPEAT_MAX 5) on both its paths, the fetch and --refilter; an empty definition is not a repeated one', /DEF_REPEAT_MAX = 5/.test(bt) && /dropRepeatedDefinitions\(ts\)/.test(bt) && /--refilter/.test(bt) && /!d \|\| n\.get\(d\) < DEF_REPEAT_MAX/.test(bt));
+    }
     // the Arabic term inside the translator's parentheses
     ok('«(إقامة: meaning)» becomes «(meaning)» in prose and goes altogether in a suggestion line', A.dropArabicGloss('What is Iqamah (إِقامَةٌ: Proclaiming the start of prayer)?') === 'What is Iqamah (Proclaiming the start of prayer)?' && A.dropArabicGloss('What is Iqamah (إِقامَةٌ: x)?', true) === 'What is Iqamah?');
     ok('a parenthesis with no Arabic in it is left alone', A.dropArabicGloss('Zakah (obligatory alms) is due') === 'Zakah (obligatory alms) is due');
@@ -671,6 +683,26 @@ const V = '﴿', W = '﴾';
     }
     ok('E2: the gate, when the translation failed altogether, sends the line in the reader\'s language and then the Arabic answer', bad.length === 0 && true, bad.join(','));
     ok('E2: the question\'s translation waits 15 s at most per attempt, the answer\'s calls 28 s, the phase 60 s', /timeoutMs: 15000/.test(read('lib/lang/question.js')) && A.BUDGET_MS === 60000 && A.CALL_TIMEOUT_MS === 28000);
+  }
+
+  console.log('\n=== E5 (amendment 5): THE INDONESIAN QURAN IS THE MINISTRY OF RELIGIOUS AFFAIRS TRANSLATION, WITH ITS NAME AND EDITION ===');
+  {
+    ok('E5: the Indonesian row reads QuranEnc\'s indonesian_affairs (Ministry of Religious Affairs), not the Sabiq edition', T.LANG_TABLE.id.quran.key === 'indonesian_affairs' && !/indonesian_sabiq/.test(read('lib/lang/table.js')) && /id: 'indonesian_affairs'/.test(read('tools/build-translations.mjs')));
+    const q = P.quranTranslation('id', 2, 255, 255);
+    ok('E5: the published Indonesian verse (2:255) is found, its meta names the Ministry of Religious Affairs and carries an edition', !!q && /Ministry of Religious Affairs/.test(q.meta.title) && /^\d+\.\d+/.test(String(q.meta.version)) && q.meta.source === 'QuranEnc.com', JSON.stringify(q && q.meta).slice(0, 200));
+    const outId = await A.translateAnswer('﴿اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ﴾ هذه آية الكرسي.', { lang: 'id', translate: async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n').pop()); return { ok: true, text: JSON.stringify(arr.map((x) => x.replace('هذه آية الكرسي.', 'Ini adalah Ayat Kursi.'))) }; } });
+    ok('E5: the line printed beside the verse names the translation and its edition (title, QuranEnc.com, version)', /Ministry of Religious Affairs/.test(outId.text) && /QuranEnc\.com, v\d/.test(outId.text), outId.text.slice(0, 300));
+  }
+
+  console.log('\n=== E6 (amendment 5): THE APP NAME IS A DICTIONARY KEY OF EACH LANGUAGE ===');
+  {
+    const jsx = read('app.jsx'); const files = fs.readdirSync(path.join(REPO, 'lang')).filter((x) => x.endsWith('.json'));
+    const names = {}; const miss = [];
+    for (const f of files) { const d = JSON.parse(read('lang/' + f)); names[f.replace('.json', '')] = d['app.name']; if (typeof d['app.name'] !== 'string' || !d['app.name'].trim()) miss.push(f); }
+    ok('E6: every language file holds the key app.name (' + files.length + ' files), and the two built-in dictionaries hold it too', miss.length === 0 && /'app\.name': 'عزك'/.test(jsx) && /'app\.name': 'Ezik'/.test(jsx), miss.join(','));
+    const latinKeeps = ['de', 'es', 'fr', 'ha', 'id', 'ms', 'pt', 'ru', 'so', 'sw', 'tr', 'uz', 'zh'];
+    ok('E6: every language keeps Ezik for now: the Latin-script files say Ezik (Turkish included: the owner chooses its name later), the others write it in their own script', latinKeeps.every((c) => names[c] === 'Ezik') && ['fa', 'ur', 'ps', 'ku', 'am', 'bn', 'hi', 'ta'].every((c) => names[c] && names[c] !== 'Ezik' && names[c] === JSON.parse(read('lang/' + c + '.json'))['c.EZIK_CARD_MARK']), JSON.stringify(names));
+    ok('E6: the interface shows the name from the key (the header and the welcome title), not a literal of one language', /<span>\{ezT\('app\.name'\)\}<\/span>/.test(jsx) && /<div style=\{s\.welcomeTitle\}>\{ezT\('app\.name'\)\}<\/div>/.test(jsx) && !/const A2_BRAND/.test(jsx) && !/<div style=\{s\.welcomeTitle\}>عزك<\/div>/.test(jsx));
   }
 
   console.log('\n' + (failures ? 'FAILED: ' + failures + ' of ' + checks + ' checks failed.' : 'OK: ' + checks + ' checks passed.'));

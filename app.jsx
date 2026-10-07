@@ -669,6 +669,7 @@ const EZ_I18N = {
     'c.EZIK_CARD_LINKS_LABEL': 'روابط',
     'c.EZIK_CARD_CUT_NOTE': 'تتمّةُ النصِّ في تطبيق عزك',
     'c.EZIK_CARD_MARK': 'عزك',
+    'app.name': 'عزك',
     'c.EZIK_CARD_LABEL': 'صورة',
     'c.EZIK_CARD_ARIA': 'حفظ الردّ صورة',
     'c.EZIK_CARD_FAIL': 'تعذَّرَ الحفظ',
@@ -1943,6 +1944,7 @@ const EZ_I18N = {
     'c.EZIK_CARD_LINKS_LABEL': 'Links',
     'c.EZIK_CARD_CUT_NOTE': 'The rest of the text is in the Ezik app',
     'c.EZIK_CARD_MARK': 'Ezik',
+    'app.name': 'Ezik',
     'c.EZIK_CARD_LABEL': 'Image',
     'c.EZIK_CARD_ARIA': 'Save the reply as an image',
     'c.EZIK_CARD_FAIL': 'Saving failed',
@@ -13688,7 +13690,7 @@ const ADHKAR_UI_V2_ON = true;
 // (V1 header/search/empty, DhikrCard label/meta/buttons); none is new devotional text.
 // A2_TITLE is the one intentional wording change on this screen, and it is chrome, not
 // content: the V2 header names the screen for the du'a it opens onto.
-const A2_BRAND  = 'عزك';
+// E6: the name the interface shows is the dictionary key app.name of the language in use (every language keeps Ezik for now; a language's name is changed in ITS file alone)
 const A2_TITLE  = 'الأدعية';
 let A2_BACK = ezT("common.back");
 let A2_SEARCH = ezT('c.A2_SEARCH');
@@ -20326,7 +20328,7 @@ function App() {
         <div className="ezc-drawer" role="dialog" aria-modal="true">
           <div className="ezc-drawer-head">
             <span className="ezc-drawer-arch" aria-hidden="true" />
-            <span>{A2_BRAND}</span>
+            <span>{ezT('app.name')}</span>
           </div>
           <div style={s.drawerTop}>
             {/* S98: the search box. Local only — what is typed here is matched against the
@@ -24589,7 +24591,7 @@ function Onboarding({ onStart }) {
         <div className="ezonb-crest" style={s.welcomeLogoSquare}>
           <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="var(--a3-blue)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
         </div>
-        <div style={s.welcomeTitle}>عزك</div>
+        <div style={s.welcomeTitle}>{ezT('app.name')}</div>
         <div style={s.welcomeGreeting}>{ezT('entry.sub')}</div>
         {/* THE TWO PROVIDER DOORS, AND THE SEAM THAT DECIDES WHETHER THEY EXIST AT ALL.
             LIVE inside the application, where the shell opens the sign-in sheet and the doors
