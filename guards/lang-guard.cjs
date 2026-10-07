@@ -705,6 +705,14 @@ const V = '﴿', W = '﴾';
     ok('E6: the interface shows the name from the key (the header and the welcome title), not a literal of one language', /<span>\{ezT\('app\.name'\)\}<\/span>/.test(jsx) && /<div style=\{s\.welcomeTitle\}>\{ezT\('app\.name'\)\}<\/div>/.test(jsx) && !/const A2_BRAND/.test(jsx) && !/<div style=\{s\.welcomeTitle\}>عزك<\/div>/.test(jsx));
   }
 
+  console.log('\n=== E4 (amendment 5): THE FOUR GUARDS THAT FAILED ONLY INSIDE A FULL RUN WAIT BY HOW LOADED THE MACHINE IS, NOT BY A FIXED CLOCK ===');
+  {
+    const four = ['guards/widget-open-guard.cjs', 'guards/i18n-ui-guard.cjs', 'tools/ai-consent-probe.cjs'];
+    ok('E4: widgetopen, i18nui and aiconsent multiply every tick by ADAPTIVE_TICK (the measured share of a core they are not getting), and their cap waits too', four.every((f) => /const ADAPTIVE_TICK = /.test(read(f)) && /ADAPTIVE_TICK\(ms/.test(read(f))) && /ADAPTIVE_TICK\(cap\)/.test(read('guards/widget-open-guard.cjs')) && /ADAPTIVE_TICK\(SETTLE_CAP\)/.test(read('guards/i18n-ui-guard.cjs')));
+    ok('E4: the three copies of the helper are the same text (one decision, three places)', (() => { const g = (f) => (/\/\/ ADAPTIVE_TICK[\s\S]*?\}\)\(\);/.exec(read(f)) || [''])[0].replace(/\r/g, ''); return g(four[0]).length > 500 && g(four[0]) === g(four[1]) && g(four[1]) === g(four[2]); })());
+    ok('E4: transfermode\'s fresh-process precedence probe waits 600 s, not the idle-machine 120 s', /timeout: 600000/.test(read('guards/transfer-mode-guard.cjs')) && !/timeout: 120000/.test(read('guards/transfer-mode-guard.cjs')));
+  }
+
   console.log('\n' + (failures ? 'FAILED: ' + failures + ' of ' + checks + ' checks failed.' : 'OK: ' + checks + ' checks passed.'));
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.log('GUARD CRASHED: ' + (e && e.stack || e)); process.exit(2); });

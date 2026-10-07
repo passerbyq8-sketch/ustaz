@@ -969,7 +969,7 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
             if (legacy === null) delete childEnv.MODEL;
             else childEnv.MODEL = legacy;
             const child = spawnSync(process.execPath, [__filename], {
-              cwd: REPO, env: childEnv, encoding: 'utf8', timeout: 120000, maxBuffer: 4 * 1024 * 1024,
+              cwd: REPO, env: childEnv, encoding: 'utf8', timeout: 600000, maxBuffer: 4 * 1024 * 1024,   // E4: 120 s was an idle-machine figure (ETIMEDOUT inside a full run on a loaded box)
             });
             ok('fresh-process precedence: ' + name,
               child.status === 0 && child.stdout.includes('F028_MODEL_PROBE=PASS:' + expected),

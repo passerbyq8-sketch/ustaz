@@ -171,7 +171,22 @@ let liveAtOnce = 0;
 // through whatever setTimeout happened to be installed would be running on the application's
 // clock -- and would be cancelled by the teardown that cancels the application's timers.
 const RAW_SET_TIMEOUT = setTimeout;
-const tick = (ms) => new Promise((r) => RAW_SET_TIMEOUT(r, ms || 40));
+// ADAPTIVE_TICK -- E4 (item 74, amendment 5). A fixed wait is a promise about how fast the machine is. This guard mounts the whole application in a sandbox (a
+// 1.9 MB transform, then React), and its waits (tick(150) after a mount, then "nothing to click") were chosen on an idle machine. Inside a full run, with any other
+// heavy process on the box, the same mount takes several times longer and the wait ends before the screen exists: the guard fails, and passes alone. So every wait
+// is multiplied by how much slower than idle this process is running RIGHT NOW: a short busy loop is timed on the wall clock and on this process's own CPU time;
+// the ratio is the share of a core the process is not getting (1 when idle; noise under 1.5 is ignored; capped at 12). It only ever lengthens a wait.
+const ADAPTIVE_TICK = (() => {
+  let scale = 1; let at = 0;
+  const probe = () => {
+    const w0 = process.hrtime.bigint(); const c0 = process.cpuUsage(); let x = 0;
+    while (Number(process.hrtime.bigint() - w0) < 60e6) { for (let i = 0; i < 20000; i++) x += Math.sqrt(i); }
+    const wall = Number(process.hrtime.bigint() - w0) / 1e3; const c = process.cpuUsage(c0); const cpu = Math.max(1, c.user + c.system);
+    const r = wall / cpu; return r < 1.5 ? 1 : Math.min(12, r);
+  };
+  return (ms) => { const now = Date.now(); if (now - at > 2000) { scale = probe(); at = Date.now(); } return Math.ceil(ms * scale); };
+})();
+const tick = (ms) => new Promise((r) => RAW_SET_TIMEOUT(r, ADAPTIVE_TICK(ms || 40)));
 
 let liveGen = 0;
 function buildContext(opts) {
@@ -309,7 +324,7 @@ function buildContext(opts) {
   // measurement window: it is what closes the boot before a window opens.
   const QUIET = 250, SETTLE_CAP = 8000;
   const settle = async () => {
-    const cap = Date.now() + SETTLE_CAP;
+    const cap = Date.now() + ADAPTIVE_TICK(SETTLE_CAP);
     let quietSince = Date.now(), seen = net.length;
     for (;;) {
       await tick(40);

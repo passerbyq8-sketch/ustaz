@@ -278,7 +278,22 @@ function buildContext(opts) {
   };
 }
 
-const tick = (ms) => new Promise((r) => setTimeout(r, ms || 60));
+// ADAPTIVE_TICK -- E4 (item 74, amendment 5). A fixed wait is a promise about how fast the machine is. This guard mounts the whole application in a sandbox (a
+// 1.9 MB transform, then React), and its waits (tick(150) after a mount, then "nothing to click") were chosen on an idle machine. Inside a full run, with any other
+// heavy process on the box, the same mount takes several times longer and the wait ends before the screen exists: the guard fails, and passes alone. So every wait
+// is multiplied by how much slower than idle this process is running RIGHT NOW: a short busy loop is timed on the wall clock and on this process's own CPU time;
+// the ratio is the share of a core the process is not getting (1 when idle; noise under 1.5 is ignored; capped at 12). It only ever lengthens a wait.
+const ADAPTIVE_TICK = (() => {
+  let scale = 1; let at = 0;
+  const probe = () => {
+    const w0 = process.hrtime.bigint(); const c0 = process.cpuUsage(); let x = 0;
+    while (Number(process.hrtime.bigint() - w0) < 60e6) { for (let i = 0; i < 20000; i++) x += Math.sqrt(i); }
+    const wall = Number(process.hrtime.bigint() - w0) / 1e3; const c = process.cpuUsage(c0); const cpu = Math.max(1, c.user + c.system);
+    const r = wall / cpu; return r < 1.5 ? 1 : Math.min(12, r);
+  };
+  return (ms) => { const now = Date.now(); if (now - at > 2000) { scale = probe(); at = Date.now(); } return Math.ceil(ms * scale); };
+})();
+const tick = (ms) => new Promise((r) => setTimeout(r, ADAPTIVE_TICK(ms || 60)));
 function driver(window) {
   const root = window.document.getElementById('root');
   const all = (sel) => Array.prototype.slice.call(root.querySelectorAll(sel));
