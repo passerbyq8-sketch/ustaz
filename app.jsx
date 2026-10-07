@@ -37,6 +37,7 @@ const EZ_LANGUAGES = [
   { code: 'zh', nativeName: '简体中文', shortLabel: '中', dir: 'ltr', digits: 'latn', script: 'hans', locale: 'zh-Hans', meridiem: ['上午','下午'] },
   { code: 'es', nativeName: 'Español', shortLabel: 'ES', dir: 'ltr', digits: 'latn', script: 'latn', locale: 'es', meridiem: ['a. m.','p. m.'] },
   { code: 'pt', nativeName: 'Português', shortLabel: 'PT', dir: 'ltr', digits: 'latn', script: 'latn', locale: 'pt-BR', meridiem: ['AM','PM'] },
+  { code: 'de', nativeName: 'Deutsch', shortLabel: 'DE', dir: 'ltr', digits: 'latn', script: 'latn', locale: 'de', meridiem: ['AM','PM'] },
 ];
 const EZ_LANGS = EZ_LANGUAGES.map((l) => l.code);
 function ezLangEntry(code) { return EZ_LANGUAGES.filter((l) => l.code === code)[0] || EZ_LANGUAGES[0]; }
