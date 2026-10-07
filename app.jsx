@@ -2876,7 +2876,8 @@ function ezLangDevice() {
   try {
     const l = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language];
     for (let i = 0; i < l.length; i++) {
-      const p = String(l[i] || '').toLowerCase().split(/[-_]/)[0];
+      const p0 = String(l[i] || '').toLowerCase().split(/[-_]/)[0];
+      const p = p0 === 'ckb' ? 'ku' : p0;   // a Sorani device says ckb; the row is ku
       if (ezLangValid(p)) return p;
     }
   } catch (e) {}

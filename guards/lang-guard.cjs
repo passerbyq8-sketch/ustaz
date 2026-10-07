@@ -64,6 +64,29 @@ const V = '﴿', W = '﴾';
   ok('Amharic is a row: a Amharic question is Amharic whatever the key, a lone word takes the key; the Amharic row has the published Quran (amharic_zain), no terms file and the published hadith; Ge\'ez letters decide it whatever the key, and a text with Arabic letters stays Arabic', D.detectQuestionLang('የአያቱል ኩርሲ ትርጉም ምንድን ነው?', 'ar') === 'am' && D.detectQuestionLang('ውዱእ እንዴት ይደረጋል?', 'en') === 'am' && D.detectQuestionLang('በእስልምና ሙዚቃ ሐራም ነው?', 'fr') === 'am' && D.detectQuestionLang('ما معنى آية الكرسي؟', 'am') === 'ar' && D.detectQuestionLang('wudu', 'ar') === 'ar' && T.LANG_TABLE.am.hadith === 'hadith-am.json.gz' && T.LANG_TABLE.am.quran.key === 'amharic_zain' && T.LANG_TABLE.am.terms === undefined && A.addedName('الإقامة', 'ሺዓዎች ይላሉ') && !A.addedName('الشيعة', 'ሺዓዎች ይላሉ'));
   ok('Tamil is a row: a Tamil question is Tamil whatever the key, a lone word takes the key; the Tamil row has the published Quran (tamil_omar), no terms file and the published hadith; Tamil letters decide it whatever the key, and a text with Arabic letters stays Arabic', D.detectQuestionLang('ஆயத்துல் குர்சியின் பொருள் என்ன?', 'ar') === 'ta' && D.detectQuestionLang('உளூ எப்படி செய்யப்படுகிறது?', 'en') === 'ta' && D.detectQuestionLang('இஸ்லாமில் இசை ஹராமா?', 'fr') === 'ta' && D.detectQuestionLang('ما معنى آية الكرسي؟', 'ta') === 'ar' && D.detectQuestionLang('wudu', 'ar') === 'ar' && T.LANG_TABLE.ta.hadith === 'hadith-ta.json.gz' && T.LANG_TABLE.ta.quran.key === 'tamil_omar' && T.LANG_TABLE.ta.terms === undefined && A.addedName('الإقامة', 'ஷியாக்கள் கூறுகிறார்கள்') && !A.addedName('الشيعة', 'ஷியாக்கள் கூறுகிறார்கள்'));
   {
+    // C1 (amendment 3): the two fixed refusals do not depend on the language of the question. Each language's own words decide a request for an explicit text or for a weapon,
+    // with no model call; the unchanged Arabic guards then read a canonical Arabic sentence, so the reader gets the text Arabic gets.
+    const HZ = await esm('lib/lang/hazard.js'); const CORE = await esm('lib/policy/core.js'); const PORN = await esm('lib/policy/porn-request.js'); const GATE = await esm('lib/lang/gate.js');
+    const FX = JSON.parse(read('guards/fixtures-lang-hazard.json')); const bad = []; const noSub = []; const falsePos = [];
+    const langsT = Object.keys(T.LANG_TABLE).filter((l) => l !== 'ar');
+    const miss = langsT.filter((l) => !FX[l]);
+    ok('C1: every non-Arabic language of the table has a dangerous-request fixture (one explicit text, one weapon)', miss.length === 0, miss.join(','));
+    for (const [lang, [porn, bomb]] of Object.entries(FX)) {
+      if (HZ.foreignHazard(porn, lang) !== 'porn') bad.push(lang + ':porn');
+      if (HZ.foreignHazard(bomb, lang) !== 'weapons') bad.push(lang + ':weapons');
+      const req = (q) => ({ method: 'POST', headers: { 'x-ezik-lang': lang }, body: JSON.stringify({ messages: [{ role: 'user', content: q }] }) });
+      for (const q of [porn, bomb]) { const d = GATE.decideLanguage(req(q)); if (!(d.early === true && (d.substitute || d.reason === 'early_guard'))) noSub.push(lang + ':' + q.slice(0, 20)); }
+    }
+    ok('C1: in every language an explicit-text request and a weapon request are recognised from the reader own words', bad.length === 0, bad.join(','));
+    ok('C1: and the gate takes the early road for each (a canonical Arabic sentence for the guards, or the own reading of the guards)', noSub.length === 0, noSub.join(' | '));
+    ok('C1: the canonical Arabic sentences are read by the unchanged guards as the weapon and the explicit-text requests', !!CORE.graveHazard(HZ.canonicalArabic('weapons')) && !!CORE.graveHazard(HZ.canonicalArabic('selfharm')) && !!CORE.graveHazard(HZ.canonicalArabic('chem')) && PORN.classifyPornographyRequest(HZ.canonicalArabic('porn')).blocked === true);
+    const dangerous = new Set(Object.values(FX).flat());
+    const fxd2 = JSON.parse(read('guards/fixtures-lang-detect.json')).questions;
+    for (const [lang, qs] of Object.entries(fxd2)) for (const q of qs) { if (dangerous.has(q)) continue; if (HZ.foreignHazard(q, lang)) falsePos.push(lang + ': ' + q.slice(0, 30)); }
+    ok('C1: no ordinary question of the detector fixtures (verse, hadith, scholar, term, fasting, wudu, music) is read as a hazard', falsePos.length === 0, falsePos.join(' | '));
+    ok('C1: a bare history question about a bomb and a bare weapon word decide nothing', HZ.foreignHazard('When was the hand grenade invented in history?', 'en') === '' && HZ.foreignHazard('bomb', 'en') === '');
+  }
+  {
     const fxd = JSON.parse(read('guards/fixtures-lang-detect.json')).questions; const bad = [];
     for (const [lang, qs] of Object.entries(fxd)) { if (!T.LANG_TABLE[lang]) continue; for (const q of qs) { if (D.detectQuestionLang(q, lang) !== lang) bad.push(lang + '/' + lang + ': ' + q.slice(0, 40)); if (lang !== 'ms' && D.detectQuestionLang(q, 'ar') !== lang) bad.push(lang + '/ar: ' + q.slice(0, 40)); } }
     ok('every question of every language finger battery is read as its own language (the interface key of that language, and Arabic as the key)', bad.length === 0, bad.slice(0, 4).join(' | '));

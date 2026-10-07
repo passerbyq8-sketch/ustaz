@@ -675,6 +675,14 @@ async function partB4() {
     c.destroy();
   }
 
+  // a Sorani device says ckb (Android, Chrome ckb-IQ), the table's code is ku: the card must still offer and pre-select Kurdish
+  for (const nav of [['ckb-IQ'], ['ckb'], ['ku-IQ']]) {
+    const c = buildContext({ seed: {}, mount: true, mutate: withDevice({ languages: nav, language: nav[0] }) });
+    await tick(150);
+    const d = driver(c.window);
+    eq('a Sorani device (' + nav[0] + ') is offered Kurdish, pre-selected', marks(d).ku, 'true');
+    c.destroy();
+  }
   // pressing English
   {
     const c = buildContext({ seed: {}, mount: true, mutate: withDevice({ languages: ['en-US'], language: 'en-US' }) });

@@ -3,7 +3,7 @@
 // Verified by `npm run verify:build` and by the gate `babel`, which regenerate this file
 // and fail on any difference. An edit made here is overwritten by the next build and is
 // reported as a difference by the gate before that.
-var EZIK_APP_VERSION = "ezik-v78";
+var EZIK_APP_VERSION = "ezik-v79";
 const{useState,useEffect,useRef}=React;// ============================================================
 // S116 -- THE INTERFACE LANGUAGE (ar / en). READ THIS BEFORE ADDING A KEY.
 //
@@ -176,7 +176,8 @@ const EZ_LANG_GLOBE=/*#__PURE__*/React.createElement("svg",{width:"15",height:"1
 // has pre-selected. It decides nothing about the interface -- the resolver above is still a stored
 // choice or Arabic, and the interface does not move until the reader presses. The first language
 // of the device's list that is a row of EZ_LANGUAGES wins; none is Arabic.
-function ezLangDevice(){try{const l=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language];for(let i=0;i<l.length;i++){const p=String(l[i]||'').toLowerCase().split(/[-_]/)[0];if(ezLangValid(p))return p;}}catch(e){}return EZ_LANG_FALLBACK;}// THE FIRST-RUN LANGUAGE CARD: every language of the table side by side, the device's pre-selected,
+function ezLangDevice(){try{const l=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language];for(let i=0;i<l.length;i++){const p0=String(l[i]||'').toLowerCase().split(/[-_]/)[0];const p=p0==='ckb'?'ku':p0;// a Sorani device says ckb; the row is ku
+if(ezLangValid(p))return p;}}catch(e){}return EZ_LANG_FALLBACK;}// THE FIRST-RUN LANGUAGE CARD: every language of the table side by side, the device's pre-selected,
 // and NOTHING changes until a press -- a card left alone keeps the app in Arabic. type="button"
 // because it sits beside a card that submits nothing and must never start the app by itself.
 function EzFirstRunLang(){useEzLang();const[pre]=useState(ezLangDevice);const[picked,setPicked]=useState(null);const[failed,setFailed]=useState(false);const[asks]=useState(()=>!ezLangStored());// a reader whose language is already stored is not asked again
