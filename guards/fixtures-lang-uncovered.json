@@ -1896,6 +1896,22 @@
   {
    "text": "ش",
    "cat": "language-row-own-name"
+  },
+  {
+   "text": "پښتو",
+   "cat": "language-row-own-name"
+  },
+  {
+   "text": "پښ",
+   "cat": "language-row-own-name"
+  },
+  {
+   "text": "ب.م",
+   "cat": "language-row-own-name"
+  },
+  {
+   "text": "ن.م",
+   "cat": "language-row-own-name"
   }
  ]
 }
