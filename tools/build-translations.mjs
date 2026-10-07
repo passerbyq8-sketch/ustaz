@@ -7,7 +7,7 @@
 import fs from 'node:fs'; import path from 'node:path'; import zlib from 'node:zlib';
 const lang = process.argv[2] || 'en'; const out = process.argv[3] || 'lib/data/translations';
 // the first translation QuranEnc lists for the language (the encyclopedia's own order); null = QuranEnc publishes none (Bengali, Malay, Russian): the verses stay Arabic and the answer explains them
-const QKEYS = { en: 'english_saheeh', fa: 'persian_ih', fr: 'french_rashid', id: 'indonesian_sabiq', ur: 'urdu_junagarhi', tr: 'turkish_rwwad', ha: 'hausa_gummi', sw: 'swahili_rwwad', zh: 'chinese_suliman', bn: null, ms: null, ru: null };
+const QKEYS = { en: 'english_saheeh', fa: 'persian_ih', fr: 'french_rashid', id: 'indonesian_sabiq', ur: 'urdu_junagarhi', tr: 'turkish_rwwad', ha: 'hausa_gummi', sw: 'swahili_rwwad', zh: 'chinese_suliman', bn: null, ms: null, ru: null, es: 'spanish_garcia', pt: 'portuguese_nasr', de: 'german_rwwad', hi: 'hindi_omari', so: 'somali_yacob', ps: 'pashto_rwwad', ku: 'kurdish_bamoki', uz: 'uzbek_rwwad', am: 'amharic_zain', ta: 'tamil_omar' };
 if (!(lang in QKEYS)) throw new Error('no Quran decision for ' + lang); const QKEY = QKEYS[lang];
 const J = async (u) => { for (let i = 0; i < 4; i++) { try { const r = await fetch(u, { headers: { 'user-agent': 'ezik-translation-snapshot/1' } }); if (r.ok) return await r.json(); } catch {} await new Promise(r => setTimeout(r, 500 * (i + 1))); } throw new Error('fetch failed ' + u); };
 const pool = async (items, n, fn) => { const res = new Array(items.length); let i = 0; await Promise.all(Array.from({ length: n }, async () => { while (i < items.length) { const k = i++; res[k] = await fn(items[k], k); } })); return res; };
@@ -26,7 +26,7 @@ const ids = new Map(); for (const c of cats) { let p = 1, last = 1; do { const j
 const hs = await pool([...ids.keys()], 8, async (id) => { const [a, e] = await Promise.all([J(`https://hadeethenc.com/api/v1/hadeeths/one/?language=ar&id=${id}`), J(`https://hadeethenc.com/api/v1/hadeeths/one/?language=${lang}&id=${id}`)]); return [id, a.hadeeth_ar || a.hadeeth || '', e.hadeeth || '', e.attribution || '', e.grade || '']; });
 fs.writeFileSync(path.join(out, `hadith-${lang}.json.gz`), gz({ meta: { title: 'Encyclopedia of Translated Prophetic Hadiths', source: 'HadeethEnc.com', sourceUrl: 'https://hadeethenc.com', fetchedAt: new Date().toISOString().slice(0, 10), fields: ['id', 'ar', 'text', 'attribution', 'grade'] }, rows: hs })); console.log('hadith', hs.length);
 // --- Terms (TerminologyEnc publishes none for Hausa, Malay and Swahili: measured 2026-10-07; those rows carry no terms file)
-const TERMS_NONE = new Set(['ha', 'ms', 'sw']);
+const TERMS_NONE = new Set(['ha', 'ms', 'sw', 'de', 'so', 'ps', 'ku', 'uz', 'am', 'ta']);
 if (!TERMS_NONE.has(lang)) {
 const tcats = (await J(`https://terminologyenc.com/api/v1/categories/list?language=${lang}`)).filter(c => !c.parent_id);
 const tids = new Map(); for (const c of tcats) { let p = 1, last = 1; do { const j = await J(`https://terminologyenc.com/api/v1/terms/list/?language=${lang}&category_id=${c.id}&page=${p}&per_page=500`); last = +j.meta.last_page; for (const d of j.data) tids.set(d.id, d.term); p++; } while (p <= last); }
