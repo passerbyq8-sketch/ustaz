@@ -1,0 +1,7 @@
+Hanna Laha - notices
+
+Typed-text filter (team names and typed answers): word lists derived from
+List of Dirty, Naughty, Obscene, and Otherwise Bad Words, (c) 2012-2020 Shutterstock, Inc., CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); modified: entries removed.
+Package naughty-words 1.2.0; licence text in the project's licenses folder (CC-BY-4.0-naughty-words.txt).
+
+Fonts: Almarai, Kufam and Amiri Quran, SIL Open Font License 1.1 (texts in the project's licenses folder).

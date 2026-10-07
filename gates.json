@@ -567,6 +567,11 @@
     "args": "quest-ghaws.html"
   },
   {
+    "name": "hannalaha",
+    "script": "guards/hanna-laha-in-ezik-guard.cjs",
+    "args": ""
+  },
+  {
     "name": "appvpattern",
     "script": "guards/app-version-pattern-parity-guard.cjs",
     "args": ""
