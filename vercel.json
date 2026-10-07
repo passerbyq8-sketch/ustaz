@@ -12,10 +12,26 @@
     "api/report.js": { "maxDuration": 300 }
   },
   "rewrites": [
-    { "source": "/api/v1/:path*", "destination": "/api/fatwa-proxy?path=:path*" }
+    { "source": "/api/v1/:path*", "destination": "/api/fatwa-proxy?path=:path*" },
+    { "source": "/hanna-laha", "destination": "/hanna-laha/index.html" },
+    { "source": "/hanna-laha/:path((?!assets/).*)", "destination": "/hanna-laha/index.html" }
   ],
   "headers": [
     { "source": "/", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
-    { "source": "/index.html", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
+    { "source": "/index.html", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+    {
+      "source": "/hanna-laha/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "Content-Security-Policy", "value": "frame-ancestors 'none'" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=()" }
+      ]
+    },
+    {
+      "source": "/hanna-laha/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    }
   ]
 }
