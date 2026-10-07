@@ -1791,7 +1791,7 @@ const SEALED = {
   //   2026-10-04 -- ORDER 54 SHIP (order EZIK-ORDER-54-2026-10-04, side/comprehensive-20261002): CACHE and config/app-version.json move ezik-v53 -> ezik-v54.
 //                    app.js REBUILT from app.jsx by npm run build:app: 1828735 bytes (unchanged: only EZIK_APP_VERSION moved, same length), sha256 d234b0e5..36dd.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES stays 3001825, --check MATCH. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 55908 bytes).
-  'sw.js': '7e4bebb404cd0e24e6cefbb805a1c4bbb9b5622d937020a48030e07d04c248b1',
+  'sw.js': '986c9bd85c177654575d74d5c447c0d1c4d50e8400607506cd72ff4453f1e995',
 };
 
 // ---------------------------------------------------------------------------
@@ -2884,7 +2884,7 @@ async function compare(bankPath) {
     //  { n, sum: [a, b] }  n is the byte sum of those files on disk
     //  { n, dir: 'count' | 'sum' | 'mean' }   n is that statistic over the mushaf page scans
     const SW_PROSE = [
-      { n: 155366, of: 'index.html' },
+      { n: 155376, of: 'index.html' },
       // ITEM 85. The two CORE entries the self-hosted faces added, stated in the worker's byte
       // table beside the rest and re-derived here from the files they name. They are the arabic
       // and latin cuts of Noto Naskh Arabic, which is what the first screen is painted in.
@@ -2897,7 +2897,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 1944736, of: 'app.js' },
+      { n: 1944882, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
