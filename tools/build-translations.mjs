@@ -25,8 +25,12 @@ const cats = (await J('https://hadeethenc.com/api/v1/categories/list/?language=a
 const ids = new Map(); for (const c of cats) { let p = 1, last = 1; do { const j = await J(`https://hadeethenc.com/api/v1/hadeeths/list/?language=ar&category_id=${c.id}&page=${p}&per_page=500`); last = +j.meta.last_page; for (const d of j.data) if (d.translations.includes(lang)) ids.set(d.id, 1); p++; } while (p <= last); }
 const hs = await pool([...ids.keys()], 8, async (id) => { const [a, e] = await Promise.all([J(`https://hadeethenc.com/api/v1/hadeeths/one/?language=ar&id=${id}`), J(`https://hadeethenc.com/api/v1/hadeeths/one/?language=${lang}&id=${id}`)]); return [id, a.hadeeth_ar || a.hadeeth || '', e.hadeeth || '', e.attribution || '', e.grade || '']; });
 fs.writeFileSync(path.join(out, `hadith-${lang}.json.gz`), gz({ meta: { title: 'Encyclopedia of Translated Prophetic Hadiths', source: 'HadeethEnc.com', sourceUrl: 'https://hadeethenc.com', fetchedAt: new Date().toISOString().slice(0, 10), fields: ['id', 'ar', 'text', 'attribution', 'grade'] }, rows: hs })); console.log('hadith', hs.length);
-// --- Terms
+// --- Terms (TerminologyEnc publishes none for Hausa, Malay and Swahili: measured 2026-10-07; those rows carry no terms file)
+const TERMS_NONE = new Set(['ha', 'ms', 'sw']);
+if (!TERMS_NONE.has(lang)) {
 const tcats = (await J(`https://terminologyenc.com/api/v1/categories/list?language=${lang}`)).filter(c => !c.parent_id);
 const tids = new Map(); for (const c of tcats) { let p = 1, last = 1; do { const j = await J(`https://terminologyenc.com/api/v1/terms/list/?language=${lang}&category_id=${c.id}&page=${p}&per_page=500`); last = +j.meta.last_page; for (const d of j.data) tids.set(d.id, d.term); p++; } while (p <= last); }
 const ts = await pool([...tids.keys()], 8, async (id) => { const e = await J(`https://terminologyenc.com/api/v1/terms/one/?language=${lang}&id=${id}`); const raw = tids.get(id); const k = raw.lastIndexOf(' - '); return [id, k > 0 ? raw.slice(0, k) : raw, k > 0 ? raw.slice(k + 3) : '', e.idio_def && e.idio_def !== '-' ? e.idio_def : (e.brief_ling_def || '')]; });
 fs.writeFileSync(path.join(out, `terms-${lang}.json.gz`), gz({ meta: { title: 'Encyclopedia of Translated Islamic Terms', source: 'TerminologyEnc.com', sourceUrl: 'https://terminologyenc.com', fetchedAt: new Date().toISOString().slice(0, 10), fields: ['id', 'term', 'ar', 'definition'] }, rows: ts })); console.log('terms', ts.length);
+
+}

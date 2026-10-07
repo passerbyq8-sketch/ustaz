@@ -360,7 +360,7 @@ async function partA() {
   console.log('\n=== A. THE DICTIONARIES ===');
   const c = buildContext({ seed: {} });
   const langs = plain(c.grab('EZ_LANGS') || []);
-  eq('the languages offered are the declared rows: ar, en, fa, fr, id, ur, bn, tr (files, not inline)', langs, ['ar', 'en', 'fa', 'fr', 'id', 'ur', 'bn', 'tr']);
+  eq('the languages offered are the declared rows: ar, en, fa, fr, id, ur, bn, tr, ha (files, not inline)', langs, ['ar', 'en', 'fa', 'fr', 'id', 'ur', 'bn', 'tr', 'ha']);
   ok('...and no third language is declared anywhere in the block',
     !/EZ_I18N\s*\.\s*(?!ar\b|en\b)[a-z]{2}\b/.test(rawCode));
 
@@ -874,7 +874,7 @@ async function partD0() {
   eq('...each a real button', items.filter((b) => b.tagName !== 'BUTTON').length, 0);
   eq('...none of them a submit', items.filter((b) => b.getAttribute('type') !== 'button').length, 0);
   eq('...each declaring option semantics', items.filter((b) => b.getAttribute('role') !== 'option').length, 0);
-  eq('...with the current one marked selected', items.map((b) => b.getAttribute('aria-selected')), ['true', 'false', 'false', 'false', 'false', 'false', 'false', 'false']);
+  eq('...with the current one marked selected', items.map((b) => b.getAttribute('aria-selected')), ['true', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false']);
   eq('...and no profile was created by opening it', c.store.getItem('child_profile'), null);
 
   // ar -> en
@@ -1307,7 +1307,7 @@ async function partD() {
 
   console.log('\n=== D3. THE LIST IS EXTENSIBLE ===');
   const list = plain(c.grab('EZ_LANGUAGES') || []);
-  eq('the offer is a data list', list.map((l) => l.code), ['ar', 'en', 'fa', 'fr', 'id', 'ur', 'bn', 'tr']);
+  eq('the offer is a data list', list.map((l) => l.code), ['ar', 'en', 'fa', 'fr', 'id', 'ur', 'bn', 'tr', 'ha']);
   eq('...every entry carries a native name', list.filter((l) => !String(l.nativeName || '').trim()), []);
   eq('...a short label', list.filter((l) => !String(l.shortLabel || '').trim()), []);
   eq('...and a direction', list.filter((l) => ['rtl', 'ltr'].indexOf(l.dir) === -1), []);
