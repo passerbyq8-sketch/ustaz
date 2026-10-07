@@ -395,6 +395,20 @@ async function partA() {
   const mismatched = arK.filter((k) => JSON.stringify(ph(ar[k])) !== JSON.stringify(ph(en[k])));
   eq('every {placeholder} appears on both sides of a key', mismatched, []);
 
+  // A fragment that the app joins to a number ("needs about " + n + " MB") keeps its outer spaces in every language: measured on the Spanish row, a file-writing tool had
+  // dropped them in all eleven earlier language files ("necesita unos12 MB"). The English text decides which keys carry outer whitespace.
+  {
+    const wsBad = [];
+    for (const code of langs.filter((l) => l !== 'ar' && l !== 'en')) {
+      const file = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'lang', code + '.json'), 'utf8'));
+      for (const k of enK) {
+        const e = String(en[k]); const lead = e.match(/^\s*/)[0]; const trail = e.match(/\s*$/)[0]; if (!lead && !trail) continue;
+        const v = String(file[k] == null ? '' : file[k]); if (v.slice(0, lead.length) !== lead || v.slice(v.length - trail.length) !== trail) wsBad.push(code + ':' + k);
+      }
+    }
+    eq('every language file keeps the outer whitespace of the English fragments the app joins to numbers', wsBad, []);
+  }
+
   // ITEM 20 / §1 -- THE SECTION IS NAMED «مقالات عزك», AND THE NAME IS A DISPLAY STRING.
   // The word the reader sees moved on 8 September; nothing a machine reads moved with it. Both
   // halves are asserted, and the second is the load-bearing one: a rename that also renamed the
