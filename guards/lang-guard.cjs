@@ -45,6 +45,7 @@ const V = '﴿', W = '﴾';
   ok('an English question -> en, even when the key is Arabic', D.detectQuestionLang('What is the ruling on zakat for gold?', 'ar') === 'en');
   ok('a lone word is ambiguous: the key language decides (both ways)', D.detectQuestionLang('zakat', 'ar') === 'ar' && D.detectQuestionLang('zakat', 'en') === 'en');
   ok('another Latin-script language that is not a row (Dutch) is ambiguous too (it is not English)', D.detectQuestionLang('Wat is het oordeel over het vasten onderweg', 'ar') === 'ar');
+  ok('Urdu is a row: a question with an Urdu mark, or with the Urdu heh alone, is Urdu; Persian stays Persian', D.detectQuestionLang('زکوٰۃ کا نصاب کیا ہے', 'ar') === 'ur' && D.detectQuestionLang('نماز کیسے پڑھیں', 'en') === 'ur' && D.detectQuestionLang('نصاب زکات چیست', 'ar') === 'fa' && D.detectQuestionLang('حکم روزه چیست', 'en') === 'fa' && D.detectQuestionLang('ما حكم الصلاة', 'ur') === 'ar');
   ok('French is a row: a French question is French whatever the key, and a lone word still takes the key', D.detectQuestionLang('Quelle est la regle du jeune en voyage ?', 'ar') === 'fr' && D.detectQuestionLang('zakat', 'fr') === 'fr' && D.detectQuestionLang('zakat', 'ar') === 'ar');
   ok('a code that is not in the table is read as the default key', T.keyLangOf('xx') === 'ar' && T.keyLangOf(undefined) === 'ar' && T.keyLangOf('en') === 'en');
   const defs = ['lib', 'api'].flatMap((d) => fs.readdirSync(path.join(REPO, d), { recursive: true }).filter((f) => /\.js$/.test(f)).map((f) => d + '/' + String(f).replace(/\\/g, '/')));
