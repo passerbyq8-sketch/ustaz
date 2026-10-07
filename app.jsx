@@ -42,6 +42,7 @@ const EZ_LANGUAGES = [
   { code: 'so', nativeName: 'Soomaali', shortLabel: 'SO', dir: 'ltr', digits: 'latn', script: 'latn', locale: 'so', meridiem: ['subaxnimo','galabnimo'] },
   { code: 'ps', nativeName: 'پښتو', shortLabel: 'پښ', dir: 'rtl', digits: 'arab-ext', script: 'arab', locale: 'ps', meridiem: ['ب.م','ن.م'] },
   { code: 'ku', nativeName: 'کوردی', shortLabel: 'کو', dir: 'rtl', digits: 'arab-indic', script: 'arab', locale: 'ckb', meridiem: ['ب.ن','د.ن'] },
+  { code: 'uz', nativeName: 'Ўзбекча', shortLabel: 'ЎЗ', dir: 'ltr', digits: 'latn', script: 'cyrl', locale: 'uz-Cyrl', meridiem: ['ТО','ТК'] },
 ];
 const EZ_LANGS = EZ_LANGUAGES.map((l) => l.code);
 function ezLangEntry(code) { return EZ_LANGUAGES.filter((l) => l.code === code)[0] || EZ_LANGUAGES[0]; }
