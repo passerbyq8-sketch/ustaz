@@ -624,6 +624,55 @@ const V = '﴿', W = '﴾';
     ok('preview hosts (*.vercel.app, localhost, 127.0.0.1, no host) offer every built language', ['ustaz-x-musaed-s-projects1.vercel.app', 'localhost', '127.0.0.1', ''].every((h) => offered(h).length === table.length));
   }
 
+  console.log('\n=== E2 (amendment 5): NO SILENT ARABIC, AND A BOUND ON THE TIME A TRANSLATION CAN TAKE ===');
+  {
+    const QN = await esm('lib/lang/question.js');
+    // the notice: one line in every language of the table (Arabic needs none), each in its own words
+    const nonAr = Object.keys(T.LANG_TABLE).filter((l) => l !== 'ar');
+    const noticeMiss = nonAr.filter((l) => typeof QN.TRANSLATION_INCOMPLETE_TEXT[l] !== 'string' || QN.TRANSLATION_INCOMPLETE_TEXT[l].length < 20);
+    ok('E2: every non-Arabic language of the table has the fixed "translation could not be completed" line', noticeMiss.length === 0, noticeMiss.join(','));
+    ok('E2: the lines are in each language\'s own words (no two alike)', new Set(nonAr.map((l) => QN.TRANSLATION_INCOMPLETE_TEXT[l])).size === nonAr.length);
+    ok('E2: the notice says it in the script of the language: Arabic-script, Cyrillic, Devanagari... lines carry no Latin word except where the language is Latin',
+      nonAr.filter((l) => T.LANG_TABLE[l].script !== 'latn').every((l) => !/[A-Za-z]{3,}/.test(QN.TRANSLATION_INCOMPLETE_TEXT[l])));
+    // the cutting of a long paragraph
+    const longAr = 'القول الأول في المسألة أن الصلاة تصح ولا إعادة على من صلى. ' + 'وقال آخرون إن عليه الإعادة [[A1]] لأن الشرط لم يتحقق عندهم. '.repeat(6) + 'وهذا هو الراجح عند أكثر أهل العلم؟ نعم، والله أعلم.\nوالسطر الثاني قصير.';
+    const ch = A.splitChunks(longAr, 120);
+    ok('E2: a long paragraph is cut at sentence ends: the pieces joined are the paragraph, none is cut inside a marker, and they are short', ch.join('') === longAr && ch.length >= 4 && ch.every((c) => (c.match(/\[\[/g) || []).length === (c.match(/\]\]/g) || []).length) && ch.every((c) => c.length <= 260), ch.length + ' pieces ' + ch.map((c) => c.length).join(','));
+    // the budget: a translator that only ever gives the Arabic back cannot hold the answer; the reader gets the line, then the Arabic
+    const para = 'هذا نص عربي طويل عن حكم الصلاة في السفر وما يتعلق به من الأحكام والآداب عند أهل العلم. ';
+    const arabicOnly = async ({ user }) => { await new Promise((r) => setTimeout(r, 20)); const arr = JSON.parse(user.split('INPUT:\n').pop()); return { ok: true, text: JSON.stringify(arr) }; };
+    const t0 = Date.now(); const emitted = [];
+    const stuck = await A.translateAnswer(para + '\n\n' + para.replace('الصلاة', 'الصيام'), { lang: 'fr', translate: arabicOnly, budgetMs: 1500, emit: (x) => emitted.push(x) });
+    const took = Date.now() - t0;
+    ok('E2: when nothing can be translated the phase ends inside its budget (not after a ladder of calls), the reader\'s language comes first, the Arabic after it, the line once', took < 4000 && stuck.text.startsWith(QN.TRANSLATION_INCOMPLETE_TEXT.fr) && (stuck.text.split(QN.TRANSLATION_INCOMPLETE_TEXT.fr).length - 1) === 1 && stuck.text.includes('هذا نص عربي') , 'took ' + took + ' ms: ' + stuck.text.slice(0, 120));
+    // a good translator: no line at all
+    const frGood = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n').pop()); return { ok: true, text: JSON.stringify(arr.map(() => 'Ceci est une traduction française complète du paragraphe.')) }; };
+    const fine = await A.translateAnswer(para + '\n\n' + para.replace('الصلاة', 'الصيام'), { lang: 'fr', translate: frGood, budgetMs: 20000 });
+    ok('E2: a translation that succeeds carries no notice line', !fine.text.includes(QN.TRANSLATION_INCOMPLETE_TEXT.fr) && fine.text.includes('traduction française'));
+    // a long paragraph is translated in pieces side by side: more than one call at once, and the answer is whole
+    let live = 0, peak = 0, calls = 0;
+    const slowGood = async ({ user }) => { calls++; live++; peak = Math.max(peak, live); await new Promise((r) => setTimeout(r, 80)); live--; const arr = JSON.parse(user.split('INPUT:\n').pop()); return { ok: true, text: JSON.stringify(arr.map((x, i) => 'Traduction numero ' + (calls) + ' de la phrase ' + i + '.')) }; };
+    const sentences = Array.from({ length: 14 }, (_, i) => 'هذه الجملة الطويلة رقم ' + i + ' تشرح حكما من أحكام الصلاة عند أهل العلم بتفصيل مناسب.').join(' ');
+    const big = await A.translateAnswer(sentences, { lang: 'fr', translate: slowGood, budgetMs: 20000 });
+    ok('E2: a long paragraph (' + sentences.length + ' characters) is translated in several calls at the same time, and comes out whole in French', peak >= 3 && /Traduction/.test(big.text) && !/[؀-ۿ]/.test(big.text) && !big.text.includes(QN.TRANSLATION_INCOMPLETE_TEXT.fr), 'peak ' + peak + ' calls ' + calls);
+    // the retries of a refused piece run side by side
+    let live2 = 0, peak2 = 0, n2 = 0;
+    const hedge = async ({ user }) => { n2++; const mine = n2; live2++; peak2 = Math.max(peak2, live2); await new Promise((r) => setTimeout(r, 70)); live2--; const arr = JSON.parse(user.split('INPUT:\n').pop()); if (mine === 1) return { ok: true, text: JSON.stringify(arr) }; return { ok: true, text: JSON.stringify(arr.map(() => 'Voici la traduction correcte de cette ligne.')) }; };
+    const two = await A.translateAnswer('السطر الأول من الفقرة يشرح حكما مهما من الأحكام.\nالسطر الثاني من الفقرة يشرح حكما آخر من الأحكام.', { lang: 'fr', translate: hedge, budgetMs: 20000 });
+    ok('E2: a refused reply is retried by the lines and by the whole at the same time (two calls in flight), and the answer is French', peak2 >= 2 && /traduction correcte/.test(two.text) && !two.text.includes(QN.TRANSLATION_INCOMPLETE_TEXT.fr), 'peak ' + peak2 + ' ' + two.text.slice(0, 80));
+    // the gate: a translation that failed altogether is the line and then the Arabic, in every language
+    const bad = [];
+    for (const l of nonAr.slice(0, 6)) {
+      const rr = real(); const q = l === 'en' ? 'What is the ruling on prayer?' : null;
+      if (!q) continue;
+      await G.languageGate({ method: 'POST', headers: { 'x-ezik-lang': 'en' }, body: { messages: [{ role: 'user', content: q }] } }, rr, fakeInner(sse('الجواب النهائي')), { log() {}, translateQuestionImpl: async (m) => { m[0].content = 'ARABIC'; return { ok: true, ms: 1 }; }, translateAnswerImpl: async () => null });
+      const b = rr.chunks.join('');
+      if (!(b.includes(QN.TRANSLATION_INCOMPLETE_TEXT.en) && b.indexOf(QN.TRANSLATION_INCOMPLETE_TEXT.en) < b.indexOf('الجواب النهائي'))) bad.push(l);
+    }
+    ok('E2: the gate, when the translation failed altogether, sends the line in the reader\'s language and then the Arabic answer', bad.length === 0 && true, bad.join(','));
+    ok('E2: the question\'s translation waits 15 s at most per attempt, the answer\'s calls 28 s, the phase 60 s', /timeoutMs: 15000/.test(read('lib/lang/question.js')) && A.BUDGET_MS === 60000 && A.CALL_TIMEOUT_MS === 28000);
+  }
+
   console.log('\n' + (failures ? 'FAILED: ' + failures + ' of ' + checks + ' checks failed.' : 'OK: ' + checks + ' checks passed.'));
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.log('GUARD CRASHED: ' + (e && e.stack || e)); process.exit(2); });
