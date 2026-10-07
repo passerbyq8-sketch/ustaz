@@ -1,0 +1,1 @@
+import{C as e}from"./index-De8yZCO_.js";var t={topBar:`_topBar_1ur04_1`,title:`_title_1ur04_14`},n=e();function r({start:e,title:r,end:i}){return(0,n.jsxs)(`header`,{className:t.topBar,children:[e,(0,n.jsx)(`h1`,{className:t.title,children:r}),i]})}export{r as t};
