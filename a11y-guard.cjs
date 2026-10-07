@@ -141,6 +141,9 @@ function buildContext(opts) {
   window.alert = function () {}; window.confirm = function () { return true; };
   const net = [];
   window.fetch = function (u) { net.push(String(u)); return Promise.resolve({ ok: false, status: 0, headers: { get: () => null }, text: () => Promise.resolve(''), json: () => Promise.resolve({}) }); };
+  // E4 (item 74): the app prefetches /quran-uthmani.json once after boot (an idle callback, or a 1200 ms timer where there is none). That request is the boot's, not a reaction to
+  // anything a check does; on a slow moment it fell inside the "nothing reached the network" window. An idle callback that runs at once lands it during the mount.
+  window.requestIdleCallback = function (fn) { return setTimeout(fn, 0); }; window.cancelIdleCallback = function (h) { clearTimeout(h); };
   try { if (!window.TextDecoder) window.TextDecoder = TextDecoder; } catch (e) {}
   try { if (!window.TextEncoder) window.TextEncoder = TextEncoder; } catch (e) {}
   try {
