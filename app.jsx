@@ -28,6 +28,7 @@ const EZ_LANGUAGES = [
   { code: 'fr', nativeName: 'Fran\u00e7ais', shortLabel: 'FR', dir: 'ltr', digits: 'latn', script: 'latn', locale: 'fr', meridiem: ['AM', 'PM'] },
   { code: 'id', nativeName: 'Bahasa Indonesia', shortLabel: 'ID', dir: 'ltr', digits: 'latn', script: 'latn', locale: 'id', meridiem: ['AM','PM'] },
   { code: 'ur', nativeName: 'اردو', shortLabel: 'ار', dir: 'rtl', digits: 'latn', script: 'arab', locale: 'ur', meridiem: ['ص','ش'] },
+  { code: 'bn', nativeName: 'বাংলা', shortLabel: 'বা', dir: 'ltr', digits: 'beng', script: 'beng', locale: 'bn', meridiem: ['পূর্বাহ্ণ','অপরাহ্ণ'] },
 ];
 const EZ_LANGS = EZ_LANGUAGES.map((l) => l.code);
 function ezLangEntry(code) { return EZ_LANGUAGES.filter((l) => l.code === code)[0] || EZ_LANGUAGES[0]; }
@@ -4137,7 +4138,7 @@ const getSurahAyahCount = (sNum) => {
 // ezScriptureDigits is the other one: the digits that stand INSIDE Arabic scripture or an Arabic sentence meant to be copied or shared
 // (a verse-end number, a reference line) are Arabic-Indic in every interface language.
 const ezScriptureDigits = (n) => String(n).replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
-const toArabicDigits = (n) => { try { if (ezLangEntry(EZ_LANG).digits === 'latn') return String(n); } catch (e) {} return String(n).replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]); };
+const toArabicDigits = (n) => { let sys = 'arab-indic'; try { sys = ezLangEntry(EZ_LANG).digits; } catch (e) {} if (sys === 'latn') return String(n); const z = sys === 'arab-ext' ? '۰۱۲۳۴۵۶۷۸۹' : sys === 'beng' ? '০১২৩৪৫৬৭৮৯' : '٠١٢٣٤٥٦٧٨٩'; return String(n).replace(/[0-9]/g, (d) => z[d]); };
 
 // يُرجع رقم السورة (1..114) أو null. يفضّل surah_num الرقمي، ثم يبحث بالاسم.
 const resolveSurahNumber = (surahName, surahNum) => {
@@ -25596,7 +25597,7 @@ function qiblaDegreeText(deg) {
   const one = Math.round((((deg % 360) + 360) % 360) * 10) / 10;
   const whole = Math.floor(one);
   const tenth = Math.round((one - whole) * 10);
-  return toArabicDigits(whole) + (() => { try { return ezLangEntry(EZ_LANG).digits === 'latn' ? '.' : '٫'; } catch (e) { return '٫'; } })() + toArabicDigits(tenth);
+  return toArabicDigits(whole) + (() => { try { const dg = ezLangEntry(EZ_LANG).digits; return (dg === 'latn' || dg === 'beng') ? '.' : '٫'; } catch (e) { return '٫'; } })() + toArabicDigits(tenth);
 }
 // A HEADING, OR NOTHING. Three refusals, and the middle one is the measured lesson: an event that
 // is not absolute is a relative gyroscope reading, and a relative reading pointed at a compass
@@ -35168,7 +35169,7 @@ let EZ_DOM_PATTERNS = [];
 let EZ_DOM_OBSERVER = null;
 const EZ_DIGIT_RE = /[\u0660-\u0669\u06F0-\u06F9]/g;
 // A number in the reader's language: the digit system is a column of the language table, read here and nowhere else.
-const EZ_DIGIT_BASE = { 'arab-indic': 0x660, 'arab-ext': 0x6F0 };   // the zero of each digit system; Latin is the absence of an entry
+const EZ_DIGIT_BASE = { 'arab-indic': 0x660, 'arab-ext': 0x6F0, 'beng': 0x9E6 };   // the zero of each digit system; Latin is the absence of an entry
 function ezNum(n) {
   const base = EZ_DIGIT_BASE[ezLangEntry(EZ_LANG).digits];
   const t = String(n);
