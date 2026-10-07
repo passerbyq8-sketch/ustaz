@@ -6,16 +6,20 @@
 // The files are SNAPSHOTS: re-run this tool to bring them to the latest published release (the version is read from the API).
 import fs from 'node:fs'; import path from 'node:path'; import zlib from 'node:zlib';
 const lang = process.argv[2] || 'en'; const out = process.argv[3] || 'lib/data/translations';
-const QKEY = { en: 'english_saheeh', fa: 'persian_ih', fr: 'french_rashid' }[lang]; if (!QKEY) throw new Error('no Quran translation chosen for ' + lang);
+// the first translation QuranEnc lists for the language (the encyclopedia's own order); null = QuranEnc publishes none (Bengali, Malay, Russian): the verses stay Arabic and the answer explains them
+const QKEYS = { en: 'english_saheeh', fa: 'persian_ih', fr: 'french_rashid', id: 'indonesian_sabiq', ur: 'urdu_junagarhi', tr: 'turkish_rwwad', ha: 'hausa_gummi', sw: 'swahili_rwwad', zh: 'chinese_suliman', bn: null, ms: null, ru: null };
+if (!(lang in QKEYS)) throw new Error('no Quran decision for ' + lang); const QKEY = QKEYS[lang];
 const J = async (u) => { for (let i = 0; i < 4; i++) { try { const r = await fetch(u, { headers: { 'user-agent': 'ezik-translation-snapshot/1' } }); if (r.ok) return await r.json(); } catch {} await new Promise(r => setTimeout(r, 500 * (i + 1))); } throw new Error('fetch failed ' + u); };
 const pool = async (items, n, fn) => { const res = new Array(items.length); let i = 0; await Promise.all(Array.from({ length: n }, async () => { while (i < items.length) { const k = i++; res[k] = await fn(items[k], k); } })); return res; };
 const gz = (o) => zlib.gzipSync(JSON.stringify(o), { level: 9 });
 fs.mkdirSync(out, { recursive: true });
 // --- Quran
+if (QKEY) {
 const list = (await J(`https://quranenc.com/api/v1/translations/list/${lang}`)).translations.find(t => t.key === QKEY);
 const suras = await pool(Array.from({ length: 114 }, (_, i) => i + 1), 6, async (n) => (await J(`https://quranenc.com/api/v1/translation/sura/${QKEY}/${n}`)).result);
 const quran = { meta: { key: QKEY, title: list.title, version: list.version, lastUpdate: list.last_update, description: list.description, source: 'QuranEnc.com', sourceUrl: 'https://quranenc.com/en/browse/' + QKEY, fetchedAt: new Date().toISOString().slice(0, 10) }, suras: suras.map(rows => rows.map(r => [r.translation, r.footnotes || ''])) };
 fs.writeFileSync(path.join(out, `quran-${lang}.json.gz`), gz(quran)); console.log('quran', suras.reduce((a, s) => a + s.length, 0));
+}
 // --- Hadith
 const cats = (await J('https://hadeethenc.com/api/v1/categories/list/?language=ar')).filter(c => !c.parent_id);
 const ids = new Map(); for (const c of cats) { let p = 1, last = 1; do { const j = await J(`https://hadeethenc.com/api/v1/hadeeths/list/?language=ar&category_id=${c.id}&page=${p}&per_page=500`); last = +j.meta.last_page; for (const d of j.data) if (d.translations.includes(lang)) ids.set(d.id, 1); p++; } while (p <= last); }

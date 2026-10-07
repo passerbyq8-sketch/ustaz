@@ -3,7 +3,7 @@
 // Verified by `npm run verify:build` and by the gate `babel`, which regenerate this file
 // and fail on any difference. An edit made here is overwritten by the next build and is
 // reported as a difference by the gate before that.
-var EZIK_APP_VERSION = "ezik-v59";
+var EZIK_APP_VERSION = "ezik-v60";
 const{useState,useEffect,useRef}=React;// ============================================================
 // S116 -- THE INTERFACE LANGUAGE (ar / en). READ THIS BEFORE ADDING A KEY.
 //
@@ -23,7 +23,7 @@ const EZ_LANG_KEY='ezik_ui_lang_v1';// THE LANGUAGES THIS INTERFACE OFFERS. A li
 // -- a language's own name is the same sentence in every interface. shortLabel is the two- or
 // one-character badge the menu shows beside it. No flag anywhere: Arabic is not one country's
 // language and neither is English.
-const EZ_LANGUAGES=[{code:'ar',nativeName:'\u0627\u0644\u0639\u0631\u0628\u064a\u0629',shortLabel:'\u0639',dir:'rtl',digits:'arab-indic',script:'arab',locale:'ar',meridiem:['\u0635','\u0645']},{code:'en',nativeName:'English',shortLabel:'EN',dir:'ltr',digits:'latn',script:'latn',locale:'en',meridiem:['AM','PM']},{code:'fa',nativeName:'\u0641\u0627\u0631\u0633\u06cc',shortLabel:'\u0641\u0627',dir:'rtl',digits:'arab-ext',script:'arab',locale:'fa',meridiem:['\u0642.\u0638','\u0628.\u0638']},{code:'fr',nativeName:'Fran\u00e7ais',shortLabel:'FR',dir:'ltr',digits:'latn',script:'latn',locale:'fr',meridiem:['AM','PM']}];const EZ_LANGS=EZ_LANGUAGES.map(l=>l.code);function ezLangEntry(code){return EZ_LANGUAGES.filter(l=>l.code===code)[0]||EZ_LANGUAGES[0];}const EZ_LANG_FALLBACK='ar';// the first-run language, and the dictionary's fallback half
+const EZ_LANGUAGES=[{code:'ar',nativeName:'\u0627\u0644\u0639\u0631\u0628\u064a\u0629',shortLabel:'\u0639',dir:'rtl',digits:'arab-indic',script:'arab',locale:'ar',meridiem:['\u0635','\u0645']},{code:'en',nativeName:'English',shortLabel:'EN',dir:'ltr',digits:'latn',script:'latn',locale:'en',meridiem:['AM','PM']},{code:'fa',nativeName:'\u0641\u0627\u0631\u0633\u06cc',shortLabel:'\u0641\u0627',dir:'rtl',digits:'arab-ext',script:'arab',locale:'fa',meridiem:['\u0642.\u0638','\u0628.\u0638']},{code:'fr',nativeName:'Fran\u00e7ais',shortLabel:'FR',dir:'ltr',digits:'latn',script:'latn',locale:'fr',meridiem:['AM','PM']},{code:'id',nativeName:'Bahasa Indonesia',shortLabel:'ID',dir:'ltr',digits:'latn',script:'latn',locale:'id',meridiem:['AM','PM']}];const EZ_LANGS=EZ_LANGUAGES.map(l=>l.code);function ezLangEntry(code){return EZ_LANGUAGES.filter(l=>l.code===code)[0]||EZ_LANGUAGES[0];}const EZ_LANG_FALLBACK='ar';// the first-run language, and the dictionary's fallback half
 const EZ_LANG_DIR=EZ_LANGUAGES.reduce((m,l)=>{m[l.code]=l.dir;return m;},{});function ezLangValid(v){return EZ_LANGS.indexOf(v)!==-1;}// The stored choice. Anything that is not exactly 'ar' or 'en' -- a truncated write, a value
 // from a future build, an object, a quota failure -- is not a choice and is ignored.
 function ezLangStored(){try{const v=localStorage.getItem(EZ_LANG_KEY);return ezLangValid(v)?v:null;}catch(e){return null;}}// THE WHOLE DECISION. A stored choice, or Arabic. The device is not an input: this app is

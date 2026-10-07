@@ -26,6 +26,7 @@ const EZ_LANGUAGES = [
   { code: 'en', nativeName: 'English', shortLabel: 'EN', dir: 'ltr', digits: 'latn', script: 'latn', locale: 'en', meridiem: ['AM', 'PM'] },
   { code: 'fa', nativeName: '\u0641\u0627\u0631\u0633\u06cc', shortLabel: '\u0641\u0627', dir: 'rtl', digits: 'arab-ext', script: 'arab', locale: 'fa', meridiem: ['\u0642.\u0638', '\u0628.\u0638'] },
   { code: 'fr', nativeName: 'Fran\u00e7ais', shortLabel: 'FR', dir: 'ltr', digits: 'latn', script: 'latn', locale: 'fr', meridiem: ['AM', 'PM'] },
+  { code: 'id', nativeName: 'Bahasa Indonesia', shortLabel: 'ID', dir: 'ltr', digits: 'latn', script: 'latn', locale: 'id', meridiem: ['AM','PM'] },
 ];
 const EZ_LANGS = EZ_LANGUAGES.map((l) => l.code);
 function ezLangEntry(code) { return EZ_LANGUAGES.filter((l) => l.code === code)[0] || EZ_LANGUAGES[0]; }
