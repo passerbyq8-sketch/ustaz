@@ -186,7 +186,16 @@ const ADAPTIVE_TICK = (() => {
   };
   return (ms) => { const now = Date.now(); if (now - at > 2000) { scale = probe(); at = Date.now(); } return Math.ceil(ms * scale); };
 })();
-const tick = (ms) => new Promise((r) => RAW_SET_TIMEOUT(r, ADAPTIVE_TICK(ms || 40)));
+// A MOUNTED CONTEXT IS WAITED FOR, NOT GUESSED AT. The 150 ms after a mount is the wait that ends before the first screen exists on a slow moment; when the last built
+// context is a mounted one whose root is still empty, the wait goes on (polling, up to a scaled 6 s) until the first screen is there.
+let LAST_MOUNTED_ROOT = null;
+const tick = async (ms) => {
+  await new Promise((r) => RAW_SET_TIMEOUT(r, ADAPTIVE_TICK(ms || 40)));
+  if (ms === 150 && LAST_MOUNTED_ROOT) {
+    const cap = Date.now() + ADAPTIVE_TICK(6000);
+    while (!LAST_MOUNTED_ROOT.childNodes.length && Date.now() < cap) await new Promise((r) => RAW_SET_TIMEOUT(r, 40));
+  }
+};
 
 let liveGen = 0;
 function buildContext(opts) {
@@ -247,6 +256,7 @@ function buildContext(opts) {
   put('localStorage', o.store || makeStore(o.seed));
   put('alert', function () {}); put('confirm', function () { return true; });
   const net = [];
+  LAST_MOUNTED_ROOT = o.mount ? window.document.getElementById('root') : null;
   put('fetch', function (u) {
     // The ledger is shared and the array is not: `net` is THIS context's counter, and
     // NET_LEDGER is where a request issued by a context that was already torn down would
@@ -255,6 +265,11 @@ function buildContext(opts) {
     net.push(String(u));
     return Promise.resolve({ ok: false, status: 0, headers: { get: () => null }, text: () => Promise.resolve(''), json: () => Promise.resolve({}) });
   });
+  // E4 (item 74, amendment 5). The app prefetches /quran-uthmani.json once after boot: through an idle callback, or where there is none a 1200 ms timer. That request is the
+  // boot's, not a reaction to anything a check presses, but a check that waits long enough on a loaded machine (every wait is scaled by ADAPTIVE_TICK) met it inside its
+  // window and counted it. The sandbox therefore offers an idle callback that runs at once (idle is exactly when nothing is pressed yet): the prefetch lands during the
+  // mount, before any check takes its first count.
+  put('requestIdleCallback', function (fn) { return window.setTimeout(fn, 0); }); put('cancelIdleCallback', function (h) { window.clearTimeout(h); });
   // The navigator the app is allowed to see. `undefined` means "this environment reports no
   // language", which is a different fact from "a language that is not Arabic".
   try {
