@@ -1193,6 +1193,89 @@ const V = '﴿', W = '﴾';
     }
   }
 
+  console.log('\n=== M1 (amendment 12): EVERY FRIENDLY ERROR BUBBLE IS A DICTIONARY ROW IN ALL 22 LANGUAGES, AND A REAL BROWSER SHOWS EACH STATE IN THE READER\'S LANGUAGE ===');
+  {
+    const app = read('app.jsx'); const dir = path.join(REPO, 'lang');
+    const BUCKETS = ['rateLimit', 'server', 'general', 'technical', 'network'];
+    const tableKeys = (/const FRIENDLY_ERRORS = \{([\s\S]*?)\n\};/.exec(app) || ['', ''])[1].match(/^  (\w+): \{/gm) || [];
+    ok('M1: FRIENDLY_ERRORS holds exactly the five buckets the rows are written for', tableKeys.map((x) => x.replace(/[^\w]/g, '')).join(',') === BUCKETS.join(','), tableKeys.join('|'));
+    const gfe = (/const getFriendlyError = [\s\S]*?\n\};/.exec(app) || [''])[0];
+    ok('M1: getFriendlyError reads the row through ezT (err.<bucket>.<male|female>) and falls back to the Arabic table', /ezT\('err\.' \+ key \+ '\.' \+ side\)/.test(gfe) && /FRIENDLY_ERRORS\[key\]\[side\]/.test(gfe), gfe);
+    const inline = (b, g) => (app.match(new RegExp("'err\\." + b + "\\." + g + "': '([^']*)'", 'g')) || []).map((x) => /: '([^']*)'$/.exec(x)[1]);
+    const arRow = {}; const enRow = {};
+    for (const b of BUCKETS) for (const g of ['male', 'female']) { const all = inline(b, g); arRow[b + '.' + g] = all.find((x) => /[؀-ۿ]/.test(x)); enRow[b + '.' + g] = all.find((x) => !/[؀-ۿ]/.test(x)); }
+    const bad = []; const sameAsArabic = []; const files = fs.readdirSync(dir).filter((x) => /\.json$/.test(x));
+    for (const f of files) {
+      const d = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
+      for (const b of BUCKETS) for (const g of ['male', 'female']) {
+        const v = d['err.' + b + '.' + g];
+        if (typeof v !== 'string' || !v.trim()) bad.push(f + ':' + b + '.' + g); else if (v === arRow[b + '.' + g]) sameAsArabic.push(f + ':' + b + '.' + g);
+      }
+    }
+    ok('M1: each of the 21 language files has all ten rows (5 buckets x male/female), none empty', files.length === 21 && bad.length === 0, bad.join(' '));
+    ok('M1: no language file repeats the Arabic sentence as its row', sameAsArabic.length === 0, sameAsArabic.join(' '));
+    ok('M1: Arabic and English each hold the ten rows inline, the English ones without Arabic letters', BUCKETS.every((b) => ['male', 'female'].every((g) => arRow[b + '.' + g] && enRow[b + '.' + g])));
+    ok('M1: the marker of a cut answer still names a bucket of the same table', /FRIENDLY_ERRORS\[m\[1\]\]/.test(app));
+
+    const http = require('http');
+    const pwPath = [process.env.EZIK_PLAYWRIGHT, 'C:/Users/passe/projects/ustaz-check88/check88/node_modules/playwright', 'playwright'].filter(Boolean);
+    let chromium = null; for (const p of pwPath) { try { chromium = require(p).chromium; break; } catch (e) { /* next */ } }
+    if (ok('M1: Playwright is installed (the bubbles are read on the real page)', !!chromium, 'looked in ' + pwPath.join(' | '))) {
+      const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.gz': 'application/gzip' };
+      const root = path.resolve(REPO);
+      const srv = http.createServer((q, r) => {
+        let u = decodeURIComponent(q.url.split('?')[0]); if (u.endsWith('/')) u += 'index.html';
+        const f = path.join(root, u);
+        if (!f.startsWith(root) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { r.writeHead(404); r.end('no'); return; }
+        r.writeHead(200, { 'content-type': MIME[path.extname(f)] || 'application/octet-stream' }); fs.createReadStream(f).pipe(r);
+      });
+      await new Promise((res) => srv.listen(0, '127.0.0.1', res)); const port = srv.address().port;
+      let browser = null; try { browser = await chromium.launch({ headless: true, channel: 'msedge', args: ['--mute-audio'] }); } catch (e) { try { browser = await chromium.launch({ headless: true, args: ['--mute-audio'] }); } catch (e2) { browser = null; } }
+      if (ok('M1: a browser starts (Edge, else the bundled Chromium)', !!browser)) {
+        const sse = (o) => 'data: ' + JSON.stringify(o) + '\n\n';
+        const SSEH = { 'content-type': 'text/event-stream' };
+        const STATES = [
+          { name: 'offline', bucket: 'network', route: (r) => r.abort('internetdisconnected') },
+          { name: 'rate limit 429', bucket: 'rateLimit', route: (r) => r.fulfill({ status: 429, contentType: 'application/json', body: '{}' }) },
+          { name: 'server error 500', bucket: 'server', route: (r) => r.fulfill({ status: 500, contentType: 'text/plain', body: 'boom' }) },
+          { name: 'refused 400', bucket: 'technical', route: (r) => r.fulfill({ status: 400, contentType: 'text/plain', body: 'bad' }) },
+          { name: 'empty stream', bucket: 'technical', route: (r) => r.fulfill({ status: 200, headers: SSEH, body: sse({ type: 'message_stop' }) }) },
+          { name: 'stream error (overloaded)', bucket: 'rateLimit', route: (r) => r.fulfill({ status: 200, headers: SSEH, body: sse({ type: 'error', error: { type: 'overloaded_error', message: 'Overloaded' } }) }) },
+          { name: 'stream error (other)', bucket: 'server', route: (r) => r.fulfill({ status: 200, headers: SSEH, body: sse({ type: 'error', error: { type: 'api_error', message: 'boom' } }) }) },
+        ];
+        const rowOf = (L, b, g) => (L === 'ar' ? arRow[b + '.' + g] : L === 'en' ? enRow[b + '.' + g] : JSON.parse(fs.readFileSync(path.join(dir, L + '.json'), 'utf8'))['err.' + b + '.' + g]);
+        const wrong = []; let tried = 0;
+        for (const L of ['ar', 'en', 'fr', 'fa', 'ur', 'id']) {
+          for (const gender of ['male', 'female']) {
+            const seed = (L === 'ar' ? '' : 'localStorage.setItem("' + ['ezik', 'ui', 'lang', 'v1'].join('_') + '","' + L + '");') + 'localStorage.setItem("child_profile",JSON.stringify({name:"Test",gender:"' + gender + '",birthYear:1990,age:30,pid:"P1"}));localStorage.setItem("ezik_ai_consent_v1",JSON.stringify({status:"granted",version:"2026-08-06-1",grantedBy:"user",at:Date.now(),pid:"P1"}));';
+            for (const S of STATES) {
+              if (gender === 'female' && S.name !== 'offline' && S.name !== 'server error 500') continue;
+              tried++;
+              const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
+              await ctx.addInitScript('try{' + seed + '}catch(e){}');
+              await ctx.route(/\/api\/ask/, S.route);
+              await ctx.route(/\/api\/(?!ask)/, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
+              const p = await ctx.newPage(); const want = rowOf(L, S.bucket, gender);
+              try {
+                await p.goto('http://127.0.0.1:' + port + '/', { waitUntil: 'load', timeout: 20000 });
+                await p.waitForSelector('textarea', { timeout: 15000 }); await p.waitForTimeout(1200);
+                await p.locator('textarea').first().click({ timeout: 3000 }); await p.keyboard.insertText('x'); await p.waitForTimeout(300); await p.keyboard.press('Enter');
+                let got = false; const t0 = Date.now();
+                while (Date.now() - t0 < 9000) { got = await p.evaluate((w) => document.body.innerText.replace(/[ً-ْٰ]/g, '').includes(w.replace(/[ً-ْٰ]/g, '')), want); if (got) break; await p.waitForTimeout(250); }
+                if (!got) wrong.push(L + '/' + gender + '/' + S.name + ' wanted ' + JSON.stringify(want));
+                else if (L !== 'ar') { const arab = arRow[S.bucket + '.' + gender]; if (await p.evaluate((w) => document.body.innerText.includes(w), arab)) wrong.push(L + '/' + gender + '/' + S.name + ' also shows the Arabic bubble'); }
+              } catch (e) { wrong.push(L + '/' + gender + '/' + S.name + ' (' + String(e.message).split('\n')[0].slice(0, 50) + ')'); }
+              await Promise.race([ctx.close(), new Promise((res) => setTimeout(res, 3000))]);
+            }
+          }
+        }
+        ok('M1: under Arabic, English, French, Persian, Urdu and Indonesian each error state the client can show (offline, 429, 500, 400, empty stream, both stream errors) shows its own row in the reader\'s language and gender (' + tried + ' states tried)', wrong.length === 0 && tried === 6 * 9, wrong.join(' | '));
+        await Promise.race([browser.close(), new Promise((res) => setTimeout(res, 4000))]);
+      }
+      await new Promise((res) => srv.close(res));
+    }
+  }
+
   console.log('\n' + (failures ? 'FAILED: ' + failures + ' of ' + checks + ' checks failed.' : 'OK: ' + checks + ' checks passed.'));
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.log('GUARD CRASHED: ' + (e && e.stack || e)); process.exit(2); });

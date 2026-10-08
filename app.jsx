@@ -835,6 +835,16 @@ const EZ_I18N = {
     'common.copyFailed': 'تعذّر النسخ',
     'chat.share': 'مشاركة',
     'chat.shareAria': 'مشاركة الرد',
+    'err.rateLimit.male': 'عُذْرًا، انْشَغَلْتُ قَلِيلًا. هَلْ تُعِيدُ مَا قُلْتَ بَعْدَ لَحْظَة؟',
+    'err.rateLimit.female': 'عُذْرًا، انْشَغَلْتُ قَلِيلًا. هَلْ تُعِيدِينَ مَا قُلْتِ بَعْدَ لَحْظَة؟',
+    'err.server.male': 'يَبْدُو أَنَّ الخَادِمَ مَشْغُولٌ الآن. حَاوِلْ مَرَّةً ثَانِيَة بَعْدَ قَلِيل.',
+    'err.server.female': 'يَبْدُو أَنَّ الخَادِمَ مَشْغُولٌ الآن. حَاوِلِي مَرَّةً ثَانِيَة بَعْدَ قَلِيل.',
+    'err.general.male': 'عُذْرًا، لَمْ أَفْهَمْ سُؤَالَكَ تَمَامًا. أَعِدْ كَلَامَكَ مِنْ فَضْلِك.',
+    'err.general.female': 'عُذْرًا، لَمْ أَفْهَمْ سُؤَالَكِ تَمَامًا. أَعِيدِي كَلَامَكِ مِنْ فَضْلِكِ.',
+    'err.technical.male': 'حَدَثَ خَلَلٌ تِقْنِيٌّ عِنْدِي، لَا فِي سُؤَالِكَ. حَاوِلْ مَرَّةً ثَانِيَةً بَعْدَ قَلِيل.',
+    'err.technical.female': 'حَدَثَ خَلَلٌ تِقْنِيٌّ عِنْدِي، لَا فِي سُؤَالِكِ. حَاوِلِي مَرَّةً ثَانِيَةً بَعْدَ قَلِيل.',
+    'err.network.male': 'يَبْدُو أَنَّ الاتِّصَالَ ضَعِيفٌ الآن. تَحَقَّقْ مِنَ الإِنْتَرْنِت وَحَاوِلْ ثَانِيَة.',
+    'err.network.female': 'يَبْدُو أَنَّ الاتِّصَالَ ضَعِيفٌ الآن. تَحَقَّقِي مِنَ الإِنْتَرْنِت وَحَاوِلِي ثَانِيَة.',
     'share.appStore': 'App Store',
     'share.googlePlay': 'Google Play',
     'share.bothLinks': '\u0627\u0644\u0631\u0627\u0628\u0637\u0627\u0646 \u0645\u0639\u064b\u0627',
@@ -2110,6 +2120,16 @@ const EZ_I18N = {
     'common.copyFailed': 'Could not copy',
     'chat.share': 'Share',
     'chat.shareAria': 'Share this reply',
+    'err.rateLimit.male': 'Sorry, I got a little busy. Could you say that again in a moment?',
+    'err.rateLimit.female': 'Sorry, I got a little busy. Could you say that again in a moment?',
+    'err.server.male': 'It looks like the server is busy right now. Please try again in a little while.',
+    'err.server.female': 'It looks like the server is busy right now. Please try again in a little while.',
+    'err.general.male': 'Sorry, I did not quite understand your question. Please say it again.',
+    'err.general.female': 'Sorry, I did not quite understand your question. Please say it again.',
+    'err.technical.male': 'A technical fault happened on my side, not in your question. Please try again in a little while.',
+    'err.technical.female': 'A technical fault happened on my side, not in your question. Please try again in a little while.',
+    'err.network.male': 'The connection seems weak right now. Check your internet and try again.',
+    'err.network.female': 'The connection seems weak right now. Check your internet and try again.',
     'share.appStore': 'App Store',
     'share.googlePlay': 'Google Play',
     'share.bothLinks': 'Both links',
@@ -4818,9 +4838,14 @@ const ezStopAllRecognition = () => {
 // third party, so it stops -- while the memorizing, the manual reveal and the mushaf do not.
 let EZ_SPEECH_NO_CONSENT = ezT('c.EZ_SPEECH_NO_CONSENT');
 
+// The bubble speaks the reader's language: each sentence is a dictionary row (err.<bucket>.<male|
+// female>), Arabic and English inline, the rest in lang/<code>.json. FRIENDLY_ERRORS stays the
+// Arabic source of the rows and the closed list of buckets; a row that has not loaded falls back
+// to Arabic inside ezT, and a missing row to the table itself.
 const getFriendlyError = (type, gender) => {
-  const bucket = FRIENDLY_ERRORS[type] || FRIENDLY_ERRORS.general;
-  return bucket[gender === 'female' ? 'female' : 'male'];
+  const key = FRIENDLY_ERRORS[type] ? type : 'general';
+  const side = gender === 'female' ? 'female' : 'male';
+  return ezT('err.' + key + '.' + side) || FRIENDLY_ERRORS[key][side];
 };
 
 // ============================================================
@@ -21612,7 +21637,17 @@ const EZIK_ERROR_REPLIES = (function () {
   });
   return out;
 })();
-const ezikIsErrorReply = (t) => typeof t === 'string' && EZIK_ERROR_REPLIES.indexOf(t.trim()) !== -1;
+// A reply stored while another interface language was active is the same failure sentence in that
+// language's words, so every dictionary loaded now is searched as well as the Arabic table.
+const ezikIsErrorReply = (t) => {
+  if (typeof t !== 'string') return false;
+  const x = t.trim();
+  if (EZIK_ERROR_REPLIES.indexOf(x) !== -1) return true;
+  return Object.keys(EZ_I18N).some((c) => {
+    const d = EZ_I18N[c];
+    return !!d && Object.keys(FRIENDLY_ERRORS).some((k) => d['err.' + k + '.male'] === x || d['err.' + k + '.female'] === x);
+  });
+};
 
 // ============================================================
 // S98 — اقتباس الرد (quote a reply into the composer)
