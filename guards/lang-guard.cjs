@@ -742,6 +742,54 @@ const V = '﴿', W = '﴾';
     ok('E4: transfermode\'s fresh-process precedence probe waits 600 s, not the idle-machine 120 s', /timeout: 600000/.test(read('guards/transfer-mode-guard.cjs')) && !/timeout: 120000/.test(read('guards/transfer-mode-guard.cjs')));
   }
 
+  console.log('\n=== H2 (amendment 8): THE HADITH CARD WITHOUT ITS TRANSLATION, AND THE ARABIC SUBTITLE OF THE QUEST PAGE ===');
+  {
+    const zlib = require('zlib');
+    // (1) the two measured cards (G1): the card quotes «رسول الله» where the published text has «عبده ورسوله», and «يا رسول الله» where one entry lacks it
+    const cardH3 = 'بُنِيَ الْإِسْلَامُ عَلَى خَمْسٍ: شَهَادَةِ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَأَنَّ مُحَمَّدًا رَسُولُ اللَّهِ، وَإِقَامِ الصَّلَاةِ، وَإِيتَاءِ الزَّكَاةِ، وَحَجِّ الْبَيْتِ، وَصَوْمِ رَمَضَانَ';
+    const cardH7 = 'الدِّينُ النَّصِيحَةُ، قُلْنَا: لِمَنْ يَا رَسُولَ اللهِ؟ قَالَ: لِلَّهِ وَلِكِتَابِهِ وَلِرَسُولِهِ وَلِأَئِمَّةِ الْمُسْلِمِينَ وَعَامَّتِهِمْ';
+    for (const lang of ['ur', 'id', 'en', 'fr', 'fa']) {
+      const a = P.findHadith(lang, cardH3); const b = P.findHadith(lang, cardH7);
+      ok('H2: the card of «بني الإسلام على خمس» with «رسول الله» finds its published translation in ' + lang + ' (66512 or its twin 65000: one wording, two chains)', !!a && ['66512', '65000'].includes(String(a.id)), JSON.stringify(a && a.id));
+      ok('H2: the card of «الدين النصيحة» with «يا رسول الله» finds its published translation in ' + lang + ' (66516 or its twin 4309)', !!b && ['66516', '4309'].includes(String(b.id)), JSON.stringify(b && b.id));
+    }
+    ok('H2: orderedMatch counts the matched words and lets only the allowed number of quotation words go; inOrder is unchanged (no skip)', P.orderedMatch(['a', 'x', 'd'], 'a b c d', 1) === 2 && P.orderedMatch(['a', 'x', 'd'], 'a b c d', 0) === 0 && P.orderedMatch(['a', 'x', 'y', 'd'], 'a b c d', 1) === 0 && P.inOrder(['a', 'd'], 'a b c d'));
+    // a quotation of under eight words keeps the exact-run rule, and the same words in another order still find nothing (the older cases above hold too)
+    ok('H2: seven words with one wrong word find nothing (the tolerance starts at eight words)', P.findHadith('en', 'الدين النصيحة قلنا لمن يا ابن الله') === null);
+    // (2) every entry of every HadeethEnc file we hold: its own text and three trimmed forms (1, 2, 3 words dropped at fixed, non-adjacent places) must find that entry or one of
+    //     identical Arabic text, never a different hadith; a trimmed form may find nothing only where two different wordings tie. The five enabled languages are swept whole,
+    //     the other seventeen at every fourth entry (the Arabic is the same HadeethEnc source in all of them; a whole sweep of the 22 takes two minutes).
+    const dir = path.join(REPO, 'lib', 'data', 'translations'); const files = fs.readdirSync(dir).filter((f) => /^hadith-.*\.json\.gz$/.test(f)).sort();
+    const enabled = ['en', 'fr', 'fa', 'ur', 'id'];
+    let total = 0, found = 0, none = 0, wrong = 0, fullMissed = 0, entries = 0; const bad = [];
+    const drop = (w, idx) => w.filter((_, i) => !idx.includes(i));
+    for (const f of files) {
+      const lang = f.replace(/^hadith-/, '').replace(/\.json\.gz$/, ''); const stride = enabled.includes(lang) ? 1 : 4;
+      const db = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(dir, f)))); const textOf = new Map(db.rows.map((r) => [r[0], P.foldArabic(r[1])]));
+      db.rows.forEach((r, ix) => {
+        if (ix % stride) return; entries++;
+        const w = P.foldArabic(r[1]).split(' '); const n = w.length; const forms = [['full', w]];
+        if (n >= 12) { forms.push(['d1', drop(w, [Math.floor(n / 3)])]); forms.push(['d2', drop(w, [Math.floor(n / 4), Math.floor(n / 2)])]); forms.push(['d3', drop(w, [Math.floor(n / 5), Math.floor(n / 2), Math.floor(4 * n / 5)])]); }
+        for (const [kind, fm] of forms) {
+          if (fm.length < 5) continue; total++;
+          const h = P.findHadith(lang, fm.join(' '));
+          if (!h) { none++; if (kind === 'full') fullMissed++; continue; }
+          if (h.id === r[0] || textOf.get(h.id) === w.join(' ')) found++;
+          else { const b = textOf.get(h.id).split(' '); const L = Array.from({ length: w.length + 1 }, () => new Array(b.length + 1).fill(0)); for (let i = 1; i <= w.length; i++) for (let j = 1; j <= b.length; j++) L[i][j] = w[i - 1] === b[j - 1] ? L[i - 1][j - 1] + 1 : Math.max(L[i - 1][j], L[i][j - 1]); if (L[w.length][b.length] / w.length >= 0.8) found++; else { wrong++; if (bad.length < 5) bad.push(lang + ':' + r[0] + '->' + h.id); } }
+        }
+      });
+    }
+    ok('H2: all ' + files.length + ' HadeethEnc files are swept (' + entries + ' entries, ' + total + ' lookups)', files.length >= 22 && entries > 10000 && total > 40000, files.length + ' files, ' + entries + ' entries, ' + total);
+    ok('H2: zero wrong matches: no entry, whole or trimmed, finds a hadith of another wording (' + found + ' found, ' + none + ' tied or unfound)', wrong === 0, bad.join(' '));
+    ok('H2: an entry\'s own full text always finds it, and a trimmed form is left without a translation only in a rare tie (under 0.5 percent)', fullMissed === 0 && none / total < 0.005, 'fullMissed ' + fullMissed + ', none ' + none + ' of ' + total);
+    // (3) the Arabic subtitle of the quest page has its row in every language
+    const qhtml = read('quest.html'); const sub = (/<div class="brand"><h1>[^<]*<\/h1>\s*<p>([^<]*)<\/p>/.exec(qhtml) || [])[1];
+    const qsrc = read('quest-i18n.js'); const qS = JSON.parse((/var STRINGS = (\{.*\});/.exec(qsrc) || ['', '{}'])[1]); const qkey = sub && sub.replace(/\s+/g, ' ').trim();
+    const qlangs = Object.keys(qS);
+    ok('H2: the subtitle «' + qkey + '» of quest.html has a row in all ' + qlangs.length + ' built languages, none of them the Arabic text itself', qlangs.length === 22 && qlangs.every((l) => typeof qS[l][qkey] === 'string' && qS[l][qkey].trim() && qS[l][qkey] !== qkey), qlangs.filter((l) => !qS[l][qkey]).join(','));
+    ok('H2: the English row says three games and the choice; the page itself (Arabic) is untouched by the row', /^Three games/.test(qS.en[qkey]) && sub === 'ثلاث ألعاب من أسئلة عزك. اختاروا لعبتكم.');
+  }
+
   console.log('\n' + (failures ? 'FAILED: ' + failures + ' of ' + checks + ' checks failed.' : 'OK: ' + checks + ' checks passed.'));
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.log('GUARD CRASHED: ' + (e && e.stack || e)); process.exit(2); });
