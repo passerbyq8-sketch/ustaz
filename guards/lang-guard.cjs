@@ -841,6 +841,12 @@ const V = '﴿', W = '﴾';
     const n1 = A.dropRepeatedNotes('Salat (Salat: ibadah dengan takbir dan salam) dan lagi salat (Salat: ibadah dengan takbir dan salam) serta hilal (hilal: bulan sabit (awal bulan): penjelasan).', seenN);
     const n2 = A.dropRepeatedNotes('Lalu salat (Salat: ibadah lagi) dan (“kutipan” — Terjemahan Al-Qur’an 2:255: Kemenag) dan (“kutipan” — Terjemahan Al-Qur’an 2:255: Kemenag).', seenN);
     ok('J6: a glossary note with an already explained label is cut, the first one stays, the sentence still reads, and quotation parentheses are untouched', (n1.match(/Salat:/g) || []).length === 1 && /hilal: bulan sabit \(awal bulan\): penjelasan/.test(n1) && !/\(Salat:/.test(n2) && (n2.match(/kutipan/g) || []).length === 2 && !/ \)/.test(n1) && !/  /.test(n1), n1 + ' || ' + n2);
+    // ...and the same holds for the translation of a source card's title: the term explained in the prose is not explained again in the card under it
+    const withCard = 'الصلاة عبادة عظيمة جدا في هذا الدين الحنيف كما هو معلوم.\n\n<source site="x.org" url="https://x.org/1">حكم الصلاة جماعة في المسجد</source>';
+    const noteTr = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => (/عبادة/.test(s) ? 'Prayer (Salat: worship with takbir and salam) is great.' : 'Ruling on Salat (Salat: worship with takbir and salam) in congregation'))) }; };
+    const oc = await A.translateAnswer(withCard, { lang: 'en', translate: noteTr });
+    const tlOf = Buffer.from((/ tl="([^"]+)"/.exec(oc.text) || ['', ''])[1], 'base64').toString('utf8');
+    ok('J6: the title translation of a source card does not repeat a note the prose already gave', /\(Salat:/.test(oc.text.split('<source')[0]) && tlOf.includes('Ruling on Salat') && !/Salat:/.test(tlOf), tlOf + ' | ' + oc.text.slice(0, 160));
     // a verse fragment kept in Arabic quotation inside a good translation is a quotation, not a copied sentence (the first browser round delivered nine of fourteen Persian paragraphs in Arabic without it)
     const fragSrc = 'قوله سبحانه: اللَّهُ لا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ، هذا هو معنى كلمة التوحيد أي لا معبود حق إلا هو';
     const fragGood = '«اللَّهُ لا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ» این همان معنای کلمه توحید است، یعنی هیچ معبود برحقی جز او نیست';
