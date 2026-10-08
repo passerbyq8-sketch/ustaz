@@ -1135,6 +1135,41 @@ const V = '﴿', W = '﴾';
       ok('L6 end to end: the answer is in English, with no Arabic in it and no "could not be completed" line', !/[ء-ي]/.test(out.text) && !out.text.includes(Q.translationNotice('en')) && out.text.includes(EN1) && out.text.includes(EN2), out.text.slice(0, 300));
     }
 
+    // L7 -- a fragment of a verse carries the stretch of the published translation that renders it (copied by the model, verified by the code), and the reference
+    {
+      const full = P.quranTranslation('en', 2, 255, 255).text;
+      const piece = cleanForTest(full).split(' ').slice(10, 17).join(' ');
+      function cleanForTest(s) { return String(s).replace(/\[\d+\]/g, '').replace(/\s+/g, ' ').trim(); }
+      ok('L7: verifiedPiece accepts a consecutive part of the published translation (footnote marks aside) and nothing else', A.verifiedPiece(full, piece) === piece && A.verifiedPiece(full, 'neither drowsiness nor sleep overtakes him at all') === null
+        && A.verifiedPiece(full, full) === null && A.verifiedPiece(full, '') === null && A.verifiedPiece(full, 'ab') === null && A.verifiedPiece(full, piece + ' ' + 'ما في السماوات') === null, JSON.stringify(piece));
+      const AYAT2 = quranRaw['2:255'];
+      const text = 'قال تعالى «لا تأخذه سنة ولا نوم» وقال «له ما في السماوات وما في الأرض» في الجملة.\n\n<verse surah_num="2" ayah="255">' + AYAT2 + '</verse>';
+      const extractor = (mode) => async ({ user }) => {
+        const arr = JSON.parse(user.split('INPUT:\n')[1]);
+        if (typeof arr[0] === 'string') return { ok: true, text: JSON.stringify(arr.map((s) => 'EN ' + s.replace(/[ء-ي]/g, ''))) };
+        if (mode === 'fail') return { ok: false, status: 529 };
+        return { ok: true, text: JSON.stringify(arr.map((o, i) => (mode === 'good' ? cleanForTest(o.translation).split(' ').slice(2 + i, 8 + i).join(' ') : mode === 'invented' ? 'Nothing at all makes him weary or sleepy' : o.translation))) };
+      };
+      const good = await A.translateAnswer(text, { lang: 'en', translate: extractor('good') });
+      const glossed = [...good.text.matchAll(/«[^»]*» \(“([^”]+)” — 2:255\)/g)].map((m) => m[1]);
+      ok('L7: with the copy found, each fragment carries "(“the published words” — 2:255)", and those words are a consecutive part of the published translation', glossed.length === 2 && glossed.every((g) => cleanForTest(full).includes(g)) && good.stats.glossed === 2, good.text.slice(0, 500));
+      for (const mode of ['fail', 'invented', 'whole']) {
+        const r = await A.translateAnswer(text, { lang: 'en', translate: extractor(mode) });
+        ok('L7 (' + mode + '): when the copy is not found, or is not the published text, only the reference stands beside the fragment: nothing invented is shown', (r.text.match(/\(2:255\)/g) || []).length === 2 && !/Nothing at all makes him/.test(r.text) && r.stats.glossed === 0, r.text.slice(0, 300));
+      }
+      ok('L7: the copy engine prompt writes nothing of its own: copy exactly, empty when unsure, an array out', /COPIED EXACTLY/.test(M.fragmentSystem('en')) && /empty string/.test(M.fragmentSystem('en')) && /Output ONLY a JSON array/.test(M.fragmentSystem('fr')) && /French/.test(M.fragmentSystem('fr')));
+    }
+
+    // L8 -- short Qur'an quotations (three words) and the look of a marker around an Arabic term
+    {
+      const AY = quranRaw['2:255'];
+      const o3 = await A.translateAnswer('وختمت بقوله «وهو العلي العظيم» أي الأعلى.\n\n<verse surah_num="2" ayah="255">' + AY + '</verse>', { lang: 'en', translate: echo2 });
+      ok('L8: a three-word guillemet quotation that is the Qur\'an gets the reference of its verse beside it (it stood alone in the English sentence before)', /«وهو العلي العظيم» \(2:255\)/.test(o3.text), o3.text.slice(0, 200));
+      const o4 = await A.translateAnswer('وقال «صلوا كما رأيتموني» أي الصلاة.', { lang: 'en', translate: async ({ user }) => ({ ok: true, text: JSON.stringify(JSON.parse(user.split('INPUT:\n')[1])) }) });
+      ok('L8: a three-word quotation that is not the Qur\'an is left as it was', o4.text.includes('«صلوا كما رأيتموني»') && !/\(\d+:\d+\)/.test(o4.text), o4.text);
+      ok('L8: the look of a marker around an Arabic term goes, with the Arabic in it; a real marker and other brackets stay', A.dropMarkerLook('il est appelé [[آيةُ الكُرْسِيِّ]] (Le verset) et [[Q1]] ok [[x]]') === 'il est appelé (Le verset) et [[Q1]] ok [[x]]');
+    }
+
     // L4 -- the scholar's text comes after its card and the translation, in every language
     {
       const FAT = '## نص الفتوى\n\nالسؤال:\nما حكم هذا؟\n\nالجواب:\nهذا جواب الشيخ بنصه المنشور.\n\nالمفتي: الشيخ فلان';
