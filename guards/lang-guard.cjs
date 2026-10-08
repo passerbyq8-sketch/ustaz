@@ -975,6 +975,73 @@ const V = '﴿', W = '﴾';
     }
   }
 
+  console.log('\n=== K (amendment 10): THE QUR\'AN IN AN ANSWER IS NEVER TRANSLATED, AND A FRAGMENT FROM MORE THAN ONE PLACE HAS NO GUESSED REFERENCE ===');
+  {
+    // K1 -- the saved Ayat al-Kursi paragraph of the Persian and Urdu answers (battery r3: the Qur'an quoted after «قوله تعالى:» with no marks), replayed with a stub translator
+    const para = 'آية الكرسي هي قوله تعالى: الله لا إله إلا هو الحي القيوم لا تأخذه سنة ولا نوم له ما في السماوات وما في الأرض من ذا الذي يشفع عنده إلا بإذنه يعلم ما بين أيديهم وما خلفهم ولا يحيطون بشيء من علمه إلا بما شاء وسع كرسيه السماوات والأرض ولا يئوده حفظهما وهو العلي العظيم، وهي أعظم آية في كتاب الله بنص النبي صلى الله عليه وسلم.';
+    const card = '<verse surah="البقرة" surah_num="2" ayah="255">ٱللَّهُ لَآ إِلَـٰهَ إِلَّا هُوَ ٱلْحَىُّ ٱلْقَيُّومُ</verse>';
+    const ayat = 'الله لا إله إلا هو الحي القيوم لا تأخذه سنة ولا نوم له ما في السماوات وما في الأرض من ذا الذي يشفع عنده إلا بإذنه يعلم ما بين أيديهم وما خلفهم ولا يحيطون بشيء من علمه إلا بما شاء وسع كرسيه السماوات والأرض ولا يئوده حفظهما وهو العلي العظيم';
+    const proseFor = { fa: 'این همان آیه‌ای است که می‌فرماید:', ur: 'یہ وہی آیت ہے جس میں فرمایا:', en: 'This is the verse in which He says:' };
+    const mkStub = (lang, sent) => async ({ user }) => {
+      const arr = JSON.parse(user.split('INPUT:\n')[1]); sent.push(...arr);
+      return { ok: true, text: JSON.stringify(arr.map((s) => proseFor[lang] + ' ' + (s.match(/\[\[[QAIU]\d+\]\]/g) || []).join(' ') + ' — ' + (lang === 'en' ? 'it is the greatest verse in the Book of Allah.' : lang === 'fa' ? 'بزرگ‌ترین آیه در کتاب خداست.' : 'کتاب اللہ کی سب سے بڑی آیت ہے۔'))) };
+    };
+    for (const lang of ['fa', 'ur', 'en']) {
+      const sent = [];
+      const r = await A.translateAnswer(para + '\n\n' + card, { lang, translate: mkStub(lang, sent) });
+      const noticeLine = Q.translationNotice(lang);
+      ok('K1 (' + lang + '): the Ayat al-Kursi paragraph is translated and the fixed line stands nowhere over the Qur\'an', !r.text.includes(noticeLine) && r.stats.unitsKeptArabic === 0 && r.stats.batchesKeptArabic === 0, JSON.stringify(r.stats) + ' ' + r.degraded.join(','));
+      ok('K1 (' + lang + '): the translator never received a word of the Qur\'an stretch (one marker stands in its place)', sent.length === 1 && /\[\[U\d+\]\]/.test(sent[0]) && !sent[0].includes('القيوم') && !sent[0].includes('السماوات'), JSON.stringify(sent));
+      ok('K1 (' + lang + '): the stretch comes back as Arabic Qur\'an, byte for byte, with its reference 2:255 and a published translation', r.text.includes(ayat) && r.text.includes('2:255') && r.stats.quran >= 1, r.text.slice(0, 200));
+    }
+    // K1 -- an Arabic run that is NOT Qur'an still trips the rule (a translation that copies a plain Arabic sentence beside its English is refused and delivered with the fixed line)
+    {
+      const plain = 'هذه فقرة عربية طويلة تشرح معنى المسألة شرحا وافيا للقارئ الكريم في هذا المقام.';
+      const copied = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => 'The paragraph says: ' + s)) }; };
+      const r = await A.translateAnswer(plain, { lang: 'en', translate: copied });
+      ok('K1: a plain (non-Qur\'an) Arabic sentence copied beside the English still makes the reply refused: the Arabic is delivered under the fixed line', r.text.includes(Q.translationNotice('en')) && r.text.includes(plain), r.text.slice(0, 150));
+    }
+    // the stretch finder
+    const cut = (s) => P.quranStretches(s).map((x) => s.slice(x.start, x.end));
+    ok('K1: a stretch is found with no marks, with the ornate marks removed, in the mushaf\'s own spelling, and in the ordinary spelling of the writer',
+      cut('قال تعالى ' + ayat.split(' ').slice(0, 9).join(' ') + ' وهذا شرحها').length === 1 && cut('قال: ٱللَّهُ لَآ إِلَـٰهَ إِلَّا هُوَ ٱلْحَىُّ ٱلْقَيُّومُ ۚ لَا تَأْخُذُهُۥ سِنَةٌ وَلَا نَوْمٌ').length === 1
+      && cut(ayat).length === 1 && cut(ayat)[0] === ayat);
+    ok('K1: a short phrase of the Qur\'an in ordinary prose (four words or fewer) is not cut, and prose with no Qur\'an has no stretch', cut('نقول الحمد لله رب العالمين في كل صلاة').length === 0 && cut('هذا كلام عادي في شرح الصلاة والصيام وأحكامهما عند أهل العلم').length === 0);
+    const two = 'ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ مَـٰلِكِ يَوْمِ ٱلدِّينِ';
+    ok('K1: a run that crosses from one verse into the next is one stretch (Fatiha 1:2-4)', cut('وقال ' + two + ' ثم سكت').length === 1 && cut('وقال ' + two + ' ثم سكت')[0] === two);
+    // the Arabic path never passes through this code
+    ok('K1: Arabic answers stay as they are: the language layer does not translate Arabic (the table row) and the detector/gate do not read the stretch finder',
+      T.LANG_TABLE.ar.answerTranslation === false && !/quranStretches/.test(read('lib/lang/gate.js') + read('lib/lang/detect.js')));
+    ok('K1: a paragraph that is all Qur\'an goes back as it stands without a model call', await (async () => { let calls = 0; const r = await A.translateAnswer(ayat, { lang: 'fr', translate: async () => { calls++; return { ok: false, status: 500 }; } }); return calls === 0 && r.text.includes(ayat) && !r.text.includes(Q.translationNotice('fr')); })());
+
+    // K2 -- the fragment of 2:255 that was labelled 3:2 in a Persian answer
+    const frag = 'الله لا إله إلا هو الحي القيوم';
+    const lab = (r) => (r ? r.s + ':' + r.from : null);
+    ok('K2: the fragment that stands in 2:255, 3:2 and elsewhere is no longer labelled 3:2 by the order of the mushaf (no hint: no reference)', lab(P.findQuranRange(frag)) === null, lab(P.findQuranRange(frag)));
+    ok('K2: ...with the answer\'s own card (2:255) it is 2:255', lab(P.findQuranRange(frag, [{ s: 2, from: 255, to: 255 }])) === '2:255' && lab(P.findQuranRange(frag, [{ s: 3, from: 2, to: 2 }])) === '3:2');
+    ok('K2: a longer fragment of 2:255 that holds the whole of 3:2 is 2:255 (it lies inside one verse)', lab(P.findQuranRange(ayat.split(' ').slice(0, 12).join(' '))) === '2:255');
+    {
+      const sent = []; const para2 = 'وقال تعالى «' + frag + '» في أول السورتين.';
+      const rNo = await A.translateAnswer(para2, { lang: 'en', translate: async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => 'And He said ' + (s.match(/\[\[[QAIU]\d+\]\]/g) || []).join(' ') + ' at the start of the two chapters.')) }; } });
+      ok('K2 end to end: the fragment with no card or name in the answer is shown with no reference and no translation', !/\b[23]:(?:2|255)\b/.test(rNo.text) && rNo.text.includes(frag), rNo.text);
+      const rCard = await A.translateAnswer(para2 + '\n\n' + card, { lang: 'en', translate: async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => 'And He said ' + (s.match(/\[\[[QAIU]\d+\]\]/g) || []).join(' ') + ' at the start of the two chapters.')) }; } });
+      ok('K2 end to end: with the card 2:255 in the answer the same fragment is labelled 2:255 and never 3:2', /2:255/.test(rCard.text) && !/\b3:2\b/.test(rCard.text), rCard.text.slice(0, 300));
+    }
+    // K2 -- the sweep over the whole mushaf: every fragment of 4 to 8 words that occurs in more than one verse gets no guessed reference; every one that occurs once gets its verse
+    {
+      const raw = JSON.parse(read('quran-uthmani.json')); const keys = Object.keys(raw); const win = new Map();
+      keys.forEach((k, vi) => { const w = P.looseWords(P.foldArabic(raw[k])); for (let n = 4; n <= 8; n++) for (let i = 0; i + n <= w.length; i++) { const f = w.slice(i, i + n).join(' '); let s = win.get(f); if (!s) win.set(f, s = new Set()); s.add(vi); } });
+      let multi = 0, guessed = 0, single = 0, wrongSingle = 0; const bad = [];
+      let u = 0;
+      for (const [f, s] of win) {
+        if (s.size > 1) { multi++; const r = P.findQuranRange(f); if (r) { guessed++; if (bad.length < 3) bad.push(f + ' -> ' + lab(r)); } }
+        else if (u++ % 40 === 0) { single++; const r = P.findQuranRange(f); const k = keys[[...s][0]].split(':').map(Number); if (!r || r.s !== k[0] || r.from > k[1] || r.to < k[1]) wrongSingle++; }
+      }
+      ok('K2 sweep: ' + multi + ' fragments of 4 to 8 words stand in more than one verse of the mushaf: none of them gets a guessed reference', multi > 1000 && guessed === 0, guessed + ' guessed: ' + bad.join(' | '));
+      ok('K2 sweep: ' + single + ' sampled fragments that stand in one place get that verse and no other', single > 1000 && wrongSingle === 0, wrongSingle + ' wrong');
+    }
+  }
+
   console.log('\n' + (failures ? 'FAILED: ' + failures + ' of ' + checks + ' checks failed.' : 'OK: ' + checks + ' checks passed.'));
   process.exit(failures ? 1 : 0);
 })().catch((e) => { console.log('GUARD CRASHED: ' + (e && e.stack || e)); process.exit(2); });
