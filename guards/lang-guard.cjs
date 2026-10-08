@@ -187,8 +187,8 @@ const V = '﴿', W = '﴾';
   const FATWA = '## نص الفتوى\n\nالسؤال:\nما حكم هذا؟\n\nالجواب:\nهذا جواب الشيخ بنصه المنشور وقال «إنما الأعمال بالنيات وإنما لكل امرئ ما نوى».\n\nالمفتي: الشيخ فلان';
   const arF = FATWA + '\n<source site="binbaz.org.sa" url="https://binbaz.org.sa/a">عنوان</source>';
   const outF = await A.translateAnswer(arF, { lang: 'en', translate: echo });
-  ok('the server-owned fatwa block stays in Arabic byte for byte, and its translation rides on the source card that follows it (tb), not in a new tag',
-    outF.text.startsWith(FATWA) && /<source [^>]*tb="[A-Za-z0-9+/=]+"/.test(outF.text) && outF.text.indexOf('<source') >= FATWA.length && !/<tltext/.test(outF.text), outF.text.slice(-260));
+  ok('the server-owned fatwa block stays in Arabic byte for byte, and its translation rides on the source card that comes before it (tb), not in a new tag (L: card, translation, then the Arabic)',
+    outF.text.includes(FATWA) && /<source [^>]*tb="[A-Za-z0-9+/=]+"/.test(outF.text) && outF.text.indexOf('<source') < outF.text.indexOf(FATWA) && !/<tltext/.test(outF.text), outF.text.slice(-260));
   ok('a quotation inside the scholar\'s text is counted once: the translation card is not a second quotation', A.countSacred(arF).total === A.countSacred(outF.text).total && A.countSacred(arF).total === 1, JSON.stringify([A.countSacred(arF), A.countSacred(outF.text)]));
 
   console.log('\n=== h8 PARAGRAPHS LEAVE IN ORDER, THE FIRST DOES NOT WAIT FOR THE LAST ===');
@@ -450,7 +450,7 @@ const V = '﴿', W = '﴾';
   const urls = [...new Set(langSrc.match(/https?:\/\/[A-Za-z0-9.-]+/g) || [])].filter((u) => !/quranenc|hadeethenc|terminologyenc/.test(u));
   ok('the only host the language layer calls is api.anthropic.com', urls.length === 1 && urls[0] === 'https://api.anthropic.com', JSON.stringify(urls));
   const envs = [...new Set((langSrc.match(/process\.env\.[A-Z_]+/g) || []))].sort();
-  ok('the only environment names it reads are the key and the two model names the brain already reads', JSON.stringify(envs) === JSON.stringify(['process.env.ANTHROPIC_API_KEY', 'process.env.MODEL', 'process.env.MODEL_STANDARD']), JSON.stringify(envs));
+  ok('the only environment names it reads are the key and the three model names the brain already reads (L: BW_FAST_MODEL, the brain\'s fast model, is the second model of the question translation)', JSON.stringify(envs) === JSON.stringify(['process.env.ANTHROPIC_API_KEY', 'process.env.BW_FAST_MODEL', 'process.env.MODEL', 'process.env.MODEL_STANDARD']), JSON.stringify(envs));
   ok('and the model expression is the brain\'s own: MODEL_STANDARD || MODEL || the same default', /process\.env\.MODEL_STANDARD \|\| process\.env\.MODEL \|\| 'claude-sonnet-5'/.test(read('lib/lang/model.js')) && /process\.env\.MODEL_STANDARD \|\| process\.env\.MODEL \|\| 'claude-sonnet-5'/.test(read('api/ask.js')));
   ok('api/ask.js: the hook sits after the daily cap and before the first read of the question; the exported handler is the gate',
     (() => { const s = read('api/ask.js'); const hook = s.indexOf('req.__langTranslateQuestion'); return s.indexOf('const cap = await guardDayCap') < hook && hook < s.indexOf('const route = classifyRoute(body.messages)') && /export default async function handler\(req, res\) \{\s*return languageGate\(req, res, async function handler\(req, res\) \{/.test(s); })());
@@ -800,13 +800,13 @@ const V = '﴿', W = '﴾';
     ok('J3: a question call that never answers is not waited for: the second call starts after the hedge gap and wins', r1.ok && calls === 2 && m1[0].content === 'translated' && Date.now() - t1 < 2000, JSON.stringify({ calls, r1, c: m1[0].content }));
     calls = 0; const m2 = mk(2);
     const r2 = await Q.translateQuestionInPlace(m2, { lang: 'fr', hedgeMs: 40, translate: async () => { calls++; return { ok: false, status: 529 }; } });
-    ok('J3: every call failing ends the turn after three calls, the message untouched (the fixed line of the language follows)', !r2.ok && calls === 3 && m2[0].content === 'hello there my friend 2', JSON.stringify({ calls, r2 }));
+    ok('J3/L: every call failing ends the turn after five calls, the message untouched (the fixed line of the language follows)', !r2.ok && calls === 5 && m2[0].content === 'hello there my friend 2', JSON.stringify({ calls, r2 }));
     calls = 0; const m3 = mk(3);
     await Q.translateQuestionInPlace(m3, { lang: 'fr', hedgeMs: 40, translate: async () => { calls++; return { ok: true, text: JSON.stringify(['fast']) }; } });
     await new Promise((r) => setTimeout(r, 120));
     ok('J3: the normal case is one call (a fast answer starts no second one)', calls === 1 && m3[0].content === 'fast', 'calls ' + calls);
-    ok('J3: the question call waits 12 s at most, hedged every 4 s, three calls at most; the old two sequential 15 s attempts are gone',
-      Q.QUESTION_CALL_MS === 12000 && Q.QUESTION_HEDGE_MS === 4000 && Q.QUESTION_CALLS_MAX === 3 && !/attempt < 2/.test(read('lib/lang/question.js')) && /hedged\(/.test(read('lib/lang/question.js')));
+    ok('J3/L: the question call waits 12 s at most, hedged every 4 s, five calls at most (28 s in all); the old two sequential 15 s attempts are gone',
+      Q.QUESTION_CALL_MS === 12000 && Q.QUESTION_HEDGE_MS === 4000 && Q.QUESTION_CALLS_MAX === 5 && !/attempt < 2/.test(read('lib/lang/question.js')) && /hedged\(/.test(read('lib/lang/question.js')));
     // J3 on the failure text: every language of the table has it, and none of them is the Arabic one
     ok('J3: all 22 languages have the fixed failure line and the fixed incomplete line, none of them Arabic text', T.LANG_TABLE && Object.keys(Q.TRANSLATION_FAILED_TEXT).length === 22 && Object.keys(Q.TRANSLATION_INCOMPLETE_TEXT).length === 22);
   }
@@ -1039,6 +1039,98 @@ const V = '﴿', W = '﴾';
       }
       ok('K2 sweep: ' + multi + ' fragments of 4 to 8 words stand in more than one verse of the mushaf: none of them gets a guessed reference', multi > 1000 && guessed === 0, guessed + ' guessed: ' + bad.join(' | '));
       ok('K2 sweep: ' + single + ' sampled fragments that stand in one place get that verse and no other', single > 1000 && wrongSingle === 0, wrongSingle + ' wrong');
+    }
+  }
+
+  console.log('\n=== L (amendment 11): THE SECOND EXTENSION TEST FAILED -- THE CAUSES MEASURED, EACH WITH ITS GUARD ===');
+  {
+    // L1 -- the question call: up to 30 s, a second model, a pause after a quick failure, and the reason of every failed call kept as a code
+    const fb = M.langFallbackModel(); const seen = [];
+    const mkm = (n) => [{ role: 'user', content: 'hello there my friend ' + n }];
+    const m1 = mkm(1);
+    const r1 = await Q.translateQuestionInPlace(m1, { lang: 'fa', hedgeMs: 10, translate: async (o) => { seen.push(o.model || 'first'); return seen.length < 5 ? { ok: false, status: 529 } : { ok: true, text: JSON.stringify(['good']) }; } });
+    ok('L1: a question whose first four calls fail is still translated by the fifth; the second and the fifth call use the second model, the others the first', r1.ok && seen.length === 5 && m1[0].content === 'good' && seen[2] === fb && seen[4] === fb && seen[0] === 'first' && seen[1] === 'first' && seen[3] === 'first', JSON.stringify(seen));
+    ok('L1: the longest wait of the question translation is under 30 s (4 hedge gaps and one call of 12 s)', (Q.QUESTION_CALLS_MAX - 1) * Q.QUESTION_HEDGE_MS + Q.QUESTION_CALL_MS <= 30000, String((Q.QUESTION_CALLS_MAX - 1) * Q.QUESTION_HEDGE_MS + Q.QUESTION_CALL_MS));
+    for (const [stub, code] of [[{ ok: false, status: 529 }, 's529'], [{ ok: false, status: 0, error: 'This operation was aborted' }, 'timeout'], [{ ok: false, status: 0, error: 'fetch failed' }, 'net'], [{ ok: true, text: 'no array here' }, 'parse']]) {
+      const r = await Q.translateQuestionInPlace(mkm(2), { lang: 'fa', hedgeMs: 5, translate: async () => stub });
+      ok('L1: the reason of a failed question call is kept as a short code (' + code + '), never text', !r.ok && Array.isArray(r.why) && r.why.length === 5 && r.why.every((w) => w === code), JSON.stringify(r.why));
+    }
+    const ts = []; await Q.hedged(async () => { ts.push(Date.now()); return null; }, 4000, 3, 60);
+    ok('L1: after a quick failure the next call waits the pause instead of firing at once', ts.length === 3 && ts[1] - ts[0] >= 50 && ts[2] - ts[1] >= 50, JSON.stringify(ts.map((t) => t - ts[0])));
+    const was = process.env.BW_FAST_MODEL; process.env.BW_FAST_MODEL = 'fast-x'; const named = M.langFallbackModel(); if (was === undefined) delete process.env.BW_FAST_MODEL; else process.env.BW_FAST_MODEL = was;
+    ok('L1: the second model is the brain\'s own fast model (BW_FAST_MODEL, default claude-haiku-4-5): no new provider, no new key', named === 'fast-x' && (was !== undefined || M.langFallbackModel() === 'claude-haiku-4-5'));
+
+    // L2 -- the failure sentence is delivered as it stands: the line "the translation could not be completed" never stands above it
+    for (const [code, q] of [['fa', 'شیخ ابن باز دربارهٔ نماز تراویح چه فرموده است؟'], ['ur', 'شیخ ابن باز نے نمازِ تراویح کے بارے میں کیا فرمایا؟'], ['fr', 'Que dit le cheikh Ibn Baz au sujet de la prière des tarawih ?']]) {
+      const logs = []; const resQ = real();
+      await G.languageGate({ method: 'POST', headers: { 'x-ezik-lang': code }, body: { messages: [{ role: 'user', content: q }] } }, resQ, async (req, res) => { const ok2 = await req.__langTranslateQuestion([{ role: 'user', content: 'x' }]); if (!ok2) return; res.status(200); res.write('NEVER'); res.end(); }, { log: (...a) => logs.push(a), translateQuestionImpl: async () => ({ ok: false, ms: 1, why: ['timeout', 's529'] }) });
+      const bq = resQ.chunks.join('');
+      ok('L2 (' + code + '): a question that could not be translated ends in the failure sentence alone: no "could not be completed" line above it, no Arabic, one text frame', bq.includes(Q.TRANSLATION_FAILED_TEXT[code]) && !bq.includes(Q.TRANSLATION_INCOMPLETE_TEXT[code]) && !/NEVER/.test(bq) && (bq.match(/text_delta/g) || []).length === 1, bq.slice(0, 300));
+      const row = logs.map((a) => a[1]).find((o) => o && o.lang === code);
+      ok('L2 (' + code + '): the [lang] log row says why the question failed, in codes', row && row.questionOk === false && row.questionWhy === 'timeout,s529', JSON.stringify(row && { ok: row.questionOk, why: row.questionWhy }));
+    }
+
+    // L3 -- the Qur'an is shown one way in every language
+    const S = await esm('lib/lang/surah-names.js');
+    const quranRaw = JSON.parse(read('quran-uthmani.json')); const AYAT = quranRaw['2:255'];
+    const tr64 = (txt, k) => { const m = new RegExp('\\b' + k + '="([^"]*)"').exec(txt); return m ? m[1] : null; };
+    const echo2 = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => 'EN ' + s.replace(/[ء-ي]/g, ''))) }; };
+    const noArabicOutsideCards = (t) => !/[ء-ي]/.test(t.replace(/<verse[\s\S]*?<\/verse>/g, ''));
+    {
+      const pub = P.quranTranslation('id', 2, 255, 255);
+      const out = await A.translateAnswer('قال تعالى: ' + AYAT + ' وهذا شرحها.', { lang: 'id', translate: echo2 });
+      const m = /<verse([^>]*)>/.exec(out.text);
+      ok('L3: a whole verse written in the prose (unmarked) becomes a verse card with its surah named in the language, its number, and the published translation under it',
+        m && tr64(m[1], 'surah_num') === '2' && tr64(m[1], 'ayah') === '255' && tr64(m[1], 'surah') === 'Al-Baqarah' && pub && Buffer.from(tr64(m[1], 'tr') || '', 'base64').toString('utf8') === pub.text && out.stats.lifted === 1 && noArabicOutsideCards(out.text), out.text.slice(0, 400));
+      ok('L3: ...and the card holds the Arabic of the stretch, so a copy of the raw text still has the verse', out.text.includes('>' + AYAT + '</verse>'));
+      ok('L3: ...with the prose around it in its own paragraphs (the card is not glued to a sentence)', /EN [^<]*\n\n<verse[^>]*>[^<]*<\/verse>\n\n\./.test(out.text), JSON.stringify(out.text.replace(/<verse[^>]*>[^<]*<\/verse>/, '<CARD/>')));
+      const outQ = await A.translateAnswer('قال تعالى: ' + V + AYAT + W + ' وهذا شرحها.', { lang: 'id', translate: echo2 });
+      ok('L3: the same verse in the ornate brackets is lifted the same way', /<verse [^>]*surah_num="2"/.test(outQ.text) && noArabicOutsideCards(outQ.text) && !outQ.text.includes(V), outQ.text.slice(0, 300));
+      const outC = await A.translateAnswer('قال تعالى: ' + AYAT + ' ثم شرح.\n\n<verse surah="البقرة" surah_num="2" ayah="255">' + AYAT + '</verse>', { lang: 'id', translate: echo2 });
+      ok('L3: a verse the answer already shows as a card is not made a second card from the prose: the prose carries its reference', (outC.text.match(/<verse /g) || []).length === 1 && /\(2:255\)/.test(outC.text), outC.text.slice(0, 400));
+    }
+    {
+      const out = await A.translateAnswer('<surah num="2" from="255" to="255"></surah>\nهذه آية الكرسي.', { lang: 'en', translate: echo2 });
+      const m = /<verse([^>]*)>/.exec(out.text);
+      ok('L3: a surah card of ONE verse is a verse card (caption "Surah Al-Baqarah, ayah 255", never "ayahs 255-255") with the published translation', m && !/<surah/.test(out.text) && tr64(m[1], 'ayah') === '255' && tr64(m[1], 'surah_num') === '2' && tr64(m[1], 'surah') === 'Al-Baqarah' && !!tr64(m[1], 'tr') && !/\bfrom=/.test(out.text), out.text.slice(0, 300));
+      const out2 = await A.translateAnswer('<verse surah="البقرة" ayah="255-255">' + AYAT + '</verse>', { lang: 'en', translate: echo2 });
+      const m2 = /<verse([^>]*)>/.exec(out2.text);
+      ok('L3: a verse card whose ayah reads "255-255" shows one number, and gets its surah number', tr64(m2[1], 'ayah') === '255' && tr64(m2[1], 'surah_num') === '2', out2.text.slice(0, 200));
+      const rg = await A.translateAnswer('<surah num="112" from="1" to="4"></surah>', { lang: 'en', translate: echo2 });
+      const pub112 = P.quranTranslation('en', 112, 1, 4);
+      ok('L3: a short surah range keeps its card and the published translation of the range follows it', /<surah num="112" from="1" to="4"><\/surah>/.test(rg.text) && pub112 && rg.text.includes(pub112.text), rg.text.slice(0, 300));
+    }
+    {
+      const frags = 'قال تعالى «لا تأخذه سنة ولا نوم» وقال «له ما في السماوات وما في الأرض» وقال ثم ' + 'بشيء من علمه إلا بما شاء' + ' في الجملة.\n\n<verse surah_num="2" ayah="255">' + AYAT + '</verse>';
+      const out = await A.translateAnswer(frags, { lang: 'en', translate: echo2 });
+      ok('L3: the fragments of a verse the answer shows as a card carry its reference beside them (nothing beside them was the defect), and the translation is printed once, in the card',
+        (out.text.match(/\(2:255\)/g) || []).length >= 3 && (out.text.match(/QuranEnc/g) || []).length <= 1 && (out.text.match(/ tr="/g) || []).length === 1, out.text.slice(0, 500));
+    }
+    ok('L3: the surah names: 114 for every language that has a list, the Arabic names find their own number, an unknown language has no list, and no name can break an attribute',
+      S.SURAH_AR.length === 114 && S.SURAH_AR.every((n, i) => S.surahNumberOfName(n) === i + 1) && ['en', 'fr', 'id', 'fa', 'ur'].every((l) => { for (let i = 1; i <= 114; i++) { const n = S.surahNameIn(l, i); if (!n || /["'<>&]/.test(n)) return false; } return true; })
+      && S.surahNameIn('ru', 2) === null && S.surahNameIn('fa', 2) === 'بقره' && S.surahNameIn('en', 2) === 'Al-Baqarah' && S.surahNumberOfName('سورة الإخلاص') === 112);
+    ok('L3: Arabic is untouched: the gate does not read the card code and the table row says Arabic is never translated', T.LANG_TABLE.ar.answerTranslation === false && !/cardRange|verseAttrs|surah-names/.test(read('lib/lang/gate.js') + read('lib/lang/detect.js')));
+
+    // L4 -- the scholar's text comes after its card and the translation, in every language
+    {
+      const FAT = '## نص الفتوى\n\nالسؤال:\nما حكم هذا؟\n\nالجواب:\nهذا جواب الشيخ بنصه المنشور.\n\nالمفتي: الشيخ فلان';
+      for (const lang of ['en', 'id', 'fa']) {
+        const o = await A.translateAnswer('مقدمة قصيرة.\n\n' + FAT + '\n<source site="binbaz.org.sa" url="https://binbaz.org.sa/a">عنوان</source>', { lang, translate: echo2 });
+        ok('L4 (' + lang + '): the order is the source card (with its translation), then the Arabic of the fatwa', o.text.indexOf('<source') >= 0 && o.text.indexOf('<source') < o.text.indexOf(FAT) && /<source [^>]*tb="/.test(o.text) && o.text.includes(FAT), o.text.slice(0, 200));
+      }
+      const o2 = await A.translateAnswer(FAT, { lang: 'en', translate: echo2 });
+      ok('L4: with no card to carry it, the labelled translation paragraph comes first and the Arabic after it', o2.text.indexOf('**Translation:**') >= 0 && o2.text.indexOf('**Translation:**') < o2.text.indexOf(FAT) && o2.text.includes(FAT), o2.text.slice(0, 200));
+    }
+
+    // L5 -- brackets: a gloss of the model's own is written once
+    {
+      const seenSet = new Set();
+      const t1 = A.dropRepeatedNotes('The Ever-Living (The Self-Subsisting) and the One who (The Self-Subsisting) sustains; prayer (salah) and again (salah).', seenSet);
+      ok('L5: a bare gloss (1-3 words) is kept at its first mention and cut afterwards', (t1.match(/Self-Subsisting/g) || []).length === 1 && (t1.match(/\(salah\)/g) || []).length === 1 && !/\(The Self-Subsisting\) sustains/.test(t1), t1);
+      const t2 = A.dropRepeatedNotes('He (peace be upon him) said, and he (peace be upon him) went; paix (paix sur lui) puis (paix sur lui); (ﷺ) et (ﷺ); Zakah (alms: a due) and Zakah (alms: a due).', new Set());
+      ok('L5: a blessing after a name is never cut, however often it comes; the "Label: definition" rule is as before', (t2.match(/peace be upon him/g) || []).length === 2 && (t2.match(/paix sur lui/g) || []).length === 2 && (t2.match(/ﷺ/g) || []).length === 2 && (t2.match(/alms: a due/g) || []).length === 1, t2);
+      ok('L5: what is not a gloss is not touched (a number, a quotation, a longer sentence)', A.isBareGloss('The Self-Subsisting') && !A.isBareGloss('2:255') && !A.isBareGloss('“quoted words”') && !A.isBareGloss('a longer remark in four words') && !A.isBareGloss('ab'));
+      ok('L5: the prompt asks for no parenthesis of the model\'s own beyond the first mention of a term, in every language', T.LANG_TABLE && Object.keys(T.LANG_TABLE).filter((c) => c !== 'ar').every((c) => /FIRST mention; keep the parentheses the Arabic itself has, and never write the same parenthesis twice/.test(M.answerSystem(c, true))));
     }
   }
 
