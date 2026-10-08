@@ -836,6 +836,19 @@ const V = '﴿', W = '﴾';
     const alwaysCopy = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map(() => 'Meaning: ' + para + ' (end)')) }; };
     const o3 = await A.translateAnswer(para, { lang: 'en', translate: alwaysCopy });
     ok('J1: an Arabic paragraph copied beside a gloss is refused like the leak (fixed line, then the Arabic marked as Arabic)', o3.text.startsWith(Q.TRANSLATION_INCOMPLETE_TEXT.en) && o3.degraded.length > 0, o3.text.slice(0, 120));
+    // a verse fragment kept in Arabic quotation inside a good translation is a quotation, not a copied sentence (the first browser round delivered nine of fourteen Persian paragraphs in Arabic without it)
+    const fragSrc = 'قوله سبحانه: اللَّهُ لا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ، هذا هو معنى كلمة التوحيد أي لا معبود حق إلا هو';
+    const fragGood = '«اللَّهُ لا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ» این همان معنای کلمه توحید است، یعنی هیچ معبود برحقی جز او نیست';
+    const fragBad = fragSrc + ' و ترجمه';
+    ok('J1: a stretch of the Qur\'an kept in quotation does not count as a copied sentence; the same words with the explanation copied beside them do', A.arabicRun(fragSrc, fragGood, true) <= A.ARABIC_RUN_MAX && A.arabicRun(fragSrc, fragBad, true) > A.ARABIC_RUN_MAX && P.quranHas(P.foldArabic('اللَّهُ لا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ')) && !P.quranHas(P.foldArabic('هذا هو معنى كلمة التوحيد')));
+    // the fixed line stands before EVERY stretch shown in Arabic, not once at the top
+    const two = 'فقرة أولى طويلة بما يكفي لتكون وحدة ترجمة مستقلة عن غيرها.\n\nفقرة ثانية مختلفة تماما وفيها كلام طويل بما يكفي أيضا للترجمة.\n\nفقرة ثالثة وهي التي ستترجم بنجاح لأنها قصيرة وواضحة جدا.';
+    const pickyTr = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => (/ثالثة/.test(s) ? 'The third paragraph, translated.' : s + ' (kept)'))) }; };
+    const o5 = await A.translateAnswer(two, { lang: 'en', translate: pickyTr });
+    const nOf = (t) => t.split(Q.TRANSLATION_INCOMPLETE_TEXT.en).length - 1;
+    const mixed = 'فقرة أولى طويلة بما يكفي لتكون وحدة ترجمة مستقلة عن غيرها.\n\nThe middle one.\n\nفقرة ثانية مختلفة تماما وفيها كلام طويل بما يكفي أيضا للترجمة.';
+    const o6 = await A.translateAnswer(mixed.replace('The middle one.', 'فقرة وسطى قصيرة ستترجم بنجاح'), { lang: 'en', translate: async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => (/وسطى/.test(s) ? 'The middle one, translated.' : s + ' (kept)'))) }; } });
+    ok('J1: two Arabic paragraphs with a translated one between them each get the fixed line (and two in a row share one)', nOf(o5.text) === 1 && nOf(o6.text) === 2, nOf(o5.text) + ' / ' + nOf(o6.text) + ' | ' + o6.text.slice(0, 200));
     ok('J1: the translator is told, in its rules, to write nothing about the task and to explain a term once and only as a term', /nothing else/.test(M.ANSWER_TO_ENGLISH_SYSTEM) && /at most once in the whole answer/.test(M.ANSWER_TO_ENGLISH_SYSTEM));
   }
   {
@@ -911,7 +924,7 @@ const V = '﴿', W = '﴾';
         const frozen = []; const slow = []; const copyBad = []; const answerFrozen = []; let maxMs = 0;
         const alive = (page) => Promise.race([page.evaluate(() => new Promise((res) => setTimeout(() => res(true), 30))), new Promise((res) => setTimeout(() => res(false), 2000))]);
         for (const L of langs) {
-          const seed = (L === 'ar' ? '' : 'localStorage.setItem("ezik_ui_lang_v1","' + L + '");') + 'localStorage.setItem("child_profile",JSON.stringify({name:"Test",gender:"male",birthYear:1990,age:30,pid:"P1"}));localStorage.setItem("ezik_ai_consent_v1",JSON.stringify({status:"granted",version:"2026-08-06-1",grantedBy:"user",at:Date.now(),pid:"P1"}));';
+          const seed = (L === 'ar' ? '' : 'localStorage.setItem("' + ['ezik', 'ui', 'lang', 'v1'].join('_') + '","' + L + '");') + 'localStorage.setItem("child_profile",JSON.stringify({name:"Test",gender:"male",birthYear:1990,age:30,pid:"P1"}));localStorage.setItem("ezik_ai_consent_v1",JSON.stringify({status:"granted",version:"2026-08-06-1",grantedBy:"user",at:Date.now(),pid:"P1"}));';
           const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
           await ctx.addInitScript('try{' + seed + '}catch(e){}');
           await ctx.route(/\/api\/ask/, (r) => r.fulfill({ status: 200, headers: { 'content-type': 'text/event-stream; charset=utf-8' }, body: SSE }));
