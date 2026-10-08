@@ -414,6 +414,35 @@ const V = '﴿', W = '﴾';
     const cases = [['١٢ ثانية', '12 seconds'], ['١ ثانية', '1 second'], ['٦ رايات', '6 flags'], ['٣ أسئلة', '3 questions'], ['٦ فئات', '6 categories'], ['المختار: ١٢ راية لكلّ فريق', 'Chosen: 12 flags per team'], ['من ١ إلى ١٠', 'from 1 to 10'], ['لاعب ٢', 'Player 2']];
     ok('the games write a number with its unit in English with Latin digits', cases.every(([a, b]) => runQuest('en', a) === b), JSON.stringify(cases.map(([a]) => runQuest('en', a))));
     ok('...and a category name or a question of the bank is left exactly as it is, and in Arabic nothing changes', runQuest('en', 'تاريخ الكويت') === 'تاريخ الكويت' && runQuest('en', 'كم عدد أركان الإسلام؟') === 'كم عدد أركان الإسلام؟' && runQuest('ar', '١٢ ثانية') === '١٢ ثانية');
+    // G3 (amendment 7): THE HANNA LAHA DOOR CARD. Its title and both lines have a row in every built language, and under it a reader of another language gets one line saying the
+    // game is in Arabic. An Arabic reader's page is exactly what it was (the line is added by the localizer, which returns before it for Arabic). The game itself is not touched.
+    const questHtml = read('quest.html');
+    const doorCard = questHtml.match(/<a class="door" href="\/hanna-laha\/"><b>([^<]*)<\/b>\s*<span>([^<]*)<\/span>\s*<span>([^<]*)<\/span><\/a>/);
+    ok('quest.html still has the Hanna Laha card with a title and two lines', !!doorCard);
+    if (doorCard) {
+      const norm = (x) => x.replace(/\s+/g, ' ').trim();
+      const keys = [doorCard[1], doorCard[2], doorCard[3]].map(norm);
+      const NOTE = '\u0627\u0644\u0644\u0639\u0628\u0629 \u0646\u0641\u0633\u0647\u0627 \u0628\u0627\u0644\u0639\u0631\u0628\u064a\u0629';
+      const table = JSON.parse(qsrc.match(/var STRINGS = (\{.*\});/)[1]);
+      const langsAll = Object.keys(table);
+      const missing = []; langsAll.forEach((l) => keys.concat([NOTE]).forEach((k, i) => { const v = table[l][k]; if (!v || !String(v).trim() || (l !== 'ar' && v === k)) missing.push(l + '#' + i); }));
+      ok('every one of the ' + langsAll.length + ' built languages has the card\'s title, both lines and the note (' + (langsAll.length * 4) + ' rows)', langsAll.length === 22 && missing.length === 0, missing.join(','));
+      const runCard = (code) => {
+        const { document } = parseHTML(questHtml.replace(/<script src="\/quest-i18n.js"><\/script>/, ''));
+        const store = code ? { [LANGKEY]: code } : {};
+        vm.runInContext(qsrc, vm.createContext({ document, localStorage: { getItem: (k) => (k in store ? store[k] : null) }, console }));
+        const a = document.querySelector('a.door[href="/hanna-laha/"]');
+        return { text: a.textContent.replace(/\s+/g, ' ').trim(), note: a.querySelectorAll('.door-note').length, all: document.querySelectorAll('a.door').length };
+      };
+      const none = runCard(null); const ar = runCard('ar'); const en = runCard('en'); const fr = runCard('fr');
+      ok('in Arabic (or with nothing stored) the card is exactly what it was: the same text, no extra line', none.text === ar.text && none.text === norm(keys.join(' ')) && none.note === 0 && ar.note === 0, JSON.stringify([none, ar]));
+      ok('in English the title and both lines are English and one note line stands under them', en.note === 1 && /^Hanna Laha From 2 to 12 teams/.test(en.text) && /The game itself is in Arabic\.$/.test(en.text) && !/[\u0600-\u06FF]/.test(en.text.replace(/\u00ab[^\u00bb]*\u00bb/g, '')), en.text);
+      ok('...and in French likewise, with the three cards still three', fr.note === 1 && /arabe\.$/.test(fr.text) && fr.all === 3 && en.all === 3, fr.text);
+      const noteOnArabic = langsAll.every((l) => { const r = runCard(l); return r.note === 1 && r.all === 3 && !r.text.startsWith(keys[0]); });
+      ok('in every one of the 22 languages the card is translated, carries the one note, and the page keeps three cards', noteOnArabic);
+    }
+    const attrs = fs.readFileSync(path.join(REPO, '.gitattributes'), 'utf8');
+    ok('.gitattributes pins lib/opening-conjunction.js to LF (a checkout with core.autocrlf=true gave it CRLF and reddened takhrijcontract and recon)', /^lib\/opening-conjunction\.js\s+text eol=lf\s*$/m.test(attrs));
   }
 
   console.log('\n=== h7 NO NEW PROVIDER, NO NEW KEY ===');

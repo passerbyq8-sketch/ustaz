@@ -887,3 +887,6 @@ lib/lang/fixed.js text eol=lf
 # Hanna Laha: the game page hanna-laha/index.html is not Ezik's shell. The rule above (index.html, any folder) would give it CRLF at every checkout,
 # so the bytes deployed would differ from the build. Pinned LF, as the rest of the game folder is.
 hanna-laha/index.html text eol=lf
+
+# takhrijcontract and recon read lib/opening-conjunction.js byte for byte: a checkout with core.autocrlf=true gave it CRLF (52 CR measured) and both went red on a file nobody had edited. Pinned LF.
+lib/opening-conjunction.js text eol=lf
