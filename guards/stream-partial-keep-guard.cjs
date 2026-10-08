@@ -96,6 +96,8 @@ function buildHelpers(source) {
     'var ezikAnswerCutReason = function () { return null; };',
   ];
   const src = [
+    // the bubble reads its sentence through the dictionary (amendment 12); with no row loaded the Arabic table answers
+    'var ezT = function () { return \'\'; };',
     sliceDecl(source, 'const FRIENDLY_ERRORS = {', '\n};'),
     sliceDecl(source, 'const getFriendlyError = (type, gender) => {', '\n};'),
     // ONE slice, and it reaches to the close of `ezikAnswerCutReason`: every declaration between
