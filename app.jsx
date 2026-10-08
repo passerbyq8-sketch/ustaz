@@ -5276,7 +5276,7 @@ const CopyReplyButton = ({ text, getText }) => {
     setFlash(wrote ? 'ok' : 'fail');                 // never claim a write that did not happen
     setTimeout(() => setFlash(''), 1500);
   };
-  return <button type="button" onClick={doCopy} aria-label={'نسخ'} style={miniBtnStyle}>{flash === 'ok' ? 'تم النسخ' : flash === 'fail' ? 'تعذّرَ النسخ' : 'نسخ'}</button>;
+  return <button type="button" onClick={doCopy} aria-label={ezT('common.copy')} style={miniBtnStyle}>{flash === 'ok' ? ezT('common.copied') : flash === 'fail' ? ezT('x.156') : ezT('common.copy')}</button>;
 };
 // ── ITEM 42-أ: SHARE. THE ONLY BUTTON THIS ITEM ADDS, AND IT CALLS NOTHING ─────────────────
 // It moves text that is ALREADY ON THE SCREEN. There is no request in it of any kind: no
@@ -35268,6 +35268,17 @@ function ezDomKept(el) {
   }
   return false;
 }
+// J (amendment 9) -- A WRITE THAT CHANGES NOTHING IS STILL A MUTATION. In Persian, Urdu and Pashto a few rows are the SAME word as the Arabic one (Qatar, Rajab, Shaaban, Ramadan):
+// setting a text node to the string it already holds queues a characterData record, the observer reads it, looks the word up, writes it again -- for ever, inside one microtask
+// checkpoint, so the tab froze on the first screen that showed one of them (Settings). A value equal to the current one is never written, and a node that is rewritten more than
+// EZ_DOM_BURST times inside one second (two rows that map into each other would do it) is left alone.
+const EZ_DOM_BURST = 12;
+const EZ_DOM_WRITES = new WeakMap();   // node -> [window start (ms), writes in the window]
+function ezDomMayWrite(n) {
+  const now = Date.now(); const w = EZ_DOM_WRITES.get(n);
+  if (!w || now - w[0] > 1000) { EZ_DOM_WRITES.set(n, [now, 1]); return true; }
+  return ++w[1] <= EZ_DOM_BURST;
+}
 function ezDomText(n) {
   const v = n.nodeValue;
   if (typeof v !== 'string' || !v) return;
@@ -35275,8 +35286,10 @@ function ezDomText(n) {
   if (!t) return;
   const en = ezDomLookup(t);
   if (en === undefined || ezDomKept(n.parentNode)) return;
+  const next = v.replace(t, () => en);
+  if (next === v || !ezDomMayWrite(n)) return;
   if (!EZ_DOM_TOUCHED.has(n)) EZ_DOM_TOUCHED.set(n, v);
-  n.nodeValue = v.replace(t, en);
+  n.nodeValue = next;
 }
 function ezDomAttrs(el) {
   for (let i = 0; i < EZ_DOM_ATTRS.length; i++) {
@@ -35284,7 +35297,7 @@ function ezDomAttrs(el) {
     const v = el.getAttribute(a);
     if (typeof v !== 'string' || !v) continue;
     const en = ezDomLookup(v.trim());
-    if (en === undefined || ezDomKept(el)) continue;
+    if (en === undefined || ezDomKept(el) || en === v || !ezDomMayWrite(el)) continue;
     let rec = EZ_DOM_TOUCHED.get(el);
     if (!rec || rec.nodeType) { rec = {}; EZ_DOM_TOUCHED.set(el, rec); }
     if (!(a in rec)) rec[a] = v;

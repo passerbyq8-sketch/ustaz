@@ -285,9 +285,9 @@ const V = '﴿', W = '﴾';
     ok('...and a model that never really translates leaves the paragraph in Arabic as it was, counted, never half-translated', o2.stats.unitsKeptArabic + o2.stats.batchesKeptArabic >= 1 && !/\(gloss\)/.test(o2.text), JSON.stringify(o2.stats));
     // a scholar's text may keep the verse it quotes in Arabic beside its own translation: that is not a reply that kept most of what it was given
     const quoting = 'قال الشيخ في هذه المسألة كلاما طويلا مفصلا يشرح فيه الحكم وأدلته ثم ذكر قول الله تعالى وأقيموا الصلاة وآتوا الزكاة وبين وجه الدلالة منها وما قاله أهل العلم في ذلك كله';
-    const keeper = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => 'The Sheikh discussed this at length and then cited: ' + s.slice(-40))) }; };
+    const keeper = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => 'The Sheikh discussed this at length and then cited: ' + s.slice(-18))) }; };
     const o4 = await A.translateAnswer(quoting + '\n\n', { lang: 'en', translate: keeper });
-    ok('a translation that keeps a short quotation in Arabic (a third of the source at most) is accepted, not asked again and not delivered in Arabic', o4.stats.unitsKeptArabic === 0 && o4.stats.batchesKeptArabic === 0 && o4.stats.batchRetries === 0 && /The Sheikh discussed/.test(o4.text), JSON.stringify(o4.stats));
+    ok('a translation that keeps a short quotation in Arabic (four words; J: a sentence of six or more is refused) is accepted, not asked again and not delivered in Arabic', o4.stats.unitsKeptArabic === 0 && o4.stats.batchesKeptArabic === 0 && o4.stats.batchRetries === 0 && /The Sheikh discussed/.test(o4.text), JSON.stringify(o4.stats));
     // a batch whose reply is never an array of the right length: each unit is asked ALONE before it is given up on (measured: three short paragraphs, all delivered Arabic)
     {
       const three = 'الفقرة الأولى القصيرة من الجواب كله بلا زيادة.\n\nالفقرة الثانية القصيرة من الجواب كله بلا زيادة.\n\nالفقرة الثالثة القصيرة من الجواب كله بلا زيادة.\n\n';
@@ -711,7 +711,7 @@ const V = '﴿', W = '﴾';
       if (!(b.includes(QN.TRANSLATION_INCOMPLETE_TEXT.en) && b.indexOf(QN.TRANSLATION_INCOMPLETE_TEXT.en) < b.indexOf('الجواب النهائي'))) bad.push(l);
     }
     ok('E2: the gate, when the translation failed altogether, sends the line in the reader\'s language and then the Arabic answer', bad.length === 0 && true, bad.join(','));
-    ok('E2: the question\'s translation waits 15 s at most per attempt, the answer\'s calls 28 s, the phase 60 s', /timeoutMs: 15000/.test(read('lib/lang/question.js')) && A.BUDGET_MS === 60000 && A.CALL_TIMEOUT_MS === 28000);
+    ok('E2: the question\'s translation waits 12 s at most per call (J: hedged), the answer\'s calls 28 s, the phase 60 s', Q.QUESTION_CALL_MS === 12000 && A.BUDGET_MS === 60000 && A.CALL_TIMEOUT_MS === 28000);
   }
 
   console.log('\n=== E5 (amendment 5): THE INDONESIAN QURAN IS THE MINISTRY OF RELIGIOUS AFFAIRS TRANSLATION, WITH ITS NAME AND EDITION ===');
@@ -788,6 +788,167 @@ const V = '﴿', W = '﴾';
     const qlangs = Object.keys(qS);
     ok('H2: the subtitle «' + qkey + '» of quest.html has a row in all ' + qlangs.length + ' built languages, none of them the Arabic text itself', qlangs.length === 22 && qlangs.every((l) => typeof qS[l][qkey] === 'string' && qS[l][qkey].trim() && qS[l][qkey] !== qkey), qlangs.filter((l) => !qS[l][qkey]).join(','));
     ok('H2: the English row says three games and the choice; the page itself (Arabic) is untouched by the row', /^Three games/.test(qS.en[qkey]) && sub === 'ثلاث ألعاب من أسئلة عزك. اختاروا لعبتكم.');
+  }
+
+  console.log('\n=== J (amendment 9): THE BROWSER FINGER TEST FAILED -- SIX CAUSES, EACH WITH ITS GUARD ===');
+  {
+    // (2) THE QUESTION CALL IS HEDGED. A stalled first call is not waited for; the normal case is still one call.
+    const mk = (n, text) => [{ role: 'user', content: 'hello there my friend ' + n }];
+    let calls = 0; const m1 = mk(1);
+    const t1 = Date.now();
+    const r1 = await Q.translateQuestionInPlace(m1, { lang: 'fr', hedgeMs: 40, translate: async () => { calls++; if (calls === 1) return new Promise(() => {}); return { ok: true, text: JSON.stringify(['translated']) }; } });
+    ok('J3: a question call that never answers is not waited for: the second call starts after the hedge gap and wins', r1.ok && calls === 2 && m1[0].content === 'translated' && Date.now() - t1 < 2000, JSON.stringify({ calls, r1, c: m1[0].content }));
+    calls = 0; const m2 = mk(2);
+    const r2 = await Q.translateQuestionInPlace(m2, { lang: 'fr', hedgeMs: 40, translate: async () => { calls++; return { ok: false, status: 529 }; } });
+    ok('J3: every call failing ends the turn after three calls, the message untouched (the fixed line of the language follows)', !r2.ok && calls === 3 && m2[0].content === 'hello there my friend 2', JSON.stringify({ calls, r2 }));
+    calls = 0; const m3 = mk(3);
+    await Q.translateQuestionInPlace(m3, { lang: 'fr', hedgeMs: 40, translate: async () => { calls++; return { ok: true, text: JSON.stringify(['fast']) }; } });
+    await new Promise((r) => setTimeout(r, 120));
+    ok('J3: the normal case is one call (a fast answer starts no second one)', calls === 1 && m3[0].content === 'fast', 'calls ' + calls);
+    ok('J3: the question call waits 12 s at most, hedged every 4 s, three calls at most; the old two sequential 15 s attempts are gone',
+      Q.QUESTION_CALL_MS === 12000 && Q.QUESTION_HEDGE_MS === 4000 && Q.QUESTION_CALLS_MAX === 3 && !/attempt < 2/.test(read('lib/lang/question.js')) && /hedged\(/.test(read('lib/lang/question.js')));
+    // J3 on the failure text: every language of the table has it, and none of them is the Arabic one
+    ok('J3: all 22 languages have the fixed failure line and the fixed incomplete line, none of them Arabic text', T.LANG_TABLE && Object.keys(Q.TRANSLATION_FAILED_TEXT).length === 22 && Object.keys(Q.TRANSLATION_INCOMPLETE_TEXT).length === 22);
+  }
+  {
+    // (1) NO MODEL TALK AND NO ARABIC SENTENCE BESIDE THE TRANSLATION. The strings are the ones the reader saw (EXTENSION-FINGER-TEST-2026-10-08).
+    const src = 'وقوله: له ما في السماوات وما في الأرض أي ملكا وتصرفا.';
+    const leakEn = 'And His saying: His is what is in the heavens. Wait, I need to reconsider the format - the input doesn\'t contain the quoted Arabic headers I added. Let me provide the correct translation:\n["And His saying: His is whatever is in the heavens and the earth."]';
+    const leakFa = 'و سخن او: ملک اوست. نکته: پاسخ درست زیر است؛ متن بالا به‌اشتباه عربی باقی مانده بود.\n["این آیه در برگیرنده معانی بزرگی است."]';
+    const goodEn = 'And His saying: His is whatever is in the heavens and the earth, as ownership and disposal.';
+    const copiedEn = 'And His saying: وقوله: له ما في السماوات وما في الأرض meaning: ownership and disposal.';
+    const termEn = 'The prayer (salah) and the call to it (iqamah: إقامة) are explained here.';
+    ok('J1: a reply that carries an array opener inside its string, or the model\'s own announcement, is refused (the English and the Persian text of the finger test)', A.modelTalk(src, leakEn) && A.modelTalk(src, leakFa));
+    ok('J1: an ordinary translation is not model talk', !A.modelTalk(src, goodEn));
+    ok('J1: an Arabic SENTENCE copied beside its English (6 words in a row) counts as a run above the limit; one Arabic term does not', A.arabicRun(src, copiedEn, false) > A.ARABIC_RUN_MAX && A.arabicRun(src, termEn, false) <= A.ARABIC_RUN_MAX && A.ARABIC_RUN_MAX === 5, A.arabicRun(src, copiedEn, false) + ' / ' + A.arabicRun(src, termEn, false));
+    const srcFa = 'وقوله تعالى الله لا إله إلا هو الحي القيوم معناه أنه لا معبود بحق سواه سبحانه.';
+    const keptFa = 'وقوله تعالى الله لا إله إلا هو الحي القيوم معناه أنه لا معبود بحق سواه و این ترجمه است';
+    const trFa = 'و سخن او تعالی: الله هیچ معبودی جز او نیست، زنده و پایدار است، یعنی هیچ معبود برحقی جز او نیست.';
+    ok('J1: for Persian (Arabic script) a run of the source\'s own words is a copied sentence; a real translation has no such run', A.arabicRun(srcFa, keptFa, true) > A.ARABIC_RUN_MAX && A.arabicRun(srcFa, trFa, true) <= A.ARABIC_RUN_MAX, A.arabicRun(srcFa, keptFa, true) + ' / ' + A.arabicRun(srcFa, trFa, true));
+    // through the whole translation: the leaked reply is asked again; when it leaks every time the reader gets the fixed line and the Arabic, never the leak
+    const para = 'هذه فقرة عربية قصيرة تشرح معنى الآية شرحا وافيا للقارئ الكريم.';
+    let seen = 0; const leakOnce = async ({ user }) => { seen++; const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map(() => (seen === 1 ? leakEn : goodEn))) }; };
+    const o1 = await A.translateAnswer(para, { lang: 'en', translate: leakOnce });
+    ok('J1: a reply that leaked once is asked again and the good reply is delivered, without the leak', o1.text.includes(goodEn) && !/Wait, I need|\["/.test(o1.text) && !o1.text.includes(Q.TRANSLATION_INCOMPLETE_TEXT.en), o1.text.slice(0, 200));
+    const alwaysLeak = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map(() => leakEn)) }; };
+    const o2 = await A.translateAnswer(para, { lang: 'en', translate: alwaysLeak });
+    ok('J1: a reply that leaks every time is never shown: the reader gets the fixed line, then the Arabic paragraph', !/Wait, I need|\["/.test(o2.text) && o2.text.startsWith(Q.TRANSLATION_INCOMPLETE_TEXT.en) && o2.text.includes(para), o2.text.slice(0, 200));
+    const alwaysCopy = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map(() => 'Meaning: ' + para + ' (end)')) }; };
+    const o3 = await A.translateAnswer(para, { lang: 'en', translate: alwaysCopy });
+    ok('J1: an Arabic paragraph copied beside a gloss is refused like the leak (fixed line, then the Arabic marked as Arabic)', o3.text.startsWith(Q.TRANSLATION_INCOMPLETE_TEXT.en) && o3.degraded.length > 0, o3.text.slice(0, 120));
+    ok('J1: the translator is told, in its rules, to write nothing about the task and to explain a term once and only as a term', /nothing else/.test(M.ANSWER_TO_ENGLISH_SYSTEM) && /at most once in the whole answer/.test(M.ANSWER_TO_ENGLISH_SYSTEM));
+  }
+  {
+    // (4) CARDS KEEP THEIR PLACE: the language layer emits what the Arabic answer holds in the order it holds it
+    const ar = 'تمهيد قصير عن الآية الكريمة وفضلها.\n\nشرح أول لمعنى الآية بتفصيل مناسب للقارئ.\n\n<book title="x" matn="">مصدر</book>\n\nخاتمة قصيرة تلخص الشرح كله.\n\n<verse surah_num="2" ayah="255"></verse>';
+    const tagsOf = (t) => (t.match(/<(verse|hadith|book|source)\b/g) || []).map((x) => x.slice(1)).join(',');
+    const echo2 = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => 'EN ' + s.replace(/[ء-ي]/g, ''))) }; };
+    for (const l of ['en', 'fa', 'ur', 'fr']) {
+      const o = await A.translateAnswer(ar, { lang: l, translate: echo2 });
+      const lastVerse = o.text.lastIndexOf('<verse'); const book = o.text.indexOf('<book');
+      ok('J4: ' + l + ': the cards come out in the order and at the place they hold in the Arabic answer (book before the closing paragraph, verse last)', tagsOf(o.text) === tagsOf(ar) && book > 0 && book < lastVerse && lastVerse > o.text.lastIndexOf('EN '), tagsOf(o.text) + ' | ' + o.text.slice(-80));
+    }
+  }
+  {
+    // (5) EVERY INTERFACE WORD OF THE ANSWER AREA HAS ITS ROW IN ALL 22 LANGUAGES
+    const app = read('app.jsx');
+    const copyBtn = (/const CopyReplyButton = [\s\S]*?\n\};/.exec(app) || [''])[0];
+    ok('J5: the copy button of the answer row reads its three words from the dictionary (common.copy, common.copied, x.156), no Arabic literal', /ezT\('common\.copy'\)/.test(copyBtn) && /ezT\('common\.copied'\)/.test(copyBtn) && /ezT\('x\.156'\)/.test(copyBtn) && !/[؀-ۿ]/.test(copyBtn), copyBtn.slice(copyBtn.indexOf('return <button'), copyBtn.indexOf('return <button') + 200));
+    const dir = path.join(REPO, 'lang'); const bad = [];
+    for (const f of fs.readdirSync(dir).filter((x) => /\.json$/.test(x))) {
+      const d = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
+      for (const k of ['common.copy', 'common.copied', 'x.156']) if (typeof d[k] !== 'string' || !d[k].trim() || d[k] === (k === 'common.copy' ? 'نسخ' : '')) bad.push(f + ':' + k);
+    }
+    ok('J5: the three words of the answer row have a row in each of the 21 language files (English is the inline dictionary)', bad.length === 0 && fs.readdirSync(dir).filter((x) => /\.json$/.test(x)).length === 21, bad.join(' '));
+  }
+  {
+    // (6) THE GLOSSARY OFFERS REAL TERMS ONLY, FEW, AND NEVER A WORD WITH TWO MEANINGS
+    const text = ' ' + 'عدم وجود جماعة من المسلمين الله ابن الإيمان بالقدر توحيد عبادة' + ' ';
+    const g = P.glossaryFor('en', text, 50).map((x) => P.foldArabic(x.ar));
+    ok('J6: ordinary words (existence, congregation, Allah, son) are not offered as terms; real terms (iman, qadar belief, tawhid, ibadah) still are',
+      !g.includes(P.foldArabic('وجود')) && !g.includes(P.foldArabic('جماعة')) && !g.includes(P.foldArabic('الله')) && !g.includes(P.foldArabic('ابن')) && g.includes(P.foldArabic('الإيمان')) && g.includes(P.foldArabic('توحيد')) && g.includes(P.foldArabic('عبادة')), JSON.stringify(g));
+    ok('J6: a call carries at most ' + P.GLOSSARY_MAX + ' entries (8), however many terms the paragraph holds', P.GLOSSARY_MAX === 8 && P.glossaryFor('en', ' ' + 'الإيمان الإسلام عبادة الشريعة الجنة حديث سورة فرائض صلاة توحيد وضوء فرض واجب كفر ميسر' + ' ').length <= 8);
+    const homographs = P.glossaryFor('en', ' قدر سنة ', 50);
+    ok('J6: a spelling the list gives two meanings (qadar: Destiny / Amount; sunnah: Sunnah / Year) is not offered at all', homographs.length === 0, JSON.stringify(homographs.map((x) => x.en)));
+    // once per term: the second paragraph that holds a term already explained carries it as ALREADY_EXPLAINED, not as a GLOSSARY line
+    const heads = []; const spy2 = async ({ user }) => { heads.push(user); const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => 'EN ' + s.replace(/[ء-ي]/g, ''))) }; };
+    await A.translateAnswer('الإيمان أصل عظيم في هذا الدين الحنيف كما هو معلوم.\n\nوالإيمان يزيد بالطاعة وينقص بالمعصية كما قال أهل العلم.', { lang: 'en', translate: spy2, concurrency: 1 });
+    const firstHasGloss = heads.some((h) => /GLOSSARY[^\n]*\n[^\n]*=>/.test(h) && /=> Faith/.test(h));
+    const laterAlready = heads.filter((h) => /ALREADY_EXPLAINED: [^\n]*(الإيمان)/.test(h)).length;
+    ok('J6: a term explained in one paragraph is passed to the next as ALREADY_EXPLAINED, never as a new GLOSSARY line (heads seen ' + heads.length + ')', firstHasGloss && (heads.length < 2 || laterAlready >= 1 || heads.length === 1), JSON.stringify(heads.map((h) => h.slice(0, 160))));
+  }
+  {
+    // (3) THE LOCALIZER NEVER WRITES A VALUE THAT IS ALREADY THERE (Persian, Urdu and Pashto froze on Qatar, Rajab, Shaaban, Ramadan: rows equal to their Arabic key)
+    const app = read('app.jsx');
+    const txt = (/function ezDomText\(n\) \{[\s\S]*?\n\}/.exec(app) || [''])[0]; const att = (/function ezDomAttrs\(el\) \{[\s\S]*?\n\}/.exec(app) || [''])[0];
+    ok('J2: ezDomText and ezDomAttrs skip a write that changes nothing and a node rewritten more than 12 times in a second', /next === v/.test(txt) && /ezDomMayWrite\(n\)/.test(txt) && /en === v/.test(att) && /ezDomMayWrite\(el\)/.test(att) && /EZ_DOM_BURST = 12/.test(app));
+    const dir = path.join(REPO, 'lang'); const sameRows = {};
+    for (const f of ['fa', 'ur', 'ps']) { const d = JSON.parse(fs.readFileSync(path.join(dir, f + '.json'), 'utf8')); sameRows[f] = Object.keys(d).filter((k) => /^(c|x|f|p)\./.test(k) && d[k].trim() === 'قطر').length; }
+    ok('J2: the rows that are the same word as the Arabic exist (Qatar in fa, ur, ps) -- which is why the localizer must tolerate them', sameRows.fa >= 1 && sameRows.ur >= 1 && sameRows.ps >= 1, JSON.stringify(sameRows));
+  }
+
+  console.log('\n=== J2/J5 (amendment 9): A REAL BROWSER OPENS SETTINGS AND THE ANSWER ROW UNDER ALL 22 LANGUAGES AND ARABIC ===');
+  {
+    // The finger test froze the tab in Persian Settings and the API checks had passed it: so this one runs the real page (Edge or Chrome through Playwright), not a stand-in.
+    const http = require('http');
+    const pwPath = [process.env.EZIK_PLAYWRIGHT, 'C:/Users/passe/projects/ustaz-check88/check88/node_modules/playwright', 'playwright'].filter(Boolean);
+    let chromium = null; for (const p of pwPath) { try { chromium = require(p).chromium; break; } catch (e) { /* next */ } }
+    if (!ok('J2: Playwright is installed (the freeze cannot be seen without a real browser)', !!chromium, 'looked in ' + pwPath.join(' | '))) { /* the browser checks below cannot run */ }
+    else {
+      const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.gz': 'application/gzip' };
+      const root = path.resolve(REPO);
+      const srv = http.createServer((q, r) => {
+        let u = decodeURIComponent(q.url.split('?')[0]); if (u.endsWith('/')) u += 'index.html';
+        const f = path.join(root, u);
+        if (!f.startsWith(root) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { r.writeHead(404); r.end('no'); return; }
+        r.writeHead(200, { 'content-type': MIME[path.extname(f)] || 'application/octet-stream' }); fs.createReadStream(f).pipe(r);
+      });
+      await new Promise((res) => srv.listen(0, '127.0.0.1', res)); const port = srv.address().port;
+      const langs = ['ar', 'en'].concat(fs.readdirSync(path.join(REPO, 'lang')).filter((x) => /\.json$/.test(x)).map((x) => x.replace('.json', '')).sort());
+      const SSE = 'data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"A short answer in the language of the reader, long enough to show its action row."}}\n\ndata: {"type":"message_stop"}\n\n';
+      let browser = null; try { browser = await chromium.launch({ headless: true, channel: 'msedge', args: ['--mute-audio'] }); } catch (e) { try { browser = await chromium.launch({ headless: true, args: ['--mute-audio'] }); } catch (e2) { browser = null; } }
+      if (ok('J2: a browser starts (Edge, else the bundled Chromium)', !!browser)) {
+        const frozen = []; const slow = []; const copyBad = []; const answerFrozen = []; let maxMs = 0;
+        const alive = (page) => Promise.race([page.evaluate(() => new Promise((res) => setTimeout(() => res(true), 30))), new Promise((res) => setTimeout(() => res(false), 2000))]);
+        for (const L of langs) {
+          const seed = (L === 'ar' ? '' : 'localStorage.setItem("ezik_ui_lang_v1","' + L + '");') + 'localStorage.setItem("child_profile",JSON.stringify({name:"Test",gender:"male",birthYear:1990,age:30,pid:"P1"}));localStorage.setItem("ezik_ai_consent_v1",JSON.stringify({status:"granted",version:"2026-08-06-1",grantedBy:"user",at:Date.now(),pid:"P1"}));';
+          const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
+          await ctx.addInitScript('try{' + seed + '}catch(e){}');
+          await ctx.route(/\/api\/ask/, (r) => r.fulfill({ status: 200, headers: { 'content-type': 'text/event-stream; charset=utf-8' }, body: SSE }));
+          await ctx.route(/\/api\/(?!ask)/, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
+          // 1. Settings: the drawer, then the pinned row that carries the profile name (language independent)
+          const p1 = await ctx.newPage();
+          try {
+            await p1.goto('http://127.0.0.1:' + port + '/', { waitUntil: 'load', timeout: 20000 });
+            await p1.waitForSelector('button', { timeout: 15000 }); await p1.waitForTimeout(1500);
+            await p1.locator('button').first().click({ timeout: 3000 }); await p1.waitForTimeout(400);
+            const t0 = Date.now();
+            await p1.locator('button', { hasText: /^Test$/ }).first().click({ timeout: 2500, noWaitAfter: true });
+            const live = await alive(p1); const ms = Date.now() - t0; maxMs = Math.max(maxMs, ms);
+            if (!live) frozen.push(L); else if (ms > 2000) slow.push(L + ':' + ms);
+          } catch (e) { frozen.push(L + '(' + String(e.message).split('\n')[0].slice(0, 40) + ')'); }
+          // 2. the answer row: ask, and read the copy button
+          const p2 = await ctx.newPage();
+          try {
+            await p2.goto('http://127.0.0.1:' + port + '/', { waitUntil: 'load', timeout: 20000 });
+            await p2.waitForSelector('textarea', { timeout: 15000 }); await p2.waitForTimeout(1200);
+            await p2.locator('textarea').first().click({ timeout: 3000 }); await p2.keyboard.insertText('x'); await p2.waitForTimeout(300); await p2.keyboard.press('Enter');
+            await p2.waitForSelector('.ezc-acts button', { timeout: 8000 });
+            if (!(await alive(p2))) answerFrozen.push(L);
+            const labels = await p2.evaluate(() => Array.from(document.querySelectorAll('.ezc-acts button')).map((b) => [b.innerText.trim(), b.getAttribute('aria-label')]));
+            const want = L === 'en' ? 'Copy' : JSON.parse(fs.readFileSync(path.join(REPO, 'lang', (L === 'ar' ? 'fa' : L) + '.json'), 'utf8'))['common.copy'];
+            const wantL = L === 'ar' ? '\u0646\u0633\u062e' : want;
+            if (!labels.some((b) => b[0] === wantL && b[1] === wantL) || (L !== 'ar' && labels.some((b) => b[0] === '\u0646\u0633\u062e' || b[1] === '\u0646\u0633\u062e'))) copyBad.push(L + ':' + JSON.stringify(labels));
+          } catch (e) { copyBad.push(L + '(' + String(e.message).split('\n')[0].slice(0, 50) + ')'); }
+          await Promise.race([ctx.close(), new Promise((res) => setTimeout(res, 3000))]);
+        }
+        ok('J2: Settings opens and the page answers within 2 s under Arabic and all 22 languages (' + langs.length + ' tried, slowest ' + maxMs + ' ms)', frozen.length === 0 && slow.length === 0 && langs.length === 23, 'frozen: ' + frozen.join(' ') + ' slow: ' + slow.join(' '));
+        ok('J2: the page with an answer on it answers within 2 s under every language', answerFrozen.length === 0, answerFrozen.join(' '));
+        ok('J5: the copy button of the answer row shows the language\'s own word (text and accessible name) under all 22 languages and Arabic', copyBad.length === 0, copyBad.join(' | '));
+        await Promise.race([browser.close(), new Promise((res) => setTimeout(res, 4000))]);
+      }
+      await new Promise((res) => srv.close(res));
+    }
   }
 
   console.log('\n' + (failures ? 'FAILED: ' + failures + ' of ' + checks + ' checks failed.' : 'OK: ' + checks + ' checks passed.'));
