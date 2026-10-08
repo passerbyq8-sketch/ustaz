@@ -836,6 +836,11 @@ const V = '﴿', W = '﴾';
     const alwaysCopy = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map(() => 'Meaning: ' + para + ' (end)')) }; };
     const o3 = await A.translateAnswer(para, { lang: 'en', translate: alwaysCopy });
     ok('J1: an Arabic paragraph copied beside a gloss is refused like the leak (fixed line, then the Arabic marked as Arabic)', o3.text.startsWith(Q.TRANSLATION_INCOMPLETE_TEXT.en) && o3.degraded.length > 0, o3.text.slice(0, 120));
+    // J6: a term is explained once in an answer: the second note with the same label is cut (the Indonesian tarawih answer carried one twice); a quotation's own parenthesis is never cut
+    const seenN = new Set();
+    const n1 = A.dropRepeatedNotes('Salat (Salat: ibadah dengan takbir dan salam) dan lagi salat (Salat: ibadah dengan takbir dan salam) serta hilal (hilal: bulan sabit (awal bulan): penjelasan).', seenN);
+    const n2 = A.dropRepeatedNotes('Lalu salat (Salat: ibadah lagi) dan (“kutipan” — Terjemahan Al-Qur’an 2:255: Kemenag) dan (“kutipan” — Terjemahan Al-Qur’an 2:255: Kemenag).', seenN);
+    ok('J6: a glossary note with an already explained label is cut, the first one stays, the sentence still reads, and quotation parentheses are untouched', (n1.match(/Salat:/g) || []).length === 1 && /hilal: bulan sabit \(awal bulan\): penjelasan/.test(n1) && !/\(Salat:/.test(n2) && (n2.match(/kutipan/g) || []).length === 2 && !/ \)/.test(n1) && !/  /.test(n1), n1 + ' || ' + n2);
     // a verse fragment kept in Arabic quotation inside a good translation is a quotation, not a copied sentence (the first browser round delivered nine of fourteen Persian paragraphs in Arabic without it)
     const fragSrc = 'قوله سبحانه: اللَّهُ لا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ، هذا هو معنى كلمة التوحيد أي لا معبود حق إلا هو';
     const fragGood = '«اللَّهُ لا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ» این همان معنای کلمه توحید است، یعنی هیچ معبود برحقی جز او نیست';
