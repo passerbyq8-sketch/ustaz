@@ -1111,6 +1111,30 @@ const V = '﴿', W = '﴾';
       && S.surahNameIn('ru', 2) === null && S.surahNameIn('fa', 2) === 'بقره' && S.surahNameIn('en', 2) === 'Al-Baqarah' && S.surahNumberOfName('سورة الإخلاص') === 112);
     ok('L3: Arabic is untouched: the gate does not read the card code and the table row says Arabic is never translated', T.LANG_TABLE.ar.answerTranslation === false && !/cardRange|verseAttrs|surah-names/.test(read('lib/lang/gate.js') + read('lib/lang/detect.js')));
 
+    // L3 (client): the caption of a verse card is ONE string, so the interface-language pass reads it as one sentence (three text nodes left the Arabic comma and the word for ayah standing)
+    {
+      const app = read('app.jsx');
+      const i = app.indexOf('<div style={s.verseMeta}>'); const seg = app.slice(i, i + 700);
+      const ONE = '{`${surahName ? `سورة ${surahName}` : \'\'}${surahName && ayah ? \'، \' : \'\'}${ayah ? `آية ${ayah}` : \'\'}`}';
+      ok('L3: the verse card caption is built as one template string (one text node), not as three adjacent strings', i > 0 && seg.includes(ONE) && !seg.includes("{surahName && ayah && '، '}"), seg.slice(0, 300));
+    }
+    // L6 -- the reply that writes the Arabic source first and its translation after it is cut down to the translation
+    {
+      const AR1 = 'وتتجمع كل هذه الصفات لتضع أمامنا أصول التصور في العقيدة الإيمانية، وقد وردت فيها أحاديث كثيرة.';
+      const AR2 = 'ومعناها أن الله هو الحي الذي لا يموت القيوم القائم على كل شيء ولا تأخذه سنة ولا نوم.';
+      const EN1 = 'All these attributes together set before us the foundations of belief, and many hadiths have come about them.';
+      const EN2 = 'Its meaning is that Allah is the Ever-Living who does not die, the Self-Sustaining, and neither drowsiness nor sleep overtakes Him.';
+      ok('L6: a reply that is the Arabic sentence followed by its translation (refused before: the Arabic run rule) is cut down to the translation', A.settle(AR1, AR1 + ' ' + EN1, 'en') === EN1, JSON.stringify(A.settle(AR1, AR1 + ' ' + EN1, 'en')));
+      ok('L6: ...also when the Arabic and the English alternate sentence by sentence', A.settle(AR1 + ' ' + AR2, AR1 + ' ' + EN1 + ' ' + AR2 + ' ' + EN2, 'en') === EN1 + ' ' + EN2);
+      ok('L6: a reply that is the Arabic itself, unchanged, is still refused (nothing is left to deliver)', A.settle(AR1, AR1, 'en') === null && A.settle(AR1, '«' + AR1 + '»', 'fr') === null);
+      ok('L6: a reply that keeps a short Arabic term (five words or fewer) is delivered as it is', A.settle(AR1, 'The foundations (أصول التصور في العقيدة) of belief, and many hadiths.', 'en') === 'The foundations (أصول التصور في العقيدة) of belief, and many hadiths.');
+      ok('L6: ...and the reply that talks about its own task is not rescued by cutting its Arabic', A.settle(AR1, AR1 + ' Wait, I need to reconsider the format. ' + EN1, 'en') === null);
+      const FA1 = 'همه این صفات اصول باورهای ایمانی را پیش روی ما می‌گذارد و احادیث بسیاری درباره آن آمده است.';
+      ok('L6: for Persian (Arabic script) the cut is by the source\'s own words: the Arabic sentence goes, the Persian translation stays', A.settle(AR1, AR1 + ' ' + FA1, 'fa') === FA1, JSON.stringify(A.settle(AR1, AR1 + ' ' + FA1, 'fa')));
+      const out = await A.translateAnswer(AR1 + '\n\n' + AR2, { lang: 'en', translate: async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => s + ' ' + (s === AR1 ? EN1 : EN2))) }; } });
+      ok('L6 end to end: the answer is in English, with no Arabic in it and no "could not be completed" line', !/[ء-ي]/.test(out.text) && !out.text.includes(Q.translationNotice('en')) && out.text.includes(EN1) && out.text.includes(EN2), out.text.slice(0, 300));
+    }
+
     // L4 -- the scholar's text comes after its card and the translation, in every language
     {
       const FAT = '## نص الفتوى\n\nالسؤال:\nما حكم هذا؟\n\nالجواب:\nهذا جواب الشيخ بنصه المنشور.\n\nالمفتي: الشيخ فلان';

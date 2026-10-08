@@ -22585,7 +22585,8 @@ function VerseCard({ surah, surahNum, ayah, onPlayVerse, onStopAudio, onFavorite
       <div style={s.verseFooter}>
         {(surahName || ayah) && (
           <div style={s.verseMeta}>
-            {surahName && `سورة ${surahName}`}{surahName && ayah && '، '}{ayah && `آية ${ayah}`}
+            {/* L (amendment 11): ONE string, so the interface-language pass reads the caption as one sentence ("Surah X, ayah N"); three text nodes left the Arabic comma and "آية" standing */}
+            {`${surahName ? `سورة ${surahName}` : ''}${surahName && ayah ? '، ' : ''}${ayah ? `آية ${ayah}` : ''}`}
           </div>
         )}
         {onFavorite && textState === 'ok' && (
