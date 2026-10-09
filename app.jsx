@@ -26683,7 +26683,7 @@ function ezikSyncApply(id, rec) {
     if (!pid) return;
     const others = ezikReadFavs().filter((r) => r.pk !== pid);
     const mine = (del || !Array.isArray(val) ? [] : val).map((r) => Object.assign({}, r, { pk: pid, id: pid + String(r.id || '').slice(1) }));
-    set(EZIK_FAVS_KEY, JSON.stringify(mine.concat(others)));
+    ezikWriteFavs(mine.concat(others));
     return;
   }
   if (id.indexOf('chat:') === 0) {
@@ -26831,7 +26831,7 @@ function ezikSyncSignOutWipe() {
   if (pid) {
     const map = ezikReadA11yAll(); delete map[pid];
     try { localStorage.setItem(EZIK_A11Y_KEY, JSON.stringify(map)); } catch (e) {}
-    try { localStorage.setItem(EZIK_FAVS_KEY, JSON.stringify(ezikReadFavs().filter((r) => r.pk !== pid))); } catch (e) {}
+    ezikWriteFavs(ezikReadFavs().filter((r) => r.pk !== pid));
   }
   const prefs = ezikSyncJson(localStorage.getItem(PRAYER_PREFS_KEY));
   if (prefs && typeof prefs === 'object') {
@@ -26868,10 +26868,15 @@ function ezikSyncWipeServer() {
 }
 
 // ITEM 142 -- «حذف كل بياناتي» ALSO TAKES THE MUSHAF DOWNLOADS OFF THIS DEVICE. For everybody,
-// not behind the switch: it is a device erasure and the owner ruled it in on 27 September.
-const EZIK_MUSHAF_DOWNLOADS_STORE = 'ezik-mushaf-downloads-v1';
+// not behind the switch: it is a device erasure and the owner ruled it in on 27 September. The
+// page opens no cache of its own (tools/wird-guard.cjs A-4): it asks the worker, which owns the
+// store, to drop it -- the same message channel the page already uses for 'warm'.
 function ezikClearMushafDownloads() {
-  try { if (typeof caches !== 'undefined' && caches && typeof caches.delete === 'function') caches.delete(EZIK_MUSHAF_DOWNLOADS_STORE).catch(() => {}); } catch (e) {}
+  try {
+    const sw = typeof navigator !== 'undefined' ? navigator.serviceWorker : null;
+    const c = sw && sw.controller;
+    if (c && typeof c.postMessage === 'function') c.postMessage({ ezik: 'downloads-clear' });
+  } catch (e) {}
 }
 
 // «نزّل بياناتي» -- the account's whole synced data, opened by the server, saved as a file.

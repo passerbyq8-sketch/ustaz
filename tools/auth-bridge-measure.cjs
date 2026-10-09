@@ -207,6 +207,12 @@ const HARNESS_PARTS = [
   'const EzFirstRunLang = env.EzFirstRunLang;',
   'const ezLangSettle = env.ezLangSettle;',
   'let EZ_LANG = env.lang;',
+  // ITEMS 24 + 58: the row draws EzikSyncControls and its sign-out first hands the synced half to
+  // ezikSyncSignOutWipe. Both answer for the sync switch, which this harness holds CLOSED -- the
+  // behaviour every reader has today -- so they stand in as 'draws nothing' and 'wipes nothing'.
+  // The open switch is measured end to end by guards/sync-client-guard.cjs.
+  'const EzikSyncControls = env.EzikSyncControls || (() => null);',
+  'const ezikSyncSignOutWipe = env.ezikSyncSignOutWipe || (() => false);',
   text(C_FALLBACK),
   text(C_I18N),
   text(FN_T),

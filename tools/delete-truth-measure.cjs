@@ -150,7 +150,7 @@ const ENV_NAMES = ['window', 'document', 'localStorage', 'confirm', 'CustomEvent
   // ITEMS 24 + 58 and ITEM 142: the server half of the erase (a fetch, only for an account the
   // sync switch is open for), its retry timer, the device id it signs with, and the mushaf
   // downloads store the button now deletes for everybody.
-  'fetch', 'setTimeout', 'caches', 'crypto'];
+  'fetch', 'setTimeout', 'navigator', 'crypto'];
 
 const V_RESET = innerConst('App', 'resetAll');
 
@@ -683,7 +683,7 @@ function scene(opts) {
     chatIdRef: { current: 'c_alpha' },
     fetch: (u, i) => { fetched.push(String(u)); return Promise.resolve({ ok: true, json: async () => ({ ok: true }) }); },
     setTimeout: (fn) => { timers.push(fn); return 0; },
-    caches: { delete: (name) => { cacheDeleted.push(name); return Promise.resolve(true); } },
+    navigator: { serviceWorker: { controller: { postMessage: (m) => { cacheDeleted.push(m); } } } },
     crypto: { getRandomValues: (a) => a, randomUUID: () => 'uuid-fixture-0001' },
   };
   return {
@@ -933,8 +933,10 @@ run('clearQiblaLoc is untouched and is still its own button', () => {
 run('ITEM 142: the press deletes the mushaf downloads store, for everybody', () => {
   const sc = scene({});
   sc.h.resetAll();
-  eq(sc.cacheDeleted, ['ezik-mushaf-downloads-v1'], 'cache stores deleted by the press');
-  return 'caches.delete(ezik-mushaf-downloads-v1) -- the page scans store ezik-mushaf-pages-v1 is not touched';
+  eq(sc.cacheDeleted, [{ ezik: 'downloads-clear' }], 'messages the press posts to the worker');
+  const sw = fs.readFileSync(path.join(REPO, 'sw.js'), 'utf8');
+  is(sw.indexOf("event.data.ezik === 'downloads-clear') event.waitUntil(caches.delete(DOWNLOADS_CACHE)") !== -1, 'sw.js does not drop DOWNLOADS_CACHE on that message');
+  return 'the press asks the worker; the worker deletes ezik-mushaf-downloads-v1 (DOWNLOADS_CACHE) and not the page-scan store';
 });
 
 run('ITEMS 24 + 58: with the sync switch closed the press sends NOTHING anywhere', () => {

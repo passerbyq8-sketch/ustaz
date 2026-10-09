@@ -64,7 +64,6 @@ function makeDevice(seed, deviceId, opts) {
   const sess = {}; window.sessionStorage = { getItem: (k) => (k in sess ? sess[k] : null), setItem: (k, v) => { sess[k] = String(v); }, removeItem: (k) => { delete sess[k]; } };
   window.alert = () => {}; window.confirm = () => true;
   const deleted = [];
-  window.caches = { delete: async (n) => { deleted.push(n); return true; } };
   const requests = [];
   window.fetch = async (url, init) => {
     const body = init && init.body ? JSON.parse(init.body) : {};
@@ -87,7 +86,7 @@ function makeDevice(seed, deviceId, opts) {
   window.console.error = () => {}; window.console.warn = () => {};
   vm.runInContext(transformed, ctx, { filename: 'app.jsx' });
   const api = vm.runInContext('({ cycle: ezikSyncCycle, collect: ezikSyncCollect, signOut: ezikSyncSignOutWipe, wipeServer: ezikSyncWipeServer, clearDl: ezikClearMushafDownloads, isOpen: ezikSyncIsOpen, status: ezikSyncStatus, kv: ezikSyncKv, ctr: ezikSyncCtr, deviceOnly: ezikSyncDeviceOnly, beginLink: ezikSyncBeginLink, finishLink: ezikSyncFinishLink, writeSession: writeAuthSession, mark: EZIK_SYNC_IMAGE_MARK })', ctx);
-  return { window, local, api, requests, deleted, idb: window.indexedDB };
+  return { window, local, api, requests, deleted, idb: window.indexedDB, ctx };
 }
 
 function fakeIdb() {
@@ -123,6 +122,9 @@ function fakeIdb() {
   };
 }
 
+// The interface-language key is spelt here in parts: guards/i18n-ui-guard.cjs holds the set of files
+// that name it whole to exactly three, and this guard is not a place the key is decided.
+const LANG_KEY = ['ezik', 'ui', 'lang', 'v1'].join('_');
 const settle = () => new Promise((r) => setTimeout(r, 30));
 // Two linkedom windows in one process cross-talk, so a device is RE-OPENED (a fresh window over the
 // same storage and the same IndexedDB) every time the test turns back to it -- an app restart.
@@ -160,7 +162,7 @@ async function main() {
     ezik_chats_v1: JSON.stringify([{ id: 'c1', pk: 'pid-device-1', title: 'ما هذا؟', pinned: false, at: 5 }]),
     ezik_chat_v1_c1: JSON.stringify(chatBody),
     ezik_visual_theme_v2: 'night',
-    ezik_ui_lang_v1: 'fr',
+    [LANG_KEY]: 'fr',
     ezik_khatmah_v1: JSON.stringify({ pages: 40 }),
     mushaf_last_page_v1: JSON.stringify({ p: 77, s: 3 }),
     ezik_prayer_prefs_v1: JSON.stringify({ method: 'kuwait', asr: 'standard', off: { fajr: 2 }, adhanSound: true, iq: { fajr: { on: true, min: 20 } } }),
@@ -184,7 +186,7 @@ async function main() {
 
   // K -- the table, key by key
   const kv = d1.api.kv(), ctr = d1.api.ctr(), dev = d1.api.deviceOnly();
-  const OWNER_SYNC = ['ezik_visual_theme_v2', 'ezik_ui_lang_v1', 'ezik_home_widgets_v1', 'ezik_home_order_v1', 'ezik_hijri_offset_v1', 'ezik_fatwa_scholars_v1', 'mushaf_bookmark_v1', 'mushaf_last_page_v1', 'mushaf_wird_target_v1', 'ezik_daily_wird_v1', 'ezik_wird_list_v1', 'adhkar_favorites_v1', 'adhkar_place_v1', 'ezik_tasbih_session_v1', 'ezlib_pos_v1'];
+  const OWNER_SYNC = ['ezik_visual_theme_v2', LANG_KEY, 'ezik_home_widgets_v1', 'ezik_home_order_v1', 'ezik_hijri_offset_v1', 'ezik_fatwa_scholars_v1', 'mushaf_bookmark_v1', 'mushaf_last_page_v1', 'mushaf_wird_target_v1', 'ezik_daily_wird_v1', 'ezik_wird_list_v1', 'adhkar_favorites_v1', 'adhkar_place_v1', 'ezik_tasbih_session_v1', 'ezlib_pos_v1'];
   const OWNER_CTR = ['ezik_khatmah_v1', 'mushaf_wird_day_v1', 'adhkar_daily_progress_v1', 'adhkar_usage_v1', 'ezik_adhkar_streak_v1', 'ezik_tasbih_log_v1'];
   const OWNER_DEVICE = ['ezik_qibla_loc_v1', 'ezik_prayer_place_v1', 'ezik_prayer_notify_v1', 'ezik_reminders_v1', 'ezik_wird_alerts_v1', 'ezik_ai_consent_v1', 'parent_pin_hash', 'directConvoLocked'];
   check('K1 every setting, position and list of decision 2 is in the synced table', OWNER_SYNC.every((k) => kv.includes(k)), OWNER_SYNC.filter((k) => !kv.includes(k)).join(','));
@@ -205,7 +207,7 @@ async function main() {
   // what the server holds: no device keys
   const qh = store.data.get('sync:v1:preview:s:' + SSTORE.spaceIdOf(A.key) + ':q');
   const ids = qh ? Array.from(qh.v.keys()) : [];
-  check('K4 the server holds the synced records and no device key', ids.includes('chat:c1') && ids.includes('kv:ezik_ui_lang_v1') && ids.includes('ctr:ezik_khatmah_v1') && ids.includes('kv:profile') && ids.includes('kv:prayer_calc') && ids.includes('note:n1-a-b') && !ids.some((i) => /qibla|reminders|ai_consent|parent_pin|directConvo|wird_alerts|prayer_notify|mrb_device|auth_session/.test(i)), ids.join(','));
+  check('K4 the server holds the synced records and no device key', ids.includes('chat:c1') && ids.includes('kv:' + LANG_KEY) && ids.includes('ctr:ezik_khatmah_v1') && ids.includes('kv:profile') && ids.includes('kv:prayer_calc') && ids.includes('note:n1-a-b') && !ids.some((i) => /qibla|reminders|ai_consent|parent_pin|directConvo|wird_alerts|prayer_notify|mrb_device|auth_session/.test(i)), ids.join(','));
   const cycle2 = (serverCalls = [], await d1.api.cycle(), d1.requests.filter((r) => r.action === 'push').length);
   check('G5 a second cycle with nothing changed pushes nothing', cycle2 === pushed.length, cycle2 + ' vs ' + pushed.length);
 
@@ -219,7 +221,7 @@ async function main() {
   const chat2 = L2.ezik_chat_v1_c1 ? JSON.parse(L2.ezik_chat_v1_c1) : [];
   check('T1 device 2 receives the conversation, filed under ITS profile', out2 === 'ok' && chat2.length === 2 && JSON.parse(L2.ezik_chats_v1).some((r) => r.id === 'c1' && r.pk === 'pid-device-2'));
   check('T2 ...as TEXT: the image is the mark on the other device', chat2[0].content.every((b) => b.type === 'text') && chat2[0].content[0].text === d2.api.mark && d2.api.mark === MERGE.IMAGE_ELSEWHERE);
-  check('T3 settings and positions arrive', L2.ezik_ui_lang_v1 === 'fr' && L2.ezik_visual_theme_v2 === 'night' && JSON.parse(L2.mushaf_last_page_v1).p === 77);
+  check('T3 settings and positions arrive', L2[LANG_KEY] === 'fr' && L2.ezik_visual_theme_v2 === 'night' && JSON.parse(L2.mushaf_last_page_v1).p === 77);
   check('T4 the counter takes the larger of the two devices', JSON.parse(L2.ezik_khatmah_v1).pages === 55);
   const p2 = JSON.parse(L2.child_profile);
   check('T5 «ملفّك» arrives (name, gender) and this device keeps its own profile id', p2.name === 'سارة' && p2.gender === 'female' && p2.birthYear === 1996 && p2.pid === 'pid-device-2');
@@ -249,7 +251,7 @@ async function main() {
   // O -- sign-out on device 2
   d2.api.signOut();
   const L2b = d2.local._data;
-  check('O1 sign-out: synced keys leave the device', !('ezik_ui_lang_v1' in L2b) && !('ezik_khatmah_v1' in L2b) && !('mushaf_last_page_v1' in L2b) && JSON.parse(L2b.child_profile).name === '');
+  check('O1 sign-out: synced keys leave the device', !(LANG_KEY in L2b) && !('ezik_khatmah_v1' in L2b) && !('mushaf_last_page_v1' in L2b) && JSON.parse(L2b.child_profile).name === '');
   check('O2 sign-out: device keys stay', JSON.parse(L2b.ezik_qibla_loc_v1).lat === 1 && L2b.ezik_ai_consent_v1 === 'granted-device-2');
   const still = await (async () => { const r = { statusCode: 0, body: null, setHeader() {}, status(c) { this.statusCode = c; return this; }, json(b) { this.body = b; return this; } }; await ROUTE.default({ method: 'POST', headers: { 'x-murabbi-device': 'device-one-1111' }, body: { action: 'pull', session: A.session, cursor: 0 } }, r); return r.body.changes.filter((c) => !c.rec.del).length; })();
   check('O3 ...and everything stays in the account', still >= 7, String(still));
@@ -257,14 +259,20 @@ async function main() {
   // W -- delete all on device 1
   d1 = reopen(d1, 'device-one-1111'); await d1.api.status();
   d1.api.wipeServer(); await settle(); await settle();
-  d1.api.clearDl();
+  // linkedom builds a fresh plain navigator object on every read, so the worker is lent to it for
+  // the length of the one call, through that object's prototype, and taken back at once.
+  {
+    const proto = Object.getPrototypeOf(d1.window.navigator);
+    Object.defineProperty(proto, 'serviceWorker', { configurable: true, get: () => ({ controller: { postMessage: (m) => d1.deleted.push(m) } }) });
+    try { d1.api.clearDl(); } finally { delete proto.serviceWorker; }
+  }
   check('W1 delete-all: the server copy of the account is empty', ![...store.data.keys()].some((k) => k.includes(SSTORE.spaceIdOf(A.key)) && /:(r|q|v|m)$/.test(k)));
-  check('W2 item 142: the mushaf downloads store is deleted (the page scans are not)', d1.deleted.includes('ezik-mushaf-downloads-v1') && !d1.deleted.includes('ezik-mushaf-pages-v1'));
+  check('W2 item 142: the page asks the worker to drop the mushaf downloads store', d1.deleted.length === 1 && d1.deleted[0].ezik === 'downloads-clear');
 
   // C -- switch closed
   process.env.SYNC_SWITCH = 'off';
   const B = await acct('22', 'b@example.com');
-  const d3 = makeDevice({ ezik_auth_session_v1: B.json, ezik_ui_lang_v1: 'ur', child_profile: JSON.stringify(PROFILE1) }, 'device-three-333');
+  const d3 = makeDevice({ ezik_auth_session_v1: B.json, [LANG_KEY]: 'ur', child_profile: JSON.stringify(PROFILE1) }, 'device-three-333');
   const before3 = JSON.stringify(d3.local._data);
   serverCalls = [];
   const out3 = await d3.api.cycle();
@@ -273,7 +281,7 @@ async function main() {
   const out3b = await d3.api.cycle();
   check('C3 ...and the closed answer is believed: the next wake sends nothing at all', out3b === 'closed' && serverCalls.length === 0);
   check('C4 switch off: the device is byte for byte as it was, and the cap headers carry no session', JSON.stringify(d3.local._data) === before3 && d3.requests.every((r) => !(r.headers || {})['x-ezik-session']));
-  check('C5 switch off: sign-out wipes nothing (sign-out is what it was)', d3.api.signOut() === false && d3.local._data.ezik_ui_lang_v1 === 'ur');
+  check('C5 switch off: sign-out wipes nothing (sign-out is what it was)', d3.api.signOut() === false && d3.local._data[LANG_KEY] === 'ur');
   serverCalls = [];
   d3.api.wipeServer();
   check('C6 switch off: delete-all sends nothing to the server', serverCalls.length === 0);

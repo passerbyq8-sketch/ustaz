@@ -146,7 +146,7 @@ const CORE = [
 // ---------------------------------------------------------------------------
 
 // The measured cost of CORE, byte for byte, at the commit that cut this constant:
-//   /  (index.html) 155386 + app.js 1979064 + icon-watermark.png 368386
+//   /  (index.html) 155386 + app.js 1979159 + icon-watermark.png 368386
 //   + adhkar.json 177392 + vendor/react-dom.umd.js 131835 + sunan-day.json 84759
 //   + arbaeen.json 67360 + daily-tafsir.json 23984 + icon-512.png 12893
 //   + vendor/react.umd.js 10751 + arbaeen-footnotes.json 9322 + adhkar-split-27.json 7182
@@ -171,7 +171,7 @@ const CORE = [
 // constant, that table, and the sw.js digest in quest-bank-integrity-guard.cjs in the SAME
 // commit -- item 89-b is the worked example. CACHE is untouched by all of it: the store name is
 // a ship decision and the merge round owns the bump.
-const CORE_BYTES = 3194302;
+const CORE_BYTES = 3194397;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
 // re-cut by hand always trails the files it describes by some amount.
@@ -546,6 +546,9 @@ self.addEventListener('activate', (event) => {
 // The page's idle signal, and the item 93 precache report. Anything else posted here is ignored.
 self.addEventListener('message', (event) => {
   if (event.data && event.data.ezik === 'warm') event.waitUntil(warmIdle());
+  // ITEM 142: «حذف كل بياناتي» asks the worker -- the owner of every store -- to drop the mushaf
+  // DOWNLOADS store. The page-scan store (MUSHAF_CACHE) is not touched: it holds no choice of the reader's.
+  if (event.data && event.data.ezik === 'downloads-clear') event.waitUntil(caches.delete(DOWNLOADS_CACHE).catch(() => false));
   // Item 93: how many entries failed and which. Reporting only -- nothing is retried here.
   if (event.data && event.data.ezik === 'precache-status') {
     // ITEM 91-A: the count alone cannot tell a full disk from a dead tunnel, and the two ask

@@ -141,6 +141,9 @@ const C_ESCAPE = topConst('escapeHtml');
 const C_CARD_FILE = topConst('EZIK_CARD_FILE');
 const V_SAVE = innerConst('SaveReplyImageButton', 'doSave');
 const V_EXPORT = innerConst('DocumentCard', 'exportDoc');
+// ITEMS 24 + 58: «نزّل بياناتي» -- the third press. ezikSyncExport is called only from the two
+// buttons that draw it (the account row and the prayer backup group), never from an effect.
+const F_SYNC_EXPORT = topFunction('ezikSyncExport');
 
 // THE HARNESS, ASSEMBLED FROM THE FILE ITSELF. Everything the seam cannot supply for itself --
 // a window, a document, a Blob, a clock, the React setters the two presses close over -- arrives
@@ -975,7 +978,7 @@ run('STATIC: nothing on this path runs before a press', () => {
   });
   is(!effectHit, 'a boot-time caller exists: ' + effectHit);
   // And each caller of the two adapters is inside one of the two presses.
-  const ranges = [[startLine(V_SAVE), endLine(V_SAVE)], [startLine(V_EXPORT), endLine(V_EXPORT)]];
+  const ranges = [[startLine(V_SAVE), endLine(V_SAVE)], [startLine(V_EXPORT), endLine(V_EXPORT)], [startLine(F_SYNC_EXPORT), endLine(F_SYNC_EXPORT)]];
   const callers = [];
   walk(ast.program, (n) => {
     if (n.type !== 'CallExpression') return;
@@ -983,12 +986,12 @@ run('STATIC: nothing on this path runs before a press', () => {
     if (['ezikDlFromDataUrl', 'ezikDlFromText'].indexOf(n.callee.name) === -1) return;
     callers.push({ name: n.callee.name, line: startLine(n) });
   });
-  eq(callers.length, 2, 'call sites of the two adapters');
+  eq(callers.length, 3, 'call sites of the two adapters');
   for (const c of callers) {
     is(ranges.some((r) => c.line >= r[0] && c.line <= r[1]),
       c.name + ' is called from app.jsx:' + c.line + ', outside both presses');
   }
-  return '0 effects mention the path; 2 adapter call sites, both inside a press';
+  return '0 effects mention the path; 3 adapter call sites, each inside a press (save, export, download my data)';
 });
 
 // ---------------------------------------------------------------------------

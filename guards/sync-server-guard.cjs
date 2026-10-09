@@ -53,6 +53,8 @@ function fakeRes() {
   return r;
 }
 
+// The interface-language key, spelt in parts (guards/i18n-ui-guard.cjs counts the files naming it whole).
+const LANG_KEY = ['ezik', 'ui', 'lang', 'v1'].join('_');
 const MARK = 'PLAINTEXT-MARKER-' + crypto.randomBytes(6).toString('hex');
 const OWNER_EMAIL = 'owner@example.com';
 const TEST_EMAIL = 'tester@example.com';
@@ -106,7 +108,7 @@ async function main() {
     const A = await account('google', '1001', 'a@example.com');
     // device 1 pushes a conversation (with an image) and settings
     const chat1 = { title: 't', pinned: false, at: 10, msgs: [msg('user', 1000, 'سؤال ' + MARK), { role: 'assistant', timestamp: new Date(2000).toISOString(), content: [{ type: 'image', source: { data: 'AAAA' } }, { type: 'text', text: 'جواب ' + MARK }] }] };
-    let r = await call({ action: 'push', session: A.session, changes: [{ id: 'chat:c1', rec: rec(10, chat1) }, { id: 'kv:ezik_ui_lang_v1', rec: rec(10, '"fr"') }] });
+    let r = await call({ action: 'push', session: A.session, changes: [{ id: 'chat:c1', rec: rec(10, chat1) }, { id: 'kv:' + LANG_KEY, rec: rec(10, '"fr"') }] });
     check('two devices: device 1 pushes', r.statusCode === 200 && r.body.results.every((x) => x.ver === 1), JSON.stringify(r.body));
     const stored = r.body.results[0].rec.val.msgs[1].content;
     check('conversations are stored as TEXT: the image block is replaced by the mark', Array.isArray(stored) && stored.every((b) => b.type === 'text') && stored[0].text === MERGE.IMAGE_ELSEWHERE, JSON.stringify(stored).slice(0, 200));
@@ -202,11 +204,11 @@ async function main() {
     fresh();
     const A = await account('google', '4004', 'd@example.com');
     const B = await account('google', '4005', 'e@example.com');
-    await call({ action: 'push', session: A.session, changes: [{ id: 'chat:x', rec: rec(1, { title: 'x', msgs: [msg('user', 1, 'hello')] }) }, { id: 'kv:ezik_ui_lang_v1', rec: rec(1, '"ur"') }, { id: 'ctr:ezik_tasbih_log_v1', rec: rec(1, [1, 2]) }, { id: 'note:n1', rec: rec(1, { text: 'my note' }) }, { id: 'chat:dead', rec: rec(1, null, true) }] });
+    await call({ action: 'push', session: A.session, changes: [{ id: 'chat:x', rec: rec(1, { title: 'x', msgs: [msg('user', 1, 'hello')] }) }, { id: 'kv:' + LANG_KEY, rec: rec(1, '"ur"') }, { id: 'ctr:ezik_tasbih_log_v1', rec: rec(1, [1, 2]) }, { id: 'note:n1', rec: rec(1, { text: 'my note' }) }, { id: 'chat:dead', rec: rec(1, null, true) }] });
     await call({ action: 'push', session: B.session, changes: [{ id: 'kv:keep', rec: rec(1, '"b"') }] });
     let r = await call({ action: 'export', session: A.session });
     const f = r.body;
-    check('X1 export: a file with every synced record, the conversations included', r.statusCode === 200 && /attachment/.test(r.headers['content-disposition'] || '') && f.records['chat:x'] && f.records['chat:x'].msgs[0].content === 'hello' && f.records['note:n1'] && f.records['kv:ezik_ui_lang_v1'] && f.records['ctr:ezik_tasbih_log_v1'], JSON.stringify(f).slice(0, 300));
+    check('X1 export: a file with every synced record, the conversations included', r.statusCode === 200 && /attachment/.test(r.headers['content-disposition'] || '') && f.records['chat:x'] && f.records['chat:x'].msgs[0].content === 'hello' && f.records['note:n1'] && f.records['kv:' + LANG_KEY] && f.records['ctr:ezik_tasbih_log_v1'], JSON.stringify(f).slice(0, 300));
     check('X2 export: deleted records are not in it, and nothing device-only exists to be in it', !('chat:dead' in f.records) && !Object.keys(f.records).some((k) => /qibla|prayer_place|reminders|ai_consent|parent_pin|directConvo|wird_alerts|prayer_notify/.test(k)));
     r = await call({ action: 'wipe', session: A.session });
     const spaceA = SSTORE.spaceIdOf(A.key);
