@@ -1888,6 +1888,10 @@
   {
    "text": "د.ن",
    "cat": "language-row-own-name"
+  },
+  {
+   "text": "📷 [صورة على جهاز آخر]",
+   "cat": "stored-content-kept-arabic"
   }
  ]
 }
