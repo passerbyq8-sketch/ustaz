@@ -127,7 +127,7 @@ const STREAM_FIELDS = [
   // nothing about what the turn said.
   'streamedThisTurn',
   // MOJAZ (order 2026-10-09): sizes, switch states, model ids and provider billing integers -- the sentence a guard drops is never printed.
-  'chars', 'edits', 'prunedChars', 'addedChars', 'cacheWriteTokens', 'cacheReadTokens', 'prompt', 'guards', 'escalate', 'fromModel', 'toModel',
+  'chars', 'edits', 'prunedChars', 'addedChars', 'cacheWriteTokens', 'cacheReadTokens', 'prompt', 'guards', 'escalate', 'fromModel', 'toModel', 'scope', 'writerModel',
   // number of milliseconds — wall time of the terminal write, `Date.now() - writeStartedAt`.
   // A duration; there is no string in it to be reader text.
   'terminalWriteMs',

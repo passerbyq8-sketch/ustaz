@@ -1942,12 +1942,18 @@ export default async function handler(req, res) {
     // a sentence of content was left the last time it ran.
     const mojazState = { removed: [], contentLeft: true };
     const mojazLogDrop = (r) => console.log('[mojaz/guard]', { kind: r.kind, chars: r.chars });
+    // MOJAZ_SCOPE=bw2 (hybrid order 2026-10-09): the brief block, guard and escalation belong to the before-writing writer alone; the free brain runs as production.
+    const mojazScopeBw2 = mojazOn && mojazF.scopeBw2;
+    // MOJAZ_WRITER_MODEL: the before-writing writer's own model (an empty value is the turn's model).
+    const bw2WriterModel = mojazOn && mojazF.writerModel ? mojazF.writerModel : '';
     const mojazSystemFor = (base) => {
       if (!mojazPrompt) return base;
       const built = mojazSystem(base);
       console.log('[mojaz/prompt]', { edits: built.edits.length, prunedChars: built.edits.reduce((n, e) => n + e.chars, 0), addedChars: built.addedChars });
       return built.system;
     };
+    // The free brain takes the brief block only when the scope is not the before-writing writer alone.
+    const mojazFbSystemFor = (base) => (mojazScopeBw2 ? base : mojazSystemFor(base));
     const mojazCards = (text) => (String(text || '').match(/<(?:source|book)/giu) || []).length;
     const mojazUsage = (e) => {
       const u = (e && e.usage) || {};
@@ -1961,16 +1967,19 @@ export default async function handler(req, res) {
       escalateModel: mojazEscOn ? mojazF.escalateModel : '',
       onEscalate: (e) => console.log('[mojaz/escalate]', e),
       onEscalateSkipped: (e) => console.log('[mojaz/escalate-skipped]', e),
+      onHold: (e) => console.log('[mojaz/hold]', e),
       onUsage: mojazUsage,
     } : null;
     const bw2Mojaz = mojazHooks ? {
       ...mojazHooks,
       pickTop: mojazPrompt ? (kept, direct) => topSourcesInJudgeOrder(kept, direct, MOJAZ_TOP_SOURCES) : null,
-      newUnitGuard: mojazGuardOn ? () => createUnitGuard({ question: questionText, sourceCount: 0 }) : null,
+      newUnitGuard: mojazGuardOn ? () => createUnitGuard({ question: questionText, sourceCount: 0, toolTalk: mojazScopeBw2 }) : null,
+      hold: mojazScopeBw2 && mojazEscOn,
+      escalateSystem: mojazScopeBw2 && mojazEscOn && mojazPrompt ? system : null,
       isNotFound: mojazPrompt ? isMojazNotFoundSentence : null,
       onDrop: mojazLogDrop,
     } : null;
-    const fbMojaz = mojazHooks ? {
+    const fbMojaz = mojazHooks && !mojazScopeBw2 ? {
       // The guard reads the whole text before the reader has any of it, and a turn escalates only while nothing has gone out.
       noStream: mojazGuardOn || mojazEscOn,
       outputCap: mojazHooks.outputCap,
@@ -1983,7 +1992,7 @@ export default async function handler(req, res) {
       } : null,
     } : null;
     if (mojazOn) {
-      console.log('[mojaz]', { prompt: mojazPrompt, guards: mojazGuardOn, escalate: mojazEscOn, model });
+      console.log('[mojaz]', { prompt: mojazPrompt, guards: mojazGuardOn, escalate: mojazEscOn, model, ...(mojazScopeBw2 ? { scope: 'bw2' } : {}), ...(bw2WriterModel ? { writerModel: bw2WriterModel } : {}) });
     }
     // PIPES fix 3: set when the before-writing path found no text in our own sources and handed the turn on
     // unfinished; today's path below then runs as the live offer would have run it, with no button.
@@ -2018,7 +2027,7 @@ export default async function handler(req, res) {
           mode: readRequestedDepth(body.depth) || 'brief',
           band,
           system: mojazSystemFor(system),
-          model,
+          model: bw2WriterModel || model,
           maxTokens,
           usePremium,
           effort: round2Effort,
@@ -2056,6 +2065,7 @@ export default async function handler(req, res) {
           judgeMs: t.judgeMs, judgeKept: t.judgeKept, judgeComplete: t.judgeComplete,
           unjudgedKept: t.unjudgedKept, judgeOutcome: t.judgeOutcome,
           schools: t.schools,
+          ...(t.writerModel ? { writerModel: t.writerModel } : {}),
           writerCalls: t.writerCalls, writerMs: t.writerMs, writerOutcome: t.writerOutcome,
           firstReleaseMs: t.firstReleaseMs,
           unitsReleased: t.unitsReleased, unitsHeld: t.unitsHeld, cardsSent: t.cardsSent,
@@ -2117,7 +2127,7 @@ export default async function handler(req, res) {
       try {
         const runFree = (turnModel) => runFreeBrainTurn({
           messages: body.messages,
-          system: mojazSystemFor(appendDepthBlock(generalSystem || system, buildFreeBrainInstruction({ band }))),
+          system: mojazFbSystemFor(appendDepthBlock(generalSystem || system, buildFreeBrainInstruction({ band }))),
           model: turnModel,
           maxTokens,
           usePremium,
@@ -2176,7 +2186,7 @@ export default async function handler(req, res) {
         out = await runFree(model);
         // MOJAZ_ESCALATE_V1: the brief turn ended with nothing to show -- written once more, on the stronger model, under the
         // same instructions and the same guard. Only while nothing of it has gone to the reader; otherwise it is only logged.
-        if (mojazEscOn && !freeUpstream.signal.aborted && !readerGone.aborted) {
+        if (mojazEscOn && !mojazScopeBw2 && !freeUpstream.signal.aborted && !readerGone.aborted) {
           const reason = escalationReason({
             text: out.text, route: effectiveRoute, citedCount: Array.isArray(out.cited) ? out.cited.length : 0,
             cardCount: mojazCards(out.text), guardRemoved: mojazState.removed.length, contentLeft: mojazState.contentLeft,

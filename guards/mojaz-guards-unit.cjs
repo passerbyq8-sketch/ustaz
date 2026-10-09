@@ -157,8 +157,8 @@ const eq = (actual, expected, label) => ok(JSON.stringify(actual) === JSON.strin
   }
 
   // ── switches, tier, helpers ───────────────────────────────────────────────
-  eq(M.mojazFlags({}), { prompt: false, guards: false, escalate: false, any: false, escalateModel: '' }, 'all off when unset');
-  eq(M.mojazFlags({ MOJAZ_PROMPT_V1: '1', MOJAZ_GUARDS_V1: 'on', MOJAZ_ESCALATE_V1: 'true', MODEL_ESCALATE: 'claude-sonnet-5' }), { prompt: true, guards: true, escalate: true, any: true, escalateModel: 'claude-sonnet-5' }, '1, on and true all read as on');
+  eq(M.mojazFlags({}), { prompt: false, guards: false, escalate: false, any: false, escalateModel: '', writerModel: '', scopeBw2: false }, 'all off when unset');
+  eq(M.mojazFlags({ MOJAZ_PROMPT_V1: '1', MOJAZ_GUARDS_V1: 'on', MOJAZ_ESCALATE_V1: 'true', MODEL_ESCALATE: 'claude-sonnet-5' }), { prompt: true, guards: true, escalate: true, any: true, escalateModel: 'claude-sonnet-5', writerModel: '', scopeBw2: false }, '1, on and true all read as on');
   eq(M.mojazFlags({ MOJAZ_PROMPT_V1: 'yes', MOJAZ_GUARDS_V1: '0', MOJAZ_ESCALATE_V1: 'ON ' }).any, true, 'a padded ON counts, a typo does not');
   eq(M.mojazFlags({ MOJAZ_PROMPT_V1: 'yes', MOJAZ_GUARDS_V1: '0' }).any, false, 'a typo and a zero are off');
   eq(M.mojazFlags({ MOJAZ_ESCALATE_V1: '1' }).escalate, false, 'escalation without a model is off');

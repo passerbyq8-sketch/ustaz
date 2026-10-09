@@ -246,8 +246,8 @@ async function main() {
     ok('F7 the stored context follows the verdict at its producer (WORLDLY -> GENERAL), no consumer touched', iStored > iShadow && /sorterState === 'worldly'\s*\?\s*\{ \.\.\.storedContextLexical, runtime: 'GENERAL', resolvedDomain: 'GENERAL' \}/.test(askSource));
     ok('F8 the general system is derived from the system already built, so the date block is built once; the free brain is handed it; BW2 is handed the shari\'a system as before',
       /generalizeSystemBlocks\(system, depthInstruction, effectiveDepth\)/.test(askSource) && (askSource.match(/buildTodayBlock\(/g) || []).length === 1
-      && /system: mojazSystemFor\(appendDepthBlock\(generalSystem \|\| system, buildFreeBrainInstruction\(\{ band \}\)\)\)/.test(askSource)
-      && /\n          system: mojazSystemFor\(system\),\n          model,\n          maxTokens,\n          usePremium,\n          effort: round2Effort,\n          providerUrl: ANTHROPIC_URL,/.test(askSource));
+      && /system: mojazFbSystemFor\(appendDepthBlock\(generalSystem \|\| system, buildFreeBrainInstruction\(\{ band \}\)\)\)/.test(askSource)
+      && /\n          system: mojazSystemFor\(system\),\n          model: bw2WriterModel \|\| model,\n          maxTokens,\n          usePremium,\n          effort: round2Effort,\n          providerUrl: ANTHROPIC_URL,/.test(askSource));
     ok('F9 the classifyImpermissibleRequest site is untouched', /const impermissible = effectiveRoute === 'GEN'/.test(askSource));
     ok('F10 the five new telemetry names are the whole of what the route line adds',
       /lexicalRuntime: currentRuntime, runtime: currentRuntime, sorter: sorterPlan\.sorter, sorterMs: 0, frame: frameFor\(currentRuntime\)/.test(askSource));
