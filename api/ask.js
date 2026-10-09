@@ -2066,6 +2066,7 @@ export default async function handler(req, res) {
           unjudgedKept: t.unjudgedKept, judgeOutcome: t.judgeOutcome,
           schools: t.schools,
           ...(t.writerModel ? { writerModel: t.writerModel } : {}),
+          ...(Number.isFinite(t.elapsedMs) ? { elapsedMs: t.elapsedMs } : {}),
           writerCalls: t.writerCalls, writerMs: t.writerMs, writerOutcome: t.writerOutcome,
           firstReleaseMs: t.firstReleaseMs,
           unitsReleased: t.unitsReleased, unitsHeld: t.unitsHeld, cardsSent: t.cardsSent,
