@@ -25,6 +25,7 @@ const ROW = {
   text: 'السؤال: ' + Q + ' الجواب: ' + RULING + '، ' + TERM + '.',
   passage: 'السؤال: ' + Q + '\nالجواب: ' + RULING + '، ' + TERM + '.',
 };
+const ROW2 = { ...ROW, title: 'فتوى أخرى ZZSECOND', url: 'https://binbaz.org.sa/fatwas/5678', recordId: '5678', text: ROW.text + ' ZZSECOND', passage: ROW.passage + ' ZZSECOND' };
 const GOOD = RULING + ' [[1]].\n' + TERM + ' [[1]].';
 const GREET = 'السلام عليكم ورحمة الله وبركاته، تفضل يا مستخدم.';
 const TOOL_TALK = 'أكمل الآن بالجواب، ولم أستدعِ أداةً جديدة، فالنتائج التي بين يديّ تكفي للمسألة.';
@@ -69,7 +70,7 @@ const TOOL_TALK = 'أكمل الآن بالجواب، ولم أستدعِ أدا
 
   // -- the turn, with fakes ---------------------------------------------------
   const cards = { buildSourceTag: ASK.buildSourceTag, buildBookTag: ASK.buildBookTag, encyclopediaCards: false, max: 3 };
-  const run = async ({ writers, mojaz, question = Q }) => {
+  const run = async ({ writers, mojaz, question = Q, second = false }) => {
     const pieces = [];
     let sent = '';
     const wire = {
@@ -80,12 +81,12 @@ const TOOL_TALK = 'أكمل الآن بالجواب، ولم أستدعِ أدا
     const bodies = [];
     let n = 0;
     const deps = {
-      runTool: (name, input, ctx) => Promise.resolve({ text: '', added: name === 'search_fatawa' ? [ctx.table.add({ ...ROW })] : [], calls: 1 }),
+      runTool: (name, input, ctx) => Promise.resolve({ text: '', added: name === 'search_fatawa' ? [ctx.table.add({ ...ROW }), ...(second ? [ctx.table.add({ ...ROW2 })] : [])] : [], calls: 1 }),
       searchStoredCorpus: async () => ({ records: [] }),
       warmEncyclopedia: async () => true, encyclopediaReady: () => true,
       ask: async ({ user }) => JSON.stringify({ d: Object.fromEntries(Array.from({ length: (user.match(/^\[\d+\] /gmu) || []).length }, (_, i) => [String(i + 1), 1])) }),
       callWriter: async ({ body, onText }) => {
-        bodies.push({ model: body.model, system: body.system, max_tokens: body.max_tokens });
+        bodies.push({ model: body.model, system: body.system, max_tokens: body.max_tokens, messages: JSON.stringify(body.messages) });
         const text = writers[Math.min(n, writers.length - 1)];
         n += 1;
         for (let i = 0; i < text.length; i += 13) onText(text.slice(i, i + 13));
@@ -128,6 +129,13 @@ const TOOL_TALK = 'أكمل الآن بالجواب، ولم أستدعِ أدا
   ok(!redo.sent.includes(SHORT) && redo.sent.includes(RULING), 'escalated: nothing of the first writer reached the reader, the second\'s answer did', redo.sent);
   ok(logs.escalate.length === 1 && logs.escalate[0].path === 'bw2' && logs.escalate[0].fromModel === 'writer-haiku' && logs.escalate[0].toModel === 'sonnet-x' && typeof logs.escalate[0].reason === 'string' && logs.escalate[0].reason !== '', 'escalated: the line carries reason, path, from and to', JSON.stringify(logs.escalate));
   ok(redo.out.telemetry.writerCalls === 2 && redo.out.telemetry.writerModel === 'sonnet-x', 'escalated: telemetry says two calls and whose');
+
+  // 3b. the stronger model is shown every row the judge kept, not the brief block's top one; the first pass is shown the top one only
+  reset();
+  const wide = await run({ writers: [SHORT, GOOD], mojaz: hybrid({ pickTop: (kept) => kept.slice(0, 1) }), second: true });
+  ok(wide.bodies.length === 2 && !wide.bodies[0].messages.includes('ZZSECOND') && wide.bodies[1].messages.includes('ZZSECOND'), 'escalated: the production writer sees all the kept rows, the brief writer saw the top one', wide.bodies.map((b) => b.messages.length).join(','));
+  const narrow = await run({ writers: [GOOD], mojaz: hybrid({ pickTop: (kept) => kept.slice(0, 1) }), second: true });
+  ok(narrow.bodies.length === 1 && !narrow.bodies[0].messages.includes('ZZSECOND'), 'not escalated: the brief writer saw the top one only');
 
   // 4. the guard takes the whole answer (a greeting): nothing left, written again
   reset();
