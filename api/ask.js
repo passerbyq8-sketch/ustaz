@@ -138,6 +138,11 @@ import { runClosedDeenTurn } from '../lib/closed-deen.js';
 import { LIB_MAX_CHARS_PER_HIT_DEFAULT } from '../lib/lib-contract.js';
 import { freeBrainDecision, beforeWritingV2Decision, beforeWritingV2Takes, readLiveSearch, bw2ContinueDecision } from '../lib/free-brain/flag.js';
 import { bw2ScopeExclusion } from '../lib/bw2-scope.js';
+// THE BRIEF TIER (order EZIK-CC-HAIKU55-MOJAZ-2026-10-09): three switches, all off unless set (lib/mojaz.js).
+import { mojazFlags, isMojazTier, mojazSystem, topSourcesInJudgeOrder } from '../lib/mojaz.js';
+import { guardMojaz, createUnitGuard, isMojazNotFoundSentence } from '../lib/mojaz-guards.js';
+import { escalationReason } from '../lib/mojaz-escalate.js';
+import { MOJAZ_OUTPUT_CAP, MOJAZ_TOP_SOURCES } from '../lib/mojaz-prompt.js';
 // THE FRONT SORTER AND THE GENERAL FRAME (order EZIK-SORTER-ORDER-2026-10-01). One fast-model call
 // separates a worldly request that carries a religious-looking word from a religious one BEFORE it is
 // framed; a turn that ends GENERAL is then answered in the general frame. Both modules are pure.
@@ -1925,6 +1930,61 @@ export default async function handler(req, res) {
       lexicalRoute: effectiveRoute, band, audienceBand, bw2: bw2Taken, liveSearch,
       runtime: currentRuntime, frame: answerFrame,
     });
+    // ── THE BRIEF TIER (MOJAZ) ─────────────────────────────────────────────────
+    // An adult reader at the brief depth, and only when one of the three switches is on; every value below is
+    // null/false otherwise and the calls further down are then byte for byte what they were.
+    const mojazF = mojazFlags();
+    const mojazOn = mojazF.any && isMojazTier({ band, effectiveDepth }) && !childBenignReserved;
+    const mojazPrompt = mojazOn && mojazF.prompt;
+    const mojazGuardOn = mojazOn && mojazF.guards;
+    const mojazEscOn = mojazOn && mojazF.escalate;
+    // What the guard dropped this turn (kind and size only -- the sentence itself is never logged), and whether
+    // a sentence of content was left the last time it ran.
+    const mojazState = { removed: [], contentLeft: true };
+    const mojazLogDrop = (r) => console.log('[mojaz/guard]', { kind: r.kind, chars: r.chars });
+    const mojazSystemFor = (base) => {
+      if (!mojazPrompt) return base;
+      const built = mojazSystem(base);
+      console.log('[mojaz/prompt]', { edits: built.edits.length, prunedChars: built.edits.reduce((n, e) => n + e.chars, 0), addedChars: built.addedChars });
+      return built.system;
+    };
+    const mojazCards = (text) => (String(text || '').match(/<(?:source|book)/giu) || []).length;
+    const mojazUsage = (e) => {
+      const u = (e && e.usage) || {};
+      console.log('[mojaz/usage]', {
+        model: e && e.model, inTokens: u.input_tokens ?? null, outTokens: u.output_tokens ?? null,
+        cacheWriteTokens: u.cache_creation_input_tokens ?? null, cacheReadTokens: u.cache_read_input_tokens ?? null,
+      });
+    };
+    const mojazHooks = mojazOn ? {
+      outputCap: mojazPrompt ? MOJAZ_OUTPUT_CAP : 0,
+      escalateModel: mojazEscOn ? mojazF.escalateModel : '',
+      onEscalate: (e) => console.log('[mojaz/escalate]', e),
+      onEscalateSkipped: (e) => console.log('[mojaz/escalate-skipped]', e),
+      onUsage: mojazUsage,
+    } : null;
+    const bw2Mojaz = mojazHooks ? {
+      ...mojazHooks,
+      pickTop: mojazPrompt ? (kept, direct) => topSourcesInJudgeOrder(kept, direct, MOJAZ_TOP_SOURCES) : null,
+      newUnitGuard: mojazGuardOn ? () => createUnitGuard({ question: questionText, sourceCount: 0 }) : null,
+      isNotFound: mojazPrompt ? isMojazNotFoundSentence : null,
+      onDrop: mojazLogDrop,
+    } : null;
+    const fbMojaz = mojazHooks ? {
+      // The guard reads the whole text before the reader has any of it, and a turn escalates only while nothing has gone out.
+      noStream: mojazGuardOn || mojazEscOn,
+      outputCap: mojazHooks.outputCap,
+      topRows: mojazPrompt ? MOJAZ_TOP_SOURCES : 0,
+      guardText: mojazGuardOn ? (text, citedCount) => {
+        const g = guardMojaz(text, { question: questionText, sourceCount: Math.max(Number(citedCount) || 0, mojazCards(text)) });
+        for (const r of g.removed) { mojazLogDrop(r); mojazState.removed.push(r); }
+        mojazState.contentLeft = g.contentLeft;
+        return g.text;
+      } : null,
+    } : null;
+    if (mojazOn) {
+      console.log('[mojaz]', { prompt: mojazPrompt, guards: mojazGuardOn, escalate: mojazEscOn, model });
+    }
     // PIPES fix 3: set when the before-writing path found no text in our own sources and handed the turn on
     // unfinished; today's path below then runs as the live offer would have run it, with no button.
     let bw2Continued = false;
@@ -1957,7 +2017,7 @@ export default async function handler(req, res) {
           messages: body.messages,
           mode: readRequestedDepth(body.depth) || 'brief',
           band,
-          system,
+          system: mojazSystemFor(system),
           model,
           maxTokens,
           usePremium,
@@ -1979,6 +2039,7 @@ export default async function handler(req, res) {
           continueWhenNotCovered: bw2ContinueDecision().enabled,
           // SPEED W6B B5: the lessons block under the answer is the lessons it rests on (lib/finalized-sse-writer.js).
           onLessonRows: (rows) => { finalizerContext.lessonRows = rows; },
+          mojaz: bw2Mojaz,
         });
       } finally {
         bw2Upstream.cleanup();
@@ -2054,10 +2115,10 @@ export default async function handler(req, res) {
       const freeUpstream = bindUpstreamToClient(readerGone);
       let out;
       try {
-        out = await runFreeBrainTurn({
+        const runFree = (turnModel) => runFreeBrainTurn({
           messages: body.messages,
-          system: appendDepthBlock(generalSystem || system, buildFreeBrainInstruction({ band })),
-          model,
+          system: mojazSystemFor(appendDepthBlock(generalSystem || system, buildFreeBrainInstruction({ band }))),
+          model: turnModel,
           maxTokens,
           usePremium,
           effort: round2Effort,
@@ -2110,7 +2171,25 @@ export default async function handler(req, res) {
           forceFirstTool: (liveSearch || bw2Continued) ? 'search_sources' : null,
           // SPEED W6A A2: the rows the before-writing path gathered, taken in place of asking again.
           handOver: bw2HandOver,
+          mojaz: fbMojaz,
         });
+        out = await runFree(model);
+        // MOJAZ_ESCALATE_V1: the brief turn ended with nothing to show -- written once more, on the stronger model, under the
+        // same instructions and the same guard. Only while nothing of it has gone to the reader; otherwise it is only logged.
+        if (mojazEscOn && !freeUpstream.signal.aborted && !readerGone.aborted) {
+          const reason = escalationReason({
+            text: out.text, route: effectiveRoute, citedCount: Array.isArray(out.cited) ? out.cited.length : 0,
+            cardCount: mojazCards(out.text), guardRemoved: mojazState.removed.length, contentLeft: mojazState.contentLeft,
+          });
+          if (reason && out.streamedThisTurn === true) {
+            console.log('[mojaz/escalate-skipped]', { reason: 'text_already_released' });
+          } else if (reason) {
+            console.log('[mojaz/escalate]', { reason, fromModel: model, toModel: mojazF.escalateModel });
+            mojazState.removed = [];
+            mojazState.contentLeft = true;
+            out = await runFree(mojazF.escalateModel);
+          }
+        }
       } finally {
         freeUpstream.cleanup();
       }
