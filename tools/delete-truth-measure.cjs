@@ -146,7 +146,11 @@ const LANGUAGE = new Set(['Array', 'Object', 'JSON', 'String', 'Number', 'Boolea
 // What the harness stands in for -- the browser and the React bindings resetAll closes over.
 const ENV_NAMES = ['window', 'document', 'localStorage', 'confirm', 'CustomEvent',
   'setDirectConvoLocked', 'setProfile', 'setMessages', 'setChatId', 'setChatList', 'setScreen',
-  'chatIdRef', 'EZIK_ENABLED_LANGS', 'location'];
+  'chatIdRef', 'EZIK_ENABLED_LANGS', 'location',
+  // ITEMS 24 + 58 and ITEM 142: the server half of the erase (a fetch, only for an account the
+  // sync switch is open for), its retry timer, the device id it signs with, and the mushaf
+  // downloads store the button now deletes for everybody.
+  'fetch', 'setTimeout', 'caches', 'crypto'];
 
 const V_RESET = innerConst('App', 'resetAll');
 
@@ -465,6 +469,9 @@ const MUST_GO_ALREADY = [
   // and on one thing that IS about the reader: the key's presence says this device opened the
   // zakat calculator on that day, and a device handed on to somebody else should not say so.
   { c: 'EZC_GOLD_PRICE_KEY' },
+  // ITEMS 24 + 58 -- the sync engine's cursor and its per-record hashes. A device that was erased
+  // starts its next sync from nothing, so this goes with everything else.
+  { c: 'EZIK_SYNC_STATE_KEY' },
 ];
 
 // What delete.html:94 and :138 promise and the code did not keep of its own accord. Each is
@@ -645,6 +652,9 @@ function scene(opts) {
   const painted = [];
   const setters = [];
   const storage = fakeStorage();
+  const fetched = [];
+  const timers = [];
+  const cacheDeleted = [];
 
   // Every key the application knows, each with a value that is plainly this tool's, so a survivor
   // read back later cannot be mistaken for a default the code invented for itself.
@@ -671,8 +681,13 @@ function scene(opts) {
     setChatList: (v) => { setters.push(['setChatList', v]); },
     setScreen: (v) => { setters.push(['setScreen', v]); },
     chatIdRef: { current: 'c_alpha' },
+    fetch: (u, i) => { fetched.push(String(u)); return Promise.resolve({ ok: true, json: async () => ({ ok: true }) }); },
+    setTimeout: (fn) => { timers.push(fn); return 0; },
+    caches: { delete: (name) => { cacheDeleted.push(name); return Promise.resolve(true); } },
+    crypto: { getRandomValues: (a) => a, randomUUID: () => 'uuid-fixture-0001' },
   };
   return {
+    fetched: fetched, timers: timers, cacheDeleted: cacheDeleted,
     h: makeHarness(env), env: env, storage: storage,
     asked: asked, events: events, painted: painted, setters: setters,
     seeded: storage.keys().slice(),
@@ -915,6 +930,20 @@ run('clearQiblaLoc is untouched and is still its own button', () => {
 });
 
 // ---- The page still says what the code is being held to. ------------------------------------
+run('ITEM 142: the press deletes the mushaf downloads store, for everybody', () => {
+  const sc = scene({});
+  sc.h.resetAll();
+  eq(sc.cacheDeleted, ['ezik-mushaf-downloads-v1'], 'cache stores deleted by the press');
+  return 'caches.delete(ezik-mushaf-downloads-v1) -- the page scans store ezik-mushaf-pages-v1 is not touched';
+});
+
+run('ITEMS 24 + 58: with the sync switch closed the press sends NOTHING anywhere', () => {
+  const sc = scene({});
+  sc.h.resetAll();
+  eq(sc.fetched, [], 'requests made by the press');
+  return 'zero requests: the server half is only for an account the switch is open for';
+});
+
 run('delete.html still carries both promises this tool measures against', () => {
   const arabic = 'قرارُ موافقة الذكاء الاصطناعيّ ورقمُ نسخته';
   const english = 'the AI-consent decision and its version number';

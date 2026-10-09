@@ -899,3 +899,4 @@ lib/sync/memory.js text eol=lf
 api/sync.js text eol=lf
 guards/sync-fake-store.cjs text eol=lf
 guards/sync-server-guard.cjs text eol=lf
+guards/sync-client-guard.cjs text eol=lf

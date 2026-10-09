@@ -1136,6 +1136,20 @@ const EZ_I18N = {
     'backup.restore': 'استعد',
     'backup.ok': 'استُعيدت الإعدادات.',
     'backup.bad': 'هذا النص ليس نسخة صالحة من إعدادات الصلاة، ولم يتغيّر شيء.',
+    // ITEMS 24 + 58 -- the account row: download my data, link the other account, the new privacy page.
+    'sync.title': 'بياناتي على حسابي',
+    'sync.hint': 'محادثاتك وورْدك وإعداداتك محفوظةٌ في حسابك مشفّرةً، وتظهر على كلّ جهازٍ تدخل منه.',
+    'sync.export': 'نزّل بياناتي',
+    'sync.exportOk': 'نُزِّل ملفُّ بياناتك.',
+    'sync.exportFailed': 'تعذّر تنزيلُ بياناتك. جرّب بعد قليل.',
+    'sync.link': 'اربط حسابك الآخر',
+    'sync.linkHint': 'سجّل الدخول بحسابك الآخر، فيجتمع ما في الحسابين في حسابٍ واحد.',
+    'sync.linkGoogle': 'الدخول بجوجل',
+    'sync.linkApple': 'الدخول بآبل',
+    'sync.linked': 'رُبط الحسابان، وصار ما فيهما واحدًا.',
+    'sync.linkFailed': 'تعذّر ربطُ الحسابين. جرّب مرّة أخرى.',
+    'sync.privacy': 'كيف نحفظ بياناتك (سياسة الخصوصية الجديدة)',
+    'sync.backupMoved': 'بياناتك كلّها محفوظةٌ في حسابك، ويمكنك تنزيلها ملفًّا.',
     'alerts.backup': 'تشمل النسخة: المنهج ومذهب العصر والإزاحات واختيار الصوت وتذكير الإقامة والتنبيه قبل الصلاة والموقع والمكان المختار وإزاحة الهجري وتنبيهات الأذكار المرتبطة بالصلاة. لا تشمل مفتاح تذكير المواقيت لأنه لا يُفعَّل إلا بإذن من النظام.',
     'conv.title': 'محوّل التاريخ',
     'conv.greg': 'من الميلادي',
@@ -2393,6 +2407,20 @@ const EZ_I18N = {
     'backup.restore': 'Restore',
     'backup.ok': 'The settings were restored.',
     'backup.bad': 'This text is not a valid copy of the prayer settings; nothing was changed.',
+    // ITEMS 24 + 58 -- the account row: download my data, link the other account, the new privacy page.
+    'sync.title': 'My data on my account',
+    'sync.hint': 'Your conversations, wird and settings are kept in your account, encrypted, and appear on every device you sign in on.',
+    'sync.export': 'Download my data',
+    'sync.exportOk': 'Your data file was downloaded.',
+    'sync.exportFailed': 'Your data could not be downloaded. Try again shortly.',
+    'sync.link': 'Link your other account',
+    'sync.linkHint': 'Sign in with your other account, and the two accounts become one.',
+    'sync.linkGoogle': 'Sign in with Google',
+    'sync.linkApple': 'Sign in with Apple',
+    'sync.linked': 'The two accounts are linked and now hold the same data.',
+    'sync.linkFailed': 'The accounts could not be linked. Try again.',
+    'sync.privacy': 'How we keep your data (the new privacy policy)',
+    'sync.backupMoved': 'All your data is kept in your account, and you can download it as a file.',
     'alerts.backup': 'The copy holds: the method, asr school, offsets, sound choice, iqama and pre-prayer alerts, position, chosen place, Hijri offset and the prayer-anchored adhkar alerts. It does not hold the prayer-reminder switch, which is only ever turned on with the system\'s permission.',
     'conv.title': 'Date converter',
     'conv.greg': 'From Gregorian',
@@ -4611,6 +4639,9 @@ const capHeaders = () => {
   // D06: رمزٌ ميّتٌ (منتهٍ أو من الإصدارِ الأوّل) لا يُرسَل. إرسالُه غيرُ ضارٍّ — الخادمُ يرفضُه —
   // لكنّ الامتناعَ يبقي ما يقولُه العميلُ عن نفسِه مطابقًا لما يعرضُه: نفسُ المحكِّ في الموضعين.
   try { const t = localStorage.getItem(FOUNDER_TOKEN_KEY); if (founderTokenAlive(t)) h['x-murabbi-founder'] = t; } catch (e) {}
+  // ITEMS 24 + 58: the session rides along ONLY for an account the server said is open, so the
+  // day cap counts the account and item 58 can know the owner. Closed: not one byte changes.
+  try { if (ezikSyncIsOpen()) { const held = readAuthSession(); if (held) h['x-ezik-session'] = held.session; } } catch (e) {}
   return h;
 };
 
@@ -20108,6 +20139,12 @@ function App() {
 
   const resetAll = () => {
     if (confirm(ezX('هل أنت متأكد من حذف كل البيانات؟'))) {
+      // ITEMS 24 + 58: the account's synced copy is erased on the server too, fired BEFORE the
+      // session below is cleared (open accounts only; nothing is sent for anybody else).
+      ezikSyncWipeServer();
+      // ITEM 142: and the mushaf downloads leave this device with everything else -- for everybody.
+      ezikClearMushafDownloads();
+      try { localStorage.removeItem(EZIK_SYNC_STATE_KEY); } catch (e) {}
       localStorage.removeItem('child_profile');
       // S92 -- "delete all my data" has to mean the SAVED CONVERSATIONS too: every stored body,
       // the index that lists them, and the single legacy thread the old 'messages' key held.
@@ -26490,9 +26527,460 @@ function readAuthSession() {
 }
 function writeAuthSession(o) {
   try { localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(o)); } catch (e) {}
+  // ITEMS 24 + 58: a new session is where a pending «link your other account» completes, and
+  // where the engine wakes (it asks the server first, and does nothing while the switch is shut).
+  try { if (o && typeof o.session === 'string') { ezikSyncFinishLink(o.session); ezikSyncKick(); } } catch (e) {}
 }
 function clearAuthSession() {
   try { localStorage.removeItem(AUTH_SESSION_KEY); } catch (e) {}
+}
+
+// ============================================================
+// ITEMS 24 + 58 -- THE SYNC ENGINE (behind SYNC_SWITCH on the server)
+// ============================================================
+// WHAT MOVES BETWEEN DEVICES, AND WHAT NEVER LEAVES ONE, IS THE OWNER'S TABLE (decision 2 of
+// 5 October), written ONCE here as ezikSyncKv() / ezikSyncCtr() plus the four shaped records
+// below. A key that is in none of them is a DEVICE key and is never read by this engine: the
+// place of prayer and the qibla, the reminders and their hours, the AI consent, the parental lock
+// and its code, the mushaf downloads, the device id, the session itself.
+//
+// NOTHING RUNS WHILE THE SWITCH IS CLOSED. Every cycle starts by asking /api/sync `status`, and
+// only a signed-in reader whose account the server says is open goes further. A guest, a
+// signed-out reader, a closed switch, an unreachable server: the engine does nothing at all.
+//
+// THE CYCLE. Collect every synced value on this device; anything that differs from what the last
+// cycle agreed with the server (the "shadow", a hash per record) is pushed; the server merges it
+// by the conflict rules (lib/sync/merge.js) and answers the merged record, which is written back
+// here; then everything that changed on the server since this device's cursor is pulled and
+// written. The first cycle after signing in has no shadow, so EVERYTHING on the device goes up
+// and is JOINED with the account -- nothing is erased on either side.
+//
+// CONVERSATIONS TRAVEL AS TEXT. An attached image is replaced by a mark; the device that holds
+// the image keeps it (the merge knows a message by its role, time and text, so the two copies
+// are one message).
+const EZIK_SYNC_STATE_KEY = 'ezik_sync_state_v1';
+const EZIK_SYNC_PATH = '/api/sync';
+const EZIK_SYNC_LINK_SLOT = 'ezik_sync_link_v1';
+// The mark an attached image leaves on the other devices -- the SAME string lib/sync/merge.js
+// IMAGE_ELSEWHERE holds, so the server knows a marked copy and the device's own copy as one message.
+const EZIK_SYNC_IMAGE_MARK = '📷 [صورة على جهاز آخر]';
+function ezikSyncKv() { return [
+  EZIK_VISUAL_THEME_KEY, EZ_LANG_KEY, EZWID_KEY, HOME_ORDER_KEY, HIJRI_OFFSET_KEY,
+  EZIK_FATWA_SCHOLARS_KEY, MUSHAF_BOOKMARK_KEY, MUSHAF_LAST_PAGE_KEY, WIRD_TARGET_KEY,
+  DAILY_WIRD_KEY, WIRD_LIST_KEY, ADHKAR_FAVORITES_KEY, ADHKAR_PLACE_KEY, TASBIH_SESSION_KEY,
+  'lab.bm', 'lab.last', 'lab.notes', 'lab.refl', 'lab.tags', 'lab.fav', 'ezlib_pos_v1',
+]; }
+function ezikSyncCtr() { return [
+  KHATMAH_KEY, WIRD_DAY_KEY, ADHKAR_PROGRESS_KEY, ADHKAR_USAGE_KEY, ADHKAR_STREAK_KEY, TASBIH_LOG_KEY,
+]; }
+// The four records that are SHAPED rather than copied, because their device copy carries a
+// device-only half: the profile (its pid files this device's conversations and consent), the
+// prayer settings (the alerts inside them stay), the reading preferences and the favourites
+// (both filed under this device's profile id).
+const EZIK_SYNC_PRAYER_FIELDS = ['method', 'asr', 'off'];
+// Every key the engine may ever touch, by name -- the table the client guard reads.
+function ezikSyncDeviceOnly() { return [
+  QIBLA_LOC_KEY, PRAYER_PLACE_KEY, PRAYER_SCHEDULE_KEY, PRAYER_NOTIFY_KEY, REMINDERS_KEY,
+  WIRD_ALERTS_KEY, EZ_AI_CONSENT_KEY, LEGACY_PIN_HASH_KEY, 'directConvoLocked', DEVICE_ID_KEY,
+  FOUNDER_TOKEN_KEY, AUTH_SESSION_KEY, ENTRY_CHOICE_KEY,
+]; }
+
+function ezikSyncHash(s) {
+  const str = String(s == null ? '' : s);
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(16) + '-' + str.length.toString(36);
+}
+function ezikSyncReadState() {
+  try {
+    const o = JSON.parse(localStorage.getItem(EZIK_SYNC_STATE_KEY) || 'null');
+    if (o && typeof o === 'object' && o.shadow && typeof o.shadow === 'object') return o;
+  } catch (e) {}
+  return { cursor: 0, shadow: {}, acct: '' };
+}
+function ezikSyncWriteState(st) {
+  try { localStorage.setItem(EZIK_SYNC_STATE_KEY, JSON.stringify(st)); } catch (e) {}
+}
+function ezikSyncLocalPid() {
+  try { const p = JSON.parse(localStorage.getItem('child_profile') || 'null'); return p && typeof p.pid === 'string' ? p.pid : ''; }
+  catch (e) { return ''; }
+}
+function ezikSyncJson(raw) { try { return JSON.parse(raw); } catch (e) { return undefined; } }
+
+/** Every synced value on this device: { id: val }. Device keys are never read. */
+function ezikSyncCollect() {
+  const out = {};
+  const get = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  for (const k of ezikSyncKv()) { const v = get(k); if (v !== null) out['kv:' + k] = v; }
+  for (const k of ezikSyncCtr()) { const v = ezikSyncJson(get(k)); if (v !== undefined && v !== null) out['ctr:' + k] = v; }
+  const prof = ezikSyncJson(get('child_profile'));
+  if (prof && typeof prof === 'object') out['kv:profile'] = { name: prof.name || '', birthYear: prof.birthYear || null, gender: prof.gender || null };
+  const prefs = ezikSyncJson(get(PRAYER_PREFS_KEY));
+  if (prefs && typeof prefs === 'object') {
+    const calc = {};
+    for (const f of EZIK_SYNC_PRAYER_FIELDS) if (prefs[f] !== undefined) calc[f] = prefs[f];
+    out['kv:prayer_calc'] = calc;
+  }
+  const pid = ezikSyncLocalPid();
+  if (pid) {
+    const a11y = ezikReadA11yAll()[pid];
+    if (a11y) out['kv:reading_prefs'] = a11y;
+    const favs = ezikReadFavs().filter((r) => r.pk === pid).map((r) => Object.assign({}, r, { pk: '*', id: '*' + r.id.slice(pid.length) }));
+    if (favs.length) out['kv:favorites'] = favs;
+  }
+  for (const r of ezikReadChatIndex()) {
+    if (pid && r.pk !== pid) continue;
+    out['chat:' + r.id] = { title: r.title || '', pinned: !!r.pinned, at: r.at || 0, msgs: ezikSyncTextOnly(ezikReadChatMessages(r.id)) };
+  }
+  return out;
+}
+
+/** A conversation as text: an attached image becomes a mark the other devices show. */
+function ezikSyncTextOnly(msgs) {
+  return (msgs || []).filter(Boolean).map((m) => {
+    if (!Array.isArray(m.content)) return m;
+    const blocks = [];
+    let img = false;
+    for (const b of m.content) { if (b && b.type === 'text' && typeof b.text === 'string') blocks.push({ type: 'text', text: b.text }); else img = true; }
+    if (img) blocks.unshift({ type: 'text', text: EZIK_SYNC_IMAGE_MARK });
+    return Object.assign({}, m, { content: blocks });
+  });
+}
+
+/** Write one record (merged by the server) onto this device. A tombstone removes it. */
+function ezikSyncApply(id, rec) {
+  const del = !rec || rec.del === true;
+  const val = rec ? rec.val : null;
+  const set = (k, v) => { try { if (v === null || v === undefined) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} };
+  if (id.indexOf('kv:') === 0 && ezikSyncKv().indexOf(id.slice(3)) !== -1) { set(id.slice(3), del ? null : String(val)); return; }
+  if (id.indexOf('ctr:') === 0 && ezikSyncCtr().indexOf(id.slice(4)) !== -1) { set(id.slice(4), del ? null : JSON.stringify(val)); return; }
+  const pid = ezikSyncLocalPid();
+  if (id === 'kv:profile') {
+    if (del || !val) return;
+    const p = ezikSyncJson(localStorage.getItem('child_profile'));
+    if (!p || typeof p !== 'object') return;      // no profile on this device yet: the onboarding makes one
+    const next = Object.assign({}, p, { name: String(val.name || ''), gender: val.gender === 'female' || val.gender === 'male' ? val.gender : null });
+    if (Number.isInteger(val.birthYear)) { next.birthYear = val.birthYear; next.age = new Date().getFullYear() - val.birthYear; }
+    set('child_profile', JSON.stringify(next));
+    return;
+  }
+  if (id === 'kv:prayer_calc') {
+    if (del || !val) return;
+    const cur = ezikSyncJson(localStorage.getItem(PRAYER_PREFS_KEY)) || {};
+    const next = Object.assign({}, cur);
+    for (const f of EZIK_SYNC_PRAYER_FIELDS) if (val[f] !== undefined) next[f] = val[f];
+    set(PRAYER_PREFS_KEY, JSON.stringify(next));
+    return;
+  }
+  if (id === 'kv:reading_prefs') {
+    if (!pid) return;
+    const map = ezikReadA11yAll();
+    if (del || !val) delete map[pid]; else map[pid] = val;
+    set(EZIK_A11Y_KEY, JSON.stringify(map));
+    return;
+  }
+  if (id === 'kv:favorites') {
+    if (!pid) return;
+    const others = ezikReadFavs().filter((r) => r.pk !== pid);
+    const mine = (del || !Array.isArray(val) ? [] : val).map((r) => Object.assign({}, r, { pk: pid, id: pid + String(r.id || '').slice(1) }));
+    set(EZIK_FAVS_KEY, JSON.stringify(mine.concat(others)));
+    return;
+  }
+  if (id.indexOf('chat:') === 0) {
+    const cid = id.slice(5);
+    const idx = ezikReadChatIndex().filter((r) => r.id !== cid);
+    if (del || !val) { set(EZIK_CHAT_PREFIX + cid, null); ezikWriteChatIndex(idx); return; }
+    // This device's own copy may still hold the image the server only has a mark for.
+    const local = ezikReadChatMessages(cid);
+    const keepImg = {};
+    for (const m of local) if (Array.isArray(m.content) && m.content.some((b) => b && b.type !== 'text')) keepImg[m.role + '|' + m.timestamp] = m;
+    const msgs = (val.msgs || []).map((m) => keepImg[m.role + '|' + m.timestamp] || m);
+    set(EZIK_CHAT_PREFIX + cid, JSON.stringify(msgs));
+    ezikWriteChatIndex([{ id: cid, pk: pid || 'anon', title: val.title || ezikChatTitle(msgs), pinned: !!val.pinned, at: val.at || Date.now() }].concat(idx));
+    return;
+  }
+  if (id.indexOf('note:') === 0) { ezikSyncLibApply(id.slice(5), del ? null : val); }
+}
+
+async function ezikSyncCall(body) {
+  const r = await fetch(EZIK_SYNC_PATH, {
+    method: 'POST',
+    headers: Object.assign({ 'Content-Type': 'application/json' }, capHeaders()),
+    body: JSON.stringify(body),
+  });
+  let d = null;
+  try { d = await r.json(); } catch (e) { d = null; }
+  return { ok: r.ok && !!d && d.ok === true, status: r.status, data: d };
+}
+
+// The switch as the server last answered it for THIS session. Read by the controls; never a
+// permission (the server checks every call itself).
+let ezikSyncOpenCache = { session: '', open: false, at: 0 };
+// A CLOSED answer is believed for half an hour, so a signed-in reader the switch is shut for costs
+// the server one small request per half hour of use -- not one per wake-up.
+const EZIK_SYNC_CLOSED_TTL_MS = 30 * 60 * 1000;
+function ezikSyncIsOpen() {
+  const held = readAuthSession();
+  return !!(held && ezikSyncOpenCache.session === held.session && ezikSyncOpenCache.open);
+}
+async function ezikSyncStatus() {
+  const held = readAuthSession();
+  if (!held) return false;
+  const c = ezikSyncOpenCache;
+  if (c.session === held.session && !c.open && Date.now() - (c.at || 0) < EZIK_SYNC_CLOSED_TTL_MS) return false;
+  try {
+    const r = await ezikSyncCall({ action: 'status', session: held.session });
+    ezikSyncOpenCache = { session: held.session, open: !!(r.ok && r.data.open === true), at: Date.now() };
+  } catch (e) { ezikSyncOpenCache = { session: held.session, open: false, at: Date.now() }; }
+  try { window.dispatchEvent(new CustomEvent('ezik:sync:status')); } catch (e) {}
+  return ezikSyncOpenCache.open;
+}
+
+let ezikSyncRunning = null;
+/** One cycle. Resolves to a short outcome word; never throws. */
+function ezikSyncCycle() {
+  if (ezikSyncRunning) return ezikSyncRunning;
+  const run = (async () => {
+    try {
+      const held = readAuthSession();
+      if (!held) return 'signed-out';
+      if (!(await ezikSyncStatus())) return 'closed';
+      const st = ezikSyncReadState();
+      if (st.acct !== held.session) { st.acct = held.session; st.cursor = 0; st.shadow = {}; }
+      const touched = {};
+      const kvLike = (id) => id.indexOf('kv:') === 0 || id.indexOf('note:') === 0;
+      const hashOf = (v) => ezikSyncHash(JSON.stringify(v));
+      // 1. PULL FIRST. What the account holds is written here unless this device changed the same
+      //    record since the last cycle (that change is pushed in step 2 and merged on the server).
+      //    A SETTING this device has never synced is not a change: the account's value is adopted,
+      //    so a fresh device's defaults never overwrite what the reader chose elsewhere.
+      await ezikSyncLibCollect();
+      let local = Object.assign(ezikSyncCollect(), ezikSyncLibSnapshot());
+      const p = await ezikSyncCall({ action: 'pull', session: held.session, cursor: st.cursor });
+      if (!p.ok) return 'pull-failed';
+      let applied = 0;
+      for (const c of p.data.changes || []) {
+        const has = c.id in local;
+        const known = Object.prototype.hasOwnProperty.call(st.shadow, c.id);
+        const dirty = has && known && st.shadow[c.id] !== hashOf(local[c.id]);
+        const firstSetting = has && !known && kvLike(c.id);
+        if (dirty || (has && !known && !firstSetting)) continue;   // step 2 merges it
+        ezikSyncApply(c.id, c.rec);
+        touched[c.id] = c.rec;
+        applied++;
+      }
+      // 2. PUSH what changed here: anything whose value differs from what the last cycle agreed.
+      await ezikSyncLibCollect();
+      local = Object.assign(ezikSyncCollect(), ezikSyncLibSnapshot());
+      const now = Date.now();
+      const changes = [];
+      for (const id of Object.keys(local)) {
+        if (touched[id]) continue;
+        if (st.shadow[id] !== hashOf(local[id])) changes.push({ id, rec: { u: now, del: false, val: local[id] } });
+      }
+      // A conversation or a note the last cycle agreed on that is no longer here was deleted here.
+      for (const id of Object.keys(st.shadow)) {
+        if (!(id in local) && !touched[id] && (id.indexOf('chat:') === 0 || id.indexOf('note:') === 0)) changes.push({ id, rec: { u: now, del: true, val: null } });
+      }
+      for (let i = 0; i < changes.length; i += 100) {
+        const r = await ezikSyncCall({ action: 'push', session: held.session, changes: changes.slice(i, i + 100) });
+        if (!r.ok) return 'push-failed';
+        for (const res of r.data.results || []) {
+          if (!res || !res.rec) continue;
+          ezikSyncApply(res.id, res.rec);
+          touched[res.id] = res.rec;
+        }
+      }
+      // 3. THE SHADOW is a hash of what the device holds AFTER the writes, so a value the server
+      //    reshaped (a conversation as text) is not pushed again on the next cycle. The cursor is
+      //    the pull's: a record this cycle pushed comes back once on the next pull and is a no-op.
+      await ezikSyncLibCollect();
+      const after = Object.assign(ezikSyncCollect(), ezikSyncLibSnapshot());
+      for (const id of Object.keys(touched)) {
+        const t = touched[id];
+        if (!t || t.del) delete st.shadow[id];
+        else st.shadow[id] = hashOf(id in after ? after[id] : t.val);
+      }
+      st.cursor = Number(p.data.cursor) || st.cursor;
+      ezikSyncWriteState(st);
+      if (applied) { try { window.dispatchEvent(new CustomEvent('ezik:sync:applied', { detail: applied })); } catch (e) {} }
+      return 'ok';
+    } catch (e) {
+      return 'error';
+    }
+  })();
+  // Cleared only once the cycle has settled -- a cycle that ends before its first await must not
+  // leave a finished promise behind to answer every later call.
+  ezikSyncRunning = run;
+  run.then(() => { if (ezikSyncRunning === run) ezikSyncRunning = null; });
+  return run;
+}
+
+// SIGNING OUT: what is synced leaves this device (it stays in the account); what belongs to the
+// device stays. Only for an account the switch is open for -- for everybody else signing out is
+// exactly what it was.
+function ezikSyncSignOutWipe() {
+  if (!ezikSyncIsOpen()) return false;
+  const rm = (k) => { try { localStorage.removeItem(k); } catch (e) {} };
+  ezikSyncKv().forEach(rm);
+  ezikSyncCtr().forEach(rm);
+  const pid = ezikSyncLocalPid();
+  for (const r of ezikReadChatIndex()) if (!pid || r.pk === pid) rm(EZIK_CHAT_PREFIX + r.id);
+  ezikWriteChatIndex(ezikReadChatIndex().filter((r) => pid && r.pk !== pid));
+  if (pid) {
+    const map = ezikReadA11yAll(); delete map[pid];
+    try { localStorage.setItem(EZIK_A11Y_KEY, JSON.stringify(map)); } catch (e) {}
+    try { localStorage.setItem(EZIK_FAVS_KEY, JSON.stringify(ezikReadFavs().filter((r) => r.pk !== pid))); } catch (e) {}
+  }
+  const prefs = ezikSyncJson(localStorage.getItem(PRAYER_PREFS_KEY));
+  if (prefs && typeof prefs === 'object') {
+    for (const f of EZIK_SYNC_PRAYER_FIELDS) delete prefs[f];
+    try { localStorage.setItem(PRAYER_PREFS_KEY, JSON.stringify(prefs)); } catch (e) {}
+  }
+  const p = ezikSyncJson(localStorage.getItem('child_profile'));
+  if (p && typeof p === 'object') {
+    try { localStorage.setItem('child_profile', JSON.stringify(Object.assign({}, p, { name: '', gender: null }))); } catch (e) {}
+  }
+  ezikSyncLibWipe();
+  rm(EZIK_SYNC_STATE_KEY);
+  ezikSyncOpenCache = { session: '', open: false };
+  return true;
+}
+
+// «حذف كل بياناتي» -- THE SERVER HALF, fired before the device half erases the session it needs.
+// keepalive lets it finish even as the page resets; a refusal is retried twice.
+function ezikSyncWipeServer() {
+  if (!ezikSyncIsOpen()) return;
+  const held = readAuthSession();
+  if (!held) return;
+  const body = JSON.stringify({ action: 'wipe', session: held.session });
+  const headers = Object.assign({ 'Content-Type': 'application/json' }, capHeaders());
+  const go = (n) => {
+    try {
+      fetch(EZIK_SYNC_PATH, { method: 'POST', headers, body, keepalive: true })
+        .then((r) => { if (!r.ok && n > 0) setTimeout(() => go(n - 1), 1500); })
+        .catch(() => { if (n > 0) setTimeout(() => go(n - 1), 1500); });
+    } catch (e) {}
+  };
+  go(2);
+  ezikSyncOpenCache = { session: '', open: false };
+}
+
+// ITEM 142 -- «حذف كل بياناتي» ALSO TAKES THE MUSHAF DOWNLOADS OFF THIS DEVICE. For everybody,
+// not behind the switch: it is a device erasure and the owner ruled it in on 27 September.
+const EZIK_MUSHAF_DOWNLOADS_STORE = 'ezik-mushaf-downloads-v1';
+function ezikClearMushafDownloads() {
+  try { if (typeof caches !== 'undefined' && caches && typeof caches.delete === 'function') caches.delete(EZIK_MUSHAF_DOWNLOADS_STORE).catch(() => {}); } catch (e) {}
+}
+
+// «نزّل بياناتي» -- the account's whole synced data, opened by the server, saved as a file.
+async function ezikSyncExport() {
+  const held = readAuthSession();
+  if (!held) return 'signed-out';
+  try {
+    const r = await ezikSyncCall({ action: 'export', session: held.session });
+    if (!r.ok && !(r.status === 200 && r.data && r.data.ezik)) return 'failed';
+    const text = JSON.stringify(r.data, null, 2);
+    const name = 'ezik-my-data-' + new Date().toISOString().slice(0, 10) + '.json';
+    const bridge = ezikDlBridge();
+    if (bridge) {
+      return await new Promise((res) => {
+        const stop = ezikDlFromText(bridge, text, 'text/plain', text.length, name, (out) => res(out && out.ok ? 'ok' : 'failed'));
+        if (!stop) res('failed');
+      });
+    }
+    const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    return 'ok';
+  } catch (e) { return 'failed'; }
+}
+
+// «اربط حسابك الآخر» -- the account held now is remembered for this tab, the reader signs in with
+// the other door, and the moment the new session is written the two are joined on the server.
+function ezikSyncBeginLink() {
+  const held = readAuthSession();
+  if (!held) return false;
+  try { window.sessionStorage.setItem(EZIK_SYNC_LINK_SLOT, held.session); return true; } catch (e) { return false; }
+}
+function ezikSyncCancelLink() { try { window.sessionStorage.removeItem(EZIK_SYNC_LINK_SLOT); } catch (e) {} }
+async function ezikSyncFinishLink(newSession) {
+  let prev = '';
+  try { prev = window.sessionStorage.getItem(EZIK_SYNC_LINK_SLOT) || ''; } catch (e) { prev = ''; }
+  if (!prev || !newSession || prev === newSession) return null;
+  ezikSyncCancelLink();
+  try {
+    const r = await ezikSyncCall({ action: 'link', session: newSession, otherSession: prev });
+    const out = r.ok ? 'linked' : 'link-failed';
+    try { window.dispatchEvent(new CustomEvent('ezik:sync:link', { detail: out })); } catch (e) {}
+    if (r.ok) ezikSyncKick();
+    return out;
+  } catch (e) { return 'link-failed'; }
+}
+
+let ezikSyncTimer = null;
+function ezikSyncKick() {
+  if (ezikSyncTimer) clearTimeout(ezikSyncTimer);
+  ezikSyncTimer = setTimeout(() => { ezikSyncTimer = null; ezikSyncCycle(); }, 1200);
+}
+// The engine wakes on its own only for a signed-in reader: a guest's device never calls /api/sync.
+function ezikSyncBoot() {
+  if (typeof window === 'undefined' || !window.addEventListener) return;
+  const tick = () => { try { if (document.visibilityState === 'visible' && readAuthSession()) ezikSyncKick(); } catch (e) {} };
+  try { document.addEventListener('visibilitychange', tick); } catch (e) {}
+  try { setInterval(tick, 120000); } catch (e) {}
+  if (readAuthSession()) ezikSyncKick();
+}
+
+// ============================================================
+// ITEMS 24 + 58, PHASE 3 -- THE LIBRARY ON THE ACCOUNT
+// ============================================================
+// The library's notes live in its own IndexedDB (EZLIB_NOTES_DB, store `notes`, keyPath `id`) and
+// its reading positions in `ezlib_pos_v1` (already in ezikSyncKv()). library.html is not edited:
+// this page and that one share an origin, so the engine reads and writes the same database the
+// library does, opened with the library's own schema. One note is one record, `note:<id>`, and
+// the last change of a note wins; a note deleted on one device is a tombstone on all of them.
+let ezikSyncLibCache = {};
+function ezikSyncLibDb() {
+  return new Promise((res, rej) => {
+    try {
+      const idb = typeof window !== 'undefined' ? window.indexedDB : null;
+      if (!idb) { rej(new Error('no-idb')); return; }
+      const rq = idb.open(EZLIB_NOTES_DB, 1);
+      rq.onupgradeneeded = () => { const st = rq.result.createObjectStore('notes', { keyPath: 'id' }); st.createIndex('book_id', 'book_id'); };
+      rq.onsuccess = () => res(rq.result);
+      rq.onerror = () => rej(rq.error);
+    } catch (e) { rej(e); }
+  });
+}
+async function ezikSyncLibCollect() {
+  try {
+    const db = await ezikSyncLibDb();
+    const all = await new Promise((res, rej) => {
+      const t = db.transaction('notes', 'readonly'); const rq = t.objectStore('notes').getAll();
+      rq.onsuccess = () => res(rq.result || []); rq.onerror = () => rej(rq.error);
+    });
+    const out = {};
+    for (const n of all) if (n && typeof n.id === 'string' && /^[A-Za-z0-9._:-]{1,100}$/.test(n.id)) out['note:' + n.id] = n;
+    ezikSyncLibCache = out;
+    try { db.close(); } catch (e) {}
+  } catch (e) { /* no database on this device: nothing to collect, and the cache keeps its last reading */ }
+}
+function ezikSyncLibSnapshot() { return Object.assign({}, ezikSyncLibCache); }
+function ezikSyncLibApply(id, val) {
+  if (val) ezikSyncLibCache['note:' + id] = val; else delete ezikSyncLibCache['note:' + id];
+  ezikSyncLibDb().then((db) => {
+    try {
+      const t = db.transaction('notes', 'readwrite'); const st = t.objectStore('notes');
+      if (val && typeof val === 'object') st.put(Object.assign({}, val, { id: id })); else st.delete(id);
+      t.oncomplete = () => { try { db.close(); } catch (e) {} };
+    } catch (e) {}
+  }).catch(() => {});
+}
+function ezikSyncLibWipe() {
+  ezikSyncLibCache = {};
+  try { const idb = window.indexedDB; if (idb && typeof idb.deleteDatabase === 'function') idb.deleteDatabase(EZLIB_NOTES_DB); } catch (e) {}
 }
 
 // ============================================================
@@ -28886,6 +29374,17 @@ function PrayerBackup({ onRestored }) {
     setSaid('ok');
     if (onRestored) onRestored(loc);
   };
+  // ITEMS 24 + 58: the copy stays the guest's tool exactly as it is; for an account the switch is
+  // open for it becomes «نزّل بياناتي» -- the whole account, not just the prayer settings.
+  if (ezikSyncIsOpen()) return (
+    <EzShellGroup title={ezT('backup.title')}>
+      <div style={s.settingsHint}>{ezT('sync.backupMoved')}</div>
+      <button type="button" data-ezik-backup="export" className="ezik-focus" style={s.prayerOpt}
+        onClick={() => { ezikSyncExport().then((out) => setSaid(out === 'ok' ? 'exported' : 'exportFailed')); }}>{ezT('sync.export')}</button>
+      {said === 'exported' ? <div style={s.qiblaNote}>{ezT('sync.exportOk')}</div> : null}
+      {said === 'exportFailed' ? <div style={s.qiblaNote}>{ezT('sync.exportFailed')}</div> : null}
+    </EzShellGroup>
+  );
   return (
     <EzShellGroup title={ezT('backup.title')}>
       <div className="ez-hit" style={s.prayerOptRow}>
@@ -29464,6 +29963,8 @@ function EzikSignInRow() {
   // expires on its own and revoking it is a separate lever; what a reader means by this button is
   // "not on this device any more", which is exactly and only what it does.
   const signOut = () => {
+    // ITEMS 24 + 58: what is synced leaves this device and stays in the account (open accounts only).
+    ezikSyncSignOutWipe();
     clearAuthSession();
     csRef.current = '';
     setSession(null);
@@ -29502,6 +30003,7 @@ function EzikSignInRow() {
         ? (<>
             <div style={s.settingsHint}>{session.email}</div>
             <button type="button" onClick={signOut} style={s.settingsSaveBtn}>{ezT('auth.signOut')}</button>
+            <EzikSyncControls onGoogle={press} bridge={bridge} />
             {/* PHASE 4 / F18 -- REACHABLE BY SOMEBODY WHO DOES NOT USE A CONSOLE, and drawn for
                 the one person the server will answer. hasFounderToken() is read AT RENDER, never
                 from a cached flag -- the rule the PIN control above this row already follows --
@@ -29535,6 +30037,57 @@ function EzikSignInRow() {
       {done ? <div style={s.settingsHint}>{ezT('auth.deleteDone')}</div> : null}
     </EzShellGroup>
   );
+}
+
+// ============================================================
+// ITEMS 24 + 58 -- «نزّل بياناتي» AND «اربط حسابك الآخر», INSIDE THE ACCOUNT ROW
+// ============================================================
+// DRAWN ONLY FOR A SIGNED-IN READER THE SERVER SAYS IS OPEN. For everybody else this returns null
+// and the account row is exactly what it was. The new privacy page is linked from here too, so
+// the owner reads it where the controls it describes live; the public page is not touched.
+function EzikSyncControls({ onGoogle, bridge }) {
+  useEzLang();
+  const [open, setOpen] = useState(ezikSyncIsOpen());
+  const [busy, setBusy] = useState(false);
+  const [line, setLine] = useState('');
+  const [linking, setLinking] = useState(false);
+  useEffect(() => {
+    const onStatus = () => setOpen(ezikSyncIsOpen());
+    const onLink = (e) => { setLinking(false); setLine(ezT(e && e.detail === 'linked' ? 'sync.linked' : 'sync.linkFailed')); };
+    window.addEventListener('ezik:sync:status', onStatus);
+    window.addEventListener('ezik:sync:link', onLink);
+    ezikSyncStatus();
+    return () => { window.removeEventListener('ezik:sync:status', onStatus); window.removeEventListener('ezik:sync:link', onLink); };
+  }, []);
+  if (!open) return null;
+  const exportNow = () => {
+    if (busy) return;
+    setBusy(true); setLine('');
+    ezikSyncExport().then((out) => { setBusy(false); setLine(ezT(out === 'ok' ? 'sync.exportOk' : 'sync.exportFailed')); });
+  };
+  const startLink = () => { if (ezikSyncBeginLink()) { setLinking(true); setLine(''); } else setLine(ezT('sync.linkFailed')); };
+  const cancelLink = () => { ezikSyncCancelLink(); setLinking(false); };
+  const linkApple = () => {
+    if (!bridge) return;
+    const stop = ezikNativeAppleAsk(bridge, (outcome) => { setLine(ezikNativeOutcomeLine(outcome)); });
+    if (!stop) setLine(ezT('sync.linkFailed'));
+  };
+  return (<>
+    <div style={s.settingsLabel}>{ezT('sync.title')}</div>
+    <div style={s.settingsHint}>{ezT('sync.hint')}</div>
+    <button type="button" onClick={exportNow} disabled={busy} data-ezik-sync="export"
+      style={{ ...s.settingsSaveBtn, opacity: busy ? 0.5 : 1 }}>{ezT('sync.export')}</button>
+    {linking
+      ? (<>
+          <div style={s.settingsHint}>{ezT('sync.linkHint')}</div>
+          <button type="button" onClick={onGoogle} data-ezik-sync="link-google" style={s.settingsSaveBtn}>{ezT('sync.linkGoogle')}</button>
+          {bridge ? <button type="button" onClick={linkApple} data-ezik-sync="link-apple" style={s.settingsSaveBtn}>{ezT('sync.linkApple')}</button> : null}
+          <button type="button" onClick={cancelLink} style={s.settingsSaveBtn}>{ezT('common.cancel')}</button>
+        </>)
+      : (<button type="button" onClick={startLink} data-ezik-sync="link" style={s.settingsSaveBtn}>{ezT('sync.link')}</button>)}
+    <a href="/privacy-sync.html" data-ezik-sync="privacy" style={s.settingsHint}>{ezT('sync.privacy')}</a>
+    {line ? <div style={s.settingsHint}>{line}</div> : null}
+  </>);
 }
 
 // ============================================================
@@ -35385,3 +35938,5 @@ try { EZ_LANG_SUBS.add(() => { setTimeout(ezDomApply, 0); }); } catch (e) {}
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(React.createElement(ErrorBoundary, null, React.createElement(App), React.createElement(EzikPrecacheNotice)));
 try { setTimeout(ezDomApply, 0); } catch (e) {}
+// ITEMS 24 + 58: the sync engine wakes for a signed-in reader only (a guest never calls /api/sync).
+try { setTimeout(ezikSyncBoot, 1500); } catch (e) {}
