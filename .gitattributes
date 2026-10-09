@@ -890,3 +890,12 @@ hanna-laha/index.html text eol=lf
 
 # takhrijcontract and recon read lib/opening-conjunction.js byte for byte: a checkout with core.autocrlf=true gave it CRLF (52 CR measured) and both went red on a file nobody had edited. Pinned LF.
 lib/opening-conjunction.js text eol=lf
+lib/sync/flag.js text eol=lf
+lib/sync/crypto.js text eol=lf
+lib/sync/merge.js text eol=lf
+lib/sync/store.js text eol=lf
+lib/sync/service.js text eol=lf
+lib/sync/memory.js text eol=lf
+api/sync.js text eol=lf
+guards/sync-fake-store.cjs text eol=lf
+guards/sync-server-guard.cjs text eol=lf

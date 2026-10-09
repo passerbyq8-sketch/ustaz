@@ -54,6 +54,12 @@ import { applyCorsOrigin, checkAuthLimit } from '../lib/ratelimit.js';
 import { clientAddress } from '../lib/attempts.js';
 import { safeId, DEVICE_HEADER } from '../lib/daycap.js';
 import { touchSession, deleteAccount } from '../lib/auth/account.js';
+// ITEM 24 -- DELETING THE ACCOUNT ERASES ITS SYNCED DATA WITH IT, immediately (owner decision 4).
+// The account's sync space and every link into it are erased BEFORE the account record, so a
+// store that refuses leaves the account standing and a retry still finishes the job. This runs
+// whatever the switch says: data written while the switch was open must not outlive a delete
+// made after it was closed. An account that never synced has an empty space and loses nothing.
+import { eraseForAccountDelete } from '../lib/sync/service.js';
 
 export default async function handler(req, res) {
   applyCorsOrigin(req, res);
@@ -85,6 +91,9 @@ export default async function handler(req, res) {
     // Absent, expired, or a store we could not read. ONE answer for all three -- see the head.
     return res.status(401).json({ ok: false, error: 'auth-session-invalid' });
   }
+
+  try { await eraseForAccountDelete(record.accountKey); }
+  catch (e) { return res.status(503).json({ ok: false, error: 'auth-delete-sync' }); }
 
   const done = await deleteAccount(record.accountKey, session);
   if (!done.ok) {

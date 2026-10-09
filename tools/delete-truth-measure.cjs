@@ -1158,7 +1158,7 @@ function liftRoute(rel, dep) {
 const ROUTE = 'api/auth-delete.js';
 const ROUTE_SRC = fs.readFileSync(path.join(REPO, ROUTE), 'utf8');
 
-let STORE = null, ACCOUNT = null, DAYCAP = null, ATTEMPTS = null;
+let STORE = null, ACCOUNT = null, DAYCAP = null, ATTEMPTS = null, SYNC = null;
 
 const FX = {
   provider: 'a-provider',
@@ -1210,6 +1210,10 @@ async function callRoute(scene, opts) {
     if (spec === '../lib/attempts.js') return ATTEMPTS;
     if (spec === '../lib/daycap.js') return DAYCAP;
     if (spec === '../lib/auth/account.js') return ACCOUNT;
+    // ITEM 24: the sync erasure the route runs before the account delete. The real module is
+    // supplied; with no KV on this machine it erases nothing (no space can exist), and a case
+    // below swaps in one that refuses, to prove a refused sync erasure stops the delete.
+    if (spec === '../lib/sync/service.js') return o.sync || SYNC;
     throw new Error(ROUTE + ' now imports ' + spec + ' -- this tool supplies no such module, so '
       + 'it would have been evaluated as undefined and failed somewhere else entirely.');
   };
@@ -1238,6 +1242,7 @@ async function serverCases() {
   ACCOUNT = await load('lib', 'auth', 'account.js');
   DAYCAP = await load('lib', 'daycap.js');
   ATTEMPTS = await load('lib', 'attempts.js');
+  SYNC = await load('lib', 'sync', 'service.js');
 
   // ---- THE ERASURE ITSELF: three keys, each named, each read back out of the store. --------
   await runAsync('the account, the email index and the session are ALL THREE erased, by name', async () => {
@@ -1384,6 +1389,20 @@ async function serverCases() {
     eq(badDevice.res.statusCode, 400, 'the status with a malformed device header');
     is(s.redis.map.has(s.key), 'a refused request still erased the account');
     return '405 / 204 / 400 / 400 / 400, and nothing erased by any of them';
+  });
+
+  await runAsync('ITEM 24: a sync erasure the store refuses is a NAMED 503, and the account still stands', async () => {
+    const s = await seed({});
+    const r = await callRoute(s, { sync: { eraseForAccountDelete: async () => { throw new Error('refused'); } } });
+    eq(r.res.statusCode, 503, 'status when the sync erasure is refused');
+    eq(r.res.body && r.res.body.error, 'auth-delete-sync', 'the named code');
+    is(s.redis.map.has(s.key), 'the account was erased although its synced data was not');
+    let called = 0;
+    const s2 = await seed({});
+    const r2 = await callRoute(s2, { sync: { eraseForAccountDelete: async (k) => { called++; eq(k, s2.key, 'the key erased'); return { ok: true }; } } });
+    eq(r2.res.statusCode, 200, 'status when the sync erasure holds');
+    eq(called, 1, 'the sync erasure runs once, for the session own account');
+    return 'refused -> 503 auth-delete-sync, account kept; held -> erased first, then the account';
   });
 
   await runAsync('the route reuses revokeSession -- the call lib/auth/account.js was waiting for', async () => {
