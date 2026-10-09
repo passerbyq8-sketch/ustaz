@@ -25,6 +25,8 @@ import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 import { guardDayCap, dayCapMessage, hasUnrevokedFounderToken } from '../lib/daycap.js';
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
 import { languageGate } from '../lib/lang/gate.js';
+// ITEM 58 -- the address line from the gender the asker wrote in «ملفّك», behind SYNC_SWITCH.
+import { addresseeFor, addressLineFor } from '../lib/sync/memory.js';
 import { classifyRoute, createSourceFilter, isReligiousText, normalizeArabic, isRulingFrame } from '../lib/route-classify.js';
 import { verifyAttributedReply } from '../lib/attribution.js';
 import { planAsk, unattributedNote, REASON, ambiguousScholarPrompt, NEEDS_MATERIAL } from '../lib/ask-plan.js';
@@ -995,7 +997,13 @@ export default async function handler(req, res) {
   //
   // It is appended AFTER the depth block, so with the flag off appendDepthBlock() is handed ''
   // and returns its input unchanged: the system value is then the very same object today builds.
-  const system = appendDepthBlock(systemWithDepth, liveWorldV2Enabled() ? buildTodayBlock() : '');
+  const systemBeforeAddress = appendDepthBlock(systemWithDepth, liveWorldV2Enabled() ? buildTodayBlock() : '');
+  // ITEM 58 -- THE ADDRESS LINE, appended by the same mechanism as the two blocks above and after
+  // them. addressLineFor() is '' unless the switch is open for this request AND the profile states
+  // a gender -- and appendDepthBlock() hands '' straight back, so for every other reader `system`
+  // is the very object it was before item 58. The line changes the form of address only; the name
+  // and the madhhab have no road into it (lib/sync/memory.js reads neither).
+  const system = appendDepthBlock(systemBeforeAddress, addressLineFor(await addresseeFor(req, body)));
 
   // DETERMINISTIC ROUTE (lib/route-classify.js). Decided HERE, on the server, from the
   // messages themselves -- never from a client-supplied field, because the whole point is

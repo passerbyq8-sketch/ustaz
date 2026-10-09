@@ -23,7 +23,8 @@
 import { applyCorsOrigin } from '../lib/ratelimit.js';
 import { safeId, DEVICE_HEADER } from '../lib/daycap.js';
 import { touchSession } from '../lib/auth/account.js';
-import { syncOpenFor } from '../lib/sync/flag.js';
+import { syncOpenFor, syncSwitch } from '../lib/sync/flag.js';
+import { PRIVACY_SYNC_HTML } from '../lib/sync/privacy-page.js';
 import { envName } from '../lib/sync/store.js';
 import { allowRequest } from '../lib/sync/store.js';
 import { pull, push, exportAll, wipeAll, link, spaceFor, SyncError } from '../lib/sync/service.js';
@@ -47,6 +48,16 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, ' + DEVICE_HEADER);
     return res.status(204).end();
+  }
+  // PHASE 4 -- THE NEW PRIVACY TEXT, readable ONLY while the switch is open for everybody (the sync
+  // branch preview). With the switch at owner or off it does not exist (404), so the public
+  // privacy page is the only one anybody sees until the switch opens to the people.
+  if (req.method === 'GET' && req.query && req.query.page === 'privacy') {
+    if (syncSwitch() !== 'all') return res.status(404).json({ ok: false, error: 'not-found' });
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    return res.status(200).send(PRIVACY_SYNC_HTML);
   }
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'method-not-allowed' });
   res.setHeader('Cache-Control', 'private, no-store');

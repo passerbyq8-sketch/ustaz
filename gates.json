@@ -665,5 +665,20 @@
     "name": "lang",
     "script": "guards/lang-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "syncserver",
+    "script": "guards/sync-server-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "syncclient",
+    "script": "guards/sync-client-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "syncmemory",
+    "script": "guards/sync-memory-guard.cjs",
+    "args": ""
   }
 ]

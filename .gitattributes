@@ -900,3 +900,5 @@ api/sync.js text eol=lf
 guards/sync-fake-store.cjs text eol=lf
 guards/sync-server-guard.cjs text eol=lf
 guards/sync-client-guard.cjs text eol=lf
+guards/sync-memory-guard.cjs text eol=lf
+lib/sync/privacy-page.js text eol=lf

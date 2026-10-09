@@ -742,10 +742,10 @@ async function runSuite() {
     // guards/front-sorter-guard.cjs, the front sorter and the general frame.
     // HANNA LAHA (order HANNA-LAHA-ORDER-4, 2026-10-07): 130 -> 131 (hannalaha); 131 -> 132 (lang, item 74), same rule -- the gate `hannalaha`,
     // guards/hanna-laha-in-ezik-guard.cjs, the third Kunuz game served from hanna-laha/.
-function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 132; }
+function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 135; }
     ok('ORIGINAL_GATE_SET_MATCH', exactGateSet(EXPECTED_GATES));
-    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 132-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
-    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 132-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
+    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 135-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
+    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 135-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
 
     const m13 = await storedMutant(temp, 'fiqh-before-special', (source) => source.replace(
       "if (QURAN_REQUEST.test(folded)) return 'LOCAL_QURAN';",

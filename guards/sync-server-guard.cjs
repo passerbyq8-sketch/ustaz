@@ -53,7 +53,7 @@ function fakeRes() {
   return r;
 }
 
-const SECRET = 'PLAINTEXT-MARKER-' + crypto.randomBytes(6).toString('hex');
+const MARK = 'PLAINTEXT-MARKER-' + crypto.randomBytes(6).toString('hex');
 const OWNER_EMAIL = 'owner@example.com';
 const TEST_EMAIL = 'tester@example.com';
 
@@ -105,7 +105,7 @@ async function main() {
     fresh();
     const A = await account('google', '1001', 'a@example.com');
     // device 1 pushes a conversation (with an image) and settings
-    const chat1 = { title: 't', pinned: false, at: 10, msgs: [msg('user', 1000, 'سؤال ' + SECRET), { role: 'assistant', timestamp: new Date(2000).toISOString(), content: [{ type: 'image', source: { data: 'AAAA' } }, { type: 'text', text: 'جواب ' + SECRET }] }] };
+    const chat1 = { title: 't', pinned: false, at: 10, msgs: [msg('user', 1000, 'سؤال ' + MARK), { role: 'assistant', timestamp: new Date(2000).toISOString(), content: [{ type: 'image', source: { data: 'AAAA' } }, { type: 'text', text: 'جواب ' + MARK }] }] };
     let r = await call({ action: 'push', session: A.session, changes: [{ id: 'chat:c1', rec: rec(10, chat1) }, { id: 'kv:ezik_ui_lang_v1', rec: rec(10, '"fr"') }] });
     check('two devices: device 1 pushes', r.statusCode === 200 && r.body.results.every((x) => x.ver === 1), JSON.stringify(r.body));
     const stored = r.body.results[0].rec.val.msgs[1].content;
@@ -124,7 +124,7 @@ async function main() {
 
     // E -- no plain text anywhere in the store
     const dump = store.dump();
-    check('E1 no plain text in the store (marker, Arabic, language value)', !dump.includes(SECRET) && !/[؀-ۿ]/.test(dump) && !dump.includes('"fr"'), dump.slice(0, 120));
+    check('E1 no plain text in the store (marker, Arabic, language value)', !dump.includes(MARK) && !/[؀-ۿ]/.test(dump) && !dump.includes('"fr"'), dump.slice(0, 120));
     check('E2 the account key (provider:subject) is never part of a sync key', ![...store.data.keys()].some((k) => k.startsWith('sync:') && k.includes('1001')));
     check('E3 every sync key carries the environment (preview namespace)', [...store.data.keys()].filter((k) => k.startsWith('sync:')).every((k) => k.startsWith('sync:v1:preview:')));
 
@@ -315,6 +315,15 @@ async function main() {
     await store.set(N.key, JSON.stringify({ v: 1, provider: 'google', sub: '7003', email: OWNER_EMAIL, emailVerified: false, createdAt: 1, lastSeenAt: 1 }));
     r = await push(N.session);
     check('S11 owner: an UNPROVED owner address opens nothing', r.statusCode === 403);
+    const page = async () => { const res = fakeRes(); res.send = (b) => { res.body = b; return res; }; await ROUTE.default({ method: 'GET', query: { page: 'privacy' }, headers: {} }, res); return res; };
+    let pg = await page();
+    check('T4a owner mode: the new privacy page does not exist (404) -- the public page is the only one', pg.statusCode === 404);
+    process.env.SYNC_SWITCH = 'off';
+    pg = await page();
+    check('T4b switch off: 404', pg.statusCode === 404);
+    process.env.SYNC_SWITCH = 'all';
+    pg = await page();
+    check('T4c all (the preview): the new privacy text, noindex, both languages, the four promises', pg.statusCode === 200 && /noindex/.test(pg.headers['x-robots-tag'] || '') && /lang="en"/.test(pg.body) && /مشفّرة/.test(pg.body) && /No analysis, no training/.test(pg.body) && /نزّل بياناتي/.test(pg.body) && /Delete all my data/.test(pg.body) && !/@/.test(pg.body.replace(/@media/g, '')));
     process.env.SYNC_SWITCH = 'all';
     r = await call({ action: 'status' });
     check('S12 all: open for a guest too (the preview)', r.body.open === true);
@@ -361,8 +370,8 @@ async function main() {
     const lf = MEM.addressLineFor('female');
     const lm = MEM.addressLineFor('male');
     check('M2 the line speaks of the ADDRESS, and says the ruling, its evidence and detail do not change', /الخطاب/.test(lf) && /الحكم/.test(lf) && /بلا زيادة/.test(lf) && /الحكم/.test(lm));
-    const withName = await MEM.addresseeFor({ headers: {} }, { gender: 'female', name: 'فاطمة' + SECRET, madhhab: 'hanafi' });
-    check('M3 no road for the name or the madhhab: neither changes the result nor appears in the line', withName === 'female' && !MEM.addressLineFor(withName).includes(SECRET) && !/مذهب|حنف|شافع|مالك|حنبل/.test(lf + lm));
+    const withName = await MEM.addresseeFor({ headers: {} }, { gender: 'female', name: 'فاطمة' + MARK, madhhab: 'hanafi' });
+    check('M3 no road for the name or the madhhab: neither changes the result nor appears in the line', withName === 'female' && !MEM.addressLineFor(withName).includes(MARK) && !/مذهب|حنف|شافع|مالك|حنبل/.test(lf + lm));
     check('M4 an unset gender adds NOTHING (the base prompt, byte for byte)', MEM.addressLineFor(null) === '' && MEM.translatorAddressLine(null) === '');
     check('M5 the translator line changes the form of address only', /form of address/.test(MEM.translatorAddressLine('female')) && /woman/.test(MEM.translatorAddressLine('female')) && /man/.test(MEM.translatorAddressLine('male')));
     process.env.SYNC_SWITCH = 'owner';
@@ -377,7 +386,7 @@ async function main() {
   }
 
   // ---------------------------------------------------------------- logs
-  check('E7 not one log line carries content, a session or an account key', !LOGS.some((l) => l.includes(SECRET) || /acct:v1:|sess:v1:|[؀-ۿ]/.test(l)), LOGS.slice(0, 3).join(' / '));
+  check('E7 not one log line carries content, a session or an account key', !LOGS.some((l) => l.includes(MARK) || /acct:v1:|sess:v1:|[؀-ۿ]/.test(l)), LOGS.slice(0, 3).join(' / '));
 
   say('=== sync-server-guard: items 24 + 58, server ===');
   for (const r of results) say((r.ok ? '[PASS] ' : '[FAIL] ') + r.name + (r.ok ? '' : '  -- ' + r.detail));

@@ -349,7 +349,7 @@ every purpose and `capabilityEligible()` is false for every capability. **Regist
 
 ## K. Gates and tests
 
-All 132 gates, run by the canonical `npm run gates` runner from `gates.json`:
+All 135 gates, run by the canonical `npm run gates` runner from `gates.json`:
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -376,13 +376,13 @@ authbridge 0 · libbook 0 · attrwiden 0  attrtruth 0 · regexdup 0 · streamkee
 nameform 0 · rejectdoor 0 · articles 0 · asmaa 0 · chatbaractions 0 · sharelinks 0
 prophetascription 0 · prophetascriptionwiring 0 · khilafprobefreeze 0
 kunuznorepeat 0 · kunuzcats 0 · hannalaha 0 · appvpattern 0
-liveworldkill 0 · livenumbersrc 0 · sahihaynlink 0 · previewdaycap 0 · libmujaz 0 · libquote 0 · encycbrain 0 · widgetopen 0 · lib108 0 · speedclient 0 · prayerojeiri 0 · prayerfeatures 0 · lang 0 · speedbw2 0 · speedintegration 0 · speedpipes 0 · frontsorter 0 · impermissibleearly 0
+liveworldkill 0 · livenumbersrc 0 · sahihaynlink 0 · previewdaycap 0 · libmujaz 0 · libquote 0 · encycbrain 0 · widgetopen 0 · lib108 0 · speedclient 0 · prayerojeiri 0 · prayerfeatures 0 · lang 0 · speedbw2 0 · speedintegration 0 · speedpipes 0 · frontsorter 0 · impermissibleearly 0 · syncserver 0 · syncclient 0 · syncmemory 0
 ```
 
 Every one **PASS**, exit code `0`.
 
 ```
-TOTAL_GATES        132/132 PASS
+TOTAL_GATES        135/135 PASS
 RECON              PASS=223 WARN=0 FAIL=0
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision

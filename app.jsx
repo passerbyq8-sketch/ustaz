@@ -26804,6 +26804,7 @@ function ezikSyncCycle() {
       st.cursor = Number(p.data.cursor) || st.cursor;
       ezikSyncWriteState(st);
       if (applied) { try { window.dispatchEvent(new CustomEvent('ezik:sync:applied', { detail: applied })); } catch (e) {} }
+      ezikSyncArmNext();
       return 'ok';
     } catch (e) {
       return 'error';
@@ -26929,8 +26930,15 @@ function ezikSyncBoot() {
   if (typeof window === 'undefined' || !window.addEventListener) return;
   const tick = () => { try { if (document.visibilityState === 'visible' && readAuthSession()) ezikSyncKick(); } catch (e) {} };
   try { document.addEventListener('visibilitychange', tick); } catch (e) {}
-  try { setInterval(tick, 120000); } catch (e) {}
   if (readAuthSession()) ezikSyncKick();
+}
+// THE NEXT WAKE-UP IS ARMED ONLY BY A CYCLE THAT RAN (the switch is open and the server answered):
+// one timer at a time, never an interval -- so a guest, a closed switch or a page with no server
+// holds no timer at all, and nothing keeps a page (or a test that evaluates it) alive.
+let ezikSyncNext = null;
+function ezikSyncArmNext() {
+  if (ezikSyncNext) clearTimeout(ezikSyncNext);
+  ezikSyncNext = setTimeout(() => { ezikSyncNext = null; try { if (document.visibilityState === 'visible' && readAuthSession()) ezikSyncKick(); } catch (e) {} }, 120000);
 }
 
 // ============================================================
@@ -30085,7 +30093,7 @@ function EzikSyncControls({ onGoogle, bridge }) {
           <button type="button" onClick={cancelLink} style={s.settingsSaveBtn}>{ezT('common.cancel')}</button>
         </>)
       : (<button type="button" onClick={startLink} data-ezik-sync="link" style={s.settingsSaveBtn}>{ezT('sync.link')}</button>)}
-    <a href="/privacy-sync.html" data-ezik-sync="privacy" style={s.settingsHint}>{ezT('sync.privacy')}</a>
+    <a href="/api/sync?page=privacy" data-ezik-sync="privacy" style={s.settingsHint}>{ezT('sync.privacy')}</a>
     {line ? <div style={s.settingsHint}>{line}</div> : null}
   </>);
 }
