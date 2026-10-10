@@ -1150,6 +1150,7 @@ const EZ_I18N = {
     'sync.linkFailed': 'تعذّر ربطُ الحسابين. جرّب مرّة أخرى.',
     'sync.privacy': 'كيف نحفظ بياناتك (سياسة الخصوصية الجديدة)',
     'sync.backupMoved': 'بياناتك كلّها محفوظةٌ في حسابك، ويمكنك تنزيلها ملفًّا.',
+    'sync.wipeFailed': 'تعذّر حذفُ بياناتك من حسابك، فلم يُحذَف شيءٌ من هذا الجهاز ولا من حسابك. تأكّد من الاتصال واضغط الزرّ مرّةً أخرى.',
     'alerts.backup': 'تشمل النسخة: المنهج ومذهب العصر والإزاحات واختيار الصوت وتذكير الإقامة والتنبيه قبل الصلاة والموقع والمكان المختار وإزاحة الهجري وتنبيهات الأذكار المرتبطة بالصلاة. لا تشمل مفتاح تذكير المواقيت لأنه لا يُفعَّل إلا بإذن من النظام.',
     'conv.title': 'محوّل التاريخ',
     'conv.greg': 'من الميلادي',
@@ -2421,6 +2422,7 @@ const EZ_I18N = {
     'sync.linkFailed': 'The accounts could not be linked. Try again.',
     'sync.privacy': 'How we keep your data (the new privacy policy)',
     'sync.backupMoved': 'All your data is kept in your account, and you can download it as a file.',
+    'sync.wipeFailed': 'Your data could not be deleted from your account, so nothing was deleted from this device or from your account. Check your connection and press the button again.',
     'alerts.backup': 'The copy holds: the method, asr school, offsets, sound choice, iqama and pre-prayer alerts, position, chosen place, Hijri offset and the prayer-anchored adhkar alerts. It does not hold the prayer-reminder switch, which is only ever turned on with the system\'s permission.',
     'conv.title': 'Date converter',
     'conv.greg': 'From Gregorian',
@@ -20140,10 +20142,13 @@ function App() {
   });
 
   const resetAll = () => {
-    if (confirm(ezX('هل أنت متأكد من حذف كل البيانات؟'))) {
-      // ITEMS 24 + 58: the account's synced copy is erased on the server too, fired BEFORE the
-      // session below is cleared (open accounts only; nothing is sent for anybody else).
-      ezikSyncWipeServer();
+    const serverWiped = ezikSyncResetPassed();
+    if (serverWiped || confirm(ezX('هل أنت متأكد من حذف كل البيانات؟'))) {
+      // ITEMS 24 + 58, SYNC FIX 2026-10-10: for an account the switch is open for, the account's
+      // synced copy is erased on the server FIRST, and this device is emptied only once the server
+      // says it is done -- the gate calls resetAll again on success; on failure it shows the
+      // message and nothing here is touched. A guest or a closed account: device only, as before.
+      if (!serverWiped && ezikSyncResetGate(resetAll)) return;
       // ITEM 142: and the mushaf downloads leave this device with everything else -- for everybody.
       ezikClearMushafDownloads();
       try { localStorage.removeItem(EZIK_SYNC_STATE_KEY); } catch (e) {}
@@ -26760,6 +26765,7 @@ function ezikSyncCycle() {
   if (ezikSyncRunning) return ezikSyncRunning;
   const run = (async () => {
     try {
+      if (ezikSyncHalted) return 'halted';
       const held = readAuthSession();
       if (!held) return 'signed-out';
       if (!(await ezikSyncStatus())) return 'closed';
@@ -26975,7 +26981,7 @@ function ezikSyncSoon() {
 let ezikSyncInFlight = {};
 function ezikSyncFlush() {
   try {
-    if (!ezikSyncIsOpen()) return 0;
+    if (ezikSyncHalted || !ezikSyncIsOpen()) return 0;
     const held = readAuthSession();
     if (!held) return 0;
     if (ezikSyncSoonTimer) { clearTimeout(ezikSyncSoonTimer); ezikSyncSoonTimer = null; }
@@ -27077,23 +27083,54 @@ function ezikSyncSignOutWipe() {
   return true;
 }
 
-// «حذف كل بياناتي» -- THE SERVER HALF, fired before the device half erases the session it needs.
-// keepalive lets it finish even as the page resets; a refusal is retried twice.
-function ezikSyncWipeServer() {
-  if (!ezikSyncIsOpen()) return;
+// «حذف كل بياناتي» -- THE SERVER HALF, AND IT GOES FIRST (SYNC FIX 3, 10 October). Before, the wipe
+// was fired without waiting and the device was emptied at once: a wipe that failed left the
+// account's copy on the server while the reader believed everything was gone. Now resetAll asks
+// this gate first. For an account the switch is open for it sends the wipe and WAITS: on the
+// server's yes, resetAll runs again past the confirm (ezikSyncResetPassed) and empties the device;
+// on anything else the message says so, nothing is erased anywhere, and pressing again retries.
+// A guest or a closed account: the gate stands aside and the erase is the device's alone.
+let ezikSyncResetPass = false;
+let ezikSyncResetBusy = false;
+let ezikSyncHalted = false;
+function ezikSyncResetPassed() { const p = ezikSyncResetPass; ezikSyncResetPass = false; return p; }
+function ezikSyncResetGate(again) {
+  if (!ezikSyncIsOpen()) return false;
+  if (ezikSyncResetBusy) return true;
+  ezikSyncResetBusy = true;
+  ezikSyncWipeServer().then((ok) => {
+    ezikSyncResetBusy = false;
+    if (ok) {
+      ezikSyncResetPass = true;
+      try { again(); } finally { ezikSyncResetPass = false; ezikSyncHalted = false; }
+    } else {
+      ezikSyncHalted = false;
+      try { alert(ezT('sync.wipeFailed')); } catch (e) {}
+    }
+  });
+  return true;
+}
+/** The server wipe, awaited. Resolves true only when the server says the space is empty. */
+async function ezikSyncWipeServer() {
+  if (!ezikSyncIsOpen()) return false;
   const held = readAuthSession();
-  if (!held) return;
-  const body = JSON.stringify({ action: 'wipe', session: held.session });
-  const headers = Object.assign({ 'Content-Type': 'application/json' }, capHeaders());
-  const go = (n) => {
+  if (!held) return false;
+  // No cycle may start or finish a push between the wipe and the device erase: a cycle already
+  // running is waited out, and none starts until the gate is done.
+  ezikSyncHalted = true;
+  if (ezikSyncSoonTimer) { clearTimeout(ezikSyncSoonTimer); ezikSyncSoonTimer = null; }
+  try { if (ezikSyncRunning) await ezikSyncRunning; } catch (e) {}
+  for (let i = 0; i < 2; i++) {
     try {
-      fetch(EZIK_SYNC_PATH, { method: 'POST', headers, body, keepalive: true })
-        .then((r) => { if (!r.ok && n > 0) setTimeout(() => go(n - 1), 1500); })
-        .catch(() => { if (n > 0) setTimeout(() => go(n - 1), 1500); });
+      const r = await ezikSyncCall({ action: 'wipe', session: held.session });
+      if (r.ok) { ezikSyncOpenCache = { session: '', open: false, at: 0 }; return true; }
+      // The switch was shut since the last answer: believed now, so the next press is the
+      // device-only erase every closed account gets.
+      if (r.status === 403) { ezikSyncOpenCache = { session: held.session, open: false, at: Date.now() }; return false; }
+      if (r.status === 401) return false;
     } catch (e) {}
-  };
-  go(2);
-  ezikSyncOpenCache = { session: '', open: false };
+  }
+  return false;
 }
 
 // ITEM 142 -- «حذف كل بياناتي» ALSO TAKES THE MUSHAF DOWNLOADS OFF THIS DEVICE. For everybody,

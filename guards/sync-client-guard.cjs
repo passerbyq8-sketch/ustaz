@@ -89,7 +89,7 @@ function makeDevice(seed, deviceId, opts) {
   vm.runInContext('ReactDOM.createRoot = function () { return { render: function () {}, unmount: function () {} }; };', ctx);
   window.console.error = () => {}; window.console.warn = () => {};
   vm.runInContext(transformed, ctx, { filename: 'app.jsx' });
-  const api = vm.runInContext('({ cycle: ezikSyncCycle, collect: ezikSyncCollect, signOut: ezikSyncSignOutWipe, wipeServer: ezikSyncWipeServer, clearDl: ezikClearMushafDownloads, isOpen: ezikSyncIsOpen, flush: ezikSyncFlush, del: ezikDeleteChat, boot: ezikSyncBoot, save: ezikSaveChat, soonMs: EZIK_SYNC_SOON_MS, keepMax: EZIK_SYNC_KEEPALIVE_MAX, status: ezikSyncStatus, kv: ezikSyncKv, ctr: ezikSyncCtr, deviceOnly: ezikSyncDeviceOnly, beginLink: ezikSyncBeginLink, finishLink: ezikSyncFinishLink, writeSession: writeAuthSession, mark: EZIK_SYNC_IMAGE_MARK })', ctx);
+  const api = vm.runInContext('({ cycle: ezikSyncCycle, collect: ezikSyncCollect, signOut: ezikSyncSignOutWipe, wipeServer: ezikSyncWipeServer, clearDl: ezikClearMushafDownloads, isOpen: ezikSyncIsOpen, flush: ezikSyncFlush, resetGate: ezikSyncResetGate, del: ezikDeleteChat, boot: ezikSyncBoot, save: ezikSaveChat, soonMs: EZIK_SYNC_SOON_MS, keepMax: EZIK_SYNC_KEEPALIVE_MAX, status: ezikSyncStatus, kv: ezikSyncKv, ctr: ezikSyncCtr, deviceOnly: ezikSyncDeviceOnly, beginLink: ezikSyncBeginLink, finishLink: ezikSyncFinishLink, writeSession: writeAuthSession, mark: EZIK_SYNC_IMAGE_MARK })', ctx);
   return { window, local, api, requests, deleted, idb: window.indexedDB, ctx, ctl };
 }
 
@@ -272,6 +272,19 @@ async function main() {
   }
   check('W1 delete-all: the server copy of the account is empty', ![...store.data.keys()].some((k) => k.includes(SSTORE.spaceIdOf(A.key)) && /:(r|q|v|m)$/.test(k)));
   check('W2 item 142: the page asks the worker to drop the mushaf downloads store', d1.deleted.length === 1 && d1.deleted[0].ezik === 'downloads-clear');
+  // SYNC FIX 3 -- the gate in front of «حذف كل البيانات», against the real route: the server is
+  // wiped FIRST, and the device erase runs only after the server said so.
+  {
+    const Wk = await acct('77', 'w@example.com');
+    const dw = makeDevice({ child_profile: JSON.stringify(PROFILE1), ezik_auth_session_v1: Wk.json, ezik_chats_v1: JSON.stringify([{ id: 'w1', pk: 'pid-device-1', title: 'w', pinned: false, at: 5 }]), ezik_chat_v1_w1: JSON.stringify([{ role: 'user', content: 'سؤال', timestamp: '2026-10-10T09:00:00.000Z' }]) }, 'device-wipe-7777');
+    await dw.api.cycle(); await settle();
+    const spaceKeys = () => [...store.data.keys()].filter((k) => k.includes(SSTORE.spaceIdOf(Wk.key)) && /:(r|q|v|m)$/.test(k));
+    const hadData = spaceKeys().length > 0;
+    let serverEmptyWhenErased = null;
+    const took = dw.api.resetGate(() => { serverEmptyWhenErased = spaceKeys().length === 0; });
+    await settle(); await settle();
+    check('W3 sync fix 3: for an open account the gate takes the press, wipes the server, THEN lets the device erase run', hadData && took === true && serverEmptyWhenErased === true && spaceKeys().length === 0, JSON.stringify({ hadData, took, serverEmptyWhenErased }));
+  }
 
   // C -- switch closed
   process.env.SYNC_SWITCH = 'off';

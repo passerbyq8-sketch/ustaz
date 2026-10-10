@@ -150,7 +150,11 @@ const ENV_NAMES = ['window', 'document', 'localStorage', 'confirm', 'CustomEvent
   // ITEMS 24 + 58 and ITEM 142: the server half of the erase (a fetch, only for an account the
   // sync switch is open for), its retry timer, the device id it signs with, and the mushaf
   // downloads store the button now deletes for everybody.
-  'fetch', 'setTimeout', 'navigator', 'crypto'];
+  'fetch', 'navigator', 'crypto',
+  // SYNC FIX 3 (10 October): the press waits for the server's wipe; a refusal is shown in an alert,
+  // and a pending gathered sync is cancelled before the wipe goes out. The fire-and-forget retry
+  // timer (setTimeout) went with the old unawaited wipe.
+  'alert', 'clearTimeout'];
 
 const V_RESET = innerConst('App', 'resetAll');
 
@@ -173,6 +177,9 @@ function resolveClosure(root) {
 }
 
 const CLOSURE = resolveClosure(V_RESET.init);
+// SYNC FIX 3: resetAll hands ITSELF to the server gate, which calls it again once the server has
+// wiped. Its own name is therefore free inside its body -- and the harness declares it below.
+CLOSURE.outside.delete('resetAll');
 
 // THE HARNESS IS HELD TO THE CODE IN BOTH DIRECTIONS. A name resetAll starts using that nothing
 // here supplies is a tool measuring a function that cannot run; a name this harness fakes that
@@ -195,7 +202,7 @@ const HARNESS = ['"use strict";']
   .concat(CLOSURE.order.map((e) => e[1].emit))
   .concat([
     'const ' + text(V_RESET) + ';',
-    'return { resetAll: resetAll };',
+    'return { resetAll: resetAll, openSync: (sess) => { ezikSyncOpenCache = { session: sess, open: true, at: Date.now() }; } };',
   ]).join('\n');
 
 const makeHarness = new Function('env', HARNESS);
@@ -653,6 +660,8 @@ function scene(opts) {
   const setters = [];
   const storage = fakeStorage();
   const fetched = [];
+  const bodies = [];
+  const alerted = [];
   const timers = [];
   const cacheDeleted = [];
 
@@ -681,13 +690,18 @@ function scene(opts) {
     setChatList: (v) => { setters.push(['setChatList', v]); },
     setScreen: (v) => { setters.push(['setScreen', v]); },
     chatIdRef: { current: 'c_alpha' },
-    fetch: (u, i) => { fetched.push(String(u)); return Promise.resolve({ ok: true, json: async () => ({ ok: true }) }); },
-    setTimeout: (fn) => { timers.push(fn); return 0; },
+    fetch: (u, i) => {
+      fetched.push(String(u)); bodies.push(i && i.body ? JSON.parse(i.body) : null);
+      const st = o.fetchStatus || 200;
+      return Promise.resolve({ ok: st === 200, status: st, json: async () => (st === 200 ? { ok: true } : { ok: false, error: 'sync-unavailable' }) });
+    },
+    alert: (m) => { alerted.push(String(m)); },
+    clearTimeout: () => {},
     navigator: { serviceWorker: { controller: { postMessage: (m) => { cacheDeleted.push(m); } } } },
     crypto: { getRandomValues: (a) => a, randomUUID: () => 'uuid-fixture-0001' },
   };
   return {
-    fetched: fetched, timers: timers, cacheDeleted: cacheDeleted,
+    fetched: fetched, bodies: bodies, alerted: alerted, timers: timers, cacheDeleted: cacheDeleted,
     h: makeHarness(env), env: env, storage: storage,
     asked: asked, events: events, painted: painted, setters: setters,
     seeded: storage.keys().slice(),
@@ -945,6 +959,50 @@ run('ITEMS 24 + 58: with the sync switch closed the press sends NOTHING anywhere
   eq(sc.fetched, [], 'requests made by the press');
   return 'zero requests: the server half is only for an account the switch is open for';
 });
+
+// ---- SYNC FIX 3 (10 October): an open account's press waits for the server. --------------------
+// The scene is the same seeded device, signed in, with the switch answered OPEN for its session.
+function openScene(status) {
+  const sc = scene({ fetchStatus: status });
+  sc.storage.setItem(keyOf('AUTH_SESSION_KEY'), JSON.stringify({ session: 'session-fixture-0123456789', email: '', provider: 'google' }));
+  sc.h.openSync('session-fixture-0123456789');
+  sc.seededNow = sc.storage.keys().slice().sort();
+  return sc;
+}
+const flushAll = async () => { for (let i = 0; i < 20; i++) await Promise.resolve(); await new Promise((r) => setImmediate(r)); };
+async function syncFix3Cases() {
+  await runAsync('SYNC FIX 3: open account, server REFUSES: nothing on the device is erased, the message is shown', async () => {
+    const sc = openScene(503);
+    sc.h.resetAll();
+    await flushAll();
+    const wipes = sc.bodies.filter((b) => b && b.action === 'wipe').length;
+    eq(sc.storage.keys().slice().sort(), sc.seededNow, 'the device after a refused wipe');
+    is(wipes >= 1, 'no wipe was sent');
+    eq(sc.alerted.length, 1, 'alerts shown');
+    is(/sync\.wipeFailed|تعذّر حذفُ بياناتك/.test(sc.alerted[0]), 'the alert is not the wipe-failed message: ' + sc.alerted[0]);
+    eq(sc.cacheDeleted, [], 'worker messages (the downloads store is not dropped either)');
+    return 'refused: ' + wipes + ' wipe request(s), the device byte for byte as seeded, one message';
+  });
+  await runAsync('SYNC FIX 3: ...pressing again with the server accepting: the device is erased', async () => {
+    const sc = openScene(200);
+    sc.h.resetAll();
+    await flushAll();
+    const gone = sc.seededNow.filter((k) => sc.storage.keys().indexOf(k) === -1);
+    is(sc.bodies.some((b) => b && b.action === 'wipe'), 'no wipe was sent');
+    is(gone.indexOf(keyOf('EZIK_CHATS_KEY')) !== -1 && gone.indexOf(keyOf('AUTH_SESSION_KEY')) !== -1, 'the device was not erased after the server said yes');
+    eq(sc.asked.length, 1, 'confirm questions (the second pass skips it)');
+    eq(sc.alerted, [], 'alerts shown');
+    eq(sc.cacheDeleted, [{ ezik: 'downloads-clear' }], 'item 142 still goes, after the server');
+    return 'accepted: one confirm, the wipe, then ' + gone.length + ' keys erased';
+  });
+  await runAsync('SYNC FIX 3: the device is NOT erased before the server answers', async () => {
+    const sc = openScene(200);
+    sc.h.resetAll();
+    eq(sc.storage.keys().slice().sort(), sc.seededNow, 'the device in the instant after the press');
+    await flushAll();
+    return 'synchronously after the press the device is untouched; the erase waits for the answer';
+  });
+}
 
 run('delete.html still carries both promises this tool measures against', () => {
   const arabic = 'قرارُ موافقة الذكاء الاصطناعيّ ورقمُ نسخته';
@@ -1494,6 +1552,7 @@ if (failed) {
 process.exit(failed ? 1 : 0);
 }
 
-serverCases()
+syncFix3Cases()
+  .then(serverCases)
   .then(report)
   .catch((e) => { console.log('[FAIL] the server half could not run: ' + (e && e.stack || e)); process.exit(1); });
