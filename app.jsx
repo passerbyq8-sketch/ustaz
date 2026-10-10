@@ -29553,8 +29553,11 @@ function ezikSchedTiers(now) {
 // gated by their OWN switches and must not be silenced by this one.
 // The iqama and pre-prayer alerts stand behind the SAME switch as the prayer call itself: no reminder about
 // a prayer the reader asked not to be told about.
+// ITEM 110 ROUND 2 (127 note m15), part fix: the iqama and pre-prayer reminders the reader switched on are scheduled
+// on their own -- the notification permission is app-wide, and the shell takes these items with no call sound -- so
+// they no longer wait for the general prayer switch. Dark: the gate above them, unchanged.
 function ezikPrayerAlertFeed() {
-  if (!readPrayerNotify()) return [];
+  if (!readPrayerNotify() && !EZIK_FIX_LIT) return [];
   return ezikPrayerAlertItems(new Date());
 }
 // ITEM 124-3/4 -- THE WINDOW NARROWS ONLY WHILE ONE OF THE TWO IS ON. Five prayers a day for seven days is

@@ -9080,7 +9080,10 @@ function ezikSchedTiers(now){return[ezikAdhanFeed(),ezikPrayerAlertFeed(),ezikWi
 // gated by their OWN switches and must not be silenced by this one.
 // The iqama and pre-prayer alerts stand behind the SAME switch as the prayer call itself: no reminder about
 // a prayer the reader asked not to be told about.
-function ezikPrayerAlertFeed(){if(!readPrayerNotify())return[];return ezikPrayerAlertItems(new Date());}// ITEM 124-3/4 -- THE WINDOW NARROWS ONLY WHILE ONE OF THE TWO IS ON. Five prayers a day for seven days is
+// ITEM 110 ROUND 2 (127 note m15), part fix: the iqama and pre-prayer reminders the reader switched on are scheduled
+// on their own -- the notification permission is app-wide, and the shell takes these items with no call sound -- so
+// they no longer wait for the general prayer switch. Dark: the gate above them, unchanged.
+function ezikPrayerAlertFeed(){if(!readPrayerNotify()&&!EZIK_FIX_LIT)return[];return ezikPrayerAlertItems(new Date());}// ITEM 124-3/4 -- THE WINDOW NARROWS ONLY WHILE ONE OF THE TWO IS ON. Five prayers a day for seven days is
 // thirty-five of the shell's sixty; add ten more a day and the far end would be cut in silence. So, while any
 // iqama or alert switch is on, the schedule covers the LONGEST number of days (seven down to one) whose items,
 // under every tier, still fit the ceiling -- and every tier is cut at the same midnight. With both off nothing
