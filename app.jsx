@@ -8406,12 +8406,13 @@ function useEzikVisualTheme() {
 //   'owner'  -- lit only on a device that holds the owner's unlock code
 //   'public' -- lit for everybody. ONLY the owner's own word «انشر» may write it; no agent does.
 // Part `safe` is the system-edge fix (viewport-fit=cover + one safe-area token family). Parts b c d e
-// are the four identities. With nothing lit this block draws nothing, loads nothing, sends nothing
+// are the four identities. Part `fix` (round 2) carries the item-127 fixes, so they need not wait for a
+// design: each fix reads ez110FixLit() and, dark, the old behaviour runs unchanged. With nothing lit this block draws nothing, loads nothing, sends nothing
 // and writes nothing: the app is the app of the commit before it, pixel for pixel.
 // The owner is recognised by a code, never by an e-mail and never by a request: the device keeps
 // the code it was given, and this file keeps only its SHA-256 (EZ110_UNLOCK_SHA).
 // DESIGN-SYSTEM.md (item 110 session folder) governs every value the lit parts draw.
-const EZ110_PARTS = { safe: 'owner', b: 'owner', c: 'owner', d: 'owner', e: 'owner' };
+const EZ110_PARTS = { safe: 'owner', b: 'owner', c: 'owner', d: 'owner', e: 'owner', fix: 'owner' };
 const EZ110_IDS = ['b', 'c', 'd', 'e'];
 const EZ110_UNLOCK_KEY = 'ezik_110_unlock_v1';
 const EZ110_IDENTITY_KEY = 'ezik_110_identity_v1';
@@ -8420,6 +8421,7 @@ const EZ110_UNLOCK_SHA = 'e37ef4a98d5cacbe5fdd120ad80b47bd16f90dd7014de8762786c0
 const EZ110_EVENT = 'ezik-110';
 const EZ110_CSS = '/ez110/ez110.css';
 const EZ110_SAFE_CSS = '/ez110/ez110-safe.css';
+const EZ110_FIX_CSS = '/ez110/ez110-fix.css';
 
 // SHA-256 of a UTF-8 string, synchronously: the switch is decided before the first render, and
 // crypto.subtle answers only in a promise.
@@ -8468,8 +8470,8 @@ function ez110LocalOverride() {
     if (host !== 'localhost' && host !== '127.0.0.1') return null;
     const q = new URLSearchParams(window.location.search || '');
     const id = q.get('ezik110');
-    const out = { id: EZ110_IDS.indexOf(id) >= 0 ? id : '', dark: q.get('mode') === 'dark', safe: q.get('safe') === '1' };
-    return (out.id || out.safe || out.dark) ? out : null;
+    const out = { id: EZ110_IDS.indexOf(id) >= 0 ? id : '', dark: q.get('mode') === 'dark', safe: q.get('safe') === '1', fix: q.get('fix') === '1' };
+    return (out.id || out.safe || out.dark || out.fix) ? out : null;
   } catch (e) { return null; }
 }
 const EZ110_OWNER = ez110ReadOwner();
@@ -8496,6 +8498,10 @@ function ez110ReadIdentity() {
 function ez110SafeLit() {
   return ez110PartLit('safe') || !!(EZ110_OVERRIDE && EZ110_OVERRIDE.safe);
 }
+// Part `fix`: the item-127 fixes. Lit for the owner (or the local override &fix=1); every fix asks this.
+function ez110FixLit() {
+  return ez110PartLit('fix') || !!(EZ110_OVERRIDE && EZ110_OVERRIDE.fix);
+}
 function ez110ReadDigits() {
   try { const v = localStorage.getItem(EZ110_DIGITS_KEY); return (v === 'arab' || v === 'latn') ? v : 'auto'; } catch (e) { return 'auto'; }
 }
@@ -8514,7 +8520,8 @@ function ez110LinkCss(href, onDone) {
 function ez110Apply() {
   const id = ez110ReadIdentity();
   const safe = ez110SafeLit();
-  if (!id && !safe && !EZ110_OWNER) return;
+  const fix = ez110FixLit();
+  if (!id && !safe && !fix && !EZ110_OWNER) return;
   try {
     const d = document.documentElement;
     if (safe) {
@@ -8522,6 +8529,10 @@ function ez110Apply() {
       const m = document.querySelector('meta[name="viewport"]');
       if (m && !/viewport-fit=cover/.test(m.getAttribute('content') || '')) m.setAttribute('content', (m.getAttribute('content') || '') + ', viewport-fit=cover');
       ez110LinkCss(EZ110_SAFE_CSS);
+    }
+    if (fix) {
+      d.setAttribute('data-ez110-fix', '1');
+      ez110LinkCss(EZ110_FIX_CSS);
     }
     if (id) {
       if (!d.getAttribute('data-ez110')) {
@@ -8578,10 +8589,10 @@ function ez110TryUnlock(code) {
 }
 // State for components: { id, owner, safe, digits } -- id is '' when no identity is lit.
 function useEz110() {
-  const read = () => ({ id: ez110ReadIdentity(), owner: EZ110_OWNER, safe: ez110SafeLit(), digits: ez110ReadDigits() });
+  const read = () => ({ id: ez110ReadIdentity(), owner: EZ110_OWNER, safe: ez110SafeLit(), fix: ez110FixLit(), digits: ez110ReadDigits() });
   const [st, setSt] = useState(read);
   useEffect(() => {
-    if (!st.id && !st.safe && !st.owner) return undefined;
+    if (!st.id && !st.safe && !st.fix && !st.owner) return undefined;
     const on = () => setSt(read());
     window.addEventListener(EZ110_EVENT, on);
     return () => window.removeEventListener(EZ110_EVENT, on);
@@ -13987,7 +13998,8 @@ const EZIK_FATWA_ACTIONS = [
 function ezikFatwaNumber(value) {
   // ITEM 110 (127 note m25): lit, the count speaks the app's own digits -- the language's system, or
   // the reader's numerals choice -- instead of whatever the browser's locale data prints today.
-  if (ez110ReadIdentity()) {
+  // Round 2: behind part `fix` as well, so it ships with the fixes even before a design is published.
+  if (ez110ReadIdentity() || ez110FixLit()) {
     try {
       const t = Number(value).toLocaleString('en-US');
       return ezLangEntry(EZ_LANG).digits === 'latn' ? t : toArabicDigits(t).replace(/,/g, String.fromCharCode(0x66C));

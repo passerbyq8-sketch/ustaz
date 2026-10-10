@@ -11,6 +11,7 @@
 //   O6     with nothing lit, ez110Apply() touches no attribute, no meta, no stylesheet
 //   O7     the plaintext code is in no tracked file
 //   O8     the new device keys never enter the sync tables
+//   O9     part fix (round 2): &fix=1 lights it on localhost / 127.0.0.1 only; elsewhere a non-owner never has it
 'use strict';
 const fs = require('fs'), path = require('path'), crypto = require('crypto'), cp = require('child_process');
 const ROOT = path.join(__dirname, '..');
@@ -28,7 +29,7 @@ function lift(name) {
   throw new Error('unbalanced ' + name);
 }
 const constOf = (name) => { const m = jsx.match(new RegExp('const ' + name + ' = ([^;]+);')); if (!m) throw new Error('missing const ' + name); return m[1]; };
-const SRC = ['ez110Sha256Hex', 'ez110ReadOwner', 'ez110LocalOverride', 'ez110PartLit', 'ez110Choosable', 'ez110ReadIdentity', 'ez110SafeLit', 'ez110ReadDigits', 'ez110LinkCss', 'ez110Apply'].map(lift).join('\n');
+const SRC = ['ez110Sha256Hex', 'ez110ReadOwner', 'ez110LocalOverride', 'ez110PartLit', 'ez110Choosable', 'ez110ReadIdentity', 'ez110SafeLit', 'ez110FixLit', 'ez110ReadDigits', 'ez110LinkCss', 'ez110Apply'].map(lift).join('\n');
 function world({ host = 'ezik.app', search = '', store = {} } = {}) {
   const calls = [];
   const el = { setAttribute: (a, v) => calls.push('attr:' + a), removeAttribute: (a) => calls.push('rm:' + a), getAttribute: () => null, style: {} };
@@ -39,22 +40,22 @@ function world({ host = 'ezik.app', search = '', store = {} } = {}) {
     `const EZ110_PARTS = ${constOf('EZ110_PARTS')}; const EZ110_IDS = ${constOf('EZ110_IDS')};
      const EZ110_UNLOCK_KEY = ${constOf('EZ110_UNLOCK_KEY')}; const EZ110_IDENTITY_KEY = ${constOf('EZ110_IDENTITY_KEY')};
      const EZ110_DIGITS_KEY = ${constOf('EZ110_DIGITS_KEY')}; const EZ110_UNLOCK_SHA = ${constOf('EZ110_UNLOCK_SHA')};
-     const EZ110_CSS = ${constOf('EZ110_CSS')}; const EZ110_SAFE_CSS = ${constOf('EZ110_SAFE_CSS')};
+     const EZ110_CSS = ${constOf('EZ110_CSS')}; const EZ110_SAFE_CSS = ${constOf('EZ110_SAFE_CSS')}; const EZ110_FIX_CSS = ${constOf('EZ110_FIX_CSS')};
      ${SRC}
      const EZ110_OWNER = ez110ReadOwner(); const EZ110_OVERRIDE = ez110LocalOverride();
-     return { ez110Sha256Hex, ez110ReadOwner, ez110LocalOverride, ez110PartLit, ez110Apply, EZ110_PARTS, owner: EZ110_OWNER, ov: EZ110_OVERRIDE };`);
+     return { ez110Sha256Hex, ez110ReadOwner, ez110LocalOverride, ez110PartLit, ez110FixLit, ez110Apply, EZ110_PARTS, owner: EZ110_OWNER, ov: EZ110_OVERRIDE };`);
   const api = f(window, document, localStorage, URLSearchParams, () => calls.push('timer'));
   return { api, calls };
 }
 // O1 / O2
-const Q = '?ezik110=b&mode=dark&safe=1';
+const Q = '?ezik110=b&mode=dark&safe=1&fix=1';
 for (const host of ['ezik.app', 'www.ezik.app', 'almurabbi.app', 'ustaz-git-main-musaed-s-projects1.vercel.app', 'ustaz-abc123-musaed-s-projects1.vercel.app', 'localhost.evil.com', '127.0.0.1.nip.io', 'evil-localhost', '10.0.0.1', '0.0.0.0', '']) {
   const { api } = world({ host, search: Q });
   api.ov === null ? pass(`O1 override inert on "${host}"`) : fail(`O1 override ANSWERS on "${host}"`);
 }
 for (const host of ['localhost', '127.0.0.1']) {
   const { api } = world({ host, search: Q });
-  api.ov && api.ov.id === 'b' && api.ov.safe && api.ov.dark ? pass(`O2 override answers on ${host}`) : fail(`O2 override does not answer on ${host}`);
+  api.ov && api.ov.id === 'b' && api.ov.safe && api.ov.dark && api.ov.fix ? pass(`O2 override answers on ${host}`) : fail(`O2 override does not answer on ${host}`);
   const { api: a2 } = world({ host, search: '?ezik110=z' });
   a2.ov === null ? pass(`O2 an unknown identity is ignored on ${host}`) : fail(`O2 unknown identity accepted on ${host}`);
 }
@@ -65,6 +66,16 @@ for (const [part, st] of Object.entries(base.EZ110_PARTS)) {
   else if (!['off', 'owner', 'public'].includes(st)) fail(`O3 part ${part} has an unknown state ${st}`);
   else pass(`O3 part ${part} = ${st}`);
 }
+// O9
+for (const host of ['ezik.app', 'www.ezik.app', 'almurabbi.app', 'ustaz-git-main-musaed-s-projects1.vercel.app', 'localhost.evil.com', '127.0.0.1.nip.io', '']) {
+  const { api } = world({ host, search: '?fix=1' });
+  api.ez110FixLit() === false ? pass(`O9 &fix=1 inert on "${host}"`) : fail(`O9 &fix=1 lights part fix on "${host}"`);
+}
+for (const host of ['localhost', '127.0.0.1']) {
+  const { api } = world({ host, search: '?fix=1' });
+  api.ez110FixLit() === true ? pass(`O9 &fix=1 answers on ${host}`) : fail(`O9 &fix=1 does not answer on ${host}`);
+}
+'fix' in base.EZ110_PARTS ? pass('O9 part fix is declared') : fail('O9 part fix is missing from EZ110_PARTS');
 // O4
 for (const s of ['', 'abc', 'ezk110-test', 'عزك', 'x'.repeat(200)]) {
   const want = crypto.createHash('sha256').update(s, 'utf8').digest('hex');

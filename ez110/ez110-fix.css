@@ -1,0 +1,15 @@
+/* ITEM 110 ROUND 2 -- PART `fix` (the item-127 fixes). Hand-written. Loaded by app.js ONLY when part fix
+   is lit for this reader (the owner, or the local override &fix=1 on localhost); never requested otherwise.
+   Every rule is scoped to html[data-ez110-fix], which only that path writes. */
+
+/* 127 note m23: the Latin-script interfaces read left to right, so the back arrow points LEFT and the
+   drawer opens from the side its button is on. The same rules part b carries (tools/ez110/css/10-b-shell.css),
+   here for the current design too. Arabic, Persian, Urdu and the other right-to-left interfaces are untouched. */
+html[dir="ltr"][data-ez110-fix] .ezsh-nav-side:not(.is-end) > button:first-child svg,
+html[dir="ltr"][data-ez110-fix] .ezia-nav-inner > button:first-child svg,
+html[dir="ltr"][data-ez110-fix] .ezist-nav-inner > button:first-child svg,
+html[dir="ltr"][data-ez110-fix] .ezfav-back svg,
+html[dir="ltr"][data-ez110-fix] .ezparent-back svg { transform: scaleX(-1); }
+html[dir="ltr"][data-ez110-fix] .ezc-drawer { right: auto; left: 0; border-inline-start: 0; border-inline-end: 1px solid var(--vt-line, var(--a3-line)); }
+@media (min-width: 900px) { html[dir="ltr"][data-ez110-fix] .ezc-drawer { right: auto; left: 16px; } }
+html[dir="ltr"][data-ez110-fix] .ezsug-go svg { transform: scaleX(-1); }
