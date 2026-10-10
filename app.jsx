@@ -5454,11 +5454,15 @@ const ezikWriteClipboard = async (payload) => {
   if (!wrote) wrote = ezikLegacyCopy(payload);
   return wrote;
 };
+// ITEM 110 ROUND 2 (127 note m28), part fix: copy, share and quote carry no heading mark at a line start -- the
+// speed guards' own rule (/^#{1,6}\s/). Applied where the payload is used, so the rail's pinned lines and the
+// server's text stay as they are. Dark: the payload passes through untouched.
+const ezikFixPlainHeads = (t) => (ez110FixLit() && typeof t === 'string' ? t.replace(/^#{1,6}\s+/gm, '') : t);
 const CopyReplyButton = ({ text, getText }) => {
   const [flash, setFlash] = useState('');            // '' | 'ok' | 'fail'
   if (!text) return null;
   const doCopy = async () => {
-    const payload = (typeof getText === 'function') ? getText() : text;
+    const payload = ezikFixPlainHeads((typeof getText === 'function') ? getText() : text);
     if (!payload) { setFlash('fail'); setTimeout(() => setFlash(''), 1500); return; }
     const wrote = await ezikWriteClipboard(payload);
     setFlash(wrote ? 'ok' : 'fail');                 // never claim a write that did not happen
@@ -5483,7 +5487,7 @@ const ShareReplyButton = ({ getText }) => {
   const [flash, setFlash] = useState('');            // '' | 'copied' | 'fail'
   const say = (v) => { setFlash(v); setTimeout(() => setFlash(''), 1500); };
   const doShare = async () => {
-    const payload = (typeof getText === 'function') ? getText() : '';
+    const payload = ezikFixPlainHeads((typeof getText === 'function') ? getText() : '');
     if (!payload) { say('fail'); return; }
     try {
       if (navigator.share) {
@@ -20518,6 +20522,7 @@ function App() {
   // reply it was taken from is not altered in any way. Text already typed is KEPT: the quote is
   // appended below it after a blank line, so nothing a child was in the middle of writing is lost.
   const quoteReply = (clean) => {
+    clean = ezikFixPlainHeads(clean);   // m28, part fix -- dark: unchanged
     const block = ezikBuildQuote(clean);
     if (!block) return;
     setInput((prev) => ezikComposeWithQuote(prev, block));
@@ -22993,11 +22998,6 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, stream
   // D90: the clipboard carries EVERY rendered block, in display order. D91: it is built on the
   // TAP, not here, because the stores the cards read are still filling while this runs.
   const buildCopyText = () => serializeReply(segments, { tashkeel, band: deriveCaps(age).band });
-  // ITEM 110 ROUND 2 (127 note m28), part fix: copy, share and quote drop the heading mark at a line start
-  // (the speed guards' own rule, /^#{1,6}\s/) from the prose segments only -- scripture and cards stay verbatim.
-  // The server keeps writing it (speedpipes requires it); dark, the rail is handed buildCopyText itself.
-  const buildPlainCopy = () => serializeReply(segments.map((sg) => (sg && sg.type === 'text' ? { ...sg, content: String(sg.content || '').replace(/^#{1,6}\s+/gm, '') } : sg)), { tashkeel, band: deriveCaps(age).band });
-  const copyText = ez110FixLit() ? buildPlainCopy : buildCopyText;
   // ITEM 110 ROUND 2 (127 note m27), part fix: the star's name WITH its state, in words. In the Android WebView an
   // aria-pressed button's aria-label never reaches the accessibility tree -- only its text does -- so, lit, the
   // name is also a visually hidden text child. Dark: null, and the button is what it was.
@@ -23075,10 +23075,10 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, stream
         <MessageListenButton text={message.content} onPlayMessage={onPlayMessage} onStopAudio={onStopAudio} />
         {/* text= decides only VISIBILITY, and is deliberately store-independent: the raw reply
             always exists, so the button can no longer vanish because a fetch had not landed. */}
-        <CopyReplyButton text={String(message.content || '').trim()} getText={copyText} />
+        <CopyReplyButton text={String(message.content || '').trim()} getText={buildCopyText} />
         {/* ITEM 42-أ: SHARE. The same payload the clipboard gets, the same rail, the same
             44x44 hit area every .ezc-acts button already takes from 44-ج. It calls nothing. */}
-        <ShareReplyButton getText={copyText} />
+        <ShareReplyButton getText={buildCopyText} />
         {/* ITEM 42-ب: the same buildCopyText payload, rendered by the document card's own
             docToHtml and printed by the app's one printAsPdf. No library, no request, no
             second serializer -- and the identical 44x44 area every .ezc-acts button takes. */}
@@ -23094,7 +23094,7 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, stream
             serialized, no tag ever reaches it), trimmed to a preview and dropped into the
             composer. It sends nothing. */}
         {onQuote && (
-          <button type="button" onClick={() => onQuote(copyText())} aria-label={EZIK_QUOTE_ARIA} className="ezik-focus" style={miniBtnStyle}>{EZIK_QUOTE_LABEL}</button>
+          <button type="button" onClick={() => onQuote(buildCopyText())} aria-label={EZIK_QUOTE_ARIA} className="ezik-focus" style={miniBtnStyle}>{EZIK_QUOTE_LABEL}</button>
         )}
         {/* S98: the star. `isFavorite` is a boolean handed DOWN — this component never reads a
             store, never parses JSON and never scans a list to draw it. */}
