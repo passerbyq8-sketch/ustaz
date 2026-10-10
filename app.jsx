@@ -34703,9 +34703,23 @@ function MushafLabFrame({ startSurah, startPage, onExit }) {
     document.addEventListener('visibilitychange', onVis);
     return () => { disarm(); window.removeEventListener('message', onMsg); document.removeEventListener('visibilitychange', onVis); };
   }, [onExit, startSurah]);
+  // ITEM 110 ROUND 2 (127 note m11), part fix: a page image that failed while offline is fetched again when the
+  // network returns. The reader marks a failed page with .ph and exposes render(), which rebuilds its slots with fresh
+  // images; this asks for that once, on 'online', and only when a page is marked failed. The mushaf page itself
+  // (the reader's makeStage/fillSlot) is not touched. Dark: no listener.
+  const ez110Frame = useRef(null);
+  useEffect(() => {
+    if (!ez110FixLit()) return undefined;
+    const onLine = () => {
+      try { const w = ez110Frame.current && ez110Frame.current.contentWindow; if (w && w.__lab && typeof w.__lab.render === 'function' && w.document.querySelector('.stage .ph')) w.__lab.render(); } catch (e) {}
+    };
+    window.addEventListener('online', onLine);
+    return () => window.removeEventListener('online', onLine);
+  }, []);
   const hash = startPage ? ('p=' + startPage) : ('s=' + startSurah);
   return (
     <iframe
+      ref={ez110Frame}
       src={'/mushaf-lab/index.html#' + hash}
       title={'\u0627\u0644\u0645\u0635\u062d\u0641'}
       allow="clipboard-read; clipboard-write; autoplay; fullscreen"
