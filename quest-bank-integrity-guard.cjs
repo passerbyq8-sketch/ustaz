@@ -1791,7 +1791,9 @@ const SEALED = {
   //   2026-10-04 -- ORDER 54 SHIP (order EZIK-ORDER-54-2026-10-04, side/comprehensive-20261002): CACHE and config/app-version.json move ezik-v53 -> ezik-v54.
 //                    app.js REBUILT from app.jsx by npm run build:app: 1828735 bytes (unchanged: only EZIK_APP_VERSION moved, same length), sha256 d234b0e5..36dd.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES stays 3001825, --check MATCH. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 55908 bytes).
-  'sw.js': '5db6f48889b4874c0cbb015c199c7f3b102b261748a2bb19afceb5ce1db227e7',
+  //   2026-10-10 -- ITEM 110 (rebase onto 4ddef38): app.js 2005096 -> 2019103 bytes, sha256 b89d9a81..0b60; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3234341. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  'sw.js': '928cf7eac7775fd3461c80a36fe74cbbb2e84c830a2ec1da05b091e5d87979f2',
 };
 
 // ---------------------------------------------------------------------------
@@ -2897,7 +2899,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2005096, of: 'app.js' },
+      { n: 2019103, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

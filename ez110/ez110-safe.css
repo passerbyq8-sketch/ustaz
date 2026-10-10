@@ -1,0 +1,80 @@
+/* ITEM 110 -- PART `safe`: THE SYSTEM EDGES, ONE TOKEN FAMILY.
+   Loaded by app.js ONLY when part `safe` is lit for this reader (EZ110_PARTS in app.jsx); with the
+   part dark this file is never requested and nothing here can match (every rule is scoped to
+   html[data-ez110-safe], which only the lit path writes).
+
+   The defect it closes (owner, 10 Oct 2026): on a phone with the three-button navigation bar the
+   memorizer's «start» bar sat behind the system buttons. The cause, measured: the shell pads only
+   the TOP edge (SafeAreaView edges={['top']}), Android 15+ draws the app edge to edge, and the page's
+   viewport meta had no viewport-fit=cover, so every env(safe-area-inset-*) in the app computed 0.
+
+   THE FAMILY. One value per edge: the largest of what the browser reports, what the native shell
+   injects (--ez-shell-inset-*, written on <html> by the shell -- STORE-PACK.md), and zero. max(),
+   never a sum: when the browser and the shell report the same bar, it is padded once.
+   THE RULE. Every element that sits on a screen edge reads the family. gate ez110edges fails if one
+   does not; tools probe ez110-cross fails if an interactive element meets an edge band on any screen. */
+
+html[data-ez110-safe] {
+  --ez-safe-t: max(env(safe-area-inset-top, 0px), var(--ez-shell-inset-t, 0px), 0px);
+  --ez-safe-b: max(env(safe-area-inset-bottom, 0px), var(--ez-shell-inset-b, 0px), 0px);
+  --ez-safe-l: max(env(safe-area-inset-left, 0px), var(--ez-shell-inset-l, 0px), 0px);
+  --ez-safe-r: max(env(safe-area-inset-right, 0px), var(--ez-shell-inset-r, 0px), 0px);
+}
+
+/* ---- TOP: the sticky navigation rails (their base rule already pads env(top); now the family) ---- */
+html[data-ez110-safe] .ezist-nav,
+html[data-ez110-safe] .ezia-nav,
+html[data-ez110-safe] .ezsh-nav { padding-top: var(--ez-safe-t); }
+html[data-ez110-safe] .ezc-rail,
+html[data-ez110-safe] .ezcall-rail,
+html[data-ez110-safe] .ezfav-rail,
+html[data-ez110-safe] .ezparent-rail {
+  padding-top: calc(8px + var(--ez-safe-t));
+  padding-right: calc(12px + var(--ez-safe-r));
+  padding-left: calc(12px + var(--ez-safe-l));
+}
+html[data-ez110-safe] .ezmr-rail {
+  padding-top: calc(8px + var(--ez-safe-t));
+  padding-right: calc(10px + var(--ez-safe-r));
+  padding-left: calc(10px + var(--ez-safe-l));
+}
+
+/* ---- BOTTOM: docks that are the last child of a 100dvh column ---- */
+html[data-ez110-safe] .ezc-dock { padding-bottom: calc(10px + var(--ez-safe-b)); }
+html[data-ez110-safe] .ezcall-dock { padding-bottom: calc(12px + var(--ez-safe-b)); }
+html[data-ez110-safe] [data-ez110-edge="dock"] { padding-bottom: calc(6px + var(--ez-safe-b)) !important; }
+html[data-ez110-safe] .ezmr-dockwrap {
+  padding-bottom: calc(8px + var(--ez-safe-b));
+  padding-right: calc(10px + var(--ez-safe-r));
+  padding-left: calc(10px + var(--ez-safe-l));
+}
+
+/* ---- BOTTOM: the memorizer's sticky start bar -- THE BAR IN THE OWNER'S PICTURE ----
+   sticky bottom:0 inside the shell scroller: padding on the scroller does not move a sticky box,
+   so the bar itself is lifted by the family and keeps its own 10px inside. */
+html[data-ez110-safe] [data-ez110-edge="sticky"] {
+  bottom: calc(8px + var(--ez-safe-b)) !important;
+}
+
+/* ---- BOTTOM: fixed toasts ---- */
+html[data-ez110-safe] [data-ez110-edge="toast"] {
+  inset-block-end: calc(12px + var(--ez-safe-b)) !important;
+  right: calc(12px + var(--ez-safe-r)) !important;
+  left: calc(12px + var(--ez-safe-l)) !important;
+}
+
+/* ---- BOTTOM: the end of every scroller, so its last control can be scrolled clear ---- */
+html[data-ez110-safe] .ezist-wrap { padding-bottom: calc(22px + var(--ez-safe-b)); }
+html[data-ez110-safe] .ezia-wrap { padding-bottom: calc(24px + var(--ez-safe-b)); }
+html[data-ez110-safe] .ezsh-wrap { padding-bottom: calc(24px + var(--ez-safe-b)); }
+html[data-ez110-safe] .ezf-wrap { padding-bottom: calc(28px + var(--ez-safe-b)); }
+@media (min-width: 700px) { html[data-ez110-safe] .ezf-wrap { padding-bottom: calc(32px + var(--ez-safe-b)); } }
+@media (min-width: 900px) { html[data-ez110-safe] .ezsh-wrap { padding-bottom: calc(30px + var(--ez-safe-b)); } }
+html[data-ez110-safe] [data-ez110-edge="scrollend"] { padding-bottom: calc(18px + var(--ez-safe-b)) !important; }
+
+
+/* ---- THE DRAWER: full height, both ends ---- */
+html[data-ez110-safe] .ezc-drawer {
+  padding-top: calc(12px + var(--ez-safe-t));
+  padding-bottom: calc(12px + var(--ez-safe-b));
+}

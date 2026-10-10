@@ -545,6 +545,14 @@ const MUST_GO_NEW = [
     clause: 'NOT a sentence of delete.html -- the page names the shelf in neither language. Entered on the owner ruling of 2026-09-10 that every device key is wiped' },
   { c: 'HOME_ORDER_KEY',
     clause: 'NOT a sentence of delete.html -- the page names the shelf in neither language. Entered on the owner ruling of 2026-09-10 that every device key is wiped' },
+  // ITEM 110 -- the three device keys of the redesign: the owner's unlock code, the chosen identity
+  // and the digits choice. None is synced; each goes with everything else.
+  { c: 'EZ110_UNLOCK_KEY',
+    clause: 'NOT a sentence of delete.html -- ITEM 110 device key. Entered on the owner ruling of 2026-09-10 that every device key is wiped, and on order 110 section 1-14 -- the owner preview code' },
+  { c: 'EZ110_IDENTITY_KEY',
+    clause: 'NOT a sentence of delete.html -- ITEM 110 device key. Entered on the owner ruling of 2026-09-10 that every device key is wiped, and on order 110 section 1-14 -- the chosen identity' },
+  { c: 'EZ110_DIGITS_KEY',
+    clause: 'NOT a sentence of delete.html -- ITEM 110 device key. Entered on the owner ruling of 2026-09-10 that every device key is wiped, and on order 110 section 1-14 -- the digits choice' },
   // THE NEW MUSHAF'S OWN STORE, 2026-09-26. Swept by prefix in resetAll (ezikClearMushafLab), and
   // each name is entered here beside the sentence that asks for it. The marks, the last page and
   // the recent pages are "your place in the Mushaf" (delete.html:107 / :180); the rest are the

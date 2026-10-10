@@ -1661,6 +1661,17 @@ const EZ_I18N = {
     'inbox.selectedN': 'المُحَدَّد: {n}',
     'inbox.selectAria': 'تحديدُ هذه الرّسالة',
     'inbox.deleteSelected': 'امْسَحِ المُحَدَّد',
+    'ez110.unlock.label': 'رمز المعاينة',
+    'ez110.unlock.go': 'فتح المعاينة',
+    'ez110.unlock.ok': 'فُتحت المعاينة على هذا الجهاز. أغلق التطبيق وافتحه من جديد.',
+    'ez110.unlock.bad': 'الرمز غير صحيح.',
+    'ez110.diag.title': 'لوحة التشخيص',
+    'ez110.diag.again': 'أعد القياس',
+    'ez110.mark': 'التصميم:',
+    'ez110.id.b': 'عزك',
+    'ez110.id.c': 'الدانة',
+    'ez110.id.d': 'الخزف',
+    'ez110.id.e': 'البلّور',
   },
   en: {
     'common.close': 'Close',
@@ -2911,6 +2922,17 @@ const EZ_I18N = {
     'inbox.selectedN': 'Selected: {n}',
     'inbox.selectAria': 'Select this message',
     'inbox.deleteSelected': 'Delete selected',
+    'ez110.unlock.label': 'Preview code',
+    'ez110.unlock.go': 'Unlock preview',
+    'ez110.unlock.ok': 'The preview is unlocked on this device. Close the app and open it again.',
+    'ez110.unlock.bad': 'That code is not right.',
+    'ez110.diag.title': 'Diagnostics',
+    'ez110.diag.again': 'Measure again',
+    'ez110.mark': 'Design:',
+    'ez110.id.b': 'Ezik',
+    'ez110.id.c': 'Pearl',
+    'ez110.id.d': 'Porcelain',
+    'ez110.id.e': 'Crystal',
   },
 };
 
@@ -8295,6 +8317,178 @@ function useEzikVisualTheme() {
   return vtheme;
 }
 
+// ============================================================
+// ITEM 110 -- THE OWNER SWITCH. The professional redesign ships to production DARK: every visible
+// change sits behind one of five parts, and a part is lit for a reader only when its state says so.
+//   'off'    -- lit for nobody
+//   'owner'  -- lit only on a device that holds the owner's unlock code
+//   'public' -- lit for everybody. ONLY the owner's own word «انشر» may write it; no agent does.
+// Part `safe` is the system-edge fix (viewport-fit=cover + one safe-area token family). Parts b c d e
+// are the four identities. With nothing lit this block draws nothing, loads nothing, sends nothing
+// and writes nothing: the app is the app of the commit before it, pixel for pixel.
+// The owner is recognised by a code, never by an e-mail and never by a request: the device keeps
+// the code it was given, and this file keeps only its SHA-256 (EZ110_UNLOCK_SHA).
+// DESIGN-SYSTEM.md (item 110 session folder) governs every value the lit parts draw.
+const EZ110_PARTS = { safe: 'owner', b: 'owner', c: 'owner', d: 'owner', e: 'owner' };
+const EZ110_IDS = ['b', 'c', 'd', 'e'];
+const EZ110_UNLOCK_KEY = 'ezik_110_unlock_v1';
+const EZ110_IDENTITY_KEY = 'ezik_110_identity_v1';
+const EZ110_DIGITS_KEY = 'ezik_110_digits_v1';
+const EZ110_UNLOCK_SHA = 'e37ef4a98d5cacbe5fdd120ad80b47bd16f90dd7014de8762786c0fcf1f4b720';
+const EZ110_EVENT = 'ezik-110';
+const EZ110_CSS = '/ez110/ez110.css';
+const EZ110_SAFE_CSS = '/ez110/ez110-safe.css';
+
+// SHA-256 of a UTF-8 string, synchronously: the switch is decided before the first render, and
+// crypto.subtle answers only in a promise.
+function ez110Sha256Hex(str) {
+  const K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  const bytes = [];
+  const u = unescape(encodeURIComponent(String(str)));
+  for (let i = 0; i < u.length; i++) bytes.push(u.charCodeAt(i));
+  const bitLen = bytes.length * 8;
+  bytes.push(0x80);
+  while (bytes.length % 64 !== 56) bytes.push(0);
+  for (let i = 7; i >= 0; i--) bytes.push(i > 3 ? 0 : (bitLen >>> (i * 8)) & 0xff);
+  const H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  const W = new Array(64);
+  const rr = (x, n) => (x >>> n) | (x << (32 - n));
+  for (let o = 0; o < bytes.length; o += 64) {
+    for (let t = 0; t < 16; t++) W[t] = (bytes[o + 4 * t] << 24) | (bytes[o + 4 * t + 1] << 16) | (bytes[o + 4 * t + 2] << 8) | bytes[o + 4 * t + 3];
+    for (let t = 16; t < 64; t++) {
+      const s0 = rr(W[t - 15], 7) ^ rr(W[t - 15], 18) ^ (W[t - 15] >>> 3);
+      const s1 = rr(W[t - 2], 17) ^ rr(W[t - 2], 19) ^ (W[t - 2] >>> 10);
+      W[t] = (W[t - 16] + s0 + W[t - 7] + s1) | 0;
+    }
+    let [a, b, c, d, e, f, g, h] = H;
+    for (let t = 0; t < 64; t++) {
+      const t1 = (h + (rr(e, 6) ^ rr(e, 11) ^ rr(e, 25)) + ((e & f) ^ (~e & g)) + K[t] + W[t]) | 0;
+      const t2 = ((rr(a, 2) ^ rr(a, 13) ^ rr(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) | 0;
+      h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+    }
+    H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c) | 0; H[3] = (H[3] + d) | 0;
+    H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
+  }
+  return H.map((x) => (x >>> 0).toString(16).padStart(8, '0')).join('');
+}
+
+function ez110ReadOwner() {
+  try {
+    const t = localStorage.getItem(EZ110_UNLOCK_KEY);
+    return typeof t === 'string' && t.length >= 16 && ez110Sha256Hex(t) === EZ110_UNLOCK_SHA;
+  } catch (e) { return false; }
+}
+// The local override answers ONLY on this machine's own host names. On any other host -- ezik.app,
+// a preview, the shell -- it is inert, and gate ez110override proves it.
+function ez110LocalOverride() {
+  try {
+    const host = String(window.location.hostname || '');
+    if (host !== 'localhost' && host !== '127.0.0.1') return null;
+    const q = new URLSearchParams(window.location.search || '');
+    const id = q.get('ezik110');
+    const out = { id: EZ110_IDS.indexOf(id) >= 0 ? id : '', dark: q.get('mode') === 'dark', safe: q.get('safe') === '1' };
+    return (out.id || out.safe || out.dark) ? out : null;
+  } catch (e) { return null; }
+}
+const EZ110_OWNER = ez110ReadOwner();
+const EZ110_OVERRIDE = ez110LocalOverride();
+function ez110PartLit(part) {
+  const st = EZ110_PARTS[part];
+  if (st === 'public') return true;
+  if (st === 'owner') return EZ110_OWNER;
+  return false;
+}
+// The identities this reader may choose from: exactly the parts lit for them.
+function ez110Choosable() {
+  return EZ110_IDS.filter((id) => ez110PartLit(id) || (EZ110_OVERRIDE && EZ110_OVERRIDE.id === id));
+}
+function ez110ReadIdentity() {
+  const ok = ez110Choosable();
+  if (!ok.length) return '';
+  if (EZ110_OVERRIDE && EZ110_OVERRIDE.id) return EZ110_OVERRIDE.id;
+  let v = '';
+  try { v = localStorage.getItem(EZ110_IDENTITY_KEY) || ''; } catch (e) {}
+  if (ok.indexOf(v) >= 0) return v;
+  return ok.indexOf('b') >= 0 ? 'b' : ok[0];
+}
+function ez110SafeLit() {
+  return ez110PartLit('safe') || !!(EZ110_OVERRIDE && EZ110_OVERRIDE.safe);
+}
+function ez110ReadDigits() {
+  try { const v = localStorage.getItem(EZ110_DIGITS_KEY); return (v === 'arab' || v === 'latn') ? v : 'auto'; } catch (e) { return 'auto'; }
+}
+// Adds one stylesheet once. Only a lit path ever calls this.
+function ez110LinkCss(href, onDone) {
+  try {
+    if (document.querySelector('link[data-ez110-css="' + href + '"]')) { if (onDone) onDone(); return; }
+    const l = document.createElement('link');
+    l.rel = 'stylesheet'; l.href = href; l.setAttribute('data-ez110-css', href);
+    if (onDone) { l.onload = onDone; l.onerror = onDone; }
+    document.head.appendChild(l);
+  } catch (e) { if (onDone) onDone(); }
+}
+// Applies the lit parts to <html>. Called once at load and again when the owner changes a choice.
+// With nothing lit it returns before touching the document.
+function ez110Apply() {
+  const id = ez110ReadIdentity();
+  const safe = ez110SafeLit();
+  if (!id && !safe && !EZ110_OWNER) return;
+  try {
+    const d = document.documentElement;
+    if (safe) {
+      d.setAttribute('data-ez110-safe', '1');
+      const m = document.querySelector('meta[name="viewport"]');
+      if (m && !/viewport-fit=cover/.test(m.getAttribute('content') || '')) m.setAttribute('content', (m.getAttribute('content') || '') + ', viewport-fit=cover');
+      ez110LinkCss(EZ110_SAFE_CSS);
+    }
+    if (id) {
+      if (!d.getAttribute('data-ez110')) {
+        // First paint of a lit identity: hold the page until its stylesheet answers (or 1.5 s),
+        // so the owner never watches the old design flash. Nobody else ever reaches this line.
+        d.style.visibility = 'hidden';
+        const show = () => { d.style.visibility = ''; };
+        setTimeout(show, 1500);
+        ez110LinkCss(EZ110_CSS, show);
+      }
+      d.setAttribute('data-ez110', id);
+      if (EZ110_OVERRIDE && EZ110_OVERRIDE.dark) { d.setAttribute('data-theme', 'dark'); d.style.colorScheme = 'dark'; }
+      const dg = ez110ReadDigits();
+      if (dg !== 'auto') d.setAttribute('data-ez110-digits', dg); else d.removeAttribute('data-ez110-digits');
+    }
+  } catch (e) {}
+}
+ez110Apply();
+function ez110WriteIdentity(id) {
+  if (ez110Choosable().indexOf(id) < 0) return;
+  try { localStorage.setItem(EZ110_IDENTITY_KEY, id); } catch (e) {}
+  ez110Apply();
+  try { window.dispatchEvent(new CustomEvent(EZ110_EVENT)); } catch (e) {}
+}
+function ez110WriteDigits(v) {
+  try { localStorage.setItem(EZ110_DIGITS_KEY, v === 'arab' || v === 'latn' ? v : 'auto'); } catch (e) {}
+  ez110Apply();
+  try { window.dispatchEvent(new CustomEvent(EZ110_EVENT)); } catch (e) {}
+}
+// The hidden entry: a code is accepted only if its SHA-256 is the one above. Returns true on success.
+function ez110TryUnlock(code) {
+  const c = String(code || '').trim();
+  if (c.length < 16 || ez110Sha256Hex(c) !== EZ110_UNLOCK_SHA) return false;
+  try { localStorage.setItem(EZ110_UNLOCK_KEY, c); } catch (e) { return false; }
+  return true;
+}
+// State for components: { id, owner, safe, digits } -- id is '' when no identity is lit.
+function useEz110() {
+  const read = () => ({ id: ez110ReadIdentity(), owner: EZ110_OWNER, safe: ez110SafeLit(), digits: ez110ReadDigits() });
+  const [st, setSt] = useState(read);
+  useEffect(() => {
+    if (!st.id && !st.safe && !st.owner) return undefined;
+    const on = () => setSt(read());
+    window.addEventListener(EZ110_EVENT, on);
+    return () => window.removeEventListener(EZ110_EVENT, on);
+  }, []);
+  return st;
+}
+
 // ITEM 97 -- HOME_GREETINGS_GENERAL STOOD HERE, sixteen keys deep, and the day branch below
 // picked one of them by the day of the year. The owner’s reading of it: the two adhkar
 // windows are «ممتاز» and the rest of the day is idle. So the rest of the day now says
@@ -10835,7 +11029,7 @@ function EzikHomeArrange({ widgets, onWidgets, onClose }) {
         <button type="button" onClick={() => apply(ezWidgetDefaults())} className="ezhome-focus" style={s.ezwidReset}>{ezT('home.arrange.reset')}</button>
       </span>
       {saveFailed ? (
-        <div role="status" style={s.swNote}>
+        <div role="status" style={s.swNote} data-ez110-edge="toast">
           <span style={s.swNoteText}>{ezT('home.arrange.saveFailed')}</span>
         </div>
       ) : null}
@@ -14957,7 +15151,7 @@ function IstanaAdhkarReader(v) {
         )}
       </div>
       {items !== null && len > 0 && d && (
-        <div style={s.eziaDock}>
+        <div style={s.eziaDock} data-ez110-edge="dock">
           <div className="ezia-dock-inner">
             <button type="button" className="adhkar2-focus" onClick={v.onPrev} disabled={v.idx <= 0}
               style={v.idx <= 0 ? { ...s.eziaDockBtn, ...s.eziaDockBtnOff } : s.eziaDockBtn} aria-label={A2_PREV}>{A2_ICON_BACK}</button>
@@ -15269,7 +15463,7 @@ function IstanaArbaeenBrowse({ onBack, doc, failed, onOpen, place }) {
           <span style={s.eziaNavBtn} aria-hidden="true" />
         </div>
       </div>
-      <div ref={scrollRef} style={s.eziaScroll}>
+      <div ref={scrollRef} style={s.eziaScroll} data-ez110-edge="scrollend">
         {doc === null ? (
           <div style={s.a3Empty}>{failed ? A2_EMPTY : '...'}</div>
         ) : list.length === 0 ? (
@@ -20278,6 +20472,10 @@ function App() {
       // than waiting for a mount, because the screen behind this dialog is still on screen.
       try { localStorage.removeItem(EZIK_VISUAL_THEME_KEY); } catch (e) {}
       try { localStorage.removeItem(EZIK_VISUAL_THEME_KEY_V1); } catch (e) {}
+      // ITEM 110 -- the redesign's device keys go too: the preview code, the identity, the digits.
+      try { localStorage.removeItem(EZ110_UNLOCK_KEY); } catch (e) {}
+      try { localStorage.removeItem(EZ110_IDENTITY_KEY); } catch (e) {}
+      try { localStorage.removeItem(EZ110_DIGITS_KEY); } catch (e) {}
       applyEzikVisualTheme(EZIK_VISUAL_THEME_DEFAULT);
       try { window.dispatchEvent(new CustomEvent(EZIK_VISUAL_THEME_EVENT, { detail: EZIK_VISUAL_THEME_DEFAULT })); } catch (e) {}
       // S119 -- THE PAGE ALREADY PROMISED THESE FOUR; the code simply did not keep the promise.
@@ -22443,7 +22641,7 @@ function FavoritesScreen({ items, liveChatIds, onBack, onOpenChat, onRemove, age
           </span>
         </div>
       </div>
-      <div style={s.favBody}>
+      <div style={s.favBody} data-ez110-edge="scrollend">
        <div className="ezfav-wrap">
         {/* S98/S114: the same local search over the records ALREADY IN MEMORY, in the masthead. */}
         {total > 0 && (
@@ -23546,12 +23744,80 @@ const EZIK_SOURCES_SECTIONS = [
 let EZIK_SOURCES_SEAL = ezT('c.EZIK_SOURCES_SEAL');
 
 function EzikAboutSheet({ onBack }) {
+  // ITEM 110 -- seven presses on the text inside four seconds open the owner's code field; nothing
+  // is drawn before that, so the sheet a reader sees is the sheet of the commit before. The
+  // diagnostics panel exists only where a part is lit.
+  const ez = useEz110();
+  const taps = useRef([]);
+  const [askCode, setAskCode] = useState(false);
+  const onTextPress = () => {
+    const now = Date.now();
+    taps.current = taps.current.filter((t) => now - t < 4000).concat(now);
+    if (taps.current.length >= 7) { taps.current = []; setAskCode(true); }
+  };
   return (
     <EzShell title={ezT('menu.about')} onBack={onBack} backLabel={ezT('common.back')}>
-      <section style={s.asmaaRead} aria-label={ezT('menu.aboutAria')}>
+      <section style={s.asmaaRead} aria-label={ezT('menu.aboutAria')} onClick={onTextPress}>
         {EZIK_ABOUT_BODY.map((line, i) => <p key={i} style={s.asmaaPara}>{line}</p>)}
       </section>
+      {askCode ? <Ez110UnlockField /> : null}
+      {(ez.id || ez.safe) ? <Ez110Diag /> : null}
     </EzShell>
+  );
+}
+
+function Ez110UnlockField() {
+  const [code, setCode] = useState('');
+  const [state, setState] = useState('');
+  const go = () => setState(ez110TryUnlock(code) ? 'ok' : 'bad');
+  return (
+    <div className="ez110-unlock" style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '12px 0' }}>
+      <label htmlFor="ez110code" style={{ fontSize: 13, color: 'var(--muted)' }}>{ezT('ez110.unlock.label')}</label>
+      <input id="ez110code" value={code} onChange={(e) => setCode(e.target.value)} dir="ltr" autoComplete="off" autoCapitalize="off" spellCheck={false}
+        style={{ minHeight: 44, borderRadius: 12, border: '1px solid var(--line)', padding: '0 12px', fontSize: 15, background: 'var(--white)', color: 'var(--ink)' }} />
+      <button type="button" onClick={go} className="ezik-focus"
+        style={{ minHeight: 44, borderRadius: 12, border: 'none', background: 'var(--accent-fill)', color: 'var(--on-accent)', fontSize: 15, fontWeight: 700, fontFamily: 'inherit' }}>{ezT('ez110.unlock.go')}</button>
+      {state ? <p role="status" style={{ margin: 0, fontSize: 13, color: state === 'ok' ? 'var(--ink)' : 'var(--red)' }}>{ezT(state === 'ok' ? 'ez110.unlock.ok' : 'ez110.unlock.bad')}</p> : null}
+    </div>
+  );
+}
+
+// The owner's diagnostics: the numbers the WebView itself reports, as plain text the phone tool
+// reads from the accessibility tree (the shell's WebView refuses a debugger -- item 127).
+function Ez110Diag() {
+  const [rows, setRows] = useState('');
+  const measure = () => {
+    try {
+      const probe = document.createElement('div');
+      probe.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;top:0;left:0;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)';
+      document.body.appendChild(probe);
+      const cs = getComputedStyle(probe);
+      const env = [cs.paddingTop, cs.paddingRight, cs.paddingBottom, cs.paddingLeft].map((v) => parseFloat(v) || 0);
+      probe.remove();
+      const root = getComputedStyle(document.documentElement);
+      const shell = ['t', 'r', 'b', 'l'].map((k) => (root.getPropertyValue('--ez-shell-inset-' + k) || '').trim() || '-');
+      const vv = window.visualViewport;
+      const meta = (document.querySelector('meta[name="viewport"]') || { getAttribute: () => '' }).getAttribute('content') || '';
+      setRows([
+        'EZ110DIAG',
+        'inner=' + window.innerWidth + 'x' + window.innerHeight,
+        'vv=' + (vv ? Math.round(vv.width) + 'x' + Math.round(vv.height) : '-'),
+        'screen=' + screen.width + 'x' + screen.height + ' dpr=' + (window.devicePixelRatio || 1),
+        'env.trbl=' + env.join(','),
+        'shell.trbl=' + shell.join(','),
+        'fitcover=' + (/viewport-fit=cover/.test(meta) ? 1 : 0),
+        'safe=' + (document.documentElement.getAttribute('data-ez110-safe') ? 1 : 0) + ' id=' + (document.documentElement.getAttribute('data-ez110') || '-'),
+        'build=' + ezikAppVersion(),
+      ].join(' | '));
+    } catch (e) { setRows('EZ110DIAG error'); }
+  };
+  useEffect(() => { measure(); }, []);
+  return (
+    <section aria-label={ezT('ez110.diag.title')} className="ez110-diag" style={{ marginTop: 16, padding: 12, borderRadius: 12, border: '1px dashed var(--line)' }}>
+      <p style={{ margin: '0 0 6px', fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{ezT('ez110.diag.title')}</p>
+      <p dir="ltr" style={{ margin: 0, fontSize: 12, color: 'var(--ink)', fontFamily: 'monospace', wordBreak: 'break-all' }}>{rows}</p>
+      <button type="button" onClick={measure} className="ezik-focus" style={{ marginTop: 8, minHeight: 44, padding: '0 14px', borderRadius: 12, border: '1px solid var(--line)', background: 'var(--white)', color: 'var(--ink)', fontFamily: 'inherit' }}>{ezT('ez110.diag.again')}</button>
+    </section>
   );
 }
 
@@ -30174,7 +30440,7 @@ function EzikPrecacheNotice() {
   }, []);
   if (!text) return null;
   return (
-    <div role="status" aria-label={EZIK_SW_ARIA} style={s.swNote}>
+    <div role="status" aria-label={EZIK_SW_ARIA} style={s.swNote} data-ez110-edge="toast">
       <span style={s.swNoteText}>{text} {EZIK_SW_MSG_TAIL}</span>
       <span className="ez-hit" style={s.swNoteHit}>
         <button type="button" onClick={() => setText(null)} className="ezik-focus" style={s.swNoteBtn}>{EZIK_SW_OK}</button>
@@ -31346,7 +31612,20 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
           <div style={s.settingsHint}>{HIJRI_SET_HINT}</div>
         </EzShellGroup>
       </div>
+      <Ez110Mark />
     </EzShell>
+  );
+}
+
+// ITEM 110 -- the owner's build mark: which design is lit and which build is serving it. Drawn only
+// where an identity is lit, so with the switch dark the sheet ends exactly where it did.
+function Ez110Mark() {
+  const ez = useEz110();
+  if (!ez.id) return null;
+  return (
+    <p className="ez110-mark" style={{ margin: '18px 4px 6px', fontSize: 12, color: 'var(--muted)', textAlign: 'center' }}>
+      {ezT('ez110.mark')} <bdi>{ezT('ez110.id.' + ez.id)}</bdi> <bdi dir="ltr">{ezikAppVersion()}</bdi>
+    </p>
   );
 }
 
@@ -31440,7 +31719,7 @@ function ParentDashboard({ profile, messages, onBack, onReset, directConvoLocked
           </span>
         </div>
       </div>
-      <div style={s.dashboardContent}>
+      <div style={s.dashboardContent} data-ez110-edge="scrollend">
        <div className="ezparent-wrap">
         <div style={s.dashboardCard}>
           <div className="ezparent-head"><span className="ezparent-mark" aria-hidden="true" /><div style={s.dashboardLabel}>الطفل</div></div>
@@ -34485,7 +34764,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         </select>
         {/* the start bar: the SAME select, the same bounds, the same startDrill handler. */}
         {selectedSurah && (
-          <div style={s.ezqStartBar}>
+          <div style={s.ezqStartBar} data-ez110-edge="sticky">
             <span style={s.ezqStartLabel}>{MEM.START_LABEL}</span>
             <select
               value={startAyah}

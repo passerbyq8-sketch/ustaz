@@ -1,0 +1,33 @@
+/* 00 -- BASE. The interface face of the identity, the focus ring, the press, reduced motion.
+   The page root keeps the S100 BACKGROUND INVARIANT: solid --vt-page, no image, no gradient. */
+html[data-ez110] body { background: var(--vt-page); background-image: none; }
+html[data-ez110] { --ez-ui-font: var(--ez110-font-ui); }
+html[data-ez110] body,
+html[data-ez110] button,
+html[data-ez110] input,
+html[data-ez110] select,
+html[data-ez110] textarea { font-family: var(--ez110-font-ui); }
+
+/* the Quran sheet keeps its own face and literals (S100 opt-out stays last in index.html) */
+html[data-ez110] .mushaf-paper { font-family: inherit; }
+
+/* focus: one ring, keyboard only */
+html[data-ez110] :focus-visible { outline: 2px solid var(--vt-focus); outline-offset: 2px; }
+
+/* press: a short dip, never under reduced motion */
+html[data-ez110] button:not(:disabled):active,
+html[data-ez110] [role="button"]:active { transform: scale(.97); filter: brightness(.97); transition: transform .16s cubic-bezier(.2,.7,.2,1), filter .16s; }
+html[data-ez110] button:disabled { opacity: .45; cursor: default; box-shadow: none; }
+html[data-ez110][data-ez-motion="reduce"] *,
+html[data-ez110][data-ez-motion="reduce"] *::before,
+html[data-ez110][data-ez-motion="reduce"] *::after { animation: none !important; transition: none !important; transform: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-ez110] *, html[data-ez110] *::before, html[data-ez110] *::after { animation: none !important; transition: none !important; }
+}
+
+/* headings take the identity's heading face (El Messiri in c, Amiri in d) */
+html[data-ez110] .ezsh-brand,
+html[data-ez110] .ez110-h { font-family: var(--ez110-font-head); }
+
+/* digits: the reader's choice, when it is not "follow the language" */
+html[data-ez110][data-ez110-digits="latn"] body { font-variant-numeric: lining-nums; }

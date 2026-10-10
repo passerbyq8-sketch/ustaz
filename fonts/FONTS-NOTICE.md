@@ -131,3 +131,55 @@ rendering all five families on every boot. Bringing the files home is what added
 Interface and Quran typefaces: Amiri and Amiri Quran by the Amiri Project authors; Noto Naskh
 Arabic by the Noto Project authors; Tajawal by Boutros International. All four are used under
 the SIL Open Font License 1.1; the full text is in `fonts/OFL.txt`.
+
+## Item 110 -- the identity faces (fonts/110/)
+
+Three more families, for the redesign behind the owner switch (item 110). They are declared ONLY in
+`ez110/ez110.css`, which the page loads only when a design part is lit for that reader, and no
+file here is precached by `sw.js`: a face downloads only for a reader whose chosen identity draws
+with it. Fetched 2026-10-10 from the stylesheet fonts.googleapis.com serves a current desktop
+Chrome (arabic, latin and latin-ext subsets only; cyrillic and vietnamese dropped). Each family is
+SIL Open Font License 1.1, and its own licence text ships beside the files:
+
+    IBM Plex Sans Arabic   fonts/110/OFL-ibmplexsansarabic.txt   (c) 2017 IBM Corp., Reserved Font Name "Plex"
+    El Messiri             fonts/110/OFL-elmessiri.txt           (c) 2015 The El Messiri Project Authors
+    Readex Pro             fonts/110/OFL-readexpro.txt           (c) 2018 The Readex Pro Project Authors
+
+    License: https://openfontlicense.org (SIL OFL 1.1)
+
+        fonts/110/K2F0fZBRmr9vQ1pHEey6MoiAAhLz.woff2                    22280  arabic, weight 500  El Messiri  sha256 970b721e9b094fe85c6b9049e0e53ee27cd27ec6d3b7b324c8e731a574343132
+        fonts/110/K2F0fZBRmr9vQ1pHEey6MoOAAhLz.woff2                     3156  latin-ext, weight 500  El Messiri  sha256 f6519abb686fba5ce9f15a39b057fb3733f79e05205c025f794e1e052a0e6357
+        fonts/110/K2F0fZBRmr9vQ1pHEey6Mo2AAg.woff2                      23632  latin, weight 500  El Messiri  sha256 1a859701b2de3899c0a4bd329cdae9555e2d3548ef389277ec8a55a8c2680c4b
+        fonts/110/K2F0fZBRmr9vQ1pHEey6MoiAAhLz.woff2                    22280  arabic, weight 600  El Messiri  sha256 970b721e9b094fe85c6b9049e0e53ee27cd27ec6d3b7b324c8e731a574343132
+        fonts/110/K2F0fZBRmr9vQ1pHEey6MoOAAhLz.woff2                     3156  latin-ext, weight 600  El Messiri  sha256 f6519abb686fba5ce9f15a39b057fb3733f79e05205c025f794e1e052a0e6357
+        fonts/110/K2F0fZBRmr9vQ1pHEey6Mo2AAg.woff2                      23632  latin, weight 600  El Messiri  sha256 1a859701b2de3899c0a4bd329cdae9555e2d3548ef389277ec8a55a8c2680c4b
+        fonts/110/K2F0fZBRmr9vQ1pHEey6MoiAAhLz.woff2                    22280  arabic, weight 700  El Messiri  sha256 970b721e9b094fe85c6b9049e0e53ee27cd27ec6d3b7b324c8e731a574343132
+        fonts/110/K2F0fZBRmr9vQ1pHEey6MoOAAhLz.woff2                     3156  latin-ext, weight 700  El Messiri  sha256 f6519abb686fba5ce9f15a39b057fb3733f79e05205c025f794e1e052a0e6357
+        fonts/110/K2F0fZBRmr9vQ1pHEey6Mo2AAg.woff2                      23632  latin, weight 700  El Messiri  sha256 1a859701b2de3899c0a4bd329cdae9555e2d3548ef389277ec8a55a8c2680c4b
+        fonts/110/Qw3CZRtWPQCuHme67tEYUIx3Kh0PHR9N6Ys43PWrfQ.woff2      42848  arabic, weight 400  IBM Plex Sans Arabic  sha256 6010e7fd0dce5d527583951750728cbe3c895efbd16aa0f809ab8c824878c9d8
+        fonts/110/Qw3CZRtWPQCuHme67tEYUIx3Kh0PHR9N6Ysz3PWrfQ.woff2       6656  latin-ext, weight 400  IBM Plex Sans Arabic  sha256 1935fa1a3326fcd48e20abe864bb30ace43fe58bd572f354c24271ea66208e04
+        fonts/110/Qw3CZRtWPQCuHme67tEYUIx3Kh0PHR9N6Ys93PU.woff2         19164  latin, weight 400  IBM Plex Sans Arabic  sha256 9ed8dcb02e6c7246de4c120295fafa39a7bb73085f4951a4524a07dc911069f2
+        fonts/110/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPO_-CRXMR5Kw.woff2  45296  arabic, weight 500  IBM Plex Sans Arabic  sha256 90aef64fea9794f232332e907d45810ab268d1a11721340025eba2a2cdb36d5c
+        fonts/110/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPO_-CaXMR5Kw.woff2   6540  latin-ext, weight 500  IBM Plex Sans Arabic  sha256 ae5c1a58c18d253e20691f00e401319f01fc568d24d0e50165f276d1a99035b5
+        fonts/110/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPO_-CUXMQ.woff2     20088  latin, weight 500  IBM Plex Sans Arabic  sha256 be6a3b2e37f3ad67aa822a55ce356d28c416331c97530a1ec076c2118240ca2d
+        fonts/110/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPi-OCRXMR5Kw.woff2  45688  arabic, weight 600  IBM Plex Sans Arabic  sha256 16734a5adb27b0f363e566cbbeacec480da0dc0baa19c8f0053251c2e2bc0eac
+        fonts/110/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPi-OCaXMR5Kw.woff2   6680  latin-ext, weight 600  IBM Plex Sans Arabic  sha256 0f7c03bb523b8084a84c4b7d95a5c7b294b7318f88b2e51829d5fe7aaef0d0bb
+        fonts/110/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YPi-OCUXMQ.woff2     20500  latin, weight 600  IBM Plex Sans Arabic  sha256 63f4757271e403f7baec0862f284ffaa4560ea6096ba9fe8bc6e585ca656e724
+        fonts/110/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YOG-eCRXMR5Kw.woff2  44280  arabic, weight 700  IBM Plex Sans Arabic  sha256 04c730b4292731ccedadd5bd80756124364ae4923895145d9cd7b1f28e443de1
+        fonts/110/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YOG-eCaXMR5Kw.woff2   6564  latin-ext, weight 700  IBM Plex Sans Arabic  sha256 ab0b9584271f492336d9eadcef96f99b0da07e8e7046220aea5084f1644a9c9d
+        fonts/110/Qw3NZRtWPQCuHme67tEYUIx3Kh0PHR9N6YOG-eCUXMQ.woff2     19504  latin, weight 700  IBM Plex Sans Arabic  sha256 ae2d59f91ecf9f7ed279e4a1fc1a9da8170fb0ce5b9152917a8f759033f5777c
+        fonts/110/SLXYc1bJ7HE5YDoGPuzj_dh8uc7wUy8ZQQyX2Iw1ZEzMhQ.woff2  22864  arabic, weight 300  Readex Pro  sha256 b5815b71c48e513b5e65eb281dd53e5d6a556d6dac511a5d2cd00d628850d5c4
+        fonts/110/SLXYc1bJ7HE5YDoGPuzj_dh8uc7wUy8ZQQyX2Iw-ZEzMhQ.woff2  27684  latin-ext, weight 300  Readex Pro  sha256 51456344445b98029b9be92e7cbfbb0232054308b30d8ca771f9671fa861606b
+        fonts/110/SLXYc1bJ7HE5YDoGPuzj_dh8uc7wUy8ZQQyX2IwwZEw.woff2     31428  latin, weight 300  Readex Pro  sha256 7074eeb987a25349069ed5c784e204904b928f4c878e9c3c88d636c01081ae52
+        fonts/110/SLXYc1bJ7HE5YDoGPuzj_dh8uc7wUy8ZQQyX2Iw1ZEzMhQ.woff2  22864  arabic, weight 400  Readex Pro  sha256 b5815b71c48e513b5e65eb281dd53e5d6a556d6dac511a5d2cd00d628850d5c4
+        fonts/110/SLXYc1bJ7HE5YDoGPuzj_dh8uc7wUy8ZQQyX2Iw-ZEzMhQ.woff2  27684  latin-ext, weight 400  Readex Pro  sha256 51456344445b98029b9be92e7cbfbb0232054308b30d8ca771f9671fa861606b
+        fonts/110/SLXYc1bJ7HE5YDoGPuzj_dh8uc7wUy8ZQQyX2IwwZEw.woff2     31428  latin, weight 400  Readex Pro  sha256 7074eeb987a25349069ed5c784e204904b928f4c878e9c3c88d636c01081ae52
+        fonts/110/SLXYc1bJ7HE5YDoGPuzj_dh8uc7wUy8ZQQyX2Iw1ZEzMhQ.woff2  22864  arabic, weight 500  Readex Pro  sha256 b5815b71c48e513b5e65eb281dd53e5d6a556d6dac511a5d2cd00d628850d5c4
+        fonts/110/SLXYc1bJ7HE5YDoGPuzj_dh8uc7wUy8ZQQyX2Iw-ZEzMhQ.woff2  27684  latin-ext, weight 500  Readex Pro  sha256 51456344445b98029b9be92e7cbfbb0232054308b30d8ca771f9671fa861606b
+        fonts/110/SLXYc1bJ7HE5YDoGPuzj_dh8uc7wUy8ZQQyX2IwwZEw.woff2     31428  latin, weight 500  Readex Pro  sha256 7074eeb987a25349069ed5c784e204904b928f4c878e9c3c88d636c01081ae52
+        fonts/110/SLXYc1bJ7HE5YDoGPuzj_dh8uc7wUy8ZQQyX2Iw1ZEzMhQ.woff2  22864  arabic, weight 600  Readex Pro  sha256 b5815b71c48e513b5e65eb281dd53e5d6a556d6dac511a5d2cd00d628850d5c4
+        fonts/110/SLXYc1bJ7HE5YDoGPuzj_dh8uc7wUy8ZQQyX2Iw-ZEzMhQ.woff2  27684  latin-ext, weight 600  Readex Pro  sha256 51456344445b98029b9be92e7cbfbb0232054308b30d8ca771f9671fa861606b
+        fonts/110/SLXYc1bJ7HE5YDoGPuzj_dh8uc7wUy8ZQQyX2IwwZEw.woff2     31428  latin, weight 600  Readex Pro  sha256 7074eeb987a25349069ed5c784e204904b928f4c878e9c3c88d636c01081ae52
+        fonts/110/SLXYc1bJ7HE5YDoGPuzj_dh8uc7wUy8ZQQyX2Iw1ZEzMhQ.woff2  22864  arabic, weight 700  Readex Pro  sha256 b5815b71c48e513b5e65eb281dd53e5d6a556d6dac511a5d2cd00d628850d5c4
+        fonts/110/SLXYc1bJ7HE5YDoGPuzj_dh8uc7wUy8ZQQyX2Iw-ZEzMhQ.woff2  27684  latin-ext, weight 700  Readex Pro  sha256 51456344445b98029b9be92e7cbfbb0232054308b30d8ca771f9671fa861606b
+        fonts/110/SLXYc1bJ7HE5YDoGPuzj_dh8uc7wUy8ZQQyX2IwwZEw.woff2     31428  latin, weight 700  Readex Pro  sha256 7074eeb987a25349069ed5c784e204904b928f4c878e9c3c88d636c01081ae52

@@ -680,5 +680,15 @@
     "name": "syncmemory",
     "script": "guards/sync-memory-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "ez110edges",
+    "script": "guards/ez110-edges-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "ez110override",
+    "script": "guards/ez110-override-guard.cjs",
+    "args": ""
   }
 ]
