@@ -1713,6 +1713,8 @@ const EZ_I18N = {
     'ez110.set.deletePage': '\u0635\u0641\u062D\u0629 \u062D\u0630\u0641 \u0627\u0644\u0628\u064A\u0627\u0646\u0627\u062A',
     'ez110.set.homeHint': '\u0631\u062A\u0651\u0628 \u0623\u0642\u0633\u0627\u0645 \u0627\u0644\u0642\u0627\u0626\u0645\u0629 \u0645\u0646 \u0647\u0646\u0627\u060C \u0623\u0648 \u0627\u0636\u063A\u0637 \u0645\u0637\u0648\u0651\u0644\u064B\u0627 \u0639\u0644\u0649 \u0623\u064A\u0651 \u0642\u0633\u0645\u064D \u0641\u064A \u0627\u0644\u0642\u0627\u0626\u0645\u0629 \u0646\u0641\u0633\u0647\u0627.',
     'ez110.prayer.settings': '\u0625\u0639\u062F\u0627\u062F\u0627\u062A \u0627\u0644\u0635\u0644\u0627\u0629',
+    'fix.fav.off': '\u0623\u0636\u0641 \u0625\u0644\u0649 \u0627\u0644\u0645\u0641\u0636\u0651\u0644\u0629\u060C \u063A\u064A\u0631 \u0645\u0636\u0627\u0641',
+    'fix.fav.on': '\u0623\u0636\u0641 \u0625\u0644\u0649 \u0627\u0644\u0645\u0641\u0636\u0651\u0644\u0629\u060C \u0645\u0636\u0627\u0641',
   },
   en: {
     'common.close': 'Close',
@@ -3015,6 +3017,8 @@ const EZ_I18N = {
     'ez110.set.deletePage': 'Data deletion page',
     'ez110.set.homeHint': 'Arrange the menu\'s sections here, or press and hold any section in the menu itself.',
     'ez110.prayer.settings': 'Prayer settings',
+    'fix.fav.off': 'Add to favourites, not added',
+    'fix.fav.on': 'Add to favourites, added',
   },
 };
 
@@ -22972,6 +22976,10 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, stream
   // The server keeps writing it (speedpipes requires it); dark, the rail is handed buildCopyText itself.
   const buildPlainCopy = () => serializeReply(segments.map((sg) => (sg && sg.type === 'text' ? { ...sg, content: String(sg.content || '').replace(/^#{1,6}\s+/gm, '') } : sg)), { tashkeel, band: deriveCaps(age).band });
   const copyText = ez110FixLit() ? buildPlainCopy : buildCopyText;
+  // ITEM 110 ROUND 2 (127 note m27), part fix: the star's name WITH its state, in words. In the Android WebView an
+  // aria-pressed button's aria-label never reaches the accessibility tree -- only its text does -- so, lit, the
+  // name is also a visually hidden text child. Dark: null, and the button is what it was.
+  const starA11y = ez110FixLit() ? ezT(isFavorite ? 'fix.fav.on' : 'fix.fav.off') : null;
   // ITEM 42-C: the card is handed the source footer by the module-level reader below, beside
   // the writer that already renders sources into the copy payload. THIS component does not
   // filter, re-order or count them -- N22 pins that, and a share card is no reason to weaken it.
@@ -23073,13 +23081,14 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, stream
             type="button"
             onClick={() => onFavorite(message, index)}
             aria-pressed={isFavorite ? 'true' : 'false'}
-            aria-label={isFavorite ? EZIK_FAV_DEL : EZIK_FAV_ADD}
+            aria-label={starA11y || (isFavorite ? EZIK_FAV_DEL : EZIK_FAV_ADD)}
             className="ezik-focus"
             style={{ ...miniBtnStyle, opacity: isFavorite ? 1 : 0.7, borderColor: isFavorite ? 'var(--red)' : 'var(--line)', color: isFavorite ? 'var(--red)' : 'inherit' }}
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden={starA11y ? 'true' : undefined}>
               <path d="M12 17.3l-5.4 3 1-6-4.4-4.3 6-.9L12 3.5l2.8 5.6 6 .9-4.4 4.3 1 6z" />
             </svg>
+            {starA11y ? <span className="ez110-sr">{starA11y}</span> : null}
           </button>
         )}
         <button type="button" onClick={onToggleTashkeel} aria-label={'\u062A\u0634\u0643\u064A\u0644'} style={{ ...miniBtnStyle, opacity: tashkeel ? 1 : 0.7, borderColor: tashkeel ? 'var(--red)' : 'var(--line)' }}>{'\u062A\u0634\u0643\u064A\u0644'}</button>
