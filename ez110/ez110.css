@@ -372,7 +372,11 @@ html[data-ez110] [role="button"]:active { transform: scale(.97); filter: brightn
 html[data-ez110] button:disabled { opacity: .45; cursor: default; box-shadow: none; }
 html[data-ez110][data-ez-motion="reduce"] *,
 html[data-ez110][data-ez-motion="reduce"] *::before,
-html[data-ez110][data-ez-motion="reduce"] *::after { animation: none !important; transition: none !important; transform: none !important; }
+html[data-ez110][data-ez-motion="reduce"] *::after { animation: none !important; transition: none !important; }
+/* reduced motion stops MOVEMENT, never static geometry (the d star is a rotated square): only the press scale goes */
+html[data-ez110][data-ez-motion="reduce"] button:active,
+html[data-ez110][data-ez-motion="reduce"] [role="button"]:active { transform: none; filter: none; }
+@media (prefers-reduced-motion: reduce) { html[data-ez110] button:active, html[data-ez110] [role="button"]:active { transform: none; filter: none; } }
 @media (prefers-reduced-motion: reduce) {
   html[data-ez110] *, html[data-ez110] *::before, html[data-ez110] *::after { animation: none !important; transition: none !important; }
 }
@@ -615,6 +619,9 @@ html[data-ez110] .ezsug-mark {
 html[data-ez110] .ezsug-title { font-size: calc(15.5px * var(--ez-fs, 1)); font-weight: 600; color: var(--vt-ink); }
 html[data-ez110] .ezsug-sub { font-size: calc(12.5px * var(--ez-fs, 1)); font-weight: 500; color: var(--vt-muted); }
 html[data-ez110] .ezsug-go { color: var(--ez110-faint); }
+/* dark: the icon squares lose the light inner ring (it read as a white outline on navy) */
+html[data-theme="dark"][data-ez110] .ez110-icon-box,
+html[data-theme="dark"][data-ez110] .ezsug-mark { box-shadow: inset 0 0 0 1px var(--vt-line); }
 
 /* ==== 30-b-settings.css ==== */
 /* 30 -- SETTINGS, REGROUPED. The sheet's groups keep their own markup and handlers; each carries
@@ -700,3 +707,172 @@ html[data-ez110] .ezc-ans {
   padding-inline: 2px;
 }
 html[data-ez110] .ezc-ans .ez-prose { color: var(--vt-ink); }
+
+/* ==== 50-cde.css ==== */
+/* 50 -- THE THREE OTHER IDENTITIES: «ج» الدانة (c) · «د» الخزف (d) · «هـ» البلّور (e).
+   The SAME components as «ب», reskinned -- no screen branches for an identity. Each block below only
+   changes what makes that identity itself; everything else is «ب»'s rules over its own tokens. */
+
+/* ---- shared knobs the identities set ---- */
+html[data-ez110] { --ez110-prayer-ink: #FFFFFF; --ez110-prayer-sub: rgba(255,255,255,.94); }
+
+/* =========================== «ج» الدانة -- pearl =========================== */
+/* icons sit in pearl orbs */
+html[data-ez110="c"] .ez110-icon-box,
+html[data-ez110="c"] .ezsug-mark {
+  border-radius: 50%;
+  background: var(--ez110-pearl);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.95), 0 2px 6px rgba(37,99,201,.14), 0 8px 18px rgba(37,99,201,.10);
+}
+/* the bar floats as a pearl capsule */
+html[data-ez110="c"] .ez110-nav {
+  margin: 0 12px calc(8px + var(--ez-safe-b, env(safe-area-inset-bottom, 0px)));
+  padding: 6px 8px; border: 1px solid var(--vt-line); border-radius: 28px;
+  background: var(--ez110-pearl); box-shadow: var(--ez110-shadow-bar);
+}
+html[data-ez110="c"] .ez110-tab.is-on .ez110-tab-pill { background: var(--vt-surface); box-shadow: 0 2px 8px rgba(37,99,201,.16); }
+/* cards: a shell edge (a 1px gradient frame) */
+html[data-ez110="c"] .ez110-card,
+html[data-ez110="c"] .ezsh-group {
+  border: 1px solid transparent;
+  background: linear-gradient(var(--vt-surface), var(--vt-surface)) padding-box, var(--ez110-shell) border-box;
+}
+/* the prayer card is a light pearl dial, not a deep slab */
+html[data-ez110="c"] { --ez110-prayer-ink: var(--vt-ink); --ez110-prayer-sub: var(--vt-accent-ink); }
+html[data-ez110="c"] .ez110-prayer { background: var(--ez110-pearl); box-shadow: var(--vt-shadow); border: 1px solid var(--vt-line); }
+html[data-ez110="c"] .ez110-prayer-arch { border-color: var(--vt-line); border-radius: 50%; width: 150px; height: 150px; inset-inline-end: -30px; top: -20px; }
+html[data-ez110="c"] .ez110-prayer-left { background: var(--vt-soft); color: var(--vt-accent-ink); }
+html[data-ez110="c"] .ez110-prayer-cell.is-next { background: var(--vt-surface); box-shadow: 0 2px 8px rgba(37,99,201,.14); }
+html[data-ez110="c"] .ez110-prayer-dot { border-color: var(--vt-accent); }
+html[data-ez110="c"] .ez110-prayer-cell.is-next .ez110-prayer-dot { background: var(--vt-accent); box-shadow: 0 0 0 3px var(--vt-soft); }
+html[data-ez110="c"] .ez110-h,
+html[data-ez110="c"] .ez110-home .ezist-masthead h1 { font-family: var(--ez110-font-head); font-weight: 600; }
+html[data-ez110="c"] .ez110-done { background: var(--ez110-grad-send); }
+
+/* =========================== «د» الخزف -- porcelain =========================== */
+/* the eight-point star: two squares, one turned 45 degrees, both drawn with a double hairline */
+html[data-ez110="d"] .ez110-icon-box,
+html[data-ez110="d"] .ezsug-mark {
+  position: relative; border-radius: 6px; background: var(--ez110-icon-a);
+  box-shadow: inset 0 0 0 1px var(--ez110-frame); overflow: visible;
+}
+html[data-ez110="d"] .ez110-icon-box::before,
+html[data-ez110="d"] .ezsug-mark::before {
+  content: ''; position: absolute; inset: 0; border-radius: 6px; transform: rotate(45deg);
+  background: var(--ez110-icon-a); box-shadow: inset 0 0 0 1px var(--ez110-frame); z-index: 0;
+}
+html[data-ez110="d"] .ez110-icon-box > svg,
+html[data-ez110="d"] .ezsug-mark > svg { position: relative; z-index: 1; }
+html[data-ez110="d"] .ez110-icon-box { width: 46px; height: 46px; margin: 6px; }
+html[data-ez110="d"] .ezsug-mark { width: 30px; height: 30px; margin: 4px; }
+/* double-line cards, frames of 12 */
+html[data-ez110="d"] .ez110-card,
+html[data-ez110="d"] .ezsh-group { border-radius: 12px; border: 1px solid var(--ez110-frame); box-shadow: var(--ez110-double); }
+html[data-ez110="d"] .ez110-done,
+html[data-ez110="d"] .ez110-seg-opt { border-radius: 12px; }
+/* the bar is attached, with a double rule and a star-dot above the active tab */
+html[data-ez110="d"] .ez110-nav { border-top: 3px double var(--ez110-frame); }
+html[data-ez110="d"] .ez110-tab.is-on .ez110-tab-pill { background: transparent; position: relative; }
+html[data-ez110="d"] .ez110-tab.is-on .ez110-tab-pill::before {
+  content: ''; position: absolute; top: -8px; left: 50%; width: 6px; height: 6px; margin-left: -3px;
+  background: var(--vt-accent); transform: rotate(45deg);
+}
+/* the prayer card is a medallion: a framed porcelain plate, the deep blue kept for the name */
+html[data-ez110="d"] { --ez110-prayer-ink: var(--vt-ink); --ez110-prayer-sub: var(--vt-accent-ink); }
+html[data-ez110="d"] .ez110-prayer { background: var(--vt-surface); border: 1px solid var(--ez110-frame); box-shadow: var(--ez110-double); border-radius: 14px; }
+html[data-ez110="d"] .ez110-prayer-arch {
+  border: 1px solid var(--ez110-frame); border-radius: 8px; width: 96px; height: 96px; transform: rotate(45deg);
+  inset-inline-end: 18px; top: 18px; box-shadow: 0 0 0 6px var(--ez110-surface2, transparent);
+}
+html[data-ez110="d"] .ez110-prayer-name { color: var(--vt-deep); }
+html[data-ez110="d"] .ez110-prayer-left { background: var(--vt-soft); color: var(--vt-accent-ink); }
+html[data-ez110="d"] .ez110-prayer-cell.is-next { background: var(--vt-soft); }
+html[data-ez110="d"] .ez110-prayer-dot { border-color: var(--vt-accent); border-radius: 1px; transform: rotate(45deg); }
+html[data-ez110="d"] .ez110-prayer-cell.is-next .ez110-prayer-dot { background: var(--vt-accent); box-shadow: none; }
+/* group titles: a small star and a running rule */
+html[data-ez110="d"] .ez110-group-title { display: flex; align-items: center; gap: 8px; color: var(--vt-deep); }
+html[data-ez110="d"] .ez110-group-title::after { content: ''; flex: 1; height: 1px; background: var(--ez110-frame); }
+html[data-ez110="d"] .ez110-group-title::before { content: ''; width: 6px; height: 6px; background: var(--ez110-marker); transform: rotate(45deg); }
+html[data-ez110="d"] .ez110-h,
+html[data-ez110="d"] .ez110-home .ezist-masthead h1 { font-family: var(--ez110-font-head); }
+/* the wird ring becomes diamonds */
+html[data-ez110="d"] .ez110-ring-fg { stroke-dasharray: 6 4 !important; stroke-linecap: butt; }
+
+/* =========================== «هـ» البلّور -- crystal =========================== */
+/* halos: ONE bounded ornament layer behind the menu and the first screen -- never a page root,
+   never behind the Quran sheet; off in dark, under reduced transparency and on weak devices */
+html[data-ez110="e"] .ez110-home,
+html[data-ez110="e"] .ezc:has(> .ezc-rail) { position: relative; }
+html[data-ez110="e"] .ez110-home::before,
+html[data-ez110="e"] .ezc:has(> .ezc-rail)::before {
+  content: ''; position: absolute; inset: 0 0 auto 0; height: 420px; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(260px 220px at 85% 0%, var(--ez110-halo1), transparent 70%),
+    radial-gradient(240px 200px at 10% 30%, var(--ez110-halo2), transparent 70%);
+}
+html[data-ez110="e"] .ez110-home > *,
+html[data-ez110="e"] .ezc:has(> .ezc-rail) > * { position: relative; z-index: 1; }
+html[data-ez110="e"][data-theme="dark"] .ez110-home::before,
+html[data-ez110="e"][data-theme="dark"] .ezc:has(> .ezc-rail)::before,
+html[data-ez110="e"][data-ez110-lowend] .ez110-home::before,
+html[data-ez110="e"][data-ez110-lowend] .ezc:has(> .ezc-rail)::before { display: none; }
+@media (prefers-reduced-transparency: reduce) {
+  html[data-ez110="e"] .ez110-home::before, html[data-ez110="e"] .ezc:has(> .ezc-rail)::before { display: none; }
+}
+/* glass: blur only where supported AND allowed; the designed solid fallback otherwise */
+html[data-ez110="e"] .ez110-card,
+html[data-ez110="e"] .ezsh-group,
+html[data-ez110="e"] .ez110-nav,
+html[data-ez110="e"] .ezist-nav,
+html[data-ez110="e"] .ezsh-nav {
+  background: var(--ez110-glass-solid); border: 1px solid var(--ez110-glass-edge);
+}
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  html[data-ez110="e"]:not([data-theme="dark"]):not([data-ez110-lowend]) .ez110-card,
+  html[data-ez110="e"]:not([data-theme="dark"]):not([data-ez110-lowend]) .ezsh-group,
+  html[data-ez110="e"]:not([data-theme="dark"]):not([data-ez110-lowend]) .ez110-nav,
+  html[data-ez110="e"]:not([data-theme="dark"]):not([data-ez110-lowend]) .ezist-nav,
+  html[data-ez110="e"]:not([data-theme="dark"]):not([data-ez110-lowend]) .ezsh-nav {
+    background: var(--ez110-glass); -webkit-backdrop-filter: blur(20px) saturate(170%); backdrop-filter: blur(20px) saturate(170%);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  html[data-ez110="e"] .ez110-card, html[data-ez110="e"] .ezsh-group, html[data-ez110="e"] .ez110-nav,
+  html[data-ez110="e"] .ezist-nav, html[data-ez110="e"] .ezsh-nav { background: var(--ez110-glass-solid) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+}
+/* the bar floats, with a glowing indicator over the active tab */
+html[data-ez110="e"] .ez110-nav {
+  margin: 0 12px calc(8px + var(--ez-safe-b, env(safe-area-inset-bottom, 0px)));
+  padding: 6px 8px; border-radius: 24px; box-shadow: var(--ez110-shadow-bar);
+}
+html[data-ez110="e"] .ez110-tab.is-on .ez110-tab-pill { background: transparent; position: relative; }
+html[data-ez110="e"] .ez110-tab.is-on .ez110-tab-pill::before {
+  content: ''; position: absolute; top: -7px; left: 50%; width: 24px; height: 3px; margin-left: -12px; border-radius: 2px;
+  background: var(--ez110-grad-send); box-shadow: 0 0 10px var(--vt-accent2);
+}
+/* crystal tiles: a sheen across the top */
+html[data-ez110="e"] .ez110-icon-box,
+html[data-ez110="e"] .ezsug-mark {
+  background: linear-gradient(180deg, rgba(255,255,255,.95) 0%, var(--ez110-icon-b) 100%);
+  box-shadow: inset 0 1px 0 #FFFFFF, inset 0 0 0 1px var(--ez110-glass-edge), 0 4px 12px rgba(29,78,216,.10);
+}
+html[data-ez110="e"][data-theme="dark"] .ez110-icon-box,
+html[data-ez110="e"][data-theme="dark"] .ezsug-mark { background: var(--ez110-icon-a); box-shadow: inset 0 0 0 1px var(--vt-line); }
+/* the next prayer: a glass card with a progress line */
+html[data-ez110="e"] { --ez110-prayer-ink: var(--vt-ink); --ez110-prayer-sub: var(--vt-accent-ink); }
+html[data-ez110="e"] .ez110-prayer { background: var(--ez110-glass-solid); border: 1px solid var(--ez110-glass-edge); box-shadow: var(--vt-shadow); }
+html[data-ez110="e"] .ez110-prayer-arch {
+  inset: auto 18px 64px 18px; width: auto; height: 3px; border: 0; border-radius: 2px; top: auto;
+  background: var(--ez110-grad-send); opacity: .9;
+}
+html[data-ez110="e"] .ez110-prayer-left { background: var(--vt-soft); color: var(--vt-accent-ink); }
+html[data-ez110="e"] .ez110-prayer-cell.is-next { background: var(--ez110-grad-send); color: #FFFFFF; }
+html[data-ez110="e"] .ez110-prayer-cell.is-next .ez110-prayer-cname { color: #FFFFFF; }
+html[data-ez110="e"] .ez110-prayer-dot { border-color: var(--vt-accent); }
+html[data-ez110="e"] .ez110-prayer-cell.is-next .ez110-prayer-dot { background: #FFFFFF; border-color: #FFFFFF; }
+html[data-ez110="e"] .ez110-done { background: var(--ez110-grad-send); }
+
+/* ---- the prayer card's text follows the identity's knob ---- */
+html[data-ez110] .ez110-prayer { color: var(--ez110-prayer-ink); }
+html[data-ez110] .ez110-prayer-head,
+html[data-ez110] .ez110-prayer-cname { color: var(--ez110-prayer-sub); }

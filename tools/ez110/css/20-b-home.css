@@ -138,3 +138,6 @@ html[data-ez110] .ezsug-mark {
 html[data-ez110] .ezsug-title { font-size: calc(15.5px * var(--ez-fs, 1)); font-weight: 600; color: var(--vt-ink); }
 html[data-ez110] .ezsug-sub { font-size: calc(12.5px * var(--ez-fs, 1)); font-weight: 500; color: var(--vt-muted); }
 html[data-ez110] .ezsug-go { color: var(--ez110-faint); }
+/* dark: the icon squares lose the light inner ring (it read as a white outline on navy) */
+html[data-theme="dark"][data-ez110] .ez110-icon-box,
+html[data-theme="dark"][data-ez110] .ezsug-mark { box-shadow: inset 0 0 0 1px var(--vt-line); }

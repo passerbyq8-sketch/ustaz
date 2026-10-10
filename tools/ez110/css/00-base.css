@@ -20,7 +20,11 @@ html[data-ez110] [role="button"]:active { transform: scale(.97); filter: brightn
 html[data-ez110] button:disabled { opacity: .45; cursor: default; box-shadow: none; }
 html[data-ez110][data-ez-motion="reduce"] *,
 html[data-ez110][data-ez-motion="reduce"] *::before,
-html[data-ez110][data-ez-motion="reduce"] *::after { animation: none !important; transition: none !important; transform: none !important; }
+html[data-ez110][data-ez-motion="reduce"] *::after { animation: none !important; transition: none !important; }
+/* reduced motion stops MOVEMENT, never static geometry (the d star is a rotated square): only the press scale goes */
+html[data-ez110][data-ez-motion="reduce"] button:active,
+html[data-ez110][data-ez-motion="reduce"] [role="button"]:active { transform: none; filter: none; }
+@media (prefers-reduced-motion: reduce) { html[data-ez110] button:active, html[data-ez110] [role="button"]:active { transform: none; filter: none; } }
 @media (prefers-reduced-motion: reduce) {
   html[data-ez110] *, html[data-ez110] *::before, html[data-ez110] *::after { animation: none !important; transition: none !important; }
 }

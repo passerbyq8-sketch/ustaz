@@ -8531,6 +8531,8 @@ function ez110Apply() {
         ez110LinkCss(EZ110_CSS, show);
       }
       d.setAttribute('data-ez110', id);
+      // weak devices get the designed solid fallback instead of blur and halos (DESIGN-SYSTEM 8)
+      try { const n = navigator.hardwareConcurrency || 8, m = navigator.deviceMemory || 8; if (n <= 4 || m <= 4) d.setAttribute('data-ez110-lowend', '1'); } catch (e) {}
       if (EZ110_OVERRIDE && EZ110_OVERRIDE.dark) { d.setAttribute('data-theme', 'dark'); d.style.colorScheme = 'dark'; }
       const dg = ez110ReadDigits();
       if (dg !== 'auto') d.setAttribute('data-ez110-digits', dg); else d.removeAttribute('data-ez110-digits');
