@@ -1679,7 +1679,7 @@ const EZ_I18N = {
     'ez110.nav.prayer': '\u0627\u0644\u0635\u0644\u0627\u0629',
     'ez110.sections': '\u0627\u0644\u0623\u0642\u0633\u0627\u0645',
     'ez110.grp.quran': '\u0627\u0644\u0642\u0631\u0622\u0646 \u0648\u0627\u0644\u0633\u0646\u0651\u0629',
-    'ez110.grp.dhikr': '\u0627\u0644\u0630\u0643\u0631 \u0648\u0627\u0644\u0635\u0644\u0627\u0629',
+    'ez110.grp.dhikr': '\u0627\u0644\u0630\u0643\u0631',
     'ez110.grp.know': '\u0627\u0644\u0639\u0644\u0645',
     'ez110.grp.tools': '\u0623\u062F\u0648\u0627\u062A',
     'ez110.order.open': '\u062A\u0631\u062A\u064A\u0628 \u0627\u0644\u0642\u0627\u0626\u0645\u0629',
@@ -2981,7 +2981,7 @@ const EZ_I18N = {
     'ez110.nav.prayer': 'Prayer',
     'ez110.sections': 'Sections',
     'ez110.grp.quran': 'Quran and Sunnah',
-    'ez110.grp.dhikr': 'Remembrance and prayer',
+    'ez110.grp.dhikr': 'Remembrance',
     'ez110.grp.know': 'Knowledge',
     'ez110.grp.tools': 'Tools',
     'ez110.order.open': 'Arrange the menu',
@@ -8732,12 +8732,28 @@ function ez110WirdIcon(wird) {
 // THE SECTIONS, IN GROUPS. The groups are a PRESENTATION of the one array ezHomeModules built
 // (plus the tasbih and calculator cards) -- no section is added, dropped or rebound. When the
 // reader has arranged the shelf, their order wins and the groups give way to one grid in it.
+// ROUND 2 §4-3 (owner's ruling): three groups, in this order. The mushaf and the prayer are NOT tiles here --
+// they are destinations of the bottom bar -- so EZ110_BAR_IDS is drawn nowhere on this page. A module no group
+// names lands at the end of the last group, so a section added tomorrow is never dropped.
 const EZ110_GROUPS = [
-  { key: 'ez110.grp.quran', ids: ['mushaf', 'memorize', 'arbaeen', 'sunan-day'] },
-  { key: 'ez110.grp.dhikr', ids: ['adhkar', 'wird', 'tasbih', 'prayer', 'asmaa'] },
-  { key: 'ez110.grp.know', ids: ['fatwa', 'lessons', 'library', 'articles', 'women'] },
-  { key: 'ez110.grp.tools', ids: ['calc', 'treasure'] },
+  { key: 'ez110.grp.quran', ids: ['memorize', 'arbaeen', 'sunan-day', 'asmaa'] },
+  { key: 'ez110.grp.dhikr', ids: ['wird', 'adhkar', 'tasbih'] },
+  { key: 'ez110.grp.know', ids: ['fatwa', 'lessons', 'library', 'articles', 'women', 'calc', 'treasure'] },
 ];
+const EZ110_BAR_IDS = ['mushaf', 'prayer'];
+// THE SAVE THAT LOSES NOTHING. «ب» arranges only the tiles it draws; every other id in the stored order (the
+// mushaf, the prayer, the women's corner for a reader who does not see it) keeps ITS OWN SLOT in the array, and
+// the slots of the drawn tiles take the new sequence in order. So the dark menu, which reads the same key, finds
+// all its sections where they were, and the sync carries the same complete array.
+function ez110OrderMerge(base, shown, next) {
+  const out = []; let k = 0;
+  for (const id of base) {
+    if (shown.indexOf(id) >= 0) { if (k < next.length) out.push(next[k++]); }
+    else out.push(id);
+  }
+  while (k < next.length) out.push(next[k++]);
+  return out.filter((id, i, a) => a.indexOf(id) === i);
+}
 const EZ110_ICON_TASBIH = <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="12" cy="4.5" r="1.6" /><circle cx="17.3" cy="6.7" r="1.6" /><circle cx="19.5" cy="12" r="1.6" /><circle cx="17.3" cy="17.3" r="1.6" /><circle cx="12" cy="19.5" r="1.6" /><circle cx="6.7" cy="17.3" r="1.6" /><circle cx="4.5" cy="12" r="1.6" /><circle cx="6.7" cy="6.7" r="1.6" /></svg>;
 const EZ110_ICON_CALC = <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M8 7h8" /><path d="M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 18h.01M12 18h.01M16 18h.01" /></svg>;
 
@@ -8801,9 +8817,10 @@ function Ez110Home(v) {
   const byId = {}; builtMods.concat(extra).forEach((m) => { byId[m.id] = m; });
   // THE GROUPS, and the one default order they make when read through. A module no group names
   // lands in the tools group, so a section added tomorrow is never dropped.
-  const placed = new Set(EZ110_GROUPS.flatMap((g) => g.ids));
+  const placed = new Set(EZ110_GROUPS.flatMap((g) => g.ids).concat(EZ110_BAR_IDS));
   const rest = builtMods.map((m) => m.id).filter((id) => !placed.has(id));
-  const groups = EZ110_GROUPS.map((g) => ({ key: g.key, ids: g.ids.filter((id) => byId[id]).concat(g.key === 'ez110.grp.tools' ? rest : []) }))
+  const lastKey = EZ110_GROUPS[EZ110_GROUPS.length - 1].key;
+  const groups = EZ110_GROUPS.map((g) => ({ key: g.key, ids: g.ids.filter((id) => byId[id]).concat(g.key === lastKey ? rest : []) }))
     .filter((g) => g.ids.length);
   const builtIds = groups.flatMap((g) => g.ids);
   const liveIds = ez110OrderApply(builtIds, order);   // the order IN EFFECT NOW
@@ -8817,7 +8834,10 @@ function Ez110Home(v) {
   // the default order is stored as NO order, so the groups come back
   const done = () => {
     const ids = draft || liveIds;
-    const rec = writeHomeOrder(ids.join(',') === builtIds.join(',') ? [] : ids);
+    // the slots: the stored array as it stands, or (none stored) the dark menu's built order then the cards
+    const base = order.length ? order.slice() : builtMods.map((m) => m.id).concat(extra.map((m) => m.id));
+    builtIds.forEach((id) => { if (base.indexOf(id) < 0) base.push(id); });
+    const rec = writeHomeOrder(ids.join(',') === builtIds.join(',') ? [] : ez110OrderMerge(base, builtIds, ids));
     setOrder(rec.order); setEdit(false); setDraft(null); setDragId(null);
   };
   const reset = () => setDraft(builtIds.slice());
