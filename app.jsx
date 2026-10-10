@@ -1718,6 +1718,27 @@ const EZ_I18N = {
     'fix.about.version': '\u0627\u0644\u0625\u0635\u062F\u0627\u0631: {v}',
     'fix.gender.male': '\u0630\u0643\u0631',
     'fix.gender.female': '\u0623\u0646\u062B\u0649',
+    'fix.count.lesson.1': '\u062F\u0631\u0633\u064C \u0648\u0627\u062D\u062F',
+    'fix.count.lesson.oneN': '{n} \u062F\u0631\u0633',
+    'fix.count.lesson.few': '{n} \u062F\u0631\u0648\u0633',
+    'fix.count.lesson.many': '{n} \u062F\u0631\u0633\u064B\u0627',
+    'fix.count.lesson.other': '{n} \u062F\u0631\u0633\u064D',
+    'fix.count.lesson.0': '\u0644\u0627 \u062F\u0631\u0648\u0633',
+    'fix.count.lesson.2': '\u062F\u0631\u0633\u0627\u0646',
+    'fix.count.scholar.1': '\u0634\u064A\u062E\u064C \u0648\u0627\u062D\u062F',
+    'fix.count.scholar.oneN': '{n} \u0634\u064A\u062E',
+    'fix.count.scholar.few': '{n} \u0645\u0634\u0627\u064A\u062E',
+    'fix.count.scholar.many': '{n} \u0634\u064A\u062E\u064B\u0627',
+    'fix.count.scholar.other': '{n} \u0634\u064A\u062E\u064D',
+    'fix.count.scholar.0': '\u0644\u0627 \u0645\u0634\u0627\u064A\u062E',
+    'fix.count.scholar.2': '\u0634\u064A\u062E\u0627\u0646',
+    'fix.count.series.1': '\u0633\u0644\u0633\u0644\u0629\u064C \u0648\u0627\u062D\u062F\u0629',
+    'fix.count.series.oneN': '{n} \u0633\u0644\u0633\u0644\u0629',
+    'fix.count.series.few': '{n} \u0633\u0644\u0627\u0633\u0644',
+    'fix.count.series.many': '{n} \u0633\u0644\u0633\u0644\u0629\u064B',
+    'fix.count.series.other': '{n} \u0633\u0644\u0633\u0644\u0629\u064D',
+    'fix.count.series.0': '\u0644\u0627 \u0633\u0644\u0627\u0633\u0644',
+    'fix.count.series.2': '\u0633\u0644\u0633\u0644\u062A\u0627\u0646',
   },
   en: {
     'common.close': 'Close',
@@ -3025,6 +3046,27 @@ const EZ_I18N = {
     'fix.about.version': 'Version: {v}',
     'fix.gender.male': 'Male',
     'fix.gender.female': 'Female',
+    'fix.count.lesson.1': 'One lesson',
+    'fix.count.lesson.oneN': '{n} lesson',
+    'fix.count.lesson.few': '{n} lessons',
+    'fix.count.lesson.many': '{n} lessons',
+    'fix.count.lesson.other': '{n} lessons',
+    'fix.count.lesson.0': 'No lessons',
+    'fix.count.lesson.2': 'Two lessons',
+    'fix.count.scholar.1': 'One scholar',
+    'fix.count.scholar.oneN': '{n} scholar',
+    'fix.count.scholar.few': '{n} scholars',
+    'fix.count.scholar.many': '{n} scholars',
+    'fix.count.scholar.other': '{n} scholars',
+    'fix.count.scholar.0': 'No scholars',
+    'fix.count.scholar.2': 'Two scholars',
+    'fix.count.series.1': 'One series',
+    'fix.count.series.oneN': '{n} series',
+    'fix.count.series.few': '{n} series',
+    'fix.count.series.many': '{n} series',
+    'fix.count.series.other': '{n} series',
+    'fix.count.series.0': 'No series',
+    'fix.count.series.2': 'Two series',
   },
 };
 
@@ -11934,6 +11976,22 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
 }
 
 // ============================================================
+// ITEM 110 ROUND 2 (127 note m21), part fix: a count that names WHAT it counts, in the language's own number forms.
+// The browse header used one key («{n} درسًا») at every level, though at the scholars level it counts scholars and at
+// the series level it counts series; and Arabic needs agreement (درسٌ واحد · درسان · ٣ دروس · ١١ درسًا · ١٠٠ درسٍ).
+// The forms are dictionary keys (fix.count.<kind>.<form>), chosen by Intl.PluralRules. These helpers sit OUTSIDE the
+// pane's marked block (gate lessonssearch scans it for literals); the pane calls them only when part fix is lit.
+function ez110PluralCount(kind, n) {
+  const v = Number(n) || 0; let cat = 'other';
+  try { cat = new Intl.PluralRules((ezLangEntry(EZ_LANG) || {}).locale || EZ_LANG).select(v); } catch (e) {}
+  const form = v === 1 ? '1' : (v === 0 && cat === 'zero') ? '0' : (v === 2 && cat === 'two') ? '2'
+    : cat === 'one' ? 'oneN' : (cat === 'few' || cat === 'many') ? cat : 'other';
+  return ezT('fix.count.' + kind + '.' + form, { n: ezikBrowseNum(v) });
+}
+const ez110CountLessons = (n) => ez110PluralCount('lesson', n);
+function ez110CountForLevel(level, n) {
+  return ez110PluralCount(level === EZIK_BROWSE_SCHOLARS ? 'scholar' : level === EZIK_BROWSE_SERIES ? 'series' : 'lesson', n);
+}
 // ITEM 24-C -- THE LESSONS BROWSE PANE
 // ============================================================
 // WHY IT SITS OUTSIDE THE SENTINELS OF ITEM 24-B AND NOT INSIDE THEM. Two guards cut that
@@ -12165,7 +12223,7 @@ function LessonsBrowsePane({ backRef }) {
       <div style={s.lsbHead}>
         <span style={s.lsbHeadName}>{heading}</span>
         {state === EZIK_BROWSE_READY && total > 0
-          ? <span style={s.lsbHeadCount}>{ezT('lessons.countLessons', { n: ezikBrowseNum(total) })}</span>
+          ? <span style={s.lsbHeadCount}>{ez110FixLit() ? ez110CountForLevel(level, total) : ezT('lessons.countLessons', { n: ezikBrowseNum(total) })}</span>
           : null}
       </div>
       {/* STATE 1 of 3: the level is loading. The section's own dots, not a new indicator. */}
@@ -12198,7 +12256,7 @@ function LessonsBrowsePane({ backRef }) {
             <button key={i} type="button" className="ezhome-focus" style={s.lsbRow}
               onClick={() => { setScholar(row.scholar); setSeries(''); setPageNo(1); setLevel(EZIK_BROWSE_SERIES); }}>
               <span style={s.lsnItemTitle}>{row.scholar}</span>
-              <span style={s.lsnItemScholar}>{ezT('lessons.countLessons', { n: ezikBrowseNum(row.count) })}</span>
+              <span style={s.lsnItemScholar}>{ez110FixLit() ? ez110CountLessons(row.count) : ezT('lessons.countLessons', { n: ezikBrowseNum(row.count) })}</span>
             </button>
           ))}
         </section>
@@ -12212,7 +12270,7 @@ function LessonsBrowsePane({ backRef }) {
             <button key={i} type="button" className="ezhome-focus" style={s.lsbRow}
               onClick={() => { setSeries(row.series); setPageNo(1); setLevel(EZIK_BROWSE_LESSONS); }}>
               <span style={s.lsnItemTitle}>{row.misc ? ezT('lessons.miscSeries') : row.series}</span>
-              <span style={s.lsnItemScholar}>{ezT('lessons.countLessons', { n: ezikBrowseNum(row.count) })}</span>
+              <span style={s.lsnItemScholar}>{ez110FixLit() ? ez110CountLessons(row.count) : ezT('lessons.countLessons', { n: ezikBrowseNum(row.count) })}</span>
             </button>
           ))}
         </section>
