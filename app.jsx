@@ -15224,6 +15224,9 @@ const A2_ICON_PLUS = (
 );
 
 function AdhkarScreenV2({ onBack }) {
+  // ITEM 110 ROUND 2 (127 note m13), part fix: where the sections list stood when a category opened. This
+  // component outlives the category round trip (only its child swaps), so the list can be put back there.
+  const ez110ScrollMem = useRef(0);
   // Session 85. THIS COMPONENT IS STILL THE ONLY OWNER OF BROWSE STATE. The store, the query,
   // the selection, today's progress, the usage map and the favourite identifiers are loaded,
   // read and written here exactly as before; the two home components below receive them as
@@ -15340,6 +15343,7 @@ function AdhkarScreenV2({ onBack }) {
   // filtered list, the same progress record and the same handlers -- there is nothing a home
   // component can compute that the other cannot, and nothing either of them may write.
   const view = {
+    scrollMem: ez110FixLit() ? ez110ScrollMem : null,
     onBack: onBack,
     cats: cats,
     list: list,
@@ -15471,7 +15475,10 @@ function IstanaAdhkarFeature({ c, st, onOpen }) {
   );
 }
 
-function IstanaAdhkarBrowse({ onBack, cats, list, query, setQuery, searchOpen, onToggleSearch, onOpen, prog, byCat, done, goal, run, onGoal, dailyCat, onDailyCat }) {
+function IstanaAdhkarBrowse({ scrollMem, onBack, cats, list, query, setQuery, searchOpen, onToggleSearch, onOpen, prog, byCat, done, goal, run, onGoal, dailyCat, onDailyCat }) {
+  // m13 (part fix): lit, the scroller reports where it is and is put back there when the list comes back
+  const ez110ScrollRef = useRef(null);
+  React.useLayoutEffect(() => { if (scrollMem && ez110ScrollRef.current) ez110ScrollRef.current.scrollTop = scrollMem.current || 0; }, []);
   // ITEM 43-أ. The ring is measured against the READER'S number now, not a constant. The
   // constant survives as the default that number starts from, and nothing else reads it.
   const shown = Math.min(done, goal);
@@ -15512,7 +15519,8 @@ function IstanaAdhkarBrowse({ onBack, cats, list, query, setQuery, searchOpen, o
         <option value="">{DW_NONE}</option>
         {(cats || []).map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
       </select>
-      <div style={s.eziaScroll}>
+      <div style={s.eziaScroll} ref={scrollMem ? ez110ScrollRef : undefined}
+        onScroll={scrollMem ? (e) => { scrollMem.current = e.currentTarget.scrollTop; } : undefined}>
         <div className="ezia-wrap">
           <section className="ezia-masthead">
             <span style={s.eziaRingBox} role="progressbar" aria-label={A2_GOAL_TITLE}
