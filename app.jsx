@@ -1151,6 +1151,7 @@ const EZ_I18N = {
     'sync.privacy': 'كيف نحفظ بياناتك (سياسة الخصوصية الجديدة)',
     'sync.backupMoved': 'بياناتك كلّها محفوظةٌ في حسابك، ويمكنك تنزيلها ملفًّا.',
     'sync.wipeFailed': 'تعذّر حذفُ بياناتك من حسابك، فلم يُحذَف شيءٌ من هذا الجهاز ولا من حسابك. تأكّد من الاتصال واضغط الزرّ مرّةً أخرى.',
+    'sync.wipeSession': 'انتهى دخولُك إلى حسابك، فلم يُحذَف شيءٌ من هذا الجهاز ولا من حسابك. سجّل الدخولَ من جديد، ثمّ اضغط «حذف كل البيانات» مرّةً أخرى.',
     'alerts.backup': 'تشمل النسخة: المنهج ومذهب العصر والإزاحات واختيار الصوت وتذكير الإقامة والتنبيه قبل الصلاة والموقع والمكان المختار وإزاحة الهجري وتنبيهات الأذكار المرتبطة بالصلاة. لا تشمل مفتاح تذكير المواقيت لأنه لا يُفعَّل إلا بإذن من النظام.',
     'conv.title': 'محوّل التاريخ',
     'conv.greg': 'من الميلادي',
@@ -2423,6 +2424,7 @@ const EZ_I18N = {
     'sync.privacy': 'How we keep your data (the new privacy policy)',
     'sync.backupMoved': 'All your data is kept in your account, and you can download it as a file.',
     'sync.wipeFailed': 'Your data could not be deleted from your account, so nothing was deleted from this device or from your account. Check your connection and press the button again.',
+    'sync.wipeSession': 'Your sign-in to your account has expired, so nothing was deleted from this device or from your account. Sign in again, then press "Delete all data" once more.',
     'alerts.backup': 'The copy holds: the method, asr school, offsets, sound choice, iqama and pre-prayer alerts, position, chosen place, Hijri offset and the prayer-anchored adhkar alerts. It does not hold the prayer-reminder switch, which is only ever turned on with the system\'s permission.',
     'conv.title': 'Date converter',
     'conv.greg': 'From Gregorian',
@@ -27105,13 +27107,18 @@ function ezikSyncResetGate(again) {
       try { again(); } finally { ezikSyncResetPass = false; ezikSyncHalted = false; }
     } else {
       ezikSyncHalted = false;
-      try { alert(ezT('sync.wipeFailed')); } catch (e) {}
+      // A DEAD SESSION (401) is not a network failure, and pressing again cannot cure it: the reader
+      // is told to sign in again first, then repeat the delete. Nothing is erased either way.
+      try { alert(ezT(ezikSyncWipeRefusal === 'session' ? 'sync.wipeSession' : 'sync.wipeFailed')); } catch (e) {}
     }
   });
   return true;
 }
-/** The server wipe, awaited. Resolves true only when the server says the space is empty. */
+/** The server wipe, awaited. Resolves true only when the server says the space is empty; a refusal
+ *  leaves its reason in ezikSyncWipeRefusal ('session' | 'closed' | 'failed'). */
+let ezikSyncWipeRefusal = '';
 async function ezikSyncWipeServer() {
+  ezikSyncWipeRefusal = 'failed';
   if (!ezikSyncIsOpen()) return false;
   const held = readAuthSession();
   if (!held) return false;
@@ -27123,11 +27130,11 @@ async function ezikSyncWipeServer() {
   for (let i = 0; i < 2; i++) {
     try {
       const r = await ezikSyncCall({ action: 'wipe', session: held.session });
-      if (r.ok) { ezikSyncOpenCache = { session: '', open: false, at: 0 }; return true; }
+      if (r.ok) { ezikSyncWipeRefusal = ''; ezikSyncOpenCache = { session: '', open: false, at: 0 }; return true; }
       // The switch was shut since the last answer: believed now, so the next press is the
       // device-only erase every closed account gets.
-      if (r.status === 403) { ezikSyncOpenCache = { session: held.session, open: false, at: Date.now() }; return false; }
-      if (r.status === 401) return false;
+      if (r.status === 403) { ezikSyncWipeRefusal = 'closed'; ezikSyncOpenCache = { session: held.session, open: false, at: Date.now() }; return false; }
+      if (r.status === 401) { ezikSyncWipeRefusal = 'session'; return false; }
     } catch (e) {}
   }
   return false;

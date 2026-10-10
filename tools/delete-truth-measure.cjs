@@ -995,6 +995,18 @@ async function syncFix3Cases() {
     eq(sc.cacheDeleted, [{ ezik: 'downloads-clear' }], 'item 142 still goes, after the server');
     return 'accepted: one confirm, the wipe, then ' + gone.length + ' keys erased';
   });
+  await runAsync('SYNC FIX 3B: open account, DEAD SESSION (401): nothing erased, the message says sign in again then repeat', async () => {
+    const sc = openScene(401);
+    sc.h.resetAll();
+    await flushAll();
+    eq(sc.storage.keys().slice().sort(), sc.seededNow, 'the device after a 401 wipe');
+    eq(sc.bodies.filter((b) => b && b.action === 'wipe').length, 1, 'wipe requests (a 401 is not retried)');
+    eq(sc.alerted.length, 1, 'alerts shown');
+    is(/sync\.wipeSession|انتهى دخولُك/.test(sc.alerted[0]), 'the alert is not the sign-in-again message: ' + sc.alerted[0]);
+    is(!/sync\.wipeFailed|تأكّد من الاتصال/.test(sc.alerted[0]), 'the alert is the generic connection message');
+    eq(sc.cacheDeleted, [], 'worker messages');
+    return '401: one wipe request, the device byte for byte as seeded, the sign-in-again message';
+  });
   await runAsync('SYNC FIX 3: the device is NOT erased before the server answers', async () => {
     const sc = openScene(200);
     sc.h.resetAll();
