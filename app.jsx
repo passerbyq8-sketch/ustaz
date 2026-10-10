@@ -14116,6 +14116,17 @@ function EzikFatwaResult({ fatwa, favPk }) {
           onClick={() => setSaved(ezikToggleFavRecord(favRec))}>
           {saved ? ezT('favorites.saved') : ezT('favorites.addFatwa')}</button>
         ) : null}
+        {/* ITEM 110 ROUND 2 (127 note m26), part fix: the chat's own copy control, unchanged, copying the whole
+            fatwa in the chat's fatwa layout -- title, question, answer, scholar, source link. Dark: not drawn. */}
+        {ez110FixLit() ? (
+          <CopyReplyButton text={favText} getText={() => [
+            fatwa.title || '',
+            question ? ezT('fatwa.question') + ':\n' + question : '',
+            (question ? ezT('fatwa.answer') + ':\n' : '') + answer,
+            scholar.name || scholar.shortName || '',
+            sourceUrl || '',
+          ].map((x) => String(x).trim()).filter(Boolean).join('\n\n')} />
+        ) : null}
         {EZIK_FATWA_ACTIONS_SHOWN ? EZIK_FATWA_ACTIONS.map(([id, key]) => (
           <button key={id} type="button" className="ezf-action" disabled
             aria-disabled="true" title={ezT('fatwa.action.disabled')}>{ezT(key)}</button>
