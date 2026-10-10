@@ -1062,7 +1062,8 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
         if (st.offset === 0) results.innerHTML = '';
         if (j.refused) { info.textContent = T('s_refused'); return; }
         if (!j.total) { info.textContent = st.mode === 'text' ? T('none_text') : st.mode === 'author' ? T('none_author') : T('search_none'); return; }
-        info.textContent = T('s_total', { n: D(j.total) }) + (j.truncated ? ' · ' + T('s_window', { n: D(j.window) }) : '');
+        // 127 note m20 (part fix): the "best N" line only when the results were really cut at the window
+        info.textContent = T('s_total', { n: D(j.total) }) + (j.truncated && (!EZ110_FIX || j.total >= j.window) ? ' · ' + T('s_window', { n: D(j.window) }) : '');
         j.results.forEach(function (r) {
           results.appendChild(st.mode === 'text' ? hitItem(r, j.terms || []) : st.mode === 'author' ? authorItem(r) : bookItem(r));
         });
