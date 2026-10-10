@@ -1739,6 +1739,9 @@ const EZ_I18N = {
     'fix.count.series.other': '{n} \u0633\u0644\u0633\u0644\u0629\u064D',
     'fix.count.series.0': '\u0644\u0627 \u0633\u0644\u0627\u0633\u0644',
     'fix.count.series.2': '\u0633\u0644\u0633\u0644\u062A\u0627\u0646',
+    'fix.notify.blocked': '\u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062A \u0645\u0645\u0646\u0648\u0639\u0629',
+    'fix.notify.ask': '\u0627\u0637\u0644\u0628 \u0627\u0644\u0625\u0630\u0646',
+    'fix.notify.settings': '\u0631\u0641\u0636\u064E \u0627\u0644\u062C\u0648\u0627\u0644\u064F \u0627\u0644\u0625\u0630\u0646\u064E \u0648\u0644\u0646 \u064A\u0633\u0623\u0644\u064E \u0645\u0631\u0651\u0629\u064B \u0623\u062E\u0631\u0649: \u0627\u0641\u062A\u062D\u0652 \u0625\u0639\u062F\u0627\u062F\u0627\u062A\u0650 \u0627\u0644\u062C\u0648\u0627\u0644 \u27F5 \u0627\u0644\u062A\u0637\u0628\u064A\u0642\u0627\u062A \u27F5 \u0639\u0632\u0643 \u27F5 \u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062A\u060C \u0648\u0627\u0633\u0645\u062D\u0652 \u0628\u0647\u0627.',
   },
   en: {
     'common.close': 'Close',
@@ -3067,6 +3070,9 @@ const EZ_I18N = {
     'fix.count.series.other': '{n} series',
     'fix.count.series.0': 'No series',
     'fix.count.series.2': 'Two series',
+    'fix.notify.blocked': 'Notifications are blocked',
+    'fix.notify.ask': 'Ask for permission',
+    'fix.notify.settings': 'The phone refused and will not ask again: open the phone\'s Settings \u2192 Apps \u2192 Ezik \u2192 Notifications, and allow them.',
   },
 };
 
@@ -8532,6 +8538,9 @@ function ez110LocalOverride() {
 }
 const EZ110_OWNER = ez110ReadOwner();
 const EZ110_OVERRIDE = ez110LocalOverride();
+// ROUND 2: part fix as one plain boolean, set once at load, for code that must not reach the switch's internals
+// (the scheduler and permission paths, which gate schedulepayload lifts and runs in a sandbox).
+let EZIK_FIX_LIT = false;
 function ez110PartLit(part) {
   const st = EZ110_PARTS[part];
   if (st === 'public') return true;
@@ -8627,6 +8636,7 @@ function ez110ApplyDigits(dg) {
   } catch (e) {}
 }
 ez110Apply();
+EZIK_FIX_LIT = ez110FixLit();
 function ez110WriteIdentity(id) {
   if (ez110Choosable().indexOf(id) < 0) return;
   try { localStorage.setItem(EZ110_IDENTITY_KEY, id); } catch (e) {}
@@ -31735,6 +31745,23 @@ function EzikWirdAlerts() {
   const stopRef = useRef(null);
   useEffect(() => () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } }, []);
   const shell = !!ezikSchedBridge();
+  // ITEM 110 ROUND 2 (127 note m2), part fix: the switches stand ON by the owner's ruling, so the one request this card
+  // makes never ran, and with notifications denied nothing was scheduled and nothing was said. Lit, the card asks the
+  // shell for the permission's state (status: no prompt, no schedule) and, when it is denied while a reminder is on,
+  // says so above the rows with a button that asks; once granted, the reminders are scheduled at once. The stored
+  // choices are not touched. Dark: no request, no line.
+  const [perm, setPerm] = useState(null);
+  useEffect(() => {
+    if (!EZIK_FIX_LIT || !shell) return undefined;
+    const stop = ezikSchedProbeAsk(SHELL_SCHED_STATUS_OP, null, (got) => { if (got && got.permission && typeof got.permission === 'object') setPerm(got.permission); });
+    return () => { if (typeof stop === 'function') stop(); };
+  }, []);
+  const askPermission = () => requestThen(() => {
+    setPerm({ ...(perm || {}), granted: true });
+    // the payload may be byte-identical to the one the shell refused at boot: forget it, so this arm SENDS
+    ezikSchedLastSent = SHELL_SCHED_EMPTY;
+    ezikSchedArm();
+  });
   const release = () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } };
   // THE ONE WRITER. The whole record is built by name, never spread from a previous read, so a
   // field some other version of this application left in the store cannot ride back out.
@@ -31752,19 +31779,24 @@ function EzikWirdAlerts() {
   // TURNING ONE BACK ON ASKS THE SYSTEM FIRST, through the sender both switches in this file
   // already share. Without a shell there is nothing to ask and nothing that could ring, so the
   // choice is simply stored.
-  const turnOn = (a, cur) => {
-    if (!shell) { save(a.id, { on: true, offset: cur.offset }); return; }
+  // ONE ASK in this card, whatever needs it (turning a reminder back on; round 2's lit permission button). Dark it is
+  // exactly the old turnOn body: the refusal line differs only lit, when the phone will not ask again.
+  const requestThen = (onGranted) => {
     release();
     setSaid('asking');
     const stop = ezikNotifyRequest((granted) => {
       stopRef.current = null;
       if (granted === null) { setSaid('silent'); return; }
-      if (!granted) { setSaid('denied'); return; }
+      if (!granted) { setSaid(EZIK_FIX_LIT && perm && perm.canAskAgain === false ? 'settings' : 'denied'); return; }
       setSaid('');
-      save(a.id, { on: true, offset: cur.offset });
+      onGranted();
     });
     if (!stop) { setSaid('silent'); return; }
     stopRef.current = stop;
+  };
+  const turnOn = (a, cur) => {
+    if (!shell) { save(a.id, { on: true, offset: cur.offset }); return; }
+    requestThen(() => save(a.id, { on: true, offset: cur.offset }));
   };
   const press = (a) => {
     const cur = rec[a.id] || { on: true, offset: 0 };
@@ -31786,6 +31818,13 @@ function EzikWirdAlerts() {
   return (
     <EzShellGroup title={ezT('reminders.alerts.title')} hint={ezT('reminders.alerts.hint')}>
       {shell ? null : <div style={s.settingsHint}>{ezT('reminders.noShell')}</div>}
+      {EZIK_FIX_LIT && shell && perm && perm.granted === false && WIRD_ALERTS.some((a) => (rec[a.id] || { on: true }).on) ? (
+        <div role="status" data-ezik-notify-blocked="1" style={s.remRow}>
+          <span style={s.remSlotLabel}>{ezT('fix.notify.blocked')}</span>
+          <button type="button" className="ezik-focus" data-ezik-notify-ask="1" onClick={askPermission} style={s.remCount}>{ezT('fix.notify.ask')}</button>
+        </div>
+      ) : null}
+      {EZIK_FIX_LIT && said === 'settings' ? <div style={s.qiblaNote}>{ezT('fix.notify.settings')}</div> : null}
       {WIRD_ALERTS.map((a) => {
         const cur = rec[a.id] || { on: true, offset: 0 };
         return (
