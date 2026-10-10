@@ -13908,6 +13908,14 @@ const EZIK_FATWA_ACTIONS = [
 ];
 
 function ezikFatwaNumber(value) {
+  // ITEM 110 (127 note m25): lit, the count speaks the app's own digits -- the language's system, or
+  // the reader's numerals choice -- instead of whatever the browser's locale data prints today.
+  if (ez110ReadIdentity()) {
+    try {
+      const t = Number(value).toLocaleString('en-US');
+      return ezLangEntry(EZ_LANG).digits === 'latn' ? t : toArabicDigits(t).replace(/,/g, String.fromCharCode(0x66C));
+    } catch (e) { return String(value); }
+  }
   try { return Number(value).toLocaleString(ezLangEntry(EZ_LANG).locale); }
   catch (e) { return String(value); }
 }

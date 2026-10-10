@@ -86,3 +86,16 @@ html[data-ez110] .ezc-drawer {
 }
 
 /* ---- the watermark keeps its own opacity setting (--ezwm-o) ---- */
+
+/* ---- 127 note m23: the Latin-script interfaces read left to right, so the back arrow points LEFT
+   and the drawer opens from the side its button is on (the left). Lit only; Arabic, Persian, Urdu
+   and the other right-to-left interfaces are untouched. ---- */
+html[dir="ltr"][data-ez110] .ezsh-nav-side:not(.is-end) > button:first-child svg,
+html[dir="ltr"][data-ez110] .ezia-nav-inner > button:first-child svg,
+html[dir="ltr"][data-ez110] .ezist-nav-inner > button:first-child svg,
+html[dir="ltr"][data-ez110] .ezfav-back svg,
+html[dir="ltr"][data-ez110] .ezparent-back svg { transform: scaleX(-1); }
+html[dir="ltr"][data-ez110] .ezc-drawer { right: auto; left: 0; border-inline-start: 0; border-inline-end: 1px solid var(--vt-line); }
+@media (min-width: 900px) { html[dir="ltr"][data-ez110] .ezc-drawer { right: auto; left: 16px; } }
+/* list chevrons ("go on") point to the line's end in either direction */
+html[dir="ltr"][data-ez110] .ezsug-go svg { transform: scaleX(-1); }
