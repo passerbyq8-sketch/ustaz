@@ -331,7 +331,7 @@ async function main() {
     check('T4e fix 5: an absent switch is off: 404', pg.statusCode === 404);
     process.env.SYNC_SWITCH = 'all';
     pg = await page();
-    check('T4c fix 5: all (the preview): the new privacy text, noindex, both languages, the four promises', pg.statusCode === 200 && /noindex/.test(pg.headers['x-robots-tag'] || '') && /lang="en"/.test(pg.body) && /مشفّرة/.test(pg.body) && /No analysis, no training/.test(pg.body) && /نزّل بياناتي/.test(pg.body) && /Delete all my data/.test(pg.body) && !/@/.test(pg.body.replace(/@media/g, '')));
+    check('T4c fix 5: all (the preview): the new privacy text, noindex, both languages, the four promises', pg.statusCode === 200 && /noindex/.test(pg.headers['x-robots-tag'] || '') && /lang="en"/.test(pg.body) && /مشفّرة/.test(pg.body) && /No analysis, no training/.test(pg.body) && /نزّل بياناتي/.test(pg.body) && /Delete all data/.test(pg.body) && !/@/.test(pg.body.replace(/@media/g, '')));
     // T4f, the opening day prepared: the PUBLIC privacy.html carries the served sync text as its
     // section 13, in both languages, every paragraph, list item and table row byte for byte, the
     // Arabic before the divider and the English after it -- so opening the switch to everybody
