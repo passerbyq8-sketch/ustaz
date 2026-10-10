@@ -65,10 +65,14 @@ function makeDevice(seed, deviceId, opts) {
   window.alert = () => {}; window.confirm = () => true;
   const deleted = [];
   const requests = [];
+  // Per device and not on the window: two linkedom windows in one process share expandos.
+  const ctl = { pageGone: false };
   window.fetch = async (url, init) => {
     const body = init && init.body ? JSON.parse(init.body) : {};
-    requests.push({ url: String(url), action: body.action, headers: init && init.headers });
+    requests.push({ url: String(url), action: body.action, headers: init && init.headers, keepalive: !!(init && init.keepalive), bytes: Buffer.byteLength(String((init && init.body) || ''), 'utf8'), ids: (body.changes || []).map((c) => c.id) });
     serverCalls.push(body.action);
+    // FIX 1: a page that died takes its ordinary requests with it; only keepalive ones arrive.
+    if (ctl.pageGone && !(init && init.keepalive)) throw new Error('page gone');
     if (String(url) !== '/api/sync') return { ok: false, status: 404, json: async () => ({}) };
     const res = { statusCode: 0, body: null, headers: {}, setHeader(k, v) { this.headers[k] = v; }, status(c) { this.statusCode = c; return this; }, json(b) { this.body = b; return this; }, end() { return this; } };
     await ROUTE.default({ method: 'POST', headers: Object.assign({}, init.headers), body }, res);
@@ -85,8 +89,8 @@ function makeDevice(seed, deviceId, opts) {
   vm.runInContext('ReactDOM.createRoot = function () { return { render: function () {}, unmount: function () {} }; };', ctx);
   window.console.error = () => {}; window.console.warn = () => {};
   vm.runInContext(transformed, ctx, { filename: 'app.jsx' });
-  const api = vm.runInContext('({ cycle: ezikSyncCycle, collect: ezikSyncCollect, signOut: ezikSyncSignOutWipe, wipeServer: ezikSyncWipeServer, clearDl: ezikClearMushafDownloads, isOpen: ezikSyncIsOpen, status: ezikSyncStatus, kv: ezikSyncKv, ctr: ezikSyncCtr, deviceOnly: ezikSyncDeviceOnly, beginLink: ezikSyncBeginLink, finishLink: ezikSyncFinishLink, writeSession: writeAuthSession, mark: EZIK_SYNC_IMAGE_MARK })', ctx);
-  return { window, local, api, requests, deleted, idb: window.indexedDB, ctx };
+  const api = vm.runInContext('({ cycle: ezikSyncCycle, collect: ezikSyncCollect, signOut: ezikSyncSignOutWipe, wipeServer: ezikSyncWipeServer, clearDl: ezikClearMushafDownloads, isOpen: ezikSyncIsOpen, flush: ezikSyncFlush, boot: ezikSyncBoot, save: ezikSaveChat, soonMs: EZIK_SYNC_SOON_MS, keepMax: EZIK_SYNC_KEEPALIVE_MAX, status: ezikSyncStatus, kv: ezikSyncKv, ctr: ezikSyncCtr, deviceOnly: ezikSyncDeviceOnly, beginLink: ezikSyncBeginLink, finishLink: ezikSyncFinishLink, writeSession: writeAuthSession, mark: EZIK_SYNC_IMAGE_MARK })', ctx);
+  return { window, local, api, requests, deleted, idb: window.indexedDB, ctx, ctl };
 }
 
 function fakeIdb() {
@@ -285,6 +289,67 @@ async function main() {
   serverCalls = [];
   d3.api.wipeServer();
   check('C6 switch off: delete-all sends nothing to the server', serverCalls.length === 0);
+
+  // ---------------------------------------------------------------- FIX 1 (10 October): upload now
+  // F1  a change, then the page hidden at once: the change reached the server on a keepalive request
+  // F2  an answer completes (the chat is saved): it is uploaded within seconds, with no hide at all
+  // F3  more than the keepalive allowance: newest first in the keepalive request, the rest on
+  //     ordinary ones -- and when the page dies with those, the next open sends them: nothing lost
+  process.env.SYNC_SWITCH = 'all';
+  const F = await acct('55', 'f@example.com');
+  const serverIds = async (acctF) => { const r = { statusCode: 0, body: null, setHeader() {}, status(c) { this.statusCode = c; return this; }, json(b) { this.body = b; return this; } }; await ROUTE.default({ method: 'POST', headers: { 'x-murabbi-device': 'device-fix1-0000' }, body: { action: 'pull', session: acctF.session, cursor: 0 } }, r); const o = {}; for (const c of r.body.changes) if (!c.rec.del) o[c.id] = c.rec.val; return o; };
+  const PROFILEF = { name: '', age: 30, gender: null, birthYear: 1996, pid: 'pid-fix1', createdAt: 'z' };
+  let df = makeDevice({ child_profile: JSON.stringify(PROFILEF), ezik_auth_session_v1: F.json }, 'device-fix1-1111');
+  await df.api.cycle(); await settle();
+  df.api.boot();
+  let vis = 'visible';
+  const doc = df.window.document;
+  let canHide = true;
+  try { Object.defineProperty(doc, 'visibilityState', { configurable: true, get: () => vis }); } catch (e) { canHide = false; }
+  const hide = () => { vis = 'hidden'; doc.dispatchEvent(new df.window.Event('visibilitychange')); };
+  canHide = canHide && doc.visibilityState === 'visible';
+  const n0 = df.requests.length;
+  df.local.setItem('ezik_visual_theme_v2', 'fix1-theme');
+  hide(); await settle();
+  const sent1 = df.requests.slice(n0).filter((r) => r.action === 'push');
+  const held1 = await serverIds(F);
+  check('F1 a change and an immediate hide: it is on the server, sent on a keepalive request, before the gather ran', canHide && held1['kv:ezik_visual_theme_v2'] === 'fix1-theme' && sent1.length >= 1 && sent1[0].keepalive === true, JSON.stringify({ canHide, sent1, v: held1['kv:ezik_visual_theme_v2'] }));
+  vis = 'visible';
+  // F2 -- an answer completes: the app saves the conversation, and the engine follows within seconds
+  const n1 = df.requests.length;
+  const cid = df.api.save(null, [{ role: 'user', content: 'سؤال الإصلاح', timestamp: '2026-10-10T10:00:00.000Z' }, { role: 'assistant', content: 'جواب الإصلاح', timestamp: '2026-10-10T10:00:04.000Z' }], 'pid-fix1');
+  await new Promise((r) => setTimeout(r, df.api.soonMs + 600));
+  const held2 = await serverIds(F);
+  const pushes2 = df.requests.slice(n1).filter((r) => r.action === 'push');
+  check('F2 a completed answer is uploaded within seconds (the gather is ' + df.api.soonMs + ' ms), without a hide', cid && held2['chat:' + cid] && held2['chat:' + cid].msgs.length === 2 && pushes2.length >= 1 && pushes2.every((r) => !r.keepalive));
+  // F3 -- six large conversations (each ~30 KB on the wire), then hide; the page dies with its ordinary requests
+  df = reopen(df, 'device-fix1-1111');
+  const big = 'ب'.repeat(15000);
+  const idx = JSON.parse(df.local._data.ezik_chats_v1 || '[]');
+  const bigIds = [];
+  for (let i = 0; i < 6; i++) {
+    const id = 'big' + i;
+    bigIds.push(id);
+    df.local._data['ezik_chat_v1_' + id] = JSON.stringify([{ role: 'user', content: big + i, timestamp: '2026-10-10T11:0' + i + ':00.000Z' }]);
+    idx.push({ id, pk: 'pid-fix1', title: 't' + i, pinned: false, at: 1000 + i });
+  }
+  df.local._data.ezik_chats_v1 = JSON.stringify(idx);
+  await df.api.status();
+  df.ctl.pageGone = true;
+  const n2 = df.requests.length;
+  const nSent = df.api.flush(); await settle();
+  const live = df.requests.slice(n2).filter((r) => r.keepalive);
+  const ordinary = df.requests.slice(n2).filter((r) => !r.keepalive);
+  const held3 = await serverIds(F);
+  const onServer = bigIds.filter((id) => held3['chat:' + id]);
+  check('F3a the keepalive request stays inside the browser allowance (' + df.api.keepMax + ' bytes)', live.length === 1 && live[0].bytes <= df.api.keepMax, JSON.stringify(live.map((r) => r.bytes)));
+  check('F3b ...it carries the NEWEST conversations first', live.length === 1 && live[0].ids.includes('chat:big5') && live[0].ids.includes('chat:big4') && !live[0].ids.includes('chat:big0'), JSON.stringify(live.map((r) => r.ids)));
+  check('F3c ...and the rest was sent on ordinary requests, not dropped', nSent === 6 && ordinary.length >= 1 && onServer.length === live[0].ids.length && onServer.length < 6, JSON.stringify({ nSent, ord: ordinary.length, onServer }));
+  df = reopen(df, 'device-fix1-1111');
+  const o4 = await df.api.cycle(); await settle();
+  if (process.env.SYNC_GUARD_DEBUG) quiet.log('F3d', o4, JSON.stringify(df.requests.map((r) => [r.action, r.keepalive, r.bytes, r.ids.length])));
+  const held4 = await serverIds(F);
+  check('F3d the page died with them, and the next open sends them: all six are in the account', bigIds.every((id) => held4['chat:' + id]), JSON.stringify(Object.keys(held4)));
 
   say('=== sync-client-guard: items 24 + 58, application ===');
   for (const r of results) say((r.ok ? '[PASS] ' : '[FAIL] ') + r.name + (r.ok ? '' : '  -- ' + r.detail));

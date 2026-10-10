@@ -26594,9 +26594,13 @@ function ezikSyncHash(s) {
 function ezikSyncReadState() {
   try {
     const o = JSON.parse(localStorage.getItem(EZIK_SYNC_STATE_KEY) || 'null');
-    if (o && typeof o === 'object' && o.shadow && typeof o.shadow === 'object') return o;
+    if (o && typeof o === 'object' && o.shadow && typeof o.shadow === 'object') {
+      if (!o.pend || typeof o.pend !== 'object') o.pend = {};
+      if (!o.gone || typeof o.gone !== 'object') o.gone = {};
+      return o;
+    }
   } catch (e) {}
-  return { cursor: 0, shadow: {}, acct: '' };
+  return { cursor: 0, shadow: {}, acct: '', pend: {}, gone: {} };
 }
 function ezikSyncWriteState(st) {
   try { localStorage.setItem(EZIK_SYNC_STATE_KEY, JSON.stringify(st)); } catch (e) {}
@@ -26648,7 +26652,13 @@ function ezikSyncTextOnly(msgs) {
 }
 
 /** Write one record (merged by the server) onto this device. A tombstone removes it. */
+// The engine's own writes are not the reader's changes: the watcher (ezikSyncWatch) ignores them.
+let ezikSyncApplying = false;
 function ezikSyncApply(id, rec) {
+  ezikSyncApplying = true;
+  try { ezikSyncApplyNow(id, rec); } finally { ezikSyncApplying = false; }
+}
+function ezikSyncApplyNow(id, rec) {
   const del = !rec || rec.del === true;
   const val = rec ? rec.val : null;
   const set = (k, v) => { try { if (v === null || v === undefined) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} };
@@ -26719,6 +26729,7 @@ let ezikSyncOpenCache = { session: '', open: false, at: 0 };
 // A CLOSED answer is believed for half an hour, so a signed-in reader the switch is shut for costs
 // the server one small request per half hour of use -- not one per wake-up.
 const EZIK_SYNC_CLOSED_TTL_MS = 30 * 60 * 1000;
+const EZIK_SYNC_OPEN_TTL_MS = 60 * 1000;
 function ezikSyncIsOpen() {
   const held = readAuthSession();
   return !!(held && ezikSyncOpenCache.session === held.session && ezikSyncOpenCache.open);
@@ -26728,10 +26739,15 @@ async function ezikSyncStatus() {
   if (!held) return false;
   const c = ezikSyncOpenCache;
   if (c.session === held.session && !c.open && Date.now() - (c.at || 0) < EZIK_SYNC_CLOSED_TTL_MS) return false;
+  // An OPEN answer is believed for a minute: a change uploads within seconds now, and every one of
+  // those cycles asking the switch again would cost the account's per-minute allowance for nothing
+  // (the server still checks the switch on every pull and push itself).
+  if (c.session === held.session && c.open && Date.now() - (c.at || 0) < EZIK_SYNC_OPEN_TTL_MS) return true;
   try {
     const r = await ezikSyncCall({ action: 'status', session: held.session });
     ezikSyncOpenCache = { session: held.session, open: !!(r.ok && r.data.open === true), at: Date.now() };
   } catch (e) { ezikSyncOpenCache = { session: held.session, open: false, at: Date.now() }; }
+  if (ezikSyncOpenCache.open) ezikSyncWatch();
   try { window.dispatchEvent(new CustomEvent('ezik:sync:status')); } catch (e) {}
   return ezikSyncOpenCache.open;
 }
@@ -26746,7 +26762,7 @@ function ezikSyncCycle() {
       if (!held) return 'signed-out';
       if (!(await ezikSyncStatus())) return 'closed';
       const st = ezikSyncReadState();
-      if (st.acct !== held.session) { st.acct = held.session; st.cursor = 0; st.shadow = {}; }
+      if (st.acct !== held.session) { st.acct = held.session; st.cursor = 0; st.shadow = {}; st.pend = {}; }
       const touched = {};
       const kvLike = (id) => id.indexOf('kv:') === 0 || id.indexOf('note:') === 0;
       const hashOf = (v) => ezikSyncHash(JSON.stringify(v));
@@ -26769,38 +26785,23 @@ function ezikSyncCycle() {
         touched[c.id] = c.rec;
         applied++;
       }
-      // 2. PUSH what changed here: anything whose value differs from what the last cycle agreed.
+      // 2. PUSH what changed here: anything whose value differs from what the last cycle agreed,
+      //    in batches the route accepts (1 MB a request). A batch the route refuses for its size
+      //    is skipped, not fatal: its records stay changed here and go again on the next cycle.
       await ezikSyncLibCollect();
       local = Object.assign(ezikSyncCollect(), ezikSyncLibSnapshot());
-      const now = Date.now();
-      const changes = [];
-      for (const id of Object.keys(local)) {
-        if (touched[id]) continue;
-        if (st.shadow[id] !== hashOf(local[id])) changes.push({ id, rec: { u: now, del: false, val: local[id] } });
-      }
-      // A conversation or a note the last cycle agreed on that is no longer here was deleted here.
-      for (const id of Object.keys(st.shadow)) {
-        if (!(id in local) && !touched[id] && (id.indexOf('chat:') === 0 || id.indexOf('note:') === 0)) changes.push({ id, rec: { u: now, del: true, val: null } });
-      }
-      for (let i = 0; i < changes.length; i += 100) {
-        const r = await ezikSyncCall({ action: 'push', session: held.session, changes: changes.slice(i, i + 100) });
-        if (!r.ok) return 'push-failed';
-        for (const res of r.data.results || []) {
-          if (!res || !res.rec) continue;
-          ezikSyncApply(res.id, res.rec);
-          touched[res.id] = res.rec;
-        }
+      const changes = ezikSyncDirty(st, local, Date.now(), touched);
+      for (const batch of ezikSyncBatches(changes, EZIK_SYNC_BODY_MAX)) {
+        const r = await ezikSyncCall({ action: 'push', session: held.session, changes: batch });
+        if (!r.ok && r.status === 413) continue;
+        if (!r.ok) { ezikSyncWriteState(st); return 'push-failed'; }
+        ezikSyncTake(st, r.data.results, touched);
       }
       // 3. THE SHADOW is a hash of what the device holds AFTER the writes, so a value the server
       //    reshaped (a conversation as text) is not pushed again on the next cycle. The cursor is
       //    the pull's: a record this cycle pushed comes back once on the next pull and is a no-op.
       await ezikSyncLibCollect();
-      const after = Object.assign(ezikSyncCollect(), ezikSyncLibSnapshot());
-      for (const id of Object.keys(touched)) {
-        const t = touched[id];
-        if (!t || t.del) delete st.shadow[id];
-        else st.shadow[id] = hashOf(id in after ? after[id] : t.val);
-      }
+      ezikSyncSeal(st, touched, Object.assign(ezikSyncCollect(), ezikSyncLibSnapshot()));
       st.cursor = Number(p.data.cursor) || st.cursor;
       ezikSyncWriteState(st);
       if (applied) { try { window.dispatchEvent(new CustomEvent('ezik:sync:applied', { detail: applied })); } catch (e) {} }
@@ -26815,6 +26816,188 @@ function ezikSyncCycle() {
   ezikSyncRunning = run;
   run.then(() => { if (ezikSyncRunning === run) ezikSyncRunning = null; });
   return run;
+}
+
+// ============================================================
+// FIX 1 (10 October) -- EVERY CHANGE UPLOADS WITHIN SECONDS, AND WHEN THE PAGE GOES AWAY
+// ============================================================
+// The owner's finger on production: a question asked and the app deleted at once came back with
+// nothing, because the engine only ran on open, on return and every two minutes. Now:
+//   * a write to any synced key (the watcher below) schedules a cycle a few seconds later -- a
+//     short gather, so a burst of writes (an answer saved, then its index) is one cycle;
+//   * hiding or leaving the page sends what is still unsent at once, on a keepalive request the
+//     browser finishes after the page is gone.
+// What was built stays: a cycle on open, on return, and every two minutes.
+//
+// THE TIME OF A CHANGE IS KEPT (st.pend: the hash of the changed value and when this device first
+// saw it). A change sent on a request whose answer never came back goes again with the SAME time,
+// so a later change made on another device in between still wins -- and nothing is marked sent
+// until the server's answer says it is merged.
+const EZIK_SYNC_SOON_MS = 2500;            // the gather after a change
+const EZIK_SYNC_SOON_MAX_MS = 8000;        // ...never longer than this after the first one
+const EZIK_SYNC_BODY_MAX = 900 * 1024;     // one push request, under the route's 1 MB
+const EZIK_SYNC_KEEPALIVE_MAX = 60 * 1024; // browsers allow 64 KiB of keepalive bodies in flight
+
+/** The changes this device holds that the account has not agreed to, NEWEST FIRST. */
+function ezikSyncDirty(st, local, now, skip) {
+  const out = [];
+  const stamp = (id, h) => {
+    const p = st.pend[id];
+    if (p && p.h === h && Number.isFinite(p.u)) return p.u;
+    st.pend[id] = { h: h, u: now };
+    return now;
+  };
+  for (const id of Object.keys(local)) {
+    if (skip && skip[id]) continue;
+    const h = ezikSyncHash(JSON.stringify(local[id]));
+    if (st.shadow[id] !== h) out.push({ id, rec: { u: stamp(id, h), del: false, val: local[id] } });
+  }
+  // A conversation or a note the last cycle agreed on that is no longer here was deleted here.
+  for (const id of Object.keys(st.shadow)) {
+    if (id in local || (skip && skip[id])) continue;
+    if (id.indexOf('chat:') === 0 || id.indexOf('note:') === 0) out.push({ id, rec: { u: now, del: true, val: null } });
+  }
+  const when = (c) => (c.id.indexOf('chat:') === 0 && c.rec.val && Number(c.rec.val.at) ? Number(c.rec.val.at) : c.rec.u);
+  out.sort((a, b) => ((b.rec.del ? 1 : 0) - (a.rec.del ? 1 : 0)) || (when(b) - when(a)));
+  return out;
+}
+
+/** UTF-8 bytes of a string -- what a request body weighs on the wire. */
+function ezikSyncUtf8Len(str) {
+  let n = 0;
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i);
+    if (c < 0x80) n += 1; else if (c < 0x800) n += 2; else if (c >= 0xd800 && c <= 0xdbff) { n += 4; i++; } else n += 3;
+  }
+  return n;
+}
+/** Cut a change list into requests of at most `cap` bytes and 100 changes, keeping its order. */
+function ezikSyncBatches(changes, cap) {
+  const room = cap - 1024;                 // the action, the session and the brackets
+  const out = [];
+  let cur = [];
+  let size = 0;
+  for (const c of changes) {
+    const n = ezikSyncUtf8Len(JSON.stringify(c)) + 1;
+    if (cur.length && (size + n > room || cur.length >= 100)) { out.push(cur); cur = []; size = 0; }
+    cur.push(c); size += n;
+  }
+  if (cur.length) out.push(cur);
+  return out;
+}
+/** The server's merged answers: written here, and no longer pending. */
+function ezikSyncTake(st, results, touched) {
+  for (const res of results || []) {
+    if (!res || !res.rec) continue;
+    ezikSyncApply(res.id, res.rec);
+    touched[res.id] = res.rec;
+    delete st.pend[res.id];
+    if (st.gone) delete st.gone[res.id];
+  }
+}
+/** The shadow after a round: a hash of what the device holds now for every record it touched. */
+function ezikSyncSeal(st, touched, after) {
+  for (const id of Object.keys(touched)) {
+    const t = touched[id];
+    if (!t || t.del) delete st.shadow[id];
+    else st.shadow[id] = ezikSyncHash(JSON.stringify(id in after ? after[id] : t.val));
+  }
+}
+
+// THE WATCHER. Installed once, the first time the server answers OPEN for this session -- a guest,
+// a closed switch, an unreachable server never install it. It wraps localStorage's two writers
+// (the instance where the platform gives no Storage prototype) and does nothing but schedule a
+// cycle when a SYNCED key is written by the reader; every other key passes through untouched.
+// (The favourites are heard through their writer's own event instead.)
+let ezikSyncWatching = false;
+function ezikSyncIsSyncedKey(k) {
+  if (typeof k !== 'string') return false;
+  if (k.indexOf(EZIK_CHAT_PREFIX) === 0 || k === EZIK_CHATS_KEY || k === 'child_profile') return true;
+  if (k === PRAYER_PREFS_KEY || k === EZIK_A11Y_KEY) return true;
+  return ezikSyncKv().indexOf(k) !== -1 || ezikSyncCtr().indexOf(k) !== -1;
+}
+function ezikSyncWatch() {
+  if (ezikSyncWatching) return;
+  try {
+    const ls = window.localStorage;
+    if (!ls) return;
+    const proto = (typeof Storage === 'function' && ls instanceof Storage) ? Storage.prototype : ls;
+    const wrap = (name) => {
+      const orig = proto[name];
+      if (typeof orig !== 'function') return;
+      proto[name] = function (k) {
+        const out = orig.apply(this, arguments);
+        try { if (!ezikSyncApplying && this === window.localStorage && ezikSyncIsSyncedKey(k)) ezikSyncSoon(); } catch (e) {}
+        return out;
+      };
+    };
+    wrap('setItem');
+    wrap('removeItem');
+    // The favourites have one writer, and it announces every write: listened to, not re-named.
+    window.addEventListener(EZIK_FAVS_EVENT, () => { if (!ezikSyncApplying) ezikSyncSoon(); });
+    ezikSyncWatching = true;
+  } catch (e) {}
+}
+let ezikSyncSoonTimer = null;
+let ezikSyncSoonFirst = 0;
+function ezikSyncSoon() {
+  const now = Date.now();
+  if (ezikSyncSoonTimer) clearTimeout(ezikSyncSoonTimer); else ezikSyncSoonFirst = now;
+  const wait = Math.max(0, Math.min(EZIK_SYNC_SOON_MS, ezikSyncSoonFirst + EZIK_SYNC_SOON_MAX_MS - now));
+  ezikSyncSoonTimer = setTimeout(() => {
+    ezikSyncSoonTimer = null;
+    // A cycle already running may have collected before this change: run again after it.
+    if (ezikSyncRunning) ezikSyncRunning.then(() => ezikSyncCycle()); else ezikSyncCycle();
+  }, wait);
+}
+
+// THE PAGE GOES AWAY. Newest first, as much as the keepalive allowance carries rides on a request
+// that outlives the page; the rest goes on ordinary requests that may or may not. Whatever does not
+// arrive is still changed against the shadow, so the next open sends it -- nothing is dropped, and
+// nothing is marked sent before the server answers.
+let ezikSyncInFlight = {};
+function ezikSyncFlush() {
+  try {
+    if (!ezikSyncIsOpen()) return 0;
+    const held = readAuthSession();
+    if (!held) return 0;
+    if (ezikSyncSoonTimer) { clearTimeout(ezikSyncSoonTimer); ezikSyncSoonTimer = null; }
+    const st = ezikSyncReadState();
+    if (st.acct !== held.session) { st.acct = held.session; st.cursor = 0; st.shadow = {}; st.pend = {}; }
+    const local = Object.assign(ezikSyncCollect(), ezikSyncLibSnapshot());
+    const all = ezikSyncDirty(st, local, Date.now(), null);
+    ezikSyncWriteState(st);
+    const sig = (c) => (c.rec.del ? 'del' : (st.pend[c.id] ? st.pend[c.id].h : ''));
+    const changes = all.filter((c) => ezikSyncInFlight[c.id] !== sig(c));   // already on its way
+    if (!changes.length) return 0;
+    const headers = Object.assign({ 'Content-Type': 'application/json' }, capHeaders());
+    const send = (batch, keepalive) => {
+      for (const c of batch) ezikSyncInFlight[c.id] = sig(c);
+      const done = () => { for (const c of batch) if (ezikSyncInFlight[c.id] === sig(c)) delete ezikSyncInFlight[c.id]; };
+      try {
+        fetch(EZIK_SYNC_PATH, { method: 'POST', headers, keepalive, body: JSON.stringify({ action: 'push', session: held.session, changes: batch }) })
+          .then((r) => r.json().then((d) => { done(); if (r.ok && d && d.ok) ezikSyncFlushTaken(d.results); }))
+          .catch(done);
+      } catch (e) { done(); }
+    };
+    const live = [];
+    const rest = [];
+    let room = EZIK_SYNC_KEEPALIVE_MAX - 1024;
+    for (const c of changes) {
+      const n = ezikSyncUtf8Len(JSON.stringify(c)) + 1;
+      if (n <= room) { live.push(c); room -= n; } else rest.push(c);
+    }
+    if (live.length) send(live, true);
+    for (const b of ezikSyncBatches(rest, EZIK_SYNC_BODY_MAX)) send(b, false);
+    return changes.length;
+  } catch (e) { return 0; }
+}
+function ezikSyncFlushTaken(results) {
+  const st = ezikSyncReadState();
+  const touched = {};
+  ezikSyncTake(st, results, touched);
+  ezikSyncSeal(st, touched, Object.assign(ezikSyncCollect(), ezikSyncLibSnapshot()));
+  ezikSyncWriteState(st);
 }
 
 // SIGNING OUT: what is synced leaves this device (it stays in the account); what belongs to the
@@ -26933,8 +27116,15 @@ function ezikSyncKick() {
 // The engine wakes on its own only for a signed-in reader: a guest's device never calls /api/sync.
 function ezikSyncBoot() {
   if (typeof window === 'undefined' || !window.addEventListener) return;
-  const tick = () => { try { if (document.visibilityState === 'visible' && readAuthSession()) ezikSyncKick(); } catch (e) {} };
+  // Back in front: a cycle. Going to the background (FIX 1): what is unsent leaves now.
+  const tick = () => {
+    try {
+      if (document.visibilityState === 'visible') { if (readAuthSession()) ezikSyncKick(); }
+      else ezikSyncFlush();
+    } catch (e) {}
+  };
   try { document.addEventListener('visibilitychange', tick); } catch (e) {}
+  try { window.addEventListener('pagehide', () => { try { ezikSyncFlush(); } catch (e) {} }); } catch (e) {}
   if (readAuthSession()) ezikSyncKick();
 }
 // THE NEXT WAKE-UP IS ARMED ONLY BY A CYCLE THAT RAN (the switch is open and the server answered):
