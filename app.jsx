@@ -23374,12 +23374,12 @@ function AIConsentGate({ age, current, onGrant, onDecline, onBack }) {
   }
   return (
     <div className="theme-dark ezhome ezgate" style={s.onboardingContainer}>
-      <div className="ezgate-wrap"><section className="ezgate-card" style={s.aicCard} aria-label={EZ_AIC_TITLE} data-ezik-aic="card">
+      <div className="ezgate-wrap"><section className="ezgate-card" style={more ? { ...s.aicCard, ...s.aicCardOpen } : s.aicCard} aria-label={EZ_AIC_TITLE} data-ezik-aic="card">
         <p style={s.aicLine} data-ezik-aic="line1">{ezAicLine(ezT('aic.line1'))}</p>
         <p style={s.aicLine} data-ezik-aic="line2">{ezAicLine(ezT('aic.line2'))}</p>
         <button type="button" onClick={() => setMore(!more)} aria-expanded={more ? 'true' : 'false'}
           aria-controls="ezik-aic-details" data-ezik-aic="more" style={s.aicMoreBtn}>{ezT(more ? 'aic.less' : 'aic.more')}</button>
-        {more && <div id="ezik-aic-details" style={s.aicDetails} data-ezik-aic="details">
+        {more && <div id="ezik-aic-details" style={{ ...s.aicDetails, ...s.aicDetailsOpen }} data-ezik-aic="details">
           <div style={s.aicLead}>{EZ_AIC_LEAD}</div>
           <ul style={s.aicList}>
             {EZ_AIC_DATA.map((t) => <li key={t} style={s.aicItem}>{t}</li>)}
@@ -23399,7 +23399,7 @@ function AIConsentGate({ age, current, onGrant, onDecline, onBack }) {
         </div>}
         {/* Neither button is preselected, neither is dimmed, and the refusal is the same width
             and the same reading size as the agreement: one row, one basis, one type size. */}
-        <div style={s.aicChoice}>
+        <div style={more ? { ...s.aicChoice, ...s.aicChoiceOpen } : s.aicChoice}>
           <button type="button" onClick={agree} data-ezik-aic="agree" style={{ ...s.aicChoiceBtn, ...s.aicChoiceAgree }}>{ezT('aic.agree')}</button>
           <button type="button" onClick={onDecline} data-ezik-aic="decline" style={{ ...s.aicChoiceBtn, ...s.aicChoiceDecline }}>{ezT('aic.decline')}</button>
         </div>
@@ -34690,6 +34690,16 @@ const s = {
   aicBody: { textAlign: 'start', marginBottom: 18 },
   // THIRD ROUND -- the small card. Every colour is a theme variable, as on the rest of the gate.
   aicCard: { textAlign: 'start', padding: '20px 18px 16px' },
+  // OPENED, THE CARD NEVER OUTGROWS THE SCREEN (fourth round; the owner's choice of 10 October):
+  // the card is no taller than the viewport less the gate's 24px frame on each side and scrolls
+  // inside itself -- the two lines, the toggle and the details scroll TOGETHER, so every language
+  // gets a usable reading window (Tamil's two lines alone fill a 360x640 screen) -- while the row of
+  // answers is pinned to the card's bottom edge. The two answers are therefore on screen without
+  // scrolling the page, collapsed and opened. Collapsed, nothing here applies.
+  // (The card's 16px bottom padding moves INTO the pinned row, so no scrolled line shows beneath it.)
+  aicCardOpen: { maxHeight: 'calc(100dvh - 48px)', overflowY: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 0 },
+  aicDetailsOpen: { maxHeight: 'none', overflowY: 'visible' },
+  aicChoiceOpen: { position: 'sticky', bottom: 0, background: 'var(--a3-surface)', paddingTop: 10, paddingBottom: 16 },
   aicLine: { fontSize: 15, color: 'var(--a3-ink)', lineHeight: 1.65, margin: '0 0 10px' },
   aicMoreBtn: { display: 'inline-block', margin: '0 0 14px', padding: '6px 0', background: 'transparent', border: 'none', color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)', fontSize: 15, fontWeight: 700, textDecoration: 'underline', cursor: 'pointer' },
   aicDetails: { textAlign: 'start', maxHeight: '36dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 0 14px', paddingInlineEnd: 6, borderTop: '1px solid var(--a3-line)', borderBottom: '1px solid var(--a3-line)', paddingTop: 10, paddingBottom: 6 },

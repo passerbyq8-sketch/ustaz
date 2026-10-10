@@ -524,6 +524,26 @@ async function partA() {
   ok('read-more opens the details inside the card, and the control then reads hide-details',
     !!card && !!card.querySelector('[data-ezik-aic="details"]') && moreControl(d).getAttribute('aria-expanded') === 'true'
       && String(moreControl(d).textContent || '').trim() === CARD.LESS);
+  // FOURTH ROUND (the owner's choice): opened, the card is no taller than the screen less the gate's
+  // frame and scrolls inside itself -- the two lines, the toggle and the details scroll together --
+  // while the row of answers is pinned to the card's bottom, so both answers stay on screen without
+  // scrolling the page. linkedom computes no layout, so the probe holds the STYLE that makes it so;
+  // the layout itself is measured in a real Chrome at 360x640 in all 23 languages (the round's report).
+  {
+    const cs = card ? String(card.getAttribute('style') || '') : '';
+    const det = card ? card.querySelector('[data-ezik-aic="details"]') : null;
+    const ds = det ? String(det.getAttribute('style') || '') : '';
+    const kids2 = card ? Array.prototype.slice.call(card.children) : [];
+    const order = kids2.map((x) => x.getAttribute('data-ezik-aic') || x.tagName.toLowerCase());
+    const row = kids2[order.indexOf('div')];
+    const rs = row ? String(row.getAttribute('style') || '') : '';
+    ok('opened, the card is bounded by the screen and scrolls inside, with the answers pinned to its bottom',
+      /max-height:\s*calc\(100dvh - 48px\)/.test(cs) && /overflow-y:\s*auto/.test(cs)
+        && /max-height:\s*none/.test(ds)
+        && /position:\s*sticky/.test(rs) && /bottom:\s*0/.test(rs)
+        && order.indexOf('details') !== -1 && order.indexOf('details') < order.indexOf('div'),
+      JSON.stringify({ cs, ds, rs, order }));
+  }
   await d.click(moreControl(d));
   ok('...and the same control closes them again',
     !!card && !card.querySelector('[data-ezik-aic="details"]') && String(moreControl(d).textContent || '').trim() === CARD.MORE);
