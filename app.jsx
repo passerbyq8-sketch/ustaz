@@ -701,6 +701,13 @@ const EZ_I18N = {
     'c.EZ_AIC_LINK_DELETE': 'حذف البيانات',
     'c.EZ_AIC_LINK_SUPPORT': 'الدعم',
     'c.EZ_AIC_VERSION_LABEL': 'نسخة الموافقة:',
+    // THIRD ROUND -- the small consent card (owner-approved texts, decoded from the order's JSON, never retyped).
+    'aic.line1': 'ليجيبك عزك ويحادثك بالصوت، يرسل سؤالك ومحادثتك وصوتك وما ترفعه وبيانات ملفك إلى Anthropic (Claude) وElevenLabs وBrave Search.',
+    'aic.line2': 'لا يستخدمها عزك للإعلانات ولا لتتبعك، ويمكنك سحب موافقتك من الإعدادات، والمصحف والأذكار تعمل من دونها.',
+    'aic.agree': 'موافق',
+    'aic.decline': 'غير موافق',
+    'aic.more': 'اقرأ المزيد',
+    'aic.less': 'إخفاء التفاصيل',
     'c.EZIK_SOURCES_SEAL': 'جزى اللهُ أصحابَ هذه المصادرِ خيرًا، وما نفعَ اللهُ به فمن فضلِه.',
     'c.EZ_AILM_TITLE': 'الوضع المحلّيّ',
     'c.EZ_AILM_BODY': 'ميزات الذكاء الاصطناعي غير مفعّلة لأن مشاركة البيانات لم تتم الموافقة عليها.',
@@ -2002,6 +2009,13 @@ const EZ_I18N = {
     'c.EZ_AIC_LINK_DELETE': 'Delete data',
     'c.EZ_AIC_LINK_SUPPORT': 'Support',
     'c.EZ_AIC_VERSION_LABEL': 'Consent version:',
+    // THIRD ROUND -- the small consent card.
+    'aic.line1': 'To answer you and talk with you by voice, Ezik sends your question, your conversation, your voice, what you upload and your profile details to Anthropic (Claude), ElevenLabs and Brave Search.',
+    'aic.line2': 'Ezik does not use them for ads or to track you; you can withdraw your consent in Settings, and the Mushaf and adhkar work without it.',
+    'aic.agree': 'Agree',
+    'aic.decline': 'Disagree',
+    'aic.more': 'Read more',
+    'aic.less': 'Hide details',
     'c.EZIK_SOURCES_SEAL': 'May Allah reward the people behind these sources with good, and whatever benefit Allah gives through them is from His grace.',
     'c.EZ_AILM_TITLE': 'Local mode',
     'c.EZ_AILM_BODY': 'AI features are off because sharing data has not been agreed to.',
@@ -23322,7 +23336,29 @@ function AIConsentLinks() {
   );
 }
 
+// THIRD ROUND (10 October) -- THE SMALL CARD. The owner's words: two lines of explanation, a
+// read-more button, agree or disagree, nothing more. Collapsed, the card holds exactly those: the
+// two lines, one real button with aria-expanded, and the two answers side by side, equal in width
+// and reading size, neither preselected (they stack only where a language's labels cannot fit).
+// No title, no icon, no links, no version line -- the title is the card's accessible name.
+// "Read more" opens, inside the same card and scrollable, EVERYTHING the screen said before,
+// unchanged: the lead, the data list, the three providers and their roles, the assurances, the
+// guardian line under 13, the three links and the consent version; the same control then hides it.
+// Behaviour is untouched: the same record, the same version string, the same guardian barrier.
+//
+// A LATIN PROVIDER NAME INSIDE A LINE IS ISOLATED LEFT-TO-RIGHT, exactly as the provider list and
+// the version number already are: "Anthropic (Claude)" in an RTL sentence otherwise has its
+// parentheses mirrored by the bidi algorithm.
+const EZ_AIC_LATIN_NAMES = /(Anthropic \(Claude\)|ElevenLabs|Brave Search)/;
+function ezAicLine(text) {
+  return String(text || '').split(EZ_AIC_LATIN_NAMES).map((part, i) => (
+    i % 2 === 1 ? <span key={i} dir="ltr" style={s.aicProvider}>{part}</span> : part
+  ));
+}
+
 function AIConsentGate({ age, current, onGrant, onDecline, onBack }) {
+  useEzLang();
+  const [more, setMore] = useState(false);
   // FAIL-CLOSED on the age: a missing or unreadable age parses to 0, which is under 13, which
   // means the guardian barrier. An unknown age is never treated as an adult.
   const isUnder13 = (parseInt(age, 10) || 0) < 13;
@@ -23338,10 +23374,12 @@ function AIConsentGate({ age, current, onGrant, onDecline, onBack }) {
   }
   return (
     <div className="theme-dark ezhome ezgate" style={s.onboardingContainer}>
-      <div className="ezgate-wrap"><div className="ezgate-card" style={s.onboardingCard}>
-        <div className="ezgate-crest" aria-hidden="true"><span style={s.bigEmoji}>🔐</span></div>
-        <div style={s.onboardingTitle}>{EZ_AIC_TITLE}</div>
-        <div style={s.aicBody}>
+      <div className="ezgate-wrap"><section className="ezgate-card" style={s.aicCard} aria-label={EZ_AIC_TITLE} data-ezik-aic="card">
+        <p style={s.aicLine} data-ezik-aic="line1">{ezAicLine(ezT('aic.line1'))}</p>
+        <p style={s.aicLine} data-ezik-aic="line2">{ezAicLine(ezT('aic.line2'))}</p>
+        <button type="button" onClick={() => setMore(!more)} aria-expanded={more ? 'true' : 'false'}
+          aria-controls="ezik-aic-details" data-ezik-aic="more" style={s.aicMoreBtn}>{ezT(more ? 'aic.less' : 'aic.more')}</button>
+        {more && <div id="ezik-aic-details" style={s.aicDetails} data-ezik-aic="details">
           <div style={s.aicLead}>{EZ_AIC_LEAD}</div>
           <ul style={s.aicList}>
             {EZ_AIC_DATA.map((t) => <li key={t} style={s.aicItem}>{t}</li>)}
@@ -23358,13 +23396,15 @@ function AIConsentGate({ age, current, onGrant, onDecline, onBack }) {
           {isUnder13 && <div style={s.aicGuardian}>{EZ_AIC_GUARDIAN_LINE}</div>}
           <AIConsentLinks />
           <AIConsentVersion style={s.aicVersion} />
-        </div>
+        </div>}
         {/* Neither button is preselected, neither is dimmed, and the refusal is the same width
-            and the same reading size as the agreement. */}
-        <button type="button" onClick={agree} style={s.primaryBtn}>{EZ_AIC_AGREE}</button>
-        <button type="button" onClick={onDecline} style={s.secondaryBtn}>{EZ_AIC_DECLINE}</button>
+            and the same reading size as the agreement: one row, one basis, one type size. */}
+        <div style={s.aicChoice}>
+          <button type="button" onClick={agree} data-ezik-aic="agree" style={{ ...s.aicChoiceBtn, ...s.aicChoiceAgree }}>{ezT('aic.agree')}</button>
+          <button type="button" onClick={onDecline} data-ezik-aic="decline" style={{ ...s.aicChoiceBtn, ...s.aicChoiceDecline }}>{ezT('aic.decline')}</button>
+        </div>
         {onBack && <button type="button" onClick={onBack} style={s.secondaryBtn}>{A2_BACK}</button>}
-      </div></div>
+      </section></div>
     </div>
   );
 }
@@ -34648,6 +34688,17 @@ const s = {
   // because a five-item list of what leaves the device is read, not glanced at. Every colour is
   // an existing token -- no new colour enters the app and the theme is untouched.
   aicBody: { textAlign: 'start', marginBottom: 18 },
+  // THIRD ROUND -- the small card. Every colour is a theme variable, as on the rest of the gate.
+  aicCard: { textAlign: 'start', padding: '20px 18px 16px' },
+  aicLine: { fontSize: 15, color: 'var(--a3-ink)', lineHeight: 1.65, margin: '0 0 10px' },
+  aicMoreBtn: { display: 'inline-block', margin: '0 0 14px', padding: '6px 0', background: 'transparent', border: 'none', color: 'var(--a3-ink)', fontFamily: 'var(--ez-ui-font)', fontSize: 15, fontWeight: 700, textDecoration: 'underline', cursor: 'pointer' },
+  aicDetails: { textAlign: 'start', maxHeight: '36dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 0 14px', paddingInlineEnd: 6, borderTop: '1px solid var(--a3-line)', borderBottom: '1px solid var(--a3-line)', paddingTop: 10, paddingBottom: 6 },
+  aicChoice: { display: 'flex', flexWrap: 'wrap', gap: 10 },
+  // Half the row each, never narrower than its label: side by side at one width, or -- where a label
+  // cannot fit in half -- each on its own row at the full width. Never two different widths.
+  aicChoiceBtn: { flex: '1 1 calc(50% - 5px)', minWidth: 'max-content', boxSizing: 'border-box', padding: '13px 12px', fontSize: 16, fontWeight: 700, lineHeight: 1.4, borderRadius: 15, whiteSpace: 'nowrap', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)' },
+  aicChoiceAgree: { background: 'var(--accent-fill)', color: 'var(--on-accent)', border: '1px solid transparent' },
+  aicChoiceDecline: { background: 'transparent', color: 'var(--a3-ink)', border: '1px solid var(--a3-line)' },
   aicLead: { fontSize: 15, color: 'var(--a3-ink)', lineHeight: 1.9, marginBottom: 10 },
   aicSubhead: { fontSize: 15, fontWeight: 800, color: 'var(--a3-ink)', lineHeight: 1.9, margin: '14px 0 6px' },
   aicList: { margin: '0 0 6px', padding: 0, paddingInlineStart: 20, listStyle: 'disc' },

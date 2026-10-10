@@ -44,6 +44,17 @@ const htmlFile = process.argv[2] || 'index.html';
 // JSX it can find, so this can never quietly become a search over the wrong file.
 const html = require('./babel-block.cjs').readShippedClient(path.join(REPO, htmlFile));
 
+// THIRD ROUND -- THE SMALL CARD. Its six strings are the owner's, and the probe reads them out of
+// the shipped Arabic dictionary rather than carrying a second copy that could drift from it. The
+// Arabic dictionary is the FIRST occurrence of each key in the source (English follows it).
+function dictAr(key) {
+  const m = html.match(new RegExp("'" + key.replace(/\./g, '\\.') + "': '([^']*)'"));
+  if (!m) throw new Error('the shipped dictionary has no ' + key);
+  return m[1];
+}
+const CARD = { LINE1: dictAr('aic.line1'), LINE2: dictAr('aic.line2'), AGREE: dictAr('aic.agree'),
+  DECLINE: dictAr('aic.decline'), MORE: dictAr('aic.more'), LESS: dictAr('aic.less') };
+
 const CONSENT_KEY = 'ezik_ai_consent_v1';
 const CONSENT_VERSION = '2026-08-06-1';
 const CONSENT_HEADER = 'x-ezik-ai-consent';
@@ -52,8 +63,9 @@ const AI_ROUTES = ['/api/ask', '/api/chat', '/api/chat-fast', '/api/tashkeel', '
 // The Arabic the probe looks for, collected here so no assertion carries a raw literal inline.
 const S = {
   TITLE: 'مشاركة البيانات مع خدمات الذكاء الاصطناعي',
-  AGREE: 'أوافق وأفعّل ميزات الذكاء الاصطناعي',
-  DECLINE: 'استخدام عزك دون الذكاء الاصطناعي',
+  // The two answers are the card's labels since the third round (read from the dictionary above).
+  AGREE: CARD.AGREE,
+  DECLINE: CARD.DECLINE,
   LOCAL_BODY: 'ميزات الذكاء الاصطناعي غير مفعّلة لأن مشاركة البيانات لم تتم الموافقة عليها.',
   GUARDIAN: 'يجب على ولي الأمر مراجعة هذه المعلومات والموافقة قبل تشغيل ميزات الذكاء الاصطناعي للطفل.',
   REVIEW: 'مراجعة إعدادات الخصوصية',
@@ -294,6 +306,15 @@ const ADAPTIVE_TICK = (() => {
   return (ms) => { const now = Date.now(); if (now - at > 2000) { scale = probe(); at = Date.now(); } return Math.ceil(ms * scale); };
 })();
 const tick = (ms) => new Promise((r) => setTimeout(r, ADAPTIVE_TICK(ms || 60)));
+// The card's read-more control: the one button carrying aria-expanded. Opening it is how a reader
+// reaches everything the screen used to show at once, so the probe opens it the same way.
+function moreControl(d) { return d.all('button').filter((b) => b.getAttribute('aria-expanded') !== null)[0]; }
+async function openMore(d) {
+  const b = moreControl(d);
+  if (!b) throw new Error('the card has no read-more control');
+  if (b.getAttribute('aria-expanded') !== 'true') await d.click(b);
+}
+
 function driver(window) {
   const root = window.document.getElementById('root');
   const all = (sel) => Array.prototype.slice.call(root.querySelectorAll(sel));
@@ -472,11 +493,40 @@ async function partA() {
   eq('...and no microphone was opened', c.media(), []);
 
   const t = d.text();
-  ok('the consent screen is on screen, by its own title', t.indexOf(S.TITLE) !== -1, cps(S.TITLE));
+  // THIRD ROUND: the card has no visible title. It is found by its FIRST LINE, and the title it used
+  // to show is now its accessible name, which is what a screen reader announces.
+  ok('the consent screen is on screen, by its first line', t.indexOf(CARD.LINE1) !== -1, cps(CARD.LINE1));
+  const card = d.all('section').filter((x) => x.getAttribute('aria-label') === S.TITLE)[0];
+  ok('...and the card keeps the old title as its accessible name', !!card, cps(S.TITLE));
   ok('...naming Anthropic', t.indexOf('Anthropic') !== -1);
   ok('...naming ElevenLabs', t.indexOf('ElevenLabs') !== -1);
   ok('...naming Brave Search', t.indexOf('Brave Search') !== -1);
-  ok('...and stating the consent version', t.indexOf(CONSENT_VERSION) !== -1);
+  // NEW: line 1 names all three providers itself, each isolated left-to-right
+  const line1El = card ? card.querySelector('[data-ezik-aic="line1"]') : null;
+  const ltr = line1El ? Array.prototype.slice.call(line1El.querySelectorAll('span[dir="ltr"]')).map((x) => x.textContent) : [];
+  ok('line 1 names all three providers, each one isolated left-to-right',
+    !!line1El && ['Anthropic (Claude)', 'ElevenLabs', 'Brave Search'].every((p) => ltr.indexOf(p) !== -1), JSON.stringify(ltr));
+  // NEW: collapsed, the card holds the two lines, the control and the two answers -- and nothing else
+  const kids = card ? Array.prototype.slice.call(card.children).map((x) => x.tagName.toLowerCase() + (x.getAttribute('data-ezik-aic') ? ':' + x.getAttribute('data-ezik-aic') : '')) : [];
+  const btns = card ? Array.prototype.slice.call(card.querySelectorAll('button')).map((b) => String(b.textContent || '').trim()) : [];
+  ok('collapsed, the card holds ONLY the two lines, the read-more control and the two answers',
+    JSON.stringify(kids) === JSON.stringify(['p:line1', 'p:line2', 'button:more', 'div'])
+      && JSON.stringify(btns) === JSON.stringify([CARD.MORE, CARD.AGREE, CARD.DECLINE])
+      && (card ? card.querySelectorAll('a, img, h1, h2, h3').length : 1) === 0
+      && t.indexOf(S.TITLE) === -1 && t.indexOf(CONSENT_VERSION) === -1,
+    JSON.stringify({ kids, n: btns.length }));
+  const mc = moreControl(d);
+  ok('read-more is a real button with aria-expanded, closed at first',
+    !!mc && mc.tagName.toLowerCase() === 'button' && mc.getAttribute('type') === 'button' && mc.getAttribute('aria-expanded') === 'false');
+  await openMore(d);
+  const t2 = d.text();
+  ok('...and stating the consent version', t2.indexOf(CONSENT_VERSION) !== -1);
+  ok('read-more opens the details inside the card, and the control then reads hide-details',
+    !!card && !!card.querySelector('[data-ezik-aic="details"]') && moreControl(d).getAttribute('aria-expanded') === 'true'
+      && String(moreControl(d).textContent || '').trim() === CARD.LESS);
+  await d.click(moreControl(d));
+  ok('...and the same control closes them again',
+    !!card && !card.querySelector('[data-ezik-aic="details"]') && String(moreControl(d).textContent || '').trim() === CARD.MORE);
 
   const agree = d.byText(S.AGREE), decline = d.byText(S.DECLINE);
   ok('the agree button is present, worded as specified', !!agree, cps(S.AGREE));
@@ -573,6 +623,7 @@ async function partD() {
   const c = buildContext({ seed: { child_profile: PROFILE(9) }, mount: true });
   await tick(120);
   const d = driver(c.window);
+  await openMore(d);   // THIRD ROUND: the guardian line is in the details
   ok('the screen states the guardian requirement', d.text().indexOf(S.GUARDIAN) !== -1, cps(S.GUARDIAN));
 
   await d.click(d.byText(S.AGREE));
@@ -697,7 +748,7 @@ async function partF() {
     const c = buildContext({ seed: { child_profile: PROFILE(30), [CONSENT_KEY]: value }, mount: true });
     await tick(120);
     eq(name + ' does not count as consent', c.grab('hasValidAIConsent()'), false);
-    ok('...and the screen is shown again', driver(c.window).text().indexOf(S.TITLE) !== -1, cps(S.TITLE));
+    ok('...and the screen is shown again', driver(c.window).text().indexOf(CARD.LINE1) !== -1, cps(CARD.LINE1));
     eq('...and nothing was sent off-device', offDevice(c).map((r) => r.url), []);
   }
   // The OLD key is not consent, on its own or alongside a profile.
@@ -705,7 +756,7 @@ async function partF() {
   await tick(120);
   eq('the old disclosureAck key grants nothing', c.grab('hasValidAIConsent()'), false);
   ok('...and the consent screen is shown to that reader too',
-    driver(c.window).text().indexOf(S.TITLE) !== -1, cps(S.TITLE));
+    driver(c.window).text().indexOf(CARD.LINE1) !== -1, cps(CARD.LINE1));
   eq('...and nothing was sent off-device', offDevice(c).map((r) => r.url), []);
 
   // Client and server agree on the number, by reading both files.
@@ -743,6 +794,7 @@ async function partH() {
   // from the consent screen
   const c = buildContext({ seed: { child_profile: PROFILE(30) }, mount: true });
   await tick(120);
+  await openMore(driver(c.window));   // THIRD ROUND: the links are in the details
   const hrefs = driver(c.window).all('a').map((a) => a.getAttribute('href'));
   for (const w of want) ok('the consent screen links to ' + w, hrefs.indexOf(w) !== -1, JSON.stringify(hrefs));
 
