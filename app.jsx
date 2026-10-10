@@ -1742,6 +1742,9 @@ const EZ_I18N = {
     'fix.notify.blocked': '\u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062A \u0645\u0645\u0646\u0648\u0639\u0629',
     'fix.notify.ask': '\u0627\u0637\u0644\u0628 \u0627\u0644\u0625\u0630\u0646',
     'fix.notify.settings': '\u0631\u0641\u0636\u064E \u0627\u0644\u062C\u0648\u0627\u0644\u064F \u0627\u0644\u0625\u0630\u0646\u064E \u0648\u0644\u0646 \u064A\u0633\u0623\u0644\u064E \u0645\u0631\u0651\u0629\u064B \u0623\u062E\u0631\u0649: \u0627\u0641\u062A\u062D\u0652 \u0625\u0639\u062F\u0627\u062F\u0627\u062A\u0650 \u0627\u0644\u062C\u0648\u0627\u0644 \u27F5 \u0627\u0644\u062A\u0637\u0628\u064A\u0642\u0627\u062A \u27F5 \u0639\u0632\u0643 \u27F5 \u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062A\u060C \u0648\u0627\u0633\u0645\u062D\u0652 \u0628\u0647\u0627.',
+    'fix.probe.granted': '\u0627\u0644\u0645\u064F\u062C\u062F\u0648\u064E\u0644\u064F \u0627\u0644\u0622\u0646: {n} \u0645\u0646 \u0627\u0644\u062A\u0630\u0643\u064A\u0631\u0627\u062A\u060C \u0648\u0625\u0630\u0646\u064F \u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062A\u0650 \u0645\u0645\u0646\u0648\u062D.',
+    'fix.probe.denied': '\u0627\u0644\u0645\u064F\u062C\u062F\u0648\u064E\u0644\u064F \u0627\u0644\u0622\u0646: {n} \u0645\u0646 \u0627\u0644\u062A\u0630\u0643\u064A\u0631\u0627\u062A\u060C \u0648\u0625\u0630\u0646\u064F \u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062A\u0650 \u0645\u0645\u0646\u0648\u0639.',
+    'fix.probe.noanswer': '\u0644\u0645 \u064A\u064F\u062C\u0650\u0628\u0650 \u0627\u0644\u062A\u0637\u0628\u064A\u0642\u064F \u0639\u0646 \u062D\u0627\u0644\u0650 \u0627\u0644\u062C\u062F\u0648\u0644\u0629. \u0623\u0639\u0650\u062F\u0650 \u0627\u0644\u0645\u062D\u0627\u0648\u0644\u0629.',
   },
   en: {
     'common.close': 'Close',
@@ -3073,6 +3076,9 @@ const EZ_I18N = {
     'fix.notify.blocked': 'Notifications are blocked',
     'fix.notify.ask': 'Ask for permission',
     'fix.notify.settings': 'The phone refused and will not ask again: open the phone\'s Settings \u2192 Apps \u2192 Ezik \u2192 Notifications, and allow them.',
+    'fix.probe.granted': 'Scheduled now: {n} reminders, and notifications are allowed.',
+    'fix.probe.denied': 'Scheduled now: {n} reminders, and notifications are blocked.',
+    'fix.probe.noanswer': 'The app did not answer about the schedule. Try again.',
   },
 };
 
@@ -24491,7 +24497,7 @@ function EzikAboutSheet({ onBack }) {
           mark prints (ezikAppVersion). Dark: not drawn. */}
       {ez.fix ? <p className="ez110-version" style={{ margin: '14px 4px 4px', fontSize: 12, color: 'var(--muted)', textAlign: 'center' }}>{ezT('fix.about.version', { v: ezikAppVersion() })}</p> : null}
       {askCode ? <Ez110UnlockField /> : null}
-      {(ez.id || ez.safe) ? <Ez110Diag /> : null}
+      {(ez.id || ez.safe || ez.fix) ? <Ez110Diag /> : null}
     </EzShell>
   );
 }
@@ -24546,6 +24552,7 @@ function Ez110Diag() {
     <section aria-label={ezT('ez110.diag.title')} className="ez110-diag" style={{ marginTop: 16, padding: 12, borderRadius: 12, border: '1px dashed var(--line)' }}>
       <p style={{ margin: '0 0 6px', fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{ezT('ez110.diag.title')}</p>
       <p dir="ltr" style={{ margin: 0, fontSize: 12, color: 'var(--ink)', fontFamily: 'monospace', wordBreak: 'break-all' }}>{rows}</p>
+      {EZIK_SCHED_PROBE_RAW ? <p dir="ltr" data-ez110-sched-raw="1" style={{ margin: '6px 0 0', fontSize: 11, color: 'var(--muted)', fontFamily: 'monospace', wordBreak: 'break-all' }}>{EZIK_SCHED_PROBE_RAW}</p> : null}
       <button type="button" onClick={measure} className="ezik-focus" style={{ marginTop: 8, minHeight: 44, padding: '0 14px', borderRadius: 12, border: '1px solid var(--line)', background: 'var(--white)', color: 'var(--ink)', fontFamily: 'inherit' }}>{ezT('ez110.diag.again')}</button>
     </section>
   );
@@ -30864,6 +30871,16 @@ function PrayerBackup({ onRestored }) {
 // THE CONTROL. It is drawn only where a shell can answer it, it sends no `enable`, and it says
 // out loud that pressing it re-arms the schedule -- because `schedule` is an atomic rebuild on
 // the far side and a probe that pretended otherwise would be lying about what it just did.
+// ITEM 110 ROUND 2 (127 note m32), part fix: the probe's raw answer, kept for the owner's diagnostics panel (About),
+// which prints it; the reader is told one sentence instead. Module state, never stored.
+let EZIK_SCHED_PROBE_RAW = '';
+function ezikSchedProbeSentence(lines) {
+  const st = lines && lines.status, sc = lines && lines.schedule;
+  if ((!st || st.error) && (!sc || sc.error)) return ezT('fix.probe.noanswer');
+  const n = sc && typeof sc.scheduled === 'number' ? sc.scheduled : (st && typeof st.pending === 'number' ? st.pending : 0);
+  const pm = (sc && sc.permission) || (st && st.permission) || {};
+  return ezT(pm.granted === true ? 'fix.probe.granted' : 'fix.probe.denied', { n: ezikBrowseNum(n) });
+}
 function EzikSchedProbe() {
   const [out, setOut] = useState('');
   const [busy, setBusy] = useState(false);
@@ -30888,6 +30905,7 @@ function EzikSchedProbe() {
         // fingerprint goes back to empty and the next ordinary arm is guaranteed to speak.
         ezikSchedLastSent = SHELL_SCHED_EMPTY;
         setOut(JSON.stringify(lines, null, 1));
+        if (EZIK_FIX_LIT) EZIK_SCHED_PROBE_RAW = JSON.stringify(lines);
         setBusy(false);
       });
       if (!stopRef.current) setBusy(false);
@@ -30902,7 +30920,8 @@ function EzikSchedProbe() {
           style={{ ...s.prayerOpt, opacity: busy ? 0.5 : 1 }}>{ezT('reminders.probe')}</button>
       </div>
       {busy ? <div style={s.qiblaNote}>{ezT('reminders.probe.busy')}</div> : null}
-      {out ? <pre data-ezik-sched-probe="out" style={s.probeOut}>{out}</pre> : null}
+      {out && !EZIK_FIX_LIT ? <pre data-ezik-sched-probe="out" style={s.probeOut}>{out}</pre> : null}
+      {out && EZIK_FIX_LIT && !busy ? <div role="status" data-ezik-sched-probe="say" style={s.qiblaNote}>{ezikSchedProbeSentence(JSON.parse(out))}</div> : null}
     </>
   );
 }
