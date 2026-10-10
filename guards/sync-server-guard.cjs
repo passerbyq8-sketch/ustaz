@@ -387,6 +387,70 @@ async function main() {
     delete process.env.EZIK_OWNER_ACCOUNTS;
   }
 
+  // ---------------------------------------------------------------- FIX 4 (10 October): the weld
+  // A second provider whose PROVED address equals the proved address of an existing account enters
+  // that account -- on the link road, so the two are one account with one sync space.
+  {
+    const signIn = async (provider, sub, email, verified) => {
+      const a = await ACCOUNT.upsertAccount({ provider, sub, email, emailVerified: verified });
+      await ACCOUNT.indexVerifiedEmail(email, verified, a.key);
+      const s = await ACCOUNT.mintSession(a.key);
+      return { key: a.key, session: s.session, email, verified };
+    };
+    const weld = (x) => SVC.weldByVerifiedEmail(x.key, x.email, x.verified);
+    const seedPush = (who, id, val) => call({ action: 'push', session: who.session, changes: [{ id, rec: rec(10, val) }] });
+    const space = (who) => SVC.spaceFor(who.key);
+
+    fresh(); process.env.SYNC_SWITCH = 'all';
+    let G = await signIn('google', 'w-g-1', 'weld@example.com', true);
+    await seedPush(G, 'kv:ezik_hijri_offset_v1', '1');
+    let A = await signIn('apple', 'w-a-1', 'weld@example.com', false);
+    let w = await weld(A);
+    check('J1 fix 4: an UNPROVED address never welds', w.welded === false && w.why === 'unproved' && (await space(A)) !== (await space(G)), JSON.stringify(w));
+
+    fresh(); process.env.SYNC_SWITCH = 'off';
+    G = await signIn('google', 'w-g-2', 'weld2@example.com', true);
+    A = await signIn('apple', 'w-a-2', 'weld2@example.com', true);
+    store.ops.length = 0;
+    w = await weld(A);
+    check('J2 fix 4: switch off: no weld, and not one store read', w.welded === false && w.why === 'closed' && store.ops.length === 0, JSON.stringify(w));
+    process.env.SYNC_SWITCH = 'owner';
+    process.env.EZIK_OWNER_ACCOUNTS = ACCOUNT.emailDigest(OWNER_EMAIL);
+    w = await weld(A);
+    check('J3 fix 4: switch owner, not the owner: no weld', w.welded === false && w.why === 'closed' && (await space(A)) !== (await space(G)), JSON.stringify(w));
+    delete process.env.EZIK_OWNER_ACCOUNTS;
+
+    fresh(); process.env.SYNC_SWITCH = 'all';
+    G = await signIn('google', 'w-g-3', 'abc123@privaterelay.appleid.com', true);
+    A = await signIn('apple', 'w-a-3', 'abc123@privaterelay.appleid.com', true);
+    w = await weld(A);
+    check('J4 fix 4: Apple\'s hidden relay address does not weld (the link button stays)', w.welded === false && w.why === 'hidden' && (await space(A)) !== (await space(G)), JSON.stringify(w));
+
+    fresh(); process.env.SYNC_SWITCH = 'all';
+    G = await signIn('google', 'w-g-4', 'Same@Example.com', true);
+    await seedPush(G, 'kv:ezik_hijri_offset_v1', '2');
+    A = await signIn('apple', 'w-a-4', 'same@example.com ', true);
+    await seedPush(A, 'kv:ezik_fatwa_scholars_v1', '"x"');
+    w = await weld(A);
+    const pg = await call({ action: 'pull', session: G.session, cursor: 0 });
+    const pa = await call({ action: 'pull', session: A.session, cursor: 0 });
+    const ids = (r) => r.body.changes.map((c) => c.id).sort().join(',');
+    check('J5 fix 4: proved and equal: welded -- one sync space, both sign-ins read the same records, each side\'s data kept', w.welded === true && (await space(A)) === (await space(G)) && ids(pg) === ids(pa) && ids(pg) === 'kv:ezik_fatwa_scholars_v1,kv:ezik_hijri_offset_v1', JSON.stringify({ w, g: ids(pg), a: ids(pa) }));
+    w = await weld(A);
+    check('J6 fix 4: a second sign-in of the welded account is a no-op', w.welded === true && w.why === 'already');
+    const G2 = await signIn('google', 'w-g-4', 'Same@Example.com', true);
+    w = await weld(G2);
+    check('J7 fix 4: the first account itself never welds into anything', w.welded === false && w.why === 'first');
+    const fs = require('fs');
+    const wired = ['api/auth-return.js', 'api/auth-native.js'].every((f) => {
+      const t = fs.readFileSync(path.join(REPO, f), 'utf8');
+      const i = t.indexOf('await indexVerifiedEmail(claims.email, claims.emailVerified, account.key);');
+      const j = t.indexOf('try { await weldByVerifiedEmail(account.key, claims.email, claims.emailVerified); }');
+      return i !== -1 && j > i && /catch \(e\) \{ console\.warn\('\[auth\] weld skipped'\); \}/.test(t);
+    });
+    check('J8 fix 4: both sign-in doors (web return, native) weld after the index, and a weld failure never fails the sign-in', wired);
+  }
+
   // ---------------------------------------------------------------- logs
   check('E7 not one log line carries content, a session or an account key', !LOGS.some((l) => l.includes(MARK) || /acct:v1:|sess:v1:|[؀-ۿ]/.test(l)), LOGS.slice(0, 3).join(' / '));
 

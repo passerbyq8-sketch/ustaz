@@ -472,6 +472,10 @@ function buildGraph(options) {
     if (spec.endsWith('/ratelimit.js')) return shims.ratelimit;
     if (spec.endsWith('/attempts.js')) return shims.attempts;
     if (spec.endsWith('/daycap.js')) return shims.daycap;
+    // SYNC FIX 4 (10 October): the return leg asks the sync weld after the index. Its behaviour is
+    // measured in guards/sync-server-guard.cjs (J1-J8); here it stands in as the people's switch,
+    // OFF -- a weld that never happens -- so every case below measures the sign-in exactly as before.
+    if (spec.endsWith('/sync/service.js')) return { weldByVerifiedEmail: async () => ({ welded: false, why: 'closed' }) };
     const base = path.posix.dirname(fromRel);
     const rel = path.posix.normalize(path.posix.join(base, spec));
     if (!SOURCES[rel]) throw new Error(fromRel + ' imports an unknown module: ' + spec);

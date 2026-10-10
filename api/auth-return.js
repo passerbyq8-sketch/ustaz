@@ -57,6 +57,7 @@ import {
   TICKET_TTL_SECONDS,
 } from '../lib/auth/store.js';
 import { upsertAccount, indexVerifiedEmail } from '../lib/auth/account.js';
+import { weldByVerifiedEmail } from '../lib/sync/service.js';
 
 // The ticket is OURS, not the protocol's, so it is minted here rather than in lib/auth/oidc.js.
 // Same source of randomness as everything else on this path: node:crypto, never Math.random.
@@ -201,6 +202,13 @@ export default async function handler(req, res) {
   // The seam between two providers, and it opens on a PROVED address only. An unverified sign-in
   // reaches this line and writes nothing -- it still has its own account.
   await indexVerifiedEmail(claims.email, claims.emailVerified, account.key);
+
+  // SYNC FIX 4 (items 24 + 58, behind SYNC_SWITCH): a proved address equal to the proved address of
+  // an account that already exists welds this sign-in into it, on the «link your other account»
+  // road (lib/sync/service.js weldByVerifiedEmail). A refusal or a store failure never fails the
+  // sign-in, and nothing about it is logged but its code.
+  try { await weldByVerifiedEmail(account.key, claims.email, claims.emailVerified); }
+  catch (e) { console.warn('[auth] weld skipped'); }
 
   // THE TICKET. Sixty seconds, spent once, bound to the device the flow started on.
   const ticket = randomTicket();

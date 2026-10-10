@@ -44,6 +44,7 @@ import { applyCorsOrigin, checkAuthLimit } from '../lib/ratelimit.js';
 import { clientAddress } from '../lib/attempts.js';
 import { nativeConfig, fetchJwks, verifyIdToken } from '../lib/auth/oidc.js';
 import { upsertAccount, indexVerifiedEmail, mintSession } from '../lib/auth/account.js';
+import { weldByVerifiedEmail } from '../lib/sync/service.js';
 
 /**
  * THE THREE FIELDS ARE BOUNDED BEFORE THEY ARE USED.
@@ -146,6 +147,12 @@ export default async function handler(req, res) {
   // THE SEAM BETWEEN TWO PROVIDERS, AND THE SAME ONE -- not a second rule that happens to agree.
   // It opens on a PROVED address only, and the proving is inside the function, not at this line.
   await indexVerifiedEmail(claims.email, claims.emailVerified, account.key);
+  // SYNC FIX 4 (items 24 + 58, behind SYNC_SWITCH): a proved address equal to the proved address of
+  // an account that already exists welds this sign-in into it, on the «link your other account»
+  // road (lib/sync/service.js weldByVerifiedEmail). A refusal or a store failure never fails the
+  // sign-in, and nothing about it is logged but its code.
+  try { await weldByVerifiedEmail(account.key, claims.email, claims.emailVerified); }
+  catch (e) { console.warn('[auth] weld skipped'); }
 
   const minted = await mintSession(account.key);
   if (!minted.ok) return res.status(503).json({ ok: false, error: minted.code });
