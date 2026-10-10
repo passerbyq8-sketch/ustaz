@@ -8547,6 +8547,8 @@ function ez110Apply() {
     if (fix) {
       d.setAttribute('data-ez110-fix', '1');
       ez110LinkCss(EZ110_FIX_CSS);
+      // the served pages of this tab (library.html) read part fix from this one-shot tab slot; written only lit
+      try { window.sessionStorage.setItem('ezik_110_fix_v1', '1'); } catch (e) {}
     }
     if (id) {
       if (!d.getAttribute('data-ez110')) {

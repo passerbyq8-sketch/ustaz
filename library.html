@@ -912,9 +912,21 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
   }
   window.addEventListener('hashchange', route);
   function go(hash) { location.hash = hash; }
+  // ITEM 110 ROUND 2 -- PART `fix` (the item-127 fixes), read from the app's tab slot, or on THIS machine only from
+  // &fix=1 in this page's own address. Dark: every line below behaves as it did.
+  var EZ110_FIX = (function () {
+    try {
+      var h = location.hostname;
+      if ((h === 'localhost' || h === '127.0.0.1') && /[?&]fix=1(&|$)/.test(location.search)) return true;
+      return window.sessionStorage.getItem('ezik_110_fix_v1') === '1';
+    } catch (e) { return false; }
+  })();
+  // 127 note m6 (part fix): a back that never PUSHES. With history behind it, it steps back (to the chat that
+  // opened the reader, or to the library page before); alone in the tab, it REPLACES this entry with its parent.
+  function ez110Back(parent) { if (history.length > 1) history.back(); else location.replace('#' + String(parent).replace(/^#/, '')); }
   function topBar(title, back, extra) {
     var kids = [];
-    if (back) kids.push(el('button', { class: 'ibtn', 'aria-label': T('back'), text: '→', on: { click: function () { if (history.length > 1) history.back(); else go(back); } } }));
+    if (back) kids.push(el('button', { class: 'ibtn', 'aria-label': T('back'), text: '→', on: { click: function () { if (EZ110_FIX) { ez110Back(back); return; } if (history.length > 1) history.back(); else go(back); } } }));
     kids.push(el('h1', { text: title }));
     (extra || []).forEach(function (x) { kids.push(x); });
     return el('header', { class: 'top' }, kids);
@@ -1222,7 +1234,7 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
     var bmBtn = el('button', { class: 'ibtn', 'aria-pressed': 'false', text: T('bookmark') });
     var twoBtn = el('button', { class: 'ibtn hidden', 'aria-pressed': 'false', text: T('two_pages') });
     var top = el('header', { class: 'top' }, [
-      el('button', { class: 'ibtn', 'aria-label': T('back'), text: '→', on: { click: function () { go('#/book/' + bookId); } } }),
+      el('button', { class: 'ibtn', 'aria-label': T('back'), text: '→', on: { click: function () { if (EZ110_FIX) { ez110Back('#/book/' + bookId); return; } go('#/book/' + bookId); } } }),
       titleEl,
       el('button', { class: 'ibtn', text: T('search_btn'), on: { click: function () { openBookSearch(); } } }),
       el('button', { class: 'ibtn', text: T('contents'), on: { click: function () { openDrawer('toc'); } } }),
