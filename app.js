@@ -5427,7 +5427,12 @@ const bootIntent=ezikTakeBootIntent(id=>ezikListChats(ezikProfileKey(p)).some(r=
 // and only it -- can tell a reload apart from an ordinary walk-in.
 ezikResumeMarkEntered(ezikReadResume());setScreen(ezikResumeScreen());// D85: a returning profile also lands on the chat
 if(bootIntent.kind==='thread')openSavedChat(bootIntent.thread);// ORDER-108D D2: the one conversation the library's note names
-}else{setScreen('onboarding');}}catch{setScreen('onboarding');}},[]);// تحميل المصحف الكنسي مسبقاً بعد الإقلاع كي تظهر أول آية فوراً (يُتجاهَل الفشل بهدوء)
+}else{setScreen('onboarding');}}catch{setScreen('onboarding');}},[]);// ITEM 110 ROUND 2 (127 note m19), part fix: a page opened from Settings (the privacy policy, the deletion page)
+// comes back through a RELOAD in the shell's WebView, onto the entry Settings pushed -- whose state still names
+// it. Lit, that entry reopens Settings in place (no new entry); its back still leads to the chat. It runs after the
+// boot effect above (effects run in order), so the boot decides first. Navigation layer only: privacy.html and
+// delete.html are not touched. Dark: this effect does nothing.
+useEffect(()=>{if(!ez110FixLit())return;const st=window.history.state;let hasProfile=false;try{hasProfile=!!localStorage.getItem('child_profile');}catch(e){}if(!st||st.screen!=='settings'||!hasProfile)return;sheetOriginRef.current.push('chat');histReplaceRef.current=true;setScreen('settings');},[]);// تحميل المصحف الكنسي مسبقاً بعد الإقلاع كي تظهر أول آية فوراً (يُتجاهَل الفشل بهدوء)
 useEffect(()=>{// S117 PERF. The prefetch stays; it no longer races the first paint. Measured cold against
 // live ezik.app, THIS effect issued /quran-uthmani.json (338KB transferred, 1.41MB parsed)
 // while React was still committing the first screen -- 24% of everything a cold visit

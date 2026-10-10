@@ -18087,6 +18087,18 @@ function App() {
       setScreen('onboarding');
     }
   }, []);
+  // ITEM 110 ROUND 2 (127 note m19), part fix: a page opened from Settings (the privacy policy, the deletion page)
+  // comes back through a RELOAD in the shell's WebView, onto the entry Settings pushed -- whose state still names
+  // it. Lit, that entry reopens Settings in place (no new entry); its back still leads to the chat. It runs after the
+  // boot effect above (effects run in order), so the boot decides first. Navigation layer only: privacy.html and
+  // delete.html are not touched. Dark: this effect does nothing.
+  useEffect(() => {
+    if (!ez110FixLit()) return;
+    const st = window.history.state;
+    let hasProfile = false; try { hasProfile = !!localStorage.getItem('child_profile'); } catch (e) {}
+    if (!st || st.screen !== 'settings' || !hasProfile) return;
+    sheetOriginRef.current.push('chat'); histReplaceRef.current = true; setScreen('settings');
+  }, []);
 
   // تحميل المصحف الكنسي مسبقاً بعد الإقلاع كي تظهر أول آية فوراً (يُتجاهَل الفشل بهدوء)
   useEffect(() => {
