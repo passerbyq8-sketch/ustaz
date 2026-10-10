@@ -15874,6 +15874,8 @@ function ezikSaveChat(id, msgs, pk) {
 }
 
 function ezikDeleteChat(id) {
+  // SYNC FIX 2: the reader's own hand -- the one deletion that also leaves the account.
+  ezikSyncNoteDeleted(id);
   try { localStorage.removeItem(EZIK_CHAT_PREFIX + id); } catch (e) {}
   ezikWriteChatIndex(ezikReadChatIndex().filter((r) => r.id !== id));
 }
@@ -26775,7 +26777,9 @@ function ezikSyncCycle() {
       const p = await ezikSyncCall({ action: 'pull', session: held.session, cursor: st.cursor });
       if (!p.ok) return 'pull-failed';
       let applied = 0;
+      const noRoom = ezikSyncChatRoom(p.data.changes, local);
       for (const c of p.data.changes || []) {
+        if (noRoom[c.id]) continue;     // SYNC FIX 2: kept in the account, not written here
         const has = c.id in local;
         const known = Object.prototype.hasOwnProperty.call(st.shadow, c.id);
         const dirty = has && known && st.shadow[c.id] !== hashOf(local[c.id]);
@@ -26785,6 +26789,9 @@ function ezikSyncCycle() {
         touched[c.id] = c.rec;
         applied++;
       }
+      // SYNC FIX 2: the device keeps its cap. What the pull pushed past it leaves THIS device by the
+      // menu's own order (the oldest unpinned first) -- and stays in the account.
+      if (applied) { ezikSyncApplying = true; try { ezikWriteChatIndex(ezikTrimChats(ezikReadChatIndex())); } finally { ezikSyncApplying = false; } }
       // 2. PUSH what changed here: anything whose value differs from what the last cycle agreed,
       //    in batches the route accepts (1 MB a request). A batch the route refuses for its size
       //    is skipped, not fatal: its records stay changed here and go again on the next cycle.
@@ -26803,6 +26810,9 @@ function ezikSyncCycle() {
       await ezikSyncLibCollect();
       ezikSyncSeal(st, touched, Object.assign(ezikSyncCollect(), ezikSyncLibSnapshot()));
       st.cursor = Number(p.data.cursor) || st.cursor;
+      // A deletion by hand recorded while this cycle ran is kept, not written over.
+      const latest = ezikSyncReadState().gone;
+      for (const id of Object.keys(latest)) if (!touched[id] && !(id in st.gone)) st.gone[id] = latest[id];
       ezikSyncWriteState(st);
       if (applied) { try { window.dispatchEvent(new CustomEvent('ezik:sync:applied', { detail: applied })); } catch (e) {} }
       ezikSyncArmNext();
@@ -26852,10 +26862,17 @@ function ezikSyncDirty(st, local, now, skip) {
     const h = ezikSyncHash(JSON.stringify(local[id]));
     if (st.shadow[id] !== h) out.push({ id, rec: { u: stamp(id, h), del: false, val: local[id] } });
   }
-  // A conversation or a note the last cycle agreed on that is no longer here was deleted here.
+  // A NOTE the last cycle agreed on that is no longer here was deleted here. A CONVERSATION that is
+  // no longer here is a tombstone ONLY when the reader deleted it by hand (st.gone, SYNC FIX 2): one
+  // the device dropped for room (EZIK_CHATS_MAX, or a full store) stays in the account, untouched.
   for (const id of Object.keys(st.shadow)) {
     if (id in local || (skip && skip[id])) continue;
-    if (id.indexOf('chat:') === 0 || id.indexOf('note:') === 0) out.push({ id, rec: { u: now, del: true, val: null } });
+    if (id.indexOf('note:') === 0) out.push({ id, rec: { u: now, del: true, val: null } });
+    else if (id.indexOf('chat:') === 0 && !st.gone[id]) delete st.shadow[id];
+  }
+  for (const id of Object.keys(st.gone)) {
+    if (id in local || (skip && skip[id])) continue;
+    out.push({ id, rec: { u: Number(st.gone[id]) || now, del: true, val: null } });
   }
   const when = (c) => (c.id.indexOf('chat:') === 0 && c.rec.val && Number(c.rec.val.at) ? Number(c.rec.val.at) : c.rec.u);
   out.sort((a, b) => ((b.rec.del ? 1 : 0) - (a.rec.del ? 1 : 0)) || (when(b) - when(a)));
@@ -26899,7 +26916,7 @@ function ezikSyncTake(st, results, touched) {
 function ezikSyncSeal(st, touched, after) {
   for (const id of Object.keys(touched)) {
     const t = touched[id];
-    if (!t || t.del) delete st.shadow[id];
+    if (!t || t.del || (id.indexOf('chat:') === 0 && !(id in after))) delete st.shadow[id];
     else st.shadow[id] = ezikSyncHash(JSON.stringify(id in after ? after[id] : t.val));
   }
 }
@@ -26998,6 +27015,35 @@ function ezikSyncFlushTaken(results) {
   ezikSyncTake(st, results, touched);
   ezikSyncSeal(st, touched, Object.assign(ezikSyncCollect(), ezikSyncLibSnapshot()));
   ezikSyncWriteState(st);
+}
+
+// ============================================================
+// SYNC FIX 2 (10 October) -- A FULL DEVICE DOES NOT DELETE FROM THE ACCOUNT
+// ============================================================
+// The device keeps at most EZIK_CHATS_MAX conversations and drops the oldest unpinned past it. That
+// drop used to read as a deletion and erase the conversation from the account. Now only the
+// reader's own hand (ezikDeleteChat) writes a tombstone; a dropped conversation stays in the
+// account, out of the shadow, and is not written back here -- a pull never brings in more than
+// the device has room for, newest first by the menu's own order, and «نزّل بياناتي» still holds
+// everything the account does.
+function ezikSyncNoteDeleted(id) {
+  try {
+    if (!readAuthSession() || !localStorage.getItem(EZIK_SYNC_STATE_KEY)) return;   // never synced here
+    const st = ezikSyncReadState();
+    st.gone['chat:' + id] = Date.now();
+    ezikSyncWriteState(st);
+  } catch (e) {}
+}
+/** The pulled conversations this device has no room for: { 'chat:<id>': true }. */
+function ezikSyncChatRoom(changes, local) {
+  const skip = {};
+  const incoming = (changes || []).filter((c) => c && typeof c.id === 'string' && c.id.indexOf('chat:') === 0
+    && c.rec && !c.rec.del && c.rec.val && !(c.id in local));
+  if (!incoming.length) return skip;
+  const rows = ezikReadChatIndex().map((r) => ({ id: r.id, pinned: !!r.pinned, at: r.at || 0 }))
+    .concat(incoming.map((c) => ({ id: c.id.slice(5), pinned: c.rec.val.pinned === true, at: Number(c.rec.val.at) || 0, inc: true })));
+  ezikSortChats(rows).slice(EZIK_CHATS_MAX).forEach((r) => { if (r.inc && !r.pinned) skip['chat:' + r.id] = true; });
+  return skip;
 }
 
 // SIGNING OUT: what is synced leaves this device (it stays in the account); what belongs to the

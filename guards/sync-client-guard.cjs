@@ -89,7 +89,7 @@ function makeDevice(seed, deviceId, opts) {
   vm.runInContext('ReactDOM.createRoot = function () { return { render: function () {}, unmount: function () {} }; };', ctx);
   window.console.error = () => {}; window.console.warn = () => {};
   vm.runInContext(transformed, ctx, { filename: 'app.jsx' });
-  const api = vm.runInContext('({ cycle: ezikSyncCycle, collect: ezikSyncCollect, signOut: ezikSyncSignOutWipe, wipeServer: ezikSyncWipeServer, clearDl: ezikClearMushafDownloads, isOpen: ezikSyncIsOpen, flush: ezikSyncFlush, boot: ezikSyncBoot, save: ezikSaveChat, soonMs: EZIK_SYNC_SOON_MS, keepMax: EZIK_SYNC_KEEPALIVE_MAX, status: ezikSyncStatus, kv: ezikSyncKv, ctr: ezikSyncCtr, deviceOnly: ezikSyncDeviceOnly, beginLink: ezikSyncBeginLink, finishLink: ezikSyncFinishLink, writeSession: writeAuthSession, mark: EZIK_SYNC_IMAGE_MARK })', ctx);
+  const api = vm.runInContext('({ cycle: ezikSyncCycle, collect: ezikSyncCollect, signOut: ezikSyncSignOutWipe, wipeServer: ezikSyncWipeServer, clearDl: ezikClearMushafDownloads, isOpen: ezikSyncIsOpen, flush: ezikSyncFlush, del: ezikDeleteChat, boot: ezikSyncBoot, save: ezikSaveChat, soonMs: EZIK_SYNC_SOON_MS, keepMax: EZIK_SYNC_KEEPALIVE_MAX, status: ezikSyncStatus, kv: ezikSyncKv, ctr: ezikSyncCtr, deviceOnly: ezikSyncDeviceOnly, beginLink: ezikSyncBeginLink, finishLink: ezikSyncFinishLink, writeSession: writeAuthSession, mark: EZIK_SYNC_IMAGE_MARK })', ctx);
   return { window, local, api, requests, deleted, idb: window.indexedDB, ctx, ctl };
 }
 
@@ -246,8 +246,8 @@ async function main() {
   d1 = reopen(d1, 'device-one-1111'); await d1.api.cycle(); await settle();
   check('B2 a library note deleted on one device is deleted on the other, and stays deleted', !idb1._dbs['ezik-library-v1'].has('n1-a-b'));
   // a conversation deleted on device 1 disappears on device 2
-  d1.local.removeItem('ezik_chat_v1_c1');
-  d1.local.setItem('ezik_chats_v1', '[]');
+  // deleted BY HAND, through the app's own delete (SYNC FIX 2: a dropped conversation is not a deletion)
+  d1.api.del('c1');
   await d1.api.cycle(); await settle();
   d2 = reopen(d2, 'device-two-2222'); await d2.api.cycle(); await settle();
   check('T9 a conversation deleted on device 1 is gone from device 2', !('ezik_chat_v1_c1' in d2.local._data) && JSON.parse(d2.local._data.ezik_chats_v1).length === 0);
@@ -350,6 +350,57 @@ async function main() {
   if (process.env.SYNC_GUARD_DEBUG) quiet.log('F3d', o4, JSON.stringify(df.requests.map((r) => [r.action, r.keepalive, r.bytes, r.ids.length])));
   const held4 = await serverIds(F);
   check('F3d the page died with them, and the next open sends them: all six are in the account', bigIds.every((id) => held4['chat:' + id]), JSON.stringify(Object.keys(held4)));
+
+  // ---------------------------------------------------------------- FIX 2 (10 October): a full device
+  // H1  a device at the cap that saves one more: the oldest leaves the device and STAYS in the account
+  // H2  a second cycle does not bring it back
+  // H3  a deletion by hand still deletes from the account
+  // H4  a new device takes the newest conversations up to the cap
+  // H5  «نزّل بياناتي» holds everything the account holds
+  const Gk = await acct('66', 'g@example.com');
+  const PROFILEG = { name: '', age: 30, gender: null, birthYear: 1996, pid: 'pid-fix2', createdAt: 'g' };
+  const seedG = { child_profile: JSON.stringify(PROFILEG), ezik_auth_session_v1: Gk.json };
+  const gIdx = [];
+  for (let i = 0; i < 60; i++) {
+    const id = 'g' + String(i).padStart(2, '0');
+    seedG['ezik_chat_v1_' + id] = JSON.stringify([{ role: 'user', content: 'سؤال ' + i, timestamp: new Date(1e12 + i * 1000).toISOString() }]);
+    gIdx.push({ id, pk: 'pid-fix2', title: 't' + i, pinned: false, at: 1e12 + i * 1000 });
+  }
+  seedG.ezik_chats_v1 = JSON.stringify(gIdx);
+  let dg = makeDevice(seedG, 'device-fix2-1111');
+  await dg.api.cycle(); await settle();
+  const liveIn = async () => { const r = { statusCode: 0, body: null, setHeader() {}, status(c) { this.statusCode = c; return this; }, json(b) { this.body = b; return this; } }; await ROUTE.default({ method: 'POST', headers: { 'x-murabbi-device': 'device-fix2-0000' }, body: { action: 'pull', session: Gk.session, cursor: 0 } }, r); return r.body.changes.filter((c) => c.id.indexOf('chat:') === 0); };
+  const newId = dg.api.save(null, [{ role: 'user', content: 'السؤال الحادي والستون', timestamp: '2026-10-10T12:00:00.000Z' }], 'pid-fix2');
+  const localIds = () => JSON.parse(dg.local._data.ezik_chats_v1).map((r) => r.id);
+  const trimmedHere = !localIds().includes('g00') && localIds().length === 60;
+  await dg.api.cycle(); await settle();
+  let held = await liveIn();
+  const g00 = held.find((c) => c.id === 'chat:g00');
+  check('H1 the device drops its oldest past the cap (60), and the account keeps it, with no tombstone', trimmedHere && g00 && !g00.rec.del && held.filter((c) => !c.rec.del).length === 61, JSON.stringify({ trimmedHere, g00: g00 && g00.rec.del, n: held.length }));
+  dg = reopen(dg, 'device-fix2-1111');
+  await dg.api.cycle(); await settle();
+  dg = reopen(dg, 'device-fix2-1111');
+  await dg.api.cycle(); await settle();
+  check('H2 two more cycles do not bring it back, and the device stays at the cap', !localIds().includes('g00') && localIds().length === 60 && !('ezik_chat_v1_g00' in dg.local._data));
+  dg.api.del('g30');
+  dg = reopen(dg, 'device-fix2-1111');
+  await dg.api.cycle(); await settle();
+  held = await liveIn();
+  const g30 = held.find((c) => c.id === 'chat:g30');
+  check('H3 a conversation deleted by hand is deleted from the account (a tombstone)', g30 && g30.rec.del === true && !localIds().includes('g30'));
+  // one more question on the full device: the account now holds 61 live conversations
+  const newId2 = dg.api.save(null, [{ role: 'user', content: 'سؤال آخر', timestamp: '2026-10-10T12:05:00.000Z' }], 'pid-fix2');
+  await dg.api.cycle(); await settle();
+  const dn = makeDevice({ child_profile: JSON.stringify(Object.assign({}, PROFILEG, { pid: 'pid-fix2-new' })), ezik_auth_session_v1: Gk.json }, 'device-fix2-2222');
+  await dn.api.cycle(); await settle();
+  const nIds = JSON.parse(dn.local._data.ezik_chats_v1 || '[]').map((r) => r.id);
+  check('H4 a new device takes the newest up to the cap: 60 of the 61 live, the oldest left in the account, the deleted one absent', nIds.length === 60 && nIds.includes(newId) && nIds.includes(newId2) && !nIds.includes('g00') && nIds.includes('g01') && !nIds.includes('g30'), JSON.stringify({ n: nIds.length }));
+  {
+    const r = { statusCode: 0, body: null, setHeader() {}, status(c) { this.statusCode = c; return this; }, json(b) { this.body = b; return this; } };
+    await ROUTE.default({ method: 'POST', headers: { 'x-murabbi-device': 'device-fix2-0000' }, body: { action: 'export', session: Gk.session } }, r);
+    const ex = Object.keys(r.body.records || {}).filter((k) => k.indexOf('chat:') === 0);
+    check('H5 «نزّل بياناتي» holds every conversation the account holds (61 live), the dropped ones included', ex.length === 61 && ex.includes('chat:g00') && !ex.includes('chat:g30'), String(ex.length));
+  }
 
   say('=== sync-client-guard: items 24 + 58, application ===');
   for (const r of results) say((r.ok ? '[PASS] ' : '[FAIL] ') + r.name + (r.ok ? '' : '  -- ' + r.detail));
