@@ -9991,6 +9991,11 @@ const TASBIH_DHIKR = [
   { id: 14, text: 'سبحان الله وبحمده عدد خلقه ورضا نفسه وزنة عرشه ومداد كلماته' },
   { id: 15, text: 'لا إله إلا الله وحده لا شريك له، له الملك، وله الحمدُ، وهو على كل شيء قدير' },
 ];
+// ITEM 110 ROUND 2 (127 note m34), part fix: three of the dhikr above are SHOWN with their hamzas and their
+// final yaa, as the owner writes them on the menu's dhikr line. Display only: the ids are what is stored, counted
+// and synced, and TASBIH_DHIKR keeps its texts letter for letter. Dark: d.text, as before.
+const EZ110_TASBIH_SHOW = { 3: 'لا إله إلا الله', 5: 'رب اغفر لي', 6: 'أستغفر الله' };
+const tasbihShown = (d) => (ez110FixLit() && EZ110_TASBIH_SHOW[d.id]) || d.text;
 
 // The lock. Shut, there is no target and the count runs free; open, the number the panel shows is
 // the number in force. One glyph per state, bounded, decorative -- the button carries its own
@@ -10157,7 +10162,7 @@ function EzikTasbihSection({ onClose, onOpenLog }) {
   // (truncated by the style, never by cutting the text), and several is how many. A reader who
   // shuts the panel still knows what the counter is counting.
   const pickSummary = none ? ezT('tasbih.none')
-    : chosen.length === 1 ? chosen[0].text
+    : chosen.length === 1 ? tasbihShown(chosen[0])
       : ezT('tasbih.picked', { n: toArabicDigits(chosen.length) });
   const full = targetOpen && count >= target;
   const pct = targetOpen && target > 0 ? Math.min(100, Math.round((count / target) * 100)) : 0;
@@ -10230,7 +10235,7 @@ function EzikTasbihSection({ onClose, onOpenLog }) {
               return (
                 <label key={String(d.id)} style={on ? { ...s.ezTasbihRow, ...s.ezTasbihRowOn } : s.ezTasbihRow}>
                   <input type="checkbox" checked={on} onChange={() => toggle(d.id)} style={s.ezTasbihBox} />
-                  <span style={s.ezTasbihRowText}>{d.text}</span>
+                  <span style={s.ezTasbihRowText}>{tasbihShown(d)}</span>
                 </label>
               );
             })}
@@ -10243,7 +10248,7 @@ function EzikTasbihSection({ onClose, onOpenLog }) {
             the dial off a phone screen when all fifteen are ticked. */}
         {chosen.length > 0 ? (
           <div style={s.ezTasbihChosen}>
-            {chosen.map((d) => <div key={String(d.id)} style={s.ezTasbihText}>{d.text}</div>)}
+            {chosen.map((d) => <div key={String(d.id)} style={s.ezTasbihText}>{tasbihShown(d)}</div>)}
           </div>
         ) : null}
         <div style={s.ezTasbihDialWrap}>
