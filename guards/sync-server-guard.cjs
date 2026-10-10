@@ -332,6 +332,26 @@ async function main() {
     process.env.SYNC_SWITCH = 'all';
     pg = await page();
     check('T4c fix 5: all (the preview): the new privacy text, noindex, both languages, the four promises', pg.statusCode === 200 && /noindex/.test(pg.headers['x-robots-tag'] || '') && /lang="en"/.test(pg.body) && /مشفّرة/.test(pg.body) && /No analysis, no training/.test(pg.body) && /نزّل بياناتي/.test(pg.body) && /Delete all my data/.test(pg.body) && !/@/.test(pg.body.replace(/@media/g, '')));
+    // T4f, the opening day prepared: the PUBLIC privacy.html carries the served sync text as its
+    // section 13, in both languages, every paragraph, list item and table row byte for byte, the
+    // Arabic before the divider and the English after it -- so opening the switch to everybody
+    // never publishes a policy that leaves the sync out.
+    {
+      const pub = require('fs').readFileSync(path.join(REPO, 'privacy.html'), 'utf8');
+      const half = pub.indexOf('id="english"');
+      const served = pg.body;
+      const enAt = served.indexOf('<div class="en"');
+      const pieces = (t) => (t.match(/<(p|li|tr)>[\s\S]*?<\/\1>/g) || []).filter((x) => !/class="meta"/.test(x));
+      const arServed = pieces(served.slice(served.indexOf('<h2>'), enAt));
+      const enServed = pieces(served.slice(enAt));
+      const arH = pub.indexOf('<h2>١٣ · مزامنة الحساب عبر الأجهزة</h2>');
+      const enH = pub.indexOf('<h2>13 · Account sync across devices</h2>');
+      const arMissing = arServed.filter((x) => { const i = pub.indexOf(x, arH); return arH < 0 || i < 0 || i > half; });
+      const enMissing = enServed.filter((x) => enH < 0 || pub.indexOf(x, enH) < 0);
+      check('T4f opening prep: privacy.html carries the sync section 13 in Arabic and in English, the served text unchanged',
+        arH > 0 && arH < half && enH > half && arServed.length >= 15 && enServed.length >= 15 && arMissing.length === 0 && enMissing.length === 0,
+        JSON.stringify({ arH, enH, half, ar: arServed.length, en: enServed.length, arMissing: arMissing.length, enMissing: enMissing.length }));
+    }
     process.env.SYNC_SWITCH = 'all';
     r = await call({ action: 'status' });
     check('S12 all: open for a guest too (the preview)', r.body.open === true);
