@@ -1712,6 +1712,7 @@ const EZ_I18N = {
     'ez110.set.privacyPolicy': '\u0633\u064A\u0627\u0633\u0629 \u0627\u0644\u062E\u0635\u0648\u0635\u064A\u0629',
     'ez110.set.deletePage': '\u0635\u0641\u062D\u0629 \u062D\u0630\u0641 \u0627\u0644\u0628\u064A\u0627\u0646\u0627\u062A',
     'ez110.set.homeHint': '\u0631\u062A\u0651\u0628 \u0623\u0642\u0633\u0627\u0645 \u0627\u0644\u0642\u0627\u0626\u0645\u0629 \u0645\u0646 \u0647\u0646\u0627\u060C \u0623\u0648 \u0627\u0636\u063A\u0637 \u0645\u0637\u0648\u0651\u0644\u064B\u0627 \u0639\u0644\u0649 \u0623\u064A\u0651 \u0642\u0633\u0645\u064D \u0641\u064A \u0627\u0644\u0642\u0627\u0626\u0645\u0629 \u0646\u0641\u0633\u0647\u0627.',
+    'ez110.prayer.settings': '\u0625\u0639\u062F\u0627\u062F\u0627\u062A \u0627\u0644\u0635\u0644\u0627\u0629',
   },
   en: {
     'common.close': 'Close',
@@ -3013,6 +3014,7 @@ const EZ_I18N = {
     'ez110.set.privacyPolicy': 'Privacy policy',
     'ez110.set.deletePage': 'Data deletion page',
     'ez110.set.homeHint': 'Arrange the menu\'s sections here, or press and hold any section in the menu itself.',
+    'ez110.prayer.settings': 'Prayer settings',
   },
 };
 
@@ -8642,7 +8644,17 @@ function Ez110Nav({ active }) {
 
 // THE NEXT PRAYER. The numbers are the prayer sheet's own: prayerStatus() and prayerTimesFor()
 // over the reader's saved position and method -- nothing is computed twice in another way.
-function Ez110PrayerCard({ onOpen }) {
+// AMEND-01: the card's countdown drops the leading zero of its first field ("2:36:00", and
+// "36:00" in the last hour, "45" in the last minute). In the Arabic face a leading Arabic zero is a short dash, and the
+// owner read "-02:36:00" as a negative count. The prayer sheet's own line is not touched.
+function ez110Countdown(ms) {
+  const sec = Math.max(0, Math.floor((typeof ms === 'number' && isFinite(ms) ? ms : 0) / 1000));
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), x = sec % 60;
+  const p2 = (n) => (n < 10 ? '0' : '') + n;
+  // no field ever starts with a zero: the last minute is its seconds alone
+  return ezikBrowseNum(h > 0 ? h + ':' + p2(m) + ':' + p2(x) : m > 0 ? m + ':' + p2(x) : String(x));
+}
+function Ez110PrayerCard({ onOpen, hijri }) {
   useEzLang();
   const loc = readQiblaLoc();
   const prefs = readPrayerPrefs();
@@ -8653,19 +8665,29 @@ function Ez110PrayerCard({ onOpen }) {
   const t = prayerTimesFor(today.y, today.m, today.d, loc.lat, loc.lng, prayerTzNow(now, loc), prefs.method, prefs.asr, prefs.off);
   const status = prayerStatus(now, loc, prefs);
   const next = status && status.next ? status.next.key : null;
+  // after the night prayer the next one is TOMORROW's fajr: its time is read from tomorrow's table
+  // (the same calculator, the same place), never today's fajr, which has already passed
+  let nextTime = next ? t[next] : null;
+  if (next === 'fajr' && typeof t.fajr === 'number' && today.mins >= t.fajr) {
+    const tm = prayerShiftDay(today, 1);
+    nextTime = prayerTimesFor(tm.y, tm.m, tm.d, loc.lat, loc.lng, prayerTzOn(tm.y, tm.m, tm.d, place), prefs.method, prefs.asr, prefs.off).fajr;
+  }
   const five = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
   return (
     <button type="button" className="ez110-prayer" onClick={onOpen} aria-label={ezT('panel.next') + (next ? ': ' + ezT('widget.prayer.' + next) : '')}>
       <span className="ez110-prayer-arch" aria-hidden="true" />
-      <span className="ez110-prayer-head">{ezT('panel.next')}</span>
+      <span className="ez110-prayer-top">
+        <span className="ez110-prayer-head">{ezT('panel.next')}</span>
+        {hijri ? <span className="ez110-prayer-hijri">{hijri}</span> : null}
+      </span>
       {next ? (
         <span className="ez110-prayer-main">
           <span className="ez110-prayer-name">{ezT('widget.prayer.' + next)}</span>
-          <span className="ez110-prayer-time">{prayerClock(t[next])}</span>
+          <span className="ez110-prayer-time">{prayerClock(nextTime)}</span>
+          {status.remainingMs != null ? (
+            <span className="ez110-prayer-left">{ezT('panel.in')} <bdi dir="ltr">{ez110Countdown(status.remainingMs)}</bdi></span>
+          ) : null}
         </span>
-      ) : null}
-      {next && status.remainingMs != null ? (
-        <span className="ez110-prayer-left">{ezT('panel.in')} {prayerCountdownText(status.remainingMs)}</span>
       ) : null}
       <span className="ez110-prayer-row">
         {five.map((k) => (
@@ -8680,25 +8702,19 @@ function Ez110PrayerCard({ onOpen }) {
   );
 }
 
-// THE WIRD RING. The fraction is the one the shelf already shows on the mushaf tile (v.wird:
-// pages done over the reader's target); with no target set the ring is not drawn at all.
-function Ez110WirdCard({ wird, onOpen }) {
+// THE WIRD, AS A TILE (AMEND-01: «وردي اليوم» is one of the sections, not a card above them).
+// Its mark is its ring: the fraction the shelf already shows on the mushaf tile (v.wird: pages
+// done over the reader's target), drawn inside the tile's square; with no target the ring is empty.
+function ez110WirdIcon(wird) {
   const has = !!(wird && wird.target > 0);
   const frac = has ? Math.max(0, Math.min(1, wird.done / wird.target)) : 0;
-  const C = 2 * Math.PI * 22;
+  const C = 2 * Math.PI * 9;
   return (
-    <button type="button" className="ez110-card ez110-wird" onClick={onOpen}>
-      {has ? (
-        <svg className="ez110-ring" width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
-          <circle cx="28" cy="28" r="22" className="ez110-ring-bg" />
-          <circle cx="28" cy="28" r="22" className="ez110-ring-fg" strokeDasharray={C} strokeDashoffset={C * (1 - frac)} transform="rotate(-90 28 28)" />
-        </svg>
-      ) : <span className="ez110-icon-box" aria-hidden="true">{EZH_ICON_MUSHAF}</span>}
-      <span className="ez110-card-text">
-        <span className="ez110-card-kicker">{DW_CARD_TITLE}</span>
-        {has ? <span className="ez110-card-big">{ezT('ez110.wird.of').replace('{done}', toArabicDigits(wird.done)).replace('{target}', toArabicDigits(wird.target))}</span> : null}
-      </span>
-    </button>
+    <svg className="ez110-ring" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" className="ez110-ring-bg" />
+      {has ? <circle cx="12" cy="12" r="9" className="ez110-ring-fg" strokeDasharray={C} strokeDashoffset={C * (1 - frac)} transform="rotate(-90 12 12)" /> : null}
+      <path d="M9 9.5h6M9 12.5h6M9 15.5h3.5" className="ez110-ring-lines" />
+    </svg>
   );
 }
 
@@ -8707,7 +8723,7 @@ function Ez110WirdCard({ wird, onOpen }) {
 // reader has arranged the shelf, their order wins and the groups give way to one grid in it.
 const EZ110_GROUPS = [
   { key: 'ez110.grp.quran', ids: ['mushaf', 'memorize', 'arbaeen', 'sunan-day'] },
-  { key: 'ez110.grp.dhikr', ids: ['adhkar', 'tasbih', 'prayer', 'asmaa'] },
+  { key: 'ez110.grp.dhikr', ids: ['adhkar', 'wird', 'tasbih', 'prayer', 'asmaa'] },
   { key: 'ez110.grp.know', ids: ['fatwa', 'lessons', 'library', 'articles', 'women'] },
   { key: 'ez110.grp.tools', ids: ['calc', 'treasure'] },
 ];
@@ -8716,7 +8732,8 @@ const EZ110_ICON_CALC = <svg width="22" height="22" viewBox="0 0 24 24" fill="no
 
 function Ez110Tile({ m, edit, onMove, idx, count, dragging, onPointerDown }) {
   return (
-    <div className={'ez110-tile-wrap' + (edit ? ' is-edit' : '') + (dragging ? ' is-drag' : '')} data-ez110-tile={m.id}>
+    <div className={'ez110-tile-wrap' + (edit ? ' is-edit' : '') + (dragging ? ' is-drag' : '')} data-ez110-tile={m.id}
+      onContextMenu={(e) => e.preventDefault()}>
       <button type="button" className="ez110-tile"
         onClick={edit ? undefined : m.onClick} onPointerDown={onPointerDown}
         aria-label={edit ? ezT('ez110.order.tile').replace('{name}', typeof m.label === 'string' ? m.label : '').replace('{n}', toArabicDigits(idx + 1)).replace('{of}', toArabicDigits(count)) : undefined}>
@@ -8734,50 +8751,82 @@ function Ez110Tile({ m, edit, onMove, idx, count, dragging, onPointerDown }) {
   );
 }
 
+// THE GREETING OF «ب» (AMEND-01). «السلام عليكم» and the name, small, and nothing else: the
+// adhkar row that stood under them is gone from this menu WITH ALL ITS STATES (the morning line,
+// the evening line, and the day line between them -- one row, three texts, measured in
+// getHomeGreeting), and the Hijri date moved into the next-prayer card. EzistMasthead, which the
+// dark menu draws, is not touched.
+function Ez110Hello({ name }) {
+  return (
+    <section className="ez110-hello">
+      <span className="ez110-hello-salam">{EZH_SALAM}</span>
+      <h1 className="ez110-hello-name">{name ? <>{EZH_HELLO} {name}</> : EZH_HELLO_NO_NAME}</h1>
+    </section>
+  );
+}
+// The order in effect over the menu's tiles: the stored ids that are tiles here, once each, then
+// every other tile in the default order -- the semantics of ezHomeOrderApply, over the menu's ids
+// (the modules plus wird, tasbih and calc). A stored order written before AMEND-01 (modules
+// only) keeps its modules where the reader put them, and the three cards follow; nothing is lost
+// and nothing is repeated.
+function ez110OrderApply(ids, order) {
+  const want = (Array.isArray(order) ? order : []).filter((id, i, a) => ids.indexOf(id) >= 0 && a.indexOf(id) === i);
+  return want.concat(ids.filter((id) => want.indexOf(id) < 0));
+}
+
 // THE MENU OF «ب». v is the very object EzikIstanaHome receives.
+// AMEND-01: the top of the menu is fixed by the design -- greeting, then the next prayer -- so the
+// in-app widget panel (ezik_home_widgets_v1) is not read here; the dark menu still draws it.
 function Ez110Home(v) {
   const [order, setOrder] = useState(() => readHomeOrder().order);
-  // the shelf in the order IN EFFECT NOW (the same permutation Home applies), so a second arranging
-  // session starts from the first one's result
-  const shelfMods = ezHomeOrderApply(ezHomeModules(v), order);
+  const builtMods = ezHomeModules(v);
   const duo = ezHomeDuoCards(v);
+  const opener = (id) => (duo.find((c) => c.id === id) || {}).onOpen;
   const extra = [
-    { id: 'tasbih', label: ezT('tasbih.card.title'), icon: EZ110_ICON_TASBIH, onClick: (duo.find((c) => c.id === 'tasbih') || {}).onOpen },
-    { id: 'calc', label: ezT('calc.card.title'), icon: EZ110_ICON_CALC, onClick: (duo.find((c) => c.id === 'calc') || {}).onOpen },
+    { id: 'wird', label: DW_CARD_TITLE, icon: ez110WirdIcon(v.wird), onClick: opener('wird') },
+    { id: 'tasbih', label: ezT('tasbih.card.title'), icon: EZ110_ICON_TASBIH, onClick: opener('tasbih') },
+    { id: 'calc', label: ezT('calc.card.title'), icon: EZ110_ICON_CALC, onClick: opener('calc') },
   ];
-  const wirdCard = duo.find((c) => c.id === 'wird') || {};
+  const byId = {}; builtMods.concat(extra).forEach((m) => { byId[m.id] = m; });
+  // THE GROUPS, and the one default order they make when read through. A module no group names
+  // lands in the tools group, so a section added tomorrow is never dropped.
+  const placed = new Set(EZ110_GROUPS.flatMap((g) => g.ids));
+  const rest = builtMods.map((m) => m.id).filter((id) => !placed.has(id));
+  const groups = EZ110_GROUPS.map((g) => ({ key: g.key, ids: g.ids.filter((id) => byId[id]).concat(g.key === 'ez110.grp.tools' ? rest : []) }))
+    .filter((g) => g.ids.length);
+  const builtIds = groups.flatMap((g) => g.ids);
+  const liveIds = ez110OrderApply(builtIds, order);   // the order IN EFFECT NOW
+  const custom = order.length > 0;
   const [edit, setEdit] = useState(false);
   const [draft, setDraft] = useState(null);       // the ids being arranged, or null
   const [dragId, setDragId] = useState(null);
   const press = useRef(null);
   useEzikBackLayer(edit, () => { setEdit(false); setDraft(null); setDragId(null); });
-  const custom = order.length > 0;
-  const byId = {}; shelfMods.concat(extra).forEach((m) => { byId[m.id] = m; });
-  const shelfIds = shelfMods.map((m) => m.id);            // what the order store governs: the modules
-  const startEdit = () => { setDraft(shelfIds.slice()); setEdit(true); };
-  // the built order is stored as NO order, so the default shelf (and its groups) comes back
-  const builtIds = ezHomeModules(v).map((m) => m.id);
+  const startEdit = () => { setDraft(liveIds.slice()); setEdit(true); };
+  // the default order is stored as NO order, so the groups come back
   const done = () => {
-    const ids = draft || shelfIds;
+    const ids = draft || liveIds;
     const rec = writeHomeOrder(ids.join(',') === builtIds.join(',') ? [] : ids);
     setOrder(rec.order); setEdit(false); setDraft(null); setDragId(null);
   };
-  const reset = () => setDraft(builtIds.filter((id) => shelfIds.indexOf(id) >= 0));
-  const move = (id, dir) => setDraft((d) => ezHomeOrderMove(d || shelfIds, id, dir));
-  // drag: a long press (450 ms) on a tile starts arranging; while arranging, the tile follows the
+  const reset = () => setDraft(builtIds.slice());
+  const move = (id, dir) => setDraft((d) => ezHomeOrderMove(d || liveIds, id, dir));
+  // DRAG. A long press (450 ms) on any tile opens arranging AND picks that tile up, so one press
+  // that keeps going moves it; while arranging, any press picks a tile up. The tile follows the
   // finger and the shelf re-orders under it. Pointer events only -- no library, no new key.
   const onPointerDown = (id) => (e) => {
     if (e.button !== undefined && e.button !== 0) return;
-    const p = { id, x: e.clientX, y: e.clientY, timer: null, armed: edit };
-    // a long press only OPENS arranging (the shelf re-lays itself as one grid); the drag is the next press
-    if (!edit) p.timer = setTimeout(() => { press.current = null; startEdit(); }, 450);
+    const p = { id, x: e.clientX, y: e.clientY, timer: null, armed: edit, go: false };
+    if (!edit) p.timer = setTimeout(() => { p.timer = null; p.armed = true; startEdit(); setDragId(id); }, 450);
     else setDragId(id);
     press.current = p;
   };
   useEffect(() => {
     const onMove = (e) => {
       const p = press.current; if (!p) return;
-      if (!p.armed) { if (Math.abs(e.clientX - p.x) + Math.abs(e.clientY - p.y) > 10) { clearTimeout(p.timer); press.current = null; } return; }
+      const dist = Math.abs(e.clientX - p.x) + Math.abs(e.clientY - p.y);
+      if (!p.armed) { if (dist > 10) { clearTimeout(p.timer); press.current = null; } return; }
+      if (!p.go) { if (dist < 8) return; p.go = true; }
       const el = document.elementFromPoint(e.clientX, e.clientY);
       const over = el && el.closest ? el.closest('[data-ez110-tile]') : null;
       const target = over ? over.getAttribute('data-ez110-tile') : null;
@@ -8789,44 +8838,43 @@ function Ez110Home(v) {
       });
     };
     const onUp = () => { const p = press.current; if (p && p.timer) clearTimeout(p.timer); press.current = null; setDragId(null); };
+    // a held tile owns the finger: the page does not scroll under it
+    const onTouch = (e) => { const p = press.current; if (p && p.armed && e.cancelable) e.preventDefault(); };
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
     window.addEventListener('pointercancel', onUp);
-    return () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp); };
+    window.addEventListener('touchmove', onTouch, { passive: false });
+    return () => {
+      window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp); window.removeEventListener('touchmove', onTouch);
+    };
   }, [edit]);
   const grid = (ids, keyPrefix) => (
     <div className="ez110-grid" key={keyPrefix}>
       {ids.filter((id) => byId[id]).map((id, i, arr) => (
-        <Ez110Tile key={id} m={byId[id]} edit={edit && shelfIds.indexOf(id) >= 0} idx={i} count={arr.length}
-          onMove={move} dragging={dragId === id} onPointerDown={shelfIds.indexOf(id) >= 0 ? onPointerDown(id) : undefined} />
+        <Ez110Tile key={id} m={byId[id]} edit={edit} idx={i} count={arr.length}
+          onMove={move} dragging={dragId === id} onPointerDown={onPointerDown(id)} />
       ))}
     </div>
   );
   let shelf;
-  if (edit) shelf = grid(draft || shelfIds, 'edit');
-  else if (custom) shelf = <>{grid(shelfMods.map((m) => m.id), 'mine')}{grid(['tasbih', 'calc'], 'extra')}</>;
+  if (edit) shelf = grid(draft || liveIds, 'edit');
+  else if (custom) shelf = grid(liveIds, 'mine');
   else {
-    const placed = new Set(EZ110_GROUPS.flatMap((g) => g.ids));
-    const rest = shelfMods.map((m) => m.id).filter((id) => !placed.has(id));
-    shelf = EZ110_GROUPS.map((g) => {
-      const ids = g.ids.filter((id) => byId[id]).concat(g.key === 'ez110.grp.tools' ? rest : []);
-      if (!ids.length) return null;
-      return (
-        <section key={g.key} className="ez110-group">
-          <h3 className="ez110-group-title">{ezT(g.key)}</h3>
-          {grid(ids, g.key)}
-        </section>
-      );
-    });
+    shelf = groups.map((g) => (
+      <section key={g.key} className="ez110-group">
+        <h3 className="ez110-group-title">{ezT(g.key)}</h3>
+        {grid(g.ids, g.key)}
+      </section>
+    ));
   }
   return (
     <div className="theme-dark ezhome ez110-home" style={s.ezistContainer}>
       <EzistTopNav onOpenMenu={v.onOpenMenu} onOpenTafsir={v.onOpenTafsir} />
       <div style={s.ezistScroll}>
         <div className="ezist-wrap ez110-wrap">
-          <EzistMasthead name={v.name} g={v.greeting} hijri={v.hijri} onOpenAdhkar={v.onOpenAdhkar} />
-          <Ez110PrayerCard onOpen={v.onOpenPrayer} />
-          <Ez110WirdCard wird={v.wird} onOpen={wirdCard.onOpen} />
+          <Ez110Hello name={v.name} />
+          <Ez110PrayerCard onOpen={v.onOpenPrayer} hijri={v.hijri} />
           <div className="ez110-sec-head">
             <h2 className="ez110-h">{ezT('ez110.sections')}</h2>
             {edit ? (
@@ -8843,11 +8891,33 @@ function Ez110Home(v) {
           </div>
           {edit ? <p className="ez110-hint" role="status">{ezT('ez110.order.hint')}</p> : null}
           {shelf}
-          <EzikHomeWidgetArea widgets={v.widgets} nav={{ onOpenAdhkar: v.onOpenAdhkar, onOpenPrayer: v.onOpenPrayer }} />
         </div>
       </div>
       <Ez110Nav active="home" />
     </div>
+  );
+}
+
+// ITEM 110 / AMEND-01 -- THE PRAYER SETTINGS, INSIDE THE PRAYER SECTION. The owner ruled the
+// whole prayer group (ez110.set.prayer) out of Settings for «ب» and into a sheet opened from a small mark
+// beside the compass in the prayer section's head. It is the SAME four controls -- the call-to-prayer sound,
+// the method and the asr (PrayerSettingsControl) and the Hijri adjustment (HijriOffsetControl) --
+// with their own stores, writers and sync; this is a second door to them and not a copy.
+const EZ110_ICON_GEAR = <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" /></svg>;
+function Ez110PrayerSettingsSheet({ onClose }) {
+  useEzLang();
+  return (
+    <EzShell title={ezT('ez110.prayer.settings')} onBack={onClose} backLabel={QIBLA_BACK}>
+      <EzShellGroup title={PRAYER_SETTINGS_TITLE} hint={PRAYER_HINT}>
+        <PrayerSettingsControl />
+        <div style={s.ezshGroupHead}>
+          <span style={s.ezshGroupMark} aria-hidden="true" />
+          <div style={s.settingsLabel}>{HIJRI_SET_TITLE}</div>
+        </div>
+        <HijriOffsetControl />
+        <div style={s.settingsHint}>{HIJRI_SET_HINT}</div>
+      </EzShellGroup>
+    </EzShell>
   );
 }
 
@@ -8857,7 +8927,7 @@ function Ez110Home(v) {
 const EZ110_SET_HEADS = [
   ['account', 'ez110.set.account', null], ['appearance', 'ez110.set.appearance', null],
   ['language', 'settings.language', 'ez110.set.langHint'], ['writing', 'ez110.set.writing', null],
-  ['home', 'ez110.set.home', 'ez110.set.homeHint'], ['prayer', 'ez110.set.prayer', null],
+  // AMEND-01: no 'home' and no 'prayer' heading -- both groups left Settings for the lit identity
   ['privacy', 'ez110.set.privacy', null], ['parents', 'ez110.set.parents', null], ['about', 'ez110.set.about', null],
 ];
 function Ez110SettingsHeads() {
@@ -30130,11 +30200,16 @@ function QiblaPanel({ loc, onLoc, full }) {
 // from the home, over the home, on the home's own screen key, and its back button returns there.
 function PrayerSheet({ onClose, onOpenCompass }) {
   useEzLang();
+  // AMEND-01 (lit identity only): the prayer settings' one door, a layer over this sheet
+  const ez110 = useEz110();
+  const [setOpen, setSetOpen] = useState(false);
+  useEzikBackLayer(setOpen, () => setSetOpen(false));
   // ONE POSITION FOR BOTH PANELS. The times and the qibla are two readings of the same place,
   // so the place is state here and the controls that change it stay where item 108-أ put them.
   const [loc, setLoc] = useState(readQiblaLoc);
   const [day, setDay] = useState(null);
   const [rev, setRev] = useState(0);
+  if (setOpen) return <Ez110PrayerSettingsSheet onClose={ezikGoBack} />;
   return (
     <EzShell title={EZ_LANG === 'ar' ? PRAYER_SHEET_TITLE : ezT('prayer.sheetTitle')} onBack={onClose} backLabel={QIBLA_BACK}
       /* ITEM 66 (side round) -- THE COMPASS'S ONE ENTRY, IN THE PRAYER SECTION WHERE IT BELONGS.
@@ -30144,8 +30219,12 @@ function PrayerSheet({ onClose, onOpenCompass }) {
          needle and its pivot -- the same 24x24 box the top bar draws it in -- so nothing new is
          drawn, imported or fetched for it. */
       lead={onOpenCompass ? (
+        <>
         <button type="button" className="ezhome-focus" onClick={onOpenCompass} style={s.ezshNavBtn}
           aria-label={EZH_NAV_COMPASS}>{EZH_ICON_PRAYER}</button>
+        {ez110.id ? <button type="button" className="ezhome-focus ez110-prayerset" data-ez110-prayerset="1" onClick={() => setSetOpen(true)}
+          style={s.ezshNavBtn} aria-label={ezT('ez110.prayer.settings')}>{EZ110_ICON_GEAR}</button> : null}
+        </>
       ) : null}>
       <React.Fragment key={rev}>
       <PrayerTimesPanel loc={loc} day={day} onDay={setDay} />
@@ -32041,6 +32120,9 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             SECOND, THE WIDGET PANEL, UNCHANGED, so nothing that existed today became unreachable.
             It is a different mechanism over different rows -- the three registered widgets, all
             shipped hidden -- and it keeps its own store, its own reset and its own hint. */}
+        {/* AMEND-01: with an identity lit, arranging lives in the menu alone (a long press on any
+            tile), so this group is not drawn; the dark sheet keeps it whole. */}
+        {ez.id ? null : (
         <EzShellGroup title={A_HOME_ARRANGE} grp="home">
           {homeRows.map((m, i) => (
             <div key={m.id} style={s.ezwidPanelRow}>
@@ -32057,9 +32139,13 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
           ))}
           <EzikHomeWidgetArrange {...arrangeView} />
         </EzShellGroup>
+        )}
         {/* ITEM 121: the prayer preferences are last, so every established Settings position
             above remains where the reader learned it. The two stored records keep their keys. */}
         {ez.id ? <Ez110SettingsExtras onOpenControl={onOpenControl} /> : null}
+        {/* AMEND-01: with an identity lit these four live in the prayer section's own sheet
+            (Ez110PrayerSettingsSheet), the same controls over the same stores. */}
+        {ez.id ? null : (
         <EzShellGroup title={PRAYER_SETTINGS_TITLE} hint={PRAYER_HINT}>
           <PrayerSettingsControl />
           <div style={s.ezshGroupHead}>
@@ -32069,6 +32155,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
           <HijriOffsetControl />
           <div style={s.settingsHint}>{HIJRI_SET_HINT}</div>
         </EzShellGroup>
+        )}
       </div>
       <Ez110Mark />
     </EzShell>

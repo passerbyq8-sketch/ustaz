@@ -99,3 +99,7 @@ html[dir="ltr"][data-ez110] .ezc-drawer { right: auto; left: 0; border-inline-st
 @media (min-width: 900px) { html[dir="ltr"][data-ez110] .ezc-drawer { right: auto; left: 16px; } }
 /* list chevrons ("go on") point to the line's end in either direction */
 html[dir="ltr"][data-ez110] .ezsug-go svg { transform: scaleX(-1); }
+
+/* AMEND-01: the prayer section's head carries three controls (back, compass, prayer settings); its start side
+   takes its own width and the title follows it, instead of the gear sliding under the title's mark */
+html[data-ez110] .ezsh-nav-inner:has(.ez110-prayerset) > .ezsh-nav-side:not(.is-end) { flex: 0 0 auto; }

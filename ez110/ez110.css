@@ -491,63 +491,57 @@ html[dir="ltr"][data-ez110] .ezc-drawer { right: auto; left: 0; border-inline-st
 /* list chevrons ("go on") point to the line's end in either direction */
 html[dir="ltr"][data-ez110] .ezsug-go svg { transform: scaleX(-1); }
 
+/* AMEND-01: the prayer section's head carries three controls (back, compass, prayer settings); its start side
+   takes its own width and the title follows it, instead of the gear sliding under the title's mark */
+html[data-ez110] .ezsh-nav-inner:has(.ez110-prayerset) > .ezsh-nav-side:not(.is-end) { flex: 0 0 auto; }
+
 /* ==== 20-b-home.css ==== */
 /* 20 -- THE MENU (Ez110Home) AND THE FIRST SCREEN'S SECTION ROWS. */
 
 /* ---- the menu wraps ---- */
 html[data-ez110] .ez110-home .ez110-wrap { display: flex; flex-direction: column; gap: 14px; padding-top: 12px; }
 
-/* the greeting: a line, not a card -- name start, date end; the dhikr prompt becomes its own card */
-html[data-ez110] .ez110-home .ezist-masthead {
-  background: transparent; border: 0; box-shadow: none; border-radius: 0; padding: 0 4px;
-  display: grid; grid-template-columns: 1fr; gap: 10px;
-}
-html[data-ez110] .ez110-home .ezist-rule-short { display: none; }
-html[data-ez110] .ez110-home .ezist-masthead h1 { font-family: var(--ez110-font-head); font-size: calc(20px * var(--ez-fs, 1)); font-weight: 700; color: var(--vt-ink); }
-html[data-ez110] .ez110-home .ezist-masthead button {
-  justify-self: stretch;
-  min-height: 56px;
-  border-radius: 18px;
-  border: 1px solid var(--vt-line);
-  background: linear-gradient(160deg, var(--ez110-icon-a) 0%, var(--vt-soft) 100%);
-  color: var(--vt-ink);
-  box-shadow: var(--vt-shadow);
-  font-family: var(--ez110-font-ui);
-  font-weight: 700;
-}
+/* the greeting (AMEND-01): small, two lines, nothing under it -- the adhkar row left the menu */
+html[data-ez110] .ez110-hello { display: flex; flex-direction: column; gap: 0; padding: 0 4px; }
+html[data-ez110] .ez110-hello-salam { font-family: var(--ez110-font-ui); font-size: calc(12.5px * var(--ez-fs, 1)); font-weight: 500; color: var(--vt-muted); }
+html[data-ez110] .ez110-hello-name { margin: 0; font-family: var(--ez110-font-head); font-size: calc(17px * var(--ez-fs, 1)); font-weight: 700; line-height: 1.35; color: var(--vt-ink); }
 
-/* ---- next prayer: the one deep card ---- */
+/* ---- next prayer: the one deep card, compact (AMEND-01: at most two thirds of its first height) ---- */
 html[data-ez110] .ez110-prayer {
   position: relative; overflow: hidden;
-  display: flex; flex-direction: column; align-items: stretch; gap: 8px;
+  display: flex; flex-direction: column; align-items: stretch; gap: 6px;
   width: 100%; text-align: start;
-  padding: 16px 18px 14px; border: 0; border-radius: 24px;
+  padding: 11px 14px 10px; border: 0; border-radius: 22px;
   background: var(--ez110-grad-prayer);
   color: #FFFFFF;
-  box-shadow: 0 12px 28px rgba(29, 78, 216, .28);
+  box-shadow: 0 10px 24px rgba(29, 78, 216, .26);
   font-family: var(--ez110-font-ui);
   cursor: pointer;
 }
+/* the faint arch sits BELOW the top row, so it never runs through the date */
 html[data-ez110] .ez110-prayer-arch {
-  position: absolute; inset-inline-end: -18px; top: 6px; width: 120px; height: 150px;
-  border: 1.5px solid rgba(255,255,255,.22); border-radius: 60px 60px 0 0; pointer-events: none;
+  position: absolute; inset-inline-end: -18px; top: 34px; width: 110px; height: 140px;
+  border: 1.5px solid rgba(255,255,255,.22); border-radius: 55px 55px 0 0; pointer-events: none;
 }
-html[data-ez110] .ez110-prayer-head { font-size: calc(13px * var(--ez-fs, 1)); font-weight: 600; color: rgba(255,255,255,.94); }
-html[data-ez110] .ez110-prayer-main { display: flex; align-items: baseline; gap: 12px; }
-html[data-ez110] .ez110-prayer-name { font-size: calc(32px * var(--ez-fs, 1)); font-weight: 700; line-height: 1.2; }
-html[data-ez110] .ez110-prayer-time { font-size: calc(20px * var(--ez-fs, 1)); font-weight: 600; }
+html[data-ez110] .ez110-prayer-top { position: relative; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+html[data-ez110] .ez110-prayer-head { font-size: calc(12.5px * var(--ez-fs, 1)); font-weight: 600; color: rgba(255,255,255,.94); }
+html[data-ez110] .ez110-prayer-hijri { font-size: calc(12px * var(--ez-fs, 1)); font-weight: 500; color: var(--ez110-prayer-sub, rgba(255,255,255,.94)); white-space: nowrap; }
+html[data-ez110] .ez110-prayer-main { position: relative; display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; }
+html[data-ez110] .ez110-prayer-name { font-family: var(--ez110-font-head); font-size: calc(21px * var(--ez-fs, 1)); font-weight: 700; line-height: 1.25; }
+html[data-ez110] .ez110-prayer-time { font-size: calc(16px * var(--ez-fs, 1)); font-weight: 600; line-height: 1.25; }
 html[data-ez110] .ez110-prayer-left {
-  align-self: flex-start; padding: 3px 12px; border-radius: 13px;
-  background: rgba(255,255,255,.16); font-size: calc(13px * var(--ez-fs, 1)); font-weight: 600;
+  margin-inline-start: auto; padding: 2px 10px; border-radius: 12px;
+  background: rgba(255,255,255,.16); font-size: calc(12.5px * var(--ez-fs, 1)); font-weight: 600; line-height: 1.5; white-space: nowrap;
 }
-html[data-ez110] .ez110-prayer-row { display: flex; justify-content: space-between; gap: 4px; margin-top: 6px; }
+html[data-ez110] .ez110-prayer-row { position: relative; display: flex; justify-content: space-between; gap: 4px; margin-top: 0; }
 html[data-ez110] .ez110-prayer-cell {
-  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 6px 0; border-radius: 12px; font-size: calc(12.5px * var(--ez-fs, 1));
+  flex: 1; display: grid; grid-template-columns: auto auto; justify-content: center; align-items: center; column-gap: 4px; row-gap: 1px;
+  padding: 4px 0; border-radius: 10px; font-size: calc(12px * var(--ez-fs, 1)); line-height: 1.3;
 }
+html[data-ez110] .ez110-prayer-ctime { grid-column: 1 / -1; text-align: center; }
 html[data-ez110] .ez110-prayer-cell.is-next { background: rgba(255,255,255,.14); font-weight: 700; }
-html[data-ez110] .ez110-prayer-dot { width: 8px; height: 8px; border-radius: 4px; border: 1.5px solid #FFFFFF; }
-html[data-ez110] .ez110-prayer-cell.is-next .ez110-prayer-dot { background: #FFFFFF; box-shadow: 0 0 0 3px rgba(255,255,255,.28); }
+html[data-ez110] .ez110-prayer-dot { width: 6px; height: 6px; border-radius: 3px; border: 1.5px solid #FFFFFF; box-sizing: content-box; }
+html[data-ez110] .ez110-prayer-cell.is-next .ez110-prayer-dot { background: #FFFFFF; box-shadow: 0 0 0 2px rgba(255,255,255,.28); }
 html[data-ez110] .ez110-prayer-cname { color: rgba(255,255,255,.94); }
 
 /* ---- the wird card ---- */
@@ -558,8 +552,9 @@ html[data-ez110] .ez110-card {
   background: var(--vt-surface); box-shadow: var(--vt-shadow);
   color: var(--vt-ink); font-family: var(--ez110-font-ui); text-align: start; cursor: pointer;
 }
-html[data-ez110] .ez110-ring-bg { fill: none; stroke: var(--vt-soft); stroke-width: 6; }
-html[data-ez110] .ez110-ring-fg { fill: none; stroke: var(--vt-accent); stroke-width: 6; stroke-linecap: round; }
+html[data-ez110] .ez110-ring-bg { fill: none; stroke: currentColor; stroke-opacity: .28; stroke-width: 2.2; }
+html[data-ez110] .ez110-ring-fg { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+html[data-ez110] .ez110-ring-lines { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
 html[data-ez110] .ez110-card-text { display: flex; flex-direction: column; gap: 2px; }
 html[data-ez110] .ez110-card-kicker { font-size: calc(13px * var(--ez-fs, 1)); font-weight: 600; color: var(--vt-accent-ink); }
 html[data-ez110] .ez110-card-big { font-size: calc(19px * var(--ez-fs, 1)); font-weight: 700; color: var(--vt-ink); }
@@ -585,7 +580,7 @@ html[data-ez110] .ez110-group { display: flex; flex-direction: column; gap: 10px
 html[data-ez110] .ez110-group-title { margin: 6px 2px 0; font-size: calc(14px * var(--ez-fs, 1)); font-weight: 700; color: var(--vt-muted); }
 html[data-ez110] .ez110-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 8px; }
 @media (min-width: 700px) { html[data-ez110] .ez110-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
-html[data-ez110] .ez110-tile-wrap { position: relative; display: flex; flex-direction: column; align-items: center; }
+html[data-ez110] .ez110-tile-wrap { position: relative; display: flex; flex-direction: column; align-items: center; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 html[data-ez110] .ez110-tile {
   display: flex; flex-direction: column; align-items: center; gap: 7px; width: 100%;
   min-height: 44px; padding: 2px 0; border: 0; background: transparent; color: var(--vt-ink);
@@ -759,7 +754,7 @@ html[data-ez110="c"] .ez110-prayer-cell.is-next { background: var(--vt-surface);
 html[data-ez110="c"] .ez110-prayer-dot { border-color: var(--vt-accent); }
 html[data-ez110="c"] .ez110-prayer-cell.is-next .ez110-prayer-dot { background: var(--vt-accent); box-shadow: 0 0 0 3px var(--vt-soft); }
 html[data-ez110="c"] .ez110-h,
-html[data-ez110="c"] .ez110-home .ezist-masthead h1 { font-family: var(--ez110-font-head); font-weight: 600; }
+html[data-ez110="c"] .ez110-hello-name { font-family: var(--ez110-font-head); font-weight: 600; }
 html[data-ez110="c"] .ez110-done { background: var(--ez110-grad-send); }
 
 /* =========================== «د» الخزف -- porcelain =========================== */
@@ -795,7 +790,7 @@ html[data-ez110="d"] { --ez110-prayer-ink: var(--vt-ink); --ez110-prayer-sub: va
 html[data-ez110="d"] .ez110-prayer { background: var(--vt-surface); border: 1px solid var(--ez110-frame); box-shadow: var(--ez110-double); border-radius: 14px; }
 html[data-ez110="d"] .ez110-prayer-arch {
   border: 1px solid var(--ez110-frame); border-radius: 8px; width: 96px; height: 96px; transform: rotate(45deg);
-  inset-inline-end: 18px; top: 18px; box-shadow: 0 0 0 6px var(--ez110-surface2, transparent);
+  inset-inline-end: 18px; top: 40px; box-shadow: 0 0 0 6px var(--ez110-surface2, transparent);
 }
 html[data-ez110="d"] .ez110-prayer-name { color: var(--vt-deep); }
 html[data-ez110="d"] .ez110-prayer-left { background: var(--vt-soft); color: var(--vt-accent-ink); }
@@ -807,7 +802,7 @@ html[data-ez110="d"] .ez110-group-title { display: flex; align-items: center; ga
 html[data-ez110="d"] .ez110-group-title::after { content: ''; flex: 1; height: 1px; background: var(--ez110-frame); }
 html[data-ez110="d"] .ez110-group-title::before { content: ''; width: 6px; height: 6px; background: var(--ez110-marker); transform: rotate(45deg); }
 html[data-ez110="d"] .ez110-h,
-html[data-ez110="d"] .ez110-home .ezist-masthead h1 { font-family: var(--ez110-font-head); }
+html[data-ez110="d"] .ez110-hello-name { font-family: var(--ez110-font-head); }
 /* the wird ring becomes diamonds */
 html[data-ez110="d"] .ez110-ring-fg { stroke-dasharray: 6 4 !important; stroke-linecap: butt; }
 
@@ -875,7 +870,7 @@ html[data-ez110="e"][data-theme="dark"] .ezsug-mark { background: var(--ez110-ic
 html[data-ez110="e"] { --ez110-prayer-ink: var(--vt-ink); --ez110-prayer-sub: var(--vt-accent-ink); }
 html[data-ez110="e"] .ez110-prayer { background: var(--ez110-glass-solid); border: 1px solid var(--ez110-glass-edge); box-shadow: var(--vt-shadow); }
 html[data-ez110="e"] .ez110-prayer-arch {
-  inset: auto 18px 64px 18px; width: auto; height: 3px; border: 0; border-radius: 2px; top: auto;
+  inset: auto 18px 50px 18px; width: auto; height: 3px; border: 0; border-radius: 2px; top: auto;
   background: var(--ez110-grad-send); opacity: .9;
 }
 html[data-ez110="e"] .ez110-prayer-left { background: var(--vt-soft); color: var(--vt-accent-ink); }
