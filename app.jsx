@@ -26596,9 +26596,13 @@ function ezikSyncDeviceOnly() { return [
 
 function ezikSyncHash(s) {
   const str = String(s == null ? '' : s);
+  // The multiply is read once: a long conversation is a million-character loop, and no global is
+  // looked up inside it.
+  const imul = Math.imul;
+  const n = str.length;
   let h = 0x811c9dc5;
-  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
-  return h.toString(16) + '-' + str.length.toString(36);
+  for (let i = 0; i < n; i++) { h ^= str.charCodeAt(i); h = imul(h, 0x01000193) >>> 0; }
+  return h.toString(16) + '-' + n.toString(36);
 }
 function ezikSyncReadState() {
   try {
@@ -26643,7 +26647,7 @@ function ezikSyncCollect() {
   }
   for (const r of ezikReadChatIndex()) {
     if (pid && r.pk !== pid) continue;
-    out['chat:' + r.id] = { title: r.title || '', pinned: !!r.pinned, at: r.at || 0, msgs: ezikSyncTextOnly(ezikReadChatMessages(r.id)) };
+    Object.assign(out, ezikSyncChatRecords(r, ezikSyncTextOnly(ezikReadChatMessages(r.id))));
   }
   return out;
 }
@@ -26706,14 +26710,24 @@ function ezikSyncApplyNow(id, rec) {
     return;
   }
   if (id.indexOf('chat:') === 0) {
-    const cid = id.slice(5);
-    const idx = ezikReadChatIndex().filter((r) => r.id !== cid);
+    // A PART (chat:<id>.pN) carries some of the messages of one conversation and nothing else: it is
+    // joined into the conversation this device holds, and a part of a conversation this device does
+    // not hold (dropped for room, or deleted) is not written. Its tombstone means nothing here --
+    // the conversation's own tombstone is what removes it.
+    const base = ezikSyncChatBase(id);
+    const cid = (base || id).slice(5);
+    const all = ezikReadChatIndex();
+    const row = all.find((r) => r.id === cid) || null;
+    const idx = all.filter((r) => r.id !== cid);
+    if (base) {
+      if (del || !val || !row) return;
+      set(EZIK_CHAT_PREFIX + cid, JSON.stringify(ezikSyncJoinMsgs(ezikReadChatMessages(cid), val.msgs)));
+      return;
+    }
     if (del || !val) { set(EZIK_CHAT_PREFIX + cid, null); ezikWriteChatIndex(idx); return; }
-    // This device's own copy may still hold the image the server only has a mark for.
-    const local = ezikReadChatMessages(cid);
-    const keepImg = {};
-    for (const m of local) if (Array.isArray(m.content) && m.content.some((b) => b && b.type !== 'text')) keepImg[m.role + '|' + m.timestamp] = m;
-    const msgs = (val.msgs || []).map((m) => keepImg[m.role + '|' + m.timestamp] || m);
+    // JOINED, NOT REPLACED: a long conversation's record holds no messages (its parts do), and this
+    // device's own copy keeps the image the server only has a mark for (the local copy comes first).
+    const msgs = ezikSyncJoinMsgs(ezikReadChatMessages(cid), val.msgs);
     set(EZIK_CHAT_PREFIX + cid, JSON.stringify(msgs));
     ezikWriteChatIndex([{ id: cid, pk: pid || 'anon', title: val.title || ezikChatTitle(msgs), pinned: !!val.pinned, at: val.at || Date.now() }].concat(idx));
     return;
@@ -26786,8 +26800,13 @@ function ezikSyncCycle() {
       if (!p.ok) return 'pull-failed';
       let applied = 0;
       const noRoom = ezikSyncChatRoom(p.data.changes, local);
-      for (const c of p.data.changes || []) {
-        if (noRoom[c.id]) continue;     // SYNC FIX 2: kept in the account, not written here
+      // A conversation's own record before its parts, so a part always finds the conversation it joins.
+      const pulled = (p.data.changes || []).slice().sort((a, b) => (ezikSyncChatBase(a.id) ? 1 : 0) - (ezikSyncChatBase(b.id) ? 1 : 0));
+      for (const c of pulled) {
+        if (noRoom[c.id] || noRoom[ezikSyncChatBase(c.id)]) continue;
+        // A conversation the reader deleted by hand is not written back by the echo of its own last
+        // push: its tombstone goes up in step 2, and that is all this device does with it.
+        if (st.gone[ezikSyncChatBase(c.id) || c.id] && !(c.rec && c.rec.del)) continue;     // SYNC FIX 2: kept in the account, not written here
         const has = c.id in local;
         const known = Object.prototype.hasOwnProperty.call(st.shadow, c.id);
         const dirty = has && known && st.shadow[c.id] !== hashOf(local[c.id]);
@@ -26876,6 +26895,7 @@ function ezikSyncDirty(st, local, now, skip) {
   for (const id of Object.keys(st.shadow)) {
     if (id in local || (skip && skip[id])) continue;
     if (id.indexOf('note:') === 0) out.push({ id, rec: { u: now, del: true, val: null } });
+    else if (id.indexOf('chat:') === 0 && st.gone[ezikSyncChatBase(id) || id] && !st.gone[id]) out.push({ id, rec: { u: now, del: true, val: null } });
     else if (id.indexOf('chat:') === 0 && !st.gone[id]) delete st.shadow[id];
   }
   for (const id of Object.keys(st.gone)) {
@@ -27042,10 +27062,60 @@ function ezikSyncNoteDeleted(id) {
     ezikSyncWriteState(st);
   } catch (e) {}
 }
+// ============================================================
+// A CONVERSATION LONGER THAN ONE RECORD (10 October, the second round of fixes)
+// ============================================================
+// The server takes a record of at most 256 KB, so a long conversation never synced and was offered
+// again on every cycle. Past EZIK_SYNC_PART_BYTES it now travels as chat:<id> (title, pin, time, no
+// messages) plus chat:<id>.p1, .p2, ... holding the messages in order, cut greedily from the first
+// message. The cut is a function of the messages alone, so a new turn changes only the last part
+// (and the small head): nothing that did not change is sent again. A pull joins every part into the
+// one conversation, and the server's export folds them back (lib/sync/merge.js foldChatParts).
+const EZIK_SYNC_PART_BYTES = 150 * 1024;
+const EZIK_SYNC_PART_RE = /^(chat:[^.]+)\.p([1-9][0-9]{0,3})$/;
+/** The conversation record a part belongs to, or null when the id is not a part. */
+function ezikSyncChatBase(id) { const m = EZIK_SYNC_PART_RE.exec(String(id || '')); return m ? m[1] : null; }
+/** One conversation as its records: { 'chat:<id>': head } or the head plus its parts. */
+function ezikSyncChatRecords(r, msgs) {
+  const head = { title: r.title || '', pinned: !!r.pinned, at: r.at || 0, msgs: msgs };
+  const out = {};
+  if (ezikSyncUtf8Len(JSON.stringify(head)) <= EZIK_SYNC_PART_BYTES) { out['chat:' + r.id] = head; return out; }
+  out['chat:' + r.id] = { title: head.title, pinned: head.pinned, at: head.at, msgs: [] };
+  const room = EZIK_SYNC_PART_BYTES - 1024;
+  let part = [];
+  let size = 0;
+  let n = 0;
+  const close = () => { n++; out['chat:' + r.id + '.p' + n] = { title: '', pinned: false, at: 0, msgs: part }; part = []; size = 0; };
+  for (const m of msgs) {
+    const b = ezikSyncUtf8Len(JSON.stringify(m)) + 1;
+    if (part.length && size + b > room) close();
+    part.push(m); size += b;
+  }
+  if (part.length) close();
+  return out;
+}
+/** A message's identity across devices: role, time and text (the image mark left out). */
+function ezikSyncMsgKey(m) {
+  let text = '';
+  if (m && typeof m.content === 'string') text = m.content;
+  else if (m && Array.isArray(m.content)) text = m.content.filter((b) => b && b.type === 'text' && typeof b.text === 'string' && b.text !== EZIK_SYNC_IMAGE_MARK).map((b) => b.text).join('\n');
+  return String((m && m.role) || '') + '|' + String((m && m.timestamp) || '') + '|' + ezikSyncHash(text.split(EZIK_SYNC_IMAGE_MARK).join('').trim());
+}
+/** This device's messages joined with incoming ones: local copies first, one copy each, by time. */
+function ezikSyncJoinMsgs(local, incoming) {
+  const seen = {};
+  const order = [];
+  const add = (m) => { if (!m || typeof m !== 'object') return; const k = ezikSyncMsgKey(m); if (seen[k]) return; seen[k] = true; order.push({ m: m, i: order.length }); };
+  (local || []).forEach(add);
+  (Array.isArray(incoming) ? incoming : []).forEach(add);
+  const t = (m) => { const v = m && m.timestamp ? Date.parse(m.timestamp) : NaN; return Number.isFinite(v) ? v : 0; };
+  return order.sort((a, b) => (t(a.m) - t(b.m)) || (a.i - b.i)).map((x) => x.m);
+}
+
 /** The pulled conversations this device has no room for: { 'chat:<id>': true }. */
 function ezikSyncChatRoom(changes, local) {
   const skip = {};
-  const incoming = (changes || []).filter((c) => c && typeof c.id === 'string' && c.id.indexOf('chat:') === 0
+  const incoming = (changes || []).filter((c) => c && typeof c.id === 'string' && c.id.indexOf('chat:') === 0 && !ezikSyncChatBase(c.id)
     && c.rec && !c.rec.del && c.rec.val && !(c.id in local));
   if (!incoming.length) return skip;
   const rows = ezikReadChatIndex().map((r) => ({ id: r.id, pinned: !!r.pinned, at: r.at || 0 }))

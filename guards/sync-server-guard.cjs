@@ -457,6 +457,29 @@ async function main() {
     check('J8 fix 4: both sign-in doors (web return, native) weld after the index, and a weld failure never fails the sign-in', wired);
   }
 
+  // ---------------------------------------------------------------- a conversation in parts (server)
+  // B1  only the conversation's tombstone arrives: every part it has in the space becomes a tombstone
+  // B2  a part pushed for a conversation already deleted is stored as a tombstone, never as text
+  // B3  the export folds the parts into ONE conversation
+  {
+    fresh();
+    process.env.SYNC_SWITCH = 'all';
+    const P = await account('google', '6101', 'parts@example.com');
+    const part = (k, text, ts) => ({ id: 'chat:cv1.p' + k, rec: rec(10, { title: '', pinned: false, at: 0, msgs: [msg('user', ts, text + ' ' + MARK)] }) });
+    let r = await call({ action: 'push', session: P.session, changes: [{ id: 'chat:cv1', rec: rec(10, { title: 't', pinned: false, at: 10, msgs: [] }) }, part(1, 'أول', 1000), part(2, 'ثان', 2000)] });
+    r = await call({ action: 'export', session: P.session });
+    const ex = r.body.records || {};
+    check('B3 parts: the export holds ONE conversation with the messages of every part, and no part record', ex['chat:cv1'] && ex['chat:cv1'].msgs.length === 2 && !Object.keys(ex).some((k) => k.indexOf('chat:cv1.') === 0), JSON.stringify(Object.keys(ex)));
+    r = await call({ action: 'push', session: P.session, changes: [{ id: 'chat:cv1', rec: rec(20, null, true) }] });
+    r = await call({ action: 'pull', session: P.session, cursor: 0 });
+    const cv = r.body.changes.filter((c) => c.id === 'chat:cv1' || c.id.indexOf('chat:cv1.p') === 0);
+    check('B1 parts: the conversation tombstone alone takes every part with it (no message of it left in the space)', cv.length === 3 && cv.every((c) => c.rec.del === true), JSON.stringify(cv.map((c) => c.id + ':' + c.rec.del)));
+    r = await call({ action: 'push', session: P.session, changes: [part(3, 'متأخر', 3000)] });
+    r = await call({ action: 'pull', session: P.session, cursor: 0 });
+    const late = r.body.changes.find((c) => c.id === 'chat:cv1.p3');
+    check('B2 parts: a part arriving for a deleted conversation is stored as a tombstone', late && late.rec.del === true && late.rec.val === null, JSON.stringify(late));
+  }
+
   // ---------------------------------------------------------------- logs
   check('E7 not one log line carries content, a session or an account key', !LOGS.some((l) => l.includes(MARK) || /acct:v1:|sess:v1:|[؀-ۿ]/.test(l)), LOGS.slice(0, 3).join(' / '));
 

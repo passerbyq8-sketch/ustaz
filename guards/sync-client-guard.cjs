@@ -89,6 +89,11 @@ function makeDevice(seed, deviceId, opts) {
   vm.runInContext('ReactDOM.createRoot = function () { return { render: function () {}, unmount: function () {} }; };', ctx);
   window.console.error = () => {}; window.console.warn = () => {};
   vm.runInContext(transformed, ctx, { filename: 'app.jsx' });
+  // Linkedom windows in one process share what is set on them, so a device whose change-watcher
+  // (sync fix 1) armed a timer could run a cycle inside a LATER device. The watcher is therefore
+  // installed only on the device that measures it (section F); every other device is driven by
+  // explicit cycles, as before fix 1.
+  if (!o.watch) vm.runInContext('ezikSyncWatching = true;', ctx);
   const api = vm.runInContext('({ cycle: ezikSyncCycle, collect: ezikSyncCollect, signOut: ezikSyncSignOutWipe, wipeServer: ezikSyncWipeServer, clearDl: ezikClearMushafDownloads, isOpen: ezikSyncIsOpen, flush: ezikSyncFlush, resetGate: ezikSyncResetGate, del: ezikDeleteChat, boot: ezikSyncBoot, save: ezikSaveChat, soonMs: EZIK_SYNC_SOON_MS, keepMax: EZIK_SYNC_KEEPALIVE_MAX, status: ezikSyncStatus, kv: ezikSyncKv, ctr: ezikSyncCtr, deviceOnly: ezikSyncDeviceOnly, beginLink: ezikSyncBeginLink, finishLink: ezikSyncFinishLink, writeSession: writeAuthSession, mark: EZIK_SYNC_IMAGE_MARK })', ctx);
   return { window, local, api, requests, deleted, idb: window.indexedDB, ctx, ctl };
 }
@@ -312,7 +317,7 @@ async function main() {
   const F = await acct('55', 'f@example.com');
   const serverIds = async (acctF) => { const r = { statusCode: 0, body: null, setHeader() {}, status(c) { this.statusCode = c; return this; }, json(b) { this.body = b; return this; } }; await ROUTE.default({ method: 'POST', headers: { 'x-murabbi-device': 'device-fix1-0000' }, body: { action: 'pull', session: acctF.session, cursor: 0 } }, r); const o = {}; for (const c of r.body.changes) if (!c.rec.del) o[c.id] = c.rec.val; return o; };
   const PROFILEF = { name: '', age: 30, gender: null, birthYear: 1996, pid: 'pid-fix1', createdAt: 'z' };
-  let df = makeDevice({ child_profile: JSON.stringify(PROFILEF), ezik_auth_session_v1: F.json }, 'device-fix1-1111');
+  let df = makeDevice({ child_profile: JSON.stringify(PROFILEF), ezik_auth_session_v1: F.json }, 'device-fix1-1111', { watch: true });
   await df.api.cycle(); await settle();
   df.api.boot();
   let vis = 'visible';
@@ -413,6 +418,57 @@ async function main() {
     await ROUTE.default({ method: 'POST', headers: { 'x-murabbi-device': 'device-fix2-0000' }, body: { action: 'export', session: Gk.session } }, r);
     const ex = Object.keys(r.body.records || {}).filter((k) => k.indexOf('chat:') === 0);
     check('H5 «نزّل بياناتي» holds every conversation the account holds (61 live), the dropped ones included', ex.length === 61 && ex.includes('chat:g00') && !ex.includes('chat:g30'), String(ex.length));
+  }
+
+  // ---------------------------------------------------------------- a conversation longer than one record
+  // L1  a 1.2 MB conversation syncs whole: every message is in the account, nothing refused for size
+  // L2  a second cycle sends nothing (no resend loop)
+  // L3  another device pulls it back as ONE conversation, every message once, in order
+  // L4  «نزّل بياناتي» holds it as ONE conversation, no part records
+  // L5  one more turn sends only the head and the last part, not the whole conversation
+  // L6  deleted by hand: the conversation and every part are tombstones in the account
+  {
+    const Lk = await acct('88', 'l@example.com');
+    const PROFILEL = { name: '', age: 30, gender: null, birthYear: 1996, pid: 'pid-long', createdAt: 'l' };
+    const longMsgs = [];
+    for (let i = 0; i < 40; i++) longMsgs.push({ role: i % 2 ? 'assistant' : 'user', content: 'م' + i + ' ' + 'ح'.repeat(15000), timestamp: new Date(Date.UTC(2026, 9, 10, 8, 0, i)).toISOString() });
+    let dl = makeDevice({ child_profile: JSON.stringify(PROFILEL), ezik_auth_session_v1: Lk.json, ezik_chats_v1: JSON.stringify([{ id: 'long1', pk: 'pid-long', title: 'long', pinned: false, at: 9 }]), ezik_chat_v1_long1: JSON.stringify(longMsgs) }, 'device-long-1111');
+    const n0 = dl.requests.length;
+    const outL = await dl.api.cycle(); await settle();
+    const all = await (async () => { const r = { statusCode: 0, body: null, setHeader() {}, status(c) { this.statusCode = c; return this; }, json(b) { this.body = b; return this; } }; await ROUTE.default({ method: 'POST', headers: { 'x-murabbi-device': 'device-long-0000' }, body: { action: 'pull', session: Lk.session, cursor: 0 } }, r); return r.body.changes; })();
+    const longRecs = all.filter((c) => c.id === 'chat:long1' || c.id.indexOf('chat:long1.p') === 0);
+    const keysIn = new Set();
+    for (const c of longRecs) for (const m of (c.rec.val && c.rec.val.msgs) || []) keysIn.add(m.role + '|' + m.timestamp);
+    check('L1 a 1.2 MB conversation syncs whole: split into ' + longRecs.length + ' records, all 40 messages in the account', outL === 'ok' && longRecs.length > 2 && keysIn.size === 40 && longRecs.every((c) => !c.rec.del), JSON.stringify({ outL, n: longRecs.length, msgs: keysIn.size }));
+    const pushesBefore = dl.requests.filter((r) => r.action === 'push').length;
+    dl = reopen(dl, 'device-long-1111');
+    await dl.api.cycle(); await settle();
+    const pushes2 = dl.requests.filter((r) => r.action === 'push');
+    check('L2 the next cycle sends nothing again (no resend loop)', pushesBefore >= 1 && pushes2.length === 0, JSON.stringify(pushes2.map((r) => r.ids)));
+    const dl2 = makeDevice({ child_profile: JSON.stringify(Object.assign({}, PROFILEL, { pid: 'pid-long-2' })), ezik_auth_session_v1: Lk.json }, 'device-long-2222');
+    await dl2.api.cycle(); await settle();
+    const idx2 = JSON.parse(dl2.local._data.ezik_chats_v1 || '[]');
+    const body2 = JSON.parse(dl2.local._data.ezik_chat_v1_long1 || '[]');
+    check('L3 another device gets ONE conversation, all 40 messages once and in order, under its own title', idx2.filter((r) => r.id.indexOf('long1') === 0).length === 1 && idx2.find((r) => r.id === 'long1').title === 'long' && body2.length === 40 && body2.every((m, i) => m.timestamp === longMsgs[i].timestamp) && !Object.keys(dl2.local._data).some((k) => k.indexOf('long1.p') !== -1), JSON.stringify({ rows: idx2.length, n: body2.length }));
+    {
+      const r = { statusCode: 0, body: null, setHeader() {}, status(c) { this.statusCode = c; return this; }, json(b) { this.body = b; return this; } };
+      await ROUTE.default({ method: 'POST', headers: { 'x-murabbi-device': 'device-long-0000' }, body: { action: 'export', session: Lk.session } }, r);
+      const ex = r.body.records || {};
+      check('L4 «نزّل بياناتي» holds it as ONE conversation with all 40 messages, and no part record', ex['chat:long1'] && ex['chat:long1'].msgs.length === 40 && !Object.keys(ex).some((k) => k.indexOf('chat:long1.') === 0), JSON.stringify(Object.keys(ex)));
+    }
+    dl = reopen(dl, 'device-long-1111');
+    const grown = longMsgs.concat([{ role: 'user', content: 'سؤال جديد', timestamp: new Date(Date.UTC(2026, 9, 10, 9, 0, 0)).toISOString() }]);
+    dl.local._data.ezik_chat_v1_long1 = JSON.stringify(grown);
+    dl.local._data.ezik_chats_v1 = JSON.stringify([{ id: 'long1', pk: 'pid-long', title: 'long', pinned: false, at: 99 }]);
+    await dl.api.cycle(); await settle();
+    const sent5 = [].concat(...dl.requests.filter((r) => r.action === 'push').map((r) => r.ids));
+    const lastPart = 'chat:long1.p' + Math.max(...longRecs.map((c) => Number((c.id.match(/\.p(\d+)$/) || [0, 0])[1])));
+    check('L5 one more turn sends only the head and the last part', sent5.length === 2 && sent5.includes('chat:long1') && sent5.includes(lastPart), JSON.stringify(sent5));
+    dl.api.del('long1');
+    dl = reopen(dl, 'device-long-1111');
+    await dl.api.cycle(); await settle();
+    const after6 = await (async () => { const r = { statusCode: 0, body: null, setHeader() {}, status(c) { this.statusCode = c; return this; }, json(b) { this.body = b; return this; } }; await ROUTE.default({ method: 'POST', headers: { 'x-murabbi-device': 'device-long-0000' }, body: { action: 'pull', session: Lk.session, cursor: 0 } }, r); return r.body.changes.filter((c) => c.id === 'chat:long1' || c.id.indexOf('chat:long1.p') === 0); })();
+    check('L6 deleted by hand: the conversation and every part are tombstones in the account', after6.length === longRecs.length && after6.every((c) => c.rec.del === true), JSON.stringify(after6.map((c) => c.id + ':' + c.rec.del)));
   }
 
   say('=== sync-client-guard: items 24 + 58, application ===');
