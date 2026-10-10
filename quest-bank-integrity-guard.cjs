@@ -1833,6 +1833,8 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3279247. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
   //   2026-10-10 -- ITEM 110 (round 2 fix m21: lessons counts): app.js 2064009 -> 2067411 bytes, sha256 f6b40c37..79ed; index.html 155386.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3282649. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 2 fix m10: ayah note autosave (mushaf-lab)): app.js 2067411 -> 2067411 bytes, sha256 f6b40c37..79ed; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3282649. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
   'sw.js': '4d45a217c00646a69ef52c515fd1fd27aa2cd86a06e218d50f99ca75fd409fdf',
 };
 

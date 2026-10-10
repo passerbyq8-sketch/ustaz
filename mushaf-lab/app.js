@@ -29,6 +29,9 @@
       return true;
     }
   };
+  // ITEM 110 ROUND 2 -- PART `fix` (the item-127 fixes), read from the app this reader is framed in (same origin).
+  // Dark -- or opened on its own -- every line below behaves as it did.
+  const EZ110_FIX = (() => { try { return !!(window.parent && window.parent !== window && typeof window.parent.ez110FixLit === 'function' && window.parent.ez110FixLit()); } catch (e) { return false; } })();
 
   // ------------------------------------------------------------------ state
   let T, META, LAY, Q, IML = null;
@@ -409,13 +412,20 @@
     } else if (tab === 'note') {
       const n = store.get('notes', {})[key] || '';
       body.innerHTML = '<textarea id="noteBox" placeholder="ملاحظتك على هذه الآية. تُحفَظ على هذا الجهاز.">' + esc(n) + '</textarea><div class="row" style="margin-top:8px"><button type="button" class="chip" data-act="saveNote">حفظ</button><button type="button" class="chip" data-act="delNote">حذف</button></div>';
+      // 127 note m10 (part fix): every change is kept through the SAME writer «حفظ» uses (store notes, the same key and
+      // trimmed value), so closing the sheet by any road -- the scrim, a tab, the app's back -- loses nothing. An empty
+      // box writes nothing: it never creates a note and never erases one (erasing is the delete button's alone).
+      if (EZ110_FIX) {
+        const box = $('noteBox');
+        box.addEventListener('input', () => { const v = box.value.trim(); if (!v) return; const nn = store.get('notes', {}); if (nn[key] !== v) { nn[key] = v; store.set('notes', nn); } });
+      }
     }
   }
   function handleTabAction(key, b) {
     const act = b.dataset.act;
     if (act === 'pickTafsir') tafsirPicker(() => ayahSheet(key, 'tafsir'));
     else if (act === 'fs-' || act === 'fs+') { S.tfs = Math.max(14, Math.min(30, S.tfs + (act === 'fs+' ? 2 : -2))); saveSettings(); }
-    else if (act === 'saveNote') { const v = $('noteBox').value.trim(); const n = store.get('notes', {}); if (v) n[key] = v; else delete n[key]; toast(store.set('notes', n) ? (v ? 'حُفظت الملاحظة' : 'حُذفت الملاحظة') : 'تعذّر الحفظ'); }
+    else if (act === 'saveNote') { const v = $('noteBox').value.trim(); if (EZ110_FIX && !v) return; const n = store.get('notes', {}); if (v) n[key] = v; else delete n[key]; toast(store.set('notes', n) ? (v ? 'حُفظت الملاحظة' : 'حُذفت الملاحظة') : 'تعذّر الحفظ'); }
     else if (act === 'delNote') { const n = store.get('notes', {}); delete n[key]; store.set('notes', n); $('noteBox').value = ''; toast('حُذفت الملاحظة'); }
     else if (act === 'addR') { const t = $('rText').value.trim(); if (!t) return; const list = reflections(); list.unshift({ id: uid(), k: key, type: $('rType').value, text: t, at: Date.now() }); store.set('refl', list); toast('حُفظت الوقفة'); renderAyahTab(key, 'waqfat'); }
     else if (act === 'delR') { const id = b.dataset.id; const list = reflections(); const i = list.findIndex((r) => r.id === id); if (i < 0) return; const [gone] = list.splice(i, 1); store.set('refl', list); renderAyahTab(key, 'waqfat'); toast('حُذفت الوقفة', 'تراجع', () => { const l2 = reflections(); l2.splice(i, 0, gone); store.set('refl', l2); renderAyahTab(key, 'waqfat'); }); }
