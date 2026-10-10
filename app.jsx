@@ -12602,6 +12602,10 @@ function ezikTakeAskPrefill() {
 // The reader is standing in the chat when he taps, so no section is being stood in: the
 // section record is cleared in the same step, and a stale one can never outrank the thread.
 const EZIK_RESUME_THREAD_SLOT = 'ezik_resume_thread_v1';
+// ITEM 110 ROUND 2 (127 note m7), part fix: the chat's mode and open replies across a trip to the library -- tab-only
+// one-shot slots (sessionStorage), written only when part fix is lit, read once and removed.
+const EZ110_MODE_SLOT = 'ezik_110_mode_v1';
+const EZ110_OPEN_SLOT = 'ezik_110_open_v1';
 function ezikNoteResumeThread(id) {
   if (typeof id !== 'string' || !id) return;
   try {
@@ -18098,6 +18102,36 @@ function App() {
     let hasProfile = false; try { hasProfile = !!localStorage.getItem('child_profile'); } catch (e) {}
     if (!st || st.screen !== 'settings' || !hasProfile) return;
     sheetOriginRef.current.push('chat'); histReplaceRef.current = true; setScreen('settings');
+  }, []);
+  // ITEM 110 ROUND 2 (127 note m7), part fix: «افتح في المكتبة» is a full page navigation, so coming back RELOADS
+  // the app and the reopened conversation came back in the default mode with every long reply folded. Lit, the tap
+  // on a library link notes the mode and the open replies in this TAB (sessionStorage, two one-shot slots -- not a
+  // device key, never synced), and the effect below puts them back after the boot reopened the conversation.
+  // Navigation/state layer only: the composer and its mode control are not touched; the boot block is not touched.
+  const ez110M7 = useRef({ mode: 'brief', open: [] });
+  ez110M7.current = { mode: depthMode, open: Array.from(streamedOpen) };
+  useEffect(() => {
+    if (!ez110FixLit()) return undefined;
+    const onLib = (e) => {
+      const a = e && e.target && e.target.closest ? e.target.closest('a[data-ezik-library-link]') : null;
+      if (!a) return;
+      try {
+        sessionStorage.setItem(EZ110_MODE_SLOT, ez110M7.current.mode);
+        sessionStorage.setItem(EZ110_OPEN_SLOT, JSON.stringify(ez110M7.current.open));
+      } catch (err) {}
+    };
+    document.addEventListener('click', onLib, true);
+    return () => document.removeEventListener('click', onLib, true);
+  }, []);
+  useEffect(() => {
+    if (!ez110FixLit()) return;
+    let mode = null, open = null;
+    try {
+      mode = sessionStorage.getItem(EZ110_MODE_SLOT); open = sessionStorage.getItem(EZ110_OPEN_SLOT);
+      sessionStorage.removeItem(EZ110_MODE_SLOT); sessionStorage.removeItem(EZ110_OPEN_SLOT);
+    } catch (err) { return; }
+    if (mode === 'brief' || mode === 'detailed' || mode === 'scholar') setDepthMode(mode);
+    try { const ids = JSON.parse(open || 'null'); if (Array.isArray(ids) && ids.length) setStreamedOpen(new Set(ids.filter((n) => Number.isInteger(n)))); } catch (err) {}
   }, []);
 
   // تحميل المصحف الكنسي مسبقاً بعد الإقلاع كي تظهر أول آية فوراً (يُتجاهَل الفشل بهدوء)
