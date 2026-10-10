@@ -1716,6 +1716,8 @@ const EZ_I18N = {
     'fix.fav.off': '\u0623\u0636\u0641 \u0625\u0644\u0649 \u0627\u0644\u0645\u0641\u0636\u0651\u0644\u0629\u060C \u063A\u064A\u0631 \u0645\u0636\u0627\u0641',
     'fix.fav.on': '\u0623\u0636\u0641 \u0625\u0644\u0649 \u0627\u0644\u0645\u0641\u0636\u0651\u0644\u0629\u060C \u0645\u0636\u0627\u0641',
     'fix.about.version': '\u0627\u0644\u0625\u0635\u062F\u0627\u0631: {v}',
+    'fix.gender.male': '\u0630\u0643\u0631',
+    'fix.gender.female': '\u0623\u0646\u062B\u0649',
   },
   en: {
     'common.close': 'Close',
@@ -3021,6 +3023,8 @@ const EZ_I18N = {
     'fix.fav.off': 'Add to favourites, not added',
     'fix.fav.on': 'Add to favourites, added',
     'fix.about.version': 'Version: {v}',
+    'fix.gender.male': 'Male',
+    'fix.gender.female': 'Female',
   },
 };
 
@@ -31930,7 +31934,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
               to null, which is the state the third button now says out loud, so the toggle was
               a way of reaching an answer without being told that is what it was. */}
           <div style={s.themeRow} role="radiogroup" aria-label={ezT('settings.profile')}>
-            {[['male', ezT('onboarding.male')], ['female', ezT('onboarding.female')],
+            {[['male', ez110FixLit() ? ezT('fix.gender.male') : ezT('onboarding.male')], ['female', ez110FixLit() ? ezT('fix.gender.female') : ezT('onboarding.female')],
               [PF_UNSPECIFIED, ezT('onboarding.genderUnspecified')]].map(([v, label]) => (
               <button
                 key={v === PF_UNSPECIFIED ? 'unspecified' : v}
