@@ -1809,7 +1809,9 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3271629. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
   //   2026-10-10 -- ITEM 110 (round 2: the menu page of b (three groups, bar destinations not tiles)): app.js 2056391 -> 2057673 bytes, sha256 99fa4794..4f53; index.html 155386.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3272911. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
-  'sw.js': '048300c7868fc10a54f78d33dc3634ed344351a4b259673b4f9d24500995ce6c',
+  //   2026-10-10 -- ITEM 110 (round 2 fix m28: copy and quote without heading marks): app.js 2057673 -> 2058224 bytes, sha256 4baa627d..8892; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3273462. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  'sw.js': '83ff215d658cc0532d181ad5615f7c8a21cdd95783d3ecfa4c07daf5d6c10ea4',
 };
 
 // ---------------------------------------------------------------------------
@@ -2915,7 +2917,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2057673, of: 'app.js' },
+      { n: 2058224, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

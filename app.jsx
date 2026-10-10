@@ -22967,6 +22967,11 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, stream
   // D90: the clipboard carries EVERY rendered block, in display order. D91: it is built on the
   // TAP, not here, because the stores the cards read are still filling while this runs.
   const buildCopyText = () => serializeReply(segments, { tashkeel, band: deriveCaps(age).band });
+  // ITEM 110 ROUND 2 (127 note m28), part fix: copy, share and quote drop the heading mark at a line start
+  // (the speed guards' own rule, /^#{1,6}\s/) from the prose segments only -- scripture and cards stay verbatim.
+  // The server keeps writing it (speedpipes requires it); dark, the rail is handed buildCopyText itself.
+  const buildPlainCopy = () => serializeReply(segments.map((sg) => (sg && sg.type === 'text' ? { ...sg, content: String(sg.content || '').replace(/^#{1,6}\s+/gm, '') } : sg)), { tashkeel, band: deriveCaps(age).band });
+  const copyText = ez110FixLit() ? buildPlainCopy : buildCopyText;
   // ITEM 42-C: the card is handed the source footer by the module-level reader below, beside
   // the writer that already renders sources into the copy payload. THIS component does not
   // filter, re-order or count them -- N22 pins that, and a share card is no reason to weaken it.
@@ -23040,10 +23045,10 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, stream
         <MessageListenButton text={message.content} onPlayMessage={onPlayMessage} onStopAudio={onStopAudio} />
         {/* text= decides only VISIBILITY, and is deliberately store-independent: the raw reply
             always exists, so the button can no longer vanish because a fetch had not landed. */}
-        <CopyReplyButton text={String(message.content || '').trim()} getText={buildCopyText} />
+        <CopyReplyButton text={String(message.content || '').trim()} getText={copyText} />
         {/* ITEM 42-أ: SHARE. The same payload the clipboard gets, the same rail, the same
             44x44 hit area every .ezc-acts button already takes from 44-ج. It calls nothing. */}
-        <ShareReplyButton getText={buildCopyText} />
+        <ShareReplyButton getText={copyText} />
         {/* ITEM 42-ب: the same buildCopyText payload, rendered by the document card's own
             docToHtml and printed by the app's one printAsPdf. No library, no request, no
             second serializer -- and the identical 44x44 area every .ezc-acts button takes. */}
@@ -23059,7 +23064,7 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, stream
             serialized, no tag ever reaches it), trimmed to a preview and dropped into the
             composer. It sends nothing. */}
         {onQuote && (
-          <button type="button" onClick={() => onQuote(buildCopyText())} aria-label={EZIK_QUOTE_ARIA} className="ezik-focus" style={miniBtnStyle}>{EZIK_QUOTE_LABEL}</button>
+          <button type="button" onClick={() => onQuote(copyText())} aria-label={EZIK_QUOTE_ARIA} className="ezik-focus" style={miniBtnStyle}>{EZIK_QUOTE_LABEL}</button>
         )}
         {/* S98: the star. `isFavorite` is a boolean handed DOWN — this component never reads a
             store, never parses JSON and never scans a list to draw it. */}
