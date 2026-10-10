@@ -49,11 +49,12 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, ' + DEVICE_HEADER);
     return res.status(204).end();
   }
-  // PHASE 4 -- THE NEW PRIVACY TEXT, readable ONLY while the switch is open for everybody (the sync
-  // branch preview). With the switch at owner or off it does not exist (404), so the public
-  // privacy page is the only one anybody sees until the switch opens to the people.
+  // PHASE 4 -- THE NEW PRIVACY TEXT, readable while the switch is open for ANYBODY (owner or all).
+  // SYNC FIX 5 (10 October): it was 'all' only, so the owner -- the one person the switch opens for
+  // in production -- met a 404 from the link inside the app. With the switch off it does not exist
+  // (404). The public privacy.html is not touched either way.
   if (req.method === 'GET' && req.query && req.query.page === 'privacy') {
-    if (syncSwitch() !== 'all') return res.status(404).json({ ok: false, error: 'not-found' });
+    if (syncSwitch() === 'off') return res.status(404).json({ ok: false, error: 'not-found' });
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('X-Robots-Tag', 'noindex, nofollow');
