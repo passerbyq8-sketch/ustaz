@@ -1715,6 +1715,7 @@ const EZ_I18N = {
     'ez110.prayer.settings': '\u0625\u0639\u062F\u0627\u062F\u0627\u062A \u0627\u0644\u0635\u0644\u0627\u0629',
     'fix.fav.off': '\u0623\u0636\u0641 \u0625\u0644\u0649 \u0627\u0644\u0645\u0641\u0636\u0651\u0644\u0629\u060C \u063A\u064A\u0631 \u0645\u0636\u0627\u0641',
     'fix.fav.on': '\u0623\u0636\u0641 \u0625\u0644\u0649 \u0627\u0644\u0645\u0641\u0636\u0651\u0644\u0629\u060C \u0645\u0636\u0627\u0641',
+    'fix.about.version': '\u0627\u0644\u0625\u0635\u062F\u0627\u0631: {v}',
   },
   en: {
     'common.close': 'Close',
@@ -3019,6 +3020,7 @@ const EZ_I18N = {
     'ez110.prayer.settings': 'Prayer settings',
     'fix.fav.off': 'Add to favourites, not added',
     'fix.fav.on': 'Add to favourites, added',
+    'fix.about.version': 'Version: {v}',
   },
 };
 
@@ -24349,6 +24351,9 @@ function EzikAboutSheet({ onBack }) {
       <section style={s.asmaaRead} aria-label={ezT('menu.aboutAria')} onClick={onTextPress}>
         {EZIK_ABOUT_BODY.map((line, i) => <p key={i} style={s.asmaaPara}>{line}</p>)}
       </section>
+      {/* ITEM 110 ROUND 2 (127 note m35), part fix: the version, small -- the same number the owner's build
+          mark prints (ezikAppVersion). Dark: not drawn. */}
+      {ez.fix ? <p className="ez110-version" style={{ margin: '14px 4px 4px', fontSize: 12, color: 'var(--muted)', textAlign: 'center' }}>{ezT('fix.about.version', { v: ezikAppVersion() })}</p> : null}
       {askCode ? <Ez110UnlockField /> : null}
       {(ez.id || ez.safe) ? <Ez110Diag /> : null}
     </EzShell>
