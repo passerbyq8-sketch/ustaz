@@ -1,0 +1,11 @@
+/* 40 -- THE ANSWER (board B3). The answer's markup and inline styles are pinned byte for byte by
+   speedclient/speedintegration, so «ب» restyles it here, through classes, and touches nothing inside.
+   The five follow-up buttons and the composer are frozen by the owner (order 1-3): they change only
+   through the colour tokens they already read, never through a rule in this file. */
+html[data-ez110] .ezc-ans {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  padding-inline: 2px;
+}
+html[data-ez110] .ezc-ans .ez-prose { color: var(--vt-ink); }

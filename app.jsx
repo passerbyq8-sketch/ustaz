@@ -1661,17 +1661,57 @@ const EZ_I18N = {
     'inbox.selectedN': 'المُحَدَّد: {n}',
     'inbox.selectAria': 'تحديدُ هذه الرّسالة',
     'inbox.deleteSelected': 'امْسَحِ المُحَدَّد',
-    'ez110.unlock.label': 'رمز المعاينة',
-    'ez110.unlock.go': 'فتح المعاينة',
-    'ez110.unlock.ok': 'فُتحت المعاينة على هذا الجهاز. أغلق التطبيق وافتحه من جديد.',
-    'ez110.unlock.bad': 'الرمز غير صحيح.',
-    'ez110.diag.title': 'لوحة التشخيص',
-    'ez110.diag.again': 'أعد القياس',
-    'ez110.mark': 'التصميم:',
-    'ez110.id.b': 'عزك',
-    'ez110.id.c': 'الدانة',
-    'ez110.id.d': 'الخزف',
-    'ez110.id.e': 'البلّور',
+    'ez110.unlock.label': '\u0631\u0645\u0632 \u0627\u0644\u0645\u0639\u0627\u064A\u0646\u0629',
+    'ez110.unlock.go': '\u0641\u062A\u062D \u0627\u0644\u0645\u0639\u0627\u064A\u0646\u0629',
+    'ez110.unlock.ok': '\u0641\u064F\u062A\u062D\u062A \u0627\u0644\u0645\u0639\u0627\u064A\u0646\u0629 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062C\u0647\u0627\u0632. \u0623\u063A\u0644\u0642 \u0627\u0644\u062A\u0637\u0628\u064A\u0642 \u0648\u0627\u0641\u062A\u062D\u0647 \u0645\u0646 \u062C\u062F\u064A\u062F.',
+    'ez110.unlock.bad': '\u0627\u0644\u0631\u0645\u0632 \u063A\u064A\u0631 \u0635\u062D\u064A\u062D.',
+    'ez110.diag.title': '\u0644\u0648\u062D\u0629 \u0627\u0644\u062A\u0634\u062E\u064A\u0635',
+    'ez110.diag.again': '\u0623\u0639\u062F \u0627\u0644\u0642\u064A\u0627\u0633',
+    'ez110.mark': '\u0627\u0644\u062A\u0635\u0645\u064A\u0645:',
+    'ez110.id.b': '\u0639\u0632\u0643',
+    'ez110.id.c': '\u0627\u0644\u062F\u0627\u0646\u0629',
+    'ez110.id.d': '\u0627\u0644\u062E\u0632\u0641',
+    'ez110.id.e': '\u0627\u0644\u0628\u0644\u0651\u0648\u0631',
+    'ez110.nav.aria': '\u0627\u0644\u062A\u0646\u0642\u0651\u0644 \u0627\u0644\u0631\u0626\u064A\u0633\u064A',
+    'ez110.nav.ezik': '\u0639\u0632\u0643',
+    'ez110.nav.menu': '\u0627\u0644\u0642\u0627\u0626\u0645\u0629',
+    'ez110.nav.mushaf': '\u0627\u0644\u0645\u0635\u062D\u0641',
+    'ez110.nav.prayer': '\u0627\u0644\u0635\u0644\u0627\u0629',
+    'ez110.sections': '\u0627\u0644\u0623\u0642\u0633\u0627\u0645',
+    'ez110.grp.quran': '\u0627\u0644\u0642\u0631\u0622\u0646 \u0648\u0627\u0644\u0633\u0646\u0651\u0629',
+    'ez110.grp.dhikr': '\u0627\u0644\u0630\u0643\u0631 \u0648\u0627\u0644\u0635\u0644\u0627\u0629',
+    'ez110.grp.know': '\u0627\u0644\u0639\u0644\u0645',
+    'ez110.grp.tools': '\u0623\u062F\u0648\u0627\u062A',
+    'ez110.order.open': '\u062A\u0631\u062A\u064A\u0628 \u0627\u0644\u0642\u0627\u0626\u0645\u0629',
+    'ez110.order.done': '\u062A\u0645\u0651',
+    'ez110.order.reset': '\u0627\u0644\u062A\u0631\u062A\u064A\u0628 \u0627\u0644\u0627\u0641\u062A\u0631\u0627\u0636\u064A',
+    'ez110.order.hint': '\u0627\u0636\u063A\u0637 \u0645\u0637\u0648\u0651\u0644\u064B\u0627 \u0639\u0644\u0649 \u0642\u0633\u0645\u064D \u0648\u0627\u0633\u062D\u0628\u0647 \u0625\u0644\u0649 \u0645\u0643\u0627\u0646\u0647\u060C \u0623\u0648 \u0627\u0633\u062A\u0639\u0645\u0644 \u0627\u0644\u0633\u0647\u0645\u064A\u0646 \u062A\u062D\u062A\u0647.',
+    'ez110.order.earlier': '\u0642\u062F\u0650\u0651\u0645\u0647',
+    'ez110.order.later': '\u0623\u062E\u0650\u0651\u0631\u0647',
+    'ez110.order.tile': '{name}\u060C \u0627\u0644\u0645\u0648\u0636\u0639 {n} \u0645\u0646 {of}',
+    'ez110.wird.of': '{done} \u0645\u0646 {target}',
+    'ez110.set.account': '\u0627\u0644\u062D\u0633\u0627\u0628',
+    'ez110.set.appearance': '\u0627\u0644\u0645\u0638\u0647\u0631',
+    'ez110.set.writing': '\u0627\u0644\u0643\u062A\u0627\u0628\u0629 \u0648\u0627\u0644\u0645\u062D\u0627\u062F\u062B\u0629',
+    'ez110.set.prayer': '\u0627\u0644\u0635\u0644\u0627\u0629 \u0648\u0627\u0644\u0623\u0630\u0627\u0646',
+    'ez110.set.home': '\u0627\u0644\u0631\u0626\u064A\u0633\u064A\u0629',
+    'ez110.set.privacy': '\u0627\u0644\u062E\u0635\u0648\u0635\u064A\u0629 \u0648\u0627\u0644\u0628\u064A\u0627\u0646\u0627\u062A',
+    'ez110.set.parents': '\u0627\u0644\u0648\u0627\u0644\u062F\u0627\u0646',
+    'ez110.set.about': '\u0639\u0646 \u0639\u0632\u0643 \u0648\u0627\u0644\u062F\u0639\u0645',
+    'ez110.set.identity': '\u0647\u0648\u064A\u0629 \u0627\u0644\u062A\u0635\u0645\u064A\u0645',
+    'ez110.set.identityHint': '\u062A\u064F\u062D\u0641\u0638 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062C\u0647\u0627\u0632 \u0648\u062D\u062F\u0647.',
+    'ez110.set.digits': '\u0634\u0643\u0644 \u0627\u0644\u0623\u0631\u0642\u0627\u0645',
+    'ez110.set.digits.auto': '\u062D\u0633\u0628 \u0627\u0644\u0644\u063A\u0629',
+    'ez110.set.digits.arab': '\u0623\u0631\u0642\u0627\u0645 \u0639\u0631\u0628\u064A\u0629 \u0660\u0661\u0662\u0663',
+    'ez110.set.digits.latn': '\u0623\u0631\u0642\u0627\u0645 \u063A\u0631\u0628\u064A\u0629 0123',
+    'ez110.set.digitsHint': '\u0644\u0627 \u064A\u063A\u064A\u0651\u0631 \u0623\u0631\u0642\u0627\u0645 \u0627\u0644\u0622\u064A\u0627\u062A \u0641\u064A \u0627\u0644\u0645\u0635\u062D\u0641 \u0648\u0644\u0627 \u0627\u0644\u0646\u0635\u0648\u0635 \u0627\u0644\u062A\u0639\u0628\u062F\u064A\u0629.',
+    'ez110.set.deleteWhere': '\u062D\u0630\u0641 \u0643\u0644 \u0628\u064A\u0627\u0646\u0627\u062A\u064A',
+    'ez110.set.deleteWhereHint': '\u064A\u0648\u062C\u062F \u062E\u0644\u0641 \u0642\u0641\u0644 \u0627\u0644\u0648\u0627\u0644\u062F\u064A\u0646 \u0641\u064A \u00AB\u0627\u0644\u062A\u062D\u0643\u0645\u00BB\u060C \u062D\u062A\u0649 \u0644\u0627 \u062A\u064F\u062D\u0630\u0641 \u0628\u064A\u0627\u0646\u0627\u062A \u0627\u0644\u0623\u0633\u0631\u0629 \u0628\u0644\u0645\u0633\u0629. \u0627\u0636\u063A\u0637 \u0644\u0644\u0627\u0646\u062A\u0642\u0627\u0644 \u0625\u0644\u064A\u0647.',
+    'ez110.set.langHint': '\u0644\u063A\u0629 \u0627\u0644\u0648\u0627\u062C\u0647\u0629 \u0648\u062D\u062F\u0647\u0627\u061B \u0627\u0644\u0622\u064A\u0627\u062A \u0648\u0627\u0644\u0623\u062D\u0627\u062F\u064A\u062B \u062A\u0628\u0642\u0649 \u0628\u0627\u0644\u0639\u0631\u0628\u064A\u0629.',
+    'ez110.set.support': '\u0627\u0644\u062F\u0639\u0645 \u0648\u0627\u0644\u062A\u0648\u0627\u0635\u0644',
+    'ez110.set.privacyPolicy': '\u0633\u064A\u0627\u0633\u0629 \u0627\u0644\u062E\u0635\u0648\u0635\u064A\u0629',
+    'ez110.set.deletePage': '\u0635\u0641\u062D\u0629 \u062D\u0630\u0641 \u0627\u0644\u0628\u064A\u0627\u0646\u0627\u062A',
+    'ez110.set.homeHint': '\u0631\u062A\u0651\u0628 \u0623\u0642\u0633\u0627\u0645 \u0627\u0644\u0642\u0627\u0626\u0645\u0629 \u0645\u0646 \u0647\u0646\u0627\u060C \u0623\u0648 \u0627\u0636\u063A\u0637 \u0645\u0637\u0648\u0651\u0644\u064B\u0627 \u0639\u0644\u0649 \u0623\u064A\u0651 \u0642\u0633\u0645\u064D \u0641\u064A \u0627\u0644\u0642\u0627\u0626\u0645\u0629 \u0646\u0641\u0633\u0647\u0627.',
   },
   en: {
     'common.close': 'Close',
@@ -2933,6 +2973,46 @@ const EZ_I18N = {
     'ez110.id.c': 'Pearl',
     'ez110.id.d': 'Porcelain',
     'ez110.id.e': 'Crystal',
+    'ez110.nav.aria': 'Main navigation',
+    'ez110.nav.ezik': 'Ezik',
+    'ez110.nav.menu': 'Menu',
+    'ez110.nav.mushaf': 'Mushaf',
+    'ez110.nav.prayer': 'Prayer',
+    'ez110.sections': 'Sections',
+    'ez110.grp.quran': 'Quran and Sunnah',
+    'ez110.grp.dhikr': 'Remembrance and prayer',
+    'ez110.grp.know': 'Knowledge',
+    'ez110.grp.tools': 'Tools',
+    'ez110.order.open': 'Arrange the menu',
+    'ez110.order.done': 'Done',
+    'ez110.order.reset': 'Default order',
+    'ez110.order.hint': 'Press and hold a section and drag it into place, or use the arrows under it.',
+    'ez110.order.earlier': 'Move earlier',
+    'ez110.order.later': 'Move later',
+    'ez110.order.tile': '{name}, position {n} of {of}',
+    'ez110.wird.of': '{done} of {target}',
+    'ez110.set.account': 'Account',
+    'ez110.set.appearance': 'Appearance',
+    'ez110.set.writing': 'Writing and chat',
+    'ez110.set.prayer': 'Prayer and the call to prayer',
+    'ez110.set.home': 'Home screen',
+    'ez110.set.privacy': 'Privacy and data',
+    'ez110.set.parents': 'Parents',
+    'ez110.set.about': 'About Ezik and support',
+    'ez110.set.identity': 'Design',
+    'ez110.set.identityHint': 'Saved on this device only.',
+    'ez110.set.digits': 'Numerals',
+    'ez110.set.digits.auto': 'Follow the language',
+    'ez110.set.digits.arab': 'Arabic-Indic numerals \u0660\u0661\u0662\u0663',
+    'ez110.set.digits.latn': 'Western numerals 0123',
+    'ez110.set.digitsHint': 'It never changes verse numbers in the Mushaf or devotional text.',
+    'ez110.set.deleteWhere': 'Delete all my data',
+    'ez110.set.deleteWhereHint': 'It sits behind the parents\' lock in Parental controls, so the family\'s data cannot be erased by one tap. Tap to go there.',
+    'ez110.set.langHint': 'The interface language only; verses and hadith stay in Arabic.',
+    'ez110.set.support': 'Support and contact',
+    'ez110.set.privacyPolicy': 'Privacy policy',
+    'ez110.set.deletePage': 'Data deletion page',
+    'ez110.set.homeHint': 'Arrange the menu\'s sections here, or press and hold any section in the menu itself.',
   },
 };
 
@@ -8454,7 +8534,23 @@ function ez110Apply() {
       if (EZ110_OVERRIDE && EZ110_OVERRIDE.dark) { d.setAttribute('data-theme', 'dark'); d.style.colorScheme = 'dark'; }
       const dg = ez110ReadDigits();
       if (dg !== 'auto') d.setAttribute('data-ez110-digits', dg); else d.removeAttribute('data-ez110-digits');
+      ez110ApplyDigits(dg);
     }
+  } catch (e) {}
+}
+// THE NUMERALS CHOICE. Every digit the interface prints goes through the language table's
+// `digits` field (toArabicDigits, ezNum, ezDigitsOut all read it), so the choice is applied there,
+// once, and only on the lit path: 'latn' prints 0123, 'arab' keeps a language's own non-Latin
+// system (Persian keeps its own) and gives the Latin-script languages Arabic-Indic, 'auto' restores
+// the table as written. Quran pages are images and the mushaf reader keeps its own numerals.
+const EZ110_DIGITS_ORIG = {};
+function ez110ApplyDigits(dg) {
+  try {
+    EZ_LANGUAGES.forEach((l) => {
+      if (!(l.code in EZ110_DIGITS_ORIG)) EZ110_DIGITS_ORIG[l.code] = l.digits;
+      const o = EZ110_DIGITS_ORIG[l.code];
+      l.digits = dg === 'latn' ? 'latn' : dg === 'arab' ? (o && o !== 'latn' ? o : 'arab-indic') : o;
+    });
   } catch (e) {}
 }
 ez110Apply();
@@ -8487,6 +8583,350 @@ function useEz110() {
     return () => window.removeEventListener(EZ110_EVENT, on);
   }, []);
   return st;
+}
+
+// ITEM 110 -- the owner's build mark: which design is lit and which build is serving it. Drawn only
+// where an identity is lit, so with the switch dark the sheet ends exactly where it did.
+function Ez110Mark() {
+  const ez = useEz110();
+  if (!ez.id) return null;
+  return (
+    <p className="ez110-mark" style={{ margin: '18px 4px 6px', fontSize: 12, color: 'var(--muted)', textAlign: 'center' }}>
+      {ezT('ez110.mark')} <bdi>{ezT('ez110.id.' + ez.id)}</bdi> <bdi dir="ltr">{ezikAppVersion()}</bdi>
+    </p>
+  );
+}
+
+// ============================================================
+// ITEM 110 -- «ب»: THE STRUCTURE THE NEW DESIGN ADDS. Every component below renders only where an
+// identity part is lit (useEz110().id); with the switch dark none of them is constructed.
+// ============================================================
+
+// The four destinations of the bottom bar go through the SAME door the shell's widget and
+// deep links use (EZIK_WIDGET_PENDING + its subscribers): one consumer closes the drawer and the
+// app-level layers and lands on the screen, so the bar adds no second router.
+function ez110Go(route) {
+  if (EZIK_WIDGET_ROUTES.indexOf(route) < 0) return;
+  EZIK_WIDGET_PENDING = route;
+  EZIK_WIDGET_SUBS.forEach((f) => { try { f(); } catch (e) {} });
+}
+const EZ110_NAV_ICONS = {
+  chat: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 20.5V12c0-3.3 3.1-5.5 6-9 2.9 3.5 6 5.7 6 9v8.5Z" /><path d="M3.5 20.5h17" /><path d="M12 10.4l1.6 1.6-1.6 1.6-1.6-1.6Z" fill="currentColor" stroke="none" /></svg>,
+  home: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="2" /><rect x="13" y="4" width="7" height="7" rx="2" /><rect x="4" y="13" width="7" height="7" rx="2" /><rect x="13" y="13" width="7" height="7" rx="2" /></svg>,
+  mushaf: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 3H8a3 3 0 0 0-3 3v13a2 2 0 0 0 2 2h12Z" /><path d="M5 18a2 2 0 0 1 2-2h12" /><path d="M10 7h5" /></svg>,
+  prayer: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="m15.5 8.5-2 5-5 2 2-5Z" /></svg>,
+};
+// THE BAR. A later sibling inside the screen's own root (never a wrapper), so the screen is still
+// classified by its root's first child. Its labels are the 110 keys, not the drawer's words.
+function Ez110Nav({ active }) {
+  const tabs = [
+    { k: 'chat', label: ezT('ez110.nav.ezik'), go: () => ez110Go('chat') },
+    { k: 'home', label: ezT('ez110.nav.menu'), go: () => ez110Go('home') },
+    { k: 'mushaf', label: ezT('ez110.nav.mushaf'), go: () => ez110Go('mushaf') },
+    { k: 'prayer', label: ezT('ez110.nav.prayer'), go: () => ez110Go('prayer') },
+  ];
+  return (
+    <nav className="ez110-nav" aria-label={ezT('ez110.nav.aria')}>
+      {tabs.map((t) => (
+        <button key={t.k} type="button" className={'ez110-tab' + (active === t.k ? ' is-on' : '')}
+          aria-current={active === t.k ? 'page' : undefined} onClick={active === t.k ? undefined : t.go}>
+          <span className="ez110-tab-pill">{EZ110_NAV_ICONS[t.k]}</span>
+          <span className="ez110-tab-label">{t.label}</span>
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+// THE NEXT PRAYER. The numbers are the prayer sheet's own: prayerStatus() and prayerTimesFor()
+// over the reader's saved position and method -- nothing is computed twice in another way.
+function Ez110PrayerCard({ onOpen }) {
+  useEzLang();
+  const loc = readQiblaLoc();
+  const prefs = readPrayerPrefs();
+  const now = new Date();
+  useEzikTick(true);
+  const place = loc.by === 'place' ? loc.place : null;
+  const today = prayerTodayParts(now, place);
+  const t = prayerTimesFor(today.y, today.m, today.d, loc.lat, loc.lng, prayerTzNow(now, loc), prefs.method, prefs.asr, prefs.off);
+  const status = prayerStatus(now, loc, prefs);
+  const next = status && status.next ? status.next.key : null;
+  const five = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+  return (
+    <button type="button" className="ez110-prayer" onClick={onOpen} aria-label={ezT('panel.next') + (next ? ': ' + ezT('widget.prayer.' + next) : '')}>
+      <span className="ez110-prayer-arch" aria-hidden="true" />
+      <span className="ez110-prayer-head">{ezT('panel.next')}</span>
+      {next ? (
+        <span className="ez110-prayer-main">
+          <span className="ez110-prayer-name">{ezT('widget.prayer.' + next)}</span>
+          <span className="ez110-prayer-time">{prayerClock(t[next])}</span>
+        </span>
+      ) : null}
+      {next && status.remainingMs != null ? (
+        <span className="ez110-prayer-left">{ezT('panel.in')} {prayerCountdownText(status.remainingMs)}</span>
+      ) : null}
+      <span className="ez110-prayer-row">
+        {five.map((k) => (
+          <span key={k} className={'ez110-prayer-cell' + (k === next ? ' is-next' : '')}>
+            <span className="ez110-prayer-dot" aria-hidden="true" />
+            <span className="ez110-prayer-cname">{ezT('widget.prayer.' + k)}</span>
+            <span className="ez110-prayer-ctime">{prayerClock(t[k])}</span>
+          </span>
+        ))}
+      </span>
+    </button>
+  );
+}
+
+// THE WIRD RING. The fraction is the one the shelf already shows on the mushaf tile (v.wird:
+// pages done over the reader's target); with no target set the ring is not drawn at all.
+function Ez110WirdCard({ wird, onOpen }) {
+  const has = !!(wird && wird.target > 0);
+  const frac = has ? Math.max(0, Math.min(1, wird.done / wird.target)) : 0;
+  const C = 2 * Math.PI * 22;
+  return (
+    <button type="button" className="ez110-card ez110-wird" onClick={onOpen}>
+      {has ? (
+        <svg className="ez110-ring" width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
+          <circle cx="28" cy="28" r="22" className="ez110-ring-bg" />
+          <circle cx="28" cy="28" r="22" className="ez110-ring-fg" strokeDasharray={C} strokeDashoffset={C * (1 - frac)} transform="rotate(-90 28 28)" />
+        </svg>
+      ) : <span className="ez110-icon-box" aria-hidden="true">{EZH_ICON_MUSHAF}</span>}
+      <span className="ez110-card-text">
+        <span className="ez110-card-kicker">{DW_CARD_TITLE}</span>
+        {has ? <span className="ez110-card-big">{ezT('ez110.wird.of').replace('{done}', toArabicDigits(wird.done)).replace('{target}', toArabicDigits(wird.target))}</span> : null}
+      </span>
+    </button>
+  );
+}
+
+// THE SECTIONS, IN GROUPS. The groups are a PRESENTATION of the one array ezHomeModules built
+// (plus the tasbih and calculator cards) -- no section is added, dropped or rebound. When the
+// reader has arranged the shelf, their order wins and the groups give way to one grid in it.
+const EZ110_GROUPS = [
+  { key: 'ez110.grp.quran', ids: ['mushaf', 'memorize', 'arbaeen', 'sunan-day'] },
+  { key: 'ez110.grp.dhikr', ids: ['adhkar', 'tasbih', 'prayer', 'asmaa'] },
+  { key: 'ez110.grp.know', ids: ['fatwa', 'lessons', 'library', 'articles', 'women'] },
+  { key: 'ez110.grp.tools', ids: ['calc', 'treasure'] },
+];
+const EZ110_ICON_TASBIH = <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="12" cy="4.5" r="1.6" /><circle cx="17.3" cy="6.7" r="1.6" /><circle cx="19.5" cy="12" r="1.6" /><circle cx="17.3" cy="17.3" r="1.6" /><circle cx="12" cy="19.5" r="1.6" /><circle cx="6.7" cy="17.3" r="1.6" /><circle cx="4.5" cy="12" r="1.6" /><circle cx="6.7" cy="6.7" r="1.6" /></svg>;
+const EZ110_ICON_CALC = <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M8 7h8" /><path d="M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 18h.01M12 18h.01M16 18h.01" /></svg>;
+
+function Ez110Tile({ m, edit, onMove, idx, count, dragging, onPointerDown }) {
+  return (
+    <div className={'ez110-tile-wrap' + (edit ? ' is-edit' : '') + (dragging ? ' is-drag' : '')} data-ez110-tile={m.id}>
+      <button type="button" className="ez110-tile"
+        onClick={edit ? undefined : m.onClick} onPointerDown={onPointerDown}
+        aria-label={edit ? ezT('ez110.order.tile').replace('{name}', typeof m.label === 'string' ? m.label : '').replace('{n}', toArabicDigits(idx + 1)).replace('{of}', toArabicDigits(count)) : undefined}>
+        <span className="ez110-icon-box" aria-hidden="true">{m.icon}</span>
+        <span className="ez110-tile-label">{m.label}</span>
+        {m.fresh && !edit ? <span className="ez110-fresh" aria-hidden="true" /> : null}
+      </button>
+      {edit ? (
+        <span className="ez110-move">
+          <button type="button" className="ez110-move-btn" onClick={() => onMove(m.id, -1)} disabled={idx === 0} aria-label={ezT('ez110.order.earlier')}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg></button>
+          <button type="button" className="ez110-move-btn" onClick={() => onMove(m.id, 1)} disabled={idx === count - 1} aria-label={ezT('ez110.order.later')}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg></button>
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+// THE MENU OF «ب». v is the very object EzikIstanaHome receives.
+function Ez110Home(v) {
+  const [order, setOrder] = useState(() => readHomeOrder().order);
+  // the shelf in the order IN EFFECT NOW (the same permutation Home applies), so a second arranging
+  // session starts from the first one's result
+  const shelfMods = ezHomeOrderApply(ezHomeModules(v), order);
+  const duo = ezHomeDuoCards(v);
+  const extra = [
+    { id: 'tasbih', label: ezT('tasbih.card.title'), icon: EZ110_ICON_TASBIH, onClick: (duo.find((c) => c.id === 'tasbih') || {}).onOpen },
+    { id: 'calc', label: ezT('calc.card.title'), icon: EZ110_ICON_CALC, onClick: (duo.find((c) => c.id === 'calc') || {}).onOpen },
+  ];
+  const wirdCard = duo.find((c) => c.id === 'wird') || {};
+  const [edit, setEdit] = useState(false);
+  const [draft, setDraft] = useState(null);       // the ids being arranged, or null
+  const [dragId, setDragId] = useState(null);
+  const press = useRef(null);
+  useEzikBackLayer(edit, () => { setEdit(false); setDraft(null); setDragId(null); });
+  const custom = order.length > 0;
+  const byId = {}; shelfMods.concat(extra).forEach((m) => { byId[m.id] = m; });
+  const shelfIds = shelfMods.map((m) => m.id);            // what the order store governs: the modules
+  const startEdit = () => { setDraft(shelfIds.slice()); setEdit(true); };
+  // the built order is stored as NO order, so the default shelf (and its groups) comes back
+  const builtIds = ezHomeModules(v).map((m) => m.id);
+  const done = () => {
+    const ids = draft || shelfIds;
+    const rec = writeHomeOrder(ids.join(',') === builtIds.join(',') ? [] : ids);
+    setOrder(rec.order); setEdit(false); setDraft(null); setDragId(null);
+  };
+  const reset = () => setDraft(builtIds.filter((id) => shelfIds.indexOf(id) >= 0));
+  const move = (id, dir) => setDraft((d) => ezHomeOrderMove(d || shelfIds, id, dir));
+  // drag: a long press (450 ms) on a tile starts arranging; while arranging, the tile follows the
+  // finger and the shelf re-orders under it. Pointer events only -- no library, no new key.
+  const onPointerDown = (id) => (e) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    const p = { id, x: e.clientX, y: e.clientY, timer: null, armed: edit };
+    // a long press only OPENS arranging (the shelf re-lays itself as one grid); the drag is the next press
+    if (!edit) p.timer = setTimeout(() => { press.current = null; startEdit(); }, 450);
+    else setDragId(id);
+    press.current = p;
+  };
+  useEffect(() => {
+    const onMove = (e) => {
+      const p = press.current; if (!p) return;
+      if (!p.armed) { if (Math.abs(e.clientX - p.x) + Math.abs(e.clientY - p.y) > 10) { clearTimeout(p.timer); press.current = null; } return; }
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const over = el && el.closest ? el.closest('[data-ez110-tile]') : null;
+      const target = over ? over.getAttribute('data-ez110-tile') : null;
+      if (!target || target === p.id) return;
+      setDraft((d) => {
+        const cur = (d || []).slice(); const a = cur.indexOf(p.id), b = cur.indexOf(target);
+        if (a < 0 || b < 0) return d;
+        cur.splice(a, 1); cur.splice(b, 0, p.id); return cur;
+      });
+    };
+    const onUp = () => { const p = press.current; if (p && p.timer) clearTimeout(p.timer); press.current = null; setDragId(null); };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    return () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp); };
+  }, [edit]);
+  const grid = (ids, keyPrefix) => (
+    <div className="ez110-grid" key={keyPrefix}>
+      {ids.filter((id) => byId[id]).map((id, i, arr) => (
+        <Ez110Tile key={id} m={byId[id]} edit={edit && shelfIds.indexOf(id) >= 0} idx={i} count={arr.length}
+          onMove={move} dragging={dragId === id} onPointerDown={shelfIds.indexOf(id) >= 0 ? onPointerDown(id) : undefined} />
+      ))}
+    </div>
+  );
+  let shelf;
+  if (edit) shelf = grid(draft || shelfIds, 'edit');
+  else if (custom) shelf = <>{grid(shelfMods.map((m) => m.id), 'mine')}{grid(['tasbih', 'calc'], 'extra')}</>;
+  else {
+    const placed = new Set(EZ110_GROUPS.flatMap((g) => g.ids));
+    const rest = shelfMods.map((m) => m.id).filter((id) => !placed.has(id));
+    shelf = EZ110_GROUPS.map((g) => {
+      const ids = g.ids.filter((id) => byId[id]).concat(g.key === 'ez110.grp.tools' ? rest : []);
+      if (!ids.length) return null;
+      return (
+        <section key={g.key} className="ez110-group">
+          <h3 className="ez110-group-title">{ezT(g.key)}</h3>
+          {grid(ids, g.key)}
+        </section>
+      );
+    });
+  }
+  return (
+    <div className="theme-dark ezhome ez110-home" style={s.ezistContainer}>
+      <EzistTopNav onOpenMenu={v.onOpenMenu} onOpenTafsir={v.onOpenTafsir} />
+      <div style={s.ezistScroll}>
+        <div className="ezist-wrap ez110-wrap">
+          <EzistMasthead name={v.name} g={v.greeting} hijri={v.hijri} onOpenAdhkar={v.onOpenAdhkar} />
+          <Ez110PrayerCard onOpen={v.onOpenPrayer} />
+          <Ez110WirdCard wird={v.wird} onOpen={wirdCard.onOpen} />
+          <div className="ez110-sec-head">
+            <h2 className="ez110-h">{ezT('ez110.sections')}</h2>
+            {edit ? (
+              <span className="ez110-sec-acts">
+                <button type="button" className="ez110-link" onClick={reset}>{ezT('ez110.order.reset')}</button>
+                <button type="button" className="ez110-done" onClick={done}>{ezT('ez110.order.done')}</button>
+              </span>
+            ) : (
+              <button type="button" className="ez110-link" onClick={startEdit}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.6" /><circle cx="15" cy="6" r="1.6" /><circle cx="9" cy="12" r="1.6" /><circle cx="15" cy="12" r="1.6" /><circle cx="9" cy="18" r="1.6" /><circle cx="15" cy="18" r="1.6" /></svg>
+                {ezT('ez110.order.open')}
+              </button>
+            )}
+          </div>
+          {edit ? <p className="ez110-hint" role="status">{ezT('ez110.order.hint')}</p> : null}
+          {shelf}
+          <EzikHomeWidgetArea widgets={v.widgets} nav={{ onOpenAdhkar: v.onOpenAdhkar, onOpenPrayer: v.onOpenPrayer }} />
+        </div>
+      </div>
+      <Ez110Nav active="home" />
+    </div>
+  );
+}
+
+// ---- ITEM 110: SETTINGS, REGROUPED. The groups themselves are the sheet's own (each carries a
+// data-ez110-grp mark); ez110.css orders them under these headings. Not one control is removed,
+// renamed in its behaviour or rewired -- every row below is either new to 110 or a signpost.
+const EZ110_SET_HEADS = [
+  ['account', 'ez110.set.account', null], ['appearance', 'ez110.set.appearance', null],
+  ['language', 'settings.language', 'ez110.set.langHint'], ['writing', 'ez110.set.writing', null],
+  ['home', 'ez110.set.home', 'ez110.set.homeHint'], ['prayer', 'ez110.set.prayer', null],
+  ['privacy', 'ez110.set.privacy', null], ['parents', 'ez110.set.parents', null], ['about', 'ez110.set.about', null],
+];
+function Ez110SettingsHeads() {
+  return (
+    <>
+      {EZ110_SET_HEADS.map(([g, k, hint]) => (
+        <div key={g} className="ez110-set-h" data-ez110-grp={g}>
+          <h2 className="ez110-h">{ezT(k)}</h2>
+          {hint ? <p className="ez110-set-sub">{ezT(hint)}</p> : null}
+        </div>
+      ))}
+    </>
+  );
+}
+function Ez110Radio({ label, options, value, onPick }) {
+  return (
+    <div role="radiogroup" aria-label={label} className="ez110-seg">
+      {options.map((o) => (
+        <button key={o.v} type="button" role="radio" aria-checked={value === o.v ? 'true' : 'false'}
+          className={'ez110-seg-opt' + (value === o.v ? ' is-on' : '')} onClick={() => onPick(o.v)}>
+          {o.preview || null}
+          <span className="ez110-seg-label">{o.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+// A live miniature of each identity: its own page, card, tiles and bar, drawn from its tokens.
+function Ez110Preview({ id }) {
+  return (
+    <span className="ez110-pv" data-pv={id} aria-hidden="true">
+      <span className="ez110-pv-head" />
+      <span className="ez110-pv-card" />
+      <span className="ez110-pv-tiles"><i /><i /><i /><i /></span>
+      <span className="ez110-pv-bar"><i className="is-on" /><i /><i /><i /></span>
+    </span>
+  );
+}
+function Ez110SettingsExtras({ onOpenControl }) {
+  const ez = useEz110();
+  const ids = ez110Choosable();
+  const go = <svg className="ez110-row-go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>;
+  return (
+    <>
+      <EzShellGroup title={ezT('ez110.set.identity')} hint={ezT('ez110.set.identityHint')} grp="appearance">
+        <Ez110Radio label={ezT('ez110.set.identity')} value={ez.id} onPick={ez110WriteIdentity}
+          options={ids.map((id) => ({ v: id, label: ezT('ez110.id.' + id), preview: <Ez110Preview id={id} /> }))} />
+      </EzShellGroup>
+      <EzShellGroup title={ezT('ez110.set.digits')} hint={ezT('ez110.set.digitsHint')} grp="appearance">
+        <Ez110Radio label={ezT('ez110.set.digits')} value={ez.digits} onPick={ez110WriteDigits}
+          options={[{ v: 'auto', label: ezT('ez110.set.digits.auto') }, { v: 'arab', label: ezT('ez110.set.digits.arab') }, { v: 'latn', label: ezT('ez110.set.digits.latn') }]} />
+      </EzShellGroup>
+      <EzShellGroup title={ezT('ez110.set.deleteWhere')} grp="privacy">
+        <button type="button" className="ez110-row" onClick={onOpenControl}>
+          <span className="ez110-row-text">
+            <span className="ez110-row-title">{ezT('settings.control')}</span>
+            <span className="ez110-row-sub">{ezT('ez110.set.deleteWhereHint')}</span>
+          </span>
+          {go}
+        </button>
+      </EzShellGroup>
+      <EzShellGroup title={ezT('ez110.set.about')} grp="about">
+        {[['/support.html', 'ez110.set.support'], ['/privacy.html', 'ez110.set.privacyPolicy'], ['/delete.html', 'ez110.set.deletePage']].map(([href, k]) => (
+          <a key={href} className="ez110-row" href={href}>
+            <span className="ez110-row-text"><span className="ez110-row-title">{ezT(k)}</span></span>
+            {go}
+          </a>
+        ))}
+      </EzShellGroup>
+    </>
+  );
 }
 
 // ITEM 97 -- HOME_GREETINGS_GENERAL STOOD HERE, sixteen keys deep, and the day branch below
@@ -11092,6 +11532,7 @@ function EzikHomeWidgetArrange({ widgets, onWidgets, arrangeOpen, onArrange }) {
 }
 
 function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, onOpenArbaeen, onOpenMushaf, onOpenFatwa, onOpenLessons, onOpenAsmaa, onOpenSettings, onOpenTafsir }) {
+  const ez110 = useEz110();   // ITEM 110: the lit identity draws its own menu below
   // THE OWNER. Every prop it was handed is handed straight on, and the treasure entry resolves
   // to the same href it always did. There is no second router here and no duplicated navigation
   // state -- the two components above receive these handlers and call them unchanged.
@@ -11357,6 +11798,7 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
       />
     );
   }
+  if (ez110.id) return <Ez110Home {...home} />;
   return <EzikIstanaHome {...home} />;
 }
 
@@ -16682,6 +17124,7 @@ function App() {
   useEzikNativeAuthRoot();
   useEzikAutoUpdateRoot();
   useEzikVisualTheme();
+  const ez110 = useEz110();   // ITEM 110: the switch; with it dark this is inert
   const [screen, setScreen] = useState('loading');
   useEzikWidgetDataRoot(screen !== 'loading');
   const [selectedSurah, setSelectedSurah] = useState(null); // خطأ ٤٦: سورة المصحف المفتوحة، مرفوعة إلى App كي يقشرها زر الرجوع طبقةً طبقة
@@ -21514,6 +21957,8 @@ function App() {
       <div className="ezc-note">{ezT(standingNoticeKey(caps.band))}</div>
         </div>
       </div>
+      {/* ITEM 110: the bottom bar of the lit identity, on the empty thread only (board B2). */}
+      {ez110.id && messages.length === 0 && streamingText === null ? <Ez110Nav active="chat" /> : null}
       {/* S118: the one menu, defined once above the screen ladder. */}
       {ezikDrawer()}
       {reportFor && <ReportModal onClose={() => setReportFor(null)} onSubmit={submitReport} />}
@@ -30449,9 +30894,9 @@ function EzikPrecacheNotice() {
   );
 }
 
-function EzShellGroup({ title, hint, wide, children }) {
+function EzShellGroup({ title, hint, wide, children, grp }) {
   return (
-    <section className={wide ? 'ezsh-group is-wide' : 'ezsh-group'}>
+    <section className={wide ? 'ezsh-group is-wide' : 'ezsh-group'} data-ez110-grp={grp}>
       <div className="adhkar3" style={s.ezshGroup}>
         <div style={s.ezshGroupHead}>
           <span style={s.ezshGroupMark} aria-hidden="true" />
@@ -30700,7 +31145,7 @@ function EzikSignInRow() {
   };
 
   return (
-    <EzShellGroup title={ezT('auth.groupTitle')}>
+    <EzShellGroup title={ezT('auth.groupTitle')} grp="account">
       {session
         ? (<>
             <div style={s.settingsHint}>{session.email}</div>
@@ -31277,6 +31722,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   // says it is coming -- it is a <div>, it is aria-disabled, it cannot be tabbed to and there
   // is no code path from this card that could write it. Journey and Deck appear nowhere.
   const visualTheme = useEzikVisualTheme();
+  const ez = useEz110();   // ITEM 110: the lit identity regroups this sheet (ez110.css) and adds its rows below
   // ITEM 05-D. THE ROWS ARE THE ACCOUNT'S OWN SHELF, built by the one builder and then put into
   // the reader's own order by the one overlay -- the same two calls, in the same order, that the
   // home screen makes. So what he arranges here is exactly what he will meet there, and a male
@@ -31303,6 +31749,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
           names as before; what changed is that they sit in bounded groups inside the shared
           shell instead of five full-width slabs. Not one control was simplified away. */}
       <div className="ezsh-grid">
+        {ez.id ? <Ez110SettingsHeads /> : null}
         {/* APPLE 4.0.0 -- THE NAME, THE FORM OF ADDRESS AND THE YEAR, IN THE ONE PLACE THEY ARE
             NOW ASKED FOR: here, where nothing is standing in front of a reader waiting for an
             answer. The card that used to ask them after a sign-in is gone (see Onboarding);
@@ -31312,7 +31759,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             THEY ARE SEEDED FROM THE PROFILE, once, at mount: a reader opening this group sees
             what the account actually holds, and a save that leaves the year alone leaves the
             year alone. Empty is a lawful answer for all three. */}
-        <EzShellGroup title={ezT('settings.profile')} hint={ezT('settings.profileHint')}>
+        <EzShellGroup title={ezT('settings.profile')} hint={ezT('settings.profileHint')} grp="account">
           <input value={pfName} onChange={(e) => { setPfName(e.target.value); setPfMsg(''); }}
             placeholder={ezT('onboarding.name')} aria-label={ezT('onboarding.name')} style={s.welcomeInput} />
           {/* ITEM 9 / F10 -- THREE CHOICES, and the third is not decoration. A press now SELECTS
@@ -31349,7 +31796,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             style={{ ...s.welcomePrimaryBtn, opacity: pfYearOk ? 1 : 0.4 }}>{ezT('settings.profileSave')}</button>
           {pfMsg ? <div style={s.a11ySwitchHint}>{pfMsg}</div> : null}
         </EzShellGroup>
-        <EzShellGroup title={A_APPEARANCE} hint={ezT('settings.savedOnDevice')}>
+        <EzShellGroup title={A_APPEARANCE} hint={ezT('settings.savedOnDevice')} grp="appearance">
           <div style={s.themeRow}>
             <Opt value="light" label={ezT('settings.themeLight')} />
             <Opt value="dark" label={ezT('settings.themeDark')} />
@@ -31363,7 +31810,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
           <div className="ezlang-row"><EzLangControl variant="settings" /></div>
         </EzShellGroup>
         {/* S102 -- the active application design. One statement, one disabled line. */}
-        <EzShellGroup title={EZ_VT_TITLE}>
+        <EzShellGroup title={EZ_VT_TITLE} grp="vt">
           {visualTheme === EZIK_VISUAL_THEME_ISTANA && (
           <div style={s.vtActiveRow}>
             <span style={s.vtActiveMark} aria-hidden="true" />
@@ -31383,7 +31830,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
         {/* NOT wide: measured at 1440 and 2048, spanning both columns stretched each switch
             row to about 800px with the label at one edge and the toggle at the other. A settings
             row read across a desk is a worse control, not a bigger one. */}
-        <EzShellGroup title={EZIK_A11Y_TITLE} hint={ezT('settings.savedOnDevice')}>
+        <EzShellGroup title={EZIK_A11Y_TITLE} hint={ezT('settings.savedOnDevice')} grp="appearance">
           <div style={s.a11yGroupLabel}>{EZIK_A11Y_FS_LABEL}</div>
           <div style={s.themeRow} role="radiogroup" aria-label={EZIK_A11Y_FS_LABEL}>
             {[['normal', EZIK_A11Y_FS_NORMAL], ['large', EZIK_A11Y_FS_LARGE], ['xlarge', EZIK_A11Y_FS_XLARGE]].map(([v, label]) => (
@@ -31438,7 +31885,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             word: flipping it stores send/newline rather than leaving the device to be asked
             again. The hint line states the rule in full, including the half that is not
             negotiable -- an Enter the keyboard is using to finish a word never sends. */}
-        <EzShellGroup title={ezT('settings.enter')} hint={ezT('settings.savedOnDevice')}>
+        <EzShellGroup title={ezT('settings.enter')} hint={ezT('settings.savedOnDevice')} grp="writing">
           <button
             type="button"
             role="switch"
@@ -31465,7 +31912,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             The buttons deliberately reuse the reading-preference option styling rather than
             adding a colour of their own; the group sits AFTER the reading preferences, which is
             also what keeps it outside the region the visual-identity gate reads. */}
-        <EzShellGroup title={ezT('settings.watermark')} hint={ezT('settings.savedOnDevice')}>
+        <EzShellGroup title={ezT('settings.watermark')} hint={ezT('settings.savedOnDevice')} grp="appearance">
           <div style={s.themeRow} role="radiogroup" aria-label={ezT('settings.watermark')}>
             {[[0, ezT('settings.watermark.none')],
               [EZIK_WM_PRESETS[0], ezT('settings.watermark.light')],
@@ -31521,7 +31968,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
         {/* الخصوصية والذكاء الاصطناعي -- the consent decision, stated and reversible. It is NOT
             behind the PIN gate: a reader must be able to withdraw without an adult's code, and
             Apple requires the withdrawal to be as reachable as the grant. */}
-        <EzShellGroup title={EZ_AIS_TITLE}>
+        <EzShellGroup title={EZ_AIS_TITLE} grp="privacy">
           <div style={s.aicStatusRow}>{aiConsent === EZ_AI_CONSENT_GRANTED ? EZ_AIS_ON : EZ_AIS_OFF}</div>
           {aiConsent === EZ_AI_CONSENT_GRANTED && (
             <div style={s.aicNote}>{aiConsentBy === 'guardian' ? EZ_AIS_BY_GUARDIAN : EZ_AIS_BY_USER}</div>
@@ -31537,7 +31984,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             : <button type="button" onClick={onReviewAI} style={s.aicWithdrawBtn}>{EZ_AIS_REVIEW}</button>}
         </EzShellGroup>
         {/* S90 -- the one row that opens the PIN gate. Same handler, same accessible name. */}
-        <EzShellGroup title={A_CONTROL}>
+        <EzShellGroup title={A_CONTROL} grp="parents">
           <button type="button" onClick={onOpenControl} style={s.settingsNavBtn} aria-label={A_CONTROL}>
             <span>{A_CONTROL}</span>
             <span style={s.settingsNavChev} aria-hidden="true">{'\u2039'}</span>
@@ -31545,7 +31992,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
         </EzShellGroup>
         {/* D89 -- change the unlock PIN. Rendered ONLY with a founder token in hand. */}
         {canSetPin && (
-        <EzShellGroup title={ezT('pin.groupTitle')}>
+        <EzShellGroup title={ezT('pin.groupTitle')} grp="parents">
           <input type="password" inputMode="numeric" autoComplete="new-password" value={pin1}
             onChange={(e) => setPin1(e.target.value)} placeholder={ezT('pin.new')} style={s.settingsInput} />
           <input type="password" inputMode="numeric" autoComplete="new-password" value={pin2}
@@ -31584,7 +32031,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
             SECOND, THE WIDGET PANEL, UNCHANGED, so nothing that existed today became unreachable.
             It is a different mechanism over different rows -- the three registered widgets, all
             shipped hidden -- and it keeps its own store, its own reset and its own hint. */}
-        <EzShellGroup title={A_HOME_ARRANGE}>
+        <EzShellGroup title={A_HOME_ARRANGE} grp="home">
           {homeRows.map((m, i) => (
             <div key={m.id} style={s.ezwidPanelRow}>
               <span style={s.ezwidPanelName}>{m.label}</span>
@@ -31602,6 +32049,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
         </EzShellGroup>
         {/* ITEM 121: the prayer preferences are last, so every established Settings position
             above remains where the reader learned it. The two stored records keep their keys. */}
+        {ez.id ? <Ez110SettingsExtras onOpenControl={onOpenControl} /> : null}
         <EzShellGroup title={PRAYER_SETTINGS_TITLE} hint={PRAYER_HINT}>
           <PrayerSettingsControl />
           <div style={s.ezshGroupHead}>
@@ -31617,17 +32065,6 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   );
 }
 
-// ITEM 110 -- the owner's build mark: which design is lit and which build is serving it. Drawn only
-// where an identity is lit, so with the switch dark the sheet ends exactly where it did.
-function Ez110Mark() {
-  const ez = useEz110();
-  if (!ez.id) return null;
-  return (
-    <p className="ez110-mark" style={{ margin: '18px 4px 6px', fontSize: 12, color: 'var(--muted)', textAlign: 'center' }}>
-      {ezT('ez110.mark')} <bdi>{ezT('ez110.id.' + ez.id)}</bdi> <bdi dir="ltr">{ezikAppVersion()}</bdi>
-    </p>
-  );
-}
 
 // ============================================================
 // THE PARENTAL CODE, AND THE WAY OUT OF IT.

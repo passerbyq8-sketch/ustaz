@@ -1,0 +1,70 @@
+/* 30 -- SETTINGS, REGROUPED. The sheet's groups keep their own markup and handlers; each carries
+   data-ez110-grp and is placed under its heading by `order`. The old «visual identity» statement
+   (grp="vt") names a design that is not the one lit, so the picker replaces it while lit. */
+html[data-ez110] .ezsh-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+@media (min-width: 900px) { html[data-ez110] .ezsh-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+html[data-ez110] [data-ez110-grp="vt"] { display: none; }
+html[data-ez110] .ez110-set-h { grid-column: 1 / -1; margin: 10px 4px 0; }
+html[data-ez110] .ez110-set-h:first-child { margin-top: 0; }
+html[data-ez110] .ez110-set-sub { margin: 4px 0 0; font-size: calc(13px * var(--ez-fs, 1)); color: var(--vt-muted); line-height: 1.5; }
+html[data-ez110] .ez110-set-h[data-ez110-grp="account"] { order: 10; }
+html[data-ez110] .ezsh-group[data-ez110-grp="account"] { order: 11; }
+html[data-ez110] .ez110-set-h[data-ez110-grp="appearance"] { order: 20; }
+html[data-ez110] .ezsh-group[data-ez110-grp="appearance"] { order: 21; }
+html[data-ez110] .ez110-set-h[data-ez110-grp="language"] { order: 30; }
+/* the language group's opening tag is pinned by i18nui, so it carries no mark: found by its row */
+html[data-ez110] .ezsh-grid > section.ezsh-group:has(.ezlang-row) { order: 31; }
+html[data-ez110] .ez110-set-h[data-ez110-grp="writing"] { order: 40; }
+html[data-ez110] .ezsh-group[data-ez110-grp="writing"] { order: 41; }
+html[data-ez110] .ez110-set-h[data-ez110-grp="home"] { order: 50; }
+html[data-ez110] .ezsh-group[data-ez110-grp="home"] { order: 51; }
+html[data-ez110] .ez110-set-h[data-ez110-grp="prayer"] { order: 60; }
+/* the prayer group is the sheet's LAST group (wird-guard pins its opening tag, so it carries no mark) */
+html[data-ez110] .ezsh-grid > section.ezsh-group:not([data-ez110-grp]):not(:has(.ezlang-row)):last-of-type { order: 61; }
+html[data-ez110] .ez110-set-h[data-ez110-grp="privacy"] { order: 70; }
+html[data-ez110] .ezsh-group[data-ez110-grp="privacy"] { order: 71; }
+html[data-ez110] .ez110-set-h[data-ez110-grp="parents"] { order: 80; }
+html[data-ez110] .ezsh-group[data-ez110-grp="parents"] { order: 81; }
+html[data-ez110] .ez110-set-h[data-ez110-grp="about"] { order: 90; }
+html[data-ez110] .ezsh-group[data-ez110-grp="about"] { order: 91; }
+
+/* segmented choices (identity, numerals): 44px floors, a clear selected state */
+html[data-ez110] .ez110-seg { display: flex; flex-wrap: wrap; gap: 8px; }
+html[data-ez110] .ez110-seg-opt {
+  flex: 1 1 0; min-width: 88px; min-height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 8px; border-radius: 16px; border: 1.5px solid var(--vt-line); background: var(--vt-surface);
+  color: var(--vt-ink); font-family: var(--ez110-font-ui); font-size: calc(13.5px * var(--ez-fs, 1)); font-weight: 600; cursor: pointer;
+}
+html[data-ez110] .ez110-seg-opt.is-on { border-color: var(--vt-accent); background: var(--vt-soft); color: var(--vt-accent-ink); }
+
+/* the identity miniatures */
+html[data-ez110] .ez110-pv {
+  width: 64px; height: 100px; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; gap: 5px;
+  padding: 6px 5px 0; box-sizing: border-box; background: var(--pv-page); border: 1px solid var(--pv-line);
+}
+html[data-ez110] .ez110-pv-head { height: 6px; border-radius: 3px; background: var(--pv-soft); }
+html[data-ez110] .ez110-pv-card { height: 22px; border-radius: 6px; background: var(--pv-grad); }
+html[data-ez110] .ez110-pv-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; }
+html[data-ez110] .ez110-pv-tiles i { height: 10px; border-radius: 3px; background: linear-gradient(160deg, var(--pv-ia), var(--pv-ib)); }
+html[data-ez110] .ez110-pv-bar { margin-top: auto; height: 14px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--pv-line); background: var(--pv-surface); }
+html[data-ez110] .ez110-pv-bar i { width: 6px; height: 6px; border-radius: 3px; background: var(--pv-line); }
+html[data-ez110] .ez110-pv-bar i.is-on { width: 12px; background: var(--pv-accent); }
+
+/* signpost rows and links */
+html[data-ez110] .ez110-row {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 6px 2px;
+  border: 0; border-top: 1px solid var(--ez110-hair); background: transparent; color: var(--vt-ink);
+  font-family: var(--ez110-font-ui); text-align: start; text-decoration: none; cursor: pointer;
+}
+html[data-ez110] .ez110-row:first-of-type { border-top: 0; }
+html[data-ez110] .ez110-row-text { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+html[data-ez110] .ez110-row-title { font-size: calc(15px * var(--ez-fs, 1)); font-weight: 600; }
+html[data-ez110] .ez110-row-sub { font-size: calc(12.5px * var(--ez-fs, 1)); color: var(--vt-muted); line-height: 1.5; }
+html[data-ez110] .ez110-row-go { color: var(--ez110-faint); flex-shrink: 0; }
+html[dir="ltr"][data-ez110] .ez110-row-go { transform: scaleX(-1); }
+
+/* the build mark */
+html[data-ez110] .ez110-mark { color: var(--vt-muted); }
+html[data-ez110] .ezsh-group[data-ez110-grp="appearance"] { order: 23; }
+html[data-ez110] .ezsh-group[data-ez110-grp="appearance"]:has(.ez110-pv) { order: 21; }
+html[data-ez110] .ezsh-group[data-ez110-grp="appearance"]:has(.ez110-seg):not(:has(.ez110-pv)) { order: 22; }
