@@ -11856,7 +11856,10 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
     // ITEM 95: the calculator door on the card row, the same shape as the three above it, so
     // all four spend history the same way.
     onOpenCalc: (next) => { if (!next && ezikHistBack()) return; setCalcOpen(next); },
-    onWirdRemove: (k, id) => setWirdList(writeWirdList(wirdListRemove(wirdList.items, k, id))),
+    onWirdRemove: (k, id) => {
+      setWirdList(writeWirdList(wirdListRemove(wirdList.items, k, id)));   // the synced writer, called as it always was
+      if (ez110FixLit()) ez110SchedArmAfterDelete();                        // m12, part fix: its alarms go with it, now
+    },
     // ITEM 8 (side round, 15 September) -- ONE WIRD'S OWN REMINDER, SET THE WAY ITS ROW IS SET.
     // The identical shape as the two lines around it: a pure array move, through the one writer,
     // and the state is set from what the writer ANSWERS rather than from what it was asked to
@@ -29626,6 +29629,20 @@ function ezikSchedItems() {
 // to the pipe, which decides whether anything actually goes.
 function ezikSchedArm() {
   return ezikSchedSend(ezikSchedItems(), Date.now());
+}
+// ITEM 110 ROUND 2 (127 note m12), part fix: the re-arm after a wird is DELETED. The delete wrote the list and never
+// armed, so the deleted wird's alarms stayed at the shell until some later trigger. And when the rebuilt payload is
+// empty, a 'schedule' with no items is refused by the shipped shell (bad-payload) and cancels nothing -- so with
+// nothing left, this posts the shell's own 'cancel' instead. Outside the scheduler code gate schedulepayload lifts;
+// only the delete path calls it, and only lit.
+function ez110SchedArmAfterDelete() {
+  if (ezikSchedItems().length) return ezikSchedArm();
+  if (ezikSchedLastSent === SHELL_SCHED_EMPTY) return null;
+  const bridge = ezikSchedBridge();
+  if (!bridge) return null;
+  try { bridge.postMessage(JSON.stringify({ channel: SHELL_SCHED_CHANNEL, v: SHELL_SCHED_VERSION, op: SHELL_SCHED_CANCEL_OP })); } catch (e) { return null; }
+  ezikSchedLastSent = SHELL_SCHED_EMPTY;
+  return { sent: true, reason: 'cancel' };
 }
 
 

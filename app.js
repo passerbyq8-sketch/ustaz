@@ -3365,7 +3365,9 @@ onOpenWird:next=>{if(!next&&ezikHistBack())return;setWirdOpen(next);},// ITEM 93
 // are the same shape as the toggle above them, so all three spend history the same way.
 onOpenTasbih:next=>{if(!next&&ezikHistBack())return;setTasbihOpen(next);},onOpenTasbihLog:next=>{if(!next&&ezikHistBack())return;setTasbihLogOpen(next);},// ITEM 95: the calculator door on the card row, the same shape as the three above it, so
 // all four spend history the same way.
-onOpenCalc:next=>{if(!next&&ezikHistBack())return;setCalcOpen(next);},onWirdRemove:(k,id)=>setWirdList(writeWirdList(wirdListRemove(wirdList.items,k,id))),// ITEM 8 (side round, 15 September) -- ONE WIRD'S OWN REMINDER, SET THE WAY ITS ROW IS SET.
+onOpenCalc:next=>{if(!next&&ezikHistBack())return;setCalcOpen(next);},onWirdRemove:(k,id)=>{setWirdList(writeWirdList(wirdListRemove(wirdList.items,k,id)));// the synced writer, called as it always was
+if(ez110FixLit())ez110SchedArmAfterDelete();// m12, part fix: its alarms go with it, now
+},// ITEM 8 (side round, 15 September) -- ONE WIRD'S OWN REMINDER, SET THE WAY ITS ROW IS SET.
 // The identical shape as the two lines around it: a pure array move, through the one writer,
 // and the state is set from what the writer ANSWERS rather than from what it was asked to
 // store. The arm follows the write, because the payload is rebuilt whole and never patched --
@@ -9107,7 +9109,12 @@ const now=new Date();const tiers=ezikSchedWindow(ezikSchedTiers(now),now).tiers;
 // left on them and a later arm, on a shorter day, can carry them.
 const tier=tiers[i].slice().sort((a,b)=>a.at-b.at);for(let j=0;j<tier.length;j++){if(out.length<SHELL_SCHED_CEILING){out.push(tier[j]);continue;}cut+=1;const nm=tier[j].title;if(names.length<SCHED_CLIP_NAMES&&names.indexOf(nm)===-1)names.push(nm);}}ezikSchedClipSet(cut,names);return out;}// THE ARM. It rebuilds the WHOLE payload -- never a difference, never an addition -- and hands it
 // to the pipe, which decides whether anything actually goes.
-function ezikSchedArm(){return ezikSchedSend(ezikSchedItems(),Date.now());}// ============================================================
+function ezikSchedArm(){return ezikSchedSend(ezikSchedItems(),Date.now());}// ITEM 110 ROUND 2 (127 note m12), part fix: the re-arm after a wird is DELETED. The delete wrote the list and never
+// armed, so the deleted wird's alarms stayed at the shell until some later trigger. And when the rebuilt payload is
+// empty, a 'schedule' with no items is refused by the shipped shell (bad-payload) and cancels nothing -- so with
+// nothing left, this posts the shell's own 'cancel' instead. Outside the scheduler code gate schedulepayload lifts;
+// only the delete path calls it, and only lit.
+function ez110SchedArmAfterDelete(){if(ezikSchedItems().length)return ezikSchedArm();if(ezikSchedLastSent===SHELL_SCHED_EMPTY)return null;const bridge=ezikSchedBridge();if(!bridge)return null;try{bridge.postMessage(JSON.stringify({channel:SHELL_SCHED_CHANNEL,v:SHELL_SCHED_VERSION,op:SHELL_SCHED_CANCEL_OP}));}catch(e){return null;}ezikSchedLastSent=SHELL_SCHED_EMPTY;return{sent:true,reason:'cancel'};}// ============================================================
 // THE SCHEDULE PROBE -- ماذا يحملُ الغلافُ الآن، بأرقامِه
 // ============================================================
 // WHY A PROBE EXISTS AT ALL, AND WHY IT IS A CONTROL RATHER THAN A LOG. When a reminder does
