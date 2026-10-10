@@ -2,7 +2,7 @@
 // POST /api/auth-exchange   { ticket }   ->   { ok, session, email, provider }
 //
 // THE LAST LEG, AND THE ONE THE DEVICE ACTUALLY CALLS. api/auth-return.js already did the work
-// against the provider; this turns the sixty-second ticket it left behind into a ninety-day
+// against the provider; this turns the sixty-second ticket it left behind into a four-hundred-day
 // session. Four fields come back AND NO FIFTH: the session key, the address, and which door was
 // used. No name, no picture, no id_token, no claim the provider happened to include -- none of
 // it was carried this far, so none of it can be returned by accident.

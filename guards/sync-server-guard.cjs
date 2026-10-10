@@ -480,6 +480,72 @@ async function main() {
     check('B2 parts: a part arriving for a deleted conversation is stored as a tombstone', late && late.rec.del === true && late.rec.val === null, JSON.stringify(late));
   }
 
+  // ---------------------------------------------------------------- THIRD ROUND: the three session states
+  // Z1 live proceeds, and slides to four hundred days       Z2-Z4 dead: no record, expired, account gone (401)
+  // Z5-Z7 unknown: store down, store unconfigured, the account read fails -- 503, NEVER 401
+  // Z8 status: a dead session sent is 401; none sent is answered as before
+  // Z9 link: the same three states for otherSession       Z10 an account deleted on device B: A's push is 401
+  //    and nothing is written into any space
+  {
+    fresh();
+    process.env.SYNC_SWITCH = 'all';
+    const Z = await account('google', '7101', 'z@example.com');
+    const T0 = Date.now();
+    let r = await call({ action: 'push', session: Z.session, changes: [{ id: 'kv:ezik_hijri_offset_v1', rec: rec(10, '1') }] });
+    const sessRec = JSON.parse(store.data.get('sess:v1:' + Z.session).v);
+    const days = (sessRec.expiresAt - T0) / 86400000;
+    check('Z1 live: the action proceeds, and the session slides to four hundred days', r.statusCode === 200 && days > 399.9 && days < 400.1, JSON.stringify({ s: r.statusCode, days }));
+    r = await call({ action: 'push', session: 'n'.repeat(43), changes: [] });
+    check('Z2 dead: a session that does not exist is 401 sync-session-invalid', r.statusCode === 401 && r.body.error === 'sync-session-invalid');
+    const E = await account('google', '7102', 'e@example.com');
+    const ek = 'sess:v1:' + E.session;
+    const erec = JSON.parse(store.data.get(ek).v); erec.expiresAt = Date.now() - 1000;
+    await store.set(ek, JSON.stringify(erec));
+    r = await call({ action: 'push', session: E.session, changes: [] });
+    check('Z3 dead: a session past its expiry is 401', r.statusCode === 401 && r.body.error === 'sync-session-invalid');
+    const G = await account('google', '7103', 'g3@example.com');
+    await store.del(G.key);
+    r = await call({ action: 'push', session: G.session, changes: [] });
+    check('Z4 dead: a session whose account is gone is 401, and the session is deleted from the store on the spot', r.statusCode === 401 && !store.data.has('sess:v1:' + G.session));
+    const live = await account('google', '7104', 'l4@example.com');
+    AUTHSTORE.__setAuthStoreForTest(makeStore({ down: true }));
+    r = await call({ action: 'push', session: live.session, changes: [] });
+    const rs = await call({ action: 'status', session: live.session });
+    check('Z5 unknown: a store that cannot be reached is 503 sync-unavailable -- never 401 (push and status)', r.statusCode === 503 && r.body.error === 'sync-unavailable' && rs.statusCode === 503, r.statusCode + '/' + rs.statusCode);
+    AUTHSTORE.__setAuthStoreForTest(null);
+    r = await call({ action: 'push', session: live.session, changes: [] });
+    check('Z6 unknown: no store configured is 503, never 401', r.statusCode === 503 && r.body.error === 'sync-unavailable', String(r.statusCode));
+    const acctFails = Object.assign(Object.create(store), { get: async (k) => { if (String(k).indexOf('acct:v1:') === 0) throw new Error('read failed'); return store.get(k); } });
+    AUTHSTORE.__setAuthStoreForTest(acctFails);
+    r = await call({ action: 'push', session: live.session, changes: [] });
+    check('Z7 unknown: the session reads but the ACCOUNT read fails -- 503, never 401, and the session is NOT deleted', r.statusCode === 503 && store.data.has('sess:v1:' + live.session), String(r.statusCode));
+    AUTHSTORE.__setAuthStoreForTest(store);
+    const sDead = await call({ action: 'status', session: G.session });
+    const sNone = await call({ action: 'status' });
+    const sLive = await call({ action: 'status', session: live.session });
+    check('Z8 status: a dead session sent is 401; no session is answered as before; a live one as before', sDead.statusCode === 401 && sDead.body.error === 'sync-session-invalid' && sNone.statusCode === 200 && sNone.body.open === true && sLive.statusCode === 200 && sLive.body.open === true, JSON.stringify([sDead.statusCode, sNone.body, sLive.body]));
+    const lk1 = await call({ action: 'link', session: live.session, otherSession: G.session });
+    const O5 = await account('google', '7105', 'o5@example.com');
+    const failOther = Object.assign(Object.create(store), { get: async (k) => { if (k === O5.key) throw new Error('read failed'); return store.get(k); } });
+    AUTHSTORE.__setAuthStoreForTest(failOther);
+    const lk2 = await call({ action: 'link', session: live.session, otherSession: O5.session });
+    AUTHSTORE.__setAuthStoreForTest(store);
+    check('Z9 link: a dead otherSession is 401 sync-other-session-invalid; an unreadable one is 503', lk1.statusCode === 401 && lk1.body.error === 'sync-other-session-invalid' && lk2.statusCode === 503 && lk2.body.error === 'sync-unavailable', JSON.stringify([lk1.statusCode, lk1.body.error, lk2.statusCode, lk2.body.error]));
+    // Z10 -- one account, two devices: B deletes the account (the store half of api/auth-delete.js
+    // and the sync erasure it runs first), then A pushes with its own, still-stored session.
+    const W = await account('google', '7106', 'w6@example.com');
+    const sessB = await ACCOUNT.mintSession(W.key);
+    await call({ action: 'push', session: W.session, changes: [{ id: 'kv:ezik_hijri_offset_v1', rec: rec(10, '3') }] });
+    await SVC.eraseForAccountDelete(W.key);
+    await ACCOUNT.deleteAccount(W.key, sessB.session);
+    const syncKeysBefore = [...store.data.keys()].filter((k) => k.startsWith('sync:') && !k.includes(':rl:')).sort().join('|');
+    store.ops.length = 0;
+    r = await call({ action: 'push', session: W.session, changes: [{ id: 'chat:after', rec: rec(20, { title: 'x', pinned: false, at: 1, msgs: [msg('user', 5, 'بعد الحذف')] }) }] });
+    const syncKeysAfter = [...store.data.keys()].filter((k) => k.startsWith('sync:') && !k.includes(':rl:')).sort().join('|');
+    const wrote = store.ops.filter((o) => /^(eval|hset|set|sadd)$/.test(o[0]) && String(o[1]).startsWith('sync:'));
+    check('Z10 an account deleted on device B: device A\'s next push is 401 and writes nothing into any space', r.statusCode === 401 && r.body.error === 'sync-session-invalid' && syncKeysAfter === syncKeysBefore && wrote.length === 0, JSON.stringify({ s: r.statusCode, wrote }));
+  }
+
   // ---------------------------------------------------------------- logs
   check('E7 not one log line carries content, a session or an account key', !LOGS.some((l) => l.includes(MARK) || /acct:v1:|sess:v1:|[؀-ۿ]/.test(l)), LOGS.slice(0, 3).join(' / '));
 

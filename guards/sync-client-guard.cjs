@@ -471,6 +471,67 @@ async function main() {
     check('L6 deleted by hand: the conversation and every part are tombstones in the account', after6.length === longRecs.length && after6.every((c) => c.rec.del === true), JSON.stringify(after6.map((c) => c.id + ':' + c.rec.del)));
   }
 
+  // ---------------------------------------------------------------- THIRD ROUND: the quiet sign-out
+  // R1 the account is deleted on device B: device A's next change is refused 401, nothing is written
+  //    into any space, and A signs out QUIETLY -- the session goes, every other local byte stays,
+  //    no further request, no dialog
+  // R2 a 503 (the store cannot be read) changes nothing: the session stays, the device is as it was
+  // R3 401 sync-other-session-invalid (the other half of a link) signs nobody out
+  {
+    const Rk = await acct('99', 'r@example.com');
+    const PROFILER = { name: 'ريم', age: 30, gender: 'female', birthYear: 1996, pid: 'pid-quiet', createdAt: 'r' };
+    let dr = makeDevice({ child_profile: JSON.stringify(PROFILER), ezik_auth_session_v1: Rk.json, ezik_visual_theme_v2: 'night', ezik_chats_v1: JSON.stringify([{ id: 'q1', pk: 'pid-quiet', title: 'q', pinned: false, at: 3 }]), ezik_chat_v1_q1: JSON.stringify([{ role: 'user', content: 'سؤال', timestamp: '2026-10-10T07:00:00.000Z' }]) }, 'device-quiet-1111');
+    await dr.api.cycle(); await settle();
+    // device B deletes the account: the sync erasure, then the account record, the index and B's session
+    const ACCOUNT2 = await load('lib/auth/account.js');
+    const SVC2 = await load('lib/sync/service.js');
+    const sessB = await ACCOUNT2.mintSession(Rk.key);
+    await SVC2.eraseForAccountDelete(Rk.key);
+    await ACCOUNT2.deleteAccount(Rk.key, sessB.session);
+    dr = reopen(dr, 'device-quiet-1111');
+    dr.local._data.ezik_visual_theme_v2 = 'day';                 // A's next change
+    const before = Object.assign({}, dr.local._data);
+    const syncBefore = [...store.data.keys()].filter((k) => k.startsWith('sync:') && !k.includes(':rl:')).sort().join('|');
+    let signedOutEvents = 0;
+    dr.window.addEventListener('ezik:auth:signedout', () => { signedOutEvents++; });
+    let dialogs = 0;
+    dr.window.alert = () => { dialogs++; }; dr.window.confirm = () => { dialogs++; return true; };
+    const n0 = dr.requests.length;
+    const out1 = await dr.api.cycle(); await settle();
+    const after = dr.local._data;
+    const changed = Object.keys(before).filter((k) => k !== 'ezik_auth_session_v1' && before[k] !== after[k]);
+    const added = Object.keys(after).filter((k) => !(k in before));
+    const syncAfter = [...store.data.keys()].filter((k) => k.startsWith('sync:') && !k.includes(':rl:')).sort().join('|');
+    check('R1 an account deleted on device B: A\'s next cycle meets 401 and writes NOTHING into any space', syncAfter === syncBefore && dr.requests.slice(n0).every((r) => r.action !== 'push'), JSON.stringify({ out1, reqs: dr.requests.slice(n0).map((r) => r.action) }));
+    check('R1b ...and A signs out QUIETLY: the session alone goes, every other local byte as it was, no dialog', !('ezik_auth_session_v1' in after) && changed.length === 0 && added.length === 0 && dialogs === 0 && signedOutEvents === 1, JSON.stringify({ changed, added, dialogs, signedOutEvents }));
+    const n1 = dr.requests.length;
+    const out2 = await dr.api.cycle(); await settle();
+    check('R1c ...and the engine has stopped: the next wake sends nothing', out2 === 'signed-out' && dr.requests.length === n1, out2);
+
+    // R2 -- a 503: the auth store cannot be read
+    const R2k = await acct('98', 'r2@example.com');
+    let d5 = makeDevice({ child_profile: JSON.stringify(PROFILER), ezik_auth_session_v1: R2k.json, ezik_visual_theme_v2: 'night' }, 'device-quiet-2222');
+    await d5.api.cycle(); await settle();
+    d5 = reopen(d5, 'device-quiet-2222');
+    d5.local._data.ezik_visual_theme_v2 = 'dawn';
+    const before5 = JSON.stringify(d5.local._data);
+    AUTHSTORE.__setAuthStoreForTest(makeStore({ down: true }));
+    const out5 = await d5.api.cycle(); await settle();
+    AUTHSTORE.__setAuthStoreForTest(store);
+    check('R2 a 503 (the store cannot be read) changes nothing: the session stays and the device is byte for byte as it was', JSON.stringify(d5.local._data) === before5 && 'ezik_auth_session_v1' in d5.local._data, out5);
+    d5 = reopen(d5, 'device-quiet-2222');
+    const out5b = await d5.api.cycle(); await settle();
+    check('R2b ...and the next cycle, with the store back, syncs the change', out5b === 'ok' && 'ezik_auth_session_v1' in d5.local._data, out5b);
+
+    // R3 -- link with a dead other session
+    const R3k = await acct('97', 'r3@example.com');
+    let d6 = makeDevice({ child_profile: JSON.stringify(PROFILER), ezik_auth_session_v1: R3k.json }, 'device-quiet-3333');
+    await d6.api.cycle(); await settle();
+    d6.window.sessionStorage.setItem('ezik_sync_link_v1', 'x'.repeat(43));
+    const lk = await d6.api.finishLink(R3k.session); await settle();
+    check('R3 401 sync-other-session-invalid signs nobody out', lk === 'link-failed' && 'ezik_auth_session_v1' in d6.local._data, String(lk));
+  }
+
   say('=== sync-client-guard: items 24 + 58, application ===');
   for (const r of results) say((r.ok ? '[PASS] ' : '[FAIL] ') + r.name + (r.ok ? '' : '  -- ' + r.detail));
   say('=== ' + (results.length - failed) + '/' + results.length + ' cases hold ===');

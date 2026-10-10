@@ -819,7 +819,7 @@ run('R4 the only removals on the sign-in path are the two one-shot records', asy
 
 /* -- RULING 5: the session is an opaque key, not a signed token ------------- */
 
-run('R5 the session is sess:v1:<32 random bytes>, ninety days, and slides on use', async () => {
+run('R5 the session is sess:v1:<32 random bytes>, four hundred days, and slides on use', async () => {
   const g = buildGraph({});
   const { ticket } = await fullFlow(g);
   const { res } = await legExchange(g, { body: { ticket } });

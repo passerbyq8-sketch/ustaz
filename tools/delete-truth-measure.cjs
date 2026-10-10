@@ -662,6 +662,7 @@ function scene(opts) {
   const fetched = [];
   const bodies = [];
   const alerted = [];
+  const alertSawSession = [];
   const timers = [];
   const cacheDeleted = [];
 
@@ -693,15 +694,15 @@ function scene(opts) {
     fetch: (u, i) => {
       fetched.push(String(u)); bodies.push(i && i.body ? JSON.parse(i.body) : null);
       const st = o.fetchStatus || 200;
-      return Promise.resolve({ ok: st === 200, status: st, json: async () => (st === 200 ? { ok: true } : { ok: false, error: 'sync-unavailable' }) });
+      return Promise.resolve({ ok: st === 200, status: st, json: async () => (st === 200 ? { ok: true } : { ok: false, error: st === 401 ? 'sync-session-invalid' : 'sync-unavailable' }) });
     },
-    alert: (m) => { alerted.push(String(m)); },
+    alert: (m) => { alerted.push(String(m)); alertSawSession.push(storage.getItem(keyOf('AUTH_SESSION_KEY')) !== null); },
     clearTimeout: () => {},
     navigator: { serviceWorker: { controller: { postMessage: (m) => { cacheDeleted.push(m); } } } },
     crypto: { getRandomValues: (a) => a, randomUUID: () => 'uuid-fixture-0001' },
   };
   return {
-    fetched: fetched, bodies: bodies, alerted: alerted, timers: timers, cacheDeleted: cacheDeleted,
+    fetched: fetched, bodies: bodies, alerted: alerted, alertSawSession: alertSawSession, timers: timers, cacheDeleted: cacheDeleted,
     h: makeHarness(env), env: env, storage: storage,
     asked: asked, events: events, painted: painted, setters: setters,
     seeded: storage.keys().slice(),
@@ -967,6 +968,8 @@ function openScene(status) {
   sc.storage.setItem(keyOf('AUTH_SESSION_KEY'), JSON.stringify({ session: 'session-fixture-0123456789', email: '', provider: 'google' }));
   sc.h.openSync('session-fixture-0123456789');
   sc.seededNow = sc.storage.keys().slice().sort();
+  sc.seededValues = {};
+  for (const k of sc.seededNow) sc.seededValues[k] = sc.storage.getItem(k);
   return sc;
 }
 const flushAll = async () => { for (let i = 0; i < 20; i++) await Promise.resolve(); await new Promise((r) => setImmediate(r)); };
@@ -999,13 +1002,22 @@ async function syncFix3Cases() {
     const sc = openScene(401);
     sc.h.resetAll();
     await flushAll();
-    eq(sc.storage.keys().slice().sort(), sc.seededNow, 'the device after a 401 wipe');
+    // THIRD ROUND: after the message the dead session leaves the device quietly -- the session key and
+    // nothing else; every other key keeps the very value it was seeded with.
+    const AUTH = keyOf('AUTH_SESSION_KEY');
+    eq(sc.storage.keys().slice().sort(), sc.seededNow.filter((k) => k !== AUTH), 'the device after a 401 wipe (the session alone gone)');
+    // (The device id is the one exception: the seed is not a well-formed id, so the request that
+    // carried the wipe minted a real one in its place -- a key written, not a key erased.)
+    const DEV = keyOf('DEVICE_ID_KEY');
+    const moved = sc.seededNow.filter((k) => k !== AUTH && k !== DEV && sc.storage.getItem(k) !== sc.seededValues[k]);
+    is(moved.length === 0, 'a key other than the session changed value: ' + moved.join(','));
+    eq(sc.alertSawSession, [true], 'the session was still there when the message showed (the quiet sign-out comes after it)');
     eq(sc.bodies.filter((b) => b && b.action === 'wipe').length, 1, 'wipe requests (a 401 is not retried)');
     eq(sc.alerted.length, 1, 'alerts shown');
     is(/sync\.wipeSession|انتهى دخولُك/.test(sc.alerted[0]), 'the alert is not the sign-in-again message: ' + sc.alerted[0]);
     is(!/sync\.wipeFailed|تأكّد من الاتصال/.test(sc.alerted[0]), 'the alert is the generic connection message');
     eq(sc.cacheDeleted, [], 'worker messages');
-    return '401: one wipe request, the device byte for byte as seeded, the sign-in-again message';
+    return '401: one wipe request, the message, then the quiet sign-out -- every other key as seeded';
   });
   await runAsync('SYNC FIX 3: the device is NOT erased before the server answers', async () => {
     const sc = openScene(200);
@@ -1356,7 +1368,7 @@ async function serverCases() {
       + ' -- an index entry left behind is an arrow to a dead account, and the next sign-in that '
       + 'proves the same address welds a live reader onto a ghost.');
     is(gone(s, STORE.sessionKey(s.sessionId)),
-      'the SESSION survived the delete -- an erased account with ninety days of live session is '
+      'the SESSION survived the delete -- an erased account with four hundred days of live session is '
       + 'the contradiction ruling 3 exists to prevent.');
     return 'account + index + session, all three gone';
   });

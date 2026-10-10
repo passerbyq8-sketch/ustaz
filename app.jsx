@@ -26735,7 +26735,7 @@ function ezikSyncApplyNow(id, rec) {
   if (id.indexOf('note:') === 0) { ezikSyncLibApply(id.slice(5), del ? null : val); }
 }
 
-async function ezikSyncCall(body) {
+async function ezikSyncCall(body, opts) {
   const r = await fetch(EZIK_SYNC_PATH, {
     method: 'POST',
     headers: Object.assign({ 'Content-Type': 'application/json' }, capHeaders()),
@@ -26743,7 +26743,32 @@ async function ezikSyncCall(body) {
   });
   let d = null;
   try { d = await r.json(); } catch (e) { d = null; }
+  if (ezikSyncSessionDead(r.status, d) && !(opts && opts.deferSignOut)) ezikSyncQuietSignOut();
   return { ok: r.ok && !!d && d.ok === true, status: r.status, data: d };
+}
+
+// ============================================================
+// THE SIGN-IN KEEPS ITSELF (third round, 10 October) -- AND A DEAD ONE LEAVES QUIETLY
+// ============================================================
+// The owner's words: saving must be automatic, so no message is needed. The server keeps a session
+// alive for four hundred days of silence and renews it on every use; when it answers that THIS
+// session is dead (401 sync-session-invalid: expired, or its account was deleted on another
+// device), the device signs out on its own: the stored session goes exactly as clearAuthSession()
+// removes it, the engine stops, and the account row shows the ordinary signed-out state. No
+// dialog, no text, no request -- and NOTHING else on the device is touched (this is not
+// ezikSyncSignOutWipe): signing in again joins the device with the account as it always did.
+// "sync-other-session-invalid" is about the OTHER sign-in of a link and signs nobody out; a 503 or
+// a network failure changes nothing, and the next cycle tries again.
+function ezikSyncSessionDead(status, d) {
+  return status === 401 && !!d && d.error === 'sync-session-invalid';
+}
+function ezikSyncQuietSignOut() {
+  clearAuthSession();
+  if (ezikSyncSoonTimer) { clearTimeout(ezikSyncSoonTimer); ezikSyncSoonTimer = null; }
+  if (ezikSyncNext) { clearTimeout(ezikSyncNext); ezikSyncNext = null; }
+  ezikSyncOpenCache = { session: '', open: false, at: 0 };
+  try { window.dispatchEvent(new CustomEvent('ezik:auth:signedout')); } catch (e) {}
+  try { window.dispatchEvent(new CustomEvent('ezik:sync:status')); } catch (e) {}
 }
 
 // The switch as the server last answered it for THIS session. Read by the controls; never a
@@ -27021,7 +27046,7 @@ function ezikSyncFlush() {
       const done = () => { for (const c of batch) if (ezikSyncInFlight[c.id] === sig(c)) delete ezikSyncInFlight[c.id]; };
       try {
         fetch(EZIK_SYNC_PATH, { method: 'POST', headers, keepalive, body: JSON.stringify({ action: 'push', session: held.session, changes: batch }) })
-          .then((r) => r.json().then((d) => { done(); if (r.ok && d && d.ok) ezikSyncFlushTaken(d.results); }))
+          .then((r) => r.json().then((d) => { done(); if (r.ok && d && d.ok) ezikSyncFlushTaken(d.results); else if (ezikSyncSessionDead(r.status, d)) ezikSyncQuietSignOut(); }))
           .catch(done);
       } catch (e) { done(); }
     };
@@ -27180,6 +27205,8 @@ function ezikSyncResetGate(again) {
       // A DEAD SESSION (401) is not a network failure, and pressing again cannot cure it: the reader
       // is told to sign in again first, then repeat the delete. Nothing is erased either way.
       try { alert(ezT(ezikSyncWipeRefusal === 'session' ? 'sync.wipeSession' : 'sync.wipeFailed')); } catch (e) {}
+      // ...and then the dead session leaves this device quietly, by the third round's rule.
+      if (ezikSyncWipeRefusal === 'session') ezikSyncQuietSignOut();
     }
   });
   return true;
@@ -27199,7 +27226,7 @@ async function ezikSyncWipeServer() {
   try { if (ezikSyncRunning) await ezikSyncRunning; } catch (e) {}
   for (let i = 0; i < 2; i++) {
     try {
-      const r = await ezikSyncCall({ action: 'wipe', session: held.session });
+      const r = await ezikSyncCall({ action: 'wipe', session: held.session }, { deferSignOut: true });
       if (r.ok) { ezikSyncWipeRefusal = ''; ezikSyncOpenCache = { session: '', open: false, at: 0 }; return true; }
       // The switch was shut since the last answer: believed now, so the next press is the
       // device-only erase every closed account gets.
@@ -30196,6 +30223,12 @@ function EzikSignInRow() {
   const csRef = useRef('');
   const stopRef = useRef(null);
   useEffect(() => () => { if (stopRef.current) { stopRef.current(); stopRef.current = null; } }, []);
+  // A dead session that signed itself out (ezikSyncQuietSignOut) is shown as signed out at once.
+  useEffect(() => {
+    const onOut = () => { csRef.current = ''; setSession(null); setLine(''); };
+    try { window.addEventListener('ezik:auth:signedout', onOut); } catch (e) {}
+    return () => { try { window.removeEventListener('ezik:auth:signedout', onOut); } catch (e) {} };
+  }, []);
   // AND THE SAME DECLARATION THAT TAKES THE TWO DOORS OFF THE ENTRY SCREEN TAKES THIS ROW WITH
   // THEM. Apple 4.8 is a rule about what is OFFERED, and this row offers the very thing the
   // entry card was made to stop offering -- one Google door, standing alone, on the platform

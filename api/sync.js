@@ -22,7 +22,7 @@
 
 import { applyCorsOrigin } from '../lib/ratelimit.js';
 import { safeId, DEVICE_HEADER } from '../lib/daycap.js';
-import { touchSession } from '../lib/auth/account.js';
+import { sessionState } from '../lib/auth/account.js';
 import { syncOpenFor, syncSwitch } from '../lib/sync/flag.js';
 import { PRIVACY_SYNC_HTML } from '../lib/sync/privacy-page.js';
 import { envName } from '../lib/sync/store.js';
@@ -36,11 +36,16 @@ let _deps = null;
 /** Test seam: { allow(env, space) -> bool, now() }. Production passes nothing. */
 export function __setSyncRouteDepsForTest(d) { _deps = d; }
 
-async function liveAccount(session) {
-  if (typeof session !== 'string' || session.length < 16 || session.length > 128) return null;
-  const rec = await touchSession(session);
-  return rec && typeof rec.accountKey === 'string' ? rec.accountKey : null;
+// THE THREE STATES (third round). 'live' carries the account key; 'dead' is a 401 the device acts
+// on (it signs itself out, quietly); 'unknown' -- no store, or a read that failed -- is a 503 and
+// never a 401, because an outage must not sign anybody out. A malformed session is dead.
+async function accountOf(session) {
+  if (typeof session !== 'string' || session.length < 16 || session.length > 128) return { state: 'dead' };
+  const st = await sessionState(session);
+  if (st.state === 'live' && st.record && typeof st.record.accountKey === 'string') return { state: 'live', account: st.record.accountKey };
+  return { state: st.state === 'unknown' ? 'unknown' : 'dead' };
 }
+const sent = (v) => typeof v === 'string' && v.length > 0;
 
 export default async function handler(req, res) {
   applyCorsOrigin(req, res);
@@ -72,16 +77,22 @@ export default async function handler(req, res) {
   if (!SYNC_ACTIONS.includes(action)) return res.status(400).json({ ok: false, error: 'sync-action' });
 
   try {
-    const account = await liveAccount(body.session);
-
     if (action === 'status') {
-      return res.status(200).json({ ok: true, open: await syncOpenFor(account) });
+      // No session sent: answered as before (the switch for a guest). A session sent and DEAD is a
+      // 401, so the device learns it at once instead of caching "closed" for half an hour.
+      if (!sent(body.session)) return res.status(200).json({ ok: true, open: await syncOpenFor(null) });
+      const who = await accountOf(body.session);
+      if (who.state === 'unknown') return res.status(503).json({ ok: false, error: 'sync-unavailable' });
+      if (who.state === 'dead') return res.status(401).json({ ok: false, error: 'sync-session-invalid' });
+      return res.status(200).json({ ok: true, open: await syncOpenFor(who.account) });
     }
 
     const device = safeId((req.headers || {})[DEVICE_HEADER]);
     if (!device) return res.status(400).json({ ok: false, error: 'sync-device-missing' });
-    // No session, a dead one, one the store cannot read: one answer for all of them.
-    if (!account) return res.status(401).json({ ok: false, error: 'sync-session-invalid' });
+    const who = await accountOf(body.session);
+    if (who.state === 'unknown') return res.status(503).json({ ok: false, error: 'sync-unavailable' });
+    if (who.state === 'dead') return res.status(401).json({ ok: false, error: 'sync-session-invalid' });
+    const account = who.account;
     if (!(await syncOpenFor(account))) return res.status(403).json({ ok: false, error: 'sync-closed' });
 
     const env = envName();
@@ -107,8 +118,10 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
     // link
-    const other = await liveAccount(body.otherSession);
-    if (!other) return res.status(401).json({ ok: false, error: 'sync-other-session-invalid' });
+    const otherWho = await accountOf(body.otherSession);
+    if (otherWho.state === 'unknown') return res.status(503).json({ ok: false, error: 'sync-unavailable' });
+    if (otherWho.state === 'dead') return res.status(401).json({ ok: false, error: 'sync-other-session-invalid' });
+    const other = otherWho.account;
     if (!(await syncOpenFor(other))) return res.status(403).json({ ok: false, error: 'sync-closed' });
     const l = await link(account, other);
     return res.status(200).json({ ok: true, moved: l.moved, already: !!l.already });

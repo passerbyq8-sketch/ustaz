@@ -84,7 +84,7 @@ export default async function handler(req, res) {
   // THE ACCOUNT IS RESOLVED FROM THE SESSION AND FROM NOTHING ELSE. touchSession() is the seam
   // that already knows what a live session is -- present, readable, and not past its expiry --
   // and it is used here rather than a second copy of that rule written out on this page. It
-  // slides the ninety days as it reads, which is three lines of work about to be undone by the
+  // slides the four hundred days as it reads, which is three lines of work about to be undone by the
   // revoke below; a duplicated definition of "alive" would have been the more expensive mistake.
   const record = await touchSession(session);
   if (!record || typeof record.accountKey !== 'string') {
