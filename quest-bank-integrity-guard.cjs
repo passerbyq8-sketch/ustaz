@@ -1801,7 +1801,11 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3264717. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
   //   2026-10-10 -- ITEM 110 (AMEND-01: the menu of b (wird tile, compact prayer card, prayer settings sheet)): app.js 2049479 -> 2054843 bytes, sha256 cb8eb780..a9fb; index.html 155386.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3270081. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
-  'sw.js': 'bafa14051b7f261b9adc23ea84558a19c708d33e21ba99c1750c63001adcb449',
+  //   2026-10-10 -- ITEM 110 (AMEND-01: one grid in every mode so a held tile keeps its node (touch drag)): app.js 2054843 -> 2055234 bytes, sha256 2b1f990c..9989; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3270472. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (AMEND-01: a held tile refuses the browser's long press (selection, menu)): app.js 2055234 -> 2055698 bytes, sha256 95b68ab1..60e3; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3270936. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  'sw.js': 'ae534c2af738e76fe9d99c8bd964b859c923ab1471db12bd7586a123f4279dae',
 };
 
 // ---------------------------------------------------------------------------
@@ -2907,7 +2911,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2054843, of: 'app.js' },
+      { n: 2055698, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

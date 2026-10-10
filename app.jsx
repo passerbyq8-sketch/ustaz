@@ -8840,34 +8840,41 @@ function Ez110Home(v) {
     const onUp = () => { const p = press.current; if (p && p.timer) clearTimeout(p.timer); press.current = null; setDragId(null); };
     // a held tile owns the finger: the page does not scroll under it
     const onTouch = (e) => { const p = press.current; if (p && p.armed && e.cancelable) e.preventDefault(); };
+    // while a tile is held the browser's own long press does nothing: no word selection (which cancels the
+    // touch) and no menu -- wherever the finger now is, since arranging re-lays the grid under it
+    const onHold = (e) => { if (press.current) e.preventDefault(); };
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
     window.addEventListener('pointercancel', onUp);
     window.addEventListener('touchmove', onTouch, { passive: false });
+    window.addEventListener('selectstart', onHold, true);
+    window.addEventListener('contextmenu', onHold, true);
     return () => {
       window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp);
       window.removeEventListener('pointercancel', onUp); window.removeEventListener('touchmove', onTouch);
+      window.removeEventListener('selectstart', onHold, true); window.removeEventListener('contextmenu', onHold, true);
     };
   }, [edit]);
-  const grid = (ids, keyPrefix) => (
-    <div className="ez110-grid" key={keyPrefix}>
-      {ids.filter((id) => byId[id]).map((id, i, arr) => (
-        <Ez110Tile key={id} m={byId[id]} edit={edit} idx={i} count={arr.length}
-          onMove={move} dragging={dragId === id} onPointerDown={onPointerDown(id)} />
-      ))}
-    </div>
+  // ONE GRID, ONE PARENT, IN EVERY MODE: the group titles are full-row items of the same grid, so a tile
+  // keeps its DOM node when arranging opens. A touch gesture belongs to the node it started on; when the
+  // tiles were re-mounted into a new grid at the long press, the phone cancelled the drag (pointercancel).
+  const tile = (id, i, count) => (
+    <Ez110Tile key={id} m={byId[id]} edit={edit} idx={i} count={count}
+      onMove={move} dragging={dragId === id} onPointerDown={onPointerDown(id)} />
   );
-  let shelf;
-  if (edit) shelf = grid(draft || liveIds, 'edit');
-  else if (custom) shelf = grid(liveIds, 'mine');
+  const flat = (ids) => { const list = ids.filter((id) => byId[id]); return list.map((id, i) => tile(id, i, list.length)); };
+  let items;
+  if (edit) items = flat(draft || liveIds);
+  else if (custom) items = flat(liveIds);
   else {
-    shelf = groups.map((g) => (
-      <section key={g.key} className="ez110-group">
-        <h3 className="ez110-group-title">{ezT(g.key)}</h3>
-        {grid(g.ids, g.key)}
-      </section>
-    ));
+    items = [];
+    groups.forEach((g) => {
+      items.push(<h3 key={'h:' + g.key} className="ez110-group-title">{ezT(g.key)}</h3>);
+      const list = g.ids.filter((id) => byId[id]);
+      list.forEach((id, i) => items.push(tile(id, i, list.length)));
+    });
   }
+  const shelf = <div className="ez110-grid">{items}</div>;
   return (
     <div className="theme-dark ezhome ez110-home" style={s.ezistContainer}>
       <EzistTopNav onOpenMenu={v.onOpenMenu} onOpenTafsir={v.onOpenTafsir} />

@@ -576,8 +576,10 @@ html[data-ez110] .ez110-done {
 html[data-ez110] .ez110-hint { margin: 0; color: var(--vt-muted); font-size: calc(13px * var(--ez-fs, 1)); }
 
 /* ---- the groups and their tiles ---- */
-html[data-ez110] .ez110-group { display: flex; flex-direction: column; gap: 10px; }
-html[data-ez110] .ez110-group-title { margin: 6px 2px 0; font-size: calc(14px * var(--ez-fs, 1)); font-weight: 700; color: var(--vt-muted); }
+/* the group titles are full-row items of the one grid (AMEND-01), so tiles keep their nodes when arranging opens */
+html[data-ez110] .ez110-group-title { grid-column: 1 / -1; margin: 10px 2px -2px; font-size: calc(14px * var(--ez-fs, 1)); font-weight: 700; color: var(--vt-muted); }
+html[data-ez110] .ez110-grid > .ez110-group-title:first-child { margin-top: 0; }
+html[data-ez110] .ez110-home .ez110-grid { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 html[data-ez110] .ez110-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 8px; }
 @media (min-width: 700px) { html[data-ez110] .ez110-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
 html[data-ez110] .ez110-tile-wrap { position: relative; display: flex; flex-direction: column; align-items: center; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
