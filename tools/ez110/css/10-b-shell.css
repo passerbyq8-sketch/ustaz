@@ -108,7 +108,8 @@ html[data-ez110] .ezsh-nav-inner:has(.ez110-prayerset) > .ezsh-nav-side:not(.is-
    N28) and the dark drawer is untouched, so «ب» orders it HERE, visually: the new conversation above the search; the
    fixed rows (about, sources, feedback) above a footer that is the profile row -- Settings' one entry -- with the
    invite as a small share button in its opposite corner (the same button: its handler, its accessible name; its word
-   is hidden visually, not removed). ---- */
+   is hidden visually, not removed). ROUND 4 §3-1-2: since round 3 «ب» draws no sources row there, so the invite is
+   the THIRD child -- the fourth is «اقتراح أو شكوى», which round 3 had put in the corner by mistake. ---- */
 html[data-ez110] .ezc-drawer-head + div > * { order: 3; }
 html[data-ez110] .ezc-drawer-head + div > :nth-child(2) { order: 1; }
 html[data-ez110] .ezc-drawer-head + div > :nth-child(1) { order: 2; }
@@ -117,12 +118,12 @@ html[data-ez110] .ezc-drawer-head + div + div > * { order: 1; }
 html[data-ez110] .ezc-drawer-head + div + div > :nth-child(1) {
   order: 9; margin-top: 6px; padding-top: 6px; padding-inline-end: 52px; border-top: 1px solid var(--vt-line);
 }
-html[data-ez110] .ezc-drawer-head + div + div > :nth-child(4) {
+html[data-ez110] .ezc-drawer-head + div + div > :nth-child(3) {
   /* !important: the row carries an inline width:100% and padding (its React style object), which a sheet cannot outrank otherwise */
   order: 10; position: absolute; bottom: 0; inset-inline-end: 0; width: 48px !important; min-width: 48px; height: 52px; min-height: 48px;
   padding: 0 !important; justify-content: center; gap: 0 !important;
 }
-html[data-ez110] .ezc-drawer-head + div + div > :nth-child(4) > span {
+html[data-ez110] .ezc-drawer-head + div + div > :nth-child(3) > span {
   position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
 }
 /* a drawer row's label starts at its line's start in either direction (the row's style object says right) */
