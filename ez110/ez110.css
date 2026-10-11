@@ -766,6 +766,11 @@ html[data-ez110] .ezsh-group[data-ez110-grp="appearance"] { order: 23; }
 html[data-ez110] .ezsh-group[data-ez110-grp="appearance"]:has(.ez110-pv) { order: 21; }
 html[data-ez110] .ezsh-group[data-ez110-grp="appearance"]:has(.ez110-seg):not(:has(.ez110-pv)) { order: 22; }
 
+/* ---- ROUND 3 §3-6: the page «الخصوصية والبيانات» -- the consent first, then the way to «حذف كل بياناتي» ---- */
+html[data-ez110] .ezsh-group[data-ez110-grp="privacy-delete"] { order: 52; }
+html[data-ez110] .ezsh-group[data-ez110-grp="privacy"] .ez110-row:first-child,
+html[data-ez110] .ezsh-group[data-ez110-grp="privacy-delete"] .ez110-row:first-child { border-top: 0; }
+
 /* ==== 40-b-answer.css ==== */
 /* 40 -- THE ANSWER (board B3). The answer's markup and inline styles are pinned byte for byte by
    speedclient/speedintegration, so «ب» restyles it here, through classes, and touches nothing inside.

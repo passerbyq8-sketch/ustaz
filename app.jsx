@@ -1756,6 +1756,7 @@ const EZ_I18N = {
     'ez110.bar.hint': '\u0648\u0644\u062A\u063A\u064A\u064A\u0631 \u0642\u0633\u0645 \u0641\u064A \u0627\u0644\u0634\u0631\u064A\u0637 \u0627\u0644\u0633\u0641\u0644\u064A \u0627\u0633\u062D\u0628 \u0645\u0631\u0628\u0639\u064B\u0627 \u0625\u0644\u0649 \u062E\u0627\u0646\u062A\u0647\u060C \u0623\u0648 \u0627\u0636\u063A\u0637 \u0627\u0644\u062E\u0627\u0646\u0629 \u062B\u0645 \u0627\u0644\u0645\u0631\u0628\u0639.',
     'ez110.bar.pick': '\u0627\u0636\u063A\u0637 \u0627\u0644\u0622\u0646 \u0627\u0644\u0642\u0633\u0645 \u0627\u0644\u0630\u064A \u062A\u0636\u0639\u0647 \u0641\u064A \u0647\u0630\u0647 \u0627\u0644\u062E\u0627\u0646\u0629.',
     'ez110.acts.more': '\u0627\u0644\u0645\u0632\u064A\u062F',
+    'ez110.set.privacyHint': '\u0645\u0648\u0627\u0641\u0642\u0629 \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A\u060C \u0648\u0633\u064A\u0627\u0633\u0629 \u0627\u0644\u062E\u0635\u0648\u0635\u064A\u0629\u060C \u0648\u062D\u0630\u0641 \u0628\u064A\u0627\u0646\u0627\u062A\u0643',
   },
   en: {
     'common.close': 'Close',
@@ -3101,6 +3102,7 @@ const EZ_I18N = {
     'ez110.bar.hint': 'To change a section in the bottom bar, drag a tile onto its slot, or tap the slot and then the tile.',
     'ez110.bar.pick': 'Now tap the section to put in this slot.',
     'ez110.acts.more': 'More',
+    'ez110.set.privacyHint': 'AI consent, the privacy policy, and deleting your data',
   },
 };
 
@@ -9223,7 +9225,7 @@ function Ez110Preview({ id }) {
     </span>
   );
 }
-function Ez110SettingsExtras({ onOpenControl }) {
+function Ez110SettingsExtras({ onOpenPrivacy }) {
   const ez = useEz110();
   const ids = ez110Choosable();
   const go = <svg className="ez110-row-go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>;
@@ -9237,22 +9239,41 @@ function Ez110SettingsExtras({ onOpenControl }) {
         <Ez110Radio label={ezT('ez110.set.digits')} value={ez.digits} onPick={ez110WriteDigits}
           options={[{ v: 'auto', label: ezT('ez110.set.digits.auto') }, { v: 'arab', label: ezT('ez110.set.digits.arab') }, { v: 'latn', label: ezT('ez110.set.digits.latn') }]} />
       </EzShellGroup>
-      <EzShellGroup title={ezT('ez110.set.deleteWhere')} grp="privacy">
-        <button type="button" className="ez110-row" onClick={onOpenControl}>
+      {/* ROUND 3 §3-6 (owner): «الخصوصية والبيانات» is ONE row here; what was under it is on its own page */}
+      <Ez110PlainGroup grp="privacy">
+        <button type="button" className="ez110-row" onClick={onOpenPrivacy} data-ez110-privacy-row="1">
           <span className="ez110-row-text">
-            <span className="ez110-row-title">{ezT('settings.control')}</span>
-            <span className="ez110-row-sub">{ezT('ez110.set.deleteWhereHint')}</span>
+            <span className="ez110-row-title">{ezT('ez110.set.privacy')}</span>
+            <span className="ez110-row-sub">{ezT('ez110.set.privacyHint')}</span>
           </span>
-          {go}
+          {EZ110_ROW_GO}
         </button>
-        {[['/privacy.html', 'ez110.set.privacyPolicy'], ['/delete.html', 'ez110.set.deletePage']].map(([href, k]) => (
-          <a key={href} className="ez110-row" href={href}>
-            <span className="ez110-row-text"><span className="ez110-row-title">{ezT(k)}</span></span>
-            {go}
-          </a>
-        ))}
-      </EzShellGroup>
+      </Ez110PlainGroup>
     </>
+  );
+}
+const EZ110_ROW_GO = <svg className="ez110-row-go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>;
+// A group of the shell with no heading of its own (the section head above it already names it).
+function Ez110PlainGroup({ grp, children }) {
+  return (
+    <section className="ezsh-group" data-ez110-grp={grp}>
+      <div className="adhkar3" style={s.ezshGroup}>{children}</div>
+    </section>
+  );
+}
+// The one row that leads to «حذف كل بياناتي». It is named for what it reaches, never «التحكم» (that word is the
+// parents' own row, once, in «الوالدان»); the delete stays behind the parents' lock, exactly where it was.
+function Ez110DeleteAllRow({ onOpenControl }) {
+  return (
+    <Ez110PlainGroup grp="privacy-delete">
+      <button type="button" className="ez110-row" onClick={onOpenControl} data-ez110-delete-row="1">
+        <span className="ez110-row-text">
+          <span className="ez110-row-title">{ezT('ez110.set.deleteWhere')}</span>
+          <span className="ez110-row-sub">{ezT('ez110.set.deleteWhereHint')}</span>
+        </span>
+        {EZ110_ROW_GO}
+      </button>
+    </Ez110PlainGroup>
   );
 }
 
@@ -32199,6 +32220,9 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   const [widgets, setWidgets] = useState(readHomeWidgets);
   const [arrangeOpen, setArrangeOpen] = useState(false);
   useEzikBackLayer(arrangeOpen, () => setArrangeOpen(false));
+  // ROUND 3 §3-6 («ب» only): «الخصوصية والبيانات» is one row that opens its own page; this is that page's layer.
+  const [privOpen, setPrivOpen] = useState(false);
+  useEzikBackLayer(privOpen, () => setPrivOpen(false));
   // Read once at mount from the one reader, written through the one writer -- the watermark
   // rule exactly. The switch shows the RESOLVED behaviour, so an `auto` device shows the
   // state it is actually in rather than a third word the reader never chose.
@@ -32294,6 +32318,36 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
     arrangeOpen: arrangeOpen,
     onArrange: (next) => { if (!next && ezikHistBack()) return; setArrangeOpen(next); },
   };
+  const aiConsentGroup = (
+    <EzShellGroup title={EZ_AIS_TITLE} grp="privacy">
+      <div style={s.aicStatusRow}>{aiConsent === EZ_AI_CONSENT_GRANTED ? EZ_AIS_ON : EZ_AIS_OFF}</div>
+      {aiConsent === EZ_AI_CONSENT_GRANTED && (
+        <div style={s.aicNote}>{aiConsentBy === 'guardian' ? EZ_AIS_BY_GUARDIAN : EZ_AIS_BY_USER}</div>
+      )}
+      <div style={s.aicNote}>{EZ_AIS_PROVIDERS_LABEL + ' '}<span style={s.aicProvider}>{EZ_AIS_PROVIDERS_NAMES}</span></div>
+      <AIConsentVersion style={s.aicNote} />
+      <AIConsentLinks />
+      {aiConsent === EZ_AI_CONSENT_GRANTED
+        ? (<>
+            <button type="button" onClick={onWithdrawAI} style={s.aicWithdrawBtn}>{EZ_AIS_WITHDRAW}</button>
+            <div style={s.aicNote}>{EZ_AIS_KEEP}</div>
+          </>)
+        : <button type="button" onClick={onReviewAI} style={s.aicWithdrawBtn}>{EZ_AIS_REVIEW}</button>}
+    </EzShellGroup>
+  );
+  // ROUND 3 §3-6 («ب» only): THE PAGE «الخصوصية والبيانات». Everything about privacy and data, once each: the AI consent
+  // (with its links to the privacy policy, the deletion page and support -- the site's two pages are linked, never
+  // touched), and the row that leads to «حذف كل بياناتي», which stays behind the parents' lock in «التحكم».
+  if (ez.id && privOpen) {
+    return (
+      <EzShell title={ezT('ez110.set.privacy')} onBack={() => { if (ezikHistBack()) return; setPrivOpen(false); }} backLabel={A2_BACK}>
+        <div className="ezsh-grid">
+          {aiConsentGroup}
+          <Ez110DeleteAllRow onOpenControl={onOpenControl} />
+        </div>
+      </EzShell>
+    );
+  }
   return (
     <EzShell title={A_SETTINGS} onBack={onBack} backLabel={A2_BACK}>
       {/* S105 -- the SAME controls, the same handlers, the same keys and the same accessible
@@ -32518,22 +32572,9 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
         </EzShellGroup>
         {/* الخصوصية والذكاء الاصطناعي -- the consent decision, stated and reversible. It is NOT
             behind the PIN gate: a reader must be able to withdraw without an adult's code, and
-            Apple requires the withdrawal to be as reachable as the grant. */}
-        <EzShellGroup title={EZ_AIS_TITLE} grp="privacy">
-          <div style={s.aicStatusRow}>{aiConsent === EZ_AI_CONSENT_GRANTED ? EZ_AIS_ON : EZ_AIS_OFF}</div>
-          {aiConsent === EZ_AI_CONSENT_GRANTED && (
-            <div style={s.aicNote}>{aiConsentBy === 'guardian' ? EZ_AIS_BY_GUARDIAN : EZ_AIS_BY_USER}</div>
-          )}
-          <div style={s.aicNote}>{EZ_AIS_PROVIDERS_LABEL + ' '}<span style={s.aicProvider}>{EZ_AIS_PROVIDERS_NAMES}</span></div>
-          <AIConsentVersion style={s.aicNote} />
-          <AIConsentLinks />
-          {aiConsent === EZ_AI_CONSENT_GRANTED
-            ? (<>
-                <button type="button" onClick={onWithdrawAI} style={s.aicWithdrawBtn}>{EZ_AIS_WITHDRAW}</button>
-                <div style={s.aicNote}>{EZ_AIS_KEEP}</div>
-              </>)
-            : <button type="button" onClick={onReviewAI} style={s.aicWithdrawBtn}>{EZ_AIS_REVIEW}</button>}
-        </EzShellGroup>
+            Apple requires the withdrawal to be as reachable as the grant. ROUND 3 §3-6: in «ب» it moves,
+            whole, into the «الخصوصية والبيانات» page (aiConsentGroup below), behind one row. */}
+        {ez.id ? null : aiConsentGroup}
         {/* S90 -- the one row that opens the PIN gate. Same handler, same accessible name. */}
         <EzShellGroup title={A_CONTROL} grp="parents">
           <button type="button" onClick={onOpenControl} style={s.settingsNavBtn} aria-label={A_CONTROL}>
@@ -32604,7 +32645,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
         )}
         {/* ITEM 121: the prayer preferences are last, so every established Settings position
             above remains where the reader learned it. The two stored records keep their keys. */}
-        {ez.id ? <Ez110SettingsExtras onOpenControl={onOpenControl} /> : null}
+        {ez.id ? <Ez110SettingsExtras onOpenPrivacy={() => setPrivOpen(true)} /> : null}
         {/* AMEND-01: with an identity lit these four live in the prayer section's own sheet
             (Ez110PrayerSettingsSheet), the same controls over the same stores. */}
         {ez.id ? null : (
