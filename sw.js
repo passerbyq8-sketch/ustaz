@@ -54,7 +54,7 @@
 const CACHE = 'ezik-v90';
 // '/index.html' is NOT here. Vercel serves this document byte-identically for '/' and for
 // '/index.html', so precaching both downloaded the whole shell TWICE on every cold visit --
-// a second copy of the 155386 bytes '/' already holds. The network-first branch below still
+// a second copy of the 155556 bytes '/' already holds. The network-first branch below still
 // cache.put()s the shell on every successful load, so the offline fallback keeps working from
 // the '/' entry.
 //

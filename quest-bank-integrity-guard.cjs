@@ -1891,7 +1891,9 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3393162. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
   //   2026-10-11 -- Item 86 (memorizer) phase 5: weakness map: app.js 2177924 -> 2180458 bytes, sha256 ef42cf60..7226; index.html 155556.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3395866. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
-  'sw.js': '34c3b3adeffbc9ceb21c70ea4d463cde71bdc067c2453c535997f6fd5ffe3345',
+  //   2026-10-11 -- Item 86 (memorizer) phase 5: index.html prose count: app.js 2180458 -> 2180458 bytes, sha256 ef42cf60..7226; index.html 155556.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3395866. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  'sw.js': '24657446a0268359fc05c9ee38a717ea28feadf704764cf05bfaddc0ed18f814',
 };
 
 // ---------------------------------------------------------------------------
