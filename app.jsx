@@ -9371,10 +9371,14 @@ function Ez110SettingsExtras({ onOpenPrivacy }) {
   const go = <svg className="ez110-row-go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>;
   return (
     <>
+      {/* ROUND 4 §3-1-5 (owner): the chooser shows only what this reader may choose -- with «ب» alone there is nothing to
+          choose, so the row is not drawn; the owner, who has the four, sees the four */}
+      {ids.length > 1 ? (
       <EzShellGroup title={ezT('ez110.set.identity')} hint={ezT('ez110.set.identityHint')} grp="appearance-id">
         <Ez110Radio label={ezT('ez110.set.identity')} value={ez.id} onPick={ez110WriteIdentity}
           options={ids.map((id) => ({ v: id, label: ezT('ez110.id.' + id), preview: <Ez110Preview id={id} /> }))} />
       </EzShellGroup>
+      ) : null}
       {/* ROUND 3 §3-9-2 (owner): the interface font -- the identity's own by default */}
       <EzShellGroup title={ezT('ez110.set.font')} hint={ezT('ez110.set.fontHint')} grp="appearance-font">
         <Ez110Radio label={ezT('ez110.set.font')} value={font} onPick={(v) => setFont(ez110WriteFont(v))}
