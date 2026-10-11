@@ -934,7 +934,10 @@ html[data-ez110="e"] .ezc:has(> .ezc-rail)::before {
     radial-gradient(240px 200px at 10% 30%, var(--ez110-halo2), transparent 70%);
 }
 html[data-ez110="e"] .ez110-home > *,
-html[data-ez110="e"] .ezc:has(> .ezc-rail) > * { position: relative; z-index: 1; }
+html[data-ez110="e"] .ezc:has(> .ezc-rail) > :not(.ezwm) { position: relative; z-index: 1; }
+/* ROUND 3 §3-7 (owner): the Ezik watermark stays what it is in every identity -- a layer over the whole chat, behind
+   its content, at its own opacity setting. The rule above once made it a zero-height box (measured: 0 visible pixels). */
+html[data-ez110="e"] .ezc:has(> .ezc-rail) > .ezwm { position: absolute; inset: 0; z-index: 0; }
 html[data-ez110="e"][data-theme="dark"] .ez110-home::before,
 html[data-ez110="e"][data-theme="dark"] .ezc:has(> .ezc-rail)::before,
 html[data-ez110="e"][data-ez110-lowend] .ez110-home::before,

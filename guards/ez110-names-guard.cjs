@@ -9,6 +9,9 @@
 //   N4  every surface of «ب» reads the table: the tiles, the bottom bar (its two chosen slots, round 3), the page titles of the
 //       prayer, tasbih, calculator, adhkar and fatwa sections
 //   N5  the dark design keeps its own names: each lit title above is a ternary whose dark branch is the old one
+//   W1  ROUND 3 §3-7: the Ezik watermark is ONE mark in every identity. No rule of the lit sheet that lifts the chat's
+//       children ("> *" with a position) may reach .ezwm -- that is how «هـ» once drew it as a zero-height box
+//   W2  and «هـ» states the mark's own layer: absolute over the whole chat, behind its content
 'use strict';
 const fs = require('fs'), path = require('path'), vm = require('vm');
 const ROOT = path.join(__dirname, '..');
@@ -55,5 +58,16 @@ const lit = [
 ];
 for (const [expr, id] of lit) ok(has(expr), `N4/N5 the ${id} page title reads the table lit and keeps its own name dark`);
 ok(/ez110ReadIdentity\(\) \? \(\s*<span className="ezsh-brand">[\s\S]{0,140}\{ez110Name\('fatwa'\)\}[\s\S]{0,40}\) : <span aria-hidden="true" \/>/.test(jsx), 'N4/N5 the fatwa head names its section lit and stays empty dark');
+// W1/W2 -- the watermark (the built lit sheet, comments stripped)
+const litCss = (() => { try { return fs.readFileSync(path.join(ROOT, 'ez110', 'ez110.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, ''); } catch (e) { return ''; } })();
+ok(litCss.length > 0, 'W1 the lit sheet ez110/ez110.css is readable');
+const lifts = [];
+litCss.replace(/([^{}]+)\{([^{}]*)\}/g, (all, sel, body) => {
+  if (/position\s*:/.test(body)) sel.split(',').forEach((x) => { x = x.trim(); if (/\.ezc\b/.test(x) && />\s*\*\s*$/.test(x)) lifts.push(x); });
+  return all;
+});
+ok(lifts.length === 0, 'W1 no lit rule lifts every child of the chat ("> *"); the watermark is excluded by name' + (lifts.length ? ': ' + lifts.join(' | ') : ''));
+ok(litCss.indexOf('html[data-ez110="e"] .ezc:has(> .ezc-rail) > :not(.ezwm) { position: relative; z-index: 1; }') >= 0, 'W1 «هـ» lifts the chat\'s children except the watermark');
+ok(litCss.indexOf('html[data-ez110="e"] .ezc:has(> .ezc-rail) > .ezwm { position: absolute; inset: 0; z-index: 0; }') >= 0, 'W2 «هـ» draws the watermark as a layer over the whole chat, behind its content');
 console.log(`\nez110-names: PASS=${passes} FAIL=${fails}`);
 process.exit(fails ? 1 : 0);
