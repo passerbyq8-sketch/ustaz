@@ -690,5 +690,10 @@
     "name": "ez110override",
     "script": "guards/ez110-override-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "ez110names",
+    "script": "guards/ez110-names-guard.cjs",
+    "args": ""
   }
 ]

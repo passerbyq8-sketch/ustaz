@@ -1749,6 +1749,8 @@ const EZ_I18N = {
     'fix.loc.nopos': '\u062A\u0639\u0630\u0651\u0631\u064E \u062A\u062D\u062F\u064A\u062F\u064F \u0627\u0644\u0645\u0648\u0642\u0639\u0650 \u0627\u0644\u0622\u0646\u060C \u0648\u0627\u0644\u0645\u0648\u0636\u0639\u064F \u0627\u0644\u0633\u0627\u0628\u0642\u064F \u0628\u0627\u0642\u064D. \u0623\u0639\u0650\u062F\u0650 \u0627\u0644\u0645\u062D\u0627\u0648\u0644\u0629\u064E \u0641\u064A \u0645\u0643\u0627\u0646\u064D \u0645\u0643\u0634\u0648\u0641.',
     'ez110.set.reading': '\u0627\u0644\u0642\u0631\u0627\u0621\u0629 \u0648\u0627\u0644\u0643\u062A\u0627\u0628\u0629',
     'ez110.set.langDigits': '\u0627\u0644\u0644\u063A\u0629 \u0648\u0627\u0644\u0623\u0631\u0642\u0627\u0645',
+    'ez110.name.prayer': '\u0627\u0644\u0635\u0644\u0627\u0629',
+    'ez110.name.calc': '\u0627\u0644\u062D\u0627\u0633\u0628\u0629 \u0627\u0644\u0634\u0631\u0639\u064A\u0629',
   },
   en: {
     'common.close': 'Close',
@@ -3087,6 +3089,8 @@ const EZ_I18N = {
     'fix.loc.nopos': 'The location could not be found now; the previous position stays. Try again in the open.',
     'ez110.set.reading': 'Reading and writing',
     'ez110.set.langDigits': 'Language and numerals',
+    'ez110.name.prayer': 'Prayer',
+    'ez110.name.calc': 'Shariah calculator',
   },
 };
 
@@ -8702,6 +8706,18 @@ function Ez110Mark() {
 // The four destinations of the bottom bar go through the SAME door the shell's widget and
 // deep links use (EZIK_WIDGET_PENDING + its subscribers): one consumer closes the drawer and the
 // app-level layers and lands on the screen, so the bar adds no second router.
+// ROUND 2 §4-7 -- ONE NAME, ONE KEY, PER SECTION, ON EVERY SURFACE OF «ب» (tile, page title, card, bar). The ids are
+// the sections' own (never renamed); only the shown text is chosen here. Where a section had two names the tile's name
+// won, except the two the owner named: «الصلاة» (not «الصلاة والقبلة») and «الحاسبة الشرعية» (not «حاسبة الشريعة»).
+// The wird keeps its one name (DW_CARD_TITLE), the compass page keeps no words (owner, 15 September). Gate
+// ez110names pins this table and its readers.
+const EZ110_SECTION_NAMES = {
+  asmaa: 'asmaa.title', articles: 'module.articles', memorize: 'module.memorize', adhkar: 'module.adhkar',
+  'sunan-day': 'sunan.title', arbaeen: 'module.arbaeen', mushaf: 'module.mushaf', treasure: 'module.treasure',
+  fatwa: 'module.fatwa', lessons: 'module.lessons', library: 'module.library', prayer: 'ez110.name.prayer',
+  women: 'module.women', tasbih: 'tasbih.card.title', calc: 'ez110.name.calc',
+};
+function ez110Name(id) { return EZ110_SECTION_NAMES[id] ? ezT(EZ110_SECTION_NAMES[id]) : ''; }
 function ez110Go(route) {
   if (EZIK_WIDGET_ROUTES.indexOf(route) < 0) return;
   EZIK_WIDGET_PENDING = route;
@@ -8719,8 +8735,8 @@ function Ez110Nav({ active }) {
   const tabs = [
     { k: 'chat', label: ezT('ez110.nav.ezik'), go: () => ez110Go('chat') },
     { k: 'home', label: ezT('ez110.nav.menu'), go: () => ez110Go('home') },
-    { k: 'mushaf', label: ezT('ez110.nav.mushaf'), go: () => ez110Go('mushaf') },
-    { k: 'prayer', label: ezT('ez110.nav.prayer'), go: () => ez110Go('prayer') },
+    { k: 'mushaf', label: ez110Name('mushaf'), go: () => ez110Go('mushaf') },
+    { k: 'prayer', label: ez110Name('prayer'), go: () => ez110Go('prayer') },
   ];
   return (
     <nav className="ez110-nav" aria-label={ezT('ez110.nav.aria')}>
@@ -8896,7 +8912,7 @@ function Ez110Home(v) {
     { id: 'tasbih', label: ezT('tasbih.card.title'), icon: EZ110_ICON_TASBIH, onClick: opener('tasbih') },
     { id: 'calc', label: ezT('calc.card.title'), icon: EZ110_ICON_CALC, onClick: opener('calc') },
   ];
-  const byId = {}; builtMods.concat(extra).forEach((m) => { byId[m.id] = m; });
+  const byId = {}; builtMods.concat(extra).forEach((m) => { byId[m.id] = ez110Name(m.id) ? { ...m, label: ez110Name(m.id) } : m; });
   // THE GROUPS, and the one default order they make when read through. A module no group names
   // lands in the tools group, so a section added tomorrow is never dropped.
   const placed = new Set(EZ110_GROUPS.flatMap((g) => g.ids).concat(EZ110_BAR_IDS));
@@ -10277,7 +10293,7 @@ function EzikTasbihSection({ onClose, onOpenLog }) {
   const dialStyle = full ? { ...s.ezTasbihDial, ...s.ezTasbihDialDone }
     : pressed ? { ...s.ezTasbihDial, ...s.ezTasbihDialPressed } : s.ezTasbihDial;
   return (
-    <EzShell title={ezT('tasbih.title')} onBack={onClose} backLabel={ezT('tasbih.back')}
+    <EzShell title={ez110ReadIdentity() ? ez110Name('tasbih') : ezT('tasbih.title')} onBack={onClose} backLabel={ezT('tasbih.back')}
       actions={(
         /* R2 -- THE LOG LIVES HERE NOW, in the screen's own corner, and nowhere else. */
         <button type="button" className="ezhome-focus" onClick={onOpenLog}
@@ -11125,7 +11141,7 @@ function EzikCalcSection({ onClose, gold }) {
 
   const bodies = { a1: a1, a2: a2, a3: a3, a4: a4, b1: b1, b2: b2, b3: b3, b4: b4, b5: b5 };
   return (
-    <EzShell title={ezT('calc.title')} onBack={onClose} backLabel={ezT('calc.back')}>
+    <EzShell title={ez110ReadIdentity() ? ez110Name('calc') : ezT('calc.title')} onBack={onClose} backLabel={ezT('calc.back')}>
       <EzShellGroup title={ezT('calc.pick.title')} hint={ezT('calc.offline')}>
         {['zakat', 'kaffarat'].map((g) => (
           <div key={g}>
@@ -14459,7 +14475,9 @@ function FatwaScreen({ onBack, favPk }) {
             <button type="button" className="ezhome-focus" onClick={onBack}
               style={s.ezshNavBtn} aria-label={ezT('common.back')}>{A2_ICON_BACK}</button>
           </div>
-          <span aria-hidden="true" />
+          {ez110ReadIdentity() ? (
+            <span className="ezsh-brand"><span className="ezsh-brand-arch" aria-hidden="true" /><span>{ez110Name('fatwa')}</span></span>
+          ) : <span aria-hidden="true" />}
           <div className="ezsh-nav-side is-end" />
         </div>
       </div>
@@ -15586,7 +15604,7 @@ function IstanaAdhkarBrowse({ scrollMem, onBack, cats, list, query, setQuery, se
           <button type="button" className="adhkar2-focus" onClick={onBack} style={s.eziaNavBtn} aria-label={A2_BACK}>{A2_ICON_BACK}</button>
           <span className="ezia-brand">
             <span className="ezia-brand-arch" aria-hidden="true" />
-            <span>{A2_TITLE}</span>
+            <span>{ez110ReadIdentity() ? ez110Name('adhkar') : A2_TITLE}</span>
           </span>
           <button type="button" className="adhkar2-focus" onClick={onToggleSearch} aria-label={A2_SEARCH}
             aria-pressed={searchOpen ? 'true' : 'false'}
@@ -30460,7 +30478,7 @@ function PrayerSheet({ onClose, onOpenCompass }) {
   const [rev, setRev] = useState(0);
   if (setOpen) return <Ez110PrayerSettingsSheet onClose={ezikGoBack} />;
   return (
-    <EzShell title={EZ_LANG === 'ar' ? PRAYER_SHEET_TITLE : ezT('prayer.sheetTitle')} onBack={onClose} backLabel={QIBLA_BACK}
+    <EzShell title={ez110.id ? ez110Name('prayer') : (EZ_LANG === 'ar' ? PRAYER_SHEET_TITLE : ezT('prayer.sheetTitle'))} onBack={onClose} backLabel={QIBLA_BACK}
       /* ITEM 66 (side round) -- THE COMPASS'S ONE ENTRY, IN THE PRAYER SECTION WHERE IT BELONGS.
          A mark and no word, beside the back control and not in its place, and one press lands on
          the compass screen itself rather than scrolling this sheet to its lower half. The mark is

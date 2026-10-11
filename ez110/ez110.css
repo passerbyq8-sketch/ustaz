@@ -519,6 +519,21 @@ html[data-ez110] .ezc-drawer-head + div + div > :nth-child(4) > span {
 /* a drawer row's label starts at its line's start in either direction (the row's style object says right) */
 html[data-ez110] .ezc-drawer button > span { text-align: start; }
 
+/* ---- ROUND 2 §4-6, coherence rule 5: every section's head in ONE pattern -- the back control at the start (right in
+   Arabic), the title right after it, and the section's own actions and settings at the far end (left). The start
+   side's wrapper dissolves (display: contents) so its controls join the row; the DOM order -- back first, which
+   i18nui pins -- does not move. Latin interfaces mirror it by direction alone. ---- */
+html[data-ez110] .ezsh-nav-inner { justify-content: flex-start; }
+html[data-ez110] .ezsh-nav-inner > .ezsh-nav-side:not(.is-end) { display: contents; }
+html[data-ez110] .ezsh-nav-inner > .ezsh-nav-side:not(.is-end) > :first-child { order: 0; }
+html[data-ez110] .ezsh-nav-inner > .ezsh-brand { order: 1; flex: 1 1 auto; min-width: 0; justify-content: flex-start; }
+html[data-ez110] .ezsh-nav-inner > .ezsh-brand > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html[data-ez110] .ezsh-nav-inner > .ezsh-nav-side:not(.is-end) > :not(:first-child) { order: 2; }
+html[data-ez110] .ezsh-nav-inner > .ezsh-nav-side.is-end { order: 3; flex: 0 0 auto; }
+/* the adhkar / Forty heads (ezia-nav: back, brand, end control): the title follows the back, the control stays last */
+html[data-ez110] .ezia-nav-inner { justify-content: flex-start; }
+html[data-ez110] .ezia-nav-inner > .ezia-brand { flex: 1 1 auto; min-width: 0; justify-content: flex-start; }
+
 /* ==== 20-b-home.css ==== */
 /* 20 -- THE MENU (Ez110Home) AND THE FIRST SCREEN'S SECTION ROWS. */
 
