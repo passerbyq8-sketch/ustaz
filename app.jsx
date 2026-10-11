@@ -1765,6 +1765,12 @@ const EZ_I18N = {
     'ez110.prayer.more': '\u0627\u0644\u062A\u0630\u0643\u064A\u0631\u0627\u062A \u0648\u0636\u0628\u0637 \u0627\u0644\u0645\u0648\u0627\u0642\u064A\u062A',
     'ez110.call.title': '\u062A\u0641\u0639\u064A\u0644 \u0627\u0644\u0623\u0630\u0627\u0646',
     'ez110.call.why': '\u064A\u064F\u0624\u0630\u064E\u0651\u0646 \u0644\u0643 \u0639\u0646\u062F \u062F\u062E\u0648\u0644 \u0648\u0642\u062A \u0643\u0644 \u0635\u0644\u0627\u0629. \u0627\u0636\u063A\u0637 \u0627\u0644\u0645\u0641\u062A\u0627\u062D \u0644\u064A\u0633\u0623\u0644\u0643 \u0627\u0644\u062C\u0647\u0627\u0632 \u0639\u0646 \u0627\u0644\u0625\u0630\u0646\u060C \u0648\u064A\u0645\u0643\u0646\u0643 \u0625\u064A\u0642\u0627\u0641\u0647 \u0645\u062A\u0649 \u0634\u0626\u062A \u0645\u0646 \u0625\u0639\u062F\u0627\u062F\u0627\u062A \u0627\u0644\u0635\u0644\u0627\u0629.',
+    'ez110.set.font': '\u0627\u0644\u062E\u0637',
+    'ez110.set.fontHint': '\u062E\u0637 \u0627\u0644\u0648\u0627\u062C\u0647\u0629 \u0648\u062D\u062F\u0647\u0627. \u0627\u0644\u0645\u0635\u062D\u0641 \u0648\u0646\u0635\u0648\u0635 \u0627\u0644\u0622\u064A\u0627\u062A \u0648\u0627\u0644\u0623\u062D\u0627\u062F\u064A\u062B \u062A\u0628\u0642\u0649 \u0628\u062E\u0637\u0648\u0637\u0647\u0627.',
+    'ez110.font.identity': '\u062E\u0637 \u0627\u0644\u0647\u0648\u064A\u0629',
+    'ez110.font.noto': '\u0646\u0648\u062A\u0648 \u0633\u0627\u0646\u0633',
+    'ez110.font.cairo': '\u0627\u0644\u0642\u0627\u0647\u0631\u0629',
+    'ez110.font.tajawal': '\u062A\u062C\u0648\u0651\u0644',
   },
   en: {
     'common.close': 'Close',
@@ -3119,6 +3125,12 @@ const EZ_I18N = {
     'ez110.prayer.more': 'Reminders and time adjustments',
     'ez110.call.title': 'Turn on the call to prayer',
     'ez110.call.why': 'The call to prayer sounds as each prayer time begins. Press the switch and your phone will ask for permission; you can turn it off any time in the prayer settings.',
+    'ez110.set.font': 'Font',
+    'ez110.set.fontHint': 'The interface only. The mushaf and the text of verses and hadith keep their own fonts.',
+    'ez110.font.identity': 'The design\'s own',
+    'ez110.font.noto': 'Noto Sans Arabic',
+    'ez110.font.cairo': 'Cairo',
+    'ez110.font.tajawal': 'Tajawal',
   },
 };
 
@@ -8531,6 +8543,22 @@ const EZ110_BAR_KEY = 'ezik_110_bar_v1';
 const EZ110_GENDER_ASKED_KEY = 'ezik_110_gender_asked_v1';
 // ROUND 3 §3-11: the call-to-prayer card of the empty chat was answered on this install (a press in it)
 const EZ110_ADHAN_ASKED_KEY = 'ezik_110_adhan_asked_v1';
+// ROUND 3 §3-9-2: the interface font the reader chose (absent = the identity's own)
+const EZ110_FONT_KEY = 'ezik_110_font_v1';
+const EZ110_FONTS = ['identity', 'noto', 'cairo', 'tajawal'];
+// The chooser's sample, the same in every language (a specimen, not interface text): «عزك يجيبك» and two Latin letters.
+// Each row draws it from a file that holds these letters alone (fonts/110/preview-*.woff2).
+const EZ110_FONT_SAMPLE = '\u0639\u0632\u0643 \u064A\u062C\u064A\u0628\u0643 Aa';
+function ez110ReadFont() {
+  let v = ''; try { v = localStorage.getItem(EZ110_FONT_KEY) || ''; } catch (e) {}
+  return EZ110_FONTS.indexOf(v) > 0 ? v : 'identity';
+}
+function ez110WriteFont(v) {
+  const x = EZ110_FONTS.indexOf(v) > 0 ? v : 'identity';
+  try { if (x === 'identity') localStorage.removeItem(EZ110_FONT_KEY); else localStorage.setItem(EZ110_FONT_KEY, x); } catch (e) {}
+  try { const d = document.documentElement; if (x === 'identity') d.removeAttribute('data-ez110-font'); else d.setAttribute('data-ez110-font', x); } catch (e) {}
+  return ez110ReadFont();
+}
 const EZ110_UNLOCK_SHA = 'e37ef4a98d5cacbe5fdd120ad80b47bd16f90dd7014de8762786c0fcf1f4b720';
 const EZ110_EVENT = 'ezik-110';
 const EZ110_CSS = '/ez110/ez110.css';
@@ -8669,6 +8697,8 @@ function ez110Apply() {
       const dg = ez110ReadDigits();
       if (dg !== 'auto') d.setAttribute('data-ez110-digits', dg); else d.removeAttribute('data-ez110-digits');
       ez110ApplyDigits(dg);
+      const fnt = ez110ReadFont();
+      if (fnt !== 'identity') d.setAttribute('data-ez110-font', fnt); else d.removeAttribute('data-ez110-font');
       ez110ActsTips();
     }
   } catch (e) {}
@@ -9325,6 +9355,7 @@ function Ez110Preview({ id }) {
 }
 function Ez110SettingsExtras({ onOpenPrivacy }) {
   const ez = useEz110();
+  const [font, setFont] = useState(ez110ReadFont);
   const ids = ez110Choosable();
   const go = <svg className="ez110-row-go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>;
   return (
@@ -9332,6 +9363,11 @@ function Ez110SettingsExtras({ onOpenPrivacy }) {
       <EzShellGroup title={ezT('ez110.set.identity')} hint={ezT('ez110.set.identityHint')} grp="appearance-id">
         <Ez110Radio label={ezT('ez110.set.identity')} value={ez.id} onPick={ez110WriteIdentity}
           options={ids.map((id) => ({ v: id, label: ezT('ez110.id.' + id), preview: <Ez110Preview id={id} /> }))} />
+      </EzShellGroup>
+      {/* ROUND 3 §3-9-2 (owner): the interface font -- the identity's own by default */}
+      <EzShellGroup title={ezT('ez110.set.font')} hint={ezT('ez110.set.fontHint')} grp="appearance-font">
+        <Ez110Radio label={ezT('ez110.set.font')} value={font} onPick={(v) => setFont(ez110WriteFont(v))}
+          options={EZ110_FONTS.map((v) => ({ v, label: ezT('ez110.font.' + v), preview: <span className="ez110-font-pv" data-pv={v} aria-hidden="true">{EZ110_FONT_SAMPLE}</span> }))} />
       </EzShellGroup>
       <EzShellGroup title={ezT('ez110.set.digits')} hint={ezT('ez110.set.digitsHint')} grp="lang-digits">
         <Ez110Radio label={ezT('ez110.set.digits')} value={ez.digits} onPick={ez110WriteDigits}
@@ -21498,6 +21534,8 @@ function App() {
       try { localStorage.removeItem(EZ110_BAR_KEY); } catch (e) {}
       try { localStorage.removeItem(EZ110_GENDER_ASKED_KEY); } catch (e) {}
       try { localStorage.removeItem(EZ110_ADHAN_ASKED_KEY); } catch (e) {}
+      try { localStorage.removeItem(EZ110_FONT_KEY); } catch (e) {}
+      try { document.documentElement.removeAttribute('data-ez110-font'); } catch (e) {}
       applyEzikVisualTheme(EZIK_VISUAL_THEME_DEFAULT);
       try { window.dispatchEvent(new CustomEvent(EZIK_VISUAL_THEME_EVENT, { detail: EZIK_VISUAL_THEME_DEFAULT })); } catch (e) {}
       // S119 -- THE PAGE ALREADY PROMISED THESE FOUR; the code simply did not keep the promise.

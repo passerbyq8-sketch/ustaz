@@ -70,3 +70,5 @@ html[data-ez110] .ezsh-group[data-ez110-grp="appearance"]:has(.ez110-seg):not(:h
 html[data-ez110] .ezsh-group[data-ez110-grp="privacy-delete"] { order: 52; }
 html[data-ez110] .ezsh-group[data-ez110-grp="privacy"] .ez110-row:first-child,
 html[data-ez110] .ezsh-group[data-ez110-grp="privacy-delete"] .ez110-row:first-child { border-top: 0; }
+/* ROUND 3 §3-9-2: the font chooser sits under the identity chooser */
+html[data-ez110] .ezsh-group[data-ez110-grp="appearance-font"] { order: 21; }

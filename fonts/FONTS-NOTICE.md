@@ -185,3 +185,31 @@ SIL Open Font License 1.1, and its own licence text ships beside the files:
         fonts/110/SLXYc1bJ7HE5YDoGPuzj_dh8uc7wUy8ZQQyX2IwwZEw.woff2     31428  latin, weight 700  Readex Pro  sha256 7074eeb987a25349069ed5c784e204904b928f4c878e9c3c88d636c01081ae52
 
 - **Ezik Digits** (item 110 round 2): not a new file. It is the Readex Pro Arabic file already listed above (fonts/110, SIL OFL 1.1), named a second time in ez110/ez110.css with unicode-range U+0660-0669, U+06F0-06F9 and size-adjust 91%, so the lit design draws only its Arabic and Persian digits (a round zero) and every other character keeps the identity face.
+
+## Item 110 round 3 -- the interface fonts a reader may choose (fonts/110/)
+
+Two more families and three sample files, for the font chooser of the redesign (Settings -> Appearance, behind the
+owner switch). Declared ONLY in `ez110/ez110.css`; none is precached by `sw.js`; a full face downloads only for a reader
+who chose it (measured: work/test-font-r3.cjs). Fetched 2026-10-11 from the stylesheet fonts.googleapis.com serves a
+current desktop Chrome (arabic, latin and latin-ext subsets; one variable file per subset, weights 400-700). The third
+choice, Tajawal, is the file set already listed at the top of this notice. SIL Open Font License 1.1, the licence
+texts beside the files:
+
+    Noto Sans Arabic   fonts/110/OFL-notosansarabic.txt   (c) 2022 The Noto Project Authors
+    Cairo              fonts/110/OFL-cairo.txt            (c) 2009 The Cairo Project Authors
+
+    License: https://openfontlicense.org (SIL OFL 1.1)
+
+        fonts/110/nwpCtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlj4wv4r4xA.woff2  165960  arabic, weights 400-700  Noto Sans Arabic  sha256 ce85091f020920b65762b387b194ef59457ea5b25b760f2dcc35240a94bb8669
+        fonts/110/nwpCtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlj47v4r4xA.woff2   16816  latin-ext, weights 400-700  Noto Sans Arabic  sha256 27fe6458d54bcf13a2fe92228dd932ef3de9439267ca214e5c9f6bb02659e614
+        fonts/110/nwpCtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlj41v4o.woff2   31416  latin, weights 400-700  Noto Sans Arabic  sha256 fed070abc960c5f214fcb02b7b178cdab751ef7facd79a899f571bc21d38b8f8
+        fonts/110/SLXVc1nY6HkvangtZmpQdkhzfH5lkSscQyyS4J0.woff2              30896  arabic, weights 400-700  Cairo  sha256 748022f50c427456ad66031e855349be3448ee1f05a5f1eb59574ebe0c686749
+        fonts/110/SLXVc1nY6HkvangtZmpQdkhzfH5lkSscSCyS4J0.woff2              16648  latin-ext, weights 400-700  Cairo  sha256 da6ada83c3a87c2f0211325dc0a123702e1d4a940958b3e943ac4f37b31d5371
+        fonts/110/SLXVc1nY6HkvangtZmpQdkhzfH5lkSscRiyS.woff2                 33820  latin, weights 400-700  Cairo  sha256 82c13cbd1352d76e97c3d335caa912ae68fecdc3949a43cf8d149eb892384c1b
+
+- **The chooser's samples** (round 3): three files that hold only the letters of the sample line (عزك يجيبك Aa), as
+  fonts.googleapis.com serves them for that text, each from its family's OFL font named above:
+
+        fonts/110/preview-notosansarabic.woff2                                3516  sample  sha256 a77efba5bc195c444ad4fbea2cffe336767ccb5195963e67a6d3589fe7ed6947
+        fonts/110/preview-cairo.woff2                                         2692  sample  sha256 72cd0fc4ee3bf1fe4a7cdbf114069fb9863ea1ee14269245210fd6a4236b66b0
+        fonts/110/preview-tajawal.woff2                                       2208  sample  sha256 a367e1ee5f71982cbfcfcfdf02d00405cf6a32160cc7457dd839129b973eca19
