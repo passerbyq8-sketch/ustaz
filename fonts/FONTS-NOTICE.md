@@ -183,3 +183,5 @@ SIL Open Font License 1.1, and its own licence text ships beside the files:
         fonts/110/SLXYc1bJ7HE5YDoGPuzj_dh8uc7wUy8ZQQyX2Iw1ZEzMhQ.woff2  22864  arabic, weight 700  Readex Pro  sha256 b5815b71c48e513b5e65eb281dd53e5d6a556d6dac511a5d2cd00d628850d5c4
         fonts/110/SLXYc1bJ7HE5YDoGPuzj_dh8uc7wUy8ZQQyX2Iw-ZEzMhQ.woff2  27684  latin-ext, weight 700  Readex Pro  sha256 51456344445b98029b9be92e7cbfbb0232054308b30d8ca771f9671fa861606b
         fonts/110/SLXYc1bJ7HE5YDoGPuzj_dh8uc7wUy8ZQQyX2IwwZEw.woff2     31428  latin, weight 700  Readex Pro  sha256 7074eeb987a25349069ed5c784e204904b928f4c878e9c3c88d636c01081ae52
+
+- **Ezik Digits** (item 110 round 2): not a new file. It is the Readex Pro Arabic file already listed above (fonts/110, SIL OFL 1.1), named a second time in ez110/ez110.css with unicode-range U+0660-0669, U+06F0-06F9 and size-adjust 91%, so the lit design draws only its Arabic and Persian digits (a round zero) and every other character keeps the identity face.

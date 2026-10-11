@@ -35,3 +35,6 @@ html[data-ez110] .ez110-h { font-family: var(--ez110-font-head); }
 
 /* digits: the reader's choice, when it is not "follow the language" */
 html[data-ez110][data-ez110-digits="latn"] body { font-variant-numeric: lining-nums; }
+
+/* ROUND 2 §7-2: the answer sheet (verses and hadith are quoted there) keeps the identity face without the digits face */
+html[data-ez110] .ezc-ans { font-family: var(--ez110-font-plain); }
