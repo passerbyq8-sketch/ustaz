@@ -38,3 +38,12 @@ html[data-ez110][data-ez110-digits="latn"] body { font-variant-numeric: lining-n
 
 /* ROUND 2 §7-2: the answer sheet (verses and hadith are quoted there) keeps the identity face without the digits face */
 html[data-ez110] .ezc-ans { font-family: var(--ez110-font-plain); }
+
+/* ROUND 3 §3-9-1 (owner: «واذا قدرت تحسن خط عزك»), MEASURED (work/fontmeasure-r3.cjs, work/smalltext-r3.cjs): the identity
+   face, IBM Plex Sans Arabic, draws the least Arabic ink per em of the faces measured (0.650 em against 0.71-0.84), and
+   «ب» set Arabic as small as 11.5px (the bar's labels: 7.5px of ink). So the smallest Arabic of «ب» is raised to a
+   floor: 12.5px where space is fixed (the bar, the prayer card's cells, the tiles), 13px elsewhere (the greeting, the
+   rows' second lines, the Settings hints that the shared sheet sets at 12-12.5px inline). The zero stays the round dot
+   of Ezik Digits (round 2). The answer sheet and every verse and hadith keep their own faces and sizes. */
+html[data-ez110] .ezsh-grid [style*="font-size: 12px"],
+html[data-ez110] .ezsh-grid [style*="font-size: 12.5px"] { font-size: 13px !important; }

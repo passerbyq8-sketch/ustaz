@@ -4,8 +4,8 @@
 html[data-ez110] .ez110-home .ez110-wrap { display: flex; flex-direction: column; gap: 14px; padding-top: 12px; }
 
 /* the greeting (AMEND-01): small, two lines, nothing under it -- the adhkar row left the menu */
-html[data-ez110] .ez110-hello { display: flex; flex-direction: column; gap: 0; padding: 0 4px; }
-html[data-ez110] .ez110-hello-salam { font-family: var(--ez110-font-ui); font-size: calc(12.5px * var(--ez-fs, 1)); font-weight: 500; color: var(--vt-muted); }
+html[data-ez110] .ez110-hello { display: flex; flex-direction: column; gap: 3px; padding: 0 4px; }
+html[data-ez110] .ez110-hello-salam { font-family: var(--ez110-font-ui); font-size: calc(13px * var(--ez-fs, 1)); font-weight: 500; color: var(--vt-muted); }
 html[data-ez110] .ez110-hello-name { margin: 0; font-family: var(--ez110-font-head); font-size: calc(17px * var(--ez-fs, 1)); font-weight: 700; line-height: 1.35; color: var(--vt-ink); }
 
 /* ---- next prayer: the one deep card, compact (AMEND-01: at most two thirds of its first height) ---- */
@@ -27,7 +27,7 @@ html[data-ez110] .ez110-prayer-arch {
 }
 html[data-ez110] .ez110-prayer-top { position: relative; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 html[data-ez110] .ez110-prayer-head { font-size: calc(12.5px * var(--ez-fs, 1)); font-weight: 600; color: rgba(255,255,255,.94); }
-html[data-ez110] .ez110-prayer-hijri { font-size: calc(12px * var(--ez-fs, 1)); font-weight: 500; color: var(--ez110-prayer-sub, rgba(255,255,255,.94)); white-space: nowrap; }
+html[data-ez110] .ez110-prayer-hijri { font-size: calc(12.5px * var(--ez-fs, 1)); font-weight: 500; color: var(--ez110-prayer-sub, rgba(255,255,255,.94)); white-space: nowrap; }
 html[data-ez110] .ez110-prayer-main { position: relative; display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; }
 html[data-ez110] .ez110-prayer-name { font-family: var(--ez110-font-head); font-size: calc(21px * var(--ez-fs, 1)); font-weight: 700; line-height: 1.25; }
 html[data-ez110] .ez110-prayer-time { font-size: calc(16px * var(--ez-fs, 1)); font-weight: 600; line-height: 1.25; }
@@ -38,7 +38,7 @@ html[data-ez110] .ez110-prayer-left {
 html[data-ez110] .ez110-prayer-row { position: relative; display: flex; justify-content: space-between; gap: 4px; margin-top: 0; }
 html[data-ez110] .ez110-prayer-cell {
   flex: 1; display: grid; grid-template-columns: auto auto; justify-content: center; align-items: center; column-gap: 4px; row-gap: 1px;
-  padding: 4px 0; border-radius: 10px; font-size: calc(12px * var(--ez-fs, 1)); line-height: 1.3;
+  padding: 4px 0; border-radius: 10px; font-size: calc(12.5px * var(--ez-fs, 1)); line-height: 1.3;
 }
 html[data-ez110] .ez110-prayer-ctime { grid-column: 1 / -1; text-align: center; }
 html[data-ez110] .ez110-prayer-cell.is-next { background: rgba(255,255,255,.14); font-weight: 700; }

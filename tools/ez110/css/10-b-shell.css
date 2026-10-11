@@ -62,7 +62,7 @@ html[data-ez110] .ez110-tab-pill {
   width: 58px; height: 30px; border-radius: 15px;
   display: flex; align-items: center; justify-content: center;
 }
-html[data-ez110] .ez110-tab-label { font-size: calc(11.5px * var(--ez-fs, 1)); font-weight: 500; line-height: 1.2; }
+html[data-ez110] .ez110-tab-label { font-size: calc(12.5px * var(--ez-fs, 1)); font-weight: 500; line-height: 1.2; }
 html[data-ez110] .ez110-tab.is-on { color: var(--vt-accent-ink); }
 html[data-ez110] .ez110-tab.is-on .ez110-tab-pill { background: var(--vt-soft); }
 html[data-ez110] .ez110-tab.is-on .ez110-tab-label { font-weight: 700; }

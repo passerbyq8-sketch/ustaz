@@ -403,6 +403,15 @@ html[data-ez110][data-ez110-digits="latn"] body { font-variant-numeric: lining-n
 /* ROUND 2 §7-2: the answer sheet (verses and hadith are quoted there) keeps the identity face without the digits face */
 html[data-ez110] .ezc-ans { font-family: var(--ez110-font-plain); }
 
+/* ROUND 3 §3-9-1 (owner: «واذا قدرت تحسن خط عزك»), MEASURED (work/fontmeasure-r3.cjs, work/smalltext-r3.cjs): the identity
+   face, IBM Plex Sans Arabic, draws the least Arabic ink per em of the faces measured (0.650 em against 0.71-0.84), and
+   «ب» set Arabic as small as 11.5px (the bar's labels: 7.5px of ink). So the smallest Arabic of «ب» is raised to a
+   floor: 12.5px where space is fixed (the bar, the prayer card's cells, the tiles), 13px elsewhere (the greeting, the
+   rows' second lines, the Settings hints that the shared sheet sets at 12-12.5px inline). The zero stays the round dot
+   of Ezik Digits (round 2). The answer sheet and every verse and hadith keep their own faces and sizes. */
+html[data-ez110] .ezsh-grid [style*="font-size: 12px"],
+html[data-ez110] .ezsh-grid [style*="font-size: 12.5px"] { font-size: 13px !important; }
+
 /* ==== 10-b-shell.css ==== */
 /* 10 -- THE APP SHELL OF «ب» (and the base every identity builds on): the headers, the bottom bar,
    the drawer, the sheets, the groups. Only tokens: the identity decides the values. */
@@ -468,7 +477,7 @@ html[data-ez110] .ez110-tab-pill {
   width: 58px; height: 30px; border-radius: 15px;
   display: flex; align-items: center; justify-content: center;
 }
-html[data-ez110] .ez110-tab-label { font-size: calc(11.5px * var(--ez-fs, 1)); font-weight: 500; line-height: 1.2; }
+html[data-ez110] .ez110-tab-label { font-size: calc(12.5px * var(--ez-fs, 1)); font-weight: 500; line-height: 1.2; }
 html[data-ez110] .ez110-tab.is-on { color: var(--vt-accent-ink); }
 html[data-ez110] .ez110-tab.is-on .ez110-tab-pill { background: var(--vt-soft); }
 html[data-ez110] .ez110-tab.is-on .ez110-tab-label { font-weight: 700; }
@@ -590,8 +599,8 @@ html[data-ez110] .ez110-first[data-ez110-first="call"] > .ez-hit { margin: 0; }
 html[data-ez110] .ez110-home .ez110-wrap { display: flex; flex-direction: column; gap: 14px; padding-top: 12px; }
 
 /* the greeting (AMEND-01): small, two lines, nothing under it -- the adhkar row left the menu */
-html[data-ez110] .ez110-hello { display: flex; flex-direction: column; gap: 0; padding: 0 4px; }
-html[data-ez110] .ez110-hello-salam { font-family: var(--ez110-font-ui); font-size: calc(12.5px * var(--ez-fs, 1)); font-weight: 500; color: var(--vt-muted); }
+html[data-ez110] .ez110-hello { display: flex; flex-direction: column; gap: 3px; padding: 0 4px; }
+html[data-ez110] .ez110-hello-salam { font-family: var(--ez110-font-ui); font-size: calc(13px * var(--ez-fs, 1)); font-weight: 500; color: var(--vt-muted); }
 html[data-ez110] .ez110-hello-name { margin: 0; font-family: var(--ez110-font-head); font-size: calc(17px * var(--ez-fs, 1)); font-weight: 700; line-height: 1.35; color: var(--vt-ink); }
 
 /* ---- next prayer: the one deep card, compact (AMEND-01: at most two thirds of its first height) ---- */
@@ -613,7 +622,7 @@ html[data-ez110] .ez110-prayer-arch {
 }
 html[data-ez110] .ez110-prayer-top { position: relative; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 html[data-ez110] .ez110-prayer-head { font-size: calc(12.5px * var(--ez-fs, 1)); font-weight: 600; color: rgba(255,255,255,.94); }
-html[data-ez110] .ez110-prayer-hijri { font-size: calc(12px * var(--ez-fs, 1)); font-weight: 500; color: var(--ez110-prayer-sub, rgba(255,255,255,.94)); white-space: nowrap; }
+html[data-ez110] .ez110-prayer-hijri { font-size: calc(12.5px * var(--ez-fs, 1)); font-weight: 500; color: var(--ez110-prayer-sub, rgba(255,255,255,.94)); white-space: nowrap; }
 html[data-ez110] .ez110-prayer-main { position: relative; display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; }
 html[data-ez110] .ez110-prayer-name { font-family: var(--ez110-font-head); font-size: calc(21px * var(--ez-fs, 1)); font-weight: 700; line-height: 1.25; }
 html[data-ez110] .ez110-prayer-time { font-size: calc(16px * var(--ez-fs, 1)); font-weight: 600; line-height: 1.25; }
@@ -624,7 +633,7 @@ html[data-ez110] .ez110-prayer-left {
 html[data-ez110] .ez110-prayer-row { position: relative; display: flex; justify-content: space-between; gap: 4px; margin-top: 0; }
 html[data-ez110] .ez110-prayer-cell {
   flex: 1; display: grid; grid-template-columns: auto auto; justify-content: center; align-items: center; column-gap: 4px; row-gap: 1px;
-  padding: 4px 0; border-radius: 10px; font-size: calc(12px * var(--ez-fs, 1)); line-height: 1.3;
+  padding: 4px 0; border-radius: 10px; font-size: calc(12.5px * var(--ez-fs, 1)); line-height: 1.3;
 }
 html[data-ez110] .ez110-prayer-ctime { grid-column: 1 / -1; text-align: center; }
 html[data-ez110] .ez110-prayer-cell.is-next { background: rgba(255,255,255,.14); font-weight: 700; }
@@ -784,7 +793,7 @@ html[data-ez110] .ez110-row {
 html[data-ez110] .ez110-row:first-of-type { border-top: 0; }
 html[data-ez110] .ez110-row-text { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 html[data-ez110] .ez110-row-title { font-size: calc(15px * var(--ez-fs, 1)); font-weight: 600; }
-html[data-ez110] .ez110-row-sub { font-size: calc(12.5px * var(--ez-fs, 1)); color: var(--vt-muted); line-height: 1.5; }
+html[data-ez110] .ez110-row-sub { font-size: calc(13px * var(--ez-fs, 1)); color: var(--vt-muted); line-height: 1.5; }
 html[data-ez110] .ez110-row-go { color: var(--ez110-faint); flex-shrink: 0; }
 html[dir="ltr"][data-ez110] .ez110-row-go { transform: scaleX(-1); }
 
