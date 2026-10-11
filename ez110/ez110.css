@@ -733,13 +733,12 @@ html[data-theme="dark"][data-ez110] .ezsug-mark { box-shadow: inset 0 0 0 1px va
 
 /* ---- ROUND 3 §3-1 (owner): «ترتيب القائمة» under the last tile, and the verse of the day without its label ---- */
 html[data-ez110] .ez110-sec-foot { justify-content: center; margin-top: 2px; }
-/* ROUND 4 §3-2 N2 (phone round): while the menu is arranged, «تمّ» and «الترتيب الافتراضي» stay in view above the bottom bar
-   without a scroll -- the footer sticks to the bottom of the scrolling page (which ends where the bar begins, in either
-   kind of system navigation), on a solid ground so the tiles pass under it */
-html[data-ez110] .ez110-sec-foot:has(.ez110-done) {
-  position: sticky; bottom: 0; z-index: 3; padding: 8px 0 10px;
-  background: var(--vt-page, var(--vt-surface)); border-top: 1px solid var(--ez110-hair);
-}
+/* ROUND 4 §3-2 N2 (phone round): while the menu is arranged, «تمّ» and «الترتيب الافتراضي» are in view without a scroll in
+   either kind of system navigation -- they stand under the arranging hint, above the tiles (a pinned footer would be an
+   edge element, and gate ez110edges E3 rightly allows none that does not read the edge family). Not arranging, the
+   page ends with «ترتيب القائمة» under the last tile, as the owner asked. */
+html[data-ez110] .ez110-wrap:has(.ez110-done) > .ez110-sec-foot { order: 1; margin-top: -6px; }
+html[data-ez110] .ez110-wrap:has(.ez110-done) > .ez110-grid { order: 2; }
 html[data-ez110] .ez110-home .ezist-quran > div:first-child { display: none !important; }
 
 /* ==== 30-b-settings.css ==== */
