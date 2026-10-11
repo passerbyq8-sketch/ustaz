@@ -24286,6 +24286,8 @@ const readStatedAyahRef = (t) => {
 // and never what it prints over it.
 const SUNNAH_CARD_LABEL = 'من السنة النبوية';
 
+// ITEM 110 ROUND 4 (phone round), part fix: the verse number under an ayah card is written in the interface's digits
+// (ezNum) -- it was Western digits inside an Arabic line. Dark: as it was.
 function HadithCard({ content, narrator, ruling }) {
   // خانةُ المخرِّجِ قد تصلُ مملوءةً بالدرجة، فتُطبَعُ الدرجةُ مرّتين وأُولاهما «رَوَى متفق عليه».
   const att = resolveHadithAttribution(narrator, ruling);
@@ -24303,7 +24305,7 @@ function HadithCard({ content, narrator, ruling }) {
       </div>
       <div style={s.hadithText}>{content}</div>
       {quranic
-        ? (ayahRef && <div style={s.hadithMeta}>{`سورة ${ayahRef.surah}، آية ${ayahRef.ayah}`}</div>)
+        ? (ayahRef && <div style={s.hadithMeta}>{`سورة ${ayahRef.surah}، آية ${ez110FixLit() ? ezNum(ayahRef.ayah) : ayahRef.ayah}`}</div>)
         : (att.ruling && <div style={s.hadithMeta}>{att.ruling}</div>)}
     </div>
   );

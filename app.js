@@ -7465,11 +7465,13 @@ name=name.split(/\s+/)[0];if(SURAH_NUMBERS[name]===undefined)continue;}found.pus
 // SO THE LABEL IS A CONSTANT AND NOT A DECISION. `att` is still read below, for the GRADE line
 // under the text — what a card knows about its narrator governs what it prints UNDER the matn,
 // and never what it prints over it.
-const SUNNAH_CARD_LABEL='من السنة النبوية';function HadithCard({content,narrator,ruling}){// خانةُ المخرِّجِ قد تصلُ مملوءةً بالدرجة، فتُطبَعُ الدرجةُ مرّتين وأُولاهما «رَوَى متفق عليه».
+const SUNNAH_CARD_LABEL='من السنة النبوية';// ITEM 110 ROUND 4 (phone round), part fix: the verse number under an ayah card is written in the interface's digits
+// (ezNum) -- it was Western digits inside an Arabic line. Dark: as it was.
+function HadithCard({content,narrator,ruling}){// خانةُ المخرِّجِ قد تصلُ مملوءةً بالدرجة، فتُطبَعُ الدرجةُ مرّتين وأُولاهما «رَوَى متفق عليه».
 const att=resolveHadithAttribution(narrator,ruling);let label=SUNNAH_CARD_LABEL;// ITEM 28. Scripture first, and it outranks the attribution entirely: a verse carries no
 // narrator and takes no grading, so a ruling printed under one would be a hadith's apparatus
 // applied to the Qur'an. The reference replaces it, and only if the content stated one.
-const quranic=hasQuranicSpan(content);const ayahRef=quranic?readStatedAyahRef(content):null;if(quranic)label=AYAH_CARD_LABEL;return/*#__PURE__*/React.createElement("div",{style:s.hadithCard},/*#__PURE__*/React.createElement("div",{style:s.hadithCardLabel},/*#__PURE__*/React.createElement("span",null,label)),/*#__PURE__*/React.createElement("div",{style:s.hadithText},content),quranic?ayahRef&&/*#__PURE__*/React.createElement("div",{style:s.hadithMeta},`سورة ${ayahRef.surah}، آية ${ayahRef.ayah}`):att.ruling&&/*#__PURE__*/React.createElement("div",{style:s.hadithMeta},att.ruling));}// بطاقة المصدر: شريحةُ عزوٍ قابلةٌ للنقر في نهاية الجواب — أوّلُ رابطٍ خارجيٍّ في التطبيق.
+const quranic=hasQuranicSpan(content);const ayahRef=quranic?readStatedAyahRef(content):null;if(quranic)label=AYAH_CARD_LABEL;return/*#__PURE__*/React.createElement("div",{style:s.hadithCard},/*#__PURE__*/React.createElement("div",{style:s.hadithCardLabel},/*#__PURE__*/React.createElement("span",null,label)),/*#__PURE__*/React.createElement("div",{style:s.hadithText},content),quranic?ayahRef&&/*#__PURE__*/React.createElement("div",{style:s.hadithMeta},`سورة ${ayahRef.surah}، آية ${ez110FixLit()?ezNum(ayahRef.ayah):ayahRef.ayah}`):att.ruling&&/*#__PURE__*/React.createElement("div",{style:s.hadithMeta},att.ruling));}// بطاقة المصدر: شريحةُ عزوٍ قابلةٌ للنقر في نهاية الجواب — أوّلُ رابطٍ خارجيٍّ في التطبيق.
 // تُظهِر اسمَ النطاق (site) ثمّ وصفاً عربيّاً موجزاً (المحتوى)، وتفتح url في تبويبٍ جديد.
 function SourceCard({site,url,content}){// D92: this chip is the app's ONLY external navigation -- tapping it leaves for the system
 // browser (a Custom Tab in the standalone/TWA shell, which the web side cannot intercept, so
