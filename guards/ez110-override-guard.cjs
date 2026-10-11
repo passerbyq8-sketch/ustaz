@@ -12,6 +12,8 @@
 //   O7     the plaintext code is in no tracked file
 //   O8     the new device keys never enter the sync tables
 //   O9     part fix (round 2): &fix=1 lights it on localhost / 127.0.0.1 only; elsewhere a non-owner never has it
+//   O10    the call-to-prayer card (round 4): its own state off|owner|public, 'public' only by the owner's word ('adhan'
+//          in PUBLIC_BY_OWNER); a reader who is not the owner never has it off this machine; its render asks for it
 'use strict';
 const fs = require('fs'), path = require('path'), crypto = require('crypto'), cp = require('child_process');
 const ROOT = path.join(__dirname, '..');
@@ -29,7 +31,7 @@ function lift(name) {
   throw new Error('unbalanced ' + name);
 }
 const constOf = (name) => { const m = jsx.match(new RegExp('const ' + name + ' = ([^;]+);')); if (!m) throw new Error('missing const ' + name); return m[1]; };
-const SRC = ['ez110Sha256Hex', 'ez110ReadOwner', 'ez110LocalOverride', 'ez110PartLit', 'ez110Choosable', 'ez110ReadIdentity', 'ez110SafeLit', 'ez110FixLit', 'ez110ReadDigits', 'ez110LinkCss', 'ez110Apply'].map(lift).join('\n');
+const SRC = ['ez110AdhanCardLit', 'ez110Sha256Hex', 'ez110ReadOwner', 'ez110LocalOverride', 'ez110PartLit', 'ez110Choosable', 'ez110ReadIdentity', 'ez110SafeLit', 'ez110FixLit', 'ez110ReadDigits', 'ez110LinkCss', 'ez110Apply'].map(lift).join('\n');
 function world({ host = 'ezik.app', search = '', store = {} } = {}) {
   const calls = [];
   const el = { setAttribute: (a, v) => calls.push('attr:' + a), removeAttribute: (a) => calls.push('rm:' + a), getAttribute: () => null, style: {} };
@@ -40,10 +42,10 @@ function world({ host = 'ezik.app', search = '', store = {} } = {}) {
     `const EZ110_PARTS = ${constOf('EZ110_PARTS')}; const EZ110_IDS = ${constOf('EZ110_IDS')};
      const EZ110_UNLOCK_KEY = ${constOf('EZ110_UNLOCK_KEY')}; const EZ110_IDENTITY_KEY = ${constOf('EZ110_IDENTITY_KEY')};
      const EZ110_DIGITS_KEY = ${constOf('EZ110_DIGITS_KEY')}; const EZ110_UNLOCK_SHA = ${constOf('EZ110_UNLOCK_SHA')};
-     const EZ110_CSS = ${constOf('EZ110_CSS')}; const EZ110_SAFE_CSS = ${constOf('EZ110_SAFE_CSS')}; const EZ110_FIX_CSS = ${constOf('EZ110_FIX_CSS')};
+     const EZ110_CSS = ${constOf('EZ110_CSS')}; const EZ110_ADHAN_CARD = ${constOf('EZ110_ADHAN_CARD')}; const EZ110_SAFE_CSS = ${constOf('EZ110_SAFE_CSS')}; const EZ110_FIX_CSS = ${constOf('EZ110_FIX_CSS')};
      ${SRC}
      const EZ110_OWNER = ez110ReadOwner(); const EZ110_OVERRIDE = ez110LocalOverride();
-     return { ez110Sha256Hex, ez110ReadOwner, ez110LocalOverride, ez110PartLit, ez110FixLit, ez110Apply, EZ110_PARTS, owner: EZ110_OWNER, ov: EZ110_OVERRIDE };`);
+     return { ez110AdhanCardLit, EZ110_ADHAN_CARD, ez110Sha256Hex, ez110ReadOwner, ez110LocalOverride, ez110PartLit, ez110FixLit, ez110Apply, EZ110_PARTS, owner: EZ110_OWNER, ov: EZ110_OVERRIDE };`);
   const api = f(window, document, localStorage, URLSearchParams, () => calls.push('timer'));
   return { api, calls };
 }
@@ -76,6 +78,20 @@ for (const host of ['localhost', '127.0.0.1']) {
   api.ez110FixLit() === true ? pass(`O9 &fix=1 answers on ${host}`) : fail(`O9 &fix=1 does not answer on ${host}`);
 }
 'fix' in base.EZ110_PARTS ? pass('O9 part fix is declared') : fail('O9 part fix is missing from EZ110_PARTS');
+// O10
+{
+  const st = base.EZ110_ADHAN_CARD;
+  if (!['off', 'owner', 'public'].includes(st)) fail('O10 the call-to-prayer card has an unknown state ' + st);
+  else if (st === 'public' && !PUBLIC_BY_OWNER.includes('adhan')) fail('O10 the call-to-prayer card is PUBLIC without the owner word');
+  else pass('O10 the call-to-prayer card = ' + st);
+  if (st !== 'public') for (const host of ['ezik.app', 'www.ezik.app', 'ustaz-git-main-musaed-s-projects1.vercel.app', 'localhost.evil.com', '']) {
+    const { api } = world({ host, search: '?ezik110=b&fix=1&safe=1' });
+    api.ez110AdhanCardLit() === false ? pass('O10 card dark for a non-owner on "' + host + '"') : fail('O10 card LIT for a non-owner on "' + host + '"');
+  }
+  const at = jsx.indexOf('<Ez110AdhanCard ');
+  const cond = at > 0 ? jsx.slice(jsx.lastIndexOf('{ez110.id', at), at) : '';
+  cond.indexOf('ez110AdhanCardLit()') >= 0 ? pass('O10 the card is drawn only when ez110AdhanCardLit() says so') : fail('O10 the card render does not ask ez110AdhanCardLit()');
+}
 // O4
 for (const s of ['', 'abc', 'ezk110-test', 'عزك', 'x'.repeat(200)]) {
   const want = crypto.createHash('sha256').update(s, 'utf8').digest('hex');

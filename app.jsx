@@ -8928,6 +8928,17 @@ function Ez110WomenGate({ onPick, onBack }) {
 // its press raises the prompt; granted -> on; refused -> off and the app works on (Apple 4.5.4). Once per install;
 // only a press in it writes the device key; never for a reader whose call to prayer is already on; only where a shell
 // can carry it (the switch draws nothing in a browser).
+// ROUND 4 §3-1-4 (owner): THE CALL-TO-PRAYER CARD IS THE OWNER'S ALONE until a store trip mends the late call and its
+// sound (the phone round measured Maghrib 22 minutes late: the shell's alarms are inexact). Its own three states, like a
+// part: 'off' nobody · 'owner' the device holding the unlock code (and this machine's local override) · 'public' everybody
+// -- and 'public' only by the owner's word, through PUBLISH.md (gate ez110override O10). The switch in the prayer
+// settings is everybody's, as it is today: only the card in the empty chat is gated.
+const EZ110_ADHAN_CARD = 'owner';
+function ez110AdhanCardLit() {
+  if (EZ110_ADHAN_CARD === 'public') return true;
+  if (EZ110_ADHAN_CARD === 'owner') return EZ110_OWNER || !!(EZ110_OVERRIDE && EZ110_OVERRIDE.id);
+  return false;
+}
 function ez110AdhanAsked() { try { return !!localStorage.getItem(EZ110_ADHAN_ASKED_KEY); } catch (e) { return true; } }
 function ez110MarkAdhanAsked() { try { localStorage.setItem(EZ110_ADHAN_ASKED_KEY, '1'); } catch (e) {} }
 function Ez110AdhanCard({ onPressed, onLater }) {
@@ -22312,7 +22323,7 @@ function App() {
         <Ez110GenderCard onPick={(g) => { ez110MarkGenderAsked(); if (g) ez110SaveGender(g); setEz110FirstTick((t) => t + 1); }} />
       ) : null}
       {/* ROUND 3 §3-11, «ب» only: the call-to-prayer card, with the existing switch in it */}
-      {ez110.id && messages.length === 0 && streamingText === null && ezikSchedBridge()
+      {ez110.id && ez110AdhanCardLit() && messages.length === 0 && streamingText === null && ezikSchedBridge()
         && (ez110AdhanStay || (!ez110AdhanAsked() && !readPrayerNotify())) ? (
         <Ez110AdhanCard onPressed={() => { ez110MarkAdhanAsked(); setEz110AdhanStay(true); }}
           onLater={() => { ez110MarkAdhanAsked(); setEz110AdhanStay(false); setEz110FirstTick((t) => t + 1); }} />
