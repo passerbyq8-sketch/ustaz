@@ -1822,6 +1822,55 @@ const EZ_I18N = {
     'mem86.opt.dim': 'أظهِر النصّ باهتًا',
     'mem86.opt.hideNums': 'أخفِ أرقام الآيات',
     'mem86.red.notErr': 'ليس خطأً',
+    'mem86.tab.test': 'اختبرني',
+    'mem86.test.saved': 'اختبار موقوف: مضى منه {n} سؤال',
+    'mem86.test.resume': 'استأنف الاختبار',
+    'mem86.test.discard': 'احذفه',
+    'mem86.sugg.title': 'اقتراحات',
+    'mem86.sugg.warm': 'إحماء',
+    'mem86.sugg.weak': 'أضعف موضع',
+    'mem86.sugg.review': 'للمراجعة',
+    'mem86.sugg.last': 'آخر ما حفظت',
+    'mem86.test.setup': 'إعداد الاختبار',
+    'mem86.test.range': 'النطاق',
+    'mem86.test.starter': 'من الزلزلة إلى الناس',
+    'mem86.test.limit': 'حدّ الاختبار',
+    'mem86.test.byCount': 'عدد الأسئلة',
+    'mem86.test.byTime': 'المدّة',
+    'mem86.test.noLimit': 'بلا حدّ',
+    'mem86.test.custom': 'مخصّص',
+    'mem86.minN': '{n} دقيقة',
+    'mem86.test.length': 'طول السؤال',
+    'mem86.test.short': 'قصير',
+    'mem86.test.medium': 'متوسّط',
+    'mem86.test.long': 'طويل',
+    'mem86.test.lines': 'أسطر',
+    'mem86.test.toEnd': 'أكمِل إلى آخر الآية',
+    'mem86.test.hideName': 'أخفِ اسم السورة ورقم الآية',
+    'mem86.test.vibe': 'اهتزاز بلا صوت',
+    'mem86.test.temp': 'جلسة مؤقّتة لا تُحفَظ',
+    'mem86.test.start': 'ابدأ الاختبار',
+    'mem86.res.title': 'النتيجة',
+    'mem86.res.pct': '{n}٪',
+    'mem86.res.ok': '{n} صحيح من {of}',
+    'mem86.res.errs': 'مواضع الخطأ',
+    'mem86.res.noErrs': 'لا أخطاء مسجّلة.',
+    'mem86.res.drop': 'ليس خطأً: الكلمة {n}',
+    'mem86.res.keep': 'أعِد الخطأ: الكلمة {n}',
+    'mem86.test.continue': 'تابِع الاختبار',
+    'mem86.res.again': 'أعد الاختبار',
+    'mem86.res.done': 'انتهِ',
+    'mem86.q.n': 'السؤال {n}',
+    'mem86.q.errs': 'الأخطاء {n}',
+    'mem86.q.streak': 'متتالية {n}',
+    'mem86.test.paused': 'الاختبار موقوف.',
+    'mem86.test.end': 'إنهاء',
+    'mem86.q.markHint': 'اضغط الكلمات التي أخطأت فيها، ثم سجّل.',
+    'mem86.q.record': 'سجّل',
+    'mem86.q.showAll': 'أظهِر الكلّ',
+    'mem86.q.right': 'صحيح بلا خطأ',
+    'mem86.q.wrong': 'أخطأتُ',
+    'mem86.q.skip': 'تخطَّ',
   },
   en: {
     'common.close': 'Close',
@@ -3233,6 +3282,55 @@ const EZ_I18N = {
     'mem86.opt.dim': 'Show the text dimmed',
     'mem86.opt.hideNums': 'Hide the ayah numbers',
     'mem86.red.notErr': 'Not a mistake',
+    'mem86.tab.test': 'Test me',
+    'mem86.test.saved': 'A paused test: {n} questions done',
+    'mem86.test.resume': 'Resume the test',
+    'mem86.test.discard': 'Discard it',
+    'mem86.sugg.title': 'Suggestions',
+    'mem86.sugg.warm': 'Warm-up',
+    'mem86.sugg.weak': 'Weakest spot',
+    'mem86.sugg.review': 'To review',
+    'mem86.sugg.last': 'Last memorized',
+    'mem86.test.setup': 'Test settings',
+    'mem86.test.range': 'Range',
+    'mem86.test.starter': 'Az-Zalzalah to An-Nas',
+    'mem86.test.limit': 'Test limit',
+    'mem86.test.byCount': 'Number of questions',
+    'mem86.test.byTime': 'Duration',
+    'mem86.test.noLimit': 'No limit',
+    'mem86.test.custom': 'Custom',
+    'mem86.minN': '{n} min',
+    'mem86.test.length': 'Question length',
+    'mem86.test.short': 'Short',
+    'mem86.test.medium': 'Medium',
+    'mem86.test.long': 'Long',
+    'mem86.test.lines': 'Lines',
+    'mem86.test.toEnd': 'Complete to the end of the ayah',
+    'mem86.test.hideName': 'Hide the surah name and ayah number',
+    'mem86.test.vibe': 'Silent vibration',
+    'mem86.test.temp': 'Temporary session, not saved',
+    'mem86.test.start': 'Start the test',
+    'mem86.res.title': 'Result',
+    'mem86.res.pct': '{n}%',
+    'mem86.res.ok': '{n} right of {of}',
+    'mem86.res.errs': 'Where the mistakes were',
+    'mem86.res.noErrs': 'No mistakes recorded.',
+    'mem86.res.drop': 'Not a mistake: word {n}',
+    'mem86.res.keep': 'Restore the mistake: word {n}',
+    'mem86.test.continue': 'Continue the test',
+    'mem86.res.again': 'Retake the test',
+    'mem86.res.done': 'Done',
+    'mem86.q.n': 'Question {n}',
+    'mem86.q.errs': 'Mistakes {n}',
+    'mem86.q.streak': 'In a row {n}',
+    'mem86.test.paused': 'The test is paused.',
+    'mem86.test.end': 'End',
+    'mem86.q.markHint': 'Tap the words you got wrong, then record.',
+    'mem86.q.record': 'Record',
+    'mem86.q.showAll': 'Show all',
+    'mem86.q.right': 'Right, no mistake',
+    'mem86.q.wrong': 'I made a mistake',
+    'mem86.q.skip': 'Skip',
   },
 };
 
@@ -33428,6 +33526,8 @@ const mem86HeldRead = () => {
     const clean = counts ? mem86SegsClean(segs, counts) : segs;
     if (clean.length) out[sn] = clean.map((sg) => [sg[1], sg[3]]);
   }
+  const l = v.last;
+  if (Array.isArray(l) && l.length === 3 && mem86Int(l[0], 1, 114) && mem86Int(l[1], 1, 286) && mem86Int(l[2], l[1], 286)) out.last = l;
   return out;
 };
 const mem86HeldSegs = (held) => {
@@ -33451,6 +33551,8 @@ const mem86HeldSet = (sn, from, to, on) => {
   for (let i = 1; i <= counts[sn]; i++) if (keep[i]) { const r = runs[runs.length - 1]; if (r && r[1] === i - 1) r[1] = i; else runs.push([i, i]); }
   const next = { ...cur };
   if (runs.length) next[sn] = runs; else delete next[sn];
+  if (on) next.last = [sn, lo, hi];
+  else if (next.last && next.last[0] === sn) delete next.last;
   mem86Store(MEM86_HELD_KEY, next);
   return mem86HeldRead();
 };
@@ -33514,6 +33616,7 @@ const mem86WordsLog = (refs, kind) => {
     if (kind === 'err') e[0]++;
     else if (kind === 'hint') e[1]++;
     else if (kind === 'ok') { if (!log[r]) continue; e[2]++; }
+    else if (kind === 'unerr') { if (!log[r]) continue; e[0] = Math.max(0, e[0] - 1); }
     e[3] = t;
     if (mem86WordScore(e) <= 0) delete log[r]; else log[r] = e;
   }
@@ -33598,7 +33701,7 @@ const mem86PrefsRead = () => {
 const mem86PrefsWrite = (patch) => { mem86Store(MEM86_PREFS_KEY, { ...mem86PrefsRead(), ...(patch || {}) }); return mem86PrefsRead(); };
 
 // ---------- the memorizer's tabs: a tab is drawn only once its phase is built ----------
-const MEM86_TABS = ['learn', 'progress'];
+const MEM86_TABS = ['learn', 'test', 'progress'];
 const Mem86Tabs = ({ tab, onTab }) => (
   <div role="tablist" aria-label={ezT('mem86.tabs')} style={s.mem86Tabs}>
     {MEM86_TABS.map((t) => (
@@ -33621,6 +33724,18 @@ const Mem86Switch = ({ on, onFlip, label }) => (
     <span>{label}</span>
   </button>
 );
+// a number field that shows the reader's digits (a native number input would show Latin digits in Arabic)
+const mem86ParseNum = (t) => parseInt(String(t).replace(/[٠-٩۰-۹০-৯]/g, (d) => {
+  const c = d.charCodeAt(0);
+  return String(c - (c >= 0x9E6 ? 0x9E6 : c >= 0x6F0 ? 0x6F0 : 0x660));
+}), 10);
+const Mem86NumIn = ({ value, min, max, onSet }) => {
+  const [t, setT] = useState(null);
+  return (
+    <input type="text" inputMode="numeric" value={t !== null ? t : toArabicDigits(value)} style={s.mem86Num} onBlur={() => setT(null)}
+      onChange={(e) => { setT(e.target.value); const n = mem86ParseNum(e.target.value); if (Number.isFinite(n)) onSet(Math.max(min, Math.min(max, n))); }} />
+  );
+};
 // how a range reads: «الزلزلة ١ – الناس ٦ · ٢ مقاطع · ٧٨ آية»
 const mem86SegsLabel = (segs, counts) => {
   if (!segs || !segs.length) return ezT('mem86.range.empty');
@@ -33671,9 +33786,9 @@ const Mem86RangeBuilder = ({ counts, held, initial, onDone, onCancel }) => {
       {how === 'page' && (
         <div style={s.mem86Row}>
           <label style={s.mem86Label}>{ezT('mem86.range.pageFrom')}
-            <input type="number" min="1" max="604" value={p1} onChange={(e) => setP1(Math.max(1, Math.min(604, parseInt(e.target.value, 10) || 1)))} style={s.mem86Num} /></label>
+            <Mem86NumIn value={p1} min={1} max={604} onSet={setP1} /></label>
           <label style={s.mem86Label}>{ezT('mem86.range.pageTo')}
-            <input type="number" min="1" max="604" value={p2} onChange={(e) => setP2(Math.max(1, Math.min(604, parseInt(e.target.value, 10) || 1)))} style={s.mem86Num} /></label>
+            <Mem86NumIn value={p2} min={1} max={604} onSet={setP2} /></label>
         </div>
       )}
       {pageErr && <div style={s.mem86Note}>{ezT('mem86.range.pageErr')}</div>}
@@ -33793,6 +33908,460 @@ const Mem86ReciteOpts = ({ listening, paused, onPause, onResume, onHint, prefs, 
     <Mem86Switch on={prefs.hideNums} onFlip={(v) => onPref({ hideNums: v })} label={ezT('mem86.opt.hideNums')} />
   </div>
 );
+
+// ---------- «اختبرني»: the reader completes a passage and marks it themself (no engine judges recitation yet) ----------
+// Where a question may start: an ayah's first word, or the word after a pause mark -- never mid-phrase.
+const mem86Starts = (segs, counts) => {
+  const out = [];
+  for (const [sn, a] of mem86SegsList(segs, counts)) {
+    const words = (getVerseText(sn, a) || '').split(/\s+/).filter(Boolean);
+    const total = words.filter((w) => normalizeForRecite(w)).length;
+    out.push([sn, a, 0]);
+    let k = 0;
+    for (let i = 0; i < words.length; i++) {
+      if (normalizeForRecite(words[i])) { k++; continue; }
+      if (k > 0 && k < total && out[out.length - 1][2] !== k) out.push([sn, a, k]);
+    }
+  }
+  return out;
+};
+// a seeded order: every start once before any repeats, then a fresh shuffle
+const mem86Rand = (seed) => { let x = seed | 0; return () => { x = (x + 0x6D2B79F5) | 0; let t = Math.imul(x ^ (x >>> 15), 1 | x); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
+const mem86Pick = (n, seed, i) => {
+  const r = mem86Rand(seed + Math.floor(i / n) * 7919);
+  const a = Array.from({ length: n }, (_, j) => j);
+  for (let j = n - 1; j > 0; j--) { const m = Math.floor(r() * (j + 1)); const t = a[j]; a[j] = a[m]; a[m] = t; }
+  return a[i % n];
+};
+// every word location of the layout -> the ordinal of its printed line across the whole mushaf
+let __mem86Lines = null;
+const mem86LineIndex = (layout) => {
+  if (__mem86Lines) return __mem86Lines;
+  if (!layout || !Array.isArray(layout.p)) return null;
+  const m = {};
+  let o = 0;
+  for (const pg of layout.p) for (const ln of pg.l) { if (ln.t !== 't' || !ln.w) continue; o++; for (const loc of ln.w) m[loc] = o; }
+  __mem86Lines = m;
+  return m;
+};
+// The words of one ayah as shown: each counted word with the standalone marks drawn after it.
+const mem86AyahWords = (sn, a) => {
+  const out = [];
+  for (const w of (getVerseText(sn, a) || '').split(/\s+/).filter(Boolean)) {
+    if (normalizeForRecite(w)) out.push({ s: sn, a, k: out.length, text: w, mark: '' });
+    else if (out.length) out[out.length - 1].mark += ' ' + w;
+  }
+  return out;
+};
+// One question: from a start, `lines` printed lines; then on to the ayah's end (toEnd) or to the
+// next pause mark. It never leaves the range.
+const mem86Question = (start, segs, counts, cfg, lines) => {
+  const list = mem86SegsList(segs, counts);
+  let at = list.findIndex(([sn, a]) => sn === start[0] && a === start[1]);
+  if (at < 0) return [];
+  const out = [];
+  let lastLine = 0, prevLine = 0, passed = false;
+  for (; at < list.length && out.length < 400; at++) {
+    const [sn, a] = list[at];
+    const ws = mem86AyahWords(sn, a);
+    for (const w of ws) {
+      if (out.length === 0 && w.k < start[2]) continue;
+      const ln = (lines && lines[sn + ':' + a + ':' + (w.k + 1)]) || prevLine;
+      if (!lastLine) lastLine = (ln || 0) + cfg.tLines - 1;
+      prevLine = ln;
+      if (!passed && ln > lastLine) passed = true;
+      out.push(w);
+      if (passed && !cfg.tToEnd && w.mark) return out;
+    }
+    if (passed || !lines) return out;
+  }
+  return out;
+};
+const mem86TestsRead = () => {
+  const v = mem86Load(MEM86_TESTS_KEY);
+  if (!Array.isArray(v)) return [];
+  return v.filter((r) => mem86Obj(r) && mem86Int(r.t, 0, 1e14) !== null && mem86Int(r.shown, 1, 999) && mem86Int(r.ok, 0, 999) !== null && r.ok <= r.shown)
+    .map((r) => ({ t: r.t, shown: r.shown, ok: r.ok, errs: Array.isArray(r.errs) ? r.errs.filter((x) => /^\d{1,3}:\d{1,3}:\d{1,3}$/.test(x)).slice(0, 300) : [], sur: Array.isArray(r.sur) ? r.sur.filter((n) => mem86Int(n, 1, 114)) : [] }))
+    .slice(-60);
+};
+const mem86TestsPut = (rec) => {
+  const all = mem86TestsRead().filter((r) => r.t !== rec.t).concat([rec]);
+  while (all.length && !mem86Store(MEM86_TESTS_KEY, all.slice(-60))) all.shift();
+  return mem86TestsRead();
+};
+const mem86RunRead = () => {
+  const v = mem86Load(MEM86_RUN_KEY);
+  const counts = mem86Counts();
+  if (!mem86Obj(v) || !mem86Obj(v.cfg) || !mem86Int(v.seed, 0, 2147483647) || !mem86Int(v.i, 0, 9999) || !counts) return null;
+  const segs = mem86SegsClean(v.segs, counts);
+  if (!segs.length) return null;
+  const st = mem86Obj(v.st) ? v.st : {};
+  return {
+    segs, seed: v.seed, i: v.i, cfg: { ...MEM86_PREF_DEFAULT, ...v.cfg },
+    st: {
+      shown: mem86Int(st.shown, 0, 999) || 0, ok: mem86Int(st.ok, 0, 999) || 0, streak: mem86Int(st.streak, 0, 999) || 0,
+      errs: Array.isArray(st.errs) ? st.errs.filter((x) => typeof x === 'string').slice(0, 300) : [],
+      ayat: Array.isArray(st.ayat) ? st.ayat.filter((g) => mem86Int(g, 1, 6236)).slice(0, 2000) : [],
+      ms: mem86Int(st.ms, 0, 1e9) || 0, cred: mem86Int(st.cred, 0, 2000) || 0,
+    },
+    prevT: mem86Int(v.prevT, 0, 1e14) || 0,
+  };
+};
+const mem86RunWrite = (run) => (run ? mem86Store(MEM86_RUN_KEY, run) : (() => { try { localStorage.removeItem(MEM86_RUN_KEY); } catch (e) {} return true; })());
+// the suggestions: only from what is memorised, and only when the record can say something
+const mem86Suggest = (held, counts) => {
+  const out = [];
+  if (!counts) return out;
+  const hs = mem86SegsClean(mem86HeldSegs(held), counts);
+  if (!hs.length) return out;
+  out.push({ id: 'warm', segs: hs, cfg: { tLimit: 'count', tCount: 5, tLines: 2 } });
+  const log = mem86WordsRead();
+  let worst = null;
+  for (const r in log) {
+    const [sn, a] = r.split(':').map(Number);
+    if (!mem86HeldHas(held, sn, a)) continue;
+    if (!worst || mem86WordScore(log[r]) > mem86WordScore(log[worst])) worst = r;
+  }
+  if (worst) {
+    const [sn, a] = worst.split(':').map(Number);
+    out.push({ id: 'weak', segs: [[sn, Math.max(1, a - 2), sn, Math.min(counts[sn], a + 2)]], cfg: { tLimit: 'count', tCount: 5, tLines: 2 } });
+  }
+  const tests = mem86TestsRead();
+  if (tests.length) {
+    const seen = {};
+    tests.forEach((t, i) => t.sur.forEach((n) => { seen[n] = i + 1; }));
+    let pick = 0;
+    for (let n = 1; n <= 114; n++) if (held[n] && (!pick || (seen[n] || 0) < (seen[pick] || 0))) pick = n;
+    if (pick) out.push({ id: 'review', segs: held[pick].map(([x, y]) => [pick, x, pick, y]), cfg: { tLimit: 'count', tCount: 10, tLines: 5 } });
+  }
+  if (held.last) out.push({ id: 'last', segs: [[held.last[0], held.last[1], held.last[0], held.last[2]]], cfg: { tLimit: 'count', tCount: 5, tLines: 2 } });
+  return out.slice(0, 4);
+};
+
+const Mem86Test = ({ counts, held, ranges, prefs, onPref, isFemale, onSimilar, onWeak }) => {
+  const [stage, setStage] = useState('setup');       // setup | count | q | paused | result
+  const [run, setRun] = useState(null);              // { segs, seed, i, cfg, st, temp }
+  const [saved, setSaved] = useState(mem86RunRead);
+  const [src, setSrc] = useState(() => (mem86HeldTotal(held) ? 'held' : 'starter'));
+  const [tick, setTick] = useState(0);
+  const [qs, setQs] = useState(null);                // the current question: { words, shownTo, help: [], marking, wrong: [] }
+  const [result, setResult] = useState(null);
+  const [lines, setLines] = useState(null);
+  const lastTouch = useRef(Date.now());
+  const t0 = useRef(0);
+  const [temp, setTemp] = useState(false);
+  const starts = useRef({ key: '', list: [] });
+  useEffect(() => { loadLayout().then((l) => setLines(mem86LineIndex(l))).catch(() => setLines(null)); }, []);
+  const segsOf = (k) => {
+    if (k === 'held') return mem86SegsClean(mem86HeldSegs(held), counts);
+    if (k === 'starter') return mem86StarterSegs(counts);
+    const r = ranges.find((x) => x.id === k);
+    return r ? r.segs : [];
+  };
+  const startList = (segs) => {
+    const key = JSON.stringify(segs);
+    if (starts.current.key !== key) starts.current = { key, list: mem86Starts(segs, counts) };
+    return starts.current.list;
+  };
+  const elapsed = (r) => r.st.ms + (stage === 'q' && t0.current ? Date.now() - t0.current : 0);
+  const persist = (r, ms) => { if (!r.temp) mem86RunWrite({ segs: r.segs, seed: r.seed, i: r.i, cfg: r.cfg, prevT: r.prevT || 0, st: { ...r.st, ms } }); };
+  const nextQ = (r) => {
+    const list = startList(r.segs);
+    if (!list.length) return;
+    const st = list[mem86Pick(list.length, r.seed, r.i)];
+    const words = mem86Question(st, r.segs, counts, r.cfg, lines);
+    setQs({ words, shownTo: Math.min(words.length, words.length >= 4 ? 2 : 1), help: [], marking: false, wrong: [] });
+  };
+  const begin = (segs, cfg) => {
+    if (!segs.length) return;
+    const r = { segs, seed: Math.floor(Math.random() * 2147483646) + 1, i: 0, cfg: { ...prefs, ...cfg }, temp, st: { shown: 0, ok: 0, streak: 0, errs: [], ayat: [], ms: 0 } };
+    setRun(r); setResult(null); setStage('count'); persist(r, 0); setSaved(null);
+  };
+  const resume = (r) => { setRun({ ...r, temp: false }); setStage('count'); setSaved(null); };
+  // the countdown before the first question
+  useEffect(() => {
+    if (stage !== 'count') return undefined;
+    let n = 3;
+    setTick(3);
+    const id = setInterval(() => { n--; setTick(n); if (n <= 0) { clearInterval(id); t0.current = Date.now(); lastTouch.current = Date.now(); setStage('q'); } }, 800);
+    return () => clearInterval(id);
+  }, [stage]);
+  useEffect(() => { if (stage === 'q' && run && !qs) nextQ(run); }, [stage, run, qs, lines]);
+  const finish = (r) => {
+    const ms = elapsed(r);
+    t0.current = 0;
+    mem86RunWrite(null);
+    const sur = [];
+    r.st.ayat.forEach((g) => { const n = mem86SA(mem86Offsets(counts), g)[0]; if (sur.indexOf(n) === -1) sur.push(n); });
+    const rec = { t: r.prevT || Date.now(), shown: r.st.shown, ok: r.st.ok, errs: r.st.errs.slice(0, 300), sur };
+    if (!r.temp && r.st.shown > 0) {
+      mem86TestsPut(rec);
+      mem86Credit({ review: r.st.ayat.length - (r.st.cred || 0), fresh: 0, segs: r.segs });
+    }
+    setRun({ ...r, prevT: rec.t, st: { ...r.st, cred: r.st.ayat.length } });
+    setResult({ ...rec, ms, limitHit: r.cfg.tLimit === 'count' ? r.st.shown >= r.cfg.tCount : r.cfg.tLimit === 'time' ? ms >= r.cfg.tMins * 60000 : false, removed: [] });
+    setStage('result'); setQs(null);
+  };
+  const pause = () => {
+    if (!run || stage !== 'q') return;
+    const ms = elapsed(run);
+    t0.current = 0;
+    const r = { ...run, st: { ...run.st, ms } };
+    setRun(r); persist(r, ms); mem86Rest(); setStage('paused');
+  };
+  // the clock: time limit, auto-pause after 30 s untouched or when the page is hidden
+  useEffect(() => {
+    if (stage !== 'q') return undefined;
+    const touch = () => { lastTouch.current = Date.now(); mem86Ping(); };
+    const vis = () => { if (document.hidden) pause(); };
+    document.addEventListener('pointerdown', touch);
+    document.addEventListener('visibilitychange', vis);
+    const id = setInterval(() => {
+      setTick((x) => x + 1);
+      if (Date.now() - lastTouch.current > 30000) pause();
+      else if (run && run.cfg.tLimit === 'time' && elapsed(run) >= run.cfg.tMins * 60000) { if (run.cfg.tVibe) tasbihBuzz(); finish(run); }
+    }, 1000);
+    return () => { clearInterval(id); document.removeEventListener('pointerdown', touch); document.removeEventListener('visibilitychange', vis); };
+  }, [stage, run]);
+  const judge = (good) => {
+    const r = run;
+    const helped = qs.help.length > 0;
+    const okNow = good && !helped;
+    const refs = qs.words.map((w) => mem86Ref(w.s, w.a, w.k + 1));
+    const wrong = good ? [] : qs.wrong.map((i) => refs[i]);
+    if (!r.temp) {
+      if (wrong.length) mem86WordsLog(wrong, 'err');
+      if (helped) mem86WordsLog(qs.help.map((i) => refs[i]), 'hint');
+      if (okNow) mem86WordsLog(refs, 'ok');
+    }
+    if (!okNow && r.cfg.tVibe) tasbihBuzz();
+    const off = mem86Offsets(counts);
+    const ayat = r.st.ayat.slice();
+    qs.words.forEach((w) => { const g = mem86G(off, w.s, w.a); if (ayat.indexOf(g) === -1 && ayat.length < 2000) ayat.push(g); });
+    const st = { ...r.st, shown: r.st.shown + 1, ok: r.st.ok + (okNow ? 1 : 0), streak: okNow ? r.st.streak + 1 : 0, errs: r.st.errs.concat(wrong).slice(0, 300), ayat };
+    const nr = { ...r, i: r.i + 1, st };
+    setRun(nr); setQs(null);
+    if (nr.cfg.tLimit === 'count' && st.shown >= nr.cfg.tCount) { finish(nr); return; }
+    persist(nr, elapsed(nr));
+  };
+  const skip = () => {
+    const nr = { ...run, i: run.i + 1, st: { ...run.st, shown: run.st.shown + 1, streak: 0 } };
+    setRun(nr); setQs(null);
+    if (nr.cfg.tLimit === 'count' && nr.st.shown >= nr.cfg.tCount) { finish(nr); return; }
+    persist(nr, elapsed(nr));
+  };
+  const help = (rest) => {
+    if (!qs) return;
+    const to = rest ? (() => { let i = qs.shownTo; const a = qs.words[i] ? qs.words[i].a : 0; while (i < qs.words.length && qs.words[i].a === a) i++; return i; })() : Math.min(qs.words.length, qs.shownTo + 1);
+    const add = [];
+    for (let i = qs.shownTo; i < to; i++) add.push(i);
+    setQs({ ...qs, shownTo: to, help: qs.help.concat(add) });
+  };
+  if (!counts) return <div style={s.mem86Note}>{MEM.LOADING}</div>;
+
+  // ---------- setup ----------
+  if (stage === 'setup') {
+    const sugg = mem86Suggest(held, counts);
+    const cfg = prefs;
+    const segs = segsOf(src);
+    return (
+      <div>
+        {saved ? (
+          <section style={s.mem86Card}>
+            <div style={s.mem86Strong}>{ezT('mem86.test.saved', { n: toArabicDigits(saved.st.shown) })}</div>
+            <div style={s.mem86Row}>
+              <button type="button" style={s.mem86BtnMain} onClick={() => resume(saved)}>{ezT('mem86.test.resume')}</button>
+              <button type="button" style={s.mem86BtnQuiet} onClick={() => { mem86RunWrite(null); setSaved(null); }}>{ezT('mem86.test.discard')}</button>
+            </div>
+          </section>
+        ) : null}
+        {sugg.length ? (
+          <section style={s.mem86Sec}>
+            <div style={s.mem86H}>{ezT('mem86.sugg.title')}</div>
+            <div style={s.mem86Row}>
+              {sugg.map((g) => <button key={g.id} type="button" style={s.mem86Btn} onClick={() => begin(g.segs, g.cfg)}>{ezT('mem86.sugg.' + g.id)}</button>)}
+            </div>
+          </section>
+        ) : null}
+        <section style={s.mem86Card}>
+          <div style={s.mem86H}>{ezT('mem86.test.setup')}</div>
+          <label style={s.mem86Label}>{ezT('mem86.test.range')}
+            <select value={src} onChange={(e) => setSrc(e.target.value)} style={s.mem86Sel}>
+              {mem86HeldTotal(held) ? <option value="held">{ezT('mem86.range.byHeld')}</option> : null}
+              <option value="starter">{ezT('mem86.test.starter')}</option>
+              {ranges.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+            </select></label>
+          <div style={s.mem86Note}>{mem86SegsLabel(segs, counts)}</div>
+          <div style={s.mem86Note}>{ezT('mem86.test.limit')}</div>
+          <Mem86Seg label={ezT('mem86.test.limit')} value={cfg.tLimit} onPick={(v) => onPref({ tLimit: v })}
+            opts={[['count', ezT('mem86.test.byCount')], ['time', ezT('mem86.test.byTime')], ['none', ezT('mem86.test.noLimit')]]} />
+          {cfg.tLimit === 'count' && (
+            <div style={s.mem86Row}>
+              <Mem86Seg label={ezT('mem86.test.byCount')} value={cfg.tCount} onPick={(v) => onPref({ tCount: v })} opts={[10, 15, 20].map((n) => [n, toArabicDigits(n)])} />
+              <label style={s.mem86Label}>{ezT('mem86.test.custom')}
+                <Mem86NumIn value={cfg.tCount} min={1} max={99} onSet={(n) => onPref({ tCount: n })} /></label>
+            </div>
+          )}
+          {cfg.tLimit === 'time' && (
+            <div style={s.mem86Row}>
+              <Mem86Seg label={ezT('mem86.test.byTime')} value={cfg.tMins} onPick={(v) => onPref({ tMins: v })} opts={[5, 10, 15].map((n) => [n, ezT('mem86.minN', { n: toArabicDigits(n) })])} />
+              <label style={s.mem86Label}>{ezT('mem86.test.custom')}
+                <Mem86NumIn value={cfg.tMins} min={1} max={60} onSet={(n) => onPref({ tMins: n })} /></label>
+            </div>
+          )}
+          <div style={s.mem86Note}>{ezT('mem86.test.length')}</div>
+          <div style={s.mem86Row}>
+            <Mem86Seg label={ezT('mem86.test.length')} value={cfg.tLines} onPick={(v) => onPref({ tLines: v })}
+              opts={[[2, ezT('mem86.test.short')], [5, ezT('mem86.test.medium')], [12, ezT('mem86.test.long')]]} />
+            <label style={s.mem86Label}>{ezT('mem86.test.lines')}
+              <Mem86NumIn value={cfg.tLines} min={1} max={15} onSet={(n) => onPref({ tLines: n })} /></label>
+          </div>
+          <Mem86Switch on={cfg.tToEnd} onFlip={(v) => onPref({ tToEnd: v })} label={ezT('mem86.test.toEnd')} />
+          <Mem86Switch on={cfg.tHideName} onFlip={(v) => onPref({ tHideName: v })} label={ezT('mem86.test.hideName')} />
+          <Mem86Switch on={cfg.tVibe} onFlip={(v) => onPref({ tVibe: v })} label={ezT('mem86.test.vibe')} />
+          <Mem86Switch on={temp} onFlip={setTemp} label={ezT('mem86.test.temp')} />
+          <button type="button" style={s.mem86BtnMain} disabled={!segs.length} onClick={() => begin(segs, {})}>{ezT('mem86.test.start')}</button>
+        </section>
+      </div>
+    );
+  }
+
+  // ---------- result ----------
+  if (stage === 'result' && result) {
+    const pct = result.shown ? Math.round((100 * result.ok) / result.shown) : 0;
+    const byAyah = {};
+    result.errs.forEach((r) => { const k = r.split(':').slice(0, 2).join(':'); (byAyah[k] = byAyah[k] || []).push(r); });
+    const toggle = (r) => {
+      const gone = result.removed.indexOf(r) !== -1;
+      if (!run || !run.temp) mem86WordsLog([r], gone ? 'err' : 'unerr');
+      const removed = gone ? result.removed.filter((x) => x !== r) : result.removed.concat([r]);
+      setResult({ ...result, removed });
+      if (!run || !run.temp) mem86TestsPut({ t: result.t, shown: result.shown, ok: result.ok, errs: result.errs.filter((x) => removed.indexOf(x) === -1), sur: result.sur });
+    };
+    return (
+      <section style={s.mem86Card}>
+        <div style={s.mem86H}>{ezT('mem86.res.title')}</div>
+        <div style={s.mem86Big}>{ezT('mem86.res.pct', { n: toArabicDigits(pct) })}</div>
+        <div style={s.mem86Note}>{ezT('mem86.res.ok', { n: toArabicDigits(result.ok), of: toArabicDigits(result.shown) })}</div>
+        <div style={s.mem86Note}>{isFemale ? MEM.FINISH_F : MEM.FINISH_M}</div>
+        {Object.keys(byAyah).length ? <div style={s.mem86H}>{ezT('mem86.res.errs')}</div> : <div style={s.mem86Note}>{ezT('mem86.res.noErrs')}</div>}
+        {Object.keys(byAyah).map((k) => {
+          const [sn, a] = k.split(':').map(Number);
+          const words = mem86AyahWords(sn, a);
+          return (
+            <div key={k} style={s.mem86ListRow}>
+              <div style={s.mem86Grow}>
+                <div style={s.mem86Strong}>{SURAH_NAMES[sn] + ' · ' + MEM.ADNAN_AYAH_LABEL + ' ' + toArabicDigits(a)}</div>
+                <div style={s.mem86Verse}>
+                  {words.map((w) => {
+                    const ref = mem86Ref(sn, a, w.k + 1);
+                    const isErr = byAyah[k].indexOf(ref) !== -1 && result.removed.indexOf(ref) === -1;
+                    return <span key={w.k} style={isErr ? s.mem86ErrWord : (onWeak ? onWeak(ref) : null)}>{w.text + w.mark + ' '}</span>;
+                  })}
+                </div>
+                <div style={s.mem86Row}>
+                  {byAyah[k].map((r) => (
+                    <button key={r} type="button" style={s.mem86BtnQuiet} onClick={() => toggle(r)}>
+                      {ezT(result.removed.indexOf(r) === -1 ? 'mem86.res.drop' : 'mem86.res.keep', { n: toArabicDigits(r.split(':')[2]) })}</button>
+                  ))}
+                  {onSimilar ? <button type="button" style={s.mem86BtnQuiet} onClick={() => onSimilar(sn, a)}>{ezT('mem86.sim.btn')}</button> : null}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        <div style={s.mem86Row}>
+          {!result.limitHit && run ? <button type="button" style={s.mem86Btn} onClick={() => { setRun({ ...run, st: { ...run.st, ms: result.ms } }); setStage('count'); }}>{ezT('mem86.test.continue')}</button> : null}
+          <button type="button" style={s.mem86BtnMain} onClick={() => run && begin(run.segs, run.cfg)}>{ezT('mem86.res.again')}</button>
+          <button type="button" style={s.mem86BtnQuiet} onClick={() => { setStage('setup'); setRun(null); setResult(null); }}>{ezT('mem86.res.done')}</button>
+        </div>
+      </section>
+    );
+  }
+
+  if (!run) return null;
+  const ms = elapsed(run);
+  const limitPct = run.cfg.tLimit === 'count' ? run.st.shown / run.cfg.tCount : run.cfg.tLimit === 'time' ? ms / (run.cfg.tMins * 60000) : 0;
+  const errCount = run.st.errs.length;
+  const score = run.st.shown ? Math.round((100 * run.st.ok) / run.st.shown) : 0;
+  // ---------- the indicators ----------
+  const head = (
+    <div style={s.mem86Row}>
+      <span style={s.mem86Pill}>{ezT('mem86.q.n', { n: toArabicDigits(run.st.shown + 1) })}</span>
+      <span style={s.mem86Pill}>{ezT('mem86.q.errs', { n: toArabicDigits(errCount) })}</span>
+      <span style={s.mem86Pill}>{ezT('mem86.res.pct', { n: toArabicDigits(score) })}</span>
+      <span style={s.mem86Pill}>{ezT('mem86.q.streak', { n: toArabicDigits(run.st.streak) }) + (run.st.streak >= 3 ? ' ★' : '')}</span>
+      {run.cfg.tLimit === 'time' ? <span style={s.mem86Pill}>{ezT('mem86.minN', { n: toArabicDigits(Math.max(0, Math.ceil((run.cfg.tMins * 60000 - ms) / 60000))) })}</span> : null}
+      {run.cfg.tLimit !== 'none' ? <span style={s.mem86Bar} aria-hidden="true"><span style={{ ...s.mem86BarFill, width: Math.min(100, Math.round(100 * limitPct)) + '%' }} /></span> : null}
+    </div>
+  );
+  if (stage === 'count') return <section style={s.mem86Card}>{head}<div style={s.mem86Big}>{toArabicDigits(Math.max(1, tick))}</div></section>;
+  if (stage === 'paused') {
+    return (
+      <section style={s.mem86Card}>
+        {head}
+        <div style={s.mem86Strong}>{ezT('mem86.test.paused')}</div>
+        <div style={s.mem86Row}>
+          <button type="button" style={s.mem86BtnMain} onClick={() => { t0.current = Date.now(); lastTouch.current = Date.now(); setStage('q'); }}>{ezT('mem86.resume')}</button>
+          <button type="button" style={s.mem86BtnQuiet} onClick={() => finish(run)}>{ezT('mem86.test.end')}</button>
+        </div>
+      </section>
+    );
+  }
+  if (!qs) return <section style={s.mem86Card}>{head}</section>;
+  const w0 = qs.words[0];
+  const allShown = qs.shownTo >= qs.words.length;
+  return (
+    <section style={s.mem86Card}>
+      {head}
+      <span style={s.mem86Bar} aria-hidden="true"><span style={{ ...s.mem86BarFill, width: Math.round((100 * qs.shownTo) / Math.max(1, qs.words.length)) + '%' }} /></span>
+      {w0 && !run.cfg.tHideName ? <div style={s.mem86Strong}>{SURAH_NAMES[w0.s] + ' · ' + MEM.ADNAN_AYAH_LABEL + ' ' + toArabicDigits(w0.a)}</div> : null}
+      <div style={s.mem86Verse}>
+        {qs.words.map((w, i) => {
+          const shown = i < qs.shownTo || qs.marking;
+          const newAyah = i > 0 && w.a !== qs.words[i - 1].a;
+          const sep = newAyah && !run.cfg.tHideName ? <span key={'n' + i} style={s.memAyahBadge}>{toArabicDigits(w.a)}</span> : null;
+          if (!shown) return <React.Fragment key={i}>{sep}<span style={s.memPlaceholder}>—</span> </React.Fragment>;
+          const st = qs.marking ? (qs.wrong.indexOf(i) !== -1 ? s.mem86ErrWord : null) : (qs.help.indexOf(i) !== -1 ? s.mem86HintInline : (onWeak ? onWeak(mem86Ref(w.s, w.a, w.k + 1)) : null));
+          if (qs.marking) {
+            return <React.Fragment key={i}>{sep}<button type="button" style={{ ...s.mem86WordBtn, ...s.mem86VerseWord, ...st }} aria-pressed={qs.wrong.indexOf(i) !== -1 ? 'true' : 'false'}
+              onClick={() => setQs({ ...qs, wrong: qs.wrong.indexOf(i) !== -1 ? qs.wrong.filter((x) => x !== i) : qs.wrong.concat([i]) })}>{w.text + w.mark}</button> </React.Fragment>;
+          }
+          return <React.Fragment key={i}>{sep}<span style={st}>{w.text + w.mark}</span> </React.Fragment>;
+        })}
+      </div>
+      {qs.marking ? (
+        <div>
+          <div style={s.mem86Note}>{ezT('mem86.q.markHint')}</div>
+          <div style={s.mem86Row}>
+            <button type="button" style={s.mem86BtnMain} onClick={() => judge(false)}>{ezT('mem86.q.record')}</button>
+            <button type="button" style={s.mem86BtnQuiet} onClick={() => setQs({ ...qs, marking: false, wrong: [] })}>{ezT('mem86.cancel')}</button>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <div style={s.mem86Row}>
+            {!allShown ? <button type="button" style={s.mem86Btn} onClick={() => help(false)}>{ezT('mem86.hint.word')}</button> : null}
+            {!allShown ? <button type="button" style={s.mem86Btn} onClick={() => help(true)}>{ezT('mem86.hint.rest')}</button> : null}
+            {!allShown ? <button type="button" style={s.mem86Btn} onClick={() => setQs({ ...qs, shownTo: qs.words.length })}>{ezT('mem86.q.showAll')}</button> : null}
+          </div>
+          {allShown ? (
+            <div style={s.mem86Row}>
+              <button type="button" style={s.mem86BtnMain} onClick={() => judge(true)}>{ezT('mem86.q.right')}</button>
+              <button type="button" style={s.mem86Btn} onClick={() => setQs({ ...qs, marking: true })}>{ezT('mem86.q.wrong')}</button>
+            </div>
+          ) : null}
+          <div style={s.mem86Row}>
+            <button type="button" style={s.mem86BtnQuiet} onClick={skip}>{ezT('mem86.q.skip')}</button>
+            <button type="button" style={s.mem86BtnQuiet} onClick={pause}>{ezT('mem86.pause')}</button>
+            <button type="button" style={s.mem86BtnQuiet} onClick={() => finish(run)}>{ezT('mem86.test.end')}</button>
+            {onSimilar && w0 ? <button type="button" style={s.mem86BtnQuiet} onClick={() => onSimilar(w0.s, w0.a)}>{ezT('mem86.sim.btn')}</button> : null}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+};
 
 // ---------- «تقدّمي»: what is memorised, surah by surah ----------
 const Mem86Progress = ({ counts, held, onHeld }) => {
@@ -36736,6 +37305,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
           {!ready && <div style={s.ezqMastHint}>{MEM.LOADING}</div>}
         </section>
         <Mem86Tabs tab={tab} onTab={setTab} />
+        {tab === 'test' ? <Mem86Test counts={ready ? mem86Counts() : null} held={held} ranges={mem86RangesRead()} prefs={prefs} onPref={setPref} isFemale={isFemale} /> : null}
         {tab === 'progress' ? <Mem86Progress counts={ready ? mem86Counts() : null} held={held} onHeld={setHeld} /> : null}
         <div hidden={tab !== 'learn'}>
         {/* THE CANONICAL 114, from the same source and in the same order as before: the range
@@ -38328,6 +38898,12 @@ const s = {
   mem86RedDash: { textDecoration: 'underline dashed', textUnderlineOffset: 8 },
   mem86RedWas: { color: '#C0392B', textDecoration: 'underline dotted', textUnderlineOffset: 8 },
   mem86WordBtn: { minHeight: 44, padding: 0, background: 'transparent', border: 'none', cursor: 'pointer' },
+  mem86Big: { fontSize: 32, fontWeight: 800, color: 'var(--ink)', textAlign: 'center', margin: '8px 0' },
+  mem86Pill: { display: 'inline-flex', alignItems: 'center', minHeight: 28, padding: '0 10px', borderRadius: 999, background: 'var(--tint)', color: 'var(--ink)', fontSize: 12.5, fontWeight: 700 },
+  mem86Verse: { fontFamily: "'Amiri', 'Tajawal', serif", fontSize: 24, lineHeight: 2.1, color: 'var(--ink)', direction: 'rtl', textAlign: 'right', margin: '8px 0' },
+  mem86VerseWord: { fontFamily: "'Amiri', 'Tajawal', serif", fontSize: 24, color: 'var(--ink)' },
+  mem86ErrWord: { color: '#C0392B', textDecoration: 'underline' },
+  mem86HintInline: { color: 'var(--scholar)' },
   mem86CardHeld: { fontSize: 11.5, fontWeight: 700, color: 'var(--ink)' },
   memResetBtn: { width: 50, height: 50, borderRadius: 14, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 

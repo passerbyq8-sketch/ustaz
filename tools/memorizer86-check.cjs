@@ -94,7 +94,7 @@ store.set(X.MEM86_HELD_KEY, JSON.stringify({ 1: [[1, 3], [2, 5]], 2: [[400, 401]
 ok(eq(X.mem86HeldRead(), { 1: [[1, 5]] }), 'overlapping runs merge; out-of-range ayat and surahs are dropped');
 reset();
 let h = X.mem86HeldSet(112, 1, 4, true);
-ok(eq(h, { 112: [[1, 4]] }) && X.mem86HeldCount(h, 112) === 4, 'mark a whole surah: 112:1-4');
+ok(eq(h[112], [[1, 4]]) && X.mem86HeldCount(h, 112) === 4 && eq(h.last, [112, 1, 4]), 'mark a whole surah: 112:1-4, remembered as the last memorised');
 h = X.mem86HeldSet(2, 10, 20, true);
 h = X.mem86HeldSet(2, 15, 16, false);
 ok(eq(h[2], [[10, 14], [17, 20]]) && X.mem86HeldTotal(h) === 4 + 9, 'clearing inside a run splits it: 2:10-14 and 2:17-20');
@@ -206,6 +206,85 @@ ok(today && !X.mem86DayActive(dd[today]), 'minutes alone do not make an activity
 X.mem86Credit({ fresh: 0, review: 7 });
 ok(X.mem86DayActive(X.mem86DaysRead()[today]), 'a review credit does');
 sandbox.Date = RealDate;
+
+/* ------------------------------------------------------------------ phase 4 */
+section('phase 4 -- «اختبرني»: starts, extent, no repeats, the record');
+X.getVerseText = (sn, a) => X.__quranData[sn + ':' + a] || null;
+lift(['mem86Starts', 'mem86Rand', 'mem86Pick', 'mem86LineIndex', 'mem86AyahWords', 'mem86Question', 'mem86TestsRead', 'mem86TestsPut', 'mem86RunRead', 'mem86RunWrite', 'mem86Suggest']);
+X.__mem86Lines = null;
+const lines = X.mem86LineIndex(LAYOUT);
+ok(lines && Object.keys(lines).length === 77429, 'every word of the layout has a printed-line ordinal (77429)');
+const whole = [[1, 1, 114, 6]];
+const starts = X.mem86Starts(whole, counts);
+let badStart = 0, afterMark = 0;
+for (const [sn, a, k] of starts) {
+  if (k === 0) continue;
+  const ws = X.__quranData[sn + ':' + a].split(/\s+/).filter(Boolean);
+  let c = 0, prevIsMark = false, okHere = false;
+  for (const w of ws) {
+    const isWord = !!X.normalizeForRecite(w);
+    if (isWord) { if (c === k) { okHere = prevIsMark; break; } c++; }
+    prevIsMark = !isWord;
+  }
+  if (okHere) afterMark++; else badStart++;
+}
+ok(badStart === 0, 'every question starts at an ayah\'s first word or right after a pause mark (' + starts.length + ' starts, ' + afterMark + ' after a mark)');
+ok(starts.filter((x) => x[2] === 0).length === 6236, 'every ayah is a start');
+const n = 37;
+const firstRound = Array.from({ length: n }, (_, i) => X.mem86Pick(n, 12345, i));
+ok(new Set(firstRound).size === n, 'no start repeats until all ' + n + ' are used');
+const second = Array.from({ length: n }, (_, i) => X.mem86Pick(n, 12345, n + i));
+ok(new Set(second).size === n && JSON.stringify(second) !== JSON.stringify(firstRound), 'then a fresh shuffle');
+ok(X.mem86Pick(n, 12345, 5) === X.mem86Pick(n, 12345, 5), 'the order is reproducible from its seed (a paused test resumes the same order)');
+const cfg = { ...X.MEM86_PREF_DEFAULT, tLines: 2, tToEnd: true };
+const q1 = X.mem86Question([2, 255, 0], [[2, 1, 2, 286]], counts, cfg, lines);
+ok(q1.length === X.tokenizeForRecite(X.__quranData['2:255']).length, 'complete-to-the-end: a 2-line question from 2:255:1 ends at the end of 2:255 (' + q1.length + ' words)');
+const q2 = X.mem86Question([2, 255, 0], [[2, 1, 2, 286]], counts, { ...cfg, tToEnd: false }, lines);
+ok(q2.length < q1.length && q2.length > 0 && q2[q2.length - 1].mark, 'turned off, it may stop at a pause mark inside the ayah (' + q2.length + ' words)');
+const q3 = X.mem86Question([114, 5, 0], [[114, 1, 114, 6]], counts, { ...cfg, tLines: 15 }, lines);
+ok(q3.length > 0 && q3[q3.length - 1].s === 114 && q3[q3.length - 1].a === 6, 'a question never leaves its range (stops at 114:6)');
+const lnOf = (w) => lines[w.s + ':' + w.a + ':' + (w.k + 1)];
+const q4 = X.mem86Question([2, 6, 0], [[2, 1, 2, 286]], counts, { ...cfg, tLines: 5 }, lines);
+ok(q4.length > 0 && lnOf(q4[q4.length - 1]) - lnOf(q4[0]) >= 4, 'a 5-line question spans at least 5 printed lines');
+ok(q1.every((w) => typeof w.text === 'string' && w.text === X.__quranData[w.s + ':' + w.a].split(/\s+/).filter(Boolean).filter((x) => X.normalizeForRecite(x))[w.k]), 'every word shown is the mushaf\'s own word at its number');
+// results and the paused test
+reset();
+X.mem86TestsPut({ t: 1, shown: 4, ok: 3, errs: ['1:2:3', 'bad'], sur: [1, 999] });
+ok(JSON.stringify(X.mem86TestsRead()) === JSON.stringify([{ t: 1, shown: 4, ok: 3, errs: ['1:2:3'], sur: [1] }]), 'a result keeps valid refs and surahs only');
+X.mem86TestsPut({ t: 1, shown: 4, ok: 3, errs: [], sur: [1] });
+ok(X.mem86TestsRead().length === 1 && X.mem86TestsRead()[0].errs.length === 0, 'removing a false error rewrites the same result');
+ok(X.mem86TestsRead().length === 1 && (() => { X.mem86TestsPut({ t: 2, shown: 0, ok: 0, errs: [], sur: [] }); return X.mem86TestsRead().length === 1; })(), 'a test with nothing shown is not a result');
+X.mem86RunWrite({ segs: [[112, 1, 114, 6]], seed: 99, i: 3, cfg: { tLimit: 'count', tCount: 10 }, st: { shown: 3, ok: 2, streak: 1, errs: ['113:1:2'], ayat: [6222], ms: 5000, cred: 0 } });
+const rr = X.mem86RunRead();
+ok(rr && rr.i === 3 && rr.seed === 99 && rr.st.shown === 3 && rr.cfg.tCount === 10, 'a paused test survives closing the app');
+X.mem86RunWrite(null);
+ok(X.mem86RunRead() === null, '...and is gone once ended');
+// the word log: a removed false error is undone
+X.mem86WordsLog(['3:7:1', '3:7:1'], 'err');
+const after = X.mem86WordsLog(['3:7:1'], 'unerr');
+ok(after['3:7:1'][0] === 1, 'removing a false error takes one error off that word');
+// suggestions: only from the memorised, only when the record speaks
+reset();
+X.__mem86Counts = null;
+ok(X.mem86Suggest({}, counts).length === 0, 'nothing memorised: no suggestions');
+let hh = X.mem86HeldSet(112, 1, 4, true);
+let sg = X.mem86Suggest(hh, counts).map((x) => x.id);
+ok(JSON.stringify(sg) === JSON.stringify(['warm', 'last']), 'memorised but untested: warm-up and last memorised only (' + sg.join(',') + ')');
+X.mem86WordsLog(['112:3:2'], 'err');
+X.mem86TestsPut({ t: 5, shown: 2, ok: 1, errs: ['112:3:2'], sur: [112] });
+sg = X.mem86Suggest(X.mem86HeldRead(), counts).map((x) => x.id);
+ok(JSON.stringify(sg) === JSON.stringify(['warm', 'weak', 'review', 'last']), 'with a record: all four, at most four (' + sg.join(',') + ')');
+const weak = X.mem86Suggest(X.mem86HeldRead(), counts).find((x) => x.id === 'weak');
+ok(weak && JSON.stringify(weak.segs) === JSON.stringify([[112, 1, 112, 4]]), 'the weakest spot is the logged ayah with two either side, inside the surah');
+const ui = appSrc.slice(appSrc.indexOf('const Mem86Test = ('), appSrc.indexOf('\n};\n', appSrc.indexOf('const Mem86Test = (')));
+ok(ui.length > 0 && /const okNow = good && !helped;/.test(ui), 'a question is right only when judged right with no help');
+ok(ui.length > 0 && /if \(!r\.temp\) \{\n\s*if \(wrong\.length\) mem86WordsLog\(wrong, 'err'\);/.test(ui), 'a temporary session writes nothing');
+ok(ui.length > 0 && /const score = run\.st\.shown \? Math\.round\(\(100 \* run\.st\.ok\) \/ run\.st\.shown\) : 0;/.test(ui), 'the score is right / shown (a skip is shown and not right)');
+ok(ui.length > 0 && /if \(Date\.now\(\) - lastTouch\.current > 30000\) pause\(\);/.test(ui) && /if \(document\.hidden\) pause\(\);/.test(ui), 'it pauses by itself after 30 s untouched or when the page is hidden');
+ok(ui.length > 0 && !/navigator\.vibrate/.test(ui) && /tasbihBuzz\(\)/.test(ui), 'vibration reuses the app\'s one guarded pulse');
+lift(['mem86ParseNum']);
+ok(X.mem86ParseNum(String.fromCharCode(0x661, 0x662)) === 12 && X.mem86ParseNum(String.fromCharCode(0x6F1, 0x6F5)) === 15 && X.mem86ParseNum('7') === 7 && Number.isNaN(X.mem86ParseNum('')), 'number fields read Arabic-Indic, Persian and Latin digits (the field shows the reader\'s own)');
+ok(appSrc.length > 0 && !/type="number"[^>]*mem86Num/.test(appSrc), 'no native number input in the memorizer (it would show Latin digits in Arabic)');
 
 /* ------------------------------------------------------------------ done */
 console.log('\n' + (fail ? 'FAIL' : 'PASS') + '  memorizer86-check  ' + pass + ' passed, ' + fail + ' failed  (lifted ' + LIFT.length + ' initializers from app.jsx)');
