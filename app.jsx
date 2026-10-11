@@ -23659,7 +23659,9 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, stream
         {/* ITEM 42-ب: the same buildCopyText payload, rendered by the document card's own
             docToHtml and printed by the app's one printAsPdf. No library, no request, no
             second serializer -- and the identical 44x44 area every .ezc-acts button takes. */}
-        {actOf('pdf', <ExportPdfReplyButton getText={buildCopyText} />)}
+        {/* ITEM 110 ROUND 4 (127 note m1), part fix: not drawn inside the ANDROID shell, whose WebView has no print --
+            until its bridge comes in a store trip; kept in a browser and in the iOS shell (ez110AndroidShell) */}
+        {ez110FixLit() && ez110AndroidShell() ? null : actOf('pdf', <ExportPdfReplyButton getText={buildCopyText} />)}
         {/* ITEM 94, DECISIONS 1, 2, 4 AND 6. The control is here or it is not here; it is never
             here and dead. Its place in the rail does not move -- it is the fifth control when
             it is drawn, exactly where it has always been -- and the props it is handed are the
@@ -27521,6 +27523,13 @@ function prayerTzNow(now, loc) {
 // string is something the reader can change and the shell does not own, so a UA sniff would send
 // a plain browser down the shell path and leave the reader pressing a button nothing answers.
 // Returns the bridge itself (so the caller cannot re-read a different window) or null.
+// ITEM 110 ROUND 4 (127 note m1): THE ANDROID SHELL, WITHOUT A USER-AGENT SNIFF. The bridge says «a shell»; which one is a
+// FEATURE of the engine that hosts it, not a string the reader can change: only Apple's WebKit (the iOS shell's WKWebView)
+// supports -webkit-touch-callout, and Android's Chromium WebView does not. A shell without it is the Android shell.
+function ez110AndroidShell() {
+  if (!ezikShellBridge()) return false;
+  try { return !(window.CSS && typeof CSS.supports === 'function' && CSS.supports('-webkit-touch-callout', 'none')); } catch (e) { return false; }
+}
 function ezikShellBridge() {
   if (typeof window === 'undefined') return null;
   const b = window.ReactNativeWebView;
