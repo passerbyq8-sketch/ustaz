@@ -887,6 +887,10 @@ html[data-ez110] .ez110-tip {
 }
 html[data-ez110] .ez110-tip.is-on { opacity: 1; }
 
+/* ROUND 4 (phone round N8): «تشكيل» shows its state -- a filled ground and an accent ring while it is on (its name says
+   on or off too, and so does its long press) */
+html[data-ez110] .ezc-acts [data-ez110-act="tashkeel"] > button[aria-pressed="true"] { background: var(--vt-soft) !important; box-shadow: inset 0 0 0 1.5px var(--vt-accent); }
+
 /* ==== 50-cde.css ==== */
 /* 50 -- THE THREE OTHER IDENTITIES: «ج» الدانة (c) · «د» الخزف (d) · «هـ» البلّور (e).
    The SAME components as «ب», reskinned -- no screen branches for an identity. Each block below only

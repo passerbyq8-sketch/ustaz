@@ -58,3 +58,7 @@ html[data-ez110] .ez110-tip {
   font-family: var(--ez110-font-ui); font-size: calc(13px * var(--ez-fs, 1)); font-weight: 600; white-space: nowrap;
 }
 html[data-ez110] .ez110-tip.is-on { opacity: 1; }
+
+/* ROUND 4 (phone round N8): «تشكيل» shows its state -- a filled ground and an accent ring while it is on (its name says
+   on or off too, and so does its long press) */
+html[data-ez110] .ezc-acts [data-ez110-act="tashkeel"] > button[aria-pressed="true"] { background: var(--vt-soft) !important; box-shadow: inset 0 0 0 1.5px var(--vt-accent); }

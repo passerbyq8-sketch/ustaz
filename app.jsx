@@ -23735,7 +23735,7 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, stream
             <span className="ez110-sr">{ezT('ez110.acts.more')}</span>
           </button>
         ) : null}
-        {actOf('tashkeel', <button type="button" onClick={onToggleTashkeel} aria-label={'\u062A\u0634\u0643\u064A\u0644'} aria-pressed={ez110Acts ? (tashkeel ? 'true' : 'false') : undefined} style={{ ...miniBtnStyle, opacity: tashkeel ? 1 : 0.7, borderColor: tashkeel ? 'var(--red)' : 'var(--line)' }}>{'\u062A\u0634\u0643\u064A\u0644'}</button>)}
+        {actOf('tashkeel', <button type="button" onClick={onToggleTashkeel} aria-label={ez110Acts ? ezT(tashkeel ? 'ez110.acts.tashkeelOn' : 'ez110.acts.tashkeelOff') : '\u062A\u0634\u0643\u064A\u0644'} aria-pressed={ez110Acts ? (tashkeel ? 'true' : 'false') : undefined} style={{ ...miniBtnStyle, opacity: tashkeel ? 1 : 0.7, borderColor: tashkeel ? 'var(--red)' : 'var(--line)' }}>{'\u062A\u0634\u0643\u064A\u0644'}</button>)}
         {actOf('report', <button type="button" onClick={() => onReport && onReport(index)} aria-label={ezT("chat.report")} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'transparent', color: 'var(--muted)', border: '1px solid var(--line)', borderRadius: 8, padding: '4px 10px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
           <span>بلّغ</span>
