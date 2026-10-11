@@ -1745,6 +1745,8 @@ const EZ_I18N = {
     'fix.probe.granted': '\u0627\u0644\u0645\u064F\u062C\u062F\u0648\u064E\u0644\u064F \u0627\u0644\u0622\u0646: {n} \u0645\u0646 \u0627\u0644\u062A\u0630\u0643\u064A\u0631\u0627\u062A\u060C \u0648\u0625\u0630\u0646\u064F \u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062A\u0650 \u0645\u0645\u0646\u0648\u062D.',
     'fix.probe.denied': '\u0627\u0644\u0645\u064F\u062C\u062F\u0648\u064E\u0644\u064F \u0627\u0644\u0622\u0646: {n} \u0645\u0646 \u0627\u0644\u062A\u0630\u0643\u064A\u0631\u0627\u062A\u060C \u0648\u0625\u0630\u0646\u064F \u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062A\u0650 \u0645\u0645\u0646\u0648\u0639.',
     'fix.probe.noanswer': '\u0644\u0645 \u064A\u064F\u062C\u0650\u0628\u0650 \u0627\u0644\u062A\u0637\u0628\u064A\u0642\u064F \u0639\u0646 \u062D\u0627\u0644\u0650 \u0627\u0644\u062C\u062F\u0648\u0644\u0629. \u0623\u0639\u0650\u062F\u0650 \u0627\u0644\u0645\u062D\u0627\u0648\u0644\u0629.',
+    'fix.loc.slow': '\u062C\u0627\u0631\u064D \u062A\u062D\u062F\u064A\u062F\u064F \u0645\u0648\u0642\u0639\u0650 \u0627\u0644\u062C\u0647\u0627\u0632\u2026 \u0642\u062F \u064A\u0633\u062A\u063A\u0631\u0642\u064F \u0623\u0648\u0651\u0644\u064F \u062A\u062D\u062F\u064A\u062F\u064D \u062F\u0642\u064A\u0642\u0629.',
+    'fix.loc.nopos': '\u062A\u0639\u0630\u0651\u0631\u064E \u062A\u062D\u062F\u064A\u062F\u064F \u0627\u0644\u0645\u0648\u0642\u0639\u0650 \u0627\u0644\u0622\u0646\u060C \u0648\u0627\u0644\u0645\u0648\u0636\u0639\u064F \u0627\u0644\u0633\u0627\u0628\u0642\u064F \u0628\u0627\u0642\u064D. \u0623\u0639\u0650\u062F\u0650 \u0627\u0644\u0645\u062D\u0627\u0648\u0644\u0629\u064E \u0641\u064A \u0645\u0643\u0627\u0646\u064D \u0645\u0643\u0634\u0648\u0641.',
   },
   en: {
     'common.close': 'Close',
@@ -3079,6 +3081,8 @@ const EZ_I18N = {
     'fix.probe.granted': 'Scheduled now: {n} reminders, and notifications are allowed.',
     'fix.probe.denied': 'Scheduled now: {n} reminders, and notifications are blocked.',
     'fix.probe.noanswer': 'The app did not answer about the schedule. Try again.',
+    'fix.loc.slow': 'Finding this device\'s location\u2026 the first fix can take a minute.',
+    'fix.loc.nopos': 'The location could not be found now; the previous position stays. Try again in the open.',
   },
 };
 
@@ -30194,6 +30198,12 @@ function QiblaPanel({ loc, onLoc, full }) {
     if (locStopRef.current) { locStopRef.current(); locStopRef.current = null; }
     setLocState('asking');
     let timer = null;
+    // ITEM 110 ROUND 2 (127 note m14), part fix: on a FIRST grant the shell has no last position and waits for a fresh
+    // fix, so the dialog plus the fix outlived the 10 s deadline and a granted permission read "not granted". Lit, the
+    // deadline says "still locating" and keeps listening (up to 60 s in all); a late answer is taken like an on-time
+    // one; a refusal still says "not granted", and a fix that never comes says so -- not "not granted". Read by typeof:
+    // gate locationbridge runs this function in a sandbox that has no such name, where it stays dark.
+    const lit = typeof EZIK_FIX_LIT !== 'undefined' && EZIK_FIX_LIT === true;
     const stopListening = () => {
       if (timer) { clearTimeout(timer); timer = null; }
       try { window.removeEventListener(SHELL_LOC_RESULT, onResult); } catch (e) {}
@@ -30205,7 +30215,7 @@ function QiblaPanel({ loc, onLoc, full }) {
       // ok:false IS A LAWFUL ANSWER, NOT A FAULT. A refusal ends exactly where the browser's own
       // refusal ends today: the same one line of prose, the default position still standing. No
       // error screen, no silence, nothing thrown.
-      if (!coords) { setLocState('denied'); return; }
+      if (!coords) { setLocState(lit && !/^permission/.test(String((ev && ev.detail && ev.detail.error) || '')) ? 'nopos' : 'denied'); return; }
       setLoc(writeQiblaLoc(coords.lat, coords.lng));
       setLocState('');
       // 🔴 AND THE HEADING IS RE-ARMED FROM HERE, WHICH IS THE WHOLE OF THE FIRST-VISIT FIX.
@@ -30222,7 +30232,10 @@ function QiblaPanel({ loc, onLoc, full }) {
     };
     try { window.addEventListener(SHELL_LOC_RESULT, onResult); }
     catch (e) { setLocState('denied'); return; }
-    timer = setTimeout(() => { stopListening(); setLocState('denied'); }, SHELL_LOC_TIMEOUT_MS);
+    timer = setTimeout(() => {
+      if (lit) { setLocState('slow'); timer = setTimeout(() => { stopListening(); setLocState('nopos'); }, 50000); return; }
+      stopListening(); setLocState('denied');
+    }, SHELL_LOC_TIMEOUT_MS);
     locStopRef.current = stopListening;
     try { bridge.postMessage(JSON.stringify({ type: SHELL_LOC_REQUEST })); }
     catch (e) { stopListening(); setLocState('denied'); }
@@ -30411,6 +30424,8 @@ function QiblaPanel({ loc, onLoc, full }) {
       )}
       {!bare && locState === 'asking' ? <div style={s.qiblaNote}>{QIBLA_LOC_ASKING}</div> : null}
       {!bare && locState === 'denied' ? <div style={s.qiblaNote}>{QIBLA_LOC_DENIED}</div> : null}
+      {!bare && locState === 'slow' ? <div style={s.qiblaNote} role="status">{ezT('fix.loc.slow')}</div> : null}
+      {!bare && locState === 'nopos' ? <div style={s.qiblaNote}>{ezT('fix.loc.nopos')}</div> : null}
       {bare ? null : (loc.by !== 'default'
         ? <button type="button" onClick={useDefault} className="ezik-focus" style={s.qiblaBtn}>{QIBLA_USE_DEFAULT}</button>
         : <button type="button" onClick={askLocation} className="ezik-focus" style={s.qiblaBtn}>{QIBLA_USE_DEVICE}</button>)}
