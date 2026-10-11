@@ -575,6 +575,13 @@ html[data-ez110] .ez110-first-later {
   color: var(--vt-muted); font-family: inherit; font-weight: 600; font-size: calc(14px * var(--ez-fs, 1)); cursor: pointer;
 }
 html[data-ez110] .ez110-first > .ez110-first-acts > [data-ezik-prayer-notify] { margin: 0; }
+/* the call-to-prayer card keeps it small: the switch's own heading and its long window note are already said by the
+   card's title and line (the refused / asked / silent lines of the switch still show) */
+html[data-ez110] .ez110-first[data-ez110-first="call"] > p + div,
+html[data-ez110] .ez110-first[data-ez110-first="call"] > div:has(+ .ez110-first-acts) { display: none; }
+html[data-ez110] .ez110-first[data-ez110-first="call"] { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 8px; }
+html[data-ez110] .ez110-first[data-ez110-first="call"] > :not(.ez-hit):not(.ez110-first-acts) { grid-column: 1 / -1; }
+html[data-ez110] .ez110-first[data-ez110-first="call"] > .ez-hit { margin: 0; }
 
 /* ==== 20-b-home.css ==== */
 /* 20 -- THE MENU (Ez110Home) AND THE FIRST SCREEN'S SECTION ROWS. */

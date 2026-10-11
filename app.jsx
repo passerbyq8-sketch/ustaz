@@ -1763,6 +1763,8 @@ const EZ_I18N = {
     'ez110.women.ask': '\u0642\u0633\u0645 \u0627\u0644\u0645\u0631\u0623\u0629 \u064A\u062D\u062A\u0627\u062C \u062A\u062D\u062F\u064A\u062F \u0627\u0644\u062C\u0646\u0633',
     'ez110.women.why': '\u0647\u0630\u0627 \u0627\u0644\u0642\u0633\u0645 \u0644\u0644\u0646\u0633\u0627\u0621. \u0627\u062E\u062A\u0631 \u0644\u062A\u0643\u0645\u0644.',
     'ez110.prayer.more': '\u0627\u0644\u062A\u0630\u0643\u064A\u0631\u0627\u062A \u0648\u0636\u0628\u0637 \u0627\u0644\u0645\u0648\u0627\u0642\u064A\u062A',
+    'ez110.call.title': '\u062A\u0641\u0639\u064A\u0644 \u0627\u0644\u0623\u0630\u0627\u0646',
+    'ez110.call.why': '\u064A\u064F\u0624\u0630\u064E\u0651\u0646 \u0644\u0643 \u0639\u0646\u062F \u062F\u062E\u0648\u0644 \u0648\u0642\u062A \u0643\u0644 \u0635\u0644\u0627\u0629. \u0627\u0636\u063A\u0637 \u0627\u0644\u0645\u0641\u062A\u0627\u062D \u0644\u064A\u0633\u0623\u0644\u0643 \u0627\u0644\u062C\u0647\u0627\u0632 \u0639\u0646 \u0627\u0644\u0625\u0630\u0646\u060C \u0648\u064A\u0645\u0643\u0646\u0643 \u0625\u064A\u0642\u0627\u0641\u0647 \u0645\u062A\u0649 \u0634\u0626\u062A \u0645\u0646 \u0625\u0639\u062F\u0627\u062F\u0627\u062A \u0627\u0644\u0635\u0644\u0627\u0629.',
   },
   en: {
     'common.close': 'Close',
@@ -3115,6 +3117,8 @@ const EZ_I18N = {
     'ez110.women.ask': 'The women\'s section needs your gender',
     'ez110.women.why': 'This section is for women. Choose to continue.',
     'ez110.prayer.more': 'Reminders and time adjustments',
+    'ez110.call.title': 'Turn on the call to prayer',
+    'ez110.call.why': 'The call to prayer sounds as each prayer time begins. Press the switch and your phone will ask for permission; you can turn it off any time in the prayer settings.',
   },
 };
 
@@ -8525,6 +8529,8 @@ const EZ110_DIGITS_KEY = 'ezik_110_digits_v1';
 const EZ110_BAR_KEY = 'ezik_110_bar_v1';
 // ROUND 3 §3-8: the gender card of the empty chat was answered on this install (a press in it, never its showing)
 const EZ110_GENDER_ASKED_KEY = 'ezik_110_gender_asked_v1';
+// ROUND 3 §3-11: the call-to-prayer card of the empty chat was answered on this install (a press in it)
+const EZ110_ADHAN_ASKED_KEY = 'ezik_110_adhan_asked_v1';
 const EZ110_UNLOCK_SHA = 'e37ef4a98d5cacbe5fdd120ad80b47bd16f90dd7014de8762786c0fcf1f4b720';
 const EZ110_EVENT = 'ezik-110';
 const EZ110_CSS = '/ez110/ez110.css';
@@ -8884,6 +8890,27 @@ function Ez110WomenGate({ onPick, onBack }) {
         </div>
       </section>
     </EzShell>
+  );
+}
+// ROUND 3 §3-11 -- THE CALL TO PRAYER, ON FROM THE START (owner). The system's permission prompt may be raised by a
+// reader's press and by nothing else (gate schedulepayload: one sender, three named callers, PrayerNotifyToggle among
+// them -- not loosened). So the card holds the existing switch itself (the prayer panel's own line, drawn alone):
+// its press raises the prompt; granted -> on; refused -> off and the app works on (Apple 4.5.4). Once per install;
+// only a press in it writes the device key; never for a reader whose call to prayer is already on; only where a shell
+// can carry it (the switch draws nothing in a browser).
+function ez110AdhanAsked() { try { return !!localStorage.getItem(EZ110_ADHAN_ASKED_KEY); } catch (e) { return true; } }
+function ez110MarkAdhanAsked() { try { localStorage.setItem(EZ110_ADHAN_ASKED_KEY, '1'); } catch (e) {} }
+function Ez110AdhanCard({ onPressed, onLater }) {
+  return (
+    <section className="ez110-first" data-ez110-first="call" aria-label={ezT('ez110.call.title')}
+      onClickCapture={(e) => { if (e.target && e.target.closest && e.target.closest('[data-ezik-prayer-notify]')) onPressed(); }}>
+      <p className="ez110-first-title">{ezT('ez110.call.title')}</p>
+      <p className="ez110-first-why">{ezT('ez110.call.why')}</p>
+      <PrayerTimesPanel part="notify" loc={readQiblaLoc()} />
+      <div className="ez110-first-acts">
+        <button type="button" className="ez110-first-later" data-ez110-call="later" onClick={onLater}>{ezT('ez110.later')}</button>
+      </div>
+    </section>
   );
 }
 function ez110BarName(id) { return ez110Name(id) || (id === 'wird' ? DW_CARD_TITLE : ''); }
@@ -20276,6 +20303,8 @@ function App() {
   };
   EZ110_SAVE_GENDER = ez110SaveGender;
   const [ez110FirstTick, setEz110FirstTick] = useState(0);
+  // the call-to-prayer card stays mounted from its press until the system answers (its switch owns the listener)
+  const [ez110AdhanStay, setEz110AdhanStay] = useState(false);
 
   const callAI = async (history, p, { onDelta, onStatus, onLiveOffer, onLessons, liveSearch = false, signal, mode = 'chat', endpoint = '/api/ask' } = {}) => {
     if (!spendGateRef.current) return '';                        // قفل الإنفاق مغلق ⇐ لا يُنفَق رصيد (يشمل تحيّة الإقلاع 0d)
@@ -21468,6 +21497,7 @@ function App() {
       // ROUND 3: and the bar's two chosen slots (§3-2)
       try { localStorage.removeItem(EZ110_BAR_KEY); } catch (e) {}
       try { localStorage.removeItem(EZ110_GENDER_ASKED_KEY); } catch (e) {}
+      try { localStorage.removeItem(EZ110_ADHAN_ASKED_KEY); } catch (e) {}
       applyEzikVisualTheme(EZIK_VISUAL_THEME_DEFAULT);
       try { window.dispatchEvent(new CustomEvent(EZIK_VISUAL_THEME_EVENT, { detail: EZIK_VISUAL_THEME_DEFAULT })); } catch (e) {}
       // S119 -- THE PAGE ALREADY PROMISED THESE FOUR; the code simply did not keep the promise.
@@ -22217,6 +22247,12 @@ function App() {
       {ez110.id && messages.length === 0 && streamingText === null && ez110FirstTick >= 0 && profile && !profile.gender
         && ez110GenderWritable(profile) && !ez110GenderAsked() && !EZ110_ENTRY_RUN && !ez110SignedInThisRun() ? (
         <Ez110GenderCard onPick={(g) => { ez110MarkGenderAsked(); if (g) ez110SaveGender(g); setEz110FirstTick((t) => t + 1); }} />
+      ) : null}
+      {/* ROUND 3 §3-11, «ب» only: the call-to-prayer card, with the existing switch in it */}
+      {ez110.id && messages.length === 0 && streamingText === null && ezikSchedBridge()
+        && (ez110AdhanStay || (!ez110AdhanAsked() && !readPrayerNotify())) ? (
+        <Ez110AdhanCard onPressed={() => { ez110MarkAdhanAsked(); setEz110AdhanStay(true); }}
+          onLater={() => { ez110MarkAdhanAsked(); setEz110AdhanStay(false); setEz110FirstTick((t) => t + 1); }} />
       ) : null}
       {/* ONE LIST, TWO SHAPES, and the shape is a class on the container -- the entries below are
           mapped ONCE whichever state is on, so a card and a pill can never drift apart or offer
