@@ -1810,6 +1810,11 @@ const EZ_I18N = {
     'mem86.prog.to': 'إلى آية',
     'mem86.prog.mark': 'حفظتُ هذا المقطع',
     'mem86.card.held': 'حُفِظ {n}',
+    'mem86.listen.end': 'ينتهي عند آية',
+    'mem86.listen.repA': 'تكرار كل آية',
+    'mem86.listen.repR': 'تكرار المقطع كله',
+    'mem86.listen.speed': 'سرعة التلاوة',
+    'mem86.timesN': '×{n}',
   },
   en: {
     'common.close': 'Close',
@@ -3209,6 +3214,11 @@ const EZ_I18N = {
     'mem86.prog.to': 'To ayah',
     'mem86.prog.mark': 'I memorized this part',
     'mem86.card.held': '{n} memorized',
+    'mem86.listen.end': 'Ends at ayah',
+    'mem86.listen.repA': 'Repeat each ayah',
+    'mem86.listen.repR': 'Repeat the whole range',
+    'mem86.listen.speed': 'Recitation speed',
+    'mem86.timesN': '×{n}',
   },
 };
 
@@ -19880,7 +19890,7 @@ function App() {
   // للجوّال ويُحجَب play()، والرفضُ يُبتلع. هنا نُعيد استخدام العنصر المفتوح، ونحمي الأحداثَ
   // البائتة بـaudioPlayTokenRef، ونُسجّل المُنهيَ في audioDoneRef كي يُنهيَه takeAudioFocus مباشرةً.
   // لا يمرّ عبر fetchSpeechAudio ولا بوّابة TTS — التلاوة مسموحة للطفل (mp3 قارئٍ حقيقيّ).
-  const playRecitationUrl = (url, myId) => new Promise((resolve) => {
+  const playRecitationUrl = (url, myId, rate) => new Promise((resolve) => {
     if (myId !== undefined && myId !== sequenceIdRef.current) return resolve({ failed: false });
     takeAudioFocus();
     const audio = audioElRef.current || (audioElRef.current = new Audio()); // العنصر المفتوح (iOS)
@@ -19901,6 +19911,7 @@ function App() {
     audio.onerror = () => { if (myPlay === audioPlayTokenRef.current) finish(true); };
     audio.onpause = () => { if (myPlay === audioPlayTokenRef.current) finish(false); }; // سحبُ تركيزٍ/إيقافٌ يدويّ
     audio.src = url;
+    if (rate && rate !== 1) audio.playbackRate = rate;   // Item 86 (memorizer): only the memorizer passes a rate
     const p = audio.play();
     if (p && p.catch) p.catch((e) => {
       // ⛔ لا نبتلع الفشل صامتاً — نُسجّل سببَ الرفض (تفعيلٌ صوتيّ محجوب / شبكة) بدل تمريره كنجاح
@@ -19910,11 +19921,11 @@ function App() {
   });
 
   // تشغيل تلاوة آيةٍ مفردةٍ بصوت القارئ — awaitable: يُحَلّ {failed} عند انتهاء/خطأ/إيقاف الصوت
-  const playRecitation = (sNum, aNum, myId) => {
+  const playRecitation = (sNum, aNum, myId, rate) => {
     if (myId !== undefined && myId !== sequenceIdRef.current) return Promise.resolve({ failed: false });
     const pad3 = (x) => String(x).padStart(3, '0');
     const url = `https://everyayah.com/data/${QURAN_RECITER}/${pad3(sNum)}${pad3(aNum)}.mp3`;
-    return playRecitationUrl(url, myId);
+    return playRecitationUrl(url, myId, rate);
   };
 
   // بناء تسلسل الصوت من الردّ: مقاطع كلام + تلاوات (آية مفردة <verse> أو سورة/مدى <surah>).
@@ -20087,11 +20098,11 @@ function App() {
   };
 
   // إعادة تشغيل التلاوة يدوياً من زر البطاقة — يُوقف كلام المربّي أولاً. awaitable.
-  const playVerseManual = async (sNum, aNum) => {
+  const playVerseManual = async (sNum, aNum, rate) => {
     const myId = ++sequenceIdRef.current; // يُلغي أي تسلسل/كلام جارٍ
     takeAudioFocus();
     setIsSpeaking(true);
-    const res = await playRecitation(sNum, aNum, myId);
+    const res = await playRecitation(sNum, aNum, myId, rate);
     if (myId === sequenceIdRef.current) setIsSpeaking(false);
     return res;
   };
@@ -33707,6 +33718,26 @@ const Mem86Ranges = ({ counts, held }) => {
   );
 };
 
+// ---------- listening: where the range ends, how often each ayah and the range repeat, the speed ----------
+const mem86Rate = (v) => { const t = toArabicDigits(String(v)); return t === String(v) ? t : t.replace('.', String.fromCharCode(0x66B)); };
+const Mem86ListenOpts = ({ start, count, end, onEnd, prefs, onPref, disabled }) => (
+  <div className="ezq-drill-acts" style={s.mem86Card}>
+    <label style={s.mem86Label}>{ezT('mem86.listen.end')}
+      <select value={end >= start ? end : count} disabled={disabled} onChange={(e) => onEnd(parseInt(e.target.value, 10) || 0)} style={s.mem86Sel}>
+        {Array.from({ length: Math.max(0, count - start + 1) }, (_, i) => start + i).map((a) => <option key={a} value={a}>{toArabicDigits(a)}</option>)}
+      </select></label>
+    <div style={s.mem86Note}>{ezT('mem86.listen.repA')}</div>
+    <Mem86Seg label={ezT('mem86.listen.repA')} value={prefs.repA} onPick={(v) => !disabled && onPref({ repA: v })}
+      opts={[1, 2, 3, 5, 7, 10].map((n) => [n, ezT('mem86.timesN', { n: toArabicDigits(n) })])} />
+    <div style={s.mem86Note}>{ezT('mem86.listen.repR')}</div>
+    <Mem86Seg label={ezT('mem86.listen.repR')} value={prefs.repR} onPick={(v) => !disabled && onPref({ repR: v })}
+      opts={[1, 2, 3, 5].map((n) => [n, ezT('mem86.timesN', { n: toArabicDigits(n) })])} />
+    <div style={s.mem86Note}>{ezT('mem86.listen.speed')}</div>
+    <Mem86Seg label={ezT('mem86.listen.speed')} value={prefs.speed} onPick={(v) => !disabled && onPref({ speed: v })}
+      opts={[0.75, 1, 1.25].map((n) => [n, ezT('mem86.timesN', { n: mem86Rate(n) })])} />
+  </div>
+);
+
 // ---------- «تقدّمي»: what is memorised, surah by surah ----------
 const Mem86Progress = ({ counts, held, onHeld }) => {
   const [open, setOpen] = useState(0);
@@ -36303,6 +36334,9 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   // Item 86 (memorizer): the picker's tabs and the reader's memorised ayat. The catalogue is always the first tab.
   const [tab, setTab] = useState('learn');
   const [held, setHeld] = useState(mem86HeldRead);
+  const [prefs, setPrefs] = useState(mem86PrefsRead);
+  const setPref = (patch) => setPrefs(mem86PrefsWrite(patch));
+  const [adnanEnd, setAdnanEnd] = useState(0);         // last ayah of the listening range; 0 = the end of the surah
 
   const isFemale = profile?.gender === 'female';
 
@@ -36368,7 +36402,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   const showPraise = !allRevealed && granularity === 'ayah' && revealedCount > 0 && revealedCount % 4 === 0;
 
   const openPicker = () => { setView('picker'); setRevealedCount(0); };
-  const startDrill = () => { setView('drill'); setRevealedCount(0); };
+  const startDrill = () => { setView('drill'); setRevealedCount(0); setAdnanEnd(0); };
   const setGran = (g) => { setGranularity(g); setRevealedCount(0); }; // switching re-hides the range
 
   // ---------- عدنان listen-and-repeat loop ----------
@@ -36391,11 +36425,15 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     if (adnanTimeoutRef.current) { clearTimeout(adnanTimeoutRef.current); adnanTimeoutRef.current = null; }
     const myRun = ++runIdRef.current;         // local cancel token for THIS run
     setAdnanRunning(true);
-    for (let a = startAyah; a <= surahCount; a++) {
+    // Item 86 (memorizer): the range may end before the surah does; each ayah and the whole range repeat.
+    const last = adnanEnd >= startAyah ? Math.min(adnanEnd, surahCount) : surahCount;
+    for (let round = 0; round < prefs.repR; round++)
+    for (let a = startAyah; a <= last; a++)
+    for (let k = 0; k < prefs.repA; k++) {
       if (runIdRef.current !== myRun) return; // stopped / mode switched / screen left / restarted
       setAdnanAyah(a);
       const t0 = performance.now();
-      try { await onPlayVerse(selectedSurah, a); } catch (e) {} // resolves when the ayah audio ENDS
+      try { await onPlayVerse(selectedSurah, a, prefs.speed); } catch (e) {} // resolves when the ayah audio ENDS
       if (runIdRef.current !== myRun) return;
       const elapsed = performance.now() - t0;
       const pause = Math.min(ADNAN_PAUSE_CEIL, Math.max(ADNAN_PAUSE_FLOOR, elapsed * ADNAN_PAUSE_FACTOR));
@@ -36408,7 +36446,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   const repeatAyah = async () => {
     const a = adnanAyah || startAyah;
     stopAdnan();                              // halt the loop + audio + pending pause first
-    try { await onPlayVerse(selectedSurah, a); } catch (e) {} // replay this ayah once; user presses ابدأ to continue
+    try { await onPlayVerse(selectedSurah, a, prefs.speed); } catch (e) {} // replay this ayah once; user presses ابدأ to continue
   };
 
   // ---------- سمِّعني recite-from-memory ----------
@@ -36719,6 +36757,9 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         <button onClick={() => (adnanRunning ? stopAdnan() : startAdnan())} style={s.memRevealBtn}>{adnanRunning ? MEM.ADNAN_STOP : MEM.ADNAN_START}</button>
         <button onClick={repeatAyah} style={s.memListenBtn}>{MEM.ADNAN_REPEAT}</button>
       </div>
+      )}
+      {drillMode === 'adnan' && (
+        <Mem86ListenOpts start={startAyah} count={surahCount} end={adnanEnd} onEnd={setAdnanEnd} prefs={prefs} onPref={setPref} disabled={adnanRunning} />
       )}
       {drillMode === 'recite' && (
       <div className="ezq-read" style={s.memDrillArea}>

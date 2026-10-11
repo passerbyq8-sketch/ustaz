@@ -155,6 +155,23 @@ ok(Object.keys(wl).length <= X.MEM86_WORDS_MAX && X.mem86Bytes(store.get(X.MEM86
 reset();
 ok(X.mem86Store(X.MEM86_PREFS_KEY, { pad: 'x'.repeat(5000) }) === false && !store.has(X.MEM86_PREFS_KEY), 'a write over its ceiling is refused, not truncated');
 
+/* ------------------------------------------------------------------ phase 2 */
+section('phase 2 -- listening range, repeats, speed');
+const appNoComments = appSrc.split('\n').map((l) => l.replace(/^\s*\/\/.*$/, '')).join('\n');
+const pru = appNoComments.slice(appNoComments.indexOf('const playRecitationUrl = (url, myId, rate) =>'), appNoComments.indexOf('const playRecitation = (sNum, aNum, myId, rate) =>'));
+ok(pru.length > 0 && /audio\.src = url;\n\s*if \(rate && rate !== 1\) audio\.playbackRate = rate;/.test(pru), 'the rate is an optional parameter set right AFTER src (src resets it)');
+ok(appNoComments.length > 0 && !/defaultPlaybackRate/.test(appNoComments), 'defaultPlaybackRate is never touched');
+ok((appNoComments.match(/playbackRate/g) || []).length === 1, 'playbackRate is written in exactly one place');
+const memScreen = appSrc.slice(appSrc.indexOf('function MemorizeScreen('), appSrc.indexOf('\nfunction ', appSrc.indexOf('function MemorizeScreen(') + 10));
+ok(memScreen.length > 0 && /onPlayVerse\(selectedSurah, a, prefs\.speed\)/.test(memScreen), 'only the memorizer passes a speed');
+ok(memScreen.length > 0 && /for \(let round = 0; round < prefs\.repR; round\+\+\)\n\s*for \(let a = startAyah; a <= last; a\+\+\)\n\s*for \(let k = 0; k < prefs\.repA; k\+\+\)/.test(memScreen), 'each ayah repeats repA times, the whole range repR times, to the chosen last ayah');
+reset();
+ok(X.mem86PrefsRead().speed === 1 && X.mem86PrefsRead().repA === 1 && X.mem86PrefsRead().repR === 1, 'defaults: speed 1, each ayah once, the range once');
+X.mem86PrefsWrite({ speed: 2, repA: 4, repR: 7 });
+ok(X.mem86PrefsRead().speed === 1 && X.mem86PrefsRead().repA === 1 && X.mem86PrefsRead().repR === 1, 'values outside the offered sets are refused (speed 2, x4, x7)');
+X.mem86PrefsWrite({ speed: 0.75, repA: 10, repR: 5 });
+ok(X.mem86PrefsRead().speed === 0.75 && X.mem86PrefsRead().repA === 10 && X.mem86PrefsRead().repR === 5, 'offered values are kept (0.75, x10, x5)');
+
 /* ------------------------------------------------------------------ done */
 console.log('\n' + (fail ? 'FAIL' : 'PASS') + '  memorizer86-check  ' + pass + ' passed, ' + fail + ' failed  (lifted ' + LIFT.length + ' initializers from app.jsx)');
 process.exit(fail ? 1 : 0);
