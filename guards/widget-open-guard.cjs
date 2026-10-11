@@ -37,6 +37,8 @@ const PROFILE_PID = 'W45-GUARD';
 const PROFILE = { name: 'Noor', age: 30, gender: 'male', birthYear: 1996, pid: PROFILE_PID, createdAt: '2026-01-01T00:00:00.000Z' };
 const FIXTURES = new Set(['/adhkar.json', '/adhkar-split-27.json', '/arbaeen.json', '/arbaeen-footnotes.json']);
 const destination = (r) => /^adhkar_(sabah|masaa)$/.test(r) ? 'adhkar' : r;
+// R4A: where a route lands for THIS fixture's reader (he answered «male») when «ب» is lit for a guest
+const womenClosed = (c, r) => r === 'women' && (c.read('EZ110_PARTS') || {}).b === 'public' && PROFILE.gender === 'male';
 function makeStore(seed, writes, name) {
   const m = new Map(Object.entries(seed || {}));
   return { getItem: (k) => m.has(k) ? m.get(k) : null,
@@ -44,6 +46,13 @@ function makeStore(seed, writes, name) {
     removeItem: (k) => { if (writes) writes.push([name, 'remove', k]); m.delete(k); },
     clear: () => { if (writes) writes.push([name, 'clear']); m.clear(); },
     key: (i) => Array.from(m.keys())[i] || null, get length() { return m.size; } };
+}
+// R4A (item 110, station 4): which parts of the owner switch a GUEST has, read from the code the harness runs -- never a
+// constant here. b public: the menu is «ب»'s grid and every section has its one «ب» name (ez110Name); fix public: the
+// N1 return record (round 4) replaces the library route's clearing. Dark, nothing below changes.
+function partsOfCode(code) {
+  const m = /EZ110_PARTS\s*=\s*(\{[^}]*\})\s*;/.exec(String(code || ''));
+  try { return m ? Function('return ' + m[1])() : {}; } catch (e) { return {}; }
 }
 function compile(mutantName) {
   if (!mutantName && !SOURCE_MODE) return { code: fs.readFileSync(path.join(REPO, 'app.js'), 'utf8'), applied: true };
@@ -121,6 +130,9 @@ function boot(opts) {
     'ayah-tafsir': "ezT('home.verseOfDay2')", asmaa: "ezT('asmaa.title')", 'sunan-day': "ezT('sunan.title')", wirdi: 'DW_CARD_TITLE' };
   const titles = Object.fromEntries(Object.entries(titleExpr).map(([key, expr]) => [key, read(expr)]));
   titles.mushaf = '\u0627\u0644\u0645\u0635\u062d\u0641';
+  const LIT_B = (read('EZ110_PARTS') || {}).b === 'public';
+  const titlesB = {};
+  if (LIT_B) for (const key of Object.keys(titleExpr)) { const n = read('ez110Name(' + JSON.stringify(key) + ')'); if (n) titlesB[key] = n; }
   const where = () => {
     if (window.location.href === '/quest.html') return 'treasure';
     if (window.location.href === '/library.html') return 'library';
@@ -135,12 +147,14 @@ function boot(opts) {
       const spans = shellBrand.querySelectorAll('span');
       const title = spans.length ? String(spans[spans.length - 1].textContent || '').trim() : '';
       for (const key of Object.keys(titles)) if (titles[key] && title === titles[key]) return key;
+      for (const key of Object.keys(titlesB)) if (title === titlesB[key]) return key;
     }
     const bookBrand = root.querySelector('.ezia-brand');
     if (bookBrand && bookBrand.textContent.trim() === read('EZH_ARBAEEN')) return 'arbaeen';
     if (/\badhkar3\b/.test(cls)) return 'adhkar';
     if (root.querySelector('.ezc-rail')) return 'chat';
     if (root.querySelector('[data-ezik-home-module]')) return 'home';
+    if (LIT_B && root.querySelector('.ez110-home')) return 'home';
     return 'other';
   };
   const send = (detail) => vm.runInContext('window.dispatchEvent(new CustomEvent("ezik-scheduler",{detail:JSON.parse(' + JSON.stringify(JSON.stringify(detail)) + ')}))', ctx);
@@ -171,18 +185,26 @@ function boot(opts) {
 const SCENES = {};
 for (const route of ROUTES) SCENES['cold-' + route] = async (c, t) => {
   c.open(route);
-  t('C1 cold ' + route + ' opens ' + destination(route), await c.until(destination(route)), destination(route));
+  if (womenClosed(c, route)) t('R4A C1 cold women, for a reader who answered male, lands on the menu of b (owner, round 3)', await c.until('home'), 'home');
+  else t('C1 cold ' + route + ' opens ' + destination(route), await c.until(destination(route)), destination(route));
   if (route === 'chat') t('chat focuses its composer', c.focuses.some((el) => el.tagName === 'TEXTAREA'), true);
 };
 SCENES['warm-all'] = async (c, t) => {
   t('profile boot', await c.until('chat'), 'chat');
-  for (const route of ROUTES) { c.open(route); t('C1 warm ' + route + ' opens ' + destination(route), await c.until(destination(route)), destination(route)); }
+  for (const route of ROUTES) { c.open(route);
+    if (womenClosed(c, route)) t('R4A C1 warm women, for a reader who answered male, lands on the menu of b (owner, round 3)', await c.until('home'), 'home');
+    else t('C1 warm ' + route + ' opens ' + destination(route), await c.until(destination(route)), destination(route)); }
 };
 SCENES['warm-home'] = async (c, t) => {
   await c.until('chat'); c.open('home'); await c.until('home');
   for (const route of ['prayer', 'tasbih', 'calc', 'compass', 'articles', 'women', 'wirdi']) {
+    if (womenClosed(c, route)) {
+      c.open(route); t('R4A the menu of b keeps a reader who answered male out of women (owner, round 3)', await c.until('home'), 'home');
+      t('R4A ...and he is still on the menu, with nothing to go back from', c.where(), 'home');
+    } else {
     c.open(route); t('mounted home opens ' + route, await c.until(route), route);
     await c.back(); t('back from ' + route + ' returns home', await c.until('home'), 'home');
+    }
     t('home clears resume record', c.ledger(), null);
   }
 };
@@ -190,7 +212,10 @@ SCENES['pages'] = async (c, t) => {
   c.open('wirdi'); t('wirdi records its layer', await c.until('wirdi'), 'wirdi');
   t('wirdi resume record', c.ledger(), 'wirdi');
   c.open('library'); t('library leaves for its page', await c.until('library'), 'library');
-  t('library clears resume record', c.ledger(), null);
+  const P = c.read('EZ110_PARTS') || {};
+  t('R4A the guest has b and fix exactly as EZ110_PARTS says', [c.read('document.documentElement.getAttribute("data-ez110")') === 'b', c.read('ez110FixLit()')], [P.b === 'public', P.fix === 'public']);
+  if (P.fix !== 'public') t('library clears resume record', c.ledger(), null);
+  else { c.read('window.dispatchEvent(new Event("pagehide"))'); t('R4A library leaves the menu it was opened from as the way back (fix, round 4 N1)', c.ledger(), 'home'); }
 };
 SCENES['top-layer'] = async (c, t) => {
   for (const layer of ['asmaa', 'sunan-day']) {
@@ -282,12 +307,15 @@ SCENES['adhan'] = async (c, t) => {
   }
   c.read('writePrayerPrefs({adhanSound:false})');
   t('sound off reaches all prayers', c.read('ezikAdhanItems(new Date(2026,8,28)).every((it) => it.adhanSound === "none")'), true);
-  c.open('home'); await c.until('home');
+  const LIT_S = (c.read('EZ110_PARTS') || {}).b === 'public';
+  if (LIT_S) { c.open('prayer'); await c.until('prayer'); await c.click(c.root.querySelector('[data-ez110-prayerset]')); }
+  else { c.open('home'); await c.until('home');
   const home = c.componentProps('Home');
-  if (home) home.onOpenSettings();
+  if (home) home.onOpenSettings(); }
   await c.untilValue(() => !!c.root.querySelector('[data-ezik-prayer-setting="adhan-sound"]'), true);
   const control = c.root.querySelector('[data-ezik-prayer-setting="adhan-sound"]');
-  t('sound switch beside prayer settings', !!control, true);
+  if (LIT_S) t('R4A sound switch in the prayer settings sheet of b (the gear: one press more)', !!control, true);
+  else t('sound switch beside prayer settings', !!control, true);
   if (control) {
     t('rendered sound label exactly matches C2', control.getAttribute('aria-label'), '\u0635\u0648\u062a \u0627\u0644\u0623\u0630\u0627\u0646');
     t('switch draws stored off', control.getAttribute('aria-checked'), 'false');
@@ -420,6 +448,12 @@ const soundControl = (c) => c.root.querySelector('[data-ezik-prayer-setting="adh
 const soundItems = (c) => c.read('ezikAdhanItems(new Date(2026,8,28))');
 const rawPrayerPrefs = (c) => c.window.localStorage.getItem('ezik_prayer_prefs_v1');
 async function openPrayerSettings(c) {
+  if ((c.read('EZ110_PARTS') || {}).b === 'public') {
+    c.open('prayer'); await c.until('prayer');
+    await c.click(c.root.querySelector('[data-ez110-prayerset]'));
+    await c.untilValue(() => !!c.root.querySelector('[data-ezik-prayer-setting="method"]'), true);
+    return;
+  }
   c.open('home'); await c.until('home');
   const home = c.componentProps('Home');
   if (!home) throw new Error('missing Home settings fixture');
@@ -459,6 +493,7 @@ for (const mode of ['browser', 'legacy']) SCENES['adhan-' + mode + '-hidden'] = 
     t(label + ' ordinary asr control still works', c.read('readPrayerPrefs().asr'), 'hanafi');
     preservedSound(c, t, label + ' asr edit', saved, sounds);
     c.open('prayer'); await c.until('prayer');
+    if ((c.read('EZ110_PARTS') || {}).b === 'public') await c.click(c.root.querySelector('[data-ez110-prayerset]'));
     const offsetLabel = c.read('PRAYER_LABELS.fajr + " " + PRAYER_PLUS');
     await c.click(Array.from(c.root.querySelectorAll('button')).find((el) => el.getAttribute('aria-label') === offsetLabel));
     t(label + ' ordinary offset control still works', c.read('readPrayerPrefs().off.fajr'), 3);
@@ -591,7 +626,8 @@ const MUTANTS = [
   { name: 'top-layer-left-open', scene: 'top-layer', edits: [["    setAsmaaOpen(route === 'asmaa');", "    if (route === 'asmaa') setAsmaaOpen(true);"]] },
   { name: 'treasure-wrong-page', scene: 'cold-treasure', edits: [["      window.location.href = '/quest.html';", "      window.location.href = '/wrong.html';"]] },
   { name: 'library-wrong-page', scene: 'cold-library', edits: [["      window.location.href = '/library.html';\n      return;", "      window.location.href = '/wrong.html';\n      return;"]] },
-  { name: 'library-keeps-resume', scene: 'pages', edits: [["    if (route === 'library') {\n      ezikClearResume();\n", "    if (route === 'library') {\n"]] },
+  { name: 'library-keeps-resume', scene: 'pages', when: 'dark', edits: [["    if (route === 'library') {\n      ezikClearResume();\n", "    if (route === 'library') {\n"]] },
+  { name: 'library-forgets-return', scene: 'pages', when: 'lit', edits: [["    if (route === 'library') {\n      ezikClearResume();\n      ez110NoteReturn(cur);\n", "    if (route === 'library') {\n      ezikClearResume();\n"]] },
   { name: 'wirdi-not-a-home-layer', scene: 'cold-wirdi', edits: [["wirdi: 1, tasbih: 1, calc: 1, compass: 1 };", "tasbih: 1, calc: 1, compass: 1 };"]] },
   { name: 'adhkar-index-not-reset', scene: 'list-reset', edits: [['<AdhkarScreen onBack={goEzikBack} key={homeEpoch} />', '<AdhkarScreen onBack={goEzikBack} />']] },
   { name: 'arbaeen-list-not-reset', scene: 'list-reset', edits: [['<ArbaeenScreen onBack={goEzikBack} key={homeEpoch} />', '<ArbaeenScreen onBack={goEzikBack} />']] },
@@ -721,14 +757,17 @@ async function main() {
   const report = (label, ok, extra) => { if (ok) passes++; else fails++; say((ok ? 'PASS ' : 'FAIL ') + label + (extra ? '  ' + extra : '')); };
   for (const [label, ok] of staticChecks()) report(label,ok);
   const names = Object.keys(SCENES);
-  const jobs = names.map((name) => () => spawnScene(name)).concat(MUTANTS.map((m) => () => spawnScene(m.scene,m.name)));
+  // R4A: a mutant marked 'dark' or 'lit' runs only when the shipped switch is so for a guest (part fix)
+  const LIT_FIX = partsOfCode(compile(null).code).fix === 'public';
+  const MUT = MUTANTS.filter((m) => !m.when || (m.when === 'lit') === LIT_FIX);
+  const jobs = names.map((name) => () => spawnScene(name)).concat(MUT.map((m) => () => spawnScene(m.scene,m.name)));
   const all = await pool(jobs,4);
   names.forEach((name,i) => {
     const r = all[i]; if (r.crashed) return report('scene ' + name + ' ran',false,r.crashed);
     for (const x of r.results) report('[' + name + '] ' + x.label,x.ok,x.ok ? '' : 'got=' + JSON.stringify(x.got) + ' want=' + JSON.stringify(x.want));
     for (const note of r.notes || []) say(note);
   });
-  MUTANTS.forEach((m,i) => {
+  MUT.forEach((m,i) => {
     const r = all[names.length+i];
     if (r.notApplied) return report('MUTANT ' + m.name + ' edit applies',false,'needle not found exactly once');
     if (r.crashed) return report('MUTANT ' + m.name + ' ran',false,r.crashed);
@@ -737,7 +776,7 @@ async function main() {
     report('MUTANT KILLED ' + m.name,failed.length>0,failed.length ? failed.slice(0,2).map((x) => x.label).join(' | ')
       : exceptions.length ? 'exception-only failure: ' + exceptions.map((x) => x.label).join(' | ') : 'no assertion failed');
   });
-  say('widget-open-guard: PASS=' + passes + ' FAIL=' + fails + ' SCENES=' + names.length + ' MUTANTS=' + MUTANTS.length + ' MODE=' + (SOURCE_MODE?'source':'shipped'));
+  say('widget-open-guard: PASS=' + passes + ' FAIL=' + fails + ' SCENES=' + names.length + ' MUTANTS=' + MUT.length + ' MODE=' + (SOURCE_MODE?'source':'shipped'));
   process.exit(fails?1:0);
 }
 if (process.argv.includes('--scene')) {
