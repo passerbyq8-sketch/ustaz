@@ -1755,6 +1755,7 @@ const EZ_I18N = {
     'ez110.bar.slot': '\u062E\u0627\u0646\u0629 \u0641\u064A \u0627\u0644\u0634\u0631\u064A\u0637 \u0627\u0644\u0633\u0641\u0644\u064A: {name}',
     'ez110.bar.hint': '\u0648\u0644\u062A\u063A\u064A\u064A\u0631 \u0642\u0633\u0645 \u0641\u064A \u0627\u0644\u0634\u0631\u064A\u0637 \u0627\u0644\u0633\u0641\u0644\u064A \u0627\u0633\u062D\u0628 \u0645\u0631\u0628\u0639\u064B\u0627 \u0625\u0644\u0649 \u062E\u0627\u0646\u062A\u0647\u060C \u0623\u0648 \u0627\u0636\u063A\u0637 \u0627\u0644\u062E\u0627\u0646\u0629 \u062B\u0645 \u0627\u0644\u0645\u0631\u0628\u0639.',
     'ez110.bar.pick': '\u0627\u0636\u063A\u0637 \u0627\u0644\u0622\u0646 \u0627\u0644\u0642\u0633\u0645 \u0627\u0644\u0630\u064A \u062A\u0636\u0639\u0647 \u0641\u064A \u0647\u0630\u0647 \u0627\u0644\u062E\u0627\u0646\u0629.',
+    'ez110.acts.more': '\u0627\u0644\u0645\u0632\u064A\u062F',
   },
   en: {
     'common.close': 'Close',
@@ -3099,6 +3100,7 @@ const EZ_I18N = {
     'ez110.bar.slot': 'Bottom bar slot: {name}',
     'ez110.bar.hint': 'To change a section in the bottom bar, drag a tile onto its slot, or tap the slot and then the tile.',
     'ez110.bar.pick': 'Now tap the section to put in this slot.',
+    'ez110.acts.more': 'More',
   },
 };
 
@@ -8645,8 +8647,45 @@ function ez110Apply() {
       const dg = ez110ReadDigits();
       if (dg !== 'auto') d.setAttribute('data-ez110-digits', dg); else d.removeAttribute('data-ez110-digits');
       ez110ApplyDigits(dg);
+      ez110ActsTips();
     }
   } catch (e) {}
+}
+// ROUND 3 §3-4, «ب» only: the answer's controls are icons, so each says its name in words on a long press (and a
+// short word the control itself shows after a press -- «تم النسخ» -- is said the same way, since the icon cannot show
+// it). One floating line, attached once to the document; a long press does not also fire the control.
+let EZ110_TIPS_ON = false;
+function ez110ActsTips() {
+  if (EZ110_TIPS_ON || typeof document === 'undefined') return;
+  EZ110_TIPS_ON = true;
+  let timer = null, fired = false, tip = null, hideAt = null;
+  const sel = '.ezc-acts button';
+  const show = (b, text) => {
+    if (!text) return;
+    if (!tip) { tip = document.createElement('div'); tip.className = 'ez110-tip'; tip.setAttribute('role', 'status'); document.body.appendChild(tip); }
+    tip.textContent = text;
+    const r = b.getBoundingClientRect();
+    tip.style.top = Math.max(8, r.top - 40) + 'px';
+    tip.style.left = Math.round(r.left + r.width / 2) + 'px';
+    tip.classList.add('is-on');
+    clearTimeout(hideAt); hideAt = setTimeout(() => { if (tip) tip.classList.remove('is-on'); }, 1600);
+  };
+  const near = (e) => (e.target && e.target.closest ? e.target.closest(sel) : null);
+  document.addEventListener('pointerdown', (e) => {
+    const b = near(e); clearTimeout(timer); fired = false;
+    if (!b || !document.documentElement.getAttribute('data-ez110')) return;
+    const before = (b.textContent || '').trim();
+    b.__ez110Text = before;
+    timer = setTimeout(() => { fired = true; show(b, b.getAttribute('aria-label') || before); }, 500);
+  }, true);
+  ['pointerup', 'pointercancel', 'scroll'].forEach((t) => document.addEventListener(t, () => clearTimeout(timer), true));
+  document.addEventListener('click', (e) => {
+    const b = near(e); if (!b) return;
+    if (fired) { fired = false; e.preventDefault(); e.stopPropagation(); return; }
+    // the word a control puts in place of its own after a press (copied, failed, preparing) is said aloud here
+    setTimeout(() => { const now = (b.textContent || '').trim(); if (now && now !== b.__ez110Text && b.isConnected) show(b, now); }, 120);
+  }, true);
+  document.addEventListener('contextmenu', (e) => { if (near(e) && document.documentElement.getAttribute('data-ez110')) e.preventDefault(); }, true);
 }
 // THE NUMERALS CHOICE. Every digit the interface prints goes through the language table's
 // `digits` field (toArabicDigits, ezNum, ezDigitsOut all read it), so the choice is applied there,
@@ -23244,7 +23283,13 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, stream
   // ITEM 110 ROUND 2 (127 note m27), part fix: the star's name WITH its state, in words. In the Android WebView an
   // aria-pressed button's aria-label never reaches the accessibility tree -- only its text does -- so, lit, the
   // name is also a visually hidden text child. Dark: null, and the button is what it was.
-  const starA11y = ez110FixLit() ? ezT(isFavorite ? 'fix.fav.on' : 'fix.fav.off') : null;
+  // ROUND 3 §3-4: in «ب» the row is one tidy line of icons, so the star's name and state are given in «ب» too.
+  const ez110Acts = !!ez110ReadIdentity();
+  const starA11y = (ez110FixLit() || ez110Acts) ? ezT(isFavorite ? 'fix.fav.on' : 'fix.fav.off') : null;
+  // ROUND 3 §3-4, «ب» only: each control of the row is tagged with what it is (a wrapper that takes no box), so the
+  // lit sheet can draw it as an icon, order it, and fold the four rarer ones behind «المزيد». Dark: the element itself,
+  // the row exactly as it was.
+  const actOf = (k, el) => (ez110Acts ? <span className="ez110-act" data-ez110-act={k}>{el}</span> : el);
   // ITEM 42-C: the card is handed the source footer by the module-level reader below, beside
   // the writer that already renders sources into the copy payload. THIS component does not
   // filter, re-order or count them -- N22 pins that, and a share card is no reason to weaken it.
@@ -23315,33 +23360,33 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, stream
           the same buttons, the same handlers, the same aria-pressed, and not one action that was
           not already here. */}
       {!streaming && <div className="ezc-acts" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-start', padding: '0 2px' }}>
-        <MessageListenButton text={message.content} onPlayMessage={onPlayMessage} onStopAudio={onStopAudio} />
+        {actOf('listen', <MessageListenButton text={message.content} onPlayMessage={onPlayMessage} onStopAudio={onStopAudio} />)}
         {/* text= decides only VISIBILITY, and is deliberately store-independent: the raw reply
             always exists, so the button can no longer vanish because a fetch had not landed. */}
-        <CopyReplyButton text={String(message.content || '').trim()} getText={buildCopyText} />
+        {actOf('copy', <CopyReplyButton text={String(message.content || '').trim()} getText={buildCopyText} />)}
         {/* ITEM 42-أ: SHARE. The same payload the clipboard gets, the same rail, the same
             44x44 hit area every .ezc-acts button already takes from 44-ج. It calls nothing. */}
-        <ShareReplyButton getText={buildCopyText} />
+        {actOf('share', <ShareReplyButton getText={buildCopyText} />)}
         {/* ITEM 42-ب: the same buildCopyText payload, rendered by the document card's own
             docToHtml and printed by the app's one printAsPdf. No library, no request, no
             second serializer -- and the identical 44x44 area every .ezc-acts button takes. */}
-        <ExportPdfReplyButton getText={buildCopyText} />
+        {actOf('pdf', <ExportPdfReplyButton getText={buildCopyText} />)}
         {/* ITEM 94, DECISIONS 1, 2, 4 AND 6. The control is here or it is not here; it is never
             here and dead. Its place in the rail does not move -- it is the fifth control when
             it is drawn, exactly where it has always been -- and the props it is handed are the
             same two, from the same two builders. What is new is the question asked before it. */}
         {ezikCardIsAttributed(segments) && (
-        <SaveReplyImageButton getText={buildCopyText} getSource={buildCardSource} />
+        actOf('image', <SaveReplyImageButton getText={buildCopyText} getSource={buildCardSource} />)
         )}
         {/* S98: the quote button hands over the SAME clean text the clipboard gets (cards
             serialized, no tag ever reaches it), trimmed to a preview and dropped into the
             composer. It sends nothing. */}
         {onQuote && (
-          <button type="button" onClick={() => onQuote(buildCopyText())} aria-label={EZIK_QUOTE_ARIA} className="ezik-focus" style={miniBtnStyle}>{EZIK_QUOTE_LABEL}</button>
+          actOf('quote', <button type="button" onClick={() => onQuote(buildCopyText())} aria-label={EZIK_QUOTE_ARIA} className="ezik-focus" style={miniBtnStyle}>{EZIK_QUOTE_LABEL}</button>)
         )}
         {/* S98: the star. `isFavorite` is a boolean handed DOWN — this component never reads a
             store, never parses JSON and never scans a list to draw it. */}
-        {onFavorite && (
+        {onFavorite && actOf('star',
           <button
             type="button"
             onClick={() => onFavorite(message, index)}
@@ -23356,11 +23401,20 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, stream
             {starA11y ? <span className="ez110-sr">{starA11y}</span> : null}
           </button>
         )}
-        <button type="button" onClick={onToggleTashkeel} aria-label={'\u062A\u0634\u0643\u064A\u0644'} style={{ ...miniBtnStyle, opacity: tashkeel ? 1 : 0.7, borderColor: tashkeel ? 'var(--red)' : 'var(--line)' }}>{'\u062A\u0634\u0643\u064A\u0644'}</button>
-        <button type="button" onClick={() => onReport && onReport(index)} aria-label={ezT("chat.report")} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'transparent', color: 'var(--muted)', border: '1px solid var(--line)', borderRadius: 8, padding: '4px 10px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+        {/* ROUND 3 §3-4, «ب» only: the four rarer controls fold behind this one; it toggles a class on the row and
+            nothing else (no state, no request) */}
+        {ez110Acts ? (
+          <button type="button" className="ez110-more ezik-focus" aria-expanded="false" aria-label={ezT('ez110.acts.more')}
+            onClick={(e) => { const b = e.currentTarget; const on = b.parentElement.classList.toggle('is-more'); b.setAttribute('aria-expanded', on ? 'true' : 'false'); }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg>
+            <span className="ez110-sr">{ezT('ez110.acts.more')}</span>
+          </button>
+        ) : null}
+        {actOf('tashkeel', <button type="button" onClick={onToggleTashkeel} aria-label={'\u062A\u0634\u0643\u064A\u0644'} aria-pressed={ez110Acts ? (tashkeel ? 'true' : 'false') : undefined} style={{ ...miniBtnStyle, opacity: tashkeel ? 1 : 0.7, borderColor: tashkeel ? 'var(--red)' : 'var(--line)' }}>{'\u062A\u0634\u0643\u064A\u0644'}</button>)}
+        {actOf('report', <button type="button" onClick={() => onReport && onReport(index)} aria-label={ezT("chat.report")} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'transparent', color: 'var(--muted)', border: '1px solid var(--line)', borderRadius: 8, padding: '4px 10px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
           <span>بلّغ</span>
-        </button>
+        </button>)}
       </div>}
       {suggestions && suggestions.length > 0 && (
         <div style={s.suggestionsInline}>
