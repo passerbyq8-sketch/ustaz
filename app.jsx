@@ -8795,9 +8795,11 @@ function useEz110() {
 
 // ITEM 110 -- the owner's build mark: which design is lit and which build is serving it. Drawn only
 // where an identity is lit, so with the switch dark the sheet ends exactly where it did.
+// ROUND 4 (station 4): once «ب» is public the mark would show to every reader -- it is the OWNER's (and this machine's
+// local preview's), never a guest's.
 function Ez110Mark() {
   const ez = useEz110();
-  if (!ez.id) return null;
+  if (!ez.id || !(ez.owner || EZ110_OVERRIDE)) return null;
   return (
     <p className="ez110-mark" style={{ margin: '18px 4px 6px', fontSize: 12, color: 'var(--muted)', textAlign: 'center' }}>
       {ezT('ez110.mark')} <bdi>{ezT('ez110.id.' + ez.id)}</bdi> <bdi dir="ltr">{ezikAppVersion()}</bdi>
@@ -25002,7 +25004,7 @@ function EzikAboutSheet({ onBack }) {
       ) : null}
       {ez.fix ? <p className="ez110-version" style={{ margin: '14px 4px 4px', fontSize: 12, color: 'var(--muted)', textAlign: 'center' }}>{ezT('fix.about.version', { v: ezikAppVersion() })}</p> : null}
       {askCode ? <Ez110UnlockField /> : null}
-      {(ez.id || ez.safe || ez.fix) ? <Ez110Diag /> : null}
+      {(ez.id || ez.safe || ez.fix) && (ez.owner || EZ110_OVERRIDE) ? <Ez110Diag /> : null}
     </EzShell>
   );
 }
