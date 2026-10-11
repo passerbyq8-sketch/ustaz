@@ -103,3 +103,27 @@ html[dir="ltr"][data-ez110] .ezsug-go svg { transform: scaleX(-1); }
 /* AMEND-01: the prayer section's head carries three controls (back, compass, prayer settings); its start side
    takes its own width and the title follows it, instead of the gear sliding under the title's mark */
 html[data-ez110] .ezsh-nav-inner:has(.ez110-prayerset) > .ezsh-nav-side:not(.is-end) { flex: 0 0 auto; }
+
+/* ---- ROUND 2 §4-2: the drawer of «ب». The source order of the drawer is pinned by gates (sharelinks E, themecoverage
+   N28) and the dark drawer is untouched, so «ب» orders it HERE, visually: the new conversation above the search; the
+   fixed rows (about, sources, feedback) above a footer that is the profile row -- Settings' one entry -- with the
+   invite as a small share button in its opposite corner (the same button: its handler, its accessible name; its word
+   is hidden visually, not removed). ---- */
+html[data-ez110] .ezc-drawer-head + div > * { order: 3; }
+html[data-ez110] .ezc-drawer-head + div > :nth-child(2) { order: 1; }
+html[data-ez110] .ezc-drawer-head + div > :nth-child(1) { order: 2; }
+html[data-ez110] .ezc-drawer-head + div + div { position: relative; }
+html[data-ez110] .ezc-drawer-head + div + div > * { order: 1; }
+html[data-ez110] .ezc-drawer-head + div + div > :nth-child(1) {
+  order: 9; margin-top: 6px; padding-top: 6px; padding-inline-end: 52px; border-top: 1px solid var(--vt-line);
+}
+html[data-ez110] .ezc-drawer-head + div + div > :nth-child(4) {
+  /* !important: the row carries an inline width:100% and padding (its React style object), which a sheet cannot outrank otherwise */
+  order: 10; position: absolute; bottom: 0; inset-inline-end: 0; width: 48px !important; min-width: 48px; height: 52px; min-height: 48px;
+  padding: 0 !important; justify-content: center; gap: 0 !important;
+}
+html[data-ez110] .ezc-drawer-head + div + div > :nth-child(4) > span {
+  position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+/* a drawer row's label starts at its line's start in either direction (the row's style object says right) */
+html[data-ez110] .ezc-drawer button > span { text-align: start; }
