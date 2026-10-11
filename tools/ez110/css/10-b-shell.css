@@ -142,3 +142,9 @@ html[data-ez110] .ezsh-nav-inner > .ezsh-nav-side.is-end { order: 3; flex: 0 0 a
 /* the adhkar / Forty heads (ezia-nav: back, brand, end control): the title follows the back, the control stays last */
 html[data-ez110] .ezia-nav-inner { justify-content: flex-start; }
 html[data-ez110] .ezia-nav-inner > .ezia-brand { flex: 1 1 auto; min-width: 0; justify-content: flex-start; }
+
+/* ---- ROUND 3 §3-2: the bar while the menu is arranged -- the two chosen slots are targets, the fixed two rest ---- */
+html[data-ez110] .ez110-nav.is-edit .ez110-tab:disabled { opacity: .45; cursor: default; }
+html[data-ez110] .ez110-slot { color: var(--vt-accent-ink); }
+html[data-ez110] .ez110-slot .ez110-tab-pill { outline: 1.5px dashed var(--vt-accent); outline-offset: -1.5px; }
+html[data-ez110] .ez110-slot.is-sel .ez110-tab-pill { background: var(--vt-soft); outline-style: solid; }

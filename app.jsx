@@ -1751,6 +1751,10 @@ const EZ_I18N = {
     'ez110.set.langDigits': '\u0627\u0644\u0644\u063A\u0629 \u0648\u0627\u0644\u0623\u0631\u0642\u0627\u0645',
     'ez110.name.prayer': '\u0627\u0644\u0635\u0644\u0627\u0629',
     'ez110.name.calc': '\u0627\u0644\u062D\u0627\u0633\u0628\u0629 \u0627\u0644\u0634\u0631\u0639\u064A\u0629',
+    'ez110.name.treasure': '\u0643\u0646\u0648\u0632 \u0627\u0644\u0645\u0639\u0631\u0641\u0629',
+    'ez110.bar.slot': '\u062E\u0627\u0646\u0629 \u0641\u064A \u0627\u0644\u0634\u0631\u064A\u0637 \u0627\u0644\u0633\u0641\u0644\u064A: {name}',
+    'ez110.bar.hint': '\u0648\u0644\u062A\u063A\u064A\u064A\u0631 \u0642\u0633\u0645 \u0641\u064A \u0627\u0644\u0634\u0631\u064A\u0637 \u0627\u0644\u0633\u0641\u0644\u064A \u0627\u0633\u062D\u0628 \u0645\u0631\u0628\u0639\u064B\u0627 \u0625\u0644\u0649 \u062E\u0627\u0646\u062A\u0647\u060C \u0623\u0648 \u0627\u0636\u063A\u0637 \u0627\u0644\u062E\u0627\u0646\u0629 \u062B\u0645 \u0627\u0644\u0645\u0631\u0628\u0639.',
+    'ez110.bar.pick': '\u0627\u0636\u063A\u0637 \u0627\u0644\u0622\u0646 \u0627\u0644\u0642\u0633\u0645 \u0627\u0644\u0630\u064A \u062A\u0636\u0639\u0647 \u0641\u064A \u0647\u0630\u0647 \u0627\u0644\u062E\u0627\u0646\u0629.',
   },
   en: {
     'common.close': 'Close',
@@ -3091,6 +3095,10 @@ const EZ_I18N = {
     'ez110.set.langDigits': 'Language and numerals',
     'ez110.name.prayer': 'Prayer',
     'ez110.name.calc': 'Shariah calculator',
+    'ez110.name.treasure': 'Treasures of Knowledge',
+    'ez110.bar.slot': 'Bottom bar slot: {name}',
+    'ez110.bar.hint': 'To change a section in the bottom bar, drag a tile onto its slot, or tap the slot and then the tile.',
+    'ez110.bar.pick': 'Now tap the section to put in this slot.',
   },
 };
 
@@ -8497,6 +8505,8 @@ const EZ110_IDS = ['b', 'c', 'd', 'e'];
 const EZ110_UNLOCK_KEY = 'ezik_110_unlock_v1';
 const EZ110_IDENTITY_KEY = 'ezik_110_identity_v1';
 const EZ110_DIGITS_KEY = 'ezik_110_digits_v1';
+// ROUND 3 §3-2: the two chosen slots of the bottom bar -- a DEVICE key (never synced, wiped by «حذف كل بياناتي»)
+const EZ110_BAR_KEY = 'ezik_110_bar_v1';
 const EZ110_UNLOCK_SHA = 'e37ef4a98d5cacbe5fdd120ad80b47bd16f90dd7014de8762786c0fcf1f4b720';
 const EZ110_EVENT = 'ezik-110';
 const EZ110_CSS = '/ez110/ez110.css';
@@ -8713,7 +8723,7 @@ function Ez110Mark() {
 // ez110names pins this table and its readers.
 const EZ110_SECTION_NAMES = {
   asmaa: 'asmaa.title', articles: 'module.articles', memorize: 'module.memorize', adhkar: 'module.adhkar',
-  'sunan-day': 'sunan.title', arbaeen: 'module.arbaeen', mushaf: 'module.mushaf', treasure: 'module.treasure',
+  'sunan-day': 'sunan.title', arbaeen: 'module.arbaeen', mushaf: 'module.mushaf', treasure: 'ez110.name.treasure',
   fatwa: 'module.fatwa', lessons: 'module.lessons', library: 'module.library', prayer: 'ez110.name.prayer',
   women: 'module.women', tasbih: 'tasbih.card.title', calc: 'ez110.name.calc',
 };
@@ -8729,24 +8739,72 @@ const EZ110_NAV_ICONS = {
   mushaf: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 3H8a3 3 0 0 0-3 3v13a2 2 0 0 0 2 2h12Z" /><path d="M5 18a2 2 0 0 1 2-2h12" /><path d="M10 7h5" /></svg>,
   prayer: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="m15.5 8.5-2 5-5 2 2-5Z" /></svg>,
 };
+// ROUND 3 §3-2 (owner): THE BAR'S TWO CHOSEN SLOTS. «عزك» and «القائمة» are fixed; the two after them are the reader's,
+// by default the mushaf and «كنوز المعرفة». «الصلاة» is never a slot -- its card on the menu is its door. A slot is chosen
+// from the menu's own sections after the gender filter, like the grid, and what is in the bar is not a tile.
+const EZ110_BAR_DEFAULT = ['mushaf', 'treasure'];
+const EZ110_BAR_ROUTE = { wird: 'wirdi' };
+function ez110BarIds() {
+  // the sections a slot may hold: the menu's modules after the gender filter, and its three cards; never the prayer
+  return ezHomeModules({ gender: ez110ProfileGender() }).map((m) => m.id).concat(['wird', 'tasbih', 'calc']).filter((id) => id !== 'prayer');
+}
+function ez110ProfileGender() {
+  try { const p = JSON.parse(localStorage.getItem('child_profile') || 'null'); return (p && p.gender) || null; } catch (e) { return null; }
+}
+// Total: whatever is stored, two distinct sections the reader may hold come back; a slot that no longer qualifies (a
+// section hidden by the gender filter since) falls back to the default, then to the first free section.
+function ez110ReadBar() {
+  let raw = null;
+  try { raw = JSON.parse(localStorage.getItem(EZ110_BAR_KEY) || 'null'); } catch (e) { raw = null; }
+  const ok = ez110BarIds();
+  const out = [];
+  [0, 1].forEach((i) => {
+    const want = Array.isArray(raw) && typeof raw[i] === 'string' ? raw[i] : EZ110_BAR_DEFAULT[i];
+    const pick = [want, EZ110_BAR_DEFAULT[i]].concat(EZ110_BAR_DEFAULT, ok).find((id) => ok.indexOf(id) >= 0 && out.indexOf(id) < 0);
+    if (pick) out.push(pick);
+  });
+  return out;
+}
+function ez110WriteBar(ids) {
+  const same = ids.join(',') === EZ110_BAR_DEFAULT.join(',');
+  try { if (same) localStorage.removeItem(EZ110_BAR_KEY); else localStorage.setItem(EZ110_BAR_KEY, JSON.stringify(ids.slice(0, 2))); } catch (e) {}
+  return ez110ReadBar();
+}
+function ez110BarIcon(id) {
+  if (EZ110_NAV_ICONS[id]) return EZ110_NAV_ICONS[id];
+  if (id === 'wird') return ez110WirdIcon(null);
+  if (id === 'tasbih') return EZ110_ICON_TASBIH;
+  if (id === 'calc') return EZ110_ICON_CALC;
+  const m = ezHomeModules({ gender: null }).find((x) => x.id === id);
+  return m ? m.icon : null;
+}
+function ez110BarName(id) { return ez110Name(id) || (id === 'wird' ? DW_CARD_TITLE : ''); }
 // THE BAR. A later sibling inside the screen's own root (never a wrapper), so the screen is still
 // classified by its root's first child. Its labels are the 110 keys, not the drawer's words.
-function Ez110Nav({ active }) {
+// While the menu is being arranged (edit) the two chosen slots are targets: a tile dropped on one takes it, or a slot
+// pressed and then a tile pressed (the way that needs no dragging, and the screen reader's).
+function Ez110Nav({ active, edit, bar, slotSel, onSlot }) {
+  const ids = bar || ez110ReadBar();
   const tabs = [
     { k: 'chat', label: ezT('ez110.nav.ezik'), go: () => ez110Go('chat') },
     { k: 'home', label: ezT('ez110.nav.menu'), go: () => ez110Go('home') },
-    { k: 'mushaf', label: ez110Name('mushaf'), go: () => ez110Go('mushaf') },
-    { k: 'prayer', label: ez110Name('prayer'), go: () => ez110Go('prayer') },
-  ];
+  ].concat(ids.map((id, i) => ({ k: id, slot: i, label: ez110BarName(id), go: () => ez110Go(EZ110_BAR_ROUTE[id] || id) })));
   return (
-    <nav className="ez110-nav" aria-label={ezT('ez110.nav.aria')}>
-      {tabs.map((t) => (
-        <button key={t.k} type="button" className={'ez110-tab' + (active === t.k ? ' is-on' : '')}
-          aria-current={active === t.k ? 'page' : undefined} onClick={active === t.k ? undefined : t.go}>
-          <span className="ez110-tab-pill">{EZ110_NAV_ICONS[t.k]}</span>
+    <nav className={'ez110-nav' + (edit ? ' is-edit' : '')} aria-label={ezT('ez110.nav.aria')}>
+      {tabs.map((t) => (edit && t.slot !== undefined ? (
+        <button key={'slot' + t.slot} type="button" className={'ez110-tab ez110-slot' + (slotSel === t.slot ? ' is-sel' : '')}
+          data-ez110-slot={t.slot} aria-pressed={slotSel === t.slot ? 'true' : 'false'}
+          aria-label={ezT('ez110.bar.slot', { name: t.label })} onClick={() => onSlot(slotSel === t.slot ? null : t.slot)}>
+          <span className="ez110-tab-pill">{ez110BarIcon(t.k)}</span>
           <span className="ez110-tab-label">{t.label}</span>
         </button>
-      ))}
+      ) : (
+        <button key={t.k} type="button" className={'ez110-tab' + (active === t.k ? ' is-on' : '')} disabled={edit ? true : undefined}
+          aria-current={active === t.k ? 'page' : undefined} onClick={active === t.k || edit ? undefined : t.go}>
+          <span className="ez110-tab-pill">{ez110BarIcon(t.k)}</span>
+          <span className="ez110-tab-label">{t.label}</span>
+        </button>
+      )))}
     </nav>
   );
 }
@@ -8855,12 +8913,12 @@ function ez110OrderMerge(base, shown, next) {
 const EZ110_ICON_TASBIH = <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="12" cy="4.5" r="1.6" /><circle cx="17.3" cy="6.7" r="1.6" /><circle cx="19.5" cy="12" r="1.6" /><circle cx="17.3" cy="17.3" r="1.6" /><circle cx="12" cy="19.5" r="1.6" /><circle cx="6.7" cy="17.3" r="1.6" /><circle cx="4.5" cy="12" r="1.6" /><circle cx="6.7" cy="6.7" r="1.6" /></svg>;
 const EZ110_ICON_CALC = <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M8 7h8" /><path d="M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 18h.01M12 18h.01M16 18h.01" /></svg>;
 
-function Ez110Tile({ m, edit, onMove, idx, count, dragging, onPointerDown }) {
+function Ez110Tile({ m, edit, onMove, idx, count, dragging, onPointerDown, onPick }) {
   return (
     <div className={'ez110-tile-wrap' + (edit ? ' is-edit' : '') + (dragging ? ' is-drag' : '')} data-ez110-tile={m.id}
       onContextMenu={(e) => e.preventDefault()}>
       <button type="button" className="ez110-tile"
-        onClick={edit ? undefined : m.onClick} onPointerDown={onPointerDown}
+        onClick={edit ? onPick : m.onClick} onPointerDown={onPointerDown}
         aria-label={edit ? ezT('ez110.order.tile').replace('{name}', typeof m.label === 'string' ? m.label : '').replace('{n}', toArabicDigits(idx + 1)).replace('{of}', toArabicDigits(count)) : undefined}>
         <span className="ez110-icon-box" aria-hidden="true">{m.icon}</span>
         <span className="ez110-tile-label">{m.label}</span>
@@ -8920,24 +8978,47 @@ function Ez110Home(v) {
   const lastKey = EZ110_GROUPS[EZ110_GROUPS.length - 1].key;
   const groups = EZ110_GROUPS.map((g) => ({ key: g.key, ids: g.ids.filter((id) => byId[id]).concat(g.key === lastKey ? rest : []) }))
     .filter((g) => g.ids.length);
-  const builtIds = groups.flatMap((g) => g.ids);
+  // ROUND 3 §3-2 (owner): the two chosen slots of the bottom bar hold sections that are therefore NOT tiles. The default
+  // sequence reads the groups straight through with the mushaf first -- where it lands when the reader takes it out of
+  // the bar. The prayer is never a tile (its card is its door).
+  const [bar, setBar] = useState(ez110ReadBar);
+  const [draftBar, setDraftBar] = useState(null);  // the bar being arranged, or null
+  const [slotSel, setSlotSel] = useState(null);    // the slot pressed, waiting for a tile, or null
+  const seqFor = (b) => ['mushaf'].concat(groups.flatMap((g) => g.ids))
+    .filter((id, i, a) => byId[id] && id !== 'prayer' && b.indexOf(id) < 0 && a.indexOf(id) === i);
+  const builtIds = seqFor(bar);
   const liveIds = ez110OrderApply(builtIds, order);   // the order IN EFFECT NOW
   const [edit, setEdit] = useState(false);
   const [draft, setDraft] = useState(null);       // the ids being arranged, or null
   const [dragId, setDragId] = useState(null);
   const press = useRef(null);
-  useEzikBackLayer(edit, () => { setEdit(false); setDraft(null); setDragId(null); });
-  const startEdit = () => { setDraft(liveIds.slice()); setEdit(true); };
+  const leave = () => { setEdit(false); setDraft(null); setDraftBar(null); setSlotSel(null); setDragId(null); };
+  useEzikBackLayer(edit, leave);
+  const startEdit = () => { setDraft(liveIds.slice()); setDraftBar(bar.slice()); setEdit(true); };
   // the default order is stored as NO order, so the default sequence comes back
   const done = () => {
     const ids = draft || liveIds;
-    // the slots: the stored array as it stands, or (none stored) the dark menu's built order then the cards
+    const nb = draftBar || bar;
+    // the slots: the stored array as it stands, or (none stored) the dark menu's built order then the cards. Only the
+    // slots of the tiles drawn NOW take the new sequence; every other id (the bar's two, the prayer, a section the
+    // gender filter hides) keeps its own slot, so the dark menu finds all its sections where they were.
     const base = order.length ? order.slice() : builtMods.map((m) => m.id).concat(extra.map((m) => m.id));
-    builtIds.forEach((id) => { if (base.indexOf(id) < 0) base.push(id); });
-    const rec = writeHomeOrder(ids.join(',') === builtIds.join(',') ? [] : ez110OrderMerge(base, builtIds, ids));
-    setOrder(rec.order); setEdit(false); setDraft(null); setDragId(null);
+    ids.forEach((id) => { if (base.indexOf(id) < 0) base.push(id); });
+    const rec = writeHomeOrder(ids.join(',') === seqFor(nb).join(',') ? [] : ez110OrderMerge(base, ids, ids));
+    setBar(ez110WriteBar(nb));
+    setOrder(rec.order); leave();
   };
-  const reset = () => setDraft(builtIds.slice());
+  // «الترتيب الافتراضي» returns the grid AND the bar
+  const reset = () => { const nb = EZ110_BAR_DEFAULT.filter((id) => byId[id]); setDraftBar(nb); setDraft(seqFor(nb)); setSlotSel(null); };
+  // A section goes into a slot; the section that was there comes back as a tile in its place.
+  const assign = (id, slot) => {
+    const nb = (draftBar || bar).slice(); const old = nb[slot];
+    if (old === id || slot == null) return;
+    nb[slot] = id;
+    setDraft((d) => { const cur = (d || liveIds).slice(); const k = cur.indexOf(id); if (k >= 0) cur.splice(k, 1, old); else cur.push(old); return cur; });
+    setDraftBar(nb); setSlotSel(null);
+  };
+  const assignRef = useRef(assign); assignRef.current = assign;
   const move = (id, dir) => setDraft((d) => ezHomeOrderMove(d || liveIds, id, dir));
   // DRAG. A long press (450 ms) on any tile opens arranging AND picks that tile up, so one press
   // that keeps going moves it; while arranging, any press picks a tile up. The tile follows the
@@ -8956,6 +9037,10 @@ function Ez110Home(v) {
       if (!p.armed) { if (dist > 10) { clearTimeout(p.timer); press.current = null; } return; }
       if (!p.go) { if (dist < 8) return; p.go = true; }
       const el = document.elementFromPoint(e.clientX, e.clientY);
+      // over a slot of the bar: the tile will go there when the finger lifts
+      const slotEl = el && el.closest ? el.closest('[data-ez110-slot]') : null;
+      p.slot = slotEl ? Number(slotEl.getAttribute('data-ez110-slot')) : null;
+      if (slotEl) return;
       const over = el && el.closest ? el.closest('[data-ez110-tile]') : null;
       const target = over ? over.getAttribute('data-ez110-tile') : null;
       if (!target || target === p.id) return;
@@ -8965,7 +9050,10 @@ function Ez110Home(v) {
         cur.splice(a, 1); cur.splice(b, 0, p.id); return cur;
       });
     };
-    const onUp = () => { const p = press.current; if (p && p.timer) clearTimeout(p.timer); press.current = null; setDragId(null); };
+    const onUp = () => {
+      const p = press.current; if (p && p.timer) clearTimeout(p.timer); press.current = null; setDragId(null);
+      if (p && p.go && p.slot != null) assignRef.current(p.id, p.slot);
+    };
     // a held tile owns the finger: the page does not scroll under it
     const onTouch = (e) => { const p = press.current; if (p && p.armed && e.cancelable) e.preventDefault(); };
     // while a tile is held the browser's own long press does nothing: no word selection (which cancels the
@@ -8988,7 +9076,8 @@ function Ez110Home(v) {
   // tiles were re-mounted into a new grid at the long press, the phone cancelled the drag (pointercancel).
   const tile = (id, i, count) => (
     <Ez110Tile key={id} m={byId[id]} edit={edit} idx={i} count={count}
-      onMove={move} dragging={dragId === id} onPointerDown={onPointerDown(id)} />
+      onMove={move} dragging={dragId === id} onPointerDown={onPointerDown(id)}
+      onPick={edit && slotSel !== null ? () => assign(id, slotSel) : undefined} />
   );
   const flat = (ids) => { const list = ids.filter((id) => byId[id]); return list.map((id, i) => tile(id, i, list.length)); };
   // ROUND 3 §3-1 (owner): no group titles -- the sections are one grid with no classification. The groups still
@@ -9003,7 +9092,7 @@ function Ez110Home(v) {
           <Ez110Hello name={v.name} />
           <Ez110PrayerCard onOpen={v.onOpenPrayer} hijri={v.hijri} />
           {/* ROUND 3 §3-1 (owner): no «الأقسام» title, and «ترتيب القائمة» is the last thing on the page, under the last tile */}
-          {edit ? <p className="ez110-hint" role="status">{ezT('ez110.order.hint')}</p> : null}
+          {edit ? <p className="ez110-hint" role="status">{ezT('ez110.order.hint')} {ezT(slotSel === null ? 'ez110.bar.hint' : 'ez110.bar.pick')}</p> : null}
           {shelf}
           <div className="ez110-sec-head ez110-sec-foot">
             {edit ? (
@@ -9020,7 +9109,7 @@ function Ez110Home(v) {
           </div>
         </div>
       </div>
-      <Ez110Nav active="home" />
+      <Ez110Nav active="home" edit={edit} bar={draftBar || bar} slotSel={slotSel} onSlot={setSlotSel} />
     </div>
   );
 }
@@ -21219,6 +21308,8 @@ function App() {
       try { localStorage.removeItem(EZ110_UNLOCK_KEY); } catch (e) {}
       try { localStorage.removeItem(EZ110_IDENTITY_KEY); } catch (e) {}
       try { localStorage.removeItem(EZ110_DIGITS_KEY); } catch (e) {}
+      // ROUND 3: and the bar's two chosen slots (§3-2)
+      try { localStorage.removeItem(EZ110_BAR_KEY); } catch (e) {}
       applyEzikVisualTheme(EZIK_VISUAL_THEME_DEFAULT);
       try { window.dispatchEvent(new CustomEvent(EZIK_VISUAL_THEME_EVENT, { detail: EZIK_VISUAL_THEME_DEFAULT })); } catch (e) {}
       // S119 -- THE PAGE ALREADY PROMISED THESE FOUR; the code simply did not keep the promise.

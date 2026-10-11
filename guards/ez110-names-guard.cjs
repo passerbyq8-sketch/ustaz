@@ -5,8 +5,8 @@
 // guard pins that, NARROWLY -- it adds no permission anywhere:
 //   N1  the table names exactly the sections below, each to one key, and no two sections share a key
 //   N2  every key exists, non-empty, in both halves of the dictionary (ar, en)
-//   N3  the two names the owner gave: «الصلاة» and «الحاسبة الشرعية» (exactly)
-//   N4  every surface of «ب» reads the table: the tiles, the bottom bar (mushaf, prayer), the page titles of the
+//   N3  the three names the owner gave: «الصلاة», «الحاسبة الشرعية» and «كنوز المعرفة» (round 3, exactly)
+//   N4  every surface of «ب» reads the table: the tiles, the bottom bar (its two chosen slots, round 3), the page titles of the
 //       prayer, tasbih, calculator, adhkar and fatwa sections
 //   N5  the dark design keeps its own names: each lit title above is a ternary whose dark branch is the old one
 'use strict';
@@ -40,11 +40,12 @@ if (TABLE && DI) {
   }
   ok(DI.ar[TABLE.prayer] === 'الصلاة', 'N3 the prayer is named «الصلاة» (owner)');
   ok(DI.ar[TABLE.calc] === 'الحاسبة الشرعية', 'N3 the calculator is named «الحاسبة الشرعية» (owner)');
+  ok(DI.ar[TABLE.treasure] === 'كنوز المعرفة', 'N3 the treasure section is named «كنوز المعرفة» (owner, round 3)');
 }
 // the readers
 const has = (s) => jsx.indexOf(s) !== -1;
 ok(/function ez110Name\(id\) \{ return EZ110_SECTION_NAMES\[id\] \? ezT\(EZ110_SECTION_NAMES\[id\]\) : ''; \}/.test(jsx), 'N4 ez110Name reads the table and nothing else');
-ok(has("{ k: 'mushaf', label: ez110Name('mushaf')") && has("{ k: 'prayer', label: ez110Name('prayer')"), 'N4 the bottom bar names the mushaf and the prayer from the table');
+ok(has("function ez110BarName(id) { return ez110Name(id) || (id === 'wird' ? DW_CARD_TITLE : ''); }") && has('ids.map((id, i) => ({ k: id, slot: i, label: ez110BarName(id),'), 'N4 the bottom bar names its two chosen slots from the table (the wird keeps its one name, DW_CARD_TITLE)');
 ok(has('byId[m.id] = ez110Name(m.id) ? { ...m, label: ez110Name(m.id) } : m;'), 'N4 the tiles of the menu take their names from the table');
 const lit = [
   ["ez110.id ? ez110Name('prayer') : (EZ_LANG === 'ar' ? PRAYER_SHEET_TITLE : ezT('prayer.sheetTitle'))", 'prayer'],

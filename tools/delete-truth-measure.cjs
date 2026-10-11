@@ -553,6 +553,8 @@ const MUST_GO_NEW = [
     clause: 'NOT a sentence of delete.html -- ITEM 110 device key. Entered on the owner ruling of 2026-09-10 that every device key is wiped, and on order 110 section 1-14 -- the chosen identity' },
   { c: 'EZ110_DIGITS_KEY',
     clause: 'NOT a sentence of delete.html -- ITEM 110 device key. Entered on the owner ruling of 2026-09-10 that every device key is wiped, and on order 110 section 1-14 -- the digits choice' },
+  { c: 'EZ110_BAR_KEY',
+    clause: 'NOT a sentence of delete.html -- ITEM 110 device key. Entered on the owner ruling of 2026-09-10 that every device key is wiped, and on order 110 section 1-14 and round 3 rule 2-2 -- the two chosen slots of the bottom bar' },
   // THE NEW MUSHAF'S OWN STORE, 2026-09-26. Swept by prefix in resetAll (ezikClearMushafLab), and
   // each name is entered here beside the sentence that asks for it. The marks, the last page and
   // the recent pages are "your place in the Mushaf" (delete.html:107 / :180); the rest are the
