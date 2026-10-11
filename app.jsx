@@ -1923,6 +1923,16 @@ const EZ_I18N = {
     'mem86.stats.weak': 'الأكثر خطأ',
     'mem86.stats.strong': 'الأقلّ خطأ',
     'mem86.stats.errs': '{n} خطأ',
+    'mem86.sim.btn': 'متشابهات',
+    'mem86.sim.title': 'متشابهات {name}',
+    'mem86.sim.wait': 'لحظة، يُبنى الفهرس…',
+    'mem86.sim.none': 'لا متشابهات لهذه الآية.',
+    'mem86.sim.phrases': 'العبارات المشتركة',
+    'mem86.sim.ayat': 'الآيات المتشابهة',
+    'mem86.sim.places': '{n} مواضع أخرى',
+    'mem86.sim.shared': '{n} كلمات مشتركة',
+    'mem86.sim.diff': 'المسطّر بنقاط يشبه في النطق ويختلف في الرسم.',
+    'mem86.close': 'إغلاق',
   },
   en: {
     'common.close': 'Close',
@@ -3435,6 +3445,16 @@ const EZ_I18N = {
     'mem86.stats.weak': 'Most mistakes',
     'mem86.stats.strong': 'Fewest mistakes',
     'mem86.stats.errs': '{n} mistakes',
+    'mem86.sim.btn': 'Similar passages',
+    'mem86.sim.title': 'Similar to {name}',
+    'mem86.sim.wait': 'One moment, building the index…',
+    'mem86.sim.none': 'No similar passages for this ayah.',
+    'mem86.sim.phrases': 'Shared phrases',
+    'mem86.sim.ayat': 'Similar ayat',
+    'mem86.sim.places': '{n} other places',
+    'mem86.sim.shared': '{n} shared words',
+    'mem86.sim.diff': 'Words underlined with dots sound alike but are written differently.',
+    'mem86.close': 'Close',
   },
 };
 
@@ -34860,6 +34880,125 @@ const Mem86Stats = ({ counts, held }) => {
   );
 };
 
+// ---------- the similar passages (mutashabihat): an index of the mushaf's own words, built on first use ----------
+// The normalized index only FINDS candidates. A word counts as shared only when its rasm matches letter
+// for letter: the harakat are ignored, the hamza's seat and the dagger alef are kept. Normalizing folds
+// different words together -- exactly what the reader is training to tell apart -- so what differs is marked.
+let __mem86Sim = null;
+const mem86SimIndex = () => {
+  if (__mem86Sim) return __mem86Sim;
+  if (!__quranData) return null;
+  const t0 = Date.now();
+  const toks = {}, tri = new Map();
+  for (const k in __quranData) {
+    const t = tokenizeForRecite(__quranData[k]);
+    toks[k] = t;
+    for (let i = 0; i + 2 < t.length; i++) {
+      const g = t[i] + ' ' + t[i + 1] + ' ' + t[i + 2];
+      let l = tri.get(g);
+      if (!l) { l = []; tri.set(g, l); }
+      l.push(k, i);
+    }
+  }
+  __mem86Sim = { toks, tri, ms: Date.now() - t0 };
+  return __mem86Sim;
+};
+const mem86Rasm = (w) => String(w).replace(/[ً-ٖٓ-ٟـۖ-ۭ]/g, '');
+// For one ayah: the shared phrases (3+ words that recur elsewhere) and the similar ayat, ranked by
+// how many of this ayah's words they share. Word numbers are 0-based token indices.
+const mem86Similar = (sn, a) => {
+  const ix = mem86SimIndex();
+  const key = sn + ':' + a;
+  if (!ix || !ix.toks[key]) return null;
+  const t = ix.toks[key];
+  const mine = mem86AyahWords(sn, a).map((w) => mem86Rasm(w.text));
+  const runs = {};
+  for (let i = 0; i + 2 < t.length; i++) {
+    const l = ix.tri.get(t[i] + ' ' + t[i + 1] + ' ' + t[i + 2]) || [];
+    for (let j = 0; j < l.length; j += 2) {
+      const ok = l[j], oi = l[j + 1];
+      if (ok === key) continue;
+      const ot = ix.toks[ok];
+      if (i > 0 && oi > 0 && t[i - 1] === ot[oi - 1]) continue;   // not the start of a maximal run
+      let len = 3;
+      while (i + len < t.length && oi + len < ot.length && t[i + len] === ot[oi + len]) len++;
+      (runs[ok] = runs[ok] || []).push([i, oi, len]);
+    }
+  }
+  const similar = [];
+  const phrases = {};
+  for (const ok in runs) {
+    const [os, oa] = ok.split(':').map(Number);
+    const theirs = mem86AyahWords(os, oa).map((w) => mem86Rasm(w.text));
+    const same = new Set(), diff = new Set(), oSame = new Set(), oDiff = new Set();
+    for (const [i, oi, len] of runs[ok]) {
+      for (let m = 0; m < len; m++) {
+        if (mine[i + m] === theirs[oi + m]) { same.add(i + m); oSame.add(oi + m); } else { diff.add(i + m); oDiff.add(oi + m); }
+      }
+      const pk = i + ':' + len;
+      (phrases[pk] = phrases[pk] || { i, len, at: [] }).at.push([os, oa, oi]);
+    }
+    similar.push({ s: os, a: oa, n: same.size, same: [...same], diff: [...diff], oSame: [...oSame], oDiff: [...oDiff] });
+  }
+  similar.sort((x, y) => y.n - x.n || x.s - y.s || x.a - y.a);
+  const ph = Object.values(phrases).sort((x, y) => y.len - x.len || y.at.length - x.at.length || x.i - y.i);
+  return { phrases: ph, similar };
+};
+const Mem86SimText = ({ sn, a, same, diff }) => (
+  <div style={s.mem86Verse}>
+    {mem86AyahWords(sn, a).map((w) => (
+      <span key={w.k} style={same.indexOf(w.k) !== -1 ? s.mem86W2 : diff.indexOf(w.k) !== -1 ? s.mem86SimDiff : null}>{w.text + w.mark + ' '}</span>
+    ))}
+  </div>
+);
+const Mem86Similar = ({ at, onClose }) => {
+  const [res, setRes] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    setRes(null);
+    loadQuran().then(() => { if (alive) setRes(mem86Similar(at[0], at[1]) || { phrases: [], similar: [] }); }).catch(() => { if (alive) setRes({ phrases: [], similar: [] }); });
+    return () => { alive = false; };
+  }, [at[0], at[1]]);
+  const [sn, a] = at;
+  const mineSame = res ? [...new Set([].concat(...res.similar.map((x) => x.same)))] : [];
+  return (
+    <section style={s.mem86Card} aria-label={ezT('mem86.sim.btn')}>
+      <div style={s.mem86Row}>
+        <div style={{ ...s.mem86H, ...s.mem86Grow }}>{ezT('mem86.sim.title', { name: SURAH_NAMES[sn] + ' ' + toArabicDigits(a) })}</div>
+        <button type="button" style={s.mem86BtnQuiet} onClick={onClose}>{ezT('mem86.close')}</button>
+      </div>
+      {!res ? <div style={s.mem86Note}>{ezT('mem86.sim.wait')}</div> : (
+        <div>
+          <Mem86SimText sn={sn} a={a} same={mineSame} diff={[]} />
+          {!res.similar.length ? <div style={s.mem86Note}>{ezT('mem86.sim.none')}</div> : null}
+          {res.phrases.length ? <div style={s.mem86H}>{ezT('mem86.sim.phrases')}</div> : null}
+          {res.phrases.slice(0, 8).map((p) => {
+            const words = mem86AyahWords(sn, a).slice(p.i, p.i + p.len);
+            return (
+              <div key={p.i + ':' + p.len} style={s.mem86ListRow}>
+                <div style={s.mem86Grow}>
+                  <div style={s.mem86VerseWord}>{words.map((w) => w.text).join(' ')}</div>
+                  <div style={s.mem86Note}>{ezT('mem86.sim.places', { n: toArabicDigits(p.at.length) }) + ': ' + p.at.slice(0, 12).map(([os, oa]) => SURAH_NAMES[os] + ' ' + toArabicDigits(oa)).join(' · ')}</div>
+                </div>
+              </div>
+            );
+          })}
+          {res.similar.length ? <div style={s.mem86H}>{ezT('mem86.sim.ayat')}</div> : null}
+          {res.similar.slice(0, 10).map((x) => (
+            <div key={x.s + ':' + x.a} style={s.mem86ListRow}>
+              <div style={s.mem86Grow}>
+                <div style={s.mem86Strong}>{SURAH_NAMES[x.s] + ' · ' + MEM.ADNAN_AYAH_LABEL + ' ' + toArabicDigits(x.a) + ' · ' + ezT('mem86.sim.shared', { n: toArabicDigits(x.n) })}</div>
+                <Mem86SimText sn={x.s} a={x.a} same={x.oSame} diff={x.oDiff} />
+                {x.oDiff.length ? <div style={s.mem86Note}>{ezT('mem86.sim.diff')}</div> : null}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+};
+
 // ---------- «تقدّمي»: what is memorised, surah by surah ----------
 const Mem86Progress = ({ counts, held, onHeld }) => {
   const [open, setOpen] = useState(0);
@@ -37467,6 +37606,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   const reciteHiddenRef = useRef(false);                // ...and with the text hidden throughout
   const manualHidRef = useRef(false);                   // the manual talqin was hidden again, then revealed whole
   const [redMarks, setRedMarks] = useState({ ever: [], notErr: [], pick: '' });
+  const [simAt, setSimAt] = useState(null);           // [surah, ayah] whose similar passages are open
 
   const isFemale = profile?.gender === 'female';
 
@@ -37804,7 +37944,8 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
           {!ready && <div style={s.ezqMastHint}>{MEM.LOADING}</div>}
         </section>
         <Mem86Tabs tab={tab} onTab={setTab} />
-        {tab === 'test' ? <Mem86Test counts={ready ? mem86Counts() : null} held={held} ranges={mem86RangesRead()} prefs={prefs} onPref={setPref} isFemale={isFemale} onWeak={(ref) => mem86WeakStyle(prefs.weak, ref)} /> : null}
+        {simAt ? <Mem86Similar at={simAt} onClose={() => setSimAt(null)} /> : null}
+        {tab === 'test' ? <Mem86Test counts={ready ? mem86Counts() : null} held={held} ranges={mem86RangesRead()} prefs={prefs} onPref={setPref} isFemale={isFemale} onWeak={(ref) => mem86WeakStyle(prefs.weak, ref)} onSimilar={(sn, a) => setSimAt([sn, a])} /> : null}
         {tab === 'plan' ? <Mem86Plans counts={ready ? mem86Counts() : null} held={held} ranges={mem86RangesRead()}
           onOpen={(sn, a, kind) => { setSelectedSurah(sn); setStartAyah(a); setTab('learn'); setView('drill'); setRevealedCount(0); setAdnanEnd(0); setDrillMode(kind === 'review' ? 'recite' : 'manual'); }} /> : null}
         {tab === 'progress' ? <Mem86Progress counts={ready ? mem86Counts() : null} held={held} onHeld={setHeld} /> : null}
@@ -37887,6 +38028,8 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
           <button onClick={ezikGoBack} style={s.ezqDrillChange}>{MEM.CHANGE_SURAH}</button>
         </div>
       </section>
+      {simAt ? <Mem86Similar at={simAt} onClose={() => setSimAt(null)} /> : null}
+      <button type="button" style={s.mem86BtnQuiet} onClick={() => setSimAt([selectedSurah, drillMode === 'manual' ? focusAyah : drillMode === 'adnan' ? (adnanAyah || startAyah) : (reciteAyah || startAyah)])}>{ezT('mem86.sim.btn')}</button>
       {/* Drill mode switch: manual reveal · عدنان listen-and-repeat (Layer C) · سمِّعني recite (Layer B). */}
       <div style={s.memToggleRow}>
         <button onClick={() => setMode('manual')} style={{ ...s.memGranBtn, ...(drillMode === 'manual' ? s.memGranBtnActive : {}) }}>{MEM.MODE_MANUAL}</button>
@@ -39419,6 +39562,7 @@ const s = {
   mem86ScoreCol: { display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', gap: 2, minWidth: 24 },
   mem86ScoreBar: { display: 'block', width: 16, borderRadius: 3, background: 'var(--accent-fill)' },
   mem86Tiny: { fontSize: 10.5, color: 'var(--muted)' },
+  mem86SimDiff: { textDecoration: 'underline dotted', textUnderlineOffset: 6 },
   mem86CardHeld: { fontSize: 11.5, fontWeight: 700, color: 'var(--ink)' },
   memResetBtn: { width: 50, height: 50, borderRadius: 14, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 

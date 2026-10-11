@@ -375,6 +375,33 @@ ok(dn.length === 2, 'only surahs with memorised ayat are ranked');
 const stats = appSrc.slice(appSrc.indexOf('const Mem86Stats = ('), appSrc.indexOf('\n};\n', appSrc.indexOf('const Mem86Stats = (')));
 ok(stats.length > 0 && /const last10 = tests\.slice\(-10\);/.test(stats) && /Array\.from\(\{ length: 30 \}/.test(stats) && /mem86Streak\(days, today\)/.test(stats), 'the last ten scores, a 30-day calendar, the current and longest streak');
 
+/* ------------------------------------------------------------------ phase 8 */
+section('phase 8 -- similar passages');
+lift(['mem86SimIndex', 'mem86Rasm', 'mem86Similar']);
+X.__mem86Sim = null;
+const tb = Date.now();
+const SIX = X.mem86SimIndex();
+const buildMs = Date.now() - tb;
+ok(SIX && Object.keys(SIX.toks).length === 6236, 'the index covers the 6236 ayat; built in ' + buildMs + ' ms here (measured, this machine)');
+const r55 = X.mem86Similar(55, 13);
+ok(r55 && r55.similar.length === 30 && r55.similar.every((x) => x.s === 55 && x.n === X.tokenizeForRecite(X.__quranData['55:13']).length), '55:13 recurs whole in 30 other ayat of ar-Rahman, every word shared');
+const r235 = X.mem86Similar(2, 35);
+const to719 = r235 && r235.similar.find((x) => x.s === 7 && x.a === 19);
+ok(to719 && to719.n === 13 && to719.diff.length === 0, '2:35 and 7:19 (the garden) share 13 words, letter for letter (measured)');
+const r220 = X.mem86Similar(2, 20);
+const to2106 = r220 && r220.similar.find((x) => x.s === 2 && x.a === 106);
+ok(to2106 && to2106.n === 5 && JSON.stringify(to2106.diff) === '[19]', '2:20 and 2:106 share 5 words; word 20 of 2:20 matches when normalized but differs in the rasm, so it is marked different (measured)');
+let withDiff = 0, pairs = 0;
+for (const k of ['2:20', '2:77', '2:87', '55:13']) { const [a1, a2] = k.split(':').map(Number); for (const x of X.mem86Similar(a1, a2).similar) { pairs++; if (x.diff.length) withDiff++; } }
+ok(pairs > 0 && withDiff > 0 && withDiff < pairs, 'the normalized index finds candidates; the rasm check keeps ' + (pairs - withDiff) + ' of ' + pairs + ' fully identical and marks ' + withDiff + ' (sample of four ayat)');
+const r1 = X.mem86Similar(112, 1);
+ok(r1 && r1.similar.length === 0 && r1.phrases.length === 0, '112:1 has no three-word run elsewhere');
+// the rasm check keeps the hamza seat and the dagger alef, ignores the harakat
+const w1 = X.__quranData['2:2'].split(/\s+/)[0];
+ok(X.mem86Rasm(w1) !== X.normalizeForRecite(w1) && X.mem86Rasm(w1).length < w1.length, 'the rasm drops the harakat but is not the matcher\'s flat form');
+ok(!/[ً-ْ]/.test(X.mem86Rasm(X.__quranData['1:2'])), 'no haraka survives the rasm');
+ok(/ٰ/.test(X.mem86Rasm(X.__quranData['1:2'])), 'the dagger alef survives it');
+
 /* ------------------------------------------------------------------ done */
 console.log('\n' + (fail ? 'FAIL' : 'PASS') + '  memorizer86-check  ' + pass + ' passed, ' + fail + ' failed  (lifted ' + LIFT.length + ' initializers from app.jsx)');
 process.exit(fail ? 1 : 0);
