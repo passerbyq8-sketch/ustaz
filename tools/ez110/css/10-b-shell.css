@@ -148,3 +148,24 @@ html[data-ez110] .ez110-nav.is-edit .ez110-tab:disabled { opacity: .45; cursor: 
 html[data-ez110] .ez110-slot { color: var(--vt-accent-ink); }
 html[data-ez110] .ez110-slot .ez110-tab-pill { outline: 1.5px dashed var(--vt-accent); outline-offset: -1.5px; }
 html[data-ez110] .ez110-slot.is-sel .ez110-tab-pill { background: var(--vt-soft); outline-style: solid; }
+
+/* ---- ROUND 3 §3-8/§3-11: the first-run cards of the empty chat (gender, call to prayer) -- small, above the
+   composer, covering nothing; and the same card as the women's section's question ---- */
+html[data-ez110] .ez110-first {
+  margin: 0 0 8px; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--vt-line);
+  background: var(--vt-surface); color: var(--vt-ink); font-family: var(--ez110-font-ui);
+}
+html[data-ez110] .ez110-first.is-page { margin: 8px 0; }
+html[data-ez110] .ez110-first-title { margin: 0; font-size: calc(15px * var(--ez-fs, 1)); font-weight: 700; }
+html[data-ez110] .ez110-first-why { margin: 3px 0 10px; font-size: calc(13px * var(--ez-fs, 1)); color: var(--vt-muted); line-height: 1.55; }
+html[data-ez110] .ez110-first-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+html[data-ez110] .ez110-first-btn {
+  min-height: 44px; padding: 0 20px; border-radius: 22px; border: 1.5px solid var(--vt-accent);
+  background: var(--vt-soft); color: var(--vt-accent-ink); font-family: inherit; font-weight: 700;
+  font-size: calc(14px * var(--ez-fs, 1)); cursor: pointer;
+}
+html[data-ez110] .ez110-first-later {
+  min-height: 44px; padding: 0 12px; margin-inline-start: auto; border: 0; background: transparent;
+  color: var(--vt-muted); font-family: inherit; font-weight: 600; font-size: calc(14px * var(--ez-fs, 1)); cursor: pointer;
+}
+html[data-ez110] .ez110-first > .ez110-first-acts > [data-ezik-prayer-notify] { margin: 0; }

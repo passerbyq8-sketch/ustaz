@@ -1757,6 +1757,11 @@ const EZ_I18N = {
     'ez110.bar.pick': '\u0627\u0636\u063A\u0637 \u0627\u0644\u0622\u0646 \u0627\u0644\u0642\u0633\u0645 \u0627\u0644\u0630\u064A \u062A\u0636\u0639\u0647 \u0641\u064A \u0647\u0630\u0647 \u0627\u0644\u062E\u0627\u0646\u0629.',
     'ez110.acts.more': '\u0627\u0644\u0645\u0632\u064A\u062F',
     'ez110.set.privacyHint': '\u0645\u0648\u0627\u0641\u0642\u0629 \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A\u060C \u0648\u0633\u064A\u0627\u0633\u0629 \u0627\u0644\u062E\u0635\u0648\u0635\u064A\u0629\u060C \u0648\u062D\u0630\u0641 \u0628\u064A\u0627\u0646\u0627\u062A\u0643',
+    'ez110.later': '\u0644\u0627\u062D\u0642\u064B\u0627',
+    'ez110.gender.title': '\u0623\u0646\u062A \u0630\u0643\u0631 \u0623\u0645 \u0623\u0646\u062B\u0649\u061F',
+    'ez110.gender.why': '\u0628\u0639\u0636 \u0627\u0644\u0623\u062D\u0643\u0627\u0645 \u0648\u0642\u0633\u0645 \u0627\u0644\u0645\u0631\u0623\u0629 \u064A\u062A\u0628\u0639\u0627\u0646 \u0627\u0644\u062C\u0646\u0633\u060C \u0641\u0627\u062E\u062A\u0631 \u0644\u062A\u0623\u062A\u064A\u0643 \u0627\u0644\u0625\u062C\u0627\u0628\u0627\u062A \u0639\u0644\u0649 \u0642\u062F\u0631\u0643.',
+    'ez110.women.ask': '\u0642\u0633\u0645 \u0627\u0644\u0645\u0631\u0623\u0629 \u064A\u062D\u062A\u0627\u062C \u062A\u062D\u062F\u064A\u062F \u0627\u0644\u062C\u0646\u0633',
+    'ez110.women.why': '\u0647\u0630\u0627 \u0627\u0644\u0642\u0633\u0645 \u0644\u0644\u0646\u0633\u0627\u0621. \u0627\u062E\u062A\u0631 \u0644\u062A\u0643\u0645\u0644.',
   },
   en: {
     'common.close': 'Close',
@@ -3103,6 +3108,11 @@ const EZ_I18N = {
     'ez110.bar.pick': 'Now tap the section to put in this slot.',
     'ez110.acts.more': 'More',
     'ez110.set.privacyHint': 'AI consent, the privacy policy, and deleting your data',
+    'ez110.later': 'Later',
+    'ez110.gender.title': 'Are you male or female?',
+    'ez110.gender.why': 'Some rulings and the women\'s section depend on it, so your answers can fit you.',
+    'ez110.women.ask': 'The women\'s section needs your gender',
+    'ez110.women.why': 'This section is for women. Choose to continue.',
   },
 };
 
@@ -8511,6 +8521,8 @@ const EZ110_IDENTITY_KEY = 'ezik_110_identity_v1';
 const EZ110_DIGITS_KEY = 'ezik_110_digits_v1';
 // ROUND 3 §3-2: the two chosen slots of the bottom bar -- a DEVICE key (never synced, wiped by «حذف كل بياناتي»)
 const EZ110_BAR_KEY = 'ezik_110_bar_v1';
+// ROUND 3 §3-8: the gender card of the empty chat was answered on this install (a press in it, never its showing)
+const EZ110_GENDER_ASKED_KEY = 'ezik_110_gender_asked_v1';
 const EZ110_UNLOCK_SHA = 'e37ef4a98d5cacbe5fdd120ad80b47bd16f90dd7014de8762786c0fcf1f4b720';
 const EZ110_EVENT = 'ezik-110';
 const EZ110_CSS = '/ez110/ez110.css';
@@ -8818,6 +8830,59 @@ function ez110BarIcon(id) {
   if (id === 'calc') return EZ110_ICON_CALC;
   const m = ezHomeModules({ gender: null }).find((x) => x.id === id);
   return m ? m.icon : null;
+}
+// ROUND 3 §3-8 -- THE GENDER (owner: «نقطه جداه مهمه»). Two answers only in «ب»; a stored «أفضّل عدم الإجابة» (null)
+// reads as not chosen and is never rewritten by itself. The answer is written by the ONE profile writer App owns
+// (saveProfileFields), handed here each render, with the stored name and year passed exactly as they are: that writer
+// rewrites all three fields, and an empty year there means age 19 -- which would lift a child's protection. So a
+// profile whose year or name would not survive the write unchanged is never written from here.
+let EZ110_SAVE_GENDER = null;
+let EZ110_ENTRY_RUN = false;     // the entry card (sign-in or guest) was on screen in this run
+let EZ110_BOOT_SESSION = null;   // the session this run started with
+function ez110SignedInThisRun() {
+  let cur = '';
+  try { const o = readAuthSession(); cur = o ? o.session : ''; } catch (e) { cur = ''; }
+  if (EZ110_BOOT_SESSION === null) EZ110_BOOT_SESSION = cur;
+  return cur !== EZ110_BOOT_SESSION;
+}
+function ez110GenderWritable(p) {
+  if (!p || typeof p.name !== 'string' || p.name !== p.name.trim()) return false;
+  const y = p.birthYear;
+  if (!Number.isInteger(y)) return false;
+  const age = new Date().getFullYear() - y;
+  return age >= 4 && age <= 99;
+}
+function ez110GenderAsked() { try { return !!localStorage.getItem(EZ110_GENDER_ASKED_KEY); } catch (e) { return true; } }
+function ez110MarkGenderAsked() { try { localStorage.setItem(EZ110_GENDER_ASKED_KEY, '1'); } catch (e) {} }
+// The card: inside the empty chat, above the composer; it covers nothing and the chat works while it shows.
+// «لاحقًا» folds it -- a postponement, not a third answer (Apple 5.1.1(v)).
+function Ez110GenderCard({ onPick }) {
+  return (
+    <section className="ez110-first" data-ez110-first="gender" aria-label={ezT('ez110.gender.title')}>
+      <p className="ez110-first-title">{ezT('ez110.gender.title')}</p>
+      <p className="ez110-first-why">{ezT('ez110.gender.why')}</p>
+      <div className="ez110-first-acts">
+        <button type="button" className="ez110-first-btn" data-ez110-gender="male" onClick={() => onPick('male')}>{ezT('fix.gender.male')}</button>
+        <button type="button" className="ez110-first-btn" data-ez110-gender="female" onClick={() => onPick('female')}>{ezT('fix.gender.female')}</button>
+        <button type="button" className="ez110-first-later" data-ez110-gender="later" onClick={() => onPick(null)}>{ezT('ez110.later')}</button>
+      </div>
+    </section>
+  );
+}
+// The women's section asks before it opens, from every road into it (tile, bar slot, widget, resume).
+function Ez110WomenGate({ onPick, onBack }) {
+  return (
+    <EzShell title={ez110Name('women')} onBack={onBack} backLabel={ezT('common.back')}>
+      <section className="ez110-first is-page" data-ez110-first="women">
+        <p className="ez110-first-title">{ezT('ez110.women.ask')}</p>
+        <p className="ez110-first-why">{ezT('ez110.women.why')}</p>
+        <div className="ez110-first-acts">
+          <button type="button" className="ez110-first-btn" data-ez110-gender="female" onClick={() => onPick('female')}>{ezT('fix.gender.female')}</button>
+          <button type="button" className="ez110-first-btn" data-ez110-gender="male" onClick={() => onPick('male')}>{ezT('fix.gender.male')}</button>
+        </div>
+      </section>
+    </EzShell>
+  );
 }
 function ez110BarName(id) { return ez110Name(id) || (id === 'wird' ? DW_CARD_TITLE : ''); }
 // THE BAR. A later sibling inside the screen's own root (never a wrapper), so the screen is still
@@ -11931,6 +11996,7 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // render that carries the new answer -- there is nothing here to keep in step, and nothing
   // that can be stale.
   const genderNow = (profile && profile.gender) || null;
+  const [womenPass, setWomenPass] = useState(false);   // ROUND 3 §3-8: «أنثى» on a profile that could not be written
   // F5: and it is recomputed on the way BACK OUT of a section, because the section that was just
   // read has written its own "seen" mark by then and the tile underneath must stop claiming
   // otherwise. The probe runs at most once per app run; the memo is what makes the second visit
@@ -11943,6 +12009,12 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
     ezikArtProbe((next) => { if (artAliveRef.current) setArtFresh(next); });
   }, [artSection]);
   useEzikBackLayer(!!artSection, () => setArtSection(null));
+  // ROUND 3 §3-8 («ب»): the women's section closes the way its own back does -- spending its history entry -- when the
+  // reader answers «ذكر» at its question, or is a male reader who reached it by a link or a slot.
+  const closeArt = () => { if (!ezikHistBack()) setArtSection(null); };
+  useEffect(() => {
+    if (artSection === 'women' && ez110.id && genderNow === 'male') closeArt();
+  }, [artSection, genderNow, ez110.id]);
   // THE ARRANGEMENT IS THE OWNER'S, read from the device exactly as the wird and the hijri date
   // above are. The presentation component below is handed the result and never opens the store
   // itself. ITEM 05-D: it is a plain read now rather than a piece of state, because nothing on
@@ -12145,6 +12217,17 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   // differs, and two components would be two places for the empty state, the failure state and
   // the writing door to drift apart. The back control presses ezikGoBack, so the visible button
   // and the hardware button spend the same entry and resolve through the same table.
+  // ROUND 3 §3-8 («ب» only): the women's section opens for «أنثى»; a reader who chose nothing is asked, and «ذكر»
+  // closes it (the tile then goes, by the rule of 8 September); a male reader who reaches it by a link is taken back.
+  if (artSection === 'women' && ez110.id && genderNow !== 'female' && !womenPass) {
+    if (genderNow === 'male') return null;   // closing (the effect above)
+    return (
+      <Ez110WomenGate onBack={closeArt} onPick={(g) => {
+        const wrote = EZ110_SAVE_GENDER ? EZ110_SAVE_GENDER(g) : false;
+        if (g === 'female') { if (!wrote) setWomenPass(true); } else if (!wrote) closeArt();
+      }} />
+    );
+  }
   if (artSection) {
     return (
       <EzikArticlesSection
@@ -20179,6 +20262,14 @@ function App() {
     try { localStorage.setItem('child_profile', JSON.stringify(p)); } catch (e) { return false; }
     return true;
   };
+  // ROUND 3 §3-8: the gender through the writer above, the stored name and year passed exactly as they are
+  const ez110SaveGender = (g) => {
+    const p = profileRef.current;
+    if (!ez110GenderWritable(p) || (g !== 'male' && g !== 'female')) return false;
+    return saveProfileFields(p.name, g, String(p.birthYear));
+  };
+  EZ110_SAVE_GENDER = ez110SaveGender;
+  const [ez110FirstTick, setEz110FirstTick] = useState(0);
 
   const callAI = async (history, p, { onDelta, onStatus, onLiveOffer, onLessons, liveSearch = false, signal, mode = 'chat', endpoint = '/api/ask' } = {}) => {
     if (!spendGateRef.current) return '';                        // قفل الإنفاق مغلق ⇐ لا يُنفَق رصيد (يشمل تحيّة الإقلاع 0d)
@@ -21370,6 +21461,7 @@ function App() {
       try { localStorage.removeItem(EZ110_DIGITS_KEY); } catch (e) {}
       // ROUND 3: and the bar's two chosen slots (§3-2)
       try { localStorage.removeItem(EZ110_BAR_KEY); } catch (e) {}
+      try { localStorage.removeItem(EZ110_GENDER_ASKED_KEY); } catch (e) {}
       applyEzikVisualTheme(EZIK_VISUAL_THEME_DEFAULT);
       try { window.dispatchEvent(new CustomEvent(EZIK_VISUAL_THEME_EVENT, { detail: EZIK_VISUAL_THEME_DEFAULT })); } catch (e) {}
       // S119 -- THE PAGE ALREADY PROMISED THESE FOUR; the code simply did not keep the promise.
@@ -22114,6 +22206,12 @@ function App() {
           Shift+Enter contract are the ones that shipped. */}
       <div className="ezc-dock">
         <div className="ezc-dock-inner">
+      {/* ROUND 3 §3-8, «ب» only: the gender card -- once per install while no gender is chosen, never in the run that
+          showed the entry card or that signed in (Apple's refusal of build 11, guideline 4.0) */}
+      {ez110.id && messages.length === 0 && streamingText === null && ez110FirstTick >= 0 && profile && !profile.gender
+        && ez110GenderWritable(profile) && !ez110GenderAsked() && !EZ110_ENTRY_RUN && !ez110SignedInThisRun() ? (
+        <Ez110GenderCard onPick={(g) => { ez110MarkGenderAsked(); if (g) ez110SaveGender(g); setEz110FirstTick((t) => t + 1); }} />
+      ) : null}
       {/* ONE LIST, TWO SHAPES, and the shape is a class on the container -- the entries below are
           mapped ONCE whichever state is on, so a card and a pill can never drift apart or offer
           different destinations. Pressing one is a navigation and nothing else: no send, no
@@ -25766,6 +25864,7 @@ function ezikLatinDigits(str) {
 
 function Onboarding({ onStart }) {
   useEzLang();
+  EZ110_ENTRY_RUN = true;   // ROUND 3 §3-8: no gender card in a run that showed the entry card
   // ===== ONE STEP, ONE CARD, ONE ROUTE =====
   // APPLE 4.0.0 TOOK THE SECOND STEP AWAY, AND WHAT IS LEFT HERE IS THE ENTRY DECISION ALONE.
   // Submission e931435e-f171-4da4-b476-c33fd5dde452 (1.0.1 build 11) was refused because a
@@ -32373,7 +32472,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
               a way of reaching an answer without being told that is what it was. */}
           <div style={s.themeRow} role="radiogroup" aria-label={ezT('settings.profile')}>
             {[['male', ez110FixLit() ? ezT('fix.gender.male') : ezT('onboarding.male')], ['female', ez110FixLit() ? ezT('fix.gender.female') : ezT('onboarding.female')],
-              [PF_UNSPECIFIED, ezT('onboarding.genderUnspecified')]].map(([v, label]) => (
+              [PF_UNSPECIFIED, ezT('onboarding.genderUnspecified')]].filter(([v]) => !(ez.id && v === PF_UNSPECIFIED)).map(([v, label]) => (
               <button
                 key={v === PF_UNSPECIFIED ? 'unspecified' : v}
                 type="button"
