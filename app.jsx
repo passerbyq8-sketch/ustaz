@@ -1762,6 +1762,7 @@ const EZ_I18N = {
     'ez110.gender.why': '\u0628\u0639\u0636 \u0627\u0644\u0623\u062D\u0643\u0627\u0645 \u0648\u0642\u0633\u0645 \u0627\u0644\u0645\u0631\u0623\u0629 \u064A\u062A\u0628\u0639\u0627\u0646 \u0627\u0644\u062C\u0646\u0633\u060C \u0641\u0627\u062E\u062A\u0631 \u0644\u062A\u0623\u062A\u064A\u0643 \u0627\u0644\u0625\u062C\u0627\u0628\u0627\u062A \u0639\u0644\u0649 \u0642\u062F\u0631\u0643.',
     'ez110.women.ask': '\u0642\u0633\u0645 \u0627\u0644\u0645\u0631\u0623\u0629 \u064A\u062D\u062A\u0627\u062C \u062A\u062D\u062F\u064A\u062F \u0627\u0644\u062C\u0646\u0633',
     'ez110.women.why': '\u0647\u0630\u0627 \u0627\u0644\u0642\u0633\u0645 \u0644\u0644\u0646\u0633\u0627\u0621. \u0627\u062E\u062A\u0631 \u0644\u062A\u0643\u0645\u0644.',
+    'ez110.prayer.more': '\u0627\u0644\u062A\u0630\u0643\u064A\u0631\u0627\u062A \u0648\u0636\u0628\u0637 \u0627\u0644\u0645\u0648\u0627\u0642\u064A\u062A',
   },
   en: {
     'common.close': 'Close',
@@ -3113,6 +3114,7 @@ const EZ_I18N = {
     'ez110.gender.why': 'Some rulings and the women\'s section depend on it, so your answers can fit you.',
     'ez110.women.ask': 'The women\'s section needs your gender',
     'ez110.women.why': 'This section is for women. Choose to continue.',
+    'ez110.prayer.more': 'Reminders and time adjustments',
   },
 };
 
@@ -9226,10 +9228,13 @@ function Ez110Home(v) {
 // the method and the asr (PrayerSettingsControl) and the Hijri adjustment (HijriOffsetControl) --
 // with their own stores, writers and sync; this is a second door to them and not a copy.
 const EZ110_ICON_GEAR = <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" /></svg>;
-function Ez110PrayerSettingsSheet({ onClose }) {
+// ROUND 3 §3-10 (owner): everything of the section but its first page lives here too -- the reminders and the minute
+// offsets, the place and the qibla, the backup -- the same elements the section made, over the same state.
+function Ez110PrayerSettingsSheet({ onClose, more, backup }) {
   useEzLang();
   return (
     <EzShell title={ezT('ez110.prayer.settings')} onBack={onClose} backLabel={QIBLA_BACK}>
+      {more || null}
       <EzShellGroup title={PRAYER_SETTINGS_TITLE} hint={PRAYER_HINT}>
         <PrayerSettingsControl />
         <div style={s.ezshGroupHead}>
@@ -9239,6 +9244,7 @@ function Ez110PrayerSettingsSheet({ onClose }) {
         <HijriOffsetControl />
         <div style={s.settingsHint}>{HIJRI_SET_HINT}</div>
       </EzShellGroup>
+      {backup || null}
     </EzShell>
   );
 }
@@ -26837,7 +26843,11 @@ function PrayerAlertsControl() {
   );
 }
 
-function PrayerTimesPanel({ loc, day, onDay }) {
+// ROUND 3 §3-10 («ب» only): `part` draws a piece of this one panel -- 'main' (the place, the next prayer, the day and its
+// steps, the times) on the section's first page, 'rest' (the minute offsets, the call-to-prayer switch, the alerts,
+// the thirty days) in its settings sheet, 'notify' (the switch alone) in the empty chat's card. Unset: the whole panel,
+// exactly as it was. Every control is the same element over the same store; only its place moves.
+function PrayerTimesPanel({ loc, day, onDay, part }) {
   // The position and the preferences both move HERE, so the pipe is re-armed from here.
   useEzikSchedWatch();
   useEzLang();
@@ -26862,8 +26872,12 @@ function PrayerTimesPanel({ loc, day, onDay }) {
   // Where the reader is in the day: only meaningful for today.
   const status = isToday ? prayerStatus(now, loc, prefs) : null;
   const label = (k) => ezT('widget.prayer.' + k);
-  return (
-    <EzShellGroup title={ezT('panel.title')}>
+  const showMain = !part || part === 'main';
+  const showRest = !part || part === 'rest';
+  const showNotify = !part || part === 'rest' || part === 'notify';
+  const body = (
+    <>
+      {showMain ? <>
       <div style={s.prayerRow} data-ezik-city="name">
         <span style={s.prayerName}>{ezT('panel.city')}</span>
         <span style={s.prayerTime}>{prayerCityName(loc)}</span>
@@ -26902,6 +26916,8 @@ function PrayerTimesPanel({ loc, day, onDay }) {
         );
       })}
       {anyMissing ? <div style={s.qiblaNote}>{ezT('panel.none')}</div> : null}
+      </> : null}
+      {showRest ? <>
       <div style={s.a11yGroupLabel}>{ezT('panel.offsets')}</div>
       {PRAYER_OFFSETTABLE.map((k) => (
         <div key={k} style={s.prayerRow}>
@@ -26916,7 +26932,9 @@ function PrayerTimesPanel({ loc, day, onDay }) {
         </div>
       ))}
       <div style={s.qiblaNote}>{ezT('panel.sunriseNote')}</div>
-      <PrayerNotifyToggle />
+      </> : null}
+      {showNotify ? <PrayerNotifyToggle /> : null}
+      {showRest ? <>
       <PrayerAlertsControl />
       <div style={s.a11yGroupLabel}>{ezT('panel.schedTitle')}</div>
       <div className="ez-hit" style={s.prayerOptRow}>
@@ -26930,8 +26948,11 @@ function PrayerTimesPanel({ loc, day, onDay }) {
         </div>
       )) : null}
       <div style={s.qiblaNote}>{ezT('panel.schedNote')}</div>
-    </EzShellGroup>
+      </> : null}
+    </>
   );
+  if (part === 'notify') return body;
+  return <EzShellGroup title={part === 'rest' ? ezT('ez110.prayer.more') : ezT('panel.title')}>{body}</EzShellGroup>;
 }
 
 // ITEM 121: preferences move as one intact unit. The storage record, option builders and
@@ -30750,7 +30771,15 @@ function PrayerSheet({ onClose, onOpenCompass }) {
   const [loc, setLoc] = useState(readQiblaLoc);
   const [day, setDay] = useState(null);
   const [rev, setRev] = useState(0);
-  if (setOpen) return <Ez110PrayerSettingsSheet onClose={ezikGoBack} />;
+  // ROUND 3 §3-10: the sheet's pieces, made once, so «ب» draws the first page here and the rest in its settings sheet
+  const times = <PrayerTimesPanel loc={loc} day={day} onDay={setDay} />;
+  const place = <PrayerPlaceSearch loc={loc} onLoc={setLoc} />;
+  const qibla = <QiblaPanel loc={loc} onLoc={setLoc} />;
+  const backup = <PrayerBackup onRestored={(l) => { setLoc(l); setDay(null); setRev(rev + 1); }} />;
+  if (setOpen) return (
+    <Ez110PrayerSettingsSheet onClose={ezikGoBack} backup={backup}
+      more={<React.Fragment key={rev}><PrayerTimesPanel part="rest" loc={loc} day={day} onDay={setDay} />{place}{qibla}</React.Fragment>} />
+  );
   return (
     <EzShell title={ez110.id ? ez110Name('prayer') : (EZ_LANG === 'ar' ? PRAYER_SHEET_TITLE : ezT('prayer.sheetTitle'))} onBack={onClose} backLabel={QIBLA_BACK}
       /* ITEM 66 (side round) -- THE COMPASS'S ONE ENTRY, IN THE PRAYER SECTION WHERE IT BELONGS.
@@ -30768,12 +30797,12 @@ function PrayerSheet({ onClose, onOpenCompass }) {
         </>
       ) : null}>
       <React.Fragment key={rev}>
-      <PrayerTimesPanel loc={loc} day={day} onDay={setDay} />
+      {ez110.id ? <PrayerTimesPanel part="main" loc={loc} day={day} onDay={setDay} /> : times}
       <PrayerDateConverter onShowDay={setDay} />
-      <PrayerPlaceSearch loc={loc} onLoc={setLoc} />
-      <QiblaPanel loc={loc} onLoc={setLoc} />
+      {ez110.id ? null : place}
+      {ez110.id ? null : qibla}
       </React.Fragment>
-      <PrayerBackup onRestored={(l) => { setLoc(l); setDay(null); setRev(rev + 1); }} />
+      {ez110.id ? null : backup}
     </EzShell>
   );
 }
