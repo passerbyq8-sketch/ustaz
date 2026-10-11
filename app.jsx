@@ -9429,6 +9429,26 @@ function Ez110DeleteAllRow({ onOpenControl }) {
 // privacy text sits on the page «الخصوصية والبيانات» in «ب», not in «الحساب». A PLACE, NOT A BEHAVIOUR: the same target,
 // the same words, drawn under the same condition (the server said sync is open for this session, as EzikSyncControls
 // learns it -- this reads that answer and asks nothing). EzikSyncControls is not edited; «ب» hides its copy by CSS.
+// ROUND 4 (phone round N3, 127 note m19), part fix: the privacy policy and the deletion page are pages of the site, so the
+// system back RELOADS the app. Opened from the page «الخصوصية والبيانات» of «ب», a press on either link leaves a one-shot tab
+// slot; the boot reopens Settings (the m19 effect in App) and Settings opens with that page showing. Navigation layer only:
+// privacy.html and delete.html are not touched. Dark: no slot is written and none is read.
+const EZ110_BACK_SLOT = 'ezik_110_back_v1';
+function ez110NotePrivacyLink(e) {
+  if (!ez110FixLit()) return;
+  const a = e && e.target && e.target.closest ? e.target.closest('a[href]') : null;
+  if (!a) return;
+  if (/(^|\/)(privacy|delete)\.html(\?|#|$)/.test(a.getAttribute('href') || '')) { try { window.sessionStorage.setItem(EZ110_BACK_SLOT, 'privacy'); } catch (x) {} }
+}
+function ez110PeekPrivacyBack() {
+  if (!ez110FixLit()) return false;
+  try { return window.sessionStorage.getItem(EZ110_BACK_SLOT) === 'privacy' && !!ez110ReadIdentity(); } catch (e) { return false; }
+}
+function ez110TakePrivacyBack() {
+  const on = ez110PeekPrivacyBack();
+  try { if (on) window.sessionStorage.removeItem(EZ110_BACK_SLOT); } catch (e) {}
+  return on;
+}
 function Ez110SyncPrivacyLink() {
   useEzLang();
   const [open, setOpen] = useState(ezikSyncIsOpen());
@@ -18557,7 +18577,9 @@ function App() {
     if (!ez110FixLit()) return;
     const st = window.history.state;
     let hasProfile = false; try { hasProfile = !!localStorage.getItem('child_profile'); } catch (e) {}
-    if (!st || st.screen !== 'settings' || !hasProfile) return;
+    // ROUND 4 (N3): back from a policy page opened on «الخصوصية والبيانات» of «ب» -- Settings opens with that page showing
+    const toPriv = hasProfile && ez110PeekPrivacyBack();
+    if (!toPriv && (!st || st.screen !== 'settings' || !hasProfile)) return;
     sheetOriginRef.current.push('chat'); histReplaceRef.current = true; setScreen('settings');
   }, []);
   // ITEM 110 ROUND 2 (127 note m7), part fix: «افتح في المكتبة» is a full page navigation, so coming back RELOADS
@@ -32487,7 +32509,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   const [arrangeOpen, setArrangeOpen] = useState(false);
   useEzikBackLayer(arrangeOpen, () => setArrangeOpen(false));
   // ROUND 3 §3-6 («ب» only): «الخصوصية والبيانات» is one row that opens its own page; this is that page's layer.
-  const [privOpen, setPrivOpen] = useState(false);
+  const [privOpen, setPrivOpen] = useState(ez110TakePrivacyBack);
   useEzikBackLayer(privOpen, () => setPrivOpen(false));
   // Read once at mount from the one reader, written through the one writer -- the watermark
   // rule exactly. The switch shows the RESOLVED behaviour, so an `auto` device shows the
@@ -32607,7 +32629,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   if (ez.id && privOpen) {
     return (
       <EzShell title={ezT('ez110.set.privacy')} onBack={() => { if (ezikHistBack()) return; setPrivOpen(false); }} backLabel={A2_BACK}>
-        <div className="ezsh-grid">
+        <div className="ezsh-grid ez110-privpage" onClickCapture={ez110NotePrivacyLink}>
           {aiConsentGroup}
           <Ez110SyncPrivacyLink />
           <Ez110DeleteAllRow onOpenControl={onOpenControl} />
