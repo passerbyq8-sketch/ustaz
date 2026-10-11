@@ -254,9 +254,19 @@ function boot(opts) {
   const store = window.localStorage;
   return { window, root, read, open, q, qa, waitFor, click, type, requests, posts, store, props, caught: () => caught, ctx };
 }
+// R4A: the scenes whose controls are in the prayer settings sheet of «ب» (the place search, the iqama and pre-prayer
+// alerts, the backup); the scene is this process's argument
+const R4A_GEAR_SCENES = new Set(['place', 'iqama', 'pre', 'backup-make', 'backup-bad', 'backup-restore', 'places-offline']);
+const bLitP = (c) => (c.read('EZ110_PARTS') || {}).b === 'public';
+async function openPrayerGearB(c, why) {
+  await c.click(c.q('[data-ez110-prayerset]'));
+  await c.waitFor(() => c.q('[data-ezik-prayer-setting="method"]'));
+  ok('R4A ' + why + ': the prayer settings sheet of b opens from its gear (one press more)', !!c.q('[data-ezik-prayer-setting="method"]'));
+}
 async function openPrayer(c) {
   await c.waitFor(() => c.q('.ezc-rail') || c.q('[data-ezik-home-module]'));
   c.open('prayer');
+  if (bLitP(c) && R4A_GEAR_SCENES.has(process.argv[2])) { await c.waitFor(() => c.q('[data-ez110-prayerset]')); await openPrayerGearB(c, process.argv[2]); return; }
   await c.waitFor(() => c.q('[data-ezik-place="toggle"]'));
 }
 const SCENES = {};
@@ -383,7 +393,9 @@ SCENES.iqama = async () => {
   // --- notify off: nothing rings
   c = boot({ shell: true, seed: { ezik_prayer_prefs_v1: prefsWith({ iq: one }) } });
   await openPrayer(c);
-  t('with the prayer reminders off no iqama is scheduled', c.read('ezikSchedItems()').filter((x) => x.id.indexOf('iqama') >= 0).length, 0);
+  // R4A: part fix (round 2, 127 note m15) schedules the iqama on its own, without the general reminder -- read off EZ110_PARTS
+  if ((c.read('EZ110_PARTS') || {}).fix === 'public') t('R4A with the prayer reminders off the iqama is scheduled on its own: seven for the one prayer on (fix m15)', c.read('ezikSchedItems()').filter((x) => x.id.indexOf('adhan:iqama:dhuhr:') === 0).length, 7);
+  else t('with the prayer reminders off no iqama is scheduled', c.read('ezikSchedItems()').filter((x) => x.id.indexOf('iqama') >= 0).length, 0);
   t('nothing threw', c.caught(), null);
 };
 SCENES.pre = async () => {
@@ -574,15 +586,25 @@ SCENES['next-en'] = async () => {
   await openPrayer(c);
   const text = c.root.textContent;
   ok('the panel title is English', text.indexOf('Prayer times') >= 0);
-  ok('the sheet title is English', text.indexOf('Prayer and qibla') >= 0);
+  const LIT_EN = bLitP(c);
+  if (LIT_EN) ok('R4A the section title is the one English name of b', text.indexOf(c.read("ezT('ez110.name.prayer')")) === 0 || text.indexOf(c.read("ezT('ez110.name.prayer')")) > 0);
+  else ok('the sheet title is English', text.indexOf('Prayer and qibla') >= 0);
   ok('the city is the place', c.q('[data-ezik-city="name"]').textContent.indexOf('Jakarta') >= 0 || c.q('[data-ezik-city="name"]').textContent.indexOf('x') >= 0);
   for (const w of ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']) ok('the row is labelled ' + w, text.indexOf(w) >= 0);
   ok('the clock is AM/PM with Latin digits', /\d{1,2}:\d\d (AM|PM)/.test(c.q('[data-ezik-prayer="fajr"]').textContent));
   const cnt = c.q('[data-ezik-next="count"]').textContent;
   ok('the countdown is Latin digits', /^\d\d:\d\d:\d\d$/.test(cnt), cnt);
+  if (LIT_EN) {
+    ok('R4A the next-prayer words are English (b draws the countdown as its own line: in <time>)', text.indexOf('Next prayer') >= 0 && /in \d/.test(text));
+    await openPrayerGearB(c, 'next-en');
+    const sheet = c.root.textContent;
+    ok('R4A the offsets heading is English, in the prayer settings sheet of b', sheet.indexOf('Manual offset in minutes') >= 0);
+    ok('R4A the sunrise note is English, in the prayer settings sheet of b', sheet.indexOf('Sunrise is calculated') >= 0);
+  } else {
   ok('the next-prayer words are English', text.indexOf('Next prayer') >= 0 && text.indexOf(' in ') >= 0);
   ok('the offsets heading is English', text.indexOf('Manual offset in minutes') >= 0);
   ok('the sunrise note is English', text.indexOf('Sunrise is calculated') >= 0);
+  }
   const arabicInPanel = Array.from(c.root.querySelectorAll('[data-ezik-prayer],[data-ezik-next],[data-ezik-city]')).filter((e) => /[\u0600-\u06FF]/.test(e.textContent));
   t('no Arabic letter inside the rows, the next-prayer strip or the city line', arabicInPanel.length, 0);
   t('nothing threw', c.caught(), null);
