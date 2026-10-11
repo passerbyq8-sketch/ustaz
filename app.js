@@ -5536,7 +5536,8 @@ if(bootIntent.kind==='thread')openSavedChat(bootIntent.thread);// ORDER-108D D2:
 // it. Lit, that entry reopens Settings in place (no new entry); its back still leads to the chat. It runs after the
 // boot effect above (effects run in order), so the boot decides first. Navigation layer only: privacy.html and
 // delete.html are not touched. Dark: this effect does nothing.
-useEffect(()=>{if(!ez110FixLit())return;const st=window.history.state;let hasProfile=false;try{hasProfile=!!localStorage.getItem('child_profile');}catch(e){}// ROUND 4 (N3): back from a policy page opened on «الخصوصية والبيانات» of «ب» -- Settings opens with that page showing
+useEffect(()=>{if(!ez110FixLit())return;// R4A §3-2: a page (or a guard's harness) with no window.history is read as a first open -- no state to restore
+const st=typeof window!=='undefined'&&window.history?window.history.state:null;let hasProfile=false;try{hasProfile=!!localStorage.getItem('child_profile');}catch(e){}// ROUND 4 (N3): back from a policy page opened on «الخصوصية والبيانات» of «ب» -- Settings opens with that page showing
 const toPriv=hasProfile&&ez110PeekPrivacyBack();if(!toPriv&&(!st||st.screen!=='settings'||!hasProfile))return;sheetOriginRef.current.push('chat');histReplaceRef.current=true;setScreen('settings');},[]);// ITEM 110 ROUND 2 (127 note m7), part fix: «افتح في المكتبة» is a full page navigation, so coming back RELOADS
 // the app and the reopened conversation came back in the default mode with every long reply folded. Lit, the tap
 // on a library link notes the mode and the open replies in this TAB (sessionStorage, two one-shot slots -- not a

@@ -18608,7 +18608,8 @@ function App() {
   // delete.html are not touched. Dark: this effect does nothing.
   useEffect(() => {
     if (!ez110FixLit()) return;
-    const st = window.history.state;
+    // R4A §3-2: a page (or a guard's harness) with no window.history is read as a first open -- no state to restore
+    const st = (typeof window !== 'undefined' && window.history) ? window.history.state : null;
     let hasProfile = false; try { hasProfile = !!localStorage.getItem('child_profile'); } catch (e) {}
     // ROUND 4 (N3): back from a policy page opened on «الخصوصية والبيانات» of «ب» -- Settings opens with that page showing
     const toPriv = hasProfile && ez110PeekPrivacyBack();
