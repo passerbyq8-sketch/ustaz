@@ -21955,7 +21955,8 @@ function App() {
           out from under the pointer before the click lands. */}
       {sectionSuggestVisible && (
         <div className={composerFocused ? 'ezsug is-row' : 'ezsug'} role="group" aria-label={ezT('navigation.menu')}>
-          {sectionSuggestions.map((sg) => (
+          {/* ROUND 2 §4-4, «ب»: fatwa, treasure, lessons -- the mushaf is in the bottom bar, so it is not a card here */}
+          {sectionSuggestions.filter((sg) => !(ez110.id && sg.id === 'mushaf')).map((sg) => (
             <button
               key={sg.id}
               type="button"
