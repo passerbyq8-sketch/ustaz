@@ -9410,6 +9410,28 @@ function Ez110DeleteAllRow({ onOpenControl }) {
     </Ez110PlainGroup>
   );
 }
+// ROUND 4 §3-1-3 (owner, round 3: «ولو في شي جديد خله داخل خيار الخصوصيه والبيانات»): the sync session's link to the new
+// privacy text sits on the page «الخصوصية والبيانات» in «ب», not in «الحساب». A PLACE, NOT A BEHAVIOUR: the same target,
+// the same words, drawn under the same condition (the server said sync is open for this session, as EzikSyncControls
+// learns it -- this reads that answer and asks nothing). EzikSyncControls is not edited; «ب» hides its copy by CSS.
+function Ez110SyncPrivacyLink() {
+  useEzLang();
+  const [open, setOpen] = useState(ezikSyncIsOpen());
+  useEffect(() => {
+    const onStatus = () => setOpen(ezikSyncIsOpen());
+    window.addEventListener('ezik:sync:status', onStatus);
+    return () => window.removeEventListener('ezik:sync:status', onStatus);
+  }, []);
+  if (!open) return null;
+  return (
+    <Ez110PlainGroup grp="privacy-sync">
+      <a href="/api/sync?page=privacy" className="ez110-row" data-ez110-sync-privacy="1">
+        <span className="ez110-row-text"><span className="ez110-row-title">{ezT('sync.privacy')}</span></span>
+        {EZ110_ROW_GO}
+      </a>
+    </Ez110PlainGroup>
+  );
+}
 
 // ITEM 97 -- HOME_GREETINGS_GENERAL STOOD HERE, sixteen keys deep, and the day branch below
 // picked one of them by the day of the year. The owner’s reading of it: the two adhkar
@@ -32547,6 +32569,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
       <EzShell title={ezT('ez110.set.privacy')} onBack={() => { if (ezikHistBack()) return; setPrivOpen(false); }} backLabel={A2_BACK}>
         <div className="ezsh-grid">
           {aiConsentGroup}
+          <Ez110SyncPrivacyLink />
           <Ez110DeleteAllRow onOpenControl={onOpenControl} />
         </div>
       </EzShell>
