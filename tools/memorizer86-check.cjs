@@ -172,6 +172,41 @@ ok(X.mem86PrefsRead().speed === 1 && X.mem86PrefsRead().repA === 1 && X.mem86Pre
 X.mem86PrefsWrite({ speed: 0.75, repA: 10, repR: 5 });
 ok(X.mem86PrefsRead().speed === 0.75 && X.mem86PrefsRead().repA === 10 && X.mem86PrefsRead().repR === 5, 'offered values are kept (0.75, x10, x5)');
 
+/* ------------------------------------------------------------------ phase 3 */
+section('phase 3 -- «سمِّعني» hides while it listens, hints, pause, ?memred=1 marks');
+const recLines = appSrc.split('\n').filter((l) => !/^\s*\/\//.test(l) && l.includes('ezNewRecognition('));
+ok(recLines.length === 3, 'ezNewRecognition( stands on exactly three lines (no fourth engine): ' + recLines.length);
+ok(memScreen.length > 0 && /onResume=\{\(\) => startRecite\(recitePaused\)\}/.test(memScreen) && /const startRecite = \(fromAyah\) =>/.test(memScreen), 'pause and resume reuse startRecite, resuming at the paused ayah');
+ok(memScreen.length > 0 && /const hide = reciteListening && !prefs\.dim;/.test(memScreen), 'the text is hidden only while the engine listens and «show dimmed» is off');
+ok(memScreen.length > 0 && /if \(hide && st !== 'matched' && st !== 'mismatch' && !hinted\)/.test(memScreen), 'a matched word, a mismatch word or a hinted word shows; every other word is masked');
+const onres = memScreen.slice(memScreen.indexOf('rec.onresult = (event) => {'), memScreen.indexOf('rec.onend = () => {'));
+ok(onres.length > 0 && !/mem86WordsLog/.test(onres), 'what the engine hears writes nothing to the word log (red is off; the matcher accepts meaning-changing letters)');
+ok(onres.length > 0 && /if \(allMatched && cur >= surahCount\) \{ setReciteFinished\(true\); stopRecite\(\); reciteCredit\(\); \}/.test(onres), 'a segment earns only when the matcher finished it');
+const credit = memScreen.slice(memScreen.indexOf('const reciteCredit = () => {'), memScreen.indexOf('const pauseRecite = () =>'));
+ok(credit.length > 0 && /if \(!reciteCleanRef\.current\) return;/.test(credit), '...and only when no manual «next» was pressed');
+ok(credit.length > 0 && /fresh: reciteHiddenRef\.current \? n : 0, review: n/.test(credit), '...new memorisation only with the text hidden throughout; review otherwise');
+const adv = memScreen.slice(memScreen.indexOf('const advanceReciteManual = () => {'), memScreen.indexOf('const setMode = (m) =>'));
+ok(adv.length > 0 && /reciteCleanRef\.current = false;/.test(adv) && !/mem86Credit|mem86DaysAdd/.test(adv), 'manual «next» earns nothing');
+const hintFn = memScreen.slice(memScreen.indexOf('const reciteHint = (rest) => {'), memScreen.indexOf('const startRecite = (fromAyah) =>'));
+ok(hintFn.length > 0 && /mem86WordsLog\(add\.map\(\(i\) => mem86Ref\(selectedSurah, cur, i \+ 1\)\), 'hint'\)/.test(hintFn), 'a hint is logged as a hint');
+ok(memScreen.length > 0 && memScreen.split('\n').filter((l) => /redMarks/.test(l) && /(localStorage|mem86Store|mem86WordsLog|mem86DaysAdd)/.test(l)).length === 0, '?memred=1 marks live in screen state only -- no line that touches redMarks stores anything');
+ok(memScreen.length > 0 && /if \(MEM_RED_FLAGGING\) \{/.test(memScreen) && /MEM_RED_FLAGGING && redMarks\.pick/.test(memScreen), 'the dashed line, the lingering colour and «not a mistake» exist only under MEM_RED_FLAGGING');
+// the clock: a gap over 60 s does not count
+reset();
+let fakeNow = Date.UTC(2026, 9, 11, 9, 0, 0);
+const RealDate = Date;
+sandbox.Date = class extends RealDate { constructor(...a) { super(...(a.length ? a : [fakeNow])); } static now() { return fakeNow; } };
+lift(['mem86Clock', 'mem86Rest', 'mem86Ping', 'mem86Credit']);
+X.mem86Ping(); fakeNow += 20000; X.mem86Ping(); fakeNow += 20000; X.mem86Ping();
+fakeNow += 120000; X.mem86Ping(); fakeNow += 10000; X.mem86Ping(); X.mem86Rest();
+const dd = X.mem86DaysRead();
+const today = Object.keys(dd)[0];
+ok(today && dd[today].m === 50, 'active seconds: 20 + 20, the 120 s gap dropped, then 10 = 50 s (' + (today ? dd[today].m : 'none') + ')');
+ok(today && !X.mem86DayActive(dd[today]), 'minutes alone do not make an activity day');
+X.mem86Credit({ fresh: 0, review: 7 });
+ok(X.mem86DayActive(X.mem86DaysRead()[today]), 'a review credit does');
+sandbox.Date = RealDate;
+
 /* ------------------------------------------------------------------ done */
 console.log('\n' + (fail ? 'FAIL' : 'PASS') + '  memorizer86-check  ' + pass + ' passed, ' + fail + ' failed  (lifted ' + LIFT.length + ' initializers from app.jsx)');
 process.exit(fail ? 1 : 0);

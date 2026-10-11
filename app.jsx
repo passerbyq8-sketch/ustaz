@@ -1815,6 +1815,13 @@ const EZ_I18N = {
     'mem86.listen.repR': 'تكرار المقطع كله',
     'mem86.listen.speed': 'سرعة التلاوة',
     'mem86.timesN': '×{n}',
+    'mem86.hint.word': 'كلمة',
+    'mem86.hint.rest': 'بقيّة الآية',
+    'mem86.pause': 'إيقاف مؤقّت',
+    'mem86.resume': 'متابعة',
+    'mem86.opt.dim': 'أظهِر النصّ باهتًا',
+    'mem86.opt.hideNums': 'أخفِ أرقام الآيات',
+    'mem86.red.notErr': 'ليس خطأً',
   },
   en: {
     'common.close': 'Close',
@@ -3219,6 +3226,13 @@ const EZ_I18N = {
     'mem86.listen.repR': 'Repeat the whole range',
     'mem86.listen.speed': 'Recitation speed',
     'mem86.timesN': '×{n}',
+    'mem86.hint.word': 'A word',
+    'mem86.hint.rest': 'Rest of the ayah',
+    'mem86.pause': 'Pause',
+    'mem86.resume': 'Continue',
+    'mem86.opt.dim': 'Show the text dimmed',
+    'mem86.opt.hideNums': 'Hide the ayah numbers',
+    'mem86.red.notErr': 'Not a mistake',
   },
 };
 
@@ -33738,6 +33752,48 @@ const Mem86ListenOpts = ({ start, count, end, onEnd, prefs, onPref, disabled }) 
   </div>
 );
 
+// ---------- active minutes: a touch or a heard word keeps the clock; a gap over 60 s does not count ----------
+const mem86Clock = { last: 0, acc: 0 };
+const mem86Rest = () => {
+  const sec = Math.round(mem86Clock.acc / 1000);
+  mem86Clock.acc = 0; mem86Clock.last = 0;
+  if (sec > 0) mem86DaysAdd(mem86Day(), { m: sec });
+};
+const mem86Ping = () => {
+  const now = Date.now(), d = now - mem86Clock.last;
+  if (mem86Clock.last && d > 0 && d < 60000) mem86Clock.acc += d;
+  mem86Clock.last = now;
+  if (mem86Clock.acc >= 30000) { const keep = now; mem86Rest(); mem86Clock.last = keep; }
+};
+// What a finished activity earns (section 5-c): fresh = new memorisation, review = ayat reviewed.
+const mem86Credit = (c) => {
+  mem86Rest();
+  return mem86DaysAdd(mem86Day(), { n: c.fresh || 0, r: c.review || 0 });
+};
+// the unit index just past the ayah that holds unit c
+const mem86AyahEnd = (units, c) => {
+  if (c >= units.length) return units.length;
+  let i = c;
+  const a = units[c].ayah;
+  while (i < units.length && units[i].ayah === a) i++;
+  return i;
+};
+const Mem86ReciteOpts = ({ listening, paused, onPause, onResume, onHint, prefs, onPref }) => (
+  <div className="ezq-drill-acts" style={s.mem86Card}>
+    {listening && !prefs.dim ? (
+      <div style={s.mem86Row}>
+        <button type="button" style={s.mem86Btn} onClick={() => onHint(false)}>{ezT('mem86.hint.word')}</button>
+        <button type="button" style={s.mem86Btn} onClick={() => onHint(true)}>{ezT('mem86.hint.rest')}</button>
+        <button type="button" style={s.mem86BtnQuiet} onClick={onPause}>{ezT('mem86.pause')}</button>
+      </div>
+    ) : null}
+    {listening && prefs.dim ? <button type="button" style={s.mem86BtnQuiet} onClick={onPause}>{ezT('mem86.pause')}</button> : null}
+    {!listening && paused ? <button type="button" style={s.mem86BtnMain} onClick={onResume}>{ezT('mem86.resume')}</button> : null}
+    <Mem86Switch on={prefs.dim} onFlip={(v) => onPref({ dim: v })} label={ezT('mem86.opt.dim')} />
+    <Mem86Switch on={prefs.hideNums} onFlip={(v) => onPref({ hideNums: v })} label={ezT('mem86.opt.hideNums')} />
+  </div>
+);
+
 // ---------- «تقدّمي»: what is memorised, surah by surah ----------
 const Mem86Progress = ({ counts, held, onHeld }) => {
   const [open, setOpen] = useState(0);
@@ -36335,8 +36391,15 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   const [tab, setTab] = useState('learn');
   const [held, setHeld] = useState(mem86HeldRead);
   const [prefs, setPrefs] = useState(mem86PrefsRead);
-  const setPref = (patch) => setPrefs(mem86PrefsWrite(patch));
+  const setPref = (patch) => { if (patch.dim) reciteHiddenRef.current = false; setPrefs(mem86PrefsWrite(patch)); };
   const [adnanEnd, setAdnanEnd] = useState(0);         // last ayah of the listening range; 0 = the end of the surah
+  // «سمِّعني»: hints, the pause, what a finished segment earns, and the ?memred=1 marks of this visit (never stored).
+  const [reciteHints, setReciteHints] = useState([]);  // word indices of the current ayah shown by a hint
+  const [recitePaused, setRecitePaused] = useState(0); // the ayah a pause stopped at; 0 = not paused
+  const reciteCleanRef = useRef(false);                 // recited start to end with no manual «next»
+  const reciteHiddenRef = useRef(false);                // ...and with the text hidden throughout
+  const manualHidRef = useRef(false);                   // the manual talqin was hidden again, then revealed whole
+  const [redMarks, setRedMarks] = useState({ ever: [], notErr: [], pick: '' });
 
   const isFemale = profile?.gender === 'female';
 
@@ -36400,9 +36463,23 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     : (revealedCount < units.length ? units[revealedCount].ayah : units[units.length - 1].ayah);
   // Light, occasional praise — every few units while drilling, NOT on every press.
   const showPraise = !allRevealed && granularity === 'ayah' && revealedCount > 0 && revealedCount % 4 === 0;
+  // A manual talqin revealed whole AFTER being hidden again is memorised: it earns, and the ayat are marked.
+  useEffect(() => {
+    if (!allRevealed || !manualHidRef.current || drillMode !== 'manual') return;
+    manualHidRef.current = false;
+    setHeld(mem86HeldSet(selectedSurah, startAyah, surahCount, true));
+    mem86Credit({ fresh: surahCount - startAyah + 1, review: 0 });
+  }, [allRevealed]);
+  // active minutes: a touch while revealing counts, a gap over 60 s does not
+  useEffect(() => {
+    if (view !== 'drill' || drillMode !== 'manual') return undefined;
+    const on = () => mem86Ping();
+    document.addEventListener('pointerdown', on);
+    return () => { document.removeEventListener('pointerdown', on); mem86Rest(); };
+  }, [view, drillMode]);
 
   const openPicker = () => { setView('picker'); setRevealedCount(0); };
-  const startDrill = () => { setView('drill'); setRevealedCount(0); setAdnanEnd(0); };
+  const startDrill = () => { setView('drill'); setRevealedCount(0); setAdnanEnd(0); manualHidRef.current = false; };
   const setGran = (g) => { setGranularity(g); setRevealedCount(0); }; // switching re-hides the range
 
   // ---------- عدنان listen-and-repeat loop ----------
@@ -36461,7 +36538,30 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     // leave reciteStates as-is so the last result stays visible after stop
   };
 
-  const startRecite = () => {
+  const reciteCredit = () => {
+    if (!reciteCleanRef.current) return;     // a manual «next» earns nothing
+    reciteCleanRef.current = false;
+    const n = surahCount - startAyah + 1;
+    if (reciteHiddenRef.current) setHeld(mem86HeldSet(selectedSurah, startAyah, surahCount, true));
+    mem86Credit({ fresh: reciteHiddenRef.current ? n : 0, review: n });
+  };
+  const pauseRecite = () => { const at = reciteAyahRef.current || startAyah; stopRecite(); mem86Rest(); setRecitePaused(at); };
+  const reciteHint = (rest) => {
+    const cur = reciteAyahRef.current || startAyah;
+    const n = tokenizeForRecite(getVerseText(selectedSurah, cur) || '').length;
+    const add = [];
+    for (let i = 0; i < n; i++) {
+      if (reciteStates[i] === 'matched' || reciteStates[i] === 'mismatch' || reciteHints.indexOf(i) !== -1) continue;
+      add.push(i);
+      if (!rest) break;
+    }
+    if (!add.length) return;
+    setReciteHints(reciteHints.concat(add));
+    mem86WordsLog(add.map((i) => mem86Ref(selectedSurah, cur, i + 1)), 'hint');
+    mem86Ping();
+  };
+
+  const startRecite = (fromAyah) => {
     if (childVoiceBlocked()) { setReciteErr(CHILD_VOICE_NOTICE); return; } // غ‑٣: لا ميكروفونَ لسمِّعني
     // «سمِّعني» LOOKS local and is not: Web Speech ships the recitation audio to Google on Chrome
     // and to Apple on Safari. That is a third-party voice send, so it needs the same consent as
@@ -36471,8 +36571,12 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     if (!ezSpeechAvailable()) { setReciteErr(RECITE_NO_SR); return; } // graceful fail, same message as chat/call
     setReciteErr('');
     setReciteFinished(false);
-    setReciteAyah(startAyah);
-    reciteAyahRef.current = startAyah;
+    const from = fromAyah > 0 ? fromAyah : startAyah;   // a resume starts where the pause stopped
+    if (!(fromAyah > 0)) { reciteCleanRef.current = true; reciteHiddenRef.current = !prefs.dim; }
+    else reciteHiddenRef.current = reciteHiddenRef.current && !prefs.dim;
+    setRecitePaused(0); setReciteHints([]);
+    setReciteAyah(from);
+    reciteAyahRef.current = from;
     reciteHeardRef.current = '';
     setReciteStates([]);
     // Cumulative EXPECTED (Option C): expected = tokens of ayat startAyah..targetAyah, with the
@@ -36483,7 +36587,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       const tokens = [];
       const pats = [];
       let curOffset = 0, curLen = 0;
-      for (let a = startAyah; a <= toAyah; a++) {
+      for (let a = from; a <= toAyah; a++) {
         const verse = getVerseText(selectedSurah, a) || '';
         const at = tokenizeForRecite(verse);
         // The red path needs the rasm itself, not the flattened token: its marks are the
@@ -36517,6 +36621,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         } else { interim += t; }
       }
       reciteHeardRef.current = (finalText + ' ' + interim).trim();
+      mem86Ping();
       // Match FULL cumulative heard vs FULL cumulative expected (up to the current ayah), then
       // display + completion-check only the CURRENT ayah's slice of states.
       const cur = reciteAyahRef.current || startAyah;
@@ -36530,6 +36635,11 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         ? alignReciteRed(pats, tokenizeHeardRed(reciteHeardRef.current))
         : alignRecite(tokens, tokenizeForRecite(reciteHeardRef.current));
       const currentSlice = fullStates.slice(curOffset, curOffset + curLen);
+      if (MEM_RED_FLAGGING) {   // ?memred=1: a word once judged wrong keeps a mark for this visit
+        const bad = [];
+        currentSlice.forEach((x, i) => { if (x === 'mismatch') bad.push(mem86Ref(selectedSurah, cur, i + 1)); });
+        if (bad.length) setRedMarks((m) => ({ ...m, ever: m.ever.concat(bad.filter((r) => m.ever.indexOf(r) === -1)) }));
+      }
       const shown = MEM_RED_FLAGGING ? currentSlice : currentSlice.map((x) => (x === 'mismatch' ? 'matched' : x));
       const allMatched = shown.length > 0 && shown.every((x) => x === 'matched');
       if (allMatched && cur < surahCount) {
@@ -36539,9 +36649,10 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         reciteAyahRef.current = next;
         setReciteAyah(next);
         setReciteStates([]);
+        setReciteHints([]);
       } else {
         setReciteStates(shown);
-        if (allMatched && cur >= surahCount) { setReciteFinished(true); stopRecite(); } // last ayah → finish
+        if (allMatched && cur >= surahCount) { setReciteFinished(true); stopRecite(); reciteCredit(); } // last ayah → finish
       }
     };
     rec.onend = () => {
@@ -36574,6 +36685,8 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
 
   // Manual advance — freeze-proof fallback so a missed/substituted last word can't lock progress.
   const advanceReciteManual = () => {
+    reciteCleanRef.current = false;   // a manual «next» earns nothing
+    setReciteHints([]);
     const cur = reciteAyahRef.current || startAyah;
     if (cur < surahCount) {
       const next = cur + 1;
@@ -36593,6 +36706,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     if (m === 'recite') { // fresh recite session from the start of the range
       setReciteStates([]); reciteHeardRef.current = ''; setReciteErr('');
       setReciteAyah(startAyah); reciteAyahRef.current = startAyah; setReciteFinished(false);
+      setRecitePaused(0); setReciteHints([]);
     }
     setDrillMode(m);
   };
@@ -36724,7 +36838,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
             if (!revealed && !isNext) return null; // beyond the next unit stays fully hidden
             return (
               <span key={i} style={s.memUnit}>
-                {u.firstInAyah && <span style={s.memAyahBadge}>{toArabicDigits(u.ayah)}</span>}
+                {u.firstInAyah && !prefs.hideNums && <span style={s.memAyahBadge}>{toArabicDigits(u.ayah)}</span>}
                 {revealed
                   ? <span style={s.memWord}>{u.text}</span>
                   : <span style={s.memPlaceholder}>{granularity === 'word' ? '—' : '— — —'}</span>}
@@ -36741,8 +36855,14 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         <button onClick={() => onPlayVerse && onPlayVerse(selectedSurah, focusAyah)} style={s.memListenBtn}>{MEM.LISTEN_BTN}</button>
         <button onClick={() => setRevealedCount((c) => Math.min(c + 1, units.length))} style={{ ...s.memRevealBtn, opacity: allRevealed ? 0.5 : 1 }} disabled={allRevealed}>{MEM.REVEAL_BTN}</button>
         {/* Re-hide/reset the same range. */}
-        <button onClick={() => setRevealedCount(0)} style={s.memListenBtn}>{MEM.HIDE}</button>
+        <button onClick={() => { if (revealedCount > 0) manualHidRef.current = true; setRevealedCount(0); }} style={s.memListenBtn}>{MEM.HIDE}</button>
       </div>
+      )}
+      {drillMode === 'manual' && (
+        <div className="ezq-drill-acts" style={s.mem86Card}>
+          {granularity === 'word' && <button type="button" style={s.mem86Btn} disabled={allRevealed} onClick={() => setRevealedCount((c) => mem86AyahEnd(units, c))}>{ezT('mem86.hint.rest')}</button>}
+          <Mem86Switch on={prefs.hideNums} onFlip={(v) => setPref({ hideNums: v })} label={ezT('mem86.opt.hideNums')} />
+        </div>
       )}
       {drillMode === 'adnan' && (
       <div className="ezq-read" style={s.memDrillArea}>
@@ -36764,22 +36884,37 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       {drillMode === 'recite' && (
       <div className="ezq-read" style={s.memDrillArea}>
         <div style={s.memReciteHint}>{MEM.RECITE_HINT}</div>
-        <div style={s.memSurahTitle}>{`${SURAH_NAMES[selectedSurah]} · ${MEM.ADNAN_AYAH_LABEL} ${toArabicDigits(reciteAyah || startAyah)}`}</div>
+        <div style={s.memSurahTitle}>{prefs.hideNums ? SURAH_NAMES[selectedSurah] : `${SURAH_NAMES[selectedSurah]} · ${MEM.ADNAN_AYAH_LABEL} ${toArabicDigits(reciteAyah || startAyah)}`}</div>
         <div style={s.memDrillText}>
           {(() => {
             // Display the CURRENT recite ayah (original diacritized words), colored by its slice of
             // states. Standalone ornament/pause glyphs normalize to '' — render dim, don't consume a
             // state, so the state index stays aligned with the matchable words. Child's words never shown.
-            const displayWords = (getVerseText(selectedSurah, reciteAyah || startAyah) || '').split(/\s+/).filter(Boolean);
+            const curA = reciteAyah || startAyah;
+            const displayWords = (getVerseText(selectedSurah, curA) || '').split(/\s+/).filter(Boolean);
+            // Item 86 (memorizer): while the engine LISTENS the text is hidden -- a word shows once matched, once
+            // judged a mismatch (shown as today), or once a hint reveals it. Not listening, or «show dimmed»: today's view.
+            const hide = reciteListening && !prefs.dim;
             let wordIdx = 0;
             return displayWords.map((dw, i) => {
-              if (!normalizeForRecite(dw)) return <span key={i} style={s.memWordPending}>{dw}</span>;
-              const st = reciteStates[wordIdx]; wordIdx++;
-              const wstyle = st === 'matched' ? s.memWord : st === 'mismatch' ? s.memWordWrong : s.memWordPending;
+              if (!normalizeForRecite(dw)) return hide ? null : <span key={i} style={s.memWordPending}>{dw}</span>;
+              const k = wordIdx; const st = reciteStates[k]; wordIdx++;
+              const hinted = reciteHints.indexOf(k) !== -1;
+              if (hide && st !== 'matched' && st !== 'mismatch' && !hinted) return <span key={i} style={s.memPlaceholder}>—</span>;
+              let wstyle = st === 'matched' ? s.memWord : st === 'mismatch' ? s.memWordWrong : s.memWordPending;
+              if (hinted && st !== 'matched') wstyle = s.mem86WordHint;
+              const ref = mem86Ref(selectedSurah, curA, k + 1);
+              if (MEM_RED_FLAGGING && redMarks.notErr.indexOf(ref) === -1 && (st === 'mismatch' || redMarks.ever.indexOf(ref) !== -1)) {
+                const red = st === 'mismatch' ? { ...wstyle, ...s.mem86RedDash } : { ...wstyle, ...s.mem86RedWas };
+                return <button key={i} type="button" style={{ ...s.mem86WordBtn, ...red }} onClick={() => setRedMarks((m) => ({ ...m, pick: ref }))}>{dw}</button>;
+              }
               return <span key={i} style={wstyle}>{dw}</span>;
             });
           })()}
         </div>
+        {MEM_RED_FLAGGING && redMarks.pick ? (
+          <button type="button" style={s.mem86Btn} onClick={() => setRedMarks((m) => ({ ...m, notErr: m.notErr.concat([m.pick]), pick: '' }))}>{ezT('mem86.red.notErr')}</button>
+        ) : null}
         {reciteErr && <div style={s.memMsg}>{reciteErr}</div>}
         {reciteFinished && <div style={s.memMsg}>{finishLine}</div>}
       </div>
@@ -36789,6 +36924,10 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         <button onClick={() => (reciteListening ? stopRecite() : startRecite())} style={s.memRevealBtn}>{reciteListening ? MEM.RECITE_STOP : MEM.RECITE_START}</button>
         <button onClick={advanceReciteManual} style={s.memListenBtn}>{MEM.RECITE_NEXT}</button>
       </div>
+      )}
+      {drillMode === 'recite' && (
+        <Mem86ReciteOpts listening={reciteListening} paused={recitePaused} onPause={pauseRecite} onResume={() => startRecite(recitePaused)}
+          onHint={reciteHint} prefs={prefs} onPref={setPref} />
       )}
     </EzShell>
   );
@@ -38185,6 +38324,10 @@ const s = {
   mem86SurahBtn: { display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 4, width: '100%', minHeight: 44, padding: '8px 2px', background: 'transparent', color: 'var(--ink)', border: 'none', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', textAlign: 'start' },
   mem86Bar: { display: 'block', height: 6, borderRadius: 3, background: 'var(--tint)', overflow: 'hidden' },
   mem86BarFill: { display: 'block', height: 6, background: 'var(--accent-fill)' },
+  mem86WordHint: { fontFamily: "'Amiri', 'Tajawal', serif", fontSize: 26, color: 'var(--scholar)', lineHeight: 2 },
+  mem86RedDash: { textDecoration: 'underline dashed', textUnderlineOffset: 8 },
+  mem86RedWas: { color: '#C0392B', textDecoration: 'underline dotted', textUnderlineOffset: 8 },
+  mem86WordBtn: { minHeight: 44, padding: 0, background: 'transparent', border: 'none', cursor: 'pointer' },
   mem86CardHeld: { fontSize: 11.5, fontWeight: 700, color: 'var(--ink)' },
   memResetBtn: { width: 50, height: 50, borderRadius: 14, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 
