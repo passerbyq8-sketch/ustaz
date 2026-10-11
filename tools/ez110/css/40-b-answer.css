@@ -50,8 +50,10 @@ html[data-ez110] .ezc-acts.is-more :is([data-ez110-act="pdf"], [data-ez110-act="
 html[data-ez110] .ezc-acts > .ez110-more[aria-expanded="true"] { color: var(--vt-accent-ink) !important; background: var(--vt-soft) !important; }
 html[data-ez110] .ez110-sr { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
 /* the name on a long press */
+/* the line never rises under the status bar: it reads the edge family (and the plain inset when part safe is dark) */
+html[data-ez110]:not([data-ez110-safe]) { --ez-safe-t: env(safe-area-inset-top, 0px); }
 html[data-ez110] .ez110-tip {
-  position: fixed; z-index: 60; transform: translateX(-50%); pointer-events: none; opacity: 0; transition: opacity .15s;
+  position: fixed; z-index: 60; top: max(calc(var(--ez-safe-t) + 8px), var(--ez110-tip-top, 8px)); transform: translateX(-50%); pointer-events: none; opacity: 0; transition: opacity .15s;
   max-width: 70vw; padding: 6px 10px; border-radius: 10px; background: var(--vt-ink); color: var(--vt-surface);
   font-family: var(--ez110-font-ui); font-size: calc(13px * var(--ez-fs, 1)); font-weight: 600; white-space: nowrap;
 }

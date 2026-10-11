@@ -8679,7 +8679,7 @@ function ez110ActsTips() {
     if (!tip) { tip = document.createElement('div'); tip.className = 'ez110-tip'; tip.setAttribute('role', 'status'); document.body.appendChild(tip); }
     tip.textContent = text;
     const r = b.getBoundingClientRect();
-    tip.style.top = Math.max(8, r.top - 40) + 'px';
+    tip.style.setProperty('--ez110-tip-top', Math.round(r.top - 40) + 'px');
     tip.style.left = Math.round(r.left + r.width / 2) + 'px';
     tip.classList.add('is-on');
     clearTimeout(hideAt); hideAt = setTimeout(() => { if (tip) tip.classList.remove('is-on'); }, 1600);
