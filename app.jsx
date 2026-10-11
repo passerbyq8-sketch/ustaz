@@ -22057,7 +22057,8 @@ function App() {
           write to the composer, no request. onMouseDown is defaulted away so that pressing a
           pill cannot blur the composer first, re-lay the strip as cards, and move the control
           out from under the pointer before the click lands. */}
-      {sectionSuggestVisible && (
+      {/* ROUND 3 §3-3 (owner): in «ب» the section cards above the composer are gone -- the bottom bar does their work */}
+      {sectionSuggestVisible && !ez110.id && (
         <div className={composerFocused ? 'ezsug is-row' : 'ezsug'} role="group" aria-label={ezT('navigation.menu')}>
           {/* ROUND 2 §4-4, «ب»: fatwa, treasure, lessons -- the mushaf is in the bottom bar, so it is not a card here */}
           {sectionSuggestions.filter((sg) => !(ez110.id && sg.id === 'mushaf')).map((sg) => (
