@@ -32726,7 +32726,8 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
               whose shelf changed has to be able to see why, and where to change it back. It is a
               statement of the rule and nothing else: it reads no store, it is not a control, it
               is not focusable, and it claims nothing about him. */}
-          <div style={s.a11ySwitchHint}>{ezT('settings.womenCornerRule')}</div>
+          {/* ROUND 4 (phone round N7): «ب» offers two answers, so its line names two (a new key; the old one, read dark, is untouched) */}
+          <div style={s.a11ySwitchHint}>{ezT(ez.id ? 'ez110.set.womenRule' : 'settings.womenCornerRule')}</div>
           <input value={pfYear} onChange={(e) => { setPfYear(e.target.value); setPfMsg(''); }}
             placeholder={ezT('onboarding.birthYear')} aria-label={ezT('onboarding.birthYear')}
             type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4} style={s.welcomeInput} />
