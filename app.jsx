@@ -21654,6 +21654,8 @@ function App() {
             {/* المصادر -- five lines of fixed text. It is NOT built from the live source register:
                 what a reader is owed here is the books the CONTENT came from, and that list moves
                 when the owner adds a book, not when a fetcher goes down. */}
+            {/* ROUND 3 §3-5 (owner): in «ب» the sources live inside «عن عزك», so this row is not drawn there */}
+            {ez110.id ? null : (
             <button onClick={() => closeDrawerWith(() => setSourcesOpen(true))} style={s.drawerItem} className="ezik-focus" aria-label={ezT('menu.sourcesAria')}>
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" />
@@ -21662,6 +21664,7 @@ function App() {
               </svg>
               <span>{ezT('menu.sources') || '\u0627\u0644\u0645\u0635\u0627\u062f\u0631'}</span>
             </button>
+            )}
             {/* دعوة صديق -- THE ROW THE SHARE ICON BECAME. It presses onMenuShare DIRECTLY and
                 not through closeDrawerWith, and that is the one place this row departs from the
                 template above it, on purpose: the chooser is a SIBLING of this panel and is built
@@ -24659,6 +24662,20 @@ function EzikAboutSheet({ onBack }) {
       </section>
       {/* ITEM 110 ROUND 2 (127 note m35), part fix: the version, small -- the same number the owner's build
           mark prints (ezikAppVersion). Dark: not drawn. */}
+      {/* ROUND 3 §3-5 (owner): in «ب» «المصادر» is part of this page -- the same five fixed sections and the seal the
+          sources sheet draws, under their own heading; the drawer no longer carries a row for them */}
+      {ez.id ? (
+        <section style={s.asmaaRead} aria-label={ezT('menu.sourcesAria')} className="ez110-about-sources">
+          <h2 className="ez110-h" style={{ margin: '18px 0 6px' }}>{ezT('menu.sources')}</h2>
+          {EZIK_SOURCES_SECTIONS.map((sec) => (
+            <div key={sec.k} style={s.ezikSrcGroup}>
+              <h3 style={s.ezikSrcHead}>{ezT(sec.k)}</h3>
+              {sec.lines.map((line, i) => <p key={i} style={s.ezikSrcLine}>{line}</p>)}
+            </div>
+          ))}
+          <p style={s.asmaaPara}>{EZIK_SOURCES_SEAL}</p>
+        </section>
+      ) : null}
       {ez.fix ? <p className="ez110-version" style={{ margin: '14px 4px 4px', fontSize: 12, color: 'var(--muted)', textAlign: 'center' }}>{ezT('fix.about.version', { v: ezikAppVersion() })}</p> : null}
       {askCode ? <Ez110UnlockField /> : null}
       {(ez.id || ez.safe || ez.fix) ? <Ez110Diag /> : null}
