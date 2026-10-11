@@ -35,6 +35,26 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
+// THE GUARD'S DAY IS FIXED (item 110 R4A, 12 October 2026). The home's daily card is DAILY_VERSES[day-of-year % 30], and
+// the card is a door (ITEM 27) only when its entry carries a tafsir reference -- one entry of the thirty, the hadith
+// «إنما الأعمال بالنيات», has none, so on that day the app rightly draws a display, not a button. Read off the real
+// clock, the two ITEM 27 checks below were therefore red one day in thirty on every tree (12 September, 12 October,
+// ...), measured on 93e7e52, 9ae90283 and 81c544ae alike, and green the day before. Every context this file builds
+// now runs on ONE calendar day, 10 October 2026, whose entry is a verse with its reference; the time of day and
+// every timer still run on the real clock (the shift is a whole number of days, taken once). No check is dropped:
+// the day's entry is asserted below to be one that HAS a reference, so the pin cannot drift onto the hadith unseen.
+const GUARD_DAY = new Date(2026, 9, 10);
+const GUARD_DAY_SHIFT = (() => { const n = new Date(); return GUARD_DAY.getTime() - new Date(n.getFullYear(), n.getMonth(), n.getDate()).getTime(); })();
+function guardDayDate(RealDate) {
+  function D(...a) {
+    if (!new.target) return new RealDate(RealDate.now() + GUARD_DAY_SHIFT).toString();
+    return a.length === 0 ? new RealDate(RealDate.now() + GUARD_DAY_SHIFT) : new RealDate(...a);
+  }
+  D.prototype = RealDate.prototype;
+  D.now = () => RealDate.now() + GUARD_DAY_SHIFT;
+  D.UTC = RealDate.UTC; D.parse = RealDate.parse;
+  return D;
+}
 const cp = require('child_process');
 const babel = require('@babel/core');
 const { parseHTML } = require('linkedom');
@@ -218,6 +238,8 @@ function buildContext(opts) {
     return { matches: false, media: String(q), addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} };
   });
   put('scrollTo', window.scrollTo || function () {});
+  // the guard's fixed day (see GUARD_DAY): the application reads this Date, never the machine's calendar
+  put('Date', guardDayDate(Date));
 
   // TIMERS BELONG TO THE CONTEXT THAT SCHEDULED THEM. Each is recorded with the moment it is
   // due, which is what lets settle() know whether this context still has work coming, and what
@@ -1110,6 +1132,8 @@ async function partD() {
     // that verse's tafsir -- so the member that used to be the bar's one display is its second
     // control. The count is still exact and is not relaxed: two members, two controls, and each
     // of the two named on its own line below so a third cannot hide inside the number.
+    eq('ITEM 27: the day this guard runs on is its fixed day, and that day\'s entry has a tafsir reference',
+      [c.grab('new Date().toDateString()'), !!c.grab('getDailyVerse().ref')], [GUARD_DAY.toDateString(), true]);
     eq('ITEM 27: ...and both of them are controls now', d.all('.ezist-nav button').length, 2);
     // ...AND THE VERSE IS A REAL BUTTON, not a div wearing a handler. What the old display
     // checks were protecting -- that this member is never a thing you can press without the
