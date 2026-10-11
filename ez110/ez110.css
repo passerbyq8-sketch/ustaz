@@ -667,26 +667,23 @@ html[data-ez110] [data-ez110-grp="vt"] { display: none; }
 html[data-ez110] .ez110-set-h { grid-column: 1 / -1; margin: 10px 4px 0; }
 html[data-ez110] .ez110-set-h:first-child { margin-top: 0; }
 html[data-ez110] .ez110-set-sub { margin: 4px 0 0; font-size: calc(13px * var(--ez-fs, 1)); color: var(--vt-muted); line-height: 1.5; }
+/* ROUND 2 §4-5: six groups, in the owner's order */
 html[data-ez110] .ez110-set-h[data-ez110-grp="account"] { order: 10; }
 html[data-ez110] .ezsh-group[data-ez110-grp="account"] { order: 11; }
 html[data-ez110] .ez110-set-h[data-ez110-grp="appearance"] { order: 20; }
-html[data-ez110] .ezsh-group[data-ez110-grp="appearance"] { order: 21; }
-html[data-ez110] .ez110-set-h[data-ez110-grp="language"] { order: 30; }
+html[data-ez110] .ezsh-group[data-ez110-grp="appearance-id"] { order: 21; }
+html[data-ez110] .ezsh-group[data-ez110-grp="appearance"] { order: 22; }
+html[data-ez110] .ez110-set-h[data-ez110-grp="reading"] { order: 30; }
+html[data-ez110] .ezsh-group[data-ez110-grp="reading"] { order: 31; }
+html[data-ez110] .ezsh-group[data-ez110-grp="writing"] { order: 32; }
+html[data-ez110] .ez110-set-h[data-ez110-grp="language"] { order: 40; }
 /* the language group's opening tag is pinned by i18nui, so it carries no mark: found by its row */
-html[data-ez110] .ezsh-grid > section.ezsh-group:has(.ezlang-row) { order: 31; }
-html[data-ez110] .ez110-set-h[data-ez110-grp="writing"] { order: 40; }
-html[data-ez110] .ezsh-group[data-ez110-grp="writing"] { order: 41; }
-html[data-ez110] .ez110-set-h[data-ez110-grp="home"] { order: 50; }
-html[data-ez110] .ezsh-group[data-ez110-grp="home"] { order: 51; }
-html[data-ez110] .ez110-set-h[data-ez110-grp="prayer"] { order: 60; }
-/* the prayer group is the sheet's LAST group (wird-guard pins its opening tag, so it carries no mark) */
-html[data-ez110] .ezsh-grid > section.ezsh-group:not([data-ez110-grp]):not(:has(.ezlang-row)):last-of-type { order: 61; }
-html[data-ez110] .ez110-set-h[data-ez110-grp="privacy"] { order: 70; }
-html[data-ez110] .ezsh-group[data-ez110-grp="privacy"] { order: 71; }
-html[data-ez110] .ez110-set-h[data-ez110-grp="parents"] { order: 80; }
-html[data-ez110] .ezsh-group[data-ez110-grp="parents"] { order: 81; }
-html[data-ez110] .ez110-set-h[data-ez110-grp="about"] { order: 90; }
-html[data-ez110] .ezsh-group[data-ez110-grp="about"] { order: 91; }
+html[data-ez110] .ezsh-grid > section.ezsh-group:has(.ezlang-row) { order: 41; }
+html[data-ez110] .ezsh-group[data-ez110-grp="lang-digits"] { order: 42; }
+html[data-ez110] .ez110-set-h[data-ez110-grp="privacy"] { order: 50; }
+html[data-ez110] .ezsh-group[data-ez110-grp="privacy"] { order: 51; }
+html[data-ez110] .ez110-set-h[data-ez110-grp="parents"] { order: 60; }
+html[data-ez110] .ezsh-group[data-ez110-grp="parents"] { order: 61; }
 
 /* segmented choices (identity, numerals): 44px floors, a clear selected state */
 html[data-ez110] .ez110-seg { display: flex; flex-wrap: wrap; gap: 8px; }

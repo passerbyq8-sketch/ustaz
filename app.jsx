@@ -1747,6 +1747,8 @@ const EZ_I18N = {
     'fix.probe.noanswer': '\u0644\u0645 \u064A\u064F\u062C\u0650\u0628\u0650 \u0627\u0644\u062A\u0637\u0628\u064A\u0642\u064F \u0639\u0646 \u062D\u0627\u0644\u0650 \u0627\u0644\u062C\u062F\u0648\u0644\u0629. \u0623\u0639\u0650\u062F\u0650 \u0627\u0644\u0645\u062D\u0627\u0648\u0644\u0629.',
     'fix.loc.slow': '\u062C\u0627\u0631\u064D \u062A\u062D\u062F\u064A\u062F\u064F \u0645\u0648\u0642\u0639\u0650 \u0627\u0644\u062C\u0647\u0627\u0632\u2026 \u0642\u062F \u064A\u0633\u062A\u063A\u0631\u0642\u064F \u0623\u0648\u0651\u0644\u064F \u062A\u062D\u062F\u064A\u062F\u064D \u062F\u0642\u064A\u0642\u0629.',
     'fix.loc.nopos': '\u062A\u0639\u0630\u0651\u0631\u064E \u062A\u062D\u062F\u064A\u062F\u064F \u0627\u0644\u0645\u0648\u0642\u0639\u0650 \u0627\u0644\u0622\u0646\u060C \u0648\u0627\u0644\u0645\u0648\u0636\u0639\u064F \u0627\u0644\u0633\u0627\u0628\u0642\u064F \u0628\u0627\u0642\u064D. \u0623\u0639\u0650\u062F\u0650 \u0627\u0644\u0645\u062D\u0627\u0648\u0644\u0629\u064E \u0641\u064A \u0645\u0643\u0627\u0646\u064D \u0645\u0643\u0634\u0648\u0641.',
+    'ez110.set.reading': '\u0627\u0644\u0642\u0631\u0627\u0621\u0629 \u0648\u0627\u0644\u0643\u062A\u0627\u0628\u0629',
+    'ez110.set.langDigits': '\u0627\u0644\u0644\u063A\u0629 \u0648\u0627\u0644\u0623\u0631\u0642\u0627\u0645',
   },
   en: {
     'common.close': 'Close',
@@ -3083,6 +3085,8 @@ const EZ_I18N = {
     'fix.probe.noanswer': 'The app did not answer about the schedule. Try again.',
     'fix.loc.slow': 'Finding this device\'s location\u2026 the first fix can take a minute.',
     'fix.loc.nopos': 'The location could not be found now; the previous position stays. Try again in the open.',
+    'ez110.set.reading': 'Reading and writing',
+    'ez110.set.langDigits': 'Language and numerals',
   },
 };
 
@@ -9041,11 +9045,13 @@ function Ez110PrayerSettingsSheet({ onClose }) {
 // data-ez110-grp mark); ez110.css orders them under these headings. Not one control is removed,
 // renamed in its behaviour or rewired -- every row below is either new to 110 or a signpost.
 const EZ110_SET_HEADS = [
+  // ROUND 2 §4-5 (owner's table): six groups -- account, appearance, reading and writing, language and numerals,
+  // privacy and data, parents. «About Ezik and support» left Settings: About is in the drawer, support's door is
+  // «suggestion or complaint» there, and the privacy policy and the deletion page are rows of «privacy and data».
   ['account', 'ez110.set.account', null], ['appearance', 'ez110.set.appearance', null],
-  ['language', 'settings.language', 'ez110.set.langHint'], ['writing', 'ez110.set.writing', null],
-  // AMEND-01: no 'home' and no 'prayer' heading -- both groups left Settings for the lit identity
-  ['privacy', 'ez110.set.privacy', null], ['parents', 'ez110.set.parents', null], ['about', 'ez110.set.about', null],
-];
+  ['reading', 'ez110.set.reading', null], ['language', 'ez110.set.langDigits', 'ez110.set.langHint'],
+  ['privacy', 'ez110.set.privacy', null], ['parents', 'ez110.set.parents', null],
+]
 function Ez110SettingsHeads() {
   return (
     <>
@@ -9088,11 +9094,11 @@ function Ez110SettingsExtras({ onOpenControl }) {
   const go = <svg className="ez110-row-go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>;
   return (
     <>
-      <EzShellGroup title={ezT('ez110.set.identity')} hint={ezT('ez110.set.identityHint')} grp="appearance">
+      <EzShellGroup title={ezT('ez110.set.identity')} hint={ezT('ez110.set.identityHint')} grp="appearance-id">
         <Ez110Radio label={ezT('ez110.set.identity')} value={ez.id} onPick={ez110WriteIdentity}
           options={ids.map((id) => ({ v: id, label: ezT('ez110.id.' + id), preview: <Ez110Preview id={id} /> }))} />
       </EzShellGroup>
-      <EzShellGroup title={ezT('ez110.set.digits')} hint={ezT('ez110.set.digitsHint')} grp="appearance">
+      <EzShellGroup title={ezT('ez110.set.digits')} hint={ezT('ez110.set.digitsHint')} grp="lang-digits">
         <Ez110Radio label={ezT('ez110.set.digits')} value={ez.digits} onPick={ez110WriteDigits}
           options={[{ v: 'auto', label: ezT('ez110.set.digits.auto') }, { v: 'arab', label: ezT('ez110.set.digits.arab') }, { v: 'latn', label: ezT('ez110.set.digits.latn') }]} />
       </EzShellGroup>
@@ -9104,9 +9110,7 @@ function Ez110SettingsExtras({ onOpenControl }) {
           </span>
           {go}
         </button>
-      </EzShellGroup>
-      <EzShellGroup title={ezT('ez110.set.about')} grp="about">
-        {[['/support.html', 'ez110.set.support'], ['/privacy.html', 'ez110.set.privacyPolicy'], ['/delete.html', 'ez110.set.deletePage']].map(([href, k]) => (
+        {[['/privacy.html', 'ez110.set.privacyPolicy'], ['/delete.html', 'ez110.set.deletePage']].map(([href, k]) => (
           <a key={href} className="ez110-row" href={href}>
             <span className="ez110-row-text"><span className="ez110-row-title">{ezT(k)}</span></span>
             {go}
@@ -32205,7 +32209,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
         {/* NOT wide: measured at 1440 and 2048, spanning both columns stretched each switch
             row to about 800px with the label at one edge and the toggle at the other. A settings
             row read across a desk is a worse control, not a bigger one. */}
-        <EzShellGroup title={EZIK_A11Y_TITLE} hint={ezT('settings.savedOnDevice')} grp="appearance">
+        <EzShellGroup title={EZIK_A11Y_TITLE} hint={ezT('settings.savedOnDevice')} grp="reading">
           <div style={s.a11yGroupLabel}>{EZIK_A11Y_FS_LABEL}</div>
           <div style={s.themeRow} role="radiogroup" aria-label={EZIK_A11Y_FS_LABEL}>
             {[['normal', EZIK_A11Y_FS_NORMAL], ['large', EZIK_A11Y_FS_LARGE], ['xlarge', EZIK_A11Y_FS_XLARGE]].map(([v, label]) => (
