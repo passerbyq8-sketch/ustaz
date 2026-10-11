@@ -20338,6 +20338,9 @@ function App() {
     return saveProfileFields(p.name, g, String(p.birthYear));
   };
   EZ110_SAVE_GENDER = ez110SaveGender;
+  // ROUND 3 §3-8: a run that showed the entry card (a sign-in or a guest entry) asks no gender
+  const ez110Scr = screen;
+  useEffect(() => { if (ez110Scr === 'onboarding') EZ110_ENTRY_RUN = true; }, [ez110Scr]);
   const [ez110FirstTick, setEz110FirstTick] = useState(0);
   // the call-to-prayer card stays mounted from its press until the system answers (its switch owns the listener)
   const [ez110AdhanStay, setEz110AdhanStay] = useState(false);
@@ -25944,7 +25947,6 @@ function ezikLatinDigits(str) {
 
 function Onboarding({ onStart }) {
   useEzLang();
-  EZ110_ENTRY_RUN = true;   // ROUND 3 §3-8: no gender card in a run that showed the entry card
   // ===== ONE STEP, ONE CARD, ONE ROUTE =====
   // APPLE 4.0.0 TOOK THE SECOND STEP AWAY, AND WHAT IS LEFT HERE IS THE ENTRY DECISION ALONE.
   // Submission e931435e-f171-4da4-b476-c33fd5dde452 (1.0.1 build 11) was refused because a

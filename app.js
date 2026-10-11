@@ -6243,7 +6243,8 @@ setScreen('chat');try{localStorage.setItem('child_profile',JSON.stringify(p));}c
 // than claim a save that a full store refused.
 const saveProfileFields=(name,gender,birthYear)=>{const base=profileRef.current;if(!base)return false;const raw=ezikLatinDigits(birthYear).trim();const yr=parseInt(raw,10);const typed=raw.length>0;if(typed){const derived=new Date().getFullYear()-yr;if(!Number.isInteger(yr)||derived<4||derived>99)return false;}const year=typed?yr:new Date().getFullYear()-ONBOARDING_DEFAULT_AGE;const p={...base,name:String(name||'').trim(),gender:gender||null,birthYear:year,age:new Date().getFullYear()-year};profileRef.current=p;voiceProfileRef.current=p;// غ‑٣: مرآةُ حاجزِ الصوت — تُكتب مع profileRef دائماً
 setProfile(p);try{localStorage.setItem('child_profile',JSON.stringify(p));}catch(e){return false;}return true;};// ROUND 3 §3-8: the gender through the writer above, the stored name and year passed exactly as they are
-const ez110SaveGender=g=>{const p=profileRef.current;if(!ez110GenderWritable(p)||g!=='male'&&g!=='female')return false;return saveProfileFields(p.name,g,String(p.birthYear));};EZ110_SAVE_GENDER=ez110SaveGender;const[ez110FirstTick,setEz110FirstTick]=useState(0);// the call-to-prayer card stays mounted from its press until the system answers (its switch owns the listener)
+const ez110SaveGender=g=>{const p=profileRef.current;if(!ez110GenderWritable(p)||g!=='male'&&g!=='female')return false;return saveProfileFields(p.name,g,String(p.birthYear));};EZ110_SAVE_GENDER=ez110SaveGender;// ROUND 3 §3-8: a run that showed the entry card (a sign-in or a guest entry) asks no gender
+const ez110Scr=screen;useEffect(()=>{if(ez110Scr==='onboarding')EZ110_ENTRY_RUN=true;},[ez110Scr]);const[ez110FirstTick,setEz110FirstTick]=useState(0);// the call-to-prayer card stays mounted from its press until the system answers (its switch owns the listener)
 const[ez110AdhanStay,setEz110AdhanStay]=useState(false);const callAI=async(history,p,{onDelta,onStatus,onLiveOffer,onLessons,liveSearch=false,signal,mode='chat',endpoint='/api/ask'}={})=>{if(!spendGateRef.current)return'';// قفل الإنفاق مغلق ⇐ لا يُنفَق رصيد (يشمل تحيّة الإقلاع 0d)
 // بلا موافقةٍ صريحةٍ سارية: لا سؤال، ولا تصنيف، ولا تحيّةَ إقلاع. يُقرأ المخزنُ هنا لا رايةٌ
 // محفوظةٌ سلفاً، فسحبُ الموافقةِ أثناءَ فتحِ الشاشةِ يُطاع فوراً.
@@ -7841,8 +7842,7 @@ const ONBOARDING_DEFAULT_AGE=19;// ARABIC-INDIC AND EASTERN-ARABIC DIGITS READ A
 // parseInt does not. It is module scope now because the field moved to Settings while the
 // judgement of it stayed with the profile, and one converter serving both is what keeps the
 // line the sheet draws in red and the value the saver refuses the same value.
-function ezikLatinDigits(str){return String(str||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d));}function Onboarding({onStart}){useEzLang();EZ110_ENTRY_RUN=true;// ROUND 3 §3-8: no gender card in a run that showed the entry card
-// ===== ONE STEP, ONE CARD, ONE ROUTE =====
+function ezikLatinDigits(str){return String(str||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d));}function Onboarding({onStart}){useEzLang();// ===== ONE STEP, ONE CARD, ONE ROUTE =====
 // APPLE 4.0.0 TOOK THE SECOND STEP AWAY, AND WHAT IS LEFT HERE IS THE ENTRY DECISION ALONE.
 // Submission e931435e-f171-4da4-b476-c33fd5dde452 (1.0.1 build 11) was refused because a
 // reader who had just signed in with Apple was then asked for a name and a year -- values
