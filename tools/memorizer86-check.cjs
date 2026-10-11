@@ -84,7 +84,7 @@ ok(['HELD', 'RANGES', 'WORDS', 'TESTS', 'RUN', 'PLANS', 'DAYS', 'PREFS'].every((
 const delTool = fs.readFileSync(path.join(REPO, 'tools', 'delete-truth-measure.cjs'), 'utf8');
 ok(['HELD', 'RANGES', 'WORDS', 'TESTS', 'RUN', 'PLANS', 'DAYS', 'PREFS'].every((k) => delTool.includes("{ c: 'MEM86_" + k + "_KEY',\n    clause: 'your place in the Mushaf, your memorisation progress")), 'every key is entered in MUST_GO_NEW beside «your memorisation progress»');
 const sync = appSrc.slice(appSrc.indexOf('function ezikSyncKv()'), appSrc.indexOf('function ezikSyncDeviceOnly()'));
-ok(KEYS.every((k) => !sync.includes(k)) && !/MEM86_/.test(sync), 'no memorizer key is in the sync tables (device only, the owner decides)');
+ok(sync.length > 0 && KEYS.every((k) => !sync.includes(k)) && !/MEM86_/.test(sync), 'no memorizer key is in the sync tables (device only, the owner decides)');
 
 reset();
 ok(eq(X.mem86HeldRead(), {}), 'an empty store reads as nothing memorised');
