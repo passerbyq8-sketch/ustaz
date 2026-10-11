@@ -1879,7 +1879,9 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3322058. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
   //   2026-10-10 -- ITEM 110 (item 110 round 3: entry-run marker in App): app.js 2106820 -> 2106924 bytes, sha256 1e003414..e6bb; index.html 155386.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3322162. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
-  'sw.js': 'af52d47590d0632899d99e779946021feb168678ddba73a13b108362032d7af3',
+  //   2026-10-10 -- ITEM 110 (item 110 station 2: cache ezik-v90 (served ezik-v89 + 1)): app.js 2106924 -> 2106924 bytes, sha256 6009e875..d099; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3322162. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  'sw.js': 'aaa60eea22f1d1086318721ec6dcd6a2b4e38a61412ac969fd87f8a91da18ecc',
 };
 
 // ---------------------------------------------------------------------------
