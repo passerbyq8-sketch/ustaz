@@ -196,7 +196,7 @@ reset();
 let fakeNow = Date.UTC(2026, 9, 11, 9, 0, 0);
 const RealDate = Date;
 sandbox.Date = class extends RealDate { constructor(...a) { super(...(a.length ? a : [fakeNow])); } static now() { return fakeNow; } };
-lift(['mem86Clock', 'mem86Rest', 'mem86Ping', 'mem86Credit']);
+lift(['mem86Clock', 'mem86Rest', 'mem86Ping', 'mem86Credit'].concat(['MEM86_PLAN_UNITS', 'MEM86_PLAN_SCHED', 'mem86PlansRead', 'mem86PlansWrite', 'mem86PlanAyat', 'mem86Weekday', 'mem86PlanDue', 'mem86PlanTarget', 'mem86PlanPortion', 'mem86MinuteOfDay', 'mem86PlansCredit'].filter((n) => TOP.has(n))));
 X.mem86Ping(); fakeNow += 20000; X.mem86Ping(); fakeNow += 20000; X.mem86Ping();
 fakeNow += 120000; X.mem86Ping(); fakeNow += 10000; X.mem86Ping(); X.mem86Rest();
 const dd = X.mem86DaysRead();
@@ -312,6 +312,52 @@ const tokenNames = idx.match(/--mem86-[a-z0-9-]+/g) || [];
 ok(tokenNames.length > 0 && new Set(tokenNames).size === 4, 'exactly four new tokens');
 ok(tokenNames.length > 0 && !/tajw|tajweed|ghunn|madd|ikhf|qalq/i.test(tokenNames.join(' ') + Object.keys(X).filter((k) => /^mem86W/.test(k)).join(' ')), 'nothing is named after a tajweed colour');
 ok(memScreen.length > 0 && /mem86WeakStyle\(prefs\.weak && u\.k, mem86Ref\(selectedSurah, u\.ayah, u\.k\)\)/.test(memScreen) && /mem86WeakStyle\(prefs\.weak, ref\)/.test(memScreen), 'drawn on the visible words of the talqin and of «سمِّعني», behind the switch');
+
+/* ------------------------------------------------------------------ phase 6 */
+section('phase 6 -- plans, sessions, the streak, off-app sessions');
+lift(['MEM86_PLAN_UNITS', 'MEM86_PLAN_SCHED', 'mem86PlansRead', 'mem86PlansWrite', 'mem86PlanAyat', 'mem86Weekday', 'mem86PlanDue', 'mem86PlanTarget', 'mem86PlanPortion', 'mem86PlanStatus', 'mem86MinuteOfDay', 'mem86PlansCredit', 'mem86OffApp']);
+lift(['mem86Credit']);
+X.__mem86PageOf = null;
+const pidx = X.mem86PageIndex(LAYOUT);
+reset();
+const T = '2026-10-11';
+const base = { id: 'p1', name: 'n', kind: 'new', segs: [[112, 1, 114, 6]], rev: false, unit: 'ayat', amt: 3, sched: 'daily', days: [], until: '', adapt: false, pos: 0, cycle: 0, created: '2026-10-01', arch: false, log: {} };
+let pl = X.mem86PlansWrite([base]);
+ok(pl.length === 1 && pl[0].amt === 3, 'a plan is stored and read back');
+ok(JSON.stringify(X.mem86PlanAyat({ ...base, rev: true }, counts).slice(0, 2)) === JSON.stringify([[114, 1], [114, 2]]), 'reverse order runs surah by surah from the last, each surah forward');
+ok(JSON.stringify(X.mem86PlanPortion(pl[0], counts, pidx, T)) === JSON.stringify([[112, 1], [112, 2], [112, 3]]), 'today\'s portion: the next 3 ayat');
+ok(X.mem86PlanPortion({ ...base, unit: 'pages', amt: 1, segs: [[67, 1, 68, 52]] }, counts, pidx, T).every(([sn, a]) => pidx.first[sn + ':' + a] === pidx.first['67:1']), 'a pages plan takes the ayat of the next page only');
+const adapt = { ...base, sched: 'until', until: '2026-10-15', adapt: true };
+ok(X.mem86PlanTarget(adapt, counts, T) === Math.ceil(15 / 5), 'adaptive: 15 ayat left over 5 days = 3 a day');
+ok(X.mem86PlanDue({ ...base, sched: 'days', days: [0] }, T) && !X.mem86PlanDue({ ...base, sched: 'days', days: [1] }, T), 'chosen days: 11 October 2026 is a Sunday');
+ok(!X.mem86PlanDue({ ...base, created: '2026-10-12' }, T), 'a plan is not due before it was created');
+// credit: only ayat inside the plan, only plans of that kind
+pl = X.mem86PlansCredit(T, 'new', [[112, 1], [112, 2], [2, 255]], 0, false);
+ok(pl[0].pos === 2 && pl[0].log[T][0] === 2, 'credit counts the plan\'s own ayat only (2 of 3)');
+ok(X.mem86PlanStatus(pl[0], T, T, {}) === 'part', '2 of a 3-ayah day is partial (yellow)');
+pl = X.mem86PlansCredit(T, 'review', [[112, 3]], 0, false);
+ok(pl[0].pos === 2, 'a review credit does not advance a new-memorisation plan');
+pl = X.mem86PlansCredit(T, 'new', [[112, 3]], 0, false);
+ok(X.mem86PlanStatus(pl[0], T, T, {}) === 'full', 'the third ayah completes the day (green)');
+ok(X.mem86PlanStatus(pl[0], '2026-10-05', T, {}) === 'miss', 'a scheduled past day with nothing done is missed (red)');
+ok(X.mem86PlanStatus({ ...pl[0], sched: 'any' }, '2026-10-05', T, {}) === '', '...but an any-time plan never misses');
+X.mem86PlansWrite([{ ...base, id: 'r1', kind: 'review', segs: [[113, 1, 113, 5]], pos: 4 }]);
+pl = X.mem86PlansCredit(T, 'review', [[113, 5]], 0, false);
+ok(pl[0].pos === 0 && pl[0].cycle === 1, 'a review plan that covers its range starts a new round');
+// the streak and the off-app session
+reset();
+X.mem86DaysAdd('2026-10-09', { r: 3 });
+X.mem86DaysAdd('2026-10-11', { n: 2 });
+ok(X.mem86Streak(X.mem86DaysRead(), T).cur === 1, 'a gap breaks the streak (9th, then 11th)');
+X.mem86PlansWrite([{ ...base, kind: 'review', segs: [[1, 1, 1, 7]] }]);
+const dz = X.mem86OffApp('2026-10-10', 'review', [[1, 1, 1, 7]], 20);
+ok(X.mem86Streak(dz, T).cur === 3 && X.mem86Streak(dz, T).best === 3, 'an off-app session fills the missed day: 3 in a row');
+const pz = X.mem86PlansRead()[0];
+ok(pz.log['2026-10-10'] && pz.log['2026-10-10'][3] === 1 && pz.log['2026-10-10'][1] === 20, 'it counts for the plan and is marked off-app, with its minutes');
+ok(dz['2026-10-10'].o.length === 1 && dz['2026-10-10'].o[0].n === 7, '...and is kept on the day as an off-app session');
+ok(X.mem86Streak({ '2026-10-11': { m: 900, n: 0, r: 0, o: [] } }, T).cur === 0, 'minutes alone make no streak day');
+const wl2 = appSrc.slice(appSrc.indexOf('function dailyWirdLines('), appSrc.indexOf('\n}\n', appSrc.indexOf('function dailyWirdLines(')));
+ok(wl2.length > 0 && !/mem86/.test(wl2), 'the daily wird card is untouched: gate wird evaluates dailyWirdLines alone, so the plan line waits for discussion');
 
 /* ------------------------------------------------------------------ done */
 console.log('\n' + (fail ? 'FAIL' : 'PASS') + '  memorizer86-check  ' + pass + ' passed, ' + fail + ' failed  (lifted ' + LIFT.length + ' initializers from app.jsx)');

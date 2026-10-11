@@ -1877,6 +1877,44 @@ const EZ_I18N = {
     'mem86.weak.l2': 'يحتاج تلميحًا',
     'mem86.weak.l1': 'يتحسّن',
     'mem86.weak.clear': 'امسح سجلّ الكلمة {n}',
+    'mem86.tab.plan': 'خطّتي',
+    'mem86.plan.today': 'اليوم',
+    'mem86.plan.none': 'لا خطط بعد. أنشئ خطّة لترى نصيب كل يوم.',
+    'mem86.plan.restDay': 'لا شيء من خططك مقرّر اليوم.',
+    'mem86.plan.add': 'أنشئ خطّة',
+    'mem86.plan.kind': 'نوع الخطّة',
+    'mem86.plan.new': 'حفظ جديد',
+    'mem86.plan.review': 'مراجعة',
+    'mem86.plan.rev': 'بترتيب معكوس: من الناس إلى الفاتحة',
+    'mem86.plan.unit': 'المقدار',
+    'mem86.plan.uAyat': 'آيات',
+    'mem86.plan.uPages': 'صفحات',
+    'mem86.plan.uMins': 'دقائق',
+    'mem86.plan.uAny': 'أيّ مقدار',
+    'mem86.plan.amount': 'الكمّية لكل يوم',
+    'mem86.plan.sched': 'الجدول',
+    'mem86.plan.daily': 'يوميًّا',
+    'mem86.plan.days': 'أيّام مختارة',
+    'mem86.plan.until': 'حتّى تاريخ',
+    'mem86.plan.anytime': 'أيّ وقت',
+    'mem86.plan.adapt': 'متكيّفة: وزّع الباقي على الأيّام الباقية',
+    'mem86.plan.open': 'افتح',
+    'mem86.plan.archive': 'أرشِف',
+    'mem86.plan.unarchive': 'أعِد من الأرشيف',
+    'mem86.plan.archived': 'أظهِر المؤرشفة',
+    'mem86.plan.progress': '{n} من {of} آية · الدورة {c}',
+    'mem86.plan.st.full': 'مكتملة',
+    'mem86.plan.st.part': 'جزئيّة',
+    'mem86.plan.st.miss': 'فائتة',
+    'mem86.plan.detail': '{n} آية · {m} دقيقة · {t}',
+    'mem86.plan.nothing': 'لا شيء مسجّل في هذا اليوم.',
+    'mem86.plan.off': 'خارج التطبيق',
+    'mem86.streak.title': 'سلسلة المواظبة',
+    'mem86.streak.cur': 'الحالية {n} يوم',
+    'mem86.streak.best': 'الأطول {n} يوم',
+    'mem86.off.add': 'أضف جلسة خارج التطبيق',
+    'mem86.off.date': 'التاريخ',
+    'mem86.off.mins': 'الدقائق',
   },
   en: {
     'common.close': 'Close',
@@ -3343,6 +3381,44 @@ const EZ_I18N = {
     'mem86.weak.l2': 'Needs hints',
     'mem86.weak.l1': 'Improving',
     'mem86.weak.clear': 'Clear the record of word {n}',
+    'mem86.tab.plan': 'My plan',
+    'mem86.plan.today': 'Today',
+    'mem86.plan.none': 'No plans yet. Create one to see each day\'s portion.',
+    'mem86.plan.restDay': 'None of your plans is scheduled today.',
+    'mem86.plan.add': 'Create a plan',
+    'mem86.plan.kind': 'Plan type',
+    'mem86.plan.new': 'New memorization',
+    'mem86.plan.review': 'Review',
+    'mem86.plan.rev': 'Reverse order: from An-Nas to Al-Fatiha',
+    'mem86.plan.unit': 'Amount',
+    'mem86.plan.uAyat': 'Ayat',
+    'mem86.plan.uPages': 'Pages',
+    'mem86.plan.uMins': 'Minutes',
+    'mem86.plan.uAny': 'Any amount',
+    'mem86.plan.amount': 'Per day',
+    'mem86.plan.sched': 'Schedule',
+    'mem86.plan.daily': 'Daily',
+    'mem86.plan.days': 'Chosen days',
+    'mem86.plan.until': 'Until a date',
+    'mem86.plan.anytime': 'Any time',
+    'mem86.plan.adapt': 'Adaptive: spread what is left over the days left',
+    'mem86.plan.open': 'Open',
+    'mem86.plan.archive': 'Archive',
+    'mem86.plan.unarchive': 'Restore from the archive',
+    'mem86.plan.archived': 'Show archived',
+    'mem86.plan.progress': '{n} of {of} ayat · round {c}',
+    'mem86.plan.st.full': 'Complete',
+    'mem86.plan.st.part': 'Partial',
+    'mem86.plan.st.miss': 'Missed',
+    'mem86.plan.detail': '{n} ayat · {m} min · {t}',
+    'mem86.plan.nothing': 'Nothing recorded on this day.',
+    'mem86.plan.off': 'Outside the app',
+    'mem86.streak.title': 'Your streak',
+    'mem86.streak.cur': 'Current {n} days',
+    'mem86.streak.best': 'Longest {n} days',
+    'mem86.off.add': 'Add a session held outside the app',
+    'mem86.off.date': 'Date',
+    'mem86.off.mins': 'Minutes',
   },
 };
 
@@ -33713,7 +33789,7 @@ const mem86PrefsRead = () => {
 const mem86PrefsWrite = (patch) => { mem86Store(MEM86_PREFS_KEY, { ...mem86PrefsRead(), ...(patch || {}) }); return mem86PrefsRead(); };
 
 // ---------- the memorizer's tabs: a tab is drawn only once its phase is built ----------
-const MEM86_TABS = ['learn', 'test', 'progress'];
+const MEM86_TABS = ['learn', 'test', 'plan', 'progress'];
 const Mem86Tabs = ({ tab, onTab }) => (
   <div role="tablist" aria-label={ezT('mem86.tabs')} style={s.mem86Tabs}>
     {MEM86_TABS.map((t) => (
@@ -33895,7 +33971,10 @@ const mem86Ping = () => {
 // What a finished activity earns (section 5-c): fresh = new memorisation, review = ayat reviewed.
 const mem86Credit = (c) => {
   mem86Rest();
-  return mem86DaysAdd(mem86Day(), { n: c.fresh || 0, r: c.review || 0 });
+  const day = mem86Day();
+  if (c.fresh) mem86PlansCredit(day, 'new', c.ayat, 0, false);
+  if (c.review) mem86PlansCredit(day, 'review', c.ayat, 0, false);
+  return mem86DaysAdd(day, { n: c.fresh || 0, r: c.review || 0 });
 };
 // the unit index just past the ayah that holds unit c
 const mem86AyahEnd = (units, c) => {
@@ -34109,7 +34188,7 @@ const Mem86Test = ({ counts, held, ranges, prefs, onPref, isFemale, onSimilar, o
     const rec = { t: r.prevT || Date.now(), shown: r.st.shown, ok: r.st.ok, errs: r.st.errs.slice(0, 300), sur };
     if (!r.temp && r.st.shown > 0) {
       mem86TestsPut(rec);
-      mem86Credit({ review: r.st.ayat.length - (r.st.cred || 0), fresh: 0, segs: r.segs });
+      mem86Credit({ review: r.st.ayat.length - (r.st.cred || 0), fresh: 0, ayat: r.st.ayat.slice(r.st.cred || 0).map((g) => mem86SA(mem86Offsets(counts), g)) });
     }
     setRun({ ...r, prevT: rec.t, st: { ...r.st, cred: r.st.ayat.length } });
     setResult({ ...rec, ms, limitHit: r.cfg.tLimit === 'count' ? r.st.shown >= r.cfg.tCount : r.cfg.tLimit === 'time' ? ms >= r.cfg.tMins * 60000 : false, removed: [] });
@@ -34402,6 +34481,312 @@ const Mem86WeakKey = ({ on, onFlip }) => (
     ) : null}
   </div>
 );
+
+// ---------- «خطّتي»: plans, their sessions, the streak, and sessions held away from the app ----------
+const MEM86_PLAN_UNITS = ['ayat', 'pages', 'mins', 'any'];
+const MEM86_PLAN_SCHED = ['daily', 'days', 'until', 'any'];
+const mem86PlansRead = () => {
+  const v = mem86Load(MEM86_PLANS_KEY);
+  const counts = mem86Counts();
+  if (!Array.isArray(v) || !counts) return [];
+  const isDay = (d) => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d);
+  const out = [];
+  for (const p of v) {
+    if (!mem86Obj(p) || typeof p.id !== 'string' || !p.id || p.id.length > 24) continue;
+    const segs = mem86SegsClean(p.segs, counts);
+    if (!segs.length) continue;
+    const log = {};
+    if (mem86Obj(p.log)) for (const d in p.log) {
+      const e = p.log[d];
+      if (!isDay(d) || !Array.isArray(e) || e.length !== 5) continue;
+      const x = e.map((n) => mem86Int(n, 0, 99999));
+      if (x.every((n) => n !== null)) log[d] = x;
+    }
+    out.push({
+      id: p.id, name: typeof p.name === 'string' ? p.name.slice(0, 60) : '', kind: p.kind === 'review' ? 'review' : 'new', segs, rev: !!p.rev,
+      unit: MEM86_PLAN_UNITS.indexOf(p.unit) !== -1 ? p.unit : 'ayat', amt: mem86Int(p.amt, 1, 999) || 5,
+      sched: MEM86_PLAN_SCHED.indexOf(p.sched) !== -1 ? p.sched : 'daily',
+      days: Array.isArray(p.days) ? p.days.filter((x) => mem86Int(x, 0, 6) !== null).slice(0, 7) : [],
+      until: isDay(p.until) ? p.until : '', adapt: !!p.adapt, pos: mem86Int(p.pos, 0, 6236) || 0, cycle: mem86Int(p.cycle, 0, 9999) || 0,
+      created: isDay(p.created) ? p.created : mem86Day(), arch: !!p.arch, log,
+    });
+    if (out.length >= 20) break;
+  }
+  return out;
+};
+const mem86PlansWrite = (list) => {
+  const l = (list || []).slice(0, 20).map((p) => ({ ...p, log: { ...p.log } }));
+  while (!mem86Store(MEM86_PLANS_KEY, l)) {   // over the ceiling: the oldest session days go first
+    let cut = false;
+    for (const p of l) { const ks = Object.keys(p.log).sort(); if (ks.length > 30) { delete p.log[ks[0]]; cut = true; } }
+    if (!cut) break;
+  }
+  return mem86PlansRead();
+};
+// the plan's ayat in its order; reversed means surah by surah from the last surah back, each surah read forward
+const mem86PlanAyat = (p, counts) => {
+  const list = mem86SegsList(p.segs, counts);
+  if (!p.rev) return list;
+  const groups = [];
+  for (const x of list) { const g = groups[groups.length - 1]; if (g && g[0][0] === x[0]) g.push(x); else groups.push([x]); }
+  return [].concat(...groups.reverse());
+};
+const mem86Weekday = (day) => { const [y, m, d] = day.split('-').map(Number); return new Date(y, m - 1, d).getDay(); };
+const mem86PlanDue = (p, day) => {
+  if (p.arch || day < p.created) return false;
+  if (p.sched === 'days') return p.days.indexOf(mem86Weekday(day)) !== -1;
+  if (p.sched === 'until') return !p.until || day <= p.until;
+  return true;
+};
+// how much one day asks: ayat, or minutes for a minutes plan; 0 = any amount
+const mem86PlanTarget = (p, counts, day) => {
+  if (p.unit === 'any') return 0;
+  if (p.unit === 'mins') return p.amt;
+  const left = Math.max(0, mem86PlanAyat(p, counts).length - p.pos);
+  if (p.adapt && p.sched === 'until' && p.until) {
+    let d = day, n = 0;
+    while (d <= p.until && n < 3660) { if (mem86PlanDue(p, d)) n++; d = mem86DayShift(d, 1); }
+    return n ? Math.ceil(left / n) : left;
+  }
+  return p.unit === 'ayat' ? p.amt : 0;
+};
+// today's portion: the next ayat of the plan ([s, a] pairs)
+const mem86PlanPortion = (p, counts, pages, day) => {
+  const list = mem86PlanAyat(p, counts);
+  const from = Math.min(p.pos, list.length);
+  if (from >= list.length) return [];
+  let n = 1;
+  if (p.unit === 'pages' && pages && !(p.adapt && p.sched === 'until')) {
+    const p0 = pages.first[list[from][0] + ':' + list[from][1]] || 0;
+    n = 0;
+    while (from + n < list.length && (pages.first[list[from + n][0] + ':' + list[from + n][1]] || 0) < p0 + p.amt) n++;
+  } else if (p.unit === 'ayat' || (p.adapt && p.sched === 'until')) n = Math.max(1, mem86PlanTarget(p, counts, day));
+  return list.slice(from, from + n);
+};
+// a day's state: 'full' green, 'part' yellow, 'miss' red, '' nothing due or nothing yet today
+const mem86PlanStatus = (p, day, today, days) => {
+  const e = p.log[day];
+  const mins = Math.round(((days[day] && days[day].m) || 0) / 60) + (e ? e[1] : 0);
+  if (p.unit === 'mins') {
+    if (mins >= p.amt) return 'full';
+    if (mins > 0 && (e || mem86DayActive(days[day]))) return 'part';
+  } else if (e && (e[0] > 0 || e[1] > 0)) {
+    if (p.unit === 'any' || e[0] >= Math.max(1, e[4])) return 'full';
+    return 'part';
+  }
+  if (p.sched !== 'any' && day < today && mem86PlanDue(p, day)) return 'miss';
+  return '';
+};
+const mem86MinuteOfDay = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
+// credit the plans of one kind with the ayat just earned (and minutes held away from the app)
+const mem86PlansCredit = (day, kind, ayat, mins, off) => {
+  const counts = mem86Counts();
+  if (!counts) return mem86PlansRead();
+  const plans = mem86PlansRead();
+  let changed = false;
+  for (const p of plans) {
+    if (p.arch || p.kind !== kind) continue;
+    const list = mem86PlanAyat(p, counts);
+    const inPlan = new Set(list.map(([sn, a]) => sn + ':' + a));
+    const hit = (ayat || []).filter(([sn, a]) => inPlan.has(sn + ':' + a)).length;
+    if (!hit && !mins) continue;
+    const e = p.log[day] ? p.log[day].slice() : [0, 0, 0, 0, mem86PlanTarget(p, counts, day) || mem86PlanPortion(p, counts, __mem86PageOf, day).length];
+    e[0] = Math.min(99999, e[0] + hit); e[1] = Math.min(99999, e[1] + (mins || 0)); e[2] = mem86MinuteOfDay(); if (off) e[3] = 1;
+    p.log[day] = e;
+    p.pos += hit;
+    if (p.pos >= list.length) { if (p.kind === 'review') { p.pos = 0; p.cycle++; } else p.pos = list.length; }
+    changed = true;
+  }
+  return changed ? mem86PlansWrite(plans) : plans;
+};
+// a session held away from the app: up to 30 days back; it counts for the streak and the plans
+const mem86OffApp = (day, kind, segs, min) => {
+  const counts = mem86Counts();
+  const ayat = mem86SegsList(segs, counts);
+  mem86PlansCredit(day, kind, ayat, min, true);
+  return mem86DaysAdd(day, { o: { k: kind, min, n: ayat.length } });
+};
+const mem86PortionLabel = (por) => {
+  if (!por.length) return '';
+  const [s1, a1] = por[0], [s2, a2] = por[por.length - 1];
+  return s1 === s2 ? SURAH_NAMES[s1] + ' ' + toArabicDigits(a1) + (a2 !== a1 ? '–' + toArabicDigits(a2) : '')
+    : SURAH_NAMES[s1] + ' ' + toArabicDigits(a1) + ' – ' + SURAH_NAMES[s2] + ' ' + toArabicDigits(a2);
+};
+const mem86Locale = () => (EZ_LANG === 'ku' ? 'ckb' : EZ_LANG);
+const mem86DayLabel = (day, opts) => { const [y, m, d] = day.split('-').map(Number); try { return new Date(y, m - 1, d).toLocaleDateString(mem86Locale(), opts); } catch (e) { return day; } };
+
+const Mem86PlanForm = ({ counts, held, ranges, initial, onDone, onCancel }) => {
+  const [p, setP] = useState(() => initial || { id: mem86NewId(), name: '', kind: 'new', segs: [], rev: false, unit: 'ayat', amt: 5, sched: 'daily', days: [], until: '', adapt: false, pos: 0, cycle: 0, created: mem86Day(), arch: false, log: {} });
+  const [src, setSrc] = useState(initial ? '' : (mem86HeldTotal(held) ? 'held' : 'starter'));
+  const set = (patch) => setP({ ...p, ...patch });
+  const segs = src === 'held' ? mem86SegsClean(mem86HeldSegs(held), counts) : src === 'starter' ? mem86StarterSegs(counts)
+    : src ? ((ranges.find((r) => r.id === src) || {}).segs || []) : p.segs;
+  const autoName = ezT(p.kind === 'review' ? 'mem86.plan.review' : 'mem86.plan.new') + ' · ' + mem86SegsLabel(segs, counts);
+  return (
+    <div style={s.mem86Card}>
+      <Mem86Seg label={ezT('mem86.plan.kind')} value={p.kind} onPick={(v) => set({ kind: v })} opts={[['new', ezT('mem86.plan.new')], ['review', ezT('mem86.plan.review')]]} />
+      <label style={s.mem86Label}>{ezT('mem86.test.range')}
+        <select value={src} onChange={(e) => setSrc(e.target.value)} style={s.mem86Sel}>
+          {initial ? <option value="">{mem86SegsLabel(initial.segs, counts)}</option> : null}
+          {mem86HeldTotal(held) ? <option value="held">{ezT('mem86.range.byHeld')}</option> : null}
+          <option value="starter">{ezT('mem86.test.starter')}</option>
+          {ranges.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+        </select></label>
+      <div style={s.mem86Note}>{mem86SegsLabel(segs, counts)}</div>
+      <Mem86Switch on={p.rev} onFlip={(v) => set({ rev: v })} label={ezT('mem86.plan.rev')} />
+      <label style={s.mem86Label}>{ezT('mem86.range.name')}
+        <input type="text" maxLength={60} value={p.name} placeholder={autoName} onChange={(e) => set({ name: e.target.value })} style={s.mem86Text} /></label>
+      <div style={s.mem86Note}>{ezT('mem86.plan.unit')}</div>
+      <Mem86Seg label={ezT('mem86.plan.unit')} value={p.unit} onPick={(v) => set({ unit: v })}
+        opts={[['ayat', ezT('mem86.plan.uAyat')], ['pages', ezT('mem86.plan.uPages')], ['mins', ezT('mem86.plan.uMins')], ['any', ezT('mem86.plan.uAny')]]} />
+      {p.unit !== 'any' ? (
+        <label style={s.mem86Label}>{ezT('mem86.plan.amount')}
+          <Mem86NumIn value={p.amt} min={1} max={999} onSet={(n) => set({ amt: n })} /></label>
+      ) : null}
+      <div style={s.mem86Note}>{ezT('mem86.plan.sched')}</div>
+      <Mem86Seg label={ezT('mem86.plan.sched')} value={p.sched} onPick={(v) => set({ sched: v })}
+        opts={[['daily', ezT('mem86.plan.daily')], ['days', ezT('mem86.plan.days')], ['until', ezT('mem86.plan.until')], ['any', ezT('mem86.plan.anytime')]]} />
+      {p.sched === 'days' ? (
+        <div style={s.mem86SegRow}>
+          {[0, 1, 2, 3, 4, 5, 6].map((wd) => {
+            const on = p.days.indexOf(wd) !== -1;
+            const label = new Date(2026, 9, 11 + wd).toLocaleDateString(mem86Locale(), { weekday: 'short' });
+            return <button key={wd} type="button" aria-pressed={on ? 'true' : 'false'} onClick={() => set({ days: on ? p.days.filter((x) => x !== wd) : p.days.concat([wd]) })}
+              style={{ ...s.mem86Chip, ...(on ? s.mem86ChipOn : null) }}>{label}</button>;
+          })}
+        </div>
+      ) : null}
+      {p.sched === 'until' ? (
+        <div>
+          <input type="date" value={p.until} min={mem86Day()} onChange={(e) => set({ until: e.target.value })} style={s.mem86Sel} aria-label={ezT('mem86.plan.until')} />
+          <Mem86Switch on={p.adapt} onFlip={(v) => set({ adapt: v })} label={ezT('mem86.plan.adapt')} />
+        </div>
+      ) : null}
+      <div style={s.mem86Row}>
+        <button type="button" style={s.mem86BtnMain} disabled={!segs.length || (p.sched === 'days' && !p.days.length) || (p.sched === 'until' && !p.until)}
+          onClick={() => onDone({ ...p, segs, name: p.name.trim() || autoName, pos: src ? 0 : p.pos })}>{ezT('mem86.save')}</button>
+        <button type="button" style={s.mem86BtnQuiet} onClick={onCancel}>{ezT('mem86.cancel')}</button>
+      </div>
+    </div>
+  );
+};
+
+const Mem86Plans = ({ counts, held, ranges, onOpen }) => {
+  const [plans, setPlans] = useState(mem86PlansRead);
+  const [days, setDays] = useState(mem86DaysRead);
+  const [editing, setEditing] = useState(null);
+  const [showArch, setShowArch] = useState(false);
+  const [pick, setPick] = useState('');               // 'planId|day' whose details are open
+  const [off, setOff] = useState(null);               // the off-app form
+  const [pages, setPages] = useState(__mem86PageOf);
+  useEffect(() => { loadLayout().then((l) => setPages(mem86PageIndex(l))).catch(() => {}); }, []);
+  if (!counts) return <div style={s.mem86Note}>{MEM.LOADING}</div>;
+  const today = mem86Day();
+  const nm = (p) => p.name || (ezT(p.kind === 'review' ? 'mem86.plan.review' : 'mem86.plan.new') + ' · ' + mem86SegsLabel(p.segs, counts));
+  const put = (next) => setPlans(mem86PlansWrite(next));
+  const streak = mem86Streak(days, today);
+  const last14 = Array.from({ length: 14 }, (_, i) => mem86DayShift(today, i - 13));
+  const due = plans.filter((p) => mem86PlanDue(p, today));
+  const offSegs = off ? (off.src === 'held' ? mem86SegsClean(mem86HeldSegs(held), counts) : off.src === 'starter' ? mem86StarterSegs(counts) : ((ranges.find((r) => r.id === off.src) || {}).segs || [])) : [];
+  return (
+    <div>
+      <section style={s.mem86Card}>
+        <div style={s.mem86H}>{ezT('mem86.plan.today')}</div>
+        {!due.length ? <div style={s.mem86Note}>{ezT(plans.length ? 'mem86.plan.restDay' : 'mem86.plan.none')}</div> : null}
+        {due.map((p) => {
+          const por = mem86PlanPortion(p, counts, pages, today);
+          const st = mem86PlanStatus(p, today, today, days);
+          return (
+            <div key={p.id} style={s.mem86ListRow}>
+              <div style={s.mem86Grow}>
+                <div style={s.mem86Strong}>{nm(p)}</div>
+                <div style={s.mem86Note}>{p.unit === 'mins' ? ezT('mem86.minN', { n: toArabicDigits(p.amt) }) : mem86PortionLabel(por)}</div>
+                {st ? <span style={{ ...s.mem86Pill, ...s[st === 'full' ? 'mem86W1' : st === 'part' ? 'mem86W2' : 'mem86W4'] }}>{ezT('mem86.plan.st.' + st)}</span> : null}
+              </div>
+              {por.length ? <button type="button" style={s.mem86BtnMain} onClick={() => onOpen(por[0][0], por[0][1], p.kind)}>{ezT('mem86.plan.open')}</button> : null}
+            </div>
+          );
+        })}
+      </section>
+      <section style={s.mem86Card}>
+        <div style={s.mem86H}>{ezT('mem86.streak.title')}</div>
+        <div style={s.mem86Row}>
+          <span style={s.mem86Pill}>{ezT('mem86.streak.cur', { n: toArabicDigits(streak.cur) })}</span>
+          <span style={s.mem86Pill}>{ezT('mem86.streak.best', { n: toArabicDigits(streak.best) })}</span>
+        </div>
+        {off ? (
+          <div>
+            <label style={s.mem86Label}>{ezT('mem86.off.date')}
+              <select value={off.day} onChange={(e) => setOff({ ...off, day: e.target.value })} style={s.mem86Sel}>
+                {Array.from({ length: 31 }, (_, i) => mem86DayShift(today, -i)).map((d) => <option key={d} value={d}>{mem86DayLabel(d, { weekday: 'short', day: 'numeric', month: 'short' })}</option>)}
+              </select></label>
+            <Mem86Seg label={ezT('mem86.plan.kind')} value={off.kind} onPick={(v) => setOff({ ...off, kind: v })} opts={[['new', ezT('mem86.plan.new')], ['review', ezT('mem86.plan.review')]]} />
+            <label style={s.mem86Label}>{ezT('mem86.test.range')}
+              <select value={off.src} onChange={(e) => setOff({ ...off, src: e.target.value })} style={s.mem86Sel}>
+                {mem86HeldTotal(held) ? <option value="held">{ezT('mem86.range.byHeld')}</option> : null}
+                <option value="starter">{ezT('mem86.test.starter')}</option>
+                {ranges.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+              </select></label>
+            <div style={s.mem86Note}>{mem86SegsLabel(offSegs, counts)}</div>
+            <label style={s.mem86Label}>{ezT('mem86.off.mins')}
+              <Mem86NumIn value={off.min} min={1} max={600} onSet={(n) => setOff({ ...off, min: n })} /></label>
+            <div style={s.mem86Row}>
+              <button type="button" style={s.mem86BtnMain} disabled={!offSegs.length} onClick={() => { setDays(mem86OffApp(off.day, off.kind, offSegs, off.min)); setPlans(mem86PlansRead()); setOff(null); }}>{ezT('mem86.save')}</button>
+              <button type="button" style={s.mem86BtnQuiet} onClick={() => setOff(null)}>{ezT('mem86.cancel')}</button>
+            </div>
+          </div>
+        ) : (
+          <button type="button" style={s.mem86Btn} onClick={() => setOff({ day: today, kind: 'review', src: mem86HeldTotal(held) ? 'held' : 'starter', min: 15 })}>{ezT('mem86.off.add')}</button>
+        )}
+      </section>
+      <section style={s.mem86Sec}>
+        <div style={s.mem86H}>{ezT('mem86.tab.plan')}</div>
+        {plans.filter((p) => showArch ? p.arch : !p.arch).map((p) => {
+          const total = mem86PlanAyat(p, counts).length;
+          return (
+            <div key={p.id} style={s.mem86Card}>
+              <div style={s.mem86Strong}>{nm(p)}</div>
+              <div style={s.mem86Note}>{ezT('mem86.plan.progress', { n: toArabicDigits(Math.min(p.pos, total)), of: toArabicDigits(total), c: toArabicDigits(p.cycle + 1) })}</div>
+              <span style={s.mem86Bar} aria-hidden="true"><span style={{ ...s.mem86BarFill, width: Math.round((100 * Math.min(p.pos, total)) / Math.max(1, total)) + '%' }} /></span>
+              <div style={s.mem86SegRow}>
+                {last14.map((d) => {
+                  const st = mem86PlanStatus(p, d, today, days);
+                  return <button key={d} type="button" aria-label={mem86DayLabel(d, { day: 'numeric', month: 'short' }) + (st ? ' · ' + ezT('mem86.plan.st.' + st) : '')}
+                    onClick={() => setPick(pick === p.id + '|' + d ? '' : p.id + '|' + d)}
+                    style={{ ...s.mem86DayCell, ...(st ? s[st === 'full' ? 'mem86W1' : st === 'part' ? 'mem86W2' : 'mem86W4'] : null) }}>{toArabicDigits(Number(d.slice(8)))}</button>;
+                })}
+              </div>
+              {pick.split('|')[0] === p.id ? (() => {
+                const d = pick.split('|')[1];
+                const e = p.log[d];
+                const mins = Math.round(((days[d] && days[d].m) || 0) / 60) + (e ? e[1] : 0);
+                return (
+                  <div style={s.mem86Note}>
+                    {mem86DayLabel(d, { weekday: 'long', day: 'numeric', month: 'long' }) + ' · '}
+                    {e || mins ? ezT('mem86.plan.detail', { n: toArabicDigits(e ? e[0] : 0), m: toArabicDigits(mins), t: e ? toArabicDigits(String(Math.floor(e[2] / 60)).padStart(2, '0') + ':' + String(e[2] % 60).padStart(2, '0')) : '—' }) : ezT('mem86.plan.nothing')}
+                    {e && e[3] ? ' · ' + ezT('mem86.plan.off') : ''}
+                  </div>
+                );
+              })() : null}
+              <div style={s.mem86Row}>
+                <button type="button" style={s.mem86BtnQuiet} onClick={() => setEditing(p)}>{ezT('mem86.edit')}</button>
+                <button type="button" style={s.mem86BtnQuiet} onClick={() => put(plans.map((x) => (x.id === p.id ? { ...x, arch: !x.arch } : x)))}>{ezT(p.arch ? 'mem86.plan.unarchive' : 'mem86.plan.archive')}</button>
+                <button type="button" style={s.mem86BtnQuiet} onClick={() => put(plans.filter((x) => x.id !== p.id))}>{ezT('mem86.delete')}</button>
+              </div>
+            </div>
+          );
+        })}
+        {plans.some((p) => p.arch) ? <Mem86Switch on={showArch} onFlip={setShowArch} label={ezT('mem86.plan.archived')} /> : null}
+        {editing ? (
+          <Mem86PlanForm counts={counts} held={held} ranges={ranges} initial={editing === 'new' ? null : editing} onCancel={() => setEditing(null)}
+            onDone={(p) => { put(editing === 'new' ? plans.concat([p]) : plans.map((x) => (x.id === p.id ? p : x))); setEditing(null); }} />
+        ) : (
+          <button type="button" style={s.mem86Btn} onClick={() => setEditing('new')}>{ezT('mem86.plan.add')}</button>
+        )}
+      </section>
+    </div>
+  );
+};
 
 // ---------- «تقدّمي»: what is memorised, surah by surah ----------
 const Mem86Progress = ({ counts, held, onHeld }) => {
@@ -37078,7 +37463,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     if (!allRevealed || !manualHidRef.current || drillMode !== 'manual') return;
     manualHidRef.current = false;
     setHeld(mem86HeldSet(selectedSurah, startAyah, surahCount, true));
-    mem86Credit({ fresh: surahCount - startAyah + 1, review: 0 });
+    mem86Credit({ fresh: surahCount - startAyah + 1, review: 0, ayat: mem86SegsList([[selectedSurah, startAyah, selectedSurah, surahCount]], mem86Counts()) });
   }, [allRevealed]);
   // active minutes: a touch while revealing counts, a gap over 60 s does not
   useEffect(() => {
@@ -37153,7 +37538,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     reciteCleanRef.current = false;
     const n = surahCount - startAyah + 1;
     if (reciteHiddenRef.current) setHeld(mem86HeldSet(selectedSurah, startAyah, surahCount, true));
-    mem86Credit({ fresh: reciteHiddenRef.current ? n : 0, review: n });
+    mem86Credit({ fresh: reciteHiddenRef.current ? n : 0, review: n, ayat: mem86SegsList([[selectedSurah, startAyah, selectedSurah, surahCount]], mem86Counts()) });
   };
   const pauseRecite = () => { const at = reciteAyahRef.current || startAyah; stopRecite(); mem86Rest(); setRecitePaused(at); };
   const reciteHint = (rest) => {
@@ -37347,6 +37732,8 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         </section>
         <Mem86Tabs tab={tab} onTab={setTab} />
         {tab === 'test' ? <Mem86Test counts={ready ? mem86Counts() : null} held={held} ranges={mem86RangesRead()} prefs={prefs} onPref={setPref} isFemale={isFemale} onWeak={(ref) => mem86WeakStyle(prefs.weak, ref)} /> : null}
+        {tab === 'plan' ? <Mem86Plans counts={ready ? mem86Counts() : null} held={held} ranges={mem86RangesRead()}
+          onOpen={(sn, a, kind) => { setSelectedSurah(sn); setStartAyah(a); setTab('learn'); setView('drill'); setRevealedCount(0); setAdnanEnd(0); setDrillMode(kind === 'review' ? 'recite' : 'manual'); }} /> : null}
         {tab === 'progress' ? <Mem86Progress counts={ready ? mem86Counts() : null} held={held} onHeld={setHeld} /> : null}
         <div hidden={tab !== 'learn'}>
         {/* THE CANONICAL 114, from the same source and in the same order as before: the range
@@ -38951,6 +39338,7 @@ const s = {
   mem86W3: { background: 'var(--mem86-w3)', borderRadius: 6 },
   mem86W4: { background: 'var(--mem86-w4)', borderRadius: 6 },
   mem86Swatch: { display: 'inline-block', width: 16, height: 16, borderRadius: 4, border: '1px solid var(--line)' },
+  mem86DayCell: { minWidth: 44, minHeight: 44, borderRadius: 10, background: 'var(--tint)', color: 'var(--ink)', border: '1px solid var(--line)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', fontSize: 13, fontWeight: 700 },
   mem86CardHeld: { fontSize: 11.5, fontWeight: 700, color: 'var(--ink)' },
   memResetBtn: { width: 50, height: 50, borderRadius: 14, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 
