@@ -3,7 +3,7 @@
 // Verified by `npm run verify:build` and by the gate `babel`, which regenerate this file
 // and fail on any difference. An edit made here is overwritten by the next build and is
 // reported as a difference by the gate before that.
-var EZIK_APP_VERSION = "ezik-v91";
+var EZIK_APP_VERSION = "ezik-v92";
 var EZIK_ENABLED_LANGS = ["ar","en","fr","fa","ur","id"];
 const{useState,useEffect,useRef}=React;// ============================================================
 // S116 -- THE INTERFACE LANGUAGE (ar / en). READ THIS BEFORE ADDING A KEY.
@@ -2180,7 +2180,7 @@ const onLocal=()=>setVtheme(readEzikVisualTheme());const onStorage=e=>{if(!e||!e
 // The owner is recognised by a code, never by an e-mail and never by a request: the device keeps
 // the code it was given, and this file keeps only its SHA-256 (EZ110_UNLOCK_SHA).
 // DESIGN-SYSTEM.md (item 110 session folder) governs every value the lit parts draw.
-const EZ110_PARTS={safe:'owner',b:'owner',c:'owner',d:'owner',e:'owner',fix:'owner'};const EZ110_IDS=['b','c','d','e'];const EZ110_UNLOCK_KEY='ezik_110_unlock_v1';const EZ110_IDENTITY_KEY='ezik_110_identity_v1';const EZ110_DIGITS_KEY='ezik_110_digits_v1';// ROUND 3 §3-2: the two chosen slots of the bottom bar -- a DEVICE key (never synced, wiped by «حذف كل بياناتي»)
+const EZ110_PARTS={safe:'public',b:'public',c:'owner',d:'owner',e:'owner',fix:'public'};const EZ110_IDS=['b','c','d','e'];const EZ110_UNLOCK_KEY='ezik_110_unlock_v1';const EZ110_IDENTITY_KEY='ezik_110_identity_v1';const EZ110_DIGITS_KEY='ezik_110_digits_v1';// ROUND 3 §3-2: the two chosen slots of the bottom bar -- a DEVICE key (never synced, wiped by «حذف كل بياناتي»)
 const EZ110_BAR_KEY='ezik_110_bar_v1';// ROUND 3 §3-8: the gender card of the empty chat was answered on this install (a press in it, never its showing)
 const EZ110_GENDER_ASKED_KEY='ezik_110_gender_asked_v1';// ROUND 3 §3-11: the call-to-prayer card of the empty chat was answered on this install (a press in it)
 const EZ110_ADHAN_ASKED_KEY='ezik_110_adhan_asked_v1';// ROUND 3 §3-9-2: the interface font the reader chose (absent = the identity's own)
