@@ -1871,6 +1871,12 @@ const EZ_I18N = {
     'mem86.q.right': 'صحيح بلا خطأ',
     'mem86.q.wrong': 'أخطأتُ',
     'mem86.q.skip': 'تخطَّ',
+    'mem86.weak.show': 'أظهِر مواضع الضعف',
+    'mem86.weak.l4': 'كثير الخطأ',
+    'mem86.weak.l3': 'يخطئ أحيانًا',
+    'mem86.weak.l2': 'يحتاج تلميحًا',
+    'mem86.weak.l1': 'يتحسّن',
+    'mem86.weak.clear': 'امسح سجلّ الكلمة {n}',
   },
   en: {
     'common.close': 'Close',
@@ -3331,6 +3337,12 @@ const EZ_I18N = {
     'mem86.q.right': 'Right, no mistake',
     'mem86.q.wrong': 'I made a mistake',
     'mem86.q.skip': 'Skip',
+    'mem86.weak.show': 'Show weak spots',
+    'mem86.weak.l4': 'Often wrong',
+    'mem86.weak.l3': 'Sometimes wrong',
+    'mem86.weak.l2': 'Needs hints',
+    'mem86.weak.l1': 'Improving',
+    'mem86.weak.clear': 'Clear the record of word {n}',
   },
 };
 
@@ -33906,6 +33918,7 @@ const Mem86ReciteOpts = ({ listening, paused, onPause, onResume, onHint, prefs, 
     {!listening && paused ? <button type="button" style={s.mem86BtnMain} onClick={onResume}>{ezT('mem86.resume')}</button> : null}
     <Mem86Switch on={prefs.dim} onFlip={(v) => onPref({ dim: v })} label={ezT('mem86.opt.dim')} />
     <Mem86Switch on={prefs.hideNums} onFlip={(v) => onPref({ hideNums: v })} label={ezT('mem86.opt.hideNums')} />
+    <Mem86WeakKey on={prefs.weak} onFlip={(v) => onPref({ weak: v })} />
   </div>
 );
 
@@ -34245,6 +34258,7 @@ const Mem86Test = ({ counts, held, ranges, prefs, onPref, isFemale, onSimilar, o
         <div style={s.mem86Note}>{ezT('mem86.res.ok', { n: toArabicDigits(result.ok), of: toArabicDigits(result.shown) })}</div>
         <div style={s.mem86Note}>{isFemale ? MEM.FINISH_F : MEM.FINISH_M}</div>
         {Object.keys(byAyah).length ? <div style={s.mem86H}>{ezT('mem86.res.errs')}</div> : <div style={s.mem86Note}>{ezT('mem86.res.noErrs')}</div>}
+        {Object.keys(byAyah).length ? <Mem86WeakKey on={prefs.weak} onFlip={(v) => onPref({ weak: v })} /> : null}
         {Object.keys(byAyah).map((k) => {
           const [sn, a] = k.split(':').map(Number);
           const words = mem86AyahWords(sn, a);
@@ -34263,6 +34277,9 @@ const Mem86Test = ({ counts, held, ranges, prefs, onPref, isFemale, onSimilar, o
                   {byAyah[k].map((r) => (
                     <button key={r} type="button" style={s.mem86BtnQuiet} onClick={() => toggle(r)}>
                       {ezT(result.removed.indexOf(r) === -1 ? 'mem86.res.drop' : 'mem86.res.keep', { n: toArabicDigits(r.split(':')[2]) })}</button>
+                  ))}
+                  {byAyah[k].map((r) => (
+                    <button key={'c' + r} type="button" style={s.mem86BtnQuiet} onClick={() => { mem86WordsLog([r], 'clear'); setTick((x) => x + 1); }}>{ezT('mem86.weak.clear', { n: toArabicDigits(r.split(':')[2]) })}</button>
                   ))}
                   {onSimilar ? <button type="button" style={s.mem86BtnQuiet} onClick={() => onSimilar(sn, a)}>{ezT('mem86.sim.btn')}</button> : null}
                 </div>
@@ -34362,6 +34379,29 @@ const Mem86Test = ({ counts, held, ranges, prefs, onPref, isFemale, onSimilar, o
     </section>
   );
 };
+
+// ---------- the weakness map: four bands from the word log, drawn on words already visible ----------
+let __mem86WeakRaw = null, __mem86WeakMap = {};
+const mem86WeakMap = () => {
+  let raw = null;
+  try { raw = localStorage.getItem(MEM86_WORDS_KEY); } catch (e) {}
+  if (raw === __mem86WeakRaw) return __mem86WeakMap;
+  const log = mem86WordsRead(), m = {};
+  for (const r in log) { const l = mem86WordLevel(log[r]); if (l) m[r] = l; }
+  __mem86WeakRaw = raw; __mem86WeakMap = m;
+  return m;
+};
+const mem86WeakStyle = (on, ref) => { if (!on) return null; const l = mem86WeakMap()[ref]; return l ? s['mem86W' + l] : null; };
+const Mem86WeakKey = ({ on, onFlip }) => (
+  <div>
+    <Mem86Switch on={on} onFlip={onFlip} label={ezT('mem86.weak.show')} />
+    {on ? (
+      <div style={s.mem86Row}>
+        {[4, 3, 2, 1].map((l) => <span key={l} style={s.mem86Label}><span style={{ ...s.mem86Swatch, ...s['mem86W' + l] }} aria-hidden="true" />{ezT('mem86.weak.l' + l)}</span>)}
+      </div>
+    ) : null}
+  </div>
+);
 
 // ---------- «تقدّمي»: what is memorised, surah by surah ----------
 const Mem86Progress = ({ counts, held, onHeld }) => {
@@ -37018,7 +37058,8 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       const text = getVerseText(selectedSurah, a) || '';
       if (granularity === 'word') {
         const words = text.split(/\s+/).filter(Boolean);
-        words.forEach((w, wi) => out.push({ ayah: a, text: w, firstInAyah: wi === 0 }));
+        let wk = 0;
+        words.forEach((w, wi) => out.push({ ayah: a, text: w, firstInAyah: wi === 0, k: normalizeForRecite(w) ? ++wk : 0 }));
       } else {
         out.push({ ayah: a, text, firstInAyah: true });
       }
@@ -37305,7 +37346,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
           {!ready && <div style={s.ezqMastHint}>{MEM.LOADING}</div>}
         </section>
         <Mem86Tabs tab={tab} onTab={setTab} />
-        {tab === 'test' ? <Mem86Test counts={ready ? mem86Counts() : null} held={held} ranges={mem86RangesRead()} prefs={prefs} onPref={setPref} isFemale={isFemale} /> : null}
+        {tab === 'test' ? <Mem86Test counts={ready ? mem86Counts() : null} held={held} ranges={mem86RangesRead()} prefs={prefs} onPref={setPref} isFemale={isFemale} onWeak={(ref) => mem86WeakStyle(prefs.weak, ref)} /> : null}
         {tab === 'progress' ? <Mem86Progress counts={ready ? mem86Counts() : null} held={held} onHeld={setHeld} /> : null}
         <div hidden={tab !== 'learn'}>
         {/* THE CANONICAL 114, from the same source and in the same order as before: the range
@@ -37410,7 +37451,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
               <span key={i} style={s.memUnit}>
                 {u.firstInAyah && !prefs.hideNums && <span style={s.memAyahBadge}>{toArabicDigits(u.ayah)}</span>}
                 {revealed
-                  ? <span style={s.memWord}>{u.text}</span>
+                  ? <span style={{ ...s.memWord, ...mem86WeakStyle(prefs.weak && u.k, mem86Ref(selectedSurah, u.ayah, u.k)) }}>{u.text}</span>
                   : <span style={s.memPlaceholder}>{granularity === 'word' ? '—' : '— — —'}</span>}
               </span>
             );
@@ -37432,6 +37473,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         <div className="ezq-drill-acts" style={s.mem86Card}>
           {granularity === 'word' && <button type="button" style={s.mem86Btn} disabled={allRevealed} onClick={() => setRevealedCount((c) => mem86AyahEnd(units, c))}>{ezT('mem86.hint.rest')}</button>}
           <Mem86Switch on={prefs.hideNums} onFlip={(v) => setPref({ hideNums: v })} label={ezT('mem86.opt.hideNums')} />
+          {granularity === 'word' && <Mem86WeakKey on={prefs.weak} onFlip={(v) => setPref({ weak: v })} />}
         </div>
       )}
       {drillMode === 'adnan' && (
@@ -37478,7 +37520,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
                 const red = st === 'mismatch' ? { ...wstyle, ...s.mem86RedDash } : { ...wstyle, ...s.mem86RedWas };
                 return <button key={i} type="button" style={{ ...s.mem86WordBtn, ...red }} onClick={() => setRedMarks((m) => ({ ...m, pick: ref }))}>{dw}</button>;
               }
-              return <span key={i} style={wstyle}>{dw}</span>;
+              return <span key={i} style={{ ...wstyle, ...mem86WeakStyle(prefs.weak, ref) }}>{dw}</span>;
             });
           })()}
         </div>
@@ -38904,6 +38946,11 @@ const s = {
   mem86VerseWord: { fontFamily: "'Amiri', 'Tajawal', serif", fontSize: 24, color: 'var(--ink)' },
   mem86ErrWord: { color: '#C0392B', textDecoration: 'underline' },
   mem86HintInline: { color: 'var(--scholar)' },
+  mem86W1: { background: 'var(--mem86-w1)', borderRadius: 6 },
+  mem86W2: { background: 'var(--mem86-w2)', borderRadius: 6 },
+  mem86W3: { background: 'var(--mem86-w3)', borderRadius: 6 },
+  mem86W4: { background: 'var(--mem86-w4)', borderRadius: 6 },
+  mem86Swatch: { display: 'inline-block', width: 16, height: 16, borderRadius: 4, border: '1px solid var(--line)' },
   mem86CardHeld: { fontSize: 11.5, fontWeight: 700, color: 'var(--ink)' },
   memResetBtn: { width: 50, height: 50, borderRadius: 14, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 

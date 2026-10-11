@@ -286,6 +286,33 @@ lift(['mem86ParseNum']);
 ok(X.mem86ParseNum(String.fromCharCode(0x661, 0x662)) === 12 && X.mem86ParseNum(String.fromCharCode(0x6F1, 0x6F5)) === 15 && X.mem86ParseNum('7') === 7 && Number.isNaN(X.mem86ParseNum('')), 'number fields read Arabic-Indic, Persian and Latin digits (the field shows the reader\'s own)');
 ok(appSrc.length > 0 && !/type="number"[^>]*mem86Num/.test(appSrc), 'no native number input in the memorizer (it would show Latin digits in Arabic)');
 
+/* ------------------------------------------------------------------ phase 5 */
+section('phase 5 -- the weakness map');
+lift(['mem86WeakMap']);
+X.__mem86WeakRaw = null; X.__mem86WeakMap = {};
+reset();
+const lv = (e) => X.mem86WordLevel(e);
+ok(lv([2, 0, 0, 0]) === 4 && lv([1, 1, 0, 0]) === 3 && lv([0, 2, 0, 0]) === 2 && lv([0, 1, 0, 0]) === 1 && lv([0, 0, 0, 0]) === 0, 'four bands: 2 errors red, error+hint orange, 2 hints yellow, 1 hint green, nothing = none');
+ok(lv([1, 0, 0, 0]) > lv([0, 1, 0, 0]), 'an error weighs more than a hint');
+X.mem86WordsLog(['2:2:1', '2:2:1'], 'err');
+ok(X.mem86WeakMap()['2:2:1'] === 4, 'two errors read red');
+X.mem86WordsLog(['2:2:1'], 'ok');
+ok(X.mem86WeakMap()['2:2:1'] === 3, 'one right answer in a test lowers it (red -> orange)');
+X.mem86WordsLog(['2:2:1'], 'ok');
+X.mem86WordsLog(['2:2:1'], 'ok');
+ok(!('2:2:1' in X.mem86WeakMap()), 'right answers lower it until it is gone');
+X.mem86WordsLog(['2:2:2'], 'hint');
+X.mem86WordsLog(['2:2:2'], 'clear');
+ok(!('2:2:2' in X.mem86WeakMap()), 'a word\'s record can be cleared from the result list');
+const idx = fs.readFileSync(path.join(REPO, 'index.html'), 'utf8');
+const CRLF = String.fromCharCode(13, 10);
+const lightAt = idx.indexOf('--nav-off:#93A0B8;' + CRLF + '    --mem86-w1:'), darkAt = idx.indexOf('--nav-off:#6B7689;' + CRLF + '    --mem86-w1:');
+ok(lightAt > 0 && darkAt > lightAt && [1, 2, 3, 4].every((l) => idx.slice(lightAt, lightAt + 140).includes('--mem86-w' + l + ':#') && idx.slice(darkAt, darkAt + 140).includes('--mem86-w' + l + ':#')), 'four tokens, each in the light :root block and the dark block');
+const tokenNames = idx.match(/--mem86-[a-z0-9-]+/g) || [];
+ok(tokenNames.length > 0 && new Set(tokenNames).size === 4, 'exactly four new tokens');
+ok(tokenNames.length > 0 && !/tajw|tajweed|ghunn|madd|ikhf|qalq/i.test(tokenNames.join(' ') + Object.keys(X).filter((k) => /^mem86W/.test(k)).join(' ')), 'nothing is named after a tajweed colour');
+ok(memScreen.length > 0 && /mem86WeakStyle\(prefs\.weak && u\.k, mem86Ref\(selectedSurah, u\.ayah, u\.k\)\)/.test(memScreen) && /mem86WeakStyle\(prefs\.weak, ref\)/.test(memScreen), 'drawn on the visible words of the talqin and of «سمِّعني», behind the switch');
+
 /* ------------------------------------------------------------------ done */
 console.log('\n' + (fail ? 'FAIL' : 'PASS') + '  memorizer86-check  ' + pass + ' passed, ' + fail + ' failed  (lifted ' + LIFT.length + ' initializers from app.jsx)');
 process.exit(fail ? 1 : 0);
