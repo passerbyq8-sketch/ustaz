@@ -8819,8 +8819,14 @@ const EZ110_SECTION_NAMES = {
   women: 'module.women', tasbih: 'tasbih.card.title', calc: 'ez110.name.calc',
 };
 function ez110Name(id) { return EZ110_SECTION_NAMES[id] ? ezT(EZ110_SECTION_NAMES[id]) : ''; }
+// ROUND 4 (phone round): a press on the bar's «عزك» opened the keyboard by itself -- the shared door focuses the composer
+// for the widget's «ask». A press on the BAR is navigation, so it says so here and the door does not focus. The
+// composer itself is not touched (owner, 19 August).
+let EZ110_BAR_NAV = false;
+function ez110TakeBarNav() { const v = EZ110_BAR_NAV; EZ110_BAR_NAV = false; return v; }
 function ez110Go(route) {
   if (EZIK_WIDGET_ROUTES.indexOf(route) < 0) return;
+  EZ110_BAR_NAV = true;
   EZIK_WIDGET_PENDING = route;
   EZIK_WIDGET_SUBS.forEach((f) => { try { f(); } catch (e) {} });
 }
@@ -18893,6 +18899,7 @@ function App() {
     if (cur === 'onboarding') return;
     // Notification aliases open the index, preserving the cancellation of group deep links.
     const route = requested === 'adhkar_sabah' || requested === 'adhkar_masaa' ? 'adhkar' : requested;
+    if (route !== 'chat') ez110TakeBarNav();
     widgetChatFocusRef.current = false;
     setAsmaaOpen(route === 'asmaa');
     setAboutOpen(false);
@@ -18922,7 +18929,7 @@ function App() {
       ezikClearResume();
       newChat();
       setScreen('chat');
-      widgetChatFocusRef.current = true;
+      widgetChatFocusRef.current = !ez110TakeBarNav();
       return;
     }
     ezikWriteResume(route);
