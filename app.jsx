@@ -12389,6 +12389,25 @@ function ez110PluralCount(kind, n) {
   return ezT('fix.count.' + kind + '.' + form, { n: ezikBrowseNum(v) });
 }
 const ez110CountLessons = (n) => ez110PluralCount('lesson', n);
+// ROUND 4 (phone round N9, 127 note m21), part fix: a scholar's series named «(10) ...» came before «(2) ...» -- the
+// server's order is by the name's characters. Within the page it sent, the series that carry a number in brackets
+// are put in number order IN THE SAME PLACES; every other series keeps its place. Across pages the order is the
+// server's (api/, not touched here).
+function ez110SeriesNo(name) {
+  const m = /[(\[]\s*([0-9\u0660-\u0669\u06F0-\u06F9]{1,4})\s*[)\]]/.exec(String(name || ''));
+  if (!m) return null;
+  return Number(m[1].replace(/[\u0660-\u0669]/g, (c) => String(c.charCodeAt(0) - 0x660)).replace(/[\u06F0-\u06F9]/g, (c) => String(c.charCodeAt(0) - 0x6F0)));
+}
+function ez110SeriesInOrder(rows) {
+  if (!Array.isArray(rows)) return rows;
+  const slots = [], numbered = [];
+  rows.forEach((r, i) => { const n = r && !r.misc ? ez110SeriesNo(r.series) : null; if (n !== null) { slots.push(i); numbered.push({ r, n, i }); } });
+  if (numbered.length < 2) return rows;
+  numbered.sort((a, b) => (a.n - b.n) || (a.i - b.i));
+  const out = rows.slice();
+  slots.forEach((at, k) => { out[at] = numbered[k].r; });
+  return out;
+}
 function ez110CountForLevel(level, n) {
   return ez110PluralCount(level === EZIK_BROWSE_SCHOLARS ? 'scholar' : level === EZIK_BROWSE_SERIES ? 'series' : 'lesson', n);
 }
@@ -12575,7 +12594,7 @@ function LessonsBrowsePane({ backRef }) {
       }
       const body = outcome.payload || {};
       if (level === EZIK_BROWSE_SCHOLARS) setRows(ezikBrowseScholarRows(body.rows));
-      else if (level === EZIK_BROWSE_SERIES) setRows(ezikBrowseSeriesRows(body.rows));
+      else if (level === EZIK_BROWSE_SERIES) setRows(ez110FixLit() ? ez110SeriesInOrder(ezikBrowseSeriesRows(body.rows)) : ezikBrowseSeriesRows(body.rows));
       else setRows(ezikBrowseLessonRows(body.rows));
       setPages(level === EZIK_BROWSE_SCHOLARS ? 1 : ezikBrowsePageNo(body.pages));
       setTotal(ezikBrowseCount(body.total));
