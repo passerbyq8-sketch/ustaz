@@ -8542,7 +8542,7 @@ function useEzikVisualTheme() {
 // The owner is recognised by a code, never by an e-mail and never by a request: the device keeps
 // the code it was given, and this file keeps only its SHA-256 (EZ110_UNLOCK_SHA).
 // DESIGN-SYSTEM.md (item 110 session folder) governs every value the lit parts draw.
-const EZ110_PARTS = { safe: 'owner', b: 'owner', c: 'owner', d: 'owner', e: 'owner', fix: 'owner' };
+const EZ110_PARTS = { safe: 'public', b: 'public', c: 'owner', d: 'owner', e: 'owner', fix: 'public' };
 const EZ110_IDS = ['b', 'c', 'd', 'e'];
 const EZ110_UNLOCK_KEY = 'ezik_110_unlock_v1';
 const EZ110_IDENTITY_KEY = 'ezik_110_identity_v1';

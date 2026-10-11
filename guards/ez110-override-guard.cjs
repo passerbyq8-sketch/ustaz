@@ -21,7 +21,8 @@ const jsx = fs.readFileSync(path.join(ROOT, 'app.jsx'), 'utf8');
 let fails = 0, passes = 0;
 const pass = (m) => { passes++; console.log('PASS ' + m); };
 const fail = (m) => { fails++; console.log('FAIL ' + m); };
-const PUBLIC_BY_OWNER = []; // parts the owner has published by his word, e.g. ['safe']
+// The owner's word «انشر», 11 October 2026 (round 4 order, section 1): safe, b and fix. Not c, d, e, nor the call-to-prayer card.
+const PUBLIC_BY_OWNER = ['safe', 'b', 'fix']; // parts the owner has published by his word
 
 function lift(name) {
   const i = jsx.indexOf('function ' + name + '(');
@@ -34,7 +35,7 @@ const constOf = (name) => { const m = jsx.match(new RegExp('const ' + name + ' =
 const SRC = ['ez110AdhanCardLit', 'ez110Sha256Hex', 'ez110ReadOwner', 'ez110LocalOverride', 'ez110PartLit', 'ez110Choosable', 'ez110ReadIdentity', 'ez110SafeLit', 'ez110FixLit', 'ez110ReadDigits', 'ez110LinkCss', 'ez110Apply'].map(lift).join('\n');
 function world({ host = 'ezik.app', search = '', store = {} } = {}) {
   const calls = [];
-  const el = { setAttribute: (a, v) => calls.push('attr:' + a), removeAttribute: (a) => calls.push('rm:' + a), getAttribute: () => null, style: {} };
+  const el = { setAttribute: (a, v) => calls.push('attr:' + a + '=' + v), removeAttribute: (a) => calls.push('rm:' + a), getAttribute: () => null, style: {} };
   const document = { documentElement: el, querySelector: () => { calls.push('query'); return null; }, createElement: () => { calls.push('create'); return {}; }, head: { appendChild: () => calls.push('append') } };
   const localStorage = { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => { calls.push('set:' + k); store[k] = String(v); } };
   const window = { location: { hostname: host, search } };
@@ -71,7 +72,9 @@ for (const [part, st] of Object.entries(base.EZ110_PARTS)) {
 // O9
 for (const host of ['ezik.app', 'www.ezik.app', 'almurabbi.app', 'ustaz-git-main-musaed-s-projects1.vercel.app', 'localhost.evil.com', '127.0.0.1.nip.io', '']) {
   const { api } = world({ host, search: '?fix=1' });
-  api.ez110FixLit() === false ? pass(`O9 &fix=1 inert on "${host}"`) : fail(`O9 &fix=1 lights part fix on "${host}"`);
+  // round 4: once fix is public every reader has it; the override still ADDS nothing off this machine
+  const { api: plain } = world({ host });
+  api.ez110FixLit() === plain.ez110FixLit() && plain.ez110FixLit() === (base.EZ110_PARTS.fix === 'public') ? pass(`O9 &fix=1 adds nothing on "${host}"`) : fail(`O9 &fix=1 changes part fix on "${host}"`);
 }
 for (const host of ['localhost', '127.0.0.1']) {
   const { api } = world({ host, search: '?fix=1' });
@@ -105,8 +108,21 @@ for (const [label, store] of [['no key', {}], ['wrong code', { [key]: 'ezk110-no
 }
 // O6
 {
-  const { calls } = world({ host: 'ezik.app', search: Q, store: { ezik_110_identity_v1: 'c' } });
-  calls.length === 0 ? pass('O6 nothing lit: ez110Apply touched nothing (no attribute, meta, stylesheet, timer)') : fail('O6 nothing lit, yet ez110Apply did: ' + calls.join(' '));
+  // round 4: the world is built AND ez110Apply() is called -- before, O6 never called it, so it held vacuously
+  const { api: o6, calls } = world({ host: 'ezik.app', search: Q, store: { ezik_110_identity_v1: 'c' } });
+  calls.length = 0; try { o6.ez110Apply(); } catch (e) {}
+  if (!PUBLIC_BY_OWNER.length) calls.length === 0 ? pass('O6 nothing lit: ez110Apply touched nothing (no attribute, meta, stylesheet, timer)') : fail('O6 nothing lit, yet ez110Apply did: ' + calls.join(' '));
+  else {
+    // round 4 (published parts): a guest on ezik.app -- the override in the address and identity c stored -- is lit with the
+    // PUBLIC parts and nothing else: the identity is a public one (never c, d or e), and safe / fix only if public
+    const ids = calls.filter((c) => c.indexOf('attr:data-ez110=') === 0).map((c) => c.slice('attr:data-ez110='.length));
+    const wantId = ['b', 'c', 'd', 'e'].filter((x) => PUBLIC_BY_OWNER.includes(x));
+    ids.length > 0 && ids.every((x) => wantId.includes(x)) ? pass('O6 a guest is lit with a public identity only (' + ids.join(',') + '), never c/d/e') : fail('O6 a guest is lit with ' + (ids.join(',') || 'no identity'));
+    for (const [part, attr] of [['safe', 'attr:data-ez110-safe='], ['fix', 'attr:data-ez110-fix=']]) {
+      const has = calls.some((c) => c.indexOf(attr) === 0);
+      has === PUBLIC_BY_OWNER.includes(part) ? pass('O6 a guest ' + (has ? 'has' : 'has not') + ' part ' + part) : fail('O6 part ' + part + ' for a guest is ' + has);
+    }
+  }
 }
 // O7
 {
