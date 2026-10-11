@@ -1002,7 +1002,11 @@ async function partD() {
   if (ok('the side menu offers its home entry', !!homeEntry)) {
     await d.click(homeEntry);
     await tick(140);
-    ok('...and the home screen was reached', d.all('.ezist-mosaic').length === 1);
+    // R4A: which menu a guest has is the app's switch (EZ110_PARTS), and the guest has exactly that
+    const LIT_B = (c.grab('EZ110_PARTS') || {}).b === 'public';
+    ok('R4A the guest has b exactly as EZ110_PARTS says', LIT_B === (c.window.document.documentElement.getAttribute('data-ez110') === 'b'));
+    if (LIT_B) ok('R4A ...and the menu of b was reached', d.all('.ez110-home').length === 1);
+    else ok('...and the home screen was reached', d.all('.ezist-mosaic').length === 1);
     eq('the home carries none', toggles(), 0);
 
     // ONE WAY INTO THE CHAT. The home used to offer two — the small icon in the top nav, and a
@@ -1011,6 +1015,30 @@ async function partD() {
     // look identical in a file and different on a screen.
     eq('the home draws no chat panel at all', d.all('.ezist-ask').length, 0);
     eq('...and nothing is hiding where it was', d.all('[class*="ezist-ask"]').length, 0);
+    if (LIT_B) {
+      // R4A: the menu of b -- one grid, no group titles (owner, round 3 §3-1); the mushaf and the treasures are the bar's two
+      // chosen slots (owner, round 3 §3-2); the default order is the owner's three groups, Quran and Sunnah first (round 2 §4-3)
+      const grid = d.all('.ez110-grid')[0];
+      if (ok('R4A the menu of b draws its one grid', !!grid)) {
+        const tiles = Array.prototype.slice.call(grid.querySelectorAll('[data-ez110-tile]'));
+        const ids = tiles.map((e) => e.getAttribute('data-ez110-tile'));
+        eq('R4A ...with no empty tile left behind', tiles.filter((e) => !String(e.textContent || '').trim() && !e.querySelector('svg')).length, 0);
+        const bar = c.grab('ez110ReadBar()') || [];
+        ok('R4A ...and the four modules are all still there: memorize and adhkar on the grid, the mushaf and the treasures in the bar',
+          ids.indexOf('memorize') !== -1 && ids.indexOf('adhkar') !== -1 && bar.indexOf('mushaf') !== -1 && bar.indexOf('treasure') !== -1 && d.all('.ez110-nav .ez110-tab').length === 4,
+          JSON.stringify({ ids, bar }));
+        eq('R4A ...and the memorizer is the FIRST tile (the owner groups: Quran and Sunnah first)', ids[0], 'memorize');
+        eq('R4A ...and the women corner is NOT on his grid, because this account answered male', ids.indexOf('women'), -1);
+        eq('R4A ...and the twelve tiles are these, in the order of the owner groups', ids, ["memorize","arbaeen","sunan-day","asmaa","wird","adhkar","tasbih","fatwa","lessons","library","articles","calc"]);
+        const artTile = grid.querySelector('[data-ez110-tile="articles"]');
+        if (ok('R4A the articles section has a tile of its own on the grid', !!artTile)) {
+          ok('R4A ...and the tile is titled with the articles name', String(artTile.textContent || '').indexOf(S.ARTICLES) !== -1, cps(String(artTile.textContent || '').slice(0, 40)));
+        }
+        eq('R4A ...and the daily verse is NOT one of its tiles', grid.querySelectorAll('.ezist-quran').length, 0);
+        eq('R4A ...it is in the top bar, drawn exactly once on the screen', d.all('.ezist-quran').length, 1);
+        ok('R4A ...and the bar is where it is', !!d.all('.ezist-nav .ezist-quran')[0]);
+      }
+    } else {
     const mosaic = d.all('.ezist-mosaic')[0];
     if (ok('the home still draws its mosaic', !!mosaic)) {
       const kids = Array.prototype.slice.call(mosaic.children);
@@ -1063,6 +1091,7 @@ async function partD() {
       eq('...and the daily verse is NOT one of its cells any more', mosaic.querySelectorAll('.ezist-quran').length, 0);
       eq('...it is in the top bar, drawn exactly once on the screen', d.all('.ezist-quran').length, 1);
       ok('...and the bar is where it is', !!d.all('.ezist-nav .ezist-quran')[0]);
+    }
     }
     // S118 -- THE BAR HOLDS TWO ELEMENTS AND NO THIRD, and this drives the one that is a
     // control. It used to look for the chat icon by the accessible name «عزك»; that icon, the
@@ -1254,9 +1283,13 @@ async function partD() {
     // is not true of him or leave the whole block alone, and an abandoned block says nothing
     // about anybody. It writes the SAME null the account has always spelt «not stated» as, so
     // no value downstream of this row moved -- only the number of ways to reach it.
-    eq('...with the three forms of address between them, as a radiogroup', radios.length, 3);
+    const LIT_P = (c.grab('EZ110_PARTS') || {}).b === 'public';
+    if (LIT_P) eq('R4A ...with the two forms of address of b between them, as a radiogroup (owner, round 3: two answers only)', radios.length, 2);
+    else eq('...with the three forms of address between them, as a radiogroup', radios.length, 3);
     eq('...seeded from the account rather than blank', [fields[0].value, fields[1].value], ['Noor', '1996']);
-    eq('...and the form of address it already holds is the one marked',
+    if (LIT_P) eq('R4A ...and the form of address it already holds is the one marked',
+      radios.map((b) => b.getAttribute('aria-checked')), ['true', 'false']);
+    else eq('...and the form of address it already holds is the one marked',
       radios.map((b) => b.getAttribute('aria-checked')), ['true', 'false', 'false']);
     // ITEM 20 / §3 -- TURNED OVER, ON THE SCREEN THAT OWNED THE OLD RULE. These two cases used
     // to say that the hide switch is in this same group, and that declaring a form of address
@@ -1270,7 +1303,10 @@ async function partD() {
       d.all('[data-ezik-hide-women]').length, 0);
     // ...AND THE READER IS TOLD WHERE THE ANSWER NOW LIVES. §3 puts the way back in the reader's
     // hands at this very row; a rule nobody is told about is not a way back, it is a surprise.
-    ok('...and the rule is stated in words at the row that decides it',
+    if (LIT_P) ok('R4A ...and the rule is stated in words at the row that decides it, naming the two answers of b',
+      String(group.textContent || '').indexOf(String(c.grab("ezT('ez110.set.womenRule')"))) !== -1,
+      cps(String(group.textContent || '').slice(0, 60)));
+    else ok('...and the rule is stated in words at the row that decides it',
       String(group.textContent || '').indexOf(String(c.grab("ezT('settings.womenCornerRule')"))) !== -1,
       cps(String(group.textContent || '').slice(0, 60)));
     const save = () => q('button').filter((b) =>
@@ -1390,6 +1426,16 @@ async function partD() {
       await d.click(backBtn);
       await tick(240);
     }
+    if ((c.grab('EZ110_PARTS') || {}).b === 'public') {
+      if (ok('R4A ...and it lands him back on the menu of b', d.all('.ez110-home').length === 1, d.text().slice(0, 80))) {
+        const backB = d.all('.ez110-grid [data-ez110-tile]').map((e) => e.getAttribute('data-ez110-tile'));
+        ok('R4A §3: the women corner is BACK on his grid, for the answer he just saved', backB.indexOf('women') !== -1, JSON.stringify(backB));
+        eq('R4A §2: ...and it is back where the owner groups put it -- after the articles, before the calculator', backB.indexOf('women'), backB.indexOf('articles') + 1);
+        eq('R4A §3: ...and the twelve it joins are the twelve that were there, in their order', backB.filter((x) => x !== 'women'), ["memorize","arbaeen","sunan-day","asmaa","wird","adhkar","tasbih","fatwa","lessons","library","articles","calc"]);
+        eq('R4A §3: ...and the account it read is the one the save wrote', JSON.parse(c.store.getItem('child_profile')).gender, 'female');
+        eq('R4A §3: ...and no hide key was read or written on the way', c.store.getItem('ezik_hide_women_v1'), null);
+      }
+    } else
     if (ok('...and it lands him back on the home', d.all('.ezist-mosaic').length === 1,
       d.text().slice(0, 80))) {
       const back = Array.prototype.slice.call(
