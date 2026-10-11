@@ -8922,14 +8922,13 @@ function Ez110Home(v) {
     .filter((g) => g.ids.length);
   const builtIds = groups.flatMap((g) => g.ids);
   const liveIds = ez110OrderApply(builtIds, order);   // the order IN EFFECT NOW
-  const custom = order.length > 0;
   const [edit, setEdit] = useState(false);
   const [draft, setDraft] = useState(null);       // the ids being arranged, or null
   const [dragId, setDragId] = useState(null);
   const press = useRef(null);
   useEzikBackLayer(edit, () => { setEdit(false); setDraft(null); setDragId(null); });
   const startEdit = () => { setDraft(liveIds.slice()); setEdit(true); };
-  // the default order is stored as NO order, so the groups come back
+  // the default order is stored as NO order, so the default sequence comes back
   const done = () => {
     const ids = draft || liveIds;
     // the slots: the stored array as it stands, or (none stored) the dark menu's built order then the cards
@@ -8992,17 +8991,9 @@ function Ez110Home(v) {
       onMove={move} dragging={dragId === id} onPointerDown={onPointerDown(id)} />
   );
   const flat = (ids) => { const list = ids.filter((id) => byId[id]); return list.map((id, i) => tile(id, i, list.length)); };
-  let items;
-  if (edit) items = flat(draft || liveIds);
-  else if (custom) items = flat(liveIds);
-  else {
-    items = [];
-    groups.forEach((g) => {
-      items.push(<h3 key={'h:' + g.key} className="ez110-group-title">{ezT(g.key)}</h3>);
-      const list = g.ids.filter((id) => byId[id]);
-      list.forEach((id, i) => items.push(tile(id, i, list.length)));
-    });
-  }
+  // ROUND 3 §3-1 (owner): no group titles -- the sections are one grid with no classification. The groups still
+  // decide the DEFAULT sequence (Quran and Sunnah, then dhikr, then knowledge), read straight through.
+  const items = flat(edit ? (draft || liveIds) : liveIds);
   const shelf = <div className="ez110-grid">{items}</div>;
   return (
     <div className="theme-dark ezhome ez110-home" style={s.ezistContainer}>
@@ -9011,8 +9002,10 @@ function Ez110Home(v) {
         <div className="ezist-wrap ez110-wrap">
           <Ez110Hello name={v.name} />
           <Ez110PrayerCard onOpen={v.onOpenPrayer} hijri={v.hijri} />
-          <div className="ez110-sec-head">
-            <h2 className="ez110-h">{ezT('ez110.sections')}</h2>
+          {/* ROUND 3 §3-1 (owner): no «الأقسام» title, and «ترتيب القائمة» is the last thing on the page, under the last tile */}
+          {edit ? <p className="ez110-hint" role="status">{ezT('ez110.order.hint')}</p> : null}
+          {shelf}
+          <div className="ez110-sec-head ez110-sec-foot">
             {edit ? (
               <span className="ez110-sec-acts">
                 <button type="button" className="ez110-link" onClick={reset}>{ezT('ez110.order.reset')}</button>
@@ -9025,8 +9018,6 @@ function Ez110Home(v) {
               </button>
             )}
           </div>
-          {edit ? <p className="ez110-hint" role="status">{ezT('ez110.order.hint')}</p> : null}
-          {shelf}
         </div>
       </div>
       <Ez110Nav active="home" />
