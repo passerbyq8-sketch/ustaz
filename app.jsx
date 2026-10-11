@@ -23989,7 +23989,7 @@ function ReportModal({ onClose, onSubmit }) {
         <button onClick={send} disabled={!reason || status === 'sending'} style={{ ...s.primaryBtn, opacity: (!reason || status === 'sending') ? 0.5 : 1 }}>
           {status === 'sending' ? '…' : 'أرسِل'}
         </button>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14, marginTop: 10, cursor: 'pointer', fontFamily: 'inherit' }}>إلغاء</button>
+        <button onClick={onClose} className={ez110FixLit() ? 'ez110-tap44' : undefined} style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14, marginTop: 10, cursor: 'pointer', fontFamily: 'inherit' }}>إلغاء</button>
       </div>
     </div>
   );

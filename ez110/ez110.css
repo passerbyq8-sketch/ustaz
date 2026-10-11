@@ -822,6 +822,9 @@ html[data-ez110] a[data-ezik-sync="privacy"] { display: none !important; }
 /* ROUND 3 §3-9-2: the font chooser sits under the identity chooser */
 html[data-ez110] .ezsh-group[data-ez110-grp="appearance-font"] { order: 21; }
 
+/* ROUND 4 (phone round N11): the links on the page «الخصوصية والبيانات» were 19 high -- each takes 44 to the touch */
+html[data-ez110] .ez110-privpage a[href] { display: inline-flex; align-items: center; min-height: 44px; }
+
 /* ==== 40-b-answer.css ==== */
 /* 40 -- THE ANSWER (board B3). The answer's markup and inline styles are pinned byte for byte by
    speedclient/speedintegration, so «ب» restyles it here, through classes, and touches nothing inside.
