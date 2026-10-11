@@ -523,7 +523,8 @@ html[data-ez110] .ezsh-nav-inner:has(.ez110-prayerset) > .ezsh-nav-side:not(.is-
    N28) and the dark drawer is untouched, so «ب» orders it HERE, visually: the new conversation above the search; the
    fixed rows (about, sources, feedback) above a footer that is the profile row -- Settings' one entry -- with the
    invite as a small share button in its opposite corner (the same button: its handler, its accessible name; its word
-   is hidden visually, not removed). ---- */
+   is hidden visually, not removed). ROUND 4 §3-1-2: since round 3 «ب» draws no sources row there, so the invite is
+   the THIRD child -- the fourth is «اقتراح أو شكوى», which round 3 had put in the corner by mistake. ---- */
 html[data-ez110] .ezc-drawer-head + div > * { order: 3; }
 html[data-ez110] .ezc-drawer-head + div > :nth-child(2) { order: 1; }
 html[data-ez110] .ezc-drawer-head + div > :nth-child(1) { order: 2; }
@@ -532,12 +533,12 @@ html[data-ez110] .ezc-drawer-head + div + div > * { order: 1; }
 html[data-ez110] .ezc-drawer-head + div + div > :nth-child(1) {
   order: 9; margin-top: 6px; padding-top: 6px; padding-inline-end: 52px; border-top: 1px solid var(--vt-line);
 }
-html[data-ez110] .ezc-drawer-head + div + div > :nth-child(4) {
+html[data-ez110] .ezc-drawer-head + div + div > :nth-child(3) {
   /* !important: the row carries an inline width:100% and padding (its React style object), which a sheet cannot outrank otherwise */
   order: 10; position: absolute; bottom: 0; inset-inline-end: 0; width: 48px !important; min-width: 48px; height: 52px; min-height: 48px;
   padding: 0 !important; justify-content: center; gap: 0 !important;
 }
-html[data-ez110] .ezc-drawer-head + div + div > :nth-child(4) > span {
+html[data-ez110] .ezc-drawer-head + div + div > :nth-child(3) > span {
   position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
 }
 /* a drawer row's label starts at its line's start in either direction (the row's style object says right) */
@@ -732,6 +733,12 @@ html[data-theme="dark"][data-ez110] .ezsug-mark { box-shadow: inset 0 0 0 1px va
 
 /* ---- ROUND 3 §3-1 (owner): «ترتيب القائمة» under the last tile, and the verse of the day without its label ---- */
 html[data-ez110] .ez110-sec-foot { justify-content: center; margin-top: 2px; }
+/* ROUND 4 §3-2 N2 (phone round): while the menu is arranged, «تمّ» and «الترتيب الافتراضي» are in view without a scroll in
+   either kind of system navigation -- they stand under the arranging hint, above the tiles (a pinned footer would be an
+   edge element, and gate ez110edges E3 rightly allows none that does not read the edge family). Not arranging, the
+   page ends with «ترتيب القائمة» under the last tile, as the owner asked. */
+html[data-ez110] .ez110-wrap:has(.ez110-done) > .ez110-sec-foot { order: 1; margin-top: -6px; }
+html[data-ez110] .ez110-wrap:has(.ez110-done) > .ez110-grid { order: 2; }
 html[data-ez110] .ez110-home .ezist-quran > div:first-child { display: none !important; }
 
 /* ==== 30-b-settings.css ==== */
@@ -807,8 +814,16 @@ html[data-ez110] .ezsh-group[data-ez110-grp="appearance"]:has(.ez110-seg):not(:h
 html[data-ez110] .ezsh-group[data-ez110-grp="privacy-delete"] { order: 52; }
 html[data-ez110] .ezsh-group[data-ez110-grp="privacy"] .ez110-row:first-child,
 html[data-ez110] .ezsh-group[data-ez110-grp="privacy-delete"] .ez110-row:first-child { border-top: 0; }
+/* ROUND 4 §3-1-3: the sync session's privacy link lives on that page (after the consent, before the way to the delete);
+   its copy in «الحساب» is not drawn in «ب» */
+html[data-ez110] .ezsh-group[data-ez110-grp="privacy-sync"] { order: 51; }
+html[data-ez110] a.ez110-row { text-decoration: none; color: inherit; }
+html[data-ez110] a[data-ezik-sync="privacy"] { display: none !important; }
 /* ROUND 3 §3-9-2: the font chooser sits under the identity chooser */
 html[data-ez110] .ezsh-group[data-ez110-grp="appearance-font"] { order: 21; }
+
+/* ROUND 4 (phone round N11): the links on the page «الخصوصية والبيانات» were 19 high -- each takes 44 to the touch */
+html[data-ez110] .ez110-privpage a[href] { display: inline-flex; align-items: center; min-height: 44px; }
 
 /* ==== 40-b-answer.css ==== */
 /* 40 -- THE ANSWER (board B3). The answer's markup and inline styles are pinned byte for byte by
@@ -825,8 +840,8 @@ html[data-ez110] .ezc-ans .ez-prose { color: var(--vt-ink); }
 
 /* ---- ROUND 3 §3-4 (owner): the controls under an answer -- one tidy row of icons, no words on them. Each keeps its
    name for the screen reader (its own label, or its text, now drawn at size zero) and says it on a long press
-   (.ez110-tip). Every target is 44 x 44. The listen, copy, share, quote and star controls stand in the row; PDF,
-   image, tashkeel and report fold behind «المزيد». The follow-up buttons under the row are not touched. ---- */
+   (.ez110-tip). Every target is 44 x 44. ROUND 4 §3-1-1 (owner): listen, copy, share, the star and report stand in
+   the row; quote, image, tashkeel and PDF fold behind «المزيد». The follow-up buttons under the row are not touched. ---- */
 html[data-ez110] .ezc-acts { gap: 2px !important; flex-wrap: wrap !important; padding: 0 !important; margin-inline-start: -6px; }
 html[data-ez110] .ezc-acts .ez110-act { display: contents; }
 html[data-ez110] .ezc-acts button {
@@ -855,11 +870,11 @@ html[data-ez110] .ezc-acts [data-ez110-act="tashkeel"] > button { --ez110-act-ic
 html[data-ez110] .ezc-acts [data-ez110-act="listen"] > button { order: 1; }
 html[data-ez110] .ezc-acts [data-ez110-act="copy"] > button { order: 2; }
 html[data-ez110] .ezc-acts [data-ez110-act="share"] > button { order: 3; }
-html[data-ez110] .ezc-acts [data-ez110-act="quote"] > button { order: 4; }
-html[data-ez110] .ezc-acts [data-ez110-act="star"] > button { order: 5; }
+html[data-ez110] .ezc-acts [data-ez110-act="star"] > button { order: 4; }
+html[data-ez110] .ezc-acts [data-ez110-act="report"] > button { order: 5; }
 html[data-ez110] .ezc-acts > .ez110-more { order: 6; margin-inline-start: auto; }
-html[data-ez110] .ezc-acts :is([data-ez110-act="pdf"], [data-ez110-act="image"], [data-ez110-act="tashkeel"], [data-ez110-act="report"]) > button { order: 7; display: none !important; }
-html[data-ez110] .ezc-acts.is-more :is([data-ez110-act="pdf"], [data-ez110-act="image"], [data-ez110-act="tashkeel"], [data-ez110-act="report"]) > button { display: inline-flex !important; }
+html[data-ez110] .ezc-acts :is([data-ez110-act="quote"], [data-ez110-act="image"], [data-ez110-act="tashkeel"], [data-ez110-act="pdf"]) > button { order: 7; display: none !important; }
+html[data-ez110] .ezc-acts.is-more :is([data-ez110-act="quote"], [data-ez110-act="image"], [data-ez110-act="tashkeel"], [data-ez110-act="pdf"]) > button { display: inline-flex !important; }
 html[data-ez110] .ezc-acts > .ez110-more[aria-expanded="true"] { color: var(--vt-accent-ink) !important; background: var(--vt-soft) !important; }
 html[data-ez110] .ez110-sr { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
 /* the name on a long press */
@@ -871,6 +886,10 @@ html[data-ez110] .ez110-tip {
   font-family: var(--ez110-font-ui); font-size: calc(13px * var(--ez-fs, 1)); font-weight: 600; white-space: nowrap;
 }
 html[data-ez110] .ez110-tip.is-on { opacity: 1; }
+
+/* ROUND 4 (phone round N8): «تشكيل» shows its state -- a filled ground and an accent ring while it is on (its name says
+   on or off too, and so does its long press) */
+html[data-ez110] .ezc-acts [data-ez110-act="tashkeel"] > button[aria-pressed="true"] { background: var(--vt-soft) !important; box-shadow: inset 0 0 0 1.5px var(--vt-accent); }
 
 /* ==== 50-cde.css ==== */
 /* 50 -- THE THREE OTHER IDENTITIES: «ج» الدانة (c) · «د» الخزف (d) · «هـ» البلّور (e).

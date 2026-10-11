@@ -1881,25 +1881,51 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3322162. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
   //   2026-10-10 -- ITEM 110 (item 110 station 2: cache ezik-v90 (served ezik-v89 + 1)): app.js 2106924 -> 2106924 bytes, sha256 6009e875..d099; index.html 155386.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3322162. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
-  //   2026-10-11 -- Item 86 (memorizer) phase 1: device record and tabs: app.js 2106924 -> 2138749 bytes, sha256 8a03f4f7..595b; index.html 155386.
-//                    node tools/core-bytes.cjs --write: CORE_BYTES 3353987. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
-  //   2026-10-11 -- Item 86 (memorizer) phase 2: listening range, repeats, speed: app.js 2138749 -> 2141578 bytes, sha256 d71831c5..a464; index.html 155386.
-//                    node tools/core-bytes.cjs --write: CORE_BYTES 3356816. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
-  //   2026-10-11 -- Item 86 (memorizer) phase 3: recite hides, hints, pause: app.js 2141578 -> 2149331 bytes, sha256 bc432421..d345; index.html 155386.
-//                    node tools/core-bytes.cjs --write: CORE_BYTES 3364569. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
-  //   2026-10-11 -- Item 86 (memorizer) phase 4: test me: app.js 2149331 -> 2177924 bytes, sha256 df5736f3..f5fc; index.html 155386.
-//                    node tools/core-bytes.cjs --write: CORE_BYTES 3393162. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
-  //   2026-10-11 -- Item 86 (memorizer) phase 5: weakness map: app.js 2177924 -> 2180458 bytes, sha256 ef42cf60..7226; index.html 155556.
-//                    node tools/core-bytes.cjs --write: CORE_BYTES 3395866. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
-  //   2026-10-11 -- Item 86 (memorizer) phase 5: index.html prose count: app.js 2180458 -> 2180458 bytes, sha256 ef42cf60..7226; index.html 155556.
-//                    node tools/core-bytes.cjs --write: CORE_BYTES 3395866. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
-  //   2026-10-11 -- Item 86 (memorizer) phase 6: plans and streak: app.js 2180458 -> 2201718 bytes, sha256 070d0c5b..9a3d; index.html 155556.
-//                    node tools/core-bytes.cjs --write: CORE_BYTES 3417126. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
-  //   2026-10-11 -- Item 86 (memorizer) phase 7: the numbers: app.js 2201718 -> 2206450 bytes, sha256 94fd3c77..6ebd; index.html 155556.
-//                    node tools/core-bytes.cjs --write: CORE_BYTES 3421858. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
-  //   2026-10-11 -- Item 86 (memorizer) phase 8: similar passages: app.js 2206450 -> 2213140 bytes, sha256 e74c131b..f757; index.html 155556.
-//                    node tools/core-bytes.cjs --write: CORE_BYTES 3428548. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
-  'sw.js': 'b6207b7ff7baa35ca2074a20cae82a1197e235cd66dd5811cb7df8a2206165d1',
+  //   2026-10-10 -- ITEM 110 (round 4 answer row): app.js 2106924 -> 2106924 bytes, sha256 6009e875..d099; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3322162. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 4 drawer share): app.js 2106924 -> 2106924 bytes, sha256 6009e875..d099; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3322162. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 4 sync privacy link): app.js 2106924 -> 2108209 bytes, sha256 fb72f4d4..9dea; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3323447. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 4 adhan card owner gate): app.js 2108209 -> 2109004 bytes, sha256 5319d162..20e6; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3324242. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 4 identity chooser): app.js 2109004 -> 2109022 bytes, sha256 e5ad83f9..0792; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3324260. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 4 arrange footer): app.js 2109022 -> 2109022 bytes, sha256 e5ad83f9..0792; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3324260. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 4 arrange actions): app.js 2109022 -> 2109022 bytes, sha256 e5ad83f9..0792; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3324260. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 4 back from pages): app.js 2109022 -> 2110443 bytes, sha256 666381f9..141c; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3325681. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 4 privacy back): app.js 2110443 -> 2111860 bytes, sha256 c2fc0e3a..4a7a; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3327098. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 4 library keeps search): app.js 2111860 -> 2111860 bytes, sha256 c2fc0e3a..4a7a; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3327098. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 4 pdf android shell): app.js 2111860 -> 2112460 bytes, sha256 6fa84503..2dac; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3327698. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 4 bar no keyboard): app.js 2112460 -> 2112929 bytes, sha256 dc93de53..d20a; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3328167. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 4 drawer delete name): app.js 2112929 -> 2112964 bytes, sha256 8cb27098..0b47; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3328202. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 4 tasbih hamzas): app.js 2112964 -> 2113284 bytes, sha256 2846fc0a..2422; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3328522. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 4 series order): app.js 2113284 -> 2114391 bytes, sha256 b8c941ba..b3d7; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3329629. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 4 tap 44): app.js 2114391 -> 2114439 bytes, sha256 6b3df91a..b1f4; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3329677. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 4 ayah digits): app.js 2114439 -> 2114667 bytes, sha256 7c338126..8029; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3329905. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 4 keys): app.js 2114667 -> 2115959 bytes, sha256 07cdefe9..7036; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3331197. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 4 women rule line): app.js 2115959 -> 2115987 bytes, sha256 cfddb818..9524; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3331225. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 4 tashkeel state): app.js 2115987 -> 2116060 bytes, sha256 96fad613..9451; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3331298. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (station 3 cache ezik-v91): app.js 2116060 -> 2116060 bytes, sha256 1d18b62c..85db; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3331298. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-11 -- Item 86 (memorizer) merge of origin/main 81c544a: app.js 2116060 -> 2222276 bytes, sha256 4c526961..55aa; index.html 155556.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3437684. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  'sw.js': '7d242fb42924a512fd3479035f799810b8e124ff8d1ac3f00616809ebed4143a',
 };
 
 // ---------------------------------------------------------------------------
@@ -3005,7 +3031,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2213140, of: 'app.js' },
+      { n: 2222276, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

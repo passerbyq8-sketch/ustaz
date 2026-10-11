@@ -1771,6 +1771,9 @@ const EZ_I18N = {
     'ez110.font.noto': '\u0646\u0648\u062A\u0648 \u0633\u0627\u0646\u0633',
     'ez110.font.cairo': '\u0627\u0644\u0642\u0627\u0647\u0631\u0629',
     'ez110.font.tajawal': '\u062A\u062C\u0648\u0651\u0644',
+    'ez110.set.womenRule': '\u0648\u0627\u062E\u062A\u064A\u0627\u0631\u064F\u0643 \u0647\u0646\u0627 \u0647\u0648 \u0645\u0627 \u064A\u0642\u0631\u0650\u0651\u0631\u064F \u00AB\u0631\u0643\u0646 \u0627\u0644\u0646\u0633\u0627\u0621\u00BB \u0639\u0644\u0649 \u0631\u0626\u064A\u0633\u064A\u0651\u062A\u0643: \u064A\u0638\u0647\u0631\u064F \u0645\u0639 \u00AB\u0623\u0646\u062B\u0649\u00BB\u060C \u0648\u0644\u0627 \u064A\u0638\u0647\u0631\u064F \u0645\u0639 \u00AB\u0630\u0643\u0631\u00BB. \u0628\u062F\u0650\u0651\u0644\u0652 \u0625\u062C\u0627\u0628\u062A\u064E\u0643 \u0648\u0627\u062D\u0641\u0638\u0652\u0647\u0627 \u0641\u064A\u0639\u0648\u062F\u064F \u0623\u0648 \u064A\u0630\u0647\u0628\u064F \u0641\u064A \u0627\u0644\u062D\u0627\u0644.',
+    'ez110.acts.tashkeelOn': '\u062A\u0634\u0643\u064A\u0644: \u0645\u064F\u0641\u0639\u064E\u0651\u0644',
+    'ez110.acts.tashkeelOff': '\u062A\u0634\u0643\u064A\u0644: \u063A\u064A\u0631\u064F \u0645\u064F\u0641\u0639\u064E\u0651\u0644',
     'mem86.tabs': 'أقسام المحفّظ',
     'mem86.tab.learn': 'احفظ',
     'mem86.tab.progress': 'تقدّمي',
@@ -3293,6 +3296,9 @@ const EZ_I18N = {
     'ez110.font.noto': 'Noto Sans Arabic',
     'ez110.font.cairo': 'Cairo',
     'ez110.font.tajawal': 'Tajawal',
+    'ez110.set.womenRule': 'Your answer here is what decides the women\u2019s corner on your home: it is shown for \u201Cfemale\u201D, and not shown for \u201Cmale\u201D. Change your answer and save it, and it comes back, or it goes, at once.',
+    'ez110.acts.tashkeelOn': 'Diacritics: on',
+    'ez110.acts.tashkeelOff': 'Diacritics: off',
     'mem86.tabs': 'Memorizer sections',
     'mem86.tab.learn': 'Memorize',
     'mem86.tab.progress': 'My progress',
@@ -9143,8 +9149,14 @@ const EZ110_SECTION_NAMES = {
   women: 'module.women', tasbih: 'tasbih.card.title', calc: 'ez110.name.calc',
 };
 function ez110Name(id) { return EZ110_SECTION_NAMES[id] ? ezT(EZ110_SECTION_NAMES[id]) : ''; }
+// ROUND 4 (phone round): a press on the bar's «عزك» opened the keyboard by itself -- the shared door focuses the composer
+// for the widget's «ask». A press on the BAR is navigation, so it says so here and the door does not focus. The
+// composer itself is not touched (owner, 19 August).
+let EZ110_BAR_NAV = false;
+function ez110TakeBarNav() { const v = EZ110_BAR_NAV; EZ110_BAR_NAV = false; return v; }
 function ez110Go(route) {
   if (EZIK_WIDGET_ROUTES.indexOf(route) < 0) return;
+  EZ110_BAR_NAV = true;
   EZIK_WIDGET_PENDING = route;
   EZIK_WIDGET_SUBS.forEach((f) => { try { f(); } catch (e) {} });
 }
@@ -9252,6 +9264,17 @@ function Ez110WomenGate({ onPick, onBack }) {
 // its press raises the prompt; granted -> on; refused -> off and the app works on (Apple 4.5.4). Once per install;
 // only a press in it writes the device key; never for a reader whose call to prayer is already on; only where a shell
 // can carry it (the switch draws nothing in a browser).
+// ROUND 4 §3-1-4 (owner): THE CALL-TO-PRAYER CARD IS THE OWNER'S ALONE until a store trip mends the late call and its
+// sound (the phone round measured Maghrib 22 minutes late: the shell's alarms are inexact). Its own three states, like a
+// part: 'off' nobody · 'owner' the device holding the unlock code (and this machine's local override) · 'public' everybody
+// -- and 'public' only by the owner's word, through PUBLISH.md (gate ez110override O10). The switch in the prayer
+// settings is everybody's, as it is today: only the card in the empty chat is gated.
+const EZ110_ADHAN_CARD = 'owner';
+function ez110AdhanCardLit() {
+  if (EZ110_ADHAN_CARD === 'public') return true;
+  if (EZ110_ADHAN_CARD === 'owner') return EZ110_OWNER || !!(EZ110_OVERRIDE && EZ110_OVERRIDE.id);
+  return false;
+}
 function ez110AdhanAsked() { try { return !!localStorage.getItem(EZ110_ADHAN_ASKED_KEY); } catch (e) { return true; } }
 function ez110MarkAdhanAsked() { try { localStorage.setItem(EZ110_ADHAN_ASKED_KEY, '1'); } catch (e) {} }
 function Ez110AdhanCard({ onPressed, onLater }) {
@@ -9407,7 +9430,7 @@ function Ez110Tile({ m, edit, onMove, idx, count, dragging, onPointerDown, onPic
     <div className={'ez110-tile-wrap' + (edit ? ' is-edit' : '') + (dragging ? ' is-drag' : '')} data-ez110-tile={m.id}
       onContextMenu={(e) => e.preventDefault()}>
       <button type="button" className="ez110-tile"
-        onClick={edit ? onPick : m.onClick} onPointerDown={onPointerDown}
+        onClick={edit ? onPick : ((m.id === 'library' || m.id === 'treasure') ? () => { ez110NoteReturn('home'); m.onClick(); } : m.onClick)} onPointerDown={onPointerDown}
         aria-label={edit ? ezT('ez110.order.tile').replace('{name}', typeof m.label === 'string' ? m.label : '').replace('{n}', toArabicDigits(idx + 1)).replace('{of}', toArabicDigits(count)) : undefined}>
         <span className="ez110-icon-box" aria-hidden="true">{m.icon}</span>
         <span className="ez110-tile-label">{m.label}</span>
@@ -9684,10 +9707,14 @@ function Ez110SettingsExtras({ onOpenPrivacy }) {
   const go = <svg className="ez110-row-go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>;
   return (
     <>
+      {/* ROUND 4 §3-1-5 (owner): the chooser shows only what this reader may choose -- with «ب» alone there is nothing to
+          choose, so the row is not drawn; the owner, who has the four, sees the four */}
+      {ids.length > 1 ? (
       <EzShellGroup title={ezT('ez110.set.identity')} hint={ezT('ez110.set.identityHint')} grp="appearance-id">
         <Ez110Radio label={ezT('ez110.set.identity')} value={ez.id} onPick={ez110WriteIdentity}
           options={ids.map((id) => ({ v: id, label: ezT('ez110.id.' + id), preview: <Ez110Preview id={id} /> }))} />
       </EzShellGroup>
+      ) : null}
       {/* ROUND 3 §3-9-2 (owner): the interface font -- the identity's own by default */}
       <EzShellGroup title={ezT('ez110.set.font')} hint={ezT('ez110.set.fontHint')} grp="appearance-font">
         <Ez110Radio label={ezT('ez110.set.font')} value={font} onPick={(v) => setFont(ez110WriteFont(v))}
@@ -9731,6 +9758,48 @@ function Ez110DeleteAllRow({ onOpenControl }) {
         </span>
         {EZ110_ROW_GO}
       </button>
+    </Ez110PlainGroup>
+  );
+}
+// ROUND 4 §3-1-3 (owner, round 3: «ولو في شي جديد خله داخل خيار الخصوصيه والبيانات»): the sync session's link to the new
+// privacy text sits on the page «الخصوصية والبيانات» in «ب», not in «الحساب». A PLACE, NOT A BEHAVIOUR: the same target,
+// the same words, drawn under the same condition (the server said sync is open for this session, as EzikSyncControls
+// learns it -- this reads that answer and asks nothing). EzikSyncControls is not edited; «ب» hides its copy by CSS.
+// ROUND 4 (phone round N3, 127 note m19), part fix: the privacy policy and the deletion page are pages of the site, so the
+// system back RELOADS the app. Opened from the page «الخصوصية والبيانات» of «ب», a press on either link leaves a one-shot tab
+// slot; the boot reopens Settings (the m19 effect in App) and Settings opens with that page showing. Navigation layer only:
+// privacy.html and delete.html are not touched. Dark: no slot is written and none is read.
+const EZ110_BACK_SLOT = 'ezik_110_back_v1';
+function ez110NotePrivacyLink(e) {
+  if (!ez110FixLit()) return;
+  const a = e && e.target && e.target.closest ? e.target.closest('a[href]') : null;
+  if (!a) return;
+  if (/(^|\/)(privacy|delete)\.html(\?|#|$)/.test(a.getAttribute('href') || '')) { try { window.sessionStorage.setItem(EZ110_BACK_SLOT, 'privacy'); } catch (x) {} }
+}
+function ez110PeekPrivacyBack() {
+  if (!ez110FixLit()) return false;
+  try { return window.sessionStorage.getItem(EZ110_BACK_SLOT) === 'privacy' && !!ez110ReadIdentity(); } catch (e) { return false; }
+}
+function ez110TakePrivacyBack() {
+  const on = ez110PeekPrivacyBack();
+  try { if (on) window.sessionStorage.removeItem(EZ110_BACK_SLOT); } catch (e) {}
+  return on;
+}
+function Ez110SyncPrivacyLink() {
+  useEzLang();
+  const [open, setOpen] = useState(ezikSyncIsOpen());
+  useEffect(() => {
+    const onStatus = () => setOpen(ezikSyncIsOpen());
+    window.addEventListener('ezik:sync:status', onStatus);
+    return () => window.removeEventListener('ezik:sync:status', onStatus);
+  }, []);
+  if (!open) return null;
+  return (
+    <Ez110PlainGroup grp="privacy-sync">
+      <a href="/api/sync?page=privacy" className="ez110-row" data-ez110-sync-privacy="1">
+        <span className="ez110-row-text"><span className="ez110-row-title">{ezT('sync.privacy')}</span></span>
+        {EZ110_ROW_GO}
+      </a>
     </Ez110PlainGroup>
   );
 }
@@ -10684,7 +10753,9 @@ const TASBIH_DHIKR = [
 // ITEM 110 ROUND 2 (127 note m34), part fix: three of the dhikr above are SHOWN with their hamzas and their
 // final yaa, as the owner writes them on the menu's dhikr line. Display only: the ids are what is stored, counted
 // and synced, and TASBIH_DHIKR keeps its texts letter for letter. Dark: d.text, as before.
-const EZ110_TASBIH_SHOW = { 3: 'لا إله إلا الله', 5: 'رب اغفر لي', 6: 'أستغفر الله' };
+// ROUND 4 (phone round N10): three more, as the phone round listed them -- 7, 12 and 13.
+const EZ110_TASBIH_SHOW = { 3: 'لا إله إلا الله', 5: 'رب اغفر لي', 6: 'أستغفر الله', 7: 'لا حول ولا قوة إلا بالله',
+  12: 'أستغفر الله الذي لا إله إلا هو الحي القيوم وأتوب إليه', 13: 'لا إله إلا أنت سبحانك إني كنت من الظالمين' };
 const tasbihShown = (d) => (ez110FixLit() && EZ110_TASBIH_SHOW[d.id]) || d.text;
 
 // The lock. Shut, there is no target and the count runs free; open, the number the panel shows is
@@ -12648,6 +12719,25 @@ function ez110PluralCount(kind, n) {
   return ezT('fix.count.' + kind + '.' + form, { n: ezikBrowseNum(v) });
 }
 const ez110CountLessons = (n) => ez110PluralCount('lesson', n);
+// ROUND 4 (phone round N9, 127 note m21), part fix: a scholar's series named «(10) ...» came before «(2) ...» -- the
+// server's order is by the name's characters. Within the page it sent, the series that carry a number in brackets
+// are put in number order IN THE SAME PLACES; every other series keeps its place. Across pages the order is the
+// server's (api/, not touched here).
+function ez110SeriesNo(name) {
+  const m = /[(\[]\s*([0-9\u0660-\u0669\u06F0-\u06F9]{1,4})\s*[)\]]/.exec(String(name || ''));
+  if (!m) return null;
+  return Number(m[1].replace(/[\u0660-\u0669]/g, (c) => String(c.charCodeAt(0) - 0x660)).replace(/[\u06F0-\u06F9]/g, (c) => String(c.charCodeAt(0) - 0x6F0)));
+}
+function ez110SeriesInOrder(rows) {
+  if (!Array.isArray(rows)) return rows;
+  const slots = [], numbered = [];
+  rows.forEach((r, i) => { const n = r && !r.misc ? ez110SeriesNo(r.series) : null; if (n !== null) { slots.push(i); numbered.push({ r, n, i }); } });
+  if (numbered.length < 2) return rows;
+  numbered.sort((a, b) => (a.n - b.n) || (a.i - b.i));
+  const out = rows.slice();
+  slots.forEach((at, k) => { out[at] = numbered[k].r; });
+  return out;
+}
 function ez110CountForLevel(level, n) {
   return ez110PluralCount(level === EZIK_BROWSE_SCHOLARS ? 'scholar' : level === EZIK_BROWSE_SERIES ? 'series' : 'lesson', n);
 }
@@ -12834,7 +12924,7 @@ function LessonsBrowsePane({ backRef }) {
       }
       const body = outcome.payload || {};
       if (level === EZIK_BROWSE_SCHOLARS) setRows(ezikBrowseScholarRows(body.rows));
-      else if (level === EZIK_BROWSE_SERIES) setRows(ezikBrowseSeriesRows(body.rows));
+      else if (level === EZIK_BROWSE_SERIES) setRows(ez110FixLit() ? ez110SeriesInOrder(ezikBrowseSeriesRows(body.rows)) : ezikBrowseSeriesRows(body.rows));
       else setRows(ezikBrowseLessonRows(body.rows));
       setPages(level === EZIK_BROWSE_SCHOLARS ? 1 : ezikBrowsePageNo(body.pages));
       setTotal(ezikBrowseCount(body.total));
@@ -13295,6 +13385,29 @@ function ezikReadResume() {
 }
 function ezikClearResume() {
   try { window.sessionStorage.removeItem(EZIK_RESUME_KEY); } catch (e) {}
+}
+// ITEM 110 ROUND 4 (phone round N1), part fix: the library and «كنوز المعرفة» are pages of their own, so the system back
+// RELOADS this app, and with no record it landed on the chat. Lit, leaving for one of them records where the reader stood
+// (the menu, or a section the resume tables know) through the resume ledger that already exists, and the boot lands there.
+// A page restored from the back-forward cache already shows that screen: the 'home' record is dropped then, so it cannot
+// steer a later reload. Dark: nothing is written, and the old landing (the chat) is untouched.
+let EZ110_RETURN_WATCH = false;
+function ez110NoteReturn(screenNow) {
+  if (!ez110FixLit()) return;
+  const id = screenNow === 'home' ? 'home' : (EZIK_RESUME_SCREENS[screenNow] ? screenNow : '');
+  if (!id) return;
+  ezikWriteResume(id);
+  // written again as the page goes: a render between this press and the unload (the menu's own first bare render
+  // clears the record) must not undo it
+  try { window.addEventListener('pagehide', () => ezikWriteResume(id), { once: true }); } catch (e) {}
+  if (EZ110_RETURN_WATCH || typeof window === 'undefined') return;
+  EZ110_RETURN_WATCH = true;
+  try {
+    window.addEventListener('pageshow', (e) => {
+      if (!e || !e.persisted) return;
+      try { if (window.sessionStorage.getItem(EZIK_RESUME_KEY) === 'home') ezikClearResume(); } catch (x) {}
+    });
+  } catch (e) {}
 }
 
 // ============================================================
@@ -18821,7 +18934,9 @@ function App() {
     if (!ez110FixLit()) return;
     const st = window.history.state;
     let hasProfile = false; try { hasProfile = !!localStorage.getItem('child_profile'); } catch (e) {}
-    if (!st || st.screen !== 'settings' || !hasProfile) return;
+    // ROUND 4 (N3): back from a policy page opened on «الخصوصية والبيانات» of «ب» -- Settings opens with that page showing
+    const toPriv = hasProfile && ez110PeekPrivacyBack();
+    if (!toPriv && (!st || st.screen !== 'settings' || !hasProfile)) return;
     sheetOriginRef.current.push('chat'); histReplaceRef.current = true; setScreen('settings');
   }, []);
   // ITEM 110 ROUND 2 (127 note m7), part fix: «افتح في المكتبة» is a full page navigation, so coming back RELOADS
@@ -19135,6 +19250,7 @@ function App() {
     if (cur === 'onboarding') return;
     // Notification aliases open the index, preserving the cancellation of group deep links.
     const route = requested === 'adhkar_sabah' || requested === 'adhkar_masaa' ? 'adhkar' : requested;
+    if (route !== 'chat') ez110TakeBarNav();
     widgetChatFocusRef.current = false;
     setAsmaaOpen(route === 'asmaa');
     setAboutOpen(false);
@@ -19150,11 +19266,13 @@ function App() {
     setHomeEpoch((n) => n + 1);
     if (route === 'treasure') {
       ezikClearResume();
+      ez110NoteReturn(cur);
       window.location.href = '/quest.html';
       return;
     }
     if (route === 'library') {
       ezikClearResume();
+      ez110NoteReturn(cur);
       window.location.href = '/library.html';
       return;
     }
@@ -19162,7 +19280,7 @@ function App() {
       ezikClearResume();
       newChat();
       setScreen('chat');
-      widgetChatFocusRef.current = true;
+      widgetChatFocusRef.current = !ez110TakeBarNav();
       return;
     }
     ezikWriteResume(route);
@@ -22106,7 +22224,7 @@ function App() {
                             <path d="M12 17v5" /><path d="M9 10.8V5h6v5.8l2.5 3.2h-11L9 10.8z" />
                           </svg>
                         </button>
-                        <button onClick={() => setChatPendingDelete(c.id)} style={s.drawerChatIcon} aria-label={'\u062d\u0630\u0641'}>
+                        <button onClick={() => setChatPendingDelete(c.id)} style={s.drawerChatIcon} aria-label={ez110FixLit() ? ezT('common.delete') : '\u062d\u0630\u0641'}>
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M6 6l1 14h10l1-14" />
                           </svg>
@@ -22624,7 +22742,7 @@ function App() {
         <Ez110GenderCard onPick={(g) => { ez110MarkGenderAsked(); if (g) ez110SaveGender(g); setEz110FirstTick((t) => t + 1); }} />
       ) : null}
       {/* ROUND 3 §3-11, «ب» only: the call-to-prayer card, with the existing switch in it */}
-      {ez110.id && messages.length === 0 && streamingText === null && ezikSchedBridge()
+      {ez110.id && ez110AdhanCardLit() && messages.length === 0 && streamingText === null && ezikSchedBridge()
         && (ez110AdhanStay || (!ez110AdhanAsked() && !readPrayerNotify())) ? (
         <Ez110AdhanCard onPressed={() => { ez110MarkAdhanAsked(); setEz110AdhanStay(true); }}
           onLater={() => { ez110MarkAdhanAsked(); setEz110AdhanStay(false); setEz110FirstTick((t) => t + 1); }} />
@@ -23909,7 +24027,9 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, stream
         {/* ITEM 42-ب: the same buildCopyText payload, rendered by the document card's own
             docToHtml and printed by the app's one printAsPdf. No library, no request, no
             second serializer -- and the identical 44x44 area every .ezc-acts button takes. */}
-        {actOf('pdf', <ExportPdfReplyButton getText={buildCopyText} />)}
+        {/* ITEM 110 ROUND 4 (127 note m1), part fix: not drawn inside the ANDROID shell, whose WebView has no print --
+            until its bridge comes in a store trip; kept in a browser and in the iOS shell (ez110AndroidShell) */}
+        {ez110FixLit() && ez110AndroidShell() ? null : actOf('pdf', <ExportPdfReplyButton getText={buildCopyText} />)}
         {/* ITEM 94, DECISIONS 1, 2, 4 AND 6. The control is here or it is not here; it is never
             here and dead. Its place in the rail does not move -- it is the fifth control when
             it is drawn, exactly where it has always been -- and the props it is handed are the
@@ -23949,7 +24069,7 @@ const MessageBubble = React.memo(function MessageBubble({ message, index, stream
             <span className="ez110-sr">{ezT('ez110.acts.more')}</span>
           </button>
         ) : null}
-        {actOf('tashkeel', <button type="button" onClick={onToggleTashkeel} aria-label={'\u062A\u0634\u0643\u064A\u0644'} aria-pressed={ez110Acts ? (tashkeel ? 'true' : 'false') : undefined} style={{ ...miniBtnStyle, opacity: tashkeel ? 1 : 0.7, borderColor: tashkeel ? 'var(--red)' : 'var(--line)' }}>{'\u062A\u0634\u0643\u064A\u0644'}</button>)}
+        {actOf('tashkeel', <button type="button" onClick={onToggleTashkeel} aria-label={ez110Acts ? ezT(tashkeel ? 'ez110.acts.tashkeelOn' : 'ez110.acts.tashkeelOff') : '\u062A\u0634\u0643\u064A\u0644'} aria-pressed={ez110Acts ? (tashkeel ? 'true' : 'false') : undefined} style={{ ...miniBtnStyle, opacity: tashkeel ? 1 : 0.7, borderColor: tashkeel ? 'var(--red)' : 'var(--line)' }}>{'\u062A\u0634\u0643\u064A\u0644'}</button>)}
         {actOf('report', <button type="button" onClick={() => onReport && onReport(index)} aria-label={ezT("chat.report")} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'transparent', color: 'var(--muted)', border: '1px solid var(--line)', borderRadius: 8, padding: '4px 10px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
           <span>بلّغ</span>
@@ -24209,7 +24329,7 @@ function ReportModal({ onClose, onSubmit }) {
         <button onClick={send} disabled={!reason || status === 'sending'} style={{ ...s.primaryBtn, opacity: (!reason || status === 'sending') ? 0.5 : 1 }}>
           {status === 'sending' ? '…' : 'أرسِل'}
         </button>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14, marginTop: 10, cursor: 'pointer', fontFamily: 'inherit' }}>إلغاء</button>
+        <button onClick={onClose} className={ez110FixLit() ? 'ez110-tap44' : undefined} style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14, marginTop: 10, cursor: 'pointer', fontFamily: 'inherit' }}>إلغاء</button>
       </div>
     </div>
   );
@@ -24506,6 +24626,8 @@ const readStatedAyahRef = (t) => {
 // and never what it prints over it.
 const SUNNAH_CARD_LABEL = 'من السنة النبوية';
 
+// ITEM 110 ROUND 4 (phone round), part fix: the verse number under an ayah card is written in the interface's digits
+// (ezNum) -- it was Western digits inside an Arabic line. Dark: as it was.
 function HadithCard({ content, narrator, ruling }) {
   // خانةُ المخرِّجِ قد تصلُ مملوءةً بالدرجة، فتُطبَعُ الدرجةُ مرّتين وأُولاهما «رَوَى متفق عليه».
   const att = resolveHadithAttribution(narrator, ruling);
@@ -24523,7 +24645,7 @@ function HadithCard({ content, narrator, ruling }) {
       </div>
       <div style={s.hadithText}>{content}</div>
       {quranic
-        ? (ayahRef && <div style={s.hadithMeta}>{`سورة ${ayahRef.surah}، آية ${ayahRef.ayah}`}</div>)
+        ? (ayahRef && <div style={s.hadithMeta}>{`سورة ${ayahRef.surah}، آية ${ez110FixLit() ? ezNum(ayahRef.ayah) : ayahRef.ayah}`}</div>)
         : (att.ruling && <div style={s.hadithMeta}>{att.ruling}</div>)}
     </div>
   );
@@ -27771,6 +27893,13 @@ function prayerTzNow(now, loc) {
 // string is something the reader can change and the shell does not own, so a UA sniff would send
 // a plain browser down the shell path and leave the reader pressing a button nothing answers.
 // Returns the bridge itself (so the caller cannot re-read a different window) or null.
+// ITEM 110 ROUND 4 (127 note m1): THE ANDROID SHELL, WITHOUT A USER-AGENT SNIFF. The bridge says «a shell»; which one is a
+// FEATURE of the engine that hosts it, not a string the reader can change: only Apple's WebKit (the iOS shell's WKWebView)
+// supports -webkit-touch-callout, and Android's Chromium WebView does not. A shell without it is the Android shell.
+function ez110AndroidShell() {
+  if (!ezikShellBridge()) return false;
+  try { return !(window.CSS && typeof CSS.supports === 'function' && CSS.supports('-webkit-touch-callout', 'none')); } catch (e) { return false; }
+}
 function ezikShellBridge() {
   if (typeof window === 'undefined') return null;
   const b = window.ReactNativeWebView;
@@ -32759,7 +32888,7 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   const [arrangeOpen, setArrangeOpen] = useState(false);
   useEzikBackLayer(arrangeOpen, () => setArrangeOpen(false));
   // ROUND 3 §3-6 («ب» only): «الخصوصية والبيانات» is one row that opens its own page; this is that page's layer.
-  const [privOpen, setPrivOpen] = useState(false);
+  const [privOpen, setPrivOpen] = useState(ez110TakePrivacyBack);
   useEzikBackLayer(privOpen, () => setPrivOpen(false));
   // Read once at mount from the one reader, written through the one writer -- the watermark
   // rule exactly. The switch shows the RESOLVED behaviour, so an `auto` device shows the
@@ -32879,8 +33008,9 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
   if (ez.id && privOpen) {
     return (
       <EzShell title={ezT('ez110.set.privacy')} onBack={() => { if (ezikHistBack()) return; setPrivOpen(false); }} backLabel={A2_BACK}>
-        <div className="ezsh-grid">
+        <div className="ezsh-grid ez110-privpage" onClickCapture={ez110NotePrivacyLink}>
           {aiConsentGroup}
+          <Ez110SyncPrivacyLink />
           <Ez110DeleteAllRow onOpenControl={onOpenControl} />
         </div>
       </EzShell>
@@ -32930,7 +33060,8 @@ function SettingsSheet({ theme, onTheme, onBack, onOpenControl, a11y, onA11y, on
               whose shelf changed has to be able to see why, and where to change it back. It is a
               statement of the rule and nothing else: it reads no store, it is not a control, it
               is not focusable, and it claims nothing about him. */}
-          <div style={s.a11ySwitchHint}>{ezT('settings.womenCornerRule')}</div>
+          {/* ROUND 4 (phone round N7): «ب» offers two answers, so its line names two (a new key; the old one, read dark, is untouched) */}
+          <div style={s.a11ySwitchHint}>{ezT(ez.id ? 'ez110.set.womenRule' : 'settings.womenCornerRule')}</div>
           <input value={pfYear} onChange={(e) => { setPfYear(e.target.value); setPfMsg(''); }}
             placeholder={ezT('onboarding.birthYear')} aria-label={ezT('onboarding.birthYear')}
             type="text" inputMode="numeric" pattern="[0-9]*" maxLength={4} style={s.welcomeInput} />

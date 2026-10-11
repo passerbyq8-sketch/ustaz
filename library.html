@@ -923,6 +923,11 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
   })();
   // 127 note m6 (part fix): a back that never PUSHES. With history behind it, it steps back (to the chat that
   // opened the reader, or to the library page before); alone in the tab, it REPLACES this entry with its parent.
+  // ROUND 4 (phone round N5), part fix: the reader is a view of THIS page, so the library's home is rebuilt on the way back
+  // and its search came back empty. Lit, opening a result from the home's search keeps the search in this page's memory
+  // (the mode, the words, the scope, how many pages were loaded and where the list stood), and the rebuilt home runs it
+  // again and returns to that place. Memory only: nothing is stored. Dark: nothing is kept, the home starts empty.
+  var EZ110_LIBKEEP = null;
   function ez110Back(parent) { if (history.length > 1) history.back(); else location.replace('#' + String(parent).replace(/^#/, '')); }
   function topBar(title, back, extra) {
     var kids = [];
@@ -953,7 +958,7 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
     $app.appendChild(bar);
     $app.appendChild(scroll);
     // ORDER-108B: one search box at the top - title / author / words (default words)
-    body.appendChild(searchPanel({}).el);
+    body.appendChild(searchPanel(EZ110_FIX ? { keep: function () { return scroll.scrollTop; }, onRestored: function (top) { requestAnimationFrame(function () { scroll.scrollTop = top; }); } } : {}).el);
     body.appendChild(el('section', { class: 'hero', style: 'margin-top:14px' }, [el('h2', { text: T('home_hero') }), el('p', { text: T('home_hero_sub') })]));
     // continue reading
     var pos = LS.get(K_POS, {}) || {};
@@ -1029,6 +1034,7 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
       if (h.cut_end) snip.appendChild(document.createTextNode(' …'));
       var where = markLabel(h.numbering, { seq: h.seq, vol: h.vol, page: h.page });
       return el('button', { class: 'hit', type: 'button', on: { click: function () {
+        if (ctx.keep && EZ110_FIX) EZ110_LIBKEEP = { mode: st.mode, q: input.value, scope: st.scope, offset: st.offset, top: ctx.keep() };
         if (ctx.openHit) ctx.openHit(h, terms);
         else go('#/read/' + h.book_id + '/' + h.seq + '/' + encodeURIComponent(terms.join(' ')));
         if (ctx.onDone) ctx.onDone();
@@ -1052,11 +1058,11 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
     function run(reset) {
       var q = input.value.trim();
       if (reset) { st.offset = 0; }
-      if (!q) { ++st.seq; results.innerHTML = ''; info.textContent = ''; return; }
+      if (!q) { ++st.seq; results.innerHTML = ''; info.textContent = ''; return Promise.resolve(); }
       var my = ++st.seq;
       if (reset) { results.innerHTML = ''; info.textContent = T('loading'); }
       var path = C.buildSearchPath({ mode: st.mode, q: q, scope: st.scope, id: scopeId(), offset: st.offset, limit: PAGE });
-      api(path).then(function (j) {
+      return api(path).then(function (j) {
         if (my !== st.seq) return;
         var old = results.querySelector('.more'); if (old) old.remove();
         if (st.offset === 0) results.innerHTML = '';
@@ -1085,6 +1091,13 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
       else { info.textContent = T('ask_note'); toast(T('ask_note')); }
     });
     placeholder(); paintScopes();
+    if (ctx.keep && EZ110_FIX && EZ110_LIBKEEP) {
+      var kept = EZ110_LIBKEEP;
+      st.mode = kept.mode; mode.value = kept.mode; placeholder(); input.value = kept.q; st.scope = kept.scope; paintScopes();
+      var chain = run(true);
+      for (var k = 0; k < Math.round(kept.offset / PAGE); k++) chain = chain.then(function () { st.offset += PAGE; return run(false); });
+      chain.then(function () { if (ctx.onRestored) ctx.onRestored(kept.top); });
+    }
     return { el: root, focus: function () { try { input.focus(); } catch (e) {} } };
   }
   // A full-screen search sheet over the current view (section, book card, reader).

@@ -70,5 +70,13 @@ html[data-ez110] .ezsh-group[data-ez110-grp="appearance"]:has(.ez110-seg):not(:h
 html[data-ez110] .ezsh-group[data-ez110-grp="privacy-delete"] { order: 52; }
 html[data-ez110] .ezsh-group[data-ez110-grp="privacy"] .ez110-row:first-child,
 html[data-ez110] .ezsh-group[data-ez110-grp="privacy-delete"] .ez110-row:first-child { border-top: 0; }
+/* ROUND 4 §3-1-3: the sync session's privacy link lives on that page (after the consent, before the way to the delete);
+   its copy in «الحساب» is not drawn in «ب» */
+html[data-ez110] .ezsh-group[data-ez110-grp="privacy-sync"] { order: 51; }
+html[data-ez110] a.ez110-row { text-decoration: none; color: inherit; }
+html[data-ez110] a[data-ezik-sync="privacy"] { display: none !important; }
 /* ROUND 3 §3-9-2: the font chooser sits under the identity chooser */
 html[data-ez110] .ezsh-group[data-ez110-grp="appearance-font"] { order: 21; }
+
+/* ROUND 4 (phone round N11): the links on the page «الخصوصية والبيانات» were 19 high -- each takes 44 to the touch */
+html[data-ez110] .ez110-privpage a[href] { display: inline-flex; align-items: center; min-height: 44px; }
