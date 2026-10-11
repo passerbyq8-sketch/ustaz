@@ -10423,7 +10423,9 @@ const TASBIH_DHIKR = [
 // ITEM 110 ROUND 2 (127 note m34), part fix: three of the dhikr above are SHOWN with their hamzas and their
 // final yaa, as the owner writes them on the menu's dhikr line. Display only: the ids are what is stored, counted
 // and synced, and TASBIH_DHIKR keeps its texts letter for letter. Dark: d.text, as before.
-const EZ110_TASBIH_SHOW = { 3: 'لا إله إلا الله', 5: 'رب اغفر لي', 6: 'أستغفر الله' };
+// ROUND 4 (phone round N10): three more, as the phone round listed them -- 7, 12 and 13.
+const EZ110_TASBIH_SHOW = { 3: 'لا إله إلا الله', 5: 'رب اغفر لي', 6: 'أستغفر الله', 7: 'لا حول ولا قوة إلا بالله',
+  12: 'أستغفر الله الذي لا إله إلا هو الحي القيوم وأتوب إليه', 13: 'لا إله إلا أنت سبحانك إني كنت من الظالمين' };
 const tasbihShown = (d) => (ez110FixLit() && EZ110_TASBIH_SHOW[d.id]) || d.text;
 
 // The lock. Shut, there is no target and the count runs free; open, the number the panel shows is
