@@ -21863,7 +21863,7 @@ function App() {
                             <path d="M12 17v5" /><path d="M9 10.8V5h6v5.8l2.5 3.2h-11L9 10.8z" />
                           </svg>
                         </button>
-                        <button onClick={() => setChatPendingDelete(c.id)} style={s.drawerChatIcon} aria-label={'\u062d\u0630\u0641'}>
+                        <button onClick={() => setChatPendingDelete(c.id)} style={s.drawerChatIcon} aria-label={ez110FixLit() ? ezT('common.delete') : '\u062d\u0630\u0641'}>
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M6 6l1 14h10l1-14" />
                           </svg>
