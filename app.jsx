@@ -13059,6 +13059,10 @@ function ezikReadResume() {
     return (typeof v === 'string' && ezikResumeKnown(v)) ? v : '';
   } catch (e) { return ''; }
 }
+// R4A §3-2: whether this page has the tab store the resume ledger lives in (a guard's harness may not)
+function ezikResumeStorageOk() {
+  try { return typeof window !== 'undefined' && !!window.sessionStorage && typeof window.sessionStorage.getItem === 'function'; } catch (e) { return false; }
+}
 function ezikClearResume() {
   try { window.sessionStorage.removeItem(EZIK_RESUME_KEY); } catch (e) {}
 }
@@ -18960,6 +18964,9 @@ function App() {
       widgetChatFocusRef.current = !ez110TakeBarNav();
       return;
     }
+    // R4A §3-2: «ب»'s bar and drawer reach the menu through this door, and the door keeps its record in sessionStorage. A
+    // page that has none (a guard's harness) reads no record and would land on the chat; there the menu is opened as asked.
+    if (route === 'home' && ez110ReadIdentity() && !ezikResumeStorageOk()) { setScreen('home'); return; }
     ezikWriteResume(route);
     ezikResumeMarkEntered(ezikReadResume());
     const next = ezikResumeScreen();
