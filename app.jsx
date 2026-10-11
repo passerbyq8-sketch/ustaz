@@ -1771,6 +1771,9 @@ const EZ_I18N = {
     'ez110.font.noto': '\u0646\u0648\u062A\u0648 \u0633\u0627\u0646\u0633',
     'ez110.font.cairo': '\u0627\u0644\u0642\u0627\u0647\u0631\u0629',
     'ez110.font.tajawal': '\u062A\u062C\u0648\u0651\u0644',
+    'ez110.set.womenRule': '\u0648\u0627\u062E\u062A\u064A\u0627\u0631\u064F\u0643 \u0647\u0646\u0627 \u0647\u0648 \u0645\u0627 \u064A\u0642\u0631\u0650\u0651\u0631\u064F \u00AB\u0631\u0643\u0646 \u0627\u0644\u0646\u0633\u0627\u0621\u00BB \u0639\u0644\u0649 \u0631\u0626\u064A\u0633\u064A\u0651\u062A\u0643: \u064A\u0638\u0647\u0631\u064F \u0645\u0639 \u00AB\u0623\u0646\u062B\u0649\u00BB\u060C \u0648\u0644\u0627 \u064A\u0638\u0647\u0631\u064F \u0645\u0639 \u00AB\u0630\u0643\u0631\u00BB. \u0628\u062F\u0650\u0651\u0644\u0652 \u0625\u062C\u0627\u0628\u062A\u064E\u0643 \u0648\u0627\u062D\u0641\u0638\u0652\u0647\u0627 \u0641\u064A\u0639\u0648\u062F\u064F \u0623\u0648 \u064A\u0630\u0647\u0628\u064F \u0641\u064A \u0627\u0644\u062D\u0627\u0644.',
+    'ez110.acts.tashkeelOn': '\u062A\u0634\u0643\u064A\u0644: \u0645\u064F\u0641\u0639\u064E\u0651\u0644',
+    'ez110.acts.tashkeelOff': '\u062A\u0634\u0643\u064A\u0644: \u063A\u064A\u0631\u064F \u0645\u064F\u0641\u0639\u064E\u0651\u0644',
   },
   en: {
     'common.close': 'Close',
@@ -3131,6 +3134,9 @@ const EZ_I18N = {
     'ez110.font.noto': 'Noto Sans Arabic',
     'ez110.font.cairo': 'Cairo',
     'ez110.font.tajawal': 'Tajawal',
+    'ez110.set.womenRule': 'Your answer here is what decides the women\u2019s corner on your home: it is shown for \u201Cfemale\u201D, and not shown for \u201Cmale\u201D. Change your answer and save it, and it comes back, or it goes, at once.',
+    'ez110.acts.tashkeelOn': 'Diacritics: on',
+    'ez110.acts.tashkeelOff': 'Diacritics: off',
   },
 };
 
