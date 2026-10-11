@@ -1760,6 +1760,9 @@ const EZ_I18N = {
     'ez110.later': '\u0644\u0627\u062D\u0642\u064B\u0627',
     'ez110.gender.title': '\u0623\u0646\u062A \u0630\u0643\u0631 \u0623\u0645 \u0623\u0646\u062B\u0649\u061F',
     'ez110.gender.why': '\u0628\u0639\u0636 \u0627\u0644\u0623\u062D\u0643\u0627\u0645 \u0648\u0642\u0633\u0645 \u0627\u0644\u0645\u0631\u0623\u0629 \u064A\u062A\u0628\u0639\u0627\u0646 \u0627\u0644\u062C\u0646\u0633\u060C \u0641\u0627\u062E\u062A\u0631 \u0644\u062A\u0623\u062A\u064A\u0643 \u0627\u0644\u0625\u062C\u0627\u0628\u0627\u062A \u0639\u0644\u0649 \u0642\u062F\u0631\u0643.',
+    // ITEM 110 R4A (owner, item 58 rule): gender sets how Ezik addresses the reader and opens the women's section; the ruling,
+    // its evidence and its detail are the same for everyone. The old line above stays, untouched and unread.
+    'ez110.gender.why2': '\u0644\u064A\u062E\u0627\u0637\u0628\u0643 \u0639\u0632\u0643 \u0628\u0635\u064A\u063A\u0629 \u0627\u0644\u0645\u0630\u0643\u0651\u0631 \u0623\u0648 \u0627\u0644\u0645\u0624\u0646\u0651\u062B\u060C \u0648\u064A\u064F\u0641\u062A\u062D \u0628\u0647 \u0642\u0633\u0645 \u0627\u0644\u0645\u0631\u0623\u0629.',
     'ez110.women.ask': '\u0642\u0633\u0645 \u0627\u0644\u0645\u0631\u0623\u0629 \u064A\u062D\u062A\u0627\u062C \u062A\u062D\u062F\u064A\u062F \u0627\u0644\u062C\u0646\u0633',
     'ez110.women.why': '\u0647\u0630\u0627 \u0627\u0644\u0642\u0633\u0645 \u0644\u0644\u0646\u0633\u0627\u0621. \u0627\u062E\u062A\u0631 \u0644\u062A\u0643\u0645\u0644.',
     'ez110.prayer.more': '\u0627\u0644\u062A\u0630\u0643\u064A\u0631\u0627\u062A \u0648\u0636\u0628\u0637 \u0627\u0644\u0645\u0648\u0627\u0642\u064A\u062A',
@@ -3123,6 +3126,7 @@ const EZ_I18N = {
     'ez110.later': 'Later',
     'ez110.gender.title': 'Are you male or female?',
     'ez110.gender.why': 'Some rulings and the women\'s section depend on it, so your answers can fit you.',
+    'ez110.gender.why2': 'So Ezik addresses you in the masculine or the feminine, and it opens the women\'s section.',
     'ez110.women.ask': 'The women\'s section needs your gender',
     'ez110.women.why': 'This section is for women. Choose to continue.',
     'ez110.prayer.more': 'Reminders and time adjustments',
@@ -8910,7 +8914,7 @@ function Ez110GenderCard({ onPick }) {
   return (
     <section className="ez110-first" data-ez110-first="gender" aria-label={ezT('ez110.gender.title')}>
       <p className="ez110-first-title">{ezT('ez110.gender.title')}</p>
-      <p className="ez110-first-why">{ezT('ez110.gender.why')}</p>
+      <p className="ez110-first-why">{ezT('ez110.gender.why2')}</p>
       <div className="ez110-first-acts">
         <button type="button" className="ez110-first-btn" data-ez110-gender="male" onClick={() => onPick('male')}>{ezT('fix.gender.male')}</button>
         <button type="button" className="ez110-first-btn" data-ez110-gender="female" onClick={() => onPick('female')}>{ezT('fix.gender.female')}</button>
