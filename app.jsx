@@ -9094,7 +9094,7 @@ function Ez110Tile({ m, edit, onMove, idx, count, dragging, onPointerDown, onPic
     <div className={'ez110-tile-wrap' + (edit ? ' is-edit' : '') + (dragging ? ' is-drag' : '')} data-ez110-tile={m.id}
       onContextMenu={(e) => e.preventDefault()}>
       <button type="button" className="ez110-tile"
-        onClick={edit ? onPick : m.onClick} onPointerDown={onPointerDown}
+        onClick={edit ? onPick : ((m.id === 'library' || m.id === 'treasure') ? () => { ez110NoteReturn('home'); m.onClick(); } : m.onClick)} onPointerDown={onPointerDown}
         aria-label={edit ? ezT('ez110.order.tile').replace('{name}', typeof m.label === 'string' ? m.label : '').replace('{n}', toArabicDigits(idx + 1)).replace('{of}', toArabicDigits(count)) : undefined}>
         <span className="ez110-icon-box" aria-hidden="true">{m.icon}</span>
         <span className="ez110-tile-label">{m.label}</span>
@@ -13008,6 +13008,29 @@ function ezikReadResume() {
 }
 function ezikClearResume() {
   try { window.sessionStorage.removeItem(EZIK_RESUME_KEY); } catch (e) {}
+}
+// ITEM 110 ROUND 4 (phone round N1), part fix: the library and «كنوز المعرفة» are pages of their own, so the system back
+// RELOADS this app, and with no record it landed on the chat. Lit, leaving for one of them records where the reader stood
+// (the menu, or a section the resume tables know) through the resume ledger that already exists, and the boot lands there.
+// A page restored from the back-forward cache already shows that screen: the 'home' record is dropped then, so it cannot
+// steer a later reload. Dark: nothing is written, and the old landing (the chat) is untouched.
+let EZ110_RETURN_WATCH = false;
+function ez110NoteReturn(screenNow) {
+  if (!ez110FixLit()) return;
+  const id = screenNow === 'home' ? 'home' : (EZIK_RESUME_SCREENS[screenNow] ? screenNow : '');
+  if (!id) return;
+  ezikWriteResume(id);
+  // written again as the page goes: a render between this press and the unload (the menu's own first bare render
+  // clears the record) must not undo it
+  try { window.addEventListener('pagehide', () => ezikWriteResume(id), { once: true }); } catch (e) {}
+  if (EZ110_RETURN_WATCH || typeof window === 'undefined') return;
+  EZ110_RETURN_WATCH = true;
+  try {
+    window.addEventListener('pageshow', (e) => {
+      if (!e || !e.persisted) return;
+      try { if (window.sessionStorage.getItem(EZIK_RESUME_KEY) === 'home') ezikClearResume(); } catch (x) {}
+    });
+  } catch (e) {}
 }
 
 // ============================================================
@@ -18863,11 +18886,13 @@ function App() {
     setHomeEpoch((n) => n + 1);
     if (route === 'treasure') {
       ezikClearResume();
+      ez110NoteReturn(cur);
       window.location.href = '/quest.html';
       return;
     }
     if (route === 'library') {
       ezikClearResume();
+      ez110NoteReturn(cur);
       window.location.href = '/library.html';
       return;
     }
