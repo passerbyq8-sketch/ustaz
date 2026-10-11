@@ -575,6 +575,23 @@ const MUST_GO_NEW = [
   { lab: 'fav', clause: 'Everything is wiped immediately -- the favourites the reader kept' },
   { lab: 'settings', clause: 'Everything is wiped immediately -- the settings of the new reader' },
   { lab: 'hintSeen', clause: 'Everything is wiped immediately -- the hint the new reader has seen' },
+  // Item 86 (memorizer) -- the eight device keys of the memorisation record, each wiped by its constant.
+  { c: 'MEM86_HELD_KEY',
+    clause: 'your place in the Mushaf, your memorisation progress and the adhkar you have read -- the ayat marked memorised' },
+  { c: 'MEM86_RANGES_KEY',
+    clause: 'your place in the Mushaf, your memorisation progress and the adhkar you have read -- the ranges the reader saved' },
+  { c: 'MEM86_WORDS_KEY',
+    clause: 'your place in the Mushaf, your memorisation progress and the adhkar you have read -- the word log of tests and hints' },
+  { c: 'MEM86_TESTS_KEY',
+    clause: 'your place in the Mushaf, your memorisation progress and the adhkar you have read -- the finished test results' },
+  { c: 'MEM86_RUN_KEY',
+    clause: 'your place in the Mushaf, your memorisation progress and the adhkar you have read -- the paused test' },
+  { c: 'MEM86_PLANS_KEY',
+    clause: 'your place in the Mushaf, your memorisation progress and the adhkar you have read -- the plans and their sessions' },
+  { c: 'MEM86_DAYS_KEY',
+    clause: 'your place in the Mushaf, your memorisation progress and the adhkar you have read -- the activity days and the streak' },
+  { c: 'MEM86_PREFS_KEY',
+    clause: 'your place in the Mushaf, your memorisation progress and the adhkar you have read -- the memorizer switches' },
 ];
 
 // What must be standing afterwards, and the reason each one is allowed to stand.

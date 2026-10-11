@@ -909,3 +909,6 @@ tools/ez110/*.cjs text eol=lf
 tools/ez110/*.css text eol=lf
 tools/ez110/css/*.css text eol=lf
 lib/sync/privacy-page.js text eol=lf
+
+# Item 86 (memorizer) -- the check behind the memorizer's Tarteel-style features; read as text by nothing, pinned LF like its neighbours.
+tools/memorizer86-check.cjs text eol=lf
