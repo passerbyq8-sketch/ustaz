@@ -1899,6 +1899,8 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3325681. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
   //   2026-10-10 -- ITEM 110 (round 4 privacy back): app.js 2110443 -> 2111860 bytes, sha256 c2fc0e3a..4a7a; index.html 155386.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3327098. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
+  //   2026-10-10 -- ITEM 110 (round 4 library keeps search): app.js 2111860 -> 2111860 bytes, sha256 c2fc0e3a..4a7a; index.html 155386.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3327098. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
   'sw.js': '6e723fe81487d323ce3abb4c339f0d5ed6e6831b9b7425dacfcff5e5946c9640',
 };
 
