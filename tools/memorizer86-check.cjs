@@ -359,6 +359,22 @@ ok(X.mem86Streak({ '2026-10-11': { m: 900, n: 0, r: 0, o: [] } }, T).cur === 0, 
 const wl2 = appSrc.slice(appSrc.indexOf('function dailyWirdLines('), appSrc.indexOf('\n}\n', appSrc.indexOf('function dailyWirdLines(')));
 ok(wl2.length > 0 && !/mem86/.test(wl2), 'the daily wird card is untouched: gate wird evaluates dailyWirdLines alone, so the plan line waits for discussion');
 
+/* ------------------------------------------------------------------ phase 7 */
+section('phase 7 -- the numbers of «تقدّمي»');
+lift(['mem86SurahDensity', 'MEM86_TOTAL_AYAT']);
+reset();
+X.mem86HeldSet(112, 1, 4, true);
+X.mem86HeldSet(1, 1, 7, true);
+const h7 = X.mem86HeldRead();
+ok(X.mem86HeldTotal(h7) === 11 && X.MEM86_TOTAL_AYAT === 6236, 'memorised ayat are counted, out of 6236');
+X.mem86WordsLog(['112:1:1', '112:1:1', '1:2:1'], 'err');
+const dn = X.mem86SurahDensity(h7, X.mem86WordsRead());
+const d112 = dn.find((x) => x.sn === 112), d1 = dn.find((x) => x.sn === 1);
+ok(d112.e === 2 && d1.e === 1 && d112.d > d1.d, 'error density = errors / memorised ayat (al-Ikhlas 2/4 is weaker than al-Fatiha 1/7)');
+ok(dn.length === 2, 'only surahs with memorised ayat are ranked');
+const stats = appSrc.slice(appSrc.indexOf('const Mem86Stats = ('), appSrc.indexOf('\n};\n', appSrc.indexOf('const Mem86Stats = (')));
+ok(stats.length > 0 && /const last10 = tests\.slice\(-10\);/.test(stats) && /Array\.from\(\{ length: 30 \}/.test(stats) && /mem86Streak\(days, today\)/.test(stats), 'the last ten scores, a 30-day calendar, the current and longest streak');
+
 /* ------------------------------------------------------------------ done */
 console.log('\n' + (fail ? 'FAIL' : 'PASS') + '  memorizer86-check  ' + pass + ' passed, ' + fail + ' failed  (lifted ' + LIFT.length + ' initializers from app.jsx)');
 process.exit(fail ? 1 : 0);

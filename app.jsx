@@ -1915,6 +1915,14 @@ const EZ_I18N = {
     'mem86.off.add': 'أضف جلسة خارج التطبيق',
     'mem86.off.date': 'التاريخ',
     'mem86.off.mins': 'الدقائق',
+    'mem86.stats.title': 'الأرقام',
+    'mem86.stats.held': '{n} آية محفوظة من {of} · {p}٪',
+    'mem86.stats.cal': 'آخر {n} يومًا',
+    'mem86.stats.scores': 'آخر عشر درجات',
+    'mem86.stats.noTests': 'لا اختبارات بعد.',
+    'mem86.stats.weak': 'الأكثر خطأ',
+    'mem86.stats.strong': 'الأقلّ خطأ',
+    'mem86.stats.errs': '{n} خطأ',
   },
   en: {
     'common.close': 'Close',
@@ -3419,6 +3427,14 @@ const EZ_I18N = {
     'mem86.off.add': 'Add a session held outside the app',
     'mem86.off.date': 'Date',
     'mem86.off.mins': 'Minutes',
+    'mem86.stats.title': 'The numbers',
+    'mem86.stats.held': '{n} of {of} ayat memorized · {p}%',
+    'mem86.stats.cal': 'The last {n} days',
+    'mem86.stats.scores': 'The last ten scores',
+    'mem86.stats.noTests': 'No tests yet.',
+    'mem86.stats.weak': 'Most mistakes',
+    'mem86.stats.strong': 'Fewest mistakes',
+    'mem86.stats.errs': '{n} mistakes',
   },
 };
 
@@ -34788,6 +34804,62 @@ const Mem86Plans = ({ counts, held, ranges, onOpen }) => {
   );
 };
 
+// ---------- «تقدّمي» in numbers: computed from the record, never claimed ----------
+const mem86SurahDensity = (held, log) => {
+  const errs = {};
+  for (const r in log) { const sn = Number(r.split(':')[0]); errs[sn] = (errs[sn] || 0) + log[r][0]; }
+  const out = [];
+  for (let sn = 1; sn <= 114; sn++) { const h = mem86HeldCount(held, sn); if (h) out.push({ sn, h, e: errs[sn] || 0, d: (errs[sn] || 0) / h }); }
+  return out;
+};
+const Mem86Stats = ({ counts, held }) => {
+  const total = mem86HeldTotal(held);
+  const log = mem86WordsRead();
+  const tests = mem86TestsRead();
+  const days = mem86DaysRead();
+  const today = mem86Day();
+  const streak = mem86Streak(days, today);
+  const dens = mem86SurahDensity(held, log);
+  const tested = new Set();
+  tests.forEach((t) => t.sur.forEach((n) => tested.add(n)));
+  const weak = dens.filter((x) => x.e > 0).sort((x, y) => y.d - x.d).slice(0, 3);
+  const strong = dens.filter((x) => tested.has(x.sn) && !weak.some((w) => w.sn === x.sn)).sort((x, y) => x.d - y.d || y.h - x.h).slice(0, 3);
+  const last10 = tests.slice(-10);
+  const cal = Array.from({ length: 30 }, (_, i) => mem86DayShift(today, i - 29));
+  const pct = Math.round((1000 * total) / MEM86_TOTAL_AYAT) / 10;
+  return (
+    <section style={s.mem86Card}>
+      <div style={s.mem86H}>{ezT('mem86.stats.title')}</div>
+      <div style={s.mem86Big}>{toArabicDigits(total)}</div>
+      <div style={s.mem86Note}>{ezT('mem86.stats.held', { n: toArabicDigits(total), of: toArabicDigits(MEM86_TOTAL_AYAT), p: mem86Rate(pct) })}</div>
+      <span style={s.mem86Bar} aria-hidden="true"><span style={{ ...s.mem86BarFill, width: Math.min(100, pct) + '%' }} /></span>
+      <div style={s.mem86Row}>
+        <span style={s.mem86Pill}>{ezT('mem86.streak.cur', { n: toArabicDigits(streak.cur) })}</span>
+        <span style={s.mem86Pill}>{ezT('mem86.streak.best', { n: toArabicDigits(streak.best) })}</span>
+      </div>
+      <div style={s.mem86Note}>{ezT('mem86.stats.cal', { n: toArabicDigits(30) })}</div>
+      <div style={s.mem86Cal}>
+        {cal.map((d) => {
+          const e = days[d];
+          const on = mem86DayActive(e);
+          return <span key={d} title={mem86DayLabel(d, { day: 'numeric', month: 'short' })} style={{ ...s.mem86CalCell, ...(on ? s.mem86W1 : (e && e.m ? s.mem86CalSome : null)) }} aria-label={mem86DayLabel(d, { day: 'numeric', month: 'short' }) + (on ? ' ✓' : '')} />;
+        })}
+      </div>
+      <div style={s.mem86Note}>{ezT('mem86.stats.scores')}</div>
+      {last10.length ? (
+        <div style={s.mem86Scores}>
+          {last10.map((t) => {
+            const p = Math.round((100 * t.ok) / t.shown);
+            return <span key={t.t} style={s.mem86ScoreCol} aria-label={ezT('mem86.res.pct', { n: toArabicDigits(p) })}><span style={{ ...s.mem86ScoreBar, height: Math.max(4, p * 0.6) }} /><span style={s.mem86Tiny}>{toArabicDigits(p)}</span></span>;
+          })}
+        </div>
+      ) : <div style={s.mem86Note}>{ezT('mem86.stats.noTests')}</div>}
+      {weak.length ? <div style={s.mem86Note}>{ezT('mem86.stats.weak') + ': ' + weak.map((x) => SURAH_NAMES[x.sn] + ' (' + ezT('mem86.stats.errs', { n: toArabicDigits(x.e) }) + ')').join(' · ')}</div> : null}
+      {strong.length ? <div style={s.mem86Note}>{ezT('mem86.stats.strong') + ': ' + strong.map((x) => SURAH_NAMES[x.sn] + ' (' + ezT('mem86.stats.errs', { n: toArabicDigits(x.e) }) + ')').join(' · ')}</div> : null}
+    </section>
+  );
+};
+
 // ---------- «تقدّمي»: what is memorised, surah by surah ----------
 const Mem86Progress = ({ counts, held, onHeld }) => {
   const [open, setOpen] = useState(0);
@@ -34796,6 +34868,7 @@ const Mem86Progress = ({ counts, held, onHeld }) => {
   if (!counts) return <div style={s.mem86Note}>{MEM.LOADING}</div>;
   return (
     <div>
+      <Mem86Stats counts={counts} held={held} />
       <section style={s.mem86Sec}>
         <div style={s.mem86H}>{ezT('mem86.prog.title')}</div>
         <div style={s.mem86Note}>{ezT('mem86.prog.hint')}</div>
@@ -39339,6 +39412,13 @@ const s = {
   mem86W4: { background: 'var(--mem86-w4)', borderRadius: 6 },
   mem86Swatch: { display: 'inline-block', width: 16, height: 16, borderRadius: 4, border: '1px solid var(--line)' },
   mem86DayCell: { minWidth: 44, minHeight: 44, borderRadius: 10, background: 'var(--tint)', color: 'var(--ink)', border: '1px solid var(--line)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', fontSize: 13, fontWeight: 700 },
+  mem86Cal: { display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: 4, margin: '6px 0' },
+  mem86CalCell: { display: 'block', height: 18, borderRadius: 4, background: 'var(--tint)', border: '1px solid var(--line)' },
+  mem86CalSome: { background: 'var(--line)' },
+  mem86Scores: { display: 'flex', alignItems: 'flex-end', gap: 6, height: 84, margin: '6px 0' },
+  mem86ScoreCol: { display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', gap: 2, minWidth: 24 },
+  mem86ScoreBar: { display: 'block', width: 16, borderRadius: 3, background: 'var(--accent-fill)' },
+  mem86Tiny: { fontSize: 10.5, color: 'var(--muted)' },
   mem86CardHeld: { fontSize: 11.5, fontWeight: 700, color: 'var(--ink)' },
   memResetBtn: { width: 50, height: 50, borderRadius: 14, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 
