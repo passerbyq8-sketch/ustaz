@@ -21077,7 +21077,7 @@ function App() {
   // the call-to-prayer card stays mounted from its press until the system answers (its switch owns the listener)
   const [ez110AdhanStay, setEz110AdhanStay] = useState(false);
   // ...and it draws only in a shell that answered the widget-data probe: every store build that answers it (1.0.2 and
-  // later, Android and iOS) carries the adhan fix, and no store build before it does (EZIK-ITEM24-58-ADHAN-GATE-REPORT).
+  // later, Android and iOS) carries the call-to-prayer fix, and no store build before it does (EZIK-ITEM24-58-ADHAN-GATE-REPORT).
   // The same read as PrayerSettingsControl: the page-level reply handler runs first, this only reads its capability.
   const [ez110AdhanShellOk, setEz110AdhanShellOk] = useState(() => ezikWidgetDataCapability === 'supported');
   useEffect(() => {
