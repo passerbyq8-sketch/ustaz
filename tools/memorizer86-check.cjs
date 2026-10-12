@@ -71,6 +71,77 @@ const reset = () => store.clear();
 // globals declared with `let` in app.jsx: the sandbox carries them as plain properties
 X.__mem86Counts = null; X.__mem86PageOf = null;
 
+/* ------------------------------------------------------------------ the switch */
+// Who sees the new memorizer: MEM86_PART, read by mem86Lit(). The owner check is item 110's, lifted read-only from
+// app.jsx the way gate ez110override's world() lifts it, and run against a fake window and localStorage per host.
+// Everything after this section runs with the switch ON: the lifted helpers never ask it.
+section('the switch -- MEM86_PART and mem86Lit(): only the owner sees the new memorizer');
+{
+  const src = fs.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
+  const fnOf = (name) => {
+    const i = src.indexOf('\nfunction ' + name + '(');
+    if (i < 0) return '';
+    let d = 0;
+    for (let k = src.indexOf('{', i); k < src.length; k++) { if (src[k] === '{') d++; else if (src[k] === '}') { d--; if (!d) return src.slice(i + 1, k + 1); } }
+    return '';
+  };
+  const part = TOP.get('MEM86_PART');
+  ok(part === "'off'" || part === "'owner'", "MEM86_PART is 'off' or 'owner' ('public' only by a later word of the owner): " + part);
+  const fns = ['ez110Sha256Hex', 'ez110ReadOwner', 'ez110LocalOverride'].map(fnOf);
+  ok(fns.every(Boolean) && TOP.has('mem86Lit') && TOP.has('EZ110_IDS') && TOP.has('EZ110_UNLOCK_KEY') && TOP.has('EZ110_UNLOCK_SHA'), 'item 110\'s owner check and mem86Lit lift from app.jsx');
+  const TEST_CODE = 'mem86-check-' + 'c'.repeat(12);
+  const litOn = ({ host, search = '', store = {}, partAs = part, sha = TOP.get('EZ110_UNLOCK_SHA') }) => {
+    const ctx = vm.createContext({
+      window: { location: { hostname: host, search } },
+      localStorage: { getItem: (k) => (k in store ? store[k] : null), setItem: () => {}, removeItem: () => {} },
+      URLSearchParams, unescape, encodeURIComponent,
+    });
+    return vm.runInContext(
+      'const EZ110_IDS = ' + TOP.get('EZ110_IDS') + '; const EZ110_UNLOCK_KEY = ' + TOP.get('EZ110_UNLOCK_KEY') + '; const EZ110_UNLOCK_SHA = ' + sha + ';\n' +
+      fns.join('\n') + '\nconst EZ110_OWNER = ez110ReadOwner(); const EZ110_OVERRIDE = ez110LocalOverride();\n' +
+      'const MEM86_PART = ' + partAs + '; const mem86Lit = ' + TOP.get('mem86Lit') + ';\nmem86Lit()', ctx);
+  };
+  const HOSTS = ['ezik.app', 'www.ezik.app', 'almurabbi.app', 'ustaz-git-main-musaed-s-projects1.vercel.app', 'ustaz-cqznsm3am-musaed-s-projects1.vercel.app', 'localhost.evil.com', '127.0.0.1.nip.io', ''];
+  for (const host of HOSTS) {
+    ok(litOn({ host }) === false && litOn({ host, search: '?ezik110=b' }) === false && litOn({ host, search: '?ezik110=b&memred=1&fix=1&safe=1' }) === false,
+      'dark for a reader without the owner\'s code on "' + host + '", with or without ?ezik110=b');
+  }
+  ok(litOn({ host: 'ezik.app', store: { [JSON.parse(TOP.get('EZ110_UNLOCK_KEY').replace(/'/g, '"'))]: 'not-the-code-but-long-enough' } }) === false, 'a wrong code on ezik.app stays dark');
+  const testSha = "'" + require('crypto').createHash('sha256').update(TEST_CODE).digest('hex') + "'";
+  const codeStore = { [JSON.parse(TOP.get('EZ110_UNLOCK_KEY').replace(/'/g, '"'))]: TEST_CODE };
+  ok(litOn({ host: 'ezik.app', store: codeStore, sha: testSha }) === (part === "'owner'"), 'the device holding the owner\'s code (a test code against its own hash) is lit on ezik.app while the part is owner');
+  ok(litOn({ host: 'localhost', search: '?ezik110=b' }) === (part === "'owner'") && litOn({ host: '127.0.0.1', search: '?ezik110=c' }) === (part === "'owner'"), '...and so is the localhost override ?ezik110=b');
+  ok(litOn({ host: 'localhost', search: '?ezik110=b', store: codeStore, sha: testSha, partAs: "'off'" }) === false, "'off' is dark even for the owner");
+  // the reader without the switch gets main's settings
+  const PM = vm.runInContext('(' + TOP.get('MEM86_PREF_MAIN').replace('MEM86_PREF_DEFAULT', '(' + TOP.get('MEM86_PREF_DEFAULT') + ')') + ')', vm.createContext({}));
+  ok(PM.dim === true && PM.speed === 1 && PM.repA === 1 && PM.repR === 1 && PM.hideNums === false && PM.weak === false, 'MEM86_PREF_MAIN is main\'s memorizer: dimmed text, speed 1, x1, numbers shown, no weak colours');
+  // where it is asked: a pinned count, and never inside what the tool lifts
+  const code = src.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
+  const all = (code.match(/mem86Lit\(\)/g) || []).length;
+  ok(all === 16, 'mem86Lit() is asked at exactly 16 places (render and writes): ' + all);
+  const home = code.slice(code.indexOf('function Home('), code.indexOf('\nfunction ', code.indexOf('function Home(') + 10));
+  ok((home.match(/mem86Lit\(\)/g) || []).length === 1 && home.includes('mem86Lit() ? dailyWirdLines(readDailyWird(), wt, mem86WirdToday()) : dailyWirdLines(readDailyWird(), wt)'), 'the home card asks once: the plan share for the owner, main\'s call for everyone else');
+  const scr = code.slice(code.indexOf('function MemorizeScreen('), code.indexOf('\nfunction ', code.indexOf('function MemorizeScreen(') + 10));
+  ok((scr.match(/mem86Lit\(\)/g) || []).length === 15, 'MemorizeScreen asks at 15 places: ' + (scr.match(/mem86Lit\(\)/g) || []).length);
+  for (const [label, re] of [
+    ['the tabs', /\{mem86Lit\(\) \? <Mem86Tabs /], ['the held count on a surah card', /\{mem86Lit\(\) && held\[n\] \?/],
+    ['«similar passages»', /\{mem86Lit\(\) \? <button type="button" style=\{s\.mem86BtnQuiet\}/], ['the talqin options', /\{mem86Lit\(\) && drillMode === 'manual' && \(/],
+    ['the listening options', /\{mem86Lit\(\) && drillMode === 'adnan' && \(/], ['the recite options (hints, pause, dimmed, numbers)', /\{mem86Lit\(\) && drillMode === 'recite' && \(/],
+    ['the settings (read, and written)', /useState\(\(\) => \(mem86Lit\(\) \? mem86PrefsRead\(\) : MEM86_PREF_MAIN\)\)/],
+    ['...written', /const setPref = \(patch\) => \{ if \(!mem86Lit\(\)\) return;/],
+    ['the credit of a finished recitation', /const reciteCredit = \(\) => \{\n\s*if \(!mem86Lit\(\)\) return;/],
+    ['the reveal-all effect', /useEffect\(\(\) => \{\n\s*if \(!mem86Lit\(\)\) return;\n\s*if \(!allRevealed/],
+    ['the touch effect', /useEffect\(\(\) => \{\n\s*if \(!mem86Lit\(\)\) return undefined;\n\s*if \(view !== 'drill'/],
+    ['the heard-word clock', /if \(mem86Lit\(\)\) mem86Ping\(\);/],
+    ['?memred=1 marks', /if \(MEM_RED_FLAGGING\) \{[^\n]*\n\s*if \(mem86Lit\(\)\) \{/],
+    ['?memred=1 dashed word', /if \(mem86Lit\(\) && MEM_RED_FLAGGING && redMarks\.notErr/], ['?memred=1 «not a mistake»', /\{mem86Lit\(\) && MEM_RED_FLAGGING && redMarks\.pick/],
+  ]) ok(re.test(scr), 'gated by mem86Lit(): ' + label);
+  const liftedAsk = [...TOP.keys()].filter((n) => /^(mem86|MEM86_)/.test(n) && n !== 'mem86Lit' && TOP.get(n).includes('mem86Lit'));
+  ok(liftedAsk.length === 0, 'no top-level memorizer initializer asks the switch (the tool lifts them): ' + liftedAsk.join(', '));
+  const reset = code.slice(code.indexOf('const resetAll = () => {'), code.indexOf('\n  };', code.indexOf('const resetAll = () => {')));
+  ok(reset.length > 0 && !reset.includes('mem86Lit'), '«delete all my data» removes the eight keys for everyone, switch or not');
+}
+
 /* ------------------------------------------------------------------ phase 1 */
 section('phase 1 -- keys, ranges, the memorised record, the word number');
 const counts = X.mem86Counts();

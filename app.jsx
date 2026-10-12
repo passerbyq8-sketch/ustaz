@@ -12547,7 +12547,7 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   const hijri = hijriTodayLabel();
   // A-3: the reader's own choices, read from the device the same way the wird above is. The
   // card shows back what was chosen and claims nothing else -- no time, and no next occurrence.
-  const dailyWirdLinesToday = dailyWirdLines(readDailyWird(), wt, mem86WirdToday());
+  const dailyWirdLinesToday = mem86Lit() ? dailyWirdLines(readDailyWird(), wt, mem86WirdToday()) : dailyWirdLines(readDailyWird(), wt);
   const view = {
     name: profile?.name,
     hijri: hijri,
@@ -33948,11 +33948,21 @@ const mem86Streak = (days, today) => {
   return { cur, best: Math.max(best, cur) };
 };
 
+// ---------- who sees it: 'off' | 'owner' | 'public', as EZ110_ADHAN_CARD ----------
+// 'owner' = the device holding the owner's code, or the localhost override. 'public' only by the owner's word:
+// opening it to everyone is changing this one word. Everyone else gets main's memorizer and «وِردي اليوم», and no
+// memorizer key is written for them (tools/memorizer86-check.cjs, section «the switch»).
+const MEM86_PART = 'owner';
+const mem86Lit = () => MEM86_PART === 'public' || (MEM86_PART === 'owner' && (EZ110_OWNER || !!(EZ110_OVERRIDE && EZ110_OVERRIDE.id)));
+
 // ---------- switches ----------
 const MEM86_PREF_DEFAULT = {
   dim: false, hideNums: false, weak: true, speed: 1, repA: 1, repR: 1,
   tLimit: 'count', tCount: 10, tMins: 10, tLines: 5, tToEnd: true, tHideName: false, tVibe: true,
 };
+// what a reader without the switch gets: main's memorizer -- the text dimmed while reciting, speed 1, every
+// repeat x1, the numbers shown, no weak-spot colours
+const MEM86_PREF_MAIN = { ...MEM86_PREF_DEFAULT, dim: true, hideNums: false, weak: false, speed: 1, repA: 1, repR: 1 };
 const mem86PrefsRead = () => {
   const v = mem86Load(MEM86_PREFS_KEY);
   const out = { ...MEM86_PREF_DEFAULT };
@@ -37753,8 +37763,8 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   // Item 86 (memorizer): the picker's tabs and the reader's memorised ayat. The catalogue is always the first tab.
   const [tab, setTab] = useState('learn');
   const [held, setHeld] = useState(mem86HeldRead);
-  const [prefs, setPrefs] = useState(mem86PrefsRead);
-  const setPref = (patch) => { if (patch.dim) reciteHiddenRef.current = false; setPrefs(mem86PrefsWrite(patch)); };
+  const [prefs, setPrefs] = useState(() => (mem86Lit() ? mem86PrefsRead() : MEM86_PREF_MAIN));
+  const setPref = (patch) => { if (!mem86Lit()) return; if (patch.dim) reciteHiddenRef.current = false; setPrefs(mem86PrefsWrite(patch)); };
   const [adnanEnd, setAdnanEnd] = useState(0);         // last ayah of the listening range; 0 = the end of the surah
   // «سمِّعني»: hints, the pause, what a finished segment earns, and the ?memred=1 marks of this visit (never stored).
   const [reciteHints, setReciteHints] = useState([]);  // word indices of the current ayah shown by a hint
@@ -37830,6 +37840,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   const showPraise = !allRevealed && granularity === 'ayah' && revealedCount > 0 && revealedCount % 4 === 0;
   // A manual talqin revealed whole AFTER being hidden again is memorised: it earns, and the ayat are marked.
   useEffect(() => {
+    if (!mem86Lit()) return;
     if (!allRevealed || !manualHidRef.current || drillMode !== 'manual') return;
     manualHidRef.current = false;
     setHeld(mem86HeldSet(selectedSurah, startAyah, surahCount, true));
@@ -37837,6 +37848,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   }, [allRevealed]);
   // active minutes: a touch while revealing counts, a gap over 60 s does not
   useEffect(() => {
+    if (!mem86Lit()) return undefined;
     if (view !== 'drill' || drillMode !== 'manual') return undefined;
     const on = () => mem86Ping();
     document.addEventListener('pointerdown', on);
@@ -37904,6 +37916,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   };
 
   const reciteCredit = () => {
+    if (!mem86Lit()) return;
     if (!reciteCleanRef.current) return;     // a manual «next» earns nothing
     reciteCleanRef.current = false;
     const n = surahCount - startAyah + 1;
@@ -37986,7 +37999,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         } else { interim += t; }
       }
       reciteHeardRef.current = (finalText + ' ' + interim).trim();
-      mem86Ping();
+      if (mem86Lit()) mem86Ping();
       // Match FULL cumulative heard vs FULL cumulative expected (up to the current ayah), then
       // display + completion-check only the CURRENT ayah's slice of states.
       const cur = reciteAyahRef.current || startAyah;
@@ -38001,9 +38014,11 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         : alignRecite(tokens, tokenizeForRecite(reciteHeardRef.current));
       const currentSlice = fullStates.slice(curOffset, curOffset + curLen);
       if (MEM_RED_FLAGGING) {   // ?memred=1: a word once judged wrong keeps a mark for this visit
+        if (mem86Lit()) {
         const bad = [];
         currentSlice.forEach((x, i) => { if (x === 'mismatch') bad.push(mem86Ref(selectedSurah, cur, i + 1)); });
         if (bad.length) setRedMarks((m) => ({ ...m, ever: m.ever.concat(bad.filter((r) => m.ever.indexOf(r) === -1)) }));
+        }
       }
       const shown = MEM_RED_FLAGGING ? currentSlice : currentSlice.map((x) => (x === 'mismatch' ? 'matched' : x));
       const allMatched = shown.length > 0 && shown.every((x) => x === 'matched');
@@ -38100,7 +38115,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
           ) : null}
           {!ready && <div style={s.ezqMastHint}>{MEM.LOADING}</div>}
         </section>
-        <Mem86Tabs tab={tab} onTab={setTab} />
+        {mem86Lit() ? <Mem86Tabs tab={tab} onTab={setTab} /> : null}
         {simAt ? <Mem86Similar at={simAt} onClose={() => setSimAt(null)} /> : null}
         {tab === 'test' ? <Mem86Test counts={ready ? mem86Counts() : null} held={held} ranges={mem86RangesRead()} prefs={prefs} onPref={setPref} isFemale={isFemale} onWeak={(ref) => mem86WeakStyle(prefs.weak, ref)} onSimilar={(sn, a) => setSimAt([sn, a])} /> : null}
         {tab === 'plan' ? <Mem86Plans counts={ready ? mem86Counts() : null} held={held} ranges={mem86RangesRead()}
@@ -38131,7 +38146,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
                 </span>
                 <span style={s.ezqName}>{SURAH_NAMES[n]}</span>
                 <span style={s.ezqCount}>{counts && counts[n] ? (toArabicDigits(counts[n]) + ' ' + MEM.GRAN_AYAH) : ''}</span>
-                {held[n] ? <span style={s.mem86CardHeld}>{ezT('mem86.card.held', { n: toArabicDigits(mem86HeldCount(held, n)) })}</span> : null}
+                {mem86Lit() && held[n] ? <span style={s.mem86CardHeld}>{ezT('mem86.card.held', { n: toArabicDigits(mem86HeldCount(held, n)) })}</span> : null}
               </button>
             );
           })}
@@ -38186,7 +38201,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         </div>
       </section>
       {simAt ? <Mem86Similar at={simAt} onClose={() => setSimAt(null)} /> : null}
-      <button type="button" style={s.mem86BtnQuiet} onClick={() => setSimAt([selectedSurah, drillMode === 'manual' ? focusAyah : drillMode === 'adnan' ? (adnanAyah || startAyah) : (reciteAyah || startAyah)])}>{ezT('mem86.sim.btn')}</button>
+      {mem86Lit() ? <button type="button" style={s.mem86BtnQuiet} onClick={() => setSimAt([selectedSurah, drillMode === 'manual' ? focusAyah : drillMode === 'adnan' ? (adnanAyah || startAyah) : (reciteAyah || startAyah)])}>{ezT('mem86.sim.btn')}</button> : null}
       {/* Drill mode switch: manual reveal · عدنان listen-and-repeat (Layer C) · سمِّعني recite (Layer B). */}
       <div style={s.memToggleRow}>
         <button onClick={() => setMode('manual')} style={{ ...s.memGranBtn, ...(drillMode === 'manual' ? s.memGranBtnActive : {}) }}>{MEM.MODE_MANUAL}</button>
@@ -38229,7 +38244,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         <button onClick={() => { if (revealedCount > 0) manualHidRef.current = true; setRevealedCount(0); }} style={s.memListenBtn}>{MEM.HIDE}</button>
       </div>
       )}
-      {drillMode === 'manual' && (
+      {mem86Lit() && drillMode === 'manual' && (
         <div className="ezq-drill-acts" style={s.mem86Card}>
           {granularity === 'word' && <button type="button" style={s.mem86Btn} disabled={allRevealed} onClick={() => setRevealedCount((c) => mem86AyahEnd(units, c))}>{ezT('mem86.hint.rest')}</button>}
           <Mem86Switch on={prefs.hideNums} onFlip={(v) => setPref({ hideNums: v })} label={ezT('mem86.opt.hideNums')} />
@@ -38250,7 +38265,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         <button onClick={repeatAyah} style={s.memListenBtn}>{MEM.ADNAN_REPEAT}</button>
       </div>
       )}
-      {drillMode === 'adnan' && (
+      {mem86Lit() && drillMode === 'adnan' && (
         <Mem86ListenOpts start={startAyah} count={surahCount} end={adnanEnd} onEnd={setAdnanEnd} prefs={prefs} onPref={setPref} disabled={adnanRunning} />
       )}
       {drillMode === 'recite' && (
@@ -38276,7 +38291,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
               let wstyle = st === 'matched' ? s.memWord : st === 'mismatch' ? s.memWordWrong : s.memWordPending;
               if (hinted && st !== 'matched') wstyle = s.mem86WordHint;
               const ref = mem86Ref(selectedSurah, curA, k + 1);
-              if (MEM_RED_FLAGGING && redMarks.notErr.indexOf(ref) === -1 && (st === 'mismatch' || redMarks.ever.indexOf(ref) !== -1)) {
+              if (mem86Lit() && MEM_RED_FLAGGING && redMarks.notErr.indexOf(ref) === -1 && (st === 'mismatch' || redMarks.ever.indexOf(ref) !== -1)) {
                 const red = st === 'mismatch' ? { ...wstyle, ...s.mem86RedDash } : { ...wstyle, ...s.mem86RedWas };
                 return <button key={i} type="button" style={{ ...s.mem86WordBtn, ...red }} onClick={() => setRedMarks((m) => ({ ...m, pick: ref }))}>{dw}</button>;
               }
@@ -38284,7 +38299,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
             });
           })()}
         </div>
-        {MEM_RED_FLAGGING && redMarks.pick ? (
+        {mem86Lit() && MEM_RED_FLAGGING && redMarks.pick ? (
           <button type="button" style={s.mem86Btn} onClick={() => setRedMarks((m) => ({ ...m, notErr: m.notErr.concat([m.pick]), pick: '' }))}>{ezT('mem86.red.notErr')}</button>
         ) : null}
         {reciteErr && <div style={s.memMsg}>{reciteErr}</div>}
@@ -38297,7 +38312,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         <button onClick={advanceReciteManual} style={s.memListenBtn}>{MEM.RECITE_NEXT}</button>
       </div>
       )}
-      {drillMode === 'recite' && (
+      {mem86Lit() && drillMode === 'recite' && (
         <Mem86ReciteOpts listening={reciteListening} paused={recitePaused} onPause={pauseRecite} onResume={() => startRecite(recitePaused)}
           onHint={reciteHint} prefs={prefs} onPref={setPref} />
       )}

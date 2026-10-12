@@ -695,5 +695,15 @@
     "name": "ez110names",
     "script": "guards/ez110-names-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "memorizer86",
+    "script": "tools/memorizer86-check.cjs",
+    "args": ""
+  },
+  {
+    "name": "memorizer86nospend",
+    "script": "guards/memorizer86-nospend-guard.cjs",
+    "args": ""
   }
 ]
