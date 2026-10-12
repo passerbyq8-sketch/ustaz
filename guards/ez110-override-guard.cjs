@@ -22,7 +22,9 @@ let fails = 0, passes = 0;
 const pass = (m) => { passes++; console.log('PASS ' + m); };
 const fail = (m) => { fails++; console.log('FAIL ' + m); };
 // The owner's word «انشر», 11 October 2026 (round 4 order, section 1): safe, b and fix. Not c, d, e, nor the call-to-prayer card.
-const PUBLIC_BY_OWNER = ['safe', 'b', 'fix']; // parts the owner has published by his word
+// The owner's word, station 5, 12 October 2026: the identities c and d. Not e (its smoothness check failed on the test
+// phone, so by that word it stays the owner's), nor the call-to-prayer card.
+const PUBLIC_BY_OWNER = ['safe', 'b', 'fix', 'c', 'd']; // parts the owner has published by his word
 
 function lift(name) {
   const i = jsx.indexOf('function ' + name + '(');
