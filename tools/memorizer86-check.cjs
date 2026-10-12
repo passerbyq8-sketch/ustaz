@@ -118,11 +118,11 @@ section('the switch -- MEM86_PART and mem86Lit(): only the owner sees the new me
   // where it is asked: a pinned count, and never inside what the tool lifts
   const code = src.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
   const all = (code.match(/mem86Lit\(\)/g) || []).length;
-  ok(all === 17, 'mem86Lit() is asked at exactly 17 places (render, writes and the recite restart): ' + all);
+  ok(all === 21, 'mem86Lit() is asked at exactly 21 places (render, writes, the recite restart and the owner\'s menu of 12 October): ' + all);
   const home = code.slice(code.indexOf('function Home('), code.indexOf('\nfunction ', code.indexOf('function Home(') + 10));
   ok((home.match(/mem86Lit\(\)/g) || []).length === 1 && home.includes('mem86Lit() ? dailyWirdLines(readDailyWird(), wt, mem86WirdToday()) : dailyWirdLines(readDailyWird(), wt)'), 'the home card asks once: the plan share for the owner, main\'s call for everyone else');
   const scr = code.slice(code.indexOf('function MemorizeScreen('), code.indexOf('\nfunction ', code.indexOf('function MemorizeScreen(') + 10));
-  ok((scr.match(/mem86Lit\(\)/g) || []).length === 16, 'MemorizeScreen asks at 16 places: ' + (scr.match(/mem86Lit\(\)/g) || []).length);
+  ok((scr.match(/mem86Lit\(\)/g) || []).length === 20, 'MemorizeScreen asks at 20 places: ' + (scr.match(/mem86Lit\(\)/g) || []).length);
   for (const [label, re] of [
     ['the tabs', /\{mem86Lit\(\) \? <Mem86Tabs /], ['the held count on a surah card', /\{mem86Lit\(\) && held\[n\] \?/],
     ['«similar passages»', /\{mem86Lit\(\) \? <button type="button" style=\{s\.mem86BtnQuiet\}/], ['the talqin options', /\{mem86Lit\(\) && drillMode === 'manual' && \(/],
@@ -136,6 +136,10 @@ section('the switch -- MEM86_PART and mem86Lit(): only the owner sees the new me
     ['?memred=1 marks', /if \(MEM_RED_FLAGGING\) \{[^\n]*\n\s*if \(mem86Lit\(\)\) \{/],
     ['?memred=1 dashed word', /if \(mem86Lit\(\) && MEM_RED_FLAGGING && redMarks\.notErr/], ['?memred=1 «not a mistake»', /\{mem86Lit\(\) && MEM_RED_FLAGGING && redMarks\.pick/],
     ['the recite restart anchor', /if \(mem86Lit\(\)\) reciteAnchorRef\.current = mem86ReciteAnchor\(reciteAyahRef\.current \|\| startAyah, reciteShownRef\.current\);/],
+    ['the first tab', /const \[tab, setTab\] = useState\(\(\) => \(mem86Lit\(\) \? 'recite' : 'learn'\)\);/],
+    ['the start opens the tab\'s mode', /if \(mem86Lit\(\)\) \{ stopAdnan\(\); stopRecite\(\); resetRecite\(\); setDrillMode\(tab === 'listen' \? 'adnan' : 'recite'\); \}/],
+    ['the three-mode switch is not drawn', /\{!mem86Lit\(\) && \(\n\s*<div style=\{s\.memToggleRow\}>\n\s*<button onClick=\{\(\) => setMode\('manual'\)\}/],
+    ['the recite page', /\{mem86Lit\(\) \? \(\n\s*<Mem86RecitePage sn=\{selectedSurah\} from=\{startAyah\} to=\{surahCount\} cur=\{reciteAyah \|\| startAyah\}/],
   ]) ok(re.test(scr), 'gated by mem86Lit(): ' + label);
   const liftedAsk = [...TOP.keys()].filter((n) => /^(mem86|MEM86_)/.test(n) && n !== 'mem86Lit' && TOP.get(n).includes('mem86Lit'));
   ok(liftedAsk.length === 0, 'no top-level memorizer initializer asks the switch (the tool lifts them): ' + liftedAsk.join(', '));
@@ -230,12 +234,12 @@ ok(X.mem86Store(X.MEM86_PREFS_KEY, { pad: 'x'.repeat(5000) }) === false && !stor
 /* ------------------------------------------------------------------ phase 2 */
 section('phase 2 -- listening range, repeats, speed');
 const appNoComments = appSrc.split('\n').map((l) => l.replace(/^\s*\/\/.*$/, '')).join('\n');
-const pru = appNoComments.slice(appNoComments.indexOf('const playRecitationUrl = (url, myId, rate) =>'), appNoComments.indexOf('const playRecitation = (sNum, aNum, myId, rate) =>'));
+const pru = appNoComments.slice(appNoComments.indexOf('const playRecitationUrl = (url, myId, rate) =>'), appNoComments.indexOf('const playRecitation = (sNum, aNum, myId, rate, reciter) =>'));
 ok(pru.length > 0 && /audio\.src = url;\n\s*if \(rate && rate !== 1\) audio\.playbackRate = rate;/.test(pru), 'the rate is an optional parameter set right AFTER src (src resets it)');
 ok(appNoComments.length > 0 && !/defaultPlaybackRate/.test(appNoComments), 'defaultPlaybackRate is never touched');
 ok((appNoComments.match(/playbackRate/g) || []).length === 1, 'playbackRate is written in exactly one place');
 const memScreen = appSrc.slice(appSrc.indexOf('function MemorizeScreen('), appSrc.indexOf('\nfunction ', appSrc.indexOf('function MemorizeScreen(') + 10));
-ok(memScreen.length > 0 && /onPlayVerse\(selectedSurah, a, prefs\.speed\)/.test(memScreen), 'only the memorizer passes a speed');
+ok(memScreen.length > 0 && (memScreen.match(/onPlayVerse\(selectedSurah, a, prefs\.speed, prefs\.kids \? MEM86_KIDS_RECITER : undefined\)/g) || []).length === 2, 'only the memorizer passes a speed (and, with the children switch, the one other folder) -- in the loop and in «repeat»');
 ok(memScreen.length > 0 && /for \(let round = 0; round < prefs\.repR; round\+\+\)\n\s*for \(let a = startAyah; a <= last; a\+\+\)\n\s*for \(let k = 0; k < prefs\.repA; k\+\+\)/.test(memScreen), 'each ayah repeats repA times, the whole range repR times, to the chosen last ayah');
 reset();
 ok(X.mem86PrefsRead().speed === 1 && X.mem86PrefsRead().repA === 1 && X.mem86PrefsRead().repR === 1, 'defaults: speed 1, each ayah once, the range once');
@@ -600,6 +604,60 @@ lift(['getVerseText', 'RECITE_LENIENT_THRESHOLD', 'wordSim', 'alignRecite',
   ok(/if \(mem86Lit\(\)\) reciteAnchorRef\.current = mem86ReciteAnchor\(reciteAyahRef\.current \|\| startAyah, reciteShownRef\.current\);\n\s*ezStartRecognition\(rec\);/.test(scr2),
     'the anchor moves at the restart, before the recognizer is started again');
   ok(Date.now() - ta < 60000, 'this section ran in ' + (Date.now() - ta) + ' ms here (measured, this machine)');
+}
+
+/* ------------------------------------------------------------------ the owner's memorizer of 12 October */
+// The owner's order: «سمِّعني» · «استماع وترديد» · «خطّتي» · «تقدّمي», and no «اختبرني» or manual talqin for him;
+// «سمِّعني» opens the range as a page of numbered blanks that fill as he recites; «استماع وترديد» gains a switch for
+// the sheikh with children repeating. Everything here is drawn behind the switch above.
+section('the owner\'s memorizer of 12 October -- four tabs, the page of blanks, the children\'s voice');
+lift(['MEM86_TABS', 'MEM86_KIDS_RECITER']);
+{
+  const src3 = fs.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
+  const scr3 = src3.slice(src3.indexOf('function MemorizeScreen('), src3.indexOf('\nfunction ', src3.indexOf('function MemorizeScreen(') + 10));
+  ok(eq(Array.from(X.MEM86_TABS), ['recite', 'listen', 'plan', 'progress']), 'the tabs are «سمِّعني» · «استماع وترديد» · «خطّتي» · «تقدّمي», in that order');
+  const LANG = path.join(REPO, 'lang');
+  const files = fs.readdirSync(LANG).filter((f) => f.endsWith('.json'));
+  const keys = X.MEM86_TABS.map((t) => 'mem86.tab.' + t).concat(['mem86.opt.kids']);
+  const missing = [];
+  for (const f of files) { const d = JSON.parse(fs.readFileSync(path.join(LANG, f), 'utf8')); for (const k of keys) if (typeof d[k] !== 'string' || !d[k].trim()) missing.push(f + ' ' + k); }
+  for (const k of keys) if ((src3.match(new RegExp("'" + k.replace(/\./g, '\\.') + "': '[^']+'", 'g')) || []).length !== 2) missing.push('app.jsx ' + k);
+  ok(files.length === 21 && missing.length === 0, 'every tab and the children switch have a label in Arabic, English and the ' + files.length + ' language files' + (missing.length ? ': missing ' + missing.slice(0, 4).join(', ') : ''));
+  ok(scr3.includes("<div hidden={tab !== 'learn' && tab !== 'recite' && tab !== 'listen'}>"), 'the catalog is the body of both drill tabs (and of main\'s picker)');
+  ok(scr3.includes("setTab(kind === 'review' ? 'recite' : 'listen')") && scr3.includes("setDrillMode(kind === 'review' ? 'recite' : 'adnan')"), 'a plan opens a review in «سمِّعني» and new ayat in «استماع وترديد»');
+  ok((scr3.match(/setMode\('manual'\)/g) || []).length === 1 && scr3.includes("{!mem86Lit() && (\n      <div style={s.memToggleRow}>\n        <button onClick={() => setMode('manual')}")
+    && !/setDrillMode\([^)]*'manual'/.test(scr3), 'the manual talqin is reached only through the three-mode switch, which is not drawn for the owner, and no plan opens it');
+  // the page
+  const page = src3.slice(src3.indexOf('const Mem86RecitePage = '), src3.indexOf('\n};\n', src3.indexOf('const Mem86RecitePage = ')) + 3);
+  ok(page.length > 200 && TOP.has('Mem86RecitePage'), 'Mem86RecitePage is a top-level component');
+  ok(page.includes("for (let a = from; a <= to; a++) {") && page.includes("const printed = finished || a < cur;") && page.includes("const isCur = !finished && a === cur;"), 'the page draws every ayah of the range: printed behind the current one, the current one, blanks after it');
+  ok(page.includes("if (printed) return (!left || left[idx] === 'matched') ? <span key={i} style={{ ...s.memWord, ...onWeak(ref) }}>{w}</span> : <span key={i} style={s.mem86WordHint}>{w}</span>;"),
+    'a printed ayah shows its heard words as text and any word left unheard quietly');
+  ok(page.includes("return <span key={i} style={s.memPlaceholder}>—</span>;") && page.includes("if (!normalizeForRecite(w)) return printed ? <span key={i} style={s.memWordPending}>{w}</span> : null;"),
+    'a word not yet said is a blank, and a pause mark is drawn only on a printed ayah');
+  ok(!/RedDash|RedWas|#C0392B|mem86ErrWord/.test(page) && (page.match(/memWordWrong/g) || []).length === 1 && page.includes("if (st === 'mismatch') return <span key={i} style={s.memWordWrong}>{w}</span>;"),
+    'no word is reddened on the page except a mismatch, which only the ?memred=1 matcher returns');
+  ok(page.includes('getVerseText(sn, a)') && !/[ء-ي]{3,}/.test(page.replace(/\/\/[^\n]*/g, '')), 'every word on the page comes from getVerseText; no Arabic text is written in its code');
+  // what the page keeps of the ayat left behind
+  ok((scr3.match(/setReciteDone\(\(d\) => \(\{ \.\.\.d, \[cur\]: shown \}\)\)/g) || []).length === 2 && scr3.includes('const left = reciteShownRef.current.slice();') && scr3.includes('setReciteDone((d) => ({ ...d, [cur]: left }));'),
+    'an ayah left behind is kept with its states: completed by the matcher (twice: on the way and at the end) or left by «الآية التالية»');
+  ok(scr3.includes('reciteHiddenRef.current = !prefs.dim; setReciteDone({}); }') && scr3.includes('reciteShownRef.current = []; setReciteDone({});'), 'a fresh run and a fresh start empty the page; a resume keeps it');
+  // the children's voice
+  ok(X.MEM86_KIDS_RECITER === 'Minshawy_Teacher_128kbps' && X.MEM86_PREF_DEFAULT.kids === false, 'the children\'s voice is the Minshawy teacher folder, and it is off until the owner turns it on');
+  const PM2 = vm.runInContext('(' + TOP.get('MEM86_PREF_MAIN').replace('MEM86_PREF_DEFAULT', '(' + TOP.get('MEM86_PREF_DEFAULT') + ')') + ')', vm.createContext({}));
+  ok(PM2.kids === false, 'a reader without the switch never gets the children\'s voice');
+  reset();
+  X.mem86PrefsWrite({ kids: true });
+  const on = X.mem86PrefsRead().kids;
+  store.set(X.MEM86_PREFS_KEY, JSON.stringify({ kids: 'yes' }));
+  const junk = X.mem86PrefsRead().kids;
+  reset();
+  ok(on === true && junk === false, 'the switch is stored as a true or false and nothing else is read back');
+  ok(src3.includes('const folder = reciter === MEM86_KIDS_RECITER ? MEM86_KIDS_RECITER : QURAN_RECITER;') && src3.includes('const url = `https://everyayah.com/data/${folder}/${pad3(sNum)}${pad3(aNum)}.mp3`;'),
+    'the player takes the children\'s folder or the default one, and nothing else, from everyayah.com alone');
+  ok(scr3.includes('const pause = prefs.kids ? ADNAN_PAUSE_FLOOR : Math.min(ADNAN_PAUSE_CEIL, Math.max(ADNAN_PAUSE_FLOOR, elapsed * ADNAN_PAUSE_FACTOR));'),
+    'with the children repeating in the audio only the short pause follows each ayah; without them the pause is as before');
+  ok(src3.includes("<Mem86Switch on={prefs.kids} onFlip={(v) => !disabled && onPref({ kids: v })} label={ezT('mem86.opt.kids')} />"), 'the switch sits in the listening options, locked while the loop runs');
 }
 
 /* ------------------------------------------------------------------ done */

@@ -1820,6 +1820,7 @@ const EZ_I18N = {
     'mem86.listen.repA': 'تكرار كل آية',
     'mem86.listen.repR': 'تكرار المقطع كله',
     'mem86.listen.speed': 'سرعة التلاوة',
+    'mem86.opt.kids': 'الشيخ مع ترديد الأطفال',
     'mem86.timesN': '×{n}',
     'mem86.hint.word': 'كلمة',
     'mem86.hint.rest': 'بقيّة الآية',
@@ -1884,6 +1885,8 @@ const EZ_I18N = {
     'mem86.weak.l1': 'خفيف',
     'mem86.weak.clear': 'امسح سجلّ الكلمة {n}',
     'mem86.tab.plan': 'خطّتي',
+    'mem86.tab.recite': 'سمِّعني',
+    'mem86.tab.listen': 'استماع وترديد',
     'mem86.plan.today': 'اليوم',
     'mem86.plan.none': 'لا خطط بعد. أنشئ خطّة لترى نصيب كل يوم.',
     'mem86.plan.restDay': 'لا شيء من خططك مقرّر اليوم.',
@@ -3346,6 +3349,7 @@ const EZ_I18N = {
     'mem86.listen.repA': 'Repeat each ayah',
     'mem86.listen.repR': 'Repeat the whole range',
     'mem86.listen.speed': 'Recitation speed',
+    'mem86.opt.kids': 'The sheikh with children repeating',
     'mem86.timesN': '×{n}',
     'mem86.hint.word': 'A word',
     'mem86.hint.rest': 'Rest of the ayah',
@@ -3410,6 +3414,8 @@ const EZ_I18N = {
     'mem86.weak.l1': 'Mild',
     'mem86.weak.clear': 'Clear the record of word {n}',
     'mem86.tab.plan': 'My plan',
+    'mem86.tab.recite': 'Recite',
+    'mem86.tab.listen': 'Listen and repeat',
     'mem86.plan.today': 'Today',
     'mem86.plan.none': 'No plans yet. Create one to see each day\'s portion.',
     'mem86.plan.restDay': 'None of your plans is scheduled today.',
@@ -3853,6 +3859,10 @@ const voiceProfileRef = { current: null };
 // ثابتٌ واحد يبني كلَّ روابطِ MP3 لتلاوةِ القرآن. التعدّدُ (منتقي قرّاء) قرارٌ
 // لاحق يبدّلُ هذا السطرَ وحدَه — لا منطقَ تشغيلٍ ولا تخزينَ تفضيلٍ هنا.
 const QURAN_RECITER = 'Hudhaify_64kbps';   // الحذيفي 64kbps
+// Item 86 (memorizer): «استماع وترديد» with children repeating after the sheikh -- the owner's switch (12 October
+// 2026). Measured on everyayah.com: all 6236 ayat present, each file a continuous voice about twice the plain
+// recitation. The only other folder the players accept; any other value falls back to QURAN_RECITER.
+const MEM86_KIDS_RECITER = 'Minshawy_Teacher_128kbps';
 
 // ============================================================
 // خريطة أسماء السور → أرقامها (لبناء رابط تلاوة everyayah)
@@ -20331,10 +20341,11 @@ function App() {
   });
 
   // تشغيل تلاوة آيةٍ مفردةٍ بصوت القارئ — awaitable: يُحَلّ {failed} عند انتهاء/خطأ/إيقاف الصوت
-  const playRecitation = (sNum, aNum, myId, rate) => {
+  const playRecitation = (sNum, aNum, myId, rate, reciter) => {
     if (myId !== undefined && myId !== sequenceIdRef.current) return Promise.resolve({ failed: false });
     const pad3 = (x) => String(x).padStart(3, '0');
-    const url = `https://everyayah.com/data/${QURAN_RECITER}/${pad3(sNum)}${pad3(aNum)}.mp3`;
+    const folder = reciter === MEM86_KIDS_RECITER ? MEM86_KIDS_RECITER : QURAN_RECITER;
+    const url = `https://everyayah.com/data/${folder}/${pad3(sNum)}${pad3(aNum)}.mp3`;
     return playRecitationUrl(url, myId, rate);
   };
 
@@ -20508,11 +20519,11 @@ function App() {
   };
 
   // إعادة تشغيل التلاوة يدوياً من زر البطاقة — يُوقف كلام المربّي أولاً. awaitable.
-  const playVerseManual = async (sNum, aNum, rate) => {
+  const playVerseManual = async (sNum, aNum, rate, reciter) => {
     const myId = ++sequenceIdRef.current; // يُلغي أي تسلسل/كلام جارٍ
     takeAudioFocus();
     setIsSpeaking(true);
-    const res = await playRecitation(sNum, aNum, myId, rate);
+    const res = await playRecitation(sNum, aNum, myId, rate, reciter);
     if (myId === sequenceIdRef.current) setIsSpeaking(false);
     return res;
   };
@@ -34001,6 +34012,7 @@ const mem86Lit = () => MEM86_PART === 'public' || (MEM86_PART === 'owner' && (EZ
 const MEM86_PREF_DEFAULT = {
   dim: false, hideNums: false, weak: true, speed: 1, repA: 1, repR: 1,
   tLimit: 'count', tCount: 10, tMins: 10, tLines: 5, tToEnd: true, tHideName: false, tVibe: true,
+  kids: false,
 };
 // what a reader without the switch gets: main's memorizer -- the text dimmed while reciting, speed 1, every
 // repeat x1, the numbers shown, no weak-spot colours
@@ -34009,7 +34021,7 @@ const mem86PrefsRead = () => {
   const v = mem86Load(MEM86_PREFS_KEY);
   const out = { ...MEM86_PREF_DEFAULT };
   if (!mem86Obj(v)) return out;
-  for (const k of ['dim', 'hideNums', 'weak', 'tToEnd', 'tHideName', 'tVibe']) if (typeof v[k] === 'boolean') out[k] = v[k];
+  for (const k of ['dim', 'hideNums', 'weak', 'tToEnd', 'tHideName', 'tVibe', 'kids']) if (typeof v[k] === 'boolean') out[k] = v[k];
   if ([0.75, 1, 1.25].indexOf(v.speed) !== -1) out.speed = v.speed;
   if ([1, 2, 3, 5, 7, 10].indexOf(v.repA) !== -1) out.repA = v.repA;
   if ([1, 2, 3, 5].indexOf(v.repR) !== -1) out.repR = v.repR;
@@ -34022,7 +34034,9 @@ const mem86PrefsRead = () => {
 const mem86PrefsWrite = (patch) => { mem86Store(MEM86_PREFS_KEY, { ...mem86PrefsRead(), ...(patch || {}) }); return mem86PrefsRead(); };
 
 // ---------- the memorizer's tabs: a tab is drawn only once its phase is built ----------
-const MEM86_TABS = ['learn', 'test', 'plan', 'progress'];
+// The owner's order (12 October 2026): «سمِّعني» · «استماع وترديد» · «خطّتي» · «تقدّمي» -- «اختبرني» and the
+// manual talqin are not offered to him. The two first tabs are the catalog, each opening its own mode.
+const MEM86_TABS = ['recite', 'listen', 'plan', 'progress'];
 const Mem86Tabs = ({ tab, onTab }) => (
   <div role="tablist" aria-label={ezT('mem86.tabs')} style={s.mem86Tabs}>
     {MEM86_TABS.map((t) => (
@@ -34185,6 +34199,7 @@ const Mem86ListenOpts = ({ start, count, end, onEnd, prefs, onPref, disabled }) 
     <div style={s.mem86Note}>{ezT('mem86.listen.speed')}</div>
     <Mem86Seg label={ezT('mem86.listen.speed')} value={prefs.speed} onPick={(v) => !disabled && onPref({ speed: v })}
       opts={[0.75, 1, 1.25].map((n) => [n, ezT('mem86.timesN', { n: mem86Rate(n) })])} />
+    <Mem86Switch on={prefs.kids} onFlip={(v) => !disabled && onPref({ kids: v })} label={ezT('mem86.opt.kids')} />
   </div>
 );
 
@@ -34233,6 +34248,47 @@ const Mem86ReciteOpts = ({ listening, paused, onPause, onResume, onHint, prefs, 
     <Mem86WeakKey on={prefs.weak} onFlip={(v) => onPref({ weak: v })} />
   </div>
 );
+
+// ---------- «سمِّعني» as the owner described it (12 October 2026) ----------
+// The range opens as a page of its ayah numbers and blanks, and each word is printed in its place as he says it.
+// An ayah already left keeps its words: heard ones as text, any left unheard by «الآية التالية» quiet (never red).
+// The current ayah fills word by word; the ones after it stay blank. Every word comes from getVerseText -- no
+// Quran text is written here -- and a standalone pause mark is drawn only on an ayah already printed.
+const Mem86RecitePage = ({ sn, from, to, cur, states, hints, done, finished, dim, hideNums, onWeak }) => {
+  const curRef = useRef(null);
+  useEffect(() => {
+    // An instant jump, not an animated one: the app owns exactly one animated scroll (a11y, chatux).
+    try { if (curRef.current && typeof curRef.current.scrollIntoView === 'function') curRef.current.scrollIntoView({ block: 'center' }); } catch (e) { /* a page with nothing to scroll */ }
+  }, [cur]);
+  const rows = [];
+  for (let a = from; a <= to; a++) {
+    const printed = finished || a < cur;
+    const isCur = !finished && a === cur;
+    const left = printed ? (done[a] || null) : null;
+    let k = 0;
+    const cells = (getVerseText(sn, a) || '').split(/\s+/).filter(Boolean).map((w, i) => {
+      if (!normalizeForRecite(w)) return printed ? <span key={i} style={s.memWordPending}>{w}</span> : null;
+      const idx = k++;
+      const ref = mem86Ref(sn, a, idx + 1);
+      if (printed) return (!left || left[idx] === 'matched') ? <span key={i} style={{ ...s.memWord, ...onWeak(ref) }}>{w}</span> : <span key={i} style={s.mem86WordHint}>{w}</span>;
+      if (isCur) {
+        const st = states[idx];
+        if (st === 'matched') return <span key={i} style={{ ...s.memWord, ...onWeak(ref) }}>{w}</span>;
+        if (st === 'mismatch') return <span key={i} style={s.memWordWrong}>{w}</span>;
+        if (hints.indexOf(idx) !== -1) return <span key={i} style={s.mem86WordHint}>{w}</span>;
+        if (dim) return <span key={i} style={s.memWordPending}>{w}</span>;
+      }
+      return <span key={i} style={s.memPlaceholder}>—</span>;
+    });
+    rows.push(
+      <div key={a} ref={isCur ? curRef : null} style={isCur ? { ...s.mem86PageRow, ...s.mem86PageRowCur } : s.mem86PageRow}>
+        {hideNums ? null : <span style={s.memAyahBadge}>{toArabicDigits(a)}</span>}
+        {cells}
+      </div>
+    );
+  }
+  return <div style={s.mem86Page}>{rows}</div>;
+};
 
 // ---------- «اختبرني»: the reader completes a passage and marks it themself (no engine judges recitation yet) ----------
 // Where a question may start: an ayah's first word, or the word after a pause mark -- never mid-phrase.
@@ -37804,8 +37860,9 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   const reciteAyahRef = useRef(null);                   // live mirror so onresult reads the current ayah synchronously
   const reciteAnchorRef = useRef([1, 0]);               // item 86: [ayah, word] where this recognizer session's words begin
   const reciteShownRef = useRef([]);                    // ...and the current ayah's states as last shown, read at a restart
+  const [reciteDone, setReciteDone] = useState({});     // item 86: each ayah left behind in this run -> its states when it was left
   // Item 86 (memorizer): the picker's tabs and the reader's memorised ayat. The catalogue is always the first tab.
-  const [tab, setTab] = useState('learn');
+  const [tab, setTab] = useState(() => (mem86Lit() ? 'recite' : 'learn'));
   const [held, setHeld] = useState(mem86HeldRead);
   const [prefs, setPrefs] = useState(() => (mem86Lit() ? mem86PrefsRead() : MEM86_PREF_MAIN));
   const setPref = (patch) => { if (!mem86Lit()) return; if (patch.dim) reciteHiddenRef.current = false; setPrefs(mem86PrefsWrite(patch)); };
@@ -37900,7 +37957,11 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   }, [view, drillMode]);
 
   const openPicker = () => { setView('picker'); setRevealedCount(0); };
-  const startDrill = () => { setView('drill'); setRevealedCount(0); setAdnanEnd(0); manualHidRef.current = false; };
+  const startDrill = () => {
+    setView('drill'); setRevealedCount(0); setAdnanEnd(0); manualHidRef.current = false;
+    // Item 86: the owner's catalog is two tabs, and the tab is the mode -- «سمِّعني» or «استماع وترديد».
+    if (mem86Lit()) { stopAdnan(); stopRecite(); resetRecite(); setDrillMode(tab === 'listen' ? 'adnan' : 'recite'); }
+  };
   const setGran = (g) => { setGranularity(g); setRevealedCount(0); }; // switching re-hides the range
 
   // ---------- عدنان listen-and-repeat loop ----------
@@ -37931,10 +37992,11 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       if (runIdRef.current !== myRun) return; // stopped / mode switched / screen left / restarted
       setAdnanAyah(a);
       const t0 = performance.now();
-      try { await onPlayVerse(selectedSurah, a, prefs.speed); } catch (e) {} // resolves when the ayah audio ENDS
+      try { await onPlayVerse(selectedSurah, a, prefs.speed, prefs.kids ? MEM86_KIDS_RECITER : undefined); } catch (e) {} // resolves when the ayah audio ENDS
       if (runIdRef.current !== myRun) return;
       const elapsed = performance.now() - t0;
-      const pause = Math.min(ADNAN_PAUSE_CEIL, Math.max(ADNAN_PAUSE_FLOOR, elapsed * ADNAN_PAUSE_FACTOR));
+      // Item 86: with the children's recording the repetition is already in the audio, so only the short pause follows.
+      const pause = prefs.kids ? ADNAN_PAUSE_FLOOR : Math.min(ADNAN_PAUSE_CEIL, Math.max(ADNAN_PAUSE_FLOOR, elapsed * ADNAN_PAUSE_FACTOR));
       await new Promise((r) => { adnanTimeoutRef.current = setTimeout(r, pause); });
       if (runIdRef.current !== myRun) return;
     }
@@ -37944,7 +38006,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   const repeatAyah = async () => {
     const a = adnanAyah || startAyah;
     stopAdnan();                              // halt the loop + audio + pending pause first
-    try { await onPlayVerse(selectedSurah, a, prefs.speed); } catch (e) {} // replay this ayah once; user presses ابدأ to continue
+    try { await onPlayVerse(selectedSurah, a, prefs.speed, prefs.kids ? MEM86_KIDS_RECITER : undefined); } catch (e) {} // replay this ayah once; user presses ابدأ to continue
   };
 
   // ---------- سمِّعني recite-from-memory ----------
@@ -37994,7 +38056,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     setReciteErr('');
     setReciteFinished(false);
     const from = fromAyah > 0 ? fromAyah : startAyah;   // a resume starts where the pause stopped
-    if (!(fromAyah > 0)) { reciteCleanRef.current = true; reciteHiddenRef.current = !prefs.dim; }
+    if (!(fromAyah > 0)) { reciteCleanRef.current = true; reciteHiddenRef.current = !prefs.dim; setReciteDone({}); }
     else reciteHiddenRef.current = reciteHiddenRef.current && !prefs.dim;
     setRecitePaused(0); setReciteHints([]);
     setReciteAyah(from);
@@ -38060,12 +38122,14 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         const next = cur + 1;
         reciteAyahRef.current = next;
         setReciteAyah(next);
+        setReciteDone((d) => ({ ...d, [cur]: shown }));
         setReciteStates([]);
         reciteShownRef.current = [];
         setReciteHints([]);
       } else {
         setReciteStates(shown);
         reciteShownRef.current = shown;
+        if (allMatched && cur >= surahCount) setReciteDone((d) => ({ ...d, [cur]: shown }));   // item 86: the page prints the last ayah
         if (allMatched && cur >= surahCount) { setReciteFinished(true); stopRecite(); reciteCredit(); } // last ayah → finish
       }
     };
@@ -38107,6 +38171,8 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     reciteCleanRef.current = false;   // a manual «next» earns nothing
     setReciteHints([]);
     const cur = reciteAyahRef.current || startAyah;
+    const left = reciteShownRef.current.slice();   // item 86: the page keeps what was heard of the ayah left behind
+    setReciteDone((d) => ({ ...d, [cur]: left }));
     if (cur < surahCount) {
       const next = cur + 1;
       reciteAyahRef.current = next;
@@ -38119,15 +38185,18 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     }
   };
 
+  // a fresh recite session from the start of the range
+  const resetRecite = () => {
+    setReciteStates([]); reciteHeardRef.current = ''; setReciteErr('');
+    setReciteAyah(startAyah); reciteAyahRef.current = startAyah; setReciteFinished(false);
+    setRecitePaused(0); setReciteHints([]);
+    reciteShownRef.current = []; setReciteDone({});
+  };
   const setMode = (m) => {
     if (m === drillMode) return;
     stopAdnan();
     stopRecite();
-    if (m === 'recite') { // fresh recite session from the start of the range
-      setReciteStates([]); reciteHeardRef.current = ''; setReciteErr('');
-      setReciteAyah(startAyah); reciteAyahRef.current = startAyah; setReciteFinished(false);
-      setRecitePaused(0); setReciteHints([]);
-    }
+    if (m === 'recite') resetRecite();
     setDrillMode(m);
   };
 
@@ -38159,9 +38228,9 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         {simAt ? <Mem86Similar at={simAt} onClose={() => setSimAt(null)} /> : null}
         {tab === 'test' ? <Mem86Test counts={ready ? mem86Counts() : null} held={held} ranges={mem86RangesRead()} prefs={prefs} onPref={setPref} isFemale={isFemale} onWeak={(ref) => mem86WeakStyle(prefs.weak, ref)} onSimilar={(sn, a) => setSimAt([sn, a])} /> : null}
         {tab === 'plan' ? <Mem86Plans counts={ready ? mem86Counts() : null} held={held} ranges={mem86RangesRead()}
-          onOpen={(sn, a, kind) => { setSelectedSurah(sn); setStartAyah(a); setTab('learn'); setView('drill'); setRevealedCount(0); setAdnanEnd(0); setDrillMode(kind === 'review' ? 'recite' : 'manual'); }} /> : null}
+          onOpen={(sn, a, kind) => { setSelectedSurah(sn); setStartAyah(a); setTab(kind === 'review' ? 'recite' : 'listen'); setView('drill'); setRevealedCount(0); setAdnanEnd(0); stopAdnan(); stopRecite(); resetRecite(); reciteAyahRef.current = a; setReciteAyah(a); setDrillMode(kind === 'review' ? 'recite' : 'adnan'); }} /> : null}
         {tab === 'progress' ? <Mem86Progress counts={ready ? mem86Counts() : null} held={held} onHeld={setHeld} /> : null}
-        <div hidden={tab !== 'learn'}>
+        <div hidden={tab !== 'learn' && tab !== 'recite' && tab !== 'listen'}>
         {/* THE CANONICAL 114, from the same source and in the same order as before: the range
             1..114 mapped once, SURAH_NAMES for the name, the single-pass `counts` tally for the
             ayah count and revelationLabel for the Meccan/Medinan word. No list is re-derived,
@@ -38242,12 +38311,15 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       </section>
       {simAt ? <Mem86Similar at={simAt} onClose={() => setSimAt(null)} /> : null}
       {mem86Lit() ? <button type="button" style={s.mem86BtnQuiet} onClick={() => setSimAt([selectedSurah, drillMode === 'manual' ? focusAyah : drillMode === 'adnan' ? (adnanAyah || startAyah) : (reciteAyah || startAyah)])}>{ezT('mem86.sim.btn')}</button> : null}
-      {/* Drill mode switch: manual reveal · عدنان listen-and-repeat (Layer C) · سمِّعني recite (Layer B). */}
+      {/* Drill mode switch: manual reveal · عدنان listen-and-repeat (Layer C) · سمِّعني recite (Layer B).
+          Item 86: the owner chose the mode by the tab he started from, so the switch is not drawn for him. */}
+      {!mem86Lit() && (
       <div style={s.memToggleRow}>
         <button onClick={() => setMode('manual')} style={{ ...s.memGranBtn, ...(drillMode === 'manual' ? s.memGranBtnActive : {}) }}>{MEM.MODE_MANUAL}</button>
         <button onClick={() => setMode('adnan')} style={{ ...s.memGranBtn, ...(drillMode === 'adnan' ? s.memGranBtnActive : {}) }}>{MEM.MODE_ADNAN}</button>
         <button onClick={() => setMode('recite')} style={{ ...s.memGranBtn, ...(drillMode === 'recite' ? s.memGranBtnActive : {}) }}>{MEM.MODE_RECITE}</button>
       </div>
+      )}
       {drillMode === 'manual' && (
       <div style={s.memToggleRow}>
         <span style={s.memToggleLabel}>{MEM.REVEAL_LABEL}</span>
@@ -38311,6 +38383,11 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       {drillMode === 'recite' && (
       <div className="ezq-read" style={s.memDrillArea}>
         <div style={s.memReciteHint}>{MEM.RECITE_HINT}</div>
+        {mem86Lit() ? (
+          <Mem86RecitePage sn={selectedSurah} from={startAyah} to={surahCount} cur={reciteAyah || startAyah} states={reciteStates}
+            hints={reciteHints} done={reciteDone} finished={reciteFinished} dim={prefs.dim} hideNums={prefs.hideNums}
+            onWeak={(ref) => mem86WeakStyle(prefs.weak, ref)} />
+        ) : (<>
         <div style={s.memSurahTitle}>{prefs.hideNums ? SURAH_NAMES[selectedSurah] : `${SURAH_NAMES[selectedSurah]} · ${MEM.ADNAN_AYAH_LABEL} ${toArabicDigits(reciteAyah || startAyah)}`}</div>
         <div style={s.memDrillText}>
           {(() => {
@@ -38339,6 +38416,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
             });
           })()}
         </div>
+        </>)}
         {mem86Lit() && MEM_RED_FLAGGING && redMarks.pick ? (
           <button type="button" style={s.mem86Btn} onClick={() => setRedMarks((m) => ({ ...m, notErr: m.notErr.concat([m.pick]), pick: '' }))}>{ezT('mem86.red.notErr')}</button>
         ) : null}
@@ -39776,6 +39854,9 @@ const s = {
   mem86Tiny: { fontSize: 10.5, color: 'var(--muted)' },
   mem86SimDiff: { textDecoration: 'underline dotted', textUnderlineOffset: 6 },
   mem86CardHeld: { fontSize: 11.5, fontWeight: 700, color: 'var(--ink)' },
+  mem86Page: { display: 'flex', flexDirection: 'column', gap: 6, direction: 'rtl', textAlign: 'right', margin: '6px 0' },
+  mem86PageRow: { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 12, border: '1px solid transparent', lineHeight: 2.2 },
+  mem86PageRowCur: { background: 'var(--tint)', border: '1px solid var(--line)' },
   memResetBtn: { width: 50, height: 50, borderRadius: 14, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 
   // ===== شاشة المكالمة — S113 ISTANA =====
