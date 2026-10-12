@@ -9549,7 +9549,7 @@ function Ez110WomenGate({ onPick, onBack }) {
 // part: 'off' nobody · 'owner' the device holding the unlock code (and this machine's local override) · 'public' everybody
 // -- and 'public' only by the owner's word, through PUBLISH.md (gate ez110override O10). The switch in the prayer
 // settings is everybody's, as it is today: only the card in the empty chat is gated.
-const EZ110_ADHAN_CARD = 'owner';
+const EZ110_ADHAN_CARD = 'public';
 function ez110AdhanCardLit() {
   if (EZ110_ADHAN_CARD === 'public') return true;
   if (EZ110_ADHAN_CARD === 'owner') return EZ110_OWNER || !!(EZ110_OVERRIDE && EZ110_OVERRIDE.id);
@@ -21076,6 +21076,16 @@ function App() {
   const [ez110FirstTick, setEz110FirstTick] = useState(0);
   // the call-to-prayer card stays mounted from its press until the system answers (its switch owns the listener)
   const [ez110AdhanStay, setEz110AdhanStay] = useState(false);
+  // ...and it draws only in a shell that answered the widget-data probe: every store build that answers it (1.0.2 and
+  // later, Android and iOS) carries the adhan fix, and no store build before it does (EZIK-ITEM24-58-ADHAN-GATE-REPORT).
+  // The same read as PrayerSettingsControl: the page-level reply handler runs first, this only reads its capability.
+  const [ez110AdhanShellOk, setEz110AdhanShellOk] = useState(() => ezikWidgetDataCapability === 'supported');
+  useEffect(() => {
+    const sync = () => setEz110AdhanShellOk(ezikWidgetDataCapability === 'supported');
+    window.addEventListener(SHELL_SCHED_CHANNEL, sync);
+    sync();
+    return () => window.removeEventListener(SHELL_SCHED_CHANNEL, sync);
+  }, []);
 
   const callAI = async (history, p, { onDelta, onStatus, onLiveOffer, onLessons, liveSearch = false, signal, mode = 'chat', endpoint = '/api/ask' } = {}) => {
     if (!spendGateRef.current) return '';                        // قفل الإنفاق مغلق ⇐ لا يُنفَق رصيد (يشمل تحيّة الإقلاع 0d)
@@ -23031,7 +23041,7 @@ function App() {
         <Ez110GenderCard onPick={(g) => { ez110MarkGenderAsked(); if (g) ez110SaveGender(g); setEz110FirstTick((t) => t + 1); }} />
       ) : null}
       {/* ROUND 3 §3-11, «ب» only: the call-to-prayer card, with the existing switch in it */}
-      {ez110.id && ez110AdhanCardLit() && messages.length === 0 && streamingText === null && ezikSchedBridge()
+      {ez110.id && ez110AdhanCardLit() && ez110AdhanShellOk && messages.length === 0 && streamingText === null && ezikSchedBridge()
         && (ez110AdhanStay || (!ez110AdhanAsked() && !readPrayerNotify())) ? (
         <Ez110AdhanCard onPressed={() => { ez110MarkAdhanAsked(); setEz110AdhanStay(true); }}
           onLater={() => { ez110MarkAdhanAsked(); setEz110AdhanStay(false); setEz110FirstTick((t) => t + 1); }} />

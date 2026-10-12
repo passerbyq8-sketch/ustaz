@@ -14,6 +14,8 @@
 //   O9     part fix (round 2): &fix=1 lights it on localhost / 127.0.0.1 only; elsewhere a non-owner never has it
 //   O10    the call-to-prayer card (round 4): its own state off|owner|public, 'public' only by the owner's word ('adhan'
 //          in PUBLIC_BY_OWNER); a reader who is not the owner never has it off this machine; its render asks for it
+//   O10b   the call-to-prayer card draws only in a shell that answered the widget-data probe ('supported'): the
+//          render's condition holds a state that starts from, and is re-synced to, ezikWidgetDataCapability === 'supported'
 'use strict';
 const fs = require('fs'), path = require('path'), crypto = require('crypto'), cp = require('child_process');
 const ROOT = path.join(__dirname, '..');
@@ -24,7 +26,9 @@ const fail = (m) => { fails++; console.log('FAIL ' + m); };
 // The owner's word «انشر», 11 October 2026 (round 4 order, section 1): safe, b and fix. Not c, d, e, nor the call-to-prayer card.
 // The owner's word, station 5, 12 October 2026: the identities c and d. Not e (its smoothness check failed on the test
 // phone, so by that word it stays the owner's), nor the call-to-prayer card.
-const PUBLIC_BY_OWNER = ['safe', 'b', 'fix', 'c', 'd']; // parts the owner has published by his word
+// The owner's word, 13 October 2026 00:46 Kuwait time ("with your recommendation"), on whether the call-to-prayer card
+// goes public now: 'adhan', gated on the shell's widget-data capability (EZIK-ITEM24-58-ADHAN-GATE-REPORT).
+const PUBLIC_BY_OWNER = ['safe', 'b', 'fix', 'c', 'd', 'adhan']; // parts the owner has published by his word
 
 function lift(name) {
   const i = jsx.indexOf('function ' + name + '(');
@@ -96,6 +100,27 @@ for (const host of ['localhost', '127.0.0.1']) {
   const at = jsx.indexOf('<Ez110AdhanCard ');
   const cond = at > 0 ? jsx.slice(jsx.lastIndexOf('{ez110.id', at), at) : '';
   cond.indexOf('ez110AdhanCardLit()') >= 0 ? pass('O10 the card is drawn only when ez110AdhanCardLit() says so') : fail('O10 the card render does not ask ez110AdhanCardLit()');
+}
+// O10b
+{
+  const at = jsx.indexOf('<Ez110AdhanCard ');
+  const cond = at > 0 ? jsx.slice(jsx.lastIndexOf('{ez110.id', at), at) : '';
+  const terms = cond.replace(/^\{/, '').split('&&').map((t) => t.trim());
+  const re = /const \[(\w+), (set\w+)\] = useState\(\(\) => ezikWidgetDataCapability === 'supported'\);/g;
+  const app = jsx.lastIndexOf('function App()', at);
+  let gate = null;
+  for (let m; (m = re.exec(jsx));) if (terms.includes(m[1]) && m.index > app && m.index < at) gate = { name: m[1], setter: m[2], at: m.index };
+  if (!gate) fail('O10b the card can draw without the widget-data capability: no term of its condition is a state born of ezikWidgetDataCapability === \'supported\'');
+  else {
+    pass('O10b the card condition holds ' + gate.name + ', born of ezikWidgetDataCapability === \'supported\'');
+    const setCall = gate.setter + "(ezikWidgetDataCapability === 'supported')";
+    const calls = jsx.split(gate.setter + '(').length - 1;
+    const k = jsx.indexOf(setCall, gate.at);
+    const near = k > 0 ? jsx.slice(k - 80, k + 220) : '';
+    calls === 1 && /const sync = \(\) => $/.test(jsx.slice(k - 80, k)) && near.includes('window.addEventListener(SHELL_SCHED_CHANNEL, sync)')
+      ? pass('O10b ' + gate.name + ' is re-synced only to ezikWidgetDataCapability === \'supported\' on every ' + 'scheduler reply')
+      : fail('O10b ' + gate.name + ' is not re-synced (only) from ezikWidgetDataCapability on the scheduler channel');
+  }
 }
 // O4
 for (const s of ['', 'abc', 'ezk110-test', 'عزك', 'x'.repeat(200)]) {
