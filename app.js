@@ -3,7 +3,7 @@
 // Verified by `npm run verify:build` and by the gate `babel`, which regenerate this file
 // and fail on any difference. An edit made here is overwritten by the next build and is
 // reported as a difference by the gate before that.
-var EZIK_APP_VERSION = "ezik-v94";
+var EZIK_APP_VERSION = "ezik-v95";
 var EZIK_ENABLED_LANGS = ["ar","en","fr","fa","ur","id"];
 const{useState,useEffect,useRef}=React;// ============================================================
 // S116 -- THE INTERFACE LANGUAGE (ar / en). READ THIS BEFORE ADDING A KEY.
@@ -348,7 +348,21 @@ const wordSim=(a,b)=>{if(a===b)return 1;if(!a||!b)return 0;const m=a.length,n=b.
 //   'pending'  — at/after the furthest matched index (not reached yet) → dim, NEVER red
 // "pending never red" biases hard against false reds: silence / slow pace shows dim, not wrong.
 const alignRecite=(expected,heard)=>{const m=expected.length,n=heard.length;if(m===0)return[];const close=(e,h)=>wordSim(e,h)>=RECITE_LENIENT_THRESHOLD;// dp[i][j] = LCS length of expected[i..], heard[j..]
-const dp=Array.from({length:m+1},()=>new Int32Array(n+1));for(let i=m-1;i>=0;i--){for(let j=n-1;j>=0;j--){dp[i][j]=close(expected[i],heard[j])?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);}}const matched=new Array(m).fill(false);let i=0,j=0;while(i<m&&j<n){if(close(expected[i],heard[j])){matched[i]=true;i++;j++;}else if(dp[i+1][j]>=dp[i][j+1])i++;else j++;}let furthest=-1;for(let k=0;k<m;k++)if(matched[k])furthest=k;const states=new Array(m);for(let k=0;k<m;k++)states[k]=matched[k]?'matched':k<furthest?'mismatch':'pending';return states;};// ============================================================
+const dp=Array.from({length:m+1},()=>new Int32Array(n+1));for(let i=m-1;i>=0;i--){for(let j=n-1;j>=0;j--){dp[i][j]=close(expected[i],heard[j])?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);}}const matched=new Array(m).fill(false);let i=0,j=0;while(i<m&&j<n){if(close(expected[i],heard[j])){matched[i]=true;i++;j++;}else if(dp[i+1][j]>=dp[i][j+1])i++;else j++;}let furthest=-1;for(let k=0;k<m;k++)if(matched[k])furthest=k;const states=new Array(m);for(let k=0;k<m;k++)states[k]=matched[k]?'matched':k<furthest?'mismatch':'pending';return states;};// Item 86 (memorizer): «سمِّعني» across a recognizer RESTART.
+// A restart begins a fresh result list, so the words heard before it leave the transcript while
+// the expected text still ran from the first ayah of the run. alignRecite binds a heard word to
+// its EARLIEST close match, so an ayah whose words all occurred earlier in the run was bound to
+// that earlier place and never completed: 1:3 to the end of 1:1, and 132 of 6122 ayat when a run
+// starts at the first ayah of its surah (measured on 49d5377 with a recognizer that returns each
+// ayah exactly). Android ends a session at every pause, so on a phone this is the common case.
+// THE ANCHOR is where a session's words can begin, [ayah, word]: the run's first ayah and word 0
+// when the run starts; at a restart, the first word of the current ayah not yet shown as heard.
+// The expected text starts there, and the words of the current ayah before it keep the 'matched'
+// they were already shown with. An anchor that never moves is the run's start -- exactly the old
+// cumulative expected, which is what a reader without the switch keeps.
+const mem86ReciteAnchor=(cur,shown)=>{let w=0;while(Array.isArray(shown)&&w<shown.length&&shown[w]==='matched')w++;return[cur,w];};const mem86ReciteExpected=(sn,anchor,toAyah,red)=>{const from=anchor&&anchor[0]<=toAyah?anchor[0]:toAyah;const w0=anchor&&anchor[0]<=toAyah?anchor[1]|0:0;const tokens=[];const pats=[];let curOffset=0,curLen=0,skip=0;for(let a=from;a<=toAyah;a++){const verse=getVerseText(sn,a)||'';const at=tokenizeForRecite(verse);// The red path needs the rasm itself, not the flattened token: its marks are the whole signal.
+// patternsForVerse splits on the same rule tokenizeForRecite does, so one offset serves both.
+const ap=red?patternsForVerse(verse):null;const cut=a===from?Math.min(w0,at.length):0;if(a===toAyah){curOffset=tokens.length;curLen=at.length-cut;skip=cut;}for(let t=cut;t<at.length;t++)tokens.push(at[t]);if(ap)for(let t=cut;t<ap.length;t++)pats.push(ap[t]);}return{tokens,pats,curOffset,curLen,skip};};const mem86ReciteSlice=(exp,fullStates)=>{const head=[];for(let i=0;i<exp.skip;i++)head.push('matched');return head.concat(fullStates.slice(exp.curOffset,exp.curOffset+exp.curLen));};// ============================================================
 // المُطبِّعُ الذكيّ للتمييزِ الأحمر — الرسمُ مقابلَ النطق
 // ============================================================
 // THE SWITCH. Red marking is OFF for everyone, and `?memred=1` turns it on FOR THAT VISIT.
@@ -10965,6 +10979,8 @@ const reciteHeardRef=useRef('');// transient transcript — never rendered, neve
 const[reciteAyah,setReciteAyah]=useState(null);// current recite ayah; current = reciteAyah || startAyah
 const[reciteFinished,setReciteFinished]=useState(false);// whole range done → show finish line
 const reciteAyahRef=useRef(null);// live mirror so onresult reads the current ayah synchronously
+const reciteAnchorRef=useRef([1,0]);// item 86: [ayah, word] where this recognizer session's words begin
+const reciteShownRef=useRef([]);// ...and the current ayah's states as last shown, read at a restart
 // Item 86 (memorizer): the picker's tabs and the reader's memorised ayat. The catalogue is always the first tab.
 const[tab,setTab]=useState('learn');const[held,setHeld]=useState(mem86HeldRead);const[prefs,setPrefs]=useState(()=>mem86Lit()?mem86PrefsRead():MEM86_PREF_MAIN);const setPref=patch=>{if(!mem86Lit())return;if(patch.dim)reciteHiddenRef.current=false;setPrefs(mem86PrefsWrite(patch));};const[adnanEnd,setAdnanEnd]=useState(0);// last ayah of the listening range; 0 = the end of the surah
 // «سمِّعني»: hints, the pause, what a finished segment earns, and the ?memred=1 marks of this visit (never stored).
@@ -11019,34 +11035,34 @@ reciteCleanRef.current=false;const n=surahCount-startAyah+1;if(reciteHiddenRef.c
 // local. Checked BEFORE the engine is constructed, so no microphone permission is requested.
 if(!hasValidAIConsent()){setReciteErr(EZ_SPEECH_NO_CONSENT);return;}if(!ezSpeechAvailable()){setReciteErr(RECITE_NO_SR);return;}// graceful fail, same message as chat/call
 setReciteErr('');setReciteFinished(false);const from=fromAyah>0?fromAyah:startAyah;// a resume starts where the pause stopped
-if(!(fromAyah>0)){reciteCleanRef.current=true;reciteHiddenRef.current=!prefs.dim;}else reciteHiddenRef.current=reciteHiddenRef.current&&!prefs.dim;setRecitePaused(0);setReciteHints([]);setReciteAyah(from);reciteAyahRef.current=from;reciteHeardRef.current='';setReciteStates([]);// Cumulative EXPECTED (Option C): expected = tokens of ayat startAyah..targetAyah, with the
-// CURRENT ayah's offset/length so we can slice its states out of the full alignment. No
-// heard-text reset on advance — heard stays cumulative and aligns against the growing expected
-// (robust to ar-SA cumulative re-segmentation; no mic teardown).
-const buildExpected=toAyah=>{const tokens=[];const pats=[];let curOffset=0,curLen=0;for(let a=from;a<=toAyah;a++){const verse=getVerseText(selectedSurah,a)||'';const at=tokenizeForRecite(verse);// The red path needs the rasm itself, not the flattened token: its marks are the
-// whole signal. patternsForVerse splits on the same rule tokenizeForRecite does, so
-// pats[k] is the same word as tokens[k] and one offset serves both.
-const ap=MEM_RED_FLAGGING?patternsForVerse(verse):null;if(a===toAyah){curOffset=tokens.length;curLen=at.length;}for(let t=0;t<at.length;t++)tokens.push(at[t]);if(ap)for(let t=0;t<ap.length;t++)pats.push(ap[t]);}return{tokens,pats,curOffset,curLen};};const rec=ezNewRecognition();if(!rec){setReciteErr(hasValidAIConsent()?RECITE_NO_SR:EZ_SPEECH_NO_CONSENT);return;}rec.lang='ar-SA';rec.continuous=true;rec.interimResults=true;const myRun=++reciteRunIdRef.current;rec.onresult=event=>{// Cumulative-finals prefix-merge — identical to the call recognizer.
-let finalText='',interim='';for(let i=0;i<event.results.length;i++){const t=event.results[i][0].transcript;if(event.results[i].isFinal){const seg=t.trim();if(!seg)continue;if(!finalText)finalText=seg;else if(seg.startsWith(finalText))finalText=seg;else if(finalText.startsWith(seg)){/* covered */}else finalText=finalText+' '+seg;}else{interim+=t;}}reciteHeardRef.current=(finalText+' '+interim).trim();if(mem86Lit())mem86Ping();// Match FULL cumulative heard vs FULL cumulative expected (up to the current ayah), then
-// display + completion-check only the CURRENT ayah's slice of states.
-const cur=reciteAyahRef.current||startAyah;const{tokens,pats,curOffset,curLen}=buildExpected(cur);// ONE WORD, TWO PATHS. MEM_RED_FLAGGING is false, so what runs is exactly what ran
+if(!(fromAyah>0)){reciteCleanRef.current=true;reciteHiddenRef.current=!prefs.dim;}else reciteHiddenRef.current=reciteHiddenRef.current&&!prefs.dim;setRecitePaused(0);setReciteHints([]);setReciteAyah(from);reciteAyahRef.current=from;reciteHeardRef.current='';setReciteStates([]);reciteShownRef.current=[];reciteAnchorRef.current=[from,0];// Cumulative EXPECTED (Option C): expected = tokens of ayat from the session's anchor to the
+// target ayah, with the CURRENT ayah's offset/length so we can slice its states out of the full
+// alignment. No heard-text reset on advance — heard stays cumulative WITHIN a recognizer session
+// and aligns against the growing expected (robust to ar-SA cumulative re-segmentation; no mic
+// teardown). A restart is a new session, so for the owner its anchor moves (mem86ReciteAnchor).
+const buildExpected=toAyah=>mem86ReciteExpected(selectedSurah,reciteAnchorRef.current,toAyah,MEM_RED_FLAGGING);const rec=ezNewRecognition();if(!rec){setReciteErr(hasValidAIConsent()?RECITE_NO_SR:EZ_SPEECH_NO_CONSENT);return;}rec.lang='ar-SA';rec.continuous=true;rec.interimResults=true;const myRun=++reciteRunIdRef.current;rec.onresult=event=>{// Cumulative-finals prefix-merge — identical to the call recognizer.
+let finalText='',interim='';for(let i=0;i<event.results.length;i++){const t=event.results[i][0].transcript;if(event.results[i].isFinal){const seg=t.trim();if(!seg)continue;if(!finalText)finalText=seg;else if(seg.startsWith(finalText))finalText=seg;else if(finalText.startsWith(seg)){/* covered */}else finalText=finalText+' '+seg;}else{interim+=t;}}reciteHeardRef.current=(finalText+' '+interim).trim();if(mem86Lit())mem86Ping();// Match FULL session heard vs FULL expected from the session's anchor (up to the current ayah),
+// then display + completion-check only the CURRENT ayah's slice of states.
+const cur=reciteAyahRef.current||startAyah;const exp=buildExpected(cur);const{tokens,pats}=exp;// ONE WORD, TWO PATHS. MEM_RED_FLAGGING is false, so what runs is exactly what ran
 // before it existed: alignRecite over the flattened tokens, and every 'mismatch' it
 // returns reinterpreted as reached/black -- red never renders and a tashkeel or madd slip
 // cannot block progression. Flip the constant and the rasm-aware matcher decides instead,
 // and its 'mismatch' is shown as itself. 'pending' (not-yet-reached) gates advance on both.
-const fullStates=MEM_RED_FLAGGING?alignReciteRed(pats,tokenizeHeardRed(reciteHeardRef.current)):alignRecite(tokens,tokenizeForRecite(reciteHeardRef.current));const currentSlice=fullStates.slice(curOffset,curOffset+curLen);if(MEM_RED_FLAGGING){// ?memred=1: a word once judged wrong keeps a mark for this visit
+const fullStates=MEM_RED_FLAGGING?alignReciteRed(pats,tokenizeHeardRed(reciteHeardRef.current)):alignRecite(tokens,tokenizeForRecite(reciteHeardRef.current));const currentSlice=mem86ReciteSlice(exp,fullStates);if(MEM_RED_FLAGGING){// ?memred=1: a word once judged wrong keeps a mark for this visit
 if(mem86Lit()){const bad=[];currentSlice.forEach((x,i)=>{if(x==='mismatch')bad.push(mem86Ref(selectedSurah,cur,i+1));});if(bad.length)setRedMarks(m=>({...m,ever:m.ever.concat(bad.filter(r=>m.ever.indexOf(r)===-1))}));}}const shown=MEM_RED_FLAGGING?currentSlice:currentSlice.map(x=>x==='mismatch'?'matched':x);const allMatched=shown.length>0&&shown.every(x=>x==='matched');if(allMatched&&cur<surahCount){// Auto-advance. Set the ref synchronously so a rapid follow-up onresult can't re-advance the
 // same completion; blank the slice so the new ayah renders dim until the next onresult fills it.
-const next=cur+1;reciteAyahRef.current=next;setReciteAyah(next);setReciteStates([]);setReciteHints([]);}else{setReciteStates(shown);if(allMatched&&cur>=surahCount){setReciteFinished(true);stopRecite();reciteCredit();}// last ayah → finish
+const next=cur+1;reciteAyahRef.current=next;setReciteAyah(next);setReciteStates([]);reciteShownRef.current=[];setReciteHints([]);}else{setReciteStates(shown);reciteShownRef.current=shown;if(allMatched&&cur>=surahCount){setReciteFinished(true);stopRecite();reciteCredit();}// last ayah → finish
 }};rec.onend=()=>{// Auto-restart only if this run is still current (stopRecite/unmount bumped the id otherwise).
 if(childVoiceBlocked()){// غ‑٣: لا إعادةَ فتحٍ بعد الحجب — أوقفِ الحلقة
 reciteRunIdRef.current++;setReciteListening(false);return;}// Withdrawal mid-recitation ends the loop here as well as at the registry: this callback
 // was armed while consent was held, and it is the one thing that would otherwise re-open
 // the microphone by itself, forever, on a screen the reader thinks is offline.
-if(!hasValidAIConsent()){reciteRunIdRef.current++;setReciteListening(false);setReciteErr(EZ_SPEECH_NO_CONSENT);ezKillRecognizer(rec);return;}if(reciteRunIdRef.current===myRun){ezStartRecognition(rec);}};rec.onerror=e=>{const fatal=['not-allowed','audio-capture','service-not-allowed'];if(fatal.includes(e.error)){reciteRunIdRef.current++;setReciteListening(false);setReciteErr(RECITE_NO_SR);}};reciteRecognitionRef.current=rec;setReciteListening(true);if(!ezStartRecognition(rec)){reciteRunIdRef.current++;setReciteListening(false);}};// Manual advance — freeze-proof fallback so a missed/substituted last word can't lock progress.
+if(!hasValidAIConsent()){reciteRunIdRef.current++;setReciteListening(false);setReciteErr(EZ_SPEECH_NO_CONSENT);ezKillRecognizer(rec);return;}// Item 86: the restarted session's transcript starts empty, so for the owner its words begin
+// at the first word of the current ayah not yet shown as heard (mem86ReciteAnchor).
+if(reciteRunIdRef.current===myRun){if(mem86Lit())reciteAnchorRef.current=mem86ReciteAnchor(reciteAyahRef.current||startAyah,reciteShownRef.current);ezStartRecognition(rec);}};rec.onerror=e=>{const fatal=['not-allowed','audio-capture','service-not-allowed'];if(fatal.includes(e.error)){reciteRunIdRef.current++;setReciteListening(false);setReciteErr(RECITE_NO_SR);}};reciteRecognitionRef.current=rec;setReciteListening(true);if(!ezStartRecognition(rec)){reciteRunIdRef.current++;setReciteListening(false);}};// Manual advance — freeze-proof fallback so a missed/substituted last word can't lock progress.
 const advanceReciteManual=()=>{reciteCleanRef.current=false;// a manual «next» earns nothing
 setReciteHints([]);const cur=reciteAyahRef.current||startAyah;if(cur<surahCount){const next=cur+1;reciteAyahRef.current=next;setReciteAyah(next);setReciteStates([]);// new ayah starts dim; recomputed on the next onresult
-}else{setReciteFinished(true);stopRecite();}};const setMode=m=>{if(m===drillMode)return;stopAdnan();stopRecite();if(m==='recite'){// fresh recite session from the start of the range
+reciteShownRef.current=[];}else{setReciteFinished(true);stopRecite();}};const setMode=m=>{if(m===drillMode)return;stopAdnan();stopRecite();if(m==='recite'){// fresh recite session from the start of the range
 setReciteStates([]);reciteHeardRef.current='';setReciteErr('');setReciteAyah(startAyah);reciteAyahRef.current=startAyah;setReciteFinished(false);setRecitePaused(0);setReciteHints([]);}setDrillMode(m);};// ===== THE MEMORIZER'S NESTED CLOSER =====
 // S87: the drill is the INNER activity and the picker is the memorizer's parent screen, so a
 // back taken in the drill lands on the picker -- never straight out of the memorizer. It stops

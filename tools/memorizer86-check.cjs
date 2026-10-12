@@ -118,11 +118,11 @@ section('the switch -- MEM86_PART and mem86Lit(): only the owner sees the new me
   // where it is asked: a pinned count, and never inside what the tool lifts
   const code = src.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
   const all = (code.match(/mem86Lit\(\)/g) || []).length;
-  ok(all === 16, 'mem86Lit() is asked at exactly 16 places (render and writes): ' + all);
+  ok(all === 17, 'mem86Lit() is asked at exactly 17 places (render, writes and the recite restart): ' + all);
   const home = code.slice(code.indexOf('function Home('), code.indexOf('\nfunction ', code.indexOf('function Home(') + 10));
   ok((home.match(/mem86Lit\(\)/g) || []).length === 1 && home.includes('mem86Lit() ? dailyWirdLines(readDailyWird(), wt, mem86WirdToday()) : dailyWirdLines(readDailyWird(), wt)'), 'the home card asks once: the plan share for the owner, main\'s call for everyone else');
   const scr = code.slice(code.indexOf('function MemorizeScreen('), code.indexOf('\nfunction ', code.indexOf('function MemorizeScreen(') + 10));
-  ok((scr.match(/mem86Lit\(\)/g) || []).length === 15, 'MemorizeScreen asks at 15 places: ' + (scr.match(/mem86Lit\(\)/g) || []).length);
+  ok((scr.match(/mem86Lit\(\)/g) || []).length === 16, 'MemorizeScreen asks at 16 places: ' + (scr.match(/mem86Lit\(\)/g) || []).length);
   for (const [label, re] of [
     ['the tabs', /\{mem86Lit\(\) \? <Mem86Tabs /], ['the held count on a surah card', /\{mem86Lit\(\) && held\[n\] \?/],
     ['«similar passages»', /\{mem86Lit\(\) \? <button type="button" style=\{s\.mem86BtnQuiet\}/], ['the talqin options', /\{mem86Lit\(\) && drillMode === 'manual' && \(/],
@@ -135,6 +135,7 @@ section('the switch -- MEM86_PART and mem86Lit(): only the owner sees the new me
     ['the heard-word clock', /if \(mem86Lit\(\)\) mem86Ping\(\);/],
     ['?memred=1 marks', /if \(MEM_RED_FLAGGING\) \{[^\n]*\n\s*if \(mem86Lit\(\)\) \{/],
     ['?memred=1 dashed word', /if \(mem86Lit\(\) && MEM_RED_FLAGGING && redMarks\.notErr/], ['?memred=1 «not a mistake»', /\{mem86Lit\(\) && MEM_RED_FLAGGING && redMarks\.pick/],
+    ['the recite restart anchor', /if \(mem86Lit\(\)\) reciteAnchorRef\.current = mem86ReciteAnchor\(reciteAyahRef\.current \|\| startAyah, reciteShownRef\.current\);/],
   ]) ok(re.test(scr), 'gated by mem86Lit(): ' + label);
   const liftedAsk = [...TOP.keys()].filter((n) => /^(mem86|MEM86_)/.test(n) && n !== 'mem86Lit' && TOP.get(n).includes('mem86Lit'));
   ok(liftedAsk.length === 0, 'no top-level memorizer initializer asks the switch (the tool lifts them): ' + liftedAsk.join(', '));
@@ -486,6 +487,120 @@ const w1 = X.__quranData['2:2'].split(/\s+/)[0];
 ok(X.mem86Rasm(w1) !== X.normalizeForRecite(w1) && X.mem86Rasm(w1).length < w1.length, 'the rasm drops the harakat but is not the matcher\'s flat form');
 ok(!/[ً-ْ]/.test(X.mem86Rasm(X.__quranData['1:2'])), 'no haraka survives the rasm');
 ok(/ٰ/.test(X.mem86Rasm(X.__quranData['1:2'])), 'the dagger alef survives it');
+
+/* ------------------------------------------------------------------ the recite restart anchor */
+// A recognizer RESTART begins a fresh transcript (Android ends a session at every pause). Measured on 49d5377:
+// matching the session's words against everything since the run began bound an ayah whose words occurred
+// earlier in the run to that earlier place, so 1:3 (its words end 1:1) never completed, nor 132 of 6122 ayat
+// when a run starts at the first ayah of its surah. For the owner the anchor moves with the restart; for
+// everyone else it stays at the run's start, which must be the old cumulative expected exactly. The recognizer
+// here is perfect -- it returns each ayah's own words -- so any failure below is the matcher's.
+section('the recite restart anchor -- a restarted session resumes where the reader is, not where the run began');
+lift(['getVerseText', 'RECITE_LENIENT_THRESHOLD', 'wordSim', 'alignRecite',
+  'RECITE_RED_HAMZAT', 'RECITE_RED_DAGGER', 'RECITE_RED_SMALL_WAW', 'RECITE_RED_SMALL_YA', 'RECITE_RED_SMALL_HIGH_YA',
+  'RECITE_RED_HAMZA_ABOVE', 'RECITE_RED_SILENT', 'RECITE_RED_DROP', 'reciteRedAccepts', 'recitePattern', 'normalizeHeardRed',
+  'tokenizeHeardRed', 'patternsForVerse', 'redWordSim', 'RECITE_RED_THRESHOLD', 'RECITE_RED_MAX_RUN', 'redSplitsInTwo',
+  'redJoinsInTwo', 'alignReciteRed', 'mem86ReciteAnchor', 'mem86ReciteExpected', 'mem86ReciteSlice']);
+{
+  const ta = Date.now();
+  const T = (sn, a) => X.tokenizeForRecite(X.getVerseText(sn, a) || '');
+  const said = (sn, a, from = 0, to) => T(sn, a).slice(from, to).join(' ');
+  // one onresult as startRecite runs it: expected from the anchor, the alignment, the current ayah's slice
+  const step = (sn, anchor, cur, heard, red) => {
+    const exp = X.mem86ReciteExpected(sn, anchor, cur, red);
+    const full = red ? X.alignReciteRed(exp.pats, X.tokenizeHeardRed(heard)) : X.alignRecite(exp.tokens, X.tokenizeForRecite(heard));
+    const slice = X.mem86ReciteSlice(exp, full);
+    const shown = red ? slice : slice.map((x) => (x === 'mismatch' ? 'matched' : x));
+    return { slice, shown, done: shown.length > 0 && shown.every((x) => x === 'matched') };
+  };
+  // the old cumulative computation, written out from the run's start (no helper): the identity reference
+  const oldStep = (sn, from, cur, heard) => {
+    const tokens = []; let off = 0, len = 0;
+    for (let a = from; a <= cur; a++) { const at = T(sn, a); if (a === cur) { off = tokens.length; len = at.length; } tokens.push(...at); }
+    return X.alignRecite(tokens, X.tokenizeForRecite(heard)).slice(off, off + len);
+  };
+  const n = (sn) => { let a = 1; while (X.getVerseText(sn, a + 1)) a++; return a; };
+
+  ok(eq(X.mem86ReciteAnchor(3, ['matched', 'matched', 'pending', 'pending']), [3, 2]) && eq(X.mem86ReciteAnchor(4, []), [4, 0])
+    && eq(X.mem86ReciteAnchor(5, ['matched', 'mismatch', 'matched']), [5, 1]) && eq(X.mem86ReciteAnchor(6, null), [6, 0]),
+  'the anchor is the first word of the current ayah not shown as heard (an empty or missing slice is word 0)');
+
+  const before = step(1, [1, 0], 3, said(1, 3));
+  ok(!before.done && eq(before.shown, ['pending', 'pending']), 'without moving the anchor, 1:3 heard after a restart stays pending -- the defect itself (measured on 49d5377)');
+  ok(step(1, X.mem86ReciteAnchor(3, []), 3, said(1, 3)).done, 'with the anchor moved to 1:3 at the restart, 1:3 completes');
+  ok(step(1, [3, 0], 3, said(1, 3), true).done && step(1, [3, 0], 3, said(1, 3), true).slice.indexOf('mismatch') === -1,
+    'the ?memred=1 path follows the same anchor: 1:3 completes with no word reddened');
+
+  // every ayah k >= 2 of every surah, the run started at the surah's first ayah, a restart right before k
+  const tb = Date.now();
+  let total = 0, stuck = 0, firstStuck = '';
+  for (let sn = 1; sn <= 114; sn++) for (let k = 2; k <= n(sn); k++) {
+    total++;
+    if (!step(sn, X.mem86ReciteAnchor(k, []), k, said(sn, k)).done) { stuck++; if (!firstStuck) firstStuck = sn + ':' + k; }
+  }
+  ok(total === 6122 && stuck === 0, 'a restart before each of the ' + total + ' ayat after a first ayah: every one completes (stuck ' + stuck + (firstStuck ? ', first ' + firstStuck : '') + ') in ' + (Date.now() - tb) + ' ms');
+
+  // a restart INSIDE an ayah: the first session hears the words before the cut, the second the rest. Every cut of
+  // al-Fatiha and juz Amma; and in the whole mushaf, every ayah that repeats a word within itself, cut right after
+  // the repeated word's first place (where an earliest-match binding would bite) and at its middle. Every cut of
+  // every ayah is cubic in the long ayat (measured: minutes here), so the mushaf-wide part is the risky cuts.
+  const tc = Date.now();
+  let cuts = 0, stuckIn = 0, firstIn = '', repeaters = 0;
+  const cutAt = (sn, k, b) => {
+    cuts++;
+    const first = step(sn, [k, 0], k, said(sn, k, 0, b));
+    const second = step(sn, X.mem86ReciteAnchor(k, first.shown), k, said(sn, k, b));
+    if (!second.done) { stuckIn++; if (!firstIn) firstIn = sn + ':' + k + ' after word ' + b; }
+  };
+  for (const sn of [1].concat(Array.from({ length: 37 }, (_, i) => 78 + i))) for (let k = 1; k <= n(sn); k++) {
+    const len = T(sn, k).length;
+    for (let b = 1; b < len; b++) cutAt(sn, k, b);
+  }
+  for (let sn = 2; sn <= 77; sn++) for (let k = 1; k <= n(sn); k++) {
+    const w = T(sn, k);
+    const rep = w.findIndex((x, i) => w.indexOf(x, i + 1) !== -1);
+    if (rep === -1) continue;
+    repeaters++;
+    if (rep + 1 < w.length) cutAt(sn, k, rep + 1);
+    const mid = Math.floor(w.length / 2);
+    if (mid > 0 && mid !== rep + 1) cutAt(sn, k, mid);
+  }
+  ok(cuts === 5419 && repeaters === 1875 && stuckIn === 0, 'a restart inside an ayah at ' + cuts + ' cuts (every cut of al-Fatiha and juz Amma; the ' + repeaters + ' ayat of 2-77 that repeat a word, at the repeat and the middle): every ayah completes (stuck ' + stuckIn + (firstIn ? ', first ' + firstIn : '') + ') in ' + (Date.now() - tc) + ' ms');
+
+  // an anchor that never moves (everyone without the switch) is the old cumulative expected, result for result
+  const ti = Date.now();
+  const SAMPLE = [1].concat(Array.from({ length: 22 }, (_, i) => 93 + i));
+  let compared = 0, differ = 0, firstDiff = '';
+  const cmp = (sn, cur, heard, label) => {
+    compared++;
+    if (!eq(step(sn, [1, 0], cur, heard).slice, oldStep(sn, 1, cur, heard))) { differ++; if (!firstDiff) firstDiff = label; }
+  };
+  for (const sn of SAMPLE) {
+    let run = '';
+    for (let k = 1; k <= n(sn); k++) {
+      const mid = Math.floor(T(sn, k).length / 2);
+      cmp(sn, k, (run + ' ' + said(sn, k, 0, mid)).trim(), sn + ':' + k + ' half heard');
+      run = (run + ' ' + said(sn, k)).trim();
+      cmp(sn, k, run, sn + ':' + k + ' whole');
+    }
+  }
+  let bq = '';
+  for (let k = 1; k <= 5; k++) { bq = (bq + ' ' + said(2, k)).trim(); cmp(2, k, bq, '2:' + k); }
+  ok(compared === 333 && differ === 0, 'no restart: the unmoved anchor gives the old cumulative states in all ' + compared + ' results (al-Fatiha, ad-Duha to an-Nas, al-Baqarah 1-5) in ' + (Date.now() - ti) + ' ms' + (firstDiff ? ' -- first difference ' + firstDiff : ''));
+
+  // the screen wires it: run start, both slice writes, the manual next, and the restart -- before the mic reopens
+  const src2 = fs.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
+  const scr2 = src2.slice(src2.indexOf('function MemorizeScreen('), src2.indexOf('\nfunction ', src2.indexOf('function MemorizeScreen(') + 10));
+  ok(/reciteShownRef\.current = \[\];\n\s*reciteAnchorRef\.current = \[from, 0\];/.test(scr2), 'a run starts with the anchor at its first ayah, word 0, and an empty shown slice');
+  ok(scr2.includes('const buildExpected = (toAyah) => mem86ReciteExpected(selectedSurah, reciteAnchorRef.current, toAyah, MEM_RED_FLAGGING);')
+    && scr2.includes('const currentSlice = mem86ReciteSlice(exp, fullStates);'), 'onresult builds the expected from the anchor and slices with the helper the check lifts');
+  ok(/setReciteStates\(\[\]\);\n\s*reciteShownRef\.current = \[\];\n\s*setReciteHints\(\[\]\);/.test(scr2) && scr2.includes('setReciteStates(shown);\n        reciteShownRef.current = shown;'),
+    'both writes of the current slice (auto-advance and shown) keep the restart\'s mirror in step');
+  ok(/setReciteStates\(\[\]\); \/\/ new ayah starts dim; recomputed on the next onresult\n\s*reciteShownRef\.current = \[\];/.test(scr2), 'the manual «next» clears the mirror with the slice');
+  ok(/if \(mem86Lit\(\)\) reciteAnchorRef\.current = mem86ReciteAnchor\(reciteAyahRef\.current \|\| startAyah, reciteShownRef\.current\);\n\s*ezStartRecognition\(rec\);/.test(scr2),
+    'the anchor moves at the restart, before the recognizer is started again');
+  ok(Date.now() - ta < 60000, 'this section ran in ' + (Date.now() - ta) + ' ms here (measured, this machine)');
+}
 
 /* ------------------------------------------------------------------ done */
 console.log('\n' + (fail ? 'FAIL' : 'PASS') + '  memorizer86-check  ' + pass + ' passed, ' + fail + ' failed  (lifted ' + LIFT.length + ' initializers from app.jsx)');
