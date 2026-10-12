@@ -102,6 +102,14 @@ const S = {
   HADITH_BODY: 'إنما الأعمال بالنيات',
   TYPED:       'كنت أكتب',
 };
+// R4A (item 110, station 4): the star's accessible name follows the owner switch. A guest for whom part fix or an
+// identity is lit (EZ110_PARTS -- read from the app the harness runs, never a constant here) is offered the m27 name
+// with its state (fix.fav.off / fix.fav.on); while all are dark, exactly the old names. Every star check below asks this.
+function favL(c) {
+  const P = c.grab('EZ110_PARTS') || {};
+  const lit = P.fix === 'public' || ['b', 'c', 'd', 'e'].some((k) => P[k] === 'public');
+  return lit ? { lit, ADD: c.grab("ezT('fix.fav.off')"), DEL: c.grab("ezT('fix.fav.on')") } : { lit, ADD: S.FAV_ADD, DEL: S.FAV_DEL };
+}
 
 let failures = 0;
 let checks = 0;
@@ -987,12 +995,14 @@ async function partDScreen() {
   await d.click(rowLong, 'long chat');
   await waitFor(() => d.text().indexOf(S.W_HEAD) !== -1, 'the reply on screen');
 
-  const star = () => d.byLabel(S.FAV_ADD) || d.byLabel(S.FAV_DEL);
+  const star = () => d.byLabel(favL(c).ADD) || d.byLabel(favL(c).DEL);
   if (!ok('a completed reply offers a star', !!star())) return c;
-  ok('...and it starts unfilled', !!d.byLabel(S.FAV_ADD));
-  await d.click(d.byLabel(S.FAV_ADD), 'star');
+  // R4A: the guest has part fix exactly as the app's switch says (the star's name above follows it)
+  { const P = c.grab('EZ110_PARTS') || {}; ok('R4A the guest has part fix as EZ110_PARTS says, and the star the switch names', c.grab('ez110FixLit()') === (P.fix === 'public') && !!d.byLabel(favL(c).ADD) && (favL(c).lit ? !d.byLabel(S.FAV_ADD) : true)); }
+  ok('...and it starts unfilled', !!d.byLabel(favL(c).ADD));
+  await d.click(d.byLabel(favL(c).ADD), 'star');
   await tick(60);
-  ok('starring a reply fills the star', !!d.byLabel(S.FAV_DEL));
+  ok('starring a reply fills the star', !!d.byLabel(favL(c).DEL));
   const stored = JSON.parse(c.store.getItem(KEY) || '[]');
   eq('...and writes exactly one record', stored.length, 1);
   ok('...carrying the whole reply', String(stored[0].text).indexOf(S.W_TAIL) !== -1);
@@ -1003,14 +1013,14 @@ async function partDScreen() {
     c.store.getItem('ezik_chat_v1_' + CHAT_LONG).slice(0, 200));
 
   // rapid double press: a toggle, never a duplicate
-  await d.doublePress(d.byLabel(S.FAV_DEL));
+  await d.doublePress(d.byLabel(favL(c).DEL));
   await tick(60);
   const afterDouble = JSON.parse(c.store.getItem(KEY) || '[]');
   ok('a rapid double press leaves no duplicate behind', afterDouble.length <= 1, JSON.stringify(afterDouble.map((r) => r.id)));
   // put it back, starred, for the reload check
-  if (!d.byLabel(S.FAV_DEL)) { await d.click(d.byLabel(S.FAV_ADD), 'star again'); await tick(60); }
+  if (!d.byLabel(favL(c).DEL)) { await d.click(d.byLabel(favL(c).ADD), 'star again'); await tick(60); }
   ok('...and the star agrees with the store',
-    (!!d.byLabel(S.FAV_DEL)) === (JSON.parse(c.store.getItem(KEY) || '[]').length === 1));
+    (!!d.byLabel(favL(c).DEL)) === (JSON.parse(c.store.getItem(KEY) || '[]').length === 1));
 
   // it shows on the favourites screen, with its cards
   await d.click(d.byLabel(S.MENU_OPEN), 'menu');
@@ -1050,7 +1060,7 @@ async function partDOrphan() {
   await d.click(d.byLabel(S.MENU_OPEN), 'menu');
   await d.click(d.all('button').filter((b) => String(b.textContent || '').trim() === S.Q_USER)[0], 'long chat');
   await waitFor(() => d.text().indexOf(S.W_HEAD) !== -1, 'the reply on screen');
-  await d.click(d.byLabel(S.FAV_ADD), 'star');
+  await d.click(d.byLabel(favL(c).ADD), 'star');
   await tick(60);
   eq('the reply is saved', JSON.parse(c.store.getItem(KEY) || '[]').length, 1);
 
@@ -1130,16 +1140,16 @@ async function partDIsolation() {
   };
 
   await openChat('التوأم الأول');
-  ok('the first conversation opens with an unsaved reply', !!d.byLabel(S.FAV_ADD));
-  await d.click(d.byLabel(S.FAV_ADD), 'star in the first');
+  ok('the first conversation opens with an unsaved reply', !!d.byLabel(favL(c).ADD));
+  await d.click(d.byLabel(favL(c).ADD), 'star in the first');
   await tick(60);
-  ok('starring in the first conversation fills its star', !!d.byLabel(S.FAV_DEL));
+  ok('starring in the first conversation fills its star', !!d.byLabel(favL(c).DEL));
   eq('...and writes one record', favs().length, 1);
 
   await openChat('التوأم الثاني');
   ok('THE SECOND CONVERSATION HOLDS THE SAME ANSWER, and its star is EMPTY',
-    !!d.byLabel(S.FAV_ADD), 'the identical reply in another conversation inherited the star');
-  await d.click(d.byLabel(S.FAV_ADD), 'star in the second');
+    !!d.byLabel(favL(c).ADD), 'the identical reply in another conversation inherited the star');
+  await d.click(d.byLabel(favL(c).ADD), 'star in the second');
   await tick(60);
   const two = favs();
   eq('starring it saves a SECOND, independent record', two.length, 2);
@@ -1164,12 +1174,12 @@ async function partDIsolation() {
   const survivor = left[0].chatId;
   const gone = survivor === TWIN_A ? TWIN_B : TWIN_A;
   await openChat(survivor === TWIN_A ? 'التوأم الأول' : 'التوأم الثاني');
-  ok('the surviving favourite\'s conversation still shows a filled star', !!d.byLabel(S.FAV_DEL));
+  ok('the surviving favourite\'s conversation still shows a filled star', !!d.byLabel(favL(c).DEL));
   await openChat(gone === TWIN_A ? 'التوأم الأول' : 'التوأم الثاني');
-  ok('...and the removed one\'s conversation shows an empty star', !!d.byLabel(S.FAV_ADD));
+  ok('...and the removed one\'s conversation shows an empty star', !!d.byLabel(favL(c).ADD));
 
   // opening each favourite reaches ITS OWN conversation
-  await d.click(d.byLabel(S.FAV_ADD), 'star it again');
+  await d.click(d.byLabel(favL(c).ADD), 'star it again');
   await tick(60);
   eq('both are saved again', favs().length, 2);
   await backToChat();
@@ -1183,7 +1193,7 @@ async function partDIsolation() {
   ok('opening a favourite lands in the chat', d.text().indexOf(S.DISCLAIMER) !== -1);
   ok('...showing a conversation that holds that reply', d.text().indexOf(S.W_HEAD) !== -1);
   ok('...and the star there is filled, so it opened the RIGHT one of the twins',
-    !!d.byLabel(S.FAV_DEL), 'it opened a conversation whose reply is not the saved one');
+    !!d.byLabel(favL(c).DEL), 'it opened a conversation whose reply is not the saved one');
 
   return c.store._dump();
 }
@@ -1217,8 +1227,8 @@ async function partDTwoProfiles(dumpFromA) {
   await d.click(d.byLabel(S.MENU_OPEN), 'menu');
   await d.click(d.all('button').filter((b) => String(b.textContent || '').trim() === 'التوأم الأول')[0], 'first twin');
   await waitFor(() => d.text().indexOf(S.W_HEAD) !== -1, 'the reply');
-  ok('...and its own star on the same answer is EMPTY', !!d.byLabel(S.FAV_ADD));
-  await d.click(d.byLabel(S.FAV_ADD), 'star as the second profile');
+  ok('...and its own star on the same answer is EMPTY', !!d.byLabel(favL(c).ADD));
+  await d.click(d.byLabel(favL(c).ADD), 'star as the second profile');
   await tick(60);
   const after = favs();
   eq('starring it ADDS a record rather than replacing one', after.length, before.length + 1);
@@ -1505,12 +1515,12 @@ async function partFFavs() {
   await d.click(d.byLabel(S.MENU_OPEN), 'menu');
   await d.click(d.all('button').filter((b) => String(b.textContent || '').trim() === S.Q_USER)[0], 'long chat');
   await waitFor(() => d.text().indexOf(S.W_HEAD) !== -1, 'the long reply');
-  await d.click(d.byLabel(S.FAV_ADD), 'star the long reply');
+  await d.click(d.byLabel(favL(c).ADD), 'star the long reply');
   await tick(60);
   await d.click(d.byLabel(S.MENU_OPEN), 'menu');
   await d.click(d.all('button').filter((b) => String(b.textContent || '').trim() === S.Q_USER + ' 2')[0], 'short chat');
   await waitFor(() => d.text().indexOf(S.A_SHORT) !== -1, 'the short reply');
-  await d.click(d.byLabel(S.FAV_ADD), 'star the short reply');
+  await d.click(d.byLabel(favL(c).ADD), 'star the short reply');
   await tick(60);
 
   await d.click(d.byLabel(S.MENU_OPEN), 'menu');

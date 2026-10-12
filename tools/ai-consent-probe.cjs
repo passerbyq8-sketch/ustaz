@@ -385,6 +385,48 @@ async function openSettings(c) {
   return hasAr(driver(c.window).text(), S.SETTINGS_GROUP);
 }
 
+// R4A (item 110, station 4): the owner switch decides which screens a guest has. bLit(c) reads EZ110_PARTS from the
+// app the harness runs (never a constant here): b 'public' = a guest sees «ب». There the privacy-and-AI group lives on
+// the page «الخصوصية والبيانات», one press behind its row in Settings (the owner, round 3), and the menu is the «ب»
+// grid. These walks are the reader's; the checks after them are the same checks.
+function bLit(c) { const P = c.grab('EZ110_PARTS') || {}; return P.b === 'public'; }
+async function goHomeB(c) {
+  for (let i = 0; i < 6; i++) {
+    if (driver(c.window).all('[data-ez110-tile]').length) return true;
+    const tab = driver(c.window).all('.ez110-nav .ez110-tab')[1];
+    if (tab && !tab.disabled && i < 2) { await driver(c.window).click(tab); await tick(500); continue; }
+    // or the drawer's «القائمة», the other road a reader has
+    const toggle = driver(c.window).byLabel(S.OPEN_DRAWER);
+    if (toggle) { await driver(c.window).click(toggle); await tick(100); const homeRow = driver(c.window).byText(DRAWER_HOME); if (homeRow) { await driver(c.window).click(homeRow); await tick(300); continue; } }
+    const back = driver(c.window).byText(A2_BACK_TEXT) || driver(c.window).byLabel(A2_BACK_TEXT);
+    if (!back) break;
+    await driver(c.window).click(back); await tick(150);
+  }
+  return driver(c.window).all('[data-ez110-tile]').length > 0;
+}
+async function openSettingsB(c) {
+  if (hasAr(driver(c.window).text(), S.SETTINGS_GROUP)) return true;
+  if (!driver(c.window).byLabel(S.OPEN_DRAWER)) {
+    // not on a screen with the drawer: the bar's «عزك» leads to the chat, whose drawer leads to Settings
+    for (let i = 0; i < 6 && !driver(c.window).all('.ez110-nav').length; i++) {
+      const back = driver(c.window).byText(A2_BACK_TEXT) || driver(c.window).byLabel(A2_BACK_TEXT);
+      if (!back) break; await driver(c.window).click(back); await tick(150);
+    }
+    const ezik = driver(c.window).all('.ez110-nav .ez110-tab')[0];
+    if (ezik && !ezik.disabled) { await driver(c.window).click(ezik); await tick(250); }
+  }
+  const toggle = driver(c.window).byLabel(S.OPEN_DRAWER);
+  if (!toggle) return false;
+  await driver(c.window).click(toggle); await tick(80);
+  const gear = driver(c.window).byLabel(S.SETTINGS_GEAR);
+  if (!gear) return false;
+  await driver(c.window).click(gear); await tick(150);
+  const row = driver(c.window).all('[data-ez110-privacy-row]')[0];
+  if (!row) return false;
+  await driver(c.window).click(row); await tick(150);
+  return hasAr(driver(c.window).text(), S.SETTINGS_GROUP);
+}
+
 // A request is "outbound to a vendor" if it goes to an AI route or to another origin. The app
 // also loads its OWN local assets (the Quran text, the adhkar) and those are not sends: they
 // leave no data anywhere and are the whole point of the local mode.
@@ -695,8 +737,12 @@ async function partE() {
 
   // Reach settings the way a reader does: the chat drawer's settings entry.
   const before = c.grab('hasValidAIConsent()');
-  const inSettings = await openSettings(c);
-  ok('the settings screen carries the privacy-and-AI group', inSettings, cps(S.SETTINGS_GROUP));
+  // R4A: the guest has «ب» exactly as the app's switch says; the group is where that design draws it
+  const LIT_E = bLit(c);
+  ok('R4A the guest has b exactly as EZ110_PARTS says', LIT_E === (c.window.document.documentElement.getAttribute('data-ez110') === 'b'));
+  const inSettings = LIT_E ? await openSettingsB(c) : await openSettings(c);
+  if (LIT_E) ok('R4A the page privacy-and-data of b (Settings, then its one row: one press more) carries the privacy-and-AI group', inSettings, cps(S.SETTINGS_GROUP));
+  else ok('the settings screen carries the privacy-and-AI group', inSettings, cps(S.SETTINGS_GROUP));
   if (inSettings) {
     const t = driver(c.window).text();
     ok('...naming the three providers', t.indexOf('Anthropic') !== -1 && t.indexOf('ElevenLabs') !== -1 && t.indexOf('Brave Search') !== -1);
@@ -821,9 +867,11 @@ async function partH() {
   // from settings
   const c2 = buildContext({ seed: { child_profile: PROFILE(30), [CONSENT_KEY]: granted('user') }, mount: true });
   await tick(150);
-  ok('settings is reachable while consent is held', await openSettings(c2));
+  const LIT_H = bLit(c2);
+  if (LIT_H) ok('R4A the page privacy-and-data of b is reachable while consent is held', await openSettingsB(c2));
+  else ok('settings is reachable while consent is held', await openSettings(c2));
   const h2 = driver(c2.window).all('a').map((a) => a.getAttribute('href'));
-  for (const w of want) ok('settings links to ' + w, h2.indexOf(w) !== -1, JSON.stringify(h2));
+  for (const w of want) { if (LIT_H) ok('R4A the page privacy-and-data of b links to ' + w, h2.indexOf(w) !== -1, JSON.stringify(h2)); else ok('settings links to ' + w, h2.indexOf(w) !== -1, JSON.stringify(h2)); }
 
   // the three pages say the required things, in both languages
   const priv = fs.readFileSync(path.join(REPO, 'privacy.html'), 'utf8');
@@ -1010,6 +1058,29 @@ async function openRecite(c) {
   return { ok: true, recite };
 }
 
+async function openReciteB(c) {
+  if (!(await goHomeB(c))) return { ok: false, why: 'could not reach the menu of b' };
+  const tile = driver(c.window).all('[data-ez110-tile="' + MEM.TILE + '"] > button')[0];
+  if (!tile) return { ok: false, why: 'no memorizer tile on the menu of b' };
+  await driver(c.window).click(tile);
+  await tick(500);
+  const surah = driver(c.window).all('[data-ezq-surah="1"]')[0];
+  if (!surah) return { ok: false, why: 'the memorizer never became ready (no surah cards)' };
+  await driver(c.window).click(surah);
+  await tick(200);
+  const start = driver(c.window).byText(MEM.START_BTN);
+  if (!start) return { ok: false, why: 'no start button in the memorizer' };
+  await driver(c.window).click(start);
+  await tick(250);
+  const modeTab = driver(c.window).byText(MEM.MODE_RECITE);
+  if (!modeTab) return { ok: false, why: 'no recite mode tab in the drill' };
+  await driver(c.window).click(modeTab);
+  await tick(200);
+  const recite = driver(c.window).byText(MEM.RECITE_START);
+  if (!recite) return { ok: false, why: 'no start recitation button in the recite mode' };
+  return { ok: true, recite };
+}
+
 async function partJ() {
   head('J. WEB SPEECH -- the send that leaves no fetch behind');
 
@@ -1036,8 +1107,9 @@ async function partJ() {
     eq('J-B declined: no engine constructed at mount', sp0.constructed, 0);
     eq('J-B ...and no start', sp0.starts, 0);
 
-    const r = await openRecite(c);
-    ok('J-B the memorizer opens and reaches the recitation control', r.ok, r.why || '');
+    const r = bLit(c) ? await openReciteB(c) : await openRecite(c);
+    if (bLit(c)) ok('R4A J-B the memorizer opens from the menu of b and reaches the recitation control', r.ok, r.why || '');
+    else ok('J-B the memorizer opens and reaches the recitation control', r.ok, r.why || '');
     if (r.ok) {
       await driver(c.window).click(r.recite);
       await tick(150);
@@ -1064,8 +1136,9 @@ async function partJ() {
     eq('J-C ...but it has not started listening on its own', sp0.starts, 0);
     eq('J-C ...and no microphone was opened just by mounting', c.media(), []);
 
-    const r = await openRecite(c);
-    ok('J-C the memorizer reaches the recitation control', r.ok, r.why || '');
+    const r = bLit(c) ? await openReciteB(c) : await openRecite(c);
+    if (bLit(c)) ok('R4A J-C the memorizer of b reaches the recitation control', r.ok, r.why || '');
+    else ok('J-C the memorizer reaches the recitation control', r.ok, r.why || '');
     if (r.ok) {
       const before = c.speech().constructed;
       await driver(c.window).click(r.recite);
@@ -1080,8 +1153,9 @@ async function partJ() {
   {
     const c = buildContext({ seed: { child_profile: PROFILE(30), [CONSENT_KEY]: granted('user') }, mount: true });
     await tick(200);
-    const r = await openRecite(c);
-    ok('J-D the recitation control is reachable while consented', r.ok, r.why || '');
+    const r = bLit(c) ? await openReciteB(c) : await openRecite(c);
+    if (bLit(c)) ok('R4A J-D the recitation control of b is reachable while consented', r.ok, r.why || '');
+    else ok('J-D the recitation control is reachable while consented', r.ok, r.why || '');
     if (r.ok) {
       await driver(c.window).click(r.recite);
       await tick(150);
@@ -1095,8 +1169,9 @@ async function partJ() {
       // declined record directly into the store would prove only that the store accepts a write;
       // it is the app's own handler that has to tear the running engine down, so the app's own
       // handler is what gets invoked here.
-      const inSettings = await openSettings(c);
-      ok('J-D settings is reachable to withdraw from', inSettings);
+      const inSettings = bLit(c) ? await openSettingsB(c) : await openSettings(c);
+      if (bLit(c)) ok('R4A J-D the page privacy-and-data of b is reachable to withdraw from', inSettings);
+      else ok('J-D settings is reachable to withdraw from', inSettings);
       if (inSettings) {
         const w = driver(c.window).byText(S.WITHDRAW);
         ok('J-D the withdraw button is present', !!w, cps(S.WITHDRAW));

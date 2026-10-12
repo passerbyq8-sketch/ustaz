@@ -1760,6 +1760,9 @@ const EZ_I18N = {
     'ez110.later': '\u0644\u0627\u062D\u0642\u064B\u0627',
     'ez110.gender.title': '\u0623\u0646\u062A \u0630\u0643\u0631 \u0623\u0645 \u0623\u0646\u062B\u0649\u061F',
     'ez110.gender.why': '\u0628\u0639\u0636 \u0627\u0644\u0623\u062D\u0643\u0627\u0645 \u0648\u0642\u0633\u0645 \u0627\u0644\u0645\u0631\u0623\u0629 \u064A\u062A\u0628\u0639\u0627\u0646 \u0627\u0644\u062C\u0646\u0633\u060C \u0641\u0627\u062E\u062A\u0631 \u0644\u062A\u0623\u062A\u064A\u0643 \u0627\u0644\u0625\u062C\u0627\u0628\u0627\u062A \u0639\u0644\u0649 \u0642\u062F\u0631\u0643.',
+    // ITEM 110 R4A (owner, item 58 rule): gender sets how Ezik addresses the reader and opens the women's section; the ruling,
+    // its evidence and its detail are the same for everyone. The old line above stays, untouched and unread.
+    'ez110.gender.why2': '\u0644\u064A\u062E\u0627\u0637\u0628\u0643 \u0639\u0632\u0643 \u0628\u0635\u064A\u063A\u0629 \u0627\u0644\u0645\u0630\u0643\u0651\u0631 \u0623\u0648 \u0627\u0644\u0645\u0624\u0646\u0651\u062B\u060C \u0648\u064A\u064F\u0641\u062A\u062D \u0628\u0647 \u0642\u0633\u0645 \u0627\u0644\u0645\u0631\u0623\u0629.',
     'ez110.women.ask': '\u0642\u0633\u0645 \u0627\u0644\u0645\u0631\u0623\u0629 \u064A\u062D\u062A\u0627\u062C \u062A\u062D\u062F\u064A\u062F \u0627\u0644\u062C\u0646\u0633',
     'ez110.women.why': '\u0647\u0630\u0627 \u0627\u0644\u0642\u0633\u0645 \u0644\u0644\u0646\u0633\u0627\u0621. \u0627\u062E\u062A\u0631 \u0644\u062A\u0643\u0645\u0644.',
     'ez110.prayer.more': '\u0627\u0644\u062A\u0630\u0643\u064A\u0631\u0627\u062A \u0648\u0636\u0628\u0637 \u0627\u0644\u0645\u0648\u0627\u0642\u064A\u062A',
@@ -3285,6 +3288,7 @@ const EZ_I18N = {
     'ez110.later': 'Later',
     'ez110.gender.title': 'Are you male or female?',
     'ez110.gender.why': 'Some rulings and the women\'s section depend on it, so your answers can fit you.',
+    'ez110.gender.why2': 'So Ezik addresses you in the masculine or the feminine, and it opens the women\'s section.',
     'ez110.women.ask': 'The women\'s section needs your gender',
     'ez110.women.why': 'This section is for women. Choose to continue.',
     'ez110.prayer.more': 'Reminders and time adjustments',
@@ -8862,7 +8866,7 @@ function useEzikVisualTheme() {
 // The owner is recognised by a code, never by an e-mail and never by a request: the device keeps
 // the code it was given, and this file keeps only its SHA-256 (EZ110_UNLOCK_SHA).
 // DESIGN-SYSTEM.md (item 110 session folder) governs every value the lit parts draw.
-const EZ110_PARTS = { safe: 'owner', b: 'owner', c: 'owner', d: 'owner', e: 'owner', fix: 'owner' };
+const EZ110_PARTS = { safe: 'public', b: 'public', c: 'owner', d: 'owner', e: 'owner', fix: 'public' };
 const EZ110_IDS = ['b', 'c', 'd', 'e'];
 const EZ110_UNLOCK_KEY = 'ezik_110_unlock_v1';
 const EZ110_IDENTITY_KEY = 'ezik_110_identity_v1';
@@ -9119,9 +9123,11 @@ function useEz110() {
 
 // ITEM 110 -- the owner's build mark: which design is lit and which build is serving it. Drawn only
 // where an identity is lit, so with the switch dark the sheet ends exactly where it did.
+// ROUND 4 (station 4): once «ب» is public the mark would show to every reader -- it is the OWNER's (and this machine's
+// local preview's), never a guest's.
 function Ez110Mark() {
   const ez = useEz110();
-  if (!ez.id) return null;
+  if (!ez.id || !(ez.owner || EZ110_OVERRIDE)) return null;
   return (
     <p className="ez110-mark" style={{ margin: '18px 4px 6px', fontSize: 12, color: 'var(--muted)', textAlign: 'center' }}>
       {ezT('ez110.mark')} <bdi>{ezT('ez110.id.' + ez.id)}</bdi> <bdi dir="ltr">{ezikAppVersion()}</bdi>
@@ -9234,7 +9240,7 @@ function Ez110GenderCard({ onPick }) {
   return (
     <section className="ez110-first" data-ez110-first="gender" aria-label={ezT('ez110.gender.title')}>
       <p className="ez110-first-title">{ezT('ez110.gender.title')}</p>
-      <p className="ez110-first-why">{ezT('ez110.gender.why')}</p>
+      <p className="ez110-first-why">{ezT('ez110.gender.why2')}</p>
       <div className="ez110-first-acts">
         <button type="button" className="ez110-first-btn" data-ez110-gender="male" onClick={() => onPick('male')}>{ezT('fix.gender.male')}</button>
         <button type="button" className="ez110-first-btn" data-ez110-gender="female" onClick={() => onPick('female')}>{ezT('fix.gender.female')}</button>
@@ -13382,6 +13388,10 @@ function ezikReadResume() {
     const v = window.sessionStorage.getItem(EZIK_RESUME_KEY);
     return (typeof v === 'string' && ezikResumeKnown(v)) ? v : '';
   } catch (e) { return ''; }
+}
+// R4A §3-2: whether this page has the tab store the resume ledger lives in (a guard's harness may not)
+function ezikResumeStorageOk() {
+  try { return typeof window !== 'undefined' && !!window.sessionStorage && typeof window.sessionStorage.getItem === 'function'; } catch (e) { return false; }
 }
 function ezikClearResume() {
   try { window.sessionStorage.removeItem(EZIK_RESUME_KEY); } catch (e) {}
@@ -18932,7 +18942,8 @@ function App() {
   // delete.html are not touched. Dark: this effect does nothing.
   useEffect(() => {
     if (!ez110FixLit()) return;
-    const st = window.history.state;
+    // R4A §3-2: a page (or a guard's harness) with no window.history is read as a first open -- no state to restore
+    const st = (typeof window !== 'undefined' && window.history) ? window.history.state : null;
     let hasProfile = false; try { hasProfile = !!localStorage.getItem('child_profile'); } catch (e) {}
     // ROUND 4 (N3): back from a policy page opened on «الخصوصية والبيانات» of «ب» -- Settings opens with that page showing
     const toPriv = hasProfile && ez110PeekPrivacyBack();
@@ -19283,6 +19294,9 @@ function App() {
       widgetChatFocusRef.current = !ez110TakeBarNav();
       return;
     }
+    // R4A §3-2: «ب»'s bar and drawer reach the menu through this door, and the door keeps its record in sessionStorage. A
+    // page that has none (a guard's harness) reads no record and would land on the chat; there the menu is opened as asked.
+    if (route === 'home' && ez110ReadIdentity() && !ezikResumeStorageOk()) { setScreen('home'); return; }
     ezikWriteResume(route);
     ezikResumeMarkEntered(ezikReadResume());
     const next = ezikResumeScreen();
@@ -25336,7 +25350,7 @@ function EzikAboutSheet({ onBack }) {
       ) : null}
       {ez.fix ? <p className="ez110-version" style={{ margin: '14px 4px 4px', fontSize: 12, color: 'var(--muted)', textAlign: 'center' }}>{ezT('fix.about.version', { v: ezikAppVersion() })}</p> : null}
       {askCode ? <Ez110UnlockField /> : null}
-      {(ez.id || ez.safe || ez.fix) ? <Ez110Diag /> : null}
+      {(ez.id || ez.safe || ez.fix) && (ez.owner || EZ110_OVERRIDE) ? <Ez110Diag /> : null}
     </EzShell>
   );
 }
