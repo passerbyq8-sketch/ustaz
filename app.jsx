@@ -1881,7 +1881,7 @@ const EZ_I18N = {
     'mem86.weak.l4': 'كثير الخطأ',
     'mem86.weak.l3': 'يخطئ أحيانًا',
     'mem86.weak.l2': 'يحتاج تلميحًا',
-    'mem86.weak.l1': 'يتحسّن',
+    'mem86.weak.l1': 'خفيف',
     'mem86.weak.clear': 'امسح سجلّ الكلمة {n}',
     'mem86.tab.plan': 'خطّتي',
     'mem86.plan.today': 'اليوم',
@@ -3407,7 +3407,7 @@ const EZ_I18N = {
     'mem86.weak.l4': 'Often wrong',
     'mem86.weak.l3': 'Sometimes wrong',
     'mem86.weak.l2': 'Needs hints',
-    'mem86.weak.l1': 'Improving',
+    'mem86.weak.l1': 'Mild',
     'mem86.weak.clear': 'Clear the record of word {n}',
     'mem86.tab.plan': 'My plan',
     'mem86.plan.today': 'Today',
@@ -12547,7 +12547,7 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
   const hijri = hijriTodayLabel();
   // A-3: the reader's own choices, read from the device the same way the wird above is. The
   // card shows back what was chosen and claims nothing else -- no time, and no next occurrence.
-  const dailyWirdLinesToday = dailyWirdLines(readDailyWird(), wt);
+  const dailyWirdLinesToday = dailyWirdLines(readDailyWird(), wt, mem86WirdToday());
   const view = {
     name: profile?.name,
     hijri: hijri,
@@ -34793,6 +34793,16 @@ const mem86PortionLabel = (por) => {
   return s1 === s2 ? SURAH_NAMES[s1] + ' ' + toArabicDigits(a1) + (a2 !== a1 ? '–' + toArabicDigits(a2) : '')
     : SURAH_NAMES[s1] + ' ' + toArabicDigits(a1) + ' – ' + SURAH_NAMES[s2] + ' ' + toArabicDigits(a2);
 };
+// decision 18: today's share of every due plan for the daily wird card; '' when none is due or the
+// mushaf text is not loaded yet (the card then keeps its surah line)
+const mem86WirdToday = () => {
+  const counts = mem86Counts();
+  if (!counts) return '';
+  const today = mem86Day();
+  return mem86PlansRead().filter((p) => mem86PlanDue(p, today))
+    .map((p) => (p.unit === 'mins' ? ezT('mem86.minN', { n: toArabicDigits(p.amt) }) : mem86PortionLabel(mem86PlanPortion(p, counts, __mem86PageOf, today))))
+    .filter(Boolean).join(' · ');
+};
 const mem86Locale = () => (EZ_LANG === 'ku' ? 'ckb' : EZ_LANG);
 const mem86DayLabel = (day, opts) => { const [y, m, d] = day.split('-').map(Number); try { return new Date(y, m - 1, d).toLocaleDateString(mem86Locale(), opts); } catch (e) { return day; } };
 
@@ -36200,7 +36210,7 @@ function writeDailyWird(next) {
 }
 // The card's lines, built from the record and the reader's OWN page target. Only what was
 // actually chosen produces a line: nothing here invents a goal the reader never set.
-function dailyWirdLines(dw, pageTarget) {
+function dailyWirdLines(dw, pageTarget, planLine) {
   const out = [];
   if (!dw) return out;
   if (dw.mushaf.mode === 'surah' && dw.mushaf.surah) {
@@ -36209,7 +36219,9 @@ function dailyWirdLines(dw, pageTarget) {
     out.push(DW_LINE_MUSHAF + ' ' + toArabicDigits(pageTarget) + ' ' + DW_PAGES_WORD);
   }
   if (dw.adhkar.cat && dw.adhkar.title) out.push(DW_LINE_ADHKAR + ' ' + dw.adhkar.title);
-  if (dw.memorize.surah) out.push(DW_LINE_MEMORIZE + ' ' + DW_SURAH_WORD + ' ' + (SURAH_NAMES[dw.memorize.surah] || ''));
+  // Item 86 (memorizer), decision 18: a due memorisation plan's share for today, read by the caller.
+  if (planLine) out.push(DW_LINE_MEMORIZE + ' ' + planLine);
+  else if (dw.memorize.surah) out.push(DW_LINE_MEMORIZE + ' ' + DW_SURAH_WORD + ' ' + (SURAH_NAMES[dw.memorize.surah] || ''));
   return out;
 }
 

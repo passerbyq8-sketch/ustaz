@@ -357,7 +357,21 @@ ok(pz.log['2026-10-10'] && pz.log['2026-10-10'][3] === 1 && pz.log['2026-10-10']
 ok(dz['2026-10-10'].o.length === 1 && dz['2026-10-10'].o[0].n === 7, '...and is kept on the day as an off-app session');
 ok(X.mem86Streak({ '2026-10-11': { m: 900, n: 0, r: 0, o: [] } }, T).cur === 0, 'minutes alone make no streak day');
 const wl2 = appSrc.slice(appSrc.indexOf('function dailyWirdLines('), appSrc.indexOf('\n}\n', appSrc.indexOf('function dailyWirdLines(')));
-ok(wl2.length > 0 && !/mem86/.test(wl2), 'the daily wird card is untouched: gate wird evaluates dailyWirdLines alone, so the plan line waits for discussion');
+ok(wl2.length > 0 && !/mem86/.test(wl2) && /^function dailyWirdLines\(dw, pageTarget, planLine\)/.test(wl2), 'decision 18: dailyWirdLines takes the plan line as a parameter and names no plan helper (gate wird lifts it alone)');
+ok((appSrc.match(/dailyWirdLines\(readDailyWird\(\), wt, mem86WirdToday\(\)\)/g) || []).length === 1, '...and the home card hands it mem86WirdToday()');
+lift(['mem86Day', 'mem86PortionLabel', 'mem86WirdToday']);
+X.DW_LINE_MEMORIZE = 'MEM'; X.DW_SURAH_WORD = 'SURAH'; X.dailyWirdLines = vm.runInContext('(' + wl2 + '\n})', X);
+X.SURAH_NAMES = new Proxy({}, { get: (t, k) => 'S' + String(k) }); X.toArabicDigits = (v) => String(v); X.ezT = (k, o) => k + (o ? ':' + o.n : '');
+reset();
+ok(X.mem86WirdToday() === '', 'decision 18: no plan, no share');
+X.mem86PlansWrite([{ ...base, created: '2020-01-01' }]);
+ok(X.mem86WirdToday() === 'S112 1\u20133', 'a due 3-ayah plan gives today\'s three ayat');
+X.mem86PlansWrite([{ ...base, created: '2020-01-01' }, { ...base, id: 'p2', unit: 'mins', amt: 15, created: '2020-01-01' }, { ...base, id: 'p3', arch: true, created: '2020-01-01' }]);
+ok(X.mem86WirdToday() === 'S112 1\u20133 \u00b7 mem86.minN:15', 'every due plan is listed, a minutes plan by its minutes, an archived plan not at all');
+const dwPick = { mushaf: { mode: '', surah: 0 }, adhkar: { cat: '', title: '' }, memorize: { surah: 2 } };
+ok(X.dailyWirdLines(dwPick, null).length === 1 && X.dailyWirdLines(dwPick, null)[0].indexOf('S2') !== -1, 'without a plan line the card keeps the chosen surah');
+ok(X.dailyWirdLines(dwPick, null, 'PLAN')[0].indexOf('PLAN') !== -1 && X.dailyWirdLines(dwPick, null, 'PLAN')[0].indexOf('S2') === -1, '...and with one, the memorisation line is the plan\'s share');
+reset();
 
 /* ------------------------------------------------------------------ phase 7 */
 section('phase 7 -- the numbers of «تقدّمي»');
