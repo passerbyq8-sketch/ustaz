@@ -77,14 +77,15 @@ function popcount(store, DATA) {
 // ---------- ghaws driver ----------
 const gsrc = load(GF), hsrc = load(HF);
 function gOpen(store, src) { const W = makeWorld(src || gsrc, (src || gsrc).DATA, GS, { reduce: true, storage: store }); return W; }
-const chips = W => W.$('cats').childNodes.filter(n => n.nodeType === 1);
+const chips = W => { const a = []; W.$('cats').querySelectorAll('[data-cat]').forEach(b => { a[+b.dataset.cat] = b; }); return a; };
+const tapCat = (W, c) => { let b = chips(W)[c]; if (b && !W.shown(b)) { W.tap(b.parentNode.parentNode.querySelector('.kzc-gh'), 'group of ' + c); b = chips(W)[c]; } return W.tap(b, 'chip ' + c); };
 const shells = W => W.doc.querySelectorAll('#shells .shell').filter(e => W.shown(e) && !e.disabled);
 const pearls = W => W.doc.querySelectorAll('#opts button.opt').filter(e => W.shown(e) && !e.disabled && e.dataset.k !== undefined);
 function toCfg(W, crew) {
   if (W.screen() !== 'home') W.tap(W.doc.querySelectorAll('[data-go="home"]').find(b => W.shown(b)), 'home');
   W.tap(W.doc.querySelector(crew ? '[data-go="cfgc"]' : '[data-go="cfg1"]'), 'mode');
 }
-function pick(W, cats) { W.tap(W.doc.querySelector('[data-q="none"]'), 'none'); cats.forEach(c => W.tap(chips(W)[c], 'chip ' + c)); }
+function pick(W, cats) { W.tap(W.doc.querySelector('[data-q="none"]'), 'none'); cats.forEach(c => tapCat(W, c)); }
 // one dive: returns number of questions shown; wrong=false answers correctly
 function dive(W, L, cats, cap, tag) {
   toCfg(W, false); pick(W, cats);
@@ -109,7 +110,7 @@ function war(W, L, cats, asks, tag) {
   if (W.screen() === 'war') { W.ctx.quitFight(); W.ctx.show('home'); }
   else if (W.screen() !== 'home') W.tap(W.doc.querySelectorAll('[data-go="home"]').find(b => W.shown(b)), 'home');
   W.tap(W.doc.querySelector('[data-go="cfg"]'), 'cfg');
-  W.tap(W.doc.querySelector('[data-q="none"]'), 'none'); cats.forEach(c => W.tap(W.$('cats').childNodes.filter(n => n.nodeType === 1)[c], 'chip'));
+  W.tap(W.doc.querySelector('[data-q="none"]'), 'none'); cats.forEach(c => tapCat(W, c));
   const G = W.ctx.G; G.fuse = 0;
   if (W.$('startWar').disabled) return -1;
   W.tap(W.$('startWar'), 'startWar');
@@ -263,11 +264,29 @@ console.log('FILES ghaws=' + ascii(path.basename(GF)) + ' harb=' + ascii(path.ba
     rows.push(name + ':before=' + before + ',left=' + leftNum + '/' + n2 + ',stampChanged=' + (W2.ctx.seenStamp() !== W.ctx.seenStamp() ? 1 : 0) + ',origBankLeftAfter=' + back);
     f.push(...worldErrors(W), ...W.fails, ...worldErrors(W2), ...W2.fails, ...worldErrors(W3), ...W3.fails);
   }
+  // append-only growth (2026-10-13): the old record's stamp is the stamp of a PREFIX of today's ids, so it is carried, bit for bit
+  {
+    const store = Store(), L = Ledger(), Dp = JSON.parse(JSON.stringify(DG)); Dp.qs = Dp.qs.slice(0, N - 700);
+    const Wp = gOpen(store, Object.assign({}, gsrc, { DATA: Dp }));
+    const shown = dive(Wp, L, [0, 1, 2], 50, 'grow');
+    const before = popcount(store, Dp), oldStamp = Wp.ctx.seenStamp();
+    const Wn = gOpen(store); toCfg(Wn, false);
+    const after = popcount(store, DG), rec = JSON.parse(store.getItem(KEY));
+    if (!(before > 0) || after !== before) f.push('grow: carried ' + after + ' of ' + before);
+    if (Wn.ctx.seenLeft(null) !== N - before) f.push('grow: left ' + Wn.ctx.seenLeft(null) + ' != ' + (N - before));
+    if (rec.s !== Wn.ctx.seenStamp() || rec.s === oldStamp) f.push('grow: record not re-stamped');
+    const store2 = Store(), Dq = JSON.parse(JSON.stringify(Dp)); Dq.qs[5][8] += '-x';
+    dive(gOpen(store2, Object.assign({}, gsrc, { DATA: Dq })), Ledger(), [0, 1, 2], 50, 'grow2');
+    const left2 = gOpen(store2).ctx.seenLeft(null);
+    if (left2 !== N) f.push('grow: a foreign prefix was kept (' + left2 + ')');
+    rows.push('grow:shown=' + shown + ',carried=' + after + '/' + before);
+    f.push(...worldErrors(Wp), ...Wp.fails, ...worldErrors(Wn), ...Wn.fails);
+  }
   // control: same bank, new page → record kept
   const store = Store(), L = Ledger(); const W = gOpen(store); const n = dive(W, L, [0, 1, 2], 50, 'ctl');
   const kept = gOpen(store).ctx.seenLeft(null);
   if (kept !== N - n) f.push('control: same bank lost record ' + kept);
-  report(6, 'bank stamp change drops the record', !f.length, rows.join(' ') + ' control:sameBankLeft=' + kept + '/' + (N - n) + ' fails=' + f.length, f);
+  report(6, 'bank stamp change drops the record, an append-only growth carries it', !f.length, rows.join(' ') + ' control:sameBankLeft=' + kept + '/' + (N - n) + ' fails=' + f.length, f);
 })();
 
 // ---- 7: owner reset ----
@@ -333,7 +352,7 @@ console.log('FILES ghaws=' + ascii(path.basename(GF)) + ' harb=' + ascii(path.ba
   if (marked !== 1 || marked2 !== 2 || hIdx === shownIdx) fm.push('not marked at display');
   report('8c', 'marked when shown, before answering (dive then war)', !fm.length, 'storedAfterDiveShow=' + marked + ' storedAfterWarShow=' + marked2 + ' sameQuestion=' + (hIdx === shownIdx ? 1 : 0) + ' fails=' + fm.length, fm);
 })();
-function pickH(H, cats) { H.tap(H.doc.querySelector('[data-q="none"]'), 'none'); cats.forEach(c => H.tap(H.$('cats').childNodes.filter(n => n.nodeType === 1)[c], 'chip')); }
+function pickH(H, cats) { H.tap(H.doc.querySelector('[data-q="none"]'), 'none'); cats.forEach(c => tapCat(H, c)); }
 
 // =====================================================================
 // SILENT ORDER (2026-09-17): a real war played turn by turn, dormant islands, literal exhaustion, number-leak scan

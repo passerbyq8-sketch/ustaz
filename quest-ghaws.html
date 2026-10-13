@@ -220,6 +220,40 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 .seenfoot button{background:none;border:0;color:var(--muted);font:inherit;font-size:.82rem;cursor:pointer;text-decoration:underline;padding:6px}
 .seenfoot button:disabled{opacity:.45;cursor:default;text-decoration:none}
 .seenfoot p{color:var(--muted);font-size:.8rem;margin:4px 0 0}
+/* اختيار الفئات: المجموعات الثماني (الكتلة نفسها في الغوص والحرب) */
+:root{--kzc-mut:#46687C}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px}
+.quick button{min-height:44px;padding:6px 4px;font-size:.88rem;border-radius:10px}
+.kzc-sel{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.kzc-sh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:.95rem;color:var(--ink)}
+.kzc-sh b{color:var(--ghawr)}
+.kzc-st{font-size:.82rem;color:var(--azraq);font-weight:600}
+.kzc-st.ok{color:#0B6B65}
+.kzc-pills,.kzc-gb{display:flex;flex-wrap:wrap;gap:7px}
+.kzc-empty{margin:0;color:var(--kzc-mut);font-size:.88rem}
+.kzc-pill,.kzc-c{min-height:44px;border-radius:999px;font:inherit;font-size:.88rem;padding:6px 14px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px}
+.kzc-pill{background:var(--azraq);border:1px solid var(--azraq);color:#fff}
+.kzc-pill i{font-style:normal;font-size:1.1rem;line-height:1}
+.kzc-g{border:1px solid var(--line);border-radius:14px;margin-bottom:8px;background:var(--white);overflow:hidden}
+.kzc-gh{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;padding:8px 12px;background:none;border:0;
+  font:inherit;color:var(--ink);cursor:pointer;text-align:right}
+.kzc-bar{width:5px;height:30px;border-radius:3px;flex:none}
+.kzc-bar.rel{background:var(--ghawr)}
+.kzc-bar.sec{background:var(--sea3)}
+.kzc-gn{flex:1;display:flex;flex-direction:column;line-height:1.35}
+.kzc-gn b{color:var(--ghawr);font-size:1rem}
+.kzc-gn small{color:var(--kzc-mut);font-size:.78rem}
+.kzc-badge{background:var(--sea1);color:var(--ghawr);border-radius:999px;padding:2px 10px;font-size:.78rem;font-weight:600}
+.kzc-ar{color:var(--azraq);transition:transform .2s}
+.kzc-gh[aria-expanded="true"] .kzc-ar{transform:rotate(180deg)}
+.kzc-gb{padding:4px 12px 14px}
+.kzc-gb[hidden]{display:none}
+.kzc-c{background:var(--sea0);border:1px solid var(--sea2);color:var(--ink)}
+.kzc-c[aria-pressed="true"]{background:var(--azraq);border-color:var(--azraq);color:#fff}
+.kzc-c:disabled{background:var(--white);border:1px dashed var(--sea3);color:var(--kzc-mut);cursor:default;opacity:.8}
+#cfg .chip{min-height:44px}
+.kzc-gh:focus-visible,.kzc-c:focus-visible,.kzc-pill:focus-visible{outline:2px solid var(--ghawr);outline-offset:2px}
 </style>
 <style>
 /* item 10: the way out. Links, not script -- the browser's own navigation, so the phone's back works. */
@@ -290,12 +324,16 @@ textarea:focus{outline:none;border-color:var(--azraq)}
   </div>
 
   <div class="card">
-    <p class="lbl">الفئات</p><p class="sub">سبع وعشرون فئة من بنك عزك — اختر ما تحبّ</p>
+    <p class="lbl">الفئات</p><p class="sub">اختر من ثلاث فئات إلى ستّ</p>
     <div class="quick">
       <button data-q="rnd">عشوائي</button><button data-q="rel">الدينيّة</button>
-      <button data-q="sec">الدنيويّة</button><button data-q="inv">عكس</button><button data-q="none">مسح</button>
+      <button data-q="sec">الدنيويّة</button><button data-q="none">مسح</button>
     </div>
-    <div class="chips" id="cats"></div>
+    <div class="kzc-sel" aria-live="polite">
+      <div class="kzc-sh"><b id="catSelN"></b><span id="catSelSt" class="kzc-st"></span></div>
+      <div class="kzc-pills" id="catPills"></div>
+    </div>
+    <div id="cats"></div>
     <p class="tally" id="catTally"></p>
   </div>
 
@@ -489,8 +527,8 @@ $("toVerdict2").onclick=function(){show("verdict")};
 var SEEN_KEY="kunuz_seen_v1";
 var SEEN={stamp:"",bits:[],mem:false};
 var B64="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-function seenStamp(){
-  var h=2166136261,n=DATA.qs.length;
+function seenStamp(n){
+  var h=2166136261;n=n||DATA.qs.length;
   for(var i=0;i<n;i++){var q=DATA.qs[i],s=String(q.length>8?q[8]:q[3])+"\n";
     for(var j=0;j<s.length;j++)h=Math.imul(h^s.charCodeAt(j),16777619)>>>0}
   return n+"-"+("0000000"+h.toString(16)).slice(-8);
@@ -511,10 +549,17 @@ function seenRead(){
   if(SEEN.mem)return;
   var raw=null,bits=null;
   try{raw=window.localStorage.getItem(SEEN_KEY)}catch(e){SEEN.mem=true;return}
-  try{var o=JSON.parse(raw);if(o&&o.v===1&&o.s===SEEN.stamp)bits=b64d(o.b)}catch(e){}
-  if(bits&&bits.length===SEEN.bits.length)SEEN.bits=bits;
+  var carried=false;
+  try{var o=JSON.parse(raw);if(o&&o.v===1){if(o.s===SEEN.stamp)bits=b64d(o.b);else{bits=seenCarry(o);carried=!!bits}}}catch(e){}
+  if(bits&&bits.length===SEEN.bits.length){SEEN.bits=bits;if(carried)seenWrite()}
   else{SEEN.bits=seenEmpty();if(raw!==null&&raw!==undefined)seenWrite()}
 }
+/* الإضافة في آخر القائمة لا تحرّك فهرس سؤال قديم: سجلّ ختمه ختم بادئةٍ من معرّفات اليوم يُرحَّل بدل أن يُطرح */
+function seenCarry(o){
+  var m=/^(\d+)-[0-9a-f]{8}$/.exec(o&&o.s);if(!m)return null;
+  var n=+m[1];if(n<1||n>=DATA.qs.length||seenStamp(n)!==o.s)return null;
+  var b=b64d(o.b);if(!b||b.length!==Math.ceil(n/8))return null;
+  while(b.length<SEEN.bits.length)b.push(0);return b}
 function seenHas(i){return (SEEN.bits[i>>3]>>(i&7)&1)===1}
 function seenMark(i){seenRead();SEEN.bits[i>>3]|=1<<(i&7);seenWrite()}
 function seenByCat(){seenRead();var a=DATA.cats.map(function(){return 0});
@@ -546,13 +591,73 @@ function openCfg(){
   freeRow("breathsFree","أو اكتب الثواني:","ثانية",3,600,function(v){S.breath=v*1000;drawBreaths()});
   show("cfg");
 }
-function pickRnd(a,n){var b=a.slice().sort(function(){return Math.random()-.5});return b.slice(0,n)} function idxK(r){var L=seenByCat();return DATA.cats.map(function(c,i){return ((c[2]==="religious")===r&&L[i]>0)?i:-1}).filter(function(i){return i>-1})} function defCats(){return pickRnd(idxK(true),3).concat(pickRnd(idxK(false),3))} function drawCats(){
+/* ───── اختيار الفئات: المجموعات الثماني (الكتلة نفسها في الغوص والحرب) ───── */
+var KZC_GROUPS=[
+ ["القرآن وعلومه",1,["quran","juz-amma","juz-tabarak","tajweed"]],
+ ["العقيدة والعبادة",1,["deen","asmaa-husna","prayer","easy-fiqh","adhkar","manners"]],
+ ["السنّة والسيرة",1,["hadith","seerah","ghazawat","sahaba","mothers-ahlulbayt","prophets"]],
+ ["التاريخ الإسلامي",1,["islamic-history","rashidun","umayyad","abbasid","ayyubid","mamluk","ottoman","muslim-scientists","islamic-architecture"]],
+ ["الكويت والخليج",0,["kuwait-history","kuwait-sea-heritage","kuwait-old-life","horses-camels-falcons","palm-plants"]],
+ ["اللغة والأدب",0,["arabic-language","poetry-fusha","poetry-nabati","proverbs","riddles-logic"]],
+ ["العلوم",0,["physics","chemistry","biology","math","human-body","astronomy","earth-weather","inventions","tech-computing"]],
+ ["العالم والحياة",0,["geography","world-history","arab-world","animals","marine-life","fitness-health","first-aid","money-economy","cuisine"]]
+];
+var KZC={open:-1,g:null};
+function kzcGroups(){
+  if(KZC.g)return KZC.g;
+  var at={},g=KZC_GROUPS.map(function(x){return {n:x[0],r:x[1]===1,c:[]}});
+  DATA.cats.forEach(function(c,i){at[c[0]]=i});
+  KZC_GROUPS.forEach(function(x,k){x[2].forEach(function(s){if(s in at){g[k].c.push(at[s]);at[s]=-1}})});
+  DATA.cats.forEach(function(c,i){if(at[c[0]]!==-1)g[c[2]==="religious"?3:7].c.push(i)});
+  return (KZC.g=g);
+}
+function kzcNom(n){return n===1?"فئة واحدة":n===2?"فئتان":n>=3&&n<=10?ar(n)+" فئات":ar(n)+" فئة"}
+function kzcAcc(n){return n===1?"فئة واحدة":n===2?"فئتين":n>=3&&n<=10?ar(n)+" فئات":ar(n)+" فئة"}
+function kzcDraw(sel,min,max,toggle){
+  var ae=document.activeElement,fd=ae&&ae.dataset?ae.dataset:{},fc=fd.cat!==undefined?"c"+fd.cat:(fd.g!==undefined?"g"+fd.g:(fd.p!==undefined?"p"+fd.p:null));
+  var G=kzcGroups(),n=sel.length,full=n>=max;
+  var pw=$("catPills");pw.innerHTML="";
+  if(!n){var e=document.createElement("p");e.className="kzc-empty";e.textContent="افتح مجموعة واختر منها، أو استعمل الاختيار السريع";pw.appendChild(e)}
+  sel.forEach(function(i){
+    var p=document.createElement("button");p.type="button";p.className="kzc-pill";p.dataset.p=i;
+    p.setAttribute("aria-label","إزالة "+DATA.cats[i][1]);
+    var t=document.createElement("span");t.textContent=DATA.cats[i][1];p.appendChild(t);
+    var x=document.createElement("i");x.textContent="×";x.setAttribute("aria-hidden","true");p.appendChild(x);
+    p.onclick=function(){toggle(i)};pw.appendChild(p)});
+  $("catSelN").textContent=n?"اخترتَ "+kzcAcc(n):"ما اخترته";
+  var st=$("catSelSt");
+  st.textContent=n<min?"بقي "+kzcNom(min-n)+" على الأقل":full?"بلغتَ الحدّ":"جاهز";
+  st.className="kzc-st"+(n>=min?" ok":"");
   var w=$("cats");w.innerHTML="";
-  DATA.cats.forEach(function(c,i){
-    var b=document.createElement("button");
-    var on=S.cats.indexOf(i)>-1;b.className="chip sm"+(on?" on":"");b.textContent=c[1];if(!on&&S.cats.length>=6)b.disabled=true;
-    b.onclick=function(){var k=S.cats.indexOf(i);if(k>-1)S.cats.splice(k,1);else if(S.cats.length<6)S.cats.push(i);
-      drawCats();tally()};w.appendChild(b)});
+  G.forEach(function(g,k){
+    var open=KZC.open===k,cnt=g.c.filter(function(i){return sel.indexOf(i)>-1}).length;
+    var box=document.createElement("div");box.className="kzc-g";
+    var h=document.createElement("button");h.type="button";h.className="kzc-gh";h.dataset.g=k;
+    h.setAttribute("aria-expanded",open?"true":"false");h.setAttribute("aria-controls","kzcG"+k);
+    var bar=document.createElement("span");bar.className="kzc-bar "+(g.r?"rel":"sec");h.appendChild(bar);
+    var nm=document.createElement("span");nm.className="kzc-gn";
+    var b=document.createElement("b");b.textContent=g.n;nm.appendChild(b);
+    var sm=document.createElement("small");sm.textContent=g.r?"دينيّة":"دنيويّة";nm.appendChild(sm);h.appendChild(nm);
+    if(cnt){var bd=document.createElement("span");bd.className="kzc-badge";bd.textContent="اخترتَ "+ar(cnt);h.appendChild(bd)}
+    var ar2=document.createElement("span");ar2.className="kzc-ar";ar2.setAttribute("aria-hidden","true");ar2.textContent="▾";h.appendChild(ar2);
+    h.onclick=function(){KZC.open=(KZC.open===k?-1:k);kzcDraw(sel,min,max,toggle)};
+    box.appendChild(h);
+    var body=document.createElement("div");body.className="kzc-gb";body.id="kzcG"+k;body.setAttribute("role","group");
+    body.setAttribute("aria-label",g.n);if(!open)body.hidden=true;
+    g.c.forEach(function(i){
+      var on=sel.indexOf(i)>-1,c=document.createElement("button");c.type="button";c.className="kzc-c";c.dataset.cat=i;
+      c.textContent=DATA.cats[i][1];c.setAttribute("aria-pressed",on?"true":"false");
+      if(!on&&full)c.disabled=true;
+      c.onclick=function(){toggle(i)};body.appendChild(c)});
+    box.appendChild(body);w.appendChild(box)});
+  if(fc){var K=fc.charAt(0),q="["+(K==="c"?"data-cat":K==="g"?"data-g":"data-p")+"=\""+fc.slice(1)+"\"]";
+    var el=(K==="p"?pw:w).querySelector(q);if(el&&!el.disabled&&el.focus){try{el.focus()}catch(x){}}}
+}
+function pickRnd(a,n){var b=a.slice().sort(function(){return Math.random()-.5});return b.slice(0,n)}
+function idxK(r){var L=seenByCat();return DATA.cats.map(function(c,i){return ((c[2]==="religious")===r&&L[i]>0)?i:-1}).filter(function(i){return i>-1})}
+function defCats(){return pickRnd(idxK(true),3).concat(pickRnd(idxK(false),3))}
+function drawCats(){
+  kzcDraw(S.cats,3,6,function(i){var k=S.cats.indexOf(i);if(k>-1)S.cats.splice(k,1);else if(S.cats.length<6)S.cats.push(i);drawCats()});
   tally();
 }
 document.querySelectorAll("[data-q]").forEach(function(b){
@@ -563,14 +668,13 @@ document.querySelectorAll("[data-q]").forEach(function(b){
     if(q==="none")S.cats=[];
     if(q==="rel")S.cats=pickRnd(idxK(true),6);
     if(q==="sec")S.cats=pickRnd(idxK(false),6);
-    if(q==="inv")S.cats=pickRnd(DATA.cats.map(function(c,i){return (S.cats.indexOf(i)>-1||!L[i])?-1:i}).filter(function(i){return i>-1}),6);
     drawCats()};
 });
 function avail(cats){
   var n=0;for(var i=0;i<DATA.qs.length;i++){if(cats.indexOf(DATA.qs[i][0])>-1)n++}return n}
 function tally(){
   var left=seenLeft(S.cats),ok=(S.cats.length>=3&&S.cats.length<=6);
-  $("catTally").innerHTML="اخترتَ <b>"+ar(S.cats.length)+"</b> فئات"+(ok&&left<1?" — انتهت أسئلتها، فاختر غيرها أو صفّر السجلّ.":".");
+  $("catTally").textContent=(ok&&left<1?"انتهت أسئلة فئاتك — اختر غيرها أو صفّر السجلّ.":"");
   $("goDive").disabled=(left<1||!ok);
 }
 function cntQ(n){
