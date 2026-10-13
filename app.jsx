@@ -4316,11 +4316,15 @@ const mem86EarShown = (sn, a, upto) => {
   for (let k = 0; k < n; k++) out[k] = k < upto ? 'matched' : 'pending';
   return out;
 };
-// an ayah the engine completed: every word heard, the words its judge flagged 'wrong' while the red switch is on, and an
-// ayah it saw passed over left quiet
+// An ayah the engine completed: the words it heard printed, the ones its judge flagged marked 'wrong' while the red
+// switch is on. A word it did NOT hear -- after the last word it heard ('heard', engine p2.3), or of an ayah it saw
+// passed over -- was not said, so it is never printed: the owner, 13 October, «لما طوفت اياه متعمد راح طبعها لي ...
+// المفروض انه يعطيني تنبيه لون احمر او اي شي يدل على اني أخطأت عشان ارجع استذكر». It is marked: red with the switch
+// on, a blank with it off. An engine before p2.3 sends no 'heard': every word of a completed ayah counts as heard.
 const mem86EarLeft = (sn, d, redOn) => {
   const n = mem86EarWords(sn, d.ayah), out = new Array(n), flag = Array.isArray(d.flag) ? d.flag : [];
-  for (let k = 0; k < n; k++) out[k] = d.skipped ? 'pending' : (redOn && flag.indexOf(k + 1) !== -1) ? 'wrong' : 'matched';
+  const heard = d.skipped ? 0 : Number.isInteger(d.heard) ? Math.max(0, Math.min(n, d.heard)) : n;
+  for (let k = 0; k < n; k++) out[k] = k >= heard ? (redOn ? 'wrong' : 'blank') : (redOn && flag.indexOf(k + 1) !== -1) ? 'wrong' : 'matched';
   return out;
 };
 
@@ -34699,6 +34703,7 @@ const Mem86PageRow = React.memo(({ sn, a, mode, states, hints, left, dim, hideNu
       const st = left ? left[idx] : 'matched';
       if (st === 'matched') return <span key={i} style={{ ...s.memWord, ...mem86WeakStyle(weak, ref) }}>{w}</span>;
       if (st === 'wrong') return <span key={i} style={{ ...s.memPlaceholder, ...s.mem86WrongMark }}>—</span>;
+      if (st === 'blank') return <span key={i} style={s.memPlaceholder}>—</span>;   // the owner's engine did not hear it: never printed
       return <span key={i} style={s.mem86WordHint}>{w}</span>;
     }
     if (isCur) {

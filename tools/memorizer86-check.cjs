@@ -823,8 +823,26 @@ lift(['mem86EarWords', 'mem86EarShown', 'mem86EarLeft']);
   const m = lf({ ayah: 2, flag: [3] }, true);
   ok(m.length === n22 && m[2] === 'wrong' && m.filter((x) => x === 'wrong').length === 1 && m.filter((x) => x === 'matched').length === n22 - 1, 'an ayah the engine completed is printed whole, the word its judge flagged marked in place while the red switch is on');
   ok(lf({ ayah: 2, flag: [3] }, false).every((x) => x === 'matched'), '...and printed whole with no mark while the switch is off');
-  ok(lf({ ayah: 2, flag: [3], skipped: true }, true).every((x) => x === 'pending') && lf({ ayah: 2, flag: [99, 0, 'x'] }, true).every((x) => x === 'matched') && lf({ ayah: 2 }, true).every((x) => x === 'matched'),
-    'an ayah it saw passed over is printed quiet and never marked; a flag outside the ayah marks nothing');
+  ok(lf({ ayah: 2, flag: [99, 0, 'x'] }, true).every((x) => x === 'matched') && lf({ ayah: 2 }, true).every((x) => x === 'matched'),
+    'a flag outside the ayah marks nothing, and an engine before p2.3 (no \'heard\') has every word of a completed ayah heard');
+  // 13 October: «لما طوفت اياه متعمد راح طبعها لي» -- an ayah passed over, or the words after the last one heard, were not
+  // said: never printed (never 'matched', never the quiet 'pending' that shows the word), marked red with the switch on,
+  // a blank with it off
+  const eqA = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const rep = (n, v) => Array(n).fill(v);
+  ok(eqA(lf({ ayah: 2, flag: [], skipped: true, heard: 0 }, true), rep(n22, 'wrong')) && eqA(lf({ ayah: 2, flag: [3], skipped: true }, false), rep(n22, 'blank'))
+    && eqA(lf({ ayah: 2, skipped: true, heard: 4 }, true), rep(n22, 'wrong')),
+    'an ayah the engine saw passed over is never printed: every word red with the switch on, a blank with it off (whatever else it says)');
+  ok(eqA(lf({ ayah: 2, flag: [3], heard: 2 }, true), ['matched', 'matched'].concat(rep(n22 - 2, 'wrong')))
+    && eqA(lf({ ayah: 2, flag: [3], heard: 2 }, false), ['matched', 'matched'].concat(rep(n22 - 2, 'blank')))
+    && eqA(lf({ ayah: 2, flag: [], heard: 0 }, true), rep(n22, 'wrong')) && eqA(lf({ ayah: 2, flag: [], heard: 99 }, false), rep(n22, 'matched')),
+    'the words after the last one the engine heard (he left the ayah early) are never printed: red with the switch on, blanks with it off');
+  ok(![true, false].some((red) => [{ ayah: 2, skipped: true }, { ayah: 2, heard: 1 }, { ayah: 2, heard: 0, flag: [2] }].some((d) => lf(d, red).indexOf('pending') !== -1)),
+    '...and never the quiet word: a word the engine did not hear is not shown on the page at all');
+  const page5 = src4.slice(src4.indexOf('const Mem86PageRow = '), src4.indexOf('const Mem86RecitePage = '));
+  const blankAt = page5.indexOf("if (st === 'blank') return <span key={i} style={s.memPlaceholder}>—</span>;");
+  ok(blankAt > 0 && blankAt < page5.indexOf('return <span key={i} style={s.mem86WordHint}>{w}</span>;') && blankAt < page5.indexOf('if (isCur) {'),
+    'the page draws a blank for it on an ayah already left, before the quiet word could be drawn');
   // the wiring
   const at = (t) => scr4.indexOf(t);
   const branch = "if (ear) { const myRun = ++reciteRunIdRef.current; setReciteListening(true); setReciteEar('wait'); reciteEarGo(from, myRun); return; }";
