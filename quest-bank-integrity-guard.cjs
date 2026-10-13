@@ -1977,7 +1977,7 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3455524. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
   //   2026-10-13 -- Merge of origin/main 8d8579b6 (item 86 phase 2 engine p2.5, cache ezik-v103; Hanna Laha picker) into item 89 (arbaeen): app.js rebuilt from the merged source, 2272480 bytes, sha256 f44e11fc..d6c0; index.html 155556. CACHE ezik-v104.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3458496. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
-  'sw.js': '3a47eaad5594e28b3bdbdcd2b477e0e7896eac78c6bdca4785221b871ff8ae84',
+  'sw.js': '0b09ea8db665ce01bb695257d3f766cfd920153499fcd0ca0a182ec2ded4d9f1',
 };
 
 // ---------------------------------------------------------------------------
