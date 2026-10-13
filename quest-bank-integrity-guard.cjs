@@ -1981,7 +1981,7 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3458496. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
   //   2026-10-13 -- Merge of origin/main d62e9e6c (item 89 arbaeen sharh, which took ezik-v104 too) into item 86 (memorizer opened to everyone): app.js rebuilt from the merged source, 2272785 bytes, sha256 efaf8d44..1760; index.html 155556. CACHE ezik-v105.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3458801. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
-  'sw.js': 'd7867acd50ac22bb05f1707a83020c9cef0e96591525af88f54578423ffc3493',
+  'sw.js': '3e1eddeb5354465c0aabf8bad93961d4f5ca5cdb59b7ee7baa59d23e69209b80',
 };
 
 // ---------------------------------------------------------------------------
@@ -3130,7 +3130,7 @@ async function compare(bankPath) {
       // ITEM 89 (2026-10-13). The forty-two's explanation, warmed last in IDLE and out of CORE; its
       // size is stated in the IDLE note and re-derived here from the file it names. (Item 4's
       // footnotes left CORE with the fifty they belonged to.)
-      { n: 270704, of: 'arbaeen-sharh.json' },
+      { n: 272517, of: 'arbaeen-sharh.json' },
       // ITEM 87. The day from waking to sleeping, the sixth corpus in CORE, stated in the
       // worker's byte table and re-derived here from the file it names.
       { n: 84759, of: 'sunan-day.json' },
