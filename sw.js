@@ -79,22 +79,18 @@ const CORE = [
   // reader who has visited once must find them offline rather than falling back to the single
   // undivided group. It is 7182 bytes -- the smallest entry in CORE after manifest.json.
   '/adhkar-split-27.json',
-  // ITEM 2. The forty of an-Nawawi with Ibn Rajab's additions, the whole corpus the arbaeen
-  // screen draws. It is here for the reason adhkar.json is: the screen has no second supply --
-  // no service, no model call, no retrieval -- so a reader who has visited once and opens it
-  // with no network met an EMPTY section rather than the book. It is 67360 bytes.
+  // ITEM 2. The forty of an-Nawawi, the whole list the arbaeen screen draws -- since item 89 the
+  // forty-two of alnawawiforty.com, which replaced the fifty with Ibn Rajab's additions. It is
+  // here for the reason adhkar.json is: the screen has no second supply -- no service, no model
+  // call, no retrieval -- so a reader who has visited once and opens it with no network met an
+  // EMPTY section rather than the book. It is 47290 bytes. The explanation
+  // that goes under each hadith is a second file, and it is NOT here: see the end of IDLE.
   '/arbaeen.json',
   // The tafsir of the daily verse, one record per reference the verse card can land on. It is
   // here for a sharper form of the same reason: that card is on the FIRST screen the app opens,
   // so the offline gap was not one section a reader chose to visit but the tafsir door on the
   // home screen resolving to nothing. It is 23984 bytes.
   '/daily-tafsir.json',
-  // ITEM 4. The print edition's footnotes, joined to the marks the forty carries inside its own
-  // text. It is here because arbaeen.json is: the reader draws the mark only when this file
-  // answers it, so a corpus that is precached while its notes are not would give an offline
-  // reader the same hadith with every mark stripped out of it. The two travel together or the
-  // page differs by network state. It is 9322 bytes.
-  '/arbaeen-footnotes.json',
   // ITEM 87. The day from waking to sleeping -- 138 rows in eight phases, the whole corpus
   // that section draws. It is here for the reason arbaeen.json is: the section has no second
   // supply -- no service, no model call, no retrieval -- so a reader who has visited once and
@@ -146,11 +142,11 @@ const CORE = [
 // ---------------------------------------------------------------------------
 
 // The measured cost of CORE, byte for byte, at the commit that cut this constant:
-//   /  (index.html) 155556 + app.js 2264726 + icon-watermark.png 368386
+//   /  (index.html) 155556 + app.js 2264110 + icon-watermark.png 368386
 //   + adhkar.json 177392 + vendor/react-dom.umd.js 131835 + sunan-day.json 84759
-//   + arbaeen.json 67360 + daily-tafsir.json 23984 + icon-512.png 12893
-//   + vendor/react.umd.js 10751 + arbaeen-footnotes.json 9322 + adhkar-split-27.json 7182
-//   + icon-maskable-512.png 5938 + icon-192.png 5053 + manifest.json 533
+//   + arbaeen.json 47290 + daily-tafsir.json 23984 + icon-512.png 12893
+//   + vendor/react.umd.js 10751 + adhkar-split-27.json 7182 + icon-maskable-512.png 5938
+//   + icon-192.png 5053 + manifest.json 533
 //   + fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2 94032   (Noto Naskh Arabic, arabic)
 //   + fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2 19696      (Noto Naskh Arabic, latin)
 //   + fonts/Iura6YBj_oCad4k1nzGBCw.woff2 10256 + fonts/Iurf6YBj_oCad4k1l8KiHrFpiQ.woff2 9900
@@ -171,7 +167,7 @@ const CORE = [
 // constant, that table, and the sw.js digest in quest-bank-integrity-guard.cjs in the SAME
 // commit -- item 89-b is the worked example. CACHE is untouched by all of it: the store name is
 // a ship decision and the merge round owns the bump.
-const CORE_BYTES = 3480134;
+const CORE_BYTES = 3450126;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
 // re-cut by hand always trails the files it describes by some amount.
@@ -331,6 +327,13 @@ const IDLE = [
   // The size table the downloads sheet reads. Small, and warmed so the sheet can still say what
   // is downloaded and how large each group is when the reader opens it with no network.
   '/mushaf-lab/data/offline-sizes.json',
+  // ITEM 89. The explanation, the narrator and the audio address of each of the
+  // forty-two, which the arbaeen reader draws under the hadith. It is NOT in CORE: the boot and
+  // the list never need it, and the app asks for it only the first time a reader opens a hadith.
+  // It is warmed here, after the boot goes idle, so a reader who has visited once can read the
+  // explanation with no network. Under the 2.5 MB line this list keeps for a file of this kind:
+  // 270547 bytes. The audio itself is never stored by this worker.
+  '/arbaeen-sharh.json',
 ];
 const IDLE_BACKSTOP_MS = 1500;
 

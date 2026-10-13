@@ -222,7 +222,7 @@ function boot(opts) {
   window.postMessage = () => {};
   const posts = [];
   if (opts.shell) window.ReactNativeWebView = { postMessage: (wire) => posts.push(String(wire)) };
-  const FIX = new Set(['/places.json', '/adhkar.json', '/adhkar-split-27.json', '/arbaeen.json', '/arbaeen-footnotes.json']);
+  const FIX = new Set(['/places.json', '/adhkar.json', '/adhkar-split-27.json', '/arbaeen.json']);
   window.fetch = (url) => {
     const key = String(url); requests.push(key);
     if (!FIX.has(key) || (key === '/places.json' && opts.placesOffline)) return Promise.reject(new TypeError('offline fixture boundary'));

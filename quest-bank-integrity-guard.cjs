@@ -1960,7 +1960,9 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3465020. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
   //   2026-10-13 -- Item 86 (memorizer, phase 2: the owner's «سمِّعني» heard by his own engine on his own computer, the browser's when it does not answer; owner-only, cache ezik-v99): app.js 2249612 -> 2264726 bytes, sha256 c82b7610..3b2a; index.html 155556.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3480134. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
-  'sw.js': 'e583c127d2631bb7467c776f37078dbc09afae2184b6d98d0db6dd7d86554ec5',
+  //   2026-10-13 -- Item 89 (arbaeen: the forty-two of alnawawiforty.com with their explanation and audio, replacing the fifty -- preview only): app.js 2264726 -> 2264110 bytes, sha256 c27ef11c..4d76; index.html 155556.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3450126. arbaeen-footnotes.json LEFT CORE; arbaeen.json moved 67360 -> 47290; arbaeen-sharh.json (270547) joined IDLE last. CACHE untouched. THIS digest is re-cut LAST, at CR = 0 (sw.js 57327 bytes).
+  'sw.js': '4c122a02ddc9c9492756e022fad27bb3660f157ff948c8924873aa144cac3076',
 };
 
 // ---------------------------------------------------------------------------
@@ -2022,7 +2024,7 @@ const SW_REVALIDATED = ['/adhkar.json', '/worship-display.json', '/manifest.json
 const SW_CORE = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png',
   '/icon-maskable-512.png', '/icon-watermark.png', '/adhkar.json',
   '/adhkar-split-27.json', '/arbaeen.json', '/daily-tafsir.json',
-  '/arbaeen-footnotes.json', '/sunan-day.json',
+  '/sunan-day.json',
   '/app.js', '/vendor/react.umd.js', '/vendor/react-dom.umd.js',
   '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2',
   '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2',
@@ -2032,7 +2034,7 @@ const SW_CORE = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png',
 // CORE_BYTES constant that has fallen below it.
 const SW_CORE_FILES = ['index.html', 'manifest.json', 'icon-192.png', 'icon-512.png',
   'icon-maskable-512.png', 'icon-watermark.png', 'adhkar.json', 'adhkar-split-27.json',
-  'arbaeen.json', 'daily-tafsir.json', 'arbaeen-footnotes.json', 'sunan-day.json',
+  'arbaeen.json', 'daily-tafsir.json', 'sunan-day.json',
   'app.js', 'vendor/react.umd.js', 'vendor/react-dom.umd.js',
   'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2',
   'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2',
@@ -3066,7 +3068,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2264726, of: 'app.js' },
+      { n: 2264110, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
@@ -3075,11 +3077,12 @@ async function compare(bankPath) {
       { n: 7182, of: 'adhkar-split-27.json' },
       // ITEM 2. The two corpora that joined CORE on 2026-09-13 -- the forty and the daily verse's
       // tafsir -- each stated in the worker's byte table and re-derived here from the file it names.
-      { n: 67360, of: 'arbaeen.json' },
+      { n: 47290, of: 'arbaeen.json' },
       { n: 23984, of: 'daily-tafsir.json' },
-      // ITEM 4. The forty's footnotes, precached beside the corpus they answer, stated in the
-      // worker's byte table and re-derived here from the file it names.
-      { n: 9322, of: 'arbaeen-footnotes.json' },
+      // ITEM 89 (2026-10-13). The forty-two's explanation, warmed last in IDLE and out of CORE; its
+      // size is stated in the IDLE note and re-derived here from the file it names. (Item 4's
+      // footnotes left CORE with the fifty they belonged to.)
+      { n: 270547, of: 'arbaeen-sharh.json' },
       // ITEM 87. The day from waking to sleeping, the sixth corpus in CORE, stated in the
       // worker's byte table and re-derived here from the file it names.
       { n: 84759, of: 'sunan-day.json' },
