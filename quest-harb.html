@@ -537,6 +537,225 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 
 <script src="/quest-data/kunuz-bank-3147.js"></script>
 <script>
+/*WAR-ENGINE:BEGIN*/
+/* The rules of the island war, with no DOM, no clock and no randomness of its own.
+   ONE copy of this block is the rule book of both ways to play: the one-device page runs it in the browser,
+   the room server runs the same text (a generated copy; a gate fails when the two differ by one byte).
+   The state S is the page's G (players, own, ban, turn, phase, pool, base, tgt, ...). Every function that changes
+   the war returns a plain event; words and animations belong to whoever draws it. ASCII only. */
+var WarEngine=(function(){
+var LINKS=[[0,1],[1,2],[2,0],[3,4],[4,5],[5,3],[6,7],[7,8],[8,6],[9,10],[10,11],[11,9],[2,5],[2,6],[5,9],[7,10]];
+var SEA=[0,0,0,1,1,1,2,2,2,3,3,3];
+var HOLD={answer:2300,result:1700,skip:1400,short:1100};
+var BURN_FIRST=0.33,BURN_SECOND=0.66;
+var LIMIT={playersMin:2,playersMax:4,catsMin:3,catsMax:6,shotsMax:10,fuseMinSec:3,fuseMaxSec:600,deployMin:2,deployMax:60};
+function adj(a,b){for(var i=0;i<LINKS.length;i++){var l=LINKS[i];
+  if((l[0]===a&&l[1]===b)||(l[1]===a&&l[0]===b))return true}return false}
+function np(S){return S.players.length}
+function isDead(S,k){return !!S.left&&!(S.left[S.slotCat[k]]>0)}
+function liveIsles(S){var a=[];for(var k=0;k<12;k++)if(!isDead(S,k))a.push(k);return a}
+function count(S,pi){var c=0;for(var k=0;k<12;k++)if(S.own[k]===pi)c++;return c}
+function banners(S,pi){var c=0;for(var k=0;k<12;k++)if(S.own[k]===pi)c+=S.ban[k];return c}
+function seaOwner(S,s){var lv=[];for(var k=0;k<12;k++)if(SEA[k]===s&&!isDead(S,k))lv.push(k);
+  if(!lv.length)return null;var o=S.own[lv[0]];
+  for(var i=1;i<lv.length;i++)if(S.own[lv[i]]!==o)return null;return o}
+function seas(S,pi){var n=0;for(var s=0;s<4;s++)if(seaOwner(S,s)===pi)n++;return n}
+function canAttack(S,pi){for(var k=0;k<12;k++){if(S.own[k]!==pi||S.ban[k]<2||isDead(S,k))continue;
+  for(var j=0;j<12;j++)if(S.own[j]!==pi&&adj(k,j)&&!isDead(S,j))return true}return false}
+function anyCanAttack(S){for(var i=0;i<np(S);i++)if(canAttack(S,i))return true;return false}
+function leader(S){var b=0;for(var i=1;i<np(S);i++){
+  if(count(S,i)>count(S,b)||(count(S,i)===count(S,b)&&banners(S,i)>banners(S,b)))b=i}return b}
+function whoWon(S){
+  var lv=liveIsles(S);if(!lv.length)return null;
+  for(var i=0;i<np(S);i++){
+    if(lv.every(function(k){return S.own[k]===i}))return i;
+    if(S.winRule===2&&seas(S,i)>=2)return i}
+  return null}
+function warEnd(S){
+  var w=whoWon(S);if(w!==null)return {winner:w,why:"victory"};
+  if(!liveIsles(S).length)return {winner:leader(S),why:"dormant"};
+  return null}
+function over(S,winner,why){S.sel=null;S.tgt=null;S.phase="over";S.fight=null;return {t:"over",winner:winner,why:why}}
+function rows(S){var r=[];for(var k=0;k<np(S);k++)r.push({k:k,c:count(S,k),b:banners(S,k)});
+  return r.sort(function(x,y){return y.c-x.c})}
+function islandsPer(S){return Math.floor(12/np(S))}
+function deployCount(S){return S.deployFree>=0?S.deployFree:(S.deployMul*islandsPer(S))}
+/* the number of flags in the whole war never changes after the deal */
+function totalFlags(S){var n=0;for(var k=0;k<12;k++)n+=S.ban[k];return n+(S.pool||0)}
+
+/* the setup, checked the same way on the page and on the server; null = fine, else a short code */
+function checkConfig(c){
+  if(!c||typeof c!=="object")return "config";
+  if(!(c.players>=LIMIT.playersMin&&c.players<=LIMIT.playersMax&&c.players===Math.floor(c.players)))return "players";
+  if(!Array.isArray(c.cats)||c.cats.length<LIMIT.catsMin||c.cats.length>LIMIT.catsMax)return "cats";
+  if(!(c.fuse===0||(c.fuse>=LIMIT.fuseMinSec*1000&&c.fuse<=LIMIT.fuseMaxSec*1000&&c.fuse===Math.floor(c.fuse))))return "fuse";
+  if(!(c.shots>=1&&c.shots<=LIMIT.shotsMax&&c.shots===Math.floor(c.shots)))return "shots";
+  if(c.winRule!==2&&c.winRule!==9)return "winRule";
+  if(typeof c.noOpts!=="boolean")return "noOpts";
+  if(!(c.deployFree===-1||(c.deployFree>=LIMIT.deployMin&&c.deployFree<=LIMIT.deployMax&&c.deployFree===Math.floor(c.deployFree))))return "deployFree";
+  if(!(c.deployMul>=1&&c.deployMul<=3&&c.deployMul===Math.floor(c.deployMul)))return "deployMul";
+  return null}
+
+/* twelve islands carry the chosen categories (a category may repeat); spent categories are left out */
+function buildSlots(cats,left,rnd){
+  var cs=cats.filter(function(c){return left[c]>0});if(!cs.length)cs=cats;
+  var n=cs.length,list=[];
+  for(var i=0;i<12;i++)list.push(cs[i%n]);
+  for(var j=list.length-1;j>0;j--){var r=Math.floor(rnd()*(j+1));
+    var t=list[j];list[j]=list[r];list[r]=t}
+  return list}
+/* the deal: no sea may start wholly in one hand; every island starts with its one guard */
+function newWar(S,rnd,left){
+  S.left=left;
+  var idx=[0,1,2,3,4,5,6,7,8,9,10,11],ok=false,tries=0;
+  while(!ok&&tries<80){
+    tries++;idx.sort(function(){return rnd()-.5});
+    S.own={};idx.forEach(function(k,j){S.own[k]=j%np(S)});
+    ok=true;
+    for(var s=0;s<4;s++){var o=null,full=true;
+      for(var k=0;k<12;k++)if(SEA[k]===s){if(o===null)o=S.own[k];else if(o!==S.own[k])full=false}
+      if(full)ok=false}
+  }
+  S.ban={};for(var q=0;q<12;q++)S.ban[q]=1;
+  S.turn=0;S.sel=null;S.tgt=null;S.used={};S.turnNo=0;S.fight=null;S.busy=false;S.base=null;S.attacked=false;
+  S.moveTgt=null;S.moveLeft=0;S.placed=[];
+  return beginDeploy(S)}
+function beginDeploy(S){
+  S.phase="deploy";S.pool=deployCount(S);S.sel=null;S.tgt=null;S.placed=[];
+  return {t:"deploy",turn:S.turn,pool:S.pool}}
+function beginTurn(S,left){
+  if(left)S.left=left;
+  S.turnNo++;S.sel=null;S.tgt=null;S.base=null;S.attacked=false;S.busy=false;S.phase="attack";
+  return {t:"turn",turn:S.turn,canAttack:canAttack(S,S.turn)}}
+function endTurn(S,left){
+  var e=warEnd(S);if(e)return over(S,e.winner,e.why);
+  if(!anyCanAttack(S))return over(S,leader(S),"stuck");
+  S.turn=(S.turn+1)%np(S);var g=0;
+  while(count(S,S.turn)===0&&g++<8)S.turn=(S.turn+1)%np(S);
+  return beginTurn(S,left)}
+/* the end-turn button: in the deal it hands the deal on, afterwards it ends the turn */
+function next(S,left){
+  if(S.busy)return {t:"none"};
+  if(S.phase==="deploy"){
+    if(S.pool>0)return {t:"none"};
+    if(S.turn<np(S)-1){S.turn++;return beginDeploy(S)}
+    S.turn=0;return beginTurn(S,left)}
+  if(S.phase==="over")return {t:"none"};
+  if(S.phase==="move"){S.phase="attack";S.moveTgt=null;S.moveLeft=0;S.placed=[]}
+  return endTurn(S,left)}
+function canHit(S,k){return S.phase==="attack"&&!S.busy&&S.base!==null&&S.ban[S.base]>=2&&k!==S.base&&S.own[k]!==S.turn&&adj(S.base,k)&&!isDead(S,k)&&!isDead(S,S.base)}
+/* one touch on an island */
+function tap(S,k){
+  if(S.busy||!(k>=0&&k<12))return {t:"none"};
+  if(S.phase==="deploy"){
+    if(S.own[k]!==S.turn||S.pool<=0)return {t:"none"};
+    S.ban[k]++;S.pool--;S.placed.push(k);
+    return {t:"deployed",k:k,pool:S.pool}}
+  if(S.phase==="move"){
+    if(k===S.moveTgt&&S.moveLeft>0){
+      S.ban[S.moveTgt]++;S.ban[S.base]--;S.moveLeft--;S.placed.push(k);
+      return {t:"moved",k:k,left:S.moveLeft}}
+    if(!(S.ban[S.base]>=2&&S.own[k]!==S.turn&&adj(S.base,k)&&!isDead(S,k)&&!isDead(S,S.base)))return {t:"none"};
+    S.phase="attack";S.moveTgt=null;S.moveLeft=0;S.placed=[]}
+  if(S.phase!=="attack")return {t:"none"};
+  if(S.base===null){
+    if(S.own[k]!==S.turn)return {t:"none"};
+    if(isDead(S,k))return {t:"msg",code:"deadBase"};
+    if(S.ban[k]<2)return {t:"msg",code:"guardOnly"};
+    S.base=k;S.sel=k;S.attacked=false;
+    return {t:"base",k:k}}
+  if(k===S.base)return {t:"none"};
+  if(S.own[k]===S.turn)return {t:"msg",code:"baseFixed"};
+  if(isDead(S,k))return {t:"msg",code:"deadTarget"};
+  if(!adj(S.base,k))return {t:"msg",code:"noRoute"};
+  S.tgt=k;S.attacked=true;S.sel=S.base;
+  return {t:"attack",base:S.base,tgt:k}}
+function undo(S){
+  if(S.busy)return null;
+  if(S.phase==="deploy"){
+    if(!S.placed.length)return null;
+    var k=S.placed.pop();S.ban[k]--;S.pool++;
+    return {t:"deployUndone",k:k,pool:S.pool,more:S.placed.length>0}}
+  if(S.phase==="move"){
+    if(!S.placed.length)return null;
+    var m=S.placed.pop();S.ban[m]--;S.ban[S.base]++;S.moveLeft++;
+    return {t:"moveUndone",k:m,left:S.moveLeft,more:S.placed.length>0}}
+  if(S.phase!=="attack"||S.attacked||S.base===null)return null;
+  S.base=null;S.sel=null;S.tgt=null;
+  return {t:"baseUndone"}}
+
+/* the fight: the attacker is asked up to S.shots questions, then perhaps the defender; one flag moves at most */
+function startFight(S){
+  S.fight={atk:S.turn,def:S.own[S.tgt],ci:S.slotCat[S.tgt],shot:0,hits:0,asked:0,stage:"shoot"};
+  return S.fight}
+function result(S,kind,why){
+  S.fight.stage="done";
+  return {t:"result",kind:kind,why:why,base:S.base,tgt:S.tgt,left:S.ban[S.tgt]}}
+function take(S,lead){
+  var base=S.base,tgt=S.tgt;
+  if(S.ban[tgt]>1){S.ban[tgt]--;S.ban[base]++;return result(S,"take",lead)}
+  S.own[tgt]=S.turn;S.moveTgt=tgt;return result(S,"fall",lead)}
+function settle(S){
+  var f=S.fight,base=S.base,tgt=S.tgt;
+  if(f.hits===0){
+    if(S.ban[base]>1){S.ban[base]--;S.ban[tgt]++}
+    return result(S,"lose","lose")}
+  if(f.hits>=2)return take(S,"double");
+  if(!(S.left[f.ci]>0))return result(S,"hold","noDef");
+  f.stage="defend";return fightNext(S)}
+/* what the fight needs now: {t:"ask",...} (get a question for the category, then fightAnswer) or {t:"result",...} */
+function fightNext(S){
+  var f=S.fight;
+  if(f.stage==="shoot"){
+    if(f.shot>=S.shots)return settle(S);
+    f.shot++;
+    return {t:"ask",pi:f.atk,defend:false,shot:f.shot,shots:S.shots,ci:f.ci}}
+  return {t:"ask",pi:f.def,defend:true,shot:0,shots:S.shots,ci:f.ci}}
+/* ok: true / false, or null when the category had no question left; fast: answered before any choice burned */
+function fightAnswer(S,ok,fast){
+  var f=S.fight;
+  if(f.stage==="defend"){
+    if(ok===null)return result(S,"hold","noDef");
+    if(ok)return result(S,"hold","defended");
+    return take(S,"defFail")}
+  if(ok===null){
+    if(!f.asked)return result(S,"hold","noQ");
+    f.shot=S.shots;return fightNext(S)}
+  f.asked++;if(ok)f.hits+=(fast?2:1);
+  return fightNext(S)}
+function afterAttack(S){
+  var e=warEnd(S);if(e)return over(S,e.winner,e.why);
+  S.tgt=null;
+  if(S.base!==null&&isDead(S,S.base))return {t:"turnEnd",why:"deadBase"};
+  if(S.base===null||S.ban[S.base]<2)return {t:"turnEnd",why:"guard"};
+  return {t:"continue"}}
+/* after the result has been shown */
+function afterResult(S,res){
+  S.fight=null;
+  if(res.kind==="fall"){
+    var e=warEnd(S);if(e)return over(S,e.winner,e.why);
+    S.tgt=null;
+    S.moveLeft=(isDead(S,res.tgt)||isDead(S,S.base))?0:Math.max(0,S.ban[S.base]-1);
+    if(S.moveLeft<=0)return afterAttack(S);
+    S.phase="move";S.placed=[];
+    return {t:"move",tgt:res.tgt,left:S.moveLeft}}
+  return afterAttack(S)}
+
+/* the embers: how many choices are still alive after `elapsed` of `fuse`; a choice never comes back */
+function aliveAt(alive,full,elapsed,fuse){
+  var want=elapsed>fuse*BURN_SECOND?2:(elapsed>fuse*BURN_FIRST?full-1:full);
+  return (alive>want&&alive>1)?Math.max(want,1):alive}
+function isFast(S,alive,full){return S.fuse>0&&alive===full}
+
+return {LINKS:LINKS,SEA:SEA,HOLD:HOLD,BURN_FIRST:BURN_FIRST,BURN_SECOND:BURN_SECOND,LIMIT:LIMIT,
+ adj:adj,isDead:isDead,liveIsles:liveIsles,count:count,banners:banners,seaOwner:seaOwner,seas:seas,
+ canAttack:canAttack,anyCanAttack:anyCanAttack,leader:leader,whoWon:whoWon,warEnd:warEnd,rows:rows,
+ islandsPer:islandsPer,deployCount:deployCount,totalFlags:totalFlags,checkConfig:checkConfig,
+ buildSlots:buildSlots,newWar:newWar,beginDeploy:beginDeploy,beginTurn:beginTurn,endTurn:endTurn,next:next,
+ canHit:canHit,tap:tap,undo:undo,over:over,startFight:startFight,fightNext:fightNext,fightAnswer:fightAnswer,
+ afterAttack:afterAttack,afterResult:afterResult,aliveAt:aliveAt,isFast:isFast};
+})();
+/*WAR-ENGINE:END*/
 var MW=600,MH=920;
 var SLOTS=[
  {x:424,y:120,r:58,s:0},{x:530,y:262,r:54,s:0},{x:386,y:352,r:60,s:0},
@@ -545,8 +764,7 @@ var SLOTS=[
  {x:180,y:574,r:58,s:3},{x:216,y:778,r:60,s:3},{x:72,y:698,r:52,s:3}];
 var SEANM=[["بحر اللؤلؤ",532,44],["بحر المرجان",72,44],["بحر الدانة",528,902],["بحر الصدف",72,902]];
 var SHAPES=[[.10,2,.3,.07,3,1.1],[.08,3,.9,.09,2,2],[.12,2,1.7,.05,5,.4],[.07,4,.2,.1,3,2.6]];
-var LINKS=[[0,1],[1,2],[2,0],[3,4],[4,5],[5,3],[6,7],[7,8],[8,6],[9,10],[10,11],[11,9],
- [2,5],[2,6],[5,9],[7,10]];
+var LINKS=WarEngine.LINKS;
 var PAL=[["#D23B3B","أحمر"],["#E2761B","برتقاليّ"],["#D9A400","ذهبيّ"],["#7E9B1F","زيتونيّ"],
  ["#2E9E4F","أخضر"],["#0E8F74","زمرّديّ"],["#12A2B8","فيروزيّ"],["#1B6E9C","أزرق"],
  ["#2F4B9A","كحليّ"],["#7A4BB0","بنفسجيّ"],["#C0397E","ورديّ"],["#8A5A3B","بنّيّ"]];
@@ -561,7 +779,7 @@ function freeColor(){
 }
 var G={players:[],cats:[],fuse:13000,winRule:2,shots:1,noOpts:false,deployMul:2,deployFree:-1,
   turnNo:0,own:{},ban:{},turn:0,phase:"deploy",pool:0,sel:null,tgt:null,used:{},pick:-1,
-  base:null,attacked:false,moveTgt:null,moveLeft:0,slotCat:[],placed:[]};
+  base:null,attacked:false,moveTgt:null,moveLeft:0,slotCat:[],placed:[],fight:null};
 var T={raf:null,t0:0,alive:4,lock:false};
 var V={stars:0,who:"",last:""};
 
@@ -593,20 +811,12 @@ else{atCfg=false;atPlay=false;_show("home");}
 function hexA(h,a){return "rgba("+parseInt(h.substr(1,2),16)+","+parseInt(h.substr(3,2),16)+","+
   parseInt(h.substr(5,2),16)+","+a+")"}
 function catName(k){var c=G.slotCat.length?G.slotCat[k]:G.cats[k%G.cats.length];return DATA.cats[c][1]}
-function buildSlots(){
-  var L=seenByCat(),cs=G.cats.filter(function(c){return L[c]>0});if(!cs.length)cs=G.cats;
-  var n=cs.length,list=[];
-  for(var i=0;i<12;i++)list.push(cs[i%n]);
-  for(var j=list.length-1;j>0;j--){var r=Math.floor(Math.random()*(j+1));
-    var t=list[j];list[j]=list[r];list[r]=t}
-  G.slotCat=list;
-}
+function buildSlots(){G.slotCat=WarEngine.buildSlots(G.cats,seenByCat(),Math.random)}
 function spread(){
   var n=G.cats.length,base=Math.floor(12/n),rem=12%n;
   return rem?(cntI(base)+" أو "+cntI(base+1)):cntI(base);
 }
-function adj(a,b){for(var i=0;i<LINKS.length;i++){var l=LINKS[i];
-  if((l[0]===a&&l[1]===b)||(l[1]===a&&l[0]===b))return true}return false}
+function adj(a,b){return WarEngine.adj(a,b)}
 
 
 document.addEventListener("click",function(e){
@@ -863,8 +1073,8 @@ function drawFuses(){
     b.onclick=function(){G.fuse=ms;drawFuses()};w.appendChild(b)});
   curChip(w,G.fuse?("المختار: "+cntS(G.fuse/1000)):"المختار: بلا مهلة");
 }
-function islandsPer(){return Math.floor(12/G.players.length)}
-function deployCount(){return G.deployFree>=0?G.deployFree:(G.deployMul*islandsPer())}
+function islandsPer(){return WarEngine.islandsPer(G)}
+function deployCount(){return WarEngine.deployCount(G)}
 function drawDeploy(){
   var w=$("deploy");if(!w)return;w.innerHTML="";
   [1,2,3].forEach(function(m){
@@ -902,17 +1112,7 @@ $("rematch").onclick=function(){openCfg()};
 /* ───── الحرب ───── */
 function newWar(){
   buildSlots();G.left=seenByCat();
-  var idx=[0,1,2,3,4,5,6,7,8,9,10,11],ok=false,tries=0;
-  while(!ok&&tries<80){
-    tries++;idx.sort(function(){return Math.random()-.5});
-    G.own={};idx.forEach(function(k,j){G.own[k]=j%G.players.length});
-    ok=true;
-    for(var s=0;s<4;s++){var o=null,full=true;
-      for(var k=0;k<12;k++)if(SLOTS[k].s===s){if(o===null)o=G.own[k];else if(o!==G.own[k])full=false}
-      if(full)ok=false}
-  }
-  G.ban={};for(var k=0;k<12;k++)G.ban[k]=1;
-  G.turn=0;G.sel=null;G.tgt=null;G.used={};G.turnNo=0;
+  WarEngine.newWar(G,Math.random,G.left);
   clearT();$("war").insertBefore($("mapBox"),$("war").querySelector(".panel"));
   drawMap();beginDeploy();show("war");
 }
@@ -1053,123 +1253,104 @@ function mt(ms){return RM&&RM.matches?0:ms}
 var TM=[];
 function later(f,ms){TM.push(setTimeout(f,ms))}
 function clearT(){TM.forEach(function(t){clearTimeout(t)});TM=[]}
-function count(pi){var c=0;for(var k=0;k<12;k++)if(G.own[k]===pi)c++;return c}
-function banners(pi){var c=0;for(var k=0;k<12;k++)if(G.own[k]===pi)c+=G.ban[k];return c}
+function count(pi){return WarEngine.count(G,pi)}
+function banners(pi){return WarEngine.banners(G,pi)}
 /* الخمود: جزيرة نفدت أسئلة فئتها لا تُهاجَم ولا تُهاجِم، والنصر يُحسب على الجزر الحيّة */
-function isDead(k){return !!G.left&&!(G.left[G.slotCat[k]]>0)}
-function liveIsles(){var a=[];for(var k=0;k<12;k++)if(!isDead(k))a.push(k);return a}
-function seaOwner(s){var lv=[];for(var k=0;k<12;k++)if(SLOTS[k].s===s&&!isDead(k))lv.push(k);
-  if(!lv.length)return null;var o=G.own[lv[0]];
-  for(var i=1;i<lv.length;i++)if(G.own[lv[i]]!==o)return null;return o}
-function seas(pi){var n=0;for(var s=0;s<4;s++)if(seaOwner(s)===pi)n++;return n}
-function warEnd(){
-  var w=whoWon();if(w!==null){victory(w);return true}
-  if(!liveIsles().length){victory(leader(),seenLeft(null)?"خمدت الجزر كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات":"انتهت الأسئلة كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات، والتصفير بيدك في شاشة الإعداد");return true}
-  return false;
+function isDead(k){return WarEngine.isDead(G,k)}
+function liveIsles(){return WarEngine.liveIsles(G)}
+function seaOwner(s){return WarEngine.seaOwner(G,s)}
+function seas(pi){return WarEngine.seas(G,pi)}
+var OVERWHY={stuck:"لا هجوم ممكنًا لأحد — الغلبة لمن ملك أكثر جزرًا ثمّ رايات"};
+function overText(why){
+  if(why==="victory")return "";
+  if(OVERWHY[why])return OVERWHY[why];
+  return seenLeft(null)?"خمدت الجزر كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات":"انتهت الأسئلة كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات، والتصفير بيدك في شاشة الإعداد";
 }
+function showOver(e){victory(e.winner,overText(e.why))}
+function warEnd(){var e=WarEngine.warEnd(G);if(!e)return false;showOver(e);return true}
 function stat(h,warn){var s=$("stat");s.innerHTML=h;s.className="stat"+(warn?" warn":"")}
 function who(i){return '<i class="dot" style="background:'+col(i)+'"></i><b>'+G.players[i].n+'</b>'}
-function beginDeploy(){
-  var p=G.players[G.turn];
-  G.phase="deploy";G.pool=deployCount();G.sel=null;G.tgt=null;G.placed=[];
+function beginDeploy(){WarEngine.beginDeploy(G);uiDeploy()}
+function uiDeploy(){
   stat(who(G.turn)+" يوزّع "+cntR(G.pool)+" على جزره");
   $("nextBtn").disabled=true;
   $("undoBtn").disabled=true;
   paint();
 }
-function canAttack(pi){for(var k=0;k<12;k++){if(G.own[k]!==pi||G.ban[k]<2||isDead(k))continue;
-  for(var j=0;j<12;j++)if(G.own[j]!==pi&&adj(k,j)&&!isDead(j))return true}return false}
-function anyCanAttack(){for(var i=0;i<G.players.length;i++)if(canAttack(i))return true;return false}
-function leader(){var b=0;for(var i=1;i<G.players.length;i++){
-  if(count(i)>count(b)||(count(i)===count(b)&&banners(i)>banners(b)))b=i}return b}
-function beginTurn(){
-  var p=G.players[G.turn];G.left=seenByCat();
-  G.turnNo++;
-  G.sel=null;G.tgt=null;
-  G.base=null;G.attacked=false;G.busy=false;
-  G.phase="attack";
+function canAttack(pi){return WarEngine.canAttack(G,pi)}
+function anyCanAttack(){return WarEngine.anyCanAttack(G)}
+function leader(){return WarEngine.leader(G)}
+function beginTurn(){uiTurn(WarEngine.beginTurn(G,seenByCat()))}
+function uiTurn(ev){
   $("undoBtn").disabled=true;
-  if(!canAttack(G.turn)){
+  if(!ev.canAttack){
     $("nextBtn").disabled=true;
     stat(who(G.turn)+" — لا هجوم ممكن، يمرّ الدور");
-    G.busy=true;paint();later(endTurn,1400);return;
+    G.busy=true;paint();later(endTurn,WarEngine.HOLD.skip);return;
   }
   $("nextBtn").disabled=false;
   stat(who(G.turn)+" — المس جزيرة لك فيها رايتان لتكون قاعدتك");
   paint();
 }
+var TAPMSG={deadBase:"جزيرة خامدة — نفدت أسئلة فئتها، فلا يُهاجَم منها",guardOnly:"لا يُهاجَم من جزيرة فيها الحارس وحده",
+  baseFixed:"القاعدة ثابتة في هذا الدور",deadTarget:"جزيرة خامدة — نفدت أسئلة فئتها، فلا تُهاجَم",noRoute:"لا ممرّ بين الجزيرتين"};
 function tap(k){
-  if(G.busy)return;
-  if(G.phase==="deploy"){
-    if(G.own[k]!==G.turn||G.pool<=0)return;
-    G.ban[k]++;G.pool--;G.placed.push(k);
+  var ev=WarEngine.tap(G,k);
+  if(ev.t==="deployed"){
     stat(who(G.turn)+(G.pool?(" — بقي "+cntR(G.pool)):" — وُزِّعت راياتك كلّها"));
     $("nextBtn").disabled=(G.pool>0);$("undoBtn").disabled=false;
     paint();return}
-  if(G.phase==="move"){
-    if(k===G.moveTgt&&G.moveLeft>0){
-      G.ban[G.moveTgt]++;G.ban[G.base]--;G.moveLeft--;G.placed.push(k);
-      stat("انقل إلى <b>"+catName(G.moveTgt)+"</b> — المتاح "+cntR(G.moveLeft));
-      $("undoBtn").disabled=false;
-      paint();return}
-    if(!(G.ban[G.base]>=2&&G.own[k]!==G.turn&&adj(G.base,k)&&!isDead(k)&&!isDead(G.base)))return;
-    G.phase="attack";G.moveTgt=null;G.moveLeft=0;G.placed=[];
-  }
-  if(G.phase!=="attack")return;
-  if(G.base===null){
-    if(G.own[k]!==G.turn)return;
-    if(isDead(k)){stat("جزيرة خامدة — نفدت أسئلة فئتها، فلا يُهاجَم منها",true);return}
-    if(G.ban[k]<2){stat("لا يُهاجَم من جزيرة فيها الحارس وحده",true);return}
-    G.base=k;G.sel=k;G.attacked=false;$("undoBtn").disabled=false;
+  if(ev.t==="moved"){
+    stat("انقل إلى <b>"+catName(G.moveTgt)+"</b> — المتاح "+cntR(G.moveLeft));
+    $("undoBtn").disabled=false;
+    paint();return}
+  if(ev.t==="msg"){stat(TAPMSG[ev.code],true);return}
+  if(ev.t==="base"){
+    $("undoBtn").disabled=false;
     stat(who(G.turn)+" — اسحب الراية إلى جزيرة تضيء");
     paint();return}
-  if(k===G.base)return;
-  if(G.own[k]===G.turn){stat("القاعدة ثابتة في هذا الدور",true);return}
-  if(isDead(k)){stat("جزيرة خامدة — نفدت أسئلة فئتها، فلا تُهاجَم",true);return}
-  if(!adj(G.base,k)){stat("لا ممرّ بين الجزيرتين",true);return}
-  G.tgt=k;G.attacked=true;G.sel=G.base;$("undoBtn").disabled=true;paint();combat();
+  if(ev.t==="attack"){$("undoBtn").disabled=true;paint();combat()}
 }
-function afterAttack(){
-  if(warEnd())return;
-  G.tgt=null;
-  if(G.base!==null&&isDead(G.base)){
+function afterAttack(){proceed(WarEngine.afterAttack(G))}
+/* what the engine says after a fight: the war is over, the turn ends, a move is offered, or the attack goes on */
+function proceed(ev){
+  if(ev.t==="over"){showOver(ev);return}
+  if(ev.t==="turnEnd"){
     paint();
-    stat(who(G.turn)+" — خمدت قاعدتك، انتهى الدور");
-    G.busy=true;later(endTurn,1100);return}
-  if(G.base===null||G.ban[G.base]<2){
-    paint();
-    stat(who(G.turn)+" — بقي الحارس وحده، انتهى الدور");
-    G.busy=true;later(endTurn,1100);return}
+    stat(who(G.turn)+(ev.why==="deadBase"?" — خمدت قاعدتك، انتهى الدور":" — بقي الحارس وحده، انتهى الدور"));
+    G.busy=true;later(endTurn,WarEngine.HOLD.short);return}
+  if(ev.t==="move"){
+    stat("انقل إلى <b>"+catName(ev.tgt)+"</b> — المتاح "+cntR(G.moveLeft));
+    $("nextBtn").disabled=false;
+    $("undoBtn").disabled=true;
+    paint();return}
   paint();
   stat(who(G.turn)+" — اسحب الراية من <b>"+catName(G.base)+"</b> أو أنهِ الدور");
 }
 $("undoBtn").onclick=function(){
-  if(G.busy)return;
-  if(G.phase==="deploy"){
-    if(!G.placed.length)return;
-    var k=G.placed.pop();G.ban[k]--;G.pool++;
-    stat(who(G.turn)+" — رجعت راية من <b>"+catName(k)+"</b>، بقي "+cntR(G.pool));
-    $("nextBtn").disabled=true;$("undoBtn").disabled=(G.placed.length===0);
+  var ev=WarEngine.undo(G);if(!ev)return;
+  if(ev.t==="deployUndone"){
+    stat(who(G.turn)+" — رجعت راية من <b>"+catName(ev.k)+"</b>، بقي "+cntR(G.pool));
+    $("nextBtn").disabled=true;$("undoBtn").disabled=!ev.more;
     paint();return}
-  if(G.phase==="move"){
-    if(!G.placed.length)return;
-    var m=G.placed.pop();G.ban[m]--;G.ban[G.base]++;G.moveLeft++;
+  if(ev.t==="moveUndone"){
     stat("رجعت راية إلى <b>"+catName(G.base)+"</b> — المتاح "+cntR(G.moveLeft));
-    $("undoBtn").disabled=(G.placed.length===0);
+    $("undoBtn").disabled=!ev.more;
     paint();return}
-  if(G.attacked)return;
-  G.base=null;G.sel=null;G.tgt=null;$("undoBtn").disabled=true;
+  $("undoBtn").disabled=true;
   stat(who(G.turn)+" — المس جزيرة لك فيها رايتان لتكون قاعدتك");paint()};
 $("nextBtn").onclick=function(){
   if(G.busy)return;
-  if(G.phase==="deploy"){
-    if(G.turn<G.players.length-1){G.turn++;beginDeploy();return}
-    G.turn=0;beginTurn();return}
-  if(G.phase==="move"){G.phase="attack";G.moveTgt=null;G.moveLeft=0;G.placed=[]}
-  endTurn();
+  turnEv(WarEngine.next(G,seenByCat()));
 };
+/* the end of a deal step or of a turn */
+function turnEv(ev){
+  if(ev.t==="over"){showOver(ev);return}
+  if(ev.t==="deploy"){uiDeploy();return}
+  if(ev.t==="turn")uiTurn(ev);
+}
 /* الهجوم بالسحب: راية القاعدة تُسحب إلى جزيرة مجاورة للخصم — والبديل المكافئ لمس القاعدة ثمّ الهدف */
-function canHit(k){return G.phase==="attack"&&!G.busy&&G.base!==null&&G.ban[G.base]>=2&&k!==G.base&&G.own[k]!==G.turn&&adj(G.base,k)&&!isDead(k)&&!isDead(G.base)}
+function canHit(k){return WarEngine.canHit(G,k)}
 (function(){
   var box=$("mapBox"),D=null,eat=0;
   function svgPt(e){
@@ -1217,20 +1398,8 @@ function canHit(k){return G.phase==="attack"&&!G.busy&&G.base!==null&&G.ban[G.ba
   box.addEventListener("pointercancel",function(e){if(D&&e.pointerId===D.id)drop()});
   box.addEventListener("click",function(e){if(performance.now()-eat<400){e.stopPropagation();eat=0}},true);
 })();
-function endTurn(){
-  if(warEnd())return;
-  if(!anyCanAttack())return victory(leader(),"لا هجوم ممكنًا لأحد — الغلبة لمن ملك أكثر جزرًا ثمّ رايات");
-  G.turn=(G.turn+1)%G.players.length;var g=0;
-  while(count(G.turn)===0&&g++<8)G.turn=(G.turn+1)%G.players.length;
-  beginTurn();
-}
-function whoWon(){
-  var lv=liveIsles();if(!lv.length)return null;
-  for(var i=0;i<G.players.length;i++){
-    if(lv.every(function(k){return G.own[k]===i}))return i;
-    if(G.winRule===2&&seas(i)>=2)return i}
-  return null;
-}
+function endTurn(){turnEv(WarEngine.endTurn(G,seenByCat()))}
+function whoWon(){return WarEngine.whoWon(G)}
 function victory(i,why){
   G.sel=null;G.tgt=null;G.phase="over";paint();
   $("lightFlag").setAttribute("fill",col(i));$("light").classList.remove("hidden");
@@ -1254,56 +1423,27 @@ function pickQ(ci){
   var k=bag[Math.floor(Math.random()*bag.length)];G.used[k]=1;seenMark(k);G.left=seenByCat();return DATA.qs[k];
 }
 function combat(){
-  var atkI=G.turn,defI=G.own[G.tgt],atk=G.players[atkI],def=G.players[defI];
-  var ci=G.slotCat[G.tgt],shot=0,hits=0,asked=0;
   startFight();
-  function shoot(){
-    if(shot>=G.shots){settle();return}
-    shot++;
-    askQ(atk,atkI,ci,(G.shots>1?ar(shot)+" / "+ar(G.shots):""),false,function(ok,fast){
-      if(ok===null){
-        if(!asked){result("hold","خمدت <b>"+catName(G.tgt)+"</b> — نفدت أسئلة فئتها، ولم تتحرّك راية.",afterAttack);return}
-        shot=G.shots;settle();return}
-      asked++;if(ok){hits+=(fast?2:1)} shoot() });
+  WarEngine.startFight(G);
+  step(WarEngine.fightNext(G));
+  function step(s){
+    if(s.t==="result"){showResult(s);return}
+    var pl=G.players[s.pi],txt=(!s.defend&&s.shots>1)?ar(s.shot)+" / "+ar(s.shots):"";
+    var run=function(){askQ(pl,s.pi,s.ci,txt,s.defend,function(ok,fast){step(WarEngine.fightAnswer(G,ok,fast))})};
+    if(s.defend)pass(pl,s.pi,run);else run();
   }
-  function settle(){
-    var base=G.base,tgt=G.tgt;
-    if(hits===0){
-      if(G.ban[base]>1){G.ban[base]--;G.ban[tgt]++}
-      result("lose","رُدَّ الهجوم — انتقلت راية من <b>"+catName(base)+"</b> إلى <b>"+catName(tgt)+"</b>.",afterAttack);
-      return;
-    }
-    function take(lead){
-      if(G.ban[tgt]>1){
-        G.ban[tgt]--;G.ban[base]++;
-        result("take",lead+" أخذتَ راية إلى <b>"+catName(base)+"</b>، وبقي للمدافع "+cntR(G.ban[tgt])+".",afterAttack);
-        return;
-      }
-      var nm=catName(tgt);
-      G.own[tgt]=G.turn;G.moveTgt=tgt;
-      result("fall","فُتحت <b>"+nm+"</b> — "+lead+" أخذتَ آخر راية فيها.",function(){
-        if(warEnd())return;
-        G.tgt=null;G.moveLeft=(isDead(tgt)||isDead(base))?0:Math.max(0,G.ban[base]-1);
-        if(G.moveLeft<=0){afterAttack();return}
-        G.phase="move";
-        stat("انقل إلى <b>"+nm+"</b> — المتاح "+cntR(G.moveLeft));
-        G.placed=[];
-        $("nextBtn").disabled=false;
-        $("undoBtn").disabled=true;
-        paint()});
-    }
-    if(hits>=2){take("إصابة مزدوجة لا تُصدّ —");return}
-    var noDef="صمدت <b>"+catName(tgt)+"</b> — نفدت أسئلة فئتها فلم يُسأل المدافع، ولم تتحرّك راية.";
-    if(!(G.left[ci]>0)){result("hold",noDef,afterAttack);return}
-    pass(def,defI,function(){
-      askQ(def,defI,ci,"",true,function(dok){
-        if(dok===null){result("hold",noDef,afterAttack);return}
-        if(dok){result("hold","صمدت <b>"+catName(tgt)+"</b> — ردَّ المدافع الإصابة، ولم تتحرّك راية.",afterAttack);return}
-        take("أخطأ المدافع —");
-      })});
-  }
-  shoot();
 }
+/* the words of a fight's result; the flags have already moved in the engine */
+function resultText(r){
+  var nm=catName(r.tgt),lead=r.why==="double"?"إصابة مزدوجة لا تُصدّ —":"أخطأ المدافع —";
+  if(r.kind==="lose")return "رُدَّ الهجوم — انتقلت راية من <b>"+catName(r.base)+"</b> إلى <b>"+nm+"</b>.";
+  if(r.kind==="take")return lead+" أخذتَ راية إلى <b>"+catName(r.base)+"</b>، وبقي للمدافع "+cntR(r.left)+".";
+  if(r.kind==="fall")return "فُتحت <b>"+nm+"</b> — "+lead+" أخذتَ آخر راية فيها.";
+  if(r.why==="noQ")return "خمدت <b>"+nm+"</b> — نفدت أسئلة فئتها، ولم تتحرّك راية.";
+  if(r.why==="noDef")return "صمدت <b>"+nm+"</b> — نفدت أسئلة فئتها فلم يُسأل المدافع، ولم تتحرّك راية.";
+  return "صمدت <b>"+nm+"</b> — ردَّ المدافع الإصابة، ولم تتحرّك راية.";
+}
+function showResult(r){result(r.kind,resultText(r),function(){proceed(WarEngine.afterResult(G,r))})}
 
 /* المشهد: الكاميرا والمركب والراية الطائرة — كلّها تقفز إلى آخرها مع تقليل الحركة */
 var CAM={vb:[0,0,MW,MH]},FX=[];
@@ -1390,7 +1530,7 @@ function result(kind,msg,go){
   }
   if(kind==="fall")boatGlide(1,300);
   later(paint,mt(720));
-  later(function(){endFight();go()},1700);
+  later(function(){endFight();go()},WarEngine.HOLD.result);
 }
 function pass(p,pi,go){
   stop();$("moor").innerHTML="";
@@ -1452,7 +1592,7 @@ function runFuse(q,full,then){
     if(p<=0){boatAt(1);$("secs").textContent=ar(0);if(!T.lock)land(-1,null,q,full,then);return}
     var s=Math.ceil((G.fuse-e)/1000);if(s!==last){last=s;$("secs").textContent=ar(s)}
     boatAt(mt(1)?e/G.fuse:Math.floor(e/1000)*1000/G.fuse);
-    var want=e>G.fuse*0.66?2:(e>G.fuse*0.33?full-1:full);
+    var want=WarEngine.aliveAt(T.alive,full,e,G.fuse);
     while(T.alive>want){
       var wr=[];document.querySelectorAll("#ops .opt[data-k]").forEach(function(b){
         if(+b.dataset.k!==q[5]&&!b.classList.contains("burn"))wr.push(b)});
@@ -1465,13 +1605,13 @@ function runFuse(q,full,then){
 function stop(){if(T.raf)cancelAnimationFrame(T.raf);T.raf=null}
 function land(k,btn,q,full,then){
   if(T.lock)return;T.lock=true;stop();
-  var fast=(G.fuse>0&&T.alive===full),ok=(k===q[5]);
+  var fast=WarEngine.isFast(G,T.alive,full),ok=(k===q[5]);
   document.querySelectorAll("#ops .opt").forEach(function(b){b.disabled=true;
     if(+b.dataset.k===q[5]){b.classList.add("right");var m=$("m"+b.dataset.pos);if(m)m.classList.add("right")}});
   if(btn&&!ok){btn.classList.add("wrong");var mw=$("m"+btn.dataset.pos);if(mw)mw.classList.add("wrong")}
   stat((k===-1?"رسا المركب — نفد الوقت.":(ok?(fast?"إصابة مزدوجة — سبقتَ الجمر.":"إصابة."):"خطأ.")),!ok);
   $("why").innerHTML=q[6]+(q[7]?'<span class="src">'+q[7]+'</span>':'');$("why").className="why on";
-  later(function(){then(ok,fast)},2300);
+  later(function(){then(ok,fast)},WarEngine.HOLD.answer);
 }
 function quitFight(){clearT();if(G.busy)endFight()}
 
