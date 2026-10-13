@@ -1967,7 +1967,14 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3480897. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57068 bytes: the store name gained a digit).
   //   2026-10-13 -- Item 89 (arbaeen: the forty-two of alnawawiforty.com with their explanation and audio, replacing the fifty -- preview only): app.js 2265489 -> 2264873 bytes, sha256 508eccdd..30d0; index.html 155556.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3450889. arbaeen-footnotes.json LEFT CORE; arbaeen.json moved 67360 -> 47290; arbaeen-sharh.json (270547) joined IDLE last. CACHE untouched. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
-  'sw.js': '4d15ad684b7040426e27bfa8355c86b606dbc08681300d22811a8acdeae6d47a',
+  //   2026-10-13 -- Item 86 (memorizer, phase 2: an ayah left with a word he did not say takes the owner back to it -- his word of 13 October; owner-only, cache ezik-v101): app.js 2265489 -> 2266883 bytes, sha256 1e255064..bc77; index.html 155556.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3482291. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57068 bytes).
+  //   2026-10-13 -- Item 86 (memorizer, phase 2: «سمِّعني» holds the owner on an ayah until it is said -- his word of 13 October, 14:28; owner-only, cache ezik-v102): app.js 2266883 -> 2270124 bytes, sha256 48ece781..1c2d; index.html 155556.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3485532. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57068 bytes).
+  'sw.js': 'b04b8ed8952b041f3ead9f89118d67b8cdeadf952781bc3663bcba024869a7d5',
+  //   2026-10-13 -- Merge of origin/main 5540850e (item 86 v101-v102 + Kunuz) into item 89 (arbaeen): app.js rebuilt from the merged source, 2269508 bytes, sha256 361e951e..edb4; index.html 155556. CACHE ezik-v103.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3455524. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
+  'sw.js': 'be94c7f47cb5ab144f5a2b440d870b45c2116caadc0cb0a07858b1915c65ed2d',
 };
 
 // ---------------------------------------------------------------------------
@@ -3102,7 +3109,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2264873, of: 'app.js' },
+      { n: 2269508, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

@@ -118,11 +118,11 @@ section('the switch -- MEM86_PART and mem86Lit(): only the owner sees the new me
   // where it is asked: a pinned count, and never inside what the tool lifts
   const code = src.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
   const all = (code.match(/mem86Lit\(\)/g) || []).length;
-  ok(all === 26, 'mem86Lit() is asked at exactly 26 places (render, writes, the owner\'s menu of 12 October, his follower of that night, and his own engine of phase 2): ' + all);
+  ok(all === 27, 'mem86Lit() is asked at exactly 27 places (render, writes, the owner\'s menu of 12 October, his follower of that night, his own engine of phase 2, and a word given him on a held ayah): ' + all);
   const home = code.slice(code.indexOf('function Home('), code.indexOf('\nfunction ', code.indexOf('function Home(') + 10));
   ok((home.match(/mem86Lit\(\)/g) || []).length === 1 && home.includes('mem86Lit() ? dailyWirdLines(readDailyWird(), wt, mem86WirdToday()) : dailyWirdLines(readDailyWird(), wt)'), 'the home card asks once: the plan share for the owner, main\'s call for everyone else');
   const scr = code.slice(code.indexOf('function MemorizeScreen('), code.indexOf('\nfunction ', code.indexOf('function MemorizeScreen(') + 10));
-  ok((scr.match(/mem86Lit\(\)/g) || []).length === 25, 'MemorizeScreen asks at 25 places: ' + (scr.match(/mem86Lit\(\)/g) || []).length);
+  ok((scr.match(/mem86Lit\(\)/g) || []).length === 26, 'MemorizeScreen asks at 26 places: ' + (scr.match(/mem86Lit\(\)/g) || []).length);
   for (const [label, re] of [
     ['the tabs', /\{mem86Lit\(\) \? <Mem86Tabs /], ['the held count on a surah card', /\{mem86Lit\(\) && held\[n\] \?/],
     ['«similar passages»', /\{mem86Lit\(\) \? <button type="button" style=\{s\.mem86BtnQuiet\}/], ['the talqin options', /\{mem86Lit\(\) && drillMode === 'manual' && \(/],
@@ -135,8 +135,9 @@ section('the switch -- MEM86_PART and mem86Lit(): only the owner sees the new me
     ['the heard-word clock', /if \(mem86Lit\(\)\) mem86Ping\(\);/],
     ['?memred=1 marks', /if \(MEM_RED_FLAGGING\) \{[^\n]*\n\s*if \(mem86Lit\(\)\) \{/],
     ['?memred=1 dashed word', /if \(mem86Lit\(\) && MEM_RED_FLAGGING && redMarks\.notErr/], ['?memred=1 «not a mistake»', /\{mem86Lit\(\) && MEM_RED_FLAGGING && redMarks\.pick/],
-    ['the follower at each result', /if \(mem86Lit\(\)\) \{\n\s*const f = reciteFollowRef\.current;\n\s*const r = mem86Follow\(selectedSurah, f, reciteHeardRef\.current, surahCount, prefsRef\.current\.wrong\);/],
-    ['the follower at a restart, and the retried start', /if \(mem86Lit\(\)\) \{\n\s*reciteFollowRef\.current = \{ cur: reciteAyahRef\.current \|\| startAyah, prev: reciteShownRef\.current\.slice\(\), cut: 0 \};\n\s*const tryStart = \(attempt\) => \{/],
+    ['the follower at each result', /if \(mem86Lit\(\)\) \{ reciteFollowStep\(\); return; \}/],
+    ['the follower at a restart, and the retried start', /if \(mem86Lit\(\)\) \{\n\s*const g = reciteFollowRef\.current, at = reciteAyahRef\.current \|\| startAyah;\n\s*reciteFollowRef\.current = \{ cur: at, prev: reciteShownRef\.current\.slice\(\), cut: 0, given: g\.cur === at \? g\.given : null \};\n\s*const tryStart = \(attempt\) => \{/],
+    ['a word given him on his page (13 October)', /const f = reciteFollowRef\.current;\n\s*if \(mem86Lit\(\) && reciteRecognitionRef\.current && f\.cur === cur\) \{\n\s*reciteFollowRef\.current = \{ \.\.\.f, given: \(f\.given \|\| \[\]\)\.concat\(add\) \};\n\s*reciteFollowStep\(\);/],
     ['the units only for the manual talqin', /const units = view === 'drill' && \(drillMode === 'manual' \|\| !mem86Lit\(\)\) \? buildUnits\(\) : \[\];/],
     ['the sticky bar', /\{drillMode === 'recite' && \(mem86Lit\(\) \? \(\n/],
     ['the error line under the page for everyone else', /\{reciteErr && !mem86Lit\(\) && <div style=\{s\.memMsg\}>\{reciteErr\}<\/div>\}/],
@@ -684,6 +685,141 @@ lift(['getVerseText', 'RECITE_LENIENT_THRESHOLD', 'wordSim', 'alignRecite',
   }
   ok(looks > 1000 && lookHit / looks > 0.25 && lookStray === 0, 'a word replaced by a look-alike is marked in its place ' + lookHit + ' times of ' + looks + ', never beside it (' + lookStray + ') in ' + (Date.now() - tl) + ' ms');
 
+  // HOLD -- the owner, 13 October: «المفترض انه يوقف مايتحرك, ماينتقل الى اي ايه نهائيا الا لما انطقها صح او انا اضغط كلمه
+  // عشان يفتح علي واكمل, المهم انه ماينتقل الى اي شي حتى لو اطوف متعمد 10 مرات». His screen follows with hold: an ayah
+  // is left only when it is said; a word of what follows heard first marks the words not said and keeps him there; a
+  // word given him («كلمة») counts as said. The recognizer here is still perfect: the mushaf's own words.
+  const holdF = (sn, st, heard, red, last) => X.mem86Follow(sn, st, heard, last || n(sn), !!red, true);
+  const HOLD_SET = [1, 2].concat(Array.from({ length: 37 }, (_, i) => 78 + i));
+  const hEnd = (sn) => (sn === 2 ? 40 : n(sn));
+  const all = (sh, v) => sh.length > 0 && sh.every((x) => x === v);
+  // (a) the whole mushaf as before: with hold nothing changes for an ayah said whole
+  const ha = Date.now();
+  let hAyat = 0, hHeld = 0, hOpen = 0, hMarked = 0, hFirst = '';
+  for (let sn = 1; sn <= 114; sn++) {
+    let st = { cur: 1, prev: null, cut: 0 }, done = false;
+    for (let k = 1; k <= n(sn) && !done; k++) {
+      hAyat++;
+      const r = holdF(sn, st, said(sn, k), true);
+      if (r.held) hHeld++;
+      for (const [, sh] of r.left) hMarked += sh.filter((x) => x !== 'matched').length;
+      if (r.finished) done = true; else st = { cur: r.cur, prev: r.shown, cut: 0 };
+    }
+    if (!done) { hOpen++; if (!hFirst) hFirst = sn + ':' + st.cur; }
+  }
+  ok(hAyat === 6236 && hHeld === 0 && hOpen === 0 && hMarked === 0, 'with hold, all 6236 ayat said whole, one session an ayah: every surah to its end, nothing held, nothing marked (' +
+    [hAyat, hHeld, hOpen, hMarked].join('/') + (hFirst ? ', first stuck ' + hFirst : '') + ') in ' + (Date.now() - ha) + ' ms');
+  // (b) an ayah left out (al-Fatiha, al-Baqarah 1-40, juz Amma; every ayah but a range's last): the next one said in its
+  // place holds the page on it, its words marked -- red with the switch on, 'blank' with it off; the next ones said ten
+  // times over in the same session, it stays; then said, it is left whole and the next ayah follows on
+  const hb = Date.now();
+  let skipped = 0, heldAny = 0, heldAll = 0, heldOff = 0, stayed = 0, back = 0, movedEarly = 0, firstEarly2 = '';
+  for (const sn of HOLD_SET) for (let k = 1; k < hEnd(sn); k++) {
+    skipped++;
+    const last = hEnd(sn);
+    let text = said(sn, k + 1);
+    const r1 = holdF(sn, { cur: k, prev: null, cut: 0 }, text, true, last);
+    if (r1.cur !== k || r1.left.length) { movedEarly++; if (!firstEarly2) firstEarly2 = sn + ':' + k; continue; }
+    if (r1.held) heldAny++;
+    if (r1.held && all(r1.shown, 'wrong')) heldAll++;
+    const r0 = holdF(sn, { cur: k, prev: null, cut: 0 }, text, false, last);
+    if (r0.held && all(r0.shown, 'blank')) heldOff++;
+    let st = { cur: r1.cur, prev: r1.prev, cut: r1.cut }, still = true;
+    for (let t = 0; t < 10; t++) {
+      text += ' ' + said(sn, Math.min(last, k + 1 + (t % 2)));
+      const r = holdF(sn, st, text, true, last);
+      if (r.cur !== k || r.left.length) { still = false; break; }
+      st = { cur: r.cur, prev: r.prev, cut: r.cut };
+    }
+    if (still) stayed++;
+    text += ' ' + said(sn, k) + ' ' + said(sn, k + 1);
+    const r2 = holdF(sn, st, text, true, last);
+    if (r2.left.length >= 2 && r2.left[0][0] === k && all(r2.left[0][1], 'matched') && r2.left[1][0] === k + 1 && all(r2.left[1][1], 'matched')) back++;
+  }
+  // Measured on this commit: of 572, none is left for what follows it. 570 are held: 562 with every word marked, 8 with
+  // the words the next ayah begins or ends with printed (said, as its words: 2:3, 81:24, 85:10, 97:2, 98:6, 107:5,
+  // 113:3, 113:4); 1:2 and 109:4 are not held and not marked -- what follows them is the ayah behind them, or its twin --
+  // so the page simply waits. All stay through ten more but 109:3, whose twin 109:5 is said among them; all are left
+  // whole once said.
+  ok(skipped === 572 && movedEarly === 0 && heldAny === 570 && heldAll === 562 && heldOff === heldAll && stayed === skipped - 1 && back === skipped,
+    'an ayah left out holds the page on it: of ' + skipped + ' (al-Fatiha, al-Baqarah 1-40, juz Amma) none is left for what follows it (' + movedEarly + (firstEarly2 ? ', first ' + firstEarly2 : '') + '), ' +
+    heldAny + ' held, ' + heldAll + ' with every word marked red (' + heldOff + ' blank with the switch off), ' + stayed + ' stay through ten more, ' + back + ' are left whole once said, the next ayah after them, in ' + (Date.now() - hb) + ' ms');
+  // (c) part of an ayah, then the next one: held with the part he said printed and the rest marked; the rest said: left whole
+  // (d) its last word lost to the recognizer (the case «moving on» covers without hold): held with that word marked; said again, left whole
+  const hc = Date.now();
+  let parts = 0, partHeld = 0, partBack = 0, lost = 0, lostHeld = 0, lostBack = 0;
+  for (const sn of HOLD_SET) for (let k = 1; k < hEnd(sn); k++) {
+    const w = T(sn, k), last = hEnd(sn);
+    if (w.length >= 4) {
+      parts++;
+      const half = Math.floor(w.length / 2);
+      let text = said(sn, k, 0, half) + ' ' + said(sn, k + 1);
+      const r = holdF(sn, { cur: k, prev: null, cut: 0 }, text, true, last);
+      if (r.held && r.cur === k && r.shown.every((x, i) => x === (i < half ? 'matched' : 'wrong'))) partHeld++;
+      text += ' ' + said(sn, k, half) + ' ' + said(sn, k + 1);
+      const r2 = holdF(sn, { cur: r.cur, prev: r.prev, cut: r.cut }, text, true, last);
+      if (r2.left.length >= 1 && r2.left[0][0] === k && all(r2.left[0][1], 'matched')) partBack++;
+    }
+    lost++;
+    let text = said(sn, k, 0, w.length - 1) + ' ' + said(sn, k + 1);
+    const r = holdF(sn, { cur: k, prev: null, cut: 0 }, text, true, last);
+    if (r.held && r.cur === k && r.shown.every((x, i) => x === (i < w.length - 1 ? 'matched' : 'wrong'))) lostHeld++;
+    text += ' ' + said(sn, k) + ' ' + said(sn, k + 1);
+    const r2 = holdF(sn, { cur: r.cur, prev: r.prev, cut: r.cut }, text, true, last);
+    if (r2.left.length >= 1 && r2.left[0][0] === k && all(r2.left[0][1], 'matched')) lostBack++;
+  }
+  // Measured on this commit: 4 of the halves are held with a word more printed -- the next ayah begins with it (88:11,
+  // 112:1, 112:3) -- or are complete (97:2: its last two words are how 97:3 begins, the short word before them passed
+  // over); 2 ayat whose last word the next ayah begins with are complete when it is said (86:5, 96:1).
+  ok(parts === 329 && partHeld === 325 && partBack === 328 && lost === 572 && lostHeld === 570 && lostBack === 570,
+    'the first half of an ayah then the next one: held with the half printed and the rest red (' + partHeld + ' of ' + parts + '), left whole once the rest is said (' + partBack + '); its last word lost to the recognizer: held with that word red (' +
+    lostHeld + ' of ' + lost + '), left whole once said again (' + lostBack + ') in ' + (Date.now() - hc) + ' ms');
+  // (e) «كلمة»: a word given counts as said -- held with every word marked, the words given one by one leave it at the
+  // last of them; stuck halfway, the rest given leaves it at once; nothing given, nothing moves
+  const he = Date.now();
+  let gHeld = 0, gLeft = 0, gEarly = 0, gHalf = 0, gHalfLeft = 0;
+  for (const sn of HOLD_SET) for (let k = 1; k < hEnd(sn); k++) {
+    const w = T(sn, k), last = hEnd(sn), text = said(sn, k + 1);
+    const r1 = holdF(sn, { cur: k, prev: null, cut: 0 }, text, true, last);
+    if (!r1.held) continue;
+    gHeld++;
+    let st = { cur: k, prev: r1.prev, cut: r1.cut, given: [] }, left = false;
+    const need = r1.shown.map((x, i) => (x === 'matched' ? -1 : i)).filter((i) => i !== -1);   // the words not printed
+    for (const i of need) {
+      st = { ...st, given: st.given.concat([i]) };
+      const r = holdF(sn, st, text, true, last);
+      if (r.left.length) { if (i === need[need.length - 1] && r.left[0][0] === k && r.left[0][1].every((x, j) => x === (need.indexOf(j) === -1 ? 'matched' : 'hint'))) left = true; else gEarly++; break; }
+    }
+    if (left) gLeft++;
+    if (w.length >= 4) {
+      gHalf++;
+      const half = Math.floor(w.length / 2);
+      const r = holdF(sn, { cur: k, prev: null, cut: 0, given: Array.from({ length: w.length - half }, (_, i) => half + i) }, said(sn, k, 0, half), true, last);
+      if (r.left.length === 1 && r.left[0][0] === k && r.cur === k + 1) gHalfLeft++;
+    }
+  }
+  ok(gHeld > 500 && gLeft === gHeld && gEarly === 0 && gHalf > 300 && gHalfLeft === gHalf,
+    '«كلمة» on a held ayah: its words not printed given one by one, it is left exactly at the last of them, printed with them as given ('  + gLeft + ' of ' + gHeld + ', ' + gEarly + ' early); stuck halfway, the rest given leaves it at once (' + gHalfLeft + ' of ' + gHalf + ') in ' + (Date.now() - he) + ' ms');
+  // (f) a word replaced, the ayah said to its end and on: held with the word red; the ayah said again right, left whole
+  const hf = Date.now();
+  let wSubs = 0, wHeld = 0, wBack = 0, wi2 = 0;
+  for (let sn = 1; sn <= 114; sn += 2) for (let k = 1; k < n(sn); k++) {
+    const w = T(sn, k);
+    if (w.length < 4 || w[1].length < 3) continue;
+    let rep = null;
+    for (let t = 0; t < 60 && !rep; t++) { const c = pool[(wi2++) % pool.length]; if (X.wordSim(c, w[1]) < 0.4) rep = c; }
+    if (!rep) continue;
+    wSubs++;
+    let text = [w[0], rep].concat(w.slice(2)).join(' ') + ' ' + said(sn, k + 1);
+    const r = holdF(sn, { cur: k, prev: null, cut: 0 }, text, true);
+    if (!(r.cur === k && !r.left.length && r.shown[1] === 'wrong')) continue;   // the matcher's own misses: measured above
+    wHeld++;
+    text += ' ' + said(sn, k) + ' ' + said(sn, k + 1);
+    const r2 = holdF(sn, { cur: r.cur, prev: r.prev, cut: r.cut }, text, true);
+    if (r2.left.length >= 1 && r2.left[0][0] === k && all(r2.left[0][1], 'matched')) wBack++;
+  }
+  ok(wSubs > 1500 && wHeld / wSubs > 0.95 && wBack === wHeld, 'a word replaced by an unlike one, the ayah said to its end and on: held with that word red (' + wHeld + ' of ' + wSubs + '), left whole once said right (' + wBack + ') in ' + (Date.now() - hf) + ' ms');
+
   // the screen wires it
   const src2 = fs.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
   const scr2 = src2.slice(src2.indexOf('function MemorizeScreen('), src2.indexOf('\nfunction ', src2.indexOf('function MemorizeScreen(') + 10));
@@ -694,6 +830,13 @@ lift(['getVerseText', 'RECITE_LENIENT_THRESHOLD', 'wordSim', 'alignRecite',
   ok(scr2.includes('if (attempt < 5) { setTimeout(() => tryStart(attempt + 1), 150); return; }')
     && scr2.includes('reciteRunIdRef.current++; setReciteListening(false); mem86Rest(); setRecitePaused(reciteAyahRef.current || startAyah);'), 'a restart that fails is tried five more times, then the bar offers «متابعة» -- never a dead microphone behind «إيقاف»');
   ok(scr2.includes('reciteFollowRef.current = { cur: next, prev: null, cut: mem86FollowHeard(reciteHeardRef.current, 0).total };'), '«الآية التالية» moves the follower on past every word heard so far');
+  ok(scr2.includes('const r = mem86Follow(selectedSurah, f, reciteHeardRef.current, surahCount, prefsRef.current.wrong, true);')
+    && scr2.includes('} else if (r.held) reciteFollowRef.current = { cur: r.cur, prev: r.prev, cut: r.cut, given: f.given };')
+    && (scr2.match(/reciteFollowStep\(\);/g) || []).length === 2,
+    'his follower HOLDS (13 October) -- at every result and at a word given him: a held ayah keeps its marks, and what was heard is dropped');
+  const row2 = src2.slice(src2.indexOf('const Mem86PageRow = '), src2.indexOf('const Mem86RecitePage = '));
+  const curAt = row2.indexOf('if (isCur) {'), hintAt = row2.indexOf('if (hints.indexOf(idx) !== -1) return', curAt), wrongAt = row2.indexOf("if (st === 'wrong') return dim ?", curAt);
+  ok(curAt > 0 && hintAt > curAt && wrongAt > hintAt, 'the ayah he is held on shows its marks in place, and a word given him is drawn as given before its mark');
   ok(scr2.includes("if (!reciteAutoRef.current || view !== 'drill' || drillMode !== 'recite' || !ready || !surahCount) return;\n    reciteAutoRef.current = false;\n    startRecite();")
     && scr2.includes("reciteAutoRef.current = kind === 'review';"), 'the owner\'s «سمِّعني» opens listening: from a surah\'s «ابدأ» and from a review in his plan, once');
 
@@ -761,8 +904,9 @@ lift(['MEM86_TABS', 'MEM86_KIDS_RECITER']);
   ok(page.includes("return <span key={i} style={s.memPlaceholder}>—</span>;") && page.includes("if (!normalizeForRecite(w)) return printed ? <span key={i} style={s.memWordPending}>{w}</span> : null;"),
     'a word not yet said is a blank, and a pause mark is drawn only on a printed ayah');
   const markAt = page.indexOf("if (st === 'wrong') return <span key={i} style={{ ...s.memPlaceholder, ...s.mem86WrongMark }}>—</span>;");
-  ok(page.length > 0 && !/RedDash|RedWas|#C0392B|mem86ErrWord|memWordWrong/.test(page) && (page.match(/mem86WrongMark/g) || []).length === 1 && markAt > 0 && markAt < page.indexOf('if (isCur) {'),
-    'the page reddens nothing but the owner\'s mark for a replaced word -- on an ayah already left, with no word in it');
+  const heldAt = page.indexOf("if (st === 'wrong') return dim ? <span key={i} style={{ ...s.memWordPending, ...s.mem86WrongMark }}>{w}</span> : <span key={i} style={{ ...s.memPlaceholder, ...s.mem86WrongMark }}>—</span>;");
+  ok(page.length > 0 && !/RedDash|RedWas|#C0392B|mem86ErrWord|memWordWrong/.test(page) && (page.match(/mem86WrongMark/g) || []).length === 3 && markAt > 0 && markAt < page.indexOf('if (isCur) {') && heldAt > page.indexOf('if (isCur) {'),
+    'the page reddens nothing but the owner\'s mark for a word not said right -- on an ayah already left, with no word in it, and on the ayah he is held on (13 October), the word itself only dimmed when he chose to see the text');
   ok(page.includes('getVerseText(sn, a)') && !/[ء-ي]{3,}/.test(page.replace(/\/\/[^\n]*/g, '')), 'every word on the page comes from getVerseText; no Arabic text is written in its code');
   // the bar and the switch
   ok(scr3.includes('<div className="ezq-drill-acts" style={{ ...s.ezqStartBar, flexWrap: \'wrap\' }} data-ez110-edge="sticky">'), 'the owner\'s controls ride in the picker\'s sticky start bar, marked for the safe-area family');
@@ -843,6 +987,22 @@ lift(['mem86EarWords', 'mem86EarShown', 'mem86EarLeft']);
   const blankAt = page5.indexOf("if (st === 'blank') return <span key={i} style={s.memPlaceholder}>—</span>;");
   ok(blankAt > 0 && blankAt < page5.indexOf('return <span key={i} style={s.mem86WordHint}>{w}</span>;') && blankAt < page5.indexOf('if (isCur) {'),
     'the page draws a blank for it on an ayah already left, before the quiet word could be drawn');
+  // 13 October, his second decision: «يرجّعك لها وتسمّعها من جديد، وبعدها يكمّل معك»
+  const page6 = src4.slice(src4.indexOf('const Mem86PageRow = '), src4.indexOf('\n};\n', src4.indexOf('const Mem86RecitePage = ')) + 3);
+  ok(page6.includes("const back = printed && onBack && Array.isArray(left) && left.some((x) => x === 'wrong' || x === 'blank') ? () => onBack(a) : null;")
+    && page6.includes("role={back ? 'button' : undefined} tabIndex={back ? 0 : undefined} aria-label={back ? ezT('mem86.back') : undefined}")
+    && page6.includes('onClick={back || undefined}') && page6.includes("if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); back(); }"),
+    'an ayah already left with a word he did not say (red, or a blank) is a button -- by touch and by keyboard -- named in his language; any other row is not');
+  ok(page6.includes("onBack={mode === 'printed' ? onBack : null}") && src4.includes('weak={prefs.weak} onBack={onReciteBack} />')
+    && src4.includes('const onReciteBack = React.useCallback((a) => reciteBackRef.current(a), []);'),
+    '...only the rows already left are handed it, and the handler never changes, so no row redraws for it');
+  const backFn = scr4.slice(scr4.indexOf('const reciteBack = (a) => {'), scr4.indexOf('const reciteBackRef = useRef(reciteBack);'));
+  ok(backFn.length > 0 && /if \(!\(a >= startAyah && a <= surahCount\)\) return;\n\s*stopRecite\(\);\n\s*setReciteFinished\(false\);\n\s*startRecite\(a\);/.test(backFn)
+    && !/mem86Credit|mem86DaysAdd|reciteCleanRef/.test(backFn),
+    'going back stops what listens and listens again from that ayah, as «متابعة» does -- it earns nothing and forgives nothing by itself');
+  const LANG6 = path.join(REPO, 'lang');
+  const miss6 = fs.readdirSync(LANG6).filter((x) => x.endsWith('.json')).filter((f) => { const d = JSON.parse(fs.readFileSync(path.join(LANG6, f), 'utf8')); return typeof d['mem86.back'] !== 'string' || !d['mem86.back'].trim(); });
+  ok(miss6.length === 0 && (src4.match(/'mem86\.back': '[^']+'/g) || []).length === 2, 'its name is in Arabic, English and every language file');
   // the wiring
   const at = (t) => scr4.indexOf(t);
   const branch = "if (ear) { const myRun = ++reciteRunIdRef.current; setReciteListening(true); setReciteEar('wait'); reciteEarGo(from, myRun); return; }";

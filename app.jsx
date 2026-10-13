@@ -1842,6 +1842,7 @@ const EZ_I18N = {
     'mem86.ear.on': 'يسمعك المحرّك على جهازك',
     'mem86.ear.off': 'المحرّك على جهازك لا يجيب، فيسمعك المتصفّح',
     'mem86.ear.mic': 'لم يُفتح الميكروفون. اسمح به لهذا الموقع ثم ابدأ من جديد.',
+    'mem86.back': 'ارجع إلى هذه الآية وسمِّعها من جديد',
     'mem86.tab.test': 'اختبرني',
     'mem86.test.saved': 'اختبار موقوف: مضى منه {n} سؤال',
     'mem86.test.resume': 'استأنف الاختبار',
@@ -3382,6 +3383,7 @@ const EZ_I18N = {
     'mem86.ear.on': 'The engine on your computer is listening',
     'mem86.ear.off': 'The engine on your computer is not answering, so the browser is listening',
     'mem86.ear.mic': 'The microphone did not open. Allow it for this site, then start again.',
+    'mem86.back': 'Go back to this ayah and recite it again',
     'mem86.tab.test': 'Test me',
     'mem86.test.saved': 'A paused test: {n} questions done',
     'mem86.test.resume': 'Resume the test',
@@ -4257,15 +4259,25 @@ const mem86FollowAlign = (win, h, keepAlone = -1) => {
 // heard, and a word it marked stays marked until it is said right. Shown: 'matched' (printed), 'pending' (blank, or
 // quiet once the ayah is left), 'wrong' (the owner's experiment: a replaced word). A word passed over between heard
 // words is shown as heard, as everyone's matcher shows it.
-const mem86FollowJudge = (win, h, prev, redOn) => {
+const mem86FollowJudge = (win, h, prev, redOn, hold, given) => {
   const co = win.co, cl = win.cl, W = win.words;
   const had = (k) => !!prev && prev[k] === 'matched';
+  const gv = (k) => !!given && given.indexOf(k) !== -1;
   const at = mem86FollowAlign(win, h, prev && prev.indexOf('matched') !== -1 ? co + cl - 1 : -1);
   const heard = (k) => at[co + k] !== -1;
   let fc = -1;
   for (let k = 0; k < cl; k++) if (heard(k) || had(k)) fc = k;
   const shown = new Array(cl);
   for (let k = 0; k < cl; k++) shown[k] = (heard(k) || had(k) || k < fc) ? 'matched' : 'pending';
+  if (hold) {
+    // held, a word passes over only BETWEEN words said: the words before the first one said wait to be said (measured:
+    // 97:3 said in 97:2's place left 97:2, its first words passed over before the two they share); and a word the hold
+    // marked ('blank', his switch off) is not passed over at all
+    let ff = cl;
+    for (let k = 0; k < cl; k++) if (heard(k) || had(k) || gv(k)) { ff = k; break; }
+    for (let k = 0; k < ff; k++) shown[k] = 'pending';
+    for (let k = 0; k < cl; k++) if (!heard(k) && !had(k) && prev && prev[k] === 'blank') shown[k] = 'blank';
+  }
   if (redOn) {
     for (let k = 0; k < cl; k++) {
       if (heard(k) || had(k)) continue;
@@ -4285,27 +4297,46 @@ const mem86FollowJudge = (win, h, prev, redOn) => {
   }
   // complete: the last word heard -- or a word of what follows heard after it, the reader having moved on. A word of
   // what follows that stands alone has already had to be exact and longer than three letters to keep its claim.
-  if (cl > 0 && heard(cl - 1)) return { shown, done: true, cut: h.end[at[co + cl - 1]] };
-  for (let t = win.no; t < win.no + win.nl; t++) if (at[t] !== -1) return { shown, done: true, cut: h.at[at[t]] };
+  if (!hold) {
+    if (cl > 0 && heard(cl - 1)) return { shown, done: true, cut: h.end[at[co + cl - 1]] };
+    for (let t = win.no; t < win.no + win.nl; t++) if (at[t] !== -1) return { shown, done: true, cut: h.at[at[t]] };
+    return { shown, done: false, cut: 0 };
+  }
+  // HOLD -- the owner, 13 October: «ماينتقل الى اي ايه نهائيا الا لما انطقها صح او انا اضغط كلمه عشان يفتح علي واكمل».
+  // The ayah is complete only when every word of it is printed (heard, kept from before, or passed over between heard
+  // words), none is marked, and its last word was heard or kept -- a word given him with «كلمة» counts as said. A word
+  // of what follows heard first is him going on without it: the words not printed are marked (red with his switch on,
+  // 'blank' without), everything heard so far is dropped, and the follower stays on this ayah.
+  const last = cl > 0 && (heard(cl - 1) || had(cl - 1) || gv(cl - 1));
+  if (last && shown.every((x, k) => x === 'matched' || gv(k))) {   // left: a word given him and not said is printed as given
+    return { shown: shown.map((x, k) => (x === 'matched' ? x : 'hint')), done: true, cut: heard(cl - 1) ? h.end[at[co + cl - 1]] : h.total };
+  }
+  for (let t = win.no; t < win.no + win.nl; t++) {
+    if (at[t] === -1) continue;
+    const marked = shown.map((x, k) => (x === 'matched' || gv(k) ? x : redOn ? 'wrong' : 'blank'));
+    return { shown: marked, done: false, held: true, cut: h.total };
+  }
   return { shown, done: false, cut: 0 };
 };
 // One result for the whole range: judge the current ayah, and while it completes, the next one on what remains of
-// the transcript. st = { cur, prev, cut } -> the same, plus the current ayah's shown, the ayat left [[ayah, shown]...]
-// and whether the range is finished.
-const mem86Follow = (sn, st, text, last, redOn) => {
-  let cur = st.cur, prev = st.prev || null, cut = st.cut | 0;
+// the transcript. st = { cur, prev, cut, given } -> the same, plus the current ayah's shown, the ayat left
+// [[ayah, shown]...] and whether the range is finished. hold (the owner's screen): see mem86FollowJudge -- `held` says
+// it stayed for him having gone on, and its prev and cut are the marks to keep and the words heard so far.
+const mem86Follow = (sn, st, text, last, redOn, hold) => {
+  let cur = st.cur, prev = st.prev || null, cut = st.cut | 0, given = st.given || null;
   const left = [];
   for (let guard = 0; guard < 8; guard++) {
     const win = mem86FollowWindow(sn, cur, last);
     const h = mem86FollowHeard(text, cut);
     mem86FollowSpell(win, h);
-    const r = mem86FollowJudge(win, h, prev, redOn);
-    if (!r.done) return { cur, prev, cut, shown: r.shown, left, finished: false };
+    const r = mem86FollowJudge(win, h, prev, redOn, !!hold, given);
+    if (r.held) return { cur, prev: r.shown, cut: r.cut, given, shown: r.shown, left, finished: false, held: true };
+    if (!r.done) return { cur, prev, cut, given, shown: r.shown, left, finished: false };
     left.push([cur, r.shown]);
     if (cur >= last) return { cur, prev: null, cut: r.cut, shown: r.shown, left, finished: true };
-    cur++; prev = null; cut = r.cut;
+    cur++; prev = null; cut = r.cut; given = null;
   }
-  return { cur, prev, cut, shown: [], left, finished: false };
+  return { cur, prev, cut, given, shown: [], left, finished: false };
 };
 // Item 86, phase 2: the owner's own engine (ezEar) speaks in word numbers, numbered as the page numbers them -- the n-th
 // word normalizeForRecite keeps (measured against the engine's own reference on all 6236 ayat: the same count each).
@@ -34692,8 +34723,10 @@ const Mem86ReciteOpts = ({ prefs, onPref }) => (
 // ONE ROW REDRAWS AT A RESULT. Each ayah is its own memoised row: the rows behind the current one and the blanks
 // after it are drawn once, and a result redraws the current row alone (measured on 685e447: the whole of
 // al-Baqarah at every result, 375-630 ms a result at a phone's speed).
-const Mem86PageRow = React.memo(({ sn, a, mode, states, hints, left, dim, hideNums, weak }) => {
+const Mem86PageRow = React.memo(({ sn, a, mode, states, hints, left, dim, hideNums, weak, onBack }) => {
   const printed = mode === 'printed', isCur = mode === 'cur';
+  // 13 October: an ayah left with a word he did not say (a red mark, or a blank with the switch off) takes him back to it
+  const back = printed && onBack && Array.isArray(left) && left.some((x) => x === 'wrong' || x === 'blank') ? () => onBack(a) : null;
   let k = 0;
   const cells = (getVerseText(sn, a) || '').split(/\s+/).filter(Boolean).map((w, i) => {
     if (!normalizeForRecite(w)) return printed ? <span key={i} style={s.memWordPending}>{w}</span> : null;
@@ -34710,18 +34743,22 @@ const Mem86PageRow = React.memo(({ sn, a, mode, states, hints, left, dim, hideNu
       const st = states[idx];
       if (st === 'matched') return <span key={i} style={{ ...s.memWord, ...mem86WeakStyle(weak, ref) }}>{w}</span>;
       if (hints.indexOf(idx) !== -1) return <span key={i} style={s.mem86WordHint}>{w}</span>;
+      // 13 October: the page held him on this ayah -- a word he left out or said wrong is red here (his switch on)
+      if (st === 'wrong') return dim ? <span key={i} style={{ ...s.memWordPending, ...s.mem86WrongMark }}>{w}</span> : <span key={i} style={{ ...s.memPlaceholder, ...s.mem86WrongMark }}>—</span>;
       if (dim) return <span key={i} style={s.memWordPending}>{w}</span>;
     }
     return <span key={i} style={s.memPlaceholder}>—</span>;
   });
   return (
-    <div data-mem86-cur={isCur ? '1' : undefined} style={isCur ? { ...s.mem86PageRow, ...s.mem86PageRowCur } : s.mem86PageRow}>
+    <div data-mem86-cur={isCur ? '1' : undefined} style={isCur ? { ...s.mem86PageRow, ...s.mem86PageRowCur } : back ? { ...s.mem86PageRow, cursor: 'pointer' } : s.mem86PageRow}
+      role={back ? 'button' : undefined} tabIndex={back ? 0 : undefined} aria-label={back ? ezT('mem86.back') : undefined} data-mem86-back={back ? '1' : undefined}
+      onClick={back || undefined} onKeyDown={back ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); back(); } } : undefined}>
       {hideNums ? null : <span style={s.memAyahBadge}>{toArabicDigits(a)}</span>}
       {cells}
     </div>
   );
 });
-const Mem86RecitePage = ({ sn, from, to, cur, states, hints, done, finished, dim, hideNums, weak }) => {
+const Mem86RecitePage = ({ sn, from, to, cur, states, hints, done, finished, dim, hideNums, weak, onBack }) => {
   const pageRef = useRef(null);
   useEffect(() => {
     // An instant jump, not an animated one: the app owns exactly one animated scroll (a11y, chatux).
@@ -34735,7 +34772,7 @@ const Mem86RecitePage = ({ sn, from, to, cur, states, hints, done, finished, dim
     const mode = (finished || a < cur) ? 'printed' : a === cur ? 'cur' : 'blank';
     rows.push(<Mem86PageRow key={a} sn={sn} a={a} mode={mode} states={mode === 'cur' ? states : MEM86_NONE}
       hints={mode === 'cur' ? hints : MEM86_NONE} left={mode === 'printed' ? (done[a] || null) : null}
-      dim={mode === 'cur' && dim} hideNums={hideNums} weak={mode !== 'blank' && weak} />);
+      dim={mode === 'cur' && dim} hideNums={hideNums} weak={mode !== 'blank' && weak} onBack={mode === 'printed' ? onBack : null} />);
   }
   return <div ref={pageRef} style={s.mem86Page}>{rows}</div>;
 };
@@ -38519,6 +38556,30 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     setReciteHints(reciteHints.concat(add));
     mem86WordsLog(add.map((i) => mem86Ref(selectedSurah, cur, i + 1)), 'hint');
     mem86Ping();
+    // Item 86 (13 October, the owner: «او انا اضغط كلمه عشان يفتح علي واكمل»): on his page a word given is a word he
+    // need not say -- once every other word of the ayah is printed, the page moves on at once
+    const f = reciteFollowRef.current;
+    if (mem86Lit() && reciteRecognitionRef.current && f.cur === cur) {
+      reciteFollowRef.current = { ...f, given: (f.given || []).concat(add) };
+      reciteFollowStep();
+    }
+  };
+  // Item 86: the owner's follower at a result of the browser's engine, and at a word given him. Each ayah it completes is
+  // kept with what was heard of it, and the follower carries on in the same result. It HOLDS (13 October): an ayah is
+  // left only when it is said -- a word of what follows heard first marks the words not said and keeps him there.
+  const reciteFollowStep = () => {
+    const f = reciteFollowRef.current;
+    const r = mem86Follow(selectedSurah, f, reciteHeardRef.current, surahCount, prefsRef.current.wrong, true);
+    if (r.left.length) setReciteDone((d) => { const o = { ...d }; for (const [a, st] of r.left) o[a] = st; return o; });
+    setReciteStates(r.shown);
+    reciteShownRef.current = r.shown;
+    if (r.finished) { setReciteFinished(true); stopRecite(); reciteCredit(); return; }
+    if (r.cur !== f.cur) {
+      reciteFollowRef.current = { cur: r.cur, prev: r.prev, cut: r.cut };
+      reciteAyahRef.current = r.cur;
+      setReciteAyah(r.cur);
+      setReciteHints([]);
+    } else if (r.held) reciteFollowRef.current = { cur: r.cur, prev: r.prev, cut: r.cut, given: f.given };
   };
 
   const startRecite = (fromAyah, viaWeb) => {
@@ -38574,23 +38635,8 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       }
       reciteHeardRef.current = (finalText + ' ' + interim).trim();
       if (mem86Lit()) mem86Ping();
-      // Item 86: the owner's page FOLLOWS him (mem86Follow). Each ayah it completes -- by its last word, or by his
-      // having moved on -- is kept with what was heard of it, and the follower carries on in the same result.
-      if (mem86Lit()) {
-        const f = reciteFollowRef.current;
-        const r = mem86Follow(selectedSurah, f, reciteHeardRef.current, surahCount, prefsRef.current.wrong);
-        if (r.left.length) setReciteDone((d) => { const o = { ...d }; for (const [a, st] of r.left) o[a] = st; return o; });
-        setReciteStates(r.shown);
-        reciteShownRef.current = r.shown;
-        if (r.finished) { setReciteFinished(true); stopRecite(); reciteCredit(); return; }
-        if (r.cur !== f.cur) {
-          reciteFollowRef.current = { cur: r.cur, prev: r.prev, cut: r.cut };
-          reciteAyahRef.current = r.cur;
-          setReciteAyah(r.cur);
-          setReciteHints([]);
-        }
-        return;
-      }
+      // Item 86: the owner's page FOLLOWS him (mem86Follow), and holds him on an ayah until it is said (reciteFollowStep).
+      if (mem86Lit()) { reciteFollowStep(); return; }
       // Match FULL session heard vs FULL expected from the session's anchor (up to the current ayah),
       // then display + completion-check only the CURRENT ayah's slice of states.
       const cur = reciteAyahRef.current || startAyah;
@@ -38652,7 +38698,8 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         // Item 86: for the owner the next session starts from what this one left shown for the current ayah, and a
         // start that fails is tried again, as the call's is -- never a dead microphone behind a «إيقاف» button.
         if (mem86Lit()) {
-          reciteFollowRef.current = { cur: reciteAyahRef.current || startAyah, prev: reciteShownRef.current.slice(), cut: 0 };
+          const g = reciteFollowRef.current, at = reciteAyahRef.current || startAyah;
+          reciteFollowRef.current = { cur: at, prev: reciteShownRef.current.slice(), cut: 0, given: g.cur === at ? g.given : null };
           const tryStart = (attempt) => {
             if (reciteRunIdRef.current !== myRun) return;
             if (ezStartRecognition(rec)) return;
@@ -38720,6 +38767,19 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       reciteAyahRef.current = st.cur; setReciteAyah(st.cur); setReciteStates([]); reciteShownRef.current = []; setReciteHints([]); setRecitePaused(st.cur);
     }
   };
+
+  // Item 86 (13 October, the owner's word: «يرجّعك لها وتسمّعها من جديد، وبعدها يكمّل معك»): an ayah left with a word he
+  // did not say takes him back to it -- the listening starts again there, and the ayat after it are blank until he gets
+  // to them. The same resume as «متابعة»; the page hands the row a handler that never changes, so no row redraws for it.
+  const reciteBack = (a) => {
+    if (!(a >= startAyah && a <= surahCount)) return;
+    stopRecite();
+    setReciteFinished(false);
+    startRecite(a);
+  };
+  const reciteBackRef = useRef(reciteBack);
+  reciteBackRef.current = reciteBack;
+  const onReciteBack = React.useCallback((a) => reciteBackRef.current(a), []);
 
   // Manual advance — freeze-proof fallback so a missed/substituted last word can't lock progress.
   const advanceReciteManual = () => {
@@ -38945,7 +39005,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         <div style={s.memReciteHint}>{MEM.RECITE_HINT}</div>
         {mem86Lit() ? (
           <Mem86RecitePage sn={selectedSurah} from={startAyah} to={surahCount} cur={reciteAyah || startAyah} states={reciteStates}
-            hints={reciteHints} done={reciteDone} finished={reciteFinished} dim={prefs.dim} hideNums={prefs.hideNums} weak={prefs.weak} />
+            hints={reciteHints} done={reciteDone} finished={reciteFinished} dim={prefs.dim} hideNums={prefs.hideNums} weak={prefs.weak} onBack={onReciteBack} />
         ) : (<>
         <div style={s.memSurahTitle}>{prefs.hideNums ? SURAH_NAMES[selectedSurah] : `${SURAH_NAMES[selectedSurah]} · ${MEM.ADNAN_AYAH_LABEL} ${toArabicDigits(reciteAyah || startAyah)}`}</div>
         <div style={s.memDrillText}>
