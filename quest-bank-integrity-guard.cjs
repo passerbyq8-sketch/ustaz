@@ -18,7 +18,7 @@
  * esc.cjs. A guard that prints raw Arabic to a Windows console LIES about what it found.
  *
  * WHAT IT PROVES
- *   K1 bank shape   -- the shared bank evaluates to DATA with exactly 3147 questions in
+ *   K1 bank shape   -- the shared bank evaluates to DATA with exactly 3145 questions in
  *                      27 categories; every question has the nine-field shape, a category
  *                      in range, a non-empty stem, 3..4 distinct options, a key in range
  *                      and a unique id; no category is empty.
@@ -73,7 +73,7 @@ const vm = require('vm');
 // ITEM 10. The one bank both Kunuz modes load, and the figures it was accepted at.
 const BANK = 'quest-data/kunuz-bank-3147.js';
 const BANK_TAG = '<script src="/' + BANK + '"></script>';
-const BANK_QUESTIONS = 3147;
+const BANK_QUESTIONS = 3145;
 const BANK_CATEGORIES = 27;
 const KUNUZ_MODES = ['quest-ghaws.html', 'quest-harb.html'];
 const KUNUZ_HUB = 'quest.html';
@@ -95,9 +95,10 @@ const KUNUZ_HUB = 'quest.html';
 // prints the file, the expected digest and the actual one.
 // ---------------------------------------------------------------------------
 const SEALED = {
-  // ITEM 10: the shared Kunuz bank, sealed at acceptance (3DC06F40, 1535845 bytes). One line
+  // ITEM 10: the shared Kunuz bank, sealed at acceptance (3DC06F40, 1535845 bytes, 3147 questions)
+  // and re-cut 2026-10-13 when the owner removed two questions (BE327C28, 1534695 bytes, 3145). One line
   // of JavaScript, no newline, so no line-ending conversion can move it; pinned -text anyway.
-  'quest-data/kunuz-bank-3147.js': '3dc06f408027d250b2a3475a477ee2bc531b3c2bd7be0f8a200bcbe268b54cd6',
+  'quest-data/kunuz-bank-3147.js': 'be327c2825f3ebe85fd285c8fa209f096693e02db74c7ece81493a0fe73b9d93',
   'quran-uthmani.json': 'd4fd1a1507f70a4261789eaec8380750cd0f65f4d641f6df2ef6334b18c6877b',
   'adhkar.json': '19ef96b9ecc275376d46a667a86297261ea5991749ffe46dd35448196cb4c9c3',
   'mushaf-layout.json': 'ea9223ef7f18b5d933ce1c87cbebabc5d78f1ec0e8ac9714260f9dee6d571351',
