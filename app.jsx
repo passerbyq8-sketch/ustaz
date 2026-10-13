@@ -21081,10 +21081,10 @@ function App() {
   // The same read as PrayerSettingsControl: the page-level reply handler runs first, this only reads its capability.
   const [ez110AdhanShellOk, setEz110AdhanShellOk] = useState(() => ezikWidgetDataCapability === 'supported');
   useEffect(() => {
-    const sync = () => setEz110AdhanShellOk(ezikWidgetDataCapability === 'supported');
-    window.addEventListener(SHELL_SCHED_CHANNEL, sync);
-    sync();
-    return () => window.removeEventListener(SHELL_SCHED_CHANNEL, sync);
+    const follow = () => setEz110AdhanShellOk(ezikWidgetDataCapability === 'supported');
+    window.addEventListener(SHELL_SCHED_CHANNEL, follow);
+    follow();
+    return () => window.removeEventListener(SHELL_SCHED_CHANNEL, follow);
   }, []);
 
   const callAI = async (history, p, { onDelta, onStatus, onLiveOffer, onLessons, liveSearch = false, signal, mode = 'chat', endpoint = '/api/ask' } = {}) => {

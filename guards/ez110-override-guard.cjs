@@ -117,7 +117,7 @@ for (const host of ['localhost', '127.0.0.1']) {
     const calls = jsx.split(gate.setter + '(').length - 1;
     const k = jsx.indexOf(setCall, gate.at);
     const near = k > 0 ? jsx.slice(k - 80, k + 220) : '';
-    calls === 1 && /const sync = \(\) => $/.test(jsx.slice(k - 80, k)) && near.includes('window.addEventListener(SHELL_SCHED_CHANNEL, sync)')
+    calls === 1 && /const follow = \(\) => $/.test(jsx.slice(k - 80, k)) && near.includes('window.addEventListener(SHELL_SCHED_CHANNEL, follow)')
       ? pass('O10b ' + gate.name + ' is re-synced only to ezikWidgetDataCapability === \'supported\' on every ' + 'scheduler reply')
       : fail('O10b ' + gate.name + ' is not re-synced (only) from ezikWidgetDataCapability on the scheduler channel');
   }
