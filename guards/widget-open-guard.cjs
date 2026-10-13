@@ -94,7 +94,8 @@ function boot(opts) {
   seed.ezik_prayer_prefs_v1 = JSON.stringify({ method: 'kuwait', asr: 'standard', off: { fajr: 2 } });
   seed.adhkar_favorites_v1 = JSON.stringify(['adhkar_sabah:0']);
   // ITEM 110, the call-to-prayer card public (13 October 2026): a reader already asked about it, so a widget-data
-  // reply cannot draw it in the scene that proves those replies silent; widget-adhan-card proves the drawing itself.
+  // reply cannot draw it in the scenes that prove those replies silent (widget-reply-silence) and unpersisted
+  // (widget-supported-failure, ruling of side session 24+58); widget-adhan-card proves the drawing itself.
   if (opts.adhanAsked) seed.ezik_110_adhan_asked_v1 = '1';
   window.localStorage = makeStore(seed, storageWrites, 'local');
   window.sessionStorage = makeStore({}, storageWrites, 'session');
@@ -771,7 +772,7 @@ async function runScene(name, mutant) {
   };
   const c = boot({ profile: name !== 'onboarding', consent: name !== 'chat-consent',
     shell: name.startsWith('widget-') || name === 'adhan' || name === 'adhan-legacy-hidden' || name.startsWith('adhan-supported-'),
-    deferFixtures: name === 'widget-inflight-rejection', offline: name === 'offline', adhanAsked: name === 'widget-reply-silence', mutant });
+    deferFixtures: name === 'widget-inflight-rejection', offline: name === 'offline', adhanAsked: name === 'widget-reply-silence' || name === 'widget-supported-failure', mutant });
   if (c.notApplied) return { notApplied: true, results, notes };
   try { await SCENES[name](c, t, notes); } catch (e) { results.push({ label: 'scene threw: ' + String(e && e.message), ok: false }); }
   if (c.caught()) results.push({ label: 'runtime error: ' + String(c.caught()), ok: false });
