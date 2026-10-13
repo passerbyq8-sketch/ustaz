@@ -1,0 +1,103 @@
+[
+  {
+    "name": "القرآن وعلومه",
+    "religious": true,
+    "ids": [
+      "quran",
+      "juz-amma",
+      "juz-tabarak",
+      "tajweed"
+    ]
+  },
+  {
+    "name": "العقيدة والعبادة",
+    "religious": true,
+    "ids": [
+      "deen",
+      "asmaa-husna",
+      "prayer",
+      "easy-fiqh",
+      "adhkar",
+      "manners"
+    ]
+  },
+  {
+    "name": "السنّة والسيرة",
+    "religious": true,
+    "ids": [
+      "hadith",
+      "seerah",
+      "ghazawat",
+      "sahaba",
+      "mothers-ahlulbayt",
+      "prophets"
+    ]
+  },
+  {
+    "name": "التاريخ الإسلامي",
+    "religious": true,
+    "ids": [
+      "islamic-history",
+      "rashidun",
+      "umayyad",
+      "abbasid",
+      "ayyubid",
+      "mamluk",
+      "ottoman",
+      "muslim-scientists",
+      "islamic-architecture"
+    ]
+  },
+  {
+    "name": "الكويت والخليج",
+    "religious": false,
+    "ids": [
+      "kuwait-history",
+      "kuwait-sea-heritage",
+      "kuwait-old-life",
+      "horses-camels-falcons",
+      "palm-plants"
+    ]
+  },
+  {
+    "name": "اللغة والأدب",
+    "religious": false,
+    "ids": [
+      "arabic-language",
+      "poetry-fusha",
+      "poetry-nabati",
+      "proverbs",
+      "riddles-logic"
+    ]
+  },
+  {
+    "name": "العلوم",
+    "religious": false,
+    "ids": [
+      "physics",
+      "chemistry",
+      "biology",
+      "math",
+      "human-body",
+      "astronomy",
+      "earth-weather",
+      "inventions",
+      "tech-computing"
+    ]
+  },
+  {
+    "name": "العالم والحياة",
+    "religious": false,
+    "ids": [
+      "geography",
+      "world-history",
+      "arab-world",
+      "animals",
+      "marine-life",
+      "fitness-health",
+      "first-aid",
+      "money-economy",
+      "cuisine"
+    ]
+  }
+]
