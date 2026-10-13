@@ -518,10 +518,6 @@
    "cat": "other"
   },
   {
-   "text": "الشرح",
-   "cat": "surah-map-or-normaliser"
-  },
-  {
    "text": "الشرطُ الأوّل: البطاقةُ ملخَّصٌ بسيطٌ جدًّا بتصرُّف. وإن كان الجوابُ طويلًا فخذْ لُبَّه لا ترتيبَه.",
    "cat": "model-prompt-or-attribution-vocabulary"
   },
@@ -1984,6 +1980,14 @@
   {
    "text": "ءا",
    "cat": "surah-map-or-normaliser"
+  },
+  {
+   "text": "الأربعين النووية — alnawawiforty.com",
+   "cat": "stored-content-kept-arabic"
+  },
+  {
+   "text": "صوتيات الشرح: قناة الشيخ محمد بن صالح العثيمين — youtube.com/@ALUthaymeen",
+   "cat": "stored-content-kept-arabic"
   }
  ]
 }
