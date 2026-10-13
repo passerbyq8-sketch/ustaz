@@ -332,7 +332,7 @@ const IDLE = [
   // the list never need it, and the app asks for it only the first time a reader opens a hadith.
   // It is warmed here, after the boot goes idle, so a reader who has visited once can read the
   // explanation with no network. Under the 2.5 MB line this list keeps for a file of this kind:
-  // 270547 bytes. The audio itself is never stored by this worker.
+  // 270704 bytes. The audio itself is never stored by this worker.
   '/arbaeen-sharh.json',
 ];
 const IDLE_BACKSTOP_MS = 1500;
