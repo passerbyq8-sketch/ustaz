@@ -705,5 +705,10 @@
     "name": "memorizer86nospend",
     "script": "guards/memorizer86-nospend-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "arbaeensharh",
+    "script": "guards/arbaeen-sharh-guard.cjs",
+    "args": ""
   }
 ]

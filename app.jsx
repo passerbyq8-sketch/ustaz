@@ -959,17 +959,25 @@ const EZ_I18N = {
     'module.fatwa': 'فتاوى',
     'module.memorize.sub': '\u{0627}\u{062D}\u{0641}\u{0638} \u{0648}\u{0631}\u{0627}\u{062C}\u{0639}',
     'module.adhkar.sub': '\u{0623}\u{0630}\u{0643}\u{0627}\u{0631} \u{0627}\u{0644}\u{0635}\u{0628}\u{0627}\u{062D} \u{0648}\u{0627}\u{0644}\u{0645}\u{0633}\u{0627}\u{0621}',
-    // ITEM 89. The section's name is the book's name, and the line under it is the book's own
-    // full title -- the Forty WITH Ibn Rajab's additions, which is why the section holds fifty
-    // and not forty. Neither string is composed here: the first is the owner's, the second is
-    // the corpus's own book_title, copied.
+    // ITEM 89. The section's name is the book's name. The line under it is, since 2026-10-13, the
+    // description alnawawiforty.com prints under its own name in the header of every page, copied
+    // as it stands: the section is the site's forty-two, with their explanation and audio.
     'module.arbaeen': '\u{0627}\u{0644}\u{0623}\u{0631}\u{0628}\u{0639}\u{0648}\u{0646} \u{0627}\u{0644}\u{0646}\u{0648}\u{0648}\u{064a}\u{0629}',
-    'module.arbaeen.sub': '\u{0627}\u{0644}\u{0623}\u{0631}\u{0628}\u{0639}\u{0648}\u{0646} \u{0627}\u{0644}\u{0646}\u{0648}\u{0648}\u{064a}\u{0629} \u{0645}\u{0639} \u{0632}\u{064a}\u{0627}\u{062f}\u{0627}\u{062a} \u{0627}\u{0628}\u{0646} \u{0631}\u{062c}\u{0628}',
+    'module.arbaeen.sub': 'شرح وصوتيات',
     // ITEM 1-A. The reader's two moves. They are WORDS and not arrows on purpose: an arrow has
     // to know which way «forward» points, and this section is read right-to-left in one
     // language and left-to-right in the other. A word points the same way in both.
     'arbaeen.prev': '\u{0627}\u{0644}\u{0633}\u{0627}\u{0628}\u{0642}',
     'arbaeen.next': '\u{0627}\u{0644}\u{062A}\u{0627}\u{0644}\u{064A}',
+    // ITEM 89 (2026-10-13). The reader under each hadith: the explanation, by name only where the
+    // archive proved it, the audio, the narrator and the source; and the line drawn when the
+    // explanation could not be fetched.
+    'arbaeen.sharh': 'الشرح',
+    'arbaeen.sharhBy': 'شرح الشيخ {name}',
+    'arbaeen.rawi': 'الراوي',
+    'arbaeen.audioAria': 'المقطع الصوتي للشرح',
+    'arbaeen.source': 'المصدر',
+    'arbaeen.sharhOffline': 'الشرح يحتاج اتصالًا بالإنترنت',
     'module.mushaf.sub': '\u{0627}\u{0642}\u{0631}\u{0623} \u{0648}\u{062A}\u{0627}\u{0628}\u{0639} \u{0648}\u{0631}\u{062F}\u{0643}',
     'module.treasure.sub': '\u{062A}\u{0639}\u{0644}\u{0651}\u{0645} \u{0628}\u{0627}\u{0644}\u{0644}\u{0639}\u{0628}',
     'module.fatwa.sub': 'بحث موثّق بالسؤال والجواب',
@@ -2537,9 +2545,15 @@ const EZ_I18N = {
     'module.memorize.sub': 'Memorise and review',
     'module.adhkar.sub': 'Morning and evening adhkar',
     'module.arbaeen': 'The Forty Hadith',
-    'module.arbaeen.sub': 'Fifty hadith, with Ibn Rajab’s additions',
+    'module.arbaeen.sub': 'With explanation and audio',
     'arbaeen.prev': 'Previous',
     'arbaeen.next': 'Next',
+    'arbaeen.sharh': 'Explanation',
+    'arbaeen.sharhBy': 'Explanation by Sheikh {name}',
+    'arbaeen.rawi': 'The narrator',
+    'arbaeen.audioAria': 'Audio of the explanation',
+    'arbaeen.source': 'Source',
+    'arbaeen.sharhOffline': 'The explanation needs an internet connection',
     'module.mushaf.sub': 'Read, and keep your wird',
     'module.treasure.sub': 'Learn through play',
     'module.fatwa.sub': 'Verified questions and answers',
@@ -4706,9 +4720,14 @@ const loadAdhkar = () => {
 };
 // ITEM 89. THE FORTY, AS A THIRD STORE OF THE SAME SHAPE.
 //
-// arbaeen.json is built from the atoms of FC-001977 -- «الأربعون النووية مع زيادات ابن رجب» -- and
-// every character in it is a byte copy of that corpus. NOTHING BELOW EDITS IT, REWRITES IT OR
-// NORMALISES IT: it is fetched, parsed and read, exactly as adhkar.json is.
+// SINCE 2026-10-13 arbaeen.json IS THE FORTY-TWO OF alnawawiforty.com, and it replaced the fifty
+// of FC-001977 (the Forty with Ibn Rajab's additions) whole. tools/arbaeen-sharh-build.cjs builds
+// it from the site's own pages, archived raw outside the tree: every character of a hadith's
+// text is the site's -- entities decoded and whitespace folded the way a browser folds it on
+// display, and nothing else. NOTHING BELOW EDITS IT, REWRITES IT OR NORMALISES IT: it is fetched,
+// parsed and read, exactly as adhkar.json is. Its shape did not change, so this loader and the
+// widget read the forty-two as they read the fifty -- and a store of the fifty still on a device
+// reads too, which is what `source` below tells apart.
 //
 // THE CHANNEL IS A FILE, and that is the whole of the section's supply. There is no service
 // behind it, no model call, no retrieval and no second request -- the reader who opens the
@@ -4733,6 +4752,7 @@ const loadArbaeen = () => {
         // the file is already the array the section draws, and a second ordering here would be
         // a second opinion about a book that has only one.
         __arbaeenData = {
+          source: raw.source || null,
           book_title: raw.book_title || null,
           author: raw.author || null,
           count: raw.count || 0,
@@ -4744,56 +4764,42 @@ const loadArbaeen = () => {
   }
   return __arbaeenPromise;
 };
-// ITEM 4. THE EDITION'S FOOTNOTES, AS A FILE BESIDE THE CORPUS.
+// ITEM 89 (2026-10-13). THE EXPLANATION, THE NARRATOR AND THE AUDIO, AS A SECOND FILE.
 //
-// THE DEFECT THIS ANSWERS. arbaeen.json carries the print edition's footnote markers inside the
-// hadith text -- 55 of them, "(1)" fifty times and "(2)" five times -- and until this file
-// existed the application answered none of them. The reader met a number that pointed at
-// nothing. The footnote TEXT was never in the corpus; it is in the source atoms, and
-// tools/arbaeen-footnotes-build.cjs is what joins the two.
+// arbaeen-sharh.json is built by the same tool from the same pages: for each of the forty-two,
+// the site's explanation and its narrator note as paragraphs, the address of the recorded
+// explanation on the site's own audio host, and the page it came from -- keyed by the hadith's
+// own number, "1" .. "42". The site's text is data and is drawn as text, never as markup.
 //
-// A SECOND FILE AND NOT AN EDIT TO THE CORPUS. arbaeen.json is a byte copy of FC-001977 and
-// stays one: it is not rewritten, not normalised and not annotated. This is the same shape
-// adhkar-split-27.json already has over adhkar.json -- a presentation layer beside the source.
+// IT IS NOT IN THE WORKER'S CORE, and it is not fetched at boot or when the section opens. It
+// is asked for the FIRST time a reader opens a hadith, so a reader who only scans the list never
+// pays for it. The worker warms it after the boot goes idle (IDLE in sw.js), so a reader who has
+// visited once reads the explanation offline; the audio itself is never stored by this app.
 //
-// THE SHAPE IS THE MAP ITSELF: keyed by the hadith's own number, then by the footnote number,
-// holding the footnote text. { "1": { "1": "...", "2": "..." }, "2": { "1": "..." }, ... }
-// There is no wrapper and no metadata, because every top-level key is a hadith number.
-//
-// WHAT IS NOT IN IT IS THE POINT. The join is refused whenever it is not certain -- a footnote
-// blob in the atoms is PAGE-level and can belong to a paragraph that is not this hadith, so a
-// blob reached by two entries is refused for both, a blob whose numbering does not run 1, 2, 3
-// is refused whole, and an entry whose text asks for a number the blob does not carry is
-// refused whole. Nothing is inferred from position, order or plausibility. A number that is
-// missing here is a number the reader must not be shown, and the reader is not shown it: the
-// mark is removed from the displayed text rather than left pointing at nothing.
-//
-// IT IS IN THE WORKER'S CORE, beside arbaeen.json, for the reason arbaeen.json is: a reader who
-// opens this section offline must meet the same page a reader with a network meets, and a
-// corpus that is precached while its footnotes are not would draw the text with every mark
-// stripped out of it. The two files travel together or the page differs by network state.
-//
-// AND IT IS NOT LOAD-BEARING. Every failure here resolves to NOTHING and the reader keeps
-// exactly the page that shipped before this item: the corpus's own text, marks and all. The
-// section must never break over a footnote.
-let __arbFootData = null;
-let __arbFootPromise = null;
-const loadArbaeenFootnotes = () => {
-  if (__arbFootData) return Promise.resolve(__arbFootData);
-  if (!__arbFootPromise) {
-    __arbFootPromise = Promise.resolve()
-      .then(() => fetch('/arbaeen-footnotes.json'))
-      .then((r) => { if (!r.ok) throw new Error('arbaeen footnotes fetch ' + r.status); return r.json(); })
+// AND IT IS NOT LOAD-BEARING. Its failure is caught by the screen and never reaches `failed`:
+// the hadith's text stays, and where the explanation would be the reader is told it needs a
+// connection. The promise is cleared on failure, so the next opening of the reader asks again.
+// Only a store of the forty-two has an explanation: ARB_SHARH_SOURCE is the `source` the two
+// files share, and a store of the fifty, which does not carry it, is drawn without one.
+const ARB_SHARH_SOURCE = 'alnawawiforty.com';
+let __arbSharhData = null;
+let __arbSharhPromise = null;
+const loadArbaeenSharh = () => {
+  if (__arbSharhData) return Promise.resolve(__arbSharhData);
+  if (!__arbSharhPromise) {
+    __arbSharhPromise = Promise.resolve()
+      .then(() => fetch('/arbaeen-sharh.json'))
+      .then((r) => { if (!r.ok) throw new Error('arbaeen sharh fetch ' + r.status); return r.json(); })
       .then((raw) => {
-        // The file's own object, read as it stands. No reshaping, no sort, no repair: a store
-        // that is not an object at all resolves to an empty map, which is the same page as a
-        // store that never arrived.
-        __arbFootData = (raw && typeof raw === 'object' && !Array.isArray(raw)) ? raw : {};
-        return __arbFootData;
+        // The file's own objects, read as they stand. A store that is not the expected object is
+        // the same page as a store that never arrived.
+        if (!raw || typeof raw !== 'object' || !raw.items || typeof raw.items !== 'object') throw new Error('arbaeen sharh shape');
+        __arbSharhData = { source: raw.source || null, audio_credit: raw.audio_credit || null, items: raw.items };
+        return __arbSharhData;
       })
-      .catch((e) => { __arbFootPromise = null; throw e; });
+      .catch((e) => { __arbSharhPromise = null; throw e; });
   }
-  return __arbFootPromise;
+  return __arbSharhPromise;
 };
 // ── THE SPLIT OF CATEGORY 27, AS A SECOND STORE ─────────────────────────────────────────────
 // adhkar-split-27.json is the OWNER'S OWN FILE: authored in chat, approved by the owner, and
@@ -17180,15 +17186,17 @@ function IstanaAdhkarReader(v) {
 // here cannot reach a section the reader already depends on.
 //
 // WHAT IT DELIBERATELY DOES NOT HAVE, each because it was decided against rather than forgotten:
-//   - no commentary. The book's text is shipped; no explanation of it is, in this first cut.
-//   - no search inside the section. Fifty entries in the book's own order is a list, not a corpus.
+//   - no commentary of its own. Since 2026-10-13 the explanation, the narrator and the audio
+//     of alnawawiforty.com are shown under each hadith (arbaeen-sharh.json), copied and named,
+//     and the explanation is ascribed to a scholar only where the archive measurement proved it.
+//   - no search inside the section. Forty-two entries in the site's own order is a list.
 //   - no takhrij. The source is NAMED -- the book and the entry's own number -- and it is not
 //     graded, traced or ruled on here. Naming a source and vouching for it are different acts.
 //   - no progress, no favourites, no streak, no counter. The adhkar screen has all four; they
 //     belong to a devotional routine and this is a book, so none of them was copied over.
 //
-// THE PAGE IS PRINTED ONLY WHEN THE CORPUS SAYS IT MAY BE. Every one of the fifty atoms carries
-// page_citable = false, so the attribution below names the book and the entry and states NO page
+// THE PAGE IS PRINTED ONLY WHEN THE CORPUS SAYS IT MAY BE. Every one of the forty-two carries
+// page_citable = false (a web page has no printed page; the fifty of FC-001977 carried it too), so the attribution below names the book and the entry and states NO page
 // at all. That is not an omission: a page number from an edition the corpus will not vouch for is
 // a citation a reader could follow to the wrong place, and this section would rather say less.
 // ===== ITEM 3 -- ARBAEEN TOPIC DERIVATION (BEGIN) =====
@@ -17249,6 +17257,9 @@ function arbaeenTrimTail(str) {
 // what lets tools/arbaeen-nav-measure.cjs lift it straight out of this file and run it over the
 // corpus without mounting anything.
 function arbaeenTopic(h) {
+  // ITEM 89 (2026-10-13): the forty-two carry their own subject -- the site's heading, copied --
+  // and it is drawn as it stands. Everything below still answers a store of the fifty.
+  if (h && h.topic) return h.topic;
   const raw = (h && h.text) || '';
   const ordinal = (h && h.title) || '';
   const win = raw.slice(0, ARB_TOPIC_WINDOW);
@@ -17285,58 +17296,6 @@ function arbaeenTopic(h) {
   return elided ? seg + '\u2026' : seg;
 }
 // ===== ITEM 3 -- ARBAEEN TOPIC DERIVATION (END) =====
-// ===== ITEM 4 -- ARBAEEN FOOTNOTE MARKS (BEGIN) =====
-// THE MARK IN THE TEXT, AND WHAT MAY ANSWER IT. The corpus carries the print edition's footnote
-// markers inside the hadith -- "(1)" and "(2)", 55 of them across the fifty entries, each one
-// preceded by a single space. arbaeen-footnotes.json carries the text of the ones that could be
-// joined to their footnote WITH CERTAINTY, and deliberately carries nothing for the rest.
-//
-// A MARK THAT NOTHING ANSWERS IS REMOVED, NOT DIMMED AND NOT LEFT STANDING. A reader shown a
-// number with no note under it has been shown a broken reference, which is worse than not
-// having been shown a footnote at all. The space in front of the mark goes with it, because the
-// corpus puts one there and leaving it behind would leave the sentence double-spaced in front
-// of its own full stop.
-//
-// PURE, AND IT RETURNS DATA RATHER THAN ELEMENTS: a list of {t} text runs and {mark, num}
-// markers, in the text's own order. Nothing here knows what a span is, which is what lets the
-// same function be read and run outside a browser.
-//
-// THE CALLER DECIDES WHAT "NO STORE" MEANS. This is called only when the store actually loaded.
-// A bag of null then means THIS ENTRY has no certain footnote, so every mark in it is dropped;
-// a store that never arrived is a different case and is answered above the call, by drawing the
-// corpus's own string exactly as it shipped.
-const ARB_MARK_SRC = '\\((\\d+)\\)';
-function arbaeenMarkSplit(text, bag) {
-  const src = String(text || '');
-  const parts = [];
-  const re = new RegExp(ARB_MARK_SRC, 'g');
-  let last = 0;
-  let m;
-  while ((m = re.exec(src)) !== null) {
-    const num = Number(m[1]);
-    const known = !!bag && Object.prototype.hasOwnProperty.call(bag, String(num));
-    if (known) {
-      parts.push({ t: src.slice(last, m.index) });
-      parts.push({ mark: m[0], num: num });
-    } else {
-      // The one space in front of the mark is eaten with it, and only if it is actually there.
-      const cut = (m.index > 0 && src.charAt(m.index - 1) === ' ') ? m.index - 1 : m.index;
-      parts.push({ t: src.slice(last, cut) });
-    }
-    last = m.index + m[0].length;
-  }
-  parts.push({ t: src.slice(last) });
-  return parts.filter((p) => p.mark || p.t !== '');
-}
-// THE LIST IS BUILT FROM THE MARKS THAT SURVIVED, not from the store's keys, so the numbered
-// list under the text and the numbers inside the text cannot disagree. In the text's own order,
-// and each number once however many times the text repeats it.
-function arbaeenMarkList(parts) {
-  const out = [];
-  for (const p of parts) if (p.mark && !out.some((q) => q.num === p.num)) out.push(p);
-  return out;
-}
-// ===== ITEM 4 -- ARBAEEN FOOTNOTE MARKS (END) =====
 
 function ArbaeenScreen({ onBack }) {
   // ONE loader call, the store's own objects, and no reshaping of any of them -- the adhkar
@@ -17354,11 +17313,11 @@ function ArbaeenScreen({ onBack }) {
   const [db, setDb] = useState(null);
   const [failed, setFailed] = useState(false);
   const [selIdx, setSelIdx] = useState(null);
-  // ITEM 4. THE FOOTNOTES, HELD SEPARATELY AND NEVER BLOCKING. null is not "loading" here, it is
-  // "no store" -- the two are the same page, and that page is the one this section shipped with:
-  // the corpus's own text, marks and all. Nothing below waits on this and nothing below fails
-  // because of it, which is what "the section must never break over a footnote" means in code.
-  const [notes, setNotes] = useState(null);
+  // ITEM 89 (2026-10-13). THE EXPLANATION, HELD SEPARATELY AND NEVER BLOCKING. null is "not
+  // yet" and sharhFailed is "did not arrive"; neither touches `failed`, so the list and the
+  // hadith's text are drawn whatever happens to that file.
+  const [sharh, setSharh] = useState(null);
+  const [sharhFailed, setSharhFailed] = useState(false);
   // ITEM 1-B. WHERE THE READER WAS, AND WHY IT IS A REF AND NOT STATE. Returning from the reader
   // unmounts nothing that owns this value and re-mounts the browse, which reads it once on its
   // way in; nothing re-renders because of it, so it is not state. It is the ENTRY'S OWN NUMBER
@@ -17371,10 +17330,6 @@ function ArbaeenScreen({ onBack }) {
   useEffect(() => {
     let alive = true;
     loadArbaeen().then((d) => { if (alive) setDb(d); }).catch(() => { if (alive) setFailed(true); });
-    // A SECOND REQUEST AND A SEPARATE FATE. It does not gate the corpus, it does not set `failed`,
-    // and its rejection is swallowed here rather than raised: the section draws the book whether
-    // or not this one ever lands.
-    loadArbaeenFootnotes().then((f) => { if (alive) setNotes(f); }).catch(() => {});
     return () => { alive = false; };
   }, []);
   const list = (db && db.hadith) || [];
@@ -17382,6 +17337,17 @@ function ArbaeenScreen({ onBack }) {
   // A stored index that names nothing -- a store that arrived short, a store that has not landed
   // yet -- is not a crash and is not a blank reader. It is the browse.
   const cur = open ? (list[selIdx] || null) : null;
+  // ITEM 89 (2026-10-13). THE FIRST OPENING OF THE READER is what asks for the explanation -- not
+  // the opening of the section, and not the boot. A failure is kept here and nowhere else, and a
+  // later opening asks again because the loader forgot the failed promise.
+  const wantSharh = open && !!cur && !!db && db.source === ARB_SHARH_SOURCE;
+  useEffect(() => {
+    if (!wantSharh || sharh) return undefined;
+    let alive = true;
+    setSharhFailed(false);
+    loadArbaeenSharh().then((d) => { if (alive) setSharh(d); }).catch(() => { if (alive) setSharhFailed(true); });
+    return () => { alive = false; };
+  }, [wantSharh, sharh]);
   // S91: the reader's own back presses the application back, which spends the entry this layer
   // took when it opened and then runs the closer through the registry -- the same closer, reached
   // by the same route the device button uses. The layer is armed only when a reader is actually
@@ -17398,7 +17364,8 @@ function ArbaeenScreen({ onBack }) {
   };
   if (open && cur) {
     return (
-      <IstanaArbaeenReader doc={db} h={cur} i={selIdx} total={list.length} notes={notes}
+      <IstanaArbaeenReader doc={db} h={cur} i={selIdx} total={list.length}
+        withSharh={wantSharh} sharh={sharh} sharhFailed={sharhFailed}
         onPrev={() => goTo(Math.max(0, selIdx - 1))}
         onNext={() => goTo(Math.min(list.length - 1, selIdx + 1))}
         onBack={ezikGoBack} />
@@ -17493,7 +17460,7 @@ function IstanaArbaeenBrowse({ onBack, doc, failed, onOpen, place }) {
 }
 
 // THE READER. ONE entry, its text as a text child, and the attribution under it.
-function IstanaArbaeenReader({ doc, h, i, total, notes, onPrev, onNext, onBack }) {
+function IstanaArbaeenReader({ doc, h, i, total, withSharh, sharh, sharhFailed, onPrev, onNext, onBack }) {
   // THE ATTRIBUTION, AND WHAT IT MAY SAY. The book's title and the entry's own heading, both
   // copied from the corpus. The page is appended ONLY when the corpus marked this entry citable;
   // it never has, so no page is drawn, and nothing stands in for one.
@@ -17508,14 +17475,20 @@ function IstanaArbaeenReader({ doc, h, i, total, notes, onPrev, onNext, onBack }
         ? toArabicDigits(h.page_start) + '-' + toArabicDigits(h.page_end)
         : toArabicDigits(h.page_start))
     : '';
-  // ITEM 4. THE MARKS AND THEIR NOTES. `notes` null is no store at all, and then `parts` is null
-  // and the corpus's own string is drawn as a text child -- byte for byte what this section drew
-  // before this item existed, marks and all. With a store, the split decides every mark on its
-  // own: one the store answers stays where the corpus put it, one it does not is taken out of
-  // the sentence with the space in front of it.
-  const bag = (notes && Object.prototype.hasOwnProperty.call(notes, String(h.n))) ? notes[String(h.n)] : null;
-  const parts = notes ? arbaeenMarkSplit(h.text, bag) : null;
-  const shown = parts ? arbaeenMarkList(parts) : [];
+  // ITEM 89 (2026-10-13). THIS HADITH'S EXPLANATION, NARRATOR AND AUDIO, from the second file.
+  // All three links -- the audio, its credit and the source page -- come from the data, and each
+  // passes ezikFatwaPublicUrl as the fatwa card's do: a value that is not an http(s) address
+  // draws nothing. The audio element is keyed by the hadith's number, so a move to the previous
+  // or the next hadith, or back to the list, unmounts it and the browser stops it; there is no
+  // play or pause call anywhere in this section.
+  const item = (withSharh && sharh && sharh.items && sharh.items[String(h.n)]) || null;
+  const credit = (sharh && sharh.audio_credit) || null;
+  const audioUrl = (item && item.audio) ? ezikFatwaPublicUrl(item.audio.url) : '';
+  const creditUrl = credit ? ezikFatwaPublicUrl(credit.url) : '';
+  const sourceUrl = ezikFatwaPublicUrl(h.source_url);
+  const sharhParas = (item && Array.isArray(item.sharh)) ? item.sharh : [];
+  const rawiParas = (item && Array.isArray(item.rawi)) ? item.rawi : [];
+  const sharhOpen = withSharh && (!!item || !sharh);
   return (
     <div className="theme-dark adhkar3" style={s.eziaReadContainer}>
       <div className="ezia-nav">
@@ -17535,39 +17508,40 @@ function IstanaArbaeenReader({ doc, h, i, total, notes, onPrev, onNext, onBack }
               <span style={s.eziaReadHead}>
                 <span style={s.eziaReadPos}>{toArabicDigits(h.n)} / {toArabicDigits((doc && doc.count) || 0)}</span>
               </span>
-              {/* the corpus's own text, rendered as a text child -- and, when the footnote store
-                  is there, as the same string cut into runs around its marks. Not one character
-                  of the corpus is rewritten either way: the only thing the split can do is leave
-                  a mark out, and it leaves out exactly the ones nothing answers. */}
-              <div style={s.eziaReadText}>{parts
-                ? parts.map((p, k) => (p.mark
-                  ? <span key={'m' + k} style={s.eziaMark}>{p.mark}</span>
-                  : p.t))
-                : h.text}</div>
+              {/* the store's own text, as a text child: the site's paragraphs, one per line */}
+              <div style={s.eziaArbText} data-ez-keep="1">{h.text}</div>
               <div style={s.eziaReadSource}>{book}{book && h.title ? ' \u2014 ' : ''}{h.title}{page ? ' \u2014 ' + page : ''}</div>
-              {/* ITEM 4. THE FOOTNOTES, UNDER THE ATTRIBUTION AND ABOVE THE TWO MOVES. They are
-                  the text's own matter, so they sit with the text; the move row is the section's
-                  chrome and stays the last thing in the panel, where the reader's thumb has
-                  always found it.
-                  THE LIST IS DRAWN FROM THE MARKS THAT SURVIVED, so a number here is a number
-                  the reader can see above it, and there is no row for a note the text no longer
-                  asks for. An entry with none draws nothing at all -- no list, no rule, and no
-                  heading standing over an empty space.
-                  THE MARKER IS THE CORPUS'S OWN GLYPHS, "(1)" in latin digits, and not the
-                  arabic-indic digits this section counts its cards in. The reader joins the two
-                  by matching what they see, and a list numbered \u00ab\u0661\u00bb under a text marked "(1)"
-                  would be two numbering systems for one reference. It is an <ol> so that it is
-                  announced as a list, with its own markers suppressed and the corpus's drawn in
-                  their place. */}
-              {shown.length ? (
-                <ol style={s.eziaNoteList}>
-                  {shown.map((p) => (
-                    <li key={p.num} style={s.eziaNoteRow}>
-                      <span style={s.eziaNoteNum}>{p.mark}</span>
-                      <span style={s.eziaNoteText}>{bag[String(p.num)]}</span>
-                    </li>
-                  ))}
-                </ol>
+              {/* ITEM 89 (2026-10-13). Under the attribution, in this order: the explanation's heading,
+                  its paragraphs, the audio under them with its credit, the narrator, and the source.
+                  '...' while the file is on its way, as the list says it; the offline sentence when
+                  it did not arrive. All of it is the site's text and is marked to stay as it is. */}
+              {sharhOpen ? (
+                <section style={s.eziaSharh}>
+                  <h2 style={s.eziaSharhHead}>{(item && item.sharh_by)
+                    ? ezT('arbaeen.sharhBy', { name: item.sharh_by })
+                    : ezT('arbaeen.sharh')}</h2>
+                  {item
+                    ? sharhParas.map((p, k) => <p key={k} style={s.eziaSharhPara} data-ez-keep="1">{p}</p>)
+                    : <p style={s.eziaSharhWait}>{sharhFailed ? ezT('arbaeen.sharhOffline') : '...'}</p>}
+                  {audioUrl ? (
+                    <audio key={h.n} controls preload="none" src={audioUrl}
+                      aria-label={ezT('arbaeen.audioAria')} style={s.eziaAudio} />
+                  ) : null}
+                  {audioUrl && credit && credit.text ? (
+                    creditUrl
+                      ? <a href={creditUrl} target="_blank" rel="noopener noreferrer" style={s.eziaCredit} data-ez-keep="1">{credit.text}</a>
+                      : <span style={s.eziaCredit} data-ez-keep="1">{credit.text}</span>
+                  ) : null}
+                  {rawiParas.length ? (
+                    <React.Fragment>
+                      <h2 style={s.eziaSharhHead}>{ezT('arbaeen.rawi')}</h2>
+                      {rawiParas.map((p, k) => <p key={k} style={s.eziaSharhPara} data-ez-keep="1">{p}</p>)}
+                    </React.Fragment>
+                  ) : null}
+                </section>
+              ) : null}
+              {sourceUrl ? (
+                <a href={sourceUrl} target="_blank" rel="noopener noreferrer" style={s.eziaSourceLink}>{ezT('arbaeen.source')}</a>
               ) : null}
               {/* ITEM 1-A. THE TWO MOVES, under the text, in the section's own card language.
                   Both buttons are ALWAYS DRAWN. At the first entry the previous one is dimmed
@@ -25804,6 +25778,15 @@ const EZIK_SOURCES_SECTIONS = [
     k: 'sources.fiqh',
     lines: [
       'الموسوعة الفقهية الكويتية',
+    ],
+  },
+  {
+    // ITEM 89 (2026-10-13). The site the forty-two, their explanation and their audio are taken
+    // from, by the name its own index page carries, and the channel its pages credit the audio to.
+    k: 'module.arbaeen',
+    lines: [
+      'الأربعين النووية — alnawawiforty.com',
+      'صوتيات الشرح: قناة الشيخ محمد بن صالح العثيمين — youtube.com/@ALUthaymeen',
     ],
   },
   {
@@ -39386,24 +39369,18 @@ const s = {
   eziaReadRepeat: { padding: '3px 9px', borderRadius: 999, background: 'var(--a3-ice)', color: 'var(--a3-blue)', fontSize: 12, fontWeight: 800 },
   eziaReadText: { color: 'var(--a3-ink)', fontSize: 20, lineHeight: 2.15, textAlign: 'center', fontFamily: "'Amiri', serif", margin: '10px 0 8px' },
   eziaReadSource: { color: 'var(--a3-muted)', fontSize: 12, fontWeight: 600, textAlign: 'center' },
-  // ITEM 4. THE FOOTNOTE MARK INSIDE THE HADITH. Small and dimmed and nothing else: no box, no
-  // underline, no cursor, no handler and no tabIndex -- it is a reference, not a control, and a
-  // mark that looked pressable would be a promise this section does not keep. The size is a
-  // NUMBER and not an em: this section's sizes are scaled by the reader's own text-size setting,
-  // and that multiplier reaches a number. An em would have ridden on the corpus's 20px and been
-  // the one glyph on the page that ignored the setting -- themecoverage tests exactly that, and
-  // failed on '0.6em' before this line was a 12. The colour is the one the attribution line
-  // under it already dims to.
-  eziaMark: { fontSize: 12, verticalAlign: 'super', lineHeight: 1, color: 'var(--a3-muted)', fontFamily: 'var(--ez-ui-font)' },
-  // THE LIST ITSELF. Under the attribution, separated from it by the same hairline the section
-  // draws everywhere else, smaller than the corpus and dimmer than it -- it is apparatus, and it
-  // must not compete with the hadith. `listStyle: none` because the markers are the corpus's own
-  // "(1)" and are drawn as content; the <ol> is kept for what it announces, not for what it
-  // paints. Aligned to the right, which is the start of the line in this section's direction.
-  eziaNoteList: { listStyle: 'none', margin: '12px 0 0', padding: '10px 0 0', borderTop: '1px solid var(--a3-line)', textAlign: 'right' },
-  eziaNoteRow: { display: 'flex', alignItems: 'flex-start', gap: 6, margin: '0 0 6px' },
-  eziaNoteNum: { flex: '0 0 auto', color: 'var(--a3-blue)', fontSize: 11, fontWeight: 800, lineHeight: 1.85, fontFamily: 'var(--ez-ui-font)' },
-  eziaNoteText: { flex: 1, minWidth: 0, color: 'var(--a3-muted)', fontSize: 12.5, lineHeight: 1.85, fontFamily: "'Amiri', serif" },
+  // ITEM 89 (2026-10-13). The forty-two's text, kept to the site's paragraphs one per line, and
+  // under it the explanation, its audio and credit, the narrator and the source link. Colours
+  // are the section's own variables and every size is a number, so the reader's text-size
+  // setting reaches all of it.
+  eziaArbText: { color: 'var(--a3-ink)', fontSize: 20, lineHeight: 2.15, textAlign: 'center', fontFamily: "'Amiri', serif", margin: '10px 0 8px', whiteSpace: 'pre-line' },
+  eziaSharh: { margin: '14px 0 0', padding: '6px 0 0', borderTop: '1px solid var(--a3-line)', textAlign: 'start' },
+  eziaSharhHead: { margin: '10px 0 6px', fontSize: 15, fontWeight: 800, color: 'var(--a3-blue)', fontFamily: 'var(--ez-ui-font)' },
+  eziaSharhPara: { margin: '0 0 8px', color: 'var(--a3-ink)', fontSize: 16, lineHeight: 2, fontFamily: "'Amiri', serif" },
+  eziaSharhWait: { margin: '0 0 8px', color: 'var(--a3-muted)', fontSize: 13, fontWeight: 600, textAlign: 'center' },
+  eziaAudio: { display: 'block', width: '100%', margin: '10px 0 4px' },
+  eziaCredit: { display: 'block', margin: '0 0 6px', color: 'var(--a3-muted)', fontSize: 12, fontWeight: 600, textAlign: 'center' },
+  eziaSourceLink: { display: 'block', margin: '12px 0 0', color: 'var(--a3-blue)', fontSize: 13, fontWeight: 800, textAlign: 'center' },
   eziaMoveRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '14px 0 0' },
   eziaMoveBtn: { flex: 1, minWidth: 0, minHeight: 44, padding: '10px 14px', borderRadius: 999, background: 'var(--a3-ice)', color: 'var(--a3-blue)', border: '1px solid var(--a3-line)', cursor: 'pointer', fontFamily: 'var(--ez-ui-font)', fontSize: 13, fontWeight: 800 },
   eziaMoveBtnOff: { background: 'var(--a3-surface)', color: 'var(--a3-muted)', border: '1px solid var(--a3-line)', cursor: 'default', opacity: 0.55 },

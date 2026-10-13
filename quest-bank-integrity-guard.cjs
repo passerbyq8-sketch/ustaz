@@ -1965,6 +1965,8 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3480134. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
   //   2026-10-13 -- Item 86 (memorizer, phase 2: a word the owner's engine did not hear -- an ayah passed over, or the end of one left early -- is never printed: red with his switch on, a blank with it off; owner-only, cache ezik-v100): app.js 2264726 -> 2265489 bytes, sha256 0c979c9a..51a4; index.html 155556.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3480897. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57068 bytes: the store name gained a digit).
+  //   2026-10-13 -- Item 89 (arbaeen: the forty-two of alnawawiforty.com with their explanation and audio, replacing the fifty -- preview only): app.js 2265489 -> 2264873 bytes, sha256 508eccdd..30d0; index.html 155556.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3450889. arbaeen-footnotes.json LEFT CORE; arbaeen.json moved 67360 -> 47290; arbaeen-sharh.json (270547) joined IDLE last. CACHE untouched. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
   //   2026-10-13 -- Item 86 (memorizer, phase 2: an ayah left with a word he did not say takes the owner back to it -- his word of 13 October; owner-only, cache ezik-v101): app.js 2265489 -> 2266883 bytes, sha256 1e255064..bc77; index.html 155556.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3482291. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57068 bytes).
   //   2026-10-13 -- Item 86 (memorizer, phase 2: «سمِّعني» holds the owner on an ayah until it is said -- his word of 13 October, 14:28; owner-only, cache ezik-v102): app.js 2266883 -> 2270124 bytes, sha256 48ece781..1c2d; index.html 155556.
@@ -1973,7 +1975,13 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3488504. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57068 bytes).
   //   2026-10-13 -- Item 86 (memorizer, opened to everyone by the owner's word of 13 October, 18:44 -- his engine and his red stay his; cache ezik-v104): app.js 2273096 -> 2273401 bytes, sha256 6eb6083e..f28d; index.html 155556.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3488809. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57068 bytes).
-  'sw.js': 'c819dcabfff326424531d232f4472f480757a2b53e3d2ace84e4b1ac21e63ae5',
+  //   2026-10-13 -- Merge of origin/main 5540850e (item 86 v101-v102 + Kunuz) into item 89 (arbaeen): app.js rebuilt from the merged source, 2269508 bytes, sha256 361e951e..edb4; index.html 155556. CACHE ezik-v103.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3455524. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
+  //   2026-10-13 -- Merge of origin/main 8d8579b6 (item 86 phase 2 engine p2.5, cache ezik-v103; Hanna Laha picker) into item 89 (arbaeen): app.js rebuilt from the merged source, 2272480 bytes, sha256 f44e11fc..d6c0; index.html 155556. CACHE ezik-v104.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3458496. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
+  //   2026-10-13 -- Merge of origin/main d62e9e6c (item 89 arbaeen sharh, which took ezik-v104 too) into item 86 (memorizer opened to everyone): app.js rebuilt from the merged source, 2272785 bytes, sha256 efaf8d44..1760; index.html 155556. CACHE ezik-v105.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3458801. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
+  'sw.js': '9aed308fcd4c63b2af6beeca9b71dfdc410baae23459acc03ae0bcd97b607e57',
 };
 
 // ---------------------------------------------------------------------------
@@ -2035,7 +2043,7 @@ const SW_REVALIDATED = ['/adhkar.json', '/worship-display.json', '/manifest.json
 const SW_CORE = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png',
   '/icon-maskable-512.png', '/icon-watermark.png', '/adhkar.json',
   '/adhkar-split-27.json', '/arbaeen.json', '/daily-tafsir.json',
-  '/arbaeen-footnotes.json', '/sunan-day.json',
+  '/sunan-day.json',
   '/app.js', '/vendor/react.umd.js', '/vendor/react-dom.umd.js',
   '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2',
   '/fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2',
@@ -2045,7 +2053,7 @@ const SW_CORE = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png',
 // CORE_BYTES constant that has fallen below it.
 const SW_CORE_FILES = ['index.html', 'manifest.json', 'icon-192.png', 'icon-512.png',
   'icon-maskable-512.png', 'icon-watermark.png', 'adhkar.json', 'adhkar-split-27.json',
-  'arbaeen.json', 'daily-tafsir.json', 'arbaeen-footnotes.json', 'sunan-day.json',
+  'arbaeen.json', 'daily-tafsir.json', 'sunan-day.json',
   'app.js', 'vendor/react.umd.js', 'vendor/react-dom.umd.js',
   'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2',
   'fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2GHV0.woff2',
@@ -3108,7 +3116,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2273401, of: 'app.js' },
+      { n: 2272785, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
@@ -3117,11 +3125,12 @@ async function compare(bankPath) {
       { n: 7182, of: 'adhkar-split-27.json' },
       // ITEM 2. The two corpora that joined CORE on 2026-09-13 -- the forty and the daily verse's
       // tafsir -- each stated in the worker's byte table and re-derived here from the file it names.
-      { n: 67360, of: 'arbaeen.json' },
+      { n: 47290, of: 'arbaeen.json' },
       { n: 23984, of: 'daily-tafsir.json' },
-      // ITEM 4. The forty's footnotes, precached beside the corpus they answer, stated in the
-      // worker's byte table and re-derived here from the file it names.
-      { n: 9322, of: 'arbaeen-footnotes.json' },
+      // ITEM 89 (2026-10-13). The forty-two's explanation, warmed last in IDLE and out of CORE; its
+      // size is stated in the IDLE note and re-derived here from the file it names. (Item 4's
+      // footnotes left CORE with the fifty they belonged to.)
+      { n: 270547, of: 'arbaeen-sharh.json' },
       // ITEM 87. The day from waking to sleeping, the sixth corpus in CORE, stated in the
       // worker's byte table and re-derived here from the file it names.
       { n: 84759, of: 'sunan-day.json' },

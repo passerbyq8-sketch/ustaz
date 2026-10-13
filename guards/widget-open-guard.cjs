@@ -35,7 +35,7 @@ const SECTIONS = ['memorize', 'fatwa', 'lessons', 'adhkar', 'arbaeen', 'articles
   'tasbih', 'calc', 'compass', 'ayah-tafsir', 'asmaa', 'sunan-day', 'treasure'];
 const PROFILE_PID = 'W45-GUARD';
 const PROFILE = { name: 'Noor', age: 30, gender: 'male', birthYear: 1996, pid: PROFILE_PID, createdAt: '2026-01-01T00:00:00.000Z' };
-const FIXTURES = new Set(['/adhkar.json', '/adhkar-split-27.json', '/arbaeen.json', '/arbaeen-footnotes.json']);
+const FIXTURES = new Set(['/adhkar.json', '/adhkar-split-27.json', '/arbaeen.json']);
 const destination = (r) => /^adhkar_(sabah|masaa)$/.test(r) ? 'adhkar' : r;
 // R4A: where a route lands for THIS fixture's reader (he answered «male») when «ب» is lit for a guest
 const womenClosed = (c, r) => r === 'women' && (c.read('EZ110_PARTS') || {}).b === 'public' && PROFILE.gender === 'male';
