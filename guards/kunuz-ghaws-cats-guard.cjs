@@ -55,7 +55,8 @@ function run(tag, name, src, fn) {
   errs.concat(W.fails).slice(0, 10).forEach(m => console.log('   - ' + ascii(m)));
 }
 
-const chips = W => W.$('cats').childNodes.filter(n => n.nodeType === 1);
+const chips = W => { const a = []; W.$('cats').querySelectorAll('[data-cat]').forEach(b => { a[+b.dataset.cat] = b; }); return a; };
+const tapCat = (W, c) => { let b = chips(W)[c]; if (b && !W.shown(b)) { W.tap(b.parentNode.parentNode.querySelector('.kzc-gh'), 'group of ' + c); b = chips(W)[c]; } return W.tap(b, 'chip ' + c); };
 const shellsNow = W => W.doc.querySelectorAll('#shells .shell').filter(e => W.shown(e)).map(e => +e.dataset.cat);
 const pearls = W => W.doc.querySelectorAll('#opts button.opt').filter(e => W.shown(e) && !e.disabled);
 function openCfg(W, crew) {
@@ -65,7 +66,7 @@ function openCfg(W, crew) {
 function pickByChips(W, order) {
   W.tap(W.doc.querySelector('[data-q="none"]'), 'none');
   if (W.ctx.S.cats.length !== 0) W.fail('clear left ' + W.ctx.S.cats.length);
-  order.forEach(c => W.tap(chips(W)[c], 'chip ' + c));
+  order.forEach(c => tapCat(W, c));
 }
 function start(W, crew) {
   const S = W.ctx.S; S.cap = 200; S.breath = 0; S.noOpts = false;
@@ -102,7 +103,7 @@ function checks(tag, src) {
     const seen = [];
     for (let n = 0; n < 6; n++) {
       if (n < 3 && !go.disabled) W.fail('goDive enabled with ' + n + ' cats');
-      W.tap(chips(W)[order[n]], 'chip');
+      tapCat(W, order[n]);
       if (S.cats.length !== n + 1) W.fail('pick ' + (n + 1) + ' gave ' + S.cats.length);
       const want = n + 1 >= 3 && n + 1 <= 6;
       if (want === go.disabled) W.fail('goDive disabled=' + go.disabled + ' at ' + (n + 1));
@@ -110,11 +111,11 @@ function checks(tag, src) {
     }
     const seventh = chips(W)[order[6]];
     if (!seventh.disabled) W.fail('7th chip not disabled');
-    seventh.click();
+    seventh.click(); // a disabled button takes no click
     if (S.cats.length !== 6) W.fail('7th chip added: ' + S.cats.length);
     if (S.cats.join() !== order.slice(0, 6).join()) W.fail('S.cats not in pick order');
     // untick one: back to 5, every chip enabled again
-    W.tap(chips(W)[order[5]], 'untick');
+    tapCat(W, order[5]);
     if (S.cats.length !== 5 || chips(W).some(b => b.disabled)) W.fail('untick to 5 failed');
     // forced 7 (state, not UI) must still block play
     S.cats = order.slice(); W.ctx.tally();
@@ -125,7 +126,7 @@ function checks(tag, src) {
     if (S.cats.length < 3 || S.cats.length > 6) W.fail('openCfg kept ' + S.cats.length);
     // quick buttons never exceed 6
     const quick = [];
-    ['rnd', 'rel', 'sec', 'inv', 'rnd', 'inv'].forEach(q => { W.tap(W.doc.querySelector('[data-q="' + q + '"]'), q); quick.push(q + '=' + S.cats.length); if (S.cats.length > 6) W.fail(q + ' gave ' + S.cats.length); if ((S.cats.length >= 3) === go.disabled && W.ctx.avail(S.cats) >= 3) W.fail(q + ' goDive state wrong'); });
+    ['rnd', 'rel', 'sec', 'none', 'rnd', 'sec'].forEach(q => { W.tap(W.doc.querySelector('[data-q="' + q + '"]'), q); quick.push(q + '=' + S.cats.length); if (S.cats.length > 6) W.fail(q + ' gave ' + S.cats.length); if ((S.cats.length >= 3) === go.disabled && W.ctx.avail(S.cats) >= 3) W.fail(q + ' goDive state wrong'); });
     return 'steps=' + seen.join(',') + ' seventh=blocked forced7=blocked quick=' + quick.join(',');
   });
 
