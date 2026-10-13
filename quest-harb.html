@@ -284,6 +284,38 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 .kzr-lbl{display:block;color:var(--muted);font-size:.88rem;margin:0 0 4px}
 .kzr-msg{min-height:1.4em;margin:8px 0;font-size:.9rem;color:var(--ink)}
 .kzr-msg.bad{color:var(--no)}
+/* الغرفة: شريط الدور، الرقم الكبير، اللون */
+.turnbar{flex:0 0 auto;display:flex;align-items:center;gap:8px;min-height:48px;padding:4px 12px;background:#fff;
+  border-bottom:1px solid var(--line);color:var(--ink);font-family:var(--hd)}
+.turnbar.mine{background:var(--azraq);color:#fff}
+.turnbar b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.turnbar .dot{width:16px;height:16px;border-radius:5px;border:2px solid #fff;box-shadow:0 0 0 1px var(--line)}
+.tbrole{color:var(--muted);font-size:.8rem}
+.turnbar.mine .tbrole{color:#E2F3FB}
+.tbexit{min-height:44px;min-width:56px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:#fff;
+  color:var(--ghawr);font:inherit;font-size:.9rem;cursor:pointer}
+.codebig{font-family:var(--hd);font-weight:700;font-size:3.1rem;letter-spacing:.14em;text-align:center;color:var(--ghawr);
+  line-height:1.3;padding:4px 0 12px;-webkit-user-select:all;user-select:all}
+.codecard .row{gap:8px}
+.codein,.namein{width:100%;min-height:52px;background:var(--sea0);border:1px solid var(--line);border-radius:12px;
+  padding:10px 12px;font:inherit;font-size:1.2rem;color:var(--ink);text-align:center;margin-bottom:10px}
+.codein{letter-spacing:.2em;font-size:1.6rem;margin-bottom:0}
+.codein:focus,.namein:focus{outline:none;border-color:var(--azraq)}
+.sw.big{height:44px;min-width:44px}
+.palette.big{grid-template-columns:repeat(4,1fr);gap:10px}
+.lname{flex:1;min-width:0;overflow-wrap:anywhere}
+.lst{color:var(--no)}
+.pcard .dot{width:18px;height:18px;border-radius:6px}
+.pcard{min-height:48px}
+.opt:disabled{color:inherit}
+@media (min-width:900px){
+  #war{max-width:min(1040px,100vw)}
+  #war .qtext{font-size:1.5rem}
+  #war .opt{font-size:1.25rem;min-height:68px}
+  .turnbar{min-height:64px;font-size:1.35rem}
+  .codebig{font-size:5rem}
+  .wrap{max-width:760px}
+}
 </style>
 </head>
 <body>
@@ -297,8 +329,10 @@ textarea:focus{outline:none;border-color:var(--azraq)}
   <div class="brand"><h1>حرب الجزر</h1>
     <p>لعبة مجموعات · أرخبيل من اثنتي عشرة جزيرة تحمل فئاتك المختارة — تُفتح بالجواب لا بالنرد</p></div>
   <div class="rule"></div>
-  <button class="mode" data-go="cfg"><b>ابدأ حربًا</b>
-    <span>من لاعبين إلى أربعة على جهاز واحد</span></button>
+  <button class="mode" data-go="cfg"><b>جهاز واحد</b>
+    <span>من لاعبين إلى أربعة على جهاز واحد — يدور الجهاز بينكم</span></button>
+  <button class="mode" data-go="room"><b>غرفة</b>
+    <span>كلّ فريق على جهازه · يدخلون برقم الغرفة · ومن شاء شاهد على شاشة كبيرة</span></button>
   <button class="mode" data-go="how"><b>القواعد</b>
     <span>شرح كامل: الخريطة · دورك في ثلاث خطوات · النزال ونتائجه الأربع · مثال محسوب — اقرأه قبل أوّل حرب</span></button>
   <div class="kzr-row"><button type="button" data-kzr="game">الإبلاغ عن مشكلة في اللعبة</button></div>
@@ -381,6 +415,15 @@ textarea:focus{outline:none;border-color:var(--azraq)}
   </div>
 
   <div class="card">
+    <p class="lbl">الغرفة: كلّ فريق على جهازه</p>
+    <p style="margin:0 0 8px">يفتح أحدكم غرفة ويضبط الحرب كما في الجهاز الواحد، فيظهر له <b>رقم الغرفة</b>؛ يعطيه لمن يلعب معه، فيدخل كلّ فريق بجهازه ويكتب اسمه ويختار لونًا. لا غرف عامّة ولا قائمة ولا بحث — لا يدخل إلا من معه الرقم.</p>
+    <p style="margin:0 0 8px">يلعب المضيف مع فريقه من جهازه. يبدأ الحرب حين يكتمل فريقان على الأقل، <b>ولا يدخل فريق بعد البدء</b>. أمّا المشاهد فيدخل بالرقم في أيّ وقت: يرى الخريطة والنزالات حيّةً ولا يجيب ولا يتحكّم — يصلح لشاشة كبيرة.</p>
+    <p style="margin:0 0 8px">الخريطة واحدة عند الجميع لحظةً بلحظة، وفي أعلاها شريط يقول <b>دور مَن الآن</b>. جهاز الفريق صاحب الدور وحده يتحكّم، والمدافع يجيب من جهازه في نزاله. والقواعد كلّها هي نفسها.</p>
+    <p style="margin:0 0 8px"><b>إن انقطع جهاز فريق</b> يرجع بالرقم نفسه إلى فريقه نفسه. وإن غاب في دوره أكثر من <b>خمس وأربعين ثانية</b> تخطّاه الدور (وتُوزَّع رايات توزيعه إن كان في التوزيع، ويُعدّ جوابه خطأً إن كان في نزال).</p>
+    <p style="margin:0">إن خرج المضيف تستمرّ الغرفة ما دام فيها فريقان. وتُحذف الغرفة بعد انتهاء الحرب بعشر دقائق، أو بعد خمول طويل، ولا يُحفظ شيء عن اللاعبين بعدها.</p>
+  </div>
+
+  <div class="card">
     <p class="lbl">مثال محسوب</p>
     <p style="margin:0">جزيرة «الجغرافيا» عندك بأربع رايات، تهجم منها على «تاريخ الكويت» وفيها ثلاث رايات لخصمك.
     تجيب صحيحًا والخيارات كلّها حيّة ⟸ إصابة مزدوجة لا تُصدّ: تأخذ راية إلى الجغرافيا فتصير خمسًا، وتبقى لخصمك اثنتان.
@@ -409,7 +452,9 @@ textarea:focus{outline:none;border-color:var(--azraq)}
   <div class="brand"><h1 style="font-size:1.85rem">قبل الحرب</h1><p>كلّ شيء قابل للتغيير</p></div>
   <div class="rule"></div>
 
-  <div class="card">
+  <div class="card hidden" id="cfgNote"><p class="lbl">الفرق تدخل بالرقم</p>
+    <p class="sub" style="margin:0">اضبط الحرب، ثمّ افتح الغرفة: يظهر لك رقمها، ويدخل كلّ فريق بجهازه فيكتب اسمه ويختار لونه. من اثنين إلى أربعة فرق.</p></div>
+  <div class="card" id="plcard">
     <p class="lbl">اللاعبون</p><p class="sub">من اثنين إلى أربعة — اضغط المربّع الملوّن لتختار راية فريقك</p>
     <div id="plist"></div>
     <button class="btn" id="addP" style="margin-top:6px">إضافة لاعب</button>
@@ -457,6 +502,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
     <div class="chips" id="wins"></div>
   </div>
 
+  <p class="kzr-msg bad hidden" id="cfgErr" role="status"></p>
   <button class="btn" data-go="how" style="margin-bottom:12px">اقرأ القواعد أوّلًا</button>
   <div class="row">
     <button class="btn" data-go="home">رجوع</button>
@@ -468,7 +514,56 @@ textarea:focus{outline:none;border-color:var(--azraq)}
   </div>
 </section>
 
+<!-- الغرفة -->
+<section id="room" class="hidden">
+  <div class="brand"><h1 style="font-size:1.85rem">غرفة</h1><p>كلّ فريق على جهازه — ولا يدخل إلا من معه الرقم</p></div>
+  <div class="rule"></div>
+  <button class="mode" id="roomHost" type="button"><b>فتح غرفة</b>
+    <span>تضبط الحرب فيظهر لك رقم الغرفة، وتعطيه لمن تلعب معهم</span></button>
+  <button class="mode" id="roomJoin" type="button"><b>دخول برقم</b>
+    <span>معك رقم غرفة؟ ادخل فريقًا، أو شاهد الحرب على شاشة كبيرة</span></button>
+  <button class="mode hidden" id="roomBack" type="button"></button>
+  <p class="kzr-msg bad" id="roomMsg" role="status"></p>
+  <button class="btn" data-go="home">رجوع</button>
+</section>
+
+<section id="join" class="hidden">
+  <div class="brand"><h1 style="font-size:1.85rem">دخول برقم</h1><p>اكتب رقم الغرفة الذي أعطاك إيّاه المضيف</p></div>
+  <div class="rule"></div>
+  <div class="card">
+    <label class="lbl" for="joinCode">رقم الغرفة</label>
+    <input id="joinCode" class="codein" type="text" inputmode="numeric" autocomplete="off" maxlength="12" dir="ltr" placeholder="٠٠٠٠٠٠">
+  </div>
+  <p class="kzr-msg" id="joinMsg" role="status"></p>
+  <button class="btn solid" id="joinTeamBtn" type="button">دخول كفريق</button>
+  <button class="btn" id="joinWatchBtn" type="button" style="margin-top:10px">مشاهدة</button>
+  <button class="btn" data-go="room" style="margin-top:10px">رجوع</button>
+</section>
+
+<section id="lobby" class="hidden">
+  <div class="brand"><h1 style="font-size:1.6rem">غرفة الانتظار</h1><p id="lobbyNote"></p></div>
+  <div class="card codecard">
+    <p class="lbl" style="text-align:center">رقم الغرفة</p>
+    <div class="codebig" id="lobbyCode" dir="ltr"></div>
+    <div class="row"><button class="btn" id="copyCode" type="button">نسخ الرقم</button><button class="btn" id="shareCode" type="button">مشاركة</button></div>
+  </div>
+  <div class="card"><p class="lbl">الفرق الداخلة</p><div id="lobbyTeams"></div><p class="tally" id="watchN"></p></div>
+  <div class="card hidden" id="joinForm">
+    <p class="lbl">فريقك</p><p class="sub">اكتب اسمًا من ستّة عشر حرفًا على الأكثر، واختر لونًا غير مأخوذ</p>
+    <label class="kzr-lbl" for="teamName">اسم الفريق</label>
+    <input id="teamName" class="namein" maxlength="16" autocomplete="off" placeholder="اسم الفريق">
+    <div class="palette big" id="teamPal" role="group" aria-label="لون الفريق"></div>
+    <button class="btn solid" id="teamGo" type="button">انضمّ</button>
+  </div>
+  <p class="kzr-msg" id="lobbyMsg" role="status"></p>
+  <button class="btn hidden" id="roomRetry" type="button" style="margin-bottom:10px">إعادة المحاولة</button>
+  <button class="btn solid" id="roomStart" type="button" style="margin-bottom:10px">ابدأ الحرب</button>
+  <button class="btn" id="roomEnd" type="button">خروج</button>
+</section>
+
 <section id="war" class="hidden">
+  <div class="turnbar hidden" id="turnBar"><i class="dot" id="tbDot"></i><b id="tbWho"></b><span class="tbrole" id="tbRole"></span>
+    <button type="button" class="tbexit" id="tbExit">خروج</button></div>
   <div id="mapBox" class="mapbox"></div>
   <div class="panel" id="panel">
     <p class="stat" id="stat" role="status">—</p>
@@ -498,6 +593,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
       <tbody id="winBody"></tbody></table>
     <div class="row"><button class="btn" data-go="home">الرئيسة</button>
       <button class="btn solid" id="rematch">حرب جديدة</button></div>
+    <p class="ok hidden" id="winWait">بانتظار المضيف ليبدأ لعبةً جديدة بالفرق نفسها</p>
     <button class="btn" id="toVerdict" style="margin-top:10px">عندي رأي في الطريقة</button>
     <div class="kzr-row"><button type="button" data-kzr="game">الإبلاغ عن مشكلة في اللعبة</button></div>
   </div>
@@ -785,32 +881,34 @@ var V={stars:0,who:"",last:""};
 
 function ar(n){if(document.documentElement.getAttribute("lang")==="en")return String(n);return String(n).replace(/[0-9]/g,function(d){return "٠١٢٣٤٥٦٧٨٩"[+d]})}
 function $(i){return document.getElementById(i)}
-function show(id){["home","how","cfg","war","win","verdict"].forEach(function(x){$(x).classList.add("hidden")});
+function show(id){["home","how","cfg","room","join","lobby","war","win","verdict"].forEach(function(x){$(x).classList.add("hidden")});
   $(id).classList.remove("hidden");window.scrollTo(0,0)}
 /* KZNAV back: play -> cfg -> mode home -> kunuz */
 (function(){
 if(typeof show!=="function")return;
-var _show=show;var atCfg=false;var atPlay=false;
-function isPlay(id){return id!=="home"&&id!=="cfg";}
+var _show=show;var atCfg=false;var atPlay=false;var l1="cfg";
+function isL1(id){return id==="cfg"||id==="room";}
+function isPlay(id){return id!=="home"&&!isL1(id);}
 try{history.replaceState({kz:"home"},"");}catch(e){}
 show=function(id){
 if(id==="home"&&(atCfg||atPlay)){var n=atPlay?2:1;atCfg=false;atPlay=false;try{history.go(-n);return;}catch(e){}}
-if(id==="cfg"&&atPlay){atPlay=false;try{history.go(-1);return;}catch(e){}}
-if(id==="cfg"&&!atCfg){try{history.pushState({kz:"cfg"},"");}catch(e){}atCfg=true;atPlay=false;}
+if(isL1(id)&&atPlay){atPlay=false;l1=id;try{history.go(-1);return;}catch(e){}}
+if(isL1(id)&&!atCfg){try{history.pushState({kz:"cfg"},"");}catch(e){}atCfg=true;atPlay=false;l1=id;}
+else if(isL1(id)){l1=id;}
 else if(isPlay(id)&&!atPlay){try{history.pushState({kz:"play"},"");}catch(e){}atPlay=true;}
 else if(id==="home"){atCfg=false;atPlay=false;}
 _show(id);
 };
 window.addEventListener("popstate",function(ev){
 var k=(ev&&ev.state&&ev.state.kz)||"home";
-if(k==="cfg"){atCfg=true;atPlay=false;_show("cfg");}
+if(k==="cfg"){atCfg=true;atPlay=false;_show(l1);}
 else{atCfg=false;atPlay=false;_show("home");}
 });
 })();
 
 function hexA(h,a){return "rgba("+parseInt(h.substr(1,2),16)+","+parseInt(h.substr(3,2),16)+","+
   parseInt(h.substr(5,2),16)+","+a+")"}
-function catName(k){var c=G.slotCat.length?G.slotCat[k]:G.cats[k%G.cats.length];return DATA.cats[c][1]}
+function catName(k){if(RM.on&&RM.names.length)return RM.names[k];var c=G.slotCat.length?G.slotCat[k]:G.cats[k%G.cats.length];return DATA.cats[c][1]}
 function buildSlots(){G.slotCat=WarEngine.buildSlots(G.cats,seenByCat(),Math.random)}
 function spread(){
   var n=G.cats.length,base=Math.floor(12/n),rem=12%n;
@@ -821,7 +919,8 @@ function adj(a,b){return WarEngine.adj(a,b)}
 
 document.addEventListener("click",function(e){
   var b=e.target.closest("[data-go]");if(!b)return;var g=b.dataset.go;
-  if(g==="cfg")openCfg();else if(g==="how")show("how");else{quitFight();show("home")}
+  if(g==="cfg"){leaveCfgMode();openCfg()}else if(g==="how")show("how");else if(g==="room")openRoomScreen();
+  else{if(RM.on)roomExit();else{quitFight();leaveCfgMode();show("home")}}
 });
 $("toVerdict").onclick=function(){show("verdict")};
 
@@ -924,8 +1023,9 @@ function drawPlayers(){
   $("addP").disabled=G.players.length>=4;
 }
 $("addP").onclick=function(){if(G.players.length<4){G.players.push({n:"",c:freeColor()});G.pick=-1;drawPlayers();tally()}};
+function leftByCat(){return G.roomCfg?DATA.cats.map(function(){return 1}):seenByCat()}
 function preset(k){
-  var rel=[],sec=[],L=seenByCat();
+  var rel=[],sec=[],L=leftByCat();
   DATA.cats.forEach(function(c,i){if(!L[i])return;if(c[2]==="religious")rel.push(i);else sec.push(i)});
   function pick(a,n){var b=a.slice().sort(function(){return Math.random()-.5});return b.slice(0,n)}
   if(k==="rel")G.cats=pick(rel,6);
@@ -1006,7 +1106,7 @@ function drawCats(){
 }
 function avail(ci){var n=0;for(var i=0;i<DATA.qs.length;i++){if(DATA.qs[i][0]===ci)n++}return n}
 function tally(){
-  var L=seenByCat(),left=0;
+  var L=leftByCat(),left=0;
   G.cats.forEach(function(ci){left+=L[ci]});
   drawDeploy();
   var fit=(G.cats.length>=3&&G.cats.length<=6),ok=(fit&&left>=1);
@@ -1077,6 +1177,14 @@ function islandsPer(){return WarEngine.islandsPer(G)}
 function deployCount(){return WarEngine.deployCount(G)}
 function drawDeploy(){
   var w=$("deploy");if(!w)return;w.innerHTML="";
+  if(G.roomCfg){
+    [[1,"قليلة"],[2,"متوسّطة"],[3,"كثيرة"]].forEach(function(o){
+      var b=document.createElement("button");
+      b.className="chip"+((G.deployFree<0&&G.deployMul===o[0])?" on":"");
+      b.textContent=o[1];
+      b.onclick=function(){G.deployMul=o[0];G.deployFree=-1;drawDeploy()};w.appendChild(b)});
+    curChip(w,G.deployFree>=0?("المختار: "+cntR(G.deployFree)+" لكلّ فريق"):"تُحسب عند البدء من عدد الفرق: اثنتا عشرة جزيرة موزَّعة عليها");
+    return}
   [1,2,3].forEach(function(m){
     var n=m*islandsPer();
     var b=document.createElement("button");
@@ -1106,8 +1214,9 @@ function drawWins(){
     b.onclick=function(){G.winRule=o[0];drawWins()};w.appendChild(b)});
 }
 $("startWar").onclick=function(){
+  if(G.roomCfg){roomCreate();return}
   G.players.forEach(function(p,i){if(!p.n.trim())p.n="لاعب "+ar(i+1)});newWar()};
-$("rematch").onclick=function(){openCfg()};
+$("rematch").onclick=function(){if(RM.on){if(RM.host)rmSend({t:"rematch"});return}openCfg()};
 
 /* ───── الحرب ───── */
 function newWar(){
@@ -1264,12 +1373,13 @@ var OVERWHY={stuck:"لا هجوم ممكنًا لأحد — الغلبة لمن 
 function overText(why){
   if(why==="victory")return "";
   if(OVERWHY[why])return OVERWHY[why];
+  if(RM.on)return "خمدت الجزر كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات";
   return seenLeft(null)?"خمدت الجزر كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات":"انتهت الأسئلة كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات، والتصفير بيدك في شاشة الإعداد";
 }
 function showOver(e){victory(e.winner,overText(e.why))}
 function warEnd(){var e=WarEngine.warEnd(G);if(!e)return false;showOver(e);return true}
 function stat(h,warn){var s=$("stat");s.innerHTML=h;s.className="stat"+(warn?" warn":"")}
-function who(i){return '<i class="dot" style="background:'+col(i)+'"></i><b>'+G.players[i].n+'</b>'}
+function who(i){return '<i class="dot" style="background:'+col(i)+'"></i><b>'+esc(G.players[i].n)+'</b>'}
 function beginDeploy(){WarEngine.beginDeploy(G);uiDeploy()}
 function uiDeploy(){
   stat(who(G.turn)+" يوزّع "+cntR(G.pool)+" على جزره");
@@ -1295,6 +1405,7 @@ function uiTurn(ev){
 var TAPMSG={deadBase:"جزيرة خامدة — نفدت أسئلة فئتها، فلا يُهاجَم منها",guardOnly:"لا يُهاجَم من جزيرة فيها الحارس وحده",
   baseFixed:"القاعدة ثابتة في هذا الدور",deadTarget:"جزيرة خامدة — نفدت أسئلة فئتها، فلا تُهاجَم",noRoute:"لا ممرّ بين الجزيرتين"};
 function tap(k){
+  if(RM.on){roomTap(k);return}
   var ev=WarEngine.tap(G,k);
   if(ev.t==="deployed"){
     stat(who(G.turn)+(G.pool?(" — بقي "+cntR(G.pool)):" — وُزِّعت راياتك كلّها"));
@@ -1328,6 +1439,7 @@ function proceed(ev){
   stat(who(G.turn)+" — اسحب الراية من <b>"+catName(G.base)+"</b> أو أنهِ الدور");
 }
 $("undoBtn").onclick=function(){
+  if(RM.on){roomBtn("undo");return}
   var ev=WarEngine.undo(G);if(!ev)return;
   if(ev.t==="deployUndone"){
     stat(who(G.turn)+" — رجعت راية من <b>"+catName(ev.k)+"</b>، بقي "+cntR(G.pool));
@@ -1340,6 +1452,7 @@ $("undoBtn").onclick=function(){
   $("undoBtn").disabled=true;
   stat(who(G.turn)+" — المس جزيرة لك فيها رايتان لتكون قاعدتك");paint()};
 $("nextBtn").onclick=function(){
+  if(RM.on){roomBtn("next");return}
   if(G.busy)return;
   turnEv(WarEngine.next(G,seenByCat()));
 };
@@ -1411,7 +1524,7 @@ function victory(i,why){
   G.players.map(function(p,k){return{p:p,k:k,c:count(k),b:banners(k)}})
     .sort(function(x,y){return y.c-x.c}).forEach(function(r){
       b.innerHTML+="<tr><td><span class='dot' style='display:inline-block;background:"+col(r.k)+
-        ";margin-left:6px'></span>"+r.p.n+"</td><td>"+ar(r.c)+"</td><td class='n'>"+ar(r.b)+"</td></tr>"});
+        ";margin-left:6px'></span>"+esc(r.p.n)+"</td><td>"+ar(r.c)+"</td><td class='n'>"+ar(r.b)+"</td></tr>"});
   show("win");
 }
 
@@ -1530,7 +1643,7 @@ function result(kind,msg,go){
   }
   if(kind==="fall")boatGlide(1,300);
   later(paint,mt(720));
-  later(function(){endFight();go()},WarEngine.HOLD.result);
+  if(go)later(function(){endFight();go()},WarEngine.HOLD.result);
 }
 function pass(p,pi,go){
   stop();$("moor").innerHTML="";
@@ -1614,6 +1727,434 @@ function land(k,btn,q,full,then){
   later(function(){then(ok,fast)},WarEngine.HOLD.answer);
 }
 function quitFight(){clearT();if(G.busy)endFight()}
+
+/* ───── الغرفة: كل فريق على جهازه، والحَكَم خادم الغرف ─────
+   الصفحة هنا لا تحكم: ترسل أفعالًا (لمسة، تراجع، أنهِ الدور، جواب) وترسم ما يصلها.
+   القواعد هي WarEngine نفسه على الخادم، والجواب الصحيح لا يصل الجهاز قبل إغلاق السؤال.
+   لا قائمة غرف ولا بحث: الرقم وحده يفتح الباب. السجلّ المحفوظ في الجهاز رقمٌ ورمزان سريّان للعودة. */
+var WAR_HOST="https://hanna-laha.hl-worker.workers.dev",WAR_V=1,SKIP_SECS=45;
+var RM={on:false,host:false,ws:null,code:"",roomId:"",hostToken:"",teamToken:"",watch:false,slot:-1,role:"",
+  snap:null,names:[],view:"",qn:-1,res:"",fightOn:false,dl:0,raf:null,tries:0,retry:null,closing:false,dev:"",mem:null,
+  color:-1,fight:null,answered:false,joinMode:"team"};
+var RMKEY="kz_harb_room_v1",RMDEV="kz_harb_dev_v1";
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]})}
+(function(){
+  if(typeof location==="undefined")return;
+  var h=location.hostname;
+  /* الخادم المحلي للتجارب: يُقبل على الجهاز المحلي وحده */
+  var m=/[?&]war=([^&]+)/.exec(location.search||"");
+  if(m&&(h==="localhost"||h==="127.0.0.1")){try{WAR_HOST=decodeURIComponent(m[1])}catch(e){}}
+})();
+function rmGet(k){try{return window.localStorage.getItem(k)}catch(e){return RM.mem&&RM.mem[k]||null}}
+function rmSet(k,v){try{window.localStorage.setItem(k,v)}catch(e){RM.mem=RM.mem||{};RM.mem[k]=v}}
+function rmDel(k){try{window.localStorage.removeItem(k)}catch(e){if(RM.mem)delete RM.mem[k]}}
+function rmDevice(){
+  if(RM.dev)return RM.dev;
+  var d=rmGet(RMDEV);
+  if(!d||!/^[A-Za-z0-9_-]{8,64}$/.test(d)){
+    d="";var cs="abcdefghijklmnopqrstuvwxyz0123456789";
+    var a=new Uint8Array(20);
+    try{window.crypto.getRandomValues(a)}catch(e){for(var i=0;i<a.length;i++)a[i]=Math.floor(Math.random()*256)}
+    for(var j=0;j<a.length;j++)d+=cs.charAt(a[j]%cs.length);
+    rmSet(RMDEV,d)}
+  RM.dev=d;return d}
+function rmSaved(){try{var o=JSON.parse(rmGet(RMKEY));return o&&o.code&&o.roomId?o:null}catch(e){return null}}
+function rmSave(){
+  if(!RM.code)return;
+  rmSet(RMKEY,JSON.stringify({code:RM.code,roomId:RM.roomId,host:RM.host,hostToken:RM.hostToken,teamToken:RM.teamToken,watch:RM.watch}))}
+function rmWsUrl(path){return WAR_HOST.replace(/^http/,"ws")+path}
+/* الأرقام تُكتب بأيّ نظام: هندي عربيّ أو فارسيّ أو لاتينيّ */
+function westDigits(s){return String(s).replace(/[٠-٩]/g,function(d){return String(d.charCodeAt(0)-1632)})
+  .replace(/[۰-۹]/g,function(d){return String(d.charCodeAt(0)-1776)})}
+function roomMine(){return RM.on&&RM.slot>=0&&RM.snap&&RM.snap.game&&RM.snap.game.actor===RM.slot}
+
+window.addEventListener("popstate",function(){
+  if(RM.on&&(RM.view==="war"||RM.view==="win"||RM.view==="lobby"||RM.view==="join"))roomLeaveWar()});
+/* ───── الاتصال ───── */
+function rmSend(o){if(RM.ws&&RM.ws.readyState===1){try{RM.ws.send(JSON.stringify(o))}catch(e){}}}
+function rmClose(keep){
+  RM.closing=true;if(RM.retry){clearTimeout(RM.retry);RM.retry=null}
+  if(RM.ws){try{RM.ws.close()}catch(e){}RM.ws=null}
+  RM.closing=false;
+  if(!keep)rmDel(RMKEY)}
+function rmConnect(first){
+  if(RM.ws){try{RM.closing=true;RM.ws.close()}catch(e){}RM.closing=false}
+  var ws;
+  try{ws=new WebSocket(rmWsUrl("/ws/war/"+RM.code+((RM.host||RM.teamToken)?"":"?j=1")))}catch(e){rmDrop("net");return}
+  RM.ws=ws;
+  ws.onopen=function(){
+    RM.tries=0;
+    var h={t:"hello",v:WAR_V,deviceId:rmDevice()};
+    if(RM.roomId)h.roomId=RM.roomId;
+    if(RM.host)h.hostToken=RM.hostToken;
+    if(RM.teamToken)h.teamToken=RM.teamToken;
+    if(RM.watch)h.watch=true;
+    rmSend(h);
+    lobbyMsg("")};
+  ws.onmessage=function(e){var m;try{m=JSON.parse(e.data)}catch(x){return}rmMsg(m)};
+  ws.onclose=function(ev){
+    if(RM.ws!==ws)return;RM.ws=null;
+    if(ev&&ev.code===4000&&RM.on){/* فُتحت الغرفة من جهاز آخر بالرمز نفسه */
+      rmClose(true);RM.on=false;RM.view="";quitFight();openRoomScreen();roomNote("فُتحت الغرفة من جهاز آخر بنفس الفريق");return}
+    if(!RM.closing&&RM.on)rmDrop("closed")};
+  ws.onerror=function(){}}
+/* الانقطاع: يعيد المحاولة وحده، وبالرمز نفسه يرجع الجهاز إلى فريقه */
+function rmDrop(){
+  if(!RM.on||RM.retry)return;
+  RM.tries++;
+  var wait=Math.min(8000,700*Math.pow(2,Math.min(RM.tries,4)));
+  stat2("انقطع الاتصال — تُعاد المحاولة…");
+  if(RM.tries>12){roomBroken();return}
+  RM.retry=setTimeout(function(){RM.retry=null;if(RM.on)rmConnect(false)},wait)}
+function roomBroken(){
+  stat2("تعذّر الاتصال بالغرفة");
+  var m=$("lobbyMsg");if(m){m.textContent="تعذّر الاتصال بالغرفة. تحقّق من الشبكة ثمّ اضغط «إعادة المحاولة».";m.className="kzr-msg bad"}
+  $("roomRetry").classList.remove("hidden")}
+function stat2(t){if(RM.view==="war")stat(esc(t));var m=$("lobbyMsg");if(m&&RM.view==="lobby"){m.textContent=t;m.className="kzr-msg"}}
+function lobbyMsg(t,bad){var m=$("lobbyMsg");if(!m)return;m.textContent=t;m.className="kzr-msg"+(bad?" bad":"")}
+document.addEventListener("visibilitychange",function(){
+  if(document.visibilityState==="visible"&&RM.on&&!RM.ws&&!RM.retry){RM.tries=0;rmConnect(false)}});
+
+var RMERR={NOT_FOUND:"لا توجد غرفة بهذا الرقم",ROOM_CLOSED:"أُغلقت الغرفة",OUTDATED:"حدِّث الصفحة ثمّ حاول",
+  TOO_MANY:"محاولات كثيرة — انتظر قليلًا",ROOM_FULL:"الغرفة ممتلئة",BAD_TOKEN:"انتهت صلاحية دخولك إلى هذه الغرفة",
+  STARTED:"بدأت الحرب — لا يدخل فريق بعد البدء، لكن تقدر تدخل مشاهدًا",NAME_INVALID:"هذا الاسم غير مقبول أو مأخوذ — جرّب اسمًا آخر",
+  COLOR_TAKEN:"أخذ فريق آخر هذا اللون — اختر لونًا غيره",FORBIDDEN:"هذا الفعل ليس لك",NOT_READY:"يلزم فريقان على الأقل",
+  NOT_YOUR_TURN:"ليس دورك",STALE:"",BAD_ACTION:"",BAD_MESSAGE:"",ALREADY_TEAM:"",SERVER:"تعذّر الأمر — حاول ثانيةً"};
+var RMNOTE={deadBase:TAPMSG.deadBase,guardOnly:TAPMSG.guardOnly,baseFixed:TAPMSG.baseFixed,deadTarget:TAPMSG.deadTarget,noRoute:TAPMSG.noRoute};
+function rmMsg(m){
+  if(m.t==="welcome"){RM.role=m.self.role;RM.slot=(m.self.role==="team"||m.self.role==="host")&&m.self.slot!==null?m.self.slot:-1;snapIn(m.snapshot);return}
+  if(m.t==="self"){RM.role=m.self.role;RM.slot=(m.self.role==="team"||m.self.role==="host")&&m.self.slot!==null?m.self.slot:-1;
+    if(RM.snap)snapIn(RM.snap);return}
+  if(m.t==="joined"){RM.teamToken=m.teamToken;RM.slot=m.slot;RM.roomId=m.roomId||RM.roomId;rmSave();return}
+  if(m.t==="snapshot"){snapIn(m.snapshot);return}
+  if(m.t==="note"){if(RMNOTE[m.code])stat(RMNOTE[m.code],true);return}
+  if(m.t==="error"){rmError(m.code)}}
+function rmError(code){
+  var txt=RMERR[code];
+  if(code==="NOT_FOUND"||code==="ROOM_CLOSED"||code==="BAD_TOKEN"||code==="OUTDATED"||code==="TOO_MANY"||code==="ROOM_FULL"||code==="STARTED"){
+    /* الباب مغلق: يُقطع الاتصال، وتُعرض العلّة حيث كان اللاعب */
+    var onJoin=RM.view==="join"||RM.view==="";
+    rmClose(false);RM.on=false;RM.code="";RM.teamToken="";RM.hostToken="";RM.host=false;RM.snap=null;
+    stopRoomFx();quitFight();
+    if(onJoin){RM.view="join";show("join");joinMsg(txt,true);return}
+    RM.view="";openRoomScreen();roomNote(txt);return}
+  if(!txt)return;
+  if(RM.view==="lobby")lobbyMsg(txt,true);else if(RM.view==="war")stat(esc(txt),true)}
+function joinMsg(t,bad){var m=$("joinMsg");m.textContent=t||"";m.className="kzr-msg"+(bad?" bad":"")}
+function roomNote(t){var m=$("roomMsg");m.textContent=t||"";m.className="kzr-msg bad"}
+
+/* ───── الشاشات: الغرفة · الدخول · الانتظار ───── */
+function openRoomScreen(){
+  RM.view="";var s=rmSaved();
+  var b=$("roomBack");
+  if(s){b.classList.remove("hidden");b.textContent="العودة إلى الغرفة رقم "+ar(s.code)}else b.classList.add("hidden");
+  $("roomMsg").textContent="";show("room")}
+$("roomBack").onclick=function(){
+  var s=rmSaved();if(!s)return;
+  RM.on=true;RM.code=s.code;RM.roomId=s.roomId;RM.host=!!s.host;RM.hostToken=s.hostToken||"";RM.teamToken=s.teamToken||"";RM.watch=!!s.watch;
+  RM.snap=null;RM.view="join";joinMsg("جارٍ الرجوع إلى الغرفة…");show("join");rmConnect(true)};
+$("roomHost").onclick=function(){RM.joinMode="host";roomCfg()};
+function roomCfg(){
+  G.roomCfg=true;
+  openCfg();
+  $("plcard").classList.add("hidden");$("startWar").textContent="افتح الغرفة";$("cfgNote").classList.remove("hidden");
+  document.querySelector(".seenfoot").classList.add("hidden")}
+function leaveCfgMode(){
+  if(!G.roomCfg)return;G.roomCfg=false;
+  $("plcard").classList.remove("hidden");$("startWar").textContent="ابدأ";$("cfgNote").classList.add("hidden");
+  document.querySelector(".seenfoot").classList.remove("hidden");tally()}
+function roomCreate(){
+  var cfg={cats:G.cats.map(function(i){return DATA.cats[i][0]}),fuse:G.fuse,shots:G.shots,winRule:G.winRule,noOpts:!!G.noOpts,
+    deployMul:G.deployMul,deployFree:G.deployFree};
+  var btn=$("startWar");btn.disabled=true;
+  var done=function(msg){btn.disabled=false;if(msg){$("cfgErr").textContent=msg;$("cfgErr").classList.remove("hidden")}};
+  $("cfgErr").classList.add("hidden");
+  if(typeof fetch!=="function"){done("المتصفّح لا يدعم الغرف");return}
+  fetch(WAR_HOST+"/api/war/rooms",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({deviceId:rmDevice(),config:cfg})}).then(function(r){
+      if(r.status===429){done("محاولات كثيرة — انتظر قليلًا ثمّ أعد");return null}
+      if(r.status!==200){done("تعذّر فتح الغرفة — حاول ثانيةً");return null}
+      return r.json()}).then(function(o){
+      if(!o)return;
+      btn.disabled=false;
+      RM.on=true;RM.host=true;RM.watch=false;RM.code=o.code;RM.roomId=o.roomId;RM.hostToken=o.hostToken;RM.teamToken="";RM.slot=-1;RM.snap=null;
+      rmSave();leaveCfgMode();RM.view="lobby";drawLobby();show("lobby");rmConnect(true)},
+    function(){done("تعذّر الاتصال بالخادم — تحقّق من الشبكة")})}
+$("roomJoin").onclick=function(){joinMsg("");$("joinCode").value="";RM.view="join";show("join")};
+$("roomRetry").onclick=function(){$("roomRetry").classList.add("hidden");RM.tries=0;lobbyMsg("");rmConnect(false)};
+function joinWith(watch){
+  var code=westDigits($("joinCode").value).replace(/\s+/g,"");
+  if(!/^[0-9]{6}$/.test(code)){joinMsg("اكتب رقم الغرفة: ستّ خانات",true);return}
+  RM.on=true;RM.host=false;RM.watch=watch;RM.code=code;RM.roomId="";RM.hostToken="";RM.teamToken="";RM.slot=-1;RM.snap=null;RM.view="join";
+  joinMsg("جارٍ الدخول…");rmConnect(true)}
+$("joinTeamBtn").onclick=function(){joinWith(false)};
+$("joinWatchBtn").onclick=function(){joinWith(true)};
+$("joinCode").addEventListener("keydown",function(e){if(e.key==="Enter")joinWith(false)});
+
+/* ───── الانتظار ───── */
+function freeColorIn(taken){
+  var pref=[7,0,4,2,9,1,5,10,3,8,6,11];
+  for(var i=0;i<pref.length;i++)if(taken.indexOf(pref[i])<0)return pref[i];
+  return 7}
+function takenColors(){return RM.snap?RM.snap.teams.map(function(t){return t.color}):[]}
+function drawLobby(){
+  var s=RM.snap;
+  $("lobbyCode").textContent=RM.code?ar(RM.code):"";
+  var teams=s?s.teams:[];
+  var L=$("lobbyTeams");L.innerHTML="";
+  teams.forEach(function(t){
+    var d=document.createElement("div");d.className="pcard";
+    var dot=document.createElement("i");dot.className="dot";dot.style.background=PAL[t.color]?PAL[t.color][0]:"#1B6E9C";d.appendChild(dot);
+    var nm=document.createElement("span");nm.className="lname";nm.textContent=t.name+(t.slot===RM.slot?" (أنت)":"")+(s.hostSlot===t.slot?" · المضيف":"");d.appendChild(nm);
+    var st=document.createElement("small");st.className="lst";st.textContent=t.online?"":"غائب";d.appendChild(st);
+    L.appendChild(d)});
+  if(!teams.length){var e=document.createElement("p");e.className="kzc-empty";e.textContent=RM.host?"لم يدخل أحد بعد — أعطِ الرقم لمن تلعب معهم":"لم يدخل أحد بعد";L.appendChild(e)}
+  var canJoin=(RM.role==="candidate"||(RM.role==="host"&&RM.slot<0))&&teams.length<4;
+  $("joinForm").classList.toggle("hidden",!canJoin);
+  if(canJoin){
+    var taken=takenColors();
+    if(RM.color<0||taken.indexOf(RM.color)>-1)RM.color=freeColorIn(taken);
+    var pal=$("teamPal");pal.innerHTML="";
+    PAL.forEach(function(cc,k){
+      var b=document.createElement("button");b.type="button";var tk=taken.indexOf(k)>-1;
+      b.className="sw big"+(RM.color===k?" on":"")+(tk?" taken":"");b.style.background=cc[0];b.title=cc[1];b.setAttribute("aria-label",cc[1]);
+      b.setAttribute("aria-pressed",RM.color===k?"true":"false");
+      if(tk)b.disabled=true;
+      b.onclick=function(){RM.color=k;drawLobby()};pal.appendChild(b)})}
+  var role=RM.watch||RM.role==="watcher"?"watch":(RM.host?"host":"team");
+  $("lobbyNote").textContent=role==="watch"?"أنت تشاهد — ترى الخريطة والنزالات ولا تجيب":
+    (role==="host"?(teams.length<2?"تنتظر دخول فريق آخر على الأقل":"ابدأ حين يكتمل الفرق"):"بانتظار أن يبدأ المضيف");
+  var host=role==="host";
+  $("roomStart").classList.toggle("hidden",!host);
+  $("roomStart").disabled=!(host&&teams.length>=2);
+  $("roomEnd").textContent=host?"إغلاق الغرفة":"خروج";
+  $("watchN").textContent=s&&s.watchers?("يشاهد الآن: "+ar(s.watchers)):""}
+$("teamGo").onclick=function(){
+  var n=$("teamName").value.replace(/\s+/g," ").trim();
+  if(!n){lobbyMsg("اكتب اسم فريقك",true);return}
+  if(n.length>16){lobbyMsg("الاسم ستّة عشر حرفًا على الأكثر",true);return}
+  lobbyMsg("");rmSend({t:"join",name:n,color:RM.color})};
+$("roomStart").onclick=function(){rmSend({t:"start"})};
+$("roomEnd").onclick=function(){
+  if(RM.host){rmSend({t:"close"});rmClose(false);roomExit()}
+  else{rmSend({t:"leave"});rmClose(false);roomExit()}};
+$("copyCode").onclick=function(){
+  var t=RM.code,ok=function(){lobbyMsg("نُسخ الرقم")};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,function(){fb(t,ok)})}else fb(t,ok)};
+$("shareCode").onclick=function(){
+  var text="ادخل حرب الجزر برقم الغرفة "+ar(RM.code),url=location.origin+"/quest-harb.html";
+  if(navigator.share){navigator.share({title:"حرب الجزر",text:text,url:url}).catch(function(){})}
+  else{var all=text+" — "+url,ok=function(){lobbyMsg("نُسخت الدعوة")};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(all).then(ok,function(){fb(all,ok)})}else fb(all,ok)}};
+/* الخروج من الغرفة إلى الصفحة الرئيسة */
+function roomExit(){
+  rmClose(true);stopRoomFx();
+  RM.on=false;RM.view="";RM.snap=null;RM.slot=-1;RM.role="";RM.fightOn=false;RM.qn=-1;RM.res="";
+  quitFight();G.phase="deploy";leaveCfgMode();show("home")}
+function roomLeaveWar(){
+  /* من الحرب: ينقطع الجهاز ويبقى الرمز السريّ، فيرجع من «العودة إلى الغرفة» */
+  rmClose(true);roomExit()}
+
+/* ───── اللقطة تصل: الخريطة والنزال ───── */
+function snapIn(s){
+  RM.snap=s;
+  if(s.stage==="lobby"){
+    if(RM.view==="war"||RM.view==="win"){/* الغرفة عادت إلى الانتظار */RM.view=""}
+    if(RM.view!=="lobby"){RM.view="lobby";show("lobby")}
+    drawLobby();return}
+  var g=s.game;
+  if(RM.view!=="war"&&RM.view!=="win"){enterWar(s)}
+  else if(s.stage==="play"&&RM.view==="win"){enterWar(s)}
+  warApply(s,g)}
+function enterWar(s){
+  var g=s.game;
+  G.players=s.teams.map(function(t){return {n:t.name,c:t.color}});
+  RM.names=g.slotNames;G.slotCat=[0,1,2,3,4,5,6,7,8,9,10,11];
+  G.own={};G.ban={};G.left={};
+  for(var k=0;k<12;k++){G.own[k]=g.own[k];G.ban[k]=g.ban[k];G.left[k]=g.dead[k]?0:1}
+  G.winRule=s.config.winRule;G.fuse=s.config.fuse;G.noOpts=s.config.noOpts;G.shots=s.config.shots;
+  RM.fightOn=false;RM.qn=-1;RM.res="";RM.fight=null;stopRoomFx();clearT();
+  $("war").classList.remove("fight");$("slab").classList.add("hidden");
+  $("war").insertBefore($("mapBox"),$("war").querySelector(".panel"));
+  $("war").insertBefore($("turnBar"),$("mapBox"));
+  CAM.vb=[0,0,MW,MH];drawMap();
+  RM.view="war";show("war");
+  $("light").classList.add("hidden")}
+function warApply(s,g){
+  RM.names=g.slotNames;
+  G.players=s.teams.map(function(t){return {n:t.name,c:t.color}});
+  for(var k=0;k<12;k++){G.own[k]=g.own[k];G.ban[k]=g.ban[k];G.left[k]=g.dead[k]?0:1}
+  G.turn=g.turn;G.phase=g.phase;G.pool=g.pool;G.base=g.base;G.sel=g.base;G.tgt=g.fight?g.fight.tgt:null;
+  G.moveTgt=g.moveTgt;G.moveLeft=g.moveLeft;G.attacked=g.tgt!==null||!!g.fight;
+  var mine=RM.slot>=0&&g.actor===RM.slot;
+  G.busy=!!g.fight||!mine;
+  turnBar(s,g);
+  if(g.fight){roomFight(s,g,g.fight)}
+  else if(RM.fightOn){RM.fightOn=false;stopRoomFx();endFight();G.busy=!mine}
+  paint();
+  if(!g.fight){
+    $("btns").classList.toggle("hidden",!(mine&&g.phase!=="over"));
+    $("undoBtn").disabled=!g.canUndo;$("nextBtn").disabled=!g.canNext;
+    roomStat(s,g,mine)}
+  if(s.stage==="over"&&g.end&&RM.view==="war"){
+    RM.view="win";stopRoomFx();
+    if(RM.fightOn){RM.fightOn=false;endFight();stopRoomFx()}
+    /* the camera of the last fight must not stay on the win map */
+    CAM.vb=[0,0,MW,MH];if($("map"))$("map").setAttribute("viewBox","0 0 "+MW+" "+MH);
+    G.phase="over";
+    $("rematch").textContent="لعبة جديدة بنفس الفرق";
+    $("rematch").classList.toggle("hidden",!RM.host);
+    $("winWait").classList.toggle("hidden",RM.host);
+    victory(g.end.winner,overText(g.end.why))}}
+function turnBar(s,g){
+  var b=$("turnBar");b.classList.remove("hidden");
+  var t=s.teams[g.turn];
+  var a=g.actor!==null?s.teams[g.actor]:t;
+  var me=RM.slot>=0&&g.actor===RM.slot;
+  var dot=$("tbDot");dot.style.background=a?col(a.slot):"#1B6E9C";
+  $("tbWho").textContent=(me?"دورك":"دور "+(a?a.name:""))+(g.actorOffline&&!me?" — جهازه غائب، سيُتخطّى دوره":"");
+  $("tbRole").textContent=RM.role==="watcher"||RM.watch?"مشاهدة":"";
+  b.classList.toggle("mine",me)}
+$("tbExit").onclick=function(){roomLeaveWar()};
+function roomStat(s,g,mine){
+  var tn=function(i){return who(i)};
+  var cur=g.actor!==null?g.actor:g.turn;
+  var m;
+  if(g.phase==="deploy"){
+    m=g.pool>0?(mine?"دورك — وزّع "+cntR(g.pool)+" على جزرك":tn(cur)+" يوزّع "+cntR(g.pool)+" على جزره"):(mine?"وُزِّعت راياتك كلّها — أنهِ الدور":tn(cur)+" أنهى التوزيع")}
+  else if(g.phase==="move"){
+    m=mine?"انقل إلى <b>"+esc(catName(g.moveTgt))+"</b> — المتاح "+cntR(g.moveLeft):tn(cur)+" ينقل رايات إلى جزيرته الجديدة"}
+  else if(g.actor===null&&!g.fight){m=tn(g.turn)+" — يمرّ الدور"}
+  else if(g.base===null){m=mine?"دورك — المس جزيرة لك فيها رايتان لتكون قاعدتك":tn(cur)+" يختار قاعدته"}
+  else{m=mine?"اسحب الراية من <b>"+esc(catName(g.base))+"</b> إلى جزيرة تضيء، أو أنهِ الدور":tn(cur)+" يختار هدفه"}
+  stat(m)}
+function roomTap(k){
+  if(!roomMine()||G.busy)return;
+  rmSend({t:"tap",k:k})}
+
+/* ───── النزال كما يصل ───── */
+function stopRoomFx(){if(RM.raf){cancelAnimationFrame(RM.raf);RM.raf=null}stopFx();stop()}
+function roomResultText(r,atkName){
+  var nm=catName(r.tgt),lead=r.why==="double"?"إصابة مزدوجة لا تُصدّ —":"أخطأ المدافع —",a=esc(atkName);
+  if(r.kind==="lose")return "رُدَّ هجوم "+a+" — انتقلت راية من <b>"+esc(catName(r.base))+"</b> إلى <b>"+esc(nm)+"</b>.";
+  if(r.kind==="take")return lead+" أخذ "+a+" راية إلى <b>"+esc(catName(r.base))+"</b>، وبقي للمدافع "+cntR(r.left)+".";
+  if(r.kind==="fall")return "فُتحت <b>"+esc(nm)+"</b> — "+lead+" أخذ "+a+" آخر راية فيها.";
+  if(r.why==="noQ")return "خمدت <b>"+esc(nm)+"</b> — نفدت أسئلة فئتها، ولم تتحرّك راية.";
+  if(r.why==="noDef")return "صمدت <b>"+esc(nm)+"</b> — نفدت أسئلة فئتها فلم يُسأل المدافع، ولم تتحرّك راية.";
+  return "صمدت <b>"+esc(nm)+"</b> — ردَّ المدافع الإصابة، ولم تتحرّك راية."}
+function roomFight(s,g,f){
+  var mine=RM.slot>=0&&f.q&&f.q.pi===RM.slot&&(f.q.stage==="open"||f.q.stage==="revealed");
+  if(!RM.fightOn){
+    RM.fightOn=true;RM.qn=-1;RM.res="";
+    G.base=f.base;G.tgt=f.tgt;G.busy=true;
+    $("war").classList.add("fight");
+    $("slab").classList.remove("hidden");$("slab").classList.remove("flip");$("pg").disabled=true;
+    $("sail").setAttribute("fill",col(f.atk));
+    $("boat").querySelector(".hull").classList.remove("sink");
+    $("boat").classList.remove("hidden");boatAt(0);
+    camFight(f.base,f.tgt)}
+  G.base=f.base;G.tgt=f.tgt;G.busy=true;
+  $("btns").classList.add("hidden");
+  var q=f.q;
+  if(q){
+    if(q.qn!==RM.qn){roomQuestion(s,f,q)}
+    roomQuestionState(s,f,q,mine)}
+  if(f.res&&RM.res!==f.base+"/"+f.tgt+"/"+f.res.kind+"/"+f.res.why+"/"+g.turn+"/"+RM.qn){
+    RM.res=f.base+"/"+f.tgt+"/"+f.res.kind+"/"+f.res.why+"/"+g.turn+"/"+RM.qn;
+    roomResult(s,f)}}
+function roomQuestion(s,f,q){
+  RM.qn=q.qn;RM.answered=false;KZR.q=null;
+  var atk=s.teams[q.pi];
+  $("sDot").style.background=col(q.pi);$("sWho").textContent=atk?atk.name:"";
+  $("sShot").textContent=(!f.defend&&f.shots>1)?ar(f.shot)+" / "+ar(f.shots):"";
+  $("qtext").textContent=q.text;$("why").className="why";$("why").innerHTML="";$("secs").textContent="";
+  stat('<i class="dot" style="background:'+col(q.pi)+'"></i><b>'+esc(atk?atk.name:"")+"</b> "+(f.defend?"يدافع عن ":"يهاجم ")+"<b>"+esc(catName(f.tgt))+"</b>");
+  $("g"+f.tgt).classList.toggle("walled",!!f.defend);
+  var box=$("ops");box.innerHTML="";box.className="opts "+(f.defend?"gates":"moor");
+  document.querySelector("#front .kzr-flag").style.display="none";
+  if(!q.opts.length){moor(0,f.defend)}
+  else{
+    q.opts.forEach(function(t,pos){
+      var b=document.createElement("button");b.className="opt";b.dataset.k=pos;b.dataset.pos=pos;
+      var mk=document.createElement("span");mk.className="mk";mk.setAttribute("aria-hidden","true");
+      mk.innerHTML=f.defend?'<svg viewBox="0 0 12 12"><path d="M3 11V5Q3 2 6 2Q9 2 9 5V11"/></svg>':'<svg viewBox="0 0 12 12"><path d="M6 1V11M3 3.5H9M1.5 7Q2 11 6 11Q10 11 10.5 7"/></svg>';
+      b.appendChild(mk);
+      var tx=document.createElement("span");tx.className="tx";tx.textContent=t;b.appendChild(tx);
+      b.onclick=function(){roomAnswer(pos)};box.appendChild(b);
+      if(pos===1){var il=document.createElement("i");il.className="islet";il.setAttribute("aria-hidden","true");
+        il.innerHTML=f.defend?'<svg viewBox="0 0 120 30"><path d="M4 26H116M4 26V12H116V26M20 12V6M40 12V6M60 12V6M80 12V6M100 12V6" fill="none" stroke="#8FB3C6" stroke-width="3"/><path d="M52 26V20Q52 15 60 15Q68 15 68 20V26" fill="#fff" stroke="#8FB3C6" stroke-width="3"/></svg>'
+          :'<svg viewBox="0 0 120 30"><path d="M6 4Q40 15 50 15M114 4Q80 15 70 15M6 28Q40 17 50 17M114 28Q80 17 70 17" fill="none" stroke="#8FB3C6" stroke-width="2" stroke-dasharray="3 4"/><path d="M44 16Q46 5 60 6Q75 5 76 16Q74 26 60 25Q45 26 44 16Z" fill="'+col(G.own[f.tgt])+'" stroke="#fff" stroke-width="2"/></svg>';
+        box.appendChild(il)}});
+    moor(q.opts.length,f.defend)}
+  boatAt(0)}
+function roomAnswer(pos){
+  var f=RM.snap&&RM.snap.game&&RM.snap.game.fight,q=f&&f.q;
+  if(!q||q.stage!=="open"||q.pi!==RM.slot||RM.answered)return;
+  RM.answered=true;rmSend({t:"answer",qn:q.qn,pos:pos});
+  setTimeout(function(){RM.answered=false},600)}
+function roomQuestionState(s,f,q,mine){
+  var box=$("ops");
+  if(q.stage==="open"){
+    RM.dl=q.msLeft===null?0:performance.now()+q.msLeft;
+    box.querySelectorAll(".opt[data-k]").forEach(function(b){
+      var pos=+b.dataset.pos,burnt=q.burned.indexOf(pos)>-1;
+      b.classList.toggle("burn",burnt);b.disabled=burnt||!mine;
+      var m=$("m"+pos);if(m)m.classList.toggle("gone",burnt)});
+    if(!q.opts.length){
+      if(!box.querySelector(".reveal")){
+        var rb=document.createElement("button");rb.className="opt reveal";rb.textContent=mine?"أظهر الجواب":"ينتظر الجواب…";
+        rb.disabled=!mine;rb.onclick=function(){rmSend({t:"reveal",qn:q.qn})};box.appendChild(rb)}}
+    if(q.fuse>0){if(!RM.raf)RM.raf=requestAnimationFrame(roomTick)}
+    else if(!RM.boatSet||RM.boatSet!==q.qn){RM.boatSet=q.qn;boatGlide(.5,900)}
+    return}
+  stopRoomFx2();
+  if(q.stage==="revealed"){
+    box.innerHTML="";
+    var a=document.createElement("div");a.className="opt right reveal";a.textContent=q.answerText||"";box.appendChild(a);
+    roomWhy(q);
+    if(mine){
+      var y=document.createElement("button");y.className="opt judge";y.textContent="أصابَ";y.onclick=function(){rmSend({t:"judge",qn:q.qn,ok:true})};
+      var n=document.createElement("button");n.className="opt judge";n.textContent="أخطأَ";n.onclick=function(){rmSend({t:"judge",qn:q.qn,ok:false})};
+      box.appendChild(y);box.appendChild(n)}
+    return}
+  /* مُغلَق: الجواب الصحيح يظهر الآن لا قبله */
+  var pickedWrong=q.picked>=0&&!q.ok;
+  if(!q.opts.length){box.innerHTML="";var r2=document.createElement("div");r2.className="opt right reveal";r2.textContent=q.answerText||"";box.appendChild(r2)}
+  else box.querySelectorAll(".opt[data-k]").forEach(function(b){
+    b.disabled=true;var pos=+b.dataset.pos;
+    if(pos===q.right){b.classList.add("right");var m=$("m"+pos);if(m)m.classList.add("right")}
+    if(pickedWrong&&pos===q.picked){b.classList.add("wrong");var mw=$("m"+pos);if(mw)mw.classList.add("wrong")}});
+  if(q.fuse>0&&q.picked===-1&&q.opts.length){boatAt(1);$("secs").textContent=ar(0)}
+  stat((q.opts.length&&q.picked===-1&&q.fuse>0?"رسا المركب — نفد الوقت.":(q.ok?(q.fast?"إصابة مزدوجة — سبقت الجمر.":"إصابة."):"خطأ.")),!q.ok);
+  roomWhy(q);
+  KZR.q=[0,0,0,q.text,q.opts.length?q.opts:[q.answerText||""],q.opts.length?q.right:0,q.why||"",q.src||""];
+  document.querySelector("#front .kzr-flag").style.display=""}
+function stopRoomFx2(){if(RM.raf){cancelAnimationFrame(RM.raf);RM.raf=null}}
+function roomWhy(q){
+  var w=$("why");w.innerHTML="";
+  if(q.why)w.appendChild(document.createTextNode(q.why));
+  if(q.src){var sp=document.createElement("span");sp.className="src";sp.textContent=q.src;w.appendChild(sp)}
+  w.className="why on"}
+/* المركب هو المؤقّت: يزحف مع الثواني، وبلوغه الشاطئ انتهاء المهلة */
+function roomTick(){
+  RM.raf=null;
+  var f=RM.snap&&RM.snap.game&&RM.snap.game.fight,q=f&&f.q;
+  if(!q||q.stage!=="open"||!q.fuse||!RM.dl)return;
+  var left=Math.max(0,RM.dl-performance.now()),e=q.fuse-left;
+  $("secs").textContent=ar(Math.ceil(left/1000));
+  boatAt(mt(1)?e/q.fuse:Math.floor(e/1000)*1000/q.fuse);
+  if(left>0)RM.raf=requestAnimationFrame(roomTick)}
+function roomResult(s,f){
+  var r=f.res,atk=s.teams[f.atk];
+  stopRoomFx2();
+  var base=f.base,tgt=f.tgt;
+  G.base=base;G.tgt=tgt;
+  result(r.kind,roomResultText(r,atk?atk.name:""),null)}
+
+/* ───── الأزرار العامّة ───── */
+function roomBtn(which){
+  if(!roomMine()||G.busy)return;
+  rmSend({t:which})}
 
 /* ───── الرأي ───── */
 (function(){
