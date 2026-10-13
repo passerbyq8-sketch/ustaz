@@ -4270,12 +4270,12 @@ const mem86FollowJudge = (win, h, prev, redOn, hold, given) => {
   const shown = new Array(cl);
   for (let k = 0; k < cl; k++) shown[k] = (heard(k) || had(k) || k < fc) ? 'matched' : 'pending';
   if (hold) {
-    // held, a word passes over only BETWEEN words said: the words before the first one said wait to be said (measured:
-    // 97:3 said in 97:2's place left 97:2, its first words passed over before the two they share); and a word the hold
-    // marked ('blank', his switch off) is not passed over at all
+    // held, the words before the first one said pass over only as a recognizer loses them -- one, or a third of a long
+    // ayah; more wait to be said (measured: 97:3 said in 97:2's place left 97:2, its first three words passed over
+    // before the two they share). A word the hold marked ('blank', his switch off) is not passed over at all.
     let ff = cl;
     for (let k = 0; k < cl; k++) if (heard(k) || had(k) || gv(k)) { ff = k; break; }
-    for (let k = 0; k < ff; k++) shown[k] = 'pending';
+    if (ff > Math.max(1, Math.floor(cl / 3))) for (let k = 0; k < ff; k++) shown[k] = 'pending';
     for (let k = 0; k < cl; k++) if (!heard(k) && !had(k) && prev && prev[k] === 'blank') shown[k] = 'blank';
   }
   if (redOn) {
@@ -4354,8 +4354,22 @@ const mem86EarShown = (sn, a, upto) => {
 // on, a blank with it off. An engine before p2.3 sends no 'heard': every word of a completed ayah counts as heard.
 const mem86EarLeft = (sn, d, redOn) => {
   const n = mem86EarWords(sn, d.ayah), out = new Array(n), flag = Array.isArray(d.flag) ? d.flag : [];
+  const give = Array.isArray(d.give) ? d.give : [];   // engine p2.5: a word given him («كلمة») is printed as given
   const heard = d.skipped ? 0 : Number.isInteger(d.heard) ? Math.max(0, Math.min(n, d.heard)) : n;
-  for (let k = 0; k < n; k++) out[k] = k >= heard ? (redOn ? 'wrong' : 'blank') : (redOn && flag.indexOf(k + 1) !== -1) ? 'wrong' : 'matched';
+  for (let k = 0; k < n; k++) out[k] = k >= heard ? (redOn ? 'wrong' : 'blank') : give.indexOf(k + 1) !== -1 ? 'hint' : (redOn && flag.indexOf(k + 1) !== -1) ? 'wrong' : 'matched';
+  return out;
+};
+// Engine p2.5 (hold): the ayah the engine holds him on. A word right in a saying before, or said in the one he is in
+// (from..upto), printed; a word it marked -- left out, or judged wrong -- red with his switch on, a blank with it off;
+// any other word not yet said.
+const mem86EarHold = (sn, st, redOn) => {
+  const n = mem86EarWords(sn, st.cur), out = new Array(n), m = st.marks || {};
+  const ok = Array.isArray(m.ok) ? m.ok : [], bad = Array.isArray(m.bad) ? m.bad : [];
+  const from = Number.isInteger(st.from) ? st.from : 0, upto = Number.isInteger(st.upto) ? st.upto : 0;
+  for (let k = 0; k < n; k++) {
+    const w = k + 1;
+    out[k] = (from > 0 && w >= from && w <= upto) || ok.indexOf(w) !== -1 ? 'matched' : bad.indexOf(w) !== -1 ? (redOn ? 'wrong' : 'blank') : 'pending';
+  }
   return out;
 };
 
@@ -5896,8 +5910,11 @@ const ezEar = (() => {
   // dropped. stop(): the microphone closes at once, what it heard is sent, the session ends, and the promise holds the
   // engine's last state with every ayah it completed meanwhile (null when there is none). onFail: the engine stopped
   // answering. Returns { err: 'consent' | 'mic' | 'engine' } when it could not begin.
+  // o.hold (engine p2.5, the owner's word of 13 October): the engine never leaves an ayah until it is said right; then
+  // give(a, words) tells it the words of ayah a given him («كلمة») -- they need not be said -- and holds() says whether
+  // the engine that answered holds (an engine before p2.5 does not, and gets no word given).
   const open = async (o) => {
-    let sid = null, seen = 0, epoch = 0, busy = false, dead = false, ending = null, endWith = null, mic = null, pendN = 0;
+    let sid = null, seen = 0, epoch = 0, busy = false, dead = false, ending = null, endWith = null, mic = null, pendN = 0, holds = false;
     const pend = [], ctl = [], tail = [];
     const take = (n) => {
       const y = new Int16Array(n);
@@ -5924,7 +5941,7 @@ const ezEar = (() => {
         for (;;) {
           const q = '?sid=' + sid + '&seen=' + seen;
           if (ctl.length) {
-            const st = await send('/v1/seek' + q, JSON.stringify({ ayah: ctl.shift() }));
+            const st = await send('/v1/seek' + q, JSON.stringify(ctl.shift()));
             seen = st.ndone;
             if (ending) tail.push(...(st.done || [])); else o.onState(st, false);
           } else if (pendN >= CHUNK || (ending && pendN > 0)) {
@@ -5960,11 +5977,13 @@ const ezEar = (() => {
     });
     if (mic.err) return mic;
     if (dead) { mic.close(); return { err: 'consent' }; }
-    try { sid = (await send('/v1/session', JSON.stringify({ sura: o.sura, ayah: o.ayah, last: o.last }))).sid; }
+    try { const st0 = await send('/v1/session', JSON.stringify({ sura: o.sura, ayah: o.ayah, last: o.last, hold: o.hold === true })); sid = st0.sid; holds = st0.hold === true; }
     catch (e) { dead = true; mic.close(); return { err: 'engine' }; }
     pump();
     return {
-      seek: (a) => { if (dead || ending) return; epoch++; pend.length = 0; pendN = 0; ctl.push(a); pump(); },
+      seek: (a) => { if (dead || ending) return; epoch++; pend.length = 0; pendN = 0; ctl.push({ ayah: a }); pump(); },
+      give: (a, words) => { if (dead || ending || !holds) return false; ctl.push({ ayah: a, give: words }); pump(); return true; },
+      holds: () => holds,
       stop: () => {
         if (!ending) {
           ending = dead ? Promise.resolve(null) : new Promise((r) => { endWith = r; });
@@ -34479,6 +34498,10 @@ const mem86Streak = (days, today) => {
 // memorizer key is written for them (tools/memorizer86-check.cjs, section «the switch»).
 const MEM86_PART = 'owner';
 const mem86Lit = () => MEM86_PART === 'public' || (MEM86_PART === 'owner' && (EZ110_OWNER || !!(EZ110_OVERRIDE && EZ110_OVERRIDE.id)));
+// ...and what stays his alone whatever the part (13 October): his own engine on his computer, and the red of his
+// experiment (decision 10: no red for a reader before the judge's false flags are zero). Opened to everyone, a reader
+// is heard by the browser's engine and sees a word he did not say as a blank.
+const mem86Own = () => EZ110_OWNER || !!(EZ110_OVERRIDE && EZ110_OVERRIDE.id);
 
 // ---------- switches ----------
 const MEM86_PREF_DEFAULT = {
@@ -34705,11 +34728,11 @@ const mem86AyahEnd = (units, c) => {
   return i;
 };
 // The recite options: the switches. The hints, the pause and «تابع» ride in the sticky bar over the page (12 October, night).
-const Mem86ReciteOpts = ({ prefs, onPref }) => (
+const Mem86ReciteOpts = ({ prefs, onPref, own }) => (
   <div className="ezq-drill-acts" style={s.mem86Card}>
     <Mem86Switch on={prefs.dim} onFlip={(v) => onPref({ dim: v })} label={ezT('mem86.opt.dim')} />
     <Mem86Switch on={prefs.hideNums} onFlip={(v) => onPref({ hideNums: v })} label={ezT('mem86.opt.hideNums')} />
-    <Mem86Switch on={prefs.wrong} onFlip={(v) => onPref({ wrong: v })} label={ezT('mem86.opt.wrong')} />
+    {own ? <Mem86Switch on={prefs.wrong} onFlip={(v) => onPref({ wrong: v })} label={ezT('mem86.opt.wrong')} /> : null}
     <Mem86WeakKey on={prefs.weak} onFlip={(v) => onPref({ weak: v })} />
   </div>
 );
@@ -38342,6 +38365,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   const reciteRecognitionRef = useRef(null);            // own SpeechRecognition (separate from chat/call refs)
   const reciteRunIdRef = useRef(0);                     // cancel token so a stale onend can't reopen the mic
   const reciteHeardRef = useRef('');                    // transient transcript — never rendered, never saved
+  const reciteFinalRef = useRef('');                    // ...its final part alone (item 86: where a hold drops what was heard)
   const [reciteAyah, setReciteAyah] = useState(null);   // current recite ayah; current = reciteAyah || startAyah
   const [reciteFinished, setReciteFinished] = useState(false); // whole range done → show finish line
   const reciteAyahRef = useRef(null);                   // live mirror so onresult reads the current ayah synchronously
@@ -38355,8 +38379,10 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   // Item 86 (memorizer): the picker's tabs and the reader's memorised ayat. The catalogue is always the first tab.
   const [tab, setTab] = useState(() => (mem86Lit() ? 'recite' : 'learn'));
   const [held, setHeld] = useState(mem86HeldRead);
-  const [prefs, setPrefs] = useState(() => (mem86Lit() ? mem86PrefsRead() : MEM86_PREF_MAIN));
-  const setPref = (patch) => { if (!mem86Lit()) return; if (patch.dim) reciteHiddenRef.current = false; setPrefs(mem86PrefsWrite(patch)); };
+  // the red of his experiment is his alone (mem86Own): anyone else reads it off, whatever is stored
+  const mine = (p) => (mem86Own() ? p : { ...p, wrong: false });
+  const [prefs, setPrefs] = useState(() => (mem86Lit() ? mine(mem86PrefsRead()) : MEM86_PREF_MAIN));
+  const setPref = (patch) => { if (!mem86Lit()) return; if (patch.dim) reciteHiddenRef.current = false; setPrefs(mine(mem86PrefsWrite(patch))); };
   const prefsRef = useRef(prefs);                       // what a running recognizer reads: the switches as they are now
   prefsRef.current = prefs;
   const [adnanEnd, setAdnanEnd] = useState(0);         // last ayah of the listening range; 0 = the end of the surah
@@ -38563,6 +38589,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       reciteFollowRef.current = { ...f, given: (f.given || []).concat(add) };
       reciteFollowStep();
     }
+    if (reciteEarRef.current) reciteEarRef.current.give(cur, add.map((i) => i + 1));   // his own engine (p2.5) is told too
   };
   // Item 86: the owner's follower at a result of the browser's engine, and at a word given him. Each ayah it completes is
   // kept with what was heard of it, and the follower carries on in the same result. It HOLDS (13 October): an ayah is
@@ -38579,7 +38606,11 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       reciteAyahRef.current = r.cur;
       setReciteAyah(r.cur);
       setReciteHints([]);
-    } else if (r.held) reciteFollowRef.current = { cur: r.cur, prev: r.prev, cut: r.cut, given: f.given };
+    } else if (r.held) {
+      // held: what was heard so far is dropped -- up to its final part only, as an interim word can still change its
+      // count (the words he goes on with after it are heard from there)
+      reciteFollowRef.current = { cur: r.cur, prev: r.prev, cut: Math.max(f.cut | 0, mem86FollowHeard(reciteFinalRef.current, 0).total), given: f.given };
+    }
   };
 
   const startRecite = (fromAyah, viaWeb) => {
@@ -38591,7 +38622,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     if (!hasValidAIConsent()) { setReciteErr(EZ_SPEECH_NO_CONSENT); return; }
     // Item 86, phase 2: the owner is heard by our own engine on his computer when it answers (ezEar, reciteEarGo), and by
     // the browser's engine otherwise -- `viaWeb` is that fallback, and the only engine of every other reader.
-    const ear = mem86Lit() && !viaWeb && ezEar.here();
+    const ear = mem86Lit() && mem86Own() && !viaWeb && ezEar.here();   // his engine is his alone, whoever else the memorizer is opened to
     if (!ear && !ezSpeechAvailable()) { setReciteErr(RECITE_NO_SR); return; } // graceful fail, same message as chat/call
     setReciteErr('');
     setReciteFinished(false);
@@ -38601,7 +38632,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     setRecitePaused(0); setReciteHints([]);
     setReciteAyah(from);
     reciteAyahRef.current = from;
-    reciteHeardRef.current = '';
+    reciteHeardRef.current = ''; reciteFinalRef.current = '';
     setReciteStates([]);
     reciteShownRef.current = [];
     reciteAnchorRef.current = [from, 0];
@@ -38634,6 +38665,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         } else { interim += t; }
       }
       reciteHeardRef.current = (finalText + ' ' + interim).trim();
+      reciteFinalRef.current = finalText;
       if (mem86Lit()) mem86Ping();
       // Item 86: the owner's page FOLLOWS him (mem86Follow), and holds him on an ayah until it is said (reciteFollowStep).
       if (mem86Lit()) { reciteFollowStep(); return; }
@@ -38700,6 +38732,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         if (mem86Lit()) {
           const g = reciteFollowRef.current, at = reciteAyahRef.current || startAyah;
           reciteFollowRef.current = { cur: at, prev: reciteShownRef.current.slice(), cut: 0, given: g.cur === at ? g.given : null };
+          reciteHeardRef.current = ''; reciteFinalRef.current = '';   // the new session hears from nothing; what was shown stays
           const tryStart = (attempt) => {
             if (reciteRunIdRef.current !== myRun) return;
             if (ezStartRecognition(rec)) return;
@@ -38728,7 +38761,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     const up = await ezEar.reachable();
     if (!live()) return;
     if (!up) { reciteEarWeb(from); return; }
-    const h = await ezEar.open({ sura: selectedSurah, ayah: from, last: surahCount,
+    const h = await ezEar.open({ sura: selectedSurah, ayah: from, last: surahCount, hold: true,
       onState: (st, stale) => { if (live()) reciteEarState(st, stale); },
       onFail: () => { if (!live()) return; reciteEarRef.current = null; reciteEarWeb(reciteAyahRef.current || startAyah); } });
     if (!live()) { if (h && h.stop) h.stop(); return; }
@@ -38745,27 +38778,27 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     const keep = done.filter((d) => !stale || d.ayah < cur);
     if (keep.length) setReciteDone((d0) => { const o = { ...d0 }; for (const d of keep) o[d.ayah] = mem86EarLeft(selectedSurah, d, prefsRef.current.wrong); return o; });
   };
-  // One answer of the engine while he recites: the ayat completed, then the current ayah filled to the last word heard.
+  // One answer of the engine while he recites: the ayat completed, then the current ayah filled to the last word heard --
+  // or, while it holds him (p2.5), with the words it marked.
   const reciteEarState = (st, stale) => {
     const done = st.done || [];
     reciteEarDone(done, stale);
     if (stale) return;
     if (st.cur > st.last) { mem86Ping(); setReciteFinished(true); stopRecite(); reciteCredit(); return; }   // the range is done (the engine's `finished` also means only "session over")
     const cur = reciteAyahRef.current || startAyah;
-    const shown = mem86EarShown(selectedSurah, st.cur, st.upto);
-    const was = reciteShownRef.current.filter((x) => x === 'matched').length;
-    if (done.length || st.cur !== cur || shown.filter((x) => x === 'matched').length !== was) mem86Ping();   // a heard word keeps the clock; silence does not
+    const shown = st.hold ? mem86EarHold(selectedSurah, st, prefsRef.current.wrong) : mem86EarShown(selectedSurah, st.cur, st.upto);
+    if (done.length || st.cur !== cur || shown.join() !== reciteShownRef.current.join()) mem86Ping();   // a heard word keeps the clock; silence does not
     if (st.cur !== cur) { reciteAyahRef.current = st.cur; setReciteAyah(st.cur); setReciteHints([]); }
     setReciteStates(shown);
     reciteShownRef.current = shown;
   };
-  // The engine's last answer after a pause.
+  // The engine's last answer after a pause; holding (p2.5), it judged what he said of the ayah he stopped in.
   const reciteEarPaused = (st) => {
     reciteEarDone(st.done || [], false);
     if (st.cur > st.last) { setRecitePaused(0); setReciteFinished(true); reciteCredit(); return; }
     if (st.cur !== (reciteAyahRef.current || startAyah)) {
       reciteAyahRef.current = st.cur; setReciteAyah(st.cur); setReciteStates([]); reciteShownRef.current = []; setReciteHints([]); setRecitePaused(st.cur);
-    }
+    } else if (st.hold) { const shown = mem86EarHold(selectedSurah, st, prefsRef.current.wrong); setReciteStates(shown); reciteShownRef.current = shown; }
   };
 
   // Item 86 (13 October, the owner's word: «يرجّعك لها وتسمّعها من جديد، وبعدها يكمّل معك»): an ayah left with a word he
@@ -39062,7 +39095,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       </div>
       ))}
       {mem86Lit() && drillMode === 'recite' && (
-        <Mem86ReciteOpts prefs={prefs} onPref={setPref} />
+        <Mem86ReciteOpts prefs={prefs} onPref={setPref} own={mem86Own()} />
       )}
     </EzShell>
   );

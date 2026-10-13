@@ -1971,10 +1971,13 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3482291. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57068 bytes).
   //   2026-10-13 -- Item 86 (memorizer, phase 2: «سمِّعني» holds the owner on an ayah until it is said -- his word of 13 October, 14:28; owner-only, cache ezik-v102): app.js 2266883 -> 2270124 bytes, sha256 48ece781..1c2d; index.html 155556.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3485532. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57068 bytes).
-  'sw.js': 'b04b8ed8952b041f3ead9f89118d67b8cdeadf952781bc3663bcba024869a7d5',
+  //   2026-10-13 -- Item 86 (memorizer, phase 2: his own engine holds him too -- engine p2.5; his engine and the red of his experiment stay his alone whoever the memorizer is opened to; owner-only, cache ezik-v103): app.js 2270124 -> 2273096 bytes, sha256 33ca4593..5472; index.html 155556.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3488504. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57068 bytes).
   //   2026-10-13 -- Merge of origin/main 5540850e (item 86 v101-v102 + Kunuz) into item 89 (arbaeen): app.js rebuilt from the merged source, 2269508 bytes, sha256 361e951e..edb4; index.html 155556. CACHE ezik-v103.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3455524. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
-  'sw.js': 'be94c7f47cb5ab144f5a2b440d870b45c2116caadc0cb0a07858b1915c65ed2d',
+  //   2026-10-13 -- Merge of origin/main 8d8579b6 (item 86 phase 2 engine p2.5, cache ezik-v103; Hanna Laha picker) into item 89 (arbaeen): app.js rebuilt from the merged source, 2272480 bytes, sha256 f44e11fc..d6c0; index.html 155556. CACHE ezik-v104.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3458496. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
+  'sw.js': '3a47eaad5594e28b3bdbdcd2b477e0e7896eac78c6bdca4785221b871ff8ae84',
 };
 
 // ---------------------------------------------------------------------------
@@ -3109,7 +3112,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2269508, of: 'app.js' },
+      { n: 2272480, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
