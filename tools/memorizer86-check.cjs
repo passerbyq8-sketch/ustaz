@@ -843,6 +843,22 @@ lift(['mem86EarWords', 'mem86EarShown', 'mem86EarLeft']);
   const blankAt = page5.indexOf("if (st === 'blank') return <span key={i} style={s.memPlaceholder}>—</span>;");
   ok(blankAt > 0 && blankAt < page5.indexOf('return <span key={i} style={s.mem86WordHint}>{w}</span>;') && blankAt < page5.indexOf('if (isCur) {'),
     'the page draws a blank for it on an ayah already left, before the quiet word could be drawn');
+  // 13 October, his second decision: «يرجّعك لها وتسمّعها من جديد، وبعدها يكمّل معك»
+  const page6 = src4.slice(src4.indexOf('const Mem86PageRow = '), src4.indexOf('\n};\n', src4.indexOf('const Mem86RecitePage = ')) + 3);
+  ok(page6.includes("const back = printed && onBack && Array.isArray(left) && left.some((x) => x === 'wrong' || x === 'blank') ? () => onBack(a) : null;")
+    && page6.includes("role={back ? 'button' : undefined} tabIndex={back ? 0 : undefined} aria-label={back ? ezT('mem86.back') : undefined}")
+    && page6.includes('onClick={back || undefined}') && page6.includes("if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); back(); }"),
+    'an ayah already left with a word he did not say (red, or a blank) is a button -- by touch and by keyboard -- named in his language; any other row is not');
+  ok(page6.includes("onBack={mode === 'printed' ? onBack : null}") && src4.includes('weak={prefs.weak} onBack={onReciteBack} />')
+    && src4.includes('const onReciteBack = React.useCallback((a) => reciteBackRef.current(a), []);'),
+    '...only the rows already left are handed it, and the handler never changes, so no row redraws for it');
+  const backFn = scr4.slice(scr4.indexOf('const reciteBack = (a) => {'), scr4.indexOf('const reciteBackRef = useRef(reciteBack);'));
+  ok(backFn.length > 0 && /if \(!\(a >= startAyah && a <= surahCount\)\) return;\n\s*stopRecite\(\);\n\s*setReciteFinished\(false\);\n\s*startRecite\(a\);/.test(backFn)
+    && !/mem86Credit|mem86DaysAdd|reciteCleanRef/.test(backFn),
+    'going back stops what listens and listens again from that ayah, as «متابعة» does -- it earns nothing and forgives nothing by itself');
+  const LANG6 = path.join(REPO, 'lang');
+  const miss6 = fs.readdirSync(LANG6).filter((x) => x.endsWith('.json')).filter((f) => { const d = JSON.parse(fs.readFileSync(path.join(LANG6, f), 'utf8')); return typeof d['mem86.back'] !== 'string' || !d['mem86.back'].trim(); });
+  ok(miss6.length === 0 && (src4.match(/'mem86\.back': '[^']+'/g) || []).length === 2, 'its name is in Arabic, English and every language file');
   // the wiring
   const at = (t) => scr4.indexOf(t);
   const branch = "if (ear) { const myRun = ++reciteRunIdRef.current; setReciteListening(true); setReciteEar('wait'); reciteEarGo(from, myRun); return; }";

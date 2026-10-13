@@ -1962,7 +1962,9 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3480134. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57067 bytes).
   //   2026-10-13 -- Item 86 (memorizer, phase 2: a word the owner's engine did not hear -- an ayah passed over, or the end of one left early -- is never printed: red with his switch on, a blank with it off; owner-only, cache ezik-v100): app.js 2264726 -> 2265489 bytes, sha256 0c979c9a..51a4; index.html 155556.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3480897. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57068 bytes: the store name gained a digit).
-  'sw.js': '031464518fc5d6a31e72608c75c5863e34ba630d2025b0f6bf6eb8916d8a2f21',
+  //   2026-10-13 -- Item 86 (memorizer, phase 2: an ayah left with a word he did not say takes the owner back to it -- his word of 13 October; owner-only, cache ezik-v101): app.js 2265489 -> 2266883 bytes, sha256 1e255064..bc77; index.html 155556.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3482291. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57068 bytes).
+  'sw.js': '2a62c6c4258e6ad86a3774af09a014426fa28e80623010cce3faa6db56fb2a98',
 };
 
 // ---------------------------------------------------------------------------
@@ -3068,7 +3070,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2265489, of: 'app.js' },
+      { n: 2266883, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

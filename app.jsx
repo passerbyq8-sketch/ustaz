@@ -1834,6 +1834,7 @@ const EZ_I18N = {
     'mem86.ear.on': 'يسمعك المحرّك على جهازك',
     'mem86.ear.off': 'المحرّك على جهازك لا يجيب، فيسمعك المتصفّح',
     'mem86.ear.mic': 'لم يُفتح الميكروفون. اسمح به لهذا الموقع ثم ابدأ من جديد.',
+    'mem86.back': 'ارجع إلى هذه الآية وسمِّعها من جديد',
     'mem86.tab.test': 'اختبرني',
     'mem86.test.saved': 'اختبار موقوف: مضى منه {n} سؤال',
     'mem86.test.resume': 'استأنف الاختبار',
@@ -3368,6 +3369,7 @@ const EZ_I18N = {
     'mem86.ear.on': 'The engine on your computer is listening',
     'mem86.ear.off': 'The engine on your computer is not answering, so the browser is listening',
     'mem86.ear.mic': 'The microphone did not open. Allow it for this site, then start again.',
+    'mem86.back': 'Go back to this ayah and recite it again',
     'mem86.tab.test': 'Test me',
     'mem86.test.saved': 'A paused test: {n} questions done',
     'mem86.test.resume': 'Resume the test',
@@ -34709,8 +34711,10 @@ const Mem86ReciteOpts = ({ prefs, onPref }) => (
 // ONE ROW REDRAWS AT A RESULT. Each ayah is its own memoised row: the rows behind the current one and the blanks
 // after it are drawn once, and a result redraws the current row alone (measured on 685e447: the whole of
 // al-Baqarah at every result, 375-630 ms a result at a phone's speed).
-const Mem86PageRow = React.memo(({ sn, a, mode, states, hints, left, dim, hideNums, weak }) => {
+const Mem86PageRow = React.memo(({ sn, a, mode, states, hints, left, dim, hideNums, weak, onBack }) => {
   const printed = mode === 'printed', isCur = mode === 'cur';
+  // 13 October: an ayah left with a word he did not say (a red mark, or a blank with the switch off) takes him back to it
+  const back = printed && onBack && Array.isArray(left) && left.some((x) => x === 'wrong' || x === 'blank') ? () => onBack(a) : null;
   let k = 0;
   const cells = (getVerseText(sn, a) || '').split(/\s+/).filter(Boolean).map((w, i) => {
     if (!normalizeForRecite(w)) return printed ? <span key={i} style={s.memWordPending}>{w}</span> : null;
@@ -34732,13 +34736,15 @@ const Mem86PageRow = React.memo(({ sn, a, mode, states, hints, left, dim, hideNu
     return <span key={i} style={s.memPlaceholder}>—</span>;
   });
   return (
-    <div data-mem86-cur={isCur ? '1' : undefined} style={isCur ? { ...s.mem86PageRow, ...s.mem86PageRowCur } : s.mem86PageRow}>
+    <div data-mem86-cur={isCur ? '1' : undefined} style={isCur ? { ...s.mem86PageRow, ...s.mem86PageRowCur } : back ? { ...s.mem86PageRow, cursor: 'pointer' } : s.mem86PageRow}
+      role={back ? 'button' : undefined} tabIndex={back ? 0 : undefined} aria-label={back ? ezT('mem86.back') : undefined} data-mem86-back={back ? '1' : undefined}
+      onClick={back || undefined} onKeyDown={back ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); back(); } } : undefined}>
       {hideNums ? null : <span style={s.memAyahBadge}>{toArabicDigits(a)}</span>}
       {cells}
     </div>
   );
 });
-const Mem86RecitePage = ({ sn, from, to, cur, states, hints, done, finished, dim, hideNums, weak }) => {
+const Mem86RecitePage = ({ sn, from, to, cur, states, hints, done, finished, dim, hideNums, weak, onBack }) => {
   const pageRef = useRef(null);
   useEffect(() => {
     // An instant jump, not an animated one: the app owns exactly one animated scroll (a11y, chatux).
@@ -34752,7 +34758,7 @@ const Mem86RecitePage = ({ sn, from, to, cur, states, hints, done, finished, dim
     const mode = (finished || a < cur) ? 'printed' : a === cur ? 'cur' : 'blank';
     rows.push(<Mem86PageRow key={a} sn={sn} a={a} mode={mode} states={mode === 'cur' ? states : MEM86_NONE}
       hints={mode === 'cur' ? hints : MEM86_NONE} left={mode === 'printed' ? (done[a] || null) : null}
-      dim={mode === 'cur' && dim} hideNums={hideNums} weak={mode !== 'blank' && weak} />);
+      dim={mode === 'cur' && dim} hideNums={hideNums} weak={mode !== 'blank' && weak} onBack={mode === 'printed' ? onBack : null} />);
   }
   return <div ref={pageRef} style={s.mem86Page}>{rows}</div>;
 };
@@ -38738,6 +38744,19 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     }
   };
 
+  // Item 86 (13 October, the owner's word: «يرجّعك لها وتسمّعها من جديد، وبعدها يكمّل معك»): an ayah left with a word he
+  // did not say takes him back to it -- the listening starts again there, and the ayat after it are blank until he gets
+  // to them. The same resume as «متابعة»; the page hands the row a handler that never changes, so no row redraws for it.
+  const reciteBack = (a) => {
+    if (!(a >= startAyah && a <= surahCount)) return;
+    stopRecite();
+    setReciteFinished(false);
+    startRecite(a);
+  };
+  const reciteBackRef = useRef(reciteBack);
+  reciteBackRef.current = reciteBack;
+  const onReciteBack = React.useCallback((a) => reciteBackRef.current(a), []);
+
   // Manual advance — freeze-proof fallback so a missed/substituted last word can't lock progress.
   const advanceReciteManual = () => {
     reciteCleanRef.current = false;   // a manual «next» earns nothing
@@ -38962,7 +38981,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
         <div style={s.memReciteHint}>{MEM.RECITE_HINT}</div>
         {mem86Lit() ? (
           <Mem86RecitePage sn={selectedSurah} from={startAyah} to={surahCount} cur={reciteAyah || startAyah} states={reciteStates}
-            hints={reciteHints} done={reciteDone} finished={reciteFinished} dim={prefs.dim} hideNums={prefs.hideNums} weak={prefs.weak} />
+            hints={reciteHints} done={reciteDone} finished={reciteFinished} dim={prefs.dim} hideNums={prefs.hideNums} weak={prefs.weak} onBack={onReciteBack} />
         ) : (<>
         <div style={s.memSurahTitle}>{prefs.hideNums ? SURAH_NAMES[selectedSurah] : `${SURAH_NAMES[selectedSurah]} · ${MEM.ADNAN_AYAH_LABEL} ${toArabicDigits(reciteAyah || startAyah)}`}</div>
         <div style={s.memDrillText}>
