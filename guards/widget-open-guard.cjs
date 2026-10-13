@@ -93,6 +93,9 @@ function boot(opts) {
   seed.ezik_qibla_loc_v1 = JSON.stringify({ lat: 29.3759, lng: 47.9774 });
   seed.ezik_prayer_prefs_v1 = JSON.stringify({ method: 'kuwait', asr: 'standard', off: { fajr: 2 } });
   seed.adhkar_favorites_v1 = JSON.stringify(['adhkar_sabah:0']);
+  // ITEM 110, the call-to-prayer card public (13 October 2026): a reader already asked about it, so a widget-data
+  // reply cannot draw it in the scene that proves those replies silent; widget-adhan-card proves the drawing itself.
+  if (opts.adhanAsked) seed.ezik_110_adhan_asked_v1 = '1';
   window.localStorage = makeStore(seed, storageWrites, 'local');
   window.sessionStorage = makeStore({}, storageWrites, 'session');
   window.postMessage = (wire) => browserPosts.push(String(wire));
@@ -610,8 +613,63 @@ SCENES['widget-inflight-rejection'] = async (c, t) => {
   wakeWidgetFixtures(c, 7); await tick(350);
   t('rejected in-flight sender remains stopped on later changes', c.widgetPosts().length, 0);
 };
+// ITEM 110, the call-to-prayer card public (13 October 2026, the owner's word of 00:46): the card in the empty chat
+// draws only where the shell answered the widget-data probe. Mounting it mounts PrayerTimesPanel part=notify, whose
+// useEzikSchedWatch re-arms on every render (an unchanged payload posts nothing) and whose ensurePrayerSchedule may
+// write the schedule table: bounded here, and never a second widget-data send.
+const ADHAN_CARD_SEL = '[data-ez110-first="call"]';
+const ADHAN_CARD_ARM_BOUND = 3; // re-arm calls from the first supported reply to 1.5 s after the card appears
+const adhanCards = (c) => c.root.querySelectorAll(ADHAN_CARD_SEL).length;
+SCENES['widget-adhan-card'] = async (c, t, notes) => {
+  await c.until('chat');
+  t('card fixture sends its first probe', await c.untilValue(() => c.widgetPosts().length, 1), 1);
+  t('card fixture: capability pending after the probe', c.read('ezikWidgetDataCapability'), 'pending');
+  const foreign = { ...WIDGET_RESULT, inReplyTo: 'schedule' };
+  c.send(foreign); await tick(60);
+  t('pending never draws the card', adhanCards(c), 0);
+  c.read("ezikWidgetDataCapability = 'unknown'"); c.send(foreign); await tick(60);
+  t('unknown never draws the card', adhanCards(c), 0);
+  c.read("ezikWidgetDataCapability = 'pending'");
+  c.window.__adhanCardArms = 0;
+  c.read('ezikSchedArm = ((arm) => function() { window.__adhanCardArms++; return arm.apply(this, arguments); })(ezikSchedArm)');
+  const postsBefore = c.posts.length;
+  for (let i = 0; i < 3; i++) { c.send(WIDGET_RESULT); await tick(30); }
+  await tick(60);
+  t('the first widget-data result makes the capability supported', c.read('ezikWidgetDataCapability'), 'supported');
+  t('the first supported result draws the card exactly once', adhanCards(c), 1);
+  await tick(1500);
+  t('no second widget-data send after the card appears', c.widgetPosts().length, 1);
+  const arms = c.window.__adhanCardArms;
+  notes.push('ADHAN_CARD arms=' + arms + ' bound=' + ADHAN_CARD_ARM_BOUND + ' cards=' + adhanCards(c));
+  t('re-arm calls stay within ' + ADHAN_CARD_ARM_BOUND, arms <= ADHAN_CARD_ARM_BOUND, true);
+  t('the re-arms send nothing to the shell', c.posts.length - postsBefore, 0);
+};
+SCENES['widget-adhan-card-legacy'] = async (c, t) => {
+  await c.until('chat');
+  t('legacy card fixture sends its first probe', await c.untilValue(() => c.widgetPosts().length, 1), 1);
+  c.send(WIDGET_LEGACY_ERROR); await tick(60);
+  t('a legacy shell disables the capability', c.read('ezikWidgetDataCapability'), 'disabled');
+  t('disabled never draws the card', adhanCards(c), 0);
+  for (let i = 0; i < 2; i++) { c.send(WIDGET_RESULT); await tick(30); }
+  await tick(300);
+  t('a result after disabled still never draws the card', adhanCards(c), 0);
+};
 // Every needle must match exactly once; assertions execute the mutant, never recognize it.
 const MUTANTS = [
+  { name: "adhan-card-no-probe", scene: "widget-adhan-card", edits: [["    EZ_LANG_SUBS.add(wake);\n    wake();\n    atMidnight();", "    EZ_LANG_SUBS.add(wake);\n    atMidnight();"]] },
+  { name: "adhan-card-no-pending", scene: "widget-adhan-card", edits: [["if (ezikWidgetDataCapability === 'unknown') ezikWidgetDataCapability = 'pending';", ""]] },
+  { name: "adhan-card-draws-pending", scene: "widget-adhan-card", edits: [["setEz110AdhanShellOk(ezikWidgetDataCapability === 'supported')", "setEz110AdhanShellOk(ezikWidgetDataCapability === 'supported' || ezikWidgetDataCapability === 'pending')"]] },
+  { name: "adhan-card-draws-unknown", scene: "widget-adhan-card", edits: [["setEz110AdhanShellOk(ezikWidgetDataCapability === 'supported')", "setEz110AdhanShellOk(ezikWidgetDataCapability === 'supported' || ezikWidgetDataCapability === 'unknown')"]] },
+  { name: "adhan-card-capability-not-supported", scene: "widget-adhan-card", edits: [["      ezikWidgetDataCapability = 'supported';\n", "      ezikWidgetDataCapability = 'pending';\n"]] },
+  { name: "adhan-card-never-draws", scene: "widget-adhan-card", edits: [["setEz110AdhanShellOk(ezikWidgetDataCapability === 'supported')", "setEz110AdhanShellOk(false)"]] },
+  { name: "adhan-card-drawn-twice", scene: "widget-adhan-card", edits: [["      <p className=\"ez110-first-title\">{ezT('ez110.call.title')}</p>\n", "      <p className=\"ez110-first-title\">{ezT('ez110.call.title')}</p>\n      <i data-ez110-first=\"call\" />\n"]] },
+  { name: "adhan-card-second-send", scene: "widget-adhan-card", edits: [["function Ez110AdhanCard({ onPressed, onLater }) {\n  return (", "function Ez110AdhanCard({ onPressed, onLater }) {\n  useEffect(() => { ezikWidgetDataChanged(); }, []);\n  return ("]] },
+  { name: "adhan-card-arm-loop", scene: "widget-adhan-card", edits: [["function Ez110AdhanCard({ onPressed, onLater }) {\n  return (", "function Ez110AdhanCard({ onPressed, onLater }) {\n  const [spin, setSpin] = useState(0);\n  useEffect(() => { if (spin < 30) setSpin(spin + 1); });\n  return ("]] },
+  { name: "adhan-card-arm-posts", scene: "widget-adhan-card", edits: [["  if (print === ezikSchedLastSent) return { sent: false, reason: 'unchanged', items: count, dropped: built.dropped };\n", ""]] },
+  { name: "adhan-card-legacy-no-probe", scene: "widget-adhan-card-legacy", edits: [["    EZ_LANG_SUBS.add(wake);\n    wake();\n    atMidnight();", "    EZ_LANG_SUBS.add(wake);\n    atMidnight();"]] },
+  { name: "adhan-card-legacy-not-disabled", scene: "widget-adhan-card-legacy", edits: [["        ezikWidgetDataCapability = 'disabled';\n", ""]] },
+  { name: "adhan-card-draws-disabled", scene: "widget-adhan-card-legacy", edits: [["setEz110AdhanShellOk(ezikWidgetDataCapability === 'supported')", "setEz110AdhanShellOk(ezikWidgetDataCapability === 'supported' || ezikWidgetDataCapability === 'disabled')"]] },
+  { name: "adhan-card-revives-after-disabled", scene: "widget-adhan-card-legacy", edits: [["      if (ezikWidgetDataCapability !== 'pending' || d.op !== SHELL_SCHED_RESULT_OP", "      if ((ezikWidgetDataCapability !== 'pending' && ezikWidgetDataCapability !== 'disabled') || d.op !== SHELL_SCHED_RESULT_OP"]] },
   { name: 'listener-in-effect', scene: 'cold-mushaf', edits: [
     ['(function ezikWidgetListen() {', 'const ezikWidgetListenLate = (function ezikWidgetListen() {'],
     ['  } catch (e) {}\n})();\n\n// The bridge, or null.', '  } catch (e) {}\n});\n\n// The bridge, or null.'],
@@ -713,7 +771,7 @@ async function runScene(name, mutant) {
   };
   const c = boot({ profile: name !== 'onboarding', consent: name !== 'chat-consent',
     shell: name.startsWith('widget-') || name === 'adhan' || name === 'adhan-legacy-hidden' || name.startsWith('adhan-supported-'),
-    deferFixtures: name === 'widget-inflight-rejection', offline: name === 'offline', mutant });
+    deferFixtures: name === 'widget-inflight-rejection', offline: name === 'offline', adhanAsked: name === 'widget-reply-silence', mutant });
   if (c.notApplied) return { notApplied: true, results, notes };
   try { await SCENES[name](c, t, notes); } catch (e) { results.push({ label: 'scene threw: ' + String(e && e.message), ok: false }); }
   if (c.caught()) results.push({ label: 'runtime error: ' + String(c.caught()), ok: false });
