@@ -1031,6 +1031,14 @@ async function goHome(c) {
   return driver(c.window).all('[data-ezik-home-module]').length > 0;
 }
 
+// Item 86 (the owner's word of 13 October 2026, 18:44): the new memorizer is every reader's. Its picker carries the
+// tabs, «سمِّعني» first and open; a surah's «ابدأ» opens that page AND starts listening -- one press, the reader's
+// own -- so on it that press IS the recitation control, and it is handed back unpressed for each case below to press.
+// Main's memorizer (its part set back to 'owner' or 'off') keeps the path it always had: the drill, its «سمِّعني» mode
+// tab, «ابدأ التسميع».
+const MEM86_TAB_RE = new RegExp(MEM.MODE_RECITE);
+const newMemorizer = (c) => driver(c.window).all('[role="tablist"]').some((t) => MEM86_TAB_RE.test(String(t.textContent || '')));
+
 // Home -> the memorizer -> the drill, where «ابدأ التسميع» lives.
 async function openRecite(c) {
   if (!(await goHome(c))) return { ok: false, why: 'could not reach home' };
@@ -1046,6 +1054,7 @@ async function openRecite(c) {
   await tick(200);
   const start = driver(c.window).byText(MEM.START_BTN);
   if (!start) return { ok: false, why: 'no «start» button in the memorizer: ' + cps(MEM.START_BTN) };
+  if (newMemorizer(c)) return { ok: true, recite: start };   // the new memorizer: this press opens «سمِّعني» listening
   await driver(c.window).click(start);
   await tick(250);
   // The drill opens in manual mode; «سمِّعني» is the third mode tab and the only one that listens.
@@ -1070,6 +1079,7 @@ async function openReciteB(c) {
   await tick(200);
   const start = driver(c.window).byText(MEM.START_BTN);
   if (!start) return { ok: false, why: 'no start button in the memorizer' };
+  if (newMemorizer(c)) return { ok: true, recite: start };   // the new memorizer: this press opens «سمِّعني» listening
   await driver(c.window).click(start);
   await tick(250);
   const modeTab = driver(c.window).byText(MEM.MODE_RECITE);

@@ -3,7 +3,7 @@
 // Verified by `npm run verify:build` and by the gate `babel`, which regenerate this file
 // and fail on any difference. An edit made here is overwritten by the next build and is
 // reported as a difference by the gate before that.
-var EZIK_APP_VERSION = "ezik-v103";
+var EZIK_APP_VERSION = "ezik-v104";
 var EZIK_ENABLED_LANGS = ["ar","en","fr","fa","ur","id"];
 const{useState,useEffect,useRef}=React;// ============================================================
 // S116 -- THE INTERFACE LANGUAGE (ar / en). READ THIS BEFORE ADDING A KEY.
@@ -10117,10 +10117,12 @@ while(!mem86Store(MEM86_WORDS_KEY,log)){keys=Object.keys(log).sort((a,b)=>log[a]
 const mem86Day=d=>{const x=d||new Date();return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');};const mem86DayShift=(day,k)=>{const[y,m,d]=day.split('-').map(Number);return mem86Day(new Date(y,m-1,d+k));};const mem86DaysRead=()=>{const v=mem86Load(MEM86_DAYS_KEY);const out={};if(!mem86Obj(v))return out;for(const k in v){if(!/^\d{4}-\d{2}-\d{2}$/.test(k)||!mem86Obj(v[k]))continue;const e=v[k];const o=Array.isArray(e.o)?e.o.filter(x=>mem86Obj(x)&&(x.k==='new'||x.k==='review')&&mem86Int(x.min,0,1440)!==null).slice(0,10).map(x=>({k:x.k,min:x.min,n:mem86Int(x.n,0,6236)||0})):[];out[k]={m:mem86Int(e.m,0,86400)||0,n:mem86Int(e.n,0,6236)||0,r:mem86Int(e.r,0,99999)||0,o};}return out;};// add to one day: { m, n, r } and/or an off-app session. Keeps the newest 400 days.
 const mem86DaysAdd=(day,add)=>{const all=mem86DaysRead();const e=all[day]||{m:0,n:0,r:0,o:[]};e.m=Math.min(86400,e.m+(add.m||0));e.n=Math.min(6236,e.n+(add.n||0));e.r=Math.min(99999,e.r+(add.r||0));if(add.o)e.o=e.o.concat([add.o]).slice(-10);all[day]=e;const keys=Object.keys(all).sort();for(const k of keys.slice(0,Math.max(0,keys.length-400)))delete all[k];mem86Store(MEM86_DAYS_KEY,all);return mem86DaysRead();};// A day counts when it earned anything (new, review, or an off-app session). Minutes alone do not.
 const mem86DayActive=e=>!!e&&(e.n>0||e.r>0||e.o.length>0);const mem86Streak=(days,today)=>{let cur=0,d=mem86DayActive(days[today])?today:mem86DayShift(today,-1);while(mem86DayActive(days[d])){cur++;d=mem86DayShift(d,-1);}let best=0,run=0,prev=null;for(const k of Object.keys(days).sort()){if(!mem86DayActive(days[k])){run=0;prev=k;continue;}run=prev&&mem86DayShift(prev,1)===k&&run>0?run+1:1;best=Math.max(best,run);prev=k;}return{cur,best:Math.max(best,cur)};};// ---------- who sees it: 'off' | 'owner' | 'public', as EZ110_ADHAN_CARD ----------
-// 'owner' = the device holding the owner's code, or the localhost override. 'public' only by the owner's word:
-// opening it to everyone is changing this one word. Everyone else gets main's memorizer and «وِردي اليوم», and no
-// memorizer key is written for them (tools/memorizer86-check.cjs, section «the switch»).
-const MEM86_PART='owner';const mem86Lit=()=>MEM86_PART==='public'||MEM86_PART==='owner'&&(EZ110_OWNER||!!(EZ110_OVERRIDE&&EZ110_OVERRIDE.id));// ...and what stays his alone whatever the part (13 October): his own engine on his computer, and the red of his
+// 'owner' = the device holding the owner's code, or the localhost override. 'public' only by the owner's word, given
+// 13 October 2026, 18:44: «افتح للكل، على الاقل ينزل عندهم اللي يساعدهم على الحفظ» -- every reader has the new
+// memorizer, heard by the browser's engine (the voice consent and the child guard as before). His own engine and the
+// red of his experiment stay his alone (mem86Own). Set to 'owner', everyone else gets main's memorizer and «وِردي
+// اليوم» again, and no memorizer key is written for them (tools/memorizer86-check.cjs, section «the switch»).
+const MEM86_PART='public';const mem86Lit=()=>MEM86_PART==='public'||MEM86_PART==='owner'&&(EZ110_OWNER||!!(EZ110_OVERRIDE&&EZ110_OVERRIDE.id));// ...and what stays his alone whatever the part (13 October): his own engine on his computer, and the red of his
 // experiment (decision 10: no red for a reader before the judge's false flags are zero). Opened to everyone, a reader
 // is heard by the browser's engine and sees a word he did not say as a blank.
 const mem86Own=()=>EZ110_OWNER||!!(EZ110_OVERRIDE&&EZ110_OVERRIDE.id);// ---------- switches ----------
