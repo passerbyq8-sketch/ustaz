@@ -51,7 +51,7 @@
 // stranded on a dead build. The HTML shell is network-first (6b) so it is always fresh online
 // regardless of the version; the bump refreshes the CACHE-FIRST assets (icons/fonts). The JSON
 // data files no longer NEED the bump -- they revalidate themselves -- but they still honour it.
-const CACHE = 'ezik-v106';
+const CACHE = 'ezik-v107';
 // '/index.html' is NOT here. Vercel serves this document byte-identically for '/' and for
 // '/index.html', so precaching both downloaded the whole shell TWICE on every cold visit --
 // a second copy of the 155556 bytes '/' already holds. The network-first branch below still
@@ -83,7 +83,7 @@ const CORE = [
   // forty-two of alnawawiforty.com, which replaced the fifty with Ibn Rajab's additions. It is
   // here for the reason adhkar.json is: the screen has no second supply -- no service, no model
   // call, no retrieval -- so a reader who has visited once and opens it with no network met an
-  // EMPTY section rather than the book. It is 47290 bytes. The explanation
+  // EMPTY section rather than the book. It is 47288 bytes. The explanation
   // that goes under each hadith is a second file, and it is NOT here: see the end of IDLE.
   '/arbaeen.json',
   // The tafsir of the daily verse, one record per reference the verse card can land on. It is
@@ -144,7 +144,7 @@ const CORE = [
 // The measured cost of CORE, byte for byte, at the commit that cut this constant:
 //   /  (index.html) 155556 + app.js 2272785 + icon-watermark.png 368386
 //   + adhkar.json 177392 + vendor/react-dom.umd.js 131835 + sunan-day.json 84759
-//   + arbaeen.json 47290 + daily-tafsir.json 23984 + icon-512.png 12893
+//   + arbaeen.json 47288 + daily-tafsir.json 23984 + icon-512.png 12893
 //   + vendor/react.umd.js 10751 + adhkar-split-27.json 7182 + icon-maskable-512.png 5938
 //   + icon-192.png 5053 + manifest.json 533
 //   + fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2 94032   (Noto Naskh Arabic, arabic)
@@ -167,7 +167,7 @@ const CORE = [
 // constant, that table, and the sw.js digest in quest-bank-integrity-guard.cjs in the SAME
 // commit -- item 89-b is the worked example. CACHE is untouched by all of it: the store name is
 // a ship decision and the merge round owns the bump.
-const CORE_BYTES = 3458801;
+const CORE_BYTES = 3458799;
 // The safe margin: half again as much as CORE measures. The Cache API stores request and
 // response headers beside every body, a gzipped transfer is stored decompressed, and a constant
 // re-cut by hand always trails the files it describes by some amount.
@@ -332,7 +332,7 @@ const IDLE = [
   // the list never need it, and the app asks for it only the first time a reader opens a hadith.
   // It is warmed here, after the boot goes idle, so a reader who has visited once can read the
   // explanation with no network. Under the 2.5 MB line this list keeps for a file of this kind:
-  // 270704 bytes. The audio itself is never stored by this worker.
+  // 272517 bytes. The audio itself is never stored by this worker.
   '/arbaeen-sharh.json',
 ];
 const IDLE_BACKSTOP_MS = 1500;
