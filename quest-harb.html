@@ -419,7 +419,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
     <p style="margin:0 0 8px">يفتح أحدكم غرفة ويضبط الحرب كما في الجهاز الواحد، فيظهر له <b>رقم الغرفة</b>؛ يعطيه لمن يلعب معه، فيدخل كلّ فريق بجهازه ويكتب اسمه ويختار لونًا. لا غرف عامّة ولا قائمة ولا بحث — لا يدخل إلا من معه الرقم.</p>
     <p style="margin:0 0 8px">يلعب المضيف مع فريقه من جهازه. يبدأ الحرب حين يكتمل فريقان على الأقل، <b>ولا يدخل فريق بعد البدء</b>. أمّا المشاهد فيدخل بالرقم في أيّ وقت: يرى الخريطة والنزالات حيّةً ولا يجيب ولا يتحكّم — يصلح لشاشة كبيرة.</p>
     <p style="margin:0 0 8px">الخريطة واحدة عند الجميع لحظةً بلحظة، وفي أعلاها شريط يقول <b>دور مَن الآن</b>. جهاز الفريق صاحب الدور وحده يتحكّم، والمدافع يجيب من جهازه في نزاله. والقواعد كلّها هي نفسها.</p>
-    <p style="margin:0 0 8px"><b>إن انقطع جهاز فريق</b> يرجع بالرقم نفسه إلى فريقه نفسه. وإن غاب في دوره أكثر من <b>خمس وأربعين ثانية</b> تخطّاه الدور (وتُوزَّع رايات توزيعه إن كان في التوزيع، ويُعدّ جوابه خطأً إن كان في نزال).</p>
+    <p style="margin:0 0 8px"><b>إن انقطع جهاز فريق</b> يرجع بالرقم نفسه إلى فريقه نفسه. وإن غاب في دوره أكثر من <b>خمس وأربعين ثانية</b> تخطّاه الدور (وتُوزَّع رايات توزيعه إن كان في التوزيع، ويُعدّ جوابه خطأً إن كان في نزال). وكذلك إن بقي جهازه متّصلًا لكنّه لم يفعل شيئًا <b>ثلاث دقائق</b> في دوره (في التوزيع أو الهجوم أو النقل أو سؤال بلا مهلة)؛ وقبل التخطّي بثلاثين ثانية يظهر في شريط الدور عند الجميع: «سيُتخطّى دور الفريق إن لم يتحرك».</p>
     <p style="margin:0">إن خرج المضيف تستمرّ الغرفة ما دام فيها فريقان. وتُحذف الغرفة بعد انتهاء الحرب بعشر دقائق، أو بعد خمول طويل، ولا يُحفظ شيء عن اللاعبين بعدها.</p>
   </div>
 
@@ -1733,7 +1733,7 @@ function quitFight(){clearT();if(G.busy)endFight()}
    القواعد هي WarEngine نفسه على الخادم، والجواب الصحيح لا يصل الجهاز قبل إغلاق السؤال.
    لا قائمة غرف ولا بحث: الرقم وحده يفتح الباب. السجلّ المحفوظ في الجهاز رقمٌ ورمزان سريّان للعودة. */
 var WAR_HOST="https://hanna-laha.hl-worker.workers.dev",WAR_V=1,SKIP_SECS=45;
-var RM={on:false,host:false,ws:null,code:"",roomId:"",hostToken:"",teamToken:"",watch:false,slot:-1,role:"",
+var RM={nf:0,nfTimer:null,on:false,host:false,ws:null,code:"",roomId:"",hostToken:"",teamToken:"",watch:false,slot:-1,role:"",
   snap:null,names:[],view:"",qn:-1,res:"",fightOn:false,dl:0,raf:null,tries:0,retry:null,closing:false,dev:"",mem:null,
   color:-1,fight:null,answered:false,joinMode:"team"};
 var RMKEY="kz_harb_room_v1",RMDEV="kz_harb_dev_v1";
@@ -1774,6 +1774,7 @@ window.addEventListener("popstate",function(){
 function rmSend(o){if(RM.ws&&RM.ws.readyState===1){try{RM.ws.send(JSON.stringify(o))}catch(e){}}}
 function rmClose(keep){
   RM.closing=true;if(RM.retry){clearTimeout(RM.retry);RM.retry=null}
+  if(RM.nfTimer){clearTimeout(RM.nfTimer);RM.nfTimer=null}
   if(RM.ws){try{RM.ws.close()}catch(e){}RM.ws=null}
   RM.closing=false;
   if(!keep)rmDel(RMKEY)}
@@ -1832,6 +1833,13 @@ function rmMsg(m){
   if(m.t==="error"){rmError(m.code)}}
 function rmError(code){
   var txt=RMERR[code];
+  /* بعد نشر الخادم قد تردّ نسخة قديمة «لا توجد غرفة»: يُعاد البحث بعد ثانية ثم بعد ثانيتين قبل عرض الخطأ */
+  if(code==="NOT_FOUND"&&RM.on&&RM.nf<2&&(RM.view==="join"||RM.view==="")){
+    RM.nf++;rmClose(true);
+    joinMsg("جارٍ البحث عن الغرفة…");
+    var want=RM.code;
+    RM.nfTimer=setTimeout(function(){RM.nfTimer=null;if(RM.on&&RM.code===want&&!RM.ws)rmConnect(true)},RM.nf*1000);
+    return}
   if(code==="NOT_FOUND"||code==="ROOM_CLOSED"||code==="BAD_TOKEN"||code==="OUTDATED"||code==="TOO_MANY"||code==="ROOM_FULL"||code==="STARTED"){
     /* الباب مغلق: يُقطع الاتصال، وتُعرض العلّة حيث كان اللاعب */
     var onJoin=RM.view==="join"||RM.view==="";
@@ -1853,7 +1861,7 @@ function openRoomScreen(){
 $("roomBack").onclick=function(){
   var s=rmSaved();if(!s)return;
   RM.on=true;RM.code=s.code;RM.roomId=s.roomId;RM.host=!!s.host;RM.hostToken=s.hostToken||"";RM.teamToken=s.teamToken||"";RM.watch=!!s.watch;
-  RM.snap=null;RM.view="join";joinMsg("جارٍ الرجوع إلى الغرفة…");show("join");rmConnect(true)};
+  RM.snap=null;RM.nf=0;RM.view="join";joinMsg("جارٍ الرجوع إلى الغرفة…");show("join");rmConnect(true)};
 $("roomHost").onclick=function(){RM.joinMode="host";roomCfg()};
 function roomCfg(){
   G.roomCfg=true;
@@ -1887,7 +1895,7 @@ function joinWith(watch){
   var code=westDigits($("joinCode").value).replace(/\s+/g,"");
   if(!/^[0-9]{6}$/.test(code)){joinMsg("اكتب رقم الغرفة: ستّ خانات",true);return}
   RM.on=true;RM.host=false;RM.watch=watch;RM.code=code;RM.roomId="";RM.hostToken="";RM.teamToken="";RM.slot=-1;RM.snap=null;RM.view="join";
-  joinMsg("جارٍ الدخول…");rmConnect(true)}
+  RM.nf=0;joinMsg("جارٍ الدخول…");rmConnect(true)}
 $("joinTeamBtn").onclick=function(){joinWith(false)};
 $("joinWatchBtn").onclick=function(){joinWith(true)};
 $("joinCode").addEventListener("keydown",function(e){if(e.key==="Enter")joinWith(false)});
@@ -2013,7 +2021,7 @@ function turnBar(s,g){
   var a=g.actor!==null?s.teams[g.actor]:t;
   var me=RM.slot>=0&&g.actor===RM.slot;
   var dot=$("tbDot");dot.style.background=a?col(a.slot):"#1B6E9C";
-  $("tbWho").textContent=(me?"دورك":"دور "+(a?a.name:""))+(g.actorOffline&&!me?" — جهازه غائب، سيُتخطّى دوره":"");
+  $("tbWho").textContent=g.idleWarn?"سيُتخطّى دور "+(a?a.name:"")+" إن لم يتحرك":(me?"دورك":"دور "+(a?a.name:""))+(g.actorOffline&&!me?" — جهازه غائب، سيُتخطّى دوره":"");
   $("tbRole").textContent=RM.role==="watcher"||RM.watch?"مشاهدة":"";
   b.classList.toggle("mine",me)}
 $("tbExit").onclick=function(){roomLeaveWar()};
