@@ -18,10 +18,12 @@
  * esc.cjs. A guard that prints raw Arabic to a Windows console LIES about what it found.
  *
  * WHAT IT PROVES
- *   K1 bank shape   -- the shared bank evaluates to DATA with exactly 3145 questions in
- *                      27 categories; every question has the nine-field shape, a category
+ *   K1 bank shape   -- the shared bank evaluates to DATA with exactly 10935 questions in
+ *                      53 categories; every question has the nine-field shape, a category
  *                      in range, a non-empty stem, 3..4 distinct options, a key in range
  *                      and a unique id; no category is empty.
+ *   K6 bank rules   -- every question after the accepted 3145 offers exactly four options, no question
+ *                      is true/false, and the entity rule holds over the whole bank (named exceptions only).
  *   K2 one copy     -- quest-data/ holds that one file and nothing else, and no page in
  *                      the repository root embeds a bank of its own.
  *   K3 the modes    -- quest-ghaws.html and quest-harb.html each load the shared bank
@@ -73,8 +75,8 @@ const vm = require('vm');
 // ITEM 10. The one bank both Kunuz modes load, and the figures it was accepted at.
 const BANK = 'quest-data/kunuz-bank-3147.js';
 const BANK_TAG = '<script src="/' + BANK + '"></script>';
-const BANK_QUESTIONS = 3145;
-const BANK_CATEGORIES = 27;
+const BANK_QUESTIONS = 10935;
+const BANK_CATEGORIES = 53;
 const KUNUZ_MODES = ['quest-ghaws.html', 'quest-harb.html'];
 const KUNUZ_HUB = 'quest.html';
 
@@ -96,9 +98,10 @@ const KUNUZ_HUB = 'quest.html';
 // ---------------------------------------------------------------------------
 const SEALED = {
   // ITEM 10: the shared Kunuz bank, sealed at acceptance (3DC06F40, 1535845 bytes, 3147 questions)
-  // and re-cut 2026-10-13 when the owner removed two questions (BE327C28, 1534695 bytes, 3145). One line
+  // and re-cut 2026-10-13 when the owner removed two questions (BE327C28, 1534695 bytes, 3145) and again the same day when
+  // the 26 new categories joined, appended after the old 27 (646738ED, 5430943 bytes, 10935 questions, 53 categories). One line
   // of JavaScript, no newline, so no line-ending conversion can move it; pinned -text anyway.
-  'quest-data/kunuz-bank-3147.js': 'be327c2825f3ebe85fd285c8fa209f096693e02db74c7ece81493a0fe73b9d93',
+  'quest-data/kunuz-bank-3147.js': '646738ed66bb6c4adb2142348f81d9241659d729397b267b853685c0605ec19a',
   'quran-uthmani.json': 'd4fd1a1507f70a4261789eaec8380750cd0f65f4d641f6df2ef6334b18c6877b',
   'adhkar.json': '19ef96b9ecc275376d46a667a86297261ea5991749ffe46dd35448196cb4c9c3',
   'mushaf-layout.json': 'ea9223ef7f18b5d933ce1c87cbebabc5d78f1ec0e8ac9714260f9dee6d571351',
@@ -2468,6 +2471,35 @@ async function compare(bankPath) {
     if (empty.length) { shape++; no('K1', 'categories with no question: ' + empty.join(', ')); }
     if (!shape) ok('all ' + D.qs.length + ' questions are well-formed, ids unique, no empty category');
   } else if (D) no('K1', BANK + ' evaluated, but DATA has no qs/cats arrays');
+
+  // -- K6 the bank's own rules: four options, no true/false, the entity rule ------
+  // The Arabic is built from code points: this file stays ASCII (esc.cjs).
+  console.log('\n-- K6 the bank rules --');
+  if (D && Array.isArray(D.qs)) {
+    const cp = (...a) => String.fromCharCode(...a);
+    const strip = new RegExp('[' + cp(0x64B) + '-' + cp(0x65F) + cp(0x670) + cp(0x640) + ']', 'g');
+    const A = '[' + cp(0x623, 0x625, 0x627) + ']';
+    const israel = new RegExp(A + cp(0x633, 0x631, 0x627, 0x626, 0x64A, 0x644) + '|' + cp(0x635, 0x647, 0x64A, 0x648, 0x646) + '|' + cp(0x62A, 0x644) + ' +' + A + cp(0x628, 0x64A, 0x628) + '|israel|' + cp(92) + '.il' + cp(92) + 'b', 'i');
+    const bani = new RegExp('(' + cp(0x628, 0x646, 0x64A) + '|' + cp(0x628, 0x646, 0x648) + '|' + cp(0x628, 0x646, 0x649) + ') +' + A + cp(0x633, 0x631, 0x627, 0x626, 0x64A, 0x644), 'g');
+    // Named by id, and nothing else: the Prophet Yaqub question (Israel is his name), and the two
+    // questions about Sultan Abdul Hamid II (the Zionist movement he refused). Owner rule 2026-10-13.
+    const NAMED = new Set(['gemini-prophets-b3-008', 'gemini2-ottoman-005', 'othman-0013']);
+    const FLOOR = 3145; // the first 3145 questions are the accepted bank; some of them offer three options
+    const tfWord = new RegExp('^(' + cp(0x635, 0x62D) + '|' + cp(0x635, 0x62D, 0x64A, 0x62D) + '|' + cp(0x62E, 0x637, 0x623) + '|' + cp(0x62E, 0x627, 0x637, 0x626) + '|true|false)$', 'i');
+    let four = 0, tf = 0, ent = 0;
+    D.qs.forEach((q, i) => {
+      if (i >= FLOOR && (!Array.isArray(q[4]) || q[4].length !== 4)) { four++; no('K6', q[8] + ' does not offer exactly four options'); }
+      if (Array.isArray(q[4]) && q[4].length && q[4].every((o) => tfWord.test(String(o).replace(strip, '').trim()))) { tf++; no('K6', q[8] + ' is a true/false question'); }
+      if (NAMED.has(q[8])) return;
+      const text = [q[3]].concat(q[4] || [], [q[6], q[7]]).join(' | ').replace(strip, '').replace(bani, '');
+      if (israel.test(text)) { ent++; no('K6', q[8] + ' names the entity (owner rule): review it, do not delete it silently'); }
+    });
+    if (!four) ok('every question after the accepted ' + FLOOR + ' offers exactly four options');
+    if (!tf) ok('no true/false question');
+    if (!ent) ok('the entity rule holds over all ' + D.qs.length + ' questions (' + NAMED.size + ' named exceptions)');
+    const present = [...NAMED].filter((id) => D.qs.some((q) => q[8] === id)).length;
+    if (present === NAMED.size) ok('the named exceptions are still in the bank'); else no('K6', 'a named exception left the bank: ' + (NAMED.size - present));
+  }
 
   // -- K2 one copy of the bank -----------------------------------------------
   console.log('\n-- K2 one copy --');
