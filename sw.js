@@ -51,7 +51,7 @@
 // stranded on a dead build. The HTML shell is network-first (6b) so it is always fresh online
 // regardless of the version; the bump refreshes the CACHE-FIRST assets (icons/fonts). The JSON
 // data files no longer NEED the bump -- they revalidate themselves -- but they still honour it.
-const CACHE = 'ezik-v105';
+const CACHE = 'ezik-v106';
 // '/index.html' is NOT here. Vercel serves this document byte-identically for '/' and for
 // '/index.html', so precaching both downloaded the whole shell TWICE on every cold visit --
 // a second copy of the 155556 bytes '/' already holds. The network-first branch below still
@@ -332,7 +332,7 @@ const IDLE = [
   // the list never need it, and the app asks for it only the first time a reader opens a hadith.
   // It is warmed here, after the boot goes idle, so a reader who has visited once can read the
   // explanation with no network. Under the 2.5 MB line this list keeps for a file of this kind:
-  // 270547 bytes. The audio itself is never stored by this worker.
+  // 270704 bytes. The audio itself is never stored by this worker.
   '/arbaeen-sharh.json',
 ];
 const IDLE_BACKSTOP_MS = 1500;
