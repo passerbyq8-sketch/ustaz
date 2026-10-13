@@ -1973,11 +1973,15 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3485532. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57068 bytes).
   //   2026-10-13 -- Item 86 (memorizer, phase 2: his own engine holds him too -- engine p2.5; his engine and the red of his experiment stay his alone whoever the memorizer is opened to; owner-only, cache ezik-v103): app.js 2270124 -> 2273096 bytes, sha256 33ca4593..5472; index.html 155556.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3488504. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57068 bytes).
+  //   2026-10-13 -- Item 86 (memorizer, opened to everyone by the owner's word of 13 October, 18:44 -- his engine and his red stay his; cache ezik-v104): app.js 2273096 -> 2273401 bytes, sha256 6eb6083e..f28d; index.html 155556.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3488809. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57068 bytes).
   //   2026-10-13 -- Merge of origin/main 5540850e (item 86 v101-v102 + Kunuz) into item 89 (arbaeen): app.js rebuilt from the merged source, 2269508 bytes, sha256 361e951e..edb4; index.html 155556. CACHE ezik-v103.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3455524. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
   //   2026-10-13 -- Merge of origin/main 8d8579b6 (item 86 phase 2 engine p2.5, cache ezik-v103; Hanna Laha picker) into item 89 (arbaeen): app.js rebuilt from the merged source, 2272480 bytes, sha256 f44e11fc..d6c0; index.html 155556. CACHE ezik-v104.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3458496. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
-  'sw.js': 'f2d2674727d9cecc7d5879af4c5d43e11f01dff848e6a15989f4cfce33744650',
+  //   2026-10-13 -- Merge of origin/main d62e9e6c (item 89 arbaeen sharh, which took ezik-v104 too) into item 86 (memorizer opened to everyone): app.js rebuilt from the merged source, 2272785 bytes, sha256 efaf8d44..1760; index.html 155556. CACHE ezik-v105.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3458801. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
+  'sw.js': 'd7867acd50ac22bb05f1707a83020c9cef0e96591525af88f54578423ffc3493',
 };
 
 // ---------------------------------------------------------------------------
@@ -3112,7 +3116,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2272480, of: 'app.js' },
+      { n: 2272785, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

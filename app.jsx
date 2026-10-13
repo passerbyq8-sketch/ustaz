@@ -34493,10 +34493,12 @@ const mem86Streak = (days, today) => {
 };
 
 // ---------- who sees it: 'off' | 'owner' | 'public', as EZ110_ADHAN_CARD ----------
-// 'owner' = the device holding the owner's code, or the localhost override. 'public' only by the owner's word:
-// opening it to everyone is changing this one word. Everyone else gets main's memorizer and «وِردي اليوم», and no
-// memorizer key is written for them (tools/memorizer86-check.cjs, section «the switch»).
-const MEM86_PART = 'owner';
+// 'owner' = the device holding the owner's code, or the localhost override. 'public' only by the owner's word, given
+// 13 October 2026, 18:44: «افتح للكل، على الاقل ينزل عندهم اللي يساعدهم على الحفظ» -- every reader has the new
+// memorizer, heard by the browser's engine (the voice consent and the child guard as before). His own engine and the
+// red of his experiment stay his alone (mem86Own). Set to 'owner', everyone else gets main's memorizer and «وِردي
+// اليوم» again, and no memorizer key is written for them (tools/memorizer86-check.cjs, section «the switch»).
+const MEM86_PART = 'public';
 const mem86Lit = () => MEM86_PART === 'public' || (MEM86_PART === 'owner' && (EZ110_OWNER || !!(EZ110_OVERRIDE && EZ110_OVERRIDE.id)));
 // ...and what stays his alone whatever the part (13 October): his own engine on his computer, and the red of his
 // experiment (decision 10: no red for a reader before the judge's false flags are zero). Opened to everyone, a reader

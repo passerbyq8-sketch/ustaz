@@ -75,7 +75,7 @@ X.__mem86Counts = null; X.__mem86PageOf = null;
 // Who sees the new memorizer: MEM86_PART, read by mem86Lit(). The owner check is item 110's, lifted read-only from
 // app.jsx the way gate ez110override's world() lifts it, and run against a fake window and localStorage per host.
 // Everything after this section runs with the switch ON: the lifted helpers never ask it.
-section('the switch -- MEM86_PART and mem86Lit(): only the owner sees the new memorizer');
+section('the switch -- MEM86_PART and mem86Lit(): everyone sees the new memorizer (the owner\'s word, 13 October); mem86Own(): his engine and his red stay his');
 {
   const src = fs.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
   const fnOf = (name) => {
@@ -86,11 +86,12 @@ section('the switch -- MEM86_PART and mem86Lit(): only the owner sees the new me
     return '';
   };
   const part = TOP.get('MEM86_PART');
-  ok(part === "'off'" || part === "'owner'", "MEM86_PART is 'off' or 'owner' ('public' only by a later word of the owner): " + part);
+  // 'public' since the owner's word of 13 October 2026, 18:44: «افتح للكل، على الاقل ينزل عندهم اللي يساعدهم على الحفظ»
+  ok(part === "'off'" || part === "'owner'" || part === "'public'", "MEM86_PART is 'off', 'owner' or 'public' (public by the owner's word of 13 October): " + part);
   const fns = ['ez110Sha256Hex', 'ez110ReadOwner', 'ez110LocalOverride'].map(fnOf);
   ok(fns.every(Boolean) && TOP.has('mem86Lit') && TOP.has('EZ110_IDS') && TOP.has('EZ110_UNLOCK_KEY') && TOP.has('EZ110_UNLOCK_SHA'), 'item 110\'s owner check and mem86Lit lift from app.jsx');
   const TEST_CODE = 'mem86-check-' + 'c'.repeat(12);
-  const litOn = ({ host, search = '', store = {}, partAs = part, sha = TOP.get('EZ110_UNLOCK_SHA') }) => {
+  const litOn = ({ host, search = '', store = {}, partAs = part, sha = TOP.get('EZ110_UNLOCK_SHA'), own = false }) => {
     const ctx = vm.createContext({
       window: { location: { hostname: host, search } },
       localStorage: { getItem: (k) => (k in store ? store[k] : null), setItem: () => {}, removeItem: () => {} },
@@ -99,18 +100,25 @@ section('the switch -- MEM86_PART and mem86Lit(): only the owner sees the new me
     return vm.runInContext(
       'const EZ110_IDS = ' + TOP.get('EZ110_IDS') + '; const EZ110_UNLOCK_KEY = ' + TOP.get('EZ110_UNLOCK_KEY') + '; const EZ110_UNLOCK_SHA = ' + sha + ';\n' +
       fns.join('\n') + '\nconst EZ110_OWNER = ez110ReadOwner(); const EZ110_OVERRIDE = ez110LocalOverride();\n' +
-      'const MEM86_PART = ' + partAs + '; const mem86Lit = ' + TOP.get('mem86Lit') + ';\nmem86Lit()', ctx);
+      'const MEM86_PART = ' + partAs + '; const mem86Lit = ' + TOP.get('mem86Lit') + '; const mem86Own = ' + TOP.get('mem86Own') + ';\n' + (own ? 'mem86Own()' : 'mem86Lit()'), ctx);
   };
+  const ownOn = (o) => litOn(Object.assign({}, o, { own: true }));
   const HOSTS = ['ezik.app', 'www.ezik.app', 'almurabbi.app', 'ustaz-git-main-musaed-s-projects1.vercel.app', 'ustaz-cqznsm3am-musaed-s-projects1.vercel.app', 'localhost.evil.com', '127.0.0.1.nip.io', ''];
+  const pub = part === "'public'";
   for (const host of HOSTS) {
-    ok(litOn({ host }) === false && litOn({ host, search: '?ezik110=b' }) === false && litOn({ host, search: '?ezik110=b&memred=1&fix=1&safe=1' }) === false,
-      'dark for a reader without the owner\'s code on "' + host + '", with or without ?ezik110=b');
+    ok(litOn({ host }) === pub && litOn({ host, search: '?ezik110=b' }) === pub && litOn({ host, search: '?ezik110=b&memred=1&fix=1&safe=1' }) === pub,
+      (pub ? 'lit' : 'dark') + ' for a reader without the owner\'s code on "' + host + '", with or without ?ezik110=b');
+    ok(ownOn({ host }) === false && ownOn({ host, search: '?ezik110=b' }) === false && ownOn({ host, search: '?ezik110=b&memred=1&fix=1&safe=1' }) === false,
+      '...and his engine and his red are dark for that reader on "' + host + '" (mem86Own), whatever the part');
   }
-  ok(litOn({ host: 'ezik.app', store: { [JSON.parse(TOP.get('EZ110_UNLOCK_KEY').replace(/'/g, '"'))]: 'not-the-code-but-long-enough' } }) === false, 'a wrong code on ezik.app stays dark');
+  ok(litOn({ host: 'ezik.app', store: { [JSON.parse(TOP.get('EZ110_UNLOCK_KEY').replace(/'/g, '"'))]: 'not-the-code-but-long-enough' } }) === pub
+    && ownOn({ host: 'ezik.app', store: { [JSON.parse(TOP.get('EZ110_UNLOCK_KEY').replace(/'/g, '"'))]: 'not-the-code-but-long-enough' } }) === false, 'a wrong code on ezik.app is not the owner: no engine, no red');
   const testSha = "'" + require('crypto').createHash('sha256').update(TEST_CODE).digest('hex') + "'";
   const codeStore = { [JSON.parse(TOP.get('EZ110_UNLOCK_KEY').replace(/'/g, '"'))]: TEST_CODE };
-  ok(litOn({ host: 'ezik.app', store: codeStore, sha: testSha }) === (part === "'owner'"), 'the device holding the owner\'s code (a test code against its own hash) is lit on ezik.app while the part is owner');
-  ok(litOn({ host: 'localhost', search: '?ezik110=b' }) === (part === "'owner'") && litOn({ host: '127.0.0.1', search: '?ezik110=c' }) === (part === "'owner'"), '...and so is the localhost override ?ezik110=b');
+  ok(litOn({ host: 'ezik.app', store: codeStore, sha: testSha }) === (part !== "'off'") && ownOn({ host: 'ezik.app', store: codeStore, sha: testSha }) === true,
+    'the device holding the owner\'s code (a test code against its own hash) is lit on ezik.app, and is his: his engine, his red');
+  ok(litOn({ host: 'localhost', search: '?ezik110=b' }) === (part !== "'off'") && litOn({ host: '127.0.0.1', search: '?ezik110=c' }) === (part !== "'off'")
+    && ownOn({ host: 'localhost', search: '?ezik110=b' }) === true, '...and so is the localhost override ?ezik110=b');
   ok(litOn({ host: 'localhost', search: '?ezik110=b', store: codeStore, sha: testSha, partAs: "'off'" }) === false, "'off' is dark even for the owner");
   // the reader without the switch gets main's settings
   const PM = vm.runInContext('(' + TOP.get('MEM86_PREF_MAIN').replace('MEM86_PREF_DEFAULT', '(' + TOP.get('MEM86_PREF_DEFAULT') + ')') + ')', vm.createContext({}));
