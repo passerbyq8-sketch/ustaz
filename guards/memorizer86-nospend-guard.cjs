@@ -12,10 +12,16 @@
 // of Ezik's own static files, and an absolute URL on any host but everyayah.com (the recitation audio Ezik already
 // streams, QURAN_RECITER).
 //
-// THE ONE NAMED EXCEPTION. ezNewRecognition -- the browser's own speech recognition for «سمِّعني». It is not Ezik's
-// brain and it is not paid: Web Speech is the browser's engine (Google on Chrome, Apple on Safari), already behind
-// the voice consent and the child guard, and its constructor stands on exactly three lines (gate aiconsent counts
-// them). It is not followed into; everything else is.
+// THE NAMED EXCEPTIONS -- two, and each is not followed into by the closure above; everything else is.
+//   ezNewRecognition -- the browser's own speech recognition for «سمِّعني». It is not Ezik's brain and it is not
+//     paid: Web Speech is the browser's engine (Google on Chrome, Apple on Safari), already behind the voice consent
+//     and the child guard, and its constructor stands on exactly three lines (gate aiconsent counts them).
+//   ezEar (item 86, phase 2) -- the owner's own recitation engine, on his own computer: not Ezik's brain, not paid,
+//     not a third party. It is a door to the network all the same, so it is not merely named: its own closure is
+//     computed and checked whole below -- one address (http://127.0.0.1:8865) and nothing else absolute, one fetch
+//     on that address, five paths of the engine's and no other, no store written, no AI door, no network primitive,
+//     a microphone asked only behind the voice consent and the child guard and heard on silent speakers -- and four
+//     mutants of its source must each be caught.
 //
 // No network, no audio, no microphone: this reads app.jsx and nothing else.
 'use strict';
@@ -32,7 +38,10 @@ const ast = babelParser.parse(raw, { sourceType: 'script', plugins: ['jsx'] });
 let pass = 0, fail = 0;
 const ok = (cond, label) => { if (cond) { pass++; console.log('PASS ' + label); } else { fail++; console.log('FAIL ' + label); } };
 
-const EXCEPTIONS = { ezNewRecognition: 'the browser speech engine of «سمِّعني» -- not Ezik\'s brain, not paid; consent-gated, three lines (gate aiconsent)' };
+const EXCEPTIONS = {
+  ezNewRecognition: 'the browser speech engine of «سمِّعني» -- not Ezik\'s brain, not paid; consent-gated, three lines (gate aiconsent)',
+  ezEar: 'the owner\'s own recitation engine on his own computer (item 86, phase 2) -- not Ezik\'s brain, not paid; its closure is checked whole below',
+};
 const APP_HANDS = ['playVerseManual', 'playSurahManual', 'cancelAudio'];
 const STATIC_FETCH = /^\/[A-Za-z0-9._\-/]+\.(json|js|css|txt|html)$/; // Ezik's own static files, e.g. /mushaf-layout.json
 
@@ -96,7 +105,7 @@ const scopeNames = [...scope.keys()];
 ok(scope.has('top:MemorizeScreen') && scopeNames.filter((k) => /^top:(mem86|Mem86|MEM86_)/.test(k)).length >= 100, 'in scope: MemorizeScreen and ' + scopeNames.filter((k) => /^top:(mem86|Mem86|MEM86_)/.test(k)).length + ' memorizer initializers');
 ok(APP_HANDS.every((n) => scope.has('app:' + n)) && scope.has('app:playRecitation') && scope.has('app:playRecitationUrl'), '...App\'s three calls and what they call (playRecitation, playRecitationUrl): ' + scopeNames.filter((k) => k.startsWith('app:')).length + ' App-level declarations');
 console.log('INFO closure ' + scope.size + ' declarations; exceptions named and not followed: ' + ([...seenExceptions].map((n) => n + ' (' + EXCEPTIONS[n] + ')').join('; ') || 'none'));
-ok(seenExceptions.has('ezNewRecognition'), 'the one named exception is really reached (ezNewRecognition), so it is not a dead list');
+ok(Object.keys(EXCEPTIONS).every((n) => seenExceptions.has(n)), 'each named exception is really reached (' + Object.keys(EXCEPTIONS).join(', ') + '), so it is not a dead list');
 
 // ---- the checks ----
 ok(!scope.has('top:aiFetch') && !/\baiFetch\b/.test(src), 'no aiFetch in the memorizer or anything it calls');
@@ -128,6 +137,59 @@ const hosts = new Set();
 for (const m of src.matchAll(/https?:\/\/([A-Za-z0-9.-]+)/g)) hosts.add(m[1].toLowerCase());
 ok([...hosts].every((h) => h === 'everyayah.com'), 'every absolute address in scope is on everyayah.com: ' + ([...hosts].join(', ') || 'none'));
 ok(hosts.has('everyayah.com'), '...and the recitation address is really in scope (the guard sees App\'s audio path)');
+
+// ---- the second exception, checked whole: ezEar and everything it names ----
+const EAR_BASE = 'http://127.0.0.1:8865';
+const EAR_PATHS = ['/v1/health', '/v1/session', '/v1/audio', '/v1/seek', '/v1/end'];
+const earAudit = (source) => {
+  const a2 = babelParser.parse(source, { sourceType: 'script', plugins: ['jsx'] });
+  const T2 = new Map(); addDecls(a2.program.body, T2);
+  const root = T2.get('ezEar');
+  if (!root) return { bad: ['ezEar is not a top-level declaration'], size: 0 };
+  const sc = new Map(); const qq = [];
+  const tk = (name) => { if (sc.has(name) || name === 'App' || (EXCEPTIONS[name] && name !== 'ezEar')) return; const node = T2.get(name); if (!node) return; sc.set(name, node); qq.push(node); };
+  tk('ezEar');
+  while (qq.length) for (const n of names(qq.shift())) if (T2.has(n)) tk(n);
+  const all = [...sc.values()].map((n) => source.slice(n.start, n.end)).join('\n');
+  const own = source.slice(root.start, root.end);
+  const bad = [];
+  if (/\baiFetch\b/.test(all) || sc.has('aiFetch')) bad.push('aiFetch');
+  if (/['"`]\/api\//.test(all)) bad.push('an /api/ address');
+  for (const p of ['XMLHttpRequest', 'WebSocket', 'EventSource', 'sendBeacon', 'import(']) if (all.includes(p)) bad.push(p);
+  const abs = [...all.matchAll(/https?:\/\/[A-Za-z0-9.:-]+/g)].map((m) => m[0]);
+  if (abs.length !== 1 || abs[0] !== EAR_BASE || !own.includes("const BASE = '" + EAR_BASE + "';")) bad.push('absolute addresses ' + JSON.stringify(abs));
+  const fx = [];
+  const findF = (n) => {
+    if (!n || typeof n.type !== 'string') return;
+    if (n.type === 'CallExpression' && n.callee && ((n.callee.type === 'Identifier' && n.callee.name === 'fetch') || (n.callee.type === 'MemberExpression' && n.callee.property && n.callee.property.name === 'fetch'))) fx.push(n);
+    for (const k of Object.keys(n)) { if (k === 'loc') continue; const v = n[k]; if (Array.isArray(v)) v.forEach(findF); else if (v && typeof v.type === 'string') findF(v); }
+  };
+  for (const n of sc.values()) findF(n);
+  const a0 = fx.length === 1 ? fx[0].arguments[0] : null;
+  if (!(a0 && a0.type === 'BinaryExpression' && a0.operator === '+' && a0.left.type === 'Identifier' && a0.left.name === 'BASE' && a0.start > root.start && a0.end < root.end)) bad.push('fetch calls: ' + fx.length + ' (one, on BASE, inside ezEar)');
+  const paths = [...own.matchAll(/'(\/[^']*)'/g)].map((m) => m[1]);
+  if (!paths.length || paths.some((p) => EAR_PATHS.indexOf(p) === -1) || EAR_PATHS.some((p) => paths.indexOf(p) === -1)) bad.push('paths ' + JSON.stringify(paths));
+  if (/localStorage|sessionStorage|indexedDB|\bcaches\b|document\.cookie|mem86Store|setItem/.test(own) || /\.setItem\(/.test(all)) bad.push('a store');
+  const gum = own.indexOf('getUserMedia(');
+  const listenAt = own.indexOf('const listen = async (got) => {');
+  const gate = 'if (!hasValidAIConsent() || childVoiceBlocked())';
+  if ((own.match(/getUserMedia\(/g) || []).length !== 1 || listenAt < 0 || !(own.indexOf(gate, listenAt) > listenAt && own.indexOf(gate, listenAt) < gum) || own.indexOf(gate, gum) < 0) bad.push('the microphone gate');
+  if (!own.includes(gate + ' {\n        dead = true;\n        if (mic && mic.close) mic.close();')) bad.push('the gate read again at every block');
+  if (!/hush\.gain\.value = 0;/.test(own) || !own.includes('src.connect(node); node.connect(hush); hush.connect(ctx.destination);') || (own.match(/\.connect\(/g) || []).length !== 3) bad.push('silent speakers');
+  return { bad, size: sc.size, names: [...sc.keys()] };
+};
+{
+  const r = earAudit(raw);
+  ok(r.size > 0 && r.bad.length === 0, 'ezEar, checked whole (' + r.size + ' declarations: ' + (r.names || []).join(', ') + '): one address ' + EAR_BASE + ', one fetch on it, the five paths ' + EAR_PATHS.join(' ') + ', no store, no AI door, no network primitive, the microphone behind the voice consent and the child guard (read again at every block), silent speakers' + (r.bad.length ? ' -- VIOLATED: ' + r.bad.join('; ') : ''));
+  const used = [...new Set([...src.matchAll(/\bezEar\.(\w+)/g)].map((m) => m[1]))].sort();
+  ok(JSON.stringify(used) === JSON.stringify(['here', 'open', 'reachable']), 'the memorizer uses ezEar through its three doors only (here, reachable, open): ' + used.join(', '));
+  const earAnchor = "const reachable = () => call('/v1/health', undefined, REACH_MS).then(() => true, () => false);";
+  ok(raw.includes(earAnchor), 'ezEar mutation anchor present');
+  ok(earAudit(raw.replace(earAnchor, earAnchor + " const x1 = () => aiFetch('/x', {});")).bad.length > 0, 'MUTANT KILLED: aiFetch inside ezEar');
+  ok(earAudit(raw.replace(earAnchor, earAnchor + " const x2 = () => fetch('https://api.example.com/v1');")).bad.length > 0, 'MUTANT KILLED: a third-party host inside ezEar');
+  ok(earAudit(raw.replace(earAnchor, earAnchor + " const x3 = (b) => localStorage.setItem('ear', b);")).bad.length > 0, 'MUTANT KILLED: a store written inside ezEar');
+  ok(earAudit(raw.replace(earAnchor, earAnchor + " const x4 = () => call('/v1/log', '');")).bad.length > 0, 'MUTANT KILLED: a sixth path inside ezEar');
+}
 
 // ---- the guard bites: three mutants on the source must each fail ----
 const probe = (mutated) => {

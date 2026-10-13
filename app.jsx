@@ -1830,6 +1830,10 @@ const EZ_I18N = {
     'mem86.opt.hideNums': 'أخفِ أرقام الآيات',
     'mem86.opt.wrong': 'علِّم الكلمة المبدَّلة بالأحمر (تجربة)',
     'mem86.red.notErr': 'ليس خطأً',
+    'mem86.ear.wait': 'يتّصل بالمحرّك على جهازك…',
+    'mem86.ear.on': 'يسمعك المحرّك على جهازك',
+    'mem86.ear.off': 'المحرّك على جهازك لا يجيب، فيسمعك المتصفّح',
+    'mem86.ear.mic': 'لم يُفتح الميكروفون. اسمح به لهذا الموقع ثم ابدأ من جديد.',
     'mem86.tab.test': 'اختبرني',
     'mem86.test.saved': 'اختبار موقوف: مضى منه {n} سؤال',
     'mem86.test.resume': 'استأنف الاختبار',
@@ -3360,6 +3364,10 @@ const EZ_I18N = {
     'mem86.opt.hideNums': 'Hide the ayah numbers',
     'mem86.opt.wrong': 'Mark a replaced word in red (experiment)',
     'mem86.red.notErr': 'Not a mistake',
+    'mem86.ear.wait': 'Reaching the engine on your computer…',
+    'mem86.ear.on': 'The engine on your computer is listening',
+    'mem86.ear.off': 'The engine on your computer is not answering, so the browser is listening',
+    'mem86.ear.mic': 'The microphone did not open. Allow it for this site, then start again.',
     'mem86.tab.test': 'Test me',
     'mem86.test.saved': 'A paused test: {n} questions done',
     'mem86.test.resume': 'Resume the test',
@@ -4284,6 +4292,22 @@ const mem86Follow = (sn, st, text, last, redOn) => {
     cur++; prev = null; cut = r.cut;
   }
   return { cur, prev, cut, shown: [], left, finished: false };
+};
+// Item 86, phase 2: the owner's own engine (ezEar) speaks in word numbers, numbered as the page numbers them -- the n-th
+// word normalizeForRecite keeps (measured against the engine's own reference on all 6236 ayat: the same count each).
+const mem86EarWords = (sn, a) => String(getVerseText(sn, a) || '').split(/\s+/).filter((w) => !!normalizeForRecite(w)).length;
+// the current ayah, filled to the last word the engine has heard
+const mem86EarShown = (sn, a, upto) => {
+  const n = mem86EarWords(sn, a), out = new Array(n);
+  for (let k = 0; k < n; k++) out[k] = k < upto ? 'matched' : 'pending';
+  return out;
+};
+// an ayah the engine completed: every word heard, the words its judge flagged 'wrong' while the red switch is on, and an
+// ayah it saw passed over left quiet
+const mem86EarLeft = (sn, d, redOn) => {
+  const n = mem86EarWords(sn, d.ayah), out = new Array(n), flag = Array.isArray(d.flag) ? d.flag : [];
+  for (let k = 0; k < n; k++) out[k] = d.skipped ? 'pending' : (redOn && flag.indexOf(k + 1) !== -1) ? 'wrong' : 'matched';
+  return out;
 };
 
 // ============================================================
@@ -5714,6 +5738,204 @@ const ezStopAllRecognition = () => {
 // «سمِّعني» is the only local-looking feature that is not local: it is a microphone feeding a
 // third party, so it stops -- while the memorizing, the manual reveal and the mushaf do not.
 let EZ_SPEECH_NO_CONSENT = ezT('c.EZ_SPEECH_NO_CONSENT');
+
+// ============================================================
+// ITEM 86, PHASE 2 -- THE OWNER'S EAR: «سمِّعني» heard by our own engine, on his own computer
+// ============================================================
+// The owner's «سمِّعني» is heard by item 86's recitation engine (ear-lab: the muaalem model, the follower and the word
+// judge) running on his own computer at http://127.0.0.1:8865 -- not by the browser's engine, which ships the voice to
+// Google or Apple and, on a phone, beeps at every restart. Owner-only: MemorizeScreen asks for it under mem86Lit(), and
+// when the engine does not answer, the browser's engine listens exactly as it did before.
+//
+// WHAT LEAVES THE PAGE: the microphone's samples (16 kHz, mono, 16-bit) and the surah and ayah numbers of the range, to
+// that one address and nowhere else. The engine follows and judges them in memory and keeps nothing (decision 12), and
+// nothing here keeps anything either: no sample is stored, and nothing is written to any store.
+//
+// THE SAME GATES AS EVERY MICROPHONE IN THIS FILE: the voice consent and the child guard, read again at the moment the
+// browser is asked for the microphone and once more after its prompt closes (gate aiconsent §5 finds this getUserMedia
+// and its check). It is the memorizer's one network door besides the recitation audio: guards/memorizer86-nospend-
+// guard.cjs names it as its second exception and checks its whole closure -- one address, five paths, no store.
+const ezEar = (() => {
+  const BASE = 'http://127.0.0.1:8865';   // the box starts the engine on this port (ear_server.py --port 8865), clear of the 87xx ports test harnesses use
+  const SR = 16000;
+  const CHUNK = 8000;         // 0.5 s: the least one request carries while listening (the engine steps every 0.48 s)
+  const MOST = 160000;        // 10 s: the most (the engine takes up to 20)
+  const REACH_MS = 20000;     // the first reach may wait on the browser's own question: may this site reach this computer?
+  const CALL_MS = 8000;
+  const TRIES = 3;            // a request that fails is sent again, twice, before the ear gives up
+  // One request. No header of our own and a plain body, so the browser sends no preflight; the answer is the engine's JSON.
+  const call = async (p, body, ms) => {
+    const ac = typeof AbortController === 'function' ? new AbortController() : null;
+    const t = ac ? setTimeout(() => { try { ac.abort(); } catch (e) {} }, ms || CALL_MS) : null;
+    try {
+      const r = await fetch(BASE + p, body === undefined ? { credentials: 'omit', signal: ac ? ac.signal : undefined }
+        : { method: 'POST', body, credentials: 'omit', signal: ac ? ac.signal : undefined });
+      let j = null;
+      try { j = await r.json(); } catch (e) { j = null; }
+      if (!r.ok || !j || j.ok !== true) { const e = new Error('ear'); e.status = r.status; throw e; }
+      return j;
+    } finally { if (t) clearTimeout(t); }
+  };
+  // Is this the computer the engine runs on? Not a phone, and not the app's own shell: there 127.0.0.1 is the phone itself,
+  // and asking would only cost a wait, a line saying the engine is away, and on some phones the browser's own prompt. The
+  // phone reaches the engine in a later step, by its own address.
+  const here = () => { try { return !window.ReactNativeWebView && !/Android|iPhone|iPad|iPod/i.test(String(navigator.userAgent || '')); } catch (e) { return false; } };
+  // Does the engine answer? Asking opens nothing and sends nothing of the reader's.
+  const reachable = () => call('/v1/health', undefined, REACH_MS).then(() => true, () => false);
+  // 48 or 44.1 kHz down to 16, for a browser that will not open the microphone at 16 kHz itself: a windowed-sinc low-pass
+  // just under 8 kHz, and a step of rate / 16000 input samples carried across the browser's blocks.
+  const down = (rate) => {
+    const step = rate / SR, M = 48, fc = 7600 / rate, h = new Float32Array(M + 1);
+    let sum = 0;
+    for (let n = 0; n <= M; n++) {
+      const x = n - M / 2;
+      h[n] = (x === 0 ? 2 * fc : Math.sin(2 * Math.PI * fc * x) / (Math.PI * x)) * (0.54 - 0.46 * Math.cos(2 * Math.PI * n / M));
+      sum += h[n];
+    }
+    for (let n = 0; n <= M; n++) h[n] /= sum;
+    let hist = new Float32Array(0), pos = 0;
+    return (x) => {
+      const buf = new Float32Array(hist.length + x.length);
+      buf.set(hist); buf.set(x, hist.length);
+      const out = [];
+      for (let i0 = Math.floor(pos); i0 + M < buf.length; i0 = Math.floor(pos)) {
+        let acc = 0;
+        for (let k = 0; k <= M; k++) acc += h[k] * buf[i0 + k];
+        out.push(acc);
+        pos += step;
+      }
+      const drop = Math.min(Math.floor(pos), buf.length);
+      hist = buf.slice(drop); pos -= drop;
+      return Float32Array.from(out);
+    };
+  };
+  const pcm = (x) => {
+    const y = new Int16Array(x.length);
+    for (let i = 0; i < x.length; i++) { const v = x[i] < -1 ? -1 : x[i] > 1 ? 1 : x[i]; y[i] = Math.round(v * 32767); }
+    return y;
+  };
+  // The microphone, as 16 kHz samples handed to `got`. Asked only with the voice consent and never for a child's band,
+  // both read here, at the moment the browser is asked, and again once its permission prompt has closed. The browser's
+  // own processing is off: its noise suppression takes a long madd for a steady noise.
+  const listen = async (got) => {
+    if (!hasValidAIConsent() || childVoiceBlocked()) return { err: 'consent' };
+    const md = typeof navigator !== 'undefined' ? navigator.mediaDevices : null;
+    const AC = typeof window !== 'undefined' ? (window.AudioContext || window.webkitAudioContext) : null;
+    if (!md || !AC) return { err: 'mic' };
+    let stream = null;
+    try { stream = await md.getUserMedia({ audio: { channelCount: 1, echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); }
+    catch (e) { return { err: 'mic' }; }
+    const off = () => { try { stream.getTracks().forEach((t) => t.stop()); } catch (e) {} };
+    if (!hasValidAIConsent() || childVoiceBlocked()) { off(); return { err: 'consent' }; }
+    let ctx = null, src = null;
+    for (const opts of [{ sampleRate: SR }, null]) {
+      try { ctx = opts ? new AC(opts) : new AC(); src = ctx.createMediaStreamSource(stream); break; }
+      catch (e) { try { if (ctx) ctx.close(); } catch (e2) {} ctx = null; src = null; }
+    }
+    if (!ctx) { off(); return { err: 'mic' }; }
+    const fold = ctx.sampleRate === SR ? null : down(ctx.sampleRate);
+    const node = ctx.createScriptProcessor(4096, 1, 1);
+    const hush = ctx.createGain();
+    hush.gain.value = 0;      // the node runs only while it reaches the speakers: it reaches them silent
+    node.onaudioprocess = (ev) => { const x = ev.inputBuffer.getChannelData(0); got(pcm(fold ? fold(x) : x)); };
+    src.connect(node); node.connect(hush); hush.connect(ctx.destination);
+    try { if (ctx.state === 'suspended') await ctx.resume(); } catch (e) {}
+    let closed = false;
+    return { close: () => {
+      if (closed) return;
+      closed = true;
+      try { node.onaudioprocess = null; src.disconnect(); node.disconnect(); hush.disconnect(); } catch (e) {}
+      off();
+      try { ctx.close(); } catch (e) {}
+    } };
+  };
+  // One recitation of ayat [ayah .. last] of a surah. The samples go out in order, one request at a time, half a second
+  // or more each, and every answer -- the engine's state -- is handed to onState, `stale` when the reader moved to
+  // another ayah after it was asked. seek(a): the reader moved to ayah a; what was heard since the last request is
+  // dropped. stop(): the microphone closes at once, what it heard is sent, the session ends, and the promise holds the
+  // engine's last state with every ayah it completed meanwhile (null when there is none). onFail: the engine stopped
+  // answering. Returns { err: 'consent' | 'mic' | 'engine' } when it could not begin.
+  const open = async (o) => {
+    let sid = null, seen = 0, epoch = 0, busy = false, dead = false, ending = null, endWith = null, mic = null, pendN = 0;
+    const pend = [], ctl = [], tail = [];
+    const take = (n) => {
+      const y = new Int16Array(n);
+      let at = 0;
+      while (at < n) {
+        const b = pend[0], k = Math.min(b.length, n - at);
+        y.set(k === b.length ? b : b.subarray(0, k), at);
+        at += k;
+        if (k === b.length) pend.shift(); else pend[0] = b.subarray(k);
+      }
+      pendN -= n;
+      return y;
+    };
+    const send = async (p, body) => {
+      for (let k = 1; ; k++) {
+        try { return await call(p, body); }
+        catch (e) { if (k >= TRIES || e.status === 400 || e.status === 404) throw e; await new Promise((r) => setTimeout(r, 300 * k)); }
+      }
+    };
+    const pump = async () => {
+      if (busy || dead || !sid) return;
+      busy = true;
+      try {
+        for (;;) {
+          const q = '?sid=' + sid + '&seen=' + seen;
+          if (ctl.length) {
+            const st = await send('/v1/seek' + q, JSON.stringify({ ayah: ctl.shift() }));
+            seen = st.ndone;
+            if (ending) tail.push(...(st.done || [])); else o.onState(st, false);
+          } else if (pendN >= CHUNK || (ending && pendN > 0)) {
+            const ep = epoch;
+            const st = await send('/v1/audio' + q, take(Math.min(pendN, MOST)).buffer);
+            seen = st.ndone;
+            if (ending) tail.push(...(st.done || [])); else o.onState(st, ep !== epoch);
+          } else if (ending) {
+            const st = await send('/v1/end' + q, '');
+            dead = true;
+            endWith({ ...st, done: tail.concat(st.done || []) });
+            return;
+          } else return;
+        }
+      } catch (e) {
+        dead = true;
+        if (mic) mic.close();
+        if (ending) endWith(null); else o.onFail();
+      } finally { busy = false; }
+    };
+    mic = await listen((y) => {
+      if (dead || ending) return;
+      // the consent and the child guard, read again at every block (a quarter of a second): a withdrawal ends the
+      // engine's ear at once, and its session with whatever it held
+      if (!hasValidAIConsent() || childVoiceBlocked()) {
+        dead = true;
+        if (mic && mic.close) mic.close();
+        if (sid) { call('/v1/end' + '?sid=' + sid + '&seen=' + seen, '').catch(() => {}); o.onFail(); }
+        return;
+      }
+      pend.push(y); pendN += y.length;
+      if (pendN >= CHUNK) pump();
+    });
+    if (mic.err) return mic;
+    if (dead) { mic.close(); return { err: 'consent' }; }
+    try { sid = (await send('/v1/session', JSON.stringify({ sura: o.sura, ayah: o.ayah, last: o.last }))).sid; }
+    catch (e) { dead = true; mic.close(); return { err: 'engine' }; }
+    pump();
+    return {
+      seek: (a) => { if (dead || ending) return; epoch++; pend.length = 0; pendN = 0; ctl.push(a); pump(); },
+      stop: () => {
+        if (!ending) {
+          ending = dead ? Promise.resolve(null) : new Promise((r) => { endWith = r; });
+          mic.close();
+          if (!dead) pump();
+        }
+        return ending;
+      },
+    };
+  };
+  return { here, reachable, open };
+})();
 
 // The bubble speaks the reader's language: each sentence is a dictionary row (err.<bucket>.<male|
 // female>), Arabic and English inline, the rest in lang/<code>.json. FRIENDLY_ERRORS stays the
@@ -38103,6 +38325,8 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   const [reciteDone, setReciteDone] = useState({});     // item 86: each ayah left behind in this run -> its states when it was left
   const reciteFollowRef = useRef({ cur: 1, prev: null, cut: 0 }); // item 86: the owner's follower -- its ayah, what the last session left, the words used
   const reciteAutoRef = useRef(false);                  // item 86: the owner's «سمِّعني» listens as soon as its page opens
+  const reciteEarRef = useRef(null);                    // item 86, phase 2: the owner's own engine while it listens (ezEar)
+  const [reciteEar, setReciteEar] = useState('');       // ...and the line under his bar: '' | 'wait' | 'on' | 'off'
   // Item 86 (memorizer): the picker's tabs and the reader's memorised ayat. The catalogue is always the first tab.
   const [tab, setTab] = useState(() => (mem86Lit() ? 'recite' : 'learn'));
   const [held, setHeld] = useState(mem86HeldRead);
@@ -38155,6 +38379,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     reciteRunIdRef.current++;
     ezKillRecognizer(reciteRecognitionRef.current);
     reciteRecognitionRef.current = null;
+    if (reciteEarRef.current) { reciteEarRef.current.stop(); reciteEarRef.current = null; }   // item 86, phase 2: the engine's microphone too
   }, []);
 
   const surahCount = (counts && selectedSurah) ? (counts[selectedSurah] || 0) : 0; // last ayah of range
@@ -38270,7 +38495,12 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     setReciteListening(false);
     ezKillRecognizer(reciteRecognitionRef.current);
     reciteRecognitionRef.current = null;
+    // item 86, phase 2: the owner's engine closes its microphone at once; what it made of the last words comes back later
+    const ear = reciteEarRef.current;
+    reciteEarRef.current = null;
+    setReciteEar('');
     // leave reciteStates as-is so the last result stays visible after stop
+    return ear ? ear.stop() : null;
   };
 
   const reciteCredit = () => {
@@ -38281,7 +38511,13 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     if (reciteHiddenRef.current) setHeld(mem86HeldSet(selectedSurah, startAyah, surahCount, true));
     mem86Credit({ fresh: reciteHiddenRef.current ? n : 0, review: n, ayat: mem86SegsList([[selectedSurah, startAyah, selectedSurah, surahCount]], mem86Counts()) });
   };
-  const pauseRecite = () => { const at = reciteAyahRef.current || startAyah; stopRecite(); mem86Rest(); setRecitePaused(at); };
+  const pauseRecite = () => {
+    const at = reciteAyahRef.current || startAyah;
+    const last = stopRecite(); mem86Rest(); setRecitePaused(at);
+    // item 86, phase 2: the engine hears what was said up to the pause -- an ayah it completes there is printed, and the
+    // pause moves on past it
+    if (last) { const run = reciteRunIdRef.current; last.then((st) => { if (st && reciteRunIdRef.current === run) reciteEarPaused(st); }); }
+  };
   const reciteHint = (rest) => {
     const cur = reciteAyahRef.current || startAyah;
     const n = tokenizeForRecite(getVerseText(selectedSurah, cur) || '').length;
@@ -38297,14 +38533,17 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     mem86Ping();
   };
 
-  const startRecite = (fromAyah) => {
+  const startRecite = (fromAyah, viaWeb) => {
     if (childVoiceBlocked()) { setReciteErr(CHILD_VOICE_NOTICE); return; } // غ‑٣: لا ميكروفونَ لسمِّعني
     // «سمِّعني» LOOKS local and is not: Web Speech ships the recitation audio to Google on Chrome
     // and to Apple on Safari. That is a third-party voice send, so it needs the same consent as
     // ElevenLabs -- and refusing it must not touch the rest of the memorizer, which really is
     // local. Checked BEFORE the engine is constructed, so no microphone permission is requested.
     if (!hasValidAIConsent()) { setReciteErr(EZ_SPEECH_NO_CONSENT); return; }
-    if (!ezSpeechAvailable()) { setReciteErr(RECITE_NO_SR); return; } // graceful fail, same message as chat/call
+    // Item 86, phase 2: the owner is heard by our own engine on his computer when it answers (ezEar, reciteEarGo), and by
+    // the browser's engine otherwise -- `viaWeb` is that fallback, and the only engine of every other reader.
+    const ear = mem86Lit() && !viaWeb && ezEar.here();
+    if (!ear && !ezSpeechAvailable()) { setReciteErr(RECITE_NO_SR); return; } // graceful fail, same message as chat/call
     setReciteErr('');
     setReciteFinished(false);
     const from = fromAyah > 0 ? fromAyah : startAyah;   // a resume starts where the pause stopped
@@ -38318,6 +38557,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     reciteShownRef.current = [];
     reciteAnchorRef.current = [from, 0];
     reciteFollowRef.current = { cur: from, prev: null, cut: 0 };
+    if (ear) { const myRun = ++reciteRunIdRef.current; setReciteListening(true); setReciteEar('wait'); reciteEarGo(from, myRun); return; }
     // Cumulative EXPECTED (Option C): expected = tokens of ayat from the session's anchor to the
     // target ayah, with the CURRENT ayah's offset/length so we can slice its states out of the full
     // alignment. No heard-text reset on advance — heard stays cumulative WITHIN a recognizer session
@@ -38444,6 +38684,55 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
     if (!ezStartRecognition(rec)) { reciteRunIdRef.current++; setReciteListening(false); }
   };
 
+  // ---------- item 86, phase 2: the owner's own engine (ezEar) ----------
+  // Reached only from startRecite's owner branch. When the engine does not answer, cannot begin, or stops answering
+  // mid-recitation, the browser's engine takes over from the ayah he is on, and the line under his bar says so.
+  const reciteEarWeb = (at) => { setReciteListening(false); setReciteEar(ezSpeechAvailable() && hasValidAIConsent() && !childVoiceBlocked() ? 'off' : ''); startRecite(at, true); };
+  const reciteEarGo = async (from, myRun) => {
+    const live = () => reciteRunIdRef.current === myRun;
+    const up = await ezEar.reachable();
+    if (!live()) return;
+    if (!up) { reciteEarWeb(from); return; }
+    const h = await ezEar.open({ sura: selectedSurah, ayah: from, last: surahCount,
+      onState: (st, stale) => { if (live()) reciteEarState(st, stale); },
+      onFail: () => { if (!live()) return; reciteEarRef.current = null; reciteEarWeb(reciteAyahRef.current || startAyah); } });
+    if (!live()) { if (h && h.stop) h.stop(); return; }
+    if (h.err === 'mic') { reciteRunIdRef.current++; setReciteListening(false); setReciteEar(''); setReciteErr(ezT('mem86.ear.mic')); return; }
+    if (h.err === 'consent') { reciteRunIdRef.current++; setReciteListening(false); setReciteEar(''); setReciteErr(EZ_SPEECH_NO_CONSENT); return; }
+    if (h.err) { reciteEarWeb(from); return; }
+    reciteEarRef.current = h;
+    setReciteEar('on');
+  };
+  // The ayat the engine completed: printed with every word, the words its judge flagged marked in red while his
+  // experiment switch is on, and one it saw passed over printed quiet. A late answer only ever prints ayat behind him.
+  const reciteEarDone = (done, stale) => {
+    const cur = reciteAyahRef.current || startAyah;
+    const keep = done.filter((d) => !stale || d.ayah < cur);
+    if (keep.length) setReciteDone((d0) => { const o = { ...d0 }; for (const d of keep) o[d.ayah] = mem86EarLeft(selectedSurah, d, prefsRef.current.wrong); return o; });
+  };
+  // One answer of the engine while he recites: the ayat completed, then the current ayah filled to the last word heard.
+  const reciteEarState = (st, stale) => {
+    const done = st.done || [];
+    reciteEarDone(done, stale);
+    if (stale) return;
+    if (st.cur > st.last) { mem86Ping(); setReciteFinished(true); stopRecite(); reciteCredit(); return; }   // the range is done (the engine's `finished` also means only "session over")
+    const cur = reciteAyahRef.current || startAyah;
+    const shown = mem86EarShown(selectedSurah, st.cur, st.upto);
+    const was = reciteShownRef.current.filter((x) => x === 'matched').length;
+    if (done.length || st.cur !== cur || shown.filter((x) => x === 'matched').length !== was) mem86Ping();   // a heard word keeps the clock; silence does not
+    if (st.cur !== cur) { reciteAyahRef.current = st.cur; setReciteAyah(st.cur); setReciteHints([]); }
+    setReciteStates(shown);
+    reciteShownRef.current = shown;
+  };
+  // The engine's last answer after a pause.
+  const reciteEarPaused = (st) => {
+    reciteEarDone(st.done || [], false);
+    if (st.cur > st.last) { setRecitePaused(0); setReciteFinished(true); reciteCredit(); return; }
+    if (st.cur !== (reciteAyahRef.current || startAyah)) {
+      reciteAyahRef.current = st.cur; setReciteAyah(st.cur); setReciteStates([]); reciteShownRef.current = []; setReciteHints([]); setRecitePaused(st.cur);
+    }
+  };
+
   // Manual advance — freeze-proof fallback so a missed/substituted last word can't lock progress.
   const advanceReciteManual = () => {
     reciteCleanRef.current = false;   // a manual «next» earns nothing
@@ -38458,6 +38747,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       setReciteStates([]); // new ayah starts dim; recomputed on the next onresult
       reciteShownRef.current = [];
       reciteFollowRef.current = { cur: next, prev: null, cut: mem86FollowHeard(reciteHeardRef.current, 0).total };
+      if (reciteEarRef.current) reciteEarRef.current.seek(next);   // item 86, phase 2: the owner's engine moves with him
     } else {
       setReciteFinished(true);
       stopRecite();
@@ -38710,6 +39000,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       // own sticky start bar. «إيقاف» keeps his place, and «تابع» resumes the ayah he was on.
       <div className="ezq-drill-acts" style={{ ...s.ezqStartBar, flexWrap: 'wrap' }} data-ez110-edge="sticky">
         {reciteErr ? <div style={{ ...s.memMsg, width: '100%' }}>{reciteErr}</div> : null}
+        {reciteEar ? <div style={{ ...s.memReciteHint, width: '100%', padding: 0 }}>{reciteEar === 'on' ? ezT('mem86.ear.on') : reciteEar === 'off' ? ezT('mem86.ear.off') : ezT('mem86.ear.wait')}</div> : null}
         <button onClick={reciteListening ? pauseRecite : () => startRecite(reciteResumeAt)} style={s.memRevealBtn}>
           {reciteListening ? MEM.RECITE_STOP : reciteResumeAt ? ezT('mem86.resume') : MEM.RECITE_START}</button>
         <button onClick={advanceReciteManual} style={s.memListenBtn}>{MEM.RECITE_NEXT}</button>

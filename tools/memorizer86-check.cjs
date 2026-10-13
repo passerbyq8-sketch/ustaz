@@ -118,11 +118,11 @@ section('the switch -- MEM86_PART and mem86Lit(): only the owner sees the new me
   // where it is asked: a pinned count, and never inside what the tool lifts
   const code = src.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
   const all = (code.match(/mem86Lit\(\)/g) || []).length;
-  ok(all === 25, 'mem86Lit() is asked at exactly 25 places (render, writes, the owner\'s menu of 12 October and his follower of that night): ' + all);
+  ok(all === 26, 'mem86Lit() is asked at exactly 26 places (render, writes, the owner\'s menu of 12 October, his follower of that night, and his own engine of phase 2): ' + all);
   const home = code.slice(code.indexOf('function Home('), code.indexOf('\nfunction ', code.indexOf('function Home(') + 10));
   ok((home.match(/mem86Lit\(\)/g) || []).length === 1 && home.includes('mem86Lit() ? dailyWirdLines(readDailyWird(), wt, mem86WirdToday()) : dailyWirdLines(readDailyWird(), wt)'), 'the home card asks once: the plan share for the owner, main\'s call for everyone else');
   const scr = code.slice(code.indexOf('function MemorizeScreen('), code.indexOf('\nfunction ', code.indexOf('function MemorizeScreen(') + 10));
-  ok((scr.match(/mem86Lit\(\)/g) || []).length === 24, 'MemorizeScreen asks at 24 places: ' + (scr.match(/mem86Lit\(\)/g) || []).length);
+  ok((scr.match(/mem86Lit\(\)/g) || []).length === 25, 'MemorizeScreen asks at 25 places: ' + (scr.match(/mem86Lit\(\)/g) || []).length);
   for (const [label, re] of [
     ['the tabs', /\{mem86Lit\(\) \? <Mem86Tabs /], ['the held count on a surah card', /\{mem86Lit\(\) && held\[n\] \?/],
     ['«similar passages»', /\{mem86Lit\(\) \? <button type="button" style=\{s\.mem86BtnQuiet\}/], ['the talqin options', /\{mem86Lit\(\) && drillMode === 'manual' && \(/],
@@ -144,6 +144,7 @@ section('the switch -- MEM86_PART and mem86Lit(): only the owner sees the new me
     ['the start opens the tab\'s mode, listening for «سمِّعني»', /if \(mem86Lit\(\)\) \{ stopAdnan\(\); stopRecite\(\); resetRecite\(\); setDrillMode\(tab === 'listen' \? 'adnan' : 'recite'\); reciteAutoRef\.current = tab !== 'listen'; \}/],
     ['the three-mode switch is not drawn', /\{!mem86Lit\(\) && \(\n\s*<div style=\{s\.memToggleRow\}>\n\s*<button onClick=\{\(\) => setMode\('manual'\)\}/],
     ['the recite page', /\{mem86Lit\(\) \? \(\n\s*<Mem86RecitePage sn=\{selectedSurah\} from=\{startAyah\} to=\{surahCount\} cur=\{reciteAyah \|\| startAyah\}/],
+    ['his own engine first, on the computer it runs on, the browser\'s when it does not answer (phase 2)', /const ear = mem86Lit\(\) && !viaWeb && ezEar\.here\(\);\n\s*if \(!ear && !ezSpeechAvailable\(\)\) \{ setReciteErr\(RECITE_NO_SR\); return; \}/],
   ]) ok(re.test(scr), 'gated by mem86Lit(): ' + label);
   const liftedAsk = [...TOP.keys()].filter((n) => /^(mem86|MEM86_)/.test(n) && n !== 'mem86Lit' && TOP.get(n).includes('mem86Lit'));
   ok(liftedAsk.length === 0, 'no top-level memorizer initializer asks the switch (the tool lifts them): ' + liftedAsk.join(', '));
@@ -258,7 +259,7 @@ const recLines = appSrc.split('\n').filter((l) => !/^\s*\/\//.test(l) && l.inclu
 ok(recLines.length === 3, 'ezNewRecognition( stands on exactly three lines (no fourth engine): ' + recLines.length);
 ok(memScreen.length > 0 && memScreen.includes('<button onClick={reciteListening ? pauseRecite : () => startRecite(reciteResumeAt)} style={s.memRevealBtn}>')
   && memScreen.includes('const reciteResumeAt = reciteListening || reciteFinished ? 0 : (recitePaused || ((reciteAyah || startAyah) > startAyah ? reciteAyah : 0));')
-  && /const startRecite = \(fromAyah\) =>/.test(memScreen), 'the owner\'s «إيقاف» pauses and «متابعة» resumes through startRecite, at the paused ayah or the one a stopped run reached');
+  && /const startRecite = \(fromAyah, viaWeb\) =>/.test(memScreen), 'the owner\'s «إيقاف» pauses and «متابعة» resumes through startRecite, at the paused ayah or the one a stopped run reached');
 ok(memScreen.length > 0 && /const hide = reciteListening && !prefs\.dim;/.test(memScreen), 'the text is hidden only while the engine listens and «show dimmed» is off');
 ok(memScreen.length > 0 && /if \(hide && st !== 'matched' && st !== 'mismatch' && !hinted\)/.test(memScreen), 'a matched word, a mismatch word or a hinted word shows; every other word is masked');
 const onres = memScreen.slice(memScreen.indexOf('rec.onresult = (event) => {'), memScreen.indexOf('rec.onend = () => {'));
@@ -269,7 +270,7 @@ ok(credit.length > 0 && /if \(!reciteCleanRef\.current\) return;/.test(credit), 
 ok(credit.length > 0 && /fresh: reciteHiddenRef\.current \? n : 0, review: n/.test(credit), '...new memorisation only with the text hidden throughout; review otherwise');
 const adv = memScreen.slice(memScreen.indexOf('const advanceReciteManual = () => {'), memScreen.indexOf('const setMode = (m) =>'));
 ok(adv.length > 0 && /reciteCleanRef\.current = false;/.test(adv) && !/mem86Credit|mem86DaysAdd/.test(adv), 'manual «next» earns nothing');
-const hintFn = memScreen.slice(memScreen.indexOf('const reciteHint = (rest) => {'), memScreen.indexOf('const startRecite = (fromAyah) =>'));
+const hintFn = memScreen.slice(memScreen.indexOf('const reciteHint = (rest) => {'), memScreen.indexOf('const startRecite = (fromAyah, viaWeb) =>'));
 ok(hintFn.length > 0 && /mem86WordsLog\(add\.map\(\(i\) => mem86Ref\(selectedSurah, cur, i \+ 1\)\), 'hint'\)/.test(hintFn), 'a hint is logged as a hint');
 ok(memScreen.length > 0 && memScreen.split('\n').filter((l) => /redMarks/.test(l) && /(localStorage|mem86Store|mem86WordsLog|mem86DaysAdd)/.test(l)).length === 0, '?memred=1 marks live in screen state only -- no line that touches redMarks stores anything');
 ok(memScreen.length > 0 && /if \(MEM_RED_FLAGGING\) \{/.test(memScreen) && /MEM_RED_FLAGGING && redMarks\.pick/.test(memScreen), 'the dashed line, the lingering colour and «not a mistake» exist only under MEM_RED_FLAGGING');
@@ -795,6 +796,63 @@ lift(['MEM86_TABS', 'MEM86_KIDS_RECITER']);
   ok(scr3.includes('const pause = prefs.kids ? ADNAN_PAUSE_FLOOR : Math.min(ADNAN_PAUSE_CEIL, Math.max(ADNAN_PAUSE_FLOOR, elapsed * ADNAN_PAUSE_FACTOR));'),
     'with the children repeating in the audio only the short pause follows each ayah; without them the pause is as before');
   ok(src3.includes("<Mem86Switch on={prefs.kids} onFlip={(v) => !disabled && onPref({ kids: v })} label={ezT('mem86.opt.kids')} />"), 'the switch sits in the listening options, locked while the loop runs');
+}
+
+/* ------------------------------------------------------------------ phase 2: the owner's own engine */
+// 13 October: the owner's «سمِّعني» is heard by item 86's own engine on his own computer (ezEar), not by the browser's.
+// The engine speaks in word numbers; the page numbers its words the same way, which is measured here against the
+// engine's own count for every ayah (guards/fixtures-ear-words.json, numbers only, cut from ear-lab). What the engine
+// answers is laid on the page by three small functions, tested here; the wiring around them is read from the source.
+section('phase 2 -- the owner\'s own engine (ezEar): his words in the engine\'s numbers, and the browser\'s engine when it does not answer');
+lift(['mem86EarWords', 'mem86EarShown', 'mem86EarLeft']);
+{
+  const src4 = fs.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
+  const scr4 = src4.slice(src4.indexOf('function MemorizeScreen('), src4.indexOf('\nfunction ', src4.indexOf('function MemorizeScreen(') + 10));
+  const FX = JSON.parse(fs.readFileSync(path.join(REPO, 'guards', 'fixtures-ear-words.json'), 'utf8'));
+  let ayat = 0, same = 0, firstOff = '';
+  FX.counts.forEach((row, s) => row.forEach((n, a) => { ayat++; if (X.mem86EarWords(s + 1, a + 1) === n) same++; else if (!firstOff) firstOff = (s + 1) + ':' + (a + 1); }));
+  ok(FX.counts.length === 114 && ayat === 6236 && same === 6236, 'the page counts the words of every ayah as the engine numbers them: ' + same + ' of ' + ayat + (firstOff ? ' (first off: ' + firstOff + ')' : ''));
+  const page4 = src4.slice(src4.indexOf('const Mem86PageRow = '), src4.indexOf('const Mem86RecitePage = '));
+  ok(page4.includes('if (!normalizeForRecite(w)) return printed ?') && page4.includes('const idx = k++;'), '...the page\'s own rule: a word is what normalizeForRecite keeps, numbered in order');
+  const sh = (s, a, u) => JSON.stringify(Array.from(X.mem86EarShown(s, a, u)));
+  const n11 = X.mem86EarWords(1, 1);
+  ok(sh(1, 1, 0) === JSON.stringify(Array(n11).fill('pending')) && sh(1, 1, 2) === JSON.stringify(['matched', 'matched'].concat(Array(n11 - 2).fill('pending')))
+    && sh(1, 1, 99) === JSON.stringify(Array(n11).fill('matched')), 'the current ayah fills to the last word the engine heard, never past the ayah\'s own words');
+  const lf = (d, red) => Array.from(X.mem86EarLeft(2, d, red));
+  const n22 = X.mem86EarWords(2, 2);
+  const m = lf({ ayah: 2, flag: [3] }, true);
+  ok(m.length === n22 && m[2] === 'wrong' && m.filter((x) => x === 'wrong').length === 1 && m.filter((x) => x === 'matched').length === n22 - 1, 'an ayah the engine completed is printed whole, the word its judge flagged marked in place while the red switch is on');
+  ok(lf({ ayah: 2, flag: [3] }, false).every((x) => x === 'matched'), '...and printed whole with no mark while the switch is off');
+  ok(lf({ ayah: 2, flag: [3], skipped: true }, true).every((x) => x === 'pending') && lf({ ayah: 2, flag: [99, 0, 'x'] }, true).every((x) => x === 'matched') && lf({ ayah: 2 }, true).every((x) => x === 'matched'),
+    'an ayah it saw passed over is printed quiet and never marked; a flag outside the ayah marks nothing');
+  // the wiring
+  const at = (t) => scr4.indexOf(t);
+  const branch = "if (ear) { const myRun = ++reciteRunIdRef.current; setReciteListening(true); setReciteEar('wait'); reciteEarGo(from, myRun); return; }";
+  ok(at(branch) > at('if (!hasValidAIConsent()) { setReciteErr(EZ_SPEECH_NO_CONSENT); return; }') && at('if (!hasValidAIConsent()) { setReciteErr(EZ_SPEECH_NO_CONSENT); return; }') > at('if (childVoiceBlocked()) { setReciteErr(CHILD_VOICE_NOTICE); return; }')
+    && at(branch) < at('const rec = ezNewRecognition();'), 'the owner\'s branch is taken after the child guard and the voice consent, and before any browser engine is built');
+  ok((scr4.match(/reciteEarGo\(/g) || []).length === 1 && (scr4.match(/ezEar\.reachable\(\)/g) || []).length === 1 && (scr4.match(/ezEar\.open\(/g) || []).length === 1 && (scr4.match(/ezEar\.here\(\)/g) || []).length === 1
+    && at('ezEar.reachable()') > at('const reciteEarGo = async (from, myRun) => {') && at('ezEar.open(') > at('ezEar.reachable()'), 'the engine is reached from that branch alone, on a computer (never a phone or the app\'s shell, until the phone has its own address): asked whether it answers, then opened');
+  ok(scr4.includes("const reciteEarWeb = (at) => { setReciteListening(false); setReciteEar(ezSpeechAvailable() && hasValidAIConsent() && !childVoiceBlocked() ? 'off' : ''); startRecite(at, true); };")
+    && (scr4.match(/reciteEarWeb\(/g) || []).length === 3, 'when it does not answer, cannot begin, or stops answering, the browser\'s engine takes over from the ayah he is on, and the line under his bar says so');
+  ok(scr4.includes("if (h.err === 'mic') {") && scr4.includes("setReciteErr(ezT('mem86.ear.mic'))") && scr4.includes("if (h.err === 'consent') {"), 'a microphone that will not open is said as such, and a consent withdrawn meanwhile ends the start');
+  ok(scr4.includes('const ear = reciteEarRef.current;\n    reciteEarRef.current = null;\n    setReciteEar(\'\');') && scr4.includes('return ear ? ear.stop() : null;')
+    && scr4.includes('if (reciteEarRef.current) { reciteEarRef.current.stop(); reciteEarRef.current = null; }'), 'every stop -- pause, mode, leaving, finishing -- closes the engine\'s microphone, and so does leaving the screen');
+  ok(scr4.includes('if (reciteEarRef.current) reciteEarRef.current.seek(next);'), '«الآية التالية» moves the engine with him');
+  ok(scr4.includes('if (st.cur > st.last) { mem86Ping(); setReciteFinished(true); stopRecite(); reciteCredit(); return; }') && scr4.includes('if (st.cur > st.last) { setRecitePaused(0); setReciteFinished(true); reciteCredit(); return; }')
+    && !/st\.finished/.test(scr4),
+    'a range earns when the engine has moved past its last ayah -- while he recites, or in its last answer after a pause (its `finished` also means "session over", so it is never read) -- through the same credit, which a manual «next» still forfeits');
+  ok(scr4.includes('for (const d of keep) o[d.ayah] = mem86EarLeft(selectedSurah, d, prefsRef.current.wrong);') && scr4.includes('const keep = done.filter((d) => !stale || d.ayah < cur);'),
+    'its flags reach the page only through mem86EarLeft under his red switch, and a late answer only prints ayat behind him');
+  const earFns = scr4.slice(at('const reciteEarWeb = (at) =>'), at('const advanceReciteManual = () => {'));
+  ok(earFns.length > 500 && !/mem86WordsLog|mem86Store|localStorage|mem86DaysAdd|mem86HeldSet/.test(earFns), 'what the engine hears writes nothing to the word log or any store of its own');
+  ok(scr4.includes("{reciteEar ? <div style={{ ...s.memReciteHint, width: '100%', padding: 0 }}>{reciteEar === 'on' ? ezT('mem86.ear.on') : reciteEar === 'off' ? ezT('mem86.ear.off') : ezT('mem86.ear.wait')}</div> : null}"),
+    'his bar says which engine hears him: his own, reaching it, or the browser\'s');
+  const LANG4 = path.join(REPO, 'lang');
+  const keys4 = ['mem86.ear.wait', 'mem86.ear.on', 'mem86.ear.off', 'mem86.ear.mic'];
+  const miss4 = [];
+  for (const f of fs.readdirSync(LANG4).filter((x) => x.endsWith('.json'))) { const d = JSON.parse(fs.readFileSync(path.join(LANG4, f), 'utf8')); for (const k of keys4) if (typeof d[k] !== 'string' || !d[k].trim()) miss4.push(f + ' ' + k); }
+  for (const k of keys4) if ((src4.match(new RegExp("'" + k.replace(/\./g, '\\.') + "': '[^']+'", 'g')) || []).length !== 2) miss4.push('app.jsx ' + k);
+  ok(miss4.length === 0, 'the four lines of the engine have a label in Arabic, English and every language file' + (miss4.length ? ': missing ' + miss4.slice(0, 4).join(', ') : ''));
 }
 
 /* ------------------------------------------------------------------ done */
