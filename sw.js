@@ -83,7 +83,7 @@ const CORE = [
   // forty-two of alnawawiforty.com, which replaced the fifty with Ibn Rajab's additions. It is
   // here for the reason adhkar.json is: the screen has no second supply -- no service, no model
   // call, no retrieval -- so a reader who has visited once and opens it with no network met an
-  // EMPTY section rather than the book. It is 47290 bytes. The explanation
+  // EMPTY section rather than the book. It is 47288 bytes. The explanation
   // that goes under each hadith is a second file, and it is NOT here: see the end of IDLE.
   '/arbaeen.json',
   // The tafsir of the daily verse, one record per reference the verse card can land on. It is
@@ -144,7 +144,7 @@ const CORE = [
 // The measured cost of CORE, byte for byte, at the commit that cut this constant:
 //   /  (index.html) 155556 + app.js 2272785 + icon-watermark.png 368386
 //   + adhkar.json 177392 + vendor/react-dom.umd.js 131835 + sunan-day.json 84759
-//   + arbaeen.json 47290 + daily-tafsir.json 23984 + icon-512.png 12893
+//   + arbaeen.json 47288 + daily-tafsir.json 23984 + icon-512.png 12893
 //   + vendor/react.umd.js 10751 + adhkar-split-27.json 7182 + icon-maskable-512.png 5938
 //   + icon-192.png 5053 + manifest.json 533
 //   + fonts/RrQKbpV-9Dd1b1OAGA6M9PkyDuVBeN2DHV20Lg.woff2 94032   (Noto Naskh Arabic, arabic)

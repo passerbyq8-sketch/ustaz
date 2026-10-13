@@ -1981,7 +1981,7 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3458496. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
   //   2026-10-13 -- Merge of origin/main d62e9e6c (item 89 arbaeen sharh, which took ezik-v104 too) into item 86 (memorizer opened to everyone): app.js rebuilt from the merged source, 2272785 bytes, sha256 efaf8d44..1760; index.html 155556. CACHE ezik-v105.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3458801. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
-  'sw.js': '3e1eddeb5354465c0aabf8bad93961d4f5ca5cdb59b7ee7baa59d23e69209b80',
+  'sw.js': 'f47972796bb4ee92629e8ce2873f9b92ea0c8fe0a26da634c5564ad2a9eeefae',
 };
 
 // ---------------------------------------------------------------------------
@@ -3125,7 +3125,7 @@ async function compare(bankPath) {
       { n: 7182, of: 'adhkar-split-27.json' },
       // ITEM 2. The two corpora that joined CORE on 2026-09-13 -- the forty and the daily verse's
       // tafsir -- each stated in the worker's byte table and re-derived here from the file it names.
-      { n: 47290, of: 'arbaeen.json' },
+      { n: 47288, of: 'arbaeen.json' },
       { n: 23984, of: 'daily-tafsir.json' },
       // ITEM 89 (2026-10-13). The forty-two's explanation, warmed last in IDLE and out of CORE; its
       // size is stated in the IDLE note and re-derived here from the file it names. (Item 4's
