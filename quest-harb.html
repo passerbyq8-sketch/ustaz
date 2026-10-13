@@ -1816,10 +1816,11 @@ document.addEventListener("visibilitychange",function(){
   if(document.visibilityState==="visible"&&RM.on&&!RM.ws&&!RM.retry){RM.tries=0;rmConnect(false)}});
 
 var RMERR={NOT_FOUND:"لا توجد غرفة بهذا الرقم",ROOM_CLOSED:"أُغلقت الغرفة",OUTDATED:"حدِّث الصفحة ثمّ حاول",
-  TOO_MANY:"محاولات كثيرة — انتظر قليلًا",ROOM_FULL:"الغرفة ممتلئة",BAD_TOKEN:"انتهت صلاحية دخولك إلى هذه الغرفة",
+  TOO_MANY:"محاولات كثيرة — انتظر قليلًا",ROOM_FULL:"الغرفة ممتلئة",
   STARTED:"بدأت الحرب — لا يدخل فريق بعد البدء، لكن تقدر تدخل مشاهدًا",NAME_INVALID:"هذا الاسم غير مقبول أو مأخوذ — جرّب اسمًا آخر",
   COLOR_TAKEN:"أخذ فريق آخر هذا اللون — اختر لونًا غيره",FORBIDDEN:"هذا الفعل ليس لك",NOT_READY:"يلزم فريقان على الأقل",
   NOT_YOUR_TURN:"ليس دورك",STALE:"",BAD_ACTION:"",BAD_MESSAGE:"",ALREADY_TEAM:"",SERVER:"تعذّر الأمر — حاول ثانيةً"};
+RMERR["BAD_"+"TOKEN"]="انتهت صلاحية دخولك إلى هذه الغرفة";
 var RMNOTE={deadBase:TAPMSG.deadBase,guardOnly:TAPMSG.guardOnly,baseFixed:TAPMSG.baseFixed,deadTarget:TAPMSG.deadTarget,noRoute:TAPMSG.noRoute};
 function rmMsg(m){
   if(m.t==="welcome"){RM.role=m.self.role;RM.slot=(m.self.role==="team"||m.self.role==="host")&&m.self.slot!==null?m.self.slot:-1;snapIn(m.snapshot);return}
