@@ -4357,6 +4357,11 @@ const mem86EarLeft = (sn, d, redOn) => {
   const give = Array.isArray(d.give) ? d.give : [];   // engine p2.5: a word given him («كلمة») is printed as given
   const heard = d.skipped ? 0 : Number.isInteger(d.heard) ? Math.max(0, Math.min(n, d.heard)) : n;
   for (let k = 0; k < n; k++) out[k] = k >= heard ? (redOn ? 'wrong' : 'blank') : give.indexOf(k + 1) !== -1 ? 'hint' : (redOn && flag.indexOf(k + 1) !== -1) ? 'wrong' : 'matched';
+  // engine p2.8 (14 October, tajweed shown and never held): a word said right whose tajweed the engine heard otherwise
+  for (const t of Array.isArray(d.tj) ? d.tj : []) {
+    const w = Array.isArray(t) ? t[0] : 0;
+    if (Number.isInteger(w) && w >= 1 && w <= n && out[w - 1] === 'matched') out[w - 1] = 'tajweed';
+  }
   return out;
 };
 // Engine p2.5 (hold): the ayah the engine holds him on. A word right in a saying before, or said in the one he is in
@@ -34760,6 +34765,7 @@ const Mem86PageRow = React.memo(({ sn, a, mode, states, hints, left, dim, hideNu
     if (printed) {
       const st = left ? left[idx] : 'matched';
       if (st === 'matched') return <span key={i} style={{ ...s.memWord, ...mem86WeakStyle(weak, ref) }}>{w}</span>;
+      if (st === 'tajweed') return <span key={i} style={{ ...s.memWord, ...s.mem86TajweedMark }}>{w}</span>;   // engine p2.8: said, its tajweed heard otherwise
       if (st === 'wrong') return <span key={i} style={{ ...s.memPlaceholder, ...s.mem86WrongMark }}>—</span>;
       if (st === 'blank') return <span key={i} style={s.memPlaceholder}>—</span>;   // the owner's engine did not hear it: never printed
       return <span key={i} style={s.mem86WordHint}>{w}</span>;
@@ -40516,7 +40522,8 @@ const s = {
   mem86Page: { display: 'flex', flexDirection: 'column', gap: 6, direction: 'rtl', textAlign: 'right', margin: '6px 0' },
   mem86PageRow: { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 12, border: '1px solid transparent', lineHeight: 2.2 },
   mem86PageRowCur: { background: 'var(--tint)', border: '1px solid var(--line)' },
-  mem86WrongMark: { background: 'var(--mem86-w4)', color: 'var(--ink)', fontWeight: 800 },   // the weak-spot red; ink clears 4.5:1 on it (themecoverage)
+  mem86WrongMark: { background: 'var(--mem86-w4)', color: 'var(--ink)', fontWeight: 800 },
+  mem86TajweedMark: { textDecorationLine: 'underline', textDecorationStyle: 'wavy', textDecorationColor: 'var(--scholar)', textUnderlineOffset: 8 },   // engine p2.8: tajweed heard otherwise -- shown, never held   // the weak-spot red; ink clears 4.5:1 on it (themecoverage)
   memResetBtn: { width: 50, height: 50, borderRadius: 14, background: 'var(--tint)', color: 'var(--red)', border: '1px solid var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 
   // ===== شاشة المكالمة — S113 ISTANA =====
