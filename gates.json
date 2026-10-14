@@ -567,6 +567,16 @@
     "args": "quest-ghaws.html"
   },
   {
+    "name": "kunuzgroups",
+    "script": "guards/kunuz-groups-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "kunuzwarengine",
+    "script": "guards/kunuz-war-engine-guard.cjs",
+    "args": ""
+  },
+  {
     "name": "hannalaha",
     "script": "guards/hanna-laha-in-ezik-guard.cjs",
     "args": ""

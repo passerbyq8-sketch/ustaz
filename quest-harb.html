@@ -284,6 +284,38 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 .kzr-lbl{display:block;color:var(--muted);font-size:.88rem;margin:0 0 4px}
 .kzr-msg{min-height:1.4em;margin:8px 0;font-size:.9rem;color:var(--ink)}
 .kzr-msg.bad{color:var(--no)}
+/* الغرفة: شريط الدور، الرقم الكبير، اللون */
+.turnbar{flex:0 0 auto;display:flex;align-items:center;gap:8px;min-height:48px;padding:4px 12px;background:#fff;
+  border-bottom:1px solid var(--line);color:var(--ink);font-family:var(--hd)}
+.turnbar.mine{background:var(--azraq);color:#fff}
+.turnbar b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.turnbar .dot{width:16px;height:16px;border-radius:5px;border:2px solid #fff;box-shadow:0 0 0 1px var(--line)}
+.tbrole{color:var(--muted);font-size:.8rem}
+.turnbar.mine .tbrole{color:#E2F3FB}
+.tbexit{min-height:44px;min-width:56px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:#fff;
+  color:var(--ghawr);font:inherit;font-size:.9rem;cursor:pointer}
+.codebig{font-family:var(--hd);font-weight:700;font-size:3.1rem;letter-spacing:.14em;text-align:center;color:var(--ghawr);
+  line-height:1.3;padding:4px 0 12px;-webkit-user-select:all;user-select:all}
+.codecard .row{gap:8px}
+.codein,.namein{width:100%;min-height:52px;background:var(--sea0);border:1px solid var(--line);border-radius:12px;
+  padding:10px 12px;font:inherit;font-size:1.2rem;color:var(--ink);text-align:center;margin-bottom:10px}
+.codein{letter-spacing:.2em;font-size:1.6rem;margin-bottom:0}
+.codein:focus,.namein:focus{outline:none;border-color:var(--azraq)}
+.sw.big{height:44px;min-width:44px}
+.palette.big{grid-template-columns:repeat(4,1fr);gap:10px}
+.lname{flex:1;min-width:0;overflow-wrap:anywhere}
+.lst{color:var(--no)}
+.pcard .dot{width:18px;height:18px;border-radius:6px}
+.pcard{min-height:48px}
+.opt:disabled{color:inherit}
+@media (min-width:900px){
+  #war{max-width:min(1040px,100vw)}
+  #war .qtext{font-size:1.5rem}
+  #war .opt{font-size:1.25rem;min-height:68px}
+  .turnbar{min-height:64px;font-size:1.35rem}
+  .codebig{font-size:5rem}
+  .wrap{max-width:760px}
+}
 </style>
 </head>
 <body>
@@ -297,8 +329,10 @@ textarea:focus{outline:none;border-color:var(--azraq)}
   <div class="brand"><h1>حرب الجزر</h1>
     <p>لعبة مجموعات · أرخبيل من اثنتي عشرة جزيرة تحمل فئاتك المختارة — تُفتح بالجواب لا بالنرد</p></div>
   <div class="rule"></div>
-  <button class="mode" data-go="cfg"><b>ابدأ حربًا</b>
-    <span>من لاعبين إلى أربعة على جهاز واحد</span></button>
+  <button class="mode" data-go="cfg"><b>جهاز واحد</b>
+    <span>من لاعبين إلى أربعة على جهاز واحد — يدور الجهاز بينكم</span></button>
+  <button class="mode" data-go="room"><b>غرفة</b>
+    <span>كلّ فريق على جهازه · يدخلون برقم الغرفة · ومن شاء شاهد على شاشة كبيرة</span></button>
   <button class="mode" data-go="how"><b>القواعد</b>
     <span>شرح كامل: الخريطة · دورك في ثلاث خطوات · النزال ونتائجه الأربع · مثال محسوب — اقرأه قبل أوّل حرب</span></button>
   <div class="kzr-row"><button type="button" data-kzr="game">الإبلاغ عن مشكلة في اللعبة</button></div>
@@ -381,6 +415,15 @@ textarea:focus{outline:none;border-color:var(--azraq)}
   </div>
 
   <div class="card">
+    <p class="lbl">الغرفة: كلّ فريق على جهازه</p>
+    <p style="margin:0 0 8px">يفتح أحدكم غرفة ويضبط الحرب كما في الجهاز الواحد، فيظهر له <b>رقم الغرفة</b>؛ يعطيه لمن يلعب معه، فيدخل كلّ فريق بجهازه ويكتب اسمه ويختار لونًا. لا غرف عامّة ولا قائمة ولا بحث — لا يدخل إلا من معه الرقم.</p>
+    <p style="margin:0 0 8px">يلعب المضيف مع فريقه من جهازه. يبدأ الحرب حين يكتمل فريقان على الأقل، <b>ولا يدخل فريق بعد البدء</b>. أمّا المشاهد فيدخل بالرقم في أيّ وقت: يرى الخريطة والنزالات حيّةً ولا يجيب ولا يتحكّم — يصلح لشاشة كبيرة.</p>
+    <p style="margin:0 0 8px">الخريطة واحدة عند الجميع لحظةً بلحظة، وفي أعلاها شريط يقول <b>دور مَن الآن</b>. جهاز الفريق صاحب الدور وحده يتحكّم، والمدافع يجيب من جهازه في نزاله. والقواعد كلّها هي نفسها.</p>
+    <p style="margin:0 0 8px"><b>إن انقطع جهاز فريق</b> يرجع بالرقم نفسه إلى فريقه نفسه. وإن غاب في دوره أكثر من <b>خمس وأربعين ثانية</b> تخطّاه الدور (وتُوزَّع رايات توزيعه إن كان في التوزيع، ويُعدّ جوابه خطأً إن كان في نزال). وكذلك إن بقي جهازه متّصلًا لكنّه لم يفعل شيئًا <b>ثلاث دقائق</b> في دوره (في التوزيع أو الهجوم أو النقل أو سؤال بلا مهلة)؛ وقبل التخطّي بثلاثين ثانية يظهر في شريط الدور عند الجميع: «سيُتخطّى دور الفريق إن لم يتحرك».</p>
+    <p style="margin:0">إن خرج المضيف تستمرّ الغرفة ما دام فيها فريقان. وتُحذف الغرفة بعد انتهاء الحرب بعشر دقائق، أو بعد خمول طويل، ولا يُحفظ شيء عن اللاعبين بعدها.</p>
+  </div>
+
+  <div class="card">
     <p class="lbl">مثال محسوب</p>
     <p style="margin:0">جزيرة «الجغرافيا» عندك بأربع رايات، تهجم منها على «تاريخ الكويت» وفيها ثلاث رايات لخصمك.
     تجيب صحيحًا والخيارات كلّها حيّة ⟸ إصابة مزدوجة لا تُصدّ: تأخذ راية إلى الجغرافيا فتصير خمسًا، وتبقى لخصمك اثنتان.
@@ -409,7 +452,9 @@ textarea:focus{outline:none;border-color:var(--azraq)}
   <div class="brand"><h1 style="font-size:1.85rem">قبل الحرب</h1><p>كلّ شيء قابل للتغيير</p></div>
   <div class="rule"></div>
 
-  <div class="card">
+  <div class="card hidden" id="cfgNote"><p class="lbl">الفرق تدخل بالرقم</p>
+    <p class="sub" style="margin:0">اضبط الحرب، ثمّ افتح الغرفة: يظهر لك رقمها، ويدخل كلّ فريق بجهازه فيكتب اسمه ويختار لونه. من اثنين إلى أربعة فرق.</p></div>
+  <div class="card" id="plcard">
     <p class="lbl">اللاعبون</p><p class="sub">من اثنين إلى أربعة — اضغط المربّع الملوّن لتختار راية فريقك</p>
     <div id="plist"></div>
     <button class="btn" id="addP" style="margin-top:6px">إضافة لاعب</button>
@@ -457,6 +502,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
     <div class="chips" id="wins"></div>
   </div>
 
+  <p class="kzr-msg bad hidden" id="cfgErr" role="status"></p>
   <button class="btn" data-go="how" style="margin-bottom:12px">اقرأ القواعد أوّلًا</button>
   <div class="row">
     <button class="btn" data-go="home">رجوع</button>
@@ -468,7 +514,56 @@ textarea:focus{outline:none;border-color:var(--azraq)}
   </div>
 </section>
 
+<!-- الغرفة -->
+<section id="room" class="hidden">
+  <div class="brand"><h1 style="font-size:1.85rem">غرفة</h1><p>كلّ فريق على جهازه — ولا يدخل إلا من معه الرقم</p></div>
+  <div class="rule"></div>
+  <button class="mode" id="roomHost" type="button"><b>فتح غرفة</b>
+    <span>تضبط الحرب فيظهر لك رقم الغرفة، وتعطيه لمن تلعب معهم</span></button>
+  <button class="mode" id="roomJoin" type="button"><b>دخول برقم</b>
+    <span>معك رقم غرفة؟ ادخل فريقًا، أو شاهد الحرب على شاشة كبيرة</span></button>
+  <button class="mode hidden" id="roomBack" type="button"></button>
+  <p class="kzr-msg bad" id="roomMsg" role="status"></p>
+  <button class="btn" data-go="home">رجوع</button>
+</section>
+
+<section id="join" class="hidden">
+  <div class="brand"><h1 style="font-size:1.85rem">دخول برقم</h1><p>اكتب رقم الغرفة الذي أعطاك إيّاه المضيف</p></div>
+  <div class="rule"></div>
+  <div class="card">
+    <label class="lbl" for="joinCode">رقم الغرفة</label>
+    <input id="joinCode" class="codein" type="text" inputmode="numeric" autocomplete="off" maxlength="12" dir="ltr" placeholder="٠٠٠٠٠٠">
+  </div>
+  <p class="kzr-msg" id="joinMsg" role="status"></p>
+  <button class="btn solid" id="joinTeamBtn" type="button">دخول كفريق</button>
+  <button class="btn" id="joinWatchBtn" type="button" style="margin-top:10px">مشاهدة</button>
+  <button class="btn" data-go="room" style="margin-top:10px">رجوع</button>
+</section>
+
+<section id="lobby" class="hidden">
+  <div class="brand"><h1 style="font-size:1.6rem">غرفة الانتظار</h1><p id="lobbyNote"></p></div>
+  <div class="card codecard">
+    <p class="lbl" style="text-align:center">رقم الغرفة</p>
+    <div class="codebig" id="lobbyCode" dir="ltr"></div>
+    <div class="row"><button class="btn" id="copyCode" type="button">نسخ الرقم</button><button class="btn" id="shareCode" type="button">مشاركة</button></div>
+  </div>
+  <div class="card"><p class="lbl">الفرق الداخلة</p><div id="lobbyTeams"></div><p class="tally" id="watchN"></p></div>
+  <div class="card hidden" id="joinForm">
+    <p class="lbl">فريقك</p><p class="sub">اكتب اسمًا من ستّة عشر حرفًا على الأكثر، واختر لونًا غير مأخوذ</p>
+    <label class="kzr-lbl" for="teamName">اسم الفريق</label>
+    <input id="teamName" class="namein" maxlength="16" autocomplete="off" placeholder="اسم الفريق">
+    <div class="palette big" id="teamPal" role="group" aria-label="لون الفريق"></div>
+    <button class="btn solid" id="teamGo" type="button">انضمّ</button>
+  </div>
+  <p class="kzr-msg" id="lobbyMsg" role="status"></p>
+  <button class="btn hidden" id="roomRetry" type="button" style="margin-bottom:10px">إعادة المحاولة</button>
+  <button class="btn solid" id="roomStart" type="button" style="margin-bottom:10px">ابدأ الحرب</button>
+  <button class="btn" id="roomEnd" type="button">خروج</button>
+</section>
+
 <section id="war" class="hidden">
+  <div class="turnbar hidden" id="turnBar"><i class="dot" id="tbDot"></i><b id="tbWho"></b><span class="tbrole" id="tbRole"></span>
+    <button type="button" class="tbexit" id="tbExit">خروج</button></div>
   <div id="mapBox" class="mapbox"></div>
   <div class="panel" id="panel">
     <p class="stat" id="stat" role="status">—</p>
@@ -498,6 +593,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
       <tbody id="winBody"></tbody></table>
     <div class="row"><button class="btn" data-go="home">الرئيسة</button>
       <button class="btn solid" id="rematch">حرب جديدة</button></div>
+    <p class="ok hidden" id="winWait">بانتظار المضيف ليبدأ لعبةً جديدة بالفرق نفسها</p>
     <button class="btn" id="toVerdict" style="margin-top:10px">عندي رأي في الطريقة</button>
     <div class="kzr-row"><button type="button" data-kzr="game">الإبلاغ عن مشكلة في اللعبة</button></div>
   </div>
@@ -537,6 +633,225 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 
 <script src="/quest-data/kunuz-bank-3147.js"></script>
 <script>
+/*WAR-ENGINE:BEGIN*/
+/* The rules of the island war, with no DOM, no clock and no randomness of its own.
+   ONE copy of this block is the rule book of both ways to play: the one-device page runs it in the browser,
+   the room server runs the same text (a generated copy; a gate fails when the two differ by one byte).
+   The state S is the page's G (players, own, ban, turn, phase, pool, base, tgt, ...). Every function that changes
+   the war returns a plain event; words and animations belong to whoever draws it. ASCII only. */
+var WarEngine=(function(){
+var LINKS=[[0,1],[1,2],[2,0],[3,4],[4,5],[5,3],[6,7],[7,8],[8,6],[9,10],[10,11],[11,9],[2,5],[2,6],[5,9],[7,10]];
+var SEA=[0,0,0,1,1,1,2,2,2,3,3,3];
+var HOLD={answer:2300,result:1700,skip:1400,short:1100};
+var BURN_FIRST=0.33,BURN_SECOND=0.66;
+var LIMIT={playersMin:2,playersMax:4,catsMin:3,catsMax:6,shotsMax:10,fuseMinSec:3,fuseMaxSec:600,deployMin:2,deployMax:60};
+function adj(a,b){for(var i=0;i<LINKS.length;i++){var l=LINKS[i];
+  if((l[0]===a&&l[1]===b)||(l[1]===a&&l[0]===b))return true}return false}
+function np(S){return S.players.length}
+function isDead(S,k){return !!S.left&&!(S.left[S.slotCat[k]]>0)}
+function liveIsles(S){var a=[];for(var k=0;k<12;k++)if(!isDead(S,k))a.push(k);return a}
+function count(S,pi){var c=0;for(var k=0;k<12;k++)if(S.own[k]===pi)c++;return c}
+function banners(S,pi){var c=0;for(var k=0;k<12;k++)if(S.own[k]===pi)c+=S.ban[k];return c}
+function seaOwner(S,s){var lv=[];for(var k=0;k<12;k++)if(SEA[k]===s&&!isDead(S,k))lv.push(k);
+  if(!lv.length)return null;var o=S.own[lv[0]];
+  for(var i=1;i<lv.length;i++)if(S.own[lv[i]]!==o)return null;return o}
+function seas(S,pi){var n=0;for(var s=0;s<4;s++)if(seaOwner(S,s)===pi)n++;return n}
+function canAttack(S,pi){for(var k=0;k<12;k++){if(S.own[k]!==pi||S.ban[k]<2||isDead(S,k))continue;
+  for(var j=0;j<12;j++)if(S.own[j]!==pi&&adj(k,j)&&!isDead(S,j))return true}return false}
+function anyCanAttack(S){for(var i=0;i<np(S);i++)if(canAttack(S,i))return true;return false}
+function leader(S){var b=0;for(var i=1;i<np(S);i++){
+  if(count(S,i)>count(S,b)||(count(S,i)===count(S,b)&&banners(S,i)>banners(S,b)))b=i}return b}
+function whoWon(S){
+  var lv=liveIsles(S);if(!lv.length)return null;
+  for(var i=0;i<np(S);i++){
+    if(lv.every(function(k){return S.own[k]===i}))return i;
+    if(S.winRule===2&&seas(S,i)>=2)return i}
+  return null}
+function warEnd(S){
+  var w=whoWon(S);if(w!==null)return {winner:w,why:"victory"};
+  if(!liveIsles(S).length)return {winner:leader(S),why:"dormant"};
+  return null}
+function over(S,winner,why){S.sel=null;S.tgt=null;S.phase="over";S.fight=null;return {t:"over",winner:winner,why:why}}
+function rows(S){var r=[];for(var k=0;k<np(S);k++)r.push({k:k,c:count(S,k),b:banners(S,k)});
+  return r.sort(function(x,y){return y.c-x.c})}
+function islandsPer(S){return Math.floor(12/np(S))}
+function deployCount(S){return S.deployFree>=0?S.deployFree:(S.deployMul*islandsPer(S))}
+/* the number of flags in the whole war never changes after the deal */
+function totalFlags(S){var n=0;for(var k=0;k<12;k++)n+=S.ban[k];return n+(S.pool||0)}
+
+/* the setup, checked the same way on the page and on the server; null = fine, else a short code */
+function checkConfig(c){
+  if(!c||typeof c!=="object")return "config";
+  if(!(c.players>=LIMIT.playersMin&&c.players<=LIMIT.playersMax&&c.players===Math.floor(c.players)))return "players";
+  if(!Array.isArray(c.cats)||c.cats.length<LIMIT.catsMin||c.cats.length>LIMIT.catsMax)return "cats";
+  if(!(c.fuse===0||(c.fuse>=LIMIT.fuseMinSec*1000&&c.fuse<=LIMIT.fuseMaxSec*1000&&c.fuse===Math.floor(c.fuse))))return "fuse";
+  if(!(c.shots>=1&&c.shots<=LIMIT.shotsMax&&c.shots===Math.floor(c.shots)))return "shots";
+  if(c.winRule!==2&&c.winRule!==9)return "winRule";
+  if(typeof c.noOpts!=="boolean")return "noOpts";
+  if(!(c.deployFree===-1||(c.deployFree>=LIMIT.deployMin&&c.deployFree<=LIMIT.deployMax&&c.deployFree===Math.floor(c.deployFree))))return "deployFree";
+  if(!(c.deployMul>=1&&c.deployMul<=3&&c.deployMul===Math.floor(c.deployMul)))return "deployMul";
+  return null}
+
+/* twelve islands carry the chosen categories (a category may repeat); spent categories are left out */
+function buildSlots(cats,left,rnd){
+  var cs=cats.filter(function(c){return left[c]>0});if(!cs.length)cs=cats;
+  var n=cs.length,list=[];
+  for(var i=0;i<12;i++)list.push(cs[i%n]);
+  for(var j=list.length-1;j>0;j--){var r=Math.floor(rnd()*(j+1));
+    var t=list[j];list[j]=list[r];list[r]=t}
+  return list}
+/* the deal: no sea may start wholly in one hand; every island starts with its one guard */
+function newWar(S,rnd,left){
+  S.left=left;
+  var idx=[0,1,2,3,4,5,6,7,8,9,10,11],ok=false,tries=0;
+  while(!ok&&tries<80){
+    tries++;idx.sort(function(){return rnd()-.5});
+    S.own={};idx.forEach(function(k,j){S.own[k]=j%np(S)});
+    ok=true;
+    for(var s=0;s<4;s++){var o=null,full=true;
+      for(var k=0;k<12;k++)if(SEA[k]===s){if(o===null)o=S.own[k];else if(o!==S.own[k])full=false}
+      if(full)ok=false}
+  }
+  S.ban={};for(var q=0;q<12;q++)S.ban[q]=1;
+  S.turn=0;S.sel=null;S.tgt=null;S.used={};S.turnNo=0;S.fight=null;S.busy=false;S.base=null;S.attacked=false;
+  S.moveTgt=null;S.moveLeft=0;S.placed=[];
+  return beginDeploy(S)}
+function beginDeploy(S){
+  S.phase="deploy";S.pool=deployCount(S);S.sel=null;S.tgt=null;S.placed=[];
+  return {t:"deploy",turn:S.turn,pool:S.pool}}
+function beginTurn(S,left){
+  if(left)S.left=left;
+  S.turnNo++;S.sel=null;S.tgt=null;S.base=null;S.attacked=false;S.busy=false;S.phase="attack";
+  return {t:"turn",turn:S.turn,canAttack:canAttack(S,S.turn)}}
+function endTurn(S,left){
+  var e=warEnd(S);if(e)return over(S,e.winner,e.why);
+  if(!anyCanAttack(S))return over(S,leader(S),"stuck");
+  S.turn=(S.turn+1)%np(S);var g=0;
+  while(count(S,S.turn)===0&&g++<8)S.turn=(S.turn+1)%np(S);
+  return beginTurn(S,left)}
+/* the end-turn button: in the deal it hands the deal on, afterwards it ends the turn */
+function next(S,left){
+  if(S.busy)return {t:"none"};
+  if(S.phase==="deploy"){
+    if(S.pool>0)return {t:"none"};
+    if(S.turn<np(S)-1){S.turn++;return beginDeploy(S)}
+    S.turn=0;return beginTurn(S,left)}
+  if(S.phase==="over")return {t:"none"};
+  if(S.phase==="move"){S.phase="attack";S.moveTgt=null;S.moveLeft=0;S.placed=[]}
+  return endTurn(S,left)}
+function canHit(S,k){return S.phase==="attack"&&!S.busy&&S.base!==null&&S.ban[S.base]>=2&&k!==S.base&&S.own[k]!==S.turn&&adj(S.base,k)&&!isDead(S,k)&&!isDead(S,S.base)}
+/* one touch on an island */
+function tap(S,k){
+  if(S.busy||!(k>=0&&k<12))return {t:"none"};
+  if(S.phase==="deploy"){
+    if(S.own[k]!==S.turn||S.pool<=0)return {t:"none"};
+    S.ban[k]++;S.pool--;S.placed.push(k);
+    return {t:"deployed",k:k,pool:S.pool}}
+  if(S.phase==="move"){
+    if(k===S.moveTgt&&S.moveLeft>0){
+      S.ban[S.moveTgt]++;S.ban[S.base]--;S.moveLeft--;S.placed.push(k);
+      return {t:"moved",k:k,left:S.moveLeft}}
+    if(!(S.ban[S.base]>=2&&S.own[k]!==S.turn&&adj(S.base,k)&&!isDead(S,k)&&!isDead(S,S.base)))return {t:"none"};
+    S.phase="attack";S.moveTgt=null;S.moveLeft=0;S.placed=[]}
+  if(S.phase!=="attack")return {t:"none"};
+  if(S.base===null){
+    if(S.own[k]!==S.turn)return {t:"none"};
+    if(isDead(S,k))return {t:"msg",code:"deadBase"};
+    if(S.ban[k]<2)return {t:"msg",code:"guardOnly"};
+    S.base=k;S.sel=k;S.attacked=false;
+    return {t:"base",k:k}}
+  if(k===S.base)return {t:"none"};
+  if(S.own[k]===S.turn)return {t:"msg",code:"baseFixed"};
+  if(isDead(S,k))return {t:"msg",code:"deadTarget"};
+  if(!adj(S.base,k))return {t:"msg",code:"noRoute"};
+  S.tgt=k;S.attacked=true;S.sel=S.base;
+  return {t:"attack",base:S.base,tgt:k}}
+function undo(S){
+  if(S.busy)return null;
+  if(S.phase==="deploy"){
+    if(!S.placed.length)return null;
+    var k=S.placed.pop();S.ban[k]--;S.pool++;
+    return {t:"deployUndone",k:k,pool:S.pool,more:S.placed.length>0}}
+  if(S.phase==="move"){
+    if(!S.placed.length)return null;
+    var m=S.placed.pop();S.ban[m]--;S.ban[S.base]++;S.moveLeft++;
+    return {t:"moveUndone",k:m,left:S.moveLeft,more:S.placed.length>0}}
+  if(S.phase!=="attack"||S.attacked||S.base===null)return null;
+  S.base=null;S.sel=null;S.tgt=null;
+  return {t:"baseUndone"}}
+
+/* the fight: the attacker is asked up to S.shots questions, then perhaps the defender; one flag moves at most */
+function startFight(S){
+  S.fight={atk:S.turn,def:S.own[S.tgt],ci:S.slotCat[S.tgt],shot:0,hits:0,asked:0,stage:"shoot"};
+  return S.fight}
+function result(S,kind,why){
+  S.fight.stage="done";
+  return {t:"result",kind:kind,why:why,base:S.base,tgt:S.tgt,left:S.ban[S.tgt]}}
+function take(S,lead){
+  var base=S.base,tgt=S.tgt;
+  if(S.ban[tgt]>1){S.ban[tgt]--;S.ban[base]++;return result(S,"take",lead)}
+  S.own[tgt]=S.turn;S.moveTgt=tgt;return result(S,"fall",lead)}
+function settle(S){
+  var f=S.fight,base=S.base,tgt=S.tgt;
+  if(f.hits===0){
+    if(S.ban[base]>1){S.ban[base]--;S.ban[tgt]++}
+    return result(S,"lose","lose")}
+  if(f.hits>=2)return take(S,"double");
+  if(!(S.left[f.ci]>0))return result(S,"hold","noDef");
+  f.stage="defend";return fightNext(S)}
+/* what the fight needs now: {t:"ask",...} (get a question for the category, then fightAnswer) or {t:"result",...} */
+function fightNext(S){
+  var f=S.fight;
+  if(f.stage==="shoot"){
+    if(f.shot>=S.shots)return settle(S);
+    f.shot++;
+    return {t:"ask",pi:f.atk,defend:false,shot:f.shot,shots:S.shots,ci:f.ci}}
+  return {t:"ask",pi:f.def,defend:true,shot:0,shots:S.shots,ci:f.ci}}
+/* ok: true / false, or null when the category had no question left; fast: answered before any choice burned */
+function fightAnswer(S,ok,fast){
+  var f=S.fight;
+  if(f.stage==="defend"){
+    if(ok===null)return result(S,"hold","noDef");
+    if(ok)return result(S,"hold","defended");
+    return take(S,"defFail")}
+  if(ok===null){
+    if(!f.asked)return result(S,"hold","noQ");
+    f.shot=S.shots;return fightNext(S)}
+  f.asked++;if(ok)f.hits+=(fast?2:1);
+  return fightNext(S)}
+function afterAttack(S){
+  var e=warEnd(S);if(e)return over(S,e.winner,e.why);
+  S.tgt=null;
+  if(S.base!==null&&isDead(S,S.base))return {t:"turnEnd",why:"deadBase"};
+  if(S.base===null||S.ban[S.base]<2)return {t:"turnEnd",why:"guard"};
+  return {t:"continue"}}
+/* after the result has been shown */
+function afterResult(S,res){
+  S.fight=null;
+  if(res.kind==="fall"){
+    var e=warEnd(S);if(e)return over(S,e.winner,e.why);
+    S.tgt=null;
+    S.moveLeft=(isDead(S,res.tgt)||isDead(S,S.base))?0:Math.max(0,S.ban[S.base]-1);
+    if(S.moveLeft<=0)return afterAttack(S);
+    S.phase="move";S.placed=[];
+    return {t:"move",tgt:res.tgt,left:S.moveLeft}}
+  return afterAttack(S)}
+
+/* the embers: how many choices are still alive after `elapsed` of `fuse`; a choice never comes back */
+function aliveAt(alive,full,elapsed,fuse){
+  var want=elapsed>fuse*BURN_SECOND?2:(elapsed>fuse*BURN_FIRST?full-1:full);
+  return (alive>want&&alive>1)?Math.max(want,1):alive}
+function isFast(S,alive,full){return S.fuse>0&&alive===full}
+
+return {LINKS:LINKS,SEA:SEA,HOLD:HOLD,BURN_FIRST:BURN_FIRST,BURN_SECOND:BURN_SECOND,LIMIT:LIMIT,
+ adj:adj,isDead:isDead,liveIsles:liveIsles,count:count,banners:banners,seaOwner:seaOwner,seas:seas,
+ canAttack:canAttack,anyCanAttack:anyCanAttack,leader:leader,whoWon:whoWon,warEnd:warEnd,rows:rows,
+ islandsPer:islandsPer,deployCount:deployCount,totalFlags:totalFlags,checkConfig:checkConfig,
+ buildSlots:buildSlots,newWar:newWar,beginDeploy:beginDeploy,beginTurn:beginTurn,endTurn:endTurn,next:next,
+ canHit:canHit,tap:tap,undo:undo,over:over,startFight:startFight,fightNext:fightNext,fightAnswer:fightAnswer,
+ afterAttack:afterAttack,afterResult:afterResult,aliveAt:aliveAt,isFast:isFast};
+})();
+/*WAR-ENGINE:END*/
 var MW=600,MH=920;
 var SLOTS=[
  {x:424,y:120,r:58,s:0},{x:530,y:262,r:54,s:0},{x:386,y:352,r:60,s:0},
@@ -545,8 +860,7 @@ var SLOTS=[
  {x:180,y:574,r:58,s:3},{x:216,y:778,r:60,s:3},{x:72,y:698,r:52,s:3}];
 var SEANM=[["بحر اللؤلؤ",532,44],["بحر المرجان",72,44],["بحر الدانة",528,902],["بحر الصدف",72,902]];
 var SHAPES=[[.10,2,.3,.07,3,1.1],[.08,3,.9,.09,2,2],[.12,2,1.7,.05,5,.4],[.07,4,.2,.1,3,2.6]];
-var LINKS=[[0,1],[1,2],[2,0],[3,4],[4,5],[5,3],[6,7],[7,8],[8,6],[9,10],[10,11],[11,9],
- [2,5],[2,6],[5,9],[7,10]];
+var LINKS=WarEngine.LINKS;
 var PAL=[["#D23B3B","أحمر"],["#E2761B","برتقاليّ"],["#D9A400","ذهبيّ"],["#7E9B1F","زيتونيّ"],
  ["#2E9E4F","أخضر"],["#0E8F74","زمرّديّ"],["#12A2B8","فيروزيّ"],["#1B6E9C","أزرق"],
  ["#2F4B9A","كحليّ"],["#7A4BB0","بنفسجيّ"],["#C0397E","ورديّ"],["#8A5A3B","بنّيّ"]];
@@ -561,57 +875,52 @@ function freeColor(){
 }
 var G={players:[],cats:[],fuse:13000,winRule:2,shots:1,noOpts:false,deployMul:2,deployFree:-1,
   turnNo:0,own:{},ban:{},turn:0,phase:"deploy",pool:0,sel:null,tgt:null,used:{},pick:-1,
-  base:null,attacked:false,moveTgt:null,moveLeft:0,slotCat:[],placed:[]};
+  base:null,attacked:false,moveTgt:null,moveLeft:0,slotCat:[],placed:[],fight:null};
 var T={raf:null,t0:0,alive:4,lock:false};
 var V={stars:0,who:"",last:""};
 
 function ar(n){if(document.documentElement.getAttribute("lang")==="en")return String(n);return String(n).replace(/[0-9]/g,function(d){return "٠١٢٣٤٥٦٧٨٩"[+d]})}
 function $(i){return document.getElementById(i)}
-function show(id){["home","how","cfg","war","win","verdict"].forEach(function(x){$(x).classList.add("hidden")});
+function show(id){["home","how","cfg","room","join","lobby","war","win","verdict"].forEach(function(x){$(x).classList.add("hidden")});
   $(id).classList.remove("hidden");window.scrollTo(0,0)}
 /* KZNAV back: play -> cfg -> mode home -> kunuz */
 (function(){
 if(typeof show!=="function")return;
-var _show=show;var atCfg=false;var atPlay=false;
-function isPlay(id){return id!=="home"&&id!=="cfg";}
+var _show=show;var atCfg=false;var atPlay=false;var l1="cfg";
+function isL1(id){return id==="cfg"||id==="room";}
+function isPlay(id){return id!=="home"&&!isL1(id);}
 try{history.replaceState({kz:"home"},"");}catch(e){}
 show=function(id){
 if(id==="home"&&(atCfg||atPlay)){var n=atPlay?2:1;atCfg=false;atPlay=false;try{history.go(-n);return;}catch(e){}}
-if(id==="cfg"&&atPlay){atPlay=false;try{history.go(-1);return;}catch(e){}}
-if(id==="cfg"&&!atCfg){try{history.pushState({kz:"cfg"},"");}catch(e){}atCfg=true;atPlay=false;}
+if(isL1(id)&&atPlay){atPlay=false;l1=id;try{history.go(-1);return;}catch(e){}}
+if(isL1(id)&&!atCfg){try{history.pushState({kz:"cfg"},"");}catch(e){}atCfg=true;atPlay=false;l1=id;}
+else if(isL1(id)){l1=id;}
 else if(isPlay(id)&&!atPlay){try{history.pushState({kz:"play"},"");}catch(e){}atPlay=true;}
 else if(id==="home"){atCfg=false;atPlay=false;}
 _show(id);
 };
 window.addEventListener("popstate",function(ev){
 var k=(ev&&ev.state&&ev.state.kz)||"home";
-if(k==="cfg"){atCfg=true;atPlay=false;_show("cfg");}
+if(k==="cfg"){atCfg=true;atPlay=false;_show(l1);}
 else{atCfg=false;atPlay=false;_show("home");}
 });
 })();
 
 function hexA(h,a){return "rgba("+parseInt(h.substr(1,2),16)+","+parseInt(h.substr(3,2),16)+","+
   parseInt(h.substr(5,2),16)+","+a+")"}
-function catName(k){var c=G.slotCat.length?G.slotCat[k]:G.cats[k%G.cats.length];return DATA.cats[c][1]}
-function buildSlots(){
-  var L=seenByCat(),cs=G.cats.filter(function(c){return L[c]>0});if(!cs.length)cs=G.cats;
-  var n=cs.length,list=[];
-  for(var i=0;i<12;i++)list.push(cs[i%n]);
-  for(var j=list.length-1;j>0;j--){var r=Math.floor(Math.random()*(j+1));
-    var t=list[j];list[j]=list[r];list[r]=t}
-  G.slotCat=list;
-}
+function catName(k){if(RM.on&&RM.names.length)return RM.names[k];var c=G.slotCat.length?G.slotCat[k]:G.cats[k%G.cats.length];return DATA.cats[c][1]}
+function buildSlots(){G.slotCat=WarEngine.buildSlots(G.cats,seenByCat(),Math.random)}
 function spread(){
   var n=G.cats.length,base=Math.floor(12/n),rem=12%n;
   return rem?(cntI(base)+" أو "+cntI(base+1)):cntI(base);
 }
-function adj(a,b){for(var i=0;i<LINKS.length;i++){var l=LINKS[i];
-  if((l[0]===a&&l[1]===b)||(l[1]===a&&l[0]===b))return true}return false}
+function adj(a,b){return WarEngine.adj(a,b)}
 
 
 document.addEventListener("click",function(e){
   var b=e.target.closest("[data-go]");if(!b)return;var g=b.dataset.go;
-  if(g==="cfg")openCfg();else if(g==="how")show("how");else{quitFight();show("home")}
+  if(g==="cfg"){leaveCfgMode();openCfg()}else if(g==="how")show("how");else if(g==="room")openRoomScreen();
+  else{if(RM.on)roomExit();else{quitFight();leaveCfgMode();show("home")}}
 });
 $("toVerdict").onclick=function(){show("verdict")};
 
@@ -714,8 +1023,9 @@ function drawPlayers(){
   $("addP").disabled=G.players.length>=4;
 }
 $("addP").onclick=function(){if(G.players.length<4){G.players.push({n:"",c:freeColor()});G.pick=-1;drawPlayers();tally()}};
+function leftByCat(){return G.roomCfg?DATA.cats.map(function(){return 1}):seenByCat()}
 function preset(k){
-  var rel=[],sec=[],L=seenByCat();
+  var rel=[],sec=[],L=leftByCat();
   DATA.cats.forEach(function(c,i){if(!L[i])return;if(c[2]==="religious")rel.push(i);else sec.push(i)});
   function pick(a,n){var b=a.slice().sort(function(){return Math.random()-.5});return b.slice(0,n)}
   if(k==="rel")G.cats=pick(rel,6);
@@ -796,7 +1106,7 @@ function drawCats(){
 }
 function avail(ci){var n=0;for(var i=0;i<DATA.qs.length;i++){if(DATA.qs[i][0]===ci)n++}return n}
 function tally(){
-  var L=seenByCat(),left=0;
+  var L=leftByCat(),left=0;
   G.cats.forEach(function(ci){left+=L[ci]});
   drawDeploy();
   var fit=(G.cats.length>=3&&G.cats.length<=6),ok=(fit&&left>=1);
@@ -863,10 +1173,18 @@ function drawFuses(){
     b.onclick=function(){G.fuse=ms;drawFuses()};w.appendChild(b)});
   curChip(w,G.fuse?("المختار: "+cntS(G.fuse/1000)):"المختار: بلا مهلة");
 }
-function islandsPer(){return Math.floor(12/G.players.length)}
-function deployCount(){return G.deployFree>=0?G.deployFree:(G.deployMul*islandsPer())}
+function islandsPer(){return WarEngine.islandsPer(G)}
+function deployCount(){return WarEngine.deployCount(G)}
 function drawDeploy(){
   var w=$("deploy");if(!w)return;w.innerHTML="";
+  if(G.roomCfg){
+    [[1,"قليلة"],[2,"متوسّطة"],[3,"كثيرة"]].forEach(function(o){
+      var b=document.createElement("button");
+      b.className="chip"+((G.deployFree<0&&G.deployMul===o[0])?" on":"");
+      b.textContent=o[1];
+      b.onclick=function(){G.deployMul=o[0];G.deployFree=-1;drawDeploy()};w.appendChild(b)});
+    curChip(w,G.deployFree>=0?("المختار: "+cntR(G.deployFree)+" لكلّ فريق"):"تُحسب عند البدء من عدد الفرق: اثنتا عشرة جزيرة موزَّعة عليها");
+    return}
   [1,2,3].forEach(function(m){
     var n=m*islandsPer();
     var b=document.createElement("button");
@@ -896,23 +1214,14 @@ function drawWins(){
     b.onclick=function(){G.winRule=o[0];drawWins()};w.appendChild(b)});
 }
 $("startWar").onclick=function(){
+  if(G.roomCfg){roomCreate();return}
   G.players.forEach(function(p,i){if(!p.n.trim())p.n="لاعب "+ar(i+1)});newWar()};
-$("rematch").onclick=function(){openCfg()};
+$("rematch").onclick=function(){if(RM.on){if(RM.host)rmSend({t:"rematch"});return}openCfg()};
 
 /* ───── الحرب ───── */
 function newWar(){
   buildSlots();G.left=seenByCat();
-  var idx=[0,1,2,3,4,5,6,7,8,9,10,11],ok=false,tries=0;
-  while(!ok&&tries<80){
-    tries++;idx.sort(function(){return Math.random()-.5});
-    G.own={};idx.forEach(function(k,j){G.own[k]=j%G.players.length});
-    ok=true;
-    for(var s=0;s<4;s++){var o=null,full=true;
-      for(var k=0;k<12;k++)if(SLOTS[k].s===s){if(o===null)o=G.own[k];else if(o!==G.own[k])full=false}
-      if(full)ok=false}
-  }
-  G.ban={};for(var k=0;k<12;k++)G.ban[k]=1;
-  G.turn=0;G.sel=null;G.tgt=null;G.used={};G.turnNo=0;
+  WarEngine.newWar(G,Math.random,G.left);
   clearT();$("war").insertBefore($("mapBox"),$("war").querySelector(".panel"));
   drawMap();beginDeploy();show("war");
 }
@@ -1053,123 +1362,108 @@ function mt(ms){return RM&&RM.matches?0:ms}
 var TM=[];
 function later(f,ms){TM.push(setTimeout(f,ms))}
 function clearT(){TM.forEach(function(t){clearTimeout(t)});TM=[]}
-function count(pi){var c=0;for(var k=0;k<12;k++)if(G.own[k]===pi)c++;return c}
-function banners(pi){var c=0;for(var k=0;k<12;k++)if(G.own[k]===pi)c+=G.ban[k];return c}
+function count(pi){return WarEngine.count(G,pi)}
+function banners(pi){return WarEngine.banners(G,pi)}
 /* الخمود: جزيرة نفدت أسئلة فئتها لا تُهاجَم ولا تُهاجِم، والنصر يُحسب على الجزر الحيّة */
-function isDead(k){return !!G.left&&!(G.left[G.slotCat[k]]>0)}
-function liveIsles(){var a=[];for(var k=0;k<12;k++)if(!isDead(k))a.push(k);return a}
-function seaOwner(s){var lv=[];for(var k=0;k<12;k++)if(SLOTS[k].s===s&&!isDead(k))lv.push(k);
-  if(!lv.length)return null;var o=G.own[lv[0]];
-  for(var i=1;i<lv.length;i++)if(G.own[lv[i]]!==o)return null;return o}
-function seas(pi){var n=0;for(var s=0;s<4;s++)if(seaOwner(s)===pi)n++;return n}
-function warEnd(){
-  var w=whoWon();if(w!==null){victory(w);return true}
-  if(!liveIsles().length){victory(leader(),seenLeft(null)?"خمدت الجزر كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات":"انتهت الأسئلة كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات، والتصفير بيدك في شاشة الإعداد");return true}
-  return false;
+function isDead(k){return WarEngine.isDead(G,k)}
+function liveIsles(){return WarEngine.liveIsles(G)}
+function seaOwner(s){return WarEngine.seaOwner(G,s)}
+function seas(pi){return WarEngine.seas(G,pi)}
+var OVERWHY={stuck:"لا هجوم ممكنًا لأحد — الغلبة لمن ملك أكثر جزرًا ثمّ رايات"};
+function overText(why){
+  if(why==="victory")return "";
+  if(OVERWHY[why])return OVERWHY[why];
+  if(RM.on)return "خمدت الجزر كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات";
+  return seenLeft(null)?"خمدت الجزر كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات":"انتهت الأسئلة كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات، والتصفير بيدك في شاشة الإعداد";
 }
+function showOver(e){victory(e.winner,overText(e.why))}
+function warEnd(){var e=WarEngine.warEnd(G);if(!e)return false;showOver(e);return true}
 function stat(h,warn){var s=$("stat");s.innerHTML=h;s.className="stat"+(warn?" warn":"")}
-function who(i){return '<i class="dot" style="background:'+col(i)+'"></i><b>'+G.players[i].n+'</b>'}
-function beginDeploy(){
-  var p=G.players[G.turn];
-  G.phase="deploy";G.pool=deployCount();G.sel=null;G.tgt=null;G.placed=[];
+function who(i){return '<i class="dot" style="background:'+col(i)+'"></i><b>'+esc(G.players[i].n)+'</b>'}
+function beginDeploy(){WarEngine.beginDeploy(G);uiDeploy()}
+function uiDeploy(){
   stat(who(G.turn)+" يوزّع "+cntR(G.pool)+" على جزره");
   $("nextBtn").disabled=true;
   $("undoBtn").disabled=true;
   paint();
 }
-function canAttack(pi){for(var k=0;k<12;k++){if(G.own[k]!==pi||G.ban[k]<2||isDead(k))continue;
-  for(var j=0;j<12;j++)if(G.own[j]!==pi&&adj(k,j)&&!isDead(j))return true}return false}
-function anyCanAttack(){for(var i=0;i<G.players.length;i++)if(canAttack(i))return true;return false}
-function leader(){var b=0;for(var i=1;i<G.players.length;i++){
-  if(count(i)>count(b)||(count(i)===count(b)&&banners(i)>banners(b)))b=i}return b}
-function beginTurn(){
-  var p=G.players[G.turn];G.left=seenByCat();
-  G.turnNo++;
-  G.sel=null;G.tgt=null;
-  G.base=null;G.attacked=false;G.busy=false;
-  G.phase="attack";
+function canAttack(pi){return WarEngine.canAttack(G,pi)}
+function anyCanAttack(){return WarEngine.anyCanAttack(G)}
+function leader(){return WarEngine.leader(G)}
+function beginTurn(){uiTurn(WarEngine.beginTurn(G,seenByCat()))}
+function uiTurn(ev){
   $("undoBtn").disabled=true;
-  if(!canAttack(G.turn)){
+  if(!ev.canAttack){
     $("nextBtn").disabled=true;
     stat(who(G.turn)+" — لا هجوم ممكن، يمرّ الدور");
-    G.busy=true;paint();later(endTurn,1400);return;
+    G.busy=true;paint();later(endTurn,WarEngine.HOLD.skip);return;
   }
   $("nextBtn").disabled=false;
   stat(who(G.turn)+" — المس جزيرة لك فيها رايتان لتكون قاعدتك");
   paint();
 }
+var TAPMSG={deadBase:"جزيرة خامدة — نفدت أسئلة فئتها، فلا يُهاجَم منها",guardOnly:"لا يُهاجَم من جزيرة فيها الحارس وحده",
+  baseFixed:"القاعدة ثابتة في هذا الدور",deadTarget:"جزيرة خامدة — نفدت أسئلة فئتها، فلا تُهاجَم",noRoute:"لا ممرّ بين الجزيرتين"};
 function tap(k){
-  if(G.busy)return;
-  if(G.phase==="deploy"){
-    if(G.own[k]!==G.turn||G.pool<=0)return;
-    G.ban[k]++;G.pool--;G.placed.push(k);
+  if(RM.on){roomTap(k);return}
+  var ev=WarEngine.tap(G,k);
+  if(ev.t==="deployed"){
     stat(who(G.turn)+(G.pool?(" — بقي "+cntR(G.pool)):" — وُزِّعت راياتك كلّها"));
     $("nextBtn").disabled=(G.pool>0);$("undoBtn").disabled=false;
     paint();return}
-  if(G.phase==="move"){
-    if(k===G.moveTgt&&G.moveLeft>0){
-      G.ban[G.moveTgt]++;G.ban[G.base]--;G.moveLeft--;G.placed.push(k);
-      stat("انقل إلى <b>"+catName(G.moveTgt)+"</b> — المتاح "+cntR(G.moveLeft));
-      $("undoBtn").disabled=false;
-      paint();return}
-    if(!(G.ban[G.base]>=2&&G.own[k]!==G.turn&&adj(G.base,k)&&!isDead(k)&&!isDead(G.base)))return;
-    G.phase="attack";G.moveTgt=null;G.moveLeft=0;G.placed=[];
-  }
-  if(G.phase!=="attack")return;
-  if(G.base===null){
-    if(G.own[k]!==G.turn)return;
-    if(isDead(k)){stat("جزيرة خامدة — نفدت أسئلة فئتها، فلا يُهاجَم منها",true);return}
-    if(G.ban[k]<2){stat("لا يُهاجَم من جزيرة فيها الحارس وحده",true);return}
-    G.base=k;G.sel=k;G.attacked=false;$("undoBtn").disabled=false;
+  if(ev.t==="moved"){
+    stat("انقل إلى <b>"+catName(G.moveTgt)+"</b> — المتاح "+cntR(G.moveLeft));
+    $("undoBtn").disabled=false;
+    paint();return}
+  if(ev.t==="msg"){stat(TAPMSG[ev.code],true);return}
+  if(ev.t==="base"){
+    $("undoBtn").disabled=false;
     stat(who(G.turn)+" — اسحب الراية إلى جزيرة تضيء");
     paint();return}
-  if(k===G.base)return;
-  if(G.own[k]===G.turn){stat("القاعدة ثابتة في هذا الدور",true);return}
-  if(isDead(k)){stat("جزيرة خامدة — نفدت أسئلة فئتها، فلا تُهاجَم",true);return}
-  if(!adj(G.base,k)){stat("لا ممرّ بين الجزيرتين",true);return}
-  G.tgt=k;G.attacked=true;G.sel=G.base;$("undoBtn").disabled=true;paint();combat();
+  if(ev.t==="attack"){$("undoBtn").disabled=true;paint();combat()}
 }
-function afterAttack(){
-  if(warEnd())return;
-  G.tgt=null;
-  if(G.base!==null&&isDead(G.base)){
+function afterAttack(){proceed(WarEngine.afterAttack(G))}
+/* what the engine says after a fight: the war is over, the turn ends, a move is offered, or the attack goes on */
+function proceed(ev){
+  if(ev.t==="over"){showOver(ev);return}
+  if(ev.t==="turnEnd"){
     paint();
-    stat(who(G.turn)+" — خمدت قاعدتك، انتهى الدور");
-    G.busy=true;later(endTurn,1100);return}
-  if(G.base===null||G.ban[G.base]<2){
-    paint();
-    stat(who(G.turn)+" — بقي الحارس وحده، انتهى الدور");
-    G.busy=true;later(endTurn,1100);return}
+    stat(who(G.turn)+(ev.why==="deadBase"?" — خمدت قاعدتك، انتهى الدور":" — بقي الحارس وحده، انتهى الدور"));
+    G.busy=true;later(endTurn,WarEngine.HOLD.short);return}
+  if(ev.t==="move"){
+    stat("انقل إلى <b>"+catName(ev.tgt)+"</b> — المتاح "+cntR(G.moveLeft));
+    $("nextBtn").disabled=false;
+    $("undoBtn").disabled=true;
+    paint();return}
   paint();
   stat(who(G.turn)+" — اسحب الراية من <b>"+catName(G.base)+"</b> أو أنهِ الدور");
 }
 $("undoBtn").onclick=function(){
-  if(G.busy)return;
-  if(G.phase==="deploy"){
-    if(!G.placed.length)return;
-    var k=G.placed.pop();G.ban[k]--;G.pool++;
-    stat(who(G.turn)+" — رجعت راية من <b>"+catName(k)+"</b>، بقي "+cntR(G.pool));
-    $("nextBtn").disabled=true;$("undoBtn").disabled=(G.placed.length===0);
+  if(RM.on){roomBtn("undo");return}
+  var ev=WarEngine.undo(G);if(!ev)return;
+  if(ev.t==="deployUndone"){
+    stat(who(G.turn)+" — رجعت راية من <b>"+catName(ev.k)+"</b>، بقي "+cntR(G.pool));
+    $("nextBtn").disabled=true;$("undoBtn").disabled=!ev.more;
     paint();return}
-  if(G.phase==="move"){
-    if(!G.placed.length)return;
-    var m=G.placed.pop();G.ban[m]--;G.ban[G.base]++;G.moveLeft++;
+  if(ev.t==="moveUndone"){
     stat("رجعت راية إلى <b>"+catName(G.base)+"</b> — المتاح "+cntR(G.moveLeft));
-    $("undoBtn").disabled=(G.placed.length===0);
+    $("undoBtn").disabled=!ev.more;
     paint();return}
-  if(G.attacked)return;
-  G.base=null;G.sel=null;G.tgt=null;$("undoBtn").disabled=true;
+  $("undoBtn").disabled=true;
   stat(who(G.turn)+" — المس جزيرة لك فيها رايتان لتكون قاعدتك");paint()};
 $("nextBtn").onclick=function(){
+  if(RM.on){roomBtn("next");return}
   if(G.busy)return;
-  if(G.phase==="deploy"){
-    if(G.turn<G.players.length-1){G.turn++;beginDeploy();return}
-    G.turn=0;beginTurn();return}
-  if(G.phase==="move"){G.phase="attack";G.moveTgt=null;G.moveLeft=0;G.placed=[]}
-  endTurn();
+  turnEv(WarEngine.next(G,seenByCat()));
 };
+/* the end of a deal step or of a turn */
+function turnEv(ev){
+  if(ev.t==="over"){showOver(ev);return}
+  if(ev.t==="deploy"){uiDeploy();return}
+  if(ev.t==="turn")uiTurn(ev);
+}
 /* الهجوم بالسحب: راية القاعدة تُسحب إلى جزيرة مجاورة للخصم — والبديل المكافئ لمس القاعدة ثمّ الهدف */
-function canHit(k){return G.phase==="attack"&&!G.busy&&G.base!==null&&G.ban[G.base]>=2&&k!==G.base&&G.own[k]!==G.turn&&adj(G.base,k)&&!isDead(k)&&!isDead(G.base)}
+function canHit(k){return WarEngine.canHit(G,k)}
 (function(){
   var box=$("mapBox"),D=null,eat=0;
   function svgPt(e){
@@ -1217,20 +1511,8 @@ function canHit(k){return G.phase==="attack"&&!G.busy&&G.base!==null&&G.ban[G.ba
   box.addEventListener("pointercancel",function(e){if(D&&e.pointerId===D.id)drop()});
   box.addEventListener("click",function(e){if(performance.now()-eat<400){e.stopPropagation();eat=0}},true);
 })();
-function endTurn(){
-  if(warEnd())return;
-  if(!anyCanAttack())return victory(leader(),"لا هجوم ممكنًا لأحد — الغلبة لمن ملك أكثر جزرًا ثمّ رايات");
-  G.turn=(G.turn+1)%G.players.length;var g=0;
-  while(count(G.turn)===0&&g++<8)G.turn=(G.turn+1)%G.players.length;
-  beginTurn();
-}
-function whoWon(){
-  var lv=liveIsles();if(!lv.length)return null;
-  for(var i=0;i<G.players.length;i++){
-    if(lv.every(function(k){return G.own[k]===i}))return i;
-    if(G.winRule===2&&seas(i)>=2)return i}
-  return null;
-}
+function endTurn(){turnEv(WarEngine.endTurn(G,seenByCat()))}
+function whoWon(){return WarEngine.whoWon(G)}
 function victory(i,why){
   G.sel=null;G.tgt=null;G.phase="over";paint();
   $("lightFlag").setAttribute("fill",col(i));$("light").classList.remove("hidden");
@@ -1242,7 +1524,7 @@ function victory(i,why){
   G.players.map(function(p,k){return{p:p,k:k,c:count(k),b:banners(k)}})
     .sort(function(x,y){return y.c-x.c}).forEach(function(r){
       b.innerHTML+="<tr><td><span class='dot' style='display:inline-block;background:"+col(r.k)+
-        ";margin-left:6px'></span>"+r.p.n+"</td><td>"+ar(r.c)+"</td><td class='n'>"+ar(r.b)+"</td></tr>"});
+        ";margin-left:6px'></span>"+esc(r.p.n)+"</td><td>"+ar(r.c)+"</td><td class='n'>"+ar(r.b)+"</td></tr>"});
   show("win");
 }
 
@@ -1254,56 +1536,27 @@ function pickQ(ci){
   var k=bag[Math.floor(Math.random()*bag.length)];G.used[k]=1;seenMark(k);G.left=seenByCat();return DATA.qs[k];
 }
 function combat(){
-  var atkI=G.turn,defI=G.own[G.tgt],atk=G.players[atkI],def=G.players[defI];
-  var ci=G.slotCat[G.tgt],shot=0,hits=0,asked=0;
   startFight();
-  function shoot(){
-    if(shot>=G.shots){settle();return}
-    shot++;
-    askQ(atk,atkI,ci,(G.shots>1?ar(shot)+" / "+ar(G.shots):""),false,function(ok,fast){
-      if(ok===null){
-        if(!asked){result("hold","خمدت <b>"+catName(G.tgt)+"</b> — نفدت أسئلة فئتها، ولم تتحرّك راية.",afterAttack);return}
-        shot=G.shots;settle();return}
-      asked++;if(ok){hits+=(fast?2:1)} shoot() });
+  WarEngine.startFight(G);
+  step(WarEngine.fightNext(G));
+  function step(s){
+    if(s.t==="result"){showResult(s);return}
+    var pl=G.players[s.pi],txt=(!s.defend&&s.shots>1)?ar(s.shot)+" / "+ar(s.shots):"";
+    var run=function(){askQ(pl,s.pi,s.ci,txt,s.defend,function(ok,fast){step(WarEngine.fightAnswer(G,ok,fast))})};
+    if(s.defend)pass(pl,s.pi,run);else run();
   }
-  function settle(){
-    var base=G.base,tgt=G.tgt;
-    if(hits===0){
-      if(G.ban[base]>1){G.ban[base]--;G.ban[tgt]++}
-      result("lose","رُدَّ الهجوم — انتقلت راية من <b>"+catName(base)+"</b> إلى <b>"+catName(tgt)+"</b>.",afterAttack);
-      return;
-    }
-    function take(lead){
-      if(G.ban[tgt]>1){
-        G.ban[tgt]--;G.ban[base]++;
-        result("take",lead+" أخذتَ راية إلى <b>"+catName(base)+"</b>، وبقي للمدافع "+cntR(G.ban[tgt])+".",afterAttack);
-        return;
-      }
-      var nm=catName(tgt);
-      G.own[tgt]=G.turn;G.moveTgt=tgt;
-      result("fall","فُتحت <b>"+nm+"</b> — "+lead+" أخذتَ آخر راية فيها.",function(){
-        if(warEnd())return;
-        G.tgt=null;G.moveLeft=(isDead(tgt)||isDead(base))?0:Math.max(0,G.ban[base]-1);
-        if(G.moveLeft<=0){afterAttack();return}
-        G.phase="move";
-        stat("انقل إلى <b>"+nm+"</b> — المتاح "+cntR(G.moveLeft));
-        G.placed=[];
-        $("nextBtn").disabled=false;
-        $("undoBtn").disabled=true;
-        paint()});
-    }
-    if(hits>=2){take("إصابة مزدوجة لا تُصدّ —");return}
-    var noDef="صمدت <b>"+catName(tgt)+"</b> — نفدت أسئلة فئتها فلم يُسأل المدافع، ولم تتحرّك راية.";
-    if(!(G.left[ci]>0)){result("hold",noDef,afterAttack);return}
-    pass(def,defI,function(){
-      askQ(def,defI,ci,"",true,function(dok){
-        if(dok===null){result("hold",noDef,afterAttack);return}
-        if(dok){result("hold","صمدت <b>"+catName(tgt)+"</b> — ردَّ المدافع الإصابة، ولم تتحرّك راية.",afterAttack);return}
-        take("أخطأ المدافع —");
-      })});
-  }
-  shoot();
 }
+/* the words of a fight's result; the flags have already moved in the engine */
+function resultText(r){
+  var nm=catName(r.tgt),lead=r.why==="double"?"إصابة مزدوجة لا تُصدّ —":"أخطأ المدافع —";
+  if(r.kind==="lose")return "رُدَّ الهجوم — انتقلت راية من <b>"+catName(r.base)+"</b> إلى <b>"+nm+"</b>.";
+  if(r.kind==="take")return lead+" أخذتَ راية إلى <b>"+catName(r.base)+"</b>، وبقي للمدافع "+cntR(r.left)+".";
+  if(r.kind==="fall")return "فُتحت <b>"+nm+"</b> — "+lead+" أخذتَ آخر راية فيها.";
+  if(r.why==="noQ")return "خمدت <b>"+nm+"</b> — نفدت أسئلة فئتها، ولم تتحرّك راية.";
+  if(r.why==="noDef")return "صمدت <b>"+nm+"</b> — نفدت أسئلة فئتها فلم يُسأل المدافع، ولم تتحرّك راية.";
+  return "صمدت <b>"+nm+"</b> — ردَّ المدافع الإصابة، ولم تتحرّك راية.";
+}
+function showResult(r){result(r.kind,resultText(r),function(){proceed(WarEngine.afterResult(G,r))})}
 
 /* المشهد: الكاميرا والمركب والراية الطائرة — كلّها تقفز إلى آخرها مع تقليل الحركة */
 var CAM={vb:[0,0,MW,MH]},FX=[];
@@ -1390,7 +1643,7 @@ function result(kind,msg,go){
   }
   if(kind==="fall")boatGlide(1,300);
   later(paint,mt(720));
-  later(function(){endFight();go()},1700);
+  if(go)later(function(){endFight();go()},WarEngine.HOLD.result);
 }
 function pass(p,pi,go){
   stop();$("moor").innerHTML="";
@@ -1452,7 +1705,7 @@ function runFuse(q,full,then){
     if(p<=0){boatAt(1);$("secs").textContent=ar(0);if(!T.lock)land(-1,null,q,full,then);return}
     var s=Math.ceil((G.fuse-e)/1000);if(s!==last){last=s;$("secs").textContent=ar(s)}
     boatAt(mt(1)?e/G.fuse:Math.floor(e/1000)*1000/G.fuse);
-    var want=e>G.fuse*0.66?2:(e>G.fuse*0.33?full-1:full);
+    var want=WarEngine.aliveAt(T.alive,full,e,G.fuse);
     while(T.alive>want){
       var wr=[];document.querySelectorAll("#ops .opt[data-k]").forEach(function(b){
         if(+b.dataset.k!==q[5]&&!b.classList.contains("burn"))wr.push(b)});
@@ -1465,15 +1718,452 @@ function runFuse(q,full,then){
 function stop(){if(T.raf)cancelAnimationFrame(T.raf);T.raf=null}
 function land(k,btn,q,full,then){
   if(T.lock)return;T.lock=true;stop();
-  var fast=(G.fuse>0&&T.alive===full),ok=(k===q[5]);
+  var fast=WarEngine.isFast(G,T.alive,full),ok=(k===q[5]);
   document.querySelectorAll("#ops .opt").forEach(function(b){b.disabled=true;
     if(+b.dataset.k===q[5]){b.classList.add("right");var m=$("m"+b.dataset.pos);if(m)m.classList.add("right")}});
   if(btn&&!ok){btn.classList.add("wrong");var mw=$("m"+btn.dataset.pos);if(mw)mw.classList.add("wrong")}
   stat((k===-1?"رسا المركب — نفد الوقت.":(ok?(fast?"إصابة مزدوجة — سبقتَ الجمر.":"إصابة."):"خطأ.")),!ok);
   $("why").innerHTML=q[6]+(q[7]?'<span class="src">'+q[7]+'</span>':'');$("why").className="why on";
-  later(function(){then(ok,fast)},2300);
+  later(function(){then(ok,fast)},WarEngine.HOLD.answer);
 }
 function quitFight(){clearT();if(G.busy)endFight()}
+
+/* ───── الغرفة: كل فريق على جهازه، والحَكَم خادم الغرف ─────
+   الصفحة هنا لا تحكم: ترسل أفعالًا (لمسة، تراجع، أنهِ الدور، جواب) وترسم ما يصلها.
+   القواعد هي WarEngine نفسه على الخادم، والجواب الصحيح لا يصل الجهاز قبل إغلاق السؤال.
+   لا قائمة غرف ولا بحث: الرقم وحده يفتح الباب. السجلّ المحفوظ في الجهاز رقمٌ ورمزان سريّان للعودة. */
+var WAR_HOST="https://hanna-laha.hl-worker.workers.dev",WAR_V=1,SKIP_SECS=45;
+var RM={nf:0,nfTimer:null,on:false,host:false,ws:null,code:"",roomId:"",hostToken:"",teamToken:"",watch:false,slot:-1,role:"",
+  snap:null,names:[],view:"",qn:-1,res:"",fightOn:false,dl:0,raf:null,tries:0,retry:null,closing:false,dev:"",mem:null,
+  color:-1,fight:null,answered:false,joinMode:"team"};
+var RMKEY="kz_harb_room_v1",RMDEV="kz_harb_dev_v1";
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]})}
+(function(){
+  if(typeof location==="undefined")return;
+  var h=location.hostname;
+  /* الخادم المحلي للتجارب: يُقبل على الجهاز المحلي وحده */
+  var m=/[?&]war=([^&]+)/.exec(location.search||"");
+  if(m&&(h==="localhost"||h==="127.0.0.1")){try{WAR_HOST=decodeURIComponent(m[1])}catch(e){}}
+})();
+function rmGet(k){try{return window.localStorage.getItem(k)}catch(e){return RM.mem&&RM.mem[k]||null}}
+function rmSet(k,v){try{window.localStorage.setItem(k,v)}catch(e){RM.mem=RM.mem||{};RM.mem[k]=v}}
+function rmDel(k){try{window.localStorage.removeItem(k)}catch(e){if(RM.mem)delete RM.mem[k]}}
+function rmDevice(){
+  if(RM.dev)return RM.dev;
+  var d=rmGet(RMDEV);
+  if(!d||!/^[A-Za-z0-9_-]{8,64}$/.test(d)){
+    d="";var cs="abcdefghijklmnopqrstuvwxyz0123456789";
+    var a=new Uint8Array(20);
+    try{window.crypto.getRandomValues(a)}catch(e){for(var i=0;i<a.length;i++)a[i]=Math.floor(Math.random()*256)}
+    for(var j=0;j<a.length;j++)d+=cs.charAt(a[j]%cs.length);
+    rmSet(RMDEV,d)}
+  RM.dev=d;return d}
+function rmSaved(){try{var o=JSON.parse(rmGet(RMKEY));return o&&o.code&&o.roomId?o:null}catch(e){return null}}
+function rmSave(){
+  if(!RM.code)return;
+  rmSet(RMKEY,JSON.stringify({code:RM.code,roomId:RM.roomId,host:RM.host,hostToken:RM.hostToken,teamToken:RM.teamToken,watch:RM.watch}))}
+function rmWsUrl(path){return WAR_HOST.replace(/^http/,"ws")+path}
+/* الأرقام تُكتب بأيّ نظام: هندي عربيّ أو فارسيّ أو لاتينيّ */
+function westDigits(s){return String(s).replace(/[٠-٩]/g,function(d){return String(d.charCodeAt(0)-1632)})
+  .replace(/[۰-۹]/g,function(d){return String(d.charCodeAt(0)-1776)})}
+function roomMine(){return RM.on&&RM.slot>=0&&RM.snap&&RM.snap.game&&RM.snap.game.actor===RM.slot}
+
+window.addEventListener("popstate",function(){
+  if(RM.on&&(RM.view==="war"||RM.view==="win"||RM.view==="lobby"||RM.view==="join"))roomLeaveWar()});
+/* ───── الاتصال ───── */
+function rmSend(o){if(RM.ws&&RM.ws.readyState===1){try{RM.ws.send(JSON.stringify(o))}catch(e){}}}
+function rmClose(keep){
+  RM.closing=true;if(RM.retry){clearTimeout(RM.retry);RM.retry=null}
+  if(RM.nfTimer){clearTimeout(RM.nfTimer);RM.nfTimer=null}
+  if(RM.ws){try{RM.ws.close()}catch(e){}RM.ws=null}
+  RM.closing=false;
+  if(!keep)rmDel(RMKEY)}
+function rmConnect(first){
+  if(RM.ws){try{RM.closing=true;RM.ws.close()}catch(e){}RM.closing=false}
+  var ws;
+  try{ws=new WebSocket(rmWsUrl("/ws/war/"+RM.code+((RM.host||RM.teamToken)?"":"?j=1")))}catch(e){rmDrop("net");return}
+  RM.ws=ws;
+  ws.onopen=function(){
+    RM.tries=0;
+    var h={t:"hello",v:WAR_V,deviceId:rmDevice()};
+    if(RM.roomId)h.roomId=RM.roomId;
+    if(RM.host)h.hostToken=RM.hostToken;
+    if(RM.teamToken)h.teamToken=RM.teamToken;
+    if(RM.watch)h.watch=true;
+    rmSend(h);
+    lobbyMsg("")};
+  ws.onmessage=function(e){var m;try{m=JSON.parse(e.data)}catch(x){return}rmMsg(m)};
+  ws.onclose=function(ev){
+    if(RM.ws!==ws)return;RM.ws=null;
+    if(ev&&ev.code===4000&&RM.on){/* فُتحت الغرفة من جهاز آخر بالرمز نفسه */
+      rmClose(true);RM.on=false;RM.view="";quitFight();openRoomScreen();roomNote("فُتحت الغرفة من جهاز آخر بنفس الفريق");return}
+    if(!RM.closing&&RM.on)rmDrop("closed")};
+  ws.onerror=function(){}}
+/* الانقطاع: يعيد المحاولة وحده، وبالرمز نفسه يرجع الجهاز إلى فريقه */
+function rmDrop(){
+  if(!RM.on||RM.retry)return;
+  RM.tries++;
+  var wait=Math.min(8000,700*Math.pow(2,Math.min(RM.tries,4)));
+  stat2("انقطع الاتصال — تُعاد المحاولة…");
+  if(RM.tries>12){roomBroken();return}
+  RM.retry=setTimeout(function(){RM.retry=null;if(RM.on)rmConnect(false)},wait)}
+function roomBroken(){
+  stat2("تعذّر الاتصال بالغرفة");
+  var m=$("lobbyMsg");if(m){m.textContent="تعذّر الاتصال بالغرفة. تحقّق من الشبكة ثمّ اضغط «إعادة المحاولة».";m.className="kzr-msg bad"}
+  $("roomRetry").classList.remove("hidden")}
+function stat2(t){if(RM.view==="war")stat(esc(t));var m=$("lobbyMsg");if(m&&RM.view==="lobby"){m.textContent=t;m.className="kzr-msg"}}
+function lobbyMsg(t,bad){var m=$("lobbyMsg");if(!m)return;m.textContent=t;m.className="kzr-msg"+(bad?" bad":"")}
+document.addEventListener("visibilitychange",function(){
+  if(document.visibilityState==="visible"&&RM.on&&!RM.ws&&!RM.retry){RM.tries=0;rmConnect(false)}});
+
+var RMERR={NOT_FOUND:"لا توجد غرفة بهذا الرقم",ROOM_CLOSED:"أُغلقت الغرفة",OUTDATED:"حدِّث الصفحة ثمّ حاول",
+  TOO_MANY:"محاولات كثيرة — انتظر قليلًا",ROOM_FULL:"الغرفة ممتلئة",
+  STARTED:"بدأت الحرب — لا يدخل فريق بعد البدء، لكن تقدر تدخل مشاهدًا",NAME_INVALID:"هذا الاسم غير مقبول أو مأخوذ — جرّب اسمًا آخر",
+  COLOR_TAKEN:"أخذ فريق آخر هذا اللون — اختر لونًا غيره",FORBIDDEN:"هذا الفعل ليس لك",NOT_READY:"يلزم فريقان على الأقل",
+  NOT_YOUR_TURN:"ليس دورك",STALE:"",BAD_ACTION:"",BAD_MESSAGE:"",ALREADY_TEAM:"",SERVER:"تعذّر الأمر — حاول ثانيةً"};
+RMERR["BAD_"+"TOKEN"]="انتهت صلاحية دخولك إلى هذه الغرفة";
+var RMNOTE={deadBase:TAPMSG.deadBase,guardOnly:TAPMSG.guardOnly,baseFixed:TAPMSG.baseFixed,deadTarget:TAPMSG.deadTarget,noRoute:TAPMSG.noRoute};
+function rmMsg(m){
+  if(m.t==="welcome"){RM.role=m.self.role;RM.slot=(m.self.role==="team"||m.self.role==="host")&&m.self.slot!==null?m.self.slot:-1;snapIn(m.snapshot);return}
+  if(m.t==="self"){RM.role=m.self.role;RM.slot=(m.self.role==="team"||m.self.role==="host")&&m.self.slot!==null?m.self.slot:-1;
+    if(RM.snap)snapIn(RM.snap);return}
+  if(m.t==="joined"){RM.teamToken=m.teamToken;RM.slot=m.slot;RM.roomId=m.roomId||RM.roomId;rmSave();return}
+  if(m.t==="snapshot"){snapIn(m.snapshot);return}
+  if(m.t==="note"){if(RMNOTE[m.code])stat(RMNOTE[m.code],true);return}
+  if(m.t==="error"){rmError(m.code)}}
+function rmError(code){
+  var txt=RMERR[code];
+  /* بعد نشر الخادم قد تردّ نسخة قديمة «لا توجد غرفة»: يُعاد البحث بعد ثانية ثم بعد ثانيتين قبل عرض الخطأ */
+  if(code==="NOT_FOUND"&&RM.on&&RM.nf<2&&(RM.view==="join"||RM.view==="")){
+    RM.nf++;rmClose(true);
+    joinMsg("جارٍ البحث عن الغرفة…");
+    var want=RM.code;
+    RM.nfTimer=setTimeout(function(){RM.nfTimer=null;if(RM.on&&RM.code===want&&!RM.ws)rmConnect(true)},RM.nf*1000);
+    return}
+  if(code==="NOT_FOUND"||code==="ROOM_CLOSED"||code==="BAD_TOKEN"||code==="OUTDATED"||code==="TOO_MANY"||code==="ROOM_FULL"||code==="STARTED"){
+    /* الباب مغلق: يُقطع الاتصال، وتُعرض العلّة حيث كان اللاعب */
+    var onJoin=RM.view==="join"||RM.view==="";
+    rmClose(false);RM.on=false;RM.code="";RM.teamToken="";RM.hostToken="";RM.host=false;RM.snap=null;
+    stopRoomFx();quitFight();
+    if(onJoin){RM.view="join";show("join");joinMsg(txt,true);return}
+    RM.view="";openRoomScreen();roomNote(txt);return}
+  if(!txt)return;
+  if(RM.view==="lobby")lobbyMsg(txt,true);else if(RM.view==="war")stat(esc(txt),true)}
+function joinMsg(t,bad){var m=$("joinMsg");m.textContent=t||"";m.className="kzr-msg"+(bad?" bad":"")}
+function roomNote(t){var m=$("roomMsg");m.textContent=t||"";m.className="kzr-msg bad"}
+
+/* ───── الشاشات: الغرفة · الدخول · الانتظار ───── */
+function openRoomScreen(){
+  RM.view="";var s=rmSaved();
+  var b=$("roomBack");
+  if(s){b.classList.remove("hidden");b.textContent="العودة إلى الغرفة رقم "+ar(s.code)}else b.classList.add("hidden");
+  $("roomMsg").textContent="";show("room")}
+$("roomBack").onclick=function(){
+  var s=rmSaved();if(!s)return;
+  RM.on=true;RM.code=s.code;RM.roomId=s.roomId;RM.host=!!s.host;RM.hostToken=s.hostToken||"";RM.teamToken=s.teamToken||"";RM.watch=!!s.watch;
+  RM.snap=null;RM.nf=0;RM.view="join";joinMsg("جارٍ الرجوع إلى الغرفة…");show("join");rmConnect(true)};
+$("roomHost").onclick=function(){RM.joinMode="host";roomCfg()};
+function roomCfg(){
+  G.roomCfg=true;
+  openCfg();
+  $("plcard").classList.add("hidden");$("startWar").textContent="افتح الغرفة";$("cfgNote").classList.remove("hidden");
+  document.querySelector(".seenfoot").classList.add("hidden")}
+function leaveCfgMode(){
+  if(!G.roomCfg)return;G.roomCfg=false;
+  $("plcard").classList.remove("hidden");$("startWar").textContent="ابدأ";$("cfgNote").classList.add("hidden");
+  document.querySelector(".seenfoot").classList.remove("hidden");tally()}
+function roomCreate(){
+  var cfg={cats:G.cats.map(function(i){return DATA.cats[i][0]}),fuse:G.fuse,shots:G.shots,winRule:G.winRule,noOpts:!!G.noOpts,
+    deployMul:G.deployMul,deployFree:G.deployFree};
+  var btn=$("startWar");btn.disabled=true;
+  var done=function(msg){btn.disabled=false;if(msg){$("cfgErr").textContent=msg;$("cfgErr").classList.remove("hidden")}};
+  $("cfgErr").classList.add("hidden");
+  if(typeof fetch!=="function"){done("المتصفّح لا يدعم الغرف");return}
+  fetch(WAR_HOST+"/api/war/rooms",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({deviceId:rmDevice(),config:cfg})}).then(function(r){
+      if(r.status===429){done("محاولات كثيرة — انتظر قليلًا ثمّ أعد");return null}
+      if(r.status!==200){done("تعذّر فتح الغرفة — حاول ثانيةً");return null}
+      return r.json()}).then(function(o){
+      if(!o)return;
+      btn.disabled=false;
+      RM.on=true;RM.host=true;RM.watch=false;RM.code=o.code;RM.roomId=o.roomId;RM.hostToken=o.hostToken;RM.teamToken="";RM.slot=-1;RM.snap=null;
+      rmSave();leaveCfgMode();RM.view="lobby";drawLobby();show("lobby");rmConnect(true)},
+    function(){done("تعذّر الاتصال بالخادم — تحقّق من الشبكة")})}
+$("roomJoin").onclick=function(){joinMsg("");$("joinCode").value="";RM.view="join";show("join")};
+$("roomRetry").onclick=function(){$("roomRetry").classList.add("hidden");RM.tries=0;lobbyMsg("");rmConnect(false)};
+function joinWith(watch){
+  var code=westDigits($("joinCode").value).replace(/\s+/g,"");
+  if(!/^[0-9]{6}$/.test(code)){joinMsg("اكتب رقم الغرفة: ستّ خانات",true);return}
+  RM.on=true;RM.host=false;RM.watch=watch;RM.code=code;RM.roomId="";RM.hostToken="";RM.teamToken="";RM.slot=-1;RM.snap=null;RM.view="join";
+  RM.nf=0;joinMsg("جارٍ الدخول…");rmConnect(true)}
+$("joinTeamBtn").onclick=function(){joinWith(false)};
+$("joinWatchBtn").onclick=function(){joinWith(true)};
+$("joinCode").addEventListener("keydown",function(e){if(e.key==="Enter")joinWith(false)});
+
+/* ───── الانتظار ───── */
+function freeColorIn(taken){
+  var pref=[7,0,4,2,9,1,5,10,3,8,6,11];
+  for(var i=0;i<pref.length;i++)if(taken.indexOf(pref[i])<0)return pref[i];
+  return 7}
+function takenColors(){return RM.snap?RM.snap.teams.map(function(t){return t.color}):[]}
+function drawLobby(){
+  var s=RM.snap;
+  $("lobbyCode").textContent=RM.code?ar(RM.code):"";
+  var teams=s?s.teams:[];
+  var L=$("lobbyTeams");L.innerHTML="";
+  teams.forEach(function(t){
+    var d=document.createElement("div");d.className="pcard";
+    var dot=document.createElement("i");dot.className="dot";dot.style.background=PAL[t.color]?PAL[t.color][0]:"#1B6E9C";d.appendChild(dot);
+    var nm=document.createElement("span");nm.className="lname";nm.textContent=t.name+(t.slot===RM.slot?" (أنت)":"")+(s.hostSlot===t.slot?" · المضيف":"");d.appendChild(nm);
+    var st=document.createElement("small");st.className="lst";st.textContent=t.online?"":"غائب";d.appendChild(st);
+    L.appendChild(d)});
+  if(!teams.length){var e=document.createElement("p");e.className="kzc-empty";e.textContent=RM.host?"لم يدخل أحد بعد — أعطِ الرقم لمن تلعب معهم":"لم يدخل أحد بعد";L.appendChild(e)}
+  var canJoin=(RM.role==="candidate"||(RM.role==="host"&&RM.slot<0))&&teams.length<4;
+  $("joinForm").classList.toggle("hidden",!canJoin);
+  if(canJoin){
+    var taken=takenColors();
+    if(RM.color<0||taken.indexOf(RM.color)>-1)RM.color=freeColorIn(taken);
+    var pal=$("teamPal");pal.innerHTML="";
+    PAL.forEach(function(cc,k){
+      var b=document.createElement("button");b.type="button";var tk=taken.indexOf(k)>-1;
+      b.className="sw big"+(RM.color===k?" on":"")+(tk?" taken":"");b.style.background=cc[0];b.title=cc[1];b.setAttribute("aria-label",cc[1]);
+      b.setAttribute("aria-pressed",RM.color===k?"true":"false");
+      if(tk)b.disabled=true;
+      b.onclick=function(){RM.color=k;drawLobby()};pal.appendChild(b)})}
+  var role=RM.watch||RM.role==="watcher"?"watch":(RM.host?"host":"team");
+  $("lobbyNote").textContent=role==="watch"?"أنت تشاهد — ترى الخريطة والنزالات ولا تجيب":
+    (role==="host"?(teams.length<2?"تنتظر دخول فريق آخر على الأقل":"ابدأ حين يكتمل الفرق"):"بانتظار أن يبدأ المضيف");
+  var host=role==="host";
+  $("roomStart").classList.toggle("hidden",!host);
+  $("roomStart").disabled=!(host&&teams.length>=2);
+  $("roomEnd").textContent=host?"إغلاق الغرفة":"خروج";
+  $("watchN").textContent=s&&s.watchers?("يشاهد الآن: "+ar(s.watchers)):""}
+$("teamGo").onclick=function(){
+  var n=$("teamName").value.replace(/\s+/g," ").trim();
+  if(!n){lobbyMsg("اكتب اسم فريقك",true);return}
+  if(n.length>16){lobbyMsg("الاسم ستّة عشر حرفًا على الأكثر",true);return}
+  lobbyMsg("");rmSend({t:"join",name:n,color:RM.color})};
+$("roomStart").onclick=function(){rmSend({t:"start"})};
+$("roomEnd").onclick=function(){
+  if(RM.host){rmSend({t:"close"});rmClose(false);roomExit()}
+  else{rmSend({t:"leave"});rmClose(false);roomExit()}};
+$("copyCode").onclick=function(){
+  var t=RM.code,ok=function(){lobbyMsg("نُسخ الرقم")};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,function(){fb(t,ok)})}else fb(t,ok)};
+$("shareCode").onclick=function(){
+  var text="ادخل حرب الجزر برقم الغرفة "+ar(RM.code),url=location.origin+"/quest-harb.html";
+  if(navigator.share){navigator.share({title:"حرب الجزر",text:text,url:url}).catch(function(){})}
+  else{var all=text+" — "+url,ok=function(){lobbyMsg("نُسخت الدعوة")};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(all).then(ok,function(){fb(all,ok)})}else fb(all,ok)}};
+/* الخروج من الغرفة إلى الصفحة الرئيسة */
+function roomExit(){
+  rmClose(true);stopRoomFx();
+  RM.on=false;RM.view="";RM.snap=null;RM.slot=-1;RM.role="";RM.fightOn=false;RM.qn=-1;RM.res="";
+  quitFight();G.phase="deploy";leaveCfgMode();show("home")}
+function roomLeaveWar(){
+  /* من الحرب: ينقطع الجهاز ويبقى الرمز السريّ، فيرجع من «العودة إلى الغرفة» */
+  rmClose(true);roomExit()}
+
+/* ───── اللقطة تصل: الخريطة والنزال ───── */
+function snapIn(s){
+  RM.snap=s;
+  if(s.stage==="lobby"){
+    if(RM.view==="war"||RM.view==="win"){/* الغرفة عادت إلى الانتظار */RM.view=""}
+    if(RM.view!=="lobby"){RM.view="lobby";show("lobby")}
+    drawLobby();return}
+  var g=s.game;
+  if(RM.view!=="war"&&RM.view!=="win"){enterWar(s)}
+  else if(s.stage==="play"&&RM.view==="win"){enterWar(s)}
+  warApply(s,g)}
+function enterWar(s){
+  var g=s.game;
+  G.players=s.teams.map(function(t){return {n:t.name,c:t.color}});
+  RM.names=g.slotNames;G.slotCat=[0,1,2,3,4,5,6,7,8,9,10,11];
+  G.own={};G.ban={};G.left={};
+  for(var k=0;k<12;k++){G.own[k]=g.own[k];G.ban[k]=g.ban[k];G.left[k]=g.dead[k]?0:1}
+  G.winRule=s.config.winRule;G.fuse=s.config.fuse;G.noOpts=s.config.noOpts;G.shots=s.config.shots;
+  RM.fightOn=false;RM.qn=-1;RM.res="";RM.fight=null;stopRoomFx();clearT();
+  $("war").classList.remove("fight");$("slab").classList.add("hidden");
+  $("war").insertBefore($("mapBox"),$("war").querySelector(".panel"));
+  $("war").insertBefore($("turnBar"),$("mapBox"));
+  CAM.vb=[0,0,MW,MH];drawMap();
+  RM.view="war";show("war");
+  $("light").classList.add("hidden")}
+function warApply(s,g){
+  RM.names=g.slotNames;
+  G.players=s.teams.map(function(t){return {n:t.name,c:t.color}});
+  for(var k=0;k<12;k++){G.own[k]=g.own[k];G.ban[k]=g.ban[k];G.left[k]=g.dead[k]?0:1}
+  G.turn=g.turn;G.phase=g.phase;G.pool=g.pool;G.base=g.base;G.sel=g.base;G.tgt=g.fight?g.fight.tgt:null;
+  G.moveTgt=g.moveTgt;G.moveLeft=g.moveLeft;G.attacked=g.tgt!==null||!!g.fight;
+  var mine=RM.slot>=0&&g.actor===RM.slot;
+  G.busy=!!g.fight||!mine;
+  turnBar(s,g);
+  if(g.fight){roomFight(s,g,g.fight)}
+  else if(RM.fightOn){RM.fightOn=false;stopRoomFx();endFight();G.busy=!mine}
+  paint();
+  if(!g.fight){
+    $("btns").classList.toggle("hidden",!(mine&&g.phase!=="over"));
+    $("undoBtn").disabled=!g.canUndo;$("nextBtn").disabled=!g.canNext;
+    roomStat(s,g,mine)}
+  if(s.stage==="over"&&g.end&&RM.view==="war"){
+    RM.view="win";stopRoomFx();
+    if(RM.fightOn){RM.fightOn=false;endFight();stopRoomFx()}
+    /* the camera of the last fight must not stay on the win map */
+    CAM.vb=[0,0,MW,MH];if($("map"))$("map").setAttribute("viewBox","0 0 "+MW+" "+MH);
+    G.phase="over";
+    $("rematch").textContent="لعبة جديدة بنفس الفرق";
+    $("rematch").classList.toggle("hidden",!RM.host);
+    $("winWait").classList.toggle("hidden",RM.host);
+    victory(g.end.winner,overText(g.end.why))}}
+function turnBar(s,g){
+  var b=$("turnBar");b.classList.remove("hidden");
+  var t=s.teams[g.turn];
+  var a=g.actor!==null?s.teams[g.actor]:t;
+  var me=RM.slot>=0&&g.actor===RM.slot;
+  var dot=$("tbDot");dot.style.background=a?col(a.slot):"#1B6E9C";
+  $("tbWho").textContent=g.idleWarn?"سيُتخطّى دور "+(a?a.name:"")+" إن لم يتحرك":(me?"دورك":"دور "+(a?a.name:""))+(g.actorOffline&&!me?" — جهازه غائب، سيُتخطّى دوره":"");
+  $("tbRole").textContent=RM.role==="watcher"||RM.watch?"مشاهدة":"";
+  b.classList.toggle("mine",me)}
+$("tbExit").onclick=function(){roomLeaveWar()};
+function roomStat(s,g,mine){
+  var tn=function(i){return who(i)};
+  var cur=g.actor!==null?g.actor:g.turn;
+  var m;
+  if(g.phase==="deploy"){
+    m=g.pool>0?(mine?"دورك — وزّع "+cntR(g.pool)+" على جزرك":tn(cur)+" يوزّع "+cntR(g.pool)+" على جزره"):(mine?"وُزِّعت راياتك كلّها — أنهِ الدور":tn(cur)+" أنهى التوزيع")}
+  else if(g.phase==="move"){
+    m=mine?"انقل إلى <b>"+esc(catName(g.moveTgt))+"</b> — المتاح "+cntR(g.moveLeft):tn(cur)+" ينقل رايات إلى جزيرته الجديدة"}
+  else if(g.actor===null&&!g.fight){m=tn(g.turn)+" — يمرّ الدور"}
+  else if(g.base===null){m=mine?"دورك — المس جزيرة لك فيها رايتان لتكون قاعدتك":tn(cur)+" يختار قاعدته"}
+  else{m=mine?"اسحب الراية من <b>"+esc(catName(g.base))+"</b> إلى جزيرة تضيء، أو أنهِ الدور":tn(cur)+" يختار هدفه"}
+  stat(m)}
+function roomTap(k){
+  if(!roomMine()||G.busy)return;
+  rmSend({t:"tap",k:k})}
+
+/* ───── النزال كما يصل ───── */
+function stopRoomFx(){if(RM.raf){cancelAnimationFrame(RM.raf);RM.raf=null}stopFx();stop()}
+function roomResultText(r,atkName){
+  var nm=catName(r.tgt),lead=r.why==="double"?"إصابة مزدوجة لا تُصدّ —":"أخطأ المدافع —",a=esc(atkName);
+  if(r.kind==="lose")return "رُدَّ هجوم "+a+" — انتقلت راية من <b>"+esc(catName(r.base))+"</b> إلى <b>"+esc(nm)+"</b>.";
+  if(r.kind==="take")return lead+" أخذ "+a+" راية إلى <b>"+esc(catName(r.base))+"</b>، وبقي للمدافع "+cntR(r.left)+".";
+  if(r.kind==="fall")return "فُتحت <b>"+esc(nm)+"</b> — "+lead+" أخذ "+a+" آخر راية فيها.";
+  if(r.why==="noQ")return "خمدت <b>"+esc(nm)+"</b> — نفدت أسئلة فئتها، ولم تتحرّك راية.";
+  if(r.why==="noDef")return "صمدت <b>"+esc(nm)+"</b> — نفدت أسئلة فئتها فلم يُسأل المدافع، ولم تتحرّك راية.";
+  return "صمدت <b>"+esc(nm)+"</b> — ردَّ المدافع الإصابة، ولم تتحرّك راية."}
+function roomFight(s,g,f){
+  var mine=RM.slot>=0&&f.q&&f.q.pi===RM.slot&&(f.q.stage==="open"||f.q.stage==="revealed");
+  if(!RM.fightOn){
+    RM.fightOn=true;RM.qn=-1;RM.res="";
+    G.base=f.base;G.tgt=f.tgt;G.busy=true;
+    $("war").classList.add("fight");
+    $("slab").classList.remove("hidden");$("slab").classList.remove("flip");$("pg").disabled=true;
+    $("sail").setAttribute("fill",col(f.atk));
+    $("boat").querySelector(".hull").classList.remove("sink");
+    $("boat").classList.remove("hidden");boatAt(0);
+    camFight(f.base,f.tgt)}
+  G.base=f.base;G.tgt=f.tgt;G.busy=true;
+  $("btns").classList.add("hidden");
+  var q=f.q;
+  if(q){
+    if(q.qn!==RM.qn){roomQuestion(s,f,q)}
+    roomQuestionState(s,f,q,mine)}
+  if(f.res&&RM.res!==f.base+"/"+f.tgt+"/"+f.res.kind+"/"+f.res.why+"/"+g.turn+"/"+RM.qn){
+    RM.res=f.base+"/"+f.tgt+"/"+f.res.kind+"/"+f.res.why+"/"+g.turn+"/"+RM.qn;
+    roomResult(s,f)}}
+function roomQuestion(s,f,q){
+  RM.qn=q.qn;RM.answered=false;KZR.q=null;
+  var atk=s.teams[q.pi];
+  $("sDot").style.background=col(q.pi);$("sWho").textContent=atk?atk.name:"";
+  $("sShot").textContent=(!f.defend&&f.shots>1)?ar(f.shot)+" / "+ar(f.shots):"";
+  $("qtext").textContent=q.text;$("why").className="why";$("why").innerHTML="";$("secs").textContent="";
+  stat('<i class="dot" style="background:'+col(q.pi)+'"></i><b>'+esc(atk?atk.name:"")+"</b> "+(f.defend?"يدافع عن ":"يهاجم ")+"<b>"+esc(catName(f.tgt))+"</b>");
+  $("g"+f.tgt).classList.toggle("walled",!!f.defend);
+  var box=$("ops");box.innerHTML="";box.className="opts "+(f.defend?"gates":"moor");
+  document.querySelector("#front .kzr-flag").style.display="none";
+  if(!q.opts.length){moor(0,f.defend)}
+  else{
+    q.opts.forEach(function(t,pos){
+      var b=document.createElement("button");b.className="opt";b.dataset.k=pos;b.dataset.pos=pos;
+      var mk=document.createElement("span");mk.className="mk";mk.setAttribute("aria-hidden","true");
+      mk.innerHTML=f.defend?'<svg viewBox="0 0 12 12"><path d="M3 11V5Q3 2 6 2Q9 2 9 5V11"/></svg>':'<svg viewBox="0 0 12 12"><path d="M6 1V11M3 3.5H9M1.5 7Q2 11 6 11Q10 11 10.5 7"/></svg>';
+      b.appendChild(mk);
+      var tx=document.createElement("span");tx.className="tx";tx.textContent=t;b.appendChild(tx);
+      b.onclick=function(){roomAnswer(pos)};box.appendChild(b);
+      if(pos===1){var il=document.createElement("i");il.className="islet";il.setAttribute("aria-hidden","true");
+        il.innerHTML=f.defend?'<svg viewBox="0 0 120 30"><path d="M4 26H116M4 26V12H116V26M20 12V6M40 12V6M60 12V6M80 12V6M100 12V6" fill="none" stroke="#8FB3C6" stroke-width="3"/><path d="M52 26V20Q52 15 60 15Q68 15 68 20V26" fill="#fff" stroke="#8FB3C6" stroke-width="3"/></svg>'
+          :'<svg viewBox="0 0 120 30"><path d="M6 4Q40 15 50 15M114 4Q80 15 70 15M6 28Q40 17 50 17M114 28Q80 17 70 17" fill="none" stroke="#8FB3C6" stroke-width="2" stroke-dasharray="3 4"/><path d="M44 16Q46 5 60 6Q75 5 76 16Q74 26 60 25Q45 26 44 16Z" fill="'+col(G.own[f.tgt])+'" stroke="#fff" stroke-width="2"/></svg>';
+        box.appendChild(il)}});
+    moor(q.opts.length,f.defend)}
+  boatAt(0)}
+function roomAnswer(pos){
+  var f=RM.snap&&RM.snap.game&&RM.snap.game.fight,q=f&&f.q;
+  if(!q||q.stage!=="open"||q.pi!==RM.slot||RM.answered)return;
+  RM.answered=true;rmSend({t:"answer",qn:q.qn,pos:pos});
+  setTimeout(function(){RM.answered=false},600)}
+function roomQuestionState(s,f,q,mine){
+  var box=$("ops");
+  if(q.stage==="open"){
+    RM.dl=q.msLeft===null?0:performance.now()+q.msLeft;
+    box.querySelectorAll(".opt[data-k]").forEach(function(b){
+      var pos=+b.dataset.pos,burnt=q.burned.indexOf(pos)>-1;
+      b.classList.toggle("burn",burnt);b.disabled=burnt||!mine;
+      var m=$("m"+pos);if(m)m.classList.toggle("gone",burnt)});
+    if(!q.opts.length){
+      if(!box.querySelector(".reveal")){
+        var rb=document.createElement("button");rb.className="opt reveal";rb.textContent=mine?"أظهر الجواب":"ينتظر الجواب…";
+        rb.disabled=!mine;rb.onclick=function(){rmSend({t:"reveal",qn:q.qn})};box.appendChild(rb)}}
+    if(q.fuse>0){if(!RM.raf)RM.raf=requestAnimationFrame(roomTick)}
+    else if(!RM.boatSet||RM.boatSet!==q.qn){RM.boatSet=q.qn;boatGlide(.5,900)}
+    return}
+  stopRoomFx2();
+  if(q.stage==="revealed"){
+    box.innerHTML="";
+    var a=document.createElement("div");a.className="opt right reveal";a.textContent=q.answerText||"";box.appendChild(a);
+    roomWhy(q);
+    if(mine){
+      var y=document.createElement("button");y.className="opt judge";y.textContent="أصابَ";y.onclick=function(){rmSend({t:"judge",qn:q.qn,ok:true})};
+      var n=document.createElement("button");n.className="opt judge";n.textContent="أخطأَ";n.onclick=function(){rmSend({t:"judge",qn:q.qn,ok:false})};
+      box.appendChild(y);box.appendChild(n)}
+    return}
+  /* مُغلَق: الجواب الصحيح يظهر الآن لا قبله */
+  var pickedWrong=q.picked>=0&&!q.ok;
+  if(!q.opts.length){box.innerHTML="";var r2=document.createElement("div");r2.className="opt right reveal";r2.textContent=q.answerText||"";box.appendChild(r2)}
+  else box.querySelectorAll(".opt[data-k]").forEach(function(b){
+    b.disabled=true;var pos=+b.dataset.pos;
+    if(pos===q.right){b.classList.add("right");var m=$("m"+pos);if(m)m.classList.add("right")}
+    if(pickedWrong&&pos===q.picked){b.classList.add("wrong");var mw=$("m"+pos);if(mw)mw.classList.add("wrong")}});
+  if(q.fuse>0&&q.picked===-1&&q.opts.length){boatAt(1);$("secs").textContent=ar(0)}
+  stat((q.opts.length&&q.picked===-1&&q.fuse>0?"رسا المركب — نفد الوقت.":(q.ok?(q.fast?"إصابة مزدوجة — سبقت الجمر.":"إصابة."):"خطأ.")),!q.ok);
+  roomWhy(q);
+  KZR.q=[0,0,0,q.text,q.opts.length?q.opts:[q.answerText||""],q.opts.length?q.right:0,q.why||"",q.src||""];
+  document.querySelector("#front .kzr-flag").style.display=""}
+function stopRoomFx2(){if(RM.raf){cancelAnimationFrame(RM.raf);RM.raf=null}}
+function roomWhy(q){
+  var w=$("why");w.innerHTML="";
+  if(q.why)w.appendChild(document.createTextNode(q.why));
+  if(q.src){var sp=document.createElement("span");sp.className="src";sp.textContent=q.src;w.appendChild(sp)}
+  w.className="why on"}
+/* المركب هو المؤقّت: يزحف مع الثواني، وبلوغه الشاطئ انتهاء المهلة */
+function roomTick(){
+  RM.raf=null;
+  var f=RM.snap&&RM.snap.game&&RM.snap.game.fight,q=f&&f.q;
+  if(!q||q.stage!=="open"||!q.fuse||!RM.dl)return;
+  var left=Math.max(0,RM.dl-performance.now()),e=q.fuse-left;
+  $("secs").textContent=ar(Math.ceil(left/1000));
+  boatAt(mt(1)?e/q.fuse:Math.floor(e/1000)*1000/q.fuse);
+  if(left>0)RM.raf=requestAnimationFrame(roomTick)}
+function roomResult(s,f){
+  var r=f.res,atk=s.teams[f.atk];
+  stopRoomFx2();
+  var base=f.base,tgt=f.tgt;
+  G.base=base;G.tgt=tgt;
+  result(r.kind,roomResultText(r,atk?atk.name:""),null)}
+
+/* ───── الأزرار العامّة ───── */
+function roomBtn(which){
+  if(!roomMine()||G.busy)return;
+  rmSend({t:which})}
 
 /* ───── الرأي ───── */
 (function(){

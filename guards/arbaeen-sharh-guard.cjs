@@ -11,6 +11,13 @@
 //      audio, its credit, the source page) are each read from the data through ezikFatwaPublicUrl, and no src or
 //      href in the section is written as a literal address; no play or pause call; and the widget still carries
 //      n, title and text only.
+//   3b. THE CLEANED SOURCE DEFECTS (2026-10-14). The source pages carried a few transport and encoding defects (a stray
+//      latin r where the salawat font glyph was, the broken dash entity, RLM marks wrapped round a colon, a heading-only
+//      first paragraph). The builder's FIXES table cleans exactly those, each old string asserted to occur once, and writes
+//      the same list into arbaeen-sharh.json as "cleanups". This guard holds that none of the patterns remain in any
+//      matn, sharh or rawi, that the cleanups list IS the table (hadith, field, paragraph, old, new, in order), that each
+//      cleanup is visible in the data (the new text is in the paragraph and the old is not), and that the builder refuses
+//      an old string that occurs twice or not at all.
 //   4. THE WORKER. arbaeen-sharh.json is not in CORE, and it is the last entry of IDLE.
 // Every structural check is also run against a mutant of the source it reads, and the mutant must fail.
 'use strict';
@@ -24,8 +31,8 @@ const sha = (f) => crypto.createHash('sha256').update(fs.readFileSync(path.join(
 
 // Re-cut with the files, by tools/arbaeen-sharh-build.cjs, and never by hand.
 const PIN = {
-  'arbaeen.json': 'e43cdb0cb5cb28088604cc2fe0f8f7d9d5d43d8e709c3b7b10795e203ef1250d',
-  'arbaeen-sharh.json': '8397173e6c4681cc4aff52a428fee1d984f96dc7f2d0957a3386907b283e9fad',
+  'arbaeen.json': 'f0f10f465a2fc59e4b9b2513c37d9ea502866a020d66f2c4781a87519c82bcad',
+  'arbaeen-sharh.json': 'a92d9825092f476a6363e7e991f37683aa6a3873a7dbf5cd7515668441552c8f',
 };
 const COUNT = 42;
 const SITE = 'https://alnawawiforty.com/';
@@ -62,7 +69,7 @@ function auditMain(j) {
 }
 function auditSharh(j, main) {
   const bad = [];
-  if (!sameKeys(j, ['source', 'source_url', 'fetched_at', 'audio_credit', 'items'])) bad.push('top-level fields');
+  if (!sameKeys(j, ['source', 'source_url', 'fetched_at', 'audio_credit', 'items', 'cleanups'])) bad.push('top-level fields');
   if (j.source !== 'alnawawiforty.com' || j.source_url !== SITE || j.fetched_at !== (main && main.fetched_at)) bad.push('source fields');
   if (!sameKeys(j.audio_credit, ['text', 'url']) || !goodText(j.audio_credit.text) || !https(j.audio_credit.url)) bad.push('audio_credit');
   const keys = Object.keys(j.items || {});
@@ -111,6 +118,90 @@ if (main && sharh) {
 for (const [f, want] of Object.entries(PIN)) {
   const got = fs.existsSync(path.join(ROOT, f)) ? sha(f) : 'missing';
   ok(got === want, f + ' is the file the build wrote (sha256 ' + want.slice(0, 8) + ')', 'disk ' + got);
+}
+
+// ---- 3b. the cleaned source defects ---------------------------------------------------------------------------------
+const LATIN = /[A-Za-z]/;                      // no latin letter anywhere in the Arabic text of the forty-two
+const ENTITY = /&\s?#?[A-Za-z0-9]*\s?;|&\s/;   // a broken or stray entity, including "& dash;"
+const RLM_MARK = /\u200f:|:\u200f|\u200f[.\u060c\u061b]\u200f/;   // an RLM beside a colon, or wrapped round a stop (a lone RLM before a stop, hadith 31, is left as the source has it)
+const HEADING = '\u0627\u0644\u0634\u0631\u062d';   // the one-word heading the reader already prints
+function allParas(main, sharh) {
+  const out = [];
+  (main.hadith || []).forEach((h) => String(h.text).split('\n').forEach((t, i) => out.push([h.n, 'matn', i, t])));
+  for (const [k, it] of Object.entries(sharh.items || {})) for (const f of ['sharh', 'rawi']) (it[f] || []).forEach((t, i) => out.push([+k, f, i, t]));
+  return out;
+}
+function auditClean(main, sharh, fixes) {
+  const bad = [];
+  for (const [h, f, i, t] of allParas(main, sharh)) {
+    if (LATIN.test(t)) bad.push(h + '/' + f + '/' + i + ' latin letter');
+    if (ENTITY.test(t)) bad.push(h + '/' + f + '/' + i + ' broken entity');
+    if (RLM_MARK.test(t)) bad.push(h + '/' + f + '/' + i + ' RLM beside a mark');
+  }
+  for (const [k, it] of Object.entries(sharh.items || {})) if ((it.sharh || [])[0] === HEADING) bad.push(k + ' heading-only first paragraph');
+  const list = sharh.cleanups;
+  if (!Array.isArray(list)) return bad.concat('cleanups is not a list');
+  if (list.length !== fixes.length) bad.push('cleanups has ' + list.length + ' entries, the table ' + fixes.length);
+  fixes.forEach((fx, i) => {
+    const c = list[i];
+    const want = { hadith: fx.hadith, field: fx.field, paragraph: fx.paragraph, old: fx.old, new: fx.new };
+    if (!c || JSON.stringify(c) !== JSON.stringify(want)) bad.push('cleanup ' + i + ' differs from the table');
+  });
+  return bad;
+}
+function auditFixesVisible(main, sharh, fixes) {
+  // the new text is in the data where the table says, and the old is gone from there. A removal is checked by count:
+  // the explanation of that hadith lost exactly its first paragraph.
+  const bad = [];
+  for (const fx of fixes) {
+    if (fx.new === null) continue;
+    const t = fx.field === 'matn' ? (main.hadith[fx.hadith - 1].text.split('\n')[fx.paragraph]) : (sharh.items[String(fx.hadith)][fx.field] || [])[fx.paragraph];
+    if (typeof t !== 'string' || t.indexOf(fx.new) === -1) bad.push(fx.hadith + '/' + fx.field + '/' + fx.paragraph + ' new text missing');
+    else if (fx.new.indexOf(fx.old) === -1 && t.indexOf(fx.old) !== -1) bad.push(fx.hadith + '/' + fx.field + '/' + fx.paragraph + ' old text still there');
+  }
+  return bad;
+}
+let build = null;
+try { build = require('../tools/arbaeen-sharh-build.cjs'); } catch (e) { /* reported below */ }
+ok(!!build && Array.isArray(build.FIXES) && build.FIXES.length > 0 && typeof build.applyFixes === 'function', 'the builder exports its FIXES table and applyFixes');
+if (main && sharh && build && Array.isArray(build.FIXES)) {
+  const FIX = build.FIXES;
+  const c0 = auditClean(main, sharh, FIX);
+  ok(c0.length === 0, 'no stray latin letter, no broken entity, no RLM beside a mark, no heading-only first paragraph; cleanups is exactly the FIXES table', c0.slice(0, 6).join(' | '));
+  const v0 = auditFixesVisible(main, sharh, FIX);
+  ok(v0.length === 0, 'every cleanup is visible in the data: the new text is where the table says and the old text is gone', v0.slice(0, 6).join(' | '));
+  const cl = (o) => JSON.parse(JSON.stringify(o));
+  const k1 = cl(main); k1.hadith[11].text = 'r ' + k1.hadith[11].text;
+  const k2 = cl(sharh); k2.items['13'].rawi[0] += ' & dash;';
+  const k3 = cl(sharh); k3.items['30'].rawi[0] += ' \u0648\u0642\u064a\u0644\u200f:\u200f \u0623';
+  const k4 = cl(sharh); k4.items['12'].sharh.unshift(HEADING);
+  const k5 = cl(sharh); k5.cleanups.pop();
+  const k6 = cl(sharh); k6.cleanups[3].new = '\u2013';
+  const k7 = cl(sharh); k7.cleanups.reverse();
+  const k8 = cl(sharh); k8.items['22'].rawi[2] += ' \u0627\u0644\u0644\u0647r';
+  const k9 = cl(sharh); k9.items['42'].rawi[0] += ' &amp;';
+  const FIX2 = FIX.concat([{ hadith: 1, field: 'rawi', paragraph: 0, old: 'x', new: 'y' }]);
+  ok(auditClean(k1, sharh, FIX).length > 0, 'MUTANT KILLED: a stray latin r back in a matn');
+  ok(auditClean(main, k2, FIX).length > 0, 'MUTANT KILLED: the broken "& dash;" back in a rawi text');
+  ok(auditClean(main, k3, FIX).length > 0, 'MUTANT KILLED: an RLM-wrapped colon back in hadith 30');
+  ok(auditClean(main, k4, FIX).length > 0, 'MUTANT KILLED: the heading-only first paragraph back in a sharh');
+  ok(auditClean(main, k5, FIX).length > 0, 'MUTANT KILLED: a cleanup missing from the list');
+  ok(auditClean(main, k6, FIX).length > 0, 'MUTANT KILLED: a cleanup whose new text differs from the table');
+  ok(auditClean(main, k7, FIX).length > 0, 'MUTANT KILLED: the cleanups out of the table order');
+  ok(auditClean(main, k8, FIX).length > 0, 'MUTANT KILLED: a latin r glued to the word Allah in a rawi text');
+  ok(auditClean(main, k9, FIX).length > 0, 'MUTANT KILLED: a stray ampersand-name-semicolon entity');
+  ok(auditClean(main, sharh, FIX2).length > 0, 'MUTANT KILLED: a table entry with no matching cleanup');
+  const k10 = cl(sharh); k10.items['20'].rawi[6] = '& dash;' + k10.items['20'].rawi[6];
+  ok(auditFixesVisible(main, k10, FIX).length > 0 && auditClean(main, k10, FIX).length > 0, 'MUTANT KILLED: the broken dash back at the head of hadith 20 rawi paragraph 7');
+  const k11 = cl(sharh); k11.items['20'].rawi[6] = k11.items['20'].rawi[6].replace('- ', '');
+  ok(auditFixesVisible(main, k11, FIX).length > 0, 'MUTANT KILLED: a fixed spot reverted to neither the old nor the new text');
+  // the builder's assertion: an old string that occurs twice, or not at all, fails the build
+  const fakePages = () => [{ n: 1, layers: { matn: ['aa b aa'], sharh: ['x'], rawi: ['y'] } }];
+  const throws = (table) => { try { build.applyFixes(fakePages(), table); return false; } catch (e) { return /FIX:/.test(String(e.message)); } };
+  ok(!throws([{ hadith: 1, field: 'matn', paragraph: 0, old: 'b', new: 'c' }]), 'the builder applies an old string that occurs exactly once');
+  ok(throws([{ hadith: 1, field: 'matn', paragraph: 0, old: 'aa', new: 'c' }]), 'MUTANT KILLED: the builder accepts an old string that occurs twice');
+  ok(throws([{ hadith: 1, field: 'matn', paragraph: 0, old: 'zz', new: 'c' }]), 'MUTANT KILLED: the builder accepts an old string that does not occur');
+  ok(throws([{ hadith: 1, field: 'sharh', paragraph: 0, old: 'x', new: null }]) === false && throws([{ hadith: 1, field: 'matn', paragraph: 0, old: 'b', new: null }]), 'MUTANT KILLED: the builder removes a paragraph by naming only part of it');
 }
 
 // ---- 3. the reader ---------------------------------------------------------------------------------------------
