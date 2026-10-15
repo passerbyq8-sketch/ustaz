@@ -795,5 +795,10 @@
     "name": "brainlined4",
     "script": "guards/brain-line-d4-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "brainlined5",
+    "script": "guards/brain-line-d5-guard.cjs",
+    "args": ""
   }
 ]

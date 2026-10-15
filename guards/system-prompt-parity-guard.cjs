@@ -85,12 +85,17 @@ const AI_CONSENT_VERSION = (read('lib/ai-consent.js').match(/AI_CONSENT_VERSION\
 // same evidence condition without a visual tag. Unconditional confidence became calibrated,
 // specific disclosure. Chat samples grew by EXACTLY 982 bytes; call samples grew by EXACTLY 1124
 // bytes because they also carry the voice-specific form of the same contract.
+//
+// RE-MEASURED 2026-10-15 (ITEM D5 / 145, brain-line; the order's named exception for the prompt fingerprints). The
+// health line gained the adult instruction for illness and medicine with worship: the fiqh detail as it is, the harm
+// and its measure to the specialist physician, and not «بالتجربة». Every sample grew by EXACTLY 144 characters -- one
+// line, five samples, one delta (evidence/d5-prompt-remeasure.txt in the session folder).
 const PINNED = [
-  { age: 7,  gender: 'male',   mode: 'chat', name: 'خالد', len: 57609, sha: '9efa743ced519300566ccda7c96354f034dff2ac5774f9955775f08532e8f196' },
-  { age: 15, gender: 'female', mode: 'chat', name: 'هند',  len: 56104, sha: '3aac4ac51bbdd47ba533c8bfa8b76f54ee80657625f388f3b0c86b7c94b3a292' },
-  { age: 30, gender: 'male',   mode: 'chat', name: 'خالد', len: 55878, sha: 'b63ed21f51b098aa75b28de34e6193236768c5ddd83b61d294f0b1bf94d18c54' },
-  { age: 7,  gender: 'male',   mode: 'call', name: 'خالد', len: 70834, sha: '58b4a065ee48e615061f064c2eb246490515417efbbc115d131c1ed2dce09b2e' },
-  { age: 30, gender: 'female', mode: 'call', name: 'هند',  len: 69146, sha: '42f4e443f1d0b0f9bf95e763dea14d23e66bc239c4766a0751e48bbf72ca4ad4' },
+  { age: 7,  gender: 'male',   mode: 'chat', name: 'خالد', len: 57753, sha: 'd3a2519a45fe607a72518c586bea4967d5bbf1c5b92ea31931f82ade6781c055' },
+  { age: 15, gender: 'female', mode: 'chat', name: 'هند',  len: 56248, sha: '3e87eebf1b008148d4701bd3c48dd272e6677158ba48ea77e3f740bfd623810f' },
+  { age: 30, gender: 'male',   mode: 'chat', name: 'خالد', len: 56022, sha: '52d151cc84b4d45561b2b0a9db2045a813aec676b272235d194f4f48be513869' },
+  { age: 7,  gender: 'male',   mode: 'call', name: 'خالد', len: 70978, sha: '36f243321dfd84e994e23f5007b103a47171d32f318138df1917de6774c66e04' },
+  { age: 30, gender: 'female', mode: 'call', name: 'هند',  len: 69290, sha: '53b439b8455593bec1e7c548e816bf60a538f1c29f42808d35de76c466119e3d' },
 ];
 
 (async function main() {
