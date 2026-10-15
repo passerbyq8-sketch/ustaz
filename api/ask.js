@@ -2445,6 +2445,8 @@ export default async function handler(req, res) {
           const pass = await applyTakhrij(readerText, {
             // BATCH 4 [b27] — the question, read only to know whether it asks for the grade or the source.
             question: questionText,
+            // ITEM D4 (147) -- 2026-10-15 brain-line: one parenthetical per matn per day, in both modes.
+            memo: (await import('../lib/takhrij-memo.js')).takhrijMemo,
             lookup: runnerLookup(runTool, {
               table: createEvidenceTable(),
               degraded: runnerDegraded,
