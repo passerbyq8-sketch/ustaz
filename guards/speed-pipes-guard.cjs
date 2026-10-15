@@ -2261,9 +2261,12 @@ function libraryPlain(markup) {
         + '\u0648\u0642\u0627\u0644 \u0627\u0628\u0646 \u0639\u062b\u064a\u0645\u064a\u0646: \u0627\u0644\u062a\u0635\u0648\u064a\u0631 \u0627\u0644\u062d\u062f\u064a\u062b \u0644\u064a\u0633 \u062a\u0635\u0648\u064a\u0631\u0627 \u0641\u064a \u0627\u0644\u062d\u0642\u064a\u0642\u0629.\n'
         + '<book author="\u0627\u0628\u0646 \u0639\u062b\u064a\u0645\u064a\u0646" ref="\u062c2 \u00b7 \u0635262">\u0645\u062c\u0645\u0648\u0639 \u0641\u062a\u0627\u0648\u0649 \u0648\u0631\u0633\u0627\u0626\u0644 \u0627\u0644\u0639\u062b\u064a\u0645\u064a\u0646</book>\n'
         + '<source site="bad.test" url="javascript:alert(1)">x</source>';
-      ok('P8a the source follow-up is a closed, short grammar: 29-b and its siblings in, a question about "sources of legislation" and "the evidence" out',
-        [Q29B, '\u0645\u0627 \u0645\u0635\u062f\u0631\u0643\u061f', '\u0645\u0646 \u0623\u064a\u0646 \u0623\u062e\u0630\u062a \u0647\u0630\u0627 \u0627\u0644\u0643\u0644\u0627\u0645\u061f', '\u0648\u0634 \u0645\u0635\u062f\u0631\u0643 \u064a\u0627 \u0634\u064a\u062e'].every((q) => SF.asksPreviousSource(q))
-        && !SF.asksPreviousSource('\u0645\u0627 \u0645\u0635\u062f\u0631 \u0627\u0644\u062a\u0634\u0631\u064a\u0639 \u0641\u064a \u0627\u0644\u0625\u0633\u0644\u0627\u0645\u061f') && !SF.asksPreviousSource('\u0645\u0627 \u0627\u0644\u062f\u0644\u064a\u0644\u061f') && !SF.asksPreviousSource(Q29A));
+      // RE-TARGETED, ITEM C7 (131) -- 2026-10-15 brain-line, by the owner's decision (C7 adds «ما الدليل؟» to the source
+      // follow-up) and the session's standing rule-12 amendment. WAS: «ما الدليل؟» out. IS: «ما الدليل؟» in; «ما مصدر التشريع
+      // في الإسلام؟» and 29-a still out.
+      ok('P8a the source follow-up is a closed, short grammar: 29-b and its siblings in (and «ما الدليل؟», C7), a question about "sources of legislation" out',
+        [Q29B, '\u0645\u0627 \u0645\u0635\u062f\u0631\u0643\u061f', '\u0645\u0646 \u0623\u064a\u0646 \u0623\u062e\u0630\u062a \u0647\u0630\u0627 \u0627\u0644\u0643\u0644\u0627\u0645\u061f', '\u0648\u0634 \u0645\u0635\u062f\u0631\u0643 \u064a\u0627 \u0634\u064a\u062e', '\u0645\u0627 \u0627\u0644\u062f\u0644\u064a\u0644\u061f'].every((q) => SF.asksPreviousSource(q))
+        && !SF.asksPreviousSource('\u0645\u0627 \u0645\u0635\u062f\u0631 \u0627\u0644\u062a\u0634\u0631\u064a\u0639 \u0641\u064a \u0627\u0644\u0625\u0633\u0644\u0627\u0645\u061f') && !SF.asksPreviousSource(Q29A));
       const s = await drive([{ role: 'user', content: Q29A }, { role: 'assistant', content: PREV }, { role: 'user', content: Q29B }]);
       ok('P8b through the real handler: answered at once from the previous answer\'s three cards, each under the name that answer gave -- no model call',
         !s.crashed && s.model.length === 0 && s.text.startsWith(SF.SOURCE_FOLLOWUP_LEAD)
