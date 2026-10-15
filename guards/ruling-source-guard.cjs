@@ -259,9 +259,12 @@ const FRAMING = 'هذه المسألة مما تكلم فيه أهل العلم�
     // without a badge: the ruling matn is in the reply, and the reply is not the reviewer's last rung.
     // H3 below adds the third: it is not one of the legacy refusal texts either. Together they are
     // the whole of «this path does not refuse», and none of the three needs a mark to be read.
-    ok('H2 FLIPPED — the reviewer path delivers the same ruling instead of refusing',
-      free.text.includes('يجب الطهور')
-        && free.text !== RV.REVIEW_LAST_RESORT
+    // RE-TARGETED, ITEM C3 -- 2026-10-15 brain-line, by the owner's decision (a) and his answer in the session.
+    // WAS: the reviewer path delivers the same invented ruling (its matn in the reply, not the last rung). IS: the
+    // ruling with no page behind it is removed by the free path itself and the turn says notCovered (the reader
+    // gets the server's not-covered sentence); still no mark welded on.
+    ok('H2 FLIPPED — the free path removes the invented ruling and says notCovered',
+      !free.text.includes('يجب الطهور') && free.notCovered === true
         && !Object.values(RV.REVIEW_TAGS).some((reviewTag) => free.text.includes(reviewTag)),
       JSON.stringify(free.text));
     ok('H3 ...and the reply is not one of the legacy refusal texts',

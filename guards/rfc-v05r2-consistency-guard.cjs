@@ -621,16 +621,24 @@ async function main() {
       JSON.stringify({ outcome: whole.outcome, problems: whole.problems }));
 
     const free = await LAW.driveFreeTurn({ module: loop, answer: DRAFT });
-    ok('FLIPPED — the free exit delivers the same draft rather than refusing it whole',
-      free.text.includes('واجبٌ بلا خلاف'), JSON.stringify(free.text));
+    // RE-TARGETED, ITEM C3 -- 2026-10-15 brain-line, by the owner's decision (a) and his answer in the session.
+    // WAS: the free exit delivers the same unsourced draft (the ruling text is in the reply). IS: the ruling
+    // with no source is removed by the free exit itself, and the turn says notCovered (the reader gets the
+    // server's not-covered sentence) -- still not a refusal screen of its own (the rows below are unchanged).
+    ok('FLIPPED — the free exit removes the unsourced ruling and says notCovered (the owner, 15 Oct: no ruling without a source)',
+      !free.text.includes('واجبٌ بلا خلاف') && free.notCovered === true
+        && (free.degraded || []).includes('unsourced_ruling_removed:1'), JSON.stringify({ text: free.text, notCovered: free.notCovered }));
     // «Marked as understanding» was 【فهمٌ لا فتوى】. The mark is no longer written (owner, 18 Sep),
     // so the same statement is read from the reviewer's own record of the classification, and from
     // the absence of everything that would present the draft as a transmitted ruling instead: no
     // source tail, and no mark welded on. Delivery itself is the row above; this row is about what
     // the delivery claims for itself.
     const RVU = await LAW.fresh(LAW.REVIEWER, 'rfc-understanding');
-    ok('...delivered as understanding, so delivering it is not the same as asserting a fatwa',
-      (free.verdict?.counts || {})['tagged-fiqh-understanding'] >= 1
+    // RE-TARGETED, ITEM C3 -- 2026-10-15 brain-line (same authority). WAS: the ruling is delivered as
+    // understanding (verdict counts tagged-fiqh-understanding >= 1). IS: nothing of the ruling is delivered as
+    // understanding or as anything else; and, as before, no source tail and no mark.
+    ok('...and nothing of it is delivered, as understanding or as a fatwa',
+      !free.text.includes('واجب') && !((free.verdict?.counts || {})['tagged-fiqh-understanding'] >= 1)
         && !free.text.includes('المصدر:')
         && !Object.values(RVU.REVIEW_TAGS).some((reviewTag) => free.text.includes(reviewTag)),
       JSON.stringify({ counts: free.verdict?.counts, text: free.text }));

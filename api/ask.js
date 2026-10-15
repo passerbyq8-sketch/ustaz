@@ -2587,6 +2587,15 @@ export default async function handler(req, res) {
       // `seal`, which this exit passes through `emitFreeBrain` → `emitUnits` → `emitOnce` and
       // through `liveFreeBrainUnits.finish` on a streamed turn. The record stays: it is read
       // off whether the sentence will be added, which is the same question asked one seat up.
+      // ITEM C3 (axis row 5) -- 2026-10-15 brain-line: the draft stated rulings and none sourced was left
+      // (lib/free-brain/loop.js withoutUnsourcedRulings): what stays is followed by the one server-owned
+      // not-covered sentence, and the search offer goes out with it, as before writing ends the same case.
+      if (out.notCovered === true && !out.streamedThisTurn) {
+        const { BW2_NOT_COVERED } = await import('../lib/before-writing-v2.js');
+        readerText = (String(readerText || '').trim() ? String(readerText).trim() + '\n\n' : '') + BW2_NOT_COVERED;
+        out.degraded.push('unsourced_ruling:not_covered');
+        try { res.write('data: ' + JSON.stringify({ type: 'ezik_live_offer' }) + '\n\n'); } catch { /* the sentence still goes out */ }
+      }
       const freeBrainBody = readerText + (out.truncated === true ? TRUNCATED_MARK : '');
       if (takhrijDisclosureOnce(freeBrainBody, takhrijNote)) out.degraded.push('takhrij:limit_declared');
       return emitFreeBrain(freeBrainBody, out.readerUnits);

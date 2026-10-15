@@ -208,8 +208,11 @@ async function suite() {
   // holds the classification from the verdict, so D4 keeps what is properly its own: the offending
   // sentence the legacy screen DROPS is still delivered here, whole, and nothing is welded onto it.
   const RVD4 = await LAW.fresh(LAW.REVIEWER, 'explicit-d4');
-  ok('D4 FLIPPED — the reviewer keeps that sentence and delivers it as understanding',
-    b1Free.text.includes('واجبٌ بلا خلاف')
+  // RE-TARGETED, ITEM C3 -- 2026-10-15 brain-line, by the owner's decision (a) and his answer in the session.
+  // WAS: the free path keeps the offending sentence and delivers it as understanding. IS: the free path removes
+  // that unsourced ruling itself (notCovered), keeps the clean sentence beside it, and welds nothing on.
+  ok('D4 FLIPPED — the free path removes that unsourced ruling, keeps the clean sentence, and says notCovered',
+    !b1Free.text.includes('واجبٌ بلا خلاف') && b1Free.text.includes('ركنٌ من أركانِ الإسلام') && b1Free.notCovered === true
       && b1Free.text !== RVD4.REVIEW_LAST_RESORT
       && !Object.values(RVD4.REVIEW_TAGS).some((reviewTag) => b1Free.text.includes(reviewTag)),
     JSON.stringify(b1Free.text));
