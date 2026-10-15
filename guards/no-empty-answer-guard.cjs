@@ -1774,19 +1774,27 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
       encRows.every((r) => !r.url), JSON.stringify(encRows.map((r) => r.url)));
 
     // T1 — THE FOOTER. It names the encyclopedia, and the article when the row carries one.
+    // RE-TARGETED, ITEM C4 -- 2026-10-15 brain-line, by the owner's answer in the session (the tail stands on
+    // support, not on citation). WAS: the turn's cited encyclopedia row earns the tail whatever the delivered text
+    // says. IS: this fixture's delivered ruling «الجمع للمسافر جائز عند الحاجة» is NOT supported by that row's text,
+    // so it earns no tail; the SAME row behind a sentence its own text carries earns it (`supTail`), and the next
+    // rows read that tail.
     const encTail = loop.encyclopediaTail(encTurn.cited);
-    ok('an answer that rests on the encyclopedia earns an attribution tail',
-      encTail.trim() !== '', JSON.stringify(encTail));
+    const supportedSentence = String(encRows[0].text || encRows[0].snippet || '').split(/[.؟!\n]/u).find((s) => s.trim().split(/\s+/u).length >= 3) || '';
+    const supTail = loop.encyclopediaTail([{ ...encRows[0], deliveredSupport: undefined }], supportedSentence);
+    ok('an answer that cites the encyclopedia for a sentence its row does not support earns NO tail; the same row behind a sentence it supports does',
+      encTail === '' && encRows[0].deliveredSupport === false && supTail.trim() !== '', JSON.stringify([encTail, supTail]));
     ok('...naming the encyclopedia by the publisher the row itself declares',
-      encTail.includes(encRows[0].publisher), JSON.stringify([encTail, encRows[0].publisher]));
+      supTail.includes(encRows[0].publisher), JSON.stringify([supTail, encRows[0].publisher]));
     // ع-٥: AND IT NAMES NO ARTICLE. The tail used to end «— مادّة: X», with X cut out of the
     // row's own title; the owner's ruling removed the article and kept the encyclopedia. Asserted
     // as an EQUALITY rather than as an absence, because an absence check passes just as loudly
     // over a tail that came back empty — and the em-dash clause beside it names the separator of
     // the deleted form, which is the one character that cannot reappear without the form.
+    // RE-TARGETED, ITEM C4 (same authority): read on the supported tail (WAS: on the cited row's tail).
     ok('ع-٥: the tail names the encyclopedia and names no article',
-      encTail === '\n\nالمصدر: ' + encRows[0].publisher + '.' && !encTail.includes('—'),
-      JSON.stringify([encTail, encRows[0].publisher]));
+      supTail === '\n\nالمصدر: ' + encRows[0].publisher + '.' && !supTail.includes('—'),
+      JSON.stringify([supTail, encRows[0].publisher]));
     // THE NEGATIVE WITNESS §٣ NAMES: an answer that did not rest on it gets NOTHING.
     const noEncTail = (mod) => mod.encyclopediaTail(rows(3)) === ''
       && mod.encyclopediaTail([]) === ''
@@ -1799,8 +1807,11 @@ const everyExitReviewed = (results) => results.every((r) => !r.threw && r.review
     const mixedCited = [encRows[0], ...rows(5)];
     ok('the tail does not consume a card slot — three pages still become three cards',
       capped(loop, mixedCited).length === 3, JSON.stringify(capped(loop, mixedCited).length));
+    // RE-TARGETED, ITEM C4 (same authority). WAS: the cited row (unsupported here) still gives the tail beside the
+    // five pages. IS: a supported encyclopedia row gives the tail beside the five pages (the unsupported one none).
     ok('...and the tail is still produced beside them',
-      loop.encyclopediaTail(mixedCited).trim() !== '');
+      loop.encyclopediaTail([{ ...encRows[0], deliveredSupport: true }, ...rows(5)]).trim() !== ''
+        && loop.encyclopediaTail(mixedCited) === '');
     ok('...and api/ask.js carries it as the writer\'s own reader suffix, not concatenated onto the text',
       /finalizerContext\.readerSuffix = encyclopediaTail\(out\.cited\);/u.test(askSource));
 
