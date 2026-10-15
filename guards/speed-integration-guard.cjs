@@ -94,6 +94,7 @@ async function makeServer(root) {
   const esm = (rel) => import(pathToFileURL(path.join(root, rel)).href);
   const ASK = await esm('api/ask.js');
   const FC = await esm('lib/fatwa-contract.js');
+  const FSORT = await esm('lib/front-sorter.js');
   const LEDGER_REDIS = await esm('lib/ledger/redis.js');
   const DAYCAP = await esm('lib/daycap.js');
   const FLAG = await esm('lib/ledger/flag.js');
@@ -154,6 +155,12 @@ async function makeServer(root) {
         const b = JSON.parse(init.body);
         model.push(b);
         if (b.stream) return sse(scenario.writer || [GENERAL_REPLY]);
+        // ITEM C1 -- 2026-10-15 brain-line (the owner's word in the session: fix the fake sorter, keep every
+        // assertion): a scenario may state the front sorter's verdict; unstated, the call reads as before (the
+        // judge's JSON, which the sorter reads as an error).
+        if (b.system === FSORT.FRONT_SORTER_SYSTEM && scenario.sorter) {
+          return json(u, { content: [{ type: 'text', text: scenario.sorter }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
+        }
         if (!b.tools) {
           const keep = scenario.judgeKeep === false ? 0 : 1;
           return json(u, { content: [{ type: 'text', text: JSON.stringify({ d: Object.fromEntries(Array.from({ length: 40 }, (_, i) => [String(i + 1), keep])) }) }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
@@ -306,7 +313,9 @@ const SCENARIOS = () => ({
   empty: { server: { records: [], judgeKeep: false, writer: WRITER_SOURCED, env: { BW2_CONTINUE: 'off' } } },
   continued: { server: { records: [], judgeKeep: false, writer: WRITER_SOURCED } },
   live: { server: { records: [], writer: WRITER_SOURCED } },
-  general: { server: { records: [] } },
+  // ITEM C1 -- 2026-10-15 brain-line: the general question is general by the sorter's WORLDLY verdict now
+  // (default DEEN). WAS: { records: [] } with no verdict stated.
+  general: { server: { records: [], sorter: 'WORLDLY' } },
 });
 
 // =====================================================================================================

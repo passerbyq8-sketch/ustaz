@@ -349,7 +349,7 @@ every purpose and `capabilityEligible()` is false for every capability. **Regist
 
 ## K. Gates and tests
 
-All 146 gates, run by the canonical `npm run gates` runner from `gates.json`:
+All 147 gates, run by the canonical `npm run gates` runner from `gates.json`:
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -377,14 +377,14 @@ nameform 0 · rejectdoor 0 · articles 0 · asmaa 0 · chatbaractions 0 · share
 prophetascription 0 · prophetascriptionwiring 0 · khilafprobefreeze 0
 kunuznorepeat 0 · kunuzcats 0 · kunuzgroups 0 · kunuzwarengine 0 · hannalaha 0 · appvpattern 0
 liveworldkill 0 · livenumbersrc 0 · sahihaynlink 0 · previewdaycap 0 · libmujaz 0 · libquote 0 · encycbrain 0 · widgetopen 0 · lib108 0 · speedclient 0 · prayerojeiri 0 · prayerfeatures 0 · lang 0 · speedbw2 0 · speedintegration 0 · speedpipes 0 · frontsorter 0 · impermissibleearly 0 · syncserver 0 · syncclient 0 · syncmemory 0 · ez110edges 0 · ez110override 0 · ez110names 0 · memorizer86 0 · memorizer86nospend 0 · arbaeensharh 0
-brainlineb1 0  brainlineb2 0  brainlineb3 0
+brainlineb1 0  brainlineb2 0  brainlineb3 0  brainlinec1 0
 ```
 
 Every one **PASS**, exit code `0`.
 
 ```
-TOTAL_GATES        146/146 PASS
-RECON              PASS=236 WARN=0 FAIL=0
+TOTAL_GATES        147/147 PASS
+RECON              PASS=237 WARN=0 FAIL=0
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision
 NEW_FIXTURES       rfcpolicy 125/125 · rfcruntime 96/96

@@ -77,7 +77,11 @@ async function main() {
   ok('B3 switch off: not asked, state disabled', el({ enabled: false }).ask === false && el({ enabled: false }).sorter === 'disabled');
   for (const band of ['young', 'teen', '', 'unknown']) ok('B4 band ' + band + ': not asked', el({ band }).ask === false && el({ band }).sorter === 'not_asked');
   ok('B5 free brain off: not asked', el({ freeBrainEnabled: false }).ask === false);
-  for (const runtime of ['GENERAL', 'LOCAL_QURAN', 'LOCAL_ADHKAR', 'LOCAL_WORSHIP', '']) ok('B6 runtime ' + (runtime || 'empty') + ': not asked', el({ runtime }).ask === false);
+  // RE-TARGETED, ITEM C1 -- 2026-10-15 brain-line, by the owner's word («default DEEN»; the session's rule-12
+  // amendment names this check). WAS: GENERAL not asked. IS: GENERAL asked (only WORLDLY keeps it general);
+  // the local runtimes and an empty one are still not asked.
+  ok('B6 runtime GENERAL: asked', el({ runtime: 'GENERAL' }).ask === true);
+  for (const runtime of ['LOCAL_QURAN', 'LOCAL_ADHKAR', 'LOCAL_WORSHIP', '']) ok('B6 runtime ' + (runtime || 'empty') + ': not asked', el({ runtime }).ask === false);
   ok('B7 live search: not asked', el({ liveSearch: true }).ask === false);
   ok('B7b live search is a boolean true and nothing else', el({ liveSearch: 'true' }).ask === true && el({ liveSearch: 1 }).ask === true);
   for (const excluded of ['canonical_store', 'estate_division']) ok('B8 scope ' + excluded + ': not asked', el({ excluded }).ask === false);
@@ -439,8 +443,12 @@ async function main() {
         && gFree.every((b) => sysTextOf(b).includes(GF.SHARIA_SOURCE_LINE) && !sysTextOf(b).includes(GF.GENERAL_SOURCE_LINE)));
       const g2 = await drive(msgs(FIX.map[3].q), { sorter: 'WORLDLY' });
       const g2Free = g2.model.filter((b) => b.system !== FS.FRONT_SORTER_SYSTEM && Array.isArray(b.system));
-      ok('E5c switch on, a lexically GENERAL turn: no call is needed, and the frame is general',
-        !g2.crashed && g2.counts.sorter === 0 && g2.logOf('[route]').sorter === 'not_asked' && g2.logOf('[route]').frame === 'general' && g2Free.length > 0
+      // RE-TARGETED, ITEM C1 -- 2026-10-15 brain-line, by the owner's word («default DEEN»; the session's rule-12
+      // amendment names this check). WAS: a lexically GENERAL turn makes no call (counts.sorter 0, state
+      // not_asked) and takes the general frame. IS: the sorter is asked once, and its WORLDLY verdict is what
+      // gives the general frame.
+      ok('E5c switch on, a lexically GENERAL turn: the sorter is asked once, and its WORLDLY verdict gives the general frame',
+        !g2.crashed && g2.counts.sorter === 1 && g2.logOf('[route]').sorter === 'worldly' && g2.logOf('[route]').frame === 'general' && g2Free.length > 0
         && g2Free.every((b) => sysTextOf(b).includes(GF.GENERAL_SOURCE_LINE) && !sysTextOf(b).includes(GF.SHARIA_SOURCE_LINE)));
     }
     // E6 a ruling cue is religious without a call
@@ -511,8 +519,10 @@ async function main() {
     const e = FS.sorterEligibility({ enabled: true, band, freeBrainEnabled: true, runtime: lexical, liveSearch: false, excluded, text });
     let frame = 'sharia';
     let model = 'no';
+    // RE-TARGETED with G5, ITEM C1 -- 2026-10-15 brain-line: the general frame is given by a WORLDLY verdict
+    // (api/ask.js frameFor), so an asked turn -- a lexically GENERAL one included -- takes its frame by the verdict;
+    // WAS: a lexically GENERAL adult turn was 'general' before the sorter was consulted.
     if (band !== 'adult') frame = 'sharia';
-    else if (lexical === 'GENERAL') frame = 'general';
     else if (e.ask) { model = 'asked'; frame = 'by-verdict'; }
     return { lexical, cue: FS.hasRulingCue(text), excluded: excluded || '', state: e.sorter, asked: e.ask, frame, model };
   };
@@ -549,8 +559,11 @@ async function main() {
   const byId = (set, id) => rows.find((r) => r.set === set && r.id === id);
   ok('G4 the map\'s defect: T1 (a name), T4 and Q3 (company), Q4, Q9 (account), Q11 (Eid) are STORED_FIQH lexically and are sent to the model',
     ['T1', 'T4', 'Q3', 'Q4', 'Q9', 'Q11'].every((id) => byId('map', id).lexical === 'STORED_FIQH' && byId('map', id).asked === true));
-  ok('G5 the map\'s controls: T2, T3, T10, Q2, Q5-Q8 are GENERAL lexically (no call), general frame',
-    ['T2', 'T3', 'T10', 'Q2', 'Q5', 'Q6', 'Q7', 'Q8'].every((id) => byId('map', id).lexical === 'GENERAL' && byId('map', id).asked === false && byId('map', id).frame === 'general'));
+  // RE-TARGETED, ITEM C1 -- 2026-10-15 brain-line, by the owner's word in the session (G5 re-targeted with B6
+  // and E5c). WAS: the controls are GENERAL lexically, not asked, general frame. IS: GENERAL lexically, asked,
+  // and the frame is the verdict's (WORLDLY -> general; anything else -> DEEN and the shari'a frame).
+  ok('G5 the map\'s controls: T2, T3, T10, Q2, Q5-Q8 are GENERAL lexically, the sorter is asked, and the frame is the verdict\'s',
+    ['T2', 'T3', 'T10', 'Q2', 'Q5', 'Q6', 'Q7', 'Q8'].every((id) => byId('map', id).lexical === 'GENERAL' && byId('map', id).asked === true && byId('map', id).frame === 'by-verdict'));
   ok('G6 T5 and T6: a ruling is religious without a model; a scholar\'s opinion stays lexical', byId('map', 'T5').state === 'ruling_cue' && byId('map', 'T5').asked === false && byId('map', 'T6').lexical === 'STORED_FIQH');
   ok('G7 the shari\'a cue siblings are never sent', FIX.siblings.filter((x) => x.kind === 'religious' && FS.hasRulingCue(x.q)).every((x) => byId('siblings', x.id).asked === false));
 

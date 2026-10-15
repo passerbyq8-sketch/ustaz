@@ -1111,11 +1111,16 @@ export default async function handler(req, res) {
   const sorterPlan = sorterEligibility({
     enabled: frontSorter.enabled, band, freeBrainEnabled: freeBrainOnAtSorter, runtime: currentRuntime,
     liveSearch: readLiveSearch(body), excluded: bw2ScopeExclusion(currentQuestionText), text: currentQuestionText,
-    closedDeen: closedDeenAnswers, hazard: graveHazard(currentQuestionText), porn: pornBlocked,
+    // ITEM C1 -- 2026-10-15 brain-line: graveHazard() returns the class name, and sorterEligibility() reads
+    // `hazard === true`. Harmless while a hazard turn was lexically GENERAL and never asked; with GENERAL asked,
+    // the class has to arrive as the boolean the eligibility reads.
+    closedDeen: closedDeenAnswers, hazard: !!graveHazard(currentQuestionText), porn: pornBlocked,
   });
-  // The frame the free-brain seat answers in: the general one for an adult whose FINAL runtime is GENERAL,
-  // whether the sorter made it so or the lexicon always had (and never with the switch off).
-  const frameFor = (runtime) => (frontSorter.enabled && band === 'adult' && freeBrainOnAtSorter && runtime === 'GENERAL' ? 'general' : 'sharia');
+  // The frame the free-brain seat answers in: the general one for an adult whose FINAL runtime is GENERAL
+  // (and never with the switch off).
+  // ITEM C1 (axis row 1) -- 2026-10-15 brain-line: and only where the sorter itself said WORLDLY. A turn the
+  // lexicon alone called general, with no verdict behind it, keeps the shari'a frame.
+  const frameFor = (runtime, sorter) => (frontSorter.enabled && band === 'adult' && freeBrainOnAtSorter && runtime === 'GENERAL' && sorter === 'worldly' ? 'general' : 'sharia');
   const logRoute = (final = {}) => console.log('[route]', {
     route: effectiveRoute, lexicalRoute: route, band,
     purpose: currentPlan.purpose, mode: currentPlan.attributionMode,
@@ -1734,7 +1739,7 @@ export default async function handler(req, res) {
     const sorterState = sorted ? sorted.sorter : sorterPlan.sorter;
     const currentRuntime = runtimeAfterSorter(lexicalRuntimeOfRequest, sorterState);
     const effectiveRoute = currentRuntime === 'GENERAL' ? 'GEN' : 'DEEN';
-    logRoute({ route: effectiveRoute, runtime: currentRuntime, sorter: sorterState, sorterMs: sorted ? sorted.ms : 0, frame: frameFor(currentRuntime) });
+    logRoute({ route: effectiveRoute, runtime: currentRuntime, sorter: sorterState, sorterMs: sorted ? sorted.ms : 0, frame: frameFor(currentRuntime, sorterState) });
 
     const topicClass = classifyTopic(questionText, currentPlan, effectiveRoute);
     const ageAccess = access({ topicClass, audienceBand });
@@ -1932,7 +1937,7 @@ export default async function handler(req, res) {
     // THE GENERAL FRAME (order EZIK-SORTER-ORDER-2026-10-01, part 2): the system of an adult whose final runtime
     // is GENERAL, derived from the very system built above (so the date block is not built twice) and chosen
     // where the free brain is called. Null means the shari'a frame, exactly as before.
-    const generalFrame = (!bw2Taken && !childBenignReserved && frameFor(currentRuntime) === 'general')
+    const generalFrame = (!bw2Taken && !childBenignReserved && frameFor(currentRuntime, sorterState) === 'general')
       ? generalizeSystemBlocks(system, depthInstruction, effectiveDepth) : null;
     const generalSystem = generalFrame && generalFrame.replaced ? generalFrame.blocks : null;
     const answerFrame = generalSystem ? 'general' : 'sharia';

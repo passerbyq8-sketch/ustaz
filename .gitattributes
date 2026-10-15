@@ -919,3 +919,4 @@ guards/memorizer86-nospend-guard.cjs text eol=lf
 guards/brain-line-b1-guard.cjs text eol=lf
 guards/brain-line-b2-guard.cjs text eol=lf
 guards/brain-line-b3-guard.cjs text eol=lf
+guards/brain-line-c1-guard.cjs text eol=lf

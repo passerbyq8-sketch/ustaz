@@ -2202,7 +2202,9 @@ function libraryPlain(markup) {
         const u = String(url);
         if (u.includes('api.anthropic.com')) {
           const b = JSON.parse(init.body);
-          if (b.system === FSORT.FRONT_SORTER_SYSTEM) return jsonResponse(u, { content: [{ type: 'text', text: 'RELIGIOUS' }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
+          // ITEM C1 -- 2026-10-15 brain-line (the owner's word in the session: fix the fake sorter, keep every
+          // assertion): a case may state the sorter's verdict (opts.sorter); unstated, it is RELIGIOUS as before.
+          if (b.system === FSORT.FRONT_SORTER_SYSTEM) return jsonResponse(u, { content: [{ type: 'text', text: opts.sorter || 'RELIGIOUS' }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
           model.push(b);
           if (b.system === BW2.BW2_JUDGE_SYSTEM) return jsonResponse(u, { content: [{ type: 'text', text: '{"d":{}}' }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
           // SPEED W6B B5: `opts.answer(body)` states the fake writer's text when a case needs it to cite a row.
@@ -2364,7 +2366,9 @@ function libraryPlain(markup) {
       const w2child = await drive(WASL.w1.question, { env: LIBENV, respond: w2Respond, band: 'young', age: 12 });
       ok('W2c a child turn asks no lessons', !w2child.crashed && lessonsAsked.length === 0 && w2child.model.length > 0);
       lessonsAsked.length = 0;
-      const w2plain = await drive('ما هي عاصمة اليابان؟', { env: LIBENV, respond: w2Respond });
+      // ITEM C1 -- 2026-10-15 brain-line: a worldly question is general by the sorter's WORLDLY verdict now
+      // (default DEEN), so the fake sorter says what a sorter says of it. WAS: no verdict stated (RELIGIOUS).
+      const w2plain = await drive('ما هي عاصمة اليابان؟', { env: LIBENV, respond: w2Respond, sorter: 'WORLDLY' });
       ok('W2e a worldly question asks no lessons before the writer (the prefetch rides the fatwa prefetch\'s religious key)', !w2plain.crashed && lessonsAsked.length === 0 && w2plain.model.length > 0);
 
       // W3a on the free-brain path: the fatwa prefetch asks the store the issue as a fatwa's title states it, beside the
