@@ -22,7 +22,7 @@ import {
   searchBudgetCallerDigests,
 } from '../lib/ratelimit.js';
 import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
-import { guardDayCap, dayCapMessage, hasUnrevokedFounderToken } from '../lib/daycap.js';
+import { guardDayCap, dayCapMessage, hasUnrevokedFounderToken, refundDayCap } from '../lib/daycap.js';
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
 import { languageGate } from '../lib/lang/gate.js';
 // ITEM 58 -- the address line from the gender the asker wrote in «ملفّك», behind SYNC_SWITCH.
@@ -872,7 +872,12 @@ export default async function handler(req, res) {
   // consent, the throttle and the daily cap (so a refused request costs no translation) and before anything reads
   // the question. lib/lang/gate.js installs the hook for those readers only; an Arabic question has no hook and
   // this line does nothing for it.
-  if (typeof req.__langTranslateQuestion === 'function' && !(await req.__langTranslateQuestion(body.messages))) return;
+  // ITEM B3 (m0 row 8) -- 2026-10-15 brain-line: a translation that failed asked nothing, so it spends no
+  // question of the day: the counters this request incremented are given back (lib/daycap.js refundDayCap).
+  if (typeof req.__langTranslateQuestion === 'function' && !(await req.__langTranslateQuestion(body.messages))) {
+    await refundDayCap(cap);
+    return;
+  }
 
   // Server-derived charging identities only. The helper returns HMAC digests and never raw
   // account/device/cookie values; every paid-search path below receives the same dimensions.

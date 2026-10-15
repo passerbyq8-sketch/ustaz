@@ -918,3 +918,4 @@ guards/memorizer86-nospend-guard.cjs text eol=lf
 # brain-line 2026-10-15 -- the guards of the side brain-line fix order, pinned LF like their neighbours.
 guards/brain-line-b1-guard.cjs text eol=lf
 guards/brain-line-b2-guard.cjs text eol=lf
+guards/brain-line-b3-guard.cjs text eol=lf
