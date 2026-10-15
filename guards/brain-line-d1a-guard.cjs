@@ -71,7 +71,7 @@ const lookup = async (matns) => matns.map((matn) => {
   {
     const ask = fs.readFileSync(path.join(REPO, 'api/ask.js'), 'utf8');
     ok('api/ask.js strips the model\'s parentheses before the free brain\'s takhrij pass', /if \(!streamedHead\) readerText = stripModelCollectionParens\(readerText\);\s*const pass = await applyTakhrij\(readerText, \{/.test(ask));
-    ok('...and drops the unconfirmed Prophetic sentences after it', /readerText = dropUnconfirmedProphetic\(pass\.text, pass\.entries\)\.text;/.test(ask));
+    ok('...and drops the unconfirmed Prophetic sentences after it', /const dropped = dropUnconfirmedProphetic\(pass\.text, pass\.entries\);\s*(?:\/\/[^\n]*\n\s*)?readerText = dropped\.removed \? [^\n]*: dropped\.text;/.test(ask));
     const bw = fs.readFileSync(path.join(REPO, 'lib/before-writing-v2.js'), 'utf8');
     ok('lib/before-writing-v2.js strips them before its lookup', /const pass = await applyTakhrij\(stripModelCollectionParens\(text\), \{/.test(bw));
     const loop = fs.readFileSync(path.join(REPO, 'lib/free-brain/loop.js'), 'utf8');
