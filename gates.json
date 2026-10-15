@@ -770,5 +770,10 @@
     "name": "brainlinec7",
     "script": "guards/brain-line-c7-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "brainlined1a",
+    "script": "guards/brain-line-d1a-guard.cjs",
+    "args": ""
   }
 ]

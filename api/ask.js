@@ -2438,6 +2438,10 @@ export default async function handler(req, res) {
           const { applyTakhrij, runnerLookup } = await import('../lib/takhrij.js');
           const { runTool, createEvidenceTable } = await import('../lib/free-brain/tools.js');
           const runnerDegraded = [];
+          const { stripModelCollectionParens, dropUnconfirmedProphetic } = await import('../lib/prophetic-claims.js');
+          // ITEM D1-A (136) -- 2026-10-15 brain-line: the model's own collection parentheses go before the pass (the
+          // server writes the only one left), and a Prophetic frame the pass did not source goes after it.
+          if (!streamedHead) readerText = stripModelCollectionParens(readerText);
           const pass = await applyTakhrij(readerText, {
             // BATCH 4 [b27] — the question, read only to know whether it asks for the grade or the source.
             question: questionText,
@@ -2457,7 +2461,7 @@ export default async function handler(req, res) {
             pass.problems = [];
             pass.text = readerText;
           }
-          readerText = pass.text;
+          readerText = dropUnconfirmedProphetic(pass.text, pass.entries).text;
           // ── AND THE SEAL IS TOLD WHICH PAGES PROVED IT (see `takhrijProvenRows`) ──
           // Without this the lock deletes the whole sentence a «(متفق عليه)» stands in, because no
           // reader-visible page carries that phrase. `title` is what `haystack` folds and reads;

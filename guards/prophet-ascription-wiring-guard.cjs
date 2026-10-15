@@ -415,7 +415,10 @@ const marks = (out) => (out.degraded || []).filter((d) => String(d).startsWith('
   for (const [name, answer] of [['ROUND_1', ROUND_1], ['ROUND_2', ROUND_2], ['ROUND_3', ROUND_3],
     ['ROUND_5', ROUND_5], ['ABOUT_HIM', ABOUT_HIM], ['ABOUT_DAWUD', ABOUT_DAWUD],
     ['SCRIPTURE_CASE', SCRIPTURE_CASE], ['FRAMED_TO_HIM', FRAMED_TO_HIM],
-    ['SHORT_COINCIDENCE', SHORT_COINCIDENCE], ['UNTAGGED_DEFECT', UNTAGGED_DEFECT]]) {
+    // RE-TARGETED, ITEM D1-A (136) -- 2026-10-15 brain-line, by the owner's order (untaggedQuotesAreMatns on) and the
+    // session's standing rule-12 amendment. WAS: UNTAGGED_DEFECT was in this list -- delivered byte for byte with the
+    // door up, because the door read <hadith>-tagged matns only. IS: it is caught (D10b below); the rest are unchanged.
+    ['SHORT_COINCIDENCE', SHORT_COINCIDENCE]]) {
     const on = await drive(loop, [answer]);
     process.env.PROPHET_ASCRIPTION_BLOCK = 'off';
     const off = await drive(loop, [answer]);
@@ -427,6 +430,16 @@ const marks = (out) => (out.degraded || []).filter((d) => String(d).startsWith('
   }
   ok('D10 · every answer OUTSIDE the measured class is delivered byte for byte with the door up,'
     + ' costs no extra call, and leaves no trace', cleanPass.length === 0, cleanPass.join(' | '));
+  {
+    // RE-TARGETED (D10's UNTAGGED_DEFECT row), ITEM D1-A: the same fixture, now inside the class.
+    const on = await drive(loop, [UNTAGGED_DEFECT]);
+    process.env.PROPHET_ASCRIPTION_BLOCK = 'off';
+    const off = await drive(loop, [UNTAGGED_DEFECT]);
+    delete process.env.PROPHET_ASCRIPTION_BLOCK;
+    ok('D10b · UNTAGGED_DEFECT is caught with the door up (a quoted matn with no <hadith> tag is a matn), and passes as it was with the door down',
+      marks(on).some((m) => m.startsWith('ascription_caught')) && !marks(off).some((m) => m.startsWith('ascription_caught')) && off.text.includes(WITNESS_PROSE),
+      JSON.stringify({ on: marks(on), off: marks(off) }));
+  }
 
   // §٥/٣ القيد ٣, first half — the switch.
   process.env.PROPHET_ASCRIPTION_BLOCK = 'off';
