@@ -916,9 +916,16 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       const hadRun = await run({ question: F.q4, writerText: U.s1 + ' ' + line2, runtime: 'HADITH', env: { BW2_HOLD_UNCITED_RULINGS: 'on' } });
       const citedOn = await run({ question: F.q4, writerText: U.s1 + ' ' + line2.replace(/\.$/u, ' [[1]].'), runtime: 'STORED_FIQH', env: { BW2_HOLD_UNCITED_RULINGS: 'on' } });
       const probe = line2.slice(0, 12);
-      ok('R4e BW2_HOLD_UNCITED_RULINGS is off by default: q4\'s uncited ruling unit goes out as before',
-        offRun.deltas.join('').includes(probe) && FLAGS1.bw2HoldUncitedRulingsDecision({}).enabled === false
-        && FLAGS1.BW2_HOLD_UNCITED_RULINGS_DEFAULT === false, ascii(offRun.deltas.join('|')));
+      // RE-TARGETED, ITEM C2 (1) -- 2026-10-15 brain-line, by the owner's word («الشرعي ممنوع يجيب بدون مصدر»;
+      // the session's rule-12 amendment names this check). WAS: off by default -- q4's uncited ruling unit goes
+      // out under the default env, decision({}) false, DEFAULT false. IS: on by default -- held under the default
+      // env, decision({}) true, DEFAULT true; and an explicit off releases it as before.
+      const offExplicit = await run({ question: F.q4, writerText: U.s1 + ' ' + line2, runtime: 'STORED_FIQH', env: { BW2_HOLD_UNCITED_RULINGS: 'off' } });
+      ok('R4e BW2_HOLD_UNCITED_RULINGS is on by default: q4\'s uncited ruling unit is held; an explicit off releases it as before',
+        !offRun.deltas.join('').includes(probe) && FLAGS1.bw2HoldUncitedRulingsDecision({}).enabled === true
+        && FLAGS1.BW2_HOLD_UNCITED_RULINGS_DEFAULT === true && offExplicit.deltas.join('').includes(probe)
+        && FLAGS1.bw2HoldUncitedRulingsDecision({ BW2_HOLD_UNCITED_RULINGS: 'off' }).enabled === false,
+        ascii(offRun.deltas.join('|') + ' || ' + offExplicit.deltas.join('|')));
       ok('R4f ...on: held in STORED_FIQH; released in HADITH and when it carries a valid [[n]]',
         !onRun.deltas.join('').includes(probe) && hadRun.deltas.join('').includes(probe) && citedOn.deltas.join('').includes(probe)
         && FLAGS1.bw2HoldUncitedRulingsDecision({ BW2_HOLD_UNCITED_RULINGS: 'on' }).enabled === true,
