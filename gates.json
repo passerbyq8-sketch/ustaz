@@ -760,5 +760,10 @@
     "name": "brainlinec5",
     "script": "guards/brain-line-c5-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "brainlinec6",
+    "script": "guards/brain-line-c6-guard.cjs",
+    "args": ""
   }
 ]
