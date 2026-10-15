@@ -1678,6 +1678,9 @@ export default async function handler(req, res) {
       console.warn('[policy] SAFETY_REDIRECT', {
         topic: hazard, band: audienceBand, path: ledgerPath.path, policyVersion: POLICY_VERSION,
       });
+      // ITEM B2 (m0 row 9) -- 2026-10-15 brain-line: the reader who speaks of killing himself gets the
+      // support text, never the chemistry redirect.
+      if (hazard === 'self_harm') return emitOnce(WARM_TEMPLATES.SELFHARM_SUPPORT);
       return emitOnce(WARM_TEMPLATES.SAFETY_REDIRECT);
     }
 
