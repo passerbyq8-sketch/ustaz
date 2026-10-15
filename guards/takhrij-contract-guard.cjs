@@ -1696,8 +1696,11 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       const ids = (options && options.bookIds) || [];
       asked20.push(ids.slice());
       const oneBook = ids.length === 1 && ids[0] === BUKHARI20;
+      // ITEM D1-B -- 2026-10-15 brain-line (the owner's answer in the session: fix the fixture, keep the assertions).
+      // WAS: «… عن ابن مسعود رضي الله عنه قال: <matn>» -- a Companion's own words, which since D1-B no longer prove a
+      // matn the prose gives to the Prophet ﷺ. IS: the same narration with the Prophet's frame, as al-Bukhari has it.
       return matns.map((m) => (oneBook
-        ? { matn: m, subjectIds: [BUKHARI20], atoms: ['حدثنا سفيان عن ابن مسعود رضي الله عنه قال: ' + m] }
+        ? { matn: m, subjectIds: [BUKHARI20], atoms: ['حدثنا سفيان عن ابن مسعود رضي الله عنه قال: قال رسول الله صلى الله عليه وسلم: ' + m] }
         : { matn: m, subjectIds: [], atoms: [] }));
     };
     const pass20 = await T20.applyTakhrij(ANSWER20, { env: ON, lookup: lookup20 });
