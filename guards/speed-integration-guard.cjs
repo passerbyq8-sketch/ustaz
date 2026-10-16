@@ -417,11 +417,18 @@ async function main(args) {
       ok('I3c pressing it sends the same question as a new turn with liveSearch: true (and the first request carried none)',
         !!nb && nb.liveSearch === true && !Object.prototype.hasOwnProperty.call(fb0, 'liveSearch')
         && nb.messages.at(-1).role === 'user' && nb.messages.at(-1).content === fb0.messages.at(-1).content);
+      // RE-TARGETED, ITEM O3a (132) -- 2026-10-15 brain-line, by the order (every path sends ezik_status; the silence timer)
+      // and the session's standing rule-12 amendment; old and new expectations in the report, section 4.
+      const BW2_ONLY_STAGES = ['fatwa', 'library', 'encyclopedia', 'lessons', 'judge'];
+      const todaysStatuses = (fr) => fr.some((f) => f.type === 'ezik_status')
+        && !fr.some((f) => (/^ezik_/.test(f.type) && f.type !== 'ezik_status') || (f.type === 'ezik_status' && BW2_ONLY_STAGES.includes(f.stage)));
+      const STATUS_WRITE = /^data: \{"type":"ezik_status"[^\n]*\}\n\n$/;
+      const withoutStatus = (writes) => writes.filter((w) => !STATUS_WRITE.test(w));
       const live = ((scenarios.live.seen || [])[0] || {}).result;
       const lf = live && live.logOf('[free-brain]');
       ok('I3d the handler routes that exact body to the free-brain path, not BW2',
         !!live && !live.crashed && lf && lf.liveSearch === true && lf.bw2 === false && !live.logOf('[bw2]')
-        && !framesOf(live.writes).some((f) => f.type === 'ezik_status'), ascii(JSON.stringify(lf)));
+        && todaysStatuses(framesOf(live.writes)), ascii(JSON.stringify(lf)));
       const m0 = live && live.model[0];
       ok('I3e ...with its first provider round forced to search_sources',
         !!m0 && m0.tool_choice && m0.tool_choice.type === 'tool' && m0.tool_choice.name === 'search_sources',
@@ -446,18 +453,27 @@ async function main(args) {
       const seen = scenarios.general.seen || [];
       const s = (seen[0] || {}).result;
       const fb = s && s.logOf('[free-brain]');
+      // RE-TARGETED, ITEM O3a (132) -- 2026-10-15 brain-line, by the order (every path sends ezik_status; the silence timer)
+      // and the session's standing rule-12 amendment; old and new expectations in the report, section 4.
+      const BW2_ONLY_STAGES = ['fatwa', 'library', 'encyclopedia', 'lessons', 'judge'];
+      const todaysStatuses = (fr) => fr.some((f) => f.type === 'ezik_status')
+        && !fr.some((f) => (/^ezik_/.test(f.type) && f.type !== 'ezik_status') || (f.type === 'ezik_status' && BW2_ONLY_STAGES.includes(f.stage)));
+      const STATUS_WRITE = /^data: \{"type":"ezik_status"[^\n]*\}\n\n$/;
+      const withoutStatus = (writes) => writes.filter((w) => !STATUS_WRITE.test(w));
       const frames = s ? framesOf(s.writes) : [];
-      ok('I4a a general question stays off BW2: no [bw2] record, no ezik_* frame',
-        !!s && !s.crashed && fb && fb.bw2 === false && !s.logOf('[bw2]') && !frames.some((f) => /^ezik_/.test(f.type)),
+      ok('I4a a general question stays off BW2: no [bw2] record, and of the ezik_* frames only the order\'s status',
+        !!s && !s.crashed && fb && fb.bw2 === false && !s.logOf('[bw2]') && todaysStatuses(frames),
         ascii(JSON.stringify(fb)));
       const off = s ? await server.drive(seen[0].body, seen[0].headers, { ...SCENARIOS().general.server, env: { BEFORE_WRITING_V2: 'off' } }) : null;
       ok('I4b its wire is byte-identical to the wire with BEFORE_WRITING_V2=off',
         !!off && off.writes.join('') === s.writes.join(''), ascii(JSON.stringify({ on: s && sha(s.writes.join('')), off: off && sha(off.writes.join('')) })));
       ok('I4c the client\'s request body equals production\'s for the same question',
         !!seen[0] && JSON.stringify(seen[0].body) === JSON.stringify(base.body), ascii(JSON.stringify({ now: seen[0] && sha(JSON.stringify(seen[0].body)), prod: sha(JSON.stringify(base.body)) })));
-      ok('I4d its wire is byte-identical to production\'s wire for that body (' + PROD_HEAD.slice(0, 7) + ')',
-        !!s && base.head === PROD_HEAD && sha(s.writes.join('')) === base.wireSha256 && s.writes.length === base.writes,
-        ascii(JSON.stringify({ now: s && sha(s.writes.join('')), prod: base.wireSha256 })));
+      // I4d WAS: the whole wire is byte-identical to production's. IS: byte-identical once the order's status frames (whole
+      // writes of their own) are taken out -- every other byte and the write count still pinned.
+      ok('I4d its wire, less the order\'s status frames, is byte-identical to production\'s wire for that body (' + PROD_HEAD.slice(0, 7) + ')',
+        !!s && base.head === PROD_HEAD && sha(withoutStatus(s.writes).join('')) === base.wireSha256 && withoutStatus(s.writes).length === base.writes,
+        ascii(JSON.stringify({ now: s && sha(withoutStatus(s.writes).join('')), prod: base.wireSha256 })));
       for (const t of [true, false]) {
         const r = byId('I4', t);
         ok('I4e the completed rendering equals production\'s client on those bytes (tashkeel ' + (t ? 'on' : 'off') + ')',

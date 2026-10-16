@@ -828,7 +828,10 @@ const A3_CASES = JSON.parse(read('data/transfer-fixtures/a3-cases.json'));
         // ITEM 32: the parser ships in app.jsx now; index.html only loads the bundle built from it.
         const clientHandlerBody = (require('../tools/babel-block.cjs').readShippedClient('index.html').match(/const handleEvent = \(block\) => \{([\s\S]*?)\n      \};/) || [])[1];
         const clientVisibleFromRaw = clientHandlerBody && new Function('raw', `
-          let full = '', streamError = null, onDelta = null;
+          // ITEM O3a (132) -- 2026-10-15 brain-line, HARNESS COMPLETION (no assertion changed): the shipped handleEvent closes
+          // over the client's onStatus / onLiveOffer / onLessons parameters too; bound null here as onDelta already is. Every
+          // path now sends ezik_status, so the client's status branch is reached and needs its binding.
+          let full = '', streamError = null, onDelta = null, onStatus = null, onLiveOffer = null, onLessons = null;
           const handleEvent = (block) => {${clientHandlerBody}\n};
           let buffer = String(raw).replace(/\\r\\n/g, '\\n'), idx;
           while ((idx = buffer.indexOf('\\n\\n')) !== -1) { handleEvent(buffer.slice(0, idx)); buffer = buffer.slice(idx + 2); }

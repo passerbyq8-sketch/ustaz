@@ -1765,11 +1765,16 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         ok('T10e the handler\'s [bw2] record carries no digit run of the question', t && !JSON.stringify(t).includes(DIGITS)
           && !JSON.stringify(bw2.logs).includes(DIGITS), ascii(JSON.stringify(t)));
 
+        // RE-TARGETED, ITEM O3a (132) -- 2026-10-15 brain-line, by the order (every path sends ezik_status) and the session's
+        // standing rule-12 amendment. WAS: today's path sends no ezik_status frame (the witness that BW2 did not run). IS: it
+        // sends at least one, and none of before writing's own stages (fatwa, library, encyclopedia, lessons, judge).
+        const todaysStatuses = (fr) => fr.some((f) => f.type === 'ezik_status')
+          && !fr.some((f) => f.type === 'ezik_status' && ['fatwa', 'library', 'encyclopedia', 'lessons', 'judge'].includes(f.stage));
         const live = await drive(Q_MASAH, { body: { liveSearch: true } });
         const liveLog = live.logOf('[free-brain]');
         ok('T9c liveSearch: true skips BW2 and takes today\'s free-brain path',
           !live.crashed && liveLog && liveLog.bw2 === false && liveLog.liveSearch === true && !live.logOf('[bw2]')
-          && !live.frames.some((f) => f.type === 'ezik_status'), ascii(JSON.stringify(liveLog)));
+          && todaysStatuses(live.frames), ascii(JSON.stringify(liveLog)));
         ok('T9d ...with its first provider round forced to call search_sources through tool_choice',
           live.model[0] && live.model[0].tool_choice && live.model[0].tool_choice.type === 'tool'
           && live.model[0].tool_choice.name === 'search_sources' && live.model[0].thinking && live.model[0].thinking.type === 'disabled',
@@ -1779,14 +1784,14 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
 
         const off = await drive(Q_MASAH, { env: { BEFORE_WRITING_V2: 'off' } });
         const offLog = off.logOf('[free-brain]');
-        ok('T9f BEFORE_WRITING_V2=off takes today\'s path: no BW2, no status frame, and no forced tool',
-          !off.crashed && offLog && offLog.bw2 === false && !off.logOf('[bw2]') && !off.frames.some((f) => f.type === 'ezik_status')
+        ok('T9f BEFORE_WRITING_V2=off takes today\'s path: no BW2, none of its status stages, and no forced tool',
+          !off.crashed && offLog && offLog.bw2 === false && !off.logOf('[bw2]') && todaysStatuses(off.frames)
           && off.model.length >= 1 && !off.model[0].tool_choice, ascii(JSON.stringify(offLog)));
 
         const minor = await drive(Q_MASAH, { band: 'teen', age: 15 });
         const minorLog = minor.logOf('[free-brain]');
         ok('T9g a minor takes today\'s path', !minor.crashed && (!minorLog || minorLog.bw2 === false) && !minor.logOf('[bw2]')
-          && !minor.frames.some((f) => f.type === 'ezik_status'), ascii(JSON.stringify(minorLog)));
+          && todaysStatuses(minor.frames), ascii(JSON.stringify(minorLog)));
 
         const closedQ = '\u0645\u0627 \u0635\u062d\u0629 \u062d\u062f\u064a\u062b \u0625\u0646\u0645\u0627 \u0627\u0644\u0623\u0639\u0645\u0627\u0644 \u0628\u0627\u0644\u0646\u064a\u0627\u062a\u061f';
         const closed = await drive(closedQ);
@@ -1796,7 +1801,7 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
 
         const fbOff = await drive(Q_MASAH, { env: { FREE_BRAIN_V1: 'off' } });
         ok('T9i FREE_BRAIN_V1=off: the before-writing switch is never reached (the pre-free-brain path runs)',
-          !fbOff.logOf('[bw2]') && !fbOff.frames.some((f) => f.type === 'ezik_status'));
+          !fbOff.logOf('[bw2]') && todaysStatuses(fbOff.frames));
 
         // SPEED FIX 1, R1/R2: through the real handler, each question is a DEEN turn on the free-brain
         // seat that BW2 leaves alone -- today's tool loop answers it (its first round carries tools).
@@ -1805,7 +1810,9 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
           const seat = r.logOf('[free-brain]');
           const route = r.logOf('[route]');
           return !r.crashed && !!seat && seat.bw2 === false && !!route && route.route === 'DEEN' && !r.logOf('[bw2]')
-            && !r.logOf('[closed-deen]') && !r.frames.some((f) => f.type === 'ezik_status')
+            // RE-TARGETED, ITEM O3a (132) -- 2026-10-15 brain-line: WAS no ezik_status frame; IS the order's statuses and
+            // none of before writing's own stages (todaysStatuses above, the same rule-12 re-target as T9c/f/g/i).
+            && !r.logOf('[closed-deen]') && todaysStatuses(r.frames)
             && r.model.length >= 1 && Array.isArray(r.model[0].tools);
         };
         const r1 = [];

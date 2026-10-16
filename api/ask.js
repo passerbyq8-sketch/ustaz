@@ -27,6 +27,7 @@ import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
 import { languageGate, decideLanguage } from '../lib/lang/gate.js';
 import { withAnswerLog, heldFromTelemetry, hitsFromSpend } from '../lib/answer-log.js';
 import { createContinuationRelay } from '../lib/continuation.js';
+import { installAnswerStatus } from '../lib/answer-status.js';
 // ITEM 58 -- the address line from the gender the asker wrote in «ملفّك», behind SYNC_SWITCH.
 import { addresseeFor, addressLineFor } from '../lib/sync/memory.js';
 import { classifyRoute, createSourceFilter, isReligiousText, normalizeArabic, isRulingFrame } from '../lib/route-classify.js';
@@ -787,6 +788,10 @@ export default async function handler(req, res) {
   // written once after the answer has ended, whatever way it ends. (The exported handler stays the gate itself --
   // guards/lang-guard.cjs pins it -- so on a translated answer the tap measures the Arabic stream the gate translates.)
   return withAnswerLog(req, res, async () => {
+  // ITEM O3a (132) -- 2026-10-15 brain-line: THE READER IS TOLD WHAT IS HAPPENING (lib/answer-status.js): the stages
+  // each path names below, one status before the first text on a path that names none, and `working` every five
+  // seconds of silence until that text -- on an event-stream response only.
+  const answerStatus = installAnswerStatus(res);
   // SPEED ITEM 17: the before-writing path reports its first release from here (firstReleaseMs).
   const requestStartedAt = Date.now();
   // ITEM O1 (91) -- 2026-10-15 brain-line: this answer's record (opened by the outer handler; a no-op when it is absent).
@@ -2109,6 +2114,8 @@ export default async function handler(req, res) {
       let out;
       try {
         out = await runFreeBrainTurn({
+          // ITEM O3a (132) -- 2026-10-15 brain-line: the turn names its stages to the reader.
+          onStage: (stage) => answerStatus.status(stage),
           messages: body.messages,
           system: appendDepthBlock(generalSystem || system, buildFreeBrainInstruction({ band })),
           model,
@@ -4122,6 +4129,7 @@ export default async function handler(req, res) {
     // model cannot switch to a search half-way, so no draft can ever be shown and then
     // replaced. Every text delta is forwarded as it arrives.
     if (effectiveRoute === 'GEN') {
+      answerStatus.status('write');
       const genRequest = {
         model,
         max_tokens: maxTokens,
@@ -4187,6 +4195,7 @@ export default async function handler(req, res) {
       // message_delta until the stop is known; on max_tokens up to three continuations stream into the same block, and a
       // stream still cut after them ends with the mark. The stop and the count go to the answer's record.
       const genRelay = createContinuationRelay({
+        onStart: () => answerStatus.status('continue'),
         write: (frame) => res.write(frame), mark: TRUNCATED_MARK, startedAt: requestStartedAt, signal: upstream.signal,
         continueWith: (tail, push) => continueLegacyStream(genRequest, headers, upstream.signal, tail, push),
         onStop: (stop, continued) => answerLog.note({ stop_reason: stop, continued, truncated: stop === 'max_tokens' }),
@@ -4246,6 +4255,7 @@ export default async function handler(req, res) {
       return;
     }
 
+    answerStatus.status('retrieve');
     // ── ROUND 1 (DEEN): non-streamed, WITH tools, search FORCED ────────────
     const r1 = await fetch(ANTHROPIC_URL, {
       method: 'POST',
@@ -4847,6 +4857,7 @@ export default async function handler(req, res) {
       return emitOnce(withPresence(honest.text));
     }
 
+    answerStatus.status('write');
     // ── ROUND 2: streamed, WITHOUT tools (guarantees a streamable text answer) ──
     const upstream = bindUpstreamToClient(readerGone);
     let r2;
@@ -4918,6 +4929,7 @@ export default async function handler(req, res) {
 
     // ITEM O2 (32) -- 2026-10-15 brain-line: the same relay as the GEN stream above (lib/continuation.js).
     const round2Relay = createContinuationRelay({
+      onStart: () => answerStatus.status('continue'),
       write: (frame) => res.write(frame), mark: TRUNCATED_MARK, startedAt: requestStartedAt, signal: upstream.signal,
       continueWith: (tail, push) => continueLegacyStream({ model, max_tokens: maxTokens, ...(usePremium ? { output_config: { effort: round2Effort } } : {}), system, messages: round2Messages }, headers, upstream.signal, tail, push),
       onStop: (stop, continued) => answerLog.note({ stop_reason: stop, continued, truncated: stop === 'max_tokens' }),
