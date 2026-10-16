@@ -1624,6 +1624,8 @@ const EZ_I18N = {
     'menu.inboxAria': 'صندوق الرسائل — رسائلُ القرّاءِ والرَّدُّ عليها',
     'inbox.tabFeedback': 'اقتراحات وشكاوى',
     'inbox.tabReports': 'بلاغات',
+    // ITEM O1 (91) -- 2026-10-15 brain-line: the answer log's tab (api/inbox.js kind 'answers').
+    'inbox.tabAnswers': 'سجلُّ الأجوبة',
     'inbox.empty': 'لا رسائلَ هنا.',
     'inbox.failed': 'تعذَّرَ فتحُ الصندوق.',
     'inbox.stateNew': 'جديدة',
@@ -3167,6 +3169,7 @@ const EZ_I18N = {
     'menu.inboxAria': 'Inbox — readers\u2019 messages and replying to them',
     'inbox.tabFeedback': 'Suggestions and complaints',
     'inbox.tabReports': 'Reports',
+    'inbox.tabAnswers': 'Answer log',
     'inbox.empty': 'Nothing here.',
     'inbox.failed': 'The inbox could not be opened.',
     'inbox.stateNew': 'New',
@@ -26354,7 +26357,30 @@ function ezikInboxWhen(ts) {
 const EZIK_INBOX_TABS = [
   { id: 'feedback', k: 'inbox.tabFeedback' },
   { id: 'reports', k: 'inbox.tabReports' },
+  // ITEM O1 (91) -- 2026-10-15 brain-line: the answer log, read only (no erase, no reply, no open).
+  { id: 'answers', k: 'inbox.tabAnswers' },
 ];
+
+// ITEM O1 (91) -- 2026-10-15 brain-line: ONE ANSWER'S RECORD ON ONE LINE. Every value is a count or a closed word the
+// server wrote (lib/answer-log.js); nothing here is the reader's question or the answer, so nothing is translated.
+function EzikAnswerLogRow({ r }) {
+  const sum = (m) => Object.values(m || {}).reduce((a, n) => a + (Number(n) || 0), 0);
+  const time = Number.isFinite(r.at) ? new Date(r.at).toISOString().slice(11, 16) : '--:--';
+  const parts = [
+    r.path || '-', r.runtime || r.route || '-', r.depth || '', r.lang && r.lang !== 'ar' ? r.lang + (r.translated ? '*' : '') : '',
+    'hits ' + sum(r.hits), 'cited ' + (r.cited || 0), sum(r.held) ? 'held ' + sum(r.held) : '',
+    r.stop_reason || '', r.truncated ? 'TRUNCATED' : '', r.continued ? 'cont ' + r.continued : '',
+    Number.isFinite(r.first_byte_ms) ? 'first ' + (r.first_byte_ms / 1000).toFixed(1) + 's' : '',
+    'gap ' + ((r.max_gap_ms || 0) / 1000).toFixed(1) + 's', (r.out_chars || 0) + ' chars',
+    ...(Array.isArray(r.flags) ? r.flags : []),
+  ].filter(Boolean);
+  return (
+    <div style={s.artRow} dir="ltr">
+      <div style={s.artRowMeta}><span style={s.artRowDate}>{time}</span><span style={s.artRowDate}>{r.trace}</span></div>
+      <div style={{ fontFamily: 'monospace', fontSize: 12 }}>{parts.join(' · ')}</div>
+    </div>
+  );
+}
 // The three states api/inbox.js derives, mapped to the three sentences. Written out rather than
 // interpolated into a key name, so a state the server invents tomorrow shows nothing instead of
 // showing a raw key to the owner.
@@ -26710,7 +26736,7 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
         {/* THE THREE ERASES LIVE INSIDE THE PANEL THAT IS ALREADY OPEN (ruling م٨) -- no new menu
             row and no new `screen` key. They are drawn only over a list that has something in it,
             because an erase control above «لا رسائلَ هنا» is a control with nothing to act on. */}
-        {listState === EZIK_ART_DONE && rows.length > 0 ? (
+        {kind !== 'answers' && listState === EZIK_ART_DONE && rows.length > 0 ? (
           <div style={s.artChoiceRow}>
             <button type="button" className="ezhome-focus" aria-pressed={picking}
               onClick={() => { if (picking) { stopPicking(); } else { setDelNote(''); setDelErr(''); setPicking(true); } }}
@@ -26760,7 +26786,11 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
           <div style={s.artEmptyTitle}>{ezT('inbox.empty')}</div>
         </div>
       ) : null}
-      {listState === EZIK_ART_DONE && rows.length > 0 ? (
+      {kind === 'answers' ? (
+        listState === EZIK_ART_DONE && rows.length > 0
+          ? <div style={s.artList}>{rows.map((r) => <EzikAnswerLogRow key={r.trace} r={r} />)}</div>
+          : null
+      ) : listState === EZIK_ART_DONE && rows.length > 0 ? (
         <>
           <div style={s.artList}>
             {rows.map((r) => (

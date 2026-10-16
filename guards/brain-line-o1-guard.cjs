@@ -178,6 +178,21 @@ const QUESTION = 'ما حكمُ الفطرِ في رمضانَ لمريضِ ال
       } finally { REDIS.__resetRedis(); }
     }
   }
+  console.log('-- 6. the app: a third tab (O1c)');
+  {
+    const app = fs.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
+    const built = fs.readFileSync(path.join(REPO, 'app.js'), 'utf8');
+    ok('the tab list carries answers', /\{ id: 'answers', k: 'inbox\.tabAnswers' \}/.test(app));
+    ok('its two titles, ar and en', app.includes("'inbox.tabAnswers': 'سجلُّ الأجوبة'") && app.includes("'inbox.tabAnswers': 'Answer log'"));
+    const langs = fs.readdirSync(path.join(REPO, 'lang')).filter((f) => f.endsWith('.json'));
+    ok('...and a title in every lang/<code>.json (guards/lang-guard.cjs A3)', langs.length >= 21 && langs.every((f) => {
+      const v = JSON.parse(fs.readFileSync(path.join(REPO, 'lang', f), 'utf8'))['inbox.tabAnswers'];
+      return typeof v === 'string' && v.trim() && !/[\u0600-\u06FF]/.test(v) === !['fa.json', 'ku.json', 'ps.json', 'ur.json'].includes(f);
+    }));
+    ok('a simple row renderer for a record', /function EzikAnswerLogRow\(\{ r \}\)/.test(app) && /kind === 'answers' \? \(/.test(app));
+    ok('the erase controls are not drawn over the log', /kind !== 'answers' && listState === EZIK_ART_DONE && rows\.length > 0/.test(app));
+    ok('app.js is rebuilt from app.jsx (the tab and the renderer are in it)', built.includes('inbox.tabAnswers') && built.includes('EzikAnswerLogRow'));
+  }
   const tg = spawnSync(process.execPath, [path.join(REPO, 'guards/telemetry-text-guard.cjs')], { encoding: 'utf8' });
   ok('guards/telemetry-text-guard.cjs is green, with the log\'s sink swept (section F)', tg.status === 0 && /F: every note\(\) field is a reviewed log field/.test(tg.stdout), (tg.stdout || '').slice(-300));
   console.log('');
