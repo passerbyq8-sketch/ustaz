@@ -26,7 +26,7 @@
  *                      is true/false, and the entity rule holds over the whole bank (named exceptions only).
  *   K2 one copy     -- quest-data/ holds that one file and nothing else, and no page in
  *                      the repository root embeds a bank of its own.
- *   K3 the modes    -- quest-ghaws.html and quest-harb.html each load the shared bank
+ *   K3 the modes    -- quest-ghaws.html, quest-harb.html and quest-board.html each load the shared bank
  *                      exactly once, and each carries a way back to /quest.html and a
  *                      way home to /.
  *   K4 the hub      -- quest.html carries the home link to /, a door to each mode, and
@@ -77,7 +77,7 @@ const BANK = 'quest-data/kunuz-bank-3147.js';
 const BANK_TAG = '<script src="/' + BANK + '"></script>';
 const BANK_QUESTIONS = 10935;
 const BANK_CATEGORIES = 53;
-const KUNUZ_MODES = ['quest-ghaws.html', 'quest-harb.html'];
+const KUNUZ_MODES = ['quest-ghaws.html', 'quest-harb.html', 'quest-board.html'];   // KUNUZ-BOARD (2026-10-16): the board game
 const KUNUZ_HUB = 'quest.html';
 
 // ---------------------------------------------------------------------------
@@ -2729,7 +2729,7 @@ async function compare(bankPath) {
         moved++; no('B11', '/api/* is being intercepted -- a cached religious answer is a wrong answer');
       }
       // ITEM 10: the whole Kunuz surface sits under one prefix and stays network-only.
-      for (const qp of ['/quest.html', '/quest-ghaws.html', '/quest-harb.html', '/' + BANK]) {
+      for (const qp of ['/quest.html', '/quest-ghaws.html', '/quest-harb.html', '/quest-board.html', '/' + BANK]) {
         if (swLoad(swPath, () => Promise.resolve(swRes('x'))).dispatch(qp).responded
           || swLoad(swPath, () => Promise.resolve(swRes('x'))).dispatch(qp, 'navigate').responded) {
           moved++; no('B11', 'the worker intercepts ' + qp + ' -- a phone would be frozen on an old Kunuz page or bank');
