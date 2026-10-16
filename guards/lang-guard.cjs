@@ -348,7 +348,10 @@ const V = '﴿', W = '﴾';
     });
     ok('the first Arabic paragraph started to be translated WHILE the brain was still writing', when[0] === 'during', JSON.stringify(when));
     ok('...and the speculator is handed to the final translation, which runs only after the inner handler has finished', !!sawSpec && sawSpec.started >= 1 && innerDone === true);
-    ok('...and nothing of it reached the reader before the final translation ran', shownBefore[0] === false);
+    // RE-TARGETED, ITEM O3b (132) -- 2026-10-15 brain-line, by the order (the closed paragraphs are shown as soon as their
+    // speculated translation is accepted, not after the end) and the session's standing rule-12 amendment. WAS: nothing of
+    // the first paragraph reached the reader before the final translation ran. IS: it did -- on the same fixture.
+    ok('...and the first paragraph reached the reader translated BEFORE the final translation ran (O3b)', shownBefore[0] === true);
     made = 0;
     const resA = real();
     await G.languageGate({ method: 'POST', headers: { 'x-ezik-lang': 'en' }, body: { messages: [{ role: 'user', content: 'ما حكم صلاة المسافر؟' }] } }, resA, writing, { log() {}, speculate: true, createSpeculatorImpl: mk, translateQuestionImpl: async () => ({ ok: true, ms: 1 }), translateAnswerImpl: async () => { throw new Error('an Arabic question is never translated'); } });
