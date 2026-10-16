@@ -146,6 +146,38 @@ const QUESTION = 'ما حكمُ الفطرِ في رمضانَ لمريضِ ال
   ok('the route and the depth are noted', /answerLog\.note\(\{ route: effectiveRoute, runtime: currentRuntime \}\)/.test(ask) && /answerLog\.note\(\{ depth: instructionDepth \|\| 'normal' \}\)/.test(ask));
   ok('the sentence stream\'s counters reach the record', /held: out\.streamCounts \|\| \{\}/.test(ask)
     && /streamCounts: streamResult && streamResult\.counts/.test(fs.readFileSync(path.join(REPO, 'lib/free-brain/loop.js'), 'utf8')));
+  console.log('-- 5. the inbox: a third kind, answers (O1b)');
+  {
+    const inboxSrc = fs.readFileSync(path.join(REPO, 'api/inbox.js'), 'utf8');
+    ok('the owner\'s list answers kind "answers" before the two lists\' kind check',
+      /if \(action === 'list'\) \{\n    if \(body\.kind === 'answers'\) return res\.status\(200\)\.json\(await answersList\(body\)\);/.test(inboxSrc));
+    ok('read, reply and delete still refuse it (KINDS stays the two lists)', /const KINDS = Object\.freeze\(\['feedback', 'reports'\]\);/.test(inboxSrc));
+    let INBOX = null;
+    try { INBOX = await esm('api/inbox.js'); } catch (e) { INBOX = null; }
+    const answersList = INBOX && typeof INBOX.answersList === 'function' ? INBOX.answersList : null;
+    ok('api/inbox.js exports answersList', !!answersList);
+    if (answersList) {
+      const fake = fakeUpstash();
+      REDIS.__setRedisForTest(fake);
+      try {
+        const day = Date.UTC(2026, 9, 15, 9);
+        for (let i = 0; i < 6; i += 1) {
+          const log = AL.createAnswerLog({ question: 'q', key: '', now: () => day, trace: 'ib' + i });
+          log.note({ path: i < 4 ? 'bw2' : 'stored', held: i === 1 ? { unsupportedMatn: 1 } : {}, truncated: i === 2 });
+          await log.flush();
+        }
+        const all = await answersList({ kind: 'answers', day: '20261015' });
+        ok('a day\'s window, newest first', all.ok === true && all.kind === 'answers' && all.day === '20261015' && all.items.length === 6 && all.items[0].trace === 'ib5', JSON.stringify(all).slice(0, 300));
+        const byPath = await answersList({ kind: 'answers', day: '20261015', path: 'stored' });
+        ok('filtered by path', byPath.items.length === 2 && byPath.items.every((r) => r.path === 'stored'));
+        const held = await answersList({ kind: 'answers', day: '20261015', status: 'held' });
+        const trunc = await answersList({ kind: 'answers', day: '20261015', status: 'truncated' });
+        ok('filtered by status', held.items.map((r) => r.trace).join() === 'ib1' && trunc.items.map((r) => r.trace).join() === 'ib2', JSON.stringify([held.items, trunc.items]));
+        const bad = await answersList({ kind: 'answers', day: '2026-10-15; DROP', path: 'nope', status: 'x' });
+        ok('an unknown path or status is refused, a malformed day falls to today', bad.ok === false || (bad.items.length === 0 && /^\d{8}$/.test(bad.day)), JSON.stringify(bad));
+      } finally { REDIS.__resetRedis(); }
+    }
+  }
   const tg = spawnSync(process.execPath, [path.join(REPO, 'guards/telemetry-text-guard.cjs')], { encoding: 'utf8' });
   ok('guards/telemetry-text-guard.cjs is green, with the log\'s sink swept (section F)', tg.status === 0 && /F: every note\(\) field is a reviewed log field/.test(tg.stdout), (tg.stdout || '').slice(-300));
   console.log('');

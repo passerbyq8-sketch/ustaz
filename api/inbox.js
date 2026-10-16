@@ -52,6 +52,7 @@ import { DEVICE_HEADER } from '../lib/daycap.js';
 import { resolveActor, ROLE_OWNER } from '../lib/articles/roles.js';
 import { touchSession } from '../lib/auth/account.js';
 import { readJson as readAuthJson } from '../lib/auth/store.js';
+import { readAnswerLog, ANSWER_LOG_PATHS } from '../lib/answer-log.js';
 import { TEXT_CAP } from './feedback.js';
 
 const redis = new Redis({
@@ -82,6 +83,23 @@ const KINDS = Object.freeze(['feedback', 'reports']);
 // computed over: the items, the states and the unread count all describe these newest 200 and
 // nothing older, which is why the answer names the window rather than implying it covers the list.
 const LIST_WINDOW = 200;
+
+// ITEM O1 (91) -- 2026-10-15 brain-line: THE THIRD KIND, 'answers' -- the answer log (lib/answer-log.js), read only, owner
+// only, through 'list' alone. It is NOT in KINDS, so read, reply and delete refuse it exactly as they refuse any unknown
+// kind. A window of one day, newest first, filtered by path (the log's closed list) and by status (held, truncated,
+// incomplete, clean); a record carries counts and closed words only, never a question or an answer.
+const ANSWER_STATUSES = Object.freeze(['held', 'truncated', 'incomplete', 'clean']);
+const todayKey = () => new Date().toISOString().slice(0, 10).replace(/-/g, '');
+export async function answersList(body = {}) {
+  const day = /^\d{8}$/.test(String(body.day || '')) ? String(body.day) : todayKey();
+  const pathAsked = typeof body.path === 'string' ? body.path : '';
+  const statusAsked = typeof body.status === 'string' ? body.status : '';
+  if (pathAsked && !ANSWER_LOG_PATHS.includes(pathAsked)) return { ok: false, error: 'inbox-answers-path' };
+  if (statusAsked && !ANSWER_STATUSES.includes(statusAsked)) return { ok: false, error: 'inbox-answers-status' };
+  const limit = Math.max(1, Math.min(LIST_WINDOW, Number.isInteger(body.limit) ? body.limit : LIST_WINDOW));
+  const items = await readAnswerLog({ day, path: pathAsked, status: statusAsked, limit });
+  return { ok: true, kind: 'answers', day, window: LIST_WINDOW, total: items.length, items };
+}
 
 const REPLY_PREFIX = 'reply:v1:';
 const READ_PREFIX = 'inbox:v1:read:';
@@ -405,6 +423,7 @@ export default async function handler(req, res) {
 /** `list`, `read` and `reply`. The caller is already proved to be the owner. */
 async function ownerAction(req, res, body, action) {
   if (action === 'list') {
+    if (body.kind === 'answers') return res.status(200).json(await answersList(body));
     const kind = typeof body.kind === 'string' ? body.kind : '';
     if (!KINDS.includes(kind)) return res.status(400).json({ ok: false, error: 'inbox-kind' });
     // The window is always scanned whole -- the unread count describes it whole -- and `limit`
