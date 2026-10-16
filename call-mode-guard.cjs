@@ -856,9 +856,15 @@ async function checkModelRouting() {
       }), 'legacy-gen');
       if (firstModel(out.bodies) === STANDARD_SENTINEL) pass('D3 forged ' + label + ' stays on the STANDARD resolver');
       else fail('D3 forged ' + label + ' model = ' + firstModel(out.bodies));
-      if (!systemText(out.bodies[0]).includes(ASK.buildDepthInstruction('scholar'))) {
-        pass('D3 forged ' + label + ' gets no scholar capability');
-      } else fail('D3 forged ' + label + ' reached the scholar instruction');
+      // RE-TARGETED, ITEM E1 (32) -- 2026-10-15 brain-line, by the owner's decision (d) (the depth instruction follows the
+      // mode the reader chose, with no founder lock) and the session's standing rule-12 amendment. WAS: no request without
+      // the founder's token reaches the scholar instruction. IS: a request whose depth IS «scholar» reaches it (the
+      // premium resolver stays locked, the row above); a request that did not choose it (deep, a forged tier) does not.
+      const choseScholar = extra.depth === 'scholar';
+      const hasScholar = systemText(out.bodies[0]).includes(ASK.buildDepthInstruction('scholar'));
+      if (hasScholar === choseScholar) {
+        pass('D3 forged ' + label + (choseScholar ? ' gets the scholar instruction it chose (no premium)' : ' gets no scholar capability'));
+      } else fail('D3 forged ' + label + (choseScholar ? ' did not reach the scholar instruction it chose' : ' reached the scholar instruction'));
     }
 
     // Observe the real lazy encyclopedia read. A founder token alone is insufficient: the

@@ -800,5 +800,10 @@
     "name": "brainlined5",
     "script": "guards/brain-line-d5-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "brainlinee1",
+    "script": "guards/brain-line-e1-guard.cjs",
+    "args": ""
   }
 ]
