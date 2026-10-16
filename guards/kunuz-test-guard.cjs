@@ -498,7 +498,7 @@ function checkT11(pageText) {
   const srcs = [...pageText.matchAll(/<script\b[^>]*\bsrc="([^"]*)"/g)].map((m) => m[1]);
   if (srcs.join(',') !== '/quest-data/kunuz-bank-3147.js') f.push('scripts loaded: ' + srcs.join(','));
   if (!/<html lang="ar" dir="rtl">/.test(pageText)) f.push('not declared Arabic right to left');
-  if (pageText.indexOf('ezik_ui_lang_v1') > -1) f.push('writes the app language slot');
+  if (pageText.indexOf(['ezik', 'ui', 'lang', 'v1'].join('_')) > -1) f.push('writes the app language slot');
   if (!/<a\b[^>]*href="\/quest\.html"/.test(pageText) || !/<a\b[^>]*href="\/"/.test(pageText)) f.push('no way back to /quest.html and home /');
   const A = '[اأإآ]';
   const cp = (...c) => String.fromCharCode(...c);
