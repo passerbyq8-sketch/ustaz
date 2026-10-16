@@ -944,3 +944,4 @@ guards/brain-line-z3-guard.cjs text eol=lf
 guards/brain-line-h1-guard.cjs text eol=lf
 guards/brain-line-h2-guard.cjs text eol=lf
 guards/brain-line-h3-guard.cjs text eol=lf
+guards/brain-line-h4-guard.cjs text eol=lf
