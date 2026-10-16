@@ -8827,7 +8827,10 @@ const parseRichMessage = (text, viewerAge) => {
   };
 
   // أنماط الوسوم
-  const tagPattern = new RegExp(`<(${KNOWN_TAGS})([^>]*)>([\\s\\S]*?)</\\1>`, 'g');
+  // ITEM H2 (74, m0) -- 2026-10-15 brain-line: a self-closing <verse …/> or <hadith …/> is a tag of its own, as on the server
+  // (lib/lang/answer.js TAG_RE): read as the opening of a pair it swallowed the text up to the next </verse>. Groups 1-2 the
+  // self-closing tag, 3-5 a pair.
+  const tagPattern = new RegExp(`<(verse|hadith)\\b([^>]*?)\\s*\\/>|<(${KNOWN_TAGS})([^>]*)>([\\s\\S]*?)</\\3>`, 'g');
   let lastIndex = 0;
   let match;
   while ((match = tagPattern.exec(text)) !== null) {
@@ -8836,9 +8839,9 @@ const parseRichMessage = (text, viewerAge) => {
       const plainText = text.slice(lastIndex, match.index).trim();
       if (plainText) segments.push({ type: 'text', content: plainText });
     }
-    const tagName = match[1];
-    const attrsStr = match[2] || '';
-    const content = (match[3] || '').trim();
+    const tagName = match[1] || match[3];
+    const attrsStr = (match[1] ? match[2] : match[4]) || '';
+    const content = (match[1] ? '' : (match[5] || '')).trim();
     if (tagName === 'verse') {
       const surahMatch = attrsStr.match(/surah=["']([^"']+)["']/);
       const surahNumMatch = attrsStr.match(/surah_num=["']([^"']+)["']/);

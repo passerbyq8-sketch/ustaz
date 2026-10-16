@@ -850,5 +850,10 @@
     "name": "brainlineh1",
     "script": "guards/brain-line-h1-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "brainlineh2",
+    "script": "guards/brain-line-h2-guard.cjs",
+    "args": ""
   }
 ]
