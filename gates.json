@@ -815,5 +815,10 @@
     "name": "brainlineo1",
     "script": "guards/brain-line-o1-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "brainlineo2",
+    "script": "guards/brain-line-o2-guard.cjs",
+    "args": ""
   }
 ]
