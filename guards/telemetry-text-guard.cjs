@@ -1,9 +1,11 @@
 // guards/telemetry-text-guard.cjs — the reader's question is not an operational field.
 //
-// THE OWNER DECISION THIS ENFORCES. The text of a user's question is never recorded: not raw,
-// not normalised, and not as a fingerprint. A digest is not a compromise here — a question is a
-// short string from a small space, and a hash of one is the question to anybody holding a
-// wordlist. lib/ledger/seam.js already says it in words over its own counts line («COUNTS AND
+// THE OWNER DECISION THIS ENFORCES. The text of a user's question is never recorded: not raw and
+// not normalised. A plain digest is not a compromise here — a question is a short string from a
+// small space, and an unkeyed hash of one is the question to anybody holding a wordlist. CORRECTED
+// 2026-10-15 (ITEM O1 / 91, brain-line; the owner's decision b): the one fingerprint allowed is the
+// answer log's `fp` — an HMAC-SHA256 under ANSWER_LOG_KEY, a keyed fingerprint and not the text,
+// omitted when the key is absent (lib/answer-log.js); section F below holds the log's sink. lib/ledger/seam.js already says it in words over its own counts line («COUNTS AND
 // CODES ONLY. No question, no answer, no page text, no reader identity»); this gate is what
 // makes the same sentence true of the handler's stdout, where it was NOT true until today.
 //
@@ -298,6 +300,31 @@ const ALLOWED = new Set([...ALLOWED_FIELDS, ...STREAM_FIELDS, ...LIVE_WORLD_V2_F
   ...COLLAPSE_FIELDS, ...CALL_FAIL_FIELDS, ...BW2_FIELDS, ...SORTER_FIELDS, ...IMPERMISSIBLE_FIELDS]);
 const NEWLINE = String.fromCharCode(10);
 
+// -- RULE B FOR THE ANSWER LOG (ITEM O1 / 91, 2026-10-15 brain-line) --
+//
+// The record's own fields by name (lib/answer-log.js ANSWER_LOG_FIELDS), and the names of the sources its `hits` map
+// counts. Every value the library stores is a count, a boolean, a map of counts or a short ASCII token -- no sentence
+// in any language passes its sanitiser -- and every note() call in api/ask.js is swept by rules A and B like a
+// console call.
+const ANSWER_LOG_ALLOWED = new Set([
+  'trace', 'day', 'at', 'route', 'runtime', 'path', 'depth', 'lang', 'translated', 'status',
+  'q_chars', 'q_words', 'fp', 'hits', 'cited', 'held', 'stop_reason', 'truncated', 'continued',
+  'out_chars', 'out_tokens', 'first_byte_ms', 'max_gap_ms', 'status_events', 'flags',
+  // the sources `hits` counts, by name
+  'fatwa', 'library', 'encyclopedia', 'lessons', 'candidates', 'evidence', 'world',
+]);
+const NOTE_CALL = /\banswerLog\s*\.\s*note\s*\(/;
+const sweepNotes = (source, file) => {
+  const findings = [];
+  for (const call of scan.consoleCalls(source, NOTE_CALL)) {
+    if (!call.balanced) { findings.push({ file, line: call.line, rule: 'SCAN', detail: 'unterminated note call' }); continue; }
+    const expr = scan.expressionText(call.text);
+    for (const denied of DENIED_SOURCES) if (denied.re.test(expr)) findings.push({ file, line: call.line, rule: 'A', detail: denied.why });
+    for (const key of scan.objectKeys(call.text)) if (!ANSWER_LOG_ALLOWED.has(key)) findings.push({ file, line: call.line, rule: 'B', detail: 'unreviewed log field `' + key + '`' });
+  }
+  return findings;
+};
+
 // ── THE BOUNDARY, WRITTEN DOWN RATHER THAN LEFT TO BE REDISCOVERED ────────────
 //
 // Three fields survive the sweep and are NOT accidents. They are named here so that the next
@@ -357,6 +384,18 @@ const sweep = (source, file) => {
     ok('every printed field name has been reviewed onto the allow-list',
       findings.filter((x) => x.rule === 'B').length === 0,
       JSON.stringify(findings.filter((x) => x.rule === 'B')));
+
+    // ── F. THE ANSWER LOG'S SINK (ITEM O1 / 91, 2026-10-15 brain-line) ─────────
+    {
+      const notes = scan.consoleCalls(askSource, NOTE_CALL);
+      ok('F: api/ask.js yields answer-log note() calls to sweep', notes.length >= 10, String(notes.length));
+      const logFindings = sweepNotes(askSource, 'api/ask.js');
+      ok('F: no note() call reads an expression that carries reader text (rule A)', logFindings.filter((x) => x.rule === 'A').length === 0, JSON.stringify(logFindings));
+      ok('F: every note() field is a reviewed log field (rule B)', logFindings.filter((x) => x.rule !== 'A').length === 0, JSON.stringify(logFindings));
+      const mutated = askSource.replace("answerLog.note({ path: 'ledger' });", "answerLog.note({ path: 'ledger', q: questionText });");
+      ok('F: mutant -- a question field on a note() call is killed by both rules', mutated !== askSource
+        && JSON.stringify([...new Set(sweepNotes(mutated, 'api/ask.js').map((x) => x.rule))].sort()) === JSON.stringify(['A', 'B']));
+    }
 
     // ── C. THE FIELDS THAT WERE DELETED ARE GONE, BY NAME ─────────────────────
     //

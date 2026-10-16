@@ -24,7 +24,8 @@ import {
 import { guardAIConsent, AI_CONSENT_ALLOW_HEADERS } from '../lib/ai-consent.js';
 import { guardDayCap, dayCapMessage, hasUnrevokedFounderToken, refundDayCap } from '../lib/daycap.js';
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
-import { languageGate } from '../lib/lang/gate.js';
+import { languageGate, decideLanguage } from '../lib/lang/gate.js';
+import { withAnswerLog, heldFromTelemetry, hitsFromSpend } from '../lib/answer-log.js';
 // ITEM 58 -- the address line from the gender the asker wrote in «ملفّك», behind SYNC_SWITCH.
 import { addresseeFor, addressLineFor } from '../lib/sync/memory.js';
 import { classifyRoute, createSourceFilter, isReligiousText, normalizeArabic, isRulingFrame } from '../lib/route-classify.js';
@@ -772,8 +773,15 @@ function bindUpstreamToClient(readerGone) {
 // else (lib/lang/gate.js). The handler proper keeps its own name, and its body is exactly what it was.
 export default async function handler(req, res) {
   return languageGate(req, res, async function handler(req, res) {
+  // ITEM O1 (91) -- 2026-10-15 brain-line: ONE RECORD FOR EVERY ANSWER (lib/answer-log.js). Opened as the handler's
+  // first act, so every path and every early exit has one; the sites below add their facts through `answerLog.note`;
+  // written once after the answer has ended, whatever way it ends. (The exported handler stays the gate itself --
+  // guards/lang-guard.cjs pins it -- so on a translated answer the tap measures the Arabic stream the gate translates.)
+  return withAnswerLog(req, res, async () => {
   // SPEED ITEM 17: the before-writing path reports its first release from here (firstReleaseMs).
   const requestStartedAt = Date.now();
+  // ITEM O1 (91) -- 2026-10-15 brain-line: this answer's record (opened by the outer handler; a no-op when it is absent).
+  const answerLog = req.__answerLog || { note() { return this; } };
   applyCorsOrigin(req, res);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-murabbi-device, x-murabbi-founder, ' + AI_CONSENT_ALLOW_HEADERS);
@@ -990,6 +998,7 @@ export default async function handler(req, res) {
   const model = usePremium
     ? (process.env.MODEL_PREMIUM  || process.env.MODEL || 'claude-opus-5')
     : STANDARD_MODEL;
+  answerLog.note({ depth: instructionDepth || 'normal' });
   console.log('[tier]', { band, requestedDepth: body.depth, effectiveDepth, founderUnlocked, depthFreeTrial, usePremium, model });
   // D02ب: BUILT HERE, from the four sanitised fields -- never from the body. `body.system` was
   // deleted at parse time, so there is not even a value in scope to fall back to.
@@ -1126,7 +1135,7 @@ export default async function handler(req, res) {
   // ITEM C1 (axis row 1) -- 2026-10-15 brain-line: and only where the sorter itself said WORLDLY. A turn the
   // lexicon alone called general, with no verdict behind it, keeps the shari'a frame.
   const frameFor = (runtime, sorter) => (frontSorter.enabled && band === 'adult' && freeBrainOnAtSorter && runtime === 'GENERAL' && sorter === 'worldly' ? 'general' : 'sharia');
-  const logRoute = (final = {}) => console.log('[route]', {
+  const logRoute = (final = {}) => answerLog.note({ route: effectiveRoute, runtime: currentRuntime }) && console.log('[route]', {
     route: effectiveRoute, lexicalRoute: route, band,
     purpose: currentPlan.purpose, mode: currentPlan.attributionMode,
     entity: currentPlan.namedEntity || null, officialDomain: currentPlan.officialDomain || null,
@@ -1169,6 +1178,7 @@ export default async function handler(req, res) {
         console.log('[lib-quote]', { outcome: 'explain' });
       } else if (follow) {
         console.log('[lib-quote]', { outcome: follow.outcome });
+        answerLog.note({ path: 'canned', flags: ['lib_quote'] });
         logRoute();
         return libQuote.writeQuoteReply(res, follow.text);
       }
@@ -1180,6 +1190,7 @@ export default async function handler(req, res) {
       const quoted = await libQuote.answerQuoteRequest(quoteAsk, { runTool, createEvidenceTable, libFlagValue, libToken, ...pageDeps });
       if (quoted) {
         console.log('[lib-quote]', { outcome: quoted.outcome });
+        answerLog.note({ path: 'canned', flags: ['lib_quote'] });
         logRoute();
         return libQuote.writeQuoteReply(res, quoted.text);
       }
@@ -1199,6 +1210,7 @@ export default async function handler(req, res) {
       if (cards.length) {
         console.log('[source-followup]', { outcome: 'answered', cards: cards.length });
         const { writeQuoteReply } = await import('../lib/lib-quote.js');
+        answerLog.note({ path: 'canned', cited: cards.length, flags: ['source_followup'] });
         logRoute();
         return writeQuoteReply(res, sourceFollowUp.composeSourceReply(cards));
       }
@@ -1828,6 +1840,7 @@ export default async function handler(req, res) {
       if (Array.isArray(closedOut.finalizerSources)) {
         storedFinalizerSources.push(...closedOut.finalizerSources);
       }
+      answerLog.note({ path: 'closed' });
       console.log('[closed-deen]', {
         route: storedContext.runtime,
         sourceIds: closedOut.sourceIds || [],
@@ -2012,6 +2025,12 @@ export default async function handler(req, res) {
       // NUMBERS AND ENUMS ONLY (order 3.9): every key is reviewed onto guards/telemetry-text-guard.cjs.
       const t = bw2Out ? bw2Out.telemetry : null;
       if (t) {
+        answerLog.note({
+          path: 'bw2',
+          hits: { fatwa: t.fatwaHits, library: t.libraryHits, encyclopedia: t.encyclopediaHits, lessons: t.lessonsHits },
+          cited: t.cardsSent, held: heldFromTelemetry(t), out_tokens: t.outTokens,
+          flags: [t.liveOffer ? 'live_offer' : '', t.continued ? 'bw2_continued' : ''],
+        });
         console.log('[bw2]', {
           bw2: t.bw2, runtime: currentRuntime, frame: answerFrame,
           fatwaMs: t.fatwaMs, fatwaHits: t.fatwaHits, fatwaTimedOut: t.fatwaTimedOut,
@@ -2299,6 +2318,12 @@ export default async function handler(req, res) {
       // already say how much was searched (`tools`, `providerCalls`, `retrieved`) and every
       // numeric field an autopsy reads is untouched. What was lost is only the ability to read
       // back WHAT was asked, which is the thing being given up on purpose.
+      answerLog.note({
+        path: 'free-brain', hits: hitsFromSpend(out.spend), cited: out.cited.length,
+        held: out.streamCounts || {},
+        stop_reason: out.deliveredStop ?? undefined, truncated: out.truncated ?? undefined,
+        out_tokens: out.terminalWriteUsage ? out.terminalWriteUsage.outTokens : undefined,
+      });
       console.log('[free-brain/turn]', {
         domain: out.domain,
         rounds: out.rounds,
@@ -2680,6 +2705,10 @@ export default async function handler(req, res) {
       // its subject and the two query fields are its rewording. The identifiers stay, because an
       // opaque record id is not the question: `candidates`, `evidence` and `used` still say which
       // rows were seen, kept and cited, and every call counter below is untouched.
+      answerLog.note({
+        path: toLedger ? 'hybrid' : 'stored',
+        hits: { candidates: storedOut.candidateRecordIds, evidence: storedOut.evidencePackIds }, cited: cards.length,
+      });
       console.log(toLedger ? '[hybrid-deen]' : '[stored-deen]', {
         route: storedContext.runtime,
         domain: storedContext.resolvedDomain,
@@ -2846,6 +2875,7 @@ export default async function handler(req, res) {
             // passing one would suggest it did.
             const w = remember(await retrieveWorld(questionText, { dailyBudget: worldBudget }));
             if (w && Array.isArray(w.sources) && w.sources.length) worldPass = w;
+            if (worldPass) answerLog.note({ path: 'world', hits: { world: worldPass.sources } });
           }
         }
         if (!worldPass) {
@@ -2876,7 +2906,7 @@ export default async function handler(req, res) {
             // owner ruled — it is removed from THIS question, not from the list.
             liveNumber: liveWorldV2Enabled() && (LIVE_QUANTITY || LIVE_QUANTITY_FX),
           }));
-          if (o && Array.isArray(o.sources) && o.sources.length) { worldPass = o; worldOpen = true; }
+          if (o && Array.isArray(o.sources) && o.sources.length) { worldPass = o; worldOpen = true; answerLog.note({ path: 'world', hits: { world: o.sources } }); }
         }
       } catch (e) {
         console.warn('[world-search] threw, falling through to the ordinary general route:', e.message);
@@ -3478,6 +3508,7 @@ export default async function handler(req, res) {
       // wire.close() had already called res.end(), and a serverless invocation may be frozen at
       // response completion, so the counts were written and never shipped. They now print in
       // front of the close, inside the seam, at all three of its exits.
+      answerLog.note({ path: 'ledger' });
       await runLedgerTurn(res, {
         messages: body.messages,
         band,
@@ -4887,5 +4918,6 @@ export default async function handler(req, res) {
     try { res.write(`data: ${JSON.stringify({ type: 'error', error: { message: 'server error' } })}\n\n`); } catch {}
     res.end();
   }
+  }, decideLanguage);
   });
 }

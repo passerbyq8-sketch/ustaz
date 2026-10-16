@@ -80,9 +80,10 @@ function blankLiterals(text) {
  * `balanced` is reported rather than assumed: an extractor that silently returns a half call
  * would make the whole sweep read clean on a file it never finished reading.
  */
-function consoleCalls(rawSource) {
+// ITEM O1 (91) -- 2026-10-15 brain-line: `pattern` sweeps another sink the same way (the answer log's note() calls).
+function consoleCalls(rawSource, pattern) {
   const src = blankComments(String(rawSource == null ? '' : rawSource));
-  const re = /console\s*\.\s*(?:log|warn|error|info|debug)\s*\(/g;
+  const re = pattern ? new RegExp(pattern.source, 'g') : /console\s*\.\s*(?:log|warn|error|info|debug)\s*\(/g;
   const calls = [];
   let m;
   while ((m = re.exec(src))) {
