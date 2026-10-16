@@ -60,6 +60,15 @@ const Q = {
   ok('a short follow-up pointing back is not a part («أين ورد حديث: الدين النصيحة؟ ومن رواه؟»)', qp('أين ورد حديث: الدين النصيحة؟ ومن رواه؟').length === 0);
   ok('an enumeration is a compound question', qp('أولا: ما حكم صلاة الوتر؟ ثانيا: ما وقت صلاة الضحى').length === 2);
 
+  {
+    // A part's encyclopedia row keeps its own `part` (the volume, which the reader card names) and carries its part as `qpart`.
+    const g = await BW2.gatherBw2({ question: Q.Q130b, budgetMs: 2000, deps: {
+      runTool: async () => ({ text: '', calls: 1 }), encyclopediaReady: () => true, warmEncyclopedia: () => true,
+      searchStoredCorpus: async () => ({ records: [{ id: 'E9', term: 'الحجامة', part: 17, snippet: 'الحجامة للصائم فيها خلاف بين الفقهاء.', text: 'الحجامة للصائم فيها خلاف بين الفقهاء.' }] }),
+    } });
+    const r = (g.parts || []).flatMap((p) => p.rows).find((row) => row.kind === 'encyclopedia');
+    ok('a part encyclopedia row keeps its volume (part 17) and carries its part as qpart', !!r && r.part === 17 && Number.isInteger(r.qpart), ascii(JSON.stringify(r)));
+  }
   console.log('-- 2/3/4. a fake turn through the real runBw2Turn');
   {
     const SSE = await esm('lib/finalized-sse-writer.js');
