@@ -1776,7 +1776,7 @@ async function partWorshipFailure() {
 // markup, and none of them writes the app's language choice -- that choice belongs to the app.
 function partF() {
   console.log('\n=== F. THE KUNUZ PAGES (item 10) ===');
-  for (const f of ['quest.html', 'quest-ghaws.html', 'quest-harb.html', 'quest-test.html']) {
+  for (const f of ['quest.html', 'quest-ghaws.html', 'quest-harb.html', 'quest-test.html', 'quest-board.html']) {
     const page = fs.readFileSync(path.join(REPO, f), 'utf8');
     ok(f + ' declares Arabic, right to left, before anything paints', /<html lang="ar" dir="rtl">/.test(page));
     ok('...and writes nothing to the app\'s language slot', page.indexOf('ezik_ui_lang_v1') === -1);
