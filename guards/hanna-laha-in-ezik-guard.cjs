@@ -1,7 +1,7 @@
 // guards/hanna-laha-in-ezik-guard.cjs -- the third Kunuz game (Hanna Laha) inside this repository.
 //
 // WHAT IT PROVES (offline, reads only):
-//   H1 quest.html has exactly four game cards, linking to /quest-ghaws.html, /quest-harb.html, /quest-board.html and /hanna-laha/ .
+//   H1 quest.html has exactly five game cards, linking to /quest-ghaws.html, /quest-harb.html, /quest-test.html, /quest-board.html and /hanna-laha/ .
 //   H2 hanna-laha/build-info.json names a commit, a protocol version and a bank, and says it is the ezik build under /hanna-laha .
 //   H3 the folder hanna-laha/ holds only the files of that build (the page, build-info.json, the notice, two small images and
 //      hashed assets of the kinds a build writes).
@@ -40,9 +40,9 @@ function check(read, listFolder) {
   // H1 -- the cards
   const quest = read('quest.html');
   const doors = [...quest.matchAll(/<a class="door" href="([^"]*)"/g)].map((m) => m[1]);
-  const want = ['/quest-ghaws.html', '/quest-harb.html', '/quest-board.html', '/hanna-laha/'];
-  if (doors.length !== 4 || want.some((w, i) => doors[i] !== w)) {
-    no('H1', 'quest.html must have exactly four game cards (' + want.join(', ') + '), found ' + doors.length + ': ' + doors.join(', '));
+  const want = ['/quest-ghaws.html', '/quest-harb.html', '/quest-test.html', '/quest-board.html', '/hanna-laha/'];
+  if (doors.length !== 5 || want.some((w, i) => doors[i] !== w)) {
+    no('H1', 'quest.html must have exactly five game cards (' + want.join(', ') + '), found ' + doors.length + ': ' + doors.join(', '));
   }
 
   // H2 -- the build info
@@ -111,12 +111,12 @@ if (problems.length) {
   problems.forEach((p) => console.log('  ' + p));
   process.exit(1);
 }
-console.log('hanna-laha-in-ezik: PASS -- four cards in quest.html, build ' + JSON.parse(realRead(GAME + '/build-info.json')).gitSha + ', ' + realList().length + ' files, nothing leaves /' + GAME + '/ except the three allowed targets');
+console.log('hanna-laha-in-ezik: PASS -- five cards in quest.html, build ' + JSON.parse(realRead(GAME + '/build-info.json')).gitSha + ', ' + realList().length + ' files, nothing leaves /' + GAME + '/ except the three allowed targets');
 
 if (process.argv.includes('--self-test')) {
   const mutants = [
-    ['quest.html loses its fourth card', (r) => (rel) => (rel === 'quest.html' ? r(rel).replace(/  <a class="door" href="\/hanna-laha\/">[\s\S]*?<\/a>\n/, '') : r(rel)), realList],
-    ['quest.html gets a fifth card', (r) => (rel) => (rel === 'quest.html' ? r(rel).replace('</div>\n</body>', '  <a class="door" href="/x.html"><b>x</b></a>\n</div>\n</body>') : r(rel)), realList],
+    ['quest.html loses its fifth card', (r) => (rel) => (rel === 'quest.html' ? r(rel).replace(/  <a class="door" href="\/hanna-laha\/">[\s\S]*?<\/a>\n/, '') : r(rel)), realList],
+    ['quest.html gets a sixth card', (r) => (rel) => (rel === 'quest.html' ? r(rel).replace('</div>\n</body>', '  <a class="door" href="/x.html"><b>x</b></a>\n</div>\n</body>') : r(rel)), realList],
     ['build-info loses its commit', (r) => (rel) => (rel === GAME + '/build-info.json' ? r(rel).replace(/"gitSha": "[^"]*"/, '"gitSha": ""') : r(rel)), realList],
     ['a stray file appears', (r) => r, () => realList().concat(['stray.txt'])],
     ['a link leaves the folder', (r) => (rel) => (rel === GAME + '/index.html' ? r(rel).replace('<head>', '<head><link rel="x" href="/app.js">') : r(rel)), realList],
