@@ -437,9 +437,18 @@ const V = '﴿', W = '﴾';
       const none = runCard(null); const ar = runCard('ar'); const en = runCard('en'); const fr = runCard('fr');
       ok('in Arabic (or with nothing stored) the card is exactly what it was: the same text, no extra line', none.text === ar.text && none.text === norm(keys.join(' ')) && none.note === 0 && ar.note === 0, JSON.stringify([none, ar]));
       ok('in English the title and both lines are English and one note line stands under them', en.note === 1 && /^Hanna Laha From 2 to 12 teams/.test(en.text) && /The game itself is in Arabic\.$/.test(en.text) && !/[\u0600-\u06FF]/.test(en.text.replace(/\u00ab[^\u00bb]*\u00bb/g, '')), en.text);
-      ok('...and in French likewise, with the three cards still three', fr.note === 1 && /arabe\.$/.test(fr.text) && fr.all === 3 && en.all === 3, fr.text);
-      const noteOnArabic = langsAll.every((l) => { const r = runCard(l); return r.note === 1 && r.all === 3 && !r.text.startsWith(keys[0]); });
-      ok('in every one of the 22 languages the card is translated, carries the one note, and the page keeps three cards', noteOnArabic);
+      ok('...and in French likewise, with the four cards still four', fr.note === 1 && /arabe\.$/.test(fr.text) && fr.all === 4 && en.all === 4, fr.text);
+      const noteOnArabic = langsAll.every((l) => { const r = runCard(l); return r.note === 1 && r.all === 4 && !r.text.startsWith(keys[0]); });
+      ok('in every one of the 22 languages the card is translated, carries the one note, and the page keeps four cards', noteOnArabic);
+      // KUNUZ-TEST (2026-10-16): the fourth card, «اختبر معلوماتك» (quest-test.html, Arabic only), has its title and line in every language and the same one note
+      const testCard = questHtml.match(/<a class="door" href="\/quest-test\.html"><b>([^<]*)<\/b>\s*<span>([^<]*)<\/span><\/a>/);
+      const tkeys = testCard ? [testCard[1], testCard[2]].map(norm) : [];
+      const tmiss = []; langsAll.forEach((l) => tkeys.forEach((k, i) => { const v = table[l][k]; if (!v || !String(v).trim() || v === k) tmiss.push(l + '#' + i); }));
+      ok('quest.html has the card of quest-test.html, and all ' + langsAll.length + ' languages carry its title and line', !!testCard && tmiss.length === 0, tmiss.join(','));
+      const testNote = langsAll.every((l) => { const { document } = parseHTML(questHtml.replace(/<script src="\/quest-i18n.js"><\/script>/, '')); const store = { [LANGKEY]: l };
+        vm.runInContext(qsrc, vm.createContext({ document, localStorage: { getItem: (k) => (k in store ? store[k] : null) }, console })); const a = document.querySelector('a.door[href="/quest-test.html"]');
+        return a && a.querySelectorAll('.door-note').length === 1; });
+      ok('...and under it, in every language, the one note that the game itself is in Arabic', testNote);
     }
     const attrs = fs.readFileSync(path.join(REPO, '.gitattributes'), 'utf8');
     ok('.gitattributes pins lib/opening-conjunction.js to LF (a checkout with core.autocrlf=true gave it CRLF and reddened takhrijcontract and recon)', /^lib\/opening-conjunction\.js\s+text eol=lf\s*$/m.test(attrs));
@@ -787,7 +796,7 @@ const V = '﴿', W = '﴾';
     const qsrc = read('quest-i18n.js'); const qS = JSON.parse((/var STRINGS = (\{.*\});/.exec(qsrc) || ['', '{}'])[1]); const qkey = sub && sub.replace(/\s+/g, ' ').trim();
     const qlangs = Object.keys(qS);
     ok('H2: the subtitle «' + qkey + '» of quest.html has a row in all ' + qlangs.length + ' built languages, none of them the Arabic text itself', qlangs.length === 22 && qlangs.every((l) => typeof qS[l][qkey] === 'string' && qS[l][qkey].trim() && qS[l][qkey] !== qkey), qlangs.filter((l) => !qS[l][qkey]).join(','));
-    ok('H2: the English row says three games and the choice; the page itself (Arabic) is untouched by the row', /^Three games/.test(qS.en[qkey]) && sub === 'ثلاث ألعاب من أسئلة عزك. اختاروا لعبتكم.');
+    ok('H2: the English row says four games and the choice; the page itself (Arabic) is untouched by the row', /^Four games/.test(qS.en[qkey]) && sub === 'أربع ألعاب من أسئلة عزك. اختاروا لعبتكم.');
   }
 
   console.log('\n=== J (amendment 9): THE BROWSER FINGER TEST FAILED -- SIX CAUSES, EACH WITH ITS GUARD ===');
