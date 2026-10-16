@@ -3,6 +3,7 @@
 
 import { applyCorsOrigin } from '../lib/ratelimit.js';
 import { FATWA_BASE } from '../lib/fatwa-contract.js';
+import { cleanFatwaJson } from '../lib/fatwa-text.js';
 
 const MAX_BYTES = 4 * 1024 * 1024;
 const TIMEOUT_MS = 12000;
@@ -40,7 +41,11 @@ export default async function handler(req, res) {
     res.setHeader('Cache-Control', path === 'health' || path === 'scholars'
       ? 'public, s-maxage=300, stale-while-revalidate=600'
       : 'private, no-store');
-    return res.send(Buffer.from(body));
+    // ITEM T1 (141) -- 2026-10-15 brain-line: every string of the service's answer passes lib/fatwa-text.js before it reaches the reader
+    // (proven symbols, presentation forms, controls, empty brackets); a body that is not JSON goes as it came.
+    let out = Buffer.from(body);
+    try { out = Buffer.from(JSON.stringify(cleanFatwaJson(JSON.parse(out.toString('utf8')))), 'utf8'); } catch { /* not JSON: as it came */ }
+    return res.send(out);
   } catch (error) {
     console.warn('[fatwa-proxy] degraded', { path, reason: String(error?.message || error) });
     return res.status(502).json({ ok: false, error: { code: 'FATWA_UPSTREAM_UNAVAILABLE' } });
