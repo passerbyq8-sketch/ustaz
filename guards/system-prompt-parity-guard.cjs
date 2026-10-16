@@ -90,12 +90,18 @@ const AI_CONSENT_VERSION = (read('lib/ai-consent.js').match(/AI_CONSENT_VERSION\
 // health line gained the adult instruction for illness and medicine with worship: the fiqh detail as it is, the harm
 // and its measure to the specialist physician, and not «بالتجربة». Every sample grew by EXACTLY 144 characters -- one
 // line, five samples, one delta (evidence/d5-prompt-remeasure.txt in the session folder).
+//
+// RE-MEASURED 2026-10-15 (ITEM E2, brain-line; the owner's decision (e); the same named exception). The reader's name
+// left the example and instruction lines and stays in the profile line and the «ابدأ المحادثة» greeting alone; the
+// allowance to call the reader by name inside the answer became its prohibition. Each removed name became the fixed
+// placeholder «(الاسْم)», so the delta follows each sample's name length: +158 for the samples with a four-letter name,
+// +166 for those with a three-letter one (evidence/e2-prompt-remeasure.txt in the session folder).
 const PINNED = [
-  { age: 7,  gender: 'male',   mode: 'chat', name: 'خالد', len: 57753, sha: 'd3a2519a45fe607a72518c586bea4967d5bbf1c5b92ea31931f82ade6781c055' },
-  { age: 15, gender: 'female', mode: 'chat', name: 'هند',  len: 56248, sha: '3e87eebf1b008148d4701bd3c48dd272e6677158ba48ea77e3f740bfd623810f' },
-  { age: 30, gender: 'male',   mode: 'chat', name: 'خالد', len: 56022, sha: '52d151cc84b4d45561b2b0a9db2045a813aec676b272235d194f4f48be513869' },
-  { age: 7,  gender: 'male',   mode: 'call', name: 'خالد', len: 70978, sha: '36f243321dfd84e994e23f5007b103a47171d32f318138df1917de6774c66e04' },
-  { age: 30, gender: 'female', mode: 'call', name: 'هند',  len: 69290, sha: '53b439b8455593bec1e7c548e816bf60a538f1c29f42808d35de76c466119e3d' },
+  { age: 7,  gender: 'male',   mode: 'chat', name: 'خالد', len: 57911, sha: '1eec87b023452fbff29a1ce2703cf3e7d4157849603bd0943149fa8d12cb4bc3' },
+  { age: 15, gender: 'female', mode: 'chat', name: 'هند',  len: 56414, sha: '406f3917bbbca1e24fd72b2bf943b092bd5cea36c64f3a86f655db5692d8fe06' },
+  { age: 30, gender: 'male',   mode: 'chat', name: 'خالد', len: 56180, sha: 'f269cc65868a524c4c05c4cbb3c83a3d8cb303af6a8aa2a66d8c5f67f2cba8c3' },
+  { age: 7,  gender: 'male',   mode: 'call', name: 'خالد', len: 71136, sha: '0b2302987be1f857adf0605ff618c5f653bb24295e87bd8d015c185890b6036c' },
+  { age: 30, gender: 'female', mode: 'call', name: 'هند',  len: 69456, sha: 'd94073998f2ef20f654300e6750cd0ba506af8b953311bbccd23e5ba789eb222' },
 ];
 
 (async function main() {

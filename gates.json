@@ -805,5 +805,10 @@
     "name": "brainlinee1",
     "script": "guards/brain-line-e1-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "brainlinee2",
+    "script": "guards/brain-line-e2-guard.cjs",
+    "args": ""
   }
 ]
