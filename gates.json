@@ -870,5 +870,10 @@
     "name": "brainlinet1",
     "script": "guards/brain-line-t1-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "harvesttools",
+    "script": "guards/harvest-tools-guard.cjs",
+    "args": ""
   }
 ]

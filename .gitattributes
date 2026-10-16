@@ -946,3 +946,4 @@ guards/brain-line-h2-guard.cjs text eol=lf
 guards/brain-line-h3-guard.cjs text eol=lf
 guards/brain-line-h4-guard.cjs text eol=lf
 guards/brain-line-t1-guard.cjs text eol=lf
+guards/harvest-tools-guard.cjs text eol=lf
