@@ -910,5 +910,10 @@
     "name": "brainliner27",
     "script": "guards/brain-line-r2-7-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "brainliner28",
+    "script": "guards/brain-line-r2-8-guard.cjs",
+    "args": ""
   }
 ]
