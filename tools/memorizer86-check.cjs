@@ -1045,8 +1045,9 @@ lift(['mem86EarWords', 'mem86EarShown', 'mem86EarLeft', 'mem86EarHold']);
     && at(branch) < at('const rec = ezNewRecognition();'), 'the owner\'s branch is taken after the child guard and the voice consent, and before any browser engine is built');
   ok((scr4.match(/reciteEarGo\(/g) || []).length === 1 && (scr4.match(/ezEar\.reachable\(\)/g) || []).length === 1 && (scr4.match(/ezEar\.open\(/g) || []).length === 1 && (scr4.match(/ezEar\.here\(\)/g) || []).length === 1
     && at('ezEar.reachable()') > at('const reciteEarGo = async (from, myRun) => {') && at('ezEar.open(') > at('ezEar.reachable()'), 'the engine is reached from that branch alone, on a computer (never a phone or the app\'s shell, until the phone has its own address): asked whether it answers, then opened');
-  ok(scr4.includes("const reciteEarWeb = (at) => { setReciteListening(false); setReciteEar(ezSpeechAvailable() && hasValidAIConsent() && !childVoiceBlocked() ? 'off' : ''); startRecite(at, true); };")
-    && (scr4.match(/reciteEarWeb\(/g) || []).length === 3, 'when it does not answer, cannot begin, or stops answering, the browser\'s engine takes over from the ayah he is on, and the line under his bar says so');
+  ok(scr4.includes("const reciteEarWeb = (at, no) => { setReciteListening(false); setReciteEar(ezSpeechAvailable() && hasValidAIConsent() && !childVoiceBlocked() ? (no ? 'blocked' : 'off') : ''); startRecite(at, true); };")
+    && scr4.includes("if (up !== true) { reciteEarWeb(from, up === 'blocked'); return; }")
+    && (scr4.match(/reciteEarWeb\(/g) || []).length === 3, 'when it does not answer, cannot begin, or stops answering, the browser\'s engine takes over from the ayah he is on, and the line under his bar says so -- naming the browser when it was the browser that refused the page his computer (18 October)');
   ok(scr4.includes("if (h.err === 'mic') {") && scr4.includes("setReciteErr(ezT('mem86.ear.mic'))") && scr4.includes("if (h.err === 'consent') {"), 'a microphone that will not open is said as such, and a consent withdrawn meanwhile ends the start');
   ok(scr4.includes('const ear = reciteEarRef.current;\n    reciteEarRef.current = null;\n    setReciteEar(\'\');') && scr4.includes('return ear ? ear.stop() : null;')
     && scr4.includes('if (reciteEarRef.current) { reciteEarRef.current.stop(); reciteEarRef.current = null; }'), 'every stop -- pause, mode, leaving, finishing -- closes the engine\'s microphone, and so does leaving the screen');
@@ -1056,16 +1057,16 @@ lift(['mem86EarWords', 'mem86EarShown', 'mem86EarLeft', 'mem86EarHold']);
     'a range earns when the engine has moved past its last ayah -- while he recites, or in its last answer after a pause (its `finished` also means "session over", so it is never read) -- through the same credit, which a manual «next» still forfeits');
   ok(scr4.includes('for (const d of keep) o[d.ayah] = mem86EarLeft(selectedSurah, d, prefsRef.current.wrong);') && scr4.includes('const keep = done.filter((d) => !stale || d.ayah < cur);'),
     'its flags reach the page only through mem86EarLeft under his red switch, and a late answer only prints ayat behind him');
-  const earFns = scr4.slice(at('const reciteEarWeb = (at) =>'), at('const advanceReciteManual = () => {'));
+  const earFns = scr4.slice(at('const reciteEarWeb = (at, no) =>'), at('const advanceReciteManual = () => {'));
   ok(earFns.length > 500 && !/mem86WordsLog|mem86Store|localStorage|mem86DaysAdd|mem86HeldSet/.test(earFns), 'what the engine hears writes nothing to the word log or any store of its own');
-  ok(scr4.includes("{reciteEar ? <div style={{ ...s.memReciteHint, width: '100%', padding: 0 }}>{reciteEar === 'on' ? ezT('mem86.ear.on') : reciteEar === 'off' ? ezT('mem86.ear.off') : ezT('mem86.ear.wait')}</div> : null}"),
-    'his bar says which engine hears him: his own, reaching it, or the browser\'s');
+  ok(scr4.includes("{reciteEar ? <div style={{ ...s.memReciteHint, width: '100%', padding: 0 }}>{reciteEar === 'on' ? ezT('mem86.ear.on') : reciteEar === 'off' ? ezT('mem86.ear.off') : reciteEar === 'blocked' ? ezT('mem86.ear.blocked') : ezT('mem86.ear.wait')}</div> : null}"),
+    'his bar says which engine hears him: his own, reaching it, or the browser\'s -- and, when the browser keeps the page from his own, that it does and how to let it through');
   const LANG4 = path.join(REPO, 'lang');
-  const keys4 = ['mem86.ear.wait', 'mem86.ear.on', 'mem86.ear.off', 'mem86.ear.mic'];
+  const keys4 = ['mem86.ear.wait', 'mem86.ear.on', 'mem86.ear.off', 'mem86.ear.mic', 'mem86.ear.blocked'];
   const miss4 = [];
   for (const f of fs.readdirSync(LANG4).filter((x) => x.endsWith('.json'))) { const d = JSON.parse(fs.readFileSync(path.join(LANG4, f), 'utf8')); for (const k of keys4) if (typeof d[k] !== 'string' || !d[k].trim()) miss4.push(f + ' ' + k); }
   for (const k of keys4) if ((src4.match(new RegExp("'" + k.replace(/\./g, '\\.') + "': '[^']+'", 'g')) || []).length !== 2) miss4.push('app.jsx ' + k);
-  ok(miss4.length === 0, 'the four lines of the engine have a label in Arabic, English and every language file' + (miss4.length ? ': missing ' + miss4.slice(0, 4).join(', ') : ''));
+  ok(miss4.length === 0, 'the five lines of the engine have a label in Arabic, English and every language file' + (miss4.length ? ': missing ' + miss4.slice(0, 4).join(', ') : ''));
   // engine p2.5 -- the owner, 13 October, 14:28: it holds him on an ayah until it is said right, or the word is given him
   const hd = (st, red) => Array.from(X.mem86EarHold(1, Object.assign({ cur: 6 }, st), red));
   const n16 = X.mem86EarWords(1, 6);
@@ -1090,6 +1091,47 @@ lift(['mem86EarWords', 'mem86EarShown', 'mem86EarLeft', 'mem86EarHold']);
     'his screen opens his engine holding, tells it every word given him, and draws the ayah it holds him on from its marks -- while he recites and after a pause');
 }
 
+// 18 October -- the owner's screen of 15 October said his engine did not answer while it was running: his browser had
+// refused the page his computer (Chrome's local network access, denied; the request failed in 2 ms). ezEar.reachable,
+// run as shipped, against a fetch and a permissions door that are fakes (nothing leaves this process, nothing is asked):
+// true when the engine answers; when no answer came back at all, 'blocked' only when the browser refused (the newer
+// name read first, the older when the browser knows only that), false otherwise -- and false for an answer that came
+// back wrong, which no refusing browser lets through.
+const LATE = [];
+{
+  const earSrc = TOP.get('ezEar');
+  const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)';
+  const earOn = (fetchImpl, perms) => vm.runInContext('(' + earSrc + ')', vm.createContext({
+    fetch: fetchImpl, AbortController, setTimeout, clearTimeout, window: {},
+    navigator: perms === undefined ? { userAgent: UA } : { userAgent: UA, permissions: perms },
+  }));
+  const asked = [];
+  const answers = async () => ({ ok: true, status: 200, json: async () => ({ ok: true, version: 'test' }) });
+  const wrong = async () => ({ ok: false, status: 500, json: async () => ({ ok: false }) });
+  const none = async () => { throw new TypeError('Failed to fetch'); };
+  const perm = (map) => ({ query: async (d) => { asked.push(d && d.name); if (!(d && d.name in map)) throw new TypeError('not a permission name'); return { state: map[d.name] }; } });
+  const cases = [
+    ['the engine answers', answers, perm({ 'loopback-network': 'denied' }), true],
+    ['an answer came back wrong', wrong, perm({ 'loopback-network': 'denied' }), false],
+    ['no answer, this computer refused', none, perm({ 'loopback-network': 'denied', 'local-network-access': 'granted' }), 'blocked'],
+    ['no answer, this computer allowed', none, perm({ 'loopback-network': 'granted', 'local-network-access': 'denied' }), false],
+    ['no answer, not yet asked', none, perm({ 'loopback-network': 'prompt' }), false],
+    ['no answer, only the older name, refused', none, perm({ 'local-network-access': 'denied' }), 'blocked'],
+    ['no answer, only the older name, allowed', none, perm({ 'local-network-access': 'granted' }), false],
+    ['no answer, neither name known', none, perm({}), false],
+    ['no answer, no permissions door', none, undefined, false],
+  ];
+  LATE.push((async () => {
+    const got = [];
+    for (const [label, f, p, want] of cases) got.push([label, await earOn(f, p).reachable(), want]);
+    const bad = got.filter((g) => g[1] !== g[2]);
+    ok(bad.length === 0, 'the engine reached as shipped (ezEar.reachable): true when it answers; with no answer at all, \'blocked\' only when the browser refused the page this computer, false otherwise and for an answer that came back wrong -- ' + got.length + ' cases' + (bad.length ? ': WRONG ' + bad.map((g) => g[0] + ' -> ' + JSON.stringify(g[1])).join('; ') : ''));
+    ok(asked.length > 0 && asked.every((n) => n === 'loopback-network' || n === 'local-network-access'), '...reading only the browser\'s answer about this computer, by its two names: ' + [...new Set(asked)].join(', '));
+  })());
+}
+
 /* ------------------------------------------------------------------ done */
-console.log('\n' + (fail ? 'FAIL' : 'PASS') + '  memorizer86-check  ' + pass + ' passed, ' + fail + ' failed  (lifted ' + LIFT.length + ' initializers from app.jsx)');
-process.exit(fail ? 1 : 0);
+Promise.all(LATE).then(() => {
+  console.log('\n' + (fail ? 'FAIL' : 'PASS') + '  memorizer86-check  ' + pass + ' passed, ' + fail + ' failed  (lifted ' + LIFT.length + ' initializers from app.jsx)');
+  process.exit(fail ? 1 : 0);
+}, (e) => { console.log('  FAIL  the late checks threw: ' + (e && e.message)); process.exit(1); });

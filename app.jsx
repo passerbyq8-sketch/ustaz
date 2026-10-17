@@ -1845,6 +1845,7 @@ const EZ_I18N = {
     'mem86.ear.on': 'يسمعك المحرّك على جهازك',
     'mem86.ear.off': 'المحرّك على جهازك لا يجيب، فيسمعك المتصفّح',
     'mem86.ear.mic': 'لم يُفتح الميكروفون. اسمح به لهذا الموقع ثم ابدأ من جديد.',
+    'mem86.ear.blocked': 'المتصفّح يمنع هذه الصفحة من الوصول إلى المحرّك على جهازك، فهو الذي يسمعك الآن. اسمح لها من إعدادات الموقع ثم حدّث الصفحة.',
     'mem86.back': 'ارجع إلى هذه الآية وسمِّعها من جديد',
     'mem86.tab.test': 'اختبرني',
     'mem86.test.saved': 'اختبار موقوف: مضى منه {n} سؤال',
@@ -3388,6 +3389,7 @@ const EZ_I18N = {
     'mem86.ear.on': 'The engine on your computer is listening',
     'mem86.ear.off': 'The engine on your computer is not answering, so the browser is listening',
     'mem86.ear.mic': 'The microphone did not open. Allow it for this site, then start again.',
+    'mem86.ear.blocked': 'Your browser is blocking this page from reaching the engine on your computer, so the browser is listening. Allow it in the site settings, then reload the page.',
     'mem86.back': 'Go back to this ayah and recite it again',
     'mem86.tab.test': 'Test me',
     'mem86.test.saved': 'A paused test: {n} questions done',
@@ -5845,8 +5847,21 @@ const ezEar = (() => {
   // and asking would only cost a wait, a line saying the engine is away, and on some phones the browser's own prompt. The
   // phone reaches the engine in a later step, by its own address.
   const here = () => { try { return !window.ReactNativeWebView && !/Android|iPhone|iPad|iPod/i.test(String(navigator.userAgent || '')); } catch (e) { return false; } };
-  // Does the engine answer? Asking opens nothing and sends nothing of the reader's.
-  const reachable = () => call('/v1/health', undefined, REACH_MS).then(() => true, () => false);
+  // Does the engine answer? Asking opens nothing and sends nothing of the reader's. true when it does. When no answer came
+  // back at all, the browser's own answer to its question -- may this site reach this computer? -- is read: refused there,
+  // the request fails at once and the browser asks no more (the owner's screen, 15 October), so the line under his bar
+  // names the browser and how to let the page through ('blocked'), not the engine. false otherwise, and for an answer
+  // that came back wrong. Reading it asks nothing and shows nothing; the newer name is read first (one browser knows
+  // both, the one it knows decides), and a browser that knows neither is taken as not refusing.
+  const refused = async () => {
+    const pm = typeof navigator !== 'undefined' && navigator ? navigator.permissions : null;
+    if (!pm || typeof pm.query !== 'function') return false;
+    for (const nm of ['loopback-network', 'local-network-access']) {
+      try { return (await pm.query({ name: nm })).state === 'denied'; } catch (e) {}
+    }
+    return false;
+  };
+  const reachable = () => call('/v1/health', undefined, REACH_MS).then(() => true, (e) => (e && e.status ? false : refused().then((no) => (no ? 'blocked' : false), () => false)));
   // 48 or 44.1 kHz down to 16, for a browser that will not open the microphone at 16 kHz itself: a windowed-sinc low-pass
   // just under 8 kHz, and a step of rate / 16000 input samples carried across the browser's blocks.
   const down = (rate) => {
@@ -38422,7 +38437,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
   const reciteFollowRef = useRef({ cur: 1, prev: null, cut: 0 }); // item 86: the owner's follower -- its ayah, what the last session left, the words used
   const reciteAutoRef = useRef(false);                  // item 86: the owner's «سمِّعني» listens as soon as its page opens
   const reciteEarRef = useRef(null);                    // item 86, phase 2: the owner's own engine while it listens (ezEar)
-  const [reciteEar, setReciteEar] = useState('');       // ...and the line under his bar: '' | 'wait' | 'on' | 'off'
+  const [reciteEar, setReciteEar] = useState('');       // ...and the line under his bar: '' | 'wait' | 'on' | 'off' | 'blocked'
   // Item 86 (memorizer): the picker's tabs and the reader's memorised ayat. The catalogue is always the first tab.
   const [tab, setTab] = useState(() => (mem86Lit() ? 'recite' : 'learn'));
   const [held, setHeld] = useState(mem86HeldRead);
@@ -38801,13 +38816,14 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
 
   // ---------- item 86, phase 2: the owner's own engine (ezEar) ----------
   // Reached only from startRecite's owner branch. When the engine does not answer, cannot begin, or stops answering
-  // mid-recitation, the browser's engine takes over from the ayah he is on, and the line under his bar says so.
-  const reciteEarWeb = (at) => { setReciteListening(false); setReciteEar(ezSpeechAvailable() && hasValidAIConsent() && !childVoiceBlocked() ? 'off' : ''); startRecite(at, true); };
+  // mid-recitation, the browser's engine takes over from the ayah he is on, and the line under his bar says so -- naming
+  // the browser, and how to let the page through, when it was the browser that refused the page this computer (18 October).
+  const reciteEarWeb = (at, no) => { setReciteListening(false); setReciteEar(ezSpeechAvailable() && hasValidAIConsent() && !childVoiceBlocked() ? (no ? 'blocked' : 'off') : ''); startRecite(at, true); };
   const reciteEarGo = async (from, myRun) => {
     const live = () => reciteRunIdRef.current === myRun;
     const up = await ezEar.reachable();
     if (!live()) return;
-    if (!up) { reciteEarWeb(from); return; }
+    if (up !== true) { reciteEarWeb(from, up === 'blocked'); return; }
     const h = await ezEar.open({ sura: selectedSurah, ayah: from, last: surahCount, hold: true,
       onState: (st, stale) => { if (live()) reciteEarState(st, stale); },
       onFail: () => { if (!live()) return; reciteEarRef.current = null; reciteEarWeb(reciteAyahRef.current || startAyah); } });
@@ -39128,7 +39144,7 @@ function MemorizeScreen({ profile, onExit, onPlayVerse, onPlaySurah, onStopAudio
       // own sticky start bar. «إيقاف» keeps his place, and «تابع» resumes the ayah he was on.
       <div className="ezq-drill-acts" style={{ ...s.ezqStartBar, flexWrap: 'wrap' }} data-ez110-edge="sticky">
         {reciteErr ? <div style={{ ...s.memMsg, width: '100%' }}>{reciteErr}</div> : null}
-        {reciteEar ? <div style={{ ...s.memReciteHint, width: '100%', padding: 0 }}>{reciteEar === 'on' ? ezT('mem86.ear.on') : reciteEar === 'off' ? ezT('mem86.ear.off') : ezT('mem86.ear.wait')}</div> : null}
+        {reciteEar ? <div style={{ ...s.memReciteHint, width: '100%', padding: 0 }}>{reciteEar === 'on' ? ezT('mem86.ear.on') : reciteEar === 'off' ? ezT('mem86.ear.off') : reciteEar === 'blocked' ? ezT('mem86.ear.blocked') : ezT('mem86.ear.wait')}</div> : null}
         <button onClick={reciteListening ? pauseRecite : () => startRecite(reciteResumeAt)} style={s.memRevealBtn}>
           {reciteListening ? MEM.RECITE_STOP : reciteResumeAt ? ezT('mem86.resume') : MEM.RECITE_START}</button>
         <button onClick={advanceReciteManual} style={s.memListenBtn}>{MEM.RECITE_NEXT}</button>

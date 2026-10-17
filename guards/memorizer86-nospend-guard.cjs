@@ -20,8 +20,9 @@
 //     not a third party. It is a door to the network all the same, so it is not merely named: its own closure is
 //     computed and checked whole below -- one address (http://127.0.0.1:8865) and nothing else absolute, one fetch
 //     on that address, five paths of the engine's and no other, no store written, no AI door, no network primitive,
-//     a microphone asked only behind the voice consent and the child guard and heard on silent speakers -- and four
-//     mutants of its source must each be caught.
+//     a microphone asked only behind the voice consent and the child guard and heard on silent speakers, the browser's
+//     own answer about this computer read and never asked for (18 October) -- and five mutants of its source must each
+//     be caught.
 //
 // No network, no audio, no microphone: this reads app.jsx and nothing else.
 'use strict';
@@ -170,6 +171,7 @@ const earAudit = (source) => {
   const paths = [...own.matchAll(/'(\/[^']*)'/g)].map((m) => m[1]);
   if (!paths.length || paths.some((p) => EAR_PATHS.indexOf(p) === -1) || EAR_PATHS.some((p) => paths.indexOf(p) === -1)) bad.push('paths ' + JSON.stringify(paths));
   if (/localStorage|sessionStorage|indexedDB|\bcaches\b|document\.cookie|mem86Store|setItem/.test(own) || /\.setItem\(/.test(all)) bad.push('a store');
+  if (/permissions\s*\.\s*(request|revoke)\b|requestPermission/.test(all)) bad.push('a permission asked for');
   const gum = own.indexOf('getUserMedia(');
   const listenAt = own.indexOf('const listen = async (got) => {');
   const gate = 'if (!hasValidAIConsent() || childVoiceBlocked())';
@@ -180,15 +182,16 @@ const earAudit = (source) => {
 };
 {
   const r = earAudit(raw);
-  ok(r.size > 0 && r.bad.length === 0, 'ezEar, checked whole (' + r.size + ' declarations: ' + (r.names || []).join(', ') + '): one address ' + EAR_BASE + ', one fetch on it, the five paths ' + EAR_PATHS.join(' ') + ', no store, no AI door, no network primitive, the microphone behind the voice consent and the child guard (read again at every block), silent speakers' + (r.bad.length ? ' -- VIOLATED: ' + r.bad.join('; ') : ''));
+  ok(r.size > 0 && r.bad.length === 0, 'ezEar, checked whole (' + r.size + ' declarations: ' + (r.names || []).join(', ') + '): one address ' + EAR_BASE + ', one fetch on it, the five paths ' + EAR_PATHS.join(' ') + ', no store, no AI door, no network primitive, the microphone behind the voice consent and the child guard (read again at every block), silent speakers, the browser\'s answer about this computer read and never asked for' + (r.bad.length ? ' -- VIOLATED: ' + r.bad.join('; ') : ''));
   const used = [...new Set([...src.matchAll(/\bezEar\.(\w+)/g)].map((m) => m[1]))].sort();
   ok(JSON.stringify(used) === JSON.stringify(['here', 'open', 'reachable']), 'the memorizer uses ezEar through its three doors only (here, reachable, open): ' + used.join(', '));
-  const earAnchor = "const reachable = () => call('/v1/health', undefined, REACH_MS).then(() => true, () => false);";
+  const earAnchor = "const reachable = () => call('/v1/health', undefined, REACH_MS).then(() => true, (e) => (e && e.status ? false : refused().then((no) => (no ? 'blocked' : false), () => false)));";
   ok(raw.includes(earAnchor), 'ezEar mutation anchor present');
   ok(earAudit(raw.replace(earAnchor, earAnchor + " const x1 = () => aiFetch('/x', {});")).bad.length > 0, 'MUTANT KILLED: aiFetch inside ezEar');
   ok(earAudit(raw.replace(earAnchor, earAnchor + " const x2 = () => fetch('https://api.example.com/v1');")).bad.length > 0, 'MUTANT KILLED: a third-party host inside ezEar');
   ok(earAudit(raw.replace(earAnchor, earAnchor + " const x3 = (b) => localStorage.setItem('ear', b);")).bad.length > 0, 'MUTANT KILLED: a store written inside ezEar');
   ok(earAudit(raw.replace(earAnchor, earAnchor + " const x4 = () => call('/v1/log', '');")).bad.length > 0, 'MUTANT KILLED: a sixth path inside ezEar');
+  ok(earAudit(raw.replace(earAnchor, earAnchor + " const x5 = () => navigator.permissions.request({ name: 'loopback-network' });")).bad.length > 0, 'MUTANT KILLED: the browser asked for a permission inside ezEar');
 }
 
 // ---- the guard bites: three mutants on the source must each fail ----
