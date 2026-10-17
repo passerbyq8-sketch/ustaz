@@ -880,5 +880,10 @@
     "name": "brainliner21",
     "script": "guards/brain-line-r2-1-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "brainliner22",
+    "script": "guards/brain-line-r2-2-guard.cjs",
+    "args": ""
   }
 ]
