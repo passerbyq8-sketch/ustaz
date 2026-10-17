@@ -905,5 +905,10 @@
     "name": "brainliner26",
     "script": "guards/brain-line-r2-6-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "brainliner27",
+    "script": "guards/brain-line-r2-7-guard.cjs",
+    "args": ""
   }
 ]

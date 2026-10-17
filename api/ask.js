@@ -47,7 +47,7 @@ import { envMode } from '../lib/ledger/flag.js';
 // and not a second opinion. What lives here is data and pure evaluators: the topic x audience
 // matrix, the deterministic child floor, and the sentence shapes an attribution grade may take.
 // guards/rfc-v05r2-guard.cjs asserts both paths consume one policy_version.
-import { classifyTopic, graveHazard, WARM_TEMPLATES, POLICY_VERSION, withPatientReferral } from '../lib/policy/core.js';
+import { classifyTopic, graveHazard, WARM_TEMPLATES, POLICY_VERSION, withPatientReferral, withSuicideComfort } from '../lib/policy/core.js';
 import { access, resolveAudience, repair as ageRepair, warmTemplateFor } from '../lib/policy/age.js';
 import { violatesTemplate } from '../lib/policy/attribution-grades.js';
 // WHO THE PAGES IN HAND LICENSE NAMING. Four ordered tiers — extracted byline, domain owner, the
@@ -2653,6 +2653,8 @@ export default async function handler(req, res) {
       // ITEM D5 (145) -- 2026-10-15 brain-line: an adult's question joining an illness to a worship ends on the one
       // fixed sentence of the server: the harm and its measure are for the specialist physician.
       readerText = withPatientReferral(readerText, questionText, audienceBand);
+      // ITEM r2-7 -- 2026-10-17 brain-line R2: a question about suicide ends on the one comfort sentence (lib/policy/core.js).
+      readerText = withSuicideComfort(readerText, questionText);
       const freeBrainBody = readerText + (out.truncated === true ? TRUNCATED_MARK : '');
       if (takhrijDisclosureOnce(freeBrainBody, takhrijNote)) out.degraded.push('takhrij:limit_declared');
       return emitFreeBrain(freeBrainBody, out.readerUnits);
