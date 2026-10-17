@@ -626,6 +626,7 @@ const EZ_I18N = {
     'x.655': 'انسخ التفاصيل',
     'x.656': 'آية',
     'x.657': '(افتراضيّ)',
+    'x.658': 'وجد {n}',
     'p.12': 'نوع الملف غير مدعوم: {a} | {b}',
     'f.5': 'بلا اسم',
     'f.6': 'بلا نوع',
@@ -2231,6 +2232,7 @@ const EZ_I18N = {
     'x.655': 'Copy the details',
     'x.656': 'ayahs',
     'x.657': '(default)',
+    'x.658': 'found {n}',
     'p.12': 'File type not supported: {a} | {b}',
     'f.5': 'no name',
     'f.6': 'no type',
@@ -9297,21 +9299,25 @@ function ezikStreamPreviewSegments(text, viewerAge) {
   return parseRichMessage(shown, viewerAge).segments;
 }
 
+// ITEM r2-3 -- 2026-10-17 brain-line R2: THE STATUS LINE IN THE READER'S LANGUAGE. MEASURED on the preview: the first status
+// line stayed Arabic («يقرأ في الدروس… وجد 3») in English, Persian and Urdu -- it was read from a fixed Arabic table with « وجد N»
+// glued on, never through ezT(). Each stage is now its key (x.250-x.256, already in every table) and the count is x.658
+// («وجد {n}» / «found {n}» / …), its number in the language's digits (toArabicDigits). The Arabic reader sees the same line.
 const EZIK_READING_STAGES = Object.freeze({
-  retrieve: 'يبحث في مصادر عزك…',
-  fatwa: 'يقرأ في الفتاوى…',
-  library: 'يقرأ في كتب الشاملة…',
-  encyclopedia: 'يقرأ في الموسوعة الفقهية…',
-  lessons: 'يقرأ في الدروس…',
-  judge: 'يختار النصوص التي تجيب عن المسألة…',
-  write: 'يكتب الجواب…',
+  retrieve: 'x.250',
+  fatwa: 'x.251',
+  library: 'x.252',
+  encyclopedia: 'x.253',
+  lessons: 'x.254',
+  judge: 'x.255',
+  write: 'x.256',
 });
 function ezikReadingStatus(evt) {
   if (!evt || !Object.prototype.hasOwnProperty.call(EZIK_READING_STAGES, evt.stage)) return null;
   const source = ['fatwa', 'library', 'encyclopedia', 'lessons'].includes(evt.stage);
   const hits = source && Number.isInteger(evt.hits) && evt.hits > 0
-    ? ' وجد ' + toArabicDigits(evt.hits) : '';
-  return EZIK_READING_STAGES[evt.stage] + hits;
+    ? ' ' + ezT('x.658', { n: toArabicDigits(evt.hits) }) : '';
+  return ezT(EZIK_READING_STAGES[evt.stage]) + hits;
 }
 
 function EzikLiveOffer({ used, busy, onAccept }) {
