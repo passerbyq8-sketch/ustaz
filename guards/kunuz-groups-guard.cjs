@@ -3,7 +3,7 @@
 // This gate compares them and turns red at the first difference (a name, a religious flag, an id, an order), so the
 // pickers cannot drift apart. ASCII output only.
 //
-//   G1 the two Kunuz pages carry the same table, entry for entry
+//   G1 the three Kunuz pages that pick categories (ghaws, harb, test, board) carry the same table, entry for entry
 //   G2 that table equals guards/fixtures/hl-category-groups.json, the table Hanna Laha exported
 //   G3 when the Hanna Laha repository is on this machine, its table (read now) equals the same file, so a change
 //      there that was not exported here is red
@@ -55,13 +55,15 @@ function diff(a, b, la, lb) {
 
 const ghaws = pageTable('quest-ghaws.html');
 const harb = pageTable('quest-harb.html');
+const test = pageTable('quest-test.html');   // KUNUZ-TEST (2026-10-16)
+const board = pageTable('quest-board.html');   // KUNUZ-BOARD (2026-10-16)
 const fixtureFile = path.join(__dirname, 'fixtures', 'hl-category-groups.json');
 const fixture = JSON.parse(fs.readFileSync(fixtureFile, 'utf8'));
 
 // G1
 {
-  const d = diff(ghaws, harb, 'ghaws', 'harb');
-  report('G1', 'quest-ghaws.html and quest-harb.html carry the same table', d.length === 0, 'groups=' + ghaws.length + ' diffs=' + d.length + (d.length ? ' ' + d.slice(0, 4).join('; ') : ''));
+  const d = diff(ghaws, harb, 'ghaws', 'harb').concat(diff(ghaws, test, 'ghaws', 'test')).concat(diff(ghaws, board, 'ghaws', 'board'));
+  report('G1', 'quest-ghaws.html, quest-harb.html, quest-test.html and quest-board.html carry the same table', d.length === 0, 'groups=' + ghaws.length + ' diffs=' + d.length + (d.length ? ' ' + d.slice(0, 4).join('; ') : ''));
 }
 // G2
 {

@@ -20,36 +20,42 @@
 html,body{margin:0;padding:0}
 body{color:var(--ink);font-family:var(--hd);font-size:16px;line-height:1.75;min-height:100vh;
   background:linear-gradient(180deg,#fff 0%,var(--sea0) 40%,var(--sea1) 100%)}
-.wrap{max-width:620px;margin:0 auto;padding:max(12px,env(safe-area-inset-top)) 16px 44px}
-.top{display:flex;justify-content:flex-start;margin:0 0 6px}
-.home{display:inline-flex;align-items:center;gap:8px;min-height:52px;min-width:52px;padding:0 18px;
-  border-radius:14px;background:var(--azraq);color:#fff;border:1px solid var(--azraq);
-  font-size:1.05rem;font-weight:700;text-decoration:none}
-.home:hover,.home:focus-visible{background:var(--ghawr)}
-.brand{text-align:center;margin:26px 0 4px}
-.brand h1{font-weight:700;font-size:2.4rem;margin:0;color:var(--ghawr)}
-.brand p{margin:.35rem 0 0;color:var(--muted);font-size:.95rem}
-.rule{width:56px;height:3px;background:var(--sea3);margin:16px auto 24px;border-radius:3px}
+.wrap{position:relative;max-width:620px;margin:0 auto;padding:max(8px,env(safe-area-inset-top)) 16px 44px}
+/* the way home is a small house icon on the start side of the title's row; its touch target stays 44x44 */
+.top{position:absolute;top:max(8px,env(safe-area-inset-top));inset-inline-start:12px;margin:0}
+.home{display:flex;align-items:center;justify-content:center;width:44px;height:44px;
+  border-radius:12px;color:var(--azraq);text-decoration:none}
+.home svg{width:26px;height:26px;display:block}
+.home:hover,.home:focus-visible{background:var(--sea1);color:var(--ghawr)}
+.brand{text-align:center;margin:0;padding:0 44px}
+.brand h1{font-weight:700;font-size:1.5rem;line-height:1.3;min-height:44px;margin:0;color:var(--ghawr);
+  display:flex;align-items:center;justify-content:center}
+.brand p{margin:0;color:var(--muted);font-size:.85rem;line-height:1.4}
+.rule{width:40px;height:2px;background:var(--sea3);margin:4px auto 8px;border-radius:2px}
 .door{display:block;background:var(--white);border:1px solid var(--line);border-radius:16px;
-  padding:18px 18px;margin:0 0 12px;text-decoration:none;color:inherit;min-height:48px}
+  padding:11px 18px;margin:0 0 8px;text-decoration:none;color:inherit;min-height:48px}
 .door:hover,.door:focus-visible{border-color:var(--azraq)}
-.door b{display:block;font-size:1.35rem;color:var(--ghawr);margin-bottom:2px}
-.door span{display:block;color:var(--muted);font-size:.92rem;line-height:1.6}
+.door b{display:block;font-size:1.35rem;line-height:1.25;color:var(--ghawr);margin-bottom:0}
+.door span{display:block;color:var(--muted);font-size:.92rem;line-height:1.45}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <nav class="top" aria-label="الخروج">
-    <a onclick="try{sessionStorage.setItem('ezik_resume_section_v1','home')}catch(e){}" class="home" href="/" aria-label="الرئيسية — العودة إلى عزك">🏠 الرئيسية</a>
+    <a onclick="try{sessionStorage.setItem('ezik_resume_section_v1','home')}catch(e){}" class="home" href="/" aria-label="الرئيسية"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9v11h14V9"/><path d="M10 20v-6h4v6"/></svg></a>
   </nav>
   <div class="brand"><h1>كنوز المعرفة</h1>
-    <p>ثلاث ألعاب من أسئلة عزك. اختاروا لعبتكم.</p></div>
+    <p>خمس ألعاب من أسئلة عزك. اختاروا لعبتكم.</p></div>
   <div class="rule"></div>
   <a class="door" href="/quest-ghaws.html"><b>الغوص</b>
     <span>انزل قامةً بعد قامة، واطلع بحصيلتك قبل أن يخونك جواب — وحدك أو بطاقم</span></a>
   <a class="door" href="/quest-harb.html"><b>حرب الجزر</b>
     <span>لعبة مجموعات · أرخبيل من الجزر يُفتح بالجواب لا بالنرد</span></a>
+  <a class="door" href="/quest-test.html"><b>اختبر معلوماتك</b>
+    <span>أسئلة على جهاز واحد · وحدك أو بفرق تتناوب الدور · تختارون الفئات والوقت والخيارات</span></a>
+  <a class="door" href="/quest-board.html"><b>تحدّي الفئات</b>
+    <span>لوحة فئات على جهاز واحد · الفرق تتناوب الدور، وكل فريق يختار فئته ونقاطه</span></a>
   <a class="door" href="/hanna-laha/"><b>حنّا لها</b>
     <span>من فريقين لين ١٢ فريق · شاشة وحدة أو جوال لكل فريق · مع خيارات أو بدون</span>
     <span>تحدّي أسئلة للدواوين والجمعات: فرق تتنافس، وفي كل سؤال تقررون «أتوقع» ولا «حنّا لها».</span></a>

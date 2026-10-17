@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F4FBFE">
+<title>كنوز المعرفة — اختبر معلوماتك</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sea0:#F4FBFE;--sea1:#E2F3FB;--sea2:#C3E5F4;--sea3:#8FCDE6;
+  --azraq:#1B6E9C;--ghawr:#0E4F72;--ink:#0B3B54;--muted:#4F7489;
+  --white:#fff;--line:#BCDFEF;--ok:#0B7A6F;--no:#B0435A;
+  --hd:'Noto Sans Arabic',system-ui,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{color:var(--ink);font-family:var(--hd);font-size:16px;line-height:1.75;min-height:100vh;
+  background:linear-gradient(180deg,#fff 0%,var(--sea0) 40%,var(--sea1) 100%);overflow-x:hidden}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.wrap{max-width:620px;margin:0 auto;padding:max(12px,env(safe-area-inset-top)) 16px 44px}
+.hidden{display:none!important}
+.brand{text-align:center;margin:22px 0 4px}
+.brand h1{font-weight:700;font-size:2.2rem;margin:0;color:var(--ghawr)}
+.brand p{margin:.35rem 0 0;color:var(--muted);font-size:.95rem}
+.rule{width:56px;height:3px;background:var(--sea3);margin:14px auto 20px;border-radius:3px}
+.kz-nav{display:flex;justify-content:space-between;gap:10px;margin:0 0 6px}
+.kz-nav a{display:inline-flex;align-items:center;gap:6px;min-height:48px;min-width:48px;padding:0 16px;
+  border-radius:12px;border:1px solid var(--line);background:var(--white);color:var(--ghawr);
+  font-size:1rem;font-weight:600;text-decoration:none}
+.kz-nav a:hover,.kz-nav a:focus-visible{border-color:var(--azraq)}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;background:var(--white);border:1px solid var(--line);
+  color:var(--ghawr);border-radius:12px;padding:10px 14px;font:inherit;font-size:1rem;cursor:pointer;width:100%;text-decoration:none}
+.btn:hover:not(:disabled),.btn:focus-visible{border-color:var(--azraq)}
+.btn.solid{background:var(--azraq);color:#fff;border-color:var(--azraq);font-weight:600}
+.btn.solid:hover:not(:disabled){background:var(--ghawr)}
+.btn:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:10px}
+.card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.lbl{color:var(--ghawr);font-size:1.05rem;font-weight:600;margin:0 0 3px}
+.sub{color:var(--muted);font-size:.85rem;margin:0 0 12px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{min-height:44px;background:var(--sea0);border:1px solid var(--line);border-radius:999px;padding:6px 14px;
+  font:inherit;font-size:.92rem;color:var(--ink);cursor:pointer}
+.chip.on{background:var(--azraq);border-color:var(--azraq);color:#fff}
+.chip:focus-visible{outline:2px solid var(--ghawr);outline-offset:2px}
+.cur{color:var(--muted);font-size:.85rem;align-self:center;padding:6px 2px}
+.freerow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:11px;color:var(--muted);font-size:.88rem}
+.freerow input{width:92px;min-height:44px;background:var(--sea0);border:1px solid var(--line);border-radius:9px;
+  padding:8px 9px;font:inherit;font-size:1rem;color:var(--ink);text-align:center}
+.freerow input:focus{outline:none;border-color:var(--azraq)}
+.tally{color:var(--no);font-size:.88rem;margin:10px 0 0}
+.tally:empty{display:none}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px}
+.quick button{min-height:44px;padding:6px 4px;font:inherit;font-size:.88rem;border-radius:10px;background:none;
+  border:1px dashed var(--sea3);color:var(--azraq);cursor:pointer}
+.quick button:focus-visible{outline:2px solid var(--ghawr);outline-offset:2px}
+/* اختيار الفئات: المجموعات الثماني (الكتلة نفسها في الغوص والحرب) */
+:root{--kzc-mut:#46687C}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px}
+.quick button{min-height:44px;padding:6px 4px;font-size:.88rem;border-radius:10px}
+.kzc-sel{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.kzc-sh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:.95rem;color:var(--ink)}
+.kzc-sh b{color:var(--ghawr)}
+.kzc-st{font-size:.82rem;color:var(--azraq);font-weight:600}
+.kzc-st.ok{color:#0B6B65}
+.kzc-pills,.kzc-gb{display:flex;flex-wrap:wrap;gap:7px}
+.kzc-empty{margin:0;color:var(--kzc-mut);font-size:.88rem}
+.kzc-pill,.kzc-c{min-height:44px;border-radius:999px;font:inherit;font-size:.88rem;padding:6px 14px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px}
+.kzc-pill{background:var(--azraq);border:1px solid var(--azraq);color:#fff}
+.kzc-pill i{font-style:normal;font-size:1.1rem;line-height:1}
+.kzc-g{border:1px solid var(--line);border-radius:14px;margin-bottom:8px;background:var(--white);overflow:hidden}
+.kzc-gh{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;padding:8px 12px;background:none;border:0;
+  font:inherit;color:var(--ink);cursor:pointer;text-align:right}
+.kzc-bar{width:5px;height:30px;border-radius:3px;flex:none}
+.kzc-bar.rel{background:var(--ghawr)}
+.kzc-bar.sec{background:var(--sea3)}
+.kzc-gn{flex:1;display:flex;flex-direction:column;line-height:1.35}
+.kzc-gn b{color:var(--ghawr);font-size:1rem}
+.kzc-gn small{color:var(--kzc-mut);font-size:.78rem}
+.kzc-badge{background:var(--sea1);color:var(--ghawr);border-radius:999px;padding:2px 10px;font-size:.78rem;font-weight:600}
+.kzc-ar{color:var(--azraq);transition:transform .2s}
+.kzc-gh[aria-expanded="true"] .kzc-ar{transform:rotate(180deg)}
+.kzc-gb{padding:4px 12px 14px}
+.kzc-gb[hidden]{display:none}
+.kzc-c{background:var(--sea0);border:1px solid var(--sea2);color:var(--ink)}
+.kzc-c[aria-pressed="true"]{background:var(--azraq);border-color:var(--azraq);color:#fff}
+.kzc-c:disabled{background:var(--white);border:1px dashed var(--sea3);color:var(--kzc-mut);cursor:default;opacity:.8}
+#cfg .chip{min-height:44px}
+.kzc-gh:focus-visible,.kzc-c:focus-visible,.kzc-pill:focus-visible{outline:2px solid var(--ghawr);outline-offset:2px}
+.team{display:flex;align-items:center;gap:9px;background:var(--sea0);border:1px solid var(--line);border-radius:12px;padding:6px 8px;margin-bottom:8px}
+.team input{flex:1;min-width:0;min-height:44px;background:none;border:0;font:inherit;font-size:1.02rem;color:var(--ink);padding:3px 4px}
+.team input:focus{outline:none;border-bottom:1px solid var(--azraq)}
+.swatch{flex:none;width:44px;height:44px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer}
+.swatch:focus-visible{outline:2px solid var(--ghawr);outline-offset:2px}
+.mini{flex:none;min-width:44px;min-height:44px;background:none;border:0;color:var(--muted);font-size:1.4rem;cursor:pointer}
+.seenfoot{text-align:center;margin-top:20px}
+.seenfoot button{background:none;border:0;min-height:44px;color:var(--muted);font:inherit;font-size:.85rem;cursor:pointer;text-decoration:underline;padding:6px}
+.seenfoot button:disabled{opacity:.45;cursor:default;text-decoration:none}
+.seenfoot p{color:var(--muted);font-size:.8rem;margin:4px 0 0}
+/* اللعب */
+.ptop{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:48px}
+.ptop .exit{background:none;border:0;min-height:48px;min-width:48px;padding:0 8px;color:var(--muted);font:inherit;font-size:.92rem;cursor:pointer}
+#prog{color:var(--muted);font-size:.9rem}
+.catbox{display:flex;align-items:center;gap:8px;margin:4px 0 10px}
+.catbox label{color:var(--ghawr);font-weight:600;font-size:.95rem;flex:none}
+#catSel{flex:1;min-width:0;min-height:48px;padding:8px 10px;border:1.5px solid var(--azraq);border-radius:12px;background:var(--white);
+  color:var(--ink);font:inherit;font-size:1rem}
+#catSel:focus-visible{outline:2px solid var(--ghawr);outline-offset:2px}
+.turnbar{border-radius:14px;padding:10px 14px;margin:0 0 8px;color:#fff;font-weight:700;font-size:1.1rem;min-height:48px;display:flex;align-items:center}
+.scores{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.scores span{display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1.5px solid var(--line);border-radius:999px;padding:3px 11px;font-size:.88rem;color:var(--ink)}
+.scores span.now{font-weight:700}
+.scores i{width:10px;height:10px;border-radius:50%;flex:none}
+.qcard{min-height:160px}
+.qcat{color:var(--muted);font-size:.85rem;margin:0 0 4px}
+.qcat:empty{display:none}
+.qtext{font-weight:600;font-size:max(17px,1.18rem);line-height:1.7;margin:0 0 14px;color:var(--ghawr);overflow-wrap:anywhere}
+.opts{display:grid;gap:9px}
+.orow{display:flex;align-items:stretch;gap:8px}
+.opt{flex:1;min-width:0;min-height:52px;text-align:right;background:var(--white);border:1.5px solid var(--line);border-radius:14px;
+  padding:12px 14px;color:var(--ink);font:inherit;font-size:max(16px,1.04rem);line-height:1.55;cursor:pointer;overflow-wrap:anywhere}
+.opt:hover:not(:disabled),.opt:focus-visible{border-color:var(--azraq)}
+.opt.pick{border-color:var(--azraq);background:var(--sea1);color:var(--ghawr);font-weight:600}
+.opt.right{border-color:var(--ok);background:#E3F5F2;color:#064E47}
+.opt.wrong{border-color:var(--no);background:#FBECEE;color:#7A2335}
+.opt:disabled{cursor:default}
+.conf{flex:none;min-width:76px;min-height:52px;border-radius:14px;border:0;background:var(--azraq);color:#fff;font:inherit;font-weight:700;font-size:1rem;cursor:pointer}
+.conf:focus-visible{outline:2px solid var(--ghawr);outline-offset:2px}
+.act{display:grid;gap:9px;margin-top:4px}
+.act .btn{min-height:52px}
+.judge{display:flex;gap:9px}
+.judge .btn{flex:1}
+.ans{border:1.5px solid var(--ok);background:#E3F5F2;color:#064E47;border-radius:14px;padding:12px 14px;font-weight:600;overflow-wrap:anywhere}
+.why{margin-top:12px;background:var(--sea0);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.93rem;line-height:1.8;overflow-wrap:anywhere}
+.why .src{display:block;color:var(--muted);font-size:.8rem;margin-top:5px}
+.verdict{margin:10px 0 0;font-weight:700}
+.verdict.ok{color:var(--ok)}
+.verdict.no{color:var(--no)}
+.verdict:empty{display:none}
+.timer{margin:12px 0 0;text-align:center;color:var(--ghawr);font-weight:700;font-size:1.05rem}
+.timer.warn{color:var(--no)}
+.timer:empty{display:none}
+#nextBtn{margin-top:4px;min-height:52px}
+/* النهاية */
+.end{text-align:center;padding-top:20px}
+.end h2{font-size:1.6rem;color:var(--ghawr);margin:0}
+.big{font-size:3.6rem;font-weight:700;color:var(--azraq);line-height:1.15;margin:10px 0 0}
+.endsub{color:var(--muted);margin:2px 0 14px}
+.winner{font-size:1.25rem;font-weight:700;color:var(--ghawr);margin:12px 0}
+table{width:100%;border-collapse:collapse;margin:8px 0 14px;background:var(--white);border-radius:12px}
+td,th{padding:10px 8px;border-bottom:1px solid var(--line);text-align:right}
+th{color:var(--muted);font-weight:500;font-size:.85rem}
+td.n{font-size:1.15rem;text-align:left;color:var(--azraq);font-weight:700}
+td i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:6px}
+.endnote{color:var(--muted);font-size:.9rem}
+.endnote:empty{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<section id="cfg">
+  <nav class="kz-nav" aria-label="الخروج">
+    <a href="/quest.html" class="kz-back">→ رجوع</a>
+    <a onclick="try{sessionStorage.setItem('ezik_resume_section_v1','home')}catch(e){}" href="/" class="kz-home" aria-label="الرئيسية">🏠 الرئيسية</a>
+  </nav>
+  <div class="brand"><h1>اختبر معلوماتك</h1>
+    <p>أسئلة على جهاز واحد · وحدك أو بفرق تتناوب الدور</p></div>
+  <div class="rule"></div>
+
+  <div class="card">
+    <p class="lbl">طريقة اللعب</p>
+    <div class="chips" id="modeChips"></div>
+  </div>
+
+  <div class="card hidden" id="teamsBox">
+    <p class="lbl">الفرق</p><p class="sub">من فريقين إلى أربعة · لكلّ فريق اسمه ولونه، والدور يتنقّل بينها سؤالًا بسؤال</p>
+    <div id="teamList"></div>
+    <button class="btn" id="addTeam">إضافة فريق</button>
+  </div>
+
+  <div class="card">
+    <p class="lbl">الفئات</p><p class="sub">فئة واحدة على الأقلّ، ولكم أن تختاروا الفئات كلّها</p>
+    <div class="quick">
+      <button data-q="all">كل الفئات</button><button data-q="rel">الدينيّة</button>
+      <button data-q="sec">الدنيويّة</button><button data-q="none">مسح</button>
+    </div>
+    <div class="kzc-sel" aria-live="polite">
+      <div class="kzc-sh"><b id="catSelN"></b><span id="catSelSt" class="kzc-st"></span></div>
+      <div class="kzc-pills" id="catPills"></div>
+    </div>
+    <div id="cats"></div>
+  </div>
+
+  <div class="card">
+    <p class="lbl">عدد الأسئلة</p><p class="sub">كم سؤالًا في هذه اللعبة</p>
+    <div class="chips" id="totals"></div>
+    <div class="freerow" id="totalsFree"></div>
+  </div>
+
+  <div class="card">
+    <p class="lbl">الوقت لكلّ سؤال</p><p class="sub">بلا وقت، أو ثوانٍ تختارونها · إذا انتهى الوقت حُسب السؤال خطأً</p>
+    <div class="chips" id="times"></div>
+    <div class="freerow" id="timesFree"></div>
+  </div>
+
+  <div class="card">
+    <p class="lbl">الخيارات</p><p class="sub">ظاهرة مع السؤال، أو مخفية فتجيبون بألسنتكم ثمّ تحكمون على أنفسكم</p>
+    <div class="chips" id="optChips"></div>
+    <div id="showsBox" class="hidden" style="margin-top:14px">
+      <p class="lbl" id="showsLbl">كم مرة يحق لكل فريق إظهار الخيارات؟</p>
+      <div class="chips" id="showChips"></div>
+    </div>
+  </div>
+
+  <p class="tally" id="tally" role="status"></p>
+  <button class="btn solid" id="startBtn">ابدأ</button>
+  <div class="seenfoot">
+    <button id="seenReset">صفّر السجلّ</button>
+    <p class="hidden" id="seenMem">المتصفّح يمنع الحفظ، فالسجلّ يُنسى بإغلاق الصفحة</p>
+  </div>
+</section>
+
+<section id="play" class="hidden">
+  <div class="ptop"><span id="prog"></span><button class="exit" id="quit">إنهاء اللعبة</button></div>
+  <div class="turnbar hidden" id="turnBar"></div>
+  <div class="scores" id="scores"></div>
+  <div class="catbox"><label for="catSel">الفئة</label><select id="catSel"></select></div>
+  <div class="card qcard">
+    <p class="qcat" id="qcat"></p>
+    <h2 class="qtext" id="qtext"></h2>
+    <div class="opts" id="opts"></div>
+    <div class="act" id="act"></div>
+    <p class="verdict" id="verdict" role="status"></p>
+    <div class="why hidden" id="why"></div>
+    <p class="timer" id="timer" role="timer"></p>
+  </div>
+  <button class="btn solid" id="nextBtn" disabled>التالي</button>
+</section>
+
+<section id="end" class="hidden">
+  <div class="end">
+    <h2 id="endTitle">انتهت اللعبة</h2>
+    <div class="big hidden" id="endNum"></div>
+    <p class="endsub" id="endSub"></p>
+    <p class="winner hidden" id="winner"></p>
+    <table class="hidden" id="rankT"><thead><tr><th>الفريق</th><th style="text-align:left">النقاط</th></tr></thead>
+      <tbody id="rankBody"></tbody></table>
+    <p class="endnote" id="endNote"></p>
+    <div class="row"><a class="btn" href="/quest.html">الكنوز</a>
+      <button class="btn solid" id="again">لعبة جديدة</button></div>
+  </div>
+</section>
+
+</div>
+
+<script src="/quest-data/kunuz-bank-3147.js"></script>
+<script>
+/* اختبر معلوماتك (2026-10-16). كلّ شيء على الجهاز: لا طلب إلى أيّ خادم، ولا حساب، ولا تتبّع.
+   الصفحة لا تحمل منطق الغوص ولا الحرب. تأخذ منهما بالنسخ كتلتين: سجلّ عدم التكرار (kunuz_seen_v1) وجدول
+   المجموعات الثماني، والبوابة kunuztest تقرأ النسخ الثلاث وتحمرّ إن اختلف حرف، فلا تفترق. */
+var S={teamsMode:false,teams:[],cats:[],total:10,timer:0,opts:"shown",shows:0};
+var G=null;
+var P={phase:"pick",picked:-1,locked:false,revealed:false,answered:false,sel:-1,t0:0,iv:null,left:0};
+
+function ar(n){if(document.documentElement.getAttribute("lang")==="en")return String(n);return String(n).replace(/[0-9]/g,function(d){return "٠١٢٣٤٥٦٧٨٩"[+d]})}
+function $(i){return document.getElementById(i)}
+function el(t,cls,txt){var e=document.createElement(t);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e}
+var SCREENS=["cfg","play","end"];
+function show(id){SCREENS.forEach(function(x){$(x).classList.add("hidden")});$(id).classList.remove("hidden");try{window.scrollTo(0,0)}catch(e){}}
+/* الرجوع: اللعب والنتيجة خطوة واحدة فوق الإعداد، فزرّ الرجوع في الجوال يعيد إلى الإعداد */
+var atPlay=false;
+function toPlay(){if(!atPlay){try{history.pushState({kz:"play"},"")}catch(e){}atPlay=true}}
+function toCfg(){stopT();if(atPlay){atPlay=false;try{history.back();return}catch(e){}}openCfg()}
+window.addEventListener("popstate",function(){atPlay=false;stopT();openCfg()});
+
+/* ───── السجلّ المشترك بين الطورين: لا يتكرّر سؤال حتّى تنفد الأسئلة كلّها ─────
+   المفتاح kunuz_seen_v1 · القيمة {v:1,s:ختم البنك,b:بتّة لكلّ سؤال بفهرسه، base64}
+   الختم = عدد الأسئلة + FNV-1a لسلسلة المعرّفات بترتيبها؛ اختلف ⟹ يُطرح السجلّ.
+   الوسم ساعة عرض السؤال، ويُكتب فورًا. رُفض التخزين ⟹ سجلّ في الذاكرة لهذه الجلسة. */
+var SEEN_KEY="kunuz_seen_v1";
+var SEEN={stamp:"",bits:[],mem:false};
+var B64="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+function seenStamp(n){
+  var h=2166136261;n=n||DATA.qs.length;
+  for(var i=0;i<n;i++){var q=DATA.qs[i],s=String(q.length>8?q[8]:q[3])+"\n";
+    for(var j=0;j<s.length;j++)h=Math.imul(h^s.charCodeAt(j),16777619)>>>0}
+  return n+"-"+("0000000"+h.toString(16)).slice(-8);
+}
+function b64e(a){var s="";for(var i=0;i<a.length;i+=3){var n=(a[i]<<16)|((a[i+1]||0)<<8)|(a[i+2]||0);
+  s+=B64.charAt(n>>18&63)+B64.charAt(n>>12&63)+(i+1<a.length?B64.charAt(n>>6&63):"=")+(i+2<a.length?B64.charAt(n&63):"=")}return s}
+function b64d(s){if(typeof s!=="string"||s.length%4)return null;var a=[];
+  for(var i=0;i<s.length;i+=4){var c=[],p=0;
+    for(var k=0;k<4;k++){var ch=s.charAt(i+k);if(ch==="="){c.push(0);p++}else{var v=B64.indexOf(ch);if(v<0||p)return null;c.push(v)}}
+    var n=(c[0]<<18)|(c[1]<<12)|(c[2]<<6)|c[3];a.push(n>>16&255);if(p<2)a.push(n>>8&255);if(p<1)a.push(n&255)}
+  return a}
+function seenEmpty(){var a=[];for(var i=0;i<Math.ceil(DATA.qs.length/8);i++)a.push(0);return a}
+function seenWrite(){
+  if(SEEN.mem)return;
+  try{window.localStorage.setItem(SEEN_KEY,JSON.stringify({v:1,s:SEEN.stamp,b:b64e(SEEN.bits)}))}catch(e){SEEN.mem=true}
+}
+function seenRead(){
+  if(SEEN.mem)return;
+  var raw=null,bits=null;
+  try{raw=window.localStorage.getItem(SEEN_KEY)}catch(e){SEEN.mem=true;return}
+  var carried=false;
+  try{var o=JSON.parse(raw);if(o&&o.v===1){if(o.s===SEEN.stamp)bits=b64d(o.b);else{bits=seenCarry(o);carried=!!bits}}}catch(e){}
+  if(bits&&bits.length===SEEN.bits.length){SEEN.bits=bits;if(carried)seenWrite()}
+  else{SEEN.bits=seenEmpty();if(raw!==null&&raw!==undefined)seenWrite()}
+}
+/* الإضافة في آخر القائمة لا تحرّك فهرس سؤال قديم: سجلّ ختمه ختم بادئةٍ من معرّفات اليوم يُرحَّل بدل أن يُطرح */
+function seenCarry(o){
+  var m=/^(\d+)-[0-9a-f]{8}$/.exec(o&&o.s);if(!m)return null;
+  var n=+m[1];if(n<1||n>=DATA.qs.length||seenStamp(n)!==o.s)return null;
+  var b=b64d(o.b);if(!b||b.length!==Math.ceil(n/8))return null;
+  while(b.length<SEEN.bits.length)b.push(0);return b}
+function seenHas(i){return (SEEN.bits[i>>3]>>(i&7)&1)===1}
+function seenMark(i){seenRead();SEEN.bits[i>>3]|=1<<(i&7);seenWrite()}
+function seenByCat(){seenRead();var a=DATA.cats.map(function(){return 0});
+  for(var i=0;i<DATA.qs.length;i++)if(!seenHas(i))a[DATA.qs[i][0]]++;return a}
+function seenLeft(cats){var a=seenByCat(),n=0;a.forEach(function(v,c){if(!cats||cats.indexOf(c)>-1)n+=v});return n}
+function seenReset(){SEEN.bits=seenEmpty();if(SEEN.mem)return;
+  try{window.localStorage.removeItem(SEEN_KEY)}catch(e){SEEN.mem=true}}
+function spentText(){return seenLeft(null)?["انتهت أسئلة فئاتك","اختر فئات غيرها، أو صفّر السجلّ من شاشة الإعداد"]:
+  ["انتهت الأسئلة كلّها","رأيتَها جميعًا — التصفير بيدك في شاشة الإعداد"]}
+function seenCard(after){
+  var b=$("seenReset");
+  $("seenMem").classList.toggle("hidden",!SEEN.mem);
+  b.disabled=(seenLeft(null)===DATA.qs.length);b.textContent="صفّر السجلّ";b.dataset.arm="";
+  b.onclick=function(){
+    if(b.dataset.arm!=="1"){b.dataset.arm="1";b.textContent="متأكّد؟ اضغط ثانيةً للتصفير";return}
+    seenReset();seenCard(after);if(after)after()};
+}
+SEEN.stamp=seenStamp();SEEN.bits=seenEmpty();seenRead();
+
+/* ───── اختيار الفئات: المجموعات الثماني (الكتلة نفسها في الغوص والحرب) ───── */
+var KZC_GROUPS=[
+ ["القرآن وعلومه",1,["quran","juz-amma","juz-tabarak","tajweed"]],
+ ["العقيدة والعبادة",1,["deen","asmaa-husna","prayer","easy-fiqh","adhkar","manners"]],
+ ["السنّة والسيرة",1,["hadith","seerah","ghazawat","sahaba","mothers-ahlulbayt","prophets"]],
+ ["التاريخ الإسلامي",1,["islamic-history","rashidun","umayyad","abbasid","ayyubid","mamluk","ottoman","muslim-scientists","islamic-architecture"]],
+ ["الكويت والخليج",0,["kuwait-history","kuwait-sea-heritage","kuwait-old-life","horses-camels-falcons","palm-plants"]],
+ ["اللغة والأدب",0,["arabic-language","poetry-fusha","poetry-nabati","proverbs","riddles-logic"]],
+ ["العلوم",0,["physics","chemistry","biology","math","human-body","astronomy","earth-weather","inventions","tech-computing"]],
+ ["العالم والحياة",0,["geography","world-history","arab-world","animals","marine-life","fitness-health","first-aid","money-economy","cuisine"]]
+];
+var KZC={open:-1,g:null};
+function kzcGroups(){
+  if(KZC.g)return KZC.g;
+  var at={},g=KZC_GROUPS.map(function(x){return {n:x[0],r:x[1]===1,c:[]}});
+  DATA.cats.forEach(function(c,i){at[c[0]]=i});
+  KZC_GROUPS.forEach(function(x,k){x[2].forEach(function(s){if(s in at){g[k].c.push(at[s]);at[s]=-1}})});
+  DATA.cats.forEach(function(c,i){if(at[c[0]]!==-1)g[c[2]==="religious"?3:7].c.push(i)});
+  return (KZC.g=g);
+}
+function kzcNom(n){return n===1?"فئة واحدة":n===2?"فئتان":n>=3&&n<=10?ar(n)+" فئات":ar(n)+" فئة"}
+function kzcAcc(n){return n===1?"فئة واحدة":n===2?"فئتين":n>=3&&n<=10?ar(n)+" فئات":ar(n)+" فئة"}
+function kzcDraw(sel,min,max,toggle){
+  var ae=document.activeElement,fd=ae&&ae.dataset?ae.dataset:{},fc=fd.cat!==undefined?"c"+fd.cat:(fd.g!==undefined?"g"+fd.g:(fd.p!==undefined?"p"+fd.p:null));
+  var G=kzcGroups(),n=sel.length,full=n>=max;
+  var pw=$("catPills");pw.innerHTML="";
+  if(!n){var e=document.createElement("p");e.className="kzc-empty";e.textContent="افتح مجموعة واختر منها، أو استعمل الاختيار السريع";pw.appendChild(e)}
+  sel.forEach(function(i){
+    var p=document.createElement("button");p.type="button";p.className="kzc-pill";p.dataset.p=i;
+    p.setAttribute("aria-label","إزالة "+DATA.cats[i][1]);
+    var t=document.createElement("span");t.textContent=DATA.cats[i][1];p.appendChild(t);
+    var x=document.createElement("i");x.textContent="×";x.setAttribute("aria-hidden","true");p.appendChild(x);
+    p.onclick=function(){toggle(i)};pw.appendChild(p)});
+  $("catSelN").textContent=n?"اخترتَ "+kzcAcc(n):"ما اخترته";
+  var st=$("catSelSt");
+  st.textContent=n<min?"بقي "+kzcNom(min-n)+" على الأقل":full?"بلغتَ الحدّ":"جاهز";
+  st.className="kzc-st"+(n>=min?" ok":"");
+  var w=$("cats");w.innerHTML="";
+  G.forEach(function(g,k){
+    var open=KZC.open===k,cnt=g.c.filter(function(i){return sel.indexOf(i)>-1}).length;
+    var box=document.createElement("div");box.className="kzc-g";
+    var h=document.createElement("button");h.type="button";h.className="kzc-gh";h.dataset.g=k;
+    h.setAttribute("aria-expanded",open?"true":"false");h.setAttribute("aria-controls","kzcG"+k);
+    var bar=document.createElement("span");bar.className="kzc-bar "+(g.r?"rel":"sec");h.appendChild(bar);
+    var nm=document.createElement("span");nm.className="kzc-gn";
+    var b=document.createElement("b");b.textContent=g.n;nm.appendChild(b);
+    var sm=document.createElement("small");sm.textContent=g.r?"دينيّة":"دنيويّة";nm.appendChild(sm);h.appendChild(nm);
+    if(cnt){var bd=document.createElement("span");bd.className="kzc-badge";bd.textContent="اخترتَ "+ar(cnt);h.appendChild(bd)}
+    var ar2=document.createElement("span");ar2.className="kzc-ar";ar2.setAttribute("aria-hidden","true");ar2.textContent="▾";h.appendChild(ar2);
+    h.onclick=function(){KZC.open=(KZC.open===k?-1:k);kzcDraw(sel,min,max,toggle)};
+    box.appendChild(h);
+    var body=document.createElement("div");body.className="kzc-gb";body.id="kzcG"+k;body.setAttribute("role","group");
+    body.setAttribute("aria-label",g.n);if(!open)body.hidden=true;
+    g.c.forEach(function(i){
+      var on=sel.indexOf(i)>-1,c=document.createElement("button");c.type="button";c.className="kzc-c";c.dataset.cat=i;
+      c.textContent=DATA.cats[i][1];c.setAttribute("aria-pressed",on?"true":"false");
+      if(!on&&full)c.disabled=true;
+      c.onclick=function(){toggle(i)};body.appendChild(c)});
+    box.appendChild(body);w.appendChild(box)});
+  if(fc){var K=fc.charAt(0),q="["+(K==="c"?"data-cat":K==="g"?"data-g":"data-p")+"=\""+fc.slice(1)+"\"]";
+    var el=(K==="p"?pw:w).querySelector(q);if(el&&!el.disabled&&el.focus){try{el.focus()}catch(x){}}}
+}
+
+/* ───── TEST-ENGINE: الدور والنقاط واختيار السؤال، بلا واجهة (تختبره البوابة kunuztest وحده) ───── */
+var TE=(function(){
+  var COLORS=[["#1B6E9C","أزرق"],["#B45309","برتقالي"],["#0F7B5F","أخضر"],["#6D4AA8","بنفسجي"],["#B4235A","وردي"],["#475569","رمادي"]];
+  /* o: {teams:[{n,c}], cats:[فهارس], total, timer (ثوانٍ، ٠ بلا وقت), opts:"shown"|"hidden", shows (-1 حرّ)} */
+  function newGame(o){
+    return {solo:o.teams.length===1,cats:o.cats.slice(),total:o.total,timer:o.timer||0,opts:o.opts,
+      teams:o.teams.map(function(t){return {n:t.n,c:t.c,score:0,shows:o.opts==="hidden"?o.shows:0}}),
+      turn:0,asked:0,used:{},cur:-1,curCat:-1};
+  }
+  function free(g,i,seen){return !g.used[i]&&!seen(i)}
+  /* ما بقي في كلّ فئة مختارة: مصفوفة بطول الفئات، والفئة غير المختارة صفر */
+  function left(g,seen){
+    var a=DATA.cats.map(function(){return 0}),on={};
+    g.cats.forEach(function(c){on[c]=1});
+    for(var i=0;i<DATA.qs.length;i++){var c=DATA.qs[i][0];if(on[c]&&free(g,i,seen))a[c]++}
+    return a;
+  }
+  function catsLeft(g,seen){var L=left(g,seen);return g.cats.filter(function(c){return L[c]>0})}
+  /* cat = -1 عشوائي: فئة عشوائيّة من المختارة التي بقي فيها سؤال، ثمّ سؤال عشوائيّ منها */
+  function pick(g,cat,seen,rnd){
+    rnd=rnd||Math.random;
+    var c=cat;
+    if(c<0){var L=catsLeft(g,seen);if(!L.length)return -1;c=L[Math.floor(rnd()*L.length)]}
+    else if(g.cats.indexOf(c)<0)return -1;
+    var bag=[];
+    for(var i=0;i<DATA.qs.length;i++)if(DATA.qs[i][0]===c&&free(g,i,seen))bag.push(i);
+    if(!bag.length)return -1;
+    var k=bag[Math.floor(rnd()*bag.length)];
+    g.used[k]=1;g.cur=k;g.curCat=c;return k;
+  }
+  function team(g){return g.teams[g.turn]}
+  function canShow(g){var t=team(g);return g.opts==="hidden"&&(t.shows<0||t.shows>0)}
+  function useShow(g){if(!canShow(g))return false;var t=team(g);if(t.shows>0)t.shows--;return true}
+  function settle(g,right){if(g.cur<0)return false;if(right)team(g).score++;g.asked++;g.cur=-1;return true}
+  function next(g){g.turn=(g.turn+1)%g.teams.length}
+  function over(g){return g.asked>=g.total}
+  /* الترتيب بالنقاط، والتعادل يحفظ ترتيب الفرق كما كُتبت */
+  function rank(g){
+    var order=g.teams.map(function(t,i){return i}).sort(function(a,b){return g.teams[b].score-g.teams[a].score||a-b});
+    var top=g.teams[order[0]].score;
+    var winners=order.filter(function(i){return g.teams[i].score===top});
+    return {order:order,winners:winners,tie:winners.length>1};
+  }
+  return {COLORS:COLORS,newGame:newGame,left:left,catsLeft:catsLeft,pick:pick,team:team,canShow:canShow,useShow:useShow,
+    settle:settle,next:next,over:over,rank:rank};
+})();
+/* ───── TEST-ENGINE END ───── */
+
+/* ───── الإعداد ───── */
+function cntQ(n){
+  var r=n%100;
+  if(n>10&&(r===1||r===2||r===0))return ar(n)+" سؤال";
+  if(n===1)return "سؤال واحد";
+  if(n===2)return "سؤالان";
+  if(r>=3&&r<=10)return ar(n)+" أسئلة";
+  return ar(n)+" سؤالًا";
+}
+function cntS(n){
+  var r=n%100;
+  if(n>10&&(r===1||r===2||r===0))return ar(n)+" ثانية";
+  if(n===1)return "ثانية واحدة";
+  if(n===2)return "ثانيتان";
+  if(r>=3&&r<=10)return ar(n)+" ثوانٍ";
+  return ar(n)+" ثانية";
+}
+function freeRow(hostId,label,unit,min,max,set){
+  var h=$(hostId);h.innerHTML="";
+  var l=document.createElement("span");l.textContent=label;h.appendChild(l);
+  var i=document.createElement("input");i.type="number";i.setAttribute("inputmode","numeric");
+  i.min=min;i.max=max;i.placeholder="—";i.setAttribute("aria-label",label+" "+unit);
+  i.oninput=function(){var v=parseInt(i.value,10);if(!isNaN(v)&&v>=min&&v<=max)set(v)};
+  i.onchange=function(){var v=parseInt(i.value,10);
+    if(isNaN(v)){i.value="";return}
+    if(v<min)v=min;
+    if(v>max)v=max;
+    i.value=v;set(v)};
+  h.appendChild(i);
+  var u=document.createElement("span");u.textContent="من "+ar(min)+" إلى "+ar(max);h.appendChild(u);
+}
+function chipRow(hostId,items,cur,set){
+  var w=$(hostId);w.innerHTML="";
+  items.forEach(function(o){
+    var b=el("button","chip"+(cur===o[0]?" on":""),o[1]);b.type="button";b.setAttribute("aria-pressed",cur===o[0]?"true":"false");
+    b.onclick=function(){set(o[0])};w.appendChild(b)});
+}
+function curChip(w,txt){var c=el("span","cur",txt);$(w).appendChild(c)}
+function defTeam(i){return {n:"",c:TE.COLORS[i%TE.COLORS.length][0]}}
+function openCfg(){
+  if(S.teams.length<2)S.teams=[defTeam(0),defTeam(1)];
+  if(!S.cats.length)S.cats=DATA.cats.map(function(c,i){return i});
+  drawMode();drawTeams();drawCats();drawTotals();drawTimes();drawOpts();seenCard(drawCats);
+  freeRow("totalsFree","أو اكتب العدد:","سؤالًا",1,200,function(v){S.total=v;drawTotals()});
+  freeRow("timesFree","أو اكتب الثواني:","ثانية",3,600,function(v){S.timer=v;drawTimes()});
+  show("cfg");
+}
+function drawMode(){
+  chipRow("modeChips",[[false,"فردي"],[true,"مجموعات"]],S.teamsMode,function(v){S.teamsMode=v;drawMode();drawTeams();drawOpts()});
+}
+function colorName(c){for(var i=0;i<TE.COLORS.length;i++)if(TE.COLORS[i][0]===c)return TE.COLORS[i][1];return ""}
+function nextColor(i){
+  var cur=S.teams[i].c,k=0;
+  for(var j=0;j<TE.COLORS.length;j++)if(TE.COLORS[j][0]===cur)k=j;
+  for(var s=1;s<=TE.COLORS.length;s++){var c=TE.COLORS[(k+s)%TE.COLORS.length][0];
+    if(!S.teams.some(function(t,x){return x!==i&&t.c===c}))return c}
+  return cur;
+}
+function drawTeams(){
+  $("teamsBox").classList.toggle("hidden",!S.teamsMode);
+  if(!S.teamsMode)return;
+  var L=$("teamList");L.innerHTML="";
+  S.teams.forEach(function(t,i){
+    var d=el("div","team");
+    var sw=el("button","swatch");sw.type="button";sw.style.background=t.c;
+    sw.setAttribute("aria-label","لون الفريق "+ar(i+1)+": "+colorName(t.c)+" — اضغط للتغيير");
+    sw.onclick=function(){t.c=nextColor(i);drawTeams();try{$("teamList").querySelectorAll(".swatch")[i].focus()}catch(e){}};
+    d.appendChild(sw);
+    var inp=document.createElement("input");inp.value=t.n;inp.placeholder="فريق "+ar(i+1);inp.maxLength=24;
+    inp.setAttribute("aria-label","اسم الفريق "+ar(i+1));
+    inp.oninput=function(){t.n=inp.value};d.appendChild(inp);
+    if(S.teams.length>2){var x=el("button","mini","×");x.type="button";x.setAttribute("aria-label","حذف الفريق "+ar(i+1));
+      x.onclick=function(){S.teams.splice(i,1);drawTeams()};d.appendChild(x)}
+    L.appendChild(d)});
+  $("addTeam").disabled=S.teams.length>=4;
+}
+$("addTeam").onclick=function(){
+  if(S.teams.length>=4)return;
+  var t=defTeam(S.teams.length);
+  if(S.teams.some(function(x){return x.c===t.c})){S.teams.push(t);t.c=nextColor(S.teams.length-1)}else S.teams.push(t);
+  drawTeams()};
+function allCats(){return DATA.cats.map(function(c,i){return i})}
+function drawCats(){
+  kzcDraw(S.cats,1,Infinity,function(i){var k=S.cats.indexOf(i);if(k>-1)S.cats.splice(k,1);else S.cats.push(i);drawCats()});
+  if(S.cats.length===DATA.cats.length){var pw=$("catPills");pw.innerHTML="";pw.appendChild(el("p","kzc-empty","الفئات كلّها مختارة"))}
+  tally();
+}
+document.querySelectorAll("[data-q]").forEach(function(b){
+  b.type="button";
+  b.onclick=function(){
+    var q=b.dataset.q;
+    if(q==="all")S.cats=allCats();
+    if(q==="none")S.cats=[];
+    if(q==="rel"||q==="sec")S.cats=allCats().filter(function(i){return (DATA.cats[i][2]==="religious")===(q==="rel")});
+    drawCats()};
+});
+function tally(){
+  var n=S.cats.length,left=n?seenLeft(S.cats):0;
+  $("tally").textContent=!n?"اختر فئة واحدة على الأقلّ.":(left<1?"انتهت أسئلة فئاتك — اختر غيرها أو صفّر السجلّ.":"");
+  $("startBtn").disabled=(n<1||left<1);
+}
+function drawTotals(){
+  chipRow("totals",[5,10,15,20,30].map(function(n){return [n,cntQ(n)]}),S.total,function(v){S.total=v;drawTotals()});
+  curChip("totals","المختار: "+cntQ(S.total));
+}
+function drawTimes(){
+  chipRow("times",[0,10,15,20,30,45,60].map(function(n){return [n,n?cntS(n):"بلا وقت"]}),S.timer,function(v){S.timer=v;drawTimes()});
+  curChip("times",S.timer?"المختار: "+cntS(S.timer):"المختار: بلا وقت");
+}
+function drawOpts(){
+  chipRow("optChips",[["shown","ظاهرة"],["hidden","مخفية"]],S.opts,function(v){S.opts=v;drawOpts()});
+  $("showsBox").classList.toggle("hidden",S.opts!=="hidden");
+  $("showsLbl").textContent=S.teamsMode?"كم مرة يحق لكل فريق إظهار الخيارات؟":"كم مرة يحق لك إظهار الخيارات؟";
+  chipRow("showChips",[[0,"بدون"],[1,"مرة"],[2,"مرتين"],[3,"٣ مرات"],[-1,"حر"]],S.shows,function(v){S.shows=v;drawOpts()});
+}
+$("startBtn").onclick=function(){
+  if($("startBtn").disabled)return;
+  var teams=S.teamsMode?S.teams.map(function(t,i){return {n:t.n.trim()||("فريق "+ar(i+1)),c:t.c}}):[{n:"أنت",c:TE.COLORS[0][0]}];
+  G=TE.newGame({teams:teams,cats:S.cats,total:S.total,timer:S.timer,opts:S.opts,shows:S.shows});
+  P.sel=-1;toPlay();show("play");turnStart();
+};
+
+/* ───── اللعب ───── */
+function stopT(){if(P.iv){clearInterval(P.iv);P.iv=null}}
+function paintTimer(){
+  var t=$("timer");
+  if(!G||!G.timer||P.phase!=="q"||P.locked||P.answered){t.textContent="";t.className="timer";return}
+  var s=Math.max(0,Math.ceil(P.left/1000));
+  t.textContent="الوقت: "+cntS(s);t.className="timer"+(P.left<G.timer*250?" warn":"");
+}
+function startT(){
+  stopT();P.left=G.timer*1000;paintTimer();
+  if(!G.timer)return;
+  P.t0=performance.now();
+  P.iv=setInterval(function(){
+    P.left=G.timer*1000-(performance.now()-P.t0);
+    if(P.left<=0){P.left=0;stopT();timeout();return}
+    paintTimer()},200);
+}
+function paintTop(){
+  $("prog").textContent="السؤال "+ar(Math.min(G.asked+1,G.total))+" من "+ar(G.total);
+  var t=TE.team(G),bar=$("turnBar"),sc=$("scores");
+  bar.classList.toggle("hidden",G.solo);
+  if(!G.solo){bar.textContent="دور "+t.n;bar.style.background=t.c}
+  sc.innerHTML="";
+  G.teams.forEach(function(x,i){
+    var s=el("span",i===G.turn&&!G.solo?"now":"");
+    if(!G.solo){var d=el("i");d.style.background=x.c;s.appendChild(d);s.style.borderColor=x.c}
+    s.appendChild(document.createTextNode((G.solo?"نقاطك":x.n)+" "+ar(x.score)));sc.appendChild(s)});
+}
+function paintSel(){
+  var s=$("catSel"),L=TE.catsLeft(G,seenHas);
+  if(P.sel>-1&&L.indexOf(P.sel)<0)P.sel=-1;
+  s.innerHTML="";
+  var o=el("option","","عشوائي");o.value="-1";s.appendChild(o);
+  L.forEach(function(c){var x=el("option","",DATA.cats[c][1]);x.value=String(c);s.appendChild(x)});
+  s.value=String(P.sel);
+}
+$("catSel").onchange=function(){
+  P.sel=parseInt($("catSel").value,10);if(isNaN(P.sel))P.sel=-1;
+  if(P.phase==="pick")ask();
+  else if(P.phase==="q"&&!P.locked&&!P.answered)ask();   /* البند ٢-٧: تبديل الفئة قبل التأكيد بلا عقوبة */
+};
+function clearQ(){
+  $("qcat").textContent="";$("qtext").textContent="";$("opts").innerHTML="";$("act").innerHTML="";
+  $("verdict").textContent="";$("verdict").className="verdict";$("why").classList.add("hidden");$("why").innerHTML="";
+}
+function turnStart(){
+  stopT();
+  if(!TE.catsLeft(G,seenHas).length){finish(true);return}
+  P.phase="pick";P.picked=-1;P.locked=false;P.revealed=false;P.answered=false;
+  paintTop();paintSel();clearQ();paintTimer();
+  $("qtext").textContent=G.solo?"اختر فئة من القائمة، أو اطلب سؤالًا من الفئة المختارة.":"دور «"+TE.team(G).n+"»: اختاروا فئة من القائمة، أو اطلبوا سؤالًا من الفئة المختارة.";
+  var b=el("button","btn solid","هات سؤالًا");b.type="button";b.id="askBtn";b.onclick=ask;$("act").appendChild(b);
+  $("nextBtn").disabled=true;$("nextBtn").textContent="التالي";
+}
+function ask(){
+  stopT();
+  var k=TE.pick(G,P.sel,seenHas);
+  if(k<0){paintSel();if(!TE.catsLeft(G,seenHas).length){finish(true);return}k=TE.pick(G,-1,seenHas);if(k<0){finish(true);return}}
+  seenMark(k);   /* يُوسَم ساعة يظهر، فالسؤال المتروك بتبديل الفئة يبقى مرئيًّا ولا يعود في هذه اللعبة ولا بعدها */
+  P.phase="q";P.picked=-1;P.locked=false;P.revealed=G.opts==="shown";P.answered=false;
+  paintSel();clearQ();
+  var q=DATA.qs[k];
+  $("qcat").textContent=DATA.cats[q[0]][1];
+  $("qtext").textContent=q[3];
+  paintQ();startT();
+}
+function cur(){return DATA.qs[G.cur]}
+function paintQ(){
+  var q=cur(),box=$("opts"),act=$("act");box.innerHTML="";act.innerHTML="";
+  if(P.revealed){
+    q[4].forEach(function(t,j){
+      var r=el("div","orow"),b=el("button","opt",t);b.type="button";b.dataset.k=j;
+      b.setAttribute("aria-pressed",P.picked===j?"true":"false");
+      if(P.picked===j)b.classList.add("pick");
+      b.onclick=function(){if(P.locked)return;P.picked=j;paintQ();try{$("confBtn").focus()}catch(e){}};
+      r.appendChild(b);
+      if(P.picked===j){var c=el("button","conf","تأكيد");c.type="button";c.id="confBtn";c.onclick=confirmA;r.appendChild(c)}
+      box.appendChild(r)});
+    return;
+  }
+  if(!P.answered){
+    var a=el("button","btn solid","أظهر الجواب");a.type="button";a.id="revealBtn";a.onclick=showAnswer;act.appendChild(a);
+    if(TE.canShow(G)){
+      var t=TE.team(G),lab="أظهر الخيارات";
+      if(t.shows>0)lab+=" (باقي "+(G.solo?"لك":"لكم")+" "+ar(t.shows)+")";
+      var s=el("button","btn",lab);s.type="button";s.id="showOptsBtn";
+      s.onclick=function(){if(P.locked||P.answered||!TE.useShow(G))return;P.revealed=true;paintQ()};act.appendChild(s);
+    }
+  }
+}
+function showAnswer(){
+  if(P.locked||P.answered)return;
+  stopT();P.answered=true;paintTimer();
+  var q=cur(),act=$("act");act.innerHTML="";
+  $("opts").appendChild(el("div","ans",q[4][q[5]]));
+  var j=el("div","judge");
+  var y=el("button","btn solid",G.solo?"جاوبت صح":"جاوبنا صح");y.type="button";y.id="judgeYes";
+  var n=el("button","btn",G.solo?"غلط":"غلط");n.type="button";n.id="judgeNo";
+  y.onclick=function(){lock(true)};n.onclick=function(){lock(false)};
+  j.appendChild(y);j.appendChild(n);act.appendChild(j);
+}
+function confirmA(){
+  if(P.locked||P.picked<0)return;
+  lock(P.picked===cur()[5]);
+}
+function timeout(){
+  if(P.locked||P.phase!=="q")return;
+  if(!P.revealed&&!P.answered){var q=cur();$("act").innerHTML="";$("opts").appendChild(el("div","ans",q[4][q[5]]))}
+  lock(false,true);
+}
+function lock(right,late){
+  if(P.locked)return;
+  stopT();P.locked=true;
+  var q=cur();
+  document.querySelectorAll("#opts .opt").forEach(function(b){b.disabled=true;
+    var k=+b.dataset.k;if(k===q[5])b.classList.add("right");else if(k===P.picked)b.classList.add("wrong");
+    b.classList.remove("pick")});
+  var c=$("confBtn");if(c&&c.parentNode)c.parentNode.removeChild(c);
+  $("act").innerHTML="";
+  var v=$("verdict");v.textContent=late?"انتهى الوقت":(right?"صحيح":"خطأ");v.className="verdict "+(right?"ok":"no");
+  if(q[6]){$("why").innerHTML=q[6]+(q[7]?"<span class='src'>"+q[7]+"</span>":"");$("why").classList.remove("hidden")}
+  TE.settle(G,right);paintTimer();paintTop();
+  $("prog").textContent="السؤال "+ar(G.asked)+" من "+ar(G.total);
+  var last=TE.over(G)||!TE.catsLeft(G,seenHas).length;
+  $("nextBtn").textContent=last?"النتيجة":"التالي";$("nextBtn").disabled=false;
+  try{$("nextBtn").focus()}catch(e){}
+}
+$("nextBtn").onclick=function(){
+  if(!P.locked||P.phase!=="q")return;
+  P.phase="done";
+  if(TE.over(G)){finish(false);return}
+  TE.next(G);turnStart();
+};
+$("quit").onclick=function(){stopT();if(P.phase==="q"&&!P.locked)G.cur=-1;finish(false,true)};
+
+/* ───── النهاية ───── */
+function finish(spent,quit){
+  stopT();P.phase="end";
+  var r=TE.rank(G),played=G.asked;
+  $("endTitle").textContent=spent?"انتهت أسئلة فئاتك":(quit?"أُنهيت اللعبة":"انتهت اللعبة");
+  $("endNote").textContent=spent?"اختر فئات غيرها، أو صفّر السجلّ من شاشة الإعداد.":"";
+  if(G.solo){
+    var s=G.teams[0].score;
+    $("endNum").textContent=ar(s);$("endNum").classList.remove("hidden");
+    $("endSub").textContent=played?"أجبتَ صحيحًا عن "+ar(s)+" من "+ar(played):"لم تُجب بعد";
+    $("winner").classList.add("hidden");$("rankT").classList.add("hidden");
+  }else{
+    $("endNum").classList.add("hidden");$("endSub").textContent="";
+    var w=$("winner");w.classList.remove("hidden");
+    var names=r.winners.map(function(i){return "«"+G.teams[i].n+"»"});
+    w.textContent=!played?"لم يُلعب بعد":(r.tie?(r.winners.length===G.teams.length?"تعادل الجميع":"تعادل بين "+names.join(" و")):"الفائز "+names[0]);
+    var body=$("rankBody");body.innerHTML="";
+    r.order.forEach(function(i){var t=G.teams[i],tr=el("tr"),a=el("td"),b=el("td","n",ar(t.score));
+      var d=el("i");d.style.background=t.c;a.appendChild(d);a.appendChild(document.createTextNode(t.n));
+      tr.appendChild(a);tr.appendChild(b);body.appendChild(tr)});
+    $("rankT").classList.remove("hidden");
+  }
+  show("end");
+}
+$("again").onclick=function(){toCfg()};
+
+openCfg();
+</script>
+</body>
+</html>

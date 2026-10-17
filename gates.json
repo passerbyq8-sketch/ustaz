@@ -577,6 +577,16 @@
     "args": ""
   },
   {
+    "name": "kunuztest",
+    "script": "guards/kunuz-test-guard.cjs",
+    "args": ""
+  },
+  {
+    "name": "kunuzboard",
+    "script": "guards/kunuz-board-guard.cjs",
+    "args": ""
+  },
+  {
     "name": "hannalaha",
     "script": "guards/hanna-laha-in-ezik-guard.cjs",
     "args": ""
