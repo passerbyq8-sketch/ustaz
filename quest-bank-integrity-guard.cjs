@@ -1989,7 +1989,9 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3461606. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
   //   item r2-3 (2026-10-17 brain-line R2): the status line through ezT, key x.658 in app.jsx and the 21 lang files: app.js 2275592 -> 2275953 bytes, sha256 11732417..dd0d; CACHE untouched (ezik-v108).
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3461967. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
-  'sw.js': '0c15351bde8f1f6417767f872ee8fe57d020780fdf052d606cd3667b19d5d93b',
+  //   2026-10-17 -- brain-line SHIP: cache ezik-v108 -> ezik-v109 (the owner's ship order of 17 October; config/app-version.json and sw.js CACHE, app.js line 6 rebuilt): app.js 2275953 -> 2275953 bytes, sha256 02f02efb..bd54; node tools/core-bytes.cjs --write: CORE_BYTES 3461967.
+//                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
+  'sw.js': '375f0e2aa49785c6a6ed8256b11f898eaf7edfceaa24eb3edcb2fd219c974518',
 };
 
 // ---------------------------------------------------------------------------
