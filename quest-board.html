@@ -228,7 +228,12 @@ td i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:6
 var GAME_NAME="تحدّي الفئات";
 var S={teams:[],cats:[]};
 var G=null;
-var P={open:false,revealed:false};
+var P={open:false,revealed:false,ts:-1e9};
+/* لمسة ثانية سريعة (نقر مزدوج) تقع على ما رسمته الأولى للتوّ: زرّ فريق مكان «أظهر الجواب»، أو خانة من اللوحة بعد إغلاق السؤال.
+   فلا يُقبل نقرٌ يُعطي النقاط أو يفتح خانة قبل أن يمضي على آخر تغيير للنافذة ما يكفي (بزمن الحدث نفسه) */
+var SETTLE_MS=350;
+function stamp(e){if(e&&e.timeStamp)P.ts=e.timeStamp}
+function tooSoon(e){return !!(e&&e.timeStamp)&&e.timeStamp-P.ts<SETTLE_MS}
 
 function ar(n){if(document.documentElement.getAttribute("lang")==="en")return String(n);return String(n).replace(/[0-9]/g,function(d){return "٠١٢٣٤٥٦٧٨٩"[+d]})}
 function $(i){return document.getElementById(i)}
@@ -243,6 +248,8 @@ function toPlay(){if(!atPlay){try{history.pushState({kz:"play"},"")}catch(e){}at
 function toCfg(){if(atPlay){atPlay=false;try{history.back();return}catch(e){}}openCfg()}
 window.addEventListener("popstate",function(){
   if(P.open&&G){backQ();try{history.pushState({kz:"play"},"")}catch(e){}return}
+  /* لعبة جارية: رجوعٌ واحد بالخطأ (إيماءة الجوال) لا يرميها؛ يسأل كأوّل ضغطة على «إنهاء اللعبة»، والرجوع الثاني يُنهي */
+  if(G&&!BE.over(G)&&BE.played(G)&&$("quit").dataset.arm!=="1"&&!$("play").classList.contains("hidden")){try{history.pushState({kz:"play"},"")}catch(e){}arm(true);return}
   atPlay=false;closeModal();openCfg()});
 
 /* ───── السجلّ المشترك بين الطورين: لا يتكرّر سؤال حتّى تنفد الأسئلة كلّها (نسخة حرفيّة من الغوص) ───── */
@@ -512,7 +519,9 @@ document.querySelectorAll("[data-q]").forEach(function(b){
     var q=b.dataset.q;
     if(q==="rnd"){seenRead();S.cats=BE.randomCats(seenHas)}
     if(q==="none")S.cats=[];
-    drawCats()};
+    drawCats();
+    /* «عشوائي» لا يجد ستّ فئات فيها ما يكفي اللوحة لأنّ السجلّ استُهلك: يقول ذلك ويدلّ على التصفير بدل أن يسكت */
+    if(q==="rnd"&&S.cats.length<BE.CATS)$("tally").textContent=spentText().join(" — ")};
 });
 function tally(){
   seenRead();
@@ -541,7 +550,7 @@ function drawBoard(){
         var s=p*BE.PER+j,sl=G.slots[s],x=el("button","pt p"+sl.pts+(sl.used?" used":""),ar(sl.pts));
         x.type="button";x.dataset.s=s;
         x.setAttribute("aria-label",name+" — "+ar(sl.pts)+(sl.used?" — استُعملت":""));
-        if(sl.used)x.disabled=true;else x.onclick=(function(s){return function(){openQ(s)}})(s);
+        if(sl.used)x.disabled=true;else x.onclick=(function(s){return function(e){openQ(s,e)}})(s);
         c.appendChild(x)}
       return c}
     cc.appendChild(col(0));
@@ -560,8 +569,8 @@ function drawBoard(){
     w.appendChild(d)});
 }
 function cur(){return G&&G.cur?DATA.qs[G.cur.k]:null}
-function openQ(s){
-  if(!G||G.cur||P.open)return;
+function openQ(s,e){
+  if(!G||G.cur||P.open||tooSoon(e))return;
   arm(false);
   seenRead();
   var k=BE.open(G,s,seenHas);
@@ -592,20 +601,22 @@ function paintQ(){
   a.appendChild(el("p","who","من جاوب صحيحًا؟"));
   var row=el("div","award");row.id="award";
   G.teams.forEach(function(t,i){var b=el("button","tm",t.n);b.type="button";b.style.background=t.c;b.dataset.t=i;
-    b.setAttribute("aria-label","أعطِ النقاط "+teamLabel(t.n));b.onclick=function(){give(i)};row.appendChild(b)});
-  var nb=el("button","nobody","ما أحد جاوب");nb.type="button";nb.id="nobody";nb.dataset.t=-1;nb.onclick=function(){give(-1)};row.appendChild(nb);
+    b.setAttribute("aria-label","أعطِ النقاط "+teamLabel(t.n));b.onclick=function(e){give(i,e)};row.appendChild(b)});
+  var nb=el("button","nobody","ما أحد جاوب");nb.type="button";nb.id="nobody";nb.dataset.t=-1;nb.onclick=function(e){give(-1,e)};row.appendChild(nb);
   a.appendChild(row);
 }
-function reveal(){if(!P.open||P.revealed)return;P.revealed=true;paintQ();try{$("award").querySelector("button").focus()}catch(e){}}
+function reveal(e){if(!P.open||P.revealed)return;P.revealed=true;stamp(e);paintQ();try{$("award").querySelector("button").focus()}catch(e){}}
 function closeModal(){P.open=false;P.revealed=false;$("qm").classList.add("hidden");document.body.classList.remove("lock")}
-function backQ(){
+function backQ(e){
   if(!P.open||P.revealed||!G)return;
+  stamp(e);
   var s=G.cur?G.cur.s:-1;
   BE.back(G);closeModal();drawBoard();
   try{$("board").querySelector('[data-s="'+s+'"]').focus()}catch(e){}
 }
-function give(t){
-  if(!P.open||!P.revealed||!G)return;
+function give(t,e){
+  if(!P.open||!P.revealed||!G||tooSoon(e))return;
+  stamp(e);
   BE.award(G,t);closeModal();
   if(BE.over(G)){finish(false);return}
   drawBoard();
