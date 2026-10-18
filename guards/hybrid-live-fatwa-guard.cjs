@@ -840,7 +840,7 @@ async function runHybridGuard() {
     && !indexSource.includes('https://ezik-fatwas.vercel.app'));
   ok('the unchanged /api/v1/* UI contract rewrites to the server proxy', vercel.rewrites.some((r) =>
     r.source === '/api/v1/:path*' && r.destination === '/api/fatwa-proxy?path=:path*'));
-  eq('fatwa pinned corpus contract', FC.fatwaContractTotals(), { scholars: 19, total: 80435, ibnBaz: 24145 });
+  eq('fatwa pinned corpus contract', FC.fatwaContractTotals(), { scholars: 30, total: 126269, ibnBaz: 28504 });
   ok('fatwa service base is the one authorised origin', FC.FATWA_BASE === 'https://ezik-fatwas.vercel.app');
 
   console.log('\n--- TEXT/CALL PARITY AND NO-CLARIFICATION WIRING ---');

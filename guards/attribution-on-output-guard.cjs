@@ -58,7 +58,9 @@ async function deriveRegistry() {
   const rows = [];
   for (const scholar of contract.FATWA_SCHOLARS) {
     const aliases = [...new Set([scholar.name, scholar.formalName, ...scholar.aliases].filter(Boolean))];
-    const hosts = new Set([scholar.sourceDomain, ...(EXPECTED_HOST_EXTRA[scholar.id] || [])]);
+    // An empty sourceDomain (the merge-4K rows have none) is no host: '' would match every
+    // evidence item whose URL does not parse, in officialSourceFor's `host === allowed`.
+    const hosts = new Set([scholar.sourceDomain, ...(EXPECTED_HOST_EXTRA[scholar.id] || [])].filter(Boolean));
     for (const site of registry.SCHOLAR_SITES) {
       const overlap = site.aliases.some((alias) => aliases.some((known) => {
         const a = fold(alias);
@@ -206,7 +208,7 @@ const rejectsWrongScholar = (module) => {
     // ── E. THE DERIVED REGISTRY (merge §٣) ────────────────────────────────
     const derived = await deriveRegistry();
     ok('the registry covers every measured fatwa scholar and every institutional publisher',
-      derived.length === 22, 'derived=' + derived.length);
+      derived.length === 33, 'derived=' + derived.length);
     ok('the inlined registry has not drifted from lib/fatwa-contract.js + lib/source-registry.js',
       plain(module.REVIEW_AUTHORITY_SOURCES) === plain(derived),
       'inlined=' + plain(module.REVIEW_AUTHORITY_SOURCES).slice(0, 400)
