@@ -495,18 +495,21 @@ function playWar(W, L, o) {
   const W3 = hOpen(Store()); harbStart(W3, [3, 4, 5], 3, 9); const c3 = W3.ctx;
   c3.DATA.qs.forEach((q, i) => { if ([3, 4, 5].indexOf(q[0]) > -1 && !c3.seenHas(i)) c3.seenMark(i); }); c3.G.left = c3.seenByCat();
   const leader = c3.leader(), allEnd = c3.warEnd();
+  // every island goes dormant before anyone deploys: the three teams hold the same islands and flags, an exact three-way tie,
+  // and the result names the tie (2026-10-18 QA HARB-06: it used to crown the first team)
+  const tie3 = 'تعادل بين ' + c3.G.players.map(p => p.n).join(' و');
   const rows3 = W3.$('winBody').childNodes.filter(n => n.nodeType === 1).length, why3 = W3.$('winWhy').textContent, name3 = W3.$('winName').textContent;
   if (deadNow !== isles.length || deadClass !== isles.length) f.push('victim islands not dormant ' + deadNow + '/' + deadClass + '/' + isles.length);
   if (canHitDead || baseTaken || tgtTaken) f.push('dormant island usable in attack');
   if (!(liveFights > 0) || st.deadFights || st.deadBannerChanges) f.push('war did not go on over live islands');
   if (winAll !== 0 || winMissingOne !== null) f.push('live-island victory wrong ' + winAll + '/' + winMissingOne);
   if (pickSeas.length < 2 || seas0 < 2 || winSeas !== 0 || !ended || endName !== G2.players[0].n) f.push('two-seas on live islands wrong seas0=' + seas0 + ' pick=' + pickSeas.join('/'));
-  if (!allEnd || W3.screen() !== 'win' || rows3 !== c3.G.players.length || name3 !== c3.G.players[leader].n || why3.indexOf('خمدت الجزر كلّها') !== 0) f.push('all-dormant end wrong');
+  if (!allEnd || W3.screen() !== 'win' || rows3 !== c3.G.players.length || name3 !== tie3 || why3.indexOf('خمدت الجزر كلّها') !== 0) f.push('all-dormant end wrong');
   [W, W2, W3].forEach(x => f.push(...worldErrors(x), ...x.fails));
   report('B', 'dormant islands: spent category mid-war', !f.length,
     'victimIsles=' + isles.length + ' deadAfterRefresh=' + deadNow + ' deadClass=' + deadClass + ' liveIslesLeft=' + liveOthers + ' canHitOnDead=' + canHitDead + ' baseOnDead=' + baseTaken + ' targetDead=' + tgtTaken +
     ' shownBefore=' + fightsBefore + ' warAfter:fights=' + st.fights + ',onDead=' + st.deadFights + ',deadBannerChanges=' + st.deadBannerChanges + ',shown=' + (L.shown - fightsBefore) + ',end=' + st.end + ' repeats=' + L.repeats +
-    ' winAllLive(dead owned by other)=' + winAll + ' winMissingOneLive=' + winMissingOne + ' twoSeas:seas0=' + seas0 + ',whoWon=' + winSeas + ',seasWithDormant=' + seasWithDead.length + ' allDormantEnd=' + (allEnd ? 1 : 0) + ',boardRows=' + rows3 + ',winnerIsLeader=' + (name3 === c3.G.players[leader].n ? 1 : 0) + ' fails=' + f.length, f);
+    ' winAllLive(dead owned by other)=' + winAll + ' winMissingOneLive=' + winMissingOne + ' twoSeas:seas0=' + seas0 + ',whoWon=' + winSeas + ',seasWithDormant=' + seasWithDead.length + ' allDormantEnd=' + (allEnd ? 1 : 0) + ',boardRows=' + rows3 + ',tieNamed=' + (name3 === tie3 ? 1 : 0) + ',leader=' + leader + ' fails=' + f.length, f);
 })();
 
 // ---- ج: the bank is spent literally: the very last question can be played ----

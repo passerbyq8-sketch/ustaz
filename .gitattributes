@@ -772,6 +772,7 @@ guards/kunuz-war-engine-guard.cjs text eol=lf
 guards/hanna-laha-in-ezik-guard.cjs text eol=lf
 guards/kunuz-test-guard.cjs text eol=lf
 guards/kunuz-board-guard.cjs text eol=lf
+guards/kunuz-qa-guard.cjs text eol=lf
 guards/app-version-pattern-parity-guard.cjs text eol=lf
 guards/kunuz-sim/dom.cjs text eol=lf
 guards/kunuz-sim/world.cjs text eol=lf

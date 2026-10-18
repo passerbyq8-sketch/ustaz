@@ -11,7 +11,7 @@
 <style>
 :root{
   --sea0:#F4FBFE;--sea1:#E2F3FB;--sea2:#C3E5F4;--sea3:#8FCDE6;
-  --azraq:#1B6E9C;--ghawr:#0E4F72;--ink:#0B3B54;--muted:#5D8398;
+  --azraq:#1B6E9C;--ghawr:#0E4F72;--ink:#0B3B54;--muted:#4F7489;
   --white:#fff;--line:#BCDFEF;--ok:#12A39C;--no:#C0566A;
   --hd:'Noto Sans Arabic',system-ui,'Segoe UI',sans-serif;
   --bd:'Noto Sans Arabic',system-ui,'Segoe UI',sans-serif;
@@ -41,7 +41,7 @@ body{color:var(--ink);font-family:var(--bd);font-size:16px;line-height:1.75;min-
 .btn:disabled{opacity:.4;cursor:default}
 .row{display:flex;gap:10px}
 
-.mode{display:block;width:100%;text-align:right;background:var(--white);border:1px solid var(--line);
+.mode{display:block;width:100%;text-align:start;background:var(--white);border:1px solid var(--line);
   border-radius:16px;padding:16px 18px;margin-bottom:11px;color:inherit;font:inherit;cursor:pointer;
   box-shadow:0 2px 0 var(--sea1)}
 .mode:hover,.mode:focus-visible{border-color:var(--azraq)}
@@ -69,15 +69,15 @@ body{color:var(--ink);font-family:var(--bd);font-size:16px;line-height:1.75;min-
 
 .pcard{display:flex;align-items:center;gap:9px;background:var(--sea0);border:1px solid var(--line);
   border-radius:12px;padding:8px 11px;margin-bottom:8px}
-.pcard input{flex:1;min-width:0;background:none;border:0;font:inherit;font-size:1.02rem;color:inherit;padding:3px 0}
+.pcard input{flex:1;min-width:0;min-height:44px;background:none;border:0;font:inherit;font-size:1.02rem;color:inherit;padding:3px 0}
 .pcard input:focus{outline:none;border-bottom:1px solid var(--azraq)}
-.mini{background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
+.mini{background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer;min-width:44px;min-height:44px}
 
 .exit{background:none;border:0;color:var(--muted);font:inherit;font-size:.85rem;cursor:pointer;width:auto}
 
 .qtext{font-family:var(--hd);font-weight:500;font-size:1.38rem;line-height:1.7;margin:0 0 18px;color:var(--ghawr)}
 .opts{display:grid;gap:9px}
-.opt{text-align:right;background:var(--white);border:1.5px solid var(--line);border-radius:12px;
+.opt{text-align:start;background:var(--white);border:1.5px solid var(--line);border-radius:12px;
   padding:12px 15px;color:inherit;font:inherit;font-size:1.05rem;cursor:pointer;width:100%}
 .opt:hover:not(:disabled),.opt:focus-visible{border-color:var(--azraq)}
 .opt.right{border-color:var(--ok);background:#E7F7F6}
@@ -93,13 +93,13 @@ body{color:var(--ink);font-family:var(--bd);font-size:16px;line-height:1.75;min-
 .end h2{font-family:var(--hd);font-size:1.55rem;color:var(--ghawr);margin:0}
 .big{font-family:var(--hd);font-size:4rem;font-weight:700;color:var(--azraq);line-height:1.1;margin:10px 0 0}
 .share{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:12px;
-  font-size:.95rem;line-height:1.9;margin:16px 0;white-space:pre-line;text-align:right}
+  font-size:.95rem;line-height:1.9;margin:16px 0;white-space:pre-line;text-align:start}
 table{width:100%;border-collapse:collapse;margin:14px 0}
-td,th{padding:10px 8px;border-bottom:1px solid var(--line);text-align:right}
+td,th{padding:10px 8px;border-bottom:1px solid var(--line);text-align:start;overflow-wrap:anywhere}
 th{color:var(--muted);font-weight:500;font-size:.85rem}
-td.n{font-family:var(--hd);font-size:1.15rem;text-align:left;color:var(--azraq)}
+td.n{font-family:var(--hd);font-size:1.15rem;text-align:end;color:var(--azraq)}
 .turn{text-align:center;padding-top:46px}
-.turn .who{font-family:var(--hd);font-size:2rem;color:var(--ghawr);margin:8px 0 4px}
+.turn .who{font-family:var(--hd);font-size:2rem;color:var(--ghawr);margin:8px 0 4px;overflow-wrap:anywhere}
 textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;
   font-size:.98rem;color:inherit;background:var(--white);resize:vertical;min-height:70px}
 textarea:focus{outline:none;border-color:var(--azraq)}
@@ -177,15 +177,21 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 .floor{position:absolute;left:0;right:0;bottom:0;height:72px;z-index:6}
 .floor>svg{position:absolute;inset:0;width:100%;height:100%}
 .shells{position:absolute;left:6px;right:6px;bottom:4px;display:flex;justify-content:center;gap:6px}
-.shell{flex:1 1 0;max-width:120px;min-height:60px;padding:2px 2px 3px;border:0;background:none;cursor:pointer;
+.shell{flex:1 1 0;min-width:0;max-width:120px;min-height:60px;padding:2px 2px 3px;border:0;background:none;cursor:pointer;
   display:flex;flex-direction:column;align-items:center;gap:0;font:inherit;color:var(--ghawr);transition:opacity .25s}
 .shell svg{width:44px;height:30px;overflow:visible}
 .shell .lid{transform-box:fill-box;transform-origin:0% 100%;transition:transform .25s ease-out}
 .shell.open .lid{transform:rotate(-30deg)}
 .shell span{font-family:var(--hd);font-size:12.5px;font-weight:600;line-height:1.25;text-align:center;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:100%;overflow-wrap:anywhere}
 .shell.shut{opacity:.35}
 .shell:disabled{cursor:default}.shells.many{gap:3px}.shells.many .shell{min-height:56px}.shells.many .shell svg{width:34px;height:23px}.shells.many .shell span{font-size:11px;line-height:1.2}
+/* جوال بالعرض: المشهد واللوح جنبًا إلى جنب، فلا يبقى للسؤال شريط رفيع تحت مشهد بارتفاعه الأدنى */
+@media (orientation:landscape) and (max-height:500px){
+  #dive{flex-direction:row;max-width:none}
+  #dive .scene{height:auto;flex:0 0 42%}
+  #dive .panel{max-height:none;border-radius:0;box-shadow:-1px 0 0 var(--line)}
+}
 .scene.low::after{content:"";position:absolute;inset:0;z-index:8;pointer-events:none;
   box-shadow:inset 0 0 0 3px var(--no),inset 0 0 36px rgba(192,86,106,.5);animation:warn .6s ease-in-out infinite alternate}
 @keyframes warn{from{opacity:.35}to{opacity:1}}
@@ -199,10 +205,10 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 #stat.warn{color:var(--no);font-weight:600}
 .panel .exit{min-height:48px;min-width:48px;padding:0 8px}
 .panel .qtext{font-size:max(17px,1.14rem);margin:0 0 12px}
-.panel .opt{position:relative;display:block;min-height:56px;padding:14px 48px 14px 14px;border-radius:28px;font-size:max(17px,1.06rem);line-height:1.6}
-.panel .opt::before{content:"";position:absolute;right:14px;top:50%;width:22px;height:22px;margin-top:-11px;border-radius:50%;
+.panel .opt{position:relative;display:block;min-height:56px;padding-block:14px;padding-inline:48px 14px;border-radius:28px;font-size:max(17px,1.06rem);line-height:1.6}
+.panel .opt::before{content:"";position:absolute;inset-inline-start:14px;top:50%;width:22px;height:22px;margin-top:-11px;border-radius:50%;
   background:radial-gradient(circle at 35% 30%,#fff 0 22%,var(--sea1) 55%,var(--sea3) 100%);box-shadow:0 1px 2px rgba(11,59,84,.25)}
-.panel .opt.judge{text-align:center;padding-right:14px}
+.panel .opt.judge{text-align:center;padding-inline-start:14px}
 .panel .opt.judge::before{display:none}
 .panel .opt.right::before{background:radial-gradient(circle at 35% 30%,#fff 0 22%,#BFEDEA 55%,var(--ok) 100%)}
 .panel .opt.wrong::before{background:radial-gradient(circle at 35% 30%,#fff 0 22%,#F3D3D9 55%,var(--no) 100%)}
@@ -217,12 +223,12 @@ textarea:focus{outline:none;border-color:var(--azraq)}
   background:radial-gradient(circle at 35% 30%,#fff 0 22%,var(--sea1) 55%,var(--sea3) 100%);
   transition:transform .6s cubic-bezier(.5,0,.7,1)}
 .seenfoot{text-align:center;margin-top:20px}
-.seenfoot button{background:none;border:0;color:var(--muted);font:inherit;font-size:.82rem;cursor:pointer;text-decoration:underline;padding:6px}
+.seenfoot button{background:none;border:0;min-height:44px;color:var(--muted);font:inherit;font-size:.82rem;cursor:pointer;text-decoration:underline;padding:6px}
 .seenfoot button:disabled{opacity:.45;cursor:default;text-decoration:none}
 .seenfoot p{color:var(--muted);font-size:.8rem;margin:4px 0 0}
 /* اختيار الفئات: المجموعات الثماني (الكتلة نفسها في الغوص والحرب) */
 :root{--kzc-mut:#46687C}
-.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px}
+.quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:10px}
 .quick button{min-height:44px;padding:6px 4px;font-size:.88rem;border-radius:10px}
 .kzc-sel{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
 .kzc-sh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:.95rem;color:var(--ink)}
@@ -237,7 +243,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 .kzc-pill i{font-style:normal;font-size:1.1rem;line-height:1}
 .kzc-g{border:1px solid var(--line);border-radius:14px;margin-bottom:8px;background:var(--white);overflow:hidden}
 .kzc-gh{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;padding:8px 12px;background:none;border:0;
-  font:inherit;color:var(--ink);cursor:pointer;text-align:right}
+  font:inherit;color:var(--ink);cursor:pointer;text-align:start}
 .kzc-bar{width:5px;height:30px;border-radius:3px;flex:none}
 .kzc-bar.rel{background:var(--ghawr)}
 .kzc-bar.sec{background:var(--sea3)}
@@ -252,7 +258,8 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 .kzc-c{background:var(--sea0);border:1px solid var(--sea2);color:var(--ink)}
 .kzc-c[aria-pressed="true"]{background:var(--azraq);border-color:var(--azraq);color:#fff}
 .kzc-c:disabled{background:var(--white);border:1px dashed var(--sea3);color:var(--kzc-mut);cursor:default;opacity:.8}
-#cfg .chip{min-height:44px}
+#cfg .chip,#verdict .chip{min-height:44px}
+#verdict .chip{min-width:44px}
 .kzc-gh:focus-visible,.kzc-c:focus-visible,.kzc-pill:focus-visible{outline:2px solid var(--ghawr);outline-offset:2px}
 </style>
 <style>
@@ -411,7 +418,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
   </div>
   <div class="panel" id="panel">
     <div class="stat"><span id="stat" role="status"></span><button class="exit" id="quit">خروج</button></div>
-    <h2 class="qtext" id="qtext"></h2>
+    <h2 class="qtext" id="qtext" dir="auto"></h2>
     <button type="button" class="kzr-flag" data-kzr="question" aria-label="الإبلاغ عن خطأ في هذا السؤال"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 15V1.5M3.5 2.5h9l-2.2 3.5 2.2 3.5h-9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>إبلاغ</button>
     <div class="opts" id="opts"></div>
     <div class="why" id="why"></div>
@@ -425,7 +432,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
     <div class="big" id="endNum">٠</div>
     <p style="color:var(--muted);margin:2px 0 0" id="endSub">—</p>
     <div class="share" id="endShare"></div>
-    <div class="row"><button class="btn" data-go="home">الرئيسة</button>
+    <div class="row"><button class="btn" data-go="home">الرئيسية</button>
       <button class="btn solid" id="again">غوصة أخرى</button></div>
     <button class="btn" id="toVerdict" style="margin-top:10px">عندي رأي في الطريقة</button>
     <div class="kzr-row"><button type="button" data-kzr="game">الإبلاغ عن مشكلة في اللعبة</button></div>
@@ -435,9 +442,9 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 <section id="board" class="hidden">
   <div class="brand"><h1 style="font-size:1.9rem">القفال</h1><p id="boardSub">—</p></div>
   <div class="rule"></div>
-  <table><thead><tr><th>الغوّاص</th><th>أعمق قامة</th><th style="text-align:left">اللآلئ</th></tr></thead>
+  <table><thead><tr><th>الغوّاص</th><th>أعمق قامة</th><th style="text-align:end">اللآلئ</th></tr></thead>
     <tbody id="boardBody"></tbody></table>
-  <div class="row"><button class="btn" data-go="home">الرئيسة</button>
+  <div class="row"><button class="btn" data-go="home">الرئيسية</button>
     <button class="btn solid" id="crewAgain">جولة ثانية</button></div>
   <button class="btn" id="toVerdict2" style="margin-top:10px">عندي رأي في الطريقة</button>
   <div class="kzr-row"><button type="button" data-kzr="game">الإبلاغ عن مشكلة في اللعبة</button></div>
@@ -490,11 +497,13 @@ function show(id){["home","how","cfg","turn","dive","end","board","verdict"].for
 (function(){
 if(typeof show!=="function")return;
 var _show=show;var atCfg=false;var atPlay=false;
-function isPlay(id){return id!=="home"&&id!=="cfg";}
+function isPlay(id){return id!=="home"&&id!=="cfg"&&id!=="how";}
 try{history.replaceState({kz:"home"},"");}catch(e){}
 show=function(id){
 if(id==="home"&&(atCfg||atPlay)){var n=atPlay?2:1;atCfg=false;atPlay=false;try{history.go(-n);return;}catch(e){}}
 if(id==="cfg"&&atPlay){atPlay=false;try{history.go(-1);return;}catch(e){}}
+/* «كيف تُلعب» خطوة واحدة فوق قائمة الطورين، كالإعداد: رجوعها يعود إلى القائمة لا يتجاوزها */
+if(id==="how"){if(!atCfg){try{history.pushState({kz:"how"},"");}catch(e){}atCfg=true;atPlay=false;}_show(id);return;}
 if(id==="cfg"&&!atCfg){try{history.pushState({kz:"cfg"},"");}catch(e){}atCfg=true;atPlay=false;}
 else if(isPlay(id)&&!atPlay){try{history.pushState({kz:"play"},"");}catch(e){}atPlay=true;}
 else if(id==="home"){atCfg=false;atPlay=false;}
@@ -502,7 +511,10 @@ _show(id);
 };
 window.addEventListener("popstate",function(ev){
 var k=(ev&&ev.state&&ev.state.kz)||"home";
+/* الرجوع من غوصة جارية يُنهيها هنا: لا نفَس يجري ولا مؤقّت يُظهر النتيجة فوق الإعداد بعدها */
+if(!$("dive").classList.contains("hidden")){stopB();clearT();S.lock=true;S.ending=true;deep(0)}
 if(k==="cfg"){atCfg=true;atPlay=false;_show("cfg");}
+else if(k==="how"){atCfg=true;atPlay=false;_show("how");}
 else{atCfg=false;atPlay=false;_show("home");}
 });
 })();
@@ -674,7 +686,8 @@ function avail(cats){
   var n=0;for(var i=0;i<DATA.qs.length;i++){if(cats.indexOf(DATA.qs[i][0])>-1)n++}return n}
 function tally(){
   var left=seenLeft(S.cats),ok=(S.cats.length>=3&&S.cats.length<=6);
-  $("catTally").textContent=(ok&&left<1?"انتهت أسئلة فئاتك — اختر غيرها أو صفّر السجلّ.":"");
+  /* السجلّ كلّه مستهلَك: يقال ذلك ويدلّ على التصفير، فلا يبقى الإعداد صامتًا وكلّ اختيار لا يفعل شيئًا */
+  $("catTally").textContent=seenLeft(null)<1?spentText().join(" — "):(ok&&left<1?"انتهت أسئلة فئاتك — اختر غيرها أو صفّر السجلّ.":"");
   $("goDive").disabled=(left<1||!ok);
 }
 function cntQ(n){
@@ -743,7 +756,7 @@ function drawPlayers(){
   var L=$("plist");L.innerHTML="";
   S.players.forEach(function(p,i){
     var d=document.createElement("div");d.className="pcard";
-    var inp=document.createElement("input");inp.value=p.n;inp.placeholder="غوّاص "+ar(i+1);
+    var inp=document.createElement("input");inp.value=p.n;inp.placeholder="غوّاص "+ar(i+1);inp.maxLength=24;
     inp.oninput=function(){p.n=inp.value};d.appendChild(inp);
     if(S.players.length>2){var x=document.createElement("button");x.className="mini";x.textContent="×";
       x.onclick=function(){S.players.splice(i,1);drawPlayers();tally()};d.appendChild(x)}
@@ -809,7 +822,7 @@ function drawBoat(){
   $("boatN").textContent=ar(S.boat);$("boat").classList.remove("kept");
   var c=$("crewDots");c.innerHTML="";
   if(S.crew)S.players.forEach(function(p,i){var e=document.createElement("i");
-    e.className=i<S.pi?"done":(i===S.pi?"cur":"");e.textContent=p.n.trim().charAt(0)||ar(i+1);c.appendChild(e)});
+    e.className=i<S.pi?"done":(i===S.pi?"cur":"");e.textContent=Array.from(p.n.trim())[0]||ar(i+1);c.appendChild(e)});
 }
 function drawNet(){
   var w=$("netDots");w.innerHTML="";
@@ -888,7 +901,7 @@ function openShell(c){
   } else {
     var idx=q[4].map(function(c,i){return i}).sort(function(){return Math.random()-.5});
     idx.forEach(function(j){
-      var b=document.createElement("button");b.className="opt";b.textContent=q[4][j];b.dataset.k=j;
+      var b=document.createElement("button");b.className="opt";b.dir="auto";b.textContent=q[4][j];b.dataset.k=j;
       b.onclick=function(){answer(j,b)};box.appendChild(b)});
   }
   toolState();bankLbl();startB();
@@ -896,7 +909,7 @@ function openShell(c){
 function selfJudge(q){
   if(S.lock)return;stopB();
   var box=$("opts");box.innerHTML="";
-  var a=document.createElement("div");a.className="opt right";a.textContent=q[4][q[5]];
+  var a=document.createElement("div");a.className="opt right";a.dir="auto";a.textContent=q[4][q[5]];
   box.appendChild(a);
   reveal(q);
   var y=document.createElement("button");y.className="opt judge";y.textContent="أصبتُ";
@@ -1014,7 +1027,8 @@ document.querySelectorAll(".tool").forEach(function(t){
     if(k==="light"){S.tools.light=false;t.disabled=true;t.classList.add("used");
       var wr=[];document.querySelectorAll("#opts .opt").forEach(function(b){
         if(b.dataset.k!==undefined&&+b.dataset.k!==S.cur[5]&&!b.disabled)wr.push(b)});
-      wr.sort(function(){return Math.random()-.5}).slice(0,2).forEach(function(b){
+      /* النور يُطفئ خيارين من أربعة، وخيارًا واحدًا من ثلاثة: لا يُبقي الصحيح وحده */
+      wr.sort(function(){return Math.random()-.5}).slice(0,Math.min(2,S.cur[4].length-2)).forEach(function(b){
         b.disabled=true;b.classList.add("dim")})}
     if(k==="nokh"){S.tools.nokh=false;t.disabled=true;t.classList.add("used");
       var a=String(S.cur[4][S.cur[5]]).replace(/^ال/,"");
@@ -1051,8 +1065,10 @@ function done(title,kept,spent){
     var sorted=S.players.slice().sort(function(a,b){return b.p-a.p}),tot=0;
     S.players.forEach(function(c){tot+=c.p});
     var body=$("boardBody");body.innerHTML="";
-    sorted.forEach(function(c){body.innerHTML+="<tr><td>"+c.n+"</td><td>"+ar(c.d)+
-      "</td><td class='n'>"+ar(c.p)+"</td></tr>"});
+    /* الاسم نصّ يكتبه اللاعب: يُوضع نصًّا لا HTML */
+    sorted.forEach(function(c){var tr=document.createElement("tr");
+      [c.n,ar(c.d),ar(c.p)].forEach(function(v,j){var td=document.createElement("td");if(j===2)td.className="n";td.textContent=v;tr.appendChild(td)});
+      body.appendChild(tr)});
     $("boardSub").textContent=st?(st[0]+" — "+st[1]):("حصيلة السفينة "+cntP(tot));
     $("crewAgain").disabled=!!spent;
     deep(.4);show("board");return;
@@ -1078,7 +1094,7 @@ $("again").onclick=function(){startDive()};
   ["للصغار","للكبار","للجميع"].forEach(function(t){
     var b=document.createElement("button");b.className="chip";b.textContent=t;
     b.onclick=function(){V.who=t;f.querySelectorAll(".chip").forEach(function(x){
-      x.className="chip"+(x.textContent===t?" on":"")})};f.appendChild(b)});
+      x.className="chip"+(x===b?" on":"")})};f.appendChild(b)});
 })();
 $("copyV").onclick=function(){
   var t="كنوز المعرفة — طريقة «الغوص»\nالتقييم: "+ar(V.stars||0)+"/٥\nتصلح: "+(V.who||"—")+

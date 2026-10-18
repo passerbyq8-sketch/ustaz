@@ -11,7 +11,7 @@
 <style>
 :root{
   --sea0:#F4FBFE;--sea1:#E2F3FB;--sea2:#C3E5F4;--sea3:#8FCDE6;
-  --azraq:#1B6E9C;--ghawr:#0E4F72;--ink:#0B3B54;--muted:#5D8398;
+  --azraq:#1B6E9C;--ghawr:#0E4F72;--ink:#0B3B54;--muted:#4F7489;
   --white:#fff;--line:#BCDFEF;--ok:#12A39C;--no:#C0566A;
   --hd:'Noto Sans Arabic',system-ui,'Segoe UI',sans-serif;
   --bd:'Noto Sans Arabic',system-ui,'Segoe UI',sans-serif;
@@ -67,19 +67,20 @@ body{color:var(--ink);font-family:var(--bd);font-size:16px;line-height:1.75;min-
 
 .pcard{display:flex;align-items:center;gap:9px;background:var(--sea0);border:1px solid var(--line);
   border-radius:12px;padding:8px 11px;margin-bottom:8px}
-.flag{width:28px;height:28px;border-radius:9px;flex:0 0 auto;padding:0;cursor:pointer;
-  border:2px solid #fff;box-shadow:0 0 0 1px var(--line)}
-.flag:hover,.flag:focus-visible{box-shadow:0 0 0 2px var(--azraq);outline:none}
-.palette{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;background:var(--sea0);
+/* 44px to touch, the same 30px swatch to see: the transparent border is hit area, the rings are inset */
+.flag{width:44px;height:44px;border-radius:17px;flex:0 0 auto;padding:0;cursor:pointer;margin:-7px -7px -7px -2px;
+  border:7px solid transparent;background-clip:padding-box!important;box-shadow:inset 0 0 0 1px var(--line),inset 0 0 0 3px #fff}
+.flag:hover,.flag:focus-visible{box-shadow:inset 0 0 0 2px var(--azraq),inset 0 0 0 3px #fff;outline:none}
+.palette{display:grid;grid-template-columns:repeat(auto-fill,minmax(max(44px,calc((100% - 40px) / 6)),1fr));gap:8px;background:var(--sea0);
   border:1px solid var(--line);border-radius:12px;padding:10px;margin:0 0 10px}
-.sw{height:36px;border-radius:9px;padding:0;cursor:pointer;border:2px solid #fff;
+.sw{height:44px;min-width:44px;border-radius:9px;padding:0;cursor:pointer;border:2px solid #fff;
   box-shadow:0 0 0 1px var(--line)}
 .sw:hover:not(:disabled),.sw:focus-visible{box-shadow:0 0 0 2px var(--azraq);outline:none}
 .sw.on{box-shadow:0 0 0 3px var(--ghawr)}
 .sw.taken{opacity:.25;cursor:default}
-.pcard input{flex:1;min-width:0;background:none;border:0;font:inherit;font-size:1.02rem;color:inherit;padding:3px 0}
+.pcard input{flex:1;min-width:0;min-height:44px;margin:-6px 0;background:none;border:0;font:inherit;font-size:1.02rem;color:inherit;padding:3px 0}
 .pcard input:focus{outline:none;border-bottom:1px solid var(--azraq)}
-.mini{background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer}
+.mini{background:none;border:0;color:var(--muted);font-size:1.3rem;cursor:pointer;min-width:44px;min-height:44px;padding:0;margin:-8px 0 -8px -8px}
 
 .dot{display:inline-block;width:11px;height:11px;border-radius:4px;flex:0 0 auto;vertical-align:middle}
 
@@ -128,6 +129,8 @@ body{color:var(--ink);font-family:var(--bd);font-size:16px;line-height:1.75;min-
 .light .beam{transform-box:fill-box;transform-origin:50% 50%;animation:spin 5s linear infinite}
 .winmap{margin:0 -16px 6px;height:min(58vh,520px);background:linear-gradient(180deg,#E2F3FB 0%,#8FCDE6 100%)}
 .winmap .isle{pointer-events:none}
+.winmap{overflow:hidden}
+.winmap .mapbox{height:100%}
 
 .panel{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:10px}
 
@@ -140,6 +143,21 @@ body{color:var(--ink);font-family:var(--bd);font-size:16px;line-height:1.75;min-
 #war.fight .panel{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;border-radius:0;box-shadow:none;
   background:linear-gradient(180deg,#EEF4F7 0%,#D9E6EC 100%)}
 #war.fight #btns{display:none}
+/* short screens: the map yields room so the question and its choices stand in view while the embers burn */
+@media (orientation:portrait) and (max-height:700px){
+  #war.fight .mapbox{height:max(150px,30vh);height:max(150px,30dvh)}
+  #war.fight .stat{min-height:0}
+}
+@media (orientation:landscape) and (max-height:500px){
+  #war{max-width:none}
+  #war.fight .mapbox{height:max(64px,20vh);height:max(64px,20dvh)}
+  #war.fight .panel{padding-top:6px}
+  #war.fight .stat{min-height:0;margin-bottom:4px}
+  #war.fight .opts .islet{display:none}
+  #war.fight .opt{min-height:44px;padding:6px 10px}
+  #war.fight .qtext{margin-bottom:6px}
+  #war.fight .who{min-height:28px;margin-bottom:0}
+}
 .stat{display:flex;align-items:center;flex-wrap:wrap;gap:4px 7px;min-height:48px;margin:0 0 8px;color:var(--ink);font-size:.95rem;line-height:1.5}
 .stat b{color:var(--ghawr);font-family:var(--hd)}
 .stat.warn{color:var(--no)}
@@ -221,12 +239,12 @@ textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px
 textarea:focus{outline:none;border-color:var(--azraq)}
 .ok{color:var(--ok);font-size:.9rem;min-height:1.4em;text-align:center}
 .seenfoot{text-align:center;margin-top:20px}
-.seenfoot button{background:none;border:0;color:var(--muted);font:inherit;font-size:.82rem;cursor:pointer;text-decoration:underline;padding:6px}
+.seenfoot button{background:none;border:0;min-height:44px;color:var(--muted);font:inherit;font-size:.82rem;cursor:pointer;text-decoration:underline;padding:6px}
 .seenfoot button:disabled{opacity:.45;cursor:default;text-decoration:none}
 .seenfoot p{color:var(--muted);font-size:.8rem;margin:4px 0 0}
 /* اختيار الفئات: المجموعات الثماني (الكتلة نفسها في الغوص والحرب) */
 :root{--kzc-mut:#46687C}
-.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px}
+.quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:10px}
 .quick button{min-height:44px;padding:6px 4px;font-size:.88rem;border-radius:10px}
 .kzc-sel{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
 .kzc-sh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:.95rem;color:var(--ink)}
@@ -256,7 +274,8 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 .kzc-c{background:var(--sea0);border:1px solid var(--sea2);color:var(--ink)}
 .kzc-c[aria-pressed="true"]{background:var(--azraq);border-color:var(--azraq);color:#fff}
 .kzc-c:disabled{background:var(--white);border:1px dashed var(--sea3);color:var(--kzc-mut);cursor:default;opacity:.8}
-#cfg .chip{min-height:44px}
+#cfg .chip,#verdict .chip{min-height:44px}
+#verdict .chip{min-width:44px}
 .kzc-gh:focus-visible,.kzc-c:focus-visible,.kzc-pill:focus-visible{outline:2px solid var(--ghawr);outline-offset:2px}
 </style>
 <style>
@@ -591,7 +610,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
     <div class="big" id="winName">—</div>
     <table><thead><tr><th>اللاعب</th><th>الجزر</th><th style="text-align:left">الرايات</th></tr></thead>
       <tbody id="winBody"></tbody></table>
-    <div class="row"><button class="btn" data-go="home">الرئيسة</button>
+    <div class="row"><button class="btn" data-go="home">الرئيسية</button>
       <button class="btn solid" id="rematch">حرب جديدة</button></div>
     <p class="ok hidden" id="winWait">بانتظار المضيف ليبدأ لعبةً جديدة بالفرق نفسها</p>
     <button class="btn" id="toVerdict" style="margin-top:10px">عندي رأي في الطريقة</button>
@@ -887,11 +906,16 @@ function show(id){["home","how","cfg","room","join","lobby","war","win","verdict
 (function(){
 if(typeof show!=="function")return;
 var _show=show;var atCfg=false;var atPlay=false;var l1="cfg";
+/* the rules page is one step above where it was opened (mode home = 1, setup = 2); its back returns there */
+var hw=0;
 function isL1(id){return id==="cfg"||id==="room";}
-function isPlay(id){return id!=="home"&&!isL1(id);}
+function isPlay(id){return id!=="home"&&id!=="how"&&!isL1(id);}
+window.kzHowBack=function(){if(hw!==2)return false;hw=0;try{history.go(-1);}catch(e){_show(l1);}return true;};
 try{history.replaceState({kz:"home"},"");}catch(e){}
 show=function(id){
-if(id==="home"&&(atCfg||atPlay)){var n=atPlay?2:1;atCfg=false;atPlay=false;try{history.go(-n);return;}catch(e){}}
+if(id==="how"){if(!hw){try{history.pushState({kz:"how"},"");}catch(e){}hw=atCfg?2:1;}_show(id);return;}
+if(id==="home"&&(atCfg||atPlay||hw)){var n=(atCfg?1:0)+(atPlay?1:0)+(hw?1:0);atCfg=false;atPlay=false;hw=0;try{history.go(-n);return;}catch(e){}}
+hw=0;
 if(isL1(id)&&atPlay){atPlay=false;l1=id;try{history.go(-1);return;}catch(e){}}
 if(isL1(id)&&!atCfg){try{history.pushState({kz:"cfg"},"");}catch(e){}atCfg=true;atPlay=false;l1=id;}
 else if(isL1(id)){l1=id;}
@@ -901,8 +925,11 @@ _show(id);
 };
 window.addEventListener("popstate",function(ev){
 var k=(ev&&ev.state&&ev.state.kz)||"home";
-if(k==="cfg"){atCfg=true;atPlay=false;_show(l1);}
-else{atCfg=false;atPlay=false;_show("home");}
+/* back out of a one-device war: the fight stops here, no fuse or timer runs on behind the screen */
+if(!RM.on&&(!$("war").classList.contains("hidden")||!$("win").classList.contains("hidden"))){quitFight();stopFx();stop()}
+if(k==="cfg"){atCfg=true;atPlay=false;hw=0;_show(l1);}
+else if(k==="how"){atPlay=false;hw=atCfg?2:1;_show("how");}
+else{atCfg=false;atPlay=false;hw=0;_show("home");}
 });
 })();
 
@@ -920,6 +947,7 @@ function adj(a,b){return WarEngine.adj(a,b)}
 document.addEventListener("click",function(e){
   var b=e.target.closest("[data-go]");if(!b)return;var g=b.dataset.go;
   if(g==="cfg"){leaveCfgMode();openCfg()}else if(g==="how")show("how");else if(g==="room")openRoomScreen();
+  else if(g==="home"&&!$("how").classList.contains("hidden")&&window.kzHowBack()){}
   else{if(RM.on)roomExit();else{quitFight();leaveCfgMode();show("home")}}
 });
 $("toVerdict").onclick=function(){show("verdict")};
@@ -988,7 +1016,7 @@ function openCfg(){
   if(G.players.length<2)G.players=[{n:"",c:7},{n:"",c:0}];
   G.pick=-1;
   for(var i=0;i<G.players.length;i++){if(typeof G.players[i].c!=="number")G.players[i].c=freeColor()}
-  if(G.cats.length!==12)preset("mix");
+  if(G.cats.length<3)preset("mix");
   drawPlayers();drawCats();drawFuses();drawDeploy();drawShots();drawOpMode();drawWins();seenCard(drawCats);
   freeRow("deployFree","أو اكتب العدد:","",2,60,function(v){G.deployFree=v;drawDeploy()});
   freeRow("fusesFree","أو اكتب الثواني:","ثانية",3,600,function(v){G.fuse=v*1000;drawFuses()});
@@ -1111,6 +1139,9 @@ function tally(){
   drawDeploy();
   var fit=(G.cats.length>=3&&G.cats.length<=6),ok=(fit&&left>=1);
   $("catTally").innerHTML=(fit?(ok?("كلّ فئة تأخذ <b>"+spread()+"</b>."):"انتهت أسئلة فئاتك — اختر غيرها أو صفّر السجلّ."):"");
+  /* too few categories still hold a question to make a war: say why, instead of an empty setup */
+  if(!fit){var av=0;L.forEach(function(v){if(v>0)av++});if(av<3)$("catTally").textContent=spentText().join(". ")}
+  else if(!ok)$("catTally").textContent=spentText().join(". ");
   $("startWar").disabled=!ok;
 }
 function cntQ(n){
@@ -1220,6 +1251,8 @@ $("rematch").onclick=function(){if(RM.on){if(RM.host)rmSend({t:"rematch"});retur
 
 /* ───── الحرب ───── */
 function newWar(){
+  quitFight();stopFx();stop();T.lock=false;
+  $("war").classList.remove("fight");$("slab").classList.add("hidden");$("slab").classList.remove("flip");
   buildSlots();G.left=seenByCat();
   WarEngine.newWar(G,Math.random,G.left);
   clearT();$("war").insertBefore($("mapBox"),$("war").querySelector(".panel"));
@@ -1357,8 +1390,8 @@ function paint(){
   }
   var td=$("tide");if(td.getAttribute("data-t")!==tide){td.innerHTML=tide;td.setAttribute("data-t",tide)}
 }
-var RM=window.matchMedia?window.matchMedia("(prefers-reduced-motion: reduce)"):null;
-function mt(ms){return RM&&RM.matches?0:ms}
+var RMQ=window.matchMedia?window.matchMedia("(prefers-reduced-motion: reduce)"):null;
+function mt(ms){return RMQ&&RMQ.matches?0:ms}
 var TM=[];
 function later(f,ms){TM.push(setTimeout(f,ms))}
 function clearT(){TM.forEach(function(t){clearTimeout(t)});TM=[]}
@@ -1376,12 +1409,17 @@ function overText(why){
   if(RM.on)return "خمدت الجزر كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات";
   return seenLeft(null)?"خمدت الجزر كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات":"انتهت الأسئلة كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات، والتصفير بيدك في شاشة الإعداد";
 }
-function showOver(e){victory(e.winner,overText(e.why))}
+function showOver(e){victory(e.winner,overText(e.why),e.why)}
 function warEnd(){var e=WarEngine.warEnd(G);if(!e)return false;showOver(e);return true}
 function stat(h,warn){var s=$("stat");s.innerHTML=h;s.className="stat"+(warn?" warn":"")}
 function who(i){return '<i class="dot" style="background:'+col(i)+'"></i><b>'+esc(G.players[i].n)+'</b>'}
 function beginDeploy(){WarEngine.beginDeploy(G);uiDeploy()}
+/* a second tap that lands just after the turn changed belongs to the old turn: it must not end the next one */
+var SETTLE_MS=350,TURN_TS=-1e9;
+function stamp(){try{TURN_TS=performance.now()}catch(x){}}
+function tooSoon(e){return !!(e&&e.timeStamp)&&e.timeStamp-TURN_TS<SETTLE_MS}
 function uiDeploy(){
+  stamp();
   stat(who(G.turn)+" يوزّع "+cntR(G.pool)+" على جزره");
   $("nextBtn").disabled=true;
   $("undoBtn").disabled=true;
@@ -1392,6 +1430,7 @@ function anyCanAttack(){return WarEngine.anyCanAttack(G)}
 function leader(){return WarEngine.leader(G)}
 function beginTurn(){uiTurn(WarEngine.beginTurn(G,seenByCat()))}
 function uiTurn(ev){
+  stamp();
   $("undoBtn").disabled=true;
   if(!ev.canAttack){
     $("nextBtn").disabled=true;
@@ -1451,9 +1490,9 @@ $("undoBtn").onclick=function(){
     paint();return}
   $("undoBtn").disabled=true;
   stat(who(G.turn)+" — المس جزيرة لك فيها رايتان لتكون قاعدتك");paint()};
-$("nextBtn").onclick=function(){
+$("nextBtn").onclick=function(e){
   if(RM.on){roomBtn("next");return}
-  if(G.busy)return;
+  if(G.busy||tooSoon(e))return;
   turnEv(WarEngine.next(G,seenByCat()));
 };
 /* the end of a deal step or of a turn */
@@ -1513,13 +1552,17 @@ function canHit(k){return WarEngine.canHit(G,k)}
 })();
 function endTurn(){turnEv(WarEngine.endTurn(G,seenByCat()))}
 function whoWon(){return WarEngine.whoWon(G)}
-function victory(i,why){
+function victory(i,why,kind){
   G.sel=null;G.tgt=null;G.phase="over";paint();
   $("lightFlag").setAttribute("fill",col(i));$("light").classList.remove("hidden");
   $("winMap").appendChild($("mapBox"));
   $("winWhy").textContent=why||"رُفعت الراية على الأرخبيل";
-  $("winName").textContent=G.players[i].n;$("winName").style.color=col(i);
-  V.last=G.players[i].n+" فاز بـ"+ar(count(i))+" جزيرة";
+  /* a war that stops without a victory goes to the most islands, then flags: equal at the top is a tie, not a win for the first */
+  var tie=kind&&kind!=="victory"?G.players.map(function(p,k){return k}).filter(function(k){return count(k)===count(i)&&banners(k)===banners(i)}):[];
+  if(tie.length>1){var tn=tie.map(function(k){return G.players[k].n});
+    $("winName").textContent="تعادل بين "+tn.join(" و");$("winName").style.color="var(--ghawr)";V.last=$("winName").textContent}
+  else{$("winName").textContent=G.players[i].n;$("winName").style.color=col(i);
+  V.last=G.players[i].n+" فاز بـ"+cntI(count(i))}
   var b=$("winBody");b.innerHTML="";
   G.players.map(function(p,k){return{p:p,k:k,c:count(k),b:banners(k)}})
     .sort(function(x,y){return y.c-x.c}).forEach(function(r){
@@ -1577,7 +1620,7 @@ function camTo(vb,ms){
 }
 /* التكبير: نحو ضعف ونصف مقياس الخريطة، والهدف في الوسط لا يُقطع، ويميل المشهد قليلًا نحو القاعدة ليُرى المركب يُبحر */
 function camFight(base,tgt){
-  var box=$("mapBox"),w=box.clientWidth||360,h=Math.max(200,Math.round((window.innerHeight||740)*.4)),asp=w/h;
+  var box=$("mapBox"),w=box.clientWidth||360,h=box.clientHeight||Math.max(200,Math.round((window.innerHeight||740)*.4)),asp=w/h;
   var a=SLOTS[base],b=SLOTS[tgt],m=b.r+56,W=400,H=W/asp;
   if(H<2*m+20){H=2*m+20;W=H*asp}
   var lx=Math.max(0,W/2-m),ly=Math.max(0,H/2-m);
@@ -1656,7 +1699,7 @@ function askQ(who,pi,ci,shotTxt,defend,then){
   var q=pickQ(ci);if(!q){then(null,false);return}KZR.q=q;T.alive=q[4].length;T.lock=false;
   $("sDot").style.background=col(pi);$("sWho").textContent=who.n;$("sShot").textContent=shotTxt;$("secs").textContent="";
   $("qtext").textContent=q[3];$("why").className="why";$("why").innerHTML="";
-  stat('<i class="dot" style="background:'+col(pi)+'"></i><b>'+who.n+"</b> "+(defend?"يدافع عن ":"يهاجم ")+"<b>"+catName(G.tgt)+"</b>");
+  stat('<i class="dot" style="background:'+col(pi)+'"></i><b>'+esc(who.n)+"</b> "+(defend?"يدافع عن ":"يهاجم ")+"<b>"+catName(G.tgt)+"</b>");
   $("g"+G.tgt).classList.toggle("walled",!!defend);
   var box=$("ops");box.innerHTML="";box.className="opts "+(defend?"gates":"moor");
   var full=q[4].length;
@@ -1783,8 +1826,12 @@ function rmConnect(first){
   var ws;
   try{ws=new WebSocket(rmWsUrl("/ws/war/"+RM.code+((RM.host||RM.teamToken)?"":"?j=1")))}catch(e){rmDrop("net");return}
   RM.ws=ws;
+  /* keepalive: the room counts a device present only while it answers pings (the Worker's auto-response, stale after 15 s) */
+  var ka=null;
+  function kaStop(){if(ka){clearInterval(ka);ka=null}}
   ws.onopen=function(){
     RM.tries=0;
+    kaStop();ka=setInterval(function(){if(RM.ws!==ws||ws.readyState!==1){kaStop();return}try{ws.send("ping")}catch(x){}},5000);
     var h={t:"hello",v:WAR_V,deviceId:rmDevice()};
     if(RM.roomId)h.roomId=RM.roomId;
     if(RM.host)h.hostToken=RM.hostToken;
@@ -1794,6 +1841,7 @@ function rmConnect(first){
     lobbyMsg("")};
   ws.onmessage=function(e){var m;try{m=JSON.parse(e.data)}catch(x){return}rmMsg(m)};
   ws.onclose=function(ev){
+    kaStop();
     if(RM.ws!==ws)return;RM.ws=null;
     if(ev&&ev.code===4000&&RM.on){/* فُتحت الغرفة من جهاز آخر بالرمز نفسه */
       rmClose(true);RM.on=false;RM.view="";quitFight();openRoomScreen();roomNote("فُتحت الغرفة من جهاز آخر بنفس الفريق");return}
@@ -2014,7 +2062,7 @@ function warApply(s,g){
     $("rematch").textContent="لعبة جديدة بنفس الفرق";
     $("rematch").classList.toggle("hidden",!RM.host);
     $("winWait").classList.toggle("hidden",RM.host);
-    victory(g.end.winner,overText(g.end.why))}}
+    victory(g.end.winner,overText(g.end.why),g.end.why)}}
 function turnBar(s,g){
   var b=$("turnBar");b.classList.remove("hidden");
   var t=s.teams[g.turn];
@@ -2176,7 +2224,7 @@ function roomBtn(which){
   ["للصغار","للكبار","للجميع"].forEach(function(t){
     var b=document.createElement("button");b.className="chip";b.textContent=t;
     b.onclick=function(){V.who=t;f.querySelectorAll(".chip").forEach(function(x){
-      x.className="chip"+(x.textContent===t?" on":"")})};f.appendChild(b)});
+      x.className="chip"+(x===b?" on":"")})};f.appendChild(b)});
 })();
 $("copyV").onclick=function(){
   var t="كنوز المعرفة — طريقة «حرب الجزر»\nالتقييم: "+ar(V.stars||0)+"/٥\nتصلح: "+(V.who||"—")+
