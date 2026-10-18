@@ -26,7 +26,18 @@
         "salmajed",
         "binothaimeen",
         "almunajjid",
-        "aljasser"
+        "aljasser",
+        "mohammad-alalbani",
+        "salih-alalsheikh",
+        "walid-alsaeedan",
+        "mohammad-alshinqiti",
+        "abdulsalam-al-shuwayer",
+        "saad-alshathri",
+        "abdulaziz-altarifi",
+        "abdullah-alfuzan",
+        "khaled-alsabt",
+        "sulaiman-alruhaily",
+        "lajna"
       ]
     },
     "/api/v1/scholars": {
@@ -36,37 +47,37 @@
         {
           "id": "binbaz",
           "snapshot": {
-            "records": 24145
+            "records": 28504
           }
         },
         {
           "id": "albarrak",
           "snapshot": {
-            "records": 10740
+            "records": 11707
           }
         },
         {
           "id": "meshhoor",
           "snapshot": {
-            "records": 4166
+            "records": 4261
           }
         },
         {
           "id": "alkhathlan",
           "snapshot": {
-            "records": 1570
+            "records": 1653
           }
         },
         {
           "id": "aladawy",
           "snapshot": {
-            "records": 1308
+            "records": 1492
           }
         },
         {
           "id": "almosleh",
           "snapshot": {
-            "records": 822
+            "records": 953
           }
         },
         {
@@ -78,7 +89,7 @@
         {
           "id": "othmanalkhamees",
           "snapshot": {
-            "records": 410
+            "records": 441
           }
         },
         {
@@ -90,7 +101,7 @@
         {
           "id": "shrajhi",
           "snapshot": {
-            "records": 91
+            "records": 559
           }
         },
         {
@@ -102,25 +113,25 @@
         {
           "id": "alkhudair",
           "snapshot": {
-            "records": 14
+            "records": 1015
           }
         },
         {
           "id": "alfawzan",
           "snapshot": {
-            "records": 14
+            "records": 1543
           }
         },
         {
           "id": "ibnjebreen",
           "snapshot": {
-            "records": 4
+            "records": 3377
           }
         },
         {
           "id": "ferkous",
           "snapshot": {
-            "records": 1412
+            "records": 1611
           }
         },
         {
@@ -132,19 +143,85 @@
         {
           "id": "binothaimeen",
           "snapshot": {
-            "records": 13343
+            "records": 16254
           }
         },
         {
           "id": "almunajjid",
           "snapshot": {
-            "records": 1203
+            "records": 2774
           }
         },
         {
           "id": "aljasser",
           "snapshot": {
             "records": 2215
+          }
+        },
+        {
+          "id": "mohammad-alalbani",
+          "snapshot": {
+            "records": 24100
+          }
+        },
+        {
+          "id": "salih-alalsheikh",
+          "snapshot": {
+            "records": 1643
+          }
+        },
+        {
+          "id": "walid-alsaeedan",
+          "snapshot": {
+            "records": 996
+          }
+        },
+        {
+          "id": "mohammad-alshinqiti",
+          "snapshot": {
+            "records": 145
+          }
+        },
+        {
+          "id": "abdulsalam-al-shuwayer",
+          "snapshot": {
+            "records": 143
+          }
+        },
+        {
+          "id": "saad-alshathri",
+          "snapshot": {
+            "records": 106
+          }
+        },
+        {
+          "id": "abdulaziz-altarifi",
+          "snapshot": {
+            "records": 85
+          }
+        },
+        {
+          "id": "abdullah-alfuzan",
+          "snapshot": {
+            "records": 42
+          }
+        },
+        {
+          "id": "khaled-alsabt",
+          "snapshot": {
+            "records": 3
+          }
+        },
+        {
+          "id": "sulaiman-alruhaily",
+          "snapshot": {
+            "records": 3
+          }
+        },
+        {
+          "id": "lajna",
+          "snapshot": {
+            "records": 1666
           }
         }
       ]
@@ -167,38 +244,38 @@
     "verificationRequests": 2,
     "searchRequests": 1,
     "returnedSearchCalls": 1,
-    "scholars": 19,
-    "total": 80435,
-    "ibnBaz": 24145
+    "scholars": 30,
+    "total": 126269,
+    "ibnBaz": 28504
   },
   "externalEvidence": {
     "status": "OBSERVED_PRODUCTION",
     "acceptanceGreen": true,
     "currentServiceResponse": {
-      "observedAt": "2026-09-10",
-      "deploymentId": "dpl_GC4EMbSijTzcsb2gS7TpSqYyLHrd",
-      "deployedGitSha": "56f1dbcb270a7c16ab6837ca31a1f6fb0f9370d9",
+      "observedAt": "2026-10-18",
+      "deploymentId": "dpl_AXvb1goRr9AcgX98ojVQudK3epNP",
+      "deployedGitSha": "28a7c9dd0ef3185b53578bc4e79f0a3cc57f94e0",
       "requests": [
-        "bom1::iad1::kffpl-1789024902106-a55fddd908b8",
-        "bom1::iad1::5n5jw-1789024902665-a82c6e20b3ea",
-        "bom1::iad1::dg5kb-1789024903275-1de82b88b7eb"
+        "bom1::iad1::mzwb9-1792367151390-effa41c323f0",
+        "bom1::iad1::c7658-1792367176891-08501fee294c",
+        "bom1::iad1::x9xsc-1792367184964-308f4dc473d7"
       ],
       "fatwaSearch": 1,
       "fatwaStatus": "OK",
-      "scholars": 19,
-      "total": 80435,
-      "ibnBaz": 24145,
-      "note": "observed through the production deployment's own same-origin fatwa proxy — GET https://ezik.app/api/fatwa-proxy for health, scholars and fatwas/search, which is the path the deployed app itself takes to the service. The three x-vercel-id values above are the response headers of those three requests in that order: two verification calls and one search call, matching the local accounting this fixture proves offline. Re-observed on 2026-09-10 because item 37B merged binbaz kind 3 (the «fatawa al-duroos» section, 5,666 records the 2026-08-08 build had excluded), moving Ibn Baz and the grand total by exactly 5,666. The search call read q=al-talaq under scholar=binbaz and returned 860 results, up from 781 before the merge."
+      "scholars": 30,
+      "total": 126269,
+      "ibnBaz": 28504,
+      "note": "observed through the same-origin fatwa proxy of the app preview https://ustaz-bb0ev30ja-musaed-s-projects1.vercel.app (branch merge-4k-fatwas-20261019, built from 28a7c9d), whose FATWA_BASE is https://ezik-fatwas-4k.vercel.app: GET /api/fatwa-proxy for health, scholars and fatwas/search, the path the deployed app itself takes to the service. The 3 x-vercel-id values above are the response headers of those requests in that order: 2 verification calls and 1 search call, matching the local accounting this fixture proves offline. Re-observed on 2026-10-18 because merge 4K moved the corpus to two new services: 30 scholars / 126269 records / Ibn Baz 28504. The app's production still points at the old services until the branch is merged; it is re-observed after the publish."
     },
     "production": {
       "budgetEnvironment": "production",
       "fatwaStatus": "OK",
-      "scholars": 19,
-      "total": 80435,
-      "ibnBaz": 24145,
-      "deploymentId": "dpl_GC4EMbSijTzcsb2gS7TpSqYyLHrd"
+      "scholars": 30,
+      "total": 126269,
+      "ibnBaz": 28504,
+      "deploymentId": "dpl_FTt9KFh1N7zGVobVDJFnU9ARQ4zE"
     },
-    "productionReason": "measured on 2026-09-10 against the production deployment dpl_GC4EMbSijTzcsb2gS7TpSqYyLHrd (target=production, aliased to ezik.app, built from 56f1dbc), by summing snapshot.records over the 19 rows of its GET /api/v1/scholars response. That response body is 9046 bytes and seals under sha8 9a1eb29d. This is a live production reading taken after the kind-3 promote, not a preview and not a number copied out of a report.",
-    "reason": "the offline round could not reach the service and said so. It was then observed on a preview, then on production. On 2026-09-10 item 37B promoted the rebuilt Ibn Baz corpus and the contract moved with it: production reports 19 scholars / 80,435 records / 24,145 for Ibn Baz, identical to the counts this fixture authors offline, so the local accounting and the live service agree rather than one standing in for the other. The readings were re-taken, not edited to agree."
+    "productionReason": "measured on 2026-10-18 against the production deployment dpl_FTt9KFh1N7zGVobVDJFnU9ARQ4zE of the fatwa service project ezik-fatwas-4k (target=production, aliased to ezik-fatwas-4k.vercel.app, the origin FATWA_BASE names on this branch), by summing snapshot.records over the 30 rows of its GET /api/v1/scholars response. That response body is 161574 bytes and seals under sha8 41d45ea4. This is the live production reading of the service the app will call, taken before the app's own production is switched; it is not a preview and not a number copied out of a report.",
+    "reason": "the offline round could not reach the service and said so. It was then observed on a preview, then on production. On 2026-10-18 merge 4K moved the corpus to two new Vercel projects (ezik-fatwas-4k, ezik-fatwas-2-4k) and the contract moved with it to 30 scholars / 126269 records / 28504 for Ibn Baz. The new service's production deployment and the app preview's proxy both report exactly those counts, identical to the counts this fixture authors offline. The readings were re-taken by a program, not edited to agree."
   }
 }
