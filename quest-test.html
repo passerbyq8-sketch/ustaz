@@ -111,9 +111,9 @@ body{color:var(--ink);font-family:var(--hd);font-size:16px;line-height:1.75;min-
 #catSel{flex:1;min-width:0;min-height:48px;padding:8px 10px;border:1.5px solid var(--azraq);border-radius:12px;background:var(--white);
   color:var(--ink);font:inherit;font-size:1rem}
 #catSel:focus-visible{outline:2px solid var(--ghawr);outline-offset:2px}
-.turnbar{border-radius:14px;padding:10px 14px;margin:0 0 8px;color:#fff;font-weight:700;font-size:1.1rem;min-height:48px;display:flex;align-items:center}
+.turnbar{border-radius:14px;padding:10px 14px;margin:0 0 8px;color:#fff;font-weight:700;font-size:1.1rem;min-height:48px;display:flex;align-items:center;min-width:0;overflow-wrap:anywhere}
 .scores{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
-.scores span{display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1.5px solid var(--line);border-radius:999px;padding:3px 11px;font-size:.88rem;color:var(--ink)}
+.scores span{display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1.5px solid var(--line);border-radius:999px;padding:3px 11px;font-size:.88rem;color:var(--ink);max-width:100%;min-width:0;overflow-wrap:anywhere}
 .scores span.now{font-weight:700}
 .scores i{width:10px;height:10px;border-radius:50%;flex:none}
 .qcard{min-height:160px}
@@ -151,9 +151,9 @@ body{color:var(--ink);font-family:var(--hd);font-size:16px;line-height:1.75;min-
 .end h2{font-size:1.6rem;color:var(--ghawr);margin:0}
 .big{font-size:3.6rem;font-weight:700;color:var(--azraq);line-height:1.15;margin:10px 0 0}
 .endsub{color:var(--muted);margin:2px 0 14px}
-.winner{font-size:1.25rem;font-weight:700;color:var(--ghawr);margin:12px 0}
+.winner{font-size:1.25rem;font-weight:700;color:var(--ghawr);margin:12px 0;overflow-wrap:anywhere}
 table{width:100%;border-collapse:collapse;margin:8px 0 14px;background:var(--white);border-radius:12px}
-td,th{padding:10px 8px;border-bottom:1px solid var(--line);text-align:right}
+td,th{padding:10px 8px;border-bottom:1px solid var(--line);text-align:right;overflow-wrap:anywhere}
 th{color:var(--muted);font-weight:500;font-size:.85rem}
 td.n{font-size:1.15rem;text-align:left;color:var(--azraq);font-weight:700}
 td i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:6px}
@@ -266,7 +266,12 @@ td i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:6
    المجموعات الثماني، والبوابة kunuztest تقرأ النسخ الثلاث وتحمرّ إن اختلف حرف، فلا تفترق. */
 var S={teamsMode:false,teams:[],cats:[],total:10,timer:0,opts:"shown",shows:0};
 var G=null;
-var P={phase:"pick",picked:-1,locked:false,revealed:false,answered:false,sel:-1,t0:0,iv:null,left:0};
+var P={phase:"pick",picked:-1,locked:false,revealed:false,answered:false,sel:-1,t0:0,iv:null,left:0,ts:-1e9};
+/* لمسة ثانية سريعة (نقر مزدوج) تقع على ما رسمته الأولى للتوّ: «أظهر الجواب» أو خيار مكان «هات سؤالًا»، أو «جاوبت صح» مكان «أظهر الجواب».
+   فلا يُقبل نقرٌ على ما رُسم للتوّ قبل أن يمضي على آخر تغيير للنافذة ما يكفي (بزمن الحدث نفسه) */
+var SETTLE_MS=350;
+function stamp(e){if(e&&e.timeStamp)P.ts=e.timeStamp}
+function tooSoon(e){return !!(e&&e.timeStamp)&&e.timeStamp-P.ts<SETTLE_MS}
 
 function ar(n){if(document.documentElement.getAttribute("lang")==="en")return String(n);return String(n).replace(/[0-9]/g,function(d){return "٠١٢٣٤٥٦٧٨٩"[+d]})}
 function $(i){return document.getElementById(i)}
@@ -547,7 +552,7 @@ document.querySelectorAll("[data-q]").forEach(function(b){
 });
 function tally(){
   var n=S.cats.length,left=n?seenLeft(S.cats):0;
-  $("tally").textContent=!n?"اختر فئة واحدة على الأقلّ.":(left<1?"انتهت أسئلة فئاتك — اختر غيرها أو صفّر السجلّ.":"");
+  $("tally").textContent=!n?"اختر فئة واحدة على الأقلّ.":(left<1?(seenLeft(null)?"انتهت أسئلة فئاتك — اختر غيرها أو صفّر السجلّ.":spentText().join(" — ")+"."):"");
   $("startBtn").disabled=(n<1||left<1);
 }
 function drawTotals(){
@@ -592,12 +597,12 @@ function paintTop(){
   $("prog").textContent="السؤال "+ar(Math.min(G.asked+1,G.total))+" من "+ar(G.total);
   var t=TE.team(G),bar=$("turnBar"),sc=$("scores");
   bar.classList.toggle("hidden",G.solo);
-  if(!G.solo){bar.textContent="دور "+t.n;bar.style.background=t.c}
+  if(!G.solo){bar.textContent="";var bs=el("span","","دور ");bs.appendChild(el("bdi","",t.n));bar.appendChild(bs);bar.style.background=t.c}
   sc.innerHTML="";
   G.teams.forEach(function(x,i){
     var s=el("span",i===G.turn&&!G.solo?"now":"");
     if(!G.solo){var d=el("i");d.style.background=x.c;s.appendChild(d);s.style.borderColor=x.c}
-    s.appendChild(document.createTextNode((G.solo?"نقاطك":x.n)+" "+ar(x.score)));sc.appendChild(s)});
+    s.appendChild(G.solo?document.createTextNode("نقاطك"):el("bdi","",x.n));s.appendChild(document.createTextNode(" "+ar(x.score)));sc.appendChild(s)});
 }
 function paintSel(){
   var s=$("catSel"),L=TE.catsLeft(G,seenHas);
@@ -621,12 +626,14 @@ function turnStart(){
   if(!TE.catsLeft(G,seenHas).length){finish(true);return}
   P.phase="pick";P.picked=-1;P.locked=false;P.revealed=false;P.answered=false;
   paintTop();paintSel();clearQ();paintTimer();
-  $("qtext").textContent=G.solo?"اختر فئة من القائمة، أو اطلب سؤالًا من الفئة المختارة.":"دور «"+TE.team(G).n+"»: اختاروا فئة من القائمة، أو اطلبوا سؤالًا من الفئة المختارة.";
+  var qt=$("qtext");
+  if(G.solo)qt.textContent="اختر فئة من القائمة، أو اطلب سؤالًا من الفئة المختارة.";
+  else{qt.textContent="دور «";qt.appendChild(el("bdi","",TE.team(G).n));qt.appendChild(document.createTextNode("»: اختاروا فئة من القائمة، أو اطلبوا سؤالًا من الفئة المختارة."))}
   var b=el("button","btn solid","هات سؤالًا");b.type="button";b.id="askBtn";b.onclick=ask;$("act").appendChild(b);
   $("nextBtn").disabled=true;$("nextBtn").textContent="التالي";
 }
-function ask(){
-  stopT();
+function ask(e){
+  stopT();stamp(e);
   var k=TE.pick(G,P.sel,seenHas);
   if(k<0){paintSel();if(!TE.catsLeft(G,seenHas).length){finish(true);return}k=TE.pick(G,-1,seenHas);if(k<0){finish(true);return}}
   seenMark(k);   /* يُوسَم ساعة يظهر، فالسؤال المتروك بتبديل الفئة يبقى مرئيًّا ولا يعود في هذه اللعبة ولا بعدها */
@@ -646,6 +653,7 @@ function paintQ(){
       b.setAttribute("aria-pressed",P.picked===j?"true":"false");
       if(P.picked===j)b.classList.add("pick");
       b.onclick=function(){if(P.locked)return;P.picked=j;paintQ();try{$("confBtn").focus()}catch(e){}};
+      var pk=b.onclick;b.onclick=function(e){if(!tooSoon(e))pk.call(b,e)};
       r.appendChild(b);
       if(P.picked===j){var c=el("button","conf","تأكيد");c.type="button";c.id="confBtn";c.onclick=confirmA;r.appendChild(c)}
       box.appendChild(r)});
@@ -657,19 +665,20 @@ function paintQ(){
       var t=TE.team(G),lab="أظهر الخيارات";
       if(t.shows>0)lab+=" (باقي "+(G.solo?"لك":"لكم")+" "+ar(t.shows)+")";
       var s=el("button","btn",lab);s.type="button";s.id="showOptsBtn";
-      s.onclick=function(){if(P.locked||P.answered||!TE.useShow(G))return;P.revealed=true;paintQ()};act.appendChild(s);
+      s.onclick=function(e){if(P.locked||P.answered||tooSoon(e)||!TE.useShow(G))return;stamp(e);P.revealed=true;paintQ()};act.appendChild(s);
     }
   }
 }
-function showAnswer(){
-  if(P.locked||P.answered)return;
+function showAnswer(e){
+  if(P.locked||P.answered||tooSoon(e))return;
+  stamp(e);
   stopT();P.answered=true;paintTimer();
   var q=cur(),act=$("act");act.innerHTML="";
   $("opts").appendChild(el("div","ans",q[4][q[5]]));
   var j=el("div","judge");
   var y=el("button","btn solid",G.solo?"جاوبت صح":"جاوبنا صح");y.type="button";y.id="judgeYes";
   var n=el("button","btn",G.solo?"غلط":"غلط");n.type="button";n.id="judgeNo";
-  y.onclick=function(){lock(true)};n.onclick=function(){lock(false)};
+  y.onclick=function(e){if(!tooSoon(e))lock(true)};n.onclick=function(e){if(!tooSoon(e))lock(false)};
   j.appendChild(y);j.appendChild(n);act.appendChild(j);
 }
 function confirmA(){
@@ -710,8 +719,8 @@ $("quit").onclick=function(){stopT();if(P.phase==="q"&&!P.locked)G.cur=-1;finish
 function finish(spent,quit){
   stopT();P.phase="end";
   var r=TE.rank(G),played=G.asked;
-  $("endTitle").textContent=spent?"انتهت أسئلة فئاتك":(quit?"أُنهيت اللعبة":"انتهت اللعبة");
-  $("endNote").textContent=spent?"اختر فئات غيرها، أو صفّر السجلّ من شاشة الإعداد.":"";
+  $("endTitle").textContent=spent?spentText()[0]:(quit?"أُنهيت اللعبة":"انتهت اللعبة");
+  $("endNote").textContent=spent?spentText()[1]+".":"";
   if(G.solo){
     var s=G.teams[0].score;
     $("endNum").textContent=ar(s);$("endNum").classList.remove("hidden");
@@ -720,17 +729,24 @@ function finish(spent,quit){
   }else{
     $("endNum").classList.add("hidden");$("endSub").textContent="";
     var w=$("winner");w.classList.remove("hidden");
-    var names=r.winners.map(function(i){return "«"+G.teams[i].n+"»"});
-    w.textContent=!played?"لم يُلعب بعد":(r.tie?(r.winners.length===G.teams.length?"تعادل الجميع":"تعادل بين "+names.join(" و")):"الفائز "+names[0]);
+    var names=r.winners.map(function(i){return G.teams[i].n});
+    if(!played)w.textContent="لم يُلعب بعد";
+    else if(r.tie&&r.winners.length===G.teams.length)w.textContent="تعادل الجميع";
+    else{w.textContent=r.tie?"تعادل بين ":"الفائز ";
+      names.slice(0,r.tie?names.length:1).forEach(function(n,k){if(k)w.appendChild(document.createTextNode(" و"));
+        w.appendChild(document.createTextNode("«"));w.appendChild(el("bdi","",n));w.appendChild(document.createTextNode("»"))})}
     var body=$("rankBody");body.innerHTML="";
     r.order.forEach(function(i){var t=G.teams[i],tr=el("tr"),a=el("td"),b=el("td","n",ar(t.score));
-      var d=el("i");d.style.background=t.c;a.appendChild(d);a.appendChild(document.createTextNode(t.n));
+      var d=el("i");d.style.background=t.c;a.appendChild(d);a.appendChild(el("bdi","",t.n));
       tr.appendChild(a);tr.appendChild(b);body.appendChild(tr)});
     $("rankT").classList.remove("hidden");
   }
   show("end");
 }
 $("again").onclick=function(){toCfg()};
+/* إعادة التحميل أثناء اللعب تُبقي الصفحة على مدخل اللعب في السجلّ والإعداد على الشاشة، فأوّل رجوع لا يُرى له أثر:
+   نرجع خطوةً إلى مدخل الإعداد نفسه، فيخرج الرجوع التالي إلى الكنوز */
+try{if(history.state&&history.state.kz==="play")history.back()}catch(e){}
 
 openCfg();
 </script>
