@@ -116,7 +116,7 @@ console.log('hanna-laha-in-ezik: PASS -- five cards in quest.html, build ' + JSO
 if (process.argv.includes('--self-test')) {
   const mutants = [
     ['quest.html loses its fifth card', (r) => (rel) => (rel === 'quest.html' ? r(rel).replace(/  <a class="door" href="\/hanna-laha\/">[\s\S]*?<\/a>\n/, '') : r(rel)), realList],
-    ['quest.html gets a sixth card', (r) => (rel) => (rel === 'quest.html' ? r(rel).replace('</div>\n</body>', '  <a class="door" href="/x.html"><b>x</b></a>\n</div>\n</body>') : r(rel)), realList],
+    ['quest.html gets a sixth card', (r) => (rel) => (rel === 'quest.html' ? r(rel).replace('</div>\n<script src="/quest-i18n.js"></script>\n</body>', '  <a class="door" href="/x.html"><b>x</b></a>\n</div>\n<script src="/quest-i18n.js"></script>\n</body>') : r(rel)), realList],
     ['build-info loses its commit', (r) => (rel) => (rel === GAME + '/build-info.json' ? r(rel).replace(/"gitSha": "[^"]*"/, '"gitSha": ""') : r(rel)), realList],
     ['a stray file appears', (r) => r, () => realList().concat(['stray.txt'])],
     ['a link leaves the folder', (r) => (rel) => (rel === GAME + '/index.html' ? r(rel).replace('<head>', '<head><link rel="x" href="/app.js">') : r(rel)), realList],
