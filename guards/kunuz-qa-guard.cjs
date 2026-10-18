@@ -33,6 +33,8 @@ const FIXES = [
   // in their meaning (not cannonball / float / keeper), the back arrow of a left-to-right reader pointing left
   { id: 'I18N', file: 'quest-i18n.js', must: ['var LOC =', '"← Back"', '"The Hauler"', '"The Great Pearl"', '"The Homecoming"'],
     not: ['"The Cannonball"', '"The Float"', '"The Keeper"', '"→ Back"'] },
+  { id: 'RESET-44', file: 'quest-ghaws.html', must: ['.seenfoot button{background:none;border:0;min-height:44px;'] },
+  { id: 'RESET-44-harb', file: 'quest-harb.html', must: ['.seenfoot button{background:none;border:0;min-height:44px;'] },
   { id: 'VERDICT', file: 'quest-ghaws.html', must: ['x.className="chip"+(x===b?" on":"")', '.quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));'] },
   { id: 'VERDICT-harb', file: 'quest-harb.html', must: ['x.className="chip"+(x===b?" on":"")', '.quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));'] },
   { id: 'BOARD-01/02', file: 'quest-board.html', must: ['function tooSoon(e){return !!(e&&e.timeStamp)&&e.timeStamp-P.ts<SETTLE_MS}',
