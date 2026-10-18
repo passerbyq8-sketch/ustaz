@@ -244,7 +244,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 .seenfoot p{color:var(--muted);font-size:.8rem;margin:4px 0 0}
 /* اختيار الفئات: المجموعات الثماني (الكتلة نفسها في الغوص والحرب) */
 :root{--kzc-mut:#46687C}
-.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px}
+.quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:10px}
 .quick button{min-height:44px;padding:6px 4px;font-size:.88rem;border-radius:10px}
 .kzc-sel{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
 .kzc-sh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:.95rem;color:var(--ink)}
@@ -2224,7 +2224,7 @@ function roomBtn(which){
   ["للصغار","للكبار","للجميع"].forEach(function(t){
     var b=document.createElement("button");b.className="chip";b.textContent=t;
     b.onclick=function(){V.who=t;f.querySelectorAll(".chip").forEach(function(x){
-      x.className="chip"+(x.textContent===t?" on":"")})};f.appendChild(b)});
+      x.className="chip"+(x===b?" on":"")})};f.appendChild(b)});
 })();
 $("copyV").onclick=function(){
   var t="كنوز المعرفة — طريقة «حرب الجزر»\nالتقييم: "+ar(V.stars||0)+"/٥\nتصلح: "+(V.who||"—")+

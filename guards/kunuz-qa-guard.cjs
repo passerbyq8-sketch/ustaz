@@ -29,6 +29,12 @@ function report(id, name, fails, info) {
 // { id, file, must: [fragments of the fix], not: [fragments of the defect] }
 const FIXES = [
   { id: 'HUB-ru', file: 'quest-i18n.js', must: ['Пять игр из вопросов Ezik'], not: ['Пять игры'] },
+  // the games' translations: per-language number patterns (they returned English to every reader), the three pearling terms
+  // in their meaning (not cannonball / float / keeper), the back arrow of a left-to-right reader pointing left
+  { id: 'I18N', file: 'quest-i18n.js', must: ['var LOC =', '"← Back"', '"The Hauler"', '"The Great Pearl"', '"The Homecoming"'],
+    not: ['"The Cannonball"', '"The Float"', '"The Keeper"', '"→ Back"'] },
+  { id: 'VERDICT', file: 'quest-ghaws.html', must: ['x.className="chip"+(x===b?" on":"")', '.quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));'] },
+  { id: 'VERDICT-harb', file: 'quest-harb.html', must: ['x.className="chip"+(x===b?" on":"")', '.quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));'] },
   { id: 'BOARD-01/02', file: 'quest-board.html', must: ['function tooSoon(e){return !!(e&&e.timeStamp)&&e.timeStamp-P.ts<SETTLE_MS}',
     'if(!G||G.cur||P.open||tooSoon(e))return;', 'if(!P.open||!P.revealed||!G||tooSoon(e))return;', 'P.revealed=true;stamp(e);paintQ();',
     'b.onclick=function(e){give(i,e)};', 'return function(e){openQ(s,e)}'] },
