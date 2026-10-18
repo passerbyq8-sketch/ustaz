@@ -627,6 +627,8 @@ const EZ_I18N = {
     'x.656': 'آية',
     'x.657': '(افتراضيّ)',
     'x.658': 'وجد {n}',
+    'x.659': 'طوّره: مساعد الراجحي',
+    'x.660': 'وسائل التواصل:',
     'p.12': 'نوع الملف غير مدعوم: {a} | {b}',
     'f.5': 'بلا اسم',
     'f.6': 'بلا نوع',
@@ -2234,6 +2236,8 @@ const EZ_I18N = {
     'x.656': 'ayahs',
     'x.657': '(default)',
     'x.658': 'found {n}',
+    'x.659': 'Developed by: Musaed Al-Rajhi',
+    'x.660': 'Contact:',
     'p.12': 'File type not supported: {a} | {b}',
     'f.5': 'no name',
     'f.6': 'no type',
@@ -25909,7 +25913,7 @@ function EzikAboutSheet({ onBack }) {
         {EZIK_ABOUT_BODY.flatMap((line, i) => i === 1 ? [
   <p key={i} style={s.asmaaPara}>{line}</p>,
   <div key="ezdev">
-    <p style={s.asmaaPara}>طوره: مساعد الراجحي</p>
+    <p style={s.asmaaPara}>طوّره: مساعد الراجحي</p>
     <p style={s.asmaaPara}>وسائل التواصل:</p>
     <p style={s.asmaaPara}><a dir="ltr" href="tel:+96555456662" style={{color:"inherit",unicodeBidi:"isolate"}}>+965 55456662</a></p>
     <p style={s.asmaaPara}><a dir="ltr" href="mailto:Passerbyq8@gmail.com" style={{color:"inherit",unicodeBidi:"isolate"}}>Passerbyq8@gmail.com</a></p>
