@@ -1993,7 +1993,9 @@ const SEALED = {
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
   //   2026-10-18 -- Item 86 (memorizer: when the browser refused the page the owner's computer, the line under his bar says so and how to allow it, instead of 'the engine does not answer'; owner-only; new key mem86.ear.blocked in app.jsx and the 21 lang files; cache ezik-v109 -> ezik-v110): app.js 2275953 -> 2277568 bytes, sha256 ca400072..4f75; index.html 155556.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3463582. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
-  'sw.js': 'c603d8bd38f019ece318bac8c7b633fd7a18edda40fbc6fb8d90a9b3d5a408cf',
+  //   2026-10-18 -- about page: developer name and contact under the built-in-Kuwait line, rows x.659 and x.660 in app.jsx (ar, en) and the 21 lang files; cache ezik-v110 -> ezik-v111 (config/app-version.json and sw.js CACHE, sw.js prose app.js size): app.js 2277568 -> 2278440 bytes, sha256 96ab69ec..f31a; node tools/core-bytes.cjs --write: CORE_BYTES 3464454.
+//                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
+  'sw.js': 'b4476f2a195a0e0b85243deef9b411c9d98b9fdcf5e7a7634a4cdcb07b685232',
 };
 
 // ---------------------------------------------------------------------------
@@ -3128,7 +3130,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2277568, of: 'app.js' },
+      { n: 2278440, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
