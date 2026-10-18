@@ -5,6 +5,7 @@
 'use strict';
 const fs = require('fs'), vm = require('vm'), path = require('path');
 const { VER, El, Txt, parseInto } = require('./kunuz-sim/dom.cjs');
+const { readable } = require('./kunuz-sim/readable.cjs');   // text and every attribute a screen reader speaks (KUNUZ-QA-DECISIONS, 2026-10-19)
 const argv = process.argv.slice(2);
 const arg = (k, d) => { const i = argv.indexOf('--' + k); return i > -1 ? argv[i + 1] : d; };
 const REPO = path.join(__dirname, '..');
@@ -604,7 +605,7 @@ function playWar(W, L, o) {
       if (id && CONTENT.has(id)) return;
       const st = inState || (id && STATE.has(id));
       const own = el.childNodes.filter(n => n.nodeType === 3).map(n => n.data).join('');
-      const strs = [own, el.attrs.title, el.attrs['aria-label'], typeof el.title === 'string' ? el.title : null].filter(s => s && s.trim());
+      const strs = readable(el, own);
       for (const s of strs) {
         strings++;
         if (!DIGIT.test(s)) continue; withDigits++;
