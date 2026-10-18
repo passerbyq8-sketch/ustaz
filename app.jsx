@@ -25906,7 +25906,15 @@ function EzikAboutSheet({ onBack }) {
   return (
     <EzShell title={ezT('menu.about')} onBack={onBack} backLabel={ezT('common.back')}>
       <section style={s.asmaaRead} aria-label={ezT('menu.aboutAria')} onClick={onTextPress}>
-        {EZIK_ABOUT_BODY.map((line, i) => <p key={i} style={s.asmaaPara}>{line}</p>)}
+        {EZIK_ABOUT_BODY.flatMap((line, i) => i === 1 ? [
+  <p key={i} style={s.asmaaPara}>{line}</p>,
+  <div key="ezdev">
+    <p style={s.asmaaPara}>طوره: مساعد الراجحي</p>
+    <p style={s.asmaaPara}>وسائل التواصل:</p>
+    <p style={s.asmaaPara}><a dir="ltr" href="tel:+96555456662" style={{color:"inherit",unicodeBidi:"isolate"}}>+965 55456662</a></p>
+    <p style={s.asmaaPara}><a dir="ltr" href="mailto:Passerbyq8@gmail.com" style={{color:"inherit",unicodeBidi:"isolate"}}>Passerbyq8@gmail.com</a></p>
+  </div>
+] : [<p key={i} style={s.asmaaPara}>{line}</p>])}
       </section>
       {/* ITEM 110 ROUND 2 (127 note m35), part fix: the version, small -- the same number the owner's build
           mark prints (ezikAppVersion). Dark: not drawn. */}
