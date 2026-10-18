@@ -837,11 +837,11 @@ async function runHybridGuard() {
   const indexSource = require('../tools/babel-block.cjs').readShippedClient(path.join(ROOT, 'index.html'));
   const vercel = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
   ok('fatwa browser contract is same-origin and contains no second-service URL', indexSource.includes("const EZIK_FATWA_API_BASE = ''")
-    && !indexSource.includes('https://ezik-fatwas.vercel.app'));
+    && !indexSource.includes('https://ezik-fatwas-4k.vercel.app'));
   ok('the unchanged /api/v1/* UI contract rewrites to the server proxy', vercel.rewrites.some((r) =>
     r.source === '/api/v1/:path*' && r.destination === '/api/fatwa-proxy?path=:path*'));
   eq('fatwa pinned corpus contract', FC.fatwaContractTotals(), { scholars: 30, total: 126269, ibnBaz: 28504 });
-  ok('fatwa service base is the one authorised origin', FC.FATWA_BASE === 'https://ezik-fatwas.vercel.app');
+  ok('fatwa service base is the one authorised origin', FC.FATWA_BASE === 'https://ezik-fatwas-4k.vercel.app');
 
   console.log('\n--- TEXT/CALL PARITY AND NO-CLARIFICATION WIRING ---');
   ok('text and call both default to /api/ask', /endpoint = '\/api\/ask'/u.test(indexSource));
