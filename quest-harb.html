@@ -138,6 +138,8 @@ body{color:var(--ink);font-family:var(--bd);font-size:16px;line-height:1.75;min-
 #war .panel{flex:0 0 auto;margin:0;border:0;border-radius:18px 18px 0 0;box-shadow:0 -1px 0 var(--line);
   padding:10px 16px calc(12px + env(safe-area-inset-bottom));position:relative;z-index:2}
 #war.fight .mapbox{flex:0 0 auto;height:max(200px,40vh);height:max(200px,40dvh)}
+/* one device: the row of «إنهاء اللعبة» (53px) comes out of the map, never out of the question */
+#war.solo.fight .mapbox{height:calc(max(200px,40vh) - 53px);height:calc(max(200px,40dvh) - 53px)}
 #war.fight .mapbox::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:16px;
   background:radial-gradient(14px 9px at 14px 16px,#EEF4F7 98%,transparent) 0 0/28px 16px repeat-x}
 #war.fight .panel{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;border-radius:0;box-shadow:none;
@@ -146,17 +148,21 @@ body{color:var(--ink);font-family:var(--bd);font-size:16px;line-height:1.75;min-
 /* short screens: the map yields room so the question and its choices stand in view while the embers burn */
 @media (orientation:portrait) and (max-height:700px){
   #war.fight .mapbox{height:max(150px,30vh);height:max(150px,30dvh)}
+  #war.solo.fight .mapbox{height:calc(max(150px,30vh) - 53px);height:calc(max(150px,30dvh) - 53px)}
   #war.fight .stat{min-height:0}
 }
 @media (orientation:landscape) and (max-height:500px){
   #war{max-width:none}
   #war.fight .mapbox{height:max(64px,20vh);height:max(64px,20dvh)}
+  #war.solo.fight .mapbox{height:max(64px,20vh);height:max(64px,20dvh)}
   #war.fight .panel{padding-top:6px}
   #war.fight .stat{min-height:0;margin-bottom:4px}
   #war.fight .opts .islet{display:none}
   #war.fight .opt{min-height:44px;padding:6px 10px}
   #war.fight .qtext{margin-bottom:6px}
   #war.fight .who{min-height:28px;margin-bottom:0}
+  /* a short landscape screen keeps its height for the question: «إنهاء اللعبة» floats on the open sea of the map corner */
+  #war .wtop{position:absolute;top:0;left:0;z-index:5;padding:4px;background:none;border:0}
 }
 .stat{display:flex;align-items:center;flex-wrap:wrap;gap:4px 7px;min-height:48px;margin:0 0 8px;color:var(--ink);font-size:.95rem;line-height:1.5}
 .stat b{color:var(--ghawr);font-family:var(--hd)}
@@ -313,6 +319,10 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 .turnbar.mine .tbrole{color:#E2F3FB}
 .tbexit{min-height:44px;min-width:56px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:#fff;
   color:var(--ghawr);font:inherit;font-size:.9rem;cursor:pointer}
+/* جهاز واحد: «إنهاء اللعبة» في الأعلى، ضغطة تسأل وثانية تُنهي */
+.wtop{flex:0 0 auto;display:flex;justify-content:flex-end;padding:4px 8px;background:#fff;border-bottom:1px solid var(--line)}
+.tbexit.arm{border-color:#9B3348;color:#9B3348;font-weight:600}
+.tbexit:focus-visible{outline:2px solid var(--ghawr);outline-offset:2px}
 .codebig{font-family:var(--hd);font-weight:700;font-size:3.1rem;letter-spacing:.14em;text-align:center;color:var(--ghawr);
   line-height:1.3;padding:4px 0 12px;-webkit-user-select:all;user-select:all}
 .codecard .row{gap:8px}
@@ -581,6 +591,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 </section>
 
 <section id="war" class="hidden">
+  <div class="wtop hidden" id="wTop"><button type="button" class="tbexit" id="endWar">إنهاء اللعبة</button></div>
   <div class="turnbar hidden" id="turnBar"><i class="dot" id="tbDot"></i><b id="tbWho"></b><span class="tbrole" id="tbRole"></span>
     <button type="button" class="tbexit" id="tbExit">خروج</button></div>
   <div id="mapBox" class="mapbox"></div>
@@ -1256,8 +1267,16 @@ function newWar(){
   buildSlots();G.left=seenByCat();
   WarEngine.newWar(G,Math.random,G.left);
   clearT();$("war").insertBefore($("mapBox"),$("war").querySelector(".panel"));
-  drawMap();beginDeploy();show("war");
+  drawMap();beginDeploy();$("wTop").classList.remove("hidden");$("war").classList.add("solo");armEnd(false);show("war");
 }
+/* «إنهاء اللعبة» بجهاز واحد: ضغطة تسأل، وثانية تُنهي، والنتيجة بالحال عند لحظة الإنهاء (الأكثر جزرًا ثمّ رايات) */
+function armEnd(on){var b=$("endWar");b.dataset.arm=on?"1":"";b.textContent=on?"متأكّدون؟ اضغطوا للإنهاء":"إنهاء اللعبة";b.classList.toggle("arm",!!on)}
+$("endWar").onclick=function(){
+  if(RM.on||G.phase==="over"||$("war").classList.contains("hidden"))return;
+  if($("endWar").dataset.arm!=="1"){armEnd(true);return}
+  armEnd(false);quitFight();stopFx();stop();T.lock=false;
+  $("war").classList.remove("fight");$("slab").classList.add("hidden");$("slab").classList.remove("flip");
+  victory(leader(),"أُنهيت اللعبة","quit")};
 /* الرسم: أشكال عضويّة مولَّدة بمنحنيات ناعمة تمرّ بنقاط حول المركز */
 function fx(v){return Math.round(v*10)/10}
 function smooth(pts){
@@ -2033,7 +2052,7 @@ function enterWar(s){
   RM.fightOn=false;RM.qn=-1;RM.res="";RM.fight=null;stopRoomFx();clearT();
   $("war").classList.remove("fight");$("slab").classList.add("hidden");
   $("war").insertBefore($("mapBox"),$("war").querySelector(".panel"));
-  $("war").insertBefore($("turnBar"),$("mapBox"));
+  $("war").insertBefore($("turnBar"),$("mapBox"));$("wTop").classList.add("hidden");$("war").classList.remove("solo");
   CAM.vb=[0,0,MW,MH];drawMap();
   RM.view="war";show("war");
   $("light").classList.add("hidden")}

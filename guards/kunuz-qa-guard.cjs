@@ -9,6 +9,13 @@
 //   Q3 the grey of every Kunuz page reads at 4.5:1 on white
 //   Q4 the gate bites: every "must" fragment removed, and every "must not" fragment put back, is caught by Q1; the board's settle
 //      check removed is caught by Q2
+// The four owner decisions of the QA (KUNUZ-QA-DECISIONS-ORDER-2026-10-19):
+//   Q5 Ghaws: the Nokhtha hides in every question its letter cannot help (the page's nokhBlind() over the whole bank against
+//      this guard's own rule, and a dive where it hides and where it hints); the Seeb is a sign, not a control, and still saves
+//      once. Harb on one device: «إنهاء اللعبة» asks on the first tap and ends on the second with the standing of that moment
+//   Q6 Hanna Laha as shipped in hanna-laha/: no aria string carries a question count; the disc reads available / spent
+//   Q7 the no-question-number scans of kunuztest, kunuzboard and kunuznorepeat read every attribute a screen reader speaks
+//   Q8 each of these fixes taken back is caught
 'use strict';
 const fs = require('fs'), vm = require('vm'), path = require('path');
 const { VER, El, Txt, parseInto } = require('./kunuz-sim/dom.cjs');
@@ -71,6 +78,15 @@ const FIXES = [
   { id: 'HARB-12', file: 'quest-harb.html', must: ['.sw{height:44px;min-width:44px;', '#verdict .chip{min-width:44px}'] },
   { id: 'HARB-14', file: 'quest-harb.html', must: ['function mt(ms){return RMQ&&RMQ.matches?0:ms}'] },
   { id: 'HARB-15', file: 'quest-harb.html', must: ['$("catTally").textContent=spentText().join(". ")'] },
+  // KUNUZ-QA-DECISIONS (2026-10-19): the four owner decisions of the QA
+  { id: 'GHAWS-07', file: 'quest-ghaws.html', must: ['.tool.blind{display:none}', 'if(k==="nokh")t.classList.toggle("blind",nokhBlind())', 'if(k==="nokh"){if(nokhBlind())return;'] },
+  { id: 'GHAWS-08', file: 'quest-ghaws.html', must: ['<div class="gear" id="seebGear">'], not: ['data-tool="seeb"'] },
+  { id: 'HARB-09', file: 'quest-harb.html', must: ['<div class="wtop hidden" id="wTop"><button type="button" class="tbexit" id="endWar">إنهاء اللعبة</button></div>',
+    'if($("endWar").dataset.arm!=="1"){armEnd(true);return}', 'victory(leader(),"أُنهيت اللعبة","quit")',
+    // the row's height comes out of the map, never out of the question; on a short landscape screen it floats on the map corner
+    '#war.solo.fight .mapbox{height:calc(max(200px,40vh) - 53px);', '#war.solo.fight .mapbox{height:calc(max(150px,30vh) - 53px);',
+    '#war .wtop{position:absolute;top:0;left:0;'] },
+  { id: 'HARB-09-i18n', file: 'quest-i18n.js', must: ['"End the game"', '"Sure? Tap to end"', '"The game was ended"'] },
   { id: 'HARB-16', file: 'quest-harb.html', must: ['" فاز بـ"+cntI(count(i))'], not: ['>الرئيسة<'] },
 ];
 function checkQ1(T) {
@@ -163,6 +179,168 @@ report('Q3', 'the grey of every Kunuz page reads at 4.5:1 on white', checkQ3(TEX
   n++; const T3 = Object.assign({}, TEXT); T3['quest.html'] = T3['quest.html'].replace(/--muted:#[0-9A-Fa-f]{6}/, '--muted:#5D8398');
   if (!checkQ3(T3).length) missed.push('Q3 old grey');
   report('Q4', 'the gate bites: each fix removed and each defect put back is caught', missed.map((m) => 'MUTANT SURVIVED: ' + m), 'mutants=' + n + ' missed=' + missed.length);
+}
+
+// ---------- Q5-Q8: the four owner decisions of the QA (KUNUZ-QA-DECISIONS-ORDER-2026-10-19), run as they ship ----------
+const MARK = /[\s\u0610-\u061A\u064B-\u065F\u0670\u0640\u06D6-\u06ED\u200B-\u200F]/;
+const stripAl = (s) => String(s).replace(/^ال/, '');
+// the guard's own rule, written apart from the page: the hint is the answer's first letter without «ال»; it cannot help when
+// that letter is a mark or a space, or when no wrong option still standing can be ruled out by it (with or without «ال»)
+function blindByRule(q, dimmed, noOpts) {
+  const h = stripAl(q[4][q[5]]).charAt(0);
+  if (!h || MARK.test(h)) return true;
+  if (noOpts) return false;
+  return !q[4].some((o, i) => i !== q[5] && !(dimmed && dimmed.has(i)) && String(o).charAt(0) !== h && stripAl(o).charAt(0) !== h);
+}
+const BLIND_N = DATA0.qs.filter((q) => blindByRule(q)).length;
+const pageErrors = (W, tag) => W.fails.concat(W.errors.map((e) => tag + ' page error: ' + String(e && e.message || e).slice(0, 80)));
+function checkQ5(T) {
+  const f = []; const info = {};
+  // (a) Ghaws: the Nokhtha hides in a question it cannot help and works in the others; the Seeb is a sign, not a button
+  {
+    const src = srcOf(T['quest-ghaws.html']);
+    const W = makeWorld(src, src.DATA, ['home', 'how', 'cfg', 'dive', 'end', 'board'], { reduce: true, storage: Store() });
+    const C = W.ctx, $ = W.$;
+    // every question of the bank, through the page's own function, against the rule above
+    let pageBlind = 0, differ = 0;
+    if (typeof C.nokhBlind !== 'function') f.push('GHAWS-07 the page has no nokhBlind()');
+    else for (const q of C.DATA.qs) { C.S.cur = q; C.S.noOpts = false; const b = !!C.nokhBlind(); if (b) pageBlind++; if (b !== blindByRule(q)) differ++; }
+    C.S.cur = null;
+    if (pageBlind !== BLIND_N || differ) f.push('GHAWS-07 the page hides the Nokhtha in ' + pageBlind + ' questions, the rule in ' + BLIND_N + ' (' + differ + ' differ)');
+    info.blind = pageBlind;
+    W.tap(W.doc.querySelector('[data-go="cfg1"]'), 'solo'); W.tap(W.doc.querySelector('[data-q="rel"]'), 'rel');
+    C.S.cap = 80; C.S.breath = 0; C.S.noOpts = false; W.tap($('goDive'), 'goDive');
+    const nokh = W.doc.querySelector('.tool[data-tool="nokh"]');
+    let seenBlind = 0, seenUseful = 0, hinted = 0;
+    for (let g = 0; g < 80 && W.screen() === 'dive'; g++) {
+      const sh = W.doc.querySelectorAll('#shells .shell').filter((e) => W.shown(e) && !e.disabled); if (!sh.length) break;
+      W.tap(sh[0], 'shell'); const q = C.S.cur; if (!q) { f.push('GHAWS-07 a shell opened no question'); break; }
+      const blind = blindByRule(q);
+      if (!nokh || nokh.classList.contains('blind') !== blind) { f.push('GHAWS-07 nokh ' + (blind ? 'shown in a question it cannot help' : 'hidden in a question it helps') + ': ' + q[4].join(' | ')); break; }
+      if (blind) { seenBlind++; const t0 = C.S.tools.nokh; if (nokh.onclick) nokh.onclick(); if (C.S.tools.nokh !== t0) f.push('GHAWS-07 a hidden Nokhtha still spends itself'); }
+      else {
+        seenUseful++;
+        if (C.S.tools.nokh) {
+          nokh.onclick(); hinted++; const w = $('why').textContent;
+          if (C.S.tools.nokh || w.indexOf('«' + stripAl(q[4][q[5]]).charAt(0) + '»') < 0) f.push('GHAWS-07 a useful Nokhtha did not give its letter: ' + w.slice(0, 40));
+        }
+      }
+      W.tap(W.doc.querySelectorAll('#opts button.opt').find((b) => +b.dataset.k === q[5]), 'right'); W.advance(2600);
+    }
+    if (!seenBlind || !seenUseful || !hinted) f.push('GHAWS-07 the dive met blind=' + seenBlind + ' useful=' + seenUseful + ' hinted=' + hinted + ' (needs each)');
+    info.dive = seenBlind + '/' + seenUseful;
+    // the Seeb: no button, no role, no tab stop, not one of the tools; it still saves once and shows itself spent
+    const gear = $('seebGear');
+    if (!gear) f.push('GHAWS-08 no #seebGear');
+    else {
+      if (gear.localName === 'button' || gear.getAttribute('role') || gear.hasAttribute('tabindex') || gear.classList.contains('tool') || gear.onclick)
+        f.push('GHAWS-08 the Seeb is still a control: <' + gear.localName + '> role=' + gear.getAttribute('role') + ' tabindex=' + gear.getAttribute('tabindex'));
+      if (W.doc.querySelector('[data-tool="seeb"]')) f.push('GHAWS-08 a [data-tool=seeb] control is back');
+      const css = T['quest-ghaws.html'];
+      if (/\.gear[^{]*:(hover|focus|active)/.test(css)) f.push('GHAWS-08 the Seeb has a hover/focus/pressed state');
+      if (!/\.gear\{[^}]*cursor:default;/.test(css) || /\.gear\{[^}]*(border|background|min-height)/.test(css)) f.push('GHAWS-08 the Seeb looks like a button again (a pointer, a frame, a fill or a touch size)');
+      // a wrong answer: the Seeb saves the diver once, and the sign shows it spent
+      const W2 = makeWorld(src, src.DATA, ['home', 'cfg', 'dive', 'end'], { reduce: true, storage: Store() });
+      W2.tap(W2.doc.querySelector('[data-go="cfg1"]'), 'solo'); W2.tap(W2.doc.querySelector('[data-q="rel"]'), 'rel');
+      W2.ctx.S.cap = 20; W2.ctx.S.breath = 0; W2.ctx.S.noOpts = false; W2.tap(W2.$('goDive'), 'goDive');
+      W2.tap(W2.doc.querySelectorAll('#shells .shell').filter((e) => W2.shown(e) && !e.disabled)[0], 'shell');
+      const q2 = W2.ctx.S.cur;
+      if (q2) { W2.tap(W2.doc.querySelectorAll('#opts button.opt').find((b) => +b.dataset.k !== q2[5]), 'wrong'); W2.advance(2600); }
+      if (!q2 || W2.screen() !== 'dive' || W2.ctx.S.tools.seeb || !W2.$('seebGear').classList.contains('used')) f.push('GHAWS-08 the Seeb no longer saves once and shows itself spent');
+      f.push(...pageErrors(W2, 'ghaws'));
+    }
+    f.push(...pageErrors(W, 'ghaws'));
+  }
+  // (b) Harb, one device: «إنهاء اللعبة» at the top, the first tap asks, the second ends with the standing of that moment
+  {
+    const src = srcOf(T['quest-harb.html']);
+    const W = makeWorld(src, src.DATA, ['home', 'how', 'cfg', 'room', 'join', 'lobby', 'war', 'win', 'verdict'], { reduce: true, storage: Store() });
+    const C = W.ctx, $ = W.$;
+    W.tap(W.doc.querySelector('#home [data-go="cfg"]'), 'cfg'); W.tap(W.doc.querySelector('[data-q="rnd"]'), 'rnd'); W.tap($('startWar'), 'start');
+    const b = $('endWar');
+    if (W.screen() !== 'war' || !b || !W.shown(b)) f.push('HARB-09 no «إنهاء اللعبة» on the one-device war screen');
+    else {
+      if (b.textContent !== 'إنهاء اللعبة') f.push('HARB-09 the button says ' + b.textContent);
+      W.tap(b, 'end 1');
+      if (W.screen() !== 'war' || b.textContent !== 'متأكّدون؟ اضغطوا للإنهاء') f.push('HARB-09 the first tap did not ask: ' + W.screen() + ' ' + b.textContent);
+      W.advance(400); if (W.shown(b)) W.tap(b, 'end 2');
+      const lead = C.leader();
+      if (W.screen() !== 'win' || $('winWhy').textContent !== 'أُنهيت اللعبة') f.push('HARB-09 the second tap did not end the war: ' + W.screen() + ' ' + $('winWhy').textContent);
+      else {
+        const top = C.G.players.map((p, k) => k).filter((k) => C.count(k) === C.count(lead) && C.banners(k) === C.banners(lead));
+        const want = top.length > 1 ? 'تعادل بين ' + top.map((k) => C.G.players[k].n).join(' و') : C.G.players[lead].n;
+        if ($('winName').textContent !== want) f.push('HARB-09 the result is not the standing of the moment: ' + $('winName').textContent + ' / ' + want);
+      }
+      if (W.screen() === 'win') { W.tap($('rematch'), 'rematch'); W.tap($('startWar'), 'start again'); }
+      if (W.screen() !== 'war' || $('endWar').textContent !== 'إنهاء اللعبة' || !W.shown($('endWar'))) f.push('HARB-09 a new war does not start clean');
+      // a room hides it: the room has its own way out (خروج) and the server rules its end
+      if (T['quest-harb.html'].indexOf('$("war").insertBefore($("turnBar"),$("mapBox"));$("wTop").classList.add("hidden");') < 0) f.push('HARB-09 a room war no longer hides the one-device button');
+    }
+    f.push(...pageErrors(W, 'harb'));
+  }
+  return { f, info };
+}
+const q5 = checkQ5(TEXT);
+report('Q5', 'Ghaws: the Nokhtha hides where it cannot help, the Seeb is a sign; Harb ends in two taps on one device', q5.f,
+  'nokhBlind=' + q5.info.blind + '/' + DATA0.qs.length + ' diveBlindUseful=' + q5.info.dive);
+
+// Q6: Hanna Laha as shipped in hanna-laha/: no aria string of its copy carries a count of the questions (only the seconds of
+// the timer and a team's own option reveals), and the category disc reads available / spent
+const HL_DIR = path.join(REPO, 'hanna-laha', 'assets');
+const HL_ALLOWED = new Set(['time_left_aria', 'show_options_aria']);
+function checkQ6(js) {
+  const f = []; let n = 0;
+  const re = /([A-Za-z_]*aria[A-Za-z_]*):`([^`]*)`/g; let m;
+  while ((m = re.exec(js))) { n++; if (!HL_ALLOWED.has(m[1]) && /\{(n|total|count|left|share)\}|[0-9٠-٩]/.test(m[2])) f.push('HANNA-ARIA ' + m[1] + ' reads a count: ' + m[2]); }
+  if (js.indexOf('cat_open_aria:`{name}، متاح`') < 0 || js.indexOf('cat_spent_aria:`{name}، مستنفد`') < 0) f.push('HANNA-ARIA the disc no longer reads available / spent');
+  if (js.indexOf('باقي له {n} من {total}') > -1) f.push('HANNA-ARIA "n of total left" is back');
+  if (n < 5) f.push('HANNA-ARIA only ' + n + ' aria strings found: the bundle changed shape');
+  return { f, n };
+}
+const HL_JS = fs.readdirSync(HL_DIR).filter((x) => x.endsWith('.js')).map((x) => fs.readFileSync(path.join(HL_DIR, x), 'utf8')).join('\n');
+const q6 = checkQ6(HL_JS);
+report('Q6', 'Hanna Laha: a screen reader hears no question count', q6.f, 'ariaStrings=' + q6.n);
+
+// Q7: the no-question-number scans read what a screen reader reads: the shared reader takes every such attribute (and the
+// property form), and the three scans (kunuztest T10, kunuzboard B7, kunuznorepeat D) read through it
+const { READABLE_ATTRS, readable } = require('./kunuz-sim/readable.cjs');
+function checkQ7(G) {
+  const f = [];
+  for (const a of ['aria-label', 'aria-description', 'aria-valuetext', 'aria-roledescription', 'title', 'alt', 'placeholder']) {
+    const el = new El('span', null); el.setAttribute(a, '١٢ سؤال');
+    if (READABLE_ATTRS.indexOf(a) < 0 || readable(el, '').indexOf('١٢ سؤال') < 0) f.push('the reader skips ' + a);
+  }
+  const p = new El('img', null); p.title = '١٢ سؤال'; if (readable(p, '').indexOf('١٢ سؤال') < 0) f.push('the reader skips a title set as a property');
+  for (const [file, line] of [['kunuz-test-guard.cjs', 'for (const s of readable(el, own)) {'], ['kunuz-board-guard.cjs', 'for (const s of readable(el, own)) {'], ['kunuz-norepeat-guard.cjs', 'const strs = readable(el, own);']]) {
+    const t = G[file];
+    if (t.indexOf("const { readable } = require('./kunuz-sim/readable.cjs');") < 0 || t.indexOf(line) < 0) f.push(file + ' does not scan through the shared reader');
+  }
+  return f;
+}
+const GUARDS = {}; ['kunuz-test-guard.cjs', 'kunuz-board-guard.cjs', 'kunuz-norepeat-guard.cjs'].forEach((x) => { GUARDS[x] = fs.readFileSync(path.join(__dirname, x), 'utf8'); });
+report('Q7', 'the no-question-number scans read every attribute a screen reader speaks', checkQ7(GUARDS), 'scans=3');
+
+// Q8: the four decisions bite: each fix taken back is caught
+{
+  const missed = []; let n = 0;
+  const mutQ5 = (name, file, from, to) => {
+    n++; const T = Object.assign({}, TEXT);
+    if (T[file].split(from).length !== 2) { missed.push(name + ' (seam moved)'); return; }
+    T[file] = T[file].replace(from, () => to);
+    let r; try { r = checkQ5(T).f; } catch (e) { r = ['thrown']; }
+    if (!r.length) missed.push(name);
+  };
+  mutQ5('the Nokhtha never hides', 'quest-ghaws.html', 'if(k==="nokh")t.classList.toggle("blind",nokhBlind())', 'if(k==="nokh")t.classList.toggle("blind",false)');
+  mutQ5('the Nokhtha blind to a mark', 'quest-ghaws.html', 'if(!h||/[', 'if(!h||false&&/[');
+  mutQ5('the Seeb a button again', 'quest-ghaws.html', '<div class="gear" id="seebGear">', '<div class="gear" id="seebGear" role="button" tabindex="0">');
+  mutQ5('the Seeb with a pressed state', 'quest-ghaws.html', '.gear.used svg{', '.gear:active{opacity:.6}\n.gear.used svg{');
+  mutQ5('the Seeb framed as a tile', 'quest-ghaws.html', '.gear{width:52px;', '.gear{width:52px;border:1px solid var(--line);');
+  mutQ5('the war ends in one tap', 'quest-harb.html', 'if($("endWar").dataset.arm!=="1"){armEnd(true);return}', '');
+  mutQ5('the war ended for the first player', 'quest-harb.html', 'victory(leader(),"أُنهيت اللعبة","quit")', 'victory(0,"أُنهيت اللعبة","victory")');
+  mutQ5('no button on one device', 'quest-harb.html', 'drawMap();beginDeploy();$("wTop").classList.remove("hidden");', 'drawMap();beginDeploy();');
+  n++; if (!checkQ6(HL_JS.replace('cat_open_aria:`{name}، متاح`', 'cat_open_aria:`{name}، باقي له {n} من {total}`')).f.length) missed.push('Hanna Laha counts again');
+  n++; { const G = Object.assign({}, GUARDS); G['kunuz-norepeat-guard.cjs'] = G['kunuz-norepeat-guard.cjs'].replace('const strs = readable(el, own);', "const strs = [own, el.attrs['aria-label']];"); if (!checkQ7(G).length) missed.push('a scan back to the visible text'); }
+  report('Q8', 'the four decisions bite: each fix taken back is caught', missed.map((m) => 'MUTANT SURVIVED: ' + m), 'mutants=' + n + ' missed=' + missed.length);
 }
 
 const bad = results.filter((r) => !r.ok);
