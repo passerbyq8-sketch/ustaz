@@ -23,7 +23,7 @@ const SALAH_ADULT_TEXT_HASH = '7687019965bf142259cdc7660af8c32a211cdb1455f5f479f
 // Re-cut again on 2026-09-09 (item 29/د٤): the replayed /api/v1/scholars and /api/v1/health
 // payloads gained ferkous and took kuwait_eftaa to 252, so the offline replay still matches
 // lib/fatwa-contract.js after the live corpus moved to 19 rows / 74,769 records.
-const X021_FIXTURE_HASH = 'eb01d6edb3c95b0a87fb885e99f3b21a6d7dd83400b1490a2874f48edd84c0d5';
+const X021_FIXTURE_HASH = '1426c91cb7557204f1784a00bda94fa7e25be12bf63106bc0d76aa3fc3a02f4d';
 const D2_CASE_QUESTIONS = Object.freeze([
   'كيف يصلي المريض الذي لا يستطيع القيام؟',
   'ما كيفية صلاة الخوف عند اشتداد القتال؟',
@@ -425,8 +425,8 @@ async function runHybridGuard() {
       && x021Production.scholars === x021.expected.scholars
       && x021Production.total === x021.expected.total
       && x021Production.ibnBaz === x021.expected.ibnBaz
-      && x021Production.deploymentId === 'dpl_FTt9KFh1N7zGVobVDJFnU9ARQ4zE'
-      && /41d45ea4/u.test(x021.externalEvidence.productionReason || ''));
+      && x021Production.deploymentId === 'dpl_FVdV72YyPWaoGPinKCCuYo9rcHiY'
+      && /95652a69/u.test(x021.externalEvidence.productionReason || ''));
   eq('X-021 production shorthand matches the 2026-09-10 production reading',
     `${x021Production.scholars}/${x021Production.total}/${x021Production.ibnBaz} · ${x021Production.fatwaStatus}`,
     '30/126269/28504 · OK');
