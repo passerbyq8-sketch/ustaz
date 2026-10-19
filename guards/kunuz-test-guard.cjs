@@ -25,10 +25,12 @@
 //   T11 nothing leaves the device: no fetch, no XMLHttpRequest, no beacon, no socket, no /api/ path, one script file (the bank);
 //      the page names no Israeli entity; quest.html carries the card, without a digit in its text
 //   T12 the gate bites: mutants of the page (turn that does not move, credit taken from every team, a seen record one byte
-//      off, a switch that does not mark the left question, a timer that scores right) are each caught
+//      off, a switch that does not mark the left question, a timer that scores right, a question count that only a screen
+//      reader would hear) are each caught
 'use strict';
 const fs = require('fs'), vm = require('vm'), path = require('path');
 const { VER, El, Txt, parseInto } = require('./kunuz-sim/dom.cjs');
+const { readable } = require('./kunuz-sim/readable.cjs');   // text and every attribute a screen reader speaks (KUNUZ-QA-DECISIONS, 2026-10-19)
 const argv = process.argv.slice(2);
 const arg = (k, d) => { const i = argv.indexOf('--' + k); return i > -1 ? argv[i + 1] : d; };
 const REPO = path.join(__dirname, '..');
@@ -459,7 +461,7 @@ function checkT10(src) {
       if (id && CONTENT.has(id)) return;
       const st = inState || (id && STATE.has(id));
       const own = el.childNodes.filter((n) => n.nodeType === 3).map((n) => n.data).join('');
-      for (const s of [own, el.attrs['aria-label'], el.attrs.placeholder].filter((x) => x && x.trim())) {
+      for (const s of readable(el, own)) {
         strings++;
         if (!DIGIT.test(s)) continue;
         if (!st && QWORD.test(s)) f.push(label + ' #' + (id || el.localName) + ' word+digit: ' + s.trim().slice(0, 60));
@@ -543,9 +545,11 @@ run('T11', 'nothing leaves the device; Arabic; the way back; the entity rule; th
     mut('timer that scores right', '  lock(false,true);', '  lock(true,true);', checkT7, true),
     mut('a fetch on the page', 'openCfg();\n</script>', 'openCfg();try{fetch("/api/x")}catch(e){}\n</script>', checkT11, false),
     mut('a question count on the setup', '<p class="lbl">الفئات</p><p class="sub">', '<p class="lbl">الفئات</p><p class="sub">' + N + ' سؤال · ', checkT10, true),
+    // KUNUZ-QA-DECISIONS (2026-10-19): a count a screen reader alone would hear is a count on the screen
+    mut('a question count read only by a screen reader', '<p class="lbl">الفئات</p><p class="sub">', '<p class="lbl">الفئات</p><p class="sub" aria-description="' + N + ' سؤال">', checkT10, true),
     mut('a confirm that scores the first tap', 'b.onclick=function(){if(P.locked)return;P.picked=j;', 'b.onclick=function(){if(P.locked)return;P.picked=j;lock(j===cur()[5]);', checkT4, true),
   ].filter(Boolean);
-  report('T12', 'the gate bites: eight mutants of the page are each caught', missed.map((m) => 'MUTANT SURVIVED: ' + m), 'mutants=8 missed=' + missed.length);
+  report('T12', 'the gate bites: nine mutants of the page are each caught', missed.map((m) => 'MUTANT SURVIVED: ' + m), 'mutants=9 missed=' + missed.length);
 }
 
 const bad = results.filter((r) => !r.ok);

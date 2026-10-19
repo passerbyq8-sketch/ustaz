@@ -23,6 +23,7 @@
 'use strict';
 const fs = require('fs'), vm = require('vm'), path = require('path');
 const { VER, El, Txt, parseInto } = require('./kunuz-sim/dom.cjs');
+const { readable } = require('./kunuz-sim/readable.cjs');   // text and every attribute a screen reader speaks (KUNUZ-QA-DECISIONS, 2026-10-19)
 const argv = process.argv.slice(2);
 const arg = (k, d) => { const i = argv.indexOf('--' + k); return i > -1 ? argv[i + 1] : d; };
 const REPO = path.join(__dirname, '..');
@@ -418,7 +419,7 @@ function checkB7(src) {
       if (id && CONTENT.has(id)) return;
       const st = inState || (id && STATE.has(id));
       const own = el.childNodes.filter((n) => n.nodeType === 3).map((n) => n.data).join('');
-      for (const s of [own, el.attrs['aria-label'], el.attrs.placeholder].filter((x) => x && x.trim())) {
+      for (const s of readable(el, own)) {
         strings++;
         if (!DIGIT.test(s)) continue;
         if (!st && QWORD.test(s)) f.push(label + ' #' + (id || el.localName) + ' word+digit: ' + s.trim().slice(0, 60));
@@ -550,9 +551,11 @@ run('B10', 'layout rules: 3/2/1 columns, left-to-right card, 44px', checkB10, PA
     mut('a slot count on the board', 'tn.textContent="دور "+teamLabel(t.n)+": اختاروا النقاط";', 'tn.textContent="دور "+teamLabel(t.n)+": اختاروا النقاط · باقي "+ar(G.slots.filter(function(x){return !x.used}).length)+" خانة";', checkB7, true),
     mut('the tie not named', '(r.tie?"تعادل بين "+names.join(" و"):', '(r.tie?"تعادل":', checkB5, true),
     mut('quit in one tap', 'if($("quit").dataset.arm!=="1"){arm(true);return}', '', checkB5, true),
+    // KUNUZ-QA-DECISIONS (2026-10-19): a count a screen reader alone would hear is a count on the screen
+    mut('a question count read only by a screen reader', '<p class="lbl">الفئات</p><p class="sub">ست فئات', '<p class="lbl">الفئات</p><p class="sub" title="' + N + ' سؤال">ست فئات', checkB7, true),
     mut('a living icon', '<circle cx="12" cy="12" r="9"/>', '<image href="x.png"/>', checkB9, true),
   ].filter(Boolean);
-  report('B11', 'the gate bites: thirteen mutants of the page are each caught', missed.map((m) => 'MUTANT SURVIVED: ' + m), 'mutants=13 missed=' + missed.length);
+  report('B11', 'the gate bites: fourteen mutants of the page are each caught', missed.map((m) => 'MUTANT SURVIVED: ' + m), 'mutants=14 missed=' + missed.length);
 }
 
 const bad = results.filter((r) => !r.ok);

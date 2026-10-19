@@ -174,6 +174,15 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 .tool svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
 .tool:disabled{opacity:.4;cursor:default}
 .tool.used{opacity:.25;filter:grayscale(1)}
+/* النوخذة يُخفى في سؤال لا يفرّق فيه حرفه بين الخيارات: لا فراغ يبقى مكانه */
+.tool.blind{display:none}
+/* السيب يعمل وحده عند الخطأ: مؤشّر لا زرّ — بلا إطار ولا مؤشّر يد ولا حالة ضغط */
+.gear{width:52px;padding:2px 0;color:var(--ghawr);font-size:10.5px;line-height:1.2;display:flex;flex-direction:column;
+  align-items:center;gap:1px;cursor:default;-webkit-user-select:none;user-select:none}
+.gear svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+.gear span{background:rgba(255,255,255,.88);border-radius:4px;padding:0 4px}
+.gear.used span{text-decoration:line-through}
+.gear.used svg{opacity:.45}
 .floor{position:absolute;left:0;right:0;bottom:0;height:72px;z-index:6}
 .floor>svg{position:absolute;inset:0;width:100%;height:100%}
 .shells{position:absolute;left:6px;right:6px;bottom:4px;display:flex;justify-content:center;gap:6px}
@@ -408,9 +417,10 @@ textarea:focus{outline:none;border-color:var(--azraq)}
         <div class="dots" id="netDots"></div><b id="netN">٠</b></div>
     </div></div>
     <div class="tools">
+      <!-- السيب أوّلًا: هو علامة لا زرّ، والنوخذة آخرًا فإخفاؤه لا يحرّك شيئًا -->
+      <div class="gear" id="seebGear"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4"/><circle cx="12" cy="14" r="7"/><circle cx="12" cy="14" r="4"/><circle cx="12" cy="14" r="1"/></svg><span>السيب</span></div>
       <button class="tool" data-tool="light" aria-label="النور"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M12 3v2"/><rect x="7" y="5" width="10" height="13" rx="3"/><path d="M12 9v5M9 21h6"/></svg><span>النور</span></button>
       <button class="tool" data-tool="nokh" aria-label="النوخذة"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.5"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3"/></svg><span>النوخذة</span></button>
-      <button class="tool" data-tool="seeb" aria-label="السيب"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4"/><circle cx="12" cy="14" r="7"/><circle cx="12" cy="14" r="4"/><circle cx="12" cy="14" r="1"/></svg><span>السيب</span></button>
     </div>
     <div class="floor"><svg viewBox="0 0 360 72" preserveAspectRatio="none" aria-hidden="true">
       <path d="M0 34Q90 18 180 28T360 24V72H0Z" fill="#F4FBFE" stroke="#BCDFEF" stroke-width="1.5"/></svg>
@@ -832,8 +842,20 @@ function drawNet(){
 }
 function toolState(){
   document.querySelectorAll(".tool").forEach(function(t){var k=t.dataset.tool;
-    t.disabled=!S.tools[k]||(k!=="seeb"&&(!S.cur||S.lock))||(k==="light"&&S.noOpts);
-    t.classList.toggle("used",!S.tools[k])});
+    t.disabled=!S.tools[k]||!S.cur||S.lock||(k==="light"&&S.noOpts);
+    t.classList.toggle("used",!S.tools[k]);
+    if(k==="nokh")t.classList.toggle("blind",nokhBlind())});
+  $("seebGear").classList.toggle("used",!S.tools.seeb);
+}
+/* حرف النوخذة: أوّل حرف من الجواب بلا «ال» */
+function nokhChar(q){return String(q[4][q[5]]).replace(/^ال/,"").charAt(0)}
+/* النوخذة أعمى في سؤال حرفُه حركة أو فراغ، أو لا يُستبعد به خيار خاطئ باقٍ (يبدأ بغيره، بـ«ال» أو بدونها) */
+function nokhBlind(){
+  var q=S.cur;if(!q)return false;
+  var h=nokhChar(q);if(!h||/[\s\u0610-\u061A\u064B-\u065F\u0670\u0640\u06D6-\u06ED\u200B-\u200F]/.test(h))return true;
+  if(S.noOpts)return false;
+  var dim={};document.querySelectorAll("#opts .opt.dim").forEach(function(b){dim[b.dataset.k]=1});
+  return !q[4].some(function(o,i){o=String(o);return i!==q[5]&&!dim[i]&&o.charAt(0)!==h&&o.replace(/^ال/,"").charAt(0)!==h});
 }
 function ring(p){p=Math.max(0,Math.min(1,p));$("bf").style.strokeDashoffset=((1-p)*100).toFixed(1)}
 function startDive(){
@@ -1029,10 +1051,9 @@ document.querySelectorAll(".tool").forEach(function(t){
         if(b.dataset.k!==undefined&&+b.dataset.k!==S.cur[5]&&!b.disabled)wr.push(b)});
       /* النور يُطفئ خيارين من أربعة، وخيارًا واحدًا من ثلاثة: لا يُبقي الصحيح وحده */
       wr.sort(function(){return Math.random()-.5}).slice(0,Math.min(2,S.cur[4].length-2)).forEach(function(b){
-        b.disabled=true;b.classList.add("dim")})}
-    if(k==="nokh"){S.tools.nokh=false;t.disabled=true;t.classList.add("used");
-      var a=String(S.cur[4][S.cur[5]]).replace(/^ال/,"");
-      $("why").innerHTML="النوخذة يقول: جوابك يبدأ بحرف «"+a.charAt(0)+"».";
+        b.disabled=true;b.classList.add("dim")});toolState()}
+    if(k==="nokh"){if(nokhBlind())return;S.tools.nokh=false;t.disabled=true;t.classList.add("used");
+      $("why").innerHTML="النوخذة يقول: جوابك يبدأ بحرف «"+nokhChar(S.cur)+"».";
       $("why").className="why on"}
   }});
 function startB(){
