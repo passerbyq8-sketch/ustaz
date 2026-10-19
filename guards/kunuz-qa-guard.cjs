@@ -10,7 +10,8 @@
 //   Q4 the gate bites: every "must" fragment removed, and every "must not" fragment put back, is caught by Q1; the board's settle
 //      check removed is caught by Q2
 // The four owner decisions of the QA (KUNUZ-QA-DECISIONS-ORDER-2026-10-19):
-//   Q5 Ghaws: the Nokhtha hides in every question its letter cannot help (the page's nokhBlind() over the whole bank against
+//   Q5 Ghaws: the Nokhtha's letter is the answer's first real letter, never a mark (KUNUZ-LEVELS-POETRY-ORDER-2026-10-19, A),
+//      and it hides in every question that letter cannot help (the page's nokhBlind() over the whole bank against
 //      this guard's own rule, and a dive where it hides and where it hints); the Seeb is a sign, not a control, and still saves
 //      once. Harb on one device: «إنهاء اللعبة» asks on the first tap and ends on the second with the standing of that moment
 //   Q6 Hanna Laha as shipped in hanna-laha/: no aria string carries a question count; the disc reads available / spent
@@ -182,15 +183,17 @@ report('Q3', 'the grey of every Kunuz page reads at 4.5:1 on white', checkQ3(TEX
 }
 
 // ---------- Q5-Q8: the four owner decisions of the QA (KUNUZ-QA-DECISIONS-ORDER-2026-10-19), run as they ship ----------
-const MARK = /[\s\u0610-\u061A\u064B-\u065F\u0670\u0640\u06D6-\u06ED\u200B-\u200F]/;
 const stripAl = (s) => String(s).replace(/^ال/, '');
-// the guard's own rule, written apart from the page: the hint is the answer's first letter without «ال»; it cannot help when
-// that letter is a mark or a space, or when no wrong option still standing can be ruled out by it (with or without «ال»)
+// the guard's own rule, written apart from the page (by Unicode class, the page by a list): only letters and digits count,
+// never a mark, the tatweel, a direction mark, a space or a sign, and «ٱ» reads «ا». The hint is the first of them after «ال»;
+// it cannot help when there is none, or when no wrong option still standing can be ruled out by it (with or without «ال»)
+const bare = (s) => Array.from(String(s)).filter((c) => /[\p{L}\p{N}]/u.test(c) && c !== '\u0640').join('').replace(/\u0671/g, '\u0627');
+const hintOf = (q) => stripAl(bare(q[4][q[5]])).charAt(0);
 function blindByRule(q, dimmed, noOpts) {
-  const h = stripAl(q[4][q[5]]).charAt(0);
-  if (!h || MARK.test(h)) return true;
+  const h = hintOf(q);
+  if (!h) return true;
   if (noOpts) return false;
-  return !q[4].some((o, i) => i !== q[5] && !(dimmed && dimmed.has(i)) && String(o).charAt(0) !== h && stripAl(o).charAt(0) !== h);
+  return !q[4].some((o, i) => i !== q[5] && !(dimmed && dimmed.has(i)) && bare(o).charAt(0) !== h && stripAl(bare(o)).charAt(0) !== h);
 }
 const BLIND_N = DATA0.qs.filter((q) => blindByRule(q)).length;
 const pageErrors = (W, tag) => W.fails.concat(W.errors.map((e) => tag + ' page error: ' + String(e && e.message || e).slice(0, 80)));
@@ -205,6 +208,18 @@ function checkQ5(T) {
     let pageBlind = 0, differ = 0;
     if (typeof C.nokhBlind !== 'function') f.push('GHAWS-07 the page has no nokhBlind()');
     else for (const q of C.DATA.qs) { C.S.cur = q; C.S.noOpts = false; const b = !!C.nokhBlind(); if (b) pageBlind++; if (b !== blindByRule(q)) differ++; }
+    C.S.cur = null;
+    // the hint itself, over the whole bank: never a mark, a space or a sign, and the very letter of the rule
+    if (typeof C.nokhChar !== 'function') f.push('GHAWS-07 the page has no nokhChar()');
+    else {
+      let marks = 0, other = 0, ex = '';
+      for (const q of C.DATA.qs) { const h = String(C.nokhChar(q)); if (h && !/^[\p{L}\p{N}]$/u.test(h) || h === '\u0640') { marks++; ex = ex || q[8] + ' ' + h; } else if (h !== hintOf(q)) { other++; ex = ex || q[8] + ' ' + h + '/' + hintOf(q); } }
+      if (marks || other) f.push('GHAWS-07 the hint is a mark in ' + marks + ' answers and not the first letter in ' + other + ' (' + ex + ')');
+      info.marks = marks;
+    }
+    // an answer with no letter at all (only marks and a sign): nothing to hint, so the Nokhtha hides
+    C.S.cur = [0, 0, 1, '?', ['\u0640\u064C\u061F', 'ب', 'ت', 'ث'], 0, '', '', 'letterless']; C.S.noOpts = false;
+    if (!C.nokhBlind() || !blindByRule(C.S.cur)) f.push('GHAWS-07 a letterless answer shows the Nokhtha');
     C.S.cur = null;
     if (pageBlind !== BLIND_N || differ) f.push('GHAWS-07 the page hides the Nokhtha in ' + pageBlind + ' questions, the rule in ' + BLIND_N + ' (' + differ + ' differ)');
     info.blind = pageBlind;
@@ -222,7 +237,7 @@ function checkQ5(T) {
         seenUseful++;
         if (C.S.tools.nokh) {
           nokh.onclick(); hinted++; const w = $('why').textContent;
-          if (C.S.tools.nokh || w.indexOf('«' + stripAl(q[4][q[5]]).charAt(0) + '»') < 0) f.push('GHAWS-07 a useful Nokhtha did not give its letter: ' + w.slice(0, 40));
+          if (C.S.tools.nokh || w.indexOf('«' + hintOf(q) + '»') < 0) f.push('GHAWS-07 a useful Nokhtha did not give its letter: ' + w.slice(0, 40));
         }
       }
       W.tap(W.doc.querySelectorAll('#opts button.opt').find((b) => +b.dataset.k === q[5]), 'right'); W.advance(2600);
@@ -282,7 +297,7 @@ function checkQ5(T) {
 }
 const q5 = checkQ5(TEXT);
 report('Q5', 'Ghaws: the Nokhtha hides where it cannot help, the Seeb is a sign; Harb ends in two taps on one device', q5.f,
-  'nokhBlind=' + q5.info.blind + '/' + DATA0.qs.length + ' diveBlindUseful=' + q5.info.dive);
+  'nokhBlind=' + q5.info.blind + '/' + DATA0.qs.length + ' hintMarks=' + q5.info.marks + ' diveBlindUseful=' + q5.info.dive);
 
 // Q6: Hanna Laha as shipped in hanna-laha/: no aria string of its copy carries a count of the questions (only the seconds of
 // the timer and a team's own option reveals), and the category disc reads available / spent
@@ -331,7 +346,10 @@ report('Q7', 'the no-question-number scans read every attribute a screen reader 
     if (!r.length) missed.push(name);
   };
   mutQ5('the Nokhtha never hides', 'quest-ghaws.html', 'if(k==="nokh")t.classList.toggle("blind",nokhBlind())', 'if(k==="nokh")t.classList.toggle("blind",false)');
-  mutQ5('the Nokhtha blind to a mark', 'quest-ghaws.html', 'if(!h||/[', 'if(!h||false&&/[');
+  mutQ5('the hint takes a mark again', 'quest-ghaws.html', 'function nokhChar(q){return nokhBare(q[4][q[5]])', 'function nokhChar(q){return String(q[4][q[5]])');
+  mutQ5('the hint keeps the Quranic alef', 'quest-ghaws.html', '.replace(/\\u0671/g,"ا")}', '}');
+  mutQ5('the options read with their marks', 'quest-ghaws.html', 'o=nokhBare(o);return i!==q[5]', 'o=String(o);return i!==q[5]');
+  mutQ5('a letterless answer shows the Nokhtha', 'quest-ghaws.html', 'var h=nokhChar(q);if(!h)return true;', 'var h=nokhChar(q);');
   mutQ5('the Seeb a button again', 'quest-ghaws.html', '<div class="gear" id="seebGear">', '<div class="gear" id="seebGear" role="button" tabindex="0">');
   mutQ5('the Seeb with a pressed state', 'quest-ghaws.html', '.gear.used svg{', '.gear:active{opacity:.6}\n.gear.used svg{');
   mutQ5('the Seeb framed as a tile', 'quest-ghaws.html', '.gear{width:52px;', '.gear{width:52px;border:1px solid var(--line);');

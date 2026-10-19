@@ -325,9 +325,12 @@ function seenCarry(o){
   var b=b64d(o.b);if(!b||b.length!==Math.ceil(n/8))return null;
   while(b.length<SEEN.bits.length)b.push(0);return b}
 function seenHas(i){return (SEEN.bits[i>>3]>>(i&7)&1)===1}
+/* سؤال سُحب من البنك يبقى صفّه بمعرّفه (فلا يتغيّر الختم ولا يُطرح سجلّ أحد)، وحقله الثالث صفر: لا يُسحب ولا يُعدّ */
+function kzLive(i){return DATA.qs[i][2]!==0}
+function kzLiveN(){var n=0;for(var i=0;i<DATA.qs.length;i++)if(kzLive(i))n++;return n}
 function seenMark(i){seenRead();SEEN.bits[i>>3]|=1<<(i&7);seenWrite()}
 function seenByCat(){seenRead();var a=DATA.cats.map(function(){return 0});
-  for(var i=0;i<DATA.qs.length;i++)if(!seenHas(i))a[DATA.qs[i][0]]++;return a}
+  for(var i=0;i<DATA.qs.length;i++)if(kzLive(i)&&!seenHas(i))a[DATA.qs[i][0]]++;return a}
 function seenLeft(cats){var a=seenByCat(),n=0;a.forEach(function(v,c){if(!cats||cats.indexOf(c)>-1)n+=v});return n}
 function seenReset(){SEEN.bits=seenEmpty();if(SEEN.mem)return;
   try{window.localStorage.removeItem(SEEN_KEY)}catch(e){SEEN.mem=true}}
@@ -336,7 +339,7 @@ function spentText(){return seenLeft(null)?["انتهت أسئلة فئاتك","
 function seenCard(after){
   var b=$("seenReset");
   $("seenMem").classList.toggle("hidden",!SEEN.mem);
-  b.disabled=(seenLeft(null)===DATA.qs.length);b.textContent="صفّر السجلّ";b.dataset.arm="";
+  b.disabled=(seenLeft(null)===kzLiveN());b.textContent="صفّر السجلّ";b.dataset.arm="";
   b.onclick=function(){
     if(b.dataset.arm!=="1"){b.dataset.arm="1";b.textContent="متأكّد؟ اضغط ثانيةً للتصفير";return}
     seenReset();seenCard(after);if(after)after()};
@@ -415,7 +418,7 @@ var TE=(function(){
       teams:o.teams.map(function(t){return {n:t.n,c:t.c,score:0,shows:o.opts==="hidden"?o.shows:0}}),
       turn:0,asked:0,used:{},cur:-1,curCat:-1};
   }
-  function free(g,i,seen){return !g.used[i]&&!seen(i)}
+  function free(g,i,seen){return kzLive(i)&&!g.used[i]&&!seen(i)}
   /* ما بقي في كلّ فئة مختارة: مصفوفة بطول الفئات، والفئة غير المختارة صفر */
   function left(g,seen){
     var a=DATA.cats.map(function(){return 0}),on={};

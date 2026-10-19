@@ -583,9 +583,12 @@ function seenCarry(o){
   var b=b64d(o.b);if(!b||b.length!==Math.ceil(n/8))return null;
   while(b.length<SEEN.bits.length)b.push(0);return b}
 function seenHas(i){return (SEEN.bits[i>>3]>>(i&7)&1)===1}
+/* سؤال سُحب من البنك يبقى صفّه بمعرّفه (فلا يتغيّر الختم ولا يُطرح سجلّ أحد)، وحقله الثالث صفر: لا يُسحب ولا يُعدّ */
+function kzLive(i){return DATA.qs[i][2]!==0}
+function kzLiveN(){var n=0;for(var i=0;i<DATA.qs.length;i++)if(kzLive(i))n++;return n}
 function seenMark(i){seenRead();SEEN.bits[i>>3]|=1<<(i&7);seenWrite()}
 function seenByCat(){seenRead();var a=DATA.cats.map(function(){return 0});
-  for(var i=0;i<DATA.qs.length;i++)if(!seenHas(i))a[DATA.qs[i][0]]++;return a}
+  for(var i=0;i<DATA.qs.length;i++)if(kzLive(i)&&!seenHas(i))a[DATA.qs[i][0]]++;return a}
 function seenLeft(cats){var a=seenByCat(),n=0;a.forEach(function(v,c){if(!cats||cats.indexOf(c)>-1)n+=v});return n}
 function seenReset(){SEEN.bits=seenEmpty();if(SEEN.mem)return;
   try{window.localStorage.removeItem(SEEN_KEY)}catch(e){SEEN.mem=true}}
@@ -594,7 +597,7 @@ function spentText(){return seenLeft(null)?["انتهت أسئلة فئاتك","
 function seenCard(after){
   var b=$("seenReset");
   $("seenMem").classList.toggle("hidden",!SEEN.mem);
-  b.disabled=(seenLeft(null)===DATA.qs.length);b.textContent="صفّر السجلّ";b.dataset.arm="";
+  b.disabled=(seenLeft(null)===kzLiveN());b.textContent="صفّر السجلّ";b.dataset.arm="";
   b.onclick=function(){
     if(b.dataset.arm!=="1"){b.dataset.arm="1";b.textContent="متأكّد؟ اضغط ثانيةً للتصفير";return}
     seenReset();seenCard(after);if(after)after()};
@@ -693,7 +696,7 @@ document.querySelectorAll("[data-q]").forEach(function(b){
     drawCats()};
 });
 function avail(cats){
-  var n=0;for(var i=0;i<DATA.qs.length;i++){if(cats.indexOf(DATA.qs[i][0])>-1)n++}return n}
+  var n=0;for(var i=0;i<DATA.qs.length;i++){if(kzLive(i)&&cats.indexOf(DATA.qs[i][0])>-1)n++}return n}
 function tally(){
   var left=seenLeft(S.cats),ok=(S.cats.length>=3&&S.cats.length<=6);
   /* السجلّ كلّه مستهلَك: يقال ذلك ويدلّ على التصفير، فلا يبقى الإعداد صامتًا وكلّ اختيار لا يفعل شيئًا */
@@ -847,15 +850,17 @@ function toolState(){
     if(k==="nokh")t.classList.toggle("blind",nokhBlind())});
   $("seebGear").classList.toggle("used",!S.tools.seeb);
 }
-/* حرف النوخذة: أوّل حرف من الجواب بلا «ال» */
-function nokhChar(q){return String(q[4][q[5]]).replace(/^ال/,"").charAt(0)}
-/* النوخذة أعمى في سؤال حرفُه حركة أو فراغ، أو لا يُستبعد به خيار خاطئ باقٍ (يبدأ بغيره، بـ«ال» أو بدونها) */
+/* حرف النوخذة: أوّل حرف حقيقي من الجواب، بلا حركات ولا تطويل ولا علامات اتجاه ولا فراغ ولا ترقيم، وبلا «ال» */
+var NOKH_SKIP=/[\s!-\/:-@\[-`{-~\u00A0-\u00BF\u0610-\u061F\u0640\u064B-\u065F\u066A-\u066D\u0670\u06D4\u06D6-\u06ED\u200B-\u200F\u2010-\u205E\u2066-\u2069\uFD3E\uFD3F\uFEFF]/g;
+function nokhBare(s){return String(s).replace(NOKH_SKIP,"").replace(/\u0671/g,"ا")}
+function nokhChar(q){return nokhBare(q[4][q[5]]).replace(/^ال/,"").charAt(0)}
+/* النوخذة أعمى في سؤال لا حرف فيه، أو لا يُستبعد بحرفه خيار خاطئ باقٍ (يبدأ بغيره، بـ«ال» أو بدونها) */
 function nokhBlind(){
   var q=S.cur;if(!q)return false;
-  var h=nokhChar(q);if(!h||/[\s\u0610-\u061A\u064B-\u065F\u0670\u0640\u06D6-\u06ED\u200B-\u200F]/.test(h))return true;
+  var h=nokhChar(q);if(!h)return true;
   if(S.noOpts)return false;
   var dim={};document.querySelectorAll("#opts .opt.dim").forEach(function(b){dim[b.dataset.k]=1});
-  return !q[4].some(function(o,i){o=String(o);return i!==q[5]&&!dim[i]&&o.charAt(0)!==h&&o.replace(/^ال/,"").charAt(0)!==h});
+  return !q[4].some(function(o,i){o=nokhBare(o);return i!==q[5]&&!dim[i]&&o.charAt(0)!==h&&o.replace(/^ال/,"").charAt(0)!==h});
 }
 function ring(p){p=Math.max(0,Math.min(1,p));$("bf").style.strokeDashoffset=((1-p)*100).toFixed(1)}
 function startDive(){
@@ -864,7 +869,7 @@ function startDive(){
   S.tools={light:true,nokh:true,seeb:true};
   S.pool=[];
   seenRead();
-  for(var i=0;i<DATA.qs.length;i++){if(S.cats.indexOf(DATA.qs[i][0])>-1&&!seenHas(i))S.pool.push(i)}
+  for(var i=0;i<DATA.qs.length;i++){if(kzLive(i)&&S.cats.indexOf(DATA.qs[i][0])>-1&&!seenHas(i))S.pool.push(i)}
   if(S.crew){S.boat=0;for(var j=0;j<S.pi;j++)S.boat+=S.players[j].p}
   $("net").className="net";$("seebLine").className="seebline";$("rig").className="rig";
   $("scene").classList.remove("low");$("shells").innerHTML="";

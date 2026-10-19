@@ -1004,9 +1004,12 @@ function seenCarry(o){
   var b=b64d(o.b);if(!b||b.length!==Math.ceil(n/8))return null;
   while(b.length<SEEN.bits.length)b.push(0);return b}
 function seenHas(i){return (SEEN.bits[i>>3]>>(i&7)&1)===1}
+/* سؤال سُحب من البنك يبقى صفّه بمعرّفه (فلا يتغيّر الختم ولا يُطرح سجلّ أحد)، وحقله الثالث صفر: لا يُسحب ولا يُعدّ */
+function kzLive(i){return DATA.qs[i][2]!==0}
+function kzLiveN(){var n=0;for(var i=0;i<DATA.qs.length;i++)if(kzLive(i))n++;return n}
 function seenMark(i){seenRead();SEEN.bits[i>>3]|=1<<(i&7);seenWrite()}
 function seenByCat(){seenRead();var a=DATA.cats.map(function(){return 0});
-  for(var i=0;i<DATA.qs.length;i++)if(!seenHas(i))a[DATA.qs[i][0]]++;return a}
+  for(var i=0;i<DATA.qs.length;i++)if(kzLive(i)&&!seenHas(i))a[DATA.qs[i][0]]++;return a}
 function seenLeft(cats){var a=seenByCat(),n=0;a.forEach(function(v,c){if(!cats||cats.indexOf(c)>-1)n+=v});return n}
 function seenReset(){SEEN.bits=seenEmpty();if(SEEN.mem)return;
   try{window.localStorage.removeItem(SEEN_KEY)}catch(e){SEEN.mem=true}}
@@ -1015,7 +1018,7 @@ function spentText(){return seenLeft(null)?["انتهت أسئلة فئاتك","
 function seenCard(after){
   var b=$("seenReset");
   $("seenMem").classList.toggle("hidden",!SEEN.mem);
-  b.disabled=(seenLeft(null)===DATA.qs.length);b.textContent="صفّر السجلّ";b.dataset.arm="";
+  b.disabled=(seenLeft(null)===kzLiveN());b.textContent="صفّر السجلّ";b.dataset.arm="";
   b.onclick=function(){
     if(b.dataset.arm!=="1"){b.dataset.arm="1";b.textContent="متأكّد؟ اضغط ثانيةً للتصفير";return}
     seenReset();seenCard(after);if(after)after()};
@@ -1143,7 +1146,7 @@ function drawCats(){
     drawCats()});
   tally();
 }
-function avail(ci){var n=0;for(var i=0;i<DATA.qs.length;i++){if(DATA.qs[i][0]===ci)n++}return n}
+function avail(ci){var n=0;for(var i=0;i<DATA.qs.length;i++){if(kzLive(i)&&DATA.qs[i][0]===ci)n++}return n}
 function tally(){
   var L=leftByCat(),left=0;
   G.cats.forEach(function(ci){left+=L[ci]});
@@ -1593,7 +1596,7 @@ function victory(i,why,kind){
 /* ───── النزال ───── */
 function pickQ(ci){
   var bag=[];seenRead();
-  for(var i=0;i<DATA.qs.length;i++){if(DATA.qs[i][0]===ci&&!G.used[i]&&!seenHas(i))bag.push(i)}
+  for(var i=0;i<DATA.qs.length;i++){if(kzLive(i)&&DATA.qs[i][0]===ci&&!G.used[i]&&!seenHas(i))bag.push(i)}
   if(!bag.length)return null;
   var k=bag[Math.floor(Math.random()*bag.length)];G.used[k]=1;seenMark(k);G.left=seenByCat();return DATA.qs[k];
 }
