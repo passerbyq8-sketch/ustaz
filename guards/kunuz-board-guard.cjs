@@ -194,9 +194,12 @@ function checkB2(src) {
   }
   if (sets.size < 50) f.push('random is not random: ' + sets.size + ' distinct of 60');
   if (BE.enough(shortCat, sh) || !BE.enough(shortCat, none)) f.push('enough() wrong');
-  // the points are a wager, not a difficulty: the drawing code never reads them
+  // the points are a wager, not a difficulty: the drawing code never reads them -- except through lvOf, the one reader of the
+  // owner's experimental «حسب النقاط» (2026-10-19), which is 0 unless that choice is made (kunuzlevels L3/L4 hold it)
   const eng = src.ENGINE; const oa = eng.indexOf('function bag('), ob = eng.indexOf('function back(');
   if (oa < 0 || ob < 0 || /pts/.test(eng.slice(oa, ob))) f.push('the question draw reads the points');
+  const LVOF = 'function lvOf(sl){return typeof KZL==="undefined"?0:KZL.forPts(sl.pts)}';
+  if (eng.split('function lvOf(').length !== 2 || eng.indexOf(LVOF) < 0) f.push('lvOf is not the one experimental reader of the points');
   return { f: f.concat(errsOf(W)), info: 'turns=' + turns[2] + '/' + turns[3] + '/' + turns[4] + ' drained=' + size + ' randomSets=' + sets.size + ' rank=' + r.order.join('') };
 }
 function checkB3(src) {
@@ -458,7 +461,11 @@ function checkB8(pageText) {
   bad.forEach((re) => { if (re.test(script)) f.push('the script reaches out: ' + re); });
   if (/\baction=/.test(pageText) || /<form\b/.test(pageText) || /<img\b/.test(pageText)) f.push('a form or an image on the page');
   const srcs = [...pageText.matchAll(/<script\b[^>]*\bsrc="([^"]*)"/g)].map((m) => m[1]);
-  if (srcs.join(',') !== '/quest-data/kunuz-bank-3147.js') f.push('scripts loaded: ' + srcs.join(','));
+  // KUNUZ-LEVELS-POETRY (2026-10-19, C): the owner's experimental levels add exactly one more script, the shared module, after
+  // the page's own; it reaches nothing but its own data file (kunuzlevels L4/L5 hold what it does and that it can be switched off)
+  if (srcs.join(',') !== '/quest-data/kunuz-bank-3147.js,/quest-levels.js') f.push('scripts loaded: ' + srcs.join(','));
+  { const mod = fs.readFileSync(path.join(REPO, 'quest-levels.js'), 'utf8'); bad.forEach((re) => { if (re.test(mod.replace('s.src="/quest-data/kunuz-levels-3147.js";', ''))) f.push('the levels module reaches out: ' + re); });
+    if ((mod.match(/\.src="([^"]*)"/g) || []).join() !== '.src="/quest-data/kunuz-levels-3147.js"') f.push('the levels module loads something else than its file'); }
   if (!/<html lang="ar" dir="rtl">/.test(pageText)) f.push('not declared Arabic right to left');
   if (pageText.indexOf(['ezik', 'ui', 'lang', 'v1'].join('_')) > -1) f.push('writes the app language slot');   // assembled: i18nui holds the literal to three files
   if (!/<a\b[^>]*href="\/quest\.html"/.test(pageText) || !/<a\b[^>]*href="\/"/.test(pageText)) f.push('no way back to /quest.html and home /');
@@ -468,8 +475,9 @@ function checkB8(pageText) {
   // the name is ONE constant
   const nm = (/var GAME_NAME="([^"]*)";/.exec(pageText) || [])[1];
   if (!nm || pageText.split(nm).length !== 2) f.push('the game name is not written once, in GAME_NAME');
-  // no difficulty, no level, no age
-  if (/(level|difficulty|age_?group|مستوى|صعوبة)/i.test(pageText.replace(/\/\*[\s\S]*?\*\//g, ''))) f.push('a level or difficulty outside comments');
+  // no difficulty, no level, no age -- in the page itself. The owner's experimental levels (2026-10-19) live in quest-levels.js;
+  // the page carries only the tag that loads it and hooks that ask typeof KZL (kunuzlevels holds them)
+  if (/(level|difficulty|age_?group|مستوى|صعوبة)/i.test(pageText.replace(/\/\*[\s\S]*?\*\//g, '').replace('<script src="/quest-levels.js"></script>', ''))) f.push('a level or difficulty outside comments');
   const quest = fs.readFileSync(path.join(REPO, 'quest.html'), 'utf8');
   const card = quest.match(/<a class="door" href="\/quest-board\.html"><b>([^<]*)<\/b>\s*<span>([^<]*)<\/span><\/a>/);
   if (!card) f.push('quest.html has no card for /quest-board.html in the shape of the others');

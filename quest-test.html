@@ -197,6 +197,8 @@ td i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:6
     <div id="cats"></div>
   </div>
 
+  <div id="lvSlot"></div>
+
   <div class="card">
     <p class="lbl">عدد الأسئلة</p><p class="sub">كم سؤالًا في هذه اللعبة</p>
     <div class="chips" id="totals"></div>
@@ -328,18 +330,23 @@ function seenHas(i){return (SEEN.bits[i>>3]>>(i&7)&1)===1}
 /* سؤال سُحب من البنك يبقى صفّه بمعرّفه (فلا يتغيّر الختم ولا يُطرح سجلّ أحد)، وحقله الثالث صفر: لا يُسحب ولا يُعدّ */
 function kzLive(i){return DATA.qs[i][2]!==0}
 function kzLiveN(){var n=0;for(var i=0;i<DATA.qs.length;i++)if(kzLive(i))n++;return n}
+/* المستوى التجريبيّ (quest-levels.js): إن غاب أو أُطفئ أو رُفض ملفّه فكلّ سؤال على المستوى المختار، ولا يتغيّر شيء */
+function kzLv(i){return typeof KZL==="undefined"||KZL.ok(i)}
+function kzLvAt(i,l){return typeof KZL==="undefined"||KZL.at(i,l)}
 function seenMark(i){seenRead();SEEN.bits[i>>3]|=1<<(i&7);seenWrite()}
-function seenByCat(){seenRead();var a=DATA.cats.map(function(){return 0});
-  for(var i=0;i<DATA.qs.length;i++)if(kzLive(i)&&!seenHas(i))a[DATA.qs[i][0]]++;return a}
-function seenLeft(cats){var a=seenByCat(),n=0;a.forEach(function(v,c){if(!cats||cats.indexOf(c)>-1)n+=v});return n}
+/* any: كلّ المستويات، لزرّ التصفير وحده (يتبع السجلّ لا الاختيار) */
+function seenByCat(any){seenRead();var a=DATA.cats.map(function(){return 0});
+  for(var i=0;i<DATA.qs.length;i++)if(kzLive(i)&&(any||kzLv(i))&&!seenHas(i))a[DATA.qs[i][0]]++;return a}
+function seenLeft(cats,any){var a=seenByCat(any),n=0;a.forEach(function(v,c){if(!cats||cats.indexOf(c)>-1)n+=v});return n}
 function seenReset(){SEEN.bits=seenEmpty();if(SEEN.mem)return;
   try{window.localStorage.removeItem(SEEN_KEY)}catch(e){SEEN.mem=true}}
-function spentText(){return seenLeft(null)?["انتهت أسئلة فئاتك","اختر فئات غيرها، أو صفّر السجلّ من شاشة الإعداد"]:
+function spentText(){var lv=typeof KZL==="undefined"?null:KZL.spent();if(lv)return lv;
+  return seenLeft(null)?["انتهت أسئلة فئاتك","اختر فئات غيرها، أو صفّر السجلّ من شاشة الإعداد"]:
   ["انتهت الأسئلة كلّها","رأيتَها جميعًا — التصفير بيدك في شاشة الإعداد"]}
 function seenCard(after){
   var b=$("seenReset");
   $("seenMem").classList.toggle("hidden",!SEEN.mem);
-  b.disabled=(seenLeft(null)===kzLiveN());b.textContent="صفّر السجلّ";b.dataset.arm="";
+  b.disabled=(seenLeft(null,1)===kzLiveN());b.textContent="صفّر السجلّ";b.dataset.arm="";
   b.onclick=function(){
     if(b.dataset.arm!=="1"){b.dataset.arm="1";b.textContent="متأكّد؟ اضغط ثانيةً للتصفير";return}
     seenReset();seenCard(after);if(after)after()};
@@ -418,7 +425,7 @@ var TE=(function(){
       teams:o.teams.map(function(t){return {n:t.n,c:t.c,score:0,shows:o.opts==="hidden"?o.shows:0}}),
       turn:0,asked:0,used:{},cur:-1,curCat:-1};
   }
-  function free(g,i,seen){return kzLive(i)&&!g.used[i]&&!seen(i)}
+  function free(g,i,seen){return kzLive(i)&&kzLv(i)&&!g.used[i]&&!seen(i)}
   /* ما بقي في كلّ فئة مختارة: مصفوفة بطول الفئات، والفئة غير المختارة صفر */
   function left(g,seen){
     var a=DATA.cats.map(function(){return 0}),on={};
@@ -539,6 +546,8 @@ $("addTeam").onclick=function(){
   if(S.teams.some(function(x){return x.c===t.c})){S.teams.push(t);t.c=nextColor(S.teams.length-1)}else S.teams.push(t);
   drawTeams()};
 function allCats(){return DATA.cats.map(function(c,i){return i})}
+/* المستوى تغيّر: يُعاد حساب ما بقي */
+function kzlChanged(){drawCats()}
 function drawCats(){
   kzcDraw(S.cats,1,Infinity,function(i){var k=S.cats.indexOf(i);if(k>-1)S.cats.splice(k,1);else S.cats.push(i);drawCats()});
   if(S.cats.length===DATA.cats.length){var pw=$("catPills");pw.innerHTML="";pw.appendChild(el("p","kzc-empty","الفئات كلّها مختارة"))}
@@ -555,7 +564,7 @@ document.querySelectorAll("[data-q]").forEach(function(b){
 });
 function tally(){
   var n=S.cats.length,left=n?seenLeft(S.cats):0;
-  $("tally").textContent=!n?"اختر فئة واحدة على الأقلّ.":(left<1?(seenLeft(null)?"انتهت أسئلة فئاتك — اختر غيرها أو صفّر السجلّ.":spentText().join(" — ")+"."):"");
+  $("tally").textContent=!n?"اختر فئة واحدة على الأقلّ.":(left<1?(seenLeft(null)&&!(typeof KZL!=="undefined"&&KZL.spent())?"انتهت أسئلة فئاتك — اختر غيرها أو صفّر السجلّ.":spentText().join(" — ")+"."):"");
   $("startBtn").disabled=(n<1||left<1);
 }
 function drawTotals(){
@@ -753,5 +762,6 @@ try{if(history.state&&history.state.kz==="play")history.back()}catch(e){}
 
 openCfg();
 </script>
+<script src="/quest-levels.js"></script>
 </body>
 </html>
