@@ -5,7 +5,7 @@ var KZV=(function(){
   "use strict";
   var NS="http://www.w3.org/2000/svg",baseN=DATA.qs.length,baseC=DATA.cats.length;
   var installed=false,slugs=Object.create(null),ids=Object.create(null),historyIds=Object.create(null),volatile=false;
-  var HISTORY="kunuz_pack_seen_v1",active=null,serial=0,renderSerial=0,geoPromise=null;
+  var HISTORY="kunuz_pack_seen_v1",active=null,serial=0,renderSerial=0,geoPromise=null,photoObserver=null;
   var SHAPES=["circle","square","triangle","diamond","pentagon","hexagon","star","cross"];
   var SHAPE_NAMES=["دائرة","مربع","مثلث","معين","خماسي","سداسي","نجمة","صليب هندسي"];
   var TURNS=["بلا تدوير","مدار ثمن دورة","مدار ربع دورة","مدار ثلاثة أثمان دورة","مدار نصف دورة","مدار خمسة أثمان دورة","مدار ثلاثة أرباع دورة","مدار سبعة أثمان دورة"];
@@ -174,6 +174,7 @@ var KZV=(function(){
   }
   function show(q){
     var host=document.getElementById("qvis");if(!host)return;
+    if(photoObserver){photoObserver.disconnect();photoObserver=null}
     if(typeof RM!=="undefined"&&RM.on||typeof G!=="undefined"&&G&&G.roomCfg)q=null;
     var render=++renderSerial;active=q;host.textContent="";host.hidden=true;host.className="kzv";
     document.body.classList.remove("kzv-question");
@@ -195,7 +196,7 @@ var KZV=(function(){
       img.onload=fit;img.src="/"+v.src;frame.appendChild(img);
       var m=v.mask||{x:200/3,y:100/3,w:100/3,h:100/3},cover=document.createElement("span");cover.className="kzv-mask";
       cover.style.left=m.x+"%";cover.style.top=m.y+"%";cover.style.width=m.w+"%";cover.style.height=m.h+"%";frame.appendChild(cover);host.appendChild(frame);if(img.complete)fit();
-      if(typeof ResizeObserver!=="undefined"){var obs=new ResizeObserver(function(){if(active!==q){obs.disconnect();return}fit()});obs.observe(host)}
+      if(typeof ResizeObserver!=="undefined"){photoObserver=new ResizeObserver(fit);photoObserver.observe(host)}
     }
   }
   function reveal(q){if(active!==q)return;var host=document.getElementById("qvis");if(!host)return;host.classList.add("kzv-revealed");if(q.kzPack&&q.kzPack.vis&&q.kzPack.vis.kind==="photo")host.setAttribute("aria-label","لوحة منطقة بعد رفع الغطاء")}
