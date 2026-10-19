@@ -935,5 +935,10 @@
     "name": "brainliner28",
     "script": "guards/brain-line-r2-8-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "kunuzvisual",
+    "script": "guards/kunuz-visual-guard.cjs",
+    "args": ""
   }
 ]

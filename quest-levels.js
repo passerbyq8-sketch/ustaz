@@ -19,7 +19,7 @@ var KZL=(function(){
     if(!L||typeof L!=="object"||!L.levels||typeof DATA==="undefined"||typeof seenStamp!=="function"||L.stamp!==seenStamp())return;
     var a=[];
     for(var i=0;i<DATA.qs.length;i++){var q=DATA.qs[i];if(q[2]===0){a.push(0);continue}
-      var v=L.levels[q[8]];if(v!==1&&v!==2&&v!==3)return;a.push(v)}
+      var v=typeof KZV!=="undefined"&&KZV.level(i)||L.levels[q[8]];if(v!==1&&v!==2&&v!==3)return;a.push(v)}
     lv=a;paint();
   }
   function css(){
@@ -56,6 +56,8 @@ var KZL=(function(){
     card.appendChild(w);slot.appendChild(card);
   }
   function reset(){want=0;paint()}
+  /* Pack levels are sidecar values; the bank classification and experiment switch stay unchanged. */
+  function extend(){if(!lv||typeof KZV==="undefined")return;for(var i=lv.length;i<DATA.qs.length;i++)lv[i]=KZV.level(i)}
   function load(){
     if(typeof DATA==="undefined"||typeof seenStamp!=="function")return;
     var s=document.createElement("script");s.src="/quest-data/kunuz-levels-3147.js";s.async=true;
@@ -64,5 +66,5 @@ var KZL=(function(){
     (document.head||document.body).appendChild(s);
   }
   if(LEVELS_EXPERIMENT){try{load()}catch(e){}}
-  return {ok:ok,at:at,forPts:forPts,name:name,spent:spent,boardShort:boardShort,paint:paint,reset:reset,on:function(){return !!lv}};
+  return {ok:ok,at:at,forPts:forPts,name:name,spent:spent,boardShort:boardShort,paint:paint,reset:reset,extend:extend,on:function(){return !!lv}};
 })();
