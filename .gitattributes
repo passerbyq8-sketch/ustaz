@@ -962,3 +962,21 @@ guards/brain-line-r2-5-guard.cjs text eol=lf
 guards/brain-line-r2-6-guard.cjs text eol=lf
 guards/brain-line-r2-7-guard.cjs text eol=lf
 guards/brain-line-r2-8-guard.cjs text eol=lf
+
+# Kunuz visual engine: deterministic loader, geometry and regression measurements.
+package.json text eol=lf
+package-lock.json text eol=lf
+quest-visual.js text eol=lf
+quest-visual.css text eol=lf
+quest-data/kunuz-geo.js text eol=lf
+quest-data/kunuz-geo-index.js text eol=lf
+quest-data/kunuz-packs-manifest.js text eol=lf
+tools/build-geo.mjs text eol=lf
+tools/kunuz-geo-build.json text eol=lf
+tools/kunuz-visual-browser.cjs text eol=lf
+tools/kunuz-visual-playthrough.cjs text eol=lf
+tools/README-kunuz-visual.md text eol=lf
+guards/kunuz-visual-guard.cjs text eol=lf
+guards/kunuz-visual-world.cjs text eol=lf
+guards/fixtures/kunuz-visual.cjs text eol=lf
+guards/fixtures/kunuz-visual-calibration.webp binary

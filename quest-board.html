@@ -156,6 +156,7 @@ th{color:var(--muted);font-weight:500;font-size:.85rem}
 td.n{font-size:1.15rem;text-align:left;color:var(--azraq);font-weight:700}
 td i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:6px}
 </style>
+<link rel="stylesheet" href="/quest-visual.css">
 </head>
 <body>
 <div class="wrap" id="cfg">
@@ -202,6 +203,7 @@ td i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:6
   <div class="qm hidden" id="qm" role="dialog" aria-modal="true" aria-labelledby="qtext">
     <div class="qp">
       <div class="qh"><b id="qcat"></b><span id="qpts"></span></div>
+      <div id="qvis" class="kzv" hidden></div>
       <h2 class="qtext" id="qtext" tabindex="-1"></h2>
       <ul class="opts" id="opts"></ul>
       <div id="qans"></div>
@@ -597,7 +599,7 @@ function openQ(s,e){
   var q=DATA.qs[k],sl=G.slots[s];
   $("qcat").textContent=DATA.cats[q[0]][1];
   $("qpts").textContent=ar(sl.pts)+" نقطة";
-  $("qtext").textContent=q[3];
+  $("qtext").textContent=q[3];if(typeof KZV!=="undefined")KZV.show(q);
   paintQ();
   $("qm").classList.remove("hidden");document.body.classList.add("lock");
   try{$("qm").scrollTop=0;$("qtext").focus()}catch(e){}
@@ -605,7 +607,7 @@ function openQ(s,e){
 function paintQ(){
   var q=cur(),o=$("opts"),a=$("act"),ans=$("qans");o.innerHTML="";a.innerHTML="";ans.innerHTML="";
   var list=(q[4]&&q[4].length)?q[4]:[];
-  list.forEach(function(t,j){var li=el("li","opt",t);li.dataset.k=j;if(P.revealed&&j===q[5])li.classList.add("right");o.appendChild(li)});
+  list.forEach(function(t,j){var li=el("li","opt",t);li.dataset.k=j;if(typeof KZV!=="undefined")KZV.choice(li,q,j);if(P.revealed&&j===q[5])li.classList.add("right");o.appendChild(li)});
   o.classList.toggle("hidden",!list.length);
   if(!P.revealed){
     var r=el("button","btn solid","أظهر الجواب");r.type="button";r.id="revealBtn";r.onclick=reveal;a.appendChild(r);
@@ -613,8 +615,9 @@ function paintQ(){
     return;
   }
   var right=list.length?list[q[5]]:"";
-  if(right)ans.appendChild(el("div","ans","الجواب: "+right));
-  if(q[6]){var w=el("div","why");w.innerHTML=q[6]+(q[7]?"<span class='src'>"+q[7]+"</span>":"");ans.appendChild(w)}
+  if(right){var answerNode=el("div","ans","الجواب: "+right);if(typeof KZV!=="undefined")KZV.choice(answerNode,q,q[5]);ans.appendChild(answerNode)}
+  if(typeof KZV!=="undefined")KZV.reveal(q);
+  if(q[6]){var w=el("div","why");if(!(typeof KZV!=="undefined"&&KZV.explain(w,q)))w.innerHTML=q[6]+(q[7]?"<span class='src'>"+q[7]+"</span>":"");ans.appendChild(w)}
   a.appendChild(el("p","who","من جاوب صحيحًا؟"));
   var row=el("div","award");row.id="award";
   G.teams.forEach(function(t,i){var b=el("button","tm",t.n);b.type="button";b.style.background=t.c;b.dataset.t=i;
@@ -623,7 +626,7 @@ function paintQ(){
   a.appendChild(row);
 }
 function reveal(e){if(!P.open||P.revealed)return;P.revealed=true;stamp(e);paintQ();try{$("award").querySelector("button").focus()}catch(e){}}
-function closeModal(){P.open=false;P.revealed=false;$("qm").classList.add("hidden");document.body.classList.remove("lock")}
+function closeModal(){if(typeof KZV!=="undefined")KZV.show(null);P.open=false;P.revealed=false;$("qm").classList.add("hidden");document.body.classList.remove("lock")}
 function backQ(e){
   if(!P.open||P.revealed||!G)return;
   stamp(e);
@@ -662,6 +665,9 @@ $("again").onclick=function(){G=null;toCfg()};
 
 openCfg();
 </script>
+<script src="/quest-data/kunuz-geo-index.js"></script>
+<script src="/quest-data/kunuz-packs-manifest.js"></script>
+<script src="/quest-visual.js"></script>
 <script src="/quest-levels.js"></script>
 </body>
 </html>

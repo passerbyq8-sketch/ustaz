@@ -160,6 +160,7 @@ td i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:6
 .endnote{color:var(--muted);font-size:.9rem}
 .endnote:empty{display:none}
 </style>
+<link rel="stylesheet" href="/quest-visual.css">
 </head>
 <body>
 <div class="wrap">
@@ -235,6 +236,7 @@ td i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:6
   <div class="catbox"><label for="catSel">الفئة</label><select id="catSel"></select></div>
   <div class="card qcard">
     <p class="qcat" id="qcat"></p>
+    <div id="qvis" class="kzv" hidden></div>
     <h2 class="qtext" id="qtext"></h2>
     <div class="opts" id="opts"></div>
     <div class="act" id="act"></div>
@@ -630,7 +632,7 @@ $("catSel").onchange=function(){
   else if(P.phase==="q"&&!P.locked&&!P.answered)ask();   /* البند ٢-٧: تبديل الفئة قبل التأكيد بلا عقوبة */
 };
 function clearQ(){
-  $("qcat").textContent="";$("qtext").textContent="";$("opts").innerHTML="";$("act").innerHTML="";
+  $("qcat").textContent="";$("qtext").textContent="";if(typeof KZV!=="undefined")KZV.show(null);$("opts").innerHTML="";$("act").innerHTML="";
   $("verdict").textContent="";$("verdict").className="verdict";$("why").classList.add("hidden");$("why").innerHTML="";
 }
 function turnStart(){
@@ -653,7 +655,7 @@ function ask(e){
   paintSel();clearQ();
   var q=DATA.qs[k];
   $("qcat").textContent=DATA.cats[q[0]][1];
-  $("qtext").textContent=q[3];
+  $("qtext").textContent=q[3];if(typeof KZV!=="undefined")KZV.show(q);
   paintQ();startT();
 }
 function cur(){return DATA.qs[G.cur]}
@@ -661,7 +663,7 @@ function paintQ(){
   var q=cur(),box=$("opts"),act=$("act");box.innerHTML="";act.innerHTML="";
   if(P.revealed){
     q[4].forEach(function(t,j){
-      var r=el("div","orow"),b=el("button","opt",t);b.type="button";b.dataset.k=j;
+      var r=el("div","orow"),b=el("button","opt",t);b.type="button";b.dataset.k=j;if(typeof KZV!=="undefined")KZV.choice(b,q,j);
       b.setAttribute("aria-pressed",P.picked===j?"true":"false");
       if(P.picked===j)b.classList.add("pick");
       b.onclick=function(){if(P.locked)return;P.picked=j;paintQ();try{$("confBtn").focus()}catch(e){}};
@@ -686,7 +688,7 @@ function showAnswer(e){
   stamp(e);
   stopT();P.answered=true;paintTimer();
   var q=cur(),act=$("act");act.innerHTML="";
-  $("opts").appendChild(el("div","ans",q[4][q[5]]));
+  var shownAnswer=el("div","ans",q[4][q[5]]);if(typeof KZV!=="undefined"){KZV.choice(shownAnswer,q,q[5]);KZV.reveal(q)}$("opts").appendChild(shownAnswer);
   var j=el("div","judge");
   var y=el("button","btn solid",G.solo?"جاوبت صح":"جاوبنا صح");y.type="button";y.id="judgeYes";
   var n=el("button","btn",G.solo?"غلط":"غلط");n.type="button";n.id="judgeNo";
@@ -699,7 +701,7 @@ function confirmA(){
 }
 function timeout(){
   if(P.locked||P.phase!=="q")return;
-  if(!P.revealed&&!P.answered){var q=cur();$("act").innerHTML="";$("opts").appendChild(el("div","ans",q[4][q[5]]))}
+  if(!P.revealed&&!P.answered){var q=cur();$("act").innerHTML="";var shownAnswer=el("div","ans",q[4][q[5]]);if(typeof KZV!=="undefined"){KZV.choice(shownAnswer,q,q[5]);KZV.reveal(q)}$("opts").appendChild(shownAnswer)}
   lock(false,true);
 }
 function lock(right,late){
@@ -712,7 +714,8 @@ function lock(right,late){
   var c=$("confBtn");if(c&&c.parentNode)c.parentNode.removeChild(c);
   $("act").innerHTML="";
   var v=$("verdict");v.textContent=late?"انتهى الوقت":(right?"صحيح":"خطأ");v.className="verdict "+(right?"ok":"no");
-  if(q[6]){$("why").innerHTML=q[6]+(q[7]?"<span class='src'>"+q[7]+"</span>":"");$("why").classList.remove("hidden")}
+  if(typeof KZV!=="undefined")KZV.reveal(q);
+  if(q[6]){if(!(typeof KZV!=="undefined"&&KZV.explain($("why"),q)))$("why").innerHTML=q[6]+(q[7]?"<span class='src'>"+q[7]+"</span>":"");$("why").classList.remove("hidden")}
   TE.settle(G,right);paintTimer();paintTop();
   $("prog").textContent="السؤال "+ar(G.asked)+" من "+ar(G.total);
   var last=TE.over(G)||!TE.catsLeft(G,seenHas).length;
@@ -762,6 +765,9 @@ try{if(history.state&&history.state.kz==="play")history.back()}catch(e){}
 
 openCfg();
 </script>
+<script src="/quest-data/kunuz-geo-index.js"></script>
+<script src="/quest-data/kunuz-packs-manifest.js"></script>
+<script src="/quest-visual.js"></script>
 <script src="/quest-levels.js"></script>
 </body>
 </html>

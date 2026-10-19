@@ -346,6 +346,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
   .wrap{max-width:760px}
 }
 </style>
+<link rel="stylesheet" href="/quest-visual.css">
 </head>
 <body>
 <div class="wrap">
@@ -602,6 +603,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
     <div class="slab hidden" id="slab">
       <div class="face front" id="front">
         <div class="who"><span class="dot" id="sDot"></span><b id="sWho"></b><span class="shot" id="sShot"></span><span class="secs" id="secs"></span></div>
+        <div id="qvis" class="kzv" hidden></div>
         <h3 class="qtext" id="qtext"></h3>
         <button type="button" class="kzr-flag" data-kzr="question" aria-label="الإبلاغ عن خطأ في هذا السؤال"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 15V1.5M3.5 2.5h9l-2.2 3.5 2.2 3.5h-9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>إبلاغ</button>
         <div class="opts" id="ops"></div>
@@ -1692,6 +1694,7 @@ function startFight(){
   paint();camFight(G.base,G.tgt);
 }
 function endFight(){
+  if(typeof KZV!=="undefined")KZV.show(null);
   stopFx();stop();G.busy=false;
   $("war").classList.remove("fight");$("slab").classList.add("hidden");$("slab").classList.remove("flip");$("pg").disabled=true;
   $("boat").classList.add("hidden");$("token").classList.add("hidden");$("wave").classList.add("hidden");
@@ -1729,7 +1732,7 @@ function pass(p,pi,go){
 function askQ(who,pi,ci,shotTxt,defend,then){
   var q=pickQ(ci);if(!q){then(null,false);return}KZR.q=q;T.alive=q[4].length;T.lock=false;
   $("sDot").style.background=col(pi);$("sWho").textContent=who.n;$("sShot").textContent=shotTxt;$("secs").textContent="";
-  $("qtext").textContent=q[3];$("why").className="why";$("why").innerHTML="";
+  $("qtext").textContent=q[3];if(typeof KZV!=="undefined")KZV.show(q);$("why").className="why";$("why").innerHTML="";
   stat('<i class="dot" style="background:'+col(pi)+'"></i><b>'+esc(who.n)+"</b> "+(defend?"يدافع عن ":"يهاجم ")+"<b>"+catName(G.tgt)+"</b>");
   $("g"+G.tgt).classList.toggle("walled",!!defend);
   var box=$("ops");box.innerHTML="";box.className="opts "+(defend?"gates":"moor");
@@ -1745,7 +1748,7 @@ function askQ(who,pi,ci,shotTxt,defend,then){
       var mk=document.createElement("span");mk.className="mk";mk.setAttribute("aria-hidden","true");
       mk.innerHTML=defend?'<svg viewBox="0 0 12 12"><path d="M3 11V5Q3 2 6 2Q9 2 9 5V11"/></svg>':'<svg viewBox="0 0 12 12"><path d="M6 1V11M3 3.5H9M1.5 7Q2 11 6 11Q10 11 10.5 7"/></svg>';
       b.appendChild(mk);
-      var tx=document.createElement("span");tx.className="tx";tx.textContent=q[4][j];b.appendChild(tx);
+      var tx=document.createElement("span");tx.className="tx";tx.textContent=q[4][j];b.appendChild(tx);if(typeof KZV!=="undefined"&&KZV.choice(tx,q,j)){b.classList.add("kzv-choice");b.setAttribute("aria-label",tx.getAttribute("aria-label"));}
       b.onclick=function(){land(j,b,q,full,then)};box.appendChild(b);
       if(pos===1){var il=document.createElement("i");il.className="islet";il.setAttribute("aria-hidden","true");
         il.innerHTML=defend?'<svg viewBox="0 0 120 30"><path d="M4 26H116M4 26V12H116V26M20 12V6M40 12V6M60 12V6M80 12V6M100 12V6" fill="none" stroke="#8FB3C6" stroke-width="3"/><path d="M52 26V20Q52 15 60 15Q68 15 68 20V26" fill="#fff" stroke="#8FB3C6" stroke-width="3"/></svg>'
@@ -1760,8 +1763,8 @@ function askQ(who,pi,ci,shotTxt,defend,then){
 function judge(q,then){
   if(T.lock)return;stop();
   var box=$("ops");box.innerHTML="";
-  var a=document.createElement("div");a.className="opt right reveal";a.textContent=q[4][q[5]];box.appendChild(a);
-  $("why").innerHTML=q[6]+(q[7]?'<span class="src">'+q[7]+'</span>':'');$("why").className="why on";
+  var a=document.createElement("div");a.className="opt right reveal";a.textContent=q[4][q[5]];if(typeof KZV!=="undefined")KZV.choice(a,q,q[5]);box.appendChild(a);
+  if(typeof KZV!=="undefined")KZV.reveal(q);if(!(typeof KZV!=="undefined"&&KZV.explain($("why"),q)))$("why").innerHTML=q[6]+(q[7]?'<span class="src">'+q[7]+'</span>':'');$("why").className="why on";
   var y=document.createElement("button");y.className="opt judge";y.textContent="أصابَ";
   y.onclick=function(){T.lock=true;box.innerHTML="";later(function(){then(true,false)},250)};
   var n=document.createElement("button");n.className="opt judge";n.textContent="أخطأَ";
@@ -1797,7 +1800,7 @@ function land(k,btn,q,full,then){
     if(+b.dataset.k===q[5]){b.classList.add("right");var m=$("m"+b.dataset.pos);if(m)m.classList.add("right")}});
   if(btn&&!ok){btn.classList.add("wrong");var mw=$("m"+btn.dataset.pos);if(mw)mw.classList.add("wrong")}
   stat((k===-1?"رسا المركب — نفد الوقت.":(ok?(fast?"إصابة مزدوجة — سبقتَ الجمر.":"إصابة."):"خطأ.")),!ok);
-  $("why").innerHTML=q[6]+(q[7]?'<span class="src">'+q[7]+'</span>':'');$("why").className="why on";
+  if(typeof KZV!=="undefined")KZV.reveal(q);if(!(typeof KZV!=="undefined"&&KZV.explain($("why"),q)))$("why").innerHTML=q[6]+(q[7]?'<span class="src">'+q[7]+'</span>':'');$("why").className="why on";
   later(function(){then(ok,fast)},WarEngine.HOLD.answer);
 }
 function quitFight(){clearT();if(G.busy)endFight()}
@@ -2343,6 +2346,9 @@ document.addEventListener("click",function(e){
 document.addEventListener("keydown",function(e){if(KZR.open&&e.key==="Escape")kzrClose()});
 window.addEventListener("popstate",function(){kzrClose()});
 </script>
+<script src="/quest-data/kunuz-geo-index.js"></script>
+<script src="/quest-data/kunuz-packs-manifest.js"></script>
+<script src="/quest-visual.js"></script>
 <script src="/quest-levels.js"></script>
 <script src="/quest-i18n.js"></script>
 </body>

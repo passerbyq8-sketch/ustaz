@@ -297,6 +297,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 .kzr-msg{min-height:1.4em;margin:8px 0;font-size:.9rem;color:var(--ink)}
 .kzr-msg.bad{color:var(--no)}
 </style>
+<link rel="stylesheet" href="/quest-visual.css">
 </head>
 <body>
 <div id="sea"></div><div id="deep"></div>
@@ -430,6 +431,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
   </div>
   <div class="panel" id="panel">
     <div class="stat"><span id="stat" role="status"></span><button class="exit" id="quit">خروج</button></div>
+    <div id="qvis" class="kzv" hidden></div>
     <h2 class="qtext" id="qtext" dir="auto"></h2>
     <button type="button" class="kzr-flag" data-kzr="question" aria-label="الإبلاغ عن خطأ في هذا السؤال"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 15V1.5M3.5 2.5h9l-2.2 3.5 2.2 3.5h-9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>إبلاغ</button>
     <div class="opts" id="opts"></div>
@@ -882,7 +884,7 @@ function startDive(){
   if(S.crew){S.boat=0;for(var j=0;j<S.pi;j++)S.boat+=S.players[j].p}
   $("net").className="net";$("seebLine").className="seebline";$("rig").className="rig";
   $("scene").classList.remove("low");$("shells").innerHTML="";
-  $("qtext").textContent="";$("opts").innerHTML="";$("why").className="why";
+  $("qtext").textContent="";if(typeof KZV!=="undefined")KZV.show(null);$("opts").innerHTML="";$("why").className="why";
   deep(0);show("dive");geo();buildRope();drawBoat();drawNet();place(0,true);nextQ();
 }
 window.addEventListener("resize",function(){
@@ -904,6 +906,7 @@ function shellCats(){
   return cats;
 }
 function nextQ(){
+  if(typeof KZV!=="undefined")KZV.show(null);
   if(S.depth>=S.cap){done("بلغتَ القاع",true);return}
   S.lock=false;S.cur=null;
   var cats=shellCats();
@@ -928,7 +931,7 @@ function openShell(c){
   $("shells").querySelectorAll(".shell").forEach(function(b){b.disabled=true;
     b.classList.add(+b.dataset.cat===c?"open":"shut")});
   $("why").className="why";
-  $("qtext").textContent=q[3];
+  $("qtext").textContent=q[3];if(typeof KZV!=="undefined")KZV.show(q);
   $("depth").textContent=ar(S.depth);
   var box=$("opts");box.innerHTML="";
   if(S.noOpts){
@@ -937,7 +940,7 @@ function openShell(c){
   } else {
     var idx=q[4].map(function(c,i){return i}).sort(function(){return Math.random()-.5});
     idx.forEach(function(j){
-      var b=document.createElement("button");b.className="opt";b.dir="auto";b.textContent=q[4][j];b.dataset.k=j;
+      var b=document.createElement("button");b.className="opt";b.dir="auto";b.textContent=q[4][j];b.dataset.k=j;if(typeof KZV!=="undefined")KZV.choice(b,q,j);
       b.onclick=function(){answer(j,b)};box.appendChild(b)});
   }
   toolState();bankLbl();startB();
@@ -945,7 +948,7 @@ function openShell(c){
 function selfJudge(q){
   if(S.lock)return;stopB();
   var box=$("opts");box.innerHTML="";
-  var a=document.createElement("div");a.className="opt right";a.dir="auto";a.textContent=q[4][q[5]];
+  var a=document.createElement("div");a.className="opt right";a.dir="auto";a.textContent=q[4][q[5]];if(typeof KZV!=="undefined")KZV.choice(a,q,q[5]);
   box.appendChild(a);
   reveal(q);
   var y=document.createElement("button");y.className="opt judge";y.textContent="أصبتُ";
@@ -959,7 +962,8 @@ function bankLbl(){$("bankBtn").textContent="اطلع بالحصيلة — "+ar(
   $("bankBtn").disabled=S.pearls===0||S.lost||S.ending;
   $("scene").classList.toggle("can",S.pearls>0&&!S.lost&&!S.ending)}
 function reveal(q){
-  $("why").innerHTML=q[6]+(q[7]?"<span class='src'>"+q[7]+"</span>":"");
+  if(typeof KZV!=="undefined")KZV.reveal(q);
+  if(!(typeof KZV!=="undefined"&&KZV.explain($("why"),q)))$("why").innerHTML=q[6]+(q[7]?"<span class='src'>"+q[7]+"</span>":"");
   $("why").className="why on";
 }
 function fly(from){
@@ -1217,6 +1221,9 @@ document.addEventListener("click",function(e){
 document.addEventListener("keydown",function(e){if(KZR.open&&e.key==="Escape")kzrClose()});
 window.addEventListener("popstate",function(){kzrClose()});
 </script>
+<script src="/quest-data/kunuz-geo-index.js"></script>
+<script src="/quest-data/kunuz-packs-manifest.js"></script>
+<script src="/quest-visual.js"></script>
 <script src="/quest-levels.js"></script>
 <script src="/quest-i18n.js"></script>
 </body>
