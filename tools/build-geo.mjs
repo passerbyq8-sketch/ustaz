@@ -5,7 +5,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {gzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
-import clip from 'polygon-clipping';
+import clip from './vendor/polygon-clipping.cjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const cache=path.join(os.tmpdir(),'kunuz-natural-earth-v5.1.2');

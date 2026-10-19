@@ -28,7 +28,6 @@
     "@babel/core": "^8.0.1",
     "@babel/parser": "8.0.0",
     "@babel/preset-react": "^8.0.1",
-    "polygon-clipping": "^0.15.7",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },

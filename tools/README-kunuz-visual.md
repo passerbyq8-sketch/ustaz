@@ -2,7 +2,10 @@
 
 `node tools/build-geo.mjs` rebuilds `quest-data/kunuz-geo.js`. Raw downloads live
 in the operating system temporary directory, outside the deployment and Git.
-`polygon-clipping` is a build-only development dependency. All files under
+The vendored `polygon-clipping` 0.15.7 UMD bundle is build-only, with its MIT
+license and the bundled robust-predicates license in `tools/vendor/`.
+Its bundled splaytree attribution is retained in the bundle header. No npm
+dependency is added to the application. All files under
 `tools/` and `guards/` are excluded by `.vercelignore`.
 
 Made with Natural Earth. Its raster and vector data are public domain:
