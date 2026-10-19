@@ -1997,7 +1997,9 @@ const SEALED = {
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
   //   2026-10-19 -- merge 4K (A3): the About panel names the eleven new fatwa sources after the nineteen, each labelled as from the scholars' discs instead of a domain (app.jsx EZIK_SOURCES_SECTIONS sources.fatwa); CACHE untouched (ezik-v111): app.js 2278440 -> 2279271 bytes, sha256 7cdf305e..0359; node tools/core-bytes.cjs --write: CORE_BYTES 3465285.
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
-  'sw.js': 'ea7733732878d60d4f4947af2732f7d499a7b4cdc93ad444f1b42c4a55ccab8e',
+  //   2026-10-19 -- merge 4K ship: cache ezik-v111 -> ezik-v112 (the owner's word of 19 October; config/app-version.json and sw.js CACHE, app.js line 6 rebuilt): app.js 2279271 -> 2279271 bytes, sha256 0c18f7cc..6765; node tools/core-bytes.cjs --write: CORE_BYTES 3465285.
+//                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
+  'sw.js': '56eeb7c34d923514bd2cb7d296730f3632fda618fa5e88397e1565a6cb6ab88e',
 };
 
 // ---------------------------------------------------------------------------
