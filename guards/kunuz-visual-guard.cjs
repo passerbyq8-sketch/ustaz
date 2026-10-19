@@ -29,6 +29,7 @@ async function security(source=mod){
   const w=await open('quest-test.html',{moduleText:source}),api=w.ctx.KZV,q=fixture().qs[0];
   for(const v of invalidVisuals())assert.equal(api.validateVisual(v,q),false,JSON.stringify(v));
   for(const q of fixture().qs)assert.equal(api.validateVisual(q.vis,q),true,q.vis.kind);
+  assert.equal(api.validateVisual({kind:'map',view:'world',hit:['Egypt','Palestine','Bahrain','Qatar','Lebanon','Malta','Singapore','Kuwait','France','Germany','Italy','Spain','China','India','Japan','Brazil','Canada','Mexico','Argentina','Australia']},q),true,'multi-country regions');
   const p=fixture();p.qs[0].q='<img src=x onerror="globalThis.PWN=1">';p.qs[0].why='<script>globalThis.PWN=1</script><img onerror="globalThis.PWN=1">';p.qs[0].src=['<img onerror="globalThis.PWN=1">'];
   assert.equal(api.register(p),true);const row=w.ctx.DATA.qs[bank.qs.length];api.explain(w.$('why'),row);assert.ok(!w.$('why').querySelector('img'),'explanation parsed an image');assert.ok(!w.$('why').querySelector('script'),'explanation parsed a script');assert.ok(w.$('why').textContent.includes('<script>'));assert.equal(w.ctx.PWN,undefined);
   noErrors(w);return invalidVisuals().length;
@@ -76,11 +77,18 @@ async function levels(){
     noErrors(w);
   }}return 'before and after base classification; all three levels; board by points';
 }
+async function observers(source=mod){
+  const w=await open('quest-test.html',{moduleText:source,pack:fixture()});let attached=0;
+  w.ctx.ResizeObserver=class{observe(){attached++}disconnect(){attached--}};
+  const photo=w.ctx.DATA.qs.find(q=>q.kzPack&&q.kzPack.vis.kind==='photo');
+  for(let i=0;i<40;i++)w.ctx.KZV.show(photo);assert.equal(attached,1,'old photo observers retained');w.ctx.KZV.show(null);assert.equal(attached,0,'last observer retained');noErrors(w);return 'forty photo changes retain only the current observer';
+}
 function appearance(css=read('quest-visual.css')){
   function luminance(hex){const x=hex.slice(1).match(/../g).map(n=>parseInt(n,16)/255).map(n=>n<=.04045?n/12.92:Math.pow((n+.055)/1.055,2.4));return x[0]*.2126+x[1]*.7152+x[2]*.0722}
   function contrast(a,b){const x=luminance(a),y=luminance(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)}
   const ratios=[];for(const m of css.matchAll(/color:(#[0-9a-f]{6});background:(#[0-9a-f]{6})/gi))ratios.push(contrast(m[1],m[2]));
   for(const block of css.matchAll(/\{([^{}]*--kv-ink:[^{}]*)\}/g)){const s=block[1],val=n=>s.match(new RegExp('--kv-'+n+':(#[0-9a-f]{6})','i'))?.[1];if(val('ink')&&val('bg'))ratios.push(contrast(val('ink'),val('bg')));if(val('hit')&&val('land'))ratios.push(contrast(val('hit'),val('land')))}
+  const shadow=/\.kzv-silhouette\{background:var\(--kv-shadow-bg,(#[0-9a-f]{6})\)\}/i.exec(css);assert.ok(shadow,'silhouette needs a separate pale backdrop');ratios.push(contrast('#000000',shadow[1]));
   assert.ok(ratios.length>=8);assert.ok(ratios.every(r=>r>=4.5),'contrast '+ratios.join(','));assert.ok(/\.kzv-question \.kzv-choice\{[^}]*min-width:44px;min-height:48px/.test(css));assert.ok(/\.kzv-choice-button:focus-visible\{outline:3px solid/.test(css));assert.ok(/\.kzv\{[^}]*height:112px/.test(css));return 'minimum contrast='+Math.min(...ratios).toFixed(2)+':1; reserved stage; touch size; focus outline';
 }
 function scanVisual(w,q){
@@ -144,6 +152,7 @@ if(require.main===module)(async()=>{
   await test('V8 lazy geography and empty production manifest',async()=>{assert.deepEqual(new Function(read('quest-data/kunuz-packs-manifest.js')+';return KUNUZ_PACKS')(),[]);const w=await open('quest-test.html',{pack:fixture()});assert.equal(w.requests.includes('/quest-data/kunuz-geo.js'),false);w.ctx.KZV.show(w.ctx.DATA.qs[bank.qs.length]);await Promise.resolve();assert.equal(w.requests.filter(p=>p==='/quest-data/kunuz-geo.js').length,1);w.ctx.KZV.show(w.ctx.DATA.qs[bank.qs.length]);await Promise.resolve();assert.equal(w.requests.filter(p=>p==='/quest-data/kunuz-geo.js').length,1);noErrors(w)});
   await test('V10 pack levels with early and late loading',levels);
   await test('V11 contrast, touch targets, focus and reserved layout',appearance);
+  await test('V12 photo observer cleanup on question changes',observers);
   await test('V9 mutations are each rejected by the behavioral assertions',async()=>{
     const mutants=[
       ['SVG bypass','if(v.kind==="svg")return !!sanitizeSvg(v.svg);','if(v.kind==="svg")return true;',security],
@@ -155,9 +164,10 @@ if(require.main===module)(async()=>{
       ['bank seal','oldStamp(n||baseN)','oldStamp(n)',envelopes],
       ['pack repeat memory','return pack(i)?has(i):oldHas(i)','return pack(i)?false:oldHas(i)',histories],
       ['disabled loader','if(!PACKS_ENABLED||typeof KUNUZ_PACKS','if(typeof KUNUZ_PACKS',off],
-      ['room categories','if(typeof G!=="undefined"&&G&&G.roomCfg)return groups.map','if(false)return groups.map',rooms]
+      ['room categories','if(typeof G!=="undefined"&&G&&G.roomCfg)return groups.map','if(false)return groups.map',rooms],
+      ['photo observer leak','if(photoObserver){photoObserver.disconnect();photoObserver=null}','if(photoObserver){photoObserver=null}',observers]
     ];let caught=0;for(const [name,from,to,check] of mutants){assert.equal(mod.split(from).length,2,'mutation seam '+name);try{await check(mod.replace(from,to))}catch(e){caught++;continue}throw Error('survived: '+name)}
-    assert.throws(()=>geography(read('quest-data/kunuz-geo.js')+'\n// Israel'));assert.throws(()=>appearance(read('quest-visual.css').replace('color:#123b55;background:#fff','color:#ffffff;background:#ffffff')));return 'caught='+caught+'/'+mutants.length+' plus geography and contrast mutations';
+    assert.throws(()=>geography(read('quest-data/kunuz-geo.js')+'\n// Israel'));assert.throws(()=>appearance(read('quest-visual.css').replace('color:#123b55;background:#fff','color:#ffffff;background:#ffffff')));assert.throws(()=>appearance(read('quest-visual.css').replace('--kv-shadow-bg,#edf6fc','--kv-shadow-bg,#101010')));return 'caught='+caught+'/'+mutants.length+' plus geography, option contrast and shadow contrast mutations';
   });
   console.log('SUMMARY '+results.filter(Boolean).length+'/'+results.length+' pass');process.exitCode=results.every(Boolean)?0:1;
 })().catch(e=>{console.error(e);process.exitCode=1});

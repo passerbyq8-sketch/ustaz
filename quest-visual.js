@@ -75,7 +75,7 @@ var KZV=(function(){
       var m=v.mask;return object(m)&&[m.x,m.y,m.w,m.h].every(function(n){return typeof n==="number"&&isFinite(n)})&&m.x>=0&&m.y>=0&&m.w>0&&m.h>0&&m.x+m.w<=100&&m.y+m.h<=100;
     }
     if(v.kind==="map"){
-      if(typeof KUNUZ_GEO_INDEX==="undefined"||!own(KUNUZ_GEO_INDEX.views,v.view)||!Array.isArray(v.hit)||!v.hit.length||v.hit.length>12)return false;
+      if(typeof KUNUZ_GEO_INDEX==="undefined"||!own(KUNUZ_GEO_INDEX.views,v.view)||!Array.isArray(v.hit)||!v.hit.length)return false;
       var b=KUNUZ_GEO_INDEX.views[v.view];
       return v.hit.every(function(n,i){var a=KUNUZ_GEO_INDEX.names[n];return own(KUNUZ_GEO_INDEX.names,n)&&v.hit.indexOf(n)===i&&a[0]<=b[2]&&a[2]>=b[0]&&a[1]<=b[3]&&a[3]>=b[1]});
     }

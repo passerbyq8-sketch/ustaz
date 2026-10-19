@@ -9,6 +9,7 @@
 .kzv-neutral{fill:var(--kv-land);stroke:var(--kv-line);stroke-width:.45px}
 .kzv-emoji{font:56px/1.2 "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif;direction:ltr;unicode-bidi:isolate;white-space:pre}
 .kzv-silhouette:not(.kzv-revealed) .kzv-emoji{filter:brightness(0)}
+.kzv-silhouette{background:var(--kv-shadow-bg,#edf6fc)}
 .kzv-pattern{direction:ltr}
 .kzv-pattern>span{display:flex;justify-content:center;align-items:center;flex:1;min-width:0;height:100%;font-size:32px}
 .kzv-pattern svg{width:100%;max-height:86px}
