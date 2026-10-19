@@ -25,7 +25,7 @@
  *                      and a unique id; no category is empty.
  *   K6 bank rules   -- every question after the accepted 3145 offers exactly four options, no question
  *                      is true/false, and the entity rule holds over the whole bank (named exceptions only).
- *   K2 one copy     -- quest-data/ holds that one file and its levels map (2026-10-19), nothing else, and no page in
+ *   K2 one copy     -- quest-data/ holds one bank, its levels map and declared visual sidecars (2026-10-19), and no page in
  *                      the repository root embeds a bank of its own.
  *   K3 the modes    -- quest-ghaws.html, quest-harb.html, quest-test.html and quest-board.html each load the shared bank
  *                      exactly once, and each carries a way back to /quest.html and a
@@ -2567,8 +2567,22 @@ async function compare(bankPath) {
   console.log('\n-- K2 one copy --');
   const qd = fs.readdirSync(path.join(__dirname, 'quest-data')).sort();
   // KUNUZ-LEVELS-POETRY (2026-10-19, C): the bank and the experimental levels file (a map id -> level, no question in it)
-  const QD = [path.basename(BANK), 'kunuz-levels-3147.js'].sort();
-  if (qd.join() === QD.join()) ok('quest-data/ holds exactly the bank and its levels file: ' + qd.join(', '));
+  // The visual engine adds local geometry and a manifest, never another bank.
+  // Supplemental files are permitted only when declared by that manifest.
+  const QD = [path.basename(BANK), 'kunuz-levels-3147.js', 'kunuz-geo.js', 'kunuz-geo-index.js', 'kunuz-packs-manifest.js'];
+  const packs = new Function(fs.readFileSync(path.join(__dirname, 'quest-data', 'kunuz-packs-manifest.js'), 'utf8') + ';return KUNUZ_PACKS;')();
+  if (!Array.isArray(packs)) no('K2', 'pack manifest is not an array');
+  else for (const p of packs) {
+    if (!p || !/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(p.slug) || p.src !== 'quest-data/kunuz-pack-' + p.slug + '.js') no('K2', 'invalid supplemental pack path');
+    else QD.push(path.basename(p.src));
+  }
+  const signs = path.join(__dirname, 'quest-data', 'signs');
+  if (fs.existsSync(signs)) {
+    QD.push('signs');
+    if (fs.readdirSync(signs).some(f => !/^[a-z0-9]+(?:-[a-z0-9]+)*\.webp$/.test(f))) no('K2', 'sign assets must be local WebP files');
+  }
+  QD.sort();
+  if (qd.join() === QD.join()) ok('quest-data/ holds one bank, levels and declared visual sidecars: ' + qd.join(', '));
   else no('K2', 'quest-data/ holds [' + qd.join(', ') + '] -- expected only ' + QD.join(', '));
   { const lvt = fs.readFileSync(path.join(__dirname, 'quest-data', 'kunuz-levels-3147.js'), 'utf8');
     if (!/^var KUNUZ_LEVELS=\{"stamp":"[0-9]+-[0-9a-f]{8}","levels":\{("[A-Za-z0-9-]+":[123],?)+\}\};$/.test(lvt)) no('K2', 'the levels file is not a plain id -> level map');
