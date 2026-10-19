@@ -290,9 +290,12 @@ function seenCarry(o){
   var b=b64d(o.b);if(!b||b.length!==Math.ceil(n/8))return null;
   while(b.length<SEEN.bits.length)b.push(0);return b}
 function seenHas(i){return (SEEN.bits[i>>3]>>(i&7)&1)===1}
+/* سؤال سُحب من البنك يبقى صفّه بمعرّفه (فلا يتغيّر الختم ولا يُطرح سجلّ أحد)، وحقله الثالث صفر: لا يُسحب ولا يُعدّ */
+function kzLive(i){return DATA.qs[i][2]!==0}
+function kzLiveN(){var n=0;for(var i=0;i<DATA.qs.length;i++)if(kzLive(i))n++;return n}
 function seenMark(i){seenRead();SEEN.bits[i>>3]|=1<<(i&7);seenWrite()}
 function seenByCat(){seenRead();var a=DATA.cats.map(function(){return 0});
-  for(var i=0;i<DATA.qs.length;i++)if(!seenHas(i))a[DATA.qs[i][0]]++;return a}
+  for(var i=0;i<DATA.qs.length;i++)if(kzLive(i)&&!seenHas(i))a[DATA.qs[i][0]]++;return a}
 function seenLeft(cats){var a=seenByCat(),n=0;a.forEach(function(v,c){if(!cats||cats.indexOf(c)>-1)n+=v});return n}
 function seenReset(){SEEN.bits=seenEmpty();if(SEEN.mem)return;
   try{window.localStorage.removeItem(SEEN_KEY)}catch(e){SEEN.mem=true}}
@@ -301,7 +304,7 @@ function spentText(){return seenLeft(null)?["انتهت أسئلة فئاتك","
 function seenCard(after){
   var b=$("seenReset");
   $("seenMem").classList.toggle("hidden",!SEEN.mem);
-  b.disabled=(seenLeft(null)===DATA.qs.length);b.textContent="صفّر السجلّ";b.dataset.arm="";
+  b.disabled=(seenLeft(null)===kzLiveN());b.textContent="صفّر السجلّ";b.dataset.arm="";
   b.onclick=function(){
     if(b.dataset.arm!=="1"){b.dataset.arm="1";b.textContent="متأكّد؟ اضغط ثانيةً للتصفير";return}
     seenReset();seenCard(after);if(after)after()};
@@ -390,7 +393,7 @@ var BE=(function(){
   /* ما لم يُرَ ولم يُسأل في هذه اللعبة؛ فإن خلت الفئة منه فما لم يُسأل في هذه اللعبة وحده */
   function bag(g,cat,seen){
     var a=[],b=[];
-    for(var i=0;i<DATA.qs.length;i++)if(DATA.qs[i][0]===cat&&!g.used[i])(seen(i)?b:a).push(i);
+    for(var i=0;i<DATA.qs.length;i++)if(kzLive(i)&&DATA.qs[i][0]===cat&&!g.used[i])(seen(i)?b:a).push(i);
     return a.length?a:b;
   }
   /* يُختار السؤال لحظة فتح الخانة، لا قبلها */
@@ -423,7 +426,7 @@ var BE=(function(){
     return {order:order,winners:winners,tie:winners.length>1};
   }
   /* تكفي الفئة اللوحة إن بقي فيها ستة أسئلة لم تُرَ */
-  function enough(cat,seen){var n=0;for(var i=0;i<DATA.qs.length&&n<PER;i++)if(DATA.qs[i][0]===cat&&!seen(i))n++;return n>=PER}
+  function enough(cat,seen){var n=0;for(var i=0;i<DATA.qs.length&&n<PER;i++)if(kzLive(i)&&DATA.qs[i][0]===cat&&!seen(i))n++;return n>=PER}
   function shortOf(cats,seen){return cats.filter(function(c){return !enough(c,seen)})}
   /* «عشوائي»: ست فئات مختلفة من كلّ الفئات التي تكفي اللوحة */
   function randomCats(seen,rnd){
