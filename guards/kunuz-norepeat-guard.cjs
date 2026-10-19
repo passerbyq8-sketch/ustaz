@@ -135,6 +135,9 @@ function war(W, L, cats, asks, tag) {
 
 // =====================================================================
 const DG = gsrc.DATA, N = DG.qs.length;
+// KUNUZ-LEVELS-POETRY (2026-10-19): a retired row (field 2 = 0) keeps its place and id but is never drawn nor counted, so every
+// "all of them" below is the LIVE count NL; N stays the row count the record's bits and the stamp are made of
+const liveOf = (D) => D.qs.filter((q) => q[2] !== 0).length, NL = liveOf(DG);
 if (hsrc.DATA.qs.length !== N || JSON.stringify(hsrc.DATA) !== JSON.stringify(DG)) throw new Error('ghaws and harb carry different DATA');
 console.log('FILES ghaws=' + ascii(path.basename(GF)) + ' harb=' + ascii(path.basename(HF)) + ' qs=' + N + ' cats=' + DG.cats.length + ' SEED ' + SEED);
 
@@ -158,7 +161,7 @@ console.log('FILES ghaws=' + ascii(path.basename(GF)) + ' harb=' + ascii(path.ba
 
   // drain [SILENT: start needs 1 remaining now, so no leftover planning]: random live cats (padded with spent ones to reach 3), random cap
   const f2 = [], e2 = []; let drains = 0;
-  for (let g = 0; g < 2000 && L.seen.size < N; g++) {
+  for (let g = 0; g < 2000 && L.seen.size < NL; g++) {
     W = gOpen(store); reloads++;
     const lb = leftByCat(DG, store), lv = lb.map((v, i) => [i, v]).filter(x => x[1] > 0).map(x => x[0]);
     const total = lv.reduce((s, c) => s + lb[c], 0);
@@ -171,8 +174,8 @@ console.log('FILES ghaws=' + ascii(path.basename(GF)) + ' harb=' + ascii(path.ba
     drains++; e2.push(...worldErrors(W)); f2.push(...W.fails);
   }
   const consumed = popcount(store, DG);
-  report(2, 'consumed at exhaustion', consumed === N && L.seen.size === N && L.repeats === 0 && !f2.length && !e2.length,
-    'consumed=' + consumed + '/' + N + ' uniqueShown=' + L.seen.size + ' afterPhase1=' + after1 + ' drainDives=' + drains + ' repeats=' + L.repeats + ' errors=' + e2.length + ' fails=' + f2.length, e2.concat(f2));
+  report(2, 'consumed at exhaustion', consumed === NL && L.seen.size === NL && L.repeats === 0 && !f2.length && !e2.length,
+    'consumed=' + consumed + '/' + NL + ' uniqueShown=' + L.seen.size + ' afterPhase1=' + after1 + ' drainDives=' + drains + ' repeats=' + L.repeats + ' errors=' + e2.length + ' fails=' + f2.length, e2.concat(f2));
 
   // 3: after exhaustion — setup says so, start is blocked, a forced start shows nothing and does not recycle
   const f3 = [];
@@ -200,7 +203,7 @@ console.log('FILES ghaws=' + ascii(path.basename(GF)) + ' harb=' + ascii(path.ba
   if (got !== null || qShown) f3.push('harb forced ask showed a question');
   if (!ended || hscr !== 'win' || hname.indexOf('انتهت الأسئلة كلّها') !== 0) f3.push('harb forced war screen=' + hscr);
   const W2 = gOpen(store); toCfg(W2, false);
-  if (popcount(store, DG) !== N) f3.push('record changed after exhaustion: ' + popcount(store, DG));
+  if (popcount(store, DG) !== NL) f3.push('record changed after exhaustion: ' + popcount(store, DG));
   f3.push(...worldErrors(W), ...W.fails, ...worldErrors(hW), ...hW.fails, ...worldErrors(W2), ...W2.fails);
   report(3, 'after exhaustion: announce, nothing shown, no recycle', !f3.length,
     'setupAnnounces=' + (sub.indexOf('انتهت') > -1 ? 1 : 0) + ' goDiveDisabled=' + (goOff ? 1 : 0) + ' resetEnabled=' + (resetOn ? 1 : 0) + ' forcedDiveScreen=' + scr + ' spentTitle=' + (title === 'انتهت الأسئلة كلّها' ? 1 : 0) + ' questionShown=' + (S.cur ? 1 : 0) + ' againDisabled=' + (again ? 1 : 0) +
@@ -255,7 +258,7 @@ console.log('FILES ghaws=' + ascii(path.basename(GF)) + ' harb=' + ascii(path.ba
     const D2 = JSON.parse(JSON.stringify(DG)); mut(D2);
     const src2 = Object.assign({}, gsrc, { DATA: D2 });
     const W2 = gOpen(store, src2); toCfg(W2, false);
-    const n2 = D2.qs.length; // SILENT: no seenSub text to read any more
+    const n2 = liveOf(D2); // SILENT: no seenSub text to read any more
     const leftNum = W2.ctx.seenLeft(null);
     const raw = store.getItem(KEY), o = raw && JSON.parse(raw);
     if (leftNum !== n2) f.push(name + ' left ' + leftNum + ' != ' + n2);
@@ -274,20 +277,20 @@ console.log('FILES ghaws=' + ascii(path.basename(GF)) + ' harb=' + ascii(path.ba
     const Wn = gOpen(store); toCfg(Wn, false);
     const after = popcount(store, DG), rec = JSON.parse(store.getItem(KEY));
     if (!(before > 0) || after !== before) f.push('grow: carried ' + after + ' of ' + before);
-    if (Wn.ctx.seenLeft(null) !== N - before) f.push('grow: left ' + Wn.ctx.seenLeft(null) + ' != ' + (N - before));
+    if (Wn.ctx.seenLeft(null) !== NL - before) f.push('grow: left ' + Wn.ctx.seenLeft(null) + ' != ' + (NL - before));
     if (rec.s !== Wn.ctx.seenStamp() || rec.s === oldStamp) f.push('grow: record not re-stamped');
     const store2 = Store(), Dq = JSON.parse(JSON.stringify(Dp)); Dq.qs[5][8] += '-x';
     dive(gOpen(store2, Object.assign({}, gsrc, { DATA: Dq })), Ledger(), [0, 1, 2], 50, 'grow2');
     const left2 = gOpen(store2).ctx.seenLeft(null);
-    if (left2 !== N) f.push('grow: a foreign prefix was kept (' + left2 + ')');
+    if (left2 !== NL) f.push('grow: a foreign prefix was kept (' + left2 + ')');
     rows.push('grow:shown=' + shown + ',carried=' + after + '/' + before);
     f.push(...worldErrors(Wp), ...Wp.fails, ...worldErrors(Wn), ...Wn.fails);
   }
   // control: same bank, new page → record kept
   const store = Store(), L = Ledger(); const W = gOpen(store); const n = dive(W, L, [0, 1, 2], 50, 'ctl');
   const kept = gOpen(store).ctx.seenLeft(null);
-  if (kept !== N - n) f.push('control: same bank lost record ' + kept);
-  report(6, 'bank stamp change drops the record, an append-only growth carries it', !f.length, rows.join(' ') + ' control:sameBankLeft=' + kept + '/' + (N - n) + ' fails=' + f.length, f);
+  if (kept !== NL - n) f.push('control: same bank lost record ' + kept);
+  report(6, 'bank stamp change drops the record, an append-only growth carries it', !f.length, rows.join(' ') + ' control:sameBankLeft=' + kept + '/' + (NL - n) + ' fails=' + f.length, f);
 })();
 
 // ---- 7: owner reset ----
@@ -307,7 +310,7 @@ console.log('FILES ghaws=' + ascii(path.basename(GF)) + ' harb=' + ascii(path.ba
   const H2 = hOpen(store); H2.tap(H2.doc.querySelector('[data-go="cfg"]'), 'cfg'); const hb = H2.ctx.seenLeft(null);
   H2.tap(H2.$('seenReset'), 'h reset'); H2.tap(H2.$('seenReset'), 'h confirm'); const ha = gOpen(store).ctx.seenLeft(null);
   if (afterOne !== before) f.push('single tap reset');
-  if (afterTwo !== N || reload !== N || hLeft !== N || ha !== N) f.push('reset did not restore');
+  if (afterTwo !== NL || reload !== NL || hLeft !== NL || ha !== NL) f.push('reset did not restore');
   if (!keyGone) f.push('key not removed');
   [W, H, W4, H2].forEach(x => f.push(...worldErrors(x), ...x.fails));
   report(7, 'owner reset (two taps)', !f.length, 'before=' + before + ' afterOneTap=' + afterOne + ' afterConfirm=' + afterTwo + ' keyRemoved=' + (keyGone ? 1 : 0) + ' resetBtnDisabledAfter=' + (disabled ? 1 : 0) + ' reloadLeft=' + reload + ' harbSeesLeft=' + hLeft + ' harbResetFrom=' + hb + '->' + ha + ' fails=' + f.length, f);
@@ -590,8 +593,8 @@ function playWar(W, L, o) {
     const ctx = W.ctx, left = ctx.seenByCat(), set = new Set();
     const tot = DG.cats.map((c, i) => DG.qs.filter(q => q[0] === i).length);
     const add = n => { if (n >= 13) set.add(n); };
-    add(N); const L = left.reduce((a, b) => a + b, 0); add(L); add(N - L);
-    tot.forEach(add); left.forEach(add);
+    add(N); const L = left.reduce((a, b) => a + b, 0); add(L); add(N - L); add(NL); add(NL - L);
+    tot.forEach(add); DG.cats.forEach((c, i) => add(DG.qs.filter((q) => q[0] === i && q[2] !== 0).length)); left.forEach(add);
     const chosen = (ctx.S ? ctx.S.cats : ctx.G.cats) || [];
     if (chosen.length) { add(chosen.reduce((s, c) => s + tot[c], 0)); add(chosen.reduce((s, c) => s + left[c], 0)); add(Math.min(...chosen.map(c => left[c]))); add(Math.min(...chosen.map(c => tot[c]))); }
     return [...set];

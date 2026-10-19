@@ -18,7 +18,8 @@
  * esc.cjs. A guard that prints raw Arabic to a Windows console LIES about what it found.
  *
  * WHAT IT PROVES
- *   K1 bank shape   -- the shared bank evaluates to DATA with exactly 10935 questions in
+ *   K1 bank shape   -- the shared bank evaluates to DATA with exactly 11036 rows (10819 live, the 217 named retired rows
+ *                      kept in place with their ids, and the old 10935 ids an unchanged prefix of today's) in
  *                      53 categories; every question has the nine-field shape, a category
  *                      in range, a non-empty stem, 3..4 distinct options, a key in range
  *                      and a unique id; no category is empty.
@@ -75,7 +76,14 @@ const vm = require('vm');
 // ITEM 10. The one bank both Kunuz modes load, and the figures it was accepted at.
 const BANK = 'quest-data/kunuz-bank-3147.js';
 const BANK_TAG = '<script src="/' + BANK + '"></script>';
-const BANK_QUESTIONS = 10935;
+const BANK_QUESTIONS = 11036;
+// KUNUZ-LEVELS-POETRY (2026-10-19, B): the owner had the poets' private-life questions pulled. They are RETIRED IN PLACE, not
+// deleted: the row keeps its id (so the stamp of the old 10935 ids stays a prefix of today's and every player's no-repeat
+// record is carried, not dropped), its field 2 is 0 and its content is blanked; the pages never draw or count it (kzLive).
+// The new verse questions were appended AFTER the old rows. Every retired id is named here, and nothing else may be retired.
+const BANK_LIVE = 10819;
+const BANK_PREFIX = 10935, BANK_PREFIX_STAMP = '10935-8601a1af';   // the pages' seenStamp() of the bank as it stood before
+const RETIRED = new Set(["poetry-fusha-0146","poetry-fusha-0147","poetry-fusha-0148","poetry-fusha-0149","poetry-fusha-0150","poetry-fusha-0151","poetry-fusha-0152","poetry-fusha-0153","poetry-fusha-0154","poetry-fusha-0155","poetry-fusha-0156","poetry-fusha-0157","poetry-fusha-0158","poetry-fusha-0159","poetry-fusha-0160","poetry-fusha-0161","poetry-fusha-0162","poetry-fusha-0163","poetry-fusha-0164","poetry-fusha-0165","poetry-fusha-0166","poetry-fusha-0167","poetry-fusha-0168","poetry-fusha-0169","poetry-fusha-0170","poetry-fusha-0171","poetry-fusha-0172","poetry-fusha-0173","poetry-fusha-0174","poetry-fusha-0175","poetry-fusha-0176","poetry-fusha-0177","poetry-fusha-0178","poetry-fusha-0179","poetry-fusha-0180","poetry-fusha-0181","poetry-fusha-0182","poetry-fusha-0183","poetry-fusha-0184","poetry-fusha-0185","poetry-fusha-0187","poetry-fusha-0188","poetry-fusha-0189","poetry-fusha-0190","poetry-fusha-0348","poetry-fusha-0349","poetry-fusha-0350","poetry-fusha-0351","poetry-fusha-0352","poetry-fusha-0353","poetry-fusha-0354","poetry-fusha-0355","poetry-fusha-0356","poetry-fusha-0357","poetry-fusha-0358","poetry-fusha-0359","poetry-fusha-0360","poetry-nabati-0004","poetry-nabati-0005","poetry-nabati-0006","poetry-nabati-0007","poetry-nabati-0008","poetry-nabati-0009","poetry-nabati-0012","poetry-nabati-0015","poetry-nabati-0016","poetry-nabati-0018","poetry-nabati-0019","poetry-nabati-0020","poetry-nabati-0021","poetry-nabati-0022","poetry-nabati-0023","poetry-nabati-0024","poetry-nabati-0025","poetry-nabati-0026","poetry-nabati-0029","poetry-nabati-0031","poetry-nabati-0033","poetry-nabati-0034","poetry-nabati-0035","poetry-nabati-0037","poetry-nabati-0038","poetry-nabati-0039","poetry-nabati-0041","poetry-nabati-0042","poetry-nabati-0043","poetry-nabati-0045","poetry-nabati-0047","poetry-nabati-0048","poetry-nabati-0049","poetry-nabati-0050","poetry-nabati-0051","poetry-nabati-0052","poetry-nabati-0054","poetry-nabati-0055","poetry-nabati-0057","poetry-nabati-0060","poetry-nabati-0061","poetry-nabati-0062","poetry-nabati-0064","poetry-nabati-0066","poetry-nabati-0070","poetry-nabati-0071","poetry-nabati-0073","poetry-nabati-0075","poetry-nabati-0076","poetry-nabati-0078","poetry-nabati-0080","poetry-nabati-0081","poetry-nabati-0082","poetry-nabati-0083","poetry-nabati-0084","poetry-nabati-0088","poetry-nabati-0089","poetry-nabati-0090","poetry-nabati-0091","poetry-nabati-0093","poetry-nabati-0094","poetry-nabati-0095","poetry-nabati-0096","poetry-nabati-0098","poetry-nabati-0099","poetry-nabati-0100","poetry-nabati-0102","poetry-nabati-0103","poetry-nabati-0105","poetry-nabati-0108","poetry-nabati-0109","poetry-nabati-0111","poetry-nabati-0112","poetry-nabati-0113","poetry-nabati-0114","poetry-nabati-0115","poetry-nabati-0116","poetry-nabati-0117","poetry-nabati-0118","poetry-nabati-0129","poetry-nabati-0142","poetry-nabati-0143","poetry-nabati-0148","poetry-nabati-0151","poetry-nabati-0154","poetry-nabati-0155","poetry-nabati-0156","poetry-nabati-0157","poetry-nabati-0159","poetry-nabati-0162","poetry-nabati-0163","poetry-nabati-0164","poetry-nabati-0166","poetry-nabati-0167","poetry-nabati-0169","poetry-nabati-0170","poetry-nabati-0172","poetry-nabati-0173","poetry-nabati-0174","poetry-nabati-0175","poetry-nabati-0176","poetry-nabati-0179","poetry-nabati-0180","poetry-nabati-0181","poetry-nabati-0183","poetry-nabati-0185","poetry-nabati-0186","poetry-nabati-0187","poetry-nabati-0189","poetry-nabati-0198","poetry-nabati-0199","poetry-nabati-0201","poetry-nabati-0202","poetry-nabati-0204","poetry-nabati-0217","poetry-nabati-0219","poetry-nabati-0220","poetry-nabati-0221","poetry-nabati-0225","poetry-nabati-0226","poetry-nabati-0231","poetry-nabati-0232","poetry-nabati-0233","poetry-nabati-0235","poetry-nabati-0239","poetry-nabati-0240","poetry-nabati-0242","poetry-nabati-0245","poetry-nabati-0251","poetry-nabati-0253","poetry-nabati-0254","poetry-nabati-0255","poetry-nabati-0257","poetry-nabati-0260","poetry-nabati-0261","poetry-nabati-0264","poetry-nabati-0266","poetry-nabati-0267","poetry-nabati-0268","poetry-nabati-0269","poetry-nabati-0271","poetry-nabati-0274","poetry-nabati-0275","poetry-nabati-0276","poetry-nabati-0277","poetry-nabati-0281","poetry-nabati-0284","poetry-nabati-0310","poetry-nabati-0311","poetry-nabati-0312","poetry-nabati-0316","poetry-nabati-0317","poetry-nabati-0319","poetry-nabati-0330","poetry-nabati-0332","poetry-nabati-0336","poetry-nabati-0342","poetry-nabati-0344","poetry-nabati-0347","poetry-nabati-0353"]);
 const BANK_CATEGORIES = 53;
 const KUNUZ_MODES = ['quest-ghaws.html', 'quest-harb.html', 'quest-test.html', 'quest-board.html'];   // KUNUZ-TEST (2026-10-16): the fourth game, «اختبر معلوماتك»; KUNUZ-BOARD (2026-10-16): the board game
 const KUNUZ_HUB = 'quest.html';
@@ -101,7 +109,9 @@ const SEALED = {
   // and re-cut 2026-10-13 when the owner removed two questions (BE327C28, 1534695 bytes, 3145) and again the same day when
   // the 26 new categories joined, appended after the old 27 (646738ED, 5430943 bytes, 10935 questions, 53 categories). One line
   // of JavaScript, no newline, so no line-ending conversion can move it; pinned -text anyway.
-  'quest-data/kunuz-bank-3147.js': '646738ed66bb6c4adb2142348f81d9241659d729397b267b853685c0605ec19a',
+  // and again 2026-10-19 (KUNUZ-LEVELS-POETRY, B): 217 poets' private-life questions retired in place and 101 verse questions
+  // appended (EA0F7962, 5412585 bytes, 11036 rows, 10819 live).
+  'quest-data/kunuz-bank-3147.js': 'ea0f79621f28ecbb5aed00c19036db99e97403a52ace03b59f0ebabd8449a66f',
   'quran-uthmani.json': 'd4fd1a1507f70a4261789eaec8380750cd0f65f4d641f6df2ef6334b18c6877b',
   'adhkar.json': '19ef96b9ecc275376d46a667a86297261ea5991749ffe46dd35448196cb4c9c3',
   'mushaf-layout.json': 'ea9223ef7f18b5d933ce1c87cbebabc5d78f1ec0e8ac9714260f9dee6d571351',
@@ -2480,9 +2490,21 @@ async function compare(bankPath) {
     else no('K1', 'category count = ' + D.cats.length + ' (accepted at ' + BANK_CATEGORIES + ')');
     let shape = 0;
     const ids = new Set(), perCat = D.cats.map(() => 0);
+    let retiredN = 0, liveN = 0;
     D.qs.forEach((q, i) => {
       const at = 'question ' + i;
       if (!Array.isArray(q) || q.length !== 9) { shape++; no('K1', at + ' is not the nine-field shape'); return; }
+      // a retired row: exactly [cat, 0, 0, '', [], -1, '', '', id], its id named in RETIRED, its category still in range
+      if (q[2] === 0) {
+        retiredN++;
+        if (!RETIRED.has(q[8])) { shape++; no('K1', at + ' is retired but not named: ' + q[8]); }
+        if (!Number.isInteger(q[0]) || q[0] < 0 || q[0] >= D.cats.length || q[1] !== 0 || q[3] !== '' || !Array.isArray(q[4]) || q[4].length || q[5] !== -1 || q[6] !== '' || q[7] !== '') { shape++; no('K1', at + ' is retired but not the blank shape'); }
+        if (ids.has(q[8])) { shape++; no('K1', at + ' repeats id ' + q[8]); } else ids.add(q[8]);
+        return;
+      }
+      liveN++;
+      if (q[1] !== 0 || q[2] !== 1) { shape++; no('K1', at + ' fields 1/2 are ' + q[1] + '/' + q[2] + ' (live is 0/1, retired is 0/0)'); }
+      if (RETIRED.has(q[8])) { shape++; no('K1', at + ' is named retired but still live: ' + q[8]); }
       if (!Number.isInteger(q[0]) || q[0] < 0 || q[0] >= D.cats.length) { shape++; no('K1', at + ' category ' + q[0] + ' out of range'); }
       else perCat[q[0]]++;
       if (typeof q[3] !== 'string' || !q[3].trim()) { shape++; no('K1', at + ' has no stem'); }
@@ -2497,6 +2519,15 @@ async function compare(bankPath) {
       else if (ids.has(q[8])) { shape++; no('K1', at + ' repeats id ' + q[8]); }
       else ids.add(q[8]);
     });
+    if (retiredN === RETIRED.size) ok('the ' + RETIRED.size + ' named retired rows are all in place, blank, never live');
+    else no('K1', 'retired rows = ' + retiredN + ' (named ' + RETIRED.size + '): a retired row was deleted, which drops every player record');
+    if (liveN === BANK_LIVE) ok('live questions = ' + BANK_LIVE); else no('K1', 'live questions = ' + liveN + ' (accepted at ' + BANK_LIVE + ')');
+    // the pages' own stamp formula (count + FNV-1a of the ids in order) over the first BANK_PREFIX rows
+    let h = 2166136261;
+    for (let i = 0; i < BANK_PREFIX && i < D.qs.length; i++) { const q = D.qs[i], t = String(q.length > 8 ? q[8] : q[3]) + '\n'; for (let j = 0; j < t.length; j++) h = Math.imul(h ^ t.charCodeAt(j), 16777619) >>> 0; }
+    const pre = BANK_PREFIX + '-' + ('0000000' + h.toString(16)).slice(-8);
+    if (pre === BANK_PREFIX_STAMP) ok('the old ' + BANK_PREFIX + ' ids are an unchanged prefix (stamp ' + pre + '): every no-repeat record is carried');
+    else no('K1', 'the stamp of the first ' + BANK_PREFIX + ' rows is ' + pre + ', not ' + BANK_PREFIX_STAMP + ': an old row moved or left, and every player record would be dropped');
     const empty = perCat.map((n, i) => (n ? -1 : i)).filter((i) => i > -1);
     if (empty.length) { shape++; no('K1', 'categories with no question: ' + empty.join(', ')); }
     if (!shape) ok('all ' + D.qs.length + ' questions are well-formed, ids unique, no empty category');
@@ -2518,6 +2549,7 @@ async function compare(bankPath) {
     const tfWord = new RegExp('^(' + cp(0x635, 0x62D) + '|' + cp(0x635, 0x62D, 0x64A, 0x62D) + '|' + cp(0x62E, 0x637, 0x623) + '|' + cp(0x62E, 0x627, 0x637, 0x626) + '|true|false)$', 'i');
     let four = 0, tf = 0, ent = 0;
     D.qs.forEach((q, i) => {
+      if (q[2] === 0) return;   // a retired row has no content to rule on (K1 holds its shape)
       if (i >= FLOOR && (!Array.isArray(q[4]) || q[4].length !== 4)) { four++; no('K6', q[8] + ' does not offer exactly four options'); }
       if (Array.isArray(q[4]) && q[4].length && q[4].every((o) => tfWord.test(String(o).replace(strip, '').trim()))) { tf++; no('K6', q[8] + ' is a true/false question'); }
       if (NAMED.has(q[8])) return;
