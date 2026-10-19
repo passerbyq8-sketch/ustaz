@@ -592,6 +592,11 @@
     "args": ""
   },
   {
+    "name": "kunuzlevels",
+    "script": "guards/kunuz-levels-guard.cjs",
+    "args": ""
+  },
+  {
     "name": "hannalaha",
     "script": "guards/hanna-laha-in-ezik-guard.cjs",
     "args": ""

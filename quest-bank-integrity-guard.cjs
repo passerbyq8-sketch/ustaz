@@ -25,7 +25,7 @@
  *                      and a unique id; no category is empty.
  *   K6 bank rules   -- every question after the accepted 3145 offers exactly four options, no question
  *                      is true/false, and the entity rule holds over the whole bank (named exceptions only).
- *   K2 one copy     -- quest-data/ holds that one file and nothing else, and no page in
+ *   K2 one copy     -- quest-data/ holds that one file and its levels map (2026-10-19), nothing else, and no page in
  *                      the repository root embeds a bank of its own.
  *   K3 the modes    -- quest-ghaws.html, quest-harb.html, quest-test.html and quest-board.html each load the shared bank
  *                      exactly once, and each carries a way back to /quest.html and a
@@ -2562,8 +2562,13 @@ async function compare(bankPath) {
   // -- K2 one copy of the bank -----------------------------------------------
   console.log('\n-- K2 one copy --');
   const qd = fs.readdirSync(path.join(__dirname, 'quest-data')).sort();
-  if (qd.length === 1 && qd[0] === path.basename(BANK)) ok('quest-data/ holds exactly one file: ' + qd[0]);
-  else no('K2', 'quest-data/ holds [' + qd.join(', ') + '] -- expected only ' + path.basename(BANK));
+  // KUNUZ-LEVELS-POETRY (2026-10-19, C): the bank and the experimental levels file (a map id -> level, no question in it)
+  const QD = [path.basename(BANK), 'kunuz-levels-3147.js'].sort();
+  if (qd.join() === QD.join()) ok('quest-data/ holds exactly the bank and its levels file: ' + qd.join(', '));
+  else no('K2', 'quest-data/ holds [' + qd.join(', ') + '] -- expected only ' + QD.join(', '));
+  { const lvt = fs.readFileSync(path.join(__dirname, 'quest-data', 'kunuz-levels-3147.js'), 'utf8');
+    if (!/^var KUNUZ_LEVELS=\{"stamp":"[0-9]+-[0-9a-f]{8}","levels":\{("[A-Za-z0-9-]+":[123],?)+\}\};$/.test(lvt)) no('K2', 'the levels file is not a plain id -> level map');
+    else ok('the levels file is a plain id -> level map, no question text in it'); }
   const embedders = fs.readdirSync(__dirname).filter((f) => /\.html$/.test(f))
     .filter((f) => fs.readFileSync(path.join(__dirname, f), 'utf8').indexOf('var DATA=') > -1);
   if (!embedders.length) ok('no root page embeds a bank of its own');

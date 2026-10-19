@@ -503,6 +503,8 @@ textarea:focus{outline:none;border-color:var(--azraq)}
     <p class="tally" id="catTally"></p>
   </div>
 
+  <div id="lvSlot"></div>
+
   <div class="card">
     <p class="lbl">المهلة لكلّ سؤال</p><p class="sub">كم ثانية يصبر السؤال — وفيها تحترق الخيارات واحدًا بعد واحد</p>
     <div class="chips" id="fuses"></div>
@@ -1007,18 +1009,23 @@ function seenHas(i){return (SEEN.bits[i>>3]>>(i&7)&1)===1}
 /* سؤال سُحب من البنك يبقى صفّه بمعرّفه (فلا يتغيّر الختم ولا يُطرح سجلّ أحد)، وحقله الثالث صفر: لا يُسحب ولا يُعدّ */
 function kzLive(i){return DATA.qs[i][2]!==0}
 function kzLiveN(){var n=0;for(var i=0;i<DATA.qs.length;i++)if(kzLive(i))n++;return n}
+/* المستوى التجريبيّ (quest-levels.js): إن غاب أو أُطفئ أو رُفض ملفّه فكلّ سؤال على المستوى المختار، ولا يتغيّر شيء */
+function kzLv(i){return typeof KZL==="undefined"||KZL.ok(i)}
+function kzLvAt(i,l){return typeof KZL==="undefined"||KZL.at(i,l)}
 function seenMark(i){seenRead();SEEN.bits[i>>3]|=1<<(i&7);seenWrite()}
-function seenByCat(){seenRead();var a=DATA.cats.map(function(){return 0});
-  for(var i=0;i<DATA.qs.length;i++)if(kzLive(i)&&!seenHas(i))a[DATA.qs[i][0]]++;return a}
-function seenLeft(cats){var a=seenByCat(),n=0;a.forEach(function(v,c){if(!cats||cats.indexOf(c)>-1)n+=v});return n}
+/* any: كلّ المستويات، لزرّ التصفير وحده (يتبع السجلّ لا الاختيار) */
+function seenByCat(any){seenRead();var a=DATA.cats.map(function(){return 0});
+  for(var i=0;i<DATA.qs.length;i++)if(kzLive(i)&&(any||kzLv(i))&&!seenHas(i))a[DATA.qs[i][0]]++;return a}
+function seenLeft(cats,any){var a=seenByCat(any),n=0;a.forEach(function(v,c){if(!cats||cats.indexOf(c)>-1)n+=v});return n}
 function seenReset(){SEEN.bits=seenEmpty();if(SEEN.mem)return;
   try{window.localStorage.removeItem(SEEN_KEY)}catch(e){SEEN.mem=true}}
-function spentText(){return seenLeft(null)?["انتهت أسئلة فئاتك","اختر فئات غيرها، أو صفّر السجلّ من شاشة الإعداد"]:
+function spentText(){var lv=typeof KZL==="undefined"?null:KZL.spent();if(lv)return lv;
+  return seenLeft(null)?["انتهت أسئلة فئاتك","اختر فئات غيرها، أو صفّر السجلّ من شاشة الإعداد"]:
   ["انتهت الأسئلة كلّها","رأيتَها جميعًا — التصفير بيدك في شاشة الإعداد"]}
 function seenCard(after){
   var b=$("seenReset");
   $("seenMem").classList.toggle("hidden",!SEEN.mem);
-  b.disabled=(seenLeft(null)===kzLiveN());b.textContent="صفّر السجلّ";b.dataset.arm="";
+  b.disabled=(seenLeft(null,1)===kzLiveN());b.textContent="صفّر السجلّ";b.dataset.arm="";
   b.onclick=function(){
     if(b.dataset.arm!=="1"){b.dataset.arm="1";b.textContent="متأكّد؟ اضغط ثانيةً للتصفير";return}
     seenReset();seenCard(after);if(after)after()};
@@ -1140,13 +1147,15 @@ function kzcDraw(sel,min,max,toggle){
   if(fc){var K=fc.charAt(0),q="["+(K==="c"?"data-cat":K==="g"?"data-g":"data-p")+"=\""+fc.slice(1)+"\"]";
     var el=(K==="p"?pw:w).querySelector(q);if(el&&!el.disabled&&el.focus){try{el.focus()}catch(x){}}}
 }
+/* المستوى تغيّر: يُعاد حساب ما بقي */
+function kzlChanged(){drawCats()}
 function drawCats(){
   kzcDraw(G.cats,3,6,function(i){var k=G.cats.indexOf(i);
     if(k>-1)G.cats.splice(k,1);else if(G.cats.length<6)G.cats.push(i);
     drawCats()});
   tally();
 }
-function avail(ci){var n=0;for(var i=0;i<DATA.qs.length;i++){if(kzLive(i)&&DATA.qs[i][0]===ci)n++}return n}
+function avail(ci){var n=0;for(var i=0;i<DATA.qs.length;i++){if(kzLive(i)&&kzLv(i)&&DATA.qs[i][0]===ci)n++}return n}
 function tally(){
   var L=leftByCat(),left=0;
   G.cats.forEach(function(ci){left+=L[ci]});
@@ -1429,7 +1438,7 @@ function overText(why){
   if(why==="victory")return "";
   if(OVERWHY[why])return OVERWHY[why];
   if(RM.on)return "خمدت الجزر كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات";
-  return seenLeft(null)?"خمدت الجزر كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات":"انتهت الأسئلة كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات، والتصفير بيدك في شاشة الإعداد";
+  return seenLeft(null)||(typeof KZL!=="undefined"&&KZL.name())?"خمدت الجزر كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات":"انتهت الأسئلة كلّها — الغلبة لمن ملك أكثر جزرًا ثمّ رايات، والتصفير بيدك في شاشة الإعداد";
 }
 function showOver(e){victory(e.winner,overText(e.why),e.why)}
 function warEnd(){var e=WarEngine.warEnd(G);if(!e)return false;showOver(e);return true}
@@ -1596,7 +1605,7 @@ function victory(i,why,kind){
 /* ───── النزال ───── */
 function pickQ(ci){
   var bag=[];seenRead();
-  for(var i=0;i<DATA.qs.length;i++){if(kzLive(i)&&DATA.qs[i][0]===ci&&!G.used[i]&&!seenHas(i))bag.push(i)}
+  for(var i=0;i<DATA.qs.length;i++){if(kzLive(i)&&kzLv(i)&&DATA.qs[i][0]===ci&&!G.used[i]&&!seenHas(i))bag.push(i)}
   if(!bag.length)return null;
   var k=bag[Math.floor(Math.random()*bag.length)];G.used[k]=1;seenMark(k);G.left=seenByCat();return DATA.qs[k];
 }
@@ -1935,11 +1944,12 @@ $("roomBack").onclick=function(){
 $("roomHost").onclick=function(){RM.joinMode="host";roomCfg()};
 function roomCfg(){
   G.roomCfg=true;
+  if(typeof KZL!=="undefined")KZL.reset();$("lvSlot").classList.add("hidden");
   openCfg();
   $("plcard").classList.add("hidden");$("startWar").textContent="افتح الغرفة";$("cfgNote").classList.remove("hidden");
   document.querySelector(".seenfoot").classList.add("hidden")}
 function leaveCfgMode(){
-  if(!G.roomCfg)return;G.roomCfg=false;
+  if(!G.roomCfg)return;G.roomCfg=false;$("lvSlot").classList.remove("hidden");
   $("plcard").classList.remove("hidden");$("startWar").textContent="ابدأ";$("cfgNote").classList.add("hidden");
   document.querySelector(".seenfoot").classList.remove("hidden");tally()}
 function roomCreate(){
@@ -2333,6 +2343,7 @@ document.addEventListener("click",function(e){
 document.addEventListener("keydown",function(e){if(KZR.open&&e.key==="Escape")kzrClose()});
 window.addEventListener("popstate",function(){kzrClose()});
 </script>
+<script src="/quest-levels.js"></script>
 <script src="/quest-i18n.js"></script>
 </body>
 </html>
