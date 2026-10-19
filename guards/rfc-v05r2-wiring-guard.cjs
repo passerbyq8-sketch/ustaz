@@ -120,7 +120,7 @@ const BRAVE_RESULTS = [
 // happened to open. A MISSING PAGE on a scripted host is not one of these: the 404 branch below
 // is deliberate and several checks depend on it, so the test is on the HOST, not on the URL.
 const SCRIPTED_HOSTS = new Set(['api.anthropic.com', 'api.search.brave.com']);
-SCRIPTED_HOSTS.add('ezik-fatwas.vercel.app');
+SCRIPTED_HOSTS.add('ezik-fatwas-4k.vercel.app');
 for (const u of Object.keys(CORPUS)) { try { SCRIPTED_HOSTS.add(new URL(u).hostname); } catch { /* not a URL */ } }
 for (const r of BRAVE_RESULTS) { try { SCRIPTED_HOSTS.add(new URL(r.url).hostname); } catch { /* not a URL */ } }
 const offScript = (u) => {

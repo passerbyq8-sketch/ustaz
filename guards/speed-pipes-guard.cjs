@@ -2384,7 +2384,7 @@ function libraryPlain(markup) {
       const STORE = require('./fixtures-speed-wasl-fatwas.json');
       const fatwaAsked = [];
       const storeRespond = (u, init) => {
-        if (!u.startsWith('https://ezik-fatwas.vercel.app/')) return w2Respond(u, init);
+        if (!u.startsWith('https://ezik-fatwas-4k.vercel.app/')) return w2Respond(u, init);
         const e = STORE[u];
         if (u.includes('/fatwas/search')) fatwaAsked.push(new URL(u).searchParams.get('q'));
         if (!e) return { ok: false, status: 404, url: u, headers: { get: () => 'application/json' }, text: async () => '{}', json: async () => ({}) };

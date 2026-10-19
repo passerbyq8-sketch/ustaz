@@ -23,7 +23,7 @@ const SALAH_ADULT_TEXT_HASH = '7687019965bf142259cdc7660af8c32a211cdb1455f5f479f
 // Re-cut again on 2026-09-09 (item 29/د٤): the replayed /api/v1/scholars and /api/v1/health
 // payloads gained ferkous and took kuwait_eftaa to 252, so the offline replay still matches
 // lib/fatwa-contract.js after the live corpus moved to 19 rows / 74,769 records.
-const X021_FIXTURE_HASH = '27e9118834860207698619b45071a62113c6ed8d97e21838e0161436606bd0a8';
+const X021_FIXTURE_HASH = '1426c91cb7557204f1784a00bda94fa7e25be12bf63106bc0d76aa3fc3a02f4d';
 const D2_CASE_QUESTIONS = Object.freeze([
   'كيف يصلي المريض الذي لا يستطيع القيام؟',
   'ما كيفية صلاة الخوف عند اشتداد القتال؟',
@@ -425,11 +425,11 @@ async function runHybridGuard() {
       && x021Production.scholars === x021.expected.scholars
       && x021Production.total === x021.expected.total
       && x021Production.ibnBaz === x021.expected.ibnBaz
-      && x021Production.deploymentId === 'dpl_GC4EMbSijTzcsb2gS7TpSqYyLHrd'
-      && /9a1eb29d/u.test(x021.externalEvidence.productionReason || ''));
+      && x021Production.deploymentId === 'dpl_FVdV72YyPWaoGPinKCCuYo9rcHiY'
+      && /95652a69/u.test(x021.externalEvidence.productionReason || ''));
   eq('X-021 production shorthand matches the 2026-09-10 production reading',
     `${x021Production.scholars}/${x021Production.total}/${x021Production.ibnBaz} · ${x021Production.fatwaStatus}`,
-    '19/80435/24145 · OK');
+    '30/126269/28504 · OK');
   ok('X-021 MUTANT KILLED: an observed response that disagrees with the offline counts cannot pass',
     !(x021seen.scholars === x021.expected.scholars && x021seen.total === x021.expected.total - 1));
   const telemetryContext = {
@@ -837,11 +837,11 @@ async function runHybridGuard() {
   const indexSource = require('../tools/babel-block.cjs').readShippedClient(path.join(ROOT, 'index.html'));
   const vercel = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
   ok('fatwa browser contract is same-origin and contains no second-service URL', indexSource.includes("const EZIK_FATWA_API_BASE = ''")
-    && !indexSource.includes('https://ezik-fatwas.vercel.app'));
+    && !indexSource.includes('https://ezik-fatwas-4k.vercel.app'));
   ok('the unchanged /api/v1/* UI contract rewrites to the server proxy', vercel.rewrites.some((r) =>
     r.source === '/api/v1/:path*' && r.destination === '/api/fatwa-proxy?path=:path*'));
-  eq('fatwa pinned corpus contract', FC.fatwaContractTotals(), { scholars: 19, total: 80435, ibnBaz: 24145 });
-  ok('fatwa service base is the one authorised origin', FC.FATWA_BASE === 'https://ezik-fatwas.vercel.app');
+  eq('fatwa pinned corpus contract', FC.fatwaContractTotals(), { scholars: 30, total: 126269, ibnBaz: 28504 });
+  ok('fatwa service base is the one authorised origin', FC.FATWA_BASE === 'https://ezik-fatwas-4k.vercel.app');
 
   console.log('\n--- TEXT/CALL PARITY AND NO-CLARIFICATION WIRING ---');
   ok('text and call both default to /api/ask', /endpoint = '\/api\/ask'/u.test(indexSource));

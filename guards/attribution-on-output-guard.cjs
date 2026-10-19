@@ -58,7 +58,9 @@ async function deriveRegistry() {
   const rows = [];
   for (const scholar of contract.FATWA_SCHOLARS) {
     const aliases = [...new Set([scholar.name, scholar.formalName, ...scholar.aliases].filter(Boolean))];
-    const hosts = new Set([scholar.sourceDomain, ...(EXPECTED_HOST_EXTRA[scholar.id] || [])]);
+    // An empty sourceDomain (the merge-4K rows have none) is no host: '' would match every
+    // evidence item whose URL does not parse, in officialSourceFor's `host === allowed`.
+    const hosts = new Set([scholar.sourceDomain, ...(EXPECTED_HOST_EXTRA[scholar.id] || [])].filter(Boolean));
     for (const site of registry.SCHOLAR_SITES) {
       const overlap = site.aliases.some((alias) => aliases.some((known) => {
         const a = fold(alias);
@@ -206,15 +208,80 @@ const rejectsWrongScholar = (module) => {
     // ── E. THE DERIVED REGISTRY (merge §٣) ────────────────────────────────
     const derived = await deriveRegistry();
     ok('the registry covers every measured fatwa scholar and every institutional publisher',
-      derived.length === 22, 'derived=' + derived.length);
+      derived.length === 33, 'derived=' + derived.length);
     ok('the inlined registry has not drifted from lib/fatwa-contract.js + lib/source-registry.js',
       plain(module.REVIEW_AUTHORITY_SOURCES) === plain(derived),
       'inlined=' + plain(module.REVIEW_AUTHORITY_SOURCES).slice(0, 400)
         + ' || derived=' + plain(derived).slice(0, 400));
+    // MERGE 4K (2026-10-19): a row may have zero hosts ONLY when it is corpus-only -- its contract
+    // sourceDomain is '' AND no SCHOLAR_SITES entry names the person -- and lib/output-reviewer.js marks it
+    // so (`corpusOnly: true`). Every other row keeps the old rule: at least one host.
+    const contractNow = await fresh(path.join(ROOT, 'lib', 'fatwa-contract.js'), 'corpus-only-contract');
+    const registryNow = await fresh(path.join(ROOT, 'lib', 'source-registry.js'), 'corpus-only-sources');
+    const corpusOnlyFacts = (row) => {
+      const scholar = contractNow.FATWA_SCHOLARS.find((entry) => row.ids.includes(`${entry.id}:`));
+      if (!scholar || scholar.sourceDomain !== '') return false;
+      const names = [...new Set([scholar.name, scholar.formalName, ...scholar.aliases].filter(Boolean))];
+      return !registryNow.SCHOLAR_SITES.some((site) => site.aliases.some((alias) => names.some((known) => {
+        const a = fold(alias);
+        const b = fold(known);
+        return a && b && (a === b || a.includes(b) || b.includes(a));
+      })));
+    };
     ok('no authority is licensed by a host this application never registered',
-      module.REVIEW_AUTHORITY_SOURCES.every((row) => row.hosts.length > 0)
+      module.REVIEW_AUTHORITY_SOURCES.every((row) => row.hosts.length > 0
+        || (row.corpusOnly === true && corpusOnlyFacts(row)))
+        && module.REVIEW_AUTHORITY_SOURCES.every((row) => row.corpusOnly !== true
+          || (row.hosts.length === 0 && corpusOnlyFacts(row)))
         && !JSON.stringify(module.REVIEW_AUTHORITY_SOURCES).includes('dar-alifta'),
       'a host survives that appears in no source of truth');
+
+    // ...and no URL ever licenses a corpus-only row: officialSourceFor, lent out of a throw-away twin,
+    // against every host this application registers and six it does not. A hosted row on its own host
+    // is the control that the twin's officialSourceFor is the live one.
+    const corpusOnlyRows = module.REVIEW_AUTHORITY_SOURCES.filter((row) => row.corpusOnly === true);
+    const registeredHosts = [...new Set([
+      ...registryNow.SOURCES.map((source) => source.domain),
+      ...registryNow.SCHOLAR_SITES.map((site) => site.domain),
+      ...module.REVIEW_AUTHORITY_SOURCES.flatMap((row) => row.hosts),
+      new URL(contractNow.FATWA_BASE).hostname,
+    ].filter(Boolean))];
+    const unregisteredHosts = ['example.com', 'unregistered-fatwa.example', 'binbaz.org.sa.attacker.example',
+      'fake-islamqa.info', 'lajna.example.org', 'albani.example.net'];
+    const probeUrls = [...registeredHosts, ...unregisteredHosts].flatMap((host) =>
+      [`https://${host}/fatwa/1`, `https://www.${host}/`]).concat(['', 'not a url', 'http://example.com/']);
+    // A claim is a probe of a corpus-only row only when authorityRule resolves it to THAT row (the twin's
+    // rows, matched by ids); a name another row's alias captures is listed, not counted -- that row is
+    // the one officialSourceFor would test, and it has hosts of its own.
+    const licensedByUrl = [];
+    const claimsOfOtherRows = [];
+    let corpusOnlyProbes = 0;
+    let controlLicensed = false;
+    const lend = await runMutant({
+      sourceFile: REVIEWER,
+      name: 'lend-official-source-for',
+      transform: (source) => `${source}\nexport { officialSourceFor as lentOfficialSourceFor, authorityRule as lentAuthorityRule };\n`,
+      survives: (twin) => {
+        for (const row of twin.REVIEW_AUTHORITY_SOURCES.filter((entry) => entry.corpusOnly === true)) {
+          for (const claimed of row.aliases) {
+            if (twin.lentAuthorityRule(claimed) !== row) { claimsOfOtherRows.push(row.ids[0]); continue; }
+            for (const url of probeUrls) {
+              corpusOnlyProbes++;
+              if (twin.lentOfficialSourceFor(claimed, { url, identifier: 'web:1' })) licensedByUrl.push(`${row.ids[0]} ${url}`);
+            }
+          }
+        }
+        const hosted = twin.REVIEW_AUTHORITY_SOURCES.find((row) => row.hosts.length > 0);
+        controlLicensed = twin.lentOfficialSourceFor(hosted.canonical, { url: `https://${hosted.hosts[0]}/fatwa/1`, identifier: 'web:1' });
+        return true;
+      },
+    });
+    ok('officialSourceFor never licenses a corpus-only row by any URL (every registered host + six unregistered)',
+      lend.loaded && corpusOnlyRows.length > 0 && registeredHosts.length >= 5 && corpusOnlyProbes > 0
+        && licensedByUrl.length === 0 && controlLicensed === true,
+      JSON.stringify({ loaded: lend.loaded, error: lend.error && String(lend.error).slice(0, 200), rows: corpusOnlyRows.length,
+        hosts: registeredHosts.length, probes: corpusOnlyProbes, licensed: licensedByUrl.slice(0, 5), control: controlLicensed,
+        claimsOfOtherRows }));
 
     // 18/18: one real published fatwa per harvested scholar, its attribution kept.
     const eighteen = JSON.parse(fs.readFileSync(EIGHTEEN, 'utf8'));
