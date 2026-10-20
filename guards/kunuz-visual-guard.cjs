@@ -158,14 +158,14 @@ async function new20(){
   const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
   const cv=require('../tools/kunuz-new20-convert.cjs');
   const manifest=new Function(read('quest-data/kunuz-packs-manifest.js')+';return KUNUZ_PACKS')();
-  assert.deepEqual(manifest.map(p=>p.slug),cv.GROUPS.map(g=>g[0]).filter(s=>s!=='fmt-odd-one'));
+  assert.deepEqual(manifest.map(p=>p.slug),cv.GROUPS.map(g=>g[0]).filter(s=>s!=='fmt-odd-one'&&s!=='landmark-draw'));
   const packs=manifest.map(entry=>{assert.equal(entry.src,cv.packPath(entry.slug));const body=read(entry.src);const pack=cv.parsePack(body);assert.equal(pack.slug,entry.slug);return {pack,body}});
-  const checked=await cv.validatePacks(packs);assert.equal(checked.questions,5734);
+  const checked=await cv.validatePacks(packs);assert.equal(checked.questions,5384);
   const bodies=Object.fromEntries(packs.map(p=>['/'+cv.packPath(p.pack.slug),p.body]));
   for(const page of games){
     const w=await open(page,{manifest,bodies});
-    assert.equal(w.ctx.DATA.qs.length,bank.qs.length+5734,page+' real manifest load');
-    assert.equal(w.requests.filter(p=>/kunuz-pack-/.test(p)).length,19);
+    assert.equal(w.ctx.DATA.qs.length,bank.qs.length+5384,page+' real manifest load');
+    assert.equal(w.requests.filter(p=>/kunuz-pack-/.test(p)).length,18);
     assert.ok(w.ctx.KZC_GROUPS.some(g=>g[0]==='بصريات وألغاز'));
     noErrors(w);
   }
