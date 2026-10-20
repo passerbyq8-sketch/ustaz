@@ -130,7 +130,13 @@ check('all first-paint bootstraps and font preloads are identical; Hanna CSP aut
     assert.equal((html.match(/as="font" type="font\/ttf" crossorigin/g) || []).length, 2);
     assert.match(code, /setTimeout\(fallback, 4000\)/); assert.match(code,/img\.decode\(\)/);
     assert.match(code, /console\.warn/); assert.match(code, /clearTimeout\(timer\)/);
-    if (file.startsWith('hanna')) assert.ok(html.includes("'sha256-" + crypto.createHash('sha256').update(code).digest('base64') + "'"));
+    assert.match(code, /getPropertyValue\('--journey-gold'\)/);
+    const critical = html.match(/<style data-kunuz-first-paint>([\s\S]*?)<\/style>/)[1];
+    assert.match(critical, /kunuz-theme-pending body>[^}]*display:none!important/);
+    if (file.startsWith('hanna')) {
+      assert.ok(html.includes("'sha256-" + crypto.createHash('sha256').update(code).digest('base64') + "'"));
+      assert.ok(html.includes("'sha256-" + crypto.createHash('sha256').update(critical).digest('base64') + "'"));
+    }
   }
   assert.equal(new Set(scripts).size, 1);
   assert.doesNotMatch(read('quest-theme/journey.js') + read('quest-sw.js'), /createObjectURL|revokeObjectURL/);
