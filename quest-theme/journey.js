@@ -48,6 +48,7 @@
   if (game !== 'hub') M.teams = Array.from({ length: limits[game][0] }, (_, i) => teamNew(i));
   try { M.muted = localStorage.getItem('kunuz_journey_muted_v1') === '1'; } catch (_) {}
   const app = document.createElement('div'); app.className = 'journey-app'; app.dataset.game = game;
+  let retainedVisual = null;
   document.body.classList.add('ezik-treasure-theme'); document.body.append(app);
   const themeMeta = document.querySelector('meta[name="theme-color"]'); if (themeMeta) themeMeta.content = '#082c38';
   const THEME_VERSION = '20261020-flash4';
@@ -222,7 +223,7 @@
     if (q.beat === 'answer') return title + teamBar(true) + '<section class="j-hanna-reveal" data-motion="hanna"><span class="j-tag">الجواب الصحيح</span><h2>' + esc(data[4][data[5]]) + '</h2>' + M.teams.map((t, i) => {
       const a = q.submissions[i];
       return '<div class="j-form-card"><b>' + esc(t.n) + '</b><p>' + (!a ? 'لم يثبّت جوابًا' : a.correct === null ? 'الحكم لكم على جوابكم' : a.correct ? '✓ صحيح · ' + score(a.delta, true) : 'خطأ · ' + score(a.delta, true)) + '</p>' + (a && a.correct === null ? '<div class="j-actions">' + button('صح', 'hanna-judge', 'j-btn j-teal', 'data-team="' + i + '" data-right="true"') + button('خطأ', 'hanna-judge', 'j-secondary', 'data-team="' + i + '" data-right="false"') + '</div>' : '') + '</div>';
-    }).join('') + explanation(q) + '<div class="j-actions">' + button('التالي', 'question-next', 'j-btn j-teal', Object.values(q.submissions).some(a => a.correct === null) ? 'disabled' : '') + '</div></section>';
+    }).join('') + (data.kzPack?.vis ? '<div id="qvis" hidden></div>' : '') + explanation(q) + '<div class="j-actions">' + button('التالي', 'question-next', 'j-btn j-teal', Object.values(q.submissions).some(a => a.correct === null) ? 'disabled' : '') + '</div></section>';
     return title + teamBar(true) + '<div class="j-hanna-question">' + meta(q) + '<h2>' + esc(data[3]) + '</h2><div id="qvis" hidden></div></div>' + teamButtons + '<p class="j-note">كل الفرق لها حق الجواب؛ ثبّتوا بالسر قبل الكشف.</p><p class="j-tag">جواب «' + esc(M.teams[q.activeTeam].n) + '»</p><div class="j-confidence">' +
       ['safe', 'bold'].map(mode => button('<h3>' + (mode === 'bold' ? 'حنّا لها!' : 'أتوقّع') + '</h3><p>صح: ' + score(Model.hannaDelta(mode, true, value), true) + '<br>خطأ: ' + score(Model.hannaDelta(mode, false, value), true) + '</p>', 'confidence', 'j-confidence-card' + (mode === 'bold' ? ' j-bold' : ''), 'data-mode="' + mode + '" aria-pressed="' + (q.confidence === mode) + '"')).join('') + '</div><section class="j-paper">' + answers(q) + timerMarkup(q) + '<div class="j-actions">' + optionsButton(q) + (!shownOptions(q) ? button('ثبّتنا جوابنا بصوت عالٍ', 'hanna-manual', 'j-btn j-teal', q.confidence ? '' : 'disabled') : '') + '</div></section>';
   }
@@ -289,17 +290,25 @@
     app.querySelectorAll('[data-team-color]').forEach(el => { el.style.setProperty('--team-color', M.teams[+el.dataset.teamColor]?.c || colors[0]); });
     app.querySelectorAll('[data-category-color]').forEach(el => { el.style.setProperty('--c', catColors[+el.dataset.categoryColor % catColors.length]); });
     app.querySelectorAll('[data-bubble]').forEach(el => { const i = +el.dataset.bubble, n = 6 + i % 6 * 2; el.style.left = (i * 79 + 7) % 95 + '%'; el.style.bottom = 10 + i * 43 % 220 + 'px'; el.style.width = n + 'px'; el.style.height = n + 'px'; });
+    if (retainedVisual && retainedVisual.index !== M.question?.index) retainedVisual = null;
     if (M.question && app.querySelector('#qvis')) {
       const q = questionText(M.question);
       if (global.KZV) {
-        global.KZV.show(q);
+        if (retainedVisual) {
+          app.querySelector('#qvis').replaceWith(retainedVisual.host);
+          if (retainedVisual.credit) retainedVisual.host.after(retainedVisual.credit);
+        } else {
+          global.KZV.show(q);
+          retainedVisual = { index: M.question.index, host: app.querySelector('#qvis'), credit: null };
+        }
         app.querySelectorAll('[data-choice]').forEach(el => global.KZV.choice(el, q, +el.dataset.choice));
         if (M.question.answerRevealed) global.KZV.reveal(q);
+        retainedVisual.credit = app.querySelector('#kzvPhotoCredit');
       }
       app.querySelectorAll('[data-explanation]').forEach(el => renderExplanation(el, q));
     } else if (M.question && app.querySelector('[data-explanation]')) {
       const q = questionText(M.question); app.querySelectorAll('[data-explanation]').forEach(el => renderExplanation(el, q));
-    } else if (global.KZV) global.KZV.show(null);
+    } else if (global.KZV && !M.question) { global.KZV.show(null); retainedVisual = null; }
     if (changed && Motion) {
       Motion.enterScreen(app.querySelector('main'));
       if (M.stage === 'hub') Motion.staggerCards(app.querySelectorAll('.j-game-card'));

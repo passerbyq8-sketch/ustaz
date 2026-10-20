@@ -65,6 +65,8 @@
     if(modal||pendingBack||!host||host.hidden)return;
     scale=1;x=y=0;lastTap=0;tapPoint=null;points.clear();returnFocus=document.activeElement;
     modal=document.createElement('div');modal.className='kzv-view';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','تكبير الصورة');
+    // Journey hides legacy body children with !important. This shared overlay stays visible.
+    modal.style.setProperty('display','flex','important');
     var closeButton=document.createElement('button');closeButton.type='button';closeButton.className='kzv-view-close';closeButton.textContent='إغلاق';closeButton.onclick=close;
     stage=document.createElement('div');stage.className='kzv-view-stage';
     content=document.createElement('div');content.setAttribute('role','img');content.setAttribute('aria-label','الصورة المكبرة');

@@ -7,6 +7,9 @@ var KZV=(function(){
   var installed=false,slugs=Object.create(null),ids=Object.create(null),historyIds=Object.create(null),volatile=false;
   var HISTORY="kunuz_pack_seen_v1",active=null,serial=0,renderSerial=0,geoPromise=null,photoObserver=null;
   var PIXEL_BLOCKS=[0,20,14,9],photoRender=null,viewerPromise=null,preparedPhotos=Object.create(null);
+  var PHOTO_SOURCES={commons:"ويكيميديا كومنز",met:"متحف متروبوليتان",smithsonian:"سميثسونيان",pexels:"بيكسلز",unsplash:"أنسبلاش",pixabay:"بيكساباي"};
+  var SOURCE_LICENSES={pexels:"Pexels License",unsplash:"Unsplash License",pixabay:"Pixabay Content License"};
+  function photoLicense(c){return (c.provider===undefined||typeof c.provider==="string"&&own(PHOTO_SOURCES,c.provider))&&(typeof c.license==="string")&&(/^(?:Public domain|CC0(?: 1\.0)?|CC BY(?:-SA)? \d(?:\.\d)?)$/i.test(c.license)||!!c.provider&&c.license===SOURCE_LICENSES[c.provider])}
   function loadViewer(){
     if(viewerPromise)return viewerPromise;
     viewerPromise=new Promise(function(resolve){
@@ -97,7 +100,7 @@ var KZV=(function(){
     if(v.kind==="silhouette")return emoji(v.emoji,1);
     if(v.kind==="pattern")return Array.isArray(v.seq)&&v.seq.length===4&&v.seq.every(cell)&&Array.isArray(v.opts)&&v.opts.length===4&&v.opts.every(cell);
     if(v.kind==="photo"){
-      if(photoPath(v.src))return v.mask===undefined&&v.effect===(v.src.indexOf("/objects/")>-1?"pixel":"plain")&&object(v.credit)&&text(v.credit.author,2000)&&!!v.credit.author.trim()&&typeof v.credit.license==="string"&&/^(?:Public domain|CC0(?: 1\.0)?|CC BY(?:-SA)? \d(?:\.\d)?)$/i.test(v.credit.license);
+      if(photoPath(v.src))return v.mask===undefined&&v.effect===(v.src.indexOf("/objects/")>-1?"pixel":"plain")&&object(v.credit)&&text(v.credit.author,2000)&&!!v.credit.author.trim()&&photoLicense(v.credit);
       if(!/^quest-data\/signs\/[a-z0-9]+(?:-[a-z0-9]+)*\.webp$/.test(v.src))return false;
       if(v.mask===undefined)return true;
       var m=v.mask;return object(m)&&[m.x,m.y,m.w,m.h].every(function(n){return typeof n==="number"&&isFinite(n)})&&m.x>=0&&m.y>=0&&m.w>0&&m.h>0&&m.x+m.w<=100&&m.y+m.h<=100;
@@ -259,7 +262,7 @@ var KZV=(function(){
       img.onload=function(){if(current())draw(revealed?img.naturalWidth:PIXEL_BLOCKS[q.kzPack.level])};
       img.onerror=failed;img.src="/"+v.src;
       return {cancel:function(){stopped=true;if(raf)cancelAnimationFrame(raf);img.onload=img.onerror=null},reveal:function(){
-        revealed=true;if(!img.naturalWidth)return;
+        if(revealed)return;revealed=true;if(!img.naturalWidth)return;
         if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches){draw(img.naturalWidth);return}
         var begin=performance.now(),from=PIXEL_BLOCKS[q.kzPack.level];
         function step(now){if(!current())return;var t=Math.min(1,(now-begin)/620);draw(t===1?img.naturalWidth:from*Math.pow(img.naturalWidth/from,t));if(t<1)raf=requestAnimationFrame(step)}
@@ -298,7 +301,7 @@ var KZV=(function(){
     if(v&&v.kind==="photo"){
       if(photoPath(v.src)){
         if(photoRender)photoRender.reveal();host.setAttribute("aria-label","صورة السؤال بعد الإجابة، اضغط للتكبير");
-        if(!document.getElementById("kzvPhotoCredit")){var credit=document.createElement("p");credit.id="kzvPhotoCredit";credit.className="kzv-credit";credit.textContent="الصورة: "+v.credit.author+" — "+v.credit.license+" — ويكيميديا كومنز";host.parentNode.insertBefore(credit,host.nextSibling)}
+        if(!document.getElementById("kzvPhotoCredit")){var credit=document.createElement("p");credit.id="kzvPhotoCredit";credit.className="kzv-credit";credit.textContent="الصورة: "+v.credit.author+" — "+v.credit.license+" — "+PHOTO_SOURCES[v.credit.provider||"commons"];host.parentNode.insertBefore(credit,host.nextSibling)}
       }else host.setAttribute("aria-label","لوحة منطقة بعد رفع الغطاء");
     }
   }

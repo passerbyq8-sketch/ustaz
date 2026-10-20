@@ -38,6 +38,11 @@ async function security(source=mod){
   const w=await open('quest-test.html',{moduleText:source}),api=w.ctx.KZV,q=fixture().qs[0];
   for(const v of invalidVisuals())assert.equal(api.validateVisual(v,q),false,JSON.stringify(v));
   for(const q of fixture().qs)assert.equal(api.validateVisual(q.vis,q),true,q.vis.kind);
+  const photo={kind:'photo',src:'quest-data/photos/objects/review-fixture.jpg',effect:'pixel',credit:{author:'Photographer',license:'CC0'}};
+  for(const [provider,license] of [[undefined,'CC BY-SA 4.0'],['commons','Public domain'],['met','CC0'],['smithsonian','CC0'],['pexels','Pexels License'],['unsplash','Unsplash License'],['pixabay','Pixabay Content License']])assert.equal(api.validateVisual({...photo,credit:{...photo.credit,provider,license}},q),true,'permitted photo credit '+provider);
+  for(const license of ['CC BY-NC 4.0','CC BY-ND 4.0','All rights reserved','unknown'])assert.equal(api.validateVisual({...photo,credit:{...photo.credit,license}},q),false,'excluded photo license '+license);
+  for(const provider of [null,false,0,{},'','unknown','__proto__'])assert.equal(api.validateVisual({...photo,credit:{...photo.credit,provider}},q),false,'invalid provider '+String(provider));
+  assert.equal(api.validateVisual({...photo,credit:{...photo.credit,provider:'met',license:'Pexels License'}},q),false,'source-specific license mismatch');
   const clipped='<svg><defs><clipPath id="c"><circle cx="50" cy="50" r="20"/></clipPath></defs><path d="M0 50H100" clip-path="url(#c)"/></svg>';
   const clean=api.sanitizeSvg(clipped),again=api.sanitizeSvg(clipped);assert.ok(clean&&again);
   const id=clean.querySelector('clipPath').getAttribute('id');
