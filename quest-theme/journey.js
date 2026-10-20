@@ -596,7 +596,7 @@
   }
   function warStep(event) {
     if (!event) return;
-    if (event.t === 'over') { finishWar(event.why); return; }
+    if (event.t === 'over') { finishWar(event.why, event.winner); return; }
     if (event.t === 'ask') {
       if (event.defend) { M.pendingWarAsk = event; setStage('war-pass', 3); }
       else askWarQuestion(event);
@@ -625,11 +625,12 @@
     M.question.defend = event.defend; M.warMessage = 'دور «' + M.teams[event.pi].n + '» ' + (event.defend ? 'يدافع عن الجزيرة.' : 'يهاجم الجزيرة.');
     setStage('war', 3); app.querySelector('.j-island-sheet')?.scrollIntoView({ block: 'start' });
   }
-  function finishWar(reason = 'quit') {
+  function finishWar(reason = 'quit', nativeWinner = null) {
     clearTimer(); M.question = null; M.g.busy = false; M.g.phase = 'over'; M.running = false;
     const rows = M.teams.map((t, index) => ({ index, score: global.WarEngine.count(M.g, index), flags: global.WarEngine.banners(M.g, index) })).sort((a, b) => b.score - a.score || b.flags - a.flags || a.index - b.index);
-    const winners = rows.filter(row => row.score === rows[0].score && row.flags === rows[0].flags);
-    M.result = { title: winners.length > 1 ? 'تعادل بين ' + winners.map(row => '«' + M.teams[row.index].n + '»').join(' و') : 'الفائز «' + M.teams[rows[0].index].n + '»', note: reason === 'dormant' ? 'انتهت مغامرة الجزر؛ الحسم بالجزر ثم الرايات.' : 'الحسم بالجزر ثم الرايات.', rows };
+    const victory = reason === 'victory' && Number.isInteger(nativeWinner) ? rows.find(row => row.index === nativeWinner) : null;
+    const winners = victory ? [victory] : rows.filter(row => row.score === rows[0].score && row.flags === rows[0].flags);
+    M.result = { reason, winnerIndices: winners.map(row => row.index), title: winners.length > 1 ? 'تعادل بين ' + winners.map(row => '«' + M.teams[row.index].n + '»').join(' و') : 'الفائز «' + M.teams[winners[0].index].n + '»', note: victory ? 'تحقّق شرط النصر في الحرب.' : reason === 'dormant' ? 'انتهت مغامرة الجزر؛ الحسم بالجزر ثم الرايات.' : 'الحسم بالجزر ثم الرايات.', rows };
     setStage('results', 4);
   }
   function installWarRoomLook() {
