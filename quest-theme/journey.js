@@ -100,7 +100,7 @@
       const script = document.createElement('script'); script.src = '/quest-data/kunuz-geo.js'; script.onload = resolve; script.onerror = resolve; document.head.append(script);
     });
     const sources = new Set([themeAsset('assets/ocean-clean.webp'), themeAsset('assets/islands.webp')]);
-    if (global.DATA) global.DATA.qs.forEach(q => { if (q.kzPack?.vis?.kind === 'photo') sources.add('/' + q.kzPack.vis.src); });
+    // Question photos load lazily through KZV; startup warms only shared artwork.
     const images = [...sources].map(src => new Promise(resolve => { const img = new Image(); warmedImages.push(img); img.onload = resolve; img.onerror = resolve; img.src = src; }));
     for (const name of ['tap', 'success', 'swoosh', 'water-transition', 'bubble']) {
       const audio = new Audio('/quest-theme/audio/' + name + '.wav'); audio.preload = 'auto'; audio.volume = .18; audio.load(); soundCache.set(name, audio);

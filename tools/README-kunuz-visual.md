@@ -110,7 +110,9 @@ points mode);
 all four draw adapters consume that prepared question if it is still eligible.
 The published Journey theme supplies its own local KunuzPlex fonts on all five
 game pages. Its question card hosts the same renderer; the viewer consumes Back
-before Journey handles navigation. The earlier Noto font bundle is removed.
+before Journey handles navigation. Startup warms the shared theme artwork;
+question photographs stay lazy in the renderer. The earlier Noto font bundle
+is removed.
 
 For a local demonstration, run `node tools/kunuz-visual-browser.cjs --demo`.
 It prints a loopback URL without opening a browser and serves the actual NEW20
