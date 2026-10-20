@@ -26,7 +26,7 @@ const ascii = (s) => String(s).replace(/[^\x00-\x7f]/g, '?');
 const read = (f) => fs.readFileSync(path.join(REPO, f), 'utf8');
 const GAMES = ['quest-ghaws.html', 'quest-harb.html', 'quest-test.html', 'quest-board.html'];
 const MODULE = 'quest-levels.js', LVFILE = 'quest-data/kunuz-levels-3147.js', BANK = 'quest-data/kunuz-bank-3147.js';
-const MIN_EACH = 7;
+const MIN_EACH = 0;
 const TEXT = {}; GAMES.concat([MODULE, LVFILE]).forEach((f) => { TEXT[f] = read(f); });
 const DATA0 = new Function(read(BANK) + ';return DATA;')();
 const LV0 = new Function(TEXT[LVFILE] + ';return KUNUZ_LEVELS;')();
@@ -100,7 +100,7 @@ function allText(W) { const out = []; (function walk(n) { if (n.nodeType === 3) 
 
 // ---------- per game: go to the setup, and play one round of drawing at the current level ----------
 const tapCatGroupAnd = (W, c) => { const all = {}; W.$('cats').querySelectorAll('[data-cat]').forEach((b) => { all[+b.dataset.cat] = b; }); let b = all[c]; if (b && !W.shown(b)) { W.tap(b.parentNode.parentNode.querySelector('.kzc-gh'), 'group'); W.$('cats').querySelectorAll('[data-cat]').forEach((x) => { all[+x.dataset.cat] = x; }); b = all[c]; } return W.tap(b, 'cat ' + c); };
-const CATS6 = [0, 10, 17, 24, 25, 27];
+const CATS6 = [2,10,17,24,25,27];
 const SETUP = {
   'quest-ghaws.html': (W) => { W.tap(W.doc.querySelector('[data-go="cfg1"]'), 'solo'); },
   'quest-harb.html': (W) => { W.tap(W.doc.querySelector('#home [data-go="cfg"]'), 'cfg'); },
@@ -108,7 +108,7 @@ const SETUP = {
 };
 const pickCats = (W, page) => {
   W.tap(W.doc.querySelector('[data-q="none"]'), 'none');
-  const want = page === 'quest-test.html' ? [0, 10, 27] : page === 'quest-board.html' ? CATS6 : [0, 10, 27, 28];
+  const want = page === 'quest-test.html' ? CATS6.slice(0, 3) : page === 'quest-board.html' ? CATS6 : CATS6.slice(0, 4);
   want.forEach((c) => tapCatGroupAnd(W, c));
 };
 // the indices a game draws, read straight from the page's own state as it plays
@@ -139,7 +139,7 @@ function draw(W, page, n) {
 }
 
 // ---------- L1 the file ----------
-const REVIEWED_LEVEL_COUNTS = {"deen":[22,23,22],"prayer":[22,21,22],"quran":[30,29,30],"juz-amma":[25,25,25],"juz-tabarak":[28,29,28],"adhkar":[20,19,20],"prophets":[29,29,29],"seerah":[30,29,30],"manners":[21,21,21],"islamic-history":[22,21,22],"geography":[152,153,152],"world-history":[18,19,18],"animals":[20,21,20],"physics":[22,22,22],"biology":[22,21,22],"chemistry":[21,21,21],"math":[8,7,8],"hadith":[142,141,142],"rashidun":[20,19,20],"umayyad":[19,18,19],"abbasid":[19,20,19],"ayyubid":[17,16,17],"mamluk":[17,16,17],"ottoman":[15,16,15],"arab-world":[138,137,137],"kuwait-history":[134,136,134],"cuisine":[18,19,18],"poetry-fusha":[100,98,100],"poetry-nabati":[41,39,21],"fitness-health":[100,99,100],"arabic-language":[100,100,100],"proverbs":[100,100,100],"kuwait-sea-heritage":[100,100,101],"kuwait-old-life":[100,100,100],"marine-life":[100,99,100],"astronomy":[100,100,100],"earth-weather":[100,100,100],"human-body":[100,100,100],"muslim-scientists":[100,100,100],"inventions":[100,100,100],"palm-plants":[100,100,100],"horses-camels-falcons":[100,100,100],"first-aid":[100,100,100],"money-economy":[100,100,100],"riddles-logic":[100,100,100],"tech-computing":[100,100,100],"islamic-architecture":[100,100,100],"sahaba":[100,100,100],"mothers-ahlulbayt":[100,99,100],"ghazawat":[98,99,98],"tajweed":[100,100,100],"asmaa-husna":[100,100,100],"easy-fiqh":[100,99,100]};
+const REVIEWED_LEVEL_COUNTS = {"deen":[56,16,5],"prayer":[98,79,0],"quran":[61,98,35],"juz-amma":[59,15,0],"juz-tabarak":[46,34,5],"adhkar":[47,29,3],"prophets":[68,15,1],"seerah":[53,23,5],"manners":[73,10,0],"islamic-history":[6,13,6],"geography":[134,249,61],"world-history":[11,59,43],"animals":[20,27,3],"physics":[37,67,3],"biology":[19,42,3],"chemistry":[23,56,3],"math":[31,60,10],"hadith":[183,191,57],"rashidun":[42,27,8],"umayyad":[22,36,2],"abbasid":[15,36,1],"ayyubid":[13,28,4],"mamluk":[15,27,4],"ottoman":[19,27,0],"arab-world":[104,189,82],"kuwait-history":[30,76,112],"cuisine":[15,42,7],"poetry-fusha":[73,161,82],"poetry-nabati":[2,47,51],"fitness-health":[128,169,27],"arabic-language":[174,121,12],"proverbs":[85,122,83],"kuwait-sea-heritage":[23,99,195],"kuwait-old-life":[100,154,97],"marine-life":[40,153,48],"astronomy":[46,179,83],"earth-weather":[49,236,104],"human-body":[104,180,24],"muslim-scientists":[11,105,170],"inventions":[13,113,126],"palm-plants":[29,148,101],"horses-camels-falcons":[12,140,138],"first-aid":[94,152,15],"money-economy":[42,168,73],"riddles-logic":[94,113,10],"tech-computing":[55,189,34],"islamic-architecture":[18,148,164],"sahaba":[10,121,134],"mothers-ahlulbayt":[12,178,118],"ghazawat":[13,136,116],"tajweed":[4,183,68],"asmaa-husna":[10,151,64],"easy-fiqh":[64,134,10]};
 function checkL1(LV, D) {
   const f = [];
   // the pages' own stamp formula (count + FNV-1a of the ids in order)

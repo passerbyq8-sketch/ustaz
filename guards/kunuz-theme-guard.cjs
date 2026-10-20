@@ -50,7 +50,7 @@ check('unseen questions precede oldest-seen replay; exhausted categories restart
   const oldest = context.DATA.qs.map((_, i) => i).filter(i => model.live(i) && context.DATA.qs[i][0] === 0 && i !== first.indices[0]).sort((a, b) => b - a).slice(0, 5);
   assert.deepEqual([...partial.indices.slice(1)], [...oldest]);
   assert.equal(new Set(partial.indices).size, 6);
-  assert.equal(context.DATA.qs.slice(0, baseRows).filter(q => q[2] === 0).length, 296);
+  assert.equal(context.DATA.qs.slice(0, baseRows).filter(q => q[2] === 0).length, 450);
 });
 check('nearest available level fills an exact pool without duplicates; the switch is removable', () => {
   const saved = context.DATA, classification = context.KUNUZ_LEVELS;

@@ -5,6 +5,7 @@ const assert=require('node:assert/strict'),vm=require('node:vm'),zlib=require('n
 const {open,store,read,bank}=require('./kunuz-visual-world.cjs');
 const {fixture,stamp,cell,kinds}=require('./fixtures/kunuz-visual.cjs');
 const {readable}=require('./kunuz-sim/readable.cjs');
+const QUALITY_PACK_HELD = {"map-quiz-0053":"d619e515eef1ef3fe8e127898759cf8a07cb6deada40dfce56141b38c14e40c4","map-quiz-0067":"c08a41172d4c41668e266a47ef9f1a1bc13328efbce69f572759ce2d43fd4ecf","map-quiz-0069":"e72bef53d31176ff324f9b413b6ac6a6eb5273094aab4acfe28f553326ca3dd1","map-quiz-0074":"e147c2c6b663734b554604c0830e62b06e376a25fd97f2b9cc7e98a83aad62ea","map-quiz-0117":"cc691b99db639f4a5533c5dd24bc090096f7adbd74cdafd7c0619d5f3b025439","map-quiz-0163":"9612aa6637f76a28b64bafbdfdbb7254f4f3dda19d7170ca671c93445b8b2ff2","map-quiz-0213":"d5234c31a575bf494a08da94bb3307823bcb3ed6affc41a1754f4aca451fe7e5","map-quiz-0231":"da527e891415563ef326e8d143e6beba0b62fabd9cb8100e44fd563b26e3173c","map-quiz-0242":"9e38fc362ae57bfaad4f666632644b5d9314363b190a7355dcf6d9e40a40632f","map-quiz-0246":"833ae04532c30570c8128ed9204ea0368dacd76943b7faa0ef0ff76b776c4ba5","map-quiz-0325":"4699dc3b906c7bd43d5c61b5ebfab26e385ae6532280608a71c0870f7c70aae1","map-quiz-0340":"b58f06a9fcce69fdcd92d36ddf4ac175966ca8d9b8b30dd030630a4293acd1c6","map-quiz-0341":"0e966fe410881bf5902107caf3cc982d5d5f1d040a0fe0b1d014fc50ac04cbbd","map-quiz-0366":"eb96c37c6380a05ad3d5a08e2bf5cb3d424d93c050d771a90c566e4dc8bc8110","map-quiz-0368":"81cf2fd62c059c5f250ca145d88561672d22ce9890871c8b18fbefa4f59a2c14","map-quiz-0525":"918ff3e631d4180743c989bc6a952a200320b5e9ff7bab1a78fd94736afd38a2","pattern-iq-0017":"8c4ec3bf2cea36282de05a68164b21f8616702fe94593fbd716412f68f2d3af8","pattern-iq-0045":"a70c5029248aa38c9ab42781b98bab3a252bdb5b8f9afc1378516a5a268c9e41","pattern-iq-0060":"af5a2ea11f15c94193b9feca23a868bf555107f08c12a1b44b706aa138c66ffe","pattern-iq-0068":"8dddc74e5bcec0463208dc69e6e7136e89812c638527d843aa75e5ba9a73818c","pattern-iq-0072":"737f5d648b41958a74649af2cd4e862e68f739b8b24e83d3076537f4d6688466","pattern-iq-0084":"7651e45e271ce9b13334e3435a5d615807b26d1d413e9092fc169f22ccc18d98","pattern-iq-0089":"606bbe019e7182da6c07e85ffbb43578224365cab28b58b2880c8836fb3b5bda","pattern-iq-0116":"92ff6d1af558e2ba080747014f18991b3d5d6f630bf141fb6705a41efea8d2bb","pattern-iq-0180":"7ca4a7fbc2d76e6c5f7134f9ab2f3e44ca34181dcf2024f3e787a13582973924","pattern-iq-0196":"01227dad6052b263ceb6918253190b3377591db5b1c3fabd61d0a6fb4f380817","pattern-iq-0660":"3e16302d5ce288a8532b40675a2e31229dd8fee21606a652b23bed53936c24e7","books-authors-0503":"a7e15dd25ceacd9c023cafc33c3c5d83aa5f5a63e0eae52cc06f7f6aec779bd1","books-authors-0640":"d9fe7ebe8a5af663fbe6a5ef236efcd39a3687e01860835de7d78121f70a6fec","gulf-history-0080":"a22b2381b51dbe3ee5090b9a4726f43ff73dc0fab75ea8982db0cb3be49d46ff","gulf-history-0129":"1f0dc9a4a40cfaf88d10afc14e312bfe7eaf6fe512601809cf725ae213b2845c","gulf-history-0247":"3a25cba2bb36ac91c93676e7310ee8aa1bbae19c862e5f9dc8658661b61e4803","gulf-history-0320":"20c700fa3d81209ad583f107a2ee3de0f15511acc2b978ca6fec8c2b12afb6ea"};
 const games=['quest-ghaws.html','quest-harb.html','quest-test.html','quest-board.html'];
 const mod=read('quest-visual.js'),clone=x=>JSON.parse(JSON.stringify(x));
 const results=[];
@@ -160,11 +161,15 @@ async function new20(){
   const manifest=new Function(read('quest-data/kunuz-packs-manifest.js')+';return KUNUZ_PACKS')();
   assert.deepEqual(manifest.map(p=>p.slug),cv.GROUPS.map(g=>g[0]).filter(s=>!['fmt-odd-one','landmark-draw','occasions-calendar'].includes(s)));
   const packs=manifest.map(entry=>{assert.equal(entry.src,cv.packPath(entry.slug));const body=read(entry.src);const pack=cv.parsePack(body);assert.equal(pack.slug,entry.slug);return {pack,body}});
-  const checked=await cv.validatePacks(packs);assert.equal(checked.questions,5363);
+  const held=packs.flatMap(p=>p.pack.qs).filter(q=>q.status==='held');
+  assert.equal(held.length,Object.keys(QUALITY_PACK_HELD).length,'named pack hold count');
+  for(const q of held)assert.equal(crypto.createHash('sha256').update(JSON.stringify(q)).digest('hex'),QUALITY_PACK_HELD[q.id],q.id+': held content changed');
+  for(const {pack} of packs)for(const q of pack.qs)if(q.status==='approved')assert.ok(!Object.hasOwn(QUALITY_PACK_HELD,q.id),q.id+': held row became live');
+  const checked=await cv.validatePacks(packs);assert.equal(checked.questions,5363);assert.equal(checked.liveQuestions,5330);
   const bodies=Object.fromEntries(packs.map(p=>['/'+cv.packPath(p.pack.slug),p.body]));
   for(const page of games){
     const w=await open(page,{manifest,bodies});
-    assert.equal(w.ctx.DATA.qs.length,bank.qs.length+5363,page+' real manifest load');
+    assert.equal(w.ctx.DATA.qs.length,bank.qs.length+5330,page+' real manifest load');
     assert.equal(w.requests.filter(p=>/kunuz-pack-/.test(p)).length,17);
     assert.ok(w.ctx.KZC_GROUPS.some(g=>g[0]==='بصريات وألغاز'));
     noErrors(w);
