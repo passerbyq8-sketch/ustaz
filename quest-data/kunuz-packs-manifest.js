@@ -13,8 +13,8 @@ var KUNUZ_PACKS=[
     "src": "quest-data/kunuz-pack-landmark-photo.js"
   },
   {
-    "slug": "silhouette",
-    "src": "quest-data/kunuz-pack-silhouette.js"
+    "slug": "object-pixel",
+    "src": "quest-data/kunuz-pack-object-pixel.js"
   },
   {
     "slug": "pattern-iq",

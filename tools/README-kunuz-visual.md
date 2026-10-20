@@ -18,8 +18,9 @@ internal border. Disputed features and additional disputed-area polygons are
 cut out of target countries and emitted as anonymous, non-targetable land. The
 build's metadata records geometry checks without shipping source properties.
 
-The manifest lists the enabled supplemental packs. Drawn landmarks remain on disk
-but are disabled; the reviewed `landmark-photo` pack uses local photographs.
+The manifest lists the enabled supplemental packs. Drawn landmarks and silhouettes
+remain on disk but are disabled in this preview; the reviewed `landmark-photo`
+and `object-pixel` packs use local photographs.
 `PACKS_ENABLED` in `quest-visual.js` is the single pack switch. The bank and its seal remain intact;
 pack history uses `kunuz_pack_seen_v1`, keyed by question ID, alongside the
 unchanged `kunuz_seen_v1` record. Clearing history explicitly clears both.
@@ -87,9 +88,14 @@ Visual fields:
   Their credits list, including source and license links, is
   `quest-data/photos/landmarks/credits.json`. JPEGs have a long side of 800 px
   and are at most 90,000 bytes. Paths contain neutral IDs.
-* Object-photo support uses the same contract with `effect:"pixel"` and an
-  `objects/` path. No object-photo pack is enabled: the reviewed candidates
-  did not reach the required 120. The silhouette pack remains enabled.
+* The enabled object-photo pack uses the same contract with `effect:"pixel"` and
+  an `objects/` path. Its 167 questions passed visual, source-license and blind
+  checks; 50 show traditional object types used in Gulf/Kuwaiti culture. That
+  classification does not claim every photographed artifact originated there.
+  `quest-data/photos/objects/credits.json` records the source, author, license,
+  final-image hash, regional basis and blind review for each photo. Commons,
+  The Met Open Access (CC0) and Pexels License photos are self-hosted; provider
+  credit appears after reveal. The 121 landmark questions are unchanged.
   The renderer decodes an off-DOM image into a canvas, using 20/14/9 blocks
   across at levels 1/2/3. Reveal resolves to clear over 620 ms, immediately
   with reduced motion. Credit text appears only after reveal.
