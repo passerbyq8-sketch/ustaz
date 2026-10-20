@@ -26,10 +26,6 @@ var KUNUZ_PACKS=[
     "src": "quest-data/kunuz-pack-gulf-cuisine.js"
   },
   {
-    "slug": "occasions-calendar",
-    "src": "quest-data/kunuz-pack-occasions-calendar.js"
-  },
-  {
     "slug": "ancient-civilizations",
     "src": "quest-data/kunuz-pack-ancient-civilizations.js"
   },
