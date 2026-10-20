@@ -98,4 +98,22 @@ check('hub and all five pages load the one scoped theme; worker/build metadata i
   assert.equal(JSON.parse(read('hanna-laha/build-info.json')).protocolVersion,4);
   assert.match(read('hanna-laha/index.html'),/wss:\/\/hanna-laha\.hl-worker\.workers\.dev/);
 });
+check('offline caching has only Kunuz scopes and never intercepts Ezik pages or the room server', () => {
+  const source = read('quest-sw.js'), page = read('quest-theme/journey.js'), handlers = {};
+  assert.match(page, /for \(const scope of \['\/quest', '\/hanna-laha\/'\]\)/);
+  assert.doesNotMatch(page, /scope:\s*['"]\/['"]/);
+  assert.match(source, /key\.startsWith\('kunuz-treasure-'\)/);
+  const worker = {
+    URL, Request, Response, Set, Promise,
+    self: { location: { origin:'https://preview.example' }, navigator: { onLine:false }, addEventListener:(name,fn)=>{handlers[name]=fn} },
+    importScripts:()=>{},
+    caches: { open:async()=>({match:async()=>new Response('cached'),put:async()=>{}}) }
+  };
+  vm.createContext(worker); vm.runInContext(source,worker);
+  for (const url of ['https://preview.example/','https://preview.example/index.html','https://preview.example/app.js','https://preview.example/api/report','https://hanna-laha.hl-worker.workers.dev/api/categories']) {
+    let intercepted = false; handlers.fetch({request:new Request(url),respondWith:()=>{intercepted=true}}); assert.equal(intercepted,false,url);
+  }
+  let intercepted = false; handlers.fetch({request:new Request('https://preview.example/quest.html'),respondWith:p=>{intercepted=true;p.catch(()=>{})}}); assert.equal(intercepted,true);
+  assert.equal(vm.runInContext('SHELL.includes("/index.html") || SHELL.includes("/")',worker),false);
+});
 console.log('SUMMARY '+tests+'/'+tests+' pass');
