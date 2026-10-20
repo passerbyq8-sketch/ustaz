@@ -182,7 +182,7 @@
   }
   function boardQuestion() {
     const q = M.question;
-    return boardView() + '<div class="j-modal" role="dialog" aria-modal="true" aria-label="سؤال الفئة"><div class="j-modal-frame">' + header() + '<div class="j-paper" data-motion="board">' + meta(q) + '<h2>' + esc(questionText(q)[3]) + '</h2><div id="qvis" hidden></div>' + answers(q, true) + timerMarkup(q) + '<p class="j-muted">تشاوروا… والقرار لكم</p>' +
+    return '<div class="j-modal" role="dialog" aria-modal="true" aria-label="سؤال الفئة"><div class="j-modal-frame">' + header() + '<div class="j-paper" data-motion="board">' + meta(q) + '<h2>' + esc(questionText(q)[3]) + '</h2><div id="qvis" hidden></div>' + answers(q, true) + timerMarkup(q) + '<p class="j-muted">تشاوروا… والقرار لكم</p>' +
       (q.answerRevealed ? explanation(q) + '<div class="j-actions">' + M.teams.map((t, i) => button(sym(t.symbol) + esc(t.n), 'award', 'j-btn j-teal', 'data-team="' + i + '"')).join('') + button('ولا أحد', 'award', 'j-secondary', 'data-team="-1"') + '</div>' : '<div class="j-actions">' + optionsButton(q) + button('إظهار الإجابة', 'reveal-answer', 'j-btn j-teal') + '</div>') + '</div></div></div>';
   }
   function quizQuestion() {
@@ -253,12 +253,12 @@
     const motionKey = M.stage + ':' + (M.question?.index ?? '') + ':' + (M.question?.beat || '') + (game === 'ghaws' && M.question?.settled ? ':reward' : '');
     const motionChanged = motionKey !== M.lastMotion;
     cancelVisuals();
-    const screens = { hub: home, categories, settings, board: boardView, 'board-question': boardQuestion, 'test-question': quizQuestion, 'hanna-question': hannaQuestion, dive: diveView, war: warView, 'war-result': warResult, results,
+    const screens = { hub: home, categories, settings, board: boardView, 'board-question': boardView, 'test-question': quizQuestion, 'hanna-question': hannaQuestion, dive: diveView, war: warView, 'war-result': warResult, results,
       loading: () => '<div class="j-loading" role="status">نجهّز مغامرتكم…<div class="j-loader"></div></div>',
       handover: () => '<div class="j-results"><div class="j-result-icon">' + Icons.icon('wave') + '</div><h2>دور «' + esc(M.teams[global.S.pi].n) + '»</h2><p class="j-muted">خذوا نفسكم… ومغامرتكم تبدأ.</p><div class="j-actions">' + button('ابدأ الغوص', 'dive-begin', 'j-btn j-teal') + '</div></div>',
       'war-pass': () => teamBar() + '<div class="j-results"><h2>دور المدافع «' + esc(M.teams[M.pendingWarAsk.pi].n) + '»</h2><p class="j-muted">سلّموا الجهاز للمدافع قبل إظهار السؤال.</p><div class="j-actions">' + button('جاهزين للدفاع', 'war-defend', 'j-btn j-teal') + '</div></div>',
       error: () => '<div class="j-error" role="alert">' + esc(M.error || 'تعذّر تجهيز المغامرة') + '</div><div class="j-actions">' + button('حاولوا مرة ثانية', 'reload') + '</div>', room: () => '' };
-    app.innerHTML = (M.stage === 'board-question' ? '' : header()) + stepper() + '<main class="j-content" id="journey-main">' + (screens[M.stage] || screens.error)() + '</main>' + dialog();
+    app.innerHTML = (M.stage === 'board-question' ? '' : header()) + stepper() + '<main class="j-content" id="journey-main">' + (screens[M.stage] || screens.error)() + '</main>' + (M.stage === 'board-question' ? boardQuestion() : '') + dialog();
     app.querySelectorAll('[data-color]').forEach(el => { el.style.backgroundColor = el.dataset.color; });
     app.querySelectorAll('[data-team-color]').forEach(el => { el.style.setProperty('--team-color', M.teams[+el.dataset.teamColor]?.c || colors[0]); });
     app.querySelectorAll('[data-category-color]').forEach(el => { el.style.setProperty('--c', catColors[+el.dataset.categoryColor % catColors.length]); });
@@ -764,8 +764,8 @@
     const samePosition = Math.abs(event.clientX - (M.lastX ?? -999)) < 10 && Math.abs(event.clientY - (M.lastY ?? -999)) < 10;
     if (now - M.lastAction < 220 && (M.lastKey === actionKey || samePosition)) return;
     M.lastAction = now; M.lastKey = actionKey; M.lastX = event.clientX; M.lastY = event.clientY; sound('tap');
-    if (Motion) { const rect = app.getBoundingClientRect(); Motion.tapRipple(app, { x: event.clientX - rect.left, y: event.clientY - rect.top }); }
     if (island) tapIsland(+island.dataset.island); else onAction(el.dataset.action, el);
+    if (Motion) { const rect = app.getBoundingClientRect(); Motion.tapRipple(app, { x: event.clientX - rect.left, y: event.clientY - rect.top }); }
   });
   app.addEventListener('keydown', event => {
     const island = event.target.closest('[data-island]');

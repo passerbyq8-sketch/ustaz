@@ -1,6 +1,8 @@
-/* Kunuz-only offline shell. Registered at /quest and /hanna-laha/, never at /. */
+/* Kunuz-only offline shell. Registered at /quest and /hanna-laha/, never at /.
+   Ezik's existing worker sweeps other CacheStorage stores. A separate asset-only
+   IndexedDB database keeps Kunuz offline without changing that worker or its data. */
 'use strict';
-const CACHE = 'kunuz-treasure-20261020-v1';
+const DATABASE = 'kunuz-treasure-assets-20261020-v1';
 const SHELL = [
   '/quest.html', '/quest-board.html', '/quest-test.html', '/quest-ghaws.html', '/quest-harb.html',
   '/hanna-laha/index.html', '/hanna-laha/', '/hanna-laha/favicon.svg', '/icon.svg',
@@ -21,21 +23,51 @@ for (const entry of self.KUNUZ_PACKS || []) {
   if (/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(entry.slug) && entry.src === 'quest-data/kunuz-pack-' + entry.slug + '.js') SHELL.push('/' + entry.src);
 }
 const shellPaths = new Set(SHELL);
+let databasePromise;
+function database() {
+  if (!databasePromise) databasePromise = new Promise((resolve, reject) => {
+    const request = indexedDB.open(DATABASE, 1);
+    request.onupgradeneeded = () => { if (!request.result.objectStoreNames.contains('assets')) request.result.createObjectStore('assets'); };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => { databasePromise = null; reject(request.error); };
+  });
+  return databasePromise;
+}
+async function readAsset(path) {
+  const db = await database();
+  const stored = await new Promise((resolve, reject) => {
+    const request = db.transaction('assets', 'readonly').objectStore('assets').get(path);
+    request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error);
+  });
+  return stored ? new Response(stored.body, { status: stored.status, headers: stored.headers }) : null;
+}
+async function writeAsset(path, response) {
+  if (response.status !== 200) return;
+  const body = await response.arrayBuffer();
+  // Fetch exposes decoded bytes. Do not restore transfer-encoding lengths or any
+  // authentication headers when constructing the offline response.
+  const headers = [...response.headers].filter(([name]) => !['content-encoding', 'content-length', 'transfer-encoding', 'connection', 'keep-alive', 'set-cookie', 'authorization', 'x-vercel-protection-bypass'].includes(name.toLowerCase()));
+  const db = await database();
+  await new Promise((resolve, reject) => {
+    const transaction = db.transaction('assets', 'readwrite');
+    transaction.objectStore('assets').put({ body, status: response.status, headers }, path);
+    transaction.oncomplete = resolve; transaction.onerror = () => reject(transaction.error); transaction.onabort = () => reject(transaction.error);
+  });
+}
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
-    const cache = await caches.open(CACHE);
     await Promise.all(SHELL.map(async path => {
-      if (await cache.match(path)) return;
+      if (await readAsset(path)) return;
       const response = await fetch(new Request(path, { credentials: 'same-origin' }));
       if (!response.ok) throw new Error('Kunuz offline asset unavailable: ' + path);
-      await cache.put(path, response);
+      await writeAsset(path, response);
     }));
     await self.skipWaiting();
   })());
 });
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
-    for (const key of await caches.keys()) if (key.startsWith('kunuz-treasure-') && key !== CACHE) await caches.delete(key);
+    for (const key of await caches.keys()) if (key.startsWith('kunuz-treasure-')) await caches.delete(key);
     await self.clients.claim();
   })());
 });
@@ -46,16 +78,16 @@ self.addEventListener('fetch', event => {
   const allowed = shellPaths.has(url.pathname) || hannaPage || url.pathname.startsWith('/quest-data/') || url.pathname.startsWith('/quest-theme/') || url.pathname.startsWith('/hanna-laha/assets/');
   if (!allowed) return;
   event.respondWith((async () => {
-    const cache = await caches.open(CACHE), key = hannaPage ? '/hanna-laha/index.html' : url.pathname;
+    const key = hannaPage ? '/hanna-laha/index.html' : url.pathname;
     if (self.navigator.onLine === false) {
-      const cached = await cache.match(key); if (cached) return cached;
+      const cached = await readAsset(key).catch(() => null); if (cached) return cached;
     }
     try {
       const response = await fetch(request);
-      if (response.ok && new URL(response.url).origin === self.location.origin) await cache.put(key, response.clone());
+      if (response.status === 200 && new URL(response.url).origin === self.location.origin) await writeAsset(key, response.clone()).catch(() => {});
       return response;
     } catch (_) {
-      const cached = await cache.match(key); if (cached) return cached;
+      const cached = await readAsset(key).catch(() => null); if (cached) return cached;
       return Response.error();
     }
   })());
