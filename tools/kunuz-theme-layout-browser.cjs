@@ -129,7 +129,12 @@ async function boardGames() {
     check('desktop question horizontally centered', Math.abs(paper.x + paper.width / 2 - width / 2) < 3, paper);
     if (paper.height < 580) check('desktop question vertically centered', Math.abs(paper.y + paper.height / 2 - 350) < 60, paper);
   }
-  if (game === 'test') check('quiz question centered in available width', Math.abs(paper.x + paper.width / 2 - width / 2) < 3, paper);
+  if (game === 'test') {
+    check('quiz question centered in available width', Math.abs(paper.x + paper.width / 2 - width / 2) < 3, paper);
+    const viewportHeight = width === 390 ? 844 : 700;
+    const expectedTop = Math.max(16, (viewportHeight - paper.height) / 2);
+    check('quiz question centered in available height', Math.abs(paper.y - expectedTop) < 3, { paper, expectedTop, viewportHeight });
+  }
   await dialog('back', 'question');
   if (game === 'board') {
     await click('[data-action="reveal-answer"]');

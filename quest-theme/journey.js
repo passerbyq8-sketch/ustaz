@@ -273,6 +273,7 @@
   }
   function render() {
     const focus = document.activeElement?.getAttribute('data-team-name');
+    const scrollBeforeRender = window.scrollY;
     const changed = M.lastStage !== M.stage;
     const motionKey = M.stage + ':' + (M.question?.index ?? '') + ':' + (M.question?.beat || '') + (game === 'ghaws' && M.question?.settled ? ':reward' : '');
     const motionChanged = motionKey !== M.lastMotion;
@@ -313,21 +314,20 @@
     M.lastStage = M.stage; M.lastMotion = motionKey;
     const questionKey = M.stage + ':' + (M.question?.index ?? '') + ':' + !!M.question?.settled + ':' + !!M.question?.answerRevealed;
     if (changed) window.scrollTo(0, 0);
-    if (!M.dialog && questionKey !== M.lastQuestionLayout) {
-      const selector = '.j-island-sheet,.j-quiz-paper,.j-dive-panel';
-      if (app.querySelector(selector)) requestAnimationFrame(() => {
-        const currentKey = M.stage + ':' + (M.question?.index ?? '') + ':' + !!M.question?.settled + ':' + !!M.question?.answerRevealed;
-        const sheet = app.querySelector(selector);
-        if (!sheet || currentKey !== questionKey || M.dialog) return;
-        // offsetTop follows the stable layout, without the entrance transform.
-        let top = 0; for (let node = sheet; node; node = node.offsetParent) top += node.offsetTop;
-        const inset = Math.max(16, parseFloat(getComputedStyle(sheet).scrollMarginTop) || 0);
-        const gap = sheet.classList.contains('j-island-sheet') ? inset : Math.max(inset, (innerHeight - sheet.offsetHeight) / 2);
-        window.scrollTo({ top: Math.max(0, top - gap), behavior: 'instant' });
-        M.lastQuestionLayout = questionKey;
-      });
-      else M.lastQuestionLayout = questionKey;
-    }
+    const sheet = app.querySelector('.j-island-sheet,.j-quiz-paper,.j-dive-panel');
+    if (sheet) {
+      const inset = Math.max(16, parseFloat(getComputedStyle(sheet).scrollMarginTop) || 0);
+      const gap = sheet.classList.contains('j-island-sheet') ? inset : Math.max(inset, (innerHeight - sheet.offsetHeight) / 2);
+      // Reapply space on every render so option/mute/dialog updates cannot
+      // shrink the document and clamp the card below its requested position.
+      const main = sheet.closest('main');
+      main.style.paddingBottom = Math.max(parseFloat(getComputedStyle(main).paddingBottom) || 0, innerHeight - sheet.offsetHeight - gap) + 'px';
+      const layoutKey = questionKey + ':' + sheet.offsetHeight + ':' + innerWidth + ':' + innerHeight;
+      // offsetTop follows the stable layout, without the entrance transform.
+      let top = 0; for (let node = sheet; node; node = node.offsetParent) top += node.offsetTop;
+      window.scrollTo({ top: !M.dialog && layoutKey !== M.lastQuestionLayout ? Math.max(0, top - gap) : scrollBeforeRender, behavior: 'instant' });
+      M.lastQuestionLayout = layoutKey;
+    } else M.lastQuestionLayout = null;
     if (focus !== null && focus !== undefined) app.querySelector('[data-team-name="' + focus + '"]')?.focus();
     paintTime();
     if (game === 'hub' && global.KunuzThemeBoot?.status === 'mounted') global.KunuzThemeBoot.mounted();
