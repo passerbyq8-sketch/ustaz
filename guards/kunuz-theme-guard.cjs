@@ -77,8 +77,9 @@ check('Hanna provisional point table has exactly the authorized values', () => {
 check('every category has a unique inanimate SVG, with no shared gradient identifiers', () => {
   const icons = model.categories().map(c => context.KunuzIcons.category(c.slug,c.index));
   const ids = icons.flatMap(s => [...s.matchAll(/id="([^"]*)"/g)].map(m => m[1])); assert.equal(new Set(ids).size, ids.length);
-  const normalized = icons.map(s => s.replace(/(?:g|p)\d+/g,'gradient'));
+  const normalized = icons.map(s => s.replace(/<defs>[\s\S]*?<\/defs>/g,'').replace(/(?:g|p)\d+/g,'gradient'));
   assert.equal(new Set(normalized).size, icons.length);
+  assert.doesNotMatch(read('quest-theme/icons.js'), /categoryKinds|padStart\(7|const seal/);
   icons.forEach(s => assert.doesNotMatch(s, /<image|<foreignObject|<text|https?:|<use|<script/));
 });
 check('the theme is scoped, locally hosted and uses the clean ocean only', () => {
@@ -103,8 +104,10 @@ check('offline caching has only Kunuz scopes and never intercepts Ezik pages or 
   assert.match(page, /for \(const scope of \['\/quest', '\/hanna-laha\/'\]\)/);
   assert.doesNotMatch(page, /scope:\s*['"]\/['"]/);
   assert.match(source, /key\.startsWith\('kunuz-treasure-'\)/);
-  assert.match(source, /const DATABASE = 'kunuz-treasure-assets-20261020-v1'/);
-  assert.doesNotMatch(source, /indexedDB\.deleteDatabase|caches\.open/);
+  assert.match(source, /const VERSION = '20261020-flash3'/);
+  assert.match(source, /const DATABASE = DATABASE_PREFIX \+ VERSION/);
+  assert.match(source, /entry\.name\?\.startsWith\(DATABASE_PREFIX\)/);
+  assert.doesNotMatch(source, /caches\.open/);
   const worker = {
     URL, Request, Response, Set, Promise,
     self: { location: { origin:'https://preview.example' }, navigator: { onLine:false }, addEventListener:(name,fn)=>{handlers[name]=fn} },
@@ -118,4 +121,68 @@ check('offline caching has only Kunuz scopes and never intercepts Ezik pages or 
   let intercepted = false; handlers.fetch({request:new Request('https://preview.example/quest.html'),respondWith:p=>{intercepted=true;p.catch(()=>{})}}); assert.equal(intercepted,true);
   assert.equal(vm.runInContext('SHELL.includes("/index.html") || SHELL.includes("/")',worker),false);
 });
-console.log('SUMMARY '+tests+'/'+tests+' pass');
+check('all first-paint bootstraps and font preloads are identical; Hanna CSP authorizes exactly that inline script', () => {
+  const crypto = require('node:crypto'), pages = ['quest.html','quest-board.html','quest-test.html','quest-ghaws.html','quest-harb.html','hanna-laha/index.html'];
+  const scripts = [];
+  for (const file of pages) {
+    const html = read(file).replace(/\r\n/g,'\n'), code = html.match(/<script>([\s\S]*?)<\/script>/)[1]; scripts.push(code);
+    assert.ok(html.indexOf('quest-theme/theme.css?v=20261020-flash3') < html.indexOf('<body>'));
+    assert.equal((html.match(/as="font" type="font\/ttf" crossorigin/g) || []).length, 2);
+    assert.match(code, /setTimeout\(fallback, 4000\)/); assert.match(code,/img\.decode\(\)/);
+    assert.match(code, /console\.warn/); assert.match(code, /clearTimeout\(timer\)/);
+    if (file.startsWith('hanna')) assert.ok(html.includes("'sha256-" + crypto.createHash('sha256').update(code).digest('base64') + "'"));
+  }
+  assert.equal(new Set(scripts).size, 1);
+  assert.doesNotMatch(read('quest-theme/journey.js') + read('quest-sw.js'), /createObjectURL|revokeObjectURL/);
+});
+async function workerProof() {
+  const crypto = require('node:crypto'), handlers = {}, stored = new Map(), deleted = [], fetched = [];
+  const encode = value => new TextEncoder().encode(value).buffer;
+  const db = {
+    objectStoreNames: { contains: () => true }, close() {},
+    transaction() {
+      const tx = { objectStore: () => ({
+        get(key) { const req = {}; queueMicrotask(() => { req.result = stored.get(key); req.onsuccess(); }); return req; },
+        put(value,key) { stored.set(key,value); queueMicrotask(() => tx.oncomplete()); }
+      }) }; return tx;
+    }
+  };
+  let offline = false;
+  const worker = { URL, Request, Response, Headers, Set, Promise, Uint8Array, crypto: crypto.webcrypto,
+    self: { location:{origin:'https://preview.example'}, navigator:{onLine:false}, addEventListener:(name,fn)=>{handlers[name]=fn}, clients:{claim:async()=>{}} },
+    importScripts:()=>{},
+    indexedDB: {
+      open() { const req = {}; queueMicrotask(() => { req.result = db; req.onsuccess(); }); return req; },
+      databases:async()=>[{name:'kunuz-treasure-assets-20261020-v1'},{name:'kunuz-treasure-assets-20261020-flash3'},{name:'account-history'}],
+      deleteDatabase(name) { deleted.push(name); const req = {}; queueMicrotask(() => req.onsuccess()); return req; }
+    },
+    caches: { keys:async()=>['kunuz-treasure-old','ezik-main'], delete:async name=>{deleted.push(name)} },
+    fetch:async request=>{
+      fetched.push({url:request.url,cache:request.cache}); if (offline) throw new Error('offline');
+      const filename = new URL(request.url).pathname;
+      const body = filename.endsWith('.html') ? '<html>v2</html>' : fs.readFileSync(path.join(root,filename));
+      const response = new Response(body, { headers:{'content-type':filename.endsWith('.ttf')?'font/ttf':'text/html'} });
+      Object.defineProperty(response,'url',{value:request.url}); return response;
+    }
+  };
+  vm.createContext(worker); vm.runInContext(read('quest-sw.js'),worker);
+  const integrity = JSON.parse(vm.runInContext('JSON.stringify(CRITICAL_ASSETS)',worker));
+  for (const [file,hash] of Object.entries(integrity)) assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex'),hash);
+  async function fetchPage(url) { let result; handlers.fetch({request:new Request(url),respondWith:p=>{result=p}}); return result; }
+  stored.set('/quest.html',{body:encode('<html>v1</html>'),status:200,headers:[]});
+  assert.equal(await (await fetchPage('https://preview.example/quest.html')).text(),'<html>v2</html>');
+  assert.equal(fetched[0].cache,'no-store');
+  offline = true;
+  assert.equal(await (await fetchPage('https://preview.example/quest.html')).text(),'<html>v2</html>');
+  offline = false;
+  const key = '/quest-theme/assets/regular.ttf?v=20261020-flash3';
+  stored.set(key,{body:encode('broken font'),status:200,headers:[['content-type','text/html']]});
+  const font = await fetchPage('https://preview.example' + key);
+  assert.equal(crypto.createHash('sha256').update(Buffer.from(await font.arrayBuffer())).digest('hex'),integrity['/quest-theme/assets/regular.ttf']);
+  const networkCount = fetched.length;
+  const cached = await fetchPage('https://preview.example' + key);
+  assert.equal(cached.headers.get('content-type'),'font/ttf'); assert.equal(fetched.length,networkCount);
+  let activation; handlers.activate({waitUntil:p=>{activation=p}}); await activation;
+  assert.deepEqual(deleted,['kunuz-treasure-old','kunuz-treasure-assets-20261020-v1']);
+}
+workerProof().then(() => { tests++; console.log('PASS J'+tests+' network-first update, offline latest HTML, versioned verified font recovery and Kunuz-only cleanup'); console.log('SUMMARY '+tests+'/'+tests+' pass'); }).catch(error => { console.error(error.stack); process.exitCode = 1; });

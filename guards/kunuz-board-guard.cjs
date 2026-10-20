@@ -464,7 +464,7 @@ function checkB8(pageText) {
   // KUNUZ-LEVELS-POETRY (2026-10-19, C): the owner's experimental levels add exactly one more script, the shared module, after
   // the page's own; it reaches nothing but its own data file (kunuzlevels L4/L5 hold what it does and that it can be switched off)
   // Visual engine: four fixed same-origin assets; kunuzvisual checks their loaders and switch.
-  if (srcs.join(',') !== '/quest-data/kunuz-bank-3147.js,/quest-data/kunuz-geo-index.js,/quest-data/kunuz-packs-manifest.js,/quest-visual.js,/quest-levels.js,/quest-theme/motion-kit.js,/quest-theme/icons.js,/quest-theme/model.js,/quest-theme/journey.js') f.push('scripts loaded: ' + srcs.join(','));
+  if (srcs.join(',') !== '/quest-theme/motion-kit.js?v=20261020-flash3,/quest-theme/icons.js?v=20261020-flash3,/quest-theme/model.js?v=20261020-flash3,/quest-theme/journey.js?v=20261020-flash3,/quest-data/kunuz-bank-3147.js,/quest-data/kunuz-geo-index.js,/quest-data/kunuz-packs-manifest.js,/quest-visual.js,/quest-levels.js') f.push('scripts loaded: ' + srcs.join(','));
   { const mod = fs.readFileSync(path.join(REPO, 'quest-levels.js'), 'utf8'); bad.forEach((re) => { if (re.test(mod.replace('s.src="/quest-data/kunuz-levels-3147.js";', ''))) f.push('the levels module reaches out: ' + re); });
     if ((mod.match(/\.src="([^"]*)"/g) || []).join() !== '.src="/quest-data/kunuz-levels-3147.js"') f.push('the levels module loads something else than its file'); }
   if (!/<html lang="ar" dir="rtl">/.test(pageText)) f.push('not declared Arabic right to left');
@@ -518,7 +518,7 @@ function checkB10(pageText) {
   has(/\.ezik-treasure-theme\{[^}]*overflow-x:hidden/, 'no horizontal scroll');
   has(/\.j-point\{min-height:44px;min-width:44px/, 'point tiles at least 44 by 44');
   has(/\.j-btn\{min-height:52px/, 'primary touch targets');
-  if (!pageText.includes('href="/quest-theme/theme.css"')) f.push('scoped theme stylesheet not loaded');
+  if (!pageText.includes('href="/quest-theme/theme.css?v=20261020-flash3"')) f.push('scoped theme stylesheet not loaded');
   return { f, info: 'rules ok=' + (f.length ? 0 : 1) };
 }
 
