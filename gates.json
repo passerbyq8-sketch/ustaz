@@ -940,10 +940,5 @@
     "name": "kunuzvisual",
     "script": "guards/kunuz-visual-guard.cjs",
     "args": ""
-  },
-  {
-    "name": "kunuztheme",
-    "script": "guards/kunuz-theme-guard.cjs",
-    "args": ""
   }
 ]

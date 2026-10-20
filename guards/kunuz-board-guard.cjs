@@ -535,7 +535,7 @@ run('B6', 'no repeat: games and Ghaws dives on one record until small categories
 run('B7', 'no number about the questions on any screen', checkB7, SRC);
 run('B8', 'nothing leaves the device; Arabic; the way back; the entity rule; one name; no level; the card', checkB8, PAGE_TEXT);
 run('B9', 'icons: stroke drawings, one per group and a general one', checkB9, SRC);
-run('B10', 'layout rules: 3/2/1 columns, left-to-right card, 44px', checkB10, PAGE_TEXT);
+run('B10', 'scoped reference gradient, phone/wide grid, two point columns, 44px tiles', checkB10, PAGE_TEXT);
 
 // ---------- B11: the gate bites ----------
 {

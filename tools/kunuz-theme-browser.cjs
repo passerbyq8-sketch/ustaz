@@ -6,10 +6,12 @@ const base = process.env.KUNUZ_PREVIEW_URL || 'http://127.0.0.1:43817';
 const out = process.env.KUNUZ_SHOTS || 'C:/Users/passe/projects/quest-review/sessions/kunuz-theme-shots-2026-10-20';
 const onlyWidth = Number(process.argv.find(a => /^--width=/.test(a))?.split('=')[1]);
 const reduced = process.argv.includes('--reduced');
+const onlyGame = process.argv.find(a=>a.startsWith('--game='))?.split('=')[1];
 const variants = onlyWidth ? [[onlyWidth, ({360:800,390:844,430:932})[onlyWidth]]] : [[390,844],[360,800],[430,932]];
 const routes = { board:'quest-board.html', test:'quest-test.html', hanna:'hanna-laha/', ghaws:'quest-ghaws.html', harb:'quest-harb.html' };
 fs.mkdirSync(out,{recursive:true});
 const record={base,reduced,startedAt:new Date().toISOString(),runs:[],errors:[],failedRequests:[],badResponses:[],screenshots:[]};
+const evidenceFile=()=>path.join(out,'browser-'+(onlyWidth||'all')+(reduced?'-reduced':'')+(onlyGame?'-'+onlyGame:'')+'.json');
 let page, width, label;
 async function state(){return page.evaluate(()=>{const m=KunuzJourney.state;return {stage:m.stage,step:m.step,error:m.error,turn:m.g?.turn,question:m.question?{index:m.question.index,actor:m.question.actor,activeTeam:m.question.activeTeam,shown:m.settings.options==='shown'||m.question.showTeams.has(m.question.activeTeam),answerRevealed:m.question.answerRevealed,settled:m.question.settled,confidence:m.question.confidence,beat:m.question.beat,submissions:Object.keys(m.question.submissions).length}:null,teams:m.teams.map(t=>({n:t.n,score:t.score,shows:t.shows})),played:m.slots.filter(s=>s.used).length,slots:m.slots.length,pool:m.pool.length,used:[...m.used]}})}
 async function click(selector,options={}){
@@ -123,10 +125,10 @@ async function playDive(){
 }
 async function warState(){return page.evaluate(()=>{const g=KunuzJourney.state.g;return {phase:g.phase,turn:g.turn,turnNo:g.turnNo,pool:g.pool,own:{...g.own},ban:{...g.ban},base:g.base,moveTgt:g.moveTgt,moveLeft:g.moveLeft,busy:g.busy,links:WarEngine.LINKS,dead:SLOTS.map((_,i)=>WarEngine.isDead(g,i)),flags:WarEngine.totalFlags(g)}})}
 async function playWar(){
- let questions=0,captures=0,turns=0,cycles=0,shownQuestion=false,flags;
+ let questions=0,captures=0,turns=0,cycles=0,shownQuestion=false,flags,initialHandoffs=0;
  while((await state()).stage!=='results'){
   assert.ok(cycles++<240,'war did not terminate');const s=await state();let w=await warState();turns=Math.max(turns,w.turnNo);
-  if(flags===undefined)flags=w.flags;
+  if(flags===undefined&&w.phase!=='deploy')flags=w.flags;
   if(w.phase==='deploy'){
    // Concentrate the legal deployment on an island with an enemy neighbour; leave
    // enemy guards in place so a real correct answer can demonstrate a capture.
@@ -146,6 +148,9 @@ async function playWar(){
    const n=w.moveLeft;for(let i=0;i<n;i++)await click('[data-island="'+w.moveTgt+'"]');await click('[data-action="war-next"]');continue;
   }
   if(w.phase==='attack'){
+   // Exercise the legal End Turn handoff twice before combat. Exhausting a small
+   // category can legitimately satisfy the native two-seas rule on an early turn.
+   if(initialHandoffs<2){initialHandoffs++;await click('[data-action="war-next"]');continue}
    const attack=w.links.flatMap(([a,b])=>[[a,b],[b,a]]).find(([a,b])=>w.own[a]===w.turn&&w.ban[a]>=2&&w.own[b]!==w.turn&&!w.dead[a]&&!w.dead[b]);
    if(attack){await click('[data-island="'+attack[0]+'"]');const ownBefore=JSON.stringify((await warState()).own);await click('[data-island="'+attack[1]+'"]');assert.equal(JSON.stringify((await warState()).own),ownBefore,'ownership changed without an answer')}
    else await click('[data-action="war-next"]');
@@ -156,16 +161,16 @@ async function playWar(){
 (async()=>{
  const browser=await chromium.launch({headless:true});
  try{
-  for(const [w,h]of variants){width=w;const context=await browser.newContext({viewport:{width:w,height:h},deviceScaleFactor:1,reducedMotion:reduced?'reduce':'no-preference'});page=await context.newPage();
+  for(const [w,h]of variants){width=w;const context=await browser.newContext({viewport:{width:w,height:h},deviceScaleFactor:1,reducedMotion:reduced?'reduce':'no-preference',...(process.env.KUNUZ_ACCESS_STATE?{storageState:process.env.KUNUZ_ACCESS_STATE}:{})});page=await context.newPage();
    page.on('pageerror',e=>record.errors.push({game:label,width,message:e.message}));page.on('console',m=>{if(m.type()==='error')record.errors.push({game:label,width,message:m.text()})});page.on('requestfailed',r=>record.failedRequests.push({game:label,width,url:r.url(),error:r.failure()?.errorText}));page.on('response',r=>{if(r.status()>=400)record.badResponses.push({game:label,width,url:r.url(),status:r.status()})});
-   for(const game of ['board','test','hanna','ghaws','harb']){
+   for(const game of (onlyGame?[onlyGame]:['board','test','hanna','ghaws','harb'])){
     const config=await setup(game,context);const result=game==='board'||game==='test'?await playBoard(game):game==='hanna'?await playHanna():game==='ghaws'?await playDive():await playWar();
     const run={game,width,height:h,config,...result};record.runs.push(run);console.log('PASS '+game+' '+w+' '+JSON.stringify({tiles:result.tiles,questions:result.fullDiveQuestions||result.questions,turns:result.turns,captures:result.captures}));
-    fs.writeFileSync(path.join(out,'browser-'+(onlyWidth||'all')+(reduced?'-reduced':'')+'.json'),JSON.stringify(record,null,2));
+    fs.writeFileSync(evidenceFile(),JSON.stringify(record,null,2));
    }
    await context.close();
   }
   assert.deepEqual(record.errors,[]);assert.deepEqual(record.failedRequests,[]);assert.deepEqual(record.badResponses,[]);record.finishedAt=new Date().toISOString();console.log('PASS zero console errors, failed requests and bad responses');
  }catch(error){record.failure=error.stack;console.error(error);if(page)await page.screenshot({path:path.join(out,'failure-'+label+'-'+width+'.png'),fullPage:true}).catch(()=>{});process.exitCode=1}
- finally{fs.writeFileSync(path.join(out,'browser-'+(onlyWidth||'all')+(reduced?'-reduced':'')+'.json'),JSON.stringify(record,null,2));await browser.close()}
+ finally{fs.writeFileSync(evidenceFile(),JSON.stringify(record,null,2));await browser.close()}
 })();
