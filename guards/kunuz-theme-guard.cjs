@@ -103,6 +103,8 @@ check('offline caching has only Kunuz scopes and never intercepts Ezik pages or 
   assert.match(page, /for \(const scope of \['\/quest', '\/hanna-laha\/'\]\)/);
   assert.doesNotMatch(page, /scope:\s*['"]\/['"]/);
   assert.match(source, /key\.startsWith\('kunuz-treasure-'\)/);
+  assert.match(source, /const DATABASE = 'kunuz-treasure-assets-20261020-v1'/);
+  assert.doesNotMatch(source, /indexedDB\.deleteDatabase|caches\.open/);
   const worker = {
     URL, Request, Response, Set, Promise,
     self: { location: { origin:'https://preview.example' }, navigator: { onLine:false }, addEventListener:(name,fn)=>{handlers[name]=fn} },

@@ -22,8 +22,9 @@ async function click(selector,options={}){
 }
 async function shot(step){await page.waitForTimeout(reduced?10:700);const name=label+'-'+step+'-'+width+(reduced?'-reduced':'')+'.png';await page.screenshot({path:path.join(out,name),fullPage:true});record.screenshots.push(name)}
 async function layout(){
- const x=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,clipped:[...document.querySelectorAll('.journey-app h1,.journey-app h2,.j-category-middle h3,.j-cat-pick b')].filter(el=>el.getBoundingClientRect().width>0&&el.scrollWidth>el.clientWidth+2).map(el=>el.textContent)}));
+ const x=await page.evaluate(()=>{const modal=document.querySelector('.j-modal:not(.j-dialog)'),rect=modal?.getBoundingClientRect();return{overflow:document.documentElement.scrollWidth>innerWidth,modal:rect?{top:rect.top,left:rect.left,width:rect.width,height:rect.height,viewportWidth:innerWidth,viewportHeight:innerHeight}:null,clipped:[...document.querySelectorAll('.journey-app h1,.journey-app h2,.j-category-middle h3,.j-cat-pick b')].filter(el=>el.getBoundingClientRect().width>0&&el.scrollWidth>el.clientWidth+2).map(el=>el.textContent)}});
  assert.equal(x.overflow,false,label+' horizontal overflow');assert.deepEqual(x.clipped,[],label+' clipped names');
+ if(x.modal){assert.ok(Math.abs(x.modal.top)<2&&Math.abs(x.modal.left)<2,label+' question modal escaped the viewport');assert.equal(Math.round(x.modal.width),x.modal.viewportWidth);assert.equal(Math.round(x.modal.height),x.modal.viewportHeight)}
 }
 async function setup(game,context){
  label=game;
@@ -64,6 +65,7 @@ async function playBoard(game){
  while((await state()).stage!=='results'){
   assert.ok(count<40,'board did not terminate');
   await click(page.locator('.j-point:not(:disabled)').first());
+  await layout();
   const before=await state(),index=before.question.index;assert.equal(seen.has(index),false);seen.add(index);
   assert.equal(await page.evaluate(()=>seenHas(KunuzJourney.state.question.index)),true);
   if(count===0)await shot('question');
