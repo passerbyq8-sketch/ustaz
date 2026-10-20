@@ -310,7 +310,8 @@ document.title="كنوز المعرفة — "+GAME_NAME;
 var atPlay=false;
 function toPlay(){if(!atPlay){try{history.pushState({kz:"play"},"")}catch(e){}atPlay=true}}
 function toCfg(){if(atPlay){atPlay=false;try{history.back();return}catch(e){}}openCfg()}
-window.addEventListener("popstate",function(){
+window.addEventListener("popstate",function(ev){
+  if(typeof KZV!=="undefined"&&typeof KZV.viewerBack==="function"&&KZV.viewerBack(ev))return;
   if(P.open&&G){backQ();try{history.pushState({kz:"play"},"")}catch(e){}return}
   /* لعبة جارية: رجوعٌ واحد بالخطأ (إيماءة الجوال) لا يرميها؛ يسأل كأوّل ضغطة على «إنهاء اللعبة»، والرجوع الثاني يُنهي */
   if(G&&!BE.over(G)&&BE.played(G)&&$("quit").dataset.arm!=="1"&&!$("play").classList.contains("hidden")){try{history.pushState({kz:"play"},"")}catch(e){}arm(true);return}
@@ -473,6 +474,7 @@ var BE=(function(){
     var sl=g.slots[s];if(!sl||sl.used||g.cur)return -1;
     var a=bag(g,sl.cat,seen,lvOf(sl));if(!a.length)return -1;
     var k=a[Math.floor(rnd()*a.length)];
+    if(typeof KZV!=="undefined"&&typeof KZV.takePrefetched==="function")k=KZV.takePrefetched(a,k);
     g.used[k]=1;g.cur={s:s,k:k};return k;
   }
   /* «رجوع»: الخانة تعود غير مستعملة والدور لا يتقدّم (والسؤال الذي ظهر لا يعود في هذه اللعبة) */

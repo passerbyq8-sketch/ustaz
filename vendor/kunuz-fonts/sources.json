@@ -1,0 +1,30 @@
+{
+  "license": "https://raw.githubusercontent.com/google/fonts/main/ofl/notosansarabic/OFL.txt",
+  "files": [
+    {
+      "file": "noto-sans-arabic-01.woff2",
+      "source": "https://fonts.gstatic.com/s/notosansarabic/v33/nwpCtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlj4wv4r4xA.woff2",
+      "sha256": "ce85091f020920b65762b387b194ef59457ea5b25b760f2dcc35240a94bb8669"
+    },
+    {
+      "file": "noto-sans-arabic-02.woff2",
+      "source": "https://fonts.gstatic.com/s/notosansarabic/v33/nwpCtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlj5Jv4r4xA.woff2",
+      "sha256": "2c7bffd56133bb333f6f23d240ba72ee767aa3e7de67cb71fb83bbb3595ded2b"
+    },
+    {
+      "file": "noto-sans-arabic-03.woff2",
+      "source": "https://fonts.gstatic.com/s/notosansarabic/v33/nwpCtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlj5bv4r4xA.woff2",
+      "sha256": "090786c8626fb67f5c50809079ed7fe42eb68b95d1afccffeb86943ec10254a2"
+    },
+    {
+      "file": "noto-sans-arabic-04.woff2",
+      "source": "https://fonts.gstatic.com/s/notosansarabic/v33/nwpCtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlj47v4r4xA.woff2",
+      "sha256": "27fe6458d54bcf13a2fe92228dd932ef3de9439267ca214e5c9f6bb02659e614"
+    },
+    {
+      "file": "noto-sans-arabic-05.woff2",
+      "source": "https://fonts.gstatic.com/s/notosansarabic/v33/nwpCtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlj41v4o.woff2",
+      "sha256": "fed070abc960c5f214fcb02b7b178cdab751ef7facd79a899f571bc21d38b8f8"
+    }
+  ]
+}

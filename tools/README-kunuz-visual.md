@@ -18,8 +18,9 @@ internal border. Disputed features and additional disputed-area polygons are
 cut out of target countries and emitted as anonymous, non-targetable land. The
 build's metadata records geometry checks without shipping source properties.
 
-The manifest lists the converted NEW20 packs for local owner review.
-`PACKS_ENABLED=false` in `quest-visual.js` is the single pack switch. The bank and its seal remain intact;
+The manifest lists the enabled supplemental packs. Drawn landmarks remain on disk
+but are disabled; the reviewed `landmark-photo` pack uses local photographs.
+`PACKS_ENABLED` in `quest-visual.js` is the single pack switch. The bank and its seal remain intact;
 pack history uses `kunuz_pack_seen_v1`, keyed by question ID, alongside the
 unchanged `kunuz_seen_v1` record. Clearing history explicitly clears both.
 
@@ -82,6 +83,28 @@ Visual fields:
   Percent values must be finite, positive in size, and inside the image.
   The default mask covers the middle right third. Source photographs remain
   unmodified. NEW20 contains no photo questions.
+* Photo landmarks use `{kind:"photo",effect:"plain",src:"quest-data/photos/landmarks/l0001.jpg",credit:{author:"…",license:"CC BY-SA 4.0"}}`.
+  Their credits list, including source and license links, is
+  `quest-data/photos/landmarks/credits.json`. JPEGs have a long side of 800 px
+  and are at most 90,000 bytes. Paths contain neutral IDs.
+* Object-photo support uses the same contract with `effect:"pixel"` and an
+  `objects/` path. No object-photo pack is enabled: the reviewed candidates
+  did not reach the required 120. The silhouette pack remains enabled.
+  The renderer decodes an off-DOM image into a canvas, using 20/14/9 blocks
+  across at levels 1/2/3. Reveal resolves to clear over 620 ms, immediately
+  with reduced motion. Credit text appears only after reveal.
+
+Every visual has a corner enlarge control and supports Enter/Space. The lazy
+local fullscreen viewer copies the displayed geometry or canvas pixels,
+including asynchronous loading; it never reads a pixel question's clear source.
+Pointer pinch/pan, double tap (2.5×), keyboard controls, backdrop, Escape, close
+button and a consumed browser/device-back entry preserve the active question.
+The next eligible photo is prefetched per category (per level in the board's
+points mode);
+all four draw adapters consume that prepared question if it is still eligible.
+The four game pages self-host Noto Sans Arabic through `quest-fonts.css`;
+the five font subsets, download provenance and SIL OFL license are in
+`vendor/kunuz-fonts/`.
 
 For a local demonstration, run `node tools/kunuz-visual-browser.cjs --demo`.
 It prints a loopback URL without opening a browser and serves the actual NEW20

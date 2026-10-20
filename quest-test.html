@@ -346,7 +346,7 @@ function show(id){SCREENS.forEach(function(x){$(x).classList.add("hidden")});$(i
 var atPlay=false;
 function toPlay(){if(!atPlay){try{history.pushState({kz:"play"},"")}catch(e){}atPlay=true}}
 function toCfg(){stopT();if(atPlay){atPlay=false;try{history.back();return}catch(e){}}openCfg()}
-window.addEventListener("popstate",function(){atPlay=false;stopT();openCfg()});
+window.addEventListener("popstate",function(ev){if(typeof KZV!=="undefined"&&typeof KZV.viewerBack==="function"&&KZV.viewerBack(ev))return;atPlay=false;stopT();openCfg()});
 
 /* ───── السجلّ المشترك بين الطورين: لا يتكرّر سؤال حتّى تنفد الأسئلة كلّها ─────
    المفتاح kunuz_seen_v1 · القيمة {v:1,s:ختم البنك,b:بتّة لكلّ سؤال بفهرسه، base64}
@@ -506,6 +506,7 @@ var TE=(function(){
     for(var i=0;i<DATA.qs.length;i++)if(DATA.qs[i][0]===c&&free(g,i,seen))bag.push(i);
     if(!bag.length)return -1;
     var k=bag[Math.floor(rnd()*bag.length)];
+    if(typeof KZV!=="undefined"&&typeof KZV.takePrefetched==="function")k=KZV.takePrefetched(bag,k);
     g.used[k]=1;g.cur=k;g.curCat=c;return k;
   }
   function team(g){return g.teams[g.turn]}

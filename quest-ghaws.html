@@ -584,6 +584,7 @@ else if(id==="home"){atCfg=false;atPlay=false;}
 _show(id);
 };
 window.addEventListener("popstate",function(ev){
+if(typeof KZV!=="undefined"&&typeof KZV.viewerBack==="function"&&KZV.viewerBack(ev))return;
 var k=(ev&&ev.state&&ev.state.kz)||"home";
 /* الرجوع من غوصة جارية يُنهيها هنا: لا نفَس يجري ولا مؤقّت يُظهر النتيجة فوق الإعداد بعدها */
 if(!$("dive").classList.contains("hidden")){stopB();clearT();S.lock=true;S.ending=true;deep(0)}
@@ -986,7 +987,7 @@ function openShell(c){
   S.shells=null;
   var bag=[];
   for(var i=0;i<S.pool.length;i++){var k=S.pool[i];if(!S.used[k]&&DATA.qs[k][0]===c)bag.push(k)}
-  var k=bag[Math.floor(Math.random()*bag.length)];S.used[k]=1;seenMark(k);
+  var k=bag[Math.floor(Math.random()*bag.length)];if(typeof KZV!=="undefined"&&typeof KZV.takePrefetched==="function")k=KZV.takePrefetched(bag,k);S.used[k]=1;seenMark(k);
   var q=DATA.qs[k];S.cur=q;KZR.q=q;
   $("shells").querySelectorAll(".shell").forEach(function(b){b.disabled=true;
     b.classList.add(+b.dataset.cat===c?"open":"shut")});

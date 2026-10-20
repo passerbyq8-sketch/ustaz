@@ -69,6 +69,12 @@ function hasFlag(q, flag) {
 function missingPhoto(q, root) {
   if (!q.vis || q.vis.kind !== 'photo') return false;
   const src = q.vis.src;
+  if (typeof src === 'string' && /^quest-data\/photos\/(?:landmarks|objects)\/[a-z0-9]+(?:-[a-z0-9]+)*\.jpg$/.test(src)) {
+    const file = path.join(root, src);
+    if (!fs.existsSync(file) || !fs.statSync(file).isFile()) return true;
+    const bytes = fs.readFileSync(file);
+    return bytes.length < 4 || bytes.length > 90000 || bytes[0] !== 255 || bytes[1] !== 216 || bytes.at(-2) !== 255 || bytes.at(-1) !== 217;
+  }
   if (typeof src !== 'string' || !/^quest-data\/signs\/[a-z0-9]+(?:-[a-z0-9]+)*\.webp$/.test(src)) return true;
   const file = path.join(root, src);
   if (!fs.existsSync(file) || !fs.statSync(file).isFile()) return true;

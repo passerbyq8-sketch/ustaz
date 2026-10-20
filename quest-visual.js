@@ -6,6 +6,18 @@ var KZV=(function(){
   var NS="http://www.w3.org/2000/svg",baseN=DATA.qs.length,baseC=DATA.cats.length;
   var installed=false,slugs=Object.create(null),ids=Object.create(null),historyIds=Object.create(null),volatile=false;
   var HISTORY="kunuz_pack_seen_v1",active=null,serial=0,renderSerial=0,geoPromise=null,photoObserver=null;
+  var PIXEL_BLOCKS=[0,20,14,9],photoRender=null,viewerPromise=null,preparedPhotos=Object.create(null);
+  function loadViewer(){
+    if(viewerPromise)return viewerPromise;
+    viewerPromise=new Promise(function(resolve){
+      if(window.KZVViewer){resolve(true);return}
+      var script=document.createElement("script");script.src="/quest-visual-viewer.js";script.async=true;
+      script.onload=function(){resolve(!!window.KZVViewer)};script.onerror=function(){resolve(false)};document.head.appendChild(script);
+    });return viewerPromise;
+  }
+  function enlarge(host){loadViewer().then(function(ok){if(ok&&!host.hidden&&active)window.KZVViewer.open(host)})}
+  function viewerBack(e){return !!(window.KZVViewer&&window.KZVViewer.consumeBack(e))}
+  function photoPath(src){return typeof src==="string"&&/^quest-data\/photos\/(?:landmarks|objects)\/[a-z0-9]+(?:-[a-z0-9]+)*\.jpg$/.test(src)}
   var SHAPES=["circle","square","triangle","diamond","pentagon","hexagon","star","cross"];
   var SHAPE_NAMES=["دائرة","مربع","مثلث","معين","خماسي","سداسي","نجمة","صليب هندسي"];
   var TURNS=["بلا تدوير","مدار ثمن دورة","مدار ربع دورة","مدار ثلاثة أثمان دورة","مدار نصف دورة","مدار خمسة أثمان دورة","مدار ثلاثة أرباع دورة","مدار سبعة أثمان دورة"];
@@ -85,6 +97,7 @@ var KZV=(function(){
     if(v.kind==="silhouette")return emoji(v.emoji,1);
     if(v.kind==="pattern")return Array.isArray(v.seq)&&v.seq.length===4&&v.seq.every(cell)&&Array.isArray(v.opts)&&v.opts.length===4&&v.opts.every(cell);
     if(v.kind==="photo"){
+      if(photoPath(v.src))return v.mask===undefined&&v.effect===(v.src.indexOf("/objects/")>-1?"pixel":"plain")&&object(v.credit)&&text(v.credit.author,2000)&&!!v.credit.author.trim()&&typeof v.credit.license==="string"&&/^(?:Public domain|CC0(?: 1\.0)?|CC BY(?:-SA)? \d(?:\.\d)?)$/i.test(v.credit.license);
       if(!/^quest-data\/signs\/[a-z0-9]+(?:-[a-z0-9]+)*\.webp$/.test(v.src))return false;
       if(v.mask===undefined)return true;
       var m=v.mask;return object(m)&&[m.x,m.y,m.w,m.h].every(function(n){return typeof n==="number"&&isFinite(n)})&&m.x>=0&&m.y>=0&&m.w>0&&m.h>0&&m.x+m.w<=100&&m.y+m.h<=100;
@@ -189,21 +202,30 @@ var KZV=(function(){
   }
   function show(q){
     var host=document.getElementById("qvis");if(!host)return;
+    if(window.KZVViewer)window.KZVViewer.close();
+    if(photoRender&&photoRender.cancel)photoRender.cancel();photoRender=null;
+    var oldCredit=document.getElementById("kzvPhotoCredit");if(oldCredit)oldCredit.remove();
     if(photoObserver){photoObserver.disconnect();photoObserver=null}
     if(typeof RM!=="undefined"&&RM.on||typeof G!=="undefined"&&G&&G.roomCfg)q=null;
     var render=++renderSerial;active=q;host.textContent="";host.hidden=true;host.className="kzv";
     document.body.classList.remove("kzv-question");
     var v=q&&q.kzPack&&q.kzPack.vis;if(!v)return;
     host.hidden=false;host.classList.add("kzv-"+v.kind);document.body.classList.add("kzv-question");
-    host.setAttribute("role","img");
+    host.setAttribute("role","button");host.setAttribute("tabindex","0");host.setAttribute("aria-keyshortcuts","Enter Space");
+    host.onclick=function(){enlarge(host)};
+    host.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();enlarge(host)}};
+    loadViewer();
     var labels={map:"خريطة فيها بلد مظلل",svg:"رسم خطي لمعلم",emoji:v.basis?v.basis.join("، "):"رموز لأشياء",silhouette:"ظل شيء",pattern:"تسلسل أشكال وخانة مفقودة",photo:"لوحة منطقة فيها اسم محجوب"};
-    host.setAttribute("aria-label",labels[v.kind]);
+    host.setAttribute("aria-label",(photoPath(v.src)?"صورة السؤال":labels[v.kind])+"، اضغط للتكبير");
     if(v.kind==="map")loadGeo().then(function(data){if(render!==renderSerial)return;if(data)host.appendChild(map(v,data));else host.textContent="تعذّر عرض الخريطة"});
     else if(v.kind==="svg")host.appendChild(sanitizeSvg(v.svg));
     else if(v.kind==="emoji"||v.kind==="silhouette"){var e=document.createElement("span");e.className="kzv-emoji";e.setAttribute("aria-hidden","true");e.textContent=v.seq||v.emoji;host.appendChild(e)}
     else if(v.kind==="pattern"){
       v.seq.forEach(function(c){var e=document.createElement("span");e.appendChild(shape(c));host.appendChild(e)});
       var missing=document.createElement("span");missing.textContent="؟";missing.setAttribute("aria-hidden","true");host.appendChild(missing);
+    }else if(v.kind==="photo"&&photoPath(v.src)){
+      photoRender=renderPhoto(host,q,render);
+      prefetchNext(q);
     }else if(v.kind==="photo"){
       var frame=document.createElement("div");frame.className="kzv-photo-frame";frame.setAttribute("aria-hidden","true");
       var img=document.createElement("img");img.alt="";img.draggable=false;
@@ -213,8 +235,73 @@ var KZV=(function(){
       cover.style.left=m.x+"%";cover.style.top=m.y+"%";cover.style.width=m.w+"%";cover.style.height=m.h+"%";frame.appendChild(cover);host.appendChild(frame);if(img.complete)fit();
       if(typeof ResizeObserver!=="undefined"){photoObserver=new ResizeObserver(fit);photoObserver.observe(host)}
     }
+    var icon=document.createElement("span");icon.className="kzv-enlarge";icon.setAttribute("aria-hidden","true");icon.textContent="⛶";host.appendChild(icon);
   }
-  function reveal(q){if(active!==q)return;var host=document.getElementById("qvis");if(!host)return;host.classList.add("kzv-revealed");if(q.kzPack&&q.kzPack.vis&&q.kzPack.vis.kind==="photo")host.setAttribute("aria-label","لوحة منطقة بعد رفع الغطاء")}
+  function renderPhoto(host,q,render){
+    var v=q.kzPack.vis,frame=document.createElement("div"),canvas=null,img,stopped=false,raf=0,revealed=false;
+    frame.className="kzv-photo-frame kzv-photo-full";frame.setAttribute("aria-hidden","true");host.appendChild(frame);
+    function current(){return !stopped&&render===renderSerial&&active===q}
+    function failed(){if(current()){frame.textContent="تعذّر عرض الصورة";host.setAttribute("aria-label","تعذّر عرض الصورة")}}
+    if(v.effect==="pixel"){
+      canvas=document.createElement("canvas");canvas.setAttribute("aria-hidden","true");frame.appendChild(canvas);
+      // This image is an off-DOM decode source. Only the pixel canvas enters the page.
+      img=new Image();img.decoding="async";
+      function draw(blocks){
+        if(!current()||!img.naturalWidth)return;
+        if(canvas.width!==img.naturalWidth||canvas.height!==img.naturalHeight){canvas.width=img.naturalWidth;canvas.height=img.naturalHeight}
+        var ctx=canvas.getContext("2d");
+        if(blocks>=img.naturalWidth){ctx.imageSmoothingEnabled=true;ctx.drawImage(img,0,0);host.dispatchEvent(new Event("kzvvisualchange"));return}
+        var tiny=document.createElement("canvas");tiny.width=Math.max(1,Math.round(blocks));tiny.height=Math.max(1,Math.round(blocks*img.naturalHeight/img.naturalWidth));
+        var tc=tiny.getContext("2d");tc.imageSmoothingEnabled=true;tc.imageSmoothingQuality="high";tc.drawImage(img,0,0,tiny.width,tiny.height);
+        ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(tiny,0,0,canvas.width,canvas.height);
+        host.dispatchEvent(new Event("kzvvisualchange"));
+      }
+      img.onload=function(){if(current())draw(revealed?img.naturalWidth:PIXEL_BLOCKS[q.kzPack.level])};
+      img.onerror=failed;img.src="/"+v.src;
+      return {cancel:function(){stopped=true;if(raf)cancelAnimationFrame(raf);img.onload=img.onerror=null},reveal:function(){
+        revealed=true;if(!img.naturalWidth)return;
+        if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches){draw(img.naturalWidth);return}
+        var begin=performance.now(),from=PIXEL_BLOCKS[q.kzPack.level];
+        function step(now){if(!current())return;var t=Math.min(1,(now-begin)/620);draw(t===1?img.naturalWidth:from*Math.pow(img.naturalWidth/from,t));if(t<1)raf=requestAnimationFrame(step)}
+        raf=requestAnimationFrame(step);
+      }};
+    }
+    img=document.createElement("img");img.alt="";img.draggable=false;img.loading="lazy";img.decoding="async";img.onerror=failed;img.src="/"+v.src;frame.appendChild(img);
+    return {cancel:function(){stopped=true;img.onerror=null},reveal:function(){}};
+  }
+  function photoByLevel(){return typeof BE!=="undefined"&&typeof KZL!=="undefined"&&KZL.forPts(200)>0}
+  function prefetchNext(q){
+    if(typeof Image==="undefined")return;
+    var selected=typeof S!=="undefined"&&S?S.cats:typeof G!=="undefined"&&G?G.cats:null,used=typeof G!=="undefined"&&G&&G.used;
+    var pool=typeof S!=="undefined"&&S&&Array.isArray(S.pool)?S.pool:null;
+    var bags=Object.create(null),byLevel=photoByLevel();
+    DATA.qs.forEach(function(r,i){
+      var v=r.kzPack&&r.kzPack.vis;
+      if(r===q||!v||!photoPath(v.src)||selected&&selected.indexOf(r[0])<0||pool&&pool.indexOf(i)<0||used&&used[i]||seenHas(i)||!kzLive(i)||typeof kzLv==="function"&&!kzLv(i))return;
+      var key=r[0]+":"+(byLevel?r.kzPack.level:"any");(bags[key]||(bags[key]=[])).push(i);
+    });
+    Object.keys(bags).forEach(function(key){
+      var bag=bags[key],h=2166136261,s=q[8]+":"+key;
+      for(var j=0;j<s.length;j++)h=Math.imul(h^s.charCodeAt(j),16777619)>>>0;
+      var i=preparedPhotos[key];if(bag.indexOf(i)<0)i=preparedPhotos[key]=bag[h%bag.length];
+      var image=new Image();image.decoding="async";image.fetchPriority="low";image.src="/"+DATA.qs[i].kzPack.vis.src;
+    });
+  }
+  function takePrefetched(bag,fallback){
+    if(!bag.length||!bag.every(function(i){var p=pack(i);return p&&p.vis&&photoPath(p.vis.src)}))return fallback;
+    var first=DATA.qs[bag[0]],level=photoByLevel()?first.kzPack.level:"any",key=first[0]+":"+level,i=preparedPhotos[key];
+    if(bag.indexOf(i)<0)return fallback;delete preparedPhotos[key];return i;
+  }
+  function reveal(q){
+    if(active!==q)return;var host=document.getElementById("qvis");if(!host)return;host.classList.add("kzv-revealed");
+    var v=q.kzPack&&q.kzPack.vis;
+    if(v&&v.kind==="photo"){
+      if(photoPath(v.src)){
+        if(photoRender)photoRender.reveal();host.setAttribute("aria-label","صورة السؤال بعد الإجابة، اضغط للتكبير");
+        if(!document.getElementById("kzvPhotoCredit")){var credit=document.createElement("p");credit.id="kzvPhotoCredit";credit.className="kzv-credit";credit.textContent="الصورة: "+v.credit.author+" — "+v.credit.license+" — ويكيميديا كومنز";host.parentNode.insertBefore(credit,host.nextSibling)}
+      }else host.setAttribute("aria-label","لوحة منطقة بعد رفع الغطاء");
+    }
+  }
   function choice(node,q,j){
     var v=q&&q.kzPack&&q.kzPack.vis;if(!v||v.kind!=="pattern"||!v.opts)return false;
     node.textContent="";node.classList.add("kzv-choice");var target=node;
@@ -239,7 +326,7 @@ var KZV=(function(){
       }catch(e){}
     }
   }
-  var api={register:register,stamp:stamp,validateVisual:validVis,sanitizeSvg:sanitizeSvg,show:show,reveal:reveal,choice:choice,explain:explain,level:function(i){var p=pack(i);return p?p.level:0},isPack:function(i){return !!pack(i)},cellName:cellName};
+  var api={register:register,stamp:stamp,validateVisual:validVis,sanitizeSvg:sanitizeSvg,show:show,reveal:reveal,choice:choice,explain:explain,takePrefetched:takePrefetched,viewerBack:viewerBack,pixelBlocks:PIXEL_BLOCKS.slice(),level:function(i){var p=pack(i);return p?p.level:0},isPack:function(i){return !!pack(i)},cellName:cellName};
   // Defer until the global KZV exists; classic scripts below may start loading levels.
   api.ready=Promise.resolve().then(boot);
   return api;

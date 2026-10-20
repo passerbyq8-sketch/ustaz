@@ -1,6 +1,28 @@
 /* Scoped to a visual question; empty-manifest pages keep their measured layout. */
 .kzv{--kv-ink:#123b55;--kv-bg:#edf6fc;--kv-land:#fff;--kv-line:#557589;--kv-hit:#176591;color:var(--kv-ink);background:var(--kv-bg);border-radius:12px;height:112px;max-width:100%;margin:0 0 8px;display:flex;align-items:center;justify-content:center;gap:4px;overflow:hidden;flex:none;box-sizing:border-box}
 .kzv[hidden]{display:none}
+.kzv[role=button]{position:relative;cursor:zoom-in;touch-action:manipulation}
+.kzv[role=button]:focus-visible{outline:3px solid #176591;outline-offset:3px}
+.kzv-enlarge{position:absolute;inset-inline-end:5px;bottom:5px;display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:#123b55;color:#fff;font:24px/1 sans-serif;pointer-events:none}
+.kzv-photo-full{width:100%;height:100%}
+.kzv .kzv-photo-full img,.kzv .kzv-photo-full canvas{display:block;width:100%;height:100%;object-fit:contain}
+.kzv-photo:has(.kzv-photo-full){height:200px}
+.kzv-credit{font:11px/1.6 system-ui,sans-serif;color:inherit;opacity:.8;margin:-2px 0 8px;overflow-wrap:anywhere}
+.kzv-view-open{overflow:hidden!important;overscroll-behavior:none}
+.kzv-view{position:fixed;inset:0;z-index:2147483000;background:rgba(3,9,17,.96);display:flex;align-items:center;justify-content:center;overscroll-behavior:contain;touch-action:none}
+.kzv-view-stage{position:absolute;inset:max(72px,env(safe-area-inset-top)) 16px max(32px,env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:center;overflow:hidden}
+.kzv-view .kzv-view-content{width:100%;height:100%;margin:0;border-radius:0;flex:none;cursor:grab;touch-action:none;will-change:transform;transform-origin:center;user-select:none;-webkit-user-select:none}
+.kzv-view .kzv-view-content:active{cursor:grabbing}
+.kzv-view-content.kzv-svg>svg{width:100%;height:100%;max-height:none}
+.kzv-view-content.kzv-pattern svg{max-height:none}
+.kzv-view-content .kzv-emoji{font-size:clamp(64px,24vw,220px)}
+.kzv-view-content .kzv-photo-frame{width:100%;height:100%;max-width:100%}
+.kzv-view-content .kzv-photo-frame img,.kzv-view-content canvas{object-fit:contain;width:100%;height:100%}
+.kzv-view-content.kzv-photo{background:transparent}
+.kzv-view-ease{transition:transform .18s ease-out}
+.kzv-view-close{position:absolute;top:max(12px,env(safe-area-inset-top));inset-inline-end:max(16px,env(safe-area-inset-right));min-width:88px;min-height:44px;padding:8px 18px;border:1px solid #fff;border-radius:12px;background:#fff;color:#123b55;font:700 17px/1.4 system-ui,sans-serif;cursor:pointer}
+.kzv-view-close:focus-visible{outline:3px solid #8acbff;outline-offset:4px}
+@media(prefers-reduced-motion:reduce){.kzv-view-ease{transition:none}}
 .kzv>svg{display:block;width:100%;height:100%;max-width:100%}
 .kzv-svg>svg{width:160px;fill:none;stroke:currentColor;stroke-width:2}
 .kzv-map{direction:ltr}
@@ -11,7 +33,7 @@
 .kzv-silhouette:not(.kzv-revealed) .kzv-emoji{filter:brightness(0)}
 .kzv-silhouette{background:var(--kv-shadow-bg,#edf6fc)}
 .kzv-pattern{direction:ltr}
-.kzv-pattern>span{display:flex;justify-content:center;align-items:center;flex:1;min-width:0;height:100%;font-size:32px}
+.kzv-pattern>span:not(.kzv-enlarge){display:flex;justify-content:center;align-items:center;flex:1;min-width:0;height:100%;font-size:32px}
 .kzv-pattern svg{width:100%;max-height:86px}
 .kzv-photo-frame{height:100%;max-width:100%;position:relative;display:inline-flex;align-items:center;justify-content:center}
 .kzv-photo-frame img{display:block;width:100%;height:100%;object-fit:fill}
