@@ -163,13 +163,13 @@ async function new20(){
   const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
   const cv=require('../tools/kunuz-new20-convert.cjs');
   const manifest=new Function(read('quest-data/kunuz-packs-manifest.js')+';return KUNUZ_PACKS')();
-  assert.deepEqual(manifest.map(p=>p.slug),cv.GROUPS.map(g=>g[0]==='landmark-draw'?'landmark-photo':g[0]).filter(s=>!['fmt-odd-one','occasions-calendar'].includes(s)));
+  assert.deepEqual(manifest.map(p=>p.slug),cv.GROUPS.map(g=>g[0]==='landmark-draw'?'landmark-photo':g[0]==='silhouette'?'object-pixel':g[0]).filter(s=>!['fmt-odd-one','occasions-calendar'].includes(s)));
   const packs=manifest.map(entry=>{assert.equal(entry.src,cv.packPath(entry.slug));const body=read(entry.src);const pack=cv.parsePack(body);assert.equal(pack.slug,entry.slug);return {pack,body}});
-  const checked=await cv.validatePacks(packs);assert.equal(checked.questions,5484);
+  const checked=await cv.validatePacks(packs);assert.equal(checked.questions,5479);
   const photos=packs.find(p=>p.pack.slug==='landmark-photo').pack;
   const credits=JSON.parse(read('quest-data/photos/landmarks/credits.json'));
   assert.equal(photos.qs.length,121);assert.equal(photos.stamp,'121-86446ffa');assert.equal(credits.length,121);
-  assert.deepEqual(fs.readdirSync(path.join(__dirname,'../quest-data/photos')).sort(),['landmarks']);
+  assert.deepEqual(fs.readdirSync(path.join(__dirname,'../quest-data/photos')).sort(),['landmarks','objects']);
   assert.deepEqual(fs.readdirSync(path.join(__dirname,'../quest-data/photos/landmarks')).sort(),['credits.json',...photos.qs.map(q=>path.basename(q.vis.src))].sort());
   assert.equal(new Set(credits.map(c=>c.sha256)).size,121);
   for(const q of photos.qs){
@@ -181,10 +181,28 @@ async function new20(){
     assert.ok(/^https?:\/\/(?:creativecommons\.org|commons\.wikimedia\.org)\//.test(credit.license_url)&&/^https:\/\/commons\.wikimedia\.org\/wiki\/File:/.test(credit.source_url));
     assert.equal(q.choices[q.answer],credit.country);assert.equal(new Set(q.choices).size,4);
   }
+  const pixels=packs.find(p=>p.pack.slug==='object-pixel').pack,objects=JSON.parse(read('quest-data/photos/objects/credits.json'));
+  assert.equal(pixels.qs.length,167);assert.equal(pixels.stamp,'167-46281145');assert.equal(objects.length,167);
+  assert.equal(objects.filter(c=>c.region==='gulf').length,50);assert.ok(objects.filter(c=>c.region==='gulf').every(c=>typeof c.regional_basis==='string'&&c.regional_basis.length>20));
+  assert.deepEqual(fs.readdirSync(path.join(__dirname,'../quest-data/photos/objects')).sort(),['credits.json',...pixels.qs.map(q=>path.basename(q.vis.src))].sort());
+  assert.equal(new Set(objects.map(c=>c.sha256)).size,167);
+  assert.equal(new Set(objects.map(c=>decodeURIComponent(c.source_url).replace(/_/g,' '))).size,167);
+  function jpegSize(bytes){for(let i=2;i+9<bytes.length;){assert.equal(bytes[i++],255);while(bytes[i]===255)i++;const marker=bytes[i++],length=bytes.readUInt16BE(i);if([192,193,194].includes(marker))return [bytes.readUInt16BE(i+5),bytes.readUInt16BE(i+3)];assert.ok(length>=2);i+=length}throw Error('missing JPEG dimensions')}
+  for(const q of pixels.qs){
+    const credit=objects.find(c=>c.id===q.id),bytes=fs.readFileSync(path.join(__dirname,'..',q.vis.src));assert.ok(credit,q.id+' credit');
+    assert.equal(q.q,'شنو هذا؟');assert.equal(q.vis.kind,'photo');assert.equal(q.vis.effect,'pixel');assert.equal(q.vis.src,credit.file);
+    assert.equal(q.vis.credit.author,credit.author);assert.equal(q.vis.credit.license,credit.license);assert.equal(q.vis.credit.provider||'commons',credit.provider);
+    assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),credit.sha256);assert.equal(Math.max(...jpegSize(bytes)),800);
+    assert.ok(bytes.length<=90000&&bytes[0]===255&&bytes[1]===216&&bytes.at(-2)===255&&bytes.at(-1)===217,q.id+' JPEG budget');
+    assert.equal(credit.visual_checked,true);assert.match(credit.blind_review,/^[bq][0-9]{4}$/);assert.equal(new Set(q.choices).size,4);
+    if(credit.provider==='commons'){assert.match(credit.source_url,/^https:\/\/commons\.wikimedia\.org\/wiki\/File:/);assert.match(credit.license,/^(?:Public domain|CC0(?: 1\.0)?|CC BY(?:-SA)? [1-4]\.0)$/)}
+    else if(credit.provider==='met'){assert.match(credit.source_url,/^https:\/\/www\.metmuseum\.org\/art\/collection\/search\/[0-9]+$/);assert.equal(credit.license,'CC0')}
+    else{assert.equal(credit.provider,'pexels');assert.match(credit.source_url,/^https:\/\/www\.pexels\.com\/photo\/[a-z0-9-]+\/$/);assert.equal(credit.license,'Pexels License');assert.equal(credit.license_url,'https://www.pexels.com/license/')}
+  }
   const bodies=Object.fromEntries(packs.map(p=>['/'+cv.packPath(p.pack.slug),p.body]));
   for(const page of games){
     const w=await open(page,{manifest,bodies});
-    assert.equal(w.ctx.DATA.qs.length,bank.qs.length+5484,page+' real manifest load');
+    assert.equal(w.ctx.DATA.qs.length,bank.qs.length+5479,page+' real manifest load');
     assert.equal(w.requests.filter(p=>/kunuz-pack-/.test(p)).length,18);
     assert.ok(w.ctx.KZC_GROUPS.some(g=>g[0]==='بصريات وألغاز'));
     noErrors(w);

@@ -84,8 +84,8 @@ check('Hanna provisional point table has exactly the authorized values', () => {
   assert.ok(Object.isFrozen(model.HANNA_POINTS.bold));
 });
 check('every category has a unique inanimate SVG, with no shared gradient identifiers', () => {
-  const slugs = [...model.categories().map(c => c.slug), 'landmark-draw', 'occasions-calendar'];
-  assert.equal(slugs.length, 73); // Includes the defined drawings for main's disabled packs.
+  const slugs = [...model.categories().map(c => c.slug), 'landmark-draw', 'occasions-calendar', 'silhouette'];
+  assert.equal(slugs.length, 74); // Includes the defined drawings for disabled packs.
   const icons = slugs.map(slug => context.KunuzIcons.category(slug));
   const ids = icons.flatMap(s => [...s.matchAll(/id="([^"]*)"/g)].map(m => m[1])); assert.equal(new Set(ids).size, ids.length);
   const normalized = icons.map(s => s.replace(/<defs>[\s\S]*?<\/defs>/g,'').replace(/(?:g|p)\d+/g,'gradient'));
