@@ -655,6 +655,7 @@
       lobby();
       document.querySelectorAll('#lobbyTeams .pcard').forEach((row, i) => row.insertAdjacentHTML('afterbegin', '<span class="j-native-symbol">' + sym(i) + '</span>'));
     };
+    global.roomLeaveWar = () => { if (!M.dialog) askDialog('تطلعون من الغرفة وترجعون للإعدادات؟', leaveRoomToSettings); };
   }
   async function enterRoom(join, preserveRoute = false) {
     // Rooms continue to use the shipped front-end and worker's current protocol.
@@ -664,6 +665,7 @@
     if (!join && game === 'hanna' && M.settings.roomCode && !/^\d{4,6}$/.test(M.settings.roomCode)) { M.error = 'رمز الغرفة يكون من أربعة إلى ستة أرقام.'; render(); return; }
     if (!join && (game === 'hanna' && (!Number.isInteger(time()) || time() < 10 || time() > 600 || M.settings.reveals > 99) || game === 'harb' && (time() !== 0 && (time() < 3 || time() > 600 || !Number.isInteger(time() * 1000))))) { M.error = 'هذا الوقت أو رصيد الخيارات خارج ما يقبله خادم الغرف الحالي؛ اختاروا إعدادًا آخر أو العبوا على جهاز واحد.'; render(); return; }
     M.error = ''; cancelPlay(); M.stage = 'room'; M.step = 3; render();
+    M.roomUrl = location.href;
     document.body.prepend(app);
     document.body.classList.add('journey-room');
     if (game === 'harb') {
@@ -695,7 +697,17 @@
       }
       const route = join ? 'join' : 'setup';
       if (!preserveRoute) history.replaceState({ journey: true, step: 3, rooms: true }, '', '/hanna-laha/' + route + '?rooms=1');
+      M.roomUrl = location.href;
       document.head.append(module);
+      let entered = false;
+      const routeObserver = new MutationObserver(() => {
+        if (M.stage !== 'room') { routeObserver.disconnect(); return; }
+        const current = location.pathname;
+        if (/\/host\/?$|\/j\/\d{4,6}\/?$/.test(current)) entered = true;
+        if (entered && (/^\/hanna-laha\/?$/.test(current) || /\/setup\/?$/.test(current))) { routeObserver.disconnect(); leaveRoomToSettings(); return; }
+        M.roomUrl = location.href;
+      });
+      routeObserver.observe(document.getElementById('root'), { childList: true, subtree: true });
       if (!join) bridgeHannaSetup();
     }
   }
@@ -805,7 +817,18 @@
     if (el.dataset.input) M.settings[el.dataset.input] = el.dataset.input === 'roomCode' ? el.value : el.value === '' ? NaN : Number(el.value);
   });
   global.addEventListener('popstate', event => {
-    if (M.stage === 'room') return;
+    if (M.stage === 'room') {
+      event.stopImmediatePropagation();
+      // The legacy war listener was registered first and may already have shown
+      // its old setup. Restore its still-live view before asking to leave it.
+      if (game === 'harb' && global.RM.on) {
+        const view = global.RM.view;
+        for (const id of ['home', 'how', 'cfg', 'room', 'join', 'lobby', 'war', 'win', 'verdict']) global.$(id)?.classList.toggle('hidden', id !== view);
+      }
+      history.pushState({ journey: true, step: 3, rooms: true }, '', M.roomUrl || location.href);
+      if (!M.dialog) back();
+      return;
+    }
     event.stopImmediatePropagation();
     if (M.skipPop) { M.skipPop = false; return; }
     const step = event.state?.step;
@@ -822,6 +845,16 @@
     if (document.hidden) { hiddenAt = performance.now(); stopSounds(); cancelVisuals(); }
     else { if (hiddenAt && M.question) { M.question.deadline += performance.now() - hiddenAt; M.question.started += performance.now() - hiddenAt; } hiddenAt = 0; if (M.stage === 'hub' || M.stage === 'dive') render(); }
   });
+  document.addEventListener('click', event => {
+    if (M.stage !== 'room') return;
+    const target = event.target.closest('button');
+    const hannaExit = game === 'hanna' && target?.matches('#root header[class*=_topBar_] > button:first-child');
+    const warExit = game === 'harb' && target && ['tbExit', 'roomEnd'].includes(target.id);
+    if (!hannaExit && !warExit) return;
+    event.preventDefault(); event.stopImmediatePropagation(); M.audioUnlocked = true; sound('tap');
+    const close = warExit && target.id === 'roomEnd' ? target.onclick : null;
+    askDialog(close && global.RM.host ? 'تغلقون الغرفة وترجعون للإعدادات؟' : 'تطلعون من الغرفة وترجعون للإعدادات؟', () => { if (close) close.call(target); leaveRoomToSettings(); });
+  }, true);
   document.addEventListener('click', event => {
     if (M.stage === 'room' && event.target.closest('#root button')) { M.audioUnlocked = true; sound('tap'); }
   });
