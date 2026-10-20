@@ -876,6 +876,7 @@
     if (el.dataset.input) M.settings[el.dataset.input] = el.dataset.input === 'roomCode' ? el.value : el.value === '' ? NaN : Number(el.value);
   });
   global.addEventListener('popstate', event => {
+    if (global.KZV?.viewerBack(event)) return;
     if (M.stage === 'room') {
       event.stopImmediatePropagation();
       // The legacy war listener was registered first and may already have shown

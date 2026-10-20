@@ -82,6 +82,8 @@ const categoryArt = {
  'map-quiz': '<path d="m10 26 25-10 29 11 26-11v61L64 88 35 77 10 88ZM35 16v61M64 27v61"/><path d="M65 43q0 13-15 26-15-13-15-26a15 15 0 0 1 30 0Z"/><circle cx="50" cy="43" r="5"/>',
  'emoji-quiz': '<path d="M12 16h76v57H49L29 90V73H12Z"/><path d="m33 28 8 13-8 13-8-13ZM57 32h18v18H57ZM33 62h40"/>',
  'landmark-draw': '<path d="M15 84V32h15v52M70 84V32h15v52M10 32l13-19 12 19M65 32l13-19 12 19M30 62q20-28 40 0M10 84h80M38 72h24M10 9v12M10 9h12M90 9H78M90 9v12"/>',
+ 'landmark-photo': '<rect x="10" y="15" width="80" height="70" rx="6"/><path d="m18 73 19-23 13 14 12-35 20 44ZM18 23h22M18 30h13"/><circle cx="72" cy="30" r="7"/>',
+ 'object-pixel': '<path d="M12 12h24v24H12ZM40 12h20v24H40ZM64 12h24v24H64ZM12 40h24v20H12ZM40 40h20v20H40ZM64 40h24v20H64ZM12 64h24v24H12ZM40 64h20v24H40ZM64 64h24v24H64Z"/>',
  silhouette: '<path d="M58 69 31 42a18 18 0 1 1 14-14l27 27-5 5 9 9-9 9-9-9Z" fill="#143b45"/><circle cx="26" cy="23" r="6"/><path d="m43 86 32-5 17 7-32 5Z" fill="#dba044"/>',
  'pattern-iq': '<rect x="12" y="12" width="25" height="25" rx="3"/><circle cx="70" cy="24" r="14"/><path d="m24 53 15 30H9ZM55 57h30v30H55ZM45 17v66M13 46h72"/>',
  'kuwait-places': '<path d="M27 90V20M59 90V13M81 90V37M10 90h81M22 15l5-9 5 9M54 8l5-7 5 7"/><circle cx="27" cy="48" r="13"/><circle cx="59" cy="36" r="15"/><circle cx="59" cy="65" r="9"/>',

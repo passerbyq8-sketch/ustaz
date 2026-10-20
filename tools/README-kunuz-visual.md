@@ -102,9 +102,9 @@ button and a consumed browser/device-back entry preserve the active question.
 The next eligible photo is prefetched per category (per level in the board's
 points mode);
 all four draw adapters consume that prepared question if it is still eligible.
-The four game pages self-host Noto Sans Arabic through `quest-fonts.css`;
-the five font subsets, download provenance and SIL OFL license are in
-`vendor/kunuz-fonts/`.
+The published Journey theme supplies its own local KunuzPlex fonts on all five
+game pages. Its question card hosts the same renderer; the viewer consumes Back
+before Journey handles navigation. The earlier Noto font bundle is removed.
 
 For a local demonstration, run `node tools/kunuz-visual-browser.cjs --demo`.
 It prints a loopback URL without opening a browser and serves the actual NEW20

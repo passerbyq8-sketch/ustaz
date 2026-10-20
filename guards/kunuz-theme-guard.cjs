@@ -23,7 +23,7 @@ let tests = 0;
 function check(name, fn) { fn(); tests++; console.log('PASS J' + tests + ' ' + name); }
 check('every playable bank/pack category gets its own card and fixed balanced reservation', () => {
   const eligible = model.categories().filter(c => c.count >= 6);
-  assert.equal(eligible.length, 70);
+  assert.equal(eligible.length, 71);
   const all = new Set();
   for (const cat of eligible) {
     const pool = model.pool([cat.index], () => false, () => .33);
@@ -34,7 +34,7 @@ check('every playable bank/pack category gets its own card and fixed balanced re
       if (available >= 2) assert.equal(pool.slots.filter(s => s.actual === level).length >= 2, true);
     }
   }
-  assert.equal(all.size, 70 * 6);
+  assert.equal(all.size, 71 * 6);
 });
 check('unseen questions precede oldest-seen replay; exhausted categories restart and held rows stay excluded', () => {
   const first = model.pool([0, 1, 2], () => false, () => .4), seen = new Set(first.indices);
@@ -85,7 +85,7 @@ check('Hanna provisional point table has exactly the authorized values', () => {
 });
 check('every category has a unique inanimate SVG, with no shared gradient identifiers', () => {
   const slugs = [...model.categories().map(c => c.slug), 'landmark-draw', 'occasions-calendar'];
-  assert.equal(slugs.length, 72); // Includes the defined drawings for main's disabled packs.
+  assert.equal(slugs.length, 73); // Includes the defined drawings for main's disabled packs.
   const icons = slugs.map(slug => context.KunuzIcons.category(slug));
   const ids = icons.flatMap(s => [...s.matchAll(/id="([^"]*)"/g)].map(m => m[1])); assert.equal(new Set(ids).size, ids.length);
   const normalized = icons.map(s => s.replace(/<defs>[\s\S]*?<\/defs>/g,'').replace(/(?:g|p)\d+/g,'gradient'));
