@@ -74,7 +74,12 @@ async function capture(browser, context, route, name, base) {
   page.on('pageerror', e => errors.push(e.message));
   page.on('requestfailed', r => failures.push({ path: new URL(r.url()).pathname, error: r.failure()?.errorText }));
   await cdp.send('Network.enable'); await throttle(cdp, true);
-  const initial = await cdp.send('Page.captureScreenshot', { format: 'png' });
+  // A fresh about:blank target can precede its first compositor surface.
+  let initial;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try { initial = await cdp.send('Page.captureScreenshot', { format: 'png' }); break; }
+    catch (error) { if (attempt === 4) throw error; await page.waitForTimeout(100); }
+  }
   cdp.on('Page.screencastFrame', event => {
     raw.push({ stamp: event.metadata.timestamp * 1000, data: event.data });
     cdp.send('Page.screencastFrameAck', { sessionId: event.sessionId }).catch(() => {});

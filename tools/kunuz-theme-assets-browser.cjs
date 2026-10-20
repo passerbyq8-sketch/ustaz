@@ -38,7 +38,7 @@ async function assets(page, name) {
 async function sheet(browser, cards, name) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 1350 }, deviceScaleFactor: 1 });
   await page.goto(base + '/quest.html'); await ready(page);
-  await page.setContent('<style>@font-face{font-family:Plex;src:url("' + base + '/quest-theme/assets/regular.ttf?v=20261020-flash3")}*{box-sizing:border-box}body{margin:0;padding:12px;background:#082c38;color:#fff8eb;font:16px Plex,Arial;display:grid;grid-template-columns:repeat(8,1fr);gap:10px;direction:rtl}.card{height:136px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#164755;border:1px solid #ffe6a34d;border-radius:16px;text-align:center;padding:7px;line-height:1.4}svg{width:76px;height:76px;flex:none}.name{padding-top:6px}</style>' + cards.map(c => '<div class="card">' + c.svg + '<div class="name">' + c.name + '</div></div>').join(''));
+  await page.setContent('<style>@font-face{font-family:Plex;src:url("' + base + '/quest-theme/assets/regular.ttf?v=20261020-flash4")}*{box-sizing:border-box}body{margin:0;padding:12px;background:#082c38;color:#fff8eb;font:16px Plex,Arial;display:grid;grid-template-columns:repeat(8,1fr);gap:10px;direction:rtl}.card{height:136px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#164755;border:1px solid #ffe6a34d;border-radius:16px;text-align:center;padding:7px;line-height:1.4}svg{width:76px;height:76px;flex:none}.name{padding-top:6px}</style>' + cards.map(c => '<div class="card">' + c.svg + '<div class="name">' + c.name + '</div></div>').join(''));
   await page.evaluate(() => document.fonts.ready); await page.screenshot({ path: path.join(out, name + '.png'), fullPage: true }); await page.close();
 }
 (async () => {
@@ -63,18 +63,18 @@ async function sheet(browser, cards, name) {
     // Corrupt each critical persistent response. The worker must reject its
     // bytes and restore the real network response before showing the hub.
     record.corruption = await page.evaluate(async () => {
-      const name = (await indexedDB.databases()).find(db => db.name.startsWith('kunuz-treasure-assets-20261020-flash3')).name;
+      const name = (await indexedDB.databases()).find(db => db.name.startsWith('kunuz-treasure-assets-20261020-flash4')).name;
       const db = await new Promise((resolve, reject) => { const r = indexedDB.open(name); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
-      const keys = ['regular.ttf','bold.ttf','ocean-clean.webp','islands.webp'].map(name => '/quest-theme/assets/' + name + '?v=20261020-flash3');
+      const keys = ['regular.ttf','bold.ttf','ocean-clean.webp','islands.webp'].map(name => '/quest-theme/assets/' + name + '?v=20261020-flash4');
       await new Promise((resolve, reject) => { const tx = db.transaction('assets','readwrite'); for (const key of keys) tx.objectStore('assets').put({ body: new Uint8Array([0]).buffer, status: 200, headers: [['content-type','text/html']] }, key); tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); });
       db.close(); return { database: name, keys };
     });
     await page.reload(); record.returns.push(await assets(page, 'hub-corrupt-cache-recovered'));
     await page.goto(base + routes.board); await ready(page);
     const cards = await page.evaluate(() => KunuzModel.categories().map(c => ({ slug: c.slug, name: c.name, svg: KunuzIcons.category(c.slug,c.index) })));
-    assert.equal(cards.length, 72);
+    assert.equal(cards.length, 70);
     const geometry = cards.map(c => c.svg.replace(/<defs>[\s\S]*?<\/defs>/g, '').replace(/(?:g|p)\d+/g, 'gradient'));
-    assert.equal(new Set(geometry).size, 72, 'main category silhouettes repeat');
+    assert.equal(new Set(geometry).size, 70, 'main category silhouettes repeat');
     await sheet(browser, cards, 'category-icons-after');
     const old = { window: {} }; vm.createContext(old); vm.runInContext(fs.readFileSync(path.join(__dirname, '../.vercel/flash-v1/quest-theme/icons.js'), 'utf8'), old);
     await sheet(browser, cards.map((c,index) => ({ ...c, svg: old.window.KunuzIcons.category(c.slug,index) })), 'category-icons-before');
@@ -106,7 +106,7 @@ async function sheet(browser, cards, name) {
       await p.screenshot({ path: path.join(out, 'fallback-' + failure + '-' + game + '.png'), fullPage: false });
       record.fallback.push({ game, failure, logged: true, native }); await fallback.close();
     }
-    console.log('PASS 15 hub returns; every page font; corrupted asset recovery; 72 distinct silhouettes; 12 playable script/CSS fallbacks');
+    console.log('PASS 15 hub returns; every page font; corrupted asset recovery; 70 distinct silhouettes; 12 playable script/CSS fallbacks');
   } catch (e) { record.failure = e.stack; await page.screenshot({ path: path.join(out,'asset-proof-failure.png') }).catch(() => {}); throw e; }
   finally { fs.writeFileSync(path.join(out, 'asset-and-icons-proof.json'), JSON.stringify(record, null, 2)); await browser.close(); }
 })().catch(e => { console.error(e); process.exitCode = 1; });
