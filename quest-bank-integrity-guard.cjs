@@ -2569,7 +2569,7 @@ async function compare(bankPath) {
   // KUNUZ-LEVELS-POETRY (2026-10-19, C): the bank and the experimental levels file (a map id -> level, no question in it)
   // The visual engine adds local geometry and a manifest, never another bank.
   // Disabled packs stay on disk for review and rollback.
-  const QD = [path.basename(BANK), 'kunuz-levels-3147.js', 'kunuz-geo.js', 'kunuz-geo-index.js', 'kunuz-packs-manifest.js', 'kunuz-pack-landmark-draw.js', 'kunuz-pack-occasions-calendar.js'];
+  const QD = [path.basename(BANK), 'kunuz-levels-3147.js', 'kunuz-geo.js', 'kunuz-geo-index.js', 'kunuz-packs-manifest.js', 'kunuz-pack-landmark-draw.js', 'kunuz-pack-occasions-calendar.js', 'photos'];
   const packs = new Function(fs.readFileSync(path.join(__dirname, 'quest-data', 'kunuz-packs-manifest.js'), 'utf8') + ';return KUNUZ_PACKS;')();
   if (!Array.isArray(packs)) no('K2', 'pack manifest is not an array');
   else for (const p of packs) {
