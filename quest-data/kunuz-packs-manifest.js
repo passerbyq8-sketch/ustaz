@@ -10,10 +10,6 @@ var KUNUZ_PACKS=[
     "src": "quest-data/kunuz-pack-emoji-quiz.js"
   },
   {
-    "slug": "landmark-draw",
-    "src": "quest-data/kunuz-pack-landmark-draw.js"
-  },
-  {
     "slug": "silhouette",
     "src": "quest-data/kunuz-pack-silhouette.js"
   },
