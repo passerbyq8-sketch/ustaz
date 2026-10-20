@@ -632,6 +632,30 @@
     M.result = { title: winners.length > 1 ? 'تعادل بين ' + winners.map(row => '«' + M.teams[row.index].n + '»').join(' و') : 'الفائز «' + M.teams[rows[0].index].n + '»', note: reason === 'dormant' ? 'انتهت مغامرة الجزر؛ الحسم بالجزر ثم الرايات.' : 'الحسم بالجزر ثم الرايات.', rows };
     setStage('results', 4);
   }
+  function installWarRoomLook() {
+    if (M.warRoomLook) return; M.warRoomLook = true;
+    const paint = global.paint, lobby = global.drawLobby;
+    global.paint = function () {
+      paint();
+      for (let k = 0; k < global.SLOTS.length; k++) {
+        const island = global.$('g' + k), owner = global.G.own[k];
+        if (!island || !Number.isInteger(owner)) continue;
+        let marker = island.querySelector('.j-room-map-symbol');
+        if (!marker) { marker = document.createElementNS('http://www.w3.org/2000/svg', 'g'); marker.classList.add('j-room-map-symbol'); marker.setAttribute('pointer-events', 'none'); island.insertBefore(marker, island.querySelector('.hit')); }
+        if (marker.dataset.owner === String(owner)) continue;
+        marker.dataset.owner = owner;
+        const color = global.RM.snap?.teams[owner]?.color;
+        const fill = global.PAL[color]?.[0] || colors[owner];
+        marker.innerHTML = '<rect x="-24" y="-21" width="48" height="42" rx="14" fill="' + fill + '" stroke="#fff0b7" stroke-width="2"/><g transform="translate(-15 -15) scale(.3)" fill="#fff" stroke="#fff">' + sym(owner).replace(/<svg[^>]*>|<\/svg>/g, '') + '</g>';
+      }
+      const turn = global.$('tbWho');
+      if (turn && !turn.querySelector('.j-native-symbol')) turn.insertAdjacentHTML('afterbegin', '<span class="j-native-symbol">' + sym(global.G.turn || 0) + '</span>');
+    };
+    global.drawLobby = function () {
+      lobby();
+      document.querySelectorAll('#lobbyTeams .pcard').forEach((row, i) => row.insertAdjacentHTML('afterbegin', '<span class="j-native-symbol">' + sym(i) + '</span>'));
+    };
+  }
   async function enterRoom(join, preserveRoute = false) {
     // Rooms continue to use the shipped front-end and worker's current protocol.
     // Local pack IDs are deliberately never sent to a server with a different bank.
@@ -644,6 +668,7 @@
     document.body.classList.add('journey-room');
     if (game === 'harb') {
       // Keep every native lobby, reconnect and phone action intact.
+      installWarRoomLook();
       global.openRoomScreen();
       if (!join) {
         global.roomCfg();
