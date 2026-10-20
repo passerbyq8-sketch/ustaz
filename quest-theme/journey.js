@@ -802,6 +802,18 @@
   global.addEventListener('pagehide', event => { clearTimer(); stopSounds(); cancelVisuals(); if (!event.persisted) Motion?.dispose(); });
   global.addEventListener('pageshow', event => { if (event.persisted) { render(); if (M.question && !M.question.settled && !M.question.answerRevealed && !M.question.beat) startTimer(); } });
   global.KunuzJourney = Object.freeze({ get state() { return M; }, get diagnostics() { return { bankStamp: typeof global.seenStamp === 'function' ? global.seenStamp() : '', offlineReady: M.offlineReady, excluded: M.excluded, fallback: M.fallback, categories: game === 'hub' ? [] : Model.categories().map(c => ({ name: c.name, total: c.count })) }; } });
+  async function loadHannaLocal() {
+    // Direct room URLs stay outside the local bank/pack engine. Local Hanna uses
+    // that engine only after the entry route has been classified below.
+    const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/quest-visual.css'; document.head.append(css);
+    for (const src of ['/quest-data/kunuz-bank-3147.js', '/quest-theme/history.js', '/quest-data/kunuz-geo-index.js', '/quest-data/kunuz-packs-manifest.js', '/quest-visual.js', '/quest-levels.js']) {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script'); script.src = src;
+        script.onload = resolve; script.onerror = () => reject(new Error('تعذّر تحميل ملفات المغامرة المحلية. حاولوا مرة ثانية.'));
+        document.head.append(script);
+      });
+    }
+  }
   async function boot() {
     if (game === 'hub') { render(); await prepareOffline(); M.ready = true; return; }
     if (game === 'hanna' && (/^\/hanna-laha\/(?:join|host|j\/\d{4,6})\/?$/.test(path) || /\/setup\/?$/.test(path) && new URLSearchParams(location.search).has('rooms'))) {
@@ -809,6 +821,7 @@
     }
     history.replaceState({ journey: true, step: 1 }, ''); render();
     try {
+      if (game === 'hanna') await loadHannaLocal();
       if (!global.DATA || !global.KZV) throw new Error('ملفات المغامرة غير متاحة. افتحوا الصفحة متصلين مرة لتكتمل الملفات المحلية.');
       await global.KZV.ready;
       await warmLocalAssets();
