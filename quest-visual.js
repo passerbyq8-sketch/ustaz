@@ -1,6 +1,6 @@
 /* Local supplemental packs and the shared question renderer. No bank bytes change.
    Pack files are JSON inside KZV.register(...); they are parsed, never executed. */
-var PACKS_ENABLED=true;
+var PACKS_ENABLED=false;
 var KZV=(function(){
   "use strict";
   var NS="http://www.w3.org/2000/svg",baseN=DATA.qs.length,baseC=DATA.cats.length;
@@ -11,6 +11,8 @@ var KZV=(function(){
   var TURNS=["بلا تدوير","مدار ثمن دورة","مدار ربع دورة","مدار ثلاثة أثمان دورة","مدار نصف دورة","مدار خمسة أثمان دورة","مدار ثلاثة أرباع دورة","مدار سبعة أثمان دورة"];
   var COUNTS=["","شكل واحد","شكلان","ثلاثة أشكال","أربعة أشكال"];
   var OBJECTS=Array.from("🗻🍣🏔🧀⌚🍫🕰🎡🚇☔🧮📐📖🔑🗝🏠🏡🏢🏣🏤🏥🏦🏨🏪🏫🏬🏭🏯🏰🕌🕍⛩⛪🕋⛲⛺🌁🌃🌄🌅🌆🌇🌉🌌🌋🗺🧭🏖🏜🏝🏞🌍🌎🌏🌐🌑🌒🌓🌔🌕🌖🌗🌘🌙☀⭐🌟🌠☁⛅⛈🌤🌥🌦🌧🌨🌩🌪🌫🌈☂❄☃⛄🔥💧🌊🌱🌲🌳🌴🌵🌾🌿🍀🍁🍂🍃🍄🌷🌹🌺🌻🌼🌸💐🍇🍈🍉🍊🍋🍌🍍🍎🍏🍐🍑🍒🍓🥝🍅🥑🍆🥔🥕🌽🌶🥒🥦🧄🧅🥬🥜🌰🍞🥐🥖🥨🥯🥞🧇🧈🍔🍟🍕🌭🥪🌮🌯🥙🍳🥘🍲🥣🥗🍿🍱🍘🍙🍚🍛🍜🍝🍠🍢🍡🍧🍨🍦🥧🍰🎂🍮🍭🍬🍯🥛☕🍵🫖🥤🧃🧊🍽🍴🥄🔪🏺🚗🚕🚙🚌🚎🏎🚓🚑🚒🚐🚚🚛🚜🚲🛴🛵🏍🛺🚨🚔🚍🚘🚖🚡🚠🚟🚃🚋🚞🚝🚄🚅🚈🚂🚆🚊🚉✈🛫🛬🛩💺🚁🚟🚀🛰🛸⛵🛶🚤🛳⛴🚢⚓🚧⛽🚏🚦🚥🛑🎢🎠🎪🗽🗼🏛🧱🪨🪵🛖🛤🛣🛞🧳⌛⏳⏰⏱⏲🕯💡🔦🏮📔📕📗📘📙📚📓📒📃📜📄📰🗞📑🔖🏷💰🪙💴💵💶💷💳💎⚖🔧🔨⚒🛠⛏🔩⚙🧰🧲🪜🧪🧫🔬🔭📡💉💊🩹🩺🚪🛏🛋🪑🚽🚿🛁🧴🧷🧹🧺🧻🪣🧼🫧🧽🧯🛒🎁🎈🎉🎊🎀🎗🎟🎫🏆🏅🥇🥈🥉⚽🏀🏐🏈🏉🎾🥏🎳🏏🏑🏒🥍🏓🏸🥅⛳🎯🎱🎮🕹🎲🧩🪁🪀🪄♟♠♥♦♣🎼🎵🎶🎹🥁🎷🎺🎸🪕🎻📻🎙🎚🎛🎤🎧📱☎📞📟📠🔋🔌💻🖥🖨⌨🖱🖲💽💾💿📀🧾📷📸📹🎥📽🎞📺🔍🔎🕳🪞🪟📦📫📪📬📭📮✉📧📨📩📤📥📝✏✒🖋🖊🖌🖍📁📂🗂📅📆🗒🗓📇📈📉📊📋📌📍📎🖇📏✂🗃🗄🗑🔒🔓🔏🔐");
+  // Additional nonliving objects/symbols present in the reviewed NEW20 inputs.
+  OBJECTS=OBJECTS.concat(Array.from("🧂⚡☢🧆☄🧬🥭🥥🍪♨🏙⚪🆕🟤⛰🛢☘👕🧣👗👢👒🎩🧢🎓🪓⚗🥢🍼🧵🧶⛸👓🌂🦽🛹🛎🌡🪐🤿🎿🛷🎨👟💍🛡🗜🦯🪒📣🔔"));
   function text(s,max){return typeof s==="string"&&s.length<=max&&!/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(s)}
   function integer(n,a,b){return typeof n==="number"&&Number.isInteger(n)&&n>=a&&n<=b}
   function bytes(s){return typeof TextEncoder!=="undefined"?new TextEncoder().encode(s).length:unescape(encodeURIComponent(s)).length}
@@ -30,15 +32,26 @@ var KZV=(function(){
       if(!text(s,4096)||bytes(s)>4096||/<!|<\?|&/.test(s))return null;
       var d=new DOMParser().parseFromString(s,"image/svg+xml"),root=d.documentElement;
       if(!root||root.localName!=="svg"||d.querySelector("parsererror")||d.childNodes.length!==1)return null;
-      var tags=["svg","g","path","line","polyline","polygon","circle","ellipse","rect"];
+      var tags=["svg","g","path","line","polyline","polygon","circle","ellipse","rect","defs","clipPath"];
       var nums=["x","y","x1","x2","y1","y2","cx","cy","r","rx","ry","width","height","stroke-width","stroke-miterlimit","opacity","fill-opacity","stroke-opacity"];
-      var n=0;
-      function copy(src){
+      var n=0,clips=Object.create(null),refs=[],prefix="kzvClip"+(++serial)+"-";
+      function copy(src,inClip){
         if(++n>100||tags.indexOf(src.localName)<0||src.prefix||(src.namespaceURI&&src.namespaceURI!==NS))throw Error("element");
+        if(src.localName==="defs"&&(inClip||src.parentNode!==root&&src.parentNode.localName!=="g")||src.localName==="clipPath"&&src.parentNode.localName!=="defs")throw Error("definition");
+        inClip=inClip||src.localName==="clipPath";
         var dst=svgEl(src.localName,{});
         Array.from(src.attributes).forEach(function(a){
           var k=a.name,v=a.value;
           if(k==="xmlns"&&src===root&&v===NS)return;
+          if(k==="id"){
+            if(src.localName!=="clipPath"||!/^[a-z][a-z0-9-]{0,31}$/i.test(v)||own(clips,v))throw Error("clip id");
+            clips[v]=true;dst.setAttribute(k,prefix+v);return;
+          }
+          if(k==="clip-path"){
+            var ref=/^url\(#([a-z][a-z0-9-]{0,31})\)$/i.exec(v);
+            if(!ref||inClip||src===root||src.localName==="defs")throw Error("clip reference");
+            refs.push(ref[1]);dst.setAttribute(k,"url(#"+prefix+ref[1]+")");return;
+          }
           if(k.indexOf(":")>-1||/^on/i.test(k)||/url|https?:|javascript:|data:|\\/i.test(v))throw Error("attribute");
           if(nums.indexOf(k)>-1){if(!/^-?(?:\d+\.?\d*|\.\d+)$/.test(v)||!isFinite(+v)||Math.abs(+v)>10000)throw Error("number")}
           else if(k==="viewBox"){var a=v.trim().split(/[ ,]+/).map(Number);if(src!==root||a.length!==4||!a.every(function(x){return isFinite(x)&&Math.abs(x)<=10000})||a[2]<=0||a[3]<=0)throw Error("viewbox")}
@@ -52,10 +65,12 @@ var KZV=(function(){
           else throw Error("attribute");
           dst.setAttribute(k,v);
         });
-        Array.from(src.childNodes).forEach(function(c){if(c.nodeType===1)dst.appendChild(copy(c));else if(c.nodeType!==3||c.textContent.trim())throw Error("node")});
+        Array.from(src.childNodes).forEach(function(c){if(c.nodeType===1)dst.appendChild(copy(c,inClip));else if(c.nodeType!==3||c.textContent.trim())throw Error("node")});
         return dst;
       }
-      return copy(root);
+      var clean=copy(root,false);
+      if(!refs.every(function(id){return own(clips,id)}))return null;
+      return clean;
     }catch(e){return null}
   }
   function validVis(v,q){

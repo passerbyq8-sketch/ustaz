@@ -15,6 +15,15 @@ function invalidVisuals(){
   for(const tag of ['script','style','foreignObject','image','use','a','animate','text'])bad.push({kind:'svg',svg:'<svg xmlns="http://www.w3.org/2000/svg"><'+tag+'/></svg>'});
   for(const attr of ['onload="alert(1)"','onclick="alert(1)"','onerror="alert(1)"','href="x"','xlink:href="x"','style="color:red"','fill="url(https://example.org)"','stroke="javascript:alert(1)"','data-x="x"'])bad.push({kind:'svg',svg:'<svg xmlns="http://www.w3.org/2000/svg"><path '+attr+'/></svg>'});
   bad.push({kind:'svg',svg:'<svg>'+(' '.repeat(4096))+'</svg>'},{kind:'svg',svg:'<!DOCTYPE svg><svg/>'},{kind:'svg',svg:'<svg>&amp;</svg>'},{kind:'svg',svg:'<svg xmlns="http://example.org"><path/></svg>'});
+  for(const svg of [
+    '<svg><path d="M0 0H1" clip-path="url(https://example.org/#a)"/></svg>',
+    '<svg><path d="M0 0H1" clip-path="url(#missing)"/></svg>',
+    '<svg><defs><clipPath id="a"><path d="M0 0H1" clip-path="url(#a)"/></clipPath></defs></svg>',
+    '<svg><defs><clipPath id="a"/><clipPath id="a"/></defs></svg>',
+    '<svg><clipPath id="a"><path d="M0 0H1"/></clipPath></svg>',
+    '<svg><defs><clipPath id="a"><use href="#a"/></clipPath></defs></svg>',
+    '<svg><defs><clipPath id="a" onload="alert(1)"/></defs></svg>'
+  ])bad.push({kind:'svg',svg});
   for(const shape of ['face','human','<img>'])bad.push({kind:'pattern',seq:Array(4).fill(cell(shape)),opts:Array(4).fill(cell('square'))});
   for(const change of [{rot:360},{rot:1},{size:0},{size:4},{count:5},{fill:'url(x)'},{count:NaN}])bad.push({kind:'pattern',seq:Array(4).fill({...cell('square'),...change}),opts:Array(4).fill(cell('square'))});
   for(const hit of ['missing','Taiwan','Western Sahara','Kosovo','Northern Cyprus','Somaliland','Crimea','Siachen Glacier','__proto__'])bad.push({kind:'map',view:'world',hit:[hit]});
@@ -29,6 +38,11 @@ async function security(source=mod){
   const w=await open('quest-test.html',{moduleText:source}),api=w.ctx.KZV,q=fixture().qs[0];
   for(const v of invalidVisuals())assert.equal(api.validateVisual(v,q),false,JSON.stringify(v));
   for(const q of fixture().qs)assert.equal(api.validateVisual(q.vis,q),true,q.vis.kind);
+  const clipped='<svg><defs><clipPath id="c"><circle cx="50" cy="50" r="20"/></clipPath></defs><path d="M0 50H100" clip-path="url(#c)"/></svg>';
+  const clean=api.sanitizeSvg(clipped),again=api.sanitizeSvg(clipped);assert.ok(clean&&again);
+  const id=clean.querySelector('clipPath').getAttribute('id');
+  assert.notEqual(id,'c');assert.notEqual(id,again.querySelector('clipPath').getAttribute('id'));
+  assert.equal(clean.querySelector('path').getAttribute('clip-path'),'url(#'+id+')');
   assert.equal(api.validateVisual({kind:'map',view:'world',hit:['Egypt','Palestine','Bahrain','Qatar','Lebanon','Malta','Singapore','Kuwait','France','Germany','Italy','Spain','China','India','Japan','Brazil','Canada','Mexico','Argentina','Australia']},q),true,'multi-country regions');
   const p=fixture();p.qs[0].q='<img src=x onerror="globalThis.PWN=1">';p.qs[0].why='<script>globalThis.PWN=1</script><img onerror="globalThis.PWN=1">';p.qs[0].src=['<img onerror="globalThis.PWN=1">'];
   assert.equal(api.register(p),true);const row=w.ctx.DATA.qs[bank.qs.length];api.explain(w.$('why'),row);assert.ok(!w.$('why').querySelector('img'),'explanation parsed an image');assert.ok(!w.$('why').querySelector('script'),'explanation parsed a script');assert.ok(w.$('why').textContent.includes('<script>'));assert.equal(w.ctx.PWN,undefined);
@@ -140,6 +154,49 @@ function geography(geo=read('quest-data/kunuz-geo.js'),index=read('quest-data/ku
   assert.ok(zlib.gzipSync(geo).length<400*1024);assert.equal(meta.sha256,crypto.createHash('sha256').update(geo).digest('hex'));assert.equal(meta.palestine.polygons,1);assert.equal(meta.palestine.sourceArea,meta.palestine.targetArea);assert.ok(g.countries.find(c=>c[0]==='Palestine')[1]);
   for(const name of meta.disputedNames)assert.equal(Object.hasOwn(ctx.KUNUZ_GEO_INDEX.names,name),false);for(const name of ['Bahrain','Qatar','Lebanon','Malta','Singapore'])assert.ok(g.countries.some(c=>c[0]===name));
 }
+async function new20(){
+  const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
+  const cv=require('../tools/kunuz-new20-convert.cjs');
+  const manifest=new Function(read('quest-data/kunuz-packs-manifest.js')+';return KUNUZ_PACKS')();
+  assert.deepEqual(manifest.map(p=>p.slug),cv.GROUPS.map(g=>g[0]).filter(s=>s!=='fmt-odd-one'));
+  const packs=manifest.map(entry=>{assert.equal(entry.src,cv.packPath(entry.slug));const body=read(entry.src);const pack=cv.parsePack(body);assert.equal(pack.slug,entry.slug);return {pack,body}});
+  const checked=await cv.validatePacks(packs);assert.equal(checked.questions,5734);
+  const bodies=Object.fromEntries(packs.map(p=>['/'+cv.packPath(p.pack.slug),p.body]));
+  for(const page of games){
+    const w=await open(page,{manifest,bodies});
+    assert.equal(w.ctx.DATA.qs.length,bank.qs.length+5734,page+' real manifest load');
+    assert.equal(w.requests.filter(p=>/kunuz-pack-/.test(p)).length,19);
+    assert.ok(w.ctx.KZC_GROUPS.some(g=>g[0]==='بصريات وألغاز'));
+    noErrors(w);
+  }
+  // Selection exercises both flags, a missing photo, a real local bitmap, and
+  // byte-stable serialization without depending on the external review folder.
+  const q={...clone(fixture().qs[0]),status:'proposed',src:[{title:'Original source',url:'local'}]};
+  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'kunuz-converter-'));
+  const signs=path.join(temp,'quest-data','signs'),photo=path.join(signs,'existing.webp');
+  fs.mkdirSync(signs,{recursive:true});
+  try{
+    fs.copyFileSync(path.join(__dirname,'fixtures/kunuz-visual-calibration.webp'),photo);
+    const rows=[
+      q,{...q,id:'visual-demo-0100',flags:['owner-religious-review']},
+      {...q,id:'visual-demo-0101',flags:['overlap-bank-text:bank-0001']},
+      {...q,id:'visual-demo-0102',flags:['owner-religious-review','overlap-bank-text']},
+      {...q,id:'visual-demo-0103',vis:{kind:'photo',src:'quest-data/signs/missing.webp'}},
+      {...q,id:'visual-demo-0104',vis:{kind:'photo',src:'quest-data/signs/existing.webp'}}
+    ];
+    const before=JSON.stringify(rows),a=cv.selectGroup(rows,temp),b=cv.selectGroup(rows,temp);
+    assert.equal(JSON.stringify(a),JSON.stringify(b));assert.equal(JSON.stringify(rows),before);
+    assert.deepEqual(a.qs.map(q=>q.id),[q.id,'visual-demo-0104']);
+    assert.deepEqual(a.held.religious.map(q=>q.id),['visual-demo-0100','visual-demo-0102']);
+    assert.deepEqual(a.held.overlap.map(q=>q.id),['visual-demo-0101','visual-demo-0102']);
+    assert.deepEqual(a.held.missingAssets.map(q=>q.id),['visual-demo-0103']);
+    assert.equal(a.qs[0].src[0],'Original source — local');assert.equal(a.qs[0].status,'approved');
+    for(const key of ['id','cat','type','fmt','q','choices','answer','why','level'])assert.deepEqual(a.qs[0][key],q[key],key);
+    assert.equal(cv.convertVisual({id:'map-quiz-0013',vis:{kind:'map',view:'africa',hit:['Congo']}}).hit[0],'Republic of the Congo');
+    assert.equal(cv.convertVisual({id:'map-quiz-0033',vis:{kind:'map',view:'africa',hit:['Mauritius']}}).view,'world');
+  }finally{fs.unlinkSync(photo);fs.rmdirSync(signs);fs.rmdirSync(path.dirname(signs));fs.rmdirSync(temp)}
+  return 'all NEW20 packs load in four games; hold rules, local assets and deterministic conversion';
+}
 module.exports={invalidVisuals};
 if(require.main===module)(async()=>{
   await test('V1 six visual kinds, three of each, complete games in all four engines',async()=>{for(const page of games)console.log('  '+page+' '+JSON.stringify(await play(page)));return '72 visual questions'});
@@ -149,7 +206,8 @@ if(require.main===module)(async()=>{
   await test('V5 disabled packs preserve same-seed draws and request no packs',off);
   await test('V6 supplemental IDs survive four game opens without changing old history',async()=>'persistent new IDs='+await histories());
   await test('V7 rooms exclude packs; Hanna remains outside the engine',rooms);
-  await test('V8 lazy geography and empty production manifest',async()=>{assert.deepEqual(new Function(read('quest-data/kunuz-packs-manifest.js')+';return KUNUZ_PACKS')(),[]);const w=await open('quest-test.html',{pack:fixture()});assert.equal(w.requests.includes('/quest-data/kunuz-geo.js'),false);w.ctx.KZV.show(w.ctx.DATA.qs[bank.qs.length]);await Promise.resolve();assert.equal(w.requests.filter(p=>p==='/quest-data/kunuz-geo.js').length,1);w.ctx.KZV.show(w.ctx.DATA.qs[bank.qs.length]);await Promise.resolve();assert.equal(w.requests.filter(p=>p==='/quest-data/kunuz-geo.js').length,1);noErrors(w)});
+  await test('V8 lazy geography and packs OFF by default',async()=>{assert.match(mod,/^var PACKS_ENABLED=false;$/m);const manifest=new Function(read('quest-data/kunuz-packs-manifest.js')+';return KUNUZ_PACKS')();assert.ok(manifest.length);const off=await open('quest-test.html',{manifest,enabled:false});assert.equal(off.ctx.DATA.qs.length,bank.qs.length);assert.equal(off.requests.some(p=>/kunuz-pack-/.test(p)),false);noErrors(off);const w=await open('quest-test.html',{pack:fixture()});assert.equal(w.requests.includes('/quest-data/kunuz-geo.js'),false);w.ctx.KZV.show(w.ctx.DATA.qs[bank.qs.length]);await Promise.resolve();assert.equal(w.requests.filter(p=>p==='/quest-data/kunuz-geo.js').length,1);w.ctx.KZV.show(w.ctx.DATA.qs[bank.qs.length]);await Promise.resolve();assert.equal(w.requests.filter(p=>p==='/quest-data/kunuz-geo.js').length,1);noErrors(w)});
+  await test('V13 NEW20 conversion and shipped pack loading',new20);
   await test('V10 pack levels with early and late loading',levels);
   await test('V11 contrast, touch targets, focus and reserved layout',appearance);
   await test('V12 photo observer cleanup on question changes',observers);
