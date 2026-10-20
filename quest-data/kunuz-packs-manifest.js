@@ -68,5 +68,9 @@ var KUNUZ_PACKS=[
   {
     "slug": "fmt-sequence",
     "src": "quest-data/kunuz-pack-fmt-sequence.js"
+  },
+  {
+    "slug": "historical-events",
+    "src": "quest-data/kunuz-pack-historical-events.js"
   }
 ];
