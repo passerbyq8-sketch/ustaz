@@ -464,7 +464,7 @@ function checkB8(pageText) {
   // KUNUZ-LEVELS-POETRY (2026-10-19, C): the owner's experimental levels add exactly one more script, the shared module, after
   // the page's own; it reaches nothing but its own data file (kunuzlevels L4/L5 hold what it does and that it can be switched off)
   // Visual engine: four fixed same-origin assets; kunuzvisual checks their loaders and switch.
-  if (srcs.join(',') !== '/quest-data/kunuz-bank-3147.js,/quest-data/kunuz-geo-index.js,/quest-data/kunuz-packs-manifest.js,/quest-visual.js,/quest-levels.js') f.push('scripts loaded: ' + srcs.join(','));
+  if (srcs.join(',') !== '/quest-data/kunuz-bank-3147.js,/quest-data/kunuz-geo-index.js,/quest-data/kunuz-packs-manifest.js,/quest-visual.js,/quest-levels.js,/quest-theme/motion-kit.js,/quest-theme/icons.js,/quest-theme/model.js,/quest-theme/journey.js') f.push('scripts loaded: ' + srcs.join(','));
   { const mod = fs.readFileSync(path.join(REPO, 'quest-levels.js'), 'utf8'); bad.forEach((re) => { if (re.test(mod.replace('s.src="/quest-data/kunuz-levels-3147.js";', ''))) f.push('the levels module reaches out: ' + re); });
     if ((mod.match(/\.src="([^"]*)"/g) || []).join() !== '.src="/quest-data/kunuz-levels-3147.js"') f.push('the levels module loads something else than its file'); }
   if (!/<html lang="ar" dir="rtl">/.test(pageText)) f.push('not declared Arabic right to left');
@@ -507,20 +507,18 @@ function checkB9(src) {
 }
 function checkB10(pageText) {
   const f = [];
-  const css = pageText.slice(pageText.indexOf('<style>'), pageText.indexOf('</style>'));
+  const css = fs.readFileSync(path.join(REPO, 'quest-theme/theme.css'), 'utf8');
   const has = (re, m) => { if (!re.test(css)) f.push(m); };
-  has(/\.board\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/, 'three columns on a wide screen');
-  has(/@media \(max-width:900px\)\{\.board\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)\}\}/, 'two columns up to 900');
-  has(/@media \(max-width:560px\)\{\.board\{grid-template-columns:minmax\(0,1fr\)\}\}/, 'one column up to 560');
-  has(/\.cc\{direction:ltr;/, 'left to right inside a card');
-  has(/\.cmid\{direction:rtl;/, 'the name right to left');
-  has(/\.pt\.used\{[^}]*dashed[^}]*line-through/, 'a used slot dashed and struck');
-  has(/body\{[^}]*background:#fff/, 'white page');
-  has(/body\{[^}]*overflow-x:hidden/, 'no horizontal scroll');
-  for (const sel of ['.pt', '.quit', '.award button', '.btn', '.kzc-all', '.quick button', '.mini']) {
-    const m = new RegExp('(^|[}\\n])' + sel.replace('.', '\\.') + '\\{[^}]*min-height:(\\d+)px').exec(css);
-    if (!m || +m[2] < 44) f.push(sel + ' under 44px');
-  }
+  has(/\.j-board-grid\{display:grid;grid-template-columns:minmax\(0,1fr\)/, 'one board column on phones');
+  has(/@media\(min-width:620px\).*\.j-board-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/, 'two board columns on wide screens');
+  has(/\.j-board-category\{[^}]*grid-template-columns:64px minmax\(0,1fr\) 64px[^}]*direction:ltr/, 'two point columns around the category');
+  has(/\.j-category-middle\{direction:rtl/, 'the name right to left');
+  has(/\.j-point\.j-used\{[^}]*opacity:[^}]*dashed/, 'played tiles dimmed and marked');
+  has(/\.journey-app\[data-game=board\]\{background:radial-gradient\(ellipse at 50% 0,#69534a,#272b37 70%\)/, 'the reference board gradient');
+  has(/\.ezik-treasure-theme\{[^}]*overflow-x:hidden/, 'no horizontal scroll');
+  has(/\.j-point\{min-height:44px;min-width:44px/, 'point tiles at least 44 by 44');
+  has(/\.j-btn\{min-height:52px/, 'primary touch targets');
+  if (!pageText.includes('href="/quest-theme/theme.css"')) f.push('scoped theme stylesheet not loaded');
   return { f, info: 'rules ok=' + (f.length ? 0 : 1) };
 }
 
