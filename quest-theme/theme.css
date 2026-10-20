@@ -1,8 +1,14 @@
-@font-face{font-family:KunuzPlex;src:url('./assets/regular.ttf') format('truetype');font-weight:400;font-display:swap}
-@font-face{font-family:KunuzPlex;src:url('./assets/bold.ttf') format('truetype');font-weight:700;font-display:swap}
+@font-face{font-family:KunuzPlex;src:url('./assets/regular.ttf?v=20261020-flash3') format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:KunuzPlex;src:url('./assets/bold.ttf?v=20261020-flash3') format('truetype');font-weight:700;font-display:swap}
 .ezik-treasure-theme{--journey-home:radial-gradient(ellipse at 20% 0,#146874,transparent 65%),#082c38;--journey-gold:#ffd36a;--journey-muted:#b2d4d9;--journey-paper:#fff8eb;--journey-ink:#143b45;--sea0:#082c38;--sea1:#146874;--ink:#fff;--muted:#b2d4d9;--line:#ffffff30;margin:0;background:#071d29;color:#fff;font:400 16px/1.65 KunuzPlex,Arial,sans-serif;min-height:100svh;overflow-x:hidden;color-scheme:dark}
+.ezik-treasure-theme.kunuz-theme-pending{background:radial-gradient(ellipse at 20% 0,#146874,transparent 65%),#082c38}
+.ezik-treasure-theme.kunuz-theme-pending body{margin:0!important;background:transparent!important;min-height:100svh}
+.ezik-treasure-theme.kunuz-theme-pending body> :not(.kunuz-theme-shell):not(script):not(style):not(link){display:none!important}
+.ezik-treasure-theme .kunuz-theme-shell{position:fixed;inset:0;z-index:2147483647;display:grid!important;place-items:center;background:radial-gradient(ellipse at 20% 0,#146874,transparent 65%),#082c38}
+.ezik-treasure-theme .kunuz-theme-spinner{width:30px;height:30px;border:3px solid #b2d4d94d;border-top-color:#ffd36a;border-radius:50%;animation:kunuz-theme-loading .85s linear infinite}
+@keyframes kunuz-theme-loading{to{transform:rotate(360deg)}}
 .ezik-treasure-theme *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-.ezik-treasure-theme> :not(.journey-app):not(script):not(style):not(link){display:none!important}
+.ezik-treasure-theme> :not(body):not(.kunuz-theme-shell):not(.journey-app):not(script):not(style):not(link){display:none!important}
 .ezik-treasure-theme .journey-app{position:relative;isolation:isolate;min-height:100svh;max-width:760px;margin:0 auto;background:var(--journey-home);overflow:hidden;padding-bottom:max(26px,env(safe-area-inset-bottom));--c:#2a8e84}
 .ezik-treasure-theme .journey-app[data-game=board]{background:radial-gradient(ellipse at 50% 0,#69534a,#272b37 70%)}
 .ezik-treasure-theme .journey-app[data-game=test]{background:radial-gradient(circle at 50% 16%,#8270c2,#39315c 45%,#161e34 90%)}
@@ -156,7 +162,7 @@
 .ezik-treasure-theme .j-hanna-team-list{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:15px 0}
 .ezik-treasure-theme .j-hanna-team-list button{min-height:55px;display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap}
 .ezik-treasure-theme .j-hanna-team-list svg{width:18px;height:18px;fill:currentColor;stroke:currentColor}
-.ezik-treasure-theme .j-sea{position:relative;margin:-84px -20px 0;padding-top:84px;min-height:330px;overflow:hidden;background:linear-gradient(#052e4077,transparent 45%,#052435),url('./assets/ocean-clean.png') center/cover}
+.ezik-treasure-theme .j-sea{position:relative;margin:-84px -20px 0;padding-top:84px;min-height:330px;overflow:hidden;background:linear-gradient(#052e4077,transparent 45%,#052435),url('./assets/ocean-clean.webp?v=20261020-flash3') center/cover}
 .ezik-treasure-theme .j-depth-stats{position:relative;display:flex;justify-content:space-between;gap:16px;padding:20px 24px 10px;z-index:1}
 .ezik-treasure-theme .j-depth-stats b{font-size:29px;display:block;line-height:1.3}
 .ezik-treasure-theme .j-haul{padding:10px 14px;border:1px solid #b7f4e431;border-radius:17px;background:#092d3cdd;text-align:center;align-self:start}

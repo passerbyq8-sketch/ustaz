@@ -1,6 +1,17 @@
 /* Treasure Journey: event-driven Kunuz screens. No film timeline controls game state. */
-(function (global) {
+(function mountJourney(global) {
   'use strict';
+  if (global.KunuzThemeBoot?.status === 'fallback') return;
+  // Head scripts are ready before the large bank download. Mount as soon as
+  // the parser creates the body, while leaving legacy markup/scripts in place.
+  if (!document.body) {
+    const observer = new MutationObserver(() => {
+      if (!document.body) return;
+      observer.disconnect(); mountJourney(global);
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    return;
+  }
   const Model = global.KunuzModel, Icons = global.KunuzIcons, Motion = global.EzikMotion;
   const path = location.pathname;
   const game = path.includes('quest-ghaws') ? 'ghaws' : path.includes('quest-harb') ? 'harb' : path.includes('quest-test') ? 'test' : path.includes('quest-board') ? 'board' : path.includes('hanna-laha') ? 'hanna' : 'hub';
@@ -26,8 +37,9 @@
   try { M.muted = localStorage.getItem('kunuz_journey_muted_v1') === '1'; } catch (_) {}
   const app = document.createElement('div'); app.className = 'journey-app'; app.dataset.game = game;
   document.body.classList.add('ezik-treasure-theme'); document.body.append(app);
-  document.querySelectorAll('#qvis').forEach(el => { el.id = 'legacy-qvis'; });
   const themeMeta = document.querySelector('meta[name="theme-color"]'); if (themeMeta) themeMeta.content = '#082c38';
+  const THEME_VERSION = '20261020-flash3';
+  const themeAsset = file => '/quest-theme/' + file + '?v=' + THEME_VERSION;
   const soundCache = new Map();
   const warmedImages = [];
   function cancelVisuals() {
@@ -54,7 +66,7 @@
       // Prepare both Kunuz scopes during the first online visit, so an offline
       // navigation can open Hanna too. The Ezik root registration is untouched.
       for (const scope of ['/quest', '/hanna-laha/']) {
-        const registration = await navigator.serviceWorker.register('/quest-sw.js', { scope });
+        const registration = await navigator.serviceWorker.register('/quest-sw.js', { scope, updateViaCache: 'none' });
         const worker = registration.installing || registration.waiting || registration.active;
         if (!worker) { M.offlineReady = false; continue; }
         if (worker.state !== 'activated') await new Promise(resolve => {
@@ -74,7 +86,7 @@
       if (global.KUNUZ_GEO) return resolve();
       const script = document.createElement('script'); script.src = '/quest-data/kunuz-geo.js'; script.onload = resolve; script.onerror = resolve; document.head.append(script);
     });
-    const sources = new Set(['/quest-theme/assets/ocean-clean.png', '/quest-theme/assets/islands.png']);
+    const sources = new Set([themeAsset('assets/ocean-clean.webp'), themeAsset('assets/islands.webp')]);
     if (global.DATA) global.DATA.qs.forEach(q => { if (q.kzPack?.vis?.kind === 'photo') sources.add('/' + q.kzPack.vis.src); });
     const images = [...sources].map(src => new Promise(resolve => { const img = new Image(); warmedImages.push(img); img.onload = resolve; img.onerror = resolve; img.src = src; }));
     for (const name of ['tap', 'success', 'swoosh', 'water-transition', 'bubble']) {
@@ -103,13 +115,13 @@
   }
   function home() {
     return '<div class="j-home-heading"><h1>وين مغامرتك اليوم؟</h1><p>العب، تعلّم… واكتشف كنزك القادم.</p></div>' +
-      '<a class="j-featured" href="/quest-ghaws.html"><img src="/quest-theme/assets/ocean-clean.png" alt="مشهد البحر وصندوق الكنوز"><div class="j-info"><span class="j-tag">رحلة في الأعماق</span><h2>الغوص</h2><p>كل إجابة… تنزلك أعمق.</p><span class="j-btn">ابدأ الغوص ←</span></div></a>' +
+      '<a class="j-featured" href="/quest-ghaws.html"><img src="/quest-theme/assets/ocean-clean.webp?v=20261020-flash3" alt="مشهد البحر وصندوق الكنوز"><div class="j-info"><span class="j-tag">رحلة في الأعماق</span><h2>الغوص</h2><p>كل إجابة… تنزلك أعمق.</p><span class="j-btn">ابدأ الغوص ←</span></div></a>' +
       '<div class="j-games">' + [
         ['harb', '/quest-harb.html', 'مع الربع', 'افتحوا الجزر بمعرفتكم', 'map'],
         ['test', '/quest-test.html', 'فردي أو فرق', 'تحدٍّ جديد في كل سؤال', 'compass'],
         ['board', '/quest-board.html', 'تحدّي الفرق', 'اختاروا الفئة والنقاط', 'cards'],
         ['hanna', '/hanna-laha/', 'حماس الجمعة', 'تتوقّع… ولا قدّها؟', 'bolt']
-      ].map(([kind, url, tag, line, icon]) => '<a class="j-game-card j-card-' + (kind === 'harb' ? 'island' : kind) + '" href="' + url + '">' + (kind === 'harb' ? '<img src="/quest-theme/assets/islands.png" alt="خريطة جزر الكنوز">' : Icons.icon(icon)) + '<span class="j-tag">' + tag + '</span><h2>' + names[kind] + '</h2><p>' + line + '</p></a>').join('') + '</div>';
+      ].map(([kind, url, tag, line, icon]) => '<a class="j-game-card j-card-' + (kind === 'harb' ? 'island' : kind) + '" href="' + url + '">' + (kind === 'harb' ? '<img src="/quest-theme/assets/islands.webp?v=20261020-flash3" alt="خريطة جزر الكنوز">' : Icons.icon(icon)) + '<span class="j-tag">' + tag + '</span><h2>' + names[kind] + '</h2><p>' + line + '</p></a>').join('') + '</div>';
   }
   function categories() {
     const all = Model.categories().filter(c => c.count >= Model.PER_CATEGORY);
@@ -289,6 +301,7 @@
     if (changed) { window.scrollTo(0, 0); const question = app.querySelector('.j-island-sheet'); if (question) question.scrollIntoView({ block: 'start' }); }
     if (focus !== null && focus !== undefined) app.querySelector('[data-team-name="' + focus + '"]')?.focus();
     paintTime();
+    if (game === 'hub' && global.KunuzThemeBoot?.status === 'mounted') global.KunuzThemeBoot.mounted();
   }
   function time() { return M.settings.custom ? M.settings.customTime : M.settings.time; }
   function clearTimer() { if (M.timer) clearInterval(M.timer); M.timer = null; }
@@ -877,6 +890,11 @@
     }
   }
   async function boot() {
+    // Mount before parser-blocking legacy bank/engine scripts. They stay hidden.
+    render(); global.KunuzThemeBoot?.mounted();
+    if (document.readyState === 'loading') await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve, { once: true }));
+    if (global.KunuzThemeBoot?.status === 'fallback') return;
+    document.querySelectorAll('#qvis').forEach(el => { el.id = 'legacy-qvis'; });
     if (game === 'hub') { render(); await prepareOffline(); M.ready = true; return; }
     if (game === 'hanna' && (/^\/hanna-laha\/(?:join|host|j\/\d{4,6})\/?$/.test(path) || /\/setup\/?$/.test(path) && new URLSearchParams(location.search).has('rooms'))) {
       M.ready = true; await enterRoom(true, true); return;

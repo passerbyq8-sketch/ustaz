@@ -2,9 +2,56 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
+<script>
+(function () {
+  var root = document.documentElement, status = 'pending', timer, turn = 0;
+  root.classList.add('ezik-treasure-theme', 'kunuz-theme-pending');
+  function fallback() {
+    if (status !== 'pending') return;
+    status = 'fallback';
+    root.classList.remove('ezik-treasure-theme', 'kunuz-theme-pending');
+    if (document.body) document.body.classList.remove('ezik-treasure-theme', 'journey-room');
+    document.querySelectorAll('.journey-app,.kunuz-theme-shell').forEach(function (el) { el.remove(); });
+    console.warn('[Kunuz theme] Mount timed out after 4000ms; showing playable legacy UI.');
+    if (location.pathname.indexOf('hanna-laha') !== -1) {
+      var nativeRoom = function () {
+        ['Page-oyXYdFLk.css', 'index-BYf54ooy.css'].forEach(function (file) {
+          var link = document.createElement('link'); link.rel = 'stylesheet'; link.href = '/hanna-laha/assets/' + file; document.head.append(link);
+        });
+        var script = document.createElement('script'); script.type = 'module'; script.src = '/hanna-laha/assets/index-BUia-DKT.js'; document.head.append(script);
+      };
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', nativeRoom, { once: true }); else nativeRoom();
+    }
+  }
+  window.KunuzThemeBoot = { get status() { return status; }, mounted: function () {
+    if (status === 'fallback' || !document.querySelector('.journey-app main')) return;
+    status = 'mounted'; clearTimeout(timer);
+    var current = ++turn;
+    root.classList.add('ezik-treasure-theme', 'kunuz-theme-pending');
+    if (!document.querySelector('.kunuz-theme-shell')) {
+      var shell = document.createElement('div'); shell.className = 'kunuz-theme-shell'; shell.setAttribute('role', 'status'); shell.setAttribute('aria-label', 'نجهّز مغامرتكم');
+      shell.innerHTML = '<span class="kunuz-theme-spinner" aria-hidden="true"></span>'; document.body.prepend(shell);
+    }
+    var reveal = function () {
+      if (current !== turn) return;
+      root.classList.remove('ezik-treasure-theme', 'kunuz-theme-pending');
+      document.querySelector('.kunuz-theme-shell')?.remove();
+    };
+    Promise.all([document.fonts.load('400 16px KunuzPlex'), document.fonts.load('700 16px KunuzPlex')].concat(Array.from(document.querySelectorAll('.journey-app img'), function (img) { return img.decode(); }))).then(reveal, reveal);
+  } };
+  timer = setTimeout(fallback, 4000);
+})();
+</script>
+<link rel="stylesheet" href="/quest-theme/theme.css?v=20261020-flash3">
+<link rel="preload" href="/quest-theme/assets/regular.ttf?v=20261020-flash3" as="font" type="font/ttf" crossorigin>
+<link rel="preload" href="/quest-theme/assets/bold.ttf?v=20261020-flash3" as="font" type="font/ttf" crossorigin>
+<link rel="preload" href="/quest-theme/motion-kit.js?v=20261020-flash3" as="script">
+<link rel="preload" href="/quest-theme/icons.js?v=20261020-flash3" as="script">
+<link rel="preload" href="/quest-theme/model.js?v=20261020-flash3" as="script">
+<link rel="preload" href="/quest-theme/journey.js?v=20261020-flash3" as="script">
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#F4FBFE">
+<meta name="theme-color" content="#082c38">
 <title>كنوز المعرفة — اختبر معلوماتك</title>
 <style>
 :root{
@@ -158,10 +205,14 @@ td i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:6
 .endnote:empty{display:none}
 </style>
 <link rel="stylesheet" href="/quest-visual.css">
-<link rel="stylesheet" href="/quest-theme/theme.css">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
+<script src="/quest-theme/motion-kit.js?v=20261020-flash3"></script>
+<script src="/quest-theme/icons.js?v=20261020-flash3"></script>
+<script src="/quest-theme/model.js?v=20261020-flash3"></script>
+<script src="/quest-theme/journey.js?v=20261020-flash3"></script>
 </head>
 <body>
+<div class="kunuz-theme-shell" role="status" aria-label="نجهّز مغامرتكم"><span class="kunuz-theme-spinner" aria-hidden="true"></span></div>
 <div class="wrap">
 
 <section id="cfg">
@@ -768,9 +819,5 @@ openCfg();
 <script src="/quest-data/kunuz-packs-manifest.js"></script>
 <script src="/quest-visual.js"></script>
 <script src="/quest-levels.js"></script>
-<script src="/quest-theme/motion-kit.js"></script>
-<script src="/quest-theme/icons.js"></script>
-<script src="/quest-theme/model.js"></script>
-<script src="/quest-theme/journey.js"></script>
 </body>
 </html>
