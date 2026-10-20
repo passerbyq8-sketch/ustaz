@@ -160,7 +160,10 @@ async function playWar(){
    else await click('[data-action="war-next"]');
   }
  }
- assert.ok(turns>=3,'fewer than three war turns');assert.ok(captures>=1,'no capture');assert.equal((await warState()).flags,flags);await shot('results');return{questions,captures,turns,flags,final:await state()};
+ assert.ok(turns>=3,'fewer than three war turns');assert.ok(captures>=1,'no capture');assert.equal((await warState()).flags,flags);
+ const outcome=await page.evaluate(()=>({reason:KunuzJourney.state.result.reason,winners:KunuzJourney.state.result.winnerIndices,nativeWinner:WarEngine.whoWon(KunuzJourney.state.g),rankLeader:WarEngine.leader(KunuzJourney.state.g)}));
+ if(outcome.reason==='victory')assert.deepEqual(outcome.winners,[outcome.nativeWinner],'the native victory winner must override stop ranking');else assert.ok(outcome.winners.includes(outcome.rankLeader));
+ await shot('results');return{questions,captures,turns,flags,outcome,final:await state()};
 }
 (async()=>{
  const browser=await chromium.launch({headless:true});
