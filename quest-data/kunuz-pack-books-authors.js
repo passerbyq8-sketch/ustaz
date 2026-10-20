@@ -50,7 +50,7 @@ KZV.register({
         "الكامل في اللغة والأدب — مكتبة اتحاد الإمارات — https://library.ecssr.ae/cgi-bin/koha/opac-detail.pl?biblionumber=211514&shelfbrowse_itemnumber=349161",
         "رأي جديد في كتب الأدب القديمة — وحي القلم — https://www.safahat.org/books/61379142/147/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -72,7 +72,7 @@ KZV.register({
         "مقدمة المحقق — الأدب الكبير — https://www.safahat.org/books/84694028/0.1/",
         "آثار ابن المقفع — المكتبة الوقفية — https://waqfeya.net/books/آثار-ابن-المقفع-a9da314e025c4968b08a7cac569a13fb"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -116,7 +116,7 @@ KZV.register({
         "الشعر والشعراء — المجموعات العربية على الإنترنت — https://sites.dlib.nyu.edu/viewer/books/columbia_aco000111/display?lang=ar",
         "الشعر والشعراء — ويكيبيديا — https://ar.wikipedia.org/wiki/الشعر_والشعراء"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -138,7 +138,7 @@ KZV.register({
         "أسرار البلاغة — المجموعات العربية على الإنترنت — https://sites.dlib.nyu.edu/viewer/books/aub_aco003148/display?lang=ar",
         "أسرار البلاغة — ويكيبيديا — https://ar.wikipedia.org/wiki/أسرار_البلاغة"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -182,7 +182,7 @@ KZV.register({
         "القاموس المحيط — مكتبات جامعة كولومبيا — https://sites.dlib.nyu.edu/viewer/books/columbia_aco001901/display?lang=ar",
         "في بعض ما اشتهر من كتب اللغة — محمد دياب — https://www.safahat.org/books/79072819/1.6/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -204,7 +204,7 @@ KZV.register({
         "تاج العروس من جواهر القاموس — جامعة كولومبيا — https://sites.dlib.nyu.edu/viewer/books/columbia_aco003415/display?lang=ar",
         "تاج العروس من جواهر القاموس — ويكيبيديا — https://ar.wikipedia.org/wiki/تاج_العروس_من_جواهر_القاموس"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -248,7 +248,7 @@ KZV.register({
         "المحكم والمحيط الأعظم — المكتبة الوقفية — https://waqfeya.net/books/%D8%A7%D9%84%D9%85%D8%AD%D9%83%D9%85-%D9%88%D8%A7%D9%84%D9%85%D8%AD%D9%8A%D8%B7-%D8%A7%D9%84%D8%A3%D8%B9%D8%B8%D9%85-%D8%B7-%D8%A7%D9%84%D8%B9%D9%84%D9%85%D9%8A%D8%A9-61366af151be4df7af7c0eaa90ff74f7",
         "في بعض ما اشتهر من كتب اللغة — محمد دياب — https://www.safahat.org/books/79072819/1.6/"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -270,7 +270,7 @@ KZV.register({
         "أبو منصور الأزهري — المكتبة الوقفية — https://waqfeya.net/authors/%D8%A3%D8%A8%D9%88-%D9%85%D9%86%D8%B5%D9%88%D8%B1-%D8%A7%D9%84%D8%A3%D8%B2%D9%87%D8%B1%D9%8A-049647e30eb042348031191f4a3494fd",
         "في بعض ما اشتهر من كتب اللغة — محمد دياب — https://www.safahat.org/books/79072819/1.6/"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -292,7 +292,7 @@ KZV.register({
         "المخصص — مكتبات جامعة كولومبيا — https://sites.dlib.nyu.edu/viewer/books/columbia_aco003412/display?lang=ar",
         "في بعض ما اشتهر من كتب اللغة — محمد دياب — https://www.safahat.org/books/79072819/1.6/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -314,7 +314,7 @@ KZV.register({
         "الصناعتين — الجامعة الأمريكية بالقاهرة — https://sites.dlib.nyu.edu/viewer/books/auc_aco000942/display?lang=ar",
         "المعاني والبيان والبديع — محمد دياب — https://www.safahat.org/books/79072819/0.6/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -380,7 +380,7 @@ KZV.register({
         "صبح الأعشى — مكتبات جامعة نيويورك — https://sites.dlib.nyu.edu/viewer/books/nyu_aco001708/display?lang=ar",
         "فيما اشتهر من كتب الإنشاء — محمد دياب — https://www.safahat.org/books/79072819/8.4/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -402,7 +402,7 @@ KZV.register({
         "فقه اللغة — الجامعة الأمريكية بالقاهرة — https://sites.dlib.nyu.edu/viewer/books/auc_aco000975/1?embed=1&lang=ar",
         "في بعض ما اشتهر من كتب اللغة — محمد دياب — https://www.safahat.org/books/79072819/1.6/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -424,7 +424,7 @@ KZV.register({
         "ابن هشام النحوي — المكتبة الوقفية — https://waqfeya.net/authors/%D8%AC%D9%85%D8%A7%D9%84-%D8%A7%D9%84%D8%AF%D9%8A%D9%86-%D8%B9%D8%A8%D8%AF-%D8%A7%D9%84%D9%84%D9%87-%D8%A8%D9%86-%D9%8A%D9%88%D8%B3%D9%81-%D8%A8%D9%86-%D8%A3%D8%AD%D9%85%D8%AF-%D8%A8%D9%86-%D8%B9%D8%A8%D8%AF-%D8%A7%D9%84%D9%84%D9%87-%D8%A8%D9%86-%D9%87%D8%B4%D8%A7%D9%85-5e3cc018d76a4291b30bc559a65cc967",
         "في تاريخ النحو بالمعنى العام — محمد دياب — https://www.safahat.org/books/79072819/5.2/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -468,7 +468,7 @@ KZV.register({
         "ابن هشام النحوي — المكتبة الوقفية — https://waqfeya.net/authors/%D8%AC%D9%85%D8%A7%D9%84-%D8%A7%D9%84%D8%AF%D9%8A%D9%86-%D8%B9%D8%A8%D8%AF-%D8%A7%D9%84%D9%84%D9%87-%D8%A8%D9%86-%D9%8A%D9%88%D8%B3%D9%81-%D8%A8%D9%86-%D8%A3%D8%AD%D9%85%D8%AF-%D8%A8%D9%86-%D8%B9%D8%A8%D8%AF-%D8%A7%D9%84%D9%84%D9%87-%D8%A8%D9%86-%D9%87%D8%B4%D8%A7%D9%85-5e3cc018d76a4291b30bc559a65cc967",
         "في تاريخ النحو بالمعنى العام — محمد دياب — https://www.safahat.org/books/79072819/5.2/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -512,7 +512,7 @@ KZV.register({
         "عثمان بن جني أبو الفتح — https://waqfeya.net/authors/%D8%B9%D8%AB%D9%85%D8%A7%D9%86-%D8%A8%D9%86-%D8%AC%D9%86%D9%8A-%D8%A3%D8%A8%D9%88-%D8%A7%D9%84%D9%81%D8%AA%D8%AD-24be451b7e514d009f825dde325912a8",
         "ابن جني - ويكيبيديا — https://ar.wikipedia.org/wiki/%D8%A7%D8%A8%D9%86_%D8%AC%D9%86%D9%8A"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -534,7 +534,7 @@ KZV.register({
         "عثمان بن جني أبو الفتح — https://waqfeya.net/authors/%D8%B9%D8%AB%D9%85%D8%A7%D9%86-%D8%A8%D9%86-%D8%AC%D9%86%D9%8A-%D8%A3%D8%A8%D9%88-%D8%A7%D9%84%D9%81%D8%AA%D8%AD-24be451b7e514d009f825dde325912a8",
         "ابن جني - ويكيبيديا — https://ar.wikipedia.org/wiki/%D8%A7%D8%A8%D9%86_%D8%AC%D9%86%D9%8A"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -556,7 +556,7 @@ KZV.register({
         "محمد بن عبد الله بن عبد الله بن مالك الطائي الجياني الأندلسي جمال الدين — https://waqfeya.net/authors/%D9%85%D8%AD%D9%85%D8%AF-%D8%A8%D9%86-%D8%B9%D8%A8%D8%AF-%D8%A7%D9%84%D9%84%D9%87-%D8%A8%D9%86-%D8%B9%D8%A8%D8%AF-%D8%A7%D9%84%D9%84%D9%87-%D8%A8%D9%86-%D9%85%D8%A7%D9%84%D9%83-%D8%A7%D9%84%D8%B7%D8%A7%D8%A6%D9%8A-%D8%A7%D9%84%D8%AC%D9%8A%D8%A7%D9%86%D9%8A-%D8%A7%D9%84%D8%A3%D9%86%D8%AF%D9%84%D8%B3%D9%8A-%D8%AC%D9%85%D8%A7%D9%84-%D8%A7%D9%84%D8%AF%D9%8A%D9%86-c89e1d2fb2364ae78afc03be5ceead18",
         "ابن مالك - ويكيبيديا — https://ar.wikipedia.org/wiki/%D8%A7%D8%A8%D9%86_%D9%85%D8%A7%D9%84%D9%83"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -622,7 +622,7 @@ KZV.register({
         "أساس البلاغة — https://waqfeya.net/books/%D8%A3%D8%B3%D8%A7%D8%B3-%D8%A7%D9%84%D8%A8%D9%84%D8%A7%D8%BA%D8%A9/07a43971549e427287f8f553788e44f7",
         "في بعض ما اشتهر من كتب اللغة — محمد دياب — https://www.safahat.org/books/79072819/1.6/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -644,7 +644,7 @@ KZV.register({
         "الزمخشري محمود بن عمر بن محمد بن أحمد الخوارزمي الزمخشري جار الله أبو القاسم — https://waqfeya.net/authors/%D8%A7%D9%84%D8%B2%D9%85%D8%AE%D8%B4%D8%B1%D9%8A-%D9%85%D8%AD%D9%85%D9%88%D8%AF-%D8%A8%D9%86-%D8%B9%D9%85%D8%B1-%D8%A8%D9%86-%D9%85%D8%AD%D9%85%D8%AF-%D8%A8%D9%86-%D8%A3%D8%AD%D9%85%D8%AF-%D8%A7%D9%84%D8%AE%D9%88%D8%A7%D8%B1%D8%B2%D9%85%D9%8A-%D8%A7%D9%84%D8%B2%D9%85%D8%AE%D8%B4%D8%B1%D9%8A-%D8%AC%D8%A7%D8%B1-%D8%A7%D9%84%D9%84%D9%87-%D8%A3%D8%A8%D9%88-%D8%A7%D9%84%D9%82%D8%A7%D8%B3%D9%85-960d1886245747f3affa9dcc70a81cc0",
         "في تاريخ النحو بالمعنى العام — محمد دياب — https://www.safahat.org/books/79072819/5.2/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -666,7 +666,7 @@ KZV.register({
         "أبو هلال العسكري — https://waqfeya.net/authors/%D8%A3%D8%A8%D9%88-%D9%87%D9%84%D8%A7%D9%84-%D8%A7%D9%84%D8%B9%D8%B3%D9%83%D8%B1%D9%8A-f7af92617fe84e9a94bfbbad80e79d31",
         "الفروق اللغوية - ويكيبيديا — https://ar.wikipedia.org/wiki/%D8%A7%D9%84%D9%81%D8%B1%D9%88%D9%82_%D8%A7%D9%84%D9%84%D8%BA%D9%88%D9%8A%D8%A9"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -710,7 +710,7 @@ KZV.register({
         "القزويني؛ محمد بن عبد الرحمن بن عمر، أبو المعالي، جلال الدين القزويني الشافعي، المعروف بخطيب دمشق. من أحفاد أبي دلف العجلي — https://waqfeya.net/authors/%D8%A7%D9%84%D8%AE%D8%B7%D9%8A%D8%A8-%D8%A7%D9%84%D9%82%D8%B2%D9%88%D9%8A%D9%86%D9%8A-%D9%85%D8%AD%D9%85%D8%AF-%D8%A8%D9%86-%D8%B9%D8%A8%D8%AF-%D8%A7%D9%84%D8%B1%D8%AD%D9%85%D9%86-%D8%AC%D9%84%D8%A7%D9%84-%D8%A7%D9%84%D8%AF%D9%8A%D9%86-b9ae3809f4f943e8bc39e118371949f7",
         "المعاني والبيان والبديع — محمد دياب — https://www.safahat.org/books/79072819/0.6/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -732,7 +732,7 @@ KZV.register({
         "القزويني؛ محمد بن عبد الرحمن بن عمر، أبو المعالي، جلال الدين القزويني الشافعي، المعروف بخطيب دمشق. من أحفاد أبي دلف العجلي — https://waqfeya.net/authors/%D8%A7%D9%84%D8%AE%D8%B7%D9%8A%D8%A8-%D8%A7%D9%84%D9%82%D8%B2%D9%88%D9%8A%D9%86%D9%8A-%D9%85%D8%AD%D9%85%D8%AF-%D8%A8%D9%86-%D8%B9%D8%A8%D8%AF-%D8%A7%D9%84%D8%B1%D8%AD%D9%85%D9%86-%D8%AC%D9%84%D8%A7%D9%84-%D8%A7%D9%84%D8%AF%D9%8A%D9%86-b9ae3809f4f943e8bc39e118371949f7",
         "المعاني والبيان والبديع — محمد دياب — https://www.safahat.org/books/79072819/0.6/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -754,7 +754,7 @@ KZV.register({
         "الإمتاع والمؤانسة   ط. العصرية   ت: الطعيمي — https://waqfeya.net/books/%D8%A7%D9%84%D8%A5%D9%85%D8%AA%D8%A7%D8%B9-%D9%88%D8%A7%D9%84%D9%85%D8%A4%D8%A7%D9%86%D8%B3%D8%A9-%D8%B7-%D8%A7%D9%84%D8%B9%D8%B5%D8%B1%D9%8A%D8%A9-%D8%AA-%D8%A7%D9%84%D8%B7%D8%B9%D9%8A%D9%85%D9%8A-539943d8d3a44604b35226d2b88a8e60",
         "أبو حيان التوحيدي - ويكيبيديا — https://ar.wikipedia.org/wiki/%D8%A3%D8%A8%D9%88_%D8%AD%D9%8A%D8%A7%D9%86_%D8%A7%D9%84%D8%AA%D9%88%D8%AD%D9%8A%D8%AF%D9%8A"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -776,7 +776,7 @@ KZV.register({
         "أبو حيان التوحيدي — https://waqfeya.net/authors/%D8%A3%D8%A8%D9%88-%D8%AD%D9%8A%D8%A7%D9%86-%D8%A7%D9%84%D8%AA%D9%88%D8%AD%D9%8A%D8%AF%D9%8A-dc6bb77d8800457e95e365d6dacd59a9",
         "أبو حيان التوحيدي - ويكيبيديا — https://ar.wikipedia.org/wiki/%D8%A3%D8%A8%D9%88_%D8%AD%D9%8A%D8%A7%D9%86_%D8%A7%D9%84%D8%AA%D9%88%D8%AD%D9%8A%D8%AF%D9%8A"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -798,7 +798,7 @@ KZV.register({
         "عبد الملك بن محمد بن إسماعيل الثعالبي أبو منصور — https://waqfeya.net/authors/%D8%B9%D8%A8%D8%AF-%D8%A7%D9%84%D9%85%D9%84%D9%83-%D8%A8%D9%86-%D9%85%D8%AD%D9%85%D8%AF-%D8%A8%D9%86-%D8%A5%D8%B3%D9%85%D8%A7%D8%B9%D9%8A%D9%84-%D8%A7%D9%84%D8%AB%D8%B9%D8%A7%D9%84%D8%A8%D9%8A-%D8%A3%D8%A8%D9%88-%D9%85%D9%86%D8%B5%D9%88%D8%B1-3ccb210698184b74a2d0df8ecc9b17f8",
         "يتيمة الدهر - ويكيبيديا — https://ar.wikipedia.org/wiki/%D9%8A%D8%AA%D9%8A%D9%85%D8%A9_%D8%A7%D9%84%D8%AF%D9%87%D8%B1"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -820,7 +820,7 @@ KZV.register({
         "ابن فارس — فهرس مؤلفي المكتبة الوقفية — https://waqfeya.net/authors/%D8%A7%D8%A8%D9%86-%D9%81%D8%A7%D8%B1%D8%B3-%D8%A3%D8%AD%D9%85%D8%AF-%D8%A8%D9%86-%D9%81%D8%A7%D8%B1%D8%B3-%D8%A8%D9%86-%D8%B2%D9%83%D8%B1%D9%8A%D8%A7%D8%A1-%D8%A7%D9%84%D9%82%D8%B2%D9%88%D9%8A%D9%86%D9%8A-%D8%A7%D9%84%D8%B1%D8%A7%D8%B2%D9%8A-%D8%A3%D8%A8%D9%88-%D8%A7%D9%84%D8%AD%D8%B3%D9%8A%D9%86-15a6243b865040f68bbb271ac1150a63",
         "ابن فارس - ويكيبيديا — https://ar.wikipedia.org/wiki/%D8%A7%D8%A8%D9%86_%D9%81%D8%A7%D8%B1%D8%B3"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -842,7 +842,7 @@ KZV.register({
         "ابن فارس — فهرس مؤلفي المكتبة الوقفية — https://waqfeya.net/authors/%D8%A7%D8%A8%D9%86-%D9%81%D8%A7%D8%B1%D8%B3-%D8%A3%D8%AD%D9%85%D8%AF-%D8%A8%D9%86-%D9%81%D8%A7%D8%B1%D8%B3-%D8%A8%D9%86-%D8%B2%D9%83%D8%B1%D9%8A%D8%A7%D8%A1-%D8%A7%D9%84%D9%82%D8%B2%D9%88%D9%8A%D9%86%D9%8A-%D8%A7%D9%84%D8%B1%D8%A7%D8%B2%D9%8A-%D8%A3%D8%A8%D9%88-%D8%A7%D9%84%D8%AD%D8%B3%D9%8A%D9%86-15a6243b865040f68bbb271ac1150a63",
         "ابن فارس - ويكيبيديا — https://ar.wikipedia.org/wiki/%D8%A7%D8%A8%D9%86_%D9%81%D8%A7%D8%B1%D8%B3"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -864,7 +864,7 @@ KZV.register({
         "الوساطة بين المتنبي وخصومه — https://waqfeya.net/books/%D8%A7%D9%84%D9%88%D8%B3%D8%A7%D8%B7%D8%A9-%D8%A8%D9%8A%D9%86-%D8%A7%D9%84%D9%85%D8%AA%D9%86%D8%A8%D9%8A-%D9%88%D8%AE%D8%B5%D9%88%D9%85%D9%87-84f1859a6dbe42f4a4b0a94b33072bae",
         "القاضي الجرجاني - ويكيبيديا — https://ar.wikipedia.org/wiki/%D8%B9%D9%84%D9%8A_%D8%A8%D9%86_%D8%B9%D8%A8%D8%AF_%D8%A7%D9%84%D8%B9%D8%B2%D9%8A%D8%B2_%D8%A7%D9%84%D8%AC%D8%B1%D8%AC%D8%A7%D9%86%D9%8A"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -908,7 +908,7 @@ KZV.register({
         "الذخيرة في محاسن أهل الجزيرة — https://waqfeya.net/books/%D8%A7%D9%84%D8%B0%D8%AE%D9%8A%D8%B1%D8%A9-%D9%81%D9%8A-%D9%85%D8%AD%D8%A7%D8%B3%D9%86-%D8%A3%D9%87%D9%84-%D8%A7%D9%84%D8%AC%D8%B2%D9%8A%D8%B1%D8%A9-8d9dcd2ec675479fb2ae262311b222bf",
         "الذخيرة في محاسن أهل الجزيرة - ويكيبيديا — https://ar.wikipedia.org/wiki/%D8%A7%D9%84%D8%B0%D8%AE%D9%8A%D8%B1%D8%A9_%D9%81%D9%8A_%D9%85%D8%AD%D8%A7%D8%B3%D9%86_%D8%A3%D9%87%D9%84_%D8%A7%D9%84%D8%AC%D8%B2%D9%8A%D8%B1%D8%A9"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -930,7 +930,7 @@ KZV.register({
         "الفهرست في أخبار العلماء المصنفين من القدماء والمحدثين وأسماء ما صنفوه من الكتب — https://waqfeya.net/books/%D8%A7%D9%84%D9%81%D9%87%D8%B1%D8%B3%D8%AA-%D9%81%D9%8A-%D8%A3%D8%AE%D8%A8%D8%A7%D8%B1-%D8%A7%D9%84%D8%B9%D9%84%D9%85%D8%A7%D8%A1-%D8%A7%D9%84%D9%85%D8%B5%D9%86%D9%81%D9%8A%D9%86-%D9%85%D9%86-%D8%A7%D9%84%D9%82%D8%AF%D9%85%D8%A7%D8%A1-%D9%88%D8%A7%D9%84%D9%85%D8%AD%D8%AF%D8%AB%D9%8A%D9%86-%D9%88%D8%A3%D8%B3%D9%85%D8%A7%D8%A1-%D9%85%D8%A7-%D8%B5%D9%86%D9%81%D9%88%D9%87-%D9%85%D9%86-%D8%A7%D9%84%D9%83%D8%AA%D8%A8/9b097610376c41c19f2bc596c9c17142",
         "كتاب الفهرست - ويكيبيديا — https://ar.wikipedia.org/wiki/%D8%A7%D9%84%D9%81%D9%87%D8%B1%D8%B3%D8%AA"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -952,7 +952,7 @@ KZV.register({
         "دكانة الكتب رحلة إلى جزر التراث — https://waqfeya.net/books/%D8%AF%D9%83%D8%A7%D9%86%D8%A9-%D8%A7%D9%84%D9%83%D8%AA%D8%A8-%D8%B1%D8%AD%D9%84%D8%A9-%D8%A5%D9%84%D9%89-%D8%AC%D8%B2%D8%B1-%D8%A7%D9%84%D8%AA%D8%B1%D8%A7%D8%AB-6cd06b8d78c64df9a140f0f3cb179b38",
         "زهر الآداب وثمر الألباب - ويكيبيديا — https://ar.wikipedia.org/wiki/%D8%B2%D9%87%D8%B1_%D8%A7%D9%84%D8%A2%D8%AF%D8%A7%D8%A8"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -974,7 +974,7 @@ KZV.register({
         "درة الغواص وشرحها وحواشيها وتكملتها — https://waqfeya.net/books/%D8%AF%D8%B1%D8%A9-%D8%A7%D9%84%D8%BA%D9%88%D8%A7%D8%B5-%D9%88%D8%B4%D8%B1%D8%AD%D9%87%D8%A7-%D9%88%D8%AD%D9%88%D8%A7%D8%B4%D9%8A%D9%87%D8%A7-%D9%88%D8%AA%D9%83%D9%85%D9%84%D8%AA%D9%87%D8%A7-39a46f2effa741beb643e52b0ddc6b37",
         "درة الغواص في أوهام الخواص - ويكيبيديا — https://ar.wikipedia.org/wiki/%D8%AF%D8%B1%D8%A9_%D8%A7%D9%84%D8%BA%D9%88%D8%A7%D8%B5_%D9%81%D9%8A_%D8%A3%D9%88%D9%87%D8%A7%D9%85_%D8%A7%D9%84%D8%AE%D9%88%D8%A7%D8%B5"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -996,7 +996,7 @@ KZV.register({
         "إصلاح المنطق - المكتبة الوقفية للكتب المصورة — https://waqfeya.net/books/%D8%A5%D8%B5%D9%84%D8%A7%D8%AD-%D8%A7%D9%84%D9%85%D9%86%D8%B7%D9%82/4c4e4ad58b95423c87bc823181f1c8a6",
         "إصلاح المنطق - ويكيبيديا — https://ar.wikipedia.org/wiki/%D8%A5%D8%B5%D9%84%D8%A7%D8%AD_%D8%A7%D9%84%D9%85%D9%86%D8%B7%D9%82"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1018,7 +1018,7 @@ KZV.register({
         "مجمع الامثال. — https://sites.dlib.nyu.edu/viewer/books/columbia_aco000456/display?lang=ar",
         "مجمع الأمثال - ويكيبيديا — https://ar.wikipedia.org/wiki/%D9%85%D8%AC%D9%85%D8%B9_%D8%A7%D9%84%D8%A3%D9%85%D8%AB%D8%A7%D9%84"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1040,7 +1040,7 @@ KZV.register({
         "أبو هلال العسكري — https://waqfeya.net/authors/%D8%A3%D8%A8%D9%88-%D9%87%D9%84%D8%A7%D9%84-%D8%A7%D9%84%D8%B9%D8%B3%D9%83%D8%B1%D9%8A-f7af92617fe84e9a94bfbbad80e79d31",
         "جمهرة الأمثال (كتاب) - ويكيبيديا — https://ar.wikipedia.org/wiki/%D8%AC%D9%85%D9%87%D8%B1%D8%A9_%D8%A7%D9%84%D8%A3%D9%85%D8%AB%D8%A7%D9%84"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1062,7 +1062,7 @@ KZV.register({
         "المكتبة الوقفية للكتب المصورة — https://www.waqfeya.net/books/%D8%A7%D9%84%D9%85%D8%B3%D8%AA%D8%B7%D8%B1%D9%81-%D9%81%D9%8A-%D9%83%D9%84-%D9%81%D9%86-%D9%85%D8%B3%D8%AA%D8%B7%D8%B1%D9%81-%D9%88%D9%8A%D9%84%D9%8A%D9%87-%D8%AB%D9%85%D8%B1%D8%A7%D8%AA-%D8%A7%D9%84%D8%A3%D9%88%D8%B1%D8%A7%D9%82-%D9%88%D8%B0%D9%8A%D9%84%D8%A7%D9%86-d25882654aa64f8aad0703de3ee31dcf",
         "المستطرف في كل فن مستظرف - ويكيبيديا — https://ar.wikipedia.org/wiki/%D8%A7%D9%84%D9%85%D8%B3%D8%AA%D8%B7%D8%B1%D9%81_%D9%81%D9%8A_%D9%83%D9%84_%D9%81%D9%86_%D9%85%D8%B3%D8%AA%D8%B8%D8%B1%D9%81"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1084,7 +1084,7 @@ KZV.register({
         "نهاية الأرب في فنون الأدب  ط دار الكتب — https://waqfeya.net/books/%D9%86%D9%87%D8%A7%D9%8A%D8%A9-%D8%A7%D9%84%D8%A3%D8%B1%D8%A8-%D9%81%D9%8A-%D9%81%D9%86%D9%88%D9%86-%D8%A7%D9%84%D8%A3%D8%AF%D8%A8--%D8%B7-%D8%AF%D8%A7%D8%B1-%D8%A7%D9%84%D9%83%D8%AA%D8%A8/b5c7c4925cdc4979a1a2b88c73132fce",
         "نهاية الأرب في فنون الأدب - ويكيبيديا — https://ar.wikipedia.org/wiki/%D9%86%D9%87%D8%A7%D9%8A%D8%A9_%D8%A7%D9%84%D8%A3%D8%B1%D8%A8_%D9%81%D9%8A_%D9%81%D9%86%D9%88%D9%86_%D8%A7%D9%84%D8%A3%D8%AF%D8%A8"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1106,7 +1106,7 @@ KZV.register({
         "معجم الأدباء — https://sites.dlib.nyu.edu/viewer/books/cornell_aco000101/display?lang=ar",
         "معجم الأدباء - ويكيبيديا — https://ar.wikipedia.org/wiki/%D9%85%D8%B9%D8%AC%D9%85_%D8%A7%D9%84%D8%A3%D8%AF%D8%A8%D8%A7%D8%A1"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1128,7 +1128,7 @@ KZV.register({
         "الوافي بالوفيات  ط إحياء التراث العربي — https://waqfeya.net/books/%D8%A7%D9%84%D9%88%D8%A7%D9%81%D9%8A-%D8%A8%D8%A7%D9%84%D9%88%D9%81%D9%8A%D8%A7%D8%AA--%D8%B7-%D8%A5%D8%AD%D9%8A%D8%A7%D8%A1-%D8%A7%D9%84%D8%AA%D8%B1%D8%A7%D8%AB-%D8%A7%D9%84%D8%B9%D8%B1%D8%A8%D9%8A/10353ef636bb44d6ac471c8c54ae2d6c",
         "الوافي بالوفيات - ويكيبيديا — https://ar.wikipedia.org/wiki/%D8%A7%D9%84%D9%88%D8%A7%D9%81%D9%8A_%D8%A8%D8%A7%D9%84%D9%88%D9%81%D9%8A%D8%A7%D8%AA"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1150,7 +1150,7 @@ KZV.register({
         "كتاب فتوح البلدان - ت: دي خويه - ملون — https://waqfeya.net/books/كتاب-فتوح-البلدان--ت-دي-خويه--ملون-855a1185981749f7a3c025ffadacdeb5",
         "البلاذري - ويكيبيديا — https://ar.wikipedia.org/wiki/البلاذري"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1172,7 +1172,7 @@ KZV.register({
         "التنبيه والإشراف — https://waqfeya.net/books/التنبيه-والإشراف-1c69bdb50ead44d3925e01db4e396f2c",
         "المسعودي - ويكيبيديا — https://ar.wikipedia.org/wiki/المسعودي"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1194,7 +1194,7 @@ KZV.register({
         "طبقات الأمم - ت: شيخو — https://waqfeya.net/books/طبقات-الأمم--ت-شيخو-c759902c50834275a1f3e7589ec54dde",
         "صاعد الأندلسي - ويكيبيديا — https://ar.wikipedia.org/wiki/صاعد_الأندلسي"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1238,7 +1238,7 @@ KZV.register({
         "المختصر في أخبار البشر - ط. المعارف — https://waqfeya.net/books/المختصر-في-أخبار-البشر--ط-المعارف-e740b43c55844767a1b8fc4b9df0def7",
         "أبو الفداء - ويكيبيديا — https://ar.wikipedia.org/wiki/أبو_الفداء"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1282,7 +1282,7 @@ KZV.register({
         "المقتبس من أخبار بلد الأندلس - ت: الهواري — https://waqfeya.net/books/المقتبس-من-أخبار-بلد-الأندلس-ت-الهواري-52130e75ad39425e9936b855248e45af",
         "ابن حيان القرطبي - ويكيبيديا — https://ar.wikipedia.org/wiki/ابن_حيان_القرطبي"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1304,7 +1304,7 @@ KZV.register({
         "تقويم البلدان — https://waqfeya.net/books/تقويم-البلدان-25187e0d9c89483f8470e10ab9978f93",
         "أبو الفداء - ويكيبيديا — https://ar.wikipedia.org/wiki/أبو_الفداء"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1348,7 +1348,7 @@ KZV.register({
         "خطط الشام — https://waqfeya.net/books/خطط-الشام-18bd2b39e1db42e4b0ad9db665902809",
         "محمد كرد علي - ويكيبيديا — https://ar.wikipedia.org/wiki/محمد_كرد_علي"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1458,7 +1458,7 @@ KZV.register({
         "أخبار الحمقى والمغفلين — https://waqfeya.net/books/أخبار-الحمقى-والمغفلين-f83a23ef843d4cdbb88855e00f875eed",
         "ابن الجوزي - ويكيبيديا — https://ar.wikipedia.org/wiki/ابن_الجوزي"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1480,7 +1480,7 @@ KZV.register({
         "أخبار الأذكياء — https://waqfeya.net/books/أخبار-الأذكياء-8e267cbca951486aa004196c93ced57b",
         "ابن الجوزي - ويكيبيديا — https://ar.wikipedia.org/wiki/ابن_الجوزي"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1502,7 +1502,7 @@ KZV.register({
         "تاريخ آداب العرب - ط. العلمية — https://waqfeya.net/books/تاريخ-آداب-العرب-ط-العلمية-56a5ba0d4e66498a80b2f7fed23002d3",
         "مصطفى صادق الرافعي - ويكيبيديا — https://ar.wikipedia.org/wiki/مصطفى_صادق_الرافعي"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1524,7 +1524,7 @@ KZV.register({
         "المطول على التلخيص — https://waqfeya.net/books/المطول-على-التلخيص-bae1edfb300e43a48571a650b7118e34",
         "سعد الدين التفتازاني - ويكيبيديا — https://ar.wikipedia.org/wiki/سعد_الدين_التفتازاني"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1546,7 +1546,7 @@ KZV.register({
         "جواهر البلاغة في المعاني والبيان والبديع — https://waqfeya.net/books/جواهر-البلاغة-في-المعاني-والبيان-والبديع-5f735c358c4b4c22bad30bbed7ae29a1",
         "أحمد الهاشمي - ويكيبيديا — https://ar.wikipedia.org/wiki/أحمد_الهاشمي"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1568,7 +1568,7 @@ KZV.register({
         "أنساب الأشراف - ج 1 - ط. المعارف — https://waqfeya.net/books/أنساب-الأشراف--ج-1--ط-المعارف-c09017cfa3a842f08a2471085f019183",
         "البلاذري - ويكيبيديا — https://ar.wikipedia.org/wiki/البلاذري"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1634,7 +1634,7 @@ KZV.register({
         "الكافية في علم النحو والشافية في علمي التصريف والخط — https://waqfeya.net/books/الكافية-في-علم-النحو-والشافية-في-علمي-التصريف-والخط-ca9a2dab4e544a06a0a656d632fa3ad4",
         "ابن الحاجب - ويكيبيديا — https://ar.wikipedia.org/wiki/ابن_الحاجب"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1656,7 +1656,7 @@ KZV.register({
         "مكتبة ويبل بجامعة كامبريدج: كتاب البصريات — https://www.whipplelib.hps.cam.ac.uk/special/exhibitions-and-displays/colour-science/isaac-newton-opticks",
         "موسوعة ويكيبيديا: Opticks — https://en.wikipedia.org/wiki/Opticks"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1700,7 +1700,7 @@ KZV.register({
         "جامعة كامبريدج: مجموعة روبرت بويل — https://www.whipplelib.hps.cam.ac.uk/special/exhibitions-and-displays/exhibitions-archive/reserve-gallery/reserve-boyle",
         "مكتبات سميثسونيان: The Sceptical Chymist — https://library.si.edu/digital-library/book/scepticalchymis00boyla"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1788,7 +1788,7 @@ KZV.register({
         "الجمعية اللينيانية: نظام الطبيعة وطبعة 1735 — https://www.linnean.org/news/2026/05/12/the-living-world-in-eleven-pages-systema-naturae-1735",
         "موسوعة ويكيبيديا: Systema Naturae — https://en.wikipedia.org/wiki/Systema_Naturae"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1832,7 +1832,7 @@ KZV.register({
         "جامعة كينغستون: رسالة لافوازييه الصادرة سنة 1789 — https://cahiers.kingston.ac.uk/synopses/syn9.12.html",
         "موسوعة ويكيبيديا: رسالة أولية في الكيمياء — https://en.wikipedia.org/wiki/Traité_Élémentaire_de_Chimie"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1920,7 +1920,7 @@ KZV.register({
         "جامعة سانت أندروز: أويلر ومقدمة تحليل اللانهاية — https://mathshistory.st-andrews.ac.uk/Biographies/Euler/",
         "موسوعة ويكيبيديا: Introductio in analysin infinitorum — https://en.wikipedia.org/wiki/Introductio_in_analysin_infinitorum"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1986,7 +1986,7 @@ KZV.register({
         "جامعة سانت أندروز: فورييه وكتاب سنة 1822 — https://mathshistory.st-andrews.ac.uk/Biographies/Fourier/",
         "موسوعة ويكيبيديا: النظرية التحليلية للحرارة — https://en.wikipedia.org/wiki/The_Analytic_Theory_of_Heat"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2008,7 +2008,7 @@ KZV.register({
         "جامعة سانت أندروز: ماكسويل وكتاب سنة 1873 — https://mathshistory.st-andrews.ac.uk/Projects/Johnson/chapter-2/",
         "موسوعة ويكيبيديا: رسالة في الكهرباء والمغناطيسية — https://en.wikipedia.org/wiki/A_Treatise_on_Electricity_and_Magnetism"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2052,7 +2052,7 @@ KZV.register({
         "مشروع غوتنبرغ: نص رسالة هويغنس ومقدمته المؤرخة — https://www.gutenberg.org/files/14725/14725-h/14725-h.htm",
         "موسوعة ويكيبيديا: رسالة في الضوء — https://en.wikipedia.org/wiki/Treatise_on_Light"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2118,7 +2118,7 @@ KZV.register({
         "الجمعية اللينيانية: نظام الطبيعة وطبعة 1735 — https://www.linnean.org/news/2026/05/12/the-living-world-in-eleven-pages-systema-naturae-1735",
         "موسوعة ويكيبيديا: Systema Naturae — https://en.wikipedia.org/wiki/Systema_Naturae"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2141,7 +2141,7 @@ KZV.register({
         "ابن المقفع — ترجمة المؤلف — https://ar.wikipedia.org/wiki/ابن_المقفع"
       ],
       "level": 3,
-      "status": "approved",
+      "status": "held",
       "flags": []
     },
     {
@@ -2162,7 +2162,7 @@ KZV.register({
         "محيط المحيط قاموس مطول للغة العربية — https://waqfeya.net/books/محيط-المحيط-قاموس-مطول-للغة-العربية-bad4f2082fdf4f67a60c18940798719c",
         "بطرس البستاني — مرجع الكتاب ومؤلفه — https://ar.wikipedia.org/wiki/بطرس_البستاني"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2184,7 +2184,7 @@ KZV.register({
         "في تاريخ النحو بالمعنى العام — محمد دياب — https://www.safahat.org/books/79072819/5.2/",
         "أبو بكر بن السراج — مؤلف الأصول في النحو — https://ar.wikipedia.org/wiki/أبو_بكر_بن_السراج"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2206,7 +2206,7 @@ KZV.register({
         "شرح المفصل - ط. المنيرية — https://waqfeya.net/books/شرح-المفصل-ط-المنيرية-c1922251f1404c43b5a737b1ec0fbacc",
         "ابن يعيش — مرجع الكتاب ومؤلفه — https://ar.wikipedia.org/wiki/ابن_يعيش"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2228,7 +2228,7 @@ KZV.register({
         "الكافية في علم النحو والشافية في علمي التصريف والخط — https://waqfeya.net/books/الكافية-في-علم-النحو-والشافية-في-علمي-التصريف-والخط-ca9a2dab4e544a06a0a656d632fa3ad4",
         "ابن الحاجب — مرجع الكتاب ومؤلفه — https://ar.wikipedia.org/wiki/ابن_الحاجب"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2272,7 +2272,7 @@ KZV.register({
         "جامع الدروس العربية — https://waqfeya.net/books/جامع-الدروس-العربية-7598a5230fb24f7997694f112788f9a7",
         "مصطفى الغلاييني — مرجع الكتاب ومؤلفه — https://ar.wikipedia.org/wiki/مصطفى_الغلاييني"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2294,7 +2294,7 @@ KZV.register({
         "شذا العرف في فن الصرف — https://waqfeya.net/books/شذا-العرف-في-فن-الصرف-0de525e96d3544eba7a9771515316ad5",
         "أحمد الحملاوي — مرجع الكتاب ومؤلفه — https://ar.wikipedia.org/wiki/أحمد_الحملاوي"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2338,7 +2338,7 @@ KZV.register({
         "الإيضاح العضدي — https://waqfeya.net/books/الإيضاح-العضدي-161a38f833d84e9ba8d873e3d2c1a614",
         "في تاريخ النحو بالمعنى العام — محمد دياب — https://www.safahat.org/books/79072819/5.2/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2360,7 +2360,7 @@ KZV.register({
         "فيما اشتهر من كتب الإنشاء — محمد دياب — https://www.safahat.org/books/79072819/8.4/",
         "ابن سنان الخفاجي — مرجع الكتاب ومؤلفه — https://ar.wikipedia.org/wiki/ابن_سنان_الخفاجي"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2382,7 +2382,7 @@ KZV.register({
         "في تاريخ النحو بالمعنى العام — محمد دياب — https://www.safahat.org/books/79072819/5.2/",
         "ثعلب النحوي — مؤلف الفصيح — https://ar.wikipedia.org/wiki/ثعلب_النحوي"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2404,7 +2404,7 @@ KZV.register({
         "في تاريخ النحو بالمعنى العام — محمد دياب — https://www.safahat.org/books/79072819/5.2/",
         "الكتاب (سيبويه) — مرجع للواقعة المحددة — https://ar.wikipedia.org/wiki/الكتاب_(سيبويه)"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2426,7 +2426,7 @@ KZV.register({
         "في بعض ما اشتهر من كتب اللغة — محمد دياب — https://www.safahat.org/books/79072819/1.6/",
         "أساس البلاغة — مرجع للواقعة المحددة — https://ar.wikipedia.org/wiki/أساس_البلاغة"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2448,7 +2448,7 @@ KZV.register({
         "المعاني والبيان والبديع — محمد دياب — https://www.safahat.org/books/79072819/0.6/",
         "تلخيص المفتاح — مرجع للواقعة المحددة — https://ar.wikipedia.org/wiki/تلخيص_المفتاح"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2492,7 +2492,7 @@ KZV.register({
         "جامعة سانت أندروز: فيبوناتشي وكتاب الحساب — https://mathshistory.st-andrews.ac.uk/Biographies/Fibonacci/",
         "موسوعة ويكيبيديا: Liber Abaci — https://en.wikipedia.org/wiki/Liber_Abaci"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2514,7 +2514,7 @@ KZV.register({
         "محيط المحيط قاموس مطول للغة العربية — https://waqfeya.net/books/محيط-المحيط-قاموس-مطول-للغة-العربية-bad4f2082fdf4f67a60c18940798719c",
         "بطرس البستاني — مرجع الكتاب ومؤلفه — https://ar.wikipedia.org/wiki/بطرس_البستاني"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2537,7 +2537,7 @@ KZV.register({
         "بطرس البستاني — مرجع الكتاب ومؤلفه — https://ar.wikipedia.org/wiki/بطرس_البستاني"
       ],
       "level": 2,
-      "status": "approved",
+      "status": "held",
       "flags": []
     },
     {
@@ -2558,7 +2558,7 @@ KZV.register({
         "ابن هشام النحوي — المكتبة الوقفية — https://waqfeya.net/authors/%D8%AC%D9%85%D8%A7%D9%84-%D8%A7%D9%84%D8%AF%D9%8A%D9%86-%D8%B9%D8%A8%D8%AF-%D8%A7%D9%84%D9%84%D9%87-%D8%A8%D9%86-%D9%8A%D9%88%D8%B3%D9%81-%D8%A8%D9%86-%D8%A3%D8%AD%D9%85%D8%AF-%D8%A8%D9%86-%D8%B9%D8%A8%D8%AF-%D8%A7%D9%84%D9%84%D9%87-%D8%A8%D9%86-%D9%87%D8%B4%D8%A7%D9%85-5e3cc018d76a4291b30bc559a65cc967",
         "في تاريخ النحو بالمعنى العام — محمد دياب — https://www.safahat.org/books/79072819/5.2/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2580,7 +2580,7 @@ KZV.register({
         "تجارب الأمم وتعاقب الهمم — https://waqfeya.net/books/تجارب-الأمم-وتعاقب-الهمم-3e9a3cf5701846dd954656756861475c",
         "مسكويه - ويكيبيديا — https://ar.wikipedia.org/wiki/مسكويه"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2646,7 +2646,7 @@ KZV.register({
         "الإحاطة في أخبار غرناطة - ط. الخانجي — https://waqfeya.net/books/الإحاطة-في-أخبار-غرناطة--ط-الخانجي-9635d0cd866f426d979e9c6fa3e98704",
         "لسان الدين بن الخطيب - ويكيبيديا — https://ar.wikipedia.org/wiki/لسان_الدين_بن_الخطيب"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2668,7 +2668,7 @@ KZV.register({
         "مسالك الأبصار في ممالك الأمصار - ط. المجمع الثقافي — https://waqfeya.net/books/مسالك-الأبصار-في-ممالك-الأمصار--ط-المجمع-الثقافي-17a331fed24f47fc997987eadeed33be",
         "ابن فضل الله العمري - ويكيبيديا — https://ar.wikipedia.org/wiki/ابن_فضل_الله_العمري"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2712,7 +2712,7 @@ KZV.register({
         "السلوك لمعرفة دول الملوك - ط. العلمية — https://waqfeya.net/books/السلوك-لمعرفة-دول-الملوك-ط-العلمية-eb95cc51d6114632b9f0eff32aa5e225",
         "المقريزي - ويكيبيديا — https://ar.wikipedia.org/wiki/المقريزي"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2778,7 +2778,7 @@ KZV.register({
         "نفح الطيب من غصن الأندلس الرطيب  — https://waqfeya.net/books/نفح-الطيب-من-غصن-الأندلس-الرطيب--cf732ee518fd45398394089348ce1997",
         "أحمد المقري - ويكيبيديا — https://ar.wikipedia.org/wiki/أحمد_المقري"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2800,7 +2800,7 @@ KZV.register({
         "وحي القلم - ط. العصرية — https://waqfeya.net/books/وحي-القلم-ط-العصرية-b080fa55d8b64fa097cc78844ca63503",
         "مصطفى صادق الرافعي - ويكيبيديا — https://ar.wikipedia.org/wiki/مصطفى_صادق_الرافعي"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2844,7 +2844,7 @@ KZV.register({
         "مكتبات سميثسونيان: وليام جيلبرت وكتابه — https://library.si.edu/digital-library/author/gilbert-william",
         "كلية سانت جون بجامعة كامبريدج: De Magnete — https://www.joh.cam.ac.uk/research/library/old-library"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2866,7 +2866,7 @@ KZV.register({
         "ملحة الإعراب — https://waqfeya.net/books/ملحة-الإعراب-0bd6895adcdb4443aaccd074a72d9b68",
         "أبو محمد القاسم الحريري - ويكيبيديا — https://ar.wikipedia.org/wiki/أبو_محمد_القاسم_الحريري"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2888,7 +2888,7 @@ KZV.register({
         "جامعة سانت أندروز: سيرة رينيه ديكارت — https://mathshistory.st-andrews.ac.uk/Biographies/Descartes/",
         "الجمعية الرياضية الأمريكية: دانيال كيرتن، طريقة ديكارت في المماسات — https://maa.org/wp-content/uploads/2024/10/NTE77.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -2932,7 +2932,7 @@ KZV.register({
         "جامعة سانت أندروز: سيرة رينيه ديكارت — https://mathshistory.st-andrews.ac.uk/Biographies/Descartes/",
         "موسوعة ستانفورد للفلسفة: منهج ديكارت — https://plato.stanford.edu/entries/descartes-method/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2998,7 +2998,7 @@ KZV.register({
         "المؤسسة الملكية: أعمال مايكل فاراداي — https://www.rigb.org/explore-science/explore/person/michael-faraday-1791-1867",
         "التاريخ الكيميائي للشمعة: صفحة العنوان والنص، غوتنبرغ — https://www.gutenberg.org/cache/epub/14474/pg14474-images.html"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3020,7 +3020,7 @@ KZV.register({
         "متحف فلورنس نايتنغيل: ملاحظات عن التمريض — https://www.florence-nightingale.co.uk/product/notes-on-nursing/",
         "جامعة بريغهام يونغ: دليل معرض فلورنس نايتنغيل — https://exhibits.lib.byu.edu/nightingale/gallery-guide.html"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3042,7 +3042,7 @@ KZV.register({
         "جامعة بريغهام يونغ: دليل معرض فلورنس نايتنغيل — https://exhibits.lib.byu.edu/nightingale/gallery-guide.html",
         "المكتبة البريطانية: أوراق نايتنغيل، سجل Add MS 45817 — https://searcharchives.bl.uk/catalog/040-002018697"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3108,7 +3108,7 @@ KZV.register({
         "موسوعة ستانفورد للفلسفة: فرنسيس بيكون — https://plato.stanford.edu/entries/francis-bacon/",
         "جامعة كامبريدج: تاريخ المعرفة، بيكون وكتابه — https://www.hist.cam.ac.uk/sites/default/files/2020-03/specified_paper-17-the_politics_of_knowledge-2019-20.pdf"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3196,7 +3196,7 @@ KZV.register({
         "موسوعة ستانفورد للفلسفة: غاليليو غاليلي — https://plato.stanford.edu/entries/galileo/",
         "قاموس السير العلمية: سيرة غاليليو، نسخة جامعة سانت أندروز — https://mathshistory.st-andrews.ac.uk/DSB/Galileo.pdf"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3284,7 +3284,7 @@ KZV.register({
         "متحف جول فيرن في نانت: قائمة المؤلفات — https://julesverne.nantesmetropole.fr/reperes-biographiques/bibliographie/",
         "المكتبة الوطنية الفرنسية: رحلة إلى مركز الأرض — https://catalogue.bnf.fr/ark%3A/12148/cb12342582t"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3306,7 +3306,7 @@ KZV.register({
         "متحف جول فيرن في نانت: قائمة المؤلفات — https://julesverne.nantesmetropole.fr/reperes-biographiques/bibliographie/",
         "المكتبة الوطنية الفرنسية: رحلة إلى مركز الأرض — https://catalogue.bnf.fr/ark%3A/12148/cb12342582t"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3328,7 +3328,7 @@ KZV.register({
         "متحف جول فيرن في نانت: قائمة المؤلفات — https://julesverne.nantesmetropole.fr/reperes-biographiques/bibliographie/",
         "المكتبة الوطنية الفرنسية: خمسة أسابيع في منطاد — https://catalogue.bnf.fr/ark%3A/12148/cb179930457"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3350,7 +3350,7 @@ KZV.register({
         "متحف جول فيرن في نانت: قائمة المؤلفات — https://julesverne.nantesmetropole.fr/reperes-biographiques/bibliographie/",
         "المكتبة الوطنية الفرنسية: خمسة أسابيع في منطاد — https://catalogue.bnf.fr/ark%3A/12148/cb179930457"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3372,7 +3372,7 @@ KZV.register({
         "متحف جول فيرن في نانت: قائمة المؤلفات — https://julesverne.nantesmetropole.fr/reperes-biographiques/bibliographie/",
         "المكتبة الوطنية الفرنسية: من الأرض إلى القمر — https://catalogue.bnf.fr/ark%3A/12148/cb17994499h"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3394,7 +3394,7 @@ KZV.register({
         "متحف جول فيرن في نانت: قائمة المؤلفات — https://julesverne.nantesmetropole.fr/reperes-biographiques/bibliographie/",
         "المكتبة الوطنية الفرنسية: من الأرض إلى القمر — https://catalogue.bnf.fr/ark%3A/12148/cb17994499h"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3416,7 +3416,7 @@ KZV.register({
         "متحف جول فيرن في نانت: قائمة المؤلفات — https://julesverne.nantesmetropole.fr/reperes-biographiques/bibliographie/",
         "المكتبة الوطنية الفرنسية: عشرون ألف فرسخ تحت الماء — https://catalogue.bnf.fr/ark%3A/12148/cb12100647x"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3438,7 +3438,7 @@ KZV.register({
         "متحف جول فيرن في نانت: قائمة المؤلفات — https://julesverne.nantesmetropole.fr/reperes-biographiques/bibliographie/",
         "المكتبة الوطنية الفرنسية: أبناء الكابتن غرانت — https://catalogue.bnf.fr/ark%3A/12148/cb179916322"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3460,7 +3460,7 @@ KZV.register({
         "متحف جول فيرن في نانت: قائمة المؤلفات — https://julesverne.nantesmetropole.fr/reperes-biographiques/bibliographie/",
         "المكتبة الوطنية الفرنسية: الجزيرة الغامضة — https://catalogue.bnf.fr/ark%3A/12148/cb122435899"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3482,7 +3482,7 @@ KZV.register({
         "متحف جول فيرن في نانت: قائمة المؤلفات — https://julesverne.nantesmetropole.fr/reperes-biographiques/bibliographie/",
         "المكتبة الوطنية الفرنسية: الجزيرة الغامضة — https://catalogue.bnf.fr/ark%3A/12148/cb122435899"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3504,7 +3504,7 @@ KZV.register({
         "الموقع الرسمي للأمير الصغير: الكتاب والمؤلف — https://www.lepetitprince.com/en/the-book/",
         "المكتبة الوطنية الفرنسية: الأمير الصغير — https://catalogue.bnf.fr/ark%3A/12148/cb11962706k"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3526,7 +3526,7 @@ KZV.register({
         "الموقع الرسمي للأمير الصغير: الكتاب والمؤلف — https://www.lepetitprince.com/en/the-book/",
         "المكتبة الوطنية الفرنسية: الأمير الصغير — https://catalogue.bnf.fr/ark%3A/12148/cb11962706k"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3548,7 +3548,7 @@ KZV.register({
         "متحف روبرت لويس ستيفنسون: التسلسل الزمني للمؤلفات — https://stevensonmuseum.org/robert-louis-stevenson/the-works/publications-timeline/",
         "المكتبة الوطنية الفرنسية: جزيرة الكنز — https://catalogue.bnf.fr/ark%3A/12148/cb12160379z"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3570,7 +3570,7 @@ KZV.register({
         "متحف روبرت لويس ستيفنسون: التسلسل الزمني للمؤلفات — https://stevensonmuseum.org/robert-louis-stevenson/the-works/publications-timeline/",
         "المكتبة الوطنية الفرنسية: جزيرة الكنز — https://catalogue.bnf.fr/ark%3A/12148/cb12160379z"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3658,7 +3658,7 @@ KZV.register({
         "المكتبة الوقفية: خزانة الأدب ولب لباب لسان العرب — https://waqfeya.net/books/%D8%AE%D8%B2%D8%A7%D9%86%D8%A9-%D8%A7%D9%84%D8%A3%D8%AF%D8%A8-%D9%88%D9%84%D8%A8-%D9%84%D8%A8%D8%A7%D8%A8-%D9%84%D8%B3%D8%A7%D9%86-%D8%A7%D9%84%D8%B9%D8%B1%D8%A8-%D8%AA-%D9%87%D8%A7%D8%B1%D9%88%D9%86/b4b19097de584ddf978faa2430b27c2e",
         "هنداوي: تاريخ آداب اللغة العربية، تاريخ النحو — https://www.hindawi.org/books/79072819/5.2/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3680,7 +3680,7 @@ KZV.register({
         "المكتبة الوقفية: النحو الوافي — https://waqfeya.net/books/النحو-الوافي-880030fa896249ebb9bae13264e964fc",
         "مجمع اللغة العربية بالقاهرة: سيرة عباس حسن — https://www.arabicacademy.gov.eg/ar/members/عضو/عباس_حسن"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3702,7 +3702,7 @@ KZV.register({
         "المجموعات العربية على الإنترنت: طبقات فحول الشعراء — https://sites.dlib.nyu.edu/viewer/books/columbia_aco003144/display?lang=ar",
         "هنداوي: النقد المنهجي عند العرب، الموازنة بين الشعراء — https://www.hindawi.org/books/15297205/2.1/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3724,7 +3724,7 @@ KZV.register({
         "الدرر السنية: ترجمة المؤرخ ابن تغري بردي — https://dorar.net/history/event/3486",
         "المكتبة الوقفية: النجوم الزاهرة في ملوك مصر والقاهرة — https://waqfeya.net/books/النجوم-الزاهرة-فى-ملوك-مصر-والقاهرة/afcc99ad1d874eb2b6c57a436c987626"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3746,7 +3746,7 @@ KZV.register({
         "هنداوي: عجائب الآثار في التراجم والأخبار — https://www.hindawi.org/books/53519152/",
         "الدرر السنية: ترجمة المؤرخ عبد الرحمن الجبرتي — https://dorar.net/history/event/4445"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3768,7 +3768,7 @@ KZV.register({
         "بنغوين: تعريف بتاريخ الحرب البيلوبونيسية ومؤلفه — https://www.penguin.co.uk/books/34696/history-of-the-peloponnesian-war-by-thucydides-trans-rex-warner-intro-m-finley/9780141909394",
         "معهد ماساتشوستس للتقنية: نص تاريخ الحرب البيلوبونيسية — https://classics.mit.edu/Thucydides/pelopwar.1.first.html"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3790,7 +3790,7 @@ KZV.register({
         "بنغوين: تاريخ اضمحلال الإمبراطورية الرومانية وسقوطها — https://www.penguin.co.uk/series/DECFALLROME/the-history-of-the-decline-and-fall-of-the-roman-empire",
         "جامعة بنسلفانيا: فهرس الكتاب، تحرير جون مارك أوكربلوم — https://onlinebooks.library.upenn.edu/webbin/book/lookupid?key=olbp108790"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3812,7 +3812,7 @@ KZV.register({
         "J. J. O’Connor and E. F. Robertson, MacTutor: Girolamo Cardano — https://mathshistory.st-andrews.ac.uk/Biographies/Cardan/",
         "Florian Cajori: A History of Mathematics (original published book) — https://www.gutenberg.org/files/31061/31061-pdf.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -3922,7 +3922,7 @@ KZV.register({
         "إسلام ويب: كتب مفيدة في مجالات مختلفة لطالب العلم، فتوى 223231 — https://islamweb.net/ar/fatwa/print.php?id=223231",
         "راشد علي عيسى: مهارات الاتصال، نماذج من التربية الاتصالية العربية، ج1 ص84–93 — https://www.islamweb.net/ar/library/content/1603/3097/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3944,7 +3944,7 @@ KZV.register({
         "Benedikt Meyer, Swiss National Museum: Spyri – ein Literaturstar — https://blog.nationalmuseum.ch/2019/11/spyri-literaturstar/",
         "Wikipedia contributors: Heidi (secondary corroboration) — https://en.wikipedia.org/wiki/Heidi"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3966,7 +3966,7 @@ KZV.register({
         "Benedikt Meyer, Swiss National Museum: Spyri – ein Literaturstar — https://blog.nationalmuseum.ch/2019/11/spyri-literaturstar/",
         "Wikipedia contributors: Heidi (secondary corroboration) — https://en.wikipedia.org/wiki/Heidi"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3988,7 +3988,7 @@ KZV.register({
         "Library of America, ed. Gretchen Holbrook Gerzina: Frances Hodgson Burnett, The Secret Garden / A Little Princess / Little Lord Fauntleroy — https://www.loa.org/books/612-the-secret-garden-a-little-princess-little-lord-fauntleroy/",
         "Wikipedia contributors: The Secret Garden (secondary corroboration) — https://en.wikipedia.org/wiki/The_Secret_Garden"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4032,7 +4032,7 @@ KZV.register({
         "Library of America, ed. Gretchen Holbrook Gerzina: Frances Hodgson Burnett, The Secret Garden / A Little Princess / Little Lord Fauntleroy — https://www.loa.org/books/612-the-secret-garden-a-little-princess-little-lord-fauntleroy/",
         "Wikipedia contributors: A Little Princess (secondary corroboration) — https://en.wikipedia.org/wiki/A_Little_Princess"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4120,7 +4120,7 @@ KZV.register({
         "Nobel Lectures, ed. Horst Frenz: Selma Lagerlöf – Biographical (1969) — https://www.nobelprize.org/prizes/literature/1909/lagerlof/biographical/",
         "Wikipedia contributors: The Wonderful Adventures of Nils (secondary corroboration) — https://en.wikipedia.org/wiki/The_Wonderful_Adventures_of_Nils"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4164,7 +4164,7 @@ KZV.register({
         "Gabriella de la Rosa, National Trust: The stories behind the works of Beatrix Potter — https://www.nationaltrust.org.uk/discover/history/art-collections/the-stories-behind-the-works-of-beatrix-potter",
         "Wikipedia contributors: The Tale of Peter Rabbit (secondary corroboration) — https://en.wikipedia.org/wiki/The_Tale_of_Peter_Rabbit"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4208,7 +4208,7 @@ KZV.register({
         "Musée Jules Verne, Nantes: Bibliographie — https://julesverne.nantesmetropole.fr/reperes-biographiques/bibliographie/",
         "Wikipedia contributors: Dick Sand, A Captain at Fifteen (secondary corroboration) — https://en.wikipedia.org/wiki/Dick_Sand,_A_Captain_at_Fifteen"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4230,7 +4230,7 @@ KZV.register({
         "Musée Jules Verne, Nantes: Bibliographie — https://julesverne.nantesmetropole.fr/reperes-biographiques/bibliographie/",
         "Wikipedia contributors: Dick Sand, A Captain at Fifteen (secondary corroboration) — https://en.wikipedia.org/wiki/Dick_Sand,_A_Captain_at_Fifteen"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4296,7 +4296,7 @@ KZV.register({
         "U.S. National Park Service: The Wayside, Home of Authors — https://www.nps.gov/mima/learn/historyculture/thewayside.htm",
         "Wikipedia contributors: Little Women (secondary corroboration) — https://en.wikipedia.org/wiki/Little_Women"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4340,7 +4340,7 @@ KZV.register({
         "J. J. O’Connor and E. F. Robertson, MacTutor: George Boole — https://mathshistory.st-andrews.ac.uk/Biographies/Boole/",
         "William B. Ashworth, Linda Hall Library: George Boole — https://www.lindahall.org/about/news/scientist-of-the-day/george-boole/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4384,7 +4384,7 @@ KZV.register({
         "U.S. National Park Service: Rachel Carson — https://www.nps.gov/people/rachel-carson.htm",
         "Wikipedia contributors: Silent Spring (secondary corroboration) — https://en.wikipedia.org/wiki/Silent_Spring"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4406,7 +4406,7 @@ KZV.register({
         "U.S. National Park Service: Rachel Carson — https://www.nps.gov/people/rachel-carson.htm",
         "Wikipedia contributors: Silent Spring (secondary corroboration) — https://en.wikipedia.org/wiki/Silent_Spring"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4428,7 +4428,7 @@ KZV.register({
         "L. M. Montgomery: Anne of Green Gables, original published text, Project Gutenberg eBook 45 — https://www.gutenberg.org/files/45/45-h/45-h.htm",
         "Wikipedia contributors: Anne of Green Gables (secondary corroboration) — https://en.wikipedia.org/wiki/Anne_of_Green_Gables"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4472,7 +4472,7 @@ KZV.register({
         "Herodotus: The History, translated by G. C. Macaulay, original text, Project Gutenberg eBook 2707 — https://www.gutenberg.org/files/2707/2707-h/2707-h.htm",
         "Wikipedia contributors: Histories (Herodotus) (secondary corroboration) — https://en.wikipedia.org/wiki/Histories_(Herodotus)"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4538,7 +4538,7 @@ KZV.register({
         "Ibn Khaldun: The Muqaddimah, translated by Franz Rosenthal, concluding remarks on the first draft — https://library.diplomatic.ac/wp-content/uploads/2019/10/ibn_khaldun-al_muqaddimah.pdf",
         "Wikipedia contributors: Muqaddimah (secondary corroboration) — https://en.wikipedia.org/wiki/Muqaddimah"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4582,7 +4582,7 @@ KZV.register({
         "Alexander Rechsteiner, Swiss National Museum: The many lives of Robinson Crusoe — https://blog.nationalmuseum.ch/en/2019/02/the-many-lives-of-robinson-crusoe/",
         "Wikipedia contributors: The Swiss Family Robinson (secondary corroboration) — https://en.wikipedia.org/wiki/The_Swiss_Family_Robinson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4604,7 +4604,7 @@ KZV.register({
         "Carlo Collodi: The Adventures of Pinocchio, original published text, Project Gutenberg eBook 500 — https://www.gutenberg.org/files/500/500-h/500-h.htm",
         "Wikipedia contributors: The Adventures of Pinocchio (secondary corroboration) — https://en.wikipedia.org/wiki/The_Adventures_of_Pinocchio"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4670,7 +4670,7 @@ KZV.register({
         "Robinson Crusoe — Wikipedia — https://en.wikipedia.org/wiki/Robinson_Crusoe",
         "John W. Cousin — A Short Biographical Dictionary of English Literature — https://www.gutenberg.org/files/13240/13240-h/13240-h.htm"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4692,7 +4692,7 @@ KZV.register({
         "Robinson Crusoe — Wikipedia — https://en.wikipedia.org/wiki/Robinson_Crusoe",
         "John W. Cousin — A Short Biographical Dictionary of English Literature — https://www.gutenberg.org/files/13240/13240-h/13240-h.htm"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4758,7 +4758,7 @@ KZV.register({
         "The Voyage of the Beagle — Wikipedia — https://en.wikipedia.org/wiki/The_Voyage_of_the_Beagle",
         "Charles Darwin — The Voyage of the Beagle — https://www.gutenberg.org/cache/epub/944/pg944-images.html"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4802,7 +4802,7 @@ KZV.register({
         "Fridtjof Nansen — Biographical, selected bibliography — https://www.nobelprize.org/prizes/peace/1922/nansen/biographical/",
         "Fridtjof Nansen — Farthest North, Volume I — https://www.gutenberg.org/cache/epub/30197/pg30197-images.html"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4824,7 +4824,7 @@ KZV.register({
         "The Art of War — Wikipedia — https://en.wikipedia.org/wiki/The_Art_of_War",
         "Sun Tzu — The Art of War; translated with an introduction by Lionel Giles — https://www.gutenberg.org/cache/epub/132/pg132-images.html"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4846,7 +4846,7 @@ KZV.register({
         "Parallel Lives — Wikipedia — https://en.wikipedia.org/wiki/Parallel_Lives",
         "Plutarch — Lives, Volume I; translated by Aubrey Stewart and George Long — https://www.gutenberg.org/cache/epub/14033/pg14033-images.html"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4912,7 +4912,7 @@ KZV.register({
         "De architectura — Wikipedia — https://en.wikipedia.org/wiki/De_architectura",
         "Vitruvius — The Ten Books on Architecture — https://www.gutenberg.org/cache/epub/20239/pg20239-images.html"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4934,7 +4934,7 @@ KZV.register({
         "History of Rome — Wikipedia — https://en.wikipedia.org/wiki/History_of_Rome_(Livy)",
         "Titus Livius — Ab Urbe Condita, Liber I; original Latin text in The Latin Library — https://www.thelatinlibrary.com/livy/liv.1.shtml"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -4956,7 +4956,7 @@ KZV.register({
         "محمد دياب — تاريخ آداب اللغة العربية، في تاريخ المحاضرات — https://www.safahat.org/books/79072819/0.7/",
         "العقد الفريد — ويكيبيديا — https://ar.wikipedia.org/wiki/العقد_الفريد"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4978,7 +4978,7 @@ KZV.register({
         "أحمد أمين — مقدمة كتاب الإمتاع والمؤانسة — https://www.safahat.org/books/93861582/0.1/",
         "الإمتاع والمؤانسة — ويكيبيديا — https://ar.wikipedia.org/wiki/الإمتاع_والمؤانسة"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5044,7 +5044,7 @@ KZV.register({
         "Francis Bacon — Novum Organum — https://www.gutenberg.org/cache/epub/45988/pg45988-images.html",
         "William J. Long — English Literature, Works of Bacon — https://www.gutenberg.org/cache/epub/10609/pg10609-images.html"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5066,7 +5066,7 @@ KZV.register({
         "Christiaan Huygens — Treatise on Light; translated by Silvanus P. Thompson — https://www.gutenberg.org/cache/epub/14725/pg14725-images.html",
         "Treatise on Light — Wikipedia — https://en.wikipedia.org/wiki/Treatise_on_Light"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5088,7 +5088,7 @@ KZV.register({
         "Parallel Lives — Wikipedia — https://en.wikipedia.org/wiki/Parallel_Lives",
         "Plutarch — Lives, Volume I; translated by Aubrey Stewart and George Long — https://www.gutenberg.org/cache/epub/14033/pg14033-images.html"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5110,7 +5110,7 @@ KZV.register({
         "إحسان عباس — مقدمة تحقيق الذخيرة في محاسن أهل الجزيرة، نص منشور على إسلام بورت — https://islamport.com/l/trj/4790/1.htm",
         "الذخيرة في محاسن أهل الجزيرة — ويكيبيديا — https://ar.wikipedia.org/wiki/الذخيرة_في_محاسن_أهل_الجزيرة"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5132,7 +5132,7 @@ KZV.register({
         "المبرد — المقتضب، نص الكتاب الأصلي في مرآة نصية — https://arabic-keyboard.info/books/ar/read-book/المقتضب",
         "محمود محمد علي — النحو العربي وعلاقته بالمنطق — https://downloads.hindawi.org/books/79483974.epub"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5154,7 +5154,7 @@ KZV.register({
         "ابن النديم — الفهرست، مقدمة المؤلف ونص الكتاب الأصلي في مرآة نصية — https://arabic-keyboard.info/books/ar/read-book/الفهرست",
         "الفهرست — ويكيبيديا — https://ar.wikipedia.org/wiki/الفهرست"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5176,7 +5176,7 @@ KZV.register({
         "محمد دياب — تاريخ آداب اللغة العربية، في تاريخ المحاضرات — https://www.safahat.org/books/79072819/0.7/",
         "المستطرف في كل فن مستظرف — ويكيبيديا — https://ar.wikipedia.org/wiki/المستطرف_في_كل_فن_مستظرف"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5220,7 +5220,7 @@ KZV.register({
         "Arthur Berry — A Short History of Astronomy — https://www.gutenberg.org/cache/epub/59212/pg59212-images.html",
         "Peter Machamer and David Miller — Galileo Galilei, Stanford Encyclopedia of Philosophy — https://plato.stanford.edu/entries/galileo/"
       ],
-      "level": 1,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -5550,7 +5550,7 @@ KZV.register({
         "Diodorus Siculus — Library of History, Book I, chapters 1–29; original work, LacusCurtius — https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Diodorus_Siculus/1A%2A.html",
         "Bibliotheca Historica — Wikipedia — https://en.wikipedia.org/wiki/Bibliotheca_historica"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },

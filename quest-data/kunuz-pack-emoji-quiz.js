@@ -36,7 +36,7 @@ KZV.register({
         "Library of Congress — The Islamic World Map of 1154 — https://blogs.loc.gov/loc/2021/08/the-islamic-world-map-of-1154/",
         "Factum Foundation — Lost Silver Map of al-Idrisi — https://factumfoundation.org/our-projects/digital-restorations/re-creating-the-lost-map-of-al-idrisi/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -67,7 +67,7 @@ KZV.register({
         "KAUST Museum — Technology — https://museum.kaust.edu.sa/explore/technology/",
         "Metropolitan Museum — Clock manuscript by al-Jazari — https://www.metmuseum.org/art/collection/search/451402"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -217,7 +217,7 @@ KZV.register({
         "Merriam-Webster — Baguette — https://www.merriam-webster.com/dictionary/baguette",
         "King Arthur Test Kitchen — Classic Baguettes — https://www.kingarthurbaking.com/recipes/classic-baguettes-recipe"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -247,7 +247,7 @@ KZV.register({
         "Merriam-Webster — Pretzel — https://www.merriam-webster.com/dictionary/pretzel",
         "King Arthur Test Kitchen — Soft Pretzels — https://www.kingarthurbaking.com/recipes/hot-buttered-soft-pretzels-recipe"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -277,7 +277,7 @@ KZV.register({
         "Merriam-Webster — Bagel — https://www.merriam-webster.com/dictionary/bagel",
         "King Arthur Test Kitchen — Bagels — https://www.kingarthurbaking.com/recipes/bagels-recipe"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -397,7 +397,7 @@ KZV.register({
         "Japan National Tourism Organization — Tokyo Tower — https://www.japan.travel/en/spot/1709/",
         "All-Japan Towers Federation — Tokyo Tower — https://www.japantowers.jp/en/tokyo_tower/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -433,7 +433,7 @@ KZV.register({
     },
     {
       "id": "emoji-quiz-0020",
-      "cat": "emoji-quiz",
+      "cat": "inventions",
       "type": "mcq",
       "fmt": "text",
       "q": "قاطرة وسكة حديد تقودان إلى رائد في تطوير السكك الحديدية؛ من هو؟",
@@ -457,13 +457,13 @@ KZV.register({
         "Science Museum Group — George Stephenson — https://collection.sciencemuseumgroup.org.uk/people/ap43/stephenson-george",
         "Institution of Mechanical Engineers — George Stephenson — https://archives.imeche.org/archive/railways/stephenson/593808-1847-1848-george-stephenson"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
     {
       "id": "emoji-quiz-0021",
-      "cat": "emoji-quiz",
+      "cat": "inventions",
       "type": "mcq",
       "fmt": "text",
       "q": "بطارية وكهرباء تستحضران صاحب الكومة الكهربائية؛ أي عالم هو؟",
@@ -493,7 +493,7 @@ KZV.register({
     },
     {
       "id": "emoji-quiz-0023",
-      "cat": "emoji-quiz",
+      "cat": "world-history",
       "type": "mcq",
       "fmt": "text",
       "q": "أنبوب اختبار وإشارة إشعاع يمثلان أبحاث عالمة شاركت في عزل الراديوم؛ من هي؟",
@@ -608,7 +608,7 @@ KZV.register({
         "Good Food — Ratatouille — https://www.bbcgoodfood.com/recipes/ratatouille",
         "Great British Chefs — Ratatouille — https://www.greatbritishchefs.com/recipes/ratatouille-recipe"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -639,7 +639,7 @@ KZV.register({
         "La Cucina Italiana — Caprese — https://www.lacucinaitaliana.com/recipe/sides-and-vegetables/caprese",
         "Great Italian Chefs — Caprese salad — https://www.greatitalianchefs.com/recipes/caprese-salad-recipe-anchovy-dressing"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -700,7 +700,7 @@ KZV.register({
         "Good Food — Gazpacho — https://www.bbcgoodfood.com/recipes/gazpacho",
         "Spain national tourism office — Gazpacho recipe — https://www.spain.info/en/recipe/gazpacho/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -826,7 +826,7 @@ KZV.register({
     },
     {
       "id": "emoji-quiz-0045",
-      "cat": "emoji-quiz",
+      "cat": "inventions",
       "type": "mcq",
       "fmt": "text",
       "q": "رسالة إلكترونية وحاسوب يستحضران رائد إرسال البريد بين حواسيب الشبكة؛ من هو؟",
@@ -856,7 +856,7 @@ KZV.register({
     },
     {
       "id": "emoji-quiz-0047",
-      "cat": "emoji-quiz",
+      "cat": "inventions",
       "type": "mcq",
       "fmt": "text",
       "q": "مروحية وآلية هندسية توجهان إلى رائد المروحيات العملية ذات الدوار الرئيسي ودوار الذيل؛ من هو؟",
@@ -886,7 +886,7 @@ KZV.register({
     },
     {
       "id": "emoji-quiz-0052",
-      "cat": "emoji-quiz",
+      "cat": "world-history",
       "type": "mcq",
       "fmt": "text",
       "q": "جسور وأداة هندسية تلمح إلى مسألة جسور كونيغسبرغ؛ من قدم حلها الرياضي؟",
@@ -917,7 +917,7 @@ KZV.register({
     },
     {
       "id": "emoji-quiz-0053",
-      "cat": "emoji-quiz",
+      "cat": "astronomy",
       "type": "mcq",
       "fmt": "text",
       "q": "مذنب وتلسكوب وتقويم تعبر عن التنبؤ بعودة مذنب دوري؛ أي فلكي تشير إليه؟",
@@ -948,7 +948,7 @@ KZV.register({
     },
     {
       "id": "emoji-quiz-0054",
-      "cat": "emoji-quiz",
+      "cat": "astronomy",
       "type": "mcq",
       "fmt": "text",
       "q": "صاروخ ومعداد وقمر تذكر بحساب مسارات رحلات ناسا؛ أي عالمة رياضيات مقصودة؟",
@@ -979,7 +979,7 @@ KZV.register({
     },
     {
       "id": "emoji-quiz-0055",
-      "cat": "emoji-quiz",
+      "cat": "world-history",
       "type": "mcq",
       "fmt": "text",
       "q": "جزيء DNA وكاميرا تلمحان إلى الصورة 51 بالأشعة السينية؛ أي عالمة ترتبط بهذا العمل؟",
@@ -1009,7 +1009,7 @@ KZV.register({
     },
     {
       "id": "emoji-quiz-0056",
-      "cat": "emoji-quiz",
+      "cat": "world-history",
       "type": "mcq",
       "fmt": "text",
       "q": "نباتان ورسم إحصائي يوحيان بتجارب البازلاء وقواعد انتقال الصفات؛ من أجراها؟",
@@ -1034,13 +1034,13 @@ KZV.register({
         "NHGRI — 1865: Mendel's Peas — https://www.genome.gov/25520230/online-education-kit-1865-mendels-peas",
         "Mendel Museum — Gregor Johann Mendel — https://mendelmuseum.muni.cz/en/about-the-museum/gregor-johann-mendel"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
     {
       "id": "emoji-quiz-0058",
-      "cat": "emoji-quiz",
+      "cat": "inventions",
       "type": "mcq",
       "fmt": "text",
       "q": "سيارة وأدوات تشير إلى تطوير عربة البنزين الحاصلة على براءة عام 1886؛ من مهندسها؟",
@@ -1158,7 +1158,7 @@ KZV.register({
         "Good Food — Greek salad — https://tollbit.bbcgoodfood.com/recipes/greek-salad",
         "GialloZafferano — Greek salad — https://www.giallozafferano.com/recipes/Greek-salad.html"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1220,7 +1220,7 @@ KZV.register({
         "Hot Thai Kitchen — Mango sticky rice — https://hot-thai-kitchen.com/mango-sticky-rice/",
         "Serious Eats — Thai mango sticky rice — https://www.seriouseats.com/thai-coconut-sticky-rice-mango-recipe"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1343,7 +1343,7 @@ KZV.register({
         "Simply Recipes — Fresh tomato salsa — https://www.simplyrecipes.com/recipes/fresh_tomato_salsa/",
         "Good Food — Mexican cooking techniques — https://tollbit.bbcgoodfood.com/howto/guide/top-10-tips-healthy-mexican-cooking"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1434,7 +1434,7 @@ KZV.register({
         "Saudipedia — How Taif rose water is made — https://saudipedia.com/en/how-is-taif-rose-water-made",
         "Cambridge Dictionary — Rose water — https://dictionary.cambridge.org/dictionary/english/rose-water"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1557,7 +1557,7 @@ KZV.register({
         "Swasthi's Recipes — Coconut burfi — https://www.indianhealthyrecipes.com/coconut-burfi-recipe-coconut-barfi/",
         "Dassana's Veg Recipes — Coconut burfi — https://www.vegrecipesofindia.com/coconut-barfi-recipe/"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1588,7 +1588,7 @@ KZV.register({
         "Korea.net — Stone pot bibimbap — https://www.korea.net/NewsFocus/Culture/view?articleId=130922",
         "Maangchi — Bibimbap — https://www.maangchi.com/recipe/bibimbap"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1655,7 +1655,7 @@ KZV.register({
     },
     {
       "id": "emoji-quiz-0088",
-      "cat": "emoji-quiz",
+      "cat": "geography",
       "type": "mcq",
       "fmt": "text",
       "q": "متنزه أمريكي تشتهر أرضه بالينابيع الحارة والفوارات تلمح إليه الرموز؛ ما اسمه؟",
@@ -1716,7 +1716,7 @@ KZV.register({
     },
     {
       "id": "emoji-quiz-0092",
-      "cat": "emoji-quiz",
+      "cat": "world-history",
       "type": "mcq",
       "fmt": "text",
       "q": "قطار وبرق وساعة تلمح إلى تجربة فكرية عن التزامن؛ أي عالم ارتبط بها؟",
@@ -1891,7 +1891,7 @@ KZV.register({
         "Addis Ababa Mayor's Office — FAQs — https://addismayor.gov.et/faqs",
         "Addis Ababa — Etymology — https://en.wikipedia.org/wiki/Addis_Ababa"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1952,7 +1952,7 @@ KZV.register({
         "HK Herbarium — Origin of the name of Hong Kong — https://www.herbarium.gov.hk/en/special-topics/botanical-nomenclature/botanical-nomenclature-detail/index-id-1.html",
         "Hong Kong — Etymology — https://en.wikipedia.org/wiki/Hong_Kong"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1982,7 +1982,7 @@ KZV.register({
         "Visit Beijing — Meaning of Beijing — https://english.visitbeijing.com.cn/article/47ONsjiQ97p",
         "Beijing — Etymology — https://en.wikipedia.org/wiki/Beijing"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2108,7 +2108,7 @@ KZV.register({
     },
     {
       "id": "emoji-quiz-0116",
-      "cat": "emoji-quiz",
+      "cat": "geography",
       "type": "mcq",
       "fmt": "text",
       "q": "جبال وخلجان بحرية عميقة ونفط بحر الشمال تجتمع في بلد إسكندنافي؛ أي بلد؟",
@@ -2140,7 +2140,7 @@ KZV.register({
     },
     {
       "id": "emoji-quiz-0117",
-      "cat": "emoji-quiz",
+      "cat": "arab-world",
       "type": "mcq",
       "fmt": "text",
       "q": "كرة وكأس تذكران بأول استضافة عربية لكأس العالم لكرة القدم للرجال عام 2022؛ أي دولة استضافتها؟",
@@ -2233,7 +2233,7 @@ KZV.register({
     },
     {
       "id": "emoji-quiz-0124",
-      "cat": "emoji-quiz",
+      "cat": "cuisine",
       "type": "mcq",
       "fmt": "text",
       "q": "معكرونة وجبن وطماطم تلمح إلى طبق تُرتّب رقائقه في طبقات وتُخبز؛ أي طبق؟",
@@ -2258,7 +2258,7 @@ KZV.register({
         "Jamie Oliver — Veggie lasagne — https://www.jamieoliver.com/recipes/pasta/veggie-lasagne/",
         "British Nutrition Foundation — Vegetarian lasagne — https://www.foodafactoflife.org.uk/recipes/11-14-l2c/vegetarian-lasagne/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     }

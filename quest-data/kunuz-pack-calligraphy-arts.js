@@ -72,7 +72,7 @@ KZV.register({
         "Proportional Scripts — The Metropolitan Museum of Art — https://www.metmuseum.org/learn/educators/curriculum-resources/art-of-the-islamic-world/unit-two/proportional-scripts",
         "Calligraphy — The David Collection — https://davidmus.dk/kunst-fra-islams-verden/kalligrafi?culture=en-us"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -94,7 +94,7 @@ KZV.register({
         "DİVANÎ — TDV İslâm Ansiklopedisi — https://islamansiklopedisi.org.tr/divani",
         "Calligraphy — The David Collection — https://davidmus.dk/kunst-fra-islams-verden/kalligrafi?culture=en-us"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -116,7 +116,7 @@ KZV.register({
         "DİVANÎ — TDV İslâm Ansiklopedisi — https://islamansiklopedisi.org.tr/divani",
         "المسابقة الوطنية للخط العربي — التعريف بخطوط المسابقة — https://engage.moc.gov.sa/ar_calligraphy_competition/?lang=ar"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -276,7 +276,7 @@ KZV.register({
     },
     {
       "id": "calligraphy-arts-0019",
-      "cat": "calligraphy-arts",
+      "cat": "abbasid",
       "type": "mcq",
       "fmt": "text",
       "q": "إلى جانب الخط، أي منصب إداري تولاه ابن مقلة؟",
@@ -336,7 +336,7 @@ KZV.register({
         "İBNÜ’l-BEVVÂB — TDV İslâm Ansiklopedisi — https://islamansiklopedisi.org.tr/ibnul-bevvab",
         "The Ibn al-Bawwab Qur’an — Discover Islamic Art — https://islamicart.museumwnf.org/database_item.php?id=object%3BEPM%3Bir%3BMus21%3B5%3Ben"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -446,7 +446,7 @@ KZV.register({
         "CALLIGRAPHY VI. Writing implements and materials — Encyclopaedia Iranica — https://www.iranicaonline.org/articles/calligraphy/calligraphy-vi-writing-implements-and-materials/",
         "NESİH — TDV İslâm Ansiklopedisi — https://islamansiklopedisi.org.tr/nesih--hat"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -490,7 +490,7 @@ KZV.register({
         "Divers oiled colours: Exploring the history of marbled paper in the National Art Library — V&A — https://www.vam.ac.uk/blog/museum-life/divers-oiled-colours-exploring-the-history-of-marbled-paper-in-the-national-art-library",
         "EBRU — TDV İslâm Ansiklopedisi — https://islamansiklopedisi.org.tr/ebru"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -556,7 +556,7 @@ KZV.register({
         "Vegetal Patterns in Islamic Art — The Metropolitan Museum of Art — https://www.metmuseum.org/essays/vegetal-patterns-in-islamic-art",
         "Iznik Dish — Illuminating Objects, The Courtauld Gallery — https://sites.courtauld.ac.uk/illuminating-objects/illuminating-objects-home/iznik-dish/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -578,7 +578,7 @@ KZV.register({
         "Islamic Art and Geometric Design: Activities for Learning — The Metropolitan Museum of Art — https://resources.metmuseum.org/resources/metpublications/pdf/Islamic_Art_and_Geometric_Design_Activities_for_Learning.pdf",
         "Design and make your own Islamic tile and printed pattern — V&A — https://www.vam.ac.uk/articles/design-and-make-your-own-islamic-tile-and-printed-pattern"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -600,7 +600,7 @@ KZV.register({
         "Monumental Calligraphic Composition — The Metropolitan Museum of Art — https://www.metmuseum.org/art/collection/search/910579",
         "SÜLÜS — TDV İslâm Ansiklopedisi — https://islamansiklopedisi.org.tr/sulus"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -644,7 +644,7 @@ KZV.register({
         "SÜLÜS — TDV İslâm Ansiklopedisi — https://islamansiklopedisi.org.tr/sulus",
         "Written in Istanbul: Arabic, Persian, and Ottoman Calligraphy Sheets — Part 3 — https://blogs.loc.gov/international-collections/2021/05/written-in-istanbul-arabic-persian-and-ottoman-calligraphy-sheets-at-the-library-of-congress-part-3/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -710,7 +710,7 @@ KZV.register({
         "MURAKKA‘ — TDV İslâm Ansiklopedisi — https://islamansiklopedisi.org.tr/murakka",
         "Folios from an early Mughal album of calligraphy and paintings — Royal Collection Trust — https://www.rct.uk/collection/publications/eastern-encounters/folios-from-an-early-mughal-album-of-calligraphy-and-paintings"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -732,7 +732,7 @@ KZV.register({
         "MEŞK — TDV İslâm Ansiklopedisi — https://islamansiklopedisi.org.tr/mesk",
         "Calligraphy — Ottoman Turkish Language Guide, Library of Congress — https://guides.loc.gov/ottoman-turkish/calligraphy"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -754,7 +754,7 @@ KZV.register({
         "The Arts of the Book in the Islamic World, 1600–1800 — The Metropolitan Museum of Art — https://www.metmuseum.org/essays/the-arts-of-the-book-in-the-islamic-world-1600-1800",
         "CELÎ — TDV İslâm Ansiklopedisi — https://islamansiklopedisi.org.tr/celi"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -776,7 +776,7 @@ KZV.register({
         "How to make paint pigments from stones – a Mughal masterclass — V&A — https://www.vam.ac.uk/articles/how-to-make-paint-pigments-from-stones",
         "Materials and techniques of Islamic manuscripts — Knipe et al., Heritage Science 6:55 (2018) — https://scienceforart.northwestern.edu/documents/publications/knipe-et-al-2018.pdf"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -798,7 +798,7 @@ KZV.register({
         "The Arts of the Book in the Islamic World, 1600–1800 — The Metropolitan Museum of Art — https://www.metmuseum.org/essays/the-arts-of-the-book-in-the-islamic-world-1600-1800",
         "Materials and techniques of Islamic manuscripts — Knipe et al., Heritage Science 6:55 (2018) — https://scienceforart.northwestern.edu/documents/publications/knipe-et-al-2018.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -820,7 +820,7 @@ KZV.register({
         "The Arts of the Book in the Islamic World, 1600–1800 — The Metropolitan Museum of Art — https://www.metmuseum.org/essays/the-arts-of-the-book-in-the-islamic-world-1600-1800",
         "Materials and techniques of Islamic manuscripts — Knipe et al., Heritage Science 6:55 (2018) — https://scienceforart.northwestern.edu/documents/publications/knipe-et-al-2018.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1018,7 +1018,7 @@ KZV.register({
         "KALEM — TDV İslâm Ansiklopedisi — https://islamansiklopedisi.org.tr/kalem",
         "Tools and Materials — Calligraphy Qalam — https://www.calligraphyqalam.com/process/tools/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1040,7 +1040,7 @@ KZV.register({
         "Ink — Metropolitan Museum of Art — https://www.metmuseum.org/perspectives/materials-and-techniques-drawing-ink",
         "MÜREKKEP — TDV İslâm Ansiklopedisi — https://islamansiklopedisi.org.tr/murekkep"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1084,7 +1084,7 @@ KZV.register({
         "MEŞK — TDV İslâm Ansiklopedisi، القسم الخاص بالخط — https://islamansiklopedisi.org.tr/mesk#1",
         "Calligrapher’s diploma — National Museum of Art of Romania / MWNF — https://islamicart.museumwnf.org/database_item.php?id=object%3BEPM%3Brm%3BMus21%3B28%3Ben"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1150,7 +1150,7 @@ KZV.register({
         "On the Wings of a Flight of Geese — Library of Congress, part 2 — https://blogs.loc.gov/international-collections/2021/04/on-the-wings-of-a-flight-of-geese-arabic-persian-and-ottoman-calligraphy-sheets-at-the-library-of-congress-part-2/",
         "Why are there so few digital Nasta’liq Urdu fonts? — Google Fonts — https://fonts.googleblog.com/2023/03/why-are-there-so-few-digital-nastaliq.html"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1194,7 +1194,7 @@ KZV.register({
         "معرض أعمال عميد الخط العربي سيد إبراهيم — مركز المخطوطات بمكتبة الإسكندرية — https://www.bibalex.org/Manuscriptscenter/ar/event/details.aspx?id=47",
         "ملتقى القاهرة الدولي لفنون الخط العربي، دورة 2018، صفحة 6 المطبوعة — https://www.cdf.gov.eg/sites/default/files/pdf/khat2018cat.pdf"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1238,7 +1238,7 @@ KZV.register({
         "Calligraphy Qalam: Tools and Materials — https://www.calligraphyqalam.com/process/tools/",
         "Asian Art Museum: Islamic Calligraphy Materials and Tools — https://education.asianart.org/resources/islamic-calligraphy-materials-and-tools/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1282,7 +1282,7 @@ KZV.register({
         "Calligraphy Qalam: Tools and Materials — https://www.calligraphyqalam.com/process/tools/",
         "TDV İslâm Ansiklopedisi: ÂHAR — https://islamansiklopedisi.org.tr/ahar"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1348,7 +1348,7 @@ KZV.register({
         "Metropolitan Museum: Calligraphers and Their Tools — https://www.metmuseum.org/learn/educators/curriculum-resources/art-of-the-islamic-world/unit-two/calligraphers-and-their-tools",
         "M. Uğur Derman: The Art of Turkish Calligraphy, Arış 1997 — https://aris.gov.tr/eng/full-text-pdf/838/tur"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1370,7 +1370,7 @@ KZV.register({
         "Library of Congress: Written in Istanbul, Calligraphy Sheets, part 3 — https://blogs.loc.gov/international-collections/2021/05/written-in-istanbul-arabic-persian-and-ottoman-calligraphy-sheets-at-the-library-of-congress-part-3/",
         "TDV İslâm Ansiklopedisi: TUĞRA — https://islamansiklopedisi.org.tr/tugra"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1392,7 +1392,7 @@ KZV.register({
         "Ezat O. Negahban: Persian Calligraphy, Penn Museum Expedition 1989 — https://www.penn.museum/sites/expedition/persian-calligraphy/",
         "Smithsonian National Museum of Asian Art: Mir Ali Tabrizi — https://asia-archive.si.edu/exhibition/nastaliq-the-genius-of-persian-calligraphy-mir-ali-tabrizi/"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1414,7 +1414,7 @@ KZV.register({
         "Metropolitan Museum: Islamic Art and Geometric Design, Activities for Learning — https://resources.metmuseum.org/resources/metpublications/pdf/Islamic_Art_and_Geometric_Design_Activities_for_Learning.pdf",
         "V&A Dundee: Geometric Patterns from Nature workshop — https://www.vam.ac.uk/dundee/whatson/events/wellbeing-workshop-geometric-patterns"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1436,7 +1436,7 @@ KZV.register({
         "Museum für Islamische Kunst Berlin: The Calligrapher's Tools — https://islamic-art.smb.museum/en/story/artist-anwari",
         "Aga Khan Museum: Treasures, Arts of the Book and Calligraphy — https://static.the.akdn/53832/1641880266-akm_istanbul.pdf"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1458,7 +1458,7 @@ KZV.register({
         "M. Uğur Derman: The Art of Turkish Calligraphy, Arış 1997 — https://aris.gov.tr/eng/full-text-pdf/838/tur",
         "World Wide Web Consortium: Arabic and Persian Layout Requirements, 2 October 2025 — https://www.w3.org/TR/alreq/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1634,7 +1634,7 @@ KZV.register({
         "TDV İslâm Ansiklopedisi — MÜHRE, M. Uğur Derman — https://islamansiklopedisi.org.tr/muhre",
         "Anita Chowdry — Islamic Illumination: Re-creation of the SOAS Divan of Jami frontispiece — https://www.anitachowdry.com/soas-jami"
       ],
-      "level": 2,
+      "level": 3,
       "status": "approved",
       "flags": []
     },
@@ -1656,7 +1656,7 @@ KZV.register({
         "Metropolitan Museum — Islamic Art and Geometric Design: Activities for Learning — https://resources.metmuseum.org/resources/metpublications/pdf/Islamic_Art_and_Geometric_Design_Activities_for_Learning.pdf",
         "University of Cambridge NRICH — Outside the Box, Jenni Back and Liz Pumfrey — https://nrich.maths.org/articles/outside-box"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },

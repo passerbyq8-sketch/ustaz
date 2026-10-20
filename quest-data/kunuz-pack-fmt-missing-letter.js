@@ -2708,7 +2708,7 @@ KZV.register({
         "Arramooz: قائمة الكلمات العربية المفتوحة؛ Taha Zerrouki وMohamed Kebdani — https://raw.githubusercontent.com/linuxscout/arramooz/master/data/arabicdictionary.sqlite",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل ظليم — https://shamela.ws/book/7028/576"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7795,7 +7795,7 @@ KZV.register({
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل برجل — https://shamela.ws/book/7028/47",
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل برجل — https://shamela.ws/book/7028/52"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
