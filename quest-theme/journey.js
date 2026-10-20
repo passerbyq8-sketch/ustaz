@@ -366,7 +366,7 @@
   function makeQuestion(index, actorIndex, slotIndex, duration) {
     const started = performance.now();
     M.question = { index, actor: actorIndex, activeTeam: actorIndex, slotIndex, selected: null, showTeams: new Set(), burned: new Set(), answerRevealed: false, settled: false, correct: null, started, duration, deadline: started + duration, confidence: null, submissions: {}, beat: '', scored: false, timedOut: false };
-    M.used.add(index); global.seenMark(index); startTimer();
+    M.used.add(index); M.history.mark(index); startTimer();
   }
   function setStage(stage, step = M.step, push = false) {
     M.stage = stage; M.step = step;
@@ -421,11 +421,10 @@
     const s = M.settings;
     if (!Number.isFinite(time()) || time() < 0 || s.custom && time() === 0 || !Number.isInteger(s.reveals) || s.reveals < 0 || !Number.isInteger(s.shots) || s.shots < 1 || s.shots > 10 || s.customFlags && (!Number.isInteger(s.customFlagsValue) || s.customFlagsValue < 2 || s.customFlagsValue > 60)) { M.error = 'اكتبوا قيمة صحيحة للوقت والخيارات والإعدادات.'; render(); return; }
     if (s.room) { enterRoom(false); return; }
-    global.seenRead();
+    M.history ||= Model.history();
     const all = Model.categories();
-    if (global.DATA.qs.every((q, i) => !Model.live(i) || global.seenHas(i))) global.seenReset();
-    const pool = Model.pool(M.cats, global.seenHas);
-    if (pool.shortage.length) { M.error = 'فئة «' + catName(pool.shortage[0]) + '» لم يبق فيها ما يكفي لهذه المغامرة؛ ارجعوا واختاروا فئة أخرى.'; render(); return; }
+    const pool = Model.reserve(M.cats, M.history);
+    if (pool.shortage.length) { M.error = 'فئة «' + catName(pool.shortage[0]) + '» غير متاحة حاليًا؛ ارجعوا واختاروا فئة أخرى.'; render(); return; }
     M.error = ''; M.pool = pool.indices; M.slots = pool.slots; M.fallback = pool.fallback; M.excluded = all.filter(c => c.count < Model.PER_CATEGORY);
     M.used = new Set(); M.question = null; M.questionHistory = false; M.result = null;
     M.teams.forEach((t, i) => { t.n = t.n.trim() || defaults[i]; t.shows = s.reveals; t.score = 0; t.p = 0; t.d = 0; });
@@ -446,12 +445,13 @@
   }
   function openTile(index) {
     const slot = M.slots[index]; if (!slot || slot.used || M.question) return;
-    if (global.seenHas(slot.index)) {
+    M.history.read();
+    if (M.history.has(slot.index)) {
       // Another Kunuz tab may have consumed this reservation since setup.
-      const candidates = Model.shuffle(global.DATA.qs.map((_, i) => i).filter(i => Model.live(i) && global.DATA.qs[i][0] === slot.cat && !global.seenHas(i) && !M.used.has(i) && !M.slots.some(other => !other.used && other.index === i)));
-      candidates.sort((a, b) => Math.abs((Model.level(a) || slot.desired) - slot.desired) - Math.abs((Model.level(b) || slot.desired) - slot.desired));
-      if (!candidates.length) { M.error = 'سُئلت هذه الفئة من جهازكم في مغامرة أخرى؛ اختاروا فئة ثانية.'; slot.used = true; slot.by = -1; render(); return; }
-      slot.index = candidates[0];
+      const excluded = new Set([...M.used, ...M.slots.filter(other => other !== slot && !other.used).map(other => other.index)]);
+      const { unseen, oldest } = Model.candidates(slot.cat, M.history, Math.random, excluded);
+      unseen.sort((a, b) => Math.abs((Model.level(a) || slot.desired) - slot.desired) - Math.abs((Model.level(b) || slot.desired) - slot.desired));
+      slot.index = unseen[0] ?? oldest[0]; slot.actual = Model.level(slot.index);
     }
     const turn = M.g.turn;
     if (game === 'test') { M.g.cur = slot.index; M.g.used[slot.index] = 1; M.g.curCat = slot.cat; }
@@ -558,9 +558,14 @@
     };
     global.nextQ = function () {
       const s = global.S;
-      s.pool = M.pool.filter(i => !M.used.has(i) && !global.seenHas(i));
+      M.history.read();
+      s.pool = M.pool.filter(i => !M.used.has(i) && !M.history.has(i));
       M.question = null; clearTimer();
       native.nextQ(); render();
+    };
+    global.shellCats = function () {
+      const s = global.S;
+      return s.cats.filter(cat => s.pool.some(i => global.DATA.qs[i][0] === cat && !s.used[i] && !M.used.has(i) && !M.history.has(i)));
     };
   }
   function beginDiveGame() {
@@ -578,7 +583,7 @@
   function openDiveShell(cat) {
     const s = global.S; if (M.question || s.lock || !s.shells?.includes(cat)) return;
     const savedPool = s.pool;
-    let available = savedPool.filter(i => global.DATA.qs[i][0] === cat && !M.used.has(i) && !global.seenHas(i));
+    let available = savedPool.filter(i => global.DATA.qs[i][0] === cat && !M.used.has(i) && !M.history.has(i));
     if (!available.length) { global.nextQ(); return; }
     if (M.settings.difficulty === 'depth') {
       const desired = Math.min(3, 1 + Math.floor(s.depth * 3 / Math.max(1, s.cap)));
@@ -611,7 +616,7 @@
   }
   function poolLeft() {
     const left = global.DATA.cats.map(() => 0);
-    for (const index of M.pool) if (!M.used.has(index) && !global.seenHas(index)) left[global.DATA.qs[index][0]]++;
+    for (const index of M.pool) if (!M.used.has(index) && !M.history.has(index)) left[global.DATA.qs[index][0]]++;
     return left;
   }
   function beginWar() {
@@ -654,12 +659,12 @@
     if (event.t === 'turnEnd') { M.g.busy = false; warStep(global.WarEngine.endTurn(M.g, poolLeft())); return; }
     M.g.busy = false; M.question = null;
     if (event.t === 'move') M.warMessage = 'انتقلت الملكية؛ تقدرون تنقلون الرايات إلى الجزيرة الجديدة.';
-    if (!M.pool.some(i => !M.used.has(i) && !global.seenHas(i))) { finishWar('dormant'); return; }
+    if (!M.pool.some(i => !M.used.has(i) && !M.history.has(i))) { finishWar('dormant'); return; }
     setStage('war', 3);
   }
   function askWarQuestion(event) {
     const w = M.g; w.busy = true;
-    let candidates = Model.shuffle(M.pool.filter(i => !M.used.has(i) && !global.seenHas(i) && global.DATA.qs[i][0] === event.ci));
+    let candidates = Model.shuffle(M.pool.filter(i => !M.used.has(i) && !M.history.has(i) && global.DATA.qs[i][0] === event.ci));
     const desired = { easy: 1, medium: 2, hard: 3 }[M.settings.difficulty];
     if (desired) candidates.sort((a, b) => Math.abs((Model.level(a) || desired) - desired) - Math.abs((Model.level(b) || desired) - desired));
     if (!candidates.length) { w.left = poolLeft(); warStep(global.WarEngine.fightAnswer(w, null, false)); return; }
