@@ -17,10 +17,10 @@
   const teamNew = i => ({ n: defaults[i], c: colors[i], symbol: i, score: 0, shows: 2 });
   const M = {
     game, ready: false, step: game === 'hub' ? 0 : 1, stage: game === 'hub' ? 'hub' : 'loading', cats: [], teams: [],
-    settings: { options: 'shown', reveals: 2, time: 30, customTime: 25, custom: false, difficulty: game === 'ghaws' ? 'depth' : game === 'harb' ? 'mixed' : 'points', cap: 10, shots: 1, flags: 2, customFlags: false, customFlagsValue: 12, win: 2, room: false },
+    settings: { options: 'shown', reveals: 2, time: 30, customTime: 25, custom: false, difficulty: game === 'ghaws' ? 'depth' : game === 'harb' ? 'mixed' : 'points', cap: 10, shots: 1, flags: 2, customFlags: false, customFlagsValue: 12, win: 2, room: false, roomCode: '' },
     slots: [], pool: [], used: new Set(), question: null, g: null, error: '', dialog: null, running: false,
     fallback: [], excluded: [], questionHistory: false, skipPop: false, lastStage: '', warMessage: '', warEvent: null, diveNative: null,
-    result: null, audioUnlocked: false, muted: false, timer: null, lastAction: -Infinity
+    result: null, audioUnlocked: false, muted: false, timer: null, lastAction: -Infinity, offlineReady: false
   };
   if (game !== 'hub') M.teams = Array.from({ length: limits[game][0] }, (_, i) => teamNew(i));
   try { M.muted = localStorage.getItem('kunuz_journey_muted_v1') === '1'; } catch (_) {}
@@ -30,6 +30,45 @@
   const themeMeta = document.querySelector('meta[name="theme-color"]'); if (themeMeta) themeMeta.content = '#082c38';
   const soundCache = new Map();
   const warmedImages = [];
+  function cancelVisuals() {
+    Motion?.cancelAll();
+    if (M.bubbleFrame) cancelAnimationFrame(M.bubbleFrame); M.bubbleFrame = 0;
+    if (M.pearlAnimation) M.pearlAnimation.cancel(); M.pearlAnimation = null;
+  }
+  function animateBubbles() {
+    if (M.stage !== 'dive' || M.dialog || document.hidden || Motion?.reducedMotion) return;
+    const nodes = [...app.querySelectorAll('[data-bubble]')], start = performance.now();
+    function step(now) {
+      if (M.stage !== 'dive' || M.dialog || document.hidden || !nodes[0]?.isConnected) { M.bubbleFrame = 0; return; }
+      const t = (now - start) / 1000;
+      nodes.forEach((node, i) => { node.style.bottom = 10 + (t * 20 + i * 43) % 220 + 'px'; node.style.opacity = .3 + Math.sin(i + t) * .15; });
+      M.bubbleFrame = requestAnimationFrame(step);
+    }
+    M.bubbleFrame = requestAnimationFrame(step);
+  }
+  async function prepareOffline() {
+    if (!('serviceWorker' in navigator)) return;
+    try {
+      if (location.pathname === '/hanna-laha') history.replaceState(history.state, '', '/hanna-laha/');
+      M.offlineReady = true;
+      // Prepare both Kunuz scopes during the first online visit, so an offline
+      // navigation can open Hanna too. The Ezik root registration is untouched.
+      for (const scope of ['/quest', '/hanna-laha/']) {
+        const registration = await navigator.serviceWorker.register('/quest-sw.js', { scope });
+        const worker = registration.installing || registration.waiting || registration.active;
+        if (!worker) { M.offlineReady = false; continue; }
+        if (worker.state !== 'activated') await new Promise(resolve => {
+          worker.addEventListener('statechange', () => { if (worker.state === 'activated' || worker.state === 'redundant') resolve(); });
+        });
+        if (worker.state !== 'activated') M.offlineReady = false;
+      }
+    } catch (_) {
+      try {
+        const registrations = await Promise.all(['/quest.html', '/hanna-laha/'].map(url => navigator.serviceWorker.getRegistration(url)));
+        M.offlineReady = registrations.every(registration => registration?.active?.scriptURL.endsWith('/quest-sw.js'));
+      } catch (_) { M.offlineReady = false; }
+    }
+  }
   async function warmLocalAssets() {
     const geometry = new Promise(resolve => {
       if (global.KUNUZ_GEO) return resolve();
@@ -99,7 +138,8 @@
       '<label class="j-field">الصعوبة <span class="j-tag j-gold">تجريبي</span></label>' + chips(difficulty, s.difficulty, 'difficulty') + (game === 'board' || game === 'test' || game === 'hanna' ? '<p class="j-note">حسب النقاط: ٢٠٠ سهل · ٤٠٠ متوسط · ٦٠٠ صعب</p>' : '') +
       (game === 'ghaws' ? '<label class="j-field">حد العمق</label>' + chips([5, 7, 10, 15, 20, 30].map(n => [n, ar(n)]), s.cap, 'cap') : '') +
       (game === 'harb' ? '<label class="j-field">رصيد توزيع الرايات بحسب جزر الفريق</label>' + chips([[1, ar(1)], [2, ar(2)], [3, ar(3)], ['custom', 'مخصص']], s.customFlags ? 'custom' : s.flags, 'flags') + (s.customFlags ? '<label class="j-field" for="j-flags">رصيد الرايات لكل فريق</label><input id="j-flags" class="j-input" data-input="customFlagsValue" type="number" min="2" max="60" value="' + s.customFlagsValue + '">' : '') + '<p class="j-note">لكل جزيرة راية حارس، وتوزعون رصيدكم كيف ما تبون.</p><label class="j-field" for="j-shots">أسئلة الهجوم</label><input id="j-shots" class="j-input" data-input="shots" type="number" min="1" max="10" value="' + s.shots + '"><label class="j-field">شرط الفوز</label>' + chips([[2, 'بحران'], [9, 'الأرخبيل كله']], s.win, 'win') : '') +
-      (game === 'harb' || game === 'hanna' ? '<label class="j-field">طريقة اللعب</label>' + chips([[false, 'جهاز واحد'], [true, 'غرفة وجوالات']], s.room, 'room') : '') + '</section>' +
+      (game === 'harb' || game === 'hanna' ? '<label class="j-field">طريقة اللعب</label>' + chips([[false, 'جهاز واحد'], [true, 'غرفة وجوالات']], s.room, 'room') : '') +
+      (game === 'hanna' && s.room ? '<label class="j-field" for="j-room-code">رمز الغرفة · اختياري</label><input id="j-room-code" class="j-input" data-input="roomCode" inputmode="numeric" maxlength="6" placeholder="تلقائي" value="' + esc(s.roomCode) + '">' : '') + '</section>' +
       (M.error ? '<div class="j-error" role="alert">' + esc(M.error) + '</div>' : '') + '<div class="j-actions">' + button('ابدأ اللعب', 'start') + '</div>' +
       (game === 'hanna' || game === 'harb' ? button('الانضمام إلى غرفة موجودة', 'join-room', 'j-room-link j-secondary') : '');
   }
@@ -142,8 +182,8 @@
   }
   function boardQuestion() {
     const q = M.question;
-    return boardView() + '<div class="j-modal" role="dialog" aria-modal="true" aria-label="سؤال الفئة"><div class="j-paper" data-motion="board">' + meta(q) + '<h2>' + esc(questionText(q)[3]) + '</h2><div id="qvis" hidden></div>' + answers(q, true) + timerMarkup(q) + '<p class="j-muted">تشاوروا… والقرار لكم</p>' +
-      (q.answerRevealed ? explanation(q) + '<div class="j-actions">' + M.teams.map((t, i) => button(sym(t.symbol) + esc(t.n), 'award', 'j-btn j-teal', 'data-team="' + i + '"')).join('') + button('ولا أحد', 'award', 'j-secondary', 'data-team="-1"') + '</div>' : '<div class="j-actions">' + optionsButton(q) + button('إظهار الإجابة', 'reveal-answer', 'j-btn j-teal') + '</div>') + '</div></div>';
+    return boardView() + '<div class="j-modal" role="dialog" aria-modal="true" aria-label="سؤال الفئة"><div class="j-modal-frame">' + header() + '<div class="j-paper" data-motion="board">' + meta(q) + '<h2>' + esc(questionText(q)[3]) + '</h2><div id="qvis" hidden></div>' + answers(q, true) + timerMarkup(q) + '<p class="j-muted">تشاوروا… والقرار لكم</p>' +
+      (q.answerRevealed ? explanation(q) + '<div class="j-actions">' + M.teams.map((t, i) => button(sym(t.symbol) + esc(t.n), 'award', 'j-btn j-teal', 'data-team="' + i + '"')).join('') + button('ولا أحد', 'award', 'j-secondary', 'data-team="-1"') + '</div>' : '<div class="j-actions">' + optionsButton(q) + button('إظهار الإجابة', 'reveal-answer', 'j-btn j-teal') + '</div>') + '</div></div></div>';
   }
   function quizQuestion() {
     const q = M.question;
@@ -174,7 +214,7 @@
   function islandMap() {
     const w = M.g;
     const slots = global.SLOTS;
-    return '<svg class="j-island-map" viewBox="0 0 600 920" role="group" aria-label="أرخبيل الجزر"><defs><linearGradient id="journey-sand" x2="0" y2="1"><stop stop-color="#fff1bd"/><stop offset="1" stop-color="#d8b878"/></linearGradient><linearGradient id="journey-green" x2="0" y2="1"><stop stop-color="#a5e2a2"/><stop offset="1" stop-color="#4eb893"/></linearGradient><filter id="journey-marker-shadow"><feDropShadow dx="0" dy="6" stdDeviation="1" flood-color="#075365"/></filter></defs><g fill="none" stroke="#a4ede64a" stroke-width="2">' + Array.from({ length: 15 }, (_, i) => '<path d="M' + (i * 71 % 510) + ' ' + (50 + i * 59) + 'q30-12 60 0t60 0"/>').join('') + '</g><g fill="none" stroke="#fff3a979" stroke-width="4" stroke-dasharray="9 9">' + global.WarEngine.LINKS.map(([a, b]) => '<path d="M' + slots[a].x + ' ' + slots[a].y + 'Q300 ' + (slots[a].y + slots[b].y) / 2 + ' ' + slots[b].x + ' ' + slots[b].y + '"/>').join('') + '</g>' +
+    return '<svg class="j-island-map" viewBox="0 0 600 920" role="group" aria-label="أرخبيل الجزر"><defs><linearGradient id="journey-sand" x2="0" y2="1"><stop stop-color="#fff1bd"/><stop offset="1" stop-color="#d8b878"/></linearGradient><linearGradient id="journey-green" x2="0" y2="1"><stop stop-color="#a5e2a2"/><stop offset="1" stop-color="#4eb893"/></linearGradient><filter id="journey-marker-shadow"><feDropShadow dx="0" dy="6" stdDeviation="1" flood-color="#075365"/></filter></defs><g fill="none" stroke="#a4ede64a" stroke-width="2">' + Array.from({ length: 15 }, (_, i) => '<path d="M' + (i * 71 % 510) + ' ' + (50 + i * 59) + 'q30-12 60 0t60 0"/>').join('') + '</g><g fill="none" stroke="#fff3a979" stroke-width="4" stroke-dasharray="9 9">' + global.WarEngine.LINKS.map(([a, b]) => '<path' + (w.base === a && w.tgt === b || w.base === b && w.tgt === a ? ' class="j-route-active"' : '') + ' d="M' + slots[a].x + ' ' + slots[a].y + 'Q300 ' + (slots[a].y + slots[b].y) / 2 + ' ' + slots[b].x + ' ' + slots[b].y + '"/>').join('') + '</g>' +
       slots.map((p, i) => {
         const owner = w.own[i], t = M.teams[owner], name = catName(w.slotCat[i]);
         const words = name.split(' '); let lines = ['']; words.forEach(word => { const last = lines.length - 1; if ((lines[last] + ' ' + word).length > 16 && lines[last]) lines.push(word); else lines[last] += (lines[last] ? ' ' : '') + word; });
@@ -210,17 +250,19 @@
   function render() {
     const focus = document.activeElement?.getAttribute('data-team-name');
     const changed = M.lastStage !== M.stage;
-    if (Motion) Motion.cancelAll();
+    const motionKey = M.stage + ':' + (M.question?.index ?? '') + ':' + (M.question?.beat || '') + (game === 'ghaws' && M.question?.settled ? ':reward' : '');
+    const motionChanged = motionKey !== M.lastMotion;
+    cancelVisuals();
     const screens = { hub: home, categories, settings, board: boardView, 'board-question': boardQuestion, 'test-question': quizQuestion, 'hanna-question': hannaQuestion, dive: diveView, war: warView, 'war-result': warResult, results,
       loading: () => '<div class="j-loading" role="status">نجهّز مغامرتكم…<div class="j-loader"></div></div>',
       handover: () => '<div class="j-results"><div class="j-result-icon">' + Icons.icon('wave') + '</div><h2>دور «' + esc(M.teams[global.S.pi].n) + '»</h2><p class="j-muted">خذوا نفسكم… ومغامرتكم تبدأ.</p><div class="j-actions">' + button('ابدأ الغوص', 'dive-begin', 'j-btn j-teal') + '</div></div>',
       'war-pass': () => teamBar() + '<div class="j-results"><h2>دور المدافع «' + esc(M.teams[M.pendingWarAsk.pi].n) + '»</h2><p class="j-muted">سلّموا الجهاز للمدافع قبل إظهار السؤال.</p><div class="j-actions">' + button('جاهزين للدفاع', 'war-defend', 'j-btn j-teal') + '</div></div>',
       error: () => '<div class="j-error" role="alert">' + esc(M.error || 'تعذّر تجهيز المغامرة') + '</div><div class="j-actions">' + button('حاولوا مرة ثانية', 'reload') + '</div>', room: () => '' };
-    app.innerHTML = header() + stepper() + '<main class="j-content" id="journey-main">' + (screens[M.stage] || screens.error)() + '</main>' + dialog();
+    app.innerHTML = (M.stage === 'board-question' ? '' : header()) + stepper() + '<main class="j-content" id="journey-main">' + (screens[M.stage] || screens.error)() + '</main>' + dialog();
     app.querySelectorAll('[data-color]').forEach(el => { el.style.backgroundColor = el.dataset.color; });
     app.querySelectorAll('[data-team-color]').forEach(el => { el.style.setProperty('--team-color', M.teams[+el.dataset.teamColor]?.c || colors[0]); });
     app.querySelectorAll('[data-category-color]').forEach(el => { el.style.setProperty('--c', catColors[+el.dataset.categoryColor % catColors.length]); });
-    app.querySelectorAll('[data-bubble]').forEach(el => { const i = +el.dataset.bubble, n = 6 + i % 6 * 2; el.style.left = (i * 79 + 7) % 95 + '%'; el.style.bottom = 10 + i * 43 % 220 + 'px'; el.style.width = n + 'px'; el.style.height = n + 'px'; if (Motion && !M.dialog) Motion.float(el, { amplitude: 8 + i, phase: i, frequency: .5 }); });
+    app.querySelectorAll('[data-bubble]').forEach(el => { const i = +el.dataset.bubble, n = 6 + i % 6 * 2; el.style.left = (i * 79 + 7) % 95 + '%'; el.style.bottom = 10 + i * 43 % 220 + 'px'; el.style.width = n + 'px'; el.style.height = n + 'px'; });
     if (M.question && app.querySelector('#qvis')) {
       const q = questionText(M.question);
       if (global.KZV) {
@@ -237,11 +279,13 @@
       if (M.stage === 'hub') Motion.staggerCards(app.querySelectorAll('.j-game-card'));
       if (M.stage === 'categories') Motion.staggerCards(Array.from(app.querySelectorAll('.j-cat-pick')).slice(0, 8));
     }
-    if (Motion && !M.dialog && changed) app.querySelectorAll('[data-motion]').forEach(el => {
+    if (Motion && !M.dialog && motionChanged) app.querySelectorAll('[data-motion]').forEach(el => {
       const kind = el.dataset.motion;
       Motion.enterScreen(el, kind === 'board' ? { duration: .4, opacityDuration: .4, distance: 30, initialScale: .9 } : kind === 'island' ? { duration: .5, opacityDuration: .5, distance: 80, initialScale: 1 } : kind === 'hanna' ? { duration: .5, opacityDuration: .5, distance: 45, initialScale: .95 } : { duration: .5, opacityDuration: .5, distance: 18, initialScale: 1 });
     });
-    M.lastStage = M.stage;
+    if (Motion && !M.dialog && M.stage === 'hub') app.querySelectorAll('.j-game-card>svg').forEach((el, i) => Motion.float(el, { amplitude: 3, frequency: 1.5, phase: i, rotation: 3, rotationFrequency: 1 }));
+    animateBubbles();
+    M.lastStage = M.stage; M.lastMotion = motionKey;
     if (changed) { window.scrollTo(0, 0); const question = app.querySelector('.j-island-sheet'); if (question) question.scrollIntoView({ block: 'start' }); }
     if (focus !== null && focus !== undefined) app.querySelector('[data-team-name="' + focus + '"]')?.focus();
     paintTime();
@@ -297,7 +341,7 @@
     if (confirmed) dialog.yes(); else { dialog.no(); render(); }
   }
   function cancelPlay() {
-    clearTimer(); Motion?.cancelAll(); stopSounds();
+    clearTimer(); cancelVisuals(); stopSounds();
     if (game === 'ghaws') { global.stopB(); global.clearT(); global.S.lock = true; global.S.ending = true; }
     if (game === 'harb') { global.stop(); global.stopFx(); global.clearT(); }
     M.question = null; M.running = false; M.questionHistory = false;
@@ -315,11 +359,17 @@
     else history.replaceState({ journey: true, step: 1 }, '');
   }
   function homeExit() { try { sessionStorage.setItem('ezik_resume_section_v1', 'home'); } catch (_) {} location.href = '/'; }
+  function leaveRoomToSettings() {
+    const route = game === 'hanna' ? '/hanna-laha/' : '/quest-harb.html';
+    if (M.cats.length < 3) { location.href = route; return; }
+    try { sessionStorage.setItem('kunuz_journey_room_setup_v1', JSON.stringify({ game, cats: M.cats, teams: M.teams, settings: M.settings })); } catch (_) {}
+    location.href = route + '?setup=1';
+  }
   function back() {
-    if (M.stage === 'room') { askDialog('تطلعون من الغرفة وترجعون للإعدادات؟', () => { location.href = game === 'hanna' ? '/hanna-laha/' : '/quest-harb.html'; }); return; }
+    if (M.stage === 'room') { askDialog('تطلعون من الغرفة وترجعون للإعدادات؟', leaveRoomToSettings); return; }
     if (M.question && ['board', 'test', 'hanna'].includes(game)) {
       if (M.question.settled) returnBoard();
-      else askDialog('ترجعون للوحة وتتركون السؤال بلا نقاط؟', abandonQuestion);
+      else askDialog(game === 'hanna' && M.question.answerRevealed ? 'تتركون التحكيم المتبقي وترجعون للوحة؟' : 'ترجعون للوحة وتتركون السؤال بلا نقاط؟', abandonQuestion);
     } else if (M.running) askDialog('تتركون اللعبة وترجعون للفرق والإعدادات؟', leaveToSettings);
     else if (M.step === 2) { M.error = ''; history.back(); }
     else if (M.stage === 'results') leaveToSettings();
@@ -337,16 +387,17 @@
     M.error = ''; M.pool = pool.indices; M.slots = pool.slots; M.fallback = pool.fallback; M.excluded = all.filter(c => c.count < Model.PER_CATEGORY);
     M.used = new Set(); M.question = null; M.questionHistory = false; M.result = null;
     M.teams.forEach((t, i) => { t.n = t.n.trim() || defaults[i]; t.shows = s.reveals; t.score = 0; t.p = 0; t.d = 0; });
+    const symbols = M.teams.map(t => t.symbol);
     if (s.difficulty === 'mixed') {
-      for (const c of M.cats) { const slots = M.slots.filter(slot => slot.cat === c), indices = Model.shuffle(slots.map(slot => slot.index)); slots.forEach((slot, i) => { slot.index = indices[i]; }); }
+      for (const c of M.cats) { const slots = M.slots.filter(slot => slot.cat === c), indices = Model.shuffle(slots.map(slot => slot.index)); slots.forEach((slot, i) => { slot.index = indices[i]; slot.actual = Model.level(slot.index); }); }
     }
     M.running = true;
     if (game === 'test') {
       M.g = global.TE.newGame({ teams: M.teams, cats: M.cats, total: M.slots.length, timer: time(), opts: s.options, shows: s.reveals });
-      M.teams = M.g.teams; M.teams.forEach((t, i) => { t.symbol = i; }); global.G = M.g;
+      M.teams = M.g.teams; M.teams.forEach((t, i) => { t.symbol = symbols[i]; }); global.G = M.g;
     } else if (game === 'board' || game === 'hanna') {
       M.g = Model.board(M.teams, M.cats, M.slots); M.teams = M.g.teams;
-      M.teams.forEach((t, i) => { t.symbol = i; t.shows = s.reveals; }); if (game === 'board') global.G = M.g;
+      M.teams.forEach((t, i) => { t.symbol = symbols[i]; t.shows = s.reveals; }); if (game === 'board') global.G = M.g;
     }
     history.pushState({ journey: true, step: 3 }, ''); M.step = 3;
     if (game === 'ghaws') beginDiveGame(); else if (game === 'harb') beginWar(); else setStage('board', 3);
@@ -387,7 +438,14 @@
       M.warEvent = global.WarEngine.fightAnswer(M.g, correct, q.fast);
     }
     render();
-    if (correct) { sound('success'); Motion?.celebrate(app); if (game === 'ghaws') { const pearl = app.querySelector('[data-pearl]'); if (pearl) Motion?.enterScreen(pearl, { duration: 1.2, opacityDuration: .38, distance: 70, initialScale: 1 }); } }
+    if (correct) {
+      sound('success'); Motion?.celebrate(app);
+      if (game === 'ghaws') {
+        const haul = app.querySelector('[data-haul]'), pearl = app.querySelector('[data-pearl]');
+        if (haul) Motion?.countUp(haul, global.S.pearls - q.reward, global.S.pearls, { duration: 1.2, arabicDigits: true });
+        if (pearl && !Motion?.reducedMotion) { M.pearlAnimation = pearl.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-70px)' }], { duration: 1200, easing: 'cubic-bezier(.333333,1,.666667,1)', fill: 'forwards' }); M.pearlAnimation.finished.catch(() => {}); }
+      }
+    }
   }
   function award(team) {
     const q = M.question; if (!q || q.settled || !q.answerRevealed) return;
@@ -398,7 +456,7 @@
     const q = M.question; if (!q) return;
     if (game === 'board') { q.answerRevealed = true; award(-1); }
     else if (game === 'test') { settle(false); returnBoard(); }
-    else { M.slots[q.slotIndex].used = true; M.slots[q.slotIndex].by = -1; M.g.cur = null; M.g.turn = (M.g.turn + 1) % M.teams.length; returnBoard(); }
+    else { M.slots[q.slotIndex].used = true; M.slots[q.slotIndex].by = q.answerRevealed ? Object.entries(q.submissions).filter(([, answer]) => answer.correct).map(([i]) => +i) : -1; returnBoard(); }
   }
   function returnBoard() {
     const q = M.question; if (!q) return;
@@ -578,8 +636,11 @@
     // Rooms continue to use the shipped front-end and worker's current protocol.
     // Local pack IDs are deliberately never sent to a server with a different bank.
     if (!join && M.cats.some(c => c >= 53)) { M.error = 'الغرف تستعمل بنك خادمها الحالي. اختاروا فئات البنك للغرفة، أو العبوا بهذه الفئات على جهاز واحد.'; render(); return; }
+    M.settings.roomCode = M.settings.roomCode.replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).trim();
+    if (!join && game === 'hanna' && M.settings.roomCode && !/^\d{4,6}$/.test(M.settings.roomCode)) { M.error = 'رمز الغرفة يكون من أربعة إلى ستة أرقام.'; render(); return; }
     if (!join && (game === 'hanna' && (!Number.isInteger(time()) || time() < 10 || time() > 600 || M.settings.reveals > 99) || game === 'harb' && (time() !== 0 && (time() < 3 || time() > 600 || !Number.isInteger(time() * 1000))))) { M.error = 'هذا الوقت أو رصيد الخيارات خارج ما يقبله خادم الغرف الحالي؛ اختاروا إعدادًا آخر أو العبوا على جهاز واحد.'; render(); return; }
     M.error = ''; cancelPlay(); M.stage = 'room'; M.step = 3; render();
+    document.body.prepend(app);
     document.body.classList.add('journey-room');
     if (game === 'harb') {
       // Keep every native lobby, reconnect and phone action intact.
@@ -600,7 +661,7 @@
       try { localStorage.setItem('hl-ezik.sound', 'false'); } catch (_) {}
       if (!join) {
         const roomColors = ['blue','orange','purple','green','gold','pink','teal','brown','navy','olive','red','maroon'];
-        const setup = { teams: M.teams.map((t, i) => ({ name: t.n.trim() || defaults[i], color: roomColors[i] })), perCat: 6, timeSec: time(), categories: M.cats.map(c => global.DATA.cats[c][0]), mode: M.settings.options === 'hidden' ? 'free' : 'options', reveals: M.settings.reveals, roomCode: null };
+        const setup = { teams: M.teams.map((t, i) => ({ name: t.n.trim() || defaults[i], color: roomColors[colors.indexOf(t.c)] || roomColors[i] })), perCat: 6, timeSec: time(), categories: M.cats.map(c => global.DATA.cats[c][0]), mode: M.settings.options === 'hidden' ? 'free' : 'options', reveals: M.settings.reveals, roomCode: null };
         // These are the existing room UI's own setup preferences, not account data.
         try { localStorage.setItem('hl-ezik.setup', JSON.stringify(setup)); localStorage.setItem('hl-ezik.sound', 'false'); } catch (_) {}
       }
@@ -617,7 +678,17 @@
       const root = document.getElementById('root');
       if (!root || ++tries > 120) { clearInterval(timer); return; }
       const start = root.querySelector('[data-testid="setup-start"]');
-      if (!start || start.disabled) return;
+      if (!start) return;
+      if (M.settings.roomCode) {
+        const more = root.querySelector('[data-testid="more-toggle"]');
+        if (more?.getAttribute('aria-expanded') === 'false') { more.click(); return; }
+        const field = root.querySelector('[data-testid="room-code"]');
+        const input = root.querySelector('[data-testid="room-code-input"]');
+        if (!input) { field?.querySelectorAll('button')[1]?.click(); return; }
+        const displayedCode = input.value.replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)));
+        if (displayedCode !== M.settings.roomCode) { setNativeInput(input, M.settings.roomCode); return; }
+      }
+      if (start.disabled) return;
       // The user's Start tap already authorized room creation. Once the unchanged
       // setup has validated our saved settings, follow its normal room/lobby path.
       clearInterval(timer); start.click();
@@ -630,7 +701,7 @@
   function onAction(action, el) {
     const q = M.question;
     if (action === 'mute') { M.muted = !M.muted; try { localStorage.setItem('kunuz_journey_muted_v1', M.muted ? '1' : '0'); } catch (_) {} if (M.muted) stopSounds(); render(); }
-    else if (action === 'home') { if (M.running) askDialog('تطلعون للرئيسية وتتركون اللعبة؟', () => { cancelPlay(); homeExit(); }); else homeExit(); }
+    else if (action === 'home') { if (M.running || M.stage === 'room') askDialog('تطلعون للرئيسية وتتركون اللعبة؟', () => { cancelPlay(); homeExit(); }); else homeExit(); }
     else if (action === 'back') back();
     else if (action === 'cat') { const c = +el.dataset.cat, i = M.cats.indexOf(c); if (i >= 0) M.cats.splice(i, 1); else if (M.cats.length < 6) M.cats.push(c); M.error = ''; render(); }
     else if (action === 'next-setup') { if (M.cats.length >= 3 && M.cats.length <= 6) { M.error = ''; setStage('settings', 2, true); } }
@@ -703,7 +774,7 @@
   app.addEventListener('input', event => {
     const el = event.target;
     if (el.hasAttribute('data-team-name')) M.teams[+el.dataset.teamName].n = el.value;
-    if (el.dataset.input) M.settings[el.dataset.input] = el.value === '' ? NaN : Number(el.value);
+    if (el.dataset.input) M.settings[el.dataset.input] = el.dataset.input === 'roomCode' ? el.value : el.value === '' ? NaN : Number(el.value);
   });
   global.addEventListener('popstate', event => {
     if (M.stage === 'room') return;
@@ -712,7 +783,7 @@
     const step = event.state?.step;
     if (M.questionHistory && M.question) {
       M.questionHistory = false;
-      if (M.question.settled) returnBoard(); else askDialog('ترجعون للوحة وتتركون السؤال بلا نقاط؟', abandonQuestion, () => { history.pushState({ journey: true, step: 3, question: true }, ''); M.questionHistory = true; });
+      if (M.question.settled) returnBoard(); else askDialog(game === 'hanna' && M.question.answerRevealed ? 'تتركون التحكيم المتبقي وترجعون للوحة؟' : 'ترجعون للوحة وتتركون السؤال بلا نقاط؟', abandonQuestion, () => { history.pushState({ journey: true, step: 3, question: true }, ''); M.questionHistory = true; });
       return;
     }
     if (M.running && step !== 3) { askDialog('تتركون اللعبة وترجعون للفرق والإعدادات؟', leaveToSettings, () => { history.pushState({ journey: true, step: 3 }, ''); }); return; }
@@ -720,16 +791,19 @@
   }, true);
   let hiddenAt = 0;
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) { hiddenAt = performance.now(); stopSounds(); }
-    else if (hiddenAt && M.question) { M.question.deadline += performance.now() - hiddenAt; M.question.started += performance.now() - hiddenAt; hiddenAt = 0; }
+    if (document.hidden) { hiddenAt = performance.now(); stopSounds(); cancelVisuals(); }
+    else { if (hiddenAt && M.question) { M.question.deadline += performance.now() - hiddenAt; M.question.started += performance.now() - hiddenAt; } hiddenAt = 0; if (M.stage === 'hub' || M.stage === 'dive') render(); }
   });
   document.addEventListener('click', event => {
     if (M.stage === 'room' && event.target.closest('#root button')) { M.audioUnlocked = true; sound('tap'); }
   });
-  global.addEventListener('pagehide', () => { clearTimer(); stopSounds(); Motion?.dispose(); });
-  global.KunuzJourney = Object.freeze({ get state() { return M; }, get diagnostics() { return { bankStamp: typeof global.seenStamp === 'function' ? global.seenStamp() : '', excluded: M.excluded, fallback: M.fallback, categories: game === 'hub' ? [] : Model.categories().map(c => ({ name: c.name, total: c.count })) }; } });
+  const motionPreference = global.matchMedia('(prefers-reduced-motion: reduce)');
+  motionPreference.addEventListener('change', () => { cancelVisuals(); if (!document.hidden) render(); });
+  global.addEventListener('pagehide', event => { clearTimer(); stopSounds(); cancelVisuals(); if (!event.persisted) Motion?.dispose(); });
+  global.addEventListener('pageshow', event => { if (event.persisted) { render(); if (M.question && !M.question.settled && !M.question.answerRevealed && !M.question.beat) startTimer(); } });
+  global.KunuzJourney = Object.freeze({ get state() { return M; }, get diagnostics() { return { bankStamp: typeof global.seenStamp === 'function' ? global.seenStamp() : '', offlineReady: M.offlineReady, excluded: M.excluded, fallback: M.fallback, categories: game === 'hub' ? [] : Model.categories().map(c => ({ name: c.name, total: c.count })) }; } });
   async function boot() {
-    if (game === 'hub') { M.ready = true; render(); return; }
+    if (game === 'hub') { render(); await prepareOffline(); M.ready = true; return; }
     if (game === 'hanna' && (/^\/hanna-laha\/(?:join|host|j\/\d{4,6})\/?$/.test(path) || /\/setup\/?$/.test(path) && new URLSearchParams(location.search).has('rooms'))) {
       M.ready = true; await enterRoom(true, true); return;
     }
@@ -738,8 +812,20 @@
       if (!global.DATA || !global.KZV) throw new Error('ملفات المغامرة غير متاحة. افتحوا الصفحة متصلين مرة لتكتمل الملفات المحلية.');
       await global.KZV.ready;
       await warmLocalAssets();
+      await prepareOffline();
       if (global.LEVELS_EXPERIMENT !== false) await new Promise(resolve => { let tries = 0; const timer = setInterval(() => { if (global.KUNUZ_LEVELS || ++tries >= 80) { clearInterval(timer); resolve(); } }, 25); });
-      M.excluded = Model.categories().filter(c => c.count < Model.PER_CATEGORY); M.ready = true; setStage('categories', 1);
+      M.excluded = Model.categories().filter(c => c.count < Model.PER_CATEGORY); M.ready = true;
+      if (new URLSearchParams(location.search).get('setup') === '1') {
+        try {
+          const draft = JSON.parse(sessionStorage.getItem('kunuz_journey_room_setup_v1')); sessionStorage.removeItem('kunuz_journey_room_setup_v1');
+          if (draft?.game === game && Array.isArray(draft.cats) && draft.cats.length >= 3 && draft.cats.length <= 6 && draft.cats.every(c => Number.isInteger(c) && global.DATA.cats[c]) && Array.isArray(draft.teams) && draft.teams.length >= limits[game][0] && draft.teams.length <= limits[game][1]) {
+            M.cats = draft.cats; M.teams = draft.teams.map((t, i) => ({ ...teamNew(i), n: String(t.n), c: colors.includes(t.c) ? t.c : colors[i], symbol: Number.isInteger(t.symbol) ? t.symbol % 6 : i }));
+            for (const key of Object.keys(M.settings)) if (typeof draft.settings?.[key] === typeof M.settings[key]) M.settings[key] = draft.settings[key];
+            history.replaceState({ journey: true, step: 1 }, '', location.pathname); setStage('settings', 2, true); return;
+          }
+        } catch (_) {}
+      }
+      setStage('categories', 1);
     } catch (error) { M.error = error.message; setStage('error', 1); }
   }
   boot();
