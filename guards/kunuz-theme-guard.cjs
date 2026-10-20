@@ -36,11 +36,20 @@ check('every playable bank/pack category gets its own card and fixed balanced re
   }
   assert.equal(all.size, 70 * 6);
 });
-check('seen questions and held rows cannot be reserved; shortage refuses replay', () => {
+check('unseen questions precede oldest-seen replay; exhausted categories restart and held rows stay excluded', () => {
   const first = model.pool([0, 1, 2], () => false, () => .4), seen = new Set(first.indices);
   const second = model.pool([0, 1, 2], i => seen.has(i), () => .4);
   second.indices.forEach(i => assert.equal(seen.has(i), false));
-  assert.equal(model.pool([0], () => true).shortage[0], 0);
+  const exhausted = model.pool([0], () => true);
+  assert.equal(exhausted.shortage.length, 0);
+  assert.equal(exhausted.indices.length, 6);
+  assert.deepEqual([...exhausted.restarts], [0]);
+  exhausted.indices.forEach(i => { assert.equal(context.DATA.qs[i][0], 0); assert.notEqual(context.DATA.qs[i][2], 0); });
+  const partial = model.pool([0], { has: i => i !== first.indices[0], last: i => -i }, () => .4);
+  assert.equal(partial.indices[0], first.indices[0]);
+  const oldest = context.DATA.qs.map((_, i) => i).filter(i => model.live(i) && context.DATA.qs[i][0] === 0 && i !== first.indices[0]).sort((a, b) => b - a).slice(0, 5);
+  assert.deepEqual([...partial.indices.slice(1)], [...oldest]);
+  assert.equal(new Set(partial.indices).size, 6);
   assert.equal(context.DATA.qs.slice(0, baseRows).filter(q => q[2] === 0).length, 217);
 });
 check('nearest available level fills an exact pool without duplicates; the switch is removable', () => {
