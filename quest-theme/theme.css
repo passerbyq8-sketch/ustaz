@@ -210,7 +210,7 @@
 .ezik-treasure-theme.journey-room #root [class*=_ghost_],.ezik-treasure-theme.journey-room #root [class*=_wayBack_]{background:#ffffff10;color:#d0eded;border-color:#ffffff35;border-radius:16px}
 .ezik-treasure-theme.journey-room #root input,.ezik-treasure-theme.journey-room #root textarea,.ezik-treasure-theme.journey-room #root select{background:#fffaf0;color:#17474d;border-color:#9ec3bd;font-family:KunuzPlex,Arial,sans-serif}
 .ezik-treasure-theme.journey-room #root input::placeholder{color:#536f70}
-.ezik-treasure-theme.journey-room .card,.ezik-treasure-theme.journey-room .panel,.ezik-treasure-theme.journey-room [class*=_card_],.ezik-treasure-theme.journey-room [class*=_section_]{background:#fff8eb;color:#143b45;border-color:#8bc4b5;border-radius:23px}
+.ezik-treasure-theme.journey-room .card,.ezik-treasure-theme.journey-room .panel,.ezik-treasure-theme.journey-room [class*=_card_],.ezik-treasure-theme.journey-room [class*=_section_]{--muted:#536f70;--ink:#143b45;--ink-2:#47686d;background:#fff8eb;color:#143b45;border-color:#8bc4b5;border-radius:23px}
 .ezik-treasure-theme.journey-room [class*=_page_]{background:transparent;color:#fff;font-family:KunuzPlex,Arial,sans-serif}
 .ezik-treasure-theme.journey-room [class*=_btn_],.ezik-treasure-theme.journey-room .btn{border-radius:18px;font-family:inherit}
 .ezik-treasure-theme .journey-app .j-paper .kzv{--kv-ink:#143b45;--kv-bg:#f1f5ed;--kv-line:#5d8881;--kv-land:#e9f2d9;--kv-hit:#104d65;--kv-shadow-bg:#f7f9fa;border-radius:15px;margin-bottom:13px;height:150px}

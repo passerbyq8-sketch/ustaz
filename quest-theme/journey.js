@@ -651,6 +651,9 @@
         global.G.fuse = time() * 1000; global.G.noOpts = M.settings.options === 'hidden';
         global.G.shots = M.settings.shots; global.G.deployMul = M.settings.flags; global.G.deployFree = M.settings.customFlags ? M.settings.customFlagsValue : -1; global.G.winRule = M.settings.win;
         global.drawPlayers(); global.drawCats(); global.drawFuses(); global.drawOpMode(); global.drawShots(); global.drawDeploy(); global.drawWins();
+        // The shared Start tap already supplied these validated settings. Follow
+        // the native create action without asking for a second setup/start step.
+        global.$('startWar').click();
       }
     } else if (game === 'hanna') {
       // The original room bundle is loaded only on explicit room entry, so local play
