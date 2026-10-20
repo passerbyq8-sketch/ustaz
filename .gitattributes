@@ -975,6 +975,7 @@ tools/build-geo.mjs text eol=lf
 tools/kunuz-geo-build.json text eol=lf
 tools/kunuz-visual-browser.cjs text eol=lf
 tools/kunuz-visual-playthrough.cjs text eol=lf
+tools/kunuz-new20-convert.cjs text eol=lf
 tools/vendor/polygon-clipping.cjs text eol=lf
 tools/vendor/polygon-clipping.LICENSE.md text eol=lf
 tools/vendor/robust-predicates.LICENSE text eol=lf

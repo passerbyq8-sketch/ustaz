@@ -6,14 +6,15 @@ const ROOT=path.join(__dirname,'..');
 const EVIDENCE=process.env.KUNUZ_VISUAL_EVIDENCE||path.resolve(ROOT,'../quest-review/sessions/kunuz-visual-evidence-20261019');
 const GAMES=['quest-ghaws.html','quest-harb.html','quest-test.html','quest-board.html'];
 function playwright(){for(const p of [process.env.EZIK_PLAYWRIGHT,'playwright','C:/Users/passe/projects/ustaz-check88/check88/node_modules/playwright'].filter(Boolean))try{return require(p)}catch{}throw Error('Playwright is required for Chromium measurements')}
-function server({baseline=false,demo=true}={}){
+function server({baseline=false,demo=true,packs=false}={}){
   const requests=[];const s=http.createServer((req,res)=>{
     let url=new URL(req.url,'http://localhost').pathname.slice(1);if(!url)url='quest-test.html';requests.push(url);
     try{
       let bytes;
-      if(demo&&url==='quest-data/kunuz-packs-manifest.js')bytes=Buffer.from('var KUNUZ_PACKS=[{slug:"visual-demo",src:"quest-data/kunuz-pack-visual-demo.js"}];');
-      else if(demo&&url==='quest-data/kunuz-pack-visual-demo.js')bytes=Buffer.from('KZV.register('+JSON.stringify(fixture())+');');
-      else if(demo&&url==='quest-data/signs/calibration.webp')bytes=fs.readFileSync(path.join(ROOT,'guards/fixtures/kunuz-visual-calibration.webp'));
+      if(demo&&url==='quest-visual.js')bytes=Buffer.from(fs.readFileSync(path.join(ROOT,url),'utf8').replace(/var PACKS_ENABLED=(?:true|false);/,'var PACKS_ENABLED=true;'));
+      else if(demo&&!packs&&url==='quest-data/kunuz-packs-manifest.js')bytes=Buffer.from('var KUNUZ_PACKS=[{slug:"visual-demo",src:"quest-data/kunuz-pack-visual-demo.js"}];');
+      else if(demo&&!packs&&url==='quest-data/kunuz-pack-visual-demo.js')bytes=Buffer.from('KZV.register('+JSON.stringify(fixture())+');');
+      else if(demo&&!packs&&url==='quest-data/signs/calibration.webp')bytes=fs.readFileSync(path.join(ROOT,'guards/fixtures/kunuz-visual-calibration.webp'));
       else if(baseline&&(GAMES.includes(url)||url==='quest-levels.js'))bytes=cp.execFileSync('git',['show',(process.env.KUNUZ_BASELINE_REF||'77afb7df')+':'+url],{cwd:ROOT,maxBuffer:1<<24});
       else{const file=path.resolve(ROOT,url);if(!file.startsWith(ROOT+path.sep))throw Error('path');bytes=fs.readFileSync(file)}
       res.setHeader('Content-Type',url.endsWith('.html')?'text/html; charset=utf-8':url.endsWith('.js')?'text/javascript; charset=utf-8':url.endsWith('.css')?'text/css; charset=utf-8':url.endsWith('.webp')?'image/webp':'application/octet-stream');res.setHeader('Cache-Control','no-store');res.end(bytes);
@@ -58,8 +59,8 @@ async function layout(page){return page.evaluate(()=>{
 })}
 async function main(){
   fs.mkdirSync(EVIDENCE,{recursive:true});const baseline=process.argv.includes('--baseline'),demo=process.argv.includes('--demo');
-  const {s,requests}=server({baseline,demo:!baseline});await new Promise(r=>s.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+s.address().port;
-  if(demo){console.log('Local fixtures only: '+url+'/quest-test.html');console.log('Also: /quest-ghaws.html, /quest-harb.html, /quest-board.html. Ctrl+C stops.');return}
+  const {s,requests}=server({baseline,demo:!baseline,packs:demo});await new Promise(r=>s.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+s.address().port;
+  if(demo){console.log('Local NEW20 packs (preview only): '+url+'/quest-test.html');console.log('Also: /quest-ghaws.html, /quest-harb.html, /quest-board.html. Ctrl+C stops.');return}
   let browser;const results=[],errors=[];
   try{
     browser=await launch();

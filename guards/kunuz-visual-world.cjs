@@ -14,7 +14,7 @@ world=world.replace('DATA, Math: M,','DATA, localStorage:o.storage, Math: M,').r
 const makeWorld=new Function('fs','vm','VER','El','Txt','parseInto',world+';return makeWorld')(fs,vm,VER,El,Txt,parseInto);
 function rng(seed=42){return ()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296}}
 function store(){const m=new Map();return {m,getItem:k=>m.has(k)?m.get(k):null,setItem:(k,v)=>m.set(k,String(v)),removeItem:k=>m.delete(k)}}
-async function open(page,{moduleText,pack,enabled=true,storage=store(),manifest,body,seed=42,baseline=false}={}){
+async function open(page,{moduleText,pack,enabled=true,storage=store(),manifest,body,bodies,seed=42,baseline=false}={}){
   const text=read(page),sa=text.lastIndexOf('<script>'),sb=text.indexOf('</script>',sa),bs=text.indexOf('<body>')+6,be=text.indexOf('<script',bs);
   const data=JSON.parse(JSON.stringify(bank));
   const W=makeWorld({BODY:text.slice(bs,be),ENGINE:text.slice(sa+8,sb)},data,{
@@ -28,11 +28,11 @@ async function open(page,{moduleText,pack,enabled=true,storage=store(),manifest,
   W.doc.head.appendChild=function(node){append(node);if(node.src){W.requests.push(node.src);Promise.resolve().then(()=>{
     const p=node.src.replace(/^\//,'');if(p==='quest-data/kunuz-geo.js'||p==='quest-data/kunuz-levels-3147.js'){vm.runInContext(read(p),W.ctx);if(node.onload)node.onload()}else if(node.onerror)node.onerror();
   }).catch(e=>W.errors.push(e))}return node};
-  W.ctx.fetch=async url=>{W.requests.push(url);return {ok:!!pack,text:async()=>body===undefined?'KZV.register('+JSON.stringify(pack)+');':body}};
+  W.ctx.fetch=async url=>{W.requests.push(url);if(bodies)return {ok:Object.hasOwn(bodies,url),text:async()=>bodies[url]};return {ok:!!pack,text:async()=>body===undefined?'KZV.register('+JSON.stringify(pack)+');':body}};
   if(!baseline){
     vm.runInContext(read('quest-data/kunuz-geo-index.js'),W.ctx);
     W.ctx.KUNUZ_PACKS=manifest|| (pack?[{slug:pack.slug,src:'quest-data/kunuz-pack-'+pack.slug+'.js'}]:[]);
-    let mod=moduleText===undefined?read('quest-visual.js'):moduleText;if(!enabled)mod=mod.replace('var PACKS_ENABLED=true;','var PACKS_ENABLED=false;');
+    let mod=moduleText===undefined?read('quest-visual.js'):moduleText;mod=mod.replace(/var PACKS_ENABLED=(?:true|false);/,'var PACKS_ENABLED='+enabled+';');
     vm.runInContext(mod,W.ctx);await W.ctx.KZV.ready;
   }
   vm.runInContext(read('quest-levels.js'),W.ctx);await Promise.resolve();await Promise.resolve();
