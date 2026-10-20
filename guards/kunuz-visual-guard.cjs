@@ -160,13 +160,13 @@ async function new20(){
   const manifest=new Function(read('quest-data/kunuz-packs-manifest.js')+';return KUNUZ_PACKS')();
   assert.deepEqual(manifest.map(p=>p.slug),cv.GROUPS.map(g=>g[0]==='landmark-draw'?'landmark-photo':g[0]).filter(s=>!['fmt-odd-one','occasions-calendar'].includes(s)));
   const packs=manifest.map(entry=>{assert.equal(entry.src,cv.packPath(entry.slug));const body=read(entry.src);const pack=cv.parsePack(body);assert.equal(pack.slug,entry.slug);return {pack,body}});
-  const checked=await cv.validatePacks(packs);assert.equal(checked.questions,5487);
+  const checked=await cv.validatePacks(packs);assert.equal(checked.questions,5484);
   const photos=packs.find(p=>p.pack.slug==='landmark-photo').pack;
   const credits=JSON.parse(read('quest-data/photos/landmarks/credits.json'));
-  assert.equal(photos.qs.length,124);assert.equal(photos.stamp,'124-b267605d');assert.equal(credits.length,124);
+  assert.equal(photos.qs.length,121);assert.equal(photos.stamp,'121-86446ffa');assert.equal(credits.length,121);
   assert.deepEqual(fs.readdirSync(path.join(__dirname,'../quest-data/photos')).sort(),['landmarks']);
   assert.deepEqual(fs.readdirSync(path.join(__dirname,'../quest-data/photos/landmarks')).sort(),['credits.json',...photos.qs.map(q=>path.basename(q.vis.src))].sort());
-  assert.equal(new Set(credits.map(c=>c.sha256)).size,124);
+  assert.equal(new Set(credits.map(c=>c.sha256)).size,121);
   for(const q of photos.qs){
     const credit=credits.find(c=>c.id===q.id),bytes=fs.readFileSync(path.join(__dirname,'..',q.vis.src));
     assert.ok(credit,q.id+' credit');assert.equal(q.q,'هذا المعلم في أي دولة؟');assert.equal(q.vis.effect,'plain');
@@ -179,7 +179,7 @@ async function new20(){
   const bodies=Object.fromEntries(packs.map(p=>['/'+cv.packPath(p.pack.slug),p.body]));
   for(const page of games){
     const w=await open(page,{manifest,bodies});
-    assert.equal(w.ctx.DATA.qs.length,bank.qs.length+5487,page+' real manifest load');
+    assert.equal(w.ctx.DATA.qs.length,bank.qs.length+5484,page+' real manifest load');
     assert.equal(w.requests.filter(p=>/kunuz-pack-/.test(p)).length,18);
     assert.ok(w.ctx.KZC_GROUPS.some(g=>g[0]==='بصريات وألغاز'));
     noErrors(w);
