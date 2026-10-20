@@ -1,6 +1,6 @@
 /* Local supplemental packs and the shared question renderer. No bank bytes change.
    Pack files are JSON inside KZV.register(...); they are parsed, never executed. */
-var PACKS_ENABLED=false;
+var PACKS_ENABLED=true;
 var KZV=(function(){
   "use strict";
   var NS="http://www.w3.org/2000/svg",baseN=DATA.qs.length,baseC=DATA.cats.length;
