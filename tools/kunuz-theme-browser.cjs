@@ -132,10 +132,12 @@ async function playWar(){
   assert.ok(cycles++<240,'war did not terminate');const s=await state();let w=await warState();turns=Math.max(turns,w.turnNo);
   if(flags===undefined&&w.phase!=='deploy')flags=w.flags;
   if(w.phase==='deploy'){
-   // Concentrate the legal deployment on an island with an enemy neighbour; leave
-   // enemy guards in place so a real correct answer can demonstrate a capture.
-   const candidate=w.links.flatMap(([a,b])=>[[a,b],[b,a]]).find(([a,b])=>w.own[a]===w.turn&&w.own[b]!==w.turn);
-   const k=candidate[0];while((await warState()).pool>0)await click('[data-island="'+k+'"]');await click('[data-action="war-next"]');continue;
+   // Plan both legal deployments together: fortify the opening attack's source,
+   // and leave its enemy target at the native single-guard strength. Fortifying
+   // both ends can exhaust a category before a capture is possible.
+   const opening=w.links.flatMap(([a,b])=>[[a,b],[b,a]]).find(([a,b])=>w.own[a]===0&&w.own[b]!==0);
+   const k=w.turn===0?opening[0]:Object.keys(w.own).map(Number).find(i=>w.own[i]===w.turn&&i!==opening[1]);
+   while((await warState()).pool>0)await click('[data-island="'+k+'"]');await click('[data-action="war-next"]');continue;
   }
   if(s.stage==='war-pass'){await click('[data-action="war-defend"]');continue}
   if(s.question){
@@ -153,7 +155,7 @@ async function playWar(){
    // Exercise the legal End Turn handoff twice before combat. Exhausting a small
    // category can legitimately satisfy the native two-seas rule on an early turn.
    if(initialHandoffs<2){initialHandoffs++;await click('[data-action="war-next"]');continue}
-   const attack=w.links.flatMap(([a,b])=>[[a,b],[b,a]]).find(([a,b])=>w.own[a]===w.turn&&w.ban[a]>=2&&w.own[b]!==w.turn&&!w.dead[a]&&!w.dead[b]);
+   const attack=w.links.flatMap(([a,b])=>[[a,b],[b,a]]).filter(([a,b])=>w.own[a]===w.turn&&w.ban[a]>=2&&w.own[b]!==w.turn&&!w.dead[a]&&!w.dead[b]).sort((a,b)=>w.ban[a[1]]-w.ban[b[1]])[0];
    if(attack){await click('[data-island="'+attack[0]+'"]');const ownBefore=JSON.stringify((await warState()).own);await click('[data-island="'+attack[1]+'"]');assert.equal(JSON.stringify((await warState()).own),ownBefore,'ownership changed without an answer')}
    else await click('[data-action="war-next"]');
   }
