@@ -85,9 +85,9 @@ async function sheet(browser, cards, name) {
     record.icons = cards.map(c => ({ slug: c.slug, name: c.name })); record.distinctMainSilhouettes = new Set(geometry).size;
     assert.deepEqual(record.errors, []); assert.deepEqual(record.failedRequests, []);
     // A failed theme download must restore a usable native entry after 4s.
-    for (const [game, route] of Object.entries({ hub:'/quest.html', ...routes })) {
+    for (const failure of ['script','stylesheet']) for (const [game, route] of Object.entries({ hub:'/quest.html', ...routes })) {
       const fallback = await browser.newContext({ viewport: { width: 390, height: 844 } });
-      await fallback.route('**/quest-theme/journey.js*', r => r.abort());
+      await fallback.route(failure === 'script' ? '**/quest-theme/journey.js*' : '**/quest-theme/theme.css*', r => r.abort());
       const p = await fallback.newPage(), warnings = []; p.on('console', m => { if (m.type() === 'warning') warnings.push(m.text()); });
       await p.goto(base + route); await p.waitForFunction(() => window.KunuzThemeBoot?.status === 'fallback', null, { timeout: 10000 });
       if (game === 'ghaws') await p.locator('[data-go=cfg1]').click();
@@ -103,10 +103,10 @@ async function sheet(browser, cards, name) {
         await p.locator(target).click();
         await p.locator(game === 'board' || game === 'test' ? '#play' : game === 'ghaws' ? '#dive' : '#war').waitFor({state:'visible'});
       }
-      await p.screenshot({ path: path.join(out, 'fallback-' + game + '.png'), fullPage: false });
-      record.fallback.push({ game, logged: true, native }); await fallback.close();
+      await p.screenshot({ path: path.join(out, 'fallback-' + failure + '-' + game + '.png'), fullPage: false });
+      record.fallback.push({ game, failure, logged: true, native }); await fallback.close();
     }
-    console.log('PASS 15 hub returns; every page font; corrupted asset recovery; 72 distinct silhouettes; 6 playable fallbacks');
+    console.log('PASS 15 hub returns; every page font; corrupted asset recovery; 72 distinct silhouettes; 12 playable script/CSS fallbacks');
   } catch (e) { record.failure = e.stack; await page.screenshot({ path: path.join(out,'asset-proof-failure.png') }).catch(() => {}); throw e; }
   finally { fs.writeFileSync(path.join(out, 'asset-and-icons-proof.json'), JSON.stringify(record, null, 2)); await browser.close(); }
 })().catch(e => { console.error(e); process.exitCode = 1; });

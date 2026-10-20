@@ -25,6 +25,7 @@
   }
   window.KunuzThemeBoot = { get status() { return status; }, mounted: function () {
     if (status === 'fallback' || !document.querySelector('.journey-app main')) return;
+    if (getComputedStyle(document.body).getPropertyValue('--journey-gold').trim() !== '#ffd36a') return;
     status = 'mounted'; clearTimeout(timer);
     var current = ++turn;
     root.classList.add('ezik-treasure-theme', 'kunuz-theme-pending');
@@ -42,6 +43,15 @@
   timer = setTimeout(fallback, 4000);
 })();
 </script>
+<style data-kunuz-first-paint>
+.ezik-treasure-theme.kunuz-theme-pending{background:#082c38}
+.ezik-treasure-theme.kunuz-theme-pending body{margin:0!important;background:#082c38!important}
+.ezik-treasure-theme.kunuz-theme-pending body> :not(.kunuz-theme-shell):not(script):not(style):not(link){display:none!important}
+.ezik-treasure-theme.kunuz-theme-pending .kunuz-theme-shell{position:fixed;inset:0;z-index:2147483647;display:grid!important;place-items:center;background:radial-gradient(ellipse at 20% 0,#146874,transparent 65%),#082c38}
+.ezik-treasure-theme.kunuz-theme-pending .kunuz-theme-spinner{width:30px;height:30px;border:3px solid #b2d4d94d;border-top-color:#ffd36a;border-radius:50%;animation:kunuz-boot-loading .85s linear infinite}
+@keyframes kunuz-boot-loading{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.ezik-treasure-theme.kunuz-theme-pending .kunuz-theme-spinner{animation:none}}
+</style>
 <link rel="stylesheet" href="../quest-theme/theme.css?v=20261020-flash3">
 <link rel="preload" href="../quest-theme/assets/regular.ttf?v=20261020-flash3" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="../quest-theme/assets/bold.ttf?v=20261020-flash3" as="font" type="font/ttf" crossorigin>
@@ -50,7 +60,7 @@
 <link rel="preload" href="../quest-theme/model.js?v=20261020-flash3" as="script">
 <link rel="preload" href="../quest-theme/journey.js?v=20261020-flash3" as="script">
     <base href="/hanna-laha/" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-wNWVieqGM+q9qeBrEFPPAd2f5fr+hMazXB3vmSJSFgo='; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://hanna-laha.hl-worker.workers.dev wss://hanna-laha.hl-worker.workers.dev; base-uri 'self'; form-action 'self'" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-omPNV546gUlQIaLM+Z95CF6oUBRkV2zkrsT179nkTao='; style-src 'self' 'sha256-a6FtWnxsZxAAtLs2O+AgEkPVYL16/jH4rrr7gG4MIuc='; font-src 'self'; img-src 'self' data:; connect-src 'self' https://hanna-laha.hl-worker.workers.dev wss://hanna-laha.hl-worker.workers.dev; base-uri 'self'; form-action 'self'" />
     <meta name="referrer" content="no-referrer" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#082c38" />
