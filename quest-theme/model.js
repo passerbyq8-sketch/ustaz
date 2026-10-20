@@ -34,15 +34,20 @@
       const candidates = shuffle(global.DATA.qs.map((q, i) => i).filter(i => live(i) && global.DATA.qs[i][0] === cat && !hasSeen(i)), random);
       if (candidates.length < PER_CATEGORY) { shortage.push(cat); continue; }
       let missing = 0;
-      for (const desired of LEVELS) {
+      const categorySlots = LEVELS.map(desired => ({ cat, pts: POINTS[desired - 1], desired, actual: 0, index: null, used: false, by: -1 }));
+      // First protect both questions of every available exact level. A missing hard
+      // slot must not consume the second medium slot before that slot is assigned.
+      for (const slot of categorySlots) {
+        const index = candidates.find(i => !reserved.has(i) && level(i) === slot.desired);
+        if (index !== undefined) { slot.index = index; slot.actual = level(index); reserved.add(index); }
+      }
+      for (const slot of categorySlots) if (slot.index === null) {
         const available = candidates.filter(i => !reserved.has(i));
         // Unknown classifications are a safe mixed fallback when the experiment is removed.
-        available.sort((a, b) => Math.abs((level(a) || desired) - desired) - Math.abs((level(b) || desired) - desired));
-        const index = available[0], actual = level(index);
-        if (actual !== desired) missing++;
-        reserved.add(index);
-        slots.push({ cat, pts: POINTS[desired - 1], desired, actual, index, used: false, by: -1 });
+        available.sort((a, b) => Math.abs((level(a) || slot.desired) - slot.desired) - Math.abs((level(b) || slot.desired) - slot.desired));
+        slot.index = available[0]; slot.actual = level(slot.index); reserved.add(slot.index); missing++;
       }
+      slots.push(...categorySlots);
       fallback.push({ cat, name: global.DATA.cats[cat][1], missing });
     }
     return { slots, indices: [...reserved], shortage, fallback };
