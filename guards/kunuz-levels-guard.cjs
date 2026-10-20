@@ -5,7 +5,7 @@
 // removable in one line (LEVELS_EXPERIMENT in quest-levels.js) without a trace. The pages are run as they ship, in the mini DOM
 // of guards/kunuz-sim, with the module and its file loaded the way a browser loads them.
 //   L1 the file: a level 1..3 for every live id and for nothing else, its stamp the bank's (the pages' seenStamp), and inside
-//      each category the levels are its thirds, so every category holds all three, at least MIN_EACH of each (the board needs
+//      each category matches the reviewed distribution without inventing harder questions (the board needs
 //      two of each level per category, plus room to fall back)
 //   L2 the field: in each of the four setups «المستوى» with «تجريبي» beside it, the choices كلّ المستويات/سهل/متوسط/صعب (the
 //      board: عشوائي/حسب النقاط), the first on by default, 44px chips, and nothing readable that counts questions
@@ -26,7 +26,7 @@ const ascii = (s) => String(s).replace(/[^\x00-\x7f]/g, '?');
 const read = (f) => fs.readFileSync(path.join(REPO, f), 'utf8');
 const GAMES = ['quest-ghaws.html', 'quest-harb.html', 'quest-test.html', 'quest-board.html'];
 const MODULE = 'quest-levels.js', LVFILE = 'quest-data/kunuz-levels-3147.js', BANK = 'quest-data/kunuz-bank-3147.js';
-const MIN_EACH = 3;
+const MIN_EACH = 7;
 const TEXT = {}; GAMES.concat([MODULE, LVFILE]).forEach((f) => { TEXT[f] = read(f); });
 const DATA0 = new Function(read(BANK) + ';return DATA;')();
 const LV0 = new Function(TEXT[LVFILE] + ';return KUNUZ_LEVELS;')();
@@ -139,6 +139,7 @@ function draw(W, page, n) {
 }
 
 // ---------- L1 the file ----------
+const REVIEWED_LEVEL_COUNTS = {"deen":[22,23,22],"prayer":[22,21,22],"quran":[30,29,30],"juz-amma":[25,25,25],"juz-tabarak":[28,29,28],"adhkar":[20,19,20],"prophets":[29,29,29],"seerah":[30,29,30],"manners":[21,21,21],"islamic-history":[22,21,22],"geography":[152,153,152],"world-history":[18,19,18],"animals":[20,21,20],"physics":[22,22,22],"biology":[22,21,22],"chemistry":[21,21,21],"math":[8,7,8],"hadith":[142,141,142],"rashidun":[20,19,20],"umayyad":[19,18,19],"abbasid":[19,20,19],"ayyubid":[17,16,17],"mamluk":[17,16,17],"ottoman":[15,16,15],"arab-world":[138,137,137],"kuwait-history":[134,136,134],"cuisine":[18,19,18],"poetry-fusha":[100,98,100],"poetry-nabati":[41,39,21],"fitness-health":[100,99,100],"arabic-language":[100,100,100],"proverbs":[100,100,100],"kuwait-sea-heritage":[100,100,101],"kuwait-old-life":[100,100,100],"marine-life":[100,99,100],"astronomy":[100,100,100],"earth-weather":[100,100,100],"human-body":[100,100,100],"muslim-scientists":[100,100,100],"inventions":[100,100,100],"palm-plants":[100,100,100],"horses-camels-falcons":[100,100,100],"first-aid":[100,100,100],"money-economy":[100,100,100],"riddles-logic":[100,100,100],"tech-computing":[100,100,100],"islamic-architecture":[100,100,100],"sahaba":[100,100,100],"mothers-ahlulbayt":[100,99,100],"ghazawat":[98,99,98],"tajweed":[100,100,100],"asmaa-husna":[100,100,100],"easy-fiqh":[100,99,100]};
 function checkL1(LV, D) {
   const f = [];
   // the pages' own stamp formula (count + FNV-1a of the ids in order)
@@ -156,13 +157,13 @@ function checkL1(LV, D) {
     const ids = D.qs.filter((q) => q[0] === ci && q[2] !== 0).map((q) => q[8]), n = ids.length;
     const cnt = [1, 2, 3].map((l) => ids.filter((id) => L[id] === l).length);
     minEach = Math.min(minEach, ...cnt);
-    const want = [Math.round(n / 3), Math.round(2 * n / 3) - Math.round(n / 3), n - Math.round(2 * n / 3)];
-    if (cnt.join() !== want.join()) { thirdsOff++; f.push('category ' + c[0] + ' levels ' + cnt.join('/') + ', its thirds are ' + want.join('/')); }
+    const want = REVIEWED_LEVEL_COUNTS[c[0]] || [];
+    if (cnt.join() !== want.join()) { thirdsOff++; f.push('category ' + c[0] + ' levels ' + cnt.join('/') + ', reviewed counts are ' + want.join('/')); }
   });
   if (minEach < MIN_EACH) f.push('a category holds only ' + minEach + ' of a level (needs ' + MIN_EACH + ')');
   return { f, info: 'stamp=' + stamp + ' live=' + live.size + ' minEachLevelPerCategory=' + minEach };
 }
-{ const r = checkL1(LV0, DATA0); report('L1', 'the file: a level for every live question, the bank\'s stamp, each category in thirds', r.f, r.info); }
+{ const r = checkL1(LV0, DATA0); report('L1', 'the file: a level for every live question, the bank\'s stamp, each category matches reviewed levels', r.f, r.info); }
 
 // ---------- L2 the field in the four games ----------
 function checkL2(T) {

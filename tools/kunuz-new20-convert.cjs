@@ -10,7 +10,7 @@ const {isDeepStrictEqual} = require('node:util');
 const ROOT = path.resolve(__dirname, '..');
 const DEFAULT_INPUT = path.resolve(ROOT, '../quest-review/kunuz-new-2026-10-19');
 const INPUT_SHA256 = 'f8a00ebf4c221db20244d1df6b9c44c1686bca869433a0deba30138d66af3124';
-const BANK_SHA256 = 'ea0f79621f28ecbb5aed00c19036db99e97403a52ace03b59f0ebabd8449a66f';
+const BANK_SHA256 = '2e70f6e3c70d8430828c80e35675f1ad50bb1a127488a41742c107d8f6e55e6c';
 const geoContext = {};
 vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'quest-data/kunuz-geo-index.js'), 'utf8'), geoContext);
 const GEO = geoContext.KUNUZ_GEO_INDEX;
