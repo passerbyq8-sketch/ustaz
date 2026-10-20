@@ -17,7 +17,7 @@
   const teamNew = i => ({ n: defaults[i], c: colors[i], symbol: i, score: 0, shows: 2 });
   const M = {
     game, ready: false, step: game === 'hub' ? 0 : 1, stage: game === 'hub' ? 'hub' : 'loading', cats: [], teams: [],
-    settings: { options: 'shown', reveals: 2, time: 30, customTime: 25, custom: false, difficulty: game === 'ghaws' ? 'depth' : game === 'harb' ? 'mixed' : 'points', cap: 10, shots: 1, flags: 2, win: 2, room: false },
+    settings: { options: 'shown', reveals: 2, time: 30, customTime: 25, custom: false, difficulty: game === 'ghaws' ? 'depth' : game === 'harb' ? 'mixed' : 'points', cap: 10, shots: 1, flags: 2, customFlags: false, customFlagsValue: 12, win: 2, room: false },
     slots: [], pool: [], used: new Set(), question: null, g: null, error: '', dialog: null, running: false,
     fallback: [], excluded: [], questionHistory: false, skipPop: false, lastStage: '', warMessage: '', warEvent: null, diveNative: null,
     result: null, audioUnlocked: false, muted: false, timer: null, lastAction: -Infinity
@@ -56,7 +56,7 @@
   }
   function header() {
     const audioIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4Z"/>' + (M.muted ? '<path d="m17 9 5 6m0-6-5 6"/>' : '<path d="M17 8q5 4 0 8M16 11q2 1 0 2"/>') + '</svg>';
-    return '<header class="j-header">' + (game !== 'hub' ? button('›', 'back', 'j-icon-btn j-back', 'aria-label="رجوع"') : '') + (game === 'hub' ? '<div class="j-brand">عزك<small>كنوز المعرفة</small></div>' : '<h1>' + names[game] + '</h1>') + (M.running ? '<span class="j-counter" aria-label="تقدم اللعب">' + ar(played()) + ' / ' + ar(M.slots.length || M.pool.length) + '</span>' : '') + button(audioIcon, 'mute', 'j-icon-btn', 'aria-label="' + (M.muted ? 'تشغيل الصوت' : 'كتم الصوت') + '" aria-pressed="' + !M.muted + '"') + button(Icons.icon('home'), 'home', 'j-icon-btn', 'aria-label="الرئيسية"') + '</header>';
+    return '<header class="j-header">' + (game !== 'hub' ? button('›', 'back', 'j-icon-btn j-back', 'aria-label="رجوع"') : '') + (game === 'hub' ? '<div class="j-brand">عزك<small>كنوز المعرفة</small></div>' : '<h1>' + names[game] + '</h1>') + (M.running ? '<span class="j-counter" aria-label="تقدم اللعب">' + ar(played()) + ' من ' + ar(M.slots.length || M.pool.length) + '</span>' : '') + button(audioIcon, 'mute', 'j-icon-btn', 'aria-label="' + (M.muted ? 'تشغيل الصوت' : 'كتم الصوت') + '" aria-pressed="' + !M.muted + '"') + button(Icons.icon('home'), 'home', 'j-icon-btn', 'aria-label="الرئيسية"') + '</header>';
   }
   function stepper() {
     if (!M.step || M.stage === 'results') return '';
@@ -95,10 +95,10 @@
       '<section class="j-form-card"><h2>الإعدادات</h2><label class="j-field">الخيارات</label>' + chips([['shown', 'ظاهرة'], ['hidden', 'مخفية']], s.options, 'options') +
       (s.options === 'hidden' ? '<label class="j-field" for="j-reveals">كم مرة تقدر كل فرقة تظهر الخيارات</label><input id="j-reveals" class="j-input" type="number" min="0" step="1" data-input="reveals" value="' + s.reveals + '">' : '') +
       '<label class="j-field">الوقت</label>' + chips([[15, ar(15)], [30, ar(30)], [45, ar(45)], [60, ar(60)], ['custom', 'مخصص'], [0, 'بلا وقت']], s.custom ? 'custom' : s.time, 'time') +
-      (s.custom ? '<label class="j-field" for="j-time">الوقت بالثواني</label><input id="j-time" class="j-input" type="number" min="1" step="1" data-input="customTime" value="' + s.customTime + '">' : '') +
+      (s.custom ? '<label class="j-field" for="j-time">الوقت بالثواني</label><input id="j-time" class="j-input" type="number" min="0" step="any" data-input="customTime" value="' + s.customTime + '">' : '') +
       '<label class="j-field">الصعوبة <span class="j-tag j-gold">تجريبي</span></label>' + chips(difficulty, s.difficulty, 'difficulty') + (game === 'board' || game === 'test' || game === 'hanna' ? '<p class="j-note">حسب النقاط: ٢٠٠ سهل · ٤٠٠ متوسط · ٦٠٠ صعب</p>' : '') +
       (game === 'ghaws' ? '<label class="j-field">حد العمق</label>' + chips([5, 7, 10, 15, 20, 30].map(n => [n, ar(n)]), s.cap, 'cap') : '') +
-      (game === 'harb' ? '<label class="j-field">رايات البداية لكل جزيرة</label>' + chips([[1, ar(1)], [2, ar(2)], [3, ar(3)]], s.flags, 'flags') + '<label class="j-field" for="j-shots">أسئلة الهجوم</label><input id="j-shots" class="j-input" data-input="shots" type="number" min="1" max="10" value="' + s.shots + '"><label class="j-field">شرط الفوز</label>' + chips([[2, 'بحران'], [9, 'الأرخبيل كله']], s.win, 'win') : '') +
+      (game === 'harb' ? '<label class="j-field">رصيد توزيع الرايات بحسب جزر الفريق</label>' + chips([[1, ar(1)], [2, ar(2)], [3, ar(3)], ['custom', 'مخصص']], s.customFlags ? 'custom' : s.flags, 'flags') + (s.customFlags ? '<label class="j-field" for="j-flags">رصيد الرايات لكل فريق</label><input id="j-flags" class="j-input" data-input="customFlagsValue" type="number" min="2" max="60" value="' + s.customFlagsValue + '">' : '') + '<p class="j-note">لكل جزيرة راية حارس، وتوزعون رصيدكم كيف ما تبون.</p><label class="j-field" for="j-shots">أسئلة الهجوم</label><input id="j-shots" class="j-input" data-input="shots" type="number" min="1" max="10" value="' + s.shots + '"><label class="j-field">شرط الفوز</label>' + chips([[2, 'بحران'], [9, 'الأرخبيل كله']], s.win, 'win') : '') +
       (game === 'harb' || game === 'hanna' ? '<label class="j-field">طريقة اللعب</label>' + chips([[false, 'جهاز واحد'], [true, 'غرفة وجوالات']], s.room, 'room') : '') + '</section>' +
       (M.error ? '<div class="j-error" role="alert">' + esc(M.error) + '</div>' : '') + '<div class="j-actions">' + button('ابدأ اللعب', 'start') + '</div>' +
       (game === 'hanna' || game === 'harb' ? button('الانضمام إلى غرفة موجودة', 'join-room', 'j-room-link j-secondary') : '');
@@ -119,7 +119,7 @@
   }
   function shownOptions(q) { return M.settings.options === 'shown' || q.showTeams.has(q.activeTeam ?? q.actor) || q.answerRevealed; }
   function questionText(q) { return global.DATA.qs[q.index]; }
-  function meta(q) { return '<span class="j-tag">' + esc(catName(questionText(q)[0])) + ' • ' + (q.slotIndex !== undefined ? ar(M.slots[q.slotIndex].pts) + ' نقطة' : 'دور ' + esc(M.teams[q.actor].n)) + '</span>'; }
+  function meta(q) { return '<span class="j-tag">' + esc(catName(questionText(q)[0])) + ' • ' + (q.slotIndex !== undefined ? ar(M.slots[q.slotIndex].pts) + ' نقطة' : 'دور ' + esc(M.teams[q.actor].n)) + '</span>' + (M.settings.options === 'hidden' ? ' <span class="j-tag">إظهار الخيارات: ' + ar(M.teams[q.activeTeam ?? q.actor].shows) + '</span>' : ''); }
   function answers(q, host = false) {
     const data = questionText(q);
     if (!shownOptions(q)) return '';
@@ -302,7 +302,18 @@
     if (game === 'harb') { global.stop(); global.stopFx(); global.clearT(); }
     M.question = null; M.running = false; M.questionHistory = false;
   }
-  function leaveToSettings() { cancelPlay(); M.error = ''; setStage('settings', 2); history.replaceState({ journey: true, step: 2 }, ''); }
+  function leaveToSettings() {
+    const questionEntry = M.questionHistory;
+    cancelPlay(); M.error = ''; setStage('settings', 2);
+    if (history.state?.journey && history.state.step === 3) { M.skipPop = true; history.go(questionEntry ? -2 : -1); }
+    else history.replaceState({ journey: true, step: 2 }, '');
+  }
+  function restartSetup() {
+    const questionEntry = M.questionHistory, step = history.state?.step || 1;
+    cancelPlay(); M.error = ''; setStage('categories', 1);
+    if (history.state?.journey && step > 1) { M.skipPop = true; history.go(-(step - 1 + (questionEntry ? 1 : 0))); }
+    else history.replaceState({ journey: true, step: 1 }, '');
+  }
   function homeExit() { try { sessionStorage.setItem('ezik_resume_section_v1', 'home'); } catch (_) {} location.href = '/'; }
   function back() {
     if (M.stage === 'room') { askDialog('تطلعون من الغرفة وترجعون للإعدادات؟', () => { location.href = game === 'hanna' ? '/hanna-laha/' : '/quest-harb.html'; }); return; }
@@ -311,12 +322,12 @@
       else askDialog('ترجعون للوحة وتتركون السؤال بلا نقاط؟', abandonQuestion);
     } else if (M.running) askDialog('تتركون اللعبة وترجعون للفرق والإعدادات؟', leaveToSettings);
     else if (M.step === 2) { M.error = ''; history.back(); }
-    else if (M.stage === 'results') { setStage('settings', 2); history.replaceState({ journey: true, step: 2 }, ''); }
+    else if (M.stage === 'results') leaveToSettings();
     else location.href = '/quest.html';
   }
   function begin() {
     const s = M.settings;
-    if (!Number.isInteger(time()) || time() < 0 || s.custom && time() === 0 || !Number.isInteger(s.reveals) || s.reveals < 0 || !Number.isInteger(s.shots) || s.shots < 1 || s.shots > 10) { M.error = 'اكتبوا قيمة صحيحة للوقت والخيارات والإعدادات.'; render(); return; }
+    if (!Number.isFinite(time()) || time() < 0 || s.custom && time() === 0 || !Number.isInteger(s.reveals) || s.reveals < 0 || !Number.isInteger(s.shots) || s.shots < 1 || s.shots > 10 || s.customFlags && (!Number.isInteger(s.customFlagsValue) || s.customFlagsValue < 2 || s.customFlagsValue > 60)) { M.error = 'اكتبوا قيمة صحيحة للوقت والخيارات والإعدادات.'; render(); return; }
     if (s.room) { enterRoom(false); return; }
     global.seenRead();
     const all = Model.categories();
@@ -507,7 +518,7 @@
     const w = global.G;
     w.players = M.teams.map((t, i) => ({ n: t.n, c: i })); w.cats = M.cats.slice();
     w.fuse = time() * 1000; w.winRule = M.settings.win; w.shots = M.settings.shots; w.noOpts = M.settings.options === 'hidden';
-    w.deployMul = M.settings.flags; w.deployFree = -1; w.roomCfg = false;
+    w.deployMul = M.settings.flags; w.deployFree = M.settings.customFlags ? M.settings.customFlagsValue : -1; w.roomCfg = false;
     w.slotCat = global.WarEngine.buildSlots(w.cats, poolLeft(), Math.random);
     global.WarEngine.newWar(w, Math.random, poolLeft()); M.g = w;
     M.warMessage = ''; setStage('war', 3);
@@ -563,10 +574,11 @@
     M.result = { title: winners.length > 1 ? 'تعادل بين ' + winners.map(row => '«' + M.teams[row.index].n + '»').join(' و') : 'الفائز «' + M.teams[rows[0].index].n + '»', note: reason === 'dormant' ? 'انتهت مغامرة الجزر؛ الحسم بالجزر ثم الرايات.' : 'الحسم بالجزر ثم الرايات.', rows };
     setStage('results', 4);
   }
-  async function enterRoom(join) {
+  async function enterRoom(join, preserveRoute = false) {
     // Rooms continue to use the shipped front-end and worker's current protocol.
     // Local pack IDs are deliberately never sent to a server with a different bank.
     if (!join && M.cats.some(c => c >= 53)) { M.error = 'الغرف تستعمل بنك خادمها الحالي. اختاروا فئات البنك للغرفة، أو العبوا بهذه الفئات على جهاز واحد.'; render(); return; }
+    if (!join && (game === 'hanna' && (!Number.isInteger(time()) || time() < 10 || time() > 600 || M.settings.reveals > 99) || game === 'harb' && (time() !== 0 && (time() < 3 || time() > 600 || !Number.isInteger(time() * 1000))))) { M.error = 'هذا الوقت أو رصيد الخيارات خارج ما يقبله خادم الغرف الحالي؛ اختاروا إعدادًا آخر أو العبوا على جهاز واحد.'; render(); return; }
     M.error = ''; cancelPlay(); M.stage = 'room'; M.step = 3; render();
     document.body.classList.add('journey-room');
     if (game === 'harb') {
@@ -576,7 +588,7 @@
         global.roomCfg();
         global.G.cats = M.cats.slice(); global.G.players = M.teams.map((t, i) => ({ n: t.n, c: i }));
         global.G.fuse = time() * 1000; global.G.noOpts = M.settings.options === 'hidden';
-        global.G.shots = M.settings.shots; global.G.deployMul = M.settings.flags; global.G.winRule = M.settings.win;
+        global.G.shots = M.settings.shots; global.G.deployMul = M.settings.flags; global.G.deployFree = M.settings.customFlags ? M.settings.customFlagsValue : -1; global.G.winRule = M.settings.win;
         global.drawPlayers(); global.drawCats(); global.drawFuses(); global.drawOpMode(); global.drawShots(); global.drawDeploy(); global.drawWins();
       }
     } else if (game === 'hanna') {
@@ -585,14 +597,15 @@
       const css = ['Page-oyXYdFLk.css', 'index-BYf54ooy.css'];
       for (const file of css) { const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = '/hanna-laha/assets/' + file; document.head.append(link); }
       const module = document.createElement('script'); module.type = 'module'; module.src = '/hanna-laha/assets/index-BUia-DKT.js';
+      try { localStorage.setItem('hl-ezik.sound', 'false'); } catch (_) {}
       if (!join) {
         const roomColors = ['blue','orange','purple','green','gold','pink','teal','brown','navy','olive','red','maroon'];
         const setup = { teams: M.teams.map((t, i) => ({ name: t.n.trim() || defaults[i], color: roomColors[i] })), perCat: 6, timeSec: time(), categories: M.cats.map(c => global.DATA.cats[c][0]), mode: M.settings.options === 'hidden' ? 'free' : 'options', reveals: M.settings.reveals, roomCode: null };
         // These are the existing room UI's own setup preferences, not account data.
-        try { localStorage.setItem('hl-ezik.setup', JSON.stringify(setup)); } catch (_) {}
+        try { localStorage.setItem('hl-ezik.setup', JSON.stringify(setup)); localStorage.setItem('hl-ezik.sound', 'false'); } catch (_) {}
       }
       const route = join ? 'join' : 'setup';
-      history.replaceState({ journey: true, step: 3, rooms: true }, '', '/hanna-laha/' + route + '?rooms=1');
+      if (!preserveRoute) history.replaceState({ journey: true, step: 3, rooms: true }, '', '/hanna-laha/' + route + '?rooms=1');
       document.head.append(module);
       if (!join) bridgeHannaSetup();
     }
@@ -627,7 +640,8 @@
     else if (action === 'setting') {
       const field = el.dataset.field, value = el.dataset.value;
       if (field === 'time') { M.settings.custom = value === 'custom'; if (!M.settings.custom) M.settings.time = +value; }
-      else if (['cap', 'flags', 'win'].includes(field)) M.settings[field] = +value;
+      else if (field === 'flags') { M.settings.customFlags = value === 'custom'; if (!M.settings.customFlags) M.settings.flags = +value; }
+      else if (['cap', 'win'].includes(field)) M.settings[field] = +value;
       else M.settings[field] = value === 'true' ? true : value === 'false' ? false : value;
       M.error = ''; render();
     }
@@ -664,7 +678,7 @@
     else if (action === 'leave') askDialog('تتركون اللعبة وترجعون للفرق والإعدادات؟', leaveToSettings);
     else if (action === 'dialog-yes') closeDialog(true);
     else if (action === 'dialog-no') closeDialog(false);
-    else if (action === 'again') { cancelPlay(); M.error = ''; setStage('categories', 1); history.replaceState({ journey: true, step: 1 }, ''); }
+    else if (action === 'again') restartSetup();
     else if (action === 'reload') location.reload();
     else if (action === 'join-room') enterRoom(true);
   }
@@ -709,10 +723,16 @@
     if (document.hidden) { hiddenAt = performance.now(); stopSounds(); }
     else if (hiddenAt && M.question) { M.question.deadline += performance.now() - hiddenAt; M.question.started += performance.now() - hiddenAt; hiddenAt = 0; }
   });
+  document.addEventListener('click', event => {
+    if (M.stage === 'room' && event.target.closest('#root button')) { M.audioUnlocked = true; sound('tap'); }
+  });
   global.addEventListener('pagehide', () => { clearTimer(); stopSounds(); Motion?.dispose(); });
   global.KunuzJourney = Object.freeze({ get state() { return M; }, get diagnostics() { return { bankStamp: typeof global.seenStamp === 'function' ? global.seenStamp() : '', excluded: M.excluded, fallback: M.fallback, categories: game === 'hub' ? [] : Model.categories().map(c => ({ name: c.name, total: c.count })) }; } });
   async function boot() {
     if (game === 'hub') { M.ready = true; render(); return; }
+    if (game === 'hanna' && (/^\/hanna-laha\/(?:join|host|j\/\d{4,6})\/?$/.test(path) || /\/setup\/?$/.test(path) && new URLSearchParams(location.search).has('rooms'))) {
+      M.ready = true; await enterRoom(true, true); return;
+    }
     history.replaceState({ journey: true, step: 1 }, ''); render();
     try {
       if (!global.DATA || !global.KZV) throw new Error('ملفات المغامرة غير متاحة. افتحوا الصفحة متصلين مرة لتكتمل الملفات المحلية.');
