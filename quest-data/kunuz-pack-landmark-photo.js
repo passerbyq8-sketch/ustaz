@@ -1,6 +1,6 @@
 KZV.register({
   "slug": "landmark-photo",
-  "stamp": "124-b267605d",
+  "stamp": "121-86446ffa",
   "cats": [
     {
       "id": "landmark-photo",
@@ -910,35 +910,6 @@ KZV.register({
       }
     },
     {
-      "id": "landmark-photo-0070",
-      "cat": "landmark-photo",
-      "type": "mcq",
-      "fmt": "photo",
-      "q": "هذا المعلم في أي دولة؟",
-      "choices": [
-        "فرنسا",
-        "البرتغال",
-        "إيطاليا",
-        "إسبانيا"
-      ],
-      "answer": 2,
-      "why": "جسر بونتي فيكيو في إيطاليا.",
-      "src": [
-        "https://commons.wikimedia.org/wiki/File:Ponte_Vecchio_Venecia.jpg"
-      ],
-      "level": 2,
-      "status": "approved",
-      "vis": {
-        "kind": "photo",
-        "effect": "plain",
-        "src": "quest-data/photos/landmarks/l0070.jpg",
-        "credit": {
-          "author": "Diego Pierdant",
-          "license": "CC BY-SA 4.0"
-        }
-      }
-    },
-    {
       "id": "landmark-photo-0073",
       "cat": "landmark-photo",
       "type": "mcq",
@@ -993,35 +964,6 @@ KZV.register({
         "credit": {
           "author": "Naotake Murayama",
           "license": "CC BY 2.0"
-        }
-      }
-    },
-    {
-      "id": "landmark-photo-0076",
-      "cat": "landmark-photo",
-      "type": "mcq",
-      "fmt": "photo",
-      "q": "هذا المعلم في أي دولة؟",
-      "choices": [
-        "إسبانيا",
-        "البرتغال",
-        "إيطاليا",
-        "فرنسا"
-      ],
-      "answer": 0,
-      "why": "الجسر الجديد في رندة في إسبانيا.",
-      "src": [
-        "https://commons.wikimedia.org/wiki/File:Puente-Nuevo-Ronda.jpg"
-      ],
-      "level": 2,
-      "status": "approved",
-      "vis": {
-        "kind": "photo",
-        "effect": "plain",
-        "src": "quest-data/photos/landmarks/l0076.jpg",
-        "credit": {
-          "author": "Peperle",
-          "license": "CC BY-SA 4.0"
         }
       }
     },
@@ -1138,35 +1080,6 @@ KZV.register({
         "credit": {
           "author": "F.Eveleens",
           "license": "CC BY 3.0"
-        }
-      }
-    },
-    {
-      "id": "landmark-photo-0087",
-      "cat": "landmark-photo",
-      "type": "mcq",
-      "fmt": "photo",
-      "q": "هذا المعلم في أي دولة؟",
-      "choices": [
-        "إيطاليا",
-        "سويسرا",
-        "النمسا",
-        "فرنسا"
-      ],
-      "answer": 1,
-      "why": "نافورة جنيف في سويسرا.",
-      "src": [
-        "https://commons.wikimedia.org/wiki/File:Le_jet_d-eau_de_Gen%C3%A8ve.jpg"
-      ],
-      "level": 2,
-      "status": "approved",
-      "vis": {
-        "kind": "photo",
-        "effect": "plain",
-        "src": "quest-data/photos/landmarks/l0087.jpg",
-        "credit": {
-          "author": "Bernard Vogel",
-          "license": "CC BY-SA 4.0"
         }
       }
     },

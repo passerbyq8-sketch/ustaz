@@ -372,18 +372,6 @@
     "changes": "Cropped; resized to 800 px; JPEG compression"
   },
   {
-    "id": "landmark-photo-0070",
-    "file": "quest-data/photos/landmarks/l0070.jpg",
-    "landmark": "جسر بونتي فيكيو",
-    "country": "إيطاليا",
-    "author": "Diego Pierdant",
-    "license": "CC BY-SA 4.0",
-    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source_url": "https://commons.wikimedia.org/wiki/File:Ponte_Vecchio_Venecia.jpg",
-    "sha256": "391c1d3e72aa5f15529fd064bae13089c2bf4eb54bd75bbffbd316aa13d56b72",
-    "changes": "Resized to 800 px; JPEG compression"
-  },
-  {
     "id": "landmark-photo-0073",
     "file": "quest-data/photos/landmarks/l0073.jpg",
     "landmark": "مدينة الفنون والعلوم",
@@ -406,18 +394,6 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Museo_Guggenheim,_Bilbao_(31273245344).jpg",
     "sha256": "7e9a81b21615046f74b9707a59bf8ad39b2983770924e98c06c33cc897719d9f",
     "changes": "Cropped; resized to 800 px; JPEG compression"
-  },
-  {
-    "id": "landmark-photo-0076",
-    "file": "quest-data/photos/landmarks/l0076.jpg",
-    "landmark": "الجسر الجديد في رندة",
-    "country": "إسبانيا",
-    "author": "Peperle",
-    "license": "CC BY-SA 4.0",
-    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source_url": "https://commons.wikimedia.org/wiki/File:Puente-Nuevo-Ronda.jpg",
-    "sha256": "ae1948f4b2706c24b6ae9b45e2cb60f3e37d41be84ce036b4bcc18d443fc98cc",
-    "changes": "Resized to 800 px; JPEG compression"
   },
   {
     "id": "landmark-photo-0079",
@@ -466,18 +442,6 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Rotterdam_erasmusbrug.jpg",
     "sha256": "98d945f801e5bd547562c5fc1432430e6cb0321c99cb0dea5cf8b66f67004490",
     "changes": "Cropped; resized to 800 px; JPEG compression"
-  },
-  {
-    "id": "landmark-photo-0087",
-    "file": "quest-data/photos/landmarks/l0087.jpg",
-    "landmark": "نافورة جنيف",
-    "country": "سويسرا",
-    "author": "Bernard Vogel",
-    "license": "CC BY-SA 4.0",
-    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source_url": "https://commons.wikimedia.org/wiki/File:Le_jet_d-eau_de_Gen%C3%A8ve.jpg",
-    "sha256": "554d98765f7aef44af6fd338e4926196c4ebe25fcec8ba2d6807cb3d994217f4",
-    "changes": "Resized to 800 px; JPEG compression"
   },
   {
     "id": "landmark-photo-0090",
@@ -632,8 +596,8 @@
     "license": "CC BY-SA 4.0",
     "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
     "source_url": "https://commons.wikimedia.org/wiki/File:Azadi_Tower,_Tehran.jpg",
-    "sha256": "2a3cf11fd8aa1c75697be7e00346a87053f611bb57efdf9616f777fe2323998f",
-    "changes": "Resized to 800 px; JPEG compression"
+    "sha256": "d6b7ea1e11360c089a4323714e29eddb814c051a6ebfa6b86901c61368dc034f",
+    "changes": "Cropped; resized to 800 px; JPEG compression"
   },
   {
     "id": "landmark-photo-0112",
