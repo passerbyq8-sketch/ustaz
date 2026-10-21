@@ -136,7 +136,7 @@ const PROBE_ALT = {
   const PG = await esm('lib/source-page-gates.js');
   // ـ١١٢ — through the ONE reader guards/live-world-v2-killswitch-guard.cjs allows. A second
   // process.env read of this flag is a second opinion about what «off» means, and the gate says so.
-  const LW = await esm(lib/live-world-v2.js);
+  const LW = await esm('lib/live-world-v2.js');
 
   const registered = R.SOURCES.map((s) => s.domain).filter(Boolean);
   const rows = [];
@@ -275,7 +275,7 @@ const PROBE_ALT = {
     // ـ١١٢ — the three world news hosts have policy rows that policyFor() hides while LIVE_WORLD_V2 is
     // off, so the same probe reaches them or does not depending on one variable. A file that does not say
     // which way that variable was set is a file nobody can re-measure.
-    measuredWith: { [LW.LIVE_WORLD_V2_FLAG]: LW.liveWorldV2Enabled() ? on : off },
+    measuredWith: { [LW.LIVE_WORLD_V2_FLAG]: LW.liveWorldV2Enabled() ? 'on' : 'off' },
     states: {
       'live-cites': 'the page came back and cleared every gate — a citation is producible',
       'live-no-citation': 'the host served bytes, but the page does not survive the gates',

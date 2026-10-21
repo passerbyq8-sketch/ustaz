@@ -1,9 +1,9 @@
 {
   "target": "ezik",
   "version": "0.4.0",
-  "gitSha": "c8967be",
+  "gitSha": "a4e8c68",
   "protocolVersion": 4,
-  "bankSha8": "6c9f240a",
+  "bankSha8": "30e51d5f",
   "frontUrl": "https://ezik.app/hanna-laha",
   "apiOrigin": "https://hanna-laha.hl-worker.workers.dev",
   "basePath": "/hanna-laha",

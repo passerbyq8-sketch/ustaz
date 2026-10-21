@@ -38,7 +38,7 @@ async function assets(page, name) {
 async function sheet(browser, cards, name) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 1350 }, deviceScaleFactor: 1 });
   await page.goto(base + '/quest.html'); await ready(page);
-  await page.setContent('<style>@font-face{font-family:Plex;src:url("' + base + '/quest-theme/assets/regular.ttf?v=20261020-flash4")}*{box-sizing:border-box}body{margin:0;padding:12px;background:#082c38;color:#fff8eb;font:16px Plex,Arial;display:grid;grid-template-columns:repeat(8,1fr);gap:10px;direction:rtl}.card{height:136px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#164755;border:1px solid #ffe6a34d;border-radius:16px;text-align:center;padding:7px;line-height:1.4}svg{width:76px;height:76px;flex:none}.name{padding-top:6px}</style>' + cards.map(c => '<div class="card">' + c.svg + '<div class="name">' + c.name + '</div></div>').join(''));
+  await page.setContent('<style>@font-face{font-family:Plex;src:url("' + base + '/quest-theme/assets/regular.ttf?v=20261021-room1")}*{box-sizing:border-box}body{margin:0;padding:12px;background:#082c38;color:#fff8eb;font:16px Plex,Arial;display:grid;grid-template-columns:repeat(8,1fr);gap:10px;direction:rtl}.card{height:136px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#164755;border:1px solid #ffe6a34d;border-radius:16px;text-align:center;padding:7px;line-height:1.4}svg{width:76px;height:76px;flex:none}.name{padding-top:6px}</style>' + cards.map(c => '<div class="card">' + c.svg + '<div class="name">' + c.name + '</div></div>').join(''));
   await page.evaluate(() => document.fonts.ready); await page.screenshot({ path: path.join(out, name + '.png'), fullPage: true }); await page.close();
 }
 (async () => {
@@ -63,9 +63,9 @@ async function sheet(browser, cards, name) {
     // Corrupt each critical persistent response. The worker must reject its
     // bytes and restore the real network response before showing the hub.
     record.corruption = await page.evaluate(async () => {
-      const name = (await indexedDB.databases()).find(db => db.name.startsWith('kunuz-treasure-assets-20261020-flash4')).name;
+      const name = (await indexedDB.databases()).find(db => db.name.startsWith('kunuz-treasure-assets-20261021-room1')).name;
       const db = await new Promise((resolve, reject) => { const r = indexedDB.open(name); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
-      const keys = ['regular.ttf','bold.ttf','ocean-clean.webp','islands.webp'].map(name => '/quest-theme/assets/' + name + '?v=20261020-flash4');
+      const keys = ['regular.ttf','bold.ttf','ocean-clean.webp','islands.webp'].map(name => '/quest-theme/assets/' + name + '?v=20261021-room1');
       await new Promise((resolve, reject) => { const tx = db.transaction('assets','readwrite'); for (const key of keys) tx.objectStore('assets').put({ body: new Uint8Array([0]).buffer, status: 200, headers: [['content-type','text/html']] }, key); tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); });
       db.close(); return { database: name, keys };
     });

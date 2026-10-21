@@ -115,7 +115,7 @@ check('offline caching has only Kunuz scopes and never intercepts Ezik pages or 
   assert.match(page, /for \(const scope of \['\/quest', '\/hanna-laha\/'\]\)/);
   assert.doesNotMatch(page, /scope:\s*['"]\/['"]/);
   assert.match(source, /key\.startsWith\('kunuz-treasure-'\)/);
-  assert.match(source, /const VERSION = '20261020-flash4'/);
+  assert.match(source, /const VERSION = '20261021-room1'/);
   assert.match(source, /const DATABASE = DATABASE_PREFIX \+ VERSION/);
   assert.match(source, /entry\.name\?\.startsWith\(DATABASE_PREFIX\)/);
   assert.doesNotMatch(source, /caches\.open/);
@@ -137,7 +137,7 @@ check('all first-paint bootstraps and font preloads are identical; Hanna CSP aut
   const scripts = [];
   for (const file of pages) {
     const html = read(file).replace(/\r\n/g,'\n'), code = html.match(/<script>([\s\S]*?)<\/script>/)[1]; scripts.push(code);
-    assert.ok(html.indexOf('quest-theme/theme.css?v=20261020-flash4') < html.indexOf('<body>'));
+    assert.ok(html.indexOf('quest-theme/theme.css?v=20261021-room1') < html.indexOf('<body>'));
     assert.equal((html.match(/as="font" type="font\/ttf" crossorigin/g) || []).length, 2);
     assert.match(code, /setTimeout\(fallback, 4000\)/); assert.match(code,/img\.decode\(\)/);
     assert.match(code, /console\.warn/); assert.match(code, /clearTimeout\(timer\)/);
@@ -170,7 +170,7 @@ async function workerProof() {
     importScripts:()=>{},
     indexedDB: {
       open() { const req = {}; queueMicrotask(() => { req.result = db; req.onsuccess(); }); return req; },
-      databases:async()=>[{name:'kunuz-treasure-assets-20261020-v1'},{name:'kunuz-treasure-assets-20261020-flash4'},{name:'account-history'}],
+      databases:async()=>[{name:'kunuz-treasure-assets-20261020-v1'},{name:'kunuz-treasure-assets-20261021-room1'},{name:'account-history'}],
       deleteDatabase(name) { deleted.push(name); const req = {}; queueMicrotask(() => req.onsuccess()); return req; }
     },
     caches: { keys:async()=>['kunuz-treasure-old','ezik-main'], delete:async name=>{deleted.push(name)} },
@@ -192,7 +192,7 @@ async function workerProof() {
   offline = true;
   assert.equal(await (await fetchPage('https://preview.example/quest.html')).text(),'<html>v2</html>');
   offline = false;
-  const key = '/quest-theme/assets/regular.ttf?v=20261020-flash4';
+  const key = '/quest-theme/assets/regular.ttf?v=20261021-room1';
   stored.set(key,{body:encode('broken font'),status:200,headers:[['content-type','text/html']]});
   const font = await fetchPage('https://preview.example' + key);
   assert.equal(crypto.createHash('sha256').update(Buffer.from(await font.arrayBuffer())).digest('hex'),integrity['/quest-theme/assets/regular.ttf']);
