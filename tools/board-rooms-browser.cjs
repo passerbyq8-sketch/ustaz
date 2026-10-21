@@ -17,18 +17,17 @@ module.exports = async function boardRoomsBrowser(h) {
     await context.route('**/*',route=>{const request=route.request(),origin=new URL(request.url()).origin;if(origin===base||origin===api)return route.continue();record.blockedExternal.push(origin);return route.abort();});
     await context.addInitScript(origin=>{
       window.KUNUZ_BOARD_API_ORIGIN=origin;localStorage.setItem('kunuz_journey_muted_v1','1');
-      window.__boardErrors=[];window.__boardConnections=0;
+      window.__boardConnections=0;
       const Native=window.WebSocket;
-      window.WebSocket=class extends Native {constructor(...args){super(...args);if(String(args[0]).includes('/ws/board/')){window.__boardSocket=this;window.__boardConnections++;this.addEventListener('message',e=>{if(e.data==='pong')return;try{const m=JSON.parse(e.data);if(m.t==='error')window.__boardErrors.push(m.code);}catch{}});}}};
+      window.WebSocket=class extends Native {constructor(...args){super(...args);if(String(args[0]).includes('/ws/board/')){window.__boardSocket=this;window.__boardConnections++;}}};
     },api);
-    const page=await context.newPage();page.on('pageerror',error=>record.errors.push(error.message));
+    const page=await context.newPage(),tracker={closing:false};page.on('pageerror',error=>record.errors.push(error.message));
+    page.on('websocket',socket=>socket.on('framereceived',frame=>{if(typeof frame.payload!=='string'||frame.payload==='pong')return;let message;try{message=JSON.parse(frame.payload);}catch{return;}if(message.t==='error'){if(tracker.closing&&message.code==='ROOM_CLOSED')record.boardRooms.normalRoomClosures++;else record.boardRooms.unexpectedProtocolErrors.push(message.code);}}));
     await page.goto(base+'/quest-board.html'+suffix);await page.waitForFunction(()=>KunuzJourney?.state.ready&&!document.documentElement.classList.contains('kunuz-theme-pending'));
     await page.evaluate(()=>document.fonts.ready);
-    return {page,context};
+    return {page,context,tracker};
   }
-  async function cleanup(x,normalClose=false) {
-    const codes=await x.page.evaluate(()=>window.__boardErrors||[]);
-    for(const code of codes){if(normalClose&&code==='ROOM_CLOSED')record.boardRooms.normalRoomClosures++;else record.boardRooms.unexpectedProtocolErrors.push(code);}
+  async function cleanup(x) {
     await x.context.close();
   }
   async function selectCats(page) {for(const cat of [0,53,69])await click(page,'[data-action="cat"][data-cat="'+cat+'"]');await click(page,'[data-action="next-setup"]');}
@@ -91,11 +90,17 @@ module.exports = async function boardRoomsBrowser(h) {
       if(i===1){await q.reload();await q.waitForFunction(()=>KunuzJourney.boardRooms?.snapshot?.self.role==='team');check('Reload restores room, role, score and board '+width,{code:(await current(q)).code,score:(await current(q)).teams[0].score,phase:(await current(q)).phase},{code,score:600,phase:'board'});}
     }
     check('Room questions do not repeat '+width,new Set(chosen).size,3);
+    await click(q,'[data-action="br-leave"]');await click(q,'[data-action="dialog-yes"]');await at(q,'room-entry');await q.reload();await at(q,'room-entry');
+    check('An explicit exit stays at the entry screen after reload '+width,await q.evaluate(()=>KunuzJourney.state.stage),'room-entry');
+    await click(q,'[data-action="join-room"]');await q.locator('[data-join-draft]').fill(code);await click(q,'[data-action="join-submit"]');await q.waitForFunction(()=>KunuzJourney.boardRooms?.snapshot?.self.role==='team');
+    check('Rejoining after exit restores the original team and score '+width,{slot:(await current(q)).self.slot,score:(await current(q)).teams[0].score},{slot:0,score:1200});
     if(!live){
       const count=await q.evaluate(()=>window.__boardConnections);await q.evaluate(()=>window.__boardSocket.close());await q.waitForFunction(n=>window.__boardConnections>n&&KunuzJourney.boardRooms?.connected,count);check('Disconnect and reconnect retain the score '+width,(await current(q)).teams[0].score,1200);
       for(let guard=0;guard<18;guard++){const s=await current(p);if(s.phase==='results')break;const slot=s.slots.findIndex(t=>!t.used);await click(p,'[data-action="tile"][data-slot="'+slot+'"]');await phase(p,'question');await click(p,'[data-action="reveal-answer"]');await p.waitForFunction(()=>KunuzJourney.boardRooms?.snapshot?.question?.revealed);await click(p,'[data-action="award"][data-team="-1"]');await p.waitForFunction(()=>KunuzJourney.boardRooms?.snapshot?.phase!=='question');}
       await phase(p,'results');await phase(q,'results');check('Finishing every card preserves the exact awarded score '+width,(await current(p)).teams[0].score,1200);await shot(p,'board-room-results-'+width);await click(p,'[data-action="br-rematch"]');await phase(p,'board');check('Rematch resets points and advances the game number '+width,{score:(await current(p)).teams[0].score,gameNumber:(await current(p)).gameNumber},{score:0,gameNumber:2});
     }
+    if(!live){await host.context.setOffline(true);await p.evaluate(()=>window.__boardSocket.close());await p.waitForFunction(()=>KunuzJourney.boardRooms?.connected===false);check('Offline host exit has an honest temporary-exit label '+width,await p.locator('[data-action="br-leave"]').innerText(),'الخروج مؤقتًا');await click(p,'[data-action="br-leave"]');await click(p,'[data-action="dialog-yes"]');await at(p,'room-entry');await host.context.setOffline(false);await p.reload();await at(p,'room-entry');await click(p,'[data-action="join-room"]');await p.locator('[data-join-draft]').fill(code);await click(p,'[data-action="join-submit"]');await p.waitForFunction(()=>KunuzJourney.boardRooms?.snapshot?.self.role==='host');check('Host ownership survives a temporary offline exit '+width,(await current(p)).self.role,'host');}
+    host.tracker.closing=true;phone.tracker.closing=true;if(extra)extra.tracker.closing=true;
     await click(p,'[data-action="br-leave"]');await click(p,'[data-action="dialog-yes"]');await at(p,'room-entry');await at(q,'room-entry');if(extra)await at(extra.page,'room-entry');
     await cleanup(host,true);await cleanup(phone,true);if(extra)await cleanup(extra,true);
     if(!live){const local=await open(width);await click(local.page,'[data-action="single-device"]');await selectCats(local.page);await click(local.page,'[data-field="time"][data-value="0"]');await click(local.page,'[data-action="start"]');await at(local.page,'board');check('Without room uses the original local board '+width,await local.page.evaluate(()=>({stage:KunuzJourney.state.stage,room:KunuzJourney.state.settings.room,snapshot:KunuzJourney.boardRooms.snapshot})),{stage:'board',room:false,snapshot:null});await cleanup(local);}

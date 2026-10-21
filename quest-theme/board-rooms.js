@@ -12,7 +12,7 @@
     function identity() { try { let id = localStorage.getItem(DEVICE); if (!id) { id = 'board-' + crypto.randomUUID(); localStorage.setItem(DEVICE, id); } return id; } catch (_) { return S.device ||= 'board-' + crypto.randomUUID(); } }
     function save() { try { if (S.session) localStorage.setItem(KEY, JSON.stringify(S.session)); else localStorage.removeItem(KEY); } catch (_) {} }
     function stop() { S.stopped = true; clearTimeout(S.retry); clearInterval(S.heartbeat); clearInterval(S.ticks); if (S.socket) { S.socket.onclose = null; S.socket.close(); } S.socket = null; S.connected = false; }
-    function leave(clear = true) { stop(); if (clear) { S.session = null; save(); } S.snapshot = null; S.error = ''; S.busy = false; M.question = null; M.running = false; M.stage = 'room-entry'; M.step = 0; history.replaceState({ journey: true, stage: 'room-entry', step: 0 }, '', '/quest-board.html'); h.render(); }
+    function leave(retain = false) { stop(); if (retain && S.session && (S.session.hostToken || S.session.teamToken)) { S.session.active = false; save(); S.session = null; } else { S.session = null; save(); } S.snapshot = null; S.error = ''; S.busy = false; M.question = null; M.running = false; M.stage = 'room-entry'; M.step = 0; history.replaceState({ journey: true, stage: 'room-entry', step: 0 }, '', '/quest-board.html'); h.render(); }
     function permanent(code) {
       const wasOpen = !!S.snapshot, returnStage = S.returnStage; stop(); S.session = null; save(); S.snapshot = null; S.busy = false; M.question = null; M.running = false;
       if (wasOpen && code === 'ROOM_CLOSED') { leave(); return; }
@@ -75,7 +75,7 @@
       };
     }
     function enter(session, returnStage) {
-      stop(); S.session = session; S.snapshot = null; S.returnStage = returnStage; S.error = ''; save(); M.question = null; M.running = false; M.stage = 'board-room'; M.step = 0;
+      stop(); S.session = { ...session, active: true }; S.snapshot = null; S.returnStage = returnStage; S.error = ''; save(); M.question = null; M.running = false; M.stage = 'board-room'; M.step = 0;
       M.boardRoomUrl = '/quest-board.html?board=' + session.code;
       history.replaceState({ journey: true, stage: 'board-room', step: 3, rooms: true }, '', M.boardRoomUrl); h.render(); connect();
     }
@@ -99,7 +99,7 @@
       const code = new URLSearchParams(location.search).get('board'); let saved;
       try { saved = JSON.parse(localStorage.getItem(KEY)); } catch (_) {}
       if (code && /^\d{4,6}$/.test(code)) { enter(saved?.code === code ? saved : { code, role: 'candidate' }, 'room-join'); return true; }
-      if (saved && /^\d{4,6}$/.test(saved.code) && (saved.hostToken || saved.teamToken)) { enter(saved, 'room-entry'); return true; }
+      if (saved && saved.active !== false && /^\d{4,6}$/.test(saved.code) && (saved.hostToken || saved.teamToken)) { enter(saved, 'room-entry'); return true; }
       return false;
     }
     function card() {
@@ -107,7 +107,7 @@
     }
     const link = () => location.origin + '/quest-board.html?board=' + S.session.code;
     function roomHeading() {
-      return '<section class="j-form-card j-board-room-card"><h2>غرفة تحدّي الفئات</h2><bdi class="j-board-room-code j-gold" dir="ltr">' + ar(S.session.code) + '</bdi><p class="j-note" role="status">' + (S.connected ? 'متصلون بالغرفة' : 'انقطع الاتصال؛ نحاول الرجوع إلى الغرفة…') + '</p><div class="j-actions">' + button('نسخ رابط الانضمام', 'br-copy', 'j-secondary') + button(S.snapshot?.self.role === 'host' ? 'إغلاق الغرفة' : 'الخروج من الغرفة', 'br-leave', 'j-secondary') + '</div><input class="j-input" aria-label="رابط الانضمام" readonly dir="ltr" value="' + esc(link()) + '">' + (S.note ? '<p class="j-note" role="status">' + esc(S.note) + '</p>' : '') + '</section>';
+      return '<section class="j-form-card j-board-room-card"><h2>غرفة تحدّي الفئات</h2><bdi class="j-board-room-code j-gold" dir="ltr">' + ar(S.session.code) + '</bdi><p class="j-note" role="status">' + (S.connected ? 'متصلون بالغرفة' : 'انقطع الاتصال؛ نحاول الرجوع إلى الغرفة…') + '</p><div class="j-actions">' + button('نسخ رابط الانضمام', 'br-copy', 'j-secondary') + button(S.snapshot?.self.role === 'host' ? S.connected ? 'إغلاق الغرفة' : 'الخروج مؤقتًا' : 'الخروج من الغرفة', 'br-leave', 'j-secondary') + '</div><input class="j-input" aria-label="رابط الانضمام" readonly dir="ltr" value="' + esc(link()) + '">' + (S.note ? '<p class="j-note" role="status">' + esc(S.note) + '</p>' : '') + '</section>';
     }
     function lobby(s) {
       let html = '<h1 class="j-heading">جهّزوا فريقكم</h1><div class="j-teambar">' + s.teams.map((t, i) => '<div class="j-team" data-team-color="' + i + '"><b>' + h.sym(i) + esc(t.name) + '</b><small>' + (t.claimed ? t.online ? 'الفريق متصل' : 'بانتظار عودة الفريق' : 'متاح للانضمام') + '</small></div>').join('') + '</div>';
@@ -139,7 +139,7 @@
         return html + '<section class="j-results"><h1>' + (ranked.winners.length > 1 ? 'تعادل بين ' : 'الفائز ') + winner + '</h1>' + h.teamBar() + (s.self.role === 'host' ? '<div class="j-actions">' + button('العبوا مرة ثانية', 'br-rematch', 'j-btn', !S.connected ? 'disabled' : '') + '</div>' : '<p class="j-note">بانتظار صاحب الغرفة.</p>') + '</section>';
       }
       if (s.question && s.self.role !== 'host') return html + phoneQuestion(s);
-      let board = h.boardView();
+      let board = h.boardView().replace('>الفرق والإعدادات</button>', '>الخروج من الغرفة</button>');
       if (!s.canPick || !S.connected) board = board.replace(/data-action="tile"/g, 'data-action="tile" disabled');
       if (s.question) {
         let question = h.boardQuestion();
@@ -156,7 +156,7 @@
       const s = S.snapshot, q = s?.question;
       if (action === 'br-copy') { navigator.clipboard.writeText(link()).then(() => { S.note = 'نُسخ رابط الانضمام.'; h.render(); }).catch(() => { S.note = 'انسخوا رابط الانضمام من الحقل.'; h.render(); }); }
       else if (action === 'back' && q && s.self.role === 'host') h.askDialog('ترجعون للوحة وتتركون السؤال بلا نقاط؟', () => send({ t: 'abandon', qn: q.qn }), () => {});
-      else if (['br-leave', 'leave', 'back'].includes(action)) h.askDialog(s?.self.role === 'host' ? 'تغلقون الغرفة وتطلعون؟' : 'تطلعون من الغرفة؟', () => { if (s?.self.role === 'host' && S.connected) send({ t: 'close' }); leave(); }, () => {}, { yes: 'نعم، نطلع', no: 'لا، نبقى' });
+      else if (['br-leave', 'leave', 'back'].includes(action)) h.askDialog(s?.self.role === 'host' ? S.connected ? 'تغلقون الغرفة وتطلعون؟' : 'تطلعون مؤقتًا وتكملون من رقم الغرفة لاحقًا؟' : 'تطلعون من الغرفة؟', () => { const retain = s?.self.role !== 'host' || !S.connected; if (!retain) send({ t: 'close' }); leave(retain); }, () => {}, { yes: 'نعم، نطلع', no: 'لا، نبقى' });
       else if (action === 'br-seat' && s) { S.slot = +el.dataset.slot; S.name = s.teams[S.slot]?.name || ''; S.color = s.teams[S.slot]?.color ?? s.teams.length; h.render(); }
       else if (action === 'br-join-team') { if (!S.name.trim()) { S.error = 'اكتبوا اسم الفريق.'; h.render(); } else { S.busy = true; send({ t: 'join', name: S.name.trim(), color: S.color, ...(S.slot >= 0 ? { slot: S.slot } : {}) }); h.render(); } }
       else if (action === 'br-start' && s) send({ t: 'start', rev: s.version });
@@ -180,7 +180,7 @@
     }
     global.addEventListener('pagehide', () => stop());
     global.addEventListener('pageshow', event => { if (event.persisted && S.session) connect(); });
-    return Object.freeze({ create, card, view, handle, input, resume, join: code => enter({ code, role: 'candidate' }, 'room-join'), leave, get busy() { return S.busy; }, get active() { return !!S.session; }, get diagnostics() { return { connected: S.connected, snapshot: S.snapshot, error: S.error }; } });
+    return Object.freeze({ create, card, view, handle, input, resume, join: code => { let saved; try { saved = JSON.parse(localStorage.getItem(KEY)); } catch (_) {} enter(saved?.code === code ? saved : { code, role: 'candidate' }, 'room-join'); }, leave, get busy() { return S.busy; }, get active() { return !!S.session; }, get diagnostics() { return { connected: S.connected, snapshot: S.snapshot, error: S.error }; } });
   }
   global.KunuzBoardRooms = Object.freeze({ attach });
 })(window);
