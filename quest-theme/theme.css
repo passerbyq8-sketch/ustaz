@@ -272,3 +272,34 @@
 @media(min-width:620px){.ezik-treasure-theme .j-content,.ezik-treasure-theme .j-header{padding-left:max(27px,env(safe-area-inset-left));padding-right:max(27px,env(safe-area-inset-right))}.ezik-treasure-theme .journey-app[data-game=hanna]>.j-content,.ezik-treasure-theme .journey-app[data-stage=test-question]>.j-content{max-width:674px}.ezik-treasure-theme .j-sea{margin-inline:-27px}.ezik-treasure-theme .j-category-picker{grid-template-columns:repeat(3,minmax(0,1fr))}.ezik-treasure-theme .j-board-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ezik-treasure-theme .j-featured{min-height:240px}.ezik-treasure-theme .j-game-card{min-height:185px}.ezik-treasure-theme .j-game-card h2{font-size:23px}}
 @keyframes kunuz-journey-route{to{stroke-dashoffset:-18}}
 @media(prefers-reduced-motion:reduce){.ezik-treasure-theme *{animation:none!important;transition:none!important;scroll-behavior:auto!important}.ezik-treasure-theme .j-depth-track:before{transition:none!important}}
+
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-category-list{display:grid;gap:12px}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-category{width:100%;display:flex;align-items:center;gap:14px;min-height:72px;text-align:start;border-color:var(--journey-muted)}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-category>svg{width:35px;height:35px;flex:none}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-category>b{flex:1;min-width:0;overflow-wrap:anywhere;font-size:19px}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-category:disabled{opacity:.48;border-style:dashed}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-screen{width:100%;padding-block:5px}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-back{margin-bottom:14px}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-responders{display:flex;flex-wrap:wrap;gap:8px}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-responders>button{flex:1;min-width:0;overflow-wrap:anywhere}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-responders>[aria-pressed=true]{border-color:var(--journey-ink);font-weight:700}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-prompt{font-size:13px;margin-block:12px;color:var(--journey-ink)}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-confidence{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-block:14px}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-confidence>button{min-width:0;min-height:72px;padding:10px 5px}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-confidence b{display:block;font-size:19px}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-confidence small{display:block;font-size:12px}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-confidence [aria-pressed=true]{background:var(--journey-gold);border-color:var(--journey-ink);color:var(--journey-ink)}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-summary{margin-top:18px}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-summary h3{font-size:23px;margin-bottom:14px}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-summary .j-verdict{font-size:17px}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-start{max-width:620px;margin-inline:auto;padding-block:28px;text-align:center}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-count{border:0;padding:0;margin:28px 0}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-count legend{width:100%;margin-bottom:14px;font-size:19px}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-count .j-chips{justify-content:center}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-count .j-chip{min-width:72px;font-size:23px}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-screen{width:100%;max-width:620px;margin-inline:auto}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-position{font-size:14px;color:var(--journey-muted)}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-progress{height:7px;border-radius:7px;background:var(--journey-muted);overflow:hidden;margin:9px 0 22px}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-progress>i{display:block;height:100%;background:var(--journey-gold)}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-feedback{min-height:26px;margin-top:16px;font-size:15px;color:var(--journey-ink)}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-results .j-quiz-score{font-size:48px;line-height:1.4;color:var(--journey-gold);margin-block:24px}
