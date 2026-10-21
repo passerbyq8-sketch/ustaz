@@ -308,3 +308,5 @@
 .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-progress{display:flex;gap:5px;margin-top:8px}
 .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-dot{display:block;width:8px;height:8px;border-radius:50%;border:1px solid var(--journey-muted);background:transparent}
 .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-dot-filled{border-color:var(--journey-gold);background:var(--journey-gold)}
+.ezik-treasure-theme .journey-app:is([data-game=hanna],[data-game=harb]) .j-room-flow-code{display:block;font-size:34px;font-weight:700;line-height:1.4;letter-spacing:6px}
+.ezik-treasure-theme .journey-app:is([data-game=hanna],[data-game=harb]) .j-room-flow-editor{max-width:620px;margin-inline:auto}

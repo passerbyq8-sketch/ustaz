@@ -19,6 +19,9 @@
   const limits = { ghaws: [1, 6], harb: [2, 4], test: [1, 4], board: [2, 4], hanna: [2, 12] };
   const colors = ['#2482a4', '#cb785e', '#7b66c7', '#25856c', '#aa791e', '#b34b81', '#397889', '#88633e', '#555aa0', '#718047', '#a54347', '#715b89'];
   const defaults = ['الموج', 'الشروق', 'الأفق', 'المدى', 'النور', 'الندى', 'الذهب', 'الفضة', 'السحاب', 'الواحة', 'المرسى', 'الشاطئ'];
+  // Shipped Hanna LIMITS accepts 4–6 ASCII digits; its automatic draw is 4 digits.
+  const roomCodeLimits = { min: 4, max: 6, random: 4 };
+  const roomDigits = value => String(value).replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))).replace(/\D/g, '');
   const catColors = ['#2a8e84', '#628c6b', '#437e9f', '#98714d', '#8c6f9d', '#b46c54'];
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const ar = n => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
@@ -44,7 +47,7 @@
     slots: [], pool: [], used: new Set(), question: null, g: null, error: '', dialog: null, running: false,
     fallback: [], excluded: [], questionHistory: false, skipPop: false, lastStage: '', warMessage: '', warEvent: null, diveNative: null,
     result: null, audioUnlocked: false, muted: false, timer: null, lastAction: -Infinity, offlineReady: false,
-    quizCount: 5, quizAdvance: null
+    quizCount: 5, quizAdvance: null, roomDraft: '', roomCodeError: '', roomStartError: ''
   };
   if (game !== 'hub') M.teams = Array.from({ length: limits[game][0] }, (_, i) => teamNew(i));
   try { M.muted = localStorage.getItem('kunuz_journey_muted_v1') === '1'; } catch (_) {}
@@ -139,7 +142,7 @@
     return '<header class="j-header">' + (game !== 'hub' ? button('›', 'back', 'j-icon-btn j-back', 'aria-label="رجوع"') : '') + (game === 'hub' ? '<div class="j-brand">عزك<small>كنوز المعرفة</small></div>' : '<h1>' + names[game] + '</h1>') + (M.running && game !== 'test' && game !== 'hanna' ? '<span class="j-counter" aria-label="تقدم اللعب">' + ar(played()) + ' من ' + ar(M.slots.length || M.pool.length) + '</span>' : '') + button(audioIcon, 'mute', 'j-icon-btn', 'aria-label="' + (M.muted ? 'تشغيل الصوت' : 'كتم الصوت') + '" aria-pressed="' + !M.muted + '"') + button(Icons.icon('home'), 'home', 'j-icon-btn', 'aria-label="الرئيسية"') + '</header>';
   }
   function stepper() {
-    if (!M.step || M.stage === 'results' || game === 'test' || game === 'hanna' && M.running) return '';
+    if (!M.step || M.stage === 'results' || M.stage === 'room-code' || game === 'test' || game === 'hanna' && M.running) return '';
     return '<nav class="j-stepper" aria-label="خطوات اللعبة">' + ['الفئات', 'الفرق والإعدادات', 'اللعب'].map((text, i) => '<span' + (M.step === i + 1 ? ' aria-current="step"' : '') + '>' + ar(i + 1) + ' ' + text + '</span>').join('<span aria-hidden="true">·</span>') + '</nav>';
   }
   function home() {
@@ -168,8 +171,10 @@
   }
   function settings() {
     const s = M.settings, min = limits[game][0], max = limits[game][1];
+    const roomMode = (game === 'hanna' || game === 'harb') && s.room;
     const difficulty = game === 'ghaws' ? [['depth', 'تزيد مع العمق'], ['mixed', 'مختلطة']] : game === 'harb' ? [['mixed', 'مختلطة'], ['easy', 'سهلة'], ['medium', 'متوسطة'], ['hard', 'صعبة']] : [['points', 'حسب النقاط'], ['mixed', 'مختلطة']];
     return '<h1 class="j-heading">جهّزوا فريقكم</h1><p class="j-lead">الأسماء والألوان والرموز لكم… وبعدها تبدأ المغامرة.</p>' +
+      (roomMode ? '<section class="j-form-card j-room-flow-mode"><h2>طريقة اللعب</h2>' + chips([[false, 'جهاز واحد'], [true, 'غرفة وجوالات']], s.room, 'room') + '</section>' + roomCard() : '') +
       '<section class="j-form-card"><h2>الفرق</h2>' + M.teams.map((t, i) => '<div class="j-team-row">' + button(sym(t.symbol), 'color', 'j-team-swatch', 'data-team="' + i + '" data-color="' + t.c + '" aria-label="تغيير لون ورمز ' + esc(t.n) + '"') + '<input class="j-input" data-team-name="' + i + '" aria-label="اسم الفريق ' + ar(i + 1) + '" value="' + esc(t.n) + '" maxlength="80">' + button('×', 'remove-team', 'j-icon-btn', 'data-team="' + i + '" aria-label="حذف الفريق"' + (M.teams.length <= min ? ' disabled' : '')) + '</div>').join('') +
       button('إضافة فريق', 'add-team', 'j-secondary', M.teams.length >= max ? 'disabled' : '') + (min === 1 ? '<p class="j-note">اللعب الفردي متاح.</p>' : '') + '</section>' +
       '<section class="j-form-card"><h2>الإعدادات</h2><label class="j-field">الخيارات</label>' + chips([['shown', 'ظاهرة'], ['hidden', 'مخفية']], s.options, 'options') +
@@ -179,10 +184,35 @@
       '<label class="j-field">الصعوبة <span class="j-tag j-gold">تجريبي</span></label>' + chips(difficulty, s.difficulty, 'difficulty') + (game === 'board' || game === 'test' || game === 'hanna' ? '<p class="j-note">حسب النقاط: ٢٠٠ سهل · ٤٠٠ متوسط · ٦٠٠ صعب</p>' : '') +
       (game === 'ghaws' ? '<label class="j-field">حد العمق</label>' + chips([5, 7, 10, 15, 20, 30].map(n => [n, ar(n)]), s.cap, 'cap') : '') +
       (game === 'harb' ? '<label class="j-field">رصيد توزيع الرايات بحسب جزر الفريق</label>' + chips([[1, ar(1)], [2, ar(2)], [3, ar(3)], ['custom', 'مخصص']], s.customFlags ? 'custom' : s.flags, 'flags') + (s.customFlags ? '<label class="j-field" for="j-flags">رصيد الرايات لكل فريق</label><input id="j-flags" class="j-input" data-input="customFlagsValue" type="number" min="2" max="60" value="' + s.customFlagsValue + '">' : '') + '<p class="j-note">لكل جزيرة راية حارس، وتوزعون رصيدكم كيف ما تبون.</p><label class="j-field" for="j-shots">أسئلة الهجوم</label><input id="j-shots" class="j-input" data-input="shots" type="number" min="1" max="10" value="' + s.shots + '"><label class="j-field">شرط الفوز</label>' + chips([[2, 'بحران'], [9, 'الأرخبيل كله']], s.win, 'win') : '') +
-      (game === 'harb' || game === 'hanna' ? '<label class="j-field">طريقة اللعب</label>' + chips([[false, 'جهاز واحد'], [true, 'غرفة وجوالات']], s.room, 'room') : '') +
-      (game === 'hanna' && s.room ? '<label class="j-field" for="j-room-code">رمز الغرفة · اختياري</label><input id="j-room-code" class="j-input" data-input="roomCode" inputmode="numeric" maxlength="6" placeholder="تلقائي" value="' + esc(s.roomCode) + '">' : '') + '</section>' +
+      ((game === 'harb' || game === 'hanna') && !roomMode ? '<label class="j-field">طريقة اللعب</label>' + chips([[false, 'جهاز واحد'], [true, 'غرفة وجوالات']], s.room, 'room') : '') + '</section>' +
       (M.error ? '<div class="j-error" role="alert">' + esc(M.error) + '</div>' : '') + '<div class="j-actions">' + button('ابدأ اللعب', 'start') + '</div>' +
+      (roomMode && M.roomStartError ? '<p class="j-error j-room-flow-start-error" role="alert">' + M.roomStartError + '</p>' : '') +
       (game === 'hanna' || game === 'harb' ? button('الانضمام إلى غرفة موجودة', 'join-room', 'j-room-link j-secondary') : '');
+  }
+  function roomCard() {
+    return '<section class="j-form-card j-room-flow-card" aria-labelledby="j-room-flow-title"><h2 id="j-room-flow-title">الغرفة</h2>' +
+      (game === 'harb' ? '<p class="j-note">الرقم تلقائي</p>' :
+        (M.settings.roomCode ? '<bdi class="j-room-flow-code j-gold" dir="ltr">' + ar(M.settings.roomCode) + '</bdi>' : '<p class="j-note">لم تُنشأ بعد</p>') +
+        '<div class="j-actions">' + button(M.settings.roomCode ? 'تغيير الرقم' : 'إنشاء غرفة', 'room-code-open', 'j-secondary') + '</div>') + '</section>';
+  }
+  function roomCodeScreen() {
+    return '<section class="j-form-card j-room-flow-editor"><label class="j-field" for="j-room-flow-input">رقم الغرفة</label>' +
+      '<input id="j-room-flow-input" class="j-input" data-room-draft inputmode="numeric" autocomplete="off" dir="ltr" maxlength="' + roomCodeLimits.max + '" value="' + esc(M.roomDraft) + '" aria-invalid="' + !!M.roomCodeError + '" aria-describedby="j-room-flow-help' + (M.roomCodeError ? ' j-room-flow-error' : '') + '">' +
+      (M.roomCodeError ? '<p id="j-room-flow-error" class="j-error" role="alert">' + M.roomCodeError + '</p>' : '') +
+      '<div class="j-actions">' + button('رقم عشوائي', 'room-code-random', 'j-secondary') + button('حفظ', 'room-code-save') + '</div>' +
+      '<p id="j-room-flow-help" class="j-note">هذا الرقم يدخل به اللاعبون من جوالاتهم.</p></section>';
+  }
+  function openRoomCode() {
+    if (game !== 'hanna' || M.stage !== 'settings' || !M.settings.room) return;
+    M.roomDraft = M.settings.roomCode; M.roomCodeError = ''; M.roomStartError = '';
+    history.pushState({ journey: true, step: 2, roomCode: true }, ''); setStage('room-code', 2);
+  }
+  function saveRoomCode() {
+    const code = roomDigits(M.roomDraft);
+    if (!code) M.roomCodeError = 'اكتب رقمًا أو اختر رقمًا عشوائيًا';
+    else if (code.length < roomCodeLimits.min || code.length > roomCodeLimits.max) M.roomCodeError = 'الرقم ' + ar(roomCodeLimits.min) + '–' + ar(roomCodeLimits.max) + ' خانات';
+    else { M.settings.roomCode = code; M.roomStartError = ''; history.back(); return; }
+    render();
   }
   function teamBar(duel = false) {
     const turn = actor();
@@ -311,13 +341,13 @@
     const motionKey = M.stage + ':' + (M.question?.index ?? '') + ':' + (M.question?.beat || '') + (game === 'ghaws' && M.question?.settled ? ':reward' : '');
     const motionChanged = motionKey !== M.lastMotion;
     cancelVisuals();
-    const screens = { hub: home, categories, settings, 'quiz-start': quizStart, board: boardView, 'board-question': boardView, 'test-question': quizQuestion, 'hanna-question': hannaQuestion, dive: diveView, war: warView, 'war-result': warResult, results,
+    const screens = { hub: home, categories, settings, 'room-code': roomCodeScreen, 'quiz-start': quizStart, board: boardView, 'board-question': boardView, 'test-question': quizQuestion, 'hanna-question': hannaQuestion, dive: diveView, war: warView, 'war-result': warResult, results,
       loading: () => '<div class="j-loading" role="status">نجهّز مغامرتكم…<div class="j-loader"></div></div>',
       handover: () => '<div class="j-results"><div class="j-result-icon">' + Icons.icon('wave') + '</div><h2>دور «' + esc(M.teams[global.S.pi].n) + '»</h2><p class="j-muted">خذوا نفسكم… ومغامرتكم تبدأ.</p><div class="j-actions">' + button('ابدأ الغوص', 'dive-begin', 'j-btn j-teal') + '</div></div>',
       'war-pass': () => teamBar() + '<div class="j-results"><h2>دور المدافع «' + esc(M.teams[M.pendingWarAsk.pi].n) + '»</h2><p class="j-muted">سلّموا الجهاز للمدافع قبل إظهار السؤال.</p><div class="j-actions">' + button('جاهزين للدفاع', 'war-defend', 'j-btn j-teal') + '</div></div>',
       error: () => '<div class="j-error" role="alert">' + esc(M.error || 'تعذّر تجهيز المغامرة') + '</div><div class="j-actions">' + button('حاولوا مرة ثانية', 'reload') + '</div>', room: () => '' };
     app.dataset.stage = M.stage;
-    app.innerHTML = (M.stage === 'board-question' ? '' : header()) + stepper() + '<main class="j-content" id="journey-main">' + (screens[M.stage] || screens.error)() + '</main>' + (M.stage === 'board-question' ? boardQuestion() : '') + dialog();
+    app.innerHTML = (M.stage === 'board-question' ? '' : M.stage === 'room-code' ? '<header class="j-header">' + button('›', 'back', 'j-icon-btn j-back', 'aria-label="رجوع"') + '<h1>إنشاء غرفة</h1></header>' : header()) + stepper() + '<main class="j-content" id="journey-main">' + (screens[M.stage] || screens.error)() + '</main>' + (M.stage === 'board-question' ? boardQuestion() : '') + dialog();
     app.querySelectorAll('[data-color]').forEach(el => { el.style.backgroundColor = el.dataset.color; });
     app.querySelectorAll('[data-team-color]').forEach(el => { el.style.setProperty('--team-color', M.teams[+el.dataset.teamColor]?.c || colors[0]); });
     app.querySelectorAll('[data-category-color]').forEach(el => { el.style.setProperty('--c', catColors[+el.dataset.categoryColor % catColors.length]); });
@@ -461,6 +491,7 @@
     } else location.replace(target);
   }
   function back() {
+    if (M.stage === 'room-code') { history.back(); return; }
     if (game === 'test') {
       if (M.running) askDialog('تترك الأسئلة وترجع للبداية؟', resetQuiz);
       else if (M.stage === 'results') resetQuiz();
@@ -502,6 +533,7 @@
   }
   function begin() {
     const s = M.settings;
+    if (game === 'hanna' && s.room && !s.roomCode) { M.error = ''; M.roomStartError = 'أنشئ الغرفة أولًا'; render(); return; }
     if (!Number.isFinite(time()) || time() < 0 || s.custom && time() === 0 || !Number.isInteger(s.reveals) || s.reveals < 0 || !Number.isInteger(s.shots) || s.shots < 1 || s.shots > 10 || s.customFlags && (!Number.isInteger(s.customFlagsValue) || s.customFlagsValue < 2 || s.customFlagsValue > 60)) { M.error = 'اكتبوا قيمة صحيحة للوقت والخيارات والإعدادات.'; render(); return; }
     if (s.room) { enterRoom(false); return; }
     M.history ||= Model.history();
@@ -838,7 +870,7 @@
       try { localStorage.setItem('hl-ezik.sound', 'false'); } catch (_) {}
       if (!join) {
         const roomColors = ['blue','orange','purple','green','gold','pink','teal','brown','navy','olive','red','maroon'];
-        const setup = { teams: M.teams.map((t, i) => ({ name: t.n.trim() || defaults[i], color: roomColors[colors.indexOf(t.c)] || roomColors[i] })), perCat: 6, timeSec: time(), categories: M.cats.map(c => global.DATA.cats[c][0]), mode: M.settings.options === 'hidden' ? 'free' : 'options', reveals: M.settings.reveals, roomCode: null };
+        const setup = { teams: M.teams.map((t, i) => ({ name: t.n.trim() || defaults[i], color: roomColors[colors.indexOf(t.c)] || roomColors[i] })), perCat: 6, timeSec: time(), categories: M.cats.map(c => global.DATA.cats[c][0]), mode: M.settings.options === 'hidden' ? 'free' : 'options', reveals: M.settings.reveals, roomCode: M.settings.roomCode };
         // These are the existing room UI's own setup preferences, not account data.
         try { localStorage.setItem('hl-ezik.setup', JSON.stringify(setup)); localStorage.setItem('hl-ezik.sound', 'false'); } catch (_) {}
       }
@@ -898,6 +930,9 @@
     if (action === 'mute') { M.muted = !M.muted; try { localStorage.setItem('kunuz_journey_muted_v1', M.muted ? '1' : '0'); } catch (_) {} if (M.muted) stopSounds(); render(); }
     else if (action === 'home') { if (M.running || M.stage === 'room') askDialog('تطلعون للرئيسية وتتركون اللعبة؟', () => { cancelPlay(); homeExit(); }, () => {}, { yes: 'نعم، نطلع', no: 'لا، نبقى' }); else homeExit(); }
     else if (action === 'back') back();
+    else if (action === 'room-code-open') openRoomCode();
+    else if (action === 'room-code-random' && M.stage === 'room-code') { M.roomDraft = String(Math.floor(Math.random() * 10 ** roomCodeLimits.random)).padStart(roomCodeLimits.random, '0'); M.roomCodeError = ''; render(); }
+    else if (action === 'room-code-save' && M.stage === 'room-code') saveRoomCode();
     else if (action === 'quiz-count' && game === 'test' && M.stage === 'quiz-start' && [5, 10].includes(+el.dataset.count)) { M.quizCount = +el.dataset.count; render(); }
     else if (action === 'quiz-start' && game === 'test') beginQuiz();
     else if (action === 'quiz-again' && game === 'test') resetQuiz();
@@ -912,7 +947,8 @@
       else if (field === 'flags') { M.settings.customFlags = value === 'custom'; if (!M.settings.customFlags) M.settings.flags = +value; }
       else if (['cap', 'win'].includes(field)) M.settings[field] = +value;
       else M.settings[field] = value === 'true' ? true : value === 'false' ? false : value;
-      M.error = ''; render();
+      M.error = ''; M.roomStartError = ''; render();
+      if (field === 'room' && M.settings.room) window.scrollTo(0, 0);
     }
     else if (action === 'start') begin();
     else if (action === 'tile') openTile(+el.dataset.slot);
@@ -971,6 +1007,11 @@
   });
   app.addEventListener('input', event => {
     const el = event.target;
+    if (el.hasAttribute('data-room-draft')) {
+      M.roomDraft = roomDigits(el.value); el.value = M.roomDraft; M.roomCodeError = '';
+      el.setAttribute('aria-invalid', 'false'); el.setAttribute('aria-describedby', 'j-room-flow-help'); app.querySelector('#j-room-flow-error')?.remove();
+      return;
+    }
     if (el.hasAttribute('data-team-name')) M.teams[+el.dataset.teamName].n = el.value;
     if (el.dataset.input) M.settings[el.dataset.input] = el.dataset.input === 'roomCode' ? el.value : el.value === '' ? NaN : Number(el.value);
   });
@@ -1001,6 +1042,7 @@
     }
     event.stopImmediatePropagation();
     if (M.skipPop) { M.skipPop = false; return; }
+    if (event.state?.roomCode && game === 'hanna' && M.settings.room) { M.roomDraft = M.settings.roomCode; M.roomCodeError = ''; setStage('room-code', 2); return; }
     const step = event.state?.step;
     if (M.questionHistory && M.question) {
       M.questionHistory = false;

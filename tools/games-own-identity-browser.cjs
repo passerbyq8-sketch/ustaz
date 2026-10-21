@@ -1,5 +1,5 @@
 /* Local-only acceptance and before/after evidence for the two game screens.
-   node tools/games-own-identity-browser.cjs --before|--after|--games
+   node tools/games-own-identity-browser.cjs --before|--after|--games|--room-flow
    Uses KUNUZ_PLAYWRIGHT_MODULE and KUNUZ_IDENTITY_SHOTS when supplied. */
 'use strict';
 const assert = require('node:assert/strict');
@@ -10,11 +10,11 @@ const crypto = require('node:crypto');
 const { chromium } = require(process.env.KUNUZ_PLAYWRIGHT_MODULE || '../.vercel/theme-tools/node_modules/playwright');
 const root = path.resolve(__dirname, '..');
 const out = process.env.KUNUZ_IDENTITY_SHOTS || path.join(root, '.vercel', 'games-own-identity');
-const mode = process.argv.includes('--before') ? 'before' : process.argv.includes('--after') ? 'after' : 'games';
+const mode = process.argv.includes('--before') ? 'before' : process.argv.includes('--after') ? 'after' : process.argv.includes('--room-flow') ? 'room-flow' : 'games';
 const gameWidth = Number(process.argv.find(arg => arg.startsWith('--width='))?.split('=')[1]) || 390;
 const onlyGame = process.argv.find(arg => arg.startsWith('--game='))?.split('=')[1];
 const record = { mode, checks: [], screenshots: [], errors: [], blockedExternal: [] };
-const referenceCommit = require('node:child_process').execFileSync('git', ['rev-parse', 'origin/main'], { cwd: root, encoding: 'utf8' }).trim();
+const referenceCommit = require('node:child_process').execFileSync('git', ['rev-parse', process.argv.find(arg => arg.startsWith('--reference='))?.slice('--reference='.length) || 'origin/main'], { cwd: root, encoding: 'utf8' }).trim();
 const referenceFiles = new Map();
 if (mode === 'before') {
   record.referenceCommit = referenceCommit;
@@ -39,7 +39,7 @@ const server = http.createServer((req, res) => {
   if (reference) respond(null, reference); else fs.readFile(file, respond);
 });
 let browser, base;
-const routes = { board: 'quest-board.html', harb: 'quest-harb.html', hanna: 'hanna-laha/', test: 'quest-test.html', hub: 'quest.html' };
+const routes = { board: 'quest-board.html', harb: 'quest-harb.html', hanna: 'hanna-laha/', ghaws: 'quest-ghaws.html', test: 'quest-test.html', hub: 'quest.html' };
 async function open(game, width = 390, offline = false) {
   const context = await browser.newContext({ viewport: { width, height: width === 390 ? 844 : 900 }, deviceScaleFactor: 1, reducedMotion: 'reduce', serviceWorkers: offline ? 'allow' : 'block' });
   await context.route('**/*', route => {
@@ -67,7 +67,7 @@ async function click(page, selector) {
 }
 async function shot(page, name) {
   await page.evaluate(() => { window.scrollTo(0, 0); document.getAnimations().forEach(animation => animation.finish()); });
-  const file = (mode === 'games' ? name.replace(/-390$/, '-' + gameWidth) : name) + '.png';
+  const file = (mode === 'games' || mode === 'room-flow' ? name.replace(/-390$/, '-' + gameWidth) : name) + '.png';
   const buffer = await page.screenshot({ path: path.join(out, file), fullPage: true, animations: 'disabled' });
   record.screenshots.push({ file, sha256: crypto.createHash('sha256').update(buffer).digest('hex') });
   check(name + ': no horizontal overflow', await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
@@ -85,7 +85,9 @@ async function protectedScreens() {
     const readBase = file => require('node:child_process').execFileSync('git', ['show', baseCommit + ':' + file], { cwd: root, encoding: 'utf8' }).replace(/\r\n/g, '\n');
     const read = file => fs.readFileSync(path.join(root, file), 'utf8').replace(/\r\n/g, '\n');
     const before = readBase('quest-theme/journey.js'), after = read('quest-theme/journey.js');
-    for (const name of ['categories', 'settings', 'home', 'hannaLock', 'hannaBeat', 'hannaReveal', 'settleHannaTile', 'judgeHanna']) {
+    // settings() adds the room-only UI; its single-device rendering is checked
+    // byte for byte at both widths below, alongside all protected games.
+    for (const name of ['categories', 'home', 'hannaLock', 'hannaBeat', 'hannaReveal', 'settleHannaTile', 'judgeHanna', 'quizStart', 'quizQuestion', 'diveView', 'beginDiveGame']) {
       const pattern = new RegExp('  function ' + name + '\\([^]*?\\n  }');
       // hannaBeat is deliberately a single-line function.
       const source = text => name === 'hannaBeat' ? text.split('\n').find(line => line.startsWith('  function hannaBeat(')) : text.match(pattern)?.[0];
@@ -96,10 +98,10 @@ async function protectedScreens() {
     check('theme.css: every original line preserved', theme.startsWith(oldTheme));
     const added = theme.slice(oldTheme.length);
     check('theme.css: no new color literals', !/#[\da-f]{3,8}\b|\b(?:rgb|hsl)a?\(/i.test(added));
-    check('theme.css: only scoped new screen classes', added.split('\n').filter(line => line.includes('{')).every(line => /^\.ezik-treasure-theme \.journey-app\[data-game=(hanna|test)\] \.j-(hanna|quiz)-/.test(line)));
+    check('theme.css: only scoped new screen classes', added.split('\n').filter(line => line.includes('{')).every(line => /^\.ezik-treasure-theme \.journey-app\[data-game=(hanna|test)\] \.j-(hanna|quiz)-/.test(line) || /^\.ezik-treasure-theme \.journey-app:is\(\[data-game=hanna\],\[data-game=harb\]\) \.j-room-flow-/.test(line)));
   }
   for (const width of [390, 1280]) {
-    for (const game of ['board', 'harb', 'hanna']) {
+    for (const game of ['board', 'harb', 'hanna', 'ghaws']) {
       const { page, context } = await open(game, width);
       await setup(page, false);
       const settings = await shot(page, `${mode}-${game}-settings-${width}`);
@@ -116,9 +118,27 @@ async function protectedScreens() {
           await click(page, '[data-action="award"][data-team="0"]');
           check(`${game} native points ${width}`, await page.evaluate(() => KunuzJourney.state.teams[0].score), 200);
         }
+        if (game === 'ghaws') {
+          await click(page, '[data-action="shell"]');
+          const question = await shot(page, `${mode}-${game}-question-${width}`);
+          if (mode === 'after') check(`${game} question ${width}: identical PNG`, question.equals(fs.readFileSync(path.join(out, `before-${game}-question-${width}.png`))));
+        }
       }
       await context.close();
     }
+    const quizPage = await open('test', width);
+    for (const state of ['start', 'question', 'answer']) {
+      if (state === 'question') await click(quizPage.page, '[data-action="quiz-start"]');
+      if (state === 'answer') {
+        // Freeze only the test clock so the automatic advance cannot race a shot.
+        await quizPage.page.clock.install();
+        await quizPage.page.clock.pauseAt(new Date(Date.now() + 100));
+        await click(quizPage.page, '[data-action="answer"]');
+      }
+      const image = await shot(quizPage.page, `${mode}-quiz-${state}-${width}`);
+      if (mode === 'after') check(`quiz ${state} ${width}: identical PNG`, image.equals(fs.readFileSync(path.join(out, `before-quiz-${state}-${width}.png`))));
+    }
+    await quizPage.context.close();
     const { page, context } = await open('hub', width);
     const hub = await shot(page, `${mode}-hub-${width}`);
     if (mode === 'after') check(`hub game cards ${width}: identical PNG`, hub.equals(fs.readFileSync(path.join(out, `before-hub-${width}.png`))));
@@ -311,6 +331,145 @@ async function offlineScreens() {
     await context.close();
   }
 }
+async function roomFlow() {
+  const { page, context } = await open('hanna', gameWidth);
+  const snapshot = () => page.evaluate(() => {
+    const m = KunuzJourney.state;
+    return JSON.parse(JSON.stringify({ cats: m.cats, teams: m.teams, settings: m.settings }));
+  });
+  const atSettings = () => page.waitForFunction(() => KunuzJourney.state.stage === 'settings');
+  await setup(page, false);
+  check('Single-device setup has no room card', await page.locator('.j-room-flow-card').count(), 0);
+  await click(page, '[data-action="add-team"]');
+  await page.locator('[data-team-name="0"]').fill('فريق اللؤلؤ');
+  await page.locator('[data-team-name="1"]').fill('فريق المرجان');
+  await click(page, '[data-action="color"][data-team="1"]');
+  await click(page, '[data-field="options"][data-value="hidden"]');
+  await page.locator('[data-input="reveals"]').fill('5');
+  await click(page, '[data-field="time"][data-value="custom"]');
+  await page.locator('[data-input="customTime"]').fill('75');
+  await click(page, '[data-field="difficulty"][data-value="mixed"]');
+  await click(page, '[data-field="room"][data-value="true"]');
+  const original = await snapshot();
+  check('Selecting room mode shows its top controls immediately', await page.evaluate(() => scrollY), 0);
+  check('Room mode and room card precede all other setup cards', await page.locator('#journey-main > section').evaluateAll(nodes => nodes.slice(0, 3).map(node => node.querySelector('h2')?.textContent)), ['طريقة اللعب', 'الغرفة', 'الفرق']);
+  check('Before creation shows the approved label', await page.locator('.j-room-flow-card .j-note').innerText(), 'لم تُنشأ بعد');
+  check('Optional room code field removed from setup', await page.locator('[data-input="roomCode"]').count(), 0);
+  check('Join link remains below Start', await page.locator('[data-action="start"]').evaluate(node => !!(node.compareDocumentPosition(document.querySelector('[data-action="join-room"]')) & Node.DOCUMENT_POSITION_FOLLOWING)));
+  await shot(page, 'hanna-room-before-create-390');
+  await click(page, '[data-action="start"]');
+  check('Start without a saved code stays in setup', (await current(page)).stage, 'settings');
+  check('Start without a saved code shows the approved message', await page.locator('.j-room-flow-start-error').innerText(), 'أنشئ الغرفة أولًا');
+  check('Missing-room error is directly below Start', await page.locator('[data-action="start"]').evaluate(node => node.parentElement.nextElementSibling?.classList.contains('j-room-flow-start-error')));
+  check('Start without a code loads no native room bundle', await page.locator('script[src*="index-DQ2E4Hb-"]').count(), 0);
+  await shot(page, 'hanna-room-start-without-code-390');
+  const historyLength = await page.evaluate(() => history.length);
+  await click(page, '[data-action="room-code-open"]');
+  check('Number editor has its own history entry', await page.evaluate(() => ({ added: history.length, marker: history.state.roomCode, step: history.state.step })), { added: historyLength + 1, marker: true, step: 2 });
+  check('Number editor title', await page.locator('.j-header h1').innerText(), 'إنشاء غرفة');
+  check('Number editor contains only Back, Random, Save', await page.locator('[data-action]').evaluateAll(nodes => nodes.map(node => node.dataset.action)), ['back', 'room-code-random', 'room-code-save']);
+  check('Number editor contains only one numeric keyboard field', await page.locator('input').evaluateAll(nodes => nodes.map(node => ({ mode: node.inputMode, value: node.value }))), [{ mode: 'numeric', value: '' }]);
+  check('Number editor helper', await page.locator('#j-room-flow-help').innerText(), 'هذا الرقم يدخل به اللاعبون من جوالاتهم.');
+  await shot(page, 'hanna-room-editor-empty-390');
+  await click(page, '[data-action="room-code-save"]');
+  check('Empty code error', await page.locator('#j-room-flow-error').innerText(), 'اكتب رقمًا أو اختر رقمًا عشوائيًا');
+  check('Empty error is immediately below the field', await page.locator('[data-room-draft]').evaluate(node => node.nextElementSibling?.id), 'j-room-flow-error');
+  check('Empty error is accessible', await page.locator('[data-room-draft]').getAttribute('aria-invalid'), 'true');
+  await shot(page, 'hanna-room-editor-empty-error-390');
+  await page.locator('[data-room-draft]').fill('123');
+  check('Typing clears the obsolete error', await page.locator('#j-room-flow-error').count(), 0);
+  await click(page, '[data-action="room-code-save"]');
+  check('Short code error uses measured limits', await page.locator('#j-room-flow-error').innerText(), 'الرقم ٤–٦ خانات');
+  check('Invalid save remains in the number editor', (await current(page)).stage, 'room-code');
+  await shot(page, 'hanna-room-editor-length-error-390');
+  await page.locator('[data-room-draft]').fill('a1b2');
+  check('Non-digits are excluded', await page.locator('[data-room-draft]').inputValue(), '12');
+  await page.locator('[data-room-draft]').fill('٠١۲۳');
+  check('Arabic and Persian digits normalize and keep leading zeros', await page.locator('[data-room-draft]').inputValue(), '0123');
+  await page.locator('[data-room-draft]').evaluate(node => { node.value = '1234567'; node.dispatchEvent(new Event('input', { bubbles: true })); });
+  await click(page, '[data-action="room-code-save"]');
+  check('Overlong programmatic input is rejected', await page.locator('#j-room-flow-error').innerText(), 'الرقم ٤–٦ خانات');
+  await click(page, '[data-action="room-code-random"]');
+  const random = await page.locator('[data-room-draft]').inputValue();
+  check('Random number matches the server four-digit format', /^\d{4}$/.test(random));
+  check('Random number clears validation', await page.locator('#j-room-flow-error').count(), 0);
+  check('Random number does not create or save a room', (await snapshot()).settings.roomCode, '');
+  await shot(page, 'hanna-room-editor-random-390');
+  await click(page, '[data-action="room-code-save"]'); await atSettings();
+  original.settings.roomCode = random;
+  check('Save preserves every category, team, color, symbol and option', await snapshot(), original);
+  check('Saved number is displayed in the card', await page.locator('.j-room-flow-code').innerText(), random.replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]));
+  check('Saved card offers Change Number', await page.locator('[data-action="room-code-open"]').innerText(), 'تغيير الرقم');
+  await shot(page, 'hanna-room-after-save-390');
+  await click(page, '[data-action="room-code-open"]');
+  await page.locator('[data-room-draft]').fill('999999');
+  await click(page, '[data-action="back"]'); await atSettings();
+  check('Top Back discards draft and preserves all settings', await snapshot(), original);
+  await click(page, '[data-action="room-code-open"]');
+  check('Reopening restores the saved number', await page.locator('[data-room-draft]').inputValue(), random);
+  await page.locator('[data-room-draft]').fill('5555');
+  await page.goBack(); await atSettings();
+  check('Browser/Android history Back returns to setup and preserves settings', await snapshot(), original);
+  await page.goForward();
+  await page.waitForFunction(() => KunuzJourney.state.stage === 'room-code');
+  check('Browser Forward restores the editor without committing its draft', await page.locator('[data-room-draft]').inputValue(), random);
+  await page.goBack(); await atSettings();
+  for (const manual of ['0042', '01234', '012345']) {
+    await click(page, '[data-action="room-code-open"]');
+    await page.locator('[data-room-draft]').fill(manual);
+    await click(page, '[data-action="room-code-save"]'); await atSettings();
+    original.settings.roomCode = manual;
+    check('Manual ' + manual.length + '-digit save preserves all settings and leading zeros', await snapshot(), original);
+  }
+  await shot(page, 'hanna-room-manual-after-save-390');
+  await click(page, '[data-field="room"][data-value="false"]');
+  check('Switching to single-device mode hides the card', await page.locator('.j-room-flow-card').count(), 0);
+  check('Switching modes preserves the saved code', (await snapshot()).settings.roomCode, '012345');
+  await click(page, '[data-field="room"][data-value="true"]');
+  check('Switching back restores every setting', await snapshot(), original);
+  // Replace only the native frontend module with a local selector-compatible
+  // fixture. No worker, API, WebSocket, or actual room is used by this handoff.
+  await context.route('**/hanna-laha/assets/index-DQ2E4Hb-.js', route => route.fulfill({ contentType: 'text/javascript', body: `
+    window.__roomPreferences = JSON.parse(localStorage.getItem('hl-ezik.setup'));
+    document.getElementById('root').innerHTML = '<button data-testid="setup-start">start fixture</button><button data-testid="more-toggle" aria-expanded="true">more</button><div data-testid="room-code"><button>auto</button><button>custom</button><input data-testid="room-code-input" value="0000"></div>';
+    document.querySelector('[data-testid="setup-start"]').onclick = () => { window.__roomHandoff = { preferences: window.__roomPreferences, input: document.querySelector('[data-testid="room-code-input"]').value }; };
+  ` }));
+  await click(page, '[data-action="start"]');
+  await page.waitForFunction(() => !!window.__roomHandoff);
+  const handoff = await page.evaluate(() => window.__roomHandoff);
+  check('Saved code reaches the unchanged frontend setup preferences', handoff.preferences.roomCode, '012345');
+  check('Saved code reaches the native creation form', handoff.input, '012345');
+  check('Native handoff keeps team names and colors', handoff.preferences.teams, [{ name: 'فريق اللؤلؤ', color: 'blue' }, { name: 'فريق المرجان', color: 'purple' }, { name: 'الأفق', color: 'purple' }]);
+  check('Native handoff keeps room options', { time: handoff.preferences.timeSec, mode: handoff.preferences.mode, reveals: handoff.preferences.reveals, perCat: handoff.preferences.perCat }, { time: 75, mode: 'free', reveals: 5, perCat: 6 });
+  check('Native handoff keeps category order', handoff.preferences.categories, await page.evaluate(() => KunuzJourney.state.cats.map(cat => DATA.cats[cat][0])));
+  await context.close();
+
+  const war = await open('harb', gameWidth);
+  await setup(war.page, false);
+  await click(war.page, '[data-field="room"][data-value="true"]');
+  check('Island War room card reports automatic numbering', await war.page.locator('.j-room-flow-card .j-note').innerText(), 'الرقم تلقائي');
+  check('Island War has no unsupported number selection button', await war.page.locator('[data-action="room-code-open"], [data-room-draft]').count(), 0);
+  check('Island War room card immediately follows the top play mode', await war.page.locator('#journey-main > section').evaluateAll(nodes => nodes.slice(0, 3).map(node => node.querySelector('h2')?.textContent)), ['طريقة اللعب', 'الغرفة', 'الفرق']);
+  await shot(war.page, 'harb-room-automatic-390');
+  await click(war.page, '[data-field="room"][data-value="false"]');
+  check('Island War single-device setup hides room card', await war.page.locator('.j-room-flow-card').count(), 0);
+  await click(war.page, '[data-field="room"][data-value="true"]');
+  await war.page.evaluate(() => {
+    $('startWar').onclick = () => { window.__warHandoff = { cats: G.cats, time: G.fuse, shots: G.shots, flags: G.deployMul, win: G.winRule }; };
+  });
+  await click(war.page, '[data-action="start"]');
+  check('Island War Start reaches its existing automatic-number action locally', await war.page.evaluate(() => window.__warHandoff), { cats: [2, 0, 1], time: 0, shots: 1, flags: 2, win: 2 });
+  await war.context.close();
+
+  const joining = await open('hanna', gameWidth);
+  await setup(joining.page, false);
+  await joining.context.route('**/hanna-laha/assets/index-DQ2E4Hb-.js', route => route.fulfill({ contentType: 'text/javascript', body: 'window.__joinFixture = true;' }));
+  await click(joining.page, '[data-action="join-room"]');
+  await joining.page.waitForFunction(() => window.__joinFixture);
+  check('Join still opens without creating or selecting a code', new URL(joining.page.url()).pathname, '/hanna-laha/join');
+  await joining.context.close();
+  check('Room flow never attempts an external connection', record.blockedExternal, []);
+}
 async function legacyGames() {
   for (const game of ['board', 'harb']) {
     const child = require('node:child_process').spawn(process.execPath, [path.join(__dirname, 'kunuz-theme-browser.cjs'), '--game=' + game, '--width=390', '--reduced'], {
@@ -328,7 +487,8 @@ async function legacyGames() {
   base = 'http://127.0.0.1:' + server.address().port;
   browser = await chromium.launch({ headless: true });
   try {
-    if (mode === 'games') {
+    if (mode === 'room-flow') await roomFlow();
+    else if (mode === 'games') {
       if (process.argv.includes('--legacy')) await legacyGames();
       else if (process.argv.includes('--offline')) await offlineScreens();
       else { if (!onlyGame || onlyGame === 'hanna') { await hanna(); await hannaNavigation(); } if (!onlyGame || onlyGame === 'test') await quiz(); }
