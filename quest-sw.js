@@ -19,6 +19,7 @@ const SHELL = [
   '/quest-visual.js', '/quest-visual.css', '/quest-levels.js', '/quest-i18n.js',
   '/quest-theme/theme.css', '/quest-theme/model.js', '/quest-theme/icons.js',
   '/quest-theme/history.js', '/quest-theme/journey.js', '/quest-theme/motion-kit.js',
+  '/quest-theme/board-rooms.js',
   '/quest-theme/assets/regular.ttf', '/quest-theme/assets/bold.ttf',
   '/quest-theme/assets/ocean-clean.webp', '/quest-theme/assets/islands.webp', '/quest-theme/assets/hero.png',
   '/quest-theme/audio/tap.wav', '/quest-theme/audio/success.wav', '/quest-theme/audio/swoosh.wav',

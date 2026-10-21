@@ -94,13 +94,13 @@ async function protectedScreens() {
     const read = file => fs.readFileSync(path.join(root, file), 'utf8').replace(/\r\n/g, '\n');
     const before = readBase('quest-theme/journey.js'), after = read('quest-theme/journey.js');
     // Quiz setup changes; every other game's screens and scoring stay intact.
-    for (const name of ['categories', 'settings', 'home', 'roomEntry', 'roomJoinScreen', 'roomCodeScreen', 'hannaLock', 'hannaBeat', 'hannaReveal', 'settleHannaTile', 'judgeHanna', 'quizResults', 'diveView', 'beginDiveGame']) {
+    for (const name of ['categories', 'settings', 'home', 'roomEntry', 'roomJoinScreen', 'roomCodeScreen', 'hannaLock', 'hannaBeat', 'hannaReveal', 'settleHannaTile', 'judgeHanna', 'quizResults', 'diveView', 'beginDiveGame'].filter(name => !process.argv.includes('--board-protected') || name !== 'settings')) {
       const pattern = new RegExp('  function ' + name + '\\([^]*?\\n  }');
       // hannaBeat is deliberately a single-line function.
       const source = text => name === 'hannaBeat' ? text.split('\n').find(line => line.startsWith('  function hannaBeat(')) : text.match(pattern)?.[0];
       check(name + ': original implementation unchanged', source(after), source(before));
     }
-    for (const file of ['quest-theme/model.js', 'quest-board.html', 'quest-harb.html', 'quest-ghaws.html', 'hanna-laha/index.html', 'quest-sw.js']) {
+    for (const file of ['quest-theme/model.js', 'quest-board.html', 'quest-harb.html', 'quest-ghaws.html', 'hanna-laha/index.html', 'quest-sw.js'].filter(file => !process.argv.includes('--board-protected') || !['quest-board.html','quest-sw.js'].includes(file))) {
       const normalize = text => text.replace(/((?:journey\.js|theme\.css)\?v=)202610(?:21-(?:room1|identity2)|22-quiz2)/g, '$1SCREEN');
       check(file + ': original file unchanged except versioned screen asset URLs', normalize(read(file)), normalize(readBase(file)));
     }
@@ -108,11 +108,12 @@ async function protectedScreens() {
     check('theme.css: every original line preserved', theme.startsWith(oldTheme));
     const added = theme.slice(oldTheme.length);
     check('theme.css: no new color literals', !/#[\da-f]{3,8}\b|\b(?:rgb|hsl)a?\(/i.test(added));
-    check('theme.css: only scoped new screen classes', added.split('\n').filter(line => line.includes('{')).every(line => /^\.ezik-treasure-theme \.journey-app\[data-game=(hanna|test)\] \.j-(hanna|quiz)-/.test(line) || /^\.ezik-treasure-theme \.journey-app:is\(\[data-game=hanna\],\[data-game=harb\]\) \.j-room-(flow|entry)-/.test(line)));
+    check('theme.css: only scoped new screen classes', added.split('\n').filter(line => line.includes('{')).every(line => /^\.ezik-treasure-theme \.journey-app\[data-game=(hanna|test)\] \.j-(hanna|quiz)-/.test(line) || /^\.ezik-treasure-theme \.journey-app:is\(\[data-game=hanna\],\[data-game=harb\]\) \.j-room-(flow|entry)-/.test(line) || process.argv.includes('--board-protected') && /^\.ezik-treasure-theme \.journey-app\[data-game=board\] \.j-board-room-/.test(line)));
   }
   for (const width of [390, 1280]) {
     for (const game of ['board', 'harb', 'hanna', 'ghaws']) {
       const { page, context } = await open(game, width);
+      if (game === 'board' && mode === 'after' && process.argv.includes('--board-protected')) await click(page, '[data-action="single-device"]');
       const entry = await shot(page, `${mode}-${game}-entry-${width}`);
       if (mode === 'after') check(`${game} entry ${width}: identical PNG`, entry.equals(fs.readFileSync(path.join(out, `before-${game}-entry-${width}.png`))));
       await setup(page, false);
@@ -450,7 +451,7 @@ async function quizNavigation() {
   await context.close();
 }
 async function offlineScreens() {
-  for (const game of ['hanna', 'test']) {
+  for (const game of ['hanna', 'test', 'board']) {
     const { page, context } = await open(game, 390, true);
     check(game + ' first visit prepares offline assets', await page.evaluate(() => KunuzJourney.diagnostics.offlineReady));
     // IndexedDB writes performed by the worker finish after the response body.
@@ -463,7 +464,7 @@ async function offlineScreens() {
       throw error;
     }
     check(game + ' new screen opens offline', (await current(page)).stage, game === 'test' ? 'categories' : 'room-entry');
-    if (game === 'test') { await click(page, '[data-action="cat"][data-cat="0"]'); await click(page, '[data-action="next-setup"]'); await click(page, '[data-action="quiz-start"]'); } else { await setup(page); await click(page, '.j-hanna-category:not(:disabled)'); }
+    if (game === 'test') { await click(page, '[data-action="cat"][data-cat="0"]'); await click(page, '[data-action="next-setup"]'); await click(page, '[data-action="quiz-start"]'); } else { await setup(page); await click(page, game === 'board' ? '[data-action="tile"]' : '.j-hanna-category:not(:disabled)'); }
     check(game + ' question opens offline', !!(await current(page)).q);
     check(game + ' offline question has four choices', await page.locator('[data-action="answer"]').count(), 4);
     await context.close();
@@ -879,8 +880,8 @@ async function entryAudit() {
       else if(kind==='stale-setup') {await page.evaluate(game=>sessionStorage.setItem('kunuz_journey_room_setup_v1',JSON.stringify({game,cats:[0,1,2],teams:[{n:'أ'},{n:'ب'}],settings:{room:false}})),game);await page.goto(base+'/'+routes[game]+'?setup=1');}
       else if(kind==='legacy-rooms') await page.goto(base+'/'+routes[game]+'?rooms=1');
       else if(kind==='reload-play') {await setup(page);await page.reload();}
-      await page.waitForFunction(()=>KunuzJourney.state.ready);
-      const actual=await page.evaluate(()=>KunuzJourney.state.stage),expected=game==='board'?(kind==='stale-setup'?'settings':'categories'):'room-entry';
+      await page.waitForFunction(()=>window.KunuzJourney?.state.ready);
+      const actual=await page.evaluate(()=>KunuzJourney.state.stage),expected='room-entry';
       record.entryAudit.push({game,kind,actual,expected,issue:actual!==expected});
       if(mode!=='before')check(game+' entry '+kind,actual,expected);
       await context.close();
@@ -892,7 +893,8 @@ async function entryAudit() {
   base = 'http://127.0.0.1:' + server.address().port;
   browser = await chromium.launch({ headless: true });
   try {
-    if (process.argv.includes('--entry-audit')) await entryAudit();
+    if (process.argv.includes('--board-rooms') || process.argv.includes('--live-board-room')) await require('./board-rooms-browser.cjs')({browser,base,check,shot,click,record});
+    else if (process.argv.includes('--entry-audit')) await entryAudit();
     else if (process.argv.includes('--quiz-extra')) await quizExtras();
     else if (mode === 'room-entry') await roomFlow();
     else if (mode === 'games') {
@@ -905,7 +907,7 @@ async function entryAudit() {
     console.log(`PASS ${mode}: ${record.checks.length} checks, ${record.screenshots.length} screenshots; external requests blocked: ${record.blockedExternal.length}`);
   } catch (error) { record.failure = error.stack; console.error(error); process.exitCode = 1; }
   finally {
-    fs.writeFileSync(path.join(out, mode + (process.argv.includes('--entry-audit') ? '-entry-audit' : process.argv.includes('--quiz-extra') ? '-quiz-extra' : process.argv.includes('--offline') ? '-offline' : process.argv.includes('--legacy') ? '-legacy' : '') + '-browser.json'), JSON.stringify(record, null, 2));
+    fs.writeFileSync(path.join(out, mode + (process.argv.includes('--live-board-room') ? '-live-board-room' : process.argv.includes('--board-rooms') ? '-board-rooms' : process.argv.includes('--entry-audit') ? '-entry-audit' : process.argv.includes('--quiz-extra') ? '-quiz-extra' : process.argv.includes('--offline') ? '-offline' : process.argv.includes('--legacy') ? '-legacy' : '') + '-browser.json'), JSON.stringify(record, null, 2));
     await browser.close(); await new Promise(resolve => server.close(resolve));
   }
 })();

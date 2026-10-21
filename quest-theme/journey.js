@@ -15,7 +15,7 @@
   const Model = global.KunuzModel, Icons = global.KunuzIcons, Motion = global.EzikMotion;
   const path = location.pathname;
   const game = path.includes('quest-ghaws') ? 'ghaws' : path.includes('quest-harb') ? 'harb' : path.includes('quest-test') ? 'test' : path.includes('quest-board') ? 'board' : path.includes('hanna-laha') ? 'hanna' : 'hub';
-  const hasRooms = game === 'hanna' || game === 'harb';
+  const hasRooms = game === 'hanna' || game === 'harb' || game === 'board';
   const entryHistory = hasRooms ? history.state : null;
   const names = { hub: 'كنوز المعرفة', ghaws: 'الغوص', harb: 'حرب الجزر', test: 'اختبر معلوماتك', board: 'تحدّي الفئات', hanna: 'حنّا لها' };
   const limits = { ghaws: [1, 6], harb: [2, 4], test: [1, 4], board: [2, 4], hanna: [2, 12] };
@@ -52,6 +52,7 @@
     quizCount: 5, quizCustomCount: false, quizCountDraft: '', quizTimeDraft: '', quizAdvance: null, quizPausedAt: null, quizLastQuestion: null, roomDraft: '', roomCodeError: '', roomStartError: '',
     roomCodeEntry: false, joinDraft: '', joinError: '', roomFromEntry: false
   };
+  let boardRooms = null;
   if (game !== 'hub') M.teams = Array.from({ length: limits[game][0] }, (_, i) => teamNew(i));
   try { M.muted = localStorage.getItem('kunuz_journey_muted_v1') === '1'; } catch (_) {}
   const app = document.createElement('div'); app.className = 'journey-app'; app.dataset.game = game;
@@ -101,8 +102,9 @@
           const timeout = setTimeout(controlled, 3000);
           navigator.serviceWorker.addEventListener('controllerchange', controlled);
         });
-        const screenVersion = '20261022-quiz2';
+        const screenVersion = game === 'board' ? '20261022-board1' : '20261022-quiz2';
         const screenAssets = ['theme.css?v=' + screenVersion, 'journey.js?v=' + screenVersion, 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
+        if (game === 'board') screenAssets.push('board-rooms.js?v=' + screenVersion);
         if (navigator.serviceWorker.controller) await Promise.all(screenAssets.map(async file => {
           const response = await fetch('/quest-theme/' + file);
           if (!response.ok) throw new Error('Screen cache unavailable');
@@ -189,6 +191,7 @@
       '<div class="j-actions">' + button('انضمام', 'join-submit') + '</div><p id="j-room-entry-help" class="j-note">بدون اختيار فئات، فئات الغرفة يحددها صاحبها.</p></section>';
   }
   function openJoin() {
+    if (game === 'board') { M.joinError = ''; setStage('room-join', 0, true); return; }
     if (game === 'harb') { M.joinError = ''; setStage('room-join', 0, true); return; }
     if (game !== 'hanna') return;
     // JoinScreen reads the saved phone session, not a URL parameter. Open that
@@ -197,6 +200,12 @@
     location.href = '/hanna-laha/join?rooms=1&entry=1';
   }
   function submitJoin() {
+    if (game === 'board') {
+      const code = roomDigits(M.joinDraft);
+      if (!code) M.joinError = 'اكتب رقم الغرفة'; else if (!/^\d{4,6}$/.test(code)) M.joinError = 'رقم الغرفة من ٤ إلى ٦ خانات';
+      else { M.joinError = ''; boardRooms.join(code); return; }
+      render(); return;
+    }
     const code = roomDigits(M.joinDraft);
     if (!code) M.joinError = 'اكتب رقم الغرفة';
     else if (!/^\d{6}$/.test(code)) M.joinError = 'رقم الغرفة ٦ خانات';
@@ -205,11 +214,11 @@
   }
   function settings() {
     const s = M.settings, min = limits[game][0], max = limits[game][1];
-    const roomMode = (game === 'hanna' || game === 'harb') && s.room;
+    const roomMode = hasRooms && s.room;
     const difficulty = game === 'ghaws' ? [['depth', 'تزيد مع العمق'], ['mixed', 'مختلطة']] : game === 'harb' ? [['mixed', 'مختلطة'], ['easy', 'سهلة'], ['medium', 'متوسطة'], ['hard', 'صعبة']] : [['points', 'حسب النقاط'], ['mixed', 'مختلطة']];
     return '<h1 class="j-heading">جهّزوا فريقكم</h1><p class="j-lead">الأسماء والألوان والرموز لكم… وبعدها تبدأ المغامرة.</p>' +
-      (hasRooms ? '<div class="j-room-entry-change">' + button('تغيير طريقة اللعب', 'change-play-mode', 'j-secondary') + '</div>' : '') +
-      (roomMode ? roomCard() : '') +
+      (hasRooms && (game !== 'board' || s.room) ? '<div class="j-room-entry-change">' + button('تغيير طريقة اللعب', 'change-play-mode', 'j-secondary') + '</div>' : '') +
+      (roomMode ? game === 'board' ? boardRooms.card() : roomCard() : '') +
       '<section class="j-form-card"><h2>الفرق</h2>' + M.teams.map((t, i) => '<div class="j-team-row">' + button(sym(t.symbol), 'color', 'j-team-swatch', 'data-team="' + i + '" data-color="' + t.c + '" aria-label="تغيير لون ورمز ' + esc(t.n) + '"') + '<input class="j-input" data-team-name="' + i + '" aria-label="اسم الفريق ' + ar(i + 1) + '" value="' + esc(t.n) + '" maxlength="80">' + button('×', 'remove-team', 'j-icon-btn', 'data-team="' + i + '" aria-label="حذف الفريق"' + (M.teams.length <= min ? ' disabled' : '')) + '</div>').join('') +
       button('إضافة فريق', 'add-team', 'j-secondary', M.teams.length >= max ? 'disabled' : '') + (min === 1 ? '<p class="j-note">اللعب الفردي متاح.</p>' : '') + '</section>' +
       '<section class="j-form-card"><h2>الإعدادات</h2><label class="j-field">الخيارات</label>' + chips([['shown', 'ظاهرة'], ['hidden', 'مخفية']], s.options, 'options') +
@@ -220,7 +229,7 @@
       (game === 'ghaws' ? '<label class="j-field">حد العمق</label>' + chips([5, 7, 10, 15, 20, 30].map(n => [n, ar(n)]), s.cap, 'cap') : '') +
       (game === 'harb' ? '<label class="j-field">رصيد توزيع الرايات بحسب جزر الفريق</label>' + chips([[1, ar(1)], [2, ar(2)], [3, ar(3)], ['custom', 'مخصص']], s.customFlags ? 'custom' : s.flags, 'flags') + (s.customFlags ? '<label class="j-field" for="j-flags">رصيد الرايات لكل فريق</label><input id="j-flags" class="j-input" data-input="customFlagsValue" type="number" min="2" max="60" value="' + s.customFlagsValue + '">' : '') + '<p class="j-note">لكل جزيرة راية حارس، وتوزعون رصيدكم كيف ما تبون.</p><label class="j-field" for="j-shots">أسئلة الهجوم</label><input id="j-shots" class="j-input" data-input="shots" type="number" min="1" max="10" value="' + s.shots + '"><label class="j-field">شرط الفوز</label>' + chips([[2, 'بحران'], [9, 'الأرخبيل كله']], s.win, 'win') : '') +
       '</section>' +
-      (M.error ? '<div class="j-error" role="alert">' + esc(M.error) + '</div>' : '') + '<div class="j-actions">' + button('ابدأ اللعب', 'start') + '</div>' +
+      (M.error ? '<div class="j-error" role="alert">' + esc(M.error) + '</div>' : '') + '<div class="j-actions">' + button(game === 'board' && roomMode ? boardRooms.busy ? 'نفتح الغرفة…' : 'إنشاء الغرفة' : 'ابدأ اللعب', 'start', 'j-btn', game === 'board' && boardRooms.busy ? 'disabled' : '') + '</div>' +
       (roomMode && M.roomStartError ? '<p class="j-error j-room-flow-start-error" role="alert">' + M.roomStartError + '</p>' : '');
   }
   function roomCard() {
@@ -417,7 +426,7 @@
     const motionKey = M.stage + ':' + (M.question?.index ?? '') + ':' + (M.question?.beat || '') + (game === 'ghaws' && M.question?.settled ? ':reward' : '');
     const motionChanged = motionKey !== M.lastMotion;
     cancelVisuals();
-    const screens = { hub: home, categories: game === 'test' ? quizCategories : categories, settings: game === 'test' ? quizStart : settings, 'room-entry': roomEntry, 'room-join': roomJoinScreen, 'room-code': roomCodeScreen, board: boardView, 'board-question': boardView, 'test-question': quizQuestion, 'hanna-question': hannaQuestion, dive: diveView, war: warView, 'war-result': warResult, results,
+    const screens = { hub: home, categories: game === 'test' ? quizCategories : categories, settings: game === 'test' ? quizStart : settings, 'room-entry': game === 'board' ? () => '<section class="j-board-room-entry">' + roomEntry() + '</section>' : roomEntry, 'room-join': roomJoinScreen, 'room-code': roomCodeScreen, 'board-room': () => boardRooms.view(), board: boardView, 'board-question': boardView, 'test-question': quizQuestion, 'hanna-question': hannaQuestion, dive: diveView, war: warView, 'war-result': warResult, results,
       loading: () => '<div class="j-loading" role="status">نجهّز مغامرتكم…<div class="j-loader"></div></div>',
       handover: () => '<div class="j-results"><div class="j-result-icon">' + Icons.icon('wave') + '</div><h2>دور «' + esc(M.teams[global.S.pi].n) + '»</h2><p class="j-muted">خذوا نفسكم… ومغامرتكم تبدأ.</p><div class="j-actions">' + button('ابدأ الغوص', 'dive-begin', 'j-btn j-teal') + '</div></div>',
       'war-pass': () => teamBar() + '<div class="j-results"><h2>دور المدافع «' + esc(M.teams[M.pendingWarAsk.pi].n) + '»</h2><p class="j-muted">سلّموا الجهاز للمدافع قبل إظهار السؤال.</p><div class="j-actions">' + button('جاهزين للدفاع', 'war-defend', 'j-btn j-teal') + '</div></div>',
@@ -676,6 +685,7 @@
     const s = M.settings;
     if (game === 'hanna' && s.room && !s.roomCode) { M.error = ''; M.roomStartError = 'أنشئ الغرفة أولًا'; render(); return; }
     if (!Number.isFinite(time()) || time() < 0 || s.custom && time() === 0 || !Number.isInteger(s.reveals) || s.reveals < 0 || !Number.isInteger(s.shots) || s.shots < 1 || s.shots > 10 || s.customFlags && (!Number.isInteger(s.customFlagsValue) || s.customFlagsValue < 2 || s.customFlagsValue > 60)) { M.error = 'اكتبوا قيمة صحيحة للوقت والخيارات والإعدادات.'; render(); return; }
+    if (game === 'board' && s.room) { boardRooms.create(); return; }
     if (s.room) { enterRoom(false); return; }
     M.history ||= Model.history();
     const all = Model.categories();
@@ -1075,9 +1085,10 @@
     setter.call(input, value); input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true }));
   }
   function onAction(action, el) {
+    if (game === 'board' && boardRooms?.handle(action, el)) return;
     const q = M.question;
     if (action === 'mute') { M.muted = !M.muted; try { localStorage.setItem('kunuz_journey_muted_v1', M.muted ? '1' : '0'); } catch (_) {} if (M.muted) stopSounds(); render(); }
-    else if (action === 'home') { if (M.running || M.stage === 'room') askDialog('تطلعون للرئيسية وتتركون اللعبة؟', () => { cancelPlay(); homeExit(); }, () => {}, { yes: 'نعم، نطلع', no: 'لا، نبقى' }); else homeExit(); }
+    else if (action === 'home') { if (M.running || M.stage === 'room' || M.stage === 'board-room') askDialog('تطلعون للرئيسية وتتركون اللعبة؟', () => { cancelPlay(); homeExit(); }, () => {}, { yes: 'نعم، نطلع', no: 'لا، نبقى' }); else homeExit(); }
     else if (action === 'back') back();
     else if (action === 'create-room' && M.stage === 'room-entry') { M.settings.room = true; M.error = ''; if (game === 'hanna') openRoomCode(); else setStage('categories', 1, true); }
     else if (action === 'single-device' && M.stage === 'room-entry') { M.settings.room = false; M.error = ''; setStage('categories', 1, true); }
@@ -1171,6 +1182,7 @@
   });
   app.addEventListener('input', event => {
     const el = event.target;
+    if (game === 'board' && boardRooms?.input(el)) return;
     if (game === 'test' && el.dataset.quizNumber) {
       el.value = roomDigits(el.value);
       if (el.dataset.quizNumber === 'count') { M.quizCustomCount = true; M.quizCountDraft = el.value; }
@@ -1195,6 +1207,9 @@
     updateQuizFields();
   });
   global.addEventListener('popstate', event => {
+    if (game === 'board' && boardRooms?.active && M.stage === 'board-room') {
+      event.stopImmediatePropagation(); history.pushState({ journey: true, rooms: true, step: 3 }, '', M.boardRoomUrl); boardRooms.handle('back', app); return;
+    }
     // A synthetic hub entry can share the quiz document's forward entries.
     // Reload that route before the hub renderer sees a quiz-only history step.
     if (game === 'hub' && event.state?.quiz && event.state.stage !== 'hub') {
@@ -1267,7 +1282,7 @@
   motionPreference.addEventListener('change', () => { cancelVisuals(); if (!document.hidden) render(); });
   global.addEventListener('pagehide', event => { clearTimer(); stopSounds(); cancelVisuals(); if (!event.persisted) Motion?.dispose(); });
   global.addEventListener('pageshow', event => { if (event.persisted) { render(); if (game === 'test' && M.stage !== 'test-question') return; if (game === 'test' && M.question?.settled && M.running) scheduleQuizNext(M.question); else if (M.question && !M.question.settled && !M.question.answerRevealed && !M.question.beat) startTimer(); } });
-  global.KunuzJourney = Object.freeze({ get state() { return M; }, get diagnostics() { return { bankStamp: typeof global.seenStamp === 'function' ? global.seenStamp() : '', offlineReady: M.offlineReady, excluded: M.excluded, fallback: M.fallback, categories: game === 'hub' ? [] : Model.categories().map(c => ({ name: c.name, total: c.count })) }; } });
+  global.KunuzJourney = Object.freeze({ get state() { return M; }, get boardRooms() { return boardRooms?.diagnostics || null; }, get diagnostics() { return { bankStamp: typeof global.seenStamp === 'function' ? global.seenStamp() : '', offlineReady: M.offlineReady, excluded: M.excluded, fallback: M.fallback, categories: game === 'hub' ? [] : Model.categories().map(c => ({ name: c.name, total: c.count })) }; } });
   async function loadHannaLocal() {
     // Direct room URLs stay outside the local bank/pack engine. Local Hanna uses
     // that engine only after the entry route has been classified below.
@@ -1300,6 +1315,10 @@
       await prepareOffline();
       if (global.LEVELS_EXPERIMENT !== false) await new Promise(resolve => { let tries = 0; const timer = setInterval(() => { if (global.KUNUZ_LEVELS || ++tries >= 80) { clearInterval(timer); resolve(); } }, 25); });
       M.excluded = Model.categories().filter(c => c.count < Model.PER_CATEGORY); M.ready = true;
+      if (game === 'board') {
+        boardRooms = global.KunuzBoardRooms.attach({ state: M, app, render, esc, ar, button, digits: roomDigits, colors, sym, time, paintTime, askDialog, boardView, boardQuestion, teamBar, timerMarkup });
+        if (boardRooms.resume()) return;
+      }
       if (game === 'test') { initQuizSetup(); return; }
       if (new URLSearchParams(location.search).get('setup') === '1') {
         try {
