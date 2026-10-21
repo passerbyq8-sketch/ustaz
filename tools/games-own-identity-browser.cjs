@@ -634,7 +634,12 @@ async function roomNumberRegression() {
   });
   const atSettings = () => page.waitForFunction(() => KunuzJourney.state.stage === 'settings');
   await setup(page, false);
-  check('Direct rooms link retains room mode', await page.locator('.j-room-flow-card').count(), 1);
+  await page.evaluate(() => {
+    const m = KunuzJourney.state;
+    sessionStorage.setItem('kunuz_journey_room_setup_v1', JSON.stringify({game:'hanna',cats:m.cats,teams:m.teams,settings:{...m.settings,room:true},returnFromRoom:true,savedAt:Date.now()}));
+  });
+  await page.goto(base + '/hanna-laha/?setup=1'); await atSettings();
+  check('Fresh return from a room restores the validated room setup', await page.locator('.j-room-flow-card').count(), 1);
   await click(page, '[data-action="add-team"]');
   await page.locator('[data-team-name="0"]').fill('فريق اللؤلؤ');
   await page.locator('[data-team-name="1"]').fill('فريق المرجان');
@@ -752,6 +757,9 @@ async function roomNumberRegression() {
 
   const war = await open('harb', gameWidth, false, '?rooms=1');
   await setup(war.page, false);
+  await click(war.page, '[data-action="change-play-mode"]');
+  await click(war.page, '[data-action="create-room"]');
+  await click(war.page, '[data-action="next-setup"]');
   check('Island War room card reports automatic numbering', await war.page.locator('.j-room-flow-card .j-note').innerText(), 'الرقم تلقائي');
   check('Island War has no unsupported number selection button', await war.page.locator('[data-action="room-code-open"], [data-room-draft]').count(), 0);
   check('Island War room card precedes team setup', await war.page.locator('#journey-main > section').evaluateAll(nodes => nodes.slice(0, 2).map(node => node.querySelector('h2')?.textContent)), ['الغرفة', 'الفرق']);
