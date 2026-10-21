@@ -14,7 +14,7 @@ const mode = process.argv.includes('--before') ? 'before' : process.argv.include
 const gameWidth = Number(process.argv.find(arg => arg.startsWith('--width='))?.split('=')[1]) || 390;
 const onlyGame = process.argv.find(arg => arg.startsWith('--game='))?.split('=')[1];
 const record = { mode, checks: [], screenshots: [], errors: [], blockedExternal: [] };
-const referenceCommit = '8dca7e552c19cede94346dae19d62b36afdc9c4b';
+const referenceCommit = require('node:child_process').execFileSync('git', ['rev-parse', 'origin/main'], { cwd: root, encoding: 'utf8' }).trim();
 const referenceFiles = new Map();
 if (mode === 'before') {
   record.referenceCommit = referenceCommit;
@@ -81,7 +81,7 @@ async function setup(page, start = true) {
 }
 async function protectedScreens() {
   if (mode === 'after') {
-    const baseCommit = '8dca7e552c19cede94346dae19d62b36afdc9c4b';
+    const baseCommit = referenceCommit;
     const readBase = file => require('node:child_process').execFileSync('git', ['show', baseCommit + ':' + file], { cwd: root, encoding: 'utf8' }).replace(/\r\n/g, '\n');
     const read = file => fs.readFileSync(path.join(root, file), 'utf8').replace(/\r\n/g, '\n');
     const before = readBase('quest-theme/journey.js'), after = read('quest-theme/journey.js');
@@ -136,22 +136,34 @@ async function hanna() {
   const { page, context } = await open('hanna', gameWidth);
   await setup(page);
   check('Hanna selected category order', await page.locator('.j-hanna-category').evaluateAll(nodes => nodes.map(node => Number(node.dataset.cat))), [2, 0, 1]);
-  check('Hanna one question per selected category', (await current(page)).slots, 3);
+  check('Hanna six questions per selected category', (await current(page)).slots, 18);
+  check('Hanna ascending values within every category', await page.evaluate(() => KunuzJourney.state.cats.map(cat => KunuzJourney.state.slots.filter(slot => slot.cat === cat).map(slot => slot.pts))), Array(3).fill([200, 200, 400, 400, 600, 600]));
+  check('Hanna six dots on every category button', await page.locator('.j-hanna-category').evaluateAll(nodes => nodes.map(node => node.querySelectorAll('.j-hanna-dot').length)), [6, 6, 6]);
+  check('Hanna starts with all dots empty', await page.locator('.j-hanna-dot-filled').count(), 0);
+  check('Hanna category labels have no question counts', await page.locator('.j-hanna-category').evaluateAll(nodes => nodes.every(node => !/[0-9٠-٩]/.test(node.textContent + node.getAttribute('aria-label')))));
+  check('Hanna uses dots without a numeric header count', await page.locator('.j-counter').count(), 0);
   await shot(page, 'hanna-list-390');
-  const outcomes = [[true, false], [false, false], [true, true]];
+  const outcomes = [[true, false], [false, false], [true, true], [false, true]];
   const totals = [0, 0], seen = new Set();
-  for (let round = 0; round < 3; round++) {
+  for (let round = 0; round < 18; round++) {
     await click(page, '.j-hanna-category:not(:disabled)');
     let state = await current(page);
     check('Hanna turn ' + round, state.turn, round % 2);
+    check('Hanna opens the next category in selected order ' + round, await page.evaluate(() => DATA.qs[KunuzJourney.state.question.index][0]), [2, 0, 1][Math.floor(round / 6)]);
+    check('Hanna next unplayed value ' + round, state.q.value, [200, 200, 400, 400, 600, 600][round % 6]);
+    const valueText = String(state.q.value).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]) + ' نقطة';
+    check('Hanna displays the slot value ' + round, (await page.locator('.j-hanna-sheet > .j-tag').first().innerText()).includes(valueText));
+    check('Hanna displays the approved safe/bold deltas ' + round, await page.locator('.j-hanna-confidence small').allTextContents(), ['صح: +' + String(state.q.value / 2).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]) + ' · خطأ: ٠', 'صح: +' + String(state.q.value).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]) + ' · خطأ: −' + String(state.q.value / 2).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d])]);
     check('Hanna keeps existing unset confidence ' + round, state.q.confidence, null);
     check('Hanna full screen question ' + round, await page.locator('.j-board-grid,.j-hanna-category-list').count(), 0);
     check('Hanna four answer choices ' + round, await page.locator('[data-action="answer"]').count(), 4);
     check('Hanna unopened category gets a unique question ' + round, !seen.has(state.q.index)); seen.add(state.q.index);
     if (round === 0) await shot(page, 'hanna-question-390');
+    if (round === 2) await shot(page, 'hanna-question-400-390');
+    if (round === 4) await shot(page, 'hanna-question-600-390');
     for (let response = 0; response < 2; response++) {
       state = await current(page);
-      const team = state.q.activeTeam, mode = team === 0 ? 'bold' : 'safe', right = outcomes[round][team];
+      const team = state.q.activeTeam, mode = team === 0 ? 'bold' : 'safe', right = outcomes[round % outcomes.length][team];
       await click(page, `[data-action="confidence"][data-mode="${mode}"]`);
       await click(page, `[data-answer="${right ? state.q.correct : (state.q.correct + 1) % state.q.choices}"]`);
       await click(page, '[data-action="confirm-answer"]');
@@ -169,13 +181,20 @@ async function hanna() {
     if (round === 0) await shot(page, 'hanna-correct-390');
     if (round === 1) await shot(page, 'hanna-wrong-390');
     await click(page, '[data-action="question-next"]');
-    if (round < 2) {
-      check('Hanna completed categories disabled ' + round, await page.locator('.j-hanna-category:disabled').count(), round + 1);
+    if (round < 17) {
+      check('Hanna fills one dot per played question ' + round, await page.locator('.j-hanna-dot-filled').count(), round + 1);
+      check('Hanna disables only fully played categories ' + round, await page.locator('.j-hanna-category:disabled').count(), Math.floor((round + 1) / 6));
+      check('Hanna finished category has its check mark ' + round, await page.locator('.j-hanna-category:disabled').evaluateAll(nodes => nodes.every(node => node.textContent.includes('✓ انتهت'))));
+      check('Hanna category labels stay free of question counts ' + round, await page.locator('.j-hanna-category').evaluateAll(nodes => nodes.every(node => !/[0-9٠-٩]/.test(node.textContent + node.getAttribute('aria-label')))));
       check('Hanna next team highlighted ' + round, await page.locator('.j-team[aria-current="true"]').count(), 1);
     }
-    if (round === 0) await shot(page, 'hanna-completed-category-390');
+    if (round === 0) await shot(page, 'hanna-progress-390');
+    if (round === 5) await shot(page, 'hanna-completed-category-390');
   }
   check('Hanna finishes after the last category', (await current(page)).stage, 'results');
+  check('Hanna result displays only total points', await page.locator('.j-rank tbody tr').evaluateAll(nodes => nodes.map(node => node.children.length)), [2, 2]);
+  check('Hanna result totals match all eighteen questions', (await current(page)).scores, totals);
+  check('Hanna result contains no question count', await page.locator('.j-counter,.j-hanna-progress,.j-quiz-score').count(), 0);
   await shot(page, 'hanna-results-390');
   check('Hanna new game label', await page.locator('[data-action="again"]').innerText(), 'لعبة جديدة');
   await click(page, '[data-action="again"]');
@@ -266,7 +285,9 @@ async function hannaNavigation() {
   await click(page, '.j-hanna-category:not(:disabled)');
   await click(page, '[data-action="back"]');
   await click(page, '[data-action="dialog-yes"]');
-  check('Hanna abandoning a question finishes its category', (await current(page)).stage, 'results');
+  check('Hanna abandoning a question returns to the category list', (await current(page)).stage, 'board');
+  check('Hanna abandoning uses only that question', await page.locator('.j-hanna-dot-filled').count(), 3);
+  check('Hanna category remains available until all six are used', await page.locator('.j-hanna-category:disabled').count(), 0);
   check('Hanna abandoning keeps all scores', (await current(page)).scores, [100, 200]);
   await context.close();
 }

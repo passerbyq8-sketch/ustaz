@@ -95,7 +95,7 @@
           const timeout = setTimeout(controlled, 3000);
           navigator.serviceWorker.addEventListener('controllerchange', controlled);
         });
-        const screenAssets = ['theme.css?v=20261021-identity1', 'journey.js?v=20261021-identity1', 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
+        const screenAssets = ['theme.css?v=20261021-identity2', 'journey.js?v=20261021-identity2', 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
         if (navigator.serviceWorker.controller) await Promise.all(screenAssets.map(async file => {
           const response = await fetch('/quest-theme/' + file);
           if (!response.ok) throw new Error('Screen cache unavailable');
@@ -136,7 +136,7 @@
   }
   function header() {
     const audioIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4Z"/>' + (M.muted ? '<path d="m17 9 5 6m0-6-5 6"/>' : '<path d="M17 8q5 4 0 8M16 11q2 1 0 2"/>') + '</svg>';
-    return '<header class="j-header">' + (game !== 'hub' ? button('›', 'back', 'j-icon-btn j-back', 'aria-label="رجوع"') : '') + (game === 'hub' ? '<div class="j-brand">عزك<small>كنوز المعرفة</small></div>' : '<h1>' + names[game] + '</h1>') + (M.running && game !== 'test' ? '<span class="j-counter" aria-label="تقدم اللعب">' + ar(played()) + ' من ' + ar(M.slots.length || M.pool.length) + '</span>' : '') + button(audioIcon, 'mute', 'j-icon-btn', 'aria-label="' + (M.muted ? 'تشغيل الصوت' : 'كتم الصوت') + '" aria-pressed="' + !M.muted + '"') + button(Icons.icon('home'), 'home', 'j-icon-btn', 'aria-label="الرئيسية"') + '</header>';
+    return '<header class="j-header">' + (game !== 'hub' ? button('›', 'back', 'j-icon-btn j-back', 'aria-label="رجوع"') : '') + (game === 'hub' ? '<div class="j-brand">عزك<small>كنوز المعرفة</small></div>' : '<h1>' + names[game] + '</h1>') + (M.running && game !== 'test' && game !== 'hanna' ? '<span class="j-counter" aria-label="تقدم اللعب">' + ar(played()) + ' من ' + ar(M.slots.length || M.pool.length) + '</span>' : '') + button(audioIcon, 'mute', 'j-icon-btn', 'aria-label="' + (M.muted ? 'تشغيل الصوت' : 'كتم الصوت') + '" aria-pressed="' + !M.muted + '"') + button(Icons.icon('home'), 'home', 'j-icon-btn', 'aria-label="الرئيسية"') + '</header>';
   }
   function stepper() {
     if (!M.step || M.stage === 'results' || game === 'test' || game === 'hanna' && M.running) return '';
@@ -201,8 +201,10 @@
   }
   function hannaCategories() {
     return '<section class="j-hanna-list">' + teamBar() + '<div class="j-board-title"><h2>اختاروا فئتكم</h2><p>دور «' + esc(M.teams[actor()].n) + '»</p></div><div class="j-hanna-category-list">' + M.cats.map(c => {
-      const index = M.slots.findIndex(slot => slot.cat === c), slot = M.slots[index];
-      return button(catIcon(c) + '<b>' + esc(catName(c)) + '</b><span>' + (slot.used ? '✓ انتهت' : '‹') + '</span>', 'tile', 'j-secondary j-hanna-category', 'data-cat="' + c + '" data-slot="' + index + '"' + (slot.used ? ' disabled' : ''));
+      const slots = M.slots.filter(slot => slot.cat === c), index = M.slots.findIndex(slot => slot.cat === c && !slot.used), done = index === -1;
+      const progress = '<span class="j-hanna-progress" aria-hidden="true">' + slots.map(slot => '<i class="j-hanna-dot' + (slot.used ? ' j-hanna-dot-filled' : '') + '"></i>').join('') + '</span>';
+      const status = done ? 'انتهت' : slots.some(slot => slot.used) ? 'لُعب جزء منها' : 'لم تُلعب';
+      return button(catIcon(c) + '<b>' + esc(catName(c)) + progress + '</b><span>' + (done ? '✓ انتهت' : '‹') + '</span>', 'tile', 'j-secondary j-hanna-category', 'data-cat="' + c + '" data-slot="' + index + '" aria-label="' + esc(catName(c)) + '، ' + status + '"' + (done ? ' disabled' : ''));
     }).join('') + '</div><div class="j-actions">' + button('الفرق والإعدادات', 'leave', 'j-secondary') + '</div></section>';
   }
   function shownOptions(q) { return M.settings.options === 'shown' || q.showTeams.has(q.activeTeam ?? q.actor) || q.answerRevealed; }
@@ -507,7 +509,7 @@
     const pool = Model.reserve(M.cats, M.history);
     if (pool.shortage.length) { M.error = 'فئة «' + catName(pool.shortage[0]) + '» غير متاحة حاليًا؛ ارجعوا واختاروا فئة أخرى.'; render(); return; }
     M.error = ''; M.pool = pool.indices; M.slots = pool.slots; M.fallback = pool.fallback; M.excluded = all.filter(c => c.count < Model.PER_CATEGORY);
-    if (game === 'hanna') M.slots = M.cats.map(cat => M.slots.find(slot => slot.cat === cat));
+    if (game === 'hanna') M.slots = M.cats.flatMap(cat => M.slots.filter(slot => slot.cat === cat).sort((a, b) => a.pts - b.pts));
     if (game === 'test') M.slots = Model.shuffle(M.slots.filter(slot => global.DATA.qs[slot.index][4].length === 4)).slice(0, M.quizCount);
     if (game === 'hanna' || game === 'test') {
       const slots = fourChoiceSlots(M.slots);
