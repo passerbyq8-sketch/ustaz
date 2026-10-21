@@ -28,7 +28,7 @@ KZV.register({
         "مجمع الأمثال للميداني، دار المعرفة، ج1 ص277، سطور النص 10234-10239 — https://raw.githubusercontent.com/OpenITI/0525AH/6290621b58e063ed1aa47ffd0a6fc1630191e7cb/data/0518IbnMuhammadMaydaniNaysaburi/0518IbnMuhammadMaydaniNaysaburi.MajmacAmthal/0518IbnMuhammadMaydaniNaysaburi.MajmacAmthal.Shamela0012929-ara1",
         "جمهرة الأمثال لأبي هلال العسكري، دار الفكر 1988، ج1 ص462، سطور النص 7537-7545 — https://raw.githubusercontent.com/OpenITI/0400AH/5bb6966d8df2ed22b1bff5cdbe29bb9c24f3ca29/data/0395AbuHilalCaskari/0395AbuHilalCaskari.JamharatAmthal/0395AbuHilalCaskari.JamharatAmthal.JK000972-ara1"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -50,7 +50,7 @@ KZV.register({
         "مجمع الأمثال للميداني، دار المعرفة، ج1 ص261، سطور النص 9659-9662 — https://raw.githubusercontent.com/OpenITI/0525AH/6290621b58e063ed1aa47ffd0a6fc1630191e7cb/data/0518IbnMuhammadMaydaniNaysaburi/0518IbnMuhammadMaydaniNaysaburi.MajmacAmthal/0518IbnMuhammadMaydaniNaysaburi.MajmacAmthal.Shamela0012929-ara1",
         "جمهرة الأمثال لأبي هلال العسكري، دار الفكر 1988، ج1 ص441، سطور النص 7201-7202 — https://raw.githubusercontent.com/OpenITI/0400AH/5bb6966d8df2ed22b1bff5cdbe29bb9c24f3ca29/data/0395AbuHilalCaskari/0395AbuHilalCaskari.JamharatAmthal/0395AbuHilalCaskari.JamharatAmthal.JK000972-ara1"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -94,7 +94,7 @@ KZV.register({
         "الأمثال الشعبية في قلب جزيرة العرب، عبدالكريم الجهيمان، ط3، ج7 ص25 — https://archive.org/download/4-11360/7_11363.pdf#page=25",
         "الأمثال العامية، أحمد تيمور باشا، مؤسسة هنداوي 2014، ص404 — https://downloads.hindawi.org/books/75241938.pdf#page=404"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -116,13 +116,13 @@ KZV.register({
         "الأمثال الدارجة في الكويت، عبدالله النوري، الأعمال الكاملة مجلد9، ص467 — https://alnouri.org/content/download/38316f5e-e203-4df9-9fc0-76cc38a70a04.pdf#page=470",
         "الأمثال الشعبية في قلب جزيرة العرب، عبدالكريم الجهيمان، ط3، ج8 ص244 — https://archive.org/download/4-11360/8_11364.pdf#page=244"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
     {
       "id": "fmt-proverb-cloze-0028",
-      "cat": "fmt-proverb-cloze",
+      "cat": "poetry-fusha",
       "type": "mcq",
       "fmt": "proverb-cloze",
       "q": "أكمل المثل: لا تنه عن خلق ____ مثله",
@@ -160,7 +160,7 @@ KZV.register({
         "أحمد الميداني: مجمع الأمثال، دار المعرفة، ج1 ص396، مثل2097 — https://raw.githubusercontent.com/OpenITI/0525AH/6290621b58e063ed1aa47ffd0a6fc1630191e7cb/data/0518IbnMuhammadMaydaniNaysaburi/0518IbnMuhammadMaydaniNaysaburi.MajmacAmthal/0518IbnMuhammadMaydaniNaysaburi.MajmacAmthal.Shamela0012929-ara1",
         "أبو هلال العسكري: جمهرة الأمثال، ج1 ص574، مثل1077 — https://raw.githubusercontent.com/OpenITI/0400AH/5bb6966d8df2ed22b1bff5cdbe29bb9c24f3ca29/data/0395AbuHilalCaskari/0395AbuHilalCaskari.JamharatAmthal/0395AbuHilalCaskari.JamharatAmthal.Shamela0006897-ara1.completed"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -182,7 +182,7 @@ KZV.register({
         "أحمد تيمور باشا: الأمثال العامية، مؤسسة هنداوي، ص483 — https://downloads.hindawi.org/books/75241938.pdf#page=483",
         "حامد طاهر: الفلسفة المصرية من الأمثال الشعبية، النص المنشور على موقع المؤلف، ص140 — https://hamedtaher.com/2010-04-08-12-48-49ef64.pdf?Itemid=55&catid=65%3A2010-04-08-12-22-43&format=pdf&id=65%3A2010-04-08-12-48-49&option=com_content&view=article#page=140"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -204,7 +204,7 @@ KZV.register({
         "عبدالله النوري: الأمثال الدارجة في الكويت، الأعمال الكاملة، مجلد9، ص53، مثل89 — https://alnouri.org/content/download/38316f5e-e203-4df9-9fc0-76cc38a70a04.pdf#page=56",
         "مريم بلاع العامري وشما بلاع العامري: لهجة العوامر، الاتحاد النسائي العام، ص33، رمستنا في الأمثال — https://www.uaew.ae/encyclopedia/attachments/65.pdf#page=34"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },

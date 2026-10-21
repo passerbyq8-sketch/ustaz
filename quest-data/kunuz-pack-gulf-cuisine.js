@@ -50,7 +50,7 @@ KZV.register({
         "وكالة أنباء الإمارات — الأكلات الشعبية في الإمارات — https://www.wam.ae/ar/article/hsyptvoa-الأكلات-الشعبية-الإمارات-تتميز-بكثرتها-وتنوعها",
         "أبوظبي للثقافة — الهريس — https://abudhabiculture.ae/en/Cultural-Heritage/InTangible/UNESCO-ICH-Inscribed-Elements/Harees"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -116,7 +116,7 @@ KZV.register({
         "أبوظبي للثقافة — الخبيص — https://abudhabiculture.ae/ar/cultural-heritage/intangible/heritage-register/social-practices/khabees",
         "وكالة أنباء الإمارات — الأكلات الشعبية في الإمارات — https://www.wam.ae/ar/article/hsyptvoa-الأكلات-الشعبية-الإمارات-تتميز-بكثرتها-وتنوعها"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -138,7 +138,7 @@ KZV.register({
         "أبوظبي للثقافة — الخبيص — https://abudhabiculture.ae/ar/cultural-heritage/intangible/heritage-register/social-practices/khabees",
         "وكالة أنباء الإمارات — الأكلات الشعبية في الإمارات — https://www.wam.ae/ar/article/hsyptvoa-الأكلات-الشعبية-الإمارات-تتميز-بكثرتها-وتنوعها"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -232,7 +232,7 @@ KZV.register({
     },
     {
       "id": "gulf-cuisine-0022",
-      "cat": "gulf-cuisine",
+      "cat": "cuisine",
       "type": "mcq",
       "fmt": "text",
       "q": "أي عملية حرارية تجرى لحبوب البن قبل طحنها للقهوة العربية؟",
@@ -270,7 +270,7 @@ KZV.register({
         "أبوظبي للثقافة — القهوة العربية — https://abudhabiculture.ae/en/cultural-resources/publications/gahwa-arabic-coffee",
         "وكالة أنباء الإمارات — الأكلات الشعبية في الإمارات — https://www.wam.ae/ar/article/hsyptvoa-الأكلات-الشعبية-الإمارات-تتميز-بكثرتها-وتنوعها"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -292,7 +292,7 @@ KZV.register({
         "أبوظبي للثقافة — الكامي — https://abudhabiculture.ae/ar/cultural-heritage/intangible/heritage-register/traditional-handicraft/kami",
         "وكالة أنباء الإمارات — التراث الجبلي الإماراتي — https://www.wam.ae/ar/article/hsz9msm0-التراث-الجبلي-الإماراتي-يستقبل-زائريه-مهرجان-الشيخ"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -336,7 +336,7 @@ KZV.register({
         "أبوظبي للثقافة — الصاج — https://abudhabiculture.ae/ar/cultural-heritage/intangible/heritage-register/social-practices/al-saj",
         "وكالة أنباء الإمارات — التراث الجبلي الإماراتي — https://www.wam.ae/ar/article/hsz9msm0-التراث-الجبلي-الإماراتي-يستقبل-زائريه-مهرجان-الشيخ"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -424,7 +424,7 @@ KZV.register({
         "جريدة عمان — الحلويات العمانية موروث ثقافي يتجدد كل عيد — https://www.omandaily.om/print-article?articleId=1199127",
         "وزارة التراث والسياحة العمانية — الثقافة والمطبخ — https://experienceoman.om/things-to-do-categories/heritage-and-culture-activities"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -490,7 +490,7 @@ KZV.register({
         "وزارة التراث والسياحة العمانية — الثقافة والمطبخ — https://experienceoman.om/things-to-do-categories/heritage-and-culture-activities",
         "جريدة عمان — مائدة عيد الأضحى وأصالة المذاق العماني — https://www.omandaily.om/ثقافة/na/مائدة-عيد-الأضحى-أكلات-تراثية-تجمع-تميز-المذاق-بالأصالة-العمانية"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -562,7 +562,7 @@ KZV.register({
     },
     {
       "id": "gulf-cuisine-0045",
-      "cat": "gulf-cuisine",
+      "cat": "cuisine",
       "type": "mcq",
       "fmt": "text",
       "q": "من كم حجر تتكون الرحى اليدوية التقليدية؟",
@@ -578,7 +578,7 @@ KZV.register({
         "أبوظبي للثقافة — الرحى — https://abudhabiculture.ae/ar/cultural-heritage/intangible/heritage-register/social-practices/al-raha",
         "وكالة أنباء الإمارات — التراث الجبلي الإماراتي — https://www.wam.ae/ar/article/hsz9msm0-التراث-الجبلي-الإماراتي-يستقبل-زائريه-مهرجان-الشيخ"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -666,7 +666,7 @@ KZV.register({
         "سعوديبيديا — الكليجا — https://saudipedia.com/الكليجا",
         "مكتبة الملك عبدالعزيز العامة — مأكولات القصيم — https://saudiency.kapl.org.sa/Loader.aspx?BookID=93&PID=13&TOCID=24&pageid=28"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -732,7 +732,7 @@ KZV.register({
         "سعوديبيديا — المطبق — https://saudipedia.com/المطبق",
         "مكتبة الملك عبدالعزيز العامة — مأكولات مدن منطقة مكة المكرمة — https://saudiency.kapl.org.sa/Loader.aspx?BookID=27&PID=22&TOCID=58&pageid=16"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -776,7 +776,7 @@ KZV.register({
         "سعوديبيديا — المطبق — https://saudipedia.com/المطبق",
         "مكتبة الملك عبدالعزيز العامة — مأكولات مدن منطقة مكة المكرمة — https://saudiency.kapl.org.sa/Loader.aspx?BookID=27&PID=22&TOCID=58&pageid=16"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -820,7 +820,7 @@ KZV.register({
         "سعوديبيديا — الخبز الأحمر الحساوي — https://saudipedia.com/الخبز-الأحمر-الحساوي",
         "مكتبة الملك عبدالعزيز العامة — وجبات المنطقة الشرقية — https://saudiency.kapl.org.sa/Loader.aspx?BookID=60&PID=43&TOCID=44&pageid=22"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -842,7 +842,7 @@ KZV.register({
         "مكتبة الملك عبدالعزيز العامة — أدوات القهوة والشاي في المنطقة الشرقية — https://saudiency.kapl.org.sa/Loader.aspx?BookID=60&PID=46&TOCID=44&pageid=22",
         "وكالة الأنباء السعودية — القهوة السعودية حاضرة في فعاليات ليالي رمضانية — https://www.spa.gov.sa/2347302"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -864,7 +864,7 @@ KZV.register({
         "مكتبة الملك عبدالعزيز العامة — أدوات القهوة والشاي في المنطقة الشرقية — https://saudiency.kapl.org.sa/Loader.aspx?BookID=60&PID=46&TOCID=44&pageid=22",
         "وكالة الأنباء السعودية — القهوة السعودية حاضرة في فعاليات ليالي رمضانية — https://www.spa.gov.sa/2347302"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -908,7 +908,7 @@ KZV.register({
         "معهد الشارقة للتراث — مجلة مراود، العدد الثالث، ص22–25 — https://www.kazima.org/pages/text/47069",
         "جريدة عمان — مائدة عيد الأضحى وأصالة المذاق العماني — https://www.omandaily.om/ثقافة/na/مائدة-عيد-الأضحى-أكلات-تراثية-تجمع-تميز-المذاق-بالأصالة-العمانية"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -974,7 +974,7 @@ KZV.register({
         "سعوديبيديا — الجريش — https://saudipedia.com/الجريش",
         "مكتبة الملك عبدالعزيز العامة — مأكولات قرى الرياض — https://saudiency.kapl.org.sa/Loader.aspx?BookID=49&PID=35&pageid=20"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -996,7 +996,7 @@ KZV.register({
         "وزارة الثقافة القطرية — الحلوى — https://www.moc.gov.qa/inventory/الحلوى/",
         "مكتبة الملك عبدالعزيز العامة — وجبات المنطقة الشرقية — https://saudiency.kapl.org.sa/Loader.aspx?BookID=60&PID=43&TOCID=44&pageid=22"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1084,7 +1084,7 @@ KZV.register({
         "أبوظبي للثقافة — الهريس — https://abudhabiculture.ae/en/Cultural-Heritage/InTangible/UNESCO-ICH-Inscribed-Elements/Harees",
         "وكالة أنباء الإمارات — الأكلات الشعبية في الإمارات — https://www.wam.ae/ar/article/hsyptvoa-الأكلات-الشعبية-الإمارات-تتميز-بكثرتها-وتنوعها"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1128,7 +1128,7 @@ KZV.register({
         "دائرة الثقافة والسياحة أبوظبي — أطباق إماراتية — https://visitabudhabi.ae/en/plan-your-trip/article-hub/emirati-cuisine-the-dishes-to-try-and-where-to-try-them",
         "وكالة أنباء الإمارات — المأكولات التراثية في سوق عكاظ — https://www.wam.ae/ar/article/hszr91bi-المأكولات-التراثية-الإماراتية-مهرجان-سوق-عكاظ"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1172,7 +1172,7 @@ KZV.register({
         "أبوظبي للثقافة — الكامي — https://abudhabiculture.ae/ar/cultural-heritage/intangible/heritage-register/traditional-handicraft/kami",
         "وكالة أنباء الإمارات — التراث الجبلي الإماراتي — https://www.wam.ae/ar/article/hsz9msm0-التراث-الجبلي-الإماراتي-يستقبل-زائريه-مهرجان-الشيخ"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1194,7 +1194,7 @@ KZV.register({
         "أبوظبي للثقافة — الكامي — https://abudhabiculture.ae/ar/cultural-heritage/intangible/heritage-register/traditional-handicraft/kami",
         "وكالة أنباء الإمارات — التراث الجبلي الإماراتي — https://www.wam.ae/ar/article/hsz9msm0-التراث-الجبلي-الإماراتي-يستقبل-زائريه-مهرجان-الشيخ"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1260,7 +1260,7 @@ KZV.register({
         "قطر للسياحة — المطبخ القطري — https://visitqatar.com/intl-en/about-qatar/cuisine",
         "مكتبة الملك عبدالعزيز العامة — مأكولات قرى الرياض — https://saudiency.kapl.org.sa/Loader.aspx?BookID=49&PID=35&pageid=20"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1282,7 +1282,7 @@ KZV.register({
         "مكتبة الملك عبدالعزيز العامة — مأكولات القصيم — https://saudiency.kapl.org.sa/Loader.aspx?BookID=93&PID=13&TOCID=24&pageid=28",
         "وكالة الأنباء السعودية — الحنيني وطريقة تحضيره، 2019 — https://www.spa.gov.sa/1879591"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1326,7 +1326,7 @@ KZV.register({
         "مكتبة الملك عبدالعزيز العامة — مأكولات القصيم — https://saudiency.kapl.org.sa/Loader.aspx?BookID=93&PID=13&TOCID=24&pageid=28",
         "وكالة الأنباء السعودية — الحنيني وطريقة تحضيره، 2019 — https://www.spa.gov.sa/1879591"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1370,7 +1370,7 @@ KZV.register({
         "مكتبة الملك عبدالعزيز العامة — مأكولات القصيم — https://saudiency.kapl.org.sa/Loader.aspx?BookID=93&PID=13&TOCID=24&pageid=28",
         "وكالة الأنباء السعودية — مهرجان الحنيني بعنيزة، 2022 — https://www.spa.gov.sa/2329914"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1392,7 +1392,7 @@ KZV.register({
         "مكتبة الملك عبدالعزيز العامة — مأكولات قرى الرياض — https://saudiency.kapl.org.sa/Loader.aspx?BookID=49&PID=35&pageid=20",
         "الملحقية الثقافية السعودية بكندا — وصفات أطباق من الدولة السعودية الأولى — https://saudibureau.org/files/وصفات-الدوله-السعوديه-الاولى.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1414,7 +1414,7 @@ KZV.register({
         "مكتبة الملك عبدالعزيز العامة — مأكولات قرى الرياض — https://saudiency.kapl.org.sa/Loader.aspx?BookID=49&PID=35&pageid=20",
         "الملحقية الثقافية السعودية بكندا — وصفات أطباق من الدولة السعودية الأولى — https://saudibureau.org/files/وصفات-الدوله-السعوديه-الاولى.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1436,7 +1436,7 @@ KZV.register({
         "مكتبة الملك عبدالعزيز العامة — مأكولات قرى الرياض — https://saudiency.kapl.org.sa/Loader.aspx?BookID=49&PID=35&pageid=20",
         "الملحقية الثقافية السعودية بكندا — وصفات أطباق من الدولة السعودية الأولى — https://saudibureau.org/files/وصفات-الدوله-السعوديه-الاولى.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1480,7 +1480,7 @@ KZV.register({
         "سعوديبيديا — الكليجا — https://saudipedia.com/الكليجا",
         "وزارة الصحة السعودية — الأطعمة الشعبية، ص48 — https://www.moh.gov.sa/Ministry/MediaCenter/Publications/Documents/Publications-2011-10-05-001.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1546,7 +1546,7 @@ KZV.register({
         "مكتبة الملك عبدالعزيز العامة — مأكولات مدن مكة — https://saudiency.kapl.org.sa/Loader.aspx?BookID=27&PID=22&TOCID=58&pageid=16",
         "الملحقية الثقافية السعودية بكندا — وصفات أطباق من الدولة السعودية الأولى — https://saudibureau.org/files/وصفات-الدوله-السعوديه-الاولى.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1568,7 +1568,7 @@ KZV.register({
         "مكتبة الملك عبدالعزيز العامة — مأكولات مدن مكة — https://saudiency.kapl.org.sa/Loader.aspx?BookID=27&PID=22&TOCID=58&pageid=16",
         "وكالة الأنباء السعودية — أطباق مناطق المملكة، 2024 — https://www.spa.gov.sa/N2025767"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1590,7 +1590,7 @@ KZV.register({
         "مكتبة الملك عبدالعزيز العامة — مأكولات القصيم — https://saudiency.kapl.org.sa/Loader.aspx?BookID=93&PID=13&TOCID=24&pageid=28",
         "سعوديبيديا — المصابيب — https://saudipedia.com/المصابيب"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1612,7 +1612,7 @@ KZV.register({
         "مكتبة الملك عبدالعزيز العامة — مأكولات القصيم — https://saudiency.kapl.org.sa/Loader.aspx?BookID=93&PID=13&TOCID=24&pageid=28",
         "سعوديبيديا — المصابيب — https://saudipedia.com/المصابيب"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1656,7 +1656,7 @@ KZV.register({
         "مكتبة الملك عبدالعزيز العامة — وجبات المنطقة الشرقية — https://saudiency.kapl.org.sa/Loader.aspx?BookID=60&PID=43&TOCID=44&pageid=22",
         "الملحقية الثقافية السعودية بكندا — وصفات أطباق من الدولة السعودية الأولى — https://saudibureau.org/files/وصفات-الدوله-السعوديه-الاولى.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1700,7 +1700,7 @@ KZV.register({
         "وكالة أنباء الإمارات — الأكلات الشعبية في الإمارات — https://www.wam.ae/ar/article/hsyptvoa-الأكلات-الشعبية-الإمارات-تتميز-بكثرتها-وتنوعها",
         "كونا — عادات كويتية متأصلة في رمضان، 2001 — https://www.kuna.net.kw/ArticlePrintPage.aspx?id=1207636&language=ar"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1788,7 +1788,7 @@ KZV.register({
         "وزارة الصحة البحرينية — جداول تركيب الأغذية 2025 — https://www.moh.gov.bh/Content/Upload/File/638916394661198002-FCT-book-final-2025_ar.pdf",
         "منظمة السياحة العالمية — مذاقات البحرين، 2024 — https://pre-webunwto.s3.eu-west-1.amazonaws.com/s3fs-public/2024-11/un-tourism-follet-gastronomico-barein.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1876,7 +1876,7 @@ KZV.register({
         "جريدة عمان — مائدة عيد الأضحى والأكلات العمانية — https://www.omandaily.om/ثقافة/na/مائدة-عيد-الأضحى-أكلات-تراثية-تجمع-تميز-المذاق-بالأصالة-العمانية",
         "أثير — مراحل إعداد الشواء العماني بالصور — https://www.atheer.om/archive/100902/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1942,7 +1942,7 @@ KZV.register({
         "منظمة السياحة العالمية — مذاقات البحرين، 2024 — https://pre-webunwto.s3.eu-west-1.amazonaws.com/s3fs-public/2024-11/un-tourism-follet-gastronomico-barein.pdf",
         "جريدة البلاد — موائد رمضان في البحرين، 2017 — https://www.albiladpress.com/news/2017/3157/spaces/431325.html"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1964,7 +1964,7 @@ KZV.register({
         "منظمة السياحة العالمية — مذاقات البحرين، 2024 — https://pre-webunwto.s3.eu-west-1.amazonaws.com/s3fs-public/2024-11/un-tourism-follet-gastronomico-barein.pdf",
         "جريدة البلاد — موائد رمضان في البحرين، 2017 — https://www.albiladpress.com/news/2017/3157/spaces/431325.html"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2030,7 +2030,7 @@ KZV.register({
         "سعوديبيديا — العريكة — https://saudipedia.com/العريكة",
         "الملحقية الثقافية السعودية بكندا — وصفات أطباق من الدولة السعودية الأولى — https://saudibureau.org/files/وصفات-الدوله-السعوديه-الاولى.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2118,7 +2118,7 @@ KZV.register({
         "مكتبة الملك عبدالعزيز العامة — المأكولات الشعبية، المدخل العام — https://saudiency.kapl.org.sa/Loader.aspx?BookID=7&PID=20&TOCID=24&pageid=236",
         "الملحقية الثقافية السعودية في كندا — وصفات أطباق، إعداد حصة عبدالله البشر — https://saudibureau.org/files/وصفات-الدوله-السعوديه-الاولى.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2162,7 +2162,7 @@ KZV.register({
         "مكتبة الملك عبدالعزيز العامة — المأكولات الشعبية، المدخل العام — https://saudiency.kapl.org.sa/Loader.aspx?BookID=7&PID=20&TOCID=24&pageid=236",
         "الملحقية الثقافية السعودية في كندا — وصفات أطباق، إعداد حصة عبدالله البشر — https://saudibureau.org/files/وصفات-الدوله-السعوديه-الاولى.pdf"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2184,7 +2184,7 @@ KZV.register({
         "الملحقية الثقافية السعودية في كندا — وصفات أطباق، إعداد حصة عبدالله البشر — https://saudibureau.org/files/وصفات-الدوله-السعوديه-الاولى.pdf",
         "هيئة فنون الطهي — مجموعة وصفات ثلاثين طبقا — https://culinary.moc.gov.sa/-/media/Project/Ministries/Commission/culinaryarts/30-dish-trip-%281%29.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2250,7 +2250,7 @@ KZV.register({
         "الملحقية الثقافية السعودية في كندا — وصفات أطباق، إعداد حصة عبدالله البشر — https://saudibureau.org/files/وصفات-الدوله-السعوديه-الاولى.pdf",
         "واس — الرقش من الأطباق المتوارثة بنجران، 28 أبريل 2020 — https://www.spa.gov.sa/2079954"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2272,7 +2272,7 @@ KZV.register({
         "الملحقية الثقافية السعودية في كندا — وصفات أطباق، إعداد حصة عبدالله البشر — https://saudibureau.org/files/وصفات-الدوله-السعوديه-الاولى.pdf",
         "واس — الأكلات الشعبية الشتوية بمنطقة الباحة، 2026 — https://www.spa.gov.sa/ar/w2500522"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2294,7 +2294,7 @@ KZV.register({
         "الملحقية الثقافية السعودية في كندا — وصفات أطباق، إعداد حصة عبدالله البشر — https://saudibureau.org/files/وصفات-الدوله-السعوديه-الاولى.pdf",
         "سعوديبيديا — المشغوثة — https://saudipedia.com/المشغوثة"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2316,7 +2316,7 @@ KZV.register({
         "الملحقية الثقافية السعودية في كندا — وصفات أطباق، إعداد حصة عبدالله البشر — https://saudibureau.org/files/وصفات-الدوله-السعوديه-الاولى.pdf",
         "سعوديبيديا — المقشوش — https://saudipedia.com/المقشوش"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2338,7 +2338,7 @@ KZV.register({
         "الإمارات اليوم — مموش الروبيان، إعداد شيماء هناوي، 2015 — https://www.emaratalyoum.com/ramadan/food-recipies/2015-06-22-1.795932",
         "فتافيت — المموش، وصفة وفاء الكندري — https://www.fatafeat.com/recipe/3248/طريقة-عمل-المموش"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2404,7 +2404,7 @@ KZV.register({
         "مكتبة الملك عبدالعزيز العامة — أدوات الطبخ والأكل في جازان — https://saudiency.kapl.org.sa/Loader.aspx?BookID=82&PID=32&TOCID=46&pageid=26",
         "المعهد الدبلوماسي — الدبلوماسي 60، جازان حضارة وثقافة مدهشة، 2012 — https://www.ids.gov.sa/ids/wp-content/uploads/Diplomat/DiplomatDiplomat_Arabic_60.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2426,7 +2426,7 @@ KZV.register({
         "دائرة الثقافة والسياحة أبوظبي — أطباق إماراتية تقليدية — https://visitabudhabi.ae/en/plan-your-trip/article-hub/emirati-food-to-try",
         "الجمعية الوطنية للتصلب المتعدد — دليل التغذية، وصفة الجباب، 2025 — https://www.nationalmssociety.ae/uploads/250128_nmss-nutrition-guide-ar.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2448,7 +2448,7 @@ KZV.register({
         "دائرة الثقافة والسياحة أبوظبي — أطباق إماراتية تقليدية — https://visitabudhabi.ae/en/plan-your-trip/article-hub/emirati-food-to-try",
         "الجمعية الوطنية للتصلب المتعدد — دليل التغذية، وصفة الجباب، 2025 — https://www.nationalmssociety.ae/uploads/250128_nmss-nutrition-guide-ar.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2470,7 +2470,7 @@ KZV.register({
         "دائرة الثقافة والسياحة أبوظبي — أطباق إماراتية تقليدية — https://visitabudhabi.ae/en/plan-your-trip/article-hub/emirati-food-to-try",
         "الإمارات اليوم — المضروبة، وصفة عائشة أحمد الشحي، 2011 — https://www.emaratalyoum.com/life/life-style/2011-08-04-1.413857"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2492,7 +2492,7 @@ KZV.register({
         "قطر للسياحة — المطبخ القطري — https://visitqatar.com/intl-en/about-qatar/cuisine",
         "كونا — عادات كويتية متأصلة في رمضان، 2001 — https://www.kuna.net.kw/ArticlePrintPage.aspx?id=1207636&language=ar"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2514,7 +2514,7 @@ KZV.register({
         "الملحقية الثقافية السعودية في كندا — وصفات أطباق، إعداد حصة عبدالله البشر — https://saudibureau.org/files/وصفات-الدوله-السعوديه-الاولى.pdf",
         "هيئة فنون الطهي — مجموعة وصفات ثلاثين طبقا — https://culinary.moc.gov.sa/-/media/Project/Ministries/Commission/culinaryarts/30-dish-trip-%281%29.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2536,7 +2536,7 @@ KZV.register({
         "هيئة فنون الطهي — مجموعة وصفات ثلاثين طبقا — https://culinary.moc.gov.sa/-/media/Project/Ministries/Commission/culinaryarts/30-dish-trip-%281%29.pdf",
         "هيئة تطوير منطقة المدينة المنورة — الدبيازة — https://www.visitmadinahsa.com/sa-ar/destinations/الدبيازة"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2602,7 +2602,7 @@ KZV.register({
         "منظمة الأمم المتحدة للسياحة — سلطنة عمان، 2024 — https://pre-webunwto.s3.eu-west-1.amazonaws.com/s3fs-public/webimages/OMAN_web.pdf",
         "الرؤية العمانية — وصف طالب المقبالي لعادات الشواء — https://alroya.om/uploads/documents/90756a14ac601b61accd861a78e53104.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2624,7 +2624,7 @@ KZV.register({
         "منظمة الأمم المتحدة للسياحة — سلطنة عمان، 2024 — https://pre-webunwto.s3.eu-west-1.amazonaws.com/s3fs-public/webimages/OMAN_web.pdf",
         "عمان أوبزرفر — Family, food, and the table that holds them together — https://www.omanobserver.om/ampArticle/1179287"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2646,7 +2646,7 @@ KZV.register({
         "جامعة الملك خالد — آفاق، أطعمة من عسير، صيف 2014 — https://www.kku.edu.sa/sites/default/files/files/AFAQ%2049-50-LR.pdf",
         "واس — الحنيذ وليمة زائر عسير، 29 نوفمبر 2024 — https://www.spa.gov.sa/N2216010"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2668,7 +2668,7 @@ KZV.register({
         "مكتبة الملك عبدالعزيز العامة — المأكولات الشعبية، المدخل العام — https://saudiency.kapl.org.sa/Loader.aspx?BookID=7&PID=20&TOCID=24&pageid=236",
         "الملحقية الثقافية السعودية في كندا — وصفات أطباق، إعداد حصة عبدالله البشر — https://saudibureau.org/files/وصفات-الدوله-السعوديه-الاولى.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2690,7 +2690,7 @@ KZV.register({
         "الأنباء — المطبخ: قبوط محشي، 4 يوليو 2014، ص20 — https://pdf.alanba.com.kw/PDF/2014/07/04-07-2014/04-07-2014.pdf",
         "مجلة حراء — القبوط أشهر أطعمة الكويت، 15 يناير 2018 — https://hiragate.com/11390/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2712,7 +2712,7 @@ KZV.register({
         "الوسط البحرينية — إلّي في الجدر يطلعه ملّاس جدتي: الخنفروش، 24 يونيو 2015 — https://www.alwasatnews.com/news/1002969.html",
         "الإمارات اليوم — خنفروش، وصفة الشيف مصبح الكعبي، 18 يونيو 2016 — https://www.emaratalyoum.com/ramadan/food-recipies/2016-06-18-1.906401"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2734,7 +2734,7 @@ KZV.register({
         "دائرة الثقافة بالشارقة — مجلة الوسطى، العدد61، أكتوبر2024: عفراء الكتبي، ص54–56 — https://sdc.gov.ae/assets/download/d490b13/مجلة%20الوسطى%20العدد%2061%20عن%20شهر%20أكتوبر%20%202024.pdf.aspx",
         "أخبار الخليج — مطبخ الخليج: طبق الأسبوع الرنجينة، 31 يوليو2025، ص16 — https://media.akhbar-alkhaleej.com/source/17296/pdf/1-Supplime/17296.pdf?fixed7="
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2756,7 +2756,7 @@ KZV.register({
         "دائرة الثقافة بالشارقة — مجلة الوسطى، العدد61، أكتوبر2024: عفراء الكتبي، ص54–56 — https://sdc.gov.ae/assets/download/d490b13/مجلة%20الوسطى%20العدد%2061%20عن%20شهر%20أكتوبر%20%202024.pdf.aspx",
         "أخبار الخليج — مطبخ الخليج: طبق الأسبوع الرنجينة، 31 يوليو2025، ص16 — https://media.akhbar-alkhaleej.com/source/17296/pdf/1-Supplime/17296.pdf?fixed7="
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2844,7 +2844,7 @@ KZV.register({
         "البيان — أكلات شعبية: جشيد، 18 يوليو2013 — https://www.albayan.ae/supplements/ramadan/fadfada/2013-07-18-1.1924372",
         "دائرة الثقافة والسياحة أبوظبي — Authentic Emirati Experiences، ص12 — https://visitabudhabi.ae/-/media/project/vad/plan-your-trip/article-hub/traditional-emirati-experiences/banner-supergraphic/emirati-experiences-guide-20-dec.pdf?rev=b0836bf6c46e464b842d7470ed79fe51"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2866,7 +2866,7 @@ KZV.register({
         "الوسط البحرينية — إلّي في الجدر يطلعه ملّاس جدتي: الخنفروش، 24 يونيو 2015 — https://www.alwasatnews.com/news/1002969.html",
         "الثقافة الشعبية — الأصول المعجمية لبعض التعبيرات الأجنبية في اللهجة البحرينية، حسين علي يحيى — https://folkculturebh.org/ar/index.php?id=701&issue=43&page=article"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2910,7 +2910,7 @@ KZV.register({
         "سعوديبيديا — الأكلات الشعبية في منطقة القصيم: المحلى — https://saudipedia.com/الأكلات-الشعبية-في-منطقة-القصيم",
         "الملحقية الثقافية السعودية بكندا — وصفات أطباق من الدولة السعودية الأولى: محلى، ص5 — https://saudibureau.org/files/وصفات-الدوله-السعوديه-الاولى.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2954,8 +2954,8 @@ KZV.register({
         "مكتبة الملك عبدالعزيز العامة — المدخل العام: المأكولات الشعبية، عبدالرحمن العسيري — https://saudiency.kapl.org.sa/Loader.aspx?BookID=7&PID=20&TOCID=24&pageid=236",
         "هيئة فنون الطهي — مجموعة وصفات ثلاثين طبقًا، ص4 و25 — https://culinary.moc.gov.sa/-/media/Project/Ministries/Commission/culinaryarts/30-dish-trip-%281%29.pdf"
       ],
-      "level": 3,
-      "status": "approved",
+      "level": 2,
+      "status": "held",
       "flags": []
     },
     {
@@ -2976,7 +2976,7 @@ KZV.register({
         "الملحقية الثقافية السعودية بكندا — وصفات أطباق من الدولة السعودية الأولى: قشد، ص7 — https://saudibureau.org/files/وصفات-الدوله-السعوديه-الاولى.pdf",
         "هيئة فنون الطهي — مجموعة وصفات ثلاثين طبقًا، ص4 و25 — https://culinary.moc.gov.sa/-/media/Project/Ministries/Commission/culinaryarts/30-dish-trip-%281%29.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3064,7 +3064,7 @@ KZV.register({
         "مكتبة الملك عبدالعزيز العامة — المأكولات الشعبية في مدن منطقة مكة المكرمة: المعدوس — https://saudiency.kapl.org.sa/Loader.aspx?BookID=27&PID=22&TOCID=58&pageid=16",
         "هيئة فنون الطهي — قوائم الضيافة السعودية: مأدبة النكهات، ص18 — https://culinary.moc.gov.sa/-/media/Project/Ministries/Commission/culinaryarts/Culinary-Arts-Books/Saudi-Menu-Selection-AR.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3086,7 +3086,7 @@ KZV.register({
         "الأنباء — المطبخ: قبوط محشي، 4 يوليو2014، ص20 — https://pdf.alanba.com.kw/PDF/2014/07/04-07-2014/04-07-2014.pdf",
         "مجلة حراء — القبوط أشهر أطعمة الكويت، 15 يناير2018 — https://hiragate.com/11390/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3108,7 +3108,7 @@ KZV.register({
         "دائرة الثقافة بالشارقة — الوسطى61، أكتوبر2024: عفراء الكتبي، ص54 — https://sdc.gov.ae/assets/download/d490b13/مجلة%20الوسطى%20العدد%2061%20عن%20شهر%20أكتوبر%20%202024.pdf.aspx",
         "أخبار الخليج — الرطب في البحرين وطبق الأسبوع الرنجينة، 31 يوليو2025، ص16 — https://media.akhbar-alkhaleej.com/source/17296/pdf/1-Supplime/17296.pdf?fixed7="
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     }

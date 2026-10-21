@@ -28,7 +28,7 @@ KZV.register({
         "Top Table Manners Tips — Emily Post — https://emilypost.com/advice/top-table-manners-tips",
         "Guide to Entertaining at Home — Debrett's — https://debretts.com/wp-content/uploads/2023/10/Debretts-Guide-to-Entertaining-at-Home.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -138,7 +138,7 @@ KZV.register({
         "Guide to Food and Drink — Emily Post — https://emilypost.com/advice/guide-to-food-and-drink",
         "Breaking Bread — Debrett's — https://debretts.com/breaking-bread/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -160,7 +160,7 @@ KZV.register({
         "Guide to Food and Drink — Emily Post — https://emilypost.com/advice/guide-to-food-and-drink",
         "Breaking Bread — Debrett's — https://debretts.com/breaking-bread/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -182,7 +182,7 @@ KZV.register({
         "Basic Table Setting — Emily Post — https://emilypost.com/advice/basic-table-setting",
         "Breaking Bread — Debrett's — https://debretts.com/breaking-bread/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -196,15 +196,15 @@ KZV.register({
         "من اليسار إلى اليمين فقط",
         "من جهتك إلى الجهة الأبعد",
         "في دائرة على حافة الوعاء",
-        "من الجهة الأبعد إلى جهتك"
+        "بالتحريك السريع ذهابًا وإيابًا"
       ],
       "answer": 1,
       "why": "تملأ ملعقة الحساء بتحريكها بعيدا عن الجالس نحو الطرف الآخر.",
       "src": [
-        "Guide to Food and Drink — Emily Post — https://emilypost.com/advice/guide-to-food-and-drink",
-        "Breaking Bread — Debrett's — https://debretts.com/breaking-bread/"
+        "https://debretts.com/the-golden-rules-of-dining/",
+        "https://www.esc776.com/wp-content/uploads/2017/09/ORENX20.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -226,7 +226,7 @@ KZV.register({
         "Guide to Food and Drink — Emily Post — https://emilypost.com/advice/guide-to-food-and-drink",
         "Essential table manners — Debrett's — https://debretts.com/essential-table-manners/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -314,7 +314,7 @@ KZV.register({
         "Proper Table Setting 101 — Emily Post — https://emilypost.com/advice/table-setting-guides",
         "Meal Etiquette — American University — https://careers.kogod.american.edu/resources/meal-etiquette/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -358,7 +358,7 @@ KZV.register({
         "Top Questions for Dining Out — Emily Post — https://emilypost.com/advice/top-questions-for-dining-out",
         "Meal Etiquette — American University — https://careers.kogod.american.edu/resources/meal-etiquette/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -380,7 +380,7 @@ KZV.register({
         "Top Questions for Dining Out — Emily Post — https://emilypost.com/advice/top-questions-for-dining-out",
         "Meal Etiquette — American University — https://careers.kogod.american.edu/resources/meal-etiquette/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -402,7 +402,7 @@ KZV.register({
         "Neighbors: How to Raise a Concern Politely — Emily Post — https://emilypost.com/advice/neighbors-how-to-raise-a-concern-politely",
         "How to Be a Good Neighbour — Debrett's — https://debretts.com/how-to-be-a-good-neighbour/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -446,7 +446,7 @@ KZV.register({
         "The Countryside Code: advice for countryside visitors — https://www.gov.uk/government/publications/the-countryside-code/the-countryside-code-advice-for-countryside-visitors",
         "Ten rules for a responsible visit — Parks Canada — https://parks.canada.ca/voyage-travel/conseils-tips/guide"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -468,7 +468,7 @@ KZV.register({
         "The Countryside Code: advice for countryside visitors — https://www.gov.uk/government/publications/the-countryside-code/the-countryside-code-advice-for-countryside-visitors",
         "Ten rules for a responsible visit — Parks Canada — https://parks.canada.ca/voyage-travel/conseils-tips/guide"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -490,7 +490,7 @@ KZV.register({
         "Leave No Trace Seven Principles — National Park Service — https://www.nps.gov/articles/leave-no-trace-seven-principles.htm",
         "Ten rules for a responsible visit — Parks Canada — https://parks.canada.ca/voyage-travel/conseils-tips/guide"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -534,7 +534,7 @@ KZV.register({
         "The Countryside Code: advice for countryside visitors — https://www.gov.uk/government/publications/the-countryside-code/the-countryside-code-advice-for-countryside-visitors",
         "Leave No Trace Seven Principles — National Park Service — https://www.nps.gov/articles/leave-no-trace-seven-principles.htm"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -578,7 +578,7 @@ KZV.register({
         "Reading Rooms — British Library — https://www.bl.uk/visit/reading-rooms",
         "Using the Rare Books Collection — National Library of Australia — https://www.library.gov.au/research/access-collection/using-rare-books-collection"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -622,7 +622,7 @@ KZV.register({
         "Best Practices for Interacting with Persons with Disabilities: A Guide — Canadian Transportation Agency — https://otc-cta.gc.ca/eng/publication/best-practices-interacting-persons-disabilities-a-guide?wbdisable=true",
         "Disability Etiquette — United Spinal Association — https://unitedspinal.org/pdf/DisabilityEtiquette.pdf"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -644,7 +644,7 @@ KZV.register({
         "Annex: Understanding Disabilities — Government of Canada — https://www.canada.ca/en/employment-social-development/programs/accessible-canada-regulations-guidance/consultation/key-concepts.html",
         "Disability Etiquette — United Spinal Association — https://unitedspinal.org/pdf/DisabilityEtiquette.pdf"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -666,7 +666,7 @@ KZV.register({
         "How to Guide People with Sight Loss — RNIB (2022) — https://www.rnib.org.uk/documents/1137/How_to_guide_people_with_sight_loss_2022.pdf",
         "Disability Etiquette — United Spinal Association — https://unitedspinal.org/pdf/DisabilityEtiquette.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -688,7 +688,7 @@ KZV.register({
         "Best Practices for Interacting with Persons with Disabilities: A Guide — Canadian Transportation Agency — https://otc-cta.gc.ca/eng/publication/best-practices-interacting-persons-disabilities-a-guide?wbdisable=true",
         "Disability Etiquette — United Spinal Association — https://unitedspinal.org/pdf/DisabilityEtiquette.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -732,7 +732,7 @@ KZV.register({
         "Annex: Understanding Disabilities — Government of Canada — https://www.canada.ca/en/employment-social-development/programs/accessible-canada-regulations-guidance/consultation/key-concepts.html",
         "Disability Etiquette — United Spinal Association — https://unitedspinal.org/pdf/DisabilityEtiquette.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -754,7 +754,7 @@ KZV.register({
         "Annex: Understanding Disabilities — Government of Canada — https://www.canada.ca/en/employment-social-development/programs/accessible-canada-regulations-guidance/consultation/key-concepts.html",
         "Disability Etiquette — United Spinal Association — https://unitedspinal.org/pdf/DisabilityEtiquette.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -776,7 +776,7 @@ KZV.register({
         "Best Practices for Interacting with Persons with Disabilities: A Guide — Canadian Transportation Agency — https://otc-cta.gc.ca/eng/publication/best-practices-interacting-persons-disabilities-a-guide?wbdisable=true",
         "Annex: Understanding Disabilities — Government of Canada — https://www.canada.ca/en/employment-social-development/programs/accessible-canada-regulations-guidance/consultation/key-concepts.html"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -798,7 +798,7 @@ KZV.register({
         "Best Practices for Interacting with Persons with Disabilities: A Guide — Canadian Transportation Agency — https://otc-cta.gc.ca/eng/publication/best-practices-interacting-persons-disabilities-a-guide?wbdisable=true",
         "Disability Etiquette — United Spinal Association — https://unitedspinal.org/pdf/DisabilityEtiquette.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -842,7 +842,7 @@ KZV.register({
         "British Museum visitor regulations (May 2018) — https://www.britishmuseum.org/sites/default/files/2019-10/visitor_regulations_may_2018.pdf",
         "Guidelines and Policies — Smithsonian American Art Museum — https://americanart.si.edu/visit/guidelines"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -864,7 +864,7 @@ KZV.register({
         "Email Etiquette Dos and Don'ts — Emily Post — https://emilypost.com/advice/email-etiquette-dos-and-donts",
         "RFC 1855: Netiquette Guidelines (October 1995) — https://datatracker.ietf.org/doc/rfc1855/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -886,7 +886,7 @@ KZV.register({
         "Email Etiquette Best Practices — Pepperdine University — https://community.pepperdine.edu/hr/content/email-etiquette-best-practices.pdf",
         "RFC 1855: Netiquette Guidelines (October 1995) — https://datatracker.ietf.org/doc/rfc1855/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -908,7 +908,7 @@ KZV.register({
         "Email Etiquette Best Practices — Pepperdine University — https://community.pepperdine.edu/hr/content/email-etiquette-best-practices.pdf",
         "RFC 1855: Netiquette Guidelines (October 1995) — https://datatracker.ietf.org/doc/rfc1855/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -974,7 +974,7 @@ KZV.register({
         "Consent for Sharing Photos and Videos — eSafety Commissioner — https://www.esafety.gov.au/young-people/consent-sharing-photos-videos",
         "Speaking Notes: Respecting Others' Privacy Before Posting Photos — OPC — https://www.priv.gc.ca/media/3628/9-12_notes_e.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -996,7 +996,7 @@ KZV.register({
         "Email Etiquette Best Practices — Pepperdine University — https://community.pepperdine.edu/hr/content/email-etiquette-best-practices.pdf",
         "The New Rules of Mobile Etiquette — Debrett's — https://debretts.com/the-new-rules-of-mobile-etiquette/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1018,7 +1018,7 @@ KZV.register({
         "Email Etiquette Best Practices — Pepperdine University — https://community.pepperdine.edu/hr/content/email-etiquette-best-practices.pdf",
         "RFC 1855: Netiquette Guidelines (October 1995) — https://datatracker.ietf.org/doc/rfc1855/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1084,7 +1084,7 @@ KZV.register({
         "The Golden Rules for Houseguests — Emily Post — https://emilypost.com/advice/the-golden-rules-for-houseguests",
         "Make Yourself at Home? — Debrett's — https://debretts.com/make-yourself-at-home/"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1150,7 +1150,7 @@ KZV.register({
         "The Highway Code: Road Users Requiring Extra Care — https://www.gov.uk/guidance/the-highway-code/road-users-requiring-extra-care-204-to-225",
         "Sharing the Road with Horse Riders — NSW Government — https://www.nsw.gov.au/driving-boating-and-transport/driving-nsw/roads-safety-and-rules/sharing-road-overtaking-and-merging/sharing-roads-horses"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1216,7 +1216,7 @@ KZV.register({
         "The Highway Code: Rules for pedestrians — https://www.gov.uk/guidance/the-highway-code/rules-for-pedestrians-1-to-35",
         "Pedestrian Safety — Transport for NSW (September 2020) — https://www.transport.nsw.gov.au/system/files/media/documents/2025/crs_pedestrian_safety.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1282,7 +1282,7 @@ KZV.register({
         "The Highway Code: General Rules for Drivers and Riders — https://www.gov.uk/guidance/the-highway-code/general-rules-techniques-and-advice-for-all-drivers-and-riders-103-to-158",
         "Lights and Horns — NSW Government — https://www.nsw.gov.au/driving-boating-and-transport/driving-nsw/roads-safety-and-rules/warnings-and-hazards/lights-and-horns"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1304,7 +1304,7 @@ KZV.register({
         "The Highway Code: Rules for Cyclists — https://www.gov.uk/guidance/the-highway-code/rules-for-cyclists-59-to-82",
         "Riding bikes near pedestrians — NSW Government — https://www.nsw.gov.au/driving-boating-and-transport/driving-nsw/roads-safety-and-rules/bicycle-safety-and-rules/riding-bikes-near-pedestrians"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1326,7 +1326,7 @@ KZV.register({
         "The Cardinal Rules of Borrowing and Lending — Emily Post — https://emilypost.com/advice/the-cardinal-rules-of-borrowing-and-lending",
         "How to Borrow Equipment — University of Hawaii at Hilo — https://hilo.hawaii.edu/library/media/borrow.php"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1370,7 +1370,7 @@ KZV.register({
         "The Cardinal Rules of Borrowing and Lending — Emily Post — https://emilypost.com/advice/the-cardinal-rules-of-borrowing-and-lending",
         "The Perils of Borrowing — Debrett's — https://debretts.com/the-perils-of-borrowing/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1392,7 +1392,7 @@ KZV.register({
         "Tenant Sign-up Pack: Wipe Out Blocked Drains, p.38 — Cambridge City Council — https://www.cambridge.gov.uk/media/dfsk0l4n/tenant-sign-up-pack.pdf",
         "Wastewater Blockages — Sydney Water — https://www.sydneywater.com.au/plumbing-building-developing/plumbing/wastewater-blockages.html"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1502,7 +1502,7 @@ KZV.register({
         "Essential table manners — Debrett's — https://debretts.com/essential-table-manners/",
         "Meal Etiquette — American University — https://careers.kogod.american.edu/resources/meal-etiquette/"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1590,7 +1590,7 @@ KZV.register({
         "Invitation Etiquette — Emily Post — https://emilypost.com/advice/invitation-etiquette",
         "Holt Boyd County Table Setting Contest Manual — Nebraska Extension — https://extension.unl.edu/statewide/holt-boyd/holt-boyd-county-4-h-table-setting-contest-manual/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1612,7 +1612,7 @@ KZV.register({
         "The Countryside Code: advice for countryside visitors — https://www.gov.uk/government/publications/the-countryside-code/the-countryside-code-advice-for-countryside-visitors",
         "The Countryside Code — nidirect — https://www.nidirect.gov.uk/articles/countryside-code"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1634,7 +1634,7 @@ KZV.register({
         "Leave No Trace Seven Principles — National Park Service — https://www.nps.gov/articles/leave-no-trace-seven-principles.htm",
         "The Countryside Code: advice for countryside visitors — https://www.gov.uk/government/publications/the-countryside-code/the-countryside-code-advice-for-countryside-visitors"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1656,7 +1656,7 @@ KZV.register({
         "Leave No Trace Seven Principles — National Park Service — https://www.nps.gov/articles/leave-no-trace-seven-principles.htm",
         "The Countryside Code: advice for countryside visitors — https://www.gov.uk/government/publications/the-countryside-code/the-countryside-code-advice-for-countryside-visitors"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1722,7 +1722,7 @@ KZV.register({
         "Metro and Tram Fares, Fines and Etiquette — RTA, May 2022 — https://www.rta.ae/links/rail/RTA-Metro-Tram-Fares-Fines-Etiquette-Digital-brochure-en.pdf",
         "Gracious Commuting — LTA — https://www.lta.gov.sg/content/ltagov/en/getting_around/public_transport/a_better_public_transport_experience/gracious_commuting.html"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1810,7 +1810,7 @@ KZV.register({
         "Help Us Save It for the Next Person: Reading Room Handling Guidelines — Library of Congress — https://www.loc.gov/preservation/resources/educational/bookmarks/RRcard/images/WSTFY.pdf",
         "Using the Rare Books Collection — National Library of Australia — https://www.library.gov.au/research/access-collection/using-rare-books-collection"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1832,7 +1832,7 @@ KZV.register({
         "Help Us Save It for the Next Person: Reading Room Handling Guidelines — Library of Congress — https://www.loc.gov/preservation/resources/educational/bookmarks/RRcard/images/WSTFY.pdf",
         "Collection Handling — National Library of Australia — https://www.library.gov.au/visit/reading-rooms/special-collections-reading-room/using-special-collections-reading-room-2"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1854,7 +1854,7 @@ KZV.register({
         "Help Us Save It for the Next Person: Reading Room Handling Guidelines — Library of Congress — https://www.loc.gov/preservation/resources/educational/bookmarks/RRcard/images/WSTFY.pdf",
         "Collection Handling — National Library of Australia — https://www.library.gov.au/visit/reading-rooms/special-collections-reading-room/using-special-collections-reading-room-2"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1876,7 +1876,7 @@ KZV.register({
         "Disability Etiquette — United Spinal Association — https://unitedspinal.org/pdf/DisabilityEtiquette.pdf",
         "Annex: Understanding Disabilities — Government of Canada — https://www.canada.ca/en/employment-social-development/programs/accessible-canada-regulations-guidance/consultation/key-concepts.html"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1964,7 +1964,7 @@ KZV.register({
         "Top Questions for Dining Out — Emily Post — https://emilypost.com/advice/top-questions-for-dining-out",
         "Job Search Etiquettes: Dining — University of North Carolina Wilmington — https://redirectapp.uncw.edu/seahawk-life/support-success/career-center/find-job/etiquette"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -1986,7 +1986,7 @@ KZV.register({
         "The Formal Place Setting — Emily Post — https://emilypost.com/advice/formal-place-setting",
         "Holt Boyd County Table Setting Contest Manual — Nebraska Extension — https://extension.unl.edu/statewide/holt-boyd/holt-boyd-county-4-h-table-setting-contest-manual/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2008,7 +2008,7 @@ KZV.register({
         "The Formal Place Setting — Emily Post — https://emilypost.com/advice/formal-place-setting",
         "Dining Etiquette (2024–2025) — University of California Riverside — https://careers.ucr.edu/sites/default/files/2024-09/2024-25_dining_etiquette.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2052,7 +2052,7 @@ KZV.register({
         "The Formal Place Setting — Emily Post — https://emilypost.com/advice/formal-place-setting",
         "Holt Boyd County Table Setting Contest Manual — Nebraska Extension — https://extension.unl.edu/statewide/holt-boyd/holt-boyd-county-4-h-table-setting-contest-manual/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2096,7 +2096,7 @@ KZV.register({
         "Guide to Food and Drink — Emily Post — https://emilypost.com/advice/guide-to-food-and-drink",
         "Breaking Bread — Debrett's — https://debretts.com/breaking-bread/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2118,7 +2118,7 @@ KZV.register({
         "Guide to Food and Drink — Emily Post — https://emilypost.com/advice/guide-to-food-and-drink",
         "Breaking Bread — Debrett's — https://debretts.com/breaking-bread/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2140,7 +2140,7 @@ KZV.register({
         "Top Table Manners Tips — Emily Post — https://emilypost.com/advice/top-table-manners-tips",
         "Holt Boyd County Table Setting Contest Manual — Nebraska Extension — https://extension.unl.edu/statewide/holt-boyd/holt-boyd-county-4-h-table-setting-contest-manual/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2162,7 +2162,7 @@ KZV.register({
         "Common Tea Questions — Emily Post — https://emilypost.com/advice/common-tea-questions",
         "Heritage: Afternoon Tea Etiquette — Debrett's, archive page 11 — https://debretts.com/heritage-articles/page/11/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2184,7 +2184,7 @@ KZV.register({
         "Common Tea Questions — Emily Post — https://emilypost.com/advice/common-tea-questions",
         "Heritage: Afternoon Tea Etiquette — Debrett's, archive page 11 — https://debretts.com/heritage-articles/page/11/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2228,7 +2228,7 @@ KZV.register({
         "The Highway Code: Rules for pedestrians — https://www.gov.uk/guidance/the-highway-code/rules-for-pedestrians-1-to-35",
         "Pedestrian Safety — Transport for NSW (September 2020) — https://www.transport.nsw.gov.au/system/files/media/documents/2025/crs_pedestrian_safety.pdf"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2294,7 +2294,7 @@ KZV.register({
         "Tenant Sign-up Pack: Wipe Out Blocked Drains, p.38 — Cambridge City Council — https://www.cambridge.gov.uk/media/dfsk0l4n/tenant-sign-up-pack.pdf",
         "Wastewater Blockages — Sydney Water — https://www.sydneywater.com.au/plumbing-building-developing/plumbing/wastewater-blockages.html"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2316,7 +2316,7 @@ KZV.register({
         "Phone Management Module — Grand Valley State University — https://www.gvsu.edu/studentjobs/phone-management-module-62.htm",
         "Code of Excellence and Conduct (2024): Telephone Etiquette — Anderson Hospital — https://andersonhospital.org/wp-content/uploads/2024/02/Code-of-Excellence-Conduct-2024.01.31.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2338,7 +2338,7 @@ KZV.register({
         "Phone Management Module — Grand Valley State University — https://www.gvsu.edu/studentjobs/phone-management-module-62.htm",
         "Code of Excellence and Conduct (2024): Telephone Etiquette — Anderson Hospital — https://andersonhospital.org/wp-content/uploads/2024/02/Code-of-Excellence-Conduct-2024.01.31.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2360,7 +2360,7 @@ KZV.register({
         "Phone Management Module — Grand Valley State University — https://www.gvsu.edu/studentjobs/phone-management-module-62.htm",
         "Telephone Etiquette — Tulane University — https://it.tulane.edu/index.php/telephone-etiquette"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2382,7 +2382,7 @@ KZV.register({
         "Phone Management Module — Grand Valley State University — https://www.gvsu.edu/studentjobs/phone-management-module-62.htm",
         "Code of Excellence and Conduct (2024): Telephone Etiquette — Anderson Hospital — https://andersonhospital.org/wp-content/uploads/2024/02/Code-of-Excellence-Conduct-2024.01.31.pdf"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2404,7 +2404,7 @@ KZV.register({
         "Phone Management Module — Grand Valley State University — https://www.gvsu.edu/studentjobs/phone-management-module-62.htm",
         "Telephone Etiquette — Tulane University — https://it.tulane.edu/index.php/telephone-etiquette"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2426,7 +2426,7 @@ KZV.register({
         "Phone Management Module — Grand Valley State University — https://www.gvsu.edu/studentjobs/phone-management-module-62.htm",
         "Job Search Etiquettes: Dining — University of North Carolina Wilmington — https://redirectapp.uncw.edu/seahawk-life/support-success/career-center/find-job/etiquette"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2492,7 +2492,7 @@ KZV.register({
         "Preserving Your Books: Handling Your Books — Library of Congress — https://guides.loc.gov/preserving-your-books/handling",
         "Rare and Valuable Government Documents (1992), National Library of Medicine care guidelines — American Library Association / ERIC ED357746 — https://files.eric.ed.gov/fulltext/ED357746.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2514,7 +2514,7 @@ KZV.register({
         "Research Room Guidance — US National Archives — https://www.archives.gov/research/research-room-guidance",
         "Collection Handling — National Library of Australia — https://www.library.gov.au/visit/reading-rooms/special-collections-reading-room/using-special-collections-reading-room-2"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2536,7 +2536,7 @@ KZV.register({
         "Email Etiquette Dos and Don'ts — Emily Post — https://emilypost.com/advice/email-etiquette-dos-and-donts",
         "ETRPC Email Etiquette — Northern Michigan University Academic Senate — https://nmu.edu/academicsenate/etrpc-email-etiquette"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2580,7 +2580,7 @@ KZV.register({
         "How to Use Active Listening to Build Relationships — Emily Post — https://emilypost.com/advice/how-to-use-active-listening-to-build-relationships",
         "Phone Management Module — Grand Valley State University — https://www.gvsu.edu/studentjobs/phone-management-module-62.htm"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2602,7 +2602,7 @@ KZV.register({
         "Preserving Your Books: Handling Your Books — Library of Congress — https://guides.loc.gov/preserving-your-books/handling",
         "Rare and Valuable Government Documents (1992), National Library of Medicine care guidelines — American Library Association / ERIC ED357746 — https://files.eric.ed.gov/fulltext/ED357746.pdf"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2624,7 +2624,7 @@ KZV.register({
         "Disability Etiquette — United Spinal Association — https://unitedspinal.org/pdf/DisabilityEtiquette.pdf",
         "Tips for Dining with Vision Loss (2026) — Wisconsin Council of the Blind and Visually Impaired — https://wcblind.org/2026/05/tips-for-dining-with-vision-loss/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2712,7 +2712,7 @@ KZV.register({
         "Etiquette — Troy University — https://www.troy.edu/about-us/leadership/chancellors-office/mrs-janice-hawkins/etiquette.html",
         "Dining Etiquette — University of California, Irvine — https://career.uci.edu/wp-content/uploads/2018/03/QT_DiningEtiquette.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2734,7 +2734,7 @@ KZV.register({
         "Etiquette — Troy University — https://www.troy.edu/about-us/leadership/chancellors-office/mrs-janice-hawkins/etiquette.html",
         "Dining Etiquette 101 — University of California, Riverside — https://studentdocs.ucr.edu/career-center/uc-riverside_career-center_dining-etiquette-handout.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2756,7 +2756,7 @@ KZV.register({
         "Professional Etiquette/Attire — University of Alabama Career Center — https://career.sa.ua.edu/develop/professional-etiquetteattire/",
         "Meal Interview Etiquette — Missouri State University Career Center — https://careercenter.missouristate.edu/Students/MealInterviewEtiquette.htm"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2778,7 +2778,7 @@ KZV.register({
         "Professional Etiquette/Attire — University of Alabama Career Center — https://career.sa.ua.edu/develop/professional-etiquetteattire/",
         "Dining Etiquette — University of California, Irvine — https://career.uci.edu/wp-content/uploads/2018/03/QT_DiningEtiquette.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2844,7 +2844,7 @@ KZV.register({
         "Dining Etiquette 101 — University of California, Riverside — https://studentdocs.ucr.edu/career-center/uc-riverside_career-center_dining-etiquette-handout.pdf",
         "The Curse of Cutlery — Debrett’s — https://debretts.com/the-curse-of-cutlery/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2866,7 +2866,7 @@ KZV.register({
         "The Office Kitchen — Emily Post Institute — https://emilypost.com/advice/the-office-kitchen",
         "Food Bytes, Fall 2002: Etiquette in the Office Kitchen — Indiana State Department of Health — https://www.in.gov/health/food-protection/files/fall2002.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2910,7 +2910,7 @@ KZV.register({
         "Check Yourself: Gym Etiquette Edition — Georgetown University Recreation — https://recreation.georgetown.edu/news/blog/fitness-and-wellness-corner-april-2019/",
         "Fitness Area Policies — University of Illinois Campus Recreation — https://www.campusrec.illinois.edu/policies/fitness"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2932,7 +2932,7 @@ KZV.register({
         "Handling Your Books — Library of Congress — https://guides.loc.gov/preserving-your-books/handling",
         "Handling and Storage Guide — Maryland State Archives — https://msa.maryland.gov/msa/stagser/s1259/103/website/handlingguide.html"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2954,7 +2954,7 @@ KZV.register({
         "Books, Manuscripts and Archives: Care and Handling Guidelines — USC Libraries — https://libraries.usc.edu/locations/special-collections/books-care-handling-guidelines",
         "Handling and Storage Guide — Maryland State Archives — https://msa.maryland.gov/msa/stagser/s1259/103/website/handlingguide.html"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -2998,7 +2998,7 @@ KZV.register({
         "Best Practices for Interacting with Persons with Disabilities — Canadian Transportation Agency — https://otc-cta.gc.ca/eng/publication/best-practices-interacting-persons-disabilities-a-guide?wbdisable=true",
         "Disability Etiquette — United Spinal Association — https://unitedspinal.org/pdf/DisabilityEtiquette.pdf"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3020,7 +3020,7 @@ KZV.register({
         "Making Introductions — Emily Post Institute — https://emilypost.com/advice/making-introductions",
         "The Name Game: Nicknames — Debrett’s — https://debretts.com/the-name-game/"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3042,7 +3042,7 @@ KZV.register({
         "I-Statement — Santa Clara University Ombuds — https://www.scu.edu/ombuds/toolkit/i-statement/",
         "How to Defuse Anger — Debrett’s — https://debretts.com/how-to-defuse-anger/"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3108,7 +3108,7 @@ KZV.register({
         "Sports and Leisure Customer Code of Conduct — London Borough of Richmond upon Thames — https://www.richmond.gov.uk/services/sports/sports_and_leisure_customer_code_of_conduct",
         "Lap Swimming Etiquette — University of Illinois Campus Recreation — https://campusrec.illinois.edu/fitness/swimming"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3130,7 +3130,7 @@ KZV.register({
         "Sports and Leisure Customer Code of Conduct — London Borough of Richmond upon Thames — https://www.richmond.gov.uk/services/sports/sports_and_leisure_customer_code_of_conduct",
         "Lap Swimming Etiquette — University of Illinois Campus Recreation — https://campusrec.illinois.edu/fitness/swimming"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3174,7 +3174,7 @@ KZV.register({
         "The Highway Code: Introduction, Hierarchy of Road Users — UK Government — https://www.gov.uk/guidance/the-highway-code/introduction",
         "Riding Bikes near Pedestrians — New South Wales Government — https://www.nsw.gov.au/driving-boating-and-transport/driving-nsw/roads-safety-and-rules/bicycle-safety-and-rules/riding-bikes-near-pedestrians"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3218,7 +3218,7 @@ KZV.register({
         "The Protocol School of Texas: Buffet Etiquette — 10 Mannerly Tips — https://dianegottsman.com/2023/07/09/buffet-etiquette-10-mannerly-tips/",
         "Candace Smith Etiquette: Buffet Etiquette — A Guide to Dining with Confidence — https://www.candacesmithetiquette.com/buffet-etiquette.html"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3240,7 +3240,7 @@ KZV.register({
         "AARP Modern Manners: Buffet Rules Everyone Should Know — https://www.aarp.org/family-relationships/modern-manners-buffet-etiquette.html",
         "The Protocol School of Texas: Eight Steps to Setting Up a Festive Holiday Buffet — https://dianegottsman.com/2014/11/10/eight-steps-setting-festive-holiday-buffet/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3284,7 +3284,7 @@ KZV.register({
         "Emily Post Institute: Invitation Etiquette — https://emilypost.com/advice/invitation-etiquette",
         "The Protocol School of Texas: Ask the Etiquette Expert — Invitation Etiquette — https://dianegottsman.com/2014/02/20/ask-the-etiquette-expert-invitation-etiquette/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3306,7 +3306,7 @@ KZV.register({
         "Emily Post Institute: Should I Bring a Gift for My Host? — https://emilypost.com/advice/should-i-bring-a-hostess-gift",
         "The Protocol School of Texas: Hostess Gift Etiquette — https://dianegottsman.com/2026/05/04/hostess-gift-etiquette-what-when-and-how-much-to-give/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3328,7 +3328,7 @@ KZV.register({
         "Emily Post Institute: Table Conversation — https://emilypost.com/advice/five-step-childrens-manners-makeover-for-the-holidays-step-2-table-conversation",
         "Debrett’s: How to do small talk like the Victorians — https://debretts.com/how-to-do-small-talk-like-the-victorians/"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3350,7 +3350,7 @@ KZV.register({
         "University of Nebraska–Lincoln: Dining Etiquette Career Resources — https://business.unl.edu/business-career-center/dining-etiquette-career-resources/",
         "Oregon State University Extension: Table Setting Guidelines — https://extension.oregonstate.edu/sites/default/files/documents/8426/tablesettingguidelinesrev2018rev.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3372,7 +3372,7 @@ KZV.register({
         "Emily Post Institute: The Formal Place Setting — https://emilypost.com/advice/formal-place-setting",
         "Oregon State University Extension: Table Setting Guidelines — https://extension.oregonstate.edu/sites/default/files/documents/8426/tablesettingguidelinesrev2018rev.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3438,7 +3438,7 @@ KZV.register({
         "U.S. National Park Service: Hiking Etiquette — https://www.nps.gov/articles/hikingetiquette.htm",
         "Bureau of Land Management: Hiking — https://www.blm.gov/programs/recreation/hiking"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3460,7 +3460,7 @@ KZV.register({
         "University of Wisconsin–Madison: Email Strategies — https://guide.businesscommunication.wisc.edu/communication-prof-aud/email-strategies/",
         "Walters State Community College: Guide to Email Etiquette — https://ws.edu/helpdesk/support-computer-software/guides/guide_emailEtiquette.aspx"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3482,7 +3482,7 @@ KZV.register({
         "RFC 1855: Netiquette Guidelines — https://www.rfc-editor.org/rfc/rfc1855.txt",
         "Walters State Community College: Guide to Email Etiquette — https://ws.edu/helpdesk/support-computer-software/guides/guide_emailEtiquette.aspx"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3504,7 +3504,7 @@ KZV.register({
         "Debrett’s: How to give and receive a compliment — https://debretts.com/how-to-give-and-receive-a-compliment/",
         "How to Take a Compliment — Candace Smith Etiquette — https://www.candacesmithetiquette.com/take-a-compliment.html"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3526,7 +3526,7 @@ KZV.register({
         "The Highway Code: Using the road, rules 159–203 — GOV.UK — https://www.gov.uk/guidance/the-highway-code/using-the-road-159-to-203",
         "Ride Safe Handbook — Department of Transport, Western Australia — https://www.transport.wa.gov.au/getmedia/498cd6d5-79a5-4ec4-9aaf-ce652ab70389/LBU_DL_B_RideSafe_f.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3548,7 +3548,7 @@ KZV.register({
         "Check Yourself: Gym Etiquette Edition — Georgetown University Recreation — https://recreation.georgetown.edu/news/blog/fitness-and-wellness-corner-april-2019/",
         "Fitness Area Policies — University of Illinois Campus Recreation — https://www.campusrec.illinois.edu/policies/fitness"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3614,7 +3614,7 @@ KZV.register({
         "Business Meals: Who Pays? — Emily Post Institute — https://emilypost.com/advice/business-meals-who-pays",
         "Table Manners That Take You Anywhere — University of Kentucky Cooperative Extension — https://publications.mgcafe.uky.edu/sites/publications.ca.uky.edu/files/fcs2101.pdf"
       ],
-      "level": 3,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -3636,7 +3636,7 @@ KZV.register({
         "Respectfully Yours: Buffet line: one plate at a time — Jacquelyn Youst — https://www.lvpnews.com/20230522/respectfully-yours-buffet-line-one-plate-at-a-time/",
         "Table Manners That Take You Anywhere — University of Kentucky Cooperative Extension — https://publications.mgcafe.uky.edu/sites/publications.ca.uky.edu/files/fcs2101.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     }

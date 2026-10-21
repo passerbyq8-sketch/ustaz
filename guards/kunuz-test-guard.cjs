@@ -155,7 +155,7 @@ function checkT2(src) {
   const k3 = TE.pick(g2, 3, none, R); if (k3 < 0 || DATA0.qs[k3][0] !== 3) f.push('category pick drew from another category');
   if (TE.pick(g2, 4, none, R) !== -1) f.push('an unchosen category was drawn from');
   // no repeat inside a game: drain one category fully
-  const size = DATA0.qs.filter((q) => q[0] === 3).length, seen = new Set([k3]);
+  const size = DATA0.qs.filter((q) => q[0] === 3 && q[2] !== 0).length, seen = new Set([k3]);
   for (let i = 1; i < size; i++) { const k = TE.pick(g2, 3, none, R); if (k < 0) { f.push('drained early at ' + i); break; } if (seen.has(k)) f.push('repeat inside a game'); seen.add(k); }
   if (TE.pick(g2, 3, none, R) !== -1 || TE.pick(g2, -1, none, R) !== -1) f.push('a drawn-out category still draws');
   if (TE.catsLeft(g2, none).length) f.push('catsLeft not empty after draining');
@@ -389,7 +389,7 @@ function checkT9(src) {
   R = prng(SEED + 9);
   const store = Store(), L = Ledger();
   const cats = [16, 23, 20];   // three small categories, drained by the games
-  const total = cats.reduce((s, c) => s + DATA0.qs.filter((q) => q[0] === c).length, 0);
+  const total = cats.reduce((s, c) => s + DATA0.qs.filter((q) => q[0] === c && q[2] !== 0).length, 0);
   let games = 0, after = 0, wide = 0;
   for (; wide < 200; wide++) {
     const W = open(src, store);
@@ -428,8 +428,9 @@ function checkT9(src) {
     f.push(...errsOf(W).slice(0, 2), ...W.fails.slice(0, 2));
   }
   const raw = JSON.parse(store.getItem('kunuz_seen_v1')); const b = Buffer.from(raw.b, 'base64');
-  let unmarked = 0; L.forEach((k) => { if (!(b[k >> 3] >> (k & 7) & 1)) unmarked++; });
-  const drained = cats.every((c) => DATA0.qs.every((q, i) => q[0] !== c || (b[i >> 3] >> (i & 7) & 1)));
+  let unmarked = 0, heldShown = 0; L.forEach((k) => { if (!(b[k >> 3] >> (k & 7) & 1)) unmarked++; if (DATA0.qs[k][2] === 0) heldShown++; });
+  const drained = cats.every((c) => DATA0.qs.every((q, i) => q[0] !== c || q[2] === 0 || (b[i >> 3] >> (i & 7) & 1)));
+  if (heldShown) f.push('held questions were shown: ' + heldShown);
   if (L.rep) f.push('repeats=' + L.rep);
   if (L.text) f.push('question text differs from the bank ' + L.text);
   if (unmarked) f.push('shown but not marked ' + unmarked);

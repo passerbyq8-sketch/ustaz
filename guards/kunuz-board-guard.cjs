@@ -164,9 +164,9 @@ function checkB2(src) {
   if (BE.open(b, 2, none, R) !== -1) f.push('two slots open at once');
   BE.back(b);
   // no repeat inside a game: drain category six[0] through its slots with backs
-  const size = DATA0.qs.filter((q) => q[0] === six[0]).length, seen = new Set();
+  const size = DATA0.qs.filter((q) => q[0] === six[0] && q[2] !== 0).length, seen = new Set();
   const d = BE.newGame({ teams: T(2), cats: six });
-  for (let i = 0; i < size; i++) { const k = BE.open(d, 0, none, R); if (k < 0) { f.push('drained early at ' + i); break; } if (seen.has(k)) f.push('repeat inside a game'); seen.add(k); BE.back(d); }
+  for (let i = 0; i < size; i++) { const k = BE.open(d, 0, none, R); if (k < 0) { f.push('drained early at ' + i); break; } if (DATA0.qs[k][2] === 0) f.push('held question drawn'); if (seen.has(k)) f.push('repeat inside a game'); seen.add(k); BE.back(d); }
   if (BE.open(d, 0, none, R) !== -1) f.push('a drawn-out category still draws');
   // a full game: 36 distinct questions, over() only at the end
   const full = BE.newGame({ teams: T(4), cats: six }); const fset = new Set();
@@ -174,7 +174,8 @@ function checkB2(src) {
   if (!BE.over(full) || fset.size !== 36) f.push('full game: over=' + BE.over(full) + ' distinct=' + fset.size);
   if (BE.open(full, 3, none, R) !== -1) f.push('a used slot opened again');
   // the record is honoured
-  const half = new Set(DATA0.qs.map((q, i) => i).filter((i) => DATA0.qs[i][0] === six[1]).slice(0, Math.floor(DATA0.qs.filter((q) => q[0] === six[1]).length / 2)));
+  const liveHalfPool = DATA0.qs.map((q, i) => i).filter((i) => DATA0.qs[i][0] === six[1] && DATA0.qs[i][2] !== 0);
+  const half = new Set(liveHalfPool.slice(0, Math.floor(liveHalfPool.length / 2)));
   const h = BE.newGame({ teams: T(2), cats: six });
   for (let i = 0; i < 30; i++) { const k = BE.open(h, 6, (x) => half.has(x), R); if (half.has(k)) f.push('a seen question was drawn'); BE.back(h); }
   // ranking and the tie
@@ -346,7 +347,7 @@ function checkB6(src) {
   R = prng(SEED + 6);
   const store = Store(), L = Ledger();
   // three small categories plus three others; games on one record until a small category can no longer fill a board
-  const sizes = DATA0.cats.map((c, i) => DATA0.qs.filter((q) => q[0] === i).length);
+  const sizes = DATA0.cats.map((c, i) => DATA0.qs.filter((q) => q[0] === i && q[2] !== 0).length);
   const small = sizes.map((n, i) => [n, i]).sort((a, b) => a[0] - b[0]).slice(0, 3).map((x) => x[1]);
   let games = 0, dives = 0, refused = 0, wide = 0;
   const ghawsText = fs.readFileSync(path.join(REPO, 'quest-ghaws.html'), 'utf8');
@@ -387,7 +388,8 @@ function checkB6(src) {
     if (W.screen() !== 'end') f.push('wide game ' + wide + ' did not end');
     f.push(...errsOf(W).slice(0, 2), ...W.fails.slice(0, 2));
   }
-  let unmarked = 0; L.forEach((k) => { if (!bitOf(store, k)) unmarked++; });
+  let unmarked = 0, heldShown = 0; L.forEach((k) => { if (!bitOf(store, k)) unmarked++; if (DATA0.qs[k][2] === 0) heldShown++; });
+  if (heldShown) f.push('held questions shown ' + heldShown);
   if (L.rep) f.push('repeats=' + L.rep);
   if (L.text) f.push('question text differs from the bank ' + L.text);
   if (unmarked) f.push('shown but not marked ' + unmarked);

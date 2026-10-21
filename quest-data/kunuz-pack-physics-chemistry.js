@@ -204,7 +204,7 @@ KZV.register({
         "OpenStax Chemistry 2e — Measurements — https://openstax.org/books/chemistry-2e/pages/1-4-measurements",
         "NIST Guide to the SI — Chapter 4 — https://www.nist.gov/pml/special-publication-811/nist-guide-si-chapter-4-two-classes-si-units-and-si-prefixes"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -270,7 +270,7 @@ KZV.register({
         "NIST — SI Units — https://www.nist.gov/pml/owm/metric-si/si-units",
         "BIPM — SI Base Units — https://www.bipm.org/en/measurement-units/si-base-units"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -292,7 +292,7 @@ KZV.register({
         "NIST — SI Units — https://www.nist.gov/pml/owm/metric-si/si-units",
         "BIPM — SI Base Units — https://www.bipm.org/en/measurement-units/si-base-units"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -380,7 +380,7 @@ KZV.register({
         "NIST Guide to the SI — Chapter 4 — https://www.nist.gov/pml/special-publication-811/nist-guide-si-chapter-4-two-classes-si-units-and-si-prefixes",
         "BIPM — The International System of Units, 9th edition, version 4.01 — https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -402,7 +402,7 @@ KZV.register({
         "NIST Guide to the SI — Chapter 4 — https://www.nist.gov/pml/special-publication-811/nist-guide-si-chapter-4-two-classes-si-units-and-si-prefixes",
         "BIPM — The International System of Units, 9th edition, version 4.01 — https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -468,7 +468,7 @@ KZV.register({
         "NIST Guide to the SI — Chapter 4 — https://www.nist.gov/pml/special-publication-811/nist-guide-si-chapter-4-two-classes-si-units-and-si-prefixes",
         "BIPM — The International System of Units, 9th edition, version 4.01 — https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -490,7 +490,7 @@ KZV.register({
         "NIST Guide to the SI — Chapter 4 — https://www.nist.gov/pml/special-publication-811/nist-guide-si-chapter-4-two-classes-si-units-and-si-prefixes",
         "BIPM — The International System of Units, 9th edition, version 4.01 — https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -512,7 +512,7 @@ KZV.register({
         "NIST Guide to the SI — Chapter 4 — https://www.nist.gov/pml/special-publication-811/nist-guide-si-chapter-4-two-classes-si-units-and-si-prefixes",
         "BIPM — The International System of Units, 9th edition, version 4.01 — https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -534,7 +534,7 @@ KZV.register({
         "NIST Guide to the SI — Chapter 4 — https://www.nist.gov/pml/special-publication-811/nist-guide-si-chapter-4-two-classes-si-units-and-si-prefixes",
         "BIPM — The International System of Units, 9th edition, version 4.01 — https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -556,7 +556,7 @@ KZV.register({
         "NIST Guide to the SI — Chapter 4 — https://www.nist.gov/pml/special-publication-811/nist-guide-si-chapter-4-two-classes-si-units-and-si-prefixes",
         "BIPM — The International System of Units, 9th edition, version 4.01 — https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -688,7 +688,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "OpenStax Chemistry 2e — The Periodic Table — https://openstax.org/books/chemistry-2e/pages/2-5-the-periodic-table"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -886,7 +886,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "OpenStax Chemistry 2e — The Periodic Table — https://openstax.org/books/chemistry-2e/pages/2-5-the-periodic-table"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -908,7 +908,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "OpenStax Chemistry 2e — The Periodic Table — https://openstax.org/books/chemistry-2e/pages/2-5-the-periodic-table"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -930,7 +930,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "OpenStax Chemistry 2e — The Periodic Table — https://openstax.org/books/chemistry-2e/pages/2-5-the-periodic-table"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -974,7 +974,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "OpenStax Chemistry 2e — The Periodic Table — https://openstax.org/books/chemistry-2e/pages/2-5-the-periodic-table"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1040,7 +1040,7 @@ KZV.register({
         "OpenStax Chemistry 2e — Atomic Structure and Symbolism — https://openstax.org/books/chemistry-2e/pages/2-3-atomic-structure-and-symbolism",
         "American Chemical Society — Protons, Neutrons, and Electrons — https://www.acs.org/middleschoolchemistry/lessonplans/chapter4/lesson1.html"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1062,7 +1062,7 @@ KZV.register({
         "OpenStax Chemistry 2e — The Periodic Table — https://openstax.org/books/chemistry-2e/pages/2-5-the-periodic-table",
         "American Chemical Society — The Periodic Table and Energy-Level Models — https://www.acs.org/middleschoolchemistry/lessonplans/chapter4/lesson3.html"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1128,7 +1128,7 @@ KZV.register({
         "OpenStax Chemistry 2e — The Periodic Table — https://openstax.org/books/chemistry-2e/pages/2-5-the-periodic-table",
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1216,7 +1216,7 @@ KZV.register({
         "ACS — Can Liquids Dissolve in Water? — https://www.acs.org/middleschoolchemistry/lessonplans/chapter5/lesson7.html",
         "OpenStax Chemistry 2e — Solubility — https://openstax.org/books/chemistry-2e/pages/11-3-solubility"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1238,7 +1238,7 @@ KZV.register({
         "ACS — Can Gases Dissolve in Water? — https://www.acs.org/middleschoolchemistry/lessonplans/chapter5/lesson8.html",
         "OpenStax Chemistry 2e — Solubility — https://openstax.org/books/chemistry-2e/pages/11-3-solubility"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1348,7 +1348,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — Ions in aqueous solution — https://www.siyavula.com/read/za/physical-sciences/grade-10/reactions-in-aqueous-solution/18-reactions-in-aqueous-solution-02",
         "OpenStax Chemistry 2e — The Dissolution Process — https://openstax.org/books/chemistry-2e/pages/11-1-the-dissolution-process"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1370,7 +1370,7 @@ KZV.register({
         "ACS — Why Does Water Dissolve Sugar? — https://www.acs.org/middleschoolchemistry/lessonplans/chapter5/lesson4.html",
         "OpenStax Chemistry 2e — The Dissolution Process — https://openstax.org/books/chemistry-2e/pages/11-1-the-dissolution-process"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1458,7 +1458,7 @@ KZV.register({
         "ACS — What is a Chemical Reaction? — https://www.acs.org/middleschoolchemistry/lessonplans/chapter6/lesson1.html",
         "OpenStax Chemistry 2e — Writing and Balancing Chemical Equations — https://openstax.org/books/chemistry-2e/pages/4-1-writing-and-balancing-chemical-equations"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1524,7 +1524,7 @@ KZV.register({
         "ACS — A Catalyst and the Rate of Reaction — https://www.acs.org/middleschoolchemistry/lessonplans/chapter6/lesson5.html",
         "Siyavula Physical Sciences Grade 12 — Rates of reaction and factors affecting rate — https://www.siyavula.com/read/za/physical-sciences/grade-12/rate-and-extent-of-reaction/07-rate-and-extent-of-reaction-02"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1546,7 +1546,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 12 — Rates of reaction and factors affecting rate — https://www.siyavula.com/read/za/physical-sciences/grade-12/rate-and-extent-of-reaction/07-rate-and-extent-of-reaction-02",
         "OpenStax Chemistry 2e — Factors Affecting Reaction Rates — https://openstax.org/books/chemistry-2e/pages/12-2-factors-affecting-reaction-rates"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1568,7 +1568,7 @@ KZV.register({
         "ACS — Energy Changes in Chemical Reactions — https://www.acs.org/middleschoolchemistry/lessonplans/chapter6/lesson7.html",
         "OpenStax Chemistry 2e — Energy Basics — https://openstax.org/books/chemistry-2e/pages/5-1-energy-basics"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1656,7 +1656,7 @@ KZV.register({
         "ACS — pH and Color Change — https://www.acs.org/middleschoolchemistry/lessonplans/chapter6/lesson8.html",
         "OpenStax Chemistry 2e — pH and pOH — https://openstax.org/books/chemistry-2e/pages/14-2-ph-and-poh"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1678,7 +1678,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 12 — pH — https://www.siyavula.com/read/za/physical-sciences/grade-12/acids-and-bases/09-acids-and-bases-03",
         "OpenStax Chemistry 2e — Acid-Base Titrations — https://openstax.org/books/chemistry-2e/pages/14-7-acid-base-titrations"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1744,7 +1744,7 @@ KZV.register({
         "ACS — Neutralizing Acids and Bases — https://www.acs.org/middleschoolchemistry/lessonplans/chapter6/lesson9.html",
         "OpenStax Chemistry 2e — Brønsted-Lowry Acids and Bases — https://openstax.org/books/chemistry-2e/pages/14-1-bronsted-lowry-acids-and-bases"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1810,7 +1810,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 12 — Acid-base reactions — https://www.siyavula.com/read/za/physical-sciences/grade-12/acids-and-bases/09-acids-and-bases-02",
         "OpenStax Chemistry 2e — Classifying Chemical Reactions — https://openstax.org/books/chemistry-2e/pages/4-2-classifying-chemical-reactions"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1854,7 +1854,7 @@ KZV.register({
         "ACS — A Catalyst and the Rate of Reaction — https://www.acs.org/middleschoolchemistry/lessonplans/chapter6/lesson5.html",
         "OpenStax Chemistry 2e — Classifying Chemical Reactions — https://openstax.org/books/chemistry-2e/pages/4-2-classifying-chemical-reactions"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1942,7 +1942,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 21-motion-in-one-dimension-02 — https://www.siyavula.com/read/za/physical-sciences/grade-10/motion-in-one-dimension/21-motion-in-one-dimension-02",
         "OpenStax Physics — Relative Motion, Distance, and Displacement — https://openstax.org/books/physics/pages/2-1-relative-motion-distance-and-displacement"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1964,7 +1964,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 21-motion-in-one-dimension-02 — https://www.siyavula.com/read/za/physical-sciences/grade-10/motion-in-one-dimension/21-motion-in-one-dimension-02",
         "OpenStax Physics — Relative Motion, Distance, and Displacement — https://openstax.org/books/physics/pages/2-1-relative-motion-distance-and-displacement"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -1986,7 +1986,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 21-motion-in-one-dimension-03 — https://www.siyavula.com/read/za/physical-sciences/grade-10/motion-in-one-dimension/21-motion-in-one-dimension-03",
         "OpenStax physics — speed and velocity — https://openstax.org/books/physics/pages/2-2-speed-and-velocity"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2008,7 +2008,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 21-motion-in-one-dimension-04 — https://www.siyavula.com/read/za/physical-sciences/grade-10/motion-in-one-dimension/21-motion-in-one-dimension-04",
         "OpenStax physics — acceleration — https://openstax.org/books/physics/pages/3-1-acceleration"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2030,7 +2030,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 21-motion-in-one-dimension-04 — https://www.siyavula.com/read/za/physical-sciences/grade-10/motion-in-one-dimension/21-motion-in-one-dimension-04",
         "OpenStax physics — acceleration — https://openstax.org/books/physics/pages/3-1-acceleration"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2096,7 +2096,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 21-motion-in-one-dimension-06 — https://www.siyavula.com/read/za/physical-sciences/grade-10/motion-in-one-dimension/21-motion-in-one-dimension-06",
         "OpenStax physics — position vs time graphs — https://openstax.org/books/physics/pages/2-3-position-vs-time-graphs"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2118,7 +2118,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 21-motion-in-one-dimension-06 — https://www.siyavula.com/read/za/physical-sciences/grade-10/motion-in-one-dimension/21-motion-in-one-dimension-06",
         "OpenStax physics — velocity vs time graphs — https://openstax.org/books/physics/pages/2-4-velocity-vs-time-graphs"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2162,7 +2162,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 02-newtons-laws-03 — https://www.siyavula.com/read/za/physical-sciences/grade-11/newtons-laws/02-newtons-laws-03",
         "OpenStax physics — newtons first law of motion inertia — https://openstax.org/books/physics/pages/4-2-newtons-first-law-of-motion-inertia"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2184,7 +2184,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 02-newtons-laws-03 — https://www.siyavula.com/read/za/physical-sciences/grade-11/newtons-laws/02-newtons-laws-03",
         "OpenStax physics — newtons first law of motion inertia — https://openstax.org/books/physics/pages/4-2-newtons-first-law-of-motion-inertia"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2206,7 +2206,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 02-newtons-laws-03 — https://www.siyavula.com/read/za/physical-sciences/grade-11/newtons-laws/02-newtons-laws-03",
         "OpenStax physics — force — https://openstax.org/books/physics/pages/4-1-force"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2272,7 +2272,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 02-newtons-laws-02 — https://www.siyavula.com/read/za/physical-sciences/grade-11/newtons-laws/02-newtons-laws-02",
         "OpenStax college-physics-2e — friction — https://openstax.org/books/college-physics-2e/pages/5-1-friction"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2294,7 +2294,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 02-newtons-laws-02 — https://www.siyavula.com/read/za/physical-sciences/grade-11/newtons-laws/02-newtons-laws-02",
         "OpenStax college-physics-2e — friction — https://openstax.org/books/college-physics-2e/pages/5-1-friction"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2338,7 +2338,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 02-newtons-laws-02 — https://www.siyavula.com/read/za/physical-sciences/grade-11/newtons-laws/02-newtons-laws-02",
         "OpenStax college-physics-2e — friction — https://openstax.org/books/college-physics-2e/pages/5-1-friction"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2454,7 +2454,7 @@ KZV.register({
     },
     {
       "id": "physics-chemistry-0194",
-      "cat": "physics-chemistry",
+      "cat": "math",
       "type": "mcq",
       "fmt": "text",
       "q": "كيف يتغير متجه عند ضربه في العدد −1؟",
@@ -2470,13 +2470,13 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 20-vectors-and-scalars-03 — https://www.siyavula.com/read/za/physical-sciences/grade-10/vectors-and-scalars/20-vectors-and-scalars-03",
         "OpenStax college-physics-2e — vector addition and subtraction graphical methods — https://openstax.org/books/college-physics-2e/pages/3-2-vector-addition-and-subtraction-graphical-methods"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
     {
       "id": "physics-chemistry-0195",
-      "cat": "physics-chemistry",
+      "cat": "math",
       "type": "mcq",
       "fmt": "text",
       "q": "ما أثر تبديل ترتيب جمع متجهين على محصلتهما؟",
@@ -2492,13 +2492,13 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 20-vectors-and-scalars-03 — https://www.siyavula.com/read/za/physical-sciences/grade-10/vectors-and-scalars/20-vectors-and-scalars-03",
         "OpenStax college-physics-2e — vector addition and subtraction graphical methods — https://openstax.org/books/college-physics-2e/pages/3-2-vector-addition-and-subtraction-graphical-methods"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
     {
       "id": "physics-chemistry-0197",
-      "cat": "physics-chemistry",
+      "cat": "math",
       "type": "mcq",
       "fmt": "text",
       "q": "كيف يحسب مقدار محصلة متجهين في الاتجاه نفسه؟",
@@ -2514,13 +2514,13 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 20-vectors-and-scalars-04 — https://www.siyavula.com/read/za/physical-sciences/grade-10/vectors-and-scalars/20-vectors-and-scalars-04",
         "OpenStax college-physics-2e — vector addition and subtraction graphical methods — https://openstax.org/books/college-physics-2e/pages/3-2-vector-addition-and-subtraction-graphical-methods"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
     {
       "id": "physics-chemistry-0198",
-      "cat": "physics-chemistry",
+      "cat": "math",
       "type": "mcq",
       "fmt": "text",
       "q": "ما محصلة متجهين متساويين في المقدار ومتعاكسين تمامًا؟",
@@ -2536,7 +2536,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 20-vectors-and-scalars-04 — https://www.siyavula.com/read/za/physical-sciences/grade-10/vectors-and-scalars/20-vectors-and-scalars-04",
         "OpenStax college-physics-2e — vector addition and subtraction graphical methods — https://openstax.org/books/college-physics-2e/pages/3-2-vector-addition-and-subtraction-graphical-methods"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2646,7 +2646,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 12 — 05-work-energy-and-power-02 — https://www.siyavula.com/read/za/physical-sciences/grade-12/work-energy-and-power/05-work-energy-and-power-02",
         "OpenStax College Physics 2e — work the scientific definition — https://openstax.org/books/college-physics-2e/pages/7-1-work-the-scientific-definition"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2668,7 +2668,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 12 — 05-work-energy-and-power-02 — https://www.siyavula.com/read/za/physical-sciences/grade-12/work-energy-and-power/05-work-energy-and-power-02",
         "OpenStax College Physics 2e — work the scientific definition — https://openstax.org/books/college-physics-2e/pages/7-1-work-the-scientific-definition"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2712,7 +2712,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 12 — 05-work-energy-and-power-03 — https://www.siyavula.com/read/za/physical-sciences/grade-12/work-energy-and-power/05-work-energy-and-power-03",
         "OpenStax College Physics 2e — kinetic energy and the work energy theorem — https://openstax.org/books/college-physics-2e/pages/7-2-kinetic-energy-and-the-work-energy-theorem"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2778,7 +2778,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 02-newtons-laws-04 — https://www.siyavula.com/read/za/physical-sciences/grade-11/newtons-laws/02-newtons-laws-04",
         "OpenStax College Physics 2e — newtons universal law of gravitation — https://openstax.org/books/college-physics-2e/pages/6-5-newtons-universal-law-of-gravitation"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2800,7 +2800,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 02-newtons-laws-04 — https://www.siyavula.com/read/za/physical-sciences/grade-11/newtons-laws/02-newtons-laws-04",
         "OpenStax College Physics 2e — newtons universal law of gravitation — https://openstax.org/books/college-physics-2e/pages/6-5-newtons-universal-law-of-gravitation"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2822,7 +2822,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 02-newtons-laws-04 — https://www.siyavula.com/read/za/physical-sciences/grade-11/newtons-laws/02-newtons-laws-04",
         "OpenStax College Physics 2e — newtons universal law of gravitation — https://openstax.org/books/college-physics-2e/pages/6-5-newtons-universal-law-of-gravitation"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2844,7 +2844,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 02-newtons-laws-04 — https://www.siyavula.com/read/za/physical-sciences/grade-11/newtons-laws/02-newtons-laws-04",
         "OpenStax College Physics 2e — newtons universal law of gravitation — https://openstax.org/books/college-physics-2e/pages/6-5-newtons-universal-law-of-gravitation"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2866,7 +2866,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 12 — 03-vertical-projectile-motion-in-one-dimension-02 — https://www.siyavula.com/read/za/physical-sciences/grade-12/vertical-projectile-motion-in-one-dimension/03-vertical-projectile-motion-in-one-dimension-02",
         "OpenStax College Physics 2e — projectile motion — https://openstax.org/books/college-physics-2e/pages/3-4-projectile-motion"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2932,7 +2932,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 12 — 05-work-energy-and-power-02 — https://www.siyavula.com/read/za/physical-sciences/grade-12/work-energy-and-power/05-work-energy-and-power-02",
         "OpenStax College Physics 2e — work the scientific definition — https://openstax.org/books/college-physics-2e/pages/7-1-work-the-scientific-definition"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2954,7 +2954,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 12 — 05-work-energy-and-power-04 — https://www.siyavula.com/read/za/physical-sciences/grade-12/work-energy-and-power/05-work-energy-and-power-04",
         "OpenStax College Physics 2e — gravitational potential energy — https://openstax.org/books/college-physics-2e/pages/7-3-gravitational-potential-energy"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -2998,7 +2998,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 12 — 02-momentum-and-impulse-02 — https://www.siyavula.com/read/za/physical-sciences/grade-12/momentum-and-impulse/02-momentum-and-impulse-02",
         "OpenStax College Physics 2e — linear momentum and force — https://openstax.org/books/college-physics-2e/pages/8-1-linear-momentum-and-force"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3020,7 +3020,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 12 — 02-momentum-and-impulse-04 — https://www.siyavula.com/read/za/physical-sciences/grade-12/momentum-and-impulse/02-momentum-and-impulse-04",
         "OpenStax College Physics 2e — elastic collisions in one dimension — https://openstax.org/books/college-physics-2e/pages/8-4-elastic-collisions-in-one-dimension"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3042,7 +3042,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 12 — 02-momentum-and-impulse-04 — https://www.siyavula.com/read/za/physical-sciences/grade-12/momentum-and-impulse/02-momentum-and-impulse-04",
         "OpenStax College Physics 2e — elastic collisions in one dimension — https://openstax.org/books/college-physics-2e/pages/8-4-elastic-collisions-in-one-dimension"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3196,7 +3196,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 08-transverse-waves-06 — https://www.siyavula.com/read/za/physical-sciences/grade-10/transverse-waves/08-transverse-waves-06",
         "OpenStax College Physics 2e — waves — https://openstax.org/books/college-physics-2e/pages/16-9-waves"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3218,7 +3218,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 07-transverse-pulses-03 — https://www.siyavula.com/read/za/physical-sciences/grade-10/transverse-pulses/07-transverse-pulses-03",
         "OpenStax College Physics 2e — superposition and interference — https://openstax.org/books/college-physics-2e/pages/16-10-superposition-and-interference"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3240,7 +3240,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 07-transverse-pulses-03 — https://www.siyavula.com/read/za/physical-sciences/grade-10/transverse-pulses/07-transverse-pulses-03",
         "OpenStax College Physics 2e — superposition and interference — https://openstax.org/books/college-physics-2e/pages/16-10-superposition-and-interference"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3328,7 +3328,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 10-sound-02 — https://www.siyavula.com/read/za/physical-sciences/grade-10/sound/10-sound-02",
         "OpenStax College Physics 2e — speed of sound frequency and wavelength — https://openstax.org/books/college-physics-2e/pages/17-2-speed-of-sound-frequency-and-wavelength"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3350,7 +3350,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 10-sound-03 — https://www.siyavula.com/read/za/physical-sciences/grade-10/sound/10-sound-03",
         "OpenStax College Physics 2e — sound intensity and sound level — https://openstax.org/books/college-physics-2e/pages/17-3-sound-intensity-and-sound-level"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3394,7 +3394,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 10-sound-04 — https://www.siyavula.com/read/za/physical-sciences/grade-10/sound/10-sound-04",
         "OpenStax College Physics 2e — energy in waves intensity — https://openstax.org/books/college-physics-2e/pages/16-11-energy-in-waves-intensity"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3416,7 +3416,7 @@ KZV.register({
         "NASA Science — Anatomy of an Electromagnetic Wave — https://science.nasa.gov/ems/02_anatomy/",
         "OpenStax College Physics 2e — the electromagnetic spectrum — https://openstax.org/books/college-physics-2e/pages/24-3-the-electromagnetic-spectrum"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3526,7 +3526,7 @@ KZV.register({
         "NASA Science — Infrared Waves — https://science.nasa.gov/ems/07_infraredwaves/",
         "OpenStax College Physics 2e — the electromagnetic spectrum — https://openstax.org/books/college-physics-2e/pages/24-3-the-electromagnetic-spectrum"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3548,7 +3548,7 @@ KZV.register({
         "NASA Science — Microwaves — https://science.nasa.gov/ems/06_microwaves/",
         "OpenStax College Physics 2e — the electromagnetic spectrum — https://openstax.org/books/college-physics-2e/pages/24-3-the-electromagnetic-spectrum"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3570,7 +3570,7 @@ KZV.register({
         "NASA Science — Gamma Rays — https://science.nasa.gov/ems/12_gammarays/",
         "OpenStax College Physics 2e — the electromagnetic spectrum — https://openstax.org/books/college-physics-2e/pages/24-3-the-electromagnetic-spectrum"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3614,7 +3614,7 @@ KZV.register({
         "NASA Science — Visible Light — https://science.nasa.gov/ems/09_visiblelight/",
         "OpenStax College Physics 2e — quantization of energy — https://openstax.org/books/college-physics-2e/pages/29-1-quantization-of-energy"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3658,7 +3658,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — Geometrical optics 5.3 — https://www.siyavula.com/read/za/physical-sciences/grade-11/geometrical-optics/05-geometrical-optics-03",
         "NCERT Science Class X — Light: Reflection and Refraction, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc109.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3724,7 +3724,7 @@ KZV.register({
         "NCERT Science Class X — Light: Reflection and Refraction, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc109.pdf",
         "OpenStax College Physics 2e — image formation by lenses — https://openstax.org/books/college-physics-2e/pages/25-6-image-formation-by-lenses"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3790,7 +3790,7 @@ KZV.register({
         "NCERT Science Class X — Light: Reflection and Refraction, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc109.pdf",
         "OpenStax College Physics 2e — image formation by mirrors — https://openstax.org/books/college-physics-2e/pages/25-7-image-formation-by-mirrors"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3812,7 +3812,7 @@ KZV.register({
         "NCERT Science Class X — Light: Reflection and Refraction, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc109.pdf",
         "OpenStax College Physics 2e — image formation by mirrors — https://openstax.org/books/college-physics-2e/pages/25-7-image-formation-by-mirrors"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3834,7 +3834,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — Geometrical optics 5.3 — https://www.siyavula.com/read/za/physical-sciences/grade-11/geometrical-optics/05-geometrical-optics-03",
         "OpenStax College Physics 2e — image formation by mirrors — https://openstax.org/books/college-physics-2e/pages/25-7-image-formation-by-mirrors"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3856,7 +3856,7 @@ KZV.register({
         "NCERT Science Class X — Light: Reflection and Refraction, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc109.pdf",
         "OpenStax College Physics 2e — image formation by mirrors — https://openstax.org/books/college-physics-2e/pages/25-7-image-formation-by-mirrors"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3878,7 +3878,7 @@ KZV.register({
         "NCERT Science Class X — Light: Reflection and Refraction, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc109.pdf",
         "OpenStax College Physics 2e — image formation by mirrors — https://openstax.org/books/college-physics-2e/pages/25-7-image-formation-by-mirrors"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3900,7 +3900,7 @@ KZV.register({
         "NCERT Science Class X — Light: Reflection and Refraction, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc109.pdf",
         "OpenStax College Physics 2e — image formation by mirrors — https://openstax.org/books/college-physics-2e/pages/25-7-image-formation-by-mirrors"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3922,7 +3922,7 @@ KZV.register({
         "NCERT Science Class X — Light: Reflection and Refraction, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc109.pdf",
         "OpenStax College Physics 2e — image formation by mirrors — https://openstax.org/books/college-physics-2e/pages/25-7-image-formation-by-mirrors"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3944,7 +3944,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — Geometrical optics 5.5 — https://www.siyavula.com/read/za/physical-sciences/grade-11/geometrical-optics/05-geometrical-optics-05",
         "OpenStax College Physics 2e — the law of refraction — https://openstax.org/books/college-physics-2e/pages/25-3-the-law-of-refraction"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3966,7 +3966,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — Geometrical optics 5.7 — https://www.siyavula.com/read/za/physical-sciences/grade-11/geometrical-optics/05-geometrical-optics-07",
         "OpenStax College Physics 2e — the law of refraction — https://openstax.org/books/college-physics-2e/pages/25-3-the-law-of-refraction"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -3988,7 +3988,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — Geometrical optics 5.7 — https://www.siyavula.com/read/za/physical-sciences/grade-11/geometrical-optics/05-geometrical-optics-07",
         "OpenStax College Physics 2e — total internal reflection — https://openstax.org/books/college-physics-2e/pages/25-4-total-internal-reflection"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4010,7 +4010,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — Geometrical optics 5.7 — https://www.siyavula.com/read/za/physical-sciences/grade-11/geometrical-optics/05-geometrical-optics-07",
         "OpenStax College Physics 2e — total internal reflection — https://openstax.org/books/college-physics-2e/pages/25-4-total-internal-reflection"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4054,7 +4054,7 @@ KZV.register({
         "NCERT Science Class X — Light: Reflection and Refraction, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc109.pdf",
         "OpenStax College Physics 2e — image formation by lenses — https://openstax.org/books/college-physics-2e/pages/25-6-image-formation-by-lenses"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4098,7 +4098,7 @@ KZV.register({
         "NCERT Science Class X — Light: Reflection and Refraction, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc109.pdf",
         "OpenStax College Physics 2e — image formation by lenses — https://openstax.org/books/college-physics-2e/pages/25-6-image-formation-by-lenses"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4120,7 +4120,7 @@ KZV.register({
         "NCERT Science Class X — Light: Reflection and Refraction, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc109.pdf",
         "OpenStax College Physics 2e — image formation by lenses — https://openstax.org/books/college-physics-2e/pages/25-6-image-formation-by-lenses"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4142,7 +4142,7 @@ KZV.register({
         "NCERT Science Class X — Light: Reflection and Refraction, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc109.pdf",
         "OpenStax College Physics 2e — image formation by lenses — https://openstax.org/books/college-physics-2e/pages/25-6-image-formation-by-lenses"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4164,7 +4164,7 @@ KZV.register({
         "NCERT Science Class X — Light: Reflection and Refraction, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc109.pdf",
         "OpenStax College Physics 2e — image formation by lenses — https://openstax.org/books/college-physics-2e/pages/25-6-image-formation-by-lenses"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4186,7 +4186,7 @@ KZV.register({
         "NCERT Science Class X — Light: Reflection and Refraction, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc109.pdf",
         "OpenStax College Physics 2e — image formation by lenses — https://openstax.org/books/college-physics-2e/pages/25-6-image-formation-by-lenses"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4230,7 +4230,7 @@ KZV.register({
         "NCERT Science Class X — Light: Reflection and Refraction, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc109.pdf",
         "OpenStax College Physics 2e — image formation by lenses — https://openstax.org/books/college-physics-2e/pages/25-6-image-formation-by-lenses"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4252,7 +4252,7 @@ KZV.register({
         "NCERT Science Class X — Light: Reflection and Refraction, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc109.pdf",
         "OpenStax College Physics 2e — image formation by lenses — https://openstax.org/books/college-physics-2e/pages/25-6-image-formation-by-lenses"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4318,7 +4318,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 16-electrostatics-02 — https://www.siyavula.com/read/za/physical-sciences/grade-10/electrostatics/16-electrostatics-02",
         "OpenStax College Physics 2e — static electricity and charge conservation of charge — https://openstax.org/books/college-physics-2e/pages/18-1-static-electricity-and-charge-conservation-of-charge"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4340,7 +4340,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 16-electrostatics-02 — https://www.siyavula.com/read/za/physical-sciences/grade-10/electrostatics/16-electrostatics-02",
         "OpenStax College Physics 2e — static electricity and charge conservation of charge — https://openstax.org/books/college-physics-2e/pages/18-1-static-electricity-and-charge-conservation-of-charge"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4362,7 +4362,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 16-electrostatics-04 — https://www.siyavula.com/read/za/physical-sciences/grade-10/electrostatics/16-electrostatics-04",
         "OpenStax College Physics 2e — static electricity and charge conservation of charge — https://openstax.org/books/college-physics-2e/pages/18-1-static-electricity-and-charge-conservation-of-charge"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4384,7 +4384,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 09-electrostatics-02 — https://www.siyavula.com/read/za/physical-sciences/grade-11/electrostatics/09-electrostatics-02",
         "OpenStax College Physics 2e — coulombs law — https://openstax.org/books/college-physics-2e/pages/18-3-coulombs-law"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4406,7 +4406,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 09-electrostatics-02 — https://www.siyavula.com/read/za/physical-sciences/grade-11/electrostatics/09-electrostatics-02",
         "OpenStax College Physics 2e — coulombs law — https://openstax.org/books/college-physics-2e/pages/18-3-coulombs-law"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4428,7 +4428,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 09-electrostatics-03 — https://www.siyavula.com/read/za/physical-sciences/grade-11/electrostatics/09-electrostatics-03",
         "OpenStax College Physics 2e — electric field concept of a field revisited — https://openstax.org/books/college-physics-2e/pages/18-4-electric-field-concept-of-a-field-revisited"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4494,7 +4494,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 09-electrostatics-03 — https://www.siyavula.com/read/za/physical-sciences/grade-11/electrostatics/09-electrostatics-03",
         "OpenStax College Physics 2e — electric field lines multiple charges — https://openstax.org/books/college-physics-2e/pages/18-5-electric-field-lines-multiple-charges"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4582,7 +4582,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 17-electric-circuits-01 — https://www.siyavula.com/read/za/physical-sciences/grade-10/electric-circuits/17-electric-circuits-01",
         "NCERT Science Class X — Electricity, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc111.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4604,7 +4604,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 17-electric-circuits-02 — https://www.siyavula.com/read/za/physical-sciences/grade-10/electric-circuits/17-electric-circuits-02",
         "OpenStax College Physics 2e — dc voltmeters and ammeters — https://openstax.org/books/college-physics-2e/pages/21-4-dc-voltmeters-and-ammeters"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4714,7 +4714,7 @@ KZV.register({
         "NCERT Science Class X — Electricity, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc111.pdf",
         "OpenStax College Physics 2e — resistors in series and parallel — https://openstax.org/books/college-physics-2e/pages/21-1-resistors-in-series-and-parallel"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4758,7 +4758,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 11-electric-circuits-03 — https://www.siyavula.com/read/za/physical-sciences/grade-11/electric-circuits/11-electric-circuits-03",
         "OpenStax College Physics 2e — electric power and energy — https://openstax.org/books/college-physics-2e/pages/20-4-electric-power-and-energy"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4780,7 +4780,7 @@ KZV.register({
         "NCERT Science Class X — Electricity, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc111.pdf",
         "OpenStax College Physics 2e — electric power and energy — https://openstax.org/books/college-physics-2e/pages/20-4-electric-power-and-energy"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4802,7 +4802,7 @@ KZV.register({
         "NCERT Science Class X — Electricity, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc111.pdf",
         "OpenStax College Physics 2e — resistance and resistivity — https://openstax.org/books/college-physics-2e/pages/20-3-resistance-and-resistivity"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4868,7 +4868,7 @@ KZV.register({
         "Siyavula Natural Sciences Grade 7 — heat energy transfer — https://www.siyavula.com/read/za/natural-sciences/grade-7/heat-energy-transfer/13-heat-energy-transfer",
         "OpenStax College Physics 2e — conduction — https://openstax.org/books/college-physics-2e/pages/14-5-conduction"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4890,7 +4890,7 @@ KZV.register({
         "NCERT Physics Class XI — Mechanical Properties of Fluids, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph202.pdf",
         "OpenStax College Physics 2e — pressure — https://openstax.org/books/college-physics-2e/pages/11-3-pressure"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4934,7 +4934,7 @@ KZV.register({
         "NCERT Physics Class XI — Mechanical Properties of Fluids, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph202.pdf",
         "OpenStax College Physics 2e — gauge pressure absolute pressure and pressure measurement — https://openstax.org/books/college-physics-2e/pages/11-6-gauge-pressure-absolute-pressure-and-pressure-measurement"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4956,7 +4956,7 @@ KZV.register({
         "NCERT Physics Class XI — Mechanical Properties of Fluids, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph202.pdf",
         "OpenStax College Physics 2e — gauge pressure absolute pressure and pressure measurement — https://openstax.org/books/college-physics-2e/pages/11-6-gauge-pressure-absolute-pressure-and-pressure-measurement"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -4978,7 +4978,7 @@ KZV.register({
         "OpenStax College Physics 2e — archimedes principle — https://openstax.org/books/college-physics-2e/pages/11-7-archimedes-principle",
         "UCLA Physics — Buoyancy — https://dbauer.physics.ucla.edu/5b/10-buoyancy/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5000,7 +5000,7 @@ KZV.register({
         "OpenStax College Physics 2e — archimedes principle — https://openstax.org/books/college-physics-2e/pages/11-7-archimedes-principle",
         "UCLA Physics — Buoyancy — https://dbauer.physics.ucla.edu/5b/10-buoyancy/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5044,7 +5044,7 @@ KZV.register({
         "NCERT Physics Class XI — Mechanical Properties of Fluids, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph202.pdf",
         "OpenStax Chemistry 2e — Properties of Liquids — https://openstax.org/books/chemistry-2e/pages/10-2-properties-of-liquids"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5066,7 +5066,7 @@ KZV.register({
         "NCERT Physics Class XI — Mechanical Properties of Fluids, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph202.pdf",
         "OpenStax Chemistry 2e — Properties of Liquids — https://openstax.org/books/chemistry-2e/pages/10-2-properties-of-liquids"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5088,7 +5088,7 @@ KZV.register({
         "NCERT Physics Class XI — Mechanical Properties of Fluids, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph202.pdf",
         "OpenStax Chemistry 2e — Properties of Liquids — https://openstax.org/books/chemistry-2e/pages/10-2-properties-of-liquids"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5110,7 +5110,7 @@ KZV.register({
         "NCERT Physics Class XI — Mechanical Properties of Fluids, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph202.pdf",
         "OpenStax Chemistry 2e — Properties of Liquids — https://openstax.org/books/chemistry-2e/pages/10-2-properties-of-liquids"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5176,7 +5176,7 @@ KZV.register({
         "NCERT Science Class X — Magnetic Effects of Electric Current, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc112.pdf",
         "OpenStax College Physics 2e — magnetic fields and magnetic field lines — https://openstax.org/books/college-physics-2e/pages/22-3-magnetic-fields-and-magnetic-field-lines"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5198,7 +5198,7 @@ KZV.register({
         "NCERT Science Class X — Magnetic Effects of Electric Current, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc112.pdf",
         "OpenStax College Physics 2e — magnetic fields and magnetic field lines — https://openstax.org/books/college-physics-2e/pages/22-3-magnetic-fields-and-magnetic-field-lines"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5220,7 +5220,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 15-magnetism-03 — https://www.siyavula.com/read/za/physical-sciences/grade-10/magnetism/15-magnetism-03",
         "OpenStax College Physics 2e — ferromagnets and electromagnets — https://openstax.org/books/college-physics-2e/pages/22-2-ferromagnets-and-electromagnets"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5242,7 +5242,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 15-magnetism-04 — https://www.siyavula.com/read/za/physical-sciences/grade-10/magnetism/15-magnetism-04",
         "NCERT Science Class X — Magnetic Effects of Electric Current, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc112.pdf"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5264,7 +5264,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 10-electromagnetism-02 — https://www.siyavula.com/read/za/physical-sciences/grade-11/electromagnetism/10-electromagnetism-02",
         "OpenStax College Physics 2e — magnetic fields produced by currents amperes law — https://openstax.org/books/college-physics-2e/pages/22-9-magnetic-fields-produced-by-currents-amperes-law"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5286,7 +5286,7 @@ KZV.register({
         "NCERT Science Class X — Magnetic Effects of Electric Current, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc112.pdf",
         "OpenStax College Physics 2e — magnetic fields produced by currents amperes law — https://openstax.org/books/college-physics-2e/pages/22-9-magnetic-fields-produced-by-currents-amperes-law"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5308,7 +5308,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 10-electromagnetism-02 — https://www.siyavula.com/read/za/physical-sciences/grade-11/electromagnetism/10-electromagnetism-02",
         "NCERT Science Class X — Magnetic Effects of Electric Current, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc112.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5330,7 +5330,7 @@ KZV.register({
         "NCERT Physics Class XII — Moving Charges and Magnetism, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/leph104.pdf",
         "OpenStax College Physics 2e — magnetic field strength force on a moving charge in a magnetic field — https://openstax.org/books/college-physics-2e/pages/22-4-magnetic-field-strength-force-on-a-moving-charge-in-a-magnetic-field"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5352,7 +5352,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 12 — 11-electrodynamics-03 — https://www.siyavula.com/read/za/physical-sciences/grade-12/electrodynamics/11-electrodynamics-03",
         "OpenStax College Physics 2e — alternating current versus direct current — https://openstax.org/books/college-physics-2e/pages/20-5-alternating-current-versus-direct-current"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5374,7 +5374,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 10-electromagnetism-03 — https://www.siyavula.com/read/za/physical-sciences/grade-11/electromagnetism/10-electromagnetism-03",
         "OpenStax College Physics 2e — faradays law of induction lenzs law — https://openstax.org/books/college-physics-2e/pages/23-2-faradays-law-of-induction-lenzs-law"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5396,7 +5396,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 10-electromagnetism-03 — https://www.siyavula.com/read/za/physical-sciences/grade-11/electromagnetism/10-electromagnetism-03",
         "OpenStax College Physics 2e — faradays law of induction lenzs law — https://openstax.org/books/college-physics-2e/pages/23-2-faradays-law-of-induction-lenzs-law"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5418,7 +5418,7 @@ KZV.register({
         "NCERT Physics Class XI — Kinetic Theory, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph205.pdf",
         "OpenStax Chemistry 2e — the kinetic molecular theory — https://openstax.org/books/chemistry-2e/pages/9-5-the-kinetic-molecular-theory"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5484,7 +5484,7 @@ KZV.register({
         "NCERT Physics Class XI — Kinetic Theory, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph205.pdf",
         "OpenStax Chemistry 2e — relating pressure volume amount and temperature the ideal gas law — https://openstax.org/books/chemistry-2e/pages/9-2-relating-pressure-volume-amount-and-temperature-the-ideal-gas-law"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5506,7 +5506,7 @@ KZV.register({
         "NCERT Physics Class XI — Kinetic Theory, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph205.pdf",
         "OpenStax Chemistry 2e — non ideal gas behavior — https://openstax.org/books/chemistry-2e/pages/9-6-non-ideal-gas-behavior"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5528,7 +5528,7 @@ KZV.register({
         "NCERT Physics Class XI — Kinetic Theory, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph205.pdf",
         "OpenStax Chemistry 2e — stoichiometry of gaseous substances mixtures and reactions — https://openstax.org/books/chemistry-2e/pages/9-3-stoichiometry-of-gaseous-substances-mixtures-and-reactions"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5550,7 +5550,7 @@ KZV.register({
         "NCERT Physics Class XI — Kinetic Theory, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph205.pdf",
         "OpenStax Chemistry 2e — stoichiometry of gaseous substances mixtures and reactions — https://openstax.org/books/chemistry-2e/pages/9-3-stoichiometry-of-gaseous-substances-mixtures-and-reactions"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5572,7 +5572,7 @@ KZV.register({
         "NCERT Physics Class XI — Kinetic Theory, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph205.pdf",
         "OpenStax Chemistry 2e — effusion and diffusion of gases — https://openstax.org/books/chemistry-2e/pages/9-4-effusion-and-diffusion-of-gases"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5594,7 +5594,7 @@ KZV.register({
         "NCERT Physics Class XI — Kinetic Theory, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph205.pdf",
         "OpenStax Chemistry 2e — effusion and diffusion of gases — https://openstax.org/books/chemistry-2e/pages/9-4-effusion-and-diffusion-of-gases"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5616,7 +5616,7 @@ KZV.register({
         "NCERT Chemistry Class XII — Solutions, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/lech101.pdf",
         "OpenStax Chemistry 2e — stoichiometry of gaseous substances mixtures and reactions — https://openstax.org/books/chemistry-2e/pages/9-3-stoichiometry-of-gaseous-substances-mixtures-and-reactions"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5638,7 +5638,7 @@ KZV.register({
         "NCERT Chemistry Class XII — Solutions, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/lech101.pdf",
         "OpenStax Chemistry 2e — phase transitions — https://openstax.org/books/chemistry-2e/pages/10-3-phase-transitions"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5682,7 +5682,7 @@ KZV.register({
         "NCERT Chemistry Class XII — Solutions, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/lech101.pdf",
         "OpenStax Chemistry 2e — phase transitions — https://openstax.org/books/chemistry-2e/pages/10-3-phase-transitions"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5770,7 +5770,7 @@ KZV.register({
         "Siyavula Physical Sciences — the atom 03 — https://www.siyavula.com/read/za/physical-sciences/grade-10/the-atom/04-the-atom-03",
         "OpenStax Chemistry 2e — atomic structure and symbolism — https://openstax.org/books/chemistry-2e/pages/2-3-atomic-structure-and-symbolism"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5792,7 +5792,7 @@ KZV.register({
         "NCERT Chemistry Class XI — Classification of Elements and Periodicity in Properties, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/kech103.pdf",
         "OpenStax Chemistry 2e — periodic variations in element properties — https://openstax.org/books/chemistry-2e/pages/6-5-periodic-variations-in-element-properties"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5836,7 +5836,7 @@ KZV.register({
         "Siyavula Physical Sciences — the periodic table 02 — https://www.siyavula.com/read/za/physical-sciences/grade-10/the-periodic-table/05-the-periodic-table-02",
         "OpenStax Chemistry 2e — The Periodic Table — https://openstax.org/books/chemistry-2e/pages/2-5-the-periodic-table"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5858,7 +5858,7 @@ KZV.register({
         "NCERT Chemistry Class XI — Classification of Elements and Periodicity in Properties, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/kech103.pdf",
         "OpenStax Chemistry 2e — periodic variations in element properties — https://openstax.org/books/chemistry-2e/pages/6-5-periodic-variations-in-element-properties"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5880,7 +5880,7 @@ KZV.register({
         "Siyavula Physical Sciences — the periodic table 01 — https://www.siyavula.com/read/za/physical-sciences/grade-10/the-periodic-table/05-the-periodic-table-01",
         "OpenStax Chemistry 2e — periodic variations in element properties — https://openstax.org/books/chemistry-2e/pages/6-5-periodic-variations-in-element-properties"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5902,7 +5902,7 @@ KZV.register({
         "Siyavula Physical Sciences — the periodic table 01 — https://www.siyavula.com/read/za/physical-sciences/grade-10/the-periodic-table/05-the-periodic-table-01",
         "OpenStax Chemistry 2e — covalent bonding — https://openstax.org/books/chemistry-2e/pages/7-2-covalent-bonding"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5924,7 +5924,7 @@ KZV.register({
         "Siyavula Physical Sciences — the periodic table 01 — https://www.siyavula.com/read/za/physical-sciences/grade-10/the-periodic-table/05-the-periodic-table-01",
         "OpenStax Chemistry 2e — covalent bonding — https://openstax.org/books/chemistry-2e/pages/7-2-covalent-bonding"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -5990,7 +5990,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 03-atomic-combinations-02 — https://www.siyavula.com/read/za/physical-sciences/grade-11/atomic-combinations/03-atomic-combinations-02",
         "OpenStax Chemistry 2e — molecular structure and polarity — https://openstax.org/books/chemistry-2e/pages/7-6-molecular-structure-and-polarity"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6012,7 +6012,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 11 — 03-atomic-combinations-02 — https://www.siyavula.com/read/za/physical-sciences/grade-11/atomic-combinations/03-atomic-combinations-02",
         "OpenStax Chemistry 2e — molecular structure and polarity — https://openstax.org/books/chemistry-2e/pages/7-6-molecular-structure-and-polarity"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6034,7 +6034,7 @@ KZV.register({
         "Siyavula Physical Sciences — types of reactions 03 — https://www.siyavula.com/read/za/physical-sciences/grade-11/types-of-reactions/13-types-of-reactions-03",
         "OpenStax Chemistry 2e — Classifying Chemical Reactions — https://openstax.org/books/chemistry-2e/pages/4-2-classifying-chemical-reactions"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6056,7 +6056,7 @@ KZV.register({
         "Siyavula Physical Sciences — types of reactions 03 — https://www.siyavula.com/read/za/physical-sciences/grade-11/types-of-reactions/13-types-of-reactions-03",
         "OpenStax Chemistry 2e — Classifying Chemical Reactions — https://openstax.org/books/chemistry-2e/pages/4-2-classifying-chemical-reactions"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6166,7 +6166,7 @@ KZV.register({
         "NCERT Science Class X — Carbon and its Compounds, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc104.pdf",
         "Siyavula Physical Sciences — organic molecules 02 — https://www.siyavula.com/read/za/physical-sciences/grade-12/organic-molecules/04-organic-molecules-02"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6188,7 +6188,7 @@ KZV.register({
         "NCERT Science Class X — Carbon and its Compounds, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc104.pdf",
         "OpenStax Chemistry 2e — hydrocarbons — https://openstax.org/books/chemistry-2e/pages/20-1-hydrocarbons"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6210,7 +6210,7 @@ KZV.register({
         "NCERT Science Class X — Carbon and its Compounds, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc104.pdf",
         "Siyavula Physical Sciences — organic molecules 02 — https://www.siyavula.com/read/za/physical-sciences/grade-12/organic-molecules/04-organic-molecules-02"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6232,7 +6232,7 @@ KZV.register({
         "NCERT Science Class X — Carbon and its Compounds, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc104.pdf",
         "Siyavula Physical Sciences — organic molecules 02 — https://www.siyavula.com/read/za/physical-sciences/grade-12/organic-molecules/04-organic-molecules-02"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6254,7 +6254,7 @@ KZV.register({
         "NCERT Science Class X — Carbon and its Compounds, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc104.pdf",
         "Siyavula Physical Sciences — organic molecules 02 — https://www.siyavula.com/read/za/physical-sciences/grade-12/organic-molecules/04-organic-molecules-02"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6276,7 +6276,7 @@ KZV.register({
         "NCERT Science Class X — Carbon and its Compounds, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc104.pdf",
         "OpenStax Chemistry 2e — alcohols and ethers — https://openstax.org/books/chemistry-2e/pages/20-2-alcohols-and-ethers"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6298,7 +6298,7 @@ KZV.register({
         "NCERT Science Class X — Carbon and its Compounds, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc104.pdf",
         "OpenStax Chemistry 2e — aldehydes ketones carboxylic acids and esters — https://openstax.org/books/chemistry-2e/pages/20-3-aldehydes-ketones-carboxylic-acids-and-esters"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6320,7 +6320,7 @@ KZV.register({
         "NCERT Science Class X — Carbon and its Compounds, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc104.pdf",
         "OpenStax Chemistry 2e — aldehydes ketones carboxylic acids and esters — https://openstax.org/books/chemistry-2e/pages/20-3-aldehydes-ketones-carboxylic-acids-and-esters"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6342,7 +6342,7 @@ KZV.register({
         "Siyavula Physical Sciences — organic molecules 02 — https://www.siyavula.com/read/za/physical-sciences/grade-12/organic-molecules/04-organic-molecules-02",
         "OpenStax Chemistry 2e — aldehydes ketones carboxylic acids and esters — https://openstax.org/books/chemistry-2e/pages/20-3-aldehydes-ketones-carboxylic-acids-and-esters"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6408,7 +6408,7 @@ KZV.register({
         "Siyavula Physical Sciences — organic molecules 07 — https://www.siyavula.com/read/za/physical-sciences/grade-12/organic-molecules/04-organic-molecules-07",
         "OpenStax Chemistry 2e — hydrocarbons — https://openstax.org/books/chemistry-2e/pages/20-1-hydrocarbons"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6430,7 +6430,7 @@ KZV.register({
         "American Chemical Society — Glycerol — https://www.acs.org/molecule-of-the-week/archive/g/glycerol.html",
         "OpenStax Chemistry 2e — alcohols and ethers — https://openstax.org/books/chemistry-2e/pages/20-2-alcohols-and-ethers"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6452,7 +6452,7 @@ KZV.register({
         "Siyavula Physical Sciences — organic molecules 02 — https://www.siyavula.com/read/za/physical-sciences/grade-12/organic-molecules/04-organic-molecules-02",
         "OpenStax Chemistry 2e — hydrocarbons — https://openstax.org/books/chemistry-2e/pages/20-1-hydrocarbons"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6496,7 +6496,7 @@ KZV.register({
         "Siyavula Physical Sciences — electrochemical reactions 03 — https://www.siyavula.com/read/za/physical-sciences/grade-12/electrochemical-reactions/13-electrochemical-reactions-03",
         "OpenStax Chemistry 2e — electrolysis — https://openstax.org/books/chemistry-2e/pages/17-7-electrolysis"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6518,7 +6518,7 @@ KZV.register({
         "NCERT Science Class X — Acids, Bases and Salts, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc102.pdf",
         "Siyavula Physical Sciences — electrochemical reactions 07 — https://www.siyavula.com/read/za/physical-sciences/grade-12/electrochemical-reactions/13-electrochemical-reactions-07"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6540,7 +6540,7 @@ KZV.register({
         "NCERT Chemistry Class XII — Solutions, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/lech101.pdf",
         "OpenStax Chemistry 2e — colligative properties — https://openstax.org/books/chemistry-2e/pages/11-4-colligative-properties"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6584,7 +6584,7 @@ KZV.register({
         "NCERT Chemistry Class XII — Solutions, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/lech101.pdf",
         "OpenStax Chemistry 2e — other units for solution concentrations — https://openstax.org/books/chemistry-2e/pages/3-4-other-units-for-solution-concentrations"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6606,7 +6606,7 @@ KZV.register({
         "NCERT Chemistry Class XII — Solutions, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/lech101.pdf",
         "OpenStax Chemistry 2e — colligative properties — https://openstax.org/books/chemistry-2e/pages/11-4-colligative-properties"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6628,7 +6628,7 @@ KZV.register({
         "American Chemical Society — Changing State: Condensation — https://www.acs.org/middleschoolchemistry/lessonplans/chapter2/lesson3.html",
         "Rice University / OpenStax — Chemistry 2e — Colloids; Soaps and Detergents — https://openstax.org/books/chemistry-2e/pages/11-5-colloids"
       ],
-      "level": 2,
+      "level": 1,
       "status": "approved",
       "flags": []
     },
@@ -6672,7 +6672,7 @@ KZV.register({
         "NCERT Laboratory Manual — Titrimetric Analysis — https://www.ncert.nic.in/pdf/publication/sciencelaboratorymanuals/classXI/chemistry/kelm206.pdf",
         "Siyavula school textbook — acids and bases 04 — https://www.siyavula.com/read/za/physical-sciences/grade-12/acids-and-bases/09-acids-and-bases-04"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6694,7 +6694,7 @@ KZV.register({
         "NCERT Laboratory Manual — Titrimetric Analysis — https://www.ncert.nic.in/pdf/publication/sciencelaboratorymanuals/classXI/chemistry/kelm206.pdf",
         "Siyavula school textbook — acids and bases 04 — https://www.siyavula.com/read/za/physical-sciences/grade-12/acids-and-bases/09-acids-and-bases-04"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6716,7 +6716,7 @@ KZV.register({
         "NCERT Science Class X — Metals and Non-metals, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc103.pdf",
         "OpenStax Chemistry 2e — periodicity — https://openstax.org/books/chemistry-2e/pages/18-1-periodicity"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6760,7 +6760,7 @@ KZV.register({
         "NCERT Laboratory Manual — Systematic Qualitative Analysis — https://www.ncert.nic.in/pdf/publication/sciencelaboratorymanuals/classXI/chemistry/kelm207.pdf",
         "OpenStax Chemistry 2e — Classifying Chemical Reactions — https://openstax.org/books/chemistry-2e/pages/4-2-classifying-chemical-reactions"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6782,7 +6782,7 @@ KZV.register({
         "NCERT Laboratory Manual — Systematic Qualitative Analysis — https://www.ncert.nic.in/pdf/publication/sciencelaboratorymanuals/classXI/chemistry/kelm207.pdf",
         "ACS — Using Chemical Change to Identify an Unknown — https://www.acs.org/middleschoolchemistry/lessonplans/chapter6/lesson6.html"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6804,7 +6804,7 @@ KZV.register({
         "NCERT Science Class X — Chemical Reactions and Equations, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc101.pdf",
         "Société Chimique de France — Chaux — calcium oxide, slaked lime and reactions — https://new.societechimiquedefrance.fr/produits/chaux/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6826,7 +6826,7 @@ KZV.register({
         "NCERT Science Class X — Chemical Reactions and Equations, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc101.pdf",
         "Société Chimique de France — Chaux — calcium oxide, slaked lime and reactions — https://new.societechimiquedefrance.fr/produits/chaux/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6848,7 +6848,7 @@ KZV.register({
         "NCERT Science Class X — Acids, Bases and Salts, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc102.pdf",
         "Société Chimique de France — Plâtre — gypsum and calcium sulfate hemihydrate — https://new.societechimiquedefrance.fr/produits/platre/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6892,7 +6892,7 @@ KZV.register({
         "Siyavula school textbook — the chemical industry 04 — https://www.siyavula.com/read/za/physical-sciences/grade-12/the-chemical-industry/14-the-chemical-industry-04",
         "OpenStax Chemistry 2e — shifting equilibria le chateliers principle — https://openstax.org/books/chemistry-2e/pages/13-3-shifting-equilibria-le-chateliers-principle"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -6964,7 +6964,7 @@ KZV.register({
     },
     {
       "id": "physics-chemistry-0644",
-      "cat": "physics-chemistry",
+      "cat": "math",
       "type": "mcq",
       "fmt": "text",
       "q": "كم مترا يعادل كيلومتر واحد؟",
@@ -7046,7 +7046,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 21-motion-in-one-dimension-02 — https://www.siyavula.com/read/za/physical-sciences/grade-10/motion-in-one-dimension/21-motion-in-one-dimension-02",
         "OpenStax Physics — Relative Motion, Distance, and Displacement — https://openstax.org/books/physics/pages/2-1-relative-motion-distance-and-displacement"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7068,7 +7068,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 20-vectors-and-scalars-01 — https://www.siyavula.com/read/za/physical-sciences/grade-10/vectors-and-scalars/20-vectors-and-scalars-01",
         "OpenStax physics — speed and velocity — https://openstax.org/books/physics/pages/2-2-speed-and-velocity"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7178,7 +7178,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 22-mechanical-energy-05 — https://www.siyavula.com/read/za/physical-sciences/grade-10/mechanical-energy/22-mechanical-energy-05",
         "OpenStax College Physics 2e — conservation of energy — https://openstax.org/books/college-physics-2e/pages/7-6-conservation-of-energy"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7200,7 +7200,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 12 — 02-momentum-and-impulse-04 — https://www.siyavula.com/read/za/physical-sciences/grade-12/momentum-and-impulse/02-momentum-and-impulse-04",
         "OpenStax College Physics 2e — conservation of momentum — https://openstax.org/books/college-physics-2e/pages/8-3-conservation-of-momentum"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7244,7 +7244,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "Royal Society of Chemistry — Periodic Table — https://periodic-table.rsc.org/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7288,7 +7288,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "Royal Society of Chemistry — Periodic Table — https://periodic-table.rsc.org/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7310,7 +7310,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "Royal Society of Chemistry — Periodic Table — https://periodic-table.rsc.org/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7354,7 +7354,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "Royal Society of Chemistry — Periodic Table — https://periodic-table.rsc.org/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7398,7 +7398,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "Royal Society of Chemistry — Periodic Table — https://periodic-table.rsc.org/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7420,7 +7420,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "Royal Society of Chemistry — Periodic Table — https://periodic-table.rsc.org/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7596,7 +7596,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "Royal Society of Chemistry — Periodic Table — https://periodic-table.rsc.org/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7662,7 +7662,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "Royal Society of Chemistry — Periodic Table — https://periodic-table.rsc.org/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7706,7 +7706,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "Royal Society of Chemistry — Periodic Table — https://periodic-table.rsc.org/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7728,7 +7728,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "Royal Society of Chemistry — Periodic Table — https://periodic-table.rsc.org/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7750,7 +7750,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "Royal Society of Chemistry — Periodic Table — https://periodic-table.rsc.org/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7772,7 +7772,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "Royal Society of Chemistry — Periodic Table — https://periodic-table.rsc.org/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7816,7 +7816,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "Royal Society of Chemistry — Periodic Table — https://periodic-table.rsc.org/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7838,7 +7838,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "Royal Society of Chemistry — Periodic Table — https://periodic-table.rsc.org/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7860,7 +7860,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "Royal Society of Chemistry — Periodic Table — https://periodic-table.rsc.org/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7904,7 +7904,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "Royal Society of Chemistry — Periodic Table — https://periodic-table.rsc.org/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7926,7 +7926,7 @@ KZV.register({
         "ACS — Temperature and the Rate of a Chemical Reaction — https://www.acs.org/middleschoolchemistry/lessonplans/chapter6/lesson4.html",
         "OpenStax Chemistry 2e — Factors Affecting Reaction Rates — https://openstax.org/books/chemistry-2e/pages/12-2-factors-affecting-reaction-rates"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7948,7 +7948,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 16-electrostatics-03 — https://www.siyavula.com/read/za/physical-sciences/grade-10/electrostatics/16-electrostatics-03",
         "OpenStax College Physics 2e — static electricity and charge conservation of charge — https://openstax.org/books/college-physics-2e/pages/18-1-static-electricity-and-charge-conservation-of-charge"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -7970,7 +7970,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 16-electrostatics-03 — https://www.siyavula.com/read/za/physical-sciences/grade-10/electrostatics/16-electrostatics-03",
         "OpenStax College Physics 2e — conductors and insulators — https://openstax.org/books/college-physics-2e/pages/18-2-conductors-and-insulators"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8102,7 +8102,7 @@ KZV.register({
         "Siyavula Natural Sciences Grade 7 — heat energy transfer — https://www.siyavula.com/read/za/natural-sciences/grade-7/heat-energy-transfer/13-heat-energy-transfer",
         "OpenStax College Physics 2e — convection — https://openstax.org/books/college-physics-2e/pages/14-6-convection"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8146,7 +8146,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 15-magnetism-02 — https://www.siyavula.com/read/za/physical-sciences/grade-10/magnetism/15-magnetism-02",
         "OpenStax College Physics 2e — ferromagnets and electromagnets — https://openstax.org/books/college-physics-2e/pages/22-2-ferromagnets-and-electromagnets"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8190,7 +8190,7 @@ KZV.register({
         "NCERT Physics Class XI — Kinetic Theory, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph205.pdf",
         "OpenStax College Physics 2e — kinetic theory atomic and molecular explanation of pressure and temperature — https://openstax.org/books/college-physics-2e/pages/13-4-kinetic-theory-atomic-and-molecular-explanation-of-pressure-and-temperature"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8234,7 +8234,7 @@ KZV.register({
         "NCERT Physics Class XI — Kinetic Theory, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph205.pdf",
         "OpenStax Chemistry 2e — the kinetic molecular theory — https://openstax.org/books/chemistry-2e/pages/9-5-the-kinetic-molecular-theory"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8256,7 +8256,7 @@ KZV.register({
         "NCERT Chemistry Class XII — Solutions, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/lech101.pdf",
         "OpenStax Chemistry 2e — colligative properties — https://openstax.org/books/chemistry-2e/pages/11-4-colligative-properties"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8278,7 +8278,7 @@ KZV.register({
         "NCERT Chemistry Class XI — Structure of Atom, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/kech102.pdf",
         "Siyavula Physical Sciences — the atom 05 — https://www.siyavula.com/read/za/physical-sciences/grade-10/the-atom/04-the-atom-05"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8300,7 +8300,7 @@ KZV.register({
         "Siyavula Physical Sciences — the atom 05 — https://www.siyavula.com/read/za/physical-sciences/grade-10/the-atom/04-the-atom-05",
         "OpenStax Chemistry 2e — atomic structure and symbolism — https://openstax.org/books/chemistry-2e/pages/2-3-atomic-structure-and-symbolism"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8344,7 +8344,7 @@ KZV.register({
         "Siyavula Physical Sciences — the periodic table 02 — https://www.siyavula.com/read/za/physical-sciences/grade-10/the-periodic-table/05-the-periodic-table-02",
         "OpenStax Chemistry 2e — periodic variations in element properties — https://openstax.org/books/chemistry-2e/pages/6-5-periodic-variations-in-element-properties"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8366,7 +8366,7 @@ KZV.register({
         "Siyavula Physical Sciences — the periodic table 02 — https://www.siyavula.com/read/za/physical-sciences/grade-10/the-periodic-table/05-the-periodic-table-02",
         "OpenStax Chemistry 2e — covalent bonding — https://openstax.org/books/chemistry-2e/pages/7-2-covalent-bonding"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8476,7 +8476,7 @@ KZV.register({
         "NCERT Science Class X — Metals and Non-metals, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc103.pdf",
         "Siyavula Physical Sciences — classification of matter 05 — https://www.siyavula.com/read/za/physical-sciences/grade-10/classification-of-matter/02-classification-of-matter-05"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8498,7 +8498,7 @@ KZV.register({
         "NCERT Science Class X — Metals and Non-metals, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc103.pdf",
         "OpenStax Chemistry 2e — periodicity — https://openstax.org/books/chemistry-2e/pages/18-1-periodicity"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8520,7 +8520,7 @@ KZV.register({
         "NCERT Science Class X — Carbon and its Compounds, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc104.pdf",
         "Siyavula Physical Sciences — organic molecules 02 — https://www.siyavula.com/read/za/physical-sciences/grade-12/organic-molecules/04-organic-molecules-02"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8542,7 +8542,7 @@ KZV.register({
         "Siyavula Physical Sciences — organic molecules 02 — https://www.siyavula.com/read/za/physical-sciences/grade-12/organic-molecules/04-organic-molecules-02",
         "OpenStax Chemistry 2e — aldehydes ketones carboxylic acids and esters — https://openstax.org/books/chemistry-2e/pages/20-3-aldehydes-ketones-carboxylic-acids-and-esters"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8564,7 +8564,7 @@ KZV.register({
         "NCERT Science X — Carbon and its Compounds — https://ncert.nic.in/textbook/pdf/jesc104.pdf",
         "Siyavula Physical Sciences 12 — Organic chemical reactions — https://www.siyavula.com/read/za/physical-sciences/grade-12/organic-molecules/04-organic-molecules-05"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8652,7 +8652,7 @@ KZV.register({
         "Siyavula Physical Sciences — organic molecules 07 — https://www.siyavula.com/read/za/physical-sciences/grade-12/organic-molecules/04-organic-molecules-07",
         "OpenStax Chemistry 2e — hydrocarbons — https://openstax.org/books/chemistry-2e/pages/20-1-hydrocarbons"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8696,7 +8696,7 @@ KZV.register({
         "NCERT Physics Class XI — Thermal Properties of Matter, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph203.pdf",
         "OpenStax College Physics 2e — temperature — https://openstax.org/books/college-physics-2e/pages/13-1-temperature"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8718,7 +8718,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "Royal Society of Chemistry — Periodic Table — https://periodic-table.rsc.org/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8740,7 +8740,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "Royal Society of Chemistry — Periodic Table — https://periodic-table.rsc.org/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8806,7 +8806,7 @@ KZV.register({
         "IUPAC — Periodic Table of the Elements, 4 May 2022 — https://iupac.org/wp-content/uploads/2022/05/IUPAC_Periodic_Table-04May22.pdf",
         "Royal Society of Chemistry — Periodic Table — https://periodic-table.rsc.org/"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8828,7 +8828,7 @@ KZV.register({
         "NIST Guide to the SI — Derived units and SI prefixes — https://www.nist.gov/pml/special-publication-811/nist-guide-si-chapter-4-two-classes-si-units-and-si-prefixes",
         "BIPM — SI Brochure, ninth edition — https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8872,7 +8872,7 @@ KZV.register({
         "NIST Guide to the SI — Derived units and SI prefixes — https://www.nist.gov/pml/special-publication-811/nist-guide-si-chapter-4-two-classes-si-units-and-si-prefixes",
         "BIPM — SI Brochure, ninth edition — https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8916,7 +8916,7 @@ KZV.register({
         "NIST Guide to the SI — Derived units and SI prefixes — https://www.nist.gov/pml/special-publication-811/nist-guide-si-chapter-4-two-classes-si-units-and-si-prefixes",
         "BIPM — SI Brochure, ninth edition — https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -8938,7 +8938,7 @@ KZV.register({
         "NIST Guide to the SI — Derived units and SI prefixes — https://www.nist.gov/pml/special-publication-811/nist-guide-si-chapter-4-two-classes-si-units-and-si-prefixes",
         "BIPM — SI Brochure, ninth edition — https://www.bipm.org/documents/20126/41483022/SI-Brochure-9-EN.pdf"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9048,7 +9048,7 @@ KZV.register({
         "OpenStax Chemistry 2e — Transmutation and Nuclear Energy — https://openstax.org/books/chemistry-2e/pages/21-4-transmutation-and-nuclear-energy",
         "US Department of Energy — Nuclear101: How Does a Nuclear Reactor Work? — https://www.energy.gov/ne/articles/nuclear-101-how-does-nuclear-reactor-work"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9070,7 +9070,7 @@ KZV.register({
         "OpenStax Chemistry 2e — Transmutation and Nuclear Energy — https://openstax.org/books/chemistry-2e/pages/21-4-transmutation-and-nuclear-energy",
         "University of Calgary Energy Education — Control rod — https://www.energyeducation.ca/encyclopedia/Control_rod"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9158,7 +9158,7 @@ KZV.register({
         "NCERT Laboratory Manual — Materials — https://ncert.nic.in/pdf/publication/sciencelaboratorymanuals/classIX/science/ielm102.pdf",
         "Siyavula school textbook — separating mixtures — https://www.siyavula.com/read/za/natural-sciences/grade-7/separating-mixtures/07-separating-mixtures"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9202,7 +9202,7 @@ KZV.register({
         "Siyavula school textbook — acids and bases 04 — https://www.siyavula.com/read/za/physical-sciences/grade-12/acids-and-bases/09-acids-and-bases-04",
         "OpenStax Chemistry2e — Quantitative Chemical Analysis — https://openstax.org/books/chemistry-2e/pages/4-5-quantitative-chemical-analysis"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9224,7 +9224,7 @@ KZV.register({
         "NCERT Science Class X — Acids, Bases and Salts, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc102.pdf",
         "OpenStax Chemistry 2e — chemical nomenclature — https://openstax.org/books/chemistry-2e/pages/2-7-chemical-nomenclature"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9246,7 +9246,7 @@ KZV.register({
         "NCERT Science Class X — Acids, Bases and Salts, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc102.pdf",
         "Société Chimique de France — Plâtre — gypsum and calcium sulfate hemihydrate — https://new.societechimiquedefrance.fr/produits/platre/"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9312,7 +9312,7 @@ KZV.register({
         "Siyavula school textbook — separating mixtures — https://www.siyavula.com/read/za/natural-sciences/grade-7/separating-mixtures/07-separating-mixtures",
         "Rice University / OpenStax — Chemistry 2e — Colloids; Soaps and Detergents — https://openstax.org/books/chemistry-2e/pages/11-5-colloids"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9334,7 +9334,7 @@ KZV.register({
         "Siyavula Physical Sciences — electrochemical reactions 03 — https://www.siyavula.com/read/za/physical-sciences/grade-12/electrochemical-reactions/13-electrochemical-reactions-03",
         "OpenStax Chemistry 2e — galvanic cells — https://openstax.org/books/chemistry-2e/pages/17-2-galvanic-cells"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9356,7 +9356,7 @@ KZV.register({
         "NCERT Chemistry Class XII — Solutions, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/lech101.pdf",
         "OpenStax Chemistry 2e — colligative properties — https://openstax.org/books/chemistry-2e/pages/11-4-colligative-properties"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9378,7 +9378,7 @@ KZV.register({
         "NCERT Chemistry Class XII — Solutions, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/lech101.pdf",
         "OpenStax Chemistry 2e — colligative properties — https://openstax.org/books/chemistry-2e/pages/11-4-colligative-properties"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9400,7 +9400,7 @@ KZV.register({
         "NCERT Chemistry Class XII — Solutions, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/lech101.pdf",
         "OpenStax Chemistry 2e — Solubility — https://openstax.org/books/chemistry-2e/pages/11-3-solubility"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9422,7 +9422,7 @@ KZV.register({
         "NCERT Science X — Acids, Bases and Salts — https://ncert.nic.in/textbook/pdf/jesc102.pdf",
         "Siyavula Physical Sciences12 — Acids and bases — https://www.siyavula.com/read/za/physical-sciences/grade-12/acids-and-bases/09-acids-and-bases-01"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9444,7 +9444,7 @@ KZV.register({
         "NCERT Science X — Acids, Bases and Salts — https://ncert.nic.in/textbook/pdf/jesc102.pdf",
         "Siyavula Physical Sciences12 — Acids and bases — https://www.siyavula.com/read/za/physical-sciences/grade-12/acids-and-bases/09-acids-and-bases-01"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9488,7 +9488,7 @@ KZV.register({
         "Siyavula Physical Sciences12 — Acids and bases — https://www.siyavula.com/read/za/physical-sciences/grade-12/acids-and-bases/09-acids-and-bases-01",
         "OpenStax Chemistry2e — Brønsted-Lowry Acids and Bases — https://openstax.org/books/chemistry-2e/pages/14-1-bronsted-lowry-acids-and-bases"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9510,7 +9510,7 @@ KZV.register({
         "Siyavula Physical Sciences12 — Acids and bases — https://www.siyavula.com/read/za/physical-sciences/grade-12/acids-and-bases/09-acids-and-bases-01",
         "OpenStax Chemistry2e — Relative Strengths of Acids and Bases — https://openstax.org/books/chemistry-2e/pages/14-3-relative-strengths-of-acids-and-bases"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9576,7 +9576,7 @@ KZV.register({
         "NCERT Chemistry XI — Structure of Atom — https://ncert.nic.in/textbook/pdf/kech102.pdf",
         "OpenStax Chemistry2e — Electronic Structure of Atoms: Electron Configurations — https://openstax.org/books/chemistry-2e/pages/6-4-electronic-structure-of-atoms-electron-configurations"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9598,7 +9598,7 @@ KZV.register({
         "NCERT Chemistry XI — Structure of Atom — https://ncert.nic.in/textbook/pdf/kech102.pdf",
         "OpenStax Chemistry2e — Electronic Structure of Atoms: Electron Configurations — https://openstax.org/books/chemistry-2e/pages/6-4-electronic-structure-of-atoms-electron-configurations"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9620,7 +9620,7 @@ KZV.register({
         "NCERT Chemistry XI — Structure of Atom — https://ncert.nic.in/textbook/pdf/kech102.pdf",
         "OpenStax Chemistry2e — Atomic Structure and Symbolism — https://openstax.org/books/chemistry-2e/pages/2-3-atomic-structure-and-symbolism"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9686,7 +9686,7 @@ KZV.register({
         "NCERT Science X — Carbon and its Compounds — https://ncert.nic.in/textbook/pdf/jesc104.pdf",
         "OpenStax Chemistry2e — Solubility — https://openstax.org/books/chemistry-2e/pages/11-3-solubility"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9708,7 +9708,7 @@ KZV.register({
         "NCERT Science X — Acids, Bases and Salts — https://ncert.nic.in/textbook/pdf/jesc102.pdf",
         "Siyavula Natural Sciences7 — Acids, bases and neutral substances — https://www.siyavula.com/read/za/natural-sciences/grade-7/acids%2C-bases-and-neutral-substances/08-acids%2C-bases-and-neutral-substances"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9736,7 +9736,7 @@ KZV.register({
     },
     {
       "id": "physics-chemistry-0793",
-      "cat": "physics-chemistry",
+      "cat": "math",
       "type": "mcq",
       "fmt": "text",
       "q": "في رسم متجه بمقياس محدد، ماذا يمثل طول السهم؟",
@@ -9752,7 +9752,7 @@ KZV.register({
         "Siyavula Physical Sciences10 — Vectors and Scalars — https://www.siyavula.com/read/za/physical-sciences/grade-10/vectors-and-scalars/20-vectors-and-scalars-02",
         "OpenStax college-physics-2e — vector addition and subtraction graphical methods — https://openstax.org/books/college-physics-2e/pages/3-2-vector-addition-and-subtraction-graphical-methods"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9818,7 +9818,7 @@ KZV.register({
         "Siyavula Physical Sciences Grade 10 — 17-electric-circuits-03 — https://www.siyavula.com/read/za/physical-sciences/grade-10/electric-circuits/17-electric-circuits-03",
         "OpenStax College Physics 2e — resistance and resistivity — https://openstax.org/books/college-physics-2e/pages/20-3-resistance-and-resistivity"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9840,7 +9840,7 @@ KZV.register({
         "NCERT Physics Class XI — Kinetic Theory, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph205.pdf",
         "OpenStax Chemistry 2e — the kinetic molecular theory — https://openstax.org/books/chemistry-2e/pages/9-5-the-kinetic-molecular-theory"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9862,7 +9862,7 @@ KZV.register({
         "NASA Science — Anatomy of an Electromagnetic Wave — https://science.nasa.gov/ems/02_anatomy/",
         "OpenStax University Physics3 — Photoelectric Effect — https://openstax.org/books/university-physics-volume-3/pages/6-2-photoelectric-effect"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9928,7 +9928,7 @@ KZV.register({
         "NCERT Science Class X — Magnetic Effects of Electric Current, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc112.pdf",
         "OpenStax College Physics 2e — magnetic force on a current carrying conductor — https://openstax.org/books/college-physics-2e/pages/22-7-magnetic-force-on-a-current-carrying-conductor"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -9950,7 +9950,7 @@ KZV.register({
         "NCERT Science X — Magnetic Effects of Electric Current — https://ncert.nic.in/textbook/pdf/jesc112.pdf",
         "OpenStax University Physics2 — Magnetic Field of a Current Loop — https://openstax.org/books/university-physics-volume-2/pages/12-4-magnetic-field-of-a-current-loop"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10016,7 +10016,7 @@ KZV.register({
         "NCERT Physics XI — Kinetic Theory — https://ncert.nic.in/textbook/pdf/keph205.pdf",
         "OpenStax Chemistry2e — Stoichiometry of Gaseous Substances, Mixtures, and Reactions — https://openstax.org/books/chemistry-2e/pages/9-3-stoichiometry-of-gaseous-substances-mixtures-and-reactions"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10258,7 +10258,7 @@ KZV.register({
         "NCERT Chemistry XI Laboratory Manual — Systematic Qualitative Analysis — https://www.ncert.nic.in/pdf/publication/sciencelaboratorymanuals/classXI/chemistry/kelm207.pdf",
         "OpenStax Chemistry2e — Classifying Chemical Reactions — https://openstax.org/books/chemistry-2e/pages/4-2-classifying-chemical-reactions"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10280,7 +10280,7 @@ KZV.register({
         "NASA Glenn — Phases of Matter — https://www.grc.nasa.gov/www/k-12/airplane/state.html",
         "OpenStax College Physics 2e — What Is a Fluid? — https://openstax.org/books/college-physics-2e/pages/11-1-what-is-a-fluid"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10302,7 +10302,7 @@ KZV.register({
         "NCERT Chemistry Class XI — Structure of Atom, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/kech102.pdf",
         "OpenStax Chemistry 2e — Electronic Structure of Atoms (Electron Configurations) — https://openstax.org/books/chemistry-2e/pages/6-4-electronic-structure-of-atoms-electron-configurations"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10478,7 +10478,7 @@ KZV.register({
         "NCERT Physics Class XI — Waves — https://ncert.nic.in/textbook/pdf/keph207.pdf",
         "OpenStax University Physics Volume 1 — Wave Speed on a Stretched String — https://openstax.org/books/university-physics-volume-1/pages/16-3-wave-speed-on-a-stretched-string"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10588,7 +10588,7 @@ KZV.register({
         "NCERT Science Class X — Light: Reflection and Refraction — https://www.ncert.nic.in/textbook/pdf/jesc109.pdf",
         "University of Reading PPLATO / FLAP — Optical Instruments — https://www.met.reading.ac.uk/pplato2/h-flap/phys6_4.html"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10610,7 +10610,7 @@ KZV.register({
         "NCERT Science Class X — Electricity, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc111.pdf",
         "OpenStax College Physics 2e — resistance and resistivity — https://openstax.org/books/college-physics-2e/pages/20-3-resistance-and-resistivity"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10632,7 +10632,7 @@ KZV.register({
         "NCERT Science Class X — Electricity, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/jesc111.pdf",
         "OpenStax University Physics Volume 2 — RC Circuits — https://openstax.org/books/university-physics-volume-2/pages/10-5-rc-circuits"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10654,7 +10654,7 @@ KZV.register({
         "NCERT Physics Class XI — Kinetic Theory, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph205.pdf",
         "OpenStax College Physics 2e — Kinetic Theory: Atomic and Molecular Explanation of Pressure and Temperature — https://openstax.org/books/college-physics-2e/pages/13-4-kinetic-theory-atomic-and-molecular-explanation-of-pressure-and-temperature"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10676,7 +10676,7 @@ KZV.register({
         "NCERT Physics Class XI — Thermal Properties of Matter, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph203.pdf",
         "OpenStax Chemistry 2e — Calorimetry — https://openstax.org/books/chemistry-2e/pages/5-2-calorimetry"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10698,7 +10698,7 @@ KZV.register({
         "NCERT Physics Class XI — Mechanical Properties of Fluids, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph202.pdf",
         "OpenStax College Physics 2e — Cohesion and Adhesion in Liquids: Surface Tension and Capillary Action — https://openstax.org/books/college-physics-2e/pages/11-8-cohesion-and-adhesion-in-liquids-surface-tension-and-capillary-action"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10742,7 +10742,7 @@ KZV.register({
         "NCERT Physics Class XI — Mechanical Properties of Fluids, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph202.pdf",
         "OpenStax College Physics 2e — Gauge Pressure, Absolute Pressure, and Pressure Measurement — https://openstax.org/books/college-physics-2e/pages/11-6-gauge-pressure-absolute-pressure-and-pressure-measurement"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10830,7 +10830,7 @@ KZV.register({
         "OpenStax College Physics 2e — Cohesion and Adhesion in Liquids: Surface Tension and Capillary Action — https://openstax.org/books/college-physics-2e/pages/11-8-cohesion-and-adhesion-in-liquids-surface-tension-and-capillary-action",
         "Royal Society of Chemistry / Nuffield Foundation — Detergents, Soaps and Surface Tension — https://edu.rsc.org/experiments/detergents-soaps-and-surface-tension/1719.article"
       ],
-      "level": 1,
+      "level": 2,
       "status": "approved",
       "flags": []
     },
@@ -10874,7 +10874,7 @@ KZV.register({
         "NCERT Physics Class XI — Kinetic Theory, reprint 2026–27 — https://ncert.nic.in/textbook/pdf/keph205.pdf",
         "OpenStax College Physics 2e — The Ideal Gas Law — https://openstax.org/books/college-physics-2e/pages/13-3-the-ideal-gas-law"
       ],
-      "level": 3,
+      "level": 2,
       "status": "approved",
       "flags": []
     },

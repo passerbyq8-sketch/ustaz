@@ -91,7 +91,7 @@ function expected(W) {
 
 function checks(tag, src) {
   const D = src.DATA, N = D.cats.length;
-  const perCat = D.cats.map((c, i) => D.qs.filter(q => q[0] === i).length);
+  const perCat = D.cats.map((c, i) => D.qs.filter(q => q[2] !== 0 && q[0] === i).length);
   const nonEmpty = [...Array(N).keys()].filter(i => perCat[i] > 0);
   console.log('DATA ' + tag + ' cats=' + N + ' qs=' + D.qs.length + ' emptyCats=' + (N - nonEmpty.length));
 
@@ -175,10 +175,10 @@ function checks(tag, src) {
     const S = W.ctx.S, Dq = W.ctx.DATA.qs, order = [];
     while (order.length < 3) { const c = nonEmpty[ri(nonEmpty.length)]; if (order.indexOf(c) < 0) order.push(c); }
     pickByChips(W, order); start(W, false);
-    const want = Dq.map((q, i) => i).filter(i => order.indexOf(Dq[i][0]) > -1);
-    if (S.pool.length !== want.length || S.pool.some(k => order.indexOf(Dq[k][0]) < 0)) W.fail('pool ' + S.pool.length + ' has unchosen or misses chosen (want ' + want.length + ')');
+    const want = Dq.map((q, i) => i).filter(i => Dq[i][2] !== 0 && order.indexOf(Dq[i][0]) > -1);
+    if (S.pool.length !== want.length || S.pool.some(k => Dq[k][2] === 0 || order.indexOf(Dq[k][0]) < 0)) W.fail('pool ' + S.pool.length + ' has unchosen or misses chosen (want ' + want.length + ')');
     const out = nonEmpty.find(c => order.indexOf(c) < 0);
-    Dq.forEach((q, i) => { if (q[0] === out) S.pool.push(i); });
+    Dq.forEach((q, i) => { if (q[2] !== 0 && q[0] === out) S.pool.push(i); });
     answer(W);
     const got = shellsNow(W);
     if (got.indexOf(out) > -1) W.fail('injected unchosen cat ' + out + ' offered as shell');
