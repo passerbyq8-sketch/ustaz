@@ -30,6 +30,8 @@ async function setup(game,context){
  label=game;
  await page.goto(base+'/quest.html');await page.waitForFunction(()=>window.KunuzJourney?.state.ready);await layout();if(game==='board')await shot('hub');
  await click(page.locator('a[href="/'+routes[game]+'"]').filter({visible:true}).first());
+ await page.waitForFunction(()=>window.KunuzJourney?.state.ready,null,{timeout:60000});
+ if(await page.locator('[data-action="single-device"]').count())await click('[data-action="single-device"]');
  await page.waitForFunction(()=>window.KunuzJourney?.state.ready&&KunuzJourney.state.stage==='categories',{timeout:60000});
  assert.equal(await page.locator('.j-cat-pick').count(),70);assert.equal(await page.locator('[data-action="next-setup"]').isDisabled(),true);
  for(let i=0;i<3;i++)await click(page.locator('.j-cat-pick').nth(i));

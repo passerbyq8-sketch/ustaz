@@ -310,3 +310,9 @@
 .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-dot-filled{border-color:var(--journey-gold);background:var(--journey-gold)}
 .ezik-treasure-theme .journey-app:is([data-game=hanna],[data-game=harb]) .j-room-flow-code{display:block;font-size:34px;font-weight:700;line-height:1.4;letter-spacing:6px}
 .ezik-treasure-theme .journey-app:is([data-game=hanna],[data-game=harb]) .j-room-flow-editor{max-width:620px;margin-inline:auto}
+.ezik-treasure-theme .journey-app:is([data-game=hanna],[data-game=harb]) .j-room-entry-choices{display:grid;gap:14px;margin-top:20px}
+.ezik-treasure-theme .journey-app:is([data-game=hanna],[data-game=harb]) .j-room-entry-choice{display:flex;align-items:center;gap:17px;width:100%;min-height:120px;margin:0;text-align:start}
+.ezik-treasure-theme .journey-app:is([data-game=hanna],[data-game=harb]) .j-room-entry-icon{display:block;flex:none;width:52px;height:52px;color:var(--journey-gold)}
+.ezik-treasure-theme .journey-app:is([data-game=hanna],[data-game=harb]) .j-room-entry-choice b{display:block;font-size:20px;line-height:1.5}
+.ezik-treasure-theme .journey-app:is([data-game=hanna],[data-game=harb]) .j-room-entry-choice small{display:block;font-size:13px;margin-top:5px}
+.ezik-treasure-theme .journey-app:is([data-game=hanna],[data-game=harb]) .j-room-entry-change{margin-bottom:14px;font-size:13px}
