@@ -19,7 +19,8 @@ const parseBank = bytes => {
   assert.ok(Array.isArray(data.cats) && Array.isArray(data.qs), 'Missing cats/qs');
   return data;
 };
-const isHeld = row => row[3] === '' && Array.isArray(row[4]) && row[4].length === 0 && row[5] === -1;
+// The quality merge preserves held text; match Journey's review flag as well as old tombstones.
+const isHeld = row => row[2] === 0 || (row[3] === '' && Array.isArray(row[4]) && row[4].length === 0 && row[5] === -1);
 const roomId = (cat, prompt) => cat + '-' + sha(cat + '\0mcq\0' + prompt.trim()).slice(0, 8);
 function liveBank(data) {
   const ids = new Set();

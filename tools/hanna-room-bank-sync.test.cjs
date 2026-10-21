@@ -15,6 +15,15 @@ test('held tombstones are excluded without changing live content or category ord
   assert.equal(isHeld(held), true);
   assert.equal(isHeld(row), false);
 });
+
+test('quality-held rows retain their content and stay out of rooms', () => {
+  const retainedHeld = Object.assign([...row], {2: 0, 8: 'test-held-retained'});
+  const bank = {cats: [category], qs: [row, held, retainedHeld]};
+  const before = JSON.stringify(bank);
+  assert.equal(isHeld(retainedHeld), true);
+  assert.deepEqual(liveBank(bank), {cats: [category], qs: [row]});
+  assert.equal(JSON.stringify(bank), before);
+});
 test('a malformed live row is rejected instead of being silently dropped', () => {
   for (const change of [{3: ''}, {5: 2}, {4: ['Yes', '']}, {0: 99}]) {
     const bad = Object.assign([...row], change);
@@ -35,4 +44,5 @@ test('bank parsing accepts data only, and the real base bank preserves every liv
   assert.equal(live.qs.length + bank.qs.filter(isHeld).length, bank.qs.length);
   assert.deepEqual(live.cats, bank.cats);
   assert.ok(!live.qs.some(isHeld));
+  assert.ok(live.qs.every(row => row[2] !== 0));
 });
