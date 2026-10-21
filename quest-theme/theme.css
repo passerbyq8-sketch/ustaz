@@ -322,3 +322,5 @@
 .ezik-treasure-theme .journey-app[data-game=test] .j-quiz-toggle{display:flex;align-items:center;justify-content:space-between;gap:24px;min-width:220px}
 .ezik-treasure-theme .journey-app[data-game=test] .j-quiz-category-help{text-align:center;margin-top:12px}
 .ezik-treasure-theme .journey-app[data-game=test] .j-quiz-self-answer{font-size:20px;margin-block:22px}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-custom{margin-top:18px}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-custom .j-input{max-width:240px}

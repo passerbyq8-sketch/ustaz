@@ -100,7 +100,10 @@ async function protectedScreens() {
       const source = text => name === 'hannaBeat' ? text.split('\n').find(line => line.startsWith('  function hannaBeat(')) : text.match(pattern)?.[0];
       check(name + ': original implementation unchanged', source(after), source(before));
     }
-    for (const file of ['quest-theme/model.js', 'quest-board.html', 'quest-harb.html', 'quest-ghaws.html', 'hanna-laha/index.html', 'quest-sw.js']) check(file + ': original file unchanged', read(file), readBase(file));
+    for (const file of ['quest-theme/model.js', 'quest-board.html', 'quest-harb.html', 'quest-ghaws.html', 'hanna-laha/index.html', 'quest-sw.js']) {
+      const normalize = text => text.replace(/((?:journey\.js|theme\.css)\?v=)202610(?:21-(?:room1|identity2)|22-quiz2)/g, '$1SCREEN');
+      check(file + ': original file unchanged except versioned screen asset URLs', normalize(read(file)), normalize(readBase(file)));
+    }
     const theme = read('quest-theme/theme.css'), oldTheme = readBase('quest-theme/theme.css');
     check('theme.css: every original line preserved', theme.startsWith(oldTheme));
     const added = theme.slice(oldTheme.length);
@@ -243,7 +246,7 @@ async function quiz() {
   await shot(page, 'quiz-categories-390');
   await click(page, '[data-action="next-setup"]'); await at(page, 'settings');
   check('Setup has exactly the three requested controls', await page.locator('.j-quiz-setting legend').allTextContents(), ['الوقت لكل سؤال', 'عدد الأسئلة', 'طريقة الإجابة']);
-  check('Setup offers all original timer values', await page.locator('[data-field="time"]').evaluateAll(nodes => nodes.map(node => +node.dataset.value)), [0,10,15,20,30,45,60]);
+  check('Setup offers all original timer values', await page.locator('[data-field="time"]').evaluateAll(nodes => nodes.filter(node => node.dataset.value !== 'custom').map(node => +node.dataset.value)), [0,10,15,20,30,45,60]);
   check('Setup offers all authorized question counts', await counts(page), [5,10,15,20]);
   check('Choices are initially shown', await page.getByRole('switch').getAttribute('aria-checked'), 'true');
   await shot(page, 'quiz-settings-390');
@@ -542,8 +545,7 @@ async function roomFlow() {
     await context.close();
 
     const direct = await open(game, gameWidth, false, '?rooms=1');
-    check(game + ': direct rooms link bypasses the first screen', (await current(direct.page)).stage, 'categories');
-    check(game + ': direct rooms link retains room mode', await direct.page.evaluate(() => KunuzJourney.state.settings.room));
+    check(game + ': legacy rooms preference starts with the play-mode choice', (await current(direct.page)).stage, 'room-entry');
     await direct.context.close();
   }
 
@@ -788,12 +790,103 @@ async function legacyGames() {
     check(game + ' existing complete-game browser acceptance: ' + output.trim(), status, 0);
   }
 }
+async function quizExtras() {
+  const {page,context} = await open('test');
+  const at = stage => page.waitForFunction(s => KunuzJourney.state.stage === s, stage);
+  const fill = (kind,value) => page.locator('[data-quiz-number="'+kind+'"]').fill(value);
+  const error = kind => page.locator('#j-quiz-'+kind+'-help').innerText();
+  const state = () => page.evaluate(() => {const m=KunuzJourney.state;return {cats:m.cats,count:m.quizCount,countDraft:m.quizCountDraft,customCount:m.quizCustomCount,timeDraft:m.quizTimeDraft,customTime:m.settings.custom,options:m.settings.options};});
+  await click(page,'[data-action="quiz-all"]');
+  const all = await page.evaluate(() => KunuzJourney.state.cats.length);
+  await click(page,'[data-action="cat"][data-cat="0"]');
+  check('All then one category removes only that category',await page.evaluate(() => KunuzJourney.state.cats.length),all-1);
+  await click(page,'[data-action="quiz-clear"]');
+  check('Clear All leaves no selections',await page.evaluate(() => KunuzJourney.state.cats.length),0);
+  check('Clear All disables Next',await page.locator('[data-action="next-setup"]').isDisabled());
+  check('Clear All explains the disabled action',await page.locator('#j-quiz-categories-help').innerText(),'اختاروا فئة واحدة على الأقل للمتابعة.');
+  await shot(page,'quiz-clear-all-390');
+  const smallest = await page.evaluate(() => KunuzModel.categories().map(c => ({cat:c.index,n:DATA.qs.filter((q,i)=>KunuzModel.live(i)&&q[0]===c.index&&q[4].length===4).length})).filter(c=>c.n).sort((a,b)=>a.n-b.n)[0]);
+  await click(page,'[data-action="cat"][data-cat="'+smallest.cat+'"]');await click(page,'[data-action="next-setup"]');
+  await fill('count','3');
+  check('Custom count is active alone',await page.locator('[data-action="quiz-count"][aria-pressed="true"]').count(),0);
+  await click(page,'[data-action="quiz-start"]');await at('test-question');
+  check('Arbitrary positive count reserves exactly three',await page.evaluate(()=>KunuzJourney.state.slots.length),3);
+  await page.goBack();await click(page,'[data-action="dialog-yes"]');await at('settings');
+  await fill('count',String(smallest.n+100));
+  check('Oversized count caps to selected available questions',(await state()).count,smallest.n);
+  check('Capping explains the exact availability',(await error('count')).includes(String(smallest.n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d])));
+  await click(page,'[data-action="quiz-start"]');await at('test-question');
+  check('Capped game has distinct questions only',await page.evaluate(()=>[KunuzJourney.state.slots.length,new Set(KunuzJourney.state.slots.map(s=>s.index)).size]),[smallest.n,smallest.n]);
+  await page.goBack();await click(page,'[data-action="dialog-yes"]');await at('settings');
+  for(const value of ['', 'abc', '0']) {
+    await fill('count',value);await page.locator('[data-quiz-number="count"]').focus();
+    await click(page,'[data-action="quiz-start"]');
+    check('Invalid custom count blocks start: '+value,await page.evaluate(()=>KunuzJourney.state.stage),'settings');
+    check('Invalid custom count has required inline error: '+value,await error('count'),'اكتب عددًا أو اختر واحدًا');
+  }
+  await shot(page,'quiz-count-error-390');
+  await fill('count','7');await click(page,'[data-action="quiz-count"][data-count="5"]');
+  check('Preset count deactivates custom count',(await state()).customCount,false);
+  check('Exactly one count preset is active',await page.locator('[data-action="quiz-count"][aria-pressed="true"]').count(),1);
+  await fill('time','75');
+  check('Custom timer alone is selected',await page.locator('[data-field="time"][aria-pressed="true"]').evaluateAll(nodes=>nodes.map(n=>n.dataset.value)),['custom']);
+  await click(page,'[data-action="quiz-start"]');await at('test-question');
+  check('Custom seconds reach the question timer',await page.evaluate(()=>KunuzJourney.state.question.duration),75000);
+  await page.goBack();await click(page,'[data-action="dialog-yes"]');await at('settings');
+  for(const value of ['', '0','3601','999999','abc']) {
+    await fill('time',value);await page.locator('[data-quiz-number="time"]').focus();await click(page,'[data-action="quiz-start"]');
+    check('Invalid custom time blocks start: '+value,await page.evaluate(()=>KunuzJourney.state.stage),'settings');
+    check('Invalid custom time has inline error: '+value,await error('time'),'اكتب وقتًا من ١ إلى ٣٦٠٠ ثانية');
+  }
+  await shot(page,'quiz-time-error-390');
+  for(const value of ['1','3600']) {await fill('time',value);await click(page,'[data-action="quiz-start"]');await at('test-question');check('Timer boundary accepted '+value,await page.evaluate(()=>KunuzJourney.state.question.duration),+value*1000);await page.goBack();await click(page,'[data-action="dialog-yes"]');await at('settings');}
+  await click(page,'[data-field="time"][data-value="0"]');
+  check('Unlimited has the requested label',await page.locator('[data-field="time"][data-value="0"]').innerText(),'بلا حد');
+  await click(page,'[data-action="quiz-start"]');await at('test-question');
+  check('Unlimited displays no timer',await page.locator('[data-timer-text],.j-timer').count(),0);
+  check('Unlimited installs no countdown',await page.evaluate(()=>KunuzJourney.state.timer),null);
+  await shot(page,'quiz-unlimited-question-390');
+  await page.goBack();await click(page,'[data-action="dialog-yes"]');await at('settings');
+  await fill('count','٣');await fill('time','۷۵');await click(page,'[data-action="quiz-options"]');
+  const retained=await state();check('Arabic digits normalize to ASCII',retained.countDraft,'3');
+  await page.goBack();await at('categories');await page.goForward();await at('settings');
+  check('Back and Forward retain custom modes and drafts',await state(),retained);
+  await shot(page,'quiz-custom-settings-390');
+  await page.reload();await at('categories');await click(page,'[data-action="next-setup"]');
+  check('Reload restores saved custom modes and drafts',await state(),retained);
+  await click(page,'[data-field="time"][data-value="0"]');await click(page,'[data-action="quiz-start"]');await at('test-question');
+  await page.clock.install();await page.clock.pauseAt(new Date(Date.now()+100));page.quizClockFrozen=true;
+  for(let i=0;i<3;i++) {await click(page,'[data-action="reveal-answer"]');await click(page,'[data-action="judge-yes"]');await page.clock.runFor(900);}
+  await at('results');const replay=await state();await click(page,'[data-action="quiz-again"]');await at('categories');await click(page,'[data-action="next-setup"]');
+  check('Replay retains categories, drafts and active switches',await state(),replay);
+  await context.close();
+}
+async function entryAudit() {
+  record.entryAudit=[];
+  for(const game of ['hanna','harb','board']) {
+    for(const kind of ['direct','hub','saved-history','stale-setup','legacy-rooms','reload-play']) {
+      const {page,context}=await open(game);
+      if(kind==='hub') {await page.goto(base+'/quest.html');await page.locator('.journey-app a[href="/'+routes[game]+'"]').click();}
+      else if(kind==='saved-history') {await page.evaluate(()=>{localStorage.setItem('hl-ezik.setup',JSON.stringify({categories:['quran'],timeSec:30}));history.replaceState({journey:true,step:1,stage:'categories',entryDraft:{cats:[0,1,2],teams:[{n:'أ'},{n:'ب'}],settings:{room:false}}},'');});await page.reload();}
+      else if(kind==='stale-setup') {await page.evaluate(game=>sessionStorage.setItem('kunuz_journey_room_setup_v1',JSON.stringify({game,cats:[0,1,2],teams:[{n:'أ'},{n:'ب'}],settings:{room:false}})),game);await page.goto(base+'/'+routes[game]+'?setup=1');}
+      else if(kind==='legacy-rooms') await page.goto(base+'/'+routes[game]+'?rooms=1');
+      else if(kind==='reload-play') {await setup(page);await page.reload();}
+      await page.waitForFunction(()=>KunuzJourney.state.ready);
+      const actual=await page.evaluate(()=>KunuzJourney.state.stage),expected=game==='board'?(kind==='stale-setup'?'settings':'categories'):'room-entry';
+      record.entryAudit.push({game,kind,actual,expected,issue:actual!==expected});
+      if(mode!=='before')check(game+' entry '+kind,actual,expected);
+      await context.close();
+    }
+  }
+}
 (async () => {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   base = 'http://127.0.0.1:' + server.address().port;
   browser = await chromium.launch({ headless: true });
   try {
-    if (mode === 'room-entry') await roomFlow();
+    if (process.argv.includes('--entry-audit')) await entryAudit();
+    else if (process.argv.includes('--quiz-extra')) await quizExtras();
+    else if (mode === 'room-entry') await roomFlow();
     else if (mode === 'games') {
       if (process.argv.includes('--quiz-nav')) await quizNavigation();
       else if (process.argv.includes('--legacy')) await legacyGames();
@@ -804,7 +897,7 @@ async function legacyGames() {
     console.log(`PASS ${mode}: ${record.checks.length} checks, ${record.screenshots.length} screenshots; external requests blocked: ${record.blockedExternal.length}`);
   } catch (error) { record.failure = error.stack; console.error(error); process.exitCode = 1; }
   finally {
-    fs.writeFileSync(path.join(out, mode + (process.argv.includes('--offline') ? '-offline' : process.argv.includes('--legacy') ? '-legacy' : '') + '-browser.json'), JSON.stringify(record, null, 2));
+    fs.writeFileSync(path.join(out, mode + (process.argv.includes('--entry-audit') ? '-entry-audit' : process.argv.includes('--quiz-extra') ? '-quiz-extra' : process.argv.includes('--offline') ? '-offline' : process.argv.includes('--legacy') ? '-legacy' : '') + '-browser.json'), JSON.stringify(record, null, 2));
     await browser.close(); await new Promise(resolve => server.close(resolve));
   }
 })();

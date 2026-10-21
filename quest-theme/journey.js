@@ -49,7 +49,7 @@
     slots: [], pool: [], used: new Set(), question: null, g: null, error: '', dialog: null, running: false,
     fallback: [], excluded: [], questionHistory: false, skipPop: false, lastStage: '', warMessage: '', warEvent: null, diveNative: null,
     result: null, audioUnlocked: false, muted: false, timer: null, lastAction: -Infinity, offlineReady: false,
-    quizCount: 5, quizAdvance: null, quizPausedAt: null, quizLastQuestion: null, roomDraft: '', roomCodeError: '', roomStartError: '',
+    quizCount: 5, quizCustomCount: false, quizCountDraft: '', quizTimeDraft: '', quizAdvance: null, quizPausedAt: null, quizLastQuestion: null, roomDraft: '', roomCodeError: '', roomStartError: '',
     roomCodeEntry: false, joinDraft: '', joinError: '', roomFromEntry: false
   };
   if (game !== 'hub') M.teams = Array.from({ length: limits[game][0] }, (_, i) => teamNew(i));
@@ -93,7 +93,7 @@
         });
         if (worker.state !== 'activated') M.offlineReady = false;
       }
-      if ((game === 'hanna' || game === 'test') && M.offlineReady) {
+      if ((hasRooms || game === 'test') && M.offlineReady) {
         // These two entry pages version their new screens independently. Cache
         // them after the first worker takes control, including a first visit.
         if (!navigator.serviceWorker.controller) await new Promise(resolve => {
@@ -101,7 +101,7 @@
           const timeout = setTimeout(controlled, 3000);
           navigator.serviceWorker.addEventListener('controllerchange', controlled);
         });
-        const screenVersion = game === 'test' ? '20261022-quiz1' : '20261021-identity2';
+        const screenVersion = '20261022-quiz2';
         const screenAssets = ['theme.css?v=' + screenVersion, 'journey.js?v=' + screenVersion, 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
         if (navigator.serviceWorker.controller) await Promise.all(screenAssets.map(async file => {
           const response = await fetch('/quest-theme/' + file);
@@ -302,8 +302,8 @@
   }
   function quizStart() {
     return '<section class="j-quiz-setup"><h1 class="j-heading">جهّزوا الاختبار</h1><p class="j-lead">اختاروا الوقت وعدد الأسئلة وطريقة الإجابة.</p>' +
-      '<fieldset class="j-form-card j-quiz-setting"><legend class="j-field">الوقت لكل سؤال</legend>' + chips([0, 10, 15, 20, 30, 45, 60].map(n => [n, n ? ar(n) + ' ثانية' : 'بدون وقت']), time(), 'time') + '</fieldset>' +
-      '<fieldset class="j-form-card j-quiz-setting"><legend class="j-field">عدد الأسئلة</legend><div class="j-chips">' + quizCounts().map(count => button(ar(count), 'quiz-count', 'j-chip', 'data-count="' + count + '" aria-pressed="' + (M.quizCount === count) + '"')).join('') + '</div></fieldset>' +
+      '<fieldset class="j-form-card j-quiz-setting"><legend class="j-field">الوقت لكل سؤال</legend>' + chips([0, 10, 15, 20, 30, 45, 60].map(n => [n, n ? ar(n) + ' ثانية' : 'بلا حد']).concat([['custom', 'وقت مخصص']]), M.settings.custom ? 'custom' : time(), 'time') + quizNumberField('time', 'اكتب بالثواني', M.quizTimeDraft) + '</fieldset>' +
+      '<fieldset class="j-form-card j-quiz-setting"><legend class="j-field">عدد الأسئلة</legend><div class="j-chips">' + quizCounts().map(count => button(ar(count), 'quiz-count', 'j-chip', 'data-count="' + count + '" aria-pressed="' + (!M.quizCustomCount && M.quizCount === count) + '"')).join('') + '</div>' + quizNumberField('count', 'اكتب عددًا', M.quizCountDraft) + '</fieldset>' +
       '<fieldset class="j-form-card j-quiz-setting"><legend class="j-field">طريقة الإجابة</legend>' + button('إظهار الاختيارات <span aria-hidden="true">' + (M.settings.options === 'shown' ? '✓' : '—') + '</span>', 'quiz-options', 'j-chip j-quiz-toggle', 'role="switch" aria-checked="' + (M.settings.options === 'shown') + '" aria-label="إظهار الاختيارات" aria-pressed="' + (M.settings.options === 'shown') + '"') + '</fieldset>' +
       (M.error ? '<div class="j-error" role="alert">' + esc(M.error) + '</div>' : '') + '<div class="j-actions">' + button('ابدأ', 'quiz-start', 'j-btn', !quizCounts().length ? 'disabled' : '') + '</div></section>';
   }
@@ -312,6 +312,26 @@
     global.DATA.qs.forEach((q, i) => { if (Model.live(i) && q[4].length === 4) counts[q[0]]++; });
     return Model.categories().map(c => ({ ...c, count: counts[c.index] })).filter(c => c.count > 0);
   }
+  function quizAvailable() { return quizCatalog().filter(c => M.cats.includes(c.index)).reduce((n, c) => n + c.count, 0); }
+  function quizCountError() { return M.quizCustomCount && !/^0*[1-9]\d*$/.test(M.quizCountDraft) ? 'اكتب عددًا أو اختر واحدًا' : ''; }
+  function quizTimeError() { return M.settings.custom && (!/^\d+$/.test(M.quizTimeDraft) || +M.quizTimeDraft < 1 || +M.quizTimeDraft > 3600) ? 'اكتب وقتًا من ١ إلى ٣٦٠٠ ثانية' : ''; }
+  function quizCountNote() { return M.quizCustomCount && !quizCountError() && +M.quizCountDraft > quizAvailable() ? 'المتاح في الفئات المختارة ' + ar(quizAvailable()) + ' سؤالًا؛ ستلعب بهذا العدد.' : ''; }
+  function quizNumberField(kind, label, value) {
+    const error = kind === 'count' ? quizCountError() : quizTimeError();
+    return '<div class="j-quiz-custom"><label class="j-field" for="j-quiz-' + kind + '">' + label + '</label><input id="j-quiz-' + kind + '" class="j-input" data-quiz-number="' + kind + '" inputmode="numeric" pattern="[0-9]*" autocomplete="off" dir="ltr" value="' + esc(value) + '" aria-invalid="' + !!error + '" aria-describedby="j-quiz-' + kind + '-help"><p id="j-quiz-' + kind + '-help" class="' + (error ? 'j-error' : 'j-note') + '" role="status">' + (error || (kind === 'count' ? quizCountNote() : 'من ١ إلى ٣٦٠٠ ثانية')) + '</p></div>';
+  }
+  function updateQuizFields() {
+    if (M.quizCustomCount && !quizCountError()) M.quizCount = Math.min(Number(M.quizCountDraft), quizAvailable());
+    if (M.settings.custom) M.settings.customTime = M.quizTimeDraft === '' ? NaN : +M.quizTimeDraft;
+    app.querySelectorAll('[data-action="quiz-count"]').forEach(el => el.setAttribute('aria-pressed', String(!M.quizCustomCount && +el.dataset.count === M.quizCount)));
+    app.querySelectorAll('[data-field="time"]').forEach(el => el.setAttribute('aria-pressed', String(M.settings.custom ? el.dataset.value === 'custom' : +el.dataset.value === M.settings.time)));
+    for (const kind of ['count', 'time']) {
+      const error = kind === 'count' ? quizCountError() : quizTimeError(), input = app.querySelector('[data-quiz-number="' + kind + '"]'), help = app.querySelector('#j-quiz-' + kind + '-help');
+      input?.setAttribute('aria-invalid', String(!!error));
+      if (help) { help.className = error ? 'j-error' : 'j-note'; help.textContent = error || (kind === 'count' ? quizCountNote() : 'من ١ إلى ٣٦٠٠ ثانية'); }
+    }
+    saveQuizDraft();
+  }
   function quizCounts() {
     const available = quizCatalog().filter(c => M.cats.includes(c.index)).reduce((n, c) => n + c.count, 0);
     return available < 5 ? available ? [available] : [] : [5, 10, 15, 20].filter(n => n <= available);
@@ -319,7 +339,7 @@
   function quizCategories() {
     const all = quizCatalog();
     const section = (list, title) => '<h2 class="j-divider">' + title + '</h2><div class="j-category-picker">' + list.map(c => button(catIcon(c.index) + '<b>' + esc(c.name) + '</b><small>' + (M.cats.includes(c.index) ? '✓ تم الاختيار' : 'اختيار الفئة') + '</small>', 'cat', 'j-cat-pick', 'data-cat="' + c.index + '" aria-pressed="' + M.cats.includes(c.index) + '"')).join('') + '</div>';
-    return '<h1 class="j-heading">اختاروا فئات مغامرتكم</h1><p class="j-lead">اختاروا فئة واحدة أو أكثر، أو كل الفئات.</p><div class="j-actions">' + button('كل الفئات', 'quiz-all', 'j-secondary', 'aria-pressed="' + (M.cats.length === all.length) + '"') + '</div>' +
+    return '<h1 class="j-heading">اختاروا فئات مغامرتكم</h1><p class="j-lead">اختاروا فئة واحدة أو أكثر، أو كل الفئات.</p><div class="j-actions">' + button('كل الفئات', 'quiz-all', 'j-secondary', 'aria-pressed="' + (M.cats.length === all.length) + '"') + button('إلغاء الكل', 'quiz-clear', 'j-secondary') + '</div>' +
       section(all.filter(c => c.index < 53), 'من كنوز المعرفة') + section(all.filter(c => c.index >= 53), 'فئات إضافية') +
       '<div class="j-actions">' + button('التالي', 'next-setup', 'j-btn', 'aria-describedby="j-quiz-categories-help"' + (!M.cats.length ? ' disabled' : '')) + '</div><p id="j-quiz-categories-help" class="j-note j-quiz-category-help" role="status">' + (!M.cats.length ? 'اختاروا فئة واحدة على الأقل للمتابعة.' : 'فئاتكم جاهزة؛ تقدرون تتابعون.') + '</p>';
   }
@@ -535,7 +555,7 @@
     const route = game === 'hanna' ? '/hanna-laha/' : '/quest-harb.html';
     const target = M.cats.length < 3 ? route : route + '?setup=1';
     if (M.cats.length >= 3) {
-      try { sessionStorage.setItem('kunuz_journey_room_setup_v1', JSON.stringify({ game, cats: M.cats, teams: M.teams, settings: M.settings })); } catch (_) {}
+      try { sessionStorage.setItem('kunuz_journey_room_setup_v1', JSON.stringify({ game, cats: M.cats, teams: M.teams, settings: M.settings, returnFromRoom: true, savedAt: Date.now() })); } catch (_) {}
     }
     // Discard native room routes and the setup entry replaced on room entry.
     // The next settings page builds its pair on the original categories entry.
@@ -571,14 +591,16 @@
     else setStage('categories', 1);
   }
   function beginQuiz() {
-    if (M.stage !== 'settings' || !M.cats.length || !quizCounts().includes(M.quizCount)) return;
+    if (M.stage !== 'settings' || !M.cats.length) return;
+    updateQuizFields();
+    if (quizCountError() || quizTimeError() || !M.quizCount || !M.quizCustomCount && !quizCounts().includes(M.quizCount)) return;
     M.teams = [teamNew(0)];
-    Object.assign(M.settings, { custom: false, difficulty: 'mixed', room: false });
+    Object.assign(M.settings, { difficulty: 'mixed', room: false });
     M.quizPausedAt = null; M.quizLastQuestion = null;
     begin();
   }
   function saveQuizDraft() {
-    try { sessionStorage.setItem('kunuz_quiz_setup_v1', JSON.stringify({ cats: M.cats, count: M.quizCount, time: time(), options: M.settings.options })); } catch (_) {}
+    try { sessionStorage.setItem('kunuz_quiz_setup_v1', JSON.stringify({ cats: M.cats, count: M.quizCount, time: time(), options: M.settings.options, customCount: M.quizCustomCount, countDraft: M.quizCountDraft, customTime: M.settings.custom, timeDraft: M.quizTimeDraft })); } catch (_) {}
   }
   function initQuizSetup() {
     try {
@@ -589,6 +611,10 @@
         if ([0, 10, 15, 20, 30, 45, 60].includes(draft.time)) M.settings.time = draft.time;
         if (['shown', 'hidden'].includes(draft.options)) M.settings.options = draft.options;
         if (quizCounts().includes(draft.count)) M.quizCount = draft.count;
+        M.quizCustomCount = draft.customCount === true; M.quizCountDraft = typeof draft.countDraft === 'string' ? roomDigits(draft.countDraft) : '';
+        M.settings.custom = draft.customTime === true; M.quizTimeDraft = typeof draft.timeDraft === 'string' ? roomDigits(draft.timeDraft) : '';
+        if (M.quizCustomCount && !quizCountError()) M.quizCount = Math.min(Number(M.quizCountDraft), quizAvailable());
+        if (M.settings.custom) M.settings.customTime = M.quizTimeDraft === '' ? NaN : +M.quizTimeDraft;
       } else M.settings.time = 0;
     } catch (_) { M.settings.time = 0; }
     // Give a direct visit the same one-step exit to the hub as a hub link.
@@ -602,7 +628,8 @@
   function quizHistoryStage(stage, step) {
     if (stage === 'hub') { saveQuizDraft(); location.replace('/quest.html'); return; }
     if (!['categories', 'settings', 'test-question', 'results'].includes(stage)) return;
-    if (stage === 'settings' && !quizCounts().includes(M.quizCount)) { M.quizCount = quizCounts()[0]; saveQuizDraft(); }
+    if (stage === 'settings' && !M.quizCustomCount && !quizCounts().includes(M.quizCount)) { M.quizCount = quizCounts()[0]; saveQuizDraft(); }
+    if (stage === 'settings' && M.quizCustomCount && !quizCountError()) M.quizCount = Math.min(Number(M.quizCountDraft), quizAvailable());
     if (M.stage === 'test-question' && stage !== 'test-question') { clearTimer(); M.quizPausedAt = performance.now(); }
     if (stage === 'test-question') {
       M.question ||= M.quizLastQuestion;
@@ -1059,15 +1086,17 @@
     else if (action === 'room-code-open') openRoomCode();
     else if (action === 'room-code-random' && M.stage === 'room-code') { M.roomDraft = String(Math.floor(Math.random() * 10 ** roomCodeLimits.random)).padStart(roomCodeLimits.random, '0'); M.roomCodeError = ''; render(); }
     else if (action === 'room-code-save' && M.stage === 'room-code') saveRoomCode();
-    else if (action === 'quiz-count' && game === 'test' && M.stage === 'settings' && quizCounts().includes(+el.dataset.count)) { M.quizCount = +el.dataset.count; render(); }
+    else if (action === 'quiz-count' && game === 'test' && M.stage === 'settings' && quizCounts().includes(+el.dataset.count)) { M.quizCustomCount = false; M.quizCount = +el.dataset.count; render(); }
     else if (action === 'quiz-options' && game === 'test' && M.stage === 'settings') { M.settings.options = M.settings.options === 'shown' ? 'hidden' : 'shown'; render(); }
     else if (action === 'quiz-all' && game === 'test' && M.stage === 'categories') { M.cats = quizCatalog().map(c => c.index); render(); }
+    else if (action === 'quiz-clear' && game === 'test' && M.stage === 'categories') { M.cats = []; render(); }
     else if (action === 'quiz-start' && game === 'test') beginQuiz();
     else if (action === 'quiz-again' && game === 'test') resetQuiz();
     else if (action === 'cat') { const c = +el.dataset.cat, i = M.cats.indexOf(c); if (i >= 0) M.cats.splice(i, 1); else if (game === 'test' || M.cats.length < 6) M.cats.push(c); M.error = ''; render(); }
     else if (action === 'next-setup') {
       if (game === 'test' ? M.cats.length > 0 : M.cats.length >= 3 && M.cats.length <= 6) {
-        if (game === 'test' && !quizCounts().includes(M.quizCount)) M.quizCount = quizCounts()[0];
+        if (game === 'test' && !M.quizCustomCount && !quizCounts().includes(M.quizCount)) M.quizCount = quizCounts()[0];
+        if (game === 'test' && M.quizCustomCount && !quizCountError()) M.quizCount = Math.min(Number(M.quizCountDraft), quizAvailable());
         M.error = ''; setStage('settings', 2, true);
       }
     }
@@ -1142,6 +1171,12 @@
   });
   app.addEventListener('input', event => {
     const el = event.target;
+    if (game === 'test' && el.dataset.quizNumber) {
+      el.value = roomDigits(el.value);
+      if (el.dataset.quizNumber === 'count') { M.quizCustomCount = true; M.quizCountDraft = el.value; }
+      else { M.settings.custom = true; M.quizTimeDraft = el.value; }
+      updateQuizFields(); return;
+    }
     if (el.hasAttribute('data-join-draft')) {
       M.joinDraft = roomDigits(el.value); el.value = M.joinDraft; M.joinError = '';
       el.setAttribute('aria-invalid', 'false'); el.setAttribute('aria-describedby', 'j-room-entry-help'); app.querySelector('#j-room-entry-error')?.remove(); return;
@@ -1153,6 +1188,11 @@
     }
     if (el.hasAttribute('data-team-name')) M.teams[+el.dataset.teamName].n = el.value;
     if (el.dataset.input) M.settings[el.dataset.input] = el.dataset.input === 'roomCode' ? el.value : el.value === '' ? NaN : Number(el.value);
+  });
+  app.addEventListener('focusin', event => {
+    if (game !== 'test' || !event.target.dataset.quizNumber) return;
+    if (event.target.dataset.quizNumber === 'count') M.quizCustomCount = true; else M.settings.custom = true;
+    updateQuizFields();
   });
   global.addEventListener('popstate', event => {
     // A synthetic hub entry can share the quiz document's forward entries.
@@ -1264,7 +1304,7 @@
       if (new URLSearchParams(location.search).get('setup') === '1') {
         try {
           const draft = JSON.parse(sessionStorage.getItem('kunuz_journey_room_setup_v1')); sessionStorage.removeItem('kunuz_journey_room_setup_v1');
-          if (draft?.game === game && Array.isArray(draft.cats) && draft.cats.length >= 3 && draft.cats.length <= 6 && draft.cats.every(c => Number.isInteger(c) && global.DATA.cats[c]) && Array.isArray(draft.teams) && draft.teams.length >= limits[game][0] && draft.teams.length <= limits[game][1]) {
+          if (draft?.game === game && (!hasRooms || draft.returnFromRoom === true && Date.now() - draft.savedAt >= 0 && Date.now() - draft.savedAt < 300000) && Array.isArray(draft.cats) && draft.cats.length >= 3 && draft.cats.length <= 6 && draft.cats.every(c => Number.isInteger(c) && global.DATA.cats[c]) && Array.isArray(draft.teams) && draft.teams.length >= limits[game][0] && draft.teams.length <= limits[game][1]) {
             M.cats = draft.cats; M.teams = draft.teams.map((t, i) => ({ ...teamNew(i), n: String(t.n), c: colors.includes(t.c) ? t.c : colors[i], symbol: Number.isInteger(t.symbol) ? t.symbol % 6 : i }));
             for (const key of Object.keys(M.settings)) if (typeof draft.settings?.[key] === typeof M.settings[key]) M.settings[key] = draft.settings[key];
             history.replaceState({ journey: true, step: 1, ...(hasRooms ? { stage: 'categories', room: M.settings.room } : {}) }, '', location.pathname); setStage('settings', 2, true); return;
@@ -1274,10 +1314,7 @@
       if (hasRooms) {
         const draft = entryHistory?.entryDraft;
         if (draft && Array.isArray(draft.cats) && Array.isArray(draft.teams)) { M.cats = draft.cats; M.teams = draft.teams; Object.assign(M.settings, draft.settings); }
-        const direct = new URLSearchParams(location.search).get('rooms') === '1';
-        if (direct) M.settings.room = true;
-        const stage = direct ? 'categories' : 'room-entry', step = direct ? 1 : 0;
-        history.replaceState({ journey: true, step, stage, room: M.settings.room, entryRoot: direct }, ''); setStage(stage, step);
+        history.replaceState({ journey: true, step: 0, stage: 'room-entry', room: M.settings.room }, ''); setStage('room-entry', 0);
       } else setStage('categories', 1);
     } catch (error) { M.error = error.message; setStage('error', 1); }
   }
