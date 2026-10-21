@@ -1636,13 +1636,28 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
     });
 
     // ---- drawer: contents, jump, notes, settings ----
+    var readerDrawer = null;
+    function onReaderDrawerPop(e) {
+      if (!readerDrawer) return;
+      e.stopImmediatePropagation();
+      readerDrawer.close(true);
+    }
+    window.addEventListener('popstate', onReaderDrawerPop, true);
     function openDrawer(tab) {
+      if (readerDrawer) return;
       if (!book) return;
       var panelBody = el('div', { class: 'body' });
       var tabs = el('div', { class: 'tabs', role: 'tablist' });
       var names = [['toc', T('toc')], ['jump', T('jump')], ['notes', T('notes_tab')], ['settings', T('settings')]];
       var dr = el('div', { class: 'drawer', role: 'dialog', 'aria-modal': 'true' });
-      function close() { dr.remove(); }
+      var ownsEntry = false, closing = false;
+      function close(fromPop) {
+        if (ownsEntry && fromPop !== true) {
+          if (!closing) { closing = true; window.history.back(); }
+          return;
+        }
+        ownsEntry = false; readerDrawer = null; dr.remove();
+      }
       names.forEach(function (nm) { tabs.appendChild(el('button', { role: 'tab', 'aria-selected': nm[0] === tab ? 'true' : 'false', text: nm[1], on: { click: function () { tab = nm[0]; paint(); } } })); });
       function paint() {
         Array.prototype.forEach.call(tabs.children, function (b, i) { b.setAttribute('aria-selected', names[i][0] === tab ? 'true' : 'false'); });
@@ -1695,6 +1710,8 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
       dr.appendChild(panel);
       dr.appendChild(el('div', { class: 'shade', on: { click: close } }));
       document.body.appendChild(dr);
+      readerDrawer = { close: close };
+      try { window.history.pushState({ ...window.history.state, libraryDrawer: true }, ''); ownsEntry = true; } catch (e) {}
       paint();
     }
 
@@ -1713,6 +1730,8 @@ mark.has-note{border-bottom:2px dotted var(--vt-accent2)}
     return {
       destroy: function () {
         dead = true; savePosition();
+        window.removeEventListener('popstate', onReaderDrawerPop, true);
+        if (readerDrawer) readerDrawer.close(true);
         document.removeEventListener('keydown', onKey); document.removeEventListener('selectionchange', onSel);
         window.removeEventListener('resize', onResize); hideSelbar();
         Array.prototype.forEach.call(document.querySelectorAll('.drawer,.modal,.ssheet'), function (x) { x.remove(); });

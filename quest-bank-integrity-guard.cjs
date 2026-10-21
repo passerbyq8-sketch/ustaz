@@ -2009,7 +2009,11 @@ const SEALED = {
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
   //   2026-10-19 -- merge 4K ship: cache ezik-v111 -> ezik-v112 (the owner's word of 19 October; config/app-version.json and sw.js CACHE, app.js line 6 rebuilt): app.js 2279271 -> 2279271 bytes, sha256 0c18f7cc..6765; node tools/core-bytes.cjs --write: CORE_BYTES 3465285.
 //                    NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
-  'sw.js': '56eeb7c34d923514bd2cb7d296730f3632fda618fa5e88397e1565a6cb6ab88e',
+  //   2026-10-21 -- ITEM 110 (Android layer back, range, archived plan, prose direction and done counter): app.js 2279271 -> 2282018 bytes, sha256 b4e9c55f..6199; index.html 155556.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3468032. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
+  //   2026-10-21 -- ITEM 110 (Android layer back, range, archived plan, prose direction and done counter): app.js 2282018 -> 2282005 bytes, sha256 9e198cd7..13e3; index.html 155556.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3468019. NO FILE JOINED OR LEFT CORE. THIS digest is re-cut LAST, at CR = 0 (sw.js 57328 bytes).
+  'sw.js': 'fea12e79b033b8f3541ef3a46472468f001f0e15f94b1b114331c85bee4ab488',
 };
 
 // ---------------------------------------------------------------------------
@@ -3185,7 +3189,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2279271, of: 'app.js' },
+      { n: 2282005, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

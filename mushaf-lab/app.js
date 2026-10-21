@@ -348,16 +348,26 @@
 
   // ------------------------------------------------------------------ sheets
   let sheetCleanup = null;
+  let sheetOwnsEntry = false, sheetClosing = false;
   function openSheet(html, onClick, cleanup) {
+    if (!$('sheet').classList.contains('on')) {
+      try { history.pushState({ ...history.state, mushafSheet: true }, ''); sheetOwnsEntry = true; } catch (e) {}
+    }
     if (sheetCleanup) { const c = sheetCleanup; sheetCleanup = null; c(); }
     $('sheetBody').innerHTML = html; $('sheetBody').onclick = onClick || null; sheetCleanup = cleanup || null;
     $('scrim').classList.add('on'); $('sheet').classList.add('on'); $('sheet').scrollTop = 0;
   }
-  function closeSheet() {
+  function closeSheet(fromPop) {
+    if (sheetOwnsEntry && fromPop !== true) {
+      if (!sheetClosing) { sheetClosing = true; history.back(); }
+      return;
+    }
+    sheetOwnsEntry = false; sheetClosing = false;
     $('scrim').classList.remove('on'); $('sheet').classList.remove('on');
     if (sheetCleanup) { const c = sheetCleanup; sheetCleanup = null; c(); }
     if (selKey) { selKey = null; redrawMarks(); }
   }
+  window.addEventListener('popstate', () => { if (sheetOwnsEntry) closeSheet(true); });
   const tabsHtml = (id, list, active) => '<div class="tabs" role="tablist" id="' + id + '">' + list.map(([k, n]) => '<button type="button" role="tab" data-tab="' + k + '" aria-selected="' + (k === active) + '">' + n + '</button>').join('') + '</div><div id="' + id + 'Body"></div>';
 
   // ---- ayah menu
@@ -471,6 +481,13 @@
   }
 
   // ---- range
+  function openAyahOrRange(key) {
+    if (rangeStart) {
+      const keys = keysBetween(rangeStart, key);
+      rangeStart = null;
+      rangeSheet(keys);
+    } else ayahSheet(key);
+  }
   function rangeSheet(keys) {
     rangeKeys = keys; redrawMarks();
     openSheet('<h2>' + esc('من ' + shortRef(keys[0]) + ' إلى ' + shortRef(keys[keys.length - 1])) + '</h2><p class="muted">' + ar(keys.length) + ' آية</p>' +
@@ -485,7 +502,7 @@
   function pageListSheet(p) {
     openSheet('<h2>آياتُ الصفحة ' + ar(p) + '</h2><ul class="list">' + pageAyat[p].map((k) => '<li><div class="ref"><span>' + esc(refText(k)) + '</span></div><div class="txt">' + esc(ayahText(k)) + '</div><div class="row"><button type="button" class="chip" data-open="' + k + '">القائمة</button><button type="button" class="chip" data-play="' + k + '">تشغيل</button><button type="button" class="chip" data-copy="' + k + '">نسخ</button></div></li>').join('') + '</ul>', (e) => {
       const b = e.target.closest('button'); if (!b) return;
-      if (b.dataset.open) ayahSheet(b.dataset.open); else if (b.dataset.play) { closeSheet(); playFrom(b.dataset.play); } else if (b.dataset.copy) copyKeys([b.dataset.copy]);
+      if (b.dataset.open) openAyahOrRange(b.dataset.open); else if (b.dataset.play) { closeSheet(); playFrom(b.dataset.play); } else if (b.dataset.copy) copyKeys([b.dataset.copy]);
     });
   }
 
@@ -1108,10 +1125,14 @@
     const sp = $('spread'); let press = null;
     const openFromPress = (st, x, y) => {
       const p = +st.dataset.p;
+      if (rangeStart) {
+        const end = ayahAt(st, x, y);
+        if (end) openAyahOrRange(end); else pageListSheet(p);
+        return;
+      }
       if (p < 3) { pageListSheet(p); return; }
       const key = ayahAt(st, x, y); if (!key) return;
-      if (rangeStart) { const ks = keysBetween(rangeStart, key); rangeStart = null; rangeSheet(ks); return; }
-      ayahSheet(key);
+      openAyahOrRange(key);
     };
     const cancelPress = () => { if (press) { clearTimeout(press.timer); press = null; } };
     sp.addEventListener('pointerdown', (e) => {
