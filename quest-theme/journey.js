@@ -403,9 +403,18 @@
   function homeExit() { try { sessionStorage.setItem('ezik_resume_section_v1', 'home'); } catch (_) {} location.href = '/'; }
   function leaveRoomToSettings() {
     const route = game === 'hanna' ? '/hanna-laha/' : '/quest-harb.html';
-    if (M.cats.length < 3) { location.href = route; return; }
-    try { sessionStorage.setItem('kunuz_journey_room_setup_v1', JSON.stringify({ game, cats: M.cats, teams: M.teams, settings: M.settings })); } catch (_) {}
-    location.href = route + '?setup=1';
+    const target = M.cats.length < 3 ? route : route + '?setup=1';
+    if (M.cats.length >= 3) {
+      try { sessionStorage.setItem('kunuz_journey_room_setup_v1', JSON.stringify({ game, cats: M.cats, teams: M.teams, settings: M.settings })); } catch (_) {}
+    }
+    // Discard native room routes and the setup entry replaced on room entry.
+    // The next settings page builds its pair on the original categories entry.
+    const entry = M.roomEntry;
+    const rewind = entry ? Math.max(0, history.length - entry.length) + entry.parent : 0;
+    if (rewind > 0) {
+      M.roomLeavingUrl = target; M.stage = 'leaving';
+      history.go(-rewind);
+    } else location.replace(target);
   }
   function back() {
     if (M.stage === 'room') { askDialog('تطلعون من الغرفة وترجعون للإعدادات؟', leaveRoomToSettings, () => {}, { yes: 'نعم، نطلع', no: 'لا، نبقى' }); return; }
@@ -415,6 +424,7 @@
     } else if (M.running) askDialog('تتركون اللعبة وترجعون للفرق والإعدادات؟', leaveToSettings);
     else if (M.step === 2) { M.error = ''; history.back(); }
     else if (M.stage === 'results') leaveToSettings();
+    else if (game === 'hanna') location.replace('/quest.html');
     else location.href = '/quest.html';
   }
   function begin() {
@@ -715,6 +725,7 @@
     M.settings.roomCode = M.settings.roomCode.replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).trim();
     if (!join && game === 'hanna' && M.settings.roomCode && !/^\d{4,6}$/.test(M.settings.roomCode)) { M.error = 'رمز الغرفة يكون من أربعة إلى ستة أرقام.'; render(); return; }
     if (!join && (game === 'hanna' && (!Number.isInteger(time()) || time() < 10 || time() > 600 || M.settings.reveals > 99) || game === 'harb' && (time() !== 0 && (time() < 3 || time() > 600 || !Number.isInteger(time() * 1000))))) { M.error = 'هذا الوقت أو رصيد الخيارات خارج ما يقبله خادم الغرف الحالي؛ اختاروا إعدادًا آخر أو العبوا على جهاز واحد.'; render(); return; }
+    M.roomEntry = { length: history.length, parent: history.state?.journey && history.state.step === 2 ? 1 : 0 };
     M.error = ''; cancelPlay(); M.stage = 'room'; M.step = 3; render();
     M.roomUrl = location.href;
     document.body.prepend(app);
@@ -876,6 +887,12 @@
     if (el.dataset.input) M.settings[el.dataset.input] = el.dataset.input === 'roomCode' ? el.value : el.value === '' ? NaN : Number(el.value);
   });
   global.addEventListener('popstate', event => {
+    if (M.roomLeavingUrl) {
+      event.stopImmediatePropagation();
+      const target = M.roomLeavingUrl; M.roomLeavingUrl = '';
+      location.replace(target);
+      return;
+    }
     if (M.stage === 'room') {
       event.stopImmediatePropagation();
       // The legacy war listener was registered first and may already have shown

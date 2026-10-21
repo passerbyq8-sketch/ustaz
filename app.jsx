@@ -685,7 +685,7 @@ const EZ_I18N = {
     'c.A2_LISTEN': 'استماع',
     'c.A3G_MORNING': 'الصباح',
     'c.A3G_EVENING': 'المساء',
-    'c.A3G_REMAIN': 'المتبقي',
+    'c.A3G_REMAIN': 'باقي',
     'c.A3G_ZERO': 'أعد العدّ',
     'c.A3_CHAIN_TITLE': 'سلسلتك',
     'c.A3_CHAIN_START': 'تبدأ ببلوغ هدف اليوم',
@@ -10368,11 +10368,17 @@ function Ez110DeleteAllRow({ onOpenControl }) {
 // slot; the boot reopens Settings (the m19 effect in App) and Settings opens with that page showing. Navigation layer only:
 // privacy.html and delete.html are not touched. Dark: no slot is written and none is read.
 const EZ110_BACK_SLOT = 'ezik_110_back_v1';
+let ezikPrivacyHistorySnapshot = null;
 function ez110NotePrivacyLink(e) {
   if (!ez110FixLit()) return;
   const a = e && e.target && e.target.closest ? e.target.closest('a[href]') : null;
   if (!a) return;
-  if (/(^|\/)(privacy|delete)\.html(\?|#|$)/.test(a.getAttribute('href') || '')) { try { window.sessionStorage.setItem(EZ110_BACK_SLOT, 'privacy'); } catch (x) {} }
+  if (/(^|\/)(privacy|delete)\.html(\?|#|$)/.test(a.getAttribute('href') || '')) {
+    try {
+      window.sessionStorage.setItem(EZ110_BACK_SLOT, 'privacy');
+      if (ezikPrivacyHistorySnapshot) window.history.replaceState({ ...window.history.state, ezikPrivacyReturn: ezikPrivacyHistorySnapshot() }, '');
+    } catch (x) {}
+  }
 }
 function ez110PeekPrivacyBack() {
   if (!ez110FixLit()) return false;
@@ -13537,7 +13543,7 @@ function LessonsBrowsePane({ backRef }) {
   // THE LADDER, ONE RUNG AT A TIME. Lessons fall back to the series of the same scholar, series
   // fall back to the scholars, and the scholars are the floor -- there the pane declines the
   // press and the section takes the reader home. Nothing here skips a rung.
-  const ezikBrowseStepBack = () => {
+  const ezikBrowseCloseLevel = () => {
     if (level === EZIK_BROWSE_LESSONS) {
       setSeries('');
       setPageNo(1);
@@ -13551,6 +13557,17 @@ function LessonsBrowsePane({ backRef }) {
       return true;
     }
     return false;
+  };
+  // Each rung owns one entry; browser and visible back spend the same rung.
+  useEzikBackLayer(level !== EZIK_BROWSE_SCHOLARS, () => {
+    setSeries(''); setScholar(''); setPageNo(1); setLevel(EZIK_BROWSE_SCHOLARS);
+  });
+  useEzikBackLayer(level === EZIK_BROWSE_LESSONS, () => {
+    setSeries(''); setPageNo(1); setLevel(EZIK_BROWSE_SERIES);
+  });
+  const ezikBrowseStepBack = () => {
+    if (level === EZIK_BROWSE_SCHOLARS) return false;
+    return ezikHistBack() || ezikBrowseCloseLevel();
   };
   // Parked on every render, so the section always calls the rung the reader is actually on, and
   // cleared on unmount, so a section whose pane has gone cannot call a dead closure.
@@ -17118,10 +17135,9 @@ function IstanaAdhkarReader(v) {
               {/* THE BEAD. With the switch OFF this is the panel that shipped -- a <div>, and
                   nothing about it answers a tap. With it ON the same children are mounted
                   inside a button whose WHOLE SURFACE is the counter, and the number under them
-                  is what a tap still has left to spend: it starts at the item's own target and
-                  it goes DOWN, which is how a hand counts beads.
-                  🔴 THE STORED RECORD STILL GOES UP, under the same key, capped at the same
-                  target by the same single writer. The descent is a READING of target minus
+                  shows repetitions done, rising from zero; the small line shows the remainder.
+                  THE STORED RECORD STILL GOES UP, under the same key, capped at the same
+                  target by the same single writer. The remainder reads target minus
                   count, not a second counter -- there is no key, no shape and no stored byte
                   that differs between the two shapes. */}
               {v.groups ? (
@@ -17130,8 +17146,8 @@ function IstanaAdhkarReader(v) {
                   aria-label={A3G_REMAIN + ' ' + toArabicDigits(Math.max(0, v.target - v.count))}>
                   {A3GPanelBody(v, d, len)}
                   <span style={s.eziaBeadFoot}>
-                    <span style={s.eziaBeadNum}>{toArabicDigits(Math.max(0, v.target - v.count))}</span>
-                    <span style={s.eziaBeadWord}>{A3G_REMAIN}</span>
+                    <span style={s.eziaBeadNum}>{v.full ? A2_DONE : toArabicDigits(v.count)}</span>
+                    <span style={s.eziaBeadWord}>{A3G_REMAIN} {toArabicDigits(Math.max(0, v.target - v.count))} {A3G_OF} {toArabicDigits(v.target)}</span>
                   </span>
                 </button>
               ) : (
@@ -17624,6 +17640,12 @@ function AdhkarCategoryV2({ cat, startAt, onBack }) {
   // Empty for every category that is not a door of the split, and empty when nothing old is
   // favourited -- so the ordinary path is the one that shipped.
   const [legacyFavIds, setLegacyFavIds] = useState({});
+  const completionTimerRef = useRef(null);
+  const clearCompletion = () => {
+    if (completionTimerRef.current !== null) clearTimeout(completionTimerRef.current);
+    completionTimerRef.current = null;
+  };
+  useEffect(() => clearCompletion, [cat.id]);
   const audioRef = useRef(null);
   const [playingId, setPlayingId] = useState(null);
   useEffect(() => {
@@ -17693,6 +17715,7 @@ function AdhkarCategoryV2({ cat, startAt, onBack }) {
   };
   // Moving between items stops what is playing: the recitation belongs to the dhikr on screen.
   const go = (n) => {
+    clearCompletion();
     if (!items || items.length === 0) return;
     const next = Math.min(items.length - 1, Math.max(0, n));
     if (next === idx) return;
@@ -17732,7 +17755,12 @@ function AdhkarCategoryV2({ cat, startAt, onBack }) {
   // below are two ways to spend one repetition, not two counters: bumpAdhkarCount still has a
   // single call site, the cap still lives at it, and the bead therefore cannot count something
   // the button would have refused.
-  const countUp = () => { if (!full) setProg(bumpAdhkarCount(cat.id, idx, target)); };
+  const countUp = () => {
+    if (full) return prog;
+    const next = bumpAdhkarCount(cat.id, idx, target);
+    setProg(next);
+    return next;
+  };
   // ONE TAP, ONE MEANING, WHEREVER IT LANDS. This is the bead's body, lifted out unchanged and
   // given a name, so that BOTH ways of spending a repetition are now literally the same
   // function and the card and the dock button can no longer drift apart. It still reaches
@@ -17740,10 +17768,19 @@ function AdhkarCategoryV2({ cat, startAt, onBack }) {
   // one above and no reader can raise it.
   // IT CANNOT COUNT ONE DHIKR TWICE: countUp refuses once full, and bumpAdhkarCount refuses at
   // the cap, so the tap that moves is the same tap that spent the last repetition and never a
-  // second one. IT CANNOT DROP A COUNT: the move is decided from count + 1 -- the value the
-  // increment that just ran produced -- and the increment is written to storage before the
-  // decision is taken, so the record is already complete when the index changes.
-  const countAndGo = () => { if (full) { go(idx + 1); return; } countUp(); if (count + 1 >= target) go(idx + 1); };
+  // second one. Completion reads the value returned by the single storage writer, then
+  // leaves «تم» visible for one second. Extra taps during that delay cannot schedule another
+  // move. The record is already complete before the index changes.
+  const countAndGo = () => {
+    if (completionTimerRef.current !== null) return;
+    const next = full ? prog : countUp();
+    if (adhkarCountOf(next, cat.id, idx) >= target) {
+      completionTimerRef.current = setTimeout(() => {
+        completionTimerRef.current = null;
+        go(idx + 1);
+      }, 1000);
+    }
+  };
   // ONE view object again. Every value in it was resolved above out of the store or out of the
   // progress record; every handler in it is one of this component's own. The two readers get
   // the same object and differ only in how they draw it.
@@ -17776,7 +17813,7 @@ function AdhkarCategoryV2({ cat, startAt, onBack }) {
     // THE ZERO. The one handler that lowers a count, and it lowers exactly one: the item on
     // screen, in the category on screen. It writes through zeroAdhkarCount and through nothing
     // else, so the deletion has a single writer just as the increment does.
-    onZero: () => setProg(zeroAdhkarCount(cat.id, idx)),
+    onZero: () => { clearCompletion(); setProg(zeroAdhkarCount(cat.id, idx)); },
     // Which shape the reader below draws. It is the switch and nothing else -- no stored value,
     // no second key, no per-category state.
     groups: ADHKAR_GROUPS_ON,
@@ -17849,7 +17886,14 @@ function AdhkarScreen({ onBack }) {
 // means exactly what it always did.
 const histDepthRef = { current: 0 };
 function ezikHistPush(state) {
-  try { window.history.pushState(state, ''); histDepthRef.current++; return true; } catch (e) { return false; }
+  try {
+    // A policy round trip returns onto this layer's existing entry.
+    if (state.layer && window.history.state?.ezikPrivacyReturn) {
+      window.history.replaceState({ ...window.history.state, ezikPrivacyReturn: null }, '');
+      return true;
+    }
+    window.history.pushState(state, ''); histDepthRef.current++; return true;
+  } catch (e) { return false; }
 }
 // A pop already happened in the browser: just stop counting the entry it spent. Never negative.
 function ezikHistSpend() { if (histDepthRef.current > 0) histDepthRef.current--; }
@@ -19508,7 +19552,11 @@ function App() {
     // ROUND 4 (N3): back from a policy page opened on «الخصوصية والبيانات» of «ب» -- Settings opens with that page showing
     const toPriv = hasProfile && ez110PeekPrivacyBack();
     if (!toPriv && (!st || st.screen !== 'settings' || !hasProfile)) return;
-    sheetOriginRef.current.push('chat'); histReplaceRef.current = true; setScreen('settings');
+    const ret = st?.ezikPrivacyReturn;
+    if (ret && Number.isInteger(ret.depth) && ret.depth >= 0) histDepthRef.current = ret.depth;
+    sheetOriginRef.current = ret && Array.isArray(ret.origins) ? ret.origins.filter(x => ['chat', 'home', 'settings'].includes(x)) : ['chat'];
+    privacyRestorePendingRef.current = true;
+    histReplaceRef.current = true; setScreen('settings');
   }, []);
   // ITEM 110 ROUND 2 (127 note m7), part fix: «افتح في المكتبة» is a full page navigation, so coming back RELOADS
   // the app and the reopened conversation came back in the default mode with every long reply folded. Lit, the tap
@@ -19571,6 +19619,12 @@ function App() {
   // التحكم -- and a single slot was overwritten by the inner one, so the outer sheet forgot who
   // opened it and fell back to home. Each open pushes its own opener; each back pops that one.
   const sheetOriginRef = useRef([]);              // which screen opened each open settings/parental sheet
+  const privacyRestorePendingRef = useRef(false);
+  useEffect(() => {
+    const snapshot = () => ({ depth: histDepthRef.current, origins: sheetOriginRef.current.slice() });
+    ezikPrivacyHistorySnapshot = snapshot;
+    return () => { if (ezikPrivacyHistorySnapshot === snapshot) ezikPrivacyHistorySnapshot = null; };
+  }, []);
   // S91: the ledger that counts the entries this app owns now lives at module scope, next to the
   // layer registry, because the layer hook pushes into the same stack the screen effect does.
   useEffect(() => { screenRef.current = screen; }, [screen]);
@@ -19871,10 +19925,12 @@ function App() {
   // Nothing here runs during render -- this is an effect, after commit, as it always was.
   useEffect(() => {
     if (backNavRef.current) { backNavRef.current = false; return; }
+    if (privacyRestorePendingRef.current && screen !== 'settings') return;
+    if (privacyRestorePendingRef.current) { privacyRestorePendingRef.current = false; histReplaceRef.current = true; }
     const rooted = EZIK_ROOT_SCREENS.indexOf(screen) !== -1;
     if (histReplaceRef.current) {
       histReplaceRef.current = false;
-      if (!rooted) { try { window.history.replaceState({ screen }, ''); } catch (e) {} }
+      if (!rooted) { try { window.history.replaceState({ ...window.history.state, screen }, ''); } catch (e) {} }
       return;
     }
     if (!rooted) ezikHistPush({ screen });
@@ -24301,7 +24357,17 @@ function ezMdBlocks(text) {
     const k = K();
     out.push(React.createElement('div', { key: k, style: s.mdP }, ezMdLines(para, k)));
   }
-  return out;
+  // Prose paragraphs choose their own base direction, including list items and table cells.
+  // Verse and hadith cards do not pass through this renderer.
+  const blockTags = new Set(['div', 'p', 'pre', 'blockquote', 'li', 'th', 'td']);
+  const bidi = node => {
+    if (!React.isValidElement(node)) return node;
+    const props = blockTags.has(node.type)
+      ? { dir: 'auto', style: { ...node.props.style, unicodeBidi: 'plaintext', textAlign: node.props.style?.textAlign || 'start' } }
+      : {};
+    return React.cloneElement(node, props, React.Children.map(node.props.children, bidi));
+  };
+  return out.map(bidi);
 }
 
 // The component the bubble renders. Memoised on the string, because the whole thread re-renders
@@ -24864,6 +24930,8 @@ function FavoritesScreen({ items, liveChatIds, onBack, onOpenChat, onRemove, age
 // "delivered"; a 429 or any other outcome says it did NOT arrive (the server fails closed on
 // purpose, and the client must not paper over that with a false smile).
 function ReportModal({ onClose, onSubmit }) {
+  useEzikBackLayer(true, onClose);
+  const closeReport = () => { if (!ezikHistBack()) onClose(); };
   const [reason, setReason] = useState('');
   const [note, setNote] = useState('');
   const [status, setStatus] = useState('idle'); // idle | sending | ok | rate | fail
@@ -24886,7 +24954,7 @@ function ReportModal({ onClose, onSubmit }) {
         <div style={{ ...s.onboardingCard, maxWidth: 360 }}>
           <div style={s.bigEmoji}>✅</div>
           <div style={s.onboardingTitle}>وصل بلاغُك. شكرًا لك.</div>
-          <button onClick={onClose} style={s.primaryBtn}>إغلاق</button>
+          <button onClick={closeReport} style={s.primaryBtn}>إغلاق</button>
         </div>
       </div>
     );
@@ -24914,7 +24982,7 @@ function ReportModal({ onClose, onSubmit }) {
         <button onClick={send} disabled={!reason || status === 'sending'} style={{ ...s.primaryBtn, opacity: (!reason || status === 'sending') ? 0.5 : 1 }}>
           {status === 'sending' ? '…' : 'أرسِل'}
         </button>
-        <button onClick={onClose} className={ez110FixLit() ? 'ez110-tap44' : undefined} style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14, marginTop: 10, cursor: 'pointer', fontFamily: 'inherit' }}>إلغاء</button>
+        <button onClick={closeReport} className={ez110FixLit() ? 'ez110-tap44' : undefined} style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: 14, marginTop: 10, cursor: 'pointer', fontFamily: 'inherit' }}>إلغاء</button>
       </div>
     </div>
   );
@@ -35664,7 +35732,11 @@ const Mem86Plans = ({ counts, held, ranges, onOpen }) => {
               })() : null}
               <div style={s.mem86Row}>
                 <button type="button" style={s.mem86BtnQuiet} onClick={() => setEditing(p)}>{ezT('mem86.edit')}</button>
-                <button type="button" style={s.mem86BtnQuiet} onClick={() => put(plans.map((x) => (x.id === p.id ? { ...x, arch: !x.arch } : x)))}>{ezT(p.arch ? 'mem86.plan.unarchive' : 'mem86.plan.archive')}</button>
+                <button type="button" style={s.mem86BtnQuiet} onClick={() => {
+                  const next = plans.map((x) => (x.id === p.id ? { ...x, arch: !x.arch } : x));
+                  put(next);
+                  if (p.arch && !next.some((x) => x.arch)) setShowArch(false);
+                }}>{ezT(p.arch ? 'mem86.plan.unarchive' : 'mem86.plan.archive')}</button>
                 <button type="button" style={s.mem86BtnQuiet} onClick={() => put(plans.filter((x) => x.id !== p.id))}>{ezT('mem86.delete')}</button>
               </div>
             </div>
