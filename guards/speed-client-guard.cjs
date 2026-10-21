@@ -12,6 +12,7 @@ const cp = require('child_process');
 const assert = require('assert/strict');
 const { parseHTML } = require('linkedom');
 const BB = require('../tools/babel-block.cjs');
+const { withoutParagraphDirection } = require('../tools/prose-direction-baseline.cjs');
 const REPO = path.resolve(__dirname, '..');
 const native = { setTimeout, clearTimeout, setInterval, clearInterval };
 const baseConsole = { ...console };
@@ -279,7 +280,7 @@ const cases = {
     for (const tashkeel of [true, false]) await withApp(html, { tashkeel }, async (c) => {
       const st = await c.ask(); st.send(DELTA(OLD_REPLY)); await c.finish(st);
       const expected = baseline.views[String(tashkeel)];
-      assert.equal(c.answer().innerHTML, expected.html, 'old-path completed DOM equals measured main');
+      assert.equal(withoutParagraphDirection(c.answer().innerHTML), expected.html, 'completed DOM preserves measured main after the approved paragraph-direction change');
       assert.deepEqual(c.requests[0].body, expected.body, 'old-path request equals measured main');
       assert.equal(c.offers().length, 0, 'no offer without a server frame');
     });

@@ -41,6 +41,7 @@ const { pathToFileURL } = require('url');
 
 const HERE_REPO = path.resolve(__dirname, '..');
 const PROD_HEAD = 'af3e995f866a30ebea4b194ad2dece05584f87e9';
+const { withoutParagraphDirection } = require('../tools/prose-direction-baseline.cjs');
 const FIXTURE = path.join(__dirname, 'fixtures-speed-integration-general.json');
 const ascii = (s) => String(s).replace(/[^\x20-\x7e\n]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
 const say = (s) => console.log(ascii(s));
@@ -476,8 +477,9 @@ async function main(args) {
         ascii(JSON.stringify({ now: s && sha(withoutStatus(s.writes).join('')), prod: base.wireSha256 })));
       for (const t of [true, false]) {
         const r = byId('I4', t);
-        ok('I4e the completed rendering equals production\'s client on those bytes (tashkeel ' + (t ? 'on' : 'off') + ')',
-          !!r && r.ok && sha(r.data.finalHtml) === base.views[String(t)], ascii(JSON.stringify({ now: r && r.ok && sha(r.data.finalHtml), prod: base.views[String(t)] })));
+        const normalized = r && r.ok ? withoutParagraphDirection(r.data.finalHtml) : '';
+        ok('I4e the completed rendering preserves production after the approved paragraph-direction change (tashkeel ' + (t ? 'on' : 'off') + ')',
+          !!r && r.ok && sha(normalized) === base.views[String(t)], ascii(JSON.stringify({ now: r && r.ok && sha(normalized), prod: base.views[String(t)] })));
       }
     }
   } finally { server.restore(); }
