@@ -349,7 +349,9 @@
   // ------------------------------------------------------------------ sheets
   let sheetCleanup = null;
   let sheetOwnsEntry = false, sheetClosing = false;
+  let sheetVersion = 0;
   function openSheet(html, onClick, cleanup) {
+    sheetVersion++;
     if (!$('sheet').classList.contains('on')) {
       try { history.pushState({ ...history.state, mushafSheet: true }, ''); sheetOwnsEntry = true; } catch (e) {}
     }
@@ -358,6 +360,7 @@
     $('scrim').classList.add('on'); $('sheet').classList.add('on'); $('sheet').scrollTop = 0;
   }
   function closeSheet(fromPop) {
+    sheetVersion++;
     if (sheetOwnsEntry && fromPop !== true) {
       if (!sheetClosing) { sheetClosing = true; history.back(); }
       return;
@@ -975,7 +978,9 @@
   }
   async function downloadsSheet() {
     if (!('caches' in window)) { toast('هذا المتصفّحُ لا يدعمُ التنزيلَ للاستخدامِ دونَ اتّصال'); return; }
+    const openedFrom = sheetVersion;
     await sizes();
+    if (openedFrom !== sheetVersion) return;
     const s = surahOfPage(cur); const j = juzOf(cur);
     const juzBytes = SIZES ? (() => { const [a, b] = juzRange(j); let t = 0; for (let p = a; p <= b; p++) t += SIZES.pages[p - 1] + SIZES.geometry[p - 1]; return t; })() : 0;
     const allBytes = SIZES ? SIZES.totals.pages + SIZES.totals.geometry : 0;
