@@ -303,3 +303,5 @@
 .ezik-treasure-theme .journey-app[data-game=test] .j-quiz-progress>i{display:block;height:100%;background:var(--journey-gold)}
 .ezik-treasure-theme .journey-app[data-game=test] .j-quiz-feedback{min-height:26px;margin-top:16px;font-size:15px;color:var(--journey-ink)}
 .ezik-treasure-theme .journey-app[data-game=test] .j-quiz-results .j-quiz-score{font-size:48px;line-height:1.4;color:var(--journey-gold);margin-block:24px}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-sheet .j-answer.j-correct,.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-sheet .j-answer.j-wrong{opacity:1}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-question .j-answer.j-correct,.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-question .j-answer.j-wrong{opacity:1}

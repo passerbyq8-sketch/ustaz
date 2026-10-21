@@ -14,6 +14,12 @@ const mode = process.argv.includes('--before') ? 'before' : process.argv.include
 const gameWidth = Number(process.argv.find(arg => arg.startsWith('--width='))?.split('=')[1]) || 390;
 const onlyGame = process.argv.find(arg => arg.startsWith('--game='))?.split('=')[1];
 const record = { mode, checks: [], screenshots: [], errors: [], blockedExternal: [] };
+const referenceCommit = '8dca7e552c19cede94346dae19d62b36afdc9c4b';
+const referenceFiles = new Map();
+if (mode === 'before') {
+  record.referenceCommit = referenceCommit;
+  for (const file of ['quest-theme/journey.js', 'quest-theme/theme.css', 'quest-test.html', 'hanna-laha/index.html']) referenceFiles.set(file, require('node:child_process').execFileSync('git', ['show', referenceCommit + ':' + file], { cwd: root }));
+}
 fs.mkdirSync(out, { recursive: true });
 function check(name, actual, expected = true) {
   assert.deepEqual(actual, expected, name);
@@ -24,11 +30,13 @@ const server = http.createServer((req, res) => {
   if (url.pathname.startsWith('/api/')) { res.writeHead(503); res.end('Local preview: API disabled'); return; }
   const file = path.resolve(root, '.' + decodeURIComponent(url.pathname) + (url.pathname.endsWith('/') ? 'index.html' : ''));
   if (!file.startsWith(root + path.sep)) { res.writeHead(403); res.end(); return; }
-  fs.readFile(file, (error, data) => {
+  const respond = (error, data) => {
     if (error) { res.writeHead(404); res.end(); return; }
     const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.ttf': 'font/ttf', '.woff2': 'font/woff2', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.png': 'image/png', '.wav': 'audio/wav' };
     res.writeHead(200, { 'Content-Type': mime[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' }); res.end(data);
-  });
+  };
+  const reference = referenceFiles.get(path.relative(root, file).replace(/\\/g, '/'));
+  if (reference) respond(null, reference); else fs.readFile(file, respond);
 });
 let browser, base;
 const routes = { board: 'quest-board.html', harb: 'quest-harb.html', hanna: 'hanna-laha/', test: 'quest-test.html', hub: 'quest.html' };
@@ -48,7 +56,9 @@ async function open(game, width = 390, offline = false) {
   page.on('pageerror', error => record.errors.push(error.message));
   await page.goto(base + '/' + routes[game]);
   await page.waitForFunction(() => window.KunuzJourney?.state.ready, null, { timeout: 60000 });
+  await page.waitForFunction(() => !document.documentElement.classList.contains('kunuz-theme-pending'));
   await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(() => Promise.all([...document.querySelectorAll('.journey-app img')].map(img => img.decode())));
   return { page, context };
 }
 async function click(page, selector) {
