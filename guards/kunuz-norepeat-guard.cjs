@@ -103,7 +103,7 @@ function dive(W, L, cats, cap, tag) {
   return n;
 }
 const leftByCat = (DATA, store) => { const raw = store.getItem(KEY), o = raw && JSON.parse(raw), b = o ? Buffer.from(o.b, 'base64') : Buffer.alloc(0), a = DATA.cats.map(() => 0);
-  DATA.qs.forEach((q, i) => { if (!(b[i >> 3] >> (i & 7) & 1)) a[q[0]]++; }); return a; };
+  DATA.qs.forEach((q, i) => { if (q[2] !== 0 && !(b[i >> 3] >> (i & 7) & 1)) a[q[0]]++; }); return a; };
 
 // ---------- harb driver: real setup + war start; each question asked through the engine's own askQ ----------
 function hOpen(store) { return makeWorld(hsrc, hsrc.DATA, HS, { reduce: true, storage: store }); }
@@ -231,7 +231,7 @@ console.log('FILES ghaws=' + ascii(path.basename(GF)) + ' harb=' + ascii(path.ba
 (function () {
   R = prng(SEED + 5);
   const store = Store(), L = Ledger(), L2 = Ledger(), f = [];
-  const size = DG.cats.map((c, i) => DG.qs.filter(q => q[0] === i).length);
+  const size = DG.cats.map((c, i) => DG.qs.filter(q => q[2] !== 0 && q[0] === i).length);
   const cats = DG.cats.map((c, i) => i).sort((x, y) => size[y] - size[x]).slice(0, 6);
   const W = gOpen(store); const a = dive(W, L, cats, 200, 'long');
   f.push(...worldErrors(W), ...W.fails);
@@ -425,7 +425,7 @@ function playWar(W, L, o) {
 
 // ---- أ: six categories, smallest 23, played to its end ----
 (function () {
-  const size = DG.cats.map((c, i) => DG.qs.filter(q => q[0] === i).length);
+  const size = DG.cats.map((c, i) => DG.qs.filter(q => q[2] !== 0 && q[0] === i).length);
   const small = size.indexOf(Math.min(...size));
   const cats = [small].concat(DG.cats.map((c, i) => i).filter(i => i !== small).sort((x, y) => size[x] - size[y]).slice(0, 5));
   const tries = []; let ok = false, best = null;
@@ -490,7 +490,7 @@ function playWar(W, L, o) {
   G2.winRule = 2; const seaOf = k => c2.SLOTS[k].s;
   const seasWithDead = [...new Set(dead2.map(seaOf))].filter(s => live2.some(k => seaOf(k) === s));
   const otherSeas = [0, 1, 2, 3].filter(s => seasWithDead.indexOf(s) < 0 && live2.some(k => seaOf(k) === s));
-  const pickSeas = seasWithDead.slice(0, 1).concat(otherSeas).slice(0, 2);
+  const pickSeas = seasWithDead.slice(0, 1).concat(otherSeas, seasWithDead.slice(1)).slice(0, 2);
   for (let k = 0; k < 12; k++) G2.own[k] = (pickSeas.indexOf(seaOf(k)) > -1 && !c2.isDead(k)) ? 0 : 1;
   // give player 1 at least one live island in every other sea so it holds no complete live sea of its own... player 0 is checked first anyway
   const seas0 = c2.seas(0), winSeas = c2.whoWon();
@@ -520,8 +520,8 @@ function playWar(W, L, o) {
 (function () {
   R = prng(SEED + 300);
   const f = [];
-  const size = DG.cats.map((c, i) => DG.qs.filter(q => q[0] === i).length);
-  const X = 5, lastIdx = DG.qs.findIndex(q => q[0] === X), spentCats = [6, 7];
+  const size = DG.cats.map((c, i) => DG.qs.filter(q => q[2] !== 0 && q[0] === i).length);
+  const X = 5, lastIdx = DG.qs.findIndex(q => q[2] !== 0 && q[0] === X), spentCats = [6, 7];
   // dive: everything seen but one question
   const store = Store(); let W = gOpen(store);
   for (let i = 0; i < N; i++) if (i !== lastIdx) W.ctx.SEEN.bits[i >> 3] |= 1 << (i & 7);
