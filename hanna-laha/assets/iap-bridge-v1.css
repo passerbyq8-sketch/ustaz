@@ -1,0 +1,93 @@
+.ezik-iap-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: grid;
+  place-items: center;
+  padding: max(var(--sp-3), env(safe-area-inset-top)) max(var(--sp-3), env(safe-area-inset-right)) max(var(--sp-3), env(safe-area-inset-bottom)) max(var(--sp-3), env(safe-area-inset-left));
+  background: var(--overlay);
+  color: var(--ink);
+  font-family: var(--f-body);
+}
+
+.ezik-iap-card {
+  width: min(620px, 100%);
+  max-height: min(88svh, 800px);
+  overflow: auto;
+  padding: var(--sp-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--page);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  font-size: var(--fs-md);
+  line-height: 1.7;
+}
+
+.ezik-iap-header,
+.ezik-iap-actions,
+.ezik-iap-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.ezik-iap-header { margin-bottom: var(--sp-3); }
+.ezik-iap-header h2 { margin: 0; font-family: var(--f-display); font-size: var(--fs-xl); }
+.ezik-iap-copy { margin: 0 0 var(--sp-3); color: var(--muted); }
+.ezik-iap-error { margin: var(--sp-3) 0 0; color: var(--bad); }
+.ezik-iap-note { margin: var(--sp-3) 0 0; color: var(--muted); }
+
+.ezik-iap-row {
+  display: grid;
+  gap: var(--sp-2);
+  margin: var(--sp-3) 0;
+  padding: var(--sp-3);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-card);
+  background: var(--bg);
+}
+
+.ezik-iap-row h3 { margin: 0; font-size: var(--fs-lg); }
+.ezik-iap-price { margin: 0; color: var(--muted); }
+.ezik-iap-field { display: grid; gap: var(--sp-1); }
+.ezik-iap-field input {
+  width: 100%;
+  min-height: 46px;
+  padding: var(--sp-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-btn);
+  background: var(--page);
+  color: var(--ink);
+  font: inherit;
+}
+
+.ezik-iap-button {
+  min-height: 46px;
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--brand);
+  border-radius: var(--radius-btn);
+  background: var(--brand);
+  color: var(--page);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ezik-iap-button-secondary {
+  border-color: var(--line-2);
+  background: var(--tint);
+  color: var(--ink);
+}
+
+.ezik-iap-button:disabled { cursor: default; opacity: .55; }
+.ezik-iap-actions { margin-top: var(--sp-3); }
+.ezik-iap-actions > * { flex: 1; }
+.ezik-iap-total { font-weight: 700; }
+.ezik-iap-status { min-height: 1.7em; }
+
+@media (max-width: 420px) {
+  .ezik-iap-card { padding: var(--sp-3); }
+  .ezik-iap-row-head { align-items: flex-start; flex-direction: column; }
+}

@@ -749,7 +749,7 @@
       // remains completely offline. It owns its credentials, reconnect and protocol.
       const css = ['Page-oyXYdFLk.css', 'index-BYf54ooy.css'];
       for (const file of css) { const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = '/hanna-laha/assets/' + file; document.head.append(link); }
-      const module = document.createElement('script'); module.type = 'module'; module.src = '/hanna-laha/assets/index-DQ2E4Hb-.js';
+      const module = document.createElement('script'); module.type = 'module'; module.src = '/hanna-laha/assets/index-iap-v1.js';
       try { localStorage.setItem('hl-ezik.sound', 'false'); } catch (_) {}
       if (!join) {
         const roomColors = ['blue','orange','purple','green','gold','pink','teal','brown','navy','olive','red','maroon'];
