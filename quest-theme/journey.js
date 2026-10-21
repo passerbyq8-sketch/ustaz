@@ -49,7 +49,7 @@
     slots: [], pool: [], used: new Set(), question: null, g: null, error: '', dialog: null, running: false,
     fallback: [], excluded: [], questionHistory: false, skipPop: false, lastStage: '', warMessage: '', warEvent: null, diveNative: null,
     result: null, audioUnlocked: false, muted: false, timer: null, lastAction: -Infinity, offlineReady: false,
-    quizCount: 5, quizAdvance: null, roomDraft: '', roomCodeError: '', roomStartError: '',
+    quizCount: 5, quizAdvance: null, quizPausedAt: null, quizLastQuestion: null, roomDraft: '', roomCodeError: '', roomStartError: '',
     roomCodeEntry: false, joinDraft: '', joinError: '', roomFromEntry: false
   };
   if (game !== 'hub') M.teams = Array.from({ length: limits[game][0] }, (_, i) => teamNew(i));
@@ -101,7 +101,8 @@
           const timeout = setTimeout(controlled, 3000);
           navigator.serviceWorker.addEventListener('controllerchange', controlled);
         });
-        const screenAssets = ['theme.css?v=20261021-identity2', 'journey.js?v=20261021-identity2', 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
+        const screenVersion = game === 'test' ? '20261022-quiz1' : '20261021-identity2';
+        const screenAssets = ['theme.css?v=' + screenVersion, 'journey.js?v=' + screenVersion, 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
         if (navigator.serviceWorker.controller) await Promise.all(screenAssets.map(async file => {
           const response = await fetch('/quest-theme/' + file);
           if (!response.ok) throw new Error('Screen cache unavailable');
@@ -300,11 +301,32 @@
       (q.answerRevealed ? explanation(q) + '<div class="j-actions">' + M.teams.map((t, i) => button(sym(t.symbol) + esc(t.n), 'award', 'j-btn j-teal', 'data-team="' + i + '" data-team-color="' + i + '"')).join('') + button('ولا أحد', 'award', 'j-secondary', 'data-team="-1"') + '</div>' : '<div class="j-actions">' + optionsButton(q) + button('إظهار الإجابة', 'reveal-answer', 'j-btn j-teal') + '</div>') + '</div></div></div>';
   }
   function quizStart() {
-    return '<section class="j-quiz-start"><div class="j-medallion">' + Icons.icon('compass') + '</div><h2 class="j-heading">اختبر معلوماتك</h2><p class="j-lead">أسئلة من كل الفئات… خذ وقتك واستمتع.</p><fieldset class="j-quiz-count"><legend>كم سؤال؟</legend><div class="j-chips">' + [5, 10].map(count => button(ar(count), 'quiz-count', 'j-chip', 'data-count="' + count + '" aria-pressed="' + (M.quizCount === count) + '"')).join('') + '</div></fieldset>' + (M.error ? '<div class="j-error" role="alert">' + esc(M.error) + '</div>' : '') + '<div class="j-actions">' + button('ابدأ', 'quiz-start') + '</div></section>';
+    return '<section class="j-quiz-setup"><h1 class="j-heading">جهّزوا الاختبار</h1><p class="j-lead">اختاروا الوقت وعدد الأسئلة وطريقة الإجابة.</p>' +
+      '<fieldset class="j-form-card j-quiz-setting"><legend class="j-field">الوقت لكل سؤال</legend>' + chips([0, 10, 15, 20, 30, 45, 60].map(n => [n, n ? ar(n) + ' ثانية' : 'بدون وقت']), time(), 'time') + '</fieldset>' +
+      '<fieldset class="j-form-card j-quiz-setting"><legend class="j-field">عدد الأسئلة</legend><div class="j-chips">' + quizCounts().map(count => button(ar(count), 'quiz-count', 'j-chip', 'data-count="' + count + '" aria-pressed="' + (M.quizCount === count) + '"')).join('') + '</div></fieldset>' +
+      '<fieldset class="j-form-card j-quiz-setting"><legend class="j-field">طريقة الإجابة</legend>' + button('إظهار الاختيارات <span aria-hidden="true">' + (M.settings.options === 'shown' ? '✓' : '—') + '</span>', 'quiz-options', 'j-chip j-quiz-toggle', 'role="switch" aria-checked="' + (M.settings.options === 'shown') + '" aria-label="إظهار الاختيارات" aria-pressed="' + (M.settings.options === 'shown') + '"') + '</fieldset>' +
+      (M.error ? '<div class="j-error" role="alert">' + esc(M.error) + '</div>' : '') + '<div class="j-actions">' + button('ابدأ', 'quiz-start', 'j-btn', !quizCounts().length ? 'disabled' : '') + '</div></section>';
+  }
+  function quizCatalog() {
+    const counts = global.DATA.cats.map(() => 0);
+    global.DATA.qs.forEach((q, i) => { if (Model.live(i) && q[4].length === 4) counts[q[0]]++; });
+    return Model.categories().map(c => ({ ...c, count: counts[c.index] })).filter(c => c.count > 0);
+  }
+  function quizCounts() {
+    const available = quizCatalog().filter(c => M.cats.includes(c.index)).reduce((n, c) => n + c.count, 0);
+    return available < 5 ? available ? [available] : [] : [5, 10, 15, 20].filter(n => n <= available);
+  }
+  function quizCategories() {
+    const all = quizCatalog();
+    const section = (list, title) => '<h2 class="j-divider">' + title + '</h2><div class="j-category-picker">' + list.map(c => button(catIcon(c.index) + '<b>' + esc(c.name) + '</b><small>' + (M.cats.includes(c.index) ? '✓ تم الاختيار' : 'اختيار الفئة') + '</small>', 'cat', 'j-cat-pick', 'data-cat="' + c.index + '" aria-pressed="' + M.cats.includes(c.index) + '"')).join('') + '</div>';
+    return '<h1 class="j-heading">اختاروا فئات مغامرتكم</h1><p class="j-lead">اختاروا فئة واحدة أو أكثر، أو كل الفئات.</p><div class="j-actions">' + button('كل الفئات', 'quiz-all', 'j-secondary', 'aria-pressed="' + (M.cats.length === all.length) + '"') + '</div>' +
+      section(all.filter(c => c.index < 53), 'من كنوز المعرفة') + section(all.filter(c => c.index >= 53), 'فئات إضافية') +
+      '<div class="j-actions">' + button('التالي', 'next-setup', 'j-btn', 'aria-describedby="j-quiz-categories-help"' + (!M.cats.length ? ' disabled' : '')) + '</div><p id="j-quiz-categories-help" class="j-note j-quiz-category-help" role="status">' + (!M.cats.length ? 'اختاروا فئة واحدة على الأقل للمتابعة.' : 'فئاتكم جاهزة؛ تقدرون تتابعون.') + '</p>';
   }
   function quizQuestion() {
     const q = M.question, completed = played();
-    return '<section class="j-quiz-screen"><p class="j-quiz-position">السؤال ' + ar(q.slotIndex + 1) + ' من ' + ar(M.slots.length) + '</p><div class="j-quiz-progress" role="progressbar" aria-label="الأسئلة المكتملة" aria-valuemin="0" aria-valuemax="' + M.slots.length + '" aria-valuenow="' + completed + '"><i style="width:' + completed / M.slots.length * 100 + '%"></i></div><div class="j-paper j-quiz-question"><span class="j-tag">' + esc(catName(questionText(q)[0])) + '</span><h2>' + esc(questionText(q)[3]) + '</h2><div id="qvis" hidden></div>' + answers(q) + '<p class="j-quiz-feedback" role="status">' + (q.settled ? q.correct ? '✓ صحيح!' : 'خطأ · الجواب الصحيح: ' + esc(questionText(q)[4][questionText(q)[5]]) : '') + '</p></div></section>';
+    const response = M.settings.options === 'shown' ? answers(q) : q.answerRevealed ? '<p class="j-quiz-self-answer"><span data-choice="' + questionText(q)[5] + '">' + esc(questionText(q)[4][questionText(q)[5]]) + '</span></p>' + (!q.settled ? '<div class="j-actions">' + button('عرفتها', 'judge-yes') + button('ما عرفتها', 'judge-no', 'j-secondary') + '</div>' : '') : '<div class="j-actions">' + button('أظهر الجواب', 'reveal-answer') + '</div>';
+    return '<section class="j-quiz-screen"><p class="j-quiz-position">السؤال ' + ar(q.slotIndex + 1) + ' من ' + ar(M.slots.length) + '</p><div class="j-quiz-progress" role="progressbar" aria-label="الأسئلة المكتملة" aria-valuemin="0" aria-valuemax="' + M.slots.length + '" aria-valuenow="' + completed + '"><i style="width:' + completed / M.slots.length * 100 + '%"></i></div><div class="j-paper j-quiz-question"><span class="j-tag">' + esc(catName(questionText(q)[0])) + '</span><h2>' + esc(questionText(q)[3]) + '</h2><div id="qvis" hidden></div>' + response + (q.duration ? timerMarkup(q) : '') + '<p class="j-quiz-feedback" role="status">' + (q.settled ? q.correct ? '✓ صحيح!' : 'خطأ · الجواب الصحيح: ' + esc(questionText(q)[4][questionText(q)[5]]) : '') + '</p></div></section>';
   }
   function quizResults() {
     const correct = M.slots.filter(slot => slot.by >= 0).length;
@@ -375,7 +397,7 @@
     const motionKey = M.stage + ':' + (M.question?.index ?? '') + ':' + (M.question?.beat || '') + (game === 'ghaws' && M.question?.settled ? ':reward' : '');
     const motionChanged = motionKey !== M.lastMotion;
     cancelVisuals();
-    const screens = { hub: home, categories, settings, 'room-entry': roomEntry, 'room-join': roomJoinScreen, 'room-code': roomCodeScreen, 'quiz-start': quizStart, board: boardView, 'board-question': boardView, 'test-question': quizQuestion, 'hanna-question': hannaQuestion, dive: diveView, war: warView, 'war-result': warResult, results,
+    const screens = { hub: home, categories: game === 'test' ? quizCategories : categories, settings: game === 'test' ? quizStart : settings, 'room-entry': roomEntry, 'room-join': roomJoinScreen, 'room-code': roomCodeScreen, board: boardView, 'board-question': boardView, 'test-question': quizQuestion, 'hanna-question': hannaQuestion, dive: diveView, war: warView, 'war-result': warResult, results,
       loading: () => '<div class="j-loading" role="status">نجهّز مغامرتكم…<div class="j-loader"></div></div>',
       handover: () => '<div class="j-results"><div class="j-result-icon">' + Icons.icon('wave') + '</div><h2>دور «' + esc(M.teams[global.S.pi].n) + '»</h2><p class="j-muted">خذوا نفسكم… ومغامرتكم تبدأ.</p><div class="j-actions">' + button('ابدأ الغوص', 'dive-begin', 'j-btn j-teal') + '</div></div>',
       'war-pass': () => teamBar() + '<div class="j-results"><h2>دور المدافع «' + esc(M.teams[M.pendingWarAsk.pi].n) + '»</h2><p class="j-muted">سلّموا الجهاز للمدافع قبل إظهار السؤال.</p><div class="j-actions">' + button('جاهزين للدفاع', 'war-defend', 'j-btn j-teal') + '</div></div>',
@@ -478,7 +500,7 @@
   }
   function setStage(stage, step = M.step, push = false) {
     M.stage = stage; M.step = step;
-    if (push) history.pushState({ journey: true, step, ...(hasRooms ? { stage, room: M.settings.room, roomCodeEntry: M.roomCodeEntry } : {}) }, '');
+    if (push) history.pushState({ journey: true, step, ...(game === 'test' ? { quiz: true, stage } : {}), ...(hasRooms ? { stage, room: M.settings.room, roomCodeEntry: M.roomCodeEntry } : {}) }, '');
     render();
     if (M.audioUnlocked) sound(game === 'ghaws' && stage === 'dive' ? 'water-transition' : 'swoosh');
   }
@@ -529,10 +551,7 @@
     if (M.roomFromEntry && /\/join\/?$/.test(location.pathname)) { history.back(); return; }
     if (M.stage === 'room-entry') { location.replace('/quest.html'); return; }
     if (game === 'test') {
-      if (M.running) askDialog('تترك الأسئلة وترجع للبداية؟', resetQuiz);
-      else if (M.stage === 'results') resetQuiz();
-      else location.href = '/quest.html';
-      return;
+      history.back(); return;
     }
     if (M.stage === 'room') { askDialog('تطلعون من الغرفة وترجعون للإعدادات؟', leaveRoomToSettings, () => {}, { yes: 'نعم، نطلع', no: 'لا، نبقى' }); return; }
     if (M.question && ['board', 'test', 'hanna'].includes(game)) {
@@ -546,14 +565,73 @@
   }
   function resetQuiz() {
     cancelPlay(); M.error = ''; M.result = null; M.slots = []; M.pool = []; M.used = new Set();
-    history.replaceState({ journey: true, step: 1 }, ''); setStage('quiz-start', 1);
+    M.quizLastQuestion = null; M.quizPausedAt = null;
+    const step = history.state?.step || 1;
+    if (step > 1) history.go(1 - step);
+    else setStage('categories', 1);
   }
   function beginQuiz() {
-    if (M.stage !== 'quiz-start') return;
-    M.cats = Model.categories().filter(c => c.count >= Model.PER_CATEGORY).map(c => c.index);
+    if (M.stage !== 'settings' || !M.cats.length || !quizCounts().includes(M.quizCount)) return;
     M.teams = [teamNew(0)];
-    Object.assign(M.settings, { options: 'shown', time: 0, custom: false, difficulty: 'mixed', room: false });
+    Object.assign(M.settings, { custom: false, difficulty: 'mixed', room: false });
+    M.quizPausedAt = null; M.quizLastQuestion = null;
     begin();
+  }
+  function saveQuizDraft() {
+    try { sessionStorage.setItem('kunuz_quiz_setup_v1', JSON.stringify({ cats: M.cats, count: M.quizCount, time: time(), options: M.settings.options })); } catch (_) {}
+  }
+  function initQuizSetup() {
+    try {
+      const draft = JSON.parse(sessionStorage.getItem('kunuz_quiz_setup_v1'));
+      if (draft) {
+        const available = new Set(quizCatalog().map(c => c.index));
+        M.cats = Array.isArray(draft.cats) ? [...new Set(draft.cats.filter(c => available.has(c)))] : [];
+        if ([0, 10, 15, 20, 30, 45, 60].includes(draft.time)) M.settings.time = draft.time;
+        if (['shown', 'hidden'].includes(draft.options)) M.settings.options = draft.options;
+        if (quizCounts().includes(draft.count)) M.quizCount = draft.count;
+      } else M.settings.time = 0;
+    } catch (_) { M.settings.time = 0; }
+    // Give a direct visit the same one-step exit to the hub as a hub link.
+    if (!history.state?.quiz) {
+      const url = location.pathname + location.search;
+      history.replaceState({ journey: true, quiz: true, stage: 'hub', step: 0 }, '', '/quest.html');
+      history.pushState({ journey: true, quiz: true, stage: 'categories', step: 1 }, '', url);
+    } else history.replaceState({ journey: true, quiz: true, stage: 'categories', step: 1 }, '');
+    setStage('categories', 1);
+  }
+  function quizHistoryStage(stage, step) {
+    if (stage === 'hub') { saveQuizDraft(); location.replace('/quest.html'); return; }
+    if (!['categories', 'settings', 'test-question', 'results'].includes(stage)) return;
+    if (stage === 'settings' && !quizCounts().includes(M.quizCount)) { M.quizCount = quizCounts()[0]; saveQuizDraft(); }
+    if (M.stage === 'test-question' && stage !== 'test-question') { clearTimer(); M.quizPausedAt = performance.now(); }
+    if (stage === 'test-question') {
+      M.question ||= M.quizLastQuestion;
+      if (!M.question) { history.replaceState({ journey: true, quiz: true, stage: 'settings', step: 2 }, ''); setStage('settings', 2); return; }
+      if (M.quizPausedAt !== null) {
+        const pause = performance.now() - M.quizPausedAt;
+        M.question.started += pause; M.question.deadline += pause; M.quizPausedAt = null;
+      }
+    }
+    setStage(stage, step);
+    if (stage === 'test-question' && M.running) {
+      if (M.question.settled) scheduleQuizNext(M.question);
+      else if (!M.question.answerRevealed) startTimer();
+    }
+  }
+  function reserveQuiz() {
+    M.history.read();
+    const unseen = [], oldest = [];
+    for (const cat of M.cats) {
+      const candidates = Model.candidates(cat, M.history);
+      unseen.push(...candidates.unseen.filter(i => global.DATA.qs[i][4].length === 4));
+      oldest.push(...candidates.oldest.filter(i => global.DATA.qs[i][4].length === 4));
+    }
+    oldest.sort((a, b) => M.history.last(a) - M.history.last(b) || a - b);
+    const indices = Model.shuffle(unseen).concat(oldest).slice(0, M.quizCount);
+    const replayed = new Set(indices.filter(i => M.history.has(i)).map(i => global.DATA.qs[i][0]));
+    for (const cat of replayed) M.history.restart(cat, indices.filter(i => global.DATA.qs[i][0] === cat));
+    const slots = indices.map(index => { const actual = Model.level(index) || 1; return { index, cat: global.DATA.qs[index][0], pts: Model.POINTS[actual - 1], desired: actual, actual, used: false, by: -1 }; });
+    return { indices, slots, shortage: [], fallback: [] };
   }
   function fourChoiceSlots(slots) {
     const reserved = new Set(slots.filter(slot => global.DATA.qs[slot.index][4].length === 4).map(slot => slot.index));
@@ -574,11 +652,10 @@
     if (s.room) { enterRoom(false); return; }
     M.history ||= Model.history();
     const all = Model.categories();
-    const pool = Model.reserve(M.cats, M.history);
+    const pool = game === 'test' ? reserveQuiz() : Model.reserve(M.cats, M.history);
     if (pool.shortage.length) { M.error = 'فئة «' + catName(pool.shortage[0]) + '» غير متاحة حاليًا؛ ارجعوا واختاروا فئة أخرى.'; render(); return; }
     M.error = ''; M.pool = pool.indices; M.slots = pool.slots; M.fallback = pool.fallback; M.excluded = all.filter(c => c.count < Model.PER_CATEGORY);
     if (game === 'hanna') M.slots = M.cats.flatMap(cat => M.slots.filter(slot => slot.cat === cat).sort((a, b) => a.pts - b.pts));
-    if (game === 'test') M.slots = Model.shuffle(M.slots.filter(slot => global.DATA.qs[slot.index][4].length === 4)).slice(0, M.quizCount);
     if (game === 'hanna' || game === 'test') {
       const slots = fourChoiceSlots(M.slots);
       if (slots.some(slot => !slot)) { M.error = 'إحدى الفئات لا تحتوي أسئلة بأربعة خيارات؛ اختاروا فئة أخرى.'; render(); return; }
@@ -599,7 +676,7 @@
       M.g = Model.board(M.teams, M.cats, M.slots); M.teams = M.g.teams;
       M.teams.forEach((t, i) => { t.symbol = symbols[i]; t.shows = s.reveals; }); if (game === 'board') global.G = M.g;
     }
-    history.pushState({ journey: true, step: 3 }, ''); M.step = 3;
+    history.pushState({ journey: true, step: 3, ...(game === 'test' ? { quiz: true, stage: 'test-question' } : {}) }, ''); M.step = 3;
     if (game === 'ghaws') beginDiveGame(); else if (game === 'harb') beginWar(); else if (game === 'test') openTile(0); else setStage('board', 3);
   }
   function openTile(index) {
@@ -664,7 +741,7 @@
   function returnBoard() {
     const q = M.question; if (!q) return;
     clearTimer();
-    if (game === 'test') global.TE.next(M.g);
+    if (game === 'test') { M.quizLastQuestion = q; global.TE.next(M.g); }
     if (game === 'hanna') { M.g.cur = null; M.g.turn = (M.g.turn + 1) % M.teams.length; }
     M.question = null;
     if (M.questionHistory) { M.skipPop = true; M.questionHistory = false; history.back(); }
@@ -676,7 +753,7 @@
     M.running = false; clearTimer();
     const rank = game === 'board' ? global.BE.rank(M.g) : game === 'test' ? global.TE.rank(M.g) : Model.rank(M.teams);
     M.result = { title: rank.winners.length > 1 ? 'تعادل بين ' + rank.winners.map(i => '«' + M.teams[i].n + '»').join(' و') : 'الفائز «' + M.teams[rank.winners[0]].n + '»', rows: rank.order.map(i => ({ index: i, score: M.teams[i].score })) };
-    setStage('results', 4); sound('success');
+    setStage('results', 4, game === 'test'); sound('success');
   }
   function hannaLock(manual, advance = true) {
     const q = M.question; if (!q || q.beat || !q.confidence || !manual && q.selected === null || q.submissions[q.activeTeam]) return;
@@ -982,11 +1059,18 @@
     else if (action === 'room-code-open') openRoomCode();
     else if (action === 'room-code-random' && M.stage === 'room-code') { M.roomDraft = String(Math.floor(Math.random() * 10 ** roomCodeLimits.random)).padStart(roomCodeLimits.random, '0'); M.roomCodeError = ''; render(); }
     else if (action === 'room-code-save' && M.stage === 'room-code') saveRoomCode();
-    else if (action === 'quiz-count' && game === 'test' && M.stage === 'quiz-start' && [5, 10].includes(+el.dataset.count)) { M.quizCount = +el.dataset.count; render(); }
+    else if (action === 'quiz-count' && game === 'test' && M.stage === 'settings' && quizCounts().includes(+el.dataset.count)) { M.quizCount = +el.dataset.count; render(); }
+    else if (action === 'quiz-options' && game === 'test' && M.stage === 'settings') { M.settings.options = M.settings.options === 'shown' ? 'hidden' : 'shown'; render(); }
+    else if (action === 'quiz-all' && game === 'test' && M.stage === 'categories') { M.cats = quizCatalog().map(c => c.index); render(); }
     else if (action === 'quiz-start' && game === 'test') beginQuiz();
     else if (action === 'quiz-again' && game === 'test') resetQuiz();
-    else if (action === 'cat') { const c = +el.dataset.cat, i = M.cats.indexOf(c); if (i >= 0) M.cats.splice(i, 1); else if (M.cats.length < 6) M.cats.push(c); M.error = ''; render(); }
-    else if (action === 'next-setup') { if (M.cats.length >= 3 && M.cats.length <= 6) { M.error = ''; setStage('settings', 2, true); } }
+    else if (action === 'cat') { const c = +el.dataset.cat, i = M.cats.indexOf(c); if (i >= 0) M.cats.splice(i, 1); else if (game === 'test' || M.cats.length < 6) M.cats.push(c); M.error = ''; render(); }
+    else if (action === 'next-setup') {
+      if (game === 'test' ? M.cats.length > 0 : M.cats.length >= 3 && M.cats.length <= 6) {
+        if (game === 'test' && !quizCounts().includes(M.quizCount)) M.quizCount = quizCounts()[0];
+        M.error = ''; setStage('settings', 2, true);
+      }
+    }
     else if (action === 'add-team') { if (M.teams.length < limits[game][1]) { M.teams.push(teamNew(M.teams.length)); render(); } }
     else if (action === 'remove-team') { if (M.teams.length > limits[game][0]) { M.teams.splice(+el.dataset.team, 1); render(); } }
     else if (action === 'color') { const t = M.teams[+el.dataset.team], current = colors.indexOf(t.c); t.c = colors[(current + 1) % colors.length]; t.symbol = (t.symbol + 1) % 6; render(); }
@@ -1048,6 +1132,7 @@
     if (now - M.lastAction < 220 && (M.lastKey === actionKey || samePosition)) return;
     M.lastAction = now; M.lastKey = actionKey; M.lastX = event.clientX; M.lastY = event.clientY; sound('tap');
     if (island) tapIsland(+island.dataset.island); else onAction(el.dataset.action, el);
+    if (game === 'test') saveQuizDraft();
     if (Motion) { const rect = app.getBoundingClientRect(); Motion.tapRipple(app, { x: event.clientX - rect.left, y: event.clientY - rect.top }); }
   });
   app.addEventListener('keydown', event => {
@@ -1070,6 +1155,11 @@
     if (el.dataset.input) M.settings[el.dataset.input] = el.dataset.input === 'roomCode' ? el.value : el.value === '' ? NaN : Number(el.value);
   });
   global.addEventListener('popstate', event => {
+    // A synthetic hub entry can share the quiz document's forward entries.
+    // Reload that route before the hub renderer sees a quiz-only history step.
+    if (game === 'hub' && event.state?.quiz && event.state.stage !== 'hub') {
+      event.stopImmediatePropagation(); location.replace('/quest-test.html'); return;
+    }
     if (M.roomLeavingUrl) {
       event.stopImmediatePropagation();
       const target = M.roomLeavingUrl; M.roomLeavingUrl = '';
@@ -1078,8 +1168,10 @@
     }
     if (game === 'test') {
       event.stopImmediatePropagation();
-      if (M.running) askDialog('تترك الأسئلة وترجع للبداية؟', resetQuiz, () => { history.pushState({ journey: true, step: 3 }, ''); });
-      else resetQuiz();
+      const target = event.state;
+      if (!target?.quiz) { saveQuizDraft(); location.replace('/quest.html'); return; }
+      if (M.stage === 'test-question' && M.running && target?.stage !== 'test-question' && target?.stage !== 'results') askDialog('تترك الأسئلة وترجع للإعداد؟', () => quizHistoryStage(target.stage, target.step), () => history.forward());
+      else quizHistoryStage(target?.stage, target?.step);
       return;
     }
     if (M.stage === 'room') {
@@ -1134,7 +1226,7 @@
   const motionPreference = global.matchMedia('(prefers-reduced-motion: reduce)');
   motionPreference.addEventListener('change', () => { cancelVisuals(); if (!document.hidden) render(); });
   global.addEventListener('pagehide', event => { clearTimer(); stopSounds(); cancelVisuals(); if (!event.persisted) Motion?.dispose(); });
-  global.addEventListener('pageshow', event => { if (event.persisted) { render(); if (game === 'test' && M.question?.settled) scheduleQuizNext(M.question); else if (M.question && !M.question.settled && !M.question.answerRevealed && !M.question.beat) startTimer(); } });
+  global.addEventListener('pageshow', event => { if (event.persisted) { render(); if (game === 'test' && M.stage !== 'test-question') return; if (game === 'test' && M.question?.settled && M.running) scheduleQuizNext(M.question); else if (M.question && !M.question.settled && !M.question.answerRevealed && !M.question.beat) startTimer(); } });
   global.KunuzJourney = Object.freeze({ get state() { return M; }, get diagnostics() { return { bankStamp: typeof global.seenStamp === 'function' ? global.seenStamp() : '', offlineReady: M.offlineReady, excluded: M.excluded, fallback: M.fallback, categories: game === 'hub' ? [] : Model.categories().map(c => ({ name: c.name, total: c.count })) }; } });
   async function loadHannaLocal() {
     // Direct room URLs stay outside the local bank/pack engine. Local Hanna uses
@@ -1159,7 +1251,7 @@
       M.roomFromEntry = new URLSearchParams(location.search).get('entry') === '1';
       M.ready = true; await enterRoom(true, true); return;
     }
-    history.replaceState({ journey: true, step: 1 }, ''); render();
+    if (game !== 'test') history.replaceState({ journey: true, step: 1 }, ''); render();
     try {
       if (game === 'hanna') await loadHannaLocal();
       if (!global.DATA || !global.KZV) throw new Error('ملفات المغامرة غير متاحة. افتحوا الصفحة متصلين مرة لتكتمل الملفات المحلية.');
@@ -1168,6 +1260,7 @@
       await prepareOffline();
       if (global.LEVELS_EXPERIMENT !== false) await new Promise(resolve => { let tries = 0; const timer = setInterval(() => { if (global.KUNUZ_LEVELS || ++tries >= 80) { clearInterval(timer); resolve(); } }, 25); });
       M.excluded = Model.categories().filter(c => c.count < Model.PER_CATEGORY); M.ready = true;
+      if (game === 'test') { initQuizSetup(); return; }
       if (new URLSearchParams(location.search).get('setup') === '1') {
         try {
           const draft = JSON.parse(sessionStorage.getItem('kunuz_journey_room_setup_v1')); sessionStorage.removeItem('kunuz_journey_room_setup_v1');
@@ -1185,7 +1278,7 @@
         if (direct) M.settings.room = true;
         const stage = direct ? 'categories' : 'room-entry', step = direct ? 1 : 0;
         history.replaceState({ journey: true, step, stage, room: M.settings.room, entryRoot: direct }, ''); setStage(stage, step);
-      } else setStage(game === 'test' ? 'quiz-start' : 'categories', 1);
+      } else setStage('categories', 1);
     } catch (error) { M.error = error.message; setStage('error', 1); }
   }
   boot();
