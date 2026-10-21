@@ -1877,7 +1877,7 @@ KZV.register({
         "World Highways / Global Highways — Sarah Biswell: Kuwait’s Sheikh Jaber al-Ahmad Al-Sabah Causeway opens، 28 أغسطس2019 — https://globalhighways.com/kuwaits-sheikh-jaber-al-ahmad-al-sabah-causeway-opens?page=0"
       ],
       "level": 2,
-      "status": "approved",
+      "status": "held",
       "flags": []
     },
     {

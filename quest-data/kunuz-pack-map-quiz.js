@@ -3023,7 +3023,7 @@ KZV.register({
         "GeoNames: جدول الدول والأسماء والجيران — https://download.geonames.org/export/dump/countryInfo.txt"
       ],
       "level": 3,
-      "status": "approved",
+      "status": "held",
       "flags": []
     },
     {
@@ -6837,7 +6837,7 @@ KZV.register({
         "Natural Earth: حدود أنتيغوا وباربودا بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
       "level": 3,
-      "status": "approved",
+      "status": "held",
       "flags": []
     },
     {
@@ -7047,7 +7047,7 @@ KZV.register({
         "Natural Earth: حدود بليز بدقة 50m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       ],
       "level": 3,
-      "status": "approved",
+      "status": "held",
       "flags": []
     },
     {

@@ -2955,7 +2955,7 @@ KZV.register({
         "هيئة فنون الطهي — مجموعة وصفات ثلاثين طبقًا، ص4 و25 — https://culinary.moc.gov.sa/-/media/Project/Ministries/Commission/culinaryarts/30-dish-trip-%281%29.pdf"
       ],
       "level": 2,
-      "status": "approved",
+      "status": "held",
       "flags": []
     },
     {

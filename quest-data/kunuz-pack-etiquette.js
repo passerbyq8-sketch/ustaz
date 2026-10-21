@@ -196,13 +196,13 @@ KZV.register({
         "من اليسار إلى اليمين فقط",
         "من جهتك إلى الجهة الأبعد",
         "في دائرة على حافة الوعاء",
-        "من الجهة الأبعد إلى جهتك"
+        "بالتحريك السريع ذهابًا وإيابًا"
       ],
       "answer": 1,
       "why": "تملأ ملعقة الحساء بتحريكها بعيدا عن الجالس نحو الطرف الآخر.",
       "src": [
-        "Guide to Food and Drink — Emily Post — https://emilypost.com/advice/guide-to-food-and-drink",
-        "Breaking Bread — Debrett's — https://debretts.com/breaking-bread/"
+        "https://debretts.com/the-golden-rules-of-dining/",
+        "https://www.esc776.com/wp-content/uploads/2017/09/ORENX20.pdf"
       ],
       "level": 2,
       "status": "approved",

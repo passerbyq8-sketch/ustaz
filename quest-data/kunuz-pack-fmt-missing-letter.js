@@ -5693,7 +5693,7 @@ KZV.register({
         "المعجم الوسيط، مجمع اللغة العربية بالقاهرة؛ مدخل حصين — https://shamela.ws/book/7028/180"
       ],
       "level": 1,
-      "status": "approved",
+      "status": "held",
       "flags": []
     },
     {

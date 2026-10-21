@@ -4453,7 +4453,7 @@ KZV.register({
         "OpenMoji — world map — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
       "level": 1,
-      "status": "approved",
+      "status": "held",
       "flags": []
     },
     {
