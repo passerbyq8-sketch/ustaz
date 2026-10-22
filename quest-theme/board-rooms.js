@@ -146,7 +146,7 @@
         const responses = '<section class="j-form-card j-board-room-submissions" aria-label="إجابات الفرق"><h2>إجابات الفرق</h2>' + s.teams.map((team, i) => {
           const answer = s.question.submissions.find(a => a.team === i), row = global.DATA.qs[s.question.index];
           const text = !answer ? 'بانتظار جواب الفريق' : answer.pos === undefined ? esc(answer.text) : '<span data-choice="' + answer.pos + '">' + esc(row[4][answer.pos]) + '</span>';
-          return '<p class="j-note" data-board-response="' + i + '"><b>' + esc(team.name) + '</b> · ' + text + '</p>';
+          return '<p data-board-response="' + i + '"><b>' + esc(team.name) + '</b> · ' + text + '</p>';
         }).join('') + '</section>';
         question = question.replace('<p class="j-muted">تشاوروا… والقرار لكم</p>', responses);
         if (!s.canAnswer || !S.connected) question = question.replace(/data-action="answer"/g, 'data-action="answer" disabled');
