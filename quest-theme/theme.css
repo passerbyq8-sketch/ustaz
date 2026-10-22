@@ -316,3 +316,19 @@
 .ezik-treasure-theme .journey-app:is([data-game=hanna],[data-game=harb]) .j-room-entry-choice b{display:block;font-size:20px;line-height:1.5}
 .ezik-treasure-theme .journey-app:is([data-game=hanna],[data-game=harb]) .j-room-entry-choice small{display:block;font-size:13px;margin-top:5px}
 .ezik-treasure-theme .journey-app:is([data-game=hanna],[data-game=harb]) .j-room-entry-change{margin-bottom:14px;font-size:13px}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-setup{max-width:620px;margin-inline:auto}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-setting{min-width:0;margin-block:20px;padding-top:18px}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-setting legend{padding-inline:8px;margin:0}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-toggle{display:flex;align-items:center;justify-content:space-between;gap:24px;min-width:220px}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-category-help{text-align:center;margin-top:12px}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-self-answer{font-size:20px;margin-block:22px}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-custom{margin-top:18px}
+.ezik-treasure-theme .journey-app[data-game=test] .j-quiz-custom .j-input{max-width:240px}
+.ezik-treasure-theme .journey-app[data-game=board] .j-board-room-entry .j-room-entry-choices{display:grid;gap:14px;margin-top:20px}
+.ezik-treasure-theme .journey-app[data-game=board] .j-board-room-entry .j-room-entry-choice{display:flex;align-items:center;gap:17px;width:100%;min-height:120px;margin:0;text-align:start}
+.ezik-treasure-theme .journey-app[data-game=board] .j-board-room-entry .j-room-entry-icon{display:block;flex:none;width:52px;height:52px;color:var(--journey-gold)}
+.ezik-treasure-theme .journey-app[data-game=board] .j-board-room-entry .j-room-entry-choice b{display:block;font-size:20px;line-height:1.5}
+.ezik-treasure-theme .journey-app[data-game=board] .j-board-room-entry .j-room-entry-choice small{display:block;font-size:13px;margin-top:5px}
+.ezik-treasure-theme .journey-app[data-game=board] .j-board-room-code{display:block;font-size:34px;font-weight:700;line-height:1.4;letter-spacing:6px}
+.ezik-treasure-theme .journey-app[data-game=board] .j-board-room-question{max-width:760px;margin:20px auto;padding:24px}
+.ezik-treasure-theme .journey-app[data-game=board] .j-board-room-card{max-width:760px;margin-inline:auto}

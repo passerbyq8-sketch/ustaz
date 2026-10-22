@@ -64,7 +64,9 @@ async function open(game, width = 390, offline = false, suffix = '') {
 }
 async function click(page, selector) {
   const target = typeof selector === 'string' ? page.locator(selector).first() : selector;
-  await target.scrollIntoViewIfNeeded(); await page.waitForTimeout(235); await target.click();
+  await target.scrollIntoViewIfNeeded();
+  if (page.quizClockFrozen) await page.clock.runFor(235); else await page.waitForTimeout(235);
+  await target.click();
 }
 async function shot(page, name) {
   await page.evaluate(() => { window.scrollTo(0, 0); document.getAnimations().forEach(animation => animation.finish()); });
@@ -91,37 +93,45 @@ async function protectedScreens() {
     const readBase = file => require('node:child_process').execFileSync('git', ['show', baseCommit + ':' + file], { cwd: root, encoding: 'utf8' }).replace(/\r\n/g, '\n');
     const read = file => fs.readFileSync(path.join(root, file), 'utf8').replace(/\r\n/g, '\n');
     const before = readBase('quest-theme/journey.js'), after = read('quest-theme/journey.js');
-    // Only the two room games change setup. Protected games retain exact PNGs.
-    for (const name of ['categories', 'home', 'hannaLock', 'hannaBeat', 'hannaReveal', 'settleHannaTile', 'judgeHanna', 'quizStart', 'quizQuestion', 'diveView', 'beginDiveGame']) {
+    // Quiz setup changes; every other game's screens and scoring stay intact.
+    for (const name of ['categories', 'settings', 'home', 'roomEntry', 'roomJoinScreen', 'roomCodeScreen', 'hannaLock', 'hannaBeat', 'hannaReveal', 'settleHannaTile', 'judgeHanna', 'quizResults', 'diveView', 'beginDiveGame'].filter(name => !process.argv.includes('--board-protected') || name !== 'settings')) {
       const pattern = new RegExp('  function ' + name + '\\([^]*?\\n  }');
       // hannaBeat is deliberately a single-line function.
       const source = text => name === 'hannaBeat' ? text.split('\n').find(line => line.startsWith('  function hannaBeat(')) : text.match(pattern)?.[0];
       check(name + ': original implementation unchanged', source(after), source(before));
     }
-    for (const file of ['quest-theme/model.js', 'quest-board.html', 'quest-harb.html', 'quest-sw.js']) check(file + ': original file unchanged', read(file), readBase(file));
+    for (const file of ['quest-theme/model.js', 'quest-board.html', 'quest-harb.html', 'quest-ghaws.html', 'hanna-laha/index.html', 'quest-sw.js'].filter(file => !process.argv.includes('--board-protected') || !['quest-board.html','quest-sw.js'].includes(file))) {
+      const normalize = text => text.replace(/((?:journey\.js|theme\.css)\?v=)202610(?:21-(?:room1|identity2)|22-quiz2)/g, '$1SCREEN');
+      check(file + ': original file unchanged except versioned screen asset URLs', normalize(read(file)), normalize(readBase(file)));
+    }
     const theme = read('quest-theme/theme.css'), oldTheme = readBase('quest-theme/theme.css');
     check('theme.css: every original line preserved', theme.startsWith(oldTheme));
     const added = theme.slice(oldTheme.length);
     check('theme.css: no new color literals', !/#[\da-f]{3,8}\b|\b(?:rgb|hsl)a?\(/i.test(added));
-    check('theme.css: only scoped new screen classes', added.split('\n').filter(line => line.includes('{')).every(line => /^\.ezik-treasure-theme \.journey-app\[data-game=(hanna|test)\] \.j-(hanna|quiz)-/.test(line) || /^\.ezik-treasure-theme \.journey-app:is\(\[data-game=hanna\],\[data-game=harb\]\) \.j-room-(flow|entry)-/.test(line)));
+    check('theme.css: only scoped new screen classes', added.split('\n').filter(line => line.includes('{')).every(line => /^\.ezik-treasure-theme \.journey-app\[data-game=(hanna|test)\] \.j-(hanna|quiz)-/.test(line) || /^\.ezik-treasure-theme \.journey-app:is\(\[data-game=hanna\],\[data-game=harb\]\) \.j-room-(flow|entry)-/.test(line) || process.argv.includes('--board-protected') && /^\.ezik-treasure-theme \.journey-app\[data-game=board\] \.j-board-room-/.test(line)));
   }
   for (const width of [390, 1280]) {
     for (const game of ['board', 'harb', 'hanna', 'ghaws']) {
       const { page, context } = await open(game, width);
+      if (game === 'board' && mode === 'after' && process.argv.includes('--board-protected')) await click(page, '[data-action="single-device"]');
+      const entry = await shot(page, `${mode}-${game}-entry-${width}`);
+      if (mode === 'after') check(`${game} entry ${width}: identical PNG`, entry.equals(fs.readFileSync(path.join(out, `before-${game}-entry-${width}.png`))));
       await setup(page, false);
       const settings = await shot(page, `${mode}-${game}-settings-${width}`);
-      if (mode === 'after' && !['hanna', 'harb'].includes(game)) check(`${game} settings ${width}: identical PNG`, settings.equals(fs.readFileSync(path.join(out, `before-${game}-settings-${width}.png`))));
-      if (game !== 'hanna') {
+      if (mode === 'after') check(`${game} settings ${width}: identical PNG`, settings.equals(fs.readFileSync(path.join(out, `before-${game}-settings-${width}.png`))));
+      {
         await click(page, '[data-action="start"]');
         const play = await shot(page, `${mode}-${game}-play-${width}`);
         if (mode === 'after') check(`${game} play ${width}: identical PNG`, play.equals(fs.readFileSync(path.join(out, `before-${game}-play-${width}.png`))));
-        if (game === 'board') {
+        if (game === 'board' || game === 'hanna') {
           await click(page, '[data-action="tile"]');
           const question = await shot(page, `${mode}-${game}-question-${width}`);
           if (mode === 'after') check(`${game} question ${width}: identical PNG`, question.equals(fs.readFileSync(path.join(out, `before-${game}-question-${width}.png`))));
-          await click(page, '[data-action="reveal-answer"]');
-          await click(page, '[data-action="award"][data-team="0"]');
-          check(`${game} native points ${width}`, await page.evaluate(() => KunuzJourney.state.teams[0].score), 200);
+          if (game === 'board') {
+            await click(page, '[data-action="reveal-answer"]');
+            await click(page, '[data-action="award"][data-team="0"]');
+            check(`${game} native points ${width}`, await page.evaluate(() => KunuzJourney.state.teams[0].score), 200);
+          }
         }
         if (game === 'ghaws') {
           await click(page, '[data-action="shell"]');
@@ -131,19 +141,6 @@ async function protectedScreens() {
       }
       await context.close();
     }
-    const quizPage = await open('test', width);
-    for (const state of ['start', 'question', 'answer']) {
-      if (state === 'question') await click(quizPage.page, '[data-action="quiz-start"]');
-      if (state === 'answer') {
-        // Freeze only the test clock so the automatic advance cannot race a shot.
-        await quizPage.page.clock.install();
-        await quizPage.page.clock.pauseAt(new Date(Date.now() + 100));
-        await click(quizPage.page, '[data-action="answer"]');
-      }
-      const image = await shot(quizPage.page, `${mode}-quiz-${state}-${width}`);
-      if (mode === 'after') check(`quiz ${state} ${width}: identical PNG`, image.equals(fs.readFileSync(path.join(out, `before-quiz-${state}-${width}.png`))));
-    }
-    await quizPage.context.close();
     const { page, context } = await open('hub', width);
     const hub = await shot(page, `${mode}-hub-${width}`);
     if (mode === 'after') check(`hub game cards ${width}: identical PNG`, hub.equals(fs.readFileSync(path.join(out, `before-hub-${width}.png`))));
@@ -228,50 +225,169 @@ async function hanna() {
 }
 async function quiz() {
   const { page, context } = await open('test', gameWidth);
-  check('Quiz opens its own start screen', (await current(page)).stage, 'quiz-start');
-  check('Quiz start has no category/team/time/difficulty controls', await page.locator('.j-cat-pick,.j-team-row,[data-field="time"],[data-field="difficulty"],.j-stepper').count(), 0);
-  await shot(page, 'quiz-start-390');
-  for (const count of [5, 10]) {
+  const at = (p, stage) => p.waitForFunction(value => KunuzJourney.state.stage === value, stage);
+  const snapshot = p => p.evaluate(() => ({ cats: [...KunuzJourney.state.cats], count: KunuzJourney.state.quizCount, time: KunuzJourney.state.settings.time, options: KunuzJourney.state.settings.options }));
+  const counts = p => p.locator('[data-action="quiz-count"]').evaluateAll(nodes => nodes.map(node => +node.dataset.count));
+  const arabic = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+  async function freeze(p) { await p.clock.install(); await p.clock.pauseAt(new Date(Date.now() + 100)); p.quizClockFrozen = true; }
+  async function settingsBack(p) {
+    await p.goBack(); await p.locator('[data-action="dialog-yes"]').waitFor();
+    await click(p, '[data-action="dialog-yes"]'); await at(p, 'settings');
+  }
+  check('Quiz begins with categories as an independent history entry', await page.evaluate(() => ({ stage: KunuzJourney.state.stage, history: history.state.stage })), {stage: 'categories', history: 'categories'});
+  check('Quiz is single-device with no room, team or difficulty controls', await page.locator('.j-room-entry-choice,.j-team-row,[data-field="room"],[data-field="difficulty"]').count(), 0);
+  check('Quiz cannot advance without a category', await page.locator('[data-action="next-setup"]').isDisabled());
+  await page.locator('[data-action="next-setup"]').evaluate(node => node.click());
+  check('Disabled Next keeps categories', (await current(page)).stage, 'categories');
+  check('The explanation is below Next and linked accessibly', await page.locator('#j-quiz-categories-help').evaluate(node => ({ text: node.textContent, previous: node.previousElementSibling?.querySelector('button')?.getAttribute('aria-describedby') })), {text: 'اختاروا فئة واحدة على الأقل للمتابعة.', previous: 'j-quiz-categories-help'});
+  await shot(page, 'quiz-categories-empty-390');
+  record.categoryCounts = await page.evaluate(() => KunuzModel.categories().map(c => ({...c, quizAvailable: DATA.qs.filter((q,i) => KunuzModel.live(i) && q[0] === c.index && q[4].length === 4).length})));
+  fs.writeFileSync(path.join(out, 'category-counts-browser.json'), JSON.stringify(record.categoryCounts, null, 2));
+  await click(page, '[data-action="cat"][data-cat="0"]');
+  await shot(page, 'quiz-categories-390');
+  await click(page, '[data-action="next-setup"]'); await at(page, 'settings');
+  check('Setup has exactly the three requested controls', await page.locator('.j-quiz-setting legend').allTextContents(), ['الوقت لكل سؤال', 'عدد الأسئلة', 'طريقة الإجابة']);
+  check('Setup offers all original timer values', await page.locator('[data-field="time"]').evaluateAll(nodes => nodes.filter(node => node.dataset.value !== 'custom').map(node => +node.dataset.value)), [0,10,15,20,30,45,60]);
+  check('Setup offers all authorized question counts', await counts(page), [5,10,15,20]);
+  check('Choices are initially shown', await page.getByRole('switch').getAttribute('aria-checked'), 'true');
+  await shot(page, 'quiz-settings-390');
+  await freeze(page);
+  await click(page, '[data-action="quiz-count"][data-count="20"]');
+  for (const seconds of [0,10,15,20,30,45,60]) {
+    await click(page, `[data-field="time"][data-value="${seconds}"]`);
+    const saved = await snapshot(page);
+    await click(page, '[data-action="quiz-start"]');
+    check('Requested per-question duration ' + seconds, await page.evaluate(() => KunuzJourney.state.question.duration), seconds * 1000);
+    check('One category can reserve twenty distinct questions ' + seconds, await page.evaluate(() => ({ size: new Set(KunuzJourney.state.slots.map(s => s.index)).size, cats: [...new Set(KunuzJourney.state.slots.map(s => s.cat))], players: KunuzJourney.state.teams.length })), { size: 20, cats: [0], players: 1 });
+    const first = await current(page);
+    await page.clock.runFor(seconds ? seconds * 1000 + 100 : 120000);
+    check('Timer behavior ' + seconds, (await current(page)).q.settled, !!seconds);
+    if (seconds) {
+      check('Timeout is wrong ' + seconds, await page.evaluate(() => ({ timedOut: KunuzJourney.state.question.timedOut, correct: KunuzJourney.state.question.correct })), {timedOut: true, correct: false});
+      await page.clock.runFor(1000);
+      check('The next question gets a full timer ' + seconds, await page.evaluate(() => KunuzJourney.state.question.duration), seconds * 1000);
+      check('Timeout advances without repetition ' + seconds, (await current(page)).q.index !== first.q.index);
+    } else {
+      check('No time limit has no running interval', await page.evaluate(() => KunuzJourney.state.timer), null);
+      check('Unlimited question stays open', (await current(page)).q.index, first.q.index);
+    }
+    const paused = (await current(page)).q.index;
+    await settingsBack(page);
+    check('Back retains all settings ' + seconds, await snapshot(page), saved);
+    await page.clock.runFor(120000);
+    check('Back pauses the existing question ' + seconds, (await current(page)).q.index, paused);
+    check('Back clears timers and auto advance ' + seconds, await page.evaluate(() => [KunuzJourney.state.timer, KunuzJourney.state.quizAdvance]), [null,null]);
+    await page.goForward(); await at(page, 'test-question');
+    check('Forward restores the same question ' + seconds, (await current(page)).q.index, paused);
+    await page.goBack(); await page.locator('[data-action="dialog-no"]').waitFor();
+    await click(page, '[data-action="dialog-no"]'); await at(page, 'test-question');
+    check('Declining Back retains the play history entry ' + seconds, await page.evaluate(() => history.state.stage), 'test-question');
+    await settingsBack(page);
+  }
+  await click(page, '[data-field="time"][data-value="0"]');
+  const previouslySeen = new Set();
+  for (const count of [5,10,15,20]) {
     await click(page, `[data-action="quiz-count"][data-count="${count}"]`);
     await click(page, '[data-action="quiz-start"]');
-    check('Quiz starts directly at the question ' + count, (await current(page)).stage, 'test-question');
-    check('Quiz uses requested count ' + count, (await current(page)).slots, count);
-    check('Quiz has exactly one player ' + count, (await current(page)).scores.length, 1);
-    check('Quiz reserves from every available category ' + count, await page.evaluate(() => JSON.stringify(KunuzJourney.state.cats) === JSON.stringify(KunuzModel.categories().filter(c => c.count >= KunuzModel.PER_CATEGORY).map(c => c.index))));
-    check('Quiz has no timer or teams ' + count, await page.locator('.j-timer,.j-timer-text,.j-teambar,.j-stepper').count(), 0);
+    check('Requested count is exact ' + count, (await current(page)).slots, count);
     let correct = 0; const seen = new Set();
     for (let question = 0; question < count; question++) {
       const state = await current(page), right = question % 3 !== 1;
-      check('Quiz unique question ' + count + ':' + question, !seen.has(state.q.index)); seen.add(state.q.index);
-      check('Quiz four answers ' + count + ':' + question, await page.locator('[data-action="answer"]').count(), 4);
-      check('Quiz progress ' + count + ':' + question, await page.locator('[role="progressbar"]').getAttribute('aria-valuenow'), String(question));
-      if (question === 0 && count === 5) await shot(page, 'quiz-question-390');
-      const start = Date.now();
+      check('No repetition in game ' + count + ':' + question, !seen.has(state.q.index)); seen.add(state.q.index);
+      check('Unseen questions precede replay across games ' + count + ':' + question, !previouslySeen.has(state.q.index)); previouslySeen.add(state.q.index);
+      check('Four choices remain ' + count + ':' + question, await page.locator('[data-action="answer"]').count(), 4);
+      check('Original progress count ' + count + ':' + question, await page.locator('[role="progressbar"]').getAttribute('aria-valuenow'), String(question));
+      if (!question && count === 5) await shot(page, 'quiz-question-choices-390');
       await click(page, `[data-answer="${right ? state.q.correct : (state.q.correct + 1) % state.q.choices}"]`);
       if (right) correct++;
-      check('Quiz settles on one tap ' + count + ':' + question, (await current(page)).q.settled);
-      check('Quiz immediate answer color ' + count + ':' + question, await page.locator('.j-correct').count(), 1);
-      if (!right) check('Quiz wrong answer color ' + count + ':' + question, await page.locator('.j-wrong').count(), 1);
-      check('Quiz locks all choices ' + count + ':' + question, await page.locator('[data-action="answer"]:not(:disabled)').count(), 0);
-      if (question === 1 && count === 5) await shot(page, 'quiz-answer-390');
-      await page.waitForFunction(index => KunuzJourney.state.question?.index !== index, state.q.index);
-      check('Quiz advances after about 0.9 seconds ' + count + ':' + question, Date.now() - start >= 850);
+      check('A single tap settles the answer ' + count + ':' + question, (await current(page)).q.settled);
+      check('Answer feedback and locked buttons ' + count + ':' + question, { right: await page.locator('.j-correct').count(), enabled: await page.locator('[data-action="answer"]:not(:disabled)').count() }, {right: 1, enabled: 0});
+      if (!right) check('Wrong choice is marked ' + count + ':' + question, await page.locator('.j-wrong').count(), 1);
+      await page.clock.runFor(899);
+      check('Auto advance waits 900ms ' + count + ':' + question, (await current(page)).q.index, state.q.index);
+      await page.clock.runFor(1);
     }
-    check('Quiz ends ' + count, (await current(page)).stage, 'results');
-    check('Quiz result counts correct answers ' + count, await page.locator('.j-quiz-score').innerText(), `${String(correct).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d])} من ${String(count).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d])}`);
+    await at(page, 'results');
+    check('Results are an independent history entry ' + count, await page.evaluate(() => history.state.stage), 'results');
+    check('Score counts correct answers ' + count, await page.locator('.j-quiz-score').innerText(), `${arabic(correct)} من ${arabic(count)}`);
     if (count === 5) await shot(page, 'quiz-results-390');
-    await click(page, '[data-action="quiz-again"]');
-    check('Quiz replay resets to start ' + count, (await current(page)).stage, 'quiz-start');
+    await page.goBack(); await at(page, 'test-question');
+    check('Results Back returns to final question ' + count, await page.locator('.j-quiz-position').innerText(), `السؤال ${arabic(count)} من ${arabic(count)}`);
+    await page.goBack(); await at(page, 'settings');
+    check('Question Back returns exactly to settings ' + count, (await snapshot(page)).count, count);
+    await page.goForward(); await at(page, 'test-question');
+    await page.goForward(); await at(page, 'results');
+    await click(page, '[data-action="quiz-again"]'); await at(page, 'categories');
+    check('Replay keeps chosen categories ' + count, (await current(page)).cats, [0]);
+    await click(page, '[data-action="next-setup"]');
+    check('Replay keeps every setup choice ' + count, await snapshot(page), {cats: [0], count, time: 0, options: 'shown'});
   }
+  await click(page, '[data-action="back"]'); await at(page, 'categories');
+  await click(page, '[data-action="cat"][data-cat="1"]');
+  await click(page, '[data-action="next-setup"]');
   await click(page, '[data-action="quiz-start"]');
-  const leaving = await current(page);
-  await click(page, `[data-answer="${leaving.q.correct}"]`);
-  await click(page, '[data-action="back"]');
-  await click(page, '[data-action="dialog-yes"]');
-  await page.waitForTimeout(1100);
-  check('Quiz leaving cancels auto advance', (await current(page)).stage, 'quiz-start');
-  check('Quiz leaving clears the scheduled callback', await page.evaluate(() => KunuzJourney.state.quizAdvance), null);
+  check('Multiple selected categories supply the game', await page.evaluate(() => [...new Set(KunuzJourney.state.slots.map(s => s.cat))].sort()), [0,1]);
+  await settingsBack(page); await page.goBack(); await at(page, 'categories');
+  await click(page, '[data-action="quiz-all"]');
+  check('All Categories selects every available category without a ceiling', (await current(page)).cats, record.categoryCounts.filter(c => c.quizAvailable > 0).map(c => c.index));
+  await click(page, '[data-action="next-setup"]'); await click(page, '[data-action="quiz-start"]');
+  check('All-category game has twenty unique questions', await page.evaluate(() => new Set(KunuzJourney.state.slots.map(s => s.index)).size), 20);
+  await settingsBack(page); await page.goBack(); await at(page, 'categories');
+  const retained = await snapshot(page);
+  await page.clock.resume(); page.quizClockFrozen = false;
+  await page.goBack(); await page.waitForURL('**/quest.html');
+  await page.waitForFunction(() => window.KunuzJourney?.state.ready && KunuzJourney.state.game === 'hub');
+  check('Browser/Android Back from categories reaches the hub', new URL(page.url()).pathname, '/quest.html');
+  await page.goForward(); await page.waitForFunction(() => window.KunuzJourney?.state.ready && KunuzJourney.state.game === 'test');
+  check('Forward from hub keeps the selection', (await snapshot(page)).cats, retained.cats);
   await context.close();
+
+  const hidden = await open('test', gameWidth);
+  await click(hidden.page, '[data-action="cat"][data-cat="0"]'); await click(hidden.page, '[data-action="next-setup"]');
+  await click(hidden.page, '[data-action="quiz-options"]');
+  check('Show choices switch can be turned off', await hidden.page.getByRole('switch').getAttribute('aria-checked'), 'false');
+  await shot(hidden.page, 'quiz-settings-hidden-390'); await freeze(hidden.page);
+  await click(hidden.page, '[data-action="quiz-start"]');
+  let rightCount = 0;
+  for (let i = 0; i < 5; i++) {
+    check('Hidden mode never exposes choices before reveal ' + i, await hidden.page.locator('[data-action="answer"],[data-action="judge-yes"],[data-action="judge-no"]').count(), 0);
+    if (!i) await shot(hidden.page, 'quiz-question-hidden-before-390');
+    await click(hidden.page, '[data-action="reveal-answer"]');
+    check('Reveal keeps choices hidden ' + i, await hidden.page.locator('[data-action="answer"]').count(), 0);
+    check('Reveal shows the original correct answer ' + i, await hidden.page.locator('.j-quiz-self-answer').innerText(), await hidden.page.evaluate(() => {const q = DATA.qs[KunuzJourney.state.question.index]; return q[4][q[5]];}));
+    check('Self assessment labels ' + i, await hidden.page.locator('[data-action="judge-yes"],[data-action="judge-no"]').allTextContents(), ['عرفتها','ما عرفتها']);
+    if (!i) await shot(hidden.page, 'quiz-question-hidden-after-390');
+    const right = i % 2 === 0; if (right) rightCount++;
+    await click(hidden.page, `[data-action="judge-${right ? 'yes' : 'no'}"]`);
+    check('Self assessment uses existing settle result ' + i, await hidden.page.evaluate(() => KunuzJourney.state.question.correct), right);
+    await hidden.page.clock.runFor(900);
+  }
+  check('Hidden result counts known answers', await hidden.page.locator('.j-quiz-score').innerText(), `${arabic(rightCount)} من ٥`);
+  await click(hidden.page, '[data-action="quiz-again"]'); await at(hidden.page, 'categories'); await click(hidden.page, '[data-action="next-setup"]');
+  check('Replay retains hidden choice and timer', await snapshot(hidden.page), {cats: [0], count: 5, time: 0, options: 'hidden'});
+  await hidden.context.close();
+
+  const limited = await open('test', gameWidth);
+  const small = record.categoryCounts.filter(c => c.quizAvailable > 0).sort((a,b) => a.quizAvailable-b.quizAvailable)[0];
+  await click(limited.page, `[data-action="cat"][data-cat="${small.index}"]`); await click(limited.page, '[data-action="next-setup"]');
+  check('Small category caps question counts to its actual playable pool', await counts(limited.page), [5,10,15,20].filter(n => n <= small.quizAvailable));
+  await click(limited.page, '[data-action="back"]'); await at(limited.page, 'categories');
+  await click(limited.page, `[data-action="cat"][data-cat="${small.index}"]`); await click(limited.page, '[data-action="cat"][data-cat="0"]');
+  await click(limited.page, '[data-action="next-setup"]'); await click(limited.page, '[data-action="quiz-count"][data-count="20"]');
+  await limited.page.goBack(); await at(limited.page, 'categories');
+  await click(limited.page, '[data-action="cat"][data-cat="0"]'); await click(limited.page, `[data-action="cat"][data-cat="${small.index}"]`);
+  await limited.page.goForward(); await at(limited.page, 'settings');
+  check('Browser Forward clamps a count invalidated by category changes', (await snapshot(limited.page)).count, 5);
+  await limited.page.goBack(); await at(limited.page, 'categories');
+  // A local in-memory fixture covers the below-five boundary without editing any bank file.
+  await limited.page.evaluate(cat => { let kept = 0; for (const q of DATA.qs) if (q[0] === cat && q[2] !== 0 && q[4].length === 4) { if (++kept > 3) q[2] = 0; } }, small.index);
+  await click(limited.page, '[data-action="next-setup"]');
+  check('Fewer than five offers only the available count', await counts(limited.page), [3]);
+  check('Changing categories clamps an invalid saved count', (await snapshot(limited.page)).count, 3);
+  await click(limited.page, '[data-action="quiz-start"]');
+  check('Below-five game reserves exactly three distinct questions', await limited.page.evaluate(() => ({total: KunuzJourney.state.slots.length, distinct: new Set(KunuzJourney.state.slots.map(s => s.index)).size})), {total: 3, distinct: 3});
+  await limited.context.close();
+  check('Quiz tests never contact a room or external service', record.blockedExternal, []);
 }
 async function hannaNavigation() {
   const { page, context } = await open('hanna', gameWidth);
@@ -316,8 +432,26 @@ async function hannaNavigation() {
   check('Hanna abandoning keeps all scores', (await current(page)).scores, [100, 200]);
   await context.close();
 }
+async function quizNavigation() {
+  const {page,context} = await open('test', gameWidth);
+  const info = () => page.evaluate(() => ({url:location.href, history:history.state, length:history.length, game:window.KunuzJourney?.state.game, stage:window.KunuzJourney?.state.stage, ready:window.KunuzJourney?.state.ready}));
+  record.navigation = [await info()];
+  await click(page, '[data-action="cat"][data-cat="0"]');
+  await click(page, '[data-action="next-setup"]');
+  await page.goBack(); await page.waitForFunction(() => KunuzJourney.state.stage === 'categories');
+  record.navigation.push(await info());
+  await page.goBack(); await page.waitForFunction(() => window.KunuzJourney?.state.ready && KunuzJourney.state.game === 'hub');
+  record.navigation.push(await info());
+  await page.goForward(); await page.waitForFunction(() => window.KunuzJourney?.state.ready && KunuzJourney.state.game === 'test');
+  record.navigation.push(await info());
+  check('Hub Forward returns to quiz categories', (await info()).game, 'test');
+  check('Hub Forward retains selected categories', (await current(page)).cats, [0]);
+  await page.goForward(); await page.waitForFunction(() => KunuzJourney.state.stage === 'settings');
+  check('A second Forward restores setup as its own step', (await current(page)).cats, [0]);
+  await context.close();
+}
 async function offlineScreens() {
-  for (const game of ['hanna', 'test']) {
+  for (const game of ['hanna', 'test', 'board']) {
     const { page, context } = await open(game, 390, true);
     check(game + ' first visit prepares offline assets', await page.evaluate(() => KunuzJourney.diagnostics.offlineReady));
     // IndexedDB writes performed by the worker finish after the response body.
@@ -329,8 +463,8 @@ async function offlineScreens() {
       record.offlineFailure = await page.evaluate(() => ({ stage: window.KunuzJourney?.state.stage, error: window.KunuzJourney?.state.error, boot: window.KunuzThemeBoot?.status, bank: !!window.DATA, visual: !!window.KZV, controller: navigator.serviceWorker.controller?.scriptURL }));
       throw error;
     }
-    check(game + ' new screen opens offline', (await current(page)).stage, game === 'test' ? 'quiz-start' : 'room-entry');
-    if (game === 'test') await click(page, '[data-action="quiz-start"]'); else { await setup(page); await click(page, '.j-hanna-category:not(:disabled)'); }
+    check(game + ' new screen opens offline', (await current(page)).stage, game === 'test' ? 'categories' : 'room-entry');
+    if (game === 'test') { await click(page, '[data-action="cat"][data-cat="0"]'); await click(page, '[data-action="next-setup"]'); await click(page, '[data-action="quiz-start"]'); } else { await setup(page); await click(page, game === 'board' ? '[data-action="tile"]' : '.j-hanna-category:not(:disabled)'); }
     check(game + ' question opens offline', !!(await current(page)).q);
     check(game + ' offline question has four choices', await page.locator('[data-action="answer"]').count(), 4);
     await context.close();
@@ -412,8 +546,7 @@ async function roomFlow() {
     await context.close();
 
     const direct = await open(game, gameWidth, false, '?rooms=1');
-    check(game + ': direct rooms link bypasses the first screen', (await current(direct.page)).stage, 'categories');
-    check(game + ': direct rooms link retains room mode', await direct.page.evaluate(() => KunuzJourney.state.settings.room));
+    check(game + ': legacy rooms preference starts with the play-mode choice', (await current(direct.page)).stage, 'room-entry');
     await direct.context.close();
   }
 
@@ -502,7 +635,12 @@ async function roomNumberRegression() {
   });
   const atSettings = () => page.waitForFunction(() => KunuzJourney.state.stage === 'settings');
   await setup(page, false);
-  check('Direct rooms link retains room mode', await page.locator('.j-room-flow-card').count(), 1);
+  await page.evaluate(() => {
+    const m = KunuzJourney.state;
+    sessionStorage.setItem('kunuz_journey_room_setup_v1', JSON.stringify({game:'hanna',cats:m.cats,teams:m.teams,settings:{...m.settings,room:true},returnFromRoom:true,savedAt:Date.now()}));
+  });
+  await page.goto(base + '/hanna-laha/?setup=1'); await atSettings();
+  check('Fresh return from a room restores the validated room setup', await page.locator('.j-room-flow-card').count(), 1);
   await click(page, '[data-action="add-team"]');
   await page.locator('[data-team-name="0"]').fill('فريق اللؤلؤ');
   await page.locator('[data-team-name="1"]').fill('فريق المرجان');
@@ -620,6 +758,9 @@ async function roomNumberRegression() {
 
   const war = await open('harb', gameWidth, false, '?rooms=1');
   await setup(war.page, false);
+  await click(war.page, '[data-action="change-play-mode"]');
+  await click(war.page, '[data-action="create-room"]');
+  await click(war.page, '[data-action="next-setup"]');
   check('Island War room card reports automatic numbering', await war.page.locator('.j-room-flow-card .j-note').innerText(), 'الرقم تلقائي');
   check('Island War has no unsupported number selection button', await war.page.locator('[data-action="room-code-open"], [data-room-draft]').count(), 0);
   check('Island War room card precedes team setup', await war.page.locator('#journey-main > section').evaluateAll(nodes => nodes.slice(0, 2).map(node => node.querySelector('h2')?.textContent)), ['الغرفة', 'الفرق']);
@@ -658,14 +799,107 @@ async function legacyGames() {
     check(game + ' existing complete-game browser acceptance: ' + output.trim(), status, 0);
   }
 }
+async function quizExtras() {
+  const {page,context} = await open('test');
+  const at = stage => page.waitForFunction(s => KunuzJourney.state.stage === s, stage);
+  const fill = (kind,value) => page.locator('[data-quiz-number="'+kind+'"]').fill(value);
+  const error = kind => page.locator('#j-quiz-'+kind+'-help').innerText();
+  const state = () => page.evaluate(() => {const m=KunuzJourney.state;return {cats:m.cats,count:m.quizCount,countDraft:m.quizCountDraft,customCount:m.quizCustomCount,timeDraft:m.quizTimeDraft,customTime:m.settings.custom,options:m.settings.options};});
+  await click(page,'[data-action="quiz-all"]');
+  const all = await page.evaluate(() => KunuzJourney.state.cats.length);
+  await click(page,'[data-action="cat"][data-cat="0"]');
+  check('All then one category removes only that category',await page.evaluate(() => KunuzJourney.state.cats.length),all-1);
+  await click(page,'[data-action="quiz-clear"]');
+  check('Clear All leaves no selections',await page.evaluate(() => KunuzJourney.state.cats.length),0);
+  check('Clear All disables Next',await page.locator('[data-action="next-setup"]').isDisabled());
+  check('Clear All explains the disabled action',await page.locator('#j-quiz-categories-help').innerText(),'اختاروا فئة واحدة على الأقل للمتابعة.');
+  await shot(page,'quiz-clear-all-390');
+  const smallest = await page.evaluate(() => KunuzModel.categories().map(c => ({cat:c.index,n:DATA.qs.filter((q,i)=>KunuzModel.live(i)&&q[0]===c.index&&q[4].length===4).length})).filter(c=>c.n).sort((a,b)=>a.n-b.n)[0]);
+  await click(page,'[data-action="cat"][data-cat="'+smallest.cat+'"]');await click(page,'[data-action="next-setup"]');
+  await fill('count','3');
+  check('Custom count is active alone',await page.locator('[data-action="quiz-count"][aria-pressed="true"]').count(),0);
+  await click(page,'[data-action="quiz-start"]');await at('test-question');
+  check('Arbitrary positive count reserves exactly three',await page.evaluate(()=>KunuzJourney.state.slots.length),3);
+  await page.goBack();await click(page,'[data-action="dialog-yes"]');await at('settings');
+  await fill('count',String(smallest.n+100));
+  check('Oversized count caps to selected available questions',(await state()).count,smallest.n);
+  check('Capping explains the exact availability',(await error('count')).includes(String(smallest.n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d])));
+  await click(page,'[data-action="quiz-start"]');await at('test-question');
+  check('Capped game has distinct questions only',await page.evaluate(()=>[KunuzJourney.state.slots.length,new Set(KunuzJourney.state.slots.map(s=>s.index)).size]),[smallest.n,smallest.n]);
+  await page.goBack();await click(page,'[data-action="dialog-yes"]');await at('settings');
+  for(const value of ['', 'abc', '0']) {
+    await fill('count',value);await page.locator('[data-quiz-number="count"]').focus();
+    await click(page,'[data-action="quiz-start"]');
+    check('Invalid custom count blocks start: '+value,await page.evaluate(()=>KunuzJourney.state.stage),'settings');
+    check('Invalid custom count has required inline error: '+value,await error('count'),'اكتب عددًا أو اختر واحدًا');
+  }
+  await shot(page,'quiz-count-error-390');
+  await fill('count','7');await click(page,'[data-action="quiz-count"][data-count="5"]');
+  check('Preset count deactivates custom count',(await state()).customCount,false);
+  check('Exactly one count preset is active',await page.locator('[data-action="quiz-count"][aria-pressed="true"]').count(),1);
+  await fill('time','75');
+  check('Custom timer alone is selected',await page.locator('[data-field="time"][aria-pressed="true"]').evaluateAll(nodes=>nodes.map(n=>n.dataset.value)),['custom']);
+  await click(page,'[data-action="quiz-start"]');await at('test-question');
+  check('Custom seconds reach the question timer',await page.evaluate(()=>KunuzJourney.state.question.duration),75000);
+  await page.goBack();await click(page,'[data-action="dialog-yes"]');await at('settings');
+  for(const value of ['', '0','3601','999999','abc']) {
+    await fill('time',value);await page.locator('[data-quiz-number="time"]').focus();await click(page,'[data-action="quiz-start"]');
+    check('Invalid custom time blocks start: '+value,await page.evaluate(()=>KunuzJourney.state.stage),'settings');
+    check('Invalid custom time has inline error: '+value,await error('time'),'اكتب وقتًا من ١ إلى ٣٦٠٠ ثانية');
+  }
+  await shot(page,'quiz-time-error-390');
+  for(const value of ['1','3600']) {await fill('time',value);await click(page,'[data-action="quiz-start"]');await at('test-question');check('Timer boundary accepted '+value,await page.evaluate(()=>KunuzJourney.state.question.duration),+value*1000);await page.goBack();await click(page,'[data-action="dialog-yes"]');await at('settings');}
+  await click(page,'[data-field="time"][data-value="0"]');
+  check('Unlimited has the requested label',await page.locator('[data-field="time"][data-value="0"]').innerText(),'بلا حد');
+  await click(page,'[data-action="quiz-start"]');await at('test-question');
+  check('Unlimited displays no timer',await page.locator('[data-timer-text],.j-timer').count(),0);
+  check('Unlimited installs no countdown',await page.evaluate(()=>KunuzJourney.state.timer),null);
+  await shot(page,'quiz-unlimited-question-390');
+  await page.goBack();await click(page,'[data-action="dialog-yes"]');await at('settings');
+  await fill('count','٣');await fill('time','۷۵');await click(page,'[data-action="quiz-options"]');
+  const retained=await state();check('Arabic digits normalize to ASCII',retained.countDraft,'3');
+  await page.goBack();await at('categories');await page.goForward();await at('settings');
+  check('Back and Forward retain custom modes and drafts',await state(),retained);
+  await shot(page,'quiz-custom-settings-390');
+  await page.reload();await at('categories');await click(page,'[data-action="next-setup"]');
+  check('Reload restores saved custom modes and drafts',await state(),retained);
+  await click(page,'[data-field="time"][data-value="0"]');await click(page,'[data-action="quiz-start"]');await at('test-question');
+  await page.clock.install();await page.clock.pauseAt(new Date(Date.now()+100));page.quizClockFrozen=true;
+  for(let i=0;i<3;i++) {await click(page,'[data-action="reveal-answer"]');await click(page,'[data-action="judge-yes"]');await page.clock.runFor(900);}
+  await at('results');const replay=await state();await click(page,'[data-action="quiz-again"]');await at('categories');await click(page,'[data-action="next-setup"]');
+  check('Replay retains categories, drafts and active switches',await state(),replay);
+  await context.close();
+}
+async function entryAudit() {
+  record.entryAudit=[];
+  for(const game of ['hanna','harb','board']) {
+    for(const kind of ['direct','hub','saved-history','stale-setup','legacy-rooms','reload-play']) {
+      const {page,context}=await open(game);
+      if(kind==='hub') {await page.goto(base+'/quest.html');await page.locator('.journey-app a[href="/'+routes[game]+'"]').click();}
+      else if(kind==='saved-history') {await page.evaluate(()=>{localStorage.setItem('hl-ezik.setup',JSON.stringify({categories:['quran'],timeSec:30}));history.replaceState({journey:true,step:1,stage:'categories',entryDraft:{cats:[0,1,2],teams:[{n:'أ'},{n:'ب'}],settings:{room:false}}},'');});await page.reload();}
+      else if(kind==='stale-setup') {await page.evaluate(game=>sessionStorage.setItem('kunuz_journey_room_setup_v1',JSON.stringify({game,cats:[0,1,2],teams:[{n:'أ'},{n:'ب'}],settings:{room:false}})),game);await page.goto(base+'/'+routes[game]+'?setup=1');}
+      else if(kind==='legacy-rooms') await page.goto(base+'/'+routes[game]+'?rooms=1');
+      else if(kind==='reload-play') {await setup(page);await page.reload();}
+      await page.waitForFunction(()=>window.KunuzJourney?.state.ready);
+      const actual=await page.evaluate(()=>KunuzJourney.state.stage),expected='room-entry';
+      record.entryAudit.push({game,kind,actual,expected,issue:actual!==expected});
+      if(mode!=='before')check(game+' entry '+kind,actual,expected);
+      await context.close();
+    }
+  }
+}
 (async () => {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   base = 'http://127.0.0.1:' + server.address().port;
   browser = await chromium.launch({ headless: true });
   try {
-    if (mode === 'room-entry') await roomFlow();
+    if (process.argv.includes('--board-rooms') || process.argv.includes('--live-board-room')) await require('./board-rooms-browser.cjs')({browser,base,check,shot,click,record});
+    else if (process.argv.includes('--entry-audit')) await entryAudit();
+    else if (process.argv.includes('--quiz-extra')) await quizExtras();
+    else if (mode === 'room-entry') await roomFlow();
     else if (mode === 'games') {
-      if (process.argv.includes('--legacy')) await legacyGames();
+      if (process.argv.includes('--quiz-nav')) await quizNavigation();
+      else if (process.argv.includes('--legacy')) await legacyGames();
       else if (process.argv.includes('--offline')) await offlineScreens();
       else { if (!onlyGame || onlyGame === 'hanna') { await hanna(); await hannaNavigation(); } if (!onlyGame || onlyGame === 'test') await quiz(); }
     } else await protectedScreens();
@@ -673,7 +907,7 @@ async function legacyGames() {
     console.log(`PASS ${mode}: ${record.checks.length} checks, ${record.screenshots.length} screenshots; external requests blocked: ${record.blockedExternal.length}`);
   } catch (error) { record.failure = error.stack; console.error(error); process.exitCode = 1; }
   finally {
-    fs.writeFileSync(path.join(out, mode + (process.argv.includes('--offline') ? '-offline' : process.argv.includes('--legacy') ? '-legacy' : '') + '-browser.json'), JSON.stringify(record, null, 2));
+    fs.writeFileSync(path.join(out, mode + (process.argv.includes('--live-board-room') ? '-live-board-room' : process.argv.includes('--board-rooms') ? '-board-rooms' : process.argv.includes('--entry-audit') ? '-entry-audit' : process.argv.includes('--quiz-extra') ? '-quiz-extra' : process.argv.includes('--offline') ? '-offline' : process.argv.includes('--legacy') ? '-legacy' : '') + '-browser.json'), JSON.stringify(record, null, 2));
     await browser.close(); await new Promise(resolve => server.close(resolve));
   }
 })();
