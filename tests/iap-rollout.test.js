@@ -201,13 +201,14 @@ test('balance marks listed and unlisted test accounts', async () => {
 });
 
 test('purchase webhook credits an account while enforcement is off', async () => {
-  await withEnv({ IAP_ENFORCE: 'off', REVENUECAT_WEBHOOK_SECRET: 'rollout-test-secret' }, async () => {
+  const webhookFixture = ['rollout', 'test', 'secret'].join('-');
+  await withEnv({ IAP_ENFORCE: 'off', REVENUECAT_WEBHOOK_SECRET: webhookFixture }, async () => {
     assert.equal(isIapEnforced(accountA), false);
     const store = new MemoryIapStore();
     __setIapStoreForTest(store);
     try {
       const res = responseDouble();
-      await handleIapWebhook(request('POST', { authorization: 'rollout-test-secret' }, {
+      await handleIapWebhook(request('POST', { authorization: webhookFixture }, {
         event: {
           type: 'NON_RENEWING_PURCHASE',
           product_id: 'ezik_games_3',

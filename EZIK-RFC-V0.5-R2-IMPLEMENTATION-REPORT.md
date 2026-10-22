@@ -349,7 +349,7 @@ every purpose and `capabilityEligible()` is false for every capability. **Regist
 
 ## K. Gates and tests
 
-All 187 gates, run by the canonical `npm run gates` runner from `gates.json`:
+All 188 gates, run by the canonical `npm run gates` runner from `gates.json`:
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -383,8 +383,9 @@ brainlineb1 0  brainlineb2 0  brainlineb3 0  brainlinec1 0  brainlinec2 0  brain
 Every one **PASS**, exit code `0`.
 
 ```
-TOTAL_GATES        187/187 PASS
-RECON              PASS=280 WARN=0 FAIL=0
+assetversions 0
+TOTAL_GATES        188/188 PASS
+RECON              PASS=281 WARN=0 FAIL=0
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision
 NEW_FIXTURES       rfcpolicy 125/125 · rfcruntime 96/96

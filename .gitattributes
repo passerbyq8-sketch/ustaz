@@ -984,3 +984,9 @@ guards/kunuz-visual-guard.cjs text eol=lf
 guards/kunuz-visual-world.cjs text eol=lf
 guards/fixtures/kunuz-visual.cjs text eol=lf
 guards/fixtures/kunuz-visual-calibration.webp binary
+
+# Room asset-version guard and generated category projection.
+guards/asset-version-guard.cjs text eol=lf
+guards/asset-versions.json text eol=lf
+quest-theme/room-categories.js text eol=lf
+tools/hanna-room-categories.cjs text eol=lf
