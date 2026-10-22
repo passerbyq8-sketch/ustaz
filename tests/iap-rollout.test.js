@@ -253,9 +253,13 @@ test('web owner skips sign-in and choice UI when off or when their balance is un
   assert.deepEqual(off.calls, ['../api/iap-status']);
 
   const signedOutTest = await runIapBridge('test');
-  assert.equal(signedOutTest.starts, 0);
-  assert.ok(signedOutTest.document.querySelector('[role="dialog"]'));
-  assert.ok(signedOutTest.document.querySelector('a[href="/?ezik_iap_signin=1"]'));
+  assert.equal(signedOutTest.starts, 1);
+  assert.equal(signedOutTest.document.querySelector('[role="dialog"]'), null);
+  assert.deepEqual(signedOutTest.calls, ['../api/iap-status']);
+
+  const signedOutAll = await runIapBridge('all');
+  assert.equal(signedOutAll.starts, 0);
+  assert.ok(signedOutAll.document.querySelector('a[href="/?ezik_iap_signin=1"]'));
 
   const nonListedTest = await runIapBridge('test', { session: 's'.repeat(32) });
   assert.equal(nonListedTest.starts, 1);
