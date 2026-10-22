@@ -61,7 +61,7 @@
   const app = document.createElement('div'); app.className = 'journey-app'; app.dataset.game = game;
   document.body.classList.add('ezik-treasure-theme'); document.body.append(app);
   const themeMeta = document.querySelector('meta[name="theme-color"]'); if (themeMeta) themeMeta.content = '#082c38';
-  const THEME_VERSION = '20261022-roomsfix1';
+  const THEME_VERSION = '20261022-roomsfix2';
   const themeAsset = file => '/quest-theme/' + file + '?v=' + THEME_VERSION;
   const soundCache = new Map();
   const warmedImages = [];
@@ -105,7 +105,7 @@
           const timeout = setTimeout(controlled, 3000);
           navigator.serviceWorker.addEventListener('controllerchange', controlled);
         });
-        const screenVersion = '20261022-roomsfix1';
+        const screenVersion = '20261022-roomsfix2';
         const screenAssets = ['theme.css?v=' + screenVersion, 'journey.js?v=' + screenVersion, 'room-categories.js?v=' + screenVersion, 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
         if (game === 'board') screenAssets.push('board-rooms.js?v=' + screenVersion);
         if (navigator.serviceWorker.controller) await Promise.all(screenAssets.map(async file => {
@@ -1301,7 +1301,7 @@
     // Direct room URLs stay outside the local bank/pack engine. Local Hanna uses
     // that engine only after the entry route has been classified below.
     const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/quest-visual.css'; document.head.append(css);
-    for (const src of ['/quest-data/kunuz-bank-3147.js', '/quest-theme/history.js', '/quest-data/kunuz-geo-index.js', '/quest-data/kunuz-packs-manifest.js?v=20261022-roomsfix1', '/quest-visual.js', '/quest-levels.js']) {
+    for (const src of ['/quest-data/kunuz-bank-3147.js', '/quest-theme/history.js', '/quest-data/kunuz-geo-index.js', '/quest-data/kunuz-packs-manifest.js?v=20261022-roomsfix2', '/quest-visual.js', '/quest-levels.js']) {
       await new Promise((resolve, reject) => {
         const script = document.createElement('script'); script.src = src;
         script.onload = resolve; script.onerror = () => reject(new Error('تعذّر تحميل ملفات المغامرة المحلية. حاولوا مرة ثانية.'));
