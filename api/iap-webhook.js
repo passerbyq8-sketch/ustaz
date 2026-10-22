@@ -30,7 +30,9 @@ function refundEvent(productId, event) {
   return event.cancel_reason === 'CUSTOMER_SUPPORT' || Number(event.price) < 0;
 }
 
-export default async function handler(req, res) {
+export async function handleIapWebhook(req, res, dependencies = {}) {
+  const readAccount = dependencies.readJsonStrict || readJsonStrict;
+  const applyEvent = dependencies.applyTransactionEvent || applyTransactionEvent;
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'method-not-allowed' });
   res.setHeader('Cache-Control', 'no-store');
 
@@ -64,7 +66,7 @@ export default async function handler(req, res) {
   if (!accountKey.startsWith('acct:v1:')) {
     return res.status(200).json({ ok: true, status: 'ignored' });
   }
-  const account = await readJsonStrict(accountKey);
+  const account = await readAccount(accountKey);
   if (!account.ok) return res.status(503).json({ ok: false, error: 'iap-unavailable' });
   if (!account.value || typeof account.value !== 'object') {
     return res.status(200).json({ ok: true, status: 'unknown-account' });
@@ -76,7 +78,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const applied = await applyTransactionEvent({
+    const applied = await applyEvent({
       accountKey,
       store: event.store,
       transactionId: event.transaction_id,
@@ -90,4 +92,8 @@ export default async function handler(req, res) {
   } catch (e) {
     return res.status(503).json({ ok: false, error: 'iap-unavailable' });
   }
+}
+
+export default async function handler(req, res) {
+  return handleIapWebhook(req, res);
 }

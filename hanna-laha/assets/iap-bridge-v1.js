@@ -306,6 +306,39 @@
     return 'حساب عزك';
   }
 
+  var cachedEnforcementMode = '';
+  var cachedEnforcementAt = 0;
+
+  async function getEnforcementMode() {
+    if (cachedEnforcementMode && Date.now() - cachedEnforcementAt < 30000) {
+      return cachedEnforcementMode;
+    }
+    var response = await fetch('../api/iap-status', {
+      method: 'GET',
+      credentials: 'same-origin',
+      cache: 'default',
+    });
+    var data = await response.json().catch(function () { return {}; });
+    if (!response.ok || !['off', 'test', 'all'].includes(data.mode)) {
+      throw new Error('iap-status-unavailable');
+    }
+    cachedEnforcementMode = data.mode;
+    cachedEnforcementAt = Date.now();
+    return data.mode;
+  }
+
+  async function startWithoutIap(context) {
+    if (!context || typeof context.start !== 'function') return false;
+    try {
+      await Promise.resolve(context.start());
+      closeModal();
+      return true;
+    } catch (e) {
+      showFailure('تعذّر إكمال العملية الآن. حاول مرة أخرى.');
+      return false;
+    }
+  }
+
   async function getBalance(session) {
     var response = await fetch('../api/iap-balance', {
       method: 'GET',
@@ -404,6 +437,10 @@
     pendingSignIn = false;
     stopSignInWatch();
     var balance = response.data;
+    if (balance.enforced === false) {
+      await startWithoutIap(context);
+      return;
+    }
     var activeSubscription = Number(balance.subscriptionExpiresAt) > Date.now();
     if (activeSubscription && returnToChoice !== true) {
       await startWithIntent(context, 'automatic');
@@ -718,6 +755,14 @@
     startContext = { start: start, roomCode: roomCode || 'room', gameId: typeof gameId === 'string' && gameId ? gameId : 'hanna' };
     window.__ezikIapStartGame = start;
     window.__ezikIapRoomCode = roomCode;
+    var mode;
+    try { mode = await getEnforcementMode(); }
+    catch (e) { mode = 'all'; }
+    if (mode === 'off') {
+      stopSignInWatch();
+      await startWithoutIap(startContext);
+      return;
+    }
     if (!authSession()) { showSignIn(); return; }
     await openStartChoice(startContext);
   }
