@@ -30,6 +30,8 @@ async function setup(game,context){
  label=game;
  await page.goto(base+'/quest.html');await page.waitForFunction(()=>window.KunuzJourney?.state.ready);await layout();if(game==='board')await shot('hub');
  await click(page.locator('a[href="/'+routes[game]+'"]').filter({visible:true}).first());
+ await page.waitForFunction(()=>window.KunuzJourney?.state.ready,null,{timeout:60000});
+ if(await page.locator('[data-action="single-device"]').count())await click('[data-action="single-device"]');
  await page.waitForFunction(()=>window.KunuzJourney?.state.ready&&KunuzJourney.state.stage==='categories',{timeout:60000});
  assert.equal(await page.locator('.j-cat-pick').count(),70);assert.equal(await page.locator('[data-action="next-setup"]').isDisabled(),true);
  for(let i=0;i<3;i++)await click(page.locator('.j-cat-pick').nth(i));
@@ -169,8 +171,16 @@ async function playWar(){
  const browser=await chromium.launch({headless:true});
  try{
   for(const [w,h]of variants){width=w;const context=await browser.newContext({viewport:{width:w,height:h},deviceScaleFactor:1,reducedMotion:reduced?'reduce':'no-preference',...(process.env.KUNUZ_ACCESS_STATE?{storageState:process.env.KUNUZ_ACCESS_STATE}:{})});page=await context.newPage();
+   await context.route('**/*',route=>new URL(route.request().url()).origin===new URL(base).origin?route.continue():route.abort());
+   await context.routeWebSocket('**/*',socket=>socket.close());
    page.on('pageerror',e=>record.errors.push({game:label,width,message:e.message}));page.on('console',m=>{if(m.type()==='error')record.errors.push({game:label,width,message:m.text()})});page.on('requestfailed',r=>record.failedRequests.push({game:label,width,url:r.url(),error:r.failure()?.errorText}));page.on('response',r=>{if(r.status()>=400)record.badResponses.push({game:label,width,url:r.url(),status:r.status()})});
    for(const game of (onlyGame?[onlyGame]:['board','test','hanna','ghaws','harb'])){
+    if(game==='test'||game==='hanna'){
+     const evidence=path.join(out,'own-identity-'+game+'-'+width);
+     const own=require('node:child_process').spawnSync(process.execPath,[path.join(__dirname,'games-own-identity-browser.cjs'),'--games','--game='+game,'--width='+width],{env:{...process.env,KUNUZ_IDENTITY_SHOTS:evidence},encoding:'utf8',maxBuffer:1<<20});
+     assert.equal(own.status,0,own.stderr||own.stdout);process.stdout.write(own.stdout);
+     record.runs.push({game,width,height:h,evidence});continue;
+    }
     const config=await setup(game,context);const result=game==='board'||game==='test'?await playBoard(game):game==='hanna'?await playHanna():game==='ghaws'?await playDive():await playWar();
     const run={game,width,height:h,config,...result};record.runs.push(run);console.log('PASS '+game+' '+w+' '+JSON.stringify({tiles:result.tiles,questions:result.fullDiveQuestions||result.questions,turns:result.turns,captures:result.captures}));
     fs.writeFileSync(evidenceFile(),JSON.stringify(record,null,2));
