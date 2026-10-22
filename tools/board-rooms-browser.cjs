@@ -46,6 +46,8 @@ module.exports = async function boardRoomsBrowser(h) {
     const codeDraft=await p.locator('[data-board-number]').inputValue();
     await p.locator('[data-team-name="0"]').fill('فريق اللؤلؤ');
     await click(p,'[data-field="time"][data-value="0"]');
+    const hidden = !live && width === 1280;
+    if(hidden)await click(p,'[data-field="options"][data-value="hidden"]');
     await p.goBack();await at(p,'categories');await p.goForward();await at(p,'settings');
     check('Board setup Back/Forward keeps its number '+width,await p.locator('[data-board-number]').inputValue(),codeDraft);
     check('Board setup Back/Forward keeps its team '+width,await p.locator('[data-team-name="0"]').inputValue(),'فريق اللؤلؤ');
@@ -81,15 +83,21 @@ module.exports = async function boardRoomsBrowser(h) {
       await phase(p,'question');await phase(q,'question');const question=(await current(p)).question;chosen.push(question.index);
       check('All screens see the same question '+width+':'+i,(await current(q)).question.index,question.index);
       const right=await q.evaluate(()=>DATA.qs[KunuzJourney.state.question.index][5]);
-      await click(q,'[data-action="br-answer-pick"][data-answer="'+right+'"]');await click(q,'[data-action="br-answer-lock"]');
+      if(hidden&&i===1)await q.locator('[data-board-answer]').fill('جواب فريق اللؤلؤ');
+      else { if(hidden)await click(q,'[data-action="br-show-options"]');await click(q,'[data-action="br-answer-pick"][data-answer="'+right+'"]'); }
+      await click(q,'[data-action="br-answer-lock"]');
       await p.waitForFunction(()=>KunuzJourney.boardRooms?.snapshot?.question?.submissions.length>0);
+      check('Host sees the submitted team answer '+width+':'+i,await p.locator('[data-board-response="0"]').innerText(),hidden&&i===1?'فريق اللؤلؤ · جواب فريق اللؤلؤ':await q.evaluate(pos=>'فريق اللؤلؤ · '+DATA.qs[KunuzJourney.state.question.index][4][pos],right));
+      if(hidden&&i===0&&extra){await phase(extra.page,'question');check('Showing choices does not expose them to another phone',await extra.page.locator('[data-action="br-answer-pick"]').count(),0);}
       if(i===0)await shot(q,'board-room-phone-question-'+width);
+      if(i===0)await shot(p,'board-room-host-question-'+width);
       await click(p,'[data-action="reveal-answer"]');await p.waitForFunction(()=>KunuzJourney.boardRooms?.snapshot?.question?.revealed);
       await click(p,'[data-action="award"][data-team="0"]');await phase(p,'board');await phase(q,'board');
       const s=await current(p);check('Fixed card points and advancing turn '+width+':'+i,{score:s.teams[0].score,turn:s.turn,owner:s.slots[slot].by},{score:[200,600,1200][i],turn:(i+1)%teams,owner:0});check('Phone score agrees '+width+':'+i,(await current(q)).teams[0].score,s.teams[0].score);record.boardRooms.rounds++;
       if(i===1){await q.reload();await q.waitForFunction(()=>KunuzJourney.boardRooms?.snapshot?.self.role==='team');check('Reload restores room, role, score and board '+width,{code:(await current(q)).code,score:(await current(q)).teams[0].score,phase:(await current(q)).phase},{code,score:600,phase:'board'});}
     }
     check('Room questions do not repeat '+width,new Set(chosen).size,3);
+    if(hidden)check('Hidden-mode phone spends only its own two shows', (await current(q)).teams[0].shows, 0);
     await click(q,'[data-action="br-leave"]');await click(q,'[data-action="dialog-yes"]');await at(q,'room-entry');await q.reload();await at(q,'room-entry');
     check('An explicit exit stays at the entry screen after reload '+width,await q.evaluate(()=>KunuzJourney.state.stage),'room-entry');
     await click(q,'[data-action="join-room"]');await q.locator('[data-join-draft]').fill(code);await click(q,'[data-action="join-submit"]');await q.waitForFunction(()=>KunuzJourney.boardRooms?.snapshot?.self.role==='team');

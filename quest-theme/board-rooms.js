@@ -143,6 +143,12 @@
       if (!s.canPick || !S.connected) board = board.replace(/data-action="tile"/g, 'data-action="tile" disabled');
       if (s.question) {
         let question = h.boardQuestion();
+        const responses = '<section class="j-form-card j-board-room-submissions" aria-label="إجابات الفرق"><h2>إجابات الفرق</h2>' + s.teams.map((team, i) => {
+          const answer = s.question.submissions.find(a => a.team === i), row = global.DATA.qs[s.question.index];
+          const text = !answer ? 'بانتظار جواب الفريق' : answer.pos === undefined ? esc(answer.text) : '<span data-choice="' + answer.pos + '">' + esc(row[4][answer.pos]) + '</span>';
+          return '<p class="j-note" data-board-response="' + i + '"><b>' + esc(team.name) + '</b> · ' + text + '</p>';
+        }).join('') + '</section>';
+        question = question.replace('<p class="j-muted">تشاوروا… والقرار لكم</p>', responses);
         if (!s.canAnswer || !S.connected) question = question.replace(/data-action="answer"/g, 'data-action="answer" disabled');
         if (!s.canShowOptions || !S.connected) question = question.replace(/data-action="show-options"/g, 'data-action="show-options" disabled');
         if (!S.connected) question = question.replace(/data-action="(award|reveal-answer)"/g, 'data-action="$1" disabled');
@@ -154,7 +160,7 @@
       if (action === 'br-random') { const b = new Uint32Array(1); crypto.getRandomValues(b); M.settings.roomCode = String(b[0] % 10000).padStart(4, '0'); h.render(); return true; }
       if (!S.session || M.stage !== 'board-room') return false;
       const s = S.snapshot, q = s?.question;
-      if (action === 'br-copy') { navigator.clipboard.writeText(link()).then(() => { S.note = 'نُسخ رابط الانضمام.'; h.render(); }).catch(() => { S.note = 'انسخوا رابط الانضمام من الحقل.'; h.render(); }); }
+      if (action === 'br-copy') { if (navigator.clipboard?.writeText) navigator.clipboard.writeText(link()).then(() => { S.note = 'نُسخ رابط الانضمام.'; h.render(); }).catch(() => { S.note = 'انسخوا رابط الانضمام من الحقل.'; h.render(); }); else { S.note = 'انسخوا رابط الانضمام من الحقل.'; h.render(); } }
       else if (action === 'back' && q && s.self.role === 'host') h.askDialog('ترجعون للوحة وتتركون السؤال بلا نقاط؟', () => send({ t: 'abandon', qn: q.qn }), () => {});
       else if (['br-leave', 'leave', 'back'].includes(action)) h.askDialog(s?.self.role === 'host' ? S.connected ? 'تغلقون الغرفة وتطلعون؟' : 'تطلعون مؤقتًا وتكملون من رقم الغرفة لاحقًا؟' : 'تطلعون من الغرفة؟', () => { const retain = s?.self.role !== 'host' || !S.connected; if (!retain) send({ t: 'close' }); leave(retain); }, () => {}, { yes: 'نعم، نطلع', no: 'لا، نبقى' });
       else if (action === 'br-seat' && s) { S.slot = +el.dataset.slot; S.name = s.teams[S.slot]?.name || ''; S.color = s.teams[S.slot]?.color ?? s.teams.length; h.render(); }
