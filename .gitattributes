@@ -990,3 +990,16 @@ guards/asset-version-guard.cjs text eol=lf
 guards/asset-versions.json text eol=lf
 quest-theme/room-categories.js text eol=lf
 tools/hanna-room-categories.cjs text eol=lf
+
+# Versioned browser assets are hashed as shipped LF bytes.
+quest-theme/theme.css text eol=lf
+quest-theme/motion-kit.js text eol=lf
+quest-theme/icons.js text eol=lf
+quest-theme/model.js text eol=lf
+quest-theme/journey.js text eol=lf
+hanna-laha/assets/iap-bridge-v1.css text eol=lf
+iap-pending.js text eol=lf
+hanna-laha/assets/iap-bridge-v1.js text eol=lf
+quest-theme/board-rooms.js text eol=lf
+quest-data/kunuz-packs-manifest.js text eol=lf
+quest-theme/room-categories.js text eol=lf
