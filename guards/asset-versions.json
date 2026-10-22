@@ -26,6 +26,12 @@
     "hanna-laha/assets/iap-bridge-v1.js?v=20261022-roomsfix2": "5a8dd965a8d1e3758561a90160e392881ba9bffa2fd955a4ae46b52c29fa5831",
     "quest-theme/board-rooms.js?v=20261022-roomsfix2": "bc0af022bd4bc10e9f84ba57917044d7c43313404d7c27ff2d637a04173e11cb",
     "quest-data/kunuz-packs-manifest.js?v=20261022-roomsfix2": "affb9dcdbd67c9380ba9da684289690c6a27aadbd34c31b75465d6a07a4fc04a",
-    "quest-theme/room-categories.js?v=20261022-roomsfix2": "239e7905f5e1d41ad49cb54014b7d5b5ab45d6cb796afcfcd48318d1e1ea1019"
+    "quest-theme/room-categories.js?v=20261022-roomsfix2": "239e7905f5e1d41ad49cb54014b7d5b5ab45d6cb796afcfcd48318d1e1ea1019",
+    "hanna-laha/assets/index-iap-v1.js?v=20261023-iapf": "02991eb421ba9f60e8592b45b8cdc973ca815d0b1657dc79913536ff7065603c",
+    "hanna-laha/assets/iap-bridge-v1.css?v=20261023-iapf": "4cd035d07fc5d6bd26c9f50bcd55f93b04c7b18c548a1e780dc28ab5a3abe113",
+    "hanna-laha/assets/iap-bridge-v1.js?v=20261023-iapf": "abb2979f04cd2c0e22300334d2159b3a1228b24a811706a52b618f593322d632",
+    "iap-pending.js?v=20261023-iapf": "eb509ecc3d6d645c82a0a0902a371da111363638924795d7e73e1924d9794973",
+    "quest-theme/journey.js?v=20261023-iapf": "aea4631584edb4b67dfc52422055d4b577f393bd1588f2ca2adb7ed3e7d731ea",
+    "quest-theme/board-rooms.js?v=20261023-iapf": "b9f9afd1fa2193ae600c7f31fa813b36e26f4675f1342ad2eb3dac60a6445696"
   }
 }

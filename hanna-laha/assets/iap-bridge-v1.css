@@ -36,6 +36,7 @@
 .ezik-iap-header { margin-bottom: var(--sp-3, 12px); }
 .ezik-iap-header h2 { margin: 0; font-family: var(--f-display, inherit); font-size: var(--fs-xl, 24px); }
 .ezik-iap-copy { margin: 0 0 var(--sp-3, 12px); color: var(--muted, var(--journey-muted, currentColor)); }
+.ezik-iap-balance { margin: 0 0 var(--sp-3, 12px); padding: var(--sp-2, 8px) var(--sp-3, 12px); border: 1px solid var(--line-2, var(--line)); border-radius: var(--radius-btn, 12px); background: var(--tint, var(--sea1)); color: var(--ink, var(--journey-paper, currentColor)); font-weight: 700; }
 .ezik-iap-error { margin: var(--sp-3, 12px) 0 0; color: var(--bad, var(--journey-gold)); }
 .ezik-iap-note { margin: var(--sp-3, 12px) 0 0; color: var(--muted, var(--journey-muted, currentColor)); }
 
@@ -89,7 +90,7 @@
 .ezik-iap-actions { margin-top: var(--sp-3, 12px); }
 .ezik-iap-actions > * { flex: 1; }
 .ezik-iap-total { font-weight: 700; }
-.ezik-iap-status { min-height: 1.7em; }
+.ezik-iap-status { min-height: 1.7em; white-space: pre-line; }
 .ezik-iap-store-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2, 8px); margin: var(--sp-3, 12px) 0; }
 .ezik-iap-store-button { display: grid; place-items: center; text-align: center; text-decoration: none; }
 

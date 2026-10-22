@@ -18,7 +18,7 @@
         ['Page-oyXYdFLk.css', 'index-BYf54ooy.css'].forEach(function (file) {
           var link = document.createElement('link'); link.rel = 'stylesheet'; link.href = '/hanna-laha/assets/' + file; document.head.append(link);
         });
-        var script = document.createElement('script'); script.type = 'module'; script.src = '/hanna-laha/assets/index-iap-v1.js'; document.head.append(script);
+        var script = document.createElement('script'); script.type = 'module'; script.src = '/hanna-laha/assets/index-iap-v1.js?v=20261023-iapf'; document.head.append(script);
       };
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', nativeRoom, { once: true }); else nativeRoom();
     }
@@ -53,13 +53,13 @@
 @media(prefers-reduced-motion:reduce){.ezik-treasure-theme.kunuz-theme-pending .kunuz-theme-spinner{animation:none}}
 </style>
 <link rel="stylesheet" href="/quest-theme/theme.css?v=20261022-roomsfix2">
-<link rel="stylesheet" href="/hanna-laha/assets/iap-bridge-v1.css?v=20261022-roomsfix2">
+<link rel="stylesheet" href="/hanna-laha/assets/iap-bridge-v1.css?v=20261023-iapf">
 <link rel="preload" href="/quest-theme/assets/regular.ttf?v=20261022-roomsfix2" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="/quest-theme/assets/bold.ttf?v=20261022-roomsfix2" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="/quest-theme/motion-kit.js?v=20261022-roomsfix2" as="script">
 <link rel="preload" href="/quest-theme/icons.js?v=20261022-roomsfix2" as="script">
 <link rel="preload" href="/quest-theme/model.js?v=20261022-roomsfix2" as="script">
-<link rel="preload" href="/quest-theme/journey.js?v=20261022-roomsfix2" as="script">
+<link rel="preload" href="/quest-theme/journey.js?v=20261023-iapf" as="script">
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>كنوز المعرفة — حرب الجزر</title>
@@ -406,10 +406,10 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 <script src="/quest-theme/motion-kit.js?v=20261022-roomsfix2"></script>
 <script src="/quest-theme/icons.js?v=20261022-roomsfix2"></script>
 <script src="/quest-theme/model.js?v=20261022-roomsfix2"></script>
-<script src="/iap-pending.js?v=20261022-roomsfix2"></script>
-<script src="/hanna-laha/assets/iap-bridge-v1.js?v=20261022-roomsfix2"></script>
+<script src="/iap-pending.js?v=20261023-iapf"></script>
+<script src="/hanna-laha/assets/iap-bridge-v1.js?v=20261023-iapf"></script>
 <script src="/quest-theme/room-categories.js?v=20261022-roomsfix2"></script>
-<script src="/quest-theme/journey.js?v=20261022-roomsfix2"></script>
+<script src="/quest-theme/journey.js?v=20261023-iapf"></script>
 </head>
 <body>
 <div class="kunuz-theme-shell" role="status" aria-label="نجهّز مغامرتكم"><span class="kunuz-theme-spinner" aria-hidden="true"></span></div>
@@ -1876,7 +1876,7 @@ function quitFight(){clearT();if(G.busy)endFight()}
 var WAR_HOST="https://hanna-laha.hl-worker.workers.dev",WAR_V=1,SKIP_SECS=45;
 var RM={nf:0,nfTimer:null,on:false,host:false,ws:null,code:"",roomId:"",hostToken:"",teamToken:"",watch:false,slot:-1,role:"",
   snap:null,names:[],view:"",qn:-1,res:"",fightOn:false,dl:0,raf:null,tries:0,retry:null,closing:false,dev:"",mem:null,
-  color:-1,fight:null,answered:false,joinMode:"team"};
+  color:-1,fight:null,answered:false,joinMode:"team",iapStartWaiters:[]};
 var RMKEY="kz_harb_room_v1",RMDEV="kz_harb_dev_v1";
 function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]})}
 (function(){
@@ -2090,7 +2090,29 @@ $("teamGo").onclick=function(){
   if(!n){lobbyMsg("اكتب اسم فريقك",true);return}
   if(n.length>16){lobbyMsg("الاسم ستّة عشر حرفًا على الأكثر",true);return}
   lobbyMsg("");rmSend({t:"join",name:n,color:RM.color})};
-$("roomStart").onclick=function(){rmSend({t:"start"})};
+function waitForWarStart(){
+  var resolvePromise,rejectPromise,timer,finished=false,code=RM.code;
+  var promise=new Promise(function(resolve,reject){resolvePromise=resolve;rejectPromise=reject});
+  var waiter={finish:function(error,snapshot){
+    if(finished)return;finished=true;clearTimeout(timer);
+    RM.iapStartWaiters=RM.iapStartWaiters.filter(function(one){return one!==waiter});
+    if(error)rejectPromise(error);else resolvePromise(snapshot)},
+    cancel:function(){waiter.finish(new Error("war-start-cancelled"))}};
+  timer=setTimeout(function(){waiter.finish(new Error("war-start-timeout"))},45000);
+  RM.iapStartWaiters.push(waiter);
+  waiter.roomCode=code;
+  if(RM.snap&&RM.snap.stage!=="lobby")waiter.finish(null,RM.snap);
+  return {promise:promise,cancel:waiter.cancel};
+}
+function notifyWarStart(s){
+  if(!s||s.stage==="lobby")return;
+  RM.iapStartWaiters.slice().forEach(function(waiter){if(waiter.roomCode===RM.code)waiter.finish(null,s)})
+}
+$("roomStart").onclick=function(){
+  if(!RM.host){rmSend({t:"start"});return}
+  if(!RM.code||typeof window.ezikIapStart!=="function"){lobbyMsg("تعذّر فتح خيارات الجلسة. أعدوا تحميل الصفحة.",true);return}
+  window.ezikIapStart(function(){rmSend({t:"start"})},RM.code,"harb",{cycle:"1",roomInstanceId:RM.roomId,waitForStart:waitForWarStart});
+};
 $("roomEnd").onclick=function(){
   if(RM.host){rmSend({t:"close"});rmClose(false);roomExit()}
   else{rmSend({t:"leave"});rmClose(false);roomExit()}};
@@ -2118,6 +2140,7 @@ function snapIn(s){
     if(RM.view==="war"||RM.view==="win"){/* الغرفة عادت إلى الانتظار */RM.view=""}
     if(RM.view!=="lobby"){RM.view="lobby";show("lobby")}
     drawLobby();return}
+  notifyWarStart(s);
   var g=s.game;
   if(RM.view!=="war"&&RM.view!=="win"){enterWar(s)}
   else if(s.stage==="play"&&RM.view==="win"){enterWar(s)}

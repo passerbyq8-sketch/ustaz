@@ -12,6 +12,7 @@
   ];
   var active = null;
   var startContext = null;
+  var sessionIdMemory = Object.create(null);
   var pendingSignIn = false;
   var resumingSignIn = false;
   var panelRefreshCleanup = null;
@@ -242,6 +243,25 @@
     return String(value).replace(/[0-9]/g, function (digit) { return '٠١٢٣٤٥٦٧٨٩'[Number(digit)]; });
   }
 
+  function balanceText(balance) {
+    var text = 'رصيدك: ' + arabicDigits(Number(balance && balance.credits) || 0) + ' جلسة';
+    var expiresAt = Number(balance && balance.subscriptionExpiresAt);
+    if (Number.isFinite(expiresAt) && expiresAt > Date.now()) {
+      var date = new Date(expiresAt).toLocaleDateString('ar-KW', { year: 'numeric', month: 'long', day: 'numeric' });
+      text += ' · اشتراك حتى ' + date;
+    }
+    return text;
+  }
+
+  function balanceLine(parent, balance) {
+    var node = line(parent, balance ? balanceText(balance) : 'جارٍ تحميل الرصيد…', 'ezik-iap-balance');
+    return node;
+  }
+
+  function updateBalanceLine(node, balance) {
+    if (node && balance) node.textContent = balanceText(balance);
+  }
+
   function freeBalance(balance, gameId) {
     var remaining = balance.freeRemainingByGame && Number(balance.freeRemainingByGame[gameId]);
     var total = balance.freeTotalPerGame && Number(balance.freeTotalPerGame[gameId]);
@@ -337,6 +357,7 @@
       ? 'الحساب: ' + accountLabel() + '. اشتراككم فعّال، ويمكنكم بدء الجلسة الآن.'
       : 'الحساب: ' + accountLabel() + '. اختاروا طريقة بدء الجلسة.';
     modal.content.replaceChildren();
+    balanceLine(modal.content, balance);
     var choices = document.createElement('div');
     choices.className = 'ezik-iap-choice-grid';
     if (activeSubscription) {
@@ -352,21 +373,45 @@
     var remaining = free.remaining;
     var total = free.total;
     var hasCredits = Number(balance.credits) > 0;
-    var primaryTitle = remaining > 0 ? 'لعب مجاني' : hasCredits ? 'ابدأ (يُخصم رصيد)' : 'لعب مجاني';
+    var primaryTitle = remaining > 0 ? 'لعب مجاني' : hasCredits ? 'ابدأ (يُخصم من رصيدك)' : 'لعب مجاني';
     var primaryDetail = remaining > 0 || !hasCredits
       ? 'متبقّي ' + arabicDigits(remaining) + ' من ' + arabicDigits(total)
       : '';
     choices.append(choiceButton(primaryTitle, primaryDetail, function () {
       startWithIntent(context, remaining > 0 ? 'free' : 'credit');
     }, false, remaining === 0 && !hasCredits));
+    if (remaining > 0 && hasCredits) {
+      choices.append(choiceButton('ابدأ (يُخصم من رصيدك)', '', function () {
+        startWithIntent(context, 'credit');
+      }, true, false));
+    }
     choices.append(choiceButton('اشتري الآن', '', initializePurchase, true, false));
     modal.content.append(choices);
   }
 
   async function startWithIntent(context, intent) {
     if (!context || typeof context.start !== 'function') return;
-    var request = roomSessionId(context.roomCode, context.gameId);
-    await consumeAndStart(context.start, context.roomCode, request, context.gameId, intent);
+    if (context.inFlight === true) return;
+    context.inFlight = true;
+    var request = roomSessionId(context.roomInstanceId || context.roomCode, context.gameId, context.cycle);
+    var waiting = null;
+    var startSignal = null;
+    try {
+      if (typeof context.waitForStart === 'function') {
+        waiting = context.waitForStart();
+        startSignal = Promise.resolve(waiting.promise || waiting);
+        startSignal.catch(function () {});
+      }
+      await Promise.resolve(context.start());
+      if (startSignal) await startSignal;
+    } catch (e) {
+      if (waiting && typeof waiting.cancel === 'function') waiting.cancel();
+      context.inFlight = false;
+      showFailure('لم تبدأ الجولة بعد؛ لم يُخصم أي رصيد. حاول مرة أخرى.');
+      return false;
+    }
+    var result = await consumeAndStart(request, context.gameId, intent);
+    if (result !== true) context.inFlight = false;
   }
 
   function priceTotal(price, quantity) {
@@ -417,9 +462,17 @@
     }
   }
 
-  function showWebBuyPanel() {
+  async function showWebBuyPanel() {
     var modal = openModal('الشراء من تطبيق عزك', 'المشتريات متاحة من تطبيق عزك على آيفون أو أندرويد.');
     line(modal.content, 'اشترِ من تطبيق عزك بنفس حسابك (' + accountLabel() + ') ثم ارجع هنا وسيظهر رصيدك.');
+    var session = authSession();
+    var balanceDisplay = balanceLine(modal.content, null);
+    var starting = null;
+    try {
+      var initial = await getBalance(session);
+      if (active !== modal) return;
+      if (initial.ok) { starting = initial.data; updateBalanceLine(balanceDisplay, initial.data); }
+    } catch (e) {}
     var stores = document.createElement('div');
     stores.className = 'ezik-iap-store-links';
     stores.append(storeButton('App Store', APP_STORE_URL), storeButton('Google Play', PLAY_STORE_URL));
@@ -449,13 +502,13 @@
         return;
       }
       var balance = response.data;
-      if (Number(balance.credits) > 0 || Number(balance.subscriptionExpiresAt) > Date.now()) {
-        if (startContext) await openStartChoice(startContext, true);
-        return;
-      }
-      status.textContent = fromButton
-        ? 'لم يظهر رصيد جديد بعد. يمكنك التحديث مرة أخرى بعد الشراء.'
-        : 'يمكنك تحديث الرصيد بعد إتمام الشراء في التطبيق.';
+      updateBalanceLine(balanceDisplay, balance);
+      var changed = starting && JSON.stringify(balanceSnapshot(balance)) !== JSON.stringify(balanceSnapshot(starting));
+      if (changed) {
+        starting = balance;
+        status.textContent = 'تم تحديث الرصيد.';
+      } else if (fromButton) status.textContent = 'لم يظهر رصيد جديد بعد. يمكنك التحديث مرة أخرى بعد الشراء.';
+      else if (!status.textContent) status.textContent = 'يمكنك تحديث الرصيد بعد إتمام الشراء في التطبيق.';
     }
 
     var onFocus = function () { refreshBalance(false); };
@@ -464,7 +517,9 @@
     };
     window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onVisibility);
+    var poller = setInterval(function () { refreshBalance(false); }, 5000);
     panelRefreshCleanup = function () {
+      clearInterval(poller);
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
     };
@@ -473,6 +528,7 @@
   function showProducts(session, startingBalance, prices) {
     var modal = openModal('خيارات الشراء', 'الحساب: ' + accountLabel() + '. اختر عدد مرات الشراء من المتجر. الحد الأقصى لكل منتج خمس مرات.');
     modal.content.replaceChildren();
+    var balanceDisplay = balanceLine(modal.content, startingBalance);
     PRODUCT_ROWS.forEach(function (product) {
       var price = prices[product.id];
       var row = document.createElement('section');
@@ -524,7 +580,7 @@
         buy.disabled = true;
         input.disabled = true;
         setModalBusy(true);
-        buyProduct(product, quantity, session, startingBalance, status, buy, input);
+        buyProduct(product, quantity, session, startingBalance, status, buy, input, balanceDisplay, modal);
       });
       row.append(head, label, total, status, buy);
       modal.content.append(row);
@@ -535,21 +591,29 @@
     }, true));
   }
 
-  function roomSessionId(roomCode, gameId) {
+  function roomSessionId(roomCode, gameId, cycle) {
     var safeRoomCode = String(roomCode || 'room').replace(/[^A-Za-z0-9_-]/g, '');
-    var key = gameId === 'hanna'
-      ? 'ezik_iap_host_session_v1_' + safeRoomCode
-      : 'ezik_iap_host_session_v1_' + String(gameId) + '_' + safeRoomCode;
+    var safeGameId = String(gameId || 'hanna').replace(/[^A-Za-z0-9_-]/g, '');
+    var safeCycle = String(cycle || 'default').replace(/[^A-Za-z0-9_-]/g, '');
+    var key = 'ezik_iap_host_session_v2_' + safeGameId + '_' + safeRoomCode + '_' + safeCycle;
     try {
       var saved = sessionStorage.getItem(key);
-      if (saved && /^[A-Za-z0-9_-]{16,128}$/.test(saved)) return { key: key, id: saved };
-      var fresh = requestId();
+      if (saved && /^[A-Za-z0-9_-]{16,128}$/.test(saved)) {
+        sessionIdMemory[key] = saved;
+        return { key: key, id: saved };
+      }
+      var fresh = sessionIdMemory[key] || requestId();
+      sessionIdMemory[key] = fresh;
       sessionStorage.setItem(key, fresh);
       return { key: key, id: fresh };
-    } catch (e) { return { key: '', id: requestId() }; }
+    } catch (e) {
+      var fallback = sessionIdMemory[key] || requestId();
+      sessionIdMemory[key] = fallback;
+      return { key: '', id: fallback };
+    }
   }
 
-  async function consumeAndStart(start, roomCode, request, gameId, intent) {
+  async function consumeAndStart(request, gameId, intent) {
     var session = authSession();
     if (!session) { showSignIn(); return false; }
     var response;
@@ -568,28 +632,22 @@
     if (response.status === 401) { showSignIn(); return false; }
     if ((response.status === 402 && data.error === 'iap-no-credit')
       || (response.status === 409 && data.error === 'iap-free-unavailable')) {
-      if (startContext) await openStartChoice(startContext);
+      showFailure('بدأت الجولة لكن لم يتوفر الرصيد المختار لها. لم يُستخدم خيار آخر تلقائيًا.');
       return null;
     }
     if (!response.ok || data.ok !== true) {
       showFailure('تعذّر التحقق من الرصيد الآن. حاول مرة أخرى.');
       return false;
     }
-    try {
-      await Promise.resolve(start());
-      try { if (request.key) window.sessionStorage.removeItem(request.key); } catch (e) {}
-      closeModal();
-      return true;
-    } catch (e) {
-      showFailure('تعذّر بدء الجلسة. أعد المحاولة؛ لن يُخصم الرصيد مرتين للجلسة نفسها.');
-      return false;
-    }
+    closeModal();
+    return true;
   }
 
-  async function buyProduct(product, quantity, session, startingBalance, status, buyButton, input) {
+  async function buyProduct(product, quantity, session, startingBalance, status, buyButton, input, balanceDisplay, modal) {
     var completed = 0;
-    var balanceChanged = false;
+    var pendingBalance = false;
     var stopReason = '';
+    var receipts = [];
     var currentBalance;
     try { currentBalance = await getBalance(session); } catch (e) { currentBalance = { ok: false }; }
     if (!currentBalance.ok || currentBalance.data.appUserId !== startingBalance.appUserId) {
@@ -603,20 +661,27 @@
     var baseline = currentBalance.data;
     for (var i = 0; i < quantity; i += 1) {
       status.className = 'ezik-iap-note ezik-iap-status';
-      status.textContent = 'جارٍ فتح شاشة المتجر (' + String(i + 1) + ' من ' + String(quantity) + ')…';
+      status.textContent = (receipts.length ? receipts.join('\n') + '\n' : '')
+        + 'جارٍ فتح شاشة المتجر (' + arabicDigits(i + 1) + ' من ' + arabicDigits(quantity) + ')…';
       try {
         var result = await requestShell('iap.buy', { productId: product.id }, 5 * 60 * 1000);
         if (result.status === 'cancelled') { stopReason = 'cancelled'; break; }
         if (result.status !== 'purchased' || result.productId !== product.id) { stopReason = 'error'; break; }
         completed += 1;
-        status.textContent = 'تمت عملية الشراء. جارٍ انتظار تحديث الرصيد…';
+        receipts.push(product.id === 'ezik_games_3'
+          ? 'تم الشراء ✓ — أُضيف ' + arabicDigits(3) + ' جلسات'
+          : 'تم الشراء ✓ — فُعّل الاشتراك');
+        status.textContent = receipts.join('\n') + '\nتمت ' + arabicDigits(completed) + ' من ' + arabicDigits(quantity) + ' — جارٍ تحديث الرصيد…';
         var changed = typeof window.ezikIapPollPending === 'function'
           ? await window.ezikIapPollPending(session, balanceSnapshot(baseline), startingBalance.appUserId)
           : false;
+        pendingBalance = !changed;
         if (changed) {
-          balanceChanged = true;
           var refreshed = await getBalance(session);
-          if (refreshed.ok && refreshed.data.appUserId === startingBalance.appUserId) baseline = refreshed.data;
+          if (refreshed.ok && refreshed.data.appUserId === startingBalance.appUserId) {
+            baseline = refreshed.data;
+            updateBalanceLine(balanceDisplay, refreshed.data);
+          }
         }
       } catch (e) {
         stopReason = 'error';
@@ -627,18 +692,48 @@
     input.disabled = false;
     buyButton.disabled = false;
     setModalBusy(false);
-    var message = 'اكتمل شراء ' + String(completed) + ' من ' + String(quantity) + '.';
-    if (stopReason === 'cancelled') message += ' أُلغي الطلب المتبقي.';
-    else if (stopReason === 'error') message += ' تعذّر إكمال الطلب المتبقي.';
-    if (completed > 0 && !balanceChanged) message += ' تم استلام الدفعة وسيظهر الرصيد قريبًا.';
+    var message = receipts.join('\n');
+    if (completed > 1) message += '\nتمت ' + arabicDigits(completed) + ' من ' + arabicDigits(quantity) + '.';
+    if (stopReason === 'cancelled') message += (message ? '\n' : '') + 'أُلغي الطلب المتبقي.';
+    else if (stopReason === 'error') message += (message ? '\n' : '') + 'تعذّر إكمال الطلب المتبقي.';
+    if (completed > 0 && pendingBalance) message += (message ? '\n' : '') + 'تم استلام الدفع، سيظهر الرصيد خلال لحظات.';
     status.className = stopReason === 'error' ? 'ezik-iap-error ezik-iap-status' : 'ezik-iap-note ezik-iap-status';
     status.textContent = message;
 
-    if (balanceChanged && startContext) await openStartChoice(startContext);
+    if (completed > 0 && pendingBalance && active === modal) {
+      var polling = false;
+      var poller = setInterval(async function () {
+        if (active !== modal || polling) return;
+        polling = true;
+        try {
+          var refreshed = await getBalance(session);
+          if (active !== modal || !refreshed.ok || refreshed.data.appUserId !== startingBalance.appUserId) return;
+          updateBalanceLine(balanceDisplay, refreshed.data);
+          if (JSON.stringify(balanceSnapshot(refreshed.data)) !== JSON.stringify(balanceSnapshot(baseline))) {
+            baseline = refreshed.data;
+            status.textContent = receipts.join('\n') + '\nتم تحديث الرصيد.';
+            clearInterval(poller);
+          }
+        } catch (e) {} finally { polling = false; }
+      }, 5000);
+      var previousCleanup = panelRefreshCleanup;
+      panelRefreshCleanup = function () {
+        clearInterval(poller);
+        if (previousCleanup) previousCleanup();
+      };
+    }
   }
 
-  async function beginStart(start, roomCode, gameId) {
-    startContext = { start: start, roomCode: roomCode || 'room', gameId: typeof gameId === 'string' && gameId ? gameId : 'hanna' };
+  async function beginStart(start, roomCode, gameId, options) {
+    options = options && typeof options === 'object' ? options : {};
+    startContext = {
+      start: start,
+      roomCode: roomCode || 'room',
+      roomInstanceId: typeof options.roomInstanceId === 'string' ? options.roomInstanceId : '',
+      gameId: typeof gameId === 'string' && gameId ? gameId : 'hanna',
+      waitForStart: typeof options.waitForStart === 'function' ? options.waitForStart : null,
+      cycle: options.cycle,
+    };
     window.__ezikIapStartGame = start;
     window.__ezikIapRoomCode = roomCode;
     var mode;
@@ -653,10 +748,10 @@
     await openStartChoice(startContext);
   }
 
-  window.ezikIapStart = function (start, roomCode, gameId) {
+  window.ezikIapStart = function (start, roomCode, gameId, options) {
     if (typeof start !== 'function') return;
     if (active) return;
-    beginStart(start, roomCode, gameId).catch(function () {
+    beginStart(start, roomCode, gameId, options).catch(function () {
       showFailure('تعذّر إكمال العملية الآن. حاول مرة أخرى.');
     });
   };

@@ -7,11 +7,40 @@
     const api = global.KUNUZ_BOARD_API_ORIGIN || 'https://hanna-laha.hl-worker.workers.dev';
     const digits = h.digits, stamp = () => global.seenStamp() + ':' + global.DATA.qs.length;
     const S = { session: null, snapshot: null, socket: null, connected: false, stopped: true, error: '', note: '', retry: null, heartbeat: null, ticks: null, retryCount: 0, slot: 0, name: '', color: 0, answer: null, text: '', returnStage: 'room-entry', busy: false };
+    const startWaiters = new Set();
     const invalidSessionMessage = 'تعذّرت استعادة دخولكم؛ انضموا من جديد.';
     const errors = { NOT_FOUND: 'ما لقينا غرفة بهذا الرقم.', ROOM_CLOSED: 'أُغلقت الغرفة.', BAD_TOKEN: invalidSessionMessage, BANK_MISMATCH: 'تحتاجون تحديث الصفحة لتطابق أسئلة الغرفة.', OUTDATED: 'حدّثوا الصفحة للانضمام إلى الغرفة.', CODE_TAKEN: 'هذا الرقم مستخدم؛ اختاروا رقمًا آخر.', TEAM_TAKEN: 'الفريق اختاره لاعب آخر؛ اختاروا فريقًا متاحًا.', ROOM_FULL: 'اكتمل عدد الفرق في الغرفة.', NOT_READY: 'تغيّرت الخطوة؛ انتظروا تحديث الغرفة.', STALE: 'تغيّرت الجولة؛ اختاروا من جديد.', TOO_MANY: 'انتظروا قليلًا ثم حاولوا مرة ثانية.', FORBIDDEN: 'هذا الإجراء لصاحب الدور أو صاحب الغرفة.', BAD_CONFIG: 'راجعوا الفئات والفرق والوقت ثم حاولوا.', BAD_MESSAGE: 'راجعوا الاختيار ثم حاولوا مرة ثانية.', SERVER: 'تعذّر الاتصال بالغرفة؛ حاولوا مرة ثانية.' };
     function identity() { try { let id = localStorage.getItem(DEVICE); if (!id) { id = 'board-' + crypto.randomUUID(); localStorage.setItem(DEVICE, id); } return id; } catch (_) { return S.device ||= 'board-' + crypto.randomUUID(); } }
     function save() { try { if (S.session) localStorage.setItem(KEY, JSON.stringify(S.session)); else localStorage.removeItem(KEY); } catch (_) {} }
-    function stop() { S.stopped = true; clearTimeout(S.retry); clearInterval(S.heartbeat); clearInterval(S.ticks); if (S.socket) { S.socket.onclose = null; S.socket.close(); } S.socket = null; S.connected = false; }
+    function stop() { S.stopped = true; clearTimeout(S.retry); clearInterval(S.heartbeat); clearInterval(S.ticks); startWaiters.forEach(waiter => waiter.cancel()); if (S.socket) { S.socket.onclose = null; S.socket.close(); } S.socket = null; S.connected = false; }
+    function waitForGame(targetGameNumber) {
+      const roomId = S.snapshot?.roomId;
+      let resolvePromise, rejectPromise;
+      let timer;
+      const promise = new Promise((resolve, reject) => { resolvePromise = resolve; rejectPromise = reject; });
+      const waiter = {
+        finish(error, snapshot) {
+          if (!startWaiters.delete(waiter)) return;
+          clearTimeout(timer);
+          if (error) rejectPromise(error); else resolvePromise(snapshot);
+        },
+        cancel() { waiter.finish(new Error('board-start-cancelled')); },
+      };
+      timer = setTimeout(() => waiter.finish(new Error('board-start-timeout')), 45000);
+      startWaiters.add(waiter);
+      waiter.roomId = roomId;
+      waiter.targetGameNumber = targetGameNumber;
+      if (S.snapshot && S.snapshot.roomId === roomId
+        && ['board', 'question'].includes(S.snapshot.phase)
+        && Number(S.snapshot.gameNumber) === targetGameNumber) waiter.finish(null, S.snapshot);
+      return { promise, cancel: waiter.cancel };
+    }
+    function notifyGameStart(snapshot) {
+      if (!['board', 'question'].includes(snapshot.phase)) return;
+      startWaiters.forEach(waiter => {
+        if (waiter.roomId === snapshot.roomId && waiter.targetGameNumber === Number(snapshot.gameNumber)) waiter.finish(null, snapshot);
+      });
+    }
     function leave(retain = false) { stop(); if (retain && S.session && (S.session.hostToken || S.session.teamToken)) { S.session.active = false; save(); S.session = null; } else { S.session = null; save(); } S.snapshot = null; S.error = ''; S.busy = false; M.question = null; M.running = false; M.stage = 'room-entry'; M.step = 0; history.replaceState({ journey: true, stage: 'room-entry', step: 0 }, '', '/quest-board.html'); h.render(); }
     function permanent(code) {
       const wasOpen = !!S.snapshot, returnStage = S.returnStage; stop(); S.session = null; save(); S.snapshot = null; S.busy = false; M.question = null; M.running = false;
@@ -34,6 +63,7 @@
       if (S.snapshot && snapshot.roomId === S.snapshot.roomId && snapshot.version < S.snapshot.version) return;
       const changedQuestion = snapshot.question?.qn !== S.snapshot?.question?.qn;
       S.snapshot = snapshot; S.error = ''; S.busy = false;
+      notifyGameStart(snapshot);
       if (changedQuestion) { S.answer = null; S.text = ''; }
       S.session.roomId = snapshot.roomId; S.session.role = snapshot.self.role; save(); mark(snapshot);
       M.cats = snapshot.cats.slice(); M.teams = snapshot.teams.map((t, i) => ({ n: t.name, c: h.colors[t.color], symbol: i, score: t.score, shows: t.shows }));
@@ -166,11 +196,21 @@
       else if (action === 'br-seat' && s) { S.slot = +el.dataset.slot; S.name = s.teams[S.slot]?.name || ''; S.color = s.teams[S.slot]?.color ?? s.teams.length; h.render(); }
       else if (action === 'br-join-team') { if (!S.name.trim()) { S.error = 'اكتبوا اسم الفريق.'; h.render(); } else { S.busy = true; send({ t: 'join', name: S.name.trim(), color: S.color, ...(S.slot >= 0 ? { slot: S.slot } : {}) }); h.render(); } }
       else if (action === 'br-start' && s?.self.role === 'host') {
-        if (typeof global.ezikIapStart === 'function') global.ezikIapStart(() => { if (!send({ t: 'start', rev: s.version })) throw new Error('board-start-unavailable'); }, S.session.code, 'board');
+        if (typeof global.ezikIapStart === 'function') {
+          const cycle = (Number(s.gameNumber) || 0) + 1;
+          global.ezikIapStart(() => { if (!send({ t: 'start', rev: s.version })) throw new Error('board-start-unavailable'); }, S.session.code, 'board', {
+            cycle: String(cycle), roomInstanceId: S.session.roomId || s.roomId, waitForStart: () => waitForGame(cycle),
+          });
+        }
         else { S.error = 'تعذّر فتح خيارات الجلسة. أعدوا تحميل الصفحة.'; h.render(); }
       }
       else if (action === 'br-rematch' && s?.self.role === 'host') {
-        if (typeof global.ezikIapStart === 'function') global.ezikIapStart(() => { if (!send({ t: 'rematch', rev: s.version })) throw new Error('board-start-unavailable'); }, S.session.code, 'board');
+        if (typeof global.ezikIapStart === 'function') {
+          const cycle = (Number(s.gameNumber) || 0) + 1;
+          global.ezikIapStart(() => { if (!send({ t: 'rematch', rev: s.version })) throw new Error('board-start-unavailable'); }, S.session.code, 'board', {
+            cycle: String(cycle), roomInstanceId: S.session.roomId || s.roomId, waitForStart: () => waitForGame(cycle),
+          });
+        }
         else { S.error = 'تعذّر فتح خيارات الجلسة. أعدوا تحميل الصفحة.'; h.render(); }
       }
       else if (action === 'tile' && s?.canPick) send({ t: 'pick', slot: +el.dataset.slot, rev: s.version });
