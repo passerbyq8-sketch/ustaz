@@ -2,7 +2,7 @@
    Ezik's existing worker sweeps other CacheStorage stores. A separate asset-only
    IndexedDB database keeps Kunuz offline without changing that worker or its data. */
 'use strict';
-const VERSION = '20261021-room1';
+const VERSION = '20261022-roomsfix1';
 const DATABASE_PREFIX = 'kunuz-treasure-assets-';
 const DATABASE = DATABASE_PREFIX + VERSION;
 const CRITICAL_ASSETS = {
@@ -19,7 +19,8 @@ const SHELL = [
   '/quest-visual.js', '/quest-visual.css', '/quest-levels.js', '/quest-i18n.js',
   '/quest-theme/theme.css', '/quest-theme/model.js', '/quest-theme/icons.js',
   '/quest-theme/history.js', '/quest-theme/journey.js', '/quest-theme/motion-kit.js',
-  '/quest-theme/board-rooms.js',
+  '/quest-theme/board-rooms.js', '/quest-theme/room-categories.js',
+  '/iap-pending.js', '/hanna-laha/assets/iap-bridge-v1.js', '/hanna-laha/assets/iap-bridge-v1.css',
   '/quest-theme/assets/regular.ttf', '/quest-theme/assets/bold.ttf',
   '/quest-theme/assets/ocean-clean.webp', '/quest-theme/assets/islands.webp', '/quest-theme/assets/hero.png',
   '/quest-theme/audio/tap.wav', '/quest-theme/audio/success.wav', '/quest-theme/audio/swoosh.wav',

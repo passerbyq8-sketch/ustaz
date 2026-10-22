@@ -3,7 +3,6 @@
 
   var SESSION_KEY = 'ezik_auth_session_v1';
   var DEVICE_KEY = 'mrb_device_v1';
-  var LEGACY_PIN_KEY = 'parent_pin_hash';
   var APP_STORE_URL = 'https://apps.apple.com/app/id6797100518';
   var PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=app.almurabbi.tutor';
   var PRODUCT_ROWS = [
@@ -34,13 +33,6 @@
         localStorage.setItem(DEVICE_KEY, value);
       }
       return value;
-    } catch (e) { return ''; }
-  }
-
-  function legacyPinHash() {
-    try {
-      var value = localStorage.getItem(LEGACY_PIN_KEY) || '';
-      return /^[0-9a-f]{64}$/.test(value) ? value : '';
     } catch (e) { return ''; }
   }
 
@@ -155,17 +147,6 @@
     return node;
   }
 
-  async function postParent(action, fields) {
-    var id = deviceId();
-    if (!id) throw new Error('parent-device-unavailable');
-    return fetch('../api/parent-code', {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(Object.assign({ action: action, deviceId: id }, fields || {})),
-    });
-  }
-
   function showSignIn() {
     var modal = openModal('تسجيل الدخول', 'يلزم تسجيل الدخول إلى حساب عزك قبل بدء الجلسة أو الشراء.');
     line(modal.content, 'سجّل الدخول إلى حساب عزك، ثم ارجع إلى هذه الغرفة للمتابعة.');
@@ -182,101 +163,6 @@
   function showFailure(message) {
     var modal = openModal('تعذّر إكمال العملية', message || 'تعذّر الاتصال بالخادم الآن. حاول مرة أخرى.');
     modal.content.append(button('حسنًا', closeModal, true));
-  }
-
-  function showArithmeticGate(startPurchase) {
-    var a = 2 + Math.floor(Math.random() * 8);
-    var b = 2 + Math.floor(Math.random() * 8);
-    var modal = openModal('تأكيد وليّ الأمر', 'أجب عن المسألة للمتابعة إلى شاشة الدفع.');
-    var form = document.createElement('form');
-    var label = document.createElement('label');
-    label.className = 'ezik-iap-field';
-    label.textContent = String(a) + ' + ' + String(b);
-    var input = document.createElement('input');
-    input.type = 'number';
-    input.inputMode = 'numeric';
-    input.autocomplete = 'off';
-    input.required = true;
-    input.setAttribute('aria-label', 'الإجابة');
-    label.append(input);
-    var error = line(modal.content, '', 'ezik-iap-error');
-    var submit = button('متابعة', function () {}, false);
-    submit.type = 'submit';
-    form.append(label, submit);
-    form.addEventListener('submit', function (event) {
-      event.preventDefault();
-      if (Number(input.value) !== a + b) {
-        error.textContent = 'الإجابة غير صحيحة. حاول مرة أخرى.';
-        input.value = '';
-        input.focus();
-        return;
-      }
-      startPurchase();
-    });
-    modal.content.append(form);
-    input.focus();
-  }
-
-  function showParentPinGate(startPurchase, needsLegacy) {
-    var modal = openModal('تأكيد وليّ الأمر', 'أدخل رمز وليّ الأمر قبل عرض خيارات الدفع.');
-    var form = document.createElement('form');
-    var label = document.createElement('label');
-    label.className = 'ezik-iap-field';
-    label.textContent = 'رمز وليّ الأمر';
-    var input = document.createElement('input');
-    input.type = 'password';
-    input.inputMode = 'numeric';
-    input.autocomplete = 'off';
-    input.required = true;
-    label.append(input);
-    var error = line(modal.content, '', 'ezik-iap-error');
-    var submit = button('متابعة', function () {}, false);
-    submit.type = 'submit';
-    form.append(label, submit);
-    form.addEventListener('submit', async function (event) {
-      event.preventDefault();
-      if (!/^[0-9]{4,64}$/.test(input.value)) {
-        error.textContent = 'أدخل الرمز الذي يتكوّن من أربعة أرقام على الأقل.';
-        return;
-      }
-      submit.disabled = true;
-      try {
-        var fields = { pin: input.value };
-        var legacy = needsLegacy ? legacyPinHash() : '';
-        if (legacy) fields.legacyHash = legacy;
-        var response = await postParent('verify', fields);
-        var data = await response.json().catch(function () { return {}; });
-        if (response.ok && data.ok === true) {
-          if (legacy) { try { localStorage.removeItem(LEGACY_PIN_KEY); } catch (e) {} }
-          startPurchase();
-          return;
-        }
-        error.textContent = data.message || 'رمز وليّ الأمر غير صحيح.';
-      } catch (e) {
-        error.textContent = 'تعذّر التحقق الآن. حاول مرة أخرى.';
-      }
-      submit.disabled = false;
-      input.value = '';
-      input.focus();
-    });
-    modal.content.append(form);
-    input.focus();
-  }
-
-  async function guardianGate(startPurchase) {
-    try {
-      var response = await postParent('status');
-      var data = await response.json().catch(function () { return {}; });
-      if (!response.ok || typeof data.hasCode !== 'boolean') {
-        showFailure(data.message || 'تعذّر التحقق من قفل وليّ الأمر.');
-        return;
-      }
-      var legacy = !data.hasCode && !!legacyPinHash();
-      if (data.hasCode || legacy) showParentPinGate(startPurchase, legacy);
-      else showArithmeticGate(startPurchase);
-    } catch (e) {
-      showFailure('تعذّر التحقق من قفل وليّ الأمر.');
-    }
   }
 
   function balanceSnapshot(balance) {
@@ -758,7 +644,7 @@
     var mode;
     try { mode = await getEnforcementMode(); }
     catch (e) { mode = 'all'; }
-    if (mode === 'off') {
+    if (mode === 'off' || mode === 'test' && !authSession()) {
       stopSignInWatch();
       await startWithoutIap(startContext);
       return;

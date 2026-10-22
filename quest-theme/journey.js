@@ -16,6 +16,9 @@
   const path = location.pathname;
   const game = path.includes('quest-ghaws') ? 'ghaws' : path.includes('quest-harb') ? 'harb' : path.includes('quest-test') ? 'test' : path.includes('quest-board') ? 'board' : path.includes('hanna-laha') ? 'hanna' : 'hub';
   const hasRooms = game === 'hanna' || game === 'harb' || game === 'board';
+  const roomCategoryIds = new Set(global.KunuzRoomCategoryIds || []);
+  const usesRoomBank = () => (game === 'hanna' || game === 'harb') && M.settings.room;
+  const roomCategorySupported = c => roomCategoryIds.has(global.DATA.cats[c]?.[0]);
   const entryHistory = hasRooms ? history.state : null;
   const names = { hub: 'كنوز المعرفة', ghaws: 'الغوص', harb: 'حرب الجزر', test: 'اختبر معلوماتك', board: 'تحدّي الفئات', hanna: 'حنّا لها' };
   const limits = { ghaws: [1, 6], harb: [2, 4], test: [1, 4], board: [2, 4], hanna: [2, 12] };
@@ -58,7 +61,7 @@
   const app = document.createElement('div'); app.className = 'journey-app'; app.dataset.game = game;
   document.body.classList.add('ezik-treasure-theme'); document.body.append(app);
   const themeMeta = document.querySelector('meta[name="theme-color"]'); if (themeMeta) themeMeta.content = '#082c38';
-  const THEME_VERSION = '20261021-room1';
+  const THEME_VERSION = '20261022-roomsfix1';
   const themeAsset = file => '/quest-theme/' + file + '?v=' + THEME_VERSION;
   const soundCache = new Map();
   const warmedImages = [];
@@ -102,8 +105,8 @@
           const timeout = setTimeout(controlled, 3000);
           navigator.serviceWorker.addEventListener('controllerchange', controlled);
         });
-        const screenVersion = game === 'board' ? '20261022-board1' : '20261022-quiz2';
-        const screenAssets = ['theme.css?v=' + screenVersion, 'journey.js?v=' + screenVersion, 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
+        const screenVersion = '20261022-roomsfix1';
+        const screenAssets = ['theme.css?v=' + screenVersion, 'journey.js?v=' + screenVersion, 'room-categories.js?v=' + screenVersion, 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
         if (game === 'board') screenAssets.push('board-rooms.js?v=' + screenVersion);
         if (navigator.serviceWorker.controller) await Promise.all(screenAssets.map(async file => {
           const response = await fetch('/quest-theme/' + file);
@@ -162,16 +165,18 @@
       ].map(([kind, url, tag, line, icon]) => '<a class="j-game-card j-card-' + (kind === 'harb' ? 'island' : kind) + '" href="' + url + '">' + (kind === 'harb' ? '<img src="/quest-theme/assets/islands.webp?v=20261021-room1" alt="خريطة جزر الكنوز">' : Icons.icon(icon)) + '<span class="j-tag">' + tag + '</span><h2>' + names[kind] + '</h2><p>' + line + '</p></a>').join('') + '</div>';
   }
   function categories() {
-    const all = Model.categories().filter(c => c.count >= Model.PER_CATEGORY);
+    const roomBank = usesRoomBank();
+    const all = Model.categories().filter(c => c.count >= Model.PER_CATEGORY && (!roomBank || roomCategorySupported(c.index)));
     function section(list, title) {
       return '<h2 class="j-divider">' + title + '</h2><div class="j-category-picker">' + list.map(c => {
         const selected = M.cats.includes(c.index), disabled = !selected && M.cats.length >= 6;
         return button(catIcon(c.index) + '<b>' + esc(c.name) + '</b><small>' + (selected ? '✓ تم الاختيار' : disabled ? 'وصلتم للحد الأعلى' : 'اختيار الفئة') + '</small>', 'cat', 'j-cat-pick', 'data-cat="' + c.index + '" aria-pressed="' + selected + '"' + (disabled ? ' disabled' : ''));
       }).join('') + '</div>';
     }
-    return '<h1 class="j-heading">اختاروا فئات مغامرتكم</h1><p class="j-lead">اختاروا من ثلاث إلى ست فئات. كل فئة بطاقتها الخاصة.</p>' +
+    return '<h1 class="j-heading">اختاروا فئات مغامرتكم</h1>' +
+      (roomBank ? '<p class="j-note">بعض الفئات تُلعب على جهاز واحد فقط، فلا تظهر في الغرف.</p>' : '') + '<p class="j-lead">اختاروا من ثلاث إلى ست فئات. كل فئة بطاقتها الخاصة.</p>' +
       (M.error ? '<div class="j-error" role="alert">' + esc(M.error) + '</div>' : '') +
-      section(all.filter(c => c.index < 53), 'من كنوز المعرفة') + section(all.filter(c => c.index >= 53), 'فئات إضافية') +
+      section(all.filter(c => c.index < 53), 'من كنوز المعرفة') + (roomBank ? '' : section(all.filter(c => c.index >= 53), 'فئات إضافية')) +
       '<p class="j-note" role="status">' + (M.cats.length >= 6 ? 'وصلتم للحد الأعلى؛ أزيلوا اختيارًا لتختاروا فئة أخرى.' : M.cats.length < 3 ? 'اختاروا ثلاث فئات على الأقل للمتابعة.' : 'فئاتكم جاهزة؛ تقدرون تتابعون.') + '</p>' +
       '<div class="j-actions">' + button('التالي', 'next-setup', 'j-btn', M.cats.length < 3 ? 'disabled' : '') + '</div>';
   }
@@ -528,6 +533,10 @@
     M.used.add(index); M.history.mark(index); startTimer();
   }
   function setStage(stage, step = M.step, push = false) {
+    if (usesRoomBank()) {
+      M.cats = M.cats.filter(roomCategorySupported);
+      if (stage === 'settings' && M.cats.length < 3) { stage = 'categories'; step = 1; }
+    }
     M.stage = stage; M.step = step;
     if (push) history.pushState({ journey: true, step, ...(game === 'test' ? { quiz: true, stage } : {}), ...(hasRooms ? { stage, room: M.settings.room, roomCodeEntry: M.roomCodeEntry } : {}) }, '');
     render();
@@ -993,7 +1002,7 @@
   async function enterRoom(join, preserveRoute = false) {
     // Rooms continue to use the shipped front-end and worker's current protocol.
     // Local pack IDs are deliberately never sent to a server with a different bank.
-    if (!join && M.cats.some(c => c >= 53)) { M.error = 'الغرف تستعمل بنك خادمها الحالي. اختاروا فئات البنك للغرفة، أو العبوا بهذه الفئات على جهاز واحد.'; render(); return; }
+    if (!join && usesRoomBank() && M.cats.some(c => !roomCategorySupported(c))) { M.error = 'الغرف تستعمل بنك خادمها الحالي. اختاروا فئات البنك للغرفة، أو العبوا بهذه الفئات على جهاز واحد.'; render(); return; }
     M.settings.roomCode = M.settings.roomCode.replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).trim();
     if (!join && game === 'hanna' && M.settings.roomCode && !/^\d{4,6}$/.test(M.settings.roomCode)) { M.error = 'رمز الغرفة يكون من أربعة إلى ستة أرقام.'; render(); return; }
     if (!join && (game === 'hanna' && (!Number.isInteger(time()) || time() < 10 || time() > 600 || M.settings.reveals > 99) || game === 'harb' && (time() !== 0 && (time() < 3 || time() > 600 || !Number.isInteger(time() * 1000))))) { M.error = 'هذا الوقت أو رصيد الخيارات خارج ما يقبله خادم الغرف الحالي؛ اختاروا إعدادًا آخر أو العبوا على جهاز واحد.'; render(); return; }
@@ -1026,7 +1035,7 @@
       // remains completely offline. It owns its credentials, reconnect and protocol.
       const css = ['Page-oyXYdFLk.css', 'index-BYf54ooy.css'];
       for (const file of css) { const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = '/hanna-laha/assets/' + file; document.head.append(link); }
-      const module = document.createElement('script'); module.type = 'module'; module.src = '/hanna-laha/assets/index-iap-v1.js';
+      const module = document.createElement('script'); module.type = 'module'; module.src = '/hanna-laha/assets/index-iap-v1.js?v=20261022-roomsfix1';
       try { localStorage.setItem('hl-ezik.sound', 'false'); } catch (_) {}
       if (!join) {
         const roomColors = ['blue','orange','purple','green','gold','pink','teal','brown','navy','olive','red','maroon'];
@@ -1292,7 +1301,7 @@
     // Direct room URLs stay outside the local bank/pack engine. Local Hanna uses
     // that engine only after the entry route has been classified below.
     const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/quest-visual.css'; document.head.append(css);
-    for (const src of ['/quest-data/kunuz-bank-3147.js', '/quest-theme/history.js', '/quest-data/kunuz-geo-index.js', '/quest-data/kunuz-packs-manifest.js?v=20261021-room1', '/quest-visual.js', '/quest-levels.js']) {
+    for (const src of ['/quest-data/kunuz-bank-3147.js', '/quest-theme/history.js', '/quest-data/kunuz-geo-index.js', '/quest-data/kunuz-packs-manifest.js?v=20261022-roomsfix1', '/quest-visual.js', '/quest-levels.js']) {
       await new Promise((resolve, reject) => {
         const script = document.createElement('script'); script.src = src;
         script.onload = resolve; script.onerror = () => reject(new Error('تعذّر تحميل ملفات المغامرة المحلية. حاولوا مرة ثانية.'));

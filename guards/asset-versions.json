@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "assets": {
+    "hanna-laha/assets/index-iap-v1.js?v=20261022-roomsfix1": "d2312c2fc3ef125e787dc178113367112d641712244e435f9a5f2304b38c6e17",
+    "quest-theme/theme.css?v=20261022-roomsfix1": "1c44712335e22879b2932c898a1ee360ccca5ef6e9c5439428807a069dc159d1",
+    "quest-theme/assets/regular.ttf?v=20261022-roomsfix1": "02609c5ef845ef511676c8badb24d1fc8b4aed3dc3b9d8bbdab22c14431b7c16",
+    "quest-theme/assets/bold.ttf?v=20261022-roomsfix1": "05616a64c5dca137a327b30b1fe7f4fcd1e16892a332e1665b49d52038858044",
+    "quest-theme/motion-kit.js?v=20261022-roomsfix1": "0a1c7ff1b5124cb0faed654e7076f80ce7730f91137d31bfb815f3899fdc3c8c",
+    "quest-theme/icons.js?v=20261022-roomsfix1": "6d7ead79ec874ac68109dc67336d5a2c7370699c539319a93ff02088943105c6",
+    "quest-theme/model.js?v=20261022-roomsfix1": "f32092d41e9044c21345f878ba0576cde5236708e57f1bc42b2d75eedece22f0",
+    "quest-theme/journey.js?v=20261022-roomsfix1": "46cbeadfebfc827a237ec367d1292edb0d1f06d3827e218a49c8161c47d9017a",
+    "hanna-laha/assets/iap-bridge-v1.css?v=20261022-roomsfix1": "fd7497e2572d4b84e5c809dfc4fb4310a834e5d97b08ca23fed207f97b849dc6",
+    "iap-pending.js?v=20261022-roomsfix1": "eb509ecc3d6d645c82a0a0902a371da111363638924795d7e73e1924d9794973",
+    "hanna-laha/assets/iap-bridge-v1.js?v=20261022-roomsfix1": "5a8dd965a8d1e3758561a90160e392881ba9bffa2fd955a4ae46b52c29fa5831",
+    "quest-theme/board-rooms.js?v=20261022-roomsfix1": "bc0af022bd4bc10e9f84ba57917044d7c43313404d7c27ff2d637a04173e11cb",
+    "quest-data/kunuz-packs-manifest.js?v=20261022-roomsfix1": "affb9dcdbd67c9380ba9da684289690c6a27aadbd34c31b75465d6a07a4fc04a",
+    "quest-theme/room-categories.js?v=20261022-roomsfix1": "239e7905f5e1d41ad49cb54014b7d5b5ab45d6cb796afcfcd48318d1e1ea1019"
+  }
+}

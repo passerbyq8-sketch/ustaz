@@ -940,5 +940,10 @@
     "name": "kunuzvisual",
     "script": "guards/kunuz-visual-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "assetversions",
+    "script": "guards/asset-version-guard.cjs",
+    "args": ""
   }
 ]
