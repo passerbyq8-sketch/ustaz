@@ -520,7 +520,7 @@ function checkB10(pageText) {
   has(/\.ezik-treasure-theme\{[^}]*overflow-x:hidden/, 'no horizontal scroll');
   has(/\.j-point\{min-height:44px;min-width:44px/, 'point tiles at least 44 by 44');
   has(/\.j-btn\{min-height:52px/, 'primary touch targets');
-  if (!pageText.includes('href="/quest-theme/theme.css?v=20261021-room1"')) f.push('scoped theme stylesheet not loaded');
+  if (!pageText.includes('href="/quest-theme/theme.css?v=20261022-board1"')) f.push('scoped theme stylesheet not loaded');
   return { f, info: 'rules ok=' + (f.length ? 0 : 1) };
 }
 
