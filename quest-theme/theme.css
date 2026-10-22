@@ -8,7 +8,7 @@
 .ezik-treasure-theme .kunuz-theme-spinner{width:30px;height:30px;border:3px solid #b2d4d94d;border-top-color:#ffd36a;border-radius:50%;animation:kunuz-theme-loading .85s linear infinite}
 @keyframes kunuz-theme-loading{to{transform:rotate(360deg)}}
 .ezik-treasure-theme *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-.ezik-treasure-theme> :not(body):not(.kunuz-theme-shell):not(.journey-app):not(script):not(style):not(link){display:none!important}
+.ezik-treasure-theme> :not(body):not(.kunuz-theme-shell):not(.journey-app):not(script):not(style):not(link):not(.ezik-iap-backdrop){display:none!important}
 .ezik-treasure-theme .journey-app{position:relative;isolation:isolate;min-height:100svh;max-width:760px;margin:0 auto;background:var(--journey-home);overflow:hidden;padding-bottom:max(26px,env(safe-area-inset-bottom));--c:#2a8e84}
 .ezik-treasure-theme .journey-app[data-game=board]{background:radial-gradient(ellipse at 50% 0,#69534a,#272b37 70%)}
 .ezik-treasure-theme .journey-app[data-game=test]{background:radial-gradient(circle at 50% 16%,#8270c2,#39315c 45%,#161e34 90%)}

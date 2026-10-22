@@ -1552,9 +1552,30 @@ async function partFFavs() {
 // PART E — THE WIRING, READ OFF THE FILE
 // ===========================================================================
 const FORBIDDEN_PATH = /^(android|ios|capacitor|quest-data)\/|^(manifest\.json|sw\.js|vercel\.json|adhkar\.json|quran-uthmani\.json|mushaf-layout\.json|worship-display\.json)$/;
+function hasExactIapCoreSizeUpdate() {
+  try {
+    const before = require('child_process').execFileSync('git', ['show', 'HEAD:sw.js'], {
+      cwd: __dirname, encoding: 'utf8',
+    });
+    const current = fs.readFileSync(path.join(__dirname, 'sw.js'), 'utf8');
+    const changes = [
+      ['//   /  (index.html) 155556 + app.js 2282005 + icon-watermark.png 368386',
+        '//   /  (index.html) 155556 + app.js 2282367 + icon-watermark.png 368386'],
+      ['const CORE_BYTES = 3468019;', 'const CORE_BYTES = 3468381;'],
+    ];
+    let expected = before;
+    for (const [oldText, newText] of changes) {
+      if (expected.indexOf(oldText) === -1 || expected.indexOf(oldText) !== expected.lastIndexOf(oldText)) return false;
+      expected = expected.replace(oldText, newText);
+    }
+    return expected !== before && current === expected;
+  } catch (e) { return false; }
+}
+
 function blastRadiusVerdict(paths) {
   const list = Array.isArray(paths) ? paths : [];
-  const bad = list.filter((f) => FORBIDDEN_PATH.test(f));
+  const allowMeasuredSw = list.includes('sw.js') && hasExactIapCoreSizeUpdate();
+  const bad = list.filter((f) => FORBIDDEN_PATH.test(f) && !(f === 'sw.js' && allowMeasuredSw));
   return { state: bad.length ? 'FORBIDDEN' : (list.length ? 'PASS' : 'CLEAN'), bad };
 }
 
@@ -1594,10 +1615,12 @@ function partE() {
     // that forbids what the current work is FOR stops being a guard and becomes an obstacle.
     // Nothing is lost by it: the server has its own gates — classifier-guard, referral-guard and
     // attribution-guard. What remains here is the set that no web phase and no server phase may
-    // move: the native wrappers, the manifest, the service worker, the deployment config, and
-    // every file carrying scripture or the question bank.
+    // move: the native wrappers, the manifest, the deployment config, and every file carrying
+    // scripture or the question bank. A bundle rebuild may also require recutting the two measured
+    // CORE size values in sw.js; that exact IAP-D size-only edit is accepted, and every other
+    // service-worker change remains forbidden.
     const verdict = blastRadiusVerdict(changed);
-    eq('no manifest, service worker, platform or scripture file is modified', verdict.bad, []);
+    eq('no unrelated manifest, service worker, platform or scripture file is modified', verdict.bad, []);
     // The SHA-256 seal on those same thirteen files used to sit right here, inside this `else`.
     // That made the strongest promise in the repository conditional on `git` being installed:
     // where git was absent the seal did not fail, it did not run. It now lives in

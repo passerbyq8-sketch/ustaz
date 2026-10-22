@@ -19704,6 +19704,19 @@ function App() {
   // chat when the chat's own drawer did, الإعدادات when its own التحكم row did. Recorded on the
   // way in, spent once on the way out.
   const openEzikSheet = (target) => { sheetOriginRef.current.push(screenRef.current); setScreen(target); };
+  useEffect(() => {
+    if (screen !== 'loading') {
+      try {
+        const url = new URL(window.location.href);
+        if (url.searchParams.get('ezik_iap_signin') === '1') {
+          url.searchParams.delete('ezik_iap_signin');
+          const query = url.searchParams.toString();
+          window.history.replaceState(window.history.state, '', url.pathname + (query ? '?' + query : '') + url.hash);
+          openEzikSheet('settings');
+        }
+      } catch (e) {}
+    }
+  }, [screen]);
   // S90: the PIN gate and the parental screen behind it are ONE layer, not two -- passing the
   // gate spends it and there is no back TO it. Relabelling the gate's entry instead of pushing a
   // second one keeps one entry per layer, so the parental screen's back lands on الإعدادات and

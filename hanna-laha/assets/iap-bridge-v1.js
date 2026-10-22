@@ -4,6 +4,8 @@
   var SESSION_KEY = 'ezik_auth_session_v1';
   var DEVICE_KEY = 'mrb_device_v1';
   var LEGACY_PIN_KEY = 'parent_pin_hash';
+  var APP_STORE_URL = 'https://apps.apple.com/app/id6797100518';
+  var PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=app.almurabbi.tutor';
   var PRODUCT_ROWS = [
     { id: 'ezik_games_3', name: 'ثلاث جلسات لعب' },
     { id: 'ezik_month_1', name: 'شهر لعب غير محدود' },
@@ -11,6 +13,9 @@
   ];
   var active = null;
   var startContext = null;
+  var pendingSignIn = false;
+  var resumingSignIn = false;
+  var panelRefreshCleanup = null;
 
   function authSession() {
     try {
@@ -118,6 +123,10 @@
   }
 
   function closeModal() {
+    if (panelRefreshCleanup) {
+      panelRefreshCleanup();
+      panelRefreshCleanup = null;
+    }
     if (active && active.backdrop && active.backdrop.parentNode) active.backdrop.parentNode.removeChild(active.backdrop);
     active = null;
   }
@@ -159,8 +168,15 @@
 
   function showSignIn() {
     var modal = openModal('تسجيل الدخول', 'يلزم تسجيل الدخول إلى حساب عزك قبل بدء الجلسة أو الشراء.');
-    line(modal.content, 'افتح التطبيق وسجّل الدخول من الإعدادات، ثم عُد إلى الغرفة.');
-    modal.content.append(button('فتح التطبيق', function () { window.location.assign('/'); }));
+    line(modal.content, 'سجّل الدخول إلى حساب عزك، ثم ارجع إلى هذه الغرفة للمتابعة.');
+    var signIn = document.createElement('a');
+    signIn.className = 'ezik-iap-button';
+    signIn.href = '/?ezik_iap_signin=1';
+    signIn.target = '_blank';
+    signIn.rel = 'noopener noreferrer';
+    signIn.textContent = 'تسجيل الدخول';
+    modal.content.append(signIn);
+    watchForSignIn();
   }
 
   function showFailure(message) {
@@ -273,6 +289,23 @@
     };
   }
 
+  function authRecord() {
+    try {
+      var value = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+      return value && typeof value.session === 'string' && value.session ? value : null;
+    } catch (e) { return null; }
+  }
+
+  function accountLabel() {
+    var account = authRecord();
+    if (!account) return 'حساب عزك';
+    if (typeof account.name === 'string' && account.name.trim()) return account.name.trim();
+    var email = typeof account.email === 'string' ? account.email.trim() : '';
+    var at = email.lastIndexOf('@');
+    if (at > 0 && at < email.length - 1) return email.charAt(0) + '•••' + email.slice(at);
+    return 'حساب عزك';
+  }
+
   async function getBalance(session) {
     var response = await fetch('../api/iap-balance', {
       method: 'GET',
@@ -320,7 +353,42 @@
     return node;
   }
 
-  async function openStartChoice(context) {
+  function storeButton(text, href) {
+    var node = document.createElement('a');
+    node.className = 'ezik-iap-button ezik-iap-store-button';
+    node.href = href;
+    node.target = '_blank';
+    node.rel = 'noopener noreferrer';
+    node.textContent = text;
+    return node;
+  }
+
+  function stopSignInWatch() {
+    window.removeEventListener('storage', resumeAfterSignIn);
+    window.removeEventListener('focus', resumeAfterSignIn);
+    document.removeEventListener('visibilitychange', resumeAfterSignIn);
+  }
+
+  function watchForSignIn() {
+    pendingSignIn = true;
+    window.addEventListener('storage', resumeAfterSignIn);
+    window.addEventListener('focus', resumeAfterSignIn);
+    document.addEventListener('visibilitychange', resumeAfterSignIn);
+  }
+
+  async function resumeAfterSignIn(event) {
+    if (event && event.type === 'storage' && event.key !== SESSION_KEY) return;
+    if (document.visibilityState === 'hidden' || !pendingSignIn || resumingSignIn
+      || !startContext || !authSession()) return;
+    pendingSignIn = false;
+    resumingSignIn = true;
+    stopSignInWatch();
+    closeModal();
+    try { await openStartChoice(startContext); }
+    finally { resumingSignIn = false; }
+  }
+
+  async function openStartChoice(context, returnToChoice) {
     var session = authSession();
     if (!session) { showSignIn(); return; }
     var modal = openModal('بدء جلسة اللعب', 'جارٍ تحميل رصيد الحساب…');
@@ -333,16 +401,30 @@
       return;
     }
 
+    pendingSignIn = false;
+    stopSignInWatch();
     var balance = response.data;
-    if (Number(balance.subscriptionExpiresAt) > Date.now()) {
+    var activeSubscription = Number(balance.subscriptionExpiresAt) > Date.now();
+    if (activeSubscription && returnToChoice !== true) {
       await startWithIntent(context, 'automatic');
       return;
     }
 
-    modal.paragraph.textContent = 'اختاروا طريقة بدء الجلسة.';
+    modal.paragraph.textContent = activeSubscription
+      ? 'الحساب: ' + accountLabel() + '. اشتراككم فعّال، ويمكنكم بدء الجلسة الآن.'
+      : 'الحساب: ' + accountLabel() + '. اختاروا طريقة بدء الجلسة.';
     modal.content.replaceChildren();
     var choices = document.createElement('div');
     choices.className = 'ezik-iap-choice-grid';
+    if (activeSubscription) {
+      choices.append(choiceButton('ابدأ اللعب', 'اشتراك فعّال', function () {
+        startWithIntent(context, 'automatic');
+      }, false, false));
+      choices.append(choiceButton('اشتري الآن', '', initializePurchase, true, false));
+      modal.content.append(choices);
+      return;
+    }
+
     var free = freeBalance(balance, context.gameId);
     var remaining = free.remaining;
     var total = free.total;
@@ -376,12 +458,11 @@
     var session = authSession();
     if (!session) { showSignIn(); return; }
     if (!window.ReactNativeWebView || typeof window.ReactNativeWebView.postMessage !== 'function') {
-      var unavailable = openModal('الشراء داخل التطبيق', 'الشراء غير متاح في هذا المتصفح. افتح الغرفة من تطبيق عزك.');
-      unavailable.content.append(button('إغلاق', closeModal, true));
+      showWebBuyPanel();
       return;
     }
 
-    var modal = openModal('خيارات الشراء', 'الأسعار المعروضة من المتجر، ويُفتح تأكيد الدفع لكل عملية شراء.');
+    var modal = openModal('خيارات الشراء', 'الحساب: ' + accountLabel() + '. الأسعار المعروضة من المتجر، ويُفتح تأكيد الدفع لكل عملية شراء.');
     line(modal.content, 'جارٍ تحميل الحساب والأسعار…', 'ezik-iap-status');
     var currentBalance = await getBalance(session);
     if (active !== modal) return;
@@ -391,15 +472,21 @@
       return;
     }
 
+    var identifying = true;
     try {
       var identified = await requestShell('iap.identify', { appUserId: currentBalance.data.appUserId }, 15000);
       if (active !== modal) return;
       if (identified.ok !== true) throw new Error('identify-failed');
+      identifying = false;
       var response = await requestShell('iap.prices', {}, 15000);
       if (active !== modal) return;
       if (response.ok !== true || !response.prices) throw new Error('prices-unavailable');
       showProducts(session, currentBalance.data, response.prices);
     } catch (e) {
+      if (e.message === 'bridge-timeout' && identifying) {
+        showWebBuyPanel();
+        return;
+      }
       var message = e.message === 'bridge-unavailable'
         ? 'الشراء غير متاح في هذا المتصفح. افتح الغرفة من تطبيق عزك.'
         : 'تعذّر تحميل أسعار المتجر. حاول مرة أخرى.';
@@ -407,8 +494,61 @@
     }
   }
 
+  function showWebBuyPanel() {
+    var modal = openModal('الشراء من تطبيق عزك', 'المشتريات متاحة من تطبيق عزك على آيفون أو أندرويد.');
+    line(modal.content, 'اشترِ من تطبيق عزك بنفس حسابك (' + accountLabel() + ') ثم ارجع هنا وسيظهر رصيدك.');
+    var stores = document.createElement('div');
+    stores.className = 'ezik-iap-store-links';
+    stores.append(storeButton('App Store', APP_STORE_URL), storeButton('Google Play', PLAY_STORE_URL));
+    var status = document.createElement('p');
+    status.className = 'ezik-iap-status ezik-iap-note';
+    var refresh = button('تحديث الرصيد', function () { refreshBalance(true); });
+    modal.content.append(stores, refresh, status);
+    var refreshing = false;
+
+    async function refreshBalance(fromButton) {
+      if (active !== modal || refreshing) return;
+      var session = authSession();
+      if (!session) { showSignIn(); return; }
+      refreshing = true;
+      refresh.disabled = true;
+      status.className = 'ezik-iap-status ezik-iap-note';
+      status.textContent = 'جارٍ تحديث الرصيد…';
+      var response;
+      try { response = await getBalance(session); } catch (e) { response = { ok: false }; }
+      if (active !== modal) return;
+      refreshing = false;
+      refresh.disabled = false;
+      if (!response.ok) {
+        if (response.status === 401) { showSignIn(); return; }
+        status.className = 'ezik-iap-status ezik-iap-error';
+        status.textContent = 'تعذّر تحديث الرصيد الآن. حاول مرة أخرى.';
+        return;
+      }
+      var balance = response.data;
+      if (Number(balance.credits) > 0 || Number(balance.subscriptionExpiresAt) > Date.now()) {
+        if (startContext) await openStartChoice(startContext, true);
+        return;
+      }
+      status.textContent = fromButton
+        ? 'لم يظهر رصيد جديد بعد. يمكنك التحديث مرة أخرى بعد الشراء.'
+        : 'يمكنك تحديث الرصيد بعد إتمام الشراء في التطبيق.';
+    }
+
+    var onFocus = function () { refreshBalance(false); };
+    var onVisibility = function () {
+      if (document.visibilityState === 'visible') refreshBalance(false);
+    };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    panelRefreshCleanup = function () {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }
+
   function showProducts(session, startingBalance, prices) {
-    var modal = openModal('خيارات الشراء', 'اختر عدد مرات الشراء من المتجر. الحد الأقصى لكل منتج خمس مرات.');
+    var modal = openModal('خيارات الشراء', 'الحساب: ' + accountLabel() + '. اختر عدد مرات الشراء من المتجر. الحد الأقصى لكل منتج خمس مرات.');
     modal.content.replaceChildren();
     PRODUCT_ROWS.forEach(function (product) {
       var price = prices[product.id];
@@ -575,10 +715,10 @@
   }
 
   async function beginStart(start, roomCode, gameId) {
-    if (!authSession()) { showSignIn(); return; }
     startContext = { start: start, roomCode: roomCode || 'room', gameId: typeof gameId === 'string' && gameId ? gameId : 'hanna' };
     window.__ezikIapStartGame = start;
     window.__ezikIapRoomCode = roomCode;
+    if (!authSession()) { showSignIn(); return; }
     await openStartChoice(startContext);
   }
 
