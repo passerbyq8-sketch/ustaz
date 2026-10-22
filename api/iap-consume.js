@@ -1,6 +1,6 @@
 import { applyCorsOrigin } from '../lib/ratelimit.js';
 import { sessionState } from '../lib/auth/account.js';
-import { consumeSession, IAP_SESSION_ID_RE } from '../lib/iap/store.js';
+import { consumeSession, IAP_GAME_IDS, IAP_SESSION_ID_RE } from '../lib/iap/store.js';
 
 const SESSION_HEADER = 'x-ezik-session';
 
@@ -37,10 +37,20 @@ export default async function handler(req, res) {
   if (typeof body.sessionId !== 'string' || !IAP_SESSION_ID_RE.test(body.sessionId)) {
     return res.status(400).json({ ok: false, error: 'iap-session-id' });
   }
+  if (typeof body.gameId !== 'string' || !IAP_GAME_IDS.includes(body.gameId)) {
+    return res.status(400).json({ ok: false, error: 'iap-game-id' });
+  }
+  const intent = body.intent === undefined ? 'automatic' : body.intent;
+  if (!['automatic', 'free', 'credit'].includes(intent)) {
+    return res.status(400).json({ ok: false, error: 'iap-consume-intent' });
+  }
   try {
-    const result = await consumeSession(state.record.accountKey, body.sessionId);
+    const result = await consumeSession(state.record.accountKey, body.sessionId, body.gameId, intent);
     if (!result.ok && result.code === 'iap-no-credit') {
       return res.status(402).json({ ok: false, error: 'iap-no-credit' });
+    }
+    if (!result.ok && result.code === 'iap-free-unavailable') {
+      return res.status(409).json({ ok: false, error: 'iap-free-unavailable' });
     }
     if (!result.ok) return res.status(400).json(result);
     return res.status(200).json(result);

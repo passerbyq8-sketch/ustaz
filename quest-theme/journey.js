@@ -685,6 +685,11 @@
     const s = M.settings;
     if (game === 'hanna' && s.room && !s.roomCode) { M.error = ''; M.roomStartError = 'أنشئ الغرفة أولًا'; render(); return; }
     if (!Number.isFinite(time()) || time() < 0 || s.custom && time() === 0 || !Number.isInteger(s.reveals) || s.reveals < 0 || !Number.isInteger(s.shots) || s.shots < 1 || s.shots > 10 || s.customFlags && (!Number.isInteger(s.customFlagsValue) || s.customFlagsValue < 2 || s.customFlagsValue > 60)) { M.error = 'اكتبوا قيمة صحيحة للوقت والخيارات والإعدادات.'; render(); return; }
+    if (game === 'harb' && s.room) {
+      if (typeof global.ezikIapStart !== 'function') { M.error = 'تعذّر فتح خيارات الجلسة. أعدوا تحميل الصفحة.'; render(); return; }
+      global.ezikIapStart(() => enterRoom(false), s.roomCode || 'room', 'harb');
+      return;
+    }
     if (game === 'board' && s.room) { boardRooms.create(); return; }
     if (s.room) { enterRoom(false); return; }
     M.history ||= Model.history();

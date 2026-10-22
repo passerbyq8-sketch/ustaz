@@ -13,17 +13,21 @@
   }
 
   function snapshot(balance) {
+    var used = balance && balance.freeUsedByGame && typeof balance.freeUsedByGame === 'object'
+      ? balance.freeUsedByGame : {};
     return {
       credits: Number(balance && balance.credits) || 0,
       subscriptionExpiresAt: Number(balance && balance.subscriptionExpiresAt) || null,
       freeFirstUsed: !!(balance && balance.freeFirstUsed),
+      freeUsedByGame: used,
     };
   }
 
   function changed(a, b) {
     return a.credits !== b.credits
       || a.subscriptionExpiresAt !== b.subscriptionExpiresAt
-      || a.freeFirstUsed !== b.freeFirstUsed;
+      || a.freeFirstUsed !== b.freeFirstUsed
+      || JSON.stringify(a.freeUsedByGame) !== JSON.stringify(b.freeUsedByGame);
   }
 
   function readPending() {

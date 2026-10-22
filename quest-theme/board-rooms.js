@@ -20,7 +20,7 @@
       if (returnStage === 'room-join') M.joinError = S.error; else M.error = S.error;
       history.replaceState({ journey: true, stage: M.stage, step: M.step, room: M.settings.room }, '', '/quest-board.html'); h.render();
     }
-    function send(message) { if (!S.connected || !S.socket || S.socket.readyState !== WebSocket.OPEN) { S.error = 'ننتظر عودة الاتصال بالغرفة.'; h.render(); return; } S.error = ''; S.socket.send(JSON.stringify(message)); }
+    function send(message) { if (!S.connected || !S.socket || S.socket.readyState !== WebSocket.OPEN) { S.error = 'ننتظر عودة الاتصال بالغرفة.'; h.render(); return false; } S.error = ''; S.socket.send(JSON.stringify(message)); return true; }
     function mark(snapshot) {
       if (!S.session) return;
       const cycle = snapshot.roomId + ':' + snapshot.gameNumber;
@@ -165,8 +165,14 @@
       else if (['br-leave', 'leave', 'back'].includes(action)) h.askDialog(s?.self.role === 'host' ? S.connected ? 'تغلقون الغرفة وتطلعون؟' : 'تطلعون مؤقتًا وتكملون من رقم الغرفة لاحقًا؟' : 'تطلعون من الغرفة؟', () => { const retain = s?.self.role !== 'host' || !S.connected; if (!retain) send({ t: 'close' }); leave(retain); }, () => {}, { yes: 'نعم، نطلع', no: 'لا، نبقى' });
       else if (action === 'br-seat' && s) { S.slot = +el.dataset.slot; S.name = s.teams[S.slot]?.name || ''; S.color = s.teams[S.slot]?.color ?? s.teams.length; h.render(); }
       else if (action === 'br-join-team') { if (!S.name.trim()) { S.error = 'اكتبوا اسم الفريق.'; h.render(); } else { S.busy = true; send({ t: 'join', name: S.name.trim(), color: S.color, ...(S.slot >= 0 ? { slot: S.slot } : {}) }); h.render(); } }
-      else if (action === 'br-start' && s) send({ t: 'start', rev: s.version });
-      else if (action === 'br-rematch' && s) send({ t: 'rematch', rev: s.version });
+      else if (action === 'br-start' && s?.self.role === 'host') {
+        if (typeof global.ezikIapStart === 'function') global.ezikIapStart(() => { if (!send({ t: 'start', rev: s.version })) throw new Error('board-start-unavailable'); }, S.session.code, 'board');
+        else { S.error = 'تعذّر فتح خيارات الجلسة. أعدوا تحميل الصفحة.'; h.render(); }
+      }
+      else if (action === 'br-rematch' && s?.self.role === 'host') {
+        if (typeof global.ezikIapStart === 'function') global.ezikIapStart(() => { if (!send({ t: 'rematch', rev: s.version })) throw new Error('board-start-unavailable'); }, S.session.code, 'board');
+        else { S.error = 'تعذّر فتح خيارات الجلسة. أعدوا تحميل الصفحة.'; h.render(); }
+      }
       else if (action === 'tile' && s?.canPick) send({ t: 'pick', slot: +el.dataset.slot, rev: s.version });
       else if (action === 'answer' && s?.canAnswer && q) send({ t: 'answer', qn: q.qn, pos: +el.dataset.answer });
       else if (action === 'br-answer-pick' && s?.canAnswer) { S.answer = +el.dataset.answer; h.render(); }

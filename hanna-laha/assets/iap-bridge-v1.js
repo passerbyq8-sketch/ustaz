@@ -10,6 +10,7 @@
     { id: 'ezik_year_1', name: 'سنة لعب غير محدودة' },
   ];
   var active = null;
+  var startContext = null;
 
   function authSession() {
     try {
@@ -267,6 +268,8 @@
       credits: Number(balance.credits) || 0,
       subscriptionExpiresAt: Number(balance.subscriptionExpiresAt) || null,
       freeFirstUsed: !!balance.freeFirstUsed,
+      freeUsedByGame: balance.freeUsedByGame && typeof balance.freeUsedByGame === 'object'
+        ? balance.freeUsedByGame : {},
     };
   }
 
@@ -283,6 +286,84 @@
     return { ok: true, data: data };
   }
 
+  function arabicDigits(value) {
+    return String(value).replace(/[0-9]/g, function (digit) { return '٠١٢٣٤٥٦٧٨٩'[Number(digit)]; });
+  }
+
+  function freeBalance(balance, gameId) {
+    var remaining = balance.freeRemainingByGame && Number(balance.freeRemainingByGame[gameId]);
+    var total = balance.freeTotalPerGame && Number(balance.freeTotalPerGame[gameId]);
+    if (Number.isSafeInteger(remaining) && remaining >= 0) return { remaining: remaining, total: Number.isSafeInteger(total) ? total : remaining };
+    var used = balance.freeUsedByGame && Number(balance.freeUsedByGame[gameId]);
+    if (Number.isSafeInteger(total) && total >= 0 && Number.isSafeInteger(used)) {
+      return { remaining: Math.max(0, total - used), total: total };
+    }
+    return { remaining: 0, total: 0 };
+  }
+
+  function choiceButton(title, detail, onClick, secondary, disabled) {
+    var node = document.createElement('button');
+    node.type = 'button';
+    node.className = 'ezik-iap-button ezik-iap-choice' + (secondary ? ' ezik-iap-button-secondary' : '');
+    node.disabled = disabled === true;
+    var heading = document.createElement('span');
+    heading.className = 'ezik-iap-choice-title';
+    heading.textContent = title;
+    node.append(heading);
+    if (detail) {
+      var note = document.createElement('small');
+      note.className = 'ezik-iap-choice-detail';
+      note.textContent = detail;
+      node.append(note);
+    }
+    node.addEventListener('click', onClick);
+    return node;
+  }
+
+  async function openStartChoice(context) {
+    var session = authSession();
+    if (!session) { showSignIn(); return; }
+    var modal = openModal('بدء جلسة اللعب', 'جارٍ تحميل رصيد الحساب…');
+    var response;
+    try { response = await getBalance(session); } catch (e) { response = { ok: false }; }
+    if (active !== modal) return;
+    if (!response.ok) {
+      if (response.status === 401) { showSignIn(); return; }
+      showFailure('تعذّر تحميل الرصيد الآن. حاولوا مرة أخرى.');
+      return;
+    }
+
+    var balance = response.data;
+    if (Number(balance.subscriptionExpiresAt) > Date.now()) {
+      await startWithIntent(context, 'automatic');
+      return;
+    }
+
+    modal.paragraph.textContent = 'اختاروا طريقة بدء الجلسة.';
+    modal.content.replaceChildren();
+    var choices = document.createElement('div');
+    choices.className = 'ezik-iap-choice-grid';
+    var free = freeBalance(balance, context.gameId);
+    var remaining = free.remaining;
+    var total = free.total;
+    var hasCredits = Number(balance.credits) > 0;
+    var primaryTitle = remaining > 0 ? 'لعب مجاني' : hasCredits ? 'ابدأ (يُخصم رصيد)' : 'لعب مجاني';
+    var primaryDetail = remaining > 0 || !hasCredits
+      ? 'متبقّي ' + arabicDigits(remaining) + ' من ' + arabicDigits(total)
+      : '';
+    choices.append(choiceButton(primaryTitle, primaryDetail, function () {
+      startWithIntent(context, remaining > 0 ? 'free' : 'credit');
+    }, false, remaining === 0 && !hasCredits));
+    choices.append(choiceButton('اشتري الآن', '', initializePurchase, true, false));
+    modal.content.append(choices);
+  }
+
+  async function startWithIntent(context, intent) {
+    if (!context || typeof context.start !== 'function') return;
+    var request = roomSessionId(context.roomCode, context.gameId);
+    await consumeAndStart(context.start, context.roomCode, request, context.gameId, intent);
+  }
+
   function priceTotal(price, quantity) {
     if (!price || typeof price.price !== 'number' || !Number.isFinite(price.price)
       || typeof price.currencyCode !== 'string') return '';
@@ -294,12 +375,6 @@
   async function initializePurchase() {
     var session = authSession();
     if (!session) { showSignIn(); return; }
-    var start = window.__ezikIapStartGame;
-    var roomCode = window.__ezikIapRoomCode || 'room';
-    if (typeof start === 'function') {
-      var retry = await consumeAndStart(start, roomCode, roomSessionId(roomCode).id);
-      if (retry !== null) return;
-    }
     if (!window.ReactNativeWebView || typeof window.ReactNativeWebView.postMessage !== 'function') {
       var unavailable = openModal('الشراء داخل التطبيق', 'الشراء غير متاح في هذا المتصفح. افتح الغرفة من تطبيق عزك.');
       unavailable.content.append(button('إغلاق', closeModal, true));
@@ -391,10 +466,17 @@
       row.append(head, label, total, status, buy);
       modal.content.append(row);
     });
+    modal.content.append(button('العودة لاختيار اللعب', function () {
+      if (startContext) openStartChoice(startContext);
+      else closeModal();
+    }, true));
   }
 
-  function roomSessionId(roomCode) {
-    var key = 'ezik_iap_host_session_v1_' + String(roomCode || 'room').replace(/[^A-Za-z0-9_-]/g, '');
+  function roomSessionId(roomCode, gameId) {
+    var safeRoomCode = String(roomCode || 'room').replace(/[^A-Za-z0-9_-]/g, '');
+    var key = gameId === 'hanna'
+      ? 'ezik_iap_host_session_v1_' + safeRoomCode
+      : 'ezik_iap_host_session_v1_' + String(gameId) + '_' + safeRoomCode;
     try {
       var saved = sessionStorage.getItem(key);
       if (saved && /^[A-Za-z0-9_-]{16,128}$/.test(saved)) return { key: key, id: saved };
@@ -404,7 +486,7 @@
     } catch (e) { return { key: '', id: requestId() }; }
   }
 
-  async function consumeAndStart(start, roomCode, sessionId) {
+  async function consumeAndStart(start, roomCode, request, gameId, intent) {
     var session = authSession();
     if (!session) { showSignIn(); return false; }
     var response;
@@ -413,7 +495,7 @@
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', 'x-ezik-session': session },
-        body: JSON.stringify({ sessionId: sessionId }),
+        body: JSON.stringify({ sessionId: request.id, gameId: gameId, intent: intent }),
       });
     } catch (e) {
       showFailure('تعذّر التحقق من الرصيد. لم نبدأ الجلسة؛ حاول مرة أخرى.');
@@ -421,14 +503,18 @@
     }
     var data = await response.json().catch(function () { return {}; });
     if (response.status === 401) { showSignIn(); return false; }
-    if (response.status === 402 && data.error === 'iap-no-credit') return null;
+    if ((response.status === 402 && data.error === 'iap-no-credit')
+      || (response.status === 409 && data.error === 'iap-free-unavailable')) {
+      if (startContext) await openStartChoice(startContext);
+      return null;
+    }
     if (!response.ok || data.ok !== true) {
       showFailure('تعذّر التحقق من الرصيد الآن. حاول مرة أخرى.');
       return false;
     }
     try {
       await Promise.resolve(start());
-      try { window.sessionStorage.removeItem('ezik_iap_host_session_v1_' + String(roomCode || 'room').replace(/[^A-Za-z0-9_-]/g, '')); } catch (e) {}
+      try { if (request.key) window.sessionStorage.removeItem(request.key); } catch (e) {}
       closeModal();
       return true;
     } catch (e) {
@@ -485,41 +571,21 @@
     status.className = stopReason === 'error' ? 'ezik-iap-error ezik-iap-status' : 'ezik-iap-note ezik-iap-status';
     status.textContent = message;
 
-    if (balanceChanged) {
-      var continueButton = active.content.querySelector('.ezik-iap-continue');
-      if (!continueButton) {
-        continueButton = button('بدء الجلسة', async function () {
-          var ownerModal = active;
-          continueButton.disabled = true;
-          var id = roomSessionId(window.__ezikIapRoomCode || 'room').id;
-          var started = await consumeAndStart(window.__ezikIapStartGame, window.__ezikIapRoomCode || 'room', id);
-          if (started === null) {
-            status.className = 'ezik-iap-note ezik-iap-status';
-            status.textContent = 'لم يصل الرصيد بعد. ستبقى الدفعة قيد التحديث؛ حاول بعد قليل.';
-            if (active === ownerModal) continueButton.disabled = false;
-          } else if (started === false && active === ownerModal) continueButton.disabled = false;
-        });
-        continueButton.className += ' ezik-iap-continue';
-        active.content.append(continueButton);
-      }
-    }
+    if (balanceChanged && startContext) await openStartChoice(startContext);
   }
 
-  async function beginStart(start, roomCode) {
-    var session = authSession();
-    if (!session) { showSignIn(); return; }
-    var request = roomSessionId(roomCode);
-    var consumed = await consumeAndStart(start, roomCode, request.id);
-    if (consumed !== null) return;
+  async function beginStart(start, roomCode, gameId) {
+    if (!authSession()) { showSignIn(); return; }
+    startContext = { start: start, roomCode: roomCode || 'room', gameId: typeof gameId === 'string' && gameId ? gameId : 'hanna' };
     window.__ezikIapStartGame = start;
     window.__ezikIapRoomCode = roomCode;
-    await guardianGate(initializePurchase);
+    await openStartChoice(startContext);
   }
 
-  window.ezikIapStart = function (start, roomCode) {
+  window.ezikIapStart = function (start, roomCode, gameId) {
     if (typeof start !== 'function') return;
     if (active) return;
-    beginStart(start, roomCode).catch(function () {
+    beginStart(start, roomCode, gameId).catch(function () {
       showFailure('تعذّر إكمال العملية الآن. حاول مرة أخرى.');
     });
   };
