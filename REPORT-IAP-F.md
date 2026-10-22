@@ -37,7 +37,7 @@ The automated browser test mocks `/api/iap-consume`, balance, and native purchas
 - `node tools/iap-f-consume-timing-browser.cjs` — passed 18 checks. Evidence: `C:\Users\passe\AppData\Local\Temp\iap-f-consume-timing-browser.json`.
 - `node guards/asset-version-guard.cjs` — passed, 14 URL versions across six pages.
 - `node guards/kunuz-board-guard.cjs` — passed, 11/11.
-- A first `npm run gates` while the worktree was still dirty reported 183/188. The three unrelated clean-tree-sensitive checks (`recon`, `i18nui`, and `searchbudgetp0`) all passed on a detached, clean `origin/main` worktree at `f715dcc9` (recon 282/0/0, I18n 389/389, search budget 35/35). The two asset-related failures were the Board guard’s pinned URLs and missing asset registry entries; both were updated. The final full gate run is recorded below after committing the implementation.
+- A first `npm run gates` while the worktree was still dirty reported 183/188. The three unrelated clean-tree-sensitive checks (`recon`, `i18nui`, and `searchbudgetp0`) all passed on a detached, clean `origin/main` worktree at `f715dcc9` (recon 282/0/0, I18n 389/389, search budget 35/35). The two asset-related failures were the Board guard’s pinned URLs and missing asset registry entries; both were updated. The first clean committed run then reported 187/188 because `kunuztest` still pinned the old `quest-test.html` journey URL. That guard expectation was updated in commit `142170f6`; the final clean run passed all gates.
 
 ## Owner test steps
 
@@ -51,4 +51,4 @@ Use an isolated test account with `IAP_ENFORCE=test`, and build the web assets f
 
 ## Final gate run
 
-Pending the clean-tree `npm run gates` run after the implementation commit. Its result and evidence directory will be added here before the report commit.
+`npm run gates` passed 188/188 at implementation commit `142170f6170b0772cfbdb04d77ba5a6b8ae43954`, with recon 282/0/0 and zero dirty paths before or after. Duration was 25m 58s. Evidence: `C:\Users\passe\AppData\Local\Temp\ezik-gates\runs\2026-10-22T23-21-02-001Z-38136`. This report update is documentation-only.
