@@ -89,3 +89,34 @@ REPORT-IAP-G3.md
 # lib/transfer/extract.js names them only in a comment. So they stop being served as public pages; the guards
 # that read them locally are unaffected.
 data/transfer-fixtures/*.html
+
+# Kunuz publish addendum 2: measured public operational evidence, tests and fixtures.
+# Runtime references and protected pages/manifests remain included.
+/FIX-88/
+/ITEM96-GOLD-PRICE-REPORT-2026-09-12.md
+/ITEM96B-REPORT-2026-09-12.md
+/REPORT-*.md
+/a11y-guard.cjs
+/babel-gate.cjs
+/call-mode-guard.cjs
+/chat-ux-guard.cjs
+/claim-guard.cjs
+/data/claim-fixtures.json
+/data/ledger-fixture-results.json
+/data/ledger-fixtures.json
+/data/transfer-fixtures/a3-cases.json
+/fixtures/brain-line/z2-atoms.json
+/fixtures/gemini13-matrix.json
+/fixtures/growing-evidence.json
+/fixtures/output-reviewer-attribution-immunity.json
+/fixtures/output-reviewer-six-cases.json
+/fixtures/p5-first-byte-questions.json
+/fixtures/reviewer-variable-claim-corpus.json
+/hafs-map-guard.cjs
+/ledger-fixtures-guard.cjs
+/ledger-gates-guard.cjs
+/ledger-retrieval-guard.cjs
+/ledger-runtime-guard.cjs
+/markdown-guard.cjs
+/referral-guard.cjs
+/tests/*.test.js
