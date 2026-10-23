@@ -20,6 +20,7 @@ async function fresh(kind,role='host'){
   if(m.t==='hello'){if(role==='closed'){send({t:'error',code:'ROOM_CLOSED'});return;}const s=copy(war);s.code='654321';const candidate=role==='join'&&!joined;if(candidate){s.stage='lobby';s.game=null;s.teams=s.teams.slice(0,1);}send({t:'welcome',self:{role:candidate?'candidate':role==='host'?'host':'team',slot:candidate?null:role==='host'?0:1},snapshot:phase==='over'?{...copy(win),code:'654321'}:s});}
   else if(m.t==='join'){joined=true;send({t:'joined',teamToken:'fixture-team',roomId:'fixture-room',slot:1});send({t:'self',self:{role:'team',slot:1}});send({t:'snapshot',snapshot:{...copy(war),code:'654321'}});}
  });});
+ if(args.includes('--warm-hub')){await p.goto(BASE+'/quest.html');await ready(p);r.observations.push({kind,role,warmHubPrevisit:true});save();}
  return {c,p,toWin:()=>{phase='over';socket.send(JSON.stringify({t:'snapshot',snapshot:{...copy(win),code:'654321'}}));}};
 }
 async function ready(p){await p.waitForFunction(()=>window.KunuzJourney?.state.ready&&!document.documentElement.classList.contains('kunuz-theme-pending'));}
