@@ -82,6 +82,7 @@ app.jsx
 EZIK-*.md
 MUSHAF-MADINA-ASSET-NOTICE.md
 ORDER-*.md
+REPORT-IAP-G3.md
 
 # item 110 round 2 (owner decision 5, order section 7-1): the transfer test pages. Measured: nothing in the app,
 # the tools or the guards requests them from the site -- five guards and recon-audit read them from DISK -- and
