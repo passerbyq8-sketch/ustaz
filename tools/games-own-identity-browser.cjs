@@ -9,7 +9,7 @@ const http = require('node:http');
 const crypto = require('node:crypto');
 const { chromium } = require(process.env.KUNUZ_PLAYWRIGHT_MODULE || '../.vercel/theme-tools/node_modules/playwright');
 const root = path.resolve(__dirname, '..');
-const out = process.env.KUNUZ_IDENTITY_SHOTS || path.join(root, '.vercel', 'games-own-identity');
+const out = process.argv.find(arg => arg.startsWith('--out='))?.slice(6) || process.env.KUNUZ_IDENTITY_SHOTS || path.join(root, '.vercel', 'games-own-identity');
 const mode = process.argv.includes('--before') ? 'before' : process.argv.includes('--after') ? 'after' : process.argv.includes('--room-entry') || process.argv.includes('--room-flow') ? 'room-entry' : 'games';
 const gameWidth = Number(process.argv.find(arg => arg.startsWith('--width='))?.split('=')[1]) || 390;
 const onlyGame = process.argv.find(arg => arg.startsWith('--game='))?.split('=')[1];
@@ -27,6 +27,8 @@ function check(name, actual, expected = true) {
 }
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
+  // These isolated local fixtures exercise an anonymous test-mode visitor.
+  if (url.pathname === '/api/iap-status' && req.method === 'GET') { res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'no-store'}); res.end(JSON.stringify({mode:'test'})); return; }
   if (url.pathname.startsWith('/api/')) { res.writeHead(503); res.end('Local preview: API disabled'); return; }
   const nativeHanna = /^\/hanna-laha\/(?:join|setup|host|j\/\d{4,6})\/?$/.test(url.pathname);
   const file = path.resolve(root, nativeHanna ? 'hanna-laha/index.html' : '.' + decodeURIComponent(url.pathname) + (url.pathname.endsWith('/') ? 'index.html' : ''));

@@ -179,7 +179,7 @@ async function playWar(){
    for(const game of (onlyGame?[onlyGame]:['board','test','hanna','ghaws','harb'])){
     if(game==='test'||game==='hanna'){
      const evidence=path.join(out,'own-identity-'+game+'-'+width);
-     const own=require('node:child_process').spawnSync(process.execPath,[path.join(__dirname,'games-own-identity-browser.cjs'),'--games','--game='+game,'--width='+width],{env:{...process.env,KUNUZ_IDENTITY_SHOTS:evidence},encoding:'utf8',maxBuffer:1<<20});
+     const own=require('node:child_process').spawnSync(process.execPath,[path.join(__dirname,'games-own-identity-browser.cjs'),'--games','--game='+game,'--width='+width,'--out='+evidence],{encoding:'utf8',maxBuffer:1<<20});
      assert.equal(own.status,0,own.stderr||own.stdout);process.stdout.write(own.stdout);
      record.runs.push({game,width,height:h,evidence});continue;
     }
