@@ -107,7 +107,7 @@
           const timeout = setTimeout(controlled, 3000);
           navigator.serviceWorker.addEventListener('controllerchange', controlled);
         });
-        const screenVersion = '20261023-sweep4';
+        const screenVersion = '20261023-sweep5';
         const screenAssets = ['theme.css?v=' + screenVersion, 'journey.js?v=' + screenVersion, 'room-categories.js?v=' + screenVersion, 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
         if (game === 'board') screenAssets.push('board-rooms.js?v=' + screenVersion);
         if (navigator.serviceWorker.controller) await Promise.all(screenAssets.map(async file => {
@@ -241,6 +241,11 @@
       '<p class="j-note" role="status">' + (M.cats.length >= 6 ? 'وصلتم للحد الأعلى؛ أزيلوا اختيارًا لتختاروا فئة أخرى.' : M.cats.length < 3 ? 'اختاروا ثلاث فئات على الأقل للمتابعة.' : 'فئاتكم جاهزة؛ تقدرون تتابعون.') + '</p>' +
       '<div class="j-actions">' + button('التالي', 'next-setup', 'j-btn', M.cats.length < 3 ? 'disabled' : '') + '</div>';
   }
+  function savedWarRoom() {
+    if (game !== 'harb') return null;
+    const saved = global.rmSaved?.(), credential = saved?.host ? saved.hostToken : saved?.teamToken;
+    return saved && /^\d{6}$/.test(String(saved.code)) && typeof saved.roomId === 'string' && (typeof credential === 'string' && credential || !saved.host && saved.watch === true) ? saved : null;
+  }
   function roomEntry() {
     const choices = M.joinOnly
       ? [['join-room', 'compass', 'الانضمام إلى غرفة', 'عندكم رقم غرفة جاهز']]
@@ -250,7 +255,9 @@
         ['single-device', 'cards', 'بدون غرفة', 'اللعب على جهاز واحد']
       ];
     return '<h1 class="j-heading">' + (M.joinOnly ? 'انضموا إلى غرفة' : 'كيف تلعبون؟') + '</h1><p class="j-lead">' + (M.joinOnly ? 'أدخلوا رقم الغرفة للانضمام مجانًا.' : 'اختاروا قبل الفئات') + '</p><div class="j-room-entry-choices">' +
-      choices.map(([action, icon, title, description]) => button('<span class="j-room-entry-icon" aria-hidden="true">' + Icons.icon(icon) + '</span><span><b>' + title + '</b><small class="j-muted">' + description + '</small></span>', action, 'j-form-card j-secondary j-room-entry-choice')).join('') + '</div>';
+      choices.map(([action, icon, title, description]) => button('<span class="j-room-entry-icon" aria-hidden="true">' + Icons.icon(icon) + '</span><span><b>' + title + '</b><small class="j-muted">' + description + '</small></span>', action, 'j-form-card j-secondary j-room-entry-choice')).join('') + '</div>' +
+      (savedWarRoom() ? '<div class="j-actions">' + button('العودة إلى الغرفة المحفوظة', 'resume-room', 'j-secondary') + '</div>' : '') +
+      (M.error ? '<p class="j-error" role="alert">' + esc(M.error) + '</p>' : '');
   }
   function roomJoinScreen() {
     return '<h1 class="j-heading">الانضمام إلى غرفة</h1><section class="j-form-card j-room-flow-editor"><label class="j-field" for="j-room-entry-code">رقم الغرفة</label>' +
@@ -633,6 +640,7 @@
   }
   function homeExit() { try { sessionStorage.setItem('ezik_resume_section_v1', 'home'); } catch (_) {} location.href = '/'; }
   function leaveRoomToSettings() {
+    if (game === 'harb') { const state = { ...history.state }; delete state.kunuzWarRoom; history.replaceState(state, ''); }
     const route = game === 'hanna' ? '/hanna-laha/' : '/quest-harb.html';
     const target = M.cats.length < 3 ? route : route + '?setup=1';
     if (M.cats.length >= 3) {
@@ -1058,7 +1066,19 @@
       if (activeHost) roomEnd.textContent = 'إغلاق الغرفة';
     }
     global.show = function (id) { show(id); syncRoomEnd(id); };
-    const roomWhy = global.roomWhy;
+    const roomWhy = global.roomWhy, roomMessage = global.rmMsg;
+    global.rmMsg = function (message) {
+      roomMessage(message);
+      if (['welcome', 'snapshot'].includes(message.t) && global.RM.on && global.RM.code) {
+        history.replaceState({ ...history.state, kunuzWarRoom: global.RM.code }, '');
+        M.resumingRoom = false;
+      } else if (M.resumingRoom && message.t === 'error' && !global.RM.on) {
+        M.resumingRoom = false; M.error = global.RMERR[message.code] || 'تعذّر الرجوع إلى الغرفة.';
+        document.body.classList.remove('journey-room');
+        history.replaceState({ journey: true, stage: 'room-entry', step: 0 }, '');
+        setStage('room-entry', 0);
+      }
+    };
     global.roomWhy = q => roomWhy({ ...q, src: arabicSource(q.src) });
     global.paint = function () {
       paint();
@@ -1084,7 +1104,7 @@
     };
     global.roomLeaveWar = () => { if (!M.dialog) askDialog('تطلعون من الغرفة وترجعون للإعدادات؟', leaveRoomToSettings, () => {}, { yes: 'نعم، نطلع', no: 'لا، نبقى' }); };
   }
-  async function enterRoom(join, preserveRoute = false) {
+  async function enterRoom(join, preserveRoute = false, resume = false) {
     // Rooms continue to use the shipped front-end and worker's current protocol.
     // Local pack IDs are deliberately never sent to a server with a different bank.
     if (!join && usesRoomBank() && M.cats.some(c => !roomCategorySupported(c))) { M.error = 'الغرف تستعمل بنك خادمها الحالي. اختاروا فئات البنك للغرفة، أو العبوا بهذه الفئات على جهاز واحد.'; render(); return; }
@@ -1100,6 +1120,7 @@
       // Keep every native lobby, reconnect and phone action intact.
       installWarRoomLook();
       global.openRoomScreen();
+      if (resume) { M.resumingRoom = true; global.$('roomBack').click(); return; }
       if (join) {
         global.$('roomJoin').click();
         setNativeInput(global.$('joinCode'), M.joinDraft);
@@ -1193,6 +1214,7 @@
     else if (action === 'home') { if (M.running || M.stage === 'room' || M.stage === 'board-room') askDialog('تطلعون للرئيسية وتتركون اللعبة؟', () => { cancelPlay(); homeExit(); }, () => {}, { yes: 'نعم، نطلع', no: 'لا، نبقى' }); else homeExit(); }
     else if (action === 'back') back();
     else if (action === 'create-room' && M.stage === 'room-entry') beginHostEntry();
+    else if (action === 'resume-room' && M.stage === 'room-entry' && savedWarRoom()) enterRoom(true, false, true);
     else if (action === 'single-device' && M.stage === 'room-entry') { M.settings.room = false; M.error = ''; setStage('categories', 1, true); }
     else if (action === 'change-play-mode' && M.stage === 'settings' && hasRooms) { M.error = ''; setStage('room-entry', 0, true); }
     else if (action === 'join-submit' && M.stage === 'room-join') submitJoin();
@@ -1408,6 +1430,7 @@
     render(); global.KunuzThemeBoot?.mounted();
     if (document.readyState === 'loading') await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve, { once: true }));
     if (global.KunuzThemeBoot?.status === 'fallback') return;
+    const resumeWarOnReload = game === 'harb' && entryHistory?.kunuzWarRoom === String(savedWarRoom()?.code) && global.performance.getEntriesByType('navigation')[0]?.type === 'reload';
     document.querySelectorAll('#qvis').forEach(el => { el.id = 'legacy-qvis'; });
     if (game === 'hub') {
       render();
@@ -1445,6 +1468,7 @@
         if (!M.joinOnly && boardRooms.resume()) return;
       }
       if (game === 'test') { initQuizSetup(); return; }
+      if (resumeWarOnReload) { await enterRoom(true, false, true); return; }
       if (M.joinOnly) { history.replaceState({ journey: true, stage: 'room-entry', step: 0 }, '', location.pathname + '?iap_join=1'); setStage('room-entry', 0); return; }
       if (new URLSearchParams(location.search).get('setup') === '1') {
         try {
