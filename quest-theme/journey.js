@@ -61,7 +61,7 @@
   const app = document.createElement('div'); app.className = 'journey-app'; app.dataset.game = game;
   document.body.classList.add('ezik-treasure-theme'); document.body.append(app);
   const themeMeta = document.querySelector('meta[name="theme-color"]'); if (themeMeta) themeMeta.content = '#082c38';
-  const THEME_VERSION = '20261023-iapg';
+  const THEME_VERSION = '20261023-iapg4';
   const IAP_HOST_RESUME_KEY = 'kunuz_iap_host_resume_v1';
   const IAP_EXPIRED_NOTICE_KEY = 'kunuz_iap_expired_notice_v1';
   const themeAsset = file => '/quest-theme/' + file + '?v=' + THEME_VERSION;
@@ -107,7 +107,7 @@
           const timeout = setTimeout(controlled, 3000);
           navigator.serviceWorker.addEventListener('controllerchange', controlled);
         });
-        const screenVersion = '20261023-iapg';
+        const screenVersion = '20261023-iapg4';
         const screenAssets = ['theme.css?v=' + screenVersion, 'journey.js?v=' + screenVersion, 'room-categories.js?v=' + screenVersion, 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
         if (game === 'board') screenAssets.push('board-rooms.js?v=' + screenVersion);
         if (navigator.serviceWorker.controller) await Promise.all(screenAssets.map(async file => {
@@ -171,8 +171,7 @@
     return '<aside class="j-form-card j-iap-notice" role="status"><p class="j-note">' + esc(copy) + '</p><div class="j-actions">' + button('إخفاء', 'dismiss-home-notice', 'j-secondary') + '</div></aside>';
   }
   function home() {
-    return '<div class="j-home-heading"><h1>وين مغامرتك اليوم؟</h1><p>العب، تعلّم… واكتشف كنزك القادم.</p></div>' +
-      '<div class="j-actions j-home-purchase">' + button('اشتر لعبة', 'iap-purchase', 'j-btn') + '</div>' + homeNoticeMarkup() +
+    return '<div class="j-home-heading"><h1>وين مغامرتك اليوم؟</h1>' + button('اشتر لعبة', 'iap-purchase', 'j-btn j-home-buy') + '<p>العب، تعلّم… واكتشف كنزك القادم.</p></div>' + homeNoticeMarkup() +
       '<a class="j-featured" href="/quest-ghaws.html" data-game-entry="ghaws" data-game-path="/quest-ghaws.html"><img src="/quest-theme/assets/ocean-clean.webp?v=20261021-room1" alt="مشهد البحر وصندوق الكنوز"><div class="j-info"><span class="j-tag">رحلة في الأعماق</span><h2>الغوص</h2><p>كل إجابة… تنزلك أعمق.</p><span class="j-btn">ابدأ الغوص ←</span></div></a>' +
       '<div class="j-games">' + [
         ['harb', '/quest-harb.html', 'مع الربع', 'افتحوا الجزر بمعرفتكم', 'map'],
