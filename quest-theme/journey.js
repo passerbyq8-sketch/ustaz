@@ -107,7 +107,7 @@
           const timeout = setTimeout(controlled, 3000);
           navigator.serviceWorker.addEventListener('controllerchange', controlled);
         });
-        const screenVersion = '20261023-sweep8';
+        const screenVersion = '20261023-item10-back1';
         const screenAssets = ['theme.css?v=' + screenVersion, 'journey.js?v=' + screenVersion, 'room-categories.js?v=' + screenVersion, 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
         if (game === 'board') screenAssets.push('board-rooms.js?v=' + screenVersion);
         if (navigator.serviceWorker.controller) await Promise.all(screenAssets.map(async file => {
@@ -640,7 +640,7 @@
   }
   function homeExit() { try { sessionStorage.setItem('ezik_resume_section_v1', 'home'); } catch (_) {} location.href = '/'; }
   function leaveRoomToSettings() {
-    if (game === 'harb') { const state = { ...history.state }; delete state.kunuzWarRoom; history.replaceState(state, ''); }
+    if (game === 'harb') { const state = { ...history.state }; delete state.kunuzWarRoom; delete state.kunuzWarRoomEntry; history.replaceState(state, ''); }
     const route = game === 'hanna' ? '/hanna-laha/' : '/quest-harb.html';
     const target = M.cats.length < 3 ? route : route + '?setup=1';
     if (M.cats.length >= 3) {
@@ -1070,7 +1070,7 @@
     global.rmMsg = function (message) {
       roomMessage(message);
       if (['welcome', 'snapshot'].includes(message.t) && global.RM.on && global.RM.code) {
-        history.replaceState({ ...history.state, kunuzWarRoom: global.RM.code }, '');
+        history.replaceState({ ...history.state, kunuzWarRoom: global.RM.code, kunuzWarRoomEntry: M.roomEntry }, '');
         M.resumingRoom = false;
       } else if (M.resumingRoom && message.t === 'error' && !global.RM.on) {
         M.resumingRoom = false; M.error = global.RMERR[message.code] || 'تعذّر الرجوع إلى الغرفة.';
@@ -1111,7 +1111,10 @@
     M.settings.roomCode = M.settings.roomCode.replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).trim();
     if (!join && game === 'hanna' && M.settings.roomCode && !/^\d{4,6}$/.test(M.settings.roomCode)) { M.error = 'رمز الغرفة يكون من أربعة إلى ستة أرقام.'; render(); return; }
     if (!join && (game === 'hanna' && (!Number.isInteger(time()) || time() < 10 || time() > 600 || M.settings.reveals > 99) || game === 'harb' && (time() !== 0 && (time() < 3 || time() > 600 || !Number.isInteger(time() * 1000))))) { M.error = 'هذا الوقت أو رصيد الخيارات خارج ما يقبله خادم الغرف الحالي؛ اختاروا إعدادًا آخر أو العبوا على جهاز واحد.'; render(); return; }
-    M.roomEntry = { length: history.length, parent: history.state?.journey && history.state.step === 2 ? 1 : 0 };
+    // A reload adds new native room entries; retain the original return position.
+    const savedEntry = resume && entryHistory?.kunuzWarRoomEntry;
+    M.roomEntry = savedEntry && Number.isInteger(savedEntry.length) && savedEntry.length > 0 && savedEntry.length <= history.length && [0, 1].includes(savedEntry.parent)
+      ? savedEntry : { length: history.length, parent: history.state?.journey && history.state.step === 2 ? 1 : 0 };
     M.error = ''; cancelPlay(); M.stage = 'room'; M.step = 3; render();
     M.roomUrl = location.href;
     document.body.prepend(app);
