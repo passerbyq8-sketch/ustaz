@@ -214,19 +214,19 @@ test('new non-renewing pass ids grant month/year access and their cancellation w
   assert.equal(IAP_PRODUCTS.ezik_year_1.months, 12);
   assert.equal(IAP_PRODUCTS.ezik_pass_month_1.nonRenewing, true);
   const store = new MemoryIapStore();
-  const secret = 'iap-g-test-secret';
+  const hookKey = 'hook-key';
   const eventBase = { app_user_id: account, store: 'APP_STORE', transaction_id: 'new-pass-transaction', event_timestamp_ms: Date.now() };
   __setIapStoreForTest(store);
   const oldSecret = process.env.REVENUECAT_WEBHOOK_SECRET;
-  process.env.REVENUECAT_WEBHOOK_SECRET = secret;
+  process.env.REVENUECAT_WEBHOOK_SECRET = hookKey;
   try {
     for (const productId of ['ezik_pass_month_1', 'ezik_pass_year_1']) {
       const purchase = responseDouble();
-      await handleIapWebhook(request('POST', { authorization: secret }, { event: { ...eventBase, type: 'NON_RENEWING_PURCHASE', product_id: productId, transaction_id: productId } }), purchase, { readJsonStrict: async () => ({ ok: true, value: { v: 1 } }) });
+      await handleIapWebhook(request('POST', { authorization: hookKey }, { event: { ...eventBase, type: 'NON_RENEWING_PURCHASE', product_id: productId, transaction_id: productId } }), purchase, { readJsonStrict: async () => ({ ok: true, value: { v: 1 } }) });
       assert.equal(purchase.statusCode, 200);
       assert.equal(purchase.body.status, 'applied');
       const refund = responseDouble();
-      await handleIapWebhook(request('POST', { authorization: secret }, { event: { ...eventBase, type: 'CANCELLATION', product_id: productId, transaction_id: productId, cancel_reason: 'CUSTOMER_REQUEST', price: 1 } }), refund, { readJsonStrict: async () => ({ ok: true, value: { v: 1 } }) });
+      await handleIapWebhook(request('POST', { authorization: hookKey }, { event: { ...eventBase, type: 'CANCELLATION', product_id: productId, transaction_id: productId, cancel_reason: 'CUSTOMER_REQUEST', price: 1 } }), refund, { readJsonStrict: async () => ({ ok: true, value: { v: 1 } }) });
       assert.equal(refund.statusCode, 200);
       assert.equal(refund.body.status, 'applied');
     }
