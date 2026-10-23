@@ -38,9 +38,11 @@
 .ezik-treasure-theme .j-btn:active,.ezik-treasure-theme .j-secondary:active{transform:translateY(2px)}
 .ezik-treasure-theme .j-actions{display:flex;gap:12px;align-items:stretch;flex-wrap:wrap;margin-top:20px;padding-bottom:5px}
 .ezik-treasure-theme .j-actions>*{flex:1;min-width:115px}
-.ezik-treasure-theme .j-home-heading{padding:5px 2px 19px}
-.ezik-treasure-theme .j-home-heading h1{font-size:28px;line-height:1.35;margin-bottom:5px}
-.ezik-treasure-theme .j-home-heading p{font-size:14px;color:#b2d4d9}
+.ezik-treasure-theme .j-home-heading{display:flex;flex-wrap:wrap;align-items:center;column-gap:10px;padding:5px 2px 19px}
+.ezik-treasure-theme .j-home-heading h1{flex:1 1 0;min-width:0;font-size:28px;line-height:1.35;margin-bottom:5px}
+.ezik-treasure-theme .j-home-heading p{flex-basis:100%;font-size:14px;color:#b2d4d9}
+.ezik-treasure-theme .j-home-heading .j-btn.j-home-buy{flex:none;width:auto;min-height:40px;margin:0 0 5px;margin-inline-end:-2px;padding:5px 14px;border-radius:13px;font-size:15px;white-space:nowrap}
+@media(max-width:400px){.ezik-treasure-theme .j-home-heading h1{font-size:24px}}
 .ezik-treasure-theme .j-featured{display:block;min-height:210px;border-radius:27px;overflow:hidden;position:relative;border:1px solid #59cce55e;box-shadow:0 12px 28px #00172255}
 .ezik-treasure-theme .j-featured>img{position:absolute;width:100%;height:100%;object-fit:cover;object-position:center}
 .ezik-treasure-theme .j-featured:after{content:'';position:absolute;inset:0;background:linear-gradient(270deg,#032c43ed,transparent 95%)}
