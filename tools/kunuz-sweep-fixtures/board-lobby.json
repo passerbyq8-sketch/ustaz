@@ -1,0 +1,57 @@
+{
+  "state": {
+    "serverNow": 1792731108271,
+    "settings": {
+      "options": "shown",
+      "timeMs": 0,
+      "reveals": 2,
+      "questionOrder": "points"
+    },
+    "roomId": "fixture-room",
+    "code": "654321",
+    "bankStamp": "11036-b2fa74af:16318",
+    "version": 1,
+    "gameNumber": 0,
+    "phase": "lobby",
+    "turn": 0,
+    "serial": 0,
+    "cats": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "restartCats": [],
+    "teams": [
+      {
+        "name": "الموج",
+        "color": 0,
+        "score": 0,
+        "shows": 2,
+        "claimed": false,
+        "online": false
+      },
+      {
+        "name": "الشروق",
+        "color": 1,
+        "score": 0,
+        "shows": 2,
+        "claimed": false,
+        "online": false
+      }
+    ],
+    "slots": [],
+    "question": null,
+    "self": {
+      "role": "host",
+      "slot": -1
+    },
+    "canPick": false,
+    "canAnswer": false,
+    "canReveal": false,
+    "canAward": false,
+    "canShowOptions": false
+  }
+}

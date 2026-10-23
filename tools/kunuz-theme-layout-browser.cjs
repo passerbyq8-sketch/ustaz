@@ -1,11 +1,12 @@
 /* Addendum 2: real-browser before/after proof. No visible UI is mocked. */
 'use strict';
+const cli=(key,fallback)=>process.argv.find(a=>a.startsWith('--'+key+'='))?.slice(key.length+3)||fallback;
 const fs = require('node:fs');
 const path = require('node:path');
 const assert = require('node:assert/strict');
 const { chromium } = require(process.env.KUNUZ_PLAYWRIGHT_MODULE || '../.vercel/theme-tools/node_modules/playwright');
-const base = process.env.KUNUZ_PREVIEW_URL || 'http://127.0.0.1:52190';
-const out = process.env.KUNUZ_LAYOUT_SHOTS || 'C:/Users/passe/projects/quest-review/sessions/kunuz-theme-shots-2026-10-20/flash/addendum-2';
+const base = cli('base', process.env.KUNUZ_PREVIEW_URL || 'http://127.0.0.1:52190');
+const out = cli('out', process.env.KUNUZ_LAYOUT_SHOTS || 'C:/Users/passe/projects/quest-review/sessions/kunuz-theme-shots-2026-10-20/flash/addendum-2');
 const phase = process.argv.includes('--before') ? 'before' : 'after';
 const onlyWidth = Number(process.argv.find(a => a.startsWith('--width='))?.split('=')[1]);
 const onlyGame = process.argv.find(a => a.startsWith('--game='))?.split('=')[1];

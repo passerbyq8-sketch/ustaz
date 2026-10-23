@@ -1,9 +1,10 @@
 /* Real Chromium acceptance for the active themed screens, including complete games. */
 'use strict';
+const cli=(key,fallback)=>process.argv.find(a=>a.startsWith('--'+key+'='))?.slice(key.length+3)||fallback;
 const fs = require('node:fs'), path = require('node:path'), assert = require('node:assert/strict');
 const { chromium } = require(process.env.KUNUZ_PLAYWRIGHT_MODULE || '../.vercel/theme-tools/node_modules/playwright');
-const base = process.env.KUNUZ_PREVIEW_URL || 'http://127.0.0.1:43817';
-const out = process.env.KUNUZ_SHOTS || 'C:/Users/passe/projects/quest-review/sessions/kunuz-theme-shots-2026-10-20';
+const base = cli('base', process.env.KUNUZ_PREVIEW_URL || 'http://127.0.0.1:43817');
+const out = cli('out', process.env.KUNUZ_SHOTS || 'C:/Users/passe/projects/quest-review/sessions/kunuz-theme-shots-2026-10-20');
 const onlyWidth = Number(process.argv.find(a => /^--width=/.test(a))?.split('=')[1]);
 const reduced = process.argv.includes('--reduced');
 const onlyGame = process.argv.find(a=>a.startsWith('--game='))?.split('=')[1];
@@ -30,6 +31,7 @@ async function setup(game,context){
  label=game;
  await page.goto(base+'/quest.html');await page.waitForFunction(()=>window.KunuzJourney?.state.ready);await layout();if(game==='board')await shot('hub');
  await click(page.locator('a[href="/'+routes[game]+'"]').filter({visible:true}).first());
+ await page.waitForURL(base+'/'+routes[game]);
  await page.waitForFunction(()=>window.KunuzJourney?.state.ready,null,{timeout:60000});
  if(await page.locator('[data-action="single-device"]').count())await click('[data-action="single-device"]');
  await page.waitForFunction(()=>window.KunuzJourney?.state.ready&&KunuzJourney.state.stage==='categories',{timeout:60000});

@@ -1,10 +1,11 @@
 /* First-paint filmstrips on real Chromium. Each run owns an ephemeral local server. */
 'use strict';
+const cli=(key,fallback)=>process.argv.find(a=>a.startsWith('--'+key+'='))?.slice(key.length+3)||fallback;
 const fs = require('node:fs'), path = require('node:path'), http = require('node:http');
 const zlib = require('node:zlib'), assert = require('node:assert/strict');
 const { chromium } = require('../.vercel/theme-tools/node_modules/playwright');
 const root = path.resolve(__dirname, '..');
-const out = process.env.KUNUZ_FLASH_OUT || 'C:/Users/passe/projects/quest-review/sessions/kunuz-theme-shots-2026-10-20/flash';
+const out = cli('out', process.env.KUNUZ_FLASH_OUT || 'C:/Users/passe/projects/quest-review/sessions/kunuz-theme-shots-2026-10-20/flash');
 const phase = process.argv.includes('--before') ? 'before' : 'after';
 const snapshot = path.join(root, '.vercel/flash-v1');
 const pages = { hub: '/quest.html', test: '/quest-test.html', board: '/quest-board.html', ghaws: '/quest-ghaws.html', harb: '/quest-harb.html', hanna: '/hanna-laha/' };
@@ -19,9 +20,10 @@ const types = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascr
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
   let name = decodeURIComponent(url.pathname);
+  if (name === '/api/iap-status') { res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'no-store'}).end(JSON.stringify({mode:'test'})); return; }
   if (name.startsWith('/hanna-laha/') && !path.extname(name)) name = '/hanna-laha/index.html';
   if (name === '/hanna-laha') name = '/hanna-laha/index.html';
-  if (!/^\/(?:quest(?:[\w.-]*|-(?:theme|data)\/[\w./-]+)|hanna-laha\/[\w./-]+|icon\.svg)$/.test(name) || name.includes('..')) { res.writeHead(404).end(); return; }
+  if (!/^\/(?:quest(?:[\w.-]*|-(?:theme|data)\/[\w./-]+)|hanna-laha\/[\w./-]+|iap-pending\.js|icon\.svg)$/.test(name) || name.includes('..')) { res.writeHead(404).end(); return; }
   const saved = path.join(snapshot, name), file = (build === 'v1' || phase === 'before') && fs.existsSync(saved) ? saved : path.join(root, name);
   if (!fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404).end(); return; }
   let body = fs.readFileSync(file);

@@ -1,0 +1,132 @@
+{
+  "snapshot": {
+    "version": 183,
+    "stage": "over",
+    "code": "654321",
+    "config": {
+      "cats": [
+        {
+          "id": "deen",
+          "name": "الدين"
+        },
+        {
+          "id": "prayer",
+          "name": "الصلاة"
+        },
+        {
+          "id": "quran",
+          "name": "القرآن الكريم"
+        }
+      ],
+      "fuse": 0,
+      "shots": 1,
+      "winRule": 9,
+      "noOpts": false,
+      "deployMul": 1,
+      "deployFree": -1
+    },
+    "teams": [
+      {
+        "slot": 0,
+        "name": "الموج",
+        "color": 7,
+        "online": true
+      },
+      {
+        "slot": 1,
+        "name": "الشروق",
+        "color": 0,
+        "online": true
+      }
+    ],
+    "hostSlot": 0,
+    "watchers": 0,
+    "game": {
+      "slotNames": [
+        "القرآن الكريم",
+        "الصلاة",
+        "الدين",
+        "الصلاة",
+        "الدين",
+        "الدين",
+        "القرآن الكريم",
+        "الصلاة",
+        "الدين",
+        "الصلاة",
+        "القرآن الكريم",
+        "القرآن الكريم"
+      ],
+      "own": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        1
+      ],
+      "ban": [
+        1,
+        1,
+        1,
+        13,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "dead": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "turn": 0,
+      "phase": "over",
+      "pool": 0,
+      "base": 4,
+      "tgt": null,
+      "moveTgt": null,
+      "moveLeft": 0,
+      "canUndo": false,
+      "canNext": false,
+      "actor": null,
+      "actorOffline": false,
+      "idleWarn": false,
+      "fight": null,
+      "end": {
+        "winner": 0,
+        "why": "stuck",
+        "rows": [
+          {
+            "k": 0,
+            "c": 9,
+            "b": 21
+          },
+          {
+            "k": 1,
+            "c": 3,
+            "b": 3
+          }
+        ]
+      }
+    }
+  }
+}

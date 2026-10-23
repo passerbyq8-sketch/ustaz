@@ -1,9 +1,10 @@
 /* Owner addendum: persistent artwork/fonts, repeated returns, meaningful icons and fallback. */
 'use strict';
+const cli=(key,fallback)=>process.argv.find(a=>a.startsWith('--'+key+'='))?.slice(key.length+3)||fallback;
 const fs = require('node:fs'), path = require('node:path'), vm = require('node:vm'), assert = require('node:assert/strict');
 const { chromium } = require('../.vercel/theme-tools/node_modules/playwright');
-const base = process.env.KUNUZ_PREVIEW_URL || 'http://127.0.0.1:52190';
-const out = process.env.KUNUZ_FLASH_OUT || 'C:/Users/passe/projects/quest-review/sessions/kunuz-theme-shots-2026-10-20/flash';
+const base = cli('base', process.env.KUNUZ_PREVIEW_URL || 'http://127.0.0.1:52190');
+const out = cli('out', process.env.KUNUZ_FLASH_OUT || 'C:/Users/passe/projects/quest-review/sessions/kunuz-theme-shots-2026-10-20/flash');
 const routes = { board: '/quest-board.html', test: '/quest-test.html', ghaws: '/quest-ghaws.html', harb: '/quest-harb.html', hanna: '/hanna-laha/' };
 fs.mkdirSync(out, { recursive: true });
 function watchAssets() {
@@ -62,10 +63,12 @@ async function sheet(browser, cards, name) {
     await context.setOffline(false);
     // Corrupt each critical persistent response. The worker must reject its
     // bytes and restore the real network response before showing the hub.
-    record.corruption = await page.evaluate(async () => {
-      const name = (await indexedDB.databases()).find(db => db.name.startsWith('kunuz-treasure-assets-20261021-room1')).name;
+    record.corruption = await page.evaluate(async release => {
+      const name = (await indexedDB.databases()).find(db => db.name === 'kunuz-treasure-assets-' + release).name;
       const db = await new Promise((resolve, reject) => { const r = indexedDB.open(name); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
-      const keys = ['regular.ttf','bold.ttf','ocean-clean.webp','islands.webp'].map(name => '/quest-theme/assets/' + name + '?v=20261021-room1');
+      const paths = ['regular.ttf','bold.ttf','ocean-clean.webp','islands.webp'].map(name => '/quest-theme/assets/' + name);
+      const all = await new Promise((resolve,reject)=>{const r=db.transaction('assets','readonly').objectStore('assets').getAllKeys();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
+      const keys = [...new Set([...all.filter(key=>paths.includes(key.split('?')[0])),...paths.map(p=>p+'?v='+release)])];
       await new Promise((resolve, reject) => { const tx = db.transaction('assets','readwrite'); for (const key of keys) tx.objectStore('assets').put({ body: new Uint8Array([0]).buffer, status: 200, headers: [['content-type','text/html']] }, key); tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); });
       db.close(); return { database: name, keys };
     });
