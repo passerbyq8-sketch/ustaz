@@ -2,7 +2,7 @@
    Ezik's existing worker sweeps other CacheStorage stores. A separate asset-only
    IndexedDB database keeps Kunuz offline without changing that worker or its data. */
 'use strict';
-const VERSION = '20261023-iapg4';
+const VERSION = '20261023-sweep1';
 const DATABASE_PREFIX = 'kunuz-treasure-assets-';
 const DATABASE = DATABASE_PREFIX + VERSION;
 const CRITICAL_ASSETS = {
@@ -138,6 +138,12 @@ self.addEventListener('fetch', event => {
       return response;
     } catch (_) {
       const cached = await readAsset(key).catch(() => null); if (cached) return cached;
+      // Pages can keep a stable asset URL across releases. The current release's
+      // validated precache is also usable when that older query is offline.
+      if (!html) {
+        const current = await readAsset(assetPath(url.pathname)).catch(() => null);
+        if (current) return current;
+      }
       return Response.error();
     }
   })());
