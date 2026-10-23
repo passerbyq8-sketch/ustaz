@@ -71,7 +71,7 @@ async function sheet(browser, cards, name) {
       const keys = [...new Set([...all.filter(key=>paths.includes(key.split('?')[0])),...paths.map(p=>p+'?v='+release)])];
       await new Promise((resolve, reject) => { const tx = db.transaction('assets','readwrite'); for (const key of keys) tx.objectStore('assets').put({ body: new Uint8Array([0]).buffer, status: 200, headers: [['content-type','text/html']] }, key); tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); });
       db.close(); return { database: name, keys };
-    });
+    }, /const VERSION = '([^']+)'/.exec(fs.readFileSync(path.join(__dirname,'../quest-sw.js'),'utf8'))[1]);
     await page.reload(); record.returns.push(await assets(page, 'hub-corrupt-cache-recovered'));
     await page.goto(base + routes.board); await ready(page);
     const cards = await page.evaluate(() => KunuzModel.categories().map(c => ({ slug: c.slug, name: c.name, svg: KunuzIcons.category(c.slug,c.index) })));
