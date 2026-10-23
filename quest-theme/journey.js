@@ -107,7 +107,7 @@
           const timeout = setTimeout(controlled, 3000);
           navigator.serviceWorker.addEventListener('controllerchange', controlled);
         });
-        const screenVersion = '20261023-sweep2';
+        const screenVersion = '20261023-sweep3';
         const screenAssets = ['theme.css?v=' + screenVersion, 'journey.js?v=' + screenVersion, 'room-categories.js?v=' + screenVersion, 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
         if (game === 'board') screenAssets.push('board-rooms.js?v=' + screenVersion);
         if (navigator.serviceWorker.controller) await Promise.all(screenAssets.map(async file => {
@@ -1049,7 +1049,15 @@
   }
   function installWarRoomLook() {
     if (M.warRoomLook) return; M.warRoomLook = true;
-    const paint = global.paint, lobby = global.drawLobby;
+    const paint = global.paint, lobby = global.drawLobby, show = global.show;
+    const roomEnd = global.$('roomEnd'), roomEndHome = roomEnd.parentNode;
+    function syncRoomEnd(view = global.RM.view) {
+      const activeHost = global.RM.on && global.RM.host && ['war', 'win'].includes(view);
+      const parent = activeHost ? global.$(view) : roomEndHome;
+      if (roomEnd.parentNode !== parent) parent.append(roomEnd);
+      if (activeHost) roomEnd.textContent = 'إغلاق الغرفة';
+    }
+    global.show = function (id) { show(id); syncRoomEnd(id); };
     const roomWhy = global.roomWhy;
     global.roomWhy = q => roomWhy({ ...q, src: arabicSource(q.src) });
     global.paint = function () {
@@ -1067,10 +1075,12 @@
       }
       const turn = global.$('tbWho');
       if (turn && !turn.querySelector('.j-native-symbol')) turn.insertAdjacentHTML('afterbegin', '<span class="j-native-symbol">' + sym(global.G.turn || 0) + '</span>');
+      syncRoomEnd();
     };
     global.drawLobby = function () {
       lobby();
       document.querySelectorAll('#lobbyTeams .pcard').forEach((row, i) => row.insertAdjacentHTML('afterbegin', '<span class="j-native-symbol">' + sym(i) + '</span>'));
+      syncRoomEnd('lobby');
     };
     global.roomLeaveWar = () => { if (!M.dialog) askDialog('تطلعون من الغرفة وترجعون للإعدادات؟', leaveRoomToSettings, () => {}, { yes: 'نعم، نطلع', no: 'لا، نبقى' }); };
   }
