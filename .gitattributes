@@ -1003,3 +1003,12 @@ hanna-laha/assets/iap-bridge-v1.js text eol=lf
 quest-theme/board-rooms.js text eol=lf
 quest-data/kunuz-packs-manifest.js text eol=lf
 quest-theme/room-categories.js text eol=lf
+
+tools/kunuz-full-sweep.cjs text eol=lf
+tools/kunuz-sweep-matrix.cjs text eol=lf
+tools/kunuz-room-replay.cjs text eol=lf
+tools/kunuz-iap-offline-replay.cjs text eol=lf
+tools/kunuz-theme-browser.cjs text eol=lf
+tools/kunuz-theme-assets-browser.cjs text eol=lf
+tools/kunuz-theme-layout-browser.cjs text eol=lf
+tools/kunuz-flash-browser.cjs text eol=lf

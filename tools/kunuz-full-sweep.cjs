@@ -1,4 +1,4 @@
-﻿/* Local-only Kunuz acceptance. No purchase/auth action is ever clicked.
+/* Local-only Kunuz acceptance. No purchase/auth action is ever clicked.
    node tools/kunuz-full-sweep.cjs --base=https://ezik.app --out=<evidence> --width=390
    --game=hub|hanna|harb|board|ghaws|test --app --cdp=http://127.0.0.1:9222
    --serve=9240 exposes a loopback-only inspection controller for the owned tab.
