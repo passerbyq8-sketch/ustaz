@@ -8,7 +8,7 @@ import {
 } from '../lib/iap/store.js';
 
 const SESSION_HEADER = 'x-ezik-session';
-const ALLOWED_FIELDS = new Set(['trialDays', 'clearTrial', 'credits']);
+const ALLOWED_FIELDS = new Set(['trialDays', 'clearTrial', 'credits', 'clearPass']);
 
 function bodyOf(req) {
   if (typeof req.body === 'string') {
@@ -51,12 +51,14 @@ export async function handleIapTestAdjust(req, res, dependencies = {}) {
   const hasTrialDays = Object.prototype.hasOwnProperty.call(body, 'trialDays');
   const hasClearTrial = Object.prototype.hasOwnProperty.call(body, 'clearTrial');
   const hasCredits = Object.prototype.hasOwnProperty.call(body, 'credits');
+  const hasClearPass = Object.prototype.hasOwnProperty.call(body, 'clearPass');
   if (keys.some((key) => !ALLOWED_FIELDS.has(key))
     || hasTrialDays && hasClearTrial
     || hasClearTrial && body.clearTrial !== true
+    || hasClearPass && body.clearPass !== true
     || hasTrialDays && (!Number.isInteger(body.trialDays) || body.trialDays < 0 || body.trialDays > 8)
     || hasCredits && (!Number.isInteger(body.credits) || body.credits < 0 || body.credits > 20)
-    || !hasTrialDays && !hasClearTrial && !hasCredits) {
+    || !hasTrialDays && !hasClearTrial && !hasCredits && !hasClearPass) {
     return res.status(400).json({ ok: false, error: 'iap-test-adjust-shape' });
   }
 
@@ -66,10 +68,16 @@ export async function handleIapTestAdjust(req, res, dependencies = {}) {
       ...(hasTrialDays ? { trialDays: body.trialDays } : {}),
       ...(hasClearTrial ? { clearTrial: true } : {}),
       ...(hasCredits ? { credits: body.credits } : {}),
+      ...(hasClearPass ? { clearPass: true } : {}),
     });
     if (!adjusted || adjusted.ok !== true) return res.status(400).json({ ok: false, error: adjusted && adjusted.code || 'iap-test-adjust-shape' });
     const balance = await read(accountKey);
-    return res.status(200).json({ ok: true, credits: balance.credits, trial: balance.trial });
+    return res.status(200).json({
+      ok: true,
+      credits: balance.credits,
+      subscriptionExpiresAt: balance.subscriptionExpiresAt,
+      trial: balance.trial,
+    });
   } catch (e) {
     return res.status(503).json({ ok: false, error: 'iap-unavailable' });
   }

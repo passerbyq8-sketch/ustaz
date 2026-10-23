@@ -63,8 +63,9 @@ class MemoryIapStore {
       if (args[0] !== '') balance.credits = Number(args[0]);
       if (args[1] === 'clear') balance.trialStartedAt = null;
       else if (args[1] !== '') balance.trialStartedAt = Number(args[1]);
+      if (args[5] === 'clear') balance.subscriptionExpiresAt = null;
       this.values.set(balanceKey, JSON.stringify(balance));
-      this.ledger.push({ id: args[4], account: args[3], event: 'test_adjust', time: Number(args[2]), creditsDelta: (Number(balance.credits) || 0) - creditsBefore });
+      this.ledger.push({ id: args[4], account: args[3], event: 'test_adjust', time: Number(args[2]), creditsDelta: (Number(balance.credits) || 0) - creditsBefore, trialStartedAt: balance.trialStartedAt ?? null, clearPass: args[5] === 'clear', subscriptionExpiresAt: balance.subscriptionExpiresAt ?? null });
       this.values.set(keys[1], JSON.stringify(this.ledger));
       return JSON.stringify({ ok: true });
     }
@@ -179,32 +180,102 @@ test('trial-start API only creates trials for enforced accounts', async () => {
 
 test('test adjustment is restricted to the listed signed-in caller and validates every field', async () => {
   let changed = 0;
+  const adjustments = [];
   const dependencies = {
     sessionState: async () => ({ state: 'live', record: { accountKey: account } }),
     iapEnforcementMode: () => 'test',
     isIapEnforced: () => true,
-    testAdjustBalance: async (who) => { changed += 1; assert.equal(who, account); return { ok: true }; },
-    readBalance: async () => ({ credits: 3, trial: null }),
+    testAdjustBalance: async (who, adjustment) => { changed += 1; assert.equal(who, account); adjustments.push(adjustment); return { ok: true }; },
+    readBalance: async () => ({ credits: 3, subscriptionExpiresAt: null, trial: null }),
   };
   for (const mode of ['off', 'all']) {
     const denied = responseDouble();
-    await handleIapTestAdjust(request('POST', { 'x-ezik-session': session }, { credits: 3 }), denied, { ...dependencies, iapEnforcementMode: () => mode });
+    await handleIapTestAdjust(request('POST', { 'x-ezik-session': session }, { clearPass: true }), denied, { ...dependencies, iapEnforcementMode: () => mode });
     assert.equal(denied.statusCode, 403);
   }
   const signedOut = responseDouble();
-  await handleIapTestAdjust(request('POST', {}, { credits: 3 }), signedOut, dependencies);
+  await handleIapTestAdjust(request('POST', {}, { clearPass: true }), signedOut, dependencies);
   assert.equal(signedOut.statusCode, 403);
   const unlisted = responseDouble();
-  await handleIapTestAdjust(request('POST', { 'x-ezik-session': session }, { credits: 3 }), unlisted, { ...dependencies, isIapEnforced: () => false });
+  await handleIapTestAdjust(request('POST', { 'x-ezik-session': session }, { clearPass: true }), unlisted, { ...dependencies, isIapEnforced: () => false });
   assert.equal(unlisted.statusCode, 403);
   const invalid = responseDouble();
   await handleIapTestAdjust(request('POST', { 'x-ezik-session': session }, { credits: 21 }), invalid, dependencies);
   assert.equal(invalid.statusCode, 400);
+  const invalidClearPass = responseDouble();
+  await handleIapTestAdjust(request('POST', { 'x-ezik-session': session }, { clearPass: false }), invalidClearPass, dependencies);
+  assert.equal(invalidClearPass.statusCode, 400);
   assert.equal(changed, 0);
   const allowed = responseDouble();
-  await handleIapTestAdjust(request('POST', { 'x-ezik-session': session }, { trialDays: 8, credits: 3 }), allowed, dependencies);
+  await handleIapTestAdjust(request('POST', { 'x-ezik-session': session }, { clearPass: true }), allowed, dependencies);
   assert.equal(allowed.statusCode, 200);
   assert.equal(changed, 1);
+  assert.deepEqual(adjustments, [{ clearPass: true }]);
+  assert.equal(allowed.body.subscriptionExpiresAt, null);
+});
+
+test('test adjustment clears the listed caller pass and combines fields in one ledger event', async () => {
+  const store = new MemoryIapStore();
+  const now = Date.now() - 1000;
+  __setIapStoreForTest(store);
+  try {
+    await testAdjustBalance(account, { credits: 8, trialDays: 0 }, now);
+    const balanceKey = [...store.values.keys()].find((key) => key.endsWith(':balance'));
+    const seeded = JSON.parse(store.values.get(balanceKey));
+    seeded.subscriptionExpiresAt = now + 30 * 86400000;
+    store.values.set(balanceKey, JSON.stringify(seeded));
+    const beforeValues = new Map(store.values);
+    const beforeLedgerCount = store.ledger.length;
+    const dependencies = {
+      sessionState: async () => ({ state: 'live', record: { accountKey: account } }),
+      iapEnforcementMode: () => 'test',
+      isIapEnforced: (who) => who === account,
+    };
+
+    for (const mode of ['off', 'all']) {
+      const denied = responseDouble();
+      await handleIapTestAdjust(request('POST', { 'x-ezik-session': session }, { clearPass: true }), denied, { ...dependencies, iapEnforcementMode: () => mode });
+      assert.equal(denied.statusCode, 403);
+      assert.deepEqual(store.values, beforeValues);
+      assert.equal(store.ledger.length, beforeLedgerCount);
+    }
+    const signedOut = responseDouble();
+    await handleIapTestAdjust(request('POST', {}, { clearPass: true }), signedOut, dependencies);
+    assert.equal(signedOut.statusCode, 403);
+    assert.deepEqual(store.values, beforeValues);
+    assert.equal(store.ledger.length, beforeLedgerCount);
+
+    const unlisted = responseDouble();
+    await handleIapTestAdjust(request('POST', { 'x-ezik-session': session }, { clearPass: true }), unlisted, { ...dependencies, isIapEnforced: () => false });
+    assert.equal(unlisted.statusCode, 403);
+    assert.deepEqual(store.values, beforeValues);
+    assert.equal(store.ledger.length, beforeLedgerCount);
+
+    const allowed = responseDouble();
+    await handleIapTestAdjust(request('POST', { 'x-ezik-session': session }, { clearPass: true, trialDays: 8, credits: 0 }), allowed, {
+      ...dependencies,
+      testAdjustBalance,
+      readBalance,
+    });
+    assert.equal(allowed.statusCode, 200);
+    assert.equal(allowed.body.credits, 0);
+    assert.equal(allowed.body.subscriptionExpiresAt, null);
+    assert.equal(allowed.body.trial.active, false);
+    const adjustedTrialStartedAt = allowed.body.trial.startedAt;
+    assert.ok(Math.abs(adjustedTrialStartedAt - (Date.now() - 8 * 86400000)) < 10000);
+    const balance = await readBalance(account, now);
+    assert.equal(balance.subscriptionExpiresAt, null);
+    assert.equal(balance.credits, 0);
+    assert.equal(balance.trial.startedAt, adjustedTrialStartedAt);
+    assert.equal(store.ledger.length, beforeLedgerCount + 1);
+    const event = store.ledger.at(-1);
+    assert.equal(event.account, account);
+    assert.equal(event.event, 'test_adjust');
+    assert.equal(event.creditsDelta, -8);
+    assert.equal(event.trialStartedAt, adjustedTrialStartedAt);
+    assert.equal(event.clearPass, true);
+    assert.equal(event.subscriptionExpiresAt, null);
+  } finally { __resetIapStore(); }
 });
 
 test('new non-renewing pass ids grant month/year access and their cancellation webhooks refund', async () => {
