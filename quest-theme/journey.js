@@ -107,7 +107,7 @@
           const timeout = setTimeout(controlled, 3000);
           navigator.serviceWorker.addEventListener('controllerchange', controlled);
         });
-        const screenVersion = '20261023-sweep7';
+        const screenVersion = '20261023-sweep8';
         const screenAssets = ['theme.css?v=' + screenVersion, 'journey.js?v=' + screenVersion, 'room-categories.js?v=' + screenVersion, 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
         if (game === 'board') screenAssets.push('board-rooms.js?v=' + screenVersion);
         if (navigator.serviceWorker.controller) await Promise.all(screenAssets.map(async file => {
@@ -1374,6 +1374,7 @@
     }
     event.stopImmediatePropagation();
     if (M.skipPop) { M.skipPop = false; return; }
+    if (hasRooms && M.stage === 'room-entry' && event.state?.stage === 'room-entry') { history.back(); return; }
     if (hasRooms && !M.running && ['room-entry', 'room-code', 'room-join', 'categories', 'settings'].includes(event.state?.stage)) {
       M.settings.room = event.state.room; M.roomCodeEntry = !!event.state.roomCodeEntry;
       M.error = ''; M.roomCodeError = ''; M.joinError = '';
