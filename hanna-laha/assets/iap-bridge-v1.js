@@ -205,8 +205,18 @@
 
   var cachedEnforcementMode = '';
   var cachedEnforcementAt = 0;
+  var VERIFIED_MODE_KEY = 'ezik_iap_verified_mode_v1';
 
   async function getEnforcementMode() {
+    // Cache only the public server mode, never account balances or entitlements.
+    // Every online visit still uses the existing server check and memory TTL.
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      try {
+        var verified = JSON.parse(localStorage.getItem(VERIFIED_MODE_KEY) || 'null');
+        if (verified && verified.schema === 1 && ['off', 'test', 'all'].includes(verified.mode) && Number.isFinite(verified.verifiedAt) && verified.verifiedAt > 0) return verified.mode;
+      } catch (e) {}
+      throw new Error('iap-status-unavailable');
+    }
     if (cachedEnforcementMode && Date.now() - cachedEnforcementAt < 30000) {
       return cachedEnforcementMode;
     }
@@ -221,6 +231,7 @@
     }
     cachedEnforcementMode = data.mode;
     cachedEnforcementAt = Date.now();
+    try { localStorage.setItem(VERIFIED_MODE_KEY, JSON.stringify({ schema: 1, mode: data.mode, verifiedAt: cachedEnforcementAt })); } catch (e) {}
     return data.mode;
   }
 
