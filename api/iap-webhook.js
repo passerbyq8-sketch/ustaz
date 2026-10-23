@@ -20,13 +20,13 @@ function sharedSecretMatches(supplied, expected) {
 }
 
 function purchaseEvent(productId, type) {
-  if (productId === 'ezik_games_3') return type === 'NON_RENEWING_PURCHASE';
+  if (IAP_PRODUCTS[productId].nonRenewing) return type === 'NON_RENEWING_PURCHASE';
   return type === 'INITIAL_PURCHASE' || type === 'RENEWAL' || type === 'NON_RENEWING_PURCHASE';
 }
 
 function refundEvent(productId, event) {
   if (event.type !== 'CANCELLATION') return false;
-  if (productId === 'ezik_games_3') return true;
+  if (IAP_PRODUCTS[productId].nonRenewing) return true;
   return event.cancel_reason === 'CUSTOMER_SUPPORT' || Number(event.price) < 0;
 }
 

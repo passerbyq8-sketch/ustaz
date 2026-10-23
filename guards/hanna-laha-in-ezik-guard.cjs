@@ -22,6 +22,7 @@ const GAME = 'hanna-laha';
 const FRONT_FILES = new Set(['index.html', 'build-info.json', 'favicon.svg', 'og.png', 'NOTICE.txt']);
 const ASSET_EXT = /\.(js|css|woff2?)$/;
 const ROOT_ALLOWED = new Set(['/', '/quest.html', '/api/report']);
+const IAP_GAME_PATHS = new Set(['/quest-ghaws.html', '/quest-harb.html', '/quest-test.html', '/quest-board.html']);
 const GAME_API = new Set(['/api/rooms', '/api/categories', '/api/client-error', '/api/health']);
 
 function walk(dir, out = []) {
@@ -80,7 +81,7 @@ function check(read, listFolder) {
       no('H4', f + ': a string points at the site root ' + m[1].slice(0, 60));
     }
     for (const m of text.matchAll(/["'`](\/(?:quest[A-Za-z0-9._-]*|api\/[A-Za-z0-9/_-]*|[A-Za-z0-9_-]+\.html))["'`]/g)) {
-      if (!ROOT_ALLOWED.has(m[1]) && !GAME_API.has(m[1])) no('H4', f + ': a root path that is not allowed ' + m[1]);
+      if (!ROOT_ALLOWED.has(m[1]) && !(f === 'assets/iap-bridge-v1.js' && IAP_GAME_PATHS.has(m[1])) && !GAME_API.has(m[1])) no('H4', f + ': a root path that is not allowed ' + m[1]);
     }
   }
 

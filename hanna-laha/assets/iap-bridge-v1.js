@@ -6,16 +6,20 @@
   var APP_STORE_URL = 'https://apps.apple.com/app/id6797100518';
   var PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=app.almurabbi.tutor';
   var PRODUCT_ROWS = [
-    { id: 'ezik_games_3', name: 'ثلاث جلسات لعب' },
-    { id: 'ezik_month_1', name: 'شهر لعب غير محدود' },
-    { id: 'ezik_year_1', name: 'سنة لعب غير محدودة' },
+    { kind: 'games', id: 'ezik_games_3', name: 'ثلاث جلسات لعب' },
+    { kind: 'month', id: 'ezik_pass_month_1', fallbackId: 'ezik_month_1', name: 'شهر لعب غير محدود' },
+    { kind: 'year', id: 'ezik_pass_year_1', fallbackId: 'ezik_year_1', name: 'سنة لعب غير محدودة' },
   ];
   var active = null;
   var startContext = null;
   var sessionIdMemory = Object.create(null);
   var pendingSignIn = false;
+  var pendingSignInAction = null;
   var resumingSignIn = false;
   var panelRefreshCleanup = null;
+  var homeSignInCleanup = null;
+  var homeEntryPromise = null;
+  var RETURN_KEY = 'kunuz_iap_return_v1';
 
   function authSession() {
     try {
@@ -79,7 +83,8 @@
     });
   }
 
-  function openModal(title, copy) {
+  function openModal(title, copy, options) {
+    options = options || {};
     closeModal();
     var backdrop = document.createElement('div');
     backdrop.className = 'ezik-iap-backdrop';
@@ -93,12 +98,15 @@
     header.className = 'ezik-iap-header';
     var heading = document.createElement('h2');
     heading.textContent = title;
-    var close = document.createElement('button');
-    close.type = 'button';
-    close.className = 'ezik-iap-button ezik-iap-button-secondary';
-    close.textContent = 'إغلاق';
-    close.addEventListener('click', closeModal);
-    header.append(heading, close);
+    var close = null;
+    if (options.closeButton !== false) {
+      close = document.createElement('button');
+      close.type = 'button';
+      close.className = 'ezik-iap-button ezik-iap-button-secondary';
+      close.textContent = 'إغلاق';
+      close.addEventListener('click', closeModal);
+      header.append(heading, close);
+    } else header.append(heading);
     var paragraph = document.createElement('p');
     paragraph.className = 'ezik-iap-copy';
     paragraph.textContent = copy || '';
@@ -107,11 +115,12 @@
     card.append(header, paragraph, content);
     backdrop.append(card);
     backdrop.addEventListener('click', function (event) {
-      if (event.target === backdrop && (!active || active.busy !== true)) closeModal();
+      if (options.closeButton !== false && event.target === backdrop && (!active || active.busy !== true)) closeModal();
     });
     document.body.append(backdrop);
     active = { backdrop: backdrop, card: card, paragraph: paragraph, content: content, closeButton: close, busy: false };
-    close.focus();
+    if (close) close.focus();
+    else { card.tabIndex = -1; card.focus(); }
     return active;
   }
 
@@ -127,7 +136,7 @@
   function setModalBusy(value) {
     if (!active) return;
     active.busy = value === true;
-    active.closeButton.disabled = active.busy;
+    if (active.closeButton) active.closeButton.disabled = active.busy;
     active.content.querySelectorAll('button').forEach(function (node) { node.disabled = active.busy; });
   }
 
@@ -148,7 +157,8 @@
     return node;
   }
 
-  function showSignIn() {
+  function showSignIn(resumeAction) {
+    pendingSignInAction = typeof resumeAction === 'function' ? resumeAction : null;
     var modal = openModal('تسجيل الدخول', 'يلزم تسجيل الدخول إلى حساب عزك قبل بدء الجلسة أو الشراء.');
     line(modal.content, 'سجّل الدخول إلى حساب عزك، ثم ارجع إلى هذه الغرفة للمتابعة.');
     var signIn = document.createElement('a');
@@ -262,36 +272,6 @@
     if (node && balance) node.textContent = balanceText(balance);
   }
 
-  function freeBalance(balance, gameId) {
-    var remaining = balance.freeRemainingByGame && Number(balance.freeRemainingByGame[gameId]);
-    var total = balance.freeTotalPerGame && Number(balance.freeTotalPerGame[gameId]);
-    if (Number.isSafeInteger(remaining) && remaining >= 0) return { remaining: remaining, total: Number.isSafeInteger(total) ? total : remaining };
-    var used = balance.freeUsedByGame && Number(balance.freeUsedByGame[gameId]);
-    if (Number.isSafeInteger(total) && total >= 0 && Number.isSafeInteger(used)) {
-      return { remaining: Math.max(0, total - used), total: total };
-    }
-    return { remaining: 0, total: 0 };
-  }
-
-  function choiceButton(title, detail, onClick, secondary, disabled) {
-    var node = document.createElement('button');
-    node.type = 'button';
-    node.className = 'ezik-iap-button ezik-iap-choice' + (secondary ? ' ezik-iap-button-secondary' : '');
-    node.disabled = disabled === true;
-    var heading = document.createElement('span');
-    heading.className = 'ezik-iap-choice-title';
-    heading.textContent = title;
-    node.append(heading);
-    if (detail) {
-      var note = document.createElement('small');
-      note.className = 'ezik-iap-choice-detail';
-      note.textContent = detail;
-      node.append(note);
-    }
-    node.addEventListener('click', onClick);
-    return node;
-  }
-
   function storeButton(text, href) {
     var node = document.createElement('a');
     node.className = 'ezik-iap-button ezik-iap-store-button';
@@ -318,75 +298,155 @@
   async function resumeAfterSignIn(event) {
     if (event && event.type === 'storage' && event.key !== SESSION_KEY) return;
     if (document.visibilityState === 'hidden' || !pendingSignIn || resumingSignIn
-      || !startContext || !authSession()) return;
+      || !authSession()) return;
     pendingSignIn = false;
     resumingSignIn = true;
     stopSignInWatch();
+    var resume = pendingSignInAction;
+    pendingSignInAction = null;
     closeModal();
-    try { await openStartChoice(startContext); }
+    try { if (resume) await resume(); }
     finally { resumingSignIn = false; }
   }
 
-  async function openStartChoice(context, returnToChoice) {
-    var session = authSession();
-    if (!session) { showSignIn(); return; }
-    var modal = openModal('بدء جلسة اللعب', 'جارٍ تحميل رصيد الحساب…');
+  async function requestTrialStart(session) {
+    var started;
+    try {
+      started = await fetch('../api/iap-trial-start', {
+        method: 'POST', credentials: 'same-origin', cache: 'no-store', headers: { 'x-ezik-session': session },
+      });
+    } catch (e) { return { ok: false, status: 503, data: {} }; }
+    var data = await started.json().catch(function () { return {}; });
+    return { ok: started.ok && data.ok === true, status: started.status, data: data };
+  }
+
+  async function entitlementBalance(session) {
     var response;
     try { response = await getBalance(session); } catch (e) { response = { ok: false }; }
-    if (active !== modal) return;
+    if (!response.ok || response.data.enforced !== true || response.data.trial) return response;
+    var started = await requestTrialStart(session);
+    if (!started.ok) return { ok: false, status: started.status, data: started.data };
+    try { return await getBalance(session); } catch (e) { return { ok: false, status: 503, data: {} }; }
+  }
+
+  function hasEntitlement(balance) {
+    return balance && (balance.trial && balance.trial.active === true
+      || balance.subscriptionActive === true || Number(balance.credits) > 0);
+  }
+
+  function hasFreeEntitlement(balance) {
+    return balance && (balance.trial && balance.trial.active === true
+      || balance.subscriptionActive === true);
+  }
+
+  function allowedReturnPath(value) {
+    return typeof value === 'string'
+      && /^\/(?:quest-(?:ghaws|harb|test|board)\.html|hanna-laha(?:\/[^?#]*)?)(?:[?#].*)?$/u.test(value);
+  }
+
+  function navigateToMainPurchase(returnPath) {
+    var path = allowedReturnPath(returnPath) ? returnPath
+      : window.location.pathname + window.location.search + window.location.hash;
+    if (allowedReturnPath(path)) {
+      try { sessionStorage.setItem(RETURN_KEY, path); } catch (e) {}
+    }
+    window.location.href = '/quest.html?iap_purchase=1';
+  }
+
+  function finishPurchaseReturn() {
+    if (window.location.pathname !== '/quest.html'
+      || new URLSearchParams(window.location.search).get('iap_purchase') !== '1') return false;
+    var path = '';
+    try { path = sessionStorage.getItem(RETURN_KEY) || ''; } catch (e) {}
+    if (!allowedReturnPath(path)) return false;
+    try { sessionStorage.removeItem(RETURN_KEY); } catch (e) {}
+    window.location.href = path;
+    return true;
+  }
+
+  function navigateJoinByCode(gameId) {
+    if (gameId === 'hanna') window.location.href = '/hanna-laha/join?rooms=1&entry=1';
+    else if (gameId === 'harb') window.location.href = '/quest-harb.html?iap_join=1';
+    else if (gameId === 'board') window.location.href = '/quest-board.html?iap_join=1';
+  }
+
+  function showExpired(gameId, returnPath) {
+    var modal = openModal('الدخول إلى اللعبة', 'انتهت تجربتك المجانية — الرجاء الشراء للدخول.', { closeButton: false });
+    modal.content.append(button('اشتر لعبة', function () { navigateToMainPurchase(returnPath); }));
+    if (gameId === 'harb' || gameId === 'board' || gameId === 'hanna') {
+      modal.content.append(button('انضم لغرفة برمز', function () { navigateJoinByCode(gameId); }, true));
+    }
+  }
+
+  function showTrialDisclosure(gameId, session, returnPath, onAllowed) {
+    var copy = 'ألعاب كنوز المعرفة مجانية لك لمدة ٧ أيام. ما زلنا نحسّن الألعاب. بعد الأسبوع، يلزم شراء رصيد جلسات أو اشتراك لدخول أي لعبة. الأسعار تحت زر «اشتر لعبة».';
+    var modal = openModal('أسبوعك المجاني', copy, { closeButton: false });
+    modal.content.append(button('العودة إلى كنوز المعرفة', function () {
+      closeModal(); window.location.href = '/quest.html';
+    }, true));
+    modal.content.append(button('ابدأ أسبوعك المجاني', async function () {
+      setModalBusy(true);
+      var started = await requestTrialStart(session);
+      if (!started.ok) {
+        showFailure('تعذّر بدء أسبوعك المجاني الآن. حاول مرة أخرى.');
+        return;
+      }
+      var response;
+      try { response = await getBalance(session); } catch (e) { response = { ok: false, status: 503 }; }
+      closeModal();
+      if (!response.ok) {
+        showFailure('تعذّر التحقق من رصيد الحساب الآن. حاول مرة أخرى.');
+        return;
+      }
+      if (response.data.enforced !== true || hasEntitlement(response.data)) {
+        if (typeof onAllowed === 'function') await Promise.resolve(onAllowed());
+      } else showExpired(gameId, returnPath);
+    }));
+  }
+
+  async function checkGameAccess(gameId, onAllowed, returnPath) {
+    async function continueIfAllowed() {
+      if (typeof onAllowed === 'function') await Promise.resolve(onAllowed());
+      return true;
+    }
+    if (!['ghaws', 'harb', 'test', 'board', 'hanna'].includes(gameId)) return false;
+    if (active) return false;
+    var mode;
+    try { mode = await getEnforcementMode(); } catch (e) { mode = 'all'; }
+    if (mode === 'off' || mode === 'test' && !authSession()) return continueIfAllowed();
+    var session = authSession();
+    if (!session) { showSignIn(function () { return checkGameAccess(gameId, onAllowed, returnPath); }); return false; }
+    var response;
+    try { response = await getBalance(session); } catch (e) { response = { ok: false, status: 503, data: {} }; }
     if (!response.ok) {
-      if (response.status === 401) { showSignIn(); return; }
-      showFailure('تعذّر تحميل الرصيد الآن. حاولوا مرة أخرى.');
-      return;
+      if (response.status === 401) { showSignIn(function () { return checkGameAccess(gameId, onAllowed, returnPath); }); return false; }
+      showFailure('تعذّر التحقق من رصيد الحساب الآن. حاول مرة أخرى.');
+      return false;
     }
+    if (response.data.enforced !== true) return continueIfAllowed();
+    if (!response.data.trial) {
+      if (window.location.pathname === '/quest.html' && homeEntryPromise) {
+        try { await homeEntryPromise; } catch (e) {}
+        try { response = await getBalance(session); } catch (e) { response = { ok: false, status: 503, data: {} }; }
+        if (!response.ok) {
+          if (response.status === 401) { showSignIn(function () { return checkGameAccess(gameId, onAllowed, returnPath); }); return false; }
+          showFailure('تعذّر التحقق من رصيد الحساب الآن. حاول مرة أخرى.');
+          return false;
+        }
+        if (response.data.enforced !== true) return continueIfAllowed();
+      }
+      if (!response.data.trial) {
+        showTrialDisclosure(gameId, session, returnPath, onAllowed);
+        return false;
+      }
+    }
+    if (hasEntitlement(response.data)) return continueIfAllowed();
+    showExpired(gameId, returnPath);
+    return false;
+  }
 
-    pendingSignIn = false;
-    stopSignInWatch();
-    var balance = response.data;
-    if (balance.enforced === false) {
-      await startWithoutIap(context);
-      return;
-    }
-    var activeSubscription = Number(balance.subscriptionExpiresAt) > Date.now();
-    if (activeSubscription && returnToChoice !== true) {
-      await startWithIntent(context, 'automatic');
-      return;
-    }
-
-    modal.paragraph.textContent = activeSubscription
-      ? 'الحساب: ' + accountLabel() + '. اشتراككم فعّال، ويمكنكم بدء الجلسة الآن.'
-      : 'الحساب: ' + accountLabel() + '. اختاروا طريقة بدء الجلسة.';
-    modal.content.replaceChildren();
-    balanceLine(modal.content, balance);
-    var choices = document.createElement('div');
-    choices.className = 'ezik-iap-choice-grid';
-    if (activeSubscription) {
-      choices.append(choiceButton('ابدأ اللعب', 'اشتراك فعّال', function () {
-        startWithIntent(context, 'automatic');
-      }, false, false));
-      choices.append(choiceButton('اشتري الآن', '', initializePurchase, true, false));
-      modal.content.append(choices);
-      return;
-    }
-
-    var free = freeBalance(balance, context.gameId);
-    var remaining = free.remaining;
-    var total = free.total;
-    var hasCredits = Number(balance.credits) > 0;
-    var primaryTitle = remaining > 0 ? 'لعب مجاني' : hasCredits ? 'ابدأ (يُخصم من رصيدك)' : 'لعب مجاني';
-    var primaryDetail = remaining > 0 || !hasCredits
-      ? 'متبقّي ' + arabicDigits(remaining) + ' من ' + arabicDigits(total)
-      : '';
-    choices.append(choiceButton(primaryTitle, primaryDetail, function () {
-      startWithIntent(context, remaining > 0 ? 'free' : 'credit');
-    }, false, remaining === 0 && !hasCredits));
-    if (remaining > 0 && hasCredits) {
-      choices.append(choiceButton('ابدأ (يُخصم من رصيدك)', '', function () {
-        startWithIntent(context, 'credit');
-      }, true, false));
-    }
-    choices.append(choiceButton('اشتري الآن', '', initializePurchase, true, false));
-    modal.content.append(choices);
+  async function checkHostAccess(gameId, onAllowed) {
+    return checkGameAccess(gameId, onAllowed, window.location.pathname + window.location.search + window.location.hash);
   }
 
   async function startWithIntent(context, intent) {
@@ -402,7 +462,12 @@
         startSignal = Promise.resolve(waiting.promise || waiting);
         startSignal.catch(function () {});
       }
-      await Promise.resolve(context.start());
+      if (await Promise.resolve(context.start()) === false) {
+        if (waiting && typeof waiting.cancel === 'function') waiting.cancel();
+        context.inFlight = false;
+        closeModal();
+        return false;
+      }
       if (startSignal) await startSignal;
     } catch (e) {
       if (waiting && typeof waiting.cancel === 'function') waiting.cancel();
@@ -424,7 +489,7 @@
 
   async function initializePurchase() {
     var session = authSession();
-    if (!session) { showSignIn(); return; }
+    if (!session) { showSignIn(initializePurchase); return; }
     if (!window.ReactNativeWebView || typeof window.ReactNativeWebView.postMessage !== 'function') {
       showWebBuyPanel();
       return;
@@ -435,7 +500,7 @@
     var currentBalance = await getBalance(session);
     if (active !== modal) return;
     if (!currentBalance.ok) {
-      if (currentBalance.status === 401) { showSignIn(); return; }
+      if (currentBalance.status === 401) { showSignIn(initializePurchase); return; }
       showFailure('تعذّر تحميل الرصيد الآن. حاول مرة أخرى.');
       return;
     }
@@ -485,7 +550,7 @@
     async function refreshBalance(fromButton) {
       if (active !== modal || refreshing) return;
       var session = authSession();
-      if (!session) { showSignIn(); return; }
+      if (!session) { showSignIn(showWebBuyPanel); return; }
       refreshing = true;
       refresh.disabled = true;
       status.className = 'ezik-iap-status ezik-iap-note';
@@ -496,7 +561,7 @@
       refreshing = false;
       refresh.disabled = false;
       if (!response.ok) {
-        if (response.status === 401) { showSignIn(); return; }
+        if (response.status === 401) { showSignIn(showWebBuyPanel); return; }
         status.className = 'ezik-iap-status ezik-iap-error';
         status.textContent = 'تعذّر تحديث الرصيد الآن. حاول مرة أخرى.';
         return;
@@ -507,6 +572,7 @@
       if (changed) {
         starting = balance;
         status.textContent = 'تم تحديث الرصيد.';
+        finishPurchaseReturn();
       } else if (fromButton) status.textContent = 'لم يظهر رصيد جديد بعد. يمكنك التحديث مرة أخرى بعد الشراء.';
       else if (!status.textContent) status.textContent = 'يمكنك تحديث الرصيد بعد إتمام الشراء في التطبيق.';
     }
@@ -530,7 +596,10 @@
     modal.content.replaceChildren();
     var balanceDisplay = balanceLine(modal.content, startingBalance);
     PRODUCT_ROWS.forEach(function (product) {
-      var price = prices[product.id];
+      var productId = Object.prototype.hasOwnProperty.call(prices, product.id)
+        ? product.id : product.fallbackId || product.id;
+      var selectedProduct = Object.assign({}, product, { id: productId });
+      var price = prices[productId];
       var row = document.createElement('section');
       row.className = 'ezik-iap-row';
       var head = document.createElement('div');
@@ -580,15 +649,12 @@
         buy.disabled = true;
         input.disabled = true;
         setModalBusy(true);
-        buyProduct(product, quantity, session, startingBalance, status, buy, input, balanceDisplay, modal);
+        buyProduct(selectedProduct, quantity, session, startingBalance, status, buy, input, balanceDisplay, modal);
       });
       row.append(head, label, total, status, buy);
       modal.content.append(row);
     });
-    modal.content.append(button('العودة لاختيار اللعب', function () {
-      if (startContext) openStartChoice(startContext);
-      else closeModal();
-    }, true));
+    modal.content.append(button('إغلاق', closeModal, true));
   }
 
   function roomSessionId(roomCode, gameId, cycle) {
@@ -615,7 +681,11 @@
 
   async function consumeAndStart(request, gameId, intent) {
     var session = authSession();
-    if (!session) { showSignIn(); return false; }
+    if (!session) {
+      console.warn('[IAP] consume skipped after game start: signed-out session');
+      closeModal();
+      return true;
+    }
     var response;
     try {
       response = await fetch('../api/iap-consume', {
@@ -625,19 +695,15 @@
         body: JSON.stringify({ sessionId: request.id, gameId: gameId, intent: intent }),
       });
     } catch (e) {
-      showFailure('تعذّر التحقق من الرصيد. لم نبدأ الجلسة؛ حاول مرة أخرى.');
-      return false;
+      console.warn('[IAP] consume failed after game start; game continues without charge');
+      closeModal();
+      return true;
     }
     var data = await response.json().catch(function () { return {}; });
-    if (response.status === 401) { showSignIn(); return false; }
-    if ((response.status === 402 && data.error === 'iap-no-credit')
-      || (response.status === 409 && data.error === 'iap-free-unavailable')) {
-      showFailure('بدأت الجولة لكن لم يتوفر الرصيد المختار لها. لم يُستخدم خيار آخر تلقائيًا.');
-      return null;
-    }
     if (!response.ok || data.ok !== true) {
-      showFailure('تعذّر التحقق من الرصيد الآن. حاول مرة أخرى.');
-      return false;
+      console.warn('[IAP] consume rejected after game start; game continues without charge', response.status, data.error || 'iap-consume-failed');
+      closeModal();
+      return true;
     }
     closeModal();
     return true;
@@ -713,6 +779,7 @@
             baseline = refreshed.data;
             status.textContent = receipts.join('\n') + '\nتم تحديث الرصيد.';
             clearInterval(poller);
+            finishPurchaseReturn();
           }
         } catch (e) {} finally { polling = false; }
       }, 5000);
@@ -721,7 +788,7 @@
         clearInterval(poller);
         if (previousCleanup) previousCleanup();
       };
-    }
+    } else if (completed > 0) finishPurchaseReturn();
   }
 
   async function beginStart(start, roomCode, gameId, options) {
@@ -744,9 +811,158 @@
       await startWithoutIap(startContext);
       return;
     }
-    if (!authSession()) { showSignIn(); return; }
-    await openStartChoice(startContext);
+    var session = authSession();
+    if (!session) {
+      showSignIn(function () { return beginStart(start, roomCode, gameId, options); });
+      return;
+    }
+    var response = await entitlementBalance(session);
+    if (!response.ok) {
+      if (response.status === 401) { showSignIn(function () { return beginStart(start, roomCode, gameId, options); }); return; }
+      showFailure('تعذّر التحقق من رصيد الحساب الآن. حاول مرة أخرى.');
+      return;
+    }
+    var balance = response.data;
+    if (balance.enforced !== true) { await startWithoutIap(startContext); return; }
+    if (hasFreeEntitlement(balance)) { await startWithIntent(startContext, 'automatic'); return; }
+    if (Number(balance.credits) > 0) {
+      var modal = openModal('تأكيد بدء الجلسة', 'سيُخصم من رصيدك جلسة واحدة (رصيدك ' + arabicDigits(balance.credits) + ')');
+      modal.content.append(button('ابدأ', function () { startWithIntent(startContext, 'automatic'); }));
+      modal.content.append(button('إلغاء', closeModal, true));
+      return;
+    }
+    showExpired(startContext.gameId, window.location.pathname + window.location.search + window.location.hash);
   }
+
+  async function enterKunuzHome(onUpdate) {
+    if (typeof onUpdate !== 'function') return;
+    var mode;
+    try { mode = await getEnforcementMode(); } catch (e) { return; }
+    if (mode === 'off') { onUpdate(null); return; }
+    var session = authSession();
+    if (!session) {
+      if (mode !== 'all') { onUpdate(null); return; }
+      onUpdate({ kind: 'sign-in' });
+      if (homeSignInCleanup) homeSignInCleanup();
+      var done = false;
+      var resume = function () {
+        if (done || !authSession()) return;
+        done = true;
+        if (homeSignInCleanup) homeSignInCleanup();
+        window.ezikIapEnterHome(onUpdate).catch(function () {});
+      };
+      var onStorage = function (event) { if (!event || event.key === SESSION_KEY) resume(); };
+      var onFocus = function () { resume(); };
+      var onVisibility = function () { if (document.visibilityState === 'visible') resume(); };
+      window.addEventListener('storage', onStorage);
+      window.addEventListener('focus', onFocus);
+      document.addEventListener('visibilitychange', onVisibility);
+      homeSignInCleanup = function () {
+        window.removeEventListener('storage', onStorage);
+        window.removeEventListener('focus', onFocus);
+        document.removeEventListener('visibilitychange', onVisibility);
+        homeSignInCleanup = null;
+      };
+      return;
+    }
+    var response;
+    try { response = await getBalance(session); } catch (e) { response = { ok: false }; }
+    if (!response.ok) {
+      if (response.status === 401) onUpdate({ kind: 'sign-in' });
+      return;
+    }
+    if (response.data.enforced !== true) { onUpdate(null); return; }
+    if (!response.data.trial) {
+      onUpdate({ kind: 'trial', trial: { active: true, daysLeft: 7 }, starting: true });
+      var started = await requestTrialStart(session);
+      if (!started.ok || started.data.enforced !== true) { onUpdate(null); return; }
+      try { response = await getBalance(session); } catch (e) { response = { ok: false }; }
+      if (!response.ok || response.data.enforced !== true) { onUpdate(null); return; }
+    }
+    onUpdate({ kind: 'trial', trial: response.data.trial, starting: false });
+  }
+
+  window.ezikIapEnterHome = function (onUpdate) {
+    homeEntryPromise = enterKunuzHome(onUpdate);
+    return homeEntryPromise;
+  };
+  window.ezikIapOpenPurchase = function () {
+    if (active) return;
+    initializePurchase().catch(function () { showFailure('تعذّر فتح خيارات الشراء الآن. حاول مرة أخرى.'); });
+  };
+  window.ezikIapCheckGameAccess = checkGameAccess;
+  window.ezikIapCheckHostAccess = checkHostAccess;
+
+  function pageGameId(pathname) {
+    if (pathname === '/quest-ghaws.html') return 'ghaws';
+    if (pathname === '/quest-harb.html') return 'harb';
+    if (pathname === '/quest-test.html') return 'test';
+    if (pathname === '/quest-board.html') return 'board';
+    if (pathname === '/hanna-laha' || pathname.indexOf('/hanna-laha/') === 0) return 'hanna';
+    return '';
+  }
+
+  function lockEntryPage(locked) {
+    if (!document.body) return;
+    Array.prototype.forEach.call(document.body.children, function (node) {
+      if (node.classList && node.classList.contains('ezik-iap-backdrop')) return;
+      if (locked) {
+        if (!Object.prototype.hasOwnProperty.call(node, '__ezikIapPreviousInert')) {
+          node.__ezikIapPreviousInert = node.inert === true;
+        }
+        node.inert = true;
+      } else if (Object.prototype.hasOwnProperty.call(node, '__ezikIapPreviousInert')) {
+        node.inert = node.__ezikIapPreviousInert;
+        delete node.__ezikIapPreviousInert;
+      }
+    });
+  }
+
+  function installEntryGuard() {
+    if (!window.location || !window.location.pathname) return;
+    var home = window.location.pathname === '/quest.html';
+    var gameId = pageGameId(window.location.pathname);
+    if (home) {
+      var destinations = {
+        '/quest-ghaws.html': 'ghaws', '/quest-harb.html': 'harb',
+        '/quest-test.html': 'test', '/quest-board.html': 'board', '/hanna-laha/': 'hanna',
+      };
+      document.addEventListener('click', function (event) {
+        var anchor = event.target && event.target.closest ? event.target.closest('a[href]') : null;
+        var href = anchor && anchor.getAttribute('href');
+        var targetGame = href && destinations[href];
+        if (!targetGame) return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+        checkGameAccess(targetGame, function () { window.location.href = href; }, href);
+      }, true);
+      return;
+    }
+    if (!gameId) return;
+    var search = window.location.search || '';
+    var isHannaJoin = gameId === 'hanna' && /^\/hanna-laha\/(?:join|j\/\d{4,6})\/?$/.test(window.location.pathname);
+    var isBoardJoin = gameId === 'board' && /(?:^|[?&])board=\d{4,6}(?:&|$)/.test(search);
+    var joinOnly = ['harb', 'board', 'hanna'].includes(gameId) && /(?:^|[?&])iap_join=1(?:&|$)/.test(search);
+    if (isHannaJoin || isBoardJoin || joinOnly) {
+      window.ezikIapPageGate = Promise.resolve(true);
+      return;
+    }
+    lockEntryPage(true);
+    var settled = false, initialAllowed = null;
+    var returnPath = window.location.pathname + search + (window.location.hash || '');
+    window.ezikIapPageGate = checkGameAccess(gameId, function () {
+      if (settled && initialAllowed === false && window.location.reload) window.location.reload();
+    }, returnPath).then(function (allowed) {
+      settled = true;
+      initialAllowed = allowed === true;
+      if (allowed === true) lockEntryPage(false);
+      return allowed === true;
+    });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installEntryGuard, { once: true });
+  else installEntryGuard();
 
   window.ezikIapStart = function (start, roomCode, gameId, options) {
     if (typeof start !== 'function') return;

@@ -53,12 +53,13 @@
 @media(prefers-reduced-motion:reduce){.ezik-treasure-theme.kunuz-theme-pending .kunuz-theme-spinner{animation:none}}
 </style>
 <link rel="stylesheet" href="/quest-theme/theme.css?v=20261022-roomsfix2">
+<link rel="stylesheet" href="/hanna-laha/assets/iap-bridge-v1.css?v=20261023-iapf">
 <link rel="preload" href="/quest-theme/assets/regular.ttf?v=20261022-roomsfix2" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="/quest-theme/assets/bold.ttf?v=20261022-roomsfix2" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="/quest-theme/motion-kit.js?v=20261022-roomsfix2" as="script">
 <link rel="preload" href="/quest-theme/icons.js?v=20261022-roomsfix2" as="script">
 <link rel="preload" href="/quest-theme/model.js?v=20261022-roomsfix2" as="script">
-<link rel="preload" href="/quest-theme/journey.js?v=20261023-iapf" as="script">
+<link rel="preload" href="/quest-theme/journey.js?v=20261023-iapg" as="script">
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#082c38">
@@ -86,18 +87,20 @@ body{color:var(--ink);font-family:var(--hd);font-size:16px;line-height:1.75;min-
   display:flex;align-items:center;justify-content:center}
 .brand p{margin:0;color:var(--muted);font-size:.85rem;line-height:1.4}
 .rule{width:40px;height:2px;background:var(--sea3);margin:4px auto 8px;border-radius:2px}
-.door{display:block;background:var(--white);border:1px solid var(--line);border-radius:16px;
+.door,.iap-purchase{display:block;background:var(--white);border:1px solid var(--line);border-radius:16px;
   padding:11px 18px;margin:0 0 8px;text-decoration:none;color:inherit;min-height:48px}
-.door:hover,.door:focus-visible{border-color:var(--azraq)}
-.door b{display:block;font-size:1.35rem;line-height:1.25;color:var(--ghawr);margin-bottom:0}
-.door span{display:block;color:var(--muted);font-size:.92rem;line-height:1.45}
+.door:hover,.door:focus-visible,.iap-purchase:hover,.iap-purchase:focus-visible{border-color:var(--azraq)}
+.door b,.iap-purchase b{display:block;font-size:1.35rem;line-height:1.25;color:var(--ghawr);margin-bottom:0}
+.door span,.iap-purchase span{display:block;color:var(--muted);font-size:.92rem;line-height:1.45}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <script src="/quest-theme/motion-kit.js?v=20261022-roomsfix2"></script>
 <script src="/quest-theme/icons.js?v=20261022-roomsfix2"></script>
 <script src="/quest-theme/model.js?v=20261022-roomsfix2"></script>
-<script src="/quest-theme/journey.js?v=20261023-iapf"></script>
+<script src="/iap-pending.js?v=20261023-iapf"></script>
+<script src="/hanna-laha/assets/iap-bridge-v1.js?v=20261023-iapg"></script>
+<script src="/quest-theme/journey.js?v=20261023-iapg"></script>
 </head>
 <body>
 <div class="kunuz-theme-shell" role="status" aria-label="نجهّز مغامرتكم"><span class="kunuz-theme-spinner" aria-hidden="true"></span></div>
@@ -108,6 +111,8 @@ body{color:var(--ink);font-family:var(--hd);font-size:16px;line-height:1.75;min-
   <div class="brand"><h1>كنوز المعرفة</h1>
     <p>خمس ألعاب من أسئلة عزك. اختاروا لعبتكم.</p></div>
   <div class="rule"></div>
+  <a class="iap-purchase" href="#" onclick="window.ezikIapOpenPurchase&&window.ezikIapOpenPurchase();return false"><b>اشتر لعبة</b>
+    <span>خيارات الشراء والأسعار من المتجر</span></a>
   <a class="door" href="/quest-ghaws.html"><b>الغوص</b>
     <span>انزل قامةً بعد قامة، واطلع بحصيلتك قبل أن يخونك جواب — وحدك أو بطاقم</span></a>
   <a class="door" href="/quest-harb.html"><b>حرب الجزر</b>

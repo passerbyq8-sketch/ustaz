@@ -31,10 +31,13 @@ export async function handleIapBalance(req, res, dependencies = {}) {
 
   try {
     const balance = await read(state.record.accountKey);
+    const isEnforced = enforced(state.record.accountKey);
     return res.status(200).json({
       ...balance,
+      trial: isEnforced ? balance.trial : null,
+      subscriptionActive: Number(balance.subscriptionExpiresAt) > Date.now(),
       appUserId: state.record.accountKey,
-      enforced: enforced(state.record.accountKey),
+      enforced: isEnforced,
     });
   } catch (e) {
     return res.status(503).json({ ok: false, error: 'iap-unavailable' });
