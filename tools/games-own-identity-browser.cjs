@@ -741,7 +741,7 @@ async function roomNumberRegression() {
   check('Switching back restores every setting', await snapshot(), original);
   // Replace only the native frontend module with a local selector-compatible
   // fixture. No worker, API, WebSocket, or actual room is used by this handoff.
-  await context.route('**/hanna-laha/assets/index-DQ2E4Hb-.js', route => route.fulfill({ contentType: 'text/javascript', body: `
+  await context.route('**/hanna-laha/assets/index-iap-v1.js', route => route.fulfill({ contentType: 'text/javascript', body: `
     window.__roomPreferences = JSON.parse(localStorage.getItem('hl-ezik.setup'));
     document.getElementById('root').innerHTML = '<button data-testid="setup-start">start fixture</button><button data-testid="more-toggle" aria-expanded="true">more</button><div data-testid="room-code"><button>auto</button><button>custom</button><input data-testid="room-code-input" value="0000"></div>';
     document.querySelector('[data-testid="setup-start"]').onclick = () => { window.__roomHandoff = { preferences: window.__roomPreferences, input: document.querySelector('[data-testid="room-code-input"]').value }; };
@@ -788,7 +788,7 @@ async function roomNumberRegression() {
   await war.context.close();
 
   const joining = await open('hanna', gameWidth);
-  await joining.context.route('**/hanna-laha/assets/index-DQ2E4Hb-.js', route => route.fulfill({ contentType: 'text/javascript', body: 'window.__joinFixture = true;' }));
+  await joining.context.route('**/hanna-laha/assets/index-iap-v1.js', route => route.fulfill({ contentType: 'text/javascript', body: 'window.__joinFixture = true;' }));
   await click(joining.page, '[data-action="join-room"]');
   await joining.page.waitForFunction(() => window.__joinFixture);
   check('Join still opens without creating or selecting a code', new URL(joining.page.url()).pathname, '/hanna-laha/join');
