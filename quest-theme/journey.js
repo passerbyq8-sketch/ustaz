@@ -107,7 +107,7 @@
           const timeout = setTimeout(controlled, 3000);
           navigator.serviceWorker.addEventListener('controllerchange', controlled);
         });
-        const screenVersion = '20261023-sweep3';
+        const screenVersion = '20261023-sweep4';
         const screenAssets = ['theme.css?v=' + screenVersion, 'journey.js?v=' + screenVersion, 'room-categories.js?v=' + screenVersion, 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
         if (game === 'board') screenAssets.push('board-rooms.js?v=' + screenVersion);
         if (navigator.serviceWorker.controller) await Promise.all(screenAssets.map(async file => {
@@ -392,7 +392,7 @@
   function quizAvailable() { return quizCatalog().filter(c => M.cats.includes(c.index)).reduce((n, c) => n + c.count, 0); }
   function quizCountError() { return M.quizCustomCount && !/^0*[1-9]\d*$/.test(M.quizCountDraft) ? 'اكتب عددًا أو اختر واحدًا' : ''; }
   function quizTimeError() { return M.settings.custom && (!/^\d+$/.test(M.quizTimeDraft) || +M.quizTimeDraft < 1 || +M.quizTimeDraft > 3600) ? 'اكتب وقتًا من ١ إلى ٣٦٠٠ ثانية' : ''; }
-  function quizCountNote() { return M.quizCustomCount && !quizCountError() && +M.quizCountDraft > quizAvailable() ? 'المتاح في الفئات المختارة ' + ar(quizAvailable()) + ' سؤالًا؛ ستلعب بهذا العدد.' : ''; }
+  function quizCountNote() { return M.quizCustomCount && !quizCountError() && +M.quizCountDraft > quizAvailable() ? 'العدد المختار أكبر من المتاح؛ ستلعب بالأسئلة المتاحة.' : ''; }
   function quizNumberField(kind, label, value) {
     const error = kind === 'count' ? quizCountError() : quizTimeError();
     return '<div class="j-quiz-custom"><label class="j-field" for="j-quiz-' + kind + '">' + label + '</label><input id="j-quiz-' + kind + '" class="j-input" data-quiz-number="' + kind + '" inputmode="numeric" pattern="[0-9]*" autocomplete="off" dir="ltr" value="' + esc(value) + '" aria-invalid="' + !!error + '" aria-describedby="j-quiz-' + kind + '-help"><p id="j-quiz-' + kind + '-help" class="' + (error ? 'j-error' : 'j-note') + '" role="status">' + (error || (kind === 'count' ? quizCountNote() : 'من ١ إلى ٣٦٠٠ ثانية')) + '</p></div>';
