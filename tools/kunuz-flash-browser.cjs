@@ -9,7 +9,7 @@ const out = cli('out', process.env.KUNUZ_FLASH_OUT || 'C:/Users/passe/projects/q
 const phase = process.argv.includes('--before') ? 'before' : 'after';
 const snapshot = path.join(root, '.vercel/flash-v1');
 const pages = { hub: '/quest.html', test: '/quest-test.html', board: '/quest-board.html', ghaws: '/quest-ghaws.html', harb: '/quest-harb.html', hanna: '/hanna-laha/' };
-const mutable = [...Object.values(pages).map(p => p.endsWith('/') ? p + 'index.html' : p), '/quest-sw.js', '/quest-theme/theme.css', '/quest-theme/journey.js', '/quest-theme/model.js', '/quest-theme/icons.js', '/quest-theme/motion-kit.js', '/quest-theme/history.js'];
+const mutable = [...Object.values(pages).map(p => p.endsWith('/') ? p + 'index.html' : p), '/quest-sw.js', '/quest-theme/theme.css', '/quest-theme/journey.js', '/quest-theme/model.js', '/quest-theme/icons.js', '/quest-theme/motion-kit.js', '/quest-theme/history.js', '/hanna-laha/assets/iap-bridge-v1.js'];
 fs.mkdirSync(out, { recursive: true });
 if (phase === 'before') for (const file of mutable) {
   const target = path.join(snapshot, file); fs.mkdirSync(path.dirname(target), { recursive: true });
@@ -148,9 +148,14 @@ async function capture(browser, context, route, name, base) {
       if (phase === 'after') {
         const page = await update.newPage(); await page.goto(base + route); await ready(page);
         const registrations = await page.evaluate(async () => { const all = await navigator.serviceWorker.getRegistrations(); await Promise.all(all.map(r => r.update())); return all.length; });
-        await page.waitForFunction(async () => (await navigator.serviceWorker.getRegistrations()).every(r => r.active && !r.installing && !r.waiting), null, { timeout: 180000 });
+        const currentVersion = /const VERSION = '([^']+)'/.exec(fs.readFileSync(path.join(root,'quest-sw.js'),'utf8'))[1];
+        const previousVersion = /const VERSION = '([^']+)'/.exec(fs.readFileSync(path.join(snapshot,'quest-sw.js'),'utf8'))[1];
+        await page.waitForFunction(async ({currentVersion,previousVersion}) => {
+          const registrations = await navigator.serviceWorker.getRegistrations(), databases = (await indexedDB.databases()).map(db => db.name), names = await caches.keys();
+          return registrations.every(r => r.active?.state === 'activated' && !r.installing && !r.waiting) && databases.includes('kunuz-treasure-assets-' + currentVersion) && (currentVersion === previousVersion || !databases.includes('kunuz-treasure-assets-' + previousVersion)) && !names.includes('kunuz-treasure-obsolete-proof');
+        }, {currentVersion,previousVersion}, { timeout: 180000 });
         const cleanup = await page.evaluate(async () => ({ databases: (await indexedDB.databases()).map(db => db.name), caches: await caches.keys() }));
-        assert.ok(!cleanup.databases.includes('kunuz-treasure-assets-20261020-v1'), 'old asset database survived activation');
+        if (previousVersion !== currentVersion) assert.ok(!cleanup.databases.includes('kunuz-treasure-assets-' + previousVersion), 'old asset database survived activation');
         assert.ok(!cleanup.caches.includes('kunuz-treasure-obsolete-proof'), 'old Kunuz cache survived activation');
         assert.ok(cleanup.caches.includes('ezik-retained-proof'), 'unrelated cache was deleted');
         await page.evaluate(async () => { for (const name of await caches.keys()) await caches.delete(name); });
