@@ -64,7 +64,9 @@ async function dialog(action, name) {
 async function setup(kind) {
   game = kind;
   await page.goto(base + '/' + routes[kind]);
-  await page.waitForFunction(() => window.KunuzJourney?.state.ready && KunuzJourney.state.stage === 'categories', { timeout: 60000 });
+  await page.waitForFunction(() => window.KunuzJourney?.state.ready, null, { timeout: 60000 });
+  if (await page.locator('[data-action="single-device"]').count()) await click('[data-action="single-device"]');
+  await page.waitForFunction(() => KunuzJourney.state.stage === 'categories', null, { timeout: 60000 });
   const categories = await page.locator('.j-cat-pick').count();
   check('70 enabled eligible categories after main pack disables', categories === 70, categories);
   for (const cat of (sourceURL ? [27,10,0] : [10,0,1])) await click(`[data-action="cat"][data-cat="${cat}"]`);
@@ -252,6 +254,16 @@ async function nativeReportSheet() {
     for (const [w, h] of (onlyWidth ? [[onlyWidth, onlyWidth === 390 ? 844 : 700]] : [[390,844],[1366,700]])) {
       width = w;
       for (const kind of (onlyGame ? [onlyGame] : sourceURL ? ['board'] : nativeSheets ? ['ghaws','harb'] : Object.keys(routes))) {
+        if (['test','hanna'].includes(kind) && !nativeSheets && !sourceURL) {
+          // Their independent screens have their own current acceptance runner;
+          // the old shared board selectors no longer describe these two games.
+          game = kind;
+          const evidence = path.join(out, 'identity-' + kind + '-' + width);
+          const result = require('node:child_process').spawnSync(process.execPath, [path.join(__dirname,'games-own-identity-browser.cjs'),'--games','--game='+kind,'--width='+width,'--height='+h,'--out='+evidence], {encoding:'utf8',maxBuffer:1<<20});
+          check('current independent screen acceptance', result.status === 0, result.stderr || result.stdout);
+          record.fixtures.push({kind:'current-screen-acceptance',game,width,height:h,evidence});
+          process.stdout.write(result.stdout); save(); continue;
+        }
         const context = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, serviceWorkers: 'block' });
         page = await context.newPage();
         await page.addInitScript(() => { let seed = 20261020; Math.random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }; });

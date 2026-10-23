@@ -44,7 +44,8 @@ const server = http.createServer((req, res) => {
 let browser, base;
 const routes = { board: 'quest-board.html', harb: 'quest-harb.html', hanna: 'hanna-laha/', ghaws: 'quest-ghaws.html', test: 'quest-test.html', hub: 'quest.html' };
 async function open(game, width = 390, offline = false, suffix = '') {
-  const context = await browser.newContext({ viewport: { width, height: width === 390 ? 844 : 900 }, deviceScaleFactor: 1, reducedMotion: 'reduce', serviceWorkers: offline ? 'allow' : 'block' });
+  const height = Number(process.argv.find(arg => arg.startsWith('--height='))?.slice(9)) || (width === 390 ? 844 : 900);
+  const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, reducedMotion: 'reduce', serviceWorkers: offline ? 'allow' : 'block' });
   await context.route('**/*', route => {
     if (new URL(route.request().url()).origin === base) return route.continue();
     record.blockedExternal.push(route.request().url()); return route.abort();
