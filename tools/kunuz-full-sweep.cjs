@@ -47,7 +47,7 @@ async function fill(selector,value,p=page){await inventoryScreen(p);const l=p.lo
 async function shot(label,force=false,p=page){const name=game+'-'+label;if(screens.has(name)&&!force)return;screens.add(name);await inventoryScreen(p);await p.evaluate(()=>document.fonts.ready);await p.evaluate(()=>{window.scrollTo(0,0);document.getAnimations().forEach(a=>{try{a.finish();}catch{}});});await p.waitForTimeout(150);const file=name+'.png',b=await p.screenshot({path:path.join(OUT,file),fullPage:true,animations:'disabled'});record.screens.push({file,sha256:hash(b)});write(name+'.json',await state(p));save();}
 async function setupBrowser(){
  browser=CDP?await chromium.connectOverCDP(CDP):await chromium.launch({headless:true});
- const access=arg('access-state','')?{storageState:arg('access-state')}:{};
+ const access={...(arg('access-state','')?{storageState:arg('access-state')}:{}),...(new URL(BASE).hostname.endsWith('.vercel.app')?{extraHTTPHeaders:{'x-vercel-skip-toolbar':'1'}}:{})};
  if(CDP){context=await browser.newContext({viewport:null,locale:'ar-KW',reducedMotion:'reduce',...access});record.chromeContext='new isolated context; existing tabs are untouched';}else context=await browser.newContext({viewport:{width:WIDTH,height:WIDTH<500?844:1000},locale:'ar-KW',deviceScaleFactor:1,reducedMotion:'reduce',serviceWorkers:'allow',...access});
  if(args.includes('--room-fixtures')){
   record.roomFixtureMode='Recorded closed-room protocol; preview origin never connects to the live worker';record.roomFixtureMessages=[];
