@@ -310,7 +310,7 @@ test('new non-renewing pass ids grant month/year access and their cancellation w
   }
 });
 
-function makeBridge({ mode = 'all', accountSession = null, balance = {}, prices = null, pathname = '/quest.html', search = '' } = {}) {
+function makeBridge({ mode = 'all', accountSession = null, balance = {}, prices = null, pathname = '/quest.html', search = '', statusError = false, balanceError = false } = {}) {
   const sourcePromise = readFile(new URL('../hanna-laha/assets/iap-bridge-v1.js', import.meta.url), 'utf8');
   return sourcePromise.then((source) => {
     const { document } = parseHTML('<html><body></body></html>');
@@ -350,8 +350,8 @@ function makeBridge({ mode = 'all', accountSession = null, balance = {}, prices 
     const calls = [];
     const fetch = async (url, options = {}) => {
       calls.push({ url: String(url), options });
-      if (String(url).endsWith('/api/iap-status')) return { ok: true, status: 200, json: async () => ({ mode }) };
-      if (String(url).endsWith('/api/iap-balance')) return { ok: true, status: 200, json: async () => ({ appUserId: account, enforced: state.enforced !== false, credits: Number(state.credits) || 0, subscriptionExpiresAt: state.subscriptionExpiresAt || null, subscriptionActive: Number(state.subscriptionExpiresAt) > Date.now(), trial: state.trial ?? null }) };
+      if (String(url).endsWith('/api/iap-status')) return statusError ? { ok: false, status: 503, json: async () => ({}) } : { ok: true, status: 200, json: async () => ({ mode }) };
+      if (String(url).endsWith('/api/iap-balance')) return balanceError ? { ok: false, status: 503, json: async () => ({}) } : { ok: true, status: 200, json: async () => ({ appUserId: account, enforced: state.enforced !== false, credits: Number(state.credits) || 0, subscriptionExpiresAt: state.subscriptionExpiresAt || null, subscriptionActive: Number(state.subscriptionExpiresAt) > Date.now(), trial: state.trial ?? null }) };
       if (String(url).endsWith('/api/iap-trial-start')) { state.trial = { startedAt: Date.now(), endsAt: Date.now() + 7 * 86400000, active: true, daysLeft: 7 }; return { ok: true, status: 200, json: async () => ({ ok: true, enforced: true, created: true, trial: state.trial }) }; }
       if (String(url).endsWith('/api/iap-consume')) return { ok: true, status: 200, json: async () => ({ ok: true, mode: 'credit' }) };
       throw new Error('unexpected-fetch: ' + String(url));
@@ -360,6 +360,72 @@ function makeBridge({ mode = 'all', accountSession = null, balance = {}, prices 
     return { window, document, localStorage, sessionStorage, calls, posted, state };
   });
 }
+
+test('home purchase visibility follows verified rollout eligibility and gates the fallback and auto-open', async () => {
+  async function homeState(options) {
+    const bridge = await makeBridge(options);
+    const updates = [];
+    await bridge.window.ezikIapEnterHome((notice, applicable) => updates.push({ notice, applicable }));
+    return { bridge, updates, applicable: updates.at(-1)?.applicable };
+  }
+
+  for (const options of [
+    { mode: 'off' },
+    { mode: 'off', accountSession: { session } },
+    { mode: 'test' },
+    { mode: 'test', accountSession: { session }, balance: { enforced: false } },
+    { mode: 'test', accountSession: { session }, balanceError: true },
+    { mode: 'all', statusError: true },
+  ]) {
+    const result = await homeState(options);
+    assert.equal(result.applicable, false, JSON.stringify(options));
+  }
+
+  const listed = await homeState({ mode: 'test', accountSession: { session } });
+  assert.equal(listed.applicable, true);
+  assert.ok(listed.updates.some(({ notice }) => notice?.kind === 'trial'));
+  const allSignedOut = await homeState({ mode: 'all' });
+  assert.equal(allSignedOut.applicable, true);
+  assert.equal(allSignedOut.updates.at(-1).notice.kind, 'sign-in');
+  const allSignedIn = await homeState({ mode: 'all', accountSession: { session }, balance: { enforced: false } });
+  assert.equal(allSignedIn.applicable, true);
+
+  const [journey, fallback, fallbackScript] = await Promise.all([
+    readFile(new URL('../quest-theme/journey.js', import.meta.url), 'utf8'),
+    readFile(new URL('../quest.html', import.meta.url), 'utf8'),
+    readFile(new URL('../quest-theme/iap-fallback.js', import.meta.url), 'utf8'),
+  ]);
+  const state = { homePurchasesApplicable: false, homeNotice: null };
+  const buttonSource = journey.match(/function button\(label, action, className = 'j-btn', attrs = ''\) \{[\s\S]*?\n  \}/)[0];
+  const makeButton = new Function('M', 'game', buttonSource + '; return button;')(state, 'hub');
+  const homeSource = journey.match(/function home\(\) \{[\s\S]*?\n  \}/)[0];
+  const markup = new Function('M', 'button', 'homeNoticeMarkup', 'names', 'Icons', homeSource + '; return home;')(state, makeButton, () => '', {}, { icon: () => '' });
+  assert.doesNotMatch(markup(), /data-action="iap-purchase"/);
+  state.homePurchasesApplicable = true;
+  assert.match(markup(), /data-action="iap-purchase"/);
+  const dismissal = journey.match(/else if \(action === 'dismiss-home-notice' && game === 'hub'\) \{ ([^}]*) \}/)[1];
+  new Function('M', 'render', dismissal)(state, () => {});
+  assert.equal(state.homeNotice, null);
+  assert.match(markup(), /data-action="iap-purchase"/);
+
+  const setterSource = journey.match(/function setHomeNotice\(notice, purchaseApplicable\) \{[\s\S]*?\n  \}/)[0];
+  let opens = 0;
+  const setNotice = new Function('M', 'IAP_EXPIRED_NOTICE_KEY', 'render', 'global', 'location', 'sessionStorage', setterSource + '; return setHomeNotice')(
+    { homePurchasesApplicable: false, homeNotice: null }, 'notice-key', () => {},
+    { ezikIapOpenPurchase: () => { opens += 1; } }, { search: '?iap_purchase=1' },
+    { getItem: () => null, setItem: () => {} },
+  );
+  setNotice(null, false);
+  assert.equal(opens, 0);
+  setNotice(null, true);
+  assert.equal(opens, 1);
+
+  assert.match(fallback, /<a class="iap-purchase"[^>]*\shidden/);
+  assert.match(fallback, /quest-theme\/iap-fallback\.js\?v=20261023-iapg5/);
+  assert.match(fallbackScript, /window\.ezikIapEnterHome\(function \(_notice, applicable\)/);
+  assert.match(fallbackScript, /link\.hidden = applicable !== true/);
+  assert.match(fallbackScript, /status !== 'fallback'/);
+});
 
 test('first direct game entry discloses the week before starting it, and expired no-credit accounts are blocked', async () => {
   const off = await makeBridge({ mode: 'off' });

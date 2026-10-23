@@ -848,12 +848,13 @@
   async function enterKunuzHome(onUpdate) {
     if (typeof onUpdate !== 'function') return;
     var mode;
-    try { mode = await getEnforcementMode(); } catch (e) { return; }
-    if (mode === 'off') { onUpdate(null); return; }
+    try { mode = await getEnforcementMode(); } catch (e) { onUpdate(null, false); return; }
+    if (!['off', 'test', 'all'].includes(mode)) { onUpdate(null, false); return; }
+    if (mode === 'off') { onUpdate(null, false); return; }
     var session = authSession();
     if (!session) {
-      if (mode !== 'all') { onUpdate(null); return; }
-      onUpdate({ kind: 'sign-in' });
+      if (mode !== 'all') { onUpdate(null, false); return; }
+      onUpdate({ kind: 'sign-in' }, true);
       if (homeSignInCleanup) homeSignInCleanup();
       var done = false;
       var resume = function () {
@@ -876,21 +877,25 @@
       };
       return;
     }
+    var purchasesApplicable = mode === 'all';
+    if (purchasesApplicable) onUpdate(null, true);
     var response;
     try { response = await getBalance(session); } catch (e) { response = { ok: false }; }
     if (!response.ok) {
-      if (response.status === 401) onUpdate({ kind: 'sign-in' });
+      if (response.status === 401) onUpdate({ kind: 'sign-in' }, purchasesApplicable);
+      else if (!purchasesApplicable) onUpdate(null, false);
       return;
     }
-    if (response.data.enforced !== true) { onUpdate(null); return; }
+    if (response.data.enforced !== true) { onUpdate(null, purchasesApplicable); return; }
+    purchasesApplicable = true;
     if (!response.data.trial) {
-      onUpdate({ kind: 'trial', trial: { active: true, daysLeft: 7 }, starting: true });
+      onUpdate({ kind: 'trial', trial: { active: true, daysLeft: 7 }, starting: true }, true);
       var started = await requestTrialStart(session);
-      if (!started.ok || started.data.enforced !== true) { onUpdate(null); return; }
+      if (!started.ok || started.data.enforced !== true) { onUpdate(null, purchasesApplicable); return; }
       try { response = await getBalance(session); } catch (e) { response = { ok: false }; }
-      if (!response.ok || response.data.enforced !== true) { onUpdate(null); return; }
+      if (!response.ok || response.data.enforced !== true) { onUpdate(null, purchasesApplicable); return; }
     }
-    onUpdate({ kind: 'trial', trial: response.data.trial, starting: false });
+    onUpdate({ kind: 'trial', trial: response.data.trial, starting: false }, purchasesApplicable);
   }
 
   window.ezikIapEnterHome = function (onUpdate) {

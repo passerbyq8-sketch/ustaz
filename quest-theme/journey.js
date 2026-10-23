@@ -53,7 +53,7 @@
     fallback: [], excluded: [], questionHistory: false, skipPop: false, lastStage: '', warMessage: '', warEvent: null, diveNative: null,
     result: null, audioUnlocked: false, muted: false, timer: null, lastAction: -Infinity, offlineReady: false,
     quizCount: 5, quizCustomCount: false, quizCountDraft: '', quizTimeDraft: '', quizAdvance: null, quizPausedAt: null, quizLastQuestion: null, roomDraft: '', roomCodeError: '', roomStartError: '',
-    roomCodeEntry: false, joinDraft: '', joinError: '', roomFromEntry: false, homeNotice: null, joinOnly: false
+    roomCodeEntry: false, joinDraft: '', joinError: '', roomFromEntry: false, homeNotice: null, homePurchasesApplicable: false, joinOnly: false
   };
   let boardRooms = null;
   if (game !== 'hub') M.teams = Array.from({ length: limits[game][0] }, (_, i) => teamNew(i));
@@ -107,7 +107,7 @@
           const timeout = setTimeout(controlled, 3000);
           navigator.serviceWorker.addEventListener('controllerchange', controlled);
         });
-        const screenVersion = '20261023-item10-back1';
+        const screenVersion = '20261023-iapg5';
         const screenAssets = ['theme.css?v=' + screenVersion, 'journey.js?v=' + screenVersion, 'room-categories.js?v=' + screenVersion, 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
         if (game === 'board') screenAssets.push('board-rooms.js?v=' + screenVersion);
         if (navigator.serviceWorker.controller) await Promise.all(screenAssets.map(async file => {
@@ -144,7 +144,10 @@
     audio.currentTime = 0; audio.play().catch(() => {});
   }
   function stopSounds() { soundCache.forEach(audio => { audio.pause(); audio.currentTime = 0; }); }
-  function button(label, action, className = 'j-btn', attrs = '') { return '<button type="button" class="' + className + '" data-action="' + action + '" ' + attrs + '>' + label + '</button>'; }
+  function button(label, action, className = 'j-btn', attrs = '') {
+    if (game === 'hub' && action === 'iap-purchase' && !M.homePurchasesApplicable) return '';
+    return '<button type="button" class="' + className + '" data-action="' + action + '" ' + attrs + '>' + label + '</button>';
+  }
   function chips(items, current, field) {
     return '<div class="j-chips">' + items.map(([value, label]) => button(esc(label), 'setting', 'j-chip', 'data-field="' + field + '" data-value="' + esc(value) + '" aria-pressed="' + (String(current) === String(value)) + '"')).join('') + '</div>';
   }
@@ -180,16 +183,22 @@
         ['hanna', '/hanna-laha/', 'حماس الجمعة', 'تتوقّع… ولا قدّها؟', 'bolt']
       ].map(([kind, url, tag, line, icon]) => '<a class="j-game-card j-card-' + (kind === 'harb' ? 'island' : kind) + '" href="' + url + '" data-game-entry="' + kind + '" data-game-path="' + url + '">' + (kind === 'harb' ? '<img src="/quest-theme/assets/islands.webp?v=20261021-room1" alt="خريطة جزر الكنوز">' : Icons.icon(icon)) + '<span class="j-tag">' + tag + '</span><h2>' + names[kind] + '</h2><p>' + line + '</p></a>').join('') + '</div>';
   }
-  function setHomeNotice(notice) {
+  function setHomeNotice(notice, purchaseApplicable) {
+    const becameApplicable = purchaseApplicable === true && !M.homePurchasesApplicable;
+    if (typeof purchaseApplicable === 'boolean') M.homePurchasesApplicable = purchaseApplicable;
+    const maybeAutoOpenPurchase = () => {
+      if (becameApplicable && new URLSearchParams(location.search).get('iap_purchase') === '1') global.ezikIapOpenPurchase?.();
+    };
     if (notice?.kind === 'trial' && notice.trial && notice.trial.active === false) {
       try {
-        if (sessionStorage.getItem(IAP_EXPIRED_NOTICE_KEY) === '1') { M.homeNotice = null; render(); return; }
+        if (sessionStorage.getItem(IAP_EXPIRED_NOTICE_KEY) === '1') { M.homeNotice = null; render(); maybeAutoOpenPurchase(); return; }
         sessionStorage.setItem(IAP_EXPIRED_NOTICE_KEY, '1');
       } catch (_) {}
       notice = { kind: 'expired' };
     }
     M.homeNotice = notice || null;
     render();
+    maybeAutoOpenPurchase();
   }
   function saveHostResume() {
     try {
@@ -1439,7 +1448,6 @@
     if (game === 'hub') {
       render();
       if (typeof global.ezikIapEnterHome === 'function') global.ezikIapEnterHome(setHomeNotice).catch(() => {});
-      if (new URLSearchParams(location.search).get('iap_purchase') === '1') global.ezikIapOpenPurchase?.();
       await prepareOffline(); M.ready = true; return;
     }
     const params = new URLSearchParams(location.search);

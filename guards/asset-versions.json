@@ -46,6 +46,9 @@
     "hanna-laha/assets/iap-bridge-v1.js?v=20261023-sweep10": "f5df6c75801681d6024ff0bb82dabe0c217b431a99158994976ee45f39b81426",
     "quest-theme/assets/regular.ttf?v=20261020-flash4": "02609c5ef845ef511676c8badb24d1fc8b4aed3dc3b9d8bbdab22c14431b7c16",
     "quest-theme/assets/bold.ttf?v=20261020-flash4": "05616a64c5dca137a327b30b1fe7f4fcd1e16892a332e1665b49d52038858044",
-    "quest-theme/journey.js?v=20261023-item10-back1": "2f1aa6ab9002876806f3df6357495415cd34fdda662a82fe55ff6f2eb9fa7942"
+    "quest-theme/journey.js?v=20261023-item10-back1": "2f1aa6ab9002876806f3df6357495415cd34fdda662a82fe55ff6f2eb9fa7942",
+    "quest-theme/journey.js?v=20261023-iapg5": "823825f9692b05dd13d908a55eecac92625a040d28db62849d1104c0c5c178e5",
+    "hanna-laha/assets/iap-bridge-v1.js?v=20261023-iapg5": "f6008aea21c6735c09155e4ee1b23e308283790ecede52a097357b6bae015147",
+    "quest-theme/iap-fallback.js?v=20261023-iapg5": "d279d60730b0a784aa2a1bc7095bd13e0ee842803ee4f0116db597289a66b6cd"
   }
 }
