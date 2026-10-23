@@ -1012,3 +1012,5 @@ tools/kunuz-theme-browser.cjs text eol=lf
 tools/kunuz-theme-assets-browser.cjs text eol=lf
 tools/kunuz-theme-layout-browser.cjs text eol=lf
 tools/kunuz-flash-browser.cjs text eol=lf
+# Keep the G5 test source on LF for recon's tracked-file line-ending audit.
+tests/iap-g-v2.test.js text eol=lf
