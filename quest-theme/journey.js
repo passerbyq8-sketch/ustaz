@@ -107,7 +107,7 @@
           const timeout = setTimeout(controlled, 3000);
           navigator.serviceWorker.addEventListener('controllerchange', controlled);
         });
-        const screenVersion = '20261023-iapg4';
+        const screenVersion = '20261023-sweep2';
         const screenAssets = ['theme.css?v=' + screenVersion, 'journey.js?v=' + screenVersion, 'room-categories.js?v=' + screenVersion, 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
         if (game === 'board') screenAssets.push('board-rooms.js?v=' + screenVersion);
         if (navigator.serviceWorker.controller) await Promise.all(screenAssets.map(async file => {
@@ -701,8 +701,12 @@
     // Give a direct visit the same one-step exit to the hub as a hub link.
     if (!history.state?.quiz) {
       const url = location.pathname + location.search;
-      history.replaceState({ journey: true, quiz: true, stage: 'hub', step: 0 }, '', '/quest.html');
-      history.pushState({ journey: true, quiz: true, stage: 'categories', step: 1 }, '', url);
+      let fromHub = false;
+      try { const referrer = new URL(document.referrer); fromHub = referrer.origin === location.origin && referrer.pathname === '/quest.html'; } catch (_) {}
+      if (!fromHub) {
+        history.replaceState({ journey: true, quiz: true, stage: 'hub', step: 0 }, '', '/quest.html');
+        history.pushState({ journey: true, quiz: true, stage: 'categories', step: 1 }, '', url);
+      } else history.replaceState({ journey: true, quiz: true, stage: 'categories', step: 1 }, '');
     } else history.replaceState({ journey: true, quiz: true, stage: 'categories', step: 1 }, '');
     setStage('categories', 1);
   }
