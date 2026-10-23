@@ -139,6 +139,9 @@ async function capture(browser, context, route, name, base) {
       results.push(await capture(browser, context, route, phase + '-' + game + '-warm', base)); await context.close();
       build = 'v1';
       const update = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 }); await update.addInitScript(monitor);
+      const lifecyclePage = await update.newPage(), lifecycle = await update.newCDPSession(lifecyclePage), workerVersions = new Map();
+      lifecycle.on('ServiceWorker.workerVersionUpdated', ({ versions }) => { for (const version of versions) workerVersions.set(version.versionId, version); });
+      await lifecycle.send('ServiceWorker.enable');
       const seed = await update.newPage(); await seed.goto(base + route); await ready(seed);
       await seed.waitForFunction(() => window.KunuzJourney.diagnostics.offlineReady, null, { timeout: 180000 });
       if (phase === 'after') await seed.evaluate(async () => { await caches.open('kunuz-treasure-obsolete-proof'); await caches.open('ezik-retained-proof'); });
@@ -155,16 +158,20 @@ async function capture(browser, context, route, name, base) {
           return registrations.every(r => r.active?.state === 'activated' && !r.installing && !r.waiting) && databases.includes('kunuz-treasure-assets-' + currentVersion) && (currentVersion === previousVersion || !databases.includes('kunuz-treasure-assets-' + previousVersion)) && !names.includes('kunuz-treasure-obsolete-proof');
         }, {currentVersion,previousVersion}, { timeout: 180000 });
         let cleanup, workers;
-        // A previously active worker may finish an in-flight asset response
-        // after the replacement appears in the registration. Observe retirement
-        // and completed cleanup together before checking persistent storage.
+        // A retired target may never answer Worker.evaluate. Observe Chromium's
+        // lifecycle events instead, without stopping or unregistering a worker.
+        // Retirement and persistent cleanup must both finish before proceeding.
         for (let attempt = 0; attempt < 600; attempt++) {
           cleanup = await page.evaluate(async () => ({ databases: (await indexedDB.databases()).map(db => db.name), caches: await caches.keys() }));
-          workers = await Promise.all(update.serviceWorkers().map(async worker => { try { return await worker.evaluate(() => ({version:VERSION,scope:self.registration.scope})); } catch (e) { return {closed:true}; } }));
-          if (workers.every(worker => worker.closed || worker.version === currentVersion) && !cleanup.caches.includes('kunuz-treasure-obsolete-proof') && (previousVersion === currentVersion || !cleanup.databases.includes('kunuz-treasure-assets-' + previousVersion))) break;
+          workers = [...workerVersions.values()].filter(worker => new URL(worker.scriptURL).origin === base && new URL(worker.scriptURL).pathname === '/quest-sw.js');
+          if (workers.filter(worker => worker.status === 'activated').length === registrations && workers.every(worker => worker.status === 'activated' || worker.status === 'redundant' && worker.runningStatus === 'stopped') && !cleanup.caches.includes('kunuz-treasure-obsolete-proof') && (previousVersion === currentVersion || !cleanup.databases.includes('kunuz-treasure-assets-' + previousVersion))) break;
           await page.waitForTimeout(100);
         }
         fs.writeFileSync(path.join(out,'after-'+game+'-cleanup.json'),JSON.stringify({currentVersion,previousVersion,cleanup,workers},null,2));
+        assert.equal(workers.filter(worker => worker.status === 'activated').length, registrations, 'expected one activated worker per registration');
+        assert.equal(new Set(workers.filter(worker => worker.status === 'activated').map(worker => worker.registrationId)).size, registrations, 'a registration has multiple activated workers');
+        if (previousVersion !== currentVersion) assert.ok(workers.filter(worker => worker.status === 'redundant' && worker.runningStatus === 'stopped').length >= registrations, 'previous workers were not observed retiring');
+        assert.ok(workers.every(worker => worker.status === 'activated' || worker.status === 'redundant' && worker.runningStatus === 'stopped'), 'retired worker remained active');
         if (previousVersion !== currentVersion) assert.ok(!cleanup.databases.includes('kunuz-treasure-assets-' + previousVersion), 'old asset database survived activation');
         assert.ok(!cleanup.caches.includes('kunuz-treasure-obsolete-proof'), 'old Kunuz cache survived activation');
         assert.ok(cleanup.caches.includes('ezik-retained-proof'), 'unrelated cache was deleted');
