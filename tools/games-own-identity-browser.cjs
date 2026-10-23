@@ -70,6 +70,11 @@ async function click(page, selector) {
   await target.scrollIntoViewIfNeeded();
   if (page.quizClockFrozen) await page.clock.runFor(235); else await page.waitForTimeout(235);
   await target.click();
+  if (typeof selector === 'string' && selector.includes('data-action="quiz-start"')) {
+    // Starting now includes an asynchronous public-mode check. Wait for the
+    // new question screen before asserting its timer against the prior run.
+    await page.waitForFunction(() => KunuzJourney.state.stage === 'test-question', null, { timeout: 20000 });
+  }
 }
 async function shot(page, name) {
   await page.evaluate(() => { window.scrollTo(0, 0); document.getAnimations().forEach(animation => animation.finish()); });
