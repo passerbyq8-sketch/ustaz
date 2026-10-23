@@ -154,7 +154,17 @@ async function capture(browser, context, route, name, base) {
           const registrations = await navigator.serviceWorker.getRegistrations(), databases = (await indexedDB.databases()).map(db => db.name), names = await caches.keys();
           return registrations.every(r => r.active?.state === 'activated' && !r.installing && !r.waiting) && databases.includes('kunuz-treasure-assets-' + currentVersion) && (currentVersion === previousVersion || !databases.includes('kunuz-treasure-assets-' + previousVersion)) && !names.includes('kunuz-treasure-obsolete-proof');
         }, {currentVersion,previousVersion}, { timeout: 180000 });
-        const cleanup = await page.evaluate(async () => ({ databases: (await indexedDB.databases()).map(db => db.name), caches: await caches.keys() }));
+        let cleanup, workers;
+        // A previously active worker may finish an in-flight asset response
+        // after the replacement appears in the registration. Observe retirement
+        // and completed cleanup together before checking persistent storage.
+        for (let attempt = 0; attempt < 600; attempt++) {
+          cleanup = await page.evaluate(async () => ({ databases: (await indexedDB.databases()).map(db => db.name), caches: await caches.keys() }));
+          workers = await Promise.all(update.serviceWorkers().map(async worker => { try { return await worker.evaluate(() => ({version:VERSION,scope:self.registration.scope})); } catch (e) { return {closed:true}; } }));
+          if (workers.every(worker => worker.closed || worker.version === currentVersion) && !cleanup.caches.includes('kunuz-treasure-obsolete-proof') && (previousVersion === currentVersion || !cleanup.databases.includes('kunuz-treasure-assets-' + previousVersion))) break;
+          await page.waitForTimeout(100);
+        }
+        fs.writeFileSync(path.join(out,'after-'+game+'-cleanup.json'),JSON.stringify({currentVersion,previousVersion,cleanup,workers},null,2));
         if (previousVersion !== currentVersion) assert.ok(!cleanup.databases.includes('kunuz-treasure-assets-' + previousVersion), 'old asset database survived activation');
         assert.ok(!cleanup.caches.includes('kunuz-treasure-obsolete-proof'), 'old Kunuz cache survived activation');
         assert.ok(cleanup.caches.includes('ezik-retained-proof'), 'unrelated cache was deleted');
