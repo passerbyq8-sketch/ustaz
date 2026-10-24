@@ -324,7 +324,8 @@ async function main() {
 
     // ---- E. the card ------------------------------------------------------------------------
     const ask = await captured(() => esm('api/ask.js')).then((r) => r.value);
-    const labelOf = (tag) => String(tag).replace(/ matn="[^"]*"/, '').replace(/ cut="1"/, '');
+    // POSTSHIP ITEM 6 -- 2026-10-24: the label without the passage's own attributes -- and `open` (api/ask.js buildBookTag) is one of them.
+    const labelOf = (tag) => String(tag).replace(/ matn="[^"]*"/, '').replace(/ cut="1"/, '').replace(/ open="1"/, '');
     const matnOf = (tag) => { const m = / matn="([^"]+)"/.exec(String(tag)); return m ? Buffer.from(m[1], 'base64').toString('utf8') : ''; };
     await section('E', async () => {
       const pick = loop.pickEncyclopediaCards;

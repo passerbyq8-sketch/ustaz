@@ -25461,7 +25461,8 @@ function BookCard({ title, author, where, text, cut, open, bookId, vol, page }) 
             <span style={s.bookMatnBook}>{name}</span>
             {at ? <span style={s.bookMatnWhere}>{at}</span> : null}
           </div>
-          <div style={s.bookMatnText}>{matn}{open ? <span style={{ opacity: 0.7 }}>…</span> : null}</div>
+          <div style={s.bookMatnText}>{matn}</div>
+          {open ? <div style={{ opacity: 0.7, marginTop: -2 }}>…</div> : null}
           {cut ? <div style={s.bookMatnCut}>{BOOK_MATN_CUT_NOTE}</div> : null}
         </div>
       ) : null}
