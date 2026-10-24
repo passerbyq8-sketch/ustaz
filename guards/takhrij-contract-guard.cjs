@@ -3153,7 +3153,10 @@ const lookupOf = (table) => async (matns) => matns.map((matn) => table[matn]
       try {
         const mA = await mutate('o50-5a', seamA, 'true');
         const gA = await head5(mA);
-        ok('ORDER50-5 MUTANT KILLED: without the first-clause reading the head is «تخريج الحديث: مسلم.» again', gA.head === 'تخريج الحديث: مسلم.', JSON.stringify(gA));
+        // POSTSHIP ITEM 10 -- 2026-10-24: the mutant used to fall back to «مسلم» alone through the half-the-words reading of the
+        // Sahih recheck; that reading now needs the matn itself (lib/takhrij.js tolerantSahihCarries), so without the first-clause
+        // reading the mutant finds no Sahih at all. Killed either way: the head is not the owner's «البخاري ومسلم».
+        ok('ORDER50-5 MUTANT KILLED: without the first-clause reading the head is not «تخريج الحديث: البخاري ومسلم.» (it was «مسلم.»; since POSTSHIP 10 no Sahih)', gA.head !== 'تخريج الحديث: البخاري ومسلم.' && got5.head === 'تخريج الحديث: البخاري ومسلم.', JSON.stringify(gA));
         const mB = await mutate('o50-5b', seamB, 'atomMatnIs(atom, matn, isShaykhayn(ids[i]))');
         const uB = await mB.applyTakhrij(UNQ5, { env: ON, lookup: mB.runnerLookup(rowsUnq5, ctx5) });
         ok('ORDER50-5 MUTANT KILLED: if the reading is given to unquoted clauses too, half a matn is bracketed', /\(البخاري/u.test(uB.text), JSON.stringify(uB.text));
