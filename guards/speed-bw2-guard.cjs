@@ -1461,8 +1461,11 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
         && !UNITS.textNamesNarrator(F_ROW_ANAS, F_SIRIN) && !UNITS.textNamesNarrator(F_ROW_BAKR, F_HURAYRA),
         JSON.stringify([UNITS.narratorsNamed(W_ANAS), UNITS.narratorsNamed(W_SUBJECT)]));
       // SPEED FIX 5: the Q2 fixture's released text, byte for byte, as 4d353de released it (SHA-256 measured there).
+      // POSTSHIP ITEM 6 -- 2026-10-24: the book card of a passage that stops mid-sentence now carries ` open="1"` (api/ask.js
+      // buildBookTag; the card draws «…» after the passage). The pin stays the same 4d353de digest over the released bytes with
+      // that one attribute taken out, and the attribute must be the only difference.
       ok('C7h FIX4\x27s Q2 fixture releases as before under C7 and C8 (a source question whose first unit is proved): the same bytes, 5 released, 5 proved (answer 2 now proved on its row: 3.4c)',
-        require('crypto').createHash('sha256').update(t2).digest('hex') === '949ade0807e77a9a1b7fd04834dc8160f4b6575b931e0676fb29b4c87043f008'
+        require('crypto').createHash('sha256').update(t2.replace(/<book([^>]*?) open="1">/gu, '<book$1>')).digest('hex') === '949ade0807e77a9a1b7fd04834dc8160f4b6575b931e0676fb29b4c87043f008'
         && tel2.unitsReleased === 5 && tel2.unitsHeld === 0 && tel2.unitsProvedHadith === 5 && UNITS.asksHadithSource(Q2), JSON.stringify(tel2));
     }
 
