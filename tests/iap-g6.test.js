@@ -166,7 +166,7 @@ test('week pass grants seven days, extends an active pass, refunds seven days, a
   assert.equal(IAP_PRODUCTS.ezik_year_1.months, 12);
 
   const store = new MemoryIapStore();
-  const secret = 'iap-g6-test-secret';
+  const secret = 'g6-test-key';
   const priorSecret = process.env.REVENUECAT_WEBHOOK_SECRET;
   __setIapStoreForTest(store);
   process.env.REVENUECAT_WEBHOOK_SECRET = secret;
