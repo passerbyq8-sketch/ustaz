@@ -26447,6 +26447,14 @@ const EZIK_INBOX_ROUTE = '/api/inbox';
 // is drawn as a dash, never as a blank, so a missing value is visible as missing.
 const ezikInboxAppv = (v) => (typeof v === 'string' && v.trim() ? v : '—');
 const EZIK_INBOX_TIMEOUT_MS = 12000;
+// POSTSHIP ITEM 5 -- 2026-10-24: the answer log's days, as the server keys them (UTC, YYYYMMDD): today and the 29
+// before it -- the log keeps thirty days (lib/answer-log.js ANSWER_LOG_TTL_SECONDS). Newest first; today is the default.
+function ezikAnswerLogDays(now) {
+  const base = typeof now === 'number' ? now : Date.now();
+  const out = [];
+  for (let i = 0; i < 30; i += 1) out.push(new Date(base - i * 86400000).toISOString().slice(0, 10).replace(/-/g, ''));
+  return out;
+}
 
 // THE ONE CALL, IN THE SHAPE ezikArticlesAdmin() ALREADY HAS. Same route discipline, same
 // three-field answer, same rule that a thrown fetch is a refusal and not an exception the caller
@@ -26545,6 +26553,8 @@ const ezikInboxSourceK = (v) => (typeof v === 'string' && Object.prototype.hasOw
 // exists to prevent, committed on the other side of the wire.
 function EzikInboxSheet({ onBack, onRead, onCount }) {
   const [kind, setKind] = useState('feedback');
+  // POSTSHIP ITEM 5: the day the answer-log tab reads (api/inbox.js answersList takes it; it was never sent).
+  const [ansDay, setAnsDay] = useState(() => ezikAnswerLogDays()[0]);
   const [listState, setListState] = useState(EZIK_ART_IDLE);
   const [rows, setRows] = useState([]);
   const [win, setWin] = useState(0);
@@ -26588,7 +26598,7 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
     abortRef.current = controller;
     const timer = setTimeout(() => { try { controller.abort(); } catch (e) {} }, EZIK_INBOX_TIMEOUT_MS);
     setListState(EZIK_ART_LOADING);
-    ezikInbox({ session: held.session, action: 'list', kind: which }, controller.signal).then((res) => {
+    ezikInbox({ session: held.session, action: 'list', kind: which, ...(which === 'answers' ? { day: ansDay } : {}) }, controller.signal).then((res) => {
       clearTimeout(timer);
       if (!aliveRef.current || abortRef.current !== controller) return;
       abortRef.current = null;
@@ -26603,7 +26613,7 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
       setListState(EZIK_ART_DONE);
     });
   };
-  useEffect(() => { load(kind); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [kind]);
+  useEffect(() => { load(kind); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [kind, ansDay]);
 
   // Moving between the two tabs drops everything that belonged to the tab being left: the ticks,
   // the question standing over them, and the last erase's sentence. «الكل» must never be able to
@@ -26912,6 +26922,15 @@ function EzikInboxSheet({ onBack, onRead, onCount }) {
       {listState === EZIK_ART_DONE && rows.length === 0 ? (
         <div style={s.artEmpty}>
           <div style={s.artEmptyTitle}>{ezT('inbox.empty')}</div>
+        </div>
+      ) : null}
+      {kind === 'answers' ? (
+        <div style={{ margin: '8px 0' }}>
+          <select value={ansDay} onChange={(e) => setAnsDay(e.target.value)} dir="ltr"
+            aria-label={ezT('inbox.tabAnswers')} className="ezhome-focus"
+            style={{ font: 'inherit', padding: '6px 10px', borderRadius: 8, border: '1px solid var(--a3-line, #ccc)', background: 'transparent', color: 'inherit' }}>
+            {ezikAnswerLogDays().map((d) => <option key={d} value={d}>{d.slice(0, 4) + '-' + d.slice(4, 6) + '-' + d.slice(6, 8)}</option>)}
+          </select>
         </div>
       ) : null}
       {kind === 'answers' ? (
