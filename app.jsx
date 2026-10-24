@@ -8929,6 +8929,9 @@ const parseRichMessage = (text, viewerAge) => {
       // passage on purpose: a mark appended to the text would make the text no longer the text.
       const matnMatch = attrsStr.match(/matn=["']([^"']+)["']/);
       const cutMatch = attrsStr.match(/cut=["']([^"']+)["']/);
+      // POSTSHIP ITEM 6 -- 2026-10-24: the server's word for «this passage stops mid-sentence»; the «…» is drawn
+      // after the passage by BookCard, never written into it.
+      const openMatch = attrsStr.replace(/matn=["'][^"']*["']/, '').match(/\sopen=["']1["']/);
       // ITEM 108 (ORDER-108C B3): where the book is -- its library id and, when the server called
       // the page citable, the volume and page. Read with the matn attribute removed first, so no
       // run of base64 can ever be read as one of them.
@@ -8943,6 +8946,7 @@ const parseRichMessage = (text, viewerAge) => {
         where: refMatch ? refMatch[1] : '',
         text: matnMatch ? ezikDecodeMatn(matnMatch[1]) : '',
         cut: !!cutMatch,
+        open: !!openMatch,
         bookId: bookIdMatch ? bookIdMatch[1] : '',
         vol: volMatch ? volMatch[1] : '',
         page: pageMatch ? pageMatch[1] : '',
@@ -24435,7 +24439,7 @@ function ezikRenderSegments(segments, ctx) {
       return (seg.tl || seg.tb) ? <React.Fragment key={i}>{sourceCard}{seg.tl ? <EzikTranslationNote text={seg.tl} label={ezT('answer.translation')} /> : null}{seg.tb ? <EzikTranslationNote text={seg.tb} label={ezT('answer.translationOfText')} /> : null}</React.Fragment> : sourceCard;
     }
     if (seg.type === 'book') {
-      const bookCard = <BookCard key={i} title={seg.title} author={seg.author} where={seg.where} text={seg.text} cut={seg.cut} bookId={seg.bookId} vol={seg.vol} page={seg.page} />;
+      const bookCard = <BookCard key={i} title={seg.title} author={seg.author} where={seg.where} text={seg.text} cut={seg.cut} open={seg.open} bookId={seg.bookId} vol={seg.vol} page={seg.page} />;
       return (seg.tl || seg.tb) ? <React.Fragment key={i}>{bookCard}{seg.tl ? <EzikTranslationNote text={seg.tl} label={ezT('answer.translation')} /> : null}{seg.tb ? <EzikTranslationNote text={seg.tb} label={ezT('answer.translationOfText')} /> : null}</React.Fragment> : bookCard;
     }
     if (seg.type === 'dhikr') {
@@ -25408,7 +25412,7 @@ function BookLibraryLink({ bookId, vol, page }) {
     </a>
   );
 }
-function BookCard({ title, author, where, text, cut, bookId, vol, page }) {
+function BookCard({ title, author, where, text, cut, open, bookId, vol, page }) {
   const [matnOpen, setMatnOpen] = useState(false);
   const name = String(title || '').trim();
   if (!name) return null;
@@ -25452,7 +25456,7 @@ function BookCard({ title, author, where, text, cut, bookId, vol, page }) {
             <span style={s.bookMatnBook}>{name}</span>
             {at ? <span style={s.bookMatnWhere}>{at}</span> : null}
           </div>
-          <div style={s.bookMatnText}>{matn}</div>
+          <div style={s.bookMatnText}>{matn}{open ? <span style={{ opacity: 0.7 }}>…</span> : null}</div>
           {cut ? <div style={s.bookMatnCut}>{BOOK_MATN_CUT_NOTE}</div> : null}
         </div>
       ) : null}

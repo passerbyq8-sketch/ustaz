@@ -753,10 +753,11 @@ async function runSuite() {
     // POSTSHIP item 3 (2026-10-24): 189 -> 190, same exact roster rule -- `postship3` (guards/brain-postship-3-guard.cjs).
     // POSTSHIP item 4 (2026-10-24): 190 -> 191, same exact roster rule -- `postship4` (guards/brain-postship-4-guard.cjs).
     // POSTSHIP item 5 (2026-10-24): 191 -> 192, same exact roster rule -- `postship5` (guards/brain-postship-5-guard.cjs).
-function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 192; }
+    // POSTSHIP item 6 (2026-10-24): 192 -> 193, same exact roster rule -- `postship6` (guards/brain-postship-6-guard.cjs).
+function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 193; }
     ok('ORIGINAL_GATE_SET_MATCH', exactGateSet(EXPECTED_GATES));
-    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 192-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
-    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 192-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
+    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 193-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
+    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 193-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
 
     const m13 = await storedMutant(temp, 'fiqh-before-special', (source) => source.replace(
       "if (QURAN_REQUEST.test(folded)) return 'LOCAL_QURAN';",

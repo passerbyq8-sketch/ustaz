@@ -662,7 +662,23 @@ export function buildBookTag(row) {
   const carried = kept.trim() ? Buffer.from(kept, 'utf8').toString('base64') : '';
   const cut = kept.length < matn.length || (row && row.matnCut === true);
   const matnAttrs = carried ? ` matn="${carried}"` + (cut ? ' cut="1"' : '') : '';
-  return { tag: `<book${attrs}${matnAttrs}>${title}</book>` };
+  // POSTSHIP ITEM 6 -- 2026-10-24 (row 5): AND WHETHER THE PASSAGE STOPS MID-SENTENCE. The card of FC-004534:2152:001
+  // ended «… فإنها تعدل ثلث» with nothing after it; 150 of 198 pages and 129 of 200 atoms ended with no stop mark.
+  // The passage stays the book's words letter for letter; `open` tells the card to draw «…» AFTER it, apart from it
+  // (app.jsx BookCard), whether the cut was ours, the service's, or the page's own end.
+  const openAttr = carried && bookMatnEndsOpen(kept) ? ' open="1"' : '';
+  return { tag: `<book${attrs}${matnAttrs}${openAttr}>${title}</book>` };
+}
+
+// POSTSHIP ITEM 6 -- 2026-10-24: a passage ends when its last mark (behind closing quotes and brackets) is a stop mark
+// or it already ends on «…» -- the measurement's own rule (sessions/side-brain-postship-2026-10-24/measure/r5-cards.mjs).
+const BOOK_MATN_STOP = /[.؟?!…:؛۔]$/u;
+const BOOK_MATN_CLOSERS = /[\s»"”’'\)\]\}﴾﴿]+$/u;
+export function bookMatnEndsOpen(text) {
+  const t = String(text == null ? '' : text);
+  if (!t.trim()) return false;
+  if (/(?:…|\.\.\.)\s*$/u.test(t)) return false;
+  return !BOOK_MATN_STOP.test(t.replace(BOOK_MATN_CLOSERS, ''));
 }
 
 // Hard ceiling on cards in one reply. Three is the number of distinct rulings/references
