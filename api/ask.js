@@ -1645,10 +1645,13 @@ export default async function handler(req, res) {
       return true;
     };
 
-    const finish = (text) => {
+    const finish = (text, options = {}) => {
       if (!opened) return null;
       const sealed = seal(text);
-      if (sealed.startsWith(sent)) {
+      // POSTSHIP ITEM 7 -- 2026-10-24: a refusal after streamed prose -- the bytes already shown are replaced, not continued.
+      if (options.replace === true) {
+        frame({ type: 'ezik_replace', text: sealed });
+      } else if (sealed.startsWith(sent)) {
         const remainder = sealed.slice(sent.length);
         if (remainder) frame({
           type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: remainder },
@@ -2073,7 +2076,7 @@ export default async function handler(req, res) {
           path: 'bw2',
           hits: { fatwa: t.fatwaHits, library: t.libraryHits, encyclopedia: t.encyclopediaHits, lessons: t.lessonsHits },
           cited: t.cardsSent, held: heldFromTelemetry(t), out_tokens: t.outTokens, continued: t.continuations,
-          flags: [t.liveOffer ? 'live_offer' : '', t.continued ? 'bw2_continued' : ''],
+          flags: [t.liveOffer ? 'live_offer' : '', t.continued ? 'bw2_continued' : '', t.refusalFallback ? 'refusal_fallback' : ''],
         });
         console.log('[bw2]', {
           bw2: t.bw2, runtime: currentRuntime, frame: answerFrame,
@@ -2671,6 +2674,17 @@ export default async function handler(req, res) {
       // `seal`, which this exit passes through `emitFreeBrain` → `emitUnits` → `emitOnce` and
       // through `liveFreeBrainUnits.finish` on a streamed turn. The record stays: it is read
       // off whether the sentence will be added, which is the same question asked one seat up.
+      // POSTSHIP ITEM 7 -- 2026-10-24: THE MODEL REFUSED. Measured: 24 answers in a week ended stop_reason refusal, all
+      // here, marked truncated; an empty refused round left the reviewer's last-resort line and the truncation mark (70
+      // characters on the reader's screen), a later one left the cut prose. The reader gets this path's approved not-found
+      // sentence and the search offer, and nothing of the cut text -- streamed bytes are replaced (ezik_replace).
+      if (out.deliveredStop === 'refusal') {
+        const { BW2_NOT_COVERED } = await import('../lib/before-writing-v2.js');
+        answerLog.note({ flags: ['refusal_fallback'] });
+        out.degraded.push('refusal:not_covered');
+        try { res.write('data: ' + JSON.stringify({ type: 'ezik_live_offer' }) + '\n\n'); } catch { /* the sentence still goes out */ }
+        return liveFreeBrainUnits.opened ? liveFreeBrainUnits.finish(BW2_NOT_COVERED, { replace: true }) : emitOnce(BW2_NOT_COVERED);
+      }
       // ITEM C3 (axis row 5) -- 2026-10-15 brain-line: the draft stated rulings and none sourced was left
       // (lib/free-brain/loop.js withoutUnsourcedRulings): what stays is followed by the one server-owned
       // not-covered sentence, and the search offer goes out with it, as before writing ends the same case.

@@ -21620,6 +21620,11 @@ function App() {
           if (onDelta) onDelta(full);
         } else if (evt.type === 'ezik_status') {
           if (!full && onStatus) onStatus(evt);
+        } else if (evt.type === 'ezik_replace') {
+          // POSTSHIP ITEM 7 -- 2026-10-24: the server withdraws what it had sent (a refusal after streamed prose) and
+          // sends the whole answer again; the screen holds that and nothing of the cut text.
+          full = typeof evt.text === 'string' ? evt.text : '';
+          if (onDelta) onDelta(full);
         } else if (evt.type === 'ezik_live_offer') {
           if (onLiveOffer) onLiveOffer();
         } else if (evt.type === 'ezik_lessons') {

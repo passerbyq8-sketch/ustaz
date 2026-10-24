@@ -2022,7 +2022,9 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3468381 -> 3469567. NO CORE entry joined or left; the app.js line in sw.js's measured byte table followed. THIS digest is re-cut LAST, at CR = 0.
   //   2026-10-24 -- POSTSHIP item 6, the book card draws «…» after a passage that stops mid-sentence (app.jsx BookCard, the open attribute): app.js 2283553 -> 2283924 bytes.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3469938. NO CORE entry joined or left; the app.js line in sw.js's measured byte table followed. THIS digest is re-cut LAST, at CR = 0.
-  'sw.js': 'b71a91a3112100c6510c749387bfc8d72b13ff0d43280cb8a4d20ae7e376a30c',
+  //   2026-10-24 -- POSTSHIP item 7, the client takes the server's ezik_replace frame (a refusal after streamed prose): app.js 2283924 -> 2284222 bytes.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3470236. NO CORE entry joined or left; the app.js line in sw.js's measured byte table followed. THIS digest is re-cut LAST, at CR = 0.
+  'sw.js': 'e70249bd6c9a84c2aee4b526c13739b0ed4d74adf7658aa11c47fa71d57bab2d',
 };
 
 // ---------------------------------------------------------------------------
@@ -3203,7 +3205,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2283924, of: 'app.js' },
+      { n: 2284222, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },
