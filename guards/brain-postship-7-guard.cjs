@@ -23,7 +23,7 @@ function ok(name, cond, detail) {
   console.log('  FAIL  ' + name + (detail ? '\n        ' + detail : ''));
   return false;
 }
-const FAKE = { text: '', stop: 'end_turn' };
+const FAKE = { text: '', stop: 'end_turn', sorter: 'RELIGIOUS' };
 const ascii = (s) => String(s).replace(/[^\x20-\x7e]/g, '.').slice(0, 160);
 
 (async () => {
@@ -120,7 +120,7 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e]/g, '.').slice(0, 160);
             } }), cancel: async () => {} } };
         }
         const system = typeof b.system === 'string' ? b.system : '';
-        if (system.startsWith('You are the routing step')) return jsonResponse(u, { content: [{ type: 'text', text: 'RELIGIOUS' }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
+        if (system.startsWith('You are the routing step')) return jsonResponse(u, { content: [{ type: 'text', text: FAKE.sorter || 'RELIGIOUS' }], stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } });
         return jsonResponse(u, { content: [{ type: 'text', text: FAKE.text }], stop_reason: FAKE.stop, usage: { input_tokens: 1, output_tokens: 1 } });
       }
       return { ok: false, status: 404, url: u, headers: { get: () => 'text/html' }, text: async () => '', json: async () => ({}) };
@@ -168,8 +168,10 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e]/g, '.').slice(0, 160);
       ok(label + ': logged refusal_fallback', flags.includes('refusal_fallback'), JSON.stringify(flags));
     }
     console.log('-- controls');
-    FAKE.text = 'شكرا لك يا صديقي على وقوفك معي في هذا اليوم.'; FAKE.stop = 'end_turn';
+    // POSTSHIP ITEM 12: the sorter says WORLDLY for a letter, so the turn is GENERAL (a RELIGIOUS one with no source is item 12's)
+    FAKE.text = 'شكرا لك يا صديقي على وقوفك معي في هذا اليوم.'; FAKE.stop = 'end_turn'; FAKE.sorter = 'WORLDLY';
     const c = await drive('اكتب لي رسالة شكر لصديقي');
+    FAKE.sorter = 'RELIGIOUS';
     ok('a general answer ending end_turn is delivered as written', c.screen.includes('شكرا لك يا صديقي') && !c.screen.includes(NOT_FOUND), ascii(c.screen));
     ok('...and carries no refusal_fallback', !c.notes.flatMap((n) => n.flags || []).includes('refusal_fallback'));
     FAKE.text = 'شكرا لك يا صديقي على'; FAKE.stop = 'refusal';

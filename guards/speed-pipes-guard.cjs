@@ -2240,14 +2240,18 @@ function libraryPlain(markup) {
       const d = await drive(Q2);
       const t = d.logOf('[bw2]');
       const worked = d.model.filter((b) => b.system !== BW2.BW2_JUDGE_SYSTEM);
-      ok('P3c question 2 through the real handler: no source row (or the judge keeps none), the turn goes on by itself -- no not-covered sentence, no offer',
-        !d.crashed && t && ['no_rows', 'judge_none'].includes(t.continued) && !d.frames.some((f) => f.type === 'ezik_live_offer')
-        && !d.text.includes(NOT_COVERED) && d.res.ended === 1,
+      // POSTSHIP ITEM 12 -- 2026-10-24: the turn still goes on by itself; the free brain's answer (the fake writer cites nothing)
+      // is a shari'a answer with no source, so the reader now gets the approved not-found sentence and the offer, once.
+      ok('P3c question 2 through the real handler: no source row (or the judge keeps none), the turn goes on by itself -- and its unsourced answer ends as the not-covered sentence with the offer (POSTSHIP 12)',
+        !d.crashed && t && ['no_rows', 'judge_none'].includes(t.continued) && d.frames.some((f) => f.type === 'ezik_live_offer')
+        && d.text.trim() === NOT_COVERED && d.res.ended === 1,
         ascii(JSON.stringify({ t: t && t.continued, frames: d.frames.map((f) => f.type + (f.stage ? ':' + f.stage : '')), crashed: d.crashed && String(d.crashed.stack) })));
       const stages = d.frames.filter((f) => f.type === 'ezik_status').map((f) => f.stage);
-      ok('P3d ...today\'s path answers it, its first round forced to search_sources, and the reader\'s line reads "searching" again before its text',
+      // POSTSHIP ITEM 12 -- 2026-10-24: today's path still takes it the same way; the fake writer's answer cites nothing, so what it
+      // delivers is the not-covered sentence (P3c) and not ANSWER.
+      ok('P3d ...today\'s path answers it, its first round forced to search_sources, and the reader\'s line reads "searching" again before its text (its unsourced answer withheld: POSTSHIP 12)',
         worked[0] && worked[0].tool_choice && worked[0].tool_choice.name === 'search_sources' && stages[stages.length - 1] === 'retrieve'
-        && stages.lastIndexOf('retrieve') > stages.indexOf('fatwa') && stages.indexOf('fatwa') > 0 && d.text.includes(ANSWER),
+        && stages.lastIndexOf('retrieve') > stages.indexOf('fatwa') && stages.indexOf('fatwa') > 0 && d.text.trim() === NOT_COVERED,
         ascii(JSON.stringify({ stages, first: worked[0] && worked[0].tool_choice, text: d.text.slice(0, 80) })));
 
       // P8: question 29-b -- the source of the previous answer, from that answer's own cards.

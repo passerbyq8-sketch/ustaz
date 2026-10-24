@@ -429,7 +429,8 @@ async function main(args) {
       const lf = live && live.logOf('[free-brain]');
       ok('I3d the handler routes that exact body to the free-brain path, not BW2',
         !!live && !live.crashed && lf && lf.liveSearch === true && lf.bw2 === false && !live.logOf('[bw2]')
-        && todaysStatuses(framesOf(live.writes)), ascii(JSON.stringify(lf)));
+        // POSTSHIP ITEM 12 -- 2026-10-24: the fake answer cites nothing, so the turn ends on the offer frame (item 12's), not a BW2 frame.
+        && todaysStatuses(framesOf(live.writes).filter((f) => f.type !== 'ezik_live_offer')), ascii(JSON.stringify(lf)));
       const m0 = live && live.model[0];
       ok('I3e ...with its first provider round forced to search_sources',
         !!m0 && m0.tool_choice && m0.tool_choice.type === 'tool' && m0.tool_choice.name === 'search_sources',
@@ -442,9 +443,11 @@ async function main(args) {
       const cb = cont && cont.logOf('[bw2]');
       const st = cf.filter((f) => f.type === 'ezik_status').map((f) => f.stage);
       const c0 = cont && cont.model.find((b) => b.tools);
-      ok('I3f by default the empty table goes on to the old path by itself: no not-covered sentence, no offer, its first round forced to search_sources, the reading line back on "searching"',
-        !!cont && !cont.crashed && cb && cb.continued === 'judge_none' && !cf.some((f) => f.type === 'ezik_live_offer')
-        && !ct.includes(NC) && ct.length > 0 && st.at(-1) === 'retrieve' && !!c0 && c0.tool_choice && c0.tool_choice.name === 'search_sources',
+      // POSTSHIP ITEM 12 -- 2026-10-24: it still goes on by itself and its first round still searches; the answer the fake writer gives
+      // there cites nothing, so it now ends as the not-covered sentence with the offer.
+      ok('I3f by default the empty table goes on to the old path by itself: its first round forced to search_sources, the reading line back on "searching", and its unsourced answer ends as the not-covered sentence with the offer (POSTSHIP 12)',
+        !!cont && !cont.crashed && cb && cb.continued === 'judge_none' && cf.some((f) => f.type === 'ezik_live_offer')
+        && ct.trim() === NC && st.at(-1) === 'retrieve' && !!c0 && c0.tool_choice && c0.tool_choice.name === 'search_sources',
         ascii(JSON.stringify({ cont: cb && cb.continued, st, frames: cf.map((f) => f.type) })));
     }
 

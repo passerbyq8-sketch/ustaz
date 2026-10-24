@@ -2076,7 +2076,7 @@ export default async function handler(req, res) {
           path: 'bw2',
           hits: { fatwa: t.fatwaHits, library: t.libraryHits, encyclopedia: t.encyclopediaHits, lessons: t.lessonsHits },
           cited: t.cardsSent, held: heldFromTelemetry(t), out_tokens: t.outTokens, continued: t.continuations,
-          flags: [t.liveOffer ? 'live_offer' : '', t.continued ? 'bw2_continued' : '', t.refusalFallback ? 'refusal_fallback' : ''],
+          flags: [t.liveOffer ? 'live_offer' : '', t.continued ? 'bw2_continued' : '', t.refusalFallback ? 'refusal_fallback' : '', t.unsourcedWithheld ? 'unsourced_withheld' : ''],
         });
         console.log('[bw2]', {
           bw2: t.bw2, runtime: currentRuntime, frame: answerFrame,
@@ -2143,6 +2143,11 @@ export default async function handler(req, res) {
       // reviewer is a passthrough, which is precisely why this path is OFF in production.
       finalizerContext.consistencyContext = null;
 
+      // POSTSHIP ITEM 12 -- 2026-10-24 (row 1): THE OWNER'S RULE OF 15 OCTOBER, «الشرعي ممنوع يجيب بدون مصدر». Measured: 281 of 834
+      // shari'a answers in a week left with no source card -- here with STORED_FIQH 247 and HADITH 11 -- and the C3 hold kept back
+      // the RULING only. On a shari'a turn (any runtime but GENERAL, under the shari'a frame) the stream is held to the end, and
+      // an answer that would reach the reader with no source card becomes this path's approved not-found sentence and the offer.
+      const holdUnsourced = currentRuntime !== 'GENERAL' && !generalSystem;
       const freeUpstream = bindUpstreamToClient(readerGone);
       let out;
       try {
@@ -2192,7 +2197,8 @@ export default async function handler(req, res) {
           // SPEED WASL W2 -- the lessons asked beside the fatwa prefetch at EVERY depth, adults only (the loop adds the
           // religious key). The offer above is untouched; this is the prefetch, not the tool.
           lessonsPrefetch: band === 'adult' && libToken !== '' ? { token: libToken } : null,
-          onWriteUnit: (detail) => liveFreeBrainUnits.push(detail),
+          // POSTSHIP ITEM 12 -- 2026-10-24: a shari'a turn streams nothing before its sources are known (holdUnsourced below).
+          onWriteUnit: (detail) => (holdUnsourced ? false : liveFreeBrainUnits.push(detail)),
           // BATCH 4 [b18] — the takhrij pass below runs on a streamed turn too, so the stream holds
           // the units it could change. The same three conditions the pass itself is gated on.
           takhrijHold: takhrijDecision().enabled && band === 'adult' && libFlagValue === 'on' && libToken !== ''
@@ -2682,6 +2688,15 @@ export default async function handler(req, res) {
         const { BW2_NOT_COVERED } = await import('../lib/before-writing-v2.js');
         answerLog.note({ flags: ['refusal_fallback'] });
         out.degraded.push('refusal:not_covered');
+        try { res.write('data: ' + JSON.stringify({ type: 'ezik_live_offer' }) + '\n\n'); } catch { /* the sentence still goes out */ }
+        return liveFreeBrainUnits.opened ? liveFreeBrainUnits.finish(BW2_NOT_COVERED, { replace: true }) : emitOnce(BW2_NOT_COVERED);
+      }
+      // POSTSHIP ITEM 12: a shari'a answer with no source card is not delivered; the reader gets the sentence and the offer.
+      // A source is a card the reader gets, a row the delivered text cites, or a hadith the takhrij pass proved on a page.
+      if (holdUnsourced && !(finalizerContext.readerCards || []).length && !(out.cited || []).length && !takhrijProvenRows.length) {
+        const { BW2_NOT_COVERED } = await import('../lib/before-writing-v2.js');
+        answerLog.note({ flags: ['unsourced_withheld'] });
+        out.degraded.push('unsourced:not_covered');
         try { res.write('data: ' + JSON.stringify({ type: 'ezik_live_offer' }) + '\n\n'); } catch { /* the sentence still goes out */ }
         return liveFreeBrainUnits.opened ? liveFreeBrainUnits.finish(BW2_NOT_COVERED, { replace: true }) : emitOnce(BW2_NOT_COVERED);
       }
