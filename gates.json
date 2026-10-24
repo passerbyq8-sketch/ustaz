@@ -945,5 +945,10 @@
     "name": "assetversions",
     "script": "guards/asset-version-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "postship2",
+    "script": "guards/brain-postship-2-guard.cjs",
+    "args": ""
   }
 ]

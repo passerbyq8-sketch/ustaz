@@ -1018,3 +1018,6 @@ tools/kunuz-flash-browser.cjs text eol=lf
 tests/iap-g-v2.test.js text eol=lf
 # Fresh-worktree CRLF broke assetversions (G6).
 tests/iap-g6.test.js text eol=lf
+# POSTSHIP 2026-10-24: the new gates and their fixtures, LF like every other gate (recon).
+guards/brain-postship-2-guard.cjs text eol=lf
+guards/fixtures-postship-2-fatwas.json text eol=lf
