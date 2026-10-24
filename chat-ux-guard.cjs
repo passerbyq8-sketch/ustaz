@@ -587,6 +587,8 @@ function partA() {
     dhikr: '<dhikr id="morning-1"></dhikr>',
     worship: '<worship id="salah"></worship>',
     book: '<book author="ابن قدامة" ref="ج1 · ص2">المغني</book>',
+    // POSTSHIP ITEM 9: the brief answer's full-text tag (base64 of «السؤال: نص»)
+    fatwafull: '<fatwafull matn="2KfZhNiz2KTYp9mEOiDZhti1">النص الكامل</fatwafull>',
   };
   for (const tag of EXPECTED_TAGS) {
     const parsedTag = plain(parse(tagFixtures[tag], 30));
