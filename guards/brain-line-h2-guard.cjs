@@ -43,7 +43,10 @@ const ascii = (s) => String(s).replace(/[^\x20-\x7e]/g, (c) => '\\u' + c.charCod
   ok('...and the paragraph no longer carries it with a translation in parentheses', !/«قل هو الله أحد» \(/.test(four), ascii(four));
   calls.length = 0;
   const two = await tr('وقد قال تعالى «الله الصمد» في السورة.');   // COMPOSED (see the header)
-  ok('a two-word quotation of the mushaf («الله الصمد») is cut out: the model never receives it', calls.flat().every((s) => !s.includes('الله الصمد')) && two.text.includes('الله الصمد'), ascii(JSON.stringify(calls)));
+  // POSTSHIP ITEM 8 (b) -- 2026-10-24: the order (item 8) treats an Arabic run as a verse only when it is marked (﴿…﴾ or a verse
+  // card) or a long single-verse stretch (lib/lang/answer.js VERSE_STRETCH_MIN). «الله الصمد» between «» is neither: it is
+  // translated with its sentence now. A whole verse quoted with its card or ﴿…﴾ is still cut out (the checks above and below).
+  ok('a two-word quotation of the mushaf («الله الصمد») with no mark and no card is translated with its sentence (POSTSHIP 8 b)', calls.flat().some((s) => s.includes('الله الصمد')), ascii(JSON.stringify(calls)));
 
   console.log('-- 3. a verse card named by its surah');
   const named = (await tr('<verse surah="البقرة" ayah="255"></verse>\n\nوهذه آية الكرسي.')).text;

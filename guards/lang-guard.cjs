@@ -142,8 +142,10 @@ const V = '﴿', W = '﴾';
   const quoted = [AYAH, HAD, UNK];
   const echo = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => 'EN ' + s.replace(/[ء-ي]/g, ''))) }; };
   let out = await A.translateAnswer(ar1, { lang: 'en', translate: echo });
-  ok('every verse, hadith and quotation is in the output byte for byte', quoted.every((q) => out.text.includes(q)) && /<hadith narrator="x" ruling="y"[^>]*>/.test(out.text), JSON.stringify(quoted.map((q) => out.text.includes(q))) + ' ' + out.text.slice(0, 300));
-  ok('the sacred count out equals the count in (verses + hadiths)', A.countSacred(ar1).total === A.countSacred(out.text).total && out.degraded.length === 0, JSON.stringify([A.countSacred(ar1), A.countSacred(out.text), out.degraded]));
+  // POSTSHIP ITEM 8 (b) -- 2026-10-24: a «…» that is neither a verse nor a hadith the data knows is TRANSLATED with the text
+  // (the order, item 8); UNK is that quotation. Verses and hadiths stay byte for byte, as before.
+  ok('every verse and hadith is in the output byte for byte; the quotation that is neither (UNK) is translated with the text', [AYAH, HAD].every((q) => out.text.includes(q)) && !out.text.includes(UNK) && /<hadith narrator="x" ruling="y"[^>]*>/.test(out.text), JSON.stringify(quoted.map((q) => out.text.includes(q))) + ' ' + out.text.slice(0, 300));
+  ok('the sacred count out equals the count in (verses + hadiths) -- the translated quotation aside (POSTSHIP 8 b)', A.countSacred(ar1).total - 1 === A.countSacred(out.text).total && out.degraded.length === 0, JSON.stringify([A.countSacred(ar1), A.countSacred(out.text), out.degraded]));
   const pq = P.quranTranslation('en', 2, 43, 43);
   ok('the Quran verse tag gets the PUBLISHED text, unmodified, with its publisher, source and version',
     !!pq && out.text.includes('trs="') && Buffer.from(out.text.match(/<verse[^>]* tr="([^"]+)"/)[1], 'base64').toString('utf8') === pq.text
@@ -157,8 +159,9 @@ const V = '﴿', W = '﴾';
     ok('...and the page shows them as text under the translation (the client reads trn and EzikTranslationNote prints it)',
       /o\.trn = ezikDecodeMatn\(trn\)/.test(read('app.jsx')) && /\{notes \? <div style=\{s\.ezTranslationNotes\}>\{notes\}<\/div> : null\}/.test(read('app.jsx')) && /notes=\{seg\.trn\}/.test(read('app.jsx')));
   }
-  ok('a quotation matched to a published hadith carries its translation and source; one with no published translation carries NOTHING',
-    /HadeethEnc.com/.test(out.text) && (out.text.split(UNK)[1] || '').startsWith(String.fromCharCode(10)));
+  // POSTSHIP ITEM 8 (b): the quotation with no published translation is now translated with its text, so it carries no source.
+  ok('a quotation matched to a published hadith carries its translation and source; one with no published translation is translated and carries NO source',
+    /HadeethEnc.com/.test(out.text) && !out.text.includes(UNK));
   const dropper = async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => s.replace(/\[\[[QAI]\d+\]\]/g, ''))) }; };
   out = await A.translateAnswer(ar1, { lang: 'en', translate: dropper });
   ok('a model that drops the markers is retried once and then its paragraph is delivered ARABIC and untouched; the count still holds',
@@ -1044,7 +1047,9 @@ const V = '﴿', W = '﴾';
     {
       const sent = []; const para2 = 'وقال تعالى «' + frag + '» في أول السورتين.';
       const rNo = await A.translateAnswer(para2, { lang: 'en', translate: async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => 'And He said ' + (s.match(/\[\[[QAIU]\d+\]\]/g) || []).join(' ') + ' at the start of the two chapters.')) }; } });
-      ok('K2 end to end: the fragment with no card or name in the answer is shown with no reference and no translation', !/\b[23]:(?:2|255)\b/.test(rNo.text) && rNo.text.includes(frag), rNo.text);
+      // POSTSHIP ITEM 8 (b) -- 2026-10-24: a seven-word fragment with no card is under VERSE_STRETCH_MIN and not marked Qur'an: it is
+      // translated with its sentence -- and still never given a reference by the order of the mushaf.
+      ok('K2 end to end: the fragment with no card or name in the answer carries no reference, and is translated with its sentence (POSTSHIP 8 b)', !/\b[23]:(?:2|255)\b/.test(rNo.text) && !rNo.text.includes(frag), rNo.text);
       const rCard = await A.translateAnswer(para2 + '\n\n' + card, { lang: 'en', translate: async ({ user }) => { const arr = JSON.parse(user.split('INPUT:\n')[1]); return { ok: true, text: JSON.stringify(arr.map((s) => 'And He said ' + (s.match(/\[\[[QAIU]\d+\]\]/g) || []).join(' ') + ' at the start of the two chapters.')) }; } });
       ok('K2 end to end: with the card 2:255 in the answer the same fragment is labelled 2:255 and never 3:2', /2:255/.test(rCard.text) && !/\b3:2\b/.test(rCard.text), rCard.text.slice(0, 300));
     }
