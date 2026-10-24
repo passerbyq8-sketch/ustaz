@@ -1028,3 +1028,5 @@ guards/brain-postship-6-guard.cjs text eol=lf
 guards/fixtures-postship-6-cards.json text eol=lf
 guards/brain-postship-7-guard.cjs text eol=lf
 guards/brain-postship-8-guard.cjs text eol=lf
+guards/brain-postship-10-guard.cjs text eol=lf
+guards/fixtures-postship-10-sahih.json text eol=lf
