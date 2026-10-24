@@ -2,7 +2,7 @@
    Ezik's existing worker sweeps other CacheStorage stores. A separate asset-only
    IndexedDB database keeps Kunuz offline without changing that worker or its data. */
 'use strict';
-const VERSION = '20261023-iapg5';
+const VERSION = '20261024-iapg6';
 const DATABASE_PREFIX = 'kunuz-treasure-assets-';
 const DATABASE = DATABASE_PREFIX + VERSION;
 const CRITICAL_ASSETS = {

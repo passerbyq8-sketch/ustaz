@@ -440,7 +440,7 @@ test('first direct game entry discloses the week before starting it, and expired
   let entered = 0;
   assert.equal(await firstEntry.window.ezikIapCheckGameAccess('board', () => { entered += 1; }, '/quest-board.html'), false);
   assert.match(firstEntry.document.body.textContent, /مجانية لك لمدة ٧ أيام/);
-  assert.match(firstEntry.document.body.textContent, /بعد الأسبوع، يلزم شراء رصيد جلسات أو اشتراك/);
+  assert.match(firstEntry.document.body.textContent, /بعد الأسبوع، يلزم اشتراك أسبوع أو شهر أو سنة/);
   assert.equal(firstEntry.calls.filter((call) => call.url.endsWith('/api/iap-trial-start')).length, 0);
   [...firstEntry.document.querySelectorAll('[role="dialog"] button')].find((button) => button.textContent === 'ابدأ أسبوعك المجاني').click();
   await new Promise((resolve) => setTimeout(resolve, 25));
@@ -578,13 +578,13 @@ test('credit confirmation occurs before local start, and product rows choose new
 
   for (const [prices, expected] of [
     [{ ezik_games_3: {}, ezik_pass_month_1: { priceString: '$1', price: 1, currencyCode: 'USD' }, ezik_pass_year_1: { priceString: '$2', price: 2, currencyCode: 'USD' } }, ['ezik_pass_month_1', 'ezik_pass_year_1']],
-    [{ ezik_games_3: {}, ezik_month_1: { priceString: '$1', price: 1, currencyCode: 'USD' }, ezik_year_1: { priceString: '$2', price: 2, currencyCode: 'USD' } }, ['ezik_month_1', 'ezik_year_1']],
+    [{ ezik_games_3: {}, ezik_month_1: { priceString: '$1', price: 1, currencyCode: 'USD' }, ezik_year_1: { priceString: '$2', price: 2, currencyCode: 'USD' } }, []],
   ]) {
     const purchase = await makeBridge({ mode: 'off', accountSession: { session }, balance: { credits: 0 }, prices });
     purchase.window.ezikIapOpenPurchase();
     await new Promise((resolve) => setTimeout(resolve, 30));
     const rows = [...purchase.document.querySelectorAll('.ezik-iap-row')];
-    for (const row of rows.slice(1)) {
+    for (const row of rows) {
       row.querySelector('input').value = '1';
       row.querySelector('button').click();
       await new Promise((resolve) => setTimeout(resolve, 40));

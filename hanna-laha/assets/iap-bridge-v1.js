@@ -6,9 +6,9 @@
   var APP_STORE_URL = 'https://apps.apple.com/app/id6797100518';
   var PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=app.almurabbi.tutor';
   var PRODUCT_ROWS = [
-    { kind: 'games', id: 'ezik_games_3', name: 'ثلاث جلسات لعب' },
-    { kind: 'month', id: 'ezik_pass_month_1', fallbackId: 'ezik_month_1', name: 'شهر لعب غير محدود' },
-    { kind: 'year', id: 'ezik_pass_year_1', fallbackId: 'ezik_year_1', name: 'سنة لعب غير محدودة' },
+    { kind: 'week', id: 'ezik_pass_week_1', name: 'أسبوع لعب غير محدود' },
+    { kind: 'month', id: 'ezik_pass_month_1', name: 'شهر لعب غير محدود' },
+    { kind: 'year', id: 'ezik_pass_year_1', name: 'سنة لعب غير محدودة' },
   ];
   var active = null;
   var startContext = null;
@@ -18,6 +18,8 @@
   var resumingSignIn = false;
   var panelRefreshCleanup = null;
   var homeSignInCleanup = null;
+  var homeNoticeUpdater = null;
+  var homeNoticeSession = '';
   var homeEntryPromise = null;
   var RETURN_KEY = 'kunuz_iap_return_v1';
 
@@ -125,12 +127,16 @@
   }
 
   function closeModal() {
+    var closedModal = active;
     if (panelRefreshCleanup) {
       panelRefreshCleanup();
       panelRefreshCleanup = null;
     }
     if (active && active.backdrop && active.backdrop.parentNode) active.backdrop.parentNode.removeChild(active.backdrop);
     active = null;
+    if (closedModal && closedModal.purchaseCompleted === true) {
+      refreshHomeAfterPurchase(closedModal.purchaseSession);
+    }
   }
 
   function setModalBusy(value) {
@@ -260,18 +266,32 @@
     return { ok: true, data: data };
   }
 
+  async function refreshHomeAfterPurchase(session) {
+    if (!session || session !== authSession() || window.location.pathname !== '/quest.html'
+      || session !== homeNoticeSession || typeof homeNoticeUpdater !== 'function') return;
+    var response;
+    try { response = await getBalance(session); } catch (e) { return; }
+    if (!response.ok) return;
+    var expiresAt = Number(response.data.subscriptionExpiresAt);
+    if (response.data.subscriptionActive === true || Number.isFinite(expiresAt) && expiresAt > Date.now()) {
+      homeNoticeUpdater(null, true);
+    }
+  }
+
   function arabicDigits(value) {
     return String(value).replace(/[0-9]/g, function (digit) { return '٠١٢٣٤٥٦٧٨٩'[Number(digit)]; });
   }
 
   function balanceText(balance) {
-    var text = 'رصيدك: ' + arabicDigits(Number(balance && balance.credits) || 0) + ' جلسة';
+    var parts = [];
     var expiresAt = Number(balance && balance.subscriptionExpiresAt);
     if (Number.isFinite(expiresAt) && expiresAt > Date.now()) {
       var date = new Date(expiresAt).toLocaleDateString('ar-KW', { year: 'numeric', month: 'long', day: 'numeric' });
-      text += ' · اشتراك حتى ' + date;
-    }
-    return text;
+      parts.push('اشتراكك حتى ' + date);
+    } else parts.push('لا يوجد اشتراك');
+    var credits = Number(balance && balance.credits) || 0;
+    if (credits > 0) parts.push('رصيدك: ' + arabicDigits(credits) + ' جلسة');
+    return parts.join(' · ');
   }
 
   function balanceLine(parent, balance) {
@@ -381,8 +401,12 @@
     else if (gameId === 'board') window.location.href = '/quest-board.html?iap_join=1';
   }
 
-  function showExpired(gameId, returnPath) {
-    var modal = openModal('الدخول إلى اللعبة', 'انتهت تجربتك المجانية — الرجاء الشراء للدخول.', { closeButton: false });
+  function showExpired(gameId, returnPath, balance) {
+    var expiresAt = Number(balance && balance.subscriptionExpiresAt);
+    var copy = Number.isFinite(expiresAt) && expiresAt > 0 && expiresAt <= Date.now()
+      ? 'انتهى اشتراكك — الرجاء الشراء للدخول'
+      : 'انتهت تجربتك المجانية — الرجاء الشراء للدخول';
+    var modal = openModal('الدخول إلى اللعبة', copy, { closeButton: false });
     modal.content.append(button('اشتر لعبة', function () { navigateToMainPurchase(returnPath); }));
     if (gameId === 'harb' || gameId === 'board' || gameId === 'hanna') {
       modal.content.append(button('انضم لغرفة برمز', function () { navigateJoinByCode(gameId); }, true));
@@ -390,7 +414,7 @@
   }
 
   function showTrialDisclosure(gameId, session, returnPath, onAllowed) {
-    var copy = 'ألعاب كنوز المعرفة مجانية لك لمدة ٧ أيام. ما زلنا نحسّن الألعاب. بعد الأسبوع، يلزم شراء رصيد جلسات أو اشتراك لدخول أي لعبة. الأسعار تحت زر «اشتر لعبة».';
+    var copy = 'ألعاب كنوز المعرفة مجانية لك لمدة ٧ أيام. ما زلنا نحسّن الألعاب. بعد الأسبوع، يلزم اشتراك أسبوع أو شهر أو سنة لدخول أي لعبة. الأسعار تحت زر «اشتر لعبة».';
     var modal = openModal('أسبوعك المجاني', copy, { closeButton: false });
     modal.content.append(button('العودة إلى كنوز المعرفة', function () {
       closeModal(); window.location.href = '/quest.html';
@@ -411,7 +435,7 @@
       }
       if (response.data.enforced !== true || hasEntitlement(response.data)) {
         if (typeof onAllowed === 'function') await Promise.resolve(onAllowed());
-      } else showExpired(gameId, returnPath);
+      } else showExpired(gameId, returnPath, response.data);
     }));
   }
 
@@ -435,6 +459,7 @@
       return false;
     }
     if (response.data.enforced !== true) return continueIfAllowed();
+    if (hasFreeEntitlement(response.data) || Number(response.data.credits) > 0) return continueIfAllowed();
     if (!response.data.trial) {
       if (window.location.pathname === '/quest.html' && homeEntryPromise) {
         try { await homeEntryPromise; } catch (e) {}
@@ -447,12 +472,18 @@
         if (response.data.enforced !== true) return continueIfAllowed();
       }
       if (!response.data.trial) {
+        var expiresAt = Number(response.data.subscriptionExpiresAt);
+        if (Number.isFinite(expiresAt) && expiresAt > 0 && expiresAt <= Date.now()) {
+          if (Number(response.data.credits) > 0) return continueIfAllowed();
+          showExpired(gameId, returnPath, response.data);
+          return false;
+        }
         showTrialDisclosure(gameId, session, returnPath, onAllowed);
         return false;
       }
     }
     if (hasEntitlement(response.data)) return continueIfAllowed();
-    showExpired(gameId, returnPath);
+    showExpired(gameId, returnPath, response.data);
     return false;
   }
 
@@ -522,7 +553,7 @@
       if (active !== modal) return;
       if (identified.ok !== true) throw new Error('identify-failed');
       identifying = false;
-      var response = await requestShell('iap.prices', {}, 15000);
+      var response = await requestShell('iap.prices', { productIds: ['ezik_pass_week_1', 'ezik_pass_month_1', 'ezik_pass_year_1'] }, 15000);
       if (active !== modal) return;
       if (response.ok !== true || !response.prices) throw new Error('prices-unavailable');
       showProducts(session, currentBalance.data, response.prices);
@@ -607,10 +638,10 @@
     modal.content.replaceChildren();
     var balanceDisplay = balanceLine(modal.content, startingBalance);
     PRODUCT_ROWS.forEach(function (product) {
-      var productId = Object.prototype.hasOwnProperty.call(prices, product.id)
-        ? product.id : product.fallbackId || product.id;
-      var selectedProduct = Object.assign({}, product, { id: productId });
-      var price = prices[productId];
+      if (!prices || !Object.prototype.hasOwnProperty.call(prices, product.id)) return;
+      var price = prices[product.id];
+      if (!price || typeof price.priceString !== 'string' || !price.priceString.trim()) return;
+      var selectedProduct = product;
       var row = document.createElement('section');
       row.className = 'ezik-iap-row';
       var head = document.createElement('div');
@@ -745,6 +776,8 @@
         if (result.status === 'cancelled') { stopReason = 'cancelled'; break; }
         if (result.status !== 'purchased' || result.productId !== product.id) { stopReason = 'error'; break; }
         completed += 1;
+        modal.purchaseCompleted = true;
+        modal.purchaseSession = session;
         receipts.push(product.id === 'ezik_games_3'
           ? 'تم الشراء ✓ — أُضيف ' + arabicDigits(3) + ' جلسات'
           : 'تم الشراء ✓ — فُعّل الاشتراك');
@@ -842,7 +875,7 @@
       modal.content.append(button('إلغاء', closeModal, true));
       return;
     }
-    showExpired(startContext.gameId, window.location.pathname + window.location.search + window.location.hash);
+    showExpired(startContext.gameId, window.location.pathname + window.location.search + window.location.hash, balance);
   }
 
   async function enterKunuzHome(onUpdate) {
@@ -888,6 +921,15 @@
     }
     if (response.data.enforced !== true) { onUpdate(null, purchasesApplicable); return; }
     purchasesApplicable = true;
+    var expiresAt = Number(response.data.subscriptionExpiresAt);
+    var activePass = response.data.subscriptionActive === true
+      || Number.isFinite(expiresAt) && expiresAt > Date.now();
+    if (activePass) { onUpdate(null, true); return; }
+    var expiredPass = Number.isFinite(expiresAt) && expiresAt > 0 && expiresAt <= Date.now();
+    if (!response.data.trial && expiredPass) {
+      onUpdate({ kind: 'pass-expired' }, true);
+      return;
+    }
     if (!response.data.trial) {
       onUpdate({ kind: 'trial', trial: { active: true, daysLeft: 7 }, starting: true }, true);
       var started = await requestTrialStart(session);
@@ -895,10 +937,21 @@
       try { response = await getBalance(session); } catch (e) { response = { ok: false }; }
       if (!response.ok || response.data.enforced !== true) { onUpdate(null, purchasesApplicable); return; }
     }
+    expiresAt = Number(response.data.subscriptionExpiresAt);
+    activePass = response.data.subscriptionActive === true
+      || Number.isFinite(expiresAt) && expiresAt > Date.now();
+    if (activePass) { onUpdate(null, true); return; }
+    expiredPass = Number.isFinite(expiresAt) && expiresAt > 0 && expiresAt <= Date.now();
+    if (expiredPass && response.data.trial && response.data.trial.active === false) {
+      onUpdate({ kind: 'pass-expired' }, true);
+      return;
+    }
     onUpdate({ kind: 'trial', trial: response.data.trial, starting: false }, purchasesApplicable);
   }
 
   window.ezikIapEnterHome = function (onUpdate) {
+    homeNoticeUpdater = typeof onUpdate === 'function' ? onUpdate : null;
+    homeNoticeSession = authSession();
     homeEntryPromise = enterKunuzHome(onUpdate);
     return homeEntryPromise;
   };

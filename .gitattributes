@@ -997,6 +997,8 @@ quest-theme/motion-kit.js text eol=lf
 quest-theme/icons.js text eol=lf
 quest-theme/model.js text eol=lf
 quest-theme/journey.js text eol=lf
+# Fresh-worktree CRLF broke assetversions (G6).
+quest-theme/iap-fallback.js text eol=lf
 hanna-laha/assets/iap-bridge-v1.css text eol=lf
 iap-pending.js text eol=lf
 hanna-laha/assets/iap-bridge-v1.js text eol=lf
@@ -1014,3 +1016,5 @@ tools/kunuz-theme-layout-browser.cjs text eol=lf
 tools/kunuz-flash-browser.cjs text eol=lf
 # Keep the G5 test source on LF for recon's tracked-file line-ending audit.
 tests/iap-g-v2.test.js text eol=lf
+# Fresh-worktree CRLF broke assetversions (G6).
+tests/iap-g6.test.js text eol=lf

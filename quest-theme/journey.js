@@ -107,7 +107,7 @@
           const timeout = setTimeout(controlled, 3000);
           navigator.serviceWorker.addEventListener('controllerchange', controlled);
         });
-        const screenVersion = '20261023-iapg5';
+        const screenVersion = '20261024-iapg6';
         const screenAssets = ['theme.css?v=' + screenVersion, 'journey.js?v=' + screenVersion, 'room-categories.js?v=' + screenVersion, 'assets/regular.ttf?v=20261020-flash4', 'assets/bold.ttf?v=20261020-flash4'];
         if (game === 'board') screenAssets.push('board-rooms.js?v=' + screenVersion);
         if (navigator.serviceWorker.controller) await Promise.all(screenAssets.map(async file => {
@@ -165,10 +165,11 @@
     let copy = '';
     if (notice.kind === 'sign-in') copy = 'سجّل الدخول لتبدأ أسبوعك المجاني في الألعاب.';
     else if (notice.kind === 'expired') copy = 'انتهى أسبوعك المجاني للألعاب. الأسعار تحت زر «اشتر لعبة».';
+    else if (notice.kind === 'pass-expired') copy = 'انتهى اشتراكك في ألعاب كنوز المعرفة. الأسعار تحت زر «اشتر لعبة».';
     else if (notice.kind === 'trial') {
       const days = Math.max(1, Number(notice.trial?.daysLeft) || 7);
       const remaining = days === 1 ? 'تنتهي تجربتك المجانية اليوم.' : 'متبقّي ' + ar(days) + ' أيام.';
-      copy = 'ألعاب كنوز المعرفة مجانية لك لمدة ٧ أيام (' + remaining + ') ما زلنا نحسّن الألعاب. بعد الأسبوع، يلزم شراء رصيد جلسات أو اشتراك لدخول أي لعبة. الأسعار تحت زر «اشتر لعبة».';
+      copy = 'ألعاب كنوز المعرفة مجانية لك لمدة ٧ أيام (' + remaining + ') ما زلنا نحسّن الألعاب. بعد الأسبوع، يلزم اشتراك أسبوع أو شهر أو سنة لدخول أي لعبة. الأسعار تحت زر «اشتر لعبة».';
     }
     if (!copy) return '';
     return '<aside class="j-form-card j-iap-notice" role="status"><p class="j-note">' + esc(copy) + '</p><div class="j-actions">' + button('إخفاء', 'dismiss-home-notice', 'j-secondary') + '</div></aside>';
@@ -195,6 +196,11 @@
         sessionStorage.setItem(IAP_EXPIRED_NOTICE_KEY, '1');
       } catch (_) {}
       notice = { kind: 'expired' };
+    } else if (notice?.kind === 'pass-expired') {
+      try {
+        if (sessionStorage.getItem(IAP_EXPIRED_NOTICE_KEY) === '1') { M.homeNotice = null; render(); maybeAutoOpenPurchase(); return; }
+        sessionStorage.setItem(IAP_EXPIRED_NOTICE_KEY, '1');
+      } catch (_) {}
     }
     M.homeNotice = notice || null;
     render();
