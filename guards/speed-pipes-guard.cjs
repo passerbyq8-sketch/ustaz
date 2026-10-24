@@ -259,7 +259,10 @@ function libraryPlain(markup) {
       return { out, text: textOf(t), listing };
     };
     const letters = (s) => String(s || '').replace(/\s+/gu, '');
-    const shows = (text, rec) => text.startsWith('## نص الفتوى') && letters(text).includes(letters(rec.content.question)) && letters(text).includes(letters(rec.content.answer));
+    // POSTSHIP ITEM 9 -- 2026-10-24: in the brief answer (this harness asks no depth) a long block is an excerpt and its whole text
+    // rides beside it for the «النص الكامل» button; letter for letter is now read over the excerpt and that carried text together.
+    const fullOf = (text) => { const m = /<fatwafull matn="([^"]+)">/u.exec(text); return m ? Buffer.from(m[1], 'base64').toString('utf8') : ''; };
+    const shows = (text, rec) => text.startsWith('## نص الفتوى') && letters(text + '\n' + fullOf(text)).includes(letters(rec.content.question)) && letters(text + '\n' + fullOf(text)).includes(letters(rec.content.answer));
     const cases = [
       ['owner', WQ.w1.question, 'حكم إخراج الزكاة من الأقمشة', 'binbaz.org.sa', 6518],
       ['fitr', 'هل يجوز دفع زكاة الفطر نقودا بدل الطعام؟', 'حكم إخراج زكاة الفطر نقوداً', 'binbaz.org.sa', 5348],

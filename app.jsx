@@ -6138,6 +6138,8 @@ const KNOWN_TAG_NAMES = Object.freeze([
   // the model never writes one. It is listed here so an answer cut mid-chip is cleaned like every
   // other card instead of leaking «<book author=» to the screen and to ElevenLabs.
   'board', 'document', 'source', 'dhikr', 'worship', 'book',
+  // POSTSHIP ITEM 9 -- 2026-10-24: the brief answer's fatwa excerpt carries its full text beside it (lib/full-fatwa.js).
+  'fatwafull',
 ]);
 const KNOWN_TAGS = KNOWN_TAG_NAMES.join('|');
 // سجلُّ الإنقاذ: كلُّ مرّةٍ أفرغ فيها التنظيفُ نصًّا خادميًّا غيرَ فارغٍ فأُنقِذ بدلَ أن يُمحى.
@@ -8952,6 +8954,11 @@ const parseRichMessage = (text, viewerAge) => {
         page: pageMatch ? pageMatch[1] : '',
         ...__trFields(placeStr),
       });
+    } else if (tagName === 'fatwafull') {
+      // POSTSHIP ITEM 9: the full text of the fatwa the brief answer shows an excerpt of, base64 like the book's matn.
+      const fullMatch = attrsStr.match(/matn=["']([^"']+)["']/);
+      // the button's label is the tag's own content, written by the server (lib/full-fatwa.js FATWA_FULL_LABEL)
+      if (fullMatch) segments.push({ type: 'fatwafull', text: ezikDecodeMatn(fullMatch[1]), label: content });
     } else if (tagName === 'steps') {
       const items = content.split('\n')
         .map(l => l.trim())
@@ -24450,6 +24457,9 @@ function ezikRenderSegments(segments, ctx) {
     if (seg.type === 'dhikr') {
       return <DhikrCard key={i} catId={seg.catId} />;
     }
+    if (seg.type === 'fatwafull') {
+      return <FatwaFullText key={i} text={seg.text} label={seg.label} />;
+    }
     if (seg.type === 'worship') {
       return <WorshipCard key={i} id={seg.id} band={deriveCaps(age).band} />;
     }
@@ -25468,6 +25478,21 @@ function BookCard({ title, author, where, text, cut, open, bookId, vol, page }) 
       ) : null}
       {libHref ? <BookLibraryLink bookId={bookId} vol={vol} page={page} /> : null}
     </div>
+  );
+}
+
+// POSTSHIP ITEM 9 -- 2026-10-24: the «النص الكامل» button under the brief answer's fatwa excerpt; pressed, the full text is
+// shown in its place, as served (no link out, no second request).
+function FatwaFullText({ text, label }) {
+  const [shown, setShown] = useState(false);
+  const body = typeof text === 'string' ? text : '';
+  if (!body || !label) return null;
+  if (shown) return <div style={{ whiteSpace: 'pre-wrap', margin: '8px 0' }} dir="auto">{body}</div>;
+  return (
+    <button type="button" className="ezhome-focus" onClick={() => setShown(true)}
+      style={{ font: 'inherit', margin: '8px 0', padding: '6px 12px', borderRadius: 8, border: '1px solid var(--a3-line, #ccc)', background: 'transparent', color: 'inherit', cursor: 'pointer' }}>
+      {label}
+    </button>
   );
 }
 

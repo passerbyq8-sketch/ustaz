@@ -553,6 +553,9 @@ function partA() {
     // ع-٤٩ — 'book' is the library attribution chip. Server-owned (api/ask.js buildBookTag), never
     // written by the model, and it opens nothing: no link, no host, no arrow.
     'board', 'document', 'source', 'dhikr', 'worship', 'book',
+    // POSTSHIP ITEM 9 -- 2026-10-24: 'fatwafull' is server-owned too (lib/full-fatwa.js serverOwnedBlock, brief answers): the
+    // whole text of the fatwa the excerpt shows, and the «النص الكامل» button that opens it in place.
+    'fatwafull',
   ];
   const tagRegistryProblems = (names) => {
     const list = Array.isArray(names) ? names : [];
