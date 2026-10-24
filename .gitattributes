@@ -1021,3 +1021,4 @@ tests/iap-g6.test.js text eol=lf
 # POSTSHIP 2026-10-24: the new gates and their fixtures, LF like every other gate (recon).
 guards/brain-postship-2-guard.cjs text eol=lf
 guards/fixtures-postship-2-fatwas.json text eol=lf
+guards/brain-postship-3-guard.cjs text eol=lf

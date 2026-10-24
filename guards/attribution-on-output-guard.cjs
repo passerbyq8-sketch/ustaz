@@ -356,7 +356,11 @@ const rejectsWrongScholar = (module) => {
       transform: (source) => source.replace(
         /    return candidate === wanted\r?\n\s*\|\| containsWholeWords\(candidate, wanted\)\r?\n\s*\|\| containsWholeWords\(wanted, candidate\);/u,
         '    return candidate === wanted || candidate.includes(wanted) || wanted.includes(candidate);'),
-      survives: keeps,
+      // POSTSHIP ITEM 3 -- 2026-10-24: authorityRule now weighs every match and the longest wins, so the
+      // raw-substring mutant keeps 18/18 (the true alias is always the longer match there). The mutant is
+      // still caught where whole words are the only defence: «الفوزانيين» is no man's name, and raw
+      // matching reads «الفوزان» inside it. Same seam, same 18/18, one more way to die.
+      survives: (m) => keeps(m) && (typeof m.reviewAuthorityRule !== 'function' || m.reviewAuthorityRule('الفوزانيين') === null),
     });
     ok('word-boundary mutant seam applied', wordMutant.changed, wordMutant.error);
     ok('word-boundary mutant module loaded successfully', wordMutant.loaded, wordMutant.error);
