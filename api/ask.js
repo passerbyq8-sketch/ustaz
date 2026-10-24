@@ -150,6 +150,8 @@ import { frontSorterDecision, sorterEligibility, startSorter, runtimeAfterSorter
 // The hard rule for pornography (order EZIK-IMPERMISSIBLE-ORDER-2026-10-01): a request for the content is answered with a fixed text,
 // for every reader, with no model call; a QUESTION about it (its ruling, its harm, quitting it) goes on to its own path.
 import { impermissibleEarlyDecision, classifyPornographyRequest, classifyYoungPornographyDoubt, PORN_REFUSAL_TEXT } from '../lib/policy/porn-request.js';
+// POSTSHIP ITEM 4 -- 2026-10-24: the owner's support address, a fixed text with no model (lib/policy/support-contact.js).
+import { isSupportContactRequest, SUPPORT_CONTACT_TEXT } from '../lib/policy/support-contact.js';
 import { generalizeSystemBlocks } from '../lib/general-frame.js';
 import { takhrijDecision, TAKHRIJ_SKIPPED_STREAMED } from '../lib/takhrij.js';
 // BATCH 4 [b18] — on its own line: guards/takhrij-contract-guard.cjs row 19 pins the line above.
@@ -1136,13 +1138,16 @@ export default async function handler(req, res) {
   // The rule itself (lib/policy/porn-request.js classifyPornographyRequest) never reads who is asking; this line is the one place that does.
   const pornBlocked = impermissibleEarlyDecision().enabled && (classifyPornographyRequest(currentQuestionText).blocked
     || ((audienceBand === 'young' || audienceBand === 'teen') && classifyYoungPornographyDoubt(currentQuestionText)));
+  // POSTSHIP ITEM 4 -- 2026-10-24: «how do I reach support?» -- decided here, beside the pornography rule, so the
+  // sorter is never started for it and the answer is the fixed text at the seat below.
+  const supportContact = !pornBlocked && isSupportContactRequest(currentQuestionText);
   const sorterPlan = sorterEligibility({
     enabled: frontSorter.enabled, band, freeBrainEnabled: freeBrainOnAtSorter, runtime: currentRuntime,
     liveSearch: readLiveSearch(body), excluded: bw2ScopeExclusion(currentQuestionText), text: currentQuestionText,
     // ITEM C1 -- 2026-10-15 brain-line: graveHazard() returns the class name, and sorterEligibility() reads
     // `hazard === true`. Harmless while a hazard turn was lexically GENERAL and never asked; with GENERAL asked,
     // the class has to arrive as the boolean the eligibility reads.
-    closedDeen: closedDeenAnswers, hazard: !!graveHazard(currentQuestionText), porn: pornBlocked,
+    closedDeen: closedDeenAnswers, hazard: !!graveHazard(currentQuestionText), porn: pornBlocked, support: supportContact,
   });
   // The frame the free-brain seat answers in: the general one for an adult whose FINAL runtime is GENERAL
   // (and never with the switch off).
@@ -1735,6 +1740,15 @@ export default async function handler(req, res) {
         kind: 'pornography', band: audienceBand, path: ledgerPath.path, policyVersion: POLICY_VERSION,
       });
       return emitOnce(PORN_REFUSAL_TEXT);
+    }
+
+    // ── POSTSHIP ITEM 4 -- 2026-10-24: THE SUPPORT ADDRESS, A FIXED TEXT, NO MODEL, NO CARD ─────────────
+    // The owner's order of 18 October: whoever asks how to reach Ezik's support is answered with his e-mail. It is
+    // not a shari'a answer, so it carries no source card; the reader's language is a lookup (lib/lang/fixed.js).
+    if (supportContact) {
+      answerLog.note({ path: 'canned', flags: ['support_contact'] });
+      logRoute({ impermissible: 'none' });
+      return emitOnce(SUPPORT_CONTACT_TEXT);
     }
 
     // ── AGE_ACCESS_POLICY, AFTER IR_BUILD AND BEFORE THE ROUTE ─────────────
