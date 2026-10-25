@@ -1,0 +1,8 @@
+@media (max-width: 760px) {
+  html.kfix-keyboard-open, html.kfix-keyboard-open body { height: var(--kfix-visual-height); min-height: 0; }
+  html.kfix-keyboard-open body { overflow: hidden; }
+  html.kfix-keyboard-open #root { height: 100%; max-height: 100%; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  #root { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); }
+  #root input, #root textarea, #root select { scroll-margin-block: 16px; }
+  #root button, #root [role="button"] { scroll-margin-block-end: calc(env(safe-area-inset-bottom, 0px) + 18px); }
+}

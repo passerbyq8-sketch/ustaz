@@ -336,3 +336,7 @@
 .ezik-treasure-theme .journey-app[data-game=board] .j-board-room-card{max-width:760px;margin-inline:auto}
 
 .ezik-treasure-theme>.ezik-iap-backdrop:not(.kunuz-theme-shell):not(.journey-app):not(.hidden){display:grid!important}
+
+/* Keep focused setup controls reachable above mobile keyboards and system gestures. */
+.ezik-treasure-theme .journey-app .j-actions{padding-bottom:max(14px,calc(env(safe-area-inset-bottom) + 14px))}
+.ezik-treasure-theme .journey-app.kfix-keyboard-open .j-content{min-height:0;scroll-padding-block:12px}

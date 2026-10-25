@@ -1385,6 +1385,46 @@
     if (event.target.dataset.quizNumber === 'count') M.quizCustomCount = true; else M.settings.custom = true;
     updateQuizFields();
   });
+  const keepFocusedInputVisible = () => {
+    const active = document.activeElement, viewport = global.visualViewport;
+    const editable = active && /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName);
+    const keyboardOpen = !!(editable && viewport && global.innerHeight - viewport.height > 80);
+    app.classList.toggle('kfix-keyboard-open', keyboardOpen);
+    const main = app.querySelector('.j-content');
+    if (!keyboardOpen) {
+      app.style.removeProperty('--kfix-vv-height');
+      app.style.removeProperty('--kfix-main-top');
+      if (main) { main.style.maxHeight = ''; main.style.overflowY = ''; main.style.overscrollBehavior = ''; }
+      return;
+    }
+    if (!main) return;
+    const top = Math.max(0, main.getBoundingClientRect().top - viewport.offsetTop);
+    app.style.setProperty('--kfix-vv-height', viewport.height + 'px');
+    app.style.setProperty('--kfix-main-top', top + 'px');
+    if (main) { main.style.maxHeight = Math.max(180, viewport.offsetTop + viewport.height - main.getBoundingClientRect().top - 12) + 'px'; main.style.overflowY = 'auto'; main.style.overscrollBehavior = 'contain'; }
+    global.requestAnimationFrame(() => {
+      const visibleTop = viewport.offsetTop + 8, visibleBottom = viewport.offsetTop + viewport.height - 12;
+      const fieldRect = active.getBoundingClientRect();
+      let minScroll = fieldRect.bottom - visibleBottom, maxScroll = fieldRect.top - visibleTop;
+      const actions = Array.from(main.querySelectorAll('.j-actions button:not([disabled])')).filter(button => button.getClientRects().length);
+      const action = actions[actions.length - 1];
+      if (action) {
+        const actionRect = action.getBoundingClientRect();
+        minScroll = Math.max(minScroll, actionRect.bottom - visibleBottom);
+        maxScroll = Math.min(maxScroll, actionRect.top - visibleTop);
+      }
+      if (minScroll > maxScroll) {
+        minScroll = fieldRect.bottom - visibleBottom;
+        maxScroll = fieldRect.top - visibleTop;
+      }
+      const delta = minScroll > 0 ? minScroll : maxScroll < 0 ? maxScroll : 0;
+      if (delta) main.scrollTop += delta;
+    });
+  };
+  document.addEventListener('focusin', () => global.setTimeout(keepFocusedInputVisible, 60), true);
+  global.visualViewport?.addEventListener('resize', keepFocusedInputVisible);
+  global.visualViewport?.addEventListener('scroll', keepFocusedInputVisible);
+  global.addEventListener('orientationchange', keepFocusedInputVisible);
   global.addEventListener('popstate', event => {
     if (game === 'board' && boardRooms?.active && M.stage === 'board-room') {
       event.stopImmediatePropagation(); history.pushState({ journey: true, rooms: true, step: 3 }, '', M.boardRoomUrl); boardRooms.handle('back', app); return;

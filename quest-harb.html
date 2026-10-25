@@ -52,14 +52,14 @@
 @keyframes kunuz-boot-loading{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.ezik-treasure-theme.kunuz-theme-pending .kunuz-theme-spinner{animation:none}}
 </style>
-<link rel="stylesheet" href="/quest-theme/theme.css?v=20261023-iapg4">
+<link rel="stylesheet" href="/quest-theme/theme.css?v=20261025-kfix4">
 <link rel="stylesheet" href="/hanna-laha/assets/iap-bridge-v1.css?v=20261023-iapf">
 <link rel="preload" href="/quest-theme/assets/regular.ttf?v=20261020-flash4" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="/quest-theme/assets/bold.ttf?v=20261020-flash4" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="/quest-theme/motion-kit.js?v=20261022-roomsfix2" as="script">
 <link rel="preload" href="/quest-theme/icons.js?v=20261022-roomsfix2" as="script">
 <link rel="preload" href="/quest-theme/model.js?v=20261025-kfix3" as="script">
-<link rel="preload" href="/quest-theme/journey.js?v=20261025-kfix3" as="script">
+<link rel="preload" href="/quest-theme/journey.js?v=20261025-kfix5" as="script">
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>كنوز المعرفة — حرب الجزر</title>
@@ -182,7 +182,7 @@ body{color:var(--ink);font-family:var(--bd);font-size:16px;line-height:1.75;min-
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes raise{0%{transform:translateY(0);opacity:1}40%,55%{transform:translateY(46px);opacity:0}100%{transform:translateY(0);opacity:1}}
 .light .beam{transform-box:fill-box;transform-origin:50% 50%;animation:spin 5s linear infinite}
-.winmap{margin:0 -16px 6px;height:min(58vh,520px);background:linear-gradient(180deg,#E2F3FB 0%,#8FCDE6 100%)}
+.winmap{margin:0 -16px 6px;height:min(40vh,330px);height:min(40svh,330px);background:linear-gradient(180deg,#E2F3FB 0%,#8FCDE6 100%)}
 .winmap .isle{pointer-events:none}
 .winmap{overflow:hidden}
 .winmap .mapbox{height:100%}
@@ -191,7 +191,7 @@ body{color:var(--ink);font-family:var(--bd);font-size:16px;line-height:1.75;min-
 
 /* ───── النزال داخل المشهد ───── */
 #war .panel{flex:0 0 auto;margin:0;border:0;border-radius:18px 18px 0 0;box-shadow:0 -1px 0 var(--line);
-  padding:10px 16px calc(12px + env(safe-area-inset-bottom));position:relative;z-index:2}
+  padding:10px 16px calc(24px + env(safe-area-inset-bottom));position:relative;z-index:2}
 #war.fight .mapbox{flex:0 0 auto;height:max(200px,40vh);height:max(200px,40dvh)}
 /* one device: the row of «إنهاء اللعبة» (53px) comes out of the map, never out of the question */
 #war.solo.fight .mapbox{height:calc(max(200px,40vh) - 53px);height:calc(max(200px,40dvh) - 53px)}
@@ -409,7 +409,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 <script src="/iap-pending.js?v=20261023-iapf"></script>
 <script src="/hanna-laha/assets/iap-bridge-v1.js?v=20261024-iapg6"></script>
 <script src="/quest-theme/room-categories.js?v=20261022-roomsfix2"></script>
-<script src="/quest-theme/journey.js?v=20261025-kfix3"></script>
+<script src="/quest-theme/journey.js?v=20261025-kfix5"></script>
 </head>
 <body>
 <div class="kunuz-theme-shell" role="status" aria-label="نجهّز مغامرتكم"><span class="kunuz-theme-spinner" aria-hidden="true"></span></div>
