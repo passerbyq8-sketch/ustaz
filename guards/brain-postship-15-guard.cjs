@@ -9,6 +9,9 @@
 //   our cut that falls inside a word steps back to the last whole word; a passage the service cut loses its last word
 //   unless it ends on a stop mark; the stored text does not change; what is before the cut is letter for letter;
 //   `matnCut` keeps its rule.
+// POSTSHIP FIX3 item 3 (2026-10-25) takes back the last-word rule (EZIK-CC-POSTSHIP-FIX3-DIRECTIVE-2026-10-25.md): the
+// service cuts at a space, so it dropped a whole word in 196 of 198 samples. A service-cut passage is now shown as it
+// arrived; the two checks of that rule below say so (guards/brain-postship-18-guard.cjs is that item's own gate).
 // The texts: the witness's own last words in a passage built so the 1200 cap falls where it fell, and the 51 real
 // library texts of guards/fixtures-postship-6-cards.json (POSTSHIP item 6's fixture, copied from the measure's reads).
 // The service is the real wire shape (guards/fixtures-lib-search-16a.json), served by a stub through runTool.
@@ -65,7 +68,7 @@ const midWord = (shown, full) => shown.length < full.length && WORD.test(full[sh
   console.log('-- 2. the real texts, on the before-writing path (service 2000) and the default (service 1200)');
   const texts = [FIX.witness, ...FIX.pages, ...FIX.atoms].map((x) => String(x.text || '')).filter((t) => t.trim());
   for (const [name, cap] of [['bw2', 2000], ['default', 1200]]) {
-    let mid = 0; let notPrefix = 0; let svcOpenKept = 0; let n = 0;
+    let mid = 0; let notPrefix = 0; let svcDropped = 0; let n = 0;
     for (const t of texts) {
       const svc = serviceCut(t, cap);
       const shown = bookPassage(svc.text, svc.truncated);
@@ -73,13 +76,13 @@ const midWord = (shown, full) => shown.length < full.length && WORD.test(full[sh
       n += 1;
       if (midWord(shown, full)) mid += 1;
       if (!full.startsWith(shown)) notPrefix += 1;
-      // a service cut our cap did not reach: its last word goes, unless the passage ends on a stop mark
-      if (svc.truncated && fold(svc.text).length <= 1200 && !/[.؟?!…:؛۔]$/u.test(fold(svc.text).replace(/[\s»"”’'\)\]\}﴾﴿]+$/u, ''))
-        && shown === fold(svc.text)) svcOpenKept += 1;
+      // POSTSHIP FIX3 item 3 (2026-10-25): a service cut our cap did not reach is shown as it arrived -- the service cuts at
+      // a space, so FIX2's rule (drop its last word unless it ends on a stop mark) dropped a whole word. Was: it lost it.
+      if (svc.truncated && fold(svc.text).length <= 1200 && shown !== fold(svc.text)) svcDropped += 1;
     }
     ok(name + ': no passage ends inside a word (' + n + ' texts)', mid === 0, String(mid));
     ok(name + ': every passage is the text letter for letter up to its end', notPrefix === 0, String(notPrefix));
-    ok(name + ': a service-cut passage that ends open loses its last word', svcOpenKept === 0, String(svcOpenKept));
+    ok(name + ': a service-cut passage is shown as it arrived, no whole word dropped', svcDropped === 0, String(svcDropped));
   }
 
   console.log('-- 3. through the runner: the row, the flag, the stored text, the card');
@@ -101,8 +104,11 @@ const midWord = (shown, full) => shown.length < full.length && WORD.test(full[sh
   const matn = (/matn="([^"]+)"/.exec(tag) || [])[1];
   ok('... the card carries that passage, marked cut and open', !!matn && Buffer.from(matn, 'base64').toString('utf8') === long.text && / cut="1"/.test(tag) && / open="1"/.test(tag));
   const SVC_OPEN = 'قال الشيخ: لا يجوز تقديم صيام ست شوال على صيام ا';
-  const so = await rowFor({ ...HIT, text: SVC_OPEN, truncated: true });
-  ok('the service cut it and it ends open: the last word is dropped', !!so && so.text === 'قال الشيخ: لا يجوز تقديم صيام ست شوال على صيام', so ? so.text.slice(-30) : 'no row');
+  // POSTSHIP FIX3 item 3 (2026-10-25): a passage the service cut (at a space, as it does) ends open and is kept as it
+  // arrived. Was: «the last word is dropped», on a service cut placed inside a word, which the service does not make.
+  const SVC_CUT = 'قال الشيخ: لا يجوز تقديم صيام ست شوال على صيام';
+  const so = await rowFor({ ...HIT, text: SVC_CUT, truncated: true });
+  ok('the service cut it and it ends open: kept as it arrived, its last word too', !!so && so.text === SVC_CUT, so ? so.text.slice(-30) : 'no row');
   ok('... and matnCut is set (the service said truncated)', !!so && so.matnCut === true);
   const SVC_STOP = 'قال الشيخ: لا يجوز تقديم صيام ست شوال على صيام الفرض.';
   const ss = await rowFor({ ...HIT, text: SVC_STOP, truncated: true });

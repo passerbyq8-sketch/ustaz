@@ -658,7 +658,8 @@ export function buildBookTag(row) {
   // THIS slice dropped something or when the row already knew it was holding a cut passage
   // (lib/free-brain/tools.js), because a silent truncation is the defect either way.
   const matn = typeof (row && row.text) === 'string' ? row.text : '';
-  const kept = matn.slice(0, LIB_MAX_CHARS_PER_HIT_DEFAULT);
+  // POSTSHIP FIX3 ITEM 3 -- 2026-10-25: and the slice ends on a whole word (bookMatnSlice), the rule of the row's own cap.
+  const kept = bookMatnSlice(matn, LIB_MAX_CHARS_PER_HIT_DEFAULT);
   const carried = kept.trim() ? Buffer.from(kept, 'utf8').toString('base64') : '';
   const cut = kept.length < matn.length || (row && row.matnCut === true);
   const matnAttrs = carried ? ` matn="${carried}"` + (cut ? ' cut="1"' : '') : '';
@@ -679,6 +680,23 @@ export function bookMatnEndsOpen(text) {
   if (!t.trim()) return false;
   if (/(?:…|\.\.\.)\s*$/u.test(t)) return false;
   return !BOOK_MATN_STOP.test(t.replace(BOOK_MATN_CLOSERS, ''));
+}
+
+// POSTSHIP FIX3 ITEM 3 -- 2026-10-25: THE CARD'S OWN CEILING DOES NOT CUT INSIDE A WORD. The rule of lib/free-brain/tools.js
+// cleanPassage: when the characters on both sides of the cap are word characters, the slice steps back to the last space
+// before it (and the spaces before that); with no space to step back to, the hard cut as before. What is kept is the
+// text letter for letter up to there, and a text within the cap is returned whole. The library rows never reach it
+// (they are 1200 or shorter already); a caller handing in a longer text does.
+const BOOK_MATN_WORD = /[\p{L}\p{M}\p{N}]/u;
+export function bookMatnSlice(text, cap) {
+  const t = String(text == null ? '' : text);
+  if (t.length <= cap) return t;
+  let end = cap;
+  if (BOOK_MATN_WORD.test(t[end]) && BOOK_MATN_WORD.test(t[end - 1])) {
+    const back = t.slice(0, end).search(/\s\S*$/u);
+    if (back > 0) { end = back; while (end > 0 && /\s/u.test(t[end - 1])) end -= 1; }
+  }
+  return t.slice(0, end);
 }
 
 // Hard ceiling on cards in one reply. Three is the number of distinct rulings/references

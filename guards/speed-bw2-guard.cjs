@@ -1464,8 +1464,12 @@ const deltasOf = (frames) => frames.filter((f) => f.type === 'content_block_delt
       // POSTSHIP ITEM 6 -- 2026-10-24: the book card of a passage that stops mid-sentence now carries ` open="1"` (api/ask.js
       // buildBookTag; the card draws «…» after the passage). The pin stays the same 4d353de digest over the released bytes with
       // that one attribute taken out, and the attribute must be the only difference.
+      // POSTSHIP FIX3 ITEM 3 -- 2026-10-25: the card's 1200-character slice ends on a whole word (api/ask.js bookMatnSlice). This
+      // fixture's row is longer than 1200 and the old slice ended two letters into a word; the card now carries 1197 characters,
+      // ending on the word before, and every other byte released is the same (measured: the texts are equal with the matn taken
+      // out). Was 949ade0807e77a9a1b7fd04834dc8160f4b6575b931e0676fb29b4c87043f008.
       ok('C7h FIX4\x27s Q2 fixture releases as before under C7 and C8 (a source question whose first unit is proved): the same bytes, 5 released, 5 proved (answer 2 now proved on its row: 3.4c)',
-        require('crypto').createHash('sha256').update(t2.replace(/<book([^>]*?) open="1">/gu, '<book$1>')).digest('hex') === '949ade0807e77a9a1b7fd04834dc8160f4b6575b931e0676fb29b4c87043f008'
+        require('crypto').createHash('sha256').update(t2.replace(/<book([^>]*?) open="1">/gu, '<book$1>')).digest('hex') === '2d4ef79fb2ce880262dd2badd4465dee951752cf352731012ffd2640dd574118'
         && tel2.unitsReleased === 5 && tel2.unitsHeld === 0 && tel2.unitsProvedHadith === 5 && UNITS.asksHadithSource(Q2), JSON.stringify(tel2));
     }
 
