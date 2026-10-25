@@ -840,7 +840,16 @@
       let { unseen, oldest } = Model.candidates(slot.cat, M.history, Math.random, excluded);
       if (game === 'hanna' || game === 'test') { unseen = unseen.filter(i => global.DATA.qs[i][4].length === 4); oldest = oldest.filter(i => global.DATA.qs[i][4].length === 4); }
       unseen.sort((a, b) => Math.abs((Model.level(a) || slot.desired) - slot.desired) - Math.abs((Model.level(b) || slot.desired) - slot.desired));
-      slot.index = unseen[0] ?? oldest[0]; slot.actual = Model.level(slot.index);
+      oldest.sort((a, b) => Math.abs((Model.level(a) || slot.desired) - slot.desired) - Math.abs((Model.level(b) || slot.desired) - slot.desired) || M.history.last(a) - M.history.last(b) || a - b);
+      slot.index = unseen[0] ?? oldest[0];
+      if (slot.index === undefined) {
+        M.history.restart(slot.cat, []);
+        const cycle = Model.candidates(slot.cat, M.history, Math.random, excluded);
+        cycle.unseen.sort((a, b) => Math.abs((Model.level(a) || slot.desired) - slot.desired) - Math.abs((Model.level(b) || slot.desired) - slot.desired));
+        slot.index = cycle.unseen[0] ?? cycle.oldest[0];
+      }
+      if (slot.index === undefined) { M.error = 'لا توجد أسئلة متاحة لهذه الفئة الآن؛ ارجعوا للإعداد واختاروا فئة أخرى.'; render(); return; }
+      slot.actual = Model.level(slot.index);
     }
     const turn = M.g.turn;
     if (game === 'test') { M.g.cur = slot.index; M.g.used[slot.index] = 1; M.g.curCat = slot.cat; }

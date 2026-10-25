@@ -466,10 +466,19 @@ var BE=(function(){
   /* ما لم يُرَ ولم يُسأل في هذه اللعبة؛ فإن خلت الفئة منه فما لم يُسأل في هذه اللعبة وحده */
   /* مستوى الخانة في «حسب النقاط» التجريبيّ (٠ في غيره: لا يُقرأ للنقاط أثر في السحب) */
   function lvOf(sl){return typeof KZL==="undefined"?0:KZL.forPts(sl.pts)}
+  function levelDistance(i,lv){if(!lv)return 0;for(var l=1;l<=3;l++)if(kzLvAt(i,l))return Math.abs(l-lv);return 0}
+  function nearest(a,lv){if(!lv||a.length<2)return a;var min=99;for(var i=0;i<a.length;i++)min=Math.min(min,levelDistance(a[i],lv));return a.filter(function(i){return levelDistance(i,lv)===min})}
+  function cycleCat(cat){seenRead();for(var i=0;i<DATA.qs.length;i++)if(DATA.qs[i][0]===cat)SEEN.bits[i>>3]&=~(1<<(i&7));seenWrite()}
   function bag(g,cat,seen,lv){
-    var a=[],b=[];
-    for(var i=0;i<DATA.qs.length;i++)if(kzLive(i)&&(!lv||kzLvAt(i,lv))&&DATA.qs[i][0]===cat&&!g.used[i])(seen(i)?b:a).push(i);
-    return a.length?a:b;
+    var exact=[],fresh=[],old=[];
+    function collect(){exact=[];fresh=[];old=[];
+      for(var i=0;i<DATA.qs.length;i++)if(kzLive(i)&&DATA.qs[i][0]===cat&&!g.used[i]){
+        if(seen(i))old.push(i);else{fresh.push(i);if(!lv||kzLvAt(i,lv))exact.push(i)}}
+    }
+    collect();if(exact.length)return exact;
+    if(fresh.length)return nearest(fresh,lv);
+    cycleCat(cat);collect();
+    return nearest(fresh.length?fresh:old,lv);
   }
   /* يُختار السؤال لحظة فتح الخانة، لا قبلها */
   function open(g,s,seen,rnd){
