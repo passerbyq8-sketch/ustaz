@@ -114,7 +114,7 @@ const SEALED = {
   // of JavaScript, no newline, so no line-ending conversion can move it; pinned -text anyway.
   // and again 2026-10-19 (KUNUZ-LEVELS-POETRY, B): 217 poets' private-life questions retired in place and 101 verse questions
   // appended (EA0F7962, 5412585 bytes, 11036 rows, 10819 live).
-  'quest-data/kunuz-bank-3147.js': '9db95be70c2e18c685c04c415afbb0739abe9e49462a68fd241f5e0144bb268c',
+  'quest-data/kunuz-bank-3147.js': '73835acc3ff7d7ee3cd3e9a043452bf07ba2531c891cc10d43092788044d87d3',
   'quran-uthmani.json': 'd4fd1a1507f70a4261789eaec8380750cd0f65f4d641f6df2ef6334b18c6877b',
   'adhkar.json': '19ef96b9ecc275376d46a667a86297261ea5991749ffe46dd35448196cb4c9c3',
   'mushaf-layout.json': 'ea9223ef7f18b5d933ce1c87cbebabc5d78f1ec0e8ac9714260f9dee6d571351',
