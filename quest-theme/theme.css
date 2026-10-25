@@ -340,3 +340,34 @@
 /* Keep focused setup controls reachable above mobile keyboards and system gestures. */
 .ezik-treasure-theme .journey-app .j-actions{padding-bottom:max(14px,calc(env(safe-area-inset-bottom) + 14px))}
 .ezik-treasure-theme .journey-app.kfix-keyboard-open .j-content{min-height:0;scroll-padding-block:12px}
+
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-list{display:flex;flex-direction:column;gap:14px;min-width:0;width:100%}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-board-heading{margin:8px 0 2px}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-turn-badge{display:inline-flex;align-items:center;justify-content:center;min-height:40px;margin:8px 0 0;padding:7px 16px;border:1px solid #fff1b454;border-radius:999px;background:#0c4654;color:#fff0bc;font-weight:700}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-list>.j-teambar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;overflow:visible}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-list>.j-teambar .j-team{min-width:0;padding:8px 9px}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-list>.j-teambar .j-team strong{font-size:20px}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-board-scroll{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;padding:2px 2px 10px;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-board-grid{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(144px,1fr);gap:8px;width:max-content;min-width:100%;align-items:stretch}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-column{min-width:144px;padding:8px 7px;border:1px solid #ffffff2b;border-radius:17px;background:#ffffff0c;box-shadow:inset 0 1px #ffffff12}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-column-head{display:flex;min-height:66px;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-align:center}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-column-head>svg{width:25px;height:25px;flex:none;color:var(--journey-gold)}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-column-head h3{min-width:0;margin:0;font-size:13px;line-height:1.45;overflow-wrap:anywhere}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-column-cells{display:grid;grid-template-columns:repeat(2,minmax(40px,1fr));gap:7px}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-cell{display:grid;min-width:40px;min-height:44px;place-items:center;padding:4px 2px;border:1px solid #ffffff42;border-radius:10px;background:var(--c,#287286);box-shadow:0 3px 0 #04172a50;color:#fff;font-size:16px;font-weight:700;line-height:1.2;touch-action:manipulation}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-cell:focus-visible{outline:3px solid #fff0a9;outline-offset:2px}
+.ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-cell.j-used{border-style:dashed;background:#1b2d36;box-shadow:none;color:#ffe29a;opacity:.56}
+@media(min-width:760px){
+  .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-board-scroll{overflow:visible}
+  .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-list>.j-teambar{grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+  .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-list>.j-teambar .j-team{padding:7px 6px}
+  .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-list>.j-teambar .j-team b{font-size:12px}
+  .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-list>.j-teambar .j-team strong{font-size:17px}
+  .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-board-grid{grid-auto-flow:initial;grid-auto-columns:initial;grid-template-columns:repeat(6,minmax(0,1fr));width:100%}
+  .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-column{min-width:0;padding:7px 4px}
+  .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-column-head{min-height:62px}
+  .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-column-head>svg{width:23px;height:23px}
+  .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-column-head h3{font-size:11px}
+  .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-column-cells{gap:4px}
+  .ezik-treasure-theme .journey-app[data-game=hanna] .j-hanna-cell{min-height:40px;padding:3px 1px;font-size:13px}
+}

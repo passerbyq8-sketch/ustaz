@@ -21,7 +21,7 @@
   const roomCategorySupported = c => roomCategoryIds.has(global.DATA.cats[c]?.[0]);
   const entryHistory = hasRooms ? history.state : null;
   const names = { hub: 'كنوز المعرفة', ghaws: 'الغوص', harb: 'حرب الجزر', test: 'اختبر معلوماتك', board: 'تحدّي الفئات', hanna: 'حنّا لها' };
-  const limits = { ghaws: [1, 6], harb: [2, 4], test: [1, 4], board: [2, 4], hanna: [2, 12] };
+  const limits = { ghaws: [1, 6], harb: [2, 4], test: [1, 4], board: [2, 4], hanna: [2, 10] };
   const colors = ['#2482a4', '#cb785e', '#7b66c7', '#25856c', '#aa791e', '#b34b81', '#397889', '#88633e', '#555aa0', '#718047', '#a54347', '#715b89'];
   const defaults = ['الموج', 'الشروق', 'الأفق', 'المدى', 'النور', 'الندى', 'الذهب', 'الفضة', 'السحاب', 'الواحة', 'المرسى', 'الشاطئ'];
   // Shipped Hanna LIMITS accepts 4–6 ASCII digits; its automatic draw is 4 digits.
@@ -364,13 +364,20 @@
     }).join('') + '</div><div class="j-actions">' + button('الفرق والإعدادات', 'leave', 'j-secondary') + '</div>';
   }
   function hannaCategories() {
-    return '<section class="j-hanna-list">' + teamBar() + '<div class="j-board-title"><h2>اختاروا فئتكم</h2><p>دور «' + esc(M.teams[actor()].n) + '»</p></div><div class="j-hanna-category-list">' + M.cats.map(c => {
-      const slots = M.slots.filter(slot => slot.cat === c), index = M.slots.findIndex(slot => slot.cat === c && !slot.used), done = index === -1;
-      const progress = '<span class="j-hanna-progress" aria-hidden="true">' + slots.map(slot => '<i class="j-hanna-dot' + (slot.used ? ' j-hanna-dot-filled' : '') + '"></i>').join('') + '</span>';
-      const status = done ? 'انتهت' : slots.some(slot => slot.used) ? 'لُعب جزء منها' : 'لم تُلعب';
-      return button(catIcon(c) + '<b>' + esc(catName(c)) + progress + '</b><span>' + (done ? '✓ انتهت' : '‹') + '</span>', 'tile', 'j-secondary j-hanna-category', 'data-cat="' + c + '" data-slot="' + index + '" aria-label="' + esc(catName(c)) + '، ' + status + '"' + (done ? ' disabled' : ''));
-    }).join('') + '</div><div class="j-actions">' + button('الفرق والإعدادات', 'leave', 'j-secondary') + '</div></section>';
+    const pointOrder = [600, 600, 400, 400, 200, 200];
+    return '<section class="j-hanna-list"><div class="j-board-title j-hanna-board-heading"><h2>لوحة حنّا لها</h2><p class="j-hanna-turn-badge" role="status">دور ' + esc(M.teams[actor()].n) + '</p></div><div class="j-hanna-board-scroll" role="region" aria-label="لوحة فئات حنّا لها" tabindex="0"><div class="j-hanna-board-grid">' + M.cats.map((c, p) => {
+      const slots = M.slots.map((slot, i) => ({ slot, i })).filter(entry => entry.slot.cat === c);
+      const ordered = [600, 400, 200].flatMap(points => slots.filter(entry => entry.slot.pts === points));
+      const cells = pointOrder.map((points, i) => {
+        const entry = ordered[i], slot = entry?.slot, slotIndex = entry?.i;
+        if (!slot) return '';
+        const label = esc(catName(c)) + ' ، ' + ar(points) + ' نقطة' + (slot.used ? ' ، مستخدم' : '');
+        return button(slot.used ? '✓' : ar(points), 'tile', 'j-hanna-cell' + (slot.used ? ' j-used' : ''), 'data-slot="' + slotIndex + '" aria-label="' + label + '"' + (slot.used ? ' disabled' : ''));
+      }).join('');
+      return '<section class="j-hanna-column" data-cat="' + c + '" data-category-color="' + p + '"><header class="j-hanna-column-head">' + catIcon(c) + '<h3>' + esc(catName(c)) + '</h3></header><div class="j-hanna-column-cells">' + cells + '</div></section>';
+    }).join('') + '</div></div>' + teamBar() + '<div class="j-actions">' + button('إنهاء الجولة', 'leave', 'j-secondary') + '</div></section>';
   }
+
   function shownOptions(q) { return M.settings.options === 'shown' || q.showTeams.has(q.activeTeam ?? q.actor) || q.answerRevealed; }
   function questionText(q) { return global.DATA.qs[q.index]; }
   function meta(q) { return '<span class="j-tag">' + esc(catName(questionText(q)[0])) + ' • ' + (q.slotIndex !== undefined ? ar(M.slots[q.slotIndex].pts) + ' نقطة' : 'دور ' + esc(M.teams[q.actor].n)) + '</span>' + (M.settings.options === 'hidden' ? ' <span class="j-tag">إظهار الخيارات: ' + ar(M.teams[q.activeTeam ?? q.actor].shows) + '</span>' : ''); }
