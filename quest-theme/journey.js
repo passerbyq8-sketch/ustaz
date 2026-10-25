@@ -53,7 +53,7 @@
     fallback: [], excluded: [], questionHistory: false, skipPop: false, lastStage: '', warMessage: '', warEvent: null, diveNative: null,
     result: null, audioUnlocked: false, muted: false, timer: null, lastAction: -Infinity, offlineReady: false,
     quizCount: 5, quizCustomCount: false, quizCountDraft: '', quizTimeDraft: '', quizAdvance: null, quizPausedAt: null, quizLastQuestion: null, roomDraft: '', roomCodeError: '', roomStartError: '',
-    roomCodeEntry: false, joinDraft: '', joinError: '', roomFromEntry: false, homeNotice: null, homePurchasesApplicable: false, joinOnly: false
+    roomCodeEntry: false, joinDraft: '', joinError: '', roomFromEntry: false, homeNotice: null, roomClosedNotice: '', homePurchasesApplicable: false, joinOnly: false
   };
   let boardRooms = null;
   if (game !== 'hub') M.teams = Array.from({ length: limits[game][0] }, (_, i) => teamNew(i));
@@ -61,7 +61,7 @@
   const app = document.createElement('div'); app.className = 'journey-app'; app.dataset.game = game;
   document.body.classList.add('ezik-treasure-theme'); document.body.append(app);
   const themeMeta = document.querySelector('meta[name="theme-color"]'); if (themeMeta) themeMeta.content = '#082c38';
-  const THEME_VERSION = '20261023-iapg4';
+  const THEME_VERSION = '20261025-kfix3';
   const IAP_HOST_RESUME_KEY = 'kunuz_iap_host_resume_v1';
   const IAP_EXPIRED_NOTICE_KEY = 'kunuz_iap_expired_notice_v1';
   const themeAsset = file => '/quest-theme/' + file + '?v=' + THEME_VERSION;
@@ -175,7 +175,7 @@
     return '<aside class="j-form-card j-iap-notice" role="status"><p class="j-note">' + esc(copy) + '</p><div class="j-actions">' + button('إخفاء', 'dismiss-home-notice', 'j-secondary') + '</div></aside>';
   }
   function home() {
-    return '<div class="j-home-heading"><h1>وين مغامرتك اليوم؟</h1>' + button('اشتر لعبة', 'iap-purchase', 'j-btn j-home-buy') + '<p>العب، تعلّم… واكتشف كنزك القادم.</p></div>' + homeNoticeMarkup() +
+    return '<div class="j-home-heading"><h1>وين مغامرتك اليوم؟</h1>' + button('اشتر لعبة', 'iap-purchase', 'j-btn j-home-buy') + '<p>العب، تعلّم… واكتشف كنزك القادم.</p></div>' + (M.roomClosedNotice ? '<p class="j-error" role="alert">' + esc(M.roomClosedNotice) + '</p>' : '') + homeNoticeMarkup() +
       '<a class="j-featured" href="/quest-ghaws.html" data-game-entry="ghaws" data-game-path="/quest-ghaws.html"><img src="/quest-theme/assets/ocean-clean.webp?v=20261021-room1" alt="مشهد البحر وصندوق الكنوز"><div class="j-info"><span class="j-tag">رحلة في الأعماق</span><h2>الغوص</h2><p>كل إجابة… تنزلك أعمق.</p><span class="j-btn">ابدأ الغوص ←</span></div></a>' +
       '<div class="j-games">' + [
         ['harb', '/quest-harb.html', 'مع الربع', 'افتحوا الجزر بمعرفتكم', 'map'],
@@ -671,6 +671,12 @@
       history.go(-rewind);
     } else location.replace(target);
   }
+  function returnToRoomHubNotice(message) {
+    M.roomClosedNotice = message || global.RMERR.ROOM_CLOSED; M.error = ''; M.dialog = null; M.resumingRoom = false;
+    document.body.classList.remove('journey-room');
+    history.replaceState({ journey: true, stage: 'hub', step: 0 }, '');
+    setStage('hub', 0);
+  }
   function back() {
     if (hasRooms && ['room-code', 'room-join', 'categories'].includes(M.stage) && history.state?.stage && !history.state.entryRoot) { history.back(); return; }
     if (M.roomFromEntry && /\/join\/?$/.test(location.pathname)) { history.back(); return; }
@@ -1110,6 +1116,8 @@
       if (['welcome', 'snapshot'].includes(message.t) && global.RM.on && global.RM.code) {
         history.replaceState({ ...history.state, kunuzWarRoom: global.RM.code, kunuzWarRoomEntry: M.roomEntry }, '');
         M.resumingRoom = false;
+      } else if (message.t === 'error' && !global.RM.on && ['ROOM_CLOSED', 'NOT_FOUND', 'BAD_TOKEN', 'OUTDATED', 'TOO_MANY', 'ROOM_FULL', 'STARTED'].includes(message.code)) {
+        returnToRoomHubNotice(global.RMERR[message.code] || global.RMERR.ROOM_CLOSED);
       } else if (M.resumingRoom && message.t === 'error' && !global.RM.on) {
         M.resumingRoom = false; M.error = global.RMERR[message.code] || 'تعذّر الرجوع إلى الغرفة.';
         document.body.classList.remove('journey-room');
@@ -1182,7 +1190,7 @@
       // remains completely offline. It owns its credentials, reconnect and protocol.
       const css = ['Page-oyXYdFLk.css', 'index-BYf54ooy.css'];
       for (const file of css) { const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = '/hanna-laha/assets/' + file; document.head.append(link); }
-      const module = document.createElement('script'); module.type = 'module'; module.src = '/hanna-laha/assets/index-iap-v1.js';
+      const module = document.createElement('script'); module.type = 'module'; module.src = '/hanna-laha/assets/index-iap-v1.js?v=20261025-kfix3';
       try { localStorage.setItem('hl-ezik.sound', 'false'); } catch (_) {}
       if (!join) {
         const roomColors = ['blue','orange','purple','green','gold','pink','teal','brown','navy','olive','red','maroon'];
@@ -1445,7 +1453,7 @@
     event.preventDefault(); event.stopImmediatePropagation(); M.audioUnlocked = true; sound('tap');
     if (hannaExit && M.roomFromEntry && /\/join\/?$/.test(location.pathname)) { history.back(); return; }
     const close = warExit && target.id === 'roomEnd' ? target.onclick : null;
-    askDialog(close && global.RM.host ? 'تغلقون الغرفة وترجعون للإعدادات؟' : 'تطلعون من الغرفة وترجعون للإعدادات؟', () => { if (close) close.call(target); leaveRoomToSettings(); }, () => {}, { yes: close && global.RM.host ? 'نعم، نغلق' : 'نعم، نطلع', no: 'لا، نبقى' });
+    askDialog(close && global.RM.host ? 'تغلقون الغرفة وترجعون للإعدادات؟' : 'تطلعون من الغرفة وترجعون للإعدادات؟', () => { const hostClose = close && global.RM.host; if (close) { const result = close.call(target); if (hostClose && result && typeof result.then === 'function') { result.then(ack => { if (!ack) returnToRoomHubNotice(global.RMERR.ROOM_CLOSED); }, () => returnToRoomHubNotice(global.RMERR.ROOM_CLOSED)); return; } } leaveRoomToSettings(); }, () => {}, { yes: close && global.RM.host ? 'نعم، نغلق' : 'نعم، نطلع', no: 'لا، نبقى' });
   }, true);
   document.addEventListener('click', event => {
     if (M.stage === 'room' && event.target.closest('#root button')) { M.audioUnlocked = true; sound('tap'); }

@@ -58,8 +58,8 @@
 <link rel="preload" href="/quest-theme/assets/bold.ttf?v=20261020-flash4" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="/quest-theme/motion-kit.js?v=20261022-roomsfix2" as="script">
 <link rel="preload" href="/quest-theme/icons.js?v=20261022-roomsfix2" as="script">
-<link rel="preload" href="/quest-theme/model.js?v=20261025-kfix2" as="script">
-<link rel="preload" href="/quest-theme/journey.js?v=20261025-kfix2" as="script">
+<link rel="preload" href="/quest-theme/model.js?v=20261025-kfix3" as="script">
+<link rel="preload" href="/quest-theme/journey.js?v=20261025-kfix3" as="script">
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>كنوز المعرفة — حرب الجزر</title>
@@ -405,11 +405,11 @@ textarea:focus{outline:none;border-color:var(--azraq)}
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <script src="/quest-theme/motion-kit.js?v=20261022-roomsfix2"></script>
 <script src="/quest-theme/icons.js?v=20261022-roomsfix2"></script>
-<script src="/quest-theme/model.js?v=20261025-kfix2"></script>
+<script src="/quest-theme/model.js?v=20261025-kfix3"></script>
 <script src="/iap-pending.js?v=20261023-iapf"></script>
 <script src="/hanna-laha/assets/iap-bridge-v1.js?v=20261024-iapg6"></script>
 <script src="/quest-theme/room-categories.js?v=20261022-roomsfix2"></script>
-<script src="/quest-theme/journey.js?v=20261025-kfix2"></script>
+<script src="/quest-theme/journey.js?v=20261025-kfix3"></script>
 </head>
 <body>
 <div class="kunuz-theme-shell" role="status" aria-label="نجهّز مغامرتكم"><span class="kunuz-theme-spinner" aria-hidden="true"></span></div>
@@ -423,6 +423,7 @@ textarea:focus{outline:none;border-color:var(--azraq)}
   <div class="brand"><h1>حرب الجزر</h1>
     <p>لعبة مجموعات · أرخبيل من اثنتي عشرة جزيرة تحمل فئاتك المختارة — تُفتح بالجواب لا بالنرد</p></div>
   <div class="rule"></div>
+  <p class="kzr-msg bad hidden" id="homeRoomNotice" role="status"></p>
   <button class="mode" data-go="cfg"><b>جهاز واحد</b>
     <span>من لاعبين إلى أربعة على جهاز واحد — يدور الجهاز بينكم</span></button>
   <button class="mode" data-go="room"><b>غرفة</b>
@@ -1875,7 +1876,7 @@ function quitFight(){clearT();if(G.busy)endFight()}
    لا قائمة غرف ولا بحث: الرقم وحده يفتح الباب. السجلّ المحفوظ في الجهاز رقمٌ ورمزان سريّان للعودة. */
 var WAR_HOST="https://hanna-laha.hl-worker.workers.dev",WAR_V=1,SKIP_SECS=45;
 var RM={nf:0,nfTimer:null,on:false,host:false,ws:null,code:"",roomId:"",hostToken:"",teamToken:"",watch:false,slot:-1,role:"",
-  snap:null,names:[],view:"",qn:-1,res:"",fightOn:false,dl:0,raf:null,tries:0,retry:null,closing:false,dev:"",mem:null,
+  snap:null,names:[],view:"",qn:-1,res:"",fightOn:false,dl:0,raf:null,tries:0,retry:null,closing:false,closeAck:null,closeTimer:null,dev:"",mem:null,
   color:-1,fight:null,answered:false,joinMode:"team",iapStartWaiters:[]};
 var RMKEY="kz_harb_room_v1",RMDEV="kz_harb_dev_v1";
 function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]})}
@@ -1912,10 +1913,19 @@ function roomMine(){return RM.on&&RM.slot>=0&&RM.snap&&RM.snap.game&&RM.snap.gam
 window.addEventListener("popstate",function(){
   if(RM.on&&(RM.view==="war"||RM.view==="win"||RM.view==="lobby"||RM.view==="join"))roomLeaveWar()});
 /* ───── الاتصال ───── */
-function rmSend(o){if(RM.ws&&RM.ws.readyState===1){try{RM.ws.send(JSON.stringify(o))}catch(e){}}}
+function rmSend(o){if(RM.ws&&RM.ws.readyState===1){try{RM.ws.send(JSON.stringify(o))}catch(e){}}}function rmRequestClose(){
+  var ws=RM.ws;if(!ws||ws.readyState!==1)return Promise.resolve(false);
+  return new Promise(function(resolve){
+    var settled=false;
+    function finish(ack){if(settled)return;settled=true;if(RM.closeTimer){clearTimeout(RM.closeTimer);RM.closeTimer=null}if(RM.closeAck===finish)RM.closeAck=null;resolve(ack)}
+    RM.closeAck=finish;RM.closeTimer=setTimeout(function(){finish(false)},1500);
+    try{ws.send(JSON.stringify({t:"close"}))}catch(e){finish(false)}
+  })}
 function rmClose(keep){
   RM.closing=true;if(RM.retry){clearTimeout(RM.retry);RM.retry=null}
   if(RM.nfTimer){clearTimeout(RM.nfTimer);RM.nfTimer=null}
+  if(RM.closeTimer){clearTimeout(RM.closeTimer);RM.closeTimer=null}
+  if(RM.closeAck){var pending=RM.closeAck;RM.closeAck=null;pending(false)}
   if(RM.ws){try{RM.ws.close()}catch(e){}RM.ws=null}
   RM.closing=false;
   if(!keep)rmDel(RMKEY)}
@@ -1943,7 +1953,7 @@ function rmConnect(first){
     if(RM.ws!==ws)return;RM.ws=null;
     if(ev&&ev.code===4000&&RM.on){/* فُتحت الغرفة من جهاز آخر بالرمز نفسه */
       rmClose(true);RM.on=false;RM.view="";quitFight();openRoomScreen();roomNote("فُتحت الغرفة من جهاز آخر بنفس الفريق");return}
-    if(!RM.closing&&RM.on)rmDrop("closed")};
+    if(RM.closeAck){var pending=RM.closeAck;pending(false);return}if(!RM.closing&&RM.on)rmDrop("closed")};
   ws.onerror=function(){}}
 /* الانقطاع: يعيد المحاولة وحده، وبالرمز نفسه يرجع الجهاز إلى فريقه */
 function rmDrop(){
@@ -1978,21 +1988,11 @@ function rmMsg(m){
   if(m.t==="note"){if(RMNOTE[m.code])stat(RMNOTE[m.code],true);return}
   if(m.t==="error"){rmError(m.code)}}
 function rmError(code){
-  var txt=RMERR[code];
+  var txt=RMERR[code];if(code==="ROOM_CLOSED"&&RM.closeAck)RM.closeAck(true);
   /* بعد نشر الخادم قد تردّ نسخة قديمة «لا توجد غرفة»: يُعاد البحث بعد ثانية ثم بعد ثانيتين قبل عرض الخطأ */
-  if(code==="NOT_FOUND"&&RM.on&&RM.nf<2&&(RM.view==="join"||RM.view==="")){
-    RM.nf++;rmClose(true);
-    joinMsg("جارٍ البحث عن الغرفة…");
-    var want=RM.code;
-    RM.nfTimer=setTimeout(function(){RM.nfTimer=null;if(RM.on&&RM.code===want&&!RM.ws)rmConnect(true)},RM.nf*1000);
-    return}
   if(code==="NOT_FOUND"||code==="ROOM_CLOSED"||code==="BAD_TOKEN"||code==="OUTDATED"||code==="TOO_MANY"||code==="ROOM_FULL"||code==="STARTED"){
-    /* الباب مغلق: يُقطع الاتصال، وتُعرض العلّة حيث كان اللاعب */
-    var onJoin=RM.view==="join"||RM.view==="";
     rmClose(false);RM.on=false;RM.code="";RM.teamToken="";RM.hostToken="";RM.host=false;RM.snap=null;
-    stopRoomFx();quitFight();
-    if(onJoin){RM.view="join";show("join");joinMsg(txt,true);return}
-    RM.view="";openRoomScreen();roomNote(txt);return}
+    stopRoomFx();quitFight();roomExit(txt);return}
   if(!txt)return;
   if(RM.view==="lobby")lobbyMsg(txt,true);else if(RM.view==="war")stat(esc(txt),true)}
 function joinMsg(t,bad){var m=$("joinMsg");m.textContent=t||"";m.className="kzr-msg"+(bad?" bad":"")}
@@ -2114,8 +2114,8 @@ $("roomStart").onclick=function(){
   window.ezikIapStart(function(){rmSend({t:"start"})},RM.code,"harb",{cycle:"1",roomInstanceId:RM.roomId,waitForStart:waitForWarStart});
 };
 $("roomEnd").onclick=function(){
-  if(RM.host){rmSend({t:"close"});rmClose(false);roomExit()}
-  else{rmSend({t:"leave"});rmClose(false);roomExit()}};
+  if(RM.host)return rmRequestClose().then(function(ack){rmClose(false);RM.on=false;RM.host=false;if(!window.KunuzJourney)roomExit(RMERR.ROOM_CLOSED);return ack});
+  rmSend({t:"leave"});rmClose(false);if(!window.KunuzJourney||window.KunuzJourney.state.stage!=="room")roomExit()};
 $("copyCode").onclick=function(){
   var t=RM.code,ok=function(){lobbyMsg("نُسخ الرقم")};
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,function(){fb(t,ok)})}else fb(t,ok)};
@@ -2125,9 +2125,10 @@ $("shareCode").onclick=function(){
   else{var all=text+" — "+url,ok=function(){lobbyMsg("نُسخت الدعوة")};
     if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(all).then(ok,function(){fb(all,ok)})}else fb(all,ok)}};
 /* الخروج من الغرفة إلى الصفحة الرئيسة */
-function roomExit(){
+function roomExit(notice){
   rmClose(true);stopRoomFx();
   RM.on=false;RM.view="";RM.snap=null;RM.slot=-1;RM.role="";RM.fightOn=false;RM.qn=-1;RM.res="";
+  var homeNotice=$("homeRoomNotice");if(homeNotice){homeNotice.textContent=notice||"";homeNotice.classList.toggle("hidden",!notice)}
   quitFight();G.phase="deploy";leaveCfgMode();show("home")}
 function roomLeaveWar(){
   /* من الحرب: ينقطع الجهاز ويبقى الرمز السريّ، فيرجع من «العودة إلى الغرفة» */

@@ -6,13 +6,13 @@
     const KEY = 'kunuz_points_board_room_v1', DEVICE = 'kunuz_points_board_device_v1';
     const api = global.KUNUZ_BOARD_API_ORIGIN || 'https://hanna-laha.hl-worker.workers.dev';
     const digits = h.digits, stamp = () => global.seenStamp() + ':' + global.DATA.qs.length;
-    const S = { session: null, snapshot: null, socket: null, connected: false, stopped: true, error: '', note: '', retry: null, heartbeat: null, ticks: null, retryCount: 0, slot: 0, name: '', color: 0, answer: null, text: '', returnStage: 'room-entry', busy: false };
+    const S = { session: null, snapshot: null, socket: null, connected: false, stopped: true, error: '', note: '', retry: null, heartbeat: null, ticks: null, closeTimer: null, retryCount: 0, slot: 0, name: '', color: 0, answer: null, text: '', returnStage: 'room-entry', busy: false };
     const startWaiters = new Set();
     const invalidSessionMessage = 'تعذّرت استعادة دخولكم؛ انضموا من جديد.';
     const errors = { NOT_FOUND: 'ما لقينا غرفة بهذا الرقم.', ROOM_CLOSED: 'أُغلقت الغرفة.', BAD_TOKEN: invalidSessionMessage, BANK_MISMATCH: 'تحتاجون تحديث الصفحة لتطابق أسئلة الغرفة.', OUTDATED: 'حدّثوا الصفحة للانضمام إلى الغرفة.', CODE_TAKEN: 'هذا الرقم مستخدم؛ اختاروا رقمًا آخر.', TEAM_TAKEN: 'الفريق اختاره لاعب آخر؛ اختاروا فريقًا متاحًا.', ROOM_FULL: 'اكتمل عدد الفرق في الغرفة.', NOT_READY: 'تغيّرت الخطوة؛ انتظروا تحديث الغرفة.', STALE: 'تغيّرت الجولة؛ اختاروا من جديد.', TOO_MANY: 'انتظروا قليلًا ثم حاولوا مرة ثانية.', FORBIDDEN: 'هذا الإجراء لصاحب الدور أو صاحب الغرفة.', BAD_CONFIG: 'راجعوا الفئات والفرق والوقت ثم حاولوا.', BAD_MESSAGE: 'راجعوا الاختيار ثم حاولوا مرة ثانية.', SERVER: 'تعذّر الاتصال بالغرفة؛ حاولوا مرة ثانية.' };
     function identity() { try { let id = localStorage.getItem(DEVICE); if (!id) { id = 'board-' + crypto.randomUUID(); localStorage.setItem(DEVICE, id); } return id; } catch (_) { return S.device ||= 'board-' + crypto.randomUUID(); } }
     function save() { try { if (S.session) localStorage.setItem(KEY, JSON.stringify(S.session)); else localStorage.removeItem(KEY); } catch (_) {} }
-    function stop() { S.stopped = true; clearTimeout(S.retry); clearInterval(S.heartbeat); clearInterval(S.ticks); startWaiters.forEach(waiter => waiter.cancel()); if (S.socket) { S.socket.onclose = null; S.socket.close(); } S.socket = null; S.connected = false; }
+    function stop() { S.stopped = true; clearTimeout(S.retry); clearTimeout(S.closeTimer); S.closeTimer = null; clearInterval(S.heartbeat); clearInterval(S.ticks); startWaiters.forEach(waiter => waiter.cancel()); if (S.socket) { S.socket.onclose = null; S.socket.close(); } S.socket = null; S.connected = false; }
     function waitForGame(targetGameNumber) {
       const roomId = S.snapshot?.roomId;
       let resolvePromise, rejectPromise;
@@ -44,12 +44,19 @@
     function leave(retain = false) { stop(); if (retain && S.session && (S.session.hostToken || S.session.teamToken)) { S.session.active = false; save(); S.session = null; } else { S.session = null; save(); } S.snapshot = null; S.error = ''; S.busy = false; M.question = null; M.running = false; M.stage = 'room-entry'; M.step = 0; history.replaceState({ journey: true, stage: 'room-entry', step: 0 }, '', '/quest-board.html'); h.render(); }
     function permanent(code) {
       const wasOpen = !!S.snapshot, returnStage = S.returnStage; stop(); S.session = null; save(); S.snapshot = null; S.busy = false; M.question = null; M.running = false;
+      if (wasOpen && code === 'ROOM_CLOSED') M.error = errors.ROOM_CLOSED;
       if (wasOpen && code === 'ROOM_CLOSED') { leave(); return; }
       S.error = errors[code] || errors.SERVER; M.stage = returnStage; M.step = returnStage === 'settings' ? 2 : 0;
       if (returnStage === 'room-join') M.joinError = S.error; else M.error = S.error;
       history.replaceState({ journey: true, stage: M.stage, step: M.step, room: M.settings.room }, '', '/quest-board.html'); h.render();
     }
     function send(message) { if (!S.connected || !S.socket || S.socket.readyState !== WebSocket.OPEN) { S.error = 'ننتظر عودة الاتصال بالغرفة.'; h.render(); return false; } S.error = ''; S.socket.send(JSON.stringify(message)); return true; }
+    function requestHostClose() {
+      if (!S.connected || !send({ t: 'close' })) return false;
+      S.stopped = true; clearTimeout(S.retry); clearInterval(S.heartbeat); clearInterval(S.ticks);
+      S.closeTimer = setTimeout(() => { S.closeTimer = null; leave(); }, 1500);
+      return true;
+    }
     function mark(snapshot) {
       if (!S.session) return;
       const cycle = snapshot.roomId + ':' + snapshot.gameNumber;
@@ -192,7 +199,7 @@
       const s = S.snapshot, q = s?.question;
       if (action === 'br-copy') { if (navigator.clipboard?.writeText) navigator.clipboard.writeText(link()).then(() => { S.note = 'نُسخ رابط الانضمام.'; h.render(); }).catch(() => { S.note = 'انسخوا رابط الانضمام من الحقل.'; h.render(); }); else { S.note = 'انسخوا رابط الانضمام من الحقل.'; h.render(); } }
       else if (action === 'back' && q && s.self.role === 'host') h.askDialog('ترجعون للوحة وتتركون السؤال بلا نقاط؟', () => send({ t: 'abandon', qn: q.qn }), () => {});
-      else if (['br-leave', 'leave', 'back'].includes(action)) h.askDialog(s?.self.role === 'host' ? S.connected ? 'تغلقون الغرفة وتطلعون؟' : 'تطلعون مؤقتًا وتكملون من رقم الغرفة لاحقًا؟' : 'تطلعون من الغرفة؟', () => { const retain = s?.self.role !== 'host' || !S.connected; if (!retain) send({ t: 'close' }); leave(retain); }, () => {}, { yes: 'نعم، نطلع', no: 'لا، نبقى' });
+      else if (['br-leave', 'leave', 'back'].includes(action)) h.askDialog(s?.self.role === 'host' ? S.connected ? 'تغلقون الغرفة وتطلعون؟' : 'تطلعون مؤقتًا وتكملون من رقم الغرفة لاحقًا؟' : 'تطلعون من الغرفة؟', () => { const isHost = s?.self.role === 'host'; if (isHost && requestHostClose()) return; leave(true); }, () => {}, { yes: 'نعم، نطلع', no: 'لا، نبقى' });
       else if (action === 'br-seat' && s) { S.slot = +el.dataset.slot; S.name = s.teams[S.slot]?.name || ''; S.color = s.teams[S.slot]?.color ?? s.teams.length; h.render(); }
       else if (action === 'br-join-team') { if (!S.name.trim()) { S.error = 'اكتبوا اسم الفريق.'; h.render(); } else { S.busy = true; send({ t: 'join', name: S.name.trim(), color: S.color, ...(S.slot >= 0 ? { slot: S.slot } : {}) }); h.render(); } }
       else if (action === 'br-start' && s?.self.role === 'host') {
