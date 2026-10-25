@@ -48,7 +48,7 @@
   const teamNew = i => ({ n: defaults[i], c: colors[i], symbol: i, score: 0, shows: 2 });
   const M = {
     game, ready: false, step: game === 'hub' ? 0 : 1, stage: game === 'hub' ? 'hub' : 'loading', cats: [], teams: [],
-    settings: { options: 'shown', reveals: 2, time: 30, customTime: 25, custom: false, difficulty: game === 'ghaws' ? 'depth' : game === 'harb' ? 'mixed' : 'points', cap: 10, shots: 1, flags: 2, customFlags: false, customFlagsValue: 12, win: 2, room: false, roomCode: '' },
+    settings: { options: 'shown', reveals: 2, time: 30, customTime: 25, custom: false, difficulty: game === 'board' || game === 'hanna' ? 'points' : 'mixed', cap: 10, shots: 1, flags: 2, customFlags: false, customFlagsValue: 12, win: 2, room: false, roomCode: '' },
     slots: [], pool: [], used: new Set(), question: null, g: null, error: '', dialog: null, running: false,
     fallback: [], excluded: [], questionHistory: false, skipPop: false, lastStage: '', warMessage: '', warEvent: null, diveNative: null,
     result: null, audioUnlocked: false, muted: false, timer: null, lastAction: -Infinity, offlineReady: false,
@@ -305,7 +305,7 @@
   function settings() {
     const s = M.settings, min = limits[game][0], max = limits[game][1];
     const roomMode = hasRooms && s.room;
-    const difficulty = game === 'ghaws' ? [['depth', 'تزيد مع العمق'], ['mixed', 'مختلطة']] : game === 'harb' ? [['mixed', 'مختلطة'], ['easy', 'سهلة'], ['medium', 'متوسطة'], ['hard', 'صعبة']] : [['points', 'حسب النقاط'], ['mixed', 'مختلطة']];
+    const difficulty = game === 'ghaws' ? [['easy', 'سهل'], ['medium', 'متوسط'], ['hard', 'صعب'], ['mixed', 'مختلط']] : game === 'harb' ? [['mixed', 'مختلطة'], ['easy', 'سهلة'], ['medium', 'متوسطة'], ['hard', 'صعبة']] : [['points', 'حسب النقاط'], ['mixed', 'مختلطة']];
     return '<h1 class="j-heading">جهّزوا فريقكم</h1><p class="j-lead">الأسماء والألوان والرموز لكم… وبعدها تبدأ المغامرة.</p>' +
       (hasRooms && (game !== 'board' || s.room) ? '<div class="j-room-entry-change">' + button('تغيير طريقة اللعب', 'change-play-mode', 'j-secondary') + '</div>' : '') +
       (roomMode ? game === 'board' ? boardRooms.card() : roomCard() : '') +
@@ -315,7 +315,7 @@
       (s.options === 'hidden' ? '<label class="j-field" for="j-reveals">كم مرة تقدر كل فرقة تظهر الخيارات</label><input id="j-reveals" class="j-input" type="number" min="0" step="1" data-input="reveals" value="' + (Number.isFinite(s.reveals) ? s.reveals : '') + '">' : '') +
       '<label class="j-field">الوقت</label>' + chips([[15, ar(15)], [30, ar(30)], [45, ar(45)], [60, ar(60)], ['custom', 'مخصص'], [0, 'بلا وقت']], s.custom ? 'custom' : s.time, 'time') +
       (s.custom ? '<label class="j-field" for="j-time">الوقت بالثواني</label><input id="j-time" class="j-input" type="number" min="0" step="any" data-input="customTime" value="' + (Number.isFinite(s.customTime) ? s.customTime : '') + '">' : '') +
-      '<label class="j-field">الصعوبة <span class="j-tag j-gold">تجريبي</span></label>' + chips(difficulty, s.difficulty, 'difficulty') + (game === 'board' || game === 'test' || game === 'hanna' ? '<p class="j-note">حسب النقاط: ٢٠٠ سهل · ٤٠٠ متوسط · ٦٠٠ صعب</p>' : '') +
+      '<label class="j-field">الصعوبة <span class="j-tag j-gold">تجريبي</span></label>' + chips(difficulty, s.difficulty, 'difficulty') + (game === 'board' || game === 'hanna' ? '<p class="j-note">حسب النقاط: ٢٠٠ سهل · ٤٠٠ متوسط · ٦٠٠ صعب</p>' : '') +
       (game === 'ghaws' ? '<label class="j-field">حد العمق</label>' + chips([5, 7, 10, 15, 20, 30].map(n => [n, ar(n)]), s.cap, 'cap') : '') +
       (game === 'harb' ? '<label class="j-field">رصيد توزيع الرايات بحسب جزر الفريق</label>' + chips([[1, ar(1)], [2, ar(2)], [3, ar(3)], ['custom', 'مخصص']], s.customFlags ? 'custom' : s.flags, 'flags') + (s.customFlags ? '<label class="j-field" for="j-flags">رصيد الرايات لكل فريق</label><input id="j-flags" class="j-input" data-input="customFlagsValue" type="number" min="2" max="60" value="' + (Number.isFinite(s.customFlagsValue) ? s.customFlagsValue : '') + '">' : '') + '<p class="j-note">لكل جزيرة راية حارس، وتوزعون رصيدكم كيف ما تبون.</p><label class="j-field" for="j-shots">أسئلة الهجوم</label><input id="j-shots" class="j-input" data-input="shots" type="number" min="1" max="10" value="' + (Number.isFinite(s.shots) ? s.shots : '') + '"><label class="j-field">شرط الفوز</label>' + chips([[2, 'بحران'], [9, 'الأرخبيل كله']], s.win, 'win') : '') +
       '</section>' +
@@ -403,6 +403,7 @@
     return '<section class="j-quiz-setup"><h1 class="j-heading">جهّزوا الاختبار</h1><p class="j-lead">اختاروا الوقت وعدد الأسئلة وطريقة الإجابة.</p>' +
       '<fieldset class="j-form-card j-quiz-setting"><legend class="j-field">الوقت لكل سؤال</legend>' + chips([0, 10, 15, 20, 30, 45, 60].map(n => [n, n ? ar(n) + ' ثانية' : 'بلا حد']).concat([['custom', 'وقت مخصص']]), M.settings.custom ? 'custom' : time(), 'time') + quizNumberField('time', 'اكتب بالثواني', M.quizTimeDraft) + '</fieldset>' +
       '<fieldset class="j-form-card j-quiz-setting"><legend class="j-field">عدد الأسئلة</legend><div class="j-chips">' + quizCounts().map(count => button(ar(count), 'quiz-count', 'j-chip', 'data-count="' + count + '" aria-pressed="' + (!M.quizCustomCount && M.quizCount === count) + '"')).join('') + '</div>' + quizNumberField('count', 'اكتب عددًا', M.quizCountDraft) + '</fieldset>' +
+      '<fieldset class="j-form-card j-quiz-setting"><legend class="j-field">الصعوبة <span class="j-tag j-gold">تجريبي</span></legend>' + chips([['easy', 'سهل'], ['medium', 'متوسط'], ['hard', 'صعب'], ['mixed', 'مختلط']], M.settings.difficulty, 'difficulty') + '</fieldset>' +
       '<fieldset class="j-form-card j-quiz-setting"><legend class="j-field">طريقة الإجابة</legend>' + button('إظهار الاختيارات <span aria-hidden="true">' + (M.settings.options === 'shown' ? '✓' : '—') + '</span>', 'quiz-options', 'j-chip j-quiz-toggle', 'role="switch" aria-checked="' + (M.settings.options === 'shown') + '" aria-label="إظهار الاختيارات" aria-pressed="' + (M.settings.options === 'shown') + '"') + '</fieldset>' +
       (M.error ? '<div class="j-error" role="alert">' + esc(M.error) + '</div>' : '') + '<div class="j-actions">' + button('ابدأ', 'quiz-start', 'j-btn', !quizCounts().length ? 'disabled' : '') + '</div></section>';
   }
@@ -699,12 +700,12 @@
     updateQuizFields();
     if (quizCountError() || quizTimeError() || !M.quizCount || !M.quizCustomCount && !quizCounts().includes(M.quizCount)) return;
     M.teams = [teamNew(0)];
-    Object.assign(M.settings, { difficulty: 'mixed', room: false });
+    M.settings.room = false;
     M.quizPausedAt = null; M.quizLastQuestion = null;
     beginWithIap();
   }
   function saveQuizDraft() {
-    try { sessionStorage.setItem('kunuz_quiz_setup_v1', JSON.stringify({ cats: M.cats, count: M.quizCount, time: time(), options: M.settings.options, customCount: M.quizCustomCount, countDraft: M.quizCountDraft, customTime: M.settings.custom, timeDraft: M.quizTimeDraft })); } catch (_) {}
+    try { sessionStorage.setItem('kunuz_quiz_setup_v1', JSON.stringify({ cats: M.cats, count: M.quizCount, time: time(), options: M.settings.options, difficulty: M.settings.difficulty, customCount: M.quizCustomCount, countDraft: M.quizCountDraft, customTime: M.settings.custom, timeDraft: M.quizTimeDraft })); } catch (_) {}
   }
   function initQuizSetup() {
     try {
@@ -714,6 +715,7 @@
         M.cats = Array.isArray(draft.cats) ? [...new Set(draft.cats.filter(c => available.has(c)))] : [];
         if ([0, 10, 15, 20, 30, 45, 60].includes(draft.time)) M.settings.time = draft.time;
         if (['shown', 'hidden'].includes(draft.options)) M.settings.options = draft.options;
+        if (['easy', 'medium', 'hard', 'mixed'].includes(draft.difficulty)) M.settings.difficulty = draft.difficulty;
         if (quizCounts().includes(draft.count)) M.quizCount = draft.count;
         M.quizCustomCount = draft.customCount === true; M.quizCountDraft = typeof draft.countDraft === 'string' ? roomDigits(draft.countDraft) : '';
         M.settings.custom = draft.customTime === true; M.quizTimeDraft = typeof draft.timeDraft === 'string' ? roomDigits(draft.timeDraft) : '';
@@ -762,10 +764,19 @@
       oldest.push(...candidates.oldest.filter(i => global.DATA.qs[i][4].length === 4));
     }
     oldest.sort((a, b) => M.history.last(a) - M.history.last(b) || a - b);
-    const indices = Model.shuffle(unseen).concat(oldest).slice(0, M.quizCount);
+    const target = { easy: 1, medium: 2, hard: 3 }[M.settings.difficulty];
+    let ranked;
+    if (target) {
+      const unseenExact = Model.shuffle(unseen.filter(i => Model.level(i) === target));
+      const unseenOther = Model.shuffle(unseen.filter(i => Model.level(i) !== target)).sort((a, b) => Math.abs((Model.level(a) || target) - target) - Math.abs((Model.level(b) || target) - target));
+      const oldExact = oldest.filter(i => Model.level(i) === target);
+      const oldOther = oldest.filter(i => Model.level(i) !== target).sort((a, b) => Math.abs((Model.level(a) || target) - target) - Math.abs((Model.level(b) || target) - target) || M.history.last(a) - M.history.last(b) || a - b);
+      ranked = unseenExact.concat(unseenOther, oldExact, oldOther);
+    } else ranked = Model.shuffle(unseen).concat(oldest);
+    const indices = ranked.slice(0, M.quizCount);
     const replayed = new Set(indices.filter(i => M.history.has(i)).map(i => global.DATA.qs[i][0]));
     for (const cat of replayed) M.history.restart(cat, indices.filter(i => global.DATA.qs[i][0] === cat));
-    const slots = indices.map(index => { const actual = Model.level(index) || 1; return { index, cat: global.DATA.qs[index][0], pts: Model.POINTS[actual - 1], desired: actual, actual, used: false, by: -1 }; });
+    const slots = indices.map(index => { const actual = Model.level(index) || 1, desired = target || actual; return { index, cat: global.DATA.qs[index][0], pts: Model.POINTS[desired - 1], desired, actual, used: false, by: -1 }; });
     return { indices, slots, shortage: [], fallback: [] };
   }
   function fourChoiceSlots(slots) {
@@ -986,8 +997,8 @@
     const savedPool = s.pool;
     let available = savedPool.filter(i => global.DATA.qs[i][0] === cat && !M.used.has(i) && !M.history.has(i));
     if (!available.length) { global.nextQ(); return; }
-    if (M.settings.difficulty === 'depth') {
-      const desired = Math.min(3, 1 + Math.floor(s.depth * 3 / Math.max(1, s.cap)));
+    const desired = { easy: 1, medium: 2, hard: 3 }[M.settings.difficulty];
+    if (desired) {
       available.sort((a, b) => Math.abs((Model.level(a) || desired) - desired) - Math.abs((Model.level(b) || desired) - desired));
       const nearest = Math.abs((Model.level(available[0]) || desired) - desired);
       available = available.filter(i => Math.abs((Model.level(i) || desired) - desired) === nearest);
