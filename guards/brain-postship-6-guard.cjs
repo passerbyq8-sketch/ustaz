@@ -69,7 +69,7 @@ const closed = (t) => STOP.test(String(t).replace(trailing, '')) || /(?:…|\.\.
   console.log('-- 4. the client draws it after the text, apart from it');
   const app = fs.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
   ok('app.jsx reads the open attribute of a book tag', app.includes('const openMatch = attrsStr.replace(') && app.includes('open: !!openMatch,'));
-  ok('app.jsx draws the mark in its own element after the passage', app.includes('<div style={s.bookMatnText}>{matn}</div>') && app.includes('{open ? <div style={{ opacity: 0.7, marginTop: -2 }}>…</div> : null}'));
+  ok('app.jsx draws the mark in its own element after the passage', app.includes('<div style={s.bookMatnText}>{matn}</div>') && app.includes('{open && !cut ? <div style={{ opacity: 0.7, marginTop: -2 }}>…</div> : null}'));
 
   console.log('\n' + (checks - failures) + '/' + checks + ' checks passed');
   process.exit(failures ? 1 : 0);

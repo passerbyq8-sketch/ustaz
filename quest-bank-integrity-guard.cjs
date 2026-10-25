@@ -2028,7 +2028,9 @@ const SEALED = {
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3470248. NO CORE entry joined or left; the app.js line in sw.js's measured byte table followed. THIS digest is re-cut LAST, at CR = 0.
   //   2026-10-24 -- POSTSHIP item 9, the brief answer's fatwa excerpt and its «النص الكامل» button (app.jsx FatwaFullText): app.js 2284234 -> 2285652 bytes.
 //                    node tools/core-bytes.cjs --write: CORE_BYTES 3471666. NO CORE entry joined or left; the app.js line in sw.js's measured byte table followed. THIS digest is re-cut LAST, at CR = 0.
-  'sw.js': '758c1d5b09f0e6efa4e86c29b0f13244ba85b36b0aa8f536854c1bf1025bef1e',
+  //   2026-10-25 -- POSTSHIP FIX2 item 2, BookCard draws one ellipsis under a cut passage: app.js 2285652 -> 2285658 bytes.
+//                    node tools/core-bytes.cjs --write: CORE_BYTES 3471672. NO CORE entry joined or left; the app.js line in sw.js's measured byte table followed. THIS digest is re-cut LAST, at CR = 0.
+  'sw.js': 'a496f30c013b79836f013170f9878e3e1d333eeafff2f19978bb5983d0bd572a',
 };
 
 // ---------------------------------------------------------------------------
@@ -3209,7 +3211,7 @@ async function compare(bankPath) {
       { n: 10584, of: 'fonts/Iurf6YBj_oCad4k1l5anHrFpiQ.woff2' },
       // ITEM 32. The three CORE entries the CDN removal added, each stated in the worker's own
       // byte table and each re-derived here from the file it names.
-      { n: 2285652, of: 'app.js' },
+      { n: 2285658, of: 'app.js' },
       { n: 131835, of: 'vendor/react-dom.umd.js' },
       { n: 10751, of: 'vendor/react.umd.js' },
       { n: 368386, of: 'icon-watermark.png' },

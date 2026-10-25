@@ -1000,5 +1000,10 @@
     "name": "postship13",
     "script": "guards/brain-postship-13-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "postship14",
+    "script": "guards/brain-postship-14-guard.cjs",
+    "args": ""
   }
 ]

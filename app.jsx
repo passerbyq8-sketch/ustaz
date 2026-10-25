@@ -25472,7 +25472,8 @@ function BookCard({ title, author, where, text, cut, open, bookId, vol, page }) 
             {at ? <span style={s.bookMatnWhere}>{at}</span> : null}
           </div>
           <div style={s.bookMatnText}>{matn}</div>
-          {open ? <div style={{ opacity: 0.7, marginTop: -2 }}>…</div> : null}
+          {/* POSTSHIP FIX2 ITEM 2 -- 2026-10-25: the cut note begins with «…» and carries the mark; the separate «…» only without it. */}
+          {open && !cut ? <div style={{ opacity: 0.7, marginTop: -2 }}>…</div> : null}
           {cut ? <div style={s.bookMatnCut}>{BOOK_MATN_CUT_NOTE}</div> : null}
         </div>
       ) : null}
