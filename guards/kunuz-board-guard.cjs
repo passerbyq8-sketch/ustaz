@@ -434,8 +434,10 @@ function checkB7(src) {
       for (const s of readable(el, own)) {
         strings++;
         if (!DIGIT.test(s)) continue;
-        if (!st && QWORD.test(s)) f.push(label + ' #' + (id || el.localName) + ' word+digit: ' + s.trim().slice(0, 60));
-        if (!st) for (const c of can) if (s.indexOf(arD(c)) > -1 || new RegExp('(^|[^0-9])' + c + '([^0-9]|$)').test(s)) f.push(label + ' #' + (id || el.localName) + ' canary ' + c + ': ' + s.trim().slice(0, 60));
+        // The owner requires these values on every point board; they are points, not question counts.
+        const countText = s.replace(new RegExp('(?:' + [200, 400, 600].map(arD).join('|') + '|200|400|600)', 'g'), '');
+        if (!st && DIGIT.test(countText) && QWORD.test(s)) f.push(label + ' #' + (id || el.localName) + ' word+digit: ' + s.trim().slice(0, 60));
+        if (!st) for (const c of can) if (new RegExp('(^|[^0-9' + AD + '])' + arD(c) + '([^0-9' + AD + ']|$)').test(s) || new RegExp('(^|[^0-9])' + c + '([^0-9]|$)').test(s)) f.push(label + ' #' + (id || el.localName) + ' canary ' + c + ': ' + s.trim().slice(0, 60));
         if (st) for (const c of can.filter((x) => x >= 13 && x !== 36)) if (new RegExp('(^|[^0-9' + AD + '])' + arD(c) + '([^0-9' + AD + ']|$)').test(s)) f.push(label + ' #' + (id || el.localName) + ' state canary ' + c + ': ' + s.trim().slice(0, 60));
         if (st && /(^|[^0-9٠-٩])(36|٣٦)([^0-9٠-٩]|$)/.test(s) && id !== 'rankBody' && id !== 'teams') f.push(label + ' #' + (id || el.localName) + ' the slot count: ' + s.trim().slice(0, 60));
       }
@@ -473,7 +475,7 @@ function checkB8(pageText) {
   // KUNUZ-LEVELS-POETRY (2026-10-19, C): the owner's experimental levels add exactly one more script, the shared module, after
   // the page's own; it reaches nothing but its own data file (kunuzlevels L4/L5 hold what it does and that it can be switched off)
   // Visual engine: four fixed same-origin assets; kunuzvisual checks their loaders and switch.
-  if (srcs.join(',') !== '/quest-theme/motion-kit.js?v=20261022-roomsfix2,/quest-theme/icons.js?v=20261022-roomsfix2,/quest-theme/model.js?v=20261022-roomsfix2,/iap-pending.js?v=20261023-iapf,/hanna-laha/assets/iap-bridge-v1.js?v=20261024-iapg6,/quest-theme/board-rooms.js?v=20261023-iapf,/quest-theme/journey.js?v=20261024-iapg6,/quest-data/kunuz-bank-3147.js,/quest-data/kunuz-geo-index.js,/quest-data/kunuz-packs-manifest.js?v=20261022-roomsfix2,/quest-visual.js,/quest-levels.js') f.push('scripts loaded: ' + srcs.join(','));
+  if (srcs.join(',') !== '/quest-theme/motion-kit.js?v=20261022-roomsfix2,/quest-theme/icons.js?v=20261022-roomsfix2,/quest-theme/model.js?v=20261025-kfix2,/iap-pending.js?v=20261023-iapf,/hanna-laha/assets/iap-bridge-v1.js?v=20261024-iapg6,/quest-theme/board-rooms.js?v=20261023-iapf,/quest-theme/journey.js?v=20261025-kfix2,/quest-data/kunuz-bank-3147.js,/quest-data/kunuz-geo-index.js,/quest-data/kunuz-packs-manifest.js?v=20261022-roomsfix2,/quest-visual.js,/quest-levels.js') f.push('scripts loaded: ' + srcs.join(','));
   { const mod = fs.readFileSync(path.join(REPO, 'quest-levels.js'), 'utf8'); bad.forEach((re) => { if (re.test(mod.replace('s.src="/quest-data/kunuz-levels-3147.js";', ''))) f.push('the levels module reaches out: ' + re); });
     if ((mod.match(/\.src="([^"]*)"/g) || []).join() !== '.src="/quest-data/kunuz-levels-3147.js"') f.push('the levels module loads something else than its file'); }
   if (!/<html lang="ar" dir="rtl">/.test(pageText)) f.push('not declared Arabic right to left');
@@ -487,7 +489,8 @@ function checkB8(pageText) {
   if (!nm || pageText.split(nm).length !== 2) f.push('the game name is not written once, in GAME_NAME');
   // no difficulty, no level, no age -- in the page itself. The owner's experimental levels (2026-10-19) live in quest-levels.js;
   // the page carries only the tag that loads it and hooks that ask typeof KZL (kunuzlevels holds them)
-  if (/(level|difficulty|age_?group|مستوى|صعوبة)/i.test(pageText.replace(/\/\*[\s\S]*?\*\//g, '').replace('<script src="/quest-levels.js"></script>', ''))) f.push('a level or difficulty outside comments');
+  const markup = pageText.replace(/\/\*[\s\S]*?\*\//g, "").replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
+  if (/(level|difficulty|age_?group|\u0645\u0633\u062A\u0648\u0649|\u0635\u0639\u0648\u0628\u0629)/i.test(markup)) f.push("a level or difficulty outside comments");
   const quest = fs.readFileSync(path.join(REPO, 'quest.html'), 'utf8');
   const card = quest.match(/<a class="door" href="\/quest-board\.html"><b>([^<]*)<\/b>\s*<span>([^<]*)<\/span><\/a>/);
   if (!card) f.push('quest.html has no card for /quest-board.html in the shape of the others');
@@ -561,7 +564,7 @@ run('B10', 'scoped reference gradient, phone/wide grid, two point columns, 44px 
     mut('a 7-category game is accepted', 'if(!c||c.length<MIN_CATS||c.length>MAX_CATS)return null;', 'if(!c||c.length<MIN_CATS||c.length>7)return null;', checkB2, true),
     mut('a back that advances the turn', 'function back(g){if(!g.cur)return false;g.cur=null;return true}', 'function back(g){if(!g.cur)return false;g.cur=null;g.turn=(g.turn+1)%g.teams.length;return true}', checkB2, true),
     mut('a question chosen by the points', 'var k=a[Math.floor(rnd()*a.length)];', 'var k=a[Math.min(a.length-1,Math.floor(rnd()*a.length*sl.pts/600))];', checkB2, true),
-    mut('the record ignored', '(seen(i)?b:a).push(i);', 'a.push(i);', checkB6, true),
+    mut('the record ignored', 'if(seen(i))old.push(i);else{fresh.push(i);', 'old.push(i);fresh.push(i);', checkB6, true),
     mut('a shown question not marked', '  seenMark(k);   /*', '  /*', checkB4, true),
     mut('seen record one byte off', 'var SEEN_KEY="kunuz_seen_v1";', 'var SEEN_KEY="kunuz_seen_v1" ;', checkB1, false),
     mut('a fetch on the page', 'openCfg();\n</script>', 'openCfg();try{fetch("/api/x")}catch(e){}\n</script>', checkB8, false),

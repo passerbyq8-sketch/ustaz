@@ -58,8 +58,8 @@
 <link rel="preload" href="/quest-theme/assets/bold.ttf?v=20261020-flash4" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="/quest-theme/motion-kit.js?v=20261022-roomsfix2" as="script">
 <link rel="preload" href="/quest-theme/icons.js?v=20261022-roomsfix2" as="script">
-<link rel="preload" href="/quest-theme/model.js?v=20261025-kfix1" as="script">
-<link rel="preload" href="/quest-theme/journey.js?v=20261025-kfix1" as="script">
+<link rel="preload" href="/quest-theme/model.js?v=20261025-kfix2" as="script">
+<link rel="preload" href="/quest-theme/journey.js?v=20261025-kfix2" as="script">
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#082c38">
@@ -215,11 +215,11 @@ td i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:6
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <script src="/quest-theme/motion-kit.js?v=20261022-roomsfix2"></script>
 <script src="/quest-theme/icons.js?v=20261022-roomsfix2"></script>
-<script src="/quest-theme/model.js?v=20261025-kfix1"></script>
+<script src="/quest-theme/model.js?v=20261025-kfix2"></script>
 <script src="/iap-pending.js?v=20261023-iapf"></script>
 <script src="/hanna-laha/assets/iap-bridge-v1.js?v=20261024-iapg6"></script>
 <script src="/quest-theme/board-rooms.js?v=20261023-iapf"></script>
-<script src="/quest-theme/journey.js?v=20261025-kfix1"></script>
+<script src="/quest-theme/journey.js?v=20261025-kfix2"></script>
 </head>
 <body>
 <div class="kunuz-theme-shell" role="status" aria-label="نجهّز مغامرتكم"><span class="kunuz-theme-spinner" aria-hidden="true"></span></div>
@@ -229,7 +229,7 @@ td i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:6
     <a onclick="try{sessionStorage.setItem('ezik_resume_section_v1','home')}catch(e){}" href="/" class="kz-home" aria-label="الرئيسية">🏠 الرئيسية</a>
   </nav>
   <div class="brand"><h1 id="gameName"></h1>
-    <p>لوحة أسئلة على جهاز واحد · من ثلاث إلى ست فئات · ستة أسئلة لكل فئة</p></div>
+    <p>لوحة على جهاز واحد · من ثلاث إلى ست فئات · ست خانات لكل فئة</p></div>
   <div class="rule"></div>
 
   <div class="card">
@@ -510,8 +510,7 @@ var BE=(function(){
     return {order:order,winners:winners,tie:winners.length>1};
   }
   /* تكفي الفئة ستة أسئلة حيّة؛ يبدأ الساحب دورة جديدة إن استُهلك سجلّها. */
-  function enough(cat){
-    var n=0;for(var i=0;i<DATA.qs.length&&n<PER;i++)if(kzLive(i)&&DATA.qs[i][0]===cat)n++;return n>=PER}
+  function enough(cat,seen){seen=typeof seen==="function"?seen:function(){return false};if(typeof KZL!=="undefined"&&KZL.forPts(200)){for(var l=1;l<=3;l++){var m=0;for(var k=0;k<DATA.qs.length&&m<PER/3;k++)if(kzLive(k)&&kzLvAt(k,l)&&DATA.qs[k][0]===cat&&!seen(k))m++;if(m<PER/3)return false}return true}var n=0;for(var i=0;i<DATA.qs.length&&n<PER;i++)if(kzLive(i)&&DATA.qs[i][0]===cat&&!seen(i))n++;return n>=PER}
   function shortOf(cats,seen){return cats.filter(function(c){return !enough(c,seen)})}
   /* «عشوائي»: ست فئات مختلفة من كلّ الفئات التي تكفي اللوحة */
   function randomCats(seen,rnd){

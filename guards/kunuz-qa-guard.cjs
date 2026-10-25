@@ -49,7 +49,7 @@ const FIXES = [
     'if(!G||G.cur||P.open||tooSoon(e))return;', 'if(!P.open||!P.revealed||!G||tooSoon(e))return;', 'P.revealed=true;stamp(e);paintQ();',
     'b.onclick=function(e){give(i,e)};', 'return function(e){openQ(s,e)}'] },
   { id: 'BOARD-03', file: 'quest-board.html', must: ['if(G&&!BE.over(G)&&BE.played(G)&&$("quit").dataset.arm!=="1"'] },
-  { id: 'BOARD-04', file: 'quest-board.html', must: ['if(q==="rnd"&&S.cats.length<BE.CATS)$("tally").textContent=spentText()'] },
+  { id: 'BOARD-04', file: 'quest-board.html', must: ['if(q==="rnd"&&S.cats.length<BE.MIN_CATS)$("tally").textContent=spentText()'] },
   { id: 'GHAWS-01', file: 'quest-ghaws.html', must: ['id!=="cfg"&&id!=="how";}', 'if(id==="how"){if(!atCfg){try{history.pushState({kz:"how"}', 'else if(k==="how"){'] },
   { id: 'GHAWS-02', file: 'quest-ghaws.html', must: ['td.textContent=v;'], not: ['body.innerHTML+="<tr><td>"+c.n'] },
   { id: 'GHAWS-03', file: 'quest-ghaws.html', must: ['margin:8px 0 4px;overflow-wrap:anywhere}', 'inp.placeholder="غوّاص "+ar(i+1);inp.maxLength=24;'] },
