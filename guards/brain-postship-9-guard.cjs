@@ -56,8 +56,11 @@ function ok(name, cond, detail) {
   const app = fs.readFileSync(path.join(REPO, 'app.jsx'), 'utf8');
   ok('the client knows the tag and decodes its text', /'fatwafull',/u.test(app) && /tagName === 'fatwafull'/u.test(app) && /type: 'fatwafull', text: ezikDecodeMatn\(fullMatch\[1\]\)/u.test(app));
   // the label is written by the server inside the tag (FATWA_FULL_LABEL), so the client carries no Arabic literal of its own
-  ok('the button reads «النص الكامل» (the tag\'s own content) and shows the full text in place', /function FatwaFullText\(\{ text, label \}\)/u.test(app)
-    && FF.FATWA_FULL_LABEL === 'النص الكامل' && /label: content/u.test(app) && /if \(shown\) return <div style=\{\{ whiteSpace: 'pre-wrap'/u.test(app));
+  // POSTSHIP FIX3 item 1 (2026-10-25): "in place" is now the excerpt's place -- the pressed button draws the prose with the whole
+  // block where the excerpt stood (guards/brain-postship-16-guard.cjs renders it); it was a pre-wrap div of raw text under it.
+  ok('the button reads «النص الكامل» (the tag\'s own content) and shows the full text in place', /function FatwaFullText\(\{ label, shown, full \}\)/u.test(app)
+    && FF.FATWA_FULL_LABEL === 'النص الكامل' && /label: content/u.test(app) && /if \(open\) return full;/u.test(app)
+    && /<FatwaFullText key=\{i\} label=\{brief\.label\} shown=\{prose\(seg\)\} full=\{prose\(\{ type: 'text', content: brief\.content \}\)\} \/>/u.test(app));
   const lang = fs.readFileSync(path.join(REPO, 'lib/lang/answer.js'), 'utf8');
   ok('the translation step carries the tag untranslated', /'book', 'fatwafull'\]/u.test(lang));
 

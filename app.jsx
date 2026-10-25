@@ -24409,6 +24409,22 @@ const EzikMarkdown = React.memo(function EzikMarkdown({ text }) {
   return React.createElement(React.Fragment, null, blocks);
 });
 
+// POSTSHIP FIX3 ITEM 1 -- 2026-10-25: the brief answer's fatwa block is an excerpt closed by «…» and then the <fatwafull>
+// tag carrying the whole block (lib/full-fatwa.js serverOwnedBlock), so the excerpt is the end of the text segment right
+// before the tag. It is recognised only when that text ends with a beginning of the whole block (from its heading line)
+// and «…»; the text with the whole block in the excerpt's place is then what «النص الكامل» shows. Anything else: null.
+function ezikFatwaBriefAt(segments, i) {
+  const seg = segments && segments[i];
+  const next = segments && segments[i + 1];
+  if (!seg || seg.type !== 'text' || !next || next.type !== 'fatwafull' || !next.text || !next.label) return null;
+  const body = String(seg.content || '').replace(/\s+$/u, '');
+  if (!body.endsWith('…')) return null;
+  const head = next.text.split('\n')[0];
+  const at = head ? body.lastIndexOf(head) : -1;
+  if (at < 0 || !next.text.startsWith(body.slice(at, -1))) return null;
+  return { label: next.label, content: body.slice(0, at) + next.text };
+}
+
 // THE ONE PLACE A SEGMENT BECOMES AN ELEMENT.
 // Lifted out of MessageBubble in S98 so the favourites screen can show a saved reply through the
 // EXACT renderer the chat uses. A second, parallel renderer there is what would eventually leak a
@@ -24423,6 +24439,9 @@ function ezikRenderSegments(segments, ctx) {
   const { tashkeel, age, onPlayVerse, onPlaySurah, onStopAudio, onFavoriteAyah, ayahFavIds } = (ctx || {});
   return (segments || []).map((seg, i) => {
     if (!seg) return null;   // S98: a folded-away prose segment, holding its index open
+    // POSTSHIP FIX3 ITEM 1 -- 2026-10-25: the prose site is a function of a text segment, so the brief answer's fatwa (its
+    // excerpt, and its full text in the excerpt's place) is drawn by this one site too. It draws text segments only.
+    const prose = (seg) => (seg.type === 'text' ? <div key={i} className="ez-prose" style={s.bubbleText}><EzikMarkdown text={tashkeel ? seg.content : stripTashkeelOutsideQuran(seg.content)} /></div> : null);
     if (seg.type === 'text') {
       // S93: PROSE ONLY, and the last thing that happens to it. The cards were separated above,
       // the tashkeel toggle has already had its say (it removes diacritics and touches no Markdown
@@ -24432,7 +24451,10 @@ function ezikRenderSegments(segments, ctx) {
       // display, from text that was never rewritten.
       // S99: `ez-prose` marks THE prose of a reply — the one surface reading mode opens up. Cards
       // do not carry it, so an ayah, a hadith and a source keep their own measured spacing.
-      return <div key={i} className="ez-prose" style={s.bubbleText}><EzikMarkdown text={tashkeel ? seg.content : stripTashkeelOutsideQuran(seg.content)} /></div>;
+      // POSTSHIP FIX3 ITEM 1: a text that ends with the brief fatwa excerpt holds the «النص الكامل» button; pressed, the same
+      // text is drawn with the full block where the excerpt stood (ezikFatwaBriefAt).
+      const brief = ezikFatwaBriefAt(segments, i);
+      return brief ? <FatwaFullText key={i} label={brief.label} shown={prose(seg)} full={prose({ type: 'text', content: brief.content })} /> : prose(seg);
     }
     if (seg.type === 'verse') {
       const verseCard = <VerseCard key={i} surah={seg.surah} surahNum={seg.surahNum} ayah={seg.ayah} onPlayVerse={onPlayVerse} onStopAudio={onStopAudio}
@@ -24458,7 +24480,10 @@ function ezikRenderSegments(segments, ctx) {
       return <DhikrCard key={i} catId={seg.catId} />;
     }
     if (seg.type === 'fatwafull') {
-      return <FatwaFullText key={i} text={seg.text} label={seg.label} />;
+      // POSTSHIP FIX3 ITEM 1: drawn with the text before it when that text ends with the excerpt; otherwise (a folded
+      // view that cut the excerpt) the button alone, and the full block, pressed, drawn as prose under it.
+      if (ezikFatwaBriefAt(segments, i - 1)) return null;
+      return <FatwaFullText key={i} label={seg.label} full={prose({ type: 'text', content: seg.text })} />;
     }
     if (seg.type === 'worship') {
       return <WorshipCard key={i} id={seg.id} band={deriveCaps(age).band} />;
@@ -25484,16 +25509,21 @@ function BookCard({ title, author, where, text, cut, open, bookId, vol, page }) 
 
 // POSTSHIP ITEM 9 -- 2026-10-24: the «النص الكامل» button under the brief answer's fatwa excerpt; pressed, the full text is
 // shown in its place, as served (no link out, no second request).
-function FatwaFullText({ text, label }) {
-  const [shown, setShown] = useState(false);
-  const body = typeof text === 'string' ? text : '';
-  if (!body || !label) return null;
-  if (shown) return <div style={{ whiteSpace: 'pre-wrap', margin: '8px 0' }} dir="auto">{body}</div>;
+// POSTSHIP FIX3 ITEM 1 -- 2026-10-25: `shown` is the prose holding the excerpt and `full` the same prose with the whole block
+// in the excerpt's place, both drawn by the one prose site (ezikRenderSegments): pressed, `full` replaces `shown`, so one
+// block is on screen, its heading a heading. Before the press: the prose, then the button, as before.
+function FatwaFullText({ label, shown, full }) {
+  const [open, setOpen] = useState(false);
+  if (!full || !label) return shown || null;
+  if (open) return full;
   return (
-    <button type="button" className="ezhome-focus" onClick={() => setShown(true)}
-      style={{ font: 'inherit', margin: '8px 0', padding: '6px 12px', borderRadius: 8, border: '1px solid var(--a3-line, #ccc)', background: 'transparent', color: 'inherit', cursor: 'pointer' }}>
-      {label}
-    </button>
+    <React.Fragment>
+      {shown || null}
+      <button type="button" className="ezhome-focus" onClick={() => setOpen(true)}
+        style={{ font: 'inherit', margin: '8px 0', padding: '6px 12px', borderRadius: 8, border: '1px solid var(--a3-line, #ccc)', background: 'transparent', color: 'inherit', cursor: 'pointer' }}>
+        {label}
+      </button>
+    </React.Fragment>
   );
 }
 
