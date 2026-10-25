@@ -995,5 +995,10 @@
     "name": "postship9",
     "script": "guards/brain-postship-9-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "postship13",
+    "script": "guards/brain-postship-13-guard.cjs",
+    "args": ""
   }
 ]

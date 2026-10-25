@@ -914,6 +914,9 @@ export default async function handler(req, res) {
   // this line does nothing for it.
   // ITEM B3 (m0 row 8) -- 2026-10-15 brain-line: a translation that failed asked nothing, so it spends no
   // question of the day: the counters this request incremented are given back (lib/daycap.js refundDayCap).
+  // POSTSHIP FIX2 ITEM 1 -- 2026-10-25: the reader's question AS WRITTEN, kept before the translation replaces it, for the
+  // support matcher alone (below, beside the pornography rule). Nothing else reads it: the sorter and the model read the Arabic.
+  const readerOwnQuestionText = lastUserText(body.messages);
   if (typeof req.__langTranslateQuestion === 'function' && !(await req.__langTranslateQuestion(body.messages))) {
     await refundDayCap(cap);
     return;
@@ -1156,7 +1159,9 @@ export default async function handler(req, res) {
     || ((audienceBand === 'young' || audienceBand === 'teen') && classifyYoungPornographyDoubt(currentQuestionText)));
   // POSTSHIP ITEM 4 -- 2026-10-24: «how do I reach support?» -- decided here, beside the pornography rule, so the
   // sorter is never started for it and the answer is the fixed text at the seat below.
-  const supportContact = !pornBlocked && isSupportContactRequest(currentQuestionText);
+  // POSTSHIP FIX2 ITEM 1 -- 2026-10-25: the reader's own text (before the translation) or its Arabic -- either opens it.
+  const supportContact = !pornBlocked && (isSupportContactRequest(currentQuestionText)
+    || (readerOwnQuestionText !== currentQuestionText && isSupportContactRequest(readerOwnQuestionText)));
   const sorterPlan = sorterEligibility({
     enabled: frontSorter.enabled, band, freeBrainEnabled: freeBrainOnAtSorter, runtime: currentRuntime,
     liveSearch: readLiveSearch(body), excluded: bw2ScopeExclusion(currentQuestionText), text: currentQuestionText,
