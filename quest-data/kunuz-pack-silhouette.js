@@ -3398,19 +3398,19 @@ KZV.register({
       "q": "تفحص الرسم الأسود بعناية؛ اختر ما يوافق هذا المحيط.",
       "vis": {
         "kind": "silhouette",
-        "emoji": "🎾"
+        "emoji": "🏓"
       },
       "choices": [
         "مضرب تنس وكرة",
         "عصا هوكي وقرص",
         "مضرب كريكيت وكرة",
-        "مضرب تنس طاولة وكرة"
+        "مضرب تنس الطاولة وكرة"
       ],
-      "answer": 0,
-      "why": "الاسم المطابق للرمز هو مضرب تنس وكرة؛ وتثبت تسميتا Unicode وOpenMoji أنه «tennis».",
+      "answer": 3,
+      "why": "يظهر الرمز مضرب تنس الطاولة وكرة؛ وتميزهما هيئة المضرب القصير والكرة، بخلاف بقية الخيارات.",
       "src": [
-        "Unicode Emoji 12.0 — tennis — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
-        "OpenMoji — tennis — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
+        "Unicode Emoji 12.0 — table tennis paddle and ball — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
+        "OpenMoji — table tennis paddle and ball — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"
       ],
       "level": 1,
       "status": "approved",
@@ -4279,7 +4279,7 @@ KZV.register({
       "cat": "silhouette",
       "type": "mcq",
       "fmt": "text",
-      "q": "تفحص هيئة المركبة السوداء؛ أي وصف يطابقها؟",
+      "q": "تفحص هيئة عربة القطار السوداء؛ أي وصف يطابقها؟",
       "vis": {
         "kind": "silhouette",
         "emoji": "🚃"
@@ -4287,11 +4287,11 @@ KZV.register({
       "choices": [
         "عربة تلفريك معلقة",
         "قاطرة تعمل بالبخار",
-        "عربة قطار كهربائي",
+        "عربة قطار",
         "حافلة ذات طابقين"
       ],
       "answer": 2,
-      "why": "يمثل الظل عربة قطار كهربائي؛ وتثبت هوية الرمز تسميته في Unicode وسجل OpenMoji مع هيئة الرسم الفعلية.",
+      "why": "الرسم يبيّن عربة قطار عامة ولا يحدّد مصدر طاقتها؛ لذلك يصف المفتاح الهيئة الظاهرة وحدها.",
       "src": [
         "Unicode Emoji 12.0 — railway car — https://unicode.org/Public/emoji/12.0/emoji-test.txt",
         "OpenMoji — railway car — https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/data/openmoji.json"

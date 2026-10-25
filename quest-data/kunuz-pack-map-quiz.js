@@ -7217,14 +7217,15 @@ KZV.register({
         "بورت أو برنس",
         "سان سلفادور",
         "غواتيمالا",
-        "مكسيكو"
+        "مكسيكو سيتي"
       ],
       "answer": 3,
-      "why": "الدولة المظللة هي المكسيك، وعاصمتها مكسيكو، كما يتفق كتاب حقائق العالم وبيانات البنك الدولي.",
+      "why": "عاصمة المكسيك هي مكسيكو سيتي؛ وتذكرها حكومة مدينة مكسيكو بصفتها عاصمة البلاد.",
       "src": [
         "أرشيف كتاب حقائق العالم: المكسيك — https://raw.githubusercontent.com/factbook/factbook.json/master/north-america/mx.json",
         "البنك الدولي: بيانات الدول والعواصم — https://api.worldbank.org/v2/country?format=json&per_page=400",
-        "Natural Earth: حدود المكسيك بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
+        "Natural Earth: حدود المكسيك بدقة 110m — https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
+        "حكومة مدينة مكسيكو، About Mexico City — https://mexicocity.cdmx.gob.mx/e/about/about-mexico-city/?lang=en"
       ],
       "level": 1,
       "status": "approved",
