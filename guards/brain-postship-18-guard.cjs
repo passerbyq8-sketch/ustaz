@@ -113,7 +113,7 @@ const b64d = (s) => Buffer.from(String(s || ''), 'base64').toString('utf8');
   {
     const short = 'قال الشيخ: هذا جائز.';
     const { matn, tag } = matnOf(row(short));
-    ok('a text within the ceiling is carried whole, not marked cut', matn === short && !/ cut="1"/.test(tag));
+    ok('a text within the ceiling is carried whole, not marked cut', tag.length > 0 && matn === short && !/ cut="1"/.test(tag));
     const exact = 'ج'.repeat(1199) + '.';
     ok('a text of exactly 1200 is carried whole', matnOf(row(exact)).matn === exact);
   }
