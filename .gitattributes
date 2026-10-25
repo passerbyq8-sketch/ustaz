@@ -1047,3 +1047,5 @@ guards/yahimmak-guard.cjs text eol=lf
 guards/fatwa-verify-parallel-guard.cjs text eol=lf
 guards/reader-sources-guard.cjs text eol=lf
 guards/removed-sources-guard.cjs text eol=lf
+# Keep the Kunuz levels stamp test on LF for reproducible hashes.
+tests/kunuz-levels-stamp.test.js text eol=lf
