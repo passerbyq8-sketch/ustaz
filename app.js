@@ -2136,7 +2136,9 @@ const formatForTTS=text=>{if(!text)return'';// §٢ (C): العلامةُ لا �
 let t=stripIncompleteTags(ezikStripIncomplete(text),{rescue:true});// إزالة وسم الاقتراحات بالكامل (UI فقط، لا يُنطق)
 t=t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g,'');// إزالة بطاقة المصدر بالكامل (UI فقط: شريحة نقرٍ مرئيّة) — لا يُنطَق الرابطُ ولا العنوانُ أبداً، كالاقتراحات
 t=t.replace(/<source[^>]*>[\s\S]*?<\/source>/g,' ');// ع-٤٩ — وبطاقةُ الكتابِ كذلك: شارةُ إسنادٍ مرئيّةٌ لا جملةٌ تُنطَق، فتُصمَت كبطاقةِ المصدرِ سواء.
-t=t.replace(/<book[^>]*>[\s\S]*?<\/book>/g,' ');// إزالة الآيات بالكامل من نص الصوت — التلاوة يسمعها الطفل من قارئ حقيقي عبر زر "استمع للتلاوة"،
+t=t.replace(/<book[^>]*>[\s\S]*?<\/book>/g,' ');// POSTSHIP FIX4 -- 2026-10-25: the brief fatwa's <fatwafull> tag is the button and the whole text behind it. The voice reads
+// the answer as it is drawn before the press -- the excerpt -- so the tag is silent: neither its base64 nor the button's label.
+t=t.replace(/<fatwafull[^>]*>[\s\S]*?<\/fatwafull>/g,' ');// إزالة الآيات بالكامل من نص الصوت — التلاوة يسمعها الطفل من قارئ حقيقي عبر زر "استمع للتلاوة"،
 // ولا ينطقها صوت الذكاء الاصطناعي أبداً. نستبدلها بمسافة كي يبقى الكلام المحيط متّصلاً.
 t=t.replace(/<verse[^>]*>[\s\S]*?<\/verse>/g,' ');// وكذلك السورة الكاملة: يتلوها القارئ الحقيقي عبر الزرّ، لا ينطقها المربّي
 t=t.replace(/<surah[^>]*>[\s\S]*?<\/surah>/g,' ');// الذكر: يُقرأ من صوت حصن المسلم عبر زرّ البطاقة، لا يُنطَق من المربّي
@@ -2190,7 +2192,9 @@ let t=stripIncompleteTags(ezikStripIncomplete(text),{rescue:true});t=t.replace(/
 // url and the rest of it leaked into the title a parent reads.
 t=t.replace(/<source(?:"[^"]*"|'[^']*'|[^>"'])*>([\s\S]*?)<\/source>/g,(_,title)=>{const s=(title||'').trim();return s?` [المصدر: ${s}] `:' ';});// ع-٤٩ — الكتابُ يُكتَبُ للأهلِ نصًّا كالمصدرِ سواء: هذا هو السطرُ الذي يتحقّقُ منه الوالدُ.
 // AA-1: the same widening, and for the same reason -- `author` and `ref` are free text.
-t=t.replace(/<book((?:"[^"]*"|'[^']*'|[^>"'])*)>([\s\S]*?)<\/book>/g,(_,attrs,name)=>{const am=attrs.match(/author=["']([^"']+)["']/);const rm=attrs.match(/ref=["']([^"']+)["']/);const line=[(name||'').trim(),am?am[1].trim():'',rm?rm[1].trim():''].filter(Boolean).join(' \u2014 ');return line?` [الكتاب: ${line}] `:' ';});// الآية: نصّها الكنسي من المصحف المُحمَّل (لا من النموذج). إن لم يكن مُحمَّلاً بعد،
+t=t.replace(/<book((?:"[^"]*"|'[^']*'|[^>"'])*)>([\s\S]*?)<\/book>/g,(_,attrs,name)=>{const am=attrs.match(/author=["']([^"']+)["']/);const rm=attrs.match(/ref=["']([^"']+)["']/);const line=[(name||'').trim(),am?am[1].trim():'',rm?rm[1].trim():''].filter(Boolean).join(' \u2014 ');return line?` [الكتاب: ${line}] `:' ';});// POSTSHIP FIX4 -- 2026-10-25: the brief fatwa's <fatwafull> tag: the log keeps the excerpt the bubble draws and drops the
+// tag whole -- its base64 and the button's label (the sweep below would have left the label as a word of the answer).
+t=t.replace(/<fatwafull(?:"[^"]*"|'[^']*'|[^>"'])*>[\s\S]*?<\/fatwafull>/g,' ');// الآية: نصّها الكنسي من المصحف المُحمَّل (لا من النموذج). إن لم يكن مُحمَّلاً بعد،
 // نعرض المرجع فقط. نتجاهل أيّ نصّ بداخل الوسم تماماً (قد يرسله النموذج خطأً).
 t=t.replace(/<verse([^>]*)>([\s\S]*?)<\/verse>/g,(_,attrs)=>{const sNum=resolveSurahNumber((attrs.match(/surah=["']([^"']+)["']/)||[])[1],(attrs.match(/surah_num=["']([^"']+)["']/)||[])[1]);const aNum=parseInt((attrs.match(/ayah=["']([^"']+)["']/)||[])[1],10);const name=sNum?SURAH_NAMES[sNum]:'';const ref=[name&&`سورة ${name}`,aNum>=1&&`آية ${aNum}`].filter(Boolean).join('، ');const canon=sNum&&aNum>=1?getVerseText(sNum,aNum):null;return canon?` «${canon}»${ref?` (${ref})`:''} `:ref?` [${ref}] `:' ';});// السورة: مرجعٌ مختصرٌ للأهل (الاسم + المدى إن كان جزئياً) — لا نصّ خام
 t=t.replace(/<surah([^>]*)>([\s\S]*?)<\/surah>/g,(_,attrs)=>{const sNum=resolveSurahNumber(undefined,(attrs.match(/num=["']([^"']+)["']/)||[])[1]);const name=sNum?SURAH_NAMES[sNum]:'';const from=parseInt((attrs.match(/from=["']([^"']+)["']/)||[])[1],10);const to=parseInt((attrs.match(/to=["']([^"']+)["']/)||[])[1],10);const rangePart=from>=1&&to>=1?`، الآيات ${from}–${to}`:'';return name?` [تلاوة سورة ${name}${rangePart}] `:' ';});// الحديث والخطوات: نفس تحويل الصوت كي يبقى السجلّ مقروءاً
@@ -2246,6 +2250,7 @@ t=t.replace(/<\/?[A-Za-z][A-Za-z0-9-]*(?:\s(?:"[^"]*"|'[^']*'|[^>"'])*)?>/g,' ')
 const formatForStreamPreview=text=>{if(!text)return'';let t=stripIncompleteTags(text);// drops the first unclosed known tag + any truncated trailing "<..."
 t=t.replace(/<suggestions[^>]*>[\s\S]*?<\/suggestions>/g,'');t=t.replace(/<verse[^>]*>[\s\S]*?<\/verse>/g,' ');t=t.replace(/<surah[^>]*>[\s\S]*?<\/surah>/g,' ');t=t.replace(/<hadith[^>]*>[\s\S]*?<\/hadith>/g,' ');t=t.replace(/<steps[^>]*>[\s\S]*?<\/steps>/g,' ');t=t.replace(/<source[^>]*>[\s\S]*?<\/source>/g,' ');// hide the source chip (tag + inner title) while streaming
 t=t.replace(/<book[^>]*>[\s\S]*?<\/book>/g,' ');// ع-٤٩ — and the book chip, for the same reason
+t=t.replace(/<fatwafull[^>]*>[\s\S]*?<\/fatwafull>/g,' ');// POSTSHIP FIX4: and the brief fatwa's tag, label and all
 t=t.replace(/<\/?[a-z][^>]*>/gi,' ');// any remaining tag
 // S93: horizontal whitespace collapses, NEWLINES SURVIVE. They used to be flattened with
 // everything else, which was harmless while the preview was one run of plain text — but the
@@ -2257,7 +2262,10 @@ t=t.replace(/[ \t]*\n[ \t]*/g,'\n');return t.replace(/\n{3,}/g,'\n\n').trim();};
 // card waits at its opening bracket. Prose keeps today's reveal cadence.
 function ezikCardSpanAt(text,at){if(text[at]!=='<')return null;const name=/^[a-z]*/.exec(text.slice(at+1))[0];const after=at+1+name.length;if(after>=text.length)return KNOWN_TAG_NAMES.some(n=>n.startsWith(name))?-1:null;if(KNOWN_TAG_NAMES.indexOf(name)===-1||!/[\s>\/]/.test(text[after]))return null;const opening=/^(?:"[^"]*"|'[^']*'|[^>"'])*>/.exec(text.slice(after));if(!opening)return-1;const gt=after+opening[0].length-1;if(text[gt-1]==='/')return gt+1;const close=text.indexOf('</'+name+'>',gt+1);return close===-1?-1:close+name.length+3;}function ezikRevealAdvance(full,at,step,settling){const to=Math.min(full.length,at+step);for(let p=full.indexOf('<',at);p!==-1&&p<to;p=full.indexOf('<',p+1)){const end=ezikCardSpanAt(full,p);if(end===null)continue;if(end>0)return end;// EOF must release the drain even on a broken legacy tag. The preview still
 // withholds that tag; the existing completed-message rescue owns failures.
-return settling?full.length:p;}return to;}function ezikStreamPreviewSegments(text,viewerAge){let arrived=ezikStripIncomplete(text);for(let p=arrived.indexOf('<');p!==-1;p=arrived.indexOf('<',p+1)){const end=ezikCardSpanAt(arrived,p);if(end===-1){arrived=arrived.slice(0,p);break;}if(end>0)p=end-1;}const shown=stripIncompleteTags(arrived);if(!shown||!shown.trim())return[];return parseRichMessage(shown,viewerAge).segments;}// ITEM r2-3 -- 2026-10-17 brain-line R2: THE STATUS LINE IN THE READER'S LANGUAGE. MEASURED on the preview: the first status
+return settling?full.length:p;}return to;}function ezikStreamPreviewSegments(text,viewerAge){let arrived=ezikStripIncomplete(text);for(let p=arrived.indexOf('<');p!==-1;p=arrived.indexOf('<',p+1)){const end=ezikCardSpanAt(arrived,p);if(end===-1){arrived=arrived.slice(0,p);break;}if(end>0)p=end-1;}const shown=stripIncompleteTags(arrived);if(!shown||!shown.trim())return[];// POSTSHIP FIX4 -- 2026-10-25: while the answer streams, the brief fatwa's «النص الكامل» is not offered: its segment keeps its
+// place (the bubble keys by index) but carries no text and no label, so it draws nothing and copies nothing. The button
+// comes with the settled answer.
+return parseRichMessage(shown,viewerAge).segments.map(sg=>sg&&sg.type==='fatwafull'?{type:'fatwafull',text:'',label:''}:sg);}// ITEM r2-3 -- 2026-10-17 brain-line R2: THE STATUS LINE IN THE READER'S LANGUAGE. MEASURED on the preview: the first status
 // line stayed Arabic («يقرأ في الدروس… وجد 3») in English, Persian and Urdu -- it was read from a fixed Arabic table with « وجد N»
 // glued on, never through ezT(). Each stage is now its key (x.250-x.256, already in every table) and the count is x.658
 // («وجد {n}» / «found {n}» / …), its number in the language's digits (toArabicDigits). The Arabic reader sees the same line.
@@ -7180,7 +7188,9 @@ board:sg=>sg.content,// XI-04: THE CLIPBOARD CARRIES THE MEANING WITHOUT THE BRA
 // before this, which is the one thing §٥ names about the clipboard. What it says is kept — it is
 // on the screen and it is about the answer — and the ornate brackets, which were never anything
 // but a transport marker between the reviewer and this renderer, are not.
-notice:sg=>[sg.label,sg.content].map(x=>String(x||'').trim()).filter(Boolean).join(' '),document:sg=>REPLY_LINE([sg.title||'\u0645\u0633\u062A\u0646\u062F',toPlainText(sg.content)])};// ITEM 42-C. THE SHARE CARD'S SOURCE FOOTER, and it lives HERE for a reason.
+notice:sg=>[sg.label,sg.content].map(x=>String(x||'').trim()).filter(Boolean).join(' '),document:sg=>REPLY_LINE([sg.title||'\u0645\u0633\u062A\u0646\u062F',toPlainText(sg.content)]),// POSTSHIP FIX4 -- 2026-10-25: the brief fatwa's tag. Paired with its excerpt it is copied by serializeReply below, as the
+// whole block in the excerpt's place; alone, what it holds is the whole block, copied as the prose it is drawn as.
+fatwafull:(sg,ctx)=>REPLY_SERIALIZERS.text({type:'text',content:String(sg.text||'')},ctx)};// ITEM 42-C. THE SHARE CARD'S SOURCE FOOTER, and it lives HERE for a reason.
 //
 // The host is derived EXACTLY as REPLY_WRITERS.source above derives it -- the site field, and
 // the url hostname only when the site field is empty -- so the footer on the image and the
@@ -7243,7 +7253,10 @@ const ezikCardBlockOf=(segments,type)=>{const out=[];for(const sg of segments||[
 const ezikCardIsAttributed=segments=>{for(const sg of segments||[]){if(sg&&sg.type==='verse')return true;}return!!(ezikCardSourceLine(segments)||ezikCardAttributionBlock(segments));};// Every type MessageBubble can render must have an entry above. A new card added to the renderer
 // without one lands here and is announced -- loudly, and visibly in the copied text -- instead of
 // vanishing from the clipboard the way every card did before this directive.
-const serializeReply=(segments,ctx)=>{const out=[];(segments||[]).forEach(sg=>{const fn=sg&&REPLY_SERIALIZERS[sg.type];if(!fn){try{console.error('[copy] no serializer for segment type:',sg&&sg.type);}catch(e){}out.push('['+(sg&&sg.type||'unknown')+': not serialized]');return;}const piece=fn(sg,ctx||{});if(piece&&String(piece).trim())out.push(String(piece).trim());});return out.join('\n\n');};// ============================================================
+const serializeReply=(segments,ctx)=>{const out=[];(segments||[]).forEach((sg,i)=>{// POSTSHIP FIX4 -- 2026-10-25: the brief fatwa is ONE block on the clipboard, as the press draws it (ezikFatwaBriefAt):
+// the text holding the excerpt is copied with the whole block in the excerpt's place -- the bytes the detailed answer
+// copies -- and its tag adds nothing: no line for it, no button label, no excerpt twice.
+if(sg&&sg.type==='fatwafull'&&ezikFatwaBriefAt(segments,i-1))return;const copyBrief=sg&&sg.type==='text'?ezikFatwaBriefAt(segments,i):null;if(copyBrief)sg={type:'text',content:copyBrief.content};const fn=sg&&REPLY_SERIALIZERS[sg.type];if(!fn){try{console.error('[copy] no serializer for segment type:',sg&&sg.type);}catch(e){}out.push('['+(sg&&sg.type||'unknown')+': not serialized]');return;}const piece=fn(sg,ctx||{});if(piece&&String(piece).trim())out.push(String(piece).trim());});return out.join('\n\n');};// ============================================================
 // S98 — طيُّ الردود الطويلة (long-reply folding)
 // ============================================================
 // A long reply is a wall the child has to scroll past to reach the next thing. This folds the
@@ -7287,7 +7300,10 @@ const body=String(sg.content==null?'':sg.content);// A hidden segment leaves a H
 // index, so dropping an entry would renumber every card after it and remount them — a verse
 // card would refetch and a dhikr card would re-read its store on every toggle. A null draws
 // nothing and keeps all the later indices exactly where the unfolded view has them.
-if(budget<=0){changed=true;out.push(null);continue;}if(body.length<=budget){out.push(sg);budget-=body.length;continue;}out.push({type:'text',content:ezikFoldCut(body,budget)});budget=0;changed=true;}return changed?out:null;}// ============================================================
+if(budget<=0){changed=true;out.push(null);continue;}// POSTSHIP FIX4 -- 2026-10-25: the brief fatwa's excerpt is never cut or hidden: the fold could stop inside it, and the
+// «النص الكامل» beside it then lost its pair and drew the whole block under the cut preview. The excerpt is kept whole,
+// like a card, so the press draws one block in its place; the prose before it folds as any prose does.
+const foldBrief=ezikFatwaBriefAt(list,i);if(foldBrief){const kept=body.replace(/\s+$/u,'');const head=kept.slice(0,foldBrief.at).replace(/\s+$/u,'');const excerpt=kept.slice(foldBrief.at);if(head.length<=budget){out.push(sg);budget-=kept.length;continue;}out.push({type:'text',content:(budget>0?ezikFoldCut(head,budget)+'\n\n':'')+excerpt});budget=0;changed=true;continue;}if(body.length<=budget){out.push(sg);budget-=body.length;continue;}out.push({type:'text',content:ezikFoldCut(body,budget)});budget=0;changed=true;}return changed?out:null;}// ============================================================
 // S98 — الإجراءات السريعة (quick actions under the last completed reply)
 // ============================================================
 // Five follow-ups, and every one of them is an ORDINARY QUESTION: the label is pressed, the
@@ -7386,7 +7402,8 @@ const EzikMarkdown=React.memo(function EzikMarkdown({text}){const t=String(text=
 // tag carrying the whole block (lib/full-fatwa.js serverOwnedBlock), so the excerpt is the end of the text segment right
 // before the tag. It is recognised only when that text ends with a beginning of the whole block (from its heading line)
 // and «…»; the text with the whole block in the excerpt's place is then what «النص الكامل» shows. Anything else: null.
-function ezikFatwaBriefAt(segments,i){const seg=segments&&segments[i];const next=segments&&segments[i+1];if(!seg||seg.type!=='text'||!next||next.type!=='fatwafull'||!next.text||!next.label)return null;const body=String(seg.content||'').replace(/\s+$/u,'');if(!body.endsWith('…'))return null;const head=next.text.split('\n')[0];const at=head?body.lastIndexOf(head):-1;if(at<0||!next.text.startsWith(body.slice(at,-1)))return null;return{label:next.label,content:body.slice(0,at)+next.text};}// THE ONE PLACE A SEGMENT BECOMES AN ELEMENT.
+function ezikFatwaBriefAt(segments,i){const seg=segments&&segments[i];const next=segments&&segments[i+1];if(!seg||seg.type!=='text'||!next||next.type!=='fatwafull'||!next.text||!next.label)return null;const body=String(seg.content||'').replace(/\s+$/u,'');if(!body.endsWith('…'))return null;const head=next.text.split('\n')[0];const at=head?body.lastIndexOf(head):-1;if(at<0||!next.text.startsWith(body.slice(at,-1)))return null;// POSTSHIP FIX4: `at` is where the excerpt begins in the text, for the fold that keeps it whole (ezikFoldSegments).
+return{label:next.label,content:body.slice(0,at)+next.text,at};}// THE ONE PLACE A SEGMENT BECOMES AN ELEMENT.
 // Lifted out of MessageBubble in S98 so the favourites screen can show a saved reply through the
 // EXACT renderer the chat uses. A second, parallel renderer there is what would eventually leak a
 // raw <verse …> at a reader — this makes that impossible by construction, because there is only

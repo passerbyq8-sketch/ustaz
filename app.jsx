@@ -9024,6 +9024,9 @@ const formatForTTS = (text) => {
   t = t.replace(/<source[^>]*>[\s\S]*?<\/source>/g, ' ');
   // ع-٤٩ — وبطاقةُ الكتابِ كذلك: شارةُ إسنادٍ مرئيّةٌ لا جملةٌ تُنطَق، فتُصمَت كبطاقةِ المصدرِ سواء.
   t = t.replace(/<book[^>]*>[\s\S]*?<\/book>/g, ' ');
+  // POSTSHIP FIX4 -- 2026-10-25: the brief fatwa's <fatwafull> tag is the button and the whole text behind it. The voice reads
+  // the answer as it is drawn before the press -- the excerpt -- so the tag is silent: neither its base64 nor the button's label.
+  t = t.replace(/<fatwafull[^>]*>[\s\S]*?<\/fatwafull>/g, ' ');
   // إزالة الآيات بالكامل من نص الصوت — التلاوة يسمعها الطفل من قارئ حقيقي عبر زر "استمع للتلاوة"،
   // ولا ينطقها صوت الذكاء الاصطناعي أبداً. نستبدلها بمسافة كي يبقى الكلام المحيط متّصلاً.
   t = t.replace(/<verse[^>]*>[\s\S]*?<\/verse>/g, ' ');
@@ -9174,6 +9177,9 @@ const formatForLog = (text) => {
       .filter(Boolean).join(' \u2014 ');
     return line ? ` [الكتاب: ${line}] ` : ' ';
   });
+  // POSTSHIP FIX4 -- 2026-10-25: the brief fatwa's <fatwafull> tag: the log keeps the excerpt the bubble draws and drops the
+  // tag whole -- its base64 and the button's label (the sweep below would have left the label as a word of the answer).
+  t = t.replace(/<fatwafull(?:"[^"]*"|'[^']*'|[^>"'])*>[\s\S]*?<\/fatwafull>/g, ' ');
   // الآية: نصّها الكنسي من المصحف المُحمَّل (لا من النموذج). إن لم يكن مُحمَّلاً بعد،
   // نعرض المرجع فقط. نتجاهل أيّ نصّ بداخل الوسم تماماً (قد يرسله النموذج خطأً).
   t = t.replace(/<verse([^>]*)>([\s\S]*?)<\/verse>/g, (_, attrs) => {
@@ -9277,6 +9283,7 @@ const formatForStreamPreview = (text) => {
   t = t.replace(/<steps[^>]*>[\s\S]*?<\/steps>/g, ' ');
   t = t.replace(/<source[^>]*>[\s\S]*?<\/source>/g, ' '); // hide the source chip (tag + inner title) while streaming
   t = t.replace(/<book[^>]*>[\s\S]*?<\/book>/g, ' ');     // ع-٤٩ — and the book chip, for the same reason
+  t = t.replace(/<fatwafull[^>]*>[\s\S]*?<\/fatwafull>/g, ' ');   // POSTSHIP FIX4: and the brief fatwa's tag, label and all
   t = t.replace(/<\/?[a-z][^>]*>/gi, ' '); // any remaining tag
   // S93: horizontal whitespace collapses, NEWLINES SURVIVE. They used to be flattened with
   // everything else, which was harmless while the preview was one run of plain text — but the
@@ -9326,7 +9333,10 @@ function ezikStreamPreviewSegments(text, viewerAge) {
   }
   const shown = stripIncompleteTags(arrived);
   if (!shown || !shown.trim()) return [];
-  return parseRichMessage(shown, viewerAge).segments;
+  // POSTSHIP FIX4 -- 2026-10-25: while the answer streams, the brief fatwa's «النص الكامل» is not offered: its segment keeps its
+  // place (the bubble keys by index) but carries no text and no label, so it draws nothing and copies nothing. The button
+  // comes with the settled answer.
+  return parseRichMessage(shown, viewerAge).segments.map((sg) => (sg && sg.type === 'fatwafull' ? { type: 'fatwafull', text: '', label: '' } : sg));
 }
 
 // ITEM r2-3 -- 2026-10-17 brain-line R2: THE STATUS LINE IN THE READER'S LANGUAGE. MEASURED on the preview: the first status
@@ -23856,6 +23866,9 @@ const REPLY_SERIALIZERS = {
   // but a transport marker between the reviewer and this renderer, are not.
   notice: (sg) => [sg.label, sg.content].map((x) => String(x || '').trim()).filter(Boolean).join(' '),
   document: (sg) => REPLY_LINE([sg.title || '\u0645\u0633\u062A\u0646\u062F', toPlainText(sg.content)]),
+  // POSTSHIP FIX4 -- 2026-10-25: the brief fatwa's tag. Paired with its excerpt it is copied by serializeReply below, as the
+  // whole block in the excerpt's place; alone, what it holds is the whole block, copied as the prose it is drawn as.
+  fatwafull: (sg, ctx) => REPLY_SERIALIZERS.text({ type: 'text', content: String(sg.text || '') }, ctx),
 };
 // ITEM 42-C. THE SHARE CARD'S SOURCE FOOTER, and it lives HERE for a reason.
 //
@@ -23959,7 +23972,13 @@ const ezikCardIsAttributed = (segments) => {
 // vanishing from the clipboard the way every card did before this directive.
 const serializeReply = (segments, ctx) => {
   const out = [];
-  (segments || []).forEach((sg) => {
+  (segments || []).forEach((sg, i) => {
+    // POSTSHIP FIX4 -- 2026-10-25: the brief fatwa is ONE block on the clipboard, as the press draws it (ezikFatwaBriefAt):
+    // the text holding the excerpt is copied with the whole block in the excerpt's place -- the bytes the detailed answer
+    // copies -- and its tag adds nothing: no line for it, no button label, no excerpt twice.
+    if (sg && sg.type === 'fatwafull' && ezikFatwaBriefAt(segments, i - 1)) return;
+    const copyBrief = sg && sg.type === 'text' ? ezikFatwaBriefAt(segments, i) : null;
+    if (copyBrief) sg = { type: 'text', content: copyBrief.content };
     const fn = sg && REPLY_SERIALIZERS[sg.type];
     if (!fn) {
       try { console.error('[copy] no serializer for segment type:', sg && sg.type); } catch (e) {}
@@ -24048,6 +24067,20 @@ function ezikFoldSegments(segments, minChars, headChars) {
     // card would refetch and a dhikr card would re-read its store on every toggle. A null draws
     // nothing and keeps all the later indices exactly where the unfolded view has them.
     if (budget <= 0) { changed = true; out.push(null); continue; }
+    // POSTSHIP FIX4 -- 2026-10-25: the brief fatwa's excerpt is never cut or hidden: the fold could stop inside it, and the
+    // «النص الكامل» beside it then lost its pair and drew the whole block under the cut preview. The excerpt is kept whole,
+    // like a card, so the press draws one block in its place; the prose before it folds as any prose does.
+    const foldBrief = ezikFatwaBriefAt(list, i);
+    if (foldBrief) {
+      const kept = body.replace(/\s+$/u, '');
+      const head = kept.slice(0, foldBrief.at).replace(/\s+$/u, '');
+      const excerpt = kept.slice(foldBrief.at);
+      if (head.length <= budget) { out.push(sg); budget -= kept.length; continue; }
+      out.push({ type: 'text', content: (budget > 0 ? ezikFoldCut(head, budget) + '\n\n' : '') + excerpt });
+      budget = 0;
+      changed = true;
+      continue;
+    }
     if (body.length <= budget) { out.push(sg); budget -= body.length; continue; }
     out.push({ type: 'text', content: ezikFoldCut(body, budget) });
     budget = 0;
@@ -24422,7 +24455,8 @@ function ezikFatwaBriefAt(segments, i) {
   const head = next.text.split('\n')[0];
   const at = head ? body.lastIndexOf(head) : -1;
   if (at < 0 || !next.text.startsWith(body.slice(at, -1))) return null;
-  return { label: next.label, content: body.slice(0, at) + next.text };
+  // POSTSHIP FIX4: `at` is where the excerpt begins in the text, for the fold that keeps it whole (ezikFoldSegments).
+  return { label: next.label, content: body.slice(0, at) + next.text, at };
 }
 
 // THE ONE PLACE A SEGMENT BECOMES AN ELEMENT.
