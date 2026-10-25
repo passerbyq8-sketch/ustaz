@@ -821,6 +821,9 @@
     return true;
   }
   function beginWithIap() {
+    if (game === 'board' && (M.cats.length < 3 || M.cats.length > 6 || new Set(M.cats).size !== M.cats.length)) {
+      M.error = 'اختاروا من ثلاث إلى ست فئات.'; setStage('categories', 1); return false;
+    }
     if (hasRooms && M.settings.room) { begin(); return; }
     if (typeof global.ezikIapStart !== 'function') {
       M.error = 'تعذّر التحقق من رصيد الحساب. أعدوا تحميل الصفحة.'; render(); return;

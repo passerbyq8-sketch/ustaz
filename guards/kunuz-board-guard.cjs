@@ -131,17 +131,20 @@ function checkB2(src) {
   const T = (n) => ['a', 'b', 'c', 'd', 'e'].slice(0, n).map((x, i) => ({ n: x, c: '#' + i }));
   const six = [0, 5, 9, 14, 20, 30];
   // refusal
-  const bad = [[T(2), [0, 1, 2, 3, 4]], [T(2), [0, 1, 2, 3, 4, 5, 6]], [T(2), [0, 1, 2, 3, 4, 4]], [T(2), [0, 1, 2, 3, 4, DATA0.cats.length]], [T(2), []], [T(1), six], [T(5), six], [T(2), [0, 1, 2, 3, 4, -1]]];
+  const three = six.slice(0, 3), seven = six.concat([35]);
+  const bad = [[T(2), [0, 1]], [T(2), seven], [T(2), [0, 1, 2, 3, 4, 4]], [T(2), [0, 1, 2, 3, 4, DATA0.cats.length]], [T(2), []], [T(1), six], [T(5), six], [T(2), [0, 1, 2, 3, 4, -1]]];
   bad.forEach(([t, c], i) => { if (BE.newGame({ teams: t, cats: c }) !== null) f.push('a game started with bad setup #' + i); });
-  [2, 3, 4].forEach((n) => { if (!BE.newGame({ teams: T(n), cats: six })) f.push('no game with ' + n + ' teams and six categories'); });
-  // the slots
-  const g = BE.newGame({ teams: T(3), cats: six });
-  if (g.slots.length !== 36) f.push('slots ' + g.slots.length);
-  six.forEach((c, p) => {
-    const sl = g.slots.slice(p * 6, p * 6 + 6);
-    if (!sl.every((x) => x.cat === c)) f.push('slots of card ' + p + ' are not its category');
-    if (sl.map((x) => x.pts).join(',') !== '200,400,600,200,400,600') f.push('points of card ' + p + ': ' + sl.map((x) => x.pts).join(','));
-  });
+  [2, 3, 4].forEach((n) => { if (!BE.newGame({ teams: T(n), cats: three })) f.push('no game with ' + n + ' teams and three categories'); });
+  function checkSlots(cats, want) {
+    const g = BE.newGame({ teams: T(3), cats });
+    if (!g || g.slots.length !== want) { f.push('slots ' + (g && g.slots.length)); return; }
+    cats.forEach((c, p) => {
+      const sl = g.slots.slice(p * 6, p * 6 + 6);
+      if (!sl.every((x) => x.cat === c)) f.push('slots of card ' + p + ' are not its category');
+      if (sl.map((x) => x.pts).join(',') !== '200,400,600,200,400,600') f.push('points of card ' + p + ': ' + sl.map((x) => x.pts).join(','));
+    });
+  }
+  checkSlots(three, 18); checkSlots(six, 36);
   // turn for 2, 3, 4 teams, points to whoever answered, nobody, no negatives
   const turns = {};
   [2, 3, 4].forEach((n) => {
@@ -185,16 +188,18 @@ function checkB2(src) {
   if (r.order.join('') !== '120' || !r.tie || r.winners.join('') !== '12') f.push('rank ' + JSON.stringify(r));
   rk.teams[2].score = 400; const r2 = BE.rank(rk);
   if (r2.tie || r2.winners.join('') !== '1') f.push('rank without tie ' + JSON.stringify(r2));
-  // random: six distinct, each enough for the board, varying; a short category is never offered
+  // random: 3-6 distinct categories with six live questions each, varying; short categories are never offered
   const sets = new Set(); const shortCat = 2; const sh = (i) => DATA0.qs[i][0] === shortCat;
   for (let i = 0; i < 60; i++) {
     const c = BE.randomCats(sh, R);
-    if (c.length !== 6 || new Set(c).size !== 6) f.push('random gave ' + c.join(','));
+    if (c.length < 3 || c.length > 6 || new Set(c).size !== c.length) f.push('random gave ' + c.join(','));
+    if (c.some(cat => DATA0.qs.filter(q => q[0] === cat && q[2] !== 0).length < 6)) f.push('random offered a category with fewer than six live questions');
     if (c.indexOf(shortCat) > -1) f.push('random offered a drained category');
     sets.add(c.slice().sort((x, y) => x - y).join(','));
   }
   if (sets.size < 50) f.push('random is not random: ' + sets.size + ' distinct of 60');
-  if (BE.enough(shortCat, sh) || !BE.enough(shortCat, none)) f.push('enough() wrong');
+  const liveCount = DATA0.qs.filter(q => q[0] === shortCat && q[2] !== 0).length;
+  if (BE.enough(shortCat) !== (liveCount >= 6)) f.push('enough() does not follow the six-live-question minimum');
   // the points are a wager, not a difficulty: the drawing code never reads them -- except through lvOf, the one reader of the
   // owner's experimental «حسب النقاط» (2026-10-19), which is 0 unless that choice is made (kunuzlevels L3/L4 hold it)
   const eng = src.ENGINE; const oa = eng.indexOf('function bag('), ob = eng.indexOf('function back(');
@@ -211,17 +216,19 @@ function checkB3(src) {
   if (!name || W.$('gameName').textContent !== name || W.doc.title !== 'كنوز المعرفة — ' + name) f.push('the name does not come from GAME_NAME');
   W.tap(W.doc.querySelector('[data-q="none"]'), 'none');
   if (!W.$('startBtn').disabled) f.push('start enabled with no category');
-  if (!/ستّ فئات بالضبط/.test(W.$('tally').textContent)) f.push('no line saying six exactly: ' + W.$('tally').textContent);
-  [0, 5, 9, 14, 20].forEach((c) => tapCat(W, c));
-  if (!W.$('startBtn').disabled) f.push('start enabled with five');
-  tapCat(W, 30);
+  if (!/ثلاث فئات على الأقل/.test(W.$('tally').textContent)) f.push('no line showing the three-category minimum');
+  [0, 5].forEach((c) => tapCat(W, c));
+  if (!W.$('startBtn').disabled) f.push('start enabled with two');
+  tapCat(W, 9);
+  if (W.$('startBtn').disabled) f.push('start disabled with three');
+  [14, 20, 30].forEach((c) => tapCat(W, c));
   if (W.$('startBtn').disabled || W.$('tally').textContent) f.push('start disabled with six');
   const off = W.doc.querySelectorAll('#cats .kzc-c').filter((b) => b.getAttribute('aria-pressed') !== 'true');
   if (!off.length || !off.every((b) => b.disabled)) f.push('a seventh category can be chosen');
   W.tap(W.doc.querySelector('[data-q="none"]'), 'none');
   if (W.ctx.S.cats.length) f.push('clear left categories');
   W.tap(W.doc.querySelector('[data-q="rnd"]'), 'rnd');
-  if (W.ctx.S.cats.length !== 6 || new Set(W.ctx.S.cats).size !== 6 || W.$('startBtn').disabled) f.push('random did not give six: ' + W.ctx.S.cats.join(','));
+  if (W.ctx.S.cats.length < 3 || W.ctx.S.cats.length > 6 || new Set(W.ctx.S.cats).size !== W.ctx.S.cats.length || W.$('startBtn').disabled) f.push('random did not give 3-6 categories: ' + W.ctx.S.cats.join(','));
   // the whole-group button
   W.tap(W.doc.querySelector('[data-q="none"]'), 'none');
   const G0 = W.ctx.kzcGroups();
@@ -550,7 +557,8 @@ run('B10', 'scoped reference gradient, phone/wide grid, two point columns, 44px 
   const missed = [
     mut('a turn that does not move', 'g.cur=null;g.turn=(g.turn+1)%g.teams.length;return true;', 'g.cur=null;return true;', checkB2, true),
     mut('points always to the team in turn', 'if(sl.by>=0)g.teams[t].score+=sl.pts;', 'if(sl.by>=0)g.teams[g.turn].score+=sl.pts;', checkB2, true),
-    mut('five categories are enough', 'if(!c||c.length!==CATS)return null;', 'if(!c||c.length<5)return null;', checkB2, true),
+    mut('a 2-category game is accepted', 'if(!c||c.length<MIN_CATS||c.length>MAX_CATS)return null;', 'if(!c||c.length<2||c.length>MAX_CATS)return null;', checkB2, true),
+    mut('a 7-category game is accepted', 'if(!c||c.length<MIN_CATS||c.length>MAX_CATS)return null;', 'if(!c||c.length<MIN_CATS||c.length>7)return null;', checkB2, true),
     mut('a back that advances the turn', 'function back(g){if(!g.cur)return false;g.cur=null;return true}', 'function back(g){if(!g.cur)return false;g.cur=null;g.turn=(g.turn+1)%g.teams.length;return true}', checkB2, true),
     mut('a question chosen by the points', 'var k=a[Math.floor(rnd()*a.length)];', 'var k=a[Math.min(a.length-1,Math.floor(rnd()*a.length*sl.pts/600))];', checkB2, true),
     mut('the record ignored', '(seen(i)?b:a).push(i);', 'a.push(i);', checkB6, true),
@@ -561,10 +569,10 @@ run('B10', 'scoped reference gradient, phone/wide grid, two point columns, 44px 
     mut('the tie not named', '(r.tie?"تعادل بين "+names.join(" و"):', '(r.tie?"تعادل":', checkB5, true),
     mut('quit in one tap', 'if($("quit").dataset.arm!=="1"){arm(true);return}', '', checkB5, true),
     // KUNUZ-QA-DECISIONS (2026-10-19): a count a screen reader alone would hear is a count on the screen
-    mut('a question count read only by a screen reader', '<p class="lbl">الفئات</p><p class="sub">ست فئات', '<p class="lbl">الفئات</p><p class="sub" title="' + N + ' سؤال">ست فئات', checkB7, true),
+    mut('a question count read only by a screen reader', '<p class="lbl">الفئات</p><p class="sub">اختاروا من ثلاث', '<p class="lbl">الفئات</p><p class="sub" title="' + N + ' سؤال">اختاروا من ثلاث', checkB7, true),
     mut('a living icon', '<circle cx="12" cy="12" r="9"/>', '<image href="x.png"/>', checkB9, true),
   ].filter(Boolean);
-  report('B11', 'the gate bites: fourteen mutants of the page are each caught', missed.map((m) => 'MUTANT SURVIVED: ' + m), 'mutants=14 missed=' + missed.length);
+  report('B11', 'the gate bites: fifteen mutants of the page are each caught', missed.map((m) => 'MUTANT SURVIVED: ' + m), 'mutants=15 missed=' + missed.length);
 }
 
 const bad = results.filter((r) => !r.ok);

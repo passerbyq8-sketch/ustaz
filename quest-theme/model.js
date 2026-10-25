@@ -113,11 +113,12 @@
     return { order, winners: order.filter(i => score(teams[i]) === top) };
   }
   function hannaDelta(mode, correct, value) { return value * HANNA_POINTS[mode][correct ? 'right' : 'wrong']; }
-  /* BE retains its scoring/turn/rank rules; this adapter expands its old fixed-size entry. */
+  /* BE retains its scoring/turn/rank rules; category and slot totals follow the selected board. */
   function board(teams, cats, slots) {
+    if (!Array.isArray(cats) || cats.length < 3 || cats.length > 6 || new Set(cats).size !== cats.length) return null;
     if (!global.BE) return { teams: teams.map(t => ({ ...t, score: 0 })), cats: cats.slice(), slots, turn: 0, used: {}, cur: null };
-    const padded = cats.concat(categories().map(c => c.index).filter(c => !cats.includes(c))).slice(0, global.BE.CATS);
-    const game = global.BE.newGame({ teams, cats: padded });
+    const game = global.BE.newGame({ teams, cats });
+    if (!game) return null;
     game.cats = cats.slice(); game.slots = slots; return game;
   }
   global.KunuzModel = Object.freeze({ PER_CATEGORY, LEVELS, POINTS, HANNA_POINTS, shuffle, level, live, categories, history, candidates, pool, reserve, rank, hannaDelta, board });

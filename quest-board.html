@@ -229,7 +229,7 @@ td i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:6
     <a onclick="try{sessionStorage.setItem('ezik_resume_section_v1','home')}catch(e){}" href="/" class="kz-home" aria-label="الرئيسية">🏠 الرئيسية</a>
   </nav>
   <div class="brand"><h1 id="gameName"></h1>
-    <p>لوحة أسئلة على جهاز واحد · ست فئات · والفرق تتناوب الدور</p></div>
+    <p>لوحة أسئلة على جهاز واحد · من ثلاث إلى ست فئات · ستة أسئلة لكل فئة</p></div>
   <div class="rule"></div>
 
   <div class="card">
@@ -239,7 +239,7 @@ td i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:6
   </div>
 
   <div class="card">
-    <p class="lbl">الفئات</p><p class="sub">ست فئات بالضبط، ثابتة طوال اللعبة</p>
+    <p class="lbl">الفئات</p><p class="sub">اختاروا من ثلاث إلى ست فئات؛ لكل فئة ست خانات: ٢٠٠ و٤٠٠ و٦٠٠ على الجانبين</p>
     <div class="quick">
       <button data-q="rnd">عشوائي</button><button data-q="none">مسح</button>
     </div>
@@ -452,13 +452,13 @@ function kzcDraw(sel,min,max,toggle){
 var BE=(function(){
   var COLORS=[["#1E64D6","أزرق"],["#0A7A85","فيروزيّ"],["#5B4BD0","بنفسجيّ"],["#3B4A6B","كحليّ"]];
   var PTS=[200,400,600];
-  var CATS=6,PER=6;
-  /* o: {teams:[{n,c}] من ٢ إلى ٤، cats:[ست فهارس مختلفة]} ⟹ لعبة، وغير ذلك ⟹ null */
+  var MIN_CATS=3,MAX_CATS=6,PER=6;
+  /* o: {teams:[{n,c}] من ٢ إلى ٤، cats:[من ٣ إلى ٦ فهارس مختلفة]} ⟹ لعبة، وغير ذلك ⟹ null */
   function newGame(o){
     if(!o||!o.teams||o.teams.length<2||o.teams.length>4)return null;
     var c=o.cats;
-    if(!c||c.length!==CATS)return null;
-    for(var i=0;i<CATS;i++){if(typeof c[i]!=="number"||!(c[i]>=0&&c[i]<DATA.cats.length)||c.indexOf(c[i])!==i)return null}
+    if(!c||c.length<MIN_CATS||c.length>MAX_CATS)return null;
+    for(var i=0;i<c.length;i++){if(typeof c[i]!=="number"||!(c[i]>=0&&c[i]<DATA.cats.length)||c.indexOf(c[i])!==i)return null}
     var slots=[];
     c.forEach(function(cat){for(var j=0;j<PER;j++)slots.push({cat:cat,pts:PTS[j%3],used:false,by:-2})});
     return {cats:c.slice(),teams:o.teams.map(function(t){return {n:t.n,c:t.c,score:0}}),slots:slots,turn:0,used:{},cur:null};
@@ -500,20 +500,18 @@ var BE=(function(){
     var winners=order.filter(function(i){return g.teams[i].score===top});
     return {order:order,winners:winners,tie:winners.length>1};
   }
-  /* تكفي الفئة اللوحة إن بقي فيها ستة أسئلة لم تُرَ */
-  function enough(cat,seen){
-    /* «حسب النقاط»: سؤالان لم يُرَيا من كلّ مستوى */
-    if(typeof KZL!=="undefined"&&KZL.forPts(200)){for(var l=1;l<=3;l++){var m=0;for(var k=0;k<DATA.qs.length&&m<PER/3;k++)if(kzLive(k)&&kzLvAt(k,l)&&DATA.qs[k][0]===cat&&!seen(k))m++;if(m<PER/3)return false}return true}
-    var n=0;for(var i=0;i<DATA.qs.length&&n<PER;i++)if(kzLive(i)&&DATA.qs[i][0]===cat&&!seen(i))n++;return n>=PER}
+  /* تكفي الفئة ستة أسئلة حيّة؛ يبدأ الساحب دورة جديدة إن استُهلك سجلّها. */
+  function enough(cat){
+    var n=0;for(var i=0;i<DATA.qs.length&&n<PER;i++)if(kzLive(i)&&DATA.qs[i][0]===cat)n++;return n>=PER}
   function shortOf(cats,seen){return cats.filter(function(c){return !enough(c,seen)})}
   /* «عشوائي»: ست فئات مختلفة من كلّ الفئات التي تكفي اللوحة */
   function randomCats(seen,rnd){
     rnd=rnd||Math.random;
     var a=DATA.cats.map(function(c,i){return i}).filter(function(i){return enough(i,seen)});
     for(var i=a.length-1;i>0;i--){var j=Math.floor(rnd()*(i+1)),x=a[i];a[i]=a[j];a[j]=x}
-    return a.slice(0,CATS);
+    return a.length<MIN_CATS?[]:a.slice(0,MAX_CATS);
   }
-  return {COLORS:COLORS,PTS:PTS,CATS:CATS,PER:PER,newGame:newGame,open:open,back:back,award:award,spoil:spoil,team:team,
+  return {COLORS:COLORS,PTS:PTS,MIN_CATS:MIN_CATS,MAX_CATS:MAX_CATS,CATS:MAX_CATS,PER:PER,newGame:newGame,open:open,back:back,award:award,spoil:spoil,team:team,
     over:over,played:played,rank:rank,enough:enough,shortOf:shortOf,randomCats:randomCats};
 })();
 /* ───── BOARD-ENGINE END ───── */
@@ -575,7 +573,7 @@ function toggleCat(i){var k=S.cats.indexOf(i);if(k>-1)S.cats.splice(k,1);else if
 /* المستوى تغيّر: يُعاد حساب ما يكفي اللوحة */
 function kzlChanged(){drawCats()}
 function drawCats(){
-  kzcDraw(S.cats,BE.CATS,BE.CATS,toggleCat);
+  kzcDraw(S.cats,BE.MIN_CATS,BE.MAX_CATS,toggleCat);
   groupAll();tally();
 }
 /* «اختر المجموعة كلّها» في كلّ مجموعة مفتوحة: تضيف فئاتها حتّى تكتمل الست، وإن كانت كلّها مختارة أزالتها */
@@ -604,14 +602,14 @@ document.querySelectorAll("[data-q]").forEach(function(b){
     if(q==="none")S.cats=[];
     drawCats();
     /* «عشوائي» لا يجد ستّ فئات فيها ما يكفي اللوحة لأنّ السجلّ استُهلك: يقول ذلك ويدلّ على التصفير بدل أن يسكت */
-    if(q==="rnd"&&S.cats.length<BE.CATS)$("tally").textContent=spentText().join(" — ")};
+    if(q==="rnd"&&S.cats.length<BE.MIN_CATS)$("tally").textContent=spentText().join(" — ")};
 });
 function tally(){
   seenRead();
-  var n=S.cats.length,short=n===BE.CATS?BE.shortOf(S.cats,seenHas):[];
-  $("tally").textContent=n!==BE.CATS?"اختاروا ستّ فئات بالضبط لتبدأ اللعبة.":
+  var n=S.cats.length,short=n>=BE.MIN_CATS?BE.shortOf(S.cats,seenHas):[];
+  $("tally").textContent=n<BE.MIN_CATS?"اختاروا ثلاث فئات على الأقل لتبدأ اللعبة.":
     (short.length?(typeof KZL!=="undefined"&&KZL.forPts(200)?KZL.boardShort(DATA.cats[short[0]][1]):"فئة «"+DATA.cats[short[0]][1]+"» لم يبق فيها ما يكفي اللوحة — اختاروا غيرها أو صفّروا السجلّ."):"");
-  $("startBtn").disabled=(n!==BE.CATS||short.length>0);
+  $("startBtn").disabled=(n<BE.MIN_CATS||n>BE.MAX_CATS||short.length>0);
 }
 $("startBtn").onclick=function(){
   if($("startBtn").disabled)return;
