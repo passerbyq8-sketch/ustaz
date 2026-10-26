@@ -188,6 +188,7 @@ function ezLangRelabel() {
     EZH_WOMEN = ezT("module.women");
     EZH_ASMAA = ezT("asmaa.title");
     EZH_SUNAN = ezT("sunan.title");
+    EZH_YAHIMMAK = ezT("yahimmak.title");
     EZIST_SUB_ARTICLES = ezT("module.articles.sub");
     EZIST_SUB_WOMEN = ezT("module.women.sub");
     EZIST_SUB_MEMORIZE = ezT("module.memorize.sub");
@@ -1585,6 +1586,99 @@ const EZ_I18N = {
     'sunan.showMatn': '\u0625\u0638\u0647\u0627\u0631 \u0646\u0635 \u0627\u0644\u062D\u062F\u064A\u062B',
     'sunan.hideMatn': '\u0625\u062E\u0641\u0627\u0621 \u0646\u0635 \u0627\u0644\u062D\u062F\u064A\u062B',
     'sunan.error': '\u062A\u0639\u0630\u0631 \u062C\u0644\u0628 \u0627\u0644\u0645\u062A\u0646. \u062A\u062D\u0642\u0642 \u0645\u0646 \u0627\u0644\u0627\u062A\u0635\u0627\u0644 \u062B\u0645 \u0623\u0639\u062F \u0627\u0644\u0645\u062D\u0627\u0648\u0644\u0629.',
+    // YAHIMMAK -- «يهمّك». Interface words only; every word of the lessons comes from yahimmak.json.
+    'yahimmak.title': 'يهمّك',
+    'yahimmak.headline': 'ما يهمّك من دينك، درسًا درسًا',
+    'yahimmak.byline': 'للشيخ عبدالعزيز بن باز رحمه الله، بشرح الشيخ عثمان الخميس',
+    'yahimmak.progress': 'أنهيت {n} من {m}',
+    'yahimmak.resume': 'كمّل',
+    'yahimmak.review': 'راجع',
+    'yahimmak.count1': 'درسٌ واحد',
+    'yahimmak.countN': '{n} دروس',
+    'yahimmak.countMany': '{n} درسًا',
+    'yahimmak.daily': 'تحدّي اليوم',
+    'yahimmak.dailyTitle': 'عشرة أسئلة سريعة من الدروس',
+    'yahimmak.dailySub': 'صح أم خطأ، وصنّف المثال',
+    'yahimmak.dailyDone': 'نتيجتك اليوم: {n} من {m}',
+    'yahimmak.lessons': 'الدروس',
+    'yahimmak.byBook': 'بترتيب الكتاب',
+    'yahimmak.doneMark': 'أنهيته',
+    'yahimmak.lessonOrd': 'الدرس {ord}',
+    'yahimmak.footMatn': 'المتن: «الدروس المهمة لعامة الأمة» للشيخ عبدالعزيز بن باز رحمه الله',
+    'yahimmak.footAudio': 'الشرح الصوتي: الشيخ عثمان الخميس، ورابط المصدر تحت كلّ مقطع',
+    'yahimmak.error': 'تعذّر جلب الدروس. تحقّق من الاتصال ثم أعد المحاولة.',
+    'yahimmak.short': 'بالمختصر',
+    'yahimmak.fromBook': 'من نصّ الكتاب',
+    'yahimmak.ref': '{book} · الدرس {ord}، بتصرّف',
+    'yahimmak.refBook': 'من نصّ الكتاب',
+    'yahimmak.page': 'ص {n}',
+    'yahimmak.how': 'طريقة التفاعل',
+    'yahimmak.links': 'يتّصل بـ',
+    'yahimmak.start': 'ابدأ الدرس',
+    'yahimmak.audio.head': 'اسمع الشرح',
+    'yahimmak.audio.sheikh': 'الشيخ عثمان الخميس',
+    'yahimmak.audio.play': 'تشغيل المقطع',
+    'yahimmak.audio.stop': 'إيقاف المقطع',
+    'yahimmak.audio.page': 'صفحة المقطع على موقع الشيخ',
+    'yahimmak.audio.faida': 'فائدة',
+    'yahimmak.prev': 'السابق',
+    'yahimmak.next': 'التالي',
+    'yahimmak.finish': 'أنهِ الدرس',
+    'yahimmak.quiz': 'تحقّق من فهمك',
+    'yahimmak.stepOf': '{n} من {m}',
+    'yahimmak.true': 'صح',
+    'yahimmak.false': 'خطأ',
+    'yahimmak.ok': 'أحسنت.',
+    'yahimmak.no': 'ليس كذلك.',
+    'yahimmak.notThis': 'ليس كذلك، الجواب: {a}.',
+    'yahimmak.tally': '{n} من {m}',
+    'yahimmak.right': '{n} صحيحة',
+    'yahimmak.qOf': 'السؤال {n} من {m}',
+    'yahimmak.result': 'نتيجتك',
+    'yahimmak.replay': 'جولة ثانية',
+    'yahimmak.keep': 'الخلاصة في سطر',
+    'yahimmak.nextLesson': 'التالي: الدرس {ord}',
+    'yahimmak.toLessons': 'رجوع للدروس',
+    'yahimmak.from': 'من الدرس {ord}: {title}',
+    'yahimmak.sep': ' · ',
+    'yahimmak.tapNext': 'اضغط',
+    'yahimmak.pillarAria': 'العمود {n}',
+    'yahimmak.openSurah': 'افتح سورة {name} في المصحف',
+    'yahimmak.orderNote': 'وهو الذي فعلته الآن',
+    'yahimmak.match.no': 'ليس هذا ما ينافيه، جرّب مرة أخرى.',
+    'yahimmak.match.plain': 'وفي الكتاب أيضًا:',
+    'yahimmak.order.first': 'الذي يأتي الآن: {label}',
+    'yahimmak.order.done': 'أحسنت، هذا ترتيب الكتاب.',
+    'yahimmak.seq.no': 'ليس هذا ما يأتي بعده، جرّب مرة أخرى.',
+    'yahimmak.seq.done': 'اكتمل النص.',
+    'yahimmak.p.reveal': 'اضغط لتكشف التالي',
+    'yahimmak.p.pillars': 'اضغط كلَّ عمودٍ لتعرف ركنه',
+    'yahimmak.p.split': 'اضغط كلَّ نصفٍ لترى معناه',
+    'yahimmak.p.match': 'اختر من العمود الأول، ثم ما يقابله من الثاني',
+    'yahimmak.p.flip': 'اضغط البطاقة لتقلبها',
+    'yahimmak.p.check': 'أشّر على كلّ ما تحقّق',
+    'yahimmak.p.daily': 'أشّر على ما عملت به اليوم، ولا نتيجة هنا',
+    'yahimmak.p.order': 'اضغطها بترتيبها',
+    'yahimmak.p.sort': 'صنّف كلّ مثال',
+    'yahimmak.p.tf': 'احكم على كلّ حالة',
+    'yahimmak.p.seq': 'اختر ما يأتي بعده',
+    'yahimmak.p.reflect': 'اضغط لتكمل الجملة',
+    'yahimmak.p.moments': 'اضغط موضعًا من يومك',
+    'yahimmak.map.open': 'خريطة الصلاة',
+    'yahimmak.map.openSort': 'افتح خريطة الصلاة',
+    'yahimmak.map.lead': 'اضغط موضعًا من الصلاة لترى ما فيه من أركانٍ وواجباتٍ وسنن.',
+    'yahimmak.map.all': 'الكل',
+    'yahimmak.map.arkan': 'الأركان {n}',
+    'yahimmak.map.wajibat': 'الواجبات {n}',
+    'yahimmak.map.sunan': 'السنن',
+    'yahimmak.map.legend': 'الألوان:',
+    'yahimmak.map.foot': 'كلُّ ما في الخريطة من الدروس السابع والثامن والعاشر، مرتّبًا على مواضع الصلاة.',
+    'yahimmak.map.toSort': 'اختبر نفسك: صنّفها',
+    'yahimmak.sort.title': 'صنّفها',
+    'yahimmak.sort.q': 'ما حكمه في الصلاة؟',
+    'yahimmak.tag.rukn': 'ركن',
+    'yahimmak.tag.wajib': 'واجب',
+    'yahimmak.tag.sunna': 'سنّة',
     // THE SECTION HEADINGS OF المصادر, and the only part of that panel that is a dictionary
     // key at all: the names under them are proper names that read the same in either language.
     'sources.quran': 'القرآن والمصحف',
@@ -3136,6 +3230,99 @@ const EZ_I18N = {
     'sunan.showMatn': 'Show the hadith text',
     'sunan.hideMatn': 'Hide the hadith text',
     'sunan.error': 'The text could not be fetched. Check the connection and try again.',
+    // YAHIMMAK -- «يهمّك» (Essentials).
+    'yahimmak.title': 'Essentials',
+    'yahimmak.headline': 'What matters in your faith, lesson by lesson',
+    'yahimmak.byline': 'By Shaykh Abdulaziz ibn Baz, explained by Shaykh Othman Al-Khamees',
+    'yahimmak.progress': '{n} of {m} done',
+    'yahimmak.resume': 'Continue',
+    'yahimmak.review': 'Review',
+    'yahimmak.count1': '1 lesson',
+    'yahimmak.countN': '{n} lessons',
+    'yahimmak.countMany': '{n} lessons',
+    'yahimmak.daily': 'Today\'s challenge',
+    'yahimmak.dailyTitle': 'Ten quick questions from the lessons',
+    'yahimmak.dailySub': 'True or false, and sort the example',
+    'yahimmak.dailyDone': 'Today\'s result: {n} of {m}',
+    'yahimmak.lessons': 'Lessons',
+    'yahimmak.byBook': 'In the book\'s order',
+    'yahimmak.doneMark': 'done',
+    'yahimmak.lessonOrd': 'Lesson {ord}',
+    'yahimmak.footMatn': 'Text: “The Important Lessons for the Ummah” by Shaykh Abdulaziz ibn Baz',
+    'yahimmak.footAudio': 'Audio explanation: Shaykh Othman Al-Khamees; the source link is under every clip',
+    'yahimmak.error': 'The lessons could not be fetched. Check the connection and try again.',
+    'yahimmak.short': 'In short',
+    'yahimmak.fromBook': 'From the book',
+    'yahimmak.ref': '{book} · lesson {ord}, adapted',
+    'yahimmak.refBook': 'From the book\'s own text',
+    'yahimmak.page': 'p. {n}',
+    'yahimmak.how': 'How it works',
+    'yahimmak.links': 'Linked to',
+    'yahimmak.start': 'Start the lesson',
+    'yahimmak.audio.head': 'Listen to the explanation',
+    'yahimmak.audio.sheikh': 'Shaykh Othman Al-Khamees',
+    'yahimmak.audio.play': 'Play the clip',
+    'yahimmak.audio.stop': 'Stop the clip',
+    'yahimmak.audio.page': 'The clip\'s page on the Shaykh\'s site',
+    'yahimmak.audio.faida': 'Benefit',
+    'yahimmak.prev': 'Previous',
+    'yahimmak.next': 'Next',
+    'yahimmak.finish': 'Finish the lesson',
+    'yahimmak.quiz': 'Check your understanding',
+    'yahimmak.stepOf': '{n} of {m}',
+    'yahimmak.true': 'True',
+    'yahimmak.false': 'False',
+    'yahimmak.ok': 'Well done.',
+    'yahimmak.no': 'Not quite.',
+    'yahimmak.notThis': 'Not quite, the answer is: {a}.',
+    'yahimmak.tally': '{n} of {m}',
+    'yahimmak.right': '{n} right',
+    'yahimmak.qOf': 'Question {n} of {m}',
+    'yahimmak.result': 'Your result',
+    'yahimmak.replay': 'Another round',
+    'yahimmak.keep': 'The point in one line',
+    'yahimmak.nextLesson': 'Next: lesson {ord}',
+    'yahimmak.toLessons': 'Back to the lessons',
+    'yahimmak.from': 'From lesson {ord}: {title}',
+    'yahimmak.sep': ' · ',
+    'yahimmak.tapNext': 'Tap',
+    'yahimmak.pillarAria': 'Pillar {n}',
+    'yahimmak.openSurah': 'Open surah {name} in the Mushaf',
+    'yahimmak.orderNote': 'That is what you just did',
+    'yahimmak.match.no': 'That is not its opposite; try again.',
+    'yahimmak.match.plain': 'The book also names:',
+    'yahimmak.order.first': 'What comes now: {label}',
+    'yahimmak.order.done': 'Well done, that is the book\'s order.',
+    'yahimmak.seq.no': 'That is not what comes next; try again.',
+    'yahimmak.seq.done': 'The text is complete.',
+    'yahimmak.p.reveal': 'Tap to reveal the next one',
+    'yahimmak.p.pillars': 'Tap each pillar to learn it',
+    'yahimmak.p.split': 'Tap each half to see its meaning',
+    'yahimmak.p.match': 'Pick from the first column, then its match in the second',
+    'yahimmak.p.flip': 'Tap a card to flip it',
+    'yahimmak.p.check': 'Tick each one that is met',
+    'yahimmak.p.daily': 'Tick what you practised today; there is no score here',
+    'yahimmak.p.order': 'Tap them in order',
+    'yahimmak.p.sort': 'Sort each example',
+    'yahimmak.p.tf': 'Judge each case',
+    'yahimmak.p.seq': 'Choose what comes next',
+    'yahimmak.p.reflect': 'Tap to complete the sentence',
+    'yahimmak.p.moments': 'Tap a moment of your day',
+    'yahimmak.map.open': 'Prayer map',
+    'yahimmak.map.openSort': 'Open the prayer map',
+    'yahimmak.map.lead': 'Tap a position of the prayer to see its pillars, obligations and sunnahs.',
+    'yahimmak.map.all': 'All',
+    'yahimmak.map.arkan': 'Pillars {n}',
+    'yahimmak.map.wajibat': 'Obligations {n}',
+    'yahimmak.map.sunan': 'Sunnahs',
+    'yahimmak.map.legend': 'Colours:',
+    'yahimmak.map.foot': 'Everything on the map is from lessons seven, eight and ten, arranged by the positions of the prayer.',
+    'yahimmak.map.toSort': 'Test yourself: sort them',
+    'yahimmak.sort.title': 'Sort them',
+    'yahimmak.sort.q': 'What is it in the prayer?',
+    'yahimmak.tag.rukn': 'Pillar',
+    'yahimmak.tag.wajib': 'Obligation',
+    'yahimmak.tag.sunna': 'Sunnah',
     // THE SECTION HEADINGS OF المصادر, and the only part of that panel that is a dictionary
     // key at all: the names under them are proper names that read the same in either language.
     'sources.quran': 'Qur’an and the mushaf',
@@ -9765,7 +9952,7 @@ const EZ110_SECTION_NAMES = {
   asmaa: 'asmaa.title', articles: 'module.articles', memorize: 'module.memorize', adhkar: 'module.adhkar',
   'sunan-day': 'sunan.title', arbaeen: 'module.arbaeen', mushaf: 'module.mushaf', treasure: 'ez110.name.treasure',
   fatwa: 'module.fatwa', lessons: 'module.lessons', library: 'module.library', prayer: 'ez110.name.prayer',
-  women: 'module.women', tasbih: 'tasbih.card.title', calc: 'ez110.name.calc',
+  women: 'module.women', tasbih: 'tasbih.card.title', calc: 'ez110.name.calc', yahimmak: 'yahimmak.title',
 };
 function ez110Name(id) { return EZ110_SECTION_NAMES[id] ? ezT(EZ110_SECTION_NAMES[id]) : ''; }
 // ROUND 4 (phone round): a press on the bar's «عزك» opened the keyboard by itself -- the shared door focuses the composer
@@ -10025,7 +10212,7 @@ function ez110WirdIcon(wird) {
 const EZ110_GROUPS = [
   { key: 'ez110.grp.quran', ids: ['memorize', 'arbaeen', 'sunan-day', 'asmaa'] },
   { key: 'ez110.grp.dhikr', ids: ['wird', 'adhkar', 'tasbih'] },
-  { key: 'ez110.grp.know', ids: ['fatwa', 'lessons', 'library', 'articles', 'women', 'calc', 'treasure'] },
+  { key: 'ez110.grp.know', ids: ['yahimmak', 'fatwa', 'lessons', 'library', 'articles', 'women', 'calc', 'treasure'] },
 ];
 const EZ110_BAR_IDS = ['mushaf', 'prayer'];
 // THE SAVE THAT LOSES NOTHING. «ب» arranges only the tiles it draws; every other id in the stored order (the
@@ -10628,6 +10815,13 @@ let EZH_SUNAN = ezT("sunan.title");
 const EZH_ICON_SUNAN = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="18" x2="21" y2="18" /><path d="M7 18a5 5 0 0 1 10 0" /><line x1="12" y1="4" x2="12" y2="6.5" /><line x1="5" y1="7.5" x2="6.8" y2="9.3" /><line x1="19" y1="7.5" x2="17.2" y2="9.3" /></svg>
 );
+// YAHIMMAK -- THE TILE. The name is the section's own title key, rebound by ezLangRelabel() beside the others. The
+// mark is a line icon of the same family as the two above (24x24, 1.8 stroke, round caps): an open book under
+// Ezik's arch. No artwork file, no image, no data URI.
+let EZH_YAHIMMAK = ezT("yahimmak.title");
+const EZH_ICON_YAHIMMAK = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6.5 10.5V9a5.5 5.5 0 0 1 11 0v1.5" /><path d="M3 13.5c3-1.2 6-1.2 9 .9 3-2.1 6-2.1 9-.9V20c-3-1.2-6-1.2-9 .9-3-2.1-6-2.1-9-.9z" /><path d="M12 14.4v6.5" /></svg>
+);
 // The callout, the profile entry and the three navigation icons -- the same paths as before,
 // drawn as LINE icons on white. There is no face and no avatar image in either style.
 const EZH_ICON_SUN = (
@@ -10775,6 +10969,9 @@ function ezHomeModules(v) {
     { id: 'arbaeen',  label: EZH_ARBAEEN,  icon: EZH_ICON_ARBAEEN,  onClick: v.onOpenArbaeen,  meta: null },
     { id: 'mushaf',   label: EZH_MUSHAF,   icon: EZH_ICON_MUSHAF,   onClick: v.onOpenMushaf,   meta: wird },
     { id: 'treasure', label: EZH_TREASURE, icon: EZH_ICON_TREASURE, onClick: v.onOpenTreasure, meta: null },
+    // YAHIMMAK (26 October): «يهمّك», the owner's new section, FIRST of the knowledge group. A layer like the two
+    // above it: the handler App threads down sets one boolean. Free for everyone; no `meta`, no `fresh`.
+    { id: 'yahimmak', label: EZH_YAHIMMAK, icon: EZH_ICON_YAHIMMAK, onClick: v.onOpenYahimmak, meta: null },
     { id: 'fatwa',    label: EZH_FATWA,    icon: EZH_ICON_FATWA,    onClick: v.onOpenFatwa,    meta: null },
     { id: 'lessons',  label: EZH_LESSONS,  icon: EZH_ICON_LESSONS,  onClick: v.onOpenLessons,  meta: null },
     // ITEM 108 (ORDER-108C): the library, beside the other two sections of reading and knowledge.
@@ -13038,7 +13235,7 @@ function EzikHomeWidgetArrange({ widgets, onWidgets, arrangeOpen, onArrange }) {
   );
 }
 
-function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, onOpenArbaeen, onOpenMushaf, onOpenFatwa, onOpenLessons, onOpenAsmaa, onOpenSettings, onOpenTafsir }) {
+function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, onOpenYahimmak, onOpenArbaeen, onOpenMushaf, onOpenFatwa, onOpenLessons, onOpenAsmaa, onOpenSettings, onOpenTafsir }) {
   const ez110 = useEz110();   // ITEM 110: the lit identity draws its own menu below
   // THE OWNER. Every prop it was handed is handed straight on, and the treasure entry resolves
   // to the same href it always did. There is no second router here and no duplicated navigation
@@ -13213,6 +13410,8 @@ function Home({ profile, onOpenMenu, onOpenMemorize, onOpenAdhkar, onOpenSunan, 
     // ITEM 87 / ORDER 87D: handed straight on, like the six around it. The layer this opens is
     // owned by App, which is where the boolean and its history entry already live.
     onOpenSunan: onOpenSunan,
+    // YAHIMMAK: handed straight on, like the sunan layer's handler above it.
+    onOpenYahimmak: onOpenYahimmak,
     // ITEM 89: handed straight on, like the six around it. The screen it sets lives in App,
     // which is where every other feature section's screen key is set.
     onOpenArbaeen: onOpenArbaeen,
@@ -14003,7 +14202,7 @@ const EZIK_RESUME_SCREENS = {
   mushaf: 'mushaf', fatwa: 'fatwa', lessons: 'lessons', home: 'home',
   'ayah-tafsir': 'ayah-tafsir',
 };
-const EZIK_RESUME_APP_LAYERS = { asmaa: 1, 'sunan-day': 1 };
+const EZIK_RESUME_APP_LAYERS = { asmaa: 1, 'sunan-day': 1, yahimmak: 1 };
 // Resume records name home layers. `wirdi` is restorable and, since trip 2, an accepted route.
 const EZIK_RESUME_HOME_LAYERS = { articles: 1, women: 1, prayer: 1, wirdi: 1, tasbih: 1, calc: 1, compass: 1 };
 function ezikResumeKnown(id) {
@@ -15474,6 +15673,740 @@ function EzikSunanSection({ onBack }) {
   );
 }
 // ITEM 87 -- END OF THE DAY, FROM WAKING TO SLEEPING
+
+// ============================================================
+// YAHIMMAK -- «يهمّك»: «الدروس المهمة لعامة الأمة» lesson by lesson
+// ============================================================
+// THE OWNER'S RULES (26 October): every fact comes from the book itself; very short cards, one
+// interaction per lesson and a short check; and the section is FREE for everyone -- nothing of
+// the Kunuz purchase gate, trial or store code is called from here, and gate yahimmak proves it.
+// The words are yahimmak.json's; this block supplies the furniture. A LAYER and not a screen,
+// for the reason the sunan section above gives: one boolean in App, one history entry.
+//
+// THE WITNESS RULE, a FILTER and not a warning: every item, game answer and quiz answer carries
+// the exact words it stands on and the printed page they are on, and is drawn only when those
+// words are found on that page of yahimmak-book.json under rule N (no harakat, no tatweel,
+// whitespace collapsed). Gate yahimmak drives yahimmakItemShowable itself, sliced from app.js.
+const YAHIMMAK_URL = '/yahimmak.json';
+const YAHIMMAK_BOOK_URL = '/yahimmak-book.json';
+let __yahimmak = null;
+let __yahimmakPromise = null;
+const loadYahimmak = () => {
+  if (__yahimmak) return Promise.resolve(__yahimmak);
+  if (!__yahimmakPromise) {
+    __yahimmakPromise = Promise.all([YAHIMMAK_URL, YAHIMMAK_BOOK_URL].map((u) => fetch(u)
+      .then((r) => { if (!r.ok) throw new Error('yahimmak fetch ' + r.status); return r.json(); })))
+      .then(([data, book]) => { __yahimmak = { data, book }; return __yahimmak; })
+      .catch((e) => { __yahimmakPromise = null; throw e; });
+  }
+  return __yahimmakPromise;
+};
+const YAHIMMAK_N_RE = new RegExp('[' + String.fromCharCode(0x64B) + '-' + String.fromCharCode(0x65F) + String.fromCharCode(0x670) + String.fromCharCode(0x640) + ']', 'g');
+const yahimmakN = (v) => String(v == null ? '' : v).replace(YAHIMMAK_N_RE, '').replace(/\s+/g, ' ').trim();
+function yahimmakWitnessOk(wit, pages) {
+  if (!Array.isArray(wit) || !wit.length || !pages) return false;
+  return wit.every((x) => !!x && Number.isInteger(x.page) && typeof pages[x.page] === 'string'
+    && yahimmakN(x.text) !== '' && yahimmakN(pages[x.page]).indexOf(yahimmakN(x.text)) !== -1);
+}
+function yahimmakItemShowable(item, pages) {
+  return !!item && typeof item === 'object' && typeof item.label === 'string' && item.label.trim() !== ''
+    && yahimmakWitnessOk(item.witness, pages);
+}
+// The whole file through the rule, once: refused items are dropped, a card left empty is
+// dropped, a lesson left with no card is dropped. Nothing is reordered and nothing is added.
+function yahimmakPrepare(data, book) {
+  const pages = {};
+  (book && Array.isArray(book.pages) ? book.pages : []).forEach((p) => { if (p && Number.isInteger(p.page)) pages[p.page] = p.text; });
+  const ok = (x) => yahimmakItemShowable(x, pages);
+  const lessons = (data && Array.isArray(data.lessons) ? data.lessons : []).map((L) => {
+    const cards = (Array.isArray(L.cards) ? L.cards : []).map((c) => {
+      const groups = Array.isArray(c.groups) ? c.groups.map((g) => ({ ...g, items: (g.items || []).filter(ok) })).filter((g) => g.items.length) : null;
+      return { ...c, groups, items: (c.items || []).filter(ok), plain: (c.plain || []).filter(ok),
+        done: ok(c.done) ? c.done : null, note: ok(c.note) ? c.note : null };
+    }).filter((c) => (c.groups ? c.groups.length : c.items.length));
+    const quiz = (Array.isArray(L.quiz) ? L.quiz : []).filter((q) => q && typeof q.q === 'string' && yahimmakWitnessOk(q.witness, pages));
+    const sm = L.summary || {};
+    const summary = sm.kind === 'verbatim' ? (yahimmakWitnessOk(sm.witness, pages) ? sm : null) : (typeof sm.text === 'string' ? sm : null);
+    return { ...L, cards, quiz, summary };
+  }).filter((L) => L.cards.length);
+  const pm = (data && data.prayer_map) || {};
+  return { lessons, pages, book: (data && data.book) || {}, credit: (data && data.audio_credit) || null,
+    stations: (data && Array.isArray(data.stations)) ? data.stations : [],
+    positions: Array.isArray(pm.positions) ? pm.positions : [], entries: (Array.isArray(pm.entries) ? pm.entries : []).filter(ok) };
+}
+// THE ONE KEY: completed lessons, the last one opened, today's challenge, today's ticks. Device
+// only, never synced, swept by «حذف كل بياناتي».
+const YAHIMMAK_KEY = 'ezik_yahimmak_v1';
+function yahimmakRead() {
+  let o = null;
+  try { o = JSON.parse(localStorage.getItem(YAHIMMAK_KEY) || 'null'); } catch (e) { o = null; }
+  return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {};
+}
+function yahimmakWrite(patch) {
+  const o = { ...yahimmakRead(), ...patch };
+  try { localStorage.setItem(YAHIMMAK_KEY, JSON.stringify(o)); } catch (e) {}
+  return o;
+}
+const yahimmakDay = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
+// a seeded shuffle: the day's challenge is the same all day, a card's order stays put while it is on screen
+function yahimmakShuffle(arr, seedText) {
+  let h = 2166136261;
+  for (const ch of String(seedText)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { h = Math.imul(h ^ (h >>> 15), 2246822507) >>> 0; const j = h % (i + 1); const t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a;
+}
+const YH_TAGS = { 7: 'rukn', 8: 'wajib', 10: 'sunna' };
+const yhTag = (n) => ezT('yahimmak.tag.' + YH_TAGS[n]);
+const yhFrom = (L) => ezT('yahimmak.from', { ord: L.ordinal, title: L.title });
+// The questions of the day's challenge and of «صنّفها», one shape: a prompt, the thing asked about,
+// the choices, the right one, and the lesson it came from.
+function yahimmakDailyPool(P) {
+  const out = [];
+  P.lessons.forEach((L) => {
+    L.quiz.forEach((q) => out.push({ id: q.id, prompt: '', label: q.q, opts: [ezT('yahimmak.true'), ezT('yahimmak.false')], right: q.answer ? 0 : 1, L }));
+    L.cards.forEach((c) => {
+      if (c.type === 'truefalse') c.items.forEach((x) => out.push({ id: x.id, prompt: c.title, label: x.label, opts: [c.yes, c.no], right: x.answer ? 0 : 1, L }));
+      if (c.type === 'sort') c.items.forEach((x) => out.push({ id: x.id, prompt: c.title, label: x.label, opts: c.categories.map((k) => k.label), right: c.categories.findIndex((k) => k.id === x.cat), L }));
+    });
+  });
+  return out;
+}
+function yahimmakSortPool(P) {
+  const out = [];
+  P.lessons.forEach((L) => { if (YH_TAGS[L.n]) L.cards.forEach((c) => c.items.forEach((x) => out.push({ id: x.id, prompt: ezT('yahimmak.sort.q'), label: x.label,
+    opts: [7, 8, 10].map(yhTag), right: [7, 8, 10].indexOf(L.n), L }))); });
+  return out;
+}
+
+const YH_ICONS = {
+  book: 'M3 5.5c2.6-1.4 5.6-1.4 9 .8 3.4-2.2 6.4-2.2 9-.8V19c-2.6-1.4-5.6-1.4-9 .8-3.4-2.2-6.4-2.2-9-.8z M12 6.3v13.5',
+  heart: 'M12 20s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 10c0 5.65-7 10-7 10z',
+  mihrab: 'M5 21V11a7 7 0 0 1 14 0v10 M3 21h18 M9.5 21v-4.5a2.5 2.5 0 0 1 5 0V21',
+  drop: 'M12 3.5c3 4 6 7.3 6 10.7a6 6 0 0 1-12 0c0-3.4 3-6.7 6-10.7z',
+  people: 'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z M3 20a6 6 0 0 1 12 0 M16 4.5a3.5 3.5 0 0 1 0 6.5 M18.5 14.5A6 6 0 0 1 21 20',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  bolt: 'M13 3L5 14h6l-1 7 8-11h-6z', map: 'M9 4L4 6v14l5-2 6 2 5-2V4l-5 2z M9 4v14 M15 6v14',
+  doc: 'M7 3h7l5 5v13H7z M14 3v5h5 M10 13h6 M10 17h6', ear: 'M4 15v-3a8 8 0 0 1 16 0v3 M4 15h3v5H5a1 1 0 0 1-1-1z M20 15h-3v5h2a1 1 0 0 0 1-1z',
+  check: 'M5 12.5l4.5 4.5L19 7.5', play: 'M8 5.5v13l10.5-6.5z', pause: 'M9 5.5v13 M15 5.5v13', go: 'M15 18l-6-6 6-6', up: 'M18 15l-6-6-6 6', down: 'M6 9l6 6 6-6',
+};
+const YhIcon = ({ k, size }) => (
+  <svg width={size || 20} height={size || 20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={YH_ICONS[k]} /></svg>
+);
+const yhBtn = (on, extra) => ({ ...s.yhChoice, ...(on ? s.yhChoiceOn : null), ...(extra || null) });
+
+// ---- the cards: one small component per type, each owning only its own taps ----
+function YhReveal({ c }) {
+  const [k, setK] = useState(0);
+  const n = c.items.length;
+  const tap = (i) => { if (i === k) setK(k + 1); };
+  return (
+    <>
+      <p style={s.yhPrompt}>{ezT(c.visual === 'pillars' ? 'yahimmak.p.pillars' : 'yahimmak.p.reveal')}</p>
+      {c.visual === 'pillars' ? (
+        <div style={s.yhPillarsBox}>
+          <div style={s.yhCrown}><span>{c.crown}</span></div>
+          <div style={s.yhPillars}>{c.items.map((x, i) => (
+            <button key={x.id} type="button" className="ezhome-focus" style={{ ...s.yhPillar, ...(i < k ? s.yhChoiceOn : null) }}
+              aria-label={i < k ? x.label : ezT('yahimmak.pillarAria', { n: toArabicDigits(i + 1) })} onClick={() => tap(i)}>{toArabicDigits(i + 1)}</button>
+          ))}</div>
+          <div style={s.yhBase} />
+        </div>
+      ) : null}
+      <div style={s.yhStack}>{c.items.map((x, i) => (
+        <button key={x.id} type="button" className="ezhome-focus" style={yhBtn(i < k)} disabled={i > k} onClick={() => tap(i)}>
+          <span style={s.yhNum}>{toArabicDigits(i + 1)}</span>
+          <span style={s.yhGrow}>{i < k ? x.label : (i === k ? ezT('yahimmak.tapNext') : '')}</span>
+        </button>
+      ))}</div>
+      {k >= n && c.done ? <div role="status" style={s.yhNote}>{c.done.label}</div> : null}
+    </>
+  );
+}
+function YhSplit({ c }) {
+  const [on, setOn] = useState({});
+  return (
+    <>
+      <p style={s.yhPrompt}>{ezT('yahimmak.p.split')}</p>
+      <div style={s.yhRow}>{c.items.map((x) => (
+        <button key={x.id} type="button" className="ezhome-focus" style={{ ...yhBtn(on[x.id]), ...s.yhHalf }} aria-expanded={on[x.id] ? 'true' : 'false'}
+          onClick={() => setOn({ ...on, [x.id]: true })}>
+          <span style={s.yhBig}>{x.label}</span>
+          {on[x.id] ? <span style={s.yhSub}>{x.reveal}</span> : null}
+        </button>
+      ))}</div>
+    </>
+  );
+}
+function YhMatch({ c }) {
+  const right = React.useMemo(() => yahimmakShuffle(c.items, c.id), [c]);
+  const [sel, setSel] = useState(null);
+  const [got, setGot] = useState({});
+  const [msg, setMsg] = useState('');
+  const all = c.items.every((x) => got[x.id]);
+  const pick = (x) => {
+    if (!sel || got[x.id]) return;
+    if (x.id === sel) { setGot({ ...got, [x.id]: true }); setMsg(ezT('yahimmak.ok')); } else setMsg(ezT('yahimmak.match.no'));
+    setSel(null);
+  };
+  return (
+    <>
+      <p style={s.yhPrompt}>{ezT('yahimmak.p.match')}</p>
+      <div style={s.yhRow}>
+        <div style={s.yhCol}><span style={s.yhColHead}>{c.left}</span>{c.items.map((x) => (
+          <button key={x.id} type="button" className="ezhome-focus" aria-pressed={sel === x.id ? 'true' : 'false'} disabled={!!got[x.id]}
+            style={yhBtn(got[x.id] || sel === x.id)} onClick={() => setSel(x.id)}>{x.label}</button>))}</div>
+        <div style={s.yhCol}><span style={s.yhColHead}>{c.right}</span>{right.map((x) => (
+          <button key={x.id} type="button" className="ezhome-focus" disabled={!!got[x.id]} style={yhBtn(got[x.id])} onClick={() => pick(x)}>{x.pair}</button>))}</div>
+      </div>
+      <div role="status" aria-live="polite" style={s.yhMsg}>{msg}</div>
+      {all && c.plain.length ? <div style={s.yhNote}>{ezT('yahimmak.match.plain')} {c.plain.map((x) => x.label).join(ezT('yahimmak.sep'))}</div> : null}
+    </>
+  );
+}
+function YhFlip({ c }) {
+  const [on, setOn] = useState({});
+  return (
+    <>
+      <p style={s.yhPrompt}>{ezT('yahimmak.p.flip')}</p>
+      <div style={s.yhGrid2}>{c.items.map((x) => (
+        <button key={x.id} type="button" className="ezhome-focus" style={{ ...yhBtn(on[x.id]), ...s.yhFlip }} aria-pressed={on[x.id] ? 'true' : 'false'}
+          onClick={() => setOn({ ...on, [x.id]: !on[x.id] })}>
+          <span style={on[x.id] ? s.yhSub : s.yhBig}>{on[x.id] ? x.back : x.label}</span>
+        </button>
+      ))}</div>
+    </>
+  );
+}
+function YhList({ c, go }) {
+  return (
+    <>
+      <div style={s.yhStack}>{c.items.map((x, i) => {
+        const inner = (
+          <>
+            <span style={s.yhNum}>{x.book_num === null ? '·' : toArabicDigits(x.book_num || i + 1)}</span>
+            <span style={s.yhGrow}>{x.label}{x.sub ? <span style={s.yhSubLine}>{x.sub}</span> : null}
+              {x.note === 'order' ? <span style={s.yhSubLine}>{ezT('yahimmak.orderNote')}</span> : null}</span>
+          </>
+        );
+        return x.surah ? (
+          <button key={x.id} type="button" className="ezhome-focus" style={s.yhItem} onClick={() => go.surah(x.surah)}
+            aria-label={ezT('yahimmak.openSurah', { name: x.label })}>{inner}<YhIcon k="go" size={16} /></button>
+        ) : <div key={x.id} style={s.yhItem}>{inner}</div>;
+      })}</div>
+      {c.note ? <div style={s.yhNote}>{c.note.label}</div> : null}
+      {c.buttons ? (
+        <div style={s.yhRow}>
+          <button type="button" className="ezhome-focus" style={s.yhGhost} onClick={() => go.view('map')}><YhIcon k="map" size={17} />{ezT('yahimmak.map.open')}</button>
+          <button type="button" className="ezhome-focus" style={s.yhGhost} onClick={() => go.view('sort')}>{ezT('yahimmak.sort.title')}</button>
+        </div>
+      ) : null}
+    </>
+  );
+}
+function YhChecklist({ c }) {
+  // A daily card keeps its ticks for today in the one key and forgets them tomorrow; no score.
+  const day = yahimmakDay();
+  const [on, setOn] = useState(() => { const t = c.daily ? yahimmakRead().ticks : null; return (t && t.day === day && Array.isArray(t.ids)) ? t.ids : []; });
+  const flip = (id) => {
+    const next = on.indexOf(id) >= 0 ? on.filter((x) => x !== id) : on.concat(id);
+    setOn(next);
+    if (c.daily) yahimmakWrite({ ticks: { day, ids: next } });
+  };
+  return (
+    <>
+      <p style={s.yhPrompt}>{ezT(c.daily ? 'yahimmak.p.daily' : 'yahimmak.p.check')}</p>
+      <div style={s.yhStack}>{c.items.map((x) => (
+        <button key={x.id} type="button" role="checkbox" aria-checked={on.indexOf(x.id) >= 0 ? 'true' : 'false'} className="ezhome-focus"
+          style={yhBtn(on.indexOf(x.id) >= 0)} onClick={() => flip(x.id)}>
+          <span style={s.yhBox}>{on.indexOf(x.id) >= 0 ? <YhIcon k="check" size={15} /> : null}</span>
+          <span style={s.yhGrow}>{x.label}{x.gloss ? <span style={s.yhSubLine}>{x.gloss}</span> : null}</span>
+        </button>
+      ))}</div>
+      {!c.daily && c.done_label && on.length === c.items.length ? <div role="status" style={s.yhNote}>{c.done_label}</div> : null}
+    </>
+  );
+}
+function YhOrder({ c }) {
+  const shown = React.useMemo(() => yahimmakShuffle(c.items, c.id + 'o'), [c]);
+  const [k, setK] = useState(0);
+  const [msg, setMsg] = useState('');
+  const tap = (x) => {
+    if (c.items.indexOf(x) < k) return;
+    if (x === c.items[k]) { setK(k + 1); setMsg(k + 1 === c.items.length ? ezT('yahimmak.order.done') : ''); }
+    else setMsg(ezT('yahimmak.order.first', { label: c.items[k].label }));
+  };
+  return (
+    <>
+      <p style={s.yhPrompt}>{ezT('yahimmak.p.order')}</p>
+      <div style={s.yhStack}>{shown.map((x) => {
+        const at = c.items.indexOf(x);
+        return (
+          <button key={x.id} type="button" className="ezhome-focus" style={yhBtn(at < k)} onClick={() => tap(x)}>
+            <span style={s.yhNum}>{at < k ? toArabicDigits(at + 1) : ''}</span>
+            <span style={s.yhGrow}>{x.label}{at < k && x.sub ? <span style={s.yhSubLine}>{x.sub}</span> : null}</span>
+          </button>
+        );
+      })}</div>
+      <div role="status" aria-live="polite" style={s.yhMsg}>{msg}</div>
+    </>
+  );
+}
+// truefalse and sort: each row asks once and then says what the book says
+function YhJudge({ c }) {
+  const [ans, setAns] = useState({});
+  const opts = c.type === 'sort' ? c.categories : [{ id: true, label: c.yes }, { id: false, label: c.no }];
+  return (
+    <>
+      <p style={s.yhPrompt}>{ezT(c.type === 'sort' ? 'yahimmak.p.sort' : 'yahimmak.p.tf')}</p>
+      <div style={s.yhStack}>{c.items.map((x) => {
+        const right = c.type === 'sort' ? x.cat : x.answer;
+        const a = ans[x.id];
+        return (
+          <div key={x.id} style={s.yhCard}>
+            <div style={s.yhItemText}>{x.label}</div>
+            <div style={s.yhRow}>{opts.map((o) => (
+              <button key={String(o.id)} type="button" className="ezhome-focus" disabled={a !== undefined}
+                style={yhBtn(a !== undefined && o.id === right, a === o.id && o.id !== right ? s.yhWrong : null)}
+                onClick={() => setAns({ ...ans, [x.id]: o.id })}>{o.label}</button>
+            ))}</div>
+            {a !== undefined ? <div role="status" style={s.yhMsg}>{ezT(a === right ? 'yahimmak.ok' : 'yahimmak.no')} {x.fb || ''}</div> : null}
+          </div>
+        );
+      })}</div>
+    </>
+  );
+}
+// complete a text: the choices are the right next segment and other segments of the SAME text
+function YhSequence({ c }) {
+  const [k, setK] = useState(1);
+  const [msg, setMsg] = useState('');
+  const n = c.items.length;
+  const choices = React.useMemo(() => {
+    if (k >= n) return [];
+    const others = c.items.filter((x, i) => i > k).concat(c.items.filter((x, i) => i < k)).slice(0, 2);
+    return yahimmakShuffle([c.items[k]].concat(others), c.id + k);
+  }, [c, k, n]);
+  const pick = (x) => { if (x === c.items[k]) { setK(k + 1); setMsg(k + 1 >= n ? ezT('yahimmak.seq.done') : ''); } else setMsg(ezT('yahimmak.seq.no')); };
+  return (
+    <>
+      <p style={s.yhPrompt}>{ezT('yahimmak.p.seq')}</p>
+      <p style={s.yhQuote}>{c.items.slice(0, k).map((x) => x.label).join(' ')}</p>
+      <div style={s.yhStack}>{choices.map((x) => (
+        <button key={x.id} type="button" className="ezhome-focus" style={yhBtn(false)} onClick={() => pick(x)}>{x.label}</button>
+      ))}</div>
+      <div role="status" aria-live="polite" style={s.yhMsg}>{msg}</div>
+    </>
+  );
+}
+function YhSteps({ c }) {
+  return (
+    <ol style={s.yhSteps}>{c.items.map((x, i) => (
+      <li key={x.id} style={s.yhStep}>
+        <span style={s.yhNum}>{toArabicDigits(i + 1)}</span>
+        <span style={s.yhGrow}><span style={s.yhItemText}>{x.label}</span>{x.detail ? <span style={s.yhSubLine}>{x.detail}</span> : null}</span>
+      </li>
+    ))}</ol>
+  );
+}
+function YhStepper({ c }) {
+  const [i, setI] = useState(0);
+  const x = c.items[i];
+  return (
+    <div style={s.yhCard}>
+      <div style={s.yhKicker}>{ezT('yahimmak.stepOf', { n: toArabicDigits(i + 1), m: toArabicDigits(c.items.length) })}</div>
+      <div style={s.yhBig}>{x.label}</div>
+      {x.detail ? <p style={s.yhQuote}>{x.detail}</p> : null}
+      <div style={s.yhRow}>
+        <button type="button" className="ezhome-focus" style={s.yhGhost} disabled={i === 0} onClick={() => setI(i - 1)}>{ezT('yahimmak.prev')}</button>
+        <button type="button" className="ezhome-focus" style={s.yhGhost} disabled={i === c.items.length - 1} onClick={() => setI(i + 1)}>{ezT('yahimmak.next')}</button>
+      </div>
+    </div>
+  );
+}
+function YhReflect({ c }) {
+  const [k, setK] = useState(0);
+  return (
+    <>
+      <p style={s.yhPrompt}>{ezT('yahimmak.p.reflect')}</p>
+      <button type="button" className="ezhome-focus" style={{ ...s.yhCard, ...s.yhReflect }} onClick={() => setK(Math.min(k + 1, c.items.length))}>
+        {c.items.slice(0, k).map((x) => <span key={x.id} style={s.yhBig}>{x.label}</span>)}
+        {k < c.items.length ? <span style={s.yhSub}>{ezT('yahimmak.tapNext')}</span> : null}
+      </button>
+    </>
+  );
+}
+function YhMoments({ c }) {
+  const [open, setOpen] = useState(c.groups[0].id);
+  return (
+    <>
+      <p style={s.yhPrompt}>{ezT('yahimmak.p.moments')}</p>
+      <div style={s.yhStack}>{c.groups.map((g) => (
+        <div key={g.id} style={s.yhCard}>
+          <button type="button" className="ezhome-focus" style={s.yhRowBtn} aria-expanded={open === g.id ? 'true' : 'false'} onClick={() => setOpen(open === g.id ? null : g.id)}>
+            <span style={{ ...s.yhGrow, ...s.yhItemText }}>{g.title}</span><YhIcon k={open === g.id ? 'up' : 'down'} size={18} />
+          </button>
+          {open === g.id ? <ul style={s.yhChips}>{g.items.map((x) => <li key={x.id} style={s.yhChip}>{x.label}</li>)}</ul> : null}
+        </div>
+      ))}</div>
+    </>
+  );
+}
+const YH_CARD = { reveal: YhReveal, split: YhSplit, match: YhMatch, flip: YhFlip, list: YhList, checklist: YhChecklist, order: YhOrder,
+  sort: YhJudge, truefalse: YhJudge, sequence: YhSequence, steps: YhSteps, stepper: YhStepper, reflect: YhReflect, moments: YhMoments };
+
+// ---- the audio: the sheikh's own files streamed from his site, as the arbaeen section streams its audio.
+// One clip at a time (one <audio> element), never cached by the worker, stopped when this unmounts.
+// A clip whose file does not answer becomes a link to its page: no dead player.
+function YhAudio({ L, credit }) {
+  const [cur, setCur] = useState(null);
+  const [bad, setBad] = useState({});
+  if (!L.audio || !L.audio.length) return null;
+  const pub = (u) => ezikFatwaPublicUrl(u);
+  const clip = cur !== null ? L.audio[cur] : null;
+  return (
+    <section style={s.yhCard} aria-label={ezT('yahimmak.audio.head')}>
+      <div style={s.yhRowStart}><span style={s.yhAccent}><YhIcon k="ear" size={22} /></span>
+        <span style={s.yhCol0}><span style={s.yhKicker}>{ezT('yahimmak.audio.head')}</span><span style={s.yhItemText}>{ezT('yahimmak.audio.sheikh')}</span></span></div>
+      {L.audio.map((a, i) => (
+        <div key={a.src} style={s.yhAudioRow}>
+          {bad[a.src] || !pub(a.src) ? (
+            <a href={pub(a.page_url)} target="_blank" rel="noopener noreferrer" style={s.yhLink}>{ezT('yahimmak.audio.page')}</a>
+          ) : (
+            <button type="button" className="ezhome-focus" style={yhBtn(cur === i, s.yhPlay)} aria-pressed={cur === i ? 'true' : 'false'}
+              aria-label={ezT(cur === i ? 'yahimmak.audio.stop' : 'yahimmak.audio.play') + ': ' + a.title} onClick={() => setCur(cur === i ? null : i)}>
+              <YhIcon k={cur === i ? 'pause' : 'play'} size={16} /></button>
+          )}
+          <span style={s.yhCol0}>
+            <span style={s.yhAudioTitle}>{a.kind === 'faida' ? ezT('yahimmak.audio.faida') + ': ' : ''}{a.title}</span>
+            <span style={s.yhSubLine}>{a.duration ? <bdi dir="ltr">{toArabicDigits(a.duration)}</bdi> : null}</span>
+          </span>
+        </div>
+      ))}
+      {clip && !bad[clip.src] ? (
+        <audio key={clip.src} controls autoPlay preload="none" src={pub(clip.src)} style={s.yhAudioEl}
+          aria-label={clip.title} onError={() => { setBad({ ...bad, [clip.src]: true }); setCur(null); }} />
+      ) : null}
+      {clip && pub(clip.page_url) ? <a href={pub(clip.page_url)} target="_blank" rel="noopener noreferrer" style={s.yhLink}>{ezT('yahimmak.audio.page')}</a> : null}
+      {credit && credit.text ? <a href={pub(credit.url)} target="_blank" rel="noopener noreferrer" style={s.yhCredit}>{credit.text}</a> : null}
+    </section>
+  );
+}
+// «بالمختصر» under every card: our one line (or the book's own sentence, marked as such), its reference
+// line, and the door to the book's own pages.
+function YhShort({ L, P, onText }) {
+  if (!L.summary) return null;
+  const verb = L.summary.kind === 'verbatim';
+  return (
+    <div style={s.yhShort}>
+      <div style={s.yhKicker}>{ezT('yahimmak.short')}</div>
+      <div style={s.yhShortText}>{L.summary.text}</div>
+      <div style={s.yhSubLine}>{ezT(verb ? 'yahimmak.refBook' : 'yahimmak.ref', { book: P.book.title, ord: L.ordinal })}</div>
+      <button type="button" className="ezhome-focus" style={s.yhGhost} onClick={onText}><YhIcon k="doc" size={17} />{ezT('yahimmak.fromBook')}</button>
+    </div>
+  );
+}
+// a bottom sheet over the section; the backdrop and the button both close it
+function YhSheet({ onClose, children }) {
+  return (
+    <div style={s.yhScrim} role="dialog" aria-modal="true">
+      <button type="button" style={s.yhScrimBtn} aria-label={ezT('common.close')} onClick={onClose} />
+      <div style={s.yhSheet} data-ez110-edge="scrollend">{children}
+        <button type="button" className="ezhome-focus" style={s.yhGhostWide} onClick={onClose}>{ezT('common.close')}</button>
+      </div>
+    </div>
+  );
+}
+// the day's challenge and «صنّفها»: ten questions, the lesson named in every answer, a result
+function YhQuiz({ pool, seed, onEnd, extra }) {
+  const [items] = useState(() => yahimmakShuffle(pool, seed).slice(0, 10));
+  const [i, setI] = useState(0);
+  const [pick, setPick] = useState(null);
+  const [hits, setHits] = useState(0);
+  if (!items.length) return null;
+  if (i >= items.length) {
+    return (
+      <div style={s.yhStack}>
+        <div style={s.yhResult}><div style={s.yhKicker}>{ezT('yahimmak.result')}</div>
+          <div style={s.yhResultNum}>{ezT('yahimmak.tally', { n: toArabicDigits(hits), m: toArabicDigits(items.length) })}</div></div>
+        {extra}
+      </div>
+    );
+  }
+  const q = items[i];
+  const choose = (k) => { if (pick !== null) return; setPick(k); if (k === q.right) setHits(hits + 1); };
+  const next = () => { const done = i + 1 >= items.length; const sc = hits; setI(i + 1); setPick(null); if (done && onEnd) onEnd(sc, items.length); };
+  return (
+    <div style={s.yhStack}>
+      <div style={s.yhBars}>{items.map((x, k) => <span key={x.id} style={{ ...s.yhBarSeg, ...(k <= i ? s.yhBarSegOn : null) }} />)}</div>
+      <div style={s.yhSubLine}>{ezT('yahimmak.qOf', { n: toArabicDigits(i + 1), m: toArabicDigits(items.length) })}{' · ' + ezT('yahimmak.right', { n: toArabicDigits(hits) })}</div>
+      <div style={{ ...s.yhCard, ...s.yhAsk }}>{q.prompt ? <div style={s.yhKicker}>{q.prompt}</div> : null}<div style={s.yhBig}>{q.label}</div></div>
+      <div style={s.yhRow}>{q.opts.map((o, k) => (
+        <button key={o} type="button" className="ezhome-focus" disabled={pick !== null} onClick={() => choose(k)}
+          style={yhBtn(pick !== null && k === q.right, pick === k && k !== q.right ? s.yhWrong : null)}>{o}</button>
+      ))}</div>
+      {pick !== null ? (
+        <>
+          <div role="status" style={s.yhNote}>{ezT(pick === q.right ? 'yahimmak.ok' : 'yahimmak.notThis', { a: q.opts[q.right] })} {yhFrom(q.L)}</div>
+          <button type="button" className="ezhome-focus" style={s.yhPrimary} onClick={next}>{ezT(i + 1 >= items.length ? 'yahimmak.result' : 'yahimmak.next')}</button>
+        </>
+      ) : null}
+    </div>
+  );
+}
+function YhMap({ P, onSort }) {
+  const [f, setF] = useState('all');
+  const [open, setOpen] = useState('qiyam');
+  const byL = { 7: 'rukn', 8: 'wajib', 10: 'sunna' };
+  const uniq = (n) => new Set(P.entries.filter((e) => e.lesson === n).map((e) => e.item)).size;
+  const filters = [['all', ezT('yahimmak.map.all')], ['7', ezT('yahimmak.map.arkan', { n: toArabicDigits(uniq(7)) })],
+    ['8', ezT('yahimmak.map.wajibat', { n: toArabicDigits(uniq(8)) })], ['10', ezT('yahimmak.map.sunan')]];
+  const tagStyle = (n) => ({ ...s.yhTag, ...s['yhTag_' + byL[n]] });
+  return (
+    <div style={s.yhStack}>
+      <p style={s.yhPrompt}>{ezT('yahimmak.map.lead')}</p>
+      <div style={s.yhWrap}>{filters.map(([id, label]) => (
+        <button key={id} type="button" className="ezhome-focus" aria-pressed={f === id ? 'true' : 'false'} style={yhBtn(f === id, s.yhPill)} onClick={() => setF(id)}>{label}</button>
+      ))}</div>
+      <div style={s.yhWrap}><span style={s.yhSubLine}>{ezT('yahimmak.map.legend')}</span>{[7, 8, 10].map((n) => <span key={n} style={tagStyle(n)}>{yhTag(n)}</span>)}</div>
+      {P.positions.map((p, i) => {
+        const es = P.entries.filter((e) => e.position === p.id && (f === 'all' || String(e.lesson) === f));
+        if (!es.length) return null;
+        const cnt = [7, 8, 10].map((n) => [n, es.filter((e) => e.lesson === n).length]).filter((x) => x[1]).map(([n, k]) => toArabicDigits(k) + ' ' + yhTag(n)).join(ezT('yahimmak.sep'));
+        return (
+          <div key={p.id} style={s.yhCard}>
+            <button type="button" className="ezhome-focus" style={s.yhRowBtn} aria-expanded={open === p.id ? 'true' : 'false'} onClick={() => setOpen(open === p.id ? null : p.id)}>
+              <span style={s.yhNum}>{toArabicDigits(i + 1)}</span>
+              <span style={s.yhCol0}><span style={s.yhItemText}>{p.title}</span><span style={s.yhSubLine}>{cnt}</span></span>
+              <YhIcon k={open === p.id ? 'up' : 'down'} size={18} />
+            </button>
+            {open === p.id ? <ul style={s.yhChips}>{es.map((e) => (
+              <li key={e.item + e.label} style={{ ...s.yhChip, ...s['yhChip_' + byL[e.lesson]] }}><span style={s.yhChipTag}>{yhTag(e.lesson)}</span> {e.label}</li>
+            ))}</ul> : null}
+          </div>
+        );
+      })}
+      <div style={s.yhNote}>{ezT('yahimmak.map.foot')}</div>
+      <button type="button" className="ezhome-focus" style={s.yhPrimary} onClick={onSort}>{ezT('yahimmak.map.toSort')}</button>
+    </div>
+  );
+}
+
+// THE LESSON: a step bar, one card per screen, the short check, then the line to keep.
+function YhLesson({ L, P, next, onDone, go, onText }) {
+  const [step, setStep] = useState(0);
+  const [ans, setAns] = useState({});
+  const n = L.cards.length;
+  const card = step < n ? L.cards[step] : null;
+  const Card = card ? YH_CARD[card.type] : null;
+  const quizStep = step === n;
+  const right = L.quiz.filter((q) => ans[q.id] === q.answer).length;
+  const finish = () => { onDone(L.n); setStep(n + 1); };
+  if (step > n) {
+    return (
+      <div style={s.yhStack}>
+        <div style={s.yhDone}>
+          {L.calm ? null : <span style={s.yhDoneMark}><YhIcon k="check" size={34} /></span>}
+          <div style={s.yhSubLine}>{ezT('yahimmak.keep')}</div>
+          <div style={s.yhShortText}>{L.summary ? L.summary.text : L.title}</div>
+        </div>
+        {next ? (
+          <button type="button" className="ezhome-focus" style={s.yhRowCard} onClick={() => go.lesson(next.n)}>
+            <span style={s.yhCol0}><span style={s.yhKicker}>{ezT('yahimmak.nextLesson', { ord: next.ordinal })}</span><span style={s.yhItemText}>{next.title}</span></span>
+            <YhIcon k="go" size={18} />
+          </button>
+        ) : null}
+        <YhAudio L={L} credit={P.credit} />
+        <button type="button" className="ezhome-focus" style={s.yhGhostWide} onClick={() => go.view('home')}>{ezT('yahimmak.toLessons')}</button>
+      </div>
+    );
+  }
+  return (
+    <div style={s.yhStack}>
+      <div style={s.yhBars}>{L.cards.concat([null]).map((x, k) => <span key={k} style={{ ...s.yhBarSeg, ...(k <= step ? s.yhBarSegOn : null) }} />)}</div>
+      <div style={s.yhRowBetween}><span style={s.yhKicker}>{ezT('yahimmak.lessonOrd', { ord: L.ordinal })} · {L.title}</span>
+        <span style={s.yhSubLine}>{ezT('yahimmak.stepOf', { n: toArabicDigits(step + 1), m: toArabicDigits(n + 1) })}</span></div>
+      <h2 style={s.yhH2}>{card ? card.title : ezT('yahimmak.quiz')}</h2>
+      {Card ? <Card key={card.id} c={card} go={go} /> : null}
+      {quizStep ? L.quiz.map((q) => {
+        const a = ans[q.id];
+        return (
+          <div key={q.id} style={s.yhCard}>
+            <div style={s.yhItemText}>{q.q}</div>
+            <div style={s.yhRow}>{[true, false].map((v) => (
+              <button key={String(v)} type="button" className="ezhome-focus" disabled={a !== undefined} onClick={() => setAns({ ...ans, [q.id]: v })}
+                style={yhBtn(a !== undefined && v === q.answer, a === v && v !== q.answer ? s.yhWrong : null)}>{ezT(v ? 'yahimmak.true' : 'yahimmak.false')}</button>
+            ))}</div>
+            {a !== undefined ? <div role="status" style={s.yhMsg}>{ezT(a === q.answer ? 'yahimmak.ok' : 'yahimmak.no')} {a === q.answer ? q.fb_ok : q.fb_no}</div> : null}
+          </div>
+        );
+      }) : null}
+      {quizStep && !L.calm && L.quiz.every((q) => ans[q.id] !== undefined) ? (
+        <div role="status" style={s.yhNote}>{ezT('yahimmak.tally', { n: toArabicDigits(right), m: toArabicDigits(L.quiz.length) })}</div>
+      ) : null}
+      {card ? <YhShort L={L} P={P} onText={onText} /> : null}
+      <div style={s.yhFoot} data-ez110-edge="sticky">
+        {step > 0 ? <button type="button" className="ezhome-focus" style={s.yhGhost} onClick={() => setStep(step - 1)}>{ezT('yahimmak.prev')}</button> : null}
+        <button type="button" className="ezhome-focus" style={{ ...s.yhPrimary, ...s.yhGrow }} onClick={quizStep ? finish : () => setStep(step + 1)}>
+          {ezT(quizStep ? 'yahimmak.finish' : 'yahimmak.next')}</button>
+      </div>
+    </div>
+  );
+}
+
+function EzikYahimmakSection({ onBack, onOpenSurah }) {
+  const [state, setState] = useState(EZIK_ART_LOADING);
+  const [P, setP] = useState(null);
+  const [view, setView] = useState('home');
+  const [ln, setLn] = useState(0);
+  const [sheet, setSheet] = useState(null);
+  const [store, setStore] = useState(yahimmakRead);
+  const [round, setRound] = useState(0);
+  const aliveRef = useRef(true);
+  useEffect(() => () => { aliveRef.current = false; }, []);
+  const load = () => {
+    setState(EZIK_ART_LOADING);
+    loadYahimmak().then(({ data, book }) => {
+      if (!aliveRef.current) return;
+      const prep = yahimmakPrepare(data, book);
+      setP(prep);
+      setState(prep.lessons.length ? EZIK_ART_DONE : EZIK_ART_FAILED);
+    }).catch(() => { if (aliveRef.current) setState(EZIK_ART_FAILED); });
+  };
+  useEffect(load, []);
+  // two nested layers of our own, peeled one at a time by the device button and by ours
+  useEzikBackLayer(view !== 'home', () => setView('home'));
+  useEzikBackLayer(!!sheet, () => setSheet(null));
+  const back = () => {
+    if (sheet) { if (!ezikHistBack()) setSheet(null); return; }
+    if (view !== 'home') { if (!ezikHistBack()) setView('home'); return; }
+    onBack();
+  };
+  const done = Array.isArray(store.done) ? store.done : [];
+  const lessons = P ? P.lessons : [];
+  const byN = (n) => lessons.find((L) => L.n === n) || null;
+  const current = lessons.find((L) => done.indexOf(L.n) < 0) || null;
+  const openLesson = (n) => { setSheet(null); setLn(n); setStore(yahimmakWrite({ last: n })); setView('lesson'); setRound(round + 1); };
+  const go = {
+    lesson: openLesson, view: (v) => { setView(v); setRound(round + 1); },
+    surah: (n) => { if (onOpenSurah) onOpenSurah(n); },
+  };
+  const markDone = (n) => setStore(yahimmakWrite({ done: done.indexOf(n) >= 0 ? done : done.concat(n), last: n }));
+  const L = byN(ln);
+  const nextOf = (x) => lessons[lessons.indexOf(x) + 1] || null;
+  const day = yahimmakDay();
+  const daily = store.daily && store.daily.day === day ? store.daily : null;
+  const linkLabel = (id) => (id === 'compass' ? EZH_NAV_COMPASS : ez110Name(id) || id);
+
+  const home = P ? (
+    <div style={s.yhStack}>
+      <section className="ez110-prayer" style={s.yhHero}>
+        <span className="ez110-prayer-arch" aria-hidden="true" />
+        <span className="ez110-prayer-top"><span className="ez110-prayer-head">{P.book.title}</span>
+          <span className="ez110-prayer-hijri">{ezT(lessons.length > 10 ? 'yahimmak.countMany' : 'yahimmak.countN', { n: toArabicDigits(lessons.length) })}</span></span>
+        <span className="ez110-prayer-name">{ezT('yahimmak.headline')}</span>
+        <span className="ez110-prayer-head">{ezT('yahimmak.byline')}</span>
+        <span style={s.yhHeroBar}><span style={{ ...s.yhHeroFill, width: Math.round(100 * done.length / Math.max(1, lessons.length)) + '%' }} /></span>
+        <span className="ez110-prayer-main"><span>{ezT('yahimmak.progress', { n: toArabicDigits(done.length), m: toArabicDigits(lessons.length) })}</span>
+          <button type="button" className="ez110-prayer-left ezhome-focus" style={s.yhHeroBtn} onClick={() => openLesson((current || lessons[0]).n)}>
+            {ezT(current ? 'yahimmak.resume' : 'yahimmak.review')}</button></span>
+      </section>
+      <button type="button" className="ezhome-focus" style={s.yhRowCard} onClick={() => go.view('daily')}>
+        <span style={s.yhIconBox}><YhIcon k="bolt" size={22} /></span>
+        <span style={s.yhCol0}><span style={s.yhKicker}>{ezT('yahimmak.daily')}</span>
+          <span style={s.yhItemText}>{ezT('yahimmak.dailyTitle')}</span>
+          <span style={s.yhSubLine}>{daily ? ezT('yahimmak.dailyDone', { n: toArabicDigits(daily.got), m: toArabicDigits(daily.total) }) : ezT('yahimmak.dailySub')}</span></span>
+        <YhIcon k="go" size={18} />
+      </button>
+      <div style={s.yhRowBetween}><h2 style={s.yhH2}>{ezT('yahimmak.lessons')}</h2><span style={s.yhSubLine}>{ezT('yahimmak.byBook')}</span></div>
+      {P.stations.map((st) => {
+        const ls = st.lessons.map(byN).filter(Boolean);
+        if (!ls.length) return null;
+        return (
+          <section key={st.id} style={s.yhStation} aria-label={st.title}>
+            <div style={s.yhStationHead}>
+              <span style={s.yhIconBox}><YhIcon k={st.icon} size={21} /></span>
+              <span style={s.yhCol0}><span style={s.yhItemText}>{st.title}</span>
+                <span style={s.yhSubLine}>{ls.length === 1 ? ezT('yahimmak.count1') : ezT('yahimmak.countN', { n: toArabicDigits(ls.length) })}</span></span>
+              {st.map ? <button type="button" className="ezhome-focus" style={s.yhGhost} onClick={() => go.view('map')}><YhIcon k="map" size={17} />{ezT('yahimmak.map.open')}</button> : null}
+            </div>
+            {ls.map((x) => {
+              const isDone = done.indexOf(x.n) >= 0, isCur = current === x;
+              return (
+                <button key={x.n} type="button" className="ezhome-focus" style={s.yhLessonRow} onClick={() => setSheet({ kind: 'pv', n: x.n })}
+                  aria-label={ezT('yahimmak.lessonOrd', { ord: x.ordinal }) + ': ' + x.title + (isDone ? ' (' + ezT('yahimmak.doneMark') + ')' : '')}>
+                  <span style={{ ...s.yhCircle, ...(isDone ? s.yhCircleDone : isCur ? s.yhCircleCur : null) }}>{isDone ? <YhIcon k="check" size={16} /> : toArabicDigits(x.n)}</span>
+                  <span style={s.yhCol0}><span style={s.yhItemText}>{x.title}</span><span style={s.yhSubLine}>{x.how}</span></span>
+                  {isCur ? <span style={s.yhPillOn}>{ezT('yahimmak.resume')}</span> : null}
+                  <YhIcon k="go" size={17} />
+                </button>
+              );
+            })}
+          </section>
+        );
+      })}
+      <div style={s.yhFooter}><span>{ezT('yahimmak.footMatn')}</span><span>{ezT('yahimmak.footAudio')}</span></div>
+    </div>
+  ) : null;
+
+  const pv = sheet && sheet.kind === 'pv' ? byN(sheet.n) : null;
+  const tx = sheet && sheet.kind === 'text' ? byN(sheet.n) : null;
+  const sortExtra = (
+    <>
+      <button type="button" className="ezhome-focus" style={s.yhPrimary} onClick={() => setRound(round + 1)}>{ezT('yahimmak.replay')}</button>
+      <button type="button" className="ezhome-focus" style={s.yhGhostWide} onClick={() => go.view('map')}>{ezT('yahimmak.map.openSort')}</button>
+    </>
+  );
+  return (
+    <EzShell title={ezT('yahimmak.title')} onBack={back} backLabel={ezT('common.back')}>
+      {state === EZIK_ART_LOADING ? <div role="status" aria-live="polite" style={s.artNote}>{ezT('common.loading')}</div> : null}
+      {state === EZIK_ART_FAILED ? (
+        <div role="alert" style={s.artError}><span>{ezT('yahimmak.error')}</span>
+          <button type="button" className="ezhome-focus" style={s.artRetry} onClick={load}>{ezT('common.retry')}</button></div>
+      ) : null}
+      {state === EZIK_ART_DONE && view === 'home' ? home : null}
+      {state === EZIK_ART_DONE && view === 'lesson' && L ? (
+        <YhLesson key={L.n + '-' + round} L={L} P={P} next={nextOf(L)} onDone={markDone} go={go} onText={() => setSheet({ kind: 'text', n: L.n })} />
+      ) : null}
+      {state === EZIK_ART_DONE && view === 'map' ? <YhMap P={P} onSort={() => go.view('sort')} /> : null}
+      {state === EZIK_ART_DONE && view === 'sort' ? (
+        <><h2 style={s.yhH2}>{ezT('yahimmak.sort.title')}</h2><YhQuiz key={round} pool={yahimmakSortPool(P)} seed={'sort' + round + '-' + Math.random()} extra={sortExtra} /></>
+      ) : null}
+      {state === EZIK_ART_DONE && view === 'daily' ? (
+        <><h2 style={s.yhH2}>{ezT('yahimmak.daily')}</h2>
+          <YhQuiz pool={yahimmakDailyPool(P)} seed={'day' + day} onEnd={(n, m) => { if (!daily) setStore(yahimmakWrite({ daily: { day, got: n, total: m } })); }}
+            extra={<button type="button" className="ezhome-focus" style={s.yhGhostWide} onClick={() => go.view('home')}>{ezT('yahimmak.toLessons')}</button>} /></>
+      ) : null}
+      {pv ? (
+        <YhSheet onClose={back}>
+          <div style={s.yhKicker}>{ezT('yahimmak.lessonOrd', { ord: pv.ordinal })}</div>
+          <h2 style={s.yhH2}>{pv.title}</h2>
+          {pv.summary ? <div style={s.yhShort}><div style={s.yhKicker}>{ezT(pv.summary.kind === 'verbatim' ? 'yahimmak.fromBook' : 'yahimmak.short')}</div>
+            <div style={s.yhShortText}>{pv.summary.text}</div></div> : null}
+          <div style={s.yhCard}><div style={s.yhSubLine}>{ezT('yahimmak.how')}</div><div style={s.yhItemText}>{pv.how}</div></div>
+          {pv.links && pv.links.length ? (
+            <div style={s.yhWrap}><span style={s.yhSubLine}>{ezT('yahimmak.links')}</span>{pv.links.map((id) => (
+              <button key={id} type="button" className="ezhome-focus" style={yhBtn(false, s.yhPill)} onClick={() => { setSheet(null); ez110Go(id); }}>{linkLabel(id)}</button>
+            ))}</div>
+          ) : null}
+          <YhAudio L={pv} credit={P.credit} />
+          <button type="button" className="ezhome-focus" style={s.yhPrimary} onClick={() => openLesson(pv.n)}>{ezT('yahimmak.start')}</button>
+        </YhSheet>
+      ) : null}
+      {tx ? (
+        <YhSheet onClose={back}>
+          <div style={s.yhKicker}>{ezT('yahimmak.fromBook')} · {tx.book_heading}</div>
+          {Object.keys(P.pages).map(Number).filter((p) => p >= tx.pages[0] && p <= tx.pages[1]).map((p) => (
+            <div key={p} style={s.yhPage}><div style={s.yhSubLine}>{ezT('yahimmak.page', { n: toArabicDigits(p) })}</div>
+              <p style={s.yhPageText} data-ez-keep="1">{P.pages[p]}</p></div>
+          ))}
+          <div style={s.yhSubLine}>{P.book.title} · {P.book.author}</div>
+        </YhSheet>
+      ) : null}
+    </EzShell>
+  );
+}
+// YAHIMMAK -- END
 
 // ============================================================
 // OFFICIAL FATWA SEARCH -- READ ONLY
@@ -18799,6 +19732,8 @@ function App() {
   // ITEM 87: the day, from waking to sleeping. A FIFTH panel of exactly the same kind as the
   // four above -- one boolean, one history entry, no `screen` key -- opened from the same menu.
   const [sunanOpen, setSunanOpen] = useState(() => ezikReadResume() === 'sunan-day');
+  // YAHIMMAK: «يهمّك», a panel of the same kind -- one boolean, one history entry, no `screen` key.
+  const [yahimmakOpen, setYahimmakOpen] = useState(() => ezikReadResume() === 'yahimmak');
   const [inboxUnread, setInboxUnread] = useState(null);
   // DECISION ج١٣'s other half -- the sender's dot. A count of answers this reader has been
   // sent and has not yet opened. It is zero for everybody with no account, because `mine`
@@ -19797,6 +20732,8 @@ function App() {
   // ITEM 87: the fifth, on the identical contract and in the same fixed order -- a hook order
   // that changes with state is a hook order that breaks.
   useEzikBackLayer(sunanOpen, () => setSunanOpen(false));
+  // YAHIMMAK: the sixth, on the identical contract and in the same fixed order.
+  useEzikBackLayer(yahimmakOpen, () => setYahimmakOpen(false));
   // ITEM 92: WHAT THE SHARE BUTTON DOES, decided by the injected bridge and by nothing else.
   // In a shell it hands the smart link straight to the platform sheet and returns -- no chooser
   // is opened, so no badge and no store name can reach the page (Apple guideline 2.3.10). In a
@@ -19915,6 +20852,7 @@ function App() {
     setAboutOpen(false);
     setSourcesOpen(false);
     setSunanOpen(route === 'sunan-day');
+    setYahimmakOpen(route === 'yahimmak');
     setFeedbackOpen(false);
     setInboxOpen(false);
     setShareOpen(false);
@@ -22717,6 +23655,9 @@ function App() {
       // see is still a value on somebody's device, and «delete all my data» promises it goes.
       // Entered on the roster in tools/delete-truth-measure.cjs as a literal for the same reason.
       try { localStorage.removeItem('ezik_hide_women_v1'); } catch (e) {}
+      // YAHIMMAK -- the reader's lessons, today's challenge and today's ticks: a reading record like the two above it,
+      // of no use to whoever sets this device up next. Entered on the roster in tools/delete-truth-measure.cjs.
+      try { localStorage.removeItem(YAHIMMAK_KEY); } catch (e) {}
       // ITEM 8 -- AND THE ONE THING THIS BUTTON SWEEPS THAT IS NOT IN localStorage. A browser
       // sign-in in flight leaves its own random state in THIS TAB's sessionStorage, and a reader
       // who presses "delete all my data" in the middle of one would otherwise leave it standing
@@ -23095,6 +24036,9 @@ function App() {
   if (aboutOpen) return <EzikAboutSheet onBack={() => { if (ezikHistBack()) return; setAboutOpen(false); }} />;
   if (sourcesOpen) return <EzikSourcesSheet onBack={() => { if (ezikHistBack()) return; setSourcesOpen(false); }} />;
   if (sunanOpen) return <EzikSunanSection onBack={() => { if (ezikHistBack()) return; setSunanOpen(false); }} />;
+  // YAHIMMAK. A surah row of lesson one opens the mushaf AT that surah, through the same state the mushaf screen reads.
+  if (yahimmakOpen) return <EzikYahimmakSection onBack={() => { if (ezikHistBack()) return; setYahimmakOpen(false); }}
+    onOpenSurah={(n) => { setYahimmakOpen(false); setSelectedSurah(n); setScreen('mushaf'); }} />;
   if (feedbackOpen) return (
     <EzikFeedbackSheet
       onBack={() => { if (ezikHistBack()) return; setFeedbackOpen(false); }}
@@ -23158,7 +24102,7 @@ function App() {
   // an onOpenChat: the chat is entered from that menu's «محادثة جديدة» row.
   if (screen === 'home') return (
     <>
-      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenSunan={() => setSunanOpen(true)} onOpenArbaeen={() => setScreen('arbaeen')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} onOpenTafsir={() => setScreen('ayah-tafsir')} key={homeEpoch} />
+      <Home profile={profile} onOpenMenu={openDrawer} onOpenMemorize={() => setScreen('memorize')} onOpenAdhkar={() => setScreen('adhkar')} onOpenSunan={() => setSunanOpen(true)} onOpenYahimmak={() => setYahimmakOpen(true)} onOpenArbaeen={() => setScreen('arbaeen')} onOpenMushaf={() => setScreen('mushaf')} onOpenFatwa={() => setScreen('fatwa')} onOpenLessons={() => setScreen('lessons')} onOpenAsmaa={() => setAsmaaOpen(true)} onOpenSettings={() => openEzikSheet('settings')} onOpenTafsir={() => setScreen('ayah-tafsir')} key={homeEpoch} />
       {ezikDrawer()}
     </>
   );
@@ -28900,7 +29844,7 @@ const EZIK_WIDGET_ROUTES = [
   'mushaf', 'adhkar_sabah', 'adhkar_masaa', 'home',
   'adhkar', 'arbaeen', 'prayer', 'chat',
   'memorize', 'fatwa', 'lessons', 'articles', 'women', 'tasbih', 'calc', 'compass',
-  'ayah-tafsir', 'asmaa', 'sunan-day', 'wirdi', 'treasure', 'library',
+  'ayah-tafsir', 'asmaa', 'sunan-day', 'yahimmak', 'wirdi', 'treasure', 'library',
 ];
 let EZIK_WIDGET_PENDING = '';
 const EZIK_WIDGET_SUBS = new Set();
@@ -40449,6 +41393,98 @@ const s = {
   sunanMatnBtn: { minHeight: 44, padding: '8px 12px', borderRadius: 10, border: '1px solid var(--a3-line)', background: 'transparent', color: 'var(--a3-ink)', fontSize: 13.5, fontFamily: 'inherit', cursor: 'pointer' },
   sunanCite: { fontSize: 13, lineHeight: 1.9, color: 'var(--a3-muted)', overflowWrap: 'anywhere' },
   sunanMatnWrap: { display: 'flex', flexDirection: 'column', gap: 6 },
+  // YAHIMMAK -- «يهمّك». Every colour is an --a3-* token EzShell puts in scope, so each identity, light
+  // and dark, paints it; the hero takes the next-prayer card's own classes. No transition anywhere,
+  // so a reader who asked for reduced motion is given none. Every target is at least 44px.
+  yhStack: { display: 'flex', flexDirection: 'column', gap: 12 },
+  yhRow: { display: 'flex', gap: 8, alignItems: 'stretch' },
+  yhRowStart: { display: 'flex', gap: 10, alignItems: 'center' },
+  yhRowBetween: { display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' },
+  yhWrap: { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' },
+  yhCol: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 },
+  yhCol0: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2, textAlign: 'start' },
+  yhGrow: { flex: 1, minWidth: 0 },
+  yhH2: { margin: 0, fontSize: 20, fontWeight: 700, lineHeight: 1.5, color: 'var(--a3-ink)' },
+  yhKicker: { fontSize: 13, fontWeight: 700, color: 'var(--a3-blue)', lineHeight: 1.7 },
+  yhPrompt: { margin: 0, fontSize: 14, lineHeight: 1.8, color: 'var(--a3-muted)' },
+  yhItemText: { fontSize: 15.5, fontWeight: 700, lineHeight: 1.7, color: 'var(--a3-ink)', overflowWrap: 'anywhere' },
+  yhSubLine: { display: 'block', fontSize: 13, lineHeight: 1.8, color: 'var(--a3-muted)', fontWeight: 500, overflowWrap: 'anywhere' },
+  yhBig: { fontSize: 17, fontWeight: 700, lineHeight: 1.7, overflowWrap: 'anywhere' },
+  yhSub: { fontSize: 14, fontWeight: 600, lineHeight: 1.8, overflowWrap: 'anywhere' },
+  yhMsg: { minHeight: 22, fontSize: 14, fontWeight: 600, lineHeight: 1.8, color: 'var(--a3-ink)' },
+  yhNote: { padding: '10px 12px', borderRadius: 14, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)', color: 'var(--a3-ink)', fontSize: 14.5, fontWeight: 600, lineHeight: 1.9 },
+  yhCard: { display: 'flex', flexDirection: 'column', gap: 8, padding: '12px 14px', borderRadius: 18, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', boxShadow: 'var(--a3-shadow)', color: 'var(--a3-ink)', fontFamily: 'inherit', textAlign: 'start' },
+  yhChoice: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, minHeight: 48, padding: '8px 12px', borderRadius: 14, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontFamily: 'inherit', fontSize: 15, fontWeight: 700, lineHeight: 1.6, textAlign: 'start', cursor: 'pointer' },
+  yhChoiceOn: { background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', borderColor: 'var(--a3-blue)' },
+  yhWrong: { borderStyle: 'dashed', borderColor: 'var(--a3-ink)', textDecoration: 'line-through' },
+  yhNum: { width: 30, height: 30, flexShrink: 0, borderRadius: 15, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'var(--a3-ice)', color: 'var(--a3-blue)', fontSize: 13.5, fontWeight: 700 },
+  yhBox: { width: 24, height: 24, flexShrink: 0, borderRadius: 7, border: '1.5px solid currentColor', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
+  yhItem: { display: 'flex', alignItems: 'center', gap: 12, minHeight: 48, padding: '8px 12px', borderRadius: 14, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, lineHeight: 1.7, textAlign: 'start', cursor: 'pointer' },
+  yhHalf: { flexDirection: 'column', minHeight: 150, justifyContent: 'center', textAlign: 'center' },
+  yhFlip: { minHeight: 104, textAlign: 'center' },
+  yhGrid2: { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 },
+  yhColHead: { fontSize: 12.5, fontWeight: 700, color: 'var(--a3-muted)', textAlign: 'center' },
+  yhPillarsBox: { padding: '14px 10px', borderRadius: 20, border: '1px solid var(--a3-line)', background: 'var(--a3-ice)' },
+  yhCrown: { height: 58, margin: '0 6px', border: '2px solid var(--a3-blue)', borderBottom: 0, borderRadius: '160px 160px 0 0', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: 6, fontSize: 15, fontWeight: 700, color: 'var(--a3-ink)' },
+  yhPillars: { display: 'flex', justifyContent: 'center', gap: 8, marginTop: 6 },
+  yhPillar: { width: 52, height: 112, padding: 0, borderRadius: '12px 12px 4px 4px', border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-blue)', fontFamily: 'inherit', fontSize: 18, fontWeight: 700, cursor: 'pointer' },
+  yhBase: { height: 12, margin: '6px 2px 0', borderRadius: 6, background: 'var(--a3-blue)' },
+  yhQuote: { margin: 0, padding: '10px 12px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-ice)', fontSize: 16, fontWeight: 600, lineHeight: 2.1, color: 'var(--a3-ink)', overflowWrap: 'anywhere' },
+  yhSteps: { listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10 },
+  yhStep: { display: 'flex', gap: 12, alignItems: 'flex-start', padding: '10px 12px', borderRadius: 14, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)' },
+  yhReflect: { alignItems: 'center', justifyContent: 'center', minHeight: 150, textAlign: 'center', cursor: 'pointer', gap: 10 },
+  yhRowBtn: { display: 'flex', alignItems: 'center', gap: 10, width: '100%', minHeight: 48, padding: 0, border: 0, background: 'transparent', color: 'var(--a3-ink)', fontFamily: 'inherit', textAlign: 'start', cursor: 'pointer' },
+  yhChips: { listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexWrap: 'wrap', gap: 8 },
+  yhChip: { padding: '6px 10px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-ice)', color: 'var(--a3-ink)', fontSize: 14, fontWeight: 600, lineHeight: 1.7 },
+  yhChipTag: { fontSize: 11.5, fontWeight: 700 },
+  yhTag: { padding: '2px 10px', borderRadius: 10, fontSize: 12.5, fontWeight: 700 },
+  yhTag_rukn: { background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', border: '1.5px solid var(--a3-blue)' },
+  yhTag_wajib: { background: 'var(--a3-ice)', color: 'var(--a3-ink)', border: '1.5px solid var(--a3-blue)' },
+  yhTag_sunna: { background: 'var(--a3-surface)', color: 'var(--a3-muted)', border: '1.5px dashed var(--a3-muted)' },
+  yhChip_rukn: { background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', border: '1.5px solid var(--a3-blue)' },
+  yhChip_wajib: { background: 'var(--a3-ice)', color: 'var(--a3-ink)', border: '1.5px solid var(--a3-blue)' },
+  yhChip_sunna: { background: 'var(--a3-surface)', color: 'var(--a3-muted)', border: '1.5px dashed var(--a3-muted)' },
+  yhPill: { flex: '0 0 auto', minHeight: 44, padding: '0 14px', borderRadius: 22, fontSize: 14 },
+  yhPillOn: { flexShrink: 0, padding: '3px 10px', borderRadius: 12, background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', fontSize: 12, fontWeight: 700 },
+  yhPrimary: { minHeight: 50, padding: '0 18px', border: 0, borderRadius: 16, background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', fontFamily: 'inherit', fontSize: 15.5, fontWeight: 700, cursor: 'pointer' },
+  yhGhost: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 44, padding: '0 14px', borderRadius: 14, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-blue)', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: 'pointer', alignSelf: 'flex-start' },
+  yhGhostWide: { minHeight: 50, borderRadius: 16, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontFamily: 'inherit', fontSize: 15.5, fontWeight: 700, cursor: 'pointer' },
+  yhLink: { display: 'inline-flex', alignItems: 'center', minHeight: 44, fontSize: 13.5, fontWeight: 700, color: 'var(--a3-blue)' },
+  yhCredit: { fontSize: 13, lineHeight: 1.8, color: 'var(--a3-muted)' },
+  yhAccent: { color: 'var(--a3-blue)', display: 'inline-flex' },
+  yhAudioRow: { display: 'flex', alignItems: 'center', gap: 10, paddingTop: 8, borderTop: '1px solid var(--a3-line)' },
+  yhPlay: { flex: '0 0 44px', width: 44, minHeight: 44, padding: 0, borderRadius: 22 },
+  yhAudioTitle: { fontSize: 14.5, fontWeight: 600, lineHeight: 1.6, color: 'var(--a3-ink)', overflowWrap: 'anywhere' },
+  yhAudioEl: { width: '100%', marginTop: 4 },
+  yhShort: { display: 'flex', flexDirection: 'column', gap: 4, padding: '12px 14px', borderRadius: 16, background: 'var(--a3-ice)', border: '1px solid var(--a3-line)' },
+  yhShortText: { fontSize: 16, fontWeight: 600, lineHeight: 1.9, color: 'var(--a3-ink)', overflowWrap: 'anywhere' },
+  yhScrim: { position: 'fixed', inset: 0, zIndex: 60, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' },
+  yhScrimBtn: { position: 'absolute', inset: 0, width: '100%', height: '100%', padding: 0, border: 0, background: 'var(--a3-ink)', opacity: 0.42, cursor: 'pointer' },
+  yhSheet: { position: 'relative', maxHeight: '86%', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, padding: '16px 16px 22px', background: 'var(--a3-surface)', color: 'var(--a3-ink)', borderRadius: '24px 24px 0 0', boxShadow: 'var(--a3-lift)', direction: 'rtl' },
+  yhPage: { display: 'flex', flexDirection: 'column', gap: 4, paddingTop: 8, borderTop: '1px solid var(--a3-line)' },
+  yhPageText: { margin: 0, fontSize: 16, lineHeight: 2.1, color: 'var(--a3-ink)', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' },
+  yhBars: { display: 'flex', gap: 5 },
+  yhBarSeg: { flex: 1, height: 5, borderRadius: 3, background: 'var(--a3-line)' },
+  yhBarSegOn: { background: 'var(--a3-blue)' },
+  yhFoot: { position: 'sticky', bottom: 0, display: 'flex', gap: 10, padding: '10px 0 12px', background: 'var(--a3-page)', borderTop: '1px solid var(--a3-line)' },
+  yhDone: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '14px 6px 4px', textAlign: 'center' },
+  yhDoneMark: { width: 72, height: 72, borderRadius: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--a3-blue)', color: 'var(--a3-on-blue)' },
+  yhResult: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '24px 10px 10px', textAlign: 'center' },
+  yhResultNum: { fontSize: 34, fontWeight: 700, lineHeight: 1.4, color: 'var(--a3-blue)' },
+  yhAsk: { minHeight: 150, justifyContent: 'center', textAlign: 'center' },
+  yhRowCard: { display: 'flex', alignItems: 'center', gap: 14, width: '100%', minHeight: 70, padding: '12px 14px', borderRadius: 22, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', boxShadow: 'var(--a3-shadow)', color: 'var(--a3-ink)', fontFamily: 'inherit', textAlign: 'start', cursor: 'pointer' },
+  yhIconBox: { width: 44, height: 44, flexShrink: 0, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--a3-ice)', color: 'var(--a3-blue)' },
+  yhStation: { border: '1px solid var(--a3-line)', borderRadius: 20, background: 'var(--a3-surface)', boxShadow: 'var(--a3-shadow)', overflow: 'hidden' },
+  yhStationHead: { display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px 10px' },
+  yhLessonRow: { display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 60, padding: '8px 14px', border: 0, borderTop: '1px solid var(--a3-line)', background: 'transparent', color: 'var(--a3-ink)', fontFamily: 'inherit', textAlign: 'start', cursor: 'pointer' },
+  yhCircle: { width: 32, height: 32, flexShrink: 0, boxSizing: 'border-box', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13.5, fontWeight: 700, background: 'var(--a3-surface)', color: 'var(--a3-muted)', border: '1px solid var(--a3-line)' },
+  yhCircleDone: { background: 'var(--a3-blue)', color: 'var(--a3-on-blue)', borderColor: 'var(--a3-blue)' },
+  yhCircleCur: { background: 'var(--a3-surface)', color: 'var(--a3-blue)', border: '2px solid var(--a3-blue)' },
+  yhFooter: { display: 'flex', flexDirection: 'column', gap: 2, padding: '4px 8px 0', fontSize: 12.5, lineHeight: 1.8, color: 'var(--a3-muted)', textAlign: 'center' },
+  yhHero: { cursor: 'default', gap: 8 },
+  yhHeroBar: { position: 'relative', display: 'block', height: 6, borderRadius: 3, overflow: 'hidden', background: 'color-mix(in srgb, currentColor 24%, transparent)' },
+  yhHeroFill: { display: 'block', height: 6, borderRadius: 3, background: 'currentColor' },
+  yhHeroBtn: { marginInlineStart: 'auto', minHeight: 44, padding: '0 18px', border: 0, fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: 'pointer' },
   artInput: { width: '100%', minHeight: 44, padding: '10px 14px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontSize: 15, fontFamily: 'inherit', boxSizing: 'border-box' },
   artTextarea: { width: '100%', minHeight: 220, padding: '12px 14px', borderRadius: 12, border: '1px solid var(--a3-line)', background: 'var(--a3-surface)', color: 'var(--a3-ink)', fontSize: 15, lineHeight: 2, fontFamily: 'inherit', boxSizing: 'border-box', resize: 'vertical' },
   artChoiceRow: { display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' },

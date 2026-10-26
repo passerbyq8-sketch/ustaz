@@ -30,7 +30,9 @@ const ascii = (s) => String(s).replace(/[^\x00-\x7f]/g, (c) => '\\u' + c.charCod
 const say = (s) => process.stdout.write(ascii(s) + '\n');
 const ROUTES = ['mushaf', 'adhkar_sabah', 'adhkar_masaa', 'home', 'adhkar', 'arbaeen', 'prayer', 'chat',
   'memorize', 'fatwa', 'lessons', 'articles', 'women', 'tasbih', 'calc', 'compass',
-  'ayah-tafsir', 'asmaa', 'sunan-day', 'wirdi', 'treasure', 'library'];
+  // YAHIMMAK (26 October): the web door opens the new section, so a bar slot holding it navigates. It sits before
+  // the two routes that leave for a page of their own; the shell's widget table does not carry it (SECTIONS below).
+  'ayah-tafsir', 'asmaa', 'sunan-day', 'yahimmak', 'wirdi', 'treasure', 'library'];
 const SECTIONS = ['memorize', 'fatwa', 'lessons', 'adhkar', 'arbaeen', 'articles', 'women', 'prayer',
   'tasbih', 'calc', 'compass', 'ayah-tafsir', 'asmaa', 'sunan-day', 'treasure'];
 const PROFILE_PID = 'W45-GUARD';
@@ -131,7 +133,8 @@ function boot(opts) {
   const root = window.document.getElementById('root');
   const titleExpr = { prayer: 'PRAYER_SHEET_TITLE', memorize: 'MEM.TITLE', lessons: "ezT('module.lessons')",
     articles: 'EZH_ARTICLES', women: 'EZH_WOMEN', tasbih: "ezT('tasbih.title')", calc: "ezT('calc.title')",
-    'ayah-tafsir': "ezT('home.verseOfDay2')", asmaa: "ezT('asmaa.title')", 'sunan-day': "ezT('sunan.title')", wirdi: 'DW_CARD_TITLE' };
+    'ayah-tafsir': "ezT('home.verseOfDay2')", asmaa: "ezT('asmaa.title')", 'sunan-day': "ezT('sunan.title')", wirdi: 'DW_CARD_TITLE',
+    yahimmak: "ezT('yahimmak.title')" };
   const titles = Object.fromEntries(Object.entries(titleExpr).map(([key, expr]) => [key, read(expr)]));
   titles.mushaf = '\u0627\u0644\u0645\u0635\u062d\u0641';
   const LIT_B = (read('EZ110_PARTS') || {}).b === 'public';
@@ -222,7 +225,7 @@ SCENES['pages'] = async (c, t) => {
   else { c.read('window.dispatchEvent(new Event("pagehide"))'); t('R4A library leaves the menu it was opened from as the way back (fix, round 4 N1)', c.ledger(), 'home'); }
 };
 SCENES['top-layer'] = async (c, t) => {
-  for (const layer of ['asmaa', 'sunan-day']) {
+  for (const layer of ['asmaa', 'sunan-day', 'yahimmak']) {
     c.open(layer); t(layer + ' opens explicitly', await c.until(layer), layer);
     c.open('adhkar'); t(layer + ' closes before next destination', await c.until('adhkar'), 'adhkar');
     c.open('home'); t(layer + ' stays closed on home', await c.until('home'), 'home');
@@ -682,6 +685,7 @@ const MUTANTS = [
   { name: 'any-op', scene: 'foreign', edits: [[' || d.op !== SHELL_SCHED_OPEN_OP) return;', ') return;']] },
   { name: 'asmaa-not-opened', scene: 'cold-asmaa', edits: [["    setAsmaaOpen(route === 'asmaa');", '    setAsmaaOpen(false);']] },
   { name: 'sunan-not-opened', scene: 'cold-sunan-day', edits: [["    setSunanOpen(route === 'sunan-day');", '    setSunanOpen(false);']] },
+  { name: 'yahimmak-not-opened', scene: 'cold-yahimmak', edits: [["    setYahimmakOpen(route === 'yahimmak');", '    setYahimmakOpen(false);']] },
   { name: 'top-layer-left-open', scene: 'top-layer', edits: [["    setAsmaaOpen(route === 'asmaa');", "    if (route === 'asmaa') setAsmaaOpen(true);"]] },
   { name: 'treasure-wrong-page', scene: 'cold-treasure', edits: [["      window.location.href = '/quest.html';", "      window.location.href = '/wrong.html';"]] },
   { name: 'library-wrong-page', scene: 'cold-library', edits: [["      window.location.href = '/library.html';\n      return;", "      window.location.href = '/wrong.html';\n      return;"]] },
@@ -804,7 +808,7 @@ function staticChecks() {
   for (const n of ast.program.body) if (n.type === 'VariableDeclaration') for (const d of n.declarations) if (d.id.name === 'EZIK_WIDGET_ROUTES') routes = d.init.elements.map((x) => x.value);
   const a = src.indexOf('// ===== ITEM 45 -- THE WIDGET'), b = src.indexOf('}, [screen, widgetSeq]);', a); const consumer = src.slice(a,b);
   return [
-    ['C1 exact independent 22-route whitelist', JSON.stringify(routes) === JSON.stringify(ROUTES)],
+    ['C1 exact independent 23-route whitelist', JSON.stringify(routes) === JSON.stringify(ROUTES)],
     ['normal routes use resume writer and both boot tools', ['ezikWriteResume(route);','ezikResumeMarkEntered(ezikReadResume());','const next = ezikResumeScreen();','setScreen(next);'].every((s) => consumer.includes(s))],
     ['chat focus waits for SpendGate and consent', src.includes("if (!widgetChatFocusRef.current || screen !== 'chat' || !spendGateOpenState\n      || aiConsent !== EZ_AI_CONSENT_GRANTED || aiConsentReview) return;")],
     ['boot keeps the resume path', src.includes('        ezikResumeMarkEntered(ezikReadResume());\n        setScreen(ezikResumeScreen());')],

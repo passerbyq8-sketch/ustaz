@@ -1039,3 +1039,7 @@ guards/brain-postship-16-guard.cjs text eol=lf
 guards/brain-postship-17-guard.cjs text eol=lf
 guards/brain-postship-18-guard.cjs text eol=lf
 guards/brain-postship-19-guard.cjs text eol=lf
+# YAHIMMAK (2026-10-26): the section «يهمّك», its two data files and its gate.
+yahimmak.json                 text eol=lf
+yahimmak-book.json            text eol=lf
+guards/yahimmak-guard.cjs text eol=lf

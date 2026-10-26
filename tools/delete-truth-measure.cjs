@@ -479,6 +479,9 @@ const MUST_GO_ALREADY = [
   // ITEMS 24 + 58 -- the sync engine's cursor and its per-record hashes. A device that was erased
   // starts its next sync from nothing, so this goes with everything else.
   { c: 'EZIK_SYNC_STATE_KEY' },
+  // YAHIMMAK (26 October) -- the lessons this reader finished, the last one opened, today's
+  // challenge and today's ticks. A reading record of one person, wiped on the owner's standing rule.
+  { c: 'YAHIMMAK_KEY' },
 ];
 
 // What delete.html:94 and :138 promise and the code did not keep of its own accord. Each is

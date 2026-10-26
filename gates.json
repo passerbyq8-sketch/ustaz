@@ -1030,5 +1030,10 @@
     "name": "postship19",
     "script": "guards/brain-postship-19-guard.cjs",
     "args": ""
+  },
+  {
+    "name": "yahimmak",
+    "script": "guards/yahimmak-guard.cjs",
+    "args": ""
   }
 ]

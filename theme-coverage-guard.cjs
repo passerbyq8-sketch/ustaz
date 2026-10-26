@@ -5340,8 +5340,10 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
     // here. Twelve ids now, and `sunan-day` is the id the data file itself carries.
     // ITEM 108 (ORDER-108C, 28 September): the owner's order adds the library section after the lessons;
     // re-cut on that ruling, not relaxed. Thirteen ids now, twelve with the women's corner hidden.
-    eq('ITEM20/3: ...twelve of them, still in the order the shelf rulings fixed', hidden,
-      ['asmaa', 'articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'library', 'prayer']);
+    // YAHIMMAK (26 October): the owner's order adds «يهمّك», first of the knowledge sections, so before the fatwa
+    // section; re-cut on that ruling, not relaxed. Fourteen ids now, thirteen with the women's corner hidden.
+    eq('ITEM20/3: ...thirteen of them, still in the order the shelf rulings fixed', hidden,
+      ['asmaa', 'articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'yahimmak', 'fatwa', 'lessons', 'library', 'prayer']);
     // ITEM 26 / SHIP §1-2 (9 September) -- THE DEFAULT ORDER, STATED IN FULL. It replaced D-9's
     // «articles then women first» on 8 September, and the owner has replaced its own head today:
     // «أسماء الله الحسنى» is FIRST, ahead of the articles section, which item 20 §2 had put
@@ -5359,14 +5361,16 @@ ok('Z5: ...and it DOES precache the three files a first paint needs, which is wh
     // ORDER 87D: one more id between the two ends, for the ruling stated above -- the head is
     // still the names section and the tail is still the women's corner, and neither moved.
     // ITEM 108 (ORDER-108C, 28 September): the owner's order adds the library section after the lessons: eleven between the two ends.
-    eq('ITEM26/1-2: ...and the eleven between them keep the order the shelf rulings fixed',
-      shown.slice(1, -1), ['articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'library', 'prayer']);
+    // YAHIMMAK (26 October): «يهمّك» before the fatwa section, on the owner's order: twelve between the two ends.
+    eq('ITEM26/1-2: ...and the twelve between them keep the order the shelf rulings fixed',
+      shown.slice(1, -1), ['articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'yahimmak', 'fatwa', 'lessons', 'library', 'prayer']);
     // ORDER 87D: the same line, re-cut for the same ruling. Eleven became TWELVE on 14 September
     // because the owner said item 87 is a section; it did not become twelve because a tile was
     // added and this line was in the way.
     // ITEM 108 (ORDER-108C, 28 September): the owner's order adds the library section after the lessons: twelve became THIRTEEN on that ruling.
-    eq('ITEM26/1-2: ...so the default shelf is these thirteen, in this order', shown,
-      ['asmaa', 'articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'library', 'prayer', 'women']);
+    // YAHIMMAK (26 October): thirteen became FOURTEEN on the owner's order adding «يهمّك».
+    eq('ITEM26/1-2: ...so the default shelf is these fourteen, in this order', shown,
+      ['asmaa', 'articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'yahimmak', 'fatwa', 'lessons', 'library', 'prayer', 'women']);
     // AND WHERE IT COMES BACK IS THE END. The hidden shelf is the shown shelf with one row cut
     // out, so putting the row back can only put it where the array holds it -- last. This is the
     // same fact the two F15 cases below state from the other side, asserted here as the ORDER

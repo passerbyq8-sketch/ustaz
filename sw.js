@@ -327,6 +327,12 @@ const IDLE = [
   // The size table the downloads sheet reads. Small, and warmed so the sheet can still say what
   // is downloaded and how large each group is when the reader opens it with no network.
   '/mushaf-lab/data/offline-sizes.json',
+  // YAHIMMAK («يهمّك»). The section's data and the book's own pages they are checked against:
+  // not CORE, because the boot never needs them; warmed after the boot goes idle, as the explanation file
+  // below is, so a reader who has visited once can open the section with no network. The sheikh's audio
+  // streams from his own site, which this worker never intercepts (the cross-origin return below).
+  '/yahimmak.json',
+  '/yahimmak-book.json',
   // ITEM 89. The explanation, the narrator and the audio address of each of the
   // forty-two, which the arbaeen reader draws under the hadith. It is NOT in CORE: the boot and
   // the list never need it, and the app asks for it only the first time a reader opens a hadith.

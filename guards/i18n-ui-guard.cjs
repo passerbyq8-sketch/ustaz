@@ -1051,7 +1051,8 @@ async function partD() {
           JSON.stringify({ ids, bar }));
         eq('R4A ...and the memorizer is the FIRST tile (the owner groups: Quran and Sunnah first)', ids[0], 'memorize');
         eq('R4A ...and the women corner is NOT on his grid, because this account answered male', ids.indexOf('women'), -1);
-        eq('R4A ...and the twelve tiles are these, in the order of the owner groups', ids, ["memorize","arbaeen","sunan-day","asmaa","wird","adhkar","tasbih","fatwa","lessons","library","articles","calc"]);
+        // YAHIMMAK (26 October): the owner's order puts «يهمّك» FIRST in the knowledge group -- thirteen tiles. Re-cut, not relaxed.
+        eq('R4A ...and the thirteen tiles are these, in the order of the owner groups', ids, ["memorize","arbaeen","sunan-day","asmaa","wird","adhkar","tasbih","yahimmak","fatwa","lessons","library","articles","calc"]);
         const artTile = grid.querySelector('[data-ez110-tile="articles"]');
         if (ok('R4A the articles section has a tile of its own on the grid', !!artTile)) {
           ok('R4A ...and the tile is titled with the articles name', String(artTile.textContent || '').indexOf(S.ARTICLES) !== -1, cps(String(artTile.textContent || '').slice(0, 40)));
@@ -1101,7 +1102,7 @@ async function partD() {
       // ITEM 108 (ORDER-108C, 28 September): the owner's order adds the library section, placed
       // after the lessons. Re-cut the same way, not relaxed.
       eq('...and the twelve that remain are these, in the order the shelf rulings fixed', shelfIds,
-        ['asmaa', 'articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'library', 'prayer']);
+        ['asmaa', 'articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'yahimmak', 'fatwa', 'lessons', 'library', 'prayer']);
       // ITEM 20 / §1 -- THE NAME, READ OFF THE TILE THAT DRAWS IT. A dictionary entry no card
       // renders is a string nobody sees, so the shelf itself is asked what it says.
       const artTile = mosaic.querySelector('[data-ezik-home-module="articles"]');
@@ -1455,7 +1456,7 @@ async function partD() {
         const backB = d.all('.ez110-grid [data-ez110-tile]').map((e) => e.getAttribute('data-ez110-tile'));
         ok('R4A §3: the women corner is BACK on his grid, for the answer he just saved', backB.indexOf('women') !== -1, JSON.stringify(backB));
         eq('R4A §2: ...and it is back where the owner groups put it -- after the articles, before the calculator', backB.indexOf('women'), backB.indexOf('articles') + 1);
-        eq('R4A §3: ...and the twelve it joins are the twelve that were there, in their order', backB.filter((x) => x !== 'women'), ["memorize","arbaeen","sunan-day","asmaa","wird","adhkar","tasbih","fatwa","lessons","library","articles","calc"]);
+        eq('R4A §3: ...and the thirteen it joins are the thirteen that were there, in their order', backB.filter((x) => x !== 'women'), ["memorize","arbaeen","sunan-day","asmaa","wird","adhkar","tasbih","yahimmak","fatwa","lessons","library","articles","calc"]);
         eq('R4A §3: ...and the account it read is the one the save wrote', JSON.parse(c.store.getItem('child_profile')).gender, 'female');
         eq('R4A §3: ...and no hide key was read or written on the way', c.store.getItem('ezik_hide_women_v1'), null);
       }
@@ -1475,7 +1476,7 @@ async function partD() {
       // adds after the lessons. Re-cut, not relaxed.
       eq('\u00a73: ...and the twelve it joins are the twelve that were there, in their order',
         back.slice(0, -1),
-        ['asmaa', 'articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'fatwa', 'lessons', 'library', 'prayer']);
+        ['asmaa', 'articles', 'memorize', 'adhkar', 'sunan-day', 'arbaeen', 'mushaf', 'treasure', 'yahimmak', 'fatwa', 'lessons', 'library', 'prayer']);
       eq('\u00a73: ...and the account it read is the one the save wrote',
         JSON.parse(c.store.getItem('child_profile')).gender, 'female');
       // AND THE ABANDONED KEY PLAYED NO PART IN IT. The device never held one in this run, and
