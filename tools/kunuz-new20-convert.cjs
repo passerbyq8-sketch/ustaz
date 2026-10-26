@@ -69,7 +69,7 @@ function hasFlag(q, flag) {
 function missingPhoto(q, root) {
   if (!q.vis || q.vis.kind !== 'photo') return false;
   const src = q.vis.src;
-  if (typeof src !== 'string' || !/^quest-data\/signs\/[a-z0-9]+(?:-[a-z0-9]+)*\.webp$/.test(src)) return true;
+  if (typeof src !== 'string' || !/^(?:quest-data\/signs\/[a-z0-9]+(?:-[a-z0-9]+)*\.webp|quest-img\/landmarks\/landmark-photos-\d{4}\.webp)$/.test(src)) return true;
   const file = path.join(root, src);
   if (!fs.existsSync(file) || !fs.statSync(file).isFile()) return true;
   const bytes = fs.readFileSync(file);
