@@ -63,7 +63,7 @@
   const app = document.createElement('div'); app.className = 'journey-app'; app.dataset.game = game;
   document.body.classList.add('ezik-treasure-theme'); document.body.append(app);
   const themeMeta = document.querySelector('meta[name="theme-color"]'); if (themeMeta) themeMeta.content = '#082c38';
-  const OFFLINE_VERSION = '20261026-kfix3';
+  const OFFLINE_VERSION = '20261026-kfix5';
   const THEME_VERSION = OFFLINE_VERSION;
   const IAP_HOST_RESUME_KEY = 'kunuz_iap_host_resume_v1';
   const IAP_EXPIRED_NOTICE_KEY = 'kunuz_iap_expired_notice_v1';
