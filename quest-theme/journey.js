@@ -1230,19 +1230,9 @@
       let entered = false;
       const routeObserver = new MutationObserver(() => {
         if (M.stage !== 'room') { routeObserver.disconnect(); return; }
-        // The shipped room view remains responsible for its snapshot. Suppress
-        // only its source paragraph before paint, without changing that data.
-        document.querySelectorAll('#root p.bank-text').forEach(node => {
-          const label = node.querySelector(':scope > b');
-          if (!label || !/^المصدر/.test(label.textContent.trim())) return;
-          const text = [...node.childNodes].filter(child => child !== label).map(child => child.textContent).join('');
-          node.hidden = !arabicSource(text);
-        });
+        // The native room React tree owns #root. Observe route changes without
+        // rewriting nodes there; external children break React reconciliation.
         const current = location.pathname;
-        if (M.roomFromEntry && /\/join\/?$/.test(current) && !document.getElementById('j-room-entry-native-help')) {
-          const form = document.querySelector('#root form');
-          if (form) { const note = document.createElement('p'); note.id = 'j-room-entry-native-help'; note.className = 'j-note'; note.textContent = 'بدون اختيار فئات، فئات الغرفة يحددها صاحبها.'; form.append(note); }
-        }
         if (/\/host\/?$|\/j\/\d{4,6}\/?$/.test(current)) entered = true;
         if (entered && (/^\/hanna-laha\/?$/.test(current) || /\/setup\/?$/.test(current))) { routeObserver.disconnect(); leaveRoomToSettings(); return; }
         M.roomUrl = location.href;
