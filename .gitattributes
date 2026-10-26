@@ -1043,3 +1043,7 @@ guards/brain-postship-19-guard.cjs text eol=lf
 yahimmak.json                 text eol=lf
 yahimmak-book.json            text eol=lf
 guards/yahimmak-guard.cjs text eol=lf
+# POSTSHIP2 2026-10-26: registered source-removal, Fatwa-verification, and reader-source guards.
+guards/fatwa-verify-parallel-guard.cjs text eol=lf
+guards/reader-sources-guard.cjs text eol=lf
+guards/removed-sources-guard.cjs text eol=lf

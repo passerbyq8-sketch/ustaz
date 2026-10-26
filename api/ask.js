@@ -26,6 +26,7 @@ import { guardDayCap, dayCapMessage, hasUnrevokedFounderToken, refundDayCap } fr
 import { ASK_LIMIT_MESSAGE } from '../lib/limit-message.js';
 import { languageGate, decideLanguage } from '../lib/lang/gate.js';
 import { withAnswerLog, heldFromTelemetry, hitsFromSpend } from '../lib/answer-log.js';
+import { readerSources, readerSourceKindsFromMask } from '../lib/reader-sources.js';
 import { createContinuationRelay } from '../lib/continuation.js';
 import { installAnswerStatus } from '../lib/answer-status.js';
 // ITEM 58 -- the address line from the gender the asker wrote in «ملفّك», behind SYNC_SWITCH.
@@ -596,7 +597,7 @@ export function buildSourceTag(src) {
     .slice(0, SOURCE_TITLE_MAX)
     .trim();
 
-  return { url, host, tag: `<source site="${host}" url="${url}">${title || host}</source>` };
+  return { url, host, kind: src.kind || 'card', tag: `<source site="${host}" url="${url}">${title || host}</source>` };
 }
 
 // ── ع-٤٩: THE BOOK CHIP, AND WHY IT IS NOT A `<source>` ─────────────────────
@@ -670,7 +671,7 @@ export function buildBookTag(row) {
   // The passage stays the book's words letter for letter; `open` tells the card to draw «…» AFTER it, apart from it
   // (app.jsx BookCard), whether the cut was ours, the service's, or the page's own end.
   const openAttr = carried && bookMatnEndsOpen(kept) ? ' open="1"' : '';
-  return { tag: `<book${attrs}${matnAttrs}${openAttr}>${title}</book>` };
+  return { kind: row && (row.kind === 'encyclopedia' || row.kind === 'local_encyclopedia') ? 'encyclopedia' : 'row', tag: `<book${attrs}${matnAttrs}${openAttr}>${title}</book>` };
 }
 
 // POSTSHIP ITEM 6 -- 2026-10-24: a passage ends when its last mark (behind closing quotes and brackets) is a stop mark
@@ -819,6 +820,16 @@ function bindUpstreamToClient(readerGone) {
 // ITEM 74 -- the exported handler is the language gate around the handler proper, which is the function expression
 // passed to it. For an Arabic question the gate calls that handler with the very same req and res and does nothing
 // else (lib/lang/gate.js). The handler proper keeps its own name, and its body is exactly what it was.
+// Internal source metadata stays outside the note() expression; only its count and flags are logged.
+const LIB_QUOTE_READER_SOURCES = Object.freeze([Object.freeze({ kind: 'row', id: 'lib-quote' })]);
+
+function sourceNoteFields(summary, flags = []) {
+  return {
+    cited: summary.count,
+    flags: [...flags, ...summary.kinds.map((kind) => `src:${kind}`)],
+  };
+}
+
 export default async function handler(req, res) {
   return languageGate(req, res, async function handler(req, res) {
   // ITEM O1 (91) -- 2026-10-15 brain-line: ONE RECORD FOR EVERY ANSWER (lib/answer-log.js). Opened as the handler's
@@ -1249,7 +1260,7 @@ export default async function handler(req, res) {
         console.log('[lib-quote]', { outcome: 'explain' });
       } else if (follow) {
         console.log('[lib-quote]', { outcome: follow.outcome });
-        answerLog.note({ path: 'canned', flags: ['lib_quote'] });
+        answerLog.note({ path: 'canned', ...sourceNoteFields(readerSources('canned', LIB_QUOTE_READER_SOURCES), ['lib_quote']) });
         logRoute();
         return libQuote.writeQuoteReply(res, follow.text);
       }
@@ -1261,7 +1272,7 @@ export default async function handler(req, res) {
       const quoted = await libQuote.answerQuoteRequest(quoteAsk, { runTool, createEvidenceTable, libFlagValue, libToken, ...pageDeps });
       if (quoted) {
         console.log('[lib-quote]', { outcome: quoted.outcome });
-        answerLog.note({ path: 'canned', flags: ['lib_quote'] });
+        answerLog.note({ path: 'canned', ...sourceNoteFields(readerSources('canned', LIB_QUOTE_READER_SOURCES), ['lib_quote']) });
         logRoute();
         return libQuote.writeQuoteReply(res, quoted.text);
       }
@@ -1281,7 +1292,7 @@ export default async function handler(req, res) {
       if (cards.length) {
         console.log('[source-followup]', { outcome: 'answered', cards: cards.length });
         const { writeQuoteReply } = await import('../lib/lib-quote.js');
-        answerLog.note({ path: 'canned', cited: cards.length, flags: ['source_followup'] });
+        answerLog.note({ path: 'canned', ...sourceNoteFields(readerSources('canned', cards), ['source_followup']) });
         logRoute();
         return writeQuoteReply(res, sourceFollowUp.composeSourceReply(cards));
       }
@@ -1542,6 +1553,12 @@ export default async function handler(req, res) {
       }
       return {
         ...finalizerContext,
+        onReaderSources: (sources) => {
+          const routePath = answerLog.record().path;
+          if (routePath === 'legacy-gen' || routePath === 'legacy-deen') {
+            answerLog.note(sourceNoteFields(readerSources(routePath, sources)));
+          }
+        },
         // Source markup written by a model is never a card.  The central writer
         // drops it across the completed byte stream and preserves the ordinary
         // prose; only records registered in sourceCards may be appended later.
@@ -1564,7 +1581,7 @@ export default async function handler(req, res) {
     onReject: (detail) => console.warn('[finalized-sse] rejected', detail),
   });
   const ownedSourceTag = (source) => {
-    const card = buildSourceTag(source);
+    const card = buildSourceTag({ ...source, kind: source && (source.kind || source.sourceKind) || 'card' });
     if (card && card.tag && !finalizerContext.sourceCards.some((item) => item.tag === card.tag)) {
       finalizerContext.sourceCards.push(card);
     }
@@ -1923,7 +1940,7 @@ export default async function handler(req, res) {
       if (Array.isArray(closedOut.finalizerSources)) {
         storedFinalizerSources.push(...closedOut.finalizerSources);
       }
-      answerLog.note({ path: 'closed' });
+      answerLog.note({ path: 'closed', ...sourceNoteFields(readerSources('closed', closedOut.finalizerSources)) });
       console.log('[closed-deen]', {
         route: storedContext.runtime,
         sourceIds: closedOut.sourceIds || [],
@@ -2111,8 +2128,8 @@ export default async function handler(req, res) {
         answerLog.note({
           path: 'bw2',
           hits: { fatwa: t.fatwaHits, library: t.libraryHits, encyclopedia: t.encyclopediaHits, lessons: t.lessonsHits },
-          cited: t.cardsSent, held: heldFromTelemetry(t), out_tokens: t.outTokens, continued: t.continuations,
-          flags: [t.liveOffer ? 'live_offer' : '', t.continued ? 'bw2_continued' : '', t.refusalFallback ? 'refusal_fallback' : '', t.unsourcedWithheld ? 'unsourced_withheld' : ''],
+          cited: t.readerSourceCount || 0, held: heldFromTelemetry(t), out_tokens: t.outTokens, continued: t.continuations,
+          flags: [t.liveOffer ? 'live_offer' : '', t.continued ? 'bw2_continued' : '', t.refusalFallback ? 'refusal_fallback' : '', t.unsourcedWithheld ? 'unsourced_withheld' : '', ...readerSourceKindsFromMask(t.readerSourceMask).map((kind) => `src:${kind}`)],
         });
         console.log('[bw2]', {
           bw2: t.bw2, runtime: currentRuntime, frame: answerFrame,
@@ -2266,7 +2283,7 @@ export default async function handler(req, res) {
       // Past three, a reply stops citing and starts listing — which is the whole reason the
       // constant exists. The selection rule, and why deduplication runs before the cut, are
       // written out in `pickReaderCards`; the constant stays here, where every other path reads it.
-      const buildFreeCard = (row) => buildSourceTag({ url: row.url, title: row.title });
+      const buildFreeCard = (row) => buildSourceTag({ url: row.url, title: row.title, kind: row.kind || row.sourceKind || 'card' });
       const reviewSentences = Array.isArray(out.verdict?.sentences) ? out.verdict.sentences : [];
       const explicitlyRejectedAttribution = reviewSentences.some((sentence) => sentence
         && (sentence.action === 'kept-unsupported-attribution-marked'
@@ -2411,7 +2428,7 @@ export default async function handler(req, res) {
       // numeric field an autopsy reads is untouched. What was lost is only the ability to read
       // back WHAT was asked, which is the thing being given up on purpose.
       answerLog.note({
-        path: 'free-brain', hits: hitsFromSpend(out.spend), cited: out.cited.length,
+        path: 'free-brain', hits: hitsFromSpend(out.spend),
         held: out.streamCounts || {}, continued: out.continuations,
         stop_reason: out.deliveredStop ?? undefined, truncated: out.truncated ?? undefined,
         out_tokens: out.terminalWriteUsage ? out.terminalWriteUsage.outTokens : undefined,
@@ -2731,7 +2748,18 @@ export default async function handler(req, res) {
       }
       // POSTSHIP ITEM 12: a shari'a answer with no source card is not delivered; the reader gets the sentence and the offer.
       // A source is a card the reader gets, a row the delivered text cites, or a hadith the takhrij pass proved on a page.
-      if (holdUnsourced && !(finalizerContext.readerCards || []).length && !(out.cited || []).length && !takhrijProvenRows.length) {
+      const freeBrainSourceRows = [
+        ...(Array.isArray(finalizerContext.readerCards) ? finalizerContext.readerCards : []),
+        ...(Array.isArray(out.cited) ? out.cited : []),
+        ...takhrijProvenRows.map((row, index) => ({
+          ...(row && typeof row === 'object' ? row : {}),
+          kind: 'hadith',
+          id: row && (row.id || row.sourceId || row.subjectId) || 'takhrij-proof-' + index,
+        })),
+      ];
+      const freeBrainSourceSummary = readerSources('free-brain', freeBrainSourceRows);
+      answerLog.note({ path: 'free-brain', ...sourceNoteFields(freeBrainSourceSummary) });
+      if (holdUnsourced && freeBrainSourceSummary.count === 0) {
         const { BW2_NOT_COVERED } = await import('../lib/before-writing-v2.js');
         answerLog.note({ flags: ['unsourced_withheld'] });
         out.degraded.push('unsourced:not_covered');
@@ -2826,7 +2854,8 @@ export default async function handler(req, res) {
       // rows were seen, kept and cited, and every call counter below is untouched.
       answerLog.note({
         path: toLedger ? 'hybrid' : 'stored',
-        hits: { candidates: storedOut.candidateRecordIds, evidence: storedOut.evidencePackIds }, cited: cards.length,
+        hits: { candidates: storedOut.candidateRecordIds, evidence: storedOut.evidencePackIds },
+        ...sourceNoteFields(readerSources(toLedger ? 'hybrid' : 'stored', toLedger ? (storedOut.usedEvidence || []) : (storedOut.accepted || []).filter((entry) => entry && entry.record && used.has(entry.record.id)).map((entry) => entry.record))),
       });
       console.log(toLedger ? '[hybrid-deen]' : '[stored-deen]', {
         route: storedContext.runtime,
@@ -2994,7 +3023,7 @@ export default async function handler(req, res) {
             // passing one would suggest it did.
             const w = remember(await retrieveWorld(questionText, { dailyBudget: worldBudget }));
             if (w && Array.isArray(w.sources) && w.sources.length) worldPass = w;
-            if (worldPass) answerLog.note({ path: 'world', hits: { world: worldPass.sources } });
+            if (worldPass) answerLog.note({ path: 'world', hits: { world: worldPass.sources }, ...sourceNoteFields(readerSources('world', worldPass.sources)) });
           }
         }
         if (!worldPass) {
@@ -3025,7 +3054,7 @@ export default async function handler(req, res) {
             // owner ruled — it is removed from THIS question, not from the list.
             liveNumber: liveWorldV2Enabled() && (LIVE_QUANTITY || LIVE_QUANTITY_FX),
           }));
-          if (o && Array.isArray(o.sources) && o.sources.length) { worldPass = o; worldOpen = true; answerLog.note({ path: 'world', hits: { world: o.sources } }); }
+          if (o && Array.isArray(o.sources) && o.sources.length) { worldPass = o; worldOpen = true; answerLog.note({ path: 'world', hits: { world: o.sources }, ...sourceNoteFields(readerSources('world', o.sources)) }); }
         }
       } catch (e) {
         console.warn('[world-search] threw, falling through to the ordinary general route:', e.message);
@@ -3627,7 +3656,7 @@ export default async function handler(req, res) {
       // wire.close() had already called res.end(), and a serverless invocation may be frozen at
       // response completion, so the counts were written and never shipped. They now print in
       // front of the close, inside the seam, at all three of its exits.
-      answerLog.note({ path: 'ledger' });
+      answerLog.note({ path: 'ledger', cited: 0 });
       await runLedgerTurn(res, {
         messages: body.messages,
         band,
@@ -3660,6 +3689,7 @@ export default async function handler(req, res) {
           ledgerFinalizerSources.length = 0;
           if (Array.isArray(pages)) ledgerFinalizerSources.push(...pages);
         },
+        onReaderSources: (sources) => answerLog.note(sourceNoteFields(readerSources('ledger', sources))),
         registerFinalizerOutcome: (outcome) => {
           // Only the awaited Ledger seam can write this server-owned field. Unknown values stay
           // ordinary answers and fail through the complete finalizer.

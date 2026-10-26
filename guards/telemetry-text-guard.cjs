@@ -97,7 +97,8 @@ const ALLOWED_FIELDS = [
   'officialDomain', 'open', 'opinionCount', 'outcome', 'overCap', 'pages', 'path', 'persons',
   'pointerCards', 'policyEnabled', 'policyVersion', 'probed', 'problems', 'providerCalls',
   'publicFetch', 'publicSearch', 'publishers', 'purpose', 'reason', 'relation', 'removed',
-  'repaired', 'requested', 'requestedDepth', 'resolvedScholar', 'retrievalOutcome',
+  // fixed role enum for a removal event; currently only 'removed_person', never reader identity.
+  'repaired', 'requested', 'requestedDepth', 'resolvedScholar', 'retrievalOutcome', 'role',
   'retrieved', 'rounds', 'route', 'rows', 'scholar', 'score', 'searchCompleted', 'searched',
   'source', 'sourceIds', 'sourcePolicy', 'sources', 'supporting', 'tools', 'topic', 'transfer',
   'truncated', 'turn', 'used', 'verdict',
@@ -392,7 +393,7 @@ const sweep = (source, file) => {
       const logFindings = sweepNotes(askSource, 'api/ask.js');
       ok('F: no note() call reads an expression that carries reader text (rule A)', logFindings.filter((x) => x.rule === 'A').length === 0, JSON.stringify(logFindings));
       ok('F: every note() field is a reviewed log field (rule B)', logFindings.filter((x) => x.rule !== 'A').length === 0, JSON.stringify(logFindings));
-      const mutated = askSource.replace("answerLog.note({ path: 'ledger' });", "answerLog.note({ path: 'ledger', q: questionText });");
+      const mutated = askSource.replace("answerLog.note({ path: 'ledger', cited: 0 });", "answerLog.note({ path: 'ledger', cited: 0, q: questionText });");
       ok('F: mutant -- a question field on a note() call is killed by both rules', mutated !== askSource
         && JSON.stringify([...new Set(sweepNotes(mutated, 'api/ask.js').map((x) => x.rule))].sort()) === JSON.stringify(['A', 'B']));
     }

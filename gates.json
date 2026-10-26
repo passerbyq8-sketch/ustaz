@@ -345,6 +345,11 @@
     "args": ""
   },
   {
+    "name": "readersources",
+    "script": "guards/reader-sources-guard.cjs",
+    "args": ""
+  },
+  {
     "name": "retiredchat",
     "script": "guards/retired-chat-endpoints-guard.cjs",
     "args": ""

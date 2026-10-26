@@ -138,9 +138,9 @@ const QUESTION = 'ما حكمُ الفطرِ في رمضانَ لمريضِ ال
         JSON.stringify(stored));
     } finally { REDIS.__resetRedis(); }
   }
-  for (const [p, re] of [['canned', /answerLog\.note\(\{ path: 'canned'/], ['closed', /answerLog\.note\(\{ path: 'closed' \}\)/], ['bw2', /path: 'bw2',/],
+  for (const [p, re] of [['canned', /answerLog\.note\(\{ path: 'canned'/], ['closed', /answerLog\.note\(\{ path: 'closed', \.\.\.sourceNoteFields\(readerSources\('closed', closedOut\.finalizerSources\)\) \}\)/], ['bw2', /path: 'bw2',/],
     ['free-brain', /path: 'free-brain', hits: hitsFromSpend\(out\.spend\)/], ['stored/hybrid', /path: toLedger \? 'hybrid' : 'stored',/],
-    ['world', /answerLog\.note\(\{ path: 'world'/], ['ledger', /answerLog\.note\(\{ path: 'ledger' \}\);\n      await runLedgerTurn/]]) {
+    ['world', /answerLog\.note\(\{ path: 'world'/], ['ledger', /answerLog\.note\(\{ path: 'ledger', cited: 0 \}\);\n      await runLedgerTurn/]]) {
     ok('the ' + p + ' path notes itself', re.test(ask));
   }
   ok('the route and the depth are noted', /answerLog\.note\(\{ route: effectiveRoute, runtime: currentRuntime \}\)/.test(ask) && /answerLog\.note\(\{ depth: instructionDepth \|\| 'normal' \}\)/.test(ask));

@@ -167,6 +167,13 @@ async function createHandlerHarness(DAY, handler) {
     globalThis.fetch = async (url, init = {}) => {
       const target = String(url);
       state.fetchTargets.push(target);
+      if (target.startsWith('https://ezik-fatwas-4k.vercel.app/api/v1/')) {
+        const pathname = new URL(target).pathname;
+        if (init.method !== 'GET' || !['/api/v1/health', '/api/v1/scholars'].includes(pathname)) {
+          throw new Error('offline unexpected Fatwa request: ' + target);
+        }
+        return { ok: false, status: 503, headers: { get: () => 'application/json' }, async text() { return '{}'; } };
+      }
       if (!target.includes('api.anthropic.com')) throw new Error('offline external call: ' + target);
       const body = JSON.parse(init.body || '{}');
       state.providerRequests.push(body);
@@ -537,17 +544,27 @@ async function runSuite() {
     ok('forged premium remains blocked server-side', forgedPremium.tier.usePremium === false
       && forgedPremium.tier.model === 'claude-sonnet-5');
     const storedRows = [handlerSupported, carry, alone, ...modeRows.flatMap((row) => [row.hit, row.miss])];
-    const publicSourceTargets = storedRows.flatMap((row) => row.fetchTargets)
-      .filter((target) => !String(target).includes('api.anthropic.com') && String(target) !== '/pipeline');
+    const allTargets = storedRows.flatMap((row) => row.fetchTargets);
+    const isFatwaWarmup = (target) => {
+      try {
+        const url = new URL(String(target));
+        return url.origin === 'https://ezik-fatwas-4k.vercel.app'
+          && ['/api/v1/health', '/api/v1/scholars'].includes(url.pathname);
+      } catch { return false; }
+    };
+    const fatwaWarmupTargets = allTargets.filter(isFatwaWarmup);
+    const publicSourceTargets = allTargets
+      .filter((target) => !String(target).includes('api.anthropic.com')
+        && String(target) !== '/pipeline' && !isFatwaWarmup(target));
     const storedNetworkMetrics = storedRows.map((row) => ({
       publicSearch: row.stored?.publicSearch,
       publicFetch: row.stored?.publicFetch,
       adapters: row.stored?.adapters,
     }));
-    ok('explicit LEDGER_RAG=off brake keeps the local fallback network-free', storedNetworkMetrics
+    ok('explicit LEDGER_RAG=off brake keeps the local fallback free of public searches and content fetches', storedNetworkMetrics
       .every((metrics) => metrics.publicSearch === 0 && metrics.publicFetch === 0 && metrics.adapters === 0)
-        && publicSourceTargets.length === 0,
-    JSON.stringify({ publicSourceTargets, storedNetworkMetrics }));
+        && publicSourceTargets.length === 0 && fatwaWarmupTargets.length > 0,
+    JSON.stringify({ publicSourceTargets, fatwaWarmupTargets, storedNetworkMetrics }));
   } finally {
     harness.restore();
   }
@@ -766,11 +783,14 @@ async function runSuite() {
     // POSTSHIP FIX3 item 2 (2026-10-25): 202 -> 203, same exact roster rule -- `postship17` (guards/brain-postship-17-guard.cjs).
     // POSTSHIP FIX3 item 3 (2026-10-25): 203 -> 204, same exact roster rule -- `postship18` (guards/brain-postship-18-guard.cjs).
     // POSTSHIP FIX4 item 1 (2026-10-25): 204 -> 205, same exact roster rule -- `postship19` (guards/brain-postship-19-guard.cjs).
-    // YAHIMMAK (2026-10-26): 205 -> 206, same exact roster rule -- `yahimmak` (guards/yahimmak-guard.cjs).
-function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 206; }
+    // YAHIMMAK (2026-10-26): 205 -> 206, same exact roster rule -- yahimmak (guards/yahimmak-guard.cjs).
+    // POSTSHIP2 item 1 (2026-10-26): 206 -> 207, removedsources.
+    // POSTSHIP2 item 2 (2026-10-26): 207 -> 208, fatwaverifyparallel.
+    // POSTSHIP2 item 3 (2026-10-26): 208 -> 209, readersources.
+function exactGateSet(names) { return JSON.stringify(names) === JSON.stringify(EXPECTED_GATES) && names.length === 209; }
     ok('ORIGINAL_GATE_SET_MATCH', exactGateSet(EXPECTED_GATES));
-    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 206-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
-    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 206-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
+    ok('MUTANT 11 KILLED: deleting namepresence breaks the exact 209-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'namepresence')));
+    ok('MUTANT 12 KILLED: deleting guardhonesty breaks the exact 209-name contract', !exactGateSet(EXPECTED_GATES.filter((name) => name !== 'guardhonesty')));
 
     const m13 = await storedMutant(temp, 'fiqh-before-special', (source) => source.replace(
       "if (QURAN_REQUEST.test(folded)) return 'LOCAL_QURAN';",

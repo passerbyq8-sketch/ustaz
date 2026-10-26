@@ -349,7 +349,7 @@ every purpose and `capabilityEligible()` is false for every capability. **Regist
 
 ## K. Gates and tests
 
-All 206 gates, run by the canonical `npm run gates` runner from `gates.json`:
+All 209 gates run sequentially by the authorized gates-seq.cjs runner from gates.json. Historical pre-rebase totals are retained below; the final post-rebase run is recorded after the ordered gate sequence.
 
 ```
 worship 0 · quran 0 · layout 0 · babel 0 · runtime 0 · recon 0 · display 0 · referral 0
@@ -365,6 +365,7 @@ voicesafety 0 · wird 0 · rulingsource 0 · retrievalobs 0 · madinahafs 0
 i18nui 0 · adhkartwins 0 · systemprompt 0 · lockpackage 0 · sourcehonesty 0
 ledgertelemetry 0 · livesearch 0 · answershape 0 · identity 0 · transfermode 0 · anchormode 0
 searchbudgetp0 0 · fullfatwa 0
+fatwaverifyparallel 0 readersources 0 removedsources 0
 retiredchat 0  guardhonesty 0
 promptconsistency 0 · truncatedtag 0 · explicitfailure 0 · scholarseparation 0
 cardorcontext 0
@@ -402,8 +403,14 @@ postship17 0
 postship18 0
 postship19 0
 yahimmak 0
-TOTAL_GATES        206/206 PASS
-RECON              PASS=299 WARN=0 FAIL=0
+TOTAL_GATES        209/209 PASS
+CURRENT_RECON PASS=302 WARN=0 FAIL=0
+PRE_REBASE_UPSTREAM_TOTAL_GATES 206/206 PASS
+PRE_REBASE_UPSTREAM_RECON PASS=299 WARN=0 FAIL=0
+PRE_REBASE_BRANCH_TOTAL_GATES 208/208 PASS
+PRE_REBASE_BRANCH_RECON PASS=301 WARN=0 FAIL=0
+MERGED_GATES 209 (calculated from gates.json)
+POST_REBASE_FINAL_GATES 209/209 PASS
 DIFF_CHECK         PASS (exit 0)
 OLD_FIXTURES       9/9 drive clean (F1–F9); F6 rewritten per owner decision
 NEW_FIXTURES       rfcpolicy 125/125 · rfcruntime 96/96
