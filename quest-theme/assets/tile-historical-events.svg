@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 190" role="img" aria-label="Historical timeline tile">
+  <rect width="320" height="190" rx="20" fill="#edf2ed"/>
+  <circle cx="252" cy="42" r="22" fill="#e3af5a"/>
+  <path d="M0 145q65-23 126 0t122 0q36-14 72-3v48H0z" fill="#315f64"/>
+  <path d="M49 125h222" fill="none" stroke="#f4ead7" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="74" cy="125" r="15" fill="#dba044" stroke="#f4ead7" stroke-width="5"/>
+  <circle cx="158" cy="125" r="15" fill="#dba044" stroke="#f4ead7" stroke-width="5"/>
+  <circle cx="242" cy="125" r="15" fill="#dba044" stroke="#f4ead7" stroke-width="5"/>
+  <circle cx="158" cy="72" r="37" fill="#fff1bd" stroke="#315f64" stroke-width="6"/>
+  <path d="M158 49v24l18 12" fill="none" stroke="#315f64" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

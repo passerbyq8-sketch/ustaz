@@ -93,6 +93,7 @@ const categoryArt = {
  'physics-chemistry': '<path d="M18 13h24M24 13v27L9 70q-5 10 7 10h29q11 0 6-10L36 40V13M16 60h29M55 30h12V15h20v15M55 30v37h32V54M63 67v18M78 67v18M59 85h23"/><path d="m76 35-9 11h9l-3 10 12-14h-9Z"/>',
  etiquette: '<path d="M8 69h84M14 75h72l-8 11H22ZM25 62V27h23v35ZM23 27h28M55 62V16h19v30q16-1 15 8t-15 8M55 28h19M58 10h14"/>',
  'gulf-history': '<path d="M12 85V41h20v44M68 85V41h20v44M32 85V56h36v29M9 41v-9h8v9h9v-9h8v9M66 41v-9h8v9h9v-9h8v9M43 85V70h14v15M50 56V13h25l-8 8 8 8H50"/>',
+ 'historical-events': '<image href="/quest-theme/assets/tile-historical-events.svg?v=20261026-kfix4" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>',
  'fmt-proverb-cloze': '<path d="M12 22h76v24H12ZM12 59h27v24H12ZM49 59h39v24H49M22 33h45M22 71h8M60 71h16M74 53v-3"/><path d="m46 48 4 7 4-7"/>',
  'fmt-missing-letter': '<rect x="8" y="27" width="23" height="42" rx="3"/><rect x="69" y="27" width="23" height="42" rx="3"/><path d="M40 27h20M40 69h20M40 35v8m20-8v8M40 53v8m20-8v8M15 40h9M76 55h9M42 87l5-13h9l5 13Z"/>',
  'fmt-scramble': '<path d="m12 22 23-8 8 23-23 8ZM64 14l23 8-8 23-23-8ZM20 59h24v24H20ZM60 60l24-6 6 24-24 6ZM14 50q30 11 70-2M74 42l10 6-7 9"/>',
