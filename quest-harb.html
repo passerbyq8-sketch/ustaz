@@ -1058,6 +1058,9 @@ function seenWrite(){
 }
 function seenRead(){
   if(SEEN.mem)return;
+  if(typeof DATA==="undefined"||!DATA||!Array.isArray(DATA.qs))return;
+  var currentStamp=seenStamp(),currentLength=Math.ceil(DATA.qs.length/8);
+  if(SEEN.stamp!==currentStamp||SEEN.bits.length!==currentLength){SEEN.stamp=currentStamp;SEEN.bits=seenEmpty()}
   var raw=null,bits=null;
   try{raw=window.localStorage.getItem(SEEN_KEY)}catch(e){SEEN.mem=true;return}
   var carried=false;
@@ -1096,7 +1099,7 @@ function seenCard(after){
     if(b.dataset.arm!=="1"){b.dataset.arm="1";b.textContent="متأكّد؟ اضغط ثانيةً للتصفير";return}
     seenReset();seenCard(after);if(after)after()};
 }
-SEEN.stamp=seenStamp();SEEN.bits=seenEmpty();seenRead();
+if(typeof DATA!=="undefined"&&DATA&&Array.isArray(DATA.qs)){SEEN.stamp=seenStamp();SEEN.bits=seenEmpty();seenRead()}
 
 /* ───── الإعداد ───── */
 function openCfg(){
