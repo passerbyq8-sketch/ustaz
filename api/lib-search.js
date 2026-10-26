@@ -53,6 +53,10 @@ import {
   buildSourceCard, renderSourceCard,
   REFUSED_TEXT, DEGRADED_TEXT, EMPTY_TEXT
 } from '../lib/lib-source-card.js';
+import { LIB_CATALOG } from '../lib/data/lib-catalog.js';
+import { shouldDropLibraryHit } from '../lib/removed-sources.js';
+
+const BLOCKED_BOOK_IDS = new Set(LIB_CATALOG.filter((row) => Array.isArray(row) && row[5] === 1).map((row) => String(row[0])));
 
 const SEARCH_URL = 'https://lib.ezik.app/search';
 
@@ -120,7 +124,7 @@ export function shapeSearchResponse(payload) {
   // `hits` was copied by name above; replace it with the per-hit whitelist, and drop
   // it entirely if it came back as something other than a list.
   if (Array.isArray(payload?.hits)) {
-    out.hits = payload.hits.map((hit) => {
+    out.hits = payload.hits.filter((hit) => !shouldDropLibraryHit(hit, BLOCKED_BOOK_IDS)).map((hit) => {
       // THE WHITELIST RUNS FIRST, and the card is built from its OUTPUT rather than from the
       // raw hit. So a field the service invented cannot reach a card even indirectly.
       const shaped = pickFields(hit, HIT_FIELDS);

@@ -30,11 +30,15 @@ const OUT = process.argv[3] || path.join(HERE, '..', 'lib', 'data', 'lib-catalog
 const census = JSON.parse(fs.readFileSync(SRC, 'utf8'));
 const books = Array.isArray(census.books) ? census.books : [];
 if (!books.length) throw new Error('no books in ' + SRC);
+const removedSourcesPath = path.join(HERE, '..', 'lib', 'data', 'removed-sources.json');
+const removedSources = JSON.parse(fs.readFileSync(removedSourcesPath, 'utf8'));
+const removedBookIds = new Set(Array.isArray(removedSources.books) ? removedSources.books : []);
 
 const CLASSES = new Set(['turath', 'fatwa', 'modern']);
 const rows = [];
 for (const b of books) {
   const id = String(b.id || '').trim();
+  if (removedBookIds.has(id)) continue;
   const title = String(b.title || '').trim();
   const author = String(b.author || '').trim();
   const cls = String(b.class || '').trim();
@@ -61,4 +65,4 @@ const body = rows.map((r) => '  ' + JSON.stringify(r) + ',');
 const out = head.concat(body, ['];', '']).join('\n');
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 fs.writeFileSync(OUT, out, 'utf8');
-console.log('wrote ' + OUT + ' rows=' + rows.length + ' ' + JSON.stringify(counts));
+console.log('wrote ' + OUT + ' rows=' + rows.length + ' removed=' + removedBookIds.size + ' ' + JSON.stringify(counts));

@@ -152,6 +152,7 @@ import { frontSorterDecision, sorterEligibility, startSorter, runtimeAfterSorter
 import { impermissibleEarlyDecision, classifyPornographyRequest, classifyYoungPornographyDoubt, PORN_REFUSAL_TEXT } from '../lib/policy/porn-request.js';
 // POSTSHIP ITEM 4 -- 2026-10-24: the owner's support address, a fixed text with no model (lib/policy/support-contact.js).
 import { isSupportContactRequest, SUPPORT_CONTACT_TEXT } from '../lib/policy/support-contact.js';
+import { removedPersonAttribution, appendRemovedPersonAnswerNote } from '../lib/removed-sources.js';
 import { generalizeSystemBlocks } from '../lib/general-frame.js';
 import { takhrijDecision, TAKHRIJ_SKIPPED_STREAMED } from '../lib/takhrij.js';
 // BATCH 4 [b18] — on its own line: guards/takhrij-contract-guard.cjs row 19 pins the line above.
@@ -1138,6 +1139,8 @@ export default async function handler(req, res) {
   // path" must stay measurable — it simply no longer decides whether a wrong answer goes out.
   const legacyPolicy = await decideLegacyPolicy(req);
   const currentQuestionText = lastUserText(body.messages);
+  const removedPersonQuestion = removedPersonAttribution(currentQuestionText);
+  if (removedPersonQuestion) console.log('[removed-person]', { role: 'removed_person', action: 'library_source_excluded' });
   // The legacy paths keep their thread IR, but domain/retrieval owns a separate current-turn IR.
   // No entity inferred from older turns may enter the stored query, prompt, answer or telemetry.
   const currentPlan = planAsk([{ role: 'user', content: currentQuestionText }], { policyEnabled: true });
@@ -2561,6 +2564,7 @@ export default async function handler(req, res) {
               spend: [],
               libFlagValue,
               libToken,
+              question: questionText,
               signal: readerGone,
             }),
           });
@@ -2737,7 +2741,11 @@ export default async function handler(req, res) {
       readerText = withPatientReferral(readerText, questionText, audienceBand);
       // ITEM r2-7 -- 2026-10-17 brain-line R2: a question about suicide ends on the one comfort sentence (lib/policy/core.js).
       readerText = withSuicideComfort(readerText, questionText);
-      const freeBrainBody = readerText + (out.truncated === true ? TRUNCATED_MARK : '');
+      const freeBrainBody = appendRemovedPersonAnswerNote(
+        readerText + (out.truncated === true ? TRUNCATED_MARK : ''),
+        questionText,
+        { blocked: out.notCovered === true || out.refused === true || out.unsourcedWithheld === true },
+      );
       if (takhrijDisclosureOnce(freeBrainBody, takhrijNote)) out.degraded.push('takhrij:limit_declared');
       return emitFreeBrain(freeBrainBody, out.readerUnits);
     }
@@ -3757,7 +3765,8 @@ export default async function handler(req, res) {
     // The guarantee is exactly what it was: no position is attributed to a man without a page
     // of his that says it. What is no longer true is that failing to find one costs the reader
     // the answer to the question he actually asked.
-    let attributionNote = '';          // appended to the general answer, never emitted alone
+    let attributionNote = removedPersonQuestion
+      ? unattributedNote(removedPersonQuestion.name) : ''; // appended after a sourced answer
     // ── DID A SEARCH FOR HIS OWN TEXT ACTUALLY RUN? ────────────────────────
     //
     // «لم أقف على نصٍّ له» is a statement about work that was done, and a historical scholar has
@@ -3772,7 +3781,7 @@ export default async function handler(req, res) {
     // assigned tersely below on purpose — attribution-guard.cjs pins the distance between
     // `if (!attributedSources.length) {` and what follows it, and the pin is worth the terseness.
     let attributionSearched = false;
-    let attributionUnverified = false;
+    let attributionUnverified = !!removedPersonQuestion;
     // ── NO CORPUS TO SEARCH IS NOT PERMISSION TO SPEAK FOR HIM ─────────────
     //
     // This used to be armed by the world check: «he is not a scholar» was read as «so there is
@@ -3786,7 +3795,7 @@ export default async function handler(req, res) {
     // — which is what the flag records. The gates stay armed either way.
     if (effectiveRoute === 'DEEN' && unregisteredName) attributionUnverified = true;
     const attributionActive = effectiveRoute === 'DEEN' && !!trustedReaderEntity
-      && (plan.attributionMode === 'namedScholarOpinion') && !unregisteredName;
+      && (plan.attributionMode === 'namedScholarOpinion') && !unregisteredName && !removedPersonQuestion;
     if (attributionActive) {
       let attributedSources = [];
       if (plan.hasDirectAdapter) {
@@ -3910,8 +3919,10 @@ export default async function handler(req, res) {
         // found at all. Nothing of the rejected draft survives; only the QUESTION does.
         console.warn('[attribution]', REASON.PAGE_NOT_DIRECT_EVIDENCE, verdict.problems.join(' | '));
         attributionUnverified = true;
-        // A page of his WAS fetched and read here, so the negation is earned.
-        attributionNote = unattributedNote(plan.namedEntity);
+        // Ordinary scholars only reach this branch after a direct search; the removed-source note is canonical.
+        attributionNote = removedPersonQuestion
+          ? unattributedNote(removedPersonQuestion.name)
+          : unattributedNote(plan.namedEntity);
       } else {
         const card = buildSourceTag({ url: src.canonicalUrl, title: src.title });
         registerOwnedCards(card ? [card] : []);
@@ -4513,7 +4524,7 @@ export default async function handler(req, res) {
     // does not relax the sourced-statement rule, and it does not touch the case the note exists
     // for: if the retrieved pages really do NOT include his own domain, the note is true and
     // stands exactly as before.
-    if (attributionNote && plan.officialDomain) {
+    if (attributionNote && plan.officialDomain && !removedPersonQuestion) {
       const own = retrievedSources.filter(Boolean).flat().filter((p) => {
         try { return hostMatches(new URL(p.url).hostname, plan.officialDomain); } catch { return false; }
       });

@@ -1032,6 +1032,11 @@
     "args": ""
   },
   {
+    "name": "removedsources",
+    "script": "guards/removed-sources-guard.cjs",
+    "args": ""
+  },
+  {
     "name": "yahimmak",
     "script": "guards/yahimmak-guard.cjs",
     "args": ""

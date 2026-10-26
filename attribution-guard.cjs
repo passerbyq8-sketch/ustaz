@@ -643,7 +643,7 @@ const user = (t) => [{ role: 'user', content: t }];
   // draft may survive — asserted by requiring the fall-through to set the note and never to
   // emit `draft`.
   ok('a failed verification discards the draft entirely',
-    /if \(!verdict\.ok\) \{[\s\S]{0,1600}?attributionNote = unattributedNote\(plan\.namedEntity\);[\s\S]{0,40}?\} else \{/.test(ask));
+     /if \(!verdict\.ok\) \{[\s\S]{0,1600}?attributionNote = [\s\S]{0,300}?unattributedNote\(plan\.namedEntity\);[\s\S]{0,40}?\} else \{/.test(ask));
   ok('...and the rejected draft is never written to the reader',
     !/if \(!verdict\.ok\)[\s\S]{0,600}?text: draft/.test(ask));
   ok('the model may not contribute a source card on this path',

@@ -138,8 +138,11 @@ async function mutantModule(temp, rel, name, mutate, probe) {
   const changed = mutate(lf);
   if (changed === lf) throw new Error('mutation seam moved: ' + name + ' in ' + rel);
   const sourceDir = path.dirname(path.join(REPO, rel));
-  const resolved = changed.replace(/(\bfrom\s*')(\.\.?\/[^']+)(')/g,
-    (all, head, spec, tail) => head + pathToFileURL(path.resolve(sourceDir, spec)).href + tail);
+  const resolved = changed
+    .replace(/(\bfrom\s*')(\.\.?\/[^']+)(')/g,
+      (all, head, spec, tail) => head + pathToFileURL(path.resolve(sourceDir, spec)).href + tail)
+    .replace(/(\bimport\(\s*')(\.\.?\/[^']+)('\s*\))/g,
+      (all, head, spec, tail) => head + pathToFileURL(path.resolve(sourceDir, spec)).href + tail);
   const dir = path.join(temp, name);
   fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, path.basename(rel));

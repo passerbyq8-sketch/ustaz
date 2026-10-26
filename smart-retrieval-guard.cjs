@@ -77,8 +77,8 @@ const user = (t) => [{ role: 'user', content: t }];
         .every((f) => !/لم أتمكن من توثيق هذا القول عن الشيخ/.test(read(f))));
     ok('...and the note that replaced it is only ever appended to a sourced answer',
       /attributionNote \? '\\n\\n' \+ attributionNote/.test(ask));
-    ok('the note names the scholar and asserts no ruling',
-      /لم أقف على نصٍّ مباشرٍ/.test(unattributedNote('فلان'))
+    ok('the note names the scholar and says there is no direct attribution',
+      /\u{644}\u{627} \u{64a}\u{648}\u{631}\u{62f} \u{647}\u{630}\u{627} \u{627}\u{644}\u{62c}\u{648}\u{627}\u{628} \u{646}\u{635}\u{627} \u{645}\u{628}\u{627}\u{634}\u{631}\u{627} \u{644}\u{644}\u{634}\u{64a}\u{62e}/u.test(unattributedNote('\u{641}\u{644}\u{627}\u{646}'))
       && !/يجوز|لا يجوز|حرام|واجب/.test(unattributedNote('فلان')));
   }
 
@@ -206,11 +206,11 @@ const user = (t) => [{ role: 'user', content: t }];
     // ruling unanswered and a request for the man's website. Honest about doing nothing is still
     // doing nothing.
     //
-    // The invariant that MATTERS survives unchanged and is asserted harder below: a sentence
-    // claiming we looked may only be written after we looked. What is inverted is the order — the
-    // search now runs first, so the sentence becomes sayable instead of being avoided.
-    ok('the post-search note states that a direct search found nothing',
-      /لم أقف على نصٍّ مباشرٍ/.test(unattributedNote('فلان')));
+    // The note does not claim the search found nothing. It says only that the sourced answer
+    // has no direct statement attributed to the named scholar. The search must still happen
+    // before this note can be attached; the assertion below pins that order.
+    ok('the post-search note keeps the no-direct-attribution wording',
+      /\u{644}\u{627} \u{64a}\u{648}\u{631}\u{62f} \u{647}\u{630}\u{627} \u{627}\u{644}\u{62c}\u{648}\u{627}\u{628} \u{646}\u{635}\u{627} \u{645}\u{628}\u{627}\u{634}\u{631}\u{627} \u{644}\u{644}\u{634}\u{64a}\u{62e}/u.test(unattributedNote('\u{641}\u{644}\u{627}\u{646}')));
     ok('a typed reader entity now STARTS a search rather than ending the request',
       /if \(attributionUnverified && trustedReaderEntity && !attributionSearched && !unregisteredName\)[\s\S]{0,1800}?await retrieve\(/.test(ask));
     ok('...and the note claiming a search is written only where the search happened',

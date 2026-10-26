@@ -155,9 +155,11 @@ const hit0 = (key) => FIX.atoms[key].response.hits[0];
     const CAT = (await esm('lib/data/lib-catalog.js')).LIB_CATALOG;
     const counts = { turath: 0, fatwa: 0, modern: 0, auto: 0, blocked: 0 };
     for (const r of CAT) { counts[r[3]] = (counts[r[3]] || 0) + 1; counts.auto += r[4]; counts.blocked += r[5]; }
-    ok('A8  the catalogue is whole: 7,400 unique ids, 4433 turath / 88 fatwa / 2879 modern, 943 auto, 15 blocked',
-      CAT.length === 7400 && new Set(CAT.map((r) => r[0])).size === 7400 && CAT.every((r) => r.length === 6)
-      && same(counts, { turath: 4433, fatwa: 88, modern: 2879, auto: 943, blocked: 15 }), JSON.stringify(counts));
+    const removedIds = JSON.parse(read('lib/data/removed-sources.json')).books;
+    ok('A8  the catalogue has 7,396 unique ids after the four measured exclusions; classes and blocked count stay measured',
+      CAT.length === 7396 && new Set(CAT.map((r) => r[0])).size === 7396 && CAT.every((r) => r.length === 6)
+      && removedIds.length === 4 && removedIds.every((id) => !CAT.some((row) => row[0] === id))
+      && same(counts, { turath: 4433, fatwa: 88, modern: 2875, auto: 939, blocked: 15 }), JSON.stringify(counts));
     // max_chars_per_hit: additive, only when a caller asks.
     const bodies = [];
     const bodyFetch = async (url, init) => {

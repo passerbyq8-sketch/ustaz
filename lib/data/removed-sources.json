@@ -1,0 +1,25 @@
+{
+  "persons": [
+    {
+      "id": "umar-abd-al-kafi",
+      "canonical": "\u0639\u0645\u0631 \u0639\u0628\u062f \u0627\u0644\u0643\u0627\u0641\u064a",
+      "forms": [
+        "\u0639\u0645\u0631 \u0639\u0628\u062f \u0627\u0644\u0643\u0627\u0641\u064a",
+        "\u0639\u0645\u0631 \u0639\u0628\u062f\u0627\u0644\u06a9\u0627\u0641\u064a",
+        "\u0639\u0645\u0631 \u0639\u0628\u062f \u0627\u0644\u0643\u0627\u0641\u0649",
+        "\u0639\u0645\u0631 \u0628\u0646 \u0639\u0628\u062f \u0627\u0644\u0643\u0627\u0641\u064a",
+        "\u0639\u0645\u0631 \u0639\u0628\u062f \u0627\u0644\u0643\u0627\u0641\u064a \u0634\u062d\u0627\u062a\u0629"
+      ]
+    }
+  ],
+  "books": ["FC-004992", "FC-005049", "FC-006129", "FC-007063"],
+  "bookTitles": {
+    "FC-004992": "الدار الآخرة - عمر عبد الكافي",
+    "FC-005049": "شرح كتاب الفوائد",
+    "FC-006129": "مقتطفات من السيرة",
+    "FC-007063": "دروس الدكتور عمر عبد الكافي"
+  },
+  "atoms": ["FC-003147:0140:001"],
+  "lessons": [],
+  "_why": "This person remains available for ordinary identity questions, but is not an answer or library source. Exclude only his four measured catalog books and the single exact foreign-book quotation atom. Keep contextual mentions, program lists, other authors' material, and the historical namesake. The read-only lessons FTS lookup found no matching units."
+}
