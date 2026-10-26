@@ -63,7 +63,7 @@
   const app = document.createElement('div'); app.className = 'journey-app'; app.dataset.game = game;
   document.body.classList.add('ezik-treasure-theme'); document.body.append(app);
   const themeMeta = document.querySelector('meta[name="theme-color"]'); if (themeMeta) themeMeta.content = '#082c38';
-  const OFFLINE_VERSION = '20261026-kfix2';
+  const OFFLINE_VERSION = '20261026-kfix3';
   const THEME_VERSION = OFFLINE_VERSION;
   const IAP_HOST_RESUME_KEY = 'kunuz_iap_host_resume_v1';
   const IAP_EXPIRED_NOTICE_KEY = 'kunuz_iap_expired_notice_v1';
@@ -1215,7 +1215,7 @@
       // remains completely offline. It owns its credentials, reconnect and protocol.
       const css = ['Page-oyXYdFLk.css', 'index-BYf54ooy.css'];
       for (const file of css) { const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = '/hanna-laha/assets/' + file; document.head.append(link); }
-      const module = document.createElement('script'); module.type = 'module'; module.src = '/hanna-laha/assets/index-iap-v1.js?v=20261025-kfix3';
+      const module = document.createElement('script'); module.type = 'module'; module.src = '/hanna-laha/assets/index-iap-v1.js?v=20261026-iaproom1';
       try { localStorage.setItem('hl-ezik.sound', 'false'); } catch (_) {}
       if (!join) {
         const roomColors = ['blue','orange','purple','green','gold','pink','teal','brown','navy','olive','red','maroon'];

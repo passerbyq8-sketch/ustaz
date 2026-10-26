@@ -81,5 +81,12 @@
     "hanna-laha/assets/PhoneScreen-iap-v1.js?v=20261025-kfix4": "7c9d0c8e21fdfff01cb8d8c4ea8ca52963eb57884b2598a9adab5d3a0361826c",
     "hanna-laha/assets/HostRoomScreen-iap-v1.js?v=20261025-kfix4": "58e79e9f7c528019c7aa7614e98590ba6ec71a98a346ec6af4d4a8aa0cdbb23f"
   },
-  "quest-theme/journey.js?v=20261026-kfix2": "5e76ef9554d3ada6b03915f93435b140feeebd6a5e2c1133b5748119fa8db78d"
+  "quest-theme/journey.js?v=20261026-kfix2": "5e76ef9554d3ada6b03915f93435b140feeebd6a5e2c1133b5748119fa8db78d",
+  "hanna-laha/assets/index-iap-v1.js?v=20261026-iaproom1": "44fa2f3b0537fa4fcec01e2fc86b1734fe2e809f86681ddf0eaa40230b277cd7",
+  "hanna-laha/assets/SetupScreen-iap-v1.js?v=20261026-iaproom1": "8ad04775c29e0fa68f827118421fb5ebcfe9fc64b337272a078693277a5f3d19",
+  "hanna-laha/assets/JoinScreen-iap-v1.js?v=20261026-iaproom1": "d36d2e215ad59f589052d9e469752aba2d6e08a75dc7f80f8b1117a448ac770c",
+  "hanna-laha/assets/PhoneScreen-iap-v1.js?v=20261026-iaproom1": "9b6d13f98b690e06d0ca6d56551ae1fcbcb40417d1009cebd570c90604f60a54",
+  "hanna-laha/assets/TerminalNotice-iap-v1.js?v=20261026-iaproom1": "0cefabaea54a054cb06bffac2e3a7ef3df61d2176940ebd4b3d45aaa246da7c6",
+  "hanna-laha/assets/HostRoomScreen-iap-v1.js?v=20261026-iaproom1": "76806d2e81fb14c64210c6c63018662d3e27f548d909df7d17291926d97c9878",
+  "quest-theme/journey.js?v=20261026-kfix3": "0a1d9bcf11e64db92f85e397ca8b75408d82452d3bf8cb22b120d411728b89b3"
 }

@@ -155,6 +155,16 @@ check('all first-paint bootstraps and font preloads are identical; Hanna CSP aut
   assert.equal(new Set(scripts).size, 1);
   assert.doesNotMatch(read('quest-theme/journey.js') + read('quest-sw.js'), /createObjectURL|revokeObjectURL/);
 });
+check('Hanna room screens share one versioned app module', () => {
+  const version = '20261026-iaproom1', rootModule = read('hanna-laha/assets/index-iap-v1.js');
+  const chunks = ['SetupScreen-iap-v1', 'JoinScreen-iap-v1', 'PhoneScreen-iap-v1', 'TerminalNotice-iap-v1', 'HostRoomScreen-iap-v1'];
+  for (const chunk of chunks) {
+    const source = read(`hanna-laha/assets/${chunk}.js`);
+    assert.ok(rootModule.includes(`${chunk}.js?v=${version}`), `${chunk} entry version`);
+    assert.ok(source.includes(`./index-iap-v1.js?v=${version}`), `${chunk} shared module version`);
+    assert.doesNotMatch(source, /from"\.\/index-iap-v1\.js"/);
+  }
+});
 async function workerProof() {
   const crypto = require('node:crypto'), handlers = {}, stored = new Map(), deleted = [], fetched = [];
   const version = /const VERSION = '([^']+)'/.exec(read('quest-sw.js'))[1];

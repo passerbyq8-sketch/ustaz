@@ -502,7 +502,7 @@ function checkT11(pageText) {
   // KUNUZ-LEVELS-POETRY (2026-10-19, C): the deferred shared loader requests the optional levels file after setup mounts;
   // kunuzlevels L4/L5 check its switch and single source entry.
   // Visual engine: four fixed same-origin assets; kunuzvisual checks their loaders and switch.
-  if (srcs.join(',') !== '/quest-theme/motion-kit.js?v=20261022-roomsfix2,/quest-theme/icons.js?v=20261022-roomsfix2,/quest-theme/model.js?v=20261025-kfix5,/iap-pending.js?v=20261023-iapf,/hanna-laha/assets/iap-bridge-v1.js?v=20261024-iapg6,/quest-theme/journey.js?v=20261026-kfix2') f.push('scripts loaded: ' + srcs.join(','));
+  if (srcs.join(',') !== '/quest-theme/motion-kit.js?v=20261022-roomsfix2,/quest-theme/icons.js?v=20261022-roomsfix2,/quest-theme/model.js?v=20261025-kfix5,/iap-pending.js?v=20261023-iapf,/hanna-laha/assets/iap-bridge-v1.js?v=20261024-iapg6,/quest-theme/journey.js?v=20261026-kfix3') f.push('scripts loaded: ' + srcs.join(','));
   { const mod = fs.readFileSync(path.join(REPO, 'quest-levels.js'), 'utf8'); bad.forEach((re) => { if (re.test(mod.replace('s.src="/quest-data/kunuz-levels-3147.js";', ''))) f.push('the levels module reaches out: ' + re); });
     if ((mod.match(/\.src="([^"]*)"/g) || []).join() !== '.src="/quest-data/kunuz-levels-3147.js"') f.push('the levels module loads something else than its file'); }
   if (!/<html lang="ar" dir="rtl">/.test(pageText)) f.push('not declared Arabic right to left');
