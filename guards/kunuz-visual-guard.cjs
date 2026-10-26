@@ -159,18 +159,18 @@ async function new20(){
   const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
   const cv=require('../tools/kunuz-new20-convert.cjs');
   const manifest=new Function(read('quest-data/kunuz-packs-manifest.js')+';return KUNUZ_PACKS')();
-  assert.deepEqual(manifest.map(p=>p.slug),cv.GROUPS.map(g=>g[0]).filter(s=>!['fmt-odd-one','landmark-draw','occasions-calendar'].includes(s)));
+  assert.deepEqual(manifest.map(p=>p.slug),cv.GROUPS.map(g=>g[0]).filter(s=>!['fmt-odd-one','landmark-draw','occasions-calendar'].includes(s)).concat(['historical-events','landmark-photos']));
   const packs=manifest.map(entry=>{assert.equal(entry.src,cv.packPath(entry.slug));const body=read(entry.src);const pack=cv.parsePack(body);assert.equal(pack.slug,entry.slug);return {pack,body}});
   const held=packs.flatMap(p=>p.pack.qs).filter(q=>q.status==='held');
   assert.equal(held.length,Object.keys(QUALITY_PACK_HELD).length,'named pack hold count');
   for(const q of held)assert.equal(crypto.createHash('sha256').update(JSON.stringify(q)).digest('hex'),QUALITY_PACK_HELD[q.id],q.id+': held content changed');
   for(const {pack} of packs)for(const q of pack.qs)if(q.status==='approved')assert.ok(!Object.hasOwn(QUALITY_PACK_HELD,q.id),q.id+': held row became live');
-  const checked=await cv.validatePacks(packs);assert.equal(checked.questions,5363);assert.equal(checked.liveQuestions,5282);
+  const checked=await cv.validatePacks(packs);assert.equal(checked.questions,5636);assert.equal(checked.liveQuestions,5555);
   const bodies=Object.fromEntries(packs.map(p=>['/'+cv.packPath(p.pack.slug),p.body]));
   for(const page of games){
     const w=await open(page,{manifest,bodies});
-    assert.equal(w.ctx.DATA.qs.length,bank.qs.length+5282,page+' real manifest load');
-    assert.equal(w.requests.filter(p=>/kunuz-pack-/.test(p)).length,17);
+    assert.equal(w.ctx.DATA.qs.length,bank.qs.length+5555,page+' real manifest load');
+    assert.equal(w.requests.filter(p=>/kunuz-pack-/.test(p)).length,19);
     assert.ok(w.ctx.KZC_GROUPS.some(g=>g[0]==='بصريات وألغاز'));
     noErrors(w);
   }
@@ -220,7 +220,7 @@ if(require.main===module)(async()=>{
     const mutants=[
       ['SVG bypass','if(v.kind==="svg")return !!sanitizeSvg(v.svg);','if(v.kind==="svg")return true;',security],
       ['rotation range','integer(c.rot,0,315)','true',security],
-      ['photo traversal','if(!/^quest-data\\/signs\\/[a-z0-9]+(?:-[a-z0-9]+)*\\.webp$/.test(v.src))return false;','if(false)return false;',security],
+      ['photo traversal','if(!/^(?:quest-data\\/signs\\/[a-z0-9]+(?:-[a-z0-9]+)*\\.webp|quest-img\\/landmarks\\/landmark-photos-\\d{4}\\.webp)$/.test(v.src))return false;','if(false)return false;',security],
       ['unsafe explanation','node.textContent=q[6]','node.innerHTML=q[6]',security],
       ['pack seal','p.stamp!==stamp(p.qs)','false',envelopes],
       ['duplicate IDs','own(ids,q.id)||own(localIds,q.id)','false',envelopes],
